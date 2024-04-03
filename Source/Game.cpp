@@ -92,6 +92,5 @@ void Game::InitializeActors()
             mScene->Battle();
             break;
         }
-
     }
 }
