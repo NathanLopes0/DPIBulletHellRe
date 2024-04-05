@@ -11,7 +11,13 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Scenes/Scene.h
         Source/Scenes/Scene.h
         Source/Actors/Actor.cpp
-        Source/Actors/Actor.h)
+        Source/Actors/Actor.h
+        Source/Components/Component.cpp
+        Source/Components/Component.h
+        Source/Components/RigidBodyComponent.cpp
+        Source/Components/RigidBodyComponent.h
+        Source/Components/DrawComponents/DrawComponent.cpp
+        Source/Components/DrawComponents/DrawComponent.h)
 
 find_package(SDL2 2.30.1 EXACT REQUIRED)
 find_package(SDL2_image REQUIRED)
