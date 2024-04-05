@@ -1,0 +1,14 @@
+//
+// Created by nslop on 05/04/2024.
+//
+
+#ifndef DPIBULLETHELLRE_DRAWCOMPONENT_H
+#define DPIBULLETHELLRE_DRAWCOMPONENT_H
+
+
+class DrawComponent {
+
+};
+
+
+#endif //DPIBULLETHELLRE_DRAWCOMPONENT_H

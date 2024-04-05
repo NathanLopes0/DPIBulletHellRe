@@ -10,6 +10,8 @@
 #include "Random.h"
 #include "Game.h"
 #include "AudioSystem.h"
+#include "Actors/Actor.h"
+
 
 Game::Game(int windowWidth, int windowHeight)
     :mWindow(nullptr),
@@ -238,7 +240,7 @@ void Game::RemoveDrawable(class DrawComponent *drawable)
     mDrawables.erase(iter);
 }
 
-void Game::AddCollider(class CircleColliderComponent* collider)
+void Game::AddCollider(CircleColliderComponent* collider)
 {
     mColliders.emplace_back(collider);
 }
