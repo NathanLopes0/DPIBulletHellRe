@@ -6,7 +6,12 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(DPIBulletHellRe Source/main.cpp
         Source/Game.cpp
         Source/Game.h
-        Source/CSV.h)
+        Source/CSV.h
+        Source/Scenes/Scene.cpp
+        Source/Scenes/Scene.h
+        Source/Scenes/Scene.h
+        Source/Actors/Actor.cpp
+        Source/Actors/Actor.h)
 
 find_package(SDL2 2.30.1 EXACT REQUIRED)
 find_package(SDL2_image REQUIRED)

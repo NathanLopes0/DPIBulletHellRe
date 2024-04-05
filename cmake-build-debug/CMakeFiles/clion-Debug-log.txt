@@ -6,7 +6,7 @@ CMake Deprecation Warning at C:/Program Files/SDL2_image-2.8.2/cmake/sdl2_image-
   Update the VERSION argument <min> value or use a ...<max> suffix to tell
   CMake that the project does not need compatibility with older versions.
 Call Stack (most recent call first):
-  CMakeLists.txt:12 (find_package)
+  CMakeLists.txt:17 (find_package)
 
 
 CMake Deprecation Warning at C:/Program Files/SDL2_mixer-2.8.0/cmake/sdl2_mixer-config.cmake:10 (cmake_minimum_required):
@@ -16,7 +16,7 @@ CMake Deprecation Warning at C:/Program Files/SDL2_mixer-2.8.0/cmake/sdl2_mixer-
   Update the VERSION argument <min> value or use a ...<max> suffix to tell
   CMake that the project does not need compatibility with older versions.
 Call Stack (most recent call first):
-  CMakeLists.txt:13 (find_package)
+  CMakeLists.txt:18 (find_package)
 
 
 CMake Deprecation Warning at C:/Program Files/SDL2_ttf-2.22.0/cmake/sdl2_ttf-config.cmake:10 (cmake_minimum_required):
@@ -26,9 +26,9 @@ CMake Deprecation Warning at C:/Program Files/SDL2_ttf-2.22.0/cmake/sdl2_ttf-con
   Update the VERSION argument <min> value or use a ...<max> suffix to tell
   CMake that the project does not need compatibility with older versions.
 Call Stack (most recent call first):
-  CMakeLists.txt:14 (find_package)
+  CMakeLists.txt:19 (find_package)
 
 
--- Configuring done (1.3s)
--- Generating done (0.1s)
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
 -- Build files have been written to: C:/Users/nslop/CLionProjects/DPIBulletHellRe/cmake-build-debug
