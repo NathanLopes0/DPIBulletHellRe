@@ -17,7 +17,9 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Components/RigidBodyComponent.cpp
         Source/Components/RigidBodyComponent.h
         Source/Components/DrawComponents/DrawComponent.cpp
-        Source/Components/DrawComponents/DrawComponent.h)
+        Source/Components/DrawComponents/DrawComponent.h
+        Source/Components/DrawComponents/DrawSpriteComponent.cpp
+        Source/Components/DrawComponents/DrawSpriteComponent.h)
 
 find_package(SDL2 2.30.1 EXACT REQUIRED)
 find_package(SDL2_image REQUIRED)
