@@ -20,7 +20,7 @@ DrawComponent::~DrawComponent()
     mOwner->GetScene()->GetGame()->RemoveDrawable(this);
 }
 
-void DrawComponent::Draw(class SDL_Renderer *renderer)
+void DrawComponent::Draw(SDL_Renderer *renderer)
 {
 
 }

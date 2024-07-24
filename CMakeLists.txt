@@ -19,7 +19,13 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Components/DrawComponents/DrawComponent.cpp
         Source/Components/DrawComponents/DrawComponent.h
         Source/Components/DrawComponents/DrawSpriteComponent.cpp
-        Source/Components/DrawComponents/DrawSpriteComponent.h)
+        Source/Components/DrawComponents/DrawSpriteComponent.h
+        Source/Components/DrawComponents/DrawTextComponent.cpp
+        Source/Components/DrawComponents/DrawTextComponent.h
+        Source/Components/DrawComponents/DrawAnimatedComponent.cpp
+        Source/Components/DrawComponents/DrawAnimatedComponent.h
+        Source/Components/ColliderComponents/CircleColliderComponent.cpp
+        Source/Components/ColliderComponents/CircleColliderComponent.h)
 
 find_package(SDL2 2.30.1 EXACT REQUIRED)
 find_package(SDL2_image REQUIRED)
