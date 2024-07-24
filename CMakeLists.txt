@@ -25,7 +25,13 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Components/DrawComponents/DrawAnimatedComponent.cpp
         Source/Components/DrawComponents/DrawAnimatedComponent.h
         Source/Components/ColliderComponents/CircleColliderComponent.cpp
-        Source/Components/ColliderComponents/CircleColliderComponent.h)
+        Source/Components/ColliderComponents/CircleColliderComponent.h
+        Source/Scenes/MainMenu.cpp
+        Source/Scenes/MainMenu.h
+        Source/Scenes/StageSelect.cpp
+        Source/Scenes/StageSelect.h
+        Source/Actors/StageSelectButton.cpp
+        Source/Actors/StageSelectButton.h)
 
 find_package(SDL2 2.30.1 EXACT REQUIRED)
 find_package(SDL2_image REQUIRED)
