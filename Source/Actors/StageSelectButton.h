@@ -1,0 +1,14 @@
+//
+// Created by nslop on 24/07/2024.
+//
+
+#ifndef DPIBULLETHELLRE_STAGESELECTBUTTON_H
+#define DPIBULLETHELLRE_STAGESELECTBUTTON_H
+
+
+class StageSelectButton {
+
+};
+
+
+#endif //DPIBULLETHELLRE_STAGESELECTBUTTON_H
