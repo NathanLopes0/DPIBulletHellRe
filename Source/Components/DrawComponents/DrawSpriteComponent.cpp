@@ -28,5 +28,5 @@ void DrawSpriteComponent::Draw(SDL_Renderer *renderer)
         flipflag = SDL_RendererFlip::SDL_FLIP_HORIZONTAL;
 
     SDL_RenderCopyEx(renderer, mSpriteSheetSurface, srcrect, dstrect,
-                     NULL, nullptr, flipflag);
+                     0.0, nullptr, flipflag);
 }

@@ -2,8 +2,7 @@
 // Created by nslop on 23/07/2024.
 //
 
-#ifndef DPIBULLETHELLRE_MAINMENU_H
-#define DPIBULLETHELLRE_MAINMENU_H
+#pragma once
 
 #include "Scene.h"
 
@@ -18,6 +17,3 @@ public:
 private:
     class Font* mMainMenuFont;
 };
-
-
-#endif //DPIBULLETHELLRE_MAINMENU_H

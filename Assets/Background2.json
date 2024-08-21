@@ -1,0 +1,36 @@
+{"frames": [
+
+{
+	"filename": "DPIBHBackgroundApproved.png",
+	"frame": {"x":0,"y":0,"w":1200,"h":800},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1200,"h":800},
+	"sourceSize": {"w":1200,"h":800}
+},
+{
+	"filename": "DPIBHBackgroundPlaceholder.png",
+	"frame": {"x":1200,"y":0,"w":1200,"h":800},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1200,"h":800},
+	"sourceSize": {"w":1200,"h":800}
+},
+{
+	"filename": "DPIBHBackgroundReproved.png",
+	"frame": {"x":2400,"y":0,"w":1200,"h":800},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1200,"h":800},
+	"sourceSize": {"w":1200,"h":800}
+}],
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "Background2.png",
+	"format": "RGBA8888",
+	"size": {"w":3600,"h":800},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:f2958ab5fe66b3e26bf997126820efac:f667afd62a958c0a6c3dc6f4101c0f87:16d630c8a63f310e66cc2540f9d2c6fd$"
+}
+}

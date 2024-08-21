@@ -1,16 +1,17 @@
 //
 // Created by nslop on 03/04/2024.
 //
+#include "Game.h"
 #include <algorithm>
 #include <iostream>
 #include <fstream>
-#include <vector>
 #include <SDL_ttf.h>
 #include "SDL_image.h"
 #include "Random.h"
-#include "Game.h"
 #include "AudioSystem.h"
 #include "Actors/Actor.h"
+#include "Scenes/MainMenu.h"
+#include "Components/DrawComponents/DrawComponent.h"
 
 
 Game::Game(int windowWidth, int windowHeight)
@@ -85,13 +86,13 @@ void Game::InitializeActors()
             break;
         }
         case GameScene::StageSelect : {
-            mScene = new StageSelect(this);
+            //mScene = new StageSelect(this);
             mScene->Load();
             break;
         }
         case GameScene::Battle : {
-            mScene = new Battle(this);
-            mScene->Battle();
+            //mScene = new Battle(this);
+            mScene->Load();
             break;
         }
     }
@@ -275,6 +276,7 @@ SDL_Texture* Game::LoadTexture(const std::string& texturePath) {
 
     auto loadedIMG = IMG_Load(texturePath.c_str());
     if (loadedIMG == nullptr) {
+        SDL_Log("textura invalida queride");
         return nullptr;
     }
 

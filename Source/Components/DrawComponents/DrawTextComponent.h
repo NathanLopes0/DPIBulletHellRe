@@ -2,8 +2,7 @@
 // Created by nslop on 04/06/2024.
 //
 
-#ifndef DPIBULLETHELLRE_DRAWTEXTCOMPONENT_H
-#define DPIBULLETHELLRE_DRAWTEXTCOMPONENT_H
+#pragma once
 
 #include "DrawComponent.h"
 #include <string>
@@ -28,6 +27,3 @@ protected:
     int mWidth;
     int mHeight;
 };
-
-
-#endif //DPIBULLETHELLRE_DRAWTEXTCOMPONENT_H

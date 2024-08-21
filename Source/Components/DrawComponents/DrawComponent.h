@@ -2,8 +2,7 @@
 // Created by nslop on 05/04/2024.
 //
 
-#ifndef DPIBULLETHELLRE_DRAWCOMPONENT_H
-#define DPIBULLETHELLRE_DRAWCOMPONENT_H
+#pragma once
 
 #include "../Component.h"
 #include <vector>
@@ -27,6 +26,3 @@ protected:
     bool mIsVisible;
     int mDrawOrder;
 };
-
-
-#endif //DPIBULLETHELLRE_DRAWCOMPONENT_H
