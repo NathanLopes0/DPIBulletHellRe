@@ -263,6 +263,12 @@ SDL2_mixer_DIR:PATH=C:/Program Files/SDL2_mixer-2.8.0/cmake
 //The directory containing a CMake configuration file for SDL2_ttf.
 SDL2_ttf_DIR:PATH=C:/Program Files/SDL2_ttf-2.22.0/cmake
 
+//Path to a file.
+SDL_IMAGE_INCLUDE_DIR:PATH=SDL_IMAGE_INCLUDE_DIR-NOTFOUND
+
+//Path to a library.
+SDL_IMAGE_LIBRARY:FILEPATH=SDL_IMAGE_LIBRARY-NOTFOUND
+
 
 ########################
 # INTERNAL cache entries

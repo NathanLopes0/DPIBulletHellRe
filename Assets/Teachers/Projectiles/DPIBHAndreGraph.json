@@ -1,0 +1,36 @@
+{"frames": [
+
+{
+	"filename": "DPIBHAndreGraph1.png",
+	"frame": {"x":0,"y":0,"w":16,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+	"sourceSize": {"w":16,"h":16}
+},
+{
+	"filename": "DPIBHAndreGraph2.png",
+	"frame": {"x":16,"y":0,"w":16,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+	"sourceSize": {"w":16,"h":16}
+},
+{
+	"filename": "DPIBHAndreGraph3.png",
+	"frame": {"x":32,"y":0,"w":16,"h":16},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+	"sourceSize": {"w":16,"h":16}
+}],
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "DPIBHAndreGraph.png",
+	"format": "RGBA8888",
+	"size": {"w":48,"h":16},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:3febec944dd3763f661b2adbc8c5b829:f131688081820c415a1d9372643d1362:328bb1c67bb2cbb0b28bc2536bf6c575$"
+}
+}

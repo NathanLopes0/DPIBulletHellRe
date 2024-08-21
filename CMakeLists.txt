@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.26)
 project(DPIBulletHellRe)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -22,18 +22,22 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Components/DrawComponents/DrawSpriteComponent.h
         Source/Components/DrawComponents/DrawTextComponent.cpp
         Source/Components/DrawComponents/DrawTextComponent.h
-        Source/Components/DrawComponents/DrawAnimatedComponent.cpp
-        Source/Components/DrawComponents/DrawAnimatedComponent.h
         Source/Components/ColliderComponents/CircleColliderComponent.cpp
         Source/Components/ColliderComponents/CircleColliderComponent.h
         Source/Scenes/MainMenu.cpp
         Source/Scenes/MainMenu.h
-        Source/Scenes/StageSelect.cpp
-        Source/Scenes/StageSelect.h
-        Source/Actors/StageSelectButton.cpp
-        Source/Actors/StageSelectButton.h)
+        Source/Font.cpp
+        Source/Font.h
+        Source/AudioSystem.cpp
+        Source/AudioSystem.h
+        Source/Random.cpp
+        Source/Actors/Teacher/Boss.cpp
+        Source/Actors/Teacher/Boss.h
+        Source/Actors/Teacher/Ricardo.cpp
+        Source/Actors/Teacher/Ricardo.h
+        Source/Math.cpp)
 
-find_package(SDL2 2.30.1 EXACT REQUIRED)
+find_package(SDL2 2.28.2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 find_package(SDL2_ttf REQUIRED)

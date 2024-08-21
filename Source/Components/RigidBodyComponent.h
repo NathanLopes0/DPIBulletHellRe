@@ -2,8 +2,7 @@
 // Created by nslop on 05/04/2024.
 //
 
-#ifndef DPIBULLETHELLRE_RIGIDBODYCOMPONENT_H
-#define DPIBULLETHELLRE_RIGIDBODYCOMPONENT_H
+#pragma once
 
 #include "Component.h"
 #include "../Math.h"
@@ -32,6 +31,3 @@ private:
     Vector2 mVelocity;
     Vector2 mAcceleration;
 };
-
-
-#endif //DPIBULLETHELLRE_RIGIDBODYCOMPONENT_H

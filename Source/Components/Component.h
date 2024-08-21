@@ -2,8 +2,7 @@
 // Created by nslop on 05/04/2024.
 //
 
-#ifndef DPIBULLETHELLRE_COMPONENT_H
-#define DPIBULLETHELLRE_COMPONENT_H
+#pragma once
 #include <SDL_stdinc.h>
 
 class Component {
@@ -34,6 +33,3 @@ protected:
 
     bool mIsEnabled;
 };
-
-
-#endif //DPIBULLETHELLRE_COMPONENT_H

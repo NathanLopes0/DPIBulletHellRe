@@ -2,9 +2,12 @@
 // Created by nslop on 03/04/2024.
 //
 
-#ifndef DPIBULLETHELLRE_GAME_H
-#define DPIBULLETHELLRE_GAME_H
+#pragma once
 
+#include <vector>
+#include <string>
+#include <SDL.h>
+#include "Math.h"
 
 class Game {
 public:
@@ -32,7 +35,7 @@ public:
     void RemoveDrawable(class DrawComponent* drawable);
 
     //Texture
-    SDL_Texture* LoadTexture(const std::string& texturePath);
+    class SDL_Texture* LoadTexture(const std::string& texturePath);
 
     //Collider functions
     void AddCollider(class CircleColliderComponent* collider);
@@ -42,11 +45,11 @@ public:
     //Camera functions
     Vector2& GetCameraPos() { return mCameraPos; }
     void SetCameraPos(const Vector2& position) { mCameraPos = position; };
-    SDL_Renderer* GetRenderer() { return mRenderer; }
+    class SDL_Renderer* GetRenderer() { return mRenderer; }
 
     // Window functions
-    int GetWindowWidth() const { return mWindowWidth; }
-    int GetWindowHeight() const { return mWindowHeight; }
+    [[nodiscard]] int GetWindowWidth() const { return mWindowWidth; }
+    [[nodiscard]] int GetWindowHeight() const { return mWindowHeight; }
 
     //Audio System
     class AudioSystem* GetAudio() { return mAudio; }
@@ -73,15 +76,13 @@ private:
     std::vector<class CircleColliderComponent*> mColliders;
 
     // SDL stuff
-    SDL_Window* mWindow;
+    class SDL_Window* mWindow;
     SDL_Renderer* mRenderer;
     AudioSystem* mAudio;
 
     // Window properties
     int mWindowWidth;
     int mWindowHeight;
-    int mGameWindowWidth;
-    int mGameWindowHeight;
 
     // Track elapsed time since game start
     Uint32 mTicksCount;
@@ -96,6 +97,3 @@ private:
     class Scene* mScene;
 
 };
-
-
-#endif //DPIBULLETHELLRE_GAME_H

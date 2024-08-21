@@ -7,11 +7,11 @@
 #include "../Actors/Actor.h"
 #include "../Font.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
-#include "../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "../Components/DrawComponents/DrawSpriteComponent.h"
 
-MainMenu::MainMenu(class Game *game)
-        : Scene(game),
-        mMainMenuFont(nullptr) {
+MainMenu::MainMenu(class Game *game): Scene(game), mMainMenuFont(nullptr)
+
+{
     mMainMenuFont = new Font();
     mMainMenuFont->Load("../Assets/Fonts/Zelda.ttf");
 }
@@ -19,8 +19,14 @@ MainMenu::MainMenu(class Game *game)
 void MainMenu::Load() {
 
     //Instanciar o background geral
+    auto background = new Actor(this);
+    new DrawSpriteComponent(background, "../Assets/DPIUfV.png",1600, 1188, 50);
+    background->SetPosition(Vector2(mGame->GetWindowWidth() / 2, mGame->GetWindowHeight() / 2));
 
     //Instanciar o Título do Jogo
+    auto title = new Actor(this);
+    new DrawSpriteComponent(title, "../Assets/DPIBHTitleMainMenu.png",1200, 800, 75);
+    title->SetPosition(Vector2(mGame->GetWindowWidth()/2, mGame->GetWindowHeight()/2));
 
     //Instanciar "Press Space"
     auto pressSpace = new Actor(this);
