@@ -1,3 +1,0 @@
-C:/Users/nslop/CLionProjects/DPIBulletHellRe/cmake-build-debug/CMakeFiles/DPIBulletHellRe.dir
-C:/Users/nslop/CLionProjects/DPIBulletHellRe/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/nslop/CLionProjects/DPIBulletHellRe/cmake-build-debug/CMakeFiles/rebuild_cache.dir
