@@ -9,11 +9,12 @@
 #include "../Components/DrawComponents/DrawTextComponent.h"
 #include "../Components/DrawComponents/DrawSpriteComponent.h"
 
-MainMenu::MainMenu(class Game *game): Scene(game), mMainMenuFont(nullptr)
+MainMenu::MainMenu(class Game *game): Scene(game, SceneType::MainMenu), mMainMenuFont(nullptr)
 
 {
     mMainMenuFont = new Font();
     mMainMenuFont->Load("../Assets/Fonts/Zelda.ttf");
+
 }
 
 void MainMenu::Load() {
@@ -40,6 +41,6 @@ void MainMenu::ProcessInput(const Uint8 *keyState) {
     keyState = SDL_GetKeyboardState(nullptr);
 
     if(keyState[SDL_SCANCODE_SPACE])
-        mGame->SetScene(Game::GameScene::StageSelect);
+        mGame->SetScene(SceneType::StageSelect);
 }
 

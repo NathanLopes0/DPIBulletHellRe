@@ -10,8 +10,10 @@
 #include "Random.h"
 #include "AudioSystem.h"
 #include "Actors/Actor.h"
-#include "Scenes/MainMenu.h"
 #include "Components/DrawComponents/DrawComponent.h"
+#include "Scenes/MainMenu.h"
+#include "Scenes/StageSelect.h"
+
 
 
 Game::Game(int windowWidth, int windowHeight)
@@ -22,8 +24,7 @@ Game::Game(int windowWidth, int windowHeight)
     mUpdatingActors(false),
     mWindowWidth(windowWidth),
     mWindowHeight(windowHeight),
-    mChangeScene(false),
-    mGameState(GameScene::MainMenu)
+    mChangeScene(false)
 {
 
 }
@@ -79,9 +80,13 @@ bool Game::Initialize() {
 //função que seleciona a cena e chama a função Load.
 void Game::InitializeActors()
 {
-    switch (mGameState) {
-        case GameScene::MainMenu : {
-            mScene = new MainMenu(this);
+
+    auto mainMenu = new MainMenu(this);
+    mScene.push(mainMenu);
+    mScene.top()->Load();
+
+/*    switch (mGameSceneType) {
+        case Scene::SceneType::MainMenu : {
             mScene->Load();
             break;
         }
@@ -95,7 +100,7 @@ void Game::InitializeActors()
             mScene->Load();
             break;
         }
-    }
+    }*/
 }
 
 void Game::RunLoop() {
@@ -128,9 +133,9 @@ void Game::ProcessInput()
         actor->ProcessInput(state);
     }
 
-    if (mScene)
+    if (!mScene.empty())
     {
-        mScene->ProcessInput(state);
+        mScene.top()->ProcessInput(state);
     }
 }
 
@@ -149,13 +154,11 @@ void Game::UpdateGame()
     if(!mChangeScene)
     {
         UpdateActors(deltaTime);
-
         UpdateCamera();
     }
     else
     {
         UnloadActors();
-        InitializeActors();
         mChangeScene = false;
     }
 }
@@ -308,13 +311,33 @@ void Game::UnloadActors()
         delete mActors.back();
     }
 
-    delete mScene;
-    mScene = nullptr;
+    while(!mScene.empty())
+        mScene.pop();
 }
 
-void Game::SetScene(Game::GameScene scene)
+void Game::SetScene(Scene::SceneType sceneType, bool RemoveLast)
 {
     mAudio->StopAllSounds();
-    mGameState = scene;
+
+    if(RemoveLast) {
+        UnloadActors();
+    }
+
+    Scene* scene;
+
+    switch (sceneType) {
+        case Scene::SceneType::MainMenu: {
+            scene = new MainMenu(this);
+            break;
+        }
+        case Scene::SceneType::StageSelect: {
+            scene = new StageSelect(this);
+            break;
+        }
+    }
+
+    mScene.push(scene);
+
+
     mChangeScene = true;
 }

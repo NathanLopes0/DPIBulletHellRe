@@ -6,15 +6,24 @@
 #define DPIBULLETHELLRE_STAGESELECT_H
 
 #include "../Game.h"
+#include "../Scenes/Scene.h"
 
-class StageSelect {
+class StageSelect : public Scene {
 
 public:
-    StageSelect(Game* game);
+    explicit StageSelect(Game* game);
+
+    void Load() override;
+    void ProcessInput(const Uint8* keyState) override;
 
 private:
+    class Font* mStageSelectFont;
+    int mNumMaterias;
+    std::vector<class StageSelectButton*> mButtons;
 
+    void CreateButtons();
 
+    void DrawUI();
 };
 
 
