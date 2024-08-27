@@ -5,18 +5,14 @@
 #pragma once
 
 #include <vector>
+#include <stack>
 #include <string>
 #include <SDL.h>
 #include "Math.h"
+#include "Scenes/Scene.h"
 
 class Game {
 public:
-    enum class GameScene
-    {
-        MainMenu,
-        StageSelect,
-        Battle
-    };
     Game(int windowWidth, int windowHeight);
 
     bool Initialize();
@@ -55,7 +51,8 @@ public:
     class AudioSystem* GetAudio() { return mAudio; }
 
     //Scenes
-    void SetScene(GameScene scene);
+    void SetScene(Scene::SceneType sceneType, bool RemoveLast = true);
+    Scene::SceneType GetCurrSceneType() { return mScene.top()->GetType(); }
     void UnloadActors();
 
 private:
@@ -93,7 +90,5 @@ private:
     bool mChangeScene;
 
     Vector2 mCameraPos;
-    GameScene mGameState;
-    class Scene* mScene;
-
+    std::stack<Scene*> mScene;
 };

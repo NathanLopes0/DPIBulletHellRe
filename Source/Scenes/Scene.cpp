@@ -4,9 +4,10 @@
 
 #include "Scene.h"
 
-Scene::Scene(Game* game)
+Scene::Scene(Game* game, SceneType sceneType)
 {
     mGame = game;
+    mSceneType = sceneType;
 }
 
 void Scene::Load()
