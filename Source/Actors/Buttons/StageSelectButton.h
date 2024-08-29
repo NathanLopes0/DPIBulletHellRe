@@ -12,12 +12,13 @@
 class StageSelectButton : public Button {
 
 public:
-    StageSelectButton(Scene* scene, const std::string& spritePath, const std::string& buttonText);
+    explicit StageSelectButton(Scene* scene, const std::string& buttonText = "");
+    void OnUpdate(float deltaTime);
     void SetText(const std::string& newText);
 
 private:
     class Font* mFont;
-    class DrawSpriteComponent* mDrawComponent;
+    class DrawAnimatedComponent* mDrawComponent;
     class DrawTextComponent* mDrawTextComponent;
 };
 

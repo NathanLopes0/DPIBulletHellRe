@@ -13,14 +13,16 @@ class Button : public Actor {
 public:
     explicit Button(Scene* scene);
     virtual void onClick();
+    void changeSelected() { isSelected = !isSelected; }
 
 
 private:
-    bool isSelected;
+
 
 protected:
     int mWidth;
     int mHeight;
+    bool isSelected;
 };
 
 

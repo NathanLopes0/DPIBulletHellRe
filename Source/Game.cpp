@@ -151,16 +151,8 @@ void Game::UpdateGame()
 
     mTicksCount = SDL_GetTicks();
 
-    if(!mChangeScene)
-    {
         UpdateActors(deltaTime);
         UpdateCamera();
-    }
-    else
-    {
-        UnloadActors();
-        mChangeScene = false;
-    }
 }
 
 void Game::UpdateCamera()
@@ -311,8 +303,8 @@ void Game::UnloadActors()
         delete mActors.back();
     }
 
-    while(!mScene.empty())
-        mScene.pop();
+    SDL_Log("removing scene from top");
+    mScene.pop();
 }
 
 void Game::SetScene(Scene::SceneType sceneType, bool RemoveLast)

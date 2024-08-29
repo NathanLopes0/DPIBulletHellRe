@@ -33,8 +33,6 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Random.cpp
         Source/Actors/Teacher/Boss.cpp
         Source/Actors/Teacher/Boss.h
-        Source/Actors/Teacher/Ricardo.cpp
-        Source/Actors/Teacher/Ricardo.h
         Source/Math.cpp
         Source/Scenes/StageSelect.cpp
         Source/Actors/Buttons/Button.cpp
