@@ -1,0 +1,20 @@
+{"frames": [
+
+{
+	"filename": "DPIBHSelectSubjectButtonPrototype.png",
+	"frame": {"x":0,"y":0,"w":128,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":128,"h":64},
+	"sourceSize": {"w":128,"h":64}
+}],
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "DPIBHSelectSubjectButton.png",
+	"format": "RGBA8888",
+	"size": {"w":128,"h":64},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:3ecde41e2c1d8b657d2ae7d5c96c25d5:86af2fc3405849d21e6f418b77ce8739:84721ebf321d93effc4b7a2dbf4dffe9$"
+}
+}
