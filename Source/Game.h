@@ -91,4 +91,8 @@ private:
 
     Vector2 mCameraPos;
     std::stack<Scene*> mScene;
+
+    void UpdateScenes(float deltaTime);
+
+    void UnloadScenes();
 };

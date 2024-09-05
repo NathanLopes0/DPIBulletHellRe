@@ -5,10 +5,12 @@
 #include "StageSelect.h"
 #include "../Actors/Buttons/StageSelectButton.h"
 #include "../Font.h"
-#include "../Components/DrawComponents/DrawSpriteComponent.h"
+
+#define TIME_INTERVAL 0.15
 
 StageSelect::StageSelect(Game *game) : Scene(game, SceneType::StageSelect),
-    mNumMaterias(10)
+    mNumMaterias(10),
+    mTimer(10)
 {
     mStageSelectFont = new Font();
     mStageSelectFont->Load("../Assets/Fonts/Zelda.ttf");
@@ -20,7 +22,6 @@ StageSelect::StageSelect(Game *game) : Scene(game, SceneType::StageSelect),
 
 void StageSelect::Load() {
 
-    SDL_Log("Loading Stage Select");
     CreateButtons();
     DrawUI();
 
@@ -39,7 +40,7 @@ void StageSelect::CreateButtons() {
 
     //Variavel para guardar texto que será escrito dentro do botão
     std::string subjectCode;
-/*    for (int j = 0; j < 4; j++)
+    for (int j = 0; j < 4; j++)
     {
         switch(j)
         {
@@ -119,7 +120,7 @@ void StageSelect::CreateButtons() {
             {
                 subjectCode = "TCC";
                 auto stage = new StageSelectButton(this, subjectCode);
-                stage->SetPosition(Vector2(mGame->GetWindowWidth() - widthBorder - buttonWidth/2, mGame->GetWindowHeight()/2));
+                stage->SetPosition(Vector2((float)mGame->GetWindowWidth() - widthBorder - buttonWidth/2, (float)mGame->GetWindowHeight()/2));
                 mButtons.push_back(stage);
                 break;
             }
@@ -127,13 +128,9 @@ void StageSelect::CreateButtons() {
                 break;
         }
     }
-    mButtons[0]->changeSelected();
- */
-    subjectCode = "INF 213";
-    auto stage = new StageSelectButton(this, subjectCode);
-    mButtons.push_back(stage);
-    stage->SetPosition(Vector2((float)mGame->GetWindowWidth()/2, (float)mGame->GetWindowHeight()/2));
 
+    mButtons[0]->changeSelected();
+    mSelectedButton = 0;
 }
 
 void StageSelect::DrawUI() {
@@ -141,5 +138,69 @@ void StageSelect::DrawUI() {
 }
 
 void StageSelect::ProcessInput(const Uint8 *keyState) {
+
+    keyState = SDL_GetKeyboardState(nullptr);
+    InputButtonSelect(keyState);
+
+}
+
+void StageSelect::InputButtonSelect(const Uint8 *keyState) {
+
+    int currentSelected = mSelectedButton;
+    if(mTimer > TIME_INTERVAL) {
+
+        if(keyState[SDL_SCANCODE_UP])
+        {
+            if(mSelectedButton == 1)
+                mSelectedButton = 4;
+            else if(mSelectedButton == 5)
+                mSelectedButton = 8;
+            else if(!isInBorder())
+                mSelectedButton--;
+        }
+        else if(keyState[SDL_SCANCODE_DOWN])
+        {
+            if(mSelectedButton == 4)
+                mSelectedButton = 1;
+            else if(mSelectedButton == 8)
+                mSelectedButton = 5;
+            else if(!isInBorder())
+                mSelectedButton++;
+        }
+        else if(keyState[SDL_SCANCODE_LEFT])
+        {
+            if(!isInBorder()){
+                mSelectedButton -= 4;
+                if(mSelectedButton < 0) mSelectedButton = 0;
+            }
+            if(mSelectedButton == mNumMaterias - 1)
+                mSelectedButton = 6;
+        }
+        else if(keyState[SDL_SCANCODE_RIGHT])
+        {
+            if(!isInBorder()) {
+                mSelectedButton += 4;
+                if(mSelectedButton > mNumMaterias - 1) mSelectedButton = mNumMaterias - 1;
+            }
+            if(mSelectedButton == 0)
+                mSelectedButton = 3;
+        }
+
+        mButtons[currentSelected]->changeSelected();
+        mButtons[mSelectedButton]->changeSelected();
+
+        mTimer = 0;
+    }
+}
+
+bool StageSelect::isInBorder() const {
+    if(mSelectedButton == 0 || mSelectedButton == mNumMaterias - 1)
+        return true;
+    return false;
+}
+
+void StageSelect::Update(float deltaTime) {
+
+    if(mTimer < TIME_INTERVAL) mTimer += deltaTime;
 
 }

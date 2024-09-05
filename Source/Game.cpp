@@ -77,7 +77,7 @@ bool Game::Initialize() {
     return true;
 }
 
-//função que seleciona a cena e chama a função Load.
+//função que seleciona a cena inicial e chama a função Load.
 void Game::InitializeActors()
 {
 
@@ -85,22 +85,6 @@ void Game::InitializeActors()
     mScene.push(mainMenu);
     mScene.top()->Load();
 
-/*    switch (mGameSceneType) {
-        case Scene::SceneType::MainMenu : {
-            mScene->Load();
-            break;
-        }
-        case GameScene::StageSelect : {
-            //mScene = new StageSelect(this);
-            mScene->Load();
-            break;
-        }
-        case GameScene::Battle : {
-            //mScene = new Battle(this);
-            mScene->Load();
-            break;
-        }
-    }*/
 }
 
 void Game::RunLoop() {
@@ -151,8 +135,10 @@ void Game::UpdateGame()
 
     mTicksCount = SDL_GetTicks();
 
-        UpdateActors(deltaTime);
-        UpdateCamera();
+    UpdateScenes(deltaTime);
+    UpdateActors(deltaTime);
+    UpdateCamera();
+
 }
 
 void Game::UpdateCamera()
@@ -188,6 +174,10 @@ void Game::UpdateActors(float deltaTime) {
     {
         delete actor;
     }
+}
+
+void Game::UpdateScenes(float deltaTime) {
+    mScene.top()->Update(deltaTime);
 }
 
 void Game::AddActor(Actor* actor)
@@ -289,7 +279,9 @@ SDL_Texture* Game::LoadTexture(const std::string& texturePath) {
 
 void Game::Shutdown()
 {
+
     UnloadActors();
+    UnloadScenes();
 
     SDL_DestroyRenderer(mRenderer);
     SDL_DestroyWindow(mWindow);
@@ -303,8 +295,11 @@ void Game::UnloadActors()
         delete mActors.back();
     }
 
-    SDL_Log("removing scene from top");
-    mScene.pop();
+}
+
+void Game::UnloadScenes() {
+    while(!mScene.empty())
+        mScene.pop();
 }
 
 void Game::SetScene(Scene::SceneType sceneType, bool RemoveLast)
@@ -313,6 +308,7 @@ void Game::SetScene(Scene::SceneType sceneType, bool RemoveLast)
 
     if(RemoveLast) {
         UnloadActors();
+        UnloadScenes();
     }
 
     Scene* scene;

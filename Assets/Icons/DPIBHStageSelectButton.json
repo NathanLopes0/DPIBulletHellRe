@@ -1,0 +1,28 @@
+{"frames": [
+
+{
+	"filename": "DPIBHSelectSubjectButtonPrototype-1.png.png",
+	"frame": {"x":0,"y":0,"w":128,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":128,"h":64},
+	"sourceSize": {"w":128,"h":64}
+},
+{
+	"filename": "DPIBHSelectSubjectButtonPrototype-2.png.png",
+	"frame": {"x":128,"y":0,"w":128,"h":64},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":128,"h":64},
+	"sourceSize": {"w":128,"h":64}
+}],
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "DPIBHStageSelectButton.png",
+	"format": "RGBA8888",
+	"size": {"w":256,"h":64},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:0adb2bb0125cff82518a34071c09f98c:64fcece8f455ae0ada45b35b292ba51d:7316712b6f71eab5dcc817b804dd9c64$"
+}
+}
