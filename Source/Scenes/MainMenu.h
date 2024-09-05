@@ -16,4 +16,5 @@ public:
 
 private:
     class Font* mMainMenuFont;
+    void Update(float deltaTime) override;
 };

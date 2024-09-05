@@ -14,7 +14,7 @@ public:
     explicit Button(Scene* scene);
     virtual void onClick();
     void changeSelected() { isSelected = !isSelected; }
-
+    bool isButtonSelected() const { return isSelected; }
 
 private:
 

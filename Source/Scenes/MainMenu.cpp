@@ -44,3 +44,7 @@ void MainMenu::ProcessInput(const Uint8 *keyState) {
         mGame->SetScene(SceneType::StageSelect);
 }
 
+void MainMenu::Update(float deltaTime) {
+
+}
+

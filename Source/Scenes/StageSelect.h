@@ -15,15 +15,18 @@ public:
 
     void Load() override;
     void ProcessInput(const Uint8* keyState) override;
+    void Update(float deltaTime) override;
 
 private:
     class Font* mStageSelectFont;
-    int mNumMaterias;
+    int mNumMaterias, mSelectedButton;
+    float mTimer;
     std::vector<class StageSelectButton*> mButtons;
 
     void CreateButtons();
-
     void DrawUI();
+    void InputButtonSelect(const Uint8 *keyState);
+    [[nodiscard]] bool isInBorder() const;
 };
 
 

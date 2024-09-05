@@ -23,3 +23,7 @@ const Vector2& Scene::GetCameraPos()
 void Scene::ProcessInput(const Uint8 *keyState) {
 
 }
+
+void Scene::Update(float deltaTime) {
+
+}
