@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <stack>
+#include <map>
 #include <string>
 #include <SDL.h>
 #include "Math.h"
@@ -13,6 +14,20 @@
 
 class Game {
 public:
+
+    enum GameSubject {
+        INF213,
+        INF250,
+        INF220,
+        INF330,
+        INF332,
+        INF420,
+        BIOINF,
+        INF394,
+        VISCCP,
+        TCC
+    };
+
     Game(int windowWidth, int windowHeight);
 
     bool Initialize();
@@ -25,6 +40,7 @@ public:
     void UpdateActors(float deltaTime);
     void AddActor(class Actor* actor);
     void RemoveActor(class Actor* actor);
+    void UnloadActors();
 
     //Draw functions
     void AddDrawable(class DrawComponent* drawable);
@@ -53,11 +69,14 @@ public:
     //Scenes
     void SetScene(Scene::SceneType sceneType, bool RemoveLast = true);
     Scene::SceneType GetCurrSceneType() { return mScene.top()->GetType(); }
-    void UnloadActors();
+
+    //Used by Battle to get te selected stage
+    class StageSelect* GetStageSelect();
 
 private:
     void ProcessInput();
     void UpdateGame();
+    void UpdateScenes(float deltaTime);
     void UpdateCamera();
     void GenerateOutput();
 
@@ -87,12 +106,13 @@ private:
     // Track if we're updating actors right now
     bool mIsRunning;
     bool mUpdatingActors;
-    bool mChangeScene;
 
     Vector2 mCameraPos;
+
+    //Stack of active scenes (normally only one, except on pause)
     std::stack<Scene*> mScene;
 
-    void UpdateScenes(float deltaTime);
+    std::map<GameSubject, class BossFactory> mBossFactory;
 
     void UnloadScenes();
 };

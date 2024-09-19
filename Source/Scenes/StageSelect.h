@@ -16,6 +16,7 @@ public:
     void Load() override;
     void ProcessInput(const Uint8* keyState) override;
     void Update(float deltaTime) override;
+    int GetSelected() { return mSelectedButton; }
 
 private:
     class Font* mStageSelectFont;

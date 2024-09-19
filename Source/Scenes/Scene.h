@@ -15,11 +15,13 @@ public:
         StageSelect,
         Battle
     };
+
     explicit Scene(class Game* game, SceneType sceneType);
 
     virtual void Load();
     virtual void ProcessInput(const Uint8* keyState);
     virtual void Update(float deltaTime);
+    void SetScene(SceneType sceneType);
 
     class Game* GetGame() { return mGame; }
     SceneType GetType() { return mSceneType; }

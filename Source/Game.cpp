@@ -13,7 +13,7 @@
 #include "Components/DrawComponents/DrawComponent.h"
 #include "Scenes/MainMenu.h"
 #include "Scenes/StageSelect.h"
-
+#include "Scenes/Battle.h"
 
 
 Game::Game(int windowWidth, int windowHeight)
@@ -23,8 +23,7 @@ Game::Game(int windowWidth, int windowHeight)
     mIsRunning(true),
     mUpdatingActors(false),
     mWindowWidth(windowWidth),
-    mWindowHeight(windowHeight),
-    mChangeScene(false)
+    mWindowHeight(windowHeight)
 {
 
 }
@@ -306,11 +305,6 @@ void Game::SetScene(Scene::SceneType sceneType, bool RemoveLast)
 {
     mAudio->StopAllSounds();
 
-    if(RemoveLast) {
-        UnloadActors();
-        UnloadScenes();
-    }
-
     Scene* scene;
 
     switch (sceneType) {
@@ -322,10 +316,23 @@ void Game::SetScene(Scene::SceneType sceneType, bool RemoveLast)
             scene = new StageSelect(this);
             break;
         }
+        case Scene::SceneType::Battle: {
+            scene = new Battle(this);
+            break;
+        }
+    }
+
+    if(RemoveLast) {
+        UnloadActors();
+        UnloadScenes();
     }
 
     mScene.push(scene);
+}
 
-
-    mChangeScene = true;
+StageSelect* Game::GetStageSelect() {
+    if(mScene.top()->GetType() == Scene::SceneType::StageSelect)
+        return dynamic_cast<StageSelect *>(mScene.top());
+    else
+        return nullptr;
 }

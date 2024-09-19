@@ -3,6 +3,7 @@
 //
 
 #include "Scene.h"
+#include "../Game.h"
 
 Scene::Scene(Game* game, SceneType sceneType)
 {
@@ -22,6 +23,10 @@ const Vector2& Scene::GetCameraPos()
 
 void Scene::ProcessInput(const Uint8 *keyState) {
 
+}
+
+void Scene::SetScene(Scene::SceneType sceneType) {
+    mGame->SetScene(sceneType);
 }
 
 void Scene::Update(float deltaTime) {

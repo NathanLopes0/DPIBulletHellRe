@@ -4,10 +4,12 @@
 
 #include "StageSelectButton.h"
 #include "../../Font.h"
+#include "../../Scenes/Scene.h"
 #include "../../Components/DrawComponents/DrawTextComponent.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 
-StageSelectButton::StageSelectButton(Scene *scene, const std::string& buttonText) : Button(scene)
+StageSelectButton::StageSelectButton(Scene *scene, const std::string& buttonText, Game::GameSubject subject) : Button(scene),
+mSubject(subject)
 {
 
     mWidth = 128;
@@ -38,4 +40,8 @@ void StageSelectButton::OnUpdate(float deltaTime) {
 
 void StageSelectButton::SetText(const std::string& newText) {
     mDrawTextComponent->SetText(newText);
+}
+
+void StageSelectButton::StartBattle() {
+    mScene->SetScene(Scene::SceneType::Battle);
 }
