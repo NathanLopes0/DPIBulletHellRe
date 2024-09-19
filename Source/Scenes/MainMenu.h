@@ -13,8 +13,9 @@ public:
 
     void Load() override;
     void ProcessInput(const Uint8* keyState) override;
+    void Update(float deltaTime) override;
 
 private:
     class Font* mMainMenuFont;
-    void Update(float deltaTime) override;
+
 };

@@ -31,8 +31,6 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/AudioSystem.cpp
         Source/AudioSystem.h
         Source/Random.cpp
-        Source/Actors/Teacher/Boss.cpp
-        Source/Actors/Teacher/Boss.h
         Source/Math.cpp
         Source/Scenes/StageSelect.cpp
         Source/Actors/Buttons/Button.cpp
@@ -40,7 +38,13 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Buttons/StageSelectButton.cpp
         Source/Actors/Buttons/StageSelectButton.h
         Source/Components/DrawComponents/DrawAnimatedComponent.cpp
-        Source/Components/DrawComponents/DrawAnimatedComponent.h)
+        Source/Components/DrawComponents/DrawAnimatedComponent.h
+        Source/Scenes/Battle.cpp
+        Source/Scenes/Battle.h
+        Source/Scenes/Battle.h
+        Source/Actors/Teacher/BossFactory/BossFactory.cpp
+        Source/Actors/Teacher/BossFactory/BossFactory.h
+        Source/Actors/Teacher/BossFactory/BossFactory.h)
 
 find_package(SDL2 2.28.2 REQUIRED)
 find_package(SDL2_image REQUIRED)
