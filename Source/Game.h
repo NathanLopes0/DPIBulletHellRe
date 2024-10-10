@@ -67,11 +67,19 @@ public:
     class AudioSystem* GetAudio() { return mAudio; }
 
     //Scenes
+    Scene* GetScene() { return mScene.top(); }
     void SetScene(Scene::SceneType sceneType, bool RemoveLast = true);
     Scene::SceneType GetCurrSceneType() { return mScene.top()->GetType(); }
 
     //Used by Battle to get te selected stage
     class StageSelect* GetStageSelect();
+    class BossFactory* GetFactory(int n);
+
+    //Grade functions
+    float GetGrade(int n) { return mGrades[static_cast<GameSubject>(n)]; }
+    float GetGrade(GameSubject subject) { return mGrades[subject]; }
+    void SetGrade(GameSubject subject, float grade) { mGrades[subject] = grade; }
+    void SetGrade(int n, float grade) { mGrades[static_cast<GameSubject>(n)] = grade; }
 
 private:
     void ProcessInput();
@@ -79,6 +87,7 @@ private:
     void UpdateScenes(float deltaTime);
     void UpdateCamera();
     void GenerateOutput();
+    void UnloadScenes();
 
 
     // All the actors in the game
@@ -107,12 +116,18 @@ private:
     bool mIsRunning;
     bool mUpdatingActors;
 
+    // Camera X and Y position
     Vector2 mCameraPos;
 
     //Stack of active scenes (normally only one, except on pause)
     std::stack<Scene*> mScene;
 
-    std::map<GameSubject, class BossFactory> mBossFactory;
+    //All Boss factories
+    std::map<GameSubject, class BossFactory*> mBossFactory;
 
-    void UnloadScenes();
+    //All Grades
+    std::map<GameSubject, float> mGrades;
+
+    void InitializeBossFactory();
+    void InitializeGrades();
 };

@@ -44,7 +44,20 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Scenes/Battle.h
         Source/Actors/Teacher/BossFactory/BossFactory.cpp
         Source/Actors/Teacher/BossFactory/BossFactory.h
-        Source/Actors/Teacher/BossFactory/BossFactory.h)
+        Source/Actors/Teacher/BossFactory/BossFactory.h
+        Source/Actors/Teacher/BossFactory/Boss1Factory.cpp
+        Source/Actors/Teacher/BossFactory/Boss1Factory.h
+        Source/Actors/Teacher/Boss.cpp
+        Source/Actors/Teacher/Boss.h
+        Source/Actors/Teacher/Salles.cpp
+        Source/Actors/Teacher/Salles.h
+        Source/Actors/Player/Player.cpp
+        Source/Actors/Player/Player.h
+        Source/Actors/Teacher/BossStates/BossState.cpp
+        Source/Actors/Teacher/BossStates/BossState.h
+        Source/Components/AIComponents/FSMState.cpp
+        Source/Components/AIComponents/FSMComponent.cpp
+)
 
 find_package(SDL2 2.28.2 REQUIRED)
 find_package(SDL2_image REQUIRED)

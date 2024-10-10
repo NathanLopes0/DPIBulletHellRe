@@ -17,8 +17,11 @@ public:
     void Load();
 
 private:
-
+    float mGrade;
     class BossFactory* mBossFactory;
+    class Boss* mBoss;
+
+    void LoadHUD();
 };
 
 

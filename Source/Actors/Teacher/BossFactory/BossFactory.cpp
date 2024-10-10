@@ -8,5 +8,4 @@ BossFactory::BossFactory(Game* game) {
 
         mGame = game;
         mBoss = nullptr;
-
 }
