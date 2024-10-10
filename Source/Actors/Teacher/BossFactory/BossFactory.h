@@ -9,8 +9,8 @@
 class BossFactory {
 
 public:
-    BossFactory(class Game* game);
-    virtual void CreateBoss() = 0;
+    explicit BossFactory(class Game* game);
+    virtual class Boss* CreateBoss(class Scene*) = 0;
 protected:
     class Boss* mBoss;
     class Game* mGame;
