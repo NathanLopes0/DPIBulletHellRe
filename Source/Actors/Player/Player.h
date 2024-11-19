@@ -21,6 +21,7 @@ public:
 private:
     class RigidBodyComponent* mRigidBodyComponent;
     class DrawAnimatedComponent* mDrawComponent;
+    class CircleColliderComponent* mColliderComponent;
     float playerSpeed;
     bool mMoving;                //variavel para ver se o jogador está se movendo. Usada para mudar a animação de acordo.
 

@@ -4,8 +4,9 @@
 
 #include "Player.h"
 #include "../../Scenes/Scene.h"
-#include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../Components/RigidBodyComponent.h"
+#include "../../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "../../Components/ColliderComponents/CircleColliderComponent.h"
 
 
 Player::Player(Scene* scene) :
@@ -22,6 +23,7 @@ Player::Player(Scene* scene) :
     mDrawComponent->SetAnimation("Idle"); mMoving = false; //ambos na mesma linha pois andam juntos
 
     mRigidBodyComponent = new RigidBodyComponent(this);
+    mColliderComponent = new CircleColliderComponent(this, (float)mDrawComponent->GetSpriteWidth() / 2.f);
 
 }
 
