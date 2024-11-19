@@ -20,7 +20,18 @@ Boss* Boss1Factory::CreateBoss(Scene* scene) {
     std::string spritePath = "../Assets/Teachers/DPIBHSalles.png";
     std::string dataPath = "../Assets/Teachers/DPIBHSalles.json";
 
-
     mBoss = new Salles(scene, spritePath, dataPath);
+
+    //      ----------DEFINIÇÃO DE POSIÇÃO E VELOCIDADE INICIAL, E ATIVAÇÃO DO BOSS----------      //
+    mBoss->SetState(ActorState::Active);
+    mBoss->GetComponent<DrawAnimatedComponent>()->SetIsVisible(true);
+
+    auto midWidth = mBoss->GetWindowsWidth() / 2;
+    auto spriteHeight = mBoss->GetSpriteHeight();
+
+    mBoss->SetPosition(Vector2((float)midWidth, -2.f * (float)spriteHeight));
+    mBoss->GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(0, 50));
+    //      ------------------- -- ------- - ---------- -------- - -------- -- ---------------      //
+
     return mBoss;
 }

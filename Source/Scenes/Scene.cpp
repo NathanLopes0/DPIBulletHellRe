@@ -5,6 +5,7 @@
 
 #include "../Game.h"
 #include "Scene.h"
+#include "Battle.h"
 
 Scene::Scene(Game* game, SceneType sceneType)
 {
@@ -32,4 +33,8 @@ void Scene::SetScene(Scene::SceneType sceneType) {
 
 void Scene::Update(float deltaTime) {
 
+}
+
+Boss* Scene::GetBoss() const {
+    return nullptr;
 }

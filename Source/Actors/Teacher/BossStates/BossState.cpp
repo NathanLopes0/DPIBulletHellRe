@@ -7,6 +7,7 @@
 
 BossState::BossState(FSMComponent *stateMachine, const std::string &name) : FSMState(stateMachine, name) {
 
+    mStateTime = 0;
     mBoss = reinterpret_cast<Boss *>(mFSM->GetOwner());
 
 }

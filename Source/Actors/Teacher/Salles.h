@@ -15,6 +15,11 @@ public:
     void OnUpdate(float deltaTime) override;
 
 
+    void SetState(const std::string& stateName) { mFSMComponent->SetState(stateName); }
+    void Start() override;
+
+protected:
+
     bool Movement0() override;
     void Movement1() override;
     void Movement2() override;
@@ -23,10 +28,7 @@ public:
     void Attack2() override;
     void Attack3() override;
 
-    void SetState(const std::string& stateName) { mFSMComponent->SetState(stateName); }
-    void Start() override;
 private:
-
 
 
 };
