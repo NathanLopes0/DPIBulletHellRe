@@ -370,3 +370,7 @@ void Game::InitializeGrades() {
     //todas as outras
 
 }
+
+[[maybe_unused]] Scene::SceneType Game::GetCurrSceneType() {
+    return mScene.top()->GetType();
+}

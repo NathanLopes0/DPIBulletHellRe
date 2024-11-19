@@ -14,3 +14,7 @@ BossState::BossState(FSMComponent *stateMachine, const std::string &name) : FSMS
 void BossState::Update(float deltaTime) {
 
 }
+
+void BossState::SetState(FSMState *pState) {
+
+}

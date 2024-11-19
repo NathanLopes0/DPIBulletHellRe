@@ -69,9 +69,10 @@ public:
     //Scenes
     Scene* GetScene() { return mScene.top(); }
     void SetScene(Scene::SceneType sceneType, bool RemoveLast = true);
-    Scene::SceneType GetCurrSceneType() { return mScene.top()->GetType(); }
 
-    //Used by Battle to get te selected stage
+    Scene::SceneType GetCurrSceneType();
+
+    //Used by Battle to get the selected stage
     class StageSelect* GetStageSelect();
     class BossFactory* GetFactory(int n);
 
