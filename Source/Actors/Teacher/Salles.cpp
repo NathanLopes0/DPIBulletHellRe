@@ -6,13 +6,15 @@
 
 Salles::Salles(Scene *scene, const std::string& spritePath, const std::string& dataPath) : Boss(scene) {
 
-    SDL_Log("Constructor - Salles Boss");
-    //Draw Component commands
-
-    //Coloquei a declaração de Draw no Boss Específico pois eles podem ter animações diferentes.
+    //Draw Component commands----------------------------------//
+    //Coloquei a declaração de Draw no Boss Específico, pois eles podem ter animações diferentes.
     mDrawComponent = new DrawAnimatedComponent(this, spritePath, dataPath);
     mDrawComponent->AddAnimation("Idle", {0});
     mDrawComponent->SetAnimation("Idle");
+    //---------------------------------------------------------//
+
+
+
 
 }
 
@@ -20,14 +22,12 @@ void Salles::OnUpdate(float deltaTime) {
 
     if(mFSMComponent->GetState()->GetName() == "StartState")
     {
-        //SDL_Log("%f, %f", GetPosition().x, GetPosition().y);
         Movement0();
     }
 
 }
 
-
-//--------------STATE fUNCTIONS----------------//
+//                    --------------STATE FUNCTIONS----------------                    //
 
 
 void Salles::Movement1() {
@@ -61,5 +61,8 @@ void Salles::Start() {
 }
 
 bool Salles::Movement0() {
+
+    //Não coloquei nenhuma lógica aqui, pois o Boss só desce, e isso é fixado na sua criação
+    //Botaria algum código aqui se houvesse alguma mudança de movimento apenas.
     return true;
 }

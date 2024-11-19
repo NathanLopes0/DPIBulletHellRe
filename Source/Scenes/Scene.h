@@ -28,6 +28,8 @@ public:
 
     virtual const Vector2& GetCameraPos();
 
+    virtual class Boss * GetBoss() const;
+
 protected:
     class Game* mGame;
     SceneType mSceneType;

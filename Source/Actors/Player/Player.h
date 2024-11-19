@@ -22,18 +22,29 @@ private:
     class RigidBodyComponent* mRigidBodyComponent;
     class DrawAnimatedComponent* mDrawComponent;
     class CircleColliderComponent* mColliderComponent;
+
+    std::vector<class Projectile*> mProjectiles;     //vetor de projéteis que será alocado no construtor,
+                                                        // para não fazer alocação no meio do jogo.
+
+    //variaveis de jogador
     float playerSpeed;
-    bool mMoving;                //variavel para ver se o jogador está se movendo. Usada para mudar a animação de acordo.
+    float atkTimer;
+    bool mMoving;                       //ve se o jogador está se movendo. Usada para mudar a animação.
 
 
-    //OnProcessInput Sub-functions
+    //OnProcessInput Sub-functions, and its sub-functions
     void MoveInput(const Uint8 *state);
-
     void ShootInput(const Uint8 *state);
-
+        void Shoot();
     void SpecialInput(const Uint8 *state);
 
+
+    //OnUpdate Sub-functions
     void HandleAnimation();
+    void DecreaseAtkTimer(float deltaTime);
+
+
+    void BorderLimitCheck();
 };
 
 

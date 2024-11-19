@@ -13,8 +13,9 @@ class Battle : public Scene {
 
 public:
 
-    Battle(Game* game);
-    void Load();
+    explicit Battle(Game* game);
+    void Load() override;
+    [[nodiscard]] class Boss* GetBoss() const override { return mBoss; };
 
 private:
     float mGrade;

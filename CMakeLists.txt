@@ -59,8 +59,12 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Components/AIComponents/FSMComponent.cpp
         Source/Actors/Teacher/BossStates/StartState.cpp
         Source/Actors/Teacher/BossStates/StartState.h
-        Source/Actors/Player/Projectile.cpp
-        Source/Actors/Player/Projectile.h
+        Source/Actors/Projectile.cpp
+        Source/Actors/Projectile.h
+        Source/Actors/Player/PlayerProjectile.cpp
+        Source/Actors/Player/PlayerProjectile.h
+        Source/Actors/Teacher/BossStates/StateOne.cpp
+        Source/Actors/Teacher/BossStates/StateOne.h
 )
 
 find_package(SDL2 2.28.2 REQUIRED)

@@ -10,12 +10,10 @@
 class StartState : public BossState {
 
 public:
-    StartState(FSMComponent* stateMachine);
+    explicit StartState(FSMComponent* stateMachine);
     void Start() override;
 
     void HandleStateTransition(float stateTime) override;
-
-
 
 
 };

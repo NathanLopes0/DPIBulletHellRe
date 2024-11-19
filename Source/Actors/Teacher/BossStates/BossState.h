@@ -19,6 +19,7 @@ public:
 protected:
 
     float mMaxStateTime;
+    float mStateTime;
     class Boss* mBoss;
 };
 
