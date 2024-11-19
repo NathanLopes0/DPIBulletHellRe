@@ -20,8 +20,12 @@ private:
     float mGrade;
     class BossFactory* mBossFactory;
     class Boss* mBoss;
+    class Player* mPlayer;
+    void BattleStart();
 
     void LoadHUD();
+
+    void LoadPlayer();
 };
 
 

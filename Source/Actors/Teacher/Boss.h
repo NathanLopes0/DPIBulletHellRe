@@ -18,7 +18,8 @@ public:
     Boss(class Scene* scene);
     ~Boss();
 
-    //3 movimentos e 3 ataques, para cada Estado.
+    //4 movimentos e 3 ataques, para cada Estado.
+    virtual bool Movement0() = 0;
     virtual void Movement1() = 0;
     virtual void Movement2() = 0;
     virtual void Movement3() = 0;
@@ -26,12 +27,15 @@ public:
     virtual void Attack2() = 0;
     virtual void Attack3() = 0;
 
+    class BossState* GetCurrentState() { return mCurrentState; }
 
-    class TState* GetCurrentState() { return mCurrentState; }
-
+    int GetWindowsWidth() { return mScene->GetGame()->GetWindowWidth(); }
+    int GetWindowsHeight() { return mScene->GetGame()->GetWindowHeight(); }
     int GetSpriteHeight() { return GetComponent<DrawAnimatedComponent>()->GetSpriteHeight(); }
     int GetSpriteWidth() { return GetComponent<DrawAnimatedComponent>()->GetSpriteWidth(); }
 
+
+    virtual void Start();
 
 protected:
     //variaveis para enviar powerUps na hora certa
@@ -40,11 +44,8 @@ protected:
     RigidBodyComponent* mRigidBodyComponent;
     DrawAnimatedComponent* mDrawComponent;
     class FSMComponent* mFSMComponent;
-    class TState* mCurrentState;
+    class BossState* mCurrentState;
 
-
-    //funções protegidas
-    void Start();
 
 };
 

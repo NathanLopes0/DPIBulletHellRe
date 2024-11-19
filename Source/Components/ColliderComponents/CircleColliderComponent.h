@@ -18,7 +18,6 @@ public:
     float GetRadius() const;
 
     const Vector2& GetCenter() const;
-
     bool Intersect(const CircleColliderComponent& b) const;
 
 private:

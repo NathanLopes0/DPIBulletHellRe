@@ -14,6 +14,7 @@ public:
     void Update(float deltaTime) override;
     float GetMaxStateTime() const { return mMaxStateTime; }
 
+    void SetState(FSMState *pState);
 
 protected:
 

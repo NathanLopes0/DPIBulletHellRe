@@ -14,6 +14,8 @@ public:
     Salles(class Scene* scene, const std::string& spritePath, const std::string& dataPath);
     void OnUpdate(float deltaTime) override;
 
+
+    bool Movement0() override;
     void Movement1() override;
     void Movement2() override;
     void Movement3() override;
@@ -22,7 +24,7 @@ public:
     void Attack3() override;
 
     void SetState(const std::string& stateName) { mFSMComponent->SetState(stateName); }
-    void Start();
+    void Start() override;
 private:
 
 
