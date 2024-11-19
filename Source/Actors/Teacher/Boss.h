@@ -43,6 +43,7 @@ protected:
     //componentes
     RigidBodyComponent* mRigidBodyComponent;
     DrawAnimatedComponent* mDrawComponent;
+    class CircleColliderComponent* mColliderComponent;
     class FSMComponent* mFSMComponent;
     class BossState* mCurrentState;
 
