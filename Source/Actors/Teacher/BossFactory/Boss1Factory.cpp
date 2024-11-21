@@ -14,9 +14,6 @@ Boss1Factory::Boss1Factory(Game *game) : BossFactory(game) {
 
 Boss* Boss1Factory::CreateBoss(Scene* scene) {
 
-    //debug
-    SDL_Log("CreateBoss() - Bossfactory1");
-
     std::string spritePath = "../Assets/Teachers/DPIBHSalles.png";
     std::string dataPath = "../Assets/Teachers/DPIBHSalles.json";
 

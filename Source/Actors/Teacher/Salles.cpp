@@ -14,16 +14,14 @@ Salles::Salles(Scene *scene, const std::string& spritePath, const std::string& d
     //---------------------------------------------------------//
 
 
-
-
 }
+// TODO 2.0 - colocar HandleStateTransition do StartState para realmente mudar para StateOne, verificar se ta tudo certo
+// TODO 4.0 - Verificar se podemos realocar alguma variavel para Bossfactory
+// TODO 3.0 - Montar função de ataque e movimento do primeiro estado do Salles
 
 void Salles::OnUpdate(float deltaTime) {
 
-    if(mFSMComponent->GetState()->GetName() == "StartState")
-    {
-        Movement0();
-    }
+    StateActions();
 
 }
 

@@ -30,7 +30,6 @@ protected:
 
 private:
 
-
 };
 
 
