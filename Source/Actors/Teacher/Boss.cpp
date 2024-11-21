@@ -3,8 +3,8 @@
 //
 
 #include "Boss.h"
-#include "BossStates/BossState.h"
 #include "BossStates/StartState.h"
+#include "BossStates/StateOne.h"
 #include "../../Components/ColliderComponents/CircleColliderComponent.h"
 
 Boss::Boss(Scene *scene) : Actor(scene) {
@@ -13,7 +13,7 @@ Boss::Boss(Scene *scene) : Actor(scene) {
     mFSMComponent = new FSMComponent(this);
 
     new StartState(mFSMComponent);
-    // new StateOne(mFSMComponent);
+    new StateOne(mFSMComponent);
     // new StateTwo(mFSMComponent);
     // new StateThree(mFSMComponent);
     // new StateFinal(mFSMComponent);
@@ -27,6 +27,30 @@ Boss::Boss(Scene *scene) : Actor(scene) {
 
 void Boss::Start() {
     mFSMComponent->Start("StartState");
+}
+
+void Boss::StateActions() {
+    auto stateName = mFSMComponent->GetState()->GetName();
+
+    if(stateName == "StartState")
+    {
+        Movement0();
+    }
+    else if (stateName == "StateOne")
+    {
+        Attack1();
+        Movement1();
+    }
+    else if (stateName == "StateTwo")
+    {
+        Attack2();
+        Movement2();
+    }
+    else if (stateName == "StateThree")
+    {
+        Attack3();
+        Movement3();
+    }
 }
 
 Boss::~Boss() = default;

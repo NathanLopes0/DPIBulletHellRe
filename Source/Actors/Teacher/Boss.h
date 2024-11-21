@@ -14,7 +14,9 @@
 
 class Boss : public Actor {
 
+
 public:
+
     Boss(class Scene* scene);
     ~Boss();
 
@@ -55,6 +57,7 @@ protected:
     virtual void Attack2() = 0;
     virtual void Attack3() = 0;
 
+    void StateActions();
 
 };
 
