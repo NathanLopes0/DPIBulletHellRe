@@ -31,8 +31,6 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/AudioSystem.cpp
         Source/AudioSystem.h
         Source/Random.cpp
-        Source/Actors/Teacher/Boss.cpp
-        Source/Actors/Teacher/Boss.h
         Source/Math.cpp
         Source/Scenes/StageSelect.cpp
         Source/Actors/Buttons/Button.cpp
@@ -40,7 +38,34 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Buttons/StageSelectButton.cpp
         Source/Actors/Buttons/StageSelectButton.h
         Source/Components/DrawComponents/DrawAnimatedComponent.cpp
-        Source/Components/DrawComponents/DrawAnimatedComponent.h)
+        Source/Components/DrawComponents/DrawAnimatedComponent.h
+        Source/Scenes/Battle.cpp
+        Source/Scenes/Battle.h
+        Source/Scenes/Battle.h
+        Source/Actors/Teacher/BossFactory/BossFactory.cpp
+        Source/Actors/Teacher/BossFactory/BossFactory.h
+        Source/Actors/Teacher/BossFactory/BossFactory.h
+        Source/Actors/Teacher/BossFactory/Boss1Factory.cpp
+        Source/Actors/Teacher/BossFactory/Boss1Factory.h
+        Source/Actors/Teacher/Boss.cpp
+        Source/Actors/Teacher/Boss.h
+        Source/Actors/Teacher/Salles.cpp
+        Source/Actors/Teacher/Salles.h
+        Source/Actors/Player/Player.cpp
+        Source/Actors/Player/Player.h
+        Source/Actors/Teacher/BossStates/BossState.cpp
+        Source/Actors/Teacher/BossStates/BossState.h
+        Source/Components/AIComponents/FSMState.cpp
+        Source/Components/AIComponents/FSMComponent.cpp
+        Source/Actors/Teacher/BossStates/StartState.cpp
+        Source/Actors/Teacher/BossStates/StartState.h
+        Source/Actors/Projectile.cpp
+        Source/Actors/Projectile.h
+        Source/Actors/Player/PlayerProjectile.cpp
+        Source/Actors/Player/PlayerProjectile.h
+        Source/Actors/Teacher/BossStates/StateOne.cpp
+        Source/Actors/Teacher/BossStates/StateOne.h
+)
 
 find_package(SDL2 2.28.2 REQUIRED)
 find_package(SDL2_image REQUIRED)

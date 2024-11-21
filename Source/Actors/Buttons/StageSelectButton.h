@@ -8,15 +8,19 @@
 
 #include <string>
 #include "Button.h"
+#include "../../Game.h"
 
 class StageSelectButton : public Button {
 
 public:
-    explicit StageSelectButton(Scene* scene, const std::string& buttonText = "");
+    explicit StageSelectButton(Scene* scene, const std::string& buttonText, Game::GameSubject subject);
     void OnUpdate(float deltaTime);
     void SetText(const std::string& newText);
+    void StartBattle();
 
 private:
+
+    Game::GameSubject mSubject;
     class Font* mFont;
     class DrawAnimatedComponent* mDrawComponent;
     class DrawTextComponent* mDrawTextComponent;

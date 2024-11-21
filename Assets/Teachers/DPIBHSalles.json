@@ -1,0 +1,20 @@
+{"frames": [
+
+{
+	"filename": "DPIBHSalles.png",
+	"frame": {"x":0,"y":0,"w":128,"h":128},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":128,"h":128},
+	"sourceSize": {"w":128,"h":128}
+}],
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "DPIBHSalles.png.png",
+	"format": "RGBA8888",
+	"size": {"w":128,"h":128},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:92b029e733c8e34eff763d34881067f2:d9c0a6b725bdb74fdcc9c6d64076b723:865b2b049d0096690a356ae9faa302f3$"
+}
+}
