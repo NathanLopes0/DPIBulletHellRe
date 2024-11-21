@@ -13,7 +13,8 @@
 #include "Components/DrawComponents/DrawComponent.h"
 #include "Scenes/MainMenu.h"
 #include "Scenes/StageSelect.h"
-
+#include "Scenes/Battle.h"
+#include "Actors/Teacher/BossFactory/Boss1Factory.h"
 
 
 Game::Game(int windowWidth, int windowHeight)
@@ -23,8 +24,7 @@ Game::Game(int windowWidth, int windowHeight)
     mIsRunning(true),
     mUpdatingActors(false),
     mWindowWidth(windowWidth),
-    mWindowHeight(windowHeight),
-    mChangeScene(false)
+    mWindowHeight(windowHeight)
 {
 
 }
@@ -74,12 +74,18 @@ bool Game::Initialize() {
     // Init all game actors
     InitializeActors();
 
+    // Put all Grades to 40;
+    InitializeGrades();
+
     return true;
 }
 
 //função que seleciona a cena inicial e chama a função Load.
 void Game::InitializeActors()
 {
+
+
+    InitializeBossFactory();
 
     auto mainMenu = new MainMenu(this);
     mScene.push(mainMenu);
@@ -306,12 +312,13 @@ void Game::SetScene(Scene::SceneType sceneType, bool RemoveLast)
 {
     mAudio->StopAllSounds();
 
-    if(RemoveLast) {
-        UnloadActors();
+    Scene* scene;
+
+    if(RemoveLast) UnloadActors();
+
+    if(RemoveLast && sceneType != Scene::SceneType::Battle) {
         UnloadScenes();
     }
-
-    Scene* scene;
 
     switch (sceneType) {
         case Scene::SceneType::MainMenu: {
@@ -322,10 +329,48 @@ void Game::SetScene(Scene::SceneType sceneType, bool RemoveLast)
             scene = new StageSelect(this);
             break;
         }
+        case Scene::SceneType::Battle: {
+            scene = new Battle(this);
+            break;
+        }
     }
 
+    if(RemoveLast && sceneType == Scene::SceneType::Battle) {
+        UnloadScenes();
+    }
+
+
     mScene.push(scene);
+}
 
+StageSelect* Game::GetStageSelect() {
+    if(mScene.top()->GetType() == Scene::SceneType::StageSelect)
+        return dynamic_cast<StageSelect *>(mScene.top());
+    else
+        return nullptr;
+}
 
-    mChangeScene = true;
+void Game::InitializeBossFactory() {
+
+    mBossFactory[GameSubject::INF213] = new Boss1Factory(this);
+    //mBossFactory[GameSubject::INF250] = new Boss2Factory(this);
+
+    //todas as outras, depois que criar as classes
+
+}
+
+class BossFactory *Game::GetFactory(int n) {
+    return mBossFactory[static_cast<GameSubject>(n)];
+}
+
+void Game::InitializeGrades() {
+
+    mGrades[INF213] = 40;
+    //mGrades[INF250] = 40;
+    //todas as outras
+
+}
+
+[[maybe_unused]] Scene::SceneType Game::GetCurrSceneType() {
+    return mScene.top()->GetType();
 }

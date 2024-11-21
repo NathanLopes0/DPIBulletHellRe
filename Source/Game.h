@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <stack>
+#include <map>
 #include <string>
 #include <SDL.h>
 #include "Math.h"
@@ -13,6 +14,20 @@
 
 class Game {
 public:
+
+    enum GameSubject {
+        INF213,
+        INF250,
+        INF220,
+        INF330,
+        INF332,
+        INF420,
+        BIOINF,
+        INF394,
+        VISCCP,
+        TCC
+    };
+
     Game(int windowWidth, int windowHeight);
 
     bool Initialize();
@@ -25,6 +40,7 @@ public:
     void UpdateActors(float deltaTime);
     void AddActor(class Actor* actor);
     void RemoveActor(class Actor* actor);
+    void UnloadActors();
 
     //Draw functions
     void AddDrawable(class DrawComponent* drawable);
@@ -51,15 +67,28 @@ public:
     class AudioSystem* GetAudio() { return mAudio; }
 
     //Scenes
+    Scene* GetScene() { return mScene.top(); }
     void SetScene(Scene::SceneType sceneType, bool RemoveLast = true);
-    Scene::SceneType GetCurrSceneType() { return mScene.top()->GetType(); }
-    void UnloadActors();
+
+    Scene::SceneType GetCurrSceneType();
+
+    //Used by Battle to get the selected stage
+    class StageSelect* GetStageSelect();
+    class BossFactory* GetFactory(int n);
+
+    //Grade functions
+    float GetGrade(int n) { return mGrades[static_cast<GameSubject>(n)]; }
+    float GetGrade(GameSubject subject) { return mGrades[subject]; }
+    void SetGrade(GameSubject subject, float grade) { mGrades[subject] = grade; }
+    void SetGrade(int n, float grade) { mGrades[static_cast<GameSubject>(n)] = grade; }
 
 private:
     void ProcessInput();
     void UpdateGame();
+    void UpdateScenes(float deltaTime);
     void UpdateCamera();
     void GenerateOutput();
+    void UnloadScenes();
 
 
     // All the actors in the game
@@ -87,12 +116,19 @@ private:
     // Track if we're updating actors right now
     bool mIsRunning;
     bool mUpdatingActors;
-    bool mChangeScene;
 
+    // Camera X and Y position
     Vector2 mCameraPos;
+
+    //Stack of active scenes (normally only one, except on pause)
     std::stack<Scene*> mScene;
 
-    void UpdateScenes(float deltaTime);
+    //All Boss factories
+    std::map<GameSubject, class BossFactory*> mBossFactory;
 
-    void UnloadScenes();
+    //All Grades
+    std::map<GameSubject, float> mGrades;
+
+    void InitializeBossFactory();
+    void InitializeGrades();
 };

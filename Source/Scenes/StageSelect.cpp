@@ -6,7 +6,7 @@
 #include "../Actors/Buttons/StageSelectButton.h"
 #include "../Font.h"
 
-#define TIME_INTERVAL 0.15
+#define TIME_INTERVAL 0.14
 
 StageSelect::StageSelect(Game *game) : Scene(game, SceneType::StageSelect),
     mNumMaterias(10),
@@ -40,6 +40,7 @@ void StageSelect::CreateButtons() {
 
     //Variavel para guardar texto que será escrito dentro do botão
     std::string subjectCode;
+    Game::GameSubject subject;
     for (int j = 0; j < 4; j++)
     {
         switch(j)
@@ -47,7 +48,8 @@ void StageSelect::CreateButtons() {
             case 0:
             {
                 subjectCode = "INF 213";
-                auto stage = new StageSelectButton(this, subjectCode);
+                subject = Game::GameSubject::INF213;
+                auto stage = new StageSelectButton(this, subjectCode, subject);
                 stage->SetPosition(Vector2(widthBorder + buttonWidth/2, (float)mGame->GetWindowHeight()/2));
                 stage->SetText(subjectCode);
                 mButtons.push_back(stage);
@@ -61,22 +63,26 @@ void StageSelect::CreateButtons() {
                     switch (i) {
                         case 0:
                             subjectCode = "INF 250";
+                            subject = Game::GameSubject::INF250;
                             break;
                         case 1:
                             subjectCode = "INF 220";
+                            subject = Game::GameSubject::INF220;
                             break;
                         case 2:
                             subjectCode = "INF 330";
+                            subject = Game::GameSubject::INF330;
                             break;
                         case 3:
                             subjectCode = "INF 332";
+                            subject = Game::GameSubject::INF332;
                             break;
                         default:
                             subjectCode = "ERROR";
                             break;
                     }
                     float area2y = heightBorder + buttonHeight/2 + i * (espacamentoY + buttonHeight);
-                    auto stage = new StageSelectButton(this, subjectCode);
+                    auto stage = new StageSelectButton(this, subjectCode, subject);
                     stage->SetPosition(Vector2(area2x, area2y));
                     mButtons.push_back(stage);
                 }
@@ -91,18 +97,22 @@ void StageSelect::CreateButtons() {
                     switch (i) {
                         case 0: {
                             subjectCode = "INF 420";
+                            subject = Game::GameSubject::INF420;
                             break;
                         }
                         case 1: {
                             subjectCode = "BIO INF";
+                            subject = Game::GameSubject::BIOINF;
                             break;
                         }
                         case 2: {
                             subjectCode = "INF 394";
+                            subject = Game::GameSubject::INF394;
                             break;
                         }
                         case 3: {
                             subjectCode = "VIS CCP";
+                            subject = Game::GameSubject::VISCCP;
                             break;
                         }
                         default:
@@ -110,7 +120,7 @@ void StageSelect::CreateButtons() {
                             break;
                     }
                     float area2y = heightBorder + buttonHeight/2 + i * (espacamentoY + buttonHeight);
-                    auto stage = new StageSelectButton(this, subjectCode);
+                    auto stage = new StageSelectButton(this, subjectCode, subject);
                     stage->SetPosition(Vector2(area2x, area2y));
                     mButtons.push_back(stage);
                 }
@@ -119,7 +129,8 @@ void StageSelect::CreateButtons() {
             case 3:
             {
                 subjectCode = "TCC";
-                auto stage = new StageSelectButton(this, subjectCode);
+                subject = Game::GameSubject::TCC;
+                auto stage = new StageSelectButton(this, subjectCode, subject);
                 stage->SetPosition(Vector2((float)mGame->GetWindowWidth() - widthBorder - buttonWidth/2, (float)mGame->GetWindowHeight()/2));
                 mButtons.push_back(stage);
                 break;
@@ -190,6 +201,12 @@ void StageSelect::InputButtonSelect(const Uint8 *keyState) {
         mButtons[mSelectedButton]->changeSelected();
 
         mTimer = 0;
+    }
+
+    //coloquei o Enter aqui ao invés de no próprio SSButton por questões de otimização.
+    if(keyState[SDL_SCANCODE_RETURN])
+    {
+        mButtons[mSelectedButton]->StartBattle();
     }
 }
 
