@@ -9,6 +9,8 @@
 
 class SallesBossProjectile : public BossProjectile {
 
+    // TODO 2.0 - Rever BossProjectile e criar SallesBossProjectile
+
 };
 
 
