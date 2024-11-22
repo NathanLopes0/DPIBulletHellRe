@@ -30,7 +30,7 @@ Player::Player(Scene* scene) :
     mRigidBodyComponent = new RigidBodyComponent(this);
     mColliderComponent = new CircleColliderComponent(this, (float)mDrawComponent->GetSpriteWidth() / 2.f);
 
-    //aloca um número considerável de Projectiles para que não haja realocação de vetor no meio do jogo.
+    //aloca um número considerável de Projectiles para não haver realocação de vetor no meio do jogo.
     for(int i = 0; i < NUM_PROJECTILES_VECTOR; i++) {
         mProjectiles.emplace_back(new PlayerProjectile(mScene, this));
         mProjectiles[i]->DeactivateProjectile();

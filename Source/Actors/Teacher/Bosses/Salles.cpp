@@ -3,6 +3,7 @@
 //
 
 #include "Salles.h"
+#include "BossesProjectiles/SallesBossProjectile.h"
 
 Salles::Salles(Scene *scene, const std::string& spritePath, const std::string& dataPath,
                const std::string& projectileSpritePath, const std::string& projectileDataPath) : Boss(scene) {
@@ -15,9 +16,9 @@ Salles::Salles(Scene *scene, const std::string& spritePath, const std::string& d
     //---------------------------------------------------------//.
 
 
-    //o x1.5 na width é pra pegar nos braços, pensando mais na experiência do jogador
-    SDL_Log("%f", (float)mDrawComponent->GetSpriteWidth());
-    mColliderComponent = new CircleColliderComponent(this, (float)mDrawComponent->GetSpriteWidth() * 2.f);
+    // a divisao por 2.2f é melhor do que a divisão por 2, pois a 2 fica grande demais. a 2.2 pega fora dos braços, mas por pouco.
+    //SDL_Log("%d, %d", mDrawComponent->GetSpriteWidth(), mDrawComponent->GetSpriteHeight());
+    mColliderComponent = new CircleColliderComponent(this, (float)mDrawComponent->GetSpriteWidth() / 2.2f);
 
 
     //String com o Path da sprite e data dos Projéteis, para serem criados nas funções de Ataque.
@@ -25,13 +26,15 @@ Salles::Salles(Scene *scene, const std::string& spritePath, const std::string& d
     mProjectileDataPath = projectileDataPath;
 
     //Define a velocidade de ataque de cada estado.
+    // TODO 7.0 - Decidir e definir atkSpeed de cada estado (depois que pensar direitinho nos ataques)
+    // TODO 7.0.1 - Isso vai ser decidido com testes, e é colocado em um vetor pra ser usado no future
     DefineAtkTimers(1.5f, 1.f, 1.f);
+
 
 }
 
 // TODO 4.0 - Verificar se podemos realocar alguma variavel para Bossfactory
 // TODO 3.0 - Montar função de ataque e movimento do primeiro estado do Salles
-// TODO 2.5 - Criar BossProjectile
 
 void Salles::OnUpdate(float deltaTime) {
 
@@ -56,7 +59,12 @@ void Salles::Movement3() {
 }
 
 void Salles::Attack1() {
+    SDL_Log("Attacking1");
+    std::vector<SallesBossProjectile*> Atk1Projectiles;
 
+    ResetAtkTimer();
+
+    //auto s1 = Atk1Projectiles.emplace_back(new SallesBossProjectile(mScene,this,mProjectileSpritePath,mProjectileDataPath));
 }
 
 void Salles::Attack2() {

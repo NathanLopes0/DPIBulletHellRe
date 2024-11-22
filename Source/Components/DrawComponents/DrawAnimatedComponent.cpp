@@ -14,6 +14,15 @@ DrawAnimatedComponent::DrawAnimatedComponent(class Actor* owner, const std::stri
 {
     LoadSpriteSheet(spriteSheetPath, spriteSheetData);
 
+    std::ifstream file(spriteSheetData);
+    nlohmann::json f;
+    file >> f;
+
+    //Isso assume que todas as frames terão o mesmo tamanho, e pega apenas o width e height do primeiro frame da animação.
+    auto frames = f["frames"];
+    auto firstframe = frames.begin();
+    mWidth = firstframe.value()["frame"]["w"];
+    mHeight = firstframe.value()["frame"]["h"];
 
 }
 
