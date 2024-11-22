@@ -28,8 +28,7 @@ void Projectile::OnCollision() {
 }
 
 void Projectile::DeactivateProjectile() {
-    SetState(ActorState::Paused);
-    mDrawComponent->SetIsVisible(false);
+
 }
 
 // Ativa o Projétil na posição passada como parâmetro
@@ -38,14 +37,4 @@ void Projectile::ActivateProjectile(const Vector2& desiredStartingPosition) {
     mDrawComponent->SetIsVisible(true);
 
     SetPosition(desiredStartingPosition);
-}
-
-// Ativa o Projétil na posição do dono
-void Projectile::ActivateProjectile() {
-    SetState(ActorState::Active);
-    mDrawComponent->SetIsVisible(true);
-}
-
-bool Projectile::InsideProjectileLimit() const {
-    return false;
 }
