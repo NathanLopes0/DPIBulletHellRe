@@ -9,17 +9,22 @@
 
 class PlayerProjectile : public Projectile {
 
+    friend class Player;
+
 public:
     PlayerProjectile(class Scene* scene, class Player* owner);
     void OnUpdate(float deltaTime) override;
     void OnCollision() override;
     [[nodiscard]] bool InsideProjectileLimit() const override;
-    void ActivateProjectile() override;
+
 
 private:
 
     class Player* mOwner;
     const CircleColliderComponent *BossCollider();
+
+    void ActivateProjectile();
+    void DeactivateProjectile() override;
 
     bool Collided();
 

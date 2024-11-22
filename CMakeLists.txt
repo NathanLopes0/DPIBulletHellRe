@@ -49,8 +49,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teacher/BossFactory/Boss1Factory.h
         Source/Actors/Teacher/Boss.cpp
         Source/Actors/Teacher/Boss.h
-        Source/Actors/Teacher/Salles.cpp
-        Source/Actors/Teacher/Salles.h
+        Source/Actors/Teacher/Bosses/Salles.cpp
+        Source/Actors/Teacher/Bosses/Salles.h
         Source/Actors/Player/Player.cpp
         Source/Actors/Player/Player.h
         Source/Actors/Teacher/BossStates/BossState.cpp
@@ -65,6 +65,10 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Player/PlayerProjectile.h
         Source/Actors/Teacher/BossStates/StateOne.cpp
         Source/Actors/Teacher/BossStates/StateOne.h
+        Source/Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.cpp
+        Source/Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.h
+        Source/Actors/Teacher/Bosses/BossesProjectiles/SallesBossProjectile.cpp
+        Source/Actors/Teacher/Bosses/BossesProjectiles/SallesBossProjectile.h
 )
 
 find_package(SDL2 2.28.2 REQUIRED)

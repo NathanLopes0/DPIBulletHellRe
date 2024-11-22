@@ -6,7 +6,7 @@
 #include "../Boss.h"
 #include "../../../Game.h"
 #include "Boss1Factory.h"
-#include "../Salles.h"
+#include "../Bosses/Salles.h"
 
 Boss1Factory::Boss1Factory(Game *game) : BossFactory(game) {
 
@@ -17,7 +17,10 @@ Boss* Boss1Factory::CreateBoss(Scene* scene) {
     std::string spritePath = "../Assets/Teachers/DPIBHSalles.png";
     std::string dataPath = "../Assets/Teachers/DPIBHSalles.json";
 
-    mBoss = new Salles(scene, spritePath, dataPath);
+    std::string SallesProjectileSpritePath = "../Assets/Teachers/Projectiles/Capivara.png";
+    std::string SallesProjectileDataPath = "../Assets/Teachers/Projectiles/Capivara/json";
+
+    mBoss = new Salles(scene, spritePath, dataPath, SallesProjectileSpritePath, SallesProjectileDataPath);
 
     //      ----------DEFINIÇÃO DE POSIÇÃO E VELOCIDADE INICIAL, E ATIVAÇÃO DO BOSS----------      //
     mBoss->SetState(ActorState::Active);

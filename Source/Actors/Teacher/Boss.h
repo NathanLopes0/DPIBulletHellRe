@@ -5,12 +5,13 @@
 #ifndef DPIBULLETHELLRE_BOSS_H
 #define DPIBULLETHELLRE_BOSS_H
 
+#include "../Actor.h"
 #include "../../Game.h"
 #include "../../Scenes/Scene.h"
-#include "../Actor.h"
-#include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../Components/RigidBodyComponent.h"
 #include "../../Components/AIComponents/FSMComponent.h"
+#include "../../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "../../Components/ColliderComponents/CircleColliderComponent.h"
 
 class Boss : public Actor {
 
@@ -39,6 +40,7 @@ protected:
     class CircleColliderComponent* mColliderComponent;
     class FSMComponent* mFSMComponent;
     class BossState* mCurrentState;
+    float mAtkTimer;
 
 
     // TODO 3.0 - Colocar as classes de State como friends (ou colocar só a classe base de State, n lembro como funciona)
@@ -58,6 +60,12 @@ protected:
     virtual void Attack3() = 0;
 
     void StateActions();
+
+    //funções e estruturas para manipular os timers de ataque (velocidade de ataque) de cada estado dos bosses.
+    virtual void ResetAtkTimer() = 0;
+    std::map<std::string, float> mStateAtkTimers;
+    void DecreaseAtkTimer(float deltaTime) { mAtkTimer -= deltaTime; }
+
 
 };
 

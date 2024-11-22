@@ -5,12 +5,12 @@
 #include "Boss.h"
 #include "BossStates/StartState.h"
 #include "BossStates/StateOne.h"
-#include "../../Components/ColliderComponents/CircleColliderComponent.h"
 
 Boss::Boss(Scene *scene) : Actor(scene) {
 
     mRigidBodyComponent = new RigidBodyComponent(this);
     mFSMComponent = new FSMComponent(this);
+    mAtkTimer = 0;
 
     new StartState(mFSMComponent);
     new StateOne(mFSMComponent);
@@ -18,10 +18,9 @@ Boss::Boss(Scene *scene) : Actor(scene) {
     // new StateThree(mFSMComponent);
     // new StateFinal(mFSMComponent);
 
+    mDrawComponent = nullptr;
+    mColliderComponent = nullptr;
 
-    //metade do tamanho da sprite, pq é o raio. Não dá pra colocar GetSpriteWidth/Height pq ainda não temos a sprite,
-    //pois ela é colocada no construtor externo(do boss especifico), e esse construtor mais interno acontece primeiro.
-    mColliderComponent = new CircleColliderComponent(this, 64);
 
 }
 
@@ -38,17 +37,20 @@ void Boss::StateActions() {
     }
     else if (stateName == "StateOne")
     {
-        Attack1();
+        if(mAtkTimer < 0)
+            Attack1();
         Movement1();
     }
     else if (stateName == "StateTwo")
     {
-        Attack2();
+        if(mAtkTimer < 0)
+            Attack2();
         Movement2();
     }
     else if (stateName == "StateThree")
     {
-        Attack3();
+        if(mAtkTimer < 0)
+            Attack3();
         Movement3();
     }
 }

@@ -18,10 +18,11 @@ public:
     void OnUpdate(float deltaTime) override;
     void OnCollision() override;
 
-
-    virtual void ActivateProjectile();
     virtual void ActivateProjectile(const Vector2& desiredStartingPosition);
-    virtual void DeactivateProjectile();
+    virtual void DeactivateProjectile() = 0;
+
+
+    void SetFowardSpeed(float newSpeed) { mFowardSpeed = newSpeed; }
 
 
 protected:
@@ -33,9 +34,8 @@ protected:
     float mFowardSpeed;
 
 
-
     //Sub-funções de OnUpdate
-    virtual bool InsideProjectileLimit() const;
+    [[nodiscard]] virtual bool InsideProjectileLimit() const = 0;
 
 };
 
