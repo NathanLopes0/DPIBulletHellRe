@@ -18,7 +18,7 @@ Boss* Boss1Factory::CreateBoss(Scene* scene) {
     std::string dataPath = "../Assets/Teachers/DPIBHSalles.json";
 
     std::string SallesProjectileSpritePath = "../Assets/Teachers/Projectiles/Capivara.png";
-    std::string SallesProjectileDataPath = "../Assets/Teachers/Projectiles/Capivara/json";
+    std::string SallesProjectileDataPath = "../Assets/Teachers/Projectiles/Capivara.json";
 
     mBoss = new Salles(scene, spritePath, dataPath, SallesProjectileSpritePath, SallesProjectileDataPath);
 

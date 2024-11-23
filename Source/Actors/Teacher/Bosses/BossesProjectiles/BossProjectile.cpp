@@ -18,9 +18,15 @@ void BossProjectile::OnUpdate(float deltaTime) {
     Projectile::OnUpdate(deltaTime);
 
 
-    // TODO 8.0 - CheckCollision de Boss retorna 1 se colidir com jogador
-    // TODO 8.0.1 - Por enquanto ta como BOOL, pode transformar em int no futuro
-    // TODO 8.0.2 - Rever como (e principalmente em que lugar do código) ver colisão com qualquer coisa da tela nos slides do Lucas.
+
+
+
+
+
+
+    // TODO 30.0 - CheckCollision de Boss retorna true/1 se colidir com jogador
+    // TODO 30.0.1 - Por enquanto ta como BOOL, pode transformar em int no futuro
+    // TODO 30.0.2 - Rever como (e principalmente em que lugar do código) ver colisão com qualquer coisa da tela nos slides do Lucas.
     if(CheckCollision())
     {
         //TODO 9.1 - fazer Lógica de diminuir nota da fase
@@ -51,4 +57,5 @@ bool BossProjectile::InsideProjectileLimit() const {
 
 bool BossProjectile::CheckCollision() {
     // TODO 4.1 - Lógica de colisão com o jogador (todos os projéteis de bosses colidem com o jogador, por isso ta aqui)
+    return false;
 }

@@ -23,6 +23,7 @@ public:
 
 
     void SetFowardSpeed(float newSpeed) { mFowardSpeed = newSpeed; }
+    float GetFowardSpeed() const { return mFowardSpeed; }
 
 
 protected:
@@ -30,7 +31,6 @@ protected:
     class DrawAnimatedComponent* mDrawComponent;
     class RigidBodyComponent* mRigidBodyComponent;
     class CircleColliderComponent* mColliderComponent;
-    class Actor* mOwner;
     float mFowardSpeed;
 
 

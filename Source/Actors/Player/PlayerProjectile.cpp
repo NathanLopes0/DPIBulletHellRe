@@ -76,7 +76,7 @@ void PlayerProjectile::DeactivateProjectile() {
     mDrawComponent->SetIsVisible(false);
 }
 
-const CircleColliderComponent* PlayerProjectile::BossCollider() {
+const CircleColliderComponent* PlayerProjectile::GetBossCollider() {
 
     return mScene->GetBoss()->GetComponent<CircleColliderComponent>();
 
@@ -91,7 +91,7 @@ bool PlayerProjectile::CheckCollision() {
 
 
 bool PlayerProjectile::Collided() {
-    return mColliderComponent->Intersect(*BossCollider());
+    return mColliderComponent->Intersect(*GetBossCollider());
 }
 
 void PlayerProjectile::OnCollision() {
