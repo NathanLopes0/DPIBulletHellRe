@@ -9,7 +9,6 @@
 Projectile::Projectile(Scene *scene) :
         Actor(scene)
 {
-    mOwner = nullptr;
     mDrawComponent = nullptr;
     mColliderComponent = new CircleColliderComponent(this, 12);
     mRigidBodyComponent = new RigidBodyComponent(this);

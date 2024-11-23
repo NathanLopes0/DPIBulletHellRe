@@ -6,7 +6,8 @@
 #include "BossStates/StartState.h"
 #include "BossStates/StateOne.h"
 
-Boss::Boss(Scene *scene) : Actor(scene) {
+Boss::Boss(Scene *scene, const std::string& spritePath, const std::string& dataPath)
+:Actor(scene) {
 
     mRigidBodyComponent = new RigidBodyComponent(this);
     mFSMComponent = new FSMComponent(this);
@@ -18,8 +19,15 @@ Boss::Boss(Scene *scene) : Actor(scene) {
     // new StateThree(mFSMComponent);
     // new StateFinal(mFSMComponent);
 
-    mDrawComponent = nullptr;
-    mColliderComponent = nullptr;
+    //todos os bosses terão sprite, logo, declarei aqui. A divisão do Collider por 2.2 é pq por 2 tava pegando fora da sprite,
+    //ainda tá pegando fora na verdade, mas não tanto. Talvez eu devesse fazer a sprite ser com mais altura do que largura,
+    //ao invés de um quadrado...
+
+    //TODO 110.0 - fazer as sprites seres 64x128, pois são mais altas do que largas.
+    //TODO 110.1 - e ai mudar os raios dos colliders components de acordo (ou fazer uma sprite mais quadrada)
+
+    mDrawComponent = new DrawAnimatedComponent(this, spritePath, dataPath);
+    mColliderComponent = new CircleColliderComponent(this, (float)mDrawComponent->GetSpriteWidth() / 2.2f);
 
 
 }

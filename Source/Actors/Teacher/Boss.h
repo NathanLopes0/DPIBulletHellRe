@@ -18,7 +18,7 @@ class Boss : public Actor {
 
 public:
 
-    Boss(class Scene* scene);
+    Boss(class Scene* scene, const std::string& spritePath, const std::string& dataPath);
     ~Boss();
 
     class BossState* GetCurrentState() { return mCurrentState; }

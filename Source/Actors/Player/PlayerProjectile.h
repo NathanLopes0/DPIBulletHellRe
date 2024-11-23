@@ -21,13 +21,13 @@ public:
 private:
 
     class Player* mOwner;
-    const CircleColliderComponent *BossCollider();
+
+    const CircleColliderComponent* GetBossCollider();
 
     void ActivateProjectile();
     void DeactivateProjectile() override;
 
     bool Collided();
-
     bool CheckCollision();
 };
 

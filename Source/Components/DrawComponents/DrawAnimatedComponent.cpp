@@ -40,6 +40,7 @@ void DrawAnimatedComponent::LoadSpriteSheet(const std::string& texturePath, cons
     // Load sprite sheet texture
     mSpriteSheetSurface = mOwner->GetScene()->GetGame()->LoadTexture(texturePath);
 
+
     // Load sprite sheet data
     std::ifstream spriteSheetFile(dataPath);
     nlohmann::json spriteSheetData = nlohmann::json::parse(spriteSheetFile);
