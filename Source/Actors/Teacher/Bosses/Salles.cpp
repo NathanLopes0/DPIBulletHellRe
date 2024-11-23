@@ -21,14 +21,14 @@ Salles::Salles(Scene *scene, const std::string& spritePath, const std::string& d
     mProjectileDataPath = projectileDataPath;
 
     //Define a velocidade de ataque de cada estado.
-    // TODO 7.0 - Decidir e definir atkSpeed de cada estado (depois que pensar direitinho nos ataques)
-    // TODO 7.0.1 - Isso vai ser decidido com testes, e é colocado em um vetor pra ser usado no future
+    // TODO 12.0 - Decidir e definir atkSpeed de cada estado (depois que pensar direitinho nos ataques)
+    // TODO 12.0.1 - Isso vai ser decidido com testes, e é colocado em um vetor pra ser usado no future
     DefineAtkTimers(1.5f, 1.f, 1.f);
 
 }
 
-// TODO 4.0 - Verificar se podemos realocar alguma variavel para Bossfactory
-// TODO 3.0 - Montar função de ataque e movimento do primeiro estado do Salles
+// TODO 14.0 - Verificar se podemos realocar alguma variavel para Bossfactory
+// TODO 13.0 - Montar função de ataque e movimento do primeiro estado do Salles
 
 void Salles::OnUpdate(float deltaTime) {
 
@@ -52,12 +52,10 @@ void Salles::Movement3() {
 
 }
 
-// TODO 0.5 - Percebi que vou precisar modificar o jeito que trato os ataques
-// TODO 0.5.1 - Criar uma nova BRANCH no git pra mexer com o Padrão de Projeto "Strategy"para os ataques.
-
 void Salles::Attack1() {
     SDL_Log("Attacking1");
 
+    /*
     float ATK1_PROJECTILES_fOWARDSPEED = 10.f;
 
     //vetor para manipular todos os projéteis de um único ataque
@@ -76,16 +74,14 @@ void Salles::Attack1() {
     //isso significa setar a velocidade usando um vetor normalizado na direção desejada, e multiplicar
     //pela fowardSpeed definida acima.
 
-    //TODO 1.9 - Como achar o vetor normalizado desejado? Nesse caso específico, tenho um ângulo de 30º que quero entre eles,
-    //TODO 1.9 - e quero que eles estejam a 15º de uma reta abaixo do Boss.
-
-    // TODO 1.7 - Primeiro, vou ver se consigo invocar os 2 projéteis usando só os vetores -1,-1 e 1,-1.
     s1->GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(-1,-1) * s1->GetFowardSpeed());
     s1->GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(1, -1) * s2->GetFowardSpeed());
 
     ResetAtkTimer();
 
     //OS ATAQUES NÃO ESTÃO APARECENDO POIS ELES SÃO DESALOCADOS ASSIM QUE SAEM DESSA fUNÇÃO OK? OK!
+
+     */
 
 }
 
@@ -118,7 +114,7 @@ void Salles::DefineAtkTimers(float stateOneTimer, float stateTwoTimer, float sta
 
 }
 
-// TODO 4.0 - Colocar isso na classe base Boss, pq vai ser sempre isso aqui.
+// TODO 9.0 - Colocar isso na classe base Boss, pq vai ser sempre isso aqui.
 void Salles::ResetAtkTimer() {
 
     mAtkTimer = mStateAtkTimers[mFSMComponent->GetState()->GetName()];

@@ -23,8 +23,8 @@ Boss::Boss(Scene *scene, const std::string& spritePath, const std::string& dataP
     //ainda tá pegando fora na verdade, mas não tanto. Talvez eu devesse fazer a sprite ser com mais altura do que largura,
     //ao invés de um quadrado...
 
-    //TODO 110.0 - fazer as sprites seres 64x128, pois são mais altas do que largas.
-    //TODO 110.1 - e ai mudar os raios dos colliders components de acordo (ou fazer uma sprite mais quadrada)
+    //TODO 115.0 - fazer as sprites seres 64x128, pois são mais altas do que largas.
+    //TODO 115.1 - e ai mudar os raios dos colliders components de acordo (ou fazer uma sprite mais quadrada)
 
     mDrawComponent = new DrawAnimatedComponent(this, spritePath, dataPath);
     mColliderComponent = new CircleColliderComponent(this, (float)mDrawComponent->GetSpriteWidth() / 2.2f);
