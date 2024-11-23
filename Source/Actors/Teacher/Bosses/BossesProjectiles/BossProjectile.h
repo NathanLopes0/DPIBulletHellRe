@@ -12,7 +12,7 @@ class BossProjectile : public Projectile {
 
 public:
 
-    //TODO 18.2 - Dar um jeito de Boss* owner ser aceito como mOwner de Projectile.cpp também (o Owner do Projectile é Actor).
+    //TODO 23.2 - Dar um jeito de Boss* owner ser aceito como mOwner de Projectile.cpp também (o Owner do Projectile é Actor).
     BossProjectile(class Scene* scene, class Boss* owner);
 
     void OnUpdate(float deltaTime) override;

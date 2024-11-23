@@ -10,7 +10,6 @@
 class SallesBossProjectile : public BossProjectile {
 
 public:
-    // TODO 2.0 - Rever BossProjectile e criar SallesBossProjectile
     SallesBossProjectile(class Scene* scene, class Salles* owner, const std::string& spritePath, const std::string& dataPath);
 
 };

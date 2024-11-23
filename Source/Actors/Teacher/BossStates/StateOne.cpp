@@ -2,7 +2,7 @@
 // Created by nslop on 19/11/2024.
 //
 
-// TODO 20.0 - Tirar o include <SDL_log.h> daqui, estou usando só pra debugar codigo.
+// TODO 25.0 - Tirar o include <SDL_log.h> daqui, estou usando só pra debugar codigo.
 #include <SDL_log.h>
 #include "StateOne.h"
 
