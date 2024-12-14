@@ -67,10 +67,20 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teacher/BossStates/StateOne.h
         Source/Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.cpp
         Source/Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.h
-        Source/Actors/Teacher/Bosses/BossesProjectiles/SallesBossProjectile.cpp
-        Source/Actors/Teacher/Bosses/BossesProjectiles/SallesBossProjectile.h
         Source/AttackStrategy.cpp
         Source/AttackStrategy.h
+        Source/Actors/Teacher/BossAttackStrategies/BaseStrategies/CircularSpreadAttack.cpp
+        Source/Actors/Teacher/BossAttackStrategies/BaseStrategies/CircularSpreadAttack.h
+        Source/Actors/Teacher/BossFactory/BossProjectileFactory/Boss1Projectile1Factory.cpp
+        Source/Actors/Teacher/BossFactory/BossProjectileFactory/Boss1Projectile1Factory.h
+        Source/Actors/ProjectileFactory.cpp
+        Source/Actors/ProjectileFactory.h
+        Source/Actors/Teacher/BossStates/StateTwo.cpp
+        Source/Actors/Teacher/BossStates/StateTwo.h
+        Source/Actors/Teacher/BossAttackStrategies/BaseStrategies/AngledAttack.cpp
+        Source/Actors/Teacher/BossAttackStrategies/BaseStrategies/AngledAttack.h
+        Source/Actors/Teacher/BossAttackStrategies/Decorators/HomingDecorator.cpp
+        Source/Actors/Teacher/BossAttackStrategies/Decorators/HomingDecorator.h
 )
 
 find_package(SDL2 2.28.2 REQUIRED)

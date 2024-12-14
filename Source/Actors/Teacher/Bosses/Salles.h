@@ -11,8 +11,7 @@
 class Salles : public Boss {
 
 public:
-    Salles(class Scene* scene, const std::string& spritePath, const std::string& dataPath,
-            const std::string& projectileSpritePath, const std::string& projectileDataPath);
+    Salles(class Scene* scene);
     void OnUpdate(float deltaTime) override;
 
 

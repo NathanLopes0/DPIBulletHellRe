@@ -6,6 +6,7 @@
 #define DPIBULLETHELLRE_BOSS1FACTORY_H
 
 #include "BossFactory.h"
+#include "BossProjectileFactory/Boss1Projectile1Factory.h"
 
 class Boss1Factory : public BossFactory {
 
@@ -15,6 +16,9 @@ public:
 
 private:
 
+    void configureStrategies() override;
+    void configureBossSprite() override;
+    Boss1Projectile1Factory* mProjectileSpawner;
 };
 
 

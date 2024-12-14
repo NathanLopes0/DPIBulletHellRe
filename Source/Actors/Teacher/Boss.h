@@ -5,6 +5,7 @@
 #ifndef DPIBULLETHELLRE_BOSS_H
 #define DPIBULLETHELLRE_BOSS_H
 
+#include <memory>
 #include "../Actor.h"
 #include "../../Game.h"
 #include "../../Scenes/Scene.h"
@@ -12,13 +13,14 @@
 #include "../../Components/AIComponents/FSMComponent.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../Components/ColliderComponents/CircleColliderComponent.h"
+#include "../../AttackStrategy.h"
 
 class Boss : public Actor {
 
 
 public:
 
-    Boss(class Scene* scene, const std::string& spritePath, const std::string& dataPath);
+    Boss(class Scene* scene);
     ~Boss();
 
     class BossState* GetCurrentState() { return mCurrentState; }
@@ -30,7 +32,9 @@ public:
     int GetSpriteWidth() { return GetComponent<DrawAnimatedComponent>()->GetSpriteWidth(); }
 
     virtual void Start();
-
+    void insertComponents(class DrawAnimatedComponent* newDraw = nullptr, class CircleColliderComponent* newCollider = nullptr,
+            class RigidBodyComponent* newRigid = nullptr);
+    void insertAttackStrategies(const std::vector<AttackStrategy*>& newStrategies);
 
 protected:
     //variaveis para enviar powerUps na hora certa
@@ -40,6 +44,8 @@ protected:
     DrawAnimatedComponent* mDrawComponent;
     class CircleColliderComponent* mColliderComponent;
     class FSMComponent* mFSMComponent;
+
+    class std::vector<AttackStrategy*> mAtkStrategies;
     class BossState* mCurrentState;
     float mAtkTimer;
 
@@ -62,8 +68,6 @@ protected:
     virtual void ResetAtkTimer() = 0;
     std::map<std::string, float> mStateAtkTimers;
     void DecreaseAtkTimer(float deltaTime) { mAtkTimer -= deltaTime; }
-
-
 };
 
 

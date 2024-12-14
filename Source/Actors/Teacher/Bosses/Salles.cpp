@@ -3,22 +3,11 @@
 //
 
 #include "Salles.h"
-#include "BossesProjectiles/SallesBossProjectile.h"
+#include "BossesProjectiles/BossProjectile.h"
 
-Salles::Salles(Scene *scene, const std::string& spritePath, const std::string& dataPath,
-               const std::string& projectileSpritePath, const std::string& projectileDataPath)
-               :Boss(scene, spritePath, dataPath) {
+Salles::Salles(Scene *scene)
+               :Boss(scene) {
 
-    //Draw Component commands----------------------------------//
-    //Coloquei a declaração de mDraw no boss, pois todos têm sprite, mas as animações coloco aqui.
-    mDrawComponent->AddAnimation("Idle", {0});
-    mDrawComponent->SetAnimation("Idle");
-    //---------------------------------------------------------//.
-
-
-    //String com o Path da sprite e data dos Projéteis, para serem criados nas funções de Ataque.
-    mProjectileSpritePath = projectileSpritePath;
-    mProjectileDataPath = projectileDataPath;
 
     //Define a velocidade de ataque de cada estado.
     // TODO 12.0 - Decidir e definir atkSpeed de cada estado (depois que pensar direitinho nos ataques)
@@ -53,7 +42,25 @@ void Salles::Movement3() {
 }
 
 void Salles::Attack1() {
+
     SDL_Log("Attacking1");
+
+    // ---------- ESBOÇO DO CÓDIGO USANDO VETOR DE INTEIROS COM INTERVALOS DE ESTRATEGIAS ------------//
+    /*
+     * int i = 0;
+     *  for (;i < intervaloStrat[0]; i++)
+     *      mAtkStrategies[i]->execute();
+     *
+     *  i começaria de 0 por ser o ataque 1, e nos outros ataques?
+     *  ataque 2 => int i = intervaloStrat[0];
+     *  ataque 3 => int i = intervaloStrat[1] + intervaloStrat[0];
+     *
+     *
+     */
+
+    auto projectiles = mAtkStrategies[0]->execute();
+    ResetAtkTimer();
+
 
     /*
     float ATK1_PROJECTILES_fOWARDSPEED = 10.f;
@@ -79,17 +86,26 @@ void Salles::Attack1() {
 
     ResetAtkTimer();
 
-    //OS ATAQUES NÃO ESTÃO APARECENDO POIS ELES SÃO DESALOCADOS ASSIM QUE SAEM DESSA fUNÇÃO OK? OK!
-
      */
 
 }
 
 void Salles::Attack2() {
 
+    SDL_Log("Attacking 2");
+    auto p1 = mAtkStrategies[1]->execute();
+    auto p2 = mAtkStrategies[2]->execute();
+
+    ResetAtkTimer();
+
 }
 
 void Salles::Attack3() {
+
+    SDL_Log("Attacking 3");
+    auto p1 = mAtkStrategies[3]->execute();
+
+    ResetAtkTimer();
 
 }
 

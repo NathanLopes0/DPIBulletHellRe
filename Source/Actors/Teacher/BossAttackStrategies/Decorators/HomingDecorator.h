@@ -1,0 +1,14 @@
+//
+// Created by nslop on 12/12/2024.
+//
+
+#ifndef DPIBULLETHELLRE_HOMINGDECORATOR_H
+#define DPIBULLETHELLRE_HOMINGDECORATOR_H
+
+
+class HomingDecorator {
+
+};
+
+
+#endif //DPIBULLETHELLRE_HOMINGDECORATOR_H

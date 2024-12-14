@@ -20,10 +20,11 @@ public:
 
     virtual void ActivateProjectile(const Vector2& desiredStartingPosition);
     virtual void DeactivateProjectile() = 0;
+    virtual ~Projectile() = default;
 
 
     void SetFowardSpeed(float newSpeed) { mFowardSpeed = newSpeed; }
-    float GetFowardSpeed() const { return mFowardSpeed; }
+    [[nodiscard]] float GetFowardSpeed() const { return mFowardSpeed; }
 
 
 protected:
