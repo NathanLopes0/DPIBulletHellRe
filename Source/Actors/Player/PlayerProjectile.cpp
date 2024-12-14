@@ -26,10 +26,9 @@ PlayerProjectile::PlayerProjectile(Scene *scene, Player *owner) :
 
 
     // TODO 99.0 - Colocar uma variável para ser a mFowardSpeed para que possa mudar com powerups
-    mFowardSpeed = BASE_FOWARD_SPEED;
 
     // TODO 100.0 - Modo dificil o projétil só vai pra cima, Modo normal ela segue o Boss
-    mRigidBodyComponent->SetVelocity(Vector2(0, -mFowardSpeed));
+    mRigidBodyComponent->SetVelocity(Vector2(0, -BASE_FOWARD_SPEED));
     // Será que é bom colocar a velocidade aqui? As vezes é melhor o Player ter mais controle sobre a velocidade desejada
     // do Player Projectile? Que aí ele pode ter ataques diferentes. Porém, ele pode mudar a velocidade dentro de alguma função
     //lá ainda, e essa pode ser a base para que ele não precise colocá-la.

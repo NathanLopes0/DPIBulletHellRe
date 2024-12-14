@@ -16,6 +16,7 @@ public:
     explicit Battle(Game* game);
     void Load() override;
     [[nodiscard]] class Boss* GetBoss() const override { return mBoss; };
+    const Vector2& GetPlayerPosition() override;
 
 private:
     float mGrade;

@@ -6,7 +6,9 @@
 #define DPIBULLETHELLRE_PROJECTILE_H
 
 #include "Actor.h"
+#include <memory>
 #include "../Components/RigidBodyComponent.h"
+#include "Teacher/BossAttackStrategies/Behaviors.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Components/ColliderComponents/CircleColliderComponent.h"
 
@@ -20,19 +22,26 @@ public:
 
     virtual void ActivateProjectile(const Vector2& desiredStartingPosition);
     virtual void DeactivateProjectile() = 0;
+
     virtual ~Projectile() = default;
 
 
-    void SetFowardSpeed(float newSpeed) { mFowardSpeed = newSpeed; }
-    [[nodiscard]] float GetFowardSpeed() const { return mFowardSpeed; }
+    float GetFowardSpeed();
 
+
+    template <typename Behavior, typename... Args>
+    void insertBehavior(Args&&... args) {
+        mBehaviors.push_back(std::make_unique<Behavior>(std::forward<Args>(args)...));
+    }
 
 protected:
 
     class DrawAnimatedComponent* mDrawComponent;
     class RigidBodyComponent* mRigidBodyComponent;
     class CircleColliderComponent* mColliderComponent;
-    float mFowardSpeed;
+
+    //Behavior structures and methods
+    std::vector<std::unique_ptr<class ProjectileBehavior>> mBehaviors;
 
 
     //Sub-funções de OnUpdate

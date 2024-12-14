@@ -43,4 +43,11 @@ std::vector<Projectile*> AngledAttack::execute() {
     return projectiles;
 }
 
+std::vector<class Projectile *> AngledAttack::execute(float projectileSpeed, float angleBetween, float centralAngle) {
+    if(projectileSpeed != 0) mProjectileSpeed = projectileSpeed;
+    if(angleBetween > 0) mAngle = angleBetween;
+    if(centralAngle > 0) mCentralAngle = centralAngle;
+    return execute();
+}
+
 AngledAttack::~AngledAttack() = default;

@@ -11,7 +11,15 @@ class AttackStrategy {
 
 public:
     virtual ~AttackStrategy() = default;
+
+    // GAMBIARRA TOTAL pra fazer Angled poder mudar os parametros no meio da execução, deve ter como fazer com Template
+    // Mas por enquanto ta funcionando.
     virtual std::vector<class Projectile*> execute() = 0;
+    virtual std::vector<class Projectile*> execute(float) { return {}; };
+    virtual std::vector<class Projectile*> execute(float, float) { return {}; }
+    virtual std::vector<class Projectile*> execute(float, float, float) { return {}; }
+    virtual std::vector<class Projectile*> execute(float, float, float, float) { return {}; }
+
 
 };
 

@@ -72,15 +72,15 @@ void Boss1Factory::configureStrategies() {
     std::vector<AttackStrategy*> Attacks;
     //----- PRIMEIRA ESTRATÉGIA
 
-    Attacks.emplace_back(new CircularSpreadAttack(mProjectileSpawner, mBoss, 12, 100.f));
+    Attacks.emplace_back(new AngledAttack(mProjectileSpawner, mBoss, 250.f, 10, 90));
 
     //----- SEGUNDA ESTRATÉGIA
 
-    Attacks.emplace_back(new AngledAttack(mProjectileSpawner, mBoss, 200.f, 30, 90));
     Attacks.emplace_back(new CircularSpreadAttack(mProjectileSpawner, mBoss, 24, 50.f));
+    Attacks.emplace_back(new CircularSpreadAttack(mProjectileSpawner, mBoss, 48, 90.f));
 
     //----- TERCEIRA ESTRATÉGIA
-    Attacks.emplace_back(new CircularSpreadAttack(mProjectileSpawner, mBoss, 48, 90.f));
+
 
     mAtkStrategies.insert(mAtkStrategies.end(),
                           std::make_move_iterator(Attacks.begin()),

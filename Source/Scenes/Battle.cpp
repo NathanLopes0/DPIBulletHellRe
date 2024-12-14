@@ -58,3 +58,7 @@ void Battle::LoadPlayer() {
 
     mPlayer->SetPosition(startingPosition);
 }
+
+const Vector2 &Battle::GetPlayerPosition() {
+    return mPlayer->GetPosition();
+}
