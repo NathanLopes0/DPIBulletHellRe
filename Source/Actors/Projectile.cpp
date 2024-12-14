@@ -2,8 +2,11 @@
 // Created by nslop on 18/11/2024.
 //
 
-#include "Projectile.h"
+
+#include <memory>
 #include "../Game.h"
+#include "Projectile.h"
+#include "Teacher/BossAttackStrategies/Behaviors.h"
 
 
 Projectile::Projectile(Scene *scene) :
@@ -32,8 +35,15 @@ void Projectile::DeactivateProjectile() {
 
 // Ativa o Projétil na posição passada como parâmetro
 void Projectile::ActivateProjectile(const Vector2& desiredStartingPosition) {
+
     SetState(ActorState::Active);
     mDrawComponent->SetIsVisible(true);
 
     SetPosition(desiredStartingPosition);
+}
+
+float Projectile::GetFowardSpeed() {
+    if(mRigidBodyComponent)
+        SDL_Log("%f", mRigidBodyComponent->GetVelocity().Length());
+    return mRigidBodyComponent->GetVelocity().Length();
 }

@@ -79,8 +79,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teacher/BossStates/StateTwo.h
         Source/Actors/Teacher/BossAttackStrategies/BaseStrategies/AngledAttack.cpp
         Source/Actors/Teacher/BossAttackStrategies/BaseStrategies/AngledAttack.h
-        Source/Actors/Teacher/BossAttackStrategies/Decorators/HomingDecorator.cpp
-        Source/Actors/Teacher/BossAttackStrategies/Decorators/HomingDecorator.h
+        Source/Actors/Teacher/BossAttackStrategies/Behaviors.h
+        Source/Actors/Teacher/BossAttackStrategies/Behaviors.cpp
 )
 
 find_package(SDL2 2.28.2 REQUIRED)

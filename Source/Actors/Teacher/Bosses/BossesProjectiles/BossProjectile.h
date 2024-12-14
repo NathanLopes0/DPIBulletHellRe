@@ -21,7 +21,7 @@ public:
     void DeactivateProjectile() override;
 
     void insertComponents(DrawAnimatedComponent *pComponent, CircleColliderComponent *pComponent1, RigidBodyComponent* pComponent2);
-
+    const Vector2& GetPlayerDirection();
 protected:
 
     [[nodiscard]] bool InsideProjectileLimit() const override;
@@ -29,6 +29,7 @@ protected:
 
 
 private:
+    const Vector2& GetPlayerPosition();
     class Boss* mOwner;
 };
 

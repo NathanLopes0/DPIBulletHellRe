@@ -3,6 +3,7 @@
 //
 
 #include "Salles.h"
+#include "../../../Random.h"
 #include "BossesProjectiles/BossProjectile.h"
 
 Salles::Salles(Scene *scene)
@@ -12,7 +13,7 @@ Salles::Salles(Scene *scene)
     //Define a velocidade de ataque de cada estado.
     // TODO 12.0 - Decidir e definir atkSpeed de cada estado (depois que pensar direitinho nos ataques)
     // TODO 12.0.1 - Isso vai ser decidido com testes, e é colocado em um vetor pra ser usado no future
-    DefineAtkTimers(1.5f, 1.f, 1.f);
+    DefineAtkTimers(0.5f, 1.f, 1.f);
 
 }
 
@@ -43,7 +44,7 @@ void Salles::Movement3() {
 
 void Salles::Attack1() {
 
-    SDL_Log("Attacking1");
+    //SDL_Log("Attacking1");
 
     // ---------- ESBOÇO DO CÓDIGO USANDO VETOR DE INTEIROS COM INTERVALOS DE ESTRATEGIAS ------------//
     /*
@@ -58,35 +59,17 @@ void Salles::Attack1() {
      *
      */
 
-    auto projectiles = mAtkStrategies[0]->execute();
-    ResetAtkTimer();
+    // ----- PARAMETROS EM TEMPO DE EXECUÇÃO PARA ESTRATÉGIA 1 - ANGLEDATTACK ----- //
+
+    auto randomCentralAngle = Random::GetIntRange(20, 140);
+
+    auto projectiles = mAtkStrategies[0]->execute(0, 0, randomCentralAngle);
 
 
-    /*
-    float ATK1_PROJECTILES_fOWARDSPEED = 10.f;
-
-    //vetor para manipular todos os projéteis de um único ataque
-    std::vector<SallesBossProjectile*> Atk1Projectiles;
 
 
-    // ------------- DECLARAÇÃO DE TODOS OS PROJÉTEIS DE CADA ATAQUE1 ------------------ //
-    auto s1 = Atk1Projectiles.emplace_back(new SallesBossProjectile(mScene,this,mProjectileSpritePath,mProjectileDataPath));
-    auto s2 = Atk1Projectiles.emplace_back(new SallesBossProjectile(mScene,this,mProjectileSpritePath,mProjectileDataPath));
-
-    // ------------- DEfINIÇÃO DA VELOCIDADE DE TODOS OS PROJÉTEIS DE ATAQUE1 --------------- //
-    for(auto projectile : Atk1Projectiles)
-        projectile->SetFowardSpeed(ATK1_PROJECTILES_fOWARDSPEED);
-
-    // ------------- DEfINIÇÃO DA DIREÇÃO DE CADA PROJÉTIL DE ATAQUE1 ---------------- //
-    //isso significa setar a velocidade usando um vetor normalizado na direção desejada, e multiplicar
-    //pela fowardSpeed definida acima.
-
-    s1->GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(-1,-1) * s1->GetFowardSpeed());
-    s1->GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(1, -1) * s2->GetFowardSpeed());
 
     ResetAtkTimer();
-
-     */
 
 }
 

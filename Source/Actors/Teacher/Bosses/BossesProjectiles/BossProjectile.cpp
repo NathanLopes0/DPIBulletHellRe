@@ -2,8 +2,10 @@
 // Created by nslop on 21/11/2024.
 //
 
-#include "BossProjectile.h"
+
 #include "../../Boss.h"
+#include "BossProjectile.h"
+#include "../../../Teacher/BossAttackStrategies/Behaviors.h"
 
 BossProjectile::BossProjectile(Scene *scene, Boss *owner)
 :Projectile(scene),
@@ -14,12 +16,16 @@ mOwner(owner)
 
 void BossProjectile::OnUpdate(float deltaTime) {
 
-    //O OnUpdate do Projectile já vê se ele ta dentro dos limites da tela, e se tiver, transforma o State em Destroy.
+    //O OnUpdate do Projectile já vê se ele ta dentro dos limites da tela, e se nao tiver, transforma o State em Destroy.
     Projectile::OnUpdate(deltaTime);
+    if(mState == ActorState::Active) {
+        for(auto& behavior : mBehaviors) {
+            behavior->update(this, deltaTime);
+        }
+    }
 
-
-
-
+    auto tempVec = Vector2::Normalize(mRigidBodyComponent->GetVelocity());
+    //mRigidBodyComponent->SetVelocity(tempVec * mFowardSpeed);
 
 
     // TODO 35.0 - CheckCollision de Boss retorna true/1 se colidir com jogador
@@ -46,8 +52,8 @@ bool BossProjectile::InsideProjectileLimit() const {
     auto spriteWidth = mDrawComponent->GetSpriteWidth();
     auto spriteHeight = mDrawComponent->GetSpriteHeight();
 
-    if(!(currPos.x <= (float)width + (float)spriteWidth && currPos.x >= (float)-spriteWidth
-        && currPos.y <= (float)height + (float)spriteHeight && currPos.y >= (float)-spriteHeight))
+    if(!(currPos.x <= (float)width + (float)spriteWidth && currPos.x >= (float)-spriteWidth - (float)width
+        && currPos.y <= (float)height + (float)spriteHeight && currPos.y >= (float)-spriteHeight - (float)height))
         return false;
     return true;
 
@@ -64,6 +70,21 @@ void BossProjectile::insertComponents(DrawAnimatedComponent *pComponent = nullpt
     mColliderComponent = new CircleColliderComponent(*pComponent1);
     mRigidBodyComponent = new RigidBodyComponent(this);
 
+}
+
+const Vector2& BossProjectile::GetPlayerDirection() {
+    auto projPos = GetPosition();
+    auto playerPos = GetPlayerPosition();
+
+    auto direction = new Vector2(playerPos - projPos);
+    direction->Normalize();
+
+    return *direction;
+
+}
+
+const Vector2 &BossProjectile::GetPlayerPosition() {
+    return mScene->GetPlayerPosition();
 }
 
 

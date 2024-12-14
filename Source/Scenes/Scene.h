@@ -29,6 +29,7 @@ public:
     virtual const Vector2& GetCameraPos();
 
     virtual class Boss * GetBoss() const;
+    virtual const Vector2& GetPlayerPosition() { return Vector2::Zero; }
 
 protected:
     class Game* mGame;

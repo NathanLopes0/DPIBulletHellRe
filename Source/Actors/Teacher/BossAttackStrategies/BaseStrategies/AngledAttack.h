@@ -9,12 +9,13 @@
 
 class AngledAttack : public AttackStrategy {
 public:
-    [[maybe_unused]] AngledAttack(class ProjectileFactory* spawner, class Boss* owner,
+     AngledAttack(class ProjectileFactory* spawner, class Boss* owner,
             float _projectileSpeed, float _angleBetween, float _centralAngle);
 
     ~AngledAttack();
 
     std::vector<class Projectile*> execute() override;
+    std::vector<class Projectile*> execute(float projectileSpeed, float angleBetween, float centralAngle);
 
 private:
     class ProjectileFactory* mPSpawner;

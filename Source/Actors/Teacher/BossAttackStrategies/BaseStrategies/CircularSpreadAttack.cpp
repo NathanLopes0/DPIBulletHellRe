@@ -31,8 +31,10 @@ std::vector<Projectile *> CircularSpreadAttack::execute() {
         float xCoordRad = Math::Cos(i * angleStep * Math::Pi / 180);
         float yCoordRad = Math::Sin(i * angleStep * Math::Pi / 180);
         Vector2 directionVector = Vector2(xCoordRad, yCoordRad);
+        directionVector.Normalize();
 
         projectile->GetComponent<RigidBodyComponent>()->SetVelocity(directionVector * projectileSpeed);
+
 
         projectiles.push_back(projectile);
     }
