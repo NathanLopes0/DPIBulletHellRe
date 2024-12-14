@@ -22,8 +22,6 @@ void BossProjectile::OnUpdate(float deltaTime) {
 
 
 
-
-
     // TODO 35.0 - CheckCollision de Boss retorna true/1 se colidir com jogador
     // TODO 35.0.1 - Por enquanto ta como BOOL, pode transformar em int no futuro
     // TODO 35.0.2 - Rever como (e principalmente em que lugar do código) ver colisão com qualquer coisa da tela nos slides do Lucas.
@@ -59,3 +57,14 @@ bool BossProjectile::CheckCollision() {
     // TODO 9.1 - Lógica de colisão com o jogador (todos os projéteis de bosses colidem com o jogador, por isso ta aqui)
     return false;
 }
+
+void BossProjectile::insertComponents(DrawAnimatedComponent *pComponent = nullptr, CircleColliderComponent *pComponent1 = nullptr,
+                                      RigidBodyComponent *pComponent2 = nullptr) {
+    mDrawComponent = new DrawAnimatedComponent(*pComponent);
+    mColliderComponent = new CircleColliderComponent(*pComponent1);
+    mRigidBodyComponent = new RigidBodyComponent(this);
+
+}
+
+
+

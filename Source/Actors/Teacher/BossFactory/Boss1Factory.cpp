@@ -3,24 +3,53 @@
 //
 
 #include <string>
+#include <memory>
 #include "../Boss.h"
-#include "../../../Game.h"
 #include "Boss1Factory.h"
 #include "../Bosses/Salles.h"
+#include "../BossAttackStrategies/BaseStrategies/CircularSpreadAttack.h"
+#include "../BossAttackStrategies/BaseStrategies/AngledAttack.h"
 
 Boss1Factory::Boss1Factory(Game *game) : BossFactory(game) {
+
+    mProjectileSpawner = new Boss1Projectile1Factory();
 
 }
 
 Boss* Boss1Factory::CreateBoss(Scene* scene) {
 
-    std::string spritePath = "../Assets/Teachers/DPIBHSalles.png";
-    std::string dataPath = "../Assets/Teachers/DPIBHSalles.json";
+    // TODO 2.5 - Dividir essa função em várias outras ("uma função não deve fazer mais de 3 coisas" - Little Lu)
 
-    std::string SallesProjectileSpritePath = "../Assets/Teachers/Projectiles/Capivara.png";
-    std::string SallesProjectileDataPath = "../Assets/Teachers/Projectiles/Capivara.json";
+    // ----------------  CONfIGURAÇÃO SPRITE BOSS E CRIAÇÃO DO BOSS, DRAW E COLLIDER ----------------//
+    configureBossSprite();
+    mBoss = new Salles(scene);
+    auto* BossDrawComponent = new DrawAnimatedComponent(mBoss, spritePathing[0], dataPathing[0]);
+    auto* CircleCollider = new CircleColliderComponent(mBoss, (float)BossDrawComponent->GetSpriteWidth() / 2.2f);
+    // ---------------------------------------------------------------------------------------------//
 
-    mBoss = new Salles(scene, spritePath, dataPath, SallesProjectileSpritePath, SallesProjectileDataPath);
+
+    // ---------------------------- CONfIGURAÇÃO DOS PROJÉTEIS -------------------------------------//
+
+
+    //mProjectileFactories.emplace_back(new Boss1Projectile1Factory());
+    // ---------------------------------------------------------------------------------------------//
+
+    // --------- Configura animações, DrawComponent inicializado lá em cima -------- //
+    configureBaseDrawComponent(BossDrawComponent);
+
+    // --------- Cria estratégias de ataque -------- //
+    configureStrategies();
+
+
+    // ---------------------------- INJEÇÃO DE COMPONENTES NO BOSS ------------------------------ //
+
+    mBoss->insertComponents(BossDrawComponent, CircleCollider);
+    mBoss->insertAttackStrategies(mAtkStrategies);
+
+    // ------------------------------------------------------------------------------------------- //
+
+
+
 
     //      ----------DEFINIÇÃO DE POSIÇÃO E VELOCIDADE INICIAL, E ATIVAÇÃO DO BOSS----------      //
     mBoss->SetState(ActorState::Active);
@@ -33,5 +62,37 @@ Boss* Boss1Factory::CreateBoss(Scene* scene) {
     mBoss->GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(0, 50));
     //      ------------------- -- ------- - ---------- -------- - -------- -- ---------------      //
 
+
     return mBoss;
+}
+
+void Boss1Factory::configureStrategies() {
+
+    //talvez criar função defineStrategy1, defineStrategy2, defineStrategy3, para ficar melhor de mudar no futuro.
+    std::vector<AttackStrategy*> Attacks;
+    //----- PRIMEIRA ESTRATÉGIA
+
+    Attacks.emplace_back(new CircularSpreadAttack(mProjectileSpawner, mBoss, 12, 100.f));
+
+    //----- SEGUNDA ESTRATÉGIA
+
+    Attacks.emplace_back(new AngledAttack(mProjectileSpawner, mBoss, 200.f, 30, 90));
+    Attacks.emplace_back(new CircularSpreadAttack(mProjectileSpawner, mBoss, 24, 50.f));
+
+    //----- TERCEIRA ESTRATÉGIA
+    Attacks.emplace_back(new CircularSpreadAttack(mProjectileSpawner, mBoss, 48, 90.f));
+
+    mAtkStrategies.insert(mAtkStrategies.end(),
+                          std::make_move_iterator(Attacks.begin()),
+                          std::make_move_iterator(Attacks.end()));
+
+    //pode ser interessante ter um vetor de ints mostrando a posição em mAtkStrategies que começa e termina as estratégias da X
+
+}
+
+void Boss1Factory::configureBossSprite() {
+
+    spritePathing.emplace_back("../Assets/Teachers/DPIBHSalles.png");
+    dataPathing.emplace_back("../Assets/Teachers/DPIBHSalles.json");
+
 }

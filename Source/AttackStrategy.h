@@ -9,6 +9,7 @@
 
 class AttackStrategy {
 
+public:
     virtual ~AttackStrategy() = default;
     virtual std::vector<class Projectile*> execute() = 0;
 
@@ -22,6 +23,11 @@ class AttackStrategy {
 
 // TODO 1.0.3 - Acho que a ideia é criar o vetor nas Strategies, criar os projéteis, enviar o vetor para Decorator,
 // TODO 1.0.3 - receber o vetor modificado pelo decorator, fazer algo se necessário, e ai finalmente retorná-lo para o Boss.
+
+
+// TODO 0.5 - fazer outras estratégias, AngledAttack principalmente (estratégia principal do Salles)
+// TODO 0.5.1 - logo depois, fazer o decorator "Homing", que é o decorator principal do Salles.
+// TODO 0.5.2 - e depois conectar a strategy com o decorator (deve demorar e ter q fazer mudanças)
 
 
 

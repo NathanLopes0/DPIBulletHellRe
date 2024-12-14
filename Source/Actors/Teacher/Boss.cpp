@@ -3,31 +3,30 @@
 //
 
 #include "Boss.h"
+
+#include <utility>
+#include <memory>
 #include "BossStates/StartState.h"
 #include "BossStates/StateOne.h"
+#include "BossStates/StateTwo.h"
 
-Boss::Boss(Scene *scene, const std::string& spritePath, const std::string& dataPath)
+Boss::Boss(Scene *scene)
 :Actor(scene) {
 
-    mRigidBodyComponent = new RigidBodyComponent(this);
     mFSMComponent = new FSMComponent(this);
     mAtkTimer = 0;
 
     new StartState(mFSMComponent);
     new StateOne(mFSMComponent);
-    // new StateTwo(mFSMComponent);
+    new StateTwo(mFSMComponent);
     // new StateThree(mFSMComponent);
     // new StateFinal(mFSMComponent);
 
-    //todos os bosses terão sprite, logo, declarei aqui. A divisão do Collider por 2.2 é pq por 2 tava pegando fora da sprite,
-    //ainda tá pegando fora na verdade, mas não tanto. Talvez eu devesse fazer a sprite ser com mais altura do que largura,
-    //ao invés de um quadrado...
 
     //TODO 115.0 - fazer as sprites seres 64x128, pois são mais altas do que largas.
     //TODO 115.1 - e ai mudar os raios dos colliders components de acordo (ou fazer uma sprite mais quadrada)
 
-    mDrawComponent = new DrawAnimatedComponent(this, spritePath, dataPath);
-    mColliderComponent = new CircleColliderComponent(this, (float)mDrawComponent->GetSpriteWidth() / 2.2f);
+
 
 
 }
@@ -61,6 +60,17 @@ void Boss::StateActions() {
             Attack3();
         Movement3();
     }
+}
+
+void Boss::insertComponents(DrawAnimatedComponent *newDraw, CircleColliderComponent *newCollider,
+                            RigidBodyComponent *newRigid) {
+    mDrawComponent = new DrawAnimatedComponent(*newDraw);
+    mColliderComponent = new CircleColliderComponent(*newCollider);
+    mRigidBodyComponent = new RigidBodyComponent(this);
+}
+
+void Boss::insertAttackStrategies(const std::vector<AttackStrategy*>& newStrategies){
+    mAtkStrategies = newStrategies;
 }
 
 Boss::~Boss() = default;
