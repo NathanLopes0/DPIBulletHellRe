@@ -5,15 +5,14 @@
 #include "Behaviors.h"
 #include "../../Teacher/Bosses/BossesProjectiles/BossProjectile.h"
 
-
 void HomingBehavior::update(BossProjectile* p, float deltaTime) {
     if(!homing) {
         elapsedTime += deltaTime;
         if(elapsedTime >= homingDelay) {
             homing = true;
-            auto newSpeed = (homingSpeed == 0) ? 1 : homingSpeed;
-            if(newSpeed == 1) {
-                p->GetComponent<RigidBodyComponent>()->SetVelocity(p->GetPlayerDirection() * p->GetFowardSpeed());
+            if(homingSpeed == 0) {
+                auto currSpeed = p->GetFowardSpeed();
+                p->GetComponent<RigidBodyComponent>()->SetVelocity(p->GetPlayerDirection() * currSpeed);
             }
             else {
                 p->GetComponent<RigidBodyComponent>()->SetVelocity(p->GetPlayerDirection() * homingSpeed);
@@ -58,6 +57,17 @@ void SlowDownBehavior::update(BossProjectile* p, float deltaTime) {
                 Math::Clamp(slowdownSpeedPercent, 0.f, 1.f);
                 p->GetComponent<RigidBodyComponent>()->SetVelocity(currVelAux * slowdownSpeedPercent);
             }
+        }
+    }
+}
+
+void ActivateBehavior::update(BossProjectile* p, float deltaTime) {
+    if(!activated) {
+        elapsedTime += deltaTime;
+        if(elapsedTime >= activationDelay) {
+            p->GetComponent<DrawAnimatedComponent>()->SetIsVisible(true);
+            p->GetComponent<RigidBodyComponent>()->SetVelocity(activationVelocity);
+            activated = true;
         }
     }
 }

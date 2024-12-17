@@ -57,7 +57,7 @@ bool PlayerProjectile::InsideProjectileLimit() const {
 }
 
 void PlayerProjectile::OnUpdate(float deltaTime) {
-    Projectile::OnUpdate(deltaTime);
+    if(!InsideProjectileLimit()) DeactivateProjectile();
 
     //----- ULTIMA COISA DO UPDATE: Ver colisão. Pois com colisão o objeto pode ser destruído.
     if(CheckCollision())
@@ -71,8 +71,8 @@ void PlayerProjectile::ActivateProjectile() {
 }
 
 void PlayerProjectile::DeactivateProjectile() {
-    SetState(ActorState::Paused);
     mDrawComponent->SetIsVisible(false);
+    SetState(ActorState::Paused);
 }
 
 const CircleColliderComponent* PlayerProjectile::GetBossCollider() {
@@ -95,6 +95,6 @@ bool PlayerProjectile::Collided() {
 
 void PlayerProjectile::OnCollision() {
 
-    // TODO 4.1 - antes de desativar o projétil, mudar a nota de acordo com o número de pontos dados por acerto.
+    // TODO COLLISION 6 - antes de desativar o projétil, mudar a nota de acordo com o número de pontos dados por acerto.
     DeactivateProjectile();
 }

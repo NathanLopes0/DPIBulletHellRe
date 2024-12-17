@@ -3,9 +3,9 @@
 //
 
 
+#include <algorithm>
 #include "../../Boss.h"
 #include "BossProjectile.h"
-#include "../../../Teacher/BossAttackStrategies/Behaviors.h"
 
 BossProjectile::BossProjectile(Scene *scene, Boss *owner)
 :Projectile(scene),
@@ -18,30 +18,22 @@ void BossProjectile::OnUpdate(float deltaTime) {
 
     //O OnUpdate do Projectile já vê se ele ta dentro dos limites da tela, e se nao tiver, transforma o State em Destroy.
     Projectile::OnUpdate(deltaTime);
-    if(mState == ActorState::Active) {
-        for(auto& behavior : mBehaviors) {
-            behavior->update(this, deltaTime);
-        }
-    }
+    updateBehaviors(deltaTime);
 
     auto tempVec = Vector2::Normalize(mRigidBodyComponent->GetVelocity());
     //mRigidBodyComponent->SetVelocity(tempVec * mFowardSpeed);
 
 
-    // TODO 35.0 - CheckCollision de Boss retorna true/1 se colidir com jogador
-    // TODO 35.0.1 - Por enquanto ta como BOOL, pode transformar em int no futuro
-    // TODO 35.0.2 - Rever como (e principalmente em que lugar do código) ver colisão com qualquer coisa da tela nos slides do Lucas.
+    // TODO COLLISION 10 - CheckCollision de Boss retorna true/1 se colidir com jogador
+    //  Por enquanto ta como BOOL, pode transformar em int no futuro
+    //  Rever como (e principalmente em que lugar do código) ver colisão com qualquer coisa da tela nos slides do Lucas.
     if(CheckCollision())
     {
-        //TODO 14.1 - fazer Lógica de diminuir nota da fase
+        //TODO COLLISION 14 - fazer Lógica de diminuir nota da fase
 
-        //Depois da lógica, desativar o projétil. Nesse caso, ele é destruído.
-        DeactivateProjectile();
+        //Depois da lógica, destruir o projétil.
+        DestroyProjectile();
     }
-}
-
-void BossProjectile::DeactivateProjectile() {
-    SetState(ActorState::Destroy);
 }
 
 bool BossProjectile::InsideProjectileLimit() const {
@@ -52,23 +44,27 @@ bool BossProjectile::InsideProjectileLimit() const {
     auto spriteWidth = mDrawComponent->GetSpriteWidth();
     auto spriteHeight = mDrawComponent->GetSpriteHeight();
 
-    if(!(currPos.x <= (float)width + (float)spriteWidth && currPos.x >= (float)-spriteWidth - (float)width
-        && currPos.y <= (float)height + (float)spriteHeight && currPos.y >= (float)-spriteHeight - (float)height))
+    if(!(currPos.x <= (float)width + (float)spriteWidth && currPos.x >= (float)-spriteWidth - (float)width / 12
+        && currPos.y <= (float)height + (float)spriteHeight && currPos.y >= (float)-spriteHeight - (float)height) / 12)
         return false;
     return true;
 
 }
 
 bool BossProjectile::CheckCollision() {
-    // TODO 9.1 - Lógica de colisão com o jogador (todos os projéteis de bosses colidem com o jogador, por isso ta aqui)
+    // TODO COLLISION 9 - Lógica de colisão com o jogador (todos os projéteis de bosses colidem com o jogador, por isso ta aqui)
+    // TODO COLLISION 5 - Receber Player aqui com função parecida com GetPlayerPosition (talvez usar essa criada em GetPPosition tbm)
+    //  fazer GPPosition em Scene com virtual retornando nullptr, mas sobreescrever em BattleScene, e usar
+    //  aqui e usar isso pra chamar o Intersect do player.
+    //  Pensando... será que é melhor fazer essa checagem no player? pq serão muuuitos intersects na pilha se forem os projéteis que
+    //  veem essa colisão. Deve ser melhor uma função na pilha vendo cada CircleCollider, e é bom que já trato a colisão com o Boss.
     return false;
 }
 
-void BossProjectile::insertComponents(DrawAnimatedComponent *pComponent = nullptr, CircleColliderComponent *pComponent1 = nullptr,
-                                      RigidBodyComponent *pComponent2 = nullptr) {
+void BossProjectile::insertComponents(DrawAnimatedComponent *pComponent = nullptr,
+                                      CircleColliderComponent *pComponent1 = nullptr) {
     mDrawComponent = new DrawAnimatedComponent(*pComponent);
     mColliderComponent = new CircleColliderComponent(*pComponent1);
-    mRigidBodyComponent = new RigidBodyComponent(this);
 
 }
 
@@ -85,6 +81,18 @@ const Vector2& BossProjectile::GetPlayerDirection() {
 
 const Vector2 &BossProjectile::GetPlayerPosition() {
     return mScene->GetPlayerPosition();
+}
+
+void BossProjectile::updateBehaviors(float deltaTime) {
+    for(auto& behavior : mBehaviors) {
+        behavior->update(this, deltaTime);
+    }
+
+    mBehaviors.erase(std::remove_if(mBehaviors.begin(), mBehaviors.end(),
+                                    [](const std::unique_ptr<ProjectileBehavior>& behavior) {
+        return behavior->isFinished();
+    }), mBehaviors.end());
+
 }
 
 

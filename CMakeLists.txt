@@ -81,6 +81,12 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teacher/BossAttackStrategies/BaseStrategies/AngledAttack.h
         Source/Actors/Teacher/BossAttackStrategies/Behaviors.h
         Source/Actors/Teacher/BossAttackStrategies/Behaviors.cpp
+        Source/Actors/Teacher/BossStates/StateThree.cpp
+        Source/Actors/Teacher/BossStates/StateThree.h
+        Source/Actors/Teacher/BossAttackStrategies/BaseStrategies/AngledFilledAttack.cpp
+        Source/Actors/Teacher/BossAttackStrategies/BaseStrategies/AngledFilledAttack.h
+        Source/Actors/Teacher/BossAttackStrategies/BaseStrategies/WaveAttack.cpp
+        Source/Actors/Teacher/BossAttackStrategies/BaseStrategies/WaveAttack.h
 )
 
 find_package(SDL2 2.28.2 REQUIRED)

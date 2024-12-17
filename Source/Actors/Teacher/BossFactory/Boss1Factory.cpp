@@ -7,8 +7,9 @@
 #include "../Boss.h"
 #include "Boss1Factory.h"
 #include "../Bosses/Salles.h"
-#include "../BossAttackStrategies/BaseStrategies/CircularSpreadAttack.h"
+#include "../BossAttackStrategies/BaseStrategies/WaveAttack.h"
 #include "../BossAttackStrategies/BaseStrategies/AngledAttack.h"
+#include "../BossAttackStrategies/BaseStrategies/AngledFilledAttack.h"
 
 Boss1Factory::Boss1Factory(Game *game) : BossFactory(game) {
 
@@ -18,7 +19,7 @@ Boss1Factory::Boss1Factory(Game *game) : BossFactory(game) {
 
 Boss* Boss1Factory::CreateBoss(Scene* scene) {
 
-    // TODO 2.5 - Dividir essa função em várias outras ("uma função não deve fazer mais de 3 coisas" - Little Lu)
+    // TODO 32.5 - Dividir essa função em várias outras ("uma função não deve fazer mais de 3 coisas" - Little Lu)
 
     // ----------------  CONfIGURAÇÃO SPRITE BOSS E CRIAÇÃO DO BOSS, DRAW E COLLIDER ----------------//
     configureBossSprite();
@@ -74,12 +75,17 @@ void Boss1Factory::configureStrategies() {
 
     Attacks.emplace_back(new AngledAttack(mProjectileSpawner, mBoss, 250.f, 10, 90));
 
+    //deixei essa linha comentada só pra se precisar testar algo da WaveAttack, mas apagar depois, é apenas pra debug
+    //Attacks.emplace_back(new WaveAttack(mProjectileSpawner, mBoss, 20, 300.f, 90, 90, 0.02));
+
     //----- SEGUNDA ESTRATÉGIA
 
-    Attacks.emplace_back(new CircularSpreadAttack(mProjectileSpawner, mBoss, 24, 50.f));
-    Attacks.emplace_back(new CircularSpreadAttack(mProjectileSpawner, mBoss, 48, 90.f));
+    Attacks.emplace_back(new AngledAttack(mProjectileSpawner, mBoss, 250.f, 15, 90));
 
     //----- TERCEIRA ESTRATÉGIA
+
+    Attacks.emplace_back(new AngledFilledAttack(mProjectileSpawner, mBoss, 3,
+                                                240.f, 20, 90));
 
 
     mAtkStrategies.insert(mAtkStrategies.end(),

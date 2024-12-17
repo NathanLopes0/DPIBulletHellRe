@@ -296,11 +296,16 @@ void Game::Shutdown()
 
 void Game::UnloadActors()
 {
-    while (!mActors.empty())
+
+    //Deixar isso aqui por precaução, mas funcionou deixar o SetState(Destroy);
+/*    while (!mActors.empty())
     {
         delete mActors.back();
     }
-
+*/
+    for(auto& actor : mActors) {
+        actor->SetState(ActorState::Destroy);
+    }
 }
 
 void Game::UnloadScenes() {

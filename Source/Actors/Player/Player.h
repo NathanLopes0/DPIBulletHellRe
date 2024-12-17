@@ -29,7 +29,7 @@ private:
     //variaveis de jogador
     float playerSpeed;
     float atkTimer;
-    bool mMoving;                       //ve se o jogador está se movendo. Usada para mudar a animação.
+    bool mMoving;                       //Ve se o jogador está se movendo. Usada para mudar a animação.
 
 
     //OnProcessInput Sub-functions, and its sub-functions

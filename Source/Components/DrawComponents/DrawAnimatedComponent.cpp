@@ -76,7 +76,6 @@ void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
                                clipRect->h};
 
         SDL_RendererFlip flip = SDL_FLIP_NONE;
-
         SDL_RenderCopyEx(renderer, mSpriteSheetSurface, clipRect, &renderQuad, .0f, nullptr, flip);
     }
 

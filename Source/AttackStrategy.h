@@ -17,27 +17,19 @@ public:
     virtual std::vector<class Projectile*> execute() = 0;
     virtual std::vector<class Projectile*> execute(float) { return {}; };
     virtual std::vector<class Projectile*> execute(float, float) { return {}; }
+
+    //AngledAttack
     virtual std::vector<class Projectile*> execute(float, float, float) { return {}; }
+
+    //AngledFilledAttack
+    virtual std::vector<class Projectile*> execute(int, float, float, float) { return {}; }
     virtual std::vector<class Projectile*> execute(float, float, float, float) { return {}; }
+
+    //WaveAttack
+    virtual std::vector<class Projectile*> execute(int, float, float, float, float) { return {}; }
 
 
 };
-
-// TODO 1.0 - A ideia é criar estratégias gerais ("CircleAttack, AngledAttack, SpiralAttack, BurstAttack, WaveAttack)
-// TODO 1.0 - e ai usar Decorator para adicionar funcionalidades aos ataques ("Homing", "Accelerate", "Decelerate", "Split", "Orbit")
-
-// TODO 1.0.1 - Esses Decorators todos receberão um vector de Projectiles para manipulá-los e retorná-los.
-// TODO 1.0.2 - As estratégias não receberão, mas criarão os vetores e os retornarão.
-
-// TODO 1.0.3 - Acho que a ideia é criar o vetor nas Strategies, criar os projéteis, enviar o vetor para Decorator,
-// TODO 1.0.3 - receber o vetor modificado pelo decorator, fazer algo se necessário, e ai finalmente retorná-lo para o Boss.
-
-
-// TODO 0.5 - fazer outras estratégias, AngledAttack principalmente (estratégia principal do Salles)
-// TODO 0.5.1 - logo depois, fazer o decorator "Homing", que é o decorator principal do Salles.
-// TODO 0.5.2 - e depois conectar a strategy com o decorator (deve demorar e ter q fazer mudanças)
-
-
 
 
 #endif //DPIBULLETHELLRE_ATTACKSTRATEGY_H
