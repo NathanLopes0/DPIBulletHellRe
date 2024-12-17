@@ -107,7 +107,8 @@ void Player::HandleAnimation() {
 //ShootInput Subfunction
 void Player::Shoot() {
     if(atkTimer <= 0) {
-        for(auto it : mProjectiles) {
+        for(auto& it : mProjectiles) {
+            //if(!it) continue;
             if(it->GetState() == ActorState::Paused) {
                 it->ActivateProjectile();
                 break;
@@ -128,7 +129,7 @@ void Player::DecreaseAtkTimer(float deltaTime) {
         atkTimer -= deltaTime;
 }
 
-// TODO 5.0 - Não deixar o jogador sair das bordas de tela (fazer depois que decidir os limites da tela)
+// TODO 10.0 - Não deixar o jogador sair das bordas de tela (fazer depois que decidir os limites da tela)
 void Player::BorderLimitCheck() {
 
 }

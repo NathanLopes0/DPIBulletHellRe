@@ -36,6 +36,8 @@ public:
             class RigidBodyComponent* newRigid = nullptr);
     void insertAttackStrategies(const std::vector<AttackStrategy*>& newStrategies);
 
+    Vector2 GetPlayerDirection() { return Vector2(mScene->GetPlayerPosition() - GetPosition()); }
+
 protected:
     //variaveis para enviar powerUps na hora certa
 

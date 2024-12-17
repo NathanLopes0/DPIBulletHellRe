@@ -12,13 +12,15 @@ Projectile *Boss1Projectile1Factory::createProjectile(Scene* scene, Boss* owner)
 
 
     auto projectile = new BossProjectile(scene, owner);
-
     auto projectileDrawComponent = new DrawAnimatedComponent(projectile, mSpritePath, mDataPath);
     auto projectileCollider = new CircleColliderComponent(projectile, (float)projectileDrawComponent->GetSpriteWidth() / 2.2f);
 
 
+
+
     configureBaseDrawComponent(projectileDrawComponent);
-    projectile->insertComponents(projectileDrawComponent, projectileCollider, nullptr);
+    projectileDrawComponent->AddAnimation("Homing", {1});
+    projectile->insertComponents(projectileDrawComponent, projectileCollider);
 
     projectile->SetState(ActorState::Active);
     projectile->GetComponent<DrawAnimatedComponent>()->SetIsVisible(true);

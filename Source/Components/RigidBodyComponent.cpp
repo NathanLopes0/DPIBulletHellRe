@@ -7,8 +7,8 @@
 
 #include "RigidBodyComponent.h"
 
-const float MAX_SPEED_X = 300.0f;
-const float MAX_SPEED_Y = 700.0f;
+const float MAX_SPEED_X = 2000.0f;
+const float MAX_SPEED_Y = 2000.0f;
 const float GRAVITY = 2000.0f;
 
 RigidBodyComponent::RigidBodyComponent(class Actor* owner, float mass, float friction, int updateOrder)
@@ -29,9 +29,10 @@ void RigidBodyComponent::Update(float deltaTime)
 {
 
     //-------MODIfICADO PARA O MOVIMENTO DO JOGO SER COMO DESEJADO-------//
+    // -- Retirei ApplyForce(Vector2(0, GRAVITY));
 
 
-    // Euler Integration (tirei o deltaTime daqui (?))
+    // Euler Integration
     mVelocity += mAcceleration * deltaTime;
 
     mVelocity.x = Math::Clamp<float>(mVelocity.x, -MAX_SPEED_X, MAX_SPEED_X);

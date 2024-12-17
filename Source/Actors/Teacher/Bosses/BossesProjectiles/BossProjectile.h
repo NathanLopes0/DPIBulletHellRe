@@ -17,15 +17,16 @@ public:
     BossProjectile(class Scene* scene, class Boss* owner);
     void OnUpdate(float deltaTime) override;
 
-
-    void DeactivateProjectile() override;
-
-    void insertComponents(DrawAnimatedComponent *pComponent, CircleColliderComponent *pComponent1, RigidBodyComponent* pComponent2);
+    void insertComponents(DrawAnimatedComponent *pComponent, CircleColliderComponent *pComponent1);
     const Vector2& GetPlayerDirection();
+
 protected:
 
     [[nodiscard]] bool InsideProjectileLimit() const override;
+    void updateBehaviors(float deltaTime);
     bool CheckCollision();
+
+
 
 
 private:

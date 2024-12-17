@@ -13,8 +13,8 @@ public:
     Projectile* createProjectile(class Scene* scene, class Boss* owner) override;
 
 private:
-    std::string mSpritePath = "../Assets/Teachers/Projectiles/Capivara.png";
-    std::string mDataPath = "../Assets/Teachers/Projectiles/Capivara.json";
+    std::string mSpritePath = "../Assets/Teachers/Projectiles/DPIBHSallesCapivara.png";
+    std::string mDataPath = "../Assets/Teachers/Projectiles/DPIBHSallesCapivara.json";
 };
 
 

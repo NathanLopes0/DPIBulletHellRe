@@ -13,12 +13,11 @@ Salles::Salles(Scene *scene)
     //Define a velocidade de ataque de cada estado.
     // TODO 12.0 - Decidir e definir atkSpeed de cada estado (depois que pensar direitinho nos ataques)
     // TODO 12.0.1 - Isso vai ser decidido com testes, e é colocado em um vetor pra ser usado no future
-    DefineAtkTimers(0.5f, 1.f, 1.f);
+    DefineAtkTimers(0.7f, 0.6f, 0.8f);
 
 }
 
 // TODO 14.0 - Verificar se podemos realocar alguma variavel para Bossfactory
-// TODO 13.0 - Montar função de ataque e movimento do primeiro estado do Salles
 
 void Salles::OnUpdate(float deltaTime) {
 
@@ -44,29 +43,10 @@ void Salles::Movement3() {
 
 void Salles::Attack1() {
 
-    //SDL_Log("Attacking1");
-
-    // ---------- ESBOÇO DO CÓDIGO USANDO VETOR DE INTEIROS COM INTERVALOS DE ESTRATEGIAS ------------//
-    /*
-     * int i = 0;
-     *  for (;i < intervaloStrat[0]; i++)
-     *      mAtkStrategies[i]->execute();
-     *
-     *  i começaria de 0 por ser o ataque 1, e nos outros ataques?
-     *  ataque 2 => int i = intervaloStrat[0];
-     *  ataque 3 => int i = intervaloStrat[1] + intervaloStrat[0];
-     *
-     *
-     */
 
     // ----- PARAMETROS EM TEMPO DE EXECUÇÃO PARA ESTRATÉGIA 1 - ANGLEDATTACK ----- //
-
     auto randomCentralAngle = Random::GetIntRange(20, 140);
-
     auto projectiles = mAtkStrategies[0]->execute(0, 0, randomCentralAngle);
-
-
-
 
 
     ResetAtkTimer();
@@ -75,9 +55,17 @@ void Salles::Attack1() {
 
 void Salles::Attack2() {
 
-    SDL_Log("Attacking 2");
-    auto p1 = mAtkStrategies[1]->execute();
-    auto p2 = mAtkStrategies[2]->execute();
+    // ----- PARAMETROS EM TEMPO DE EXECUÇÃO PARA ESTRATÉGIA 2 - ANGLEDATTACK ----- //
+    auto randomCentralAngle = Random::GetIntRange(20, 140);
+    auto homingChance = Random::GetFloatRange(0,1);
+    auto projectiles = mAtkStrategies[1]->execute(0,0,randomCentralAngle);
+    if(homingChance < 0.3) {
+        for(auto& p : projectiles) {
+            p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
+            p->insertBehavior<SlowDownBehavior>(1.3f, 0.5f);
+            p->insertBehavior<HomingBehavior>(1.6f, 300.f);
+        }
+    }
 
     ResetAtkTimer();
 
@@ -85,8 +73,20 @@ void Salles::Attack2() {
 
 void Salles::Attack3() {
 
-    SDL_Log("Attacking 3");
-    auto p1 = mAtkStrategies[3]->execute();
+    // ----- PARAMETROS EM TEMPO DE EXECUÇÃO PARA ESTRATÉGIA 3 - ANGLEDFILLEDATTACK ----- //
+    auto randomCentralAngle = Random::GetIntRange(20, 140);
+    float homingChance;
+    auto projectiles = mAtkStrategies[2]->execute(0,0,0,randomCentralAngle);
+    for (auto& p : projectiles) {
+         homingChance = Random::GetFloatRange(0,1);
+         if(homingChance < 0.55) {
+            p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
+            p->insertBehavior<SlowDownBehavior>(0.8f, 0.5f);
+            p->insertBehavior<HomingBehavior>(1.f, 250.f);
+            p->insertBehavior<SlowDownBehavior>(2.2f, 0.5f);
+            p->insertBehavior<HomingBehavior>(2.5f, 450.f);
+        }
+    }
 
     ResetAtkTimer();
 

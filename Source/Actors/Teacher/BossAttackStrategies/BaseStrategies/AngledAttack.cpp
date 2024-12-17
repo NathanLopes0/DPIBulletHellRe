@@ -8,7 +8,7 @@
 #include "../../../ProjectileFactory.h"
 
 
-[[maybe_unused]] AngledAttack::AngledAttack(ProjectileFactory *spawner, Boss *owner,  float _projectileSpeed,
+AngledAttack::AngledAttack(ProjectileFactory *spawner, Boss *owner,  float _projectileSpeed,
                            float _angleBetween, float _centralAngle) {
     mPSpawner = spawner;
     mOwner = owner;

@@ -20,8 +20,9 @@ public:
     void OnUpdate(float deltaTime) override;
     void OnCollision() override;
 
+    virtual void ActivateProjectile();
     virtual void ActivateProjectile(const Vector2& desiredStartingPosition);
-    virtual void DeactivateProjectile() = 0;
+    virtual void DeactivateProjectile();
 
     virtual ~Projectile() = default;
 
@@ -33,6 +34,8 @@ public:
     void insertBehavior(Args&&... args) {
         mBehaviors.push_back(std::make_unique<Behavior>(std::forward<Args>(args)...));
     }
+
+
 
 protected:
 
@@ -47,6 +50,7 @@ protected:
     //Sub-funções de OnUpdate
     [[nodiscard]] virtual bool InsideProjectileLimit() const = 0;
 
+    void DestroyProjectile();
 };
 
 

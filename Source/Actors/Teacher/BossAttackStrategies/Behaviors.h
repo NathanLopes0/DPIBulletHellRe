@@ -11,6 +11,7 @@ class ProjectileBehavior {
 public:
     virtual ~ProjectileBehavior() = default;
     virtual void update(class BossProjectile* projectile, float deltaTime) = 0;
+    virtual bool isFinished() const { return false; }
 };
 
 struct HomingBehavior : public ProjectileBehavior {
@@ -21,6 +22,7 @@ struct HomingBehavior : public ProjectileBehavior {
     homingDelay(delay), homingSpeed(speed), elapsedTime(0.0f), homing(false) {};
 
     void update(class BossProjectile* p, float deltaTime) override;
+    bool isFinished() const override { return homing; }
 
 };
 struct AccelerateBehavior : public ProjectileBehavior {
@@ -38,6 +40,7 @@ struct AccelerateBehavior : public ProjectileBehavior {
 
 
     void update(BossProjectile* p, float deltaTime) override;
+    bool isFinished() const override { return accelerated; }
 };
 struct SlowDownBehavior : public ProjectileBehavior {
     float slowdownDelay, slowdownSpeedPercent, elapsedTime;
@@ -53,6 +56,20 @@ struct SlowDownBehavior : public ProjectileBehavior {
             slowdownSpeedPercent(-1.f) {};
 
     void update(BossProjectile* p, float deltaTime) override;
+    bool isFinished() const override { return slowedDown; }
+};
+
+struct ActivateBehavior : public ProjectileBehavior {
+    float activationDelay, elapsedTime;
+    Vector2 activationVelocity;
+    bool activated;
+
+    explicit ActivateBehavior(float delay = 0, Vector2 activateVelocity = Vector2::Zero) :
+    activationDelay(delay), elapsedTime(0.0f), activated(false), activationVelocity(activateVelocity) {};
+
+    void update(BossProjectile* p, float deltaTime) override;
+    bool isFinished() const override { return activated; }
+
 };
 
 

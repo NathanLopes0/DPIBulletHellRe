@@ -6,7 +6,6 @@
 #include <memory>
 #include "../Game.h"
 #include "Projectile.h"
-#include "Teacher/BossAttackStrategies/Behaviors.h"
 
 
 Projectile::Projectile(Scene *scene) :
@@ -20,7 +19,7 @@ Projectile::Projectile(Scene *scene) :
 
 void Projectile::OnUpdate(float deltaTime) {
     if(!InsideProjectileLimit()) {
-        DeactivateProjectile();
+        DestroyProjectile();
     }
 
 }
@@ -30,20 +29,24 @@ void Projectile::OnCollision() {
 }
 
 void Projectile::DeactivateProjectile() {
-
+    mDrawComponent->SetIsVisible(false);
+    SetState(ActorState::Paused);
 }
 
+void Projectile::ActivateProjectile() {
+    mDrawComponent->SetIsVisible(true);
+    SetState(ActorState::Active);
+}
 // Ativa o Projétil na posição passada como parâmetro
 void Projectile::ActivateProjectile(const Vector2& desiredStartingPosition) {
-
-    SetState(ActorState::Active);
-    mDrawComponent->SetIsVisible(true);
-
+    ActivateProjectile();
     SetPosition(desiredStartingPosition);
 }
 
 float Projectile::GetFowardSpeed() {
-    if(mRigidBodyComponent)
-        SDL_Log("%f", mRigidBodyComponent->GetVelocity().Length());
     return mRigidBodyComponent->GetVelocity().Length();
+}
+
+void Projectile::DestroyProjectile() {
+    SetState(ActorState::Destroy);
 }

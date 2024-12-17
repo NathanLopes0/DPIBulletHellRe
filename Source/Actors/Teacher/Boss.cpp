@@ -9,6 +9,7 @@
 #include "BossStates/StartState.h"
 #include "BossStates/StateOne.h"
 #include "BossStates/StateTwo.h"
+#include "BossStates/StateThree.h"
 
 Boss::Boss(Scene *scene)
 :Actor(scene) {
@@ -19,7 +20,7 @@ Boss::Boss(Scene *scene)
     new StartState(mFSMComponent);
     new StateOne(mFSMComponent);
     new StateTwo(mFSMComponent);
-    // new StateThree(mFSMComponent);
+    new StateThree(mFSMComponent);
     // new StateFinal(mFSMComponent);
 
 
