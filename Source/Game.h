@@ -9,6 +9,7 @@
 #include <map>
 #include <string>
 #include <SDL.h>
+#include <optional>
 #include "Math.h"
 #include "Scenes/Scene.h"
 
@@ -120,8 +121,16 @@ private:
     // Camera X and Y position
     Vector2 mCameraPos;
 
+    // --- Scene objects and functions --- //
+
     //Stack of active scenes (normally only one, except on pause)
     std::stack<Scene*> mScene;
+    //variable to prepare to change the scene
+    std::optional<std::pair<Scene::SceneType, bool>> mNextScene;
+
+    void PerformSceneChange();
+
+    // --- ----- ------- --- --------- --- //
 
     //All Boss factories
     std::map<GameSubject, class BossFactory*> mBossFactory;
@@ -131,4 +140,5 @@ private:
 
     void InitializeBossFactory();
     void InitializeGrades();
+
 };

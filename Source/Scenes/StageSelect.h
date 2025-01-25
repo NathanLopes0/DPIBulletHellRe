@@ -12,6 +12,7 @@ class StageSelect : public Scene {
 
 public:
     explicit StageSelect(Game* game);
+    ~StageSelect();
 
     void Load() override;
     void ProcessInput(const Uint8* keyState) override;

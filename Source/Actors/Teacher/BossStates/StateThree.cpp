@@ -14,7 +14,7 @@ StateThree::StateThree(FSMComponent *stateMachine) : BossState(stateMachine, "St
 
 void StateThree::Start() {
     SDL_Log("Starting StateThree");
-    SetMaxStateTime(17.f);
+    SetMaxStateTime(1.f);
 }
 
 void StateThree::Update(float deltaTime) {
@@ -23,8 +23,8 @@ void StateThree::Update(float deltaTime) {
 
 void StateThree::HandleStateTransition(float stateTime) {
 
-    // TODO 20.0 - Mudar lógica obviamente, para ver a nota atual e decidir se ganhou, perdeu, vai fazer final etc
     if(GetStateTime() > GetMaxStateTime()) {
-        mBoss->GetScene()->GetGame()->SetScene(Scene::SceneType::StageSelect);
+        mBoss->GetScene()->SetScene(
+                Scene::SceneType::StageSelect);
     }
 }

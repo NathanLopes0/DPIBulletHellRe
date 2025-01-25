@@ -13,7 +13,8 @@ StateOne::StateOne(FSMComponent *stateMachine) : BossState(stateMachine, "StateO
 
 void StateOne::Start() {
     SDL_Log("Starting StateOne");
-    SetMaxStateTime(17.f);
+    //botei 1 pra debug, depois mudar pra 17. Nos outros estados tbm, na mesma função de Start.
+    SetMaxStateTime(1.f);
 }
 
 void StateOne::Update(float deltaTime) {

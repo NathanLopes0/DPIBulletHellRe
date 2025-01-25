@@ -11,7 +11,7 @@ BossProjectile::BossProjectile(Scene *scene, Boss *owner)
 :Projectile(scene),
 mOwner(owner)
 {
-
+    mScene->AddToBossProjectiles(this);
 }
 
 void BossProjectile::OnUpdate(float deltaTime) {
@@ -22,18 +22,6 @@ void BossProjectile::OnUpdate(float deltaTime) {
 
     auto tempVec = Vector2::Normalize(mRigidBodyComponent->GetVelocity());
     //mRigidBodyComponent->SetVelocity(tempVec * mFowardSpeed);
-
-
-    // TODO COLLISION 10 - CheckCollision de Boss retorna true/1 se colidir com jogador
-    //  Por enquanto ta como BOOL, pode transformar em int no futuro
-    //  Rever como (e principalmente em que lugar do código) ver colisão com qualquer coisa da tela nos slides do Lucas.
-    if(CheckCollision())
-    {
-        //TODO COLLISION 14 - fazer Lógica de diminuir nota da fase
-
-        //Depois da lógica, destruir o projétil.
-        DestroyProjectile();
-    }
 }
 
 bool BossProjectile::InsideProjectileLimit() const {
@@ -49,16 +37,6 @@ bool BossProjectile::InsideProjectileLimit() const {
         return false;
     return true;
 
-}
-
-bool BossProjectile::CheckCollision() {
-    // TODO COLLISION 9 - Lógica de colisão com o jogador (todos os projéteis de bosses colidem com o jogador, por isso ta aqui)
-    // TODO COLLISION 5 - Receber Player aqui com função parecida com GetPlayerPosition (talvez usar essa criada em GetPPosition tbm)
-    //  fazer GPPosition em Scene com virtual retornando nullptr, mas sobreescrever em BattleScene, e usar
-    //  aqui e usar isso pra chamar o Intersect do player.
-    //  Pensando... será que é melhor fazer essa checagem no player? pq serão muuuitos intersects na pilha se forem os projéteis que
-    //  veem essa colisão. Deve ser melhor uma função na pilha vendo cada CircleCollider, e é bom que já trato a colisão com o Boss.
-    return false;
 }
 
 void BossProjectile::insertComponents(DrawAnimatedComponent *pComponent = nullptr,
@@ -93,6 +71,12 @@ void BossProjectile::updateBehaviors(float deltaTime) {
         return behavior->isFinished();
     }), mBehaviors.end());
 
+}
+
+void BossProjectile::Kill() {
+    auto bossP = mScene->GetBossProjectiles();
+    bossP.erase(std::remove(bossP.begin(), bossP.end(), this), bossP.end());
+    mScene->SetBossProjectiles(bossP);
 }
 
 

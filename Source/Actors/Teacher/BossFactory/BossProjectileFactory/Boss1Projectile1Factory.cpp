@@ -12,11 +12,8 @@ Projectile *Boss1Projectile1Factory::createProjectile(Scene* scene, Boss* owner)
 
 
     auto projectile = new BossProjectile(scene, owner);
-    auto projectileDrawComponent = new DrawAnimatedComponent(projectile, mSpritePath, mDataPath);
-    auto projectileCollider = new CircleColliderComponent(projectile, (float)projectileDrawComponent->GetSpriteWidth() / 2.2f);
-
-
-
+    auto projectileDrawComponent = new DrawAnimatedComponent(projectile, mSpritePath, mDataPath, 60);
+    auto projectileCollider = new CircleColliderComponent(projectile, (float)projectileDrawComponent->GetSpriteWidth() / 2.f);
 
     configureBaseDrawComponent(projectileDrawComponent);
     projectileDrawComponent->AddAnimation("Homing", {1});

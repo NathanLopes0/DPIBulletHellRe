@@ -11,10 +11,7 @@
 Projectile::Projectile(Scene *scene) :
         Actor(scene)
 {
-    mDrawComponent = nullptr;
-    mColliderComponent = new CircleColliderComponent(this, 12);
     mRigidBodyComponent = new RigidBodyComponent(this);
-
 }
 
 void Projectile::OnUpdate(float deltaTime) {
@@ -28,18 +25,10 @@ void Projectile::OnCollision() {
 
 }
 
-void Projectile::DeactivateProjectile() {
-    mDrawComponent->SetIsVisible(false);
-    SetState(ActorState::Paused);
-}
-
-void Projectile::ActivateProjectile() {
-    mDrawComponent->SetIsVisible(true);
-    SetState(ActorState::Active);
-}
 // Ativa o Projétil na posição passada como parâmetro
 void Projectile::ActivateProjectile(const Vector2& desiredStartingPosition) {
-    ActivateProjectile();
+    GetComponent<DrawAnimatedComponent>()->SetIsVisible(true);
+    SetState(ActorState::Active);
     SetPosition(desiredStartingPosition);
 }
 
@@ -49,4 +38,5 @@ float Projectile::GetFowardSpeed() {
 
 void Projectile::DestroyProjectile() {
     SetState(ActorState::Destroy);
+    Kill();
 }

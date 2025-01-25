@@ -5,15 +5,15 @@
 #ifndef DPIBULLETHELLRE_BOSS_H
 #define DPIBULLETHELLRE_BOSS_H
 
-#include <memory>
 #include "../Actor.h"
 #include "../../Game.h"
 #include "../../Scenes/Scene.h"
+#include "../../AttackStrategy.h"
 #include "../../Components/RigidBodyComponent.h"
 #include "../../Components/AIComponents/FSMComponent.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../Components/ColliderComponents/CircleColliderComponent.h"
-#include "../../AttackStrategy.h"
+
 
 class Boss : public Actor {
 
@@ -32,8 +32,7 @@ public:
     int GetSpriteWidth() { return GetComponent<DrawAnimatedComponent>()->GetSpriteWidth(); }
 
     virtual void Start();
-    void insertComponents(class DrawAnimatedComponent* newDraw = nullptr, class CircleColliderComponent* newCollider = nullptr,
-            class RigidBodyComponent* newRigid = nullptr);
+    void insertComponents(class DrawAnimatedComponent* newDraw = nullptr, class CircleColliderComponent* newCollider = nullptr);
     void insertAttackStrategies(const std::vector<AttackStrategy*>& newStrategies);
 
     Vector2 GetPlayerDirection() { return Vector2(mScene->GetPlayerPosition() - GetPosition()); }
@@ -44,16 +43,14 @@ protected:
     //componentes
     RigidBodyComponent* mRigidBodyComponent;
     DrawAnimatedComponent* mDrawComponent;
-    class CircleColliderComponent* mColliderComponent;
-    class FSMComponent* mFSMComponent;
+    CircleColliderComponent* mColliderComponent;
+    FSMComponent* mFSMComponent;
 
     class std::vector<AttackStrategy*> mAtkStrategies;
     class BossState* mCurrentState;
     float mAtkTimer;
+    bool mIsMoving;
 
-
-    //Como Fazer a lógica dos intervalos de ataque? dentro das funções de Attack ou alguma lógica externa que CHAMA a função
-    //de ataque em um intervalo que depende do boss? Acho que dentro da lógica de ataque é melhor.
 
     //4 movimentos e 3 ataques, para cada Estado.
     virtual bool Movement0() = 0;
@@ -67,9 +64,11 @@ protected:
     void StateActions();
 
     //funções e estruturas para manipular os timers de ataque (velocidade de ataque) de cada estado dos bosses.
-    virtual void ResetAtkTimer() = 0;
+    virtual void ResetAtkTimer();
     std::map<std::string, float> mStateAtkTimers;
     void DecreaseAtkTimer(float deltaTime) { mAtkTimer -= deltaTime; }
+
+    void BaseMovement();
 };
 
 

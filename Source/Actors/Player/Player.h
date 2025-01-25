@@ -23,13 +23,16 @@ private:
     class DrawAnimatedComponent* mDrawComponent;
     class CircleColliderComponent* mColliderComponent;
 
-    std::vector<class PlayerProjectile*> mProjectiles;     //vetor de projéteis que será alocado no construtor,
-                                                        // para não fazer alocação no meio do jogo.
+    std::vector<class PlayerProjectile*> mProjectiles;      //vetor de projéteis que será alocado no construtor,
+                                                            // para não fazer alocação no meio do jogo.
 
     //variaveis de jogador
     float playerSpeed;
     float atkTimer;
-    bool mMoving;                       //Ve se o jogador está se movendo. Usada para mudar a animação.
+    bool mMoving;                       //Ve se e jogadore está se movendo. Usada para mudar a animação.
+    bool mIsBlinkingInvincible;
+    float mIsInvincibleSeconds;         //Ativa quando elu colide (ou, no futuro, powerup quem sabe)
+
 
 
     //OnProcessInput Sub-functions, and its sub-functions
@@ -39,12 +42,20 @@ private:
     void SpecialInput(const Uint8 *state);
 
 
-    //OnUpdate Sub-functions
+    //OnUpdate Sub-functions ----------------- //
     void HandleAnimation();
     void DecreaseAtkTimer(float deltaTime);
-
+    int CheckCollision();
+    void OnCollision(int collidedWith, float deltaTime);
+    // --------------------------------------- //
 
     void BorderLimitCheck();
+
+    void Blink(float deltaTime);
+
+    void DeduceGrade(float d, float d1);
+
+    void SetInvincibleSeconds(float d);
 };
 
 

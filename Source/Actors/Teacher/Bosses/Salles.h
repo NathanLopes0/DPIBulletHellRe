@@ -32,7 +32,6 @@ private:
 
     std::string mProjectileSpritePath;
     std::string mProjectileDataPath;
-    void ResetAtkTimer() override;
 
     void DefineAtkTimers(float d, float d1, float d2);
 };

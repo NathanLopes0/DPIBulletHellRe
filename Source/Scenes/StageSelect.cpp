@@ -221,3 +221,11 @@ void StageSelect::Update(float deltaTime) {
     if(mTimer < TIME_INTERVAL) mTimer += deltaTime;
 
 }
+
+StageSelect::~StageSelect() {
+    SDL_Log("StageSelect Destruído");
+    for(auto button : mButtons) {
+        delete button;
+    }
+    mButtons.clear();
+}

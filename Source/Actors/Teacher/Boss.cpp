@@ -4,12 +4,14 @@
 
 #include "Boss.h"
 
-#include <utility>
 #include <memory>
+#include "../../Random.h"
 #include "BossStates/StartState.h"
 #include "BossStates/StateOne.h"
 #include "BossStates/StateTwo.h"
 #include "BossStates/StateThree.h"
+
+#define BOSS_VELOCITY 100.f
 
 Boss::Boss(Scene *scene)
 :Actor(scene) {
@@ -28,6 +30,7 @@ Boss::Boss(Scene *scene)
     //TODO 115.1 - e ai mudar os raios dos colliders components de acordo (ou fazer uma sprite mais quadrada)
 
 
+    mIsMoving = false;
 
 
 }
@@ -63,8 +66,7 @@ void Boss::StateActions() {
     }
 }
 
-void Boss::insertComponents(DrawAnimatedComponent *newDraw, CircleColliderComponent *newCollider,
-                            RigidBodyComponent *newRigid) {
+void Boss::insertComponents(DrawAnimatedComponent *newDraw, CircleColliderComponent *newCollider) {
     mDrawComponent = new DrawAnimatedComponent(*newDraw);
     mColliderComponent = new CircleColliderComponent(*newCollider);
     mRigidBodyComponent = new RigidBodyComponent(this);
@@ -72,6 +74,34 @@ void Boss::insertComponents(DrawAnimatedComponent *newDraw, CircleColliderCompon
 
 void Boss::insertAttackStrategies(const std::vector<AttackStrategy*>& newStrategies){
     mAtkStrategies = newStrategies;
+}
+
+void Boss::ResetAtkTimer() {
+    mAtkTimer = mStateAtkTimers[mFSMComponent->GetState()->GetName()];
+}
+
+void Boss::BaseMovement() {
+    float chance = Random::GetFloat();
+    if(!mIsMoving) {
+        if(chance < 0.5)
+            mRigidBodyComponent->SetVelocity(Vector2(BOSS_VELOCITY, 0));
+        else
+            mRigidBodyComponent->SetVelocity(Vector2(-BOSS_VELOCITY, 0));
+        mIsMoving = true;
+        return;
+    }
+
+    if(GetPosition().x <= (float)mDrawComponent->GetSpriteWidth()/2 + 64) {
+        mRigidBodyComponent->SetVelocity(Vector2(BOSS_VELOCITY, 0));
+    }
+    if(GetPosition().x >= (float)mScene->GetGame()->GetWindowWidth() - (float)mDrawComponent->GetSpriteWidth()/2 - 64) {
+        mRigidBodyComponent->SetVelocity(Vector2(-BOSS_VELOCITY, 0));
+    }
+
+    if(chance < 0.005) {
+        mRigidBodyComponent->SetVelocity(mRigidBodyComponent->GetVelocity() * -1);
+    }
+
 }
 
 Boss::~Boss() = default;

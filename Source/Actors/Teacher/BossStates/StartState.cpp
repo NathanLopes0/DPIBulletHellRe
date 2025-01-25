@@ -18,6 +18,8 @@ void StartState::Update(float deltaTime) {
 }
 
 void StartState::HandleStateTransition(float stateTime) {
+
+    //Talvez nem todos os bosses terão a mesma entrada, mas vamos ver. Por simplicidade, esse pode ser um padrão.
     auto bossPosition = mBoss->GetPosition();
     int nextStateLine = mBoss->GetWindowsHeight() / 8;
 

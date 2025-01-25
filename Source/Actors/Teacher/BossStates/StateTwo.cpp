@@ -14,7 +14,7 @@ StateTwo::StateTwo(FSMComponent *stateMachine) : BossState(stateMachine, "StateT
 
 void StateTwo::Start() {
     SDL_Log("Starting StateTwo");
-    SetMaxStateTime(17.f);
+    SetMaxStateTime(3.f);
 
 }
 

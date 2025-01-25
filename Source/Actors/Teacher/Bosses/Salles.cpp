@@ -13,7 +13,7 @@ Salles::Salles(Scene *scene)
     //Define a velocidade de ataque de cada estado.
     // TODO 12.0 - Decidir e definir atkSpeed de cada estado (depois que pensar direitinho nos ataques)
     // TODO 12.0.1 - Isso vai ser decidido com testes, e é colocado em um vetor pra ser usado no future
-    DefineAtkTimers(0.7f, 0.6f, 0.8f);
+    DefineAtkTimers(0.7f, 0.2f, 0.8f);
 
 }
 
@@ -30,15 +30,15 @@ void Salles::OnUpdate(float deltaTime) {
 
 
 void Salles::Movement1() {
-
+    BaseMovement();
 }
 
 void Salles::Movement2() {
-
+    BaseMovement();
 }
 
 void Salles::Movement3() {
-
+    BaseMovement();
 }
 
 void Salles::Attack1() {
@@ -59,7 +59,9 @@ void Salles::Attack2() {
     auto randomCentralAngle = Random::GetIntRange(20, 140);
     auto homingChance = Random::GetFloatRange(0,1);
     auto projectiles = mAtkStrategies[1]->execute(0,0,randomCentralAngle);
-    if(homingChance < 0.3) {
+
+    //DEBUG, o normal é 0.3
+    if(homingChance < 0.9) {
         for(auto& p : projectiles) {
             p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
             p->insertBehavior<SlowDownBehavior>(1.3f, 0.5f);
@@ -110,13 +112,6 @@ void Salles::DefineAtkTimers(float stateOneTimer, float stateTwoTimer, float sta
     mStateAtkTimers["StateOne"] = stateOneTimer;
     mStateAtkTimers["StateTwo"] = stateTwoTimer;
     mStateAtkTimers["StateThree"] = stateThreeTimer;
-
-}
-
-// TODO 9.0 - Colocar isso na classe base Boss, pq vai ser sempre isso aqui.
-void Salles::ResetAtkTimer() {
-
-    mAtkTimer = mStateAtkTimers[mFSMComponent->GetState()->GetName()];
 
 }
 

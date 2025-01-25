@@ -5,7 +5,9 @@
 
 #include "../Game.h"
 #include "Scene.h"
+#include <utility>
 #include "Battle.h"
+#include "../Actors/Teacher/Boss.h"
 
 Scene::Scene(Game* game, SceneType sceneType)
 {
@@ -37,4 +39,8 @@ void Scene::Update(float deltaTime) {
 
 Boss* Scene::GetBoss() const {
     return nullptr;
+}
+
+void Scene::SetBossProjectiles(std::vector<Projectile *> vector1) {
+    mBossAllProjectiles = std::move(vector1);
 }

@@ -13,8 +13,6 @@
 
 Boss1Factory::Boss1Factory(Game *game) : BossFactory(game) {
 
-    mProjectileSpawner = new Boss1Projectile1Factory();
-
 }
 
 Boss* Boss1Factory::CreateBoss(Scene* scene) {
@@ -39,6 +37,7 @@ Boss* Boss1Factory::CreateBoss(Scene* scene) {
     configureBaseDrawComponent(BossDrawComponent);
 
     // --------- Cria estratégias de ataque -------- //
+    mProjectileSpawner = new Boss1Projectile1Factory();
     configureStrategies();
 
 
@@ -74,9 +73,6 @@ void Boss1Factory::configureStrategies() {
     //----- PRIMEIRA ESTRATÉGIA
 
     Attacks.emplace_back(new AngledAttack(mProjectileSpawner, mBoss, 250.f, 10, 90));
-
-    //deixei essa linha comentada só pra se precisar testar algo da WaveAttack, mas apagar depois, é apenas pra debug
-    //Attacks.emplace_back(new WaveAttack(mProjectileSpawner, mBoss, 20, 300.f, 90, 90, 0.02));
 
     //----- SEGUNDA ESTRATÉGIA
 

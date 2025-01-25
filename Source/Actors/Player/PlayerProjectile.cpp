@@ -4,8 +4,9 @@
 
 #include "Player.h"
 #include "../../Game.h"
-#include "PlayerProjectile.h"
+#include "../../Random.h"
 #include "../Teacher/Boss.h"
+#include "PlayerProjectile.h"
 
 #define BASE_FOWARD_SPEED 800.0
 
@@ -23,6 +24,7 @@ PlayerProjectile::PlayerProjectile(Scene *scene, Player *owner) :
     mDrawComponent = new DrawAnimatedComponent(this, spritePath, dataPath, 50);
     mDrawComponent->AddAnimation("Active", {0,1,2,3,4,5,6});
     mDrawComponent->SetAnimation("Active");
+    mColliderComponent = new CircleColliderComponent(this, mDrawComponent->GetSpriteWidth()/2);
 
 
     // TODO 99.0 - Colocar uma variável para ser a mFowardSpeed para que possa mudar com powerups
@@ -95,6 +97,8 @@ bool PlayerProjectile::Collided() {
 
 void PlayerProjectile::OnCollision() {
 
-    // TODO COLLISION 6 - antes de desativar o projétil, mudar a nota de acordo com o número de pontos dados por acerto.
+    //DEBUG
+    auto addGrade = Random::GetFloatRange(0.2f, 0.4f);
+    mScene->AddGrade(addGrade);
     DeactivateProjectile();
 }

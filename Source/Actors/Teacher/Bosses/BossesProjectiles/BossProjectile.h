@@ -24,13 +24,11 @@ protected:
 
     [[nodiscard]] bool InsideProjectileLimit() const override;
     void updateBehaviors(float deltaTime);
-    bool CheckCollision();
-
-
 
 
 private:
     const Vector2& GetPlayerPosition();
+    void Kill() override;
     class Boss* mOwner;
 };
 

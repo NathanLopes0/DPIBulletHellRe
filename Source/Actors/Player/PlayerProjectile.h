@@ -25,7 +25,7 @@ private:
     const CircleColliderComponent* GetBossCollider();
 
     void ActivateProjectile();
-    void DeactivateProjectile() override;
+    void DeactivateProjectile();
 
     bool Collided();
     bool CheckCollision();

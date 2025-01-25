@@ -145,6 +145,8 @@ void Game::UpdateGame()
     UpdateActors(deltaTime);
     UpdateCamera();
 
+    PerformSceneChange();
+
 }
 
 void Game::UpdateCamera()
@@ -296,34 +298,29 @@ void Game::Shutdown()
 
 void Game::UnloadActors()
 {
-
-    //Deixar isso aqui por precaução, mas funcionou deixar o SetState(Destroy);
-/*    while (!mActors.empty())
-    {
+    while(!mActors.empty()) {
         delete mActors.back();
     }
-*/
-    for(auto& actor : mActors) {
-        actor->SetState(ActorState::Destroy);
-    }
+    mActors.clear();
 }
 
 void Game::UnloadScenes() {
-    while(!mScene.empty())
+    while(!mScene.empty()) {
+        delete mScene.top();
         mScene.pop();
+    }
 }
 
-void Game::SetScene(Scene::SceneType sceneType, bool RemoveLast)
-{
-    mAudio->StopAllSounds();
+void Game::PerformSceneChange() {
+    if (!mNextScene) return; // Se não houver mudança pendente, retorne
 
+    auto [sceneType, RemoveLast] = *mNextScene;
+
+    mAudio->StopAllSounds();
     Scene* scene;
 
-    if(RemoveLast) UnloadActors();
-
-    if(RemoveLast && sceneType != Scene::SceneType::Battle) {
-        UnloadScenes();
-    }
+    if (RemoveLast) UnloadActors();
+    if (RemoveLast && sceneType != Scene::SceneType::Battle) UnloadScenes();
 
     switch (sceneType) {
         case Scene::SceneType::MainMenu: {
@@ -340,12 +337,15 @@ void Game::SetScene(Scene::SceneType sceneType, bool RemoveLast)
         }
     }
 
-    if(RemoveLast && sceneType == Scene::SceneType::Battle) {
-        UnloadScenes();
-    }
-
+    if (RemoveLast && sceneType == Scene::SceneType::Battle) UnloadScenes();
 
     mScene.push(scene);
+    mNextScene.reset(); // Limpa a mudança pendente
+}
+
+
+void Game::SetScene(Scene::SceneType sceneType, bool RemoveLast) {
+    mNextScene = std::make_pair(sceneType, RemoveLast);
 }
 
 StageSelect* Game::GetStageSelect() {

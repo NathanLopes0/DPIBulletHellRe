@@ -20,9 +20,8 @@ public:
     void OnUpdate(float deltaTime) override;
     void OnCollision() override;
 
-    virtual void ActivateProjectile();
     virtual void ActivateProjectile(const Vector2& desiredStartingPosition);
-    virtual void DeactivateProjectile();
+    void DestroyProjectile();
 
     virtual ~Projectile() = default;
 
@@ -50,7 +49,7 @@ protected:
     //Sub-funções de OnUpdate
     [[nodiscard]] virtual bool InsideProjectileLimit() const = 0;
 
-    void DestroyProjectile();
+
 };
 
 
