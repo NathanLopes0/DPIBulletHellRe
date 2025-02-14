@@ -320,7 +320,9 @@ void Game::PerformSceneChange() {
     Scene* scene;
 
     if (RemoveLast) UnloadActors();
+    mScene.top()->EraseBossProjectiles();
     if (RemoveLast && sceneType != Scene::SceneType::Battle) UnloadScenes();
+
 
     switch (sceneType) {
         case Scene::SceneType::MainMenu: {

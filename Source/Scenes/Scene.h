@@ -40,13 +40,15 @@ public:
     void AddToBossProjectiles(Projectile* p) { mBossAllProjectiles.push_back(p); }
     void SetBossProjectiles(std::vector<Projectile *> vector1);
     void EraseBossProjectiles() { mBossAllProjectiles.clear(); }
-    float GetGrade() const { return mGrade; };
+    [[nodiscard]] float GetGrade() const { return mGrade; };
     void AddGrade(float addValue) { mGrade = Math::Clamp(mGrade + addValue, 0.f, 100.f);}
 
 protected:
     class Game* mGame;
     SceneType mSceneType;
 
+
+    // TODO 2 - Ver como usar template/polimorfismo de tipo aqui. Acho que vai consertar o erro de revisitar a cena.
 
     //COISAS DA CENA DE BATALHA, QUERO TIRAR DAQUI, MAS N SEI POLIMORPHAR DIREITO COM TEMPLATE
     std::vector<Projectile*> mBossAllProjectiles;

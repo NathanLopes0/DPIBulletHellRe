@@ -8,6 +8,7 @@
 #include "../Actors/Player/Player.h"
 #include "../Scenes/StageSelect.h"
 #include "../Actors/Teacher/Boss.h"
+#include "../Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.h"
 
 Battle::Battle(Game *game) : Scene(game, SceneType::Battle) {
 

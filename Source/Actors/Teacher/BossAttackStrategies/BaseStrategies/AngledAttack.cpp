@@ -18,6 +18,7 @@ AngledAttack::AngledAttack(ProjectileFactory *spawner, Boss *owner,  float _proj
 }
 
 std::vector<Projectile*> AngledAttack::execute() {
+
     std::vector<Projectile*> projectiles;
 
     auto p1 = mPSpawner->createProjectile(mOwner->GetScene(), mOwner);

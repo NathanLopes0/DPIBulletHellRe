@@ -19,6 +19,7 @@ Boss* Boss1Factory::CreateBoss(Scene* scene) {
 
     // TODO 32.5 - Dividir essa função em várias outras ("uma função não deve fazer mais de 3 coisas" - Little Lu)
 
+
     // ----------------  CONfIGURAÇÃO SPRITE BOSS E CRIAÇÃO DO BOSS, DRAW E COLLIDER ----------------//
     configureBossSprite();
     mBoss = new Salles(scene);

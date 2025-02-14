@@ -13,6 +13,8 @@ Scene::Scene(Game* game, SceneType sceneType)
 {
     mGame = game;
     mSceneType = sceneType;
+    mBossAllProjectiles.clear();
+    mBossAllProjectiles.reserve(500);
 }
 
 void Scene::Load()
@@ -30,6 +32,7 @@ void Scene::ProcessInput(const Uint8 *keyState) {
 }
 
 void Scene::SetScene(Scene::SceneType sceneType) {
+    mBossAllProjectiles.clear();
     mGame->SetScene(sceneType);
 }
 

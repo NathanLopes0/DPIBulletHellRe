@@ -15,7 +15,6 @@ public:
     void OnUpdate(float deltaTime) override;
 
 
-    void SetState(const std::string& stateName) { mFSMComponent->SetState(stateName); }
     void Start() override;
 
 protected:
