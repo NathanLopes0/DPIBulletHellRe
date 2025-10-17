@@ -24,6 +24,7 @@ public:
     void OnUpdate(float deltaTime) override;
 
     [[nodiscard]] Boss* GetBossOwner() const;
+    Vector2 GetPlayerDirection();
 
 protected:
     // 5. Implementação obrigatória do contrato da classe base.
@@ -32,6 +33,5 @@ protected:
 private:
 
     void updateBehaviors();
-    Vector2 GetPlayerDirection();
 
 };
