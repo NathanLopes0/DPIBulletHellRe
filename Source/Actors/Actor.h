@@ -23,7 +23,7 @@ enum class ActorState
 class Actor {
 
 public:
-    Actor(class Scene* scene);
+    explicit Actor(class Scene* scene);
     virtual ~Actor() = default;
 
     // Update function called from Game (not overridable)

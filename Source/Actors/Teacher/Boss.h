@@ -4,60 +4,41 @@
 
 #pragma once
 
-#include <string>
-#include <map>
 #include "../Actor.h"
 
+#include <string>
+#include <vector>
+#include <map>
+#include <memory>
 
-class DrawAnimatedComponent;
+#include "../../Attacks/IAttackStrategy.h"
+
 class Game;
 
+
 class Boss : public Actor {
-
-
 public:
 
-    Boss(Game* game);
+    explicit Boss(Scene* scene);
     ~Boss() override = default;
 
-
-    class BossState* GetCurrentState() { return mCurrentState; }
-
-    //funções de conveniência
-    [[nodiscard]] int GetWindowWidth() const;
-    [[nodiscard]] int GetWindowHeight() const;
-    [[nodiscard]] int GetSpriteHeight() const;
-    [[nodiscard]] int GetSpriteWidth() const;
-
-    virtual void Start();
-
+    void AddAttackStrategy(std::unique_ptr<IAttackStrategy> strategy);
+    void Start();
 
 protected:
-    //variaveis para enviar powerUps na hora certa
 
-    //componentes
-    class BossState* mCurrentState;
+    void ExecuteAttack(size_t index);
+
+    std::vector<std::unique_ptr<IAttackStrategy>> mAttackStrategies;
+
+    virtual bool Movement0();
+    virtual void Movement1();
+    virtual void Movement2();
+    virtual void Movement3();
+
     float mAtkTimer;
-
-
-    //Como Fazer a lógica dos intervalos de ataque? dentro das funções de Attack ou alguma lógica externa que CHAMA a função
-    //de ataque em um intervalo que depende do boss? Acho que dentro da lógica de ataque é melhor.
-
-    //4 movimentos e 3 ataques, para cada Estado.
-    virtual bool Movement0() = 0;
-    virtual void Movement1() = 0;
-    virtual void Movement2() = 0;
-    virtual void Movement3() = 0;
-    virtual void Attack1() = 0;
-    virtual void Attack2() = 0;
-    virtual void Attack3() = 0;
-
-    void StateActions();
-
-    //funções e estruturas para manipular os timers de ataque (velocidade de ataque) de cada estado dos bosses.
-    virtual void ResetAtkTimer() = 0;
     std::map<std::string, float> mStateAtkTimers;
-    void DecreaseAtkTimer(const float deltaTime) { mAtkTimer -= deltaTime; }
-
+    void DecreaseAtkTimer(float deltaTime) { mAtkTimer -= deltaTime; }
+    virtual void ResetAtkTimer() = 0;
 
 };

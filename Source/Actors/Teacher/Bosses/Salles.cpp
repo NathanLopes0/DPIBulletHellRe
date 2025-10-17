@@ -3,34 +3,25 @@
 //
 
 #include "Salles.h"
-#include "BossesProjectiles/SallesBossProjectile.h"
+#include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "../../../Components/ColliderComponents/CircleColliderComponent.h"
+#include "../../../Components/AIComponents/FSMComponent.h"
 
-Salles::Salles(Scene *scene, const std::string& spritePath, const std::string& dataPath,
-               const std::string& projectileSpritePath, const std::string& projectileDataPath) : Boss(scene) {
+Salles::Salles(Scene *scene) : Boss(scene)
+{
+    // --- MONTAGEM DOS COMPONENTES VISUAIS E FÍSICOS --- //
+    // A posse dos componentes é entregue ao sistema do Actor.
+    auto drawComp = AddComponent<DrawAnimatedComponent>("../Assets/Teachers/DPIBHSalles.png", "../Assets/Teachers/DPIBHSalles.json");
+    drawComp->AddAnimation("Idle", {0});
+    drawComp->SetAnimation("Idle");
 
-    //Draw Component commands----------------------------------//
-    //Coloquei a declaração de Draw no Boss Específico, pois eles podem ter animações diferentes.
-    mDrawComponent = new DrawAnimatedComponent(this, spritePath, dataPath);
-    mDrawComponent->AddAnimation("Idle", {0});
-    mDrawComponent->SetAnimation("Idle");
-    //---------------------------------------------------------//.
+    // Inicialização do colisor
+    const float colliderRadius = static_cast<float>(drawComp->GetSpriteWidth()) / 2.2f;
+    AddComponent<CircleColliderComponent>(colliderRadius);
 
-
-    // a divisao por 2.2f é melhor do que a divisão por 2, pois a 2 fica grande demais. a 2.2 pega fora dos braços, mas por pouco.
-    //SDL_Log("%d, %d", mDrawComponent->GetSpriteWidth(), mDrawComponent->GetSpriteHeight());
-    mColliderComponent = new CircleColliderComponent(this, (float)mDrawComponent->GetSpriteWidth() / 2.2f);
-
-
-    //String com o Path da sprite e data dos Projéteis, para serem criados nas funções de Ataque.
-    mProjectileSpritePath = projectileSpritePath;
-    mProjectileDataPath = projectileDataPath;
-
-    //Define a velocidade de ataque de cada estado.
-    // TODO 7.0 - Decidir e definir atkSpeed de cada estado (depois que pensar direitinho nos ataques)
-    // TODO 7.0.1 - Isso vai ser decidido com testes, e é colocado em um vetor pra ser usado no future
-    DefineAtkTimers(1.5f, 1.f, 1.f);
-
-
+    // --- INICIALIZAÇÃO DA LÓGICA INTERNA --- //
+    InitializeFSM();
+    InitializeAttackStrategies();
 }
 
 // TODO 4.0 - Verificar se podemos realocar alguma variavel para Bossfactory
@@ -39,7 +30,6 @@ Salles::Salles(Scene *scene, const std::string& spritePath, const std::string& d
 void Salles::OnUpdate(float deltaTime) {
 
     DecreaseAtkTimer(deltaTime);
-    StateActions();
 
 }
 
@@ -58,29 +48,6 @@ void Salles::Movement3() {
 
 }
 
-void Salles::Attack1() {
-    SDL_Log("Attacking1");
-    std::vector<SallesBossProjectile*> Atk1Projectiles;
-
-    ResetAtkTimer();
-
-    //auto s1 = Atk1Projectiles.emplace_back(new SallesBossProjectile(mScene,this,mProjectileSpritePath,mProjectileDataPath));
-}
-
-void Salles::Attack2() {
-
-}
-
-void Salles::Attack3() {
-
-}
-
-void Salles::Start() {
-
-    mFSMComponent->Start("StartState");
-
-}
-
 bool Salles::Movement0() {
 
     //Não coloquei nenhuma lógica aqui, pois o Boss só desce, e isso é fixado na sua criação
@@ -88,17 +55,10 @@ bool Salles::Movement0() {
     return true;
 }
 
-void Salles::DefineAtkTimers(float stateOneTimer, float stateTwoTimer, float stateThreeTimer) {
-
-    mStateAtkTimers["StateOne"] = stateOneTimer;
-    mStateAtkTimers["StateTwo"] = stateTwoTimer;
-    mStateAtkTimers["StateThree"] = stateThreeTimer;
-
-}
 
 void Salles::ResetAtkTimer() {
 
-    mAtkTimer = mStateAtkTimers[mFSMComponent->GetState()->GetName()];
+    mAtkTimer = mStateAtkTimers[GetComponent<FSMComponent>()->GetState()->GetName()];
 
 }
 
