@@ -70,6 +70,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Scenes/Battle/ProjectileManager.h
         Source/Actors/Teacher/BossFactory/IBossFactory.h
         Source/Attacks/IAttackStrategy.h
+        Source/Attacks/Behaviors.cpp
+        Source/Attacks/Behaviors.h
 )
 
 find_package(SDL2 2.28.2 REQUIRED)

@@ -28,4 +28,10 @@ public:
 protected:
     // 5. Implementação obrigatória do contrato da classe base.
     [[nodiscard]] bool IsOffScreen() const override;
+
+private:
+
+    void updateBehaviors();
+    Vector2 GetPlayerDirection();
+
 };
