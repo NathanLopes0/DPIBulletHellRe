@@ -12,7 +12,8 @@
 #include "Scenes/MainMenu.h"
 #include "Scenes/StageSelect.h"
 #include "Scenes/Battle/Battle.h"
-#include "Actors/Teacher/BossFactory/Boss1Factory.h"
+#include "Actors/Teacher/BossFactory/IBossFactory.h"
+#include "Actors/Teacher/BossFactory/SallesFactory.h"
 
 
 Game::Game(int windowWidth, int windowHeight)
@@ -110,6 +111,7 @@ void Game::ProcessInput()
             case SDL_QUIT:
                 Quit();
                 break;
+            default: ;
         }
     }
 
@@ -212,14 +214,14 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
 
 void Game::InitializeBossFactory() {
 
-    mBossFactory[GameSubject::INF213] = std::make_unique<Boss1Factory>(this);
+    mBossFactory[GameSubject::INF213] = std::make_unique<SallesFactory>();
     //mBossFactory[GameSubject::INF250] = std::make_unique...
 
     //todas as outras, depois que criar as classes
 
 }
 
-BossFactory *Game::GetFactory(size_t n) {
+IBossFactory *Game::GetFactory(size_t n) {
     if (const auto it = mBossFactory.find(static_cast<GameSubject>(n)); it != mBossFactory.end()) {
         return it->second.get();
     }

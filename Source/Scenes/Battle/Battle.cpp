@@ -8,7 +8,7 @@
 #include "ProjectileManager.h"
 #include "../../Actors/Player/Player.h"
 #include "../../Actors/Teacher/Boss.h"
-#include "../../Actors/Teacher/BossFactory/BossFactory.h"
+#include "../../Actors/Teacher/BossFactory/IBossFactory.h"
 
 
 
@@ -42,18 +42,20 @@ void Battle::Load() {
 void Battle::LoadBoss() {
 
     // 1. Pega a fábrica correta do Game (como uma ferramenta temporária), e se ela existir, continua
-    if (BossFactory* factory = mGame->GetFactory(static_cast<int>(mStage))) {
-        // 2. A fábrica nos dá um ponteiro bruto para o Boss recém-criado.
-        Boss* bossPtr = factory->CreateBoss(this);
+    if (const IBossFactory *factory = mGame->GetFactory(static_cast<int>(mStage))) {
 
-        // 3. Guardar esse ponteiro no nosso observador.
-        //    Agora a BattleScene tem seu "atalho" para o chefe.
-        mBoss = bossPtr;
+        // 2. A fábrica nos dá um ponteiro bruto para o Boss recém-criado. Se der certo, entra no if
+        // obs: o nome dessa estrutura é if-statement, eu não conhecia antes.
+        // Basicamente você faz uma atribuição num if e vê se ela deu certo, se deu entra no if
+        if (auto bossOwner = factory->Create(*mGame)) {
 
-        // 4. Entrega a posse para o sistema principal de atores,
-        //    envolve o ponteiro bruto em um unique_ptr e o adicionamos à lista.
-        //    A partir daqui, a Scene base é a dona e cuidará da memória.
-        this->AddActor(std::unique_ptr<Boss>(bossPtr));
+            // 2.5 - transferimos a posse para o sistema Scene (seguro, tira warnings)
+            Actor* actorPtr = this->AddActor(std::move(bossOwner));
+
+            // 3. Guardar esse ponteiro no nosso observador.
+            // Agora a batalha tem um "atalho" diretamente para o chefe
+            mBoss = dynamic_cast<Boss*>(actorPtr);
+        }
 
     } else {
         SDL_Log("Erro fatal: Nenhuma BossFactory encontrada para a matéria %s", mStage);
@@ -82,9 +84,7 @@ void Battle::OnUpdate(float deltaTime) {
     // A cena base já atualiza todos os atores.
     // Aqui podemos adicionar lógica específica da batalha.
 
-    // Atualiza os sistemas principais
-    if (mPlayer) mPlayer->Update(deltaTime);
-    if (mBoss) mBoss->Update(deltaTime);
+    // Atualiza os sistemas principais apenas da Battle (os atores são atualizados pela Scene)
     if (mProjectileManager) mProjectileManager->Update(deltaTime);
 
     // Orquestra a checagem de colisões

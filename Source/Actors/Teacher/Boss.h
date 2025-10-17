@@ -2,32 +2,32 @@
 // Created by nslop on 25/09/2024.
 //
 
-#ifndef DPIBULLETHELLRE_BOSS_H
-#define DPIBULLETHELLRE_BOSS_H
+#pragma once
 
+#include <string>
+#include <map>
 #include "../Actor.h"
-#include "../../Game.h"
-#include "../../Scenes/Scene.h"
-#include "../../Components/RigidBodyComponent.h"
-#include "../../Components/AIComponents/FSMComponent.h"
-#include "../../Components/DrawComponents/DrawAnimatedComponent.h"
-#include "../../Components/ColliderComponents/CircleColliderComponent.h"
+
+
+class DrawAnimatedComponent;
+class Game;
 
 class Boss : public Actor {
 
 
 public:
 
-    Boss(class Scene* scene);
-    ~Boss();
+    Boss(Game* game);
+    ~Boss() override = default;
+
 
     class BossState* GetCurrentState() { return mCurrentState; }
 
-    //funções de pegar Largura e Altura da sprite e do jogo
-    int GetWindowsWidth() { return mScene->GetGame()->GetWindowWidth(); }
-    int GetWindowsHeight() { return mScene->GetGame()->GetWindowHeight(); }
-    int GetSpriteHeight() { return GetComponent<DrawAnimatedComponent>()->GetSpriteHeight(); }
-    int GetSpriteWidth() { return GetComponent<DrawAnimatedComponent>()->GetSpriteWidth(); }
+    //funções de conveniência
+    [[nodiscard]] int GetWindowWidth() const;
+    [[nodiscard]] int GetWindowHeight() const;
+    [[nodiscard]] int GetSpriteHeight() const;
+    [[nodiscard]] int GetSpriteWidth() const;
 
     virtual void Start();
 
@@ -36,10 +36,6 @@ protected:
     //variaveis para enviar powerUps na hora certa
 
     //componentes
-    RigidBodyComponent* mRigidBodyComponent;
-    DrawAnimatedComponent* mDrawComponent;
-    class CircleColliderComponent* mColliderComponent;
-    class FSMComponent* mFSMComponent;
     class BossState* mCurrentState;
     float mAtkTimer;
 
@@ -61,10 +57,7 @@ protected:
     //funções e estruturas para manipular os timers de ataque (velocidade de ataque) de cada estado dos bosses.
     virtual void ResetAtkTimer() = 0;
     std::map<std::string, float> mStateAtkTimers;
-    void DecreaseAtkTimer(float deltaTime) { mAtkTimer -= deltaTime; }
+    void DecreaseAtkTimer(const float deltaTime) { mAtkTimer -= deltaTime; }
 
 
 };
-
-
-#endif //DPIBULLETHELLRE_BOSS_H

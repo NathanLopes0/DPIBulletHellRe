@@ -11,6 +11,7 @@
 #include "Math.h"
 #include "Scenes/Scene.h"
 
+class IBossFactory;
 class Actor;
 
 class Game {
@@ -61,10 +62,10 @@ public:
 
     [[nodiscard]] Scene::SceneType GetCurrSceneType() const;
 
-    class BossFactory* GetFactory(size_t n);
+    class IBossFactory* GetFactory(size_t n);
 
 
-    // Funções pra retornar o estágio escolhido em StageSelect (retorna INF213 caso nao tenha sido modificado,
+    // Funções pra retornar o estágio escolhido em StageSelect (retorna INF213 caso não tenha sido modificado,
     // porque é oq foi definido no construtor)
     [[nodiscard]] GameSubject GetSelectedStage() const { return mSelectedStage; }
     void SetSelectedStage(const GameSubject subject) { mSelectedStage = subject; }
@@ -106,7 +107,7 @@ private:
     std::unique_ptr<Scene> mScene;
 
     //All Boss factories
-    std::map<GameSubject, std::unique_ptr<BossFactory>> mBossFactory;
+    std::map<GameSubject, std::unique_ptr<IBossFactory>> mBossFactory;
 
     //All Grades
     std::map<GameSubject, float> mGrades;

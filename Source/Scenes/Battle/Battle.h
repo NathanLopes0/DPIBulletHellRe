@@ -8,7 +8,7 @@
 #include <memory>
 #include "../Scene.h"
 #include "../../Game.h"
-#include "../../Actors/Teacher/BossFactory/BossFactory.h"
+#include "../../Actors/Teacher/BossFactory/IBossFactory.h"
 
 class Player;
 class ProjectileManager;
