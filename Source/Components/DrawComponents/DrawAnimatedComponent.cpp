@@ -2,16 +2,28 @@
 // Created by nslop on 27/08/2024.
 //
 
-#include "DrawAnimatedComponent.h"
-#include "../../Actors/Actor.h"
+
+#include <fstream>
 #include "../../Game.h"
 #include "../../Json.h"
-#include <fstream>
+#include "../../Actors/Actor.h"
+#include "DrawAnimatedComponent.h"
 
 DrawAnimatedComponent::DrawAnimatedComponent(class Actor* owner, const std::string &spriteSheetPath, const std::string &spriteSheetData, int drawOrder)
         :DrawSpriteComponent(owner, spriteSheetPath, 0, 0, drawOrder)
 {
     LoadSpriteSheet(spriteSheetPath, spriteSheetData);
+
+    std::ifstream file(spriteSheetData);
+    nlohmann::json f;
+    file >> f;
+
+    //Isso assume que todas as frames terão o mesmo tamanho, e pega apenas o width e height do primeiro frame da animação.
+    auto frames = f["frames"];
+    auto firstframe = frames.begin();
+    mWidth = firstframe.value()["frame"]["w"];
+    mHeight = firstframe.value()["frame"]["h"];
+
 }
 
 DrawAnimatedComponent::~DrawAnimatedComponent()

@@ -6,6 +6,7 @@
 #include "../../Game.h"
 #include "PlayerProjectile.h"
 #include "../Teacher/Boss.h"
+#include "../../Scenes/Battle/Battle.h"
 
 #define BASE_FOWARD_SPEED 800.0
 
@@ -58,7 +59,7 @@ bool PlayerProjectile::InsideProjectileLimit() const {
 }
 
 void PlayerProjectile::OnUpdate(float deltaTime) {
-
+    Projectile::OnUpdate(deltaTime);
 
     //----- ULTIMA COISA DO UPDATE: Ver colisão. Pois com colisão o objeto pode ser destruído.
     if(CheckCollision())
@@ -66,21 +67,44 @@ void PlayerProjectile::OnUpdate(float deltaTime) {
 }
 
 void PlayerProjectile::ActivateProjectile() {
-    Projectile::ActivateProjectile();
+    SetState(ActorState::Active);
+    mDrawComponent->SetIsVisible(true);
     SetPosition(mOwner->GetPosition());
+}
+
+void PlayerProjectile::DeactivateProjectile() {
+    SetState(ActorState::Paused);
+    mDrawComponent->SetIsVisible(false);
 }
 
 const CircleColliderComponent* PlayerProjectile::BossCollider() {
 
-    return mScene->GetBoss()->GetComponent<CircleColliderComponent>();
+    auto genericScene = mOwner->GetScene();
+    if (auto* battleScene = dynamic_cast<Battle*>(genericScene)) {
+        Boss* boss = battleScene->GetBoss();
+        if (boss) {
+            return boss->GetComponent<CircleColliderComponent>();
+        }
+    }
+
+    SDL_Log("Em BossCollider(), na PlayerProjectile.cpp, nao retorna o resultado desejado");
+    return nullptr;
 
 }
 
 bool PlayerProjectile::CheckCollision() {
-    if((mScene->GetBoss()->GetPosition() - GetPosition()).Length() < 100)
-        return Collided();
-    else
-        return false;
+    auto genericScene = mOwner->GetScene();
+
+    if (auto* battleScene = dynamic_cast<Battle*>(genericScene)) {
+        Boss* boss = battleScene->GetBoss();
+        if (boss)
+        {
+            if ((boss->GetPosition() - GetPosition()).Length() < 100)
+                return Collided();
+        }
+    }
+
+    return false;
 }
 
 

@@ -23,7 +23,7 @@ private:
     class DrawAnimatedComponent* mDrawComponent;
     class CircleColliderComponent* mColliderComponent;
 
-    std::vector<class Projectile*> mProjectiles;     //vetor de projéteis que será alocado no construtor,
+    std::vector<class PlayerProjectile*> mProjectiles;     //vetor de projéteis que será alocado no construtor,
                                                         // para não fazer alocação no meio do jogo.
 
     //variaveis de jogador

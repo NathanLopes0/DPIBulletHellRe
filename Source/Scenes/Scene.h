@@ -5,7 +5,13 @@
 #pragma once
 
 #include <SDL_stdinc.h>
-#include "../Math.h"
+#include <memory>
+#include <vector>
+
+class Actor;
+class Game;
+class DrawComponent;
+class ColliderComponent;
 
 class Scene {
 public:
@@ -16,21 +22,48 @@ public:
         Battle
     };
 
-    explicit Scene(class Game* game, SceneType sceneType);
+    explicit Scene(Game* game, SceneType sceneType);
+    virtual ~Scene() = default;
 
-    virtual void Load();
-    virtual void ProcessInput(const Uint8* keyState);
-    virtual void Update(float deltaTime);
-    void SetScene(SceneType sceneType);
 
-    class Game* GetGame() { return mGame; }
-    SceneType GetType() { return mSceneType; }
+    void ProcessInput(const Uint8* keyState);
+    void Update(float deltaTime);
 
-    virtual const Vector2& GetCameraPos();
+    virtual void Load() = 0;
 
-    virtual class Boss * GetBoss() const;
+    [[nodiscard]] Game* GetGame() const { return mGame; }
+    [[nodiscard]] SceneType GetType() const { return mType; }
+    [[nodiscard]] const std::vector<DrawComponent*>& GetDrawables() const { return mDrawables; }
+
+
+    void AddCollider(ColliderComponent* collider);
+    void RemoveCollider(ColliderComponent* collider);
+    std::vector<ColliderComponent*>& GetColliders() { return mColliders; }
+
+    void AddDrawable(DrawComponent* drawable);
+    void RemoveDrawable(DrawComponent* drawable);
 
 protected:
-    class Game* mGame;
-    SceneType mSceneType;
+    // As classes filhas vão dar override nestas para adicionar
+    // sua lógica específica. Elas têm um corpo vazio por padrão.
+    virtual void OnProcessInput(const Uint8* keyState);
+    virtual void OnUpdate(float deltaTime);
+
+    Actor* AddActor(std::unique_ptr<Actor> actor);
+    void RemoveDeadActors();
+
+    Game* mGame;
+    SceneType mType;
+
+    // A cena é DONA de todos os atores que vivem nela
+    std::vector<std::unique_ptr<Actor>> mActors;
+    std::vector<std::unique_ptr<Actor>> mPendingActors;
+
+    bool mIsUpdatingActors{};
+
+    // Lista de observadores para desenho.
+    std::vector<DrawComponent*> mDrawables;
+
+    //Lista de observadores para colisores
+    std::vector<ColliderComponent*> mColliders;
 };

@@ -39,18 +39,15 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Buttons/StageSelectButton.h
         Source/Components/DrawComponents/DrawAnimatedComponent.cpp
         Source/Components/DrawComponents/DrawAnimatedComponent.h
-        Source/Scenes/Battle.cpp
-        Source/Scenes/Battle.h
-        Source/Scenes/Battle.h
-        Source/Actors/Teacher/BossFactory/BossFactory.cpp
-        Source/Actors/Teacher/BossFactory/BossFactory.h
-        Source/Actors/Teacher/BossFactory/BossFactory.h
-        Source/Actors/Teacher/BossFactory/Boss1Factory.cpp
-        Source/Actors/Teacher/BossFactory/Boss1Factory.h
+        Source/Scenes/Battle/Battle.cpp
+        Source/Scenes/Battle/Battle.h
+        Source/Scenes/Battle/Battle.h
+        Source/Actors/Teacher/BossFactory/SallesFactory.cpp
+        Source/Actors/Teacher/BossFactory/SallesFactory.h
         Source/Actors/Teacher/Boss.cpp
         Source/Actors/Teacher/Boss.h
-        Source/Actors/Teacher/Salles.cpp
-        Source/Actors/Teacher/Salles.h
+        Source/Actors/Teacher/Bosses/Salles.cpp
+        Source/Actors/Teacher/Bosses/Salles.h
         Source/Actors/Player/Player.cpp
         Source/Actors/Player/Player.h
         Source/Actors/Teacher/BossStates/BossState.cpp
@@ -65,6 +62,13 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Player/PlayerProjectile.h
         Source/Actors/Teacher/BossStates/StateOne.cpp
         Source/Actors/Teacher/BossStates/StateOne.h
+        Source/Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.cpp
+        Source/Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.h
+        Source/Actors/Teacher/Bosses/BossesProjectiles/SallesBossProjectile.cpp
+        Source/Actors/Teacher/Bosses/BossesProjectiles/SallesBossProjectile.h
+        Source/Scenes/Battle/ProjectileManager.cpp
+        Source/Scenes/Battle/ProjectileManager.h
+        Source/Actors/Teacher/BossFactory/IBossFactory.h
 )
 
 find_package(SDL2 2.28.2 REQUIRED)

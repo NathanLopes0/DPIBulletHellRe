@@ -4,10 +4,14 @@
 
 #pragma once
 #include <unordered_map>
+#include <memory>
 #include <map>
+#include <SDL_mixer.h>
 #include <string>
 #include <vector>
 #include "SDL_stdinc.h"
+
+struct Mix_Chunk;
 
 // SoundHandles are used to operate on active sounds
 class SoundHandle
@@ -52,6 +56,12 @@ public:
 
 private:
     unsigned int mID = 0;
+};
+
+struct Mix_Chunk_Deleter {
+    void operator() (Mix_Chunk* chunk) const {
+        Mix_FreeChunk(chunk);
+    }
 };
 
 // Used to get information about state of sound
@@ -135,8 +145,12 @@ private:
     // Maps all the active SoundHandles to their HandleInfo
     std::map<SoundHandle, HandleInfo> mHandleMap;
 
+    using SoundPtr = std::unique_ptr<Mix_Chunk, Mix_Chunk_Deleter>;
+
     // Map to store the Mix_Chunk data for all the files
-    std::unordered_map<std::string, Mix_Chunk*> mSounds;
+    std::unordered_map<std::string, SoundPtr> mSounds;
+
+
 
     // Used to track the last audio handle value used
     // Will increment prior to playing a new sound

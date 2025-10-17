@@ -1,33 +1,35 @@
 //
-// Created by nslop on 03/04/2024.
+// Created by Nathan on 03/04/2024.
 //
 #include "Game.h"
-#include <algorithm>
-#include <iostream>
-#include <fstream>
 #include <SDL_ttf.h>
 #include "SDL_image.h"
 #include "Random.h"
 #include "AudioSystem.h"
+#include "Font.h"
 #include "Actors/Actor.h"
 #include "Components/DrawComponents/DrawComponent.h"
 #include "Scenes/MainMenu.h"
 #include "Scenes/StageSelect.h"
-#include "Scenes/Battle.h"
-#include "Actors/Teacher/BossFactory/Boss1Factory.h"
+#include "Scenes/Battle/Battle.h"
+#include "Actors/Teacher/BossFactory/IBossFactory.h"
+#include "Actors/Teacher/BossFactory/SallesFactory.h"
 
 
 Game::Game(int windowWidth, int windowHeight)
     :mWindow(nullptr),
     mRenderer(nullptr),
-    mTicksCount(0),
-    mIsRunning(true),
-    mUpdatingActors(false),
     mWindowWidth(windowWidth),
-    mWindowHeight(windowHeight)
+    mWindowHeight(windowHeight),
+    mTicksCount(0),
+    mIsGameRunning(true),
+    mScene(nullptr)
 {
 
 }
+
+Game::~Game() = default;
+
 
 bool Game::Initialize() {
 
@@ -63,7 +65,7 @@ bool Game::Initialize() {
         return false;
     }
 
-    mAudio = new AudioSystem();
+    mAudio = std::make_unique<AudioSystem>();
 
     //new random seed
     Random::Init();
@@ -72,7 +74,7 @@ bool Game::Initialize() {
     mTicksCount = SDL_GetTicks();
 
     // Init all game actors
-    InitializeActors();
+    LoadInitialScene();
 
     // Put all Grades to 40;
     InitializeGrades();
@@ -81,21 +83,17 @@ bool Game::Initialize() {
 }
 
 //função que seleciona a cena inicial e chama a função Load.
-void Game::InitializeActors()
+void Game::LoadInitialScene()
 {
 
-
     InitializeBossFactory();
-
-    auto mainMenu = new MainMenu(this);
-    mScene.push(mainMenu);
-    mScene.top()->Load();
+    ChangeScene(Scene::SceneType::MainMenu);
 
 }
 
 void Game::RunLoop() {
 
-    while (mIsRunning)
+    while (mIsGameRunning)
     {
         ProcessInput();
         UpdateGame();
@@ -113,19 +111,14 @@ void Game::ProcessInput()
             case SDL_QUIT:
                 Quit();
                 break;
+            default: ;
         }
     }
 
     const Uint8* state = SDL_GetKeyboardState(nullptr);
 
-    for (auto actor : mActors)
-    {
-        actor->ProcessInput(state);
-    }
-
-    if (!mScene.empty())
-    {
-        mScene.top()->ProcessInput(state);
+    if (mScene) {
+        mScene->ProcessInput(state);
     }
 }
 
@@ -141,8 +134,9 @@ void Game::UpdateGame()
 
     mTicksCount = SDL_GetTicks();
 
-    UpdateScenes(deltaTime);
-    UpdateActors(deltaTime);
+    if (mScene) {
+        mScene->Update(deltaTime);
+    }
     UpdateCamera();
 
 }
@@ -151,98 +145,6 @@ void Game::UpdateCamera()
 {
 
 }
-
-void Game::UpdateActors(float deltaTime) {
-
-    mUpdatingActors = true;
-    for (auto actor : mActors)
-    {
-        actor->Update(deltaTime);
-    }
-    mUpdatingActors = false;
-
-    for (auto pending : mPendingActors)
-    {
-        mActors.emplace_back(pending);
-    }
-    mPendingActors.clear();
-
-    std::vector<Actor*> deadActors;
-    for (auto actor : mActors)
-    {
-        if (actor->GetState() == ActorState::Destroy)
-        {
-            deadActors.emplace_back(actor);
-        }
-    }
-
-    for (auto actor : deadActors)
-    {
-        delete actor;
-    }
-}
-
-void Game::UpdateScenes(float deltaTime) {
-    mScene.top()->Update(deltaTime);
-}
-
-void Game::AddActor(Actor* actor)
-{
-    if (mUpdatingActors)
-    {
-        mPendingActors.emplace_back(actor);
-    }
-    else
-    {
-        mActors.emplace_back(actor);
-    }
-}
-
-void Game::RemoveActor(Actor* actor)
-{
-    auto iter = std::find(mPendingActors.begin(), mPendingActors.end(), actor);
-    if (iter != mPendingActors.end())
-    {
-        // Swap to end of vector and pop off (avoid erase copies)
-        std::iter_swap(iter, mPendingActors.end() - 1);
-        mPendingActors.pop_back();
-    }
-
-    iter = std::find(mActors.begin(), mActors.end(), actor);
-    if (iter != mActors.end())
-    {
-        // Swap to end of vector and pop off (avoid erase copies)
-        std::iter_swap(iter, mActors.end() - 1);
-        mActors.pop_back();
-    }
-}
-
-void Game::AddDrawable(class DrawComponent *drawable)
-{
-    mDrawables.emplace_back(drawable);
-
-    std::sort(mDrawables.begin(), mDrawables.end(),[](DrawComponent* a, DrawComponent* b) {
-        return a->GetDrawOrder() < b->GetDrawOrder();
-    });
-}
-
-void Game::RemoveDrawable(class DrawComponent *drawable)
-{
-    auto iter = std::find(mDrawables.begin(), mDrawables.end(), drawable);
-    mDrawables.erase(iter);
-}
-
-void Game::AddCollider(CircleColliderComponent* collider)
-{
-    mColliders.emplace_back(collider);
-}
-
-void Game::RemoveCollider(CircleColliderComponent* collider)
-{
-    auto iter = std::find(mColliders.begin(), mColliders.end(), collider);
-    mColliders.erase(iter);
-}
-
 void Game::GenerateOutput()
 {
     // Set draw color to black
@@ -251,10 +153,9 @@ void Game::GenerateOutput()
     // Clear back buffer
     SDL_RenderClear(mRenderer);
 
-    for (auto drawable : mDrawables)
-    {
-        if (drawable->IsVisible())
-        {
+    if (mScene) {
+        const auto drawables = mScene->GetDrawables();
+        for (const auto drawable : drawables) {
             drawable->Draw(mRenderer);
         }
     }
@@ -262,7 +163,6 @@ void Game::GenerateOutput()
     // Swap front buffer and back buffer
     SDL_RenderPresent(mRenderer);
 }
-
 SDL_Texture* Game::LoadTexture(const std::string& texturePath) {
 
     auto loadedIMG = IMG_Load(texturePath.c_str());
@@ -282,85 +182,50 @@ SDL_Texture* Game::LoadTexture(const std::string& texturePath) {
 
     return textureFromSur;
 }
-
 void Game::Shutdown()
 {
-
-    UnloadActors();
-    UnloadScenes();
-
     SDL_DestroyRenderer(mRenderer);
     SDL_DestroyWindow(mWindow);
     SDL_Quit();
 }
-
-void Game::UnloadActors()
-{
-    while (!mActors.empty())
-    {
-        delete mActors.back();
-    }
-
-}
-
-void Game::UnloadScenes() {
-    while(!mScene.empty())
-        mScene.pop();
-}
-
-void Game::SetScene(Scene::SceneType sceneType, bool RemoveLast)
+void Game::ChangeScene(const Scene::SceneType sceneType)
 {
     mAudio->StopAllSounds();
 
-    Scene* scene;
-
-    if(RemoveLast) UnloadActors();
-
-    if(RemoveLast && sceneType != Scene::SceneType::Battle) {
-        UnloadScenes();
-    }
-
     switch (sceneType) {
-        case Scene::SceneType::MainMenu: {
-            scene = new MainMenu(this);
+        case Scene::SceneType::MainMenu:
+            mScene = std::make_unique<MainMenu>(this);
             break;
-        }
-        case Scene::SceneType::StageSelect: {
-            scene = new StageSelect(this);
+        case Scene::SceneType::StageSelect:
+            mScene = std::make_unique<StageSelect>(this);
             break;
-        }
-        case Scene::SceneType::Battle: {
-            scene = new Battle(this);
+        case Scene::SceneType::Battle:
+
+            mScene = std::make_unique<Battle>(this, mSelectedStage);
             break;
-        }
+        default:
+            mScene = std::make_unique<MainMenu>(this);
+            break;
     }
 
-    if(RemoveLast && sceneType == Scene::SceneType::Battle) {
-        UnloadScenes();
-    }
+    mScene->Load();
 
-
-    mScene.push(scene);
-}
-
-StageSelect* Game::GetStageSelect() {
-    if(mScene.top()->GetType() == Scene::SceneType::StageSelect)
-        return dynamic_cast<StageSelect *>(mScene.top());
-    else
-        return nullptr;
 }
 
 void Game::InitializeBossFactory() {
 
-    mBossFactory[GameSubject::INF213] = new Boss1Factory(this);
-    //mBossFactory[GameSubject::INF250] = new Boss2Factory(this);
+    mBossFactory[GameSubject::INF213] = std::make_unique<SallesFactory>();
+    //mBossFactory[GameSubject::INF250] = std::make_unique...
 
     //todas as outras, depois que criar as classes
 
 }
 
-class BossFactory *Game::GetFactory(int n) {
-    return mBossFactory[static_cast<GameSubject>(n)];
+IBossFactory *Game::GetFactory(size_t n) {
+    if (const auto it = mBossFactory.find(static_cast<GameSubject>(n)); it != mBossFactory.end()) {
+        return it->second.get();
+    }
+    return nullptr;
 }
 
 void Game::InitializeGrades() {
@@ -371,6 +236,6 @@ void Game::InitializeGrades() {
 
 }
 
-[[maybe_unused]] Scene::SceneType Game::GetCurrSceneType() {
-    return mScene.top()->GetType();
+Scene::SceneType Game::GetCurrSceneType() const {
+    return mScene->GetType();
 }

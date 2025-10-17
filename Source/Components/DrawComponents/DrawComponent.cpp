@@ -12,12 +12,12 @@ DrawComponent::DrawComponent(class Actor *owner, int drawOrder)
         mDrawOrder(drawOrder),
         mIsVisible(true)
 {
-    mOwner->GetScene()->GetGame()->AddDrawable(this);
+    mOwner->GetScene()->AddDrawable(this);
 }
 
 DrawComponent::~DrawComponent()
 {
-    mOwner->GetScene()->GetGame()->RemoveDrawable(this);
+    mOwner->GetScene()->RemoveDrawable(this);
 }
 
 void DrawComponent::Draw(SDL_Renderer *renderer)

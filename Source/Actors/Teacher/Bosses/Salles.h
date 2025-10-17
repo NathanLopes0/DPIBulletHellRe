@@ -6,12 +6,13 @@
 #define DPIBULLETHELLRE_SALLES_H
 
 
-#include "Boss.h"
+#include "../Boss.h"
 
 class Salles : public Boss {
 
 public:
-    Salles(class Scene* scene, const std::string& spritePath, const std::string& dataPath);
+    Salles(class Scene* scene, const std::string& spritePath, const std::string& dataPath,
+            const std::string& projectileSpritePath, const std::string& projectileDataPath);
     void OnUpdate(float deltaTime) override;
 
 
@@ -30,6 +31,11 @@ protected:
 
 private:
 
+    std::string mProjectileSpritePath;
+    std::string mProjectileDataPath;
+    void ResetAtkTimer() override;
+
+    void DefineAtkTimers(float d, float d1, float d2);
 };
 
 

@@ -7,8 +7,6 @@
 #include "../Scenes/Scene.h"
 #include "../Components/Component.h"
 
-#include <algorithm>
-
 Actor::Actor(Scene* scene) :
     mState(ActorState::Active),
     mPosition(Vector2::Zero),
@@ -16,25 +14,14 @@ Actor::Actor(Scene* scene) :
     mRotation(0.0f),
     mScene(scene)
 {
-    mScene->GetGame()->AddActor(this);
-}
 
-Actor::~Actor()
-{
-    mScene->GetGame()->RemoveActor(this);
-
-    for(auto component : mComponents)
-    {
-        delete component;
-    }
-    mComponents.clear();
 }
 
 void Actor::Update(float deltaTime)
 {
     if (mState == ActorState::Active)
     {
-        for (auto comp : mComponents)
+        for (const auto& comp : mComponents)
         {
             if(comp->IsEnabled())
             {
@@ -65,7 +52,7 @@ void Actor::ProcessInput(const Uint8 *keyState)
 {
     if(mState == ActorState::Active)
     {
-        for(auto comp : mComponents)
+        for(const auto& comp : mComponents)
         {
             comp->ProcessInput(keyState);
         }
@@ -77,12 +64,4 @@ void Actor::ProcessInput(const Uint8 *keyState)
 void Actor::OnProcessInput(const Uint8 *keyState)
 {
 
-}
-
-void Actor::AddComponent(Component *c)
-{
-    mComponents.emplace_back(c);
-    std::sort(mComponents.begin(), mComponents.end(), [](Component* a, Component* b) {
-        return a->GetUpdateOrder() < b->GetUpdateOrder();
-    });
 }

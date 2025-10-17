@@ -10,7 +10,8 @@
 class DrawSpriteComponent : public DrawComponent {
 
 public:
-    DrawSpriteComponent(class Actor* owner, const std::string &texturePath, int width = 0, int height = 0, int drawOrder = 100);
+    DrawSpriteComponent(Actor* owner, const std::string &texturePath, int width, int height, int drawOrder = 100);
+    DrawSpriteComponent(Actor* owner, const std::string &texturePath, int drawOrder = 100);
 
     void Draw(SDL_Renderer* renderer) override;
     [[nodiscard]] int GetSpriteWidth() const { return mWidth; }

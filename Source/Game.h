@@ -4,13 +4,15 @@
 
 #pragma once
 
-#include <vector>
-#include <stack>
 #include <map>
 #include <string>
+#include <memory>
 #include <SDL.h>
 #include "Math.h"
 #include "Scenes/Scene.h"
+
+class IBossFactory;
+class Actor;
 
 class Game {
 public:
@@ -29,30 +31,18 @@ public:
     };
 
     Game(int windowWidth, int windowHeight);
+    ~Game();
 
     bool Initialize();
     void RunLoop();
     void Shutdown();
-    void Quit() { mIsRunning = false; }
+    void Quit() { mIsGameRunning = false; }
 
     //Actor functions
-    void InitializeActors();
-    void UpdateActors(float deltaTime);
-    void AddActor(class Actor* actor);
-    void RemoveActor(class Actor* actor);
-    void UnloadActors();
-
-    //Draw functions
-    void AddDrawable(class DrawComponent* drawable);
-    void RemoveDrawable(class DrawComponent* drawable);
+    void LoadInitialScene();
 
     //Texture
     class SDL_Texture* LoadTexture(const std::string& texturePath);
-
-    //Collider functions
-    void AddCollider(class CircleColliderComponent* collider);
-    void RemoveCollider(class CircleColliderComponent* collider);
-    std::vector<class CircleColliderComponent*>& GetColliders() { return mColliders; }
 
     //Camera functions
     Vector2& GetCameraPos() { return mCameraPos; }
@@ -64,17 +54,21 @@ public:
     [[nodiscard]] int GetWindowHeight() const { return mWindowHeight; }
 
     //Audio System
-    class AudioSystem* GetAudio() { return mAudio; }
+    class AudioSystem* GetAudio() { return mAudio.get(); }
 
     //Scenes
-    Scene* GetScene() { return mScene.top(); }
-    void SetScene(Scene::SceneType sceneType, bool RemoveLast = true);
+    [[nodiscard]] Scene* GetScene() const { return mScene.get(); }
+    void ChangeScene(Scene::SceneType sceneType);
 
-    Scene::SceneType GetCurrSceneType();
+    [[nodiscard]] Scene::SceneType GetCurrSceneType() const;
 
-    //Used by Battle to get the selected stage
-    class StageSelect* GetStageSelect();
-    class BossFactory* GetFactory(int n);
+    class IBossFactory* GetFactory(size_t n);
+
+
+    // Funções pra retornar o estágio escolhido em StageSelect (retorna INF213 caso não tenha sido modificado,
+    // porque é oq foi definido no construtor)
+    [[nodiscard]] GameSubject GetSelectedStage() const { return mSelectedStage; }
+    void SetSelectedStage(const GameSubject subject) { mSelectedStage = subject; }
 
     //Grade functions
     float GetGrade(int n) { return mGrades[static_cast<GameSubject>(n)]; }
@@ -85,26 +79,16 @@ public:
 private:
     void ProcessInput();
     void UpdateGame();
-    void UpdateScenes(float deltaTime);
     void UpdateCamera();
     void GenerateOutput();
-    void UnloadScenes();
 
-
-    // All the actors in the game
-    std::vector<class Actor*> mActors;
-    std::vector<class Actor*> mPendingActors;
-
-    // All the draw components
-    std::vector<class DrawComponent*> mDrawables;
-
-    // All the collision components
-    std::vector<class CircleColliderComponent*> mColliders;
+    // Não sei se preciso de uma lista de todos os colisores aqui, parece resto de algum código ruim
+    //std::vector<class CircleColliderComponent*> mColliders;
 
     // SDL stuff
     class SDL_Window* mWindow;
     SDL_Renderer* mRenderer;
-    AudioSystem* mAudio;
+    std::unique_ptr<AudioSystem> mAudio;
 
     // Window properties
     int mWindowWidth;
@@ -113,21 +97,24 @@ private:
     // Track elapsed time since game start
     Uint32 mTicksCount;
 
-    // Track if we're updating actors right now
-    bool mIsRunning;
-    bool mUpdatingActors;
+    // Track if game is running
+    bool mIsGameRunning;
 
     // Camera X and Y position
     Vector2 mCameraPos;
 
-    //Stack of active scenes (normally only one, except on pause)
-    std::stack<Scene*> mScene;
+    //Active scenes
+    std::unique_ptr<Scene> mScene;
 
     //All Boss factories
-    std::map<GameSubject, class BossFactory*> mBossFactory;
+    std::map<GameSubject, std::unique_ptr<IBossFactory>> mBossFactory;
 
     //All Grades
     std::map<GameSubject, float> mGrades;
+
+    //Selected Stage, used by Battle on ChangeScene()
+    GameSubject mSelectedStage{};
+
 
     void InitializeBossFactory();
     void InitializeGrades();
