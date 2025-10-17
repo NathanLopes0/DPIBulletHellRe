@@ -6,10 +6,9 @@
 
 Button::Button(Scene *scene) : Actor(scene) {
 
-    isSelected = false;
+}
+
+void Button::OnClick() {
 
 }
 
-void Button::onClick() {
-
-}

@@ -9,42 +9,55 @@
 #include "../Components/DrawComponents/DrawTextComponent.h"
 #include "../Components/DrawComponents/DrawSpriteComponent.h"
 
-MainMenu::MainMenu(class Game *game): Scene(game, SceneType::MainMenu), mMainMenuFont(nullptr)
-
+MainMenu::MainMenu(Game* game)
+    : Scene(game, SceneType::MainMenu)
+    , mMainMenuFont(std::make_unique<Font>())
 {
-    mMainMenuFont = new Font();
     mMainMenuFont->Load("../Assets/Fonts/Zelda.ttf");
-
 }
 
 void MainMenu::Load() {
 
-    //Instanciar o background geral
-    auto background = new Actor(this);
-    new DrawSpriteComponent(background, "../Assets/DPIUfV.png",1600, 1188, 50);
-    background->SetPosition(Vector2(mGame->GetWindowWidth() / 2, mGame->GetWindowHeight() / 2));
+    LoadBackground();
+    LoadTitle();
+    LoadPlayButton();
 
-    //Instanciar o Título do Jogo
-    auto title = new Actor(this);
-    new DrawSpriteComponent(title, "../Assets/DPIBHTitleMainMenu.png",1200, 800, 75);
-    title->SetPosition(Vector2(mGame->GetWindowWidth()/2, mGame->GetWindowHeight()/2));
-
-    //Instanciar "Press Space"
-    auto pressSpace = new Actor(this);
-    pressSpace->SetPosition(Vector2(600, 700));
-    new DrawTextComponent(pressSpace, "Jogar", mMainMenuFont,
-                          500, 64, 72);
 }
 
-void MainMenu::ProcessInput(const Uint8 *keyState) {
-
-    keyState = SDL_GetKeyboardState(nullptr);
+void MainMenu::OnProcessInput(const Uint8 *keyState) {
 
     if(keyState[SDL_SCANCODE_SPACE])
-        mGame->SetScene(SceneType::StageSelect);
+        mGame->ChangeScene(SceneType::StageSelect);
 }
 
-void MainMenu::Update(float deltaTime) {
+void MainMenu::OnUpdate(float deltaTime) {
 
 }
 
+void MainMenu::LoadBackground() {
+    auto background = std::make_unique<Actor>(this);
+    background->SetPosition(Vector2(mGame->GetWindowWidth() / 2.0f, mGame->GetWindowHeight() / 2.0f));
+    background->AddComponent<DrawSpriteComponent>("../Assets/MainMenuBackground.png", 50);
+
+    mBackgroundActor = background.get(); //Guarda o ponteiro observador
+    AddActor(std::move(background));
+}
+void MainMenu::LoadTitle() {
+    auto title = std::make_unique<Actor>(this);
+    title->SetPosition(Vector2(static_cast<float>(mGame->GetWindowWidth()) / 2.0f,
+                                    static_cast<float>(mGame->GetWindowHeight()) / 2.0f));
+
+    title->AddComponent<DrawSpriteComponent>("../Assets/DPIBHTitleMainMenu.png", 75);
+
+    mTitleActor = title.get();
+    AddActor(std::move(title));
+}
+void MainMenu::LoadPlayButton() {
+    auto playButton = std::make_unique<Actor>(this);
+    playButton->SetPosition(Vector2(600.0f, 700.0f));
+    // Passamos a fonte para o componente usando .get() para obter o ponteiro bruto
+    playButton->AddComponent<DrawTextComponent>("Jogar", mMainMenuFont.get(), 500, 64, 72);
+
+    mPlayButtonActor = playButton.get();
+    AddActor(std::move(playButton));
+}

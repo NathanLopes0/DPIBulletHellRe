@@ -12,17 +12,19 @@ class Button : public Actor {
 
 public:
     explicit Button(Scene* scene);
-    virtual void onClick();
-    void changeSelected() { isSelected = !isSelected; }
-    bool isButtonSelected() const { return isSelected; }
+    ~Button() override = default;
+    virtual void OnClick();
+
+    void ChangeSelected() { mIsSelected = !mIsSelected; }
+    [[nodiscard]] bool IsSelected() const { return mIsSelected; }
 
 private:
 
 
 protected:
-    int mWidth;
-    int mHeight;
-    bool isSelected;
+    int mWidth{};
+    int mHeight{};
+    bool mIsSelected = false;
 };
 
 

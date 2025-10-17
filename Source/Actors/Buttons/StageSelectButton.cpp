@@ -8,40 +8,49 @@
 #include "../../Components/DrawComponents/DrawTextComponent.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 
-StageSelectButton::StageSelectButton(Scene *scene, const std::string& buttonText, Game::GameSubject subject) : Button(scene),
-mSubject(subject)
+StageSelectButton::StageSelectButton(Scene* scene, const std::string& buttonText,
+                                     const Game::GameSubject subject, const std::string& fontPath)
+    : Button(scene)
+    , mSubject(subject)
+    , mFont(std::make_unique<Font>()) // Cria e assume a posse da fonte
 {
 
+    // --- Configuração do Ator (herdado de Button) ---
     mWidth = 128;
     mHeight = 64;
 
-    //-----DRAW ANIMATION COMPONENT-----//
-    mDrawComponent = new DrawAnimatedComponent(this, "../Assets/Icons/DPIBHStageSelectButton.png",
-                                               "../Assets/Icons/DPIBHStageSelectButton.json");
-    mDrawComponent->AddAnimation("Button",{0});
-    mDrawComponent->AddAnimation("Selected", {1});
-    mDrawComponent->SetAnimation("Button");
-    mDrawComponent->SetAnimFPS(10.0f);
+    // --- Carregamento da Fonte ---
+    mFont->Load(fontPath);
 
-    //-----DRAW TEXT COMPONENT-----//
-    mFont = new Font();
-    mFont->Load("../Assets/Fonts/Zelda.ttf");
-    mDrawTextComponent = new DrawTextComponent(this,buttonText,mFont, mWidth / 2, mHeight / 4, 24,120);
+    // --- Adição de Componentes ---
+    auto* animComp = AddComponent<DrawAnimatedComponent>("../Assets/Icons/DPIBHStageSelectButton.png",
+                                                         "../Assets/Icons/DPIBHStageSelectButton.json");
+    if (animComp) {
+        animComp->AddAnimation("Button", {0});
+        animComp->AddAnimation("Selected", {1});
+        animComp->SetAnimation("Button");
+        animComp->SetAnimFPS(10.0f);
+    }
 
-
+    // Passando a fonte para o DrawTextComponent usando mFont.get() porque to usando unique_ptr agr
+    AddComponent<DrawTextComponent>(buttonText, mFont.get(), mWidth / 2, mHeight / 4, 24, 120);
 }
 
 
 void StageSelectButton::OnUpdate(float deltaTime) {
-    if(isSelected) mDrawComponent->SetAnimation("Selected");
-    else
-        mDrawComponent->SetAnimation("Button");
+    // Pede o componente de animação
+    if (auto* anim = GetComponent<DrawAnimatedComponent>()) {
+        // Checa o estado do botão (mIsSelected é herdado da classe Button)
+        if (mIsSelected) {
+            anim->SetAnimation("Selected");
+        } else {
+            anim->SetAnimation("Button");
+        }
+    }
 }
 
 void StageSelectButton::SetText(const std::string& newText) {
-    mDrawTextComponent->SetText(newText);
-}
-
-void StageSelectButton::StartBattle() {
-    mScene->SetScene(Scene::SceneType::Battle);
+    if (auto* textComp = GetComponent<DrawTextComponent>()) {
+        textComp->SetText(newText);
+    }
 }

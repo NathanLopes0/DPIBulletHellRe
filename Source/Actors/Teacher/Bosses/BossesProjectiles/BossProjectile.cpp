@@ -51,4 +51,5 @@ bool BossProjectile::InsideProjectileLimit() const {
 
 bool BossProjectile::CheckCollision() {
     // TODO 4.1 - Lógica de colisão com o jogador (todos os projéteis de bosses colidem com o jogador, por isso ta aqui)
+    return false;
 }

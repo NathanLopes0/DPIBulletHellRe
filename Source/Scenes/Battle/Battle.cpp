@@ -1,0 +1,106 @@
+//
+// Created by nslop on 16/09/2024.
+//
+
+#include "SDL.h"
+
+#include "Battle.h"
+#include "ProjectileManager.h"
+#include "../../Actors/Player/Player.h"
+#include "../../Actors/Teacher/Boss.h"
+#include "../../Actors/Teacher/BossFactory/BossFactory.h"
+
+
+
+Battle::Battle(Game* game, Game::GameSubject selectedStage)
+    : Scene(game, SceneType::Battle)
+    , mGrade(40.0f) // A matéria selecionada
+    , mStage(selectedStage) // O GDD diz que a nota começa em 40
+{
+
+}
+
+Battle::~Battle() = default;
+
+void Battle::Load() {
+
+    // 1. Criar os sistemas primeiro
+    mProjectileManager = std::make_unique<ProjectileManager>(this);
+
+    // 2. Criar os atores principais
+    LoadPlayer();
+    LoadBoss();
+    LoadHUD();
+
+    // 3. Iniciar a lógica da batalha (se necessário)
+    if (mBoss) {
+        mBoss->Start();
+    }
+}
+
+
+void Battle::LoadBoss() {
+
+    // 1. Pega a fábrica correta do Game (como uma ferramenta temporária), e se ela existir, continua
+    if (BossFactory* factory = mGame->GetFactory(static_cast<int>(mStage))) {
+        // 2. A fábrica nos dá um ponteiro bruto para o Boss recém-criado.
+        Boss* bossPtr = factory->CreateBoss(this);
+
+        // 3. Guardar esse ponteiro no nosso observador.
+        //    Agora a BattleScene tem seu "atalho" para o chefe.
+        mBoss = bossPtr;
+
+        // 4. Entrega a posse para o sistema principal de atores,
+        //    envolve o ponteiro bruto em um unique_ptr e o adicionamos à lista.
+        //    A partir daqui, a Scene base é a dona e cuidará da memória.
+        this->AddActor(std::unique_ptr<Boss>(bossPtr));
+
+    } else {
+        SDL_Log("Erro fatal: Nenhuma BossFactory encontrada para a matéria %s", mStage);
+        // Talvez adicionar um this->QuitGame() ou algo do tipo aqui.
+    }
+}
+void Battle::LoadHUD() {
+
+}
+void Battle::LoadPlayer() {
+
+    auto player = std::make_unique<Player>(this);
+
+
+    // 2. Configura a posição inicial
+    const auto midWidth = static_cast<float>(mGame->GetWindowWidth()) / 2.0f;
+    const auto startingHeight = static_cast<float>(mGame->GetWindowHeight()) * 7.0f / 8.0f;
+    player->SetPosition(Vector2(midWidth, startingHeight));
+
+    mPlayer = dynamic_cast<Player*>(this->AddActor(std::move(player)));
+
+}
+
+void Battle::OnUpdate(float deltaTime) {
+
+    // A cena base já atualiza todos os atores.
+    // Aqui podemos adicionar lógica específica da batalha.
+
+    // Atualiza os sistemas principais
+    if (mPlayer) mPlayer->Update(deltaTime);
+    if (mBoss) mBoss->Update(deltaTime);
+    if (mProjectileManager) mProjectileManager->Update(deltaTime);
+
+    // Orquestra a checagem de colisões
+    CheckCollisions();
+}
+
+void Battle::OnProcessInput(const Uint8* keyState) {
+    if (mPlayer) {
+        mPlayer->ProcessInput(keyState);
+    }
+}
+
+void Battle::CheckCollisions() {
+    // EM BREVE:
+    // Lógica para checar colisão entre:
+    // - Player e Projéteis do Boss
+    // - Boss e Projéteis do Player
+    // -, etc.
+}

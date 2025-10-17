@@ -6,6 +6,7 @@
 #include "../../Game.h"
 #include "PlayerProjectile.h"
 #include "../Teacher/Boss.h"
+#include "../../Scenes/Battle/Battle.h"
 
 #define BASE_FOWARD_SPEED 800.0
 
@@ -78,15 +79,32 @@ void PlayerProjectile::DeactivateProjectile() {
 
 const CircleColliderComponent* PlayerProjectile::BossCollider() {
 
-    return mScene->GetBoss()->GetComponent<CircleColliderComponent>();
+    auto genericScene = mOwner->GetScene();
+    if (auto* battleScene = dynamic_cast<Battle*>(genericScene)) {
+        Boss* boss = battleScene->GetBoss();
+        if (boss) {
+            return boss->GetComponent<CircleColliderComponent>();
+        }
+    }
+
+    SDL_Log("Em BossCollider(), na PlayerProjectile.cpp, nao retorna o resultado desejado");
+    return nullptr;
 
 }
 
 bool PlayerProjectile::CheckCollision() {
-    if((mScene->GetBoss()->GetPosition() - GetPosition()).Length() < 100)
-        return Collided();
-    else
-        return false;
+    auto genericScene = mOwner->GetScene();
+
+    if (auto* battleScene = dynamic_cast<Battle*>(genericScene)) {
+        Boss* boss = battleScene->GetBoss();
+        if (boss)
+        {
+            if ((boss->GetPosition() - GetPosition()).Length() < 100)
+                return Collided();
+        }
+    }
+
+    return false;
 }
 
 

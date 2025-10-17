@@ -39,9 +39,9 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Buttons/StageSelectButton.h
         Source/Components/DrawComponents/DrawAnimatedComponent.cpp
         Source/Components/DrawComponents/DrawAnimatedComponent.h
-        Source/Scenes/Battle.cpp
-        Source/Scenes/Battle.h
-        Source/Scenes/Battle.h
+        Source/Scenes/Battle/Battle.cpp
+        Source/Scenes/Battle/Battle.h
+        Source/Scenes/Battle/Battle.h
         Source/Actors/Teacher/BossFactory/BossFactory.cpp
         Source/Actors/Teacher/BossFactory/BossFactory.h
         Source/Actors/Teacher/BossFactory/BossFactory.h
@@ -69,6 +69,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.h
         Source/Actors/Teacher/Bosses/BossesProjectiles/SallesBossProjectile.cpp
         Source/Actors/Teacher/Bosses/BossesProjectiles/SallesBossProjectile.h
+        Source/Scenes/Battle/ProjectileManager.cpp
+        Source/Scenes/Battle/ProjectileManager.h
 )
 
 find_package(SDL2 2.28.2 REQUIRED)

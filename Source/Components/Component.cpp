@@ -11,7 +11,7 @@ Component::Component(Actor* owner, int updateOrder) :
     mUpdateOrder(updateOrder),
     mIsEnabled(true)
 {
-    mOwner->AddComponent(this);
+
 }
 
 Component::~Component()

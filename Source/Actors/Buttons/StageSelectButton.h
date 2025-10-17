@@ -10,20 +10,23 @@
 #include "Button.h"
 #include "../../Game.h"
 
+class Font;
 class StageSelectButton : public Button {
 
 public:
-    explicit StageSelectButton(Scene* scene, const std::string& buttonText, Game::GameSubject subject);
-    void OnUpdate(float deltaTime);
+    explicit StageSelectButton(Scene* scene, const std::string& buttonText,
+                               Game::GameSubject subject, const std::string& fontPath);
+    ~StageSelectButton() override = default;
+
+    void OnUpdate(float deltaTime) override;
     void SetText(const std::string& newText);
-    void StartBattle();
+
+    [[nodiscard]] Game::GameSubject GetSubject() const { return mSubject; }
 
 private:
 
-    Game::GameSubject mSubject;
-    class Font* mFont;
-    class DrawAnimatedComponent* mDrawComponent;
-    class DrawTextComponent* mDrawTextComponent;
+    Game::GameSubject mSubject{};
+    std::unique_ptr<Font> mFont;
 };
 
 

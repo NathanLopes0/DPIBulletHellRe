@@ -29,7 +29,7 @@ Boss* Boss1Factory::CreateBoss(Scene* scene) {
     auto midWidth = mBoss->GetWindowsWidth() / 2;
     auto spriteHeight = mBoss->GetSpriteHeight();
 
-    mBoss->SetPosition(Vector2((float)midWidth, -1.f * (float)spriteHeight));
+    mBoss->SetPosition(Vector2(static_cast<float>(midWidth), -1.f * static_cast<float>(spriteHeight)));
     mBoss->GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(0, 50));
     //      ------------------- -- ------- - ---------- -------- - -------- -- ---------------      //
 

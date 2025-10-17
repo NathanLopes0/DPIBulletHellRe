@@ -23,12 +23,6 @@ AudioSystem::AudioSystem(int numChannels)
 // Destroy the AudioSystem
 AudioSystem::~AudioSystem()
 {
-    for (auto& sound : mSounds)
-    {
-        Mix_FreeChunk(sound.second);
-    }
-    mSounds.clear();
-
     Mix_CloseAudio();
 }
 
@@ -225,24 +219,18 @@ Mix_Chunk* AudioSystem::GetSound(const std::string& soundName)
     std::string fileName = "../Assets/Sounds/";
     fileName += soundName;
 
-    Mix_Chunk* chunk = nullptr;
-    auto iter = mSounds.find(fileName);
-    if (iter != mSounds.end())
-    {
-        chunk = iter->second;
+    if(const auto iter = mSounds.find(fileName); iter != mSounds.end()) {
+        return iter->second.get();
     }
-    else
-    {
-        chunk = Mix_LoadWAV(fileName.c_str());
-        if (!chunk)
-        {
-            SDL_Log("[AudioSystem] Failed to load sound file %s", fileName.c_str());
-            return nullptr;
-        }
 
-        mSounds.emplace(fileName, chunk);
+    if (Mix_Chunk* chunk = Mix_LoadWAV(fileName.c_str()); !chunk) {
+        SDL_Log("[AudioSystem] Failed to load sound file %s", fileName.c_str());
+        return nullptr;
     }
-    return chunk;
+    else {
+        mSounds.emplace(fileName, SoundPtr(chunk));
+        return chunk;
+    }
 }
 
 // Input for debugging purposes
