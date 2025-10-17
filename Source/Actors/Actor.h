@@ -9,6 +9,7 @@
 #include <vector>
 #include <memory>
 #include <SDL_stdinc.h>
+
 #include "../Math.h"
 #include "../Components/Component.h"
 
@@ -23,7 +24,7 @@ enum class ActorState
 class Actor {
 
 public:
-    explicit Actor(class Scene* scene);
+    explicit Actor(Scene* scene);
     virtual ~Actor() = default;
 
     // Update function called from Game (not overridable)
@@ -83,7 +84,8 @@ public:
     }
 
     // Any actor-specific collision code (overridable)
-    virtual void OnCollision();
+    virtual void OnCollision(Actor* other);
+
     virtual void Kill();
 
 protected:

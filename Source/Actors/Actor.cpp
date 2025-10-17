@@ -8,11 +8,11 @@
 #include "../Components/Component.h"
 
 Actor::Actor(Scene* scene) :
+    mScene(scene),
     mState(ActorState::Active),
     mPosition(Vector2::Zero),
     mScale(1.0f),
-    mRotation(0.0f),
-    mScene(scene)
+    mRotation(0.0f)
 {
 
 }
@@ -38,7 +38,7 @@ void Actor::OnUpdate(float deltaTime)
 
 }
 
-void Actor::OnCollision()
+void Actor::OnCollision(Actor* other)
 {
 
 }

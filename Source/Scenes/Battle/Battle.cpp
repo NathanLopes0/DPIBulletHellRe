@@ -7,8 +7,11 @@
 #include "Battle.h"
 #include "ProjectileManager.h"
 #include "../../Actors/Player/Player.h"
+#include "../../Actors/Player/PlayerProjectile.h"
 #include "../../Actors/Teacher/Boss.h"
+#include "../../Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.h"
 #include "../../Actors/Teacher/BossFactory/IBossFactory.h"
+#include "../../Components/ColliderComponents/CircleColliderComponent.h"
 
 
 
@@ -98,9 +101,44 @@ void Battle::OnProcessInput(const Uint8* keyState) {
 }
 
 void Battle::CheckCollisions() {
-    // EM BREVE:
-    // Lógica para checar colisão entre:
-    // - Player e Projéteis do Boss
-    // - Boss e Projéteis do Player
-    // -, etc.
+    if (!mPlayer || !mBoss) return;
+
+    auto* playerCollider = mPlayer->GetComponent<CircleColliderComponent>();
+    auto* bossCollider = mBoss->GetComponent<CircleColliderComponent>();
+
+    if (!playerCollider || !bossCollider) return;
+
+    const auto& bossProjectiles = mProjectileManager->GetBossProjectiles();
+    const auto& playerProjectiles = mProjectileManager->GetPlayerProjectiles();
+
+
+    // --- REGRA 1 - Projéteis do Boss vs Player --- //
+    for (const auto& bossProj : bossProjectiles) {
+        if (auto* bossProjCollider = bossProj->GetComponent<CircleColliderComponent>()) {
+            if (playerCollider->Intersect(*bossProjCollider)) {
+
+                mPlayer->OnCollision(bossProj.get());
+                bossProj->OnCollision(mPlayer);
+
+            }
+        }
+    }
+
+    // --- REGRA 2 - Projéteis do Player vs Boss
+    for (const auto& playerProj : playerProjectiles) {
+        if (auto* playerProjCollider = playerProj->GetComponent<CircleColliderComponent>()) {
+            if (bossCollider->Intersect(*playerProjCollider)) {
+
+                mBoss->OnCollision(playerProj.get());
+                playerProj->OnCollision(mBoss);
+
+            }
+        }
+    }
+
+    // --- REGRA 3 - Player vs Boss  (Contato Direto)
+    if (playerCollider->Intersect(*bossCollider)) {
+        mPlayer->OnCollision(mBoss);
+        mBoss->OnCollision(mPlayer);
+    }
 }

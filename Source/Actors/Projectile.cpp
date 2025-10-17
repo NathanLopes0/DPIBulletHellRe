@@ -3,38 +3,27 @@
 //
 
 #include "Projectile.h"
-#include "../Game.h"
+#include "../Scenes/Scene.h"
+#include "../Components/Component.h"
 
 
-Projectile::Projectile(Scene *scene) :
-        Actor(scene)
+Projectile::Projectile(Scene *scene, Actor* owner) :
+        Actor(scene),
+        mOwner(owner),
+        mForwardSpeed(0.0f)
 {
-    mOwner = nullptr;
-    mDrawComponent = nullptr;
-    mColliderComponent = new CircleColliderComponent(this, 12);
-    mRigidBodyComponent = new RigidBodyComponent(this);
 
 }
 
 void Projectile::OnUpdate(float deltaTime) {
-    if(!InsideProjectileLimit()) {
-        DeactivateProjectile();
+
+    if (IsOffScreen()) {
+        SetState(ActorState::Destroy);
     }
 
 }
 
-void Projectile::OnCollision() {
+void Projectile::OnCollision(Actor* other) {
 
-}
 
-void Projectile::DeactivateProjectile() {
-
-}
-
-// Ativa o Projétil na posição passada como parâmetro
-void Projectile::ActivateProjectile(const Vector2& desiredStartingPosition) {
-    SetState(ActorState::Active);
-    mDrawComponent->SetIsVisible(true);
-
-    SetPosition(desiredStartingPosition);
 }

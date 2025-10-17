@@ -6,36 +6,33 @@
 #define DPIBULLETHELLRE_PROJECTILE_H
 
 #include "Actor.h"
-#include "../Components/RigidBodyComponent.h"
-#include "../Components/DrawComponents/DrawAnimatedComponent.h"
-#include "../Components/ColliderComponents/CircleColliderComponent.h"
 
 
 class Projectile : public Actor {
 
 public:
-    explicit Projectile(class Scene* scene);
+    explicit Projectile(Scene* scene, Actor* owner);
+    ~Projectile() override = default;
+
+    // Ciclo de Vida
     void OnUpdate(float deltaTime) override;
-    void OnCollision() override;
-
-    virtual void ActivateProjectile(const Vector2& desiredStartingPosition);
-    virtual void DeactivateProjectile() = 0;
+    void OnCollision(Actor* other) override;
 
 
-    void SetFowardSpeed(float newSpeed) { mFowardSpeed = newSpeed; }
+    void SetForwardSpeed(float newSpeed) { mForwardSpeed = newSpeed; }
+    [[nodiscard]] float GetForwardSpeed() const { return mForwardSpeed; }
+
+    [[nodiscard]] Actor* GetOwner() const { return mOwner; }
 
 
 protected:
 
-    class DrawAnimatedComponent* mDrawComponent;
-    class RigidBodyComponent* mRigidBodyComponent;
-    class CircleColliderComponent* mColliderComponent;
-    class Actor* mOwner;
-    float mFowardSpeed;
+    Actor* mOwner; // Ponteiro observador pra quem criou esse projétil
+    float mForwardSpeed;
 
 
     //Sub-funções de OnUpdate
-    [[nodiscard]] virtual bool InsideProjectileLimit() const = 0;
+    [[nodiscard]] virtual bool IsOffScreen() const = 0;
 
 };
 

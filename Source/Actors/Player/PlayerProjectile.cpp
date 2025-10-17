@@ -27,10 +27,10 @@ PlayerProjectile::PlayerProjectile(Scene *scene, Player *owner) :
 
 
     // TODO 99.0 - Colocar uma variável para ser a mFowardSpeed para que possa mudar com powerups
-    mFowardSpeed = BASE_FOWARD_SPEED;
+    mForwardSpeed = BASE_FOWARD_SPEED;
 
     // TODO 100.0 - Modo dificil o projétil só vai pra cima, Modo normal ela segue o Boss
-    mRigidBodyComponent->SetVelocity(Vector2(0, -mFowardSpeed));
+    mRigidBodyComponent->SetVelocity(Vector2(0, -mForwardSpeed));
     // Será que é bom colocar a velocidade aqui? As vezes é melhor o Player ter mais controle sobre a velocidade desejada
     // do Player Projectile? Que aí ele pode ter ataques diferentes. Porém, ele pode mudar a velocidade dentro de alguma função
     //lá ainda, e essa pode ser a base para que ele não precise colocá-la.
@@ -40,7 +40,7 @@ PlayerProjectile::PlayerProjectile(Scene *scene, Player *owner) :
 
 }
 
-bool PlayerProjectile::InsideProjectileLimit() const {
+bool PlayerProjectile::IsOffScreen() const {
 
     //Os limites dos projéteis do jogador é estar a uma tela a mais
                 //de distância do limite da tela(de qualquer lado q seja)
@@ -112,7 +112,7 @@ bool PlayerProjectile::Collided() {
     return mColliderComponent->Intersect(*BossCollider());
 }
 
-void PlayerProjectile::OnCollision() {
+void PlayerProjectile::OnCollision(Actor* other) {
 
     // TODO 4.1 - antes de desativar o projétil, mudar a nota de acordo com o número de pontos dados por acerto.
     DeactivateProjectile();

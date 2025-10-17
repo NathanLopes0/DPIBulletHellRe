@@ -14,8 +14,8 @@ class PlayerProjectile : public Projectile {
 public:
     PlayerProjectile(class Scene* scene, class Player* owner);
     void OnUpdate(float deltaTime) override;
-    void OnCollision() override;
-    [[nodiscard]] bool InsideProjectileLimit() const override;
+    void OnCollision(Actor* other) override;
+    [[nodiscard]] bool IsOffScreen() const override;
 
 
 private:

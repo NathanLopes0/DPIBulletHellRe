@@ -34,6 +34,7 @@ private:
     void LoadPlayer();
     void LoadBoss();
 
+
     // --- Membros de Estado da Batalha ---
     float mGrade = 40.f;
     Game::GameSubject mStage{};

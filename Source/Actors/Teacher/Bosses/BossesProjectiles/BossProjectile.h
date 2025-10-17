@@ -2,27 +2,30 @@
 // Created by nslop on 21/11/2024.
 //
 
-#ifndef DPIBULLETHELLRE_BOSSPROJECTILE_H
-#define DPIBULLETHELLRE_BOSSPROJECTILE_H
+#pragma once
 
 #include "../../../Projectile.h"
 
+class Boss;
 
+/**
+ * @class BossProjectile
+ * @brief Uma especialização de Projétil que é disparada por um Boss.
+ * Responsável por carregar seus componentes específicos e atualizar seus Behaviors.
+ */
 class BossProjectile : public Projectile {
-
 public:
-    BossProjectile(class Scene* scene, class Boss* owner);
+    explicit BossProjectile(class Scene* scene, class Boss* owner);
 
+
+    ~BossProjectile() override = default;
+
+    // 3. OnUpdate será o motor que roda os Behaviors que o projétil carrega.
     void OnUpdate(float deltaTime) override;
 
-    void DeactivateProjectile() override;
+    [[nodiscard]] Boss* GetBossOwner() const;
 
 protected:
-    [[nodiscard]] bool InsideProjectileLimit() const override;
-    bool CheckCollision();
-private:
-    class Boss* mOwner;
+    // 5. Implementação obrigatória do contrato da classe base.
+    [[nodiscard]] bool IsOffScreen() const override;
 };
-
-
-#endif //DPIBULLETHELLRE_BOSSPROJECTILE_H
