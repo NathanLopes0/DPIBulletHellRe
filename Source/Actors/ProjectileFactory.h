@@ -1,0 +1,16 @@
+//
+// Created by gensh on 18/10/2025.
+//
+
+#ifndef DPIBULLETHELLRE_PROJECTILEFACTORY_H
+#define DPIBULLETHELLRE_PROJECTILEFACTORY_H
+
+
+
+class ProjectileFactory {
+
+};
+
+
+
+#endif //DPIBULLETHELLRE_PROJECTILEFACTORY_H
