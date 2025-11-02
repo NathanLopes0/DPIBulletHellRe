@@ -1,0 +1,13 @@
+//
+// Created by gensh on 01/11/2025.
+//
+
+#ifndef DPIBULLETHELLRE_COLLIDERCOMPONENT_H
+#define DPIBULLETHELLRE_COLLIDERCOMPONENT_H
+
+
+class ColliderComponent {
+};
+
+
+#endif //DPIBULLETHELLRE_COLLIDERCOMPONENT_H

@@ -1,16 +1,29 @@
 //
-// Created by gensh on 18/10/2025.
+// Created by nslop on 10/12/2024.
 //
 
-#ifndef DPIBULLETHELLRE_PROJECTILEFACTORY_H
-#define DPIBULLETHELLRE_PROJECTILEFACTORY_H
+#pragma once
 
+#include <memory>
 
+class Projectile;
+class Scene;
+class Actor;
 
+/**
+ * @interface ProjectileFactory
+ * @brief Define o contrato para qualquer "fábrica"
+ * que saiba como construir um tipo de projétil.
+ */
 class ProjectileFactory {
+public:
+    virtual ~ProjectileFactory() = default;
 
+    /**
+     * @brief O método principal da fábrica.
+     * @param scene A cena onde o projétil será criado.
+     * @param owner O ator que "disparou" o projétil (pode ser um Boss ou Player).
+     * @return Um unique_ptr para o Projétil recém-criado.
+     */
+    virtual std::unique_ptr<Projectile> createProjectile(Scene *scene, Actor *owner) = 0;
 };
-
-
-
-#endif //DPIBULLETHELLRE_PROJECTILEFACTORY_H

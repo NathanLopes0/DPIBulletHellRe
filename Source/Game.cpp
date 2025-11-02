@@ -23,7 +23,8 @@ Game::Game(int windowWidth, int windowHeight)
     mWindowHeight(windowHeight),
     mTicksCount(0),
     mIsGameRunning(true),
-    mScene(nullptr)
+    mScene(nullptr),
+    mSelectedStage(INF213)
 {
 
 }
@@ -73,11 +74,11 @@ bool Game::Initialize() {
     //start counter for deltaTime
     mTicksCount = SDL_GetTicks();
 
-    // Init all game actors
-    LoadInitialScene();
-
     // Put all Grades to 40;
     InitializeGrades();
+    LoadInitialScene();
+
+
 
     return true;
 }
@@ -87,7 +88,7 @@ void Game::LoadInitialScene()
 {
 
     InitializeBossFactory();
-    ChangeScene(Scene::SceneType::MainMenu);
+    ChangeScene(Scene::SceneType::Battle);
 
 }
 
@@ -200,7 +201,6 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
             mScene = std::make_unique<StageSelect>(this);
             break;
         case Scene::SceneType::Battle:
-
             mScene = std::make_unique<Battle>(this, mSelectedStage);
             break;
         default:
@@ -214,10 +214,8 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
 
 void Game::InitializeBossFactory() {
 
-    mBossFactory[GameSubject::INF213] = std::make_unique<SallesFactory>();
-    //mBossFactory[GameSubject::INF250] = std::make_unique...
+    mBossFactory[INF213] = std::make_unique<SallesFactory>(this);
 
-    //todas as outras, depois que criar as classes
 
 }
 
@@ -231,8 +229,6 @@ IBossFactory *Game::GetFactory(size_t n) {
 void Game::InitializeGrades() {
 
     mGrades[INF213] = 40;
-    //mGrades[INF250] = 40;
-    //todas as outras
 
 }
 

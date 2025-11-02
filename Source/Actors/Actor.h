@@ -105,7 +105,7 @@ protected:
     float mRotation;
 
     // Components
-    std::vector<std::unique_ptr<class Component>> mComponents;
+    std::vector<std::unique_ptr<Component>> mComponents;
 
 private:
     friend class Component;

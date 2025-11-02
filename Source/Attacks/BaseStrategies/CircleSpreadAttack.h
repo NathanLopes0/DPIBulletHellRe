@@ -1,38 +1,40 @@
 //
-// Modified by nslop on 17/10/2025.
-//
-//
 // Created by nslop on 26/11/2024.
 //
 
-#ifndef DPIBULLETHELLRE_CIRCULARSPREADATTACK_H
-#define DPIBULLETHELLRE_CIRCULARSPREADATTACK_H
+#pragma once
 
-#include <vector>
 #include "../IAttackStrategy.h"
+#include "../../Actors/ProjectileFactory.h"
+class Actor;
 
-class Projectile;
-
-class CircularSpreadAttack : public IAttackStrategy {
+/**
+ * @class CircleSpreadAttack
+ * @brief Uma estratégia de ataque que dispara projéteis em um círculo perfeito.
+ * Ela recebe os parâmetros (ex: nº de projéteis) via struct AttackParams
+ * toda vez que é executada.
+ */
+class CircleSpreadAttack : public IAttackStrategy {
 public:
-    CircularSpreadAttack(class ProjectileFactory* spawner, class Boss* owner, int _numProjectiles, float _projectileSpeed);
-    ~CircularSpreadAttack() override = default;
+    /**
+     * @brief Construtor da estraatégia.
+     * @param spawner A fábrica que a estratégia usará (ponteiro observador)
+     * @param owner O Actor que está usando a estratégia (ponteiro observador)
+     */
+    CircleSpreadAttack(ProjectileFactory* spawner, Actor* owner);
+    ~CircleSpreadAttack() override = default;
 
-    std::vector<Projectile*> Execute();
-
-
+    /**
+     * @brief Executa o ataque de círculo.
+     * @param params O pacote de dados com a configuração (lê numProjectiles,
+     * projectileSpeed, firePosition).
+     * @return Um vetor de projéteis recém-criados.
+     */
+    // 3. Assinatura bate com a nova interface IAttackStrategy.
+    std::vector<std::unique_ptr<Projectile>> Execute(const AttackParams& params) override;
 
 private:
-    class ProjectileFactory* mPSpawner;
-    class Boss* mOwner;
-    int numProjectiles;
-    float projectileSpeed;
-
-
-    //DEBUG
-    bool mAttacked = false;
-
+    // Ponteiros observadores para suas dependências.
+    ProjectileFactory* mSpawner;
+    Actor* mOwner;
 };
-
-
-#endif //DPIBULLETHELLRE_CIRCULARSPREADATTACK_H

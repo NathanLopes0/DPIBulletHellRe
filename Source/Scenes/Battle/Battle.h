@@ -24,6 +24,8 @@ public:
     [[nodiscard]] Boss* GetBoss() const { return mBoss; }
     [[nodiscard]] Player* GetPlayer() const { return mPlayer; }
 
+    [[nodiscard]] ProjectileManager* GetProjectileManager() const { return mProjectileManager.get(); }
+
 protected:
     void OnUpdate(float deltaTime) override;
     void OnProcessInput(const Uint8 *keyState) override;

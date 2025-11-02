@@ -4,37 +4,35 @@
 #include <vector>
 #include "Player.h"
 #include "PlayerProjectile.h"
-#include "../../Scenes/Scene.h"
+#include "../../Scenes/Battle/Battle.h"
 #include "../../Components/RigidBodyComponent.h"
+#include "../../Scenes/Battle/ProjectileManager.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../Components/ColliderComponents/CircleColliderComponent.h"
 
 #define NUM_PROJECTILES_VECTOR 500
 #define ATK_TIMER_START_FULL 0.12
 #define PLAYER_SPEED_START 300.0f
+#define BASE_SHOOT_FORWARD_SPEED 800.0f
 
 Player::Player(Scene* scene) :
     Actor(scene),
     playerSpeed(PLAYER_SPEED_START),
-    atkTimer(ATK_TIMER_START_FULL)
+    atkTimer(ATK_TIMER_START_FULL),
+    mMoving(false)
 
 {
 
     std::string spritePath = "../Assets/Player/DPIBHPlayer.png";
     std::string dataPath = "../Assets/Player/DPIBHPlayer.json";
-    mDrawComponent = new DrawAnimatedComponent(this, spritePath, dataPath);
-    mDrawComponent->AddAnimation("Moving", {0, 1, 2, 3});
-    mDrawComponent->AddAnimation("Idle", {1});
-    mDrawComponent->SetAnimation("Idle"); mMoving = false; //ambos na mesma linha pois andam juntos
+    auto drawComp = AddComponent<DrawAnimatedComponent>(spritePath, dataPath);
+    drawComp->AddAnimation("Moving", {0,1,2,3});
+    drawComp->AddAnimation("Idle", {1});
+    drawComp->SetAnimation("Idle");
 
-    mRigidBodyComponent = new RigidBodyComponent(this);
-    mColliderComponent = new CircleColliderComponent(this, (float)mDrawComponent->GetSpriteWidth() / 2.f);
+    AddComponent<RigidBodyComponent>();
+    AddComponent<CircleColliderComponent>(static_cast<float>(drawComp->GetSpriteWidth()) / 2.f);
 
-    //aloca um número considerável de Projectiles para não haver realocação de vetor no meio do jogo.
-    for(int i = 0; i < NUM_PROJECTILES_VECTOR; i++) {
-        mProjectiles.emplace_back(new PlayerProjectile(mScene, this));
-        mProjectiles[i]->DeactivateProjectile();
-    }
 }
 
 
@@ -99,27 +97,39 @@ void Player::SpecialInput(const Uint8 *keyState) {
 
 void Player::HandleAnimation() {
 
-    if(mMoving) mDrawComponent->SetAnimation("Moving");
-    else mDrawComponent->SetAnimation("Idle");
+    if(mMoving) GetComponent<DrawAnimatedComponent>()->SetAnimation("Moving");
+    else GetComponent<DrawAnimatedComponent>()->SetAnimation("Idle");
 
 }
 
 //ShootInput Subfunction
 void Player::Shoot() {
-    if(atkTimer <= 0) {
-        for(auto it : mProjectiles) {
-            if(it->GetState() == ActorState::Paused) {
-                it->ActivateProjectile();
-                break;
-            }
-        }
 
-        // TODO 15.0 - INSERIR SOM DE TIRO AQUI
+    if (atkTimer > 0) return;
 
-        // TODO 99.0 - Colocar uma variavel base de atkSpeed para poder modificar com powerups
-        atkTimer = ATK_TIMER_START_FULL;
+    auto battle = dynamic_cast<Battle*>(GetScene());
+    if (!battle) return;
 
-    }
+    auto projManager = battle->GetProjectileManager();
+    if (!projManager) return;
+
+    auto projectile = std::make_unique<PlayerProjectile>(GetScene(), this);
+
+    // Posiciona o projétil na frente do jogador
+    projectile->SetPosition(GetPosition());
+
+    // Define velocidade inicial (sobe)
+    projectile->GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(0.0f, -BASE_SHOOT_FORWARD_SPEED));
+
+    // Ativa e torna visível
+    projectile->ActivateProjectile();
+
+    // Entrega ownership ao manager
+    projManager->AddPlayerProjectile(std::move(projectile));
+
+    SDL_Log("Player::Shoot - projétil criado e enviado ao manager!");
+
+    atkTimer = ATK_TIMER_START_FULL;
 }
 
 //OnUpdate Subfunction
@@ -128,7 +138,7 @@ void Player::DecreaseAtkTimer(float deltaTime) {
         atkTimer -= deltaTime;
 }
 
-// TODO 5.0 - Não deixar o jogador sair das bordas de tela (fazer depois que decidir os limites da tela)
+// TODO 15.0 - Não deixar o jogador sair das bordas de tela (fazer depois que decidir os limites da tela)
 void Player::BorderLimitCheck() {
 
 }

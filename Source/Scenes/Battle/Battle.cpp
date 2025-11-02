@@ -6,6 +6,7 @@
 
 #include "Battle.h"
 #include "ProjectileManager.h"
+#include "../../Json.h"
 #include "../../Actors/Player/Player.h"
 #include "../../Actors/Player/PlayerProjectile.h"
 #include "../../Actors/Teacher/Boss.h"
@@ -17,8 +18,8 @@
 
 Battle::Battle(Game* game, Game::GameSubject selectedStage)
     : Scene(game, SceneType::Battle)
-    , mGrade(40.0f) // A matéria selecionada
-    , mStage(selectedStage) // O GDD diz que a nota começa em 40
+    , mGrade(40.0f)
+    , mStage(selectedStage)
 {
 
 }
@@ -37,28 +38,23 @@ void Battle::Load() {
 
     // 3. Iniciar a lógica da batalha (se necessário)
     if (mBoss) {
+        SDL_Log("Starting Boss");
         mBoss->Start();
     }
+
 }
 
 
 void Battle::LoadBoss() {
 
+
     // 1. Pega a fábrica correta do Game (como uma ferramenta temporária), e se ela existir, continua
-    if (const IBossFactory *factory = mGame->GetFactory(static_cast<int>(mStage))) {
+    if (IBossFactory *factory = mGame->GetFactory(mStage)) {
+        auto boss = factory->CreateBoss(this);
+        boss->SetPosition(Vector2(static_cast<float>(mGame->GetWindowWidth())/2.0f,
+                                        static_cast<float>(mGame->GetWindowHeight())/2.0f));
 
-        // 2. A fábrica nos dá um ponteiro bruto para o Boss recém-criado. Se der certo, entra no if
-        // obs: o nome dessa estrutura é if-statement, eu não conhecia antes.
-        // Basicamente você faz uma atribuição num if e vê se ela deu certo, se deu entra no if
-        if (auto bossOwner = factory->Create(*mGame)) {
-
-            // 2.5 - transferimos a posse para o sistema Scene (seguro, tira warnings)
-            Actor* actorPtr = this->AddActor(std::move(bossOwner));
-
-            // 3. Guardar esse ponteiro no nosso observador.
-            // Agora a batalha tem um "atalho" diretamente para o chefe
-            mBoss = dynamic_cast<Boss*>(actorPtr);
-        }
+        AddActor(std::move(boss));
 
     } else {
         SDL_Log("Erro fatal: Nenhuma BossFactory encontrada para a matéria %s", mStage);
@@ -103,35 +99,31 @@ void Battle::OnProcessInput(const Uint8* keyState) {
 void Battle::CheckCollisions() {
     if (!mPlayer || !mBoss) return;
 
-    auto* playerCollider = mPlayer->GetComponent<CircleColliderComponent>();
-    auto* bossCollider = mBoss->GetComponent<CircleColliderComponent>();
+    auto *playerCollider = mPlayer->GetComponent<CircleColliderComponent>();
+    auto *bossCollider = mBoss->GetComponent<CircleColliderComponent>();
 
     if (!playerCollider || !bossCollider) return;
 
-    const auto& bossProjectiles = mProjectileManager->GetBossProjectiles();
-    const auto& playerProjectiles = mProjectileManager->GetPlayerProjectiles();
+    /* const auto &bossProjectiles = mProjectileManager->GetBossProjectiles();
+    const auto &playerProjectiles = mProjectileManager->GetPlayerProjectiles();
 
 
     // --- REGRA 1 - Projéteis do Boss vs Player --- //
-    for (const auto& bossProj : bossProjectiles) {
-        if (auto* bossProjCollider = bossProj->GetComponent<CircleColliderComponent>()) {
+    for (const auto &bossProj: bossProjectiles) {
+        if (auto *bossProjCollider = bossProj->GetComponent<CircleColliderComponent>()) {
             if (playerCollider->Intersect(*bossProjCollider)) {
-
                 mPlayer->OnCollision(bossProj.get());
                 bossProj->OnCollision(mPlayer);
-
             }
         }
     }
 
     // --- REGRA 2 - Projéteis do Player vs Boss
-    for (const auto& playerProj : playerProjectiles) {
-        if (auto* playerProjCollider = playerProj->GetComponent<CircleColliderComponent>()) {
+    for (const auto &playerProj: playerProjectiles) {
+        if (auto *playerProjCollider = playerProj->GetComponent<CircleColliderComponent>()) {
             if (bossCollider->Intersect(*playerProjCollider)) {
-
                 mBoss->OnCollision(playerProj.get());
                 playerProj->OnCollision(mBoss);
-
             }
         }
     }
@@ -140,5 +132,5 @@ void Battle::CheckCollisions() {
     if (playerCollider->Intersect(*bossCollider)) {
         mPlayer->OnCollision(mBoss);
         mBoss->OnCollision(mPlayer);
-    }
+    } */
 }

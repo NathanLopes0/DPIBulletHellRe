@@ -3,7 +3,11 @@
 //
 
 #pragma once
+#include <memory>
+#include <vector>
+#include "AttackParameters/AttackParams.h"
 
+class Projectile;
 /**
  * @interface IAttackStrategy
  * @brief Define o contrato para qualquer padrão de ataque no jogo.
@@ -14,5 +18,11 @@ public:
 
     virtual ~IAttackStrategy() = default;
 
-    virtual void Execute() = 0;
+    /**
+    * @brief Executa o padrão de ataque.
+     * @param params Um pacote de dados contendo todos os parâmetros
+     * necessários para configurar o disparo (posição, velocidade, etc.).
+     * @return Um vetor de ponteiros únicos para os projéteis recém-criados.
+     */
+    virtual std::vector<std::unique_ptr<Projectile>> Execute(const AttackParams& params) = 0;
 };

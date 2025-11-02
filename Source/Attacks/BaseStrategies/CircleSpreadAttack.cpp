@@ -2,45 +2,78 @@
 // Created by nslop on 26/11/2024.
 //
 
+#include <memory>
+#include "CircleSpreadAttack.h"
 
-#include "../../Actors/Teacher/Boss.h"
-#include "CircularSpreadStrategy.h"
-#include "../../../ProjectileFactory.h"
+#include <complex>
+#include <SDL_log.h>
 
-CircularSpreadAttack::CircularSpreadAttack(ProjectileFactory* factory, Boss* owner, int _numProjectiles, float _projectileSpeed)
+#include "../../Actors/Projectile.h"
+#include "../../Actors/Actor.h"
+#include "../../Actors/ProjectileFactory.h"
+#include "../../Components/RigidBodyComponent.h"
+#include "../../Attacks/AttackParameters/AttackParams.h"
+
+
+CircleSpreadAttack::CircleSpreadAttack(ProjectileFactory* spawner, Actor* owner)
+    : mSpawner(spawner),
+      mOwner(owner)
 {
-    numProjectiles = _numProjectiles;
-    projectileSpeed = _projectileSpeed;
-    mPSpawner = factory;
-    mOwner = owner;
 
 }
 
-std::vector<Projectile *> CircularSpreadAttack::execute() {
+std::vector<std::unique_ptr<Projectile>> CircleSpreadAttack::Execute(const AttackParams& params) {
 
-    std::vector<Projectile*> projectiles;
+    // Retorno de unique_ptr
+    std::vector<std::unique_ptr<Projectile>> projectiles;
 
-    float angleStep = 360.0f / (float)numProjectiles; //angulo entre cada um dos projéteis do círculo
+    // Lógica de gameplay lida de params
+    const int numProjectiles = params.numProjectiles;
+    const float projectileSpeed = params.projectileSpeed;
+
+    // Evita divisão por zero se numProjectiles for 0
+    if (numProjectiles == 0) {
+        return projectiles;
+    }
+
+    // Reserva espaço no vetor para eficiência
+    projectiles.reserve(numProjectiles);
+
+    // lógica matemática
+    const float angleStep = 360.0f / static_cast<float>(numProjectiles);
 
     for(int i = 0; i < numProjectiles; i++) {
 
-        // --------------------- CRIAÇÃO E LÓGICA DE CADA PROJÉTIL -------------------------- //
-        auto projectile = mPSpawner->createProjectile(mOwner->GetScene(), mOwner);
-        projectile->SetPosition(mOwner->GetPosition());
+        auto projectile = mSpawner->createProjectile(mOwner->GetScene(), mOwner);
 
-        float xCoordRad = Math::Cos(i * angleStep * Math::Pi / 180);
-        float yCoordRad = Math::Sin(i * angleStep * Math::Pi / 180);
-        Vector2 directionVector = Vector2(xCoordRad, yCoordRad);
+        // Failsafe: Se a fábrica falhar, pula este projétil
+        if (!projectile) {
+            SDL_Log("Failed to create projectile");
+            continue;
+        }
+
+        // o Projectile ja começa numa posição inicial = a posição de seu Owner. Se quiser mudar, coloque em params.
+        // Se tiver uma firePosition ...
+        if (params.firePosition.x != 0 && params.firePosition.y != 0) {
+            projectile->SetPosition(params.firePosition);
+        }
+
+        // lógica de direção de cada projétil
+        const float xCoordRad = Math::Cos(static_cast<float>(i) * angleStep * Math::Pi / 180);
+        const float yCoordRad = Math::Sin(static_cast<float>(i) * angleStep * Math::Pi / 180);
+        auto directionVector = Vector2(xCoordRad, yCoordRad);
         directionVector.Normalize();
 
+        // Velocidade usa o projectileSpeed do params, lida lá em cima da função
         projectile->GetComponent<RigidBodyComponent>()->SetVelocity(directionVector * projectileSpeed);
 
-
-        projectiles.push_back(projectile);
+        // Transferência de posse! (IMPORTANTÍSSIMO)
+        //    Usar std::move para mover o unique_ptr 'projectile'
+        //    para dentro do vetor.
+        projectiles.push_back(std::move(projectile));
     }
 
-    return projectiles;
+    SDL_Log("Lancando ataque circular!");
+    return projectiles; // Retorna o vetor cheio de projéteis E dono de todos
 }
-
-CircularSpreadAttack::~CircularSpreadAttack() = default;
 

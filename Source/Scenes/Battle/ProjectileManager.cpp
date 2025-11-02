@@ -3,10 +3,13 @@
 //
 
 #include "ProjectileManager.h"
+#include "../../Actors/Player/Player.h"
 #include "../../Actors/Player/PlayerProjectile.h"
 #include "../../Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.h"
+#include "../../Components/RigidBodyComponent.h"
 #include "../../Actors/Actor.h" // Necessário para Actor::State
 #include <algorithm>          // Necessário para std::remove_if e std::move
+#include <SDL_log.h>
 
 ProjectileManager::ProjectileManager(Scene *owner)
     : mOwnerScene(owner)
@@ -35,6 +38,8 @@ void ProjectileManager::Update(float deltaTime)
 void ProjectileManager::AddPlayerProjectile(std::unique_ptr<PlayerProjectile> projectile)
 {
     mPlayerProjectiles.emplace_back(std::move(projectile));
+
+    SDL_Log("ProjectileManager - Player projectile adicionado. Total: %zu", mPlayerProjectiles.size());
 }
 
 void ProjectileManager::AddBossProjectile(std::unique_ptr<BossProjectile> projectile)
@@ -50,6 +55,7 @@ void ProjectileManager::AddBossProjectiles(std::vector<std::unique_ptr<BossProje
                             std::make_move_iterator(projectiles.begin()),
                             std::make_move_iterator(projectiles.end()));
 }
+
 
 void ProjectileManager::CleanupProjectiles()
 {

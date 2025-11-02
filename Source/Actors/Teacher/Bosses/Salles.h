@@ -15,19 +15,6 @@ public:
     ~Salles() override = default;
     void OnUpdate(float deltaTime) override;
 
-protected:
-
-    bool Movement0() override;
-    void Movement1() override;
-    void Movement2() override;
-    void Movement3() override;
-
-private:
-
-    void InitializeFSM();
-    void InitializeAttackStrategies();
-
-    void ResetAtkTimer() override;
 };
 
 

@@ -7,10 +7,12 @@
 
 #include "../Actor.h"
 
+class PlayerProjectile;
+
 class Player : public Actor {
 
 public:
-    Player(class Scene* scene);
+    explicit Player(Scene* scene);
 
     //Process Input -> Update, sobrescritas de Actor para Player
     void OnProcessInput(const Uint8* keyState) override;
@@ -19,12 +21,6 @@ public:
 
 
 private:
-    class RigidBodyComponent* mRigidBodyComponent;
-    class DrawAnimatedComponent* mDrawComponent;
-    class CircleColliderComponent* mColliderComponent;
-
-    std::vector<class PlayerProjectile*> mProjectiles;     //vetor de projéteis que será alocado no construtor,
-                                                        // para não fazer alocação no meio do jogo.
 
     //variaveis de jogador
     float playerSpeed;
@@ -42,7 +38,6 @@ private:
     //OnUpdate Sub-functions
     void HandleAnimation();
     void DecreaseAtkTimer(float deltaTime);
-
 
     void BorderLimitCheck();
 };

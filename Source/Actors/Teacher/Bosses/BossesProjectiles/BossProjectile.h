@@ -15,23 +15,19 @@ class Boss;
  */
 class BossProjectile : public Projectile {
 public:
-    explicit BossProjectile(class Scene* scene, class Boss* owner);
-
-
+    explicit BossProjectile(Scene* scene, Boss* owner);
     ~BossProjectile() override = default;
 
-    // 3. OnUpdate será o motor que roda os Behaviors que o projétil carrega.
     void OnUpdate(float deltaTime) override;
 
     [[nodiscard]] Boss* GetBossOwner() const;
-    Vector2 GetPlayerDirection();
+
+    Vector2 GetPlayerPosition() const;
+
+    Vector2 GetPlayerDirection() const;
 
 protected:
-    // 5. Implementação obrigatória do contrato da classe base.
+    // Implementação obrigatória do contrato da classe base.
     [[nodiscard]] bool IsOffScreen() const override;
-
-private:
-
-    void updateBehaviors();
 
 };

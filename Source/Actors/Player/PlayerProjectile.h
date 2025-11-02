@@ -14,21 +14,17 @@ class PlayerProjectile : public Projectile {
 public:
     PlayerProjectile(class Scene* scene, class Player* owner);
     void OnUpdate(float deltaTime) override;
-    void OnCollision(Actor* other) override;
     [[nodiscard]] bool IsOffScreen() const override;
+    bool CheckCollision(Actor* other);
 
 
 private:
 
-    class Player* mOwner;
-    const CircleColliderComponent *BossCollider();
+    Player* mOwner;
 
     void ActivateProjectile();
-    void DeactivateProjectile() override;
+    void DeactivateProjectile();
 
-    bool Collided();
-
-    bool CheckCollision();
 };
 
 

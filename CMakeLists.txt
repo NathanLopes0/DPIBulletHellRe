@@ -41,7 +41,6 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Components/DrawComponents/DrawAnimatedComponent.h
         Source/Scenes/Battle/Battle.cpp
         Source/Scenes/Battle/Battle.h
-        Source/Scenes/Battle/Battle.h
         Source/Actors/Teacher/BossFactory/SallesFactory.cpp
         Source/Actors/Teacher/BossFactory/SallesFactory.h
         Source/Actors/Teacher/Boss.cpp
@@ -50,31 +49,33 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teacher/Bosses/Salles.h
         Source/Actors/Player/Player.cpp
         Source/Actors/Player/Player.h
-        Source/Actors/Teacher/BossStates/BossState.cpp
-        Source/Actors/Teacher/BossStates/BossState.h
         Source/Components/AIComponents/FSMState.cpp
         Source/Components/AIComponents/FSMComponent.cpp
-        Source/Actors/Teacher/BossStates/StartState.cpp
-        Source/Actors/Teacher/BossStates/StartState.h
+        # Source/Actors/Teacher/BossStates/StartState.cpp
+        # Source/Actors/Teacher/BossStates/StartState.h
         Source/Actors/Projectile.cpp
         Source/Actors/Projectile.h
         Source/Actors/Player/PlayerProjectile.cpp
         Source/Actors/Player/PlayerProjectile.h
-        Source/Actors/Teacher/BossStates/StateOne.cpp
         Source/Actors/Teacher/BossStates/StateOne.h
         Source/Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.cpp
         Source/Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.h
         Source/Actors/Teacher/Bosses/BossesProjectiles/SallesBossProjectile.cpp
         Source/Actors/Teacher/Bosses/BossesProjectiles/SallesBossProjectile.h
+        Source/Actors/Teacher/BossFactory/BossProjectileFactory/SallesProjectile1Factory.h
+        Source/Actors/Teacher/BossFactory/BossProjectileFactory/SallesProjectile1Factory.cpp
         Source/Scenes/Battle/ProjectileManager.cpp
         Source/Scenes/Battle/ProjectileManager.h
         Source/Actors/Teacher/BossFactory/IBossFactory.h
+        Source/Actors/Teacher/BossFactory/IBossFactory.cpp
         Source/Attacks/IAttackStrategy.h
         Source/Attacks/Behaviors.cpp
         Source/Attacks/Behaviors.h
+        Source/Attacks/BaseStrategies/CircleSpreadAttack.cpp
+        Source/Attacks/BaseStrategies/CircleSpreadAttack.h
 )
 
-find_package(SDL2 2.28.2 REQUIRED)
+find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 find_package(SDL2_ttf REQUIRED)

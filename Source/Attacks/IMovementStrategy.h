@@ -2,7 +2,9 @@
 // Created by gensh on 19/10/2025.
 //
 
-#ifndef DPIBULLETHELLRE_IMOVEMENTSTRATEGY_H
-#define DPIBULLETHELLRE_IMOVEMENTSTRATEGY_H
+#pragma once
 
-#endif //DPIBULLETHELLRE_IMOVEMENTSTRATEGY_H
+
+class IMovementStrategy {
+
+};

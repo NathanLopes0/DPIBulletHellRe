@@ -7,10 +7,12 @@
 
 #include <vector>
 #include <memory>
+#include "../../Math.h"
 
 class Scene;
 class PlayerProjectile;
 class BossProjectile;
+class Player;
 
 class ProjectileManager {
 

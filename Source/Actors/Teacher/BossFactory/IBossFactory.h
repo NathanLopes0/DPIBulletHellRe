@@ -6,7 +6,9 @@
 
 #include <memory>
 
+class IAttackStrategy;
 class Boss;
+class Scene;
 class Game;
 
 /**
@@ -15,13 +17,38 @@ class Game;
  * Define um contrato para a criação de um Boss, garantindo o gerenciamento
  * de memória seguro através de std::unique_ptr.
  */
+
 class IBossFactory {
+
 public:
-    // 1. Adicionado destrutor virtual. Essencial para classes base polimórficas.
+    explicit IBossFactory(Game* game);
     virtual ~IBossFactory() = default;
 
-    //    - Retorna std::unique_ptr<Boss> para transferir a posse de forma segura.
-    //    - Recebe uma referência a Game para obter contexto, em vez de um ponteiro.
-    //    - O parâmetro Scene* foi removido para desacoplar a fábrica da cena.
-    virtual std::unique_ptr<Boss> Create(Game& gameContext) const = 0;
+    /**
+     * @brief O método principal da fábrica. Executa a "receita" de criação.
+     * Esta função NÃO é virtual. Ela é o "Template" que chama
+     * os "Passos" (helpers) virtuais na ordem correta.
+     * As classes filhas vão mudar as funções internas
+     * @param scene A cena onde o Boss será criado.
+     * @return Um unique_ptr para o Boss 100% montado e pronto.
+     */
+    std::unique_ptr<Boss> CreateBoss(Scene* scene);
+
+protected:
+
+    // Os passos virtuais PUROS, todas as fábricas filhas
+    // DEVEM implementar esses 3 passos.
+
+    /** @brief PASSO 1: Criar e retornar o Boss puro */
+    virtual std::unique_ptr<Boss> InstantiateBoss(Scene* scene) = 0;
+
+    /** @brief PASSO 2: Instala todos os componentes necessários
+     * para o boss (Draw, Collider, RigidBody, etc.) */
+    virtual void ConfigureComponents(Boss* boss) = 0;
+
+    /** @brief PASSO 3 : Instala a FSM e as AttackStrategies */
+    virtual void ConfigureAttacksAndFSM(Boss* boss) = 0;
+
+    Game* mGame;
+
 };
