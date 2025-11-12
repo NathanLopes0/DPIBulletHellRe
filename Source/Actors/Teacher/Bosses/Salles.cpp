@@ -3,19 +3,9 @@
 //
 
 #include "Salles.h"
-
-#include <complex>
-
-#include "../../../Scenes/Battle/Battle.h"
-#include "../../Projectile.h"
 #include "../../../Random.h"
-#include "../../../Attacks/Behaviors.h"
-#include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
-#include "../../../Components/AIComponents/FSMComponent.h"
-#include "../../../Scenes/Battle/ProjectileManager.h"
-#include "BossesProjectiles/BossProjectile.h"
-#include "BossesProjectiles/SallesBossProjectile.h"
+
 
 Salles::Salles(Scene *scene) : Boss(scene)
 {
@@ -29,6 +19,15 @@ void Salles::OnUpdate(float deltaTime) {
         Attack();
     }
 }
+
+void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stateName) {
+    Boss::CustomizeAttackParams(params, stateName);
+
+    if (stateName == "StateTwo") {
+        params.centralAngle = Random::GetFloatRange(45.f, 135.f);
+    }
+}
+
 
 
 

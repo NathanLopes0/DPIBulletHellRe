@@ -34,7 +34,6 @@ void Projectile::OnUpdate(float deltaTime) {
             mBehaviors.end());
 
     if (IsOffScreen()) {
-        SDL_Log("Projectile OffScreen: Projectile being destroyed.");
         SetState(ActorState::Destroy);
     }
 }

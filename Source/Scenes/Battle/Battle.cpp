@@ -52,9 +52,10 @@ void Battle::LoadBoss() {
     if (IBossFactory *factory = mGame->GetFactory(mStage)) {
         auto boss = factory->CreateBoss(this);
         boss->SetPosition(Vector2(static_cast<float>(mGame->GetWindowWidth())/2.0f,
-                                        static_cast<float>(mGame->GetWindowHeight())/2.0f));
+                                        static_cast<float>(mGame->GetWindowHeight())/6.0f));
 
-        AddActor(std::move(boss));
+        mBoss = dynamic_cast<Boss*>(this->AddActor(std::move(boss)));
+
 
     } else {
         SDL_Log("Erro fatal: Nenhuma BossFactory encontrada para a matéria %s", mStage);
@@ -104,12 +105,13 @@ void Battle::CheckCollisions() {
 
     if (!playerCollider || !bossCollider) return;
 
-    /* const auto &bossProjectiles = mProjectileManager->GetBossProjectiles();
+    const auto &bossProjectiles = mProjectileManager->GetBossProjectiles();
     const auto &playerProjectiles = mProjectileManager->GetPlayerProjectiles();
 
 
     // --- REGRA 1 - Projéteis do Boss vs Player --- //
     for (const auto &bossProj: bossProjectiles) {
+        if (bossProj->GetState() != ActorState::Active) continue;
         if (auto *bossProjCollider = bossProj->GetComponent<CircleColliderComponent>()) {
             if (playerCollider->Intersect(*bossProjCollider)) {
                 mPlayer->OnCollision(bossProj.get());
@@ -120,6 +122,7 @@ void Battle::CheckCollisions() {
 
     // --- REGRA 2 - Projéteis do Player vs Boss
     for (const auto &playerProj: playerProjectiles) {
+        if (playerProj->GetState() != ActorState::Active) continue;
         if (auto *playerProjCollider = playerProj->GetComponent<CircleColliderComponent>()) {
             if (bossCollider->Intersect(*playerProjCollider)) {
                 mBoss->OnCollision(playerProj.get());
@@ -132,5 +135,5 @@ void Battle::CheckCollisions() {
     if (playerCollider->Intersect(*bossCollider)) {
         mPlayer->OnCollision(mBoss);
         mBoss->OnCollision(mPlayer);
-    } */
+    }
 }

@@ -22,8 +22,9 @@ void BossAttackState::HandleStateTransition(float stateTime)
         return;
     }
 
-    // 3. Se nenhuma condição especial foi atingida (ou este não é o "Phase3"),
-    //    apenas vá para o próximo estado padrão.
+    // Adicionar aqui lógicas personalizadas de mudança de estado
+
+
     if (!mNextStateName.empty()) {
         mFSM->SetState(mNextStateName);
     }

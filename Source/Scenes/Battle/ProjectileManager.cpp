@@ -38,8 +38,6 @@ void ProjectileManager::Update(float deltaTime)
 void ProjectileManager::AddPlayerProjectile(std::unique_ptr<PlayerProjectile> projectile)
 {
     mPlayerProjectiles.emplace_back(std::move(projectile));
-
-    SDL_Log("ProjectileManager - Player projectile adicionado. Total: %zu", mPlayerProjectiles.size());
 }
 
 void ProjectileManager::AddBossProjectile(std::unique_ptr<BossProjectile> projectile)

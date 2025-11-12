@@ -5,20 +5,21 @@
 #ifndef DPIBULLETHELLRE_CIRCLECOLLIDERCOMPONENT_H
 #define DPIBULLETHELLRE_CIRCLECOLLIDERCOMPONENT_H
 
+#include "ColliderComponent.h"
 #include "../Component.h"
 #include "../../Math.h"
 
 
-class CircleColliderComponent : public Component {
+class CircleColliderComponent : public ColliderComponent {
 
 public:
-    CircleColliderComponent(class Actor* owner, float radius, int updateOrder = 10);
+    CircleColliderComponent(Actor* owner, float radius, int updateOrder = 10);
 
-    void SetRadius(float radius) { mRadius = radius; }
-    float GetRadius() const;
+    void SetRadius(const float radius) { mRadius = radius; }
+    [[nodiscard]] float GetRadius() const;
 
-    const Vector2& GetCenter() const;
-    bool Intersect(const CircleColliderComponent& b) const;
+    [[nodiscard]] const Vector2& GetCenter() const;
+    [[nodiscard]] bool Intersect(const CircleColliderComponent& b) const;
 
 private:
     float mRadius;

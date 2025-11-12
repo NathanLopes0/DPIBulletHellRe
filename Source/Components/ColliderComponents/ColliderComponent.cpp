@@ -3,3 +3,8 @@
 //
 
 #include "ColliderComponent.h"
+#include "../Component.h"
+
+ColliderComponent::ColliderComponent(Actor *owner, const int updateOrder) : Component(owner, updateOrder) {
+
+}

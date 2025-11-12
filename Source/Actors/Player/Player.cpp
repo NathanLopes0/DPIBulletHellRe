@@ -11,7 +11,7 @@
 #include "../../Components/ColliderComponents/CircleColliderComponent.h"
 
 #define NUM_PROJECTILES_VECTOR 500
-#define ATK_TIMER_START_FULL 0.12
+#define ATK_TIMER_START_FULL 0.12f
 #define PLAYER_SPEED_START 300.0f
 #define BASE_SHOOT_FORWARD_SPEED 800.0f
 
@@ -31,7 +31,8 @@ Player::Player(Scene* scene) :
     drawComp->SetAnimation("Idle");
 
     AddComponent<RigidBodyComponent>();
-    AddComponent<CircleColliderComponent>(static_cast<float>(drawComp->GetSpriteWidth()) / 2.f);
+    auto colliderComp = AddComponent<CircleColliderComponent>(static_cast<float>(drawComp->GetSpriteWidth()) / 2.f);
+    colliderComp->SetTag(ColliderTag::Player);
 
 }
 
@@ -105,6 +106,7 @@ void Player::HandleAnimation() {
 //ShootInput Subfunction
 void Player::Shoot() {
 
+
     if (atkTimer > 0) return;
 
     auto battle = dynamic_cast<Battle*>(GetScene());
@@ -113,6 +115,7 @@ void Player::Shoot() {
     auto projManager = battle->GetProjectileManager();
     if (!projManager) return;
 
+    // TODO - MATANDO o Object Pooling - mudar pra chamada de função em ProjectileManager
     auto projectile = std::make_unique<PlayerProjectile>(GetScene(), this);
 
     // Posiciona o projétil na frente do jogador
@@ -126,8 +129,6 @@ void Player::Shoot() {
 
     // Entrega ownership ao manager
     projManager->AddPlayerProjectile(std::move(projectile));
-
-    SDL_Log("Player::Shoot - projétil criado e enviado ao manager!");
 
     atkTimer = ATK_TIMER_START_FULL;
 }

@@ -51,13 +51,10 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Player/Player.h
         Source/Components/AIComponents/FSMState.cpp
         Source/Components/AIComponents/FSMComponent.cpp
-        # Source/Actors/Teacher/BossStates/StartState.cpp
-        # Source/Actors/Teacher/BossStates/StartState.h
         Source/Actors/Projectile.cpp
         Source/Actors/Projectile.h
         Source/Actors/Player/PlayerProjectile.cpp
         Source/Actors/Player/PlayerProjectile.h
-        Source/Actors/Teacher/BossStates/StateOne.h
         Source/Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.cpp
         Source/Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.h
         Source/Actors/Teacher/Bosses/BossesProjectiles/SallesBossProjectile.cpp
@@ -73,6 +70,12 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Behaviors.h
         Source/Attacks/BaseStrategies/CircleSpreadAttack.cpp
         Source/Attacks/BaseStrategies/CircleSpreadAttack.h
+        Source/Attacks/BaseStrategies/AngledAttack.cpp
+        Source/Attacks/BaseStrategies/AngledAttack.h
+        Source/Actors/Teacher/BossAttackState.cpp
+        Source/Actors/Teacher/BossAttackState.h
+        Source/Components/ColliderComponents/ColliderComponent.cpp
+        Source/Components/ColliderComponents/ColliderComponent.h
 )
 
 find_package(SDL2 REQUIRED)

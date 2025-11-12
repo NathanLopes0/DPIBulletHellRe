@@ -61,20 +61,21 @@ void Boss::AddAttackCooldown(const std::string &stateName, float cooldown) {
 void Boss::Attack()
 {
 
-    std::string stateName = "DefaultAttack";
-    // auto fsm = GetComponent<FSMComponent>();
-    // if (!fsm) {
-    //     SDL_Log("Erro em Boss.cpp - Attack(): Nao foi possivel resgatar o FSMComponent do Boss");
-    //     return;
-    // }
-    //
-    // auto stateName = fsm->GetStateName();
-    // if (stateName.empty()) {
-    //     return; // FSM ainda não começou
-    // }
+   auto fsm = GetComponent<FSMComponent>();
+    if (!fsm) {
+        SDL_Log("Erro em Boss.cpp - Attack(): Nao foi possivel resgatar o FSMComponent do Boss");
+        return;
+    }
+
+    auto stateName = fsm->GetStateName();
+    if (stateName.empty()) {
+        return;
+    }
 
     AttackParams params = mAttackParamTemplates.at(stateName);
     params.firePosition = GetPosition();
+
+    CustomizeAttackParams(params, stateName); //Momento da classe filha chamar seu Customize personalizado e mudar
 
     auto& attackSteps = mAttackSteps.at(stateName);
     std::vector<std::unique_ptr<BossProjectile>> bossProjVector;
@@ -94,7 +95,7 @@ void Boss::Attack()
         bossProjVector.reserve(projectiles.size());
 
         for (auto& p : projectiles) {
-            if (auto bp = dynamic_cast<BossProjectile*>(p.get())) {
+            if (dynamic_cast<BossProjectile*>(p.get())) {
                 bossProjVector.emplace_back(std::unique_ptr<BossProjectile>(dynamic_cast<BossProjectile*>(p.release())));
             }
         }
@@ -138,5 +139,10 @@ ProjectileFactory* Boss::GetProjectileFactory() {
     }
     return nullptr;
 }
+
+void Boss::CustomizeAttackParams(AttackParams &params, const std::string &stateName) {
+
+}
+
 
 

@@ -8,8 +8,12 @@
 #include "../../../Attacks/Behaviors.h"
 #include "../../Projectile.h"
 #include "../../../Random.h"
+#include "../BossAttackState.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
+
+#define STATE_ONE_DURATION 17.f
+#define STATE_TWO_DURATION 17.f
 
 SallesFactory::SallesFactory(Game* game)
     : IBossFactory(game)
@@ -31,57 +35,93 @@ void SallesFactory::ConfigureComponents(Boss* boss) {
 
     // ----- COLLIDER COMPONENT ----- //
     const float colliderRadius = static_cast<float>(drawComp->GetSpriteWidth()) / 2.2f;
-    boss->AddComponent<CircleColliderComponent>(colliderRadius);
+    SDL_Log("%f", colliderRadius);
+    auto collider = boss->AddComponent<CircleColliderComponent>(colliderRadius);
+    collider->SetTag(ColliderTag::Boss);
 
-
-}
-
-
-void SallesFactory::ConfigureAttacksAndFSM(Boss* boss) {
-
-    SDL_Log("Instalando a SallesProjectileFactory no Boss...");
     boss->SetProjectileFactory(std::make_unique<SallesProjectile1Factory>());
 
-    // A "chave" que vamos usar.
-    const std::string STATE_NAME = "DefaultAttack";
+}
 
-    // --- PASSO 1: Criar os Parâmetros ---
+
+// Em SallesFactory.cpp
+void SallesFactory::ConfigureAttacksAndFSM(Boss* boss) {
+
+
+    auto fsm = boss->GetComponent<FSMComponent>();
+    if (!fsm) { SDL_Log("ERRO CRÍTICO: Boss não tem FSMComponent!"); return; }
+
+    // Pega a Fábrica de Projéteis
+    auto spawner = boss->GetProjectileFactory();
+    if (!spawner) { SDL_Log("ERRO CRÍTICO: Boss não tem ProjectileFactory!"); return; }
+
+    ConfigureStateOne(boss, fsm, spawner);
+    ConfigureStateTwo(boss, fsm, spawner);
+
+    fsm->Start("StateOne");
+}
+
+void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm, ProjectileFactory* spawner)
+{
+
+    const std::string STATE_NAME = "StateOne";
+
+    // 1. Configura os parâmetros fixos
     AttackParams params;
-    params.numProjectiles = 30;     // Vamos atirar 30 balas
-    params.projectileSpeed = 200.0f;  // Com velocidade 250
-
-
-    // Agora, guardamos essa receita no "livro" do Boss
+    params.numProjectiles = 15;
+    params.projectileSpeed = 200.0f;
     boss->AddAttackTemplate(STATE_NAME, params);
+    boss->AddAttackCooldown(STATE_NAME, 2.0f);
 
-    // --- PASSO 2: Definir o Cooldown ---
-    // (Conserta o .at(stateName) no mapa de Cooldowns)
-    boss->AddAttackCooldown(STATE_NAME, 2.0f); // Atirar a cada 2 segundos
-
-    // --- PASSO 3: Criar a "Arma" (A Estratégia) ---
-    // (A lógica que já tínhamos e estava correta)
-    Actor* owner = boss;
-    ProjectileFactory* spawner = boss->GetProjectileFactory();
-
-    if (!spawner) {
-        SDL_Log("ERRO CRÍTICO: SallesFactory não encontrou o ProjectileFactory no Boss!");
-        return;
-    }
-
-    // 1. Criamos a "Máquina" (burra)
-    auto circleStrategy = std::make_unique<CircleSpreadAttack>(spawner, owner);
-
-    // 2. Criamos a "Lógica Customizada"
-    const ProjectileConfigurator sallesHomingLogic =
-        [](Projectile* p, const int index) {
-    if (const float homingChance = Random::GetFloatRange(0,1); homingChance < 0.8) {
-                // (Usando HomingBehavior)
-                p->insertBehavior<HomingBehavior>(0.8f, 500.f);
-            }
+    // 2. Configura a Lógica Customizada
+    const ProjectileConfigurator config = [](Projectile* p, int index) {
+        if (const float chance = Random::GetFloatRange(0.0f, 1.0f); chance < 0.5f) { // 80% de chance
+            p->insertBehavior<HomingBehavior>(0.5f, 0.0f);
+        }
     };
 
-    // 3. Adicionamos o "Passo de Ataque" (Máquina + Lógica Customizada)
-    boss->AddAttackStep(STATE_NAME, std::move(circleStrategy), sallesHomingLogic);
+    // 3. Adiciona o "Passo de Ataque"
+    auto attack = std::make_unique<CircleSpreadAttack>(spawner, boss);
+    boss->AddAttackStep(STATE_NAME, std::move(attack), config);
 
-    SDL_Log("SallesFactory::ConfigureAttacksAndFSM CONCLUÍDO. O Boss está armado.");
+    // 4. Cria o objeto que representa o estado que terá esse ataque
+    auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
+                                                      /*duration*/ STATE_ONE_DURATION,
+                                                      /*nextState*/ "StateTwo");
+    fsm->RegisterState(std::move(stateObj));
 }
+
+
+void SallesFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm, ProjectileFactory* spawner)
+{
+
+    const std::string STATE_NAME = "StateTwo";
+
+    // 1. Configura os parâmetros para este estado
+    AttackParams params;
+    params.numProjectiles = 3;
+    params.projectileSpeed = 200.0f;
+    boss->AddAttackTemplate(STATE_NAME, params);
+    boss->AddAttackCooldown(STATE_NAME, 2.0f);
+
+    // 2. Lógica Customizada
+    ProjectileConfigurator config = [](Projectile* p, int index) {
+        float chance = Random::GetFloatRange(0.0f, 1.0f);
+        if (chance < 0.5f) {
+            p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
+            p->insertBehavior<SlowDownBehavior>(0.3f, 0.4f);
+            p->insertBehavior<HomingBehavior>(0.6f, 300.f);
+        }
+    };
+
+    // 3. Adiciona o Passo
+    auto attack = std::make_unique<AngledAttack>(spawner, boss);
+    boss->AddAttackStep(STATE_NAME, std::move(attack), config);
+
+    // 4. Cria o objeto que representa o estado desse ataque
+    auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
+                                                      /*duration*/ STATE_TWO_DURATION,
+                                                      /*nextState*/ "StateOne"); // Volta pro 1
+    fsm->RegisterState(std::move(stateObj));
+}
+

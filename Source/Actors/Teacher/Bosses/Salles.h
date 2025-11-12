@@ -15,6 +15,9 @@ public:
     ~Salles() override = default;
     void OnUpdate(float deltaTime) override;
 
+protected:
+    void CustomizeAttackParams(AttackParams &params, const std::string &stateName) override;
+
 };
 
 

@@ -6,7 +6,7 @@
 #include "../../Actors/Actor.h"
 
 CircleColliderComponent::CircleColliderComponent(class Actor *owner, float radius, int updateOrder)
-        : Component(owner, updateOrder),
+        : ColliderComponent(owner, updateOrder),
         mRadius(radius) {
 
 }

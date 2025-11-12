@@ -6,7 +6,27 @@
 #define DPIBULLETHELLRE_COLLIDERCOMPONENT_H
 
 
-class ColliderComponent {
+#include "../Component.h"
+
+enum class ColliderTag {
+    None,
+    Player,
+    PlayerProjectile,
+    Boss,
+    BossProjectile
+};
+
+class ColliderComponent : public Component {
+
+public:
+    explicit ColliderComponent(Actor* owner, int updateOrder = 100);
+    void SetTag(const ColliderTag tag) { mTag = tag; }
+    [[nodiscard]] ColliderTag GetColliderTag() const { return mTag; }
+
+protected:
+    ColliderTag mTag = ColliderTag::None;
+
+
 };
 
 

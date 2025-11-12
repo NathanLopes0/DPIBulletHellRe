@@ -71,6 +71,14 @@ protected:
     void ResetAttackCooldown(const std::string& stateName);
     [[nodiscard]] virtual Vector2 GetDirectionToPlayer();
 
+    /**
+     * @brief Um Hook de customização para as classes filhas.
+     * Chamado por Attack DEPOIS que os params são lidos do mapa,
+     * mas ANTES de realmente serem usados pela Strategy.
+     * Permite que os Bosses modifiquem os parâmetros de ataque dinamicamente.
+     */
+    virtual void CustomizeAttackParams(AttackParams& params, const std::string& stateName);
+
     struct AttackStep {
         std::unique_ptr<IAttackStrategy> strategy;
         ProjectileConfigurator configurator;

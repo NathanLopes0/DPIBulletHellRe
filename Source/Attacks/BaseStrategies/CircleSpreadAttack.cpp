@@ -73,7 +73,6 @@ std::vector<std::unique_ptr<Projectile>> CircleSpreadAttack::Execute(const Attac
         projectiles.push_back(std::move(projectile));
     }
 
-    SDL_Log("Lancando ataque circular!");
     return projectiles; // Retorna o vetor cheio de projéteis E dono de todos
 }
 

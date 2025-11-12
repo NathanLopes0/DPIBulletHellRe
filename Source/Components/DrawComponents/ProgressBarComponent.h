@@ -1,0 +1,16 @@
+//
+// Created by gensh on 11/11/2025.
+//
+
+#ifndef DPIBULLETHELLRE_PROGRESSBARCOMPONENT_H
+#define DPIBULLETHELLRE_PROGRESSBARCOMPONENT_H
+
+
+
+class ProgressBarComponent {
+
+};
+
+
+
+#endif //DPIBULLETHELLRE_PROGRESSBARCOMPONENT_H

@@ -7,6 +7,7 @@
 #include "PlayerProjectile.h"
 
 #include "../../Components/RigidBodyComponent.h"
+#include "../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Teacher/Boss.h"
 #include "../../Scenes/Battle/Battle.h"
@@ -20,18 +21,21 @@ PlayerProjectile::PlayerProjectile(Scene *scene, Player *owner) :
 
     mOwner = owner;
 
-    std::string spritePath = "../Assets/Player/SimpleProjectile alpha0.png";
-    std::string dataPath = "../Assets/Player/SimpleProjectile alpha0.json";
+    std::string spritePath = "../Assets/Player/PlayerProjectile1.png";
+    std::string dataPath = "../Assets/Player/PlayerProjectile1.json";
 
     auto drawComp = AddComponent<DrawAnimatedComponent>(spritePath, dataPath, 50);
 
     drawComp->AddAnimation("Active", {0,1,2,3,4,5,6});
     drawComp->SetAnimation("Active");
 
-
     // TODO 100.0 - Modo dificil o projétil só vai pra cima, Modo normal ela segue o Boss
     auto rigidComp = AddComponent<RigidBodyComponent>();
     drawComp->SetIsVisible(false);
+
+    auto collider = AddComponent<CircleColliderComponent>(static_cast<float>(drawComp->GetSpriteWidth()) / 2.f);
+    collider->SetEnabled(false);
+    collider->SetTag(ColliderTag::PlayerProjectile);
 
 }
 
@@ -57,23 +61,32 @@ void PlayerProjectile::OnUpdate(float deltaTime) {
 
 void PlayerProjectile::ActivateProjectile() {
     SetState(ActorState::Active);
-    GetComponent<DrawAnimatedComponent>()->SetIsVisible(true);
-    SetPosition(mOwner->GetPosition());
 
-    SDL_Log("PlayerProjectile - ativado na pos %.1f, %.1f", GetPosition().x, GetPosition().y);
+    // Liga os componentes
+    if (auto comp = GetComponent<DrawAnimatedComponent>()) {
+        comp->SetIsVisible(true);
+        comp->SetEnabled(true);
+    }
+    if (auto comp = GetComponent<CircleColliderComponent>()) {
+        comp->SetEnabled(true);
+    }
+
+    SetPosition(mOwner->GetPosition());
 }
 
 void PlayerProjectile::DeactivateProjectile() {
-    SetState(ActorState::Paused);
-    GetComponent<DrawAnimatedComponent>()->SetIsVisible(false);
-    GetComponent<RigidBodyComponent>()->SetVelocity(Vector2::Zero);
+    SetState(ActorState::Destroy);
 }
 
-bool PlayerProjectile::CheckCollision(Actor *other) {
-    if (auto boss = dynamic_cast<Boss*>(other)) {
+void PlayerProjectile::OnCollision(Actor *other) {
+
+    if (!other) return;
+
+    auto otherCollider = other->GetComponent<CircleColliderComponent>();
+    if (!otherCollider) return;
+
+    if (otherCollider->GetColliderTag() == ColliderTag::Boss) {
         DeactivateProjectile();
-        return true;
     }
-    return false;
 }
 

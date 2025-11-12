@@ -15,7 +15,7 @@ public:
     PlayerProjectile(class Scene* scene, class Player* owner);
     void OnUpdate(float deltaTime) override;
     [[nodiscard]] bool IsOffScreen() const override;
-    bool CheckCollision(Actor* other);
+    void OnCollision(Actor* other) override;
 
 
 private:

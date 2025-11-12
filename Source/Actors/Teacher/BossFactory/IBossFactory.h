@@ -6,6 +6,9 @@
 
 #include <memory>
 
+#include "../../../Components/AIComponents/FSMComponent.h"
+
+class ProjectileFactory;
 class IAttackStrategy;
 class Boss;
 class Scene;
@@ -48,6 +51,9 @@ protected:
 
     /** @brief PASSO 3 : Instala a FSM e as AttackStrategies */
     virtual void ConfigureAttacksAndFSM(Boss* boss) = 0;
+
+    virtual void ConfigureStateOne(Boss* boss, FSMComponent* fsm, ProjectileFactory* spawner) = 0;
+    virtual void ConfigureStateTwo(Boss* boss, FSMComponent* fsm, ProjectileFactory* spawner) = 0;
 
     Game* mGame;
 

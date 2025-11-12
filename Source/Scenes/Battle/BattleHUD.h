@@ -1,0 +1,13 @@
+//
+// Created by gensh on 11/11/2025.
+//
+
+#ifndef DPIBULLETHELLRE_BATTLEHUD_H
+#define DPIBULLETHELLRE_BATTLEHUD_H
+
+
+class BattleHUD {
+};
+
+
+#endif //DPIBULLETHELLRE_BATTLEHUD_H

@@ -37,16 +37,18 @@ std::unique_ptr<Projectile> SallesProjectile1Factory::createProjectile(Scene* sc
     projectile->AddComponent<RigidBodyComponent>();
 
     // Adiciona o componente de desenho
-    auto drawComp = projectile->AddComponent<DrawAnimatedComponent>("../Assets/Teachers/Projectiles/Capivara.png",
-                                                                    "../Assets/Teachers/Projectiles/Capivara.json");
+    auto drawComp = projectile->AddComponent<DrawAnimatedComponent>("../Assets/Teachers/Projectiles/DPIBHSallesCapivara.png",
+                                                                    "../Assets/Teachers/Projectiles/DPIBHSallesCapivara.json");
     drawComp->AddAnimation("Normal", {0});
+    drawComp->AddAnimation("Homing", {1});
     drawComp->SetAnimation("Normal");
 
     drawComp->SetIsVisible(true);
 
     // Adiciona o colisor (baseado no tamanho do desenho)
     float colliderRadius = static_cast<float>(drawComp->GetSpriteWidth()) / 2.0f;
-    projectile->AddComponent<CircleColliderComponent>(colliderRadius);
+    auto collider = projectile->AddComponent<CircleColliderComponent>(colliderRadius);
+    collider->SetTag(ColliderTag::BossProjectile);
 
     // Ativa o projétil
     projectile->SetState(ActorState::Active);
