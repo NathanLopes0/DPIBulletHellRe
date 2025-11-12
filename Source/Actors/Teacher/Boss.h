@@ -47,6 +47,7 @@ public:
     // --- Ciclo de Vida ---
     void Start();
     void OnUpdate(float deltaTime) override;
+    void SetInitialState(const std::string& stateName);
 
 
     /**
@@ -63,13 +64,11 @@ public:
 
 protected:
 
-
-
-
     // --- Lógica de Combate ---
     virtual void Attack();
     void ResetAttackCooldown(const std::string& stateName);
     [[nodiscard]] virtual Vector2 GetDirectionToPlayer();
+    std::string mInitialState;
 
     /**
      * @brief Um Hook de customização para as classes filhas.

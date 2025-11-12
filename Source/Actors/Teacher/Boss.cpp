@@ -23,7 +23,23 @@ Boss::Boss(Scene* scene) : Actor(scene), mAttackCooldown(0.0f) {
 Boss::~Boss() = default;
 
 void Boss::Start() {
-    SDL_Log("Starting Boss dentro de Boss.cpp");
+    if (auto fsm = GetComponent<FSMComponent>()) {
+        if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
+            fsm->SetOnStateChanged([battleScene](float newDuration) {
+                battleScene->ResetHUDTimer(newDuration);
+            });
+        }
+
+        if (!mInitialState.empty()) {
+            fsm->Start(mInitialState);
+        }
+        else {
+            SDL_Log("Boss::Start(): Nenhum estado inicial foi definido pela Factory");
+        }
+    }
+    else {
+        SDL_Log("Erro: Boss::Start() nao encontrou um FSMComponent");
+    }
 }
 
 void Boss::OnUpdate(float deltaTime) {
@@ -143,6 +159,11 @@ ProjectileFactory* Boss::GetProjectileFactory() {
 void Boss::CustomizeAttackParams(AttackParams &params, const std::string &stateName) {
 
 }
+
+void Boss::SetInitialState(const std::string &stateName) {
+    mInitialState = stateName;
+}
+
 
 
 

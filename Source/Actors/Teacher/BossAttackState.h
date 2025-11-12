@@ -25,6 +25,9 @@ public:
 
     ~BossAttackState() override = default;
 
+    /** @brief Sobrescreve GetDuration para retornar a duração deste estado. */
+    [[nodiscard]] float GetDuration() const override { return mDuration; }
+
     void HandleStateTransition(float stateTime) override;
 
 private:

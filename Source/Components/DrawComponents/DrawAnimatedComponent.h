@@ -12,7 +12,7 @@
 class DrawAnimatedComponent : public DrawSpriteComponent {
 
 public:
-    DrawAnimatedComponent(class Actor* owner, const std::string& spriteSheetPath, const std::string& spriteSheetData, int drawOrder = 100);
+    DrawAnimatedComponent(Actor* owner, const std::string& spriteSheetPath, const std::string& spriteSheetData, int drawOrder = 100);
     ~DrawAnimatedComponent() override;
 
     void Draw(SDL_Renderer* renderer) override;

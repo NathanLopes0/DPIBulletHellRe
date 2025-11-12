@@ -43,6 +43,12 @@ public:
      */
     virtual void HandleStateTransition(float stateTime);
 
+    /**
+     * @brief Retorna a duração total deste estado.
+     * Estados que não são baseados em tempo podem retornar 0.
+     */
+    [[nodiscard]] virtual float GetDuration() const { return 0.0f; }
+
     [[nodiscard]] const std::string &GetName() const { return mName; }
 
 protected:

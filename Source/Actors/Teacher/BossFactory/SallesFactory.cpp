@@ -12,7 +12,7 @@
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
 
-#define STATE_ONE_DURATION 17.f
+#define STATE_ONE_DURATION 5.f
 #define STATE_TWO_DURATION 17.f
 
 SallesFactory::SallesFactory(Game* game)
@@ -58,7 +58,7 @@ void SallesFactory::ConfigureAttacksAndFSM(Boss* boss) {
     ConfigureStateOne(boss, fsm, spawner);
     ConfigureStateTwo(boss, fsm, spawner);
 
-    fsm->Start("StateOne");
+    boss->SetInitialState("StateOne");
 }
 
 void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm, ProjectileFactory* spawner)
@@ -75,8 +75,9 @@ void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm, ProjectileF
 
     // 2. Configura a Lógica Customizada
     const ProjectileConfigurator config = [](Projectile* p, int index) {
-        if (const float chance = Random::GetFloatRange(0.0f, 1.0f); chance < 0.5f) { // 80% de chance
-            p->insertBehavior<HomingBehavior>(0.5f, 0.0f);
+        if (const float chance = Random::GetFloatRange(0.0f, 1.0f); chance < 0.4f) { // 40% de chance
+            p->insertBehavior<HomingBehavior>(0.9f, 0.0f);
+            p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
         }
     };
 

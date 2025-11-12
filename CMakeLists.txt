@@ -76,6 +76,10 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teacher/BossAttackState.h
         Source/Components/ColliderComponents/ColliderComponent.cpp
         Source/Components/ColliderComponents/ColliderComponent.h
+        Source/Scenes/Battle/BattleHUD.cpp
+        Source/Scenes/Battle/BattleHUD.h
+        Source/Components/DrawComponents/ProgressBarComponent.cpp
+        Source/Components/DrawComponents/ProgressBarComponent.h
 )
 
 find_package(SDL2 REQUIRED)

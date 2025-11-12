@@ -72,9 +72,9 @@ public:
 
     //Grade functions
     float GetGrade(int n) { return mGrades[static_cast<GameSubject>(n)]; }
-    float GetGrade(GameSubject subject) { return mGrades[subject]; }
-    void SetGrade(GameSubject subject, float grade) { mGrades[subject] = grade; }
-    void SetGrade(int n, float grade) { mGrades[static_cast<GameSubject>(n)] = grade; }
+    float GetGrade(const GameSubject subject) { return mGrades[subject]; }
+    void SetGrade(const GameSubject subject, const float grade) { mGrades[subject] = grade; }
+    void SetGrade(int n, const float grade) { mGrades[static_cast<GameSubject>(n)] = grade; }
 
 private:
     void ProcessInput();

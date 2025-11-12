@@ -37,6 +37,7 @@ void FSMComponent::Start(const std::string &startState)
 {
     mIsRunning = true;
     SetState(startState);
+
 }
 
 /**
@@ -64,6 +65,15 @@ void FSMComponent::SetState(const std::string &stateName)
     // 3. Define o novo estado
     mCurrentState = stateName;
     mStateTime = 0.0f;
+
+    if (mOnStateChanged) {
+        // Pega a duração do novo estado
+        const float duration = newState->GetDuration();
+
+        // Envia a duração para o "escutador"
+        mOnStateChanged(duration);
+    }
+
     newState->Start(); // Chama o Start() do novo estado
 }
 
@@ -104,4 +114,8 @@ FSMState* FSMComponent::GetState(const std::string& stateName)
         return iter->second.get();
     }
     return nullptr;
+}
+
+void FSMComponent::SetOnStateChanged(std::function<void(float newDuration)> callback) {
+    mOnStateChanged = std::move(callback);
 }

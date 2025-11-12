@@ -12,6 +12,7 @@
 
 class Player;
 class ProjectileManager;
+class BattleHUD;
 
 class Battle : public Scene {
 
@@ -21,12 +22,17 @@ public:
     ~Battle() override;
     void Load() override;
     void CheckCollisions();
+    void ResetHUDTimer(float newDuration);
+
     [[nodiscard]] Boss* GetBoss() const { return mBoss; }
     [[nodiscard]] Player* GetPlayer() const { return mPlayer; }
-
     [[nodiscard]] ProjectileManager* GetProjectileManager() const { return mProjectileManager.get(); }
 
+
+
 protected:
+    void TimeBarUpdate() const;
+
     void OnUpdate(float deltaTime) override;
     void OnProcessInput(const Uint8 *keyState) override;
 
@@ -36,9 +42,13 @@ private:
     void LoadPlayer();
     void LoadBoss();
 
+    void LoadTimeClock();
+
+    void LoadTimeBar();
+
 
     // --- Membros de Estado da Batalha ---
-    float mGrade = 40.f;
+    float mGrade;
     Game::GameSubject mStage{};
 
     // --- Ponteiros observadores do Boss e do Player, que vão estar dentro
@@ -49,6 +59,14 @@ private:
 
     // O GERENTE DE PROJÉTEIS: Um sistema especializado, possuído pela cena
     std::unique_ptr<ProjectileManager> mProjectileManager;
+
+    // O HUD
+    std::unique_ptr<BattleHUD> mHUD;
+    Actor* mHUDTimeBarActor = nullptr;
+    Actor* mHUDClockActor = nullptr;
+
+    void GradeUp();
+    void GradeDown();
 
 };
 

@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include <memory>
+#include <functional>
 
 class FSMState;
 
@@ -49,6 +50,14 @@ public:
     /** @brief Retorna o tempo (em seg) decorrido no estado atual. */
     [[nodiscard]] float GetStateTime() const { return mStateTime; }
 
+
+    /**
+     * @brief Registra um callback para ser chamado
+     * toda vez que o estado for trocado com sucesso.
+     * @param callback A função a ser chamada, que receberá a DURAÇÃO do novo estado.
+     */
+    void SetOnStateChanged(std::function<void(float newDuration)> callback);
+
 private:
     // --- Membros Internos ---
 
@@ -61,5 +70,8 @@ private:
 
     // O componente agora é DONO de seus estados guardados.
     std::map<std::string, std::unique_ptr<FSMState>> mStates;
+
+    // O callback que será chamado na troca de estado.
+    std::function<void(float newDuration)> mOnStateChanged;
 
 };
