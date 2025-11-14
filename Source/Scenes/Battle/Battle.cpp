@@ -6,9 +6,14 @@
 
 #include "Battle.h"
 
+#include <locale>
+#include <sstream>
+#include <iomanip>
+
 #include "BattleHUD.h"
 #include "ProjectileManager.h"
 #include "../../Json.h"
+#include "../../Font.h"
 #include "../../Actors/Player/Player.h"
 #include "../../Actors/Player/PlayerProjectile.h"
 #include "../../Actors/Teacher/Boss.h"
@@ -16,6 +21,7 @@
 #include "../../Actors/Teacher/BossFactory/IBossFactory.h"
 #include "../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "../../Components/DrawComponents/DrawTextComponent.h"
 #include "../../Components/DrawComponents/ProgressBarComponent.h"
 
 #define GRADE_CHANGE_UP 0.56f
@@ -47,7 +53,6 @@ void Battle::Load() {
 
     // 3. Iniciar a lógica da batalha (se necessário)
     if (mBoss) {
-        SDL_Log("Starting Boss");
         mBoss->Start();
     }
 
@@ -77,6 +82,7 @@ void Battle::LoadHUD() {
     //Cria a HUD para segurar todas as infos
     mHUD = std::make_unique<BattleHUD>(this);
     LoadTimeBar();
+    LoadGradeBar();
 
 }
 void Battle::LoadPlayer() {
@@ -107,8 +113,7 @@ void Battle::OnUpdate(float deltaTime) {
     if (mHUD) mHUD->OnUpdate(deltaTime);
 
     TimeBarUpdate();
-
-    // SDL_Log("%f", mGrade);
+    GradeBarUpdate();
 
 }
 
@@ -161,17 +166,14 @@ void Battle::CheckCollisions() {
         GradeDown();
     }
 }
-
 void Battle::GradeUp() {
     mGrade += GRADE_CHANGE_UP;
     mGrade = Math::Clamp(mGrade, 0.0f, 100.f);
 }
-
 void Battle::GradeDown() {
     mGrade -= GRADE_CHANGE_DOWN;
     mGrade = Math::Clamp(mGrade, 0.0f, 100.f);
 }
-
 
 void Battle::TimeBarUpdate() const {
     if (!mBoss || !mHUDTimeBarActor) return;
@@ -190,14 +192,66 @@ void Battle::TimeBarUpdate() const {
 
     mHUDClockActor->SetPosition(mHUDTimeBarActor->GetPosition() + Vector2(5, static_cast<float>(bossHeight) / 1.4f));
 }
+void Battle::GradeBarUpdate() {
+    auto gradeComp = mGradeBarActor->GetComponent<ProgressBarComponent>();
+    if (!gradeComp) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "GradeBarActor not found");
+        return;
+    }
 
+    const float fillPercent = mGrade / 100.f;
+    gradeComp->SetFillPercent(fillPercent);
 
-void Battle::ResetHUDTimer(float newDuration) {
+    // -- DEFINIÇÃO DA PALETA DE CORES -- //
+
+    static const SDL_Color BG_COLOR = {20,20,20,255};
+
+    // STATE1 - REPROVADE
+    static const SDL_Color FAIL_START = {100, 0, 0, 255};
+    static const SDL_Color FAIL_END = {255, 0, 0, 255};
+
+    // STATE2 - FINAL
+    static const SDL_Color SECRET_START = {180, 150, 0, 255};
+    static const SDL_Color SECRET_END = {255, 140, 0, 255};
+
+    // STATE3 - APROVADE
+    static const SDL_Color PASS_START = {144, 238, 144, 255};
+    static const SDL_Color PASS_END = {0, 255, 128, 255};
+
+    // -- --------- -- ------ -- ----- -- //
+
+    float colorPercent = 0.0f;
+
+    if (mGrade < 40.f) {
+        colorPercent = mGrade / 40.f;
+        gradeComp->SetGradientColors(BG_COLOR, FAIL_START, FAIL_END);
+        gradeComp->SetEffect(ProgressBarComponent::VisualEffect::Pulsing);
+    } else if (mGrade < 60.f) {
+        colorPercent = (mGrade - 40.f) / 20.f;
+        gradeComp->SetGradientColors(BG_COLOR, SECRET_START, SECRET_END);
+        gradeComp->SetEffect(ProgressBarComponent::VisualEffect::None);
+    } else {
+        colorPercent = (mGrade - 60.f) / 40.f;
+        gradeComp->SetGradientColors(BG_COLOR, PASS_START, PASS_END);
+        gradeComp->SetEffect(ProgressBarComponent::VisualEffect::None);
+    }
+
+    gradeComp->SetColorPercent(colorPercent);
+    GradeTextUpdate();
+
+}
+void Battle::GradeTextUpdate() {
+
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(1) << mGrade;
+    mGradeTextActor->GetComponent<DrawTextComponent>()->SetText(ss.str());
+
+}
+void Battle::ResetHUDTimer(const float newDuration) {
     if (mHUD) {
         mHUD->ResetTimeBar(newDuration);
     }
 }
-
 void Battle::LoadTimeBar() {
 
     // Cria o Actor que vai segurar a barra que mostra o tempo do estado
@@ -218,6 +272,8 @@ void Battle::LoadTimeBar() {
     barCompPtr->SetSize(10, static_cast<int>(static_cast<float>(bossHeight) / 1.4f));
     barCompPtr->SetColors({20,20,20,255}, {255, 100, 150, 255});
 
+    // TODO - a cor acima é rosa puro, eu gostaria de trocar
+
     Actor* barActorPtr = barActor.get();
 
     // Adiciona ator à cena
@@ -229,13 +285,9 @@ void Battle::LoadTimeBar() {
     // Salva o ponteiro do Actor que tem a barra de progresso na cena Battle, pra poder seguir o Boss
     mHUDTimeBarActor = barActorPtr;
 
-    // TODO - desenhei um relógio legal pra ficar logo embaixo dessa barra.
-    // TODO - ele vai ser um Actor com um DrawAnimatedComponent que vai seguir a barra
-    // TODO - (ou o Boss, deve ser mais fácil), estando sempre a uma distância fixa dele, como a barra mesmo.
-
+    // Dá load no reloginho que tem embaixo da barra
     LoadTimeClock();
 }
-
 void Battle::LoadTimeClock() {
 
     // Cria o ator que vai segurar a animação do relógior
@@ -254,6 +306,48 @@ void Battle::LoadTimeClock() {
     this->AddActor(std::move(clockActor));
     mHUDClockActor = clockActorPtr;
 
+}
+void Battle::LoadGradeBar() {
+    auto gradeBarActor = std::make_unique<Actor>(this);
+
+    const int barHeight = 25;
+    const int windowWidth = mGame->GetWindowWidth();
+    const int windowHeight = mGame->GetWindowHeight();
+    gradeBarActor->SetPosition(Vector2(0.f, static_cast<float>(windowHeight) - barHeight * 1.5));
+
+    auto gradeBarComp = gradeBarActor->AddComponent<ProgressBarComponent>();
+    gradeBarComp->SetOrientation(ProgressBarComponent::Orientation::Horizontal);
+    gradeBarComp->SetSize(windowWidth, barHeight);
+
+    mGradeBarActor = gradeBarActor.get();
+    this->AddActor(std::move(gradeBarActor));
+
+    // Configurar Actor e fonte que vai ter a nota no meio da barra
+    mGradeBarFont = std::make_unique<Font>();
+    mGradeBarFont->Load("../Assets/Fonts/Zelda.ttf");
+    auto gradeBarTextActor = std::make_unique<Actor>(this);
+    gradeBarTextActor->AddComponent<DrawTextComponent>("omg", mGradeBarFont.get(), 36, barHeight, 24, 304);
+
+    const auto textPosX = static_cast<float>(windowWidth) / 2.f;
+    const auto textPosY = static_cast<float>(windowHeight - barHeight);
+    gradeBarTextActor->SetPosition(Vector2(textPosX, textPosY));
+
+    mGradeTextActor = gradeBarTextActor.get();
+    this->AddActor(std::move(gradeBarTextActor));
+
+}
+
+SDL_FRect Battle::GetPlayfieldBounds() const
+{
+    // A altura da sua barra de nota, como definido em LoadGradeBar
+    const float gradeBarHeight = 25.0f;
+
+    return {
+        0.0f, // x
+        0.0f, // y
+        static_cast<float>(mGame->GetWindowWidth()), // w
+        static_cast<float>(mGame->GetWindowHeight()) - gradeBarHeight // h
+    };
 }
 
 

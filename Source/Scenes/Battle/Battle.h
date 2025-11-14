@@ -10,6 +10,7 @@
 #include "../../Game.h"
 #include "../../Actors/Teacher/BossFactory/IBossFactory.h"
 
+class Font;
 class Player;
 class ProjectileManager;
 class BattleHUD;
@@ -28,10 +29,15 @@ public:
     [[nodiscard]] Player* GetPlayer() const { return mPlayer; }
     [[nodiscard]] ProjectileManager* GetProjectileManager() const { return mProjectileManager.get(); }
 
+    SDL_FRect GetPlayfieldBounds() const override;
+
 
 
 protected:
     void TimeBarUpdate() const;
+
+    void GradeTextUpdate();
+    void GradeBarUpdate();
 
     void OnUpdate(float deltaTime) override;
     void OnProcessInput(const Uint8 *keyState) override;
@@ -45,6 +51,7 @@ private:
     void LoadTimeClock();
 
     void LoadTimeBar();
+    void LoadGradeBar();
 
 
     // --- Membros de Estado da Batalha ---
@@ -62,8 +69,12 @@ private:
 
     // O HUD
     std::unique_ptr<BattleHUD> mHUD;
+    std::unique_ptr<Font> mGradeBarFont;
     Actor* mHUDTimeBarActor = nullptr;
     Actor* mHUDClockActor = nullptr;
+
+    Actor* mGradeBarActor = nullptr;
+    Actor* mGradeTextActor = nullptr;
 
     void GradeUp();
     void GradeDown();

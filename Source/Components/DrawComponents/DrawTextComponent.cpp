@@ -8,7 +8,7 @@
 #include "../../Game.h"
 #include "../../Scenes/Scene.h"
 
-DrawTextComponent::DrawTextComponent(class Actor *owner, const std::string &text, class Font *font, int width, int height, int fontSize, int drawOrder)
+DrawTextComponent::DrawTextComponent(Actor *owner, const std::string &text, Font *font, int width, int height, int fontSize, int drawOrder)
     :DrawComponent(owner, drawOrder),
     mWidth(width),
     mHeight(height),

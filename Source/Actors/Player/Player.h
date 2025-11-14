@@ -19,7 +19,6 @@ public:
     void OnUpdate(float deltaTime) override;
 
 
-
 private:
 
     //variaveis de jogador

@@ -6,6 +6,7 @@
 
 #include <SDL_stdinc.h>
 #include <memory>
+#include <SDL_rect.h>
 #include <vector>
 
 class Actor;
@@ -42,6 +43,8 @@ public:
 
     void AddDrawable(DrawComponent* drawable);
     void RemoveDrawable(DrawComponent* drawable);
+
+    [[nodiscard]] virtual SDL_FRect GetPlayfieldBounds() const;
 
 protected:
     // As classes filhas vão dar override nestas para adicionar

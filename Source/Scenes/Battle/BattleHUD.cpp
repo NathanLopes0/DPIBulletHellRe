@@ -22,7 +22,7 @@ void BattleHUD::OnUpdate(float deltaTime) {
     float progress = 1.0f - (mCurrentStateTime / mTotalStateTime);
 
     if (mTimeBarComp != nullptr) {
-        mTimeBarComp->SetProgress(progress);
+        mTimeBarComp->SetFillPercent(progress);
     }
 }
 
@@ -45,7 +45,7 @@ void BattleHUD::ResetTimeBar(const float newTotalTime) {
 
     if (mTimeBarActor) {
         // Enche a barra novamente
-        mTimeBarActor->GetComponent<ProgressBarComponent>()->SetProgress(1.0f);
+        mTimeBarActor->GetComponent<ProgressBarComponent>()->SetFillPercent(1.0f);
     }
 }
 

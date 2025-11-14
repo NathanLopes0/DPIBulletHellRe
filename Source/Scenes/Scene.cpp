@@ -6,6 +6,7 @@
 #include <utility>
 #include <algorithm>
 #include "Scene.h"
+#include "../Game.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawComponent.h"
 
@@ -103,4 +104,15 @@ void Scene::RemoveDrawable(DrawComponent* drawable)
 
 void Scene::OnProcessInput(const Uint8* keyState) {}
 void Scene::OnUpdate(float deltaTime) {}
+
+SDL_FRect Scene::GetPlayfieldBounds() const
+{
+    // Por padrão, a área é a tela inteira
+    return {
+        0.0f,
+        0.0f,
+        static_cast<float>(mGame->GetWindowWidth()),
+        static_cast<float>(mGame->GetWindowHeight())
+    };
+}
 

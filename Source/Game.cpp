@@ -58,6 +58,7 @@ bool Game::Initialize() {
         SDL_Log("Failed to create renderer: %s", SDL_GetError());
         return false;
     }
+    SDL_SetRenderDrawBlendMode(mRenderer, SDL_BLENDMODE_BLEND);
 
     //iniciando sistema de fontes
     if (TTF_Init() != 0)
@@ -77,8 +78,6 @@ bool Game::Initialize() {
     // Put all Grades to 40;
     InitializeGrades();
     LoadInitialScene();
-
-
 
     return true;
 }
@@ -183,8 +182,29 @@ SDL_Texture* Game::LoadTexture(const std::string& texturePath) {
 
     return textureFromSur;
 }
+// Em Game.cpp
+
 void Game::Shutdown()
 {
+    // --- 1. LIMPEZA DOS RECURSOS DO JOGO ---
+
+    // Destrói manualmente a cena (e todos os Atores/Componentes/Texturas)
+    // Isso garante que ~DrawTextComponent() seja chamado
+    // enquanto o Renderer ainda está vivo.
+    mScene.reset();
+
+    // Limpe quaisquer outros sistemas criados e que
+    // dependem do SDL (como áudio ou fontes gerenciadas)
+
+    mAudio.reset();
+    mBossFactory.clear();
+
+    // --- 2. DESLIGAMENTO DOS SISTEMAS SDL ---
+
+    // Agora que todas as texturas foram destruídas, é seguro
+    // desligar o TTF, o Renderer e o resto do SDL.
+
+    TTF_Quit();
     SDL_DestroyRenderer(mRenderer);
     SDL_DestroyWindow(mWindow);
     SDL_Quit();

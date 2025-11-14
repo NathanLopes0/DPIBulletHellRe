@@ -35,7 +35,6 @@ void SallesFactory::ConfigureComponents(Boss* boss) {
 
     // ----- COLLIDER COMPONENT ----- //
     const float colliderRadius = static_cast<float>(drawComp->GetSpriteWidth()) / 2.2f;
-    SDL_Log("%f", colliderRadius);
     auto collider = boss->AddComponent<CircleColliderComponent>(colliderRadius);
     collider->SetTag(ColliderTag::Boss);
 

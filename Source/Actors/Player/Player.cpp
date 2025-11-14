@@ -51,6 +51,7 @@ void Player::OnUpdate(float deltaTime) {
 
     HandleAnimation();
     DecreaseAtkTimer(deltaTime);
+    BorderLimitCheck();
 
 }
 
@@ -76,8 +77,6 @@ void Player::MoveInput(const Uint8 *keyState) {
     else mMoving = true;
 
     GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(newXSpeed, newYSpeed));
-    BorderLimitCheck();
-
 }
 
 void Player::ShootInput(const Uint8 *keyState) {
@@ -139,7 +138,11 @@ void Player::DecreaseAtkTimer(float deltaTime) {
         atkTimer -= deltaTime;
 }
 
-// TODO 15.0 - Não deixar o jogador sair das bordas de tela (fazer depois que decidir os limites da tela)
 void Player::BorderLimitCheck() {
+    SDL_FRect bounds = mScene->GetPlayfieldBounds();
+    auto pWidth = GetComponent<DrawAnimatedComponent>()->GetSpriteWidth();
+    auto pHeight = GetComponent<DrawAnimatedComponent>()->GetSpriteHeight();
 
+    SetPosition(Vector2(Math::Clamp(GetPosition().x, bounds.x + pWidth, bounds.x + bounds.w - pWidth),
+            Math::Clamp(GetPosition().y, bounds.y + pHeight, bounds.y + bounds.h - pHeight)));
 }
