@@ -75,20 +75,18 @@ void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm, ProjectileF
     params.numProjectiles = 2;
     params.projectileSpeed = 230.0f;
     params.angle = 20.f;
-    boss->AddAttackTemplate(STATE_NAME, params);
-    boss->AddAttackCooldown(STATE_NAME, 0.3f);
 
-    // 2. Configura a Lógica Customizada
-    const ProjectileConfigurator config = [](Projectile* p, int index) {
-        if (const auto chance = Random::GetFloatRange(0.0f, 1.0f); chance < 0.2) {
-            p->insertBehavior<HomingBehavior>(1.2f, 280.f);
-            p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
-        }
-    };
-
-    // 3. Adiciona o "Passo de Ataque"
-    auto attack = std::make_unique<AngledAttack>(spawner, boss);
-    boss->AddAttackStep(STATE_NAME, std::move(attack), config);
+    boss->AddAttackPattern(STATE_NAME,
+            std::make_unique<AngledAttack>(spawner, boss), // Strategy
+            params,                                        // Params
+            0.3f,                                          // Cooldown
+            [](Projectile* p, int index) {                 // Configurator Lambda
+                if (Random::GetFloatRange(0.0f, 1.0f) < 0.2f) {
+                    p->insertBehavior<HomingBehavior>(1.2f, 280.f);
+                    p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
+                }
+            }
+        );
 
     // 4. Cria o objeto que representa o estado que terá esse ataque
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
@@ -109,23 +107,19 @@ void SallesFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm, ProjectileF
     params.projectileSpeed = 230.0f;
     params.angle = 30.f;
 
-
-    boss->AddAttackTemplate(STATE_NAME, params);
-    boss->AddAttackCooldown(STATE_NAME, 0.4f);
-
-    // 2. Lógica Customizada
-    ProjectileConfigurator config = [](Projectile* p, int index) {
-        if (auto chance = Random::GetFloatRange(0.0f, 1.0f); chance < 0.3) {
-            p->insertBehavior<HomingBehavior>(1.8f, 0.0f);
-            p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
+    boss->AddAttackPattern(STATE_NAME,
+        std::make_unique<AngledAttack>(spawner, boss),
+        params,
+        0.4f,
+        [](Projectile* p, int index) {
+            if (Random::GetFloatRange(0.0f, 1.0f) < 0.3f) {
+                p->insertBehavior<HomingBehavior>(1.8f, 0.0f);
+                p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
+            }
         }
-    };
+    );
 
-    // 3. Adiciona o Passo
-    auto attack = std::make_unique<AngledAttack>(spawner, boss);
-    boss->AddAttackStep(STATE_NAME, std::move(attack), config);
-
-    // 4. Cria o objeto que representa o estado desse ataque
+    // 2. Cria o objeto que representa o estado desse ataque
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
                                                       /*duration*/ STATE_TWO_DURATION,
                                                       /*nextState*/ "StateThree");
@@ -141,18 +135,17 @@ void SallesFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm, Projectil
     params.projectileSpeed = 260.0f;
     params.angle = 40.f;
 
-    boss->AddAttackTemplate(STATE_NAME, params);
-    boss->AddAttackCooldown(STATE_NAME, 0.6f);
-
-    ProjectileConfigurator config = [](Projectile* p, int index) {
-        if (const auto chance = Random::GetFloatRange(0.0f, 1.0f); chance < 0.5) {
-            p->insertBehavior<HomingBehavior>(1.8f, 0.0f);
-            p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
+    boss->AddAttackPattern(STATE_NAME,
+        std::make_unique<AngledAttack>(spawner, boss),
+        params,
+        0.6f,
+        [](Projectile* p, int index) {
+            if (Random::GetFloatRange(0.0f, 1.0f) < 0.5f) {
+                p->insertBehavior<HomingBehavior>(1.8f, 0.0f);
+                p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
+            }
         }
-    };
-
-    auto attack = std::make_unique<AngledAttack>(spawner, boss);
-    boss->AddAttackStep(STATE_NAME, std::move(attack), config);
+    );
 
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
                                                   /*duration*/ STATE_THREE_DURATION,
@@ -165,6 +158,46 @@ void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm, Projectil
     const std::string STATE_NAME = "StateFinal";
 
     // 1. Padrões fixos do estado Final
+    // -- Ataque 1 --
+    AttackParams paramsFast;
+    paramsFast.numProjectiles = 2;
+    paramsFast.projectileSpeed = 300.0f;
+    paramsFast.angle = 20.f;
+
+    boss->AddAttackPattern(STATE_NAME,
+        std::make_unique<AngledAttack>(spawner, boss),
+        paramsFast,
+        0.4f,
+        [](Projectile* p, int i) {
+            auto chance = Random::GetFloatRange(0.0f, 1.0f);
+            if (chance < 0.1) {
+                p->insertBehavior<HomingBehavior>(1.2f, 0.0f);
+                p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
+            }
+        });
+
+    // -- Ataque 2 --
+    AttackParams paramsSlow;
+    paramsSlow.numProjectiles = 3;
+    paramsSlow.projectileSpeed = 220.0f;
+    paramsSlow.angle = 60.f;
+
+    boss->AddAttackPattern(STATE_NAME,
+        std::make_unique<AngledAttack>(spawner, boss),
+        paramsSlow,
+        0.8f,
+        [](Projectile* p, int i) {
+            auto chance = Random::GetFloatRange(0.0f, 1.0f);
+            if (chance < 0.8) {
+                p->insertBehavior<HomingBehavior>(1.6f, 0.0f);
+                p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
+            }
+        });
+
+    auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
+                                                    STATE_FINAL_DURATION,
+                                                        "StateOne");
+    fsm->RegisterState(std::move(stateObj));
 
 }
 

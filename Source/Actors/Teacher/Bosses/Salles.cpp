@@ -13,11 +13,7 @@ Salles::Salles(Scene *scene) : Boss(scene)
 }
 
 void Salles::OnUpdate(float deltaTime) {
-
-    mAttackCooldown -= deltaTime;
-    if (mAttackCooldown <= 0.0f) {
-        Attack();
-    }
+    Boss::OnUpdate(deltaTime);
 }
 
 void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stateName) {

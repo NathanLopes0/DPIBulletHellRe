@@ -13,7 +13,7 @@
 #include "../../Components/AIComponents/FSMComponent.h"
 #include "SDL_log.h"
 
-Boss::Boss(Scene* scene) : Actor(scene), mAttackCooldown(0.0f) {
+Boss::Boss(Scene* scene) : Actor(scene) {
 
     AddComponent<RigidBodyComponent>();
     AddComponent<FSMComponent>();
@@ -45,92 +45,80 @@ void Boss::Start() {
 void Boss::OnUpdate(float deltaTime) {
     Actor::OnUpdate(deltaTime);
 
-    mAttackCooldown -= deltaTime;
-    if (mAttackCooldown <= 0.0f) {
-        Attack();
+    auto fsm = GetComponent<FSMComponent>();
+    if (!fsm) return;
+
+    std::string currState = fsm->GetStateName();
+    if (currState.empty()) { return; }
+
+    // Verifica se existem ataques registrados pro estado atual
+    if (mAttacksMap.find(currState) != mAttacksMap.end()) {
+
+        // Itera sobre todos os ataques configurados para esse estado
+        for (auto& attackDefinition : mAttacksMap[currState]) {
+
+            attackDefinition.currentTimer -= deltaTime;
+
+            if (attackDefinition.currentTimer <= 0.0f) {
+                ExecuteAttack(attackDefinition, currState);
+                attackDefinition.currentTimer = attackDefinition.cooldownTotal;
+            }
+        }
     }
 }
 
+void Boss::AddAttackPattern(const std::string &stateName, std::unique_ptr<IAttackStrategy> strategy, AttackParams params, float cooldown, ProjectileConfigurator config) {
+    AttackDefinition def;
+    def.strategy = std::move(strategy);
+    def.params = params;
+    def.configurator = std::move(config);
+    def.cooldownTotal = cooldown;
+    def.currentTimer = 0.0f;
 
-void Boss::AddAttackStep(const std::string &stateName,
-                        std::unique_ptr<IAttackStrategy> strategy,
-                        ProjectileConfigurator configurator) {
-
-    AttackStep newStep;
-    newStep.strategy = std::move(strategy);
-    newStep.configurator = std::move(configurator);
-
-    mAttackSteps[stateName].emplace_back(std::move(newStep));
-
+    mAttacksMap[stateName].push_back(std::move(def));
 }
 
 
-void Boss::AddAttackTemplate(const std::string &stateName, const AttackParams &paramsTemplate) {
-    mAttackParamTemplates[stateName] = paramsTemplate;
-}
-
-void Boss::AddAttackCooldown(const std::string &stateName, float cooldown) {
-    mStateCooldowns[stateName] = cooldown;
-}
-
-
-void Boss::Attack()
+void Boss::ExecuteAttack(AttackDefinition& attackDef, const std::string& stateName)
 {
+    // Atualiza a posição de tiro pra posição do boss.
+    attackDef.params.firePosition = GetPosition();
 
-   auto fsm = GetComponent<FSMComponent>();
-    if (!fsm) {
-        SDL_Log("Erro em Boss.cpp - Attack(): Nao foi possivel resgatar o FSMComponent do Boss");
-        return;
-    }
-
-    auto stateName = fsm->GetStateName();
-    if (stateName.empty()) {
-        return;
-    }
-
-    AttackParams params = mAttackParamTemplates.at(stateName);
-    params.firePosition = GetPosition();
-
-    CustomizeAttackParams(params, stateName); //Momento da classe filha chamar seu Customize personalizado e mudar
-
-    auto& attackSteps = mAttackSteps.at(stateName);
-    std::vector<std::unique_ptr<BossProjectile>> bossProjVector;
+    // Chama customização do boss específico
+    CustomizeAttackParams(attackDef.params, stateName);
 
     auto battleScene = dynamic_cast<Battle*>(mScene);
+    if (!battleScene) { return; }
+
     auto projManager = battleScene->GetProjectileManager();
-    if (!projManager) { SDL_Log("ProjectileManager nao encontrado"); return; }
+    if (!projManager) { return; }
 
-    for (const auto& step : attackSteps) {
-        auto projectiles = step.strategy->Execute(params);
-        if (step.configurator) {
-            for (int i = 0; i < projectiles.size(); ++i) {
-                step.configurator(projectiles[i].get(), i);
-            }
-        }
+    // Executar estratégia
+    auto projectiles = attackDef.strategy->Execute(attackDef.params);
 
-        bossProjVector.reserve(projectiles.size());
-
-        for (auto& p : projectiles) {
-            if (dynamic_cast<BossProjectile*>(p.get())) {
-                bossProjVector.emplace_back(std::unique_ptr<BossProjectile>(dynamic_cast<BossProjectile*>(p.release())));
-            }
-        }
-
-        if (!bossProjVector.empty()) {
-            projManager->AddBossProjectiles(std::move(bossProjVector));
+    // Depois de executar, aplicar a personalização lambda, se existir
+    if (attackDef.configurator) {
+        for (int i = 0; i < projectiles.size(); ++i) {
+            attackDef.configurator(projectiles[i].get(), i);
         }
     }
-    ResetAttackCooldown(stateName);
+
+    // Converte pra BossProjectile e envia para o Manager
+    std::vector<std::unique_ptr<BossProjectile>> bossProjVector;
+    bossProjVector.reserve(projectiles.size());
+
+    for (auto& p : projectiles) {
+        if (dynamic_cast<BossProjectile*>(p.get())) {
+            bossProjVector.emplace_back(std::unique_ptr<BossProjectile>(dynamic_cast<BossProjectile*>(p.release())));
+        }
+    }
+
+    if (!bossProjVector.empty()) {
+        projManager->AddBossProjectiles(std::move(bossProjVector));
+    }
+
 }
 
-void Boss::ResetAttackCooldown(const std::string &stateName) {
-    if (mStateCooldowns.count(stateName)) {
-        mAttackCooldown = mStateCooldowns.at(stateName);
-    } else {
-        SDL_Log("Erro em Boss.cpp - ResetAttackCooldown: Cooldown nao encontrado para o estado '%s'", stateName.c_str());
-        mAttackCooldown = 2.0f; //Padrão de Segurança
-    }
-}
 
 Vector2 Boss::GetDirectionToPlayer() {
     if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
