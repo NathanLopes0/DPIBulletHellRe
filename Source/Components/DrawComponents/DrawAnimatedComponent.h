@@ -2,8 +2,7 @@
 // Created by nslop on 27/08/2024.
 //
 
-#ifndef DPIBULLETHELLRE_DRAWANIMATEDCOMPONENT_H
-#define DPIBULLETHELLRE_DRAWANIMATEDCOMPONENT_H
+#pragma once
 
 
 #include "DrawSpriteComponent.h"
@@ -52,6 +51,3 @@ private:
     bool mIsPaused = false;
 
 };
-
-
-#endif //DPIBULLETHELLRE_DRAWANIMATEDCOMPONENT_H

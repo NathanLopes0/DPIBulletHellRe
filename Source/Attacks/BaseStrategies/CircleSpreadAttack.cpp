@@ -64,6 +64,9 @@ std::vector<std::unique_ptr<Projectile>> CircleSpreadAttack::Execute(const Attac
         auto directionVector = Vector2(xCoordRad, yCoordRad);
         directionVector.Normalize();
 
+        //xc = cos(angle * pi / 180)
+        //arccos(xc) = angle * pi / 180
+
         // Velocidade usa o projectileSpeed do params, lida lá em cima da função
         projectile->GetComponent<RigidBodyComponent>()->SetVelocity(directionVector * projectileSpeed);
 

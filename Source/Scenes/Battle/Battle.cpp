@@ -25,7 +25,7 @@
 #include "../../Components/DrawComponents/ProgressBarComponent.h"
 
 #define GRADE_CHANGE_UP 0.56f
-#define GRADE_CHANGE_DOWN 2.f
+#define GRADE_CHANGE_DOWN 6.f
 
 
 
@@ -125,6 +125,7 @@ void Battle::OnProcessInput(const Uint8* keyState) {
 
 void Battle::CheckCollisions() {
     if (!mPlayer || !mBoss) return;
+    bool changedGrade = false;
 
     auto *playerCollider = mPlayer->GetComponent<CircleColliderComponent>();
     auto *bossCollider = mBoss->GetComponent<CircleColliderComponent>();
@@ -140,9 +141,11 @@ void Battle::CheckCollisions() {
         if (bossProj->GetState() != ActorState::Active) continue;
         if (auto *bossProjCollider = bossProj->GetComponent<CircleColliderComponent>()) {
             if (playerCollider->Intersect(*bossProjCollider)) {
+                mPlayer->SetIsInvincible(true);
                 mPlayer->OnCollision(bossProj.get());
                 bossProj->OnCollision(mPlayer);
                 GradeDown();
+                changedGrade = true;
             }
         }
     }
@@ -155,16 +158,24 @@ void Battle::CheckCollisions() {
                 mBoss->OnCollision(playerProj.get());
                 playerProj->OnCollision(mBoss);
                 GradeUp();
+                changedGrade = true;
             }
         }
     }
 
     // --- REGRA 3 - Player vs Boss  (Contato Direto)
     if (playerCollider->Intersect(*bossCollider)) {
+        mPlayer->SetIsInvincible(true);
         mPlayer->OnCollision(mBoss);
         mBoss->OnCollision(mPlayer);
         GradeDown();
+        changedGrade = true;
     }
+
+    if (changedGrade) {
+        mGame->SetGrade(mStage, mGrade);
+    }
+
 }
 void Battle::GradeUp() {
     mGrade += GRADE_CHANGE_UP;
@@ -310,7 +321,7 @@ void Battle::LoadTimeClock() {
 void Battle::LoadGradeBar() {
     auto gradeBarActor = std::make_unique<Actor>(this);
 
-    const int barHeight = 25;
+    constexpr int barHeight = 25;
     const int windowWidth = mGame->GetWindowWidth();
     const int windowHeight = mGame->GetWindowHeight();
     gradeBarActor->SetPosition(Vector2(0.f, static_cast<float>(windowHeight) - barHeight * 1.5));
@@ -340,7 +351,7 @@ void Battle::LoadGradeBar() {
 SDL_FRect Battle::GetPlayfieldBounds() const
 {
     // A altura da sua barra de nota, como definido em LoadGradeBar
-    const float gradeBarHeight = 25.0f;
+    constexpr float gradeBarHeight = 25.0f;
 
     return {
         0.0f, // x

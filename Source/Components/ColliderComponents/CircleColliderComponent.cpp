@@ -21,6 +21,8 @@ float CircleColliderComponent::GetRadius() const {
 
 bool CircleColliderComponent::Intersect(const CircleColliderComponent &b) const {
 
+    if (!mIsEnabled) return false;
+
     Vector2 diff = GetCenter() - b.GetCenter();
     float distSq = diff.LengthSq();
 

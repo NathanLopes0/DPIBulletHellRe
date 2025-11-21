@@ -19,12 +19,18 @@ public:
     void OnUpdate(float deltaTime) override;
 
 
+    void SetIsInvincible(bool invincible) { isInvincible = invincible; }
+
+
 private:
 
     //variaveis de jogador
     float playerSpeed;
     float atkTimer;
-    bool mMoving;                       //ve se o jogador está se movendo. Usada para mudar a animação.
+    float invincibleTimer;
+    bool isInvincible;
+    bool mMoving;                       //ve se o jogador está se movendo. Usada para mudar a animação
+
 
 
     //OnProcessInput Sub-functions, and its sub-functions
@@ -35,6 +41,7 @@ private:
 
 
     //OnUpdate Sub-functions
+    void InvincibleUpdate(float deltaTime);
     void HandleAnimation();
     void DecreaseAtkTimer(float deltaTime);
 

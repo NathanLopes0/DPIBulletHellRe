@@ -54,6 +54,8 @@ protected:
 
     virtual void ConfigureStateOne(Boss* boss, FSMComponent* fsm, ProjectileFactory* spawner) = 0;
     virtual void ConfigureStateTwo(Boss* boss, FSMComponent* fsm, ProjectileFactory* spawner) = 0;
+    virtual void ConfigureStateThree(Boss* boss, FSMComponent* fsm, ProjectileFactory* spawner) = 0;
+    virtual void ConfigureStateFinal(Boss* boss, FSMComponent* fsm, ProjectileFactory* spawner) = 0;
 
     Game* mGame;
 

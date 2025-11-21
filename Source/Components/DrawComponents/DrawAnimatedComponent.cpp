@@ -60,6 +60,8 @@ void DrawAnimatedComponent::LoadSpriteSheet(const std::string& texturePath, cons
 
 void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
 
+    if (!mIsVisible) return;
+
     int spriteIdx = mAnimations[mAnimName][(int)mAnimTimer];
 
     // Is the texture in the map?

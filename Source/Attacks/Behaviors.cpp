@@ -84,5 +84,9 @@ void ActivateBehavior::update(Projectile* p, float deltaTime) {
                 activated = true;
             }
         }
+        else
+        {
+            p->GetComponent<DrawAnimatedComponent>()->SetIsVisible(false);
+        }
     }
 }

@@ -12,8 +12,7 @@
 #include <memory>
 
 WaveAttack::WaveAttack(ProjectileFactory* spawner, Actor* owner)
-    : mSpawner(spawner),
-      mOwner(owner)
+    : mSpawner(spawner), mOwner(owner)
 {
 
 }
@@ -28,10 +27,13 @@ std::vector<std::unique_ptr<Projectile>> WaveAttack::Execute(const AttackParams&
     const float totalAngle = params.angle;
     const float centralAngle = params.centralAngle;
     const float creationSpeed = params.creationSpeed; // O "atraso" da onda
-    ProjectileFactory* spawner = params.spawner;
-    Actor* owner = params.owner;
+    ProjectileFactory* spawner = mSpawner;
+    Actor* owner = mOwner;
 
-    if (!spawner || !owner) return {};
+    if (!spawner || !owner) {
+        SDL_Log("sem spawner ou sem owner");
+        return {};
+    }
 
     if (numProjectiles == 0) {
         return projectiles;

@@ -25,8 +25,6 @@ public:
 
 protected:
     ColliderTag mTag = ColliderTag::None;
-
-
 };
 
 

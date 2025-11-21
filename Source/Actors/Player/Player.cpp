@@ -12,14 +12,18 @@
 
 #define NUM_PROJECTILES_VECTOR 500
 #define ATK_TIMER_START_FULL 0.12f
+#define INVINCIBILITY_TIMER 1.2f
 #define PLAYER_SPEED_START 300.0f
 #define BASE_SHOOT_FORWARD_SPEED 800.0f
+#define BLINK_INVINCIBLE_FREQUENCY 0.1f
 
 Player::Player(Scene* scene) :
     Actor(scene),
     playerSpeed(PLAYER_SPEED_START),
     atkTimer(ATK_TIMER_START_FULL),
-    mMoving(false)
+    mMoving(false),
+    isInvincible(false),
+    invincibleTimer(0.0f)
 
 {
 
@@ -31,7 +35,7 @@ Player::Player(Scene* scene) :
     drawComp->SetAnimation("Idle");
 
     AddComponent<RigidBodyComponent>();
-    auto colliderComp = AddComponent<CircleColliderComponent>(static_cast<float>(drawComp->GetSpriteWidth()) / 2.f);
+    auto colliderComp = AddComponent<CircleColliderComponent>(static_cast<float>(drawComp->GetSpriteWidth()) / 10.f);
     colliderComp->SetTag(ColliderTag::Player);
 
 }
@@ -49,11 +53,47 @@ void Player::OnProcessInput(const Uint8 *keyState) {
 
 void Player::OnUpdate(float deltaTime) {
 
+    InvincibleUpdate(deltaTime);
     HandleAnimation();
     DecreaseAtkTimer(deltaTime);
     BorderLimitCheck();
 
 }
+
+void Player::InvincibleUpdate(float deltaTime) {
+    if (!isInvincible) return;
+
+    static float blink;
+    if (invincibleTimer == 0.0f) {
+        GetComponent<CircleColliderComponent>()->SetEnabled(false);
+        blink = BLINK_INVINCIBLE_FREQUENCY;
+    }
+
+    invincibleTimer += deltaTime;
+    if (invincibleTimer >= INVINCIBILITY_TIMER) {
+        isInvincible = false;
+        invincibleTimer = 0.0f;
+        GetComponent<DrawAnimatedComponent>()->SetIsVisible(true);
+        GetComponent<CircleColliderComponent>()->SetEnabled(true);
+        blink = BLINK_INVINCIBLE_FREQUENCY;
+        return;
+    }
+
+    auto blinking = GetComponent<DrawAnimatedComponent>()->GetIsVisible();
+    blink += deltaTime;
+    if (blink >= BLINK_INVINCIBLE_FREQUENCY) {
+        blink = 0.0f;
+        GetComponent<DrawAnimatedComponent>()->SetIsVisible(!blinking);
+        blinking = !blinking;
+    }
+
+
+
+
+
+
+}
+
 
 void Player::MoveInput(const Uint8 *keyState) {
 

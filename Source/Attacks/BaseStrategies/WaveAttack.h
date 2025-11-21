@@ -23,7 +23,7 @@ class AttackParams;
 class WaveAttack : public IAttackStrategy {
 public:
 
-    WaveAttack() = default;
+    WaveAttack(ProjectileFactory* spawner, Actor* owner);
     ~WaveAttack() override = default;
 
     /**
@@ -33,4 +33,8 @@ public:
      * @return Um vetor de projéteis recém-criados.
      */
     std::vector<std::unique_ptr<Projectile>> Execute(const AttackParams& params) override;
+
+private:
+    ProjectileFactory* mSpawner;
+    Actor* mOwner;
 };

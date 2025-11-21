@@ -3,7 +3,10 @@
 //
 
 #include "BossAttackState.h"
+
+#include "../Actor.h"
 #include "../../Components/AIComponents/FSMComponent.h"
+#include "../../Scenes/Battle/Battle.h"
 
 BossAttackState::BossAttackState(FSMComponent* fsm,
                                  const std::string& name,
@@ -23,6 +26,25 @@ void BossAttackState::HandleStateTransition(float stateTime)
     }
 
     // Adicionar aqui lógicas personalizadas de mudança de estado
+    if (mName == "StateThree") {
+        const auto scene = mFSM->GetOwner()->GetScene();
+        auto game = scene->GetGame();
+
+        if (dynamic_cast<Battle*>(scene)) {
+            auto selectedStage = game->GetSelectedStage();
+            auto grade = game->GetGrade(selectedStage);
+
+            if (grade > 60) {
+                mNextStateName = "Approved";
+            }
+            else if (grade >= 40 && grade < 60) {
+                mNextStateName = "StateFinal";
+            }
+            else {
+                mNextStateName = "Reproved";
+            }
+        }
+    }
 
 
     if (!mNextStateName.empty()) {

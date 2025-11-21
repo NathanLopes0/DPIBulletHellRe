@@ -1,5 +1,6 @@
 #pragma once
 #include "IBossFactory.h"
+#include "../../ProjectileFactory.h"
 
 
 class SallesFactory : public IBossFactory {
@@ -15,4 +16,6 @@ protected:
 
     void ConfigureStateOne(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) override;
     void ConfigureStateTwo(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) override;
+    void ConfigureStateThree(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) override;
+    void ConfigureStateFinal(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) override;
 };

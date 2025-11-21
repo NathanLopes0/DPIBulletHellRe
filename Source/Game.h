@@ -82,9 +82,6 @@ private:
     void UpdateCamera();
     void GenerateOutput();
 
-    // Não sei se preciso de uma lista de todos os colisores aqui, parece resto de algum código ruim
-    //std::vector<class CircleColliderComponent*> mColliders;
-
     // SDL stuff
     class SDL_Window* mWindow;
     SDL_Renderer* mRenderer;

@@ -19,6 +19,7 @@ public:
 
     [[nodiscard]] bool IsVisible() const { return mIsVisible; }
     void SetIsVisible(const bool isVisible) { mIsVisible = isVisible; }
+    [[nodiscard]] bool GetIsVisible() const { return mIsVisible; }
 
     [[nodiscard]] int GetDrawOrder() const { return mDrawOrder; }
 
