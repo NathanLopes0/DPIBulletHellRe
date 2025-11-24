@@ -81,6 +81,9 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Components/DrawComponents/ProgressBarComponent.cpp
         Source/Components/DrawComponents/ProgressBarComponent.h
         Source/Attacks/BaseStrategies/WaveAttack.cpp
+        Source/Movements/IMovementStrategy.h
+        Source/Movements/MovementStrategies.h
+        Source/Movements/MovementStrategies.cpp
 )
 
 find_package(SDL2 REQUIRED)

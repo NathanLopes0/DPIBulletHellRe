@@ -9,6 +9,7 @@
 #include "../../Scenes/Battle/ProjectileManager.h"
 #include "../Player/Player.h"
 #include "../../Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.h"
+#include "../../Movements/MovementStrategies.h"
 #include "../../Components/RigidBodyComponent.h"
 #include "../../Components/AIComponents/FSMComponent.h"
 #include "SDL_log.h"
@@ -51,6 +52,27 @@ void Boss::OnUpdate(float deltaTime) {
     std::string currState = fsm->GetStateName();
     if (currState.empty()) { return; }
 
+    // --- LÓGICA DE MOVIMENTO ---
+    // Verifica se mudou de estado para trocar a estratégia
+    if (currState != mLastStateName) {
+        mLastStateName = currState;
+
+        // Procura se existe estratégia para o novo estado
+        if (mMovementStrategies.find(currState) != mMovementStrategies.end()) {
+            mCurrentMovementStrategy = mMovementStrategies[currState].get();
+            mCurrentMovementStrategy->Initialize(this); // Reset timers/alvos
+        } else {
+            // Se não tiver estratégia definida, talvez parar o boss?
+            mCurrentMovementStrategy = nullptr;
+            if(auto rb = GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+        }
+    }
+
+    // Executa a estratégia atual
+    if (mCurrentMovementStrategy) {
+        mCurrentMovementStrategy->Update(this, deltaTime);
+    }
+
     // Verifica se existem ataques registrados pro estado atual
     if (mAttacksMap.find(currState) != mAttacksMap.end()) {
 
@@ -78,6 +100,9 @@ void Boss::AddAttackPattern(const std::string &stateName, std::unique_ptr<IAttac
     mAttacksMap[stateName].push_back(std::move(def));
 }
 
+void Boss::RegisterMovementStrategy(const std::string& stateName, std::unique_ptr<IMovementStrategy> strategy) {
+    mMovementStrategies[stateName] = std::move(strategy);
+}
 
 void Boss::ExecuteAttack(AttackDefinition& attackDef, const std::string& stateName)
 {
@@ -119,8 +144,7 @@ void Boss::ExecuteAttack(AttackDefinition& attackDef, const std::string& stateNa
 
 }
 
-
-Vector2 Boss::GetDirectionToPlayer() {
+Vector2 Boss::GetDirectionToPlayer() const {
     if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
         if (auto player = battleScene->GetPlayer()) {
             Vector2 direction = player->GetPosition() - GetPosition();
@@ -137,7 +161,7 @@ void Boss::SetProjectileFactory(std::unique_ptr<ProjectileFactory> factory) {
     mProjectileFactory = std::move(factory); // Transfere a posse
 }
 
-ProjectileFactory* Boss::GetProjectileFactory() {
+ProjectileFactory* Boss::GetProjectileFactory() const {
     if (mProjectileFactory) {
         return mProjectileFactory.get(); // Retorna o ponteiro cru (observador)
     }

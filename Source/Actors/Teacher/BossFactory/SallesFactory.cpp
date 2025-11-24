@@ -12,6 +12,7 @@
 #include "../BossAttackState.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
+#include "../../../Movements/MovementStrategies.h"
 
 #define STATE_ONE_DURATION 17.f
 #define STATE_TWO_DURATION 17.f
@@ -93,6 +94,10 @@ void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm, ProjectileF
                                                       /*duration*/ STATE_ONE_DURATION,
                                                       /*nextState*/ "StateTwo");
     fsm->RegisterState(std::move(stateObj));
+
+    boss->RegisterMovementStrategy(STATE_NAME, std::make_unique<RandomWanderStrategy>(100.f, 150.f));
+
+
 }
 void SallesFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm, ProjectileFactory* spawner)
 {
@@ -122,6 +127,10 @@ void SallesFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm, ProjectileF
                                                       /*duration*/ STATE_TWO_DURATION,
                                                       /*nextState*/ "StateThree");
     fsm->RegisterState(std::move(stateObj));
+
+    boss->RegisterMovementStrategy("StateTwo",
+        std::make_unique<RandomWanderStrategy>(50.0f, 250.0f));
+
 }
 void SallesFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) {
     const std::string STATE_NAME = "StateThree";
@@ -149,6 +158,10 @@ void SallesFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm, Projectil
                                                   /*nextState*/ "");
 
     fsm->RegisterState(std::move(stateObj));
+
+    boss->RegisterMovementStrategy("StateThree",
+        std::make_unique<HoverAbovePlayerStrategy>());
+
 }
 void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) {
     const std::string STATE_NAME = "StateFinal";
@@ -194,6 +207,9 @@ void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm, Projectil
                                                     STATE_FINAL_DURATION,
                                                         "StateOne");
     fsm->RegisterState(std::move(stateObj));
+
+    boss->RegisterMovementStrategy("StateTwo",
+        std::make_unique<RandomWanderStrategy>(50.0f, 250.0f));
 
 }
 

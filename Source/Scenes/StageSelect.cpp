@@ -126,9 +126,7 @@ void StageSelect::CreateStaticUI() {
 
 }
 void StageSelect::OnProcessInput(const Uint8 *keyState) {
-
     HandleSelectionInput(keyState);
-
 }
 
 void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
@@ -154,7 +152,7 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
     }
 }
 
-size_t StageSelect::HandleSelectedChange(const Uint8 *keyState, size_t currSelected) const {
+size_t StageSelect::HandleSelectedChange(const Uint8 *keyState, size_t currSelected) {
     if (keyState[SDL_SCANCODE_UP])
         currSelected = HandleUpInput(currSelected);
     else if (keyState[SDL_SCANCODE_DOWN])
@@ -170,13 +168,13 @@ size_t StageSelect::HandleSelectedChange(const Uint8 *keyState, size_t currSelec
 // LÓGICA DE NAVEGAÇÃO (GRID SYSTEM)
 // --------------------------------------------------------------------------
 
-int StageSelect::GetColumnFromIndex(size_t index) const {
+int StageSelect::GetColumnFromIndex(size_t index) {
     // Coluna 0: Botão Esquerdo (Apenas índice 0)
     if (index == 0) return 0;
 
     // Constantes dinâmicas baseadas no tamanho dos vetores
-    const size_t col1Size = 4; // Ou mCol1Data.size() se eu quiser tornar membro
-    const size_t col2Size = 4; // Ou mCol2Data.size()
+    constexpr size_t col1Size = 4; // Ou mCol1Data.size() se eu quiser tornar membro
+    constexpr size_t col2Size = 4; // Ou mCol2Data.size()
 
     // Coluna 1: Indices 1 até 4
     if (index <= col1Size) return 1;
@@ -190,9 +188,9 @@ int StageSelect::GetColumnFromIndex(size_t index) const {
 
 /* Qual índice do vetor começa a coluna colIndex?
  */
-size_t StageSelect::GetColumnStartIndex(int colIndex) const {
-    const size_t col1Size = 4;
-    const size_t col2Size = 4;
+size_t StageSelect::GetColumnStartIndex(int colIndex) {
+    constexpr size_t col1Size = 4;
+    constexpr size_t col2Size = 4;
 
     switch (colIndex) {
         case 0: return 0;
@@ -205,9 +203,9 @@ size_t StageSelect::GetColumnStartIndex(int colIndex) const {
 
 /* Qual o tamanho da coluna colIndex?
  */
-size_t StageSelect::GetColumnSize(int colIndex) const {
-    const size_t col1Size = 4;
-    const size_t col2Size = 4;
+size_t StageSelect::GetColumnSize(const int colIndex) {
+    constexpr size_t col1Size = 4;
+    constexpr size_t col2Size = 4;
 
     switch (colIndex) {
         case 0: return 1;
@@ -220,10 +218,10 @@ size_t StageSelect::GetColumnSize(int colIndex) const {
 
 // --------------------------------------------------------------------------
 
-size_t StageSelect::HandleUpInput(const size_t currSelected) const {
-    int col = GetColumnFromIndex(currSelected);
-    size_t colStart = GetColumnStartIndex(col);
-    size_t colSize = GetColumnSize(col);
+size_t StageSelect::HandleUpInput(const size_t currSelected) {
+    const int col = GetColumnFromIndex(currSelected);
+    const size_t colStart = GetColumnStartIndex(col);
+    const size_t colSize = GetColumnSize(col);
 
     // Se a coluna só tem 1 item (bordas), cima/baixo não faz nada
     if (colSize <= 1) return currSelected;
@@ -239,38 +237,38 @@ size_t StageSelect::HandleUpInput(const size_t currSelected) const {
     return currSelected - 1;
 }
 
-size_t StageSelect::HandleDownInput(const size_t currSelected) const {
-    int col = GetColumnFromIndex(currSelected);
-    size_t colStart = GetColumnStartIndex(col);
-    size_t colSize = GetColumnSize(col);
+size_t StageSelect::HandleDownInput(const size_t currSelected) {
+    const int col = GetColumnFromIndex(currSelected);
+    const size_t colStart = GetColumnStartIndex(col);
+    const size_t colSize = GetColumnSize(col);
 
     if (colSize <= 1) return currSelected;
 
     // Se for o último, volta para o primeiro
-    if (size_t relativeIndex = currSelected - colStart; relativeIndex == colSize - 1) {
+    if (const size_t relativeIndex = currSelected - colStart; relativeIndex == colSize - 1) {
         return colStart;
     }
 
     return currSelected + 1;
 }
 
-size_t StageSelect::HandleLeftInput(const size_t currSelected) const {
-    int col = GetColumnFromIndex(currSelected);
+size_t StageSelect::HandleLeftInput(const size_t currSelected) {
+    const int col = GetColumnFromIndex(currSelected);
 
     // Se já estamos na extrema esquerda, ir para a extrema direita
     // Posso bloquear tbm.. mas vou fazer ir pro outro lado para ficar fluido.
     if (col == 0) return NUM_STAGES - 1;
 
-    int targetCol = col - 1;
-    size_t targetStart = GetColumnStartIndex(targetCol);
-    size_t targetSize = GetColumnSize(targetCol);
+    const int targetCol = col - 1;
+    const size_t targetStart = GetColumnStartIndex(targetCol);
+    const size_t targetSize = GetColumnSize(targetCol);
 
     // Agora calculamos para qual ALTURA vamos.
     // Se estou saindo de uma lista grande para uma pequena (ex: Col 1 -> Col 0), vou para o meio.
     // Se estou saindo de uma lista igual para igual (Col 2 -> Col 1), mantenho a linha.
 
-    size_t currentStart = GetColumnStartIndex(col);
-    size_t currentRow = currSelected - currentStart; // Linha atual (0, 1, 2...)
+    const size_t currentStart = GetColumnStartIndex(col);
+    const size_t currentRow = currSelected - currentStart; // Linha atual (0, 1, 2...)
 
     if (targetSize == 1) {
         // Indo para um botão solitário (centro vertical)
@@ -284,26 +282,25 @@ size_t StageSelect::HandleLeftInput(const size_t currSelected) const {
 
     // Caso especial: Se viemos de um botão solitário (Col 3 -> Col 2),
     // queremos ir para o MEIO da lista, não para o topo.
-    size_t currentSize = GetColumnSize(col);
-    if (currentSize == 1 && targetSize > 1) {
+    if (const size_t currentSize = GetColumnSize(col); currentSize == 1 && targetSize > 1) {
         targetRow = targetSize / 2 - 1; // Vai para o meio
     }
 
     return targetStart + targetRow;
 }
 
-size_t StageSelect::HandleRightInput(const size_t currSelected) const {
-    int col = GetColumnFromIndex(currSelected);
+size_t StageSelect::HandleRightInput(const size_t currSelected) {
+    const int col = GetColumnFromIndex(currSelected);
 
     // Se estamos na última coluna, volta para a primeira (Wrap)
     if (col == 3) return 0;
 
-    int targetCol = col + 1;
-    size_t targetStart = GetColumnStartIndex(targetCol);
-    size_t targetSize = GetColumnSize(targetCol);
+    const int targetCol = col + 1;
+    const size_t targetStart = GetColumnStartIndex(targetCol);
+    const size_t targetSize = GetColumnSize(targetCol);
 
-    size_t currentStart = GetColumnStartIndex(col);
-    size_t currentRow = currSelected - currentStart;
+    const size_t currentStart = GetColumnStartIndex(col);
+    const size_t currentRow = currSelected - currentStart;
 
     // Lógica simétrica ao LeftInput
     if (targetSize == 1) {
@@ -324,10 +321,9 @@ size_t StageSelect::HandleRightInput(const size_t currSelected) const {
 
 
 
-bool StageSelect::IsInBorder(size_t currSelected) const {
+bool StageSelect::IsInBorder(const size_t currSelected) {
 
     return currSelected == 0 || currSelected == NUM_STAGES - 1;
-
 }
 
 void StageSelect::OnUpdate(float deltaTime) {

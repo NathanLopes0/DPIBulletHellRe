@@ -15,6 +15,7 @@
 #include "../../Attacks/AttackParameters/AttackParams.h"
 #include "Bosses/BossesProjectiles/BossProjectile.h"
 
+class IMovementStrategy;
 class FSMComponent;
 class ProjectileManager;
 class Player;
@@ -51,12 +52,16 @@ public:
 
     void SetInitialState(const std::string& stateName);
     void SetProjectileFactory(std::unique_ptr<ProjectileFactory> factory);
-    ProjectileFactory* GetProjectileFactory();
+    ProjectileFactory* GetProjectileFactory() const;
+
+    Vector2 GetDirectionToPlayer() const;
+
+    void RegisterMovementStrategy(const std::string& stateName, std::unique_ptr<IMovementStrategy> strategy);
 
 
 protected:
     virtual void CustomizeAttackParams(AttackParams& params, const std::string& stateName);
-    Vector2 GetDirectionToPlayer();
+
 
 private:
     // Função interna para executar um ataque específico
@@ -67,5 +72,9 @@ private:
 
     // Mapeia: Nome do Estado -> Lista de Definições de Ataque
     std::map<std::string, std::vector<AttackDefinition>> mAttacksMap;
+
+    std::map<std::string, std::unique_ptr<IMovementStrategy>> mMovementStrategies;
+    IMovementStrategy* mCurrentMovementStrategy = nullptr;
+    std::string mLastStateName {}; // Para detectar mudança de estado
 
 };

@@ -40,12 +40,12 @@ private:
 
     // --- Funções Auxiliares de CreateStageButtons ---
     void CreateButton(const std::string &text, Game::GameSubject subject, const Vector2 &position);
-    size_t HandleSelectedChange(const Uint8 *keyState, size_t currSelected) const;
-    size_t HandleUpInput(size_t currSelected) const;
-    size_t HandleDownInput(size_t currSelected) const;
-    size_t HandleLeftInput(size_t currSelected) const;
-    size_t HandleRightInput(size_t currSelected) const;
-    [[nodiscard]] bool IsInBorder(size_t currSelected) const;
+    static size_t HandleSelectedChange(const Uint8 *keyState, size_t currSelected) ;
+    static size_t HandleUpInput(size_t currSelected) ;
+    static size_t HandleDownInput(size_t currSelected) ;
+    static size_t HandleLeftInput(size_t currSelected) ;
+    static size_t HandleRightInput(size_t currSelected) ;
+    static bool IsInBorder(size_t currSelected) ;
 
     // --- Constantes de Design ---
     static constexpr int NUM_STAGES = 10; // Quantas matérias teremos no jogo
@@ -64,13 +64,13 @@ private:
 
     // --- Auxiliares de Navegação ---
     // Retorna em qual coluna visual o índice atual está (0 a 3)
-    [[nodiscard]] int GetColumnFromIndex(size_t index) const;
+    static int GetColumnFromIndex(size_t index) ;
 
     // Retorna o índice inicial da coluna especificada
-    [[nodiscard]] size_t GetColumnStartIndex(int colIndex) const;
+    static size_t GetColumnStartIndex(int colIndex) ;
 
     // Retorna quantos itens existem na coluna especificada
-    [[nodiscard]] size_t GetColumnSize(int colIndex) const;
+    static size_t GetColumnSize(int colIndex);
 
 };
 
