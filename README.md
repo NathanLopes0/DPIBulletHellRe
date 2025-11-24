@@ -1,5 +1,7 @@
 ### Refatoração
-Esse projeto é uma refatoração do projeto abaixo, usando técnicas de Engenharia de Software pra melhorar manutenção e escalabilidade visando adicionar os 10 bosses e outros sistemas.
+Esse projeto é uma refatoração do projeto abaixo, usando técnicas de Engenharia de Software pra melhorar manutenção e escalabilidade visando adicionar os 10 bosses que pensei inicialmente e outros sistemas e ideias.
+
+[Link do repositório do projeto original](https://github.com/ufv-inf216/projeto-final-NathanLopes0)
 
 ## Informações Iniciais
 INF 216 - Projeto e Implementação de Jogos Digitais, 2023.2
