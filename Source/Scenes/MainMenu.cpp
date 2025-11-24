@@ -27,7 +27,7 @@ void MainMenu::Load() {
 void MainMenu::OnProcessInput(const Uint8 *keyState) {
 
     if(keyState[SDL_SCANCODE_SPACE])
-        mGame->ChangeScene(SceneType::StageSelect);
+        mGame->RequestSceneChange(SceneType::StageSelect);
 }
 
 void MainMenu::OnUpdate(float deltaTime) {

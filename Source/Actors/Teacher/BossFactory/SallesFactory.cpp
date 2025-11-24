@@ -13,9 +13,9 @@
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
 
-#define STATE_ONE_DURATION 1.f
-#define STATE_TWO_DURATION 1.f
-#define STATE_THREE_DURATION 1.f
+#define STATE_ONE_DURATION 17.f
+#define STATE_TWO_DURATION 17.f
+#define STATE_THREE_DURATION 17.f
 #define STATE_FINAL_DURATION 17.f
 
 SallesFactory::SallesFactory(Game* game)
@@ -94,8 +94,6 @@ void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm, ProjectileF
                                                       /*nextState*/ "StateTwo");
     fsm->RegisterState(std::move(stateObj));
 }
-
-
 void SallesFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm, ProjectileFactory* spawner)
 {
 
@@ -125,7 +123,6 @@ void SallesFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm, ProjectileF
                                                       /*nextState*/ "StateThree");
     fsm->RegisterState(std::move(stateObj));
 }
-
 void SallesFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) {
     const std::string STATE_NAME = "StateThree";
 
@@ -153,7 +150,6 @@ void SallesFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm, Projectil
 
     fsm->RegisterState(std::move(stateObj));
 }
-
 void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) {
     const std::string STATE_NAME = "StateFinal";
 

@@ -44,6 +44,10 @@ void BossAttackState::HandleStateTransition(float stateTime)
                 mNextStateName = "Reproved";
             }
         }
+
+        if (mNextStateName == "Approved" || mNextStateName == "Reproved") {
+            game->RequestSceneChange(Scene::SceneType::StageSelect);
+        }
     }
 
 

@@ -58,7 +58,8 @@ public:
 
     //Scenes
     [[nodiscard]] Scene* GetScene() const { return mScene.get(); }
-    void ChangeScene(Scene::SceneType sceneType);
+    void RequestSceneChange(Scene::SceneType nextScene);
+
 
     [[nodiscard]] Scene::SceneType GetCurrSceneType() const;
 
@@ -112,7 +113,12 @@ private:
     //Selected Stage, used by Battle on ChangeScene()
     GameSubject mSelectedStage{};
 
+    bool mPendingSceneChange;
+    Scene::SceneType mNextScene;
+
 
     void InitializeBossFactory();
     void InitializeGrades();
+
+    void ChangeScene(Scene::SceneType sceneType);
 };

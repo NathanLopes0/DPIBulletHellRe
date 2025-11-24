@@ -26,62 +26,92 @@ void StageSelect::Load() {
 }
 
 void StageSelect::CreateStageButtons() {
+    // 1. Definições de Tamanho e Bordas
+    constexpr float buttonWidth = 128.0f;
+    constexpr float buttonHeight = 64.0f;
 
-    float espacamentoX = 162; //espaçamento horizontal entre botões
-    float espacamentoY = 140; //espaçamento vertical entre botões
+    // Obtendo dimensões da tela uma única vez para clareza
+    const auto screenW = static_cast<float>(mGame->GetWindowWidth());
+    const auto screenH = static_cast<float>(mGame->GetWindowHeight());
 
-    float buttonWidth = 128;
-    float buttonHeight = 64;
+    // Margens (1/12 da tela)
+    const float marginX = screenW / 12.0f;
+    const float marginY = screenH / 12.0f;
 
-    const float widthBorder = static_cast<float>(mGame->GetWindowWidth()) / 12;    //margem horizontal
-    const float heightBorder = static_cast<float>(mGame->GetWindowHeight()) / 12;  //margem vertical
+    // 2. Definindo os Limites Horizontais (Âncoras X)
+    // Onde começa o layout (lado esquerdo) e onde termina (lado direito)
+    const float startX = marginX + buttonWidth / 2.0f;
+    const float endX = screenW - (marginX + buttonWidth / 2.0f);
 
-    // -------- COMEÇAR REFATORAÇÃO AQUI --------- //
+    // Calculamos o passo horizontal (3 intervalos para 4 colunas visuais, por isso divide por 3)
+    const float stepX = (endX - startX) / 3.0f;
 
-    CreateButton("INF 213",Game::INF213,
-        Vector2(widthBorder + buttonWidth / 2.f,
-        mGame->GetWindowHeight() / 2.f));
+    // 3. Definindo os Limites Verticais (Âncoras Y) para as Colunas
+    // Definir o topo e o fundo baseados na margem Y.
+    const float startY = marginY + buttonHeight / 2.0f;
+    const float endY = screenH - (marginY + buttonHeight / 2.0f);
 
-    const std::vector<std::pair<std::string, Game::GameSubject>> col1 = {
+    // Dados das colunas
+    const std::vector<std::pair<std::string, Game::GameSubject>> col1Data = {
         {"INF 250", Game::GameSubject::INF250},
         {"INF 220", Game::GameSubject::INF220},
         {"INF 330", Game::GameSubject::INF330},
         {"INF 332", Game::GameSubject::INF332}
     };
 
-    const std::vector<std::pair<std::string, Game::GameSubject>> col2 = {
+    const std::vector<std::pair<std::string, Game::GameSubject>> col2Data = {
         {"INF 420", Game::GameSubject::INF420},
         {"BIOINF", Game::GameSubject::BIOINF},
         {"INF394", Game::GameSubject::INF394},
         {"VISCPP", Game::GameSubject::VISCCP}
     };
 
+    // 4. Cálculo do Passo Vertical (Step Y)
+    // Para que as colunas fiquem alinhadas, precisamos saber qual tem mais itens.
+    // (Programando defensivamente. Atualmente as duas tem 4 itens, mas vai que né)
+    size_t maxRows = std::max(col1Data.size(), col2Data.size());
 
-    // --- PRIMEIRA COLUNA DE BOTÕES --- //
-    float area2x = widthBorder + buttonWidth / 2.0f + espacamentoX;
-    for (size_t i = 0; i < col1.size(); i++) {
-        const float area2y = heightBorder + buttonHeight/2.0f + i * (espacamentoY + buttonHeight);
-        CreateButton(col1[i].first, col1[i].second, Vector2(area2x, area2y));
+    // Evita divisão por zero se as listas estiverem vazias ou tiverem apenas 1 item
+    float stepY = 0.0f;
+    if (maxRows > 1) {
+        stepY = (endY - startY) / static_cast<float>(maxRows - 1);
     }
 
-    area2x += espacamentoX;
-    for (size_t i = 0; i < col2.size(); i++) {
-        const float area2y = heightBorder + buttonHeight/2.0f + i * (espacamentoY + buttonHeight);
-        CreateButton(col2[i].first, col2[i].second, Vector2(area2x, area2y));
-    }
+    // ---------------------------------------------------------
+    // CRIAÇÃO DOS BOTÕES
+    // ---------------------------------------------------------
 
-    CreateButton("TCC", Game::GameSubject::TCC, Vector2(
-        mGame->GetWindowWidth() - (widthBorder + buttonWidth / 2.0f),
-        mGame->GetWindowHeight() / 2.f));
+    // Botão Solitário da Esquerda (INF 213) - Centralizado verticalmente na tela
+    CreateButton("INF 213", Game::INF213, Vector2(startX, screenH / 2.0f));
 
+    // Função Lambda para criar colunas com a nova lógica vertical
+    auto CreateColumn = [&](const auto& data, const float xPos) {
+        for (size_t i = 0; i < data.size(); i++) {
+            // Lerp vertical
+            // Se só tiver 1 item, coloca no startY. Se tiver mais, distribui.
+            const float yPos = (maxRows > 1) ? (startY + stepY * i) : startY;
 
+            CreateButton(data[i].first, data[i].second, Vector2(xPos, yPos));
+        }
+    };
 
+    // Criar Coluna 1 (Posição X: Início + 1 passo)
+    CreateColumn(col1Data, startX + stepX);
+
+    // Criar Coluna 2 (Posição X: Início + 2 passos)
+    CreateColumn(col2Data, startX + (stepX * 2.0f));
+
+    // Botão Solitário da Direita (TCC) - Centralizado verticalmente na tela
+    CreateButton("TCC", Game::GameSubject::TCC, Vector2(endX, screenH / 2.0f));
+
+    // 5. Inicialização da Seleção
     if (!mButtonObservers.empty()) {
-        mButtonObservers[0]->ChangeSelected();
-        mSelectedSubject = mButtonObservers[0]->GetSubject(); // Usa o enum, não um int!
+        // Validação de segurança: sempre cheque ponteiros brutos em vetores
+        if (mButtonObservers[0]) {
+            mButtonObservers[0]->ChangeSelected();
+            mSelectedSubject = mButtonObservers[0]->GetSubject();
+        }
     }
-
-
 }
 
 void StageSelect::CreateButton(const std::string& text, Game::GameSubject subject, const Vector2& position) {
@@ -121,7 +151,7 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
 
     if (keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_SPACE]) {
         mGame->SetSelectedStage(mSelectedSubject);
-        mGame->ChangeScene(SceneType::Battle);
+        mGame->RequestSceneChange(SceneType::Battle);
     }
 }
 
@@ -154,7 +184,6 @@ size_t StageSelect::HandleUpInput(const size_t currSelected) const {
         return currSelected - 1;
     }
 
-    SDL_Log("HandleUpInput em StageSelect.cpp: Nao esta retornando valores desejados");
     return currSelected;
 }
 size_t StageSelect::HandleDownInput(const size_t currSelected) const {
@@ -173,7 +202,6 @@ size_t StageSelect::HandleDownInput(const size_t currSelected) const {
         return currSelected + 1;
     }
 
-    SDL_Log("HandleDownInput em StageSelect.cpp: Nao esta retornando valores desejados");
     return currSelected;
 }
 size_t StageSelect::HandleLeftInput(const size_t currSelected) const {
@@ -186,20 +214,16 @@ size_t StageSelect::HandleLeftInput(const size_t currSelected) const {
         return Random::GetIntRange(6,7);
     }
 
-    SDL_Log("Handle Left Input em StageSelect.cpp: Nao esta retornando valores desejados");
     return currSelected;
 }
 size_t StageSelect::HandleRightInput(const size_t currSelected) const {
     if (!IsInBorder(currSelected)) {
-        SDL_Log("Não estamos na borda");
         return Math::Min<size_t>(currSelected + 4, NUM_STAGES - 1);
     }
     if (currSelected == 0) {
-        SDL_Log("Estamos na borda direita, matéria 0");
         return Random::GetIntRange(2, 3);
     }
 
-    SDL_Log("HandleRightInput em StageSelect.cpp: Nao esta retornando valores desejados");
     return currSelected;
 }
 

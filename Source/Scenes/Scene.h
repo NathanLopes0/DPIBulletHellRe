@@ -18,6 +18,7 @@ class Scene {
 public:
     enum class SceneType
     {
+        None,
         MainMenu,
         StageSelect,
         Battle

@@ -24,7 +24,9 @@ Game::Game(int windowWidth, int windowHeight)
     mTicksCount(0),
     mIsGameRunning(true),
     mScene(nullptr),
-    mSelectedStage(INF213)
+    mSelectedStage(INF213),
+    mPendingSceneChange(false),
+    mNextScene(Scene::SceneType::None)
 {
 
 }
@@ -87,7 +89,7 @@ void Game::LoadInitialScene()
 {
 
     InitializeBossFactory();
-    ChangeScene(Scene::SceneType::Battle);
+    ChangeScene(Scene::SceneType::MainMenu);
 
 }
 
@@ -138,6 +140,13 @@ void Game::UpdateGame()
         mScene->Update(deltaTime);
     }
     UpdateCamera();
+
+    if (mPendingSceneChange)
+    {
+        ChangeScene(mNextScene);
+        mPendingSceneChange = false;
+        mNextScene = Scene::SceneType::None;
+    }
 
 }
 
@@ -255,3 +264,9 @@ void Game::InitializeGrades() {
 Scene::SceneType Game::GetCurrSceneType() const {
     return mScene->GetType();
 }
+
+void Game::RequestSceneChange(const Scene::SceneType nextScene) {
+    mPendingSceneChange = true;
+    mNextScene = nextScene;
+}
+
