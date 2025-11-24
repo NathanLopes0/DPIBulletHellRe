@@ -127,7 +127,6 @@ void StageSelect::CreateStaticUI() {
 }
 void StageSelect::OnProcessInput(const Uint8 *keyState) {
 
-    keyState = SDL_GetKeyboardState(nullptr);
     HandleSelectionInput(keyState);
 
 }
@@ -167,64 +166,160 @@ size_t StageSelect::HandleSelectedChange(const Uint8 *keyState, size_t currSelec
 
     return currSelected;
 }
+// --------------------------------------------------------------------------
+// LÓGICA DE NAVEGAÇÃO (GRID SYSTEM)
+// --------------------------------------------------------------------------
+
+int StageSelect::GetColumnFromIndex(size_t index) const {
+    // Coluna 0: Botão Esquerdo (Apenas índice 0)
+    if (index == 0) return 0;
+
+    // Constantes dinâmicas baseadas no tamanho dos vetores
+    const size_t col1Size = 4; // Ou mCol1Data.size() se eu quiser tornar membro
+    const size_t col2Size = 4; // Ou mCol2Data.size()
+
+    // Coluna 1: Indices 1 até 4
+    if (index <= col1Size) return 1;
+
+    // Coluna 2: Indices 5 até 8
+    if (index <= col1Size + col2Size) return 2;
+
+    // Coluna 3: O resto (Botão Direito)
+    return 3;
+}
+
+/* Qual índice do vetor começa a coluna colIndex?
+ */
+size_t StageSelect::GetColumnStartIndex(int colIndex) const {
+    const size_t col1Size = 4;
+    const size_t col2Size = 4;
+
+    switch (colIndex) {
+        case 0: return 0;
+        case 1: return 1;
+        case 2: return 1 + col1Size;
+        case 3: return 1 + col1Size + col2Size;
+        default: return 0;
+    }
+}
+
+/* Qual o tamanho da coluna colIndex?
+ */
+size_t StageSelect::GetColumnSize(int colIndex) const {
+    const size_t col1Size = 4;
+    const size_t col2Size = 4;
+
+    switch (colIndex) {
+        case 0: return 1;
+        case 1: return col1Size;
+        case 2: return col2Size;
+        case 3: return 1;
+        default: return 0;
+    }
+}
+
+// --------------------------------------------------------------------------
+
 size_t StageSelect::HandleUpInput(const size_t currSelected) const {
+    int col = GetColumnFromIndex(currSelected);
+    size_t colStart = GetColumnStartIndex(col);
+    size_t colSize = GetColumnSize(col);
 
-    /*
-     * Caso estejamos em alguma borda superior e o jogador apertar pra subir,
-     * jogar a seleção lá pra baixo.
-     */
+    // Se a coluna só tem 1 item (bordas), cima/baixo não faz nada
+    if (colSize <= 1) return currSelected;
 
-    if (currSelected == 1) {
-        return 4;
-    }
-    if (currSelected == 5) {
-        return 8;
-    }
-    if (!IsInBorder(currSelected)) {
-        return currSelected - 1;
+    // Lógica Cíclica:
+    // Posição relativa dentro da coluna (0 a N-1)
+
+    // Se for o primeiro (0), vai para o último (Size - 1)
+    if (const size_t relativeIndex = currSelected - colStart; relativeIndex == 0) {
+        return colStart + (colSize - 1);
     }
 
-    return currSelected;
+    return currSelected - 1;
 }
+
 size_t StageSelect::HandleDownInput(const size_t currSelected) const {
-    /*
-     * Caso estejamos na borda inferior (4 e 8) e o jogador apertar pra baixo,
-     * joga a seleção lá pra cima.
-     */
+    int col = GetColumnFromIndex(currSelected);
+    size_t colStart = GetColumnStartIndex(col);
+    size_t colSize = GetColumnSize(col);
 
-    if (currSelected == 4) {
-        return 1;
-    }
-    if (currSelected == 8) {
-        return 5;
-    }
-    if (!IsInBorder(currSelected)) {
-        return currSelected + 1;
+    if (colSize <= 1) return currSelected;
+
+    // Se for o último, volta para o primeiro
+    if (size_t relativeIndex = currSelected - colStart; relativeIndex == colSize - 1) {
+        return colStart;
     }
 
-    return currSelected;
+    return currSelected + 1;
 }
+
 size_t StageSelect::HandleLeftInput(const size_t currSelected) const {
-    if (!IsInBorder(currSelected)) {
-        if (currSelected < 5) return 0;
-        return currSelected - 4;
+    int col = GetColumnFromIndex(currSelected);
+
+    // Se já estamos na extrema esquerda, ir para a extrema direita
+    // Posso bloquear tbm.. mas vou fazer ir pro outro lado para ficar fluido.
+    if (col == 0) return NUM_STAGES - 1;
+
+    int targetCol = col - 1;
+    size_t targetStart = GetColumnStartIndex(targetCol);
+    size_t targetSize = GetColumnSize(targetCol);
+
+    // Agora calculamos para qual ALTURA vamos.
+    // Se estou saindo de uma lista grande para uma pequena (ex: Col 1 -> Col 0), vou para o meio.
+    // Se estou saindo de uma lista igual para igual (Col 2 -> Col 1), mantenho a linha.
+
+    size_t currentStart = GetColumnStartIndex(col);
+    size_t currentRow = currSelected - currentStart; // Linha atual (0, 1, 2...)
+
+    if (targetSize == 1) {
+        // Indo para um botão solitário (centro vertical)
+        return targetStart;
     }
 
-    if (currSelected == NUM_STAGES - 1) {
-        return Random::GetIntRange(6,7);
+    // Indo para uma coluna com vários itens.
+    // Tentamos manter o mesmo índice de linha (currentRow).
+    // Mas se a coluna destino for menor, usamos clamp (Math::Min).
+    size_t targetRow = std::min(currentRow, targetSize - 1);
+
+    // Caso especial: Se viemos de um botão solitário (Col 3 -> Col 2),
+    // queremos ir para o MEIO da lista, não para o topo.
+    size_t currentSize = GetColumnSize(col);
+    if (currentSize == 1 && targetSize > 1) {
+        targetRow = targetSize / 2 - 1; // Vai para o meio
     }
 
-    return currSelected;
+    return targetStart + targetRow;
 }
+
 size_t StageSelect::HandleRightInput(const size_t currSelected) const {
-    if (!IsInBorder(currSelected)) {
-        return Math::Min<size_t>(currSelected + 4, NUM_STAGES - 1);
-    }
-    if (currSelected == 0) {
-        return Random::GetIntRange(2, 3);
+    int col = GetColumnFromIndex(currSelected);
+
+    // Se estamos na última coluna, volta para a primeira (Wrap)
+    if (col == 3) return 0;
+
+    int targetCol = col + 1;
+    size_t targetStart = GetColumnStartIndex(targetCol);
+    size_t targetSize = GetColumnSize(targetCol);
+
+    size_t currentStart = GetColumnStartIndex(col);
+    size_t currentRow = currSelected - currentStart;
+
+    // Lógica simétrica ao LeftInput
+    if (targetSize == 1) {
+        return targetStart;
     }
 
-    return currSelected;
+    size_t targetRow = std::min(currentRow, targetSize - 1);
+
+    // Se saímos do botão solitário da esquerda (Col 0) para a Col 1,
+    // queremos cair no meio da lista.
+    size_t currentSize = GetColumnSize(col);
+    if (currentSize == 1 && targetSize > 1) {
+        targetRow = targetSize / 2 - 1;
+    }
+
+    return targetStart + targetRow;
 }
 
 

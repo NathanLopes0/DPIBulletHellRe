@@ -61,6 +61,17 @@ private:
     // Vetor de ponteiros OBSERVADORES para fácil acesso aos botões.
     // A memória real é gerenciada pelo vetor mActors.
     std::vector<StageSelectButton*> mButtonObservers;
+
+    // --- Auxiliares de Navegação ---
+    // Retorna em qual coluna visual o índice atual está (0 a 3)
+    [[nodiscard]] int GetColumnFromIndex(size_t index) const;
+
+    // Retorna o índice inicial da coluna especificada
+    [[nodiscard]] size_t GetColumnStartIndex(int colIndex) const;
+
+    // Retorna quantos itens existem na coluna especificada
+    [[nodiscard]] size_t GetColumnSize(int colIndex) const;
+
 };
 
 #endif //DPIBULLETHELLRE_STAGESELECT_H
