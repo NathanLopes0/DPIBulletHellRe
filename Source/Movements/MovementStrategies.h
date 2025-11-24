@@ -24,6 +24,12 @@ public:
 private:
     void PickNewTarget(Boss* boss);
 
+    float mHoverTimer = 0.0f;
+
+    // Constantes de Flutuação
+    const float HOVER_FREQ = 2.0f;   // Rapidez da flutuação
+    const float HOVER_AMP = 25.0f;   // Força da flutuação
+
     enum State { Moving, Idle };
     State mState;
     Vector2 mTargetPos;
@@ -44,6 +50,8 @@ public:
 private:
     float mSpeed;
     float mPreferredY;
+
+    float mHoverTimer = 0.0f;
 };
 
 // --- ESTRATÉGIA 3: STATIC CENTER ---

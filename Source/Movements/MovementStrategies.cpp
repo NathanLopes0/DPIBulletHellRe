@@ -11,18 +11,18 @@
 // =========================================================
 
 RandomWanderStrategy::RandomWanderStrategy(float interval, float speed, float margin)
-    : mChangeInterval(interval), mMoveSpeed(speed), mMargin(margin),
-      mWaitTimer(0.0f), mState(Idle), mIsMoving(false)
+    : mState(Idle), mChangeInterval(interval), mMoveSpeed(speed),
+      mMargin(margin), mWaitTimer(0.0f), mIsMoving(false)
 {
 }
-
 void RandomWanderStrategy::Initialize(Boss* boss) {
     PickNewTarget(boss);
 }
-
 void RandomWanderStrategy::Update(Boss* boss, float deltaTime) {
     auto rb = boss->GetComponent<RigidBodyComponent>();
     if (!rb) return;
+
+    mHoverTimer += deltaTime;
 
     if (mState == Moving) {
         Vector2 toTarget = mTargetPos - boss->GetPosition();
@@ -30,7 +30,12 @@ void RandomWanderStrategy::Update(Boss* boss, float deltaTime) {
 
         if (dist < 10.0f) {
             mState = Idle;
-            mWaitTimer = Random::GetFloatRange(1.0f, 2.5f);
+
+            // Ex: Se configurou 3.0s, ele espera entre 2.4s e 3.6s.
+            float minWait = mChangeInterval * 0.8f;
+            float maxWait = mChangeInterval * 1.2f;
+            mWaitTimer = Random::GetFloatRange(minWait, maxWait);
+
             rb->SetVelocity(Vector2::Zero);
         } else {
             toTarget.Normalize();
@@ -40,13 +45,13 @@ void RandomWanderStrategy::Update(Boss* boss, float deltaTime) {
     }
     else if (mState == Idle) {
         mWaitTimer -= deltaTime;
-        rb->SetVelocity(Vector2::Zero);
+        const float hoverVy = std::cos(mHoverTimer * HOVER_FREQ) * HOVER_AMP;
+        rb->SetVelocity(Vector2(0.0f, hoverVy));
         if (mWaitTimer <= 0.0f) {
             PickNewTarget(boss);
         }
     }
 }
-
 void RandomWanderStrategy::PickNewTarget(Boss* boss) {
     auto w = static_cast<float>(boss->GetScene()->GetGame()->GetWindowWidth());
     auto h = static_cast<float>(boss->GetScene()->GetGame()->GetWindowHeight());
@@ -70,17 +75,20 @@ HoverAbovePlayerStrategy::HoverAbovePlayerStrategy(float speed, float yLevel)
 void HoverAbovePlayerStrategy::Update(Boss* boss, float deltaTime) {
     auto rb = boss->GetComponent<RigidBodyComponent>();
 
+    mHoverTimer += deltaTime;
+
     float targetX = boss->GetPosition().x;
 
-    // AGORA ISSO FUNCIONA PORQUE INCLUÍMOS BATTLE.H NESTE ARQUIVO .CPP
-    if (auto battle = dynamic_cast<Battle*>(boss->GetScene())) {
-        if (auto player = battle->GetPlayer()) {
+    if (const auto battle = dynamic_cast<Battle*>(boss->GetScene())) {
+        if (const auto player = battle->GetPlayer()) {
             targetX = player->GetPosition().x;
         }
     }
 
     Vector2 currentPos = boss->GetPosition();
-    Vector2 desiredPos = Vector2(targetX, mPreferredY);
+    float hoverOffset = Math::Sin(mHoverTimer * 2.f) * 15.f;
+
+    Vector2 desiredPos = Vector2(targetX, mPreferredY + hoverOffset);
 
     Vector2 toTarget = desiredPos - currentPos;
 

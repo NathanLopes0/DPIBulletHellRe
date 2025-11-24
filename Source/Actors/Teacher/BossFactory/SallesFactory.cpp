@@ -95,7 +95,7 @@ void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm, ProjectileF
                                                       /*nextState*/ "StateTwo");
     fsm->RegisterState(std::move(stateObj));
 
-    boss->RegisterMovementStrategy(STATE_NAME, std::make_unique<RandomWanderStrategy>(100.f, 150.f));
+    boss->RegisterMovementStrategy(STATE_NAME, std::make_unique<RandomWanderStrategy>(3.f, 150.f));
 
 
 }
@@ -128,8 +128,8 @@ void SallesFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm, ProjectileF
                                                       /*nextState*/ "StateThree");
     fsm->RegisterState(std::move(stateObj));
 
-    boss->RegisterMovementStrategy("StateTwo",
-        std::make_unique<RandomWanderStrategy>(50.0f, 250.0f));
+    boss->RegisterMovementStrategy(STATE_NAME,
+        std::make_unique<RandomWanderStrategy>(6.0f, 300.0f));
 
 }
 void SallesFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) {
@@ -159,8 +159,8 @@ void SallesFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm, Projectil
 
     fsm->RegisterState(std::move(stateObj));
 
-    boss->RegisterMovementStrategy("StateThree",
-        std::make_unique<HoverAbovePlayerStrategy>());
+    boss->RegisterMovementStrategy(STATE_NAME,
+        std::make_unique<RandomWanderStrategy>(2.f, 300.f));
 
 }
 void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) {
@@ -208,8 +208,8 @@ void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm, Projectil
                                                         "StateOne");
     fsm->RegisterState(std::move(stateObj));
 
-    boss->RegisterMovementStrategy("StateTwo",
-        std::make_unique<RandomWanderStrategy>(50.0f, 250.0f));
+    boss->RegisterMovementStrategy(STATE_NAME,
+        std::make_unique<GoToCenterStrategy>());
 
 }
 
