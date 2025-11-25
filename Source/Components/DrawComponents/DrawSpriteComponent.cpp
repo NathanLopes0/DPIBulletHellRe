@@ -52,3 +52,10 @@ void DrawSpriteComponent::Draw(SDL_Renderer *renderer)
     SDL_RenderCopyEx(renderer, mSpriteSheetSurface, &srcrect, &dstrect,
                      0.0, nullptr, flipflag);
 }
+
+void DrawSpriteComponent::SetColor(Uint8 red, Uint8 green, Uint8 blue) {
+    if (mSpriteSheetSurface) { // ou mTexture, dependendo de como você chamou
+        SDL_SetTextureColorMod(mSpriteSheetSurface, red, green, blue);
+    }
+}
+

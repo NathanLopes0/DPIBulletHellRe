@@ -17,6 +17,8 @@ public:
     [[nodiscard]] int GetSpriteWidth() const { return mWidth; }
     [[nodiscard]] int GetSpriteHeight() const { return mHeight; }
 
+    void SetColor(Uint8 red, Uint8 green, Uint8 blue);
+
 protected:
     SDL_Texture* mSpriteSheetSurface;
 

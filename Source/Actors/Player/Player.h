@@ -25,6 +25,7 @@ public:
     void SetIsInvincible(const bool invincible) { isInvincible = invincible; }
     [[nodiscard]] bool GetIsInvincible() const { return isInvincible; }
 
+    [[nodiscard]] int GetExtraPoints() const { return mExtraPoints;}
     void AddExtraPoint();
 
 
@@ -36,9 +37,10 @@ private:
     float invincibleTimer;
     bool isInvincible;
     bool mMoving;                       //ve se o jogador está se movendo. Usada para mudar a animação
-    int mExtraPoints = 0;
+    int mExtraPoints = 3;
     float mOverloadTimer = 0.0f;
     const float OVERLOAD_DURATION = 3.f;
+    float mPulseTimer = 0.0f;
 
 
 

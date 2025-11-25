@@ -93,8 +93,6 @@ void Player::InvincibleUpdate(float deltaTime) {
 
 
 }
-
-
 void Player::MoveInput(const Uint8 *keyState) {
 
     float newXSpeed = 0;
@@ -190,8 +188,43 @@ void Player::BorderLimitCheck() {
 }
 
 void Player::UpdateOverload(float deltaTime) {
+
+    auto dc = GetComponent<DrawAnimatedComponent>();
+    if (!dc) return;
+
     if (mOverloadTimer > 0.0f) {
         mOverloadTimer -= deltaTime;
+
+        // --- LÓGICA DO PISCAR VERMELHO ---
+
+        // 1. Calcula a velocidade do piscar (Frequência)
+        // Quanto MENOR o timer (mais perto de acabar), MAIOR a frequência.
+        // Começa com 5.0f e aumenta + 15.0f para cada segundo que passou.
+        float freq = 5.0f + (OVERLOAD_DURATION - mOverloadTimer) * 15.0f;
+
+        mPulseTimer += freq * deltaTime;
+        // 2. Oscilador (Seno)
+        // Gera um número entre -1 e 1
+        float osc = Math::Sin(mPulseTimer);
+
+        // 3. Define a cor
+        // Quando oscilador for 1 -> Branco (255, 255, 255)
+        // Quando oscilador for -1 -> Vermelho (255, 0, 0)
+
+        // Mapeia [-1, 1] para [0, 255] nos canais Verde e Azul
+        Uint8 gb = static_cast<Uint8>((osc + 1.0f) * 127.5f);
+
+        // Vermelho sempre 255. Verde e Azul oscilam.
+        // Se GB for 255 -> Branco. Se GB for 0 -> Vermelho Puro.
+        dc->SetColor(255, gb, gb);
+
+
+    } else {
+        // --- ESTADO NORMAL ---
+        // Garante que o player volte a ser branco quando o tempo acabar
+
+        dc->SetColor(255, 255, 255);
+        mPulseTimer = 0.0f;
     }
 }
 
