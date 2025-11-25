@@ -7,10 +7,11 @@
 #include "../Random.h"
 #include "../Actors/Buttons/StageSelectButton.h"
 #include "../Font.h"
+#include "../Components/DrawComponents/DrawTextComponent.h"
 
 StageSelect::StageSelect(Game *game) : Scene(game, SceneType::StageSelect)
-, mStageSelectFont(std::make_unique<Font>())
-, mInputTimer(INPUT_DELAY)
+                                       , mStageSelectFont(std::make_unique<Font>())
+                                       , mInputTimer(INPUT_DELAY)
 {
 
     mStageSelectFont->Load("../Assets/Fonts/Zelda.ttf");
@@ -115,7 +116,9 @@ void StageSelect::CreateStageButtons() {
 }
 
 void StageSelect::CreateButton(const std::string& text, Game::GameSubject subject, const Vector2& position) {
-    auto button = std::make_unique<StageSelectButton>(this, text, subject, "../Assets/Fonts/Zelda.ttf");
+
+    bool unlocked = mGame->IsStageUnlocked(subject);
+    auto button = std::make_unique<StageSelectButton>(this, text, subject, "../Assets/Fonts/Zelda.ttf", !unlocked);
     button->SetPosition(position);
 
     mButtonObservers.push_back(button.get());
@@ -128,7 +131,6 @@ void StageSelect::CreateStaticUI() {
 void StageSelect::OnProcessInput(const Uint8 *keyState) {
     HandleSelectionInput(keyState);
 }
-
 void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
 
     size_t currSelected = mSelectedIndex;
@@ -146,7 +148,7 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
         mInputTimer = 0.0f;
     }
 
-    if (keyState[SDL_SCANCODE_RETURN]) {
+    if (keyState[SDL_SCANCODE_RETURN] && mGame->IsStageUnlocked(mSelectedSubject)) {
         mGame->SetSelectedStage(mSelectedSubject);
         mGame->RequestSceneChange(SceneType::Battle);
     }

@@ -32,6 +32,7 @@ void DrawTextComponent::SetText(const std::string &text)
 
 void DrawTextComponent::Draw(SDL_Renderer *renderer)
 {
+    if (!IsVisible()) return;
     Vector2 pos = mOwner->GetPosition();
 
     SDL_Rect renderQuad = {static_cast<int>(pos.x - mWidth/2.0f) ,

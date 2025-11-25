@@ -22,9 +22,9 @@ Player::Player(Scene* scene) :
     Actor(scene),
     playerSpeed(PLAYER_SPEED_START),
     atkTimer(ATK_TIMER_START_FULL),
-    mMoving(false),
+    invincibleTimer(0.0f),
     isInvincible(false),
-    invincibleTimer(0.0f)
+    mMoving(false)
 
 {
 

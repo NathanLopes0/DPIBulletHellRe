@@ -63,8 +63,7 @@ public:
 
     [[nodiscard]] Scene::SceneType GetCurrSceneType() const;
 
-    class IBossFactory* GetFactory(size_t n);
-
+    IBossFactory* GetFactory(size_t n);
 
     // Funções pra retornar o estágio escolhido em StageSelect (retorna INF213 caso não tenha sido modificado,
     // porque é oq foi definido no construtor)
@@ -76,6 +75,9 @@ public:
     float GetGrade(const GameSubject subject) { return mGrades[subject]; }
     void SetGrade(const GameSubject subject, const float grade) { mGrades[subject] = grade; }
     void SetGrade(int n, const float grade) { mGrades[static_cast<GameSubject>(n)] = grade; }
+
+    // Verifica se uma matéria específica está desbloqueada para jogar
+    bool IsStageUnlocked(GameSubject subject);
 
 private:
     void ProcessInput();
@@ -121,4 +123,8 @@ private:
     void InitializeGrades();
 
     void ChangeScene(Scene::SceneType sceneType);
+
+    bool HasPassed(GameSubject subject);
+
+    int CountPassedInList(const std::vector<GameSubject>& subjects);
 };

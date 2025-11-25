@@ -270,3 +270,68 @@ void Game::RequestSceneChange(const Scene::SceneType nextScene) {
     mNextScene = nextScene;
 }
 
+// Função auxiliar simples: Passou se nota >= 60
+bool Game::HasPassed(const GameSubject subject) {
+
+    // GetGrade retorna 0.0 se a matéria ainda não foi jogada, então funciona.
+    return GetGrade(subject) >= 60.0f;
+}
+
+// Função genérica para contar aprovações em uma lista
+int Game::CountPassedInList(const std::vector<GameSubject>& subjects) {
+    int passedCount = 0;
+    for (const auto& s : subjects) {
+        if (HasPassed(s)) {
+            passedCount++;
+        }
+    }
+    return passedCount;
+}
+
+bool Game::IsStageUnlocked(GameSubject subject) {
+    // ---------------------------------------------------------
+    // REGRA 1: INF 213 (Primeira Coluna) é sempre desbloqueada
+    // ---------------------------------------------------------
+    if (subject == GameSubject::INF213) return true;
+
+    // Definindo as colunas (conforme seu StageSelect.cpp)
+    const std::vector<GameSubject> col2 = {
+        GameSubject::INF250, GameSubject::INF220,
+        GameSubject::INF330, GameSubject::INF332
+    };
+
+    const std::vector<GameSubject> col3 = {
+        GameSubject::INF420, GameSubject::BIOINF,
+        GameSubject::INF394, GameSubject::VISCCP
+    };
+
+    // ---------------------------------------------------------
+    // REGRA 2: Coluna 2 desbloqueia se passou em INF 213
+    // ---------------------------------------------------------
+    // Verifica se o 'subject' atual está na lista da coluna 2
+    for (auto s : col2) {
+        if (s == subject) {
+            return HasPassed(GameSubject::INF213);
+        }
+    }
+
+    // ---------------------------------------------------------
+    // REGRA 3: Coluna 3 desbloqueia se passou em 2 matérias da Coluna 2
+    // ---------------------------------------------------------
+    for (auto s : col3) {
+        if (s == subject) {
+            return CountPassedInList(col2) >= 2;
+        }
+    }
+
+    // ---------------------------------------------------------
+    // REGRA 4: TCC desbloqueia se passou em 2 matérias da Coluna 3
+    // ---------------------------------------------------------
+    if (subject == GameSubject::TCC) {
+        return CountPassedInList(col3) >= 2;
+    }
+
+    // Por segurança, bloqueia qualquer coisa desconhecida
+    return false;
+}
+

@@ -37,6 +37,7 @@ public:
     void OnPlayerUsedExtraPoint();
     void SpawnExtraPoint(Vector2 position);
 
+    void FinishBattle(bool approved);
 
 
 protected:
@@ -86,6 +87,15 @@ private:
     void GradeDown();
 
     std::vector<ExtraPointItem*> mExtraPoints;
+
+    void LoadEndScreen(); // Cria o texto escondido
+
+    // --- Variáveis de Final de Jogo ---
+    bool mIsEnding = false;
+    float mEndTimer = 0.0f;
+    bool mIsApproved = false; // Para saber pra onde ir ou que cor usar
+
+    Actor* mEndTextActor = nullptr; // O texto gigante
 
 };
 

@@ -9,10 +9,12 @@
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 
 StageSelectButton::StageSelectButton(Scene* scene, const std::string& buttonText,
-                                     const Game::GameSubject subject, const std::string& fontPath)
+                                     const Game::GameSubject subject, const std::string& fontPath,
+                                     const bool isLocked)
     : Button(scene)
     , mSubject(subject)
     , mFont(std::make_unique<Font>()) // Cria e assume a posse da fonte
+    , mIsLocked(isLocked)
 {
 
     // --- Configuração do Ator (herdado de Button) ---
@@ -34,6 +36,13 @@ StageSelectButton::StageSelectButton(Scene* scene, const std::string& buttonText
 
     // Passando a fonte para o DrawTextComponent usando mFont.get() porque to usando unique_ptr agr
     AddComponent<DrawTextComponent>(buttonText, mFont.get(), mWidth / 2, mHeight / 4, 24, 120);
+
+    if (mIsLocked) {
+        if (const auto textComp = GetComponent<DrawTextComponent>()) {
+            textComp->SetIsVisible(false);
+        }
+    }
+
 }
 
 
@@ -41,10 +50,17 @@ void StageSelectButton::OnUpdate(float deltaTime) {
     // Pede o componente de animação
     if (auto* anim = GetComponent<DrawAnimatedComponent>()) {
         // Checa o estado do botão (mIsSelected é herdado da classe Button)
+
         if (mIsSelected) {
             anim->SetAnimation("Selected");
         } else {
             anim->SetAnimation("Button");
+        }
+
+        if (!mIsLocked) {
+            anim->SetColor(255,255,255);
+        } else {
+            anim->SetColor(40,40,70);
         }
     }
 }

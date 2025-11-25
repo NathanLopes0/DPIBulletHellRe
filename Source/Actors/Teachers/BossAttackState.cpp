@@ -28,25 +28,28 @@ void BossAttackState::HandleStateTransition(float stateTime)
     // Adicionar aqui lógicas personalizadas de mudança de estado
     if (mName == "StateThree") {
         const auto scene = mFSM->GetOwner()->GetScene();
-        auto game = scene->GetGame();
+        const auto game = scene->GetGame();
 
-        if (dynamic_cast<Battle*>(scene)) {
-            auto selectedStage = game->GetSelectedStage();
-            auto grade = game->GetGrade(selectedStage);
+        if (const auto battle = dynamic_cast<Battle*>(scene)) {
+            const auto selectedStage = game->GetSelectedStage();
 
-            if (grade > 60) {
-                mNextStateName = "Approved";
-            }
-            else if (grade >= 40 && grade < 60) {
+            if (const auto grade = game->GetGrade(selectedStage); grade >= 40 && grade < 60) {
                 mNextStateName = "StateFinal";
             }
             else {
-                mNextStateName = "Reproved";
+                battle->FinishBattle(grade >= 60);
             }
         }
+    }
 
-        if (mNextStateName == "Approved" || mNextStateName == "Reproved") {
-            game->RequestSceneChange(Scene::SceneType::StageSelect);
+    if (mName == "StateFinal") {
+        const auto scene = mFSM->GetOwner()->GetScene();
+        const auto game = scene->GetGame();
+
+        const auto selectedStage = game->GetSelectedStage();
+        const auto grade = game->GetGrade(selectedStage);
+        if (const auto battle = dynamic_cast<Battle*>(scene)) {
+            battle->FinishBattle(grade >= 60);
         }
     }
 

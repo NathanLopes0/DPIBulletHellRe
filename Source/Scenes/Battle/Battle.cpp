@@ -49,6 +49,7 @@ void Battle::Load() {
     LoadPlayer();
     LoadBoss();
     LoadHUD();
+    LoadEndScreen();
 
     // 3. Iniciar a lógica da batalha (se necessário)
     if (mBoss) {
@@ -174,10 +175,38 @@ void Battle::LoadGradeBar() {
     this->AddActor(std::move(gradeBarTextActor));
 
 }
+void Battle::LoadEndScreen() {
+    auto textActor = std::make_unique<Actor>(this);
 
+    // Centraliza na tela
+    float w = mGame->GetWindowWidth();
+    float h = mGame->GetWindowHeight();
+    textActor->SetPosition(Vector2(w / 2.0f, h / 2.0f));
+
+    // Cria o componente de texto (Tamanho 72 para ficar grande!)
+    // Nota: Texto inicial vazio ou espaço, pois vamos mudar dinamicamente
+    auto dc = textActor->AddComponent<DrawTextComponent>(" ", mGradeBarFont.get(), 400, 100, 72, 300);
+
+    // Começa invisível
+    dc->SetIsVisible(false);
+
+    mEndTextActor = textActor.get();
+    AddActor(std::move(textActor));
+}
 //endregion LoadFunctions
 //region UpdateFunctions
 void Battle::OnUpdate(float deltaTime) {
+
+    // -- Lógica de Fim de Jogo
+    if (mIsEnding) {
+        mEndTimer += deltaTime;
+
+        if (mEndTimer > 4.f) {
+            mGame->RequestSceneChange(SceneType::StageSelect);
+        }
+
+        return;
+    }
 
     // A cena base já atualiza todos os atores.
     // Aqui podemos adicionar lógica específica da batalha.
@@ -201,7 +230,7 @@ void Battle::OnUpdate(float deltaTime) {
 
     // Se a nota cair a 0, termina a fase
     if (mGrade <= 0) {
-        mGame->RequestSceneChange(SceneType::MainMenu);
+        FinishBattle(false);
     }
 
 }
@@ -391,7 +420,6 @@ void Battle::OnPlayerUsedExtraPoint() {
     GradeUp(10.f);
     // TODO - Audio - efeito sonoro de limpeza de campo
 }
-
 void Battle::SpawnExtraPoint(Vector2 position) {
     auto item = std::make_unique<ExtraPointItem>(this);
     item->SetPosition(position);
@@ -399,4 +427,38 @@ void Battle::SpawnExtraPoint(Vector2 position) {
     mExtraPoints.emplace_back(item.get());
 
     AddActor(std::move(item));
+}
+
+void Battle::FinishBattle(bool approved) {
+    if (mIsEnding) return; // Já está acabando, ignora chamadas duplicadas
+
+    mIsEnding = true;
+    for (auto& actor : mActors) {
+        actor->SetState(ActorState::Paused);
+    }
+    mIsApproved = approved;
+    mEndTimer = 0.0f;
+
+    // 1. Limpa projéteis para limpar a poluição visual
+    if (mProjectileManager) {
+        mProjectileManager->ClearBossProjectiles();
+        // Se tiver função para limpar projéteis do player, chame aqui também
+    }
+
+    // 2. Torna o Player Invencível (para não morrer durante a tela de vitória)
+    if (mPlayer) {
+        mPlayer->SetIsInvincible(true);
+    }
+
+    // 3. Configura e Mostra o Texto
+    if (mEndTextActor) {
+        auto dc = mEndTextActor->GetComponent<DrawTextComponent>();
+        dc->SetIsVisible(true);
+
+        if (approved) {
+            dc->SetText("APROVADO!");
+        } else {
+            dc->SetText("REPROVADO");
+        }
+    }
 }
