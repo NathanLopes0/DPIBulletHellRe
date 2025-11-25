@@ -3,6 +3,8 @@
 //
 
 #include "StageSelect.h"
+#include <sstream>
+#include <iomanip>
 #include "../Math.h"
 #include "../Random.h"
 #include "../Actors/Buttons/StageSelectButton.h"
@@ -126,7 +128,16 @@ void StageSelect::CreateButton(const std::string& text, Game::GameSubject subjec
 }
 
 void StageSelect::CreateStaticUI() {
+    auto infoActor = std::make_unique<Actor>(this);
 
+    float w = mGame->GetWindowWidth();
+    infoActor->SetPosition(Vector2(w - 200.f, 50.f));
+
+    infoActor->AddComponent<DrawTextComponent>("Maior Nota: --", mStageSelectFont.get(), 200, 60, 72, 255);
+    mScoreInfoActor = infoActor.get();
+    AddActor(std::move(infoActor));
+
+    UpdateStageInfo();
 }
 void StageSelect::OnProcessInput(const Uint8 *keyState) {
     HandleSelectionInput(keyState);
@@ -146,6 +157,7 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
         mSelectedIndex = currSelected; // ATUALIZA O ESTADO REAL
         mSelectedSubject = mButtonObservers[mSelectedIndex]->GetSubject();
         mInputTimer = 0.0f;
+        UpdateStageInfo();
     }
 
     if (keyState[SDL_SCANCODE_RETURN] && mGame->IsStageUnlocked(mSelectedSubject)) {
@@ -331,5 +343,33 @@ bool StageSelect::IsInBorder(const size_t currSelected) {
 void StageSelect::OnUpdate(float deltaTime) {
 
     if(mInputTimer < INPUT_DELAY) mInputTimer += deltaTime;
+
+}
+
+void StageSelect::UpdateStageInfo() const {
+    if (!mScoreInfoActor) return;
+
+    const Game::GameSubject subject = mSelectedSubject;
+    const float highScore = mGame->GetGrade(subject);
+
+    std::stringstream ss;
+    ss << "Maior Nota: " << std::fixed << std::setprecision(1) << highScore;
+
+    if (auto dc = mScoreInfoActor->GetComponent<DrawTextComponent>()) {
+        dc->SetText(ss.str());
+
+        // TODO - mudar cor quando criar o SetColor em DrawTextComponent
+        /*
+        if (highScore >= 60.0f) {
+            dc->SetColor(0, 255, 0, 255); // Verde (Aprovado)
+        } else if (highScore > 0.0f) {
+            dc->SetColor(255, 100, 100, 255); // Vermelho (Reprovado)
+        } else {
+            dc->SetColor(200, 200, 200, 255); // Cinza (Nunca jogou)
+        }
+        */
+    }
+
+
 
 }

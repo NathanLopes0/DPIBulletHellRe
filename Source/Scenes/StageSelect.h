@@ -2,8 +2,7 @@
 // Created by nslop on 14/10/2025.
 //
 
-#ifndef DPIBULLETHELLRE_STAGESELECT_H
-#define DPIBULLETHELLRE_STAGESELECT_H
+#pragma once
 
 #include "../Scenes/Scene.h"
 #include "../Game.h" // Incluir para o enum GameSubject
@@ -72,6 +71,8 @@ private:
     // Retorna quantos itens existem na coluna especificada
     static size_t GetColumnSize(int colIndex);
 
-};
 
-#endif //DPIBULLETHELLRE_STAGESELECT_H
+    // Helper pra atualizar texto na HUD
+    void UpdateStageInfo() const;
+    Actor* mScoreInfoActor = nullptr;
+};

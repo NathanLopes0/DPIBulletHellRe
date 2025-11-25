@@ -30,6 +30,7 @@ StageSelectButton::StageSelectButton(Scene* scene, const std::string& buttonText
     if (animComp) {
         animComp->AddAnimation("Button", {0});
         animComp->AddAnimation("Selected", {1});
+        animComp->AddAnimation("Locked", {2});
         animComp->SetAnimation("Button");
         animComp->SetAnimFPS(10.0f);
     }
@@ -53,14 +54,14 @@ void StageSelectButton::OnUpdate(float deltaTime) {
 
         if (mIsSelected) {
             anim->SetAnimation("Selected");
-        } else {
-            anim->SetAnimation("Button");
-        }
-
-        if (!mIsLocked) {
             anim->SetColor(255,255,255);
         } else {
-            anim->SetColor(40,40,70);
+            anim->SetAnimation("Button");
+            anim->SetColor(100,100,200);
+        }
+
+        if (mIsLocked) {
+            anim->SetAnimation("Locked");
         }
     }
 }
