@@ -5,7 +5,7 @@
 
 #include "Behaviors.h"
 #include "../Components/RigidBodyComponent.h"
-#include "../Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.h"
+#include "../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 
 

@@ -35,6 +35,7 @@ public:
     // --- Ciclo de Vida ---
     void Start();
     void OnUpdate(float deltaTime) override;
+    void OnCollision(Actor *other) override;
 
     struct AttackDefinition {
         std::unique_ptr<IAttackStrategy> strategy; // A lógica (Angled, Circle, etc)
@@ -66,6 +67,10 @@ protected:
 private:
     // Função interna para executar um ataque específico
     void ExecuteAttack(AttackDefinition& attackDef, const std::string& stateName);
+
+    void CalculateNextDropThreshold();
+    int mHitCounter = 0;
+    int mNextDropThreshold = 0;
 
     std::string mInitialState;
     std::unique_ptr<ProjectileFactory> mProjectileFactory;

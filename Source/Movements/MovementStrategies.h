@@ -2,7 +2,7 @@
 
 #include "../Math.h"
 #include "../Components/RigidBodyComponent.h"
-#include "../Actors/Teacher/Boss.h"
+#include "../Actors/Teachers/Boss.h"
 #include "../Random.h"
 
 // --- INTERFACE ---

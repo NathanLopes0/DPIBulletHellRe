@@ -34,6 +34,8 @@ public:
     [[nodiscard]] const std::vector<std::unique_ptr<PlayerProjectile>>& GetPlayerProjectiles() { return mPlayerProjectiles; }
     [[nodiscard]] const std::vector<std::unique_ptr<BossProjectile>>& GetBossProjectiles() { return mBossProjectiles; }
 
+    void ClearBossProjectiles();
+
 private:
     void CleanupProjectiles(); // para remover projéteis mortos
 

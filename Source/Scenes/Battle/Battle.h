@@ -8,12 +8,16 @@
 #include <memory>
 #include "../Scene.h"
 #include "../../Game.h"
-#include "../../Actors/Teacher/BossFactory/IBossFactory.h"
+#include "../../Actors/Teachers/BossFactory/IBossFactory.h"
+
+#define GRADE_CHANGE_UP 0.56f
+#define GRADE_CHANGE_DOWN 6.f
 
 class Font;
 class Player;
 class ProjectileManager;
 class BattleHUD;
+class ExtraPointItem;
 
 class Battle : public Scene {
 
@@ -30,6 +34,8 @@ public:
     [[nodiscard]] ProjectileManager* GetProjectileManager() const { return mProjectileManager.get(); }
 
     SDL_FRect GetPlayfieldBounds() const override;
+    void OnPlayerUsedExtraPoint();
+    void SpawnExtraPoint(Vector2 position);
 
 
 
@@ -76,8 +82,10 @@ private:
     Actor* mGradeBarActor = nullptr;
     Actor* mGradeTextActor = nullptr;
 
-    void GradeUp();
+    void GradeUp(float amount = GRADE_CHANGE_UP);
     void GradeDown();
+
+    std::vector<ExtraPointItem*> mExtraPoints;
 
 };
 

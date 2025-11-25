@@ -41,12 +41,12 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Components/DrawComponents/DrawAnimatedComponent.h
         Source/Scenes/Battle/Battle.cpp
         Source/Scenes/Battle/Battle.h
-        Source/Actors/Teacher/BossFactory/SallesFactory.cpp
-        Source/Actors/Teacher/BossFactory/SallesFactory.h
-        Source/Actors/Teacher/Boss.cpp
-        Source/Actors/Teacher/Boss.h
-        Source/Actors/Teacher/Bosses/Salles.cpp
-        Source/Actors/Teacher/Bosses/Salles.h
+        Source/Actors/Teachers/BossFactory/SallesFactory.cpp
+        Source/Actors/Teachers/BossFactory/SallesFactory.h
+        Source/Actors/Teachers/Boss.cpp
+        Source/Actors/Teachers/Boss.h
+        Source/Actors/Teachers/Bosses/Salles.cpp
+        Source/Actors/Teachers/Bosses/Salles.h
         Source/Actors/Player/Player.cpp
         Source/Actors/Player/Player.h
         Source/Components/AIComponents/FSMState.cpp
@@ -55,16 +55,16 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Projectile.h
         Source/Actors/Player/PlayerProjectile.cpp
         Source/Actors/Player/PlayerProjectile.h
-        Source/Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.cpp
-        Source/Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.h
-        Source/Actors/Teacher/Bosses/BossesProjectiles/SallesBossProjectile.cpp
-        Source/Actors/Teacher/Bosses/BossesProjectiles/SallesBossProjectile.h
-        Source/Actors/Teacher/BossFactory/BossProjectileFactory/SallesProjectile1Factory.h
-        Source/Actors/Teacher/BossFactory/BossProjectileFactory/SallesProjectile1Factory.cpp
+        Source/Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.cpp
+        Source/Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h
+        Source/Actors/Teachers/Bosses/BossesProjectiles/SallesBossProjectile.cpp
+        Source/Actors/Teachers/Bosses/BossesProjectiles/SallesBossProjectile.h
+        Source/Actors/Teachers/BossFactory/BossProjectileFactory/SallesProjectile1Factory.h
+        Source/Actors/Teachers/BossFactory/BossProjectileFactory/SallesProjectile1Factory.cpp
         Source/Scenes/Battle/ProjectileManager.cpp
         Source/Scenes/Battle/ProjectileManager.h
-        Source/Actors/Teacher/BossFactory/IBossFactory.h
-        Source/Actors/Teacher/BossFactory/IBossFactory.cpp
+        Source/Actors/Teachers/BossFactory/IBossFactory.h
+        Source/Actors/Teachers/BossFactory/IBossFactory.cpp
         Source/Attacks/IAttackStrategy.h
         Source/Attacks/Behaviors.cpp
         Source/Attacks/Behaviors.h
@@ -72,8 +72,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/BaseStrategies/CircleSpreadAttack.h
         Source/Attacks/BaseStrategies/AngledAttack.cpp
         Source/Attacks/BaseStrategies/AngledAttack.h
-        Source/Actors/Teacher/BossAttackState.cpp
-        Source/Actors/Teacher/BossAttackState.h
+        Source/Actors/Teachers/BossAttackState.cpp
+        Source/Actors/Teachers/BossAttackState.h
         Source/Components/ColliderComponents/ColliderComponent.cpp
         Source/Components/ColliderComponents/ColliderComponent.h
         Source/Scenes/Battle/BattleHUD.cpp
@@ -84,6 +84,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Movements/IMovementStrategy.h
         Source/Movements/MovementStrategies.h
         Source/Movements/MovementStrategies.cpp
+        Source/Actors/Teachers/ExtraPointItem.cpp
+        Source/Actors/Teachers/ExtraPointItem.h
 )
 
 find_package(SDL2 REQUIRED)

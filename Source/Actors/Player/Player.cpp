@@ -3,6 +3,7 @@
 //
 #include <vector>
 #include "Player.h"
+
 #include "PlayerProjectile.h"
 #include "../../Scenes/Battle/Battle.h"
 #include "../../Components/RigidBodyComponent.h"
@@ -57,6 +58,7 @@ void Player::OnUpdate(float deltaTime) {
     HandleAnimation();
     DecreaseAtkTimer(deltaTime);
     BorderLimitCheck();
+    UpdateOverload(deltaTime);
 
 }
 
@@ -65,7 +67,6 @@ void Player::InvincibleUpdate(float deltaTime) {
 
     static float blink;
     if (invincibleTimer == 0.0f) {
-        GetComponent<CircleColliderComponent>()->SetEnabled(false);
         blink = BLINK_INVINCIBLE_FREQUENCY;
     }
 
@@ -74,7 +75,6 @@ void Player::InvincibleUpdate(float deltaTime) {
         isInvincible = false;
         invincibleTimer = 0.0f;
         GetComponent<DrawAnimatedComponent>()->SetIsVisible(true);
-        GetComponent<CircleColliderComponent>()->SetEnabled(true);
         blink = BLINK_INVINCIBLE_FREQUENCY;
         return;
     }
@@ -118,19 +118,21 @@ void Player::MoveInput(const Uint8 *keyState) {
 
     GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(newXSpeed, newYSpeed));
 }
-
 void Player::ShootInput(const Uint8 *keyState) {
 
-    if(keyState[SDL_SCANCODE_SPACE]) {
+    if(keyState[SDL_SCANCODE_SPACE] && mOverloadTimer <= 0.0f) {
         Shoot();
     }
 
 }
-
 void Player::SpecialInput(const Uint8 *keyState) {
 
-    if(keyState[SDL_SCANCODE_B]) {
-        //Bomb();
+    if(keyState[SDL_SCANCODE_B] && mExtraPoints > 0 && mOverloadTimer <= 0.0f) {
+        mExtraPoints--;
+        mOverloadTimer = OVERLOAD_DURATION;
+        if (const auto battle = dynamic_cast<Battle*>(GetScene())) {
+            battle->OnPlayerUsedExtraPoint();
+        }
     }
 
 }
@@ -185,4 +187,14 @@ void Player::BorderLimitCheck() {
 
     SetPosition(Vector2(Math::Clamp(GetPosition().x, bounds.x + pWidth, bounds.x + bounds.w - pWidth),
             Math::Clamp(GetPosition().y, bounds.y + pHeight, bounds.y + bounds.h - pHeight)));
+}
+
+void Player::UpdateOverload(float deltaTime) {
+    if (mOverloadTimer > 0.0f) {
+        mOverloadTimer -= deltaTime;
+    }
+}
+
+void Player::AddExtraPoint() {
+    mExtraPoints = Math::Clamp(mExtraPoints + 1, 0, 3);
 }

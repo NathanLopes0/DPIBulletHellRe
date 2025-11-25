@@ -1,11 +1,11 @@
 
 #include "SallesFactory.h"
-#include "../../Teacher/Bosses/Salles.h"
+#include "../../Teachers/Bosses/Salles.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Attacks/BaseStrategies/AngledAttack.h"
 #include "../../../Attacks/BaseStrategies/CircleSpreadAttack.h"
 #include "../../../Attacks/BaseStrategies/WaveAttack.h"
-#include "../../../Actors/Teacher/BossFactory/BossProjectileFactory/SallesProjectile1Factory.h"
+#include "../../../Actors/Teachers/BossFactory/BossProjectileFactory/SallesProjectile1Factory.h"
 #include "../../../Attacks/Behaviors.h"
 #include "../../Projectile.h"
 #include "../../../Random.h"

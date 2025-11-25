@@ -5,7 +5,7 @@
 #include "ProjectileManager.h"
 #include "../../Actors/Player/Player.h"
 #include "../../Actors/Player/PlayerProjectile.h"
-#include "../../Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.h"
+#include "../../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"
 #include "../../Components/RigidBodyComponent.h"
 #include "../../Actors/Actor.h" // Necessário para Actor::State
 #include <algorithm>          // Necessário para std::remove_if e std::move
@@ -53,6 +53,15 @@ void ProjectileManager::AddBossProjectiles(std::vector<std::unique_ptr<BossProje
                             std::make_move_iterator(projectiles.begin()),
                             std::make_move_iterator(projectiles.end()));
 }
+
+void ProjectileManager::ClearBossProjectiles() {
+    for (auto& proj : mBossProjectiles) {
+        if (proj->GetState() == ActorState::Active) {
+            proj->SetState(ActorState::Destroy);
+        }
+    }
+}
+
 
 
 void ProjectileManager::CleanupProjectiles()

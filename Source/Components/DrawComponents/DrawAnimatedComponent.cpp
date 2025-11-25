@@ -28,10 +28,6 @@ DrawAnimatedComponent::DrawAnimatedComponent(class Actor* owner, const std::stri
 
 DrawAnimatedComponent::~DrawAnimatedComponent()
 {
-    for (const auto& rect : mSpriteSheetData)
-    {
-        delete rect;
-    }
     mSpriteSheetData.clear();
 }
 
@@ -44,16 +40,15 @@ void DrawAnimatedComponent::LoadSpriteSheet(const std::string& texturePath, cons
     std::ifstream spriteSheetFile(dataPath);
     nlohmann::json spriteSheetData = nlohmann::json::parse(spriteSheetFile);
 
-    SDL_Rect* rect = nullptr;
+
     for(const auto& frame : spriteSheetData["frames"]) {
 
         int x = frame["frame"]["x"].get<int>();
         int y = frame["frame"]["y"].get<int>();
         int w = frame["frame"]["w"].get<int>();
         int h = frame["frame"]["h"].get<int>();
-        rect = new SDL_Rect({x, y, w, h});
 
-        mSpriteSheetData.emplace_back(rect);
+        mSpriteSheetData.push_back({x, y, w, h});
     }
 
 }
@@ -70,15 +65,23 @@ void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
         Vector2 pos = mOwner->GetPosition();
         Vector2 cameraPos = mOwner->GetScene()->GetGame()->GetCameraPos();
 
-        SDL_Rect *clipRect = mSpriteSheetData[spriteIdx];
-        SDL_Rect renderQuad = {static_cast<int>(pos.x - clipRect->w/2.0f - cameraPos.x),
-                               static_cast<int>(pos.y - clipRect->h/2.0f - cameraPos.y),
-                               clipRect->w,
-                               clipRect->h};
+        float scale = mOwner->GetScale();
+
+        const SDL_Rect& clipRect = mSpriteSheetData[spriteIdx];
+
+        int scaledWidth = static_cast<int>(clipRect.w * scale);
+        int scaledHeight = static_cast<int>(clipRect.h * scale);
+
+        SDL_Rect renderQuad = {
+            static_cast<int>(pos.x - scaledWidth/2.0f - cameraPos.x),
+            static_cast<int>(pos.y - scaledHeight/2.0f - cameraPos.y),
+            scaledWidth,  // Largura Final
+            scaledHeight  // Altura Final
+        };
 
         SDL_RendererFlip flip = SDL_FLIP_NONE;
 
-        SDL_RenderCopyEx(renderer, mSpriteSheetSurface, clipRect, &renderQuad, .0f, nullptr, flip);
+        SDL_RenderCopyEx(renderer, mSpriteSheetSurface, &clipRect, &renderQuad, .0f, nullptr, flip);
     }
 
     auto flipflag = SDL_RendererFlip::SDL_FLIP_NONE;

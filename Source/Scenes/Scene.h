@@ -37,6 +37,7 @@ public:
     [[nodiscard]] SceneType GetType() const { return mType; }
     [[nodiscard]] const std::vector<DrawComponent*>& GetDrawables() const { return mDrawables; }
 
+    Actor* AddActor(std::unique_ptr<Actor> actor);
 
     void AddCollider(ColliderComponent* collider);
     void RemoveCollider(ColliderComponent* collider);
@@ -53,7 +54,7 @@ protected:
     virtual void OnProcessInput(const Uint8* keyState);
     virtual void OnUpdate(float deltaTime);
 
-    Actor* AddActor(std::unique_ptr<Actor> actor);
+
     void RemoveDeadActors();
 
     Game* mGame;

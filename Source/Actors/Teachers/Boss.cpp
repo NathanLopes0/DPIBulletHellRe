@@ -8,11 +8,12 @@
 #include "../ProjectileFactory.h"
 #include "../../Scenes/Battle/ProjectileManager.h"
 #include "../Player/Player.h"
-#include "../../Actors/Teacher/Bosses/BossesProjectiles/BossProjectile.h"
+#include "../../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"
 #include "../../Movements/MovementStrategies.h"
 #include "../../Components/RigidBodyComponent.h"
 #include "../../Components/AIComponents/FSMComponent.h"
 #include "SDL_log.h"
+#include "../Player/PlayerProjectile.h"
 
 Boss::Boss(Scene* scene) : Actor(scene) {
 
@@ -24,6 +25,7 @@ Boss::Boss(Scene* scene) : Actor(scene) {
 Boss::~Boss() = default;
 
 void Boss::Start() {
+    CalculateNextDropThreshold();
     if (auto fsm = GetComponent<FSMComponent>()) {
         if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
             fsm->SetOnStateChanged([battleScene](float newDuration) {
@@ -95,15 +97,13 @@ void Boss::AddAttackPattern(const std::string &stateName, std::unique_ptr<IAttac
     def.params = params;
     def.configurator = std::move(config);
     def.cooldownTotal = cooldown;
-    def.currentTimer = 0.0f;
+    def.currentTimer = 1.f;
 
     mAttacksMap[stateName].push_back(std::move(def));
 }
-
 void Boss::RegisterMovementStrategy(const std::string& stateName, std::unique_ptr<IMovementStrategy> strategy) {
     mMovementStrategies[stateName] = std::move(strategy);
 }
-
 void Boss::ExecuteAttack(AttackDefinition& attackDef, const std::string& stateName)
 {
     // Atualiza a posição de tiro pra posição do boss.
@@ -175,6 +175,31 @@ void Boss::CustomizeAttackParams(AttackParams &params, const std::string &stateN
 void Boss::SetInitialState(const std::string &stateName) {
     mInitialState = stateName;
 }
+
+void Boss::CalculateNextDropThreshold() {
+    int baseHits = 80;
+    int variance = 8;
+
+    mNextDropThreshold = baseHits + Random::GetIntRange(-variance, variance);
+
+}
+
+void Boss::OnCollision(Actor *other) {
+    if (!dynamic_cast<PlayerProjectile*>(other)) { return; }
+
+    mHitCounter++;
+    if (mHitCounter == mNextDropThreshold) {
+        if (auto battle = dynamic_cast<Battle*>(GetScene())) {
+            battle->SpawnExtraPoint(GetPosition());
+        }
+
+        mHitCounter = 0;
+
+        CalculateNextDropThreshold();
+    }
+}
+
+
 
 
 

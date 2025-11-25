@@ -4,7 +4,7 @@
 
 #include "IBossFactory.h"
 
-#include "../../Teacher/Boss.h"
+#include "../../Teachers/Boss.h"
 
 IBossFactory::IBossFactory(Game* game) : mGame(game) {
 

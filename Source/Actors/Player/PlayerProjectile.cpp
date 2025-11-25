@@ -9,7 +9,7 @@
 #include "../../Components/RigidBodyComponent.h"
 #include "../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
-#include "../Teacher/Boss.h"
+#include "../Teachers/Boss.h"
 #include "../../Scenes/Battle/Battle.h"
 
 

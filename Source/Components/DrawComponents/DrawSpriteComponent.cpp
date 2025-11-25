@@ -31,16 +31,24 @@ DrawSpriteComponent::DrawSpriteComponent(Actor *owner, const std::string &textur
 
 void DrawSpriteComponent::Draw(SDL_Renderer *renderer)
 {
-    auto srcrect = new SDL_Rect{0,0,mWidth, mHeight};
-    int posx = GetOwner()->GetPosition().x - GetOwner()->GetScene()->GetGame()->GetCameraPos().x - mWidth/2;
-    int posy = GetOwner()->GetPosition().y - GetOwner()->GetScene()->GetGame()->GetCameraPos().y - mHeight/2;
-    auto dstrect = new SDL_Rect {posx, posy, mWidth, mHeight};
+
+    float scale = mOwner->GetScale();
+
+    int scaledWidth = static_cast<int>(mWidth * scale);
+    int scaledHeight = static_cast<int>(mHeight * scale);
+
+
+    SDL_Rect srcrect = {0,0,mWidth, mHeight};
+    int posx = static_cast<int>(GetOwner()->GetPosition().x - GetOwner()->GetScene()->GetGame()->GetCameraPos().x - scaledWidth / 2.0f);
+    int posy = static_cast<int>(GetOwner()->GetPosition().y - GetOwner()->GetScene()->GetGame()->GetCameraPos().y - scaledHeight / 2.0f);
+
+    SDL_Rect dstrect = {posx, posy, scaledWidth, scaledHeight};
 
     auto flipflag = SDL_RendererFlip::SDL_FLIP_NONE;
 
     if(GetOwner()->GetRotation() == Math::Pi)
         flipflag = SDL_RendererFlip::SDL_FLIP_HORIZONTAL;
 
-    SDL_RenderCopyEx(renderer, mSpriteSheetSurface, srcrect, dstrect,
+    SDL_RenderCopyEx(renderer, mSpriteSheetSurface, &srcrect, &dstrect,
                      0.0, nullptr, flipflag);
 }

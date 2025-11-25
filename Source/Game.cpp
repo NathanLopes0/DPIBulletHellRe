@@ -12,8 +12,8 @@
 #include "Scenes/MainMenu.h"
 #include "Scenes/StageSelect.h"
 #include "Scenes/Battle/Battle.h"
-#include "Actors/Teacher/BossFactory/IBossFactory.h"
-#include "Actors/Teacher/BossFactory/SallesFactory.h"
+#include "Actors/Teachers/BossFactory/IBossFactory.h"
+#include "Actors/Teachers/BossFactory/SallesFactory.h"
 
 
 Game::Game(int windowWidth, int windowHeight)

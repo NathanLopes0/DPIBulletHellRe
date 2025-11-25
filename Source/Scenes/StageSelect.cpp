@@ -146,7 +146,7 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
         mInputTimer = 0.0f;
     }
 
-    if (keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_SPACE]) {
+    if (keyState[SDL_SCANCODE_RETURN]) {
         mGame->SetSelectedStage(mSelectedSubject);
         mGame->RequestSceneChange(SceneType::Battle);
     }

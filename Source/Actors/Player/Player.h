@@ -8,6 +8,7 @@
 #include "../Actor.h"
 
 class PlayerProjectile;
+class PlayerOrb;
 
 class Player : public Actor {
 
@@ -16,10 +17,15 @@ public:
 
     //Process Input -> Update, sobrescritas de Actor para Player
     void OnProcessInput(const Uint8* keyState) override;
+
+    void UpdateOverload(float deltaTime);
+
     void OnUpdate(float deltaTime) override;
 
+    void SetIsInvincible(const bool invincible) { isInvincible = invincible; }
+    [[nodiscard]] bool GetIsInvincible() const { return isInvincible; }
 
-    void SetIsInvincible(bool invincible) { isInvincible = invincible; }
+    void AddExtraPoint();
 
 
 private:
@@ -30,6 +36,9 @@ private:
     float invincibleTimer;
     bool isInvincible;
     bool mMoving;                       //ve se o jogador está se movendo. Usada para mudar a animação
+    int mExtraPoints = 0;
+    float mOverloadTimer = 0.0f;
+    const float OVERLOAD_DURATION = 3.f;
 
 
 
@@ -46,6 +55,7 @@ private:
     void DecreaseAtkTimer(float deltaTime);
 
     void BorderLimitCheck();
+
 };
 
 

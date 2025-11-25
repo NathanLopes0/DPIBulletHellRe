@@ -33,7 +33,7 @@ private:
     void LoadSpriteSheet(const std::string& texturePath, const std::string& dataPath);
 
     //vector of sprites
-    std::vector<SDL_Rect*> mSpriteSheetData;
+    std::vector<SDL_Rect> mSpriteSheetData;
 
     //Map of animation names -> vector of textures corresponding to the animation
     std::unordered_map<std::string,std::vector<int>> mAnimations;
