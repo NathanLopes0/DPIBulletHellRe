@@ -130,7 +130,7 @@ void StageSelect::CreateButton(const std::string& text, Game::GameSubject subjec
 void StageSelect::CreateStaticUI() {
     auto infoActor = std::make_unique<Actor>(this);
 
-    float w = mGame->GetWindowWidth();
+    const auto w = static_cast<float>(mGame->GetWindowWidth());
     infoActor->SetPosition(Vector2(w - 200.f, 50.f));
 
     infoActor->AddComponent<DrawTextComponent>("Maior Nota: --", mStageSelectFont.get(), 200, 60, 72, 255);

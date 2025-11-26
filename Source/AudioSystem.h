@@ -119,6 +119,8 @@ public:
     //       "Assets/Sounds/ChompLoop.wav".
     void CacheSound(const std::string& soundName);
 
+    void SetSoundVolume(SoundHandle soundHandler, int volume);
+
 private:
     // If the sound is already loaded, returns Mix_Chunk from the map.
     // Otherwise, will attempt to load the file and save it in the map.

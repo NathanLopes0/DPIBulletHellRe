@@ -12,6 +12,7 @@
 
 #include "BattleHUD.h"
 #include "ProjectileManager.h"
+#include "../../AudioSystem.h"
 #include "../../Json.h"
 #include "../../Font.h"
 #include "../../Actors/Player/Player.h"
@@ -50,6 +51,11 @@ void Battle::Load() {
     LoadBoss();
     LoadHUD();
     LoadEndScreen();
+
+    if (mGame->GetAudio()) {
+        mMusicHandle = mGame->GetAudio()->PlaySound("backgroundmusic.ogg", true);
+        mGame->GetAudio()->SetSoundVolume(mMusicHandle, 32);
+    }
 
     // 3. Iniciar a lógica da batalha (se necessário)
     if (mBoss) {
@@ -318,8 +324,8 @@ void Battle::CheckCollisions() {
     if (!mPlayer || !mBoss) return;
     bool changedGrade = false;
 
-    auto *playerCollider = mPlayer->GetComponent<CircleColliderComponent>();
-    auto *bossCollider = mBoss->GetComponent<CircleColliderComponent>();
+    const auto *playerCollider = mPlayer->GetComponent<CircleColliderComponent>();
+    const auto *bossCollider = mBoss->GetComponent<CircleColliderComponent>();
 
     if (!playerCollider || !bossCollider) return;
 
@@ -330,7 +336,7 @@ void Battle::CheckCollisions() {
     // --- REGRA 1 - Projéteis do Boss vs Player --- //
     for (const auto &bossProj: bossProjectiles) {
         if (bossProj->GetState() != ActorState::Active) continue;
-        if (auto *bossProjCollider = bossProj->GetComponent<CircleColliderComponent>()) {
+        if (const auto *bossProjCollider = bossProj->GetComponent<CircleColliderComponent>()) {
             if (playerCollider->Intersect(*bossProjCollider) && !mPlayer->GetIsInvincible()) {
                 mPlayer->SetIsInvincible(true);
                 mPlayer->OnCollision(bossProj.get());
@@ -344,7 +350,7 @@ void Battle::CheckCollisions() {
     // --- REGRA 2 - Projéteis do Player vs Boss
     for (const auto &playerProj: playerProjectiles) {
         if (playerProj->GetState() != ActorState::Active) continue;
-        if (auto *playerProjCollider = playerProj->GetComponent<CircleColliderComponent>()) {
+        if (const auto *playerProjCollider = playerProj->GetComponent<CircleColliderComponent>()) {
             if (bossCollider->Intersect(*playerProjCollider)) {
                 mBoss->OnCollision(playerProj.get());
                 playerProj->OnCollision(mBoss);
@@ -364,18 +370,25 @@ void Battle::CheckCollisions() {
     }
 
     // --- REGRA 4 - Player vs ExtraPoints
-    for (auto item : mExtraPoints) {
-        // Se o item já morreu neste frame, pula
+    bool playedPowerUpSound = false;
+
+    // --- REGRA 4 - Player vs ExtraPoints
+    for (const auto item : mExtraPoints) {
         if (item->GetState() != ActorState::Active) continue;
 
-        auto itemCollider = item->GetComponent<CircleColliderComponent>();
-        if (itemCollider && playerCollider->Intersect(*itemCollider)) {
+        if (const auto itemCollider = item->GetComponent<CircleColliderComponent>(); itemCollider && playerCollider->Intersect(*itemCollider)) {
 
             // 1. Efeito da Coleta
             mPlayer->AddExtraPoint();
-            // TODO - Colocar um efeito sonoro aqui
 
-            // 2. Destroi o item
+            // 2. Toca o som
+            if (!playedPowerUpSound) {
+                // Toca só se ainda não tocou neste frame
+                mGame->GetAudio()->PlaySound("powerup.wav", false);
+                playedPowerUpSound = true;
+            }
+
+            // 3. Destroi o item
             item->SetState(ActorState::Destroy);
         }
     }

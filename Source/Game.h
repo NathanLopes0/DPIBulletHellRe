@@ -54,7 +54,7 @@ public:
     [[nodiscard]] int GetWindowHeight() const { return mWindowHeight; }
 
     //Audio System
-    class AudioSystem* GetAudio() { return mAudio.get(); }
+    class AudioSystem *GetAudio() { return mAudio.get(); }
 
     //Scenes
     [[nodiscard]] Scene* GetScene() const { return mScene.get(); }

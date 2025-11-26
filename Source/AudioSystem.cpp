@@ -3,8 +3,6 @@
 //
 
 #include "AudioSystem.h"
-
-#include "AudioSystem.h"
 #include "SDL.h"
 #include "SDL_mixer.h"
 #include <filesystem>
@@ -15,6 +13,7 @@ SoundHandle SoundHandle::Invalid;
 // (Defaults to 8 channels)
 AudioSystem::AudioSystem(int numChannels)
 {
+    Mix_Init(MIX_INIT_OGG || MIX_INIT_MP3);
     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
     Mix_AllocateChannels(numChannels);
     mChannels.resize(numChannels);
@@ -24,6 +23,7 @@ AudioSystem::AudioSystem(int numChannels)
 AudioSystem::~AudioSystem()
 {
     Mix_CloseAudio();
+    Mix_Quit();
 }
 
 // Updates the status of all the active sounds every frame
@@ -57,7 +57,7 @@ SoundHandle AudioSystem::PlaySound(const std::string& soundName, bool looping)
         return SoundHandle::Invalid;
     }
 
-    // Select an available channel
+    // 1. Tenta achar canal vazio (Lógica padrão)
     int availableChannel = -1;
     for(int i = 0; i < mChannels.size(); i++) {
         if(!mChannels[i].IsValid()) {
@@ -66,31 +66,48 @@ SoundHandle AudioSystem::PlaySound(const std::string& soundName, bool looping)
         }
     }
 
+    // 2. SE ESTIVER CHEIO: ROUBA O MAIS ANTIGO
     if(availableChannel == -1) {
-        for(auto &handleMap : mHandleMap) {
-            if(handleMap.second.mSoundName == soundName) {
-                availableChannel = handleMap.second.mChannel;
-                //SDL_Log("[AudioSystem] PlaySound ran out of channels playing %s! Stopping %s", soundName.c_str(), handleMap.second.mSoundName.c_str());
-                mHandleMap.erase(handleMap.first);
-                break;
+
+        // Vamos procurar o 'SoundHandle' com o menor ID (o mais antigo)
+        // que NÃO esteja em loop (para não parar a música de fundo)
+        SoundHandle oldestHandle = mLastHandle; // Começa assumindo o mais novo
+        bool foundCandidate = false;
+
+        for(auto &pair : mHandleMap) {
+            HandleInfo& info = pair.second;
+            SoundHandle handle = pair.first;
+
+            // Proteção: Não pare sons em Loop (Música)
+            if (info.mIsLooping) continue;
+
+            // Se achamos um handle menor (mais antigo) que o atual candidato
+            if (handle < oldestHandle) {
+                oldestHandle = handle;
+                foundCandidate = true;
             }
+        }
+
+        // Se achamos alguém pra sacrificar
+        if (foundCandidate) {
+            availableChannel = mHandleMap[oldestHandle].mChannel;
+
+            // Para o som antigo no Mixer
+            Mix_HaltChannel(availableChannel);
+
+            // Remove do mapa de controle
+            mHandleMap.erase(oldestHandle);
+
+            // Log de Debug (Opcional)
+            // SDL_Log("Canais cheios! Sacrifiquei o som ID %s para tocar %s", oldestHandle.GetDebugStr(), soundName.c_str());
         }
     }
 
-    //tava tirando minha musica de fundo... como resolver isso sem mudar o AudioSystem?
-//    if(availableChannel == -1) {
-//        for (auto &handleMap: mHandleMap) {
-//            if (handleMap.second.mIsLooping) {
-//                StopSound(handleMap.first);
-//                availableChannel = handleMap.second.mChannel;
-//
-//                SDL_Log("[AudioSystem] PlaySound ran out of channels playing %s! Stopping %s", soundName.c_str(), handleMap.second.mSoundName.c_str());
-//                break;
-//            }
-//        }
-//    }
-
-//
+    // 3. Verificação Final (Se nem roubando deu certo - ex: tudo é música)
+    if (availableChannel == -1) {
+        SDL_Log("ERRO CRITICO: AudioSystem lotado (so musicas tocando?). Ignorando %s", soundName.c_str());
+        return SoundHandle::Invalid;
+    }
 
     // Update sound handle
     mLastHandle++;
@@ -189,7 +206,7 @@ void AudioSystem::CacheAllSounds()
     for (const auto& rootDirEntry : std::filesystem::directory_iterator{"Assets/Sounds", ec})
     {
         std::string extension = rootDirEntry.path().extension().string();
-        if (extension == ".ogg" || extension == ".wav")
+        if (extension == ".ogg" || extension == ".wav" )
         {
             std::string fileName = rootDirEntry.path().stem().string();
             fileName += extension;
@@ -262,4 +279,22 @@ void AudioSystem::ProcessInput(const Uint8* keyState)
     }
 
     mLastDebugKey = keyState[SDL_SCANCODE_PERIOD];
+}
+
+void AudioSystem::SetSoundVolume(const SoundHandle soundHandler, int volume)
+{
+    // Verifica se o som existe e está tocando
+    if(mHandleMap.find(soundHandler) == mHandleMap.end())
+    {
+        return;
+    }
+
+    // Trava o volume entre 0 e 128 para evitar erros
+    if (volume < 0) volume = 0;
+    if (volume > 128) volume = 128;
+
+    const int channel = mHandleMap[soundHandler].mChannel;
+
+    // Mix_Volume define o volume do canal específico
+    Mix_Volume(channel, volume);
 }

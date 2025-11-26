@@ -106,6 +106,7 @@ void Boss::RegisterMovementStrategy(const std::string& stateName, std::unique_pt
 }
 void Boss::ExecuteAttack(AttackDefinition& attackDef, const std::string& stateName)
 {
+
     // Atualiza a posição de tiro pra posição do boss.
     attackDef.params.firePosition = GetPosition();
 
@@ -141,6 +142,16 @@ void Boss::ExecuteAttack(AttackDefinition& attackDef, const std::string& stateNa
     if (!bossProjVector.empty()) {
         projManager->AddBossProjectiles(std::move(bossProjVector));
     }
+
+    // -- LIDANDO COM O AUDIO DO ATAQUE -- //
+    std::string attackAudio;
+    {
+        if (auto choose = Random::GetIntRange(0,1)) attackAudio = "tan00.wav";
+        else attackAudio = "tan01.wav";
+    }
+    auto handler = mScene->GetGame()->GetAudio()->PlaySound(attackAudio, false);
+    mScene->GetGame()->GetAudio()->SetSoundVolume(handler, 10);
+    // ----------------------------- //
 
 }
 

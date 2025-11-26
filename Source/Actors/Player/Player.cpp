@@ -105,9 +105,9 @@ void Player::MoveInput(const Uint8 *keyState) {
         newYSpeed += playerSpeed;
 
     // ------ verificação de movimento ESQUERDA/DIREITA ------
-    if(keyState[SDL_SCANCODE_A] || keyState[SDL_SCANCODE_RIGHT])
+    if(keyState[SDL_SCANCODE_A] || keyState[SDL_SCANCODE_LEFT])
         newXSpeed -= playerSpeed;
-    else if (keyState[SDL_SCANCODE_D] || keyState[SDL_SCANCODE_LEFT])
+    else if (keyState[SDL_SCANCODE_D] || keyState[SDL_SCANCODE_RIGHT])
         newXSpeed += playerSpeed;
 
     //vendo se está movendo ou não para mudar a variável mMoving (pra mudar a animação de acordo)
@@ -168,6 +168,10 @@ void Player::Shoot() {
 
     // Entrega ownership ao manager
     projManager->AddPlayerProjectile(std::move(projectile));
+
+    // Toca audio
+    const auto audioHandler = mScene->GetGame()->GetAudio()->PlaySound("plst00.wav", false);
+    mScene->GetGame()->GetAudio()->SetSoundVolume(audioHandler, 10);
 
     atkTimer = ATK_TIMER_START_FULL;
 }

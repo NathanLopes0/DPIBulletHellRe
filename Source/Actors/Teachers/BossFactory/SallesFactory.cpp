@@ -75,12 +75,12 @@ void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm, ProjectileF
     AttackParams params;
     params.numProjectiles = 2;
     params.projectileSpeed = 230.0f;
-    params.angle = 20.f;
+    params.angle = 30.f;
 
     boss->AddAttackPattern(STATE_NAME,
             std::make_unique<AngledAttack>(spawner, boss), // Strategy
             params,                                        // Params
-            0.3f,                                          // Cooldown
+            0.9f,                                          // Cooldown
             [](Projectile* p, int index) {                 // Configurator Lambda
                 if (Random::GetFloatRange(0.0f, 1.0f) < 0.2f) {
                     p->insertBehavior<HomingBehavior>(1.2f, 280.f);
@@ -108,12 +108,12 @@ void SallesFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm, ProjectileF
     AttackParams params;
     params.numProjectiles = 3;
     params.projectileSpeed = 230.0f;
-    params.angle = 30.f;
+    params.angle = 40.f;
 
     boss->AddAttackPattern(STATE_NAME,
         std::make_unique<AngledAttack>(spawner, boss),
         params,
-        0.4f,
+        1.f,
         [](Projectile* p, int index) {
             if (Random::GetFloatRange(0.0f, 1.0f) < 0.3f) {
                 p->insertBehavior<HomingBehavior>(1.8f, 0.0f);
@@ -139,12 +139,12 @@ void SallesFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm, Projectil
     AttackParams params;
     params.numProjectiles = 4;
     params.projectileSpeed = 260.0f;
-    params.angle = 40.f;
+    params.angle = 60.f;
 
     boss->AddAttackPattern(STATE_NAME,
         std::make_unique<AngledAttack>(spawner, boss),
         params,
-        0.6f,
+        0.9f,
         [](Projectile* p, int index) {
             if (Random::GetFloatRange(0.0f, 1.0f) < 0.5f) {
                 p->insertBehavior<HomingBehavior>(1.8f, 0.0f);
@@ -170,13 +170,13 @@ void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm, Projectil
     // -- Ataque 1 --
     AttackParams paramsFast;
     paramsFast.numProjectiles = 2;
-    paramsFast.projectileSpeed = 300.0f;
-    paramsFast.angle = 20.f;
+    paramsFast.projectileSpeed = 280.0f;
+    paramsFast.angle = 40.f;
 
     boss->AddAttackPattern(STATE_NAME,
         std::make_unique<AngledAttack>(spawner, boss),
         paramsFast,
-        0.4f,
+        0.8f,
         [](Projectile* p, int i) {
             auto chance = Random::GetFloatRange(0.0f, 1.0f);
             if (chance < 0.1) {
@@ -188,16 +188,16 @@ void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm, Projectil
     // -- Ataque 2 --
     AttackParams paramsSlow;
     paramsSlow.numProjectiles = 3;
-    paramsSlow.projectileSpeed = 220.0f;
-    paramsSlow.angle = 60.f;
+    paramsSlow.projectileSpeed = 200.0f;
+    paramsSlow.angle = 80.f;
 
     boss->AddAttackPattern(STATE_NAME,
         std::make_unique<AngledAttack>(spawner, boss),
         paramsSlow,
-        0.8f,
+        1.f,
         [](Projectile* p, int i) {
             auto chance = Random::GetFloatRange(0.0f, 1.0f);
-            if (chance < 0.8) {
+            if (chance < 0.4) {
                 p->insertBehavior<HomingBehavior>(1.6f, 0.0f);
                 p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
             }

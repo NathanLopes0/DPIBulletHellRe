@@ -8,10 +8,12 @@
 #include <memory>
 #include "../Scene.h"
 #include "../../Game.h"
+#include "../../AudioSystem.h"
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
 
 #define GRADE_CHANGE_UP 0.56f
 #define GRADE_CHANGE_DOWN 6.f
+
 
 class Font;
 class Player;
@@ -97,6 +99,7 @@ private:
 
     Actor* mEndTextActor = nullptr; // O texto gigante
 
+    SoundHandle mMusicHandle;
 };
 
 

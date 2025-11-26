@@ -37,7 +37,7 @@ private:
     float invincibleTimer;
     bool isInvincible;
     bool mMoving;                       //ve se o jogador está se movendo. Usada para mudar a animação
-    int mExtraPoints = 3;
+    int mExtraPoints = 1;
     float mOverloadTimer = 0.0f;
     const float OVERLOAD_DURATION = 3.f;
     float mPulseTimer = 0.0f;
