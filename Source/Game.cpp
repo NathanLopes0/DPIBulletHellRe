@@ -7,13 +7,11 @@
 #include "Random.h"
 #include "AudioSystem.h"
 #include "Font.h"
-#include "Actors/Actor.h"
 #include "Components/DrawComponents/DrawComponent.h"
 #include "Scenes/MainMenu.h"
 #include "Scenes/StageSelect.h"
 #include "Scenes/Battle/Battle.h"
-#include "Actors/Teachers/BossFactory/IBossFactory.h"
-#include "Actors/Teachers/BossFactory/SallesFactory.h"
+#include "Actors/Teachers/BossFactory/AllFactories.h"
 
 
 Game::Game(int windowWidth, int windowHeight)
@@ -24,7 +22,7 @@ Game::Game(int windowWidth, int windowHeight)
     mTicksCount(0),
     mIsGameRunning(true),
     mScene(nullptr),
-    mSelectedStage(INF213),
+    mSelectedStage(INF250),
     mPendingSceneChange(false),
     mNextScene(Scene::SceneType::None)
 {
@@ -89,7 +87,7 @@ void Game::LoadInitialScene()
 {
 
     InitializeBossFactory();
-    ChangeScene(Scene::SceneType::MainMenu);
+    ChangeScene(Scene::SceneType::Battle);
 
 }
 
@@ -243,8 +241,12 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
 
 void Game::InitializeBossFactory() {
 
+    SDL_Log(" GAME -- Inicializando todas as fabricas");
     mBossFactory[INF213] = std::make_unique<SallesFactory>(this);
+    mBossFactory[INF250] = std::make_unique<RicardoFactory>(this);
 
+    if (mBossFactory[INF213] && mBossFactory[INF250])
+        SDL_Log(" GAME -- Fabricas inicializadas");
 
 }
 
@@ -258,6 +260,7 @@ IBossFactory *Game::GetFactory(size_t n) {
 void Game::InitializeGrades() {
 
     mGrades[INF213] = 40;
+    mGrades[INF250] = 40;
 
 }
 

@@ -3,7 +3,6 @@
 //
 
 #include "SDL.h"
-
 #include "Battle.h"
 
 #include <locale>
@@ -28,12 +27,12 @@
 
 
 
-Battle::Battle(Game* game, Game::GameSubject selectedStage)
+Battle::Battle(Game* game, const Game::GameSubject selectedStage)
     : Scene(game, SceneType::Battle)
     , mGrade(40.0f)
     , mStage(selectedStage)
 {
-
+    SDL_Log(" BATTLE - Construtor");
 }
 
 Battle::~Battle() = default;
@@ -41,6 +40,7 @@ Battle::~Battle() = default;
 //region LoadFunctions
 void Battle::Load() {
 
+    SDL_Log(" BATTLE - LOAD - Iniciando");
     // 1. Criar os sistemas primeiro
     mProjectileManager = std::make_unique<ProjectileManager>(this);
 
@@ -59,6 +59,7 @@ void Battle::Load() {
 
     // 3. Iniciar a lógica da batalha (se necessário)
     if (mBoss) {
+        SDL_Log("Starting Boss");
         mBoss->Start();
     }
 
@@ -68,6 +69,7 @@ void Battle::LoadBoss() {
 
     // 1. Pega a fábrica correta do Game (como uma ferramenta temporária), e se ela existir, continua
     if (IBossFactory *factory = mGame->GetFactory(mStage)) {
+
         auto boss = factory->CreateBoss(this);
         boss->SetPosition(Vector2(static_cast<float>(mGame->GetWindowWidth())/2.0f,
                                         static_cast<float>(mGame->GetWindowHeight())/6.0f));

@@ -86,6 +86,15 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Movements/MovementStrategies.cpp
         Source/Actors/Teachers/ExtraPointItem.cpp
         Source/Actors/Teachers/ExtraPointItem.h
+        Source/Actors/Teachers/BossFactory/AllFactories.h
+        Source/Actors/Teachers/BossFactory/RicardoFactory.cpp
+        Source/Actors/Teachers/BossFactory/RicardoFactory.h
+        Source/Actors/Teachers/Bosses/Ricardo.cpp
+        Source/Actors/Teachers/Bosses/Ricardo.h
+        Source/Actors/Teachers/Bosses/BossesProjectiles/RicardoBossProjectile.cpp
+        Source/Actors/Teachers/Bosses/BossesProjectiles/RicardoBossProjectile.h
+        Source/Actors/Teachers/BossFactory/BossProjectileFactory/RicardoProjectile1Factory.cpp
+        Source/Actors/Teachers/BossFactory/BossProjectileFactory/RicardoProjectile1Factory.h
 )
 
 find_package(SDL2 REQUIRED)

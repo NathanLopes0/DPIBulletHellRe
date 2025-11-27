@@ -3,8 +3,6 @@
 #include "../../Teachers/Bosses/Salles.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Attacks/BaseStrategies/AngledAttack.h"
-#include "../../../Attacks/BaseStrategies/CircleSpreadAttack.h"
-#include "../../../Attacks/BaseStrategies/WaveAttack.h"
 #include "../../../Actors/Teachers/BossFactory/BossProjectileFactory/SallesProjectile1Factory.h"
 #include "../../../Attacks/Behaviors.h"
 #include "../../Projectile.h"
@@ -14,10 +12,6 @@
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../../Movements/MovementStrategies.h"
 
-#define STATE_ONE_DURATION 17.f
-#define STATE_TWO_DURATION 17.f
-#define STATE_THREE_DURATION 17.f
-#define STATE_FINAL_DURATION 17.f
 
 SallesFactory::SallesFactory(Game* game)
     : IBossFactory(game)
@@ -89,13 +83,13 @@ void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm, ProjectileF
             }
         );
 
-    // 4. Cria o objeto que representa o estado que terá esse ataque
+    // Cria o objeto que representa o estado que terá esse ataque
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
                                                       /*duration*/ STATE_ONE_DURATION,
                                                       /*nextState*/ "StateTwo");
     fsm->RegisterState(std::move(stateObj));
 
-    boss->RegisterMovementStrategy(STATE_NAME, std::make_unique<RandomWanderStrategy>(3.f, 150.f));
+    boss->RegisterMovementStrategy(STATE_NAME, std::make_unique<RandomWanderStrategy>(3.f, 120.f));
 
 
 }
@@ -160,7 +154,7 @@ void SallesFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm, Projectil
     fsm->RegisterState(std::move(stateObj));
 
     boss->RegisterMovementStrategy(STATE_NAME,
-        std::make_unique<RandomWanderStrategy>(2.f, 300.f));
+        std::make_unique<RandomWanderStrategy>(4.f, 300.f));
 
 }
 void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) {

@@ -14,6 +14,11 @@ class Boss;
 class Scene;
 class Game;
 
+#define STATE_ONE_DURATION 17.f
+#define STATE_TWO_DURATION 17.f
+#define STATE_THREE_DURATION 17.f
+#define STATE_FINAL_DURATION 17.f
+
 /**
  * @interface IBossFactory
  * @brief Interface abstrata para todas as fábricas de Bosses.
