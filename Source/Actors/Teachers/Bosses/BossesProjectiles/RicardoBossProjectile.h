@@ -6,9 +6,6 @@
 #include "BossProjectile.h"
 
 
-class Scene;
-class Boss;
-
 /**
  * @class RicardoBossProjectile
  * @brief Especialização do projétil do Ricardo (Arduíno).

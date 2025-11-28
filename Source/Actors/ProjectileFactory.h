@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 class Projectile;
 class Scene;
@@ -26,4 +27,10 @@ public:
      * @return Um unique_ptr para o Projétil recém-criado.
      */
     virtual std::unique_ptr<Projectile> createProjectile(Scene *scene, Actor *owner) = 0;
+    void SetDataPath(std::string path);
+    void SetSpritePath(std::string path);
+
+protected:
+    std::string mSpritePath;
+    std::string mDataPath;
 };

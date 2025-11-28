@@ -19,14 +19,16 @@ BattleHUD::BattleHUD(Scene *scene)
     mCurrentStateTime(0.0f),
     mTotalStateTime(17.f)
 {
-    // Eles pertencem à Cena (Scene), mas o HUD guarda referência para movê-los.
+    // ----- CRIAÇÃO DE OBJETOS POWER_ICON QUE SEGUEM O PLAYER ----- //
+    // Pertencem à Cena (Scene), mas o HUD guarda referência para movê-los.
     for (int i = 0; i < 3; i++) {
-        // Cria um ator genérico (não precisa de classe PlayerOrb especial)
+
+        // Cria o Actor que vai segurar a sprite e a posição
         auto orbActor = std::make_unique<Actor>(scene);
 
         // Configura o visual
         orbActor->SetScale(1.5f);
-        auto dc = orbActor->AddComponent<DrawAnimatedComponent>(
+        const auto dc = orbActor->AddComponent<DrawAnimatedComponent>(
             "../Assets/Icons/DPIBHPowerIcon.png",
             "../Assets/Icons/DPIBHPowerIcon.json"
         );
@@ -37,14 +39,14 @@ BattleHUD::BattleHUD(Scene *scene)
         // Guarda referência
         mVisualOrbs.push_back(orbActor.get());
 
-        // Passa a posse para a cena
+        // Passa a posse para a cena, pq a cena é dona de todos os Actors que estão nela
         scene->AddActor(std::move(orbActor));
     }
 }
 
-void BattleHUD::OnUpdate(float deltaTime) {
+void BattleHUD::OnUpdate(const float deltaTime) {
     mCurrentStateTime += deltaTime;
-    float progress = 1.0f - (mCurrentStateTime / mTotalStateTime);
+    const float progress = 1.0f - (mCurrentStateTime / mTotalStateTime);
 
     if (mTimeBarComp != nullptr) {
         mTimeBarComp->SetFillPercent(progress);
@@ -56,29 +58,29 @@ void BattleHUD::OnUpdate(float deltaTime) {
 void BattleHUD::UpdateVisualOrbs(float deltaTime) {
 
     // Precisamos do Player para saber onde orbitar e quantos pontos tem
-    auto battle = dynamic_cast<Battle*>(mOwner);
+    const auto battle = dynamic_cast<Battle*>(mOwner);
     if (!battle) return;
 
-    auto player = battle->GetPlayer();
+    const auto player = battle->GetPlayer();
     if (!player) return;
 
-    int numPoints = player->GetExtraPoints();
-    Vector2 playerPos = player->GetPosition();
+    const int numPoints = player->GetExtraPoints();
+    const Vector2 playerPos = player->GetPosition();
 
     // Animação de respiração
     mPulseTimer += deltaTime;
-    float breathing = std::sin(mPulseTimer * 3.0f) * 5.0f;
-    float currentDist = ORB_DISTANCE + breathing;
+    const float breathing = std::sin(mPulseTimer * 3.0f) * 5.0f;
+    const float currentDist = ORB_DISTANCE + breathing;
 
     // Offsets (Direita, Baixo, Esquerda)
-    std::vector<Vector2> offsets = {
+    const std::vector<Vector2> offsets = {
         Vector2(currentDist, 0.0f),
         Vector2(0.0f, currentDist),
         Vector2(-currentDist, 0.0f)
     };
 
     for (int i = 0; i < 3; i++) {
-        auto dc = mVisualOrbs[i]->GetComponent<DrawAnimatedComponent>();
+        const auto dc = mVisualOrbs[i]->GetComponent<DrawAnimatedComponent>();
 
         // Lógica de Visibilidade
         if (i < numPoints) {
@@ -88,11 +90,11 @@ void BattleHUD::UpdateVisualOrbs(float deltaTime) {
                 mVisualOrbs[i]->SetPosition(playerPos + offsets[i]);
             }
 
-            // --- LÓGICA DE MOVIMENTO SUAVE (LERP) ---
+            // --- LÓGICA DE MOVIMENTO SUAVE (LERP - Linear Interpolation) ---
             Vector2 targetPos = playerPos + offsets[i];
             Vector2 currentPos = mVisualOrbs[i]->GetPosition();
 
-            // A mágica acontece aqui: O HUD puxa o orbe para perto do Player
+            // O HUD puxa o orbe para perto do Player
             Vector2 newPos = Vector2::Lerp(currentPos, targetPos, ORB_SMOOTH_SPEED * deltaTime);
 
             mVisualOrbs[i]->SetPosition(newPos);

@@ -8,10 +8,9 @@
 
 Ricardo::Ricardo(Scene *scene) : Boss(scene)
 {
-    SDL_Log("Construtor Ricardo");
 }
 
-void Ricardo::OnUpdate(float deltaTime) {
+void Ricardo::OnUpdate(const float deltaTime) {
     Boss::OnUpdate(deltaTime);
 }
 

@@ -1,16 +1,8 @@
 
 #include "SallesFactory.h"
 #include "../../Teachers/Bosses/Salles.h"
-#include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Attacks/BaseStrategies/AngledAttack.h"
 #include "../../../Actors/Teachers/BossFactory/BossProjectileFactory/SallesProjectile1Factory.h"
-#include "../../../Attacks/Behaviors.h"
-#include "../../Projectile.h"
-#include "../../../Random.h"
-#include "../BossAttackState.h"
-#include "../../../Components/AIComponents/FSMComponent.h"
-#include "../../../Components/ColliderComponents/CircleColliderComponent.h"
-#include "../../../Movements/MovementStrategies.h"
 
 
 SallesFactory::SallesFactory(Game* game)
@@ -41,7 +33,6 @@ void SallesFactory::ConfigureComponents(Boss* boss) {
 }
 
 
-// Em SallesFactory.cpp
 void SallesFactory::ConfigureAttacksAndFSM(Boss* boss) {
 
 

@@ -119,8 +119,9 @@ void Boss::ExecuteAttack(AttackDefinition& attackDef, const std::string& stateNa
     auto projManager = battleScene->GetProjectileManager();
     if (!projManager) { return; }
 
-    // Executar estratégia
+    // ---------- EXECUTA O ATAQUE ---------- //
     auto projectiles = attackDef.strategy->Execute(attackDef.params);
+    // ---------- ------- - ------ ---------- //
 
     // Depois de executar, aplicar a personalização lambda, se existir
     if (attackDef.configurator) {

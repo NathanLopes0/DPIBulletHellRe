@@ -32,7 +32,7 @@ Battle::Battle(Game* game, const Game::GameSubject selectedStage)
     , mGrade(40.0f)
     , mStage(selectedStage)
 {
-    SDL_Log(" BATTLE - Construtor");
+    //SDL_Log(" BATTLE - Construtor");
 }
 
 Battle::~Battle() = default;
@@ -40,7 +40,7 @@ Battle::~Battle() = default;
 //region LoadFunctions
 void Battle::Load() {
 
-    SDL_Log(" BATTLE - LOAD - Iniciando");
+    //SDL_Log(" BATTLE - LOAD - Iniciando");
     // 1. Criar os sistemas primeiro
     mProjectileManager = std::make_unique<ProjectileManager>(this);
 
@@ -59,7 +59,6 @@ void Battle::Load() {
 
     // 3. Iniciar a lógica da batalha (se necessário)
     if (mBoss) {
-        SDL_Log("Starting Boss");
         mBoss->Start();
     }
 

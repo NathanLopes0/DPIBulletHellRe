@@ -21,8 +21,9 @@ public:
      * @param owner O ator que disparou (que esperamos ser o Boss).
      * @return Um ponteiro único para o Projétil recém-criado.
      */
-    std::unique_ptr<Projectile> createProjectile(Scene* scene, Actor* owner) override;
+    SallesProjectile1Factory() { mDataPath = "../Assets/Teachers/Projectiles/Capivara.json";
+        mSpritePath = "../Assets/Teachers/Projectiles/DPIBHSallesCapivara.png"; };
 
-private:
-    std::string mDataPath = "../Assets/Teachers/Projectiles/Capivara.json";
+
+    std::unique_ptr<Projectile> createProjectile(Scene* scene, Actor* owner) override;
 };

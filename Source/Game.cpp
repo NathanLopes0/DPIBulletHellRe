@@ -22,7 +22,7 @@ Game::Game(int windowWidth, int windowHeight)
     mTicksCount(0),
     mIsGameRunning(true),
     mScene(nullptr),
-    mSelectedStage(INF250),
+    mSelectedStage(INF220),
     mPendingSceneChange(false),
     mNextScene(Scene::SceneType::None)
 {
@@ -241,12 +241,9 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
 
 void Game::InitializeBossFactory() {
 
-    SDL_Log(" GAME -- Inicializando todas as fabricas");
     mBossFactory[INF213] = std::make_unique<SallesFactory>(this);
     mBossFactory[INF250] = std::make_unique<RicardoFactory>(this);
-
-    if (mBossFactory[INF213] && mBossFactory[INF250])
-        SDL_Log(" GAME -- Fabricas inicializadas");
+    mBossFactory[INF220] = std::make_unique<AndreFactory>(this);
 
 }
 
@@ -261,6 +258,7 @@ void Game::InitializeGrades() {
 
     mGrades[INF213] = 40;
     mGrades[INF250] = 40;
+    mGrades[INF220] = 40;
 
 }
 

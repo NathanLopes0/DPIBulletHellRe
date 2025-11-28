@@ -16,6 +16,7 @@
 
 std::unique_ptr<Projectile> SallesProjectile1Factory::createProjectile(Scene* scene, Actor* owner)
 {
+
     // VERIFICAÇÃO DE SEGURANÇA: O 'owner' é realmente um Boss?
     auto* bossOwner = dynamic_cast<Salles*>(owner);
     if (!bossOwner)

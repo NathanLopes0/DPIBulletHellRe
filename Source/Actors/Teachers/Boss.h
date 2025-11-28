@@ -66,7 +66,7 @@ protected:
 
 private:
     // Função interna para executar um ataque específico
-    void ExecuteAttack(AttackDefinition& attackDef, const std::string& stateName);
+    virtual void ExecuteAttack(AttackDefinition& attackDef, const std::string& stateName);
 
     void CalculateNextDropThreshold();
     int mHitCounter = 0;

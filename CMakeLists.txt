@@ -95,6 +95,14 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teachers/Bosses/BossesProjectiles/RicardoBossProjectile.h
         Source/Actors/Teachers/BossFactory/BossProjectileFactory/RicardoProjectile1Factory.cpp
         Source/Actors/Teachers/BossFactory/BossProjectileFactory/RicardoProjectile1Factory.h
+        Source/Actors/Teachers/Bosses/Andre.cpp
+        Source/Actors/Teachers/Bosses/Andre.h
+        Source/Actors/Teachers/Bosses/BossesProjectiles/AndreBossProjectile.cpp
+        Source/Actors/Teachers/Bosses/BossesProjectiles/AndreBossProjectile.h
+        Source/Actors/Teachers/BossFactory/BossProjectileFactory/AndreProjectile1Factory.cpp
+        Source/Actors/Teachers/BossFactory/BossProjectileFactory/AndreProjectile1Factory.h
+        Source/Actors/Teachers/BossFactory/AndreFactory.cpp
+        Source/Actors/Teachers/BossFactory/AndreFactory.h
 )
 
 find_package(SDL2 REQUIRED)

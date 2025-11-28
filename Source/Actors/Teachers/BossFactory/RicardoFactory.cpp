@@ -19,26 +19,26 @@ RicardoFactory::RicardoFactory(Game *game)
 }
 
 std::unique_ptr<Boss> RicardoFactory::InstantiateBoss(Scene *scene) {
-    SDL_Log("Instantiating Boss");
+    //SDL_Log("Instantiating Boss");
     return std::make_unique<Ricardo>(scene);
 }
 
 void RicardoFactory::ConfigureComponents(Boss *boss) {
 
     // ----- DRAW COMPONENT ----- //
-    SDL_Log("RICARDO FACTORY - CONFIGURANDO DRAWCOMPONENT");
+    //SDL_Log("RICARDO FACTORY - CONFIGURANDO DRAWCOMPONENT");
     auto drawComp = boss->AddComponent<DrawAnimatedComponent>("../Assets/Teachers/DPIBHRicardo.png",
         "../Assets/Teachers/DPIBHRicardo.json");
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 
-    SDL_Log("Draw Configurado, configurando Colliders");
+    //SDL_Log("Draw Configurado, configurando Colliders");
     // ----- COLLIDER COMPONENT ----- //
     const float colliderRadius = static_cast<float>(drawComp->GetSpriteWidth()) / 2.2f;
     const auto collider = boss->AddComponent<CircleColliderComponent>(colliderRadius);
     collider->SetTag(ColliderTag::Boss);
 
-    SDL_Log("Collider Configurado, setando ProjectileFactory");
+    //SDL_Log("Collider Configurado, setando ProjectileFactory");
     boss->SetProjectileFactory(std::make_unique<RicardoProjectile1Factory>());
 }
 
@@ -120,13 +120,13 @@ void RicardoFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm, Projecti
     const std::string STATE_NAME = "StateThree";
 
     AttackParams params;
-    params.numProjectiles = 36;
-    params.projectileSpeed = 200.f;
+    params.numProjectiles = 18;
+    params.projectileSpeed = 180.f;
 
     boss->AddAttackPattern(STATE_NAME,
     std::make_unique<CircleSpreadAttack>(spawner, boss),
     params,
-    2.f,
+    2.4f,
     [](Projectile* p, const int index) {
         if (index % 2 == 0)
             p->insertBehavior<HomingBehavior>(1.f, 200.f);
@@ -143,6 +143,38 @@ void RicardoFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm, Projecti
 }
 
 void RicardoFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) {
+    const std::string STATE_NAME = "StateFinal";
+
+    AttackParams paramsFast;
+    paramsFast.numProjectiles = 18;
+    paramsFast.projectileSpeed = 120.f;
+
+    boss->AddAttackPattern(STATE_NAME,
+        std::make_unique<CircleSpreadAttack>(spawner, boss),
+        paramsFast,
+        1.4f);
+
+    AttackParams paramsSlow;
+    paramsSlow.numProjectiles = 9;
+    paramsSlow.projectileSpeed = 240.f;
+
+    boss->AddAttackPattern(STATE_NAME,
+        std::make_unique<CircleSpreadAttack>(spawner, boss),
+        paramsSlow,
+        2.8f,
+        [](Projectile* p, const int index) {
+            p->insertBehavior<SlowDownBehavior>(0.8f, 0.8f);
+            p->insertBehavior<HomingBehavior>(1.f, 240.f);
+        });
+
+    auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
+        STATE_FINAL_DURATION,
+        "StateOne");
+
+    fsm->RegisterState(std::move(stateObj));
+
+    boss->RegisterMovementStrategy(STATE_NAME,
+        std::make_unique<GoToCenterStrategy>());
 
 }
 
