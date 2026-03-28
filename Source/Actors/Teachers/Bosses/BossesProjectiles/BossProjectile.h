@@ -28,6 +28,6 @@ public:
 
 protected:
     // Implementação obrigatória do contrato da classe base.
-    [[nodiscard]] bool IsOffScreen() const override;
+    [[nodiscard]] bool virtual IsOffScreen() const override;
 
 };

@@ -8,7 +8,6 @@
 #include "../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 
-
 void HomingBehavior::update(Projectile* p, float deltaTime) {
 
     if (auto bossProj = dynamic_cast<BossProjectile*>(p)) {
@@ -29,7 +28,6 @@ void HomingBehavior::update(Projectile* p, float deltaTime) {
         }
     }
 }
-
 void AccelerateBehavior::update(Projectile* p, float deltaTime) {
     if (auto bossProj = dynamic_cast<BossProjectile*>(p)) {
         if(!accelerated) {
@@ -51,7 +49,6 @@ void AccelerateBehavior::update(Projectile* p, float deltaTime) {
         }
     }
 }
-
 void SlowDownBehavior::update(Projectile* p, float deltaTime) {
     if (auto bossProj = dynamic_cast<BossProjectile*>(p)) {
         if(!slowedDown) {
@@ -62,7 +59,7 @@ void SlowDownBehavior::update(Projectile* p, float deltaTime) {
                 auto currVelAux = currVel;
                 currVel.Normalize();
                 if(slowdownSpeedValue != -1) {
-                    currVel *= (float) slowdownSpeedValue;
+                    currVel *= static_cast<float>(slowdownSpeedValue);
                     bossProj->GetComponent<RigidBodyComponent>()->SetVelocity(currVelAux - currVel);
                 }
                 else {
@@ -73,7 +70,6 @@ void SlowDownBehavior::update(Projectile* p, float deltaTime) {
         }
     }
 }
-
 void ActivateBehavior::update(Projectile* p, float deltaTime) {
     if (auto bossProj = dynamic_cast<BossProjectile*>(p)) {
         if(!activated) {

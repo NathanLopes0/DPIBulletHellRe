@@ -91,10 +91,10 @@ void Boss::OnUpdate(float deltaTime) {
     }
 }
 
-void Boss::AddAttackPattern(const std::string &stateName, std::unique_ptr<IAttackStrategy> strategy, AttackParams params, float cooldown, ProjectileConfigurator config) {
+void Boss::AddAttackPattern(const std::string &stateName, std::unique_ptr<IAttackStrategy> strategy, std::unique_ptr<AttackParams> params, float cooldown, ProjectileConfigurator config) {
     AttackDefinition def;
     def.strategy = std::move(strategy);
-    def.params = params;
+    def.params = std::move(params);
     def.configurator = std::move(config);
     def.cooldownTotal = cooldown;
     def.currentTimer = 1.f;
@@ -107,11 +107,16 @@ void Boss::RegisterMovementStrategy(const std::string& stateName, std::unique_pt
 void Boss::ExecuteAttack(AttackDefinition& attackDef, const std::string& stateName)
 {
 
+    if (!attackDef.params || !attackDef.strategy) {
+        SDL_Log("Erro em ExecuteAttack: params ou strategy estao nulos no estado %s!", stateName.c_str());
+        return;
+    }
+
     // Atualiza a posição de tiro pra posição do boss.
-    attackDef.params.firePosition = GetPosition();
+    attackDef.params->firePosition = GetPosition();
 
     // Chama customização do boss específico
-    CustomizeAttackParams(attackDef.params, stateName);
+    CustomizeAttackParams(*(attackDef.params), stateName);
 
     auto battleScene = dynamic_cast<Battle*>(mScene);
     if (!battleScene) { return; }
@@ -120,7 +125,7 @@ void Boss::ExecuteAttack(AttackDefinition& attackDef, const std::string& stateNa
     if (!projManager) { return; }
 
     // ---------- EXECUTA O ATAQUE ---------- //
-    auto projectiles = attackDef.strategy->Execute(attackDef.params);
+    auto projectiles = attackDef.strategy->Execute(*(attackDef.params));
     // ---------- ------- - ------ ---------- //
 
     // Depois de executar, aplicar a personalização lambda, se existir
@@ -169,15 +174,18 @@ Vector2 Boss::GetDirectionToPlayer() const {
     return Vector2(0.0f, 1.0f);
 }
 
-void Boss::SetProjectileFactory(std::unique_ptr<ProjectileFactory> factory) {
-    mProjectileFactory = std::move(factory); // Transfere a posse
+ProjectileFactory* Boss::GetProjectileFactory(const std::string& factoryName) const {
+
+    if (const auto it = mProjectileFactories.find(factoryName); it != mProjectileFactories.end()) {
+        return it->second.get(); // Retorna o ponteiro bruto da fábrica específica
+    }
+
+    SDL_Log("Erro: Fabrica '%s' nao encontrada no Boss!", factoryName.c_str());
+    return nullptr;
 }
 
-ProjectileFactory* Boss::GetProjectileFactory() const {
-    if (mProjectileFactory) {
-        return mProjectileFactory.get(); // Retorna o ponteiro cru (observador)
-    }
-    return nullptr;
+void Boss::AddProjectileFactory(const std::string& projectileName, std::unique_ptr<ProjectileFactory> factory) {
+    mProjectileFactories[projectileName] = std::move(factory);
 }
 
 void Boss::CustomizeAttackParams(AttackParams &params, const std::string &stateName) {

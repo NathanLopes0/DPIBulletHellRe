@@ -11,6 +11,8 @@
 #include <vector>
 #include <map>
 #include <memory>
+
+#include "../ProjectileFactory.h"
 #include "../../Attacks/IAttackStrategy.h"
 #include "../../Attacks/AttackParameters/AttackParams.h"
 #include "Bosses/BossesProjectiles/BossProjectile.h"
@@ -39,7 +41,7 @@ public:
 
     struct AttackDefinition {
         std::unique_ptr<IAttackStrategy> strategy; // A lógica (Angled, Circle, etc)
-        AttackParams params;                       // Parâmetros (Speed, Angle, NumProj)
+        std::unique_ptr<AttackParams> params;                       // Parâmetros (Speed, Angle, NumProj)
         ProjectileConfigurator configurator;       // Lambda para customização (Homing, Anim)
         float cooldownTotal;                       // Tempo entre disparos desse ataque
         float currentTimer;                        // Timer atual desse ataque específico
@@ -47,15 +49,17 @@ public:
 
     void AddAttackPattern(const std::string& stateName,
                           std::unique_ptr<IAttackStrategy> strategy,
-                          AttackParams params,
+                          std::unique_ptr<AttackParams> params,
                           float cooldown,
                           ProjectileConfigurator config = nullptr);
 
     void SetInitialState(const std::string& stateName);
-    void SetProjectileFactory(std::unique_ptr<ProjectileFactory> factory);
-    ProjectileFactory* GetProjectileFactory() const;
 
-    Vector2 GetDirectionToPlayer() const;
+    [[nodiscard]] ProjectileFactory* GetProjectileFactory(const std::string& factoryName) const;
+
+    void AddProjectileFactory(const std::string& projectileName, std::unique_ptr<ProjectileFactory> factory);
+
+    [[nodiscard]] Vector2 GetDirectionToPlayer() const;
 
     void RegisterMovementStrategy(const std::string& stateName, std::unique_ptr<IMovementStrategy> strategy);
 
@@ -73,7 +77,9 @@ private:
     int mNextDropThreshold = 0;
 
     std::string mInitialState;
-    std::unique_ptr<ProjectileFactory> mProjectileFactory;
+
+    // Mapeia: Nome do projétil -> Fábrica dele (Populado na Fábrica)
+    std::unordered_map<std::string, std::unique_ptr<ProjectileFactory>> mProjectileFactories;
 
     // Mapeia: Nome do Estado -> Lista de Definições de Ataque
     std::map<std::string, std::vector<AttackDefinition>> mAttacksMap;

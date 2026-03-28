@@ -43,10 +43,10 @@ void Andre::CustomizeAttackParams(AttackParams &params, const std::string &state
 
 void Andre::ExecuteAttack(AttackDefinition &attackDef, const std::string &stateName) {
     // Atualiza a posição de tiro pra posição do boss.
-    attackDef.params.firePosition = GetPosition();
+    attackDef.params->firePosition = GetPosition();
 
     // Chama customização do boss específico
-    CustomizeAttackParams(attackDef.params, stateName);
+    CustomizeAttackParams(*(attackDef.params), stateName);
 
     auto battleScene = dynamic_cast<Battle*>(mScene);
     if (!battleScene) { return; }
@@ -55,7 +55,7 @@ void Andre::ExecuteAttack(AttackDefinition &attackDef, const std::string &stateN
     if (!projManager) { return; }
 
     // ---------- EXECUTA O ATAQUE ---------- //
-    auto projectiles = attackDef.strategy->Execute(attackDef.params);
+    auto projectiles = attackDef.strategy->Execute(*(attackDef.params));
     // ---------- ------- - ------ ---------- //
 
     // Depois de executar, aplicar a personalização lambda, se existir
@@ -67,13 +67,13 @@ void Andre::ExecuteAttack(AttackDefinition &attackDef, const std::string &stateN
 
     // --- DIFERENÇA DO EXECUTEATTACK DO BOSS PRO DO ANDRE --- //
     const int choose = Random::GetIntRange(0,2);
-    const std::vector<std::string> animations = {
-        "Graph1",
-        "Graph2",
-        "Graph3"
+    const std::vector<std::vector<Uint8>> colors = {
+        {255, 0, 0},
+        {255,255,0},
+        {0,0, 255}
     };
     for (auto& p : projectiles) {
-        p->GetComponent<DrawAnimatedComponent>()->SetAnimation(animations[choose]);
+        p->GetComponent<DrawAnimatedComponent>()->SetColor(colors[choose][0], colors[choose][1], colors[choose][2]);
     }
     // --- --------- -- ------------- -- ---- --- -- ----- --- //
 

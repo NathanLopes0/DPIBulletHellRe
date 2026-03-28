@@ -54,8 +54,9 @@ void BossAttackState::HandleStateTransition(float stateTime)
     }
 
 
+    // Se mNextStateName estiver vazio, ele "trava" neste estado.
     if (!mNextStateName.empty()) {
         mFSM->SetState(mNextStateName);
     }
-    // Se mNextStateName estiver vazio, ele "trava" neste estado.
+
 }

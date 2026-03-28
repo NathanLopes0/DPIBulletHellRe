@@ -103,6 +103,13 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teachers/BossFactory/BossProjectileFactory/AndreProjectile1Factory.h
         Source/Actors/Teachers/BossFactory/AndreFactory.cpp
         Source/Actors/Teachers/BossFactory/AndreFactory.h
+        Source/Attacks/BaseStrategies/BaloonAttack.cpp
+        Source/Attacks/BaseStrategies/BaloonAttack.h
+        Source/Attacks/AttackParameters/BaloonAttackParams.h
+        Source/Actors/Teachers/Bosses/BossesProjectiles/AndreBaloonProjectile.cpp
+        Source/Actors/Teachers/Bosses/BossesProjectiles/AndreBaloonProjectile.h
+        Source/Actors/Teachers/BossFactory/BossProjectileFactory/AndreBaloonProjectileFactory.cpp
+        Source/Actors/Teachers/BossFactory/BossProjectileFactory/AndreBaloonProjectileFactory.h
 )
 
 find_package(SDL2 REQUIRED)
