@@ -40,7 +40,7 @@ private:
     bool mIsMoving;
 };
 
-// --- ESTRATÉGIA 2: HOVER ABOVE PLAYER (Renomeado corretamente) ---
+// --- ESTRATÉGIA 2: HOVER ABOVE PLAYER ---
 class HoverAbovePlayerStrategy : public IMovementStrategy {
 public:
     HoverAbovePlayerStrategy(float speed = 150.0f, float yLevel = 150.0f);

@@ -470,9 +470,9 @@ void Battle::FinishBattle(bool approved) {
         dc->SetIsVisible(true);
 
         if (approved) {
-            dc->SetText("APROVADO!");
+            dc->SetText("APROVADE!");
         } else {
-            dc->SetText("REPROVADO");
+            dc->SetText("REPROVADE");
         }
     }
 }

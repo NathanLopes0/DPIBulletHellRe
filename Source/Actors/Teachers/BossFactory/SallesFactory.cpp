@@ -28,7 +28,7 @@ void SallesFactory::ConfigureComponents(Boss* boss) {
     auto collider = boss->AddComponent<CircleColliderComponent>(colliderRadius);
     collider->SetTag(ColliderTag::Boss);
 
-    boss->SetProjectileFactory(std::make_unique<SallesProjectile1Factory>());
+    boss->AddProjectileFactory("Capivara",std::make_unique<SallesProjectile1Factory>());
 
 }
 
@@ -39,32 +39,30 @@ void SallesFactory::ConfigureAttacksAndFSM(Boss* boss) {
     auto fsm = boss->GetComponent<FSMComponent>();
     if (!fsm) { SDL_Log("ERRO CRÍTICO: Boss não tem FSMComponent!"); return; }
 
-    // Pega a Fábrica de Projéteis
-    auto spawner = boss->GetProjectileFactory();
-    if (!spawner) { SDL_Log("ERRO CRÍTICO: Boss não tem ProjectileFactory!"); return; }
-
-    ConfigureStateOne(boss, fsm, spawner);
-    ConfigureStateTwo(boss, fsm, spawner);
-    ConfigureStateThree(boss, fsm, spawner);
-    ConfigureStateFinal(boss, fsm, spawner);
+    ConfigureStateOne(boss, fsm);
+    ConfigureStateTwo(boss, fsm);
+    ConfigureStateThree(boss, fsm);
+    ConfigureStateFinal(boss, fsm);
 
     boss->SetInitialState("StateOne");
 }
 
-void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm, ProjectileFactory* spawner)
+void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm)
 {
 
     const std::string STATE_NAME = "StateOne";
 
     // 1. Configura os parâmetros fixos
-    AttackParams params;
-    params.numProjectiles = 2;
-    params.projectileSpeed = 230.0f;
-    params.angle = 30.f;
+    auto params = std::make_unique<AttackParams>();
+    params->numProjectiles = 2;
+    params->projectileSpeed = 230.0f;
+    params->angle = 30.f;
+
+    auto spawner = boss->GetProjectileFactory("Capivara");
 
     boss->AddAttackPattern(STATE_NAME,
             std::make_unique<AngledAttack>(spawner, boss), // Strategy
-            params,                                        // Params
+            std::move(params),                                        // Params
             0.9f,                                          // Cooldown
             [](Projectile* p, int index) {                 // Configurator Lambda
                 if (Random::GetFloatRange(0.0f, 1.0f) < 0.2f) {
@@ -84,20 +82,22 @@ void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm, ProjectileF
 
 
 }
-void SallesFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm, ProjectileFactory* spawner)
+void SallesFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm)
 {
 
     const std::string STATE_NAME = "StateTwo";
 
     // 1. Configura os parâmetros para este estado
-    AttackParams params;
-    params.numProjectiles = 3;
-    params.projectileSpeed = 230.0f;
-    params.angle = 40.f;
+    auto params = std::make_unique<AttackParams>();
+    params->numProjectiles = 3;
+    params->projectileSpeed = 230.0f;
+    params->angle = 40.f;
+
+    auto spawner = boss->GetProjectileFactory("Capivara");
 
     boss->AddAttackPattern(STATE_NAME,
         std::make_unique<AngledAttack>(spawner, boss),
-        params,
+        std::move(params),
         1.f,
         [](Projectile* p, int index) {
             if (Random::GetFloatRange(0.0f, 1.0f) < 0.3f) {
@@ -117,18 +117,20 @@ void SallesFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm, ProjectileF
         std::make_unique<RandomWanderStrategy>(6.0f, 300.0f));
 
 }
-void SallesFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) {
+void SallesFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm) {
     const std::string STATE_NAME = "StateThree";
 
     // 1 . Configura os padrões fixos do estado três
-    AttackParams params;
-    params.numProjectiles = 4;
-    params.projectileSpeed = 260.0f;
-    params.angle = 60.f;
+    auto params = std::make_unique<AttackParams>();
+    params->numProjectiles = 4;
+    params->projectileSpeed = 260.0f;
+    params->angle = 60.f;
+
+    auto spawner = boss->GetProjectileFactory("Capivara");
 
     boss->AddAttackPattern(STATE_NAME,
         std::make_unique<AngledAttack>(spawner, boss),
-        params,
+        std::move(params),
         0.9f,
         [](Projectile* p, int index) {
             if (Random::GetFloatRange(0.0f, 1.0f) < 0.5f) {
@@ -148,19 +150,21 @@ void SallesFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm, Projectil
         std::make_unique<RandomWanderStrategy>(4.f, 300.f));
 
 }
-void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) {
+void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm) {
     const std::string STATE_NAME = "StateFinal";
 
     // 1. Padrões fixos do estado Final
     // -- Ataque 1 --
-    AttackParams paramsFast;
-    paramsFast.numProjectiles = 2;
-    paramsFast.projectileSpeed = 280.0f;
-    paramsFast.angle = 40.f;
+    auto paramsFast = std::make_unique<AttackParams>();
+    paramsFast->numProjectiles = 2;
+    paramsFast->projectileSpeed = 280.0f;
+    paramsFast->angle = 40.f;
+
+    auto spawner = boss->GetProjectileFactory("Capivara");
 
     boss->AddAttackPattern(STATE_NAME,
         std::make_unique<AngledAttack>(spawner, boss),
-        paramsFast,
+        std::move(paramsFast),
         0.8f,
         [](Projectile* p, int i) {
             auto chance = Random::GetFloatRange(0.0f, 1.0f);
@@ -171,14 +175,14 @@ void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm, Projectil
         });
 
     // -- Ataque 2 --
-    AttackParams paramsSlow;
-    paramsSlow.numProjectiles = 3;
-    paramsSlow.projectileSpeed = 200.0f;
-    paramsSlow.angle = 80.f;
+    auto paramsSlow = std::make_unique<AttackParams>();
+    paramsSlow->numProjectiles = 3;
+    paramsSlow->projectileSpeed = 200.0f;
+    paramsSlow->angle = 80.f;
 
     boss->AddAttackPattern(STATE_NAME,
         std::make_unique<AngledAttack>(spawner, boss),
-        paramsSlow,
+        std::move(paramsSlow),
         1.f,
         [](Projectile* p, int i) {
             auto chance = Random::GetFloatRange(0.0f, 1.0f);

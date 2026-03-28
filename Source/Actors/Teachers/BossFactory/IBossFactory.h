@@ -65,10 +65,10 @@ protected:
     /** @brief PASSO 3 : Instala a FSM e as AttackStrategies */
     virtual void ConfigureAttacksAndFSM(Boss* boss) = 0;
 
-    virtual void ConfigureStateOne(Boss* boss, FSMComponent* fsm, ProjectileFactory* spawner) = 0;
-    virtual void ConfigureStateTwo(Boss* boss, FSMComponent* fsm, ProjectileFactory* spawner) = 0;
-    virtual void ConfigureStateThree(Boss* boss, FSMComponent* fsm, ProjectileFactory* spawner) = 0;
-    virtual void ConfigureStateFinal(Boss* boss, FSMComponent* fsm, ProjectileFactory* spawner) = 0;
+    virtual void ConfigureStateOne(Boss* boss, FSMComponent* fsm) = 0;
+    virtual void ConfigureStateTwo(Boss* boss, FSMComponent* fsm) = 0;
+    virtual void ConfigureStateThree(Boss* boss, FSMComponent* fsm) = 0;
+    virtual void ConfigureStateFinal(Boss* boss, FSMComponent* fsm) = 0;
 
     Game* mGame;
 

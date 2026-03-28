@@ -87,7 +87,7 @@ void Game::LoadInitialScene()
 {
 
     InitializeBossFactory();
-    ChangeScene(Scene::SceneType::Battle);
+    ChangeScene(Scene::SceneType::MainMenu);
 
 }
 
@@ -295,7 +295,7 @@ bool Game::IsStageUnlocked(GameSubject subject) {
     // ---------------------------------------------------------
     if (subject == GameSubject::INF213) return true;
 
-    // Definindo as colunas (conforme seu StageSelect.cpp)
+    // Definindo as colunas (conforme o StageSelect está definido)
     const std::vector<GameSubject> col2 = {
         GameSubject::INF250, GameSubject::INF220,
         GameSubject::INF330, GameSubject::INF332

@@ -70,7 +70,7 @@ std::vector<std::unique_ptr<Projectile>> CircleSpreadAttack::Execute(const Attac
         // Velocidade usa o projectileSpeed do params, lida lá em cima da função
         projectile->GetComponent<RigidBodyComponent>()->SetVelocity(directionVector * projectileSpeed);
 
-        // Transferência de posse! (IMPORTANTÍSSIMO)
+        // Transferência de posse (IMPORTANTÍSSIMO)
         //    Usar std::move para mover o unique_ptr 'projectile'
         //    para dentro do vetor.
         projectiles.push_back(std::move(projectile));

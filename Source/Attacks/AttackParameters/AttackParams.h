@@ -22,6 +22,8 @@ class Actor;
  */
 struct AttackParams
 {
+
+    virtual ~AttackParams() = default;
     // --- 1. PARÂMETROS CONTEXTUAIS (Definidos pelo Chamador) ---
     // Onde o ataque acontece no mundo.
 
@@ -63,7 +65,7 @@ struct AttackParams
 
     /**
      * @brief Atraso entre a criação de cada projétil (em segundos).
-     * Usado por ataques tipo "Wave" ou "Stream".
+     * Usado por ataques tipo "Wave".
      */
     float creationSpeed = 0.05f;
 };

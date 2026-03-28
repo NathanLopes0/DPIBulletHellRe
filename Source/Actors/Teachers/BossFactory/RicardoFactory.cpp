@@ -38,8 +38,7 @@ void RicardoFactory::ConfigureComponents(Boss *boss) {
     const auto collider = boss->AddComponent<CircleColliderComponent>(colliderRadius);
     collider->SetTag(ColliderTag::Boss);
 
-    //SDL_Log("Collider Configurado, setando ProjectileFactory");
-    boss->SetProjectileFactory(std::make_unique<RicardoProjectile1Factory>());
+    boss->AddProjectileFactory("Arduino", std::make_unique<RicardoProjectile1Factory>());
 }
 
 void RicardoFactory::ConfigureAttacksAndFSM(Boss *boss) {
@@ -49,32 +48,29 @@ void RicardoFactory::ConfigureAttacksAndFSM(Boss *boss) {
         return;
     }
 
-    auto spawner = boss->GetProjectileFactory();
-    if (!spawner) {
-        SDL_Log("ERRO CRÍTICO: Boss não tem ProjectileFactory");
-        return;
-    }
 
-    ConfigureStateOne(boss, fsm, spawner);
-    ConfigureStateTwo(boss, fsm, spawner);
-    ConfigureStateThree(boss, fsm, spawner);
-    ConfigureStateFinal(boss, fsm, spawner);
+    ConfigureStateOne(boss, fsm);
+    ConfigureStateTwo(boss, fsm);
+    ConfigureStateThree(boss, fsm);
+    ConfigureStateFinal(boss, fsm);
 
     boss->SetInitialState("StateOne");
 }
 
-void RicardoFactory::ConfigureStateOne(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) {
+void RicardoFactory::ConfigureStateOne(Boss *boss, FSMComponent *fsm) {
 
     const std::string STATE_NAME = "StateOne";
 
     // 1. Configurar parâmetros fixos
-    AttackParams params;
-    params.numProjectiles = 36;
-    params.projectileSpeed = 180.f;
+    auto params = std::make_unique<AttackParams>();
+    params->numProjectiles = 36;
+    params->projectileSpeed = 180.f;
+
+    auto spawner = boss->GetProjectileFactory("Arduino");
 
     boss->AddAttackPattern(STATE_NAME,
         std::make_unique<CircleSpreadAttack>(spawner, boss),
-        params,
+        std::move(params),
         2.4f
         );
 
@@ -88,17 +84,19 @@ void RicardoFactory::ConfigureStateOne(Boss *boss, FSMComponent *fsm, Projectile
 
 }
 
-void RicardoFactory::ConfigureStateTwo(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) {
+void RicardoFactory::ConfigureStateTwo(Boss *boss, FSMComponent *fsm) {
     const std::string STATE_NAME = "StateTwo";
 
     // 1. Configurar parâmetros fixos
-    AttackParams params;
-    params.numProjectiles = 36;
-    params.projectileSpeed = 180.f;
+    auto params = std::make_unique<AttackParams>();
+    params->numProjectiles = 36;
+    params->projectileSpeed = 180.f;
+
+    auto spawner = boss->GetProjectileFactory("Arduino");
 
     boss->AddAttackPattern(STATE_NAME,
         std::make_unique<CircleSpreadAttack>(spawner, boss),
-        params,
+        std::move(params),
         2.4f,
         [](Projectile* p, int index) {
             p->insertBehavior<SlowDownBehavior>(1.3f, 0.8f);
@@ -115,17 +113,19 @@ void RicardoFactory::ConfigureStateTwo(Boss *boss, FSMComponent *fsm, Projectile
     boss->RegisterMovementStrategy(STATE_NAME, std::make_unique<RandomWanderStrategy>(3.f, 160.f));
 }
 
-void RicardoFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) {
+void RicardoFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm) {
 
     const std::string STATE_NAME = "StateThree";
 
-    AttackParams params;
-    params.numProjectiles = 18;
-    params.projectileSpeed = 180.f;
+    auto params = std::make_unique<AttackParams>();
+    params->numProjectiles = 18;
+    params->projectileSpeed = 180.f;
+
+    auto spawner = boss->GetProjectileFactory("Arduino");
 
     boss->AddAttackPattern(STATE_NAME,
     std::make_unique<CircleSpreadAttack>(spawner, boss),
-    params,
+    std::move(params),
     2.4f,
     [](Projectile* p, const int index) {
         if (index % 2 == 0)
@@ -142,25 +142,27 @@ void RicardoFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm, Projecti
     boss->RegisterMovementStrategy(STATE_NAME, std::make_unique<RandomWanderStrategy>(2.f, 180.f));
 }
 
-void RicardoFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm, ProjectileFactory *spawner) {
+void RicardoFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm) {
     const std::string STATE_NAME = "StateFinal";
 
-    AttackParams paramsFast;
-    paramsFast.numProjectiles = 18;
-    paramsFast.projectileSpeed = 120.f;
+    auto paramsFast = std::make_unique<AttackParams>();
+    paramsFast->numProjectiles = 18;
+    paramsFast->projectileSpeed = 120.f;
+
+    auto spawner = boss->GetProjectileFactory("Arduino");
 
     boss->AddAttackPattern(STATE_NAME,
         std::make_unique<CircleSpreadAttack>(spawner, boss),
-        paramsFast,
+        std::move(paramsFast),
         1.4f);
 
-    AttackParams paramsSlow;
-    paramsSlow.numProjectiles = 9;
-    paramsSlow.projectileSpeed = 240.f;
+    auto paramsSlow = std::make_unique<AttackParams>();
+    paramsSlow->numProjectiles = 9;
+    paramsSlow->projectileSpeed = 240.f;
 
     boss->AddAttackPattern(STATE_NAME,
         std::make_unique<CircleSpreadAttack>(spawner, boss),
-        paramsSlow,
+        std::move(paramsSlow),
         2.8f,
         [](Projectile* p, const int index) {
             p->insertBehavior<SlowDownBehavior>(0.8f, 0.8f);
