@@ -3,7 +3,7 @@ Esse projeto é uma refatoração do projeto abaixo, usando técnicas de Engenha
 
 **(O README abaixo é o mesmo de quando entreguei o projeto original. Atualmente ele ainda está desatualizado)**
 
-Para executar esse projeto em sua máquina, é necessário instalar a SDL.
+Para executar esse projeto em sua máquina, é necessário instalar a SDL2. **A** ChatGPT e o Gemini conseguem te guiar facilmente e dá tudo certo, mas aqui está o [link oficial de tutorial de instalação](https://github.com/sagedemage/SDL2_windows_setup)
 
 [Link do repositório do projeto original](https://github.com/ufv-inf216/projeto-final-NathanLopes0)
 
