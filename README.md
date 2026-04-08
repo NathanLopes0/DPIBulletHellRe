@@ -1,5 +1,7 @@
 ### Refatoração
-Esse projeto é uma refatoração do projeto abaixo, usando técnicas de Engenharia de Software pra melhorar manutenção e escalabilidade visando adicionar os 10 bosses que pensei inicialmente e outros sistemas e ideias. (O README abaixo é o mesmo de quando entreguei o projeto original. Atualmente ele ainda está desatualizado)
+Esse projeto é uma refatoração do projeto abaixo, usando técnicas de Engenharia de Software pra melhorar manutenção e escalabilidade visando adicionar os 10 bosses que pensei inicialmente e outros sistemas e ideias. 
+
+**(O README abaixo é o mesmo de quando entreguei o projeto original. Atualmente ele ainda está desatualizado)**
 
 Para executar esse projeto em sua máquina, é necessário instalar a SDL.
 
