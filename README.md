@@ -1,5 +1,5 @@
 ### Refatoração
-Esse projeto é uma refatoração do projeto abaixo, usando técnicas de Engenharia de Software pra melhorar manutenção e escalabilidade visando adicionar os 10 bosses que pensei inicialmente e outros sistemas e ideias. 
+Esse projeto é uma refatoração do projeto abaixo, usando técnicas de Engenharia de Software pra melhorar manutenção e escalabilidade visando adicionar todos os bosses que pensei inicialmente e outros sistemas e ideias. 
 
 **(O README abaixo é o mesmo de quando entreguei o projeto original. Atualmente ele ainda está desatualizado)**
 
