@@ -38,7 +38,7 @@ Versão 0.4.1
 Principais funcionalidades que devem ser testadas:
 
 * Movimentação -> Velocidade do Jogador, **tamanho da área jogável adequado?**
-* Colisão -> Colisões adequeadas, agradáveis?. É uma colisão "acreditável"? Ou as vezes não parece que haverá colisão e o jogador perde pontos mesmo assim?
+* Colisão -> Colisões adequadas, agradáveis?. É uma colisão "acreditável"? Ou as vezes não parece que haverá colisão e o jogador perde pontos mesmo assim?
 * Dificuldade -> Velocidade das "Balas" e Movimento das mesas, **Progressão de Dificuldade entre matérias**
 * Artes -> Temática das artes, Qualidade da visualização **(cores adequadas, é possível enxergar o que é necessário, em qualquer que seja o momento do jogo?)**
 * Ataques dos Chefes -> Interessantes? É possível aprender uma estratégia rápida pra aumentar as chances de escapar?
