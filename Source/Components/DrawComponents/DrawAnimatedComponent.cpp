@@ -81,7 +81,7 @@ void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
 
         SDL_RendererFlip flip = SDL_FLIP_NONE;
 
-        SDL_RenderCopyEx(renderer, mSpriteSheetSurface, &clipRect, &renderQuad, .0f, nullptr, flip);
+        SDL_RenderCopyEx(renderer, mSpriteSheetSurface, &clipRect, &renderQuad, mOwner->GetRotation(), nullptr, flip);
     }
 
     auto flipflag = SDL_RendererFlip::SDL_FLIP_NONE;

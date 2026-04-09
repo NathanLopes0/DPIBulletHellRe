@@ -45,6 +45,7 @@ void Battle::Load() {
     mProjectileManager = std::make_unique<ProjectileManager>(this);
 
     mGrade = mGame->GetGrade(mStage);
+    if (mGrade < 40) mGrade = 40;
 
     // 2. Criar os atores principais
     LoadPlayer();

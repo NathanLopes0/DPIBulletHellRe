@@ -26,7 +26,7 @@ std::vector<std::unique_ptr<Projectile>> WaveAttack::Execute(const AttackParams&
     const float projectileSpeed = params.projectileSpeed;
     const float totalAngle = params.angle;
     const float centralAngle = params.centralAngle;
-    const float creationSpeed = params.creationSpeed; // O "atraso" da onda
+    const float creationSpeed = params.creationSpeed; // O "atraso" da onda - 
     ProjectileFactory* spawner = mSpawner;
     Actor* owner = mOwner;
 

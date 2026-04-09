@@ -7,7 +7,7 @@
 
 /**
  * @class AndreBossProjectile
- * @brief Especialização do projétil do Andre (Grafos).
+ * @brief Especialização do projétil do Andre.
  * A lógica é herdada de BossProjectile; esta classe existe
  * para que a Factory possa criar um tipo específico.
  */

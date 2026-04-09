@@ -16,11 +16,7 @@ class Actor;
  */
 class CircleSpreadAttack : public IAttackStrategy {
 public:
-    /**
-     * @brief Construtor da estratégia.
-     * @param spawner A fábrica que a estratégia usará (ponteiro observador)
-     * @param owner O Actor que está usando a estratégia (ponteiro observador)
-     */
+
     CircleSpreadAttack(ProjectileFactory* spawner, Actor* owner);
     ~CircleSpreadAttack() override = default;
 
@@ -30,7 +26,7 @@ public:
      * projectileSpeed, firePosition).
      * @return Um vetor de projéteis recém-criados.
      */
-    // 3. Assinatura bate com a interface IAttackStrategy.
+    //Assinatura igual da interface IAttackStrategy.
     std::vector<std::unique_ptr<Projectile>> Execute(const AttackParams& params) override;
 
 private:

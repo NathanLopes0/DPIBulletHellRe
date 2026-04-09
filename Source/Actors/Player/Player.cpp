@@ -39,6 +39,8 @@ Player::Player(Scene* scene) :
     auto colliderComp = AddComponent<CircleColliderComponent>(static_cast<float>(drawComp->GetSpriteWidth()) / 10.f);
     colliderComp->SetTag(ColliderTag::Player);
 
+
+
 }
 
 

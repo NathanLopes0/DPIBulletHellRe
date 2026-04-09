@@ -47,3 +47,5 @@ void RigidBodyComponent::Update(float deltaTime)
     mAcceleration.Set(0.f, 0.f);
 
 }
+
+// timeToHeight = Height/GetVelocity()

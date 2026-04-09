@@ -22,7 +22,7 @@ Game::Game(int windowWidth, int windowHeight)
     mTicksCount(0),
     mIsGameRunning(true),
     mScene(nullptr),
-    mSelectedStage(INF220),
+    mSelectedStage(INF213),
     mPendingSceneChange(false),
     mNextScene(Scene::SceneType::None)
 {
@@ -87,12 +87,11 @@ void Game::LoadInitialScene()
 {
 
     InitializeBossFactory();
-    ChangeScene(Scene::SceneType::MainMenu);
+    ChangeScene(Scene::SceneType::Battle);
 
 }
 
 void Game::RunLoop() {
-
     while (mIsGameRunning)
     {
         ProcessInput();
@@ -100,7 +99,6 @@ void Game::RunLoop() {
         GenerateOutput();
     }
 }
-
 void Game::ProcessInput()
 {
     SDL_Event event;

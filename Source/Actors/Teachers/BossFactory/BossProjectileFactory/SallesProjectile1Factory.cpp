@@ -25,7 +25,7 @@ std::unique_ptr<Projectile> SallesProjectile1Factory::createProjectile(Scene* sc
         return nullptr; // Retorna um ponteiro nulo para sinalizar a falha
     }
 
-    // CRIAÇÃO: Usamos std::make_unique. A posse é nossa (por enquanto).
+    // CRIAÇÃO: usar std::make_unique. A posse é nossa (por enquanto).
     auto projectile = std::make_unique<SallesBossProjectile>(scene, bossOwner);
 
     // Usamos AddComponent<T>
@@ -55,7 +55,7 @@ std::unique_ptr<Projectile> SallesProjectile1Factory::createProjectile(Scene* sc
     projectile->SetState(ActorState::Active);
 
     // TRANSFERÊNCIA DE POSSE:
-    //    Retornamos o unique_ptr. A posse será transferida para quem chamou
-    //    (provavelmente a AttackStrategy, que passará para o ProjectileManager em Battle).
+    //    Retornar unique_ptr. A posse será transferida para quem chamou (tenho que lembrar de transferir la, mas é comportamento padrão)
+    //    (quem chamou provavelmente foi a AttackStrategy, que passará para o ProjectileManager em Battle).
     return projectile;
 }

@@ -26,13 +26,13 @@ void BossProjectile::OnUpdate(float deltaTime)
     Projectile::OnUpdate(deltaTime);
 }
 
-// 3. Implementação obrigatória de IsOffScreen, com a lógica corrigida.
+// 3. Implementação obrigatória de IsOffScreen
 bool BossProjectile::IsOffScreen() const
 {
-    // Acessamos os componentes de forma segura
+    // Acessar os componentes de forma segura
     if (auto drawComp = GetComponent<DrawAnimatedComponent>())
     {
-        // 4. Acessamos a Scene e o Game diretamente da classe Actor base!
+        // 4. Acessar a Scene e o Game diretamente da classe Actor base
         const auto pos = GetPosition();
         const auto game = mScene->GetGame();
         const auto windowWidth = static_cast<float>(game->GetWindowWidth());
@@ -56,10 +56,10 @@ bool BossProjectile::IsOffScreen() const
     return false;
 }
 
-// 4. Implementação do novo getter seguro.
+// 4. Implementação Getter
 Boss* BossProjectile::GetBossOwner() const
 {
-    // Usamos dynamic_cast para converter com segurança o Actor* da classe base
+    // dynamic_cast para converter o Actor* da classe base
     // para o Boss* que sabemos que ele é. Retorna nullptr se o cast falhar.
     return dynamic_cast<Boss*>(mOwner);
 }
