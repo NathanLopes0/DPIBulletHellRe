@@ -57,7 +57,8 @@ void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm)
 
     // 1. Configura os parâmetros fixos
     auto params = std::make_unique<AttackParams>();
-    params->projectileSpeed = 230.0f;
+    params->numProjectiles = 3;
+    params->projectileSpeed = 540.0f;
     params->angle = 30.f;
 
     auto spawner = boss->GetProjectileFactory("ListaDuplamente");
@@ -65,7 +66,7 @@ void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm)
     boss->AddAttackPattern(STATE_NAME,
             std::make_unique<LaserAttack>(spawner, boss), // Strategy
             std::move(params),                                        // Params
-            4.f//,                                          // Cooldown
+            .8f//,                                          // Cooldown
 /*            [](Projectile* p, int index) {                 // Configurator Lambda
                 if (Random::GetFloatRange(0.0f, 1.0f) < 0.2f) {
                     p->insertBehavior<HomingBehavior>(1.2f, 280.f);

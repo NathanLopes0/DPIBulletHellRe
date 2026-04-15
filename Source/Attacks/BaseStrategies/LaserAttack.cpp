@@ -50,22 +50,31 @@ std::vector<std::unique_ptr<Projectile> > LaserAttack::Execute(const AttackParam
         //Começa invisivel
         auto drawComp = projectile->GetComponent<DrawAnimatedComponent>();
 
-        //Começa parado
-        projectile->GetComponent<RigidBodyComponent>()->SetVelocity(Vector2::Zero);
-
+        //Começa indo em direção ao jogador
         const int sH = drawComp->GetSpriteHeight();
         float timeToSpawn = static_cast<float>(sH) / projectileSpeed;
 
-        //Insere o comportamento de ativação e homing
-        projectile->insertBehavior<ActivateBehavior>(i * timeToSpawn);
-        projectile->insertBehavior<HomingBehavior>(i * timeToSpawn, projectileSpeed);
+
+
 
         auto battle = dynamic_cast<Battle*>(mOwner->GetScene());
         auto pX = battle->GetPlayer()->GetPosition().x;
         auto pY = battle->GetPlayer()->GetPosition().y;
         auto degreesToPlayer = Math::ToDegrees(Math::Atan2(projectile->GetPosition(). y - pY, projectile->GetPosition().x - pX));
-        SDL_Log("%f", degreesToPlayer);
         projectile->SetRotation(degreesToPlayer);
+
+        // TODO - dar um jeito do laser ir todos os projeteis em uma direção só.
+        // TODO - tentar dar uma direção, desativar, e depois ativar dnovo usando a direção anterior
+
+        //Insere o comportamento de ativação
+        auto pDirection = projectile->GetForward();
+        pDirection.Normalize();
+
+        // TODO - ler o comentario abaixo dnovo
+        // ao inserir o Activate Behavior, o comportamento desativa o projétil até que chegue o tempo ativado. Lembrar disso...
+        // talvez o Activate Behavior deveria apenas ativar, e eu desativar manualmente tbm... então cada Activate viria com um Deactivate antes,
+        // apesar de eu escrever mais, o Activate faria mais sentido com oq ele deveria apenas fazer, e pode acabar sendo mais personalizavel.
+        projectile->insertBehavior<ActivateBehavior>(i * timeToSpawn, pDirection * projectileSpeed);
 
         projectiles.push_back(std::move(projectile));
     }

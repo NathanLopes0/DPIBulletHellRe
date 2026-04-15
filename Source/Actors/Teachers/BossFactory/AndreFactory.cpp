@@ -58,12 +58,12 @@ void AndreFactory::ConfigureStateOne(Boss *boss, FSMComponent *fsm) {
     const std::string STATE_NAME = "StateOne";
 
     auto params = std::make_unique<BaloonAttackParams>();
-    params->numProjectiles = 10;
+    params->numProjectiles = 100;
     params->randomSpawn = true;
     params->centerOnPlayer = true;
-    params->centerOnPlayerOffset = 400.f;
-    params->side = BaloonAttackParams::side::Down;
-    params->projectileSpeed = 160.f;
+    params->centerOnPlayerOffset = 800.f;
+    params->side = BaloonAttackParams::side::Right;
+    params->projectileSpeed = 630.f;
 
     auto spawner = boss->GetProjectileFactory("Baloes");
 
@@ -74,7 +74,7 @@ void AndreFactory::ConfigureStateOne(Boss *boss, FSMComponent *fsm) {
         4.f);
 
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
-                                                            STATE_ONE_DURATION,
+                                                            STATE_ONE_DURATION + 20,
                                                             "StateTwo");
     fsm->RegisterState(std::move(stateObj));
 

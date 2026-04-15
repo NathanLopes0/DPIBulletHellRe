@@ -80,9 +80,18 @@ void ActivateBehavior::update(Projectile* p, float deltaTime) {
                 activated = true;
             }
         }
-        else
-        {
-            p->GetComponent<DrawAnimatedComponent>()->SetIsVisible(false);
+    }
+}
+
+void DeactivateBehavior::update(Projectile *p, const float deltaTime) {
+    if (auto bossProj = dynamic_cast<BossProjectile*>(p)) {
+        if (!deactivated) {
+            elapsedTime += deltaTime;
+            if (elapsedTime >= deactivationDelay) {
+                p->GetComponent<DrawAnimatedComponent>()->SetIsVisible(false);
+                p->GetComponent<RigidBodyComponent>()->SetVelocity(Vector2::Zero);
+                deactivated = true;
+            }
         }
     }
 }

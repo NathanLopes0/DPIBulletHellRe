@@ -66,13 +66,11 @@ std::vector<std::unique_ptr<Projectile>> WaveAttack::Execute(const AttackParams&
 
         //  ------ A LÓGICA DE "WAVE" ------ //
 
-        // Começa invisível
-        if (auto drawComp = projectile->GetComponent<DrawAnimatedComponent>()) {
-            drawComp->SetIsVisible(false);
-        }
 
-        // Começa parado
-        projectile->GetComponent<RigidBodyComponent>()->SetVelocity(Vector2::Zero);
+        // Começa desativado (invisivel, velocidade 0)
+        // TODO - testar colisão?
+
+        projectile->insertBehavior<DeactivateBehavior>(0.f);
 
         // Insere o "despertador" (ActivateBehavior)
         // O projétil 'i' vai acordar após (i * creationSpeed) segundos.
