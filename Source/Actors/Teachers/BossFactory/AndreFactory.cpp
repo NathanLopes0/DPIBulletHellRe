@@ -51,19 +51,27 @@ void AndreFactory::ConfigureAttacksAndFSM(Boss *boss) {
     ConfigureStateThree(boss, fsm);
     ConfigureStateFinal(boss, fsm);
 
-    boss->SetInitialState("StateOne");
+    boss->SetInitialState("StateFinal");
 }
 
 void AndreFactory::ConfigureStateOne(Boss *boss, FSMComponent *fsm) {
     const std::string STATE_NAME = "StateOne";
 
     auto params = std::make_unique<BaloonAttackParams>();
-    params->numProjectiles = 100;
+    params->numProjectiles = 10;
     params->randomSpawn = true;
     params->centerOnPlayer = true;
-    params->centerOnPlayerOffset = 800.f;
+    params->centerOnPlayerOffset = 600.f;
     params->side = BaloonAttackParams::side::Right;
-    params->projectileSpeed = 630.f;
+    params->projectileSpeed = 500.f;
+
+    auto params2 = std::make_unique<BaloonAttackParams>();
+    params2->numProjectiles = 10;
+    params2->randomSpawn = true;
+    params2->centerOnPlayer = true;
+    params2->centerOnPlayerOffset = 600.f;
+    params2->side = BaloonAttackParams::side::Left;
+    params2->projectileSpeed = 500.f;
 
     auto spawner = boss->GetProjectileFactory("Baloes");
 
@@ -71,10 +79,16 @@ void AndreFactory::ConfigureStateOne(Boss *boss, FSMComponent *fsm) {
     boss->AddAttackPattern(STATE_NAME,
         std::make_unique<BaloonAttack>(spawner, boss),
         std::move(params),
-        4.f);
+        3.f);
+
+
+    boss->AddAttackPattern(STATE_NAME,
+        std::make_unique<BaloonAttack>(spawner, boss),
+        std::move(params2),
+        3.f);
 
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
-                                                            STATE_ONE_DURATION + 20,
+                                                            STATE_ONE_DURATION,
                                                             "StateTwo");
     fsm->RegisterState(std::move(stateObj));
 
@@ -85,19 +99,28 @@ void AndreFactory::ConfigureStateOne(Boss *boss, FSMComponent *fsm) {
 void AndreFactory::ConfigureStateTwo(Boss *boss, FSMComponent *fsm) {
     const std::string STATE_NAME = "StateTwo";
 
-    auto params = std::make_unique<AttackParams>();
-    params->numProjectiles = 20;
-    params->projectileSpeed = 160.f;
-    params->angle = 120.f;
-    // TODO - mudar params.centralAngle no próprio Boss.
-    params->creationSpeed = 0.15f;
+    auto params = std::make_unique<BaloonAttackParams>();
+    params->numProjectiles = 5;
+    params->randomSpawn = true;
+    params->centerOnPlayer = true;
+    params->centerOnPlayerOffset = 600.f;
+    params->side = BaloonAttackParams::side::Down;
+    params->projectileSpeed = 500.f;
+
+    auto params2 = std::make_unique<BaloonAttackParams>();
+    params2->numProjectiles = 5;
+    params2->randomSpawn = true;
+    params2->centerOnPlayer = true;
+    params2->centerOnPlayerOffset = 600.f;
+    params2->side = BaloonAttackParams::side::Up;
+    params2->projectileSpeed = 500.f;
 
     auto spawner = boss->GetProjectileFactory("Baloes");
 
     boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<WaveAttack>(spawner, boss),
+        std::make_unique<BaloonAttack>(spawner, boss),
         std::move(params),
-        2.5f);
+        1.25f);
 
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
                                                             STATE_TWO_DURATION,
@@ -137,19 +160,59 @@ void AndreFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm) {
 
     const std::string STATE_NAME = "StateFinal";
 
-    auto params = std::make_unique<AttackParams>();
-    params->numProjectiles = 40;
-    params->projectileSpeed = 200.f;
-    params->angle = 180.f;
-    params->centralAngle = 90.f;
-    params->creationSpeed = 0.02f;
-
     auto spawner = boss->GetProjectileFactory("Baloes");
+    auto params = std::make_unique<BaloonAttackParams>();
+    params->numProjectiles = 5;
+    params->randomSpawn = true;
+    params->centerOnPlayer = true;
+    params->centerOnPlayerOffset = 600.f;
+    params->side = BaloonAttackParams::side::Right;
+    params->projectileSpeed = 300.f;
+
+    auto params2 = std::make_unique<BaloonAttackParams>();
+    params2->numProjectiles = 5;
+    params2->randomSpawn = true;
+    params2->centerOnPlayer = true;
+    params2->centerOnPlayerOffset = 600.f;
+    params2->side = BaloonAttackParams::side::Left;
+    params2->projectileSpeed = 300.f;
+
+    auto params3 = std::make_unique<BaloonAttackParams>();
+    params3->numProjectiles = 5;
+    params3->randomSpawn = true;
+    params3->centerOnPlayer = true;
+    params3->centerOnPlayerOffset = 600.f;
+    params3->side = BaloonAttackParams::side::Down;
+    params3->projectileSpeed = 300.f;
+
+    auto params4 = std::make_unique<BaloonAttackParams>();
+    params4->numProjectiles = 5;
+    params4->randomSpawn = true;
+    params4->centerOnPlayer = true;
+    params4->centerOnPlayerOffset = 600.f;
+    params4->side = BaloonAttackParams::side::Up;
+    params4->projectileSpeed = 300.f;
+
 
     boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<WaveAttack>(spawner, boss),
+        std::make_unique<BaloonAttack>(spawner, boss),
         std::move(params),
-        2.4f);
+        1.25f);
+
+    boss->AddAttackPattern(STATE_NAME,
+        std::make_unique<BaloonAttack>(spawner, boss),
+        std::move(params2),
+        1.25f);
+
+    boss->AddAttackPattern(STATE_NAME,
+    std::make_unique<BaloonAttack>(spawner, boss),
+        std::move(params3),
+        1.25f);
+
+    boss->AddAttackPattern(STATE_NAME,
+    std::make_unique<BaloonAttack>(spawner, boss),
+        std::move(params4),
+        1.25f);
 
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
                                                             STATE_FINAL_DURATION,

@@ -30,12 +30,13 @@ std::unique_ptr<Projectile> AndreBaloonProjectileFactory::createProjectile(Scene
     auto drawComp = projectile->AddComponent<DrawAnimatedComponent>("../Assets/Teachers/Projectiles/DPIBHAndreBaloon.png",
                                                 "../Assets/Teachers/Projectiles/DPIBHAndreBaloon.json", 90);
 
-    drawComp->AddAnimation("Normal", {0,1,2,3,4,5});
-    drawComp->SetAnimation("Normal");
+    drawComp->AddAnimation("Red", {6, 7, 8, 9, 10, 11});
+    drawComp->AddAnimation("Blue", {12,13,14,15,16,17});
+    drawComp->AddAnimation("Yellow", {18,19,20,21,22,23});
 
     drawComp->SetIsVisible(true);
 
-    float colliderRadius = static_cast<float>(drawComp->GetSpriteWidth()) / 2.f;
+    float colliderRadius = static_cast<float>(drawComp->GetSpriteWidth()) / 4.f;
     projectile->AddComponent<CircleColliderComponent>(colliderRadius);
 
     projectile->SetState(ActorState::Active);

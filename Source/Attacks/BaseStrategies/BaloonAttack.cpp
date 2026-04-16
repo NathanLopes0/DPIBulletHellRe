@@ -39,7 +39,6 @@ std::vector<std::unique_ptr<Projectile>> BaloonAttack::Execute(const AttackParam
     std::vector<std::unique_ptr<Projectile>> projectiles;
 
     const int numProjectiles = params.numProjectiles;
-    const float projectileSpeed = params.projectileSpeed;
 
     if (numProjectiles <= 0) {
         return projectiles;
@@ -68,7 +67,7 @@ std::vector<std::unique_ptr<Projectile>> BaloonAttack::Execute(const AttackParam
                 continue;
             }
 
-            SpawnBaloonsAtRandom(*baloonParams, battle, projectile.get());
+            SpawnBalloonsAtRandom(*baloonParams, battle, projectile.get());
             projectiles.push_back(std::move(projectile));
         }
 
@@ -99,7 +98,7 @@ std::vector<std::unique_ptr<Projectile>> BaloonAttack::Execute(const AttackParam
     return projectiles;
 }
 
-bool BaloonAttack::ValidateParams(const BaloonAttackParams& params) const {
+bool BaloonAttack::ValidateParams(const BaloonAttackParams& params) {
     if (!params.randomSpawn && params.centerOnPlayer) {
         SDL_Log("Invalid BaloonAttackParams: centerOnPlayer cannot be true when randomSpawn is false");
         return false;
@@ -118,7 +117,7 @@ bool BaloonAttack::ValidateParams(const BaloonAttackParams& params) const {
     return true;
 }
 
-Vector2 BaloonAttack::GetDirectionFromSide(const enum BaloonAttackParams::side side) const {
+Vector2 BaloonAttack::GetDirectionFromSide(const enum BaloonAttackParams::side side) {
     switch (side) {
         case BaloonAttackParams::Down:  return Vector2(0, -1);
         case BaloonAttackParams::Up:    return Vector2(0, 1);
@@ -128,7 +127,7 @@ Vector2 BaloonAttack::GetDirectionFromSide(const enum BaloonAttackParams::side s
     }
 }
 
-Vector2 BaloonAttack::CalculateSpawnPosition( const BaloonAttackParams& params, const Battle* battle) const {
+Vector2 BaloonAttack::CalculateSpawnPosition( const BaloonAttackParams& params, const Battle* battle) {
     const auto game = battle->GetGame();
     const Vector2 screenSize(
         game->GetWindowWidth(),
@@ -175,13 +174,13 @@ Vector2 BaloonAttack::CalculateSpawnPosition( const BaloonAttackParams& params, 
     return pos;
 }
 
-void BaloonAttack::SpawnBaloonsAtRandom(const BaloonAttackParams& params, Battle* battle, Projectile* projectile) {
+void BaloonAttack::SpawnBalloonsAtRandom(const BaloonAttackParams& params, Battle* battle, Projectile* projectile) {
     Vector2 spawnPos = CalculateSpawnPosition(params, battle);
     projectile->SetPosition(spawnPos);
 
     Vector2 dir = GetDirectionFromSide(params.side);
     projectile->insertBehavior<ActivateBehavior>(
-        Random::GetFloatRange(0, 3),
+        Random::GetFloatRange(0, 2),
         dir * params.projectileSpeed
     );
 }

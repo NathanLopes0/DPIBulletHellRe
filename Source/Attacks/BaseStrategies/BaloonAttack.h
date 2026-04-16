@@ -21,25 +21,25 @@ private:
     ProjectileFactory* mSpawner;
     Actor* mOwner;
 
-    bool ValidateParams(const BaloonAttackParams& params) const;
+    static bool ValidateParams(const BaloonAttackParams& params) ;
 
-    Vector2 CalculateSpawnPosition(
+    static Vector2 CalculateSpawnPosition(
         const BaloonAttackParams& params,
         const Battle* battle
-    ) const;
+    );
 
-    Vector2 GetDirectionFromSide( enum
+    static Vector2 GetDirectionFromSide( enum
         BaloonAttackParams::side side
-    ) const;
+    ) ;
 
-    float GetSpawnCoordinateForSide( enum
+    [[nodiscard]] float GetSpawnCoordinateForSide( enum
         BaloonAttackParams::side side,
         const Vector2& screenSize,
         float spriteSize
     ) const;
 
-    void SpawnBaloonsAtRandom(const BaloonAttackParams& params, Battle* battle, Projectile* projectile);
-    void SpawnBalloonAtPosition(const BaloonAttackParams& params, Projectile* projectile, const Vector2& position);
+    static void SpawnBalloonsAtRandom(const BaloonAttackParams& params, Battle* battle, Projectile* projectile);
+    static void SpawnBalloonAtPosition(const BaloonAttackParams& params, Projectile* projectile, const Vector2& position);
 
 };
 
