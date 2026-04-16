@@ -68,11 +68,11 @@ struct SlowDownBehavior : public ProjectileBehavior {
 
 
     explicit SlowDownBehavior(float delay = 0, float desaccelerateByXTimes = 0) :
-            slowdownDelay(delay), slowdownSpeedPercent(desaccelerateByXTimes), elapsedTime(0.0f), slowedDown(false),
-            slowdownSpeedValue(-1) {};
+            slowdownDelay(delay), slowdownSpeedPercent(desaccelerateByXTimes), elapsedTime(0.0f), slowdownSpeedValue(-1),
+            slowedDown(false) {};
     explicit SlowDownBehavior(float delay = 0, int desaccelerateByValue = 0) :
-            slowdownDelay(delay), slowdownSpeedValue(desaccelerateByValue), elapsedTime(0.0f), slowedDown(false),
-            slowdownSpeedPercent(-1.f) {};
+            slowdownDelay(delay), slowdownSpeedPercent(-1.f), elapsedTime(0.0f), slowdownSpeedValue(desaccelerateByValue),
+            slowedDown(false) {};
 
     void update(Projectile* p, float deltaTime) override; // Assinatura corrigida
     bool isFinished() const override { return slowedDown; }
@@ -83,10 +83,20 @@ struct ActivateBehavior : public ProjectileBehavior {
     Vector2 activationVelocity;
     bool activated;
 
-    explicit ActivateBehavior(float delay = 0, Vector2 activateVelocity = Vector2::Zero) :
-    activationDelay(delay), elapsedTime(0.0f), activated(false), activationVelocity(activateVelocity) {};
+    explicit ActivateBehavior(const float delay = 0, const Vector2 activateVelocity = Vector2::Zero) :
+    activationDelay(delay), elapsedTime(0.0f), activationVelocity(activateVelocity), activated(false) {};
 
-    void update(Projectile* p, float deltaTime) override; // Assinatura corrigida
+    void update(Projectile* p, float deltaTime) override;
     bool isFinished() const override { return activated; }
 
+};
+
+struct DeactivateBehavior : public ProjectileBehavior {
+    float elapsedTime, deactivationDelay;
+    bool deactivated;
+
+    explicit DeactivateBehavior(const float delay = 0) : elapsedTime(0.0f), deactivationDelay(delay), deactivated(false) {};
+
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return deactivated; }
 };

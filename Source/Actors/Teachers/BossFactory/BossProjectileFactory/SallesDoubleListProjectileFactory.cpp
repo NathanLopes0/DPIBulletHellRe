@@ -21,15 +21,19 @@ std::unique_ptr<Projectile> SallesDoubleListProjectileFactory::createProjectile(
         return nullptr;
     }
 
+
+
     // -- CRIAÇÃO DO PROJÉTIL -- //
     //SDL_Log("Criando Projetil DoubleList");
     auto projectile = std::make_unique<SallesDoubleListProjectile>(scene,BossOwner);
+    projectile->SetScale(.75f);
 
     projectile->AddComponent<RigidBodyComponent>();
 
     //SDL_Log("Criando drawComponent");
     auto drawComp = projectile->AddComponent<DrawAnimatedComponent>("../Assets/Teachers/Projectiles/DPIBHSallesDuplamente.png",
                                         "../Assets/Teachers/Projectiles/DPIBHSallesDuplamente.json", 90);
+
 
     drawComp->AddAnimation("Normal", {0,1,2,3,4,5,6,7,8});
     drawComp->SetAnimation("Normal");
@@ -38,7 +42,6 @@ std::unique_ptr<Projectile> SallesDoubleListProjectileFactory::createProjectile(
 
     float colliderRadius = static_cast<float>(drawComp->GetSpriteHeight()) / 2.f;
     projectile->AddComponent<CircleColliderComponent>(colliderRadius);
-
 
     projectile->SetState(ActorState::Active);
 

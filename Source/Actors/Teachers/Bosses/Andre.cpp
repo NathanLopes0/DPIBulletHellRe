@@ -67,13 +67,13 @@ void Andre::ExecuteAttack(AttackDefinition &attackDef, const std::string &stateN
 
     // --- DIFERENÇA DO EXECUTEATTACK DO BOSS PRO DO ANDRE --- //
     const int choose = Random::GetIntRange(0,2);
-    const std::vector<std::vector<Uint8>> colors = {
-        {255, 0, 0},
-        {255,255,0},
-        {0,0, 255}
+    const std::vector<std::string> colors = {
+        "Red",
+        "Blue",
+        "Yellow"
     };
     for (auto& p : projectiles) {
-        p->GetComponent<DrawAnimatedComponent>()->SetColor(colors[choose][0], colors[choose][1], colors[choose][2]);
+        p->GetComponent<DrawAnimatedComponent>()->SetAnimation(colors[choose]);
     }
     // --- --------- -- ------------- -- ---- --- -- ----- --- //
 

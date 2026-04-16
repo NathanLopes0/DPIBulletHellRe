@@ -22,7 +22,7 @@ Game::Game(int windowWidth, int windowHeight)
     mTicksCount(0),
     mIsGameRunning(true),
     mScene(nullptr),
-    mSelectedStage(INF213),
+    mSelectedStage(INF220),
     mPendingSceneChange(false),
     mNextScene(Scene::SceneType::None)
 {
