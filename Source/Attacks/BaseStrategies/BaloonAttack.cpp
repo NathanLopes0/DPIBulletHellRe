@@ -15,8 +15,7 @@
 
 
 BaloonAttack::BaloonAttack(ProjectileFactory* projectileFactory, Actor* owner)
-    : mSpawner(projectileFactory),
-      mOwner(owner)
+    : IAttackStrategy(projectileFactory, owner)
 {
 
 }
@@ -61,7 +60,7 @@ std::vector<std::unique_ptr<Projectile>> BaloonAttack::Execute(const AttackParam
 
         for (int i = 0; i < numProjectiles; ++i) {
 
-            auto projectile = mSpawner->createProjectile(scene, mOwner);
+            auto projectile = Acquire();
             if (!projectile) {
                 SDL_Log("BaloonAttack::Execute - Failed to create projectile");
                 continue;
@@ -83,7 +82,7 @@ std::vector<std::unique_ptr<Projectile>> BaloonAttack::Execute(const AttackParam
 
     for (int i = 0; i < maxSpawns; ++i) {
 
-        auto projectile = mSpawner->createProjectile(scene, mOwner);
+        auto projectile = Acquire();
         if (!projectile) continue;
 
         SpawnBalloonAtPosition(

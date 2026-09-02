@@ -3,6 +3,7 @@
 //
 
 #include "WaveAttack.h"
+#include <SDL_log.h>
 #include "../AttackParameters/AttackParams.h"
 #include "../../Actors/Projectile.h"  // Para insertBehavior
 #include "../Behaviors.h"     // Para pegar o ActivateBehavior
@@ -12,7 +13,7 @@
 #include <memory>
 
 WaveAttack::WaveAttack(ProjectileFactory* spawner, Actor* owner)
-    : mSpawner(spawner), mOwner(owner)
+    : IAttackStrategy(spawner, owner)
 {
 
 }
@@ -27,10 +28,8 @@ std::vector<std::unique_ptr<Projectile>> WaveAttack::Execute(const AttackParams&
     const float totalAngle = params.angle;
     const float centralAngle = params.centralAngle;
     const float creationSpeed = params.creationSpeed; // O "atraso" da onda - 
-    ProjectileFactory* spawner = mSpawner;
-    Actor* owner = mOwner;
 
-    if (!spawner || !owner) {
+    if (!mSpawner || !mOwner) {
         SDL_Log("sem spawner ou sem owner");
         return {};
     }
@@ -50,7 +49,7 @@ std::vector<std::unique_ptr<Projectile>> WaveAttack::Execute(const AttackParams&
 
     // O Loop de N Projéteis
     for (int i = 0; i < numProjectiles; i++) {
-        auto projectile = spawner->createProjectile(owner->GetScene(), owner);
+        auto projectile = Acquire();
         if (!projectile) {
             continue;
         }

@@ -59,6 +59,28 @@ public:
 
     void AddProjectileFactory(const std::string& projectileName, std::unique_ptr<ProjectileFactory> factory);
 
+    /**
+     * @brief Retorna os nomes de TODAS as ProjectileFactory registradas por
+     * este Boss (ex: {"Baloes", "Arduino", ...}). Usado por sistemas
+     * externos como a tela de carregamento (Battle::UpdateLoadingStep) para
+     * saber quantos/quais tipos existem sem hardcoding — cada Boss concreto
+     * pode registrar tipos diferentes, e esta lista reflete exatamente
+     * mProjectileFactories no momento da chamada.
+     */
+    [[nodiscard]] std::vector<std::string> GetProjectileFactoryNames() const;
+
+    /**
+     * @brief Pré-aquece TODAS as ProjectileFactory registradas por este Boss,
+     * criando 'countPerType' instâncias de cada tipo e devolvendo-as aos
+     * respectivos pools. Pensado para ser chamado numa tela de carregamento,
+     * ANTES da batalha começar — depois disso, os primeiros disparos de cada
+     * tipo já encontram objetos prontos no pool, sem custo de alocação nem
+     * de carregar textura/JSON durante o gameplay real.
+     * @param countPerType Quantas instâncias criar para CADA tipo de projétil
+     * registrado (não é um total agregado — é por tipo).
+     */
+    void PrewarmProjectilePools(int countPerType);
+
     [[nodiscard]] Vector2 GetDirectionToPlayer() const;
 
     void RegisterMovementStrategy(const std::string& stateName, std::unique_ptr<IMovementStrategy> strategy);

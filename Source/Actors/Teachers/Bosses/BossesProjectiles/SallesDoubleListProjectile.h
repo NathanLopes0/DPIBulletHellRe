@@ -20,6 +20,15 @@ class SallesDoubleListProjectile : public BossProjectile {
 
 public:
     explicit SallesDoubleListProjectile(Scene* scene, Boss* owner) : BossProjectile(scene, owner) {};
+
+    // Restaura a animação inicial ("Normal") ao ser reciclado pelo pool,
+    // já que createProjectile também a define explicitamente na criação.
+    void Reset() override {
+        Projectile::Reset();
+        if (auto drawComp = GetComponent<DrawAnimatedComponent>()) {
+            drawComp->SetAnimation("Normal");
+        }
+    }
 };
 
 

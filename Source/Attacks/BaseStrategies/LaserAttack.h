@@ -24,6 +24,5 @@ public:
 
 private:
 
-    ProjectileFactory* mSpawner;
-    Actor* mOwner;
+    // mSpawner e mOwner agora vêm de IAttackStrategy (base).
 };

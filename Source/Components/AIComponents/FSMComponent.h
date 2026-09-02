@@ -68,7 +68,7 @@ private:
     std::string mCurrentState;
     float mStateTime;
 
-    // O componente agora é DONO de seus estados guardados.
+    // O componente é DONO de seus estados guardados.
     std::map<std::string, std::unique_ptr<FSMState>> mStates;
 
     // O callback que será chamado na troca de estado.

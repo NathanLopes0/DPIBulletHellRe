@@ -31,7 +31,6 @@ void SallesFactory::ConfigureComponents(Boss* boss) {
     collider->SetTag(ColliderTag::Boss);
 
     boss->AddProjectileFactory("Capivara",std::make_unique<SallesProjectile1Factory>());
-    boss->AddProjectileFactory("ListaDuplamente", std::make_unique<SallesDoubleListProjectileFactory>());
 
 }
 
@@ -57,23 +56,23 @@ void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm)
 
     // 1. Configura os parâmetros fixos
     auto params = std::make_unique<AttackParams>();
-    params->numProjectiles = 3;
-    params->projectileSpeed = 540.0f;
+    params->numProjectiles = 1000;
+    params->projectileSpeed = 440.0f;
     params->angle = 30.f;
 
-    auto spawner = boss->GetProjectileFactory("ListaDuplamente");
+    auto spawner = boss->GetProjectileFactory("Capivara");
 
     boss->AddAttackPattern(STATE_NAME,
-            std::make_unique<LaserAttack>(spawner, boss), // Strategy
+            std::make_unique<AngledAttack>(spawner, boss), // Strategy
             std::move(params),                                        // Params
-            .8f//,                                          // Cooldown
-/*            [](Projectile* p, int index) {                 // Configurator Lambda
+            .8f,                                          // Cooldown
+            [](Projectile* p, int index){                 // Configurator Lambda
                 if (Random::GetFloatRange(0.0f, 1.0f) < 0.2f) {
                     p->insertBehavior<HomingBehavior>(1.2f, 280.f);
                     p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
 
                 }
-            }*/
+            }
         );
 
     // Cria o objeto que representa o estado que terá esse ataque
@@ -84,8 +83,8 @@ void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm)
 
     boss->RegisterMovementStrategy(STATE_NAME, std::make_unique<GoToCenterStrategy>());//(3.f, 120.f));
 
-
 }
+
 void SallesFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm)
 {
 

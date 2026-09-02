@@ -4,6 +4,9 @@
 
 #include "AndreProjectile1Factory.h"
 
+#include <vector>
+#include <SDL_log.h>
+
 #include "../../Bosses/Andre.h"
 
 #include "../../../../Components/RigidBodyComponent.h"
@@ -41,4 +44,54 @@ std::unique_ptr<Projectile> AndreProjectile1Factory::createProjectile(Scene *sce
     projectile->SetState(ActorState::Active);
     return projectile;
 
+}
+
+std::unique_ptr<Projectile> AndreProjectile1Factory::Acquire(Scene* scene, Actor* owner) {
+
+    auto created = mPool.Acquire([this, scene, owner]() {
+        return std::unique_ptr<AndreBossProjectile>(
+            dynamic_cast<AndreBossProjectile*>(createProjectile(scene, owner).release())
+        );
+    });
+
+    if (!created) {
+        SDL_Log("ERRO FATAL: AndreProjectile1Factory::Acquire falhou em criar/reciclar projetil!");
+        return nullptr;
+    }
+
+    created->SetOwner(owner);
+    created->SetOriginFactory(this);
+
+    return created;
+}
+
+void AndreProjectile1Factory::Release(std::unique_ptr<Projectile> projectile) {
+
+    if (!dynamic_cast<AndreBossProjectile*>(projectile.get())) {
+        SDL_Log("ERRO: AndreProjectile1Factory::Release recebeu um projetil de tipo incompativel!");
+        return;
+    }
+
+    mPool.Release(std::unique_ptr<AndreBossProjectile>(
+        dynamic_cast<AndreBossProjectile*>(projectile.release())
+    ));
+}
+
+void AndreProjectile1Factory::Prewarm(Scene* scene, Actor* owner, int count) {
+
+    std::vector<std::unique_ptr<Projectile>> held;
+    held.reserve(count);
+
+    for (int i = 0; i < count; ++i) {
+        auto p = Acquire(scene, owner);
+        if (!p) {
+            SDL_Log("AVISO: AndreProjectile1Factory::Prewarm falhou ao criar instancia %d de %d.", i, count);
+            continue;
+        }
+        held.push_back(std::move(p));
+    }
+
+    for (auto& p : held) {
+        Release(std::move(p));
+    }
 }

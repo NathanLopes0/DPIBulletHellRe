@@ -22,7 +22,7 @@ Game::Game(int windowWidth, int windowHeight)
     mTicksCount(0),
     mIsGameRunning(true),
     mScene(nullptr),
-    mSelectedStage(INF220),
+    mSelectedStage(INF213),
     mPendingSceneChange(false),
     mNextScene(Scene::SceneType::None)
 {
@@ -87,7 +87,7 @@ void Game::LoadInitialScene()
 {
 
     InitializeBossFactory();
-    ChangeScene(Scene::SceneType::Battle);
+    ChangeScene(Scene::SceneType::MainMenu);
 
 }
 
@@ -122,15 +122,19 @@ void Game::ProcessInput()
 
 void Game::UpdateGame()
 {
-    while(!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16));
-
-    float deltaTime = (SDL_GetTicks() - mTicksCount) / 1000.0f;
-    if(deltaTime > 0.05f)
+    float deltaTime = 0;
+    // Calculo de deltaTime pro resto do jogo
     {
-        deltaTime = 0.05f;
-    }
+        while(!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16));
 
-    mTicksCount = SDL_GetTicks();
+        deltaTime = (static_cast<float>(SDL_GetTicks()) - static_cast<float>(mTicksCount)) / 1000.0f;
+        if(deltaTime > 0.05f)
+        {
+            deltaTime = 0.05f;
+        }
+
+        mTicksCount = SDL_GetTicks();
+    }
 
     if (mScene) {
         mScene->Update(deltaTime);
@@ -241,7 +245,7 @@ void Game::InitializeBossFactory() {
 
     mBossFactory[INF213] = std::make_unique<SallesFactory>(this);
     mBossFactory[INF250] = std::make_unique<RicardoFactory>(this);
-    mBossFactory[INF220] = std::make_unique<AndreFactory>(this);
+    mBossFactory[INF330] = std::make_unique<AndreFactory>(this);
 
 }
 
@@ -256,7 +260,7 @@ void Game::InitializeGrades() {
 
     mGrades[INF213] = 40;
     mGrades[INF250] = 40;
-    mGrades[INF220] = 40;
+    mGrades[INF330] = 40;
 
 }
 

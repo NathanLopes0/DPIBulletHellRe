@@ -4,6 +4,7 @@
 
 #include "SallesDoubleListProjectileFactory.h"
 
+#include <vector>
 #include <complex>
 
 #include "../../Bosses/Salles.h"
@@ -50,4 +51,54 @@ std::unique_ptr<Projectile> SallesDoubleListProjectileFactory::createProjectile(
 
 
 
+}
+
+std::unique_ptr<Projectile> SallesDoubleListProjectileFactory::Acquire(Scene* scene, Actor* owner) {
+
+    auto created = mPool.Acquire([this, scene, owner]() {
+        return std::unique_ptr<SallesDoubleListProjectile>(
+            dynamic_cast<SallesDoubleListProjectile*>(createProjectile(scene, owner).release())
+        );
+    });
+
+    if (!created) {
+        SDL_Log("ERRO FATAL: SallesDoubleListProjectileFactory::Acquire falhou em criar/reciclar projetil!");
+        return nullptr;
+    }
+
+    created->SetOwner(owner);
+    created->SetOriginFactory(this);
+
+    return created;
+}
+
+void SallesDoubleListProjectileFactory::Release(std::unique_ptr<Projectile> projectile) {
+
+    if (!dynamic_cast<SallesDoubleListProjectile*>(projectile.get())) {
+        SDL_Log("ERRO: SallesDoubleListProjectileFactory::Release recebeu um projetil de tipo incompativel!");
+        return;
+    }
+
+    mPool.Release(std::unique_ptr<SallesDoubleListProjectile>(
+        dynamic_cast<SallesDoubleListProjectile*>(projectile.release())
+    ));
+}
+
+void SallesDoubleListProjectileFactory::Prewarm(Scene* scene, Actor* owner, int count) {
+
+    std::vector<std::unique_ptr<Projectile>> held;
+    held.reserve(count);
+
+    for (int i = 0; i < count; ++i) {
+        auto p = Acquire(scene, owner);
+        if (!p) {
+            SDL_Log("AVISO: SallesDoubleListProjectileFactory::Prewarm falhou ao criar instancia %d de %d.", i, count);
+            continue;
+        }
+        held.push_back(std::move(p));
+    }
+
+    for (auto& p : held) {
+        Release(std::move(p));
+    }
 }

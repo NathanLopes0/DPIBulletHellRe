@@ -6,6 +6,7 @@
 #define DPIBULLETHELLRE_BATTLE_H
 
 #include <memory>
+#include <string>
 #include "../Scene.h"
 #include "../../Game.h"
 #include "../../AudioSystem.h"
@@ -100,6 +101,22 @@ private:
     Actor* mEndTextActor = nullptr; // O texto gigante
 
     SoundHandle mMusicHandle;
+
+    // --- Tela de Carregamento (pré-aquecimento dos pools de projétil) ---
+    // Battle::Load() NÃO pode pré-aquecer tudo de uma vez de forma síncrona
+    // sem travar o jogo por alguns segundos (carregar textura do disco para
+    // 300 instâncias x N tipos de projétil é um trabalho real). Em vez
+    // disso, processamos UM TIPO de projétil inteiro por frame, desenhando
+    // uma barra/texto de progresso nesse meio tempo. Enquanto mIsLoading for
+    // true, OnUpdate() não roda a lógica normal de gameplay.
+    bool mIsLoading = false;
+    std::vector<std::string> mLoadingPendingFactoryNames; // nomes ainda não pré-aquecidos
+    int mLoadingTotalTypes = 0;   // quantos tipos existem no total (para a barra de progresso)
+    Actor* mLoadingTextActor = nullptr;
+
+    void StartLoadingProjectilePools();
+    void UpdateLoadingStep(); // processa 1 tipo de projétil por chamada
+    void FinishLoadingProjectilePools();
 };
 
 

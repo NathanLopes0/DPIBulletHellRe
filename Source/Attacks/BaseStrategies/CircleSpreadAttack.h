@@ -30,7 +30,5 @@ public:
     std::vector<std::unique_ptr<Projectile>> Execute(const AttackParams& params) override;
 
 private:
-    // Ponteiros observadores para suas dependências.
-    ProjectileFactory* mSpawner;
-    Actor* mOwner;
+    // mSpawner e mOwner agora vêm de IAttackStrategy (base).
 };

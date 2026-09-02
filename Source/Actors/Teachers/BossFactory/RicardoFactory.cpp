@@ -19,20 +19,17 @@ RicardoFactory::RicardoFactory(Game *game)
 }
 
 std::unique_ptr<Boss> RicardoFactory::InstantiateBoss(Scene *scene) {
-    //SDL_Log("Instantiating Boss");
     return std::make_unique<Ricardo>(scene);
 }
 
 void RicardoFactory::ConfigureComponents(Boss *boss) {
 
     // ----- DRAW COMPONENT ----- //
-    //SDL_Log("RICARDO FACTORY - CONFIGURANDO DRAWCOMPONENT");
     auto drawComp = boss->AddComponent<DrawAnimatedComponent>("../Assets/Teachers/DPIBHRicardo.png",
         "../Assets/Teachers/DPIBHRicardo.json");
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 
-    //SDL_Log("Draw Configurado, configurando Colliders");
     // ----- COLLIDER COMPONENT ----- //
     const float colliderRadius = static_cast<float>(drawComp->GetSpriteWidth()) / 2.2f;
     const auto collider = boss->AddComponent<CircleColliderComponent>(colliderRadius);

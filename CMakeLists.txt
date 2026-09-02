@@ -116,6 +116,7 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teachers/Bosses/BossesProjectiles/SallesDoubleListProjectile.h
         Source/Actors/Teachers/BossFactory/BossProjectileFactory/SallesDoubleListProjectileFactory.cpp
         Source/Actors/Teachers/BossFactory/BossProjectileFactory/SallesDoubleListProjectileFactory.h
+        Source/Actors/ProjectilePool.h
 )
 
 find_package(SDL2 REQUIRED)

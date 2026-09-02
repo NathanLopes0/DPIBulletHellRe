@@ -11,3 +11,10 @@ AndreBossProjectile::AndreBossProjectile(Scene *scene, Boss *owner) : BossProjec
     const int choose = Random::GetIntRange(0,2);
 
 }
+
+void AndreBossProjectile::Reset() {
+    Projectile::Reset();
+    if (auto drawComp = GetComponent<DrawAnimatedComponent>()) {
+        drawComp->SetAnimation("Graph1");
+    }
+}

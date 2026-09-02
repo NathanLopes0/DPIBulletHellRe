@@ -6,10 +6,13 @@
 #include "../../Actors/Player/Player.h"
 #include "../../Actors/Player/PlayerProjectile.h"
 #include "../../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"
+#include "../../Actors/ProjectileFactory.h" // Necessário para chamar factory->Release(...)
 #include "../../Components/RigidBodyComponent.h"
 #include "../../Actors/Actor.h" // Necessário para Actor::State
 #include <algorithm>          // Necessário para std::remove_if e std::move
 #include <SDL_log.h>
+
+#include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 
 ProjectileManager::ProjectileManager(Scene *owner)
     : mOwnerScene(owner)
@@ -54,10 +57,14 @@ void ProjectileManager::AddBossProjectiles(std::vector<std::unique_ptr<BossProje
                             std::make_move_iterator(projectiles.end()));
 }
 
-void ProjectileManager::ClearBossProjectiles() {
+void ProjectileManager::ClearBossProjectiles() const {
+    // Marcado como Inactive (não Destroy): esses projéteis costumam ser
+    // limpos em transições de fase do Boss, que tende a disparar de novo
+    // logo em seguida — faz sentido reciclá-los pelo pool em vez de
+    // destruí-los e recriar do zero na próxima vez.
     for (auto& proj : mBossProjectiles) {
         if (proj->GetState() == ActorState::Active) {
-            proj->SetState(ActorState::Destroy);
+            proj->SetState(ActorState::Inactive);
         }
     }
 }
@@ -66,9 +73,44 @@ void ProjectileManager::ClearBossProjectiles() {
 
 void ProjectileManager::CleanupProjectiles()
 {
-    // Usa o "erase-remove idiom" para limpar os projéteis mortos de forma eficiente
+    // --- Player: sem pooling (fora do escopo desta mudança). ---
+    // PlayerProjectile nunca é marcado Inactive (só Destroy), então o
+    // comportamento aqui continua idêntico ao de antes do pooling.
     auto is_dead = [](const auto& proj) { return proj->GetState() == ActorState::Destroy; };
-
     mPlayerProjectiles.erase(std::remove_if(mPlayerProjectiles.begin(), mPlayerProjectiles.end(), is_dead), mPlayerProjectiles.end());
-    mBossProjectiles.erase(std::remove_if(mBossProjectiles.begin(), mBossProjectiles.end(), is_dead), mBossProjectiles.end());
+
+    // --- Boss: com pooling. ---
+    // Precisamos distinguir dois destinos antes de tirar do vetor:
+    //  - ActorState::Destroy   -> morre de verdade (erase normal, unique_ptr morre).
+    //  - ActorState::Inactive  -> foi devolvido ao pool da sua Factory de
+    //    origem (Release), então o vetor deste manager só solta a posse SEM
+    //    destruir (o objeto continua vivo, guardado dentro do ProjectilePool).
+    //
+    // Não dá para usar só std::remove_if aqui: precisamos executar o Release()
+    // como um efeito colateral, exatamente uma vez por projétil Inactive,
+    // antes de descartar a entrada do vetor. Por isso o loop manual abaixo.
+    for (auto& proj : mBossProjectiles) {
+        if (proj && proj->GetState() == ActorState::Inactive) {
+            if (auto* factory = proj->GetOriginFactory()) {
+                factory->Release(std::move(proj));
+            } else {
+                // Sem factory de origem registrada: não há para onde devolver.
+                // Isso não deveria acontecer para um BossProjectile (todos
+                // passam por ProjectileFactory::Acquire, que sempre seta
+                // isso) — loga para investigação, mas ainda assim descarta
+                // com segurança (proj vira nullptr, será removido abaixo).
+                SDL_Log("AVISO: BossProjectile Inactive sem OriginFactory - nao pode ser reciclado, sera destruido.");
+                proj.reset();
+            }
+        }
+    }
+
+    // Agora remove do vetor deste manager: os que morreram de verdade
+    // (Destroy) E os que já foram movidos para dentro de algum pool ou
+    // resetados acima (proj == nullptr após Release()/reset(), já que
+    // std::move deixa o unique_ptr de origem vazio).
+    auto should_remove = [](const auto& proj) {
+        return !proj || proj->GetState() == ActorState::Destroy;
+    };
+    mBossProjectiles.erase(std::remove_if(mBossProjectiles.begin(), mBossProjectiles.end(), should_remove), mBossProjectiles.end());
 }

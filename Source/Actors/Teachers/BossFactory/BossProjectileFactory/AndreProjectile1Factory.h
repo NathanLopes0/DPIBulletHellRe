@@ -7,6 +7,8 @@
 #include <string>
 
 #include "../../../ProjectileFactory.h"
+#include "../../../ProjectilePool.h"
+#include "../../Bosses/BossesProjectiles/AndreBossProjectile.h"
 
 
 class Projectile;
@@ -22,7 +24,13 @@ public:
 
     std::unique_ptr<Projectile> createProjectile(Scene* scene, Actor* owner) override;
 
+    std::unique_ptr<Projectile> Acquire(Scene* scene, Actor* owner) override;
+    void Release(std::unique_ptr<Projectile> projectile) override;
+    void Prewarm(Scene* scene, Actor* owner, int count) override;
+
 private:
     std::string mSpritePath = "../Assets/Teachers/Projectiles/DPIBHAndreGraph.png";
     std::string mDataPath = "../Assets/Teachers/Projectiles/DPIBHAndreGraph.json";
+
+    ProjectilePool<AndreBossProjectile> mPool;
 };

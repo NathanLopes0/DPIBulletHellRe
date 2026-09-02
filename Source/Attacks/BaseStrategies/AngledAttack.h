@@ -40,10 +40,7 @@ public:
     std::vector<std::unique_ptr<Projectile>> Execute(const AttackParams& params) override;
 
 private:
-    // Armazena apenas ponteiros observadores para suas dependências.
-    ProjectileFactory* mSpawner;
-    Actor* mOwner;
-
+    // mSpawner e mOwner agora vêm de IAttackStrategy (base).
 
     // Função auxiliar pra Execute
     std::unique_ptr<Projectile> CreateProjectileAtAngle(const AttackParams& params, float AngleInDegrees);

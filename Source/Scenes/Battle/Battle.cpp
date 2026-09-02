@@ -25,6 +25,12 @@
 #include "../../Components/DrawComponents/ProgressBarComponent.h"
 #include "../../Actors/Teachers/ExtraPointItem.h"
 
+// Quantas instâncias de CADA tipo de projétil são pré-aquecidas no pool
+// antes da batalha começar (ver Battle::LoadBoss / PrewarmProjectilePools).
+// 300 = folga sobre o maior ataque conhecido hoje (200 projéteis por
+// Execute()), cobrindo overlap entre disparos consecutivos do mesmo tipo.
+static constexpr int kProjectilePrewarmCountPerType = 3000;
+
 
 
 Battle::Battle(Game* game, const Game::GameSubject selectedStage)
@@ -58,23 +64,30 @@ void Battle::Load() {
         mGame->GetAudio()->SetSoundVolume(mMusicHandle, 32);
     }
 
-    // 3. Iniciar a lógica da batalha (se necessário)
-    if (mBoss) {
-        mBoss->Start();
-    }
+    // 3. Pré-aquecer os pools de projétil ANTES de iniciar a lógica de
+    // ataque do Boss. mBoss->Start() (que dispara a FSM e os primeiros
+    // ataques) só é chamado quando o carregamento incremental terminar —
+    // ver FinishLoadingProjectilePools(). Enquanto isso, mIsLoading fica
+    // true e OnUpdate() desenha/avança a tela de carregamento em vez da
+    // lógica normal de gameplay.
+    StartLoadingProjectilePools();
 
 }
 void Battle::LoadBoss() {
 
-
-    // 1. Pega a fábrica correta do Game (como uma ferramenta temporária), e se ela existir, continua
     if (IBossFactory *factory = mGame->GetFactory(mStage)) {
 
         auto boss = factory->CreateBoss(this);
-        boss->SetPosition(Vector2(static_cast<float>(mGame->GetWindowWidth())/2.0f,
-                                        static_cast<float>(mGame->GetWindowHeight())/6.0f));
-
         mBoss = dynamic_cast<Boss*>(this->AddActor(std::move(boss)));
+
+        mBoss->SetPosition(Vector2(static_cast<float>(mGame->GetWindowWidth())/2.0f,
+                                        static_cast<float>(mGame->GetWindowHeight())/6.0f));
+        // O pré-aquecimento dos pools de projétil (que já foi cogitado aqui)
+        // acontece de forma incremental em StartLoadingProjectilePools() /
+        // UpdateLoadingStep(), chamado a partir de Load(), DEPOIS que
+        // LoadBoss() retorna — porque precisa acontecer espalhado ao longo
+        // de vários frames (ver comentário em Load()), não de forma síncrona
+        // aqui dentro.
     } else {
         SDL_Log("Erro fatal: Nenhuma BossFactory encontrada para a matéria %s, voltando pra StageSelect", mStage);
         mGame->RequestSceneChange(SceneType::StageSelect);
@@ -201,9 +214,111 @@ void Battle::LoadEndScreen() {
     mEndTextActor = textActor.get();
     AddActor(std::move(textActor));
 }
+
+void Battle::StartLoadingProjectilePools() {
+
+    mLoadingPendingFactoryNames.clear();
+
+    if (mBoss) {
+        // Pega exatamente os nomes que este Boss registrou
+        mLoadingPendingFactoryNames = mBoss->GetProjectileFactoryNames();
+    }
+
+    mLoadingTotalTypes = static_cast<int>(mLoadingPendingFactoryNames.size());
+
+    if (mLoadingTotalTypes == 0) {
+        // Nenhuma factory para aquecer (não deveria acontecer com um Boss
+        // válido, mas por segurança pulamos direto para o gameplay).
+        FinishLoadingProjectilePools();
+        return;
+    }
+
+    mIsLoading = true;
+
+    // Pausa o Player durante o carregamento: Actor::Update() e
+    // Scene::ProcessInput() já respeitam ActorState::Active/Inactive, então
+    // isso já impede movimento/disparo do jogador sem precisar de nenhum
+    // mecanismo novo. Revertido em FinishLoadingProjectilePools().
+    if (mPlayer) {
+        mPlayer->SetState(ActorState::Paused);
+    }
+
+    // Cria o texto de progresso (mesmo padrão de LoadEndScreen).
+    auto textActor = std::make_unique<Actor>(this);
+    float w = mGame->GetWindowWidth();
+    float h = mGame->GetWindowHeight();
+    textActor->SetPosition(Vector2(w / 2.0f, h / 2.0f));
+    auto dc = textActor->AddComponent<DrawTextComponent>("Carregando...", mGradeBarFont.get(), 400, 100, 48, 300);
+    dc->SetIsVisible(true);
+    mLoadingTextActor = textActor.get();
+    AddActor(std::move(textActor));
+}
+
+void Battle::UpdateLoadingStep() {
+
+    if (mLoadingPendingFactoryNames.empty()) {
+        FinishLoadingProjectilePools();
+        return;
+    }
+
+    // Processa UM tipo de projétil inteiro nesta chamada (ver justificativa
+    // em Battle.h, próximo a mIsLoading).
+    const std::string nextName = mLoadingPendingFactoryNames.back();
+    mLoadingPendingFactoryNames.pop_back();
+
+    if (ProjectileFactory* factory = mBoss ? mBoss->GetProjectileFactory(nextName) : nullptr) {
+        factory->Prewarm(this, mBoss, kProjectilePrewarmCountPerType);
+    }
+
+    // Atualiza o texto de progresso.
+    const int done = mLoadingTotalTypes - static_cast<int>(mLoadingPendingFactoryNames.size());
+    if (mLoadingTextActor) {
+        std::ostringstream ss;
+        ss << "Carregando... " << done << " de " << mLoadingTotalTypes;
+        mLoadingTextActor->GetComponent<DrawTextComponent>()->SetText(ss.str());
+    }
+
+    if (mLoadingPendingFactoryNames.empty()) {
+        FinishLoadingProjectilePools();
+    }
+}
+
+void Battle::FinishLoadingProjectilePools() {
+
+    mIsLoading = false;
+
+    if (mLoadingTextActor) {
+        if (auto dc = mLoadingTextActor->GetComponent<DrawTextComponent>()) {
+            dc->SetIsVisible(false);
+        }
+        mLoadingTextActor = nullptr; // O Actor continua vivo em mActors; só paramos de referenciá-lo aqui.
+    }
+
+    // Reativa o Player, pausado em StartLoadingProjectilePools().
+    if (mPlayer) {
+        mPlayer->SetState(ActorState::Active);
+    }
+
+    // Só agora, com os pools já aquecidos, a lógica de ataque do Boss
+    // começa de fato (ver comentário em Load()).
+    if (mBoss) {
+        mBoss->Start();
+    }
+}
+
 //endregion LoadFunctions
 //region UpdateFunctions
 void Battle::OnUpdate(float deltaTime) {
+
+    // -- Tela de Carregamento (pré-aquecimento dos pools de projétil) --
+    // Enquanto os pools ainda estão sendo aquecidos, NÃO rodamos a lógica
+    // normal de gameplay (nem o Boss começou a atacar ainda — Start() só é
+    // chamado em FinishLoadingProjectilePools()). Processa 1 tipo de
+    // projétil por frame.
+    if (mIsLoading) {
+        UpdateLoadingStep();
+        return;
+    }
 
     // -- Lógica de Fim de Jogo
     if (mIsEnding) {

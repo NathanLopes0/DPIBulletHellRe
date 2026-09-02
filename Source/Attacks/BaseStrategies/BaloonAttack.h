@@ -18,8 +18,7 @@ public:
     std::vector<std::unique_ptr<Projectile>> Execute(const AttackParams& params) override;
 
 private:
-    ProjectileFactory* mSpawner;
-    Actor* mOwner;
+    // mSpawner e mOwner agora vêm de IAttackStrategy (base).
 
     static bool ValidateParams(const BaloonAttackParams& params) ;
 

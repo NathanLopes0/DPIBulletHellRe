@@ -17,8 +17,7 @@
 class DrawAnimatedComponent;
 
 LaserAttack::LaserAttack(ProjectileFactory *spawner, Actor *owner)
-    : mSpawner(spawner),
-    mOwner(owner)
+    : IAttackStrategy(spawner, owner)
 {
 
 }
@@ -30,11 +29,14 @@ std::vector<std::unique_ptr<Projectile> > LaserAttack::Execute(const AttackParam
     const int numProjectiles = params.numProjectiles;
     const float projectileSpeed = params.projectileSpeed;
 
-    const auto basePrototypeProjectile = mSpawner->createProjectile(mOwner->GetScene(), mOwner);
+    // NOTA: uma criação extra "basePrototypeProjectile" existia aqui antes,
+    // mas nunca era usada em lugar nenhum (nem lida, nem devolvida). Com
+    // Object Pooling, mantê-la faria essa strategy "vazar" um objeto do pool
+    // a cada Execute(), então foi removida.
 
     for (int i = 0; i < numProjectiles; i++) {
 
-        auto projectile = mSpawner->createProjectile(mOwner->GetScene(), mOwner);
+        auto projectile = Acquire();
         if (!projectile) {
             SDL_Log("Failed to create projectile");
             continue;

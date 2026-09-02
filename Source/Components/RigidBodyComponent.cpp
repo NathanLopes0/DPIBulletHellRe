@@ -2,7 +2,7 @@
 // Created by nslop on 05/04/2024.
 //
 
-#include <SDL.h>
+
 #include "../Actors/Actor.h"
 
 #include "RigidBodyComponent.h"
@@ -31,7 +31,7 @@ void RigidBodyComponent::Update(float deltaTime)
     //-------MODIfICADO PARA O MOVIMENTO DO JOGO SER COMO DESEJADO-------//
 
 
-    // Euler Integration (tirei o deltaTime daqui (?))
+    // Euler Integration
     mVelocity += mAcceleration * deltaTime;
 
     mVelocity.x = Math::Clamp<float>(mVelocity.x, -MAX_SPEED_X, MAX_SPEED_X);

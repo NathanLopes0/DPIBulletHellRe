@@ -17,6 +17,7 @@ enum class ActorState
 {
     Active,
     Paused,
+    Inactive,
     Destroy
 };
 

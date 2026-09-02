@@ -51,7 +51,7 @@ void AndreFactory::ConfigureAttacksAndFSM(Boss *boss) {
     ConfigureStateThree(boss, fsm);
     ConfigureStateFinal(boss, fsm);
 
-    boss->SetInitialState("StateFinal");
+    boss->SetInitialState("StateOne");
 }
 
 void AndreFactory::ConfigureStateOne(Boss *boss, FSMComponent *fsm) {

@@ -4,6 +4,7 @@
 
 #include "AndreBaloonProjectileFactory.h"
 
+#include <vector>
 #include <SDL_log.h>
 #include "../../Bosses/Andre.h"
 #include "../../../../Components/ColliderComponents/CircleColliderComponent.h"
@@ -43,4 +44,69 @@ std::unique_ptr<Projectile> AndreBaloonProjectileFactory::createProjectile(Scene
 
     return projectile;
 
+}
+
+std::unique_ptr<Projectile> AndreBaloonProjectileFactory::Acquire(Scene* scene, Actor* owner) {
+
+    // A "receita" de criação é a mesma createProjectile de sempre — só é
+    // chamada quando o pool está vazio (primeira vez, ou todos os objetos
+    // deste tipo já estão em uso simultâneo na tela).
+    auto created = mPool.Acquire([this, scene, owner]() {
+        return std::unique_ptr<AndreBaloonProjectile>(
+            dynamic_cast<AndreBaloonProjectile*>(createProjectile(scene, owner).release())
+        );
+    });
+
+    if (!created) {
+        SDL_Log("ERRO FATAL: AndreBaloonProjectileFactory::Acquire falhou em criar/reciclar projetil!");
+        return nullptr;
+    }
+
+    // Reatribui owner (pode ser diferente do owner da vez anterior, mesmo
+    // reciclando o mesmo objeto físico) e marca de onde este objeto veio,
+    // para o ProjectileManager saber para quem devolver quando ele morrer.
+    created->SetOwner(owner);
+    created->SetOriginFactory(this);
+
+    return created;
+}
+
+void AndreBaloonProjectileFactory::Release(std::unique_ptr<Projectile> projectile) {
+
+    auto* raw = dynamic_cast<AndreBaloonProjectile*>(projectile.get());
+    if (!raw) {
+        SDL_Log("ERRO: AndreBaloonProjectileFactory::Release recebeu um projetil de tipo incompativel!");
+        return;
+    }
+
+    // Solta a posse de 'projectile' para reembrulhar como unique_ptr<AndreBaloonProjectile>,
+    // sem destruir o objeto (mesmo padrão de cast já usado em Boss::ExecuteAttack).
+    mPool.Release(std::unique_ptr<AndreBaloonProjectile>(
+        dynamic_cast<AndreBaloonProjectile*>(projectile.release())
+    ));
+}
+
+void AndreBaloonProjectileFactory::Prewarm(Scene* scene, Actor* owner, int count) {
+
+    // Mantemos todas as instâncias vivas AQUI, fora do pool, durante a
+    // criação. Se chamássemos Acquire()+Release() em sequência dentro do
+    // loop, cada Release() devolveria o MESMO objeto ao pool, e o próximo
+    // Acquire() simplesmente o reciclaria — nunca criaríamos mais que 1
+    // instância de verdade. Só ao final, quando todas já existem
+    // simultaneamente, é que devolvemos todas de uma vez.
+    std::vector<std::unique_ptr<Projectile>> held;
+    held.reserve(count);
+
+    for (int i = 0; i < count; ++i) {
+        auto p = Acquire(scene, owner);
+        if (!p) {
+            SDL_Log("AVISO: AndreBaloonProjectileFactory::Prewarm falhou ao criar instancia %d de %d.", i, count);
+            continue;
+        }
+        held.push_back(std::move(p));
+    }
+
+    for (auto& p : held) {
+        Release(std::move(p));
+    }
 }

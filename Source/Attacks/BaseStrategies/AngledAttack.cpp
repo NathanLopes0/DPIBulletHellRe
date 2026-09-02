@@ -12,8 +12,7 @@
 #include "../../Components/RigidBodyComponent.h"
 
 AngledAttack::AngledAttack(ProjectileFactory* spawner, Actor* owner)
-    : mSpawner(spawner),
-      mOwner(owner)
+    : IAttackStrategy(spawner, owner)
 {
 
 }
@@ -63,8 +62,8 @@ std::vector<std::unique_ptr<Projectile>> AngledAttack::Execute(const AttackParam
 std::unique_ptr<Projectile> AngledAttack::CreateProjectileAtAngle(const AttackParams& params, const float angleInDegrees) {
 
 
-    // --- 1. Criação (via Factory) ---
-    auto projectile = mSpawner->createProjectile(mOwner->GetScene(), mOwner);
+    // --- 1. Criação (via Factory, com Object Pooling) ---
+    auto projectile = Acquire();
     if (!projectile) {
         SDL_Log("Erro em AngledAttack.cpp - CreateProjectileAtAngle: falha em criar projétil");
         return nullptr;

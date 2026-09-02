@@ -28,10 +28,10 @@ struct AttackParams
     // Onde o ataque acontece no mundo.
 
     /** @brief Dono do ataque */
-    Actor* owner{};
+    //Actor* owner{};
 
     /** @brief Fábrica que criará o projétil */
-    ProjectileFactory* spawner{};
+    //ProjectileFactory* spawner{};
 
     /** @brief De onde o ataque se origina (ex: posição do Boss). */
     Vector2 firePosition = Vector2::Zero;

@@ -4,6 +4,7 @@
 
 #include "RicardoProjectile1Factory.h"
 
+#include <vector>
 #include <complex>
 
 #include "../../Bosses/Ricardo.h"
@@ -48,4 +49,54 @@ std::unique_ptr<Projectile> RicardoProjectile1Factory::createProjectile(Scene *s
 
     return projectile;
 
+}
+
+std::unique_ptr<Projectile> RicardoProjectile1Factory::Acquire(Scene* scene, Actor* owner) {
+
+    auto created = mPool.Acquire([this, scene, owner]() {
+        return std::unique_ptr<RicardoBossProjectile>(
+            dynamic_cast<RicardoBossProjectile*>(createProjectile(scene, owner).release())
+        );
+    });
+
+    if (!created) {
+        SDL_Log("ERRO FATAL: RicardoProjectile1Factory::Acquire falhou em criar/reciclar projetil!");
+        return nullptr;
+    }
+
+    created->SetOwner(owner);
+    created->SetOriginFactory(this);
+
+    return created;
+}
+
+void RicardoProjectile1Factory::Release(std::unique_ptr<Projectile> projectile) {
+
+    if (!dynamic_cast<RicardoBossProjectile*>(projectile.get())) {
+        SDL_Log("ERRO: RicardoProjectile1Factory::Release recebeu um projetil de tipo incompativel!");
+        return;
+    }
+
+    mPool.Release(std::unique_ptr<RicardoBossProjectile>(
+        dynamic_cast<RicardoBossProjectile*>(projectile.release())
+    ));
+}
+
+void RicardoProjectile1Factory::Prewarm(Scene* scene, Actor* owner, int count) {
+
+    std::vector<std::unique_ptr<Projectile>> held;
+    held.reserve(count);
+
+    for (int i = 0; i < count; ++i) {
+        auto p = Acquire(scene, owner);
+        if (!p) {
+            SDL_Log("AVISO: RicardoProjectile1Factory::Prewarm falhou ao criar instancia %d de %d.", i, count);
+            continue;
+        }
+        held.push_back(std::move(p));
+    }
+
+    for (auto& p : held) {
+        Release(std::move(p));
+    }
 }

@@ -6,6 +6,8 @@
 
 #include <string>
 #include "../../../ProjectileFactory.h"
+#include "../../../ProjectilePool.h"
+#include "../../Bosses/BossesProjectiles/SallesBossProjectile.h"
 
 
 /**
@@ -26,4 +28,11 @@ public:
 
 
     std::unique_ptr<Projectile> createProjectile(Scene* scene, Actor* owner) override;
+
+    std::unique_ptr<Projectile> Acquire(Scene* scene, Actor* owner) override;
+    void Release(std::unique_ptr<Projectile> projectile) override;
+    void Prewarm(Scene* scene, Actor* owner, int count) override;
+
+private:
+    ProjectilePool<SallesBossProjectile> mPool;
 };

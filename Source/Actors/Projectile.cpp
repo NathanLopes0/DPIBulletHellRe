@@ -9,6 +9,7 @@
 
 #include "../Attacks/Behaviors.h"
 #include "../Components/RigidBodyComponent.h"
+#include "../Components/DrawComponents/DrawComponent.h"
 
 Projectile::Projectile(Scene *scene, Actor *owner)
     : Actor(scene),
@@ -34,7 +35,7 @@ void Projectile::OnUpdate(float deltaTime) {
             mBehaviors.end());
 
     if (IsOffScreen()) {
-        SetState(ActorState::Destroy);
+        MarkDead();
     }
 }
 
@@ -43,8 +44,51 @@ void Projectile::OnCollision(Actor *other) {
     // Comportamento Padrão. Battle só chama quando CheckCollisions dá true
     // Então sabemos que é uma colisão válida (Projetil do Jogador vs Boss, por exemplo)
 
-    SetState(ActorState::Destroy);
+    MarkDead();
 
+}
+
+void Projectile::Reset() {
+    // Limpa TODOS os behaviors, inclusive os que não terminaram (ex: um
+    // HomingBehavior com delay que nunca chegou a disparar porque o projétil
+    // colidiu antes). Se não fizermos isso, um projétil reciclado herdaria
+    // comportamento "fantasma" da vida anterior dele no pool.
+    mBehaviors.clear();
+
+    mForwardSpeed = 0.0f;
+
+    if (auto rb = GetComponent<RigidBodyComponent>()) {
+        rb->SetVelocity(Vector2::Zero);
+        rb->SetAcceleration(Vector2::Zero);
+    }
+
+    // Reexibe o sprite, que MarkDead() escondeu quando este objeto foi
+    // devolvido ao pool. Sem isso, o objeto reciclado ficaria invisível
+    // mesmo depois de voltar a ser Active.
+    if (auto draw = GetComponent<DrawComponent>()) {
+        draw->SetIsVisible(true);
+    }
+
+    SetState(ActorState::Active);
+}
+
+void Projectile::MarkDead() {
+    if (mOriginFactory) {
+        // Vai voltar ao pool: esconde o sprite AGORA, porque o loop de
+        // desenho (Game::GenerateOutput) itera Scene::mDrawables
+        // incondicionalmente e não sabe nada sobre ActorState. Sem isto,
+        // o objeto continuaria aparecendo, congelado, na posição onde
+        // morreu, até a próxima reciclagem.
+        if (auto draw = GetComponent<DrawComponent>()) {
+            draw->SetIsVisible(false);
+        }
+        SetState(ActorState::Inactive);
+    } else {
+        // Sem factory de origem (ex: PlayerProjectile): morre de verdade,
+        // como sempre foi. O destrutor do DrawComponent já cuida de
+        // remover da lista de mDrawables da Scene.
+        SetState(ActorState::Destroy);
+    }
 }
 
 float Projectile::GetForwardSpeed() const {

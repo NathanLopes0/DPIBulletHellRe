@@ -14,4 +14,8 @@
 class AndreBossProjectile : public BossProjectile {
 public:
     explicit AndreBossProjectile(Scene* scene, Boss* owner);
+
+    // Restaura a animação inicial ao ser reciclado pelo pool. createProjectile
+    // sempre fixa "Graph1" após a criação, então replicamos o mesmo aqui.
+    void Reset() override;
 };

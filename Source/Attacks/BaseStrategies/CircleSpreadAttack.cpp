@@ -16,8 +16,7 @@
 
 
 CircleSpreadAttack::CircleSpreadAttack(ProjectileFactory* spawner, Actor* owner)
-    : mSpawner(spawner),
-      mOwner(owner)
+    : IAttackStrategy(spawner, owner)
 {
 
 }
@@ -44,7 +43,7 @@ std::vector<std::unique_ptr<Projectile>> CircleSpreadAttack::Execute(const Attac
 
     for(int i = 0; i < numProjectiles; i++) {
 
-        auto projectile = mSpawner->createProjectile(mOwner->GetScene(), mOwner);
+        auto projectile = Acquire();
 
         // Failsafe: Se a fábrica falhar, pula este projétil
         if (!projectile) {

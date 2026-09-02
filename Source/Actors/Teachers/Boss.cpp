@@ -188,6 +188,23 @@ void Boss::AddProjectileFactory(const std::string& projectileName, std::unique_p
     mProjectileFactories[projectileName] = std::move(factory);
 }
 
+std::vector<std::string> Boss::GetProjectileFactoryNames() const {
+    std::vector<std::string> names;
+    names.reserve(mProjectileFactories.size());
+    for (const auto& [name, factory] : mProjectileFactories) {
+        names.push_back(name);
+    }
+    return names;
+}
+
+void Boss::PrewarmProjectilePools(int countPerType) {
+    for (auto& [name, factory] : mProjectileFactories) {
+        if (!factory) continue;
+        SDL_Log("Prewarm: criando %d instancias de '%s'...", countPerType, name.c_str());
+        factory->Prewarm(GetScene(), this, countPerType);
+    }
+}
+
 void Boss::CustomizeAttackParams(AttackParams &params, const std::string &stateName) {
 
 }
