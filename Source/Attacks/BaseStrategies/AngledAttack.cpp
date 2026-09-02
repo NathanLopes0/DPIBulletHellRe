@@ -35,9 +35,16 @@ std::vector<std::unique_ptr<Projectile>> AngledAttack::Execute(const AttackParam
     // Angulo inicial
     const float angleStart = centralAngle - totalAngle / 2.0f;
 
+    // Parenteses: o passo tem de ser totalAngle / (n - 1), nao
+    // (totalAngle / n) - 1. Com n intervalos entre n+1 projeteis o leque nunca
+    // fecharia; com n-1 intervalos entre n projeteis, o primeiro cai em
+    // angleStart e o ultimo exatamente em angleStart + totalAngle.
+    // A versao antiga encolhia o leque e, para n grande, o passo virava
+    // NEGATIVO (n=1000, angulo=30 dava passo -0.97 e varria -894 graus).
+    // WaveAttack ja usava a formula correta; agora as duas batem.
     float angleStep = 0.0f;
     if (numProjectiles > 1) {
-        angleStep = totalAngle / static_cast<float>(numProjectiles) - 1.0f;
+        angleStep = totalAngle / (static_cast<float>(numProjectiles) - 1.0f);
     }
 
     for (int i = 0; i < numProjectiles; i++) {
@@ -77,7 +84,14 @@ std::unique_ptr<Projectile> AngledAttack::CreateProjectileAtAngle(const AttackPa
 
     // --- 3. Configuração ---
     projectile->SetPosition(params.firePosition);
-    projectile->GetComponent<RigidBodyComponent>()->SetVelocity(directionVector * params.projectileSpeed);
+
+    // Guarda de nulo: antes o RigidBodyComponent era dereferenciado direto.
+    auto rb = projectile->GetComponent<RigidBodyComponent>();
+    if (!rb) {
+        SDL_Log("Erro em AngledAttack: projetil sem RigidBodyComponent, descartado.");
+        return nullptr;
+    }
+    rb->SetVelocity(directionVector * params.projectileSpeed);
 
     return projectile;
 }

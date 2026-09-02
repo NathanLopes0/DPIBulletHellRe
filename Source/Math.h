@@ -205,6 +205,20 @@ public:
 	void Normalize()
 	{
 		float length = Length();
+
+		// Guarda de vetor nulo. Sem ela, normalizar (0,0) fazia 0/0 = NaN, e NaN
+		// se espalha: velocidade NaN -> posicao NaN -> e TODA comparacao com NaN
+		// e falsa, entao IsOffScreen() nunca devolvia true e o projetil virava
+		// imortal, jamais devolvido ao pool. Alcancavel sempre que boss e player
+		// ocupam a mesma posicao (GetDirectionToPlayer / GetPlayerDirection).
+		// Degradar para (0,0) e visivel e inofensivo; NaN nao e nenhum dos dois.
+		if (Math::NearZero(length))
+		{
+			x = 0.0f;
+			y = 0.0f;
+			return;
+		}
+
 		x /= length;
 		y /= length;
 	}

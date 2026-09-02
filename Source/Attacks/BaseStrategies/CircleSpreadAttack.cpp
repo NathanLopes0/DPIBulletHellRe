@@ -51,11 +51,15 @@ std::vector<std::unique_ptr<Projectile>> CircleSpreadAttack::Execute(const Attac
             continue;
         }
 
-        // o Projectile ja começa numa posição inicial = a posição de seu Owner. Se quiser mudar, coloque em params.
-        // Se tiver uma firePosition ...
-        if (params.firePosition.x != 0 && params.firePosition.y != 0) {
-            projectile->SetPosition(params.firePosition);
-        }
+        // Posicionamento SEMPRE explicito. A premissa antiga ("o projetil ja
+        // nasce na posicao do dono") valia quando todo projetil era construido
+        // do zero; com Object Pooling, um objeto reciclado mantem a posicao
+        // onde MORREU. A condicao antiga era && (bastava x ou y ser zero para
+        // nao posicionar nada), e nesse caso o projetil reciclado nascia fora
+        // da tela e morria no mesmo frame - o ataque sumia sem erro nenhum.
+        // Boss::ExecuteAttack sempre preenche firePosition, entao nao ha caso
+        // em que nao queiramos aplica-la.
+        projectile->SetPosition(params.firePosition);
 
         // lógica de direção de cada projétil
         const float xCoordRad = Math::Cos(static_cast<float>(i) * angleStep * Math::Pi / 180);
@@ -67,7 +71,12 @@ std::vector<std::unique_ptr<Projectile>> CircleSpreadAttack::Execute(const Attac
         //arccos(xc) = angle * pi / 180
 
         // Velocidade usa o projectileSpeed do params, lida lá em cima da função
-        projectile->GetComponent<RigidBodyComponent>()->SetVelocity(directionVector * projectileSpeed);
+        auto rb = projectile->GetComponent<RigidBodyComponent>();
+        if (!rb) {
+            SDL_Log("Erro em CircleSpreadAttack: projetil sem RigidBodyComponent, pulando.");
+            continue;
+        }
+        rb->SetVelocity(directionVector * projectileSpeed);
 
         // Transferência de posse (IMPORTANTÍSSIMO)
         //    Usar std::move para mover o unique_ptr 'projectile'

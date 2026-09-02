@@ -73,6 +73,15 @@ std::unique_ptr<Projectile> AndreBaloonProjectileFactory::Acquire(Scene* scene, 
     // reciclando o mesmo objeto físico) e marca de onde este objeto veio,
     // para o ProjectileManager saber para quem devolver quando ele morrer.
     created->SetOwner(owner);
+
+    // Posicao base igual a de um projetil recem-construido: createProjectile
+    // deixa o objeto na posicao do dono, mas quem vem do pool nao passa por
+    // ela e carregaria a posicao onde morreu. Sem isto, "reciclado" e "novo"
+    // se comportam diferente, que e a raiz do bug de posicao. A strategy
+    // continua livre para sobrescrever logo em seguida.
+    if (owner) {
+        created->SetPosition(owner->GetPosition());
+    }
     created->SetOriginFactory(this);
 
     return created;

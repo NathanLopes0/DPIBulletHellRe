@@ -100,7 +100,10 @@ void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
 
         ApplyColorMod();
 
-        SDL_RenderCopyEx(renderer, mSpriteSheetSurface, &clipRect, &renderQuad, mOwner->GetRotation(), nullptr, flip);
+        // mRotation e guardado em radianos (ver Actor.h); SDL_RenderCopyEx
+        // espera graus. Esta e a unica fronteira onde a conversao acontece.
+        SDL_RenderCopyEx(renderer, mSpriteSheetSurface, &clipRect, &renderQuad,
+                         Math::ToDegrees(mOwner->GetRotation()), nullptr, flip);
     }
 }
 

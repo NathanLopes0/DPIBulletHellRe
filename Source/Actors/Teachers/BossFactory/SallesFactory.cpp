@@ -56,7 +56,14 @@ void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm)
 
     // 1. Configura os parâmetros fixos
     auto params = std::make_unique<AttackParams>();
-    params->numProjectiles = 1000;
+    // Estava em 1000 (valor de teste). Com o passo angular corrigido, 1000
+    // projeteis em 30 graus viram uma parede solida e intransponivel a cada
+    // 0.8s. Os outros estados deste mesmo boss usam 3, 4, 2 e 3, entao 5 e o
+    // valor que mantem o StateOne na mesma familia: uma rajada estreita (30
+    // graus) e rapida (440), que e o que diferencia este estado dos demais.
+    // AJUSTE AQUI se quiser a fase mais dificil: cada +1 adiciona um projetil
+    // no leque sem mexer na abertura.
+    params->numProjectiles = 5;
     params->projectileSpeed = 440.0f;
     params->angle = 30.f;
 

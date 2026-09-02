@@ -44,6 +44,13 @@ public:
     void SetScale(float scale) { mScale = scale; }
 
     // Rotation getter/setter
+    // UNIDADE: RADIANOS. GetForward() usa Math::Cos/Sin (que sao cosf/sinf) e
+    // DrawSpriteComponent compara com Math::Pi, entao o motor so e coerente
+    // com radianos. A conversao para graus acontece unicamente na hora de
+    // desenhar (DrawAnimatedComponent::Draw), porque SDL_RenderCopyEx espera
+    // graus. Antes as duas convencoes coexistiam e o LaserAttack gravava graus
+    // aqui, o que fazia GetForward() devolver uma direcao sem nenhuma relacao
+    // com o angulo pretendido.
     float GetRotation() const { return mRotation; }
     void SetRotation(float rotation) { mRotation = rotation; }
 

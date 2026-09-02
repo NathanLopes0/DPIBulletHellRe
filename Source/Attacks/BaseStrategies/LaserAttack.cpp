@@ -34,6 +34,15 @@ std::vector<std::unique_ptr<Projectile> > LaserAttack::Execute(const AttackParam
     // Object Pooling, mantê-la faria essa strategy "vazar" um objeto do pool
     // a cada Execute(), então foi removida.
 
+    // Validado UMA vez, antes do loop: antes 'battle' e 'GetPlayer()' eram
+    // dereferenciados sem checagem alguma dentro do loop.
+    const auto battle = dynamic_cast<Battle*>(mOwner->GetScene());
+    if (!battle || !battle->GetPlayer()) {
+        SDL_Log("LaserAttack::Execute: sem cena Battle ou sem Player. Ataque cancelado.");
+        return projectiles;
+    }
+    const Vector2 playerPos = battle->GetPlayer()->GetPosition();
+
     for (int i = 0; i < numProjectiles; i++) {
 
         auto projectile = Acquire();
@@ -42,28 +51,32 @@ std::vector<std::unique_ptr<Projectile> > LaserAttack::Execute(const AttackParam
             continue;
         }
 
-        // Projectile começa na posicao do boss, exceto se o params.FirePosition tiver algo. Ai ele nasce onde está definido na configuração
-        if (params.firePosition.x != 0 && params.firePosition.y != 0) {
-            projectile->SetPosition(params.firePosition);
+        // Posicionamento sempre explicito (mesmo motivo do CircleSpreadAttack:
+        // um projetil vindo do pool nao nasce na posicao do dono).
+        projectile->SetPosition(params.firePosition);
+
+        auto drawComp = projectile->GetComponent<DrawAnimatedComponent>();
+        if (!drawComp) {
+            SDL_Log("LaserAttack: projetil sem DrawAnimatedComponent, pulando.");
+            continue;
         }
 
-        // Lógica de direção e laser
-
-        //Começa invisivel
-        auto drawComp = projectile->GetComponent<DrawAnimatedComponent>();
-
-        //Começa indo em direção ao jogador
+        // Atraso entre projeteis: tempo para o anterior percorrer a propria
+        // altura, formando uma linha continua.
         const int sH = drawComp->GetSpriteHeight();
-        float timeToSpawn = static_cast<float>(sH) / projectileSpeed;
+        const float timeToSpawn = (projectileSpeed > 0.0f)
+                                      ? static_cast<float>(sH) / projectileSpeed
+                                      : 0.0f;
 
-
-
-
-        auto battle = dynamic_cast<Battle*>(mOwner->GetScene());
-        auto pX = battle->GetPlayer()->GetPosition().x;
-        auto pY = battle->GetPlayer()->GetPosition().y;
-        auto degreesToPlayer = Math::ToDegrees(Math::Atan2(projectile->GetPosition(). y - pY, projectile->GetPosition().x - pX));
-        projectile->SetRotation(degreesToPlayer);
+        // Angulo do projetil ATE o player. O Atan2 estava com os operandos
+        // invertidos (projetil - player), apontando exatamente para o lado
+        // oposto, e gravava o resultado em GRAUS num campo que
+        // Actor::GetForward() le como radianos - duas coisas erradas somadas.
+        // O -y compensa GetForward() ser (cos, -sin) enquanto o eixo y da tela
+        // cresce para baixo: com este sinal, GetForward() devolve exatamente a
+        // direcao normalizada ate o player.
+        const Vector2 toPlayer = playerPos - projectile->GetPosition();
+        projectile->SetRotation(Math::Atan2(-toPlayer.y, toPlayer.x));
 
         // TODO - dar um jeito do laser ir todos os projeteis em uma direção só.
         // TODO - tentar dar uma direção, desativar, e depois ativar dnovo usando a direção anterior

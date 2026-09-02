@@ -19,8 +19,15 @@ void Andre::OnUpdate(float deltaTime) {
 
 void Andre::CustomizeAttackParams(AttackParams &params, const std::string &stateName) {
 
-    // Transforma o vetor de direção ao player em um ângulo em graus pra poder ser usado
-    auto directionToPlayerAngle = Math::Acos(GetDirectionToPlayer().x) * 180.f / Math::Pi;
+    // Angulo, em GRAUS, da direcao ate o player, na convencao de
+    // AttackParams::centralAngle (0 = direita, 90 = baixo, 180 = esquerda).
+    // Antes usava Math::Acos(dir.x), que so devolve [0, 180] e portanto PERDE
+    // o sinal de y: (0,1) e (0,-1) davam ambos 90 graus. Na pratica, com o
+    // player ACIMA do boss, ele mirava para baixo.
+    // Atan2(y, x) preserva o quadrante e devolve o angulo correto (negativo
+    // para cima, o que o cos/sin das strategies interpreta sem problema).
+    const Vector2 dirToPlayer = GetDirectionToPlayer();
+    const auto directionToPlayerAngle = Math::ToDegrees(Math::Atan2(dirToPlayer.y, dirToPlayer.x));
 
     if (stateName == "StateOne" || stateName == "StateTwo") {
         params.centralAngle = Random::GetFloatRange(directionToPlayerAngle - 20.f, directionToPlayerAngle + 20.f);
@@ -29,7 +36,7 @@ void Andre::CustomizeAttackParams(AttackParams &params, const std::string &state
         params.projectileSpeed = 500.f;
 
         //Se o player tiver acima do Andre, atirar nele
-        if (GetDirectionToPlayer().y < 0) {
+        if (dirToPlayer.y < 0) {
             params.projectileSpeed = 600.f;
             params.numProjectiles = 36;
             params.centralAngle = directionToPlayerAngle;
