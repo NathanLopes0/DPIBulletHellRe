@@ -60,15 +60,25 @@ protected:
     Game* mGame;
     SceneType mType;
 
-    // A cena é DONA de todos os atores que vivem nela
-    std::vector<std::unique_ptr<Actor>> mActors;
-    std::vector<std::unique_ptr<Actor>> mPendingActors;
-
-    bool mIsUpdatingActors{};
+    // ATENCAO A ORDEM DE DECLARACAO ABAIXO.
+    // Membros sao destruidos na ORDEM INVERSA da declaracao. ~DrawComponent
+    // chama Scene::RemoveDrawable(this), que faz std::find em mDrawables.
+    // Com mDrawables declarado DEPOIS de mActors, ele era destruido ANTES dos
+    // atores, e cada componente destruido ia procurar a si mesmo dentro de um
+    // vetor ja liberado - heap-use-after-free em TODA troca de cena
+    // (confirmado com AddressSanitizer).
+    // Declarando as listas de observadores primeiro, elas passam a morrer
+    // depois dos atores, que e a ordem correta.
 
     // Lista de observadores para desenho.
     std::vector<DrawComponent*> mDrawables;
 
     //Lista de observadores para colisores
     std::vector<ColliderComponent*> mColliders;
+
+    // A cena é DONA de todos os atores que vivem nela
+    std::vector<std::unique_ptr<Actor>> mActors;
+    std::vector<std::unique_ptr<Actor>> mPendingActors;
+
+    bool mIsUpdatingActors{};
 };

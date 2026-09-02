@@ -62,11 +62,22 @@ void ProjectileManager::ClearBossProjectiles() const {
     // limpos em transições de fase do Boss, que tende a disparar de novo
     // logo em seguida — faz sentido reciclá-los pelo pool em vez de
     // destruí-los e recriar do zero na próxima vez.
+    // Antes isto chamava SetState(Inactive) direto, pulando MarkDead() - e era
+    // MarkDead() quem escondia o sprite. Resultado: ao usar um Ponto Extra, os
+    // projeteis voltavam ao pool ainda VISIVEIS e ficavam congelados na tela
+    // pelo resto da batalha. Kill() delega para MarkDead(), entao limpar a tela
+    // agora segue exatamente o mesmo caminho de um projetil que morre saindo da
+    // tela ou colidindo.
     for (auto& proj : mBossProjectiles) {
-        if (proj->GetState() == ActorState::Active) {
-            proj->SetState(ActorState::Inactive);
+        if (proj && proj->GetState() == ActorState::Active) {
+            proj->Kill();
         }
     }
+}
+
+void ProjectileManager::Cleanup()
+{
+    CleanupProjectiles();
 }
 
 

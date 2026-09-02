@@ -31,6 +31,9 @@ DrawSpriteComponent::DrawSpriteComponent(Actor *owner, const std::string &textur
 
 void DrawSpriteComponent::Draw(SDL_Renderer *renderer)
 {
+    // Este Draw ignorava mIsVisible (so o DrawAnimatedComponent checava), entao
+    // SetIsVisible(false) nao tinha efeito nenhum em sprites estaticos.
+    if (!mIsVisible || !mSpriteSheetSurface) return;
 
     float scale = mOwner->GetScale();
 
@@ -49,13 +52,24 @@ void DrawSpriteComponent::Draw(SDL_Renderer *renderer)
     if(GetOwner()->GetRotation() == Math::Pi)
         flipflag = SDL_RendererFlip::SDL_FLIP_HORIZONTAL;
 
+    ApplyColorMod();
+
     SDL_RenderCopyEx(renderer, mSpriteSheetSurface, &srcrect, &dstrect,
                      0.0, nullptr, flipflag);
 }
 
+// Agora so GUARDA a cor. A aplicacao real acontece em ApplyColorMod(), chamado
+// dentro do Draw, para nao vazar a cor deste ator para os outros que
+// compartilham a mesma textura do cache.
 void DrawSpriteComponent::SetColor(Uint8 red, Uint8 green, Uint8 blue) {
-    if (mSpriteSheetSurface) { // ou mTexture, dependendo de como você chamou
-        SDL_SetTextureColorMod(mSpriteSheetSurface, red, green, blue);
+    mColorR = red;
+    mColorG = green;
+    mColorB = blue;
+}
+
+void DrawSpriteComponent::ApplyColorMod() const {
+    if (mSpriteSheetSurface) {
+        SDL_SetTextureColorMod(mSpriteSheetSurface, mColorR, mColorG, mColorB);
     }
 }
 

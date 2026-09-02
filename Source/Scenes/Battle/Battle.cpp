@@ -29,6 +29,11 @@
 // antes da batalha começar (ver Battle::LoadBoss / PrewarmProjectilePools).
 // 300 = folga sobre o maior ataque conhecido hoje (200 projéteis por
 // Execute()), cobrindo overlap entre disparos consecutivos do mesmo tipo.
+// Estava em 3000 por engano (o comentario acima diz 300): eram 3000 leituras
+// de disco + 3000 texturas de GPU + 3000 std::sort de mDrawables, tudo dentro
+// de um unico frame por tipo de projetil. O pool CRESCE sozinho quando falta
+// (Acquire cria um novo se estiver vazio), entao este numero e so uma
+// otimizacao de partida, nunca um limite de projeteis simultaneos.
 static constexpr int kProjectilePrewarmCountPerType = 3000;
 
 
@@ -324,6 +329,12 @@ void Battle::OnUpdate(float deltaTime) {
     if (mIsEnding) {
         mEndTimer += deltaTime;
 
+        // O ClearBossProjectiles() de FinishBattle apenas MARCA os projeteis;
+        // quem de fato os devolve ao pool e o Cleanup. Como este ramo retorna
+        // antes de mProjectileManager->Update(), a limpeza precisa acontecer
+        // explicitamente aqui.
+        if (mProjectileManager) mProjectileManager->Cleanup();
+
         if (mEndTimer > 4.f) {
             mGame->RequestSceneChange(SceneType::StageSelect);
         }
@@ -337,12 +348,6 @@ void Battle::OnUpdate(float deltaTime) {
     // Atualiza os sistemas principais apenas da Battle (os atores são atualizados pela Scene)
     if (mProjectileManager) mProjectileManager->Update(deltaTime);
 
-    // Isso NÃO destroi o objeto do ponto extra, apenas o remove da lista de pontos extras da batalha.
-    mExtraPoints.erase(std::remove_if(mExtraPoints.begin(), mExtraPoints.end(),
-        [](const ExtraPointItem* item) {
-            return item->GetState() == ActorState::Destroy;
-        }), mExtraPoints.end());
-
     // Orquestra a checagem de colisões
     CheckCollisions();
 
@@ -350,6 +355,16 @@ void Battle::OnUpdate(float deltaTime) {
 
     TimeBarUpdate();
     GradeBarUpdate();
+
+    // Purga os ponteiros observadores de pontos extras. Precisa rodar DEPOIS de
+    // CheckCollisions (que e quem marca um item coletado como Destroy) e ANTES
+    // do RemoveDeadActors da Scene, que roda ao final do Update. Assim nenhum
+    // ponteiro de mExtraPoints sobrevive ao objeto que ele aponta.
+    // Isto NAO destroi o item: quem faz isso e a Scene, que e a dona dele.
+    mExtraPoints.erase(std::remove_if(mExtraPoints.begin(), mExtraPoints.end(),
+        [](const ExtraPointItem* item) {
+            return item->GetState() == ActorState::Destroy;
+        }), mExtraPoints.end());
 
     // Se a nota cair a 0, termina a fase
     if (mGrade <= 0) {

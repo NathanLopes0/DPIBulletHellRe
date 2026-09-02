@@ -61,6 +61,14 @@ public:
     // Release() perde a posse, mas o objeto continua vivo na memória.
     void Release(std::unique_ptr<T> projectile) {
         if (!projectile) { return; }
+
+        // Normaliza o objeto ANTES de guardar. Este e o unico ponto por onde
+        // qualquer objeto entra no pool, entao e aqui que o invariante "o que
+        // esta guardado esta invisivel e inerte" tem de ser garantido - e nao
+        // espalhado por quem chama (que ja esqueceu duas vezes: Prewarm e
+        // ClearBossProjectiles).
+        projectile->OnEnterPool();
+
         mAvailable.push_back(std::move(projectile));
     }
 

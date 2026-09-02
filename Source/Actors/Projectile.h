@@ -48,6 +48,19 @@ public:
     [[nodiscard]] ProjectileFactory* GetOriginFactory() const { return mOriginFactory; }
     void SetOriginFactory(ProjectileFactory* factory) { mOriginFactory = factory; }
 
+    // Ponto de entrada PUBLICO para matar um projetil de fora da classe
+    // (ProjectileManager, Battle). Delega para MarkDead(), entao quem esta de
+    // fora nao precisa saber se o projetil vai para o pool ou e destruido - e
+    // nao consegue mais pular essa decisao mexendo direto no ActorState.
+    void Kill() override;
+
+    // Coloca o objeto no "estado de repouso" exigido de tudo que esta guardado
+    // no pool: invisivel, sem colisor, sem velocidade, sem behaviors, Inactive.
+    // Chamado pelo ProjectilePool dentro do Release(), ou seja, vale para TODOS
+    // os caminhos de entrada no pool - morte normal, Prewarm e limpeza de tela -
+    // e nao so para o caminho que passa por MarkDead().
+    virtual void OnEnterPool();
+
     // Restaura o projétil para um estado "recém-nascido" antes de ser reutilizado
     // pelo pool. Limpa o que é comum a todo Projectile (behaviors, velocidade,
     // estado). Classes filhas devem chamar Projectile::Reset() e então

@@ -90,6 +90,11 @@ private:
     SDL_Renderer* mRenderer;
     std::unique_ptr<AudioSystem> mAudio;
 
+    // Cache de texturas: caminho do arquivo -> textura ja carregada na GPU.
+    // O Game e o DONO de todas elas e as destroi em Shutdown(). Nenhum
+    // DrawComponent deve chamar SDL_DestroyTexture na textura que recebeu.
+    std::map<std::string, SDL_Texture*> mTextureCache;
+
     // Window properties
     int mWindowWidth;
     int mWindowHeight;

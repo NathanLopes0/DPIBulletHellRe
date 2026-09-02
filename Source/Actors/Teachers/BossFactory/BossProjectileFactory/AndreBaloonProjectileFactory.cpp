@@ -35,6 +35,13 @@ std::unique_ptr<Projectile> AndreBaloonProjectileFactory::createProjectile(Scene
     drawComp->AddAnimation("Blue", {12,13,14,15,16,17});
     drawComp->AddAnimation("Yellow", {18,19,20,21,22,23});
 
+    // Animacao padrao. Esta era a UNICA fabrica de projetil que registrava as
+    // animacoes sem escolher uma: a cor so era definida la em
+    // Andre::ExecuteAttack, DEPOIS que a strategy retorna. Quem nasce pelo
+    // Prewarm nunca passa por ali, entao ficava com mAnimName == "" e era
+    // desenhado assim mesmo.
+    drawComp->SetAnimation("Red");
+
     drawComp->SetIsVisible(true);
 
     float colliderRadius = static_cast<float>(drawComp->GetSpriteWidth()) / 4.f;

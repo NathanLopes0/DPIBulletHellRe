@@ -17,6 +17,11 @@ public:
     explicit AndreBaloonProjectile(Scene* scene, Boss* owner);
     void OnUpdate(float deltaTime) override;
 
+    // Restaura a animacao padrao ao ser reciclado pelo pool, igual as outras
+    // subclasses de BossProjectile ja faziam. A cor definitiva continua sendo
+    // escolhida por Andre::ExecuteAttack logo apos o Acquire.
+    void Reset() override;
+
 private:
 
     [[nodiscard]] bool IsOffScreen() const override;

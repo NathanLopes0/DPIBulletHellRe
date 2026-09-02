@@ -10,6 +10,7 @@
 #include "../Attacks/Behaviors.h"
 #include "../Components/RigidBodyComponent.h"
 #include "../Components/DrawComponents/DrawComponent.h"
+#include "../Components/ColliderComponents/ColliderComponent.h"
 
 Projectile::Projectile(Scene *scene, Actor *owner)
     : Actor(scene),
@@ -69,7 +70,50 @@ void Projectile::Reset() {
         draw->SetIsVisible(true);
     }
 
+    // Religa o colisor que OnEnterPool() desligou ao guardar o objeto.
+    if (auto collider = GetComponent<ColliderComponent>()) {
+        collider->SetEnabled(true);
+    }
+
+    // Rotacao tambem e estado da vida anterior: LaserAttack chama SetRotation e
+    // nada limpava isso, entao um projetil reciclado voltava torto.
+    SetRotation(0.0f);
+
+    // NOTA: a posicao NAO e resetada aqui de proposito - ver bug 8 da analise.
+    // Toda strategy hoje chama SetPosition logo apos o Acquire, exceto quando a
+    // condicao de firePosition falha. Isso sera tratado na proxima rodada.
+
     SetState(ActorState::Active);
+}
+
+void Projectile::Kill() {
+    MarkDead();
+}
+
+void Projectile::OnEnterPool() {
+    // Um objeto guardado no pool CONTINUA registrado em Scene::mDrawables: o
+    // DrawComponent so se desregistra no proprio destrutor, e o objeto nao e
+    // destruido. Como Game::GenerateOutput percorre mDrawables sem consultar
+    // ActorState, este mIsVisible = false e a UNICA coisa que impede um objeto
+    // guardado de continuar aparecendo na tela.
+    if (auto draw = GetComponent<DrawComponent>()) {
+        draw->SetIsVisible(false);
+    }
+
+    // Desliga o colisor enquanto o objeto esta parado no pool.
+    if (auto collider = GetComponent<ColliderComponent>()) {
+        collider->SetEnabled(false);
+    }
+
+    if (auto rb = GetComponent<RigidBodyComponent>()) {
+        rb->SetVelocity(Vector2::Zero);
+        rb->SetAcceleration(Vector2::Zero);
+    }
+
+    // Behaviors nao terminados nao podem sobreviver ate a proxima vida.
+    mBehaviors.clear();
+
+    SetState(ActorState::Inactive);
 }
 
 void Projectile::MarkDead() {

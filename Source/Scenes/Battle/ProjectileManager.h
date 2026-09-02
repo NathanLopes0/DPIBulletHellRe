@@ -36,6 +36,12 @@ public:
 
     void ClearBossProjectiles() const;
 
+    // Executa uma passada de limpeza fora do Update(). Necessario para a tela
+    // de fim de fase, onde Battle::OnUpdate retorna cedo e o Update() deste
+    // manager deixa de ser chamado - sem isto, os projeteis marcados por
+    // ClearBossProjectiles ficariam presos no vetor, nunca devolvidos ao pool.
+    void Cleanup();
+
 private:
     void CleanupProjectiles(); // para remover projéteis mortos
 

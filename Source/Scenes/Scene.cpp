@@ -58,10 +58,16 @@ void Scene::Update(float deltaTime) {
     mPendingActors.clear();
 
 
-    // Remove os atores mortos
-    RemoveDeadActors();
-
+    // A logica especifica da cena roda ANTES da remocao, com todos os atores
+    // ainda vivos. Era o contrario: RemoveDeadActors() destruia os atores
+    // marcados como Destroy e so depois OnUpdate() rodava - entao qualquer cena
+    // que guardasse ponteiros observadores (Battle::mExtraPoints) lia memoria
+    // ja liberada. Isso tambem da a cada cena a chance de limpar suas proprias
+    // listas de ponteiros dentro do OnUpdate, antes dos objetos morrerem.
     OnUpdate(deltaTime);
+
+    // Remove os atores mortos - ultimo passo do frame.
+    RemoveDeadActors();
 }
 
 void Scene::RemoveDeadActors() {

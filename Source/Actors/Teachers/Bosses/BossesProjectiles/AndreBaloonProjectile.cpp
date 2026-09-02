@@ -19,6 +19,13 @@ void AndreBaloonProjectile::OnUpdate(float deltaTime) {
     BossProjectile::OnUpdate(deltaTime);
 }
 
+void AndreBaloonProjectile::Reset() {
+    Projectile::Reset();
+    if (auto drawComp = GetComponent<DrawAnimatedComponent>()) {
+        drawComp->SetAnimation("Red");
+    }
+}
+
 bool AndreBaloonProjectile::IsOffScreen() const {
 
     // Failsafe: garantir que o componente de desenho existe

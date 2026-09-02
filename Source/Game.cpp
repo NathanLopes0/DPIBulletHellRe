@@ -174,20 +174,30 @@ void Game::GenerateOutput()
 }
 SDL_Texture* Game::LoadTexture(const std::string& texturePath) {
 
-    auto loadedIMG = IMG_Load(texturePath.c_str());
-    if (loadedIMG == nullptr) {
-        SDL_Log("textura invalida queride");
-        return nullptr;
+    // Se essa imagem ja foi carregada, devolve a MESMA textura.
+    // Antes, cada DrawSpriteComponent/DrawAnimatedComponent construido fazia
+    // um IMG_Load (leitura de disco) + SDL_CreateTextureFromSurface (upload
+    // pra GPU) proprio, e ninguem destruia nada depois: cada tiro do Player e
+    // cada projetil pre-aquecido vazava uma textura inteira.
+    if (const auto it = mTextureCache.find(texturePath); it != mTextureCache.end()) {
+        return it->second;
     }
 
+    auto loadedIMG = IMG_Load(texturePath.c_str());
+    if (loadedIMG == nullptr) {
+        SDL_Log("Textura invalida: %s (%s)", texturePath.c_str(), IMG_GetError());
+        return nullptr;
+    }
 
     auto textureFromSur = SDL_CreateTextureFromSurface(mRenderer, loadedIMG);
     SDL_FreeSurface(loadedIMG);
     if (!textureFromSur)
     {
+        SDL_Log("Falha ao criar textura de %s: %s", texturePath.c_str(), SDL_GetError());
         return nullptr;
     }
 
+    mTextureCache.emplace(texturePath, textureFromSur);
 
     return textureFromSur;
 }
@@ -201,6 +211,13 @@ void Game::Shutdown()
     // Isso garante que ~DrawTextComponent() seja chamado
     // enquanto o Renderer ainda está vivo.
     mScene.reset();
+
+    // Com a cena morta, nenhum Component referencia mais as texturas do cache,
+    // entao e seguro destrui-las. Precisa ser ANTES de SDL_DestroyRenderer.
+    for (auto& [path, texture] : mTextureCache) {
+        SDL_DestroyTexture(texture);
+    }
+    mTextureCache.clear();
 
     // Limpe quaisquer outros sistemas criados e que
     // dependem do SDL (como áudio ou fontes gerenciadas)
