@@ -23,8 +23,14 @@ public:
      * @param owner O ator que disparou (que esperamos ser o Boss).
      * @return Um ponteiro único para o Projétil recém-criado.
      */
-    SallesProjectile1Factory() { mDataPath = "../Assets/Teachers/Projectiles/Capivara.json";
-        mSpritePath = "../Assets/Teachers/Projectiles/DPIBHSallesCapivara.png"; };
+    // O mDataPath aqui era "Capivara.json", arquivo que NAO EXISTE (o correto
+    // e DPIBHSallesCapivara.json). Passou despercebido porque createProjectile
+    // ignorava os dois membros e repetia os caminhos certos na mao - ou seja,
+    // o campo errado nunca chegava a ser lido. Agora que a fabrica le daqui,
+    // o caminho esta corrigido.
+    SallesProjectile1Factory()
+        : ProjectileFactory("../Assets/Teachers/Projectiles/DPIBHSallesCapivara.png",
+                            "../Assets/Teachers/Projectiles/DPIBHSallesCapivara.json") {}
 
 
     std::unique_ptr<Projectile> createProjectile(Scene* scene, Actor* owner) override;

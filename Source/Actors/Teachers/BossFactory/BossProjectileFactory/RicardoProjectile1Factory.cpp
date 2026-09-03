@@ -33,8 +33,7 @@ std::unique_ptr<Projectile> RicardoProjectile1Factory::createProjectile(Scene *s
 
     // A Sprite é 16x16, e acho que fica melhor 32x32 então aumentei o Actor
     projectile->SetScale(2.f);
-    auto drawComp = projectile->AddComponent<DrawAnimatedComponent>("../Assets/Teachers/Projectiles/DPIBHRicardoProjectile.png",
-        mDataPath, 90);
+    auto drawComp = projectile->AddComponent<DrawAnimatedComponent>(mSpritePath, mDataPath, 90);
 
     drawComp->AddAnimation("Normal", {0});
     drawComp->SetAnimation("Normal");

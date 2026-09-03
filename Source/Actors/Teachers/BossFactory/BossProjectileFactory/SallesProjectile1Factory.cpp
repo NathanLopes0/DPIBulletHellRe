@@ -39,8 +39,7 @@ std::unique_ptr<Projectile> SallesProjectile1Factory::createProjectile(Scene* sc
     projectile->AddComponent<RigidBodyComponent>();
 
     // Adiciona o componente de desenho
-    auto drawComp = projectile->AddComponent<DrawAnimatedComponent>("../Assets/Teachers/Projectiles/DPIBHSallesCapivara.png",
-                                                                    "../Assets/Teachers/Projectiles/DPIBHSallesCapivara.json", 90);
+    auto drawComp = projectile->AddComponent<DrawAnimatedComponent>(mSpritePath, mDataPath, 90);
     drawComp->AddAnimation("Normal", {0});
     drawComp->AddAnimation("Homing", {1});
     drawComp->SetAnimation("Normal");

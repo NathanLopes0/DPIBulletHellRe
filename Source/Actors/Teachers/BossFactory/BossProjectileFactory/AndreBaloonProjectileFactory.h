@@ -13,6 +13,10 @@ class AndreBaloonProjectileFactory : public ProjectileFactory {
 
 public:
 
+    AndreBaloonProjectileFactory()
+        : ProjectileFactory("../Assets/Teachers/Projectiles/DPIBHAndreBaloon.png",
+                            "../Assets/Teachers/Projectiles/DPIBHAndreBaloon.json") {}
+
     std::unique_ptr<Projectile> createProjectile(Scene *scene, Actor *owner) override;
 
     std::unique_ptr<Projectile> Acquire(Scene* scene, Actor* owner) override;

@@ -32,8 +32,7 @@ std::unique_ptr<Projectile> SallesDoubleListProjectileFactory::createProjectile(
     projectile->AddComponent<RigidBodyComponent>();
 
     //SDL_Log("Criando drawComponent");
-    auto drawComp = projectile->AddComponent<DrawAnimatedComponent>("../Assets/Teachers/Projectiles/DPIBHSallesDuplamente.png",
-                                        "../Assets/Teachers/Projectiles/DPIBHSallesDuplamente.json", 90);
+    auto drawComp = projectile->AddComponent<DrawAnimatedComponent>(mSpritePath, mDataPath, 90);
 
 
     drawComp->AddAnimation("Normal", {0,1,2,3,4,5,6,7,8});

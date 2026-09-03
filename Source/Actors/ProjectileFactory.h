@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 class Projectile;
 class Scene;
@@ -18,6 +19,18 @@ class Actor;
  */
 class ProjectileFactory {
 public:
+    ProjectileFactory() = default;
+
+    // Construtor que toda fabrica concreta deve usar para declarar seus
+    // assets. Antes cada uma resolvia isso de um jeito: duas fixavam as
+    // strings no meio de createProjectile, duas declaravam membros PRIVADOS de
+    // mesmo nome que SOMBREAVAM os da base (mSpritePath/mDataPath), e uma
+    // preenchia os da base com um caminho inexistente e depois os ignorava.
+    // Com um unico ponto de entrada, os assets de cada projetil ficam
+    // declarados no cabecalho da fabrica e nao ha mais como sombrear.
+    ProjectileFactory(std::string spritePath, std::string dataPath)
+        : mSpritePath(std::move(spritePath)), mDataPath(std::move(dataPath)) {}
+
     virtual ~ProjectileFactory() = default;
 
     /**
@@ -27,8 +40,15 @@ public:
      * @return Um unique_ptr para o Projétil recém-criado.
      */
     virtual std::unique_ptr<Projectile> createProjectile(Scene *scene, Actor *owner) = 0;
-    void SetDataPath(std::string path);
-    void SetSpritePath(std::string path);
+
+    // Estavam DECLARADOS e nunca definidos: qualquer chamada era erro de link.
+    // Agora sao definidos aqui mesmo, e como todas as fabricas leem estes
+    // membros, trocar o caminho passa a ter efeito de verdade.
+    void SetDataPath(std::string path) { mDataPath = std::move(path); }
+    void SetSpritePath(std::string path) { mSpritePath = std::move(path); }
+
+    [[nodiscard]] const std::string& GetSpritePath() const { return mSpritePath; }
+    [[nodiscard]] const std::string& GetDataPath() const { return mDataPath; }
 
     /**
      * @brief Pede um Projétil pronto para uso, SEM parâmetros de posição/cena/owner

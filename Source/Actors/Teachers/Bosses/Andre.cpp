@@ -7,6 +7,7 @@
 #include "../../ProjectileFactory.h"
 #include "../../../Scenes/Battle/Battle.h"
 #include "../../../Scenes/Battle/ProjectileManager.h"
+#include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 
 Andre::Andre(Scene *scene) : Boss(scene)
 {
@@ -48,64 +49,20 @@ void Andre::CustomizeAttackParams(AttackParams &params, const std::string &state
     }
 }
 
-void Andre::ExecuteAttack(AttackDefinition &attackDef, const std::string &stateName) {
-    // Atualiza a posição de tiro pra posição do boss.
-    attackDef.params->firePosition = GetPosition();
-
-    // Chama customização do boss específico
-    CustomizeAttackParams(*(attackDef.params), stateName);
-
-    auto battleScene = dynamic_cast<Battle*>(mScene);
-    if (!battleScene) { return; }
-
-    auto projManager = battleScene->GetProjectileManager();
-    if (!projManager) { return; }
-
-    // ---------- EXECUTA O ATAQUE ---------- //
-    auto projectiles = attackDef.strategy->Execute(*(attackDef.params));
-    // ---------- ------- - ------ ---------- //
-
-    // Depois de executar, aplicar a personalização lambda, se existir
-    if (attackDef.configurator) {
-        for (int i = 0; i < projectiles.size(); ++i) {
-            attackDef.configurator(projectiles[i].get(), i);
-        }
-    }
-
-    // --- DIFERENÇA DO EXECUTEATTACK DO BOSS PRO DO ANDRE --- //
-    const int choose = Random::GetIntRange(0,2);
-    const std::vector<std::string> colors = {
-        "Red",
-        "Blue",
-        "Yellow"
-    };
-    for (auto& p : projectiles) {
-        p->GetComponent<DrawAnimatedComponent>()->SetAnimation(colors[choose]);
-    }
-    // --- --------- -- ------------- -- ---- --- -- ----- --- //
-
-    // Converte pra BossProjectile e envia para o Manager
-    std::vector<std::unique_ptr<BossProjectile>> bossProjVector;
-    bossProjVector.reserve(projectiles.size());
+void Andre::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
+                                 const std::string& stateName) {
+    // Uma cor por RAJADA, nao por projetil: o sorteio fica fora do laco, igual
+    // ao codigo original.
+    static const std::vector<std::string> colors = { "Red", "Blue", "Yellow" };
+    const int choose = Random::GetIntRange(0, static_cast<int>(colors.size()) - 1);
 
     for (auto& p : projectiles) {
-        if (dynamic_cast<BossProjectile*>(p.get())) {
-            bossProjVector.emplace_back(std::unique_ptr<BossProjectile>(dynamic_cast<BossProjectile*>(p.release())));
+        if (!p) continue;
+        // Guarda de nulo que a versao antiga nao tinha: ela dereferenciava
+        // GetComponent<DrawAnimatedComponent>() direto.
+        if (auto drawComp = p->GetComponent<DrawAnimatedComponent>()) {
+            drawComp->SetAnimation(colors[choose]);
         }
     }
-
-    if (!bossProjVector.empty()) {
-        projManager->AddBossProjectiles(std::move(bossProjVector));
-    }
-
-    // -- LIDANDO COM O AUDIO DO ATAQUE -- //
-    std::string attackAudio;
-    {
-        if (auto choose = Random::GetIntRange(0,1)) attackAudio = "tan00.wav";
-        else attackAudio = "tan01.wav";
-    }
-    auto handler = mScene->GetGame()->GetAudio()->PlaySound(attackAudio, false);
-    mScene->GetGame()->GetAudio()->SetSoundVolume(handler, 10);
-    // ----------------------------- //
 }
 

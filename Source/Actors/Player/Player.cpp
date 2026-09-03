@@ -46,7 +46,10 @@ Player::Player(Scene* scene) :
 
 void Player::OnProcessInput(const Uint8 *keyState) {
 
-    keyState = SDL_GetKeyboardState(nullptr);
+    // A linha 'keyState = SDL_GetKeyboardState(nullptr);' que existia aqui
+    // sobrescrevia o parametro recebido, ignorando o estado que a Scene tinha
+    // acabado de passar. Funcionava por coincidencia (era o mesmo ponteiro),
+    // mas escondia de quem le a funcao qual e a fonte real do input.
 
     MoveInput(keyState);
     ShootInput(keyState);

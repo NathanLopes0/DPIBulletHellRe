@@ -28,8 +28,7 @@ std::unique_ptr<Projectile> AndreBaloonProjectileFactory::createProjectile(Scene
 
     projectile->SetScale(2.f);
 
-    auto drawComp = projectile->AddComponent<DrawAnimatedComponent>("../Assets/Teachers/Projectiles/DPIBHAndreBaloon.png",
-                                                "../Assets/Teachers/Projectiles/DPIBHAndreBaloon.json", 90);
+    auto drawComp = projectile->AddComponent<DrawAnimatedComponent>(mSpritePath, mDataPath, 90);
 
     drawComp->AddAnimation("Red", {6, 7, 8, 9, 10, 11});
     drawComp->AddAnimation("Blue", {12,13,14,15,16,17});

@@ -89,10 +89,32 @@ public:
 protected:
     virtual void CustomizeAttackParams(AttackParams& params, const std::string& stateName);
 
+    /**
+     * @brief Gancho chamado logo DEPOIS de a strategy criar os projeteis e
+     * ANTES de eles serem entregues ao ProjectileManager.
+     *
+     * Este e o ponto de extensao para customizacoes que valem para a leva
+     * inteira e que a strategy nao tem como saber - o Andre, por exemplo,
+     * sorteia UMA cor por rajada.
+     *
+     * Existe porque a alternativa era sobrescrever ExecuteAttack por completo,
+     * que foi o que o Andre fazia: 59 linhas copiadas da base para inserir 8.
+     * O custo disso nao e estetico - a copia ja tinha ficado para tras e
+     * perdido a guarda de params/strategy nulos que a base ganhou depois.
+     *
+     * @param projectiles Os projeteis recem-criados, ainda como Projectile.
+     * @param stateName Nome do estado da FSM que disparou o ataque.
+     */
+    virtual void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
+                                      const std::string& stateName);
 
 private:
-    // Função interna para executar um ataque específico
-    virtual void ExecuteAttack(AttackDefinition& attackDef, const std::string& stateName);
+    // Função interna para executar um ataque específico.
+    // NAO e virtual de proposito: a sequencia de passos (customizar params ->
+    // executar strategy -> configurator -> converter -> entregar ao manager ->
+    // audio) e a mesma para todo boss. Quem precisa variar usa os ganchos
+    // CustomizeAttackParams e OnProjectilesCreated.
+    void ExecuteAttack(AttackDefinition& attackDef, const std::string& stateName);
 
     void CalculateNextDropThreshold();
     int mHitCounter = 0;

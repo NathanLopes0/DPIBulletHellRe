@@ -27,14 +27,11 @@
 
 // Quantas instâncias de CADA tipo de projétil são pré-aquecidas no pool
 // antes da batalha começar (ver Battle::LoadBoss / PrewarmProjectilePools).
-// 300 = folga sobre o maior ataque conhecido hoje (200 projéteis por
-// Execute()), cobrindo overlap entre disparos consecutivos do mesmo tipo.
-// Estava em 3000 por engano (o comentario acima diz 300): eram 3000 leituras
-// de disco + 3000 texturas de GPU + 3000 std::sort de mDrawables, tudo dentro
-// de um unico frame por tipo de projetil. O pool CRESCE sozinho quando falta
+
+// O pool CRESCE sozinho quando falta
 // (Acquire cria um novo se estiver vazio), entao este numero e so uma
-// otimizacao de partida, nunca um limite de projeteis simultaneos.
-static constexpr int kProjectilePrewarmCountPerType = 3000;
+// otimizacao de partida, nunca um limite de projeteis simultaneos. 
+static constexpr int kProjectilePrewarmCountPerType = 1000;
 
 
 
@@ -448,9 +445,16 @@ void Battle::GradeTextUpdate() {
 
 
 void Battle::OnProcessInput(const Uint8* keyState) {
-    if (mPlayer) {
-        mPlayer->ProcessInput(keyState);
-    }
+    // NAO chame mPlayer->ProcessInput aqui.
+    // Scene::ProcessInput ja percorre mActors e entrega o input a todos os
+    // atores Active - e o Player e um deles. A chamada extra que existia aqui
+    // fazia Player::OnProcessInput rodar DUAS vezes por frame. Hoje isso passa
+    // despercebido porque MoveInput e idempotente e Shoot/Special sao
+    // protegidos por timers, mas qualquer acao nova sem guarda dispararia em
+    // dobro (um "1 ponto extra" viraria 2, uma tecla de menu abriria e fecharia
+    // no mesmo frame).
+    // Este gancho continua sendo o lugar certo para input da BATALHA em si
+    // (pausa, debug), que nao pertence a nenhum ator especifico.
 }
 void Battle::CheckCollisions() {
     if (!mPlayer || !mBoss) return;

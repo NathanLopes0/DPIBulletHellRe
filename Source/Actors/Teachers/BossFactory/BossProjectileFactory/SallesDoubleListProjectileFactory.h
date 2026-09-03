@@ -13,6 +13,11 @@ class SallesDoubleListProjectileFactory : public ProjectileFactory {
 
 
 public:
+
+    SallesDoubleListProjectileFactory()
+        : ProjectileFactory("../Assets/Teachers/Projectiles/DPIBHSallesDuplamente.png",
+                            "../Assets/Teachers/Projectiles/DPIBHSallesDuplamente.json") {}
+
     std::unique_ptr<Projectile> createProjectile(Scene *scene, Actor *owner) override;
 
     std::unique_ptr<Projectile> Acquire(Scene* scene, Actor* owner) override;

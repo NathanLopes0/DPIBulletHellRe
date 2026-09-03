@@ -22,6 +22,10 @@ class Actor;
 class AndreProjectile1Factory : public ProjectileFactory {
 public:
 
+    AndreProjectile1Factory()
+        : ProjectileFactory("../Assets/Teachers/Projectiles/DPIBHAndreGraph.png",
+                            "../Assets/Teachers/Projectiles/DPIBHAndreGraph.json") {}
+
     std::unique_ptr<Projectile> createProjectile(Scene* scene, Actor* owner) override;
 
     std::unique_ptr<Projectile> Acquire(Scene* scene, Actor* owner) override;
@@ -29,8 +33,8 @@ public:
     void Prewarm(Scene* scene, Actor* owner, int count) override;
 
 private:
-    std::string mSpritePath = "../Assets/Teachers/Projectiles/DPIBHAndreGraph.png";
-    std::string mDataPath = "../Assets/Teachers/Projectiles/DPIBHAndreGraph.json";
-
+    // mSpritePath/mDataPath privados foram REMOVIDOS daqui: eles sombreavam os
+    // membros protegidos da base, entao SetSpritePath() gravava num campo e
+    // createProjectile lia outro.
     ProjectilePool<AndreBossProjectile> mPool;
 };

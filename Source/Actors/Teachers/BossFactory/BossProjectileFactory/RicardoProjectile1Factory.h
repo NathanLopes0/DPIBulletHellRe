@@ -17,6 +17,10 @@
 
 class RicardoProjectile1Factory : public ProjectileFactory {
 public:
+
+    RicardoProjectile1Factory()
+        : ProjectileFactory("../Assets/Teachers/Projectiles/DPIBHRicardoProjectile.png",
+                            "../Assets/Teachers/Projectiles/DPIBHRicardoProjectile.json") {}
     /**
      * @brief Cria uma instancia do projétil do Ricardo
      * @param scene A cena onde o projétil será criado
@@ -31,7 +35,7 @@ public:
     void Prewarm(Scene* scene, Actor* owner, int count) override;
 
 private:
-    std::string mDataPath = "../Assets/Teachers/Projectiles/DPIBHRicardoProjectile.json";
-
+    // mDataPath privado REMOVIDO: sombreava o membro da base (ver comentario
+    // em AndreProjectile1Factory).
     ProjectilePool<RicardoBossProjectile> mPool;
 };

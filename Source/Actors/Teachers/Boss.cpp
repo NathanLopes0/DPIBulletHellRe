@@ -135,6 +135,9 @@ void Boss::ExecuteAttack(AttackDefinition& attackDef, const std::string& stateNa
         }
     }
 
+    // Gancho para customizacoes do boss concreto sobre a leva inteira.
+    OnProjectilesCreated(projectiles, stateName);
+
     // Converte pra BossProjectile e envia para o Manager
     std::vector<std::unique_ptr<BossProjectile>> bossProjVector;
     bossProjVector.reserve(projectiles.size());
@@ -203,6 +206,12 @@ void Boss::PrewarmProjectilePools(int countPerType) {
         SDL_Log("Prewarm: criando %d instancias de '%s'...", countPerType, name.c_str());
         factory->Prewarm(GetScene(), this, countPerType);
     }
+}
+
+// Implementacao padrao: nao faz nada. A maioria dos bosses nao precisa mexer
+// nos projeteis depois de criados, entao herda este corpo vazio.
+void Boss::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
+                                const std::string& stateName) {
 }
 
 void Boss::CustomizeAttackParams(AttackParams &params, const std::string &stateName) {
