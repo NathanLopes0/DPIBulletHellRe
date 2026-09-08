@@ -175,10 +175,6 @@ void Game::GenerateOutput()
 SDL_Texture* Game::LoadTexture(const std::string& texturePath) {
 
     // Se essa imagem ja foi carregada, devolve a MESMA textura.
-    // Antes, cada DrawSpriteComponent/DrawAnimatedComponent construido fazia
-    // um IMG_Load (leitura de disco) + SDL_CreateTextureFromSurface (upload
-    // pra GPU) proprio, e ninguem destruia nada depois: cada tiro do Player e
-    // cada projetil pre-aquecido vazava uma textura inteira.
     if (const auto it = mTextureCache.find(texturePath); it != mTextureCache.end()) {
         return it->second;
     }
@@ -201,7 +197,6 @@ SDL_Texture* Game::LoadTexture(const std::string& texturePath) {
 
     return textureFromSur;
 }
-// Em Game.cpp
 
 void Game::Shutdown()
 {
@@ -263,6 +258,8 @@ void Game::InitializeBossFactory() {
     mBossFactory[INF213] = std::make_unique<SallesFactory>(this);
     mBossFactory[INF250] = std::make_unique<RicardoFactory>(this);
     mBossFactory[INF330] = std::make_unique<AndreFactory>(this);
+    mBossFactory[INF420] = std::make_unique<JulioFactory>(this);
+
 
 }
 

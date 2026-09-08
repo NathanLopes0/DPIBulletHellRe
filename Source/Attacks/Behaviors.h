@@ -91,6 +91,89 @@ struct ActivateBehavior : public ProjectileBehavior {
 
 };
 
+/**
+ * @brief Correcao de rota CONTINUA em direcao ao jogador, com "taxa de
+ * aprendizado" que decai ate zero. Tema: descida do gradiente.
+ *
+ * Diferente do HomingBehavior, que e um evento UNICO (aponta pro jogador uma
+ * vez e se encerra), aqui a direcao e reajustada todo frame por uma fracao da
+ * diferenca. O resultado visual e uma curva que fecha rapido no comeco e vai
+ * "convergindo" ate travar - o projetil parece estar aprendendo a mirar.
+ *
+ * A taxa decai linearmente ao longo de convergenceTime (annealing). Quando
+ * chega a zero, o behavior se encerra e para de custar CPU.
+ *
+ * O modulo da velocidade e SEMPRE preservado: so a direcao muda.
+ */
+struct GradientDescentBehavior : public ProjectileBehavior {
+
+    /**
+     * @param delay tempo ate comecar a corrigir a rota
+     * @param learningRate quao forte e a correcao por segundo. Valores entre
+     *        1.5 e 4.0 dao curvas legiveis; acima de ~6 o projetil praticamente
+     *        gruda no jogador e o ataque fica injusto.
+     * @param convergenceTime em quantos segundos a taxa decai a zero
+     */
+    explicit GradientDescentBehavior(float delay = 0.0f,
+                                     float learningRate = 2.5f,
+                                     float convergenceTime = 2.0f)
+        : startDelay(delay), learningRate(learningRate),
+          convergenceTime(convergenceTime), elapsedTime(0.0f), finished(false) {}
+
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return finished; }
+
+    float startDelay;
+    float learningRate;
+    float convergenceTime;
+    float elapsedTime;
+    bool finished;
+};
+
+/**
+ * @brief Oscilacao lateral com amplitude decrescente em torno da trajetoria
+ * original. Tema: overfitting (variancia alta que so estabiliza no fim).
+ *
+ * O projetil serpenteia em torno da direcao que tinha quando o behavior
+ * ativou, com a amplitude caindo ate zero. Se dois projeteis vizinhos receberem
+ * amplitudes de sinal oposto, eles se cruzam - visualmente muito bom para um
+ * leque.
+ *
+ * A direcao base e capturada UMA vez na ativacao, e nao relida a cada frame.
+ * Se fosse relida, a oscilacao realimentaria a si mesma e o projetil sairia
+ * girando em espiral.
+ */
+struct OverfitBehavior : public ProjectileBehavior {
+
+    /**
+     * @param delay tempo ate comecar a oscilar
+     * @param maxAngleDegrees amplitude maxima do desvio, em graus. Negativo
+     *        inverte a fase (util para alternar projeteis vizinhos).
+     * @param frequency oscilacoes completas por segundo
+     * @param duration em quantos segundos a amplitude decai a zero
+     */
+    explicit OverfitBehavior(float delay = 0.0f,
+                             float maxAngleDegrees = 45.0f,
+                             float frequency = 1.5f,
+                             float duration = 2.5f)
+        : startDelay(delay), maxAngle(maxAngleDegrees), frequency(frequency),
+          duration(duration), elapsedTime(0.0f), baseDirection(Vector2::Zero),
+          baseSpeed(0.0f), started(false), finished(false) {}
+
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return finished; }
+
+    float startDelay;
+    float maxAngle;
+    float frequency;
+    float duration;
+    float elapsedTime;
+    Vector2 baseDirection;
+    float baseSpeed;
+    bool started;
+    bool finished;
+};
+
 struct DeactivateBehavior : public ProjectileBehavior {
     float elapsedTime, deactivationDelay;
     bool deactivated;

@@ -55,17 +55,10 @@ void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm)
     const std::string STATE_NAME = "StateOne";
 
     // 1. Configura os parâmetros fixos
-    auto params = std::make_unique<AttackParams>();
-    // Estava em 1000 (valor de teste). Com o passo angular corrigido, 1000
-    // projeteis em 30 graus viram uma parede solida e intransponivel a cada
-    // 0.8s. Os outros estados deste mesmo boss usam 3, 4, 2 e 3, entao 5 e o
-    // valor que mantem o StateOne na mesma familia: uma rajada estreita (30
-    // graus) e rapida (440), que e o que diferencia este estado dos demais.
-    // AJUSTE AQUI se quiser a fase mais dificil: cada +1 adiciona um projetil
-    // no leque sem mexer na abertura.
-    params->numProjectiles = 5;
-    params->projectileSpeed = 440.0f;
-    params->angle = 30.f;
+    auto params = std::make_unique<AttackParams>();                                                                                                 
+    params->numProjectiles = 3;
+    params->projectileSpeed = 340.0f;
+    params->angle = 40.f;
 
     auto spawner = boss->GetProjectileFactory("Capivara");
 
@@ -99,8 +92,8 @@ void SallesFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm)
 
     // 1. Configura os parâmetros para este estado
     auto params = std::make_unique<AttackParams>();
-    params->numProjectiles = 3;
-    params->projectileSpeed = 230.0f;
+    params->numProjectiles = 4;
+    params->projectileSpeed = 360.0f;
     params->angle = 40.f;
 
     auto spawner = boss->GetProjectileFactory("Capivara");
@@ -132,9 +125,9 @@ void SallesFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm) {
 
     // 1 . Configura os padrões fixos do estado três
     auto params = std::make_unique<AttackParams>();
-    params->numProjectiles = 4;
-    params->projectileSpeed = 260.0f;
-    params->angle = 60.f;
+    params->numProjectiles = 5;
+    params->projectileSpeed = 400.0f;
+    params->angle = 50.f;
 
     auto spawner = boss->GetProjectileFactory("Capivara");
 
@@ -166,8 +159,8 @@ void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm) {
     // 1. Padrões fixos do estado Final
     // -- Ataque 1 --
     auto paramsFast = std::make_unique<AttackParams>();
-    paramsFast->numProjectiles = 2;
-    paramsFast->projectileSpeed = 280.0f;
+    paramsFast->numProjectiles = 3;
+    paramsFast->projectileSpeed = 340.0f;
     paramsFast->angle = 40.f;
 
     auto spawner = boss->GetProjectileFactory("Capivara");
