@@ -164,6 +164,38 @@ void Boss::ExecuteAttack(AttackDefinition& attackDef, const std::string& stateNa
 
 }
 
+float Boss::GetDistanceToPlayer() const {
+    if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
+        if (auto player = battleScene->GetPlayer()) {
+            return (player->GetPosition() - GetPosition()).Length();
+        }
+    }
+    return 0.0f;
+}
+
+Vector2 Boss::GetPredictedPlayerDirection(const float leadTime) const {
+    if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
+        if (auto player = battleScene->GetPlayer()) {
+
+            Vector2 target = player->GetPosition();
+
+            // Extrapola pela velocidade atual. Se o jogador estiver parado, a
+            // velocidade e zero e isto vira a mira normal: ficar parado
+            // continua sendo a pior escolha possivel.
+            if (auto rb = player->GetComponent<RigidBodyComponent>()) {
+                target += rb->GetVelocity() * leadTime;
+            }
+
+            Vector2 direction = target - GetPosition();
+            direction.Normalize();
+            return direction;
+        }
+    }
+
+    // Failsafe igual ao de GetDirectionToPlayer: atira para baixo.
+    return Vector2(0.0f, 1.0f);
+}
+
 Vector2 Boss::GetDirectionToPlayer() const {
     if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
         if (auto player = battleScene->GetPlayer()) {

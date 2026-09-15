@@ -23,13 +23,13 @@ public:
         : BossProjectile(scene, owner) {}
 
     // Ao voltar do pool, restaura a animação padrão. Sem isto, um projétil
-    // reciclado da fase 3 apareceria na fase 1 ainda com a cor de "Overfit"
+    // reciclado da fase 3 apareceria na fase 1 ainda com a cor de "Previsao"
     // até OnProjectilesCreated corrigir — o que funciona, mas depende de outra
     // classe lembrar de fazer. Melhor o objeto se normalizar sozinho.
     void Reset() override {
         Projectile::Reset();
         if (auto drawComp = GetComponent<DrawAnimatedComponent>()) {
-            drawComp->SetAnimation("Ruido");
+            drawComp->SetAnimation("Coleta");
         }
     }
 };

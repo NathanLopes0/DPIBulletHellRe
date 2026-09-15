@@ -41,6 +41,9 @@ private:
     //Name of the CURRENT animation
     std::string mAnimName;
 
+    // true quando a sprite sheet nao pode ser lida e caimos no frame unico.
+    bool mUsingFallbackSheet = false;
+
     //current elapsed time in animation
     float mAnimTimer = 0.0f;
 

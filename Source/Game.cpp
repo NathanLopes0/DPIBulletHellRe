@@ -87,7 +87,7 @@ void Game::LoadInitialScene()
 {
 
     InitializeBossFactory();
-    ChangeScene(Scene::SceneType::MainMenu);
+    ChangeScene(Scene::SceneType::Battle);
 
 }
 
@@ -172,6 +172,50 @@ void Game::GenerateOutput()
     // Swap front buffer and back buffer
     SDL_RenderPresent(mRenderer);
 }
+SDL_Texture* Game::GetPlaceholderTexture() {
+
+    // Criada uma unica vez e reaproveitada por todos os caminhos que falharem.
+    if (mPlaceholderTexture) {
+        return mPlaceholderTexture;
+    }
+
+    constexpr int kSize = 64;   // lado da textura, em pixels
+    constexpr int kCell = 8;    // lado de cada quadrado do xadrez
+
+    SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormat(0, kSize, kSize, 32,
+                                                          SDL_PIXELFORMAT_RGBA32);
+    if (!surface) {
+        SDL_Log("Nao foi possivel criar a superficie do placeholder: %s", SDL_GetError());
+        return nullptr;
+    }
+
+    // Magenta puro sobre quase-preto: o xadrez classico de textura ausente.
+    // A cor e escolhida justamente por nao aparecer em arte de verdade, entao
+    // e impossivel confundir com um sprite que ficou estranho.
+    const Uint32 magenta = SDL_MapRGBA(surface->format, 255, 0, 220, 255);
+    const Uint32 escuro  = SDL_MapRGBA(surface->format, 24, 0, 24, 255);
+
+    SDL_FillRect(surface, nullptr, magenta);
+
+    for (int linha = 0; linha < kSize / kCell; ++linha) {
+        for (int coluna = 0; coluna < kSize / kCell; ++coluna) {
+            if ((linha + coluna) % 2 == 0) {
+                SDL_Rect celula{ coluna * kCell, linha * kCell, kCell, kCell };
+                SDL_FillRect(surface, &celula, escuro);
+            }
+        }
+    }
+
+    mPlaceholderTexture = SDL_CreateTextureFromSurface(mRenderer, surface);
+    SDL_FreeSurface(surface);
+
+    if (!mPlaceholderTexture) {
+        SDL_Log("Nao foi possivel criar a textura do placeholder: %s", SDL_GetError());
+    }
+
+    return mPlaceholderTexture;
+}
+
 SDL_Texture* Game::LoadTexture(const std::string& texturePath) {
 
     // Se essa imagem ja foi carregada, devolve a MESMA textura.
@@ -181,16 +225,31 @@ SDL_Texture* Game::LoadTexture(const std::string& texturePath) {
 
     auto loadedIMG = IMG_Load(texturePath.c_str());
     if (loadedIMG == nullptr) {
-        SDL_Log("Textura invalida: %s (%s)", texturePath.c_str(), IMG_GetError());
-        return nullptr;
+        SDL_Log("TEXTURA AUSENTE: %s (%s) -- usando placeholder xadrez",
+                texturePath.c_str(), IMG_GetError());
+
+        // Guarda o placeholder SOB O CAMINHO QUE FALHOU. Sem isso, cada
+        // componente criado tentaria o IMG_Load de novo: com 300 projeteis de
+        // pre-aquecimento seriam 300 leituras de disco falhas e 300 linhas de
+        // log identicas.
+        SDL_Texture* placeholder = GetPlaceholderTexture();
+        if (placeholder) {
+            mTextureCache.emplace(texturePath, placeholder);
+        }
+        return placeholder;
     }
 
     auto textureFromSur = SDL_CreateTextureFromSurface(mRenderer, loadedIMG);
     SDL_FreeSurface(loadedIMG);
     if (!textureFromSur)
     {
-        SDL_Log("Falha ao criar textura de %s: %s", texturePath.c_str(), SDL_GetError());
-        return nullptr;
+        SDL_Log("FALHA AO CRIAR TEXTURA de %s: %s -- usando placeholder",
+                texturePath.c_str(), SDL_GetError());
+        SDL_Texture* placeholder = GetPlaceholderTexture();
+        if (placeholder) {
+            mTextureCache.emplace(texturePath, placeholder);
+        }
+        return placeholder;
     }
 
     mTextureCache.emplace(texturePath, textureFromSur);
@@ -209,10 +268,20 @@ void Game::Shutdown()
 
     // Com a cena morta, nenhum Component referencia mais as texturas do cache,
     // entao e seguro destrui-las. Precisa ser ANTES de SDL_DestroyRenderer.
+    // O placeholder aparece no cache sob VARIOS caminhos (um para cada arquivo
+    // que faltou), mas e o mesmo ponteiro. Destrui-lo dentro do laco seria
+    // double free. Por isso ele e pulado aqui e destruido uma unica vez depois.
     for (auto& [path, texture] : mTextureCache) {
-        SDL_DestroyTexture(texture);
+        if (texture && texture != mPlaceholderTexture) {
+            SDL_DestroyTexture(texture);
+        }
     }
     mTextureCache.clear();
+
+    if (mPlaceholderTexture) {
+        SDL_DestroyTexture(mPlaceholderTexture);
+        mPlaceholderTexture = nullptr;
+    }
 
     // Limpe quaisquer outros sistemas criados e que
     // dependem do SDL (como áudio ou fontes gerenciadas)
@@ -275,6 +344,7 @@ void Game::InitializeGrades() {
     mGrades[INF213] = 40;
     mGrades[INF250] = 40;
     mGrades[INF330] = 40;
+    mGrades[INF420] = 40;
 
 }
 

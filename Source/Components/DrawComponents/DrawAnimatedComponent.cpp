@@ -8,6 +8,8 @@
 #include "../../Json.h"
 #include "../../Actors/Actor.h"
 #include "DrawAnimatedComponent.h"
+#include <stdexcept>
+#include <set>
 
 DrawAnimatedComponent::DrawAnimatedComponent(class Actor* owner, const std::string &spriteSheetPath, const std::string &spriteSheetData, int drawOrder)
         :DrawSpriteComponent(owner, spriteSheetPath, 0, 0, drawOrder)
@@ -36,20 +38,57 @@ void DrawAnimatedComponent::LoadSpriteSheet(const std::string& texturePath, cons
     mSpriteSheetSurface = mOwner->GetScene()->GetGame()->LoadTexture(texturePath);
 
     // Load sprite sheet data
-    std::ifstream spriteSheetFile(dataPath);
-    nlohmann::json spriteSheetData = nlohmann::json::parse(spriteSheetFile);
+    // O parse fica dentro de try/catch porque nlohmann::json LANCA excecao
+    // quando o arquivo nao existe ou esta malformado. Sem isso, um .json com
+    // nome errado derrubava o jogo inteiro com std::terminate, em vez de
+    // mostrar um sprite obviamente quebrado.
+    try {
+        std::ifstream spriteSheetFile(dataPath);
+        if (!spriteSheetFile.is_open()) {
+            throw std::runtime_error("arquivo nao encontrado");
+        }
 
+        nlohmann::json spriteSheetData = nlohmann::json::parse(spriteSheetFile);
 
-    for(const auto& frame : spriteSheetData["frames"]) {
+        for(const auto& frame : spriteSheetData["frames"]) {
 
-        int x = frame["frame"]["x"].get<int>();
-        int y = frame["frame"]["y"].get<int>();
-        int w = frame["frame"]["w"].get<int>();
-        int h = frame["frame"]["h"].get<int>();
+            int x = frame["frame"]["x"].get<int>();
+            int y = frame["frame"]["y"].get<int>();
+            int w = frame["frame"]["w"].get<int>();
+            int h = frame["frame"]["h"].get<int>();
 
-        mSpriteSheetData.push_back({x, y, w, h});
+            mSpriteSheetData.push_back({x, y, w, h});
+        }
+    }
+    catch (const std::exception& e) {
+        // Avisa UMA vez por caminho. Sem isto, um sprite sheet quebrado em um
+        // projetil gera uma linha por instancia - 300 linhas so no
+        // pre-aquecimento, o que afogaria qualquer outro erro no log.
+        static std::set<std::string> jaAvisados;
+        if (jaAvisados.insert(dataPath).second) {
+            SDL_Log("SPRITE SHEET INVALIDA: %s (%s) -- usando frame unico de fallback",
+                    dataPath.c_str(), e.what());
+        }
+        mSpriteSheetData.clear();
     }
 
+    if (mSpriteSheetData.empty()) {
+        // Fallback: um unico frame cobrindo a textura inteira, seja ela a
+        // imagem real (JSON ausente mas PNG ok) ou o xadrez do placeholder
+        // (ambos ausentes). As dimensoes vem da propria textura, entao isso
+        // funciona nos dois casos sem numero magico.
+        int w = 0, h = 0;
+        if (mSpriteSheetSurface) {
+            SDL_QueryTexture(mSpriteSheetSurface, nullptr, nullptr, &w, &h);
+        }
+        if (w <= 0 || h <= 0) { w = 64; h = 64; }
+
+        mSpriteSheetData.push_back({0, 0, w, h});
+
+        // Sinaliza ao Draw que os indices das animacoes registradas nao valem
+        // mais nada: existe um frame so, e e ele que deve ser desenhado.
+        mUsingFallbackSheet = true;
+    }
 }
 
 void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
@@ -72,7 +111,9 @@ void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
     auto frameIdx = static_cast<size_t>(mAnimTimer);
     if (frameIdx >= frames.size()) frameIdx = frames.size() - 1;
 
-    const int spriteIdx = frames[frameIdx];
+    // Em modo fallback ha um unico frame; os indices registrados por
+    // AddAnimation apontariam para fora do vetor e nada seria desenhado.
+    const int spriteIdx = mUsingFallbackSheet ? 0 : frames[frameIdx];
 
     // Comparacao com cast explicito: antes era 'int < size_t', e um indice
     // negativo virava um numero gigante ao ser convertido para unsigned,

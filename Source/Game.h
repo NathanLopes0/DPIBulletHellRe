@@ -44,6 +44,16 @@ public:
     //Texture
     class SDL_Texture* LoadTexture(const std::string& texturePath);
 
+    /**
+     * @brief Devolve (criando na primeira chamada) o xadrez magenta/preto usado
+     * como marcador de textura ausente.
+     *
+     * E gerada em memoria de proposito: um placeholder que precisasse ser lido
+     * do disco poderia falhar exatamente pelo mesmo motivo que a textura
+     * original falhou.
+     */
+    SDL_Texture* GetPlaceholderTexture();
+
     //Camera functions
     Vector2& GetCameraPos() { return mCameraPos; }
     void SetCameraPos(const Vector2& position) { mCameraPos = position; };
@@ -89,6 +99,11 @@ private:
     class SDL_Window* mWindow;
     SDL_Renderer* mRenderer;
     std::unique_ptr<AudioSystem> mAudio;
+
+    // Textura "faltando": xadrez magenta/preto gerado em memoria, devolvido
+    // sempre que um arquivo de imagem nao carrega. E compartilhada por todos os
+    // caminhos que falharam, entao NAO pode ser destruida junto com o cache.
+    SDL_Texture* mPlaceholderTexture = nullptr;
 
     // Cache de texturas: caminho do arquivo -> textura ja carregada na GPU.
     // O Game e o DONO de todas elas e as destroi em Shutdown(). Nenhum

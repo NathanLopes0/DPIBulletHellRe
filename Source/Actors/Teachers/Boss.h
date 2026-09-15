@@ -83,6 +83,30 @@ public:
 
     [[nodiscard]] Vector2 GetDirectionToPlayer() const;
 
+    /**
+     * @brief Direcao ate onde o jogador ESTARA daqui a leadTime segundos,
+     * extrapolando pela velocidade atual dele.
+     *
+     * Com leadTime = 0 e identico a GetDirectionToPlayer(). Quanto maior, mais
+     * o boss "chuta na frente" do jogador.
+     *
+     * O efeito de jogo e o que interessa: quem anda em linha reta (ou fica
+     * parado) e acertado, e quem troca de direcao no momento do disparo faz o
+     * tiro passar longe. Isso ensina o jogador a variar o movimento sem
+     * precisar explicar nada a ele.
+     *
+     * @param leadTime segundos de antecipacao. O jogador anda a 300 px/s,
+     *        entao 0.5f equivale a prever cerca de 150 px a frente: desvio bem
+     *        visivel na tela, mas ainda desviavel.
+     */
+    [[nodiscard]] Vector2 GetPredictedPlayerDirection(float leadTime) const;
+
+    /**
+     * @brief Distancia em pixels ate o jogador. Devolve 0 se nao houver
+     * jogador. Util para calcular tempo de voo de projetil.
+     */
+    [[nodiscard]] float GetDistanceToPlayer() const;
+
     void RegisterMovementStrategy(const std::string& stateName, std::unique_ptr<IMovementStrategy> strategy);
 
 

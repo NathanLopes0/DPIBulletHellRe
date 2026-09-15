@@ -33,14 +33,14 @@ std::unique_ptr<Projectile> JulioProjectile1Factory::createProjectile(Scene* sce
 
     // Uma animação por fase da luta. Julio::OnProjectilesCreated escolhe qual
     // usar conforme o estado da FSM que disparou o ataque.
-    drawComp->AddAnimation("Ruido",     {0, 1, 2, 3});
-    drawComp->AddAnimation("Gradiente", {4, 5, 6, 7});
-    drawComp->AddAnimation("Overfit",   {8, 9, 10, 11});
+    drawComp->AddAnimation("Coleta",      {0, 1, 2, 3});
+    drawComp->AddAnimation("Perseguicao", {4, 5, 6, 7});
+    drawComp->AddAnimation("Previsao",    {8, 9, 10, 11});
 
     // SEMPRE deixe uma animação válida definida aqui. Um projétil pode ir
     // direto para o pool pelo Prewarm e ser desenhado antes de qualquer ataque
     // escolher a dele.
-    drawComp->SetAnimation("Ruido");
+    drawComp->SetAnimation("Coleta");
     drawComp->SetIsVisible(true);
 
     const float colliderRadius = static_cast<float>(drawComp->GetSpriteWidth()) / 2.f;

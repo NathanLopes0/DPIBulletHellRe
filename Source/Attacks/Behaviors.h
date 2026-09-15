@@ -5,6 +5,8 @@
 #pragma once
 
 #include "../Math.h"
+#include <vector>
+#include <utility>
 
 class Projectile;
 
@@ -92,58 +94,62 @@ struct ActivateBehavior : public ProjectileBehavior {
 };
 
 /**
- * @brief Correcao de rota CONTINUA em direcao ao jogador, com "taxa de
- * aprendizado" que decai ate zero. Tema: descida do gradiente.
+ * @brief Correcao de rota CONTINUA em direcao ao jogador, com forca que decai
+ * ate zero: o projetil persegue e depois se compromete.
  *
  * Diferente do HomingBehavior, que e um evento UNICO (aponta pro jogador uma
  * vez e se encerra), aqui a direcao e reajustada todo frame por uma fracao da
  * diferenca. O resultado visual e uma curva que fecha rapido no comeco e vai
- * "convergindo" ate travar - o projetil parece estar aprendendo a mirar.
+ * afrouxando ate travar.
  *
- * A taxa decai linearmente ao longo de convergenceTime (annealing). Quando
- * chega a zero, o behavior se encerra e para de custar CPU.
+ * A forca decai linearmente ao longo de trackingTime, o que da ao jogador uma
+ * janela previsivel para desviar: fugir cedo nao resolve, fugir tarde sim.
  *
  * O modulo da velocidade e SEMPRE preservado: so a direcao muda.
  */
-struct GradientDescentBehavior : public ProjectileBehavior {
+struct TrackingBehavior : public ProjectileBehavior {
 
     /**
      * @param delay tempo ate comecar a corrigir a rota
-     * @param learningRate quao forte e a correcao por segundo. Valores entre
+     * @param trackingStrength quao forte e a correcao por segundo. Valores entre
      *        1.5 e 4.0 dao curvas legiveis; acima de ~6 o projetil praticamente
      *        gruda no jogador e o ataque fica injusto.
-     * @param convergenceTime em quantos segundos a taxa decai a zero
+     * @param trackingTime em quantos segundos a forca decai a zero
      */
-    explicit GradientDescentBehavior(float delay = 0.0f,
-                                     float learningRate = 2.5f,
-                                     float convergenceTime = 2.0f)
-        : startDelay(delay), learningRate(learningRate),
-          convergenceTime(convergenceTime), elapsedTime(0.0f), finished(false) {}
+    explicit TrackingBehavior(float delay = 0.0f,
+                                     float trackingStrength = 2.5f,
+                                     float trackingTime = 2.0f)
+        : startDelay(delay), trackingStrength(trackingStrength),
+          trackingTime(trackingTime), elapsedTime(0.0f), finished(false) {}
 
     void update(Projectile* p, float deltaTime) override;
     bool isFinished() const override { return finished; }
 
     float startDelay;
-    float learningRate;
-    float convergenceTime;
+    float trackingStrength;
+    float trackingTime;
     float elapsedTime;
     bool finished;
 };
 
 /**
  * @brief Oscilacao lateral com amplitude decrescente em torno da trajetoria
- * original. Tema: overfitting (variancia alta que so estabiliza no fim).
+ * original: o projetil serpenteia e vai se acalmando.
  *
- * O projetil serpenteia em torno da direcao que tinha quando o behavior
- * ativou, com a amplitude caindo ate zero. Se dois projeteis vizinhos receberem
- * amplitudes de sinal oposto, eles se cruzam - visualmente muito bom para um
- * leque.
+ * Se dois projeteis vizinhos receberem amplitudes de sinal oposto, eles se
+ * cruzam - visualmente muito bom para um leque.
  *
  * A direcao base e capturada UMA vez na ativacao, e nao relida a cada frame.
  * Se fosse relida, a oscilacao realimentaria a si mesma e o projetil sairia
  * girando em espiral.
+ *
+ * ATENCAO - NAO COMBINE com TrackingBehavior, AccelerateBehavior nem
+ * SlowDownBehavior no mesmo projetil. Este behavior REESCREVE a velocidade
+ * todo frame a partir da direcao e do modulo capturados na ativacao, entao
+ * qualquer alteracao feita por outro behavior e desfeita no frame seguinte.
+ * Use-o sozinho.
  */
-struct OverfitBehavior : public ProjectileBehavior {
+struct WobbleBehavior : public ProjectileBehavior {
 
     /**
      * @param delay tempo ate comecar a oscilar
@@ -152,7 +158,7 @@ struct OverfitBehavior : public ProjectileBehavior {
      * @param frequency oscilacoes completas por segundo
      * @param duration em quantos segundos a amplitude decai a zero
      */
-    explicit OverfitBehavior(float delay = 0.0f,
+    explicit WobbleBehavior(float delay = 0.0f,
                              float maxAngleDegrees = 45.0f,
                              float frequency = 1.5f,
                              float duration = 2.5f)
@@ -170,6 +176,132 @@ struct OverfitBehavior : public ProjectileBehavior {
     float elapsedTime;
     Vector2 baseDirection;
     float baseSpeed;
+    bool started;
+    bool finished;
+};
+
+/**
+ * @brief Conduz o projetil por uma lista de waypoints - "pathing" autoral.
+ *
+ * COMO FUNCIONA
+ * Os waypoints sao OFFSETS em "espaco de caminho", nao coordenadas de tela:
+ *   +X = a direcao em que o projetil ja estava viajando quando o behavior
+ *        ativou;
+ *   +Y = a perpendicular, a direita desse movimento.
+ * Na ativacao, o behavior captura a posicao e a direcao atuais do projetil e
+ * gira o caminho inteiro para alinhar com elas. A consequencia util: o MESMO
+ * caminho disparado por um CircleSpreadAttack vira um caminho diferente para
+ * cada projetil do anel, ja que cada um tem sua propria direcao inicial.
+ *
+ * POR QUE ESCREVE VELOCIDADE, E NAO POSICAO
+ * Seria mais simples chamar SetPosition a cada frame, mas o RigidBodyComponent
+ * roda ANTES dos behaviors (Actor::Update atualiza componentes e so depois
+ * chama OnUpdate) e faz position += velocity * dt. Escrever posicao direto
+ * colocaria os dois para brigar todo frame. Definindo a velocidade que aponta
+ * ao proximo waypoint, o RigidBody continua sendo o unico que escreve posicao,
+ * e colisao, IsOffScreen e todo o resto seguem funcionando sem saber que existe
+ * um caminho.
+ *
+ * AO TERMINAR O CAMINHO o projetil segue RETO na ultima direcao. Ele nunca
+ * para: um projetil parado nunca satisfaz IsOffScreen(), nunca e devolvido ao
+ * pool e fica ocupando a tela para sempre.
+ *
+ * ATENCAO - EXCLUSIVO. Vale aqui a mesma regra do WobbleBehavior: behaviors que
+ * ESCREVEM velocidade nao compoem com os que a modificam. Nao combine com
+ * TrackingBehavior, AccelerateBehavior, SlowDownBehavior nem WobbleBehavior.
+ * Activate/DeactivateBehavior continuam seguros, desde que o Activate dispare
+ * ANTES deste (senao a direcao capturada seria zero).
+ */
+struct PathBehavior : public ProjectileBehavior {
+
+    /**
+     * @param waypoints Offsets em espaco de caminho, na ordem de percurso.
+     *        Use as funcoes de PathShapes.h em vez de digitar na mao.
+     * @param pathSpeed Velocidade ao longo do caminho. 0 = mantem o modulo da
+     *        velocidade que o projetil ja tinha.
+     * @param delay Segundos ate comecar a seguir o caminho.
+     */
+    explicit PathBehavior(std::vector<Vector2> waypoints,
+                          float pathSpeed = 0.0f,
+                          float delay = 0.0f)
+        : waypoints(std::move(waypoints)), pathSpeed(pathSpeed),
+          startDelay(delay), elapsedTime(0.0f), current(0),
+          origin(Vector2::Zero), cosR(1.0f), sinR(0.0f),
+          started(false), finished(false) {}
+
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return finished; }
+
+    std::vector<Vector2> waypoints;
+    float pathSpeed;
+    float startDelay;
+    float elapsedTime;
+    size_t current;
+    Vector2 origin;   // posicao capturada na ativacao
+    float cosR, sinR; // rotacao capturada na ativacao
+    bool started;
+    bool finished;
+};
+
+/**
+ * @brief Conduz o projetil por uma lista de waypoints - "pathing" autoral.
+ *
+ * COMO FUNCIONA
+ * Os waypoints sao OFFSETS em "espaco de caminho", nao coordenadas de tela:
+ *   +X = a direcao em que o projetil ja estava viajando quando o behavior
+ *        ativou;
+ *   +Y = a perpendicular, a direita desse movimento.
+ * Na ativacao, o behavior captura a posicao e a direcao atuais do projetil e
+ * gira o caminho inteiro para alinhar com elas. A consequencia util: o MESMO
+ * caminho disparado por um CircleSpreadAttack vira um caminho diferente para
+ * cada projetil do anel, ja que cada um tem sua propria direcao inicial.
+ *
+ * POR QUE ESCREVE VELOCIDADE, E NAO POSICAO
+ * Seria mais simples chamar SetPosition a cada frame, mas o RigidBodyComponent
+ * roda ANTES dos behaviors (Actor::Update atualiza componentes e so depois
+ * chama OnUpdate) e faz position += velocity * dt. Escrever posicao direto
+ * colocaria os dois para brigar todo frame. Definindo a velocidade que aponta
+ * ao proximo waypoint, o RigidBody continua sendo o unico que escreve posicao,
+ * e colisao, IsOffScreen e todo o resto seguem funcionando sem saber que existe
+ * um caminho.
+ *
+ * AO TERMINAR O CAMINHO o projetil segue RETO na ultima direcao. Ele nunca
+ * para: um projetil parado nunca satisfaz IsOffScreen(), nunca e devolvido ao
+ * pool e fica ocupando a tela para sempre.
+ *
+ * ATENCAO - EXCLUSIVO. Vale aqui a mesma regra do WobbleBehavior: behaviors que
+ * ESCREVEM velocidade nao compoem com os que a modificam. Nao combine com
+ * TrackingBehavior, AccelerateBehavior, SlowDownBehavior nem WobbleBehavior.
+ * Activate/DeactivateBehavior continuam seguros, desde que o Activate dispare
+ * ANTES deste (senao a direcao capturada seria zero).
+ */
+struct PathBehavior : public ProjectileBehavior {
+
+    /**
+     * @param waypoints Offsets em espaco de caminho, na ordem de percurso.
+     *        Use as funcoes de PathShapes.h em vez de digitar na mao.
+     * @param pathSpeed Velocidade ao longo do caminho. 0 = mantem o modulo da
+     *        velocidade que o projetil ja tinha.
+     * @param delay Segundos ate comecar a seguir o caminho.
+     */
+    explicit PathBehavior(std::vector<Vector2> waypoints,
+                          float pathSpeed = 0.0f,
+                          float delay = 0.0f)
+        : waypoints(std::move(waypoints)), pathSpeed(pathSpeed),
+          startDelay(delay), elapsedTime(0.0f), current(0),
+          origin(Vector2::Zero), cosR(1.0f), sinR(0.0f),
+          started(false), finished(false) {}
+
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return finished; }
+
+    std::vector<Vector2> waypoints;
+    float pathSpeed;
+    float startDelay;
+    float elapsedTime;
+    size_t current;
+    Vector2 origin;   // posicao capturada na ativacao
+    float cosR, sinR; // rotacao capturada na ativacao
     bool started;
     bool finished;
 };
