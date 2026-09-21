@@ -67,6 +67,10 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teachers/BossFactory/IBossFactory.cpp
         Source/Attacks/IAttackStrategy.h
         Source/Attacks/Behaviors.cpp
+        Source/Attacks/PathShapes.cpp
+        Source/Attacks/PathAim.cpp
+        Source/Attacks/PathAim.h
+        Source/Attacks/PathShapes.h
         Source/Attacks/Behaviors.h
         Source/Attacks/BaseStrategies/CircleSpreadAttack.cpp
         Source/Attacks/BaseStrategies/CircleSpreadAttack.h
@@ -101,6 +105,13 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teachers/BossFactory/BossProjectileFactory/AndreProjectile1Factory.cpp
         Source/Actors/Teachers/BossFactory/BossProjectileFactory/AndreProjectile1Factory.h
         Source/Actors/Teachers/BossFactory/AndreFactory.cpp
+        Source/Actors/Teachers/Bosses/Julio.cpp
+        Source/Actors/Teachers/Bosses/Julio.h
+        Source/Actors/Teachers/Bosses/BossesProjectiles/JulioBossProjectile.h
+        Source/Actors/Teachers/BossFactory/JulioFactory.cpp
+        Source/Actors/Teachers/BossFactory/JulioFactory.h
+        Source/Actors/Teachers/BossFactory/BossProjectileFactory/JulioProjectile1Factory.cpp
+        Source/Actors/Teachers/BossFactory/BossProjectileFactory/JulioProjectile1Factory.h
         Source/Actors/Teachers/BossFactory/AndreFactory.h
         Source/Attacks/BaseStrategies/BaloonAttack.cpp
         Source/Attacks/BaseStrategies/BaloonAttack.h
@@ -125,3 +136,24 @@ find_package(SDL2_ttf REQUIRED)
 
 include_directories(${SDL2_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} SDL2_image::SDL2_image SDL2_mixer::SDL2_mixer SDL2_ttf::SDL2_ttf)
+# =============================================================================
+# TESTES UNITARIOS (doctest)
+#
+# Alvo SEPARADO do jogo: nao depende de SDL e compila em segundos, porque so
+# inclui a camada pura (PathAim + Math). Rodar: ctest --test-dir build, ou
+# executar dpi_tests direto.
+#
+# O jogo continua compilando normalmente mesmo que este alvo seja removido.
+# =============================================================================
+enable_testing()
+
+add_executable(dpi_tests
+        tests/test_path_aim.cpp
+        Source/Attacks/PathAim.cpp
+        Source/Attacks/PathAim.h
+        Source/Math.cpp
+        Source/Math.h
+)
+target_include_directories(dpi_tests PRIVATE Source)
+
+add_test(NAME unidade COMMAND dpi_tests)

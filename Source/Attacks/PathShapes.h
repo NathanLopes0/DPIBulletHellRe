@@ -5,6 +5,7 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 #include "../Math.h"
 
 /**
@@ -35,6 +36,22 @@
 namespace PathShapes {
 
     /**
+     * @brief Forma COMPARTILHADA entre projeteis (Flyweight).
+     *
+     * Antes cada projetil recebia uma copia do vector de waypoints. Num anel de
+     * 300 projeteis com 12 pontos cada, eram 300 alocacoes de conteudo
+     * identico, uma por tiro - o que e ironico num projeto cujo tema e nao
+     * realocar objetos.
+     *
+     * Agora as funcoes abaixo memoizam por parametro: chamar Loop(85,500,12)
+     * mil vezes devolve mil vezes o MESMO ponteiro. A forma e const, entao o
+     * compartilhamento e seguro; quem varia por projetil (origem, rotacao,
+     * velocidade) vive no PathBehavior, nao na forma.
+     */
+    using Path = std::shared_ptr<const std::vector<Vector2>>;
+
+
+    /**
      * @brief Arco: avança enquanto faz uma barriga para um dos lados e volta
      * ao eixo no fim. Lê como um tiro que "contorna" alguma coisa.
      *
@@ -44,7 +61,19 @@ namespace PathShapes {
      *        se cruzem.
      * @param segments Quantidade de pontos da curva.
      */
-    std::vector<Vector2> Arc(float forward, float lateral, int segments = 10);
+    /**
+     * @brief Reta: um unico waypoint a frente.
+     *
+     * Combinada com Mira(MirarNoJogador), reproduz um homing. E o caso mais
+     * simples possivel de caminho, e existe justamente para mostrar que um
+     * "comportamento reativo" e so uma forma trivial com referencial dinamico.
+     *
+     * @param distance Quao longe fica o waypoint. Precisa passar da borda da
+     *        tela, senao o projetil para de seguir antes de sair dela.
+     */
+    Path Reta(float distance = 1200.f);
+
+    Path Arc(float forward, float lateral, int segments = 10);
 
     /**
      * @brief Laço: o projétil dá uma volta completa e retoma o rumo original.
@@ -56,7 +85,7 @@ namespace PathShapes {
      * @param exitDistance Quanto avança em linha reta depois de fechar a volta.
      * @param segments Pontos usados para desenhar o círculo.
      */
-    std::vector<Vector2> Loop(float radius, float exitDistance = 400.f, int segments = 12);
+    Path Loop(float radius, float exitDistance = 400.f, int segments = 12);
 
     /**
      * @brief Ziguezague: avança alternando para os dois lados.
@@ -68,6 +97,9 @@ namespace PathShapes {
      * @param amplitude Deslocamento lateral de cada perna.
      * @param legs Quantidade de pernas.
      */
-    std::vector<Vector2> Zigzag(float step, float amplitude, int legs = 5);
+    Path Zigzag(float step, float amplitude, int legs = 5);
 
+
+    /** @brief Quantas formas distintas estao no cache. So para diagnostico. */
+    size_t CachedShapeCount();
 }

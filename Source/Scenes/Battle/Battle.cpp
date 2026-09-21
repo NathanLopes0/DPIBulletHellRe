@@ -31,7 +31,7 @@
 // O pool CRESCE sozinho quando falta
 // (Acquire cria um novo se estiver vazio), entao este numero e so uma
 // otimizacao de partida, nunca um limite de projeteis simultaneos. 
-static constexpr int kProjectilePrewarmCountPerType = 1000;
+static constexpr int kProjectilePrewarmCountPerType = 300;
 
 
 
@@ -445,7 +445,15 @@ void Battle::GradeTextUpdate() {
 
 
 void Battle::OnProcessInput(const Uint8* keyState) {
-
+    // NAO chame mPlayer->ProcessInput aqui.
+    // Scene::ProcessInput ja percorre mActors e entrega o input a todos os
+    // atores Active - e o Player e um deles. A chamada extra que existia aqui
+    // fazia Player::OnProcessInput rodar DUAS vezes por frame. Hoje isso passa
+    // despercebido porque MoveInput e idempotente e Shoot/Special sao
+    // protegidos por timers, mas qualquer acao nova sem guarda dispararia em
+    // dobro.
+    // Este gancho continua sendo o lugar certo para input da BATALHA em si
+    // (pausa, debug), que nao pertence a nenhum ator especifico.
 }
 void Battle::CheckCollisions() {
     if (!mPlayer || !mBoss) return;

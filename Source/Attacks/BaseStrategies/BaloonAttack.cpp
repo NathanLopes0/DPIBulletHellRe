@@ -178,7 +178,7 @@ void BaloonAttack::SpawnBalloonsAtRandom(const BaloonAttackParams& params, Battl
     projectile->SetPosition(spawnPos);
 
     Vector2 dir = GetDirectionFromSide(params.side);
-    projectile->insertBehavior<ActivateBehavior>(
+    projectile->insertModifier<ActivateBehavior>(
         Random::GetFloatRange(0, 2),
         dir * params.projectileSpeed
     );
@@ -188,7 +188,7 @@ void BaloonAttack::SpawnBalloonAtPosition( const BaloonAttackParams& params, Pro
     projectile->SetPosition(position);
 
     Vector2 dir = GetDirectionFromSide(params.side);
-    projectile->insertBehavior<ActivateBehavior>(
+    projectile->insertModifier<ActivateBehavior>(
         Random::GetFloatRange(0.0f, 3.0f),
         dir * params.projectileSpeed
     );

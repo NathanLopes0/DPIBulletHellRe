@@ -5,6 +5,21 @@
 #include "../../../Actors/Teachers/BossFactory/BossProjectileFactory/SallesProjectile1Factory.h"
 #include "../../../Actors/Teachers/BossFactory/BossProjectileFactory/SallesDoubleListProjectileFactory.h"
 #include "../../../Attacks/BaseStrategies/LaserAttack.h"
+#include "../../../Attacks/PathShapes.h"
+
+// =============================================================================
+// MODO DE TESTE DO PATHING
+//
+// Apenas os CONFIGURATORS foram trocados. Os blocos de params (numProjectiles,
+// projectileSpeed, angle) estao INTACTOS - seu balanceamento nao foi tocado.
+//
+// A velocidade do caminho e controlada pelo 3o argumento do PathBehavior, e nao
+// pelo projectileSpeed: o projetil nasce na SUA velocidade e o caminho e
+// percorrido numa velocidade legivel. A 340-400 px/s um laco vira um risco.
+//
+// Para reverter: troque cada insertMotion<PathBehavior> de volta pelo
+// insertMotion<HomingBehavior> comentado logo acima dele.
+// =============================================================================
 
 
 SallesFactory::SallesFactory(Game* game)
@@ -67,8 +82,9 @@ void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm)
             std::move(params),                                        // Params
             .8f,                                          // Cooldown
             [](Projectile* p, int index){                 // Configurator Lambda
-                if (Random::GetFloatRange(0.0f, 1.0f) < 0.2f) {
-                    p->insertBehavior<HomingBehavior>(1.2f, 280.f);
+                {   // ORIGINAL: if (rand<0.2) insertMotion<HomingBehavior>(1.2f, 280.f);
+                    // TESTE - ZIGZAG: quinas exatas, legiveis. 6 pernas de 85px.
+                    p->insertMotion<PathBehavior>(PathShapes::Zigzag(85.f, 50.f, 6), 200.f);
                     p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
 
                 }
@@ -103,8 +119,10 @@ void SallesFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm)
         std::move(params),
         1.f,
         [](Projectile* p, int index) {
-            if (Random::GetFloatRange(0.0f, 1.0f) < 0.3f) {
-                p->insertBehavior<HomingBehavior>(1.8f, 0.0f);
+            {   // ORIGINAL: if (rand<0.3) insertMotion<HomingBehavior>(1.8f, 0.0f);
+                // TESTE - ARCO alternado: as barrigas se cruzam no meio do voo.
+                const float lat = (index % 2 == 0) ? 110.f : -110.f;
+                p->insertMotion<PathBehavior>(PathShapes::Arc(500.f, lat, 10), 190.f);
                 p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
             }
         }
@@ -136,8 +154,10 @@ void SallesFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm) {
         std::move(params),
         0.9f,
         [](Projectile* p, int index) {
-            if (Random::GetFloatRange(0.0f, 1.0f) < 0.5f) {
-                p->insertBehavior<HomingBehavior>(1.8f, 0.0f);
+            {   // ORIGINAL: if (rand<0.5) insertMotion<HomingBehavior>(1.8f, 0.0f);
+                // TESTE - LACO: uma forma escrita, 5 lacos girados (um por
+                // projetil do leque), pelo alinhamento automatico do caminho.
+                p->insertMotion<PathBehavior>(PathShapes::Loop(85.f, 500.f, 12), 175.f);
                 p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
             }
         }
@@ -170,9 +190,10 @@ void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm) {
         std::move(paramsFast),
         0.8f,
         [](Projectile* p, int i) {
-            auto chance = Random::GetFloatRange(0.0f, 1.0f);
-            if (chance < 0.1) {
-                p->insertBehavior<HomingBehavior>(1.2f, 0.0f);
+            {   // ORIGINAL: if (rand<0.1) insertMotion<HomingBehavior>(1.2f, 0.0f);
+                // TESTE - ARCO largo.
+                const float lat = (i % 2 == 0) ? 135.f : -135.f;
+                p->insertMotion<PathBehavior>(PathShapes::Arc(540.f, lat, 10), 195.f);
                 p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
             }
         });
@@ -188,9 +209,14 @@ void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm) {
         std::move(paramsSlow),
         1.f,
         [](Projectile* p, int i) {
-            auto chance = Random::GetFloatRange(0.0f, 1.0f);
-            if (chance < 0.4) {
-                p->insertBehavior<HomingBehavior>(1.6f, 0.0f);
+            {   // ORIGINAL: if (rand<0.4) insertMotion<HomingBehavior>(1.6f, 0.0f);
+                // TESTE - AS TRES FORMAS no mesmo disparo, uma por projetil.
+                // E o teste que mais interessa: da para comparar lado a lado.
+                switch (i % 3) {
+                    case 0:  p->insertMotion<PathBehavior>(PathShapes::Loop(80.f, 500.f, 12), 175.f); break;
+                    case 1:  p->insertMotion<PathBehavior>(PathShapes::Arc(480.f, 115.f, 10), 190.f); break;
+                    default: p->insertMotion<PathBehavior>(PathShapes::Zigzag(80.f, 45.f, 6), 200.f); break;
+                }
                 p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
             }
         });

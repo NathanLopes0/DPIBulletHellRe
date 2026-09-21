@@ -24,16 +24,26 @@ Projectile::~Projectile() = default;
 
 
 void Projectile::OnUpdate(float deltaTime) {
-    for (const auto &behavior: mBehaviors) {
-        behavior->update(this, deltaTime);
+
+    // ORDEM IMPORTA: a Motion escreve a velocidade, os Modifiers ajustam o que
+    // ela escreveu. Invertido, uma aceleracao seria sobrescrita no mesmo frame.
+    if (mMotion) {
+        mMotion->update(this, deltaTime);
+        if (mMotion->isFinished()) {
+            mMotion.reset();
+        }
     }
 
-    mBehaviors.erase(
-        std::remove_if(mBehaviors.begin(), mBehaviors.end(),
-            [](const std::unique_ptr<ProjectileBehavior>& behavior) {
-                return behavior->isFinished();
+    for (const auto& modifier : mModifiers) {
+        modifier->update(this, deltaTime);
+    }
+
+    mModifiers.erase(
+        std::remove_if(mModifiers.begin(), mModifiers.end(),
+            [](const std::unique_ptr<ProjectileBehavior>& m) {
+                return m->isFinished();
             }),
-            mBehaviors.end());
+            mModifiers.end());
 
     if (IsOffScreen()) {
         MarkDead();
@@ -54,7 +64,8 @@ void Projectile::Reset() {
     // HomingBehavior com delay que nunca chegou a disparar porque o projétil
     // colidiu antes). Se não fizermos isso, um projétil reciclado herdaria
     // comportamento "fantasma" da vida anterior dele no pool.
-    mBehaviors.clear();
+    mMotion.reset();
+    mModifiers.clear();
 
     mForwardSpeed = 0.0f;
 
@@ -111,7 +122,8 @@ void Projectile::OnEnterPool() {
     }
 
     // Behaviors nao terminados nao podem sobreviver ate a proxima vida.
-    mBehaviors.clear();
+    mMotion.reset();
+    mModifiers.clear();
 
     SetState(ActorState::Inactive);
 }

@@ -5,7 +5,9 @@
 #pragma once
 
 #include "../Math.h"
+#include "PathAim.h"
 #include <vector>
+#include <memory>
 #include <utility>
 
 class Projectile;
@@ -23,7 +25,42 @@ public:
     virtual bool isFinished() const { return false; }
 };
 
-struct HomingBehavior : public ProjectileBehavior {
+/**
+ * @brief Behavior que ESCREVE a velocidade do projetil.
+ *
+ * No maximo UM por projetil: dois escritores brigariam frame a frame e o
+ * ultimo a rodar venceria, o que produz movimento aleatorio e dificil de
+ * depurar. Projectile::insertMotion garante a exclusividade.
+ *
+ * Sao Motion: Homing, Tracking, Wobble e Path.
+ */
+class ProjectileMotion : public ProjectileBehavior {
+};
+
+/**
+ * @brief Behavior que MODIFICA a velocidade ja existente, ou agenda quando ela
+ * comeca a valer. Varios podem coexistir no mesmo projetil.
+ *
+ * Sao Modifier: Accelerate, SlowDown, Activate e Deactivate.
+ *
+ * Esta separacao existe porque a regra "Wobble e Path nao compoem com Tracking,
+ * Accelerate e SlowDown" era so um comentario de cabecalho: quem combinasse
+ * errado compilava e descobria na tela. Agora nao compila.
+ */
+class ProjectileModifier : public ProjectileBehavior {
+};
+
+/**
+ * SUBSTITUIDO na fase 2, a ser migrado na fase 3.
+ *
+ * Desde que PathBehavior aceita Mira, um homing e exprimivel como caminho:
+ *     insertMotion<PathBehavior>(PathShapes::Reta(800.f), velocidade, atraso,
+ *                                Mira(Mira::MirarNoJogador));
+ * Mantido por enquanto porque Ricardo e Salles dependem dele e a migracao
+ * merece teste comparando as duas trajetorias antes de apagar esta classe.
+ * NAO use em codigo novo.
+ */
+struct HomingBehavior : public ProjectileMotion {
     float homingDelay, homingSpeed, elapsedTime;
     bool homing;
 
@@ -40,7 +77,7 @@ struct HomingBehavior : public ProjectileBehavior {
 
 };
 
-struct AccelerateBehavior : public ProjectileBehavior {
+struct AccelerateBehavior : public ProjectileModifier {
     float accelerateDelay, accelerateSpeedPercent, elapsedTime;
     int accelerateSpeedValue;
     bool accelerated;
@@ -63,7 +100,7 @@ struct AccelerateBehavior : public ProjectileBehavior {
     void update(Projectile* p, float deltaTime) override; // Assinatura corrigida
     bool isFinished() const override { return accelerated; }
 };
-struct SlowDownBehavior : public ProjectileBehavior {
+struct SlowDownBehavior : public ProjectileModifier {
     float slowdownDelay, slowdownSpeedPercent, elapsedTime;
     int slowdownSpeedValue;
     bool slowedDown;
@@ -80,7 +117,7 @@ struct SlowDownBehavior : public ProjectileBehavior {
     bool isFinished() const override { return slowedDown; }
 };
 
-struct ActivateBehavior : public ProjectileBehavior {
+struct ActivateBehavior : public ProjectileModifier {
     float activationDelay, elapsedTime;
     Vector2 activationVelocity;
     bool activated;
@@ -107,7 +144,7 @@ struct ActivateBehavior : public ProjectileBehavior {
  *
  * O modulo da velocidade e SEMPRE preservado: so a direcao muda.
  */
-struct TrackingBehavior : public ProjectileBehavior {
+struct TrackingBehavior : public ProjectileMotion {
 
     /**
      * @param delay tempo ate comecar a corrigir a rota
@@ -149,7 +186,7 @@ struct TrackingBehavior : public ProjectileBehavior {
  * qualquer alteracao feita por outro behavior e desfeita no frame seguinte.
  * Use-o sozinho.
  */
-struct WobbleBehavior : public ProjectileBehavior {
+struct WobbleBehavior : public ProjectileMotion {
 
     /**
      * @param delay tempo ate comecar a oscilar
@@ -212,7 +249,7 @@ struct WobbleBehavior : public ProjectileBehavior {
  * Activate/DeactivateBehavior continuam seguros, desde que o Activate dispare
  * ANTES deste (senao a direcao capturada seria zero).
  */
-struct PathBehavior : public ProjectileBehavior {
+struct PathBehavior : public ProjectileMotion {
 
     /**
      * @param waypoints Offsets em espaco de caminho, na ordem de percurso.
@@ -220,11 +257,15 @@ struct PathBehavior : public ProjectileBehavior {
      * @param pathSpeed Velocidade ao longo do caminho. 0 = mantem o modulo da
      *        velocidade que o projetil ja tinha.
      * @param delay Segundos ate comecar a seguir o caminho.
+     * @param mira Regra de orientacao. O padrao alinha o caminho com a direcao
+     *        de voo, que e o comportamento historico - por isso todas as
+     *        chamadas existentes continuam validas sem alteracao.
      */
-    explicit PathBehavior(std::vector<Vector2> waypoints,
+    explicit PathBehavior(std::shared_ptr<const std::vector<Vector2>> waypoints,
                           float pathSpeed = 0.0f,
-                          float delay = 0.0f)
-        : waypoints(std::move(waypoints)), pathSpeed(pathSpeed),
+                          float delay = 0.0f,
+                          Mira mira = Mira())
+        : waypoints(std::move(waypoints)), pathSpeed(pathSpeed), mira(mira),
           startDelay(delay), elapsedTime(0.0f), current(0),
           origin(Vector2::Zero), cosR(1.0f), sinR(0.0f),
           started(false), finished(false) {}
@@ -232,8 +273,9 @@ struct PathBehavior : public ProjectileBehavior {
     void update(Projectile* p, float deltaTime) override;
     bool isFinished() const override { return finished; }
 
-    std::vector<Vector2> waypoints;
+    std::shared_ptr<const std::vector<Vector2>> waypoints;  // Flyweight: compartilhada
     float pathSpeed;
+    Mira mira;   ///< regra que decide a orientacao do caminho
     float startDelay;
     float elapsedTime;
     size_t current;
@@ -243,70 +285,7 @@ struct PathBehavior : public ProjectileBehavior {
     bool finished;
 };
 
-/**
- * @brief Conduz o projetil por uma lista de waypoints - "pathing" autoral.
- *
- * COMO FUNCIONA
- * Os waypoints sao OFFSETS em "espaco de caminho", nao coordenadas de tela:
- *   +X = a direcao em que o projetil ja estava viajando quando o behavior
- *        ativou;
- *   +Y = a perpendicular, a direita desse movimento.
- * Na ativacao, o behavior captura a posicao e a direcao atuais do projetil e
- * gira o caminho inteiro para alinhar com elas. A consequencia util: o MESMO
- * caminho disparado por um CircleSpreadAttack vira um caminho diferente para
- * cada projetil do anel, ja que cada um tem sua propria direcao inicial.
- *
- * POR QUE ESCREVE VELOCIDADE, E NAO POSICAO
- * Seria mais simples chamar SetPosition a cada frame, mas o RigidBodyComponent
- * roda ANTES dos behaviors (Actor::Update atualiza componentes e so depois
- * chama OnUpdate) e faz position += velocity * dt. Escrever posicao direto
- * colocaria os dois para brigar todo frame. Definindo a velocidade que aponta
- * ao proximo waypoint, o RigidBody continua sendo o unico que escreve posicao,
- * e colisao, IsOffScreen e todo o resto seguem funcionando sem saber que existe
- * um caminho.
- *
- * AO TERMINAR O CAMINHO o projetil segue RETO na ultima direcao. Ele nunca
- * para: um projetil parado nunca satisfaz IsOffScreen(), nunca e devolvido ao
- * pool e fica ocupando a tela para sempre.
- *
- * ATENCAO - EXCLUSIVO. Vale aqui a mesma regra do WobbleBehavior: behaviors que
- * ESCREVEM velocidade nao compoem com os que a modificam. Nao combine com
- * TrackingBehavior, AccelerateBehavior, SlowDownBehavior nem WobbleBehavior.
- * Activate/DeactivateBehavior continuam seguros, desde que o Activate dispare
- * ANTES deste (senao a direcao capturada seria zero).
- */
-struct PathBehavior : public ProjectileBehavior {
-
-    /**
-     * @param waypoints Offsets em espaco de caminho, na ordem de percurso.
-     *        Use as funcoes de PathShapes.h em vez de digitar na mao.
-     * @param pathSpeed Velocidade ao longo do caminho. 0 = mantem o modulo da
-     *        velocidade que o projetil ja tinha.
-     * @param delay Segundos ate comecar a seguir o caminho.
-     */
-    explicit PathBehavior(std::vector<Vector2> waypoints,
-                          float pathSpeed = 0.0f,
-                          float delay = 0.0f)
-        : waypoints(std::move(waypoints)), pathSpeed(pathSpeed),
-          startDelay(delay), elapsedTime(0.0f), current(0),
-          origin(Vector2::Zero), cosR(1.0f), sinR(0.0f),
-          started(false), finished(false) {}
-
-    void update(Projectile* p, float deltaTime) override;
-    bool isFinished() const override { return finished; }
-
-    std::vector<Vector2> waypoints;
-    float pathSpeed;
-    float startDelay;
-    float elapsedTime;
-    size_t current;
-    Vector2 origin;   // posicao capturada na ativacao
-    float cosR, sinR; // rotacao capturada na ativacao
-    bool started;
-    bool finished;
-};
-
-struct DeactivateBehavior : public ProjectileBehavior {
+struct DeactivateBehavior : public ProjectileModifier {
     float elapsedTime, deactivationDelay;
     bool deactivated;
 

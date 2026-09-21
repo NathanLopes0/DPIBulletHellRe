@@ -24,6 +24,14 @@ public:
 
     Vector2 GetPlayerPosition() const;
 
+    /// Velocidade atual do jogador; (0,0) se nao houver jogador ou cena Battle.
+    /// Usada pela mira preditiva dos caminhos.
+    Vector2 GetPlayerVelocity() const;
+
+    /// true quando ha cena Battle com jogador vivo. Permite ao chamador
+    /// distinguir "jogador na origem" de "nao ha jogador".
+    bool HasPlayer() const;
+
     Vector2 GetPlayerDirection() const;
 
 protected:

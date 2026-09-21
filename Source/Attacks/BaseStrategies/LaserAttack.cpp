@@ -89,7 +89,7 @@ std::vector<std::unique_ptr<Projectile> > LaserAttack::Execute(const AttackParam
         // ao inserir o Activate Behavior, o comportamento desativa o projétil até que chegue o tempo ativado. Lembrar disso...
         // talvez o Activate Behavior deveria apenas ativar, e eu desativar manualmente tbm... então cada Activate viria com um Deactivate antes,
         // apesar de eu escrever mais, o Activate faria mais sentido com oq ele deveria apenas fazer, e pode acabar sendo mais personalizavel.
-        projectile->insertBehavior<ActivateBehavior>(i * timeToSpawn, pDirection * projectileSpeed);
+        projectile->insertModifier<ActivateBehavior>(i * timeToSpawn, pDirection * projectileSpeed);
 
         projectiles.push_back(std::move(projectile));
     }

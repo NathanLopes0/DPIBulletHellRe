@@ -8,9 +8,14 @@
 #include "Actor.h"
 #include <vector>
 #include <memory>
+#include <type_traits>
 #include "../Math.h"
 
-class ProjectileBehavior;
+// Incluido, e nao apenas declarado: os static_assert de insertMotion e
+// insertModifier usam std::is_base_of, que exige TIPO COMPLETO. Nao ha ciclo
+// porque Behaviors.h so faz forward declaration de Projectile.
+#include "../Attacks/Behaviors.h"
+
 class ProjectileFactory;
 
 /**
@@ -67,9 +72,30 @@ public:
     // complementar com o que for específico delas (ex: reiniciar animação).
     virtual void Reset();
 
-    template <typename Behavior, typename... Args>
-    void insertBehavior(Args &&... args) {
-        mBehaviors.push_back(std::make_unique<Behavior>(std::forward<Args>(args)...));
+    /**
+     * @brief Define a Motion do projetil: quem ESCREVE a velocidade.
+     *
+     * Exclusivo por construcao - chamar duas vezes SUBSTITUI a anterior, em vez
+     * de empilhar dois escritores brigando frame a frame.
+     */
+    template <typename M, typename... Args>
+    void insertMotion(Args&&... args) {
+        static_assert(std::is_base_of_v<ProjectileMotion, M>,
+            "insertMotion so aceita ProjectileMotion (Homing, Tracking, Wobble, Path). "
+            "Para Accelerate/SlowDown/Activate/Deactivate use insertModifier.");
+        mMotion = std::make_unique<M>(std::forward<Args>(args)...);
+    }
+
+    /**
+     * @brief Acrescenta um Modifier: quem MODIFICA a velocidade existente ou
+     * agenda quando ela passa a valer. Podem coexistir varios.
+     */
+    template <typename M, typename... Args>
+    void insertModifier(Args&&... args) {
+        static_assert(std::is_base_of_v<ProjectileModifier, M>,
+            "insertModifier so aceita ProjectileModifier (Accelerate, SlowDown, "
+            "Activate, Deactivate). Para Homing/Tracking/Wobble/Path use insertMotion.");
+        mModifiers.emplace_back(std::make_unique<M>(std::forward<Args>(args)...));
     }
 
 protected:
@@ -78,7 +104,10 @@ protected:
     float mForwardSpeed;
 
     //Behavior structures and methods
-    std::vector<std::unique_ptr<ProjectileBehavior>> mBehaviors;
+    // A Motion e unica; os Modifiers se acumulam. Separar os dois torna a
+    // exclusividade uma propriedade do tipo, e nao um aviso em comentario.
+    std::unique_ptr<ProjectileBehavior> mMotion;
+    std::vector<std::unique_ptr<ProjectileBehavior>> mModifiers;
 
     //Sub-funções de OnUpdate
     [[nodiscard]] virtual bool IsOffScreen() const = 0;

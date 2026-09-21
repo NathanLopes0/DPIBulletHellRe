@@ -137,7 +137,7 @@ void JulioFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm) {
             // Correcao mais forte nas pontas do leque: os das bordas fecham
             // mais, o que afunila a rajada inteira.
             const float forca = (index == 1) ? 2.4f : 3.2f;
-            p->insertBehavior<TrackingBehavior>(0.3f, forca, 2.4f);
+            p->insertMotion<TrackingBehavior>(0.3f, forca, 2.4f);
         });
 
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
@@ -194,7 +194,7 @@ void JulioFactory::ConfigureStateThree(Boss* boss, FSMComponent* fsm) {
         [](Projectile* p, int) {
             // Voa reto 0.8s (o jogador ve que foi adiantado), entao UMA
             // correcao de 0.7s. Ver comentario do cabecalho desta fase.
-            p->insertBehavior<TrackingBehavior>(0.8f, 1.6f, 0.7f);
+            p->insertMotion<TrackingBehavior>(0.8f, 1.6f, 0.7f);
         });
 
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
@@ -242,7 +242,7 @@ void JulioFactory::ConfigureStateFinal(Boss* boss, FSMComponent* fsm) {
         [](Projectile* p, int) {
             // Raio pequeno e velocidade baixa: a volta precisa ser LENTA para
             // ser lida. Um laco rapido vira um borrao e perde a graca.
-            p->insertBehavior<PathBehavior>(PathShapes::Loop(70.f, 500.f, 12), 150.f);
+            p->insertMotion<PathBehavior>(PathShapes::Loop(70.f, 500.f, 12), 150.f);
         });
 
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,

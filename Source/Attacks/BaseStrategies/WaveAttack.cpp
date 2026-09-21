@@ -69,12 +69,12 @@ std::vector<std::unique_ptr<Projectile>> WaveAttack::Execute(const AttackParams&
         // Começa desativado (invisivel, velocidade 0)
         // TODO - testar colisão?
 
-        projectile->insertBehavior<DeactivateBehavior>(0.f);
+        projectile->insertModifier<DeactivateBehavior>(0.f);
 
         // Insere o "despertador" (ActivateBehavior)
         // O projétil 'i' vai acordar após (i * creationSpeed) segundos.
         Vector2 finalVelocity = directionVector * projectileSpeed;
-        projectile->insertBehavior<ActivateBehavior>(i * creationSpeed, finalVelocity);
+        projectile->insertModifier<ActivateBehavior>(i * creationSpeed, finalVelocity);
 
         // Transfere a posse do projétil para o vetor
         projectiles.push_back(std::move(projectile));

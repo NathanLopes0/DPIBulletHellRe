@@ -9,6 +9,7 @@
 #include "../../../../Components/DrawComponents/DrawAnimatedComponent.h" // Para GetComponent<>()
 #include "../../../../Scenes/Battle/Battle.h"
 #include "../../../Player/Player.h"
+#include "../../../../Components/RigidBodyComponent.h"
 
 
 // 1. O construtor passa o 'owner' para o construtor da classe base 'Projectile'.
@@ -77,6 +78,27 @@ Vector2 BossProjectile::GetPlayerPosition() const {
     SDL_Log("Erro em BossProjectile.cpp - GetPlayerPosition: tentou encontrar cena Battle e nao achou."
             "Retornando vetor base");
     return {};
+}
+
+Vector2 BossProjectile::GetPlayerVelocity() const {
+    if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
+        if (auto player = battleScene->GetPlayer()) {
+            if (auto rb = player->GetComponent<RigidBodyComponent>()) {
+                return rb->GetVelocity();
+            }
+        }
+    }
+    // Sem log aqui: HasPlayer() ja permite ao chamador saber que nao ha
+    // jogador, e este metodo e consultado por projetil na ativacao de caminho.
+    // Logar seria spam.
+    return Vector2::Zero;
+}
+
+bool BossProjectile::HasPlayer() const {
+    if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
+        return battleScene->GetPlayer() != nullptr;
+    }
+    return false;
 }
 
 Vector2 BossProjectile::GetPlayerDirection() const {

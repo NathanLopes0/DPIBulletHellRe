@@ -96,8 +96,8 @@ void RicardoFactory::ConfigureStateTwo(Boss *boss, FSMComponent *fsm) {
         std::move(params),
         2.4f,
         [](Projectile* p, int index) {
-            p->insertBehavior<SlowDownBehavior>(1.3f, 0.8f);
-            p->insertBehavior<HomingBehavior>(1.5f, 180.f);
+            p->insertModifier<SlowDownBehavior>(1.3f, 0.8f);
+            p->insertMotion<HomingBehavior>(1.5f, 180.f);
         }
         );
 
@@ -126,7 +126,7 @@ void RicardoFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm) {
     2.4f,
     [](Projectile* p, const int index) {
         if (index % 2 == 0)
-            p->insertBehavior<HomingBehavior>(1.f, 200.f);
+            p->insertMotion<HomingBehavior>(1.f, 200.f);
     }
     );
 
@@ -162,8 +162,8 @@ void RicardoFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm) {
         std::move(paramsSlow),
         2.8f,
         [](Projectile* p, const int index) {
-            p->insertBehavior<SlowDownBehavior>(0.8f, 0.8f);
-            p->insertBehavior<HomingBehavior>(1.f, 240.f);
+            p->insertModifier<SlowDownBehavior>(0.8f, 0.8f);
+            p->insertMotion<HomingBehavior>(1.f, 240.f);
         });
 
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
