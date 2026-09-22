@@ -149,11 +149,18 @@ enable_testing()
 
 add_executable(dpi_tests
         tests/test_path_aim.cpp
+        tests/test_motion_contract.cpp
         Source/Attacks/PathAim.cpp
         Source/Attacks/PathAim.h
         Source/Math.cpp
         Source/Math.h
 )
-target_include_directories(dpi_tests PRIVATE Source)
+# NAO adicione Source ao include path deste alvo (nem de nenhum outro).
+# O projeto tem Source/Math.h, e no Windows (e no macOS) o sistema de
+# arquivos nao diferencia maiusculas: com Source no include path, o
+# #include <math.h> da PROPRIA biblioteca padrao encontra Source/Math.h em
+# vez do cabecalho C, e sinf/fabs/sqrtf deixam de existir - centenas de
+# erros em cmath e cstdlib. Os arquivos deste alvo ja usam includes
+# relativos, entao nao precisam do caminho.
 
 add_test(NAME unidade COMMAND dpi_tests)

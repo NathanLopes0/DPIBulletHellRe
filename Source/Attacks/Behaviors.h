@@ -43,9 +43,20 @@ class ProjectileMotion : public ProjectileBehavior {
  *
  * Sao Modifier: Accelerate, SlowDown, Activate e Deactivate.
  *
- * Esta separacao existe porque a regra "Wobble e Path nao compoem com Tracking,
- * Accelerate e SlowDown" era so um comentario de cabecalho: quem combinasse
- * errado compilava e descobria na tela. Agora nao compila.
+ * O QUE ESTA SEPARACAO GARANTE, E O QUE NAO GARANTE
+ *
+ * Garante, pelo tipo: no maximo UMA Motion por projetil. insertMotion
+ * substitui a anterior, entao duas Motions nunca brigam pela velocidade.
+ *
+ * NAO garante, pelo tipo, que um Modifier sobreviva a uma Motion. Isso depende
+ * de cada Motion cumprir o contrato abaixo. Uma versao anterior deste
+ * comentario afirmava que "Path + Accelerate agora nao compila" - era falso:
+ * compilava, e o Accelerate era anulado no frame seguinte pelo Path, que
+ * reescrevia o modulo. Corrigido fazendo toda Motion cumprir o contrato.
+ *
+ * CONTRATO DE ProjectileMotion: decide a DIRECAO, preserva o MODULO. Use
+ * DirecionarPreservandoModulo (PathAim.h) em vez de SetVelocity(dir * x) para
+ * nao quebra-lo. Coberto por test_motion_contract.cpp.
  */
 class ProjectileModifier : public ProjectileBehavior {
 };

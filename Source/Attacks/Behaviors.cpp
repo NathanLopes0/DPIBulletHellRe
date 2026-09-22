@@ -185,7 +185,7 @@ void WobbleBehavior::update(Projectile* p, float deltaTime) {
     const float t = elapsedTime - startDelay;
     if (duration <= 0.0f || t >= duration) {
         // Termina alinhado com a direcao base, sem desvio residual.
-        rb->SetVelocity(baseDirection * baseSpeed);
+        rb->SetVelocity(DirecionarPreservandoModulo(rb->GetVelocity(), baseDirection, baseSpeed));
         finished = true;
         return;
     }
@@ -201,7 +201,9 @@ void WobbleBehavior::update(Projectile* p, float deltaTime) {
     const Vector2 rotated(baseDirection.x * c - baseDirection.y * s,
                           baseDirection.x * s + baseDirection.y * c);
 
-    rb->SetVelocity(rotated * baseSpeed);
+    // Mesmo contrato do PathBehavior: a oscilacao decide a DIRECAO e o modulo
+    // vem da velocidade atual. Usar baseSpeed aqui anulava qualquer Modifier.
+    rb->SetVelocity(DirecionarPreservandoModulo(rb->GetVelocity(), rotated, baseSpeed));
 }
 
 // ---------------------------------------------------------------------------
@@ -249,6 +251,10 @@ void PathBehavior::update(Projectile* p, float deltaTime) {
             pathSpeed = Math::NearZero(velocidadeAtual) ? 100.0f : velocidadeAtual;
         }
 
+        // Aplica o modulo inicial UMA vez, ja na direcao do referencial. Depois
+        // disto o modulo so muda por Modifier - ver o passo abaixo.
+        rb->SetVelocity(Vector2(cosR, sinR) * pathSpeed);
+
         started = true;
     }
 
@@ -263,7 +269,9 @@ void PathBehavior::update(Projectile* p, float deltaTime) {
     // Tolerancia proporcional ao passo do frame. Com um valor fixo pequeno, um
     // projetil rapido passa por cima do waypoint sem nunca entrar no raio de
     // chegada e fica orbitando em torno dele indefinidamente.
-    float tolerance = pathSpeed * deltaTime * 1.5f;
+    // Tolerancia pelo modulo ATUAL, nao pelo pathSpeed: se um Modifier
+    // desacelerou o projetil, o passo por frame encolheu junto.
+    float tolerance = rb->GetVelocity().Length() * deltaTime * 1.5f;
     if (tolerance < 2.0f) tolerance = 2.0f;
 
     if (distance <= tolerance) {
@@ -278,8 +286,11 @@ void PathBehavior::update(Projectile* p, float deltaTime) {
         return;
     }
 
-    toTarget.Normalize();
-    rb->SetVelocity(toTarget * pathSpeed);
+    // CONTRATO DE ProjectileMotion: decide a DIRECAO e preserva o MODULO.
+    // O modulo inicial ja foi aplicado na ativacao (pathSpeed); daqui em
+    // diante quem manda nele sao os Modifiers. Escrever toTarget * pathSpeed
+    // aqui anulava um SlowDown aplicado depois da ativacao no frame seguinte.
+    rb->SetVelocity(DirecionarPreservandoModulo(rb->GetVelocity(), toTarget, pathSpeed));
 }
 
 // ---------------------------------------------------------------------------

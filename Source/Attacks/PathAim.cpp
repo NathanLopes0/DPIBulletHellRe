@@ -61,3 +61,21 @@ Referencial ResolverReferencial(const ContextoDeResolucao& contexto, const Mira&
     referencial.sin = 0.0f;
     return referencial;
 }
+
+Vector2 DirecionarPreservandoModulo(const Vector2& velocidadeAtual,
+                                    const Vector2& direcaoDesejada,
+                                    const float moduloMinimo) {
+
+    const float comprimentoDirecao = direcaoDesejada.Length();
+    if (Math::NearZero(comprimentoDirecao)) {
+        // Nao ha para onde apontar: mantem o que ja existia.
+        return velocidadeAtual;
+    }
+
+    float modulo = velocidadeAtual.Length();
+    if (Math::NearZero(modulo)) {
+        modulo = moduloMinimo;
+    }
+
+    return direcaoDesejada * (modulo / comprimentoDirecao);
+}

@@ -82,3 +82,23 @@ struct Referencial {
  * (a forma sai como foi escrita). Nunca devolve NaN e nunca falha.
  */
 Referencial ResolverReferencial(const ContextoDeResolucao& contexto, const Mira& mira);
+
+/**
+ * @brief Aponta a velocidade na direcao desejada PRESERVANDO o modulo atual.
+ *
+ * Este e o contrato de toda ProjectileMotion: a Motion decide a DIRECAO, e o
+ * modulo e de quem ja o tinha - inclusive dos Modifiers que rodaram no frame
+ * anterior. Sem isto, um SlowDown aplicado depois que um caminho ativa durava
+ * exatamente um frame: a Motion reescrevia o modulo original no frame seguinte.
+ *
+ * @param velocidadeAtual velocidade antes deste passo
+ * @param direcaoDesejada para onde apontar; nao precisa estar normalizada
+ * @param moduloMinimo usado quando a velocidade atual e nula, para o projetil
+ *        nunca ficar parado (projetil parado nunca sai da tela e nunca volta ao
+ *        pool)
+ * @return a nova velocidade. Se direcaoDesejada for nula, devolve
+ *         velocidadeAtual sem alteracao.
+ */
+Vector2 DirecionarPreservandoModulo(const Vector2& velocidadeAtual,
+                                    const Vector2& direcaoDesejada,
+                                    float moduloMinimo);
