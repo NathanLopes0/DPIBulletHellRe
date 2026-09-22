@@ -135,3 +135,73 @@ TEST_CASE("Regra NOVA coincide com o homing mesmo com SlowDown depois da ativaca
     const Vector2 nova   = SimularCaminho(regraNova, 1.0f, 0.5f);
     CHECK(Distancia(nova, homing) < 1.0f);
 }
+
+// ---------------------------------------------------------------------------
+// COMMIT 2: equivalencia com os parametros EXATOS do Ricardo
+//
+// Antes de migrar, provamos que a troca nao muda a trajetoria. Os tres casos
+// abaixo sao copiados literalmente do RicardoFactory.cpp.
+// ---------------------------------------------------------------------------
+
+namespace {
+
+    /**
+     * Simulador parametrizado. Opcionalmente aplica um SlowDown em tSlow, e
+     * ativa a Motion em tAtivar com modulo explicito 'velocidade' - exatamente
+     * como HomingBehavior(tAtivar, velocidade) e PathBehavior(Reta, velocidade,
+     * tAtivar, MirarNoJogador).
+     *
+     * usarCaminho = false simula o HomingBehavior (aponta uma vez, encerra).
+     * usarCaminho = true  simula o PathBehavior   (reaponta todo frame).
+     */
+    Vector2 SimularRicardo(const bool usarCaminho, const float tAtivar, const float velocidade,
+                           const float tSlow, const float fatorSlow) {
+        Corpo c{Vector2(600.f, 180.f), Vector2(40.f, 160.f)};
+        const Vector2 jogador(300.f, 650.f);
+        bool ativo = false, slowFeito = false;
+        Vector2 waypoint;
+
+        for (float t = 0.f; t < 3.0f; t += DT) {
+            c.pos += c.vel * DT;
+
+            if (!ativo && t >= tAtivar) {
+                ContextoDeResolucao ctx;
+                ctx.posicaoProjetil = c.pos;
+                ctx.velocidadeProjetil = c.vel;
+                ctx.posicaoJogador = jogador;
+                ctx.temJogador = true;
+                const auto r = ResolverReferencial(ctx, Mira(Mira::MirarNoJogador));
+                waypoint = r.origem + Vector2(r.cos, r.sin) * 1200.f;
+                c.vel = Vector2(r.cos, r.sin) * velocidade;   // modulo explicito
+                ativo = true;
+            } else if (ativo && usarCaminho) {
+                c.vel = DirecionarPreservandoModulo(c.vel, waypoint - c.pos, velocidade);
+            }
+
+            if (!slowFeito && tSlow >= 0.f && t >= tSlow) {
+                c.vel *= fatorSlow;
+                slowFeito = true;
+            }
+        }
+        return c.pos;
+    }
+
+    void ChecarEquivalencia(const float tAtivar, const float velocidade,
+                            const float tSlow, const float fatorSlow) {
+        const Vector2 homing  = SimularRicardo(false, tAtivar, velocidade, tSlow, fatorSlow);
+        const Vector2 caminho = SimularRicardo(true,  tAtivar, velocidade, tSlow, fatorSlow);
+        CHECK(Distancia(homing, caminho) < 1.0f);
+    }
+}
+
+TEST_CASE("Ricardo StateTwo: SlowDown(1.3, 0.8) + Homing(1.5, 180)") {
+    ChecarEquivalencia(1.5f, 180.f, 1.3f, 0.8f);
+}
+
+TEST_CASE("Ricardo StateThree: Homing(1.0, 200), sem SlowDown") {
+    ChecarEquivalencia(1.0f, 200.f, -1.f, 1.0f);
+}
+
+TEST_CASE("Ricardo StateFinal: SlowDown(0.8, 0.8) + Homing(1.0, 240)") {
+    ChecarEquivalencia(1.0f, 240.f, 0.8f, 0.8f);
+}

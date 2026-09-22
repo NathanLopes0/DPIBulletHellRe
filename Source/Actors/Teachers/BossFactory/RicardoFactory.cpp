@@ -12,6 +12,7 @@
 #include "../../../Movements/MovementStrategies.h"
 #include "../Bosses/Ricardo.h"
 #include "BossProjectileFactory/RicardoProjectile1Factory.h"
+#include "../../../Attacks/PathShapes.h"
 
 RicardoFactory::RicardoFactory(Game *game)
     : IBossFactory(game)
@@ -97,7 +98,9 @@ void RicardoFactory::ConfigureStateTwo(Boss *boss, FSMComponent *fsm) {
         2.4f,
         [](Projectile* p, int index) {
             p->insertModifier<SlowDownBehavior>(1.3f, 0.8f);
-            p->insertMotion<HomingBehavior>(1.5f, 180.f);
+            // Era HomingBehavior(1.5f, 180.f). Atencao a ORDEM: Homing e (atraso,
+            // velocidade); Path e (forma, velocidade, atraso, mira).
+            p->insertMotion<PathBehavior>(PathShapes::Reta(), 180.f, 1.5f, Mira(Mira::MirarNoJogador));
         }
         );
 
@@ -126,7 +129,7 @@ void RicardoFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm) {
     2.4f,
     [](Projectile* p, const int index) {
         if (index % 2 == 0)
-            p->insertMotion<HomingBehavior>(1.f, 200.f);
+            p->insertMotion<PathBehavior>(PathShapes::Reta(), 200.f, 1.f, Mira(Mira::MirarNoJogador));
     }
     );
 
@@ -163,7 +166,7 @@ void RicardoFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm) {
         2.8f,
         [](Projectile* p, const int index) {
             p->insertModifier<SlowDownBehavior>(0.8f, 0.8f);
-            p->insertMotion<HomingBehavior>(1.f, 240.f);
+            p->insertMotion<PathBehavior>(PathShapes::Reta(), 240.f, 1.f, Mira(Mira::MirarNoJogador));
         });
 
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
