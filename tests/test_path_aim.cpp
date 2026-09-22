@@ -1,7 +1,7 @@
 // Testes da camada pura de resolucao de referencial.
 // Nao sobe SDL, nao cria Actor: compila e roda em segundos.
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+// O main do doctest fica em test_main.cpp - ver o comentario la.
 #include "doctest.h"
 
 #include "../Source/Attacks/PathAim.h"

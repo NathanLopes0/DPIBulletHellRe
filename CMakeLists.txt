@@ -148,6 +148,7 @@ target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} SDL2_image::SDL2_image S
 enable_testing()
 
 add_executable(dpi_tests
+        tests/test_main.cpp
         tests/test_path_aim.cpp
         tests/test_motion_contract.cpp
         Source/Attacks/PathAim.cpp
@@ -162,5 +163,10 @@ add_executable(dpi_tests
 # vez do cabecalho C, e sinf/fabs/sqrtf deixam de existir - centenas de
 # erros em cmath e cstdlib. Os arquivos deste alvo ja usam includes
 # relativos, entao nao precisam do caminho.
+
+# Faz o doctest incluir os cabecalhos reais da biblioteca padrao em vez de
+# declarar std::tuple por conta propria. O MSVC recente avisa (C5285) que
+# declarar templates da std fora dela e proibido pelo padrao.
+target_compile_definitions(dpi_tests PRIVATE DOCTEST_CONFIG_USE_STD_HEADERS)
 
 add_test(NAME unidade COMMAND dpi_tests)
