@@ -8,26 +8,6 @@
 #include "../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 
-void HomingBehavior::update(Projectile* p, float deltaTime) {
-
-    if (auto bossProj = dynamic_cast<BossProjectile*>(p)) {
-        if(!homing) {
-            elapsedTime += deltaTime;
-            if(elapsedTime >= homingDelay) {
-                homing = true;
-                if(homingSpeed == 0) {
-                    auto currSpeed = bossProj->GetForwardSpeed();
-                    bossProj->GetComponent<RigidBodyComponent>()->SetVelocity(
-                                bossProj->GetPlayerDirection() * currSpeed);
-                }
-                else {
-                    bossProj->GetComponent<RigidBodyComponent>()->SetVelocity(
-                                bossProj->GetPlayerDirection() * homingSpeed);
-                }
-            }
-        }
-    }
-}
 void AccelerateBehavior::update(Projectile* p, float deltaTime) {
     if (auto bossProj = dynamic_cast<BossProjectile*>(p)) {
         if(!accelerated) {

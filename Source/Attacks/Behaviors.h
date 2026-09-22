@@ -32,7 +32,9 @@ public:
  * ultimo a rodar venceria, o que produz movimento aleatorio e dificil de
  * depurar. Projectile::insertMotion garante a exclusividade.
  *
- * Sao Motion: Homing, Tracking, Wobble e Path.
+ * Sao Motion: Tracking, Wobble e Path. (O antigo HomingBehavior foi removido
+ * na fase 3: um homing e um PathBehavior com PathShapes::Reta() e
+ * Mira(MirarNoJogador).)
  */
 class ProjectileMotion : public ProjectileBehavior {
 };
@@ -59,33 +61,6 @@ class ProjectileMotion : public ProjectileBehavior {
  * nao quebra-lo. Coberto por test_motion_contract.cpp.
  */
 class ProjectileModifier : public ProjectileBehavior {
-};
-
-/**
- * SUBSTITUIDO na fase 2, a ser migrado na fase 3.
- *
- * Desde que PathBehavior aceita Mira, um homing e exprimivel como caminho:
- *     insertMotion<PathBehavior>(PathShapes::Reta(800.f), velocidade, atraso,
- *                                Mira(Mira::MirarNoJogador));
- * Mantido por enquanto porque Ricardo e Salles dependem dele e a migracao
- * merece teste comparando as duas trajetorias antes de apagar esta classe.
- * NAO use em codigo novo.
- */
-struct HomingBehavior : public ProjectileMotion {
-    float homingDelay, homingSpeed, elapsedTime;
-    bool homing;
-
-    /**
-     * @brief comportamento de seguir o jogador (instantaneamente ou depois de um tempo)
-     * @param delay quanto tempo até o projétil começar a seguir o Player (se ignorado, começará seguindo o jogador)
-     * @param speed velocidade que o projétil seguirá o jogador (se ignorado, continuará com a mesma velocidade)
-     */
-    explicit HomingBehavior(float delay = 0, float speed = 0) :
-    homingDelay(delay), homingSpeed(speed), elapsedTime(0.0f), homing(false) {};
-
-    void update(Projectile* p, float deltaTime) override;
-    bool isFinished() const override { return homing; }
-
 };
 
 struct AccelerateBehavior : public ProjectileModifier {
@@ -145,7 +120,7 @@ struct ActivateBehavior : public ProjectileModifier {
  * @brief Correcao de rota CONTINUA em direcao ao jogador, com forca que decai
  * ate zero: o projetil persegue e depois se compromete.
  *
- * Diferente do HomingBehavior, que e um evento UNICO (aponta pro jogador uma
+ * Diferente de um homing, que e um evento UNICO (aponta pro jogador uma
  * vez e se encerra), aqui a direcao e reajustada todo frame por uma fracao da
  * diferenca. O resultado visual e uma curva que fecha rapido no comeco e vai
  * afrouxando ate travar.

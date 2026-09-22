@@ -81,7 +81,7 @@ public:
     template <typename M, typename... Args>
     void insertMotion(Args&&... args) {
         static_assert(std::is_base_of_v<ProjectileMotion, M>,
-            "insertMotion so aceita ProjectileMotion (Homing, Tracking, Wobble, Path). "
+            "insertMotion so aceita ProjectileMotion (Tracking, Wobble, Path). "
             "Para Accelerate/SlowDown/Activate/Deactivate use insertModifier.");
         mMotion = std::make_unique<M>(std::forward<Args>(args)...);
     }
@@ -94,7 +94,7 @@ public:
     void insertModifier(Args&&... args) {
         static_assert(std::is_base_of_v<ProjectileModifier, M>,
             "insertModifier so aceita ProjectileModifier (Accelerate, SlowDown, "
-            "Activate, Deactivate). Para Homing/Tracking/Wobble/Path use insertMotion.");
+            "Activate, Deactivate). Para Tracking/Wobble/Path use insertMotion.");
         mModifiers.emplace_back(std::make_unique<M>(std::forward<Args>(args)...));
     }
 

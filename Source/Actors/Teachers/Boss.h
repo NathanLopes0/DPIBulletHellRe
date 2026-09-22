@@ -42,7 +42,7 @@ public:
     struct AttackDefinition {
         std::unique_ptr<IAttackStrategy> strategy; // A lógica (Angled, Circle, etc)
         std::unique_ptr<AttackParams> params;                       // Parâmetros (Speed, Angle, NumProj)
-        ProjectileConfigurator configurator;       // Lambda para customização (Homing, Anim)
+        ProjectileConfigurator configurator;       // Lambda para customização (behaviors, animação)
         float cooldownTotal;                       // Tempo entre disparos desse ataque
         float currentTimer;                        // Timer atual desse ataque específico
     };

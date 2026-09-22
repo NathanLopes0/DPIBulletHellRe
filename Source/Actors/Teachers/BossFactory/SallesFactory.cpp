@@ -18,7 +18,9 @@
 // percorrido numa velocidade legivel. A 340-400 px/s um laco vira um risco.
 //
 // Para reverter: troque cada insertMotion<PathBehavior> de volta pelo
-// insertMotion<HomingBehavior> comentado logo acima dele.
+// PathBehavior mirado no jogador comentado logo acima dele (equivalente
+// exato do antigo HomingBehavior, removido na fase 3 - provado em
+// tests/test_motion_contract.cpp).
 // =============================================================================
 
 
@@ -82,7 +84,7 @@ void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm)
             std::move(params),                                        // Params
             .8f,                                          // Cooldown
             [](Projectile* p, int index){                 // Configurator Lambda
-                {   // ORIGINAL: if (rand<0.2) insertMotion<HomingBehavior>(1.2f, 280.f);
+                {   // ORIGINAL: if (rand<0.2) insertMotion<PathBehavior>(PathShapes::Reta(), 280.f, 1.2f, Mira(Mira::MirarNoJogador));
                     // TESTE - ZIGZAG: quinas exatas, legiveis. 6 pernas de 85px.
                     p->insertMotion<PathBehavior>(PathShapes::Zigzag(85.f, 50.f, 6), 200.f);
                     p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
@@ -119,7 +121,7 @@ void SallesFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm)
         std::move(params),
         1.f,
         [](Projectile* p, int index) {
-            {   // ORIGINAL: if (rand<0.3) insertMotion<HomingBehavior>(1.8f, 0.0f);
+            {   // ORIGINAL: if (rand<0.3) insertMotion<PathBehavior>(PathShapes::Reta(), 0.f, 1.8f, Mira(Mira::MirarNoJogador));
                 // TESTE - ARCO alternado: as barrigas se cruzam no meio do voo.
                 const float lat = (index % 2 == 0) ? 110.f : -110.f;
                 p->insertMotion<PathBehavior>(PathShapes::Arc(500.f, lat, 10), 190.f);
@@ -154,7 +156,7 @@ void SallesFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm) {
         std::move(params),
         0.9f,
         [](Projectile* p, int index) {
-            {   // ORIGINAL: if (rand<0.5) insertMotion<HomingBehavior>(1.8f, 0.0f);
+            {   // ORIGINAL: if (rand<0.5) insertMotion<PathBehavior>(PathShapes::Reta(), 0.f, 1.8f, Mira(Mira::MirarNoJogador));
                 // TESTE - LACO: uma forma escrita, 5 lacos girados (um por
                 // projetil do leque), pelo alinhamento automatico do caminho.
                 p->insertMotion<PathBehavior>(PathShapes::Loop(85.f, 500.f, 12), 175.f);
@@ -190,7 +192,7 @@ void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm) {
         std::move(paramsFast),
         0.8f,
         [](Projectile* p, int i) {
-            {   // ORIGINAL: if (rand<0.1) insertMotion<HomingBehavior>(1.2f, 0.0f);
+            {   // ORIGINAL: if (rand<0.1) insertMotion<PathBehavior>(PathShapes::Reta(), 0.f, 1.2f, Mira(Mira::MirarNoJogador));
                 // TESTE - ARCO largo.
                 const float lat = (i % 2 == 0) ? 135.f : -135.f;
                 p->insertMotion<PathBehavior>(PathShapes::Arc(540.f, lat, 10), 195.f);
@@ -209,7 +211,7 @@ void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm) {
         std::move(paramsSlow),
         1.f,
         [](Projectile* p, int i) {
-            {   // ORIGINAL: if (rand<0.4) insertMotion<HomingBehavior>(1.6f, 0.0f);
+            {   // ORIGINAL: if (rand<0.4) insertMotion<PathBehavior>(PathShapes::Reta(), 0.f, 1.6f, Mira(Mira::MirarNoJogador));
                 // TESTE - AS TRES FORMAS no mesmo disparo, uma por projetil.
                 // E o teste que mais interessa: da para comparar lado a lado.
                 switch (i % 3) {

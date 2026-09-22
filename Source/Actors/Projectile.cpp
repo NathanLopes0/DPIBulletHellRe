@@ -61,7 +61,7 @@ void Projectile::OnCollision(Actor *other) {
 
 void Projectile::Reset() {
     // Limpa TODOS os behaviors, inclusive os que não terminaram (ex: um
-    // HomingBehavior com delay que nunca chegou a disparar porque o projétil
+    // PathBehavior com atraso que nunca chegou a ativar porque o projétil
     // colidiu antes). Se não fizermos isso, um projétil reciclado herdaria
     // comportamento "fantasma" da vida anterior dele no pool.
     mMotion.reset();
