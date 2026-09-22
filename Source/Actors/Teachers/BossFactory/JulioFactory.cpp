@@ -197,6 +197,32 @@ void JulioFactory::ConfigureStateThree(Boss* boss, FSMComponent* fsm) {
             p->insertMotion<TrackingBehavior>(0.8f, 1.6f, 0.7f);
         });
 
+    // ----- SEGUNDO ATAQUE: a investida repetida -----
+    // Um unico projetil que persegue por toda a fase, em vez de uma rajada.
+    // Ele quase para, re-aponta, e da um mergulho rapido - dez vezes nao cabe
+    // nos 17s da fase, entao sao seis.
+    //
+    // As duas pecas nao sabem uma da outra: a Motion so gira, o Modifier so
+    // muda o modulo. E por isso que elas compoem.
+    //
+    // Cooldown maior que a duracao do ciclo (6 x 1.2 = 7.2s) para nao acumular
+    // varios cacadores na tela ao mesmo tempo.
+    auto paramsInvestida = std::make_unique<AttackParams>();
+    paramsInvestida->numProjectiles = 1;
+    paramsInvestida->projectileSpeed = 120.f;
+    paramsInvestida->angle = 0.f;
+
+    boss->AddAttackPattern(STATE_NAME,
+        std::make_unique<AngledAttack>(spawner, boss),
+        std::move(paramsInvestida),
+        8.5f,
+        [](Projectile* p, int) {
+            p->insertMotion<MiraPeriodicaBehavior>(0.f, 1.2f, 6);
+            // A pausa e 15 px/s, e nao zero, de proposito: com modulo zero a
+            // direcao se perde e a mirada seguinte nao teria o que girar.
+            p->insertModifier<PulsoDeVelocidadeBehavior>(0.f, 0.2f, 1.0f, 640.f, 15.f, 6);
+        });
+
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
                                                       STATE_THREE_DURATION,
                                                       "");
