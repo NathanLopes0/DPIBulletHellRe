@@ -275,3 +275,62 @@ void PathBehavior::update(Projectile* p, float deltaTime) {
 
 // ---------------------------------------------------------------------------
 // PathBehavior
+
+// ---------------------------------------------------------------------------
+// MiraPeriodicaBehavior
+// ---------------------------------------------------------------------------
+void MiraPeriodicaBehavior::update(Projectile* p, float deltaTime) {
+
+    // Precisa saber onde o jogador esta, e so BossProjectile sabe.
+    auto bossProj = dynamic_cast<BossProjectile*>(p);
+    if (!bossProj) {
+        feitas = repeticoes;
+        return;
+    }
+
+    elapsedTime += deltaTime;
+    if (feitas >= repeticoes || elapsedTime < proximaMirada) return;
+
+    auto rb = bossProj->GetComponent<RigidBodyComponent>();
+    if (!rb) {
+        feitas = repeticoes;
+        return;
+    }
+
+    if (bossProj->HasPlayer()) {
+        const Vector2 paraJogador = bossProj->GetPlayerPosition() - p->GetPosition();
+        const Vector2 velocidade = rb->GetVelocity();
+        // O modulo minimo e o proprio modulo atual: esta Motion nunca acelera
+        // nem freia o projetil, so o gira.
+        rb->SetVelocity(DirecionarPreservandoModulo(velocidade, paraJogador, velocidade.Length()));
+    }
+
+    ++feitas;
+    proximaMirada += intervalo;
+}
+
+// ---------------------------------------------------------------------------
+// PulsoDeVelocidadeBehavior
+// ---------------------------------------------------------------------------
+void PulsoDeVelocidadeBehavior::update(Projectile* p, float deltaTime) {
+
+    auto rb = p->GetComponent<RigidBodyComponent>();
+    if (!rb) {
+        terminou = true;
+        return;
+    }
+
+    elapsedTime += deltaTime;
+
+    const FaseDoPulso fase = CalcularFaseDoPulso(elapsedTime, atraso,
+                                                 duracaoInvestida, duracaoPausa,
+                                                 moduloInvestida, moduloPausa, repeticoes);
+    if (!fase.ativo) {
+        // Inativo tem duas causas: ainda no atraso, ou todos os ciclos ja
+        // aconteceram. So a segunda encerra o Modifier.
+        if (fase.ciclo >= repeticoes) terminou = true;
+        return;
+    }
+
+    rb->SetVelocity(AjustarModulo(rb->GetVelocity(), fase.modulo));
+}

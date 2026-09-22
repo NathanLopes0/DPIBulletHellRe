@@ -151,6 +151,7 @@ add_executable(dpi_tests
         tests/test_main.cpp
         tests/test_path_aim.cpp
         tests/test_motion_contract.cpp
+        tests/test_investida.cpp
         Source/Attacks/PathAim.cpp
         Source/Attacks/PathAim.h
         Source/Math.cpp

@@ -102,3 +102,40 @@ Referencial ResolverReferencial(const ContextoDeResolucao& contexto, const Mira&
 Vector2 DirecionarPreservandoModulo(const Vector2& velocidadeAtual,
                                     const Vector2& direcaoDesejada,
                                     float moduloMinimo);
+
+/**
+ * @brief Ajusta o MODULO da velocidade mantendo a direcao.
+ *
+ * Complemento exato de DirecionarPreservandoModulo: aquela cuida da direcao e
+ * herda o modulo; esta cuida do modulo e herda a direcao. Juntas cobrem os dois
+ * lados do contrato entre Motion e Modifier.
+ *
+ * Velocidade nula e devolvida sem alteracao: nao ha direcao a preservar, e
+ * inventar uma seria pior do que nao fazer nada. Modulo negativo vira zero.
+ */
+Vector2 AjustarModulo(const Vector2& velocidade, float novoModulo);
+
+/**
+ * @brief Onde um pulso investida/pausa esta num dado instante.
+ */
+struct FaseDoPulso {
+    bool ativo = false;       ///< false antes do atraso e depois da ultima repeticao
+    bool investindo = false;  ///< true na investida, false na pausa
+    int ciclo = 0;            ///< quantos ciclos completos ja passaram
+    float modulo = 0.0f;      ///< modulo que a velocidade deve ter agora
+};
+
+/**
+ * @brief Calcula a fase do pulso. Funcao PURA - nao conhece Projectile nem SDL.
+ *
+ * Toda a aritmetica de tempo do PulsoDeVelocidadeBehavior mora aqui, para poder
+ * ser testada sem subir o jogo. O behavior fica sendo so a ponte com o motor.
+ *
+ * @param tempoDecorrido segundos desde que o projetil nasceu
+ * @param atraso segundos ate o primeiro ciclo comecar
+ * @param repeticoes quantos ciclos investida+pausa acontecem ao todo
+ */
+FaseDoPulso CalcularFaseDoPulso(float tempoDecorrido, float atraso,
+                                float duracaoInvestida, float duracaoPausa,
+                                float moduloInvestida, float moduloPausa,
+                                int repeticoes);

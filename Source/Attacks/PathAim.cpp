@@ -79,3 +79,58 @@ Vector2 DirecionarPreservandoModulo(const Vector2& velocidadeAtual,
 
     return direcaoDesejada * (modulo / comprimentoDirecao);
 }
+
+Vector2 AjustarModulo(const Vector2& velocidade, float novoModulo) {
+
+    const float modulo = velocidade.Length();
+    if (Math::NearZero(modulo)) {
+        // Sem direcao para preservar. Devolver um vetor qualquer com o modulo
+        // pedido seria escolher uma direcao no lugar de quem chamou.
+        return velocidade;
+    }
+
+    if (novoModulo < 0.0f) novoModulo = 0.0f;
+
+    return velocidade * (novoModulo / modulo);
+}
+
+FaseDoPulso CalcularFaseDoPulso(const float tempoDecorrido, const float atraso,
+                                const float duracaoInvestida, const float duracaoPausa,
+                                const float moduloInvestida, const float moduloPausa,
+                                const int repeticoes) {
+
+    FaseDoPulso fase;
+
+    const float ciclo = duracaoInvestida + duracaoPausa;
+    if (repeticoes <= 0 || ciclo <= 0.0f || tempoDecorrido < atraso) {
+        // Ainda no atraso, ou configuracao degenerada: nada a fazer.
+        fase.ciclo = (repeticoes <= 0 || ciclo <= 0.0f) ? repeticoes : 0;
+        return fase;
+    }
+
+    const float t = tempoDecorrido - atraso;
+    fase.ciclo = static_cast<int>(t / ciclo);
+
+    if (fase.ciclo >= repeticoes) {
+        // Todos os ciclos ja aconteceram; o modulo passa a ser de quem quiser.
+        fase.ciclo = repeticoes;
+        return fase;
+    }
+
+    const float dentroDoCiclo = t - static_cast<float>(fase.ciclo) * ciclo;
+    const bool investindo = dentroDoCiclo < duracaoInvestida;
+
+    // A sequencia TERMINA NUMA INVESTIDA, nao numa pausa: sao N investidas com
+    // N-1 pausas entre elas. Terminar na pausa deixava o projetil a poucos
+    // px/s, lento demais para sair da tela dentro da batalha - ele virava um
+    // obstaculo permanente e continuava ocupando uma vaga do pool.
+    if (!investindo && fase.ciclo == repeticoes - 1) {
+        fase.ciclo = repeticoes;
+        return fase;
+    }
+
+    fase.ativo = true;
+    fase.investindo = investindo;
+    fase.modulo = investindo ? moduloInvestida : moduloPausa;
+    return fase;
+}

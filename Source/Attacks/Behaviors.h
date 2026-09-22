@@ -271,6 +271,94 @@ struct PathBehavior : public ProjectileMotion {
     bool finished;
 };
 
+/**
+ * @brief Re-aponta a velocidade para o jogador em instantes DISCRETOS.
+ *
+ * Diferente do TrackingBehavior, que corrige a rota um pouco a cada frame, esta
+ * Motion nao faz nada entre uma mirada e outra: no instante marcado ela gira a
+ * velocidade para o jogador e volta a dormir. E o que produz a leitura de
+ * "parou, decidiu, e partiu" - o jogador ve a decisao acontecer.
+ *
+ * Nao mexe no modulo, como manda o contrato de ProjectileMotion. Quem faz a
+ * velocidade subir e descer e um Modifier, tipicamente o
+ * PulsoDeVelocidadeBehavior; as duas pecas nao sabem uma da outra.
+ *
+ * ATENCAO: a direcao mora dentro do vetor velocidade. Se o projetil estiver com
+ * modulo ZERO no instante da mirada, nao ha o que girar e ela nao tem efeito.
+ * Por isso uma "pausa" deve deixar um resto de velocidade (10 a 20 px/s), e nao
+ * parar de verdade.
+ */
+struct MiraPeriodicaBehavior : public ProjectileMotion {
+
+    /**
+     * @param atrasoInicial segundos ate a primeira mirada
+     * @param intervalo segundos entre uma mirada e a seguinte
+     * @param repeticoes quantas miradas ao todo; depois da ultima, encerra
+     */
+    explicit MiraPeriodicaBehavior(float atrasoInicial = 0.0f,
+                                   float intervalo = 1.0f,
+                                   int repeticoes = 1)
+        : atraso(atrasoInicial), intervalo(intervalo), repeticoes(repeticoes),
+          elapsedTime(0.0f), proximaMirada(atrasoInicial), feitas(0) {}
+
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return feitas >= repeticoes; }
+
+    float atraso;
+    float intervalo;
+    int repeticoes;
+    float elapsedTime;
+    float proximaMirada;
+    int feitas;
+};
+
+/**
+ * @brief Alterna o modulo da velocidade entre uma investida rapida e uma pausa
+ * quase parada, repetidas vezes.
+ *
+ * Nao toca na direcao, como manda o contrato de ProjectileModifier: o projetil
+ * acelera e freia exatamente no rumo em que a Motion o deixou.
+ *
+ * Diferente de Accelerate e SlowDown, que multiplicam uma vez e se encerram,
+ * este DEFINE o modulo enquanto vive. A diferenca importa: fatores
+ * multiplicativos se acumulam, e voltar a uma velocidade depois de varios
+ * ciclos exigiria fatores reciprocos exatos, o que erra por arredondamento.
+ *
+ * Toda a aritmetica de tempo esta em CalcularFaseDoPulso (PathAim.h), que e
+ * pura e coberta por tests/test_investida.cpp.
+ */
+struct PulsoDeVelocidadeBehavior : public ProjectileModifier {
+
+    /**
+     * @param atrasoInicial segundos ate o primeiro ciclo
+     * @param duracaoInvestida segundos de velocidade alta
+     * @param duracaoPausa segundos de velocidade baixa
+     * @param moduloInvestida velocidade durante a investida
+     * @param moduloPausa velocidade durante a pausa. NAO use zero - ver o aviso
+     *        em MiraPeriodicaBehavior.
+     * @param repeticoes quantos ciclos investida+pausa ao todo
+     */
+    explicit PulsoDeVelocidadeBehavior(float atrasoInicial = 0.0f,
+                                       float duracaoInvestida = 0.15f,
+                                       float duracaoPausa = 1.0f,
+                                       float moduloInvestida = 800.0f,
+                                       float moduloPausa = 15.0f,
+                                       int repeticoes = 1)
+        : atraso(atrasoInicial), duracaoInvestida(duracaoInvestida), duracaoPausa(duracaoPausa),
+          moduloInvestida(moduloInvestida), moduloPausa(moduloPausa), repeticoes(repeticoes),
+          elapsedTime(0.0f), terminou(false) {}
+
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return terminou; }
+
+    float atraso;
+    float duracaoInvestida, duracaoPausa;
+    float moduloInvestida, moduloPausa;
+    int repeticoes;
+    float elapsedTime;
+    bool terminou;
+};
+
 struct DeactivateBehavior : public ProjectileModifier {
     float elapsedTime, deactivationDelay;
     bool deactivated;
