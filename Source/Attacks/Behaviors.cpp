@@ -284,16 +284,18 @@ void MiraPeriodicaBehavior::update(Projectile* p, float deltaTime) {
     // Precisa saber onde o jogador esta, e so BossProjectile sabe.
     auto bossProj = dynamic_cast<BossProjectile*>(p);
     if (!bossProj) {
-        feitas = repeticoes;
+        feitas = ritmo.repeticoes;
         return;
     }
 
     elapsedTime += deltaTime;
-    if (feitas >= repeticoes || elapsedTime < proximaMirada) return;
+    // O instante da proxima mirada vem do ritmo, nao de um contador proprio:
+    // e o que garante que ela caia sempre no inicio de uma investida.
+    if (feitas >= ritmo.repeticoes || elapsedTime < ritmo.InicioDaInvestida(feitas)) return;
 
     auto rb = bossProj->GetComponent<RigidBodyComponent>();
     if (!rb) {
-        feitas = repeticoes;
+        feitas = ritmo.repeticoes;
         return;
     }
 
@@ -306,7 +308,6 @@ void MiraPeriodicaBehavior::update(Projectile* p, float deltaTime) {
     }
 
     ++feitas;
-    proximaMirada += intervalo;
 }
 
 // ---------------------------------------------------------------------------
@@ -322,13 +323,12 @@ void PulsoDeVelocidadeBehavior::update(Projectile* p, float deltaTime) {
 
     elapsedTime += deltaTime;
 
-    const FaseDoPulso fase = CalcularFaseDoPulso(elapsedTime, atraso,
-                                                 duracaoInvestida, duracaoPausa,
-                                                 moduloInvestida, moduloPausa, repeticoes);
+    const FaseDoPulso fase = CalcularFaseDoPulso(elapsedTime, ritmo,
+                                                 moduloInvestida, moduloPausa);
     if (!fase.ativo) {
         // Inativo tem duas causas: ainda no atraso, ou todos os ciclos ja
         // aconteceram. So a segunda encerra o Modifier.
-        if (fase.ciclo >= repeticoes) terminou = true;
+        if (fase.ciclo >= ritmo.repeticoes) terminou = true;
         return;
     }
 

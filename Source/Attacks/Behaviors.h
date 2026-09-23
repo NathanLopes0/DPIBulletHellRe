@@ -291,24 +291,19 @@ struct PathBehavior : public ProjectileMotion {
 struct MiraPeriodicaBehavior : public ProjectileMotion {
 
     /**
-     * @param atrasoInicial segundos ate a primeira mirada
-     * @param intervalo segundos entre uma mirada e a seguinte
-     * @param repeticoes quantas miradas ao todo; depois da ultima, encerra
+     * @param ritmo os tempos do ataque. Esta Motion re-aponta no INICIO de cada
+     *        investida, entao ela deriva os instantes do mesmo objeto que o
+     *        PulsoDeVelocidadeBehavior usa para pulsar - nao ha um intervalo
+     *        calculado a mao que precise bater com nada.
      */
-    explicit MiraPeriodicaBehavior(float atrasoInicial = 0.0f,
-                                   float intervalo = 1.0f,
-                                   int repeticoes = 1)
-        : atraso(atrasoInicial), intervalo(intervalo), repeticoes(repeticoes),
-          elapsedTime(0.0f), proximaMirada(atrasoInicial), feitas(0) {}
+    explicit MiraPeriodicaBehavior(const RitmoDeCiclos& ritmo)
+        : ritmo(ritmo), elapsedTime(0.0f), feitas(0) {}
 
     void update(Projectile* p, float deltaTime) override;
-    bool isFinished() const override { return feitas >= repeticoes; }
+    bool isFinished() const override { return feitas >= ritmo.repeticoes; }
 
-    float atraso;
-    float intervalo;
-    int repeticoes;
+    RitmoDeCiclos ritmo;
     float elapsedTime;
-    float proximaMirada;
     int feitas;
 };
 
@@ -330,31 +325,26 @@ struct MiraPeriodicaBehavior : public ProjectileMotion {
 struct PulsoDeVelocidadeBehavior : public ProjectileModifier {
 
     /**
-     * @param atrasoInicial segundos ate o primeiro ciclo
-     * @param duracaoInvestida segundos de velocidade alta
-     * @param duracaoPausa segundos de velocidade baixa
+     * @param ritmo os tempos do ataque, os MESMOS entregues a Motion.
      * @param moduloInvestida velocidade durante a investida
-     * @param moduloPausa velocidade durante a pausa. NAO use zero - ver o aviso
-     *        em MiraPeriodicaBehavior.
-     * @param repeticoes quantos ciclos investida+pausa ao todo
+     * @param moduloPausa velocidade durante a pausa. NAO use zero - a direcao
+     *        mora dentro do vetor velocidade, e com modulo zero ela se perde.
+     *
+     * Este Modifier DEFINE o modulo enquanto vive, em vez de multiplicar. Como
+     * consequencia, ele nao convive com Accelerate nem SlowDown no mesmo
+     * intervalo: o que eles fizerem sera reescrito no frame seguinte.
      */
-    explicit PulsoDeVelocidadeBehavior(float atrasoInicial = 0.0f,
-                                       float duracaoInvestida = 0.15f,
-                                       float duracaoPausa = 1.0f,
+    explicit PulsoDeVelocidadeBehavior(const RitmoDeCiclos& ritmo,
                                        float moduloInvestida = 800.0f,
-                                       float moduloPausa = 15.0f,
-                                       int repeticoes = 1)
-        : atraso(atrasoInicial), duracaoInvestida(duracaoInvestida), duracaoPausa(duracaoPausa),
-          moduloInvestida(moduloInvestida), moduloPausa(moduloPausa), repeticoes(repeticoes),
+                                       float moduloPausa = 15.0f)
+        : ritmo(ritmo), moduloInvestida(moduloInvestida), moduloPausa(moduloPausa),
           elapsedTime(0.0f), terminou(false) {}
 
     void update(Projectile* p, float deltaTime) override;
     bool isFinished() const override { return terminou; }
 
-    float atraso;
-    float duracaoInvestida, duracaoPausa;
+    RitmoDeCiclos ritmo;
     float moduloInvestida, moduloPausa;
-    int repeticoes;
     float elapsedTime;
     bool terminou;
 };

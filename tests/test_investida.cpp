@@ -55,7 +55,8 @@ TEST_CASE("AjustarModulo e DirecionarPreservandoModulo sao complementares") {
 // ---------------------------------------------------------------------------
 
 namespace {
-    FaseDoPulso fase(float t) { return CalcularFaseDoPulso(t, 0.5f, 0.2f, 1.0f, 800.f, 15.f, 3); }
+    constexpr RitmoDeCiclos kRitmo{0.5f, 0.2f, 1.0f, 3};
+    FaseDoPulso fase(float t) { return CalcularFaseDoPulso(t, kRitmo, 800.f, 15.f); }
 }
 
 TEST_CASE("Pulso: antes do atraso nao esta ativo nem terminou") {
@@ -104,7 +105,7 @@ TEST_CASE("Pulso: depois da ultima repeticao para de agir") {
 }
 
 TEST_CASE("Pulso: zero repeticoes encerra de imediato") {
-    const auto f = CalcularFaseDoPulso(1.f, 0.f, 0.2f, 1.f, 800.f, 15.f, 0);
+    const auto f = CalcularFaseDoPulso(1.f, RitmoDeCiclos{0.f, 0.2f, 1.f, 0}, 800.f, 15.f);
     CHECK_FALSE(f.ativo);
     CHECK(f.ciclo <= 0);
 }
@@ -117,28 +118,26 @@ TEST_CASE("Investida repetida: re-aponta e pulsa, sem uma peca saber da outra") 
     const Vector2 jogador(600.f, 600.f);
     Vector2 pos(600.f, 120.f), vel(0.f, 200.f);
 
-    const float intervalo = 1.2f, dInvestida = 0.2f, dPausa = 1.0f;
+    constexpr RitmoDeCiclos ritmo{0.f, 0.2f, 1.0f, 6};
     const float vInvestida = 700.f, vPausa = 15.f;
-    const int repeticoes = 6;
+    const int repeticoes = ritmo.repeticoes;
 
-    float t = 0.f, proximaMirada = 0.f;
+    float t = 0.f;
     int miradas = 0;
     float piorErro = 0.f, menorModuloNaInvestida = 1e9f, maiorModuloNaPausa = 0.f;
     float menorDistancia = 1e9f;
 
-    while (t < intervalo * repeticoes) {
+    while (t < ritmo.Ciclo() * static_cast<float>(repeticoes)) {
         pos += vel * DT;                                   // 1. RigidBody
 
-        if (miradas < repeticoes && t >= proximaMirada) {  // 2. Motion
+        if (miradas < repeticoes && t >= ritmo.InicioDaInvestida(miradas)) {  // 2. Motion
             const Vector2 paraJogador = jogador - pos;
             vel = DirecionarPreservandoModulo(vel, paraJogador, vel.Length());
             piorErro = Math::Max(piorErro, anguloEntre(vel, paraJogador));
             ++miradas;
-            proximaMirada += intervalo;
         }
 
-        const auto f = CalcularFaseDoPulso(t, 0.f, dInvestida, dPausa,   // 3. Modifier
-                                           vInvestida, vPausa, repeticoes);
+        const auto f = CalcularFaseDoPulso(t, ritmo, vInvestida, vPausa);   // 3. Modifier
         if (f.ativo) {
             vel = AjustarModulo(vel, f.modulo);
             if (f.investindo) menorModuloNaInvestida = Math::Min(menorModuloNaInvestida, vel.Length());
@@ -172,4 +171,47 @@ TEST_CASE("Investida repetida: a pausa nao pode ser parada de verdade") {
     const Vector2 ok = DirecionarPreservandoModulo(quaseParado, Vector2(100.f, 0.f), quaseParado.Length());
     CHECK(ok.Length() == doctest::Approx(15.f));
     CHECK(ok.x == doctest::Approx(15.f));
+}
+
+// ---------------------------------------------------------------------------
+// O ritmo compartilhado: nenhum tempo precisa ser calculado a mao
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Ritmo: o ciclo e a soma das duas fases") {
+    constexpr RitmoDeCiclos r{0.f, 0.25f, 1.5f, 4};
+    CHECK(r.Ciclo() == doctest::Approx(1.75f));
+}
+
+TEST_CASE("Ritmo: as investidas comecam em multiplos do ciclo, a partir do atraso") {
+    constexpr RitmoDeCiclos r{0.5f, 0.2f, 1.0f, 4};
+    CHECK(r.InicioDaInvestida(0) == doctest::Approx(0.5f));
+    CHECK(r.InicioDaInvestida(1) == doctest::Approx(1.7f));
+    CHECK(r.InicioDaInvestida(3) == doctest::Approx(4.1f));
+}
+
+TEST_CASE("Ritmo: a duracao total nao conta a ultima pausa") {
+    // N investidas com N-1 pausas entre elas.
+    constexpr RitmoDeCiclos r{0.f, 0.2f, 1.0f, 6};
+    CHECK(r.DuracaoTotal() == doctest::Approx(6 * 0.2f + 5 * 1.0f));
+    CHECK(RitmoDeCiclos{0.f, 0.2f, 1.0f, 0}.DuracaoTotal() == doctest::Approx(0.f));
+}
+
+TEST_CASE("Ritmo: mudar a pausa move as miradas E o pulso juntos") {
+    // Este e o teste que existe por causa do acoplamento antigo: o intervalo
+    // entre miradas era um numero digitado a mao, que precisava ser igual a
+    // investida + pausa. Agora os dois saem do mesmo objeto.
+    constexpr RitmoDeCiclos curto{0.f, 0.2f, 1.0f, 3};
+    constexpr RitmoDeCiclos longo{0.f, 0.2f, 2.0f, 3};   // so a pausa mudou
+
+    // A Motion re-aponta no inicio de cada investida...
+    CHECK(curto.InicioDaInvestida(1) == doctest::Approx(1.2f));
+    CHECK(longo.InicioDaInvestida(1) == doctest::Approx(2.2f));
+
+    // ...e o Modifier concorda, sem ninguem recalcular nada.
+    CHECK(CalcularFaseDoPulso(curto.InicioDaInvestida(1) + 0.01f, curto, 800.f, 15.f).investindo);
+    CHECK(CalcularFaseDoPulso(longo.InicioDaInvestida(1) + 0.01f, longo, 800.f, 15.f).investindo);
+
+    // E no instante em que a investida comecaria com a pausa curta, o ritmo
+    // longo ainda esta pausado - que era exatamente o bug de configuracao.
+    CHECK_FALSE(CalcularFaseDoPulso(1.21f, longo, 800.f, 15.f).investindo);
 }

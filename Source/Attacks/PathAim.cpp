@@ -94,38 +94,33 @@ Vector2 AjustarModulo(const Vector2& velocidade, float novoModulo) {
     return velocidade * (novoModulo / modulo);
 }
 
-FaseDoPulso CalcularFaseDoPulso(const float tempoDecorrido, const float atraso,
-                                const float duracaoInvestida, const float duracaoPausa,
-                                const float moduloInvestida, const float moduloPausa,
-                                const int repeticoes) {
+FaseDoPulso CalcularFaseDoPulso(const float tempoDecorrido, const RitmoDeCiclos& ritmo,
+                                const float moduloInvestida, const float moduloPausa) {
 
     FaseDoPulso fase;
 
-    const float ciclo = duracaoInvestida + duracaoPausa;
-    if (repeticoes <= 0 || ciclo <= 0.0f || tempoDecorrido < atraso) {
-        // Ainda no atraso, ou configuracao degenerada: nada a fazer.
-        fase.ciclo = (repeticoes <= 0 || ciclo <= 0.0f) ? repeticoes : 0;
+    const float ciclo = ritmo.Ciclo();
+    if (ritmo.repeticoes <= 0 || ciclo <= 0.0f || tempoDecorrido < ritmo.atraso) {
+        fase.ciclo = (ritmo.repeticoes <= 0 || ciclo <= 0.0f) ? ritmo.repeticoes : 0;
         return fase;
     }
 
-    const float t = tempoDecorrido - atraso;
+    const float t = tempoDecorrido - ritmo.atraso;
     fase.ciclo = static_cast<int>(t / ciclo);
 
-    if (fase.ciclo >= repeticoes) {
-        // Todos os ciclos ja aconteceram; o modulo passa a ser de quem quiser.
-        fase.ciclo = repeticoes;
+    if (fase.ciclo >= ritmo.repeticoes) {
+        fase.ciclo = ritmo.repeticoes;
         return fase;
     }
 
     const float dentroDoCiclo = t - static_cast<float>(fase.ciclo) * ciclo;
-    const bool investindo = dentroDoCiclo < duracaoInvestida;
+    const bool investindo = dentroDoCiclo < ritmo.duracaoInvestida;
 
     // A sequencia TERMINA NUMA INVESTIDA, nao numa pausa: sao N investidas com
     // N-1 pausas entre elas. Terminar na pausa deixava o projetil a poucos
-    // px/s, lento demais para sair da tela dentro da batalha - ele virava um
-    // obstaculo permanente e continuava ocupando uma vaga do pool.
-    if (!investindo && fase.ciclo == repeticoes - 1) {
-        fase.ciclo = repeticoes;
+    // px/s, lento demais para sair da tela dentro da batalha.
+    if (!investindo && fase.ciclo == ritmo.repeticoes - 1) {
+        fase.ciclo = ritmo.repeticoes;
         return fase;
     }
 

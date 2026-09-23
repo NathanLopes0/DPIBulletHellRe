@@ -10,6 +10,7 @@
 #include "../../../Attacks/BaseStrategies/CircleSpreadAttack.h"
 #include "../../../Attacks/BaseStrategies/WaveAttack.h"
 #include "../../../Attacks/PathShapes.h"
+#include "../../../Attacks/Receitas.h"
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Movements/MovementStrategies.h"
@@ -82,18 +83,24 @@ void JulioFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm) {
 
     // Atraso entre um projetil e o seguinte. 13 x 0.055 = varredura de ~0.7s,
     // rapida o bastante para ler como um movimento unico e nao como 13 tiros.
-    params->creationSpeed = 0.055f;
 
     auto spawner = boss->GetProjectileFactory("Dados");
+    static constexpr RitmoDeCiclos kRitmoInvestida{
+        /*atraso*/ 0.0f, /*investida*/ 0.6f, /*pausa*/ 1.0f, /*repeticoes*/ 7};
 
     // Sem configurator: o escalonamento da propria WaveAttack ja da o carater
     // da fase. Nao use WobbleBehavior aqui - a WaveAttack insere Deactivate +
     // Activate, e o Wobble capturaria velocidade zero na ativacao e se
     // encerraria sozinho.
     boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<WaveAttack>(spawner, boss),
+        std::make_unique<AngledAttack>(spawner, boss),
         std::move(params),
-        2.4f);
+        kRitmoInvestida.DuracaoTotal()/kRitmoInvestida.repeticoes,
+        [](Projectile* p, int) {
+            p->SetScale(3.f);
+            p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Perseguicao");
+            AplicarInvestidaRepetida(p, kRitmoInvestida, 900.f, 15.f);
+        });
 
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
                                                       STATE_ONE_DURATION,
@@ -123,21 +130,19 @@ void JulioFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm) {
     const std::string STATE_NAME = "StateTwo";
 
     auto params = std::make_unique<AttackParams>();
-    params->numProjectiles = 3;
+    params->numProjectiles = 16;
     params->projectileSpeed = 205.f;
-    params->angle = 24.f;
 
     auto spawner = boss->GetProjectileFactory("Dados");
 
     boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<AngledAttack>(spawner, boss),
+        std::make_unique<CircleSpreadAttack>(spawner, boss),
         std::move(params),
         1.3f,
         [](Projectile* p, const int index) {
-            // Correcao mais forte nas pontas do leque: os das bordas fecham
-            // mais, o que afunila a rajada inteira.
-            const float forca = (index == 1) ? 2.4f : 3.2f;
-            p->insertMotion<TrackingBehavior>(0.3f, forca, 2.4f);
+            const float forca = (index == 1) ? 1.2f : 2.4f;
+            p->SetScale(2.f);
+            p->insertMotion<TrackingBehavior>(0.3f, forca, 4.8f);
         });
 
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
@@ -190,10 +195,11 @@ void JulioFactory::ConfigureStateThree(Boss* boss, FSMComponent* fsm) {
         std::move(params),
         // Cooldown curto: ~4 balas vivas ao mesmo tempo, formando um fluxo.
         // AJUSTE AQUI para calibrar a pressao da fase.
-        0.35f,
+        0.1f,
         [](Projectile* p, int) {
             // Voa reto 0.8s (o jogador ve que foi adiantado), entao UMA
             // correcao de 0.7s. Ver comentario do cabecalho desta fase.
+            p->SetScale(2.f);
             p->insertMotion<TrackingBehavior>(0.8f, 1.6f, 0.7f);
         });
 
@@ -207,6 +213,11 @@ void JulioFactory::ConfigureStateThree(Boss* boss, FSMComponent* fsm) {
     //
     // Cooldown maior que a duracao do ciclo (6 x 1.2 = 7.2s) para nao acumular
     // varios cacadores na tela ao mesmo tempo.
+    // Um unico ritmo alimenta a Motion, o Modifier E o cooldown. Mudar a pausa
+    // aqui move as miradas e o cooldown junto, sem conta a mao.
+    static constexpr RitmoDeCiclos kRitmoInvestida{
+        /*atraso*/ 0.0f, /*investida*/ 0.6f, /*pausa*/ 1.0f, /*repeticoes*/ 5};
+
     auto paramsInvestida = std::make_unique<AttackParams>();
     paramsInvestida->numProjectiles = 1;
     paramsInvestida->projectileSpeed = 120.f;
@@ -215,12 +226,11 @@ void JulioFactory::ConfigureStateThree(Boss* boss, FSMComponent* fsm) {
     boss->AddAttackPattern(STATE_NAME,
         std::make_unique<AngledAttack>(spawner, boss),
         std::move(paramsInvestida),
-        8.5f,
+        kRitmoInvestida.DuracaoTotal()/2,
         [](Projectile* p, int) {
-            p->insertMotion<MiraPeriodicaBehavior>(0.f, 1.2f, 6);
-            // A pausa e 15 px/s, e nao zero, de proposito: com modulo zero a
-            // direcao se perde e a mirada seguinte nao teria o que girar.
-            p->insertModifier<PulsoDeVelocidadeBehavior>(0.f, 0.2f, 1.0f, 640.f, 15.f, 6);
+            p->SetScale(3.f);
+            p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Perseguicao");
+            AplicarInvestidaRepetida(p, kRitmoInvestida, 800.f, 15.f);
         });
 
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,

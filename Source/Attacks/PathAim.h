@@ -116,6 +116,43 @@ Vector2 DirecionarPreservandoModulo(const Vector2& velocidadeAtual,
 Vector2 AjustarModulo(const Vector2& velocidade, float novoModulo);
 
 /**
+ * @brief O ritmo de um ataque em ciclos: quando comeca, quanto dura cada fase e
+ * quantas vezes repete.
+ *
+ * Existe para que a Motion e o Modifier de uma investida derivem os tempos da
+ * MESMA fonte. Antes, quem montava o ataque precisava passar o intervalo entre
+ * miradas para um e as duracoes para o outro, e o intervalo tinha de ser
+ * exatamente investida + pausa - uma conta feita a mao, que ninguem avisava
+ * quando deixava de bater. Mudar a pausa agora move as miradas junto.
+ *
+ * E um agregado simples de proposito: da para declarar como
+ * `static constexpr RitmoDeCiclos r{0.f, 0.2f, 1.0f, 6};` e usar o mesmo objeto
+ * no cooldown do ataque e dentro do configurator.
+ */
+struct RitmoDeCiclos {
+    float atraso = 0.0f;            ///< segundos ate o primeiro ciclo
+    float duracaoInvestida = 0.2f;  ///< segundos de fase rapida
+    float duracaoPausa = 1.0f;      ///< segundos de fase lenta
+    int repeticoes = 1;             ///< quantas investidas ao todo
+
+    /// Quanto dura um ciclo completo (investida + pausa).
+    [[nodiscard]] constexpr float Ciclo() const { return duracaoInvestida + duracaoPausa; }
+
+    /// Instante em que a investida de indice k comeca (k a partir de zero).
+    [[nodiscard]] constexpr float InicioDaInvestida(const int k) const {
+        return atraso + Ciclo() * static_cast<float>(k);
+    }
+
+    /// Quanto dura a sequencia inteira. Sao N investidas com N-1 pausas entre
+    /// elas, entao a ultima pausa nao entra. Util para escolher o cooldown do
+    /// ataque sem chutar: `ritmo.DuracaoTotal() + folga`.
+    [[nodiscard]] constexpr float DuracaoTotal() const {
+        return repeticoes <= 0 ? 0.0f
+                               : Ciclo() * static_cast<float>(repeticoes) - duracaoPausa;
+    }
+};
+
+/**
  * @brief Onde um pulso investida/pausa esta num dado instante.
  */
 struct FaseDoPulso {
@@ -132,10 +169,7 @@ struct FaseDoPulso {
  * ser testada sem subir o jogo. O behavior fica sendo so a ponte com o motor.
  *
  * @param tempoDecorrido segundos desde que o projetil nasceu
- * @param atraso segundos ate o primeiro ciclo comecar
- * @param repeticoes quantos ciclos investida+pausa acontecem ao todo
+ * @param ritmo os tempos do ataque, compartilhados com a Motion
  */
-FaseDoPulso CalcularFaseDoPulso(float tempoDecorrido, float atraso,
-                                float duracaoInvestida, float duracaoPausa,
-                                float moduloInvestida, float moduloPausa,
-                                int repeticoes);
+FaseDoPulso CalcularFaseDoPulso(float tempoDecorrido, const RitmoDeCiclos& ritmo,
+                                float moduloInvestida, float moduloPausa);

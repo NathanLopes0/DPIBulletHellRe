@@ -87,7 +87,6 @@ void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm)
                 {   // ORIGINAL: if (rand<0.2) insertMotion<PathBehavior>(PathShapes::Reta(), 280.f, 1.2f, Mira(Mira::MirarNoJogador));
                     // TESTE - ZIGZAG: quinas exatas, legiveis. 6 pernas de 85px.
                     p->insertMotion<PathBehavior>(PathShapes::Zigzag(85.f, 50.f, 6), 200.f);
-                    p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
 
                 }
             }
@@ -125,7 +124,6 @@ void SallesFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm)
                 // TESTE - ARCO alternado: as barrigas se cruzam no meio do voo.
                 const float lat = (index % 2 == 0) ? 110.f : -110.f;
                 p->insertMotion<PathBehavior>(PathShapes::Arc(500.f, lat, 10), 190.f);
-                p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
             }
         }
     );
@@ -145,22 +143,21 @@ void SallesFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm) {
 
     // 1 . Configura os padrões fixos do estado três
     auto params = std::make_unique<AttackParams>();
-    params->numProjectiles = 5;
-    params->projectileSpeed = 400.0f;
-    params->angle = 50.f;
+    params->numProjectiles = 8;
+    params->projectileSpeed = 600.0f;
+    params->angle = 80.f;
 
     auto spawner = boss->GetProjectileFactory("Capivara");
 
     boss->AddAttackPattern(STATE_NAME,
         std::make_unique<AngledAttack>(spawner, boss),
         std::move(params),
-        0.9f,
+        0.8f,
         [](Projectile* p, int index) {
             {   // ORIGINAL: if (rand<0.5) insertMotion<PathBehavior>(PathShapes::Reta(), 0.f, 1.8f, Mira(Mira::MirarNoJogador));
                 // TESTE - LACO: uma forma escrita, 5 lacos girados (um por
                 // projetil do leque), pelo alinhamento automatico do caminho.
-                p->insertMotion<PathBehavior>(PathShapes::Loop(85.f, 500.f, 12), 175.f);
-                p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
+                p->insertMotion<PathBehavior>(PathShapes::Loop(90.f, 400.f, 6), 600.f);
             }
         }
     );
@@ -213,7 +210,6 @@ void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm) {
         [](Projectile* p, int i) {
             {   // ORIGINAL: if (rand<0.4) insertMotion<PathBehavior>(PathShapes::Reta(), 0.f, 1.6f, Mira(Mira::MirarNoJogador));
                 // TESTE - AS TRES FORMAS no mesmo disparo, uma por projetil.
-                // E o teste que mais interessa: da para comparar lado a lado.
                 switch (i % 3) {
                     case 0:  p->insertMotion<PathBehavior>(PathShapes::Loop(80.f, 500.f, 12), 175.f); break;
                     case 1:  p->insertMotion<PathBehavior>(PathShapes::Arc(480.f, 115.f, 10), 190.f); break;
