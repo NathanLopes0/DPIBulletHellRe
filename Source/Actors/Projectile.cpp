@@ -45,7 +45,18 @@ void Projectile::OnUpdate(float deltaTime) {
             }),
             mModifiers.end());
 
+    mTempoDeVida += deltaTime;
+
     if (IsOffScreen()) {
+        MarkDead();
+    }
+    else if (mTempoDeVida >= kTempoDeVidaMaximo) {
+        // Nao deveria acontecer em jogo. Se acontecer, algum ataque configurou
+        // um projetil que nao consegue sair da tela - o log diz qual.
+        SDL_Log("Projetil vivo ha %.0fs sem sair da tela (|v| = %.0f px/s). "
+                "Encerrado pelo tempo maximo de vida.",
+                mTempoDeVida,
+                GetComponent<RigidBodyComponent>() ? GetComponent<RigidBodyComponent>()->GetVelocity().Length() : 0.f);
         MarkDead();
     }
 }
@@ -66,6 +77,7 @@ void Projectile::Reset() {
     // comportamento "fantasma" da vida anterior dele no pool.
     mMotion.reset();
     mModifiers.clear();
+    mTempoDeVida = 0.0f;
 
     mForwardSpeed = 0.0f;
 
@@ -124,6 +136,7 @@ void Projectile::OnEnterPool() {
     // Behaviors nao terminados nao podem sobreviver ate a proxima vida.
     mMotion.reset();
     mModifiers.clear();
+    mTempoDeVida = 0.0f;
 
     SetState(ActorState::Inactive);
 }

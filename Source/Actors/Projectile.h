@@ -106,6 +106,23 @@ protected:
     //Behavior structures and methods
     // A Motion e unica; os Modifiers se acumulam. Separar os dois torna a
     // exclusividade uma propriedade do tipo, e nao um aviso em comentario.
+    /**
+     * @brief Tempo maximo que um projetil pode viver, em segundos.
+     *
+     * Rede de seguranca do motor. Ate agora um projetil so morria saindo da
+     * tela (IsOffScreen) ou por Kill(), e isso deixa buracos: um projetil lento
+     * demais para atravessar a tela dentro da batalha, ou com posicao NaN - na
+     * qual toda comparacao e falsa e IsOffScreen nunca dispara - viveria para
+     * sempre, ocupando uma vaga do pool.
+     *
+     * O valor e folgado de proposito: nenhum ataque legitimo chega perto dele,
+     * entao isto nao e mecanica de jogo, e sim a ultima linha de defesa contra
+     * um ataque mal configurado.
+     */
+    static constexpr float kTempoDeVidaMaximo = 20.0f;
+
+    float mTempoDeVida = 0.0f;
+
     std::unique_ptr<ProjectileBehavior> mMotion;
     std::vector<std::unique_ptr<ProjectileBehavior>> mModifiers;
 

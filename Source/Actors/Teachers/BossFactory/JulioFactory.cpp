@@ -77,7 +77,7 @@ void JulioFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm) {
     const std::string STATE_NAME = "StateOne";
 
     auto params = std::make_unique<AttackParams>();
-    params->numProjectiles = 13;
+    params->numProjectiles = 1;
     params->projectileSpeed = 175.f;
     params->angle = 150.f;
 
@@ -86,7 +86,7 @@ void JulioFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm) {
 
     auto spawner = boss->GetProjectileFactory("Dados");
     static constexpr RitmoDeCiclos kRitmoInvestida{
-        /*atraso*/ 0.0f, /*investida*/ 0.6f, /*pausa*/ 1.0f, /*repeticoes*/ 7};
+        /*atraso*/ 0.0f, /*investida*/ 0.35f, /*pausa*/ 1.0f, /*repeticoes*/ 7};
 
     // Sem configurator: o escalonamento da propria WaveAttack ja da o carater
     // da fase. Nao use WobbleBehavior aqui - a WaveAttack insere Deactivate +
@@ -99,7 +99,7 @@ void JulioFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm) {
         [](Projectile* p, int) {
             p->SetScale(3.f);
             p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Perseguicao");
-            AplicarInvestidaRepetida(p, kRitmoInvestida, 900.f, 15.f);
+            AplicarInvestidaRepetida(p, kRitmoInvestida, 800.f, 15.f);
         });
 
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
@@ -130,19 +130,20 @@ void JulioFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm) {
     const std::string STATE_NAME = "StateTwo";
 
     auto params = std::make_unique<AttackParams>();
-    params->numProjectiles = 16;
-    params->projectileSpeed = 205.f;
+    params->numProjectiles = 10;
+    params->projectileSpeed = 305.f;
+    params->angle = 180.f;
 
     auto spawner = boss->GetProjectileFactory("Dados");
 
     boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<CircleSpreadAttack>(spawner, boss),
+        std::make_unique<AngledAttack>(spawner, boss),
         std::move(params),
         1.3f,
         [](Projectile* p, const int index) {
-            const float forca = (index == 1) ? 1.2f : 2.4f;
+            const float forca = (index == 1) ? 1.4f : 1.8f;
             p->SetScale(2.f);
-            p->insertMotion<TrackingBehavior>(0.3f, forca, 4.8f);
+            p->insertMotion<TrackingBehavior>(0.8f, forca, 4.8f);
         });
 
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
@@ -158,19 +159,7 @@ void JulioFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm) {
 // FASE 3 - "Aprendeu como voce se move"
 //
 // UM projetil rapido por vez, com cooldown curto: um fluxo continuo de balas
-// individualmente legiveis, em vez de uma rajada que o jogador so pode
-// atravessar torcendo.
-//
-// Cada tiro tem dois tempos:
-//   1. Sai adiantado, mirando em onde o jogador ESTARA (ver
-//      Julio::CustomizeAttackParams e Boss::GetPredictedPlayerDirection).
-//   2. Depois de 0.8s voando reto, da UMA correcao curta e moderada.
-//
-// A correcao e deliberadamente fraca e limitada. Se fosse uma perseguicao de
-// verdade, ela desfaria o contrajogo da previsao: a licao da fase e "seja
-// imprevisivel", e uma bala que corrige de qualquer jeito faz ser imprevisivel
-// deixar de ajudar. Fraca assim, o jogador ganha DOIS tempos de desvio, e a
-// leitura fica "ele errou a previsao e tentou consertar na marra".
+// individualmente legiveis.
 //
 // Movimento: o boss se fixa no centro. Parou de procurar, agora so calcula.
 //
@@ -235,7 +224,7 @@ void JulioFactory::ConfigureStateThree(Boss* boss, FSMComponent* fsm) {
 
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
                                                       STATE_THREE_DURATION,
-                                                      "");
+                                                      "StateFinal");
     fsm->RegisterState(std::move(stateObj));
 
     boss->RegisterMovementStrategy(STATE_NAME,
@@ -243,27 +232,18 @@ void JulioFactory::ConfigureStateThree(Boss* boss, FSMComponent* fsm) {
 }
 
 // ---------------------------------------------------------------------------
-// FASE FINAL - "Entrou em loop" (repescagem, nota entre 40 e 60)
 //
-// PRECISA existir mesmo o Julio sendo um boss de 3 fases. Se a nota cair nessa
-// faixa ao fim da fase 3, a FSM tenta ir para "StateFinal"; sem o estado
-// registrado, SetState apenas loga o erro e o boss trava.
-//
-// Tema: o modelo travou. A piada e de graca para calouro de computacao - as
-// balas entram em LOOP antes de vir para cima de voce.
-//
-// Esta e tambem a fase de teste do PathBehavior. Escolhida de proposito: e a
+// Esta e a fase de teste do PathBehavior. Escolhida de proposito: e a
 // mais lenta e a mais permissiva da luta, entao da para observar o caminho com
-// calma e julgar se a mecanica se paga. Continua sendo a fase mais facil, que e
-// o papel de uma repescagem.
+// calma e julgar se a mecanica se paga.
 // ---------------------------------------------------------------------------
 void JulioFactory::ConfigureStateFinal(Boss* boss, FSMComponent* fsm) {
 
     const std::string STATE_NAME = "StateFinal";
 
     auto params = std::make_unique<AttackParams>();
-    params->numProjectiles = 6;
-    params->projectileSpeed = 150.f;
+    params->numProjectiles = 12;
+    params->projectileSpeed = 250.f;
 
     auto spawner = boss->GetProjectileFactory("Dados");
 
@@ -274,11 +254,9 @@ void JulioFactory::ConfigureStateFinal(Boss* boss, FSMComponent* fsm) {
     boss->AddAttackPattern(STATE_NAME,
         std::make_unique<CircleSpreadAttack>(spawner, boss),
         std::move(params),
-        2.6f,
+        0.4f,
         [](Projectile* p, int) {
-            // Raio pequeno e velocidade baixa: a volta precisa ser LENTA para
-            // ser lida. Um laco rapido vira um borrao e perde a graca.
-            p->insertMotion<PathBehavior>(PathShapes::Loop(70.f, 500.f, 12), 150.f);
+            p->insertMotion<PathBehavior>(PathShapes::Loop(80.f, 500.f, 4), 250.f);
         });
 
     auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
@@ -287,5 +265,5 @@ void JulioFactory::ConfigureStateFinal(Boss* boss, FSMComponent* fsm) {
     fsm->RegisterState(std::move(stateObj));
 
     boss->RegisterMovementStrategy(STATE_NAME,
-        std::make_unique<RandomWanderStrategy>(4.5f, 85.f));
+        std::make_unique<RandomWanderStrategy>(0.8f, 185.f));
 }
