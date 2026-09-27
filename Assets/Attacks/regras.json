@@ -1,0 +1,25 @@
+{
+  "julio_fase2": [
+    { "quando": "pares",
+      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 3.2, "duracao": 2.4 } },
+    { "quando": "impares",
+      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 2.4 } }
+  ],
+
+  "exemplo_teleguiado": [
+    { "chance": 0.2,
+      "motion": { "tipo": "Path", "forma": "Reta", "velocidade": 280,
+                  "atraso": 1.2, "mira": "MirarNoJogador" },
+      "animacao": "Homing" }
+  ],
+
+  "exemplo_cacador": [
+    { "motion": { "tipo": "MiraPeriodica",
+                  "ritmo": { "investida": 0.2, "pausa": 1.0, "repeticoes": 6 } },
+      "modifiers": [
+        { "tipo": "PulsoDeVelocidade",
+          "ritmo": { "investida": 0.2, "pausa": 1.0, "repeticoes": 6 },
+          "investida": 640, "pausa": 15 }
+      ] }
+  ]
+}

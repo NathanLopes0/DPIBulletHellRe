@@ -69,6 +69,10 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Behaviors.cpp
         Source/Attacks/PathShapes.cpp
         Source/Attacks/PathShapesArquivo.cpp
+        Source/Attacks/RegrasDeAtaque.cpp
+        Source/Attacks/RegrasDeAtaque.h
+        Source/Attacks/RegrasDeAtaqueArquivo.cpp
+        Source/Attacks/RegrasDeAtaqueArquivo.h
         Source/Attacks/PathAim.cpp
         Source/Attacks/PathAim.h
         Source/Attacks/Receitas.h
@@ -155,10 +159,13 @@ add_executable(dpi_tests
         tests/test_motion_contract.cpp
         tests/test_investida.cpp
         tests/test_formas.cpp
+        tests/test_regras.cpp
         Source/Attacks/PathAim.cpp
         Source/Attacks/PathAim.h
         Source/Attacks/PathShapes.cpp
         Source/Attacks/PathShapes.h
+        Source/Attacks/RegrasDeAtaque.cpp
+        Source/Attacks/RegrasDeAtaque.h
         Source/Math.cpp
         Source/Math.h
         Source/Attacks/Receitas.h
