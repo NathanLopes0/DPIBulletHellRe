@@ -5,6 +5,8 @@
 #include "PathShapes.h"
 
 #include <map>
+#include "../Json.h"
+#include <string>
 
 namespace {
 
@@ -126,6 +128,103 @@ Path Zigzag(const float step, const float amplitude, int legs) {
 
 size_t CachedShapeCount() {
     return gCacheDeFormas.size();
+}
+
+}
+
+// ===========================================================================
+// Formas vindas de arquivo
+// ===========================================================================
+
+namespace {
+
+    /// Monta uma forma a partir de um gerador em C++. Devolve vazio se o tipo
+    /// nao existir, para que o chamador possa relatar o problema.
+    std::vector<Vector2> DoGerador(const std::string& tipo, float a, float b, int n) {
+        if (tipo == "Reta")   return *PathShapes::Reta(a);
+        if (tipo == "Arc")    return *PathShapes::Arc(a, b, n);
+        if (tipo == "Loop")   return *PathShapes::Loop(a, b, n);
+        if (tipo == "Zigzag") return *PathShapes::Zigzag(a, b, n);
+        return {};
+    }
+
+}
+
+namespace PathShapes {
+
+FormasLidas LerFormas(const std::string& textoJson) {
+
+    FormasLidas saida;
+
+    nlohmann::json raiz;
+    try {
+        raiz = nlohmann::json::parse(textoJson);
+    }
+    catch (const std::exception& e) {
+        saida.problemas.emplace_back(std::string("o arquivo nao e um JSON valido: ") + e.what());
+        return saida;
+    }
+
+    if (!raiz.is_object()) {
+        saida.problemas.emplace_back("o arquivo deveria ser um objeto com um nome de forma por chave");
+        return saida;
+    }
+
+    for (auto it = raiz.begin(); it != raiz.end(); ++it) {
+
+        const std::string& nome = it.key();
+        const auto& corpo = it.value();
+
+        if (!corpo.is_object()) {
+            saida.problemas.emplace_back("forma \"" + nome + "\": deveria ser um objeto com \"pontos\" ou \"gerador\"");
+            continue;
+        }
+
+        std::vector<Vector2> pontos;
+
+        if (corpo.contains("pontos")) {
+            const auto& lista = corpo["pontos"];
+            if (!lista.is_array() || lista.empty()) {
+                saida.problemas.emplace_back("forma \"" + nome + "\": \"pontos\" deveria ser uma lista nao vazia");
+                continue;
+            }
+            bool ok = true;
+            for (const auto& par : lista) {
+                if (!par.is_array() || par.size() != 2 || !par[0].is_number() || !par[1].is_number()) {
+                    saida.problemas.emplace_back("forma \"" + nome + "\": cada ponto deveria ser um par [x, y] de numeros");
+                    ok = false;
+                    break;
+                }
+                pontos.emplace_back(par[0].get<float>(), par[1].get<float>());
+            }
+            if (!ok) continue;
+        }
+        else if (corpo.contains("gerador")) {
+            const auto& g = corpo["gerador"];
+            if (!g.is_object() || !g.contains("tipo") || !g["tipo"].is_string()) {
+                saida.problemas.emplace_back("forma \"" + nome + "\": \"gerador\" precisa de um campo \"tipo\"");
+                continue;
+            }
+            const std::string tipo = g["tipo"].get<std::string>();
+            const float a = g.value("a", 0.0f);
+            const float b = g.value("b", 0.0f);
+            const int   n = g.value("n", 10);
+            pontos = DoGerador(tipo, a, b, n);
+            if (pontos.empty()) {
+                saida.problemas.emplace_back("forma \"" + nome + "\": gerador \"" + tipo +
+                                             "\" nao existe (use Reta, Arc, Loop ou Zigzag)");
+                continue;
+            }
+        }
+        else {
+            saida.problemas.emplace_back("forma \"" + nome + "\": precisa de \"pontos\" ou \"gerador\"");
+            continue;
+        }
+
+        saida.formas.emplace(nome, std::move(pontos));
+    }
+
+    return saida;
 }
 
 }

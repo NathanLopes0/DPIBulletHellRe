@@ -6,6 +6,8 @@
 
 #include <vector>
 #include <memory>
+#include <map>
+#include <string>
 #include "../Math.h"
 
 /**
@@ -99,6 +101,51 @@ namespace PathShapes {
      */
     Path Zigzag(float step, float amplitude, int legs = 5);
 
+
+    /**
+     * @brief Resultado da leitura de um arquivo de formas.
+     *
+     * Os problemas vem separados em vez de virarem log aqui dentro: assim a
+     * leitura continua PURA e testavel, e quem chama decide como reportar.
+     * Cada problema e uma frase pronta dizendo qual forma e qual campo.
+     */
+    struct FormasLidas {
+        std::map<std::string, std::vector<Vector2>> formas;
+        std::vector<std::string> problemas;
+    };
+
+    /**
+     * @brief Le formas a partir do TEXTO de um arquivo JSON. Funcao PURA:
+     * nao abre arquivo, nao escreve log.
+     *
+     * Formato aceito, com as duas maneiras de descrever uma forma:
+     *
+     *   {
+     *     "Laco":     { "gerador": {"tipo":"Loop","a":70,"b":500,"n":12} },
+     *     "Serpente": { "pontos": [[60,-40],[120,-50],[160,-20]] }
+     *   }
+     *
+     * "gerador" reaproveita as formas que ja existem em C++ (Reta, Arc, Loop,
+     * Zigzag), com os parametros na ordem em que a funcao os recebe. "pontos" e
+     * a lista literal, em espaco de caminho: +X e a direcao de disparo.
+     *
+     * Uma forma invalida e ignorada e vira uma frase em 'problemas' - o arquivo
+     * inteiro nunca e descartado por causa de uma entrada errada.
+     */
+    FormasLidas LerFormas(const std::string& textoJson);
+
+    /**
+     * @brief Devolve, pelo nome, uma forma definida em Assets/Paths/formas.json.
+     *
+     * O arquivo e lido UMA vez, na primeira chamada, e as formas entram no mesmo
+     * cache Flyweight das formas em codigo.
+     *
+     * Arquivo ausente, JSON malformado ou nome inexistente devolvem uma reta e
+     * escrevem UMA linha no log dizendo exatamente o que faltou - nunca derrubam
+     * o jogo nem fazem o ataque sumir em silencio. E a mesma filosofia do
+     * placeholder de textura.
+     */
+    Path DoArquivo(const std::string& nome);
 
     /** @brief Quantas formas distintas estao no cache. So para diagnostico. */
     size_t CachedShapeCount();
