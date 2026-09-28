@@ -53,7 +53,18 @@ public:
             return recycled;
         }
 
-        return createFn();
+        auto novo = createFn();
+
+        // Marca a aparencia de fabrica aqui, e nao dentro de cada
+        // createProjectile: este e o unico ponto por onde TODA instancia nova
+        // passa, e o instante em que ela ainda esta como a fabrica a quis -
+        // nenhum configurator de ataque rodou. Marcar depois capturaria a
+        // aparencia deixada por um ataque, em vez do padrao.
+        if (novo) {
+            novo->MarcarPadraoDeFabrica();
+        }
+
+        return novo;
     }
 
     // Devolve uma instância ao pool para reuso futuro. NÃO destrói o objeto:

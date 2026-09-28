@@ -23,6 +23,15 @@ public:
     //Set the current active animation
     void SetAnimation(const std::string& name);
 
+    /**
+     * @brief Nome da animacao em curso.
+     *
+     * Existe para que Projectile::Reset possa devolver a animacao que a fabrica
+     * escolheu. Sem isto, um projetil reciclado sairia do pool com a animacao do
+     * ataque anterior.
+     */
+    [[nodiscard]] const std::string& GetAnimation() const { return mAnimName; }
+
     //Use to pause/unpause the animation
     void SetIsPaused(bool pause) { mIsPaused = pause; }
 

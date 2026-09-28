@@ -10,6 +10,7 @@
 #include "../Attacks/Behaviors.h"
 #include "../Components/RigidBodyComponent.h"
 #include "../Components/DrawComponents/DrawComponent.h"
+#include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Components/ColliderComponents/ColliderComponent.h"
 
 Projectile::Projectile(Scene *scene, Actor *owner)
@@ -70,6 +71,17 @@ void Projectile::OnCollision(Actor *other) {
 
 }
 
+void Projectile::MarcarPadraoDeFabrica() {
+
+    mEscalaPadrao = GetScale();
+
+    if (const auto anim = GetComponent<DrawAnimatedComponent>()) {
+        mAnimacaoPadrao = anim->GetAnimation();
+    }
+
+    mPadraoMarcado = true;
+}
+
 void Projectile::Reset() {
     // Limpa TODOS os behaviors, inclusive os que não terminaram (ex: um
     // PathBehavior com atraso que nunca chegou a ativar porque o projétil
@@ -101,6 +113,20 @@ void Projectile::Reset() {
     // Rotacao tambem e estado da vida anterior: LaserAttack chama SetRotation e
     // nada limpava isso, entao um projetil reciclado voltava torto.
     SetRotation(0.0f);
+
+    // Devolve a aparencia de fabrica. Sem isto, um projetil que um ataque
+    // aumentou ou cuja animacao um ataque trocou sairia do pool assim, e o
+    // ataque seguinte herdaria a aparencia do anterior - inclusive a hitbox,
+    // porque o colisor multiplica o raio pela escala.
+    if (mPadraoMarcado) {
+        SetScale(mEscalaPadrao);
+
+        if (!mAnimacaoPadrao.empty()) {
+            if (const auto anim = GetComponent<DrawAnimatedComponent>()) {
+                anim->SetAnimation(mAnimacaoPadrao);
+            }
+        }
+    }
 
     // NOTA: a posicao NAO e resetada aqui de proposito - ver bug 8 da analise.
     // Toda strategy hoje chama SetPosition logo apos o Acquire, exceto quando a

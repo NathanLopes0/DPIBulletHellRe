@@ -7,6 +7,7 @@
 
 #include "Actor.h"
 #include <vector>
+#include <string>
 #include <memory>
 #include <type_traits>
 #include "../Math.h"
@@ -73,6 +74,20 @@ public:
     virtual void Reset();
 
     /**
+     * @brief Registra a aparencia com que a fabrica construiu este projetil,
+     * para que Reset() possa devolve-la.
+     *
+     * Chamado por ProjectilePool::Acquire imediatamente depois da construcao -
+     * o unico instante em que o projetil esta exatamente como a fabrica o quis,
+     * porque nenhum configurator de ataque rodou ainda.
+     *
+     * O padrao NAO e "escala 1, sem animacao": cada fabrica de projetil tem o
+     * seu (a do Julio constroi com escala 2 e animacao "Coleta", a do Ricardo
+     * com "Normal"). Por isso o padrao e capturado em vez de ser uma constante.
+     */
+    void MarcarPadraoDeFabrica();
+
+    /**
      * @brief Define a Motion do projetil: quem ESCREVE a velocidade.
      *
      * Exclusivo por construcao - chamar duas vezes SUBSTITUI a anterior, em vez
@@ -122,6 +137,14 @@ protected:
     static constexpr float kTempoDeVidaMaximo = 20.0f;
 
     float mTempoDeVida = 0.0f;
+
+    /// Aparencia de fabrica, capturada por MarcarPadraoDeFabrica e devolvida por
+    /// Reset(). A escala tambem vale para o colisor: CircleColliderComponent
+    /// multiplica o raio por GetScale(), entao um projetil que volta do pool com
+    /// escala errada tem a hitbox errada, nao so o sprite.
+    float mEscalaPadrao = 1.0f;
+    std::string mAnimacaoPadrao;
+    bool mPadraoMarcado = false;
 
     std::unique_ptr<ProjectileBehavior> mMotion;
     std::vector<std::unique_ptr<ProjectileBehavior>> mModifiers;
