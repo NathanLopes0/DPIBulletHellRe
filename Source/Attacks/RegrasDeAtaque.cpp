@@ -4,7 +4,7 @@
 
 #include "RegrasDeAtaque.h"
 
-#include "../Json.h"
+#include "../JsonDeDados.h"
 
 namespace {
 
@@ -91,7 +91,7 @@ RegrasLidas LerRegras(const std::string& textoJson) {
 
     nlohmann::json raiz;
     try {
-        raiz = nlohmann::json::parse(textoJson);
+        raiz = LerJsonDeDados(textoJson);
     }
     catch (const std::exception& e) {
         saida.problemas.emplace_back(std::string("o arquivo nao e um JSON valido: ") + e.what());

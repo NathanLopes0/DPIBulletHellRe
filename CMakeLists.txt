@@ -7,6 +7,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Game.cpp
         Source/Game.h
         Source/CSV.h
+        Source/Json.h
+        Source/JsonDeDados.h
         Source/Scenes/Scene.cpp
         Source/Scenes/Scene.h
         Source/Scenes/Scene.h

@@ -136,3 +136,32 @@ TEST_CASE("RegraSeAplica: indices, pares e impares") {
     CHECK(RegraSeAplica(im, 3, 0.f));
     CHECK_FALSE(RegraSeAplica(im, 4, 0.f));
 }
+
+// ---------------------------------------------------------------------------
+// Comentarios
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Regras: o arquivo aceita comentario") {
+    // Mesma razao de test_formas: o porque de cada numero precisa caber no
+    // arquivo, senao mexer nele seis meses depois e adivinhacao.
+    const auto r = LerRegras(R"({
+        "julio_fase2": [
+            // Forca diferente entre par e impar: o jogador ve dois
+            // comportamentos no mesmo anel e aprende a ler qual e qual.
+            { "quando": "pares",
+              "motion": {"tipo":"Tracking","atraso":0.3,"forca":3.2,"duracao":2.4} }
+        ]
+    })");
+    CHECK(r.problemas.empty());
+    REQUIRE(r.conjuntos.count("julio_fase2") == 1);
+    REQUIRE(r.conjuntos.at("julio_fase2").size() == 1);
+    CHECK(r.conjuntos.at("julio_fase2")[0].motion.forca == doctest::Approx(3.2f));
+}
+
+TEST_CASE("Regras: texto que nao e JSON continua sendo recusado") {
+    // Aceitar comentario NAO e aceitar qualquer coisa: o erro de digitacao
+    // precisa continuar virando uma frase de problema em vez de passar calado.
+    const auto r = LerRegras(R"({ "x": [ { "motion": {"tipo":"Tracking"} )");
+    CHECK_FALSE(r.problemas.empty());
+    CHECK(r.conjuntos.empty());
+}

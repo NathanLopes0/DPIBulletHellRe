@@ -79,3 +79,20 @@ TEST_CASE("Formas: arquivo vazio nao e erro, so nao traz formas") {
     CHECK(r.formas.empty());
     CHECK(r.problemas.empty());
 }
+
+// ---------------------------------------------------------------------------
+// Comentarios
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Formas: o arquivo aceita comentario") {
+    // O JSON padrao nao tem comentario, e sem ele migrar codigo comentado para
+    // dados jogaria a explicacao fora. Ver Source/JsonDeDados.h.
+    const auto r = LerFormas(R"({
+        // Doze pontos: mais que isso e o projetil gasta quadro "chegando" em
+        // cada waypoint e a curva fica truncada.
+        "Laco": { "gerador": {"tipo":"Loop","a":70,"b":500,"n":12} }   // lento de proposito
+        /* o bloco tambem vale */
+    })");
+    CHECK(r.problemas.empty());
+    CHECK(r.formas.count("Laco") == 1);
+}
