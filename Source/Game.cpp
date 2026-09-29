@@ -76,7 +76,6 @@ bool Game::Initialize() {
     mTicksCount = SDL_GetTicks();
 
     // Put all Grades to 40;
-    InitializeGrades();
     LoadInitialScene();
 
     return true;
@@ -339,14 +338,6 @@ IBossFactory *Game::GetFactory(size_t n) {
     return nullptr;
 }
 
-void Game::InitializeGrades() {
-
-    mGrades[INF213] = 40;
-    mGrades[INF250] = 40;
-    mGrades[INF330] = 40;
-    mGrades[INF420] = 40;
-
-}
 
 Scene::SceneType Game::GetCurrSceneType() const {
     return mScene->GetType();
@@ -360,19 +351,17 @@ void Game::RequestSceneChange(const Scene::SceneType nextScene) {
 // Função auxiliar simples: Passou se nota >= 60
 bool Game::HasPassed(const GameSubject subject) {
 
-    // GetGrade retorna 0.0 se a matéria ainda não foi jogada, então funciona.
-    return GetGrade(subject) >= 60.0f;
+    // Le o RECORDE, nao a ultima nota: assim uma tentativa ruim nao re-tranca
+    // uma materia que o jogador ja tinha passado.
+    return mProgresso.Aprovado(static_cast<int>(subject));
 }
 
 // Função genérica para contar aprovações em uma lista
 int Game::CountPassedInList(const std::vector<GameSubject>& subjects) {
-    int passedCount = 0;
-    for (const auto& s : subjects) {
-        if (HasPassed(s)) {
-            passedCount++;
-        }
-    }
-    return passedCount;
+    std::vector<int> materias;
+    materias.reserve(subjects.size());
+    for (const auto& s : subjects) materias.push_back(static_cast<int>(s));
+    return mProgresso.QuantasAprovadas(materias);
 }
 
 bool Game::IsStageUnlocked(GameSubject subject) {

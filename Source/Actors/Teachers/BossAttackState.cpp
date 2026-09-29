@@ -33,7 +33,8 @@ void BossAttackState::HandleStateTransition(float stateTime)
         if (const auto battle = dynamic_cast<Battle*>(scene)) {
             const auto selectedStage = game->GetSelectedStage();
 
-            if (const auto grade = game->GetGrade(selectedStage); grade >= 40 && grade < 60) {
+            // A nota vem do Battle: e a da batalha em curso, nao a gravada.
+            if (const auto grade = battle->GetNotaAtual(); grade >= 40 && grade < 60) {
                 mNextStateName = "StateFinal";
             }
             else {
@@ -46,10 +47,8 @@ void BossAttackState::HandleStateTransition(float stateTime)
         const auto scene = mFSM->GetOwner()->GetScene();
         const auto game = scene->GetGame();
 
-        const auto selectedStage = game->GetSelectedStage();
-        const auto grade = game->GetGrade(selectedStage);
         if (const auto battle = dynamic_cast<Battle*>(scene)) {
-            battle->FinishBattle(grade >= 60);
+            battle->FinishBattle(battle->GetNotaAtual() >= 60);
         }
     }
 

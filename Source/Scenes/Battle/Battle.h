@@ -42,6 +42,17 @@ public:
 
     void FinishBattle(bool approved);
 
+    /**
+     * @brief A nota da batalha EM CURSO.
+     *
+     * Quem precisa dela e a maquina de estados do chefe, para decidir entre a
+     * repescagem e o fim. Antes ela era lida de Game::GetGrade, que e o
+     * armazenamento persistente - o que tinha dois problemas: a nota so chegava
+     * la quando algo marcava 'changedGrade' (entao podia estar atrasada), e
+     * escrever nela durante a batalha fazia as regras de desbloqueio oscilarem.
+     */
+    [[nodiscard]] float GetNotaAtual() const { return mGrade; }
+
 
 protected:
     void TimeBarUpdate() const;

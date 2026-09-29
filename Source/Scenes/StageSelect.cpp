@@ -350,7 +350,9 @@ void StageSelect::UpdateStageInfo() const {
     if (!mScoreInfoActor) return;
 
     const Game::GameSubject subject = mSelectedSubject;
-    const float highScore = mGame->GetGrade(subject);
+    // Agora e de fato o recorde: antes mostrava a ULTIMA nota, entao uma
+    // tentativa ruim baixava o numero que se chamava highScore.
+    const float highScore = mGame->GetMelhorNota(subject);
 
     std::stringstream ss;
     ss << "Maior Nota: " << std::fixed << std::setprecision(1) << highScore;

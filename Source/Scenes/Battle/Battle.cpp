@@ -52,8 +52,8 @@ void Battle::Load() {
     // 1. Criar os sistemas primeiro
     mProjectileManager = std::make_unique<ProjectileManager>(this);
 
-    mGrade = mGame->GetGrade(mStage);
-    if (mGrade < 40) mGrade = 40;
+    // O piso de 40 vive em Progresso::NotaDeRetomada.
+    mGrade = mGame->GetNotaDeRetomada(mStage);
 
     // 2. Criar os atores principais
     LoadPlayer();
@@ -457,7 +457,6 @@ void Battle::OnProcessInput(const Uint8* keyState) {
 }
 void Battle::CheckCollisions() {
     if (!mPlayer || !mBoss) return;
-    bool changedGrade = false;
 
     const auto *playerCollider = mPlayer->GetComponent<CircleColliderComponent>();
     const auto *bossCollider = mBoss->GetComponent<CircleColliderComponent>();
@@ -477,7 +476,6 @@ void Battle::CheckCollisions() {
                 mPlayer->OnCollision(bossProj.get());
                 bossProj->OnCollision(mPlayer);
                 GradeDown();
-                changedGrade = true;
             }
         }
     }
@@ -490,7 +488,6 @@ void Battle::CheckCollisions() {
                 mBoss->OnCollision(playerProj.get());
                 playerProj->OnCollision(mBoss);
                 GradeUp();
-                changedGrade = true;
             }
         }
     }
@@ -501,7 +498,6 @@ void Battle::CheckCollisions() {
         mPlayer->OnCollision(mBoss);
         mBoss->OnCollision(mPlayer);
         GradeDown();
-        changedGrade = true;
     }
 
     // --- REGRA 4 - Player vs ExtraPoints
@@ -528,9 +524,9 @@ void Battle::CheckCollisions() {
         }
     }
 
-    if (changedGrade) {
-        mGame->SetGrade(mStage, mGrade);
-    }
+    // A nota NAO e mais escrita aqui. Gravar durante a batalha fazia as regras
+    // de desbloqueio oscilarem a cada dano, e podia re-trancar uma materia
+    // aprovada. Quem grava e FinishBattle, uma vez, no fim.
 
 }
 
@@ -581,6 +577,14 @@ void Battle::FinishBattle(bool approved) {
     if (mIsEnding) return; // Já está acabando, ignora chamadas duplicadas
 
     mIsEnding = true;
+
+    // O unico ponto em que a nota vai para o armazenamento persistente. Antes
+    // isto nao acontecia em lugar nenhum: a nota chegava la por efeito colateral
+    // do laco de colisoes, entao o +10 de um ponto extra usado no ultimo
+    // instante era perdido.
+    if (mGame) {
+        mGame->RegistrarNota(mStage, mGrade);
+    }
     for (auto& actor : mActors) {
         actor->SetState(ActorState::Paused);
     }

@@ -10,6 +10,7 @@
 #include <SDL.h>
 #include "Math.h"
 #include "Scenes/Scene.h"
+#include "Progresso.h"
 
 class IBossFactory;
 class Actor;
@@ -80,11 +81,29 @@ public:
     [[nodiscard]] GameSubject GetSelectedStage() const { return mSelectedStage; }
     void SetSelectedStage(const GameSubject subject) { mSelectedStage = subject; }
 
-    //Grade functions
-    float GetGrade(int n) { return mGrades[static_cast<GameSubject>(n)]; }
-    float GetGrade(const GameSubject subject) { return mGrades[subject]; }
-    void SetGrade(const GameSubject subject, const float grade) { mGrades[subject] = grade; }
-    void SetGrade(int n, const float grade) { mGrades[static_cast<GameSubject>(n)] = grade; }
+    // ---- Notas -------------------------------------------------------------
+    // O mapa unico de notas foi trocado por Progresso, que separa duas coisas
+    // que antes eram a mesma: o RECORDE de cada materia e o PONTO DE RETOMADA
+    // da proxima batalha. A nota da batalha em curso nao fica mais aqui - ela
+    // vive em Battle::mGrade, que e onde ela muda.
+
+    /// @brief A maior nota que o jogador ja tirou. Zero se nunca jogou.
+    /// E o que a tela de selecao mostra e o que as regras de desbloqueio leem.
+    [[nodiscard]] float GetMelhorNota(const GameSubject subject) const {
+        return mProgresso.MelhorNota(static_cast<int>(subject));
+    }
+    [[nodiscard]] float GetMelhorNota(const int n) const { return mProgresso.MelhorNota(n); }
+
+    /// @brief A nota com que a proxima batalha desta materia comeca.
+    [[nodiscard]] float GetNotaDeRetomada(const GameSubject subject) const {
+        return mProgresso.NotaDeRetomada(static_cast<int>(subject));
+    }
+
+    /// @brief Registra o resultado de uma batalha: a retomada passa a ser esta
+    /// nota, e o recorde so sobe. Chamado UMA vez, ao fim da batalha.
+    void RegistrarNota(const GameSubject subject, const float nota) {
+        mProgresso.RegistrarNota(static_cast<int>(subject), nota);
+    }
 
     // Verifica se uma matéria específica está desbloqueada para jogar
     bool IsStageUnlocked(GameSubject subject);
@@ -129,8 +148,8 @@ private:
     //All Boss factories
     std::map<GameSubject, std::unique_ptr<IBossFactory>> mBossFactory;
 
-    //All Grades
-    std::map<GameSubject, float> mGrades;
+    /// Recordes e pontos de retomada. Ver Progresso.h.
+    Progresso mProgresso;
 
     //Selected Stage, used by Battle on ChangeScene()
     GameSubject mSelectedStage{};
@@ -140,7 +159,6 @@ private:
 
 
     void InitializeBossFactory();
-    void InitializeGrades();
 
     void ChangeScene(Scene::SceneType sceneType);
 
