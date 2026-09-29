@@ -33,6 +33,7 @@
 
 #include "doctest.h"
 
+#include <algorithm>
 #include <fstream>
 #include <set>
 #include <sstream>
@@ -132,7 +133,9 @@ TEST_CASE("Dados: toda fase tem pelo menos um ataque") {
     // LerFases ja descarta fase sem ataque, entao isto pega o descarte: a fase
     // some do conjunto e o chefe fica parado 17 segundos naquele trecho.
     const auto r = LerFases(LerArquivo("Attacks/fases.json"));
-    for (const auto& [chefe, fases] : r.conjuntos) {
+    for (const auto& par : r.conjuntos) {
+        const std::string& chefe = par.first;
+        const auto& fases = par.second;
         for (const auto& f : fases) {
             CAPTURE(chefe);
             CAPTURE(f.nome);
@@ -153,7 +156,9 @@ TEST_CASE("Dados: todo conjunto de regras citado em fases.json existe em regras.
     const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
     const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
 
-    for (const auto& [chefe, lista] : fases.conjuntos) {
+    for (const auto& par : fases.conjuntos) {
+        const std::string& chefe = par.first;
+        const auto& lista = par.second;
         for (const auto& f : lista) {
             for (size_t k = 0; k < f.ataques.size(); ++k) {
                 const auto& a = f.ataques[k];
@@ -184,7 +189,9 @@ TEST_CASE("Dados: toda forma citada em regras.json existe em formas.json") {
                       "a forma \"" << d.forma << "\" nao existe em formas.json");
     };
 
-    for (const auto& [nome, lista] : regras.conjuntos) {
+    for (const auto& par : regras.conjuntos) {
+        const std::string& nome = par.first;
+        const auto& lista = par.second;
         for (const auto& r : lista) {
             if (r.temMotion) conferir(nome, r.motion);
             for (const auto& m : r.modifiers) conferir(nome, m);
@@ -198,7 +205,9 @@ TEST_CASE("Dados: as formas citadas nas regras EM LINHA de fases.json tambem exi
     const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
     const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
 
-    for (const auto& [chefe, lista] : fases.conjuntos) {
+    for (const auto& par : fases.conjuntos) {
+        const std::string& chefe = par.first;
+        const auto& lista = par.second;
         for (const auto& f : lista) {
             for (const auto& a : f.ataques) {
                 for (const auto& r : a.regras) {
@@ -226,7 +235,9 @@ TEST_CASE("Dados: uma regra por indice nao aponta para fora da rajada") {
     const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
     const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
 
-    for (const auto& [chefe, lista] : fases.conjuntos) {
+    for (const auto& par : fases.conjuntos) {
+        const std::string& chefe = par.first;
+        const auto& lista = par.second;
         for (const auto& f : lista) {
             for (const auto& a : f.ataques) {
 
@@ -273,7 +284,9 @@ TEST_CASE("Dados: um cooldown derivado do ritmo tem mesmo um ritmo para derivar"
     const auto r = LerFases(LerArquivo("Attacks/fases.json"));
     CHECK_MESSAGE(r.problemas.empty(), "problemas em fases.json:" << Juntar(r.problemas));
 
-    for (const auto& [chefe, lista] : r.conjuntos) {
+    for (const auto& par : r.conjuntos) {
+        const std::string& chefe = par.first;
+        const auto& lista = par.second;
         for (const auto& f : lista) {
             for (const auto& a : f.ataques) {
                 CAPTURE(chefe);
