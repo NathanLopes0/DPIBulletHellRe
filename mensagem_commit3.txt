@@ -1,0 +1,68 @@
+feat(fases): as fases dos quatro chefes vem de arquivo
+
+Salles, Ricardo, Julio e Andre passam a ser montados a partir de
+Assets/Attacks/fases.json. Ajustar duracao, transicao, movimento, quantidade,
+velocidade, angulo, cooldown ou o comportamento dos projeteis deixou de exigir
+recompilar.
+
+A camada pura (FasesDeAtaque) so transforma texto em descricoes e aponta
+problemas; a ponte (FasesDeAtaqueArquivo) monta os objetos do motor. Mesma divisao
+de PathShapes e RegrasDeAtaque, pelo mesmo motivo: a logica que pode errar fica
+onde os testes alcancam, sem subir o SDL.
+
+OS CAMPOS NUMERICOS DE UM ATAQUE SAO OPTIONAL, e a ponte so escreve no
+AttackParams o que o arquivo disse. Se um campo omitido virasse zero, ou um padrao
+copiado a mao, o mesmo ataque se comportaria diferente em dados e em C++: o angulo
+de um leque vale 90 por omissao no AttackParams, e nem Ricardo nem os aneis de
+CircleSpread mexiam nele.
+
+ValidarTransicoes recusa o conjunto INTEIRO antes de registrar qualquer coisa. Um
+conjunto pela metade deixaria o chefe atacando numa fase e congelado na seguinte,
+o que parece bug de jogo e nao erro de arquivo. A falta de StateFinal e apontada
+por nome, porque nota entre 40 e 59 ao fim da fase 3 manda a FSM para la e sem o
+estado o chefe trava em silencio.
+
+O vocabulario de regras cresceu com o que os chefes precisavam:
+
+- escala, que era SetScale escrito a mao dentro do configurator;
+- investidaRepetida, que expande num MiraPeriodica mais um PulsoDeVelocidade
+  derivados do MESMO ritmo, como AplicarInvestidaRepetida faz em C++. Escrever as
+  duas pecas a mao significaria escrever o ritmo duas vezes, e mudar uma e
+  esquecer a outra faz a mirada cair fora do mergulho sem dar erro nenhum;
+- cooldown derivado do ritmo ("doRitmo": "total", "dividirPor": 7), para nao
+  perder o acoplamento que o codigo tinha: um unico ritmo alimentava a mirada, o
+  pulso E a cadencia do ataque, e mexer na pausa movia as tres juntas;
+- o bloco balao, porque a BaloonAttack faz dynamic_cast para BaloonAttackParams e,
+  sem ele, escreve uma linha no log e nao dispara nada. A leitura recusa tambem as
+  duas combinacoes que a propria estrategia rejeita em tempo de execucao.
+
+LerListaDeRegras expoe o laco por-regra que LerRegras ja rodava, para que as
+regras escritas em linha num ataque NAO sejam um segundo interpretador. Dois
+interpretadores aceitariam coisas ligeiramente diferentes, e a diferenca apareceria
+como um behavior que funciona em regras.json e e ignorado em linha, calado.
+
+As funcoes ConfigureStateX continuam nas fabricas como RESERVA: arquivo ausente,
+JSON malformado ou transicao quebrada fazem ConfigurarFasesDeArquivo devolver false
+sem ter registrado nada, e o chefe volta a ser montado em C++. Verificado nos tres
+casos, nos quatro chefes.
+
+O que NAO migrou, e por que: a mira de cada fase vive em CustomizeAttackParams e
+depende da posicao e da velocidade do jogador no instante do disparo. Onde ela
+sobrescreve um campo que tambem esta no arquivo, isso esta anotado no proprio
+fases.json - inclusive os tres numeros da fase 3 do Andre, que o arquivo declara
+mas o Andre.cpp troca a cada disparo.
+
+EQUIVALENCIA MEDIDA, NAO PRESUMIDA. Para cada chefe e cada uma das quatro fases,
+com a mesma semente: a configuracao registrada (classe da estrategia, todos os
+campos do AttackParams, cooldown, presenca de configurator, classe do movimento) e
+os behaviors de cada projetil dos primeiros disparos - com os PARAMETROS de cada
+behavior, nao so o nome da classe - sao identicos entre o caminho de dados e o
+C++. O verificador foi testado contra sabotagem deliberada antes de ser usado:
+trocar ArcoDireita por ArcoEsquerda e mudar um cooldown de 0.8 para 0.9 sao os
+dois acusados.
+
+16 rodadas com AddressSanitizer e UndefinedBehaviorSanitizer (4 chefes x 4 fases,
+22s cada) sem um achado.
+
+Suite: 74 -> 112 casos.
+

@@ -32,6 +32,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/AudioSystem.h
         Source/Random.cpp
         Source/Math.cpp
+        Source/Progresso.cpp
+        Source/Progresso.h
         Source/Scenes/StageSelect.cpp
         Source/Actors/Buttons/Button.cpp
         Source/Actors/Buttons/Button.h
@@ -160,6 +162,9 @@ add_executable(dpi_tests
         tests/test_investida.cpp
         tests/test_formas.cpp
         tests/test_regras.cpp
+        tests/test_progresso.cpp
+        Source/Progresso.cpp
+        Source/Progresso.h
         Source/Attacks/PathAim.cpp
         Source/Attacks/PathAim.h
         Source/Attacks/PathShapes.cpp
