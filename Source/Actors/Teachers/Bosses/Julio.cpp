@@ -77,11 +77,17 @@ void Julio::CustomizeAttackParams(AttackParams& params, const std::string& state
 void Julio::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
                                  const std::string& stateName) {
 
-    // Cor por FASE, não por projétil: o jogador aprende a associar a cor ao
+    // Animacao por FASE, nao por projetil: o jogador aprende a associar a arte ao
     // comportamento que vem a seguir.
-    std::string animation = "Ruido";
-    if (stateName == "StateTwo")        animation = "Gradiente";
-    else if (stateName == "StateThree") animation = "Overfit";
+    //
+    // Os nomes seguem os registrados em JulioProjectile1Factory. Estavam
+    // desatualizados ("Ruido", "Gradiente", "Overfit") desde o redesenho das
+    // fases, e o componente respondia com um aviso e mantinha a animacao
+    // anterior - 78 avisos numa luta de 85s, e a arte exibida era a que sobrou
+    // do projetil reciclado.
+    std::string animation = "Coleta";
+    if (stateName == "StateTwo")        animation = "Perseguicao";
+    else if (stateName == "StateThree") animation = "Previsao";
 
     for (auto& p : projectiles) {
         if (!p) continue;
