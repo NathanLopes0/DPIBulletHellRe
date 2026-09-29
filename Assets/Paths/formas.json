@@ -41,6 +41,8 @@
   // ----- Salles, fase 1 -----
   // Quinas exatas e legiveis: o jogador ve o padrao e consegue se posicionar.
   // Diferente do WobbleBehavior, aqui as dobras sao previsiveis.
+
+
   "ZigueQuinado": {
     "gerador": { "tipo": "Zigzag", "a": 85, "b": 50, "n": 6 }
   },
@@ -59,6 +61,8 @@
   // ----- Salles, fase 3 -----
   // Uma forma escrita, seis lacos girados: o alinhamento automatico do caminho
   // gira o mesmo laco para a direcao de cada projetil do leque.
+
+
   "LacoRapido": {
     "gerador": { "tipo": "Loop", "a": 90, "b": 400, "n": 6 }
   },
@@ -75,6 +79,8 @@
   // As tres formas do segundo ataque da fase final, uma por projetil do leque
   // de tres. Raio pequeno e muitos segmentos: a volta precisa ser LENTA para
   // ser lida - um laco rapido vira um borrao e perde a graca.
+
+
   "LacoLento": {
     "gerador": { "tipo": "Loop", "a": 80, "b": 500, "n": 12 }
   },

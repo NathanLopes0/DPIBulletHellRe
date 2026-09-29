@@ -169,6 +169,7 @@ add_executable(dpi_tests
         tests/test_formas.cpp
         tests/test_regras.cpp
         tests/test_fases.cpp
+        tests/test_arquivos_de_dados.cpp
         tests/test_progresso.cpp
         Source/Progresso.cpp
         Source/Progresso.h
@@ -196,5 +197,14 @@ add_executable(dpi_tests
 # declarar std::tuple por conta propria. O MSVC recente avisa (C5285) que
 # declarar templates da std fora dela e proibido pelo padrao.
 target_compile_definitions(dpi_tests PRIVATE DOCTEST_CONFIG_USE_STD_HEADERS)
+
+# Caminho absoluto de Assets/, para tests/test_arquivos_de_dados.cpp poder abrir
+# os arquivos que o JOGO carrega e conferir que eles estao corretos.
+#
+# Vem daqui, e nao de um caminho relativo, porque o diretorio de trabalho do
+# executavel de teste depende de quem o chama: o CLion roda de um lugar, o ctest
+# de outro e o terminal de um terceiro. Um "../Assets" funcionaria num deles e
+# faria o teste falhar por motivo errado nos outros dois.
+target_compile_definitions(dpi_tests PRIVATE DPI_ASSETS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/Assets")
 
 add_test(NAME unidade COMMAND dpi_tests)

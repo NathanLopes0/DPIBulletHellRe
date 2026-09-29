@@ -124,7 +124,7 @@ void Game::UpdateGame()
     float deltaTime = 0;
     // Calculo de deltaTime pro resto do jogo
     {
-        while(!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16));
+        while(!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16)) {}
 
         deltaTime = (static_cast<float>(SDL_GetTicks()) - static_cast<float>(mTicksCount)) / 1000.0f;
         if(deltaTime > 0.05f)
