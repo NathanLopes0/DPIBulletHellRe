@@ -39,8 +39,11 @@ namespace {
 
         std::ifstream arquivo(kCaminho);
         if (!arquivo.is_open()) {
-            SDL_Log("FASES: nao foi possivel abrir %s. Os chefes que dependem dele "
-                    "usarao a configuracao de reserva em C++.", kCaminho.c_str());
+            SDL_Log("FASES: nao foi possivel abrir %s. NENHUM chefe tera ataque: as fases "
+                    "dos quatro vivem neste arquivo, e nao ha mais configuracao de reserva "
+                    "em C++. Confira se a pasta Assets foi copiada junto com o executavel, "
+                    "e se o jogo esta rodando de um diretorio abaixo da raiz do projeto.",
+                    kCaminho.c_str());
             return;
         }
 

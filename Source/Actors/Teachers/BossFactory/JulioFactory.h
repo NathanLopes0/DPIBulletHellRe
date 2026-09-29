@@ -8,13 +8,16 @@
 
 /**
  * @class JulioFactory
- * @brief Monta o Júlio e suas fases.
+ * @brief Monta o Júlio. As fases dele vivem em Assets/Attacks/fases.json.
  *
- * Progressão temática (um modelo sendo treinado):
- *   StateOne   "Exploração"           busca aleatória, mira ruim, ritmo lento
- *   StateTwo   "Descida do Gradiente" mira exata, projéteis que curvam
- *   StateThree "Overfitting"          leque largo com projéteis serpenteando
- *   StateFinal "Regularização"        repescagem: simples, lento e previsível
+ * Progressão temática (um modelo aprendendo a te acertar):
+ *   StateOne   "Está te procurando"        um caçador grande que investe em ciclos
+ *   StateTwo   "Aprendeu onde você está"   mira exata, projéteis que curvam
+ *   StateThree "Aprendeu como você se move" prevê para onde você vai
+ *   StateFinal "Entrou em loop"            repescagem: as balas giram antes de vir
+ *
+ * O que sobrou em C++ é só a mira, em Julio::CustomizeAttackParams, porque ela
+ * depende da posição e da velocidade do jogador no instante do disparo.
  */
 class JulioFactory : public IBossFactory {
 public:
@@ -24,9 +27,4 @@ protected:
     std::unique_ptr<Boss> InstantiateBoss(Scene* scene) override;
     void ConfigureComponents(Boss* boss) override;
     void ConfigureAttacksAndFSM(Boss* boss) override;
-
-    void ConfigureStateOne(Boss* boss, FSMComponent* fsm) override;
-    void ConfigureStateTwo(Boss* boss, FSMComponent* fsm) override;
-    void ConfigureStateThree(Boss* boss, FSMComponent* fsm) override;
-    void ConfigureStateFinal(Boss* boss, FSMComponent* fsm) override;
 };

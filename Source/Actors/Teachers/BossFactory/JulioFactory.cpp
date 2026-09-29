@@ -4,18 +4,9 @@
 
 #include "JulioFactory.h"
 
-#include "../BossAttackState.h"
-#include "../../../Attacks/Behaviors.h"
-#include "../../../Attacks/BaseStrategies/AngledAttack.h"
-#include "../../../Attacks/BaseStrategies/CircleSpreadAttack.h"
-#include "../../../Attacks/BaseStrategies/WaveAttack.h"
 #include "../../../Attacks/FasesDeAtaqueArquivo.h"
-#include "../../../Attacks/PathShapes.h"
-#include "../../../Attacks/Receitas.h"
-#include "../../../Attacks/RegrasDeAtaqueArquivo.h"
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
-#include "../../../Movements/MovementStrategies.h"
 #include "../Bosses/Julio.h"
 #include "BossProjectileFactory/JulioProjectile1Factory.h"
 
@@ -54,249 +45,24 @@ void JulioFactory::ConfigureAttacksAndFSM(Boss* boss) {
         return;
     }
 
-    // As fases agora vivem em Assets/Attacks/fases.json, no conjunto "julio", e
-    // as regras dos projeteis em Assets/Attacks/regras.json. O que continua em
-    // C++ e so o que NAO e dado: a mira de cada fase, em
-    // Julio::CustomizeAttackParams, que depende da posicao e da velocidade do
-    // jogador no instante do disparo.
+    // As fases deste chefe vivem em Assets/Attacks/fases.json, no conjunto
+    // "julio", e as regras dos projeteis em Assets/Attacks/regras.json.
     //
-    // As funcoes ConfigureStateX abaixo continuam aqui como RESERVA: arquivo
-    // ausente, JSON malformado ou transicao quebrada fazem ConfigurarFasesDeArquivo
-    // devolver false SEM ter registrado nada, e o chefe volta a ser montado em C++.
+    // O que continua em C++ e so o que NAO e dado: a mira de cada fase, em
+    // Julio::CustomizeAttackParams, que depende da posicao e da velocidade do
+    // jogador no instante do disparo, e por isso muda a cada tiro.
+    //
+    // NAO HA MAIS CONFIGURACAO DE RESERVA EM C++. Se o arquivo faltar, estiver
+    // malformado ou tiver uma transicao quebrada, ConfigurarFasesDeArquivo
+    // devolve false depois de explicar o motivo no log, e este chefe fica SEM
+    // ATAQUE NENHUM. Quem impede isso de chegar ao jogo e
+    // tests/test_arquivos_de_dados.cpp, que le os Assets de verdade e quebra a
+    // suite ao primeiro erro de digitacao.
     if (!ConfigurarFasesDeArquivo(boss, fsm, "julio")) {
-        ConfigureStateOne(boss, fsm);
-        ConfigureStateTwo(boss, fsm);
-        ConfigureStateThree(boss, fsm);
-        ConfigureStateFinal(boss, fsm);
+        SDL_Log("ERRO CRITICO: o chefe \"julio\" nao pode ser montado a partir de "
+                "Assets/Attacks/fases.json e ficara sem ataque. As linhas FASES: acima "
+                "dizem o motivo.");
     }
 
     boss->SetInitialState("StateOne");
-}
-
-// ---------------------------------------------------------------------------
-// FASE 1 - "Esta te procurando"
-//
-// Varredura: um leque largo que acorda projetil por projetil, varrendo a tela
-// de um lado ao outro. Le como um scanner passando, que e o que um calouro
-// espera de "a IA esta te procurando".
-//
-// Trocado de CircleSpreadAttack para WaveAttack de proposito: a fase 1 do
-// Ricardo JA e um anel de CircleSpread com RandomWander, e a versao anterior
-// desta fase era indistinguivel dela. Dois chefes diferentes precisam abrir a
-// luta de formas diferentes, ou o jogador acha que e o mesmo jogo.
-// ---------------------------------------------------------------------------
-void JulioFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm) {
-
-    const std::string STATE_NAME = "StateOne";
-
-    auto params = std::make_unique<AttackParams>();
-    params->numProjectiles = 13;
-    params->projectileSpeed = 175.f;
-    params->angle = 150.f;
-
-    // Atraso entre um projetil e o seguinte. 13 x 0.055 = varredura de ~0.7s,
-    // rapida o bastante para ler como um movimento unico e nao como 13 tiros.
-
-    auto spawner = boss->GetProjectileFactory("Dados");
-    static constexpr RitmoDeCiclos kRitmoInvestida{
-        /*atraso*/ 0.0f, /*investida*/ 0.6f, /*pausa*/ 1.0f, /*repeticoes*/ 7};
-
-    // Sem configurator: o escalonamento da propria WaveAttack ja da o carater
-    // da fase. Nao use WobbleBehavior aqui - a WaveAttack insere Deactivate +
-    // Activate, e o Wobble capturaria velocidade zero na ativacao e se
-    // encerraria sozinho.
-    boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<AngledAttack>(spawner, boss),
-        std::move(params),
-        kRitmoInvestida.DuracaoTotal()/kRitmoInvestida.repeticoes,
-        [](Projectile* p, int) {
-            p->SetScale(3.f);
-            p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Perseguicao");
-            AplicarInvestidaRepetida(p, kRitmoInvestida, 900.f, 15.f);
-        });
-
-    auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
-                                                      STATE_ONE_DURATION,
-                                                      "StateTwo");
-    fsm->RegisterState(std::move(stateObj));
-
-    boss->RegisterMovementStrategy(STATE_NAME,
-        std::make_unique<RandomWanderStrategy>(3.5f, 115.f));
-}
-
-// ---------------------------------------------------------------------------
-// FASE 2 - "Aprendeu onde voce esta"
-//
-// Mira exata na posicao atual, e os projeteis curvam durante o voo com forca
-// que decai. Movimento: o boss desce na direcao do jogador.
-//
-// So TRES projeteis, num leque estreito. A versao anterior tinha sete num
-// leque de 50 graus e a perseguicao simplesmente nao aparecia: com muitos
-// projeteis na tela o jogador nao consegue atribuir a curva a nenhum deles em
-// particular, e o conjunto vira ruido. Leque esconde comportamento.
-//
-// Leitura de jogo: fugir cedo nao adianta, porque o projetil corrige; e preciso
-// esperar a forca decair e desviar no fim. Ensina timing.
-// ---------------------------------------------------------------------------
-void JulioFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm) {
-
-    const std::string STATE_NAME = "StateTwo";
-
-    auto params = std::make_unique<AttackParams>();
-    params->numProjectiles = 16;
-    params->projectileSpeed = 205.f;
-
-    auto spawner = boss->GetProjectileFactory("Dados");
-
-    boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<CircleSpreadAttack>(spawner, boss),
-        std::move(params),
-        1.3f,
-        // As regras de cada projetil agora vivem em
-        // Assets/Attacks/regras.json, no conjunto "julio_fase2".
-        ConfiguratorDeArquivo("julio_fase2"));
-
-    auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
-                                                      STATE_TWO_DURATION,
-                                                      "StateThree");
-    fsm->RegisterState(std::move(stateObj));
-
-    boss->RegisterMovementStrategy(STATE_NAME,
-        std::make_unique<HoverAbovePlayerStrategy>(135.f, 170.f));
-}
-
-// ---------------------------------------------------------------------------
-// FASE 3 - "Aprendeu como voce se move"
-//
-// UM projetil rapido por vez, com cooldown curto: um fluxo continuo de balas
-// individualmente legiveis, em vez de uma rajada que o jogador so pode
-// atravessar torcendo.
-//
-// Cada tiro tem dois tempos:
-//   1. Sai adiantado, mirando em onde o jogador ESTARA (ver
-//      Julio::CustomizeAttackParams e Boss::GetPredictedPlayerDirection).
-//   2. Depois de 0.8s voando reto, da UMA correcao curta e moderada.
-//
-// A correcao e deliberadamente fraca e limitada. Se fosse uma perseguicao de
-// verdade, ela desfaria o contrajogo da previsao: a licao da fase e "seja
-// imprevisivel", e uma bala que corrige de qualquer jeito faz ser imprevisivel
-// deixar de ajudar. Fraca assim, o jogador ganha DOIS tempos de desvio, e a
-// leitura fica "ele errou a previsao e tentou consertar na marra".
-//
-// Movimento: o boss se fixa no centro. Parou de procurar, agora so calcula.
-//
-// nextState vazio: e aqui que a batalha e decidida (ver BossAttackState).
-// ---------------------------------------------------------------------------
-void JulioFactory::ConfigureStateThree(Boss* boss, FSMComponent* fsm) {
-
-    const std::string STATE_NAME = "StateThree";
-
-    auto params = std::make_unique<AttackParams>();
-    // AngledAttack com 1 projetil e angulo 0 dispara um tiro unico exatamente
-    // em centralAngle (o angleStep fica zerado e o laco roda uma vez). Nao
-    // precisa de estrategia nova.
-    params->numProjectiles = 1;
-    params->projectileSpeed = 300.f;
-    params->angle = 0.f;
-
-    auto spawner = boss->GetProjectileFactory("Dados");
-
-    boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<AngledAttack>(spawner, boss),
-        std::move(params),
-        // Cooldown curto: ~4 balas vivas ao mesmo tempo, formando um fluxo.
-        // AJUSTE AQUI para calibrar a pressao da fase.
-        0.1f,
-        [](Projectile* p, int) {
-            // Voa reto 0.8s (o jogador ve que foi adiantado), entao UMA
-            // correcao de 0.7s. Ver comentario do cabecalho desta fase.
-            p->SetScale(2.f);
-            p->insertMotion<TrackingBehavior>(0.8f, 1.6f, 0.7f);
-        });
-
-    // ----- SEGUNDO ATAQUE: a investida repetida -----
-    // Um unico projetil que persegue por toda a fase, em vez de uma rajada.
-    // Ele quase para, re-aponta, e da um mergulho rapido - dez vezes nao cabe
-    // nos 17s da fase, entao sao seis.
-    //
-    // As duas pecas nao sabem uma da outra: a Motion so gira, o Modifier so
-    // muda o modulo. E por isso que elas compoem.
-    //
-    // Cooldown maior que a duracao do ciclo (6 x 1.2 = 7.2s) para nao acumular
-    // varios cacadores na tela ao mesmo tempo.
-    // Um unico ritmo alimenta a Motion, o Modifier E o cooldown. Mudar a pausa
-    // aqui move as miradas e o cooldown junto, sem conta a mao.
-    static constexpr RitmoDeCiclos kRitmoInvestida{
-        /*atraso*/ 0.0f, /*investida*/ 0.6f, /*pausa*/ 1.0f, /*repeticoes*/ 5};
-
-    auto paramsInvestida = std::make_unique<AttackParams>();
-    paramsInvestida->numProjectiles = 1;
-    paramsInvestida->projectileSpeed = 120.f;
-    paramsInvestida->angle = 0.f;
-
-    boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<AngledAttack>(spawner, boss),
-        std::move(paramsInvestida),
-        kRitmoInvestida.DuracaoTotal()/2,
-        [](Projectile* p, int) {
-            p->SetScale(3.f);
-            p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Perseguicao");
-            AplicarInvestidaRepetida(p, kRitmoInvestida, 800.f, 15.f);
-        });
-
-    auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
-                                                      STATE_THREE_DURATION,
-                                                      "");
-    fsm->RegisterState(std::move(stateObj));
-
-    boss->RegisterMovementStrategy(STATE_NAME,
-        std::make_unique<GoToCenterStrategy>());
-}
-
-// ---------------------------------------------------------------------------
-// FASE FINAL - "Entrou em loop" (repescagem, nota entre 40 e 60)
-//
-// PRECISA existir mesmo o Julio sendo um boss de 3 fases. Se a nota cair nessa
-// faixa ao fim da fase 3, a FSM tenta ir para "StateFinal"; sem o estado
-// registrado, SetState apenas loga o erro e o boss trava.
-//
-// Tema: o modelo travou. A piada e de graca para calouro de computacao - as
-// balas entram em LOOP antes de vir para cima de voce.
-//
-// Esta e tambem a fase de teste do PathBehavior. Escolhida de proposito: e a
-// mais lenta e a mais permissiva da luta, entao da para observar o caminho com
-// calma e julgar se a mecanica se paga. Continua sendo a fase mais facil, que e
-// o papel de uma repescagem.
-// ---------------------------------------------------------------------------
-void JulioFactory::ConfigureStateFinal(Boss* boss, FSMComponent* fsm) {
-
-    const std::string STATE_NAME = "StateFinal";
-
-    auto params = std::make_unique<AttackParams>();
-    params->numProjectiles = 6;
-    params->projectileSpeed = 150.f;
-
-    auto spawner = boss->GetProjectileFactory("Dados");
-
-    // Anel de 6 projeteis, cada um dando uma volta antes de seguir em frente.
-    // Como o PathBehavior alinha o caminho com a direcao inicial de cada
-    // projetil, o MESMO laco sai girado de um jeito diferente para cada ponto
-    // do anel: seis lacos apontando para fora, sem escrever seis caminhos.
-    boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<CircleSpreadAttack>(spawner, boss),
-        std::move(params),
-        2.6f,
-        [](Projectile* p, int) {
-            // Raio pequeno e velocidade baixa: a volta precisa ser LENTA para
-            // ser lida. Um laco rapido vira um borrao e perde a graca.
-            p->insertMotion<PathBehavior>(PathShapes::Loop(70.f, 500.f, 12), 150.f);
-        });
-
-    auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
-                                                      STATE_FINAL_DURATION,
-                                                      "StateOne");
-    fsm->RegisterState(std::move(stateObj));
-
-    boss->RegisterMovementStrategy(STATE_NAME,
-        std::make_unique<RandomWanderStrategy>(4.5f, 85.f));
 }

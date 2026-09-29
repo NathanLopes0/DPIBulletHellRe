@@ -22,10 +22,7 @@ class Boss;
 class Scene;
 class Game;
 
-#define STATE_ONE_DURATION 17.f
-#define STATE_TWO_DURATION 17.f
-#define STATE_THREE_DURATION 17.f
-#define STATE_FINAL_DURATION 17.f
+// A duracao de cada fase agora vem de Assets/Attacks/fases.json.
 
 /**
  * @interface IBossFactory
@@ -64,11 +61,6 @@ protected:
 
     /** @brief PASSO 3 : Instala a FSM e as AttackStrategies */
     virtual void ConfigureAttacksAndFSM(Boss* boss) = 0;
-
-    virtual void ConfigureStateOne(Boss* boss, FSMComponent* fsm) = 0;
-    virtual void ConfigureStateTwo(Boss* boss, FSMComponent* fsm) = 0;
-    virtual void ConfigureStateThree(Boss* boss, FSMComponent* fsm) = 0;
-    virtual void ConfigureStateFinal(Boss* boss, FSMComponent* fsm) = 0;
 
     Game* mGame;
 

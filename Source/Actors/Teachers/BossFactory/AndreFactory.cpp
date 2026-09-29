@@ -4,13 +4,8 @@
 
 #include "AndreFactory.h"
 
-#include <complex>
 
 #include "../../Teachers/Bosses/Andre.h"
-#include "../../../Actors/Teachers/BossFactory/BossProjectileFactory/AndreProjectile1Factory.h"
-#include "../../../Attacks/AttackParameters/BaloonAttackParams.h"
-#include "../../../Attacks/BaseStrategies/BaloonAttack.h"
-#include "../../../Attacks/BaseStrategies/WaveAttack.h"
 #include "../../../Attacks/FasesDeAtaqueArquivo.h"
 #include "BossProjectileFactory/AndreBaloonProjectileFactory.h"
 
@@ -47,195 +42,26 @@ void AndreFactory::ConfigureAttacksAndFSM(Boss *boss) {
     auto fsm = boss->GetComponent<FSMComponent>();
     if (!fsm) { SDL_Log("ERRO CRÍTICO: Boss não tem FSMComponent!"); return; }
 
-    // As fases agora vivem em Assets/Attacks/fases.json, no conjunto "andre".
-    // ATENCAO: parte do balanceamento deste chefe NAO esta la, e sim em
-    // Andre::CustomizeAttackParams, que sobrescreve numProjectiles,
-    // projectileSpeed e centralAngle da fase 3 a cada disparo. Mexer nesses tres
-    // no arquivo nao tem efeito; para mudar a fase 3, mexa em Andre.cpp.
+    // As fases deste chefe vivem em Assets/Attacks/fases.json, no conjunto
+    // "andre".
     //
-    // As funcoes ConfigureStateX abaixo continuam aqui como RESERVA: arquivo
-    // ausente, JSON malformado ou transicao quebrada fazem ConfigurarFasesDeArquivo
-    // devolver false SEM ter registrado nada, e o chefe volta a ser montado em C++.
+    // ATENCAO: parte do balanceamento NAO esta la. Andre::CustomizeAttackParams
+    // sobrescreve numProjectiles, projectileSpeed e anguloCentral da fase 3 a
+    // cada disparo, com valores diferentes conforme o jogador esteja acima ou
+    // abaixo. Mexer nesses tres no arquivo nao tem efeito; para mudar a fase 3,
+    // mexa em Andre.cpp.
+    //
+    // NAO HA MAIS CONFIGURACAO DE RESERVA EM C++. Se o arquivo faltar, estiver
+    // malformado ou tiver uma transicao quebrada, ConfigurarFasesDeArquivo
+    // devolve false depois de explicar o motivo no log, e este chefe fica SEM
+    // ATAQUE NENHUM. Quem impede isso de chegar ao jogo e
+    // tests/test_arquivos_de_dados.cpp, que le os Assets de verdade e quebra a
+    // suite ao primeiro erro de digitacao.
     if (!ConfigurarFasesDeArquivo(boss, fsm, "andre")) {
-        ConfigureStateOne(boss, fsm);
-        ConfigureStateTwo(boss, fsm);
-        ConfigureStateThree(boss, fsm);
-        ConfigureStateFinal(boss, fsm);
+        SDL_Log("ERRO CRITICO: o chefe \"andre\" nao pode ser montado a partir de "
+                "Assets/Attacks/fases.json e ficara sem ataque. As linhas FASES: acima "
+                "dizem o motivo.");
     }
 
     boss->SetInitialState("StateOne");
 }
-
-void AndreFactory::ConfigureStateOne(Boss *boss, FSMComponent *fsm) {
-    const std::string STATE_NAME = "StateOne";
-
-    auto params = std::make_unique<BaloonAttackParams>();
-    params->numProjectiles = 10;
-    params->randomSpawn = true;
-    params->centerOnPlayer = true;
-    params->centerOnPlayerOffset = 600.f;
-    params->side = BaloonAttackParams::side::Right;
-    params->projectileSpeed = 500.f;
-
-    auto params2 = std::make_unique<BaloonAttackParams>();
-    params2->numProjectiles = 10;
-    params2->randomSpawn = true;
-    params2->centerOnPlayer = true;
-    params2->centerOnPlayerOffset = 600.f;
-    params2->side = BaloonAttackParams::side::Left;
-    params2->projectileSpeed = 500.f;
-
-    auto spawner = boss->GetProjectileFactory("Baloes");
-
-
-    boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<BaloonAttack>(spawner, boss),
-        std::move(params),
-        3.f);
-
-
-    boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<BaloonAttack>(spawner, boss),
-        std::move(params2),
-        3.f);
-
-    auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
-                                                            STATE_ONE_DURATION,
-                                                            "StateTwo");
-    fsm->RegisterState(std::move(stateObj));
-
-    boss->RegisterMovementStrategy(STATE_NAME, std::make_unique<GoToCenterStrategy>());
-
-}
-
-void AndreFactory::ConfigureStateTwo(Boss *boss, FSMComponent *fsm) {
-    const std::string STATE_NAME = "StateTwo";
-
-    auto params = std::make_unique<BaloonAttackParams>();
-    params->numProjectiles = 5;
-    params->randomSpawn = true;
-    params->centerOnPlayer = true;
-    params->centerOnPlayerOffset = 600.f;
-    params->side = BaloonAttackParams::side::Down;
-    params->projectileSpeed = 500.f;
-
-    auto params2 = std::make_unique<BaloonAttackParams>();
-    params2->numProjectiles = 5;
-    params2->randomSpawn = true;
-    params2->centerOnPlayer = true;
-    params2->centerOnPlayerOffset = 600.f;
-    params2->side = BaloonAttackParams::side::Up;
-    params2->projectileSpeed = 500.f;
-
-    auto spawner = boss->GetProjectileFactory("Baloes");
-
-    boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<BaloonAttack>(spawner, boss),
-        std::move(params),
-        1.25f);
-
-    auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
-                                                            STATE_TWO_DURATION,
-                                                            "StateThree");
-    fsm->RegisterState(std::move(stateObj));
-
-    boss->RegisterMovementStrategy(STATE_NAME, std::make_unique<RandomWanderStrategy>(1.8f, 300.f));
-}
-
-void AndreFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm) {
-    const std::string STATE_NAME = "StateThree";
-
-    auto params = std::make_unique<AttackParams>();
-    params->numProjectiles = 18;
-    params->projectileSpeed = 200.f;
-    params->angle = 180.f;
-    params->centralAngle = 90.f;
-    params->creationSpeed = 0.02f;
-    auto spawner = boss->GetProjectileFactory("Baloes");
-
-    boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<WaveAttack>(spawner, boss),
-        std::move(params),
-        0.9f);
-
-    auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
-                                                            STATE_THREE_DURATION,
-                                                            "");
-    fsm->RegisterState(std::move(stateObj));
-
-    boss->RegisterMovementStrategy(STATE_NAME, std::make_unique<GoToCenterStrategy>());
-}
-
-void AndreFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm) {
-
-    // TODO - código placeholder, igual ao do StateThree
-
-    const std::string STATE_NAME = "StateFinal";
-
-    auto spawner = boss->GetProjectileFactory("Baloes");
-    auto params = std::make_unique<BaloonAttackParams>();
-    params->numProjectiles = 5;
-    params->randomSpawn = true;
-    params->centerOnPlayer = true;
-    params->centerOnPlayerOffset = 600.f;
-    params->side = BaloonAttackParams::side::Right;
-    params->projectileSpeed = 300.f;
-
-    auto params2 = std::make_unique<BaloonAttackParams>();
-    params2->numProjectiles = 5;
-    params2->randomSpawn = true;
-    params2->centerOnPlayer = true;
-    params2->centerOnPlayerOffset = 600.f;
-    params2->side = BaloonAttackParams::side::Left;
-    params2->projectileSpeed = 300.f;
-
-    auto params3 = std::make_unique<BaloonAttackParams>();
-    params3->numProjectiles = 5;
-    params3->randomSpawn = true;
-    params3->centerOnPlayer = true;
-    params3->centerOnPlayerOffset = 600.f;
-    params3->side = BaloonAttackParams::side::Down;
-    params3->projectileSpeed = 300.f;
-
-    auto params4 = std::make_unique<BaloonAttackParams>();
-    params4->numProjectiles = 5;
-    params4->randomSpawn = true;
-    params4->centerOnPlayer = true;
-    params4->centerOnPlayerOffset = 600.f;
-    params4->side = BaloonAttackParams::side::Up;
-    params4->projectileSpeed = 300.f;
-
-
-    boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<BaloonAttack>(spawner, boss),
-        std::move(params),
-        1.25f);
-
-    boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<BaloonAttack>(spawner, boss),
-        std::move(params2),
-        1.25f);
-
-    boss->AddAttackPattern(STATE_NAME,
-    std::make_unique<BaloonAttack>(spawner, boss),
-        std::move(params3),
-        1.25f);
-
-    boss->AddAttackPattern(STATE_NAME,
-    std::make_unique<BaloonAttack>(spawner, boss),
-        std::move(params4),
-        1.25f);
-
-    auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
-                                                            STATE_FINAL_DURATION,
-                                                            "StateOne");
-    fsm->RegisterState(std::move(stateObj));
-
-    boss->RegisterMovementStrategy(STATE_NAME, std::make_unique<GoToCenterStrategy>());
-}
-
-
-
-
-
-

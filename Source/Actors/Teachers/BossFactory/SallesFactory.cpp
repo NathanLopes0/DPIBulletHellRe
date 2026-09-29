@@ -1,12 +1,8 @@
 
 #include "SallesFactory.h"
 #include "../../Teachers/Bosses/Salles.h"
-#include "../../../Attacks/BaseStrategies/AngledAttack.h"
 #include "../../../Actors/Teachers/BossFactory/BossProjectileFactory/SallesProjectile1Factory.h"
-#include "../../../Actors/Teachers/BossFactory/BossProjectileFactory/SallesDoubleListProjectileFactory.h"
-#include "../../../Attacks/BaseStrategies/LaserAttack.h"
 #include "../../../Attacks/FasesDeAtaqueArquivo.h"
-#include "../../../Attacks/PathShapes.h"
 
 // =============================================================================
 // MODO DE TESTE DO PATHING
@@ -59,185 +55,25 @@ void SallesFactory::ConfigureAttacksAndFSM(Boss* boss) {
     auto fsm = boss->GetComponent<FSMComponent>();
     if (!fsm) { SDL_Log("ERRO CRÍTICO: Boss não tem FSMComponent!"); return; }
 
-    // As fases agora vivem em Assets/Attacks/fases.json, no conjunto "salles",
-    // e as regras dos projeteis em Assets/Attacks/regras.json. Ajustar o chefe
-    // nao exige mais recompilar.
+    // As fases deste chefe vivem em Assets/Attacks/fases.json, no conjunto
+    // "salles", e as regras dos projeteis em Assets/Attacks/regras.json.
     //
-    // As funcoes ConfigureStateX abaixo continuam aqui como RESERVA: arquivo
-    // ausente, JSON malformado ou transicao quebrada fazem ConfigurarFasesDeArquivo
-    // devolver false SEM ter registrado nada, e o chefe volta a ser montado em
-    // C++. Um chefe sem fase nenhuma seria um professor parado no meio da tela.
+    // ATENCAO: parte do balanceamento NAO esta la. Salles::CustomizeAttackParams
+    // sobrescreve o anguloCentral nas QUATRO fases a cada disparo - nas tres
+    // primeiras sorteando entre mirar no jogador e um angulo aleatorio, e na
+    // final sempre sorteando. Escrever anguloCentral no arquivo nao tem efeito.
+    //
+    // NAO HA MAIS CONFIGURACAO DE RESERVA EM C++. Se o arquivo faltar, estiver
+    // malformado ou tiver uma transicao quebrada, ConfigurarFasesDeArquivo
+    // devolve false depois de explicar o motivo no log, e este chefe fica SEM
+    // ATAQUE NENHUM. Quem impede isso de chegar ao jogo e
+    // tests/test_arquivos_de_dados.cpp, que le os Assets de verdade e quebra a
+    // suite ao primeiro erro de digitacao.
     if (!ConfigurarFasesDeArquivo(boss, fsm, "salles")) {
-        ConfigureStateOne(boss, fsm);
-        ConfigureStateTwo(boss, fsm);
-        ConfigureStateThree(boss, fsm);
-        ConfigureStateFinal(boss, fsm);
+        SDL_Log("ERRO CRITICO: o chefe \"salles\" nao pode ser montado a partir de "
+                "Assets/Attacks/fases.json e ficara sem ataque. As linhas FASES: acima "
+                "dizem o motivo.");
     }
 
     boss->SetInitialState("StateOne");
 }
-
-void SallesFactory::ConfigureStateOne(Boss* boss, FSMComponent* fsm)
-{
-
-    const std::string STATE_NAME = "StateOne";
-
-    // 1. Configura os parâmetros fixos
-    auto params = std::make_unique<AttackParams>();                                                                                                 
-    params->numProjectiles = 3;
-    params->projectileSpeed = 340.0f;
-    params->angle = 40.f;
-
-    auto spawner = boss->GetProjectileFactory("Capivara");
-
-    boss->AddAttackPattern(STATE_NAME,
-            std::make_unique<AngledAttack>(spawner, boss), // Strategy
-            std::move(params),                                        // Params
-            .8f,                                          // Cooldown
-            [](Projectile* p, int index){                 // Configurator Lambda
-                {   // ORIGINAL: if (rand<0.2) insertMotion<PathBehavior>(PathShapes::Reta(), 280.f, 1.2f, Mira(Mira::MirarNoJogador));
-                    // TESTE - ZIGZAG: quinas exatas, legiveis. 6 pernas de 85px.
-                    p->insertMotion<PathBehavior>(PathShapes::Zigzag(85.f, 50.f, 6), 200.f);
-
-                }
-            }
-        );
-
-    // Cria o objeto que representa o estado que terá esse ataque
-    auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
-                                                      /*duration*/ STATE_ONE_DURATION,
-                                                      /*nextState*/ "StateTwo");
-    fsm->RegisterState(std::move(stateObj));
-
-    boss->RegisterMovementStrategy(STATE_NAME, std::make_unique<GoToCenterStrategy>());//(3.f, 120.f));
-
-}
-
-void SallesFactory::ConfigureStateTwo(Boss* boss, FSMComponent* fsm)
-{
-
-    const std::string STATE_NAME = "StateTwo";
-
-    // 1. Configura os parâmetros para este estado
-    auto params = std::make_unique<AttackParams>();
-    params->numProjectiles = 4;
-    params->projectileSpeed = 360.0f;
-    params->angle = 40.f;
-
-    auto spawner = boss->GetProjectileFactory("Capivara");
-
-    boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<AngledAttack>(spawner, boss),
-        std::move(params),
-        1.f,
-        [](Projectile* p, int index) {
-            {   // ORIGINAL: if (rand<0.3) insertMotion<PathBehavior>(PathShapes::Reta(), 0.f, 1.8f, Mira(Mira::MirarNoJogador));
-                // TESTE - ARCO alternado: as barrigas se cruzam no meio do voo.
-                const float lat = (index % 2 == 0) ? 110.f : -110.f;
-                p->insertMotion<PathBehavior>(PathShapes::Arc(500.f, lat, 10), 190.f);
-            }
-        }
-    );
-
-    // 2. Cria o objeto que representa o estado desse ataque
-    auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
-                                                      /*duration*/ STATE_TWO_DURATION,
-                                                      /*nextState*/ "StateThree");
-    fsm->RegisterState(std::move(stateObj));
-
-    boss->RegisterMovementStrategy(STATE_NAME,
-        std::make_unique<RandomWanderStrategy>(6.0f, 300.0f));
-
-}
-void SallesFactory::ConfigureStateThree(Boss *boss, FSMComponent *fsm) {
-    const std::string STATE_NAME = "StateThree";
-
-    // 1 . Configura os padrões fixos do estado três
-    auto params = std::make_unique<AttackParams>();
-    params->numProjectiles = 8;
-    params->projectileSpeed = 600.0f;
-    params->angle = 80.f;
-
-    auto spawner = boss->GetProjectileFactory("Capivara");
-
-    boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<AngledAttack>(spawner, boss),
-        std::move(params),
-        0.8f,
-        [](Projectile* p, int index) {
-            {   // ORIGINAL: if (rand<0.5) insertMotion<PathBehavior>(PathShapes::Reta(), 0.f, 1.8f, Mira(Mira::MirarNoJogador));
-                // TESTE - LACO: uma forma escrita, 5 lacos girados (um por
-                // projetil do leque), pelo alinhamento automatico do caminho.
-                p->insertMotion<PathBehavior>(PathShapes::Loop(90.f, 400.f, 6), 600.f);
-            }
-        }
-    );
-
-    auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
-                                                  /*duration*/ STATE_THREE_DURATION,
-                                                  /*nextState*/ "");
-
-    fsm->RegisterState(std::move(stateObj));
-
-    boss->RegisterMovementStrategy(STATE_NAME,
-        std::make_unique<RandomWanderStrategy>(4.f, 300.f));
-
-}
-void SallesFactory::ConfigureStateFinal(Boss *boss, FSMComponent *fsm) {
-    const std::string STATE_NAME = "StateFinal";
-
-    // 1. Padrões fixos do estado Final
-    // -- Ataque 1 --
-    auto paramsFast = std::make_unique<AttackParams>();
-    paramsFast->numProjectiles = 3;
-    paramsFast->projectileSpeed = 340.0f;
-    paramsFast->angle = 40.f;
-
-    auto spawner = boss->GetProjectileFactory("Capivara");
-
-    boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<AngledAttack>(spawner, boss),
-        std::move(paramsFast),
-        0.8f,
-        [](Projectile* p, int i) {
-            {   // ORIGINAL: if (rand<0.1) insertMotion<PathBehavior>(PathShapes::Reta(), 0.f, 1.2f, Mira(Mira::MirarNoJogador));
-                // TESTE - ARCO largo.
-                const float lat = (i % 2 == 0) ? 135.f : -135.f;
-                p->insertMotion<PathBehavior>(PathShapes::Arc(540.f, lat, 10), 195.f);
-                p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
-            }
-        });
-
-    // -- Ataque 2 --
-    auto paramsSlow = std::make_unique<AttackParams>();
-    paramsSlow->numProjectiles = 3;
-    paramsSlow->projectileSpeed = 200.0f;
-    paramsSlow->angle = 80.f;
-
-    boss->AddAttackPattern(STATE_NAME,
-        std::make_unique<AngledAttack>(spawner, boss),
-        std::move(paramsSlow),
-        1.f,
-        [](Projectile* p, int i) {
-            {   // ORIGINAL: if (rand<0.4) insertMotion<PathBehavior>(PathShapes::Reta(), 0.f, 1.6f, Mira(Mira::MirarNoJogador));
-                // TESTE - AS TRES FORMAS no mesmo disparo, uma por projetil.
-                switch (i % 3) {
-                    case 0:  p->insertMotion<PathBehavior>(PathShapes::Loop(80.f, 500.f, 12), 175.f); break;
-                    case 1:  p->insertMotion<PathBehavior>(PathShapes::Arc(480.f, 115.f, 10), 190.f); break;
-                    default: p->insertMotion<PathBehavior>(PathShapes::Zigzag(80.f, 45.f, 6), 200.f); break;
-                }
-                p->GetComponent<DrawAnimatedComponent>()->SetAnimation("Homing");
-            }
-        });
-
-    auto stateObj = std::make_unique<BossAttackState>(fsm, STATE_NAME,
-                                                    STATE_FINAL_DURATION,
-                                                        "StateOne");
-    fsm->RegisterState(std::move(stateObj));
-
-    boss->RegisterMovementStrategy(STATE_NAME,
-        std::make_unique<GoToCenterStrategy>());
-
-}
-
-

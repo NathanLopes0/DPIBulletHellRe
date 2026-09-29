@@ -16,9 +16,4 @@ protected:
     std::unique_ptr<Boss> InstantiateBoss(Scene* scene) override;
     void ConfigureComponents(Boss* boss) override;
     void ConfigureAttacksAndFSM(Boss* boss) override;
-
-    void ConfigureStateOne(Boss *boss, FSMComponent *fsm) override;
-    void ConfigureStateTwo(Boss *boss, FSMComponent *fsm) override;
-    void ConfigureStateThree(Boss *boss, FSMComponent *fsm) override;
-    void ConfigureStateFinal(Boss *boss, FSMComponent *fsm) override;
 };
