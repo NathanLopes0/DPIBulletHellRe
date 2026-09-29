@@ -77,6 +77,10 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/RegrasDeAtaque.h
         Source/Attacks/RegrasDeAtaqueArquivo.cpp
         Source/Attacks/RegrasDeAtaqueArquivo.h
+        Source/Attacks/FasesDeAtaque.cpp
+        Source/Attacks/FasesDeAtaque.h
+        Source/Attacks/FasesDeAtaqueArquivo.cpp
+        Source/Attacks/FasesDeAtaqueArquivo.h
         Source/Attacks/PathAim.cpp
         Source/Attacks/PathAim.h
         Source/Attacks/Receitas.h
@@ -164,6 +168,7 @@ add_executable(dpi_tests
         tests/test_investida.cpp
         tests/test_formas.cpp
         tests/test_regras.cpp
+        tests/test_fases.cpp
         tests/test_progresso.cpp
         Source/Progresso.cpp
         Source/Progresso.h
@@ -173,6 +178,8 @@ add_executable(dpi_tests
         Source/Attacks/PathShapes.h
         Source/Attacks/RegrasDeAtaque.cpp
         Source/Attacks/RegrasDeAtaque.h
+        Source/Attacks/FasesDeAtaque.cpp
+        Source/Attacks/FasesDeAtaque.h
         Source/Math.cpp
         Source/Math.h
         Source/Attacks/Receitas.h

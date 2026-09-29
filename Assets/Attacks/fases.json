@@ -1,0 +1,459 @@
+{
+  // ==========================================================================
+  // FASES DE ATAQUE DOS CHEFES
+  //
+  // Um conjunto por chefe. A fabrica do chefe pede o conjunto pelo nome:
+  //     ConfigurarFasesDeArquivo(boss, fsm, "ricardo")
+  //
+  // OS NOMES DE FASE NAO SAO LIVRES. A maquina de estados procura os estados por
+  // TEXTO, e so estes quatro existem:
+  //     StateOne, StateTwo, StateThree, StateFinal
+  // Um nome inventado e recusado na leitura, porque a fase existiria no arquivo
+  // sem nunca ser alcancada.
+  //
+  // StateFinal E OBRIGATORIO, mesmo num chefe de tres fases. Se a nota ficar
+  // entre 40 e 59 ao fim da terceira fase, a FSM vai para StateFinal; sem o
+  // estado, ela apenas registra um erro no log e O CHEFE CONGELA - sem travar o
+  // jogo e sem avisar em tela. Isso ja custou depuracao uma vez.
+  //
+  // "proximo" vazio ou ausente significa "a batalha e decidida ao fim desta
+  // fase" (ver BossAttackState), e nao "fim do arquivo".
+  //
+  // CAMPOS DE UM ATAQUE
+  //   estrategia  AngledAttack | CircleSpreadAttack | WaveAttack |
+  //               BaloonAttack | LaserAttack
+  //   projetil    nome da fabrica de projeteis DESTE chefe, como ela foi
+  //               registrada em ConfigureComponents. Obrigatorio.
+  //   cooldown    segundos entre dois disparos deste ataque. Obrigatorio na
+  //               pratica (o padrao de 1s raramente e o que se quer).
+  //   projeteis   quantos por disparo
+  //   velocidade  px/s do disparo
+  //   angulo      ABERTURA do leque, em graus (AngledAttack e WaveAttack)
+  //   anguloCentral  MEIO do leque. 0 = direita, 90 = baixo, 180 = esquerda
+  //   intervalo   atraso entre um projetil e o seguinte (so a WaveAttack le)
+  //   regras      nome de um conjunto de regras.json, ou a lista escrita aqui
+  //
+  // CAMPO OMITIDO = PADRAO DO MOTOR. A ponte so escreve no AttackParams o que
+  // este arquivo disser; o resto fica com o padrao que o AttackParams ja tem.
+  // Nao ha valor "zero por omissao" nenhum aqui.
+  //
+  // CUIDADO: anguloCentral pode ser SOBRESCRITO pelo chefe em tempo de
+  // execucao, no CustomizeAttackParams dele. Quando isso acontece, o valor
+  // escrito aqui nao tem efeito - esta anotado fase por fase abaixo. E o unico
+  // pedaco do balanceamento que ainda vive em C++.
+  //
+  // MOVIMENTO DO CHEFE - 'a' e 'b' sao os dois parametros do construtor:
+  //   RandomWander      a = intervalo entre destinos (s), b = velocidade (px/s)
+  //   HoverAbovePlayer  a = velocidade (px/s),  b = altura acima do jogador
+  //   GoToCenter        nao usa nenhum dos dois
+  // ==========================================================================
+
+  // ==========================================================================
+  // SALLES - INF 110 (fabrica de projeteis: "Capivara")
+  //
+  // ATENCAO: este chefe esta em MODO DE TESTE DO PATHING. Os caminhos das quatro
+  // fases foram trocados para exercitar Zigzag, Arc e Loop; o balanceamento
+  // (quantidade, velocidade, angulo, cooldown) e o original e nao foi tocado.
+  // Para voltar ao comportamento anterior a esse teste, troque cada conjunto de
+  // regras por uma Reta mirada no jogador com atraso - o equivalente exato do
+  // antigo HomingBehavior. Os valores de atraso originais estao no historico do
+  // git, no commit 8f54c2b e anteriores.
+  //
+  // Salles SOBRESCREVE anguloCentral nas QUATRO fases (Salles.cpp): nas tres
+  // primeiras ele sorteia entre mirar no jogador (30%) e um angulo aleatorio, e
+  // na final sempre sorteia. Por isso nenhuma fase escreve anguloCentral aqui.
+  // ==========================================================================
+  "salles": {
+
+    "StateOne": {
+      "duracao": 17,
+      "proximo": "StateTwo",
+      "movimento": { "tipo": "GoToCenter" },
+      "ataques": [
+        { "estrategia": "AngledAttack", "projetil": "Capivara",
+          "projeteis": 3, "velocidade": 340, "angulo": 40,
+          "cooldown": 0.8,
+          "regras": "salles_fase1" }
+      ]
+    },
+
+    "StateTwo": {
+      "duracao": 17,
+      "proximo": "StateThree",
+      "movimento": { "tipo": "RandomWander", "a": 6.0, "b": 300 },
+      "ataques": [
+        { "estrategia": "AngledAttack", "projetil": "Capivara",
+          "projeteis": 4, "velocidade": 360, "angulo": 40,
+          "cooldown": 1.0,
+          "regras": "salles_fase2" }
+      ]
+    },
+
+    "StateThree": {
+      "duracao": 17,
+      // Vazio de proposito: e aqui que a batalha e decidida.
+      "proximo": "",
+      "movimento": { "tipo": "RandomWander", "a": 4.0, "b": 300 },
+      "ataques": [
+        { "estrategia": "AngledAttack", "projetil": "Capivara",
+          "projeteis": 8, "velocidade": 600, "angulo": 80,
+          "cooldown": 0.8,
+          "regras": "salles_fase3" }
+      ]
+    },
+
+    // Repescagem (nota entre 40 e 59 ao fim da fase 3). Dois ataques ao mesmo
+    // tempo, com cooldowns diferentes: um leque rapido e estreito de arcos, e um
+    // leque lento e largo em que cada projetil faz uma forma diferente.
+    "StateFinal": {
+      "duracao": 17,
+      "proximo": "StateOne",
+      "movimento": { "tipo": "GoToCenter" },
+      "ataques": [
+        { "estrategia": "AngledAttack", "projetil": "Capivara",
+          "projeteis": 3, "velocidade": 340, "angulo": 40,
+          "cooldown": 0.8,
+          "regras": "salles_final_arcos" },
+
+        // 3 projeteis e as 3 formas de salles_final_variado andam juntos: mudar
+        // um numero aqui exige acertar os indices la.
+        { "estrategia": "AngledAttack", "projetil": "Capivara",
+          "projeteis": 3, "velocidade": 200, "angulo": 80,
+          "cooldown": 1.0,
+          "regras": "salles_final_variado" }
+      ]
+    }
+  },
+
+  // ==========================================================================
+  // RICARDO - INF 112 (fabrica de projeteis: "Arduino")
+  //
+  // O chefe do anel. As tres fases sao o MESMO anel de CircleSpreadAttack com
+  // densidade e comportamento crescentes, e a diferenca entre elas esta toda nas
+  // regras dos projeteis.
+  //
+  // Ricardo NAO sobrescreve nada em CustomizeAttackParams, entao todo o
+  // balanceamento dele esta neste arquivo. CircleSpreadAttack tambem ignora
+  // angulo, anguloCentral e intervalo - o anel e sempre 360 graus dividido pela
+  // quantidade - por isso nenhum dos tres aparece aqui.
+  // ==========================================================================
+  "ricardo": {
+
+    // Anel denso e SEM regra nenhuma: 36 projeteis retos. E a fase que ensina o
+    // jogador a ler espacamento, antes de qualquer bala comecar a corrigir rota.
+    "StateOne": {
+      "duracao": 17,
+      "proximo": "StateTwo",
+      "movimento": { "tipo": "RandomWander", "a": 4.0, "b": 100 },
+      "ataques": [
+        { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
+          "projeteis": 36, "velocidade": 180,
+          "cooldown": 2.4 }
+      ]
+    },
+
+    // Mesmo anel, agora teleguiado: desacelera e depois vira no jogador.
+    "StateTwo": {
+      "duracao": 17,
+      "proximo": "StateThree",
+      "movimento": { "tipo": "RandomWander", "a": 3.0, "b": 160 },
+      "ataques": [
+        { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
+          "projeteis": 36, "velocidade": 180,
+          "cooldown": 2.4,
+          "regras": "ricardo_fase2" }
+      ]
+    },
+
+    // Anel de 18 - METADE da fase 2 - mas so os pares viram. Menos balas e mais
+    // decisao: o jogador escolhe por onde passar.
+    "StateThree": {
+      "duracao": 17,
+      "proximo": "",
+      "movimento": { "tipo": "RandomWander", "a": 2.0, "b": 180 },
+      "ataques": [
+        { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
+          "projeteis": 18, "velocidade": 180,
+          "cooldown": 2.4,
+          "regras": "ricardo_fase3" }
+      ]
+    },
+
+    // Repescagem: um anel lento e denso sem regra, mais um anel esparso e rapido
+    // que persegue. Os cooldowns diferentes (1.4 e 2.8) fazem os dois aneis
+    // desencontrarem em vez de sairem sempre juntos.
+    "StateFinal": {
+      "duracao": 17,
+      "proximo": "StateOne",
+      "movimento": { "tipo": "GoToCenter" },
+      "ataques": [
+        { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
+          "projeteis": 18, "velocidade": 120,
+          "cooldown": 1.4 },
+
+        { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
+          "projeteis": 9, "velocidade": 240,
+          "cooldown": 2.8,
+          "regras": "ricardo_final_teleguiado" }
+      ]
+    }
+  },
+
+  // ==========================================================================
+  // JULIO - INF 420, Inteligencia Artificial (fabrica de projeteis: "Dados")
+  //
+  // As fases contam uma historia: o modelo nao te conhece, aprende onde voce
+  // esta, aprende como voce se move, e na repescagem entra em loop.
+  //
+  // Julio SOBRESCREVE anguloCentral nas QUATRO fases (Julio.cpp), e cada uma de
+  // um jeito diferente - e ali que a historia acontece:
+  //   StateOne    mira no jogador com desvio de +-40 graus (nao te conhece)
+  //   StateTwo    mira exata na posicao ATUAL
+  //   StateThree  mira em onde o jogador ESTARA (GetPredictedPlayerDirection)
+  //   StateFinal  volta a atirar para baixo, 90 graus fixos
+  // Por isso nenhuma fase escreve anguloCentral aqui: nao teria efeito.
+  //
+  // A animacao tambem e decidida por fase em Julio::OnProjectilesCreated, que
+  // roda DEPOIS do configurator - "Coleta", "Perseguicao" e "Previsao". Uma
+  // animacao escrita nas regras destas fases seria sobrescrita por ela; a das
+  // regras de investida esta aqui de proposito, para o caso de o gancho mudar.
+  // ==========================================================================
+  "julio": {
+
+    // FASE 1 - "Esta te procurando"
+    //
+    // UM cacador por vez, grande e lento, que quase para, re-aponta e da um
+    // mergulho rapido. Sete investidas cabem nos 17s da fase.
+    //
+    // O cooldown e DERIVADO do ritmo em vez de escrito a mao: um unico ritmo
+    // alimenta a mirada, o pulso de velocidade E a cadencia do ataque. Mexer na
+    // pausa move as tres coisas juntas. Com um numero solto aqui, mexer no ritmo
+    // e esquecer o cooldown deixaria varios cacadores na tela ao mesmo tempo, sem
+    // erro nenhum aparecer.
+    //
+    // As regras vem EM LINHA, e nao por nome, porque e de onde o cooldown tira o
+    // ritmo - derivar de um ritmo escrito em regras.json criaria uma dependencia
+    // invisivel entre os dois arquivos.
+    "StateOne": {
+      "duracao": 17,
+      "proximo": "StateTwo",
+      "movimento": { "tipo": "RandomWander", "a": 3.5, "b": 115 },
+      "ataques": [
+        { "estrategia": "AngledAttack", "projetil": "Dados",
+          "projeteis": 13, "velocidade": 175, "angulo": 150,
+          "cooldown": { "doRitmo": "total", "dividirPor": 7 },
+          "regras": [
+            { "escala": 3, "animacao": "Perseguicao",
+              "investidaRepetida": {
+                "ritmo": { "investida": 0.6, "pausa": 1.0, "repeticoes": 7 },
+                "velocidadeNaInvestida": 900,
+                // NAO use zero: a direcao mora dentro do vetor velocidade, e com
+                // modulo zero a mirada seguinte nao tem o que girar.
+                "velocidadeNaPausa": 15 } }
+          ] }
+      ]
+    },
+
+    // FASE 2 - "Aprendeu onde voce esta"
+    //
+    // Mira exata na posicao atual, e os projeteis curvam durante o voo com forca
+    // que decai (regras "julio_fase2": pares corrigem mais que impares).
+    //
+    // Leitura de jogo: fugir cedo nao adianta, porque o projetil corrige; e
+    // preciso esperar a forca decair e desviar no fim. Ensina timing.
+    //
+    // Movimento: o chefe DESCE na direcao do jogador, 135 px/s, parando 170 px
+    // acima dele.
+    "StateTwo": {
+      "duracao": 17,
+      "proximo": "StateThree",
+      "movimento": { "tipo": "HoverAbovePlayer", "a": 135, "b": 170 },
+      "ataques": [
+        { "estrategia": "CircleSpreadAttack", "projetil": "Dados",
+          "projeteis": 16, "velocidade": 205,
+          "cooldown": 1.3,
+          "regras": "julio_fase2" }
+      ]
+    },
+
+    // FASE 3 - "Aprendeu como voce se move"
+    //
+    // Dois ataques ao mesmo tempo, com papeis diferentes:
+    //
+    // 1. UM projetil rapido por vez com cooldown curtissimo (0.1s): um fluxo
+    //    continuo de balas individualmente legiveis, em vez de uma rajada que o
+    //    jogador so pode atravessar torcendo. AJUSTE O 0.1 para calibrar a
+    //    pressao da fase - e o knob mais sensivel do chefe.
+    //    AngledAttack com 1 projetil e angulo 0 dispara um tiro unico exatamente
+    //    em anguloCentral: o angleStep fica zerado e o laco roda uma vez. O
+    //    "angulo": 0 e OBRIGATORIO aqui - sem ele o padrao de 90 graus deslocaria
+    //    o tiro 45 graus do centro, porque o leque comeca em centro - angulo/2.
+    //
+    // 2. O cacador da fase 1 de novo, mais lento e com cinco investidas, para
+    //    haver uma ameaca que persegue enquanto o fluxo pressiona.
+    //
+    // Movimento: o chefe se fixa no centro. Parou de procurar, agora so calcula.
+    //
+    // "proximo" vazio: e aqui que a batalha e decidida.
+    "StateThree": {
+      "duracao": 17,
+      "proximo": "",
+      "movimento": { "tipo": "GoToCenter" },
+      "ataques": [
+        { "estrategia": "AngledAttack", "projetil": "Dados",
+          "projeteis": 1, "velocidade": 300, "angulo": 0,
+          "cooldown": 0.1,
+          "regras": "julio_fase3_previsao" },
+
+        { "estrategia": "AngledAttack", "projetil": "Dados",
+          "projeteis": 1, "velocidade": 120, "angulo": 0,
+          // Metade da sequencia: o cacador seguinte entra quando o anterior
+          // esta na quinta investida, entao ha no maximo dois na tela.
+          "cooldown": { "doRitmo": "total", "dividirPor": 2 },
+          "regras": [
+            { "escala": 3, "animacao": "Perseguicao",
+              "investidaRepetida": {
+                "ritmo": { "investida": 0.6, "pausa": 1.0, "repeticoes": 5 },
+                "velocidadeNaInvestida": 800,
+                "velocidadeNaPausa": 15 } }
+          ] }
+      ]
+    },
+
+    // FASE FINAL - "Entrou em loop" (repescagem, nota entre 40 e 59)
+    //
+    // PRECISA existir mesmo o Julio sendo um chefe de 3 fases. Se a nota cair
+    // nessa faixa ao fim da fase 3, a FSM tenta ir para StateFinal; sem o estado,
+    // ela apenas registra o erro e o chefe TRAVA.
+    //
+    // Tema: o modelo travou. A piada e de graca para calouro de computacao - as
+    // balas entram em LOOP antes de vir para cima de voce. Continua sendo a fase
+    // mais facil da luta, que e o papel de uma repescagem.
+    "StateFinal": {
+      "duracao": 17,
+      "proximo": "StateOne",
+      "movimento": { "tipo": "RandomWander", "a": 4.5, "b": 85 },
+      "ataques": [
+        { "estrategia": "CircleSpreadAttack", "projetil": "Dados",
+          "projeteis": 6, "velocidade": 150,
+          "cooldown": 2.6,
+          "regras": "julio_final_laco" }
+      ]
+    }
+  },
+
+  // ==========================================================================
+  // ANDRE - INF 330 (fabrica de projeteis: "Baloes")
+  //
+  // O chefe dos baloes. A BaloonAttack nao dispara do chefe: ela faz os
+  // projeteis nascerem FORA da tela, de um lado escolhido, e entrarem depois de
+  // um atraso sorteado entre 0 e 2 segundos. O bloco "balao" e obrigatorio nela.
+  //
+  // CONVENCAO DE "lado": e de onde o balao NASCE, e ele vai para o lado oposto.
+  //   "Down"  nasce abaixo da tela e SOBE
+  //   "Up"    nasce acima e DESCE
+  //   "Left"  nasce a esquerda e vai para a DIREITA
+  //   "Right" nasce a direita e vai para a ESQUERDA
+  //
+  // "centradoNoJogador" com "deslocamento" 600 faz os baloes nascerem num trecho
+  // de +-600 px em volta da coordenada do jogador no eixo livre, em vez de na
+  // largura inteira da tela: e o que faz o ataque parecer dirigido a ele.
+  //
+  // ATENCAO - PARTE DO BALANCEAMENTO DO ANDRE AINDA VIVE EM C++, em
+  // Andre::CustomizeAttackParams, e SOBRESCREVE o que este arquivo diz:
+  //   StateOne e StateTwo  anguloCentral (nao usado pela BaloonAttack)
+  //   StateThree           projectileSpeed, numProjectiles E anguloCentral, com
+  //                        valores diferentes se o jogador esta acima ou abaixo
+  // Os numeros da StateThree abaixo estao aqui porque eram os do C++, mas nao
+  // tem efeito: o chefe os troca a cada disparo. Mexer neles nao muda nada -
+  // para mudar a fase 3, mexa em Andre.cpp.
+  // ==========================================================================
+  "andre": {
+
+    // Dois ataques simultaneos com o MESMO cooldown: uma parede pela direita e
+    // outra pela esquerda ao mesmo tempo, dez baloes cada.
+    "StateOne": {
+      "duracao": 17,
+      "proximo": "StateTwo",
+      "movimento": { "tipo": "GoToCenter" },
+      "ataques": [
+        { "estrategia": "BaloonAttack", "projetil": "Baloes",
+          "projeteis": 10, "velocidade": 500, "cooldown": 3.0,
+          "balao": { "lado": "Right", "spawnAleatorio": true,
+                     "centradoNoJogador": true, "deslocamento": 600 } },
+
+        { "estrategia": "BaloonAttack", "projetil": "Baloes",
+          "projeteis": 10, "velocidade": 500, "cooldown": 3.0,
+          "balao": { "lado": "Left", "spawnAleatorio": true,
+                     "centradoNoJogador": true, "deslocamento": 600 } }
+      ]
+    },
+
+    // Troca o eixo: agora vem de baixo, em levas menores e mais frequentes.
+    //
+    // O C++ que este conjunto substitui montava TAMBEM um segundo bloco de
+    // parametros com "lado": "Up" e nunca o registrava - codigo morto que
+    // parecia um ataque. Aqui ficou so o que realmente disparava. Se a intencao
+    // era ter os dois, acrescente o par de "Up" a esta lista; o efeito seria
+    // baloes subindo e descendo ao mesmo tempo.
+    "StateTwo": {
+      "duracao": 17,
+      "proximo": "StateThree",
+      "movimento": { "tipo": "RandomWander", "a": 1.8, "b": 300 },
+      "ataques": [
+        { "estrategia": "BaloonAttack", "projetil": "Baloes",
+          "projeteis": 5, "velocidade": 500, "cooldown": 1.25,
+          "balao": { "lado": "Down", "spawnAleatorio": true,
+                     "centradoNoJogador": true, "deslocamento": 600 } }
+      ]
+    },
+
+    // Fase 3: abandona os baloes e vira um leque em onda saindo do chefe.
+    // Os tres numeros marcados abaixo sao SOBRESCRITOS por Andre.cpp a cada
+    // disparo - estao aqui por fidelidade ao C++, nao por terem efeito.
+    "StateThree": {
+      "duracao": 17,
+      "proximo": "",
+      "movimento": { "tipo": "GoToCenter" },
+      "ataques": [
+        { "estrategia": "WaveAttack", "projetil": "Baloes",
+          "projeteis": 18,        // sobrescrito (18 ou 36, conforme o jogador)
+          "velocidade": 200,      // sobrescrito (500 ou 600)
+          "anguloCentral": 90,    // sobrescrito
+          "angulo": 180,          // este VALE: e a abertura do leque
+          "intervalo": 0.02,      // este VALE: o atraso entre um projetil e o seguinte
+          "cooldown": 0.9 }
+      ]
+    },
+
+    // Repescagem: os QUATRO lados ao mesmo tempo, em levas de cinco e mais
+    // lentos (300 em vez de 500). Cerca o jogador, mas devagar o bastante para
+    // dar tempo de achar o buraco - que e o papel de uma repescagem.
+    "StateFinal": {
+      "duracao": 17,
+      "proximo": "StateOne",
+      "movimento": { "tipo": "GoToCenter" },
+      "ataques": [
+        { "estrategia": "BaloonAttack", "projetil": "Baloes",
+          "projeteis": 5, "velocidade": 300, "cooldown": 1.25,
+          "balao": { "lado": "Right", "spawnAleatorio": true,
+                     "centradoNoJogador": true, "deslocamento": 600 } },
+
+        { "estrategia": "BaloonAttack", "projetil": "Baloes",
+          "projeteis": 5, "velocidade": 300, "cooldown": 1.25,
+          "balao": { "lado": "Left", "spawnAleatorio": true,
+                     "centradoNoJogador": true, "deslocamento": 600 } },
+
+        { "estrategia": "BaloonAttack", "projetil": "Baloes",
+          "projeteis": 5, "velocidade": 300, "cooldown": 1.25,
+          "balao": { "lado": "Down", "spawnAleatorio": true,
+                     "centradoNoJogador": true, "deslocamento": 600 } },
+
+        { "estrategia": "BaloonAttack", "projetil": "Baloes",
+          "projeteis": 5, "velocidade": 300, "cooldown": 1.25,
+          "balao": { "lado": "Up", "spawnAleatorio": true,
+                     "centradoNoJogador": true, "deslocamento": 600 } }
+      ]
+    }
+  }
+}

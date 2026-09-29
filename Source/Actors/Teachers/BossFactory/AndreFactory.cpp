@@ -11,6 +11,7 @@
 #include "../../../Attacks/AttackParameters/BaloonAttackParams.h"
 #include "../../../Attacks/BaseStrategies/BaloonAttack.h"
 #include "../../../Attacks/BaseStrategies/WaveAttack.h"
+#include "../../../Attacks/FasesDeAtaqueArquivo.h"
 #include "BossProjectileFactory/AndreBaloonProjectileFactory.h"
 
 AndreFactory::AndreFactory(Game *game)
@@ -46,10 +47,21 @@ void AndreFactory::ConfigureAttacksAndFSM(Boss *boss) {
     auto fsm = boss->GetComponent<FSMComponent>();
     if (!fsm) { SDL_Log("ERRO CRÍTICO: Boss não tem FSMComponent!"); return; }
 
-    ConfigureStateOne(boss, fsm);
-    ConfigureStateTwo(boss, fsm);
-    ConfigureStateThree(boss, fsm);
-    ConfigureStateFinal(boss, fsm);
+    // As fases agora vivem em Assets/Attacks/fases.json, no conjunto "andre".
+    // ATENCAO: parte do balanceamento deste chefe NAO esta la, e sim em
+    // Andre::CustomizeAttackParams, que sobrescreve numProjectiles,
+    // projectileSpeed e centralAngle da fase 3 a cada disparo. Mexer nesses tres
+    // no arquivo nao tem efeito; para mudar a fase 3, mexa em Andre.cpp.
+    //
+    // As funcoes ConfigureStateX abaixo continuam aqui como RESERVA: arquivo
+    // ausente, JSON malformado ou transicao quebrada fazem ConfigurarFasesDeArquivo
+    // devolver false SEM ter registrado nada, e o chefe volta a ser montado em C++.
+    if (!ConfigurarFasesDeArquivo(boss, fsm, "andre")) {
+        ConfigureStateOne(boss, fsm);
+        ConfigureStateTwo(boss, fsm);
+        ConfigureStateThree(boss, fsm);
+        ConfigureStateFinal(boss, fsm);
+    }
 
     boss->SetInitialState("StateOne");
 }

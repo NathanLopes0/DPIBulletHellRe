@@ -1,4 +1,33 @@
 {
+  // ==========================================================================
+  // FORMAS DE TRAJETORIA
+  //
+  // ESPACO DE CAMINHO: +X e a direcao em que o projetil viaja quando o
+  // PathBehavior ativa, +Y e a perpendicular A DIREITA desse movimento. Ou
+  // seja, a forma e desenhada como se o tiro sempre saisse para a direita, e o
+  // PathBehavior gira tudo para a direcao real. A MESMA forma serve em qualquer
+  // angulo, e um anel de CircleSpreadAttack produz a forma girada para cada
+  // direcao do anel.
+  //
+  // "gerador" reaproveita as formas que existem em C++ (Reta, Arc, Loop,
+  // Zigzag) com os parametros NA ORDEM em que a funcao os recebe:
+  //     Arc(forward, lateral, segments)  ->  a, b, n
+  //     Loop(radius, exitDistance, segments)
+  //     Zigzag(step, amplitude, legs)
+  //     Reta(distance)                   ->  a
+  // "pontos" e a lista literal, para uma forma que nenhum gerador desenha.
+  //
+  // NUMERO DE SEGMENTOS: cada ponto e um alvo que o projetil precisa alcancar
+  // dentro de uma tolerancia. Muitos pontos muito proximos fazem o projetil
+  // gastar quadros "chegando" em cada um e a trajetoria fica truncada. Entre 8
+  // e 16 costuma ser o ponto certo.
+  //
+  // As formas sao COMPARTILHADAS (Flyweight): duas regras que pedem a mesma
+  // forma recebem o mesmo ponteiro. Por isso os nomes descrevem a GEOMETRIA e
+  // nao o chefe - a forma que o Salles usa hoje serve para outro amanha.
+  // ==========================================================================
+
+  // ----- Formas de exemplo, nao usadas por chefe nenhum -----
   "LacoLargo": {
     "gerador": { "tipo": "Loop", "a": 90, "b": 500, "n": 14 }
   },
@@ -7,5 +36,60 @@
   },
   "Gancho": {
     "pontos": [[80, 0], [150, 30], [190, 90], [170, 160], [110, 200], [900, 200]]
+  },
+
+  // ----- Salles, fase 1 -----
+  // Quinas exatas e legiveis: o jogador ve o padrao e consegue se posicionar.
+  // Diferente do WobbleBehavior, aqui as dobras sao previsiveis.
+  "ZigueQuinado": {
+    "gerador": { "tipo": "Zigzag", "a": 85, "b": 50, "n": 6 }
+  },
+
+  // ----- Salles, fase 2 -----
+  // O par existe para ALTERNAR o lado entre projeteis vizinhos (pares recebem
+  // um, impares o outro): as barrigas se cruzam no meio do voo, e o cruzamento
+  // e o que faz a fase parecer diferente da fase 1.
+  "ArcoDireita": {
+    "gerador": { "tipo": "Arc", "a": 500, "b": 110, "n": 10 }
+  },
+  "ArcoEsquerda": {
+    "gerador": { "tipo": "Arc", "a": 500, "b": -110, "n": 10 }
+  },
+
+  // ----- Salles, fase 3 -----
+  // Uma forma escrita, seis lacos girados: o alinhamento automatico do caminho
+  // gira o mesmo laco para a direcao de cada projetil do leque.
+  "LacoRapido": {
+    "gerador": { "tipo": "Loop", "a": 90, "b": 400, "n": 6 }
+  },
+
+  // ----- Salles, fase final -----
+  // Mesma ideia do par da fase 2, com a barriga mais larga.
+  "ArcoLargoDireita": {
+    "gerador": { "tipo": "Arc", "a": 540, "b": 135, "n": 10 }
+  },
+  "ArcoLargoEsquerda": {
+    "gerador": { "tipo": "Arc", "a": 540, "b": -135, "n": 10 }
+  },
+
+  // As tres formas do segundo ataque da fase final, uma por projetil do leque
+  // de tres. Raio pequeno e muitos segmentos: a volta precisa ser LENTA para
+  // ser lida - um laco rapido vira um borrao e perde a graca.
+  "LacoLento": {
+    "gerador": { "tipo": "Loop", "a": 80, "b": 500, "n": 12 }
+  },
+  "ArcoMedio": {
+    "gerador": { "tipo": "Arc", "a": 480, "b": 115, "n": 10 }
+  },
+  "ZigueCurto": {
+    "gerador": { "tipo": "Zigzag", "a": 80, "b": 45, "n": 6 }
+  },
+
+  // ----- Julio, fase final -----
+  // Raio pequeno e velocidade baixa: a volta precisa ser LENTA para ser lida. Um
+  // laco rapido vira um borrao e perde a graca, e a piada da fase (o modelo
+  // entrou em loop) depende de o jogador VER a bala girar.
+  "LacoApertado": {
+    "gerador": { "tipo": "Loop", "a": 70, "b": 500, "n": 12 }
   }
 }

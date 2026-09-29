@@ -7,6 +7,7 @@
 #include "../BossAttackState.h"
 #include "../../../Attacks/Behaviors.h"
 #include "../../../Attacks/BaseStrategies/CircleSpreadAttack.h"
+#include "../../../Attacks/FasesDeAtaqueArquivo.h"
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Movements/MovementStrategies.h"
@@ -47,10 +48,20 @@ void RicardoFactory::ConfigureAttacksAndFSM(Boss *boss) {
     }
 
 
-    ConfigureStateOne(boss, fsm);
-    ConfigureStateTwo(boss, fsm);
-    ConfigureStateThree(boss, fsm);
-    ConfigureStateFinal(boss, fsm);
+    // As fases agora vivem em Assets/Attacks/fases.json, no conjunto "ricardo",
+    // e as regras dos projeteis em Assets/Attacks/regras.json. Como o Ricardo nao
+    // sobrescreve nada em CustomizeAttackParams, TODO o balanceamento dele esta
+    // naqueles dois arquivos.
+    //
+    // As funcoes ConfigureStateX abaixo continuam aqui como RESERVA: arquivo
+    // ausente, JSON malformado ou transicao quebrada fazem ConfigurarFasesDeArquivo
+    // devolver false SEM ter registrado nada, e o chefe volta a ser montado em C++.
+    if (!ConfigurarFasesDeArquivo(boss, fsm, "ricardo")) {
+        ConfigureStateOne(boss, fsm);
+        ConfigureStateTwo(boss, fsm);
+        ConfigureStateThree(boss, fsm);
+        ConfigureStateFinal(boss, fsm);
+    }
 
     boss->SetInitialState("StateOne");
 }

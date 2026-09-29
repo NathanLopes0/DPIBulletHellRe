@@ -1,10 +1,163 @@
 {
+  // ==========================================================================
+  // REGRAS DE PROJETIL
+  //
+  // Cada conjunto e uma lista de regras aplicadas a CADA projetil de uma
+  // rajada, na ordem em que aparecem. Um ataque de fases.json aponta para um
+  // conjunto pelo nome: "regras": "ricardo_fase2".
+  //
+  // A QUEM A REGRA SE APLICA (escolha no maximo uma forma):
+  //   nada           -> a todos os projeteis da rajada
+  //   "quando"       -> "sempre", "pares" (indices 0,2,4...) ou "impares"
+  //   "indices": []  -> posicoes especificas dentro da rajada
+  //   "chance": 0.2  -> sorteio por projetil
+  //
+  // O QUE A REGRA FAZ:
+  //   "motion"    -> UMA por projetil. Decide a DIRECAO e PRESERVA o modulo da
+  //                  velocidade. Uma segunda motion SUBSTITUI a primeira.
+  //                  Tipos: Path, Tracking, Wobble, MiraPeriodica
+  //   "modifiers" -> QUANTAS QUISER. Mudam o MODULO ou agendam coisas, e
+  //                  ACUMULAM.
+  //                  Tipos: Accelerate, SlowDown, Activate, Deactivate,
+  //                         PulsoDeVelocidade
+  //   "animacao"  -> nome de uma animacao registrada na fabrica do projetil
+  //
+  // A separacao entre motion e modifier e garantida pelo COMPILADOR no C++
+  // (static_assert em insertMotion/insertModifier). Aqui ela e conferida na
+  // leitura, porque arquivo de texto nao passa por compilador: por um Modifier
+  // em "motion" e a regra e recusada com uma frase dizendo o porque.
+  //
+  // Em "motion" do tipo Path, "velocidade" e a velocidade COM QUE O CAMINHO E
+  // PERCORRIDO, e nao a do disparo. A 340-400 px/s um laco vira um risco na
+  // tela; por isso quase todo caminho usa uma velocidade menor que a do ataque.
+  // ==========================================================================
+
+  // --------------------------------------------------------------------------
+  // SALLES - INF 110
+  // --------------------------------------------------------------------------
+
+  // Fase 1: quinas exatas, legiveis. Seis pernas de 85px.
+  "salles_fase1": [
+    { "motion": { "tipo": "Path", "forma": "ZigueQuinado", "velocidade": 200 } }
+  ],
+
+  // Fase 2: arco alternado. As barrigas se cruzam no meio do voo, e e o
+  // cruzamento que distingue esta fase da primeira.
+  "salles_fase2": [
+    { "quando": "pares",
+      "motion": { "tipo": "Path", "forma": "ArcoDireita", "velocidade": 190 } },
+    { "quando": "impares",
+      "motion": { "tipo": "Path", "forma": "ArcoEsquerda", "velocidade": 190 } }
+  ],
+
+  // Fase 3: uma forma escrita, seis lacos girados - o alinhamento automatico do
+  // caminho gira o mesmo laco para a direcao de cada projetil do leque.
+  // Velocidade alta aqui de proposito: a fase 3 e a mais apertada.
+  "salles_fase3": [
+    { "motion": { "tipo": "Path", "forma": "LacoRapido", "velocidade": 600 } }
+  ],
+
+  // Fase final, primeiro ataque: arco largo alternado, com a arte de projetil
+  // teleguiado para telegrafar que a bala vai curvar.
+  "salles_final_arcos": [
+    { "quando": "pares",
+      "motion": { "tipo": "Path", "forma": "ArcoLargoDireita", "velocidade": 195 },
+      "animacao": "Homing" },
+    { "quando": "impares",
+      "motion": { "tipo": "Path", "forma": "ArcoLargoEsquerda", "velocidade": 195 },
+      "animacao": "Homing" }
+  ],
+
+  // Fase final, segundo ataque: AS TRES FORMAS no mesmo disparo, uma por
+  // projetil. O ataque tem 3 projeteis, entao os indices 0, 1 e 2 cobrem todos.
+  // Se o numero de projeteis mudar em fases.json, ACERTE OS INDICES AQUI - um
+  // quarto projetil sairia sem caminho nenhum, voando reto.
+  "salles_final_variado": [
+    { "indices": [0],
+      "motion": { "tipo": "Path", "forma": "LacoLento", "velocidade": 175 },
+      "animacao": "Homing" },
+    { "indices": [1],
+      "motion": { "tipo": "Path", "forma": "ArcoMedio", "velocidade": 190 },
+      "animacao": "Homing" },
+    { "indices": [2],
+      "motion": { "tipo": "Path", "forma": "ZigueCurto", "velocidade": 200 },
+      "animacao": "Homing" }
+  ],
+
+  // --------------------------------------------------------------------------
+  // RICARDO - INF 112
+  // --------------------------------------------------------------------------
+
+  // Fase 2: o anel sai reto, DESACELERA, e so depois de 1.5s vira na direcao do
+  // jogador. Path com a forma Reta e mira no jogador e exatamente o que o antigo
+  // HomingBehavior fazia - provado em tests/test_motion_contract.cpp.
+  //
+  // ATENCAO A ORDEM DOS PARAMETROS: o Homing era (atraso, velocidade); aqui sao
+  // campos com nome, entao a troca nao acontece mais em silencio.
+  //
+  // O par SlowDown + Path e o exemplo mais limpo de por que Motion e Modifier
+  // sao coisas separadas: o Path so gira, o SlowDown so muda o modulo, e nenhum
+  // dos dois desfaz o outro.
+  "ricardo_fase2": [
+    { "modifiers": [ { "tipo": "SlowDown", "atraso": 1.3, "fator": 0.8 } ],
+      "motion": { "tipo": "Path", "forma": "Reta", "velocidade": 180,
+                  "atraso": 1.5, "mira": "MirarNoJogador" } }
+  ],
+
+  // Fase 3: METADE do anel vira para o jogador e a outra metade segue reta. O
+  // jogador consegue ler quais balas vao atras dele, e e isso que torna um anel
+  // de 18 atravessavel.
+  "ricardo_fase3": [
+    { "quando": "pares",
+      "motion": { "tipo": "Path", "forma": "Reta", "velocidade": 200,
+                  "atraso": 1.0, "mira": "MirarNoJogador" } }
+  ],
+
+  // Fase final, segundo ataque: o anel esparso de 9, que desacelera antes e
+  // corrige depois.
+  "ricardo_final_teleguiado": [
+    { "modifiers": [ { "tipo": "SlowDown", "atraso": 0.8, "fator": 0.8 } ],
+      "motion": { "tipo": "Path", "forma": "Reta", "velocidade": 240,
+                  "atraso": 1.0, "mira": "MirarNoJogador" } }
+  ],
+
+  // --------------------------------------------------------------------------
+  // JULIO - INF 420
+  // --------------------------------------------------------------------------
+
+  // Fase 2: forca diferente entre par e impar. O jogador ve dois comportamentos
+  // no mesmo anel e aprende a distinguir qual bala corrige mais.
   "julio_fase2": [
     { "quando": "pares",
       "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 3.2, "duracao": 2.4 } },
     { "quando": "impares",
       "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 2.4 } }
   ],
+
+  // Fase 3, primeiro ataque: voa reto 0.8s (o jogador VE que o tiro foi
+  // adiantado) e depois da UMA correcao curta de 0.7s.
+  //
+  // A correcao e deliberadamente fraca e limitada. Se fosse uma perseguicao de
+  // verdade, ela desfaria o contrajogo da previsao: a licao da fase e "seja
+  // imprevisivel", e uma bala que corrige de qualquer jeito faz ser imprevisivel
+  // deixar de ajudar. Fraca assim, o jogador ganha DOIS tempos de desvio, e a
+  // leitura fica "ele errou a previsao e tentou consertar na marra".
+  "julio_fase3_previsao": [
+    { "escala": 2,
+      "motion": { "tipo": "Tracking", "atraso": 0.8, "forca": 1.6, "duracao": 0.7 } }
+  ],
+
+  // Fase final: um anel de 6, cada um dando uma volta antes de seguir em frente.
+  // Como o PathBehavior alinha o caminho com a direcao inicial de cada projetil,
+  // a MESMA forma sai girada de um jeito diferente para cada ponto do anel: seis
+  // lacos apontando para fora, sem escrever seis caminhos.
+  "julio_final_laco": [
+    { "motion": { "tipo": "Path", "forma": "LacoApertado", "velocidade": 150 } }
+  ],
+
+  // --------------------------------------------------------------------------
+  // EXEMPLOS - nenhum chefe usa, servem de referencia para escrever regras
+  // --------------------------------------------------------------------------
 
   "exemplo_teleguiado": [
     { "chance": 0.2,
@@ -13,6 +166,10 @@
       "animacao": "Homing" }
   ],
 
+  // A investida repetida: o projetil quase para, re-aponta, e da um mergulho
+  // rapido. Precisa das DUAS pecas derivadas do MESMO ritmo - a Motion que gira
+  // e o Modifier que pulsa o modulo. Repare que o ritmo aparece duas vezes:
+  // mudar um e esquecer o outro faz a mirada acontecer fora do mergulho.
   "exemplo_cacador": [
     { "motion": { "tipo": "MiraPeriodica",
                   "ritmo": { "investida": 0.2, "pausa": 1.0, "repeticoes": 6 } },

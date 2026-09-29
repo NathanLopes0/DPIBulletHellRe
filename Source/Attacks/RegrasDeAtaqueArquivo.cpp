@@ -96,16 +96,28 @@ std::function<void(Projectile*, int)> ConfiguratorDeArquivo(const std::string& n
         return [](Projectile*, int) {};
     }
 
+    return ConfiguratorDeRegras(it->second);
+}
+
+std::function<void(Projectile*, int)> ConfiguratorDeRegras(const std::vector<Regra>& regrasLidas) {
+
     // As regras sao copiadas para um shared_ptr e capturadas por valor: o
     // configurator vive enquanto o chefe viver, e nao pode depender de um mapa
-    // global continuar existindo.
-    auto regras = std::make_shared<const std::vector<Regra>>(it->second);
+    // global - nem de uma lista de outro modulo - continuar existindo.
+    auto regras = std::make_shared<const std::vector<Regra>>(regrasLidas);
 
     return [regras](Projectile* p, const int indice) {
         if (!p) return;
         for (const Regra& r : *regras) {
             const float sorteio = Random::GetFloatRange(0.0f, 1.0f);
             if (!RegraSeAplica(r, indice, sorteio)) continue;
+
+            // A escala vem primeiro, na mesma ordem em que os configurators
+            // escritos a mao faziam: SetScale antes dos behaviors. As duas coisas
+            // sao independentes (uma mexe no sprite e no colisor, a outra na
+            // velocidade), mas manter a ordem deixa o comportamento identico ao
+            // do codigo que este arquivo substitui, inclusive sob comparacao.
+            if (r.escala) p->SetScale(*r.escala);
 
             if (r.temMotion) Inserir(p, r.motion);
             for (const auto& m : r.modifiers) Inserir(p, m);

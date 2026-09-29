@@ -9,6 +9,7 @@
 #include "../../../Attacks/BaseStrategies/AngledAttack.h"
 #include "../../../Attacks/BaseStrategies/CircleSpreadAttack.h"
 #include "../../../Attacks/BaseStrategies/WaveAttack.h"
+#include "../../../Attacks/FasesDeAtaqueArquivo.h"
 #include "../../../Attacks/PathShapes.h"
 #include "../../../Attacks/Receitas.h"
 #include "../../../Attacks/RegrasDeAtaqueArquivo.h"
@@ -53,10 +54,21 @@ void JulioFactory::ConfigureAttacksAndFSM(Boss* boss) {
         return;
     }
 
-    ConfigureStateOne(boss, fsm);
-    ConfigureStateTwo(boss, fsm);
-    ConfigureStateThree(boss, fsm);
-    ConfigureStateFinal(boss, fsm);
+    // As fases agora vivem em Assets/Attacks/fases.json, no conjunto "julio", e
+    // as regras dos projeteis em Assets/Attacks/regras.json. O que continua em
+    // C++ e so o que NAO e dado: a mira de cada fase, em
+    // Julio::CustomizeAttackParams, que depende da posicao e da velocidade do
+    // jogador no instante do disparo.
+    //
+    // As funcoes ConfigureStateX abaixo continuam aqui como RESERVA: arquivo
+    // ausente, JSON malformado ou transicao quebrada fazem ConfigurarFasesDeArquivo
+    // devolver false SEM ter registrado nada, e o chefe volta a ser montado em C++.
+    if (!ConfigurarFasesDeArquivo(boss, fsm, "julio")) {
+        ConfigureStateOne(boss, fsm);
+        ConfigureStateTwo(boss, fsm);
+        ConfigureStateThree(boss, fsm);
+        ConfigureStateFinal(boss, fsm);
+    }
 
     boss->SetInitialState("StateOne");
 }

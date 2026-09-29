@@ -5,6 +5,7 @@
 #pragma once
 
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -77,6 +78,14 @@ struct Regra {
     std::vector<DescricaoDeBehavior> modifiers;
 
     std::string animacao;   ///< vazio = nao mexe na animacao
+
+    /// Multiplicador de tamanho do sprite E do colisor. Ausente = nao mexe.
+    ///
+    /// E optional, e nao um zero sentinela, porque escala zero nao quer dizer
+    /// "deixa como esta" - quer dizer um projetil invisivel. O projetil volta do
+    /// pool com a escala de fabrica (MarcarPadraoDeFabrica), entao uma regra que
+    /// nao diz nada sobre escala deixa o projetil no tamanho certo por si.
+    std::optional<float> escala;
 };
 
 /**
@@ -114,6 +123,27 @@ bool EhModifier(const std::string& tipo);
  * uma lista.
  */
 RegrasLidas LerRegras(const std::string& textoJson);
+
+/**
+ * @brief Le UMA lista de regras a partir do texto de um array JSON. PURA.
+ *
+ * O mesmo laco que LerRegras roda para cada conjunto, exposto para quem ja tem
+ * um array em maos - e o caso das regras escritas em linha dentro de um ataque
+ * de fases.json:
+ *
+ *     { "estrategia": "AngledAttack", "regras": [ {"motion": ...} ] }
+ *
+ * Existe para que aquele caminho NAO seja um segundo interpretador de regras. Um
+ * segundo interpretador aceitaria coisas ligeiramente diferentes do primeiro, e
+ * a diferenca apareceria como um behavior que funciona em regras.json e e
+ * ignorado em linha, sem mensagem de erro.
+ *
+ * 'onde' e o prefixo das frases de problema (que fase, que ataque). Os problemas
+ * sao ACRESCENTADOS a lista recebida.
+ */
+std::vector<Regra> LerListaDeRegras(const std::string& textoDaLista,
+                                    const std::string& onde,
+                                    std::vector<std::string>& problemas);
 
 /**
  * @brief A regra vale para o projetil de indice 'indice'? PURA.

@@ -165,3 +165,105 @@ TEST_CASE("Regras: texto que nao e JSON continua sendo recusado") {
     CHECK_FALSE(r.problemas.empty());
     CHECK(r.conjuntos.empty());
 }
+
+// ---------------------------------------------------------------------------
+// Escala
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Regras: escala e opcional e nao tem sentinela") {
+    // Escala zero nao quer dizer "deixa como esta", quer dizer projetil
+    // invisivel. Por isso a ausencia e representada por nullopt, e nao por zero.
+    const auto r = LerRegras(R"({ "a": [ { "escala": 3 } ],
+                                  "b": [ { "animacao": "Homing" } ] })");
+    CHECK(r.problemas.empty());
+    REQUIRE(r.conjuntos.at("a").size() == 1);
+    REQUIRE(r.conjuntos.at("a")[0].escala.has_value());
+    CHECK(*r.conjuntos.at("a")[0].escala == doctest::Approx(3.f));
+    CHECK_FALSE(r.conjuntos.at("b")[0].escala.has_value());
+}
+
+TEST_CASE("Regras: uma regra so de escala JA faz alguma coisa") {
+    // Antes, a checagem de "nao faz nada" exigia motion, modifiers ou animacao.
+    const auto r = LerRegras(R"({ "a": [ { "escala": 2 } ] })");
+    CHECK(r.problemas.empty());
+    CHECK(r.conjuntos.at("a").size() == 1);
+}
+
+TEST_CASE("Regras: escala zero ou negativa e recusada") {
+    const auto r = LerRegras(R"({ "a": [ { "escala": 0 } ],
+                                  "b": [ { "escala": -1 } ] })");
+    CHECK(r.problemas.size() == 2);
+    CHECK(r.conjuntos.at("a").empty());
+    CHECK(r.conjuntos.at("b").empty());
+}
+
+TEST_CASE("Regras: regra vazia continua sendo recusada") {
+    const auto r = LerRegras(R"({ "a": [ { "quando": "pares" } ] })");
+    CHECK_FALSE(r.problemas.empty());
+    CHECK(r.conjuntos.at("a").empty());
+}
+
+// ---------------------------------------------------------------------------
+// investidaRepetida: um ritmo, duas pecas
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Investida: expande em MiraPeriodica + PulsoDeVelocidade") {
+    // O equivalente em dados de AplicarInvestidaRepetida. O ritmo e escrito UMA
+    // vez e alimenta as duas pecas, que e a propriedade que a receita em C++
+    // existia para garantir.
+    const auto r = LerRegras(R"({ "julio_fase1": [
+        { "escala": 3, "animacao": "Perseguicao",
+          "investidaRepetida": {
+            "ritmo": { "investida": 0.6, "pausa": 1.0, "repeticoes": 7 },
+            "velocidadeNaInvestida": 900, "velocidadeNaPausa": 15 } }
+    ] })");
+    CHECK(r.problemas.empty());
+    REQUIRE(r.conjuntos.at("julio_fase1").size() == 1);
+    const Regra& g = r.conjuntos.at("julio_fase1")[0];
+
+    REQUIRE(g.temMotion);
+    CHECK(g.motion.tipo == "MiraPeriodica");
+    REQUIRE(g.modifiers.size() == 1);
+    CHECK(g.modifiers[0].tipo == "PulsoDeVelocidade");
+
+    // O MESMO ritmo nas duas, por construcao.
+    CHECK(g.motion.ritmo.duracaoInvestida == doctest::Approx(g.modifiers[0].ritmo.duracaoInvestida));
+    CHECK(g.motion.ritmo.duracaoPausa     == doctest::Approx(g.modifiers[0].ritmo.duracaoPausa));
+    CHECK(g.motion.ritmo.repeticoes       == g.modifiers[0].ritmo.repeticoes);
+
+    CHECK(g.motion.ritmo.duracaoInvestida == doctest::Approx(0.6f));
+    CHECK(g.motion.ritmo.repeticoes == 7);
+    CHECK(g.modifiers[0].moduloInvestida == doctest::Approx(900.f));
+    CHECK(g.modifiers[0].moduloPausa == doctest::Approx(15.f));
+    CHECK(*g.escala == doctest::Approx(3.f));
+    CHECK(g.animacao == "Perseguicao");
+}
+
+TEST_CASE("Investida: velocidade de pausa zero e recusada") {
+    // A direcao mora dentro do vetor velocidade: com modulo zero a mirada
+    // seguinte nao tem o que girar e o projetil fica parado para sempre.
+    const auto r = LerRegras(R"({ "a": [ { "investidaRepetida": {
+        "ritmo": { "investida": 0.6, "pausa": 1.0, "repeticoes": 5 },
+        "velocidadeNaInvestida": 800, "velocidadeNaPausa": 0 } } ] })");
+    CHECK_FALSE(r.problemas.empty());
+    CHECK(r.conjuntos.at("a").empty());
+}
+
+TEST_CASE("Investida: nao pode vir junto de uma motion") {
+    // A investida JA define a motion. Aceitar as duas faria uma substituir a
+    // outra em silencio, dependendo da ordem de leitura.
+    const auto r = LerRegras(R"({ "a": [ {
+        "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 2, "duracao": 2 },
+        "investidaRepetida": {
+            "ritmo": { "investida": 0.6, "pausa": 1.0, "repeticoes": 5 },
+            "velocidadeNaInvestida": 800, "velocidadeNaPausa": 15 } } ] })");
+    CHECK_FALSE(r.problemas.empty());
+    CHECK(r.conjuntos.at("a").empty());
+}
+
+TEST_CASE("Investida: ritmo ausente e recusado") {
+    const auto r = LerRegras(R"({ "a": [ { "investidaRepetida": {
+        "velocidadeNaInvestida": 800, "velocidadeNaPausa": 15 } } ] })");
+    CHECK_FALSE(r.problemas.empty());
+    CHECK(r.conjuntos.at("a").empty());
+}

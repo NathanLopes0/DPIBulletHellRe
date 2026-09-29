@@ -5,6 +5,7 @@
 #include "../../../Actors/Teachers/BossFactory/BossProjectileFactory/SallesProjectile1Factory.h"
 #include "../../../Actors/Teachers/BossFactory/BossProjectileFactory/SallesDoubleListProjectileFactory.h"
 #include "../../../Attacks/BaseStrategies/LaserAttack.h"
+#include "../../../Attacks/FasesDeAtaqueArquivo.h"
 #include "../../../Attacks/PathShapes.h"
 
 // =============================================================================
@@ -58,10 +59,20 @@ void SallesFactory::ConfigureAttacksAndFSM(Boss* boss) {
     auto fsm = boss->GetComponent<FSMComponent>();
     if (!fsm) { SDL_Log("ERRO CRÍTICO: Boss não tem FSMComponent!"); return; }
 
-    ConfigureStateOne(boss, fsm);
-    ConfigureStateTwo(boss, fsm);
-    ConfigureStateThree(boss, fsm);
-    ConfigureStateFinal(boss, fsm);
+    // As fases agora vivem em Assets/Attacks/fases.json, no conjunto "salles",
+    // e as regras dos projeteis em Assets/Attacks/regras.json. Ajustar o chefe
+    // nao exige mais recompilar.
+    //
+    // As funcoes ConfigureStateX abaixo continuam aqui como RESERVA: arquivo
+    // ausente, JSON malformado ou transicao quebrada fazem ConfigurarFasesDeArquivo
+    // devolver false SEM ter registrado nada, e o chefe volta a ser montado em
+    // C++. Um chefe sem fase nenhuma seria um professor parado no meio da tela.
+    if (!ConfigurarFasesDeArquivo(boss, fsm, "salles")) {
+        ConfigureStateOne(boss, fsm);
+        ConfigureStateTwo(boss, fsm);
+        ConfigureStateThree(boss, fsm);
+        ConfigureStateFinal(boss, fsm);
+    }
 
     boss->SetInitialState("StateOne");
 }
