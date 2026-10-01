@@ -22,7 +22,7 @@ Game::Game(int windowWidth, int windowHeight)
     mTicksCount(0),
     mIsGameRunning(true),
     mScene(nullptr),
-    mSelectedStage(INF420),
+    mSelectedStage(INF213),
     mPendingSceneChange(false),
     mNextScene(Scene::SceneType::None)
 {
@@ -86,7 +86,7 @@ void Game::LoadInitialScene()
 {
 
     InitializeBossFactory();
-    ChangeScene(Scene::SceneType::Battle);
+    ChangeScene(Scene::SceneType::MainMenu);
 
 }
 
