@@ -36,6 +36,12 @@ private:
     float atkTimer;
     float invincibleTimer;
     bool isInvincible;
+    /// Tempo desde a ultima troca de visibilidade durante a invencibilidade.
+    /// Era um 'static float' dentro de InvincibleUpdate: estado de INSTANCIA
+    /// guardado em variavel de funcao, compartilhado por todas as instancias e
+    /// persistente entre cenas. Funcionava porque os dois caminhos de saida o
+    /// reinicializam, mas so por sorte.
+    float mBlinkTimer;
     bool mMoving;                       //ve se o jogador está se movendo. Usada para mudar a animação
     int mExtraPoints = 1;
     float mOverloadTimer = 0.0f;

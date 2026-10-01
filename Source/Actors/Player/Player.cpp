@@ -24,6 +24,7 @@ Player::Player(Scene* scene) :
     atkTimer(ATK_TIMER_START_FULL),
     invincibleTimer(0.0f),
     isInvincible(false),
+    mBlinkTimer(BLINK_INVINCIBLE_FREQUENCY),
     mMoving(false)
 
 {
@@ -70,9 +71,8 @@ void Player::OnUpdate(float deltaTime) {
 void Player::InvincibleUpdate(float deltaTime) {
     if (!isInvincible) return;
 
-    static float blink;
     if (invincibleTimer == 0.0f) {
-        blink = BLINK_INVINCIBLE_FREQUENCY;
+        mBlinkTimer = BLINK_INVINCIBLE_FREQUENCY;
     }
 
     invincibleTimer += deltaTime;
@@ -80,14 +80,14 @@ void Player::InvincibleUpdate(float deltaTime) {
         isInvincible = false;
         invincibleTimer = 0.0f;
         GetComponent<DrawAnimatedComponent>()->SetIsVisible(true);
-        blink = BLINK_INVINCIBLE_FREQUENCY;
+        mBlinkTimer = BLINK_INVINCIBLE_FREQUENCY;
         return;
     }
 
     auto blinking = GetComponent<DrawAnimatedComponent>()->GetIsVisible();
-    blink += deltaTime;
-    if (blink >= BLINK_INVINCIBLE_FREQUENCY) {
-        blink = 0.0f;
+    mBlinkTimer += deltaTime;
+    if (mBlinkTimer >= BLINK_INVINCIBLE_FREQUENCY) {
+        mBlinkTimer = 0.0f;
         GetComponent<DrawAnimatedComponent>()->SetIsVisible(!blinking);
         blinking = !blinking;
     }
