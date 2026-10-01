@@ -12,6 +12,8 @@
 #include "../Teachers/Boss.h"
 #include "../../Scenes/Battle/Battle.h"
 
+#include "../../CaminhosArquivo.h"
+
 
 
 PlayerProjectile::PlayerProjectile(Scene *scene, Player *owner) :
@@ -21,8 +23,8 @@ PlayerProjectile::PlayerProjectile(Scene *scene, Player *owner) :
 
     mOwner = owner;
 
-    std::string spritePath = "../Assets/Player/PlayerProjectile1.png";
-    std::string dataPath = "../Assets/Player/PlayerProjectile1.json";
+    std::string spritePath = Caminhos::Asset("Player/PlayerProjectile1.png");
+    std::string dataPath = Caminhos::Asset("Player/PlayerProjectile1.json");
 
     auto drawComp = AddComponent<DrawAnimatedComponent>(spritePath, dataPath, 50);
 

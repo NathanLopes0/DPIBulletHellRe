@@ -11,6 +11,8 @@
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../Components/ColliderComponents/CircleColliderComponent.h"
 
+#include "../../CaminhosArquivo.h"
+
 #define NUM_PROJECTILES_VECTOR 500
 #define ATK_TIMER_START_FULL 0.12f
 #define INVINCIBILITY_TIMER 1.2f
@@ -29,8 +31,8 @@ Player::Player(Scene* scene) :
 
 {
 
-    std::string spritePath = "../Assets/Player/DPIBHPlayer.png";
-    std::string dataPath = "../Assets/Player/DPIBHPlayer.json";
+    std::string spritePath = Caminhos::Asset("Player/DPIBHPlayer.png");
+    std::string dataPath = Caminhos::Asset("Player/DPIBHPlayer.json");
     auto drawComp = AddComponent<DrawAnimatedComponent>(spritePath, dataPath);
     drawComp->AddAnimation("Moving", {0,1,2,3});
     drawComp->AddAnimation("Idle", {1});

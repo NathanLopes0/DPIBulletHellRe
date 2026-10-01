@@ -17,9 +17,23 @@
 #include "../Random.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 
+#include "../CaminhosArquivo.h"
+
 namespace {
 
-    const std::string kCaminho = "../Assets/Attacks/regras.json";
+    /// O caminho e montado na PRIMEIRA chamada, e nao na inicializacao estatica.
+    ///
+    /// A diferenca importa: um "const std::string" em escopo de namespace e
+    /// construido ANTES do main, portanto antes de Caminhos::Inicializar()
+    /// descobrir a pasta base. Ele capturava o palpite de reserva ("..") e o
+    /// arquivo passava a ser procurado relativo ao diretorio de onde o jogo foi
+    /// lancado - exatamente o problema que a resolucao de caminhos veio resolver.
+    /// O static DENTRO da funcao e construido na primeira chamada, que acontece
+    /// quando um chefe e montado, bem depois da inicializacao.
+    const std::string& Caminho() {
+        static const std::string c = Caminhos::Asset("Attacks/regras.json");
+        return c;
+    }
     std::map<std::string, std::vector<Regra>> gConjuntos;
     bool gArquivoLido = false;
 
@@ -27,10 +41,10 @@ namespace {
         if (gArquivoLido) return;
         gArquivoLido = true;
 
-        std::ifstream arquivo(kCaminho);
+        std::ifstream arquivo(Caminho());
         if (!arquivo.is_open()) {
             SDL_Log("REGRAS: nao foi possivel abrir %s. Os ataques que dependem "
-                    "dele ficarao sem configuracao de projetil.", kCaminho.c_str());
+                    "dele ficarao sem configuracao de projetil.", Caminho().c_str());
             return;
         }
 
@@ -39,10 +53,10 @@ namespace {
         RegrasLidas lidas = LerRegras(texto);
 
         for (const auto& p : lidas.problemas) {
-            SDL_Log("REGRAS em %s: %s", kCaminho.c_str(), p.c_str());
+            SDL_Log("REGRAS em %s: %s", Caminho().c_str(), p.c_str());
         }
         gConjuntos = std::move(lidas.conjuntos);
-        SDL_Log("REGRAS: %zu conjunto(s) carregado(s) de %s", gConjuntos.size(), kCaminho.c_str());
+        SDL_Log("REGRAS: %zu conjunto(s) carregado(s) de %s", gConjuntos.size(), Caminho().c_str());
     }
 
     /// Traduz a forma nomeada: primeiro as que existem em codigo, depois o
@@ -92,7 +106,7 @@ std::function<void(Projectile*, int)> ConfiguratorDeArquivo(const std::string& n
     const auto it = gConjuntos.find(nomeDoConjunto);
     if (it == gConjuntos.end()) {
         SDL_Log("REGRAS: nao existe conjunto chamado \"%s\" em %s. Os projeteis "
-                "deste ataque sairao sem configuracao.", nomeDoConjunto.c_str(), kCaminho.c_str());
+                "deste ataque sairao sem configuracao.", nomeDoConjunto.c_str(), Caminho().c_str());
         return [](Projectile*, int) {};
     }
 

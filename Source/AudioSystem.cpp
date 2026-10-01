@@ -7,6 +7,8 @@
 #include "SDL_mixer.h"
 #include <filesystem>
 
+#include "CaminhosArquivo.h"
+
 SoundHandle SoundHandle::Invalid;
 
 // Create the AudioSystem with specified number of channels
@@ -202,8 +204,15 @@ void AudioSystem::StopAllSounds()
 void AudioSystem::CacheAllSounds()
 {
 #ifndef __clang_analyzer__
+    // O caminho vinha escrito "Assets/Sounds", SEM o "../" que o CacheSound logo
+    // abaixo usava. O iterador recebe um error_code, entao nao lancava excecao: a
+    // pasta simplesmente nunca era encontrada e este laco terminava sem cachear um
+    // som. Os sons continuavam tocando, carregados na primeira vez que cada um era
+    // pedido - exatamente o engasgo que o pre-carregamento existe para evitar.
+    const std::string pastaDeSons = Caminhos::Asset("Sounds");
+
     std::error_code ec{};
-    for (const auto& rootDirEntry : std::filesystem::directory_iterator{"Assets/Sounds", ec})
+    for (const auto& rootDirEntry : std::filesystem::directory_iterator{pastaDeSons, ec})
     {
         std::string extension = rootDirEntry.path().extension().string();
         if (extension == ".ogg" || extension == ".wav" )
@@ -212,6 +221,11 @@ void AudioSystem::CacheAllSounds()
             fileName += extension;
             CacheSound(fileName);
         }
+    }
+    if (ec) {
+        SDL_Log("AUDIO: nao consegui listar %s (%s). Os sons ainda carregam quando "
+                "pedidos, mas com engasgo na primeira vez de cada um.",
+                pastaDeSons.c_str(), ec.message().c_str());
     }
 #endif
 }
@@ -233,7 +247,7 @@ void AudioSystem::CacheSound(const std::string& soundName)
 //       "Assets/Sounds/ChompLoop.wav".
 Mix_Chunk* AudioSystem::GetSound(const std::string& soundName)
 {
-    std::string fileName = "../Assets/Sounds/";
+    std::string fileName = Caminhos::Asset("Sounds/");
     fileName += soundName;
 
     if(const auto iter = mSounds.find(fileName); iter != mSounds.end()) {

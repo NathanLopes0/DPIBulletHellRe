@@ -13,6 +13,8 @@
 #include "Scenes/Battle/Battle.h"
 #include "Actors/Teachers/BossFactory/AllFactories.h"
 
+#include "CaminhosArquivo.h"
+
 
 Game::Game(int windowWidth, int windowHeight)
     :mWindow(nullptr),
@@ -84,6 +86,14 @@ bool Game::Initialize() {
 //função que seleciona a cena inicial e chama a função Load.
 void Game::LoadInitialScene()
 {
+
+    // A base precisa estar descoberta ANTES de qualquer Caminhos::Asset().
+    // As fabricas de projetil montam os caminhos delas na lista de
+    // inicializacao do construtor, que roda dentro de InitializeBossFactory.
+    if (!Caminhos::Inicializar()) {
+        SDL_Log("ERRO: a pasta Assets nao foi encontrada. O jogo vai abrir sem "
+                "sprite, sem fonte e sem som, e nao vai salvar progresso.");
+    }
 
     InitializeBossFactory();
     ChangeScene(Scene::SceneType::MainMenu);

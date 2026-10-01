@@ -10,6 +10,8 @@
 #include "../../../ProjectilePool.h"
 #include "../../Bosses/BossesProjectiles/AndreBossProjectile.h"
 
+#include "../../../../CaminhosArquivo.h"
+
 
 class Projectile;
 class Scene;
@@ -23,8 +25,8 @@ class AndreProjectile1Factory : public ProjectileFactory {
 public:
 
     AndreProjectile1Factory()
-        : ProjectileFactory("../Assets/Teachers/Projectiles/DPIBHAndreGraph.png",
-                            "../Assets/Teachers/Projectiles/DPIBHAndreGraph.json") {}
+        : ProjectileFactory(Caminhos::Asset("Teachers/Projectiles/DPIBHAndreGraph.png"),
+                            Caminhos::Asset("Teachers/Projectiles/DPIBHAndreGraph.json")) {}
 
     std::unique_ptr<Projectile> createProjectile(Scene* scene, Actor* owner) override;
 

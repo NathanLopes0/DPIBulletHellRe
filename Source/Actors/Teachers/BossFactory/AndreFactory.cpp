@@ -9,6 +9,8 @@
 #include "../../../Attacks/FasesDeAtaqueArquivo.h"
 #include "BossProjectileFactory/AndreBaloonProjectileFactory.h"
 
+#include "../../../CaminhosArquivo.h"
+
 AndreFactory::AndreFactory(Game *game)
     : IBossFactory(game)
 {
@@ -23,8 +25,8 @@ std::unique_ptr<Boss> AndreFactory::InstantiateBoss(Scene* scene) {
 void AndreFactory::ConfigureComponents(Boss *boss) {
 
     // ----- DRAW COMPONENT ----- //
-    auto drawComp = boss->AddComponent<DrawAnimatedComponent>("../Assets/Teachers/DPIBHAndre.png",
-                                                                               "../Assets/Teachers/DPIBHAndre.json");
+    auto drawComp = boss->AddComponent<DrawAnimatedComponent>(Caminhos::Asset("Teachers/DPIBHAndre.png"),
+                                                                               Caminhos::Asset("Teachers/DPIBHAndre.json"));
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 

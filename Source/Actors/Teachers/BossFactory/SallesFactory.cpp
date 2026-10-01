@@ -4,6 +4,8 @@
 #include "../../../Actors/Teachers/BossFactory/BossProjectileFactory/SallesProjectile1Factory.h"
 #include "../../../Attacks/FasesDeAtaqueArquivo.h"
 
+#include "../../../CaminhosArquivo.h"
+
 // =============================================================================
 // MODO DE TESTE DO PATHING
 //
@@ -33,8 +35,8 @@ std::unique_ptr<Boss> SallesFactory::InstantiateBoss(Scene* scene) {
 void SallesFactory::ConfigureComponents(Boss* boss) {
 
     // ----- DRAW COMPONENT ----- //
-    auto drawComp = boss->AddComponent<DrawAnimatedComponent>("../Assets/Teachers/DPIBHSalles.png",
-                                                                                "../Assets/Teachers/DPIBHSalles.json");
+    auto drawComp = boss->AddComponent<DrawAnimatedComponent>(Caminhos::Asset("Teachers/DPIBHSalles.png"),
+                                                                                Caminhos::Asset("Teachers/DPIBHSalles.json"));
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 

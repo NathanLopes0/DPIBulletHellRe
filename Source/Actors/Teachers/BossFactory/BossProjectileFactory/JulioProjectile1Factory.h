@@ -8,6 +8,8 @@
 #include "../../../ProjectilePool.h"
 #include "../../Bosses/BossesProjectiles/JulioBossProjectile.h"
 
+#include "../../../../CaminhosArquivo.h"
+
 /**
  * @class JulioProjectile1Factory
  * @brief Cria e recicla os "pontos de dado" do Júlio.
@@ -19,8 +21,8 @@ class JulioProjectile1Factory : public ProjectileFactory {
 public:
 
     JulioProjectile1Factory()
-        : ProjectileFactory("../Assets/Teachers/Projectiles/DPIBHJulioDado.png",
-                            "../Assets/Teachers/Projectiles/DPIBHJulioDado.json") {}
+        : ProjectileFactory(Caminhos::Asset("Teachers/Projectiles/DPIBHJulioDado.png"),
+                            Caminhos::Asset("Teachers/Projectiles/DPIBHJulioDado.json")) {}
 
     std::unique_ptr<Projectile> createProjectile(Scene* scene, Actor* owner) override;
 

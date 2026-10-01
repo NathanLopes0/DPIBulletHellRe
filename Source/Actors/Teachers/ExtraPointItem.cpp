@@ -8,13 +8,15 @@
 #include "../../Components/RigidBodyComponent.h"
 #include "../../Game.h"
 
+#include "../../CaminhosArquivo.h"
+
 ExtraPointItem::ExtraPointItem(Scene* scene) : Actor(scene) {
 
     SetScale(2.0f);
     // Visual
     auto dc = AddComponent<DrawAnimatedComponent>(
-        "../Assets/Icons/DPIBHPowerIcon.png",
-        "../Assets/Icons/DPIBHPowerIcon.json"
+        Caminhos::Asset("Icons/DPIBHPowerIcon.png"),
+        Caminhos::Asset("Icons/DPIBHPowerIcon.json")
     );
     dc->AddAnimation("Idle", {0,1,2,3,4,5,6,7,8});
     dc->SetAnimation("Idle");

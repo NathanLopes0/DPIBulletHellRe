@@ -10,6 +10,8 @@
 #include "../Bosses/Ricardo.h"
 #include "BossProjectileFactory/RicardoProjectile1Factory.h"
 
+#include "../../../CaminhosArquivo.h"
+
 RicardoFactory::RicardoFactory(Game *game)
     : IBossFactory(game)
 {
@@ -22,8 +24,8 @@ std::unique_ptr<Boss> RicardoFactory::InstantiateBoss(Scene *scene) {
 void RicardoFactory::ConfigureComponents(Boss *boss) {
 
     // ----- DRAW COMPONENT ----- //
-    auto drawComp = boss->AddComponent<DrawAnimatedComponent>("../Assets/Teachers/DPIBHRicardo.png",
-        "../Assets/Teachers/DPIBHRicardo.json");
+    auto drawComp = boss->AddComponent<DrawAnimatedComponent>(Caminhos::Asset("Teachers/DPIBHRicardo.png"),
+        Caminhos::Asset("Teachers/DPIBHRicardo.json"));
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 

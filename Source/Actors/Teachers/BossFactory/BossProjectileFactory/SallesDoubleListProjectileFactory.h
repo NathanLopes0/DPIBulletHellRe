@@ -8,6 +8,8 @@
 #include "../../../ProjectilePool.h"
 #include "../../Bosses/BossesProjectiles/SallesDoubleListProjectile.h"
 
+#include "../../../../CaminhosArquivo.h"
+
 
 class SallesDoubleListProjectileFactory : public ProjectileFactory {
 
@@ -15,8 +17,8 @@ class SallesDoubleListProjectileFactory : public ProjectileFactory {
 public:
 
     SallesDoubleListProjectileFactory()
-        : ProjectileFactory("../Assets/Teachers/Projectiles/DPIBHSallesDuplamente.png",
-                            "../Assets/Teachers/Projectiles/DPIBHSallesDuplamente.json") {}
+        : ProjectileFactory(Caminhos::Asset("Teachers/Projectiles/DPIBHSallesDuplamente.png"),
+                            Caminhos::Asset("Teachers/Projectiles/DPIBHSallesDuplamente.json")) {}
 
     std::unique_ptr<Projectile> createProjectile(Scene *scene, Actor *owner) override;
 

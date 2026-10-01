@@ -36,6 +36,10 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Math.cpp
         Source/Progresso.cpp
         Source/Progresso.h
+        Source/Caminhos.cpp
+        Source/Caminhos.h
+        Source/CaminhosArquivo.cpp
+        Source/CaminhosArquivo.h
         Source/Scenes/StageSelect.cpp
         Source/Actors/Buttons/Button.cpp
         Source/Actors/Buttons/Button.h
@@ -170,9 +174,12 @@ add_executable(dpi_tests
         tests/test_regras.cpp
         tests/test_fases.cpp
         tests/test_arquivos_de_dados.cpp
+        tests/test_caminhos.cpp
         tests/test_progresso.cpp
         Source/Progresso.cpp
         Source/Progresso.h
+        Source/Caminhos.cpp
+        Source/Caminhos.h
         Source/Attacks/PathAim.cpp
         Source/Attacks/PathAim.h
         Source/Attacks/PathShapes.cpp

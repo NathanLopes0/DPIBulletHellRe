@@ -25,6 +25,8 @@
 #include "../../Components/DrawComponents/ProgressBarComponent.h"
 #include "../../Actors/Teachers/ExtraPointItem.h"
 
+#include "../../CaminhosArquivo.h"
+
 // Quantas instâncias de CADA tipo de projétil são pré-aquecidas no pool
 // antes da batalha começar (ver Battle::LoadBoss / PrewarmProjectilePools).
 
@@ -162,8 +164,8 @@ void Battle::LoadTimeClock() {
     auto clockActor = std::make_unique<Actor>(this);
     auto clockActorPtr = clockActor.get();
 
-    std::string clockSpriteSheet = "../Assets/Icons/TestTimeIcon.png";
-    std::string clockSpriteData = "../Assets/Icons/TestTimeIcon.json";
+    std::string clockSpriteSheet = Caminhos::Asset("Icons/TestTimeIcon.png");
+    std::string clockSpriteData = Caminhos::Asset("Icons/TestTimeIcon.json");
 
     auto clockComp = clockActor->AddComponent<DrawAnimatedComponent>(clockSpriteSheet, clockSpriteData, 201);
 
@@ -192,7 +194,7 @@ void Battle::LoadGradeBar() {
 
     // Configurar Actor e fonte que vai ter a nota no meio da barra
     mGradeBarFont = std::make_unique<Font>();
-    mGradeBarFont->Load("../Assets/Fonts/Zelda.ttf");
+    mGradeBarFont->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
     auto gradeBarTextActor = std::make_unique<Actor>(this);
     gradeBarTextActor->AddComponent<DrawTextComponent>("omg", mGradeBarFont.get(), 36, barHeight, 24, 304);
 

@@ -9,11 +9,13 @@
 #include "../Components/DrawComponents/DrawTextComponent.h"
 #include "../Components/DrawComponents/DrawSpriteComponent.h"
 
+#include "../CaminhosArquivo.h"
+
 MainMenu::MainMenu(Game* game)
     : Scene(game, SceneType::MainMenu)
     , mMainMenuFont(std::make_unique<Font>())
 {
-    mMainMenuFont->Load("../Assets/Fonts/Zelda.ttf");
+    mMainMenuFont->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
 }
 
 void MainMenu::Load() {
@@ -37,7 +39,7 @@ void MainMenu::OnUpdate(float deltaTime) {
 void MainMenu::LoadBackground() {
     auto background = std::make_unique<Actor>(this);
     background->SetPosition(Vector2(mGame->GetWindowWidth() / 2.0f, mGame->GetWindowHeight() / 2.0f));
-    background->AddComponent<DrawSpriteComponent>("../Assets/MainMenuBackground.png", 50);
+    background->AddComponent<DrawSpriteComponent>(Caminhos::Asset("MainMenuBackground.png"), 50);
 
     mBackgroundActor = background.get(); //Guarda o ponteiro observador
     AddActor(std::move(background));
@@ -47,7 +49,7 @@ void MainMenu::LoadTitle() {
     title->SetPosition(Vector2(static_cast<float>(mGame->GetWindowWidth()) / 2.0f,
                                     static_cast<float>(mGame->GetWindowHeight()) / 2.0f));
 
-    title->AddComponent<DrawSpriteComponent>("../Assets/DPIBHTitleMainMenu.png", 75);
+    title->AddComponent<DrawSpriteComponent>(Caminhos::Asset("DPIBHTitleMainMenu.png"), 75);
 
     mTitleActor = title.get();
     AddActor(std::move(title));

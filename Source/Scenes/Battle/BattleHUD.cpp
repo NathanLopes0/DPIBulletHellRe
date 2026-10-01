@@ -11,6 +11,8 @@
 #include "../../Components/DrawComponents/ProgressBarComponent.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 
+#include "../../CaminhosArquivo.h"
+
 
 
 
@@ -29,8 +31,8 @@ BattleHUD::BattleHUD(Scene *scene)
         // Configura o visual
         orbActor->SetScale(1.5f);
         const auto dc = orbActor->AddComponent<DrawAnimatedComponent>(
-            "../Assets/Icons/DPIBHPowerIcon.png",
-            "../Assets/Icons/DPIBHPowerIcon.json"
+            Caminhos::Asset("Icons/DPIBHPowerIcon.png"),
+            Caminhos::Asset("Icons/DPIBHPowerIcon.json")
         );
         dc->AddAnimation("Idle", {0, 1, 2, 3, 4, 5, 6, 7, 8});
         dc->SetAnimation("Idle");

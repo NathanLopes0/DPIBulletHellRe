@@ -10,6 +10,8 @@
 #include "../Bosses/Julio.h"
 #include "BossProjectileFactory/JulioProjectile1Factory.h"
 
+#include "../../../CaminhosArquivo.h"
+
 JulioFactory::JulioFactory(Game* game)
     : IBossFactory(game)
 {
@@ -22,8 +24,8 @@ std::unique_ptr<Boss> JulioFactory::InstantiateBoss(Scene* scene) {
 void JulioFactory::ConfigureComponents(Boss* boss) {
 
     // ----- DRAW COMPONENT ----- //
-    auto drawComp = boss->AddComponent<DrawAnimatedComponent>("../Assets/Teachers/DPIBHJulio.png",
-                                                              "../Assets/Teachers/DPIBHJulio.json");
+    auto drawComp = boss->AddComponent<DrawAnimatedComponent>(Caminhos::Asset("Teachers/DPIBHJulio.png"),
+                                                              Caminhos::Asset("Teachers/DPIBHJulio.json"));
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 

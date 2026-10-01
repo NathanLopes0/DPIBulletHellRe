@@ -27,9 +27,23 @@
 #include "../Components/AIComponents/FSMComponent.h"
 #include "../Movements/MovementStrategies.h"
 
+#include "../CaminhosArquivo.h"
+
 namespace {
 
-    const std::string kCaminho = "../Assets/Attacks/fases.json";
+    /// O caminho e montado na PRIMEIRA chamada, e nao na inicializacao estatica.
+    ///
+    /// A diferenca importa: um "const std::string" em escopo de namespace e
+    /// construido ANTES do main, portanto antes de Caminhos::Inicializar()
+    /// descobrir a pasta base. Ele capturava o palpite de reserva ("..") e o
+    /// arquivo passava a ser procurado relativo ao diretorio de onde o jogo foi
+    /// lancado - exatamente o problema que a resolucao de caminhos veio resolver.
+    /// O static DENTRO da funcao e construido na primeira chamada, que acontece
+    /// quando um chefe e montado, bem depois da inicializacao.
+    const std::string& Caminho() {
+        static const std::string c = Caminhos::Asset("Attacks/fases.json");
+        return c;
+    }
     std::map<std::string, std::vector<DescricaoDeFase>> gConjuntos;
     bool gArquivoLido = false;
 
@@ -37,13 +51,13 @@ namespace {
         if (gArquivoLido) return;
         gArquivoLido = true;
 
-        std::ifstream arquivo(kCaminho);
+        std::ifstream arquivo(Caminho());
         if (!arquivo.is_open()) {
             SDL_Log("FASES: nao foi possivel abrir %s. NENHUM chefe tera ataque: as fases "
                     "dos quatro vivem neste arquivo, e nao ha mais configuracao de reserva "
                     "em C++. Confira se a pasta Assets foi copiada junto com o executavel, "
                     "e se o jogo esta rodando de um diretorio abaixo da raiz do projeto.",
-                    kCaminho.c_str());
+                    Caminho().c_str());
             return;
         }
 
@@ -52,10 +66,10 @@ namespace {
         FasesLidas lidas = LerFases(texto);
 
         for (const auto& p : lidas.problemas) {
-            SDL_Log("FASES em %s: %s", kCaminho.c_str(), p.c_str());
+            SDL_Log("FASES em %s: %s", Caminho().c_str(), p.c_str());
         }
         gConjuntos = std::move(lidas.conjuntos);
-        SDL_Log("FASES: %zu conjunto(s) carregado(s) de %s", gConjuntos.size(), kCaminho.c_str());
+        SDL_Log("FASES: %zu conjunto(s) carregado(s) de %s", gConjuntos.size(), Caminho().c_str());
     }
 
     /// A unica parte que conhece as classes concretas de estrategia. Cresce uma
@@ -145,7 +159,7 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
     const auto it = gConjuntos.find(nomeDoConjunto);
     if (it == gConjuntos.end()) {
         SDL_Log("FASES: nao existe conjunto chamado \"%s\" em %s.",
-                nomeDoConjunto.c_str(), kCaminho.c_str());
+                nomeDoConjunto.c_str(), Caminho().c_str());
         return false;
     }
 
@@ -155,7 +169,7 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
     const auto problemas = ValidarTransicoes(it->second, nomeDoConjunto);
     if (!problemas.empty()) {
         for (const auto& p : problemas) {
-            SDL_Log("FASES em %s: %s", kCaminho.c_str(), p.c_str());
+            SDL_Log("FASES em %s: %s", Caminho().c_str(), p.c_str());
         }
         SDL_Log("FASES: o conjunto \"%s\" foi recusado pela validacao. Nada foi registrado.",
                 nomeDoConjunto.c_str());

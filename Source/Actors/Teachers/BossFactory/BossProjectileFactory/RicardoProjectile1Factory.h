@@ -9,6 +9,8 @@
 #include "../../../ProjectilePool.h"
 #include "../../Bosses/BossesProjectiles/RicardoBossProjectile.h"
 
+#include "../../../../CaminhosArquivo.h"
+
 /**
  * @class RicardoProjectile1Factory
  * @brief Uma fábrica concreta que sabe como construir
@@ -19,8 +21,8 @@ class RicardoProjectile1Factory : public ProjectileFactory {
 public:
 
     RicardoProjectile1Factory()
-        : ProjectileFactory("../Assets/Teachers/Projectiles/DPIBHRicardoProjectile.png",
-                            "../Assets/Teachers/Projectiles/DPIBHRicardoProjectile.json") {}
+        : ProjectileFactory(Caminhos::Asset("Teachers/Projectiles/DPIBHRicardoProjectile.png"),
+                            Caminhos::Asset("Teachers/Projectiles/DPIBHRicardoProjectile.json")) {}
     /**
      * @brief Cria uma instancia do projétil do Ricardo
      * @param scene A cena onde o projétil será criado

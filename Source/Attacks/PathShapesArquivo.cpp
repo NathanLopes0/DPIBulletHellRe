@@ -13,6 +13,8 @@
 #include <string>
 #include <SDL_log.h>
 
+#include "../CaminhosArquivo.h"
+
 namespace {
     /// Formas lidas de arquivo, por nome. Separado do cache por parametros
     /// porque a chave aqui e textual.
@@ -24,7 +26,7 @@ namespace PathShapes {
 
 Path DoArquivo(const std::string& nome) {
 
-    static const std::string kCaminho = "../Assets/Paths/formas.json";
+    static const std::string kCaminho = Caminhos::Asset("Paths/formas.json");
 
     if (!gArquivoLido) {
         gArquivoLido = true;   // uma tentativa so, mesmo que falhe

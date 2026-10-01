@@ -8,6 +8,8 @@
 #include "../../Components/DrawComponents/DrawTextComponent.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 
+#include "../../CaminhosArquivo.h"
+
 StageSelectButton::StageSelectButton(Scene* scene, const std::string& buttonText,
                                      const Game::GameSubject subject, const std::string& fontPath,
                                      const bool isLocked)
@@ -25,8 +27,8 @@ StageSelectButton::StageSelectButton(Scene* scene, const std::string& buttonText
     mFont->Load(fontPath);
 
     // --- Adição de Componentes ---
-    auto* animComp = AddComponent<DrawAnimatedComponent>("../Assets/Icons/DPIBHStageSelectButton.png",
-                                                         "../Assets/Icons/DPIBHStageSelectButton.json");
+    auto* animComp = AddComponent<DrawAnimatedComponent>(Caminhos::Asset("Icons/DPIBHStageSelectButton.png"),
+                                                         Caminhos::Asset("Icons/DPIBHStageSelectButton.json"));
     if (animComp) {
         animComp->AddAnimation("Button", {0});
         animComp->AddAnimation("Selected", {1});
