@@ -106,7 +106,7 @@
   //   espacamento  distancia lateral entre folhas vizinhas
   //   saida        perna reta final, que tira o projetil da tela
   "ArvoreDeBusca": {
-    "arvore": { "divisoes": 3, "tronco": 120, "passo": 90, "espacamento": 60, "saida": 560 }
+    "arvore": { "divisoes": 4, "tronco": 120, "passo": 90, "espacamento": 60, "saida": 560 }
   },
 
   // ----- Fase final: a lista circular -----

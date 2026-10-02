@@ -35,6 +35,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Random.cpp
         Source/Math.cpp
         Source/Progresso.cpp
+        Source/Matricula.cpp
+        Source/Matricula.h
         Source/Progresso.h
         Source/Caminhos.cpp
         Source/Caminhos.h
@@ -160,7 +162,10 @@ add_executable(dpi_tests
         tests/test_arquivos_de_dados.cpp
         tests/test_caminhos.cpp
         tests/test_progresso.cpp
+        tests/test_matricula.cpp
         Source/Progresso.cpp
+        Source/Matricula.cpp
+        Source/Matricula.h
         Source/Progresso.h
         Source/Caminhos.cpp
         Source/Caminhos.h

@@ -33,7 +33,7 @@
   // ==========================================================================
 
   // --------------------------------------------------------------------------
-  // SALLES - INF 110
+  // SALLES - INF 213
   // --------------------------------------------------------------------------
 
   // FASE 1 - lista encadeada simples. NAO TEM REGRA DE CAMINHO, e esse e o ponto.
@@ -42,12 +42,7 @@
   // DeactivateBehavior(0) e um ActivateBehavior(i * intervalo), ou seja, o no i
   // desperta i*intervalo segundos depois do primeiro, todos na mesma direcao e
   // todos saindo do mesmo ponto. O espacamento e velocidade x intervalo.
-  //
-  // Levei um tempo para ver isto: eu procurava uma FORMA que desenhasse uma lista,
-  // e a lista nunca foi uma forma - e o atraso entre os nos. Qualquer Path aqui
-  // alem de desnecessario seria nocivo, porque o PathBehavior captura a direcao no
-  // instante em que ativa e um no ainda dormindo tem velocidade zero: o caminho
-  // cairia na rotacao identidade e a fila sairia torta.
+
   "salles_lista_simples": [
     { "animacao": "ListaSimples" }
   ],
@@ -69,7 +64,7 @@
   // de tras para frente, e e a unica fase em que os tiros voltam.
   "salles_lista_dupla": [
     { "motion": { "tipo": "Path", "forma": "IdaEVolta",
-                  "velocidade": 400, "atraso": 0.85,
+                  "velocidade": 500, "atraso": 1.2,
                   "pararNoPonto": 0, "pararPor": 0.8 } }
   ],
 
@@ -83,32 +78,20 @@
   // Agora a arvore inteira e "divisoes": 3 em formas.json, e aqui nao ha numero
   // nenhum para acertar junto.
   //
-  // SEM "atraso", de proposito: e o que faz todas desenharem a MESMA arvore a
-  // partir do MESMO ponto. Um atraso diferente por indice separaria os projeteis,
-  // mas cada um comecaria a arvore de um lugar diferente e o resultado seriam oito
-  // arvores deslocadas em vez de uma - foi a primeira coisa que tentei, e esta
-  // aqui para nao ser tentada de novo.
-  //
   // "mira": "MirarNoJogador" planta a RAIZ apontada para o jogador, e com atraso
   // zero todas as quatro miram do mesmo ponto, entao a arvore inteira gira junto e
   // a geometria nao se desfaz. Sem isso ela crescia na direcao que o Salles
   // sorteia (0 a 180 graus em CustomizeAttackParams, no C++), e metade das vezes
   // saia de lado sem ameacar ninguem. Medindo: a fase passava 0.22 por segundo a
   // menos de 120px do jogador contra 0.42 do desenho anterior.
-  //
-  // Alem de resolver, le melhor: a busca desce da raiz ATE VOCE.
-  //
-  // A velocidade subiu de 210 para 260 ao passar de 4 para 8 folhas: o percurso
-  // ate a folha cresceu de 382px para 473px, e a 210px/s a arvore so terminaria de
-  // abrir em 2,25s - depois do disparo seguinte, com duas arvores na tela ao mesmo
-  // tempo. A 260px/s ela fecha em 1,82s, o mesmo tempo de abertura de antes.
+
   "salles_arvore": [
-    { "motion": { "tipo": "Path", "formaPorIndice": "ArvoreDeBusca", "velocidade": 260,
+    { "motion": { "tipo": "Path", "formaPorIndice": "ArvoreDeBusca", "velocidade": 360,
                   "mira": "MirarNoJogador" },
       "animacao": "Arvore" }
   ],
 
-  // FASE FINAL - lista circular, e e aqui que as capivaras entram.
+  // FASE FINAL - lista circular
   //
   // O professor coloca capivara em todo exercicio, entao a repescagem e um anel de
   // capivaras em que cada uma fecha um laco: a lista que volta ao inicio. O laco e
@@ -128,7 +111,7 @@
   ],
 
   // --------------------------------------------------------------------------
-  // RICARDO - INF 112
+  // RICARDO - INF 250
   // --------------------------------------------------------------------------
 
   // Fase 2: o anel sai reto, DESACELERA, e so depois de 1.5s vira na direcao do

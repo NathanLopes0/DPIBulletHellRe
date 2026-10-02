@@ -111,11 +111,11 @@
     "StateTwo": {
       "duracao": 17,
       "proximo": "StateThree",
-      "movimento": { "tipo": "GoToCenter" },
+      "movimento": { "tipo": "RandomWander", "a": 2.0, "b": 500 },
       "ataques": [
         { "estrategia": "WaveAttack", "projetil": "Duplamente",
           "projeteis": 8, "velocidade": 400, "angulo": 0, "intervalo": 0.10,
-          "cooldown": 3.6,
+          "cooldown": 1.2,
           "regras": "salles_lista_dupla" }
       ]
     },
@@ -147,7 +147,7 @@
       "movimento": { "tipo": "GoToCenter" },
       "ataques": [
         { "estrategia": "AngledAttack", "projetil": "Estruturas",
-          "projeteis": 8, "velocidade": 260, "angulo": 0,
+          "projeteis": 16, "velocidade": 260, "angulo": 0,
           "cooldown": 2.1,
           "regras": "salles_arvore" }
       ]
