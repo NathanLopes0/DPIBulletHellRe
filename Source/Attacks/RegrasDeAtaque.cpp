@@ -46,6 +46,8 @@ namespace {
         }
 
         d.forma           = (j.contains("forma") && j["forma"].is_string()) ? j["forma"].get<std::string>() : "";
+        d.formaPorIndice  = (j.contains("formaPorIndice") && j["formaPorIndice"].is_string())
+                                ? j["formaPorIndice"].get<std::string>() : "";
         d.mira            = (j.contains("mira")  && j["mira"].is_string())  ? j["mira"].get<std::string>()  : "";
         d.parametroDaMira = Campo(j, "antecipacao", 0.0f);
         d.velocidade      = Campo(j, "velocidade", 0.0f);
@@ -140,7 +142,17 @@ namespace {
                     // sentido juntos. Metade da configuracao nao da erro em jogo -
                     // simplesmente nao para -, que e o tipo de silencio que faz
                     // alguem procurar o problema no motor em vez de no arquivo.
-                    if (d.pararPor > 0.0f && d.pararNoPonto < 0) {
+                    if (!d.forma.empty() && !d.formaPorIndice.empty()) {
+                        problemas.emplace_back(onde + "\"forma\" e \"formaPorIndice\" juntas: a motion"
+                                                      " usa uma forma so, ou uma familia, nunca as duas");
+                        falhou = true;
+                    }
+                    else if (!d.formaPorIndice.empty() && d.tipo != "Path") {
+                        problemas.emplace_back(onde + "\"formaPorIndice\" so existe em \"Path\", e esta"
+                                                      " motion e \"" + d.tipo + "\"");
+                        falhou = true;
+                    }
+                    else if (d.pararPor > 0.0f && d.pararNoPonto < 0) {
                         problemas.emplace_back(onde + "\"pararPor\" sem \"pararNoPonto\": falta dizer"
                                                       " em qual ponto do caminho parar");
                         falhou = true;

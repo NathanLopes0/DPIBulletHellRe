@@ -75,9 +75,16 @@ namespace {
 
     /// A unica parte que precisa saber os tipos concretos. Cresce uma linha por
     /// behavior novo - e o preco de descrever comportamento em dados.
-    void Inserir(Projectile* p, const DescricaoDeBehavior& d) {
+    /// A forma que esta motion pede: uma forma so, ou a da familia na posicao
+    /// deste projetil.
+    PathShapes::Path FormaDaMotion(const DescricaoDeBehavior& d, const int indice) {
+        if (!d.formaPorIndice.empty()) return PathShapes::DaFamilia(d.formaPorIndice, indice);
+        return FormaPeloNome(d.forma);
+    }
+
+    void Inserir(Projectile* p, const DescricaoDeBehavior& d, const int indice) {
         if (d.tipo == "Path")
-            p->insertMotion<PathBehavior>(FormaPeloNome(d.forma), d.velocidade, d.atraso,
+            p->insertMotion<PathBehavior>(FormaDaMotion(d, indice), d.velocidade, d.atraso,
                                           MiraPeloNome(d.mira, d.parametroDaMira),
                                           d.pararNoPonto, d.pararPor);
         else if (d.tipo == "Tracking")
@@ -134,8 +141,8 @@ std::function<void(Projectile*, int)> ConfiguratorDeRegras(const std::vector<Reg
             // do codigo que este arquivo substitui, inclusive sob comparacao.
             if (r.escala) p->SetScale(*r.escala);
 
-            if (r.temMotion) Inserir(p, r.motion);
-            for (const auto& m : r.modifiers) Inserir(p, m);
+            if (r.temMotion) Inserir(p, r.motion, indice);
+            for (const auto& m : r.modifiers) Inserir(p, m, indice);
 
             if (!r.animacao.empty()) {
                 if (auto anim = p->GetComponent<DrawAnimatedComponent>()) {

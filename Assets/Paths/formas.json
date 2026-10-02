@@ -76,24 +76,38 @@
   },
 
   // ----- Fase 3: a arvore binaria -----
-  // Quatro formas, uma por folha, que COMPARTILHAM o tronco e o primeiro ramo:
-  // todas comecam em [130, 0], as duas primeiras seguem por [220, -75] e as duas
-  // ultimas por [220, 75]. Os quatro projeteis saem juntos e sobrepostos, descem o
-  // tronco como um no so, abrem em dois e depois em quatro. O que o jogador ve e
-  // uma busca descendo da raiz.
+  // UMA FAMILIA, nao uma forma. "divisoes": 3 quer dizer 1 -> 2 -> 4 -> 8, e o
+  // leitor gera as oito folhas. Antes isto eram quatro listas de pontos escritas
+  // a mao mais quatro regras por indice: trinta linhas para dizer um numero, e
+  // dois quatros que tinham de bater.
   //
-  // A arvore tem de ser quatro projeteis separados porque um projetil nao pode
-  // criar outros - nao ha como um no "se dividir" no motor. A bifurcacao e
-  // desenhada por quem sai junto e se separa, nao por quem se multiplica.
+  // Mudar a profundidade da arvore agora e mudar "divisoes" aqui e "projeteis" em
+  // fases.json. Um teste confere que os dois batem, entao nao da para esquecer
+  // metade.
   //
-  // O tronco esta em +X, que e a direcao de voo, e os ramos em +-Y, que e a
-  // perpendicular. Por isso a arvore cresce SEMPRE no sentido do tiro e os ramos
-  // sempre abrem para os lados, em qualquer angulo que o Salles sorteie - uma
-  // arvore girada continua lida como arvore, uma com o tronco torto nao.
-  "ArvoreFolha1": { "pontos": [[130, 0], [220, -75], [320, -165], [900, -165]] },
-  "ArvoreFolha2": { "pontos": [[130, 0], [220, -75], [320,  -55], [900,  -55]] },
-  "ArvoreFolha3": { "pontos": [[130, 0], [220,  75], [320,   55], [900,   55]] },
-  "ArvoreFolha4": { "pontos": [[130, 0], [220,  75], [320,  165], [900,  165]] },
+  // O que faz parecer uma arvore e o PREFIXO COMPARTILHADO: folhas irmas tem os
+  // mesmos pontos ate o pai, entao os projeteis saem sobrepostos, descem juntos e
+  // so entao se separam. O jogador ve UM no que abre em dois, e nao oito tiros
+  // que por acaso sairam juntos. Cada no interno fica no ponto medio dos filhos,
+  // que e o que alinha os ramos.
+  //
+  // A arvore tem de ser varios projeteis porque um projetil nao pode criar
+  // outros: a bifurcacao e desenhada por quem sai junto e se separa, nao por quem
+  // se multiplica.
+  //
+  // O tronco cresce em +X, que e a direcao de voo, e os ramos abrem em +-Y, a
+  // perpendicular. Por isso a arvore se forma no sentido do tiro em qualquer
+  // angulo que o Salles sorteie - uma arvore girada continua lida como arvore,
+  // uma com o tronco torto nao.
+  //
+  //   divisoes     quantas vezes se divide (3 = oito folhas)
+  //   tronco       quanto desce antes da primeira divisao
+  //   passo        avanco entre uma divisao e a seguinte
+  //   espacamento  distancia lateral entre folhas vizinhas
+  //   saida        perna reta final, que tira o projetil da tela
+  "ArvoreDeBusca": {
+    "arvore": { "divisoes": 3, "tronco": 120, "passo": 90, "espacamento": 60, "saida": 560 }
+  },
 
   // ----- Fase final: a lista circular -----
   // Raio pequeno e muitos segmentos: a volta precisa ser LENTA para ser lida. Um

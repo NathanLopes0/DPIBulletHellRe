@@ -152,6 +152,56 @@ namespace {
 
 namespace PathShapes {
 
+int FolhasDeArvore(const int divisoes) {
+    if (divisoes < 0) return 0;
+    if (divisoes > 10) return 0;   // 2^10 ja e mil projeteis: e erro, nao intencao
+    return 1 << divisoes;
+}
+
+std::vector<Vector2> ArvoreBinaria(const int divisoes, const int folha,
+                                   const float tronco, const float passo,
+                                   const float espacamento, const float saida) {
+
+    const int folhas = FolhasDeArvore(divisoes);
+    if (folhas == 0 || folha < 0 || folha >= folhas) {
+        return {};   // vazio, e nao um caminho errado em silencio
+    }
+
+    // y do no numero j do nivel d, contando a raiz como nivel 0.
+    //
+    // Um nivel d tem 2^d nos, e cada um fica no PONTO MEDIO das folhas que
+    // descendem dele - e isso que alinha os ramos e faz a copa parecer uma
+    // arvore. O fator 2^(divisoes-d) e justamente quantas folhas cada no daquele
+    // nivel cobre.
+    auto yDoNo = [&](const int d, const int j) {
+        const int nosNoNivel = 1 << d;
+        const float meio = static_cast<float>(nosNoNivel - 1) / 2.0f;
+        const float largura = espacamento * static_cast<float>(1 << (divisoes - d));
+        return (static_cast<float>(j) - meio) * largura;
+    };
+
+    std::vector<Vector2> pontos;
+    pontos.reserve(static_cast<size_t>(divisoes) + 2);
+
+    // O fim do tronco: a raiz. TODAS as folhas passam por aqui, e e por isso que
+    // os projeteis saem sobrepostos.
+    pontos.emplace_back(tronco, 0.0f);
+
+    for (int d = 1; d <= divisoes; ++d) {
+        // O ancestral desta folha no nivel d. Os bits de cima do indice da folha
+        // SAO o caminho na arvore: descartar os (divisoes - d) bits de baixo e
+        // subir ate aquele nivel.
+        const int ancestral = folha >> (divisoes - d);
+        pontos.emplace_back(tronco + passo * static_cast<float>(d), yDoNo(d, ancestral));
+    }
+
+    // A perna longa, na mesma altura da folha: o projetil segue reto para fora.
+    pontos.emplace_back(tronco + passo * static_cast<float>(divisoes) + saida,
+                        yDoNo(divisoes, folha));
+
+    return pontos;
+}
+
 FormasLidas LerFormas(const std::string& textoJson) {
 
     FormasLidas saida;
@@ -216,8 +266,46 @@ FormasLidas LerFormas(const std::string& textoJson) {
                 continue;
             }
         }
+        else if (corpo.contains("arvore")) {
+
+            // Uma FAMILIA: uma entrada no arquivo que vira varias formas, uma por
+            // folha. "divisoes": 3 da 1 -> 2 -> 4 -> 8.
+            const auto& a = corpo["arvore"];
+            if (!a.is_object()) {
+                saida.problemas.emplace_back("forma \"" + nome + "\": \"arvore\" deveria ser um objeto");
+                continue;
+            }
+
+            const int divisoes = a.value("divisoes", -1);
+            const int folhas = FolhasDeArvore(divisoes);
+            if (folhas == 0) {
+                saida.problemas.emplace_back("forma \"" + nome + "\": \"divisoes\" precisa ser um"
+                                             " numero de 0 a 10 (3 da 8 folhas)");
+                continue;
+            }
+
+            const float tronco      = a.value("tronco", 120.0f);
+            const float passo       = a.value("passo", 90.0f);
+            const float espacamento = a.value("espacamento", 60.0f);
+            const float saidaReta   = a.value("saida", 560.0f);
+
+            if (tronco <= 0.0f || passo <= 0.0f || espacamento <= 0.0f) {
+                saida.problemas.emplace_back("forma \"" + nome + "\": \"tronco\", \"passo\" e"
+                                             " \"espacamento\" precisam ser maiores que zero");
+                continue;
+            }
+
+            std::vector<std::vector<Vector2>> familia;
+            familia.reserve(static_cast<size_t>(folhas));
+            for (int f = 0; f < folhas; ++f) {
+                familia.push_back(ArvoreBinaria(divisoes, f, tronco, passo, espacamento, saidaReta));
+            }
+
+            saida.familias.emplace(nome, std::move(familia));
+            continue;   // familia nao entra no mapa de formas simples
+        }
         else {
-            saida.problemas.emplace_back("forma \"" + nome + "\": precisa de \"pontos\" ou \"gerador\"");
+            saida.problemas.emplace_back("forma \"" + nome + "\": precisa de \"pontos\", \"gerador\" ou \"arvore\"");
             continue;
         }
 

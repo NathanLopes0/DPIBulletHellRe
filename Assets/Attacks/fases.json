@@ -136,7 +136,10 @@
     // e o acumulo, disparo sobre disparo, que faz a tela parecer uma arvore e nao
     // quatro tiros tortos.
     //
-    // 4 projeteis e os 4 indices de "salles_arvore" andam juntos.
+    // "projeteis": 8 TEM de bater com as oito folhas de "divisoes": 3 na familia
+    // ArvoreDeBusca, em formas.json. E o unico numero que precisa andar junto, e um
+    // teste confere: a mais, o projetil extra repete um ramo; a menos, metade da
+    // arvore nao aparece.
     "StateThree": {
       "duracao": 17,
       // Vazio de proposito: e aqui que a batalha e decidida.
@@ -144,8 +147,8 @@
       "movimento": { "tipo": "GoToCenter" },
       "ataques": [
         { "estrategia": "AngledAttack", "projetil": "Estruturas",
-          "projeteis": 4, "velocidade": 210, "angulo": 0,
-          "cooldown": 1.9,
+          "projeteis": 8, "velocidade": 260, "angulo": 0,
+          "cooldown": 2.1,
           "regras": "salles_arvore" }
       ]
     },

@@ -707,3 +707,105 @@ TEST_CASE("Dados: uma parada de caminho aponta para um ponto que a forma tem") {
     // parou de conferir qualquer coisa.
     CHECK(paradasConferidas >= 1);
 }
+
+// ---------------------------------------------------------------------------
+// Familias de forma
+//
+// Uma familia e uma entrada de formas.json que vale por varias formas, uma por
+// projetil - "divisoes": 3 numa arvore vira oito folhas. Isso troca o acoplamento
+// antigo (N formas escritas a mao + N regras por indice) por um so: a quantidade
+// de projeteis do ataque tem de bater com o tamanho da familia.
+//
+// E esse unico acoplamento que os dois testes abaixo guardam. Sem eles, mudar
+// "divisoes" sem mudar "projeteis" nao da erro nenhum: com projeteis de menos,
+// metade da arvore simplesmente nao aparece; com projeteis de mais, os extras
+// repetem ramos. Nos dois casos a fase fica errada em silencio.
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Dados: toda familia citada por formaPorIndice existe em formas.json") {
+
+    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
+    const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
+
+    int conferidas = 0;
+
+    for (const auto& conjunto : regras.conjuntos) {
+        for (const auto& r : conjunto.second) {
+            if (!r.temMotion || r.motion.formaPorIndice.empty()) continue;
+
+            const std::string onde = conjunto.first;
+            CAPTURE(onde);
+            CAPTURE(r.motion.formaPorIndice);
+
+            CHECK_MESSAGE(formas.familias.count(r.motion.formaPorIndice) == 1,
+                "a regra pede a familia \"" << r.motion.formaPorIndice
+                << "\", que nao existe em formas.json");
+
+            // O engano mais provavel agora que ha os dois: pedir por indice uma
+            // forma que e simples, ou pedir direto uma que e familia.
+            CHECK_MESSAGE(formas.formas.count(r.motion.formaPorIndice) == 0,
+                "\"" << r.motion.formaPorIndice << "\" e uma forma simples, nao uma familia"
+                << " - a regra deveria usar \"forma\"");
+
+            ++conferidas;
+        }
+    }
+
+    CHECK(conferidas >= 1);
+}
+
+TEST_CASE("Dados: um ataque que usa familia dispara exatamente o tamanho dela") {
+
+    // O UNICO numero que precisa andar junto depois que a arvore virou familia.
+    // Antes eram tres lugares (formas, regras por indice e projeteis); agora e
+    // "divisoes" de um lado e "projeteis" do outro, e este teste liga os dois.
+
+    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
+    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
+    const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
+
+    int conferidos = 0;
+
+    for (const auto& chefe : kChefes) {
+        REQUIRE(fases.conjuntos.count(chefe) == 1);
+
+        for (const auto& f : fases.conjuntos.at(chefe)) {
+            for (const auto& a : f.ataques) {
+
+                if (a.regrasNome.empty() || regras.conjuntos.count(a.regrasNome) == 0) continue;
+
+                for (const auto& r : regras.conjuntos.at(a.regrasNome)) {
+                    if (!r.temMotion || r.motion.formaPorIndice.empty()) continue;
+
+                    const auto familia = formas.familias.find(r.motion.formaPorIndice);
+                    if (familia == formas.familias.end()) continue;   // o outro teste cobre
+
+                    const int tamanho = static_cast<int>(familia->second.size());
+                    const int disparados = a.projeteis ? *a.projeteis : 0;
+
+                    const std::string onde = chefe + "/" + f.nome + " -> " + r.motion.formaPorIndice;
+                    CAPTURE(onde);
+
+                    CHECK_MESSAGE(disparados == tamanho,
+                        "o ataque dispara " << disparados << " projeteis e a familia tem "
+                        << tamanho << " formas: de menos deixa parte da figura sem aparecer,"
+                        << " de mais faz os extras repetirem formas");
+
+                    ++conferidos;
+                }
+            }
+        }
+    }
+
+    CHECK(conferidos >= 1);
+}
+
+TEST_CASE("Dados: toda familia tem pelo menos duas formas") {
+    // Uma familia de uma forma so e uma forma simples escrita de um jeito
+    // complicado - provavelmente "divisoes": 0 por engano.
+    const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
+    for (const auto& fam : formas.familias) {
+        CAPTURE(fam.first);
+        CHECK(fam.second.size() >= 2);
+    }
+}

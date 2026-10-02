@@ -75,15 +75,19 @@
 
   // FASE 3 - arvore binaria: a busca descendo da raiz.
   //
-  // Quatro projeteis, quatro folhas. As quatro formas compartilham o tronco e os
-  // dois primeiros ramos, entao os projeteis saem sobrepostos, descem como um no
-  // so, abrem em dois e depois em quatro.
+  // UMA REGRA SO, para oito folhas. "formaPorIndice" entrega ao projetil numero i
+  // a forma numero i da familia "ArvoreDeBusca", declarada em formas.json. Antes
+  // eram quatro regras por indice que tinham de bater com quatro formas escritas a
+  // mao; mudar a profundidade da arvore mexia em tres lugares.
   //
-  // "atraso" ZERO em todas, de proposito: e o que faz as quatro desenharem a
-  // MESMA arvore a partir do MESMO ponto. Um atraso diferente por indice separaria
-  // os projeteis, mas cada um comecaria a arvore de um lugar diferente e o
-  // resultado seriam quatro arvores deslocadas em vez de uma - foi a primeira
-  // coisa que tentei, e esta aqui para nao ser tentada de novo.
+  // Agora a arvore inteira e "divisoes": 3 em formas.json, e aqui nao ha numero
+  // nenhum para acertar junto.
+  //
+  // SEM "atraso", de proposito: e o que faz todas desenharem a MESMA arvore a
+  // partir do MESMO ponto. Um atraso diferente por indice separaria os projeteis,
+  // mas cada um comecaria a arvore de um lugar diferente e o resultado seriam oito
+  // arvores deslocadas em vez de uma - foi a primeira coisa que tentei, e esta
+  // aqui para nao ser tentada de novo.
   //
   // "mira": "MirarNoJogador" planta a RAIZ apontada para o jogador, e com atraso
   // zero todas as quatro miram do mesmo ponto, entao a arvore inteira gira junto e
@@ -93,24 +97,13 @@
   // menos de 120px do jogador contra 0.42 do desenho anterior.
   //
   // Alem de resolver, le melhor: a busca desce da raiz ATE VOCE.
-  // 4 projeteis e 4 indices andam juntos: mudar "projeteis" em fases.json sem
-  // acertar aqui deixa o projetil extra sem caminho, voando reto pelo meio da
-  // arvore.
+  //
+  // A velocidade subiu de 210 para 260 ao passar de 4 para 8 folhas: o percurso
+  // ate a folha cresceu de 382px para 473px, e a 210px/s a arvore so terminaria de
+  // abrir em 2,25s - depois do disparo seguinte, com duas arvores na tela ao mesmo
+  // tempo. A 260px/s ela fecha em 1,82s, o mesmo tempo de abertura de antes.
   "salles_arvore": [
-    { "indices": [0],
-      "motion": { "tipo": "Path", "forma": "ArvoreFolha1", "velocidade": 210,
-                  "mira": "MirarNoJogador" },
-      "animacao": "Arvore" },
-    { "indices": [1],
-      "motion": { "tipo": "Path", "forma": "ArvoreFolha2", "velocidade": 210,
-                  "mira": "MirarNoJogador" },
-      "animacao": "Arvore" },
-    { "indices": [2],
-      "motion": { "tipo": "Path", "forma": "ArvoreFolha3", "velocidade": 210,
-                  "mira": "MirarNoJogador" },
-      "animacao": "Arvore" },
-    { "indices": [3],
-      "motion": { "tipo": "Path", "forma": "ArvoreFolha4", "velocidade": 210,
+    { "motion": { "tipo": "Path", "formaPorIndice": "ArvoreDeBusca", "velocidade": 260,
                   "mira": "MirarNoJogador" },
       "animacao": "Arvore" }
   ],
