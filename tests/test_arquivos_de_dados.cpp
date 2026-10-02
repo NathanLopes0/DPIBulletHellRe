@@ -443,6 +443,15 @@ TEST_CASE("Dados: os projeteis mantem exatamente o que as fabricas em C++ tinham
         // folga de dois sprites sem parcela de tela.
         {"andre",   "Baloes",   "Teachers/Projectiles/DPIBHAndreBaloon.png",
          2.0f, 90, "Red",    "largura", 4.0f, false, 2.0f,  0.0f, 3},
+
+        // Os dois do redesenho do Salles por Estruturas de Dados. O "Duplamente"
+        // tira o raio do colisor da ALTURA porque o no e bem mais largo que alto -
+        // os campos PREV e NEXT ficam lado a lado - e pela largura a hitbox
+        // redonda sairia bem maior que o desenho.
+        {"salles",  "Estruturas", "Teachers/Projectiles/DPIBHSallesEstruturas.png",
+         1.0f, 90, "ListaSimples", "largura", 2.0f, true,  1.0f, 12.0f, 2},
+        {"salles",  "Duplamente", "Teachers/Projectiles/DPIBHSallesDuplamente.png",
+         0.75f, 90, "Normal",     "altura",  2.0f, false, 1.0f, 12.0f, 1},
     };
 
     for (const auto& e : esperados) {
@@ -490,6 +499,9 @@ TEST_CASE("Dados: as animacoes dos projeteis mantem os quadros exatos") {
         {"andre",   "Baloes",   "Red",         {6, 7, 8, 9, 10, 11}},
         {"andre",   "Baloes",   "Blue",        {12, 13, 14, 15, 16, 17}},
         {"andre",   "Baloes",   "Yellow",      {18, 19, 20, 21, 22, 23}},
+        {"salles",  "Estruturas", "ListaSimples", {0, 1, 2, 3}},
+        {"salles",  "Estruturas", "Arvore",       {4, 5, 6, 7}},
+        {"salles",  "Duplamente", "Normal",       {0, 1, 2, 3, 4, 5, 6, 7, 8}},
     };
 
     for (const auto& e : esperadas) {
@@ -509,4 +521,136 @@ TEST_CASE("Dados: as animacoes dos projeteis mantem os quadros exatos") {
         REQUIRE(achada != nullptr);
         CHECK(achada->quadros == e.quadros);
     }
+}
+
+// ---------------------------------------------------------------------------
+// O acoplamento entre a onda e o caminho
+//
+// Quando um ataque e WaveAttack e as regras dele tem um Path com atraso, os dois
+// numeros NAO sao independentes. A WaveAttack da a cada projetil um
+// DeactivateBehavior(0) e um ActivateBehavior(i * intervalo): o no i fica parado,
+// com velocidade ZERO, ate o instante de despertar.
+//
+// O PathBehavior captura a direcao do caminho no instante em que ativa, a partir
+// da velocidade do projetil. Se ele ativar num no que ainda dorme, nao ha direcao
+// para capturar, ele cai na rotacao identidade e o no sai voando para a direita em
+// vez de seguir a fila.
+//
+// Ou seja: o atraso do caminho tem de ser maior que o despertar do ULTIMO no, que
+// e (projeteis - 1) * intervalo. Isto nao aparece em nenhuma API - nada no C++
+// impede a combinacao errada, e em jogo ela nao parece bug de dados, parece bug de
+// motor: um tiro da fila sai torto de vez em quando. Por isso o acoplamento e
+// conferido aqui.
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Dados: num WaveAttack, o atraso do caminho supera o despertar do ultimo no") {
+
+    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
+    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
+
+    int combinacoesConferidas = 0;
+
+    for (const auto& chefe : kChefes) {
+        REQUIRE(fases.conjuntos.count(chefe) == 1);
+
+        for (const auto& f : fases.conjuntos.at(chefe)) {
+            for (const auto& a : f.ataques) {
+
+                if (a.estrategia != "WaveAttack") continue;
+                if (a.regrasNome.empty() || regras.conjuntos.count(a.regrasNome) == 0) continue;
+
+                // Sem intervalo, a WaveAttack dispara tudo junto e nao ha onda -
+                // nada a conferir.
+                if (!a.intervalo) continue;
+
+                const int quantos = a.projeteis ? *a.projeteis : 0;
+                if (quantos <= 1) continue;
+
+                const float ultimoDespertar =
+                    static_cast<float>(quantos - 1) * (*a.intervalo);
+
+                for (const auto& r : regras.conjuntos.at(a.regrasNome)) {
+                    if (!r.temMotion || r.motion.tipo != "Path") continue;
+
+                    const std::string onde = chefe + "/" + f.nome + " -> " + a.regrasNome;
+                    CAPTURE(onde);
+                    CAPTURE(quantos);
+                    CAPTURE(ultimoDespertar);
+                    CAPTURE(r.motion.atraso);
+
+                    CHECK_MESSAGE(r.motion.atraso > ultimoDespertar,
+                        "o caminho ativaria num no ainda parado: atraso " << r.motion.atraso
+                        << "s nao passa do despertar do ultimo no (" << ultimoDespertar << "s)");
+
+                    ++combinacoesConferidas;
+                }
+            }
+        }
+    }
+
+    // O redesenho do Salles por Estruturas de Dados tem exatamente uma combinacao
+    // destas (a fase 2, a lista duplamente encadeada que volta). Se este numero
+    // cair a zero, o teste passou a nao conferir nada - foi assim que eu quase
+    // deixei passar uma medicao invalida antes.
+    CHECK(combinacoesConferidas >= 1);
+}
+
+TEST_CASE("Dados: toda animacao pedida por uma regra existe no projetil que o ataque dispara") {
+
+    // O quarto erro silencioso desta familia, e o unico que ainda nao tinha rede.
+    // DrawAnimatedComponent::SetAnimation com um nome que nao existe nao quebra
+    // nada: o projetil simplesmente CONTINUA na animacao anterior. Entao uma regra
+    // pedindo "Arvore" num projetil que so tem "ListaSimples" produz uma fase
+    // inteira com a arte errada, sem um erro em tela e sem uma linha no log.
+    //
+    // O cruzamento so e possivel aqui porque este teste ve os tres arquivos ao
+    // mesmo tempo: fases.json diz qual projetil e qual conjunto de regras um ataque
+    // usa, regras.json diz qual animacao cada regra pede, e projeteis.json diz
+    // quais animacoes aquele projetil tem. Nenhum dos tres sabe disso sozinho.
+
+    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
+    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
+    const auto projeteis = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
+
+    int pedidosConferidos = 0;
+
+    for (const auto& chefe : kChefes) {
+        REQUIRE(fases.conjuntos.count(chefe) == 1);
+        REQUIRE(projeteis.conjuntos.count(chefe) == 1);
+
+        for (const auto& f : fases.conjuntos.at(chefe)) {
+            for (const auto& a : f.ataques) {
+
+                const auto projetil = projeteis.conjuntos.at(chefe).find(a.projetil);
+                if (projetil == projeteis.conjuntos.at(chefe).end()) continue;  // outro teste cobre
+
+                std::set<std::string> tem;
+                for (const auto& anim : projetil->second.animacoes) tem.insert(anim.nome);
+
+                // As regras em linha contam igual as de conjunto nomeado.
+                std::vector<Regra> todas = a.regras;
+                if (!a.regrasNome.empty() && regras.conjuntos.count(a.regrasNome) == 1) {
+                    const auto& doConjunto = regras.conjuntos.at(a.regrasNome);
+                    todas.insert(todas.end(), doConjunto.begin(), doConjunto.end());
+                }
+
+                for (const auto& r : todas) {
+                    if (r.animacao.empty()) continue;
+
+                    const std::string onde = chefe + "/" + f.nome + " projetil \"" + a.projetil + "\"";
+                    CAPTURE(onde);
+                    CAPTURE(r.animacao);
+
+                    CHECK_MESSAGE(tem.count(r.animacao) == 1,
+                        "a regra pede a animacao \"" << r.animacao << "\", que o projetil \""
+                        << a.projetil << "\" nao tem - em jogo ele ficaria com a animacao anterior");
+
+                    ++pedidosConferidos;
+                }
+            }
+        }
+    }
+
+    // Se cair a zero, o teste deixou de conferir qualquer coisa.
+    CHECK(pedidosConferidos >= 1);
 }

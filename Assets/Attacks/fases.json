@@ -65,62 +65,137 @@
   // ==========================================================================
   "salles": {
 
+    // FASE 1 - LISTA ENCADEADA SIMPLES, e ela vai rapido.
+    //
+    // WaveAttack com "angulo": 0. O angulo zero e o que torna isto uma lista: sem
+    // leque, os dez nos saem na MESMA direcao, e como a WaveAttack acorda um a cada
+    // 0.11s eles ficam em fila indiana com 430 x 0.11 = 47px entre vizinhos.
+    //
+    // A fila inteira cabe na tela: o ultimo no desperta em 0.99s e o primeiro gasta
+    // 1.55s para atravessar os 667px ate a borda de baixo, entao ha um instante em
+    // que os dez estao visiveis ao mesmo tempo. E o que faz a lista ser lida como
+    // uma lista e nao como dez tiros.
+    //
+    // GoToCenter: o chefe fica parado para a fila ter uma origem clara. Com ele
+    // vagando, cada no sairia de um lugar diferente e nao haveria fila.
     "StateOne": {
       "duracao": 17,
       "proximo": "StateTwo",
       "movimento": { "tipo": "GoToCenter" },
       "ataques": [
-        { "estrategia": "AngledAttack", "projetil": "Capivara",
-          "projeteis": 3, "velocidade": 340, "angulo": 40,
-          "cooldown": 0.8,
-          "regras": "salles_fase1" }
+        { "estrategia": "WaveAttack", "projetil": "Estruturas",
+          "projeteis": 10, "velocidade": 430, "angulo": 0, "intervalo": 0.11,
+          "cooldown": 1.7,
+          "regras": "salles_lista_simples" }
       ]
     },
 
+    // FASE 2 - LISTA DUPLAMENTE ENCADEADA: vai rapido e depois VOLTA.
+    //
+    // Mesma fila da fase 1, com o no de verdade (a arte "Duplamente" tem os campos
+    // PREV e NEXT desenhados) e um gancho que traz a fila inteira de volta em
+    // formacao. O jogador que se esquivou da ida tem de se esquivar da volta.
+    //
+    // OS TRES NUMEROS ANDAM JUNTOS: 8 projeteis x 0.10 de intervalo = 0.70s ate o
+    // ultimo no despertar, e o "atraso": 0.85 do caminho em regras.json tem de ser
+    // maior que isso. Mexer em um exige revisar o outro - a explicacao esta na
+    // regra "salles_lista_dupla".
+    //
+    // Cooldown 2.8 porque a ida e a volta juntas levam cerca de 3.5s: com um
+    // cooldown curto, duas filas se cruzam em sentidos opostos e vira sopa.
     "StateTwo": {
       "duracao": 17,
       "proximo": "StateThree",
-      "movimento": { "tipo": "RandomWander", "a": 6.0, "b": 300 },
+      "movimento": { "tipo": "GoToCenter" },
       "ataques": [
-        { "estrategia": "AngledAttack", "projetil": "Capivara",
-          "projeteis": 4, "velocidade": 360, "angulo": 40,
-          "cooldown": 1.0,
-          "regras": "salles_fase2" }
+        { "estrategia": "WaveAttack", "projetil": "Duplamente",
+          "projeteis": 8, "velocidade": 400, "angulo": 0, "intervalo": 0.10,
+          "cooldown": 1.8,
+          "regras": "salles_lista_dupla" },
+
+        // DUAS listas, nao uma. Medindo o redesenho contra o desenho antigo, esta
+        // fase tinha perdido mais da metade da pressao: 0,78 passagem por segundo a
+        // menos de 120px do jogador caiu para 0,25. A causa NAO era o numero de
+        // tiros - baixar o cooldown de 2,8 para 1,8 levou a 0,26, ou seja, nada.
+        //
+        // E que uma FILA TEM ESPESSURA ZERO. O leque de 40 graus do desenho antigo
+        // varria uma area; uma fila indiana nao varre nada, e o jogador so precisa
+        // dar um passo para o lado. A segunda fila, com cooldown e velocidade
+        // diferentes, entra e sai de fase com a primeira e cobre parte do que a
+        // outra deixa: 0,31 por segundo.
+        //
+        // AINDA E 0,39x DO DESENHO ANTIGO, e esta e a fase mais facil das tres. Em
+        // compensacao ela cobra duas esquivas pela mesma fila, o que a medida de
+        // "passagem perto" nao captura. Se no playtest ficar frouxa demais, a
+        // alavanca que resta nao esta aqui: e Salles::CustomizeAttackParams, no
+        // C++, que so mira no jogador em 30% dos disparos. Para uma geometria
+        // esparsa como a fila, os outros 70% erram inteiro - foi exatamente o que
+        // a fase 3 resolveu passando a usar "mira": "MirarNoJogador" no caminho,
+        // mas aqui isso nao serve: cada no miraria da POSICAO DELE e a fila
+        // perderia a formacao, que e o ponto da fase.
+        { "estrategia": "WaveAttack", "projetil": "Duplamente",
+          "projeteis": 6, "velocidade": 330, "angulo": 0, "intervalo": 0.12,
+          "cooldown": 2.3,
+          "regras": "salles_lista_dupla_lenta" }
       ]
     },
 
+    // FASE 3 - ARVORE BINARIA: uma busca descendo da raiz.
+    //
+    // AngledAttack com "angulo": 0, quatro projeteis que saem sobrepostos. Quem
+    // separa eles e o caminho, nao o leque: as quatro formas compartilham o tronco
+    // e se dividem em dois e depois em quatro. O jogador ve um no descer, abrir em
+    // dois, abrir em quatro.
+    //
+    // Velocidade 210, baixa de proposito: a arvore tem de ser VISTA se formando. A
+    // 600px/s (que era a velocidade desta fase no desenho anterior) a bifurcacao
+    // acontece rapido demais para ser lida, e o efeito se perde.
+    //
+    // GoToCenter e obrigatorio aqui. Com o chefe vagando, cada disparo plantaria a
+    // raiz num lugar diferente e as arvores nao se acumulariam na mesma regiao - e
+    // e o acumulo, disparo sobre disparo, que faz a tela parecer uma arvore e nao
+    // quatro tiros tortos.
+    //
+    // 4 projeteis e os 4 indices de "salles_arvore" andam juntos.
     "StateThree": {
       "duracao": 17,
       // Vazio de proposito: e aqui que a batalha e decidida.
       "proximo": "",
-      "movimento": { "tipo": "RandomWander", "a": 4.0, "b": 300 },
+      "movimento": { "tipo": "GoToCenter" },
       "ataques": [
-        { "estrategia": "AngledAttack", "projetil": "Capivara",
-          "projeteis": 8, "velocidade": 600, "angulo": 80,
-          "cooldown": 0.8,
-          "regras": "salles_fase3" }
+        { "estrategia": "AngledAttack", "projetil": "Estruturas",
+          "projeteis": 4, "velocidade": 210, "angulo": 0,
+          "cooldown": 1.9,
+          "regras": "salles_arvore" }
       ]
     },
 
-    // Repescagem (nota entre 40 e 59 ao fim da fase 3). Dois ataques ao mesmo
-    // tempo, com cooldowns diferentes: um leque rapido e estreito de arcos, e um
-    // leque lento e largo em que cada projetil faz uma forma diferente.
+    // FASE FINAL - LISTA CIRCULAR, com as capivaras.
+    //
+    // Repescagem (nota entre 40 e 59 ao fim da fase 3). O professor coloca capivara
+    // em todo exercicio da disciplina, entao a ultima fase e o anel de capivaras em
+    // que cada uma fecha um laco e volta ao inicio: a lista circular.
+    //
+    // Dois ataques ao mesmo tempo, como no desenho anterior: o anel de lacos lentos
+    // e um anel reto e rapido. O segundo existe para o jogador nao poder ficar
+    // parado esperando os lacos passarem.
+    //
+    // CircleSpreadAttack ignora angulo, anguloCentral e intervalo - o anel e sempre
+    // 360 graus divididos pela quantidade -, por isso nenhum dos tres aparece aqui.
     "StateFinal": {
       "duracao": 17,
       "proximo": "StateOne",
       "movimento": { "tipo": "GoToCenter" },
       "ataques": [
-        { "estrategia": "AngledAttack", "projetil": "Capivara",
-          "projeteis": 3, "velocidade": 340, "angulo": 40,
-          "cooldown": 0.8,
-          "regras": "salles_final_arcos" },
+        { "estrategia": "CircleSpreadAttack", "projetil": "Capivara",
+          "projeteis": 12, "velocidade": 200,
+          "cooldown": 1.8,
+          "regras": "salles_lista_circular" },
 
-        // 3 projeteis e as 3 formas de salles_final_variado andam juntos: mudar
-        // um numero aqui exige acertar os indices la.
-        { "estrategia": "AngledAttack", "projetil": "Capivara",
-          "projeteis": 3, "velocidade": 200, "angulo": 80,
-          "cooldown": 1.0,
-          "regras": "salles_final_variado" }
+        { "estrategia": "CircleSpreadAttack", "projetil": "Capivara",
+          "projeteis": 8, "velocidade": 330,
+          "cooldown": 2.4,
+          "regras": "salles_anel_reto" }
       ]
     }
   },
@@ -193,7 +268,7 @@
 
         { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
           "projeteis": 9, "velocidade": 240,
-          "cooldown": 2.8,
+          "cooldown": 1.8,
           "regras": "ricardo_final_teleguiado" }
       ]
     }

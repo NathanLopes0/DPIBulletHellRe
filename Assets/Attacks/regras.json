@@ -36,52 +36,110 @@
   // SALLES - INF 110
   // --------------------------------------------------------------------------
 
-  // Fase 1: quinas exatas, legiveis. Seis pernas de 85px.
-  "salles_fase1": [
-    { "motion": { "tipo": "Path", "forma": "ZigueQuinado", "velocidade": 200 } }
+  // FASE 1 - lista encadeada simples. NAO TEM REGRA DE CAMINHO, e esse e o ponto.
+  //
+  // A fila de nos e feita pela propria WaveAttack: ela da a cada projetil um
+  // DeactivateBehavior(0) e um ActivateBehavior(i * intervalo), ou seja, o no i
+  // desperta i*intervalo segundos depois do primeiro, todos na mesma direcao e
+  // todos saindo do mesmo ponto. O espacamento e velocidade x intervalo.
+  //
+  // Levei um tempo para ver isto: eu procurava uma FORMA que desenhasse uma lista,
+  // e a lista nunca foi uma forma - e o atraso entre os nos. Qualquer Path aqui
+  // alem de desnecessario seria nocivo, porque o PathBehavior captura a direcao no
+  // instante em que ativa e um no ainda dormindo tem velocidade zero: o caminho
+  // cairia na rotacao identidade e a fila sairia torta.
+  "salles_lista_simples": [
+    { "animacao": "ListaSimples" }
   ],
 
-  // Fase 2: arco alternado. As barrigas se cruzam no meio do voo, e e o
-  // cruzamento que distingue esta fase da primeira.
-  "salles_fase2": [
-    { "quando": "pares",
-      "motion": { "tipo": "Path", "forma": "ArcoDireita", "velocidade": 190 } },
-    { "quando": "impares",
-      "motion": { "tipo": "Path", "forma": "ArcoEsquerda", "velocidade": 190 } }
+  // FASE 2 - lista duplamente encadeada: vai rapido e VOLTA.
+  //
+  // A mesma WaveAttack forma a fila, e UM caminho faz a fila inteira voltar.
+  //
+  // O "atraso": 0.85 E O NUMERO CRITICO desta fase. Ele tem de ser MAIOR que o
+  // despertar do ultimo no (8 nos x 0.10 = 0.70s). Se for menor, o caminho ativa
+  // num no que ainda esta parado, com velocidade zero, e sem direcao para capturar
+  // ele cai na rotacao identidade - o no voa para a direita em vez de seguir a
+  // fila. Mexer em "projeteis" ou "intervalo" em fases.json OBRIGA a revisar este
+  // atraso.
+  //
+  // Como todos os nos ativam o caminho no MESMO instante, cada um a partir da
+  // posicao onde estava, a fila vira em bloco e volta em formacao. Isso e o
+  // ponteiro prev: a lista duplamente encadeada e a unica que pode ser percorrida
+  // de tras para frente, e e a unica fase em que os tiros voltam.
+  "salles_lista_dupla": [
+    { "motion": { "tipo": "Path", "forma": "GanchoDeVolta",
+                  "velocidade": 400, "atraso": 0.85 } }
   ],
 
-  // Fase 3: uma forma escrita, seis lacos girados - o alinhamento automatico do
-  // caminho gira o mesmo laco para a direcao de cada projetil do leque.
-  // Velocidade alta aqui de proposito: a fase 3 e a mais apertada.
-  "salles_fase3": [
-    { "motion": { "tipo": "Path", "forma": "LacoRapido", "velocidade": 600 } }
+  // A segunda fila da fase 2, mais lenta e mais curta. Mesmo gancho, mesmos
+  // cuidados: 6 nos x 0.12 = 0.60s ate o ultimo despertar, e o atraso 0.75 passa
+  // disso. Os dois numeros sao diferentes dos da fila rapida de proposito - as
+  // duas filas tem de virar em instantes diferentes, senao parecem uma so.
+  "salles_lista_dupla_lenta": [
+    { "motion": { "tipo": "Path", "forma": "GanchoDeVolta",
+                  "velocidade": 330, "atraso": 0.75 } }
   ],
 
-  // Fase final, primeiro ataque: arco largo alternado, com a arte de projetil
-  // teleguiado para telegrafar que a bala vai curvar.
-  "salles_final_arcos": [
-    { "quando": "pares",
-      "motion": { "tipo": "Path", "forma": "ArcoLargoDireita", "velocidade": 195 },
-      "animacao": "Homing" },
-    { "quando": "impares",
-      "motion": { "tipo": "Path", "forma": "ArcoLargoEsquerda", "velocidade": 195 },
-      "animacao": "Homing" }
-  ],
-
-  // Fase final, segundo ataque: AS TRES FORMAS no mesmo disparo, uma por
-  // projetil. O ataque tem 3 projeteis, entao os indices 0, 1 e 2 cobrem todos.
-  // Se o numero de projeteis mudar em fases.json, ACERTE OS INDICES AQUI - um
-  // quarto projetil sairia sem caminho nenhum, voando reto.
-  "salles_final_variado": [
+  // FASE 3 - arvore binaria: a busca descendo da raiz.
+  //
+  // Quatro projeteis, quatro folhas. As quatro formas compartilham o tronco e os
+  // dois primeiros ramos, entao os projeteis saem sobrepostos, descem como um no
+  // so, abrem em dois e depois em quatro.
+  //
+  // "atraso" ZERO em todas, de proposito: e o que faz as quatro desenharem a
+  // MESMA arvore a partir do MESMO ponto. Um atraso diferente por indice separaria
+  // os projeteis, mas cada um comecaria a arvore de um lugar diferente e o
+  // resultado seriam quatro arvores deslocadas em vez de uma - foi a primeira
+  // coisa que tentei, e esta aqui para nao ser tentada de novo.
+  //
+  // "mira": "MirarNoJogador" planta a RAIZ apontada para o jogador, e com atraso
+  // zero todas as quatro miram do mesmo ponto, entao a arvore inteira gira junto e
+  // a geometria nao se desfaz. Sem isso ela crescia na direcao que o Salles
+  // sorteia (0 a 180 graus em CustomizeAttackParams, no C++), e metade das vezes
+  // saia de lado sem ameacar ninguem. Medindo: a fase passava 0.22 por segundo a
+  // menos de 120px do jogador contra 0.42 do desenho anterior.
+  //
+  // Alem de resolver, le melhor: a busca desce da raiz ATE VOCE.
+  // 4 projeteis e 4 indices andam juntos: mudar "projeteis" em fases.json sem
+  // acertar aqui deixa o projetil extra sem caminho, voando reto pelo meio da
+  // arvore.
+  "salles_arvore": [
     { "indices": [0],
-      "motion": { "tipo": "Path", "forma": "LacoLento", "velocidade": 175 },
-      "animacao": "Homing" },
+      "motion": { "tipo": "Path", "forma": "ArvoreFolha1", "velocidade": 210,
+                  "mira": "MirarNoJogador" },
+      "animacao": "Arvore" },
     { "indices": [1],
-      "motion": { "tipo": "Path", "forma": "ArcoMedio", "velocidade": 190 },
-      "animacao": "Homing" },
+      "motion": { "tipo": "Path", "forma": "ArvoreFolha2", "velocidade": 210,
+                  "mira": "MirarNoJogador" },
+      "animacao": "Arvore" },
     { "indices": [2],
-      "motion": { "tipo": "Path", "forma": "ZigueCurto", "velocidade": 200 },
+      "motion": { "tipo": "Path", "forma": "ArvoreFolha3", "velocidade": 210,
+                  "mira": "MirarNoJogador" },
+      "animacao": "Arvore" },
+    { "indices": [3],
+      "motion": { "tipo": "Path", "forma": "ArvoreFolha4", "velocidade": 210,
+                  "mira": "MirarNoJogador" },
+      "animacao": "Arvore" }
+  ],
+
+  // FASE FINAL - lista circular, e e aqui que as capivaras entram.
+  //
+  // O professor coloca capivara em todo exercicio, entao a repescagem e um anel de
+  // capivaras em que cada uma fecha um laco: a lista que volta ao inicio. O laco e
+  // lento de proposito - a 400px/s ele vira um borrao e o jogador nao ve o circulo
+  // fechar, que e a graca.
+  //
+  // A arte "Homing" (capivara vermelha) avisa que a bala vai curvar.
+  "salles_lista_circular": [
+    { "motion": { "tipo": "Path", "forma": "LacoLento", "velocidade": 175 },
       "animacao": "Homing" }
+  ],
+
+  // Fase final, segundo ataque: o anel rapido e reto, sem caminho. Existe para o
+  // jogador nao poder ficar parado esperando os lacos passarem.
+  "salles_anel_reto": [
+    { "animacao": "Normal" }
   ],
 
   // --------------------------------------------------------------------------

@@ -55,6 +55,48 @@
       },
       "animacaoInicial": "Normal",
       "ordemDeDesenho": 90
+    },
+
+    // As duas estruturas das fases 1 e 3. Mesma folha, duas animacoes, porque o
+    // que muda entre uma lista e uma arvore e a SILHUETA e a COR - um projetil
+    // atravessa a tela em pouco mais de um segundo e nao da tempo de ver
+    // detalhe. A lista e uma caixa ambar com UM espeto a direita (o ponteiro
+    // next, assimetrico: "esta indo para la"); a arvore e um no verde com DOIS
+    // filhos abaixo (a bifurcacao, simetrica).
+    //
+    // ARTE PROVISORIA, desenhada por programa - o gerador esta ao lado da folha,
+    // em gerar_DPIBHSallesEstruturas.py. Mesmo caso dos dados do Julio: serve
+    // para jogar e balancear, e sai quando houver arte de verdade. Trocar o .png
+    // e o .json pelos definitivos nao exige mexer em codigo nenhum.
+    "Estruturas": {
+      "sprite": "Teachers/Projectiles/DPIBHSallesEstruturas.png",
+      "dados":  "Teachers/Projectiles/DPIBHSallesEstruturas.json",
+      "animacoes": {
+        "ListaSimples": [0, 1, 2, 3],
+        "Arvore":       [4, 5, 6, 7]
+      },
+      "animacaoInicial": "ListaSimples",
+      "ordemDeDesenho": 90
+    },
+
+    // O no de lista duplamente encadeada, com os campos PREV e NEXT desenhados.
+    // A arte ja existia no projeto e a fabrica dela tambem, mas nunca tinha sido
+    // registrada em chefe nenhum - nenhum ataque podia pedi-la. A fase 2 e a
+    // primeira a usar.
+    //
+    // O colisor vem da ALTURA: o no e bem mais largo que alto (os dois campos de
+    // ponteiro ficam lado a lado), e usar a largura daria uma hitbox redonda bem
+    // maior que o desenho.
+    "Duplamente": {
+      "sprite": "Teachers/Projectiles/DPIBHSallesDuplamente.png",
+      "dados":  "Teachers/Projectiles/DPIBHSallesDuplamente.json",
+      "animacoes": {
+        "Normal": [0, 1, 2, 3, 4, 5, 6, 7, 8]
+      },
+      "escala": 0.75,
+      "colisorDimensao": "altura",
+      "ordemDeDesenho": 90,
+      "posicionarNoDono": false
     }
   },
 
