@@ -50,6 +50,15 @@ namespace {
         d.parametroDaMira = Campo(j, "antecipacao", 0.0f);
         d.velocidade      = Campo(j, "velocidade", 0.0f);
         d.atraso          = Campo(j, "atraso", 0.0f);
+        d.pararPor        = Campo(j, "pararPor", 0.0f);
+
+        // Nao se chama "pausa" porque esse nome ja e do PulsoDeVelocidade, onde
+        // quer dizer MODULO DE VELOCIDADE durante a pausa - coisa diferente. Dois
+        // campos de mesmo nome e sentidos diferentes no mesmo arquivo e pedir para
+        // alguem escrever um achando que escreve o outro.
+        if (j.contains("pararNoPonto") && j["pararNoPonto"].is_number_integer()) {
+            d.pararNoPonto = j["pararNoPonto"].get<int>();
+        }
         d.forca           = Campo(j, "forca", 0.0f);
         d.duracao         = Campo(j, "duracao", 0.0f);
         d.amplitude       = Campo(j, "amplitude", 0.0f);
@@ -127,8 +136,29 @@ namespace {
                     falhou = true;
                 }
                 else {
-                    r.temMotion = true;
-                    r.motion = d;
+                    // A parada so existe em caminho, e os dois campos so fazem
+                    // sentido juntos. Metade da configuracao nao da erro em jogo -
+                    // simplesmente nao para -, que e o tipo de silencio que faz
+                    // alguem procurar o problema no motor em vez de no arquivo.
+                    if (d.pararPor > 0.0f && d.pararNoPonto < 0) {
+                        problemas.emplace_back(onde + "\"pararPor\" sem \"pararNoPonto\": falta dizer"
+                                                      " em qual ponto do caminho parar");
+                        falhou = true;
+                    }
+                    else if (d.pararNoPonto >= 0 && d.pararPor <= 0.0f) {
+                        problemas.emplace_back(onde + "\"pararNoPonto\" sem \"pararPor\" maior que zero:"
+                                                      " falta dizer por quanto tempo parar");
+                        falhou = true;
+                    }
+                    else if (d.pararPor > 0.0f && d.tipo != "Path") {
+                        problemas.emplace_back(onde + "parada so existe em \"Path\", e esta motion e \"" +
+                                               d.tipo + "\"");
+                        falhou = true;
+                    }
+                    else {
+                        r.temMotion = true;
+                        r.motion = d;
+                    }
                 }
             }
 

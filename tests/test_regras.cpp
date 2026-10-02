@@ -267,3 +267,90 @@ TEST_CASE("Investida: ritmo ausente e recusado") {
     CHECK_FALSE(r.problemas.empty());
     CHECK(r.conjuntos.at("a").empty());
 }
+
+// ---------------------------------------------------------------------------
+// A parada num ponto do caminho
+//
+// Serve a fase 2 do Salles, em que a lista duplamente encadeada vai ate o fim,
+// PARA, e so entao volta por onde veio. Os dois campos existem porque uma pausa
+// nao da para compor com o que havia: Motion e exclusiva, entao nao ha como ter
+// um Path mais outra coisa que segure o projetil.
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Regras: le a parada num ponto do caminho") {
+    const auto r = LerRegras(R"({
+      "c": [ { "motion": { "tipo": "Path", "forma": "IdaEVolta", "velocidade": 400,
+                           "atraso": 0.85, "pararNoPonto": 0, "pararPor": 0.8 } } ]
+    })");
+    CHECK(r.problemas.empty());
+    REQUIRE(r.conjuntos.count("c") == 1);
+    REQUIRE(r.conjuntos.at("c").size() == 1);
+    const auto& m = r.conjuntos.at("c")[0].motion;
+    CHECK(m.pararNoPonto == 0);
+    CHECK(m.pararPor == doctest::Approx(0.8f));
+}
+
+TEST_CASE("Regras: sem parada, os campos ficam no valor que nao para") {
+    // -1 e zero sao o comportamento de TODO caminho escrito antes desta opcao
+    // existir. Se o padrao fosse 0, todo caminho antigo passaria a parar no
+    // primeiro ponto.
+    const auto r = LerRegras(R"({
+      "c": [ { "motion": { "tipo": "Path", "forma": "Reta", "velocidade": 200 } } ]
+    })");
+    REQUIRE(r.problemas.empty());
+    const auto& m = r.conjuntos.at("c")[0].motion;
+    CHECK(m.pararNoPonto == -1);
+    CHECK(m.pararPor == doctest::Approx(0.0f));
+}
+
+TEST_CASE("Regras: pararPor sem pararNoPonto e recusado") {
+    // Meia configuracao nao da erro em jogo: o projetil simplesmente nao para, e
+    // quem escreveu vai procurar o defeito no motor em vez de no arquivo.
+    const auto r = LerRegras(R"({
+      "c": [ { "motion": { "tipo": "Path", "forma": "Reta", "pararPor": 0.8 } } ]
+    })");
+    REQUIRE_FALSE(r.problemas.empty());
+    CHECK(r.problemas[0].find("pararNoPonto") != std::string::npos);
+    // A regra e descartada; o conjunto continua existindo, so que vazio. E a
+    // convencao do leitor para toda regra invalida, nao uma excecao da parada.
+    CHECK(r.conjuntos.at("c").empty());
+}
+
+TEST_CASE("Regras: pararNoPonto sem pararPor e recusado") {
+    const auto r = LerRegras(R"({
+      "c": [ { "motion": { "tipo": "Path", "forma": "Reta", "pararNoPonto": 1 } } ]
+    })");
+    REQUIRE_FALSE(r.problemas.empty());
+    CHECK(r.problemas[0].find("pararPor") != std::string::npos);
+    CHECK(r.conjuntos.at("c").empty());
+}
+
+TEST_CASE("Regras: parada so existe em Path") {
+    // O Tracking nao percorre waypoints, entao nao ha ponto onde parar. Aceitar
+    // em silencio daria uma regra que parece configurada e nao faz nada.
+    const auto r = LerRegras(R"({
+      "c": [ { "motion": { "tipo": "Tracking", "forca": 2.0, "duracao": 2.0,
+                           "pararNoPonto": 0, "pararPor": 0.8 } } ]
+    })");
+    REQUIRE_FALSE(r.problemas.empty());
+    CHECK(r.problemas[0].find("Path") != std::string::npos);
+}
+
+TEST_CASE("Regras: \"pausa\" do PulsoDeVelocidade nao e a parada do caminho") {
+    // Os dois nomes sao parecidos e querem dizer coisas diferentes: "pausa" no
+    // PulsoDeVelocidade e um MODULO DE VELOCIDADE, nao uma duracao. Este teste
+    // existe para travar a separacao - se alguem unificar os nomes, quebra aqui.
+    // PulsoDeVelocidade e um MODIFIER (muda o modulo), nao uma Motion.
+    const auto r = LerRegras(R"({
+      "c": [ { "modifiers": [ { "tipo": "PulsoDeVelocidade", "investida": 300, "pausa": 20,
+                                "ritmo": { "repeticoes": 3, "investida": 0.4, "pausa": 0.3 } } ] } ]
+    })");
+    CHECK(r.problemas.empty());
+    REQUIRE(r.conjuntos.count("c") == 1);
+    REQUIRE_FALSE(r.conjuntos.at("c").empty());
+    REQUIRE_FALSE(r.conjuntos.at("c")[0].modifiers.empty());
+    const auto& mod = r.conjuntos.at("c")[0].modifiers[0];
+    CHECK(mod.moduloPausa == doctest::Approx(20.0f));
+    CHECK(mod.pararPor == doctest::Approx(0.0f));
+    CHECK(mod.pararNoPonto == -1);
+}

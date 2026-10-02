@@ -654,3 +654,56 @@ TEST_CASE("Dados: toda animacao pedida por uma regra existe no projetil que o at
     // Se cair a zero, o teste deixou de conferir qualquer coisa.
     CHECK(pedidosConferidos >= 1);
 }
+
+TEST_CASE("Dados: uma parada de caminho aponta para um ponto que a forma tem") {
+
+    // A parada ("pararNoPonto") e o indice de um waypoint. Se ele for maior que o
+    // numero de pontos da forma, o projetil NUNCA chega nele e simplesmente nao
+    // para - sem erro em tela, sem linha no log, e a fase perde o que a define.
+    //
+    // E o mesmo tipo de erro das regras por indice que apontam para fora da
+    // rajada, e merece a mesma rede: um numero que nao bate com um tamanho que
+    // mora em outro arquivo.
+
+    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
+    const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
+
+    int paradasConferidas = 0;
+
+    for (const auto& conjunto : regras.conjuntos) {
+        for (const auto& r : conjunto.second) {
+
+            if (!r.temMotion || r.motion.pararNoPonto < 0) continue;
+
+            const std::string onde = conjunto.first + ", forma \"" + r.motion.forma + "\"";
+            CAPTURE(onde);
+            CAPTURE(r.motion.pararNoPonto);
+
+            // Uma forma que vem do codigo (Reta) nao esta no arquivo; a conferencia
+            // de nome ja e feita por outro teste, entao aqui so pulo.
+            const auto forma = formas.formas.find(r.motion.forma);
+            if (forma == formas.formas.end()) continue;
+
+            const int pontos = static_cast<int>(forma->second.size());
+            CAPTURE(pontos);
+
+            // A exigencia e pararNoPonto < pontos - 1, nao < pontos: PARAR NO
+            // ULTIMO PONTO NAO SERVE PARA NADA. O caminho termina logo depois e o
+            // projetil segue reto com a velocidade que tinha, entao a parada vira
+            // um soluco antes de sumir, e nunca a espera ANTES de alguma coisa.
+            // Descobri isto sabotando a forma da fase 2 para um unico ponto: o
+            // teste passava e a fase perdia a volta em silencio.
+            CHECK_MESSAGE(r.motion.pararNoPonto < pontos - 1,
+                "a parada aponta para o ponto " << r.motion.pararNoPonto
+                << " de uma forma com " << pontos << " pontos: ou o projetil nunca"
+                << " chega nele, ou para no ultimo e o caminho acaba logo em seguida"
+                << " - de um jeito ou de outro a parada nao faz o que se espera");
+
+            ++paradasConferidas;
+        }
+    }
+
+    // A fase 2 do Salles tem exatamente uma. Zero aqui quer dizer que o teste
+    // parou de conferir qualquer coisa.
+    CHECK(paradasConferidas >= 1);
+}

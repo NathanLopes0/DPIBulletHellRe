@@ -51,17 +51,28 @@
   // os nos.
   // ==========================================================================
 
-  // ----- Fase 2: a volta da lista duplamente encadeada -----
-  // O gancho que faz a fila inteira voltar. Cada no o percorre a partir da posicao
-  // ONDE ESTAVA quando o caminho ativou, e como todos ativam no mesmo instante e
-  // com a mesma rotacao, a fila vira em bloco e volta EM FORMACAO, mantendo o
-  // espacamento. E o ponteiro prev sendo seguido.
+  // ----- Fase 2: a ida e a volta da lista duplamente encadeada -----
+  // DOIS pontos so, e e tudo que a fase precisa: vai 300px, PARA, e volta 900px
+  // exatamente por onde veio. A parada nao esta aqui - ela e da regra
+  // ("pararNoPonto": 0, "pararPor": 0.8), porque e tempo e nao geometria.
   //
-  // A perna de volta e deslocada 148px de lado para a fila que retorna nao se
-  // sobrepor a que foi - sem isso, ida e volta ficam no mesmo risco e o jogador
-  // nao ve que sao a mesma fila.
-  "GanchoDeVolta": {
-    "pontos": [[90, 0], [155, 28], [182, 75], [168, 122], [112, 148], [-620, 148]]
+  // A volta e em -X, ou seja, 180 graus exatos: a fila refaz o proprio rastro em
+  // vez de desviar para o lado. Era a diferenca que importava - uma volta
+  // deslocada parece um desvio, uma volta pelo mesmo caminho parece o ponteiro
+  // prev sendo seguido.
+  //
+  // 300px de ida porque cada no percorre o caminho A PARTIR DE ONDE JA ESTAVA
+  // quando o caminho ativou: o no da frente ja andou 332px nos 0,85s anteriores,
+  // entao ele para a 632px do chefe. No pior angulo (90 graus, reto para baixo)
+  // isso o deixa em y=765 - logo depois do jogador e ainda inteiro dentro da tela
+  // de 800. Aumentar muito faz a fila parar FORA da tela, e uma parada que
+  // ninguem ve nao serve para nada.
+  //
+  // Os 900px de volta levam o no para fora pela borda de cima. Nem precisariam
+  // ser tantos: quando o caminho acaba o projetil segue reto com a velocidade que
+  // tinha, entao a saida da tela aconteceria de todo jeito.
+  "IdaEVolta": {
+    "pontos": [[300, 0], [-900, 0]]
   },
 
   // ----- Fase 3: a arvore binaria -----

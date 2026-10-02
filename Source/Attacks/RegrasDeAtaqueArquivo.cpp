@@ -78,7 +78,8 @@ namespace {
     void Inserir(Projectile* p, const DescricaoDeBehavior& d) {
         if (d.tipo == "Path")
             p->insertMotion<PathBehavior>(FormaPeloNome(d.forma), d.velocidade, d.atraso,
-                                          MiraPeloNome(d.mira, d.parametroDaMira));
+                                          MiraPeloNome(d.mira, d.parametroDaMira),
+                                          d.pararNoPonto, d.pararPor);
         else if (d.tipo == "Tracking")
             p->insertMotion<TrackingBehavior>(d.atraso, d.forca, d.duracao);
         else if (d.tipo == "Wobble")

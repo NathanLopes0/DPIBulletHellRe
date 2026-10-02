@@ -246,15 +246,23 @@ struct PathBehavior : public ProjectileMotion {
      * @param mira Regra de orientacao. O padrao alinha o caminho com a direcao
      *        de voo, que e o comportamento historico - por isso todas as
      *        chamadas existentes continuam validas sem alteracao.
+     * @param pararNoPonto Indice do waypoint ao chegar no qual o projetil FICA
+     *        PARADO por pararPor segundos. -1 (o padrao) e "nunca para", entao
+     *        todo caminho escrito antes desta opcao continua igual.
+     * @param pararPor Duracao da parada, em segundos.
      */
     explicit PathBehavior(std::shared_ptr<const std::vector<Vector2>> waypoints,
                           float pathSpeed = 0.0f,
                           float delay = 0.0f,
-                          Mira mira = Mira())
+                          Mira mira = Mira(),
+                          int pararNoPonto = -1,
+                          float pararPor = 0.0f)
         : waypoints(std::move(waypoints)), pathSpeed(pathSpeed), mira(mira),
           startDelay(delay), elapsedTime(0.0f), current(0),
           origin(Vector2::Zero), cosR(1.0f), sinR(0.0f),
-          started(false), finished(false) {}
+          started(false), finished(false),
+          pararNoPonto(pararNoPonto), pararPor(pararPor),
+          paradaRestante(0.0f), paradaFeita(false) {}
 
     void update(Projectile* p, float deltaTime) override;
     bool isFinished() const override { return finished; }
@@ -269,6 +277,27 @@ struct PathBehavior : public ProjectileMotion {
     float cosR, sinR; // rotacao capturada na ativacao
     bool started;
     bool finished;
+
+    /// A PARADA NUM PONTO DO CAMINHO.
+    ///
+    /// Existe porque uma pausa nao da para compor com o que ja havia: Motion e
+    /// EXCLUSIVA (insertMotion substitui), entao nao ha como ter um Path mais
+    /// outra coisa que o segure, e fazer a parada com SlowDown + Accelerate
+    /// dependeria de fatores reciprocos exatos e de adivinhar o instante em que o
+    /// projetil chega ao ponto - que varia com a posicao de onde ele partiu.
+    ///
+    /// Quem sabe que o projetil CHEGOU num waypoint e o proprio PathBehavior, e e
+    /// por isso que a parada mora aqui.
+    ///
+    /// Durante a parada a velocidade e zero, mas o projetil continua VISIVEL e com
+    /// colisor ligado - ele vira um obstaculo parado, nao some. Retomar sai de
+    /// graca: DirecionarPreservandoModulo cai no pathSpeed quando a velocidade
+    /// atual e zero, entao o projetil parte de novo no modulo certo, ja na direcao
+    /// do proximo waypoint.
+    int   pararNoPonto;      ///< -1 = nunca para
+    float pararPor;          ///< segundos
+    float paradaRestante;
+    bool  paradaFeita;       ///< so para UMA vez, mesmo que o caminho volte ao ponto
 };
 
 /**

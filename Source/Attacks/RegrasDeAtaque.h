@@ -40,6 +40,12 @@ struct DescricaoDeBehavior {
 
     float velocidade = 0.0f;        ///< Path
     float atraso = 0.0f;            ///< todos
+
+    /// Path: para QUANTO tempo ao chegar em QUAL ponto do caminho.
+    /// pararNoPonto = -1 significa "nunca para", que e o comportamento de todo
+    /// caminho escrito antes desta opcao existir.
+    int   pararNoPonto = -1;        ///< Path: indice do waypoint
+    float pararPor = 0.0f;          ///< Path: segundos parado
     float forca = 0.0f;             ///< Tracking
     float duracao = 0.0f;           ///< Tracking, Wobble
     float amplitude = 0.0f;         ///< Wobble: graus

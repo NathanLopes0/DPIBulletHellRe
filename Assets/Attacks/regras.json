@@ -68,17 +68,9 @@
   // ponteiro prev: a lista duplamente encadeada e a unica que pode ser percorrida
   // de tras para frente, e e a unica fase em que os tiros voltam.
   "salles_lista_dupla": [
-    { "motion": { "tipo": "Path", "forma": "GanchoDeVolta",
-                  "velocidade": 400, "atraso": 0.85 } }
-  ],
-
-  // A segunda fila da fase 2, mais lenta e mais curta. Mesmo gancho, mesmos
-  // cuidados: 6 nos x 0.12 = 0.60s ate o ultimo despertar, e o atraso 0.75 passa
-  // disso. Os dois numeros sao diferentes dos da fila rapida de proposito - as
-  // duas filas tem de virar em instantes diferentes, senao parecem uma so.
-  "salles_lista_dupla_lenta": [
-    { "motion": { "tipo": "Path", "forma": "GanchoDeVolta",
-                  "velocidade": 330, "atraso": 0.75 } }
+    { "motion": { "tipo": "Path", "forma": "IdaEVolta",
+                  "velocidade": 400, "atraso": 0.85,
+                  "pararNoPonto": 0, "pararPor": 0.8 } }
   ],
 
   // FASE 3 - arvore binaria: a busca descendo da raiz.

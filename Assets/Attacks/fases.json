@@ -90,19 +90,24 @@
       ]
     },
 
-    // FASE 2 - LISTA DUPLAMENTE ENCADEADA: vai rapido e depois VOLTA.
+    // FASE 2 - LISTA DUPLAMENTE ENCADEADA: vai ate o fim, PARA, e volta por onde veio.
     //
-    // Mesma fila da fase 1, com o no de verdade (a arte "Duplamente" tem os campos
-    // PREV e NEXT desenhados) e um gancho que traz a fila inteira de volta em
-    // formacao. O jogador que se esquivou da ida tem de se esquivar da volta.
+    // A fila se forma como na fase 1. Em 0,85s o caminho assume, leva todos ate o
+    // fim da tela, SEGURA A FILA PARADA POR 0,8s e entao manda a fila inteira de
+    // volta exatamente pelo caminho que fez.
     //
-    // OS TRES NUMEROS ANDAM JUNTOS: 8 projeteis x 0.10 de intervalo = 0.70s ate o
-    // ultimo no despertar, e o "atraso": 0.85 do caminho em regras.json tem de ser
-    // maior que isso. Mexer em um exige revisar o outro - a explicacao esta na
-    // regra "salles_lista_dupla".
+    // A parada e o que faz a fase. Sem ela, a volta parecia so mais uma curva; com
+    // ela o jogador ve a fila CHEGAR AO FIM, decidir, e refazer o percurso - que e
+    // o que uma lista duplamente encadeada permite e uma simples nao. E durante os
+    // 0,8s parados os nos continuam visiveis e com colisor: viram uma parede.
     //
-    // Cooldown 2.8 porque a ida e a volta juntas levam cerca de 3.5s: com um
-    // cooldown curto, duas filas se cruzam em sentidos opostos e vira sopa.
+    // OS NUMEROS ANDAM JUNTOS: 8 projeteis x 0,10 de intervalo = 0,70s ate o
+    // ultimo no despertar, e o "atraso": 0,85 do caminho tem de passar disso.
+    // Mexer em um exige revisar o outro - a explicacao esta em "salles_lista_dupla".
+    //
+    // O cooldown 3,6 cobre o ciclo inteiro (0,85 ate o caminho + 0,75 de ida + 0,8
+    // parado + a volta). Mais curto que isso e uma fila nova sai enquanto a
+    // anterior ainda esta voltando, e as duas se cruzam em sentidos opostos.
     "StateTwo": {
       "duracao": 17,
       "proximo": "StateThree",
@@ -110,33 +115,8 @@
       "ataques": [
         { "estrategia": "WaveAttack", "projetil": "Duplamente",
           "projeteis": 8, "velocidade": 400, "angulo": 0, "intervalo": 0.10,
-          "cooldown": 1.8,
-          "regras": "salles_lista_dupla" },
-
-        // DUAS listas, nao uma. Medindo o redesenho contra o desenho antigo, esta
-        // fase tinha perdido mais da metade da pressao: 0,78 passagem por segundo a
-        // menos de 120px do jogador caiu para 0,25. A causa NAO era o numero de
-        // tiros - baixar o cooldown de 2,8 para 1,8 levou a 0,26, ou seja, nada.
-        //
-        // E que uma FILA TEM ESPESSURA ZERO. O leque de 40 graus do desenho antigo
-        // varria uma area; uma fila indiana nao varre nada, e o jogador so precisa
-        // dar um passo para o lado. A segunda fila, com cooldown e velocidade
-        // diferentes, entra e sai de fase com a primeira e cobre parte do que a
-        // outra deixa: 0,31 por segundo.
-        //
-        // AINDA E 0,39x DO DESENHO ANTIGO, e esta e a fase mais facil das tres. Em
-        // compensacao ela cobra duas esquivas pela mesma fila, o que a medida de
-        // "passagem perto" nao captura. Se no playtest ficar frouxa demais, a
-        // alavanca que resta nao esta aqui: e Salles::CustomizeAttackParams, no
-        // C++, que so mira no jogador em 30% dos disparos. Para uma geometria
-        // esparsa como a fila, os outros 70% erram inteiro - foi exatamente o que
-        // a fase 3 resolveu passando a usar "mira": "MirarNoJogador" no caminho,
-        // mas aqui isso nao serve: cada no miraria da POSICAO DELE e a fila
-        // perderia a formacao, que e o ponto da fase.
-        { "estrategia": "WaveAttack", "projetil": "Duplamente",
-          "projeteis": 6, "velocidade": 330, "angulo": 0, "intervalo": 0.12,
-          "cooldown": 2.3,
-          "regras": "salles_lista_dupla_lenta" }
+          "cooldown": 3.6,
+          "regras": "salles_lista_dupla" }
       ]
     },
 
