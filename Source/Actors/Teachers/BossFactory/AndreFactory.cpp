@@ -7,7 +7,7 @@
 
 #include "../../Teachers/Bosses/Andre.h"
 #include "../../../Attacks/FasesDeAtaqueArquivo.h"
-#include "BossProjectileFactory/AndreBaloonProjectileFactory.h"
+#include "../../../Attacks/ProjeteisDeChefeArquivo.h"
 
 #include "../../../CaminhosArquivo.h"
 
@@ -35,7 +35,13 @@ void AndreFactory::ConfigureComponents(Boss *boss) {
     auto collider = boss->AddComponent<CircleColliderComponent>(colliderRadius);
     collider->SetTag(ColliderTag::Boss);
 
-    boss->AddProjectileFactory("Baloes", std::make_unique<AndreBaloonProjectileFactory>());
+    // Os projeteis vem de Assets/Attacks/projeteis.json, conjunto "andre".
+    // Acrescentar um tipo novo a este chefe e uma entrada naquele arquivo - nao
+    // ha mais uma classe de fabrica por projetil.
+    if (!RegistrarProjeteisDeArquivo(boss, "andre")) {
+        SDL_Log("ERRO CRITICO: o chefe \"andre\" ficou sem projetil. As linhas PROJETEIS: "
+                "acima dizem o motivo.");
+    }
 
 }
 

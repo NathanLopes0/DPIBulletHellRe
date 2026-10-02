@@ -65,10 +65,9 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Player/PlayerProjectile.h
         Source/Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.cpp
         Source/Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h
-        Source/Actors/Teachers/Bosses/BossesProjectiles/SallesBossProjectile.cpp
-        Source/Actors/Teachers/Bosses/BossesProjectiles/SallesBossProjectile.h
-        Source/Actors/Teachers/BossFactory/BossProjectileFactory/SallesProjectile1Factory.h
-        Source/Actors/Teachers/BossFactory/BossProjectileFactory/SallesProjectile1Factory.cpp
+        Source/Actors/Teachers/Bosses/BossesProjectiles/ProjetilDeChefe.h
+        Source/Actors/Teachers/BossFactory/BossProjectileFactory/FabricaDeProjetil.cpp
+        Source/Actors/Teachers/BossFactory/BossProjectileFactory/FabricaDeProjetil.h
         Source/Scenes/Battle/ProjectileManager.cpp
         Source/Scenes/Battle/ProjectileManager.h
         Source/Actors/Teachers/BossFactory/IBossFactory.h
@@ -85,6 +84,10 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/FasesDeAtaque.h
         Source/Attacks/FasesDeAtaqueArquivo.cpp
         Source/Attacks/FasesDeAtaqueArquivo.h
+        Source/Attacks/ProjeteisDeChefe.cpp
+        Source/Attacks/ProjeteisDeChefe.h
+        Source/Attacks/ProjeteisDeChefeArquivo.cpp
+        Source/Attacks/ProjeteisDeChefeArquivo.h
         Source/Attacks/PathAim.cpp
         Source/Attacks/PathAim.h
         Source/Attacks/PathShapes.h
@@ -111,38 +114,19 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teachers/BossFactory/RicardoFactory.h
         Source/Actors/Teachers/Bosses/Ricardo.cpp
         Source/Actors/Teachers/Bosses/Ricardo.h
-        Source/Actors/Teachers/Bosses/BossesProjectiles/RicardoBossProjectile.cpp
-        Source/Actors/Teachers/Bosses/BossesProjectiles/RicardoBossProjectile.h
-        Source/Actors/Teachers/BossFactory/BossProjectileFactory/RicardoProjectile1Factory.cpp
-        Source/Actors/Teachers/BossFactory/BossProjectileFactory/RicardoProjectile1Factory.h
         Source/Actors/Teachers/Bosses/Andre.cpp
         Source/Actors/Teachers/Bosses/Andre.h
-        Source/Actors/Teachers/Bosses/BossesProjectiles/AndreBossProjectile.cpp
-        Source/Actors/Teachers/Bosses/BossesProjectiles/AndreBossProjectile.h
-        Source/Actors/Teachers/BossFactory/BossProjectileFactory/AndreProjectile1Factory.cpp
-        Source/Actors/Teachers/BossFactory/BossProjectileFactory/AndreProjectile1Factory.h
         Source/Actors/Teachers/BossFactory/AndreFactory.cpp
         Source/Actors/Teachers/Bosses/Julio.cpp
         Source/Actors/Teachers/Bosses/Julio.h
-        Source/Actors/Teachers/Bosses/BossesProjectiles/JulioBossProjectile.h
         Source/Actors/Teachers/BossFactory/JulioFactory.cpp
         Source/Actors/Teachers/BossFactory/JulioFactory.h
-        Source/Actors/Teachers/BossFactory/BossProjectileFactory/JulioProjectile1Factory.cpp
-        Source/Actors/Teachers/BossFactory/BossProjectileFactory/JulioProjectile1Factory.h
         Source/Actors/Teachers/BossFactory/AndreFactory.h
         Source/Attacks/BaseStrategies/BaloonAttack.cpp
         Source/Attacks/BaseStrategies/BaloonAttack.h
         Source/Attacks/AttackParameters/BaloonAttackParams.h
-        Source/Actors/Teachers/Bosses/BossesProjectiles/AndreBaloonProjectile.cpp
-        Source/Actors/Teachers/Bosses/BossesProjectiles/AndreBaloonProjectile.h
-        Source/Actors/Teachers/BossFactory/BossProjectileFactory/AndreBaloonProjectileFactory.cpp
-        Source/Actors/Teachers/BossFactory/BossProjectileFactory/AndreBaloonProjectileFactory.h
         Source/Attacks/BaseStrategies/LaserAttack.cpp
         Source/Attacks/BaseStrategies/LaserAttack.h
-        Source/Actors/Teachers/Bosses/BossesProjectiles/SallesDoubleListProjectile.cpp
-        Source/Actors/Teachers/Bosses/BossesProjectiles/SallesDoubleListProjectile.h
-        Source/Actors/Teachers/BossFactory/BossProjectileFactory/SallesDoubleListProjectileFactory.cpp
-        Source/Actors/Teachers/BossFactory/BossProjectileFactory/SallesDoubleListProjectileFactory.h
         Source/Actors/ProjectilePool.h
 )
 
@@ -172,6 +156,7 @@ add_executable(dpi_tests
         tests/test_formas.cpp
         tests/test_regras.cpp
         tests/test_fases.cpp
+        tests/test_projeteis.cpp
         tests/test_arquivos_de_dados.cpp
         tests/test_caminhos.cpp
         tests/test_progresso.cpp
@@ -187,6 +172,8 @@ add_executable(dpi_tests
         Source/Attacks/RegrasDeAtaque.h
         Source/Attacks/FasesDeAtaque.cpp
         Source/Attacks/FasesDeAtaque.h
+        Source/Attacks/ProjeteisDeChefe.cpp
+        Source/Attacks/ProjeteisDeChefe.h
         Source/Math.cpp
         Source/Math.h
 )

@@ -42,6 +42,8 @@
 #include "../Source/Attacks/FasesDeAtaque.h"
 #include "../Source/Attacks/PathShapes.h"
 #include "../Source/Attacks/RegrasDeAtaque.h"
+#include "../Source/Attacks/ProjeteisDeChefe.h"
+#include "../Source/JsonDeDados.h"
 
 #ifndef DPI_ASSETS_DIR
 #error "DPI_ASSETS_DIR nao foi definido. Veja target_compile_definitions(dpi_tests ...) no CMakeLists."
@@ -294,5 +296,217 @@ TEST_CASE("Dados: um cooldown derivado do ritmo tem mesmo um ritmo para derivar"
                 CHECK(a.cooldown > 0.0f);
             }
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Os tipos de projetil
+//
+// Um erro aqui e da mesma familia dos tres que abrem este arquivo: nao quebra o
+// jogo, deixa-o silenciosamente errado. Um "projetil" citado numa fase com nome
+// que nao existe faz cada disparo daquele ataque virar uma linha de log e nenhum
+// tiro em tela - o chefe parece estar com defeito. Uma animacao que cita um
+// quadro que a folha nao tem desenha o quadro errado, ou nada.
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Dados: Assets/Attacks/projeteis.json nao tem problema nenhum") {
+    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
+    CHECK_MESSAGE(r.problemas.empty(), "problemas em projeteis.json:" << Juntar(r.problemas));
+    CHECK(r.conjuntos.size() > 0);
+}
+
+TEST_CASE("Dados: todo chefe tem um conjunto de projeteis") {
+    // Sem conjunto, o chefe monta e anda, mas nenhum ataque encontra a fabrica
+    // que pede: ele fica inofensivo, o que em jogo parece bug e nao erro de dados.
+    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
+    for (const auto& chefe : kChefes) {
+        CAPTURE(chefe);
+        CHECK(r.conjuntos.count(chefe) == 1);
+    }
+}
+
+TEST_CASE("Dados: todo projetil citado em fases.json existe em projeteis.json") {
+    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
+    const auto projeteis = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
+
+    for (const auto& chefe : kChefes) {
+        REQUIRE(fases.conjuntos.count(chefe) == 1);
+        REQUIRE(projeteis.conjuntos.count(chefe) == 1);
+
+        const auto& disponiveis = projeteis.conjuntos.at(chefe);
+
+        for (const auto& f : fases.conjuntos.at(chefe)) {
+            for (const auto& a : f.ataques) {
+                const std::string onde = chefe + "/" + f.nome;
+                CAPTURE(onde);
+                CAPTURE(a.projetil);
+                CHECK(disponiveis.count(a.projetil) == 1);
+            }
+        }
+    }
+}
+
+TEST_CASE("Dados: o sprite e o atlas de todo projetil existem no disco") {
+    // Este teste pega o erro que passou anos escondido na fabrica da capivara:
+    // ela declarava "Capivara.json", arquivo que nunca existiu. Ninguem notou
+    // porque o codigo repetia o caminho certo na mao e nunca lia o campo errado.
+    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
+
+    for (const auto& conjunto : r.conjuntos) {
+        for (const auto& entrada : conjunto.second) {
+            const std::string onde = conjunto.first + "/" + entrada.first;
+            CAPTURE(onde);
+
+            const std::string png = std::string(DPI_ASSETS_DIR) + "/" + entrada.second.sprite;
+            const std::string json = std::string(DPI_ASSETS_DIR) + "/" + entrada.second.dados;
+
+            std::ifstream a(png);
+            std::ifstream b(json);
+            CHECK_MESSAGE(a.is_open(), "nao existe: " << png);
+            CHECK_MESSAGE(b.is_open(), "nao existe: " << json);
+        }
+    }
+}
+
+TEST_CASE("Dados: nenhuma animacao cita um quadro que a folha nao tem") {
+    // O DrawAnimatedComponent nao reclama de indice fora da lista de quadros; ele
+    // desenha o que achar. Entao um 12 numa folha de 12 quadros (indices 0 a 11) e
+    // exatamente o tipo de erro que so aparece em jogo, e so as vezes.
+    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
+
+    for (const auto& conjunto : r.conjuntos) {
+        for (const auto& entrada : conjunto.second) {
+
+            const std::string onde = conjunto.first + "/" + entrada.first;
+            CAPTURE(onde);
+
+            const auto atlas = LerJsonDeDados(LerArquivo(entrada.second.dados));
+            REQUIRE(atlas.contains("frames"));
+
+            // O Aseprite exporta "frames" como lista ou como objeto, conforme a
+            // opcao de exportacao, e o jogo tem exemplos dos dois.
+            const size_t total = atlas["frames"].size();
+            CHECK(total > 0);
+
+            for (const auto& anim : entrada.second.animacoes) {
+                CAPTURE(anim.nome);
+                for (const int quadro : anim.quadros) {
+                    CAPTURE(quadro);
+                    CHECK(static_cast<size_t>(quadro) < total);
+                }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// A tranca da migracao
+//
+// Os valores abaixo foram lidos das SEIS fabricas em C++ antes de elas serem
+// apagadas. Este teste existe para que a migracao de C++ para dados possa ser
+// chamada de equivalente com alguma base, e nao so porque o jogo abriu.
+//
+// Ele e deliberadamente rigido: mexer de proposito no balanceamento de um
+// projetil QUEBRA este teste. Isso e o comportamento desejado - a falha obriga a
+// mudar o numero aqui tambem, e o diff do commit passa a mostrar a intencao.
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Dados: os projeteis mantem exatamente o que as fabricas em C++ tinham") {
+
+    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
+
+    struct Esperado {
+        const char* conjunto;
+        const char* nome;
+        const char* sprite;
+        float escala;
+        int ordem;
+        const char* inicial;
+        const char* dimensao;
+        float divisor;
+        bool posicionaNoDono;
+        float margemEmSprites;
+        float margemDivisor;
+        size_t animacoes;
+    };
+
+    const std::vector<Esperado> esperados = {
+        {"salles",  "Capivara", "Teachers/Projectiles/DPIBHSallesCapivara.png",
+         1.0f, 90, "Normal", "largura", 2.0f, true,  1.0f, 12.0f, 2},
+        {"ricardo", "Arduino",  "Teachers/Projectiles/DPIBHRicardoProjectile.png",
+         2.0f, 90, "Normal", "largura", 2.0f, true,  1.0f, 12.0f, 1},
+        {"julio",   "Dados",    "Teachers/Projectiles/DPIBHJulioDado.png",
+         2.0f, 90, "Coleta", "largura", 2.0f, true,  1.0f, 12.0f, 3},
+        // Os baloes sao o unico que difere em tres campos de uma vez, e os tres
+        // eram de proposito: hitbox menor que o desenho (divisor 4), nao nascer na
+        // posicao do chefe (a BaloonAttack escolhe o lado da tela) e morrer com
+        // folga de dois sprites sem parcela de tela.
+        {"andre",   "Baloes",   "Teachers/Projectiles/DPIBHAndreBaloon.png",
+         2.0f, 90, "Red",    "largura", 4.0f, false, 2.0f,  0.0f, 3},
+    };
+
+    for (const auto& e : esperados) {
+        CAPTURE(e.conjunto);
+        CAPTURE(e.nome);
+
+        REQUIRE(r.conjuntos.count(e.conjunto) == 1);
+        REQUIRE(r.conjuntos.at(e.conjunto).count(e.nome) == 1);
+
+        const auto& p = r.conjuntos.at(e.conjunto).at(e.nome);
+        CHECK(p.sprite == e.sprite);
+        CHECK(p.escala == doctest::Approx(e.escala));
+        CHECK(p.ordemDeDesenho == e.ordem);
+        CHECK(p.animacaoInicial == e.inicial);
+        CHECK(p.colisorDimensao == e.dimensao);
+        CHECK(p.colisorDivisor == doctest::Approx(e.divisor));
+        CHECK(p.posicionarNoDono == e.posicionaNoDono);
+        CHECK(p.margemEmSprites == doctest::Approx(e.margemEmSprites));
+        CHECK(p.margemDivisorDeTela == doctest::Approx(e.margemDivisor));
+        CHECK(p.animacoes.size() == e.animacoes);
+    }
+}
+
+TEST_CASE("Dados: as animacoes dos projeteis mantem os quadros exatos") {
+    // Separado do caso acima porque a comparacao e de listas e a mensagem de falha
+    // precisa dizer QUAL quadro mudou.
+    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
+
+    struct AnimEsperada {
+        const char* conjunto;
+        const char* projetil;
+        const char* animacao;
+        std::vector<int> quadros;
+    };
+
+    const std::vector<AnimEsperada> esperadas = {
+        {"salles",  "Capivara", "Normal",      {0}},
+        {"salles",  "Capivara", "Homing",      {1}},
+        {"ricardo", "Arduino",  "Normal",      {0}},
+        {"julio",   "Dados",    "Coleta",      {0, 1, 2, 3}},
+        {"julio",   "Dados",    "Perseguicao", {4, 5, 6, 7}},
+        {"julio",   "Dados",    "Previsao",    {8, 9, 10, 11}},
+        // A folha dos baloes tem 24 quadros e as animacoes comecam no 6: os seis
+        // primeiros sao de uma versao antiga e nenhuma animacao os usa.
+        {"andre",   "Baloes",   "Red",         {6, 7, 8, 9, 10, 11}},
+        {"andre",   "Baloes",   "Blue",        {12, 13, 14, 15, 16, 17}},
+        {"andre",   "Baloes",   "Yellow",      {18, 19, 20, 21, 22, 23}},
+    };
+
+    for (const auto& e : esperadas) {
+        CAPTURE(e.conjunto);
+        CAPTURE(e.projetil);
+        CAPTURE(e.animacao);
+
+        REQUIRE(r.conjuntos.count(e.conjunto) == 1);
+        REQUIRE(r.conjuntos.at(e.conjunto).count(e.projetil) == 1);
+
+        const auto& anims = r.conjuntos.at(e.conjunto).at(e.projetil).animacoes;
+
+        const AnimacaoDeProjetil* achada = nullptr;
+        for (const auto& a : anims) {
+            if (a.nome == e.animacao) { achada = &a; break; }
+        }
+        REQUIRE(achada != nullptr);
+        CHECK(achada->quadros == e.quadros);
     }
 }
