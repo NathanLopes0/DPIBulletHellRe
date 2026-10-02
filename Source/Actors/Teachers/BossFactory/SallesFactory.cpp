@@ -6,21 +6,9 @@
 
 #include "../../../CaminhosArquivo.h"
 
-// =============================================================================
-// MODO DE TESTE DO PATHING
-//
-// Apenas os CONFIGURATORS foram trocados. Os blocos de params (numProjectiles,
-// projectileSpeed, angle) estao INTACTOS - seu balanceamento nao foi tocado.
-//
-// A velocidade do caminho e controlada pelo 3o argumento do PathBehavior, e nao
-// pelo projectileSpeed: o projetil nasce na SUA velocidade e o caminho e
-// percorrido numa velocidade legivel. A 340-400 px/s um laco vira um risco.
-//
-// Para reverter: troque cada insertMotion<PathBehavior> de volta pelo
-// PathBehavior mirado no jogador comentado logo acima dele (equivalente
-// exato do antigo HomingBehavior, removido na fase 3 - provado em
-// tests/test_motion_contract.cpp).
-// =============================================================================
+// O conjunto de fases deste chefe esta em Assets/Attacks/fases.json, sob "salles",
+// e e la que o modo de teste do pathing esta documentado - inclusive como voltar
+// ao comportamento anterior. Este arquivo so monta os componentes e pede as fases.
 
 
 SallesFactory::SallesFactory(Game* game)

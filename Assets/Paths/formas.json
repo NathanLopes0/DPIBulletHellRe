@@ -27,13 +27,11 @@
   // nao o chefe - a forma que o Salles usa hoje serve para outro amanha.
   // ==========================================================================
 
-  // ----- Formas de exemplo, nao usadas por chefe nenhum -----
-  "LacoLargo": {
-    "gerador": { "tipo": "Loop", "a": 90, "b": 500, "n": 14 }
-  },
-  "ArcoLongo": {
-    "gerador": { "tipo": "Arc", "a": 600, "b": 140, "n": 12 }
-  },
+  // ----- Exemplo da forma por PONTOS LITERAIS -----
+  // Nenhum chefe usa, e fica de proposito: e a unica demonstracao da segunda
+  // maneira de descrever uma forma, para quando um gerador nao der a curva que
+  // voce quer. Os outros dois exemplos que moravam aqui (LacoLargo e ArcoLongo)
+  // sairam por serem variacoes de parametro das formas em uso logo abaixo.
   "Gancho": {
     "pontos": [[80, 0], [150, 30], [190, 90], [170, 160], [110, 200], [900, 200]]
   },

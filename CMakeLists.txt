@@ -87,7 +87,6 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/FasesDeAtaqueArquivo.h
         Source/Attacks/PathAim.cpp
         Source/Attacks/PathAim.h
-        Source/Attacks/Receitas.h
         Source/Attacks/PathShapes.h
         Source/Attacks/Behaviors.h
         Source/Attacks/BaseStrategies/CircleSpreadAttack.cpp
@@ -190,7 +189,6 @@ add_executable(dpi_tests
         Source/Attacks/FasesDeAtaque.h
         Source/Math.cpp
         Source/Math.h
-        Source/Attacks/Receitas.h
 )
 # NAO adicione Source ao include path deste alvo (nem de nenhum outro).
 # O projeto tem Source/Math.h, e no Windows (e no macOS) o sistema de
