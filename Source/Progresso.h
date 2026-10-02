@@ -52,12 +52,15 @@ public:
     [[nodiscard]] float MelhorNota(int materia) const;
 
     /**
-     * @brief A nota com que a proxima batalha desta materia comeca.
+     * @brief A ULTIMA nota que o jogador tirou nesta materia, ou zero.
      *
-     * Nunca abaixo de kNotaInicial. Preserva o comportamento atual: o jogador
-     * retoma de onde parou, e nao do zero.
+     * Chamava-se NotaDeRetomada e tinha piso de kNotaInicial, porque a batalha
+     * comecava daqui. Nao comeca mais: toda fase parte de kNotaInicial. O numero
+     * continua guardado porque e informacao util para o professor (a planilha
+     * exporta como "retomada"), mas o nome nao podia continuar prometendo o que
+     * ele nao faz mais.
      */
-    [[nodiscard]] float NotaDeRetomada(int materia) const;
+    [[nodiscard]] float UltimaNota(int materia) const;
 
     /// @brief O jogador passou nesta materia? Olha o RECORDE, nao a ultima nota.
     [[nodiscard]] bool Aprovado(int materia) const;

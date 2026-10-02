@@ -202,10 +202,15 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
         UpdateStageInfo();
     }
 
-    if (keyState[SDL_SCANCODE_RETURN] && mGame->IsStageUnlocked(mSelectedSubject)) {
+    // Precisa ser uma batida NOVA do ENTER, nao o estado dele: ver mEntrarAnterior.
+    const bool entrar = keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
+    if (entrar && !mEntrarAnterior && mGame->IsStageUnlocked(mSelectedSubject)) {
+        mEntrarAnterior = true;
         mGame->SetSelectedStage(mSelectedSubject);
         mGame->RequestSceneChange(SceneType::Battle);
+        return;
     }
+    mEntrarAnterior = entrar;
 }
 
 size_t StageSelect::HandleSelectedChange(const Uint8 *keyState, size_t currSelected) {

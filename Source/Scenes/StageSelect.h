@@ -83,4 +83,13 @@ private:
 
     /// Borda da tecla de troca: sem isto, segurar T ficaria reentrando na cena.
     bool mTrocarAnterior = false;
+
+    /// Borda do ENTER, e comeca em TRUE de proposito.
+    ///
+    /// A cena anterior (identificacao) termina com o ENTER apertado - e ele que
+    /// manda para ca. Com a borda comecando em false, o primeiro quadro desta cena
+    /// via "ENTER apertado agora" e entrava direto na fase selecionada, sem o
+    /// jogador ter escolhido nada. Comecando em true, o ENTER so conta depois de
+    /// ser SOLTO e apertado de novo.
+    bool mEntrarAnterior = true;
 };

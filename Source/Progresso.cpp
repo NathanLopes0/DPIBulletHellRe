@@ -33,10 +33,9 @@ float Progresso::MelhorNota(const int materia) const {
     return it == mRecordes.end() ? 0.0f : it->second;
 }
 
-float Progresso::NotaDeRetomada(const int materia) const {
+float Progresso::UltimaNota(const int materia) const {
     const auto it = mRetomadas.find(materia);
-    if (it == mRetomadas.end()) return kNotaInicial;
-    return std::max(it->second, kNotaInicial);
+    return it == mRetomadas.end() ? 0.0f : it->second;
 }
 
 bool Progresso::Aprovado(const int materia) const {

@@ -94,9 +94,10 @@ public:
     }
     [[nodiscard]] float GetMelhorNota(const int n) const { return mProgresso.MelhorNota(n); }
 
-    /// @brief A nota com que a proxima batalha desta materia comeca.
-    [[nodiscard]] float GetNotaDeRetomada(const GameSubject subject) const {
-        return mProgresso.NotaDeRetomada(static_cast<int>(subject));
+    /// @brief A ultima nota que o jogador tirou nesta materia. NAO e por onde a
+    /// batalha comeca - toda fase parte de Progresso::kNotaInicial.
+    [[nodiscard]] float GetUltimaNota(const GameSubject subject) const {
+        return mProgresso.UltimaNota(static_cast<int>(subject));
     }
 
     /// @brief Registra o resultado de uma batalha: a retomada passa a ser esta

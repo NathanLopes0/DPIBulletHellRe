@@ -22,14 +22,17 @@ TEST_CASE("Progresso: consultar NAO cria registro") {
     for (int m = 0; m < 50; ++m) {
         (void)p.MelhorNota(m);
         (void)p.Aprovado(m);
-        (void)p.NotaDeRetomada(m);
+        (void)p.UltimaNota(m);
     }
     CHECK(p.QuantasRegistradas() == 0);
 }
 
-TEST_CASE("Progresso: materia nunca jogada retoma da nota inicial") {
+TEST_CASE("Progresso: materia nunca jogada nao tem ultima nota") {
+    // Zero, e nao kNotaInicial: a ultima nota e um fato sobre o passado do aluno,
+    // nao o ponto de partida da proxima batalha. Toda fase comeca em kNotaInicial,
+    // e isso agora e decisao de Battle::Load, nao daqui.
     const Progresso p;
-    CHECK(p.NotaDeRetomada(1) == doctest::Approx(Progresso::kNotaInicial));
+    CHECK(p.UltimaNota(1) == doctest::Approx(0.0f));
 }
 
 // ---------------------------------------------------------------------------
@@ -70,14 +73,17 @@ TEST_CASE("Progresso: a retomada acompanha a ULTIMA nota, nao o recorde") {
     p.RegistrarNota(1, 85.f);
     p.RegistrarNota(1, 50.f);
     CHECK(p.MelhorNota(1) == doctest::Approx(85.f));
-    CHECK(p.NotaDeRetomada(1) == doctest::Approx(50.f));
+    CHECK(p.UltimaNota(1) == doctest::Approx(50.f));
 }
 
-TEST_CASE("Progresso: a retomada nunca cai abaixo da nota inicial") {
+TEST_CASE("Progresso: a ultima nota e a ultima mesmo, sem piso") {
+    // Tinha piso de kNotaInicial enquanto a batalha comecava daqui. Agora que ela
+    // sempre comeca em 40, um piso aqui so mentiria sobre o que o aluno tirou - e
+    // a planilha do professor exporta este numero.
     Progresso p;
     p.RegistrarNota(1, 10.f);
-    CHECK(p.NotaDeRetomada(1) == doctest::Approx(Progresso::kNotaInicial));
-    CHECK(p.MelhorNota(1) == doctest::Approx(10.f));   // o recorde guarda o real
+    CHECK(p.UltimaNota(1) == doctest::Approx(10.f));
+    CHECK(p.MelhorNota(1) == doctest::Approx(10.f));
 }
 
 // ---------------------------------------------------------------------------

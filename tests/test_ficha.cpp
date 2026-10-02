@@ -80,7 +80,7 @@ TEST_CASE("Ficha: a ida e volta preserva recorde DIFERENTE da retomada") {
     const auto lida = Ficha::Desserializar(Ficha::Serializar(FichaDeExemplo(), Curso()), Curso());
     REQUIRE(lida.ok);
     CHECK(lida.dados.progresso.MelhorNota(0) == doctest::Approx(85.0f));
-    CHECK(lida.dados.progresso.NotaDeRetomada(0) == doctest::Approx(45.0f));
+    CHECK(lida.dados.progresso.UltimaNota(0) == doctest::Approx(45.0f));
     CHECK(lida.dados.progresso.Aprovado(0));
 }
 
@@ -262,7 +262,7 @@ TEST_CASE("Ficha: save da versao 1 e lido, convertendo posicao em codigo") {
     REQUIRE(r.ok);
     // posicao 0 era "AAA" e posicao 2 era "CCC" no curso de teste
     CHECK(r.dados.progresso.MelhorNota(Curso().IndiceDe("AAA")) == doctest::Approx(85.0f));
-    CHECK(r.dados.progresso.NotaDeRetomada(Curso().IndiceDe("AAA")) == doctest::Approx(45.0f));
+    CHECK(r.dados.progresso.UltimaNota(Curso().IndiceDe("AAA")) == doctest::Approx(45.0f));
     CHECK(r.dados.progresso.MelhorNota(Curso().IndiceDe("CCC")) == doctest::Approx(100.0f));
 }
 
