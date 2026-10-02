@@ -45,3 +45,39 @@ int Progresso::QuantasAprovadas(const std::vector<int>& materias) const {
     }
     return total;
 }
+
+std::vector<Progresso::Entrada> Progresso::Entradas() const {
+
+    // Percorre a UNIAO das duas chaves. Hoje RegistrarNota sempre escreve nos dois
+    // mapas, entao eles tem o mesmo conjunto; mas Restaurar pode receber um
+    // arquivo editado a mao, e perder uma materia por causa disso seria um bug
+    // silencioso difícil de achar.
+    std::map<int, Entrada> porMateria;
+
+    for (const auto& r : mRecordes) {
+        porMateria[r.first].materia = r.first;
+        porMateria[r.first].recorde = r.second;
+    }
+    for (const auto& r : mRetomadas) {
+        porMateria[r.first].materia = r.first;
+        porMateria[r.first].retomada = r.second;
+    }
+
+    std::vector<Entrada> saida;
+    saida.reserve(porMateria.size());
+    for (const auto& e : porMateria) saida.push_back(e.second);
+    return saida;
+}
+
+void Progresso::Restaurar(const std::vector<Entrada>& entradas) {
+
+    // SUBSTITUI, nao acumula: carregar a ficha do aluno B depois da do aluno A
+    // nao pode deixar as notas de A penduradas.
+    mRecordes.clear();
+    mRetomadas.clear();
+
+    for (const auto& e : entradas) {
+        mRecordes[e.materia] = e.recorde;
+        mRetomadas[e.materia] = e.retomada;
+    }
+}

@@ -65,6 +65,38 @@ public:
     /// @brief Quantas materias tem registro. So para diagnostico e teste.
     [[nodiscard]] size_t QuantasRegistradas() const { return mRecordes.size(); }
 
+    /**
+     * @brief Uma materia e os dois numeros dela, para gravar e ler de volta.
+     *
+     * A ficha do aluno precisa guardar os DOIS: so o recorde perderia o ponto de
+     * retomada (o aluno voltaria a comecar do 40 em vez de onde parou), e so a
+     * retomada perderia a aprovacao.
+     */
+    struct Entrada {
+        int materia = 0;
+        float recorde = 0.0f;
+        float retomada = 0.0f;
+    };
+
+    /**
+     * @brief Tudo que esta guardado, em ordem de materia.
+     *
+     * Existe para a persistencia. Nao devolve os mapas: quem grava nao precisa
+     * saber que sao dois, e trocar a estrutura interna nao deve quebrar o
+     * arquivo de save.
+     */
+    [[nodiscard]] std::vector<Entrada> Entradas() const;
+
+    /**
+     * @brief Repoe um estado lido de arquivo, SUBSTITUINDO o que havia.
+     *
+     * Nao da para fazer isto com RegistrarNota: ela acopla as duas coisas de
+     * proposito (registrar sobe o recorde E move a retomada), entao reconstruir um
+     * estado com recorde 80 e retomada 45 exigiria chamar na ordem certa e torcer.
+     * Carregar um save nao e "jogar de novo"; e repor.
+     */
+    void Restaurar(const std::vector<Entrada>& entradas);
+
 private:
     /// O recorde por materia. So sobe.
     std::map<int, float> mRecordes;
