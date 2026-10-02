@@ -11,6 +11,7 @@
 
 class Font;
 class Actor;
+class DrawCaixaComponent;
 
 /**
  * @class Identificacao
@@ -42,6 +43,12 @@ private:
 
     void CriarTextos();
 
+    /// Cria um ator de texto centrado horizontalmente, no tamanho natural dele.
+    /// A largura e a altura dadas sao LIMITE, nao destino - ver
+    /// DrawTextComponent::SetAjustarAoTexto.
+    Actor* Texto(const std::string& inicial, float y, int tamanho,
+                 int larguraMaxima, int alturaMaxima);
+
     /// Atualiza o que esta escrito na tela a partir de mDigitado e mErro.
     void Redesenhar() const;
 
@@ -71,5 +78,11 @@ private:
     Actor* mTituloAtor{};
     Actor* mCampoAtor{};
     Actor* mErroAtor{};
-    Actor* mAjudaAtor{};
+
+    /// A moldura do campo. Guardada para mudar de cor quando ha erro.
+    DrawCaixaComponent* mCaixaDesenho{};
+
+    /// O cursor pisca para a tela nao parecer travada enquanto ninguem digita.
+    float mPiscaTimer = 0.0f;
+    bool mCursorAceso = true;
 };

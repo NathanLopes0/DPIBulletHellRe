@@ -23,6 +23,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Components/DrawComponents/DrawSpriteComponent.cpp
         Source/Components/DrawComponents/DrawSpriteComponent.h
         Source/Components/DrawComponents/DrawTextComponent.cpp
+        Source/Components/DrawComponents/DrawCaixaComponent.cpp
+        Source/Components/DrawComponents/DrawCaixaComponent.h
         Source/Components/DrawComponents/DrawTextComponent.h
         Source/Components/ColliderComponents/CircleColliderComponent.cpp
         Source/Components/ColliderComponents/CircleColliderComponent.h

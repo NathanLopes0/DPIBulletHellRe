@@ -83,7 +83,9 @@ std::string MensagemDeErro(const Erro erro) {
         case Erro::Vazia:        return "Digite sua matricula para continuar.";
         case Erro::NaoSoNumeros: return "A matricula tem so numeros, sem letras nem espacos.";
         case Erro::LongaDemais:  return "A matricula tem no maximo seis numeros.";
-        case Erro::Zero:         return "Essa matricula nao existe. Confira e digite de novo.";
+        // NAO diz "essa matricula nao existe": o jogo nao tem a lista de alunos e
+        // nao tem como saber disso. O que ele sabe e a regra de formato.
+        case Erro::Zero:         return "A matricula nao pode ser so zeros.";
     }
     return "";
 }

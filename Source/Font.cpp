@@ -1,4 +1,5 @@
 #include "Font.h"
+#include <cstdlib>
 #include <vector>
 #include <SDL_image.h>
 #include "Game.h"
@@ -51,6 +52,23 @@ SDL_Texture* Font::RenderText(SDL_Renderer* renderer, const std::string& text, c
 
 	// Find the font data for this point size
 	auto iter = mFontData.find(pointSize);
+
+	if (iter == mFontData.end() && !mFontData.empty())
+	{
+		// O TAMANHO PEDIDO NAO EXISTE: usa o mais proximo em vez de nao desenhar
+		// nada. Antes isto devolvia nullptr e o texto sumia da tela sem erro
+		// visivel - so uma linha de log entre centenas. Perdi um tempo procurando
+		// um titulo que nao aparecia por ter pedido 54, que nao esta na lista.
+		int melhor = mFontData.begin()->first;
+		for (const auto& par : mFontData)
+		{
+			if (std::abs(par.first - pointSize) < std::abs(melhor - pointSize)) melhor = par.first;
+		}
+		SDL_Log("Font: tamanho %d nao existe; usando o mais proximo, %d. "
+		        "Os tamanhos disponiveis estao em Font::Load.", pointSize, melhor);
+		iter = mFontData.find(melhor);
+	}
+
 	if (iter != mFontData.end())
 	{
 		TTF_Font* font = iter->second;
