@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "Materias.h"
 #include "Progresso.h"
 
 /**
@@ -27,7 +28,11 @@ namespace Ficha {
     /// Custa um campo e compra a possibilidade de mudar o formato depois sem que
     /// o jogo quebre na cara de um aluno: a leitura pode olhar a versao e migrar.
     /// Um save sem este campo nunca existiu, entao a ausencia e erro.
-    inline constexpr int kVersaoAtual = 1;
+    /// A versao 2 grava o CODIGO da materia ("INF213") no lugar da posicao dela na
+    /// lista. A 1 gravava a posicao, e por isso reordenar as materias trocava as
+    /// notas de dona em silencio - um save da 1 ainda abre, convertido pela ordem
+    /// atual de materias.json.
+    inline constexpr int kVersaoAtual = 2;
 
     struct Dados {
         std::string matricula;   ///< a forma CANONICA, ver Matricula.h
@@ -51,7 +56,7 @@ namespace Ficha {
      *       "versao": 1,
      *       "matricula": "89384",
      *       "materias": [
-     *         { "materia": 0, "recorde": 72.5, "retomada": 68 }
+     *         { "materia": "INF213", "recorde": 72.5, "retomada": 68 }
      *       ]
      *     }
      *
@@ -59,7 +64,7 @@ namespace Ficha {
      * saves do mesmo estado sao o MESMO texto, e dá para comparar arquivos num
      * diff quando algo parecer errado.
      */
-    std::string Serializar(const Dados& dados);
+    std::string Serializar(const Dados& dados, const Materias::Lista& materias);
 
     /**
      * @brief Le o texto de uma ficha.
@@ -73,5 +78,5 @@ namespace Ficha {
      * faixa (Math::Clamp em Battle), entao um valor fora dela so pode vir de
      * arquivo editado a mao ou corrompido.
      */
-    Lida Desserializar(const std::string& texto);
+    Lida Desserializar(const std::string& texto, const Materias::Lista& materias);
 }

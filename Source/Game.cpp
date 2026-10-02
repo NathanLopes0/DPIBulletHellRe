@@ -10,6 +10,7 @@
 #include "Components/DrawComponents/DrawComponent.h"
 #include "Scenes/MainMenu.h"
 #include "FichaArquivo.h"
+#include "MateriasArquivo.h"
 #include "Matricula.h"
 #include "Scenes/Identificacao.h"
 #include "Scenes/StageSelect.h"
@@ -441,7 +442,7 @@ void Game::RegistrarNota(const GameSubject subject, const float nota) {
     // escolheu nao se identificar.
     if (!ProgressoEGravado()) return;
 
-    if (!FichaArquivo::Gravar(mMatricula, mProgresso)) {
+    if (!FichaArquivo::Gravar(mMatricula, mProgresso, Materias::Carregadas())) {
         // Nao derruba a batalha nem avisa em tela: o aluno acabou de jogar e o que
         // ele quer e ver a nota. O log diz o que houve para quem for investigar.
         SDL_Log("GAME: nao consegui gravar a ficha da matricula %s. A nota desta "
@@ -457,7 +458,7 @@ void Game::IdentificarAluno(const std::string& matriculaCanonica) {
     // SUBSTITUI o progresso inteiro. Carregar por cima do anterior deixaria as
     // notas do aluno que acabou de sair penduradas na sessao de quem entrou - e
     // elas iriam para o disco na primeira batalha, no arquivo errado.
-    mProgresso = FichaArquivo::Carregar(mMatricula);
+    mProgresso = FichaArquivo::Carregar(mMatricula, Materias::Carregadas());
 
     SDL_Log("GAME: jogando como a matricula %s (%zu materia(s) com registro).",
             mMatricula.c_str(), mProgresso.QuantasRegistradas());

@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "Materias.h"
 #include "Progresso.h"
 
 /**
@@ -29,7 +30,7 @@ namespace FichaArquivo {
      *
      * Devolve o progresso por valor. Quem chama decide onde ele vive.
      */
-    Progresso Carregar(const std::string& matricula);
+    Progresso Carregar(const std::string& matricula, const Materias::Lista& materias);
 
     /**
      * @brief Grava o progresso de uma matricula. Devolve false se nao conseguiu.
@@ -42,7 +43,8 @@ namespace FichaArquivo {
      * entre texto digitado e um nome de arquivo, entao ela e obrigatoria mesmo que
      * a tela ja valide: quem chama pode mudar.
      */
-    bool Gravar(const std::string& matricula, const Progresso& progresso);
+    bool Gravar(const std::string& matricula, const Progresso& progresso,
+                const Materias::Lista& materias);
 
     /// @brief Se ja existe ficha para esta matricula.
     bool Existe(const std::string& matricula);

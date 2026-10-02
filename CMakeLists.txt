@@ -41,6 +41,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Matricula.h
         Source/Materias.cpp
         Source/Materias.h
+        Source/MateriasArquivo.cpp
+        Source/MateriasArquivo.h
         Source/Ficha.cpp
         Source/Ficha.h
         Source/FichaArquivo.cpp

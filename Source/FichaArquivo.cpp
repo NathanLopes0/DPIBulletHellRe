@@ -40,7 +40,7 @@ namespace {
 
 namespace FichaArquivo {
 
-Progresso Carregar(const std::string& matricula) {
+Progresso Carregar(const std::string& matricula, const Materias::Lista& materias) {
 
     Progresso vazio;
 
@@ -58,7 +58,7 @@ Progresso Carregar(const std::string& matricula) {
     std::ostringstream buffer;
     buffer << arquivo.rdbuf();
 
-    const Ficha::Lida lida = Ficha::Desserializar(buffer.str());
+    const Ficha::Lida lida = Ficha::Desserializar(buffer.str(), materias);
 
     for (const auto& p : lida.problemas) {
         SDL_Log("FICHA %s: %s", canonica.c_str(), p.c_str());
@@ -82,7 +82,8 @@ Progresso Carregar(const std::string& matricula) {
     return lida.dados.progresso;
 }
 
-bool Gravar(const std::string& matricula, const Progresso& progresso) {
+bool Gravar(const std::string& matricula, const Progresso& progresso,
+            const Materias::Lista& materias) {
 
     const std::string canonica = Canonica(matricula, "gravar");
     if (canonica.empty()) return false;
@@ -101,7 +102,7 @@ bool Gravar(const std::string& matricula, const Progresso& progresso) {
                     "aluno NAO foi gravado.", canonica.c_str(), temporario.c_str());
             return false;
         }
-        saida << Ficha::Serializar(dados);
+        saida << Ficha::Serializar(dados, materias);
         if (!saida.good()) {
             SDL_Log("FICHA %s: erro ao escrever %s. O progresso NAO foi gravado.",
                     canonica.c_str(), temporario.c_str());

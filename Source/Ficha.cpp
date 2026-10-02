@@ -33,7 +33,7 @@ namespace {
 
 namespace Ficha {
 
-std::string Serializar(const Dados& dados) {
+std::string Serializar(const Dados& dados, const Materias::Lista& materias) {
 
     std::ostringstream s;
     s << "{\n";
@@ -44,20 +44,28 @@ std::string Serializar(const Dados& dados) {
     // Entradas() ja devolve em ordem de materia, entao o mesmo estado produz
     // sempre o mesmo texto - o que torna dois saves comparaveis num diff.
     const auto entradas = dados.progresso.Entradas();
-    for (size_t i = 0; i < entradas.size(); ++i) {
-        s << (i == 0 ? "\n" : ",\n");
-        s << "    { \"materia\": " << entradas[i].materia
-          << ", \"recorde\": "  << Numero(entradas[i].recorde)
-          << ", \"retomada\": " << Numero(entradas[i].retomada) << " }";
+    bool primeira = true;
+    for (const auto& e : entradas) {
+
+        // Uma nota cujo indice nao existe mais na lista nao tem como ser gravada:
+        // sem codigo, ela viraria lixo que nenhuma leitura futura entende.
+        const std::string codigo = materias.CodigoDe(e.materia);
+        if (codigo.empty()) continue;
+
+        s << (primeira ? "\n" : ",\n");
+        primeira = false;
+        s << "    { \"materia\": \"" << codigo
+          << "\", \"recorde\": "  << Numero(e.recorde)
+          << ", \"retomada\": " << Numero(e.retomada) << " }";
     }
-    if (!entradas.empty()) s << "\n  ";
+    if (!primeira) s << "\n  ";
     s << "]\n";
     s << "}\n";
 
     return s.str();
 }
 
-Lida Desserializar(const std::string& texto) {
+Lida Desserializar(const std::string& texto, const Materias::Lista& materias) {
 
     Lida saida;
 
@@ -117,18 +125,54 @@ Lida Desserializar(const std::string& texto) {
 
     for (const auto& m : raiz["materias"]) {
 
-        if (!m.is_object() || !m.contains("materia") || !m["materia"].is_number_integer()) {
+        if (!m.is_object() || !m.contains("materia")) {
             saida.problemas.emplace_back("ha uma materia sem o campo \"materia\"; foi descartada");
             continue;
         }
 
-        const int materia = m["materia"].get<int>();
-        const std::string onde = "materia " + std::to_string(materia) + ": ";
+        // O CAMPO MUDOU DE TIPO ENTRE AS VERSOES, e e aqui que a migracao acontece.
+        //
+        // Na versao 1 era a POSICAO da materia na lista; na 2 e o CODIGO. Converter
+        // a 1 e procurar o codigo que estava naquela posicao - o que so funciona
+        // porque a ordem de materias.json ainda e a do enum antigo, e ha um teste
+        // em test_arquivos_de_dados.cpp que trava essa ordem justamente ate os
+        // saves da versao 1 terem desaparecido.
+        int materia = -1;
+        std::string codigo;
 
-        if (materia < 0) {
-            saida.problemas.emplace_back(onde + "numero negativo; descartada");
-            continue;
+        if (versao <= 1) {
+            if (!m["materia"].is_number_integer()) {
+                saida.problemas.emplace_back("ha uma materia que nao e um numero num save da"
+                                             " versao 1; foi descartada");
+                continue;
+            }
+            materia = m["materia"].get<int>();
+            codigo = materias.CodigoDe(materia);
+            if (codigo.empty()) {
+                saida.problemas.emplace_back("materia " + std::to_string(materia) +
+                                             " do save antigo nao existe mais na lista de"
+                                             " materias; descartada");
+                continue;
+            }
         }
+        else {
+            if (!m["materia"].is_string()) {
+                saida.problemas.emplace_back("ha uma materia que nao e um codigo de texto;"
+                                             " foi descartada");
+                continue;
+            }
+            codigo = m["materia"].get<std::string>();
+            materia = materias.IndiceDe(codigo);
+            if (materia < 0) {
+                // A materia saiu do curso. A nota some junto, e isso e o correto:
+                // guardar nota de materia que nao existe nao serve a ninguem.
+                saida.problemas.emplace_back("a materia \"" + codigo + "\" nao esta na lista"
+                                             " de materias; a nota dela foi descartada");
+                continue;
+            }
+        }
+
+        const std::string onde = "materia " + codigo + ": ";
 
         if (!m.contains("recorde") || !m["recorde"].is_number()
             || !m.contains("retomada") || !m["retomada"].is_number()) {
