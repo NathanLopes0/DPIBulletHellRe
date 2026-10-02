@@ -20,6 +20,7 @@ public:
     {
         None,
         MainMenu,
+        Identificacao,
         StageSelect,
         Battle
     };

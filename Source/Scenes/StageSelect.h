@@ -75,4 +75,12 @@ private:
     // Helper pra atualizar texto na HUD
     void UpdateStageInfo() const;
     Actor* mScoreInfoActor = nullptr;
+
+    /// Quem esta jogando, e o aviso de que visitante nao salva.
+    void CriarIdentificacaoNaTela();
+    Actor* mAlunoAtor = nullptr;
+    Actor* mTrocarAtor = nullptr;
+
+    /// Borda da tecla de troca: sem isto, segurar T ficaria reentrando na cena.
+    bool mTrocarAnterior = false;
 };

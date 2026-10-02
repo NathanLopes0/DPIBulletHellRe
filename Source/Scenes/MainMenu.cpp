@@ -28,8 +28,11 @@ void MainMenu::Load() {
 
 void MainMenu::OnProcessInput(const Uint8 *keyState) {
 
+    // Passa pela identificacao ANTES da selecao de fase. O aluno se identifica uma
+    // vez ao entrar; para trocar depois ha o botao na propria selecao de fase, que
+    // e o que uma maquina compartilhada precisa.
     if(keyState[SDL_SCANCODE_SPACE])
-        mGame->RequestSceneChange(SceneType::StageSelect);
+        mGame->RequestSceneChange(SceneType::Identificacao);
 }
 
 void MainMenu::OnUpdate(float deltaTime) {

@@ -122,24 +122,18 @@
 
     // FASE 3 - ARVORE BINARIA: uma busca descendo da raiz.
     //
-    // AngledAttack com "angulo": 0, quatro projeteis que saem sobrepostos. Quem
-    // separa eles e o caminho, nao o leque: as quatro formas compartilham o tronco
-    // e se dividem em dois e depois em quatro. O jogador ve um no descer, abrir em
-    // dois, abrir em quatro.
-    //
-    // Velocidade 210, baixa de proposito: a arvore tem de ser VISTA se formando. A
-    // 600px/s (que era a velocidade desta fase no desenho anterior) a bifurcacao
-    // acontece rapido demais para ser lida, e o efeito se perde.
+    // AngledAttack com "angulo": 0, projeteis que saem sobrepostos
     //
     // GoToCenter e obrigatorio aqui. Com o chefe vagando, cada disparo plantaria a
     // raiz num lugar diferente e as arvores nao se acumulariam na mesma regiao - e
     // e o acumulo, disparo sobre disparo, que faz a tela parecer uma arvore e nao
     // quatro tiros tortos.
     //
-    // "projeteis": 8 TEM de bater com as oito folhas de "divisoes": 3 na familia
+    // "projeteis": 16 TEM de bater com as 16 folhas de "divisoes": 4 na familia
     // ArvoreDeBusca, em formas.json. E o unico numero que precisa andar junto, e um
     // teste confere: a mais, o projetil extra repete um ramo; a menos, metade da
     // arvore nao aparece.
+
     "StateThree": {
       "duracao": 17,
       // Vazio de proposito: e aqui que a batalha e decidida.
@@ -147,7 +141,7 @@
       "movimento": { "tipo": "GoToCenter" },
       "ataques": [
         { "estrategia": "AngledAttack", "projetil": "Estruturas",
-          "projeteis": 16, "velocidade": 260, "angulo": 0,
+          "projeteis": 16, "velocidade": 210, "angulo": 0,
           "cooldown": 2.1,
           "regras": "salles_arvore" }
       ]
@@ -184,7 +178,7 @@
   },
 
   // ==========================================================================
-  // RICARDO - INF 112 (fabrica de projeteis: "Arduino")
+  // RICARDO - INF 250 (fabrica de projeteis: "Arduino")
   //
   // O chefe do anel. As tres fases sao o MESMO anel de CircleSpreadAttack com
   // densidade e comportamento crescentes, e a diferenca entre elas esta toda nas

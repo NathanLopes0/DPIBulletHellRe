@@ -3,6 +3,8 @@
 //
 
 #include "StageSelect.h"
+
+#include "../Matricula.h"
 #include <sstream>
 #include <iomanip>
 #include "../Math.h"
@@ -27,7 +29,33 @@ void StageSelect::Load() {
 
     CreateStageButtons();
     CreateStaticUI();
+    CriarIdentificacaoNaTela();
 
+}
+
+void StageSelect::CriarIdentificacaoNaTela() {
+
+    const auto largura = static_cast<float>(mGame->GetWindowWidth());
+
+    // Quem esta jogando, no canto de cima. Numa maquina compartilhada isto nao e
+    // enfeite: e como o aluno confere que nao esta jogando na ficha do colega que
+    // usou antes dele.
+    auto aluno = std::make_unique<Actor>(this);
+    aluno->SetPosition(Vector2(220.f, 50.f));
+    const bool identificado = mGame->ProgressoEGravado();
+    const std::string rotulo = identificado
+        ? ("Matricula: " + Matricula::ParaExibir(mGame->MatriculaAtual()))
+        : std::string("Visitante - nao salva");
+    aluno->AddComponent<DrawTextComponent>(rotulo, mStageSelectFont.get(), 380, 60, 72, 255);
+    mAlunoAtor = aluno.get();
+    AddActor(std::move(aluno));
+
+    auto trocar = std::make_unique<Actor>(this);
+    trocar->SetPosition(Vector2(largura / 2.0f, static_cast<float>(mGame->GetWindowHeight()) - 40.f));
+    trocar->AddComponent<DrawTextComponent>("T - trocar usuario", mStageSelectFont.get(),
+                                            300, 40, 48, 255);
+    mTrocarAtor = trocar.get();
+    AddActor(std::move(trocar));
 }
 
 void StageSelect::CreateStageButtons() {
@@ -142,6 +170,18 @@ void StageSelect::CreateStaticUI() {
     UpdateStageInfo();
 }
 void StageSelect::OnProcessInput(const Uint8 *keyState) {
+
+    // Trocar de usuario volta para a identificacao. Nao grava nada aqui: a ficha
+    // do aluno que esta saindo ja foi para o disco ao fim de cada batalha, entao
+    // nao ha o que perder - e sair sem ter jogado nao deveria criar arquivo.
+    const bool trocar = keyState[SDL_SCANCODE_T];
+    if (trocar && !mTrocarAnterior) {
+        mTrocarAnterior = true;
+        mGame->RequestSceneChange(SceneType::Identificacao);
+        return;
+    }
+    mTrocarAnterior = trocar;
+
     HandleSelectionInput(keyState);
 }
 void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
