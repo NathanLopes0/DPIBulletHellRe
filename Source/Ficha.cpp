@@ -56,7 +56,13 @@ std::string Serializar(const Dados& dados, const Materias::Lista& materias) {
         primeira = false;
         s << "    { \"materia\": \"" << codigo
           << "\", \"recorde\": "  << Numero(e.recorde)
-          << ", \"retomada\": " << Numero(e.retomada) << " }";
+          << ", \"retomada\": " << Numero(e.retomada);
+
+        // So escreve a data quando ha uma: um campo vazio no arquivo nao diria
+        // nada que a ausencia dele ja nao diga.
+        if (!e.quando.empty()) s << ", \"quando\": \"" << e.quando << "\"";
+
+        s << " }";
     }
     if (!primeira) s << "\n  ";
     s << "]\n";
@@ -210,6 +216,13 @@ Lida Desserializar(const std::string& texto, const Materias::Lista& materias) {
         e.materia = materia;
         e.recorde = recorde;
         e.retomada = retomada;
+
+        // Opcional: saves anteriores a este campo simplesmente nao tem data, e
+        // isso nao e erro.
+        if (m.contains("quando") && m["quando"].is_string()) {
+            e.quando = m["quando"].get<std::string>();
+        }
+
         entradas.push_back(e);
     }
 

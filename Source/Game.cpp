@@ -11,6 +11,7 @@
 #include "Scenes/MainMenu.h"
 #include "FichaArquivo.h"
 #include "MateriasArquivo.h"
+#include "Relogio.h"
 #include "Matricula.h"
 #include "Scenes/Identificacao.h"
 #include "Scenes/StageSelect.h"
@@ -435,7 +436,7 @@ bool Game::IsStageUnlocked(GameSubject subject) {
 
 void Game::RegistrarNota(const GameSubject subject, const float nota) {
 
-    mProgresso.RegistrarNota(static_cast<int>(subject), nota);
+    mProgresso.RegistrarNota(static_cast<int>(subject), nota, Relogio::Agora());
 
     // A ficha vai para o disco AQUI, e nao em quem chama: assim nenhum caminho de
     // fim de batalha pode esquecer. Visitante nao grava - e o combinado com quem

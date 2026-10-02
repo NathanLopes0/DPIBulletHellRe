@@ -6,10 +6,15 @@
 
 #include <algorithm>
 
-void Progresso::RegistrarNota(const int materia, const float nota) {
+void Progresso::RegistrarNota(const int materia, const float nota, const std::string& quando) {
 
     // O ponto de retomada e sempre a nota desta batalha.
     mRetomadas[materia] = nota;
+
+    // A data tambem: ela marca a ULTIMA vez que esta materia foi jogada. Vazio nao
+    // apaga o que havia - um save antigo sem data que recebe uma nota sem data
+    // continua sem data, mas quem ja tinha data nao a perde.
+    if (!quando.empty()) mQuando[materia] = quando;
 
     // O recorde so sobe. Sem isto, uma tentativa ruim apagaria o recorde - e,
     // porque as regras de desbloqueio leem o recorde, poderia re-trancar uma
@@ -62,6 +67,10 @@ std::vector<Progresso::Entrada> Progresso::Entradas() const {
         porMateria[r.first].materia = r.first;
         porMateria[r.first].retomada = r.second;
     }
+    for (const auto& r : mQuando) {
+        porMateria[r.first].materia = r.first;
+        porMateria[r.first].quando = r.second;
+    }
 
     std::vector<Entrada> saida;
     saida.reserve(porMateria.size());
@@ -75,9 +84,11 @@ void Progresso::Restaurar(const std::vector<Entrada>& entradas) {
     // nao pode deixar as notas de A penduradas.
     mRecordes.clear();
     mRetomadas.clear();
+    mQuando.clear();
 
     for (const auto& e : entradas) {
         mRecordes[e.materia] = e.recorde;
         mRetomadas[e.materia] = e.retomada;
+        if (!e.quando.empty()) mQuando[e.materia] = e.quando;
     }
 }

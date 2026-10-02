@@ -10,6 +10,7 @@
 
 #include "../Source/Ficha.h"
 #include "../Source/Materias.h"
+#include "../Source/Relogio.h"
 #include "../Source/Progresso.h"
 
 namespace {
@@ -265,7 +266,7 @@ TEST_CASE("Ficha: save da versao 1 e lido, convertendo posicao em codigo") {
     CHECK(r.dados.progresso.MelhorNota(Curso().IndiceDe("CCC")) == doctest::Approx(100.0f));
 }
 
-TEST_CASE("Ficha: regravar um save da versao 1 o deixa na versao 2") {
+TEST_CASE("Ficha: regravar um save antigo o deixa na versao atual") {
     const auto lido = Ficha::Desserializar(R"({
       "versao": 1, "matricula": "89384",
       "materias": [ { "materia": 1, "recorde": 70, "retomada": 70 } ]
@@ -273,7 +274,10 @@ TEST_CASE("Ficha: regravar um save da versao 1 o deixa na versao 2") {
     REQUIRE(lido.ok);
 
     const std::string regravado = Ficha::Serializar(lido.dados, Curso());
-    CHECK(regravado.find("\"versao\": 2") != std::string::npos);
+    // Compara com kVersaoAtual, e nao com um numero escrito aqui: o formato vai
+    // mudar de novo, e um literal faria este teste quebrar por isso em vez de por
+    // um defeito de verdade.
+    CHECK(regravado.find("\"versao\": " + std::to_string(Ficha::kVersaoAtual)) != std::string::npos);
     CHECK(regravado.find("\"materia\": \"BBB\"") != std::string::npos);
     CHECK(regravado.find("\"materia\": 1") == std::string::npos);
 }
@@ -333,4 +337,81 @@ TEST_CASE("Ficha: a NOTA sobrevive a uma reordenacao das materias") {
     CHECK(r.dados.progresso.MelhorNota(depois.IndiceDe("AAA")) == doctest::Approx(85.0f));
     CHECK(r.dados.progresso.MelhorNota(depois.IndiceDe("NOVA")) == doctest::Approx(0.0f));
     CHECK(r.dados.progresso.MelhorNota(depois.IndiceDe("BBB")) == doctest::Approx(0.0f));
+}
+
+// ---------------------------------------------------------------------------
+// A data da ultima partida
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Ficha: a data da ultima partida sobrevive a ida e volta") {
+    Ficha::Dados d;
+    d.matricula = "89384";
+    d.progresso.RegistrarNota(0, 70.0f, "2026-10-02 14:30:00");
+
+    const auto r = Ficha::Desserializar(Ficha::Serializar(d, Curso()), Curso());
+    REQUIRE(r.ok);
+    REQUIRE(r.dados.progresso.Entradas().size() == 1);
+    CHECK(r.dados.progresso.Entradas()[0].quando == "2026-10-02 14:30:00");
+}
+
+TEST_CASE("Ficha: a data e a da ULTIMA partida, nao a do recorde") {
+    // E a pergunta que ela responde: "quem jogou esta semana". Jogar mal depois de
+    // bem atualiza a data e nao o recorde.
+    Progresso p;
+    p.RegistrarNota(0, 90.0f, "2026-01-01 10:00:00");
+    p.RegistrarNota(0, 40.0f, "2026-10-02 14:30:00");
+
+    REQUIRE(p.Entradas().size() == 1);
+    CHECK(p.Entradas()[0].recorde == doctest::Approx(90.0f));
+    CHECK(p.Entradas()[0].quando == "2026-10-02 14:30:00");
+}
+
+TEST_CASE("Ficha: save sem data abre normal, e nao inventa uma") {
+    // Todo save gravado antes deste campo existir.
+    const auto r = Ficha::Desserializar(R"({
+      "versao": 2, "matricula": "89384",
+      "materias": [ { "materia": "AAA", "recorde": 70, "retomada": 70 } ]
+    })", Curso());
+    REQUIRE(r.ok);
+    CHECK(r.problemas.empty());
+    REQUIRE(r.dados.progresso.Entradas().size() == 1);
+    CHECK(r.dados.progresso.Entradas()[0].quando.empty());
+}
+
+TEST_CASE("Ficha: uma nota sem data nao APAGA a data que ja havia") {
+    Progresso p;
+    p.RegistrarNota(0, 70.0f, "2026-10-02 14:30:00");
+    p.RegistrarNota(0, 80.0f, "");
+    CHECK(p.Entradas()[0].quando == "2026-10-02 14:30:00");
+}
+
+TEST_CASE("Ficha: entrada sem data nao escreve o campo vazio no arquivo") {
+    Ficha::Dados d;
+    d.matricula = "89384";
+    d.progresso.RegistrarNota(0, 70.0f);
+    CHECK(Ficha::Serializar(d, Curso()).find("quando") == std::string::npos);
+}
+
+TEST_CASE("Relogio: o formato ordena alfabeticamente na ordem cronologica") {
+    // E o que permite ao ranking do professor ordenar por data sem converter nada.
+    const std::string jan = Relogio::Formatar(1767225600);   // 2026-01-01, aproximado
+    const std::string out = Relogio::Formatar(1790000000);   // bem depois
+    REQUIRE_FALSE(jan.empty());
+    REQUIRE_FALSE(out.empty());
+    CHECK(jan < out);
+}
+
+TEST_CASE("Relogio: o formato tem o tamanho e os separadores esperados") {
+    const std::string s = Relogio::Formatar(1790000000);
+    REQUIRE(s.size() == 19);          // AAAA-MM-DD HH:MM:SS
+    CHECK(s[4] == '-');
+    CHECK(s[7] == '-');
+    CHECK(s[10] == ' ');
+    CHECK(s[13] == ':');
+    CHECK(s[16] == ':');
+}
+
+TEST_CASE("Relogio: Agora devolve algo no mesmo formato") {
+    const std::string s = Relogio::Agora();
+    CHECK(s.size() == 19);
 }

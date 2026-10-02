@@ -32,7 +32,9 @@ namespace Ficha {
     /// lista. A 1 gravava a posicao, e por isso reordenar as materias trocava as
     /// notas de dona em silencio - um save da 1 ainda abre, convertido pela ordem
     /// atual de materias.json.
-    inline constexpr int kVersaoAtual = 2;
+    /// A 3 acrescenta "quando": a data da ultima vez que o aluno jogou aquela
+    /// materia. O campo e opcional, entao um save da 2 abre sem conversao nenhuma.
+    inline constexpr int kVersaoAtual = 3;
 
     struct Dados {
         std::string matricula;   ///< a forma CANONICA, ver Matricula.h

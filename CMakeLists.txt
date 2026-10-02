@@ -41,6 +41,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Matricula.h
         Source/Materias.cpp
         Source/Materias.h
+        Source/Relogio.cpp
+        Source/Relogio.h
         Source/MateriasArquivo.cpp
         Source/MateriasArquivo.h
         Source/Ficha.cpp
@@ -180,6 +182,8 @@ add_executable(dpi_tests
         Source/Matricula.h
         Source/Materias.cpp
         Source/Materias.h
+        Source/Relogio.cpp
+        Source/Relogio.h
         Source/Ficha.cpp
         Source/Ficha.h
         Source/Progresso.h

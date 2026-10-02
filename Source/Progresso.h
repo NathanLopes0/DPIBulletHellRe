@@ -5,6 +5,7 @@
 #pragma once
 
 #include <map>
+#include <string>
 #include <vector>
 
 /**
@@ -37,7 +38,9 @@ public:
      * A diferenca importa: antes, jogar mal apagava o recorde e podia
      * RE-TRANCAR uma materia que o jogador ja tinha passado.
      */
-    void RegistrarNota(int materia, float nota);
+    /// @param quando o instante, como texto (ver Relogio.h). Vazio = nao sabemos,
+    ///        que e o caso dos saves gravados antes de a data existir.
+    void RegistrarNota(int materia, float nota, const std::string& quando = "");
 
     /**
      * @brief A maior nota que o jogador ja tirou nesta materia.
@@ -76,6 +79,13 @@ public:
         int materia = 0;
         float recorde = 0.0f;
         float retomada = 0.0f;
+
+        /// Quando o aluno jogou esta materia pela ULTIMA vez. Vazio quando o save
+        /// e anterior a este campo existir.
+        ///
+        /// E a ultima vez, e nao quando o recorde foi feito: a pergunta que isto
+        /// responde e "quem jogou esta semana", nao "quando cada um foi melhor".
+        std::string quando;
     };
 
     /**
@@ -103,4 +113,7 @@ private:
 
     /// A ultima nota por materia, que e de onde a proxima batalha parte.
     std::map<int, float> mRetomadas;
+
+    /// Quando cada materia foi jogada pela ultima vez.
+    std::map<int, std::string> mQuando;
 };
