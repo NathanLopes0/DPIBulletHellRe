@@ -11,6 +11,7 @@
 #include "Scenes/MainMenu.h"
 #include "FichaArquivo.h"
 #include "MateriasArquivo.h"
+#include "ExportacaoArquivo.h"
 #include "Relogio.h"
 #include "Matricula.h"
 #include "Scenes/Identificacao.h"
@@ -443,7 +444,13 @@ void Game::RegistrarNota(const GameSubject subject, const float nota) {
     // escolheu nao se identificar.
     if (!ProgressoEGravado()) return;
 
-    if (!FichaArquivo::Gravar(mMatricula, mProgresso, Materias::Carregadas())) {
+    if (FichaArquivo::Gravar(mMatricula, mProgresso, Materias::Carregadas())) {
+        // A planilha do professor e regravada junto, entao ela esta sempre em dia e
+        // ninguem precisa lembrar de exportar. Ela e DERIVADA das fichas: apagar
+        // notas.csv nao perde nada, volta na proxima batalha.
+        Exportacao::Regravar(Materias::Carregadas());
+    }
+    else {
         // Nao derruba a batalha nem avisa em tela: o aluno acabou de jogar e o que
         // ele quer e ver a nota. O log diz o que houve para quem for investigar.
         SDL_Log("GAME: nao consegui gravar a ficha da matricula %s. A nota desta "
