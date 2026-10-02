@@ -39,6 +39,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Progresso.cpp
         Source/Matricula.cpp
         Source/Matricula.h
+        Source/Materias.cpp
+        Source/Materias.h
         Source/Ficha.cpp
         Source/Ficha.h
         Source/FichaArquivo.cpp
@@ -170,9 +172,12 @@ add_executable(dpi_tests
         tests/test_progresso.cpp
         tests/test_matricula.cpp
         tests/test_ficha.cpp
+        tests/test_materias.cpp
         Source/Progresso.cpp
         Source/Matricula.cpp
         Source/Matricula.h
+        Source/Materias.cpp
+        Source/Materias.h
         Source/Ficha.cpp
         Source/Ficha.h
         Source/Progresso.h

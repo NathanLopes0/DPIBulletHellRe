@@ -1,0 +1,102 @@
+{
+  // ==========================================================================
+  // AS MATERIAS DO CURSO
+  //
+  // Esta lista era um enum em Game.h e mais cinco lugares em C++ que repetiam
+  // pedacos dela: o mapa de chefes, os nomes em tela, as colunas (duplicadas
+  // entre StageSelect e as regras de desbloqueio, com nomes trocados), a
+  // quantidade e o tamanho de cada coluna. Mudar uma materia exigia acertar os
+  // seis, e esquecer um deles nao dava erro de compilacao.
+  //
+  // O "codigo" E A CHAVE, e esse e o ponto mais importante do arquivo.
+  //
+  // Antes, o que ia para o save do aluno era a POSICAO da materia no enum: INF
+  // 213 valia 0 porque estava em primeiro lugar. Inserir uma materia no comeco
+  // reinterpretava todos os saves ja gravados EM SILENCIO - uma nota 85 de INF
+  // 213 virava nota de outra materia, e o aluno abria o jogo aprovado em coisa
+  // que nunca jogou. Medi isso antes de mexer: tres de tres notas mudavam de
+  // dona sem um unico erro.
+  //
+  // Com um codigo de texto, reordenar esta lista, renomear uma materia em tela
+  // ou inserir outra no meio nao mexe em save nenhum. O que NAO pode mudar e o
+  // codigo em si - trocar "INF213" por outra coisa e, para o jogo, aposentar
+  // aquela materia e criar outra.
+  //
+  // CAMPOS
+  //   codigo       a chave estavel. So letras e numeros, sem espaco.
+  //   nome         o que aparece no botao. Pode mudar a vontade.
+  //   coluna       0 a 3, a posicao na grade da selecao de fase. A coluna
+  //                tambem e o que as regras de desbloqueio usam, entao ela e
+  //                declarada UMA vez e nao duas.
+  //   chefe        qual chefe esta materia usa. Vazio ou ausente = materia
+  //                ainda sem chefe: o botao aparece e nao da para jogar, que e
+  //                o que ja acontecia com seis das dez.
+  //   desbloqueio  quando a materia abre. Ver abaixo.
+  //
+  // REGRAS DE DESBLOQUEIO
+  //   { "tipo": "sempre" }
+  //   { "tipo": "aprovadoEm", "materias": ["INF213"] }
+  //       exige aprovacao em TODAS as listadas.
+  //   { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 1 }
+  //       exige N aprovacoes entre as materias daquela coluna. Usa a coluna em
+  //       vez de repetir a lista, para nao haver duas versoes do mesmo conjunto.
+  // ==========================================================================
+
+  "materias": [
+
+    // ----- Coluna 0: a porta de entrada -----
+    {
+      "codigo": "INF213",
+      "nome": "INF 213",
+      "coluna": 0,
+      "chefe": "salles",
+      "desbloqueio": { "tipo": "sempre" }
+    },
+
+    // ----- Coluna 1: abre ao passar em INF 213 -----
+    {
+      "codigo": "INF250", "nome": "INF 250", "coluna": 1, "chefe": "ricardo",
+      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
+    },
+    {
+      "codigo": "INF220", "nome": "INF 220", "coluna": 1,
+      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
+    },
+    {
+      "codigo": "INF330", "nome": "INF 330", "coluna": 1, "chefe": "andre",
+      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
+    },
+    {
+      "codigo": "INF332", "nome": "INF 332", "coluna": 1,
+      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
+    },
+
+    // ----- Coluna 2: abre com duas aprovacoes na coluna 1 -----
+    {
+      "codigo": "INF420", "nome": "INF 420", "coluna": 2, "chefe": "julio",
+      "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 1 }
+    },
+    {
+      "codigo": "BIOINF", "nome": "BIOINF", "coluna": 2,
+      "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 1 }
+    },
+    {
+      "codigo": "INF394", "nome": "INF394", "coluna": 2,
+      "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 1 }
+    },
+    {
+      // O nome em tela era "VISCPP" e o codigo do enum, "VISCCP". Mantive os
+      // dois como estavam para nao mudar comportamento junto com a migracao;
+      // se um dos dois for erro de digitacao, agora da para corrigir o NOME
+      // sem tocar em save nenhum.
+      "codigo": "VISCCP", "nome": "VISCPP", "coluna": 2,
+      "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 1 }
+    },
+
+    // ----- Coluna 3: o fim do curso -----
+    {
+      "codigo": "TCC", "nome": "TCC", "coluna": 3,
+      "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
+    }
+  ]
+}

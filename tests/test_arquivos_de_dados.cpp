@@ -43,6 +43,8 @@
 #include "../Source/Attacks/PathShapes.h"
 #include "../Source/Attacks/RegrasDeAtaque.h"
 #include "../Source/Attacks/ProjeteisDeChefe.h"
+#include "../Source/Materias.h"
+#include "../Source/Progresso.h"
 #include "../Source/JsonDeDados.h"
 
 #ifndef DPI_ASSETS_DIR
@@ -808,4 +810,113 @@ TEST_CASE("Dados: toda familia tem pelo menos duas formas") {
         CAPTURE(fam.first);
         CHECK(fam.second.size() >= 2);
     }
+}
+
+// ---------------------------------------------------------------------------
+// As materias, e a prova de que o arquivo reproduz o C++ que ele substitui
+//
+// A migracao das materias para dados so pode ser chamada de equivalente se as
+// regras de desbloqueio lidas do arquivo derem a MESMA resposta que o
+// Game::IsStageUnlocked de hoje, para qualquer progresso. O ultimo teste deste
+// bloco faz essa comparacao exaustivamente.
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Dados: Assets/materias.json nao tem problema nenhum") {
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    CHECK_MESSAGE(l.problemas.empty(), "problemas em materias.json:" << Juntar(l.problemas));
+    CHECK(l.Quantas() > 0);
+}
+
+TEST_CASE("Dados: as dez materias estao la, com os codigos do enum que elas substituem") {
+    // A ORDEM IMPORTA AQUI, e so aqui: e por ela que um save do formato antigo,
+    // que gravava a posicao no enum, sera convertido para codigo. Se esta lista
+    // mudar de ordem antes da migracao existir, os saves antigos se perdem.
+    const std::vector<std::string> doEnum = {
+        "INF213", "INF250", "INF220", "INF330", "INF332",
+        "INF420", "BIOINF", "INF394", "VISCCP", "TCC"
+    };
+
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    REQUIRE(l.Quantas() == static_cast<int>(doEnum.size()));
+
+    for (size_t i = 0; i < doEnum.size(); ++i) {
+        CAPTURE(i);
+        CAPTURE(doEnum[i]);
+        CHECK(l.CodigoDe(static_cast<int>(i)) == doEnum[i]);
+    }
+}
+
+TEST_CASE("Dados: toda materia com chefe aponta para um conjunto que existe em fases.json") {
+    // O campo "chefe" liga as duas migracoes: ele e o mesmo nome de conjunto que
+    // fases.json, regras.json e projeteis.json usam.
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
+
+    int comChefe = 0;
+    for (const auto& m : l.materias) {
+        if (m.chefe.empty()) continue;   // materia ainda sem chefe e normal
+        CAPTURE(m.codigo);
+        CAPTURE(m.chefe);
+        CHECK(fases.conjuntos.count(m.chefe) == 1);
+        ++comChefe;
+    }
+    CHECK(comChefe == 4);   // hoje sao quatro dos dez
+}
+
+TEST_CASE("Dados: o desbloqueio em arquivo da a MESMA resposta que o C++ que ele substitui") {
+
+    // A regra de hoje, copiada de Game::IsStageUnlocked antes de ela sair, escrita
+    // sobre os codigos em vez dos valores do enum:
+    //   - INF213 sempre;
+    //   - coluna 1 (INF250, INF220, INF330, INF332) abre se passou em INF213;
+    //   - coluna 2 (INF420, BIOINF, INF394, VISCCP) abre com 2 aprovacoes na coluna 1;
+    //   - TCC abre com 2 aprovacoes na coluna 2.
+    const std::vector<std::string> col1 = {"INF250", "INF220", "INF330", "INF332"};
+    const std::vector<std::string> col2 = {"INF420", "BIOINF", "INF394", "VISCCP"};
+
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    REQUIRE(l.Quantas() == 10);
+
+    auto regraAntiga = [&](const std::string& codigo, const Progresso& p) {
+        auto aprovado = [&](const std::string& c) { return p.Aprovado(l.IndiceDe(c)); };
+        auto quantas = [&](const std::vector<std::string>& lista) {
+            int n = 0;
+            for (const auto& c : lista) if (aprovado(c)) ++n;
+            return n;
+        };
+        if (codigo == "INF213") return true;
+        for (const auto& c : col1) if (c == codigo) return aprovado("INF213");
+        for (const auto& c : col2) if (c == codigo) return quantas(col1) >= 2;
+        if (codigo == "TCC") return quantas(col2) >= 2;
+        return false;
+    };
+
+    // Varre TODAS as combinacoes de aprovacao das nove materias que nao sao o TCC.
+    // Sao 512 estados: cobre o espaco inteiro em vez de alguns casos escolhidos a
+    // dedo, que e onde uma diferenca de regra costuma se esconder.
+    int comparacoes = 0;
+    for (int mascara = 0; mascara < 512; ++mascara) {
+
+        Progresso p;
+        for (int bit = 0; bit < 9; ++bit) {
+            if (mascara & (1 << bit)) p.RegistrarNota(bit, 80.0f);
+        }
+
+        for (int i = 0; i < l.Quantas(); ++i) {
+            const std::string codigo = l.CodigoDe(i);
+            const bool doArquivo = l.Desbloqueada(i, p);
+            const bool doCodigo  = regraAntiga(codigo, p);
+
+            if (doArquivo != doCodigo) {
+                CAPTURE(mascara);
+                CAPTURE(codigo);
+                CAPTURE(doArquivo);
+                CAPTURE(doCodigo);
+                FAIL("o arquivo e o C++ discordam");
+            }
+            ++comparacoes;
+        }
+    }
+
+    CHECK(comparacoes == 512 * 10);
 }
