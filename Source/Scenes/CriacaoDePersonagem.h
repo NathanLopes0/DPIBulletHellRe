@@ -1,5 +1,5 @@
 //
-// A tela onde o aluno escolhe a personagem dele.
+// A tela onde o aluno monta a personagem dele, camada por camada.
 //
 
 #pragma once
@@ -9,29 +9,25 @@
 #include <vector>
 
 #include "Scene.h"
+#include "../Personagens.h"
 
 class Font;
 class Actor;
+class DrawCaixaComponent;
 
 /**
  * @class CriacaoDePersonagem
- * @brief Escolhe a aparencia que vai ficar gravada no perfil da matricula.
+ * @brief Monta a aparencia que vai ficar gravada no perfil da matricula.
  *
  * ESTA TELA NAO SABE COMPOR NADA. Quais camadas existem, em que ordem e com que
  * cor e assunto de Source/Personagens (puro, testado) e de
  * Source/ComporPersonagem (a ponte). Aqui so ha navegacao e desenho.
  *
- * POR ORA ESCOLHE ENTRE COMBINACOES PRONTAS, e nao camada por camada. A segunda
- * forma esta descrita em Documentacao/requisitos-perfil-e-personagem.md, RF3, e
- * - por construcao - nao mexe em save nem em composicao: o que muda e so esta
- * tela, porque o que vai para o disco ja e o conjunto de escolhas.
- *
- * UM ATOR POR COMBINACAO, com visibilidade alternada, em vez de um ator que
- * troca de textura: DrawAnimatedComponent::LoadSpriteSheet ACRESCENTA quadros
- * em vez de substituir, entao recarregar a mesma componente duplicaria o atlas.
- * Com meia duzia de combinacoes, compor todas na entrada e barato - e ainda
- * deixa a troca instantanea. A versao camada por camada vai precisar recompor,
- * e ai esse caminho tem de ser arrumado.
+ * AS LINHAS SAO GERADAS DO CATALOGO, e nao escritas a mao: cada categoria rende
+ * uma linha de tipo (quando ha mais de uma peca) e uma de cor (quando ha mais de
+ * uma cor). Acrescentar uma categoria no arquivo acrescenta as linhas dela sem
+ * tocar nesta classe - e e por isso que "Tom de pele" aparece so com a linha de
+ * cor, sem a de tipo: o corpo e uma peca so.
  */
 class CriacaoDePersonagem : public Scene {
 public:
@@ -44,27 +40,51 @@ public:
 
 private:
 
-    /// Cria um ator de texto centrado horizontalmente, no tamanho natural dele.
-    Actor* Texto(const std::string& conteudo, float y, int tamanho, int larguraMaxima);
+    /// Uma linha da lista: o que ela muda.
+    struct Linha {
+        std::string categoria;
+        bool ehCor = false;       ///< false = troca a peca; true = troca a cor
+        std::string rotulo;
+    };
 
-    /// Deixa visivel so a personagem em foco, e atualiza o nome e o contador.
-    void Mostrar() const;
+    Actor* Texto(const std::string& conteudo, float x, float y, int tamanho, int larguraMaxima);
+
+    /// Monta as linhas a partir do catalogo.
+    void MontarLinhas();
+
+    /// Anda uma posicao na linha em foco. `passo` e +1 ou -1.
+    void Trocar(int passo);
+
+    /// Recompoe a personagem e troca a textura em exibicao.
+    void Recompor();
+
+    /// Atualiza os rotulos e a moldura da linha em foco.
+    void Redesenhar() const;
 
     std::unique_ptr<Font> mFonte;
 
-    /// Um ator por combinacao, na ordem do catalogo.
-    std::vector<Actor*> mPersonagens;
+    std::vector<Linha> mLinhas;
+    std::vector<Actor*> mLinhaAtores;
 
-    Actor* mNomeAtor{};
-    Actor* mContadorAtor{};
+    Actor* mPersonagemAtor{};
+    Actor* mSelecaoAtor{};
 
-    int mEscolhida = 0;
+    /// A aparencia sendo montada.
+    Personagens::Aparencia mAparencia;
 
+    /// A chave da textura em exibicao. Guardada para poder destrui-la quando a
+    /// proxima for composta - ver Game::EsquecerTextura.
+    std::string mChaveEmUso;
+
+    int mLinhaEmFoco = 0;
+
+    bool mCimaAnterior{};
+    bool mBaixoAnterior{};
     bool mEsquerdaAnterior{};
     bool mDireitaAnterior{};
 
     /// Comeca em TRUE: chega-se aqui apertando ENTER na tela de matricula, e sem
-    /// a guarda a primeira combinacao seria confirmada sozinha no mesmo toque.
+    /// a guarda a aparencia inicial seria confirmada sozinha no mesmo toque.
     bool mConfirmarAnterior = true;
     bool mVoltarAnterior = true;
 };

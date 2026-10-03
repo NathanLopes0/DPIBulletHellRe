@@ -262,6 +262,19 @@ void Game::GuardarTextura(const std::string& chave, SDL_Texture* textura) {
     mTextureCache.emplace(chave, textura);
 }
 
+void Game::EsquecerTextura(const std::string& chave) {
+
+    const auto it = mTextureCache.find(chave);
+    if (it == mTextureCache.end()) return;
+
+    // O placeholder e compartilhado por todo caminho de textura ausente e tem
+    // dono proprio; destrui-lo aqui deixaria os outros com ponteiro morto.
+    if (it->second != nullptr && it->second != mPlaceholderTexture) {
+        SDL_DestroyTexture(it->second);
+    }
+    mTextureCache.erase(it);
+}
+
 SDL_Texture* Game::LoadTexture(const std::string& texturePath) {
 
     // Se essa imagem ja foi carregada, devolve a MESMA textura.

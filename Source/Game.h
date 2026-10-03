@@ -64,6 +64,18 @@ public:
     void GuardarTextura(const std::string& chave, class SDL_Texture* textura);
 
     /**
+     * @brief Destroi e esquece uma textura guardada.
+     *
+     * Existe para a tela de criacao de personagem, que compoe uma textura nova
+     * a cada seta apertada. Sem isto, trocar de cabelo cem vezes deixaria cem
+     * texturas vivas ate o jogo fechar - e numa maquina compartilhada, que fica
+     * ligada o dia todo, isso se acumula aluno apos aluno.
+     *
+     * QUEM CHAMA GARANTE que ninguem mais aponta para ela.
+     */
+    void EsquecerTextura(const std::string& chave);
+
+    /**
      * @brief Devolve (criando na primeira chamada) o xadrez magenta/preto usado
      * como marcador de textura ausente.
      *

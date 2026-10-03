@@ -37,9 +37,20 @@ public:
 
     void AddAnimation(const std::string& name, const std::vector<int>& images);
 
+    /**
+     * @brief Troca a folha de sprites desta componente.
+     *
+     * Era privada e so o construtor chamava. Virou publica para a tela de
+     * criacao de personagem, que recompoe a sprite a cada seta apertada e
+     * precisa troca-la sem recriar o ator.
+     *
+     * SUBSTITUI os quadros, nao acrescenta - ver o comentario na implementacao.
+     * As animacoes registradas por AddAnimation CONTINUAM valendo, entao a folha
+     * nova precisa ter o mesmo recorte da anterior.
+     */
+    void LoadSpriteSheet(const std::string& texturePath, const std::string& dataPath);
 
 private:
-    void LoadSpriteSheet(const std::string& texturePath, const std::string& dataPath);
 
     //vector of sprites
     std::vector<SDL_Rect> mSpriteSheetData;

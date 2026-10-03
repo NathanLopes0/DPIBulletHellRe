@@ -1,5 +1,5 @@
 //
-// A tela onde o aluno escolhe a personagem dele.
+// A tela onde o aluno monta a personagem dele, camada por camada.
 //
 
 #include "CriacaoDePersonagem.h"
@@ -13,6 +13,7 @@
 #include "../PersonagensArquivo.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
 
 namespace {
@@ -21,7 +22,32 @@ namespace {
     /// tamanho que tem em jogo - pequena demais para escolher olhando.
     constexpr float kAmpliacao = 4.0f;
 
-    constexpr float kAlturaDaPersonagem = 0.42f;
+    // A personagem fica a esquerda e a lista a direita: as duas juntas no centro
+    // nao caberiam sem encolher uma delas.
+    constexpr float kPersonagemX = 0.28f;
+    constexpr float kPersonagemY = 0.48f;
+
+    constexpr float kListaX = 0.66f;
+    constexpr float kPrimeiraLinha = 0.30f;
+    constexpr float kEspacoEntreLinhas = 0.062f;
+
+    constexpr int kTamanhoDaLinha = 26;
+    constexpr int kSelecaoLargura = 500;
+    constexpr int kSelecaoAltura = 42;
+
+    constexpr SDL_Color kBordaDaSelecao = {235, 235, 235, 255};
+    constexpr SDL_Color kFundoDaSelecao = { 34,  38,  48, 170};
+
+    /// O nome de uma peca, ou vazio quando ela nao existe mais.
+    std::string NomeDaPeca(const Personagens::Categoria& c, const std::string& id) {
+        const Personagens::Peca* p = c.PecaPor(id);
+        return p ? p->nome : std::string();
+    }
+
+    std::string NomeDaCor(const Personagens::Categoria& c, const std::string& id) {
+        const Personagens::Cor* cor = c.CorPor(id);
+        return cor ? cor->nome : std::string();
+    }
 }
 
 CriacaoDePersonagem::CriacaoDePersonagem(Game* game)
@@ -31,11 +57,11 @@ CriacaoDePersonagem::CriacaoDePersonagem(Game* game)
     mFonte->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
 }
 
-Actor* CriacaoDePersonagem::Texto(const std::string& conteudo, const float y,
+Actor* CriacaoDePersonagem::Texto(const std::string& conteudo, const float x, const float y,
                                   const int tamanho, const int larguraMaxima) {
 
     auto ator = std::make_unique<Actor>(this);
-    ator->SetPosition(Vector2(static_cast<float>(mGame->GetWindowWidth()) / 2.0f, y));
+    ator->SetPosition(Vector2(x, y));
 
     auto dc = ator->AddComponent<DrawTextComponent>(conteudo, mFonte.get(),
                                                     larguraMaxima, tamanho + 8, tamanho, 255);
@@ -47,123 +73,197 @@ Actor* CriacaoDePersonagem::Texto(const std::string& conteudo, const float y,
     return bruto;
 }
 
+void CriacaoDePersonagem::MontarLinhas() {
+
+    for (const auto& c : Personagens::Carregado().categorias) {
+
+        // Categoria de uma peca so nao rende linha de tipo: uma linha que nao
+        // muda nada seria so um lugar a mais para a seta parar.
+        if (c.pecas.size() > 1) {
+            mLinhas.push_back(Linha{c.id, false, c.nome});
+        }
+        if (c.cores.size() > 1) {
+            // Quando a categoria tem linha de tipo, a de cor vem logo abaixo e
+            // se chama so "Cor": repetir a categoria daria "Cor: Calca: Jeans",
+            // e escrever "Cor da calca" exigiria concordancia de genero por
+            // categoria - algo que o catalogo nao tem como saber.
+            const bool temLinhaDeTipo = c.pecas.size() > 1;
+            mLinhas.push_back(Linha{c.id, true, temLinhaDeTipo ? "Cor" : c.nome});
+        }
+    }
+}
+
 void CriacaoDePersonagem::Load() {
 
     const auto largura = static_cast<float>(mGame->GetWindowWidth());
     const auto altura  = static_cast<float>(mGame->GetWindowHeight());
 
-    Texto("SUA PERSONAGEM", altura * 0.11f, 52, 900);
+    Texto("SUA PERSONAGEM", largura / 2.0f, altura * 0.09f, 52, 900);
+
+    // Comeca do que o perfil ja tem - vazio para quem esta criando agora, e
+    // nesse caso Resolver devolve a aparencia padrao.
+    const Personagens::Catalogo& catalogo = Personagens::Carregado();
+    mAparencia = catalogo.Resolver(mGame->AparenciaAtual());
+
+    MontarLinhas();
+
+    auto personagem = std::make_unique<Actor>(this);
+    personagem->SetPosition(Vector2(largura * kPersonagemX, altura * kPersonagemY));
+    personagem->SetScale(kAmpliacao);
+    mPersonagemAtor = personagem.get();
+    AddActor(std::move(personagem));
+
+    // A moldura entra antes dos rotulos e com ordem menor, para ficar atras.
+    auto selecao = std::make_unique<Actor>(this);
+    selecao->SetPosition(Vector2(largura * kListaX, altura * kPrimeiraLinha));
+    selecao->AddComponent<DrawCaixaComponent>(kSelecaoLargura, kSelecaoAltura,
+                                              kBordaDaSelecao, kFundoDaSelecao, 3, 90);
+    mSelecaoAtor = selecao.get();
+    AddActor(std::move(selecao));
+
+    for (size_t i = 0; i < mLinhas.size(); ++i) {
+        const float y = altura * (kPrimeiraLinha + static_cast<float>(i) * kEspacoEntreLinhas);
+        mLinhaAtores.push_back(Texto(" ", largura * kListaX, y, kTamanhoDaLinha,
+                                     kSelecaoLargura - 30));
+    }
+
+    if (mLinhas.empty()) {
+        Texto("Nada para escolher: confira Assets/personagens.json.",
+              largura / 2.0f, altura * 0.80f, 24, 1000);
+    }
+
+    Texto("CIMA e BAIXO  escolhem o que mudar", largura / 2.0f, altura * 0.80f, 22, 700);
+    Texto("ESQUERDA e DIREITA  trocam",       largura / 2.0f, altura * 0.86f, 22, 700);
+    Texto("ENTER  confirmar     ESC  voltar", largura / 2.0f, altura * 0.92f, 22, 700);
+
+    Recompor();
+    Redesenhar();
+}
+
+void CriacaoDePersonagem::Recompor() {
+
+    if (!mPersonagemAtor) return;
+
+    const Personagens::Composta composta =
+        Personagens::Compor(mGame, Personagens::Carregado(), mAparencia);
+
+    if (!composta.ok) {
+        SDL_Log("CRIACAO: nao consegui compor esta aparencia; a anterior continua em tela.");
+        return;
+    }
+
+    auto dc = mPersonagemAtor->GetComponent<DrawAnimatedComponent>();
+    if (dc == nullptr) {
+        dc = mPersonagemAtor->AddComponent<DrawAnimatedComponent>(composta.chaveDaTextura,
+                                                                   composta.atlas);
+        dc->AddAnimation("Andando", {0, 1, 2, 3});
+        dc->SetAnimFPS(6.0f);   // mais devagar que em jogo: aqui e para olhar
+    }
+    else {
+        dc->LoadSpriteSheet(composta.chaveDaTextura, composta.atlas);
+    }
+    dc->SetAnimation("Andando");
+
+    // SO UMA TEXTURA DE PREVIA VIVA POR VEZ. Cada troca compoe uma nova, e sem
+    // jogar fora a anterior uma sessao de escolhas deixaria dezenas delas no
+    // cache ate o jogo fechar. A ultima sobrevive de proposito: e exatamente a
+    // que o Player vai pedir ao entrar na batalha.
+    if (!mChaveEmUso.empty() && mChaveEmUso != composta.chaveDaTextura) {
+        mGame->EsquecerTextura(mChaveEmUso);
+    }
+    mChaveEmUso = composta.chaveDaTextura;
+}
+
+void CriacaoDePersonagem::Redesenhar() const {
 
     const Personagens::Catalogo& catalogo = Personagens::Carregado();
 
-    for (const auto& pronta : catalogo.predefinidas) {
+    for (size_t i = 0; i < mLinhaAtores.size() && i < mLinhas.size(); ++i) {
 
-        const Personagens::Composta composta =
-            Personagens::Compor(mGame, catalogo, pronta.aparencia);
+        const Linha& linha = mLinhas[i];
+        const Personagens::Categoria* c = catalogo.Por(linha.categoria);
+        const Personagens::Escolha* e = mAparencia.Por(linha.categoria);
+        if (c == nullptr || e == nullptr) continue;
 
-        if (!composta.ok) {
-            // Ja relatado por quem tentou compor. Pular esta e seguir e melhor
-            // do que uma tela vazia: as outras combinacoes continuam servindo.
-            SDL_Log("CRIACAO: a combinacao \"%s\" nao pode ser composta; nao sera oferecida.",
-                    pronta.id.c_str());
-            continue;
+        const std::string valor = linha.ehCor ? NomeDaCor(*c, e->cor)
+                                              : NomeDaPeca(*c, e->peca);
+
+        if (auto dc = mLinhaAtores[i]->GetComponent<DrawTextComponent>()) {
+            dc->SetText(linha.rotulo + ":  " + (valor.empty() ? "?" : valor));
         }
-
-        auto ator = std::make_unique<Actor>(this);
-        ator->SetPosition(Vector2(largura / 2.0f, altura * kAlturaDaPersonagem));
-        ator->SetScale(kAmpliacao);
-
-        auto dc = ator->AddComponent<DrawAnimatedComponent>(composta.chaveDaTextura,
-                                                            composta.atlas);
-        dc->AddAnimation("Andando", {0, 1, 2, 3});
-        dc->SetAnimation("Andando");
-        dc->SetAnimFPS(6.0f);   // mais devagar que em jogo: aqui e para olhar
-        dc->SetIsVisible(false);
-
-        mPersonagens.push_back(ator.get());
-        AddActor(std::move(ator));
     }
 
-    if (mPersonagens.empty()) {
-        // Sem nenhuma personagem nao ha o que escolher. Dizer isso e melhor do
-        // que uma tela preta: ENTER segue com a aparencia padrao.
-        Texto("Nenhuma personagem disponivel.", altura * kAlturaDaPersonagem, 28, 900);
-        Texto("Confira Assets/personagens.json.", altura * 0.52f, 24, 900);
+    if (mSelecaoAtor && !mLinhas.empty()) {
+        const auto largura = static_cast<float>(mGame->GetWindowWidth());
+        const auto altura  = static_cast<float>(mGame->GetWindowHeight());
+        mSelecaoAtor->SetPosition(Vector2(
+            largura * kListaX,
+            altura * (kPrimeiraLinha + static_cast<float>(mLinhaEmFoco) * kEspacoEntreLinhas)));
     }
-
-    mNomeAtor     = Texto(" ", altura * 0.64f, 34, 900);
-    mContadorAtor = Texto(" ", altura * 0.71f, 24, 400);
-
-    Texto("SETAS  escolher",   altura * 0.81f, 24, 520);
-    Texto("ENTER  confirmar",  altura * 0.87f, 24, 520);
-    Texto("ESC  voltar",       altura * 0.93f, 24, 520);
-
-    Mostrar();
 }
 
-void CriacaoDePersonagem::Mostrar() const {
+void CriacaoDePersonagem::Trocar(const int passo) {
 
-    for (size_t i = 0; i < mPersonagens.size(); ++i) {
-        if (auto dc = mPersonagens[i]->GetComponent<DrawAnimatedComponent>()) {
-            dc->SetIsVisible(static_cast<int>(i) == mEscolhida);
-        }
+    if (mLinhas.empty()) return;
+
+    const Linha& linha = mLinhas[static_cast<size_t>(mLinhaEmFoco)];
+    const Personagens::Categoria* c = Personagens::Carregado().Por(linha.categoria);
+    if (c == nullptr) return;
+
+    Personagens::Escolha e = *mAparencia.Por(linha.categoria);
+
+    // Anda na lista de ids da categoria, dando a volta nas pontas. Somar o
+    // tamanho antes do resto: em C++ o resto de um negativo e negativo.
+    if (linha.ehCor) {
+        const int n = static_cast<int>(c->cores.size());
+        int atual = 0;
+        for (int i = 0; i < n; ++i) if (c->cores[static_cast<size_t>(i)].id == e.cor) atual = i;
+        e.cor = c->cores[static_cast<size_t>((atual + passo + n) % n)].id;
+    }
+    else {
+        const int n = static_cast<int>(c->pecas.size());
+        int atual = 0;
+        for (int i = 0; i < n; ++i) if (c->pecas[static_cast<size_t>(i)].id == e.peca) atual = i;
+        e.peca = c->pecas[static_cast<size_t>((atual + passo + n) % n)].id;
     }
 
-    const auto& prontas = Personagens::Carregado().predefinidas;
-
-    if (mNomeAtor) {
-        if (auto dc = mNomeAtor->GetComponent<DrawTextComponent>()) {
-            const bool temNome = mEscolhida >= 0
-                              && mEscolhida < static_cast<int>(prontas.size());
-            dc->SetText(temNome ? prontas[static_cast<size_t>(mEscolhida)].nome : " ");
-        }
-    }
-
-    if (mContadorAtor) {
-        if (auto dc = mContadorAtor->GetComponent<DrawTextComponent>()) {
-            // Saber quantas faltam evita o aluno ficar batendo na seta sem saber
-            // se ja viu todas.
-            dc->SetText(mPersonagens.empty()
-                            ? " "
-                            : std::to_string(mEscolhida + 1) + " de " +
-                              std::to_string(mPersonagens.size()));
-        }
-    }
+    mAparencia.Definir(linha.categoria, e);
+    Recompor();
+    Redesenhar();
 }
 
 void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
 
-    const int quantas = static_cast<int>(mPersonagens.size());
+    const int quantas = static_cast<int>(mLinhas.size());
 
+    const bool cima     = keyState[SDL_SCANCODE_UP]    || keyState[SDL_SCANCODE_W];
+    const bool baixo    = keyState[SDL_SCANCODE_DOWN]  || keyState[SDL_SCANCODE_S];
     const bool esquerda = keyState[SDL_SCANCODE_LEFT]  || keyState[SDL_SCANCODE_A];
     const bool direita  = keyState[SDL_SCANCODE_RIGHT] || keyState[SDL_SCANCODE_D];
 
     if (quantas > 0) {
-        if (esquerda && !mEsquerdaAnterior) {
-            // Soma quantas antes do resto: em C++ o resto de um negativo e
-            // negativo, e -1 % n nao daria a volta para a ultima.
-            mEscolhida = (mEscolhida - 1 + quantas) % quantas;
-            Mostrar();
+        if (cima && !mCimaAnterior) {
+            mLinhaEmFoco = (mLinhaEmFoco - 1 + quantas) % quantas;
+            Redesenhar();
         }
-        if (direita && !mDireitaAnterior) {
-            mEscolhida = (mEscolhida + 1) % quantas;
-            Mostrar();
+        if (baixo && !mBaixoAnterior) {
+            mLinhaEmFoco = (mLinhaEmFoco + 1) % quantas;
+            Redesenhar();
         }
+        if (esquerda && !mEsquerdaAnterior) Trocar(-1);
+        if (direita && !mDireitaAnterior) Trocar(+1);
     }
+    mCimaAnterior = cima;
+    mBaixoAnterior = baixo;
     mEsquerdaAnterior = esquerda;
     mDireitaAnterior = direita;
 
     const bool confirmar = keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
     if (confirmar && !mConfirmarAnterior) {
         mConfirmarAnterior = true;
-
-        const auto& prontas = Personagens::Carregado().predefinidas;
-        if (mEscolhida >= 0 && mEscolhida < static_cast<int>(prontas.size())) {
-            // Grava na hora: quem acabou de montar a personagem espera
-            // encontra-la ao carregar o perfil, mesmo fechando o jogo agora.
-            mGame->DefinirAparencia(prontas[static_cast<size_t>(mEscolhida)].aparencia);
-        }
-
+        // Grava na hora: quem acabou de montar a personagem espera encontra-la
+        // ao carregar o perfil, mesmo fechando o jogo agora.
+        mGame->DefinirAparencia(mAparencia);
         mGame->RequestSceneChange(SceneType::StageSelect);
         return;
     }
@@ -171,8 +271,8 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
 
     const bool voltar = keyState[SDL_SCANCODE_ESCAPE];
     if (voltar && !mVoltarAnterior) {
-        // Volta para a matricula, e nao para o menu: quem chegou aqui ja digitou
-        // uma matricula e o perfil dela ja existe em disco.
+        // Volta para a matricula. Nada foi gravado ainda, entao a matricula
+        // digitada continua livre para ser usada de novo.
         mGame->RequestSceneChange(SceneType::Identificacao);
         return;
     }
