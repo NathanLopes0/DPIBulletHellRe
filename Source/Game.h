@@ -46,6 +46,23 @@ public:
     class SDL_Texture* LoadTexture(const std::string& texturePath);
 
     /**
+     * @brief A textura guardada sob esta chave, ou nullptr.
+     *
+     * Para texturas que NAO vem de arquivo - a personagem composta e a primeira
+     * delas. A chave nao e um caminho; ver Personagens::ChaveDaAparencia.
+     */
+    [[nodiscard]] class SDL_Texture* TexturaGuardada(const std::string& chave) const;
+
+    /**
+     * @brief Guarda uma textura ja pronta. O Game PASSA A SER DONO dela.
+     *
+     * Entra no mesmo cache das texturas de arquivo de proposito: assim ela e
+     * destruida no mesmo lugar que todas as outras, sem regra de posse nova. Uma
+     * chave ja ocupada e recusada, para nao vazar a textura que estava la.
+     */
+    void GuardarTextura(const std::string& chave, class SDL_Texture* textura);
+
+    /**
      * @brief Devolve (criando na primeira chamada) o xadrez magenta/preto usado
      * como marcador de textura ausente.
      *

@@ -409,3 +409,78 @@ TEST_CASE("Personagens: Padrao de um catalogo vazio nao quebra") {
     CHECK(a.Vazia());
     CHECK(c.Camadas(a).empty());
 }
+
+// ---------------------------------------------------------------- tingimento
+
+TEST_CASE("Personagens: multiplicar por branco nao muda nada") {
+
+    // E a propriedade que faz a peca sair exatamente na cor escolhida: ela e
+    // desenhada com 255 onde a cor deve aparecer cheia.
+    for (int v = 0; v <= 255; ++v) {
+        CHECK(Multiplicar(static_cast<unsigned char>(v), 255) == static_cast<unsigned char>(v));
+    }
+}
+
+TEST_CASE("Personagens: luminancia cheia devolve a cor escolhida") {
+
+    CHECK(Multiplicar(255, 0) == 0);
+    CHECK(Multiplicar(255, 128) == 128);
+    CHECK(Multiplicar(255, 77) == 77);
+}
+
+TEST_CASE("Personagens: multiplicar por preto zera") {
+
+    for (int v = 0; v <= 255; ++v) {
+        CHECK(Multiplicar(static_cast<unsigned char>(v), 0) == 0);
+    }
+}
+
+TEST_CASE("Personagens: o tom medio vira a sombra da cor") {
+
+    // 185 e o tom de sombra usado nas pecas. Sobre um vermelho 200, tem que dar
+    // um vermelho mais escuro, e nao um cinza.
+    CHECK(Multiplicar(185, 200) == 145);
+    CHECK(Multiplicar(185, 0) == 0);
+}
+
+// ---------------------------------------------------------------- chave
+
+TEST_CASE("Personagens: a mesma aparencia da sempre a mesma chave") {
+
+    const Catalogo c = LerCatalogo(CatalogoBasico());
+
+    Aparencia a;
+    a.Definir("cabelo", Escolha{"longo", "loiro"});
+    a.Definir("pele", Escolha{"corpo", "escuro"});
+
+    // A MESMA aparencia montada na ordem inversa. Se a chave dependesse da
+    // ordem de insercao, o cache erraria e cada troca de tela montaria outra
+    // textura igual.
+    Aparencia b;
+    b.Definir("pele", Escolha{"corpo", "escuro"});
+    b.Definir("cabelo", Escolha{"longo", "loiro"});
+
+    CHECK(ChaveDaAparencia(a) == ChaveDaAparencia(b));
+}
+
+TEST_CASE("Personagens: aparencias diferentes dao chaves diferentes") {
+
+    const Catalogo c = LerCatalogo(CatalogoBasico());
+
+    Aparencia a = c.Padrao();
+    Aparencia b = c.Padrao();
+    b.Definir("cabelo", Escolha{"longo", "loiro"});
+
+    CHECK(ChaveDaAparencia(a) != ChaveDaAparencia(b));
+}
+
+TEST_CASE("Personagens: a chave nao se confunde com um caminho de arquivo") {
+
+    const Catalogo c = LerCatalogo(CatalogoBasico());
+    const std::string chave = ChaveDaAparencia(c.Padrao());
+
+    // Ela entra no mesmo cache das texturas de arquivo, entao nao pode parecer
+    // um caminho - senao uma aparencia poderia roubar a textura de um PNG.
+    CHECK(chave.find('<') == 0);
+    CHECK(chave.find(".png") == std::string::npos);
+}

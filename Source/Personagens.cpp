@@ -58,6 +58,24 @@ bool LerCorHex(const std::string& hex, unsigned char& r, unsigned char& g, unsig
     return true;
 }
 
+unsigned char Multiplicar(const unsigned char valor, const unsigned char cor) {
+    // Divide por 255, e nao por 256: com 256 o branco puro (255) devolveria 254
+    // em vez da cor escolhida, e toda peca sairia um tiquinho mais escura do que
+    // a cor que o aluno viu na tela de criacao.
+    return static_cast<unsigned char>((static_cast<int>(valor) * static_cast<int>(cor)) / 255);
+}
+
+std::string ChaveDaAparencia(const Aparencia& aparencia) {
+
+    // O mapa percorre em ordem de chave, entao a mesma aparencia sempre produz
+    // o mesmo texto - e e isso que faz o cache acertar.
+    std::string chave = "<personagem>";
+    for (const auto& par : aparencia.escolhas) {
+        chave += par.first + "=" + par.second.peca + ":" + par.second.cor + "|";
+    }
+    return chave;
+}
+
 const Peca* Categoria::PecaPor(const std::string& id) const {
     for (const auto& p : pecas) if (p.id == id) return &p;
     return nullptr;

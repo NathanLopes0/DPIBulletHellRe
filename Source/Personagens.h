@@ -154,6 +154,29 @@ namespace Personagens {
     /// @brief Se o texto serve como identificador (letras, numeros, - e _).
     bool IdServe(const std::string& id);
 
+    /**
+     * @brief Um canal de cor tingido por outro.
+     *
+     * A conta inteira do tingimento: a peca e desenhada em luminancia, e a cor
+     * escolhida multiplica cada canal. Cinza 255 devolve a cor tal e qual;
+     * cinza 128 devolve metade dela, que e a sombra.
+     *
+     * Vive na camada pura, e nao solta dentro do laco de pixels, porque e a
+     * unica conta que o tingimento tem - e portanto a unica que pode estar
+     * errada sem ninguem ver.
+     */
+    unsigned char Multiplicar(unsigned char valor, unsigned char cor);
+
+    /**
+     * @brief Um nome unico e estavel para uma aparencia.
+     *
+     * Serve de chave do cache de texturas: a mesma aparencia da sempre a mesma
+     * chave, entao compor duas vezes reaproveita a textura em vez de montar
+     * outra igual. Comeca com um prefixo que nenhum caminho de arquivo tem,
+     * para nunca se confundir com um.
+     */
+    std::string ChaveDaAparencia(const Aparencia& aparencia);
+
     /// @brief Le "rrggbb" em componentes. FALSE quando o texto nao serve.
     bool LerCorHex(const std::string& hex, unsigned char& r, unsigned char& g, unsigned char& b);
 }

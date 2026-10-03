@@ -49,6 +49,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Personagens.h
         Source/PersonagensArquivo.cpp
         Source/PersonagensArquivo.h
+        Source/ComporPersonagem.cpp
+        Source/ComporPersonagem.h
         Source/Relogio.cpp
         Source/Relogio.h
         Source/Exportacao.cpp

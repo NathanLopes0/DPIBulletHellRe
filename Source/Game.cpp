@@ -239,6 +239,28 @@ SDL_Texture* Game::GetPlaceholderTexture() {
     return mPlaceholderTexture;
 }
 
+SDL_Texture* Game::TexturaGuardada(const std::string& chave) const {
+    const auto it = mTextureCache.find(chave);
+    return it == mTextureCache.end() ? nullptr : it->second;
+}
+
+void Game::GuardarTextura(const std::string& chave, SDL_Texture* textura) {
+
+    if (textura == nullptr) return;
+
+    // Recusa em vez de sobrescrever: sobrescrevendo, a textura que estava na
+    // chave ficaria sem dono e vazaria ate o jogo fechar. Quem chama confere
+    // com TexturaGuardada antes de montar outra.
+    if (mTextureCache.find(chave) != mTextureCache.end()) {
+        SDL_Log("TEXTURA: a chave \"%s\" ja estava ocupada; a nova foi descartada.",
+                chave.c_str());
+        SDL_DestroyTexture(textura);
+        return;
+    }
+
+    mTextureCache.emplace(chave, textura);
+}
+
 SDL_Texture* Game::LoadTexture(const std::string& texturePath) {
 
     // Se essa imagem ja foi carregada, devolve a MESMA textura.
