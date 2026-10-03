@@ -5,6 +5,8 @@
 #include "SDL.h"
 #include "Battle.h"
 
+#include "../../Progresso.h"
+
 #include <locale>
 #include <sstream>
 #include <iomanip>
@@ -54,8 +56,12 @@ void Battle::Load() {
     // 1. Criar os sistemas primeiro
     mProjectileManager = std::make_unique<ProjectileManager>(this);
 
-    // O piso de 40 vive em Progresso::NotaDeRetomada.
-    mGrade = mGame->GetNotaDeRetomada(mStage);
+    // TODA batalha comeca em 40, mesmo que o aluno ja tenha tirado mais nesta
+    // materia. Antes ela comecava na ultima nota, o que fazia quem tinha ido bem
+    // comecar perto de passar - a fase virava mais facil justamente para quem ja
+    // tinha passado. A ultima nota continua guardada na ficha, como informacao
+    // para o professor; ela so nao e mais o ponto de partida.
+    mGrade = Progresso::kNotaInicial;
 
     // 2. Criar os atores principais
     LoadPlayer();

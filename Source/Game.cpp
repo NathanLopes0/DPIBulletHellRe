@@ -9,6 +9,13 @@
 #include "Font.h"
 #include "Components/DrawComponents/DrawComponent.h"
 #include "Scenes/MainMenu.h"
+#include "FichaArquivo.h"
+#include "MateriasArquivo.h"
+#include "ExportacaoArquivo.h"
+#include "Relogio.h"
+#include "Matricula.h"
+#include "Scenes/Identificacao.h"
+#include "Scenes/Opcoes.h"
 #include "Scenes/StageSelect.h"
 #include "Scenes/Battle/Battle.h"
 #include "Actors/Teachers/BossFactory/AllFactories.h"
@@ -152,9 +159,16 @@ void Game::UpdateGame()
 
     if (mPendingSceneChange)
     {
-        ChangeScene(mNextScene);
+        // O PEDIDO E CONSUMIDO ANTES DA TROCA, e nao depois. ChangeScene chama o
+        // Load() da cena nova, e um Load() pode pedir outra troca - e o que a
+        // Battle faz quando a materia nao tem BossFactory. Limpando depois, esse
+        // pedido era apagado no instante em que era feito, e a fase quebrada
+        // ficava na tela para sempre, com o log dizendo que estava voltando.
+        const Scene::SceneType proxima = mNextScene;
         mPendingSceneChange = false;
         mNextScene = Scene::SceneType::None;
+
+        ChangeScene(proxima);
     }
 
 }
@@ -316,6 +330,12 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
         case Scene::SceneType::MainMenu:
             mScene = std::make_unique<MainMenu>(this);
             break;
+        case Scene::SceneType::Identificacao:
+            mScene = std::make_unique<Identificacao>(this);
+            break;
+        case Scene::SceneType::Opcoes:
+            mScene = std::make_unique<Opcoes>(this);
+            break;
         case Scene::SceneType::StageSelect:
             mScene = std::make_unique<StageSelect>(this);
             break;
@@ -421,3 +441,57 @@ bool Game::IsStageUnlocked(GameSubject subject) {
     return false;
 }
 
+
+// ---------------------------------------------------------------------------
+// Quem esta jogando
+// ---------------------------------------------------------------------------
+
+void Game::RegistrarNota(const GameSubject subject, const float nota) {
+
+    mProgresso.RegistrarNota(static_cast<int>(subject), nota, Relogio::Agora());
+
+    // A ficha vai para o disco AQUI, e nao em quem chama: assim nenhum caminho de
+    // fim de batalha pode esquecer. Visitante nao grava - e o combinado com quem
+    // escolheu nao se identificar.
+    if (!ProgressoEGravado()) return;
+
+    if (FichaArquivo::Gravar(mMatricula, mProgresso, Materias::Carregadas())) {
+        // A planilha do professor e regravada junto, entao ela esta sempre em dia e
+        // ninguem precisa lembrar de exportar. Ela e DERIVADA das fichas: apagar
+        // notas.csv nao perde nada, volta na proxima batalha.
+        Exportacao::Regravar(Materias::Carregadas());
+    }
+    else {
+        // Nao derruba a batalha nem avisa em tela: o aluno acabou de jogar e o que
+        // ele quer e ver a nota. O log diz o que houve para quem for investigar.
+        SDL_Log("GAME: nao consegui gravar a ficha da matricula %s. A nota desta "
+                "batalha vale para esta sessao, mas nao foi para o disco.",
+                mMatricula.c_str());
+    }
+}
+
+void Game::IdentificarAluno(const std::string& matriculaCanonica) {
+
+    mMatricula = matriculaCanonica;
+
+    // SUBSTITUI o progresso inteiro. Carregar por cima do anterior deixaria as
+    // notas do aluno que acabou de sair penduradas na sessao de quem entrou - e
+    // elas iriam para o disco na primeira batalha, no arquivo errado.
+    mProgresso = FichaArquivo::Carregar(mMatricula, Materias::Carregadas());
+
+    SDL_Log("GAME: jogando como a matricula %s (%zu materia(s) com registro).",
+            mMatricula.c_str(), mProgresso.QuantasRegistradas());
+}
+
+void Game::JogarComoVisitante() {
+    mMatricula = Matricula::kVisitante;
+    mProgresso = Progresso();
+    SDL_Log("GAME: jogando sem identificacao. O progresso NAO sera gravado.");
+}
+
+bool Game::ProgressoEGravado() const {
+    // Visitante nao grava. O teste e por Matricula::Validar e nao por comparacao
+    // com o rotulo: assim qualquer valor que nao seja uma matricula de verdade -
+    // inclusive a string vazia do jogo recem-aberto - cai do lado certo.
+    return Matricula::Validar(mMatricula).valida;
+}

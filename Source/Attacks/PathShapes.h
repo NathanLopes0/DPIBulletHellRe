@@ -103,6 +103,53 @@ namespace PathShapes {
 
 
     /**
+     * @brief Quantas folhas tem uma arvore binaria com este numero de divisoes.
+     *
+     * Existe para que ninguem precise lembrar que sao 2 elevado a divisoes: o
+     * arquivo de fases declara quantos projeteis o ataque dispara, e esse numero
+     * TEM de bater com este. Um teste confere.
+     */
+    int FolhasDeArvore(int divisoes);
+
+    /**
+     * @brief O caminho de UMA folha de uma arvore binaria, em espaco de caminho.
+     *
+     * Devolve a rota da raiz ate a folha pedida: desce o tronco, segue um ramo em
+     * cada divisao e termina numa perna longa que leva o projetil para fora da
+     * tela.
+     *
+     * POR QUE ISTO E UMA FUNCAO E NAO UMA LISTA DE PONTOS NO ARQUIVO. Uma arvore
+     * de 3 divisoes tem 8 folhas, e escrever as 8 a mao e escrever 8 vezes a mesma
+     * regra - com a chance de errar um numero numa delas e so descobrir vendo o
+     * ramo torto em jogo. Aqui a arvore e um numero: "divisoes": 3.
+     *
+     * O QUE FAZ PARECER UMA ARVORE e o PREFIXO COMPARTILHADO. Duas folhas irmas
+     * tem exatamente os mesmos pontos ate o pai delas, entao os projeteis saem
+     * sobrepostos, descem juntos e so entao se separam - o jogador ve UM no que
+     * abre em dois, nao dois tiros que por acaso sairam juntos. Por isso cada no
+     * interno fica no PONTO MEDIO dos filhos: e o que alinha os ramos.
+     *
+     * Um projetil nao pode criar outros, entao a bifurcacao e sempre desenhada
+     * por quem sai junto e se separa. Daqui vem a regra pratica: o ataque precisa
+     * disparar exatamente FolhasDeArvore(divisoes) projeteis.
+     *
+     * @param divisoes Quantas vezes a arvore se divide. 3 da 1 -> 2 -> 4 -> 8.
+     * @param folha Qual folha, de 0 a FolhasDeArvore(divisoes)-1. Fora da faixa
+     *        devolve lista vazia, em vez de um caminho errado em silencio.
+     * @param tronco Comprimento do tronco, antes da primeira divisao.
+     * @param passo Avanco entre uma divisao e a seguinte.
+     * @param espacamento Distancia lateral entre folhas vizinhas. A largura total
+     *        da copa e espacamento * (folhas - 1).
+     * @param saida Perna reta final, que tira o projetil da tela.
+     */
+    std::vector<Vector2> ArvoreBinaria(int divisoes, int folha,
+                                       float tronco = 120.f,
+                                       float passo = 90.f,
+                                       float espacamento = 60.f,
+                                       float saida = 560.f);
+
+
+    /**
      * @brief Resultado da leitura de um arquivo de formas.
      *
      * Os problemas vem separados em vez de virarem log aqui dentro: assim a
@@ -111,6 +158,23 @@ namespace PathShapes {
      */
     struct FormasLidas {
         std::map<std::string, std::vector<Vector2>> formas;
+
+        /**
+         * @brief Familias: um nome que vale por VARIAS formas, uma por projetil.
+         *
+         * Existe porque uma arvore de 3 divisoes sao 8 caminhos que so fazem
+         * sentido juntos. Antes isso exigia 8 entradas de forma E 8 regras por
+         * indice, e os dois oitos tinham de bater - trinta linhas para dizer
+         * "divida-se 3 vezes".
+         *
+         * Com familia, o arquivo de formas declara a arvore uma vez e a regra usa
+         * "formaPorIndice": o projetil numero i recebe a forma numero i.
+         *
+         * A ordem IMPORTA e e o contrato: o indice do projetil na rajada e o
+         * indice na familia.
+         */
+        std::map<std::string, std::vector<std::vector<Vector2>>> familias;
+
         std::vector<std::string> problemas;
     };
 
@@ -146,6 +210,18 @@ namespace PathShapes {
      * placeholder de textura.
      */
     Path DoArquivo(const std::string& nome);
+
+    /**
+     * @brief A forma numero 'indice' de uma FAMILIA declarada em formas.json.
+     *
+     * O indice e a posicao do projetil na rajada, entao numa arvore de 3 divisoes
+     * o projetil 0 recebe a folha mais a esquerda e o 7 a mais a direita.
+     *
+     * Familia inexistente devolve uma reta e avisa no log, como DoArquivo. Indice
+     * alem do tamanho reaproveita em ciclo, tambem com aviso: um ramo repetido
+     * estraga menos a leitura do que um tiro reto atravessando a arvore.
+     */
+    Path DaFamilia(const std::string& nome, int indice);
 
     /** @brief Quantas formas distintas estao no cache. So para diagnostico. */
     size_t CachedShapeCount();

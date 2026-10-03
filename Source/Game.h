@@ -94,16 +94,43 @@ public:
     }
     [[nodiscard]] float GetMelhorNota(const int n) const { return mProgresso.MelhorNota(n); }
 
-    /// @brief A nota com que a proxima batalha desta materia comeca.
-    [[nodiscard]] float GetNotaDeRetomada(const GameSubject subject) const {
-        return mProgresso.NotaDeRetomada(static_cast<int>(subject));
+    /// @brief A ultima nota que o jogador tirou nesta materia. NAO e por onde a
+    /// batalha comeca - toda fase parte de Progresso::kNotaInicial.
+    [[nodiscard]] float GetUltimaNota(const GameSubject subject) const {
+        return mProgresso.UltimaNota(static_cast<int>(subject));
     }
 
     /// @brief Registra o resultado de uma batalha: a retomada passa a ser esta
     /// nota, e o recorde so sobe. Chamado UMA vez, ao fim da batalha.
-    void RegistrarNota(const GameSubject subject, const float nota) {
-        mProgresso.RegistrarNota(static_cast<int>(subject), nota);
-    }
+    ///
+    /// E TAMBEM onde a ficha do aluno vai para o disco. Gravar aqui, e nao em quem
+    /// chama, e o que garante que nenhum caminho de fim de batalha esqueca - era
+    /// assim que a nota chegava ao armazenamento por efeito colateral antes de o
+    /// Progresso existir, e nao quero repetir o padrao.
+    void RegistrarNota(GameSubject subject, float nota);
+
+    /**
+     * @brief Passa a jogar como este aluno, carregando a ficha dele do disco.
+     *
+     * A matricula ja deve vir CANONICA (ver Matricula::Validar). Trocar de aluno
+     * substitui o progresso inteiro: as notas do anterior nao podem ficar
+     * penduradas na sessao do seguinte.
+     */
+    void IdentificarAluno(const std::string& matriculaCanonica);
+
+    /**
+     * @brief Passa a jogar sem se identificar.
+     *
+     * O progresso da sessao comeca zerado e NAO e gravado. Quem escolhe isto ve o
+     * aviso na tela antes, nao depois.
+     */
+    void JogarComoVisitante();
+
+    /// @brief A matricula de quem esta jogando, ou Matricula::kVisitante.
+    [[nodiscard]] const std::string& MatriculaAtual() const { return mMatricula; }
+
+    /// @brief Se o progresso desta sessao vai para o disco.
+    [[nodiscard]] bool ProgressoEGravado() const;
 
     // Verifica se uma matéria específica está desbloqueada para jogar
     bool IsStageUnlocked(GameSubject subject);
@@ -150,6 +177,10 @@ private:
 
     /// Recordes e pontos de retomada. Ver Progresso.h.
     Progresso mProgresso;
+
+    /// Quem esta jogando. Comeca como visitante, entao abrir o jogo e sair sem
+    /// passar pela identificacao nunca grava nada por engano.
+    std::string mMatricula;
 
     //Selected Stage, used by Battle on ChangeScene()
     GameSubject mSelectedStage{};

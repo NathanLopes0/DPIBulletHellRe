@@ -8,7 +8,7 @@
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Bosses/Ricardo.h"
-#include "BossProjectileFactory/RicardoProjectile1Factory.h"
+#include "../../../Attacks/ProjeteisDeChefeArquivo.h"
 
 #include "../../../CaminhosArquivo.h"
 
@@ -34,7 +34,13 @@ void RicardoFactory::ConfigureComponents(Boss *boss) {
     const auto collider = boss->AddComponent<CircleColliderComponent>(colliderRadius);
     collider->SetTag(ColliderTag::Boss);
 
-    boss->AddProjectileFactory("Arduino", std::make_unique<RicardoProjectile1Factory>());
+    // Os projeteis vem de Assets/Attacks/projeteis.json, conjunto "ricardo".
+    // Acrescentar um tipo novo a este chefe e uma entrada naquele arquivo - nao
+    // ha mais uma classe de fabrica por projetil.
+    if (!RegistrarProjeteisDeArquivo(boss, "ricardo")) {
+        SDL_Log("ERRO CRITICO: o chefe \"ricardo\" ficou sem projetil. As linhas PROJETEIS: "
+                "acima dizem o motivo.");
+    }
 }
 
 void RicardoFactory::ConfigureAttacksAndFSM(Boss *boss) {

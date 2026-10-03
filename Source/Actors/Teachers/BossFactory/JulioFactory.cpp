@@ -8,7 +8,7 @@
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Bosses/Julio.h"
-#include "BossProjectileFactory/JulioProjectile1Factory.h"
+#include "../../../Attacks/ProjeteisDeChefeArquivo.h"
 
 #include "../../../CaminhosArquivo.h"
 
@@ -37,7 +37,13 @@ void JulioFactory::ConfigureComponents(Boss* boss) {
     // ----- FÁBRICA DE PROJÉTEIS ----- //
     // Um tipo só. Cada tipo registrado custa mais 300 instâncias no
     // pré-aquecimento, então só adicione outro se ele for mesmo diferente.
-    boss->AddProjectileFactory("Dados", std::make_unique<JulioProjectile1Factory>());
+    // Os projeteis vem de Assets/Attacks/projeteis.json, conjunto "julio".
+    // Acrescentar um tipo novo a este chefe e uma entrada naquele arquivo - nao
+    // ha mais uma classe de fabrica por projetil.
+    if (!RegistrarProjeteisDeArquivo(boss, "julio")) {
+        SDL_Log("ERRO CRITICO: o chefe \"julio\" ficou sem projetil. As linhas PROJETEIS: "
+                "acima dizem o motivo.");
+    }
 }
 
 void JulioFactory::ConfigureAttacksAndFSM(Boss* boss) {

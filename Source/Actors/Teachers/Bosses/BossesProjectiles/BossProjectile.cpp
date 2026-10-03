@@ -41,15 +41,19 @@ bool BossProjectile::IsOffScreen() const
         const auto spriteWidth = static_cast<float>(drawComp->GetSpriteWidth());
         const auto spriteHeight = static_cast<float>(drawComp->GetSpriteHeight());
 
-        // "Zona de buffer"
-        const float hBuffer = windowWidth / 12.0f;
-        const float vBuffer = windowHeight / 12.0f;
+        // "Zona de buffer". Os dois numeros vem de DefinirMargemDeSaida e tem como
+        // padrao a regra geral de sempre (1 sprite + um doze avos da tela).
+        const float hBuffer = (mMargemDivisorDeTela > 0.0f) ? windowWidth / mMargemDivisorDeTela : 0.0f;
+        const float vBuffer = (mMargemDivisorDeTela > 0.0f) ? windowHeight / mMargemDivisorDeTela : 0.0f;
+
+        const float hFolga = spriteWidth * mMargemEmSprites + hBuffer;
+        const float vFolga = spriteHeight * mMargemEmSprites + vBuffer;
 
         // Retorna 'true' se estiver FORA dos limites.
-        return pos.x < -spriteWidth - hBuffer ||
-               pos.x > windowWidth + spriteWidth + hBuffer ||
-               pos.y < -spriteHeight - vBuffer ||
-               pos.y > windowHeight + spriteHeight + vBuffer;
+        return pos.x < -hFolga ||
+               pos.x > windowWidth + hFolga ||
+               pos.y < -vFolga ||
+               pos.y > windowHeight + vFolga;
     }
 
     // Failsafe se não houver componente de desenho
@@ -107,4 +111,11 @@ Vector2 BossProjectile::GetPlayerDirection() const {
     direction.Normalize();
 
     return direction;
+}
+
+void BossProjectile::DefinirMargemDeSaida(const float emSprites, const float divisorDeTela) {
+    // Nao valida: quem chama e a fabrica, e o leitor de projeteis.json ja recusou
+    // valores sem sentido antes de chegar aqui.
+    mMargemEmSprites = emSprites;
+    mMargemDivisorDeTela = divisorDeTela;
 }

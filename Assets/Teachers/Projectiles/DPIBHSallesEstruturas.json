@@ -1,0 +1,84 @@
+{
+  "frames": [
+    {
+      "filename": "ListaSimples 0.placeholder",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      }
+    },
+    {
+      "filename": "ListaSimples 1.placeholder",
+      "frame": {
+        "x": 32,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      }
+    },
+    {
+      "filename": "ListaSimples 2.placeholder",
+      "frame": {
+        "x": 64,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      }
+    },
+    {
+      "filename": "ListaSimples 3.placeholder",
+      "frame": {
+        "x": 96,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      }
+    },
+    {
+      "filename": "Arvore 0.placeholder",
+      "frame": {
+        "x": 0,
+        "y": 32,
+        "w": 32,
+        "h": 32
+      }
+    },
+    {
+      "filename": "Arvore 1.placeholder",
+      "frame": {
+        "x": 32,
+        "y": 32,
+        "w": 32,
+        "h": 32
+      }
+    },
+    {
+      "filename": "Arvore 2.placeholder",
+      "frame": {
+        "x": 64,
+        "y": 32,
+        "w": 32,
+        "h": 32
+      }
+    },
+    {
+      "filename": "Arvore 3.placeholder",
+      "frame": {
+        "x": 96,
+        "y": 32,
+        "w": 32,
+        "h": 32
+      }
+    }
+  ],
+  "meta": {
+    "app": "placeholder",
+    "size": {
+      "w": 128,
+      "h": 64
+    },
+    "scale": "1"
+  }
+}

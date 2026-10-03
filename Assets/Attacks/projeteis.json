@@ -1,0 +1,174 @@
+{
+  // ==========================================================================
+  // TIPOS DE PROJETIL
+  //
+  // Um conjunto por chefe, igual a fases.json. Dentro de cada um, o NOME que o
+  // campo "projetil" de um ataque usa -> como aquele projetil e montado.
+  //
+  // Este arquivo substituiu SEIS fabricas em C++ que eram a mesma classe copiada
+  // seis vezes: pool, Acquire, Release e Prewarm identicos, cerca de cem linhas
+  // cada, diferindo apenas nos campos que estao aqui embaixo. Cada copia era uma
+  // chance de esquecer uma linha, e tres esqueceram - uma nao escolhia animacao
+  // inicial (projetil do Prewarm era desenhado sem animacao), uma apontava para
+  // um .json que nao existe, e duas declaravam membros que SOMBREAVAM os da
+  // classe base. Acrescentar um projetil a um chefe agora e uma entrada aqui.
+  //
+  // CAMPOS
+  //   sprite, dados     caminhos relativos a Assets/. O "dados" e o atlas que
+  //                     diz onde cada quadro esta na folha.
+  //   animacoes         nome -> lista de INDICES de quadro do atlas, na ordem em
+  //                     que tocam. Quem escolhe qual animacao usar em cada fase e
+  //                     o chefe (Boss::OnProjectilesCreated) ou uma regra de
+  //                     regras.json com "animacao".
+  //   animacaoInicial   a que o projetil mostra ao nascer. Se omitida, a
+  //                     primeira da lista. NUNCA fica vazia de proposito: um
+  //                     projetil criado pelo Prewarm vai direto para o pool e
+  //                     pode ser desenhado antes de qualquer ataque escolher.
+  //   escala            multiplica o sprite E O RAIO DO COLISOR. Mexer aqui mexe
+  //                     na hitbox, nao so na aparencia.
+  //   colisorDimensao   "largura" ou "altura": qual medida do sprite vira raio.
+  //   colisorDivisor    o raio e dimensao/divisor.
+  //   ordemDeDesenho    camada do desenho (padrao da classe e 100).
+  //   posicionarNoDono  se o projetil nasce na posicao do chefe. Na pratica toda
+  //                     strategy chama SetPosition logo depois, entao isto quase
+  //                     nunca aparece - mas e comportamento existente.
+  //   margemEmSprites   quanta folga alem da borda da tela antes de morrer, em
+  //   margemDivisorDeTela  multiplos do sprite mais tela/divisor (divisor 0 = so
+  //                     a parcela do sprite). Os padroes 1 e 12 sao a regra geral.
+  //
+  // O que impede um erro de digitacao aqui de chegar ao jogo e
+  // tests/test_arquivos_de_dados.cpp: ele le este arquivo junto com fases.json E
+  // com os atlas de verdade, e quebra a suite se um ataque pedir um projetil que
+  // nao existe ou se uma animacao citar um quadro que a folha nao tem.
+  // ==========================================================================
+
+  "salles": {
+
+    // Dois quadros: capivara marrom e capivara vermelha. A troca para "Homing"
+    // e feita pelo configurator do ataque, logo depois do Acquire.
+    "Capivara": {
+      "sprite": "Teachers/Projectiles/DPIBHSallesCapivara.png",
+      "dados":  "Teachers/Projectiles/DPIBHSallesCapivara.json",
+      "animacoes": {
+        "Normal": [0],
+        "Homing": [1]
+      },
+      "animacaoInicial": "Normal",
+      "ordemDeDesenho": 90
+    },
+
+    // As duas estruturas das fases 1 e 3. Mesma folha, duas animacoes, porque o
+    // que muda entre uma lista e uma arvore e a SILHUETA e a COR - um projetil
+    // atravessa a tela em pouco mais de um segundo e nao da tempo de ver
+    // detalhe. A lista e uma caixa ambar com UM espeto a direita (o ponteiro
+    // next, assimetrico: "esta indo para la"); a arvore e um no verde com DOIS
+    // filhos abaixo (a bifurcacao, simetrica).
+    //
+    // ARTE PROVISORIA, desenhada por programa - o gerador esta ao lado da folha,
+    // em gerar_DPIBHSallesEstruturas.py. Mesmo caso dos dados do Julio: serve
+    // para jogar e balancear, e sai quando houver arte de verdade. Trocar o .png
+    // e o .json pelos definitivos nao exige mexer em codigo nenhum.
+    "Estruturas": {
+      "sprite": "Teachers/Projectiles/DPIBHSallesEstruturas.png",
+      "dados":  "Teachers/Projectiles/DPIBHSallesEstruturas.json",
+      "animacoes": {
+        "ListaSimples": [0, 1, 2, 3],
+        "Arvore":       [4, 5, 6, 7]
+      },
+      "animacaoInicial": "ListaSimples",
+      "ordemDeDesenho": 90
+    },
+
+    // O no de lista duplamente encadeada, com os campos PREV e NEXT desenhados.
+    // A arte ja existia no projeto e a fabrica dela tambem, mas nunca tinha sido
+    // registrada em chefe nenhum - nenhum ataque podia pedi-la. A fase 2 e a
+    // primeira a usar.
+    //
+    // O colisor vem da ALTURA: o no e bem mais largo que alto (os dois campos de
+    // ponteiro ficam lado a lado), e usar a largura daria uma hitbox redonda bem
+    // maior que o desenho.
+    "Duplamente": {
+      "sprite": "Teachers/Projectiles/DPIBHSallesDuplamente.png",
+      "dados":  "Teachers/Projectiles/DPIBHSallesDuplamente.json",
+      "animacoes": {
+        "Normal": [0, 1, 2, 3, 4, 5, 6, 7, 8]
+      },
+      "escala": 0.75,
+      "colisorDimensao": "altura",
+      "ordemDeDesenho": 90,
+      "posicionarNoDono": false
+    }
+  },
+
+  "ricardo": {
+
+    // Sprite de 16x16 desenhada em 32x32, dai a escala 2.
+    "Arduino": {
+      "sprite": "Teachers/Projectiles/DPIBHRicardoProjectile.png",
+      "dados":  "Teachers/Projectiles/DPIBHRicardoProjectile.json",
+      "animacoes": {
+        "Normal": [0]
+      },
+      "escala": 2,
+      "ordemDeDesenho": 90
+    }
+  },
+
+  "julio": {
+
+    // Uma animacao por fase da luta, e quem escolhe qual usar e
+    // Julio::OnProjectilesCreated conforme o estado da FSM que disparou.
+    // Sprite de 16x16 desenhada em 32x32.
+    "Dados": {
+      "sprite": "Teachers/Projectiles/DPIBHJulioDado.png",
+      "dados":  "Teachers/Projectiles/DPIBHJulioDado.json",
+      "animacoes": {
+        "Coleta":      [0, 1, 2, 3],
+        "Perseguicao": [4, 5, 6, 7],
+        "Previsao":    [8, 9, 10, 11]
+      },
+      "animacaoInicial": "Coleta",
+      "escala": 2,
+      "ordemDeDesenho": 90
+    }
+  },
+
+  "andre": {
+
+    // A folha tem 24 quadros e as animacoes comecam no 6: os seis primeiros sao
+    // de uma versao antiga do balao e nenhuma animacao os usa. Ficam na folha
+    // porque remove-los renumeraria todos os outros.
+    //
+    // O divisor 4 e de proposito: a hitbox fica MENOR que o desenho, porque o
+    // balao e grande e uma hitbox do tamanho dele seria injusta.
+    "Baloes": {
+      "sprite": "Teachers/Projectiles/DPIBHAndreBaloon.png",
+      "dados":  "Teachers/Projectiles/DPIBHAndreBaloon.json",
+      "animacoes": {
+        "Red":    [6, 7, 8, 9, 10, 11],
+        "Blue":   [12, 13, 14, 15, 16, 17],
+        "Yellow": [18, 19, 20, 21, 22, 23]
+      },
+      "animacaoInicial": "Red",
+      "escala": 2,
+      "colisorDivisor": 4,
+      "ordemDeDesenho": 90,
+      "posicionarNoDono": false,
+
+      // Estes dois numeros eram, sozinhos, o motivo de existir uma subclasse de
+      // projetil so para os baloes: eles morrem com a folga de DOIS sprites e
+      // nenhuma parcela de tela, enquanto a regra geral e um sprite mais um doze
+      // avos da tela. Para um sprite de 32 numa tela de 1200, o balao morre em
+      // -64 e os outros em -132, ou seja, o balao some mais cedo.
+      "margemEmSprites": 2,
+      "margemDivisorDeTela": 0
+    }
+
+    // NAO ESTA AQUI, e de proposito: o projetil de GRAFOS
+    // (Teachers/Projectiles/DPIBHAndreGraph.png, 3 quadros - Graph1, Graph2,
+    // Graph3, escala 2, largura/2, ordem de desenho 100). A fabrica dele existia
+    // em C++ mas nunca foi registrada em chefe nenhum, entao nenhum ataque podia
+    // pedi-la. A arte continua na pasta; para usa-la, basta copiar o bloco dos
+    // baloes, trocar os caminhos e as animacoes, e citar o nome em fases.json.
+  }
+}

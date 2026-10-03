@@ -34,8 +34,31 @@ public:
 
     Vector2 GetPlayerDirection() const;
 
+    /**
+     * @brief Define a folga que o projetil tem para alem da borda antes de morrer.
+     *
+     * A margem e: tamanho do sprite * emSprites + tamanho da tela / divisorDeTela.
+     * Passar 0 em divisorDeTela remove a parcela proporcional a tela.
+     *
+     * Os dois numeros existem porque os projeteis do jogo usavam DUAS regras
+     * diferentes. A geral era 1 sprite + um doze avos da tela; os baloes do Andre
+     * tinham uma subclasse propria so para usar 2 sprites e nenhuma parcela de
+     * tela, o que os faz morrer MAIS CEDO (para um sprite de 32, o balao morre em
+     * -64 e os outros em -132).
+     *
+     * Parametrizar em vez de manter a subclasse: a diferenca e de numero, nao de
+     * comportamento, e era o ultimo motivo para existir uma classe de projetil por
+     * professor.
+     */
+    void DefinirMargemDeSaida(float emSprites, float divisorDeTela);
+
 protected:
     // Implementação obrigatória do contrato da classe base.
     [[nodiscard]] bool virtual IsOffScreen() const override;
+
+    /// Ver DefinirMargemDeSaida. Os padroes sao a regra geral, entao um projetil
+    /// que nunca chama o metodo se comporta como antes desta mudanca.
+    float mMargemEmSprites = 1.0f;
+    float mMargemDivisorDeTela = 12.0f;
 
 };

@@ -238,6 +238,16 @@ void PathBehavior::update(Projectile* p, float deltaTime) {
         started = true;
     }
 
+    // PARADA EM CURSO: o projetil fica onde esta, visivel e com colisor ligado.
+    // Nao avanca waypoint e nao redireciona - sair daqui e so deixar o contador
+    // chegar a zero, e no quadro seguinte o teste de chegada roda de novo, agora
+    // com paradaFeita marcada.
+    if (paradaRestante > 0.0f) {
+        paradaRestante -= deltaTime;
+        rb->SetVelocity(Vector2::Zero);
+        return;
+    }
+
     // Waypoint atual, convertido de espaco de caminho para espaco de mundo.
     const Vector2& wp = (*waypoints)[current];
     const Vector2 target(origin.x + wp.x * cosR - wp.y * sinR,
@@ -255,6 +265,17 @@ void PathBehavior::update(Projectile* p, float deltaTime) {
     if (tolerance < 2.0f) tolerance = 2.0f;
 
     if (distance <= tolerance) {
+
+        // Chegou no ponto de parada: segura AQUI, sem avancar o waypoint. O
+        // avanco acontece quando este mesmo teste rodar de novo com paradaFeita
+        // marcada, depois que o contador zerar.
+        if (!paradaFeita && pararPor > 0.0f && static_cast<int>(current) == pararNoPonto) {
+            paradaFeita    = true;
+            paradaRestante = pararPor;
+            rb->SetVelocity(Vector2::Zero);
+            return;
+        }
+
         ++current;
 
         if (current >= waypoints->size()) {

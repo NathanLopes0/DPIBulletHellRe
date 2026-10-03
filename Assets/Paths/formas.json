@@ -36,57 +36,103 @@
     "pontos": [[80, 0], [150, 30], [190, 90], [170, 160], [110, 200], [900, 200]]
   },
 
-  // ----- Salles, fase 1 -----
-  // Quinas exatas e legiveis: o jogador ve o padrao e consegue se posicionar.
-  // Diferente do WobbleBehavior, aqui as dobras sao previsiveis.
+  // ==========================================================================
+  // SALLES - INF 213 (Estruturas de Dados)
+  //
+  // As formas deste chefe aludem a topicos da disciplina. Isso muda o criterio de
+  // desenho: nao basta a trajetoria ser dificil, ela precisa ser RECONHECIVEL
+  // como a estrutura. Uma lista tem de parecer uma fila de nos ligados, uma
+  // arvore tem de bifurcar.
+  //
+  // A fase 1 (lista encadeada simples) nao aparece aqui de proposito: ela nao usa
+  // forma nenhuma. O escalonamento da WaveAttack - cada no desperta um instante
+  // depois do anterior, todos na mesma direcao - JA desenha a fila. Era a peca
+  // que faltava perceber: a travessia da lista nao e um caminho, e o ATRASO entre
+  // os nos.
+  // ==========================================================================
 
+  // ----- Fase 2: a ida e a volta da lista duplamente encadeada -----
+  // DOIS pontos so, e e tudo que a fase precisa: vai 300px, PARA, e volta 900px
+  // exatamente por onde veio. A parada nao esta aqui - ela e da regra
+  // ("pararNoPonto": 0, "pararPor": 0.8), porque e tempo e nao geometria.
+  //
+  // A volta e em -X, ou seja, 180 graus exatos: a fila refaz o proprio rastro em
+  // vez de desviar para o lado. Era a diferenca que importava - uma volta
+  // deslocada parece um desvio, uma volta pelo mesmo caminho parece o ponteiro
+  // prev sendo seguido.
+  //
+  // 300px de ida porque cada no percorre o caminho A PARTIR DE ONDE JA ESTAVA
+  // quando o caminho ativou: o no da frente ja andou 332px nos 0,85s anteriores,
+  // entao ele para a 632px do chefe. No pior angulo (90 graus, reto para baixo)
+  // isso o deixa em y=765 - logo depois do jogador e ainda inteiro dentro da tela
+  // de 800. Aumentar muito faz a fila parar FORA da tela, e uma parada que
+  // ninguem ve nao serve para nada.
+  //
+  // Os 900px de volta levam o no para fora pela borda de cima. Nem precisariam
+  // ser tantos: quando o caminho acaba o projetil segue reto com a velocidade que
+  // tinha, entao a saida da tela aconteceria de todo jeito.
+  "IdaEVolta": {
+    "pontos": [[300, 0], [-900, 0]]
+  },
 
+  // ----- Fase 3: a arvore binaria -----
+  // UMA FAMILIA, nao uma forma. "divisoes": 3 quer dizer 1 -> 2 -> 4 -> 8, e o
+  // leitor gera as oito folhas. Antes isto eram quatro listas de pontos escritas
+  // a mao mais quatro regras por indice: trinta linhas para dizer um numero, e
+  // dois quatros que tinham de bater.
+  //
+  // Mudar a profundidade da arvore agora e mudar "divisoes" aqui e "projeteis" em
+  // fases.json. Um teste confere que os dois batem, entao nao da para esquecer
+  // metade.
+  //
+  // O que faz parecer uma arvore e o PREFIXO COMPARTILHADO: folhas irmas tem os
+  // mesmos pontos ate o pai, entao os projeteis saem sobrepostos, descem juntos e
+  // so entao se separam. O jogador ve UM no que abre em dois, e nao oito tiros
+  // que por acaso sairam juntos. Cada no interno fica no ponto medio dos filhos,
+  // que e o que alinha os ramos.
+  //
+  // A arvore tem de ser varios projeteis porque um projetil nao pode criar
+  // outros: a bifurcacao e desenhada por quem sai junto e se separa, nao por quem
+  // se multiplica.
+  //
+  // O tronco cresce em +X, que e a direcao de voo, e os ramos abrem em +-Y, a
+  // perpendicular. Por isso a arvore se forma no sentido do tiro em qualquer
+  // angulo que o Salles sorteie - uma arvore girada continua lida como arvore,
+  // uma com o tronco torto nao.
+  //
+  //   divisoes     quantas vezes se divide (3 = oito folhas)
+  //   tronco       quanto desce antes da primeira divisao
+  //   passo        avanco entre uma divisao e a seguinte
+  //   espacamento  distancia lateral entre folhas vizinhas
+  //   saida        perna reta final, que tira o projetil da tela
+  "ArvoreDeBusca": {
+    "arvore": { "divisoes": 4, "tronco": 120, "passo": 90, "espacamento": 60, "saida": 560 }
+  },
+
+  // ----- Fase final: a lista circular -----
+  // Raio pequeno e muitos segmentos: a volta precisa ser LENTA para ser lida. Um
+  // laco rapido vira um borrao, e a piada da fase - a lista que volta ao inicio -
+  // depende de o jogador VER a capivara fechar o circulo.
+  "LacoLento": {
+    "gerador": { "tipo": "Loop", "a": 80, "b": 500, "n": 12 }
+  },
+
+  // ----- Formas sem uso hoje, mantidas como vocabulario -----
+  // Eram do desenho anterior do Salles, que o redesenho por Estruturas de Dados
+  // substituiu. Ficam porque sao geometrias distintas e testadas, e os nomes
+  // descrevem a GEOMETRIA e nao o chefe: servem a qualquer professor amanha. As
+  // variacoes so de parametro das que ficaram (arco largo, arco medio, zigue
+  // curto, laco rapido) sairam - essas sim eram repeticao.
   "ZigueQuinado": {
     "gerador": { "tipo": "Zigzag", "a": 85, "b": 50, "n": 6 }
   },
-
-  // ----- Salles, fase 2 -----
-  // O par existe para ALTERNAR o lado entre projeteis vizinhos (pares recebem
-  // um, impares o outro): as barrigas se cruzam no meio do voo, e o cruzamento
-  // e o que faz a fase parecer diferente da fase 1.
+  // O par existe para ALTERNAR o lado entre projeteis vizinhos (pares recebem um,
+  // impares o outro): as barrigas se cruzam no meio do voo.
   "ArcoDireita": {
     "gerador": { "tipo": "Arc", "a": 500, "b": 110, "n": 10 }
   },
   "ArcoEsquerda": {
     "gerador": { "tipo": "Arc", "a": 500, "b": -110, "n": 10 }
-  },
-
-  // ----- Salles, fase 3 -----
-  // Uma forma escrita, seis lacos girados: o alinhamento automatico do caminho
-  // gira o mesmo laco para a direcao de cada projetil do leque.
-
-
-  "LacoRapido": {
-    "gerador": { "tipo": "Loop", "a": 90, "b": 400, "n": 6 }
-  },
-
-  // ----- Salles, fase final -----
-  // Mesma ideia do par da fase 2, com a barriga mais larga.
-  "ArcoLargoDireita": {
-    "gerador": { "tipo": "Arc", "a": 540, "b": 135, "n": 10 }
-  },
-  "ArcoLargoEsquerda": {
-    "gerador": { "tipo": "Arc", "a": 540, "b": -135, "n": 10 }
-  },
-
-  // As tres formas do segundo ataque da fase final, uma por projetil do leque
-  // de tres. Raio pequeno e muitos segmentos: a volta precisa ser LENTA para
-  // ser lida - um laco rapido vira um borrao e perde a graca.
-
-
-  "LacoLento": {
-    "gerador": { "tipo": "Loop", "a": 80, "b": 500, "n": 12 }
-  },
-  "ArcoMedio": {
-    "gerador": { "tipo": "Arc", "a": 480, "b": 115, "n": 10 }
-  },
-  "ZigueCurto": {
-    "gerador": { "tipo": "Zigzag", "a": 80, "b": 45, "n": 6 }
   },
 
   // ----- Julio, fase final -----

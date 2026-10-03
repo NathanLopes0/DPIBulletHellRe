@@ -35,11 +35,24 @@ struct DescricaoDeBehavior {
     std::string tipo;               ///< "Path", "Tracking", "SlowDown", ...
 
     std::string forma;              ///< Path: nome da forma (codigo ou arquivo)
+
+    /// Path: nome de uma FAMILIA de formas. O projetil numero i da rajada recebe
+    /// a forma numero i da familia - e o que permite "divida-se 3 vezes" em vez
+    /// de oito formas e oito regras por indice.
+    ///
+    /// Exclusivo com "forma": uma motion usa um ou outro, nunca os dois.
+    std::string formaPorIndice;
     std::string mira;               ///< Path: AlinharComVelocidade | MirarNoJogador | MirarPrevendo
     float parametroDaMira = 0.0f;   ///< Path: segundos de antecipacao, para MirarPrevendo
 
     float velocidade = 0.0f;        ///< Path
     float atraso = 0.0f;            ///< todos
+
+    /// Path: para QUANTO tempo ao chegar em QUAL ponto do caminho.
+    /// pararNoPonto = -1 significa "nunca para", que e o comportamento de todo
+    /// caminho escrito antes desta opcao existir.
+    int   pararNoPonto = -1;        ///< Path: indice do waypoint
+    float pararPor = 0.0f;          ///< Path: segundos parado
     float forca = 0.0f;             ///< Tracking
     float duracao = 0.0f;           ///< Tracking, Wobble
     float amplitude = 0.0f;         ///< Wobble: graus

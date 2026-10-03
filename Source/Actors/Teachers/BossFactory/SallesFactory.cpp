@@ -1,14 +1,14 @@
 
 #include "SallesFactory.h"
 #include "../../Teachers/Bosses/Salles.h"
-#include "../../../Actors/Teachers/BossFactory/BossProjectileFactory/SallesProjectile1Factory.h"
 #include "../../../Attacks/FasesDeAtaqueArquivo.h"
+#include "../../../Attacks/ProjeteisDeChefeArquivo.h"
 
 #include "../../../CaminhosArquivo.h"
 
-// O conjunto de fases deste chefe esta em Assets/Attacks/fases.json, sob "salles",
-// e e la que o modo de teste do pathing esta documentado - inclusive como voltar
-// ao comportamento anterior. Este arquivo so monta os componentes e pede as fases.
+// Este arquivo so monta os componentes do chefe. As fases dele estao em
+// Assets/Attacks/fases.json sob "salles", e os tipos de projetil em
+// Assets/Attacks/projeteis.json, no conjunto de mesmo nome.
 
 
 SallesFactory::SallesFactory(Game* game)
@@ -34,8 +34,13 @@ void SallesFactory::ConfigureComponents(Boss* boss) {
     auto collider = boss->AddComponent<CircleColliderComponent>(colliderRadius);
     collider->SetTag(ColliderTag::Boss);
 
-    boss->AddProjectileFactory("Capivara",std::make_unique<SallesProjectile1Factory>());
-
+    // Os projeteis vem de Assets/Attacks/projeteis.json, conjunto "salles".
+    // Acrescentar um tipo novo a este chefe e uma entrada naquele arquivo - nao
+    // ha mais uma classe de fabrica por projetil.
+    if (!RegistrarProjeteisDeArquivo(boss, "salles")) {
+        SDL_Log("ERRO CRITICO: o chefe \"salles\" ficou sem projetil. As linhas PROJETEIS: "
+                "acima dizem o motivo.");
+    }
 }
 
 
