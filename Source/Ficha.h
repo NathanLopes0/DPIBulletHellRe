@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Materias.h"
+#include "Personagens.h"
 #include "Progresso.h"
 
 /**
@@ -34,11 +35,22 @@ namespace Ficha {
     /// atual de materias.json.
     /// A 3 acrescenta "quando": a data da ultima vez que o aluno jogou aquela
     /// materia. O campo e opcional, entao um save da 2 abre sem conversao nenhuma.
-    inline constexpr int kVersaoAtual = 3;
+    /// A 4 acrescenta "aparencia": as escolhas de pele, cabelo, camisa e calca.
+    /// Tambem opcional - um save da 3 abre e cai na aparencia padrao.
+    inline constexpr int kVersaoAtual = 4;
 
     struct Dados {
         std::string matricula;   ///< a forma CANONICA, ver Matricula.h
         Progresso progresso;
+
+        /// As escolhas de aparencia, COMO ESTAVAM NO ARQUIVO.
+        ///
+        /// Nao sao conferidas contra o catalogo aqui, de proposito: esta camada
+        /// transforma texto em dado e nada mais. Uma peca que saiu do catalogo e
+        /// tratada por Personagens::Catalogo::Resolver, na hora de compor - que
+        /// e onde o catalogo existe. Assim a ficha nao precisa recebe-lo, e
+        /// trocar o catalogo nao invalida save nenhum.
+        Personagens::Aparencia aparencia;
     };
 
     struct Lida {

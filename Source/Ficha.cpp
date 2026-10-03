@@ -39,6 +39,26 @@ std::string Serializar(const Dados& dados, const Materias::Lista& materias) {
     s << "{\n";
     s << "  \"versao\": " << kVersaoAtual << ",\n";
     s << "  \"matricula\": \"" << dados.matricula << "\",\n";
+
+    // So escreve a aparencia quando ha uma. Um aluno sem aparencia escolhida -
+    // um save da versao 3, ou um visitante - nao ganha um objeto vazio no
+    // arquivo, que nao diria nada que a ausencia ja nao diga.
+    //
+    // As escolhas saem em ordem de categoria porque Aparencia guarda num mapa:
+    // o mesmo estado produz sempre o mesmo texto, e dois saves dao para comparar
+    // num diff.
+    if (!dados.aparencia.Vazia()) {
+        s << "  \"aparencia\": {";
+        bool primeiraEscolha = true;
+        for (const auto& par : dados.aparencia.escolhas) {
+            s << (primeiraEscolha ? "\n" : ",\n");
+            primeiraEscolha = false;
+            s << "    \"" << par.first << "\": { \"peca\": \"" << par.second.peca
+              << "\", \"cor\": \"" << par.second.cor << "\" }";
+        }
+        s << "\n  },\n";
+    }
+
     s << "  \"materias\": [";
 
     // Entradas() ja devolve em ordem de materia, entao o mesmo estado produz
@@ -113,6 +133,39 @@ Lida Desserializar(const std::string& texto, const Materias::Lista& materias) {
     }
 
     saida.dados.matricula = raiz["matricula"].get<std::string>();
+
+    // ----- aparencia -----
+    //
+    // OPCIONAL: as versoes ate a 3 nao tinham o campo, e um save delas abre sem
+    // conversao nenhuma - a aparencia fica vazia e cai na padrao na hora de
+    // compor. Os IDS NAO SAO CONFERIDOS contra o catalogo aqui; ver o comentario
+    // em Ficha::Dados.
+    if (raiz.contains("aparencia")) {
+        if (!raiz["aparencia"].is_object()) {
+            saida.problemas.emplace_back("\"aparencia\" deveria ser um objeto; foi ignorada");
+        }
+        else {
+            for (auto it = raiz["aparencia"].begin(); it != raiz["aparencia"].end(); ++it) {
+
+                if (!it.value().is_object()) {
+                    saida.problemas.emplace_back("a aparencia de \"" + it.key() +
+                                                 "\" nao e um objeto; descartada");
+                    continue;
+                }
+                if (!it.value().contains("peca") || !it.value()["peca"].is_string()
+                    || !it.value().contains("cor") || !it.value()["cor"].is_string()) {
+                    saida.problemas.emplace_back("a aparencia de \"" + it.key() +
+                                                 "\" precisa de \"peca\" e \"cor\" em texto;"
+                                                 " descartada");
+                    continue;
+                }
+
+                saida.dados.aparencia.Definir(
+                    it.key(), Personagens::Escolha{it.value()["peca"].get<std::string>(),
+                                                   it.value()["cor"].get<std::string>()});
+            }
+        }
+    }
 
     // Sem lista de materias e um aluno que se identificou e ainda nao jogou - e
     // uma ficha legitima, nao um erro.

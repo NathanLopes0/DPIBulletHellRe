@@ -477,7 +477,7 @@ void Game::RegistrarNota(const GameSubject subject, const float nota) {
     // escolheu nao se identificar.
     if (!ProgressoEGravado()) return;
 
-    if (FichaArquivo::Gravar(mMatricula, mProgresso, Materias::Carregadas())) {
+    if (GravarFicha()) {
         // A planilha do professor e regravada junto, entao ela esta sempre em dia e
         // ninguem precisa lembrar de exportar. Ela e DERIVADA das fichas: apagar
         // notas.csv nao perde nada, volta na proxima batalha.
@@ -492,22 +492,53 @@ void Game::RegistrarNota(const GameSubject subject, const float nota) {
     }
 }
 
+bool Game::GravarFicha() {
+
+    // UM SO LUGAR monta a ficha a partir do estado da sessao. Com a aparencia
+    // entrando no arquivo, gravar passou a ter dois campos para lembrar; dois
+    // pontos de gravacao viravam duas chances de esquecer um deles.
+    Ficha::Dados dados;
+    dados.matricula = mMatricula;
+    dados.progresso = mProgresso;
+    dados.aparencia = mAparencia;
+
+    return FichaArquivo::Gravar(dados, Materias::Carregadas());
+}
+
 void Game::IdentificarAluno(const std::string& matriculaCanonica) {
 
     mMatricula = matriculaCanonica;
 
-    // SUBSTITUI o progresso inteiro. Carregar por cima do anterior deixaria as
+    // SUBSTITUI progresso E aparencia. Carregar por cima do anterior deixaria as
     // notas do aluno que acabou de sair penduradas na sessao de quem entrou - e
-    // elas iriam para o disco na primeira batalha, no arquivo errado.
-    mProgresso = FichaArquivo::Carregar(mMatricula, Materias::Carregadas());
+    // elas iriam para o disco na primeira batalha, no arquivo errado. Com a
+    // aparencia o estrago seria menos grave e igualmente confuso: o aluno novo
+    // entraria com a cara do anterior.
+    const Ficha::Dados ficha = FichaArquivo::Carregar(mMatricula, Materias::Carregadas());
+    mProgresso = ficha.progresso;
+    mAparencia = ficha.aparencia;
 
-    SDL_Log("GAME: jogando como a matricula %s (%zu materia(s) com registro).",
-            mMatricula.c_str(), mProgresso.QuantasRegistradas());
+    SDL_Log("GAME: jogando como a matricula %s (%zu materia(s) com registro, aparencia %s).",
+            mMatricula.c_str(), mProgresso.QuantasRegistradas(),
+            mAparencia.Vazia() ? "padrao" : "do save");
+}
+
+void Game::DefinirAparencia(const Personagens::Aparencia& aparencia) {
+
+    mAparencia = aparencia;
+
+    if (!ProgressoEGravado()) return;   // visitante nao grava
+
+    if (!GravarFicha()) {
+        SDL_Log("GAME: nao consegui gravar a aparencia da matricula %s. Ela vale para esta "
+                "sessao, mas nao foi para o disco.", mMatricula.c_str());
+    }
 }
 
 void Game::JogarComoVisitante() {
     mMatricula = Matricula::kVisitante;
     mProgresso = Progresso();
+    mAparencia = Personagens::Aparencia();
     SDL_Log("GAME: jogando sem identificacao. O progresso NAO sera gravado.");
 }
 

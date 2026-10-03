@@ -40,12 +40,13 @@ namespace {
 
 namespace FichaArquivo {
 
-Progresso Carregar(const std::string& matricula, const Materias::Lista& materias) {
+Ficha::Dados Carregar(const std::string& matricula, const Materias::Lista& materias) {
 
-    Progresso vazio;
+    Ficha::Dados vazio;
 
     const std::string canonica = Canonica(matricula, "carregar");
     if (canonica.empty()) return vazio;
+    vazio.matricula = canonica;
 
     const std::string caminho = CaminhoDa(canonica);
 
@@ -79,18 +80,20 @@ Progresso Carregar(const std::string& matricula, const Materias::Lista& materias
                 canonica.c_str(), caminho.c_str(), lida.dados.matricula.c_str());
     }
 
-    return lida.dados.progresso;
+    // O NOME DO ARQUIVO manda, inclusive sobre o que o arquivo diz: o aviso
+    // acima ja contou a divergencia, e quem chamou pediu esta matricula.
+    Ficha::Dados saida = lida.dados;
+    saida.matricula = canonica;
+    return saida;
 }
 
-bool Gravar(const std::string& matricula, const Progresso& progresso,
-            const Materias::Lista& materias) {
+bool Gravar(const Ficha::Dados& dadosPedidos, const Materias::Lista& materias) {
 
-    const std::string canonica = Canonica(matricula, "gravar");
+    const std::string canonica = Canonica(dadosPedidos.matricula, "gravar");
     if (canonica.empty()) return false;
 
-    Ficha::Dados dados;
+    Ficha::Dados dados = dadosPedidos;
     dados.matricula = canonica;
-    dados.progresso = progresso;
 
     const std::string caminho = CaminhoDa(canonica);
     const std::string temporario = caminho + ".tmp";

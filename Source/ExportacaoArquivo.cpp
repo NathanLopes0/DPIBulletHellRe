@@ -21,7 +21,9 @@ bool Regravar(const Materias::Lista& materias) {
     for (const auto& matricula : FichaArquivo::ListarMatriculas()) {
         FichaDeAluno f;
         f.matricula = matricula;
-        f.progresso = FichaArquivo::Carregar(matricula, materias);
+        // A planilha e de NOTAS: a aparencia vem junto na ficha e e ignorada
+        // aqui de proposito, porque nao e assunto do professor.
+        f.progresso = FichaArquivo::Carregar(matricula, materias).progresso;
         fichas.push_back(std::move(f));
     }
 

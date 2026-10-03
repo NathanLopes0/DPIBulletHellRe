@@ -10,6 +10,7 @@
 #include <SDL.h>
 #include "Math.h"
 #include "Scenes/Scene.h"
+#include "Personagens.h"
 #include "Progresso.h"
 
 class IBossFactory;
@@ -146,6 +147,18 @@ public:
     /// @brief A matricula de quem esta jogando, ou Matricula::kVisitante.
     [[nodiscard]] const std::string& MatriculaAtual() const { return mMatricula; }
 
+    /// @brief A aparencia de quem esta jogando. Vazia quer dizer "a padrao".
+    [[nodiscard]] const Personagens::Aparencia& AparenciaAtual() const { return mAparencia; }
+
+    /**
+     * @brief Troca a aparencia e grava, se o aluno estiver identificado.
+     *
+     * Grava na hora, e nao no fim da batalha: quem acaba de montar a personagem
+     * espera encontra-la do mesmo jeito ao carregar o perfil, mesmo que feche o
+     * jogo sem jogar nada.
+     */
+    void DefinirAparencia(const Personagens::Aparencia& aparencia);
+
     /// @brief Se o progresso desta sessao vai para o disco.
     [[nodiscard]] bool ProgressoEGravado() const;
 
@@ -199,12 +212,21 @@ private:
     /// passar pela identificacao nunca grava nada por engano.
     std::string mMatricula;
 
+    /// A aparencia de quem esta jogando, COMO VEIO DO SAVE. Vazia quer dizer
+    /// "use a padrao" - e o caso do visitante e de todo save anterior a versao 4.
+    /// Quem compoe conserta o que nao existir mais no catalogo.
+    Personagens::Aparencia mAparencia;
+
     //Selected Stage, used by Battle on ChangeScene()
     GameSubject mSelectedStage{};
 
     bool mPendingSceneChange;
     Scene::SceneType mNextScene;
 
+
+    /// Monta a ficha a partir do estado da sessao e grava. O unico lugar que faz
+    /// isso, para nenhum caminho de gravacao esquecer um campo.
+    bool GravarFicha();
 
     void InitializeBossFactory();
 
