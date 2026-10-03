@@ -1032,3 +1032,26 @@ TEST_CASE("Dados: a aparencia padrao do catalogo real compoe todas as camadas") 
                       "duas camadas com a mesma ordem de desenho");
     }
 }
+
+TEST_CASE("Dados: as listas do Salles giram com a direcao do movimento") {
+
+    // A arte delas e uma caixa com uma SETA. Com a seta sempre apontando para a
+    // direita, uma corrente que desce na diagonal nao le como lista encadeada -
+    // os nos ficam soltos. Travar isto aqui evita que alguem desligue o campo
+    // sem perceber o que ele sustenta.
+    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
+
+    REQUIRE(r.conjuntos.count("salles") == 1);
+    const auto& salles = r.conjuntos.at("salles");
+
+    for (const std::string& nome : {"Estruturas", "Duplamente"}) {
+        REQUIRE_MESSAGE(salles.count(nome) == 1, "falta o projetil \"" << nome << "\"");
+        CHECK_MESSAGE(salles.at(nome).rotacionarComAVelocidade,
+                      "\"" << nome << "\" precisa girar com a velocidade");
+    }
+
+    // E a capivara NAO gira: ela nao tem frente.
+    if (salles.count("Capivara") == 1) {
+        CHECK_FALSE(salles.at("Capivara").rotacionarComAVelocidade);
+    }
+}

@@ -81,6 +81,22 @@ struct DescricaoDeProjetil {
     /// eles - a diferenca era de numero, nao de comportamento.
     float margemEmSprites = 1.0f;
     float margemDivisorDeTela = 12.0f;
+
+    /**
+     * Se o sprite gira para acompanhar a direcao em que o projetil viaja.
+     *
+     * Existe para as listas do Salles: a arte delas e uma caixa com uma SETA
+     * APONTANDO PARA A DIREITA, e o encadeamento so le como encadeamento se a
+     * seta de cada no apontar para onde o no vai. Sem isto todas apontam para a
+     * direita, qualquer que seja o caminho, e a lista parece um amontoado.
+     *
+     * Vale a pena so para arte que tem frente - uma capivara girando ficaria
+     * estranha -, e por isso o padrao e nao girar.
+     *
+     * O sprite precisa ser desenhado apontando para +X, que e a convencao de
+     * angulo do jogo (ver Actor::GetForward).
+     */
+    bool rotacionarComAVelocidade = false;
 };
 
 /**

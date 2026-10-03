@@ -161,6 +161,7 @@ namespace {
         }
 
         saida.posicionarNoDono = Booleano(j, "posicionarNoDono", true);
+        saida.rotacionarComAVelocidade = Booleano(j, "rotacionarComAVelocidade", false);
 
         saida.margemEmSprites = Numero(j, "margemEmSprites", 1.0f);
         if (saida.margemEmSprites < 0.0f) {

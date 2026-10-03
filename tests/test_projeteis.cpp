@@ -344,3 +344,27 @@ TEST_CASE("Projeteis: conjunto que ficou sem projetil util nao entra no mapa") {
     CHECK_FALSE(r.problemas.empty());
     CHECK(r.conjuntos.count("salles") == 0);
 }
+
+TEST_CASE("Projeteis: por padrao o sprite NAO gira com a velocidade") {
+
+    // Girar so faz sentido para arte que tem frente. A capivara do Salles e os
+    // baloes do Andre girariam a toa, entao quem nao pede fica parado.
+    const auto r = LerProjeteis(R"({ "salles": { "P": {
+        "sprite": "a.png", "dados": "a.json", "animacoes": { "A": [0] }
+    } } })");
+
+    REQUIRE(r.conjuntos.count("salles") == 1);
+    CHECK_FALSE(r.conjuntos.at("salles").at("P").rotacionarComAVelocidade);
+}
+
+TEST_CASE("Projeteis: rotacionarComAVelocidade pode ser ligado") {
+
+    const auto r = LerProjeteis(R"({ "salles": { "P": {
+        "sprite": "a.png", "dados": "a.json", "animacoes": { "A": [0] },
+        "rotacionarComAVelocidade": true
+    } } })");
+
+    REQUIRE(r.conjuntos.count("salles") == 1);
+    CHECK(r.conjuntos.at("salles").at("P").rotacionarComAVelocidade);
+    CHECK(r.problemas.empty());
+}

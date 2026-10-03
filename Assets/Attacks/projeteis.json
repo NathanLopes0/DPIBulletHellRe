@@ -76,7 +76,12 @@
         "Arvore":       [4, 5, 6, 7]
       },
       "animacaoInicial": "ListaSimples",
-      "ordemDeDesenho": 90
+      "ordemDeDesenho": 90,
+
+      // A arte e uma caixa com uma SETA apontando para a direita. Sem girar,
+      // toda seta aponta para a direita qualquer que seja o caminho, e a
+      // sequencia nao le como lista encadeada.
+      "rotacionarComAVelocidade": true
     },
 
     // O no de lista duplamente encadeada, com os campos PREV e NEXT desenhados.
@@ -96,7 +101,12 @@
       "escala": 0.75,
       "colisorDimensao": "altura",
       "ordemDeDesenho": 90,
-      "posicionarNoDono": false
+      "posicionarNoDono": false,
+
+      // Mesma razao da Estruturas. Aqui importa ainda mais: na fase 2 a lista
+      // PARA e volta pelo caminho, e a seta precisa virar junto para a volta
+      // parecer uma volta.
+      "rotacionarComAVelocidade": true
     }
   },
 
