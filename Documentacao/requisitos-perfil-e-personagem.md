@@ -40,10 +40,23 @@ e cor de cabelo, tipo e cor de camisa, tipo e cor de calça. A personagem de cad
 matrícula é montada a partir dessas escolhas.
 
 O **tom de pele** é uma escolha como as outras, e não uma cor fixa do template.
-Isso obriga duas partes do corpo a saírem em peças separadas, em cor fixa: os
-**olhos** e os **sapatos**. Tingidos junto com a pele, eles clareariam ou
-escureceriam com ela e deixariam de ser olhos e sapatos. Os olhos ainda levam
-esclera clara, senão a pupila some nos tons de pele mais escuros.
+Isso obriga os **sapatos** a saírem numa peça separada, em cor fixa: tingidos
+junto com a pele, eles clareariam com ela e deixariam de ser sapatos.
+
+### 2.1.1 — O personagem é visto de costas (D10)
+
+Ele olha para cima, para o professor, que é quem fica no topo da tela. É por
+isso que o sprite original do jogo não tem rosto: o que aparece é a nuca.
+
+Isso **apagou uma camada**. O template chegou a ser desenhado de frente, com
+olhos numa peça própria — eles precisavam ficar fora da camada de pele para não
+serem tingidos com ela, e ainda levavam esclera clara para não sumirem nos tons
+mais escuros. De costas nada disso existe: não há olho nem boca, e o cabelo
+cobre o crânio inteiro em vez de parar numa franja.
+
+O cabelo comprido desce só até o ombro, e é mais estreito que o torso. Na
+primeira tentativa ele ia até a cintura e cobria a camisa inteira — escolher
+roupa deixava de ter efeito visível, o que anula metade da tela de criação.
 
 **Por isso a ficha grava as escolhas desde a versão 4, e não um identificador de
 personagem pronta.** Se gravasse o identificador agora, trocar para as camadas
@@ -71,9 +84,9 @@ Compondo as camadas numa textura única ao carregar, tudo depois disso continua
 vendo **uma** sprite animada, com o mesmo atlas de quatro quadros, e nenhum
 desses pontos muda. O custo acontece uma vez por perfil carregado.
 
-A ordem é **corpo, rosto, sapato, calça, camisa, cabelo**: a camisa cobre a
-cintura da calça e o cabelo cobre a testa. Dessas, rosto e sapato não são
-tingidos; as outras são.
+A ordem é **corpo, sapato, calça, camisa, cabelo**: a camisa cobre a cintura da
+calça e o cabelo cai por cima do ombro da camisa. Dessas, só o sapato não é
+tingido.
 
 A **regra** de composição — quais camadas, em que ordem, com que cores — é
 pura e testável. Só o desenho dos pixels fica na ponte.

@@ -21,10 +21,13 @@
 {
   // ----- Camadas que todo mundo tem e ninguem escolhe -----
   //
-  // Saem em cor final, e nao tingidas, justamente por NAO acompanharem o tom de
-  // pele: olho e sapato nao clareiam quando a pele clareia.
+  // Sai em cor final, e nao tingida, justamente por NAO acompanhar o tom de
+  // pele: sapato nao clareia quando a pele clareia.
+  //
+  // NAO HA CAMADA DE ROSTO. O personagem e visto de costas - ele olha para cima,
+  // para o professor -, entao o que aparece e a nuca. A camada de olhos existiu
+  // enquanto o template estava de frente e foi apagada junto com o rosto.
   "fixas": [
-    { "arte": "Player/Camadas/rosto",  "ordem": 20 },
     { "arte": "Player/Camadas/sapato", "ordem": 30 }
   ],
 
@@ -50,26 +53,29 @@
       ]
     },
 
-    // ----- Calca -----
+
+    // ----- Cabelo -----
+    //
+    // Fica por ultimo na ordem de desenho porque cobre a testa, e as mechas do
+    // cabelo longo caem por cima do ombro da camisa.
     {
-      "id": "calca", "nome": "Calca", "ordem": 40,
+      "id": "cabelo", "nome": "Cabelo", "ordem": 60,
       "pecas": [
-        { "id": "longa",   "nome": "Calca",   "arte": "Player/Camadas/calca_longa" },
-        { "id": "bermuda", "nome": "Bermuda", "arte": "Player/Camadas/calca_bermuda" },
-        { "id": "saia",    "nome": "Saia",    "arte": "Player/Camadas/calca_saia" }
+        { "id": "curto",    "nome": "Curto",    "arte": "Player/Camadas/cabelo_curto" },
+        { "id": "longo",    "nome": "Longo",    "arte": "Player/Camadas/cabelo_longo" },
+        { "id": "coque",    "nome": "Coque",    "arte": "Player/Camadas/cabelo_coque" },
+        { "id": "espetado", "nome": "Espetado", "arte": "Player/Camadas/cabelo_espetado" },
+        { "id": "raspado",  "nome": "Raspado",  "arte": "Player/Camadas/cabelo_raspado" }
       ],
       "cores": [
-        { "id": "jeans",    "nome": "Jeans",    "rgb": "485c8e" },
-        { "id": "preto",    "nome": "Preto",    "rgb": "3a3640" },
-        { "id": "cinza",    "nome": "Cinza",    "rgb": "6c6e78" },
-        { "id": "bege",     "nome": "Bege",     "rgb": "c4b08a" },
-        { "id": "vinho",    "nome": "Vinho",    "rgb": "843642" },
-        { "id": "verde",    "nome": "Verde",    "rgb": "56a060" },
-        { "id": "azul",     "nome": "Azul",     "rgb": "4e76ce" },
-        { "id": "vermelho", "nome": "Vermelho", "rgb": "c64c4c" }
+        { "id": "castanho", "nome": "Castanho", "rgb": "784e34" },
+        { "id": "preto",    "nome": "Preto",    "rgb": "3a3440" },
+        { "id": "loiro",    "nome": "Loiro",    "rgb": "deba6e" },
+        { "id": "ruivo",    "nome": "Ruivo",    "rgb": "ba5634" },
+        { "id": "grisalho", "nome": "Grisalho", "rgb": "b4b2b8" },
+        { "id": "colorido", "nome": "Colorido", "rgb": "4fa8c8" }
       ]
     },
-
     // ----- Camisa -----
     {
       "id": "camisa", "nome": "Camisa", "ordem": 50,
@@ -90,25 +96,24 @@
       ]
     },
 
-    // ----- Cabelo -----
-    //
-    // Fica por ultimo na ordem de desenho porque cobre a testa, e as mechas do
-    // cabelo longo caem por cima do ombro da camisa.
+
+    // ----- Calca -----
     {
-      "id": "cabelo", "nome": "Cabelo", "ordem": 60,
+      "id": "calca", "nome": "Calca", "ordem": 40,
       "pecas": [
-        { "id": "curto",    "nome": "Curto",    "arte": "Player/Camadas/cabelo_curto" },
-        { "id": "longo",    "nome": "Longo",    "arte": "Player/Camadas/cabelo_longo" },
-        { "id": "coque",    "nome": "Coque",    "arte": "Player/Camadas/cabelo_coque" },
-        { "id": "espetado", "nome": "Espetado", "arte": "Player/Camadas/cabelo_espetado" }
+        { "id": "longa",   "nome": "Comprida", "arte": "Player/Camadas/calca_longa" },
+        { "id": "bermuda", "nome": "Bermuda", "arte": "Player/Camadas/calca_bermuda" },
+        { "id": "saia",    "nome": "Saia",    "arte": "Player/Camadas/calca_saia" }
       ],
       "cores": [
-        { "id": "castanho", "nome": "Castanho", "rgb": "784e34" },
-        { "id": "preto",    "nome": "Preto",    "rgb": "3a3440" },
-        { "id": "loiro",    "nome": "Loiro",    "rgb": "deba6e" },
-        { "id": "ruivo",    "nome": "Ruivo",    "rgb": "ba5634" },
-        { "id": "grisalho", "nome": "Grisalho", "rgb": "b4b2b8" },
-        { "id": "colorido", "nome": "Colorido", "rgb": "4fa8c8" }
+        { "id": "jeans",    "nome": "Jeans",    "rgb": "485c8e" },
+        { "id": "preto",    "nome": "Preto",    "rgb": "3a3640" },
+        { "id": "cinza",    "nome": "Cinza",    "rgb": "6c6e78" },
+        { "id": "bege",     "nome": "Bege",     "rgb": "c4b08a" },
+        { "id": "vinho",    "nome": "Vinho",    "rgb": "843642" },
+        { "id": "verde",    "nome": "Verde",    "rgb": "56a060" },
+        { "id": "azul",     "nome": "Azul",     "rgb": "4e76ce" },
+        { "id": "vermelho", "nome": "Vermelho", "rgb": "c64c4c" }
       ]
     }
   ],

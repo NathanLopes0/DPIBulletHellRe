@@ -13,11 +13,17 @@ e aplicada por multiplicacao na hora de compor: cinza 255 devolve a cor escolhid
 tal e qual, e os tons mais escuros viram a sombra dela. Vale para o cabelo, para
 a roupa e TAMBEM para o corpo, cujo tom de pele e uma escolha como as outras.
 
-Duas pecas fogem disso e saem em cor final, justamente por nao acompanharem o
-tom de pele: "rosto" (os olhos) e "sapato". Se saissem junto com o corpo, mudar
-o tom de pele clarearia os olhos e os sapatos junto.
+Uma peca foge disso e sai em cor final, justamente por nao acompanhar o tom de
+pele: "sapato". Se saisse junto com o corpo, mudar o tom de pele clarearia os
+sapatos junto.
 
-A ordem de composicao e: corpo, rosto, sapato, calca, camisa, cabelo.
+A ordem de composicao e: corpo, sapato, calca, camisa, cabelo.
+
+O PERSONAGEM E VISTO DE COSTAS. Ele olha para cima, para o professor, que fica
+no topo da tela - e por isso o sprite original do jogo nao tem rosto: o que
+aparece e a nuca. Nao ha olho nem boca para desenhar, e o cabelo cobre a cabeca
+inteira em vez de parar numa franja. Isso APAGOU uma camada: a peca "rosto",
+que so existia para os olhos nao serem tingidos junto com a pele.
 
 A animacao segue a do sprite original: quadros 1 e 3 sao a pose neutra, 0 e 2
 sao os passos, e a CABECA NAO SE MEXE em nenhum deles - por isso o cabelo e uma
@@ -30,8 +36,6 @@ import os
 L = 64  # lado do quadro
 
 # ---------------------------------------------------------------- cores fixas
-OLHO       = ( 48,  36,  34, 255)
-ESCLERA    = (242, 238, 232, 255)
 SAPATO     = ( 74,  70,  92, 255)
 SAPATO_S   = ( 52,  49,  66, 255)
 CONTORNO   = ( 38,  30,  30, 255)
@@ -137,10 +141,10 @@ def corpo(quadro):
     ret(d, CABECA_X0 - 2, 17, CABECA_X0 - 1, 21, BASE)
     ret(d, CABECA_X1 + 1, 17, CABECA_X1 + 2, 21, BASE)
 
-    # sombra do queixo e a boca - ambas sao a PROPRIA pele mais escura, entao
-    # acompanham o tom escolhido em vez de serem uma cor fixa por cima dele.
-    ret(d, CABECA_X0 + 2, CABECA_Y1 - 1, CABECA_X1 - 2, CABECA_Y1, SOMBRA)
-    ret(d, 30, 28, 33, 28, SOMBRA)
+    # A NUCA, e nao um rosto: visto de costas, o que aparece abaixo do cabelo e
+    # a sombra da base da cabeca. E a PROPRIA pele mais escura, entao acompanha
+    # o tom escolhido em vez de ser uma cor fixa por cima dele.
+    ret(d, CABECA_X0 + 2, CABECA_Y1 - 3, CABECA_X1 - 2, CABECA_Y1, SOMBRA)
 
     # pescoco e torso
     ret(d, 28, 33, 35, 35, SOMBRA)
@@ -158,22 +162,6 @@ def corpo(quadro):
     return contornar(d, BORDA)
 
 
-def rosto(quadro):
-    """Os olhos. Cor fixa, porque olho nao muda com o tom de pele.
-
-    COM ESCLERA CLARA, e nao so a pupila escura: a pupila sozinha sumia nos
-    tons de pele mais escuros, porque o contorno da pele escura fica tao escuro
-    quanto ela. O branco ao lado garante o olho em qualquer tom.
-
-    A cabeca nao se mexe em quadro nenhum, entao esta peca e igual nos quatro.
-    """
-    d = {}
-    for x0, pupila in ((24, 25), (36, 38)):
-        ret(d, x0, 22, x0 + 2, 24, ESCLERA)
-        ret(d, pupila, 22, pupila + 1, 23, OLHO)
-    return d
-
-
 def sapato(quadro):
     """Os sapatos. Cor fixa, e acompanham o pe que levanta."""
     d = {}
@@ -186,40 +174,55 @@ def sapato(quadro):
 
 # --------------------------------------------------------------------- cabelo
 #
+# DE COSTAS o cabelo cobre a cabeca INTEIRA, parando um pouco acima da nuca -
+# nao ha franja, porque franja e coisa de quem esta de frente.
+#
 # A cabeca nao se mexe, entao o cabelo e o MESMO nos quatro quadros.
-def cabelo_curto():
-    d = {}
-    ret(d, CABECA_X0 - 1, CABECA_Y0 - 2, CABECA_X1 + 1, 18, BASE)
-    # franja irregular, para nao virar um capacete reto
-    for x in range(CABECA_X0 - 1, CABECA_X1 + 2):
-        if (x // 2) % 2 == 0:
-            ret(d, x, 19, x, 20, BASE)
-    ret(d, CABECA_X0 - 1, 16, CABECA_X1 + 1, 18, SOMBRA)
+
+# Ate onde o cabelo desce. Abaixo disto aparece a nuca.
+CABELO_Y1 = CABECA_Y1 - 4
+
+
+def _calota(d, y0=CABECA_Y0 - 2, y1=CABELO_Y1):
+    """A massa de cabelo que cobre o cranio, com os cantos de cima comidos."""
+    ret(d, CABECA_X0 - 1, y0, CABECA_X1 + 1, y1, BASE)
+    # a parte de baixo mais escura, para a cabeca nao sair chapada
+    ret(d, CABECA_X0 - 1, y1 - 4, CABECA_X1 + 1, y1, SOMBRA)
     for canto in (CABECA_X0 - 1, CABECA_X1 + 1):
         s = 1 if canto == CABECA_X0 - 1 else -1
         for i in range(3):
             for j in range(3 - i):
-                d.pop((canto + s * i, CABECA_Y0 - 2 + j), None)
+                d.pop((canto + s * i, y0 + j), None)
+    return d
+
+
+def cabelo_curto():
+    d = _calota({})
+    # barra irregular embaixo, para o corte nao sair reto como um capacete
+    for x in range(CABECA_X0 - 1, CABECA_X1 + 2):
+        if (x // 3) % 2 == 0:
+            ret(d, x, CABELO_Y1 + 1, x, CABELO_Y1 + 1, SOMBRA)
     return contornar(d, BORDA)
 
 
 def cabelo_longo():
-    d = cabelo_curto()
-    d = {k: v for k, v in d.items() if v != BORDA}
-    # Mechas descendo pelos lados, ate o ombro. Quatro pixels de largura, e nao
-    # dois: com dois elas liam como antena, nao como cabelo.
-    for x0 in (CABECA_X0 - 3, CABECA_X1 - 1):
-        ret(d, x0, 10, x0 + 4, TORSO_Y0 + 4, BASE)
-        ret(d, x0, TORSO_Y0, x0 + 4, TORSO_Y0 + 4, SOMBRA)
-        # ponta afinada, para a mecha nao terminar num corte reto
-        d.pop((x0, TORSO_Y0 + 4), None)
-        d.pop((x0 + 4, TORSO_Y0 + 4), None)
+    # De costas, cabelo comprido e uma massa SO: ele desce pelas costas em vez
+    # de emoldurar um rosto que nao esta a vista.
+    d = _calota({})
+
+    # DESCE ATE O OMBRO, E NAO ALEM, e mais estreito que o torso. Na primeira
+    # versao ele ia ate a cintura e era mais largo que o corpo: cobria a camisa
+    # inteira, e escolher roupa deixava de ter efeito visivel.
+    ret(d, CABECA_X0 + 2, 14, CABECA_X1 - 2, TORSO_Y0 + 3, BASE)
+    ret(d, CABECA_X0 + 2, TORSO_Y0, CABECA_X1 - 2, TORSO_Y0 + 3, SOMBRA)
+    # ponta levemente afinada, para nao terminar num corte reto
+    for x in (CABECA_X0 + 2, CABECA_X1 - 2):
+        d.pop((x, TORSO_Y0 + 3), None)
     return contornar(d, BORDA)
 
 
 def cabelo_coque():
-    d = cabelo_curto()
-    d = {k: v for k, v in d.items() if v != BORDA}
+    d = _calota({})
     # O coque ocupa toda a folga que existe acima da cabeca - cinco pixels - e
     # nem um a mais. Ver ForaDoQuadro.
     ret(d, CX - 5, 0, CX + 4, CABECA_Y0 - 1, BASE)
@@ -232,9 +235,7 @@ def cabelo_coque():
 
 
 def cabelo_espetado():
-    d = {}
-    ret(d, CABECA_X0 - 1, CABECA_Y0, CABECA_X1 + 1, 18, BASE)
-    ret(d, CABECA_X0 - 1, 15, CABECA_X1 + 1, 18, SOMBRA)
+    d = _calota({}, y0=CABECA_Y0)
 
     # Espetos de tres pixels de largura com dois de folga entre eles: colados,
     # os contornos de dois espetos vizinhos preenchiam o vao e o cabelo virava
@@ -248,6 +249,19 @@ def cabelo_espetado():
         d.pop((x, CABECA_Y0 - h), None)          # ponta afinada
         d.pop((x + 2, CABECA_Y0 - h), None)
         x += 5
+    return contornar(d, BORDA)
+
+
+def cabelo_raspado():
+    """Cabelo bem curto, colado no cranio. De costas e so uma sombra na cabeca."""
+    d = {}
+    ret(d, CABECA_X0, CABECA_Y0 - 1, CABECA_X1, CABELO_Y1 - 2, BASE)
+    ret(d, CABECA_X0, CABELO_Y1 - 5, CABECA_X1, CABELO_Y1 - 2, SOMBRA)
+    for canto in (CABECA_X0, CABECA_X1):
+        s = 1 if canto == CABECA_X0 else -1
+        for i in range(3):
+            for j in range(3 - i):
+                d.pop((canto + s * i, CABECA_Y0 - 1 + j), None)
     return contornar(d, BORDA)
 
 
@@ -327,12 +341,12 @@ def calca_saia(quadro):
 # ------------------------------------------------------------------- escrever
 PECAS = {
     'corpo':            corpo,
-    'rosto':            rosto,
     'sapato':           sapato,
     'cabelo_curto':     lambda q: cabelo_curto(),
     'cabelo_longo':     lambda q: cabelo_longo(),
     'cabelo_coque':     lambda q: cabelo_coque(),
     'cabelo_espetado':  lambda q: cabelo_espetado(),
+    'cabelo_raspado':   lambda q: cabelo_raspado(),
     'camisa_camiseta':  camisa_camiseta,
     'camisa_regata':    camisa_regata,
     'camisa_moletom':   camisa_moletom,
