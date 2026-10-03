@@ -35,9 +35,15 @@ As quatro primeiras foram escolhidas pelo autor; as demais seguem delas.
 ### 2.1 — A aparência é um conjunto de escolhas (D8)
 
 O destino deste sistema não é uma lista de personagens prontas: é um corpo
-template em pixel art mais camadas escolhidas separadamente — tipo e cor de
-cabelo, tipo e cor de camisa, tipo e cor de calça. A personagem de cada
+template em pixel art mais camadas escolhidas separadamente — tom de pele, tipo
+e cor de cabelo, tipo e cor de camisa, tipo e cor de calça. A personagem de cada
 matrícula é montada a partir dessas escolhas.
+
+O **tom de pele** é uma escolha como as outras, e não uma cor fixa do template.
+Isso obriga duas partes do corpo a saírem em peças separadas, em cor fixa: os
+**olhos** e os **sapatos**. Tingidos junto com a pele, eles clareariam ou
+escureceriam com ela e deixariam de ser olhos e sapatos. Os olhos ainda levam
+esclera clara, senão a pupila some nos tons de pele mais escuros.
 
 **Por isso a ficha grava as escolhas desde a versão 4, e não um identificador de
 personagem pronta.** Se gravasse o identificador agora, trocar para as camadas
@@ -64,6 +70,10 @@ primeira camada e as outras ficariam para trás, visíveis e erradas.
 Compondo as camadas numa textura única ao carregar, tudo depois disso continua
 vendo **uma** sprite animada, com o mesmo atlas de quatro quadros, e nenhum
 desses pontos muda. O custo acontece uma vez por perfil carregado.
+
+A ordem é **corpo, rosto, sapato, calça, camisa, cabelo**: a camisa cobre a
+cintura da calça e o cabelo cobre a testa. Dessas, rosto e sapato não são
+tingidos; as outras são.
 
 A **regra** de composição — quais camadas, em que ordem, com que cores — é
 pura e testável. Só o desenho dos pixels fica na ponte.
@@ -119,7 +129,7 @@ qualquer perfil sem personagem válida usam a personagem padrão.
 
 ### RF7 — Catálogo de peças
 O catálogo é **dado, não código**: um arquivo em `Assets/` que descreve, por
-categoria (cabelo, camisa, calça), as peças disponíveis — cada uma com
+categoria (pele, cabelo, camisa, calça), as peças disponíveis — cada uma com
 identificador estável, nome exibido, caminho da arte e se aceita cor. Descreve
 também as cores oferecidas e as combinações predefinidas da primeira versão da
 tela (D8).
@@ -148,7 +158,8 @@ O campo da aparência é **opcional**, e guarda as escolhas (D8):
 
 ```json
 "aparencia": {
-  "cabelo": "curto",  "corCabelo": "castanho",
+  "corPele": "tom3",
+  "cabelo": "curto",   "corCabelo": "castanho",
   "camisa": "regata",  "corCamisa": "verde",
   "calca":  "bermuda", "corCalca":  "jeans"
 }

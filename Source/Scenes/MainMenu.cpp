@@ -128,7 +128,7 @@ void MainMenu::LoadBackground() {
 void MainMenu::LoadTitle() {
     auto title = std::make_unique<Actor>(this);
     title->SetPosition(Vector2(static_cast<float>(mGame->GetWindowWidth()) / 2.0f,
-                                    static_cast<float>(mGame->GetWindowHeight()) / 2.0f));
+                                    static_cast<float>(mGame->GetWindowHeight()) / 2.2f));
 
     title->AddComponent<DrawSpriteComponent>(Caminhos::Asset("DPIBHTitleMainMenu.png"), 75);
 
