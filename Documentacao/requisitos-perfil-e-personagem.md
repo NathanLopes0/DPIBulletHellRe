@@ -29,6 +29,44 @@ As quatro primeiras foram escolhidas pelo autor; as demais seguem delas.
 | D5 | Quando o perfil é gravado | Ao confirmar a personagem, com progresso vazio — senão o perfil recém-criado não existiria para o Carregar |
 | D6 | Modo visitante | Continua, pela tecla TAB na tela de matrícula do Novo Jogo, com a personagem padrão e sem gravar nada |
 | D7 | "Trocar usuário" na seleção de fase | Passa a voltar ao menu, porque trocar de usuário agora é escolher entre criar e carregar |
+| D8 | O que a ficha grava | **As escolhas de aparência**, nunca uma personagem pronta — ver seção 2.1 |
+| D9 | Como a sprite é montada | As camadas são compostas **uma vez**, numa textura só, ao carregar o perfil |
+
+### 2.1 — A aparência é um conjunto de escolhas (D8)
+
+O destino deste sistema não é uma lista de personagens prontas: é um corpo
+template em pixel art mais camadas escolhidas separadamente — tipo e cor de
+cabelo, tipo e cor de camisa, tipo e cor de calça. A personagem de cada
+matrícula é montada a partir dessas escolhas.
+
+**Por isso a ficha grava as escolhas desde a versão 4, e não um identificador de
+personagem pronta.** Se gravasse o identificador agora, trocar para as camadas
+depois custaria uma segunda migração, e os saves criados no meio teriam um id
+que alguém precisaria traduzir em combinação.
+
+As "personagens prontas" do primeiro momento são, então, apenas **combinações
+predefinidas** dessas mesmas escolhas. A tela de criação começa deixando
+escolher entre algumas delas; quando passar a deixar escolher camada por
+camada, **o formato do save não muda** — muda só a tela.
+
+Em consequência, a arte de placeholder não é "cinco personagens inteiras": é um
+corpo template mais algumas peças de cabelo, camisa e calça, todas alinhadas ao
+mesmo corpo e nos mesmos quatro quadros.
+
+### 2.2 — Composição numa textura só (D9)
+
+Empilhar uma componente de desenho por camada parece mais simples, mas o
+`Player` chama `GetComponent<DrawAnimatedComponent>()` em vários lugares — o
+piscar da invencibilidade, a troca entre `Idle` e `Moving`, a largura usada no
+raio de colisão. Com várias componentes, cada uma dessas chamadas pegaria só a
+primeira camada e as outras ficariam para trás, visíveis e erradas.
+
+Compondo as camadas numa textura única ao carregar, tudo depois disso continua
+vendo **uma** sprite animada, com o mesmo atlas de quatro quadros, e nenhum
+desses pontos muda. O custo acontece uma vez por perfil carregado.
+
+A **regra** de composição — quais camadas, em que ordem, com que cores — é
+pura e testável. Só o desenho dos pixels fica na ponte.
 
 **Sobre D2 e D3.** As duas são a mesma regra vista dos dois lados: cada caminho
 só aceita a matrícula que faz sentido para ele. O motivo é a máquina
@@ -54,10 +92,17 @@ mostra que esse perfil já existe e permanece na tela (D2). Se não houver, segu
 para a criação de personagem. ESC volta ao menu. TAB entra como visitante (D6).
 
 ### RF3 — Criação de personagem
-Mostra as personagens disponíveis, uma em destaque por vez, com o nome visível.
-Navegação por esquerda e direita, confirmação por ENTER, ESC volta à matrícula.
-Ao confirmar: grava o perfil com a personagem escolhida e progresso vazio (D5) e
-entra na seleção de fase.
+Mostra a personagem montada, com as opções disponíveis, e deixa trocá-la.
+Confirmação por ENTER, ESC volta à matrícula. Ao confirmar: grava o perfil com
+a aparência escolhida e progresso vazio (D5) e entra na seleção de fase.
+
+A tela evolui em dois passos, **sem mudar o formato do save** (D8):
+
+- **Agora:** escolhe entre algumas combinações predefinidas, navegando por
+  esquerda e direita.
+- **Depois:** escolhe camada por camada — tipo e cor de cabelo, de camisa e de
+  calça — navegando entre as categorias por cima e baixo e entre as opções de
+  cada uma por esquerda e direita.
 
 ### RF4 — Carregar Perfil
 Tela de matrícula em modo *carregar*. Se não houver perfil para aquela
@@ -72,11 +117,15 @@ Existe para que o menu já tenha o seu lugar definitivo.
 A sprite usada pelo `Player` na batalha é a do perfil carregado. O visitante e
 qualquer perfil sem personagem válida usam a personagem padrão.
 
-### RF7 — Catálogo de personagens
-A lista de personagens é **dado, não código**: um arquivo em `Assets/`, com
-identificador estável, nome exibido e caminhos da sprite e do atlas.
-Acrescentar uma personagem é acrescentar os arquivos de arte e uma entrada —
-sem recompilar.
+### RF7 — Catálogo de peças
+O catálogo é **dado, não código**: um arquivo em `Assets/` que descreve, por
+categoria (cabelo, camisa, calça), as peças disponíveis — cada uma com
+identificador estável, nome exibido, caminho da arte e se aceita cor. Descreve
+também as cores oferecidas e as combinações predefinidas da primeira versão da
+tela (D8).
+
+Acrescentar um tipo de cabelo é acrescentar o PNG e uma entrada — sem
+recompilar.
 
 ## 4. Requisitos não-funcionais e restrições
 
@@ -88,15 +137,27 @@ personagem com quadro maior teria hitbox maior. Com D4 valendo, isso seria uma
 diferença de jogo que ninguém decidiu ter. O tamanho é verificado em teste.
 
 ### RNF2 — Identificador estável, nunca a posição
-O perfil grava o **identificador** da personagem, não o índice dela na lista.
-É a mesma lição que o save das matérias já aprendeu: quando o save guardava a
-posição, reordenar a lista trocava as notas de dono em silêncio.
+O perfil grava o **identificador** de cada peça escolhida, não o índice dela na
+lista. É a mesma lição que o save das matérias já aprendeu: quando o save
+guardava a posição, reordenar a lista trocava as notas de dono em silêncio.
+Aqui o efeito seria mais discreto e pior de perceber — todo mundo acordaria com
+outro cabelo depois de uma reordenação.
 
 ### RNF3 — Ficha versão 4
-O campo da personagem é **opcional**. Um save da versão 3 abre sem conversão e
-cai na personagem padrão. Um identificador que não existe mais no catálogo
-também cai na padrão, com o motivo relatado — mesma política da matéria que
-saiu do curso.
+O campo da aparência é **opcional**, e guarda as escolhas (D8):
+
+```json
+"aparencia": {
+  "cabelo": "curto",  "corCabelo": "castanho",
+  "camisa": "regata",  "corCamisa": "verde",
+  "calca":  "bermuda", "corCalca":  "jeans"
+}
+```
+
+Um save da versão 3 abre sem conversão e cai na aparência padrão. Uma peça ou
+cor que não existe mais no catálogo cai na padrão **daquela camada**, com o
+motivo relatado, e as outras continuam valendo — mesma política da matéria que
+saiu do curso. Perder o cabelo não pode custar a camisa.
 
 ### RNF4 — Camada pura
 A leitura e a validação do catálogo ficam num módulo puro (`Personagens`), com
@@ -115,9 +176,9 @@ feita em só uma delas.
 | `Scenes/MainMenu` | De uma tecla para três opções navegáveis |
 | `Scenes/Identificacao` | Ganha modo (novo/carregar), mensagens próprias de cada um e volta ao menu |
 | `Scenes/StageSelect` | "T — trocar usuário" passa a voltar ao menu (D7) |
-| `Actors/Player/Player` | Lê o caminho da sprite do perfil, em vez de fixo no construtor |
-| `Ficha` | Versão 4, campo da personagem, migração da 3 |
-| `Game` | Guarda a personagem atual; `IdentificarAluno` se divide em criar e carregar |
+| `Actors/Player/Player` | Usa a sprite composta do perfil, em vez do caminho fixo no construtor |
+| `Ficha` | Versão 4, campo da aparência, migração da 3 |
+| `Game` | Guarda a aparência atual; `IdentificarAluno` se divide em criar e carregar |
 
 Não muda: `Progresso`, `Materias`, `Exportacao`, `Relogio`, nem nada de
 ataques. Um aluno que cria perfil e nunca joga não gera linha nenhuma no
@@ -129,6 +190,12 @@ ataques. Um aluno que cria perfil e nunca joga não gera linha nenhuma no
 
 - **Arte placeholder virando definitiva.** Mitigado por RF7: trocar a arte é
   trocar arquivo, não código.
+- **As camadas desalinhando.** Um cabelo desenhado para um corpo e usado em
+  outro flutua. Mitigado por RNF1 e por um teste que confere que toda peça tem
+  o mesmo tamanho de quadro do corpo.
+- **Combinação ilegível.** Cabelo e camisa da mesma cor somem um no outro. É
+  escolha do aluno, e não há o que impedir; o catálogo é que deve oferecer
+  cores que se distinguem.
 - **Saves da versão 3 criados durante os testes.** Já existem na máquina de
   desenvolvimento. A migração da RNF3 é obrigatória, e tem teste.
 - **A tela de matrícula acumulando responsabilidade.** Dois modos é o limite
@@ -141,11 +208,18 @@ jogado.
 
 1. **Menu com três opções.** Opções já vazia e com volta. Visível e
    independente do resto.
-2. **Catálogo de personagens em dados** + as artes de placeholder. Nenhuma tela
-   muda ainda; entra com testes do catálogo.
-3. **Ficha versão 4**: campo da personagem e migração da 3, com testes.
-4. **O `Player` lê a personagem** do perfil em vez do caminho fixo.
-5. **Tela de matrícula em dois modos**, com as recusas de D2 e D3.
-6. **Tela de criação de personagem.**
-7. **Ligação final**: Novo Jogo grava o perfil com a personagem escolhida,
+2. **Arte em camadas**: corpo template, cabelos, camisas e calças de
+   placeholder, alinhados e nos mesmos quatro quadros.
+3. **Catálogo de peças em dados** e o módulo puro da aparência — o que é uma
+   escolha válida, qual a padrão, o que fazer com uma peça que sumiu. Com
+   testes; nenhuma tela muda ainda.
+4. **Composição da sprite**: montar as camadas tingidas numa textura só (D9).
+5. **Ficha versão 4**: a aparência gravada e a migração da 3, com testes.
+6. **O `Player` usa a aparência** do perfil em vez do caminho fixo.
+7. **Tela de matrícula em dois modos**, com as recusas de D2 e D3.
+8. **Tela de criação de personagem**, na versão de combinações predefinidas.
+9. **Ligação final**: Novo Jogo grava o perfil com a aparência escolhida,
    Carregar Perfil restaura, e a seleção de fase volta ao menu.
+
+A escolha camada por camada (RF3, segundo passo) vem depois disso, e por
+construção não mexe em save nem em composição — só na tela.
