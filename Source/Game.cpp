@@ -15,6 +15,7 @@
 #include "Relogio.h"
 #include "Matricula.h"
 #include "Scenes/Identificacao.h"
+#include "Scenes/Opcoes.h"
 #include "Scenes/StageSelect.h"
 #include "Scenes/Battle/Battle.h"
 #include "Actors/Teachers/BossFactory/AllFactories.h"
@@ -331,6 +332,9 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
             break;
         case Scene::SceneType::Identificacao:
             mScene = std::make_unique<Identificacao>(this);
+            break;
+        case Scene::SceneType::Opcoes:
+            mScene = std::make_unique<Opcoes>(this);
             break;
         case Scene::SceneType::StageSelect:
             mScene = std::make_unique<StageSelect>(this);

@@ -21,6 +21,7 @@ public:
         None,
         MainMenu,
         Identificacao,
+        Opcoes,
         StageSelect,
         Battle
     };

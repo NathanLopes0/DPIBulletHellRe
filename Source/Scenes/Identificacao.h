@@ -71,7 +71,12 @@ private:
 
     /// Estado do teclado no quadro anterior, para detectar borda.
     bool mDigitoAnterior[10]{};
-    bool mEnterAnterior{};
+
+    /// Comeca em TRUE, e e obrigatorio: o menu agora confirma com ENTER, entao
+    /// quem escolhe "Novo Jogo" chega aqui com o ENTER ainda apertado. Em FALSE,
+    /// o primeiro quadro validaria a matricula vazia e a tela ja abriria com a
+    /// frase de erro. E o mesmo vazamento que a selecao de fase teve.
+    bool mEnterAnterior = true;
     bool mApagarAnterior{};
     bool mVisitanteAnterior{};
 

@@ -31,6 +31,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Scenes/MainMenu.cpp
         Source/Scenes/Identificacao.cpp
         Source/Scenes/Identificacao.h
+        Source/Scenes/Opcoes.cpp
+        Source/Scenes/Opcoes.h
         Source/Scenes/MainMenu.h
         Source/Font.cpp
         Source/Font.h
