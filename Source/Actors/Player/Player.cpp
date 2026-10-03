@@ -12,6 +12,9 @@
 #include "../../Components/ColliderComponents/CircleColliderComponent.h"
 
 #include "../../CaminhosArquivo.h"
+#include "../../ComporPersonagem.h"
+#include "../../Game.h"
+#include "../../PersonagensArquivo.h"
 
 #define NUM_PROJECTILES_VECTOR 500
 #define ATK_TIMER_START_FULL 0.12f
@@ -31,8 +34,28 @@ Player::Player(Scene* scene) :
 
 {
 
+    // A APARENCIA VEM DO PERFIL, e nao de um caminho fixo. A personagem e
+    // montada das camadas escolhidas (ou da padrao, para quem nao escolheu) e
+    // vira UMA textura, que daqui para baixo e uma sprite animada como outra
+    // qualquer - ver Source/ComporPersonagem.h.
     std::string spritePath = Caminhos::Asset("Player/DPIBHPlayer.png");
-    std::string dataPath = Caminhos::Asset("Player/DPIBHPlayer.json");
+    std::string dataPath   = Caminhos::Asset("Player/DPIBHPlayer.json");
+
+    Game* game = GetScene()->GetGame();
+    const Personagens::Composta composta =
+        Personagens::Compor(game, Personagens::Carregado(), game->AparenciaAtual());
+
+    if (composta.ok) {
+        spritePath = composta.chaveDaTextura;   // ja esta no cache de texturas
+        dataPath   = composta.atlas;
+    }
+    else {
+        // SOBRA O SPRITE ANTIGO. Um catalogo faltando ou uma arte ilegivel nao
+        // podem impedir alguem de jogar; o motivo ja saiu no log de quem tentou
+        // compor.
+        SDL_Log("PLAYER: a personagem nao pode ser composta; usando o sprite antigo.");
+    }
+
     auto drawComp = AddComponent<DrawAnimatedComponent>(spritePath, dataPath);
     drawComp->AddAnimation("Moving", {0,1,2,3});
     drawComp->AddAnimation("Idle", {1});
