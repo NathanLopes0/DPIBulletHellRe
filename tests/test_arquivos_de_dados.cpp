@@ -44,6 +44,7 @@
 #include "../Source/Attacks/RegrasDeAtaque.h"
 #include "../Source/Attacks/ProjeteisDeChefe.h"
 #include "../Source/Materias.h"
+#include "../Source/Personagens.h"
 #include "../Source/Progresso.h"
 #include "../Source/JsonDeDados.h"
 
@@ -919,4 +920,115 @@ TEST_CASE("Dados: o desbloqueio em arquivo da a MESMA resposta que o C++ que ele
     }
 
     CHECK(comparacoes == 512 * 10);
+}
+
+// =============================================================================
+// O CATALOGO DE PECAS DA PERSONAGEM
+// =============================================================================
+
+TEST_CASE("Dados: personagens.json e lido sem nenhum problema") {
+
+    const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
+
+    CHECK_MESSAGE(c.problemas.empty(), "problemas em personagens.json:" << Juntar(c.problemas));
+    CHECK_FALSE(c.Vazio());
+}
+
+TEST_CASE("Dados: as categorias que a tela de criacao precisa existem") {
+
+    // Travar os nomes aqui parece burocracia, mas e o que transforma "renomeei
+    // uma categoria no arquivo" num teste vermelho em vez de numa personagem
+    // que perde o cabelo em silencio no proximo carregamento.
+    const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
+
+    // std::string, e nao const char*: com ponteiro de char a mensagem do doctest
+    // saia como "falta a categoria "1"" - o ponteiro ia para o stream como
+    // booleano, e a falha nao dizia QUAL categoria sumiu.
+    for (const std::string& id : {"pele", "cabelo", "camisa", "calca"}) {
+        CHECK_MESSAGE(c.Por(id) != nullptr, "falta a categoria \"" << id << "\"");
+    }
+}
+
+TEST_CASE("Dados: toda arte citada no catalogo existe em disco") {
+
+    const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
+
+    std::vector<std::string> artes;
+    for (const auto& cat : c.categorias) {
+        for (const auto& p : cat.pecas) artes.push_back(p.arte);
+    }
+    for (const auto& f : c.fixas) artes.push_back(f.arte);
+
+    REQUIRE_FALSE(artes.empty());
+
+    for (const auto& arte : artes) {
+        // O catalogo guarda o caminho SEM extensao; quem carrega acrescenta.
+        for (const char* ext : {".png", ".json"}) {
+            const std::string caminho = std::string(DPI_ASSETS_DIR) + "/" + arte + ext;
+            std::ifstream a(caminho, std::ios::binary);
+            CHECK_MESSAGE(a.is_open(), "arte citada no catalogo e ausente em disco: " << caminho);
+        }
+    }
+}
+
+TEST_CASE("Dados: toda peca tem quatro quadros de 64x64") {
+
+    // NAO E DETALHE DE ARTE. O raio do colisor do jogador sai da largura da
+    // sprite (CircleColliderComponent(GetSpriteWidth() / 10.f) em Player.cpp),
+    // entao uma peca com quadro maior daria hitbox maior a quem a escolhesse -
+    // e a escolha de aparencia, que deve ser so estetica, viraria vantagem de
+    // jogo. Ver RNF1 em Documentacao/requisitos-perfil-e-personagem.md.
+    const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
+
+    std::vector<std::string> artes;
+    for (const auto& cat : c.categorias) {
+        for (const auto& p : cat.pecas) artes.push_back(p.arte);
+    }
+    for (const auto& f : c.fixas) artes.push_back(f.arte);
+
+    int conferidas = 0;
+    for (const auto& arte : artes) {
+
+        const std::string caminho = std::string(DPI_ASSETS_DIR) + "/" + arte + ".json";
+        std::ifstream a(caminho);
+        if (!a.is_open()) continue;   // a ausencia ja e relatada no teste acima
+
+        std::ostringstream conteudo;
+        conteudo << a.rdbuf();
+
+        nlohmann::json atlas;
+        try { atlas = LerJsonDeDados(conteudo.str()); }
+        catch (const std::exception& e) {
+            FAIL("atlas invalido em " << caminho << ": " << e.what());
+        }
+
+        REQUIRE_MESSAGE(atlas.contains("frames"), "sem \"frames\": " << caminho);
+        CHECK_MESSAGE(atlas["frames"].size() == 4,
+                      "esperava 4 quadros em " << caminho << ", achei " << atlas["frames"].size());
+
+        for (const auto& quadro : atlas["frames"]) {
+            REQUIRE(quadro.contains("frame"));
+            CHECK_MESSAGE(quadro["frame"]["w"].get<int>() == 64, "quadro nao e 64 de largura: " << caminho);
+            CHECK_MESSAGE(quadro["frame"]["h"].get<int>() == 64, "quadro nao e 64 de altura: " << caminho);
+        }
+        ++conferidas;
+    }
+
+    // Sem isto o teste passaria por vacuidade se o catalogo viesse vazio.
+    CHECK(conferidas >= 10);
+}
+
+TEST_CASE("Dados: a aparencia padrao do catalogo real compoe todas as camadas") {
+
+    const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
+
+    const std::vector<Personagens::Camada> camadas = c.Camadas(c.Padrao());
+
+    // Uma por categoria, mais as fixas.
+    CHECK(camadas.size() == c.categorias.size() + c.fixas.size());
+
+    for (size_t i = 1; i < camadas.size(); ++i) {
+        CHECK_MESSAGE(camadas[i - 1].ordem < camadas[i].ordem,
+                      "duas camadas com a mesma ordem de desenho");
+    }
 }

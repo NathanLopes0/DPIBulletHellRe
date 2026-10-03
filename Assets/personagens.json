@@ -1,0 +1,177 @@
+// =============================================================================
+// O CATALOGO DE PECAS DA PERSONAGEM
+//
+// A personagem de cada aluno nao e uma sprite pronta: e um corpo template com
+// camadas escolhidas por cima. Este arquivo diz quais camadas existem, quais
+// pecas cada uma oferece e em que cores.
+//
+// ACRESCENTAR UM TIPO DE CABELO e: por o PNG e o JSON em Assets/Player/Camadas
+// e acrescentar uma entrada em "pecas". Nenhum codigo muda.
+//
+// O QUE VAI PARA O SAVE sao os IDS daqui - "curto", "castanho" - e nunca a
+// posicao na lista. Reordenar este arquivo nao pode mudar a aparencia de quem
+// ja jogou. Ver Documentacao/requisitos-perfil-e-personagem.md, RNF2.
+//
+// "arte" e o caminho a partir de Assets/, SEM extensao: o jogo acrescenta .png
+// para a imagem e .json para o atlas.
+//
+// "ordem" e a ordem de desenho, do fundo para a frente. Nao pode repetir, senao
+// qual camada fica por cima vira sorteio.
+// =============================================================================
+{
+  // ----- Camadas que todo mundo tem e ninguem escolhe -----
+  //
+  // Saem em cor final, e nao tingidas, justamente por NAO acompanharem o tom de
+  // pele: olho e sapato nao clareiam quando a pele clareia.
+  "fixas": [
+    { "arte": "Player/Camadas/rosto",  "ordem": 20 },
+    { "arte": "Player/Camadas/sapato", "ordem": 30 }
+  ],
+
+  "categorias": [
+
+    // ----- Pele -----
+    //
+    // Uma peca so (o proprio corpo) e varias cores. E uma categoria como as
+    // outras de proposito: assim o tom de pele entra no save, na tela de
+    // criacao e na composicao pelo mesmo caminho que o resto.
+    {
+      "id": "pele", "nome": "Tom de pele", "ordem": 10,
+      "pecas": [
+        { "id": "corpo", "nome": "Corpo", "arte": "Player/Camadas/corpo" }
+      ],
+      "cores": [
+        { "id": "tom1", "nome": "Tom 1", "rgb": "f6cfa6" },
+        { "id": "tom2", "nome": "Tom 2", "rgb": "e6b485" },
+        { "id": "tom3", "nome": "Tom 3", "rgb": "cd9465" },
+        { "id": "tom4", "nome": "Tom 4", "rgb": "a8714a" },
+        { "id": "tom5", "nome": "Tom 5", "rgb": "7c5034" },
+        { "id": "tom6", "nome": "Tom 6", "rgb": "563826" }
+      ]
+    },
+
+    // ----- Calca -----
+    {
+      "id": "calca", "nome": "Calca", "ordem": 40,
+      "pecas": [
+        { "id": "longa",   "nome": "Calca",   "arte": "Player/Camadas/calca_longa" },
+        { "id": "bermuda", "nome": "Bermuda", "arte": "Player/Camadas/calca_bermuda" },
+        { "id": "saia",    "nome": "Saia",    "arte": "Player/Camadas/calca_saia" }
+      ],
+      "cores": [
+        { "id": "jeans",    "nome": "Jeans",    "rgb": "485c8e" },
+        { "id": "preto",    "nome": "Preto",    "rgb": "3a3640" },
+        { "id": "cinza",    "nome": "Cinza",    "rgb": "6c6e78" },
+        { "id": "bege",     "nome": "Bege",     "rgb": "c4b08a" },
+        { "id": "vinho",    "nome": "Vinho",    "rgb": "843642" },
+        { "id": "verde",    "nome": "Verde",    "rgb": "56a060" },
+        { "id": "azul",     "nome": "Azul",     "rgb": "4e76ce" },
+        { "id": "vermelho", "nome": "Vermelho", "rgb": "c64c4c" }
+      ]
+    },
+
+    // ----- Camisa -----
+    {
+      "id": "camisa", "nome": "Camisa", "ordem": 50,
+      "pecas": [
+        { "id": "camiseta", "nome": "Camiseta", "arte": "Player/Camadas/camisa_camiseta" },
+        { "id": "regata",   "nome": "Regata",   "arte": "Player/Camadas/camisa_regata" },
+        { "id": "moletom",  "nome": "Moletom",  "arte": "Player/Camadas/camisa_moletom" }
+      ],
+      "cores": [
+        { "id": "azul",     "nome": "Azul",     "rgb": "4e76ce" },
+        { "id": "verde",    "nome": "Verde",    "rgb": "56a060" },
+        { "id": "vermelho", "nome": "Vermelho", "rgb": "c64c4c" },
+        { "id": "roxo",     "nome": "Roxo",     "rgb": "885cba" },
+        { "id": "cinza",    "nome": "Cinza",    "rgb": "6c6e78" },
+        { "id": "bege",     "nome": "Bege",     "rgb": "c4b08a" },
+        { "id": "preto",    "nome": "Preto",    "rgb": "3a3640" },
+        { "id": "branco",   "nome": "Branco",   "rgb": "e8e6e2" }
+      ]
+    },
+
+    // ----- Cabelo -----
+    //
+    // Fica por ultimo na ordem de desenho porque cobre a testa, e as mechas do
+    // cabelo longo caem por cima do ombro da camisa.
+    {
+      "id": "cabelo", "nome": "Cabelo", "ordem": 60,
+      "pecas": [
+        { "id": "curto",    "nome": "Curto",    "arte": "Player/Camadas/cabelo_curto" },
+        { "id": "longo",    "nome": "Longo",    "arte": "Player/Camadas/cabelo_longo" },
+        { "id": "coque",    "nome": "Coque",    "arte": "Player/Camadas/cabelo_coque" },
+        { "id": "espetado", "nome": "Espetado", "arte": "Player/Camadas/cabelo_espetado" }
+      ],
+      "cores": [
+        { "id": "castanho", "nome": "Castanho", "rgb": "784e34" },
+        { "id": "preto",    "nome": "Preto",    "rgb": "3a3440" },
+        { "id": "loiro",    "nome": "Loiro",    "rgb": "deba6e" },
+        { "id": "ruivo",    "nome": "Ruivo",    "rgb": "ba5634" },
+        { "id": "grisalho", "nome": "Grisalho", "rgb": "b4b2b8" },
+        { "id": "colorido", "nome": "Colorido", "rgb": "4fa8c8" }
+      ]
+    }
+  ],
+
+  // ----- Combinacoes prontas -----
+  //
+  // A primeira versao da tela de criacao deixa escolher entre estas, em vez de
+  // camada por camada. Elas sao combinacoes das MESMAS escolhas, entao quando a
+  // tela passar a oferecer cada camada o formato do save nao muda.
+  "predefinidas": [
+    {
+      "id": "a", "nome": "Aluno 1",
+      "escolhas": {
+        "pele":   { "peca": "corpo", "cor": "tom2" },
+        "cabelo": { "peca": "curto", "cor": "castanho" },
+        "camisa": { "peca": "camiseta", "cor": "azul" },
+        "calca":  { "peca": "longa", "cor": "jeans" }
+      }
+    },
+    {
+      "id": "b", "nome": "Aluno 2",
+      "escolhas": {
+        "pele":   { "peca": "corpo", "cor": "tom4" },
+        "cabelo": { "peca": "longo", "cor": "preto" },
+        "camisa": { "peca": "regata", "cor": "verde" },
+        "calca":  { "peca": "saia", "cor": "vinho" }
+      }
+    },
+    {
+      "id": "c", "nome": "Aluno 3",
+      "escolhas": {
+        "pele":   { "peca": "corpo", "cor": "tom6" },
+        "cabelo": { "peca": "coque", "cor": "preto" },
+        "camisa": { "peca": "moletom", "cor": "vermelho" },
+        "calca":  { "peca": "longa", "cor": "cinza" }
+      }
+    },
+    {
+      "id": "d", "nome": "Aluno 4",
+      "escolhas": {
+        "pele":   { "peca": "corpo", "cor": "tom3" },
+        "cabelo": { "peca": "espetado", "cor": "ruivo" },
+        "camisa": { "peca": "camiseta", "cor": "roxo" },
+        "calca":  { "peca": "bermuda", "cor": "bege" }
+      }
+    },
+    {
+      "id": "e", "nome": "Aluno 5",
+      "escolhas": {
+        "pele":   { "peca": "corpo", "cor": "tom5" },
+        "cabelo": { "peca": "curto", "cor": "grisalho" },
+        "camisa": { "peca": "moletom", "cor": "branco" },
+        "calca":  { "peca": "longa", "cor": "preto" }
+      }
+    },
+    {
+      "id": "f", "nome": "Aluno 6",
+      "escolhas": {
+        "pele":   { "peca": "corpo", "cor": "tom1" },
+        "cabelo": { "peca": "longo", "cor": "loiro" },
+        "camisa": { "peca": "camiseta", "cor": "bege" },
+        "calca":  { "peca": "bermuda", "cor": "verde" }
+      }
+    }
+  ]
+}
