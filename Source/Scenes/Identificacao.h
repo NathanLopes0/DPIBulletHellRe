@@ -29,6 +29,12 @@ class DrawCaixaComponent;
  * para o professor saber quem jogou, nao para barrar ninguem. Quem entra como
  * visitante joga igual, mas o progresso dele nao e gravado - e a tela diz isso
  * antes, nao depois.
+ *
+ * DOIS MODOS, UMA TELA. Novo Jogo recusa matricula que JA tem perfil; Carregar
+ * Perfil recusa matricula que NAO tem. E a mesma regra vista dos dois lados, e
+ * o motivo dela e a maquina compartilhada do departamento: quem digita a
+ * matricula de outro por engano nao pode apagar o progresso dele, e quem erra um
+ * digito so redigita. Ver Documentacao/requisitos-perfil-e-personagem.md, D2/D3.
  */
 class Identificacao : public Scene {
 public:
@@ -60,7 +66,14 @@ private:
     /// para digitar um temporizador fica lento demais.
     void LerTeclado(const Uint8* keyState);
 
+    /// O que fazer quando a matricula digitada e valida. Separa a REGRA de fluxo
+    /// (criar ou carregar) da leitura de teclado.
+    void Confirmar(const std::string& canonica);
+
     std::unique_ptr<Font> mFonte;
+
+    /// A que viemos. Vem do Game, posto pelo menu.
+    bool mModoNovo = true;
 
     /// O que o aluno digitou ate agora. So digito, no maximo seis - garantido por
     /// Matricula::Digitar, nao por esta classe.
@@ -79,6 +92,7 @@ private:
     bool mEnterAnterior = true;
     bool mApagarAnterior{};
     bool mVisitanteAnterior{};
+    bool mVoltarAnterior = true;
 
     Actor* mTituloAtor{};
     Actor* mCampoAtor{};

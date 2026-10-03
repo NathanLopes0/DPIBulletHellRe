@@ -9,6 +9,7 @@
 #include "../Game.h"
 #include "../Font.h"
 #include "../Matricula.h"
+#include "../FichaArquivo.h"
 #include "../CaminhosArquivo.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
@@ -43,11 +44,18 @@ namespace {
 
     /// Quanto tempo o cursor fica aceso e apagado.
     constexpr float kPiscada = 0.5f;
+
+    // AS DUAS RECUSAS DE FLUXO ficam aqui, e nao em Matricula::MensagemDeErro,
+    // porque nao falam da matricula: "89384" e igualmente valida nos dois casos.
+    // Elas falam do DISCO, que a camada pura nao conhece nem deve conhecer.
+    const char* kJaExiste = "Ja existe um perfil com essa matricula. Use Carregar Perfil.";
+    const char* kNaoExiste = "Nao ha perfil com essa matricula. Confira, ou use Novo Jogo.";
 }
 
 Identificacao::Identificacao(Game* game)
     : Scene(game, SceneType::Identificacao),
-      mFonte(std::make_unique<Font>())
+      mFonte(std::make_unique<Font>()),
+      mModoNovo(game->ModoDeEntradaAtual() == Game::ModoDeEntrada::Novo)
 {
     mFonte->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
 }
@@ -88,8 +96,14 @@ void Identificacao::CriarTextos() {
 
     // 52 e nao 54: Font::Load so pre-carrega alguns tamanhos, e pedir um que nao
     // existe desenhava NADA. O titulo tinha sumido por causa disso.
-    mTituloAtor = Texto("IDENTIFICACAO", altura * 0.19f, 52, 760, 70);
-    Texto("Digite sua matricula", altura * 0.30f, 28, 620, 42);
+    //
+    // O TITULO DIZ A QUE VEIO. Sem isso as duas telas sao identicas, e quem
+    // errou de opcao no menu so descobre quando a matricula e recusada.
+    mTituloAtor = Texto(mModoNovo ? "NOVO JOGO" : "CARREGAR PERFIL",
+                        altura * 0.19f, 52, 760, 70);
+    Texto(mModoNovo ? "Digite sua matricula para criar o perfil"
+                    : "Digite sua matricula para continuar",
+          altura * 0.30f, 28, 760, 42);
 
     // A moldura do campo: um ator proprio, com ordem de desenho menor que a do
     // texto para ficar atras dele.
@@ -103,11 +117,15 @@ void Identificacao::CriarTextos() {
     // nunca encostar na moldura.
     mCampoAtor = Texto(" ", altura * 0.46f, 72, kCampoLargura - 48, kCampoAltura - 28);
 
-    mErroAtor  = Texto(" ", altura * 0.60f, 26, 760, 40);
-    // Duas linhas proprias em vez de uma longa: assim cada uma fica centrada de
+    // Largura folgada: as frases de recusa sao bem mais longas que as de erro de
+    // formato, e uma delas quebrava linha com os 760 de antes.
+    mErroAtor  = Texto(" ", altura * 0.60f, 26, 1040, 40);
+
+    // Linhas proprias em vez de uma longa: assim cada uma fica centrada de
     // verdade, e nenhuma depende de caber numa largura de quebra.
-    Texto("ENTER  entrar", altura * 0.76f, 24, 420, 36);
-    Texto("TAB  jogar sem salvar", altura * 0.83f, 24, 460, 36);
+    Texto(mModoNovo ? "ENTER  criar perfil" : "ENTER  entrar", altura * 0.74f, 24, 460, 36);
+    Texto("TAB  jogar sem salvar", altura * 0.80f, 24, 460, 36);
+    Texto("ESC  voltar ao menu", altura * 0.86f, 24, 460, 36);
 }
 
 void Identificacao::Redesenhar() const {
@@ -141,6 +159,37 @@ void Identificacao::Redesenhar() const {
     }
 }
 
+void Identificacao::Confirmar(const std::string& canonica) {
+
+    // A PERGUNTA E A MESMA nos dois modos - "ja ha perfil?" -, e so a resposta
+    // aceitavel muda. Por isso uma tela so, e nao duas.
+    const bool jaTemPerfil = FichaArquivo::Existe(canonica);
+
+    if (mModoNovo && jaTemPerfil) {
+        mErro = kJaExiste;
+        return;
+    }
+    if (!mModoNovo && !jaTemPerfil) {
+        mErro = kNaoExiste;
+        return;
+    }
+
+    // Os dois modos passam por IdentificarAluno: para quem esta criando, nao ha
+    // arquivo para ler e a sessao comeca vazia, que e exatamente o certo.
+    mGame->IdentificarAluno(canonica);
+
+    if (mModoNovo) {
+        // AINDA NAO GRAVA NADA. O perfil so nasce quando a personagem e
+        // confirmada (D5), e por isso dar ESC na tela de criacao deixa a
+        // matricula livre de novo - do contrario, voltar e tentar outra vez
+        // esbarraria no proprio perfil recem-criado.
+        mGame->RequestSceneChange(SceneType::CriacaoDePersonagem);
+        return;
+    }
+
+    mGame->RequestSceneChange(SceneType::StageSelect);
+}
+
 void Identificacao::LerTeclado(const Uint8* keyState) {
 
     for (int d = 0; d < 10; ++d) {
@@ -165,15 +214,17 @@ void Identificacao::LerTeclado(const Uint8* keyState) {
     const bool entrar = keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
     if (entrar && !mEnterAnterior) {
         const auto r = Matricula::Validar(mDigitado);
-        if (r.valida) {
-            mGame->IdentificarAluno(r.canonica);
-            mGame->RequestSceneChange(SceneType::StageSelect);
-        }
-        else {
-            mErro = Matricula::MensagemDeErro(r.erro);
-        }
+        if (r.valida) Confirmar(r.canonica);
+        else          mErro = Matricula::MensagemDeErro(r.erro);
     }
     mEnterAnterior = entrar;
+
+    const bool voltar = keyState[SDL_SCANCODE_ESCAPE];
+    if (voltar && !mVoltarAnterior) {
+        mGame->RequestSceneChange(SceneType::MainMenu);
+        return;
+    }
+    mVoltarAnterior = voltar;
 
     const bool visitante = keyState[SDL_SCANCODE_TAB];
     if (visitante && !mVisitanteAnterior) {

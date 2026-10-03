@@ -145,6 +145,20 @@ public:
     void JogarComoVisitante();
 
     /// @brief A matricula de quem esta jogando, ou Matricula::kVisitante.
+    /// Por qual caminho do menu o aluno chegou a tela de matricula.
+    enum class ModoDeEntrada {
+        Novo,       ///< vai CRIAR um perfil; matricula que ja tem perfil e recusada
+        Carregar    ///< vai ABRIR um perfil; matricula sem perfil e recusada
+    };
+
+    /// @brief Diz a que veio a proxima tela de matricula.
+    ///
+    /// Fica no Game, e nao num parametro da cena, pelo mesmo motivo de
+    /// mSelectedStage: quem cria as cenas e o ChangeScene, que nao conhece a
+    /// intencao de quem pediu a troca.
+    void DefinirModoDeEntrada(const ModoDeEntrada modo) { mModoDeEntrada = modo; }
+    [[nodiscard]] ModoDeEntrada ModoDeEntradaAtual() const { return mModoDeEntrada; }
+
     [[nodiscard]] const std::string& MatriculaAtual() const { return mMatricula; }
 
     /// @brief A aparencia de quem esta jogando. Vazia quer dizer "a padrao".
@@ -211,6 +225,9 @@ private:
     /// Quem esta jogando. Comeca como visitante, entao abrir o jogo e sair sem
     /// passar pela identificacao nunca grava nada por engano.
     std::string mMatricula;
+
+    /// A que veio a proxima tela de matricula. Ver DefinirModoDeEntrada.
+    ModoDeEntrada mModoDeEntrada = ModoDeEntrada::Novo;
 
     /// A aparencia de quem esta jogando, COMO VEIO DO SAVE. Vazia quer dizer
     /// "use a padrao" - e o caso do visitante e de todo save anterior a versao 4.

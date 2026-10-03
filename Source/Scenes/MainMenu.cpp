@@ -17,19 +17,22 @@ namespace {
     struct Opcao {
         const char* texto;
         Scene::SceneType destino;
+
+        /// So vale quando o destino e a tela de matricula; ver Game::ModoDeEntrada.
+        Game::ModoDeEntrada modo;
     };
 
     /// AS OPCOES DO MENU, numa tabela. Acrescentar uma e acrescentar uma linha:
     /// a navegacao, o desenho e o posicionamento saem todos do tamanho desta
     /// lista, e nao de numeros repetidos em tres lugares.
     ///
-    /// NOVO JOGO e CARREGAR PERFIL ainda apontam para a mesma tela. A tela de
-    /// matricula ganha os dois modos num incremento proprio; ate la, o menu ja
-    /// existe e ja navega.
+    /// NOVO JOGO e CARREGAR PERFIL levam a MESMA tela, em modos diferentes: uma
+    /// copia da tela por modo divergiria na primeira correcao feita em so uma
+    /// delas.
     const Opcao kOpcoes[] = {
-        {"Novo Jogo",      Scene::SceneType::Identificacao},
-        {"Carregar Perfil", Scene::SceneType::Identificacao},
-        {"Opcoes",         Scene::SceneType::Opcoes},
+        {"Novo Jogo",       Scene::SceneType::Identificacao, Game::ModoDeEntrada::Novo},
+        {"Carregar Perfil", Scene::SceneType::Identificacao, Game::ModoDeEntrada::Carregar},
+        {"Opcoes",          Scene::SceneType::Opcoes,        Game::ModoDeEntrada::Novo},
     };
     constexpr int kQuantasOpcoes = static_cast<int>(sizeof(kOpcoes) / sizeof(kOpcoes[0]));
 
@@ -107,6 +110,7 @@ void MainMenu::OnProcessInput(const Uint8 *keyState) {
 
     if (confirmar && !mConfirmarAnterior) {
         mConfirmarAnterior = true;
+        mGame->DefinirModoDeEntrada(kOpcoes[mSelecionada].modo);
         mGame->RequestSceneChange(kOpcoes[mSelecionada].destino);
         return;
     }
