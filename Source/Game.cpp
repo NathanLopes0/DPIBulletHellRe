@@ -158,9 +158,16 @@ void Game::UpdateGame()
 
     if (mPendingSceneChange)
     {
-        ChangeScene(mNextScene);
+        // O PEDIDO E CONSUMIDO ANTES DA TROCA, e nao depois. ChangeScene chama o
+        // Load() da cena nova, e um Load() pode pedir outra troca - e o que a
+        // Battle faz quando a materia nao tem BossFactory. Limpando depois, esse
+        // pedido era apagado no instante em que era feito, e a fase quebrada
+        // ficava na tela para sempre, com o log dizendo que estava voltando.
+        const Scene::SceneType proxima = mNextScene;
         mPendingSceneChange = false;
         mNextScene = Scene::SceneType::None;
+
+        ChangeScene(proxima);
     }
 
 }
