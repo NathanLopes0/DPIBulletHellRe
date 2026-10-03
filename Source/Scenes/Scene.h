@@ -21,6 +21,7 @@ public:
         None,
         MainMenu,
         Identificacao,
+        CriacaoDePersonagem,
         Opcoes,
         StageSelect,
         Battle
