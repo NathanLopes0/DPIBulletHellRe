@@ -828,23 +828,24 @@ TEST_CASE("Dados: Assets/materias.json nao tem problema nenhum") {
     CHECK(l.Quantas() > 0);
 }
 
-TEST_CASE("Dados: as dez materias estao la, com os codigos do enum que elas substituem") {
-    // A ORDEM IMPORTA AQUI, e so aqui: e por ela que um save do formato antigo,
-    // que gravava a posicao no enum, sera convertido para codigo. Se esta lista
-    // mudar de ordem antes da migracao existir, os saves antigos se perdem.
-    const std::vector<std::string> doEnum = {
-        "INF213", "INF250", "INF220", "INF330", "INF332",
+TEST_CASE("Dados: as materias do curso estao la, com os codigos esperados") {
+
+    // ESTA LISTA NAO E A ORDEM, e sim o CONJUNTO. Ate a versao 1 do save a
+    // posicao aqui era a chave gravada em disco, e esta lista travava a ordem
+    // por isso; desde a versao 2 o save guarda o codigo, e reordenar passou a
+    // ser seguro. O que ainda importa travar e que nenhuma materia suma por
+    // descuido de edicao.
+    const std::set<std::string> esperadas = {
+        "INF110", "INF213", "INF250", "INF220", "INF330", "INF332",
         "INF420", "BIOINF", "INF394", "VISCCP", "TCC"
     };
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
-    REQUIRE(l.Quantas() == static_cast<int>(doEnum.size()));
+    REQUIRE(l.Quantas() == static_cast<int>(esperadas.size()));
 
-    for (size_t i = 0; i < doEnum.size(); ++i) {
-        CAPTURE(i);
-        CAPTURE(doEnum[i]);
-        CHECK(l.CodigoDe(static_cast<int>(i)) == doEnum[i]);
-    }
+    std::set<std::string> noArquivo;
+    for (const auto& m : l.materias) noArquivo.insert(m.codigo);
+    CHECK(noArquivo == esperadas);
 }
 
 TEST_CASE("Dados: toda materia com chefe aponta para um conjunto que existe em fases.json") {
@@ -885,67 +886,67 @@ TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
     }
 }
 
-TEST_CASE("Dados: o desbloqueio em arquivo da a MESMA resposta que o C++ que ele substitui") {
+TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
 
-    // A regra de hoje, copiada de Game::IsStageUnlocked antes de ela sair, escrita
-    // sobre os codigos em vez dos valores do enum:
-    //   - INF213 sempre;
-    //   - coluna 1 (INF250, INF220, INF330, INF332) abre se passou em INF213;
-    //   - coluna 2 (INF420, BIOINF, INF394, VISCCP) abre com 2 aprovacoes na coluna 1;
-    //   - TCC abre com 2 aprovacoes na coluna 2.
-    const std::vector<std::string> col1 = {"INF250", "INF220", "INF330", "INF332"};
-    const std::vector<std::string> col2 = {"INF420", "BIOINF", "INF394", "VISCCP"};
+    // Este teste nasceu comparando materias.json com a regra que vivia em
+    // Game::IsStageUnlocked. Aquela regra ja saiu do C++ - foi ele que tornou a
+    // saida segura -, entao agora ele descreve a progressao PRETENDIDA:
+    //
+    //   INF110 sempre aberta (a porta de entrada do curso);
+    //   INF213 abre ao passar em INF110;
+    //   coluna 2 (INF250, INF220, INF330, INF332) abre ao passar em INF213;
+    //   coluna 3 (INF420, BIOINF, INF394, VISCCP) abre com 2 aprovacoes na 2;
+    //   TCC abre com 2 aprovacoes na coluna 3.
+    const std::vector<std::string> col2 = {"INF250", "INF220", "INF330", "INF332"};
+    const std::vector<std::string> col3 = {"INF420", "BIOINF", "INF394", "VISCCP"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
-    REQUIRE(l.Quantas() == 10);
+    REQUIRE(l.Quantas() == 11);
 
-    auto regraAntiga = [&](const std::string& codigo, const Progresso& p) {
+    auto pretendida = [&](const std::string& codigo, const Progresso& p) {
         auto aprovado = [&](const std::string& c) { return p.Aprovado(l.IndiceDe(c)); };
         auto quantas = [&](const std::vector<std::string>& lista) {
             int n = 0;
             for (const auto& c : lista) if (aprovado(c)) ++n;
             return n;
         };
-        if (codigo == "INF213") return true;
-        for (const auto& c : col1) if (c == codigo) return aprovado("INF213");
-        for (const auto& c : col2) if (c == codigo) return quantas(col1) >= 2;
-        if (codigo == "TCC") return quantas(col2) >= 2;
+        if (codigo == "INF110") return true;
+        if (codigo == "INF213") return aprovado("INF110");
+        for (const auto& c : col2) if (c == codigo) return aprovado("INF213");
+        for (const auto& c : col3) if (c == codigo) return quantas(col2) >= 2;
+        if (codigo == "TCC") return quantas(col3) >= 2;
         return false;
     };
 
-    // Varre TODAS as combinacoes de aprovacao das nove materias que nao sao o TCC.
-    // Sao 512 estados: cobre o espaco inteiro em vez de alguns casos escolhidos a
-    // dedo, que e onde uma diferenca de regra costuma se esconder.
+    // Varre TODAS as combinacoes de aprovacao das onze materias: 2048 estados.
+    // Cobrir o espaco inteiro, em vez de casos escolhidos a dedo, e onde uma
+    // diferenca de regra costuma aparecer.
     int comparacoes = 0;
-    for (int mascara = 0; mascara < 512; ++mascara) {
+    for (int mascara = 0; mascara < (1 << 11); ++mascara) {
 
         Progresso p;
-        for (int bit = 0; bit < 9; ++bit) {
+        for (int bit = 0; bit < 11; ++bit) {
             if (mascara & (1 << bit)) p.RegistrarNota(bit, 80.0f);
         }
 
         for (int i = 0; i < l.Quantas(); ++i) {
             const std::string codigo = l.CodigoDe(i);
             const bool doArquivo = l.Desbloqueada(i, p);
-            const bool doCodigo  = regraAntiga(codigo, p);
+            const bool esperado  = pretendida(codigo, p);
 
-            if (doArquivo != doCodigo) {
+            if (doArquivo != esperado) {
                 CAPTURE(mascara);
                 CAPTURE(codigo);
                 CAPTURE(doArquivo);
-                CAPTURE(doCodigo);
-                FAIL("o arquivo e o C++ discordam");
+                CAPTURE(esperado);
+                FAIL("o arquivo e a progressao pretendida discordam");
             }
             ++comparacoes;
         }
     }
 
-    CHECK(comparacoes == 512 * 10);
+    CHECK(comparacoes == (1 << 11) * 11);
 }
-
-// =============================================================================
-// O CATALOGO DE PECAS DA PERSONAGEM
-// =============================================================================
 
 TEST_CASE("Dados: personagens.json e lido sem nenhum problema") {
 

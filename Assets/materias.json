@@ -44,59 +44,74 @@
 
   "materias": [
 
-    // ----- Coluna 0: a porta de entrada -----
+    // ----- Coluna 0: a porta de entrada do curso -----
+    //
+    // O Andre mudou de materia: ele era o chefe de INF 330 e passou a ser o da
+    // INF 110, que e por onde o aluno comeca. Como o save grava o CODIGO da
+    // materia, mover um chefe de uma para outra nao mexe em nota de ninguem.
     {
-      "codigo": "INF213",
-      "nome": "INF 213",
+      "codigo": "INF110",
+      "nome": "INF 110",
       "coluna": 0,
-      "chefe": "salles",
+      "chefe": "andre",
       "desbloqueio": { "tipo": "sempre" }
     },
 
-    // ----- Coluna 1: abre ao passar em INF 213 -----
+    // ----- Coluna 1: abre ao passar em INF 110 -----
+    //
+    // O INF 213 era a porta de entrada e virou o segundo degrau.
     {
-      "codigo": "INF250", "nome": "INF 250", "coluna": 1, "chefe": "ricardo",
+      "codigo": "INF213", "nome": "INF 213", "coluna": 1, "chefe": "salles",
+      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF110"] }
+    },
+
+    // ----- Coluna 2: abre ao passar em INF 213 -----
+    {
+      "codigo": "INF250", "nome": "INF 250", "coluna": 2, "chefe": "ricardo",
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
     {
-      "codigo": "INF220", "nome": "INF 220", "coluna": 1,
+      "codigo": "INF220", "nome": "INF 220", "coluna": 2,
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
     {
-      "codigo": "INF330", "nome": "INF 330", "coluna": 1, "chefe": "andre",
+      // Ficou sem chefe quando o Andre foi para a INF 110. Continua na lista
+      // para nao apagar a nota de quem ja jogou nela; ganha um chefe quando
+      // houver um.
+      "codigo": "INF330", "nome": "INF 330", "coluna": 2,
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
     {
-      "codigo": "INF332", "nome": "INF 332", "coluna": 1,
+      "codigo": "INF332", "nome": "INF 332", "coluna": 2,
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
 
-    // ----- Coluna 2: abre com duas aprovacoes na coluna 1 -----
+    // ----- Coluna 3: abre com duas aprovacoes na coluna 2 -----
     {
-      "codigo": "INF420", "nome": "INF 420", "coluna": 2, "chefe": "julio",
-      "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 1 }
+      "codigo": "INF420", "nome": "INF 420", "coluna": 3, "chefe": "julio",
+      "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
     {
-      "codigo": "BIOINF", "nome": "BIOINF", "coluna": 2,
-      "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 1 }
+      "codigo": "BIOINF", "nome": "BIOINF", "coluna": 3,
+      "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
     {
-      "codigo": "INF394", "nome": "INF394", "coluna": 2,
-      "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 1 }
+      "codigo": "INF394", "nome": "INF394", "coluna": 3,
+      "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
     {
       // O nome em tela era "VISCPP" e o codigo do enum, "VISCCP". Mantive os
       // dois como estavam para nao mudar comportamento junto com a migracao;
       // se um dos dois for erro de digitacao, agora da para corrigir o NOME
       // sem tocar em save nenhum.
-      "codigo": "VISCCP", "nome": "VISCPP", "coluna": 2,
-      "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 1 }
+      "codigo": "VISCCP", "nome": "VISCPP", "coluna": 3,
+      "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
 
-    // ----- Coluna 3: o fim do curso -----
+    // ----- Coluna 4: o fim do curso -----
     {
-      "codigo": "TCC", "nome": "TCC", "coluna": 3,
-      "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
+      "codigo": "TCC", "nome": "TCC", "coluna": 4,
+      "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 3 }
     }
   ]
 }
