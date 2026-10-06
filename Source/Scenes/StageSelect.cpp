@@ -5,6 +5,7 @@
 #include "StageSelect.h"
 
 #include "../Matricula.h"
+#include "../MateriasArquivo.h"
 #include <sstream>
 #include <iomanip>
 #include "../Math.h"
@@ -76,33 +77,31 @@ void StageSelect::CreateStageButtons() {
     const float startX = marginX + buttonWidth / 2.0f;
     const float endX = screenW - (marginX + buttonWidth / 2.0f);
 
-    // Calculamos o passo horizontal (3 intervalos para 4 colunas visuais, por isso divide por 3)
-    const float stepX = (endX - startX) / 3.0f;
-
     // 3. Definindo os Limites Verticais (Âncoras Y) para as Colunas
     // Definir o topo e o fundo baseados na margem Y.
     const float startY = marginY + buttonHeight / 2.0f;
     const float endY = screenH - (marginY + buttonHeight / 2.0f);
 
-    // Dados das colunas
-    const std::vector<std::pair<std::string, Game::GameSubject>> col1Data = {
-        {"INF 250", Game::GameSubject::INF250},
-        {"INF 220", Game::GameSubject::INF220},
-        {"INF 330", Game::GameSubject::INF330},
-        {"INF 332", Game::GameSubject::INF332}
-    };
+    // A GRADE VEM DE materias.json, e nao de listas escritas aqui. Antes os
+    // nomes dos botoes, as colunas e quem ficava em cada uma estavam repetidos
+    // neste arquivo, ja declarados no JSON - e acrescentar uma materia exigia
+    // acertar os dois, sem nada avisando se um ficasse para tras.
+    const Materias::Lista& materias = Materias::Carregadas();
+    const int quantasColunas = materias.QuantasColunas();
 
-    const std::vector<std::pair<std::string, Game::GameSubject>> col2Data = {
-        {"INF 420", Game::GameSubject::INF420},
-        {"BIOINF", Game::GameSubject::BIOINF},
-        {"INF394", Game::GameSubject::INF394},
-        {"VISCPP", Game::GameSubject::VISCCP}
-    };
+    // O passo horizontal supoe intervalos entre colunas, e nao colunas: com
+    // quatro colunas sao tres intervalos. Com uma coluna so nao ha intervalo
+    // nenhum, e dividir por zero poria os botoes no infinito.
+    const float stepX = (quantasColunas > 1)
+                            ? (endX - startX) / static_cast<float>(quantasColunas - 1)
+                            : 0.0f;
 
     // 4. Cálculo do Passo Vertical (Step Y)
     // Para que as colunas fiquem alinhadas, precisamos saber qual tem mais itens.
-    // (Programando defensivamente. Atualmente as duas tem 4 itens, mas vai que né)
-    size_t maxRows = std::max(col1Data.size(), col2Data.size());
+    size_t maxRows = 0;
+    for (int c = 0; c < quantasColunas; ++c) {
+        maxRows = std::max(maxRows, materias.DaColuna(c).size());
+    }
 
     // Evita divisão por zero se as listas estiverem vazias ou tiverem apenas 1 item
     float stepY = 0.0f;
@@ -114,28 +113,30 @@ void StageSelect::CreateStageButtons() {
     // CRIAÇÃO DOS BOTÕES
     // ---------------------------------------------------------
 
-    // Botão Solitário da Esquerda (INF 213) - Centralizado verticalmente na tela
-    CreateButton("INF 213", Game::INF213, Vector2(startX, screenH / 2.0f));
+    for (int coluna = 0; coluna < quantasColunas; ++coluna) {
 
-    // Função Lambda para criar colunas com a nova lógica vertical
-    auto CreateColumn = [&](const auto& data, const float xPos) {
-        for (size_t i = 0; i < data.size(); i++) {
-            // Lerp vertical
-            // Se só tiver 1 item, coloca no startY. Se tiver mais, distribui.
-            const float yPos = (maxRows > 1) ? (startY + stepY * i) : startY;
+        const std::vector<int> daColuna = materias.DaColuna(coluna);
+        if (daColuna.empty()) continue;
 
-            CreateButton(data[i].first, data[i].second, Vector2(xPos, yPos));
+        const float xPos = startX + stepX * static_cast<float>(coluna);
+
+        for (size_t i = 0; i < daColuna.size(); ++i) {
+
+            // Coluna de uma materia so fica CENTRADA na vertical; com mais de
+            // uma, elas se distribuem no mesmo passo de todas as colunas, para
+            // as linhas ficarem alinhadas lado a lado. E o que fazia os botoes
+            // solitarios do INF 213 e do TCC parecerem centrados de proposito.
+            const float yPos = (daColuna.size() == 1)
+                                   ? screenH / 2.0f
+                                   : startY + stepY * static_cast<float>(i);
+
+            const Materias::Materia* m = materias.Por(daColuna[i]);
+            if (m == nullptr) continue;
+
+            CreateButton(m->nome, (daColuna[i]),
+                         Vector2(xPos, yPos));
         }
-    };
-
-    // Criar Coluna 1 (Posição X: Início + 1 passo)
-    CreateColumn(col1Data, startX + stepX);
-
-    // Criar Coluna 2 (Posição X: Início + 2 passos)
-    CreateColumn(col2Data, startX + (stepX * 2.0f));
-
-    // Botão Solitário da Direita (TCC) - Centralizado verticalmente na tela
-    CreateButton("TCC", Game::GameSubject::TCC, Vector2(endX, screenH / 2.0f));
+    }
 
     // 5. Inicialização da Seleção
     if (!mButtonObservers.empty()) {
@@ -147,7 +148,7 @@ void StageSelect::CreateStageButtons() {
     }
 }
 
-void StageSelect::CreateButton(const std::string& text, Game::GameSubject subject, const Vector2& position) {
+void StageSelect::CreateButton(const std::string& text, int subject, const Vector2& position) {
 
     bool unlocked = mGame->IsStageUnlocked(subject);
     auto button = std::make_unique<StageSelectButton>(this, text, subject, Caminhos::Asset("Fonts/Zelda.ttf"), !unlocked);
@@ -396,7 +397,7 @@ void StageSelect::OnUpdate(float deltaTime) {
 void StageSelect::UpdateStageInfo() const {
     if (!mScoreInfoActor) return;
 
-    const Game::GameSubject subject = mSelectedSubject;
+    const int subject = mSelectedSubject;
     // Agora e de fato o recorde: antes mostrava a ULTIMA nota, entao uma
     // tentativa ruim baixava o numero que se chamava highScore.
     const float highScore = mGame->GetMelhorNota(subject);
