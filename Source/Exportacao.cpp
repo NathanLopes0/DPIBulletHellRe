@@ -30,9 +30,13 @@ std::string Campo(const std::string& valor) {
 
 namespace {
 
+    /// DUAS CASAS. Com uma, o teto de 99,99 sairia "100.0" na planilha, e o
+    /// professor leria nota cheia de um aluno que nao a tirou. A distincao entre
+    /// 99,99 e 100 e justamente o que o teto existe para registrar, entao perde-la
+    /// aqui, no documento que vale, seria pior do que nao ter teto nenhum.
     std::string Nota(const float v) {
         std::ostringstream s;
-        s.precision(1);
+        s.precision(2);
         s << std::fixed << v;
         return s.str();
     }

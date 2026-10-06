@@ -403,7 +403,9 @@ void StageSelect::UpdateStageInfo() const {
     const float highScore = mGame->GetMelhorNota(subject);
 
     std::stringstream ss;
-    ss << "Maior Nota: " << std::fixed << std::setprecision(1) << highScore;
+    // Duas casas pelo mesmo motivo da barra de nota da batalha: o teto por dano
+    // e 99,99, e com uma casa ele viraria "100.0" na tela do recorde.
+    ss << "Maior Nota: " << std::fixed << std::setprecision(2) << highScore;
 
     if (auto dc = mScoreInfoActor->GetComponent<DrawTextComponent>()) {
         dc->SetText(ss.str());

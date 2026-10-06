@@ -6,6 +6,7 @@
 #include "Battle.h"
 
 #include "../../Progresso.h"
+#include "../../Nota.h"
 
 #include <locale>
 #include <sstream>
@@ -62,6 +63,11 @@ void Battle::Load() {
     // tinha passado. A ultima nota continua guardada na ficha, como informacao
     // para o professor; ela so nao e mais o ponto de partida.
     mGrade = Progresso::kNotaInicial;
+
+    // E o mesmo vale para o dano: a contagem de acertos zera junto com a nota,
+    // porque o teto e desta tentativa. Quem foi atingido ontem nao perde a nota
+    // cheia de hoje.
+    mAcertosSofridos = 0;
 
     // 2. Criar os atores principais
     LoadPlayer();
@@ -450,8 +456,12 @@ void Battle::GradeBarUpdate() {
 }
 void Battle::GradeTextUpdate() {
 
+    // DUAS CASAS, E NAO UMA. Com uma casa o teto de 99,99 apareceria como
+    // "100.0": quem levou dano demais leria nota cheia na tela, nao veria a
+    // comemoracao que acompanha o 100 de verdade, e teria toda a razao de achar
+    // que o jogo quebrou. A segunda casa e o que torna o teto visivel.
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(1) << mGrade;
+    ss << std::fixed << std::setprecision(2) << mGrade;
     mGradeTextActor->GetComponent<DrawTextComponent>()->SetText(ss.str());
 
 }
@@ -545,11 +555,24 @@ void Battle::CheckCollisions() {
 }
 
 void Battle::GradeUp(const float amount) {
-    mGrade = Math::Clamp(mGrade + amount, 0.0f, 100.f);
+
+    // A aritmetica inteira vive em Nota: a curva acima de 60, o teto de quem
+    // levou dano e os limites de 0 a 100. Aqui so entra o que a batalha sabe e
+    // Nota nao: a nota de agora e quantas vezes este jogador foi atingido.
+    mGrade = Nota::Somar(mGrade, amount, mAcertosSofridos);
 }
 void Battle::GradeDown() {
-    mGrade -= GRADE_CHANGE_DOWN;
-    mGrade = Math::Clamp(mGrade, 0.0f, 100.f);
+
+    // A contagem mora AQUI, no instante do acerto, e nao num balanco no fim da
+    // batalha: assim o proximo ganho ja ve o teto novo. Entre esta linha e a
+    // seguinte a ordem nao importa - Subtrair nao le a contagem - e nao vale
+    // comentar uma dependencia que nao existe.
+    ++mAcertosSofridos;
+    mGrade = Nota::Subtrair(mGrade, GRADE_CHANGE_DOWN);
+}
+
+bool Battle::PerdeuACheia() const {
+    return Nota::PerdeuACheia(mAcertosSofridos);
 }
 
 void Battle::ResetHUDTimer(const float newDuration) {

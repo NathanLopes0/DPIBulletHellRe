@@ -53,6 +53,9 @@ public:
      */
     [[nodiscard]] float GetNotaAtual() const { return mGrade; }
 
+    /// @brief Se esta batalha ja perdeu o direito a nota cheia por dano sofrido.
+    [[nodiscard]] bool PerdeuACheia() const;
+
 
 protected:
     void TimeBarUpdate() const;
@@ -78,6 +81,11 @@ private:
     // --- Membros de Estado da Batalha ---
     float mGrade;
     int mStage{};
+
+    /// Quantos projeteis do chefe acertaram o jogador NESTA batalha. Zera a cada
+    /// batalha junto com a nota: o teto de Nota e por batalha, nao por perfil.
+    /// Passado dos 2, a nota desta batalha para em 99,99 (ver Nota.h).
+    int mAcertosSofridos{};
 
     // --- Ponteiros observadores do Boss e do Player, que vão estar dentro
     // do vetor mActors da própria cena Battle. Ideal para, mesmo num vetor de Actors,
