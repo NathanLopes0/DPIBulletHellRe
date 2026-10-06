@@ -16,8 +16,11 @@
  * subir o jogo, e para que as duas coisas que o mapa de notas do Game confundia
  * passem a ter nomes distintos.
  *
- * AS MATERIAS SAO 'int' de proposito: Game::GameSubject e um enum aninhado em
- * Game, e incluir Game.h aqui arrastaria o SDL junto. Quem converte e o Game.
+ * AS MATERIAS SAO 'int' de proposito: e o indice na lista de Materias. Esta
+ * camada nao inclui Materias.h nem Game.h - o indice e so um numero aqui, e
+ * quem sabe o que ele significa e quem chama. Foi a escolha certa: por um tempo
+ * o Game teve um enum GameSubject repetindo a lista, e quando ele foi aposentado
+ * este arquivo nao precisou mudar nada.
  */
 class Progresso {
 public:

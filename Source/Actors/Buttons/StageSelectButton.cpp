@@ -11,7 +11,7 @@
 #include "../../CaminhosArquivo.h"
 
 StageSelectButton::StageSelectButton(Scene* scene, const std::string& buttonText,
-                                     const Game::GameSubject subject, const std::string& fontPath,
+                                     const int subject, const std::string& fontPath,
                                      const bool isLocked)
     : Button(scene)
     , mSubject(subject)

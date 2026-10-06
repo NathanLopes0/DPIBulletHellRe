@@ -26,7 +26,7 @@ class Battle : public Scene {
 
 public:
 
-    explicit Battle(Game* game, Game::GameSubject selectedStage);
+    explicit Battle(Game* game, int selectedStage);
     ~Battle() override;
     void Load() override;
     void CheckCollisions();
@@ -77,7 +77,7 @@ private:
 
     // --- Membros de Estado da Batalha ---
     float mGrade;
-    Game::GameSubject mStage{};
+    int mStage{};
 
     // --- Ponteiros observadores do Boss e do Player, que vão estar dentro
     // do vetor mActors da própria cena Battle. Ideal para, mesmo num vetor de Actors,

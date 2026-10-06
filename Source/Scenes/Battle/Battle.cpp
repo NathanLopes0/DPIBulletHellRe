@@ -39,7 +39,7 @@ static constexpr int kProjectilePrewarmCountPerType = 300;
 
 
 
-Battle::Battle(Game* game, const Game::GameSubject selectedStage)
+Battle::Battle(Game* game, const int selectedStage)
     : Scene(game, SceneType::Battle)
     , mGrade(40.0f)
     , mStage(selectedStage)
@@ -99,7 +99,7 @@ void Battle::LoadBoss() {
         // de vários frames (ver comentário em Load()), não de forma síncrona
         // aqui dentro.
     } else {
-        // %d, e nao %s: mStage e o enum GameSubject, ou seja um inteiro. Com %s o
+        // %d, e nao %s: mStage e o enum int, ou seja um inteiro. Com %s o
         // SDL_Log tratava o numero como um char* e tentava ler a string no endereco
         // 2 - segmentation fault DENTRO da mensagem de erro. As seis materias sem
         // fabrica (INF220, INF332, BIOINF, INF394, VISCCP, TCC) derrubavam o jogo

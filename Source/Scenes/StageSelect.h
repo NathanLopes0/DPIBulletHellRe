@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../Scenes/Scene.h"
-#include "../Game.h" // Incluir para o enum GameSubject
+#include "../Game.h" // Incluir para o enum int
 #include <vector>
 #include <memory>
 
@@ -26,7 +26,7 @@ public:
     void OnUpdate(float deltaTime) override;
 
     // Getter para a matéria selecionada
-    [[nodiscard]] Game::GameSubject GetSelectedSubject() const { return mSelectedSubject; }
+    [[nodiscard]] int GetSelectedSubject() const { return mSelectedSubject; }
 
 private:
 
@@ -38,7 +38,7 @@ private:
     size_t mSelectedIndex{};
 
     // --- Funções Auxiliares de CreateStageButtons ---
-    void CreateButton(const std::string &text, Game::GameSubject subject, const Vector2 &position);
+    void CreateButton(const std::string &text, int subject, const Vector2 &position);
     static size_t HandleSelectedChange(const Uint8 *keyState, size_t currSelected) ;
     static size_t HandleUpInput(size_t currSelected) ;
     static size_t HandleDownInput(size_t currSelected) ;
@@ -54,7 +54,7 @@ private:
     std::unique_ptr<Font> mStageSelectFont{};
 
     // --- Membros de Estado e Observadores ---
-    Game::GameSubject mSelectedSubject{};
+    int mSelectedSubject{};
     float mInputTimer{}; // Timer pra mudar de botão selecionado
 
     // Vetor de ponteiros OBSERVADORES para fácil acesso aos botões.
