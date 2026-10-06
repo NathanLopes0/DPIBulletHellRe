@@ -7,6 +7,7 @@
 #include "../Matricula.h"
 #include "../MateriasArquivo.h"
 #include "../Nota.h"
+#include "../Navegacao.h"
 #include <sstream>
 #include <iomanip>
 #include "../Math.h"
@@ -23,7 +24,7 @@ StageSelect::StageSelect(Game *game) : Scene(game, SceneType::StageSelect)
 {
 
     mStageSelectFont->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
-    mButtonObservers.reserve(NUM_STAGES);
+    mButtonObservers.reserve(RESERVA_DE_BOTOES);
 
 }
 
@@ -114,6 +115,11 @@ void StageSelect::CreateStageButtons() {
     // CRIAÇÃO DOS BOTÕES
     // ---------------------------------------------------------
 
+    // A grade da navegacao e montada AQUI, no mesmo laco que posiciona os botoes,
+    // e nao numa descricao a parte: assim nao existe uma segunda ideia do layout
+    // que possa discordar da primeira. Ver o comentario em Navegacao.h.
+    mGrade.assign(static_cast<size_t>(quantasColunas), {});
+
     for (int coluna = 0; coluna < quantasColunas; ++coluna) {
 
         const std::vector<int> daColuna = materias.DaColuna(coluna);
@@ -133,6 +139,10 @@ void StageSelect::CreateStageButtons() {
 
             const Materias::Materia* m = materias.Por(daColuna[i]);
             if (m == nullptr) continue;
+
+            // O indice do botao que CreateButton vai criar e a posicao em que ele
+            // entra em mButtonObservers - por isso a grade e anotada antes.
+            mGrade[static_cast<size_t>(coluna)].push_back(mButtonObservers.size());
 
             CreateButton(m->nome, (daColuna[i]),
                          Vector2(xPos, yPos));
@@ -215,178 +225,25 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
     mEntrarAnterior = entrar;
 }
 
-size_t StageSelect::HandleSelectedChange(const Uint8 *keyState, size_t currSelected) {
-    if (keyState[SDL_SCANCODE_UP])
-        currSelected = HandleUpInput(currSelected);
-    else if (keyState[SDL_SCANCODE_DOWN])
-        currSelected = HandleDownInput(currSelected);
-    else if (keyState[SDL_SCANCODE_LEFT])
-        currSelected = HandleLeftInput(currSelected);
-    else if (keyState[SDL_SCANCODE_RIGHT])
-        currSelected = HandleRightInput(currSelected);
+// --------------------------------------------------------------------------
+// NAVEGACAO
+//
+// A REGRA MORA EM Navegacao, E A FORMA DA GRADE VEM DE QUEM DESENHOU OS BOTOES.
+// Aqui havia tres funcoes que descreviam a grade de novo, a mao - "a coluna 1
+// tem 4 itens, a 2 comeca no indice 5" - mais um NUM_STAGES fixo em 10. Era uma
+// segunda descricao do mesmo layout, e quando o INF 110 entrou e os botoes
+// passaram a 11 em cinco colunas, so os botoes acompanharam: a seta andava por
+// uma tela que nao existia mais.
+// --------------------------------------------------------------------------
+
+size_t StageSelect::HandleSelectedChange(const Uint8 *keyState, const size_t currSelected) const {
+
+    if (keyState[SDL_SCANCODE_UP])          return Navegacao::Cima(mGrade, currSelected);
+    if (keyState[SDL_SCANCODE_DOWN])        return Navegacao::Baixo(mGrade, currSelected);
+    if (keyState[SDL_SCANCODE_LEFT])        return Navegacao::Esquerda(mGrade, currSelected);
+    if (keyState[SDL_SCANCODE_RIGHT])       return Navegacao::Direita(mGrade, currSelected);
 
     return currSelected;
-}
-// --------------------------------------------------------------------------
-// LÓGICA DE NAVEGAÇÃO (GRID SYSTEM)
-// --------------------------------------------------------------------------
-
-int StageSelect::GetColumnFromIndex(size_t index) {
-    // Coluna 0: Botão Esquerdo (Apenas índice 0)
-    if (index == 0) return 0;
-
-    // Constantes dinâmicas baseadas no tamanho dos vetores
-    constexpr size_t col1Size = 4; // Ou mCol1Data.size() se eu quiser tornar membro
-    constexpr size_t col2Size = 4; // Ou mCol2Data.size()
-
-    // Coluna 1: Indices 1 até 4
-    if (index <= col1Size) return 1;
-
-    // Coluna 2: Indices 5 até 8
-    if (index <= col1Size + col2Size) return 2;
-
-    // Coluna 3: O resto (Botão Direito)
-    return 3;
-}
-
-/* Qual índice do vetor começa a coluna colIndex?
- */
-size_t StageSelect::GetColumnStartIndex(int colIndex) {
-    constexpr size_t col1Size = 4;
-    constexpr size_t col2Size = 4;
-
-    switch (colIndex) {
-        case 0: return 0;
-        case 1: return 1;
-        case 2: return 1 + col1Size;
-        case 3: return 1 + col1Size + col2Size;
-        default: return 0;
-    }
-}
-
-/* Qual o tamanho da coluna colIndex?
- */
-size_t StageSelect::GetColumnSize(const int colIndex) {
-    constexpr size_t col1Size = 4;
-    constexpr size_t col2Size = 4;
-
-    switch (colIndex) {
-        case 0: return 1;
-        case 1: return col1Size;
-        case 2: return col2Size;
-        case 3: return 1;
-        default: return 0;
-    }
-}
-
-// --------------------------------------------------------------------------
-
-size_t StageSelect::HandleUpInput(const size_t currSelected) {
-    const int col = GetColumnFromIndex(currSelected);
-    const size_t colStart = GetColumnStartIndex(col);
-    const size_t colSize = GetColumnSize(col);
-
-    // Se a coluna só tem 1 item (bordas), cima/baixo não faz nada
-    if (colSize <= 1) return currSelected;
-
-    // Lógica Cíclica:
-    // Posição relativa dentro da coluna (0 a N-1)
-
-    // Se for o primeiro (0), vai para o último (Size - 1)
-    if (const size_t relativeIndex = currSelected - colStart; relativeIndex == 0) {
-        return colStart + (colSize - 1);
-    }
-
-    return currSelected - 1;
-}
-
-size_t StageSelect::HandleDownInput(const size_t currSelected) {
-    const int col = GetColumnFromIndex(currSelected);
-    const size_t colStart = GetColumnStartIndex(col);
-    const size_t colSize = GetColumnSize(col);
-
-    if (colSize <= 1) return currSelected;
-
-    // Se for o último, volta para o primeiro
-    if (const size_t relativeIndex = currSelected - colStart; relativeIndex == colSize - 1) {
-        return colStart;
-    }
-
-    return currSelected + 1;
-}
-
-size_t StageSelect::HandleLeftInput(const size_t currSelected) {
-    const int col = GetColumnFromIndex(currSelected);
-
-    // Se já estamos na extrema esquerda, ir para a extrema direita
-    // Posso bloquear tbm.. mas vou fazer ir pro outro lado para ficar fluido.
-    if (col == 0) return NUM_STAGES - 1;
-
-    const int targetCol = col - 1;
-    const size_t targetStart = GetColumnStartIndex(targetCol);
-    const size_t targetSize = GetColumnSize(targetCol);
-
-    // Agora calculamos para qual ALTURA vamos.
-    // Se estou saindo de uma lista grande para uma pequena (ex: Col 1 -> Col 0), vou para o meio.
-    // Se estou saindo de uma lista igual para igual (Col 2 -> Col 1), mantenho a linha.
-
-    const size_t currentStart = GetColumnStartIndex(col);
-    const size_t currentRow = currSelected - currentStart; // Linha atual (0, 1, 2...)
-
-    if (targetSize == 1) {
-        // Indo para um botão solitário (centro vertical)
-        return targetStart;
-    }
-
-    // Indo para uma coluna com vários itens.
-    // Tentamos manter o mesmo índice de linha (currentRow).
-    // Mas se a coluna destino for menor, usamos clamp (Math::Min).
-    size_t targetRow = std::min(currentRow, targetSize - 1);
-
-    // Caso especial: Se viemos de um botão solitário (Col 3 -> Col 2),
-    // queremos ir para o MEIO da lista, não para o topo.
-    if (const size_t currentSize = GetColumnSize(col); currentSize == 1 && targetSize > 1) {
-        targetRow = targetSize / 2 - 1; // Vai para o meio
-    }
-
-    return targetStart + targetRow;
-}
-
-size_t StageSelect::HandleRightInput(const size_t currSelected) {
-    const int col = GetColumnFromIndex(currSelected);
-
-    // Se estamos na última coluna, volta para a primeira (Wrap)
-    if (col == 3) return 0;
-
-    const int targetCol = col + 1;
-    const size_t targetStart = GetColumnStartIndex(targetCol);
-    const size_t targetSize = GetColumnSize(targetCol);
-
-    const size_t currentStart = GetColumnStartIndex(col);
-    const size_t currentRow = currSelected - currentStart;
-
-    // Lógica simétrica ao LeftInput
-    if (targetSize == 1) {
-        return targetStart;
-    }
-
-    size_t targetRow = std::min(currentRow, targetSize - 1);
-
-    // Se saímos do botão solitário da esquerda (Col 0) para a Col 1,
-    // queremos cair no meio da lista.
-    size_t currentSize = GetColumnSize(col);
-    if (currentSize == 1 && targetSize > 1) {
-        targetRow = targetSize / 2 - 1;
-    }
-
-    return targetStart + targetRow;
-}
-
-
-
-bool StageSelect::IsInBorder(const size_t currSelected) {
-
-    return currSelected == 0 || currSelected == NUM_STAGES - 1;
 }
 
 void StageSelect::OnUpdate(float deltaTime) {

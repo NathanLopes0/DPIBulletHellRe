@@ -45,6 +45,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Progresso.cpp
         Source/Nota.cpp
         Source/Nota.h
+        Source/Navegacao.cpp
+        Source/Navegacao.h
         Source/Matricula.cpp
         Source/Matricula.h
         Source/Materias.cpp
@@ -193,6 +195,7 @@ add_executable(dpi_tests
         tests/test_caminhos.cpp
         tests/test_progresso.cpp
         tests/test_nota.cpp
+        tests/test_navegacao.cpp
         tests/test_matricula.cpp
         tests/test_ficha.cpp
         tests/test_materias.cpp
@@ -201,6 +204,8 @@ add_executable(dpi_tests
         Source/Progresso.cpp
         Source/Nota.cpp
         Source/Nota.h
+        Source/Navegacao.cpp
+        Source/Navegacao.h
         Source/Matricula.cpp
         Source/Matricula.h
         Source/Materias.cpp

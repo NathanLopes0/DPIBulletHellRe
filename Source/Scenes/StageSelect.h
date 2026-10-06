@@ -7,6 +7,7 @@
 #include "../Scenes/Scene.h"
 #include "../Game.h" // Incluir para o enum int
 #include <vector>
+#include "../Navegacao.h"
 #include <memory>
 
 class Font;
@@ -39,15 +40,15 @@ private:
 
     // --- Funções Auxiliares de CreateStageButtons ---
     void CreateButton(const std::string &text, int subject, const Vector2 &position);
-    static size_t HandleSelectedChange(const Uint8 *keyState, size_t currSelected) ;
-    static size_t HandleUpInput(size_t currSelected) ;
-    static size_t HandleDownInput(size_t currSelected) ;
-    static size_t HandleLeftInput(size_t currSelected) ;
-    static size_t HandleRightInput(size_t currSelected) ;
-    static bool IsInBorder(size_t currSelected) ;
+    /// Para onde a seta leva. A regra esta em Navegacao; aqui so entra a tecla.
+    /// Deixou de ser static ao passar a consultar a grade real (mGrade).
+    [[nodiscard]] size_t HandleSelectedChange(const Uint8 *keyState, size_t currSelected) const;
 
     // --- Constantes de Design ---
-    static constexpr int NUM_STAGES = 10; // Quantas matérias teremos no jogo
+    /// So uma reserva do vetor, para evitar realocacao: o numero de materias de
+    /// verdade vem de materias.json. NAO e mais usado para navegar - era isso que
+    /// fazia a seta da esquerda cair no penultimo botao quando entrou o INF 110.
+    static constexpr int RESERVA_DE_BOTOES = 16;
     static constexpr float INPUT_DELAY = 0.2f; // Exemplo de constante para o timer
 
     // --- Membros de Propriedade (Ownership) ---
@@ -61,15 +62,13 @@ private:
     // A memória real é gerenciada pelo vetor mActors.
     std::vector<StageSelectButton*> mButtonObservers;
 
-    // --- Auxiliares de Navegação ---
-    // Retorna em qual coluna visual o índice atual está (0 a 3)
-    static int GetColumnFromIndex(size_t index) ;
-
-    // Retorna o índice inicial da coluna especificada
-    static size_t GetColumnStartIndex(int colIndex) ;
-
-    // Retorna quantos itens existem na coluna especificada
-    static size_t GetColumnSize(int colIndex);
+    /// A forma da grade, montada em CreateStageButtons junto com os botoes.
+    /// mGrade[coluna][linha] = indice em mButtonObservers.
+    ///
+    /// Substitui as tres funcoes que descreviam a grade a mao (GetColumnFromIndex,
+    /// GetColumnStartIndex, GetColumnSize). Elas tinham o layout de 4 colunas
+    /// 1,4,4,1 fixo no codigo e nao acompanharam a entrada do INF 110.
+    Navegacao::Grade mGrade;
 
 
     // Helper pra atualizar texto na HUD

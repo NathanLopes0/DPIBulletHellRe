@@ -44,6 +44,7 @@
 #include "../Source/Attacks/RegrasDeAtaque.h"
 #include "../Source/Attacks/ProjeteisDeChefe.h"
 #include "../Source/Materias.h"
+#include "../Source/Navegacao.h"
 #include "../Source/Personagens.h"
 #include "../Source/Progresso.h"
 #include "../Source/JsonDeDados.h"
@@ -1075,5 +1076,129 @@ TEST_CASE("Dados: as listas do Salles giram com a direcao do movimento") {
     // E a capivara NAO gira: ela nao tem frente.
     if (salles.count("Capivara") == 1) {
         CHECK_FALSE(salles.at("Capivara").rotacionarComAVelocidade);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// A NAVEGACAO CONTRA O materias.json DE VERDADE
+//
+// Os testes de test_navegacao.cpp provam a REGRA contra uma grade escrita a mao.
+// Isso nao bastaria aqui: foi justamente uma grade escrita a mao, dentro da
+// StageSelect, que discordou da tela e fez a seta pular o INF 213. Entao estes
+// testes montam a grade do MESMO jeito que a StageSelect monta - percorrendo as
+// colunas de materias.json - e perguntam para onde as setas levam.
+//
+// Se alguem reordenar materias.json, sao estes testes que dizem o que acontece
+// com as setas.
+// ---------------------------------------------------------------------------
+
+namespace {
+
+    /// A grade como a StageSelect a monta: coluna por coluna, na ordem, e o
+    /// indice do botao e a posicao em que ele e criado.
+    Navegacao::Grade GradeDe(const Materias::Lista& l) {
+        Navegacao::Grade grade(static_cast<size_t>(l.QuantasColunas()));
+        size_t proximo = 0;
+        for (int c = 0; c < l.QuantasColunas(); ++c) {
+            for (size_t i = 0; i < l.DaColuna(c).size(); ++i) {
+                grade[static_cast<size_t>(c)].push_back(proximo++);
+            }
+        }
+        return grade;
+    }
+
+    /// De indice de botao para codigo de materia, pela mesma ordem de criacao.
+    std::vector<std::string> CodigosNaOrdemDosBotoes(const Materias::Lista& l) {
+        std::vector<std::string> codigos;
+        for (int c = 0; c < l.QuantasColunas(); ++c) {
+            for (const int m : l.DaColuna(c)) {
+                const Materias::Materia* mat = l.Por(m);
+                codigos.push_back(mat ? mat->codigo : "?");
+            }
+        }
+        return codigos;
+    }
+}
+
+TEST_CASE("Navegacao no materias.json: a seta da direita no INF 110 leva ao INF 213") {
+
+    // O DEFEITO RELATADO. O INF 213 e a unica materia que o INF 110 abre, e a
+    // seta pulava direto para o INF 250, do outro lado da tela.
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    const auto grade = GradeDe(l);
+    const auto codigos = CodigosNaOrdemDosBotoes(l);
+
+    const auto inf110 = std::find(codigos.begin(), codigos.end(), "INF110");
+    REQUIRE(inf110 != codigos.end());
+
+    const size_t destino = Navegacao::Direita(grade, static_cast<size_t>(inf110 - codigos.begin()));
+    REQUIRE(destino < codigos.size());
+    CHECK(codigos[destino] == "INF213");
+}
+
+TEST_CASE("Navegacao no materias.json: descer no INF 250 nao passa pelo INF 213") {
+
+    // O OUTRO DEFEITO RELATADO: a descida entrava num ciclo de quatro que
+    // misturava duas colunas da tela.
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    const auto grade = GradeDe(l);
+    const auto codigos = CodigosNaOrdemDosBotoes(l);
+
+    const auto inicio = std::find(codigos.begin(), codigos.end(), "INF250");
+    REQUIRE(inicio != codigos.end());
+
+    size_t onde = static_cast<size_t>(inicio - codigos.begin());
+    for (int passo = 0; passo < 12; ++passo) {
+        onde = Navegacao::Baixo(grade, onde);
+        REQUIRE(onde < codigos.size());
+        CAPTURE(passo);
+        CAPTURE(codigos[onde]);
+        CHECK(codigos[onde] != "INF213");
+    }
+}
+
+TEST_CASE("Navegacao no materias.json: toda materia e alcancavel pelas setas") {
+
+    // O DEFEITO QUE NINGUEM TINHA VISTO AINDA. Com a grade antiga, tres botoes
+    // diferentes levavam todos ao VISCCP e NADA levava ao TCC - a ultima materia
+    // do curso era inalcancavel. So nao apareceu porque o TCC exige duas
+    // aprovacoes na coluna 3 para ser jogavel, e ninguem tinha chegado la.
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    const auto grade = GradeDe(l);
+    const auto codigos = CodigosNaOrdemDosBotoes(l);
+    REQUIRE(!codigos.empty());
+
+    // Busca em largura a partir do primeiro botao, pelas quatro setas.
+    std::set<size_t> vistos{0};
+    std::vector<size_t> fila{0};
+    while (!fila.empty()) {
+        const size_t onde = fila.back();
+        fila.pop_back();
+        for (const auto mover : {Navegacao::Cima, Navegacao::Baixo,
+                                 Navegacao::Esquerda, Navegacao::Direita}) {
+            if (const size_t destino = mover(grade, onde); vistos.insert(destino).second) {
+                fila.push_back(destino);
+            }
+        }
+    }
+
+    for (size_t i = 0; i < codigos.size(); ++i) {
+        CAPTURE(codigos[i]);
+        CHECK(vistos.count(i) == 1);
+    }
+}
+
+TEST_CASE("Navegacao no materias.json: nenhuma seta sai da grade") {
+
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    const auto grade = GradeDe(l);
+    const auto quantos = CodigosNaOrdemDosBotoes(l).size();
+
+    for (size_t i = 0; i < quantos; ++i) {
+        for (const auto mover : {Navegacao::Cima, Navegacao::Baixo,
+                                 Navegacao::Esquerda, Navegacao::Direita}) {
+            CAPTURE(i);
+            CHECK(mover(grade, i) < quantos);
+        }
     }
 }
