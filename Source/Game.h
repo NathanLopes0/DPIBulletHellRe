@@ -19,18 +19,12 @@ class Actor;
 class Game {
 public:
 
-    enum GameSubject {
-        INF213,
-        INF250,
-        INF220,
-        INF330,
-        INF332,
-        INF420,
-        BIOINF,
-        INF394,
-        VISCCP,
-        TCC
-    };
+    // UMA MATERIA E O INDICE DELA em Materias::Carregadas().
+    //
+    // Aqui havia um enum com as dez materias escritas a mao. Ele nao descrevia
+    // mais nada que o arquivo nao dissesse - chefe, coluna e desbloqueio ja vem
+    // de la - e so dava a impressao de que a lista morava no C++. O indice NAO
+    // vai para o disco: o save grava o codigo da materia.
 
     Game(int windowWidth, int windowHeight);
     ~Game();
@@ -108,8 +102,8 @@ public:
 
     // Funções pra retornar o estágio escolhido em StageSelect (retorna INF213 caso não tenha sido modificado,
     // porque é oq foi definido no construtor)
-    [[nodiscard]] GameSubject GetSelectedStage() const { return mSelectedStage; }
-    void SetSelectedStage(const GameSubject subject) { mSelectedStage = subject; }
+    [[nodiscard]] int GetSelectedStage() const { return mSelectedStage; }
+    void SetSelectedStage(const int subject) { mSelectedStage = subject; }
 
     // ---- Notas -------------------------------------------------------------
     // O mapa unico de notas foi trocado por Progresso, que separa duas coisas
@@ -119,15 +113,16 @@ public:
 
     /// @brief A maior nota que o jogador ja tirou. Zero se nunca jogou.
     /// E o que a tela de selecao mostra e o que as regras de desbloqueio leem.
-    [[nodiscard]] float GetMelhorNota(const GameSubject subject) const {
-        return mProgresso.MelhorNota(static_cast<int>(subject));
+    /// A sobrecarga que existia aqui para receber um int cru sumiu junto com o
+    /// enum: agora ela seria a mesma funcao.
+    [[nodiscard]] float GetMelhorNota(const int materia) const {
+        return mProgresso.MelhorNota(materia);
     }
-    [[nodiscard]] float GetMelhorNota(const int n) const { return mProgresso.MelhorNota(n); }
 
     /// @brief A ultima nota que o jogador tirou nesta materia. NAO e por onde a
     /// batalha comeca - toda fase parte de Progresso::kNotaInicial.
-    [[nodiscard]] float GetUltimaNota(const GameSubject subject) const {
-        return mProgresso.UltimaNota(static_cast<int>(subject));
+    [[nodiscard]] float GetUltimaNota(const int materia) const {
+        return mProgresso.UltimaNota(materia);
     }
 
     /// @brief Registra o resultado de uma batalha: a retomada passa a ser esta
@@ -137,7 +132,7 @@ public:
     /// chama, e o que garante que nenhum caminho de fim de batalha esqueca - era
     /// assim que a nota chegava ao armazenamento por efeito colateral antes de o
     /// Progresso existir, e nao quero repetir o padrao.
-    void RegistrarNota(GameSubject subject, float nota);
+    void RegistrarNota(int subject, float nota);
 
     /**
      * @brief Passa a jogar como este aluno, carregando a ficha dele do disco.
@@ -189,7 +184,7 @@ public:
     [[nodiscard]] bool ProgressoEGravado() const;
 
     // Verifica se uma matéria específica está desbloqueada para jogar
-    bool IsStageUnlocked(GameSubject subject);
+    bool IsStageUnlocked(int subject);
 
 private:
     void ProcessInput();
@@ -229,7 +224,8 @@ private:
     std::unique_ptr<Scene> mScene;
 
     //All Boss factories
-    std::map<GameSubject, std::unique_ptr<IBossFactory>> mBossFactory;
+    /// As fabricas de chefe, pelo NOME com que materias.json as chama.
+    std::map<std::string, std::unique_ptr<IBossFactory>> mBossFactory;
 
     /// Recordes e pontos de retomada. Ver Progresso.h.
     Progresso mProgresso;
@@ -247,7 +243,7 @@ private:
     Personagens::Aparencia mAparencia;
 
     //Selected Stage, used by Battle on ChangeScene()
-    GameSubject mSelectedStage{};
+    int mSelectedStage{};
 
     bool mPendingSceneChange;
     Scene::SceneType mNextScene;
@@ -261,7 +257,7 @@ private:
 
     void ChangeScene(Scene::SceneType sceneType);
 
-    bool HasPassed(GameSubject subject);
+    bool HasPassed(int subject);
 
-    int CountPassedInList(const std::vector<GameSubject>& subjects);
+    int CountPassedInList(const std::vector<int>& subjects);
 };

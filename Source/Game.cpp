@@ -32,7 +32,7 @@ Game::Game(int windowWidth, int windowHeight)
     mTicksCount(0),
     mIsGameRunning(true),
     mScene(nullptr),
-    mSelectedStage(INF213),
+    mSelectedStage(0),
     mPendingSceneChange(false),
     mNextScene(Scene::SceneType::None)
 {
@@ -392,19 +392,41 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
 
 void Game::InitializeBossFactory() {
 
-    mBossFactory[INF213] = std::make_unique<SallesFactory>(this);
-    mBossFactory[INF250] = std::make_unique<RicardoFactory>(this);
-    mBossFactory[INF330] = std::make_unique<AndreFactory>(this);
-    mBossFactory[INF420] = std::make_unique<JulioFactory>(this);
-
-
+    // AS FABRICAS SAO REGISTRADAS POR NOME, e nao por materia. Quem diz qual
+    // chefe cada materia tem e o campo "chefe" de materias.json - ver
+    // GetFactory. Antes este mapa era indexado pela materia, e havia entao duas
+    // listas dizendo a mesma coisa: esta e a do arquivo. Mudar a ordem das
+    // materias no arquivo bastava para a fase abrir com o chefe errado, sem erro
+    // de compilacao e sem aviso em jogo.
+    mBossFactory["salles"]  = std::make_unique<SallesFactory>(this);
+    mBossFactory["ricardo"] = std::make_unique<RicardoFactory>(this);
+    mBossFactory["andre"]   = std::make_unique<AndreFactory>(this);
+    mBossFactory["julio"]   = std::make_unique<JulioFactory>(this);
 }
 
-IBossFactory *Game::GetFactory(size_t n) {
-    if (const auto it = mBossFactory.find(static_cast<GameSubject>(n)); it != mBossFactory.end()) {
-        return it->second.get();
+IBossFactory *Game::GetFactory(const size_t n) {
+
+    // O caminho agora e materia -> nome do chefe (dados) -> fabrica (codigo),
+    // em vez de indice -> fabrica. O indice deixa de significar nada fora da
+    // lista de materias, que e o ponto: reordenar materias.json passa a ser
+    // seguro.
+    const Materias::Materia* materia = Materias::Carregadas().Por(static_cast<int>(n));
+    if (materia == nullptr) return nullptr;
+
+    if (materia->chefe.empty()) return nullptr;   // materia ainda sem chefe
+
+    const auto it = mBossFactory.find(materia->chefe);
+    if (it == mBossFactory.end()) {
+        // Nome escrito errado no arquivo. Vale avisar: a materia existe, o
+        // aluno consegue entrar e a fase volta sozinha para a selecao sem dizer
+        // por que - ver Battle::LoadBoss.
+        SDL_Log("GAME: a materia %s pede o chefe \"%s\", que nao existe. Chefes "
+                "registrados: salles, ricardo, andre, julio.",
+                materia->codigo.c_str(), materia->chefe.c_str());
+        return nullptr;
     }
-    return nullptr;
+
+    return it->second.get();
 }
 
 
@@ -417,67 +439,20 @@ void Game::RequestSceneChange(const Scene::SceneType nextScene) {
     mNextScene = nextScene;
 }
 
-// Função auxiliar simples: Passou se nota >= 60
-bool Game::HasPassed(const GameSubject subject) {
+bool Game::IsStageUnlocked(const int subject) {
 
-    // Le o RECORDE, nao a ultima nota: assim uma tentativa ruim nao re-tranca
-    // uma materia que o jogador ja tinha passado.
-    return mProgresso.Aprovado(static_cast<int>(subject));
-}
-
-// Função genérica para contar aprovações em uma lista
-int Game::CountPassedInList(const std::vector<GameSubject>& subjects) {
-    std::vector<int> materias;
-    materias.reserve(subjects.size());
-    for (const auto& s : subjects) materias.push_back(static_cast<int>(s));
-    return mProgresso.QuantasAprovadas(materias);
-}
-
-bool Game::IsStageUnlocked(GameSubject subject) {
-    // ---------------------------------------------------------
-    // REGRA 1: INF 213 (Primeira Coluna) é sempre desbloqueada
-    // ---------------------------------------------------------
-    if (subject == GameSubject::INF213) return true;
-
-    // Definindo as colunas (conforme o StageSelect está definido)
-    const std::vector<GameSubject> col2 = {
-        GameSubject::INF250, GameSubject::INF220,
-        GameSubject::INF330, GameSubject::INF332
-    };
-
-    const std::vector<GameSubject> col3 = {
-        GameSubject::INF420, GameSubject::BIOINF,
-        GameSubject::INF394, GameSubject::VISCCP
-    };
-
-    // ---------------------------------------------------------
-    // REGRA 2: Coluna 2 desbloqueia se passou em INF 213
-    // ---------------------------------------------------------
-    // Verifica se o 'subject' atual está na lista da coluna 2
-    for (auto s : col2) {
-        if (s == subject) {
-            return HasPassed(GameSubject::INF213);
-        }
-    }
-
-    // ---------------------------------------------------------
-    // REGRA 3: Coluna 3 desbloqueia se passou em 2 matérias da Coluna 2
-    // ---------------------------------------------------------
-    for (auto s : col3) {
-        if (s == subject) {
-            return CountPassedInList(col2) >= 2;
-        }
-    }
-
-    // ---------------------------------------------------------
-    // REGRA 4: TCC desbloqueia se passou em 2 matérias da Coluna 3
-    // ---------------------------------------------------------
-    if (subject == GameSubject::TCC) {
-        return CountPassedInList(col3) >= 2;
-    }
-
-    // Por segurança, bloqueia qualquer coisa desconhecida
-    return false;
+    // AS REGRAS VIVEM EM materias.json, nao mais aqui.
+    //
+    // O que havia nesta funcao era a TERCEIRA lista de materias escrita em C++:
+    // quais estao em cada coluna, quem abre com o que, quantas aprovacoes cada
+    // porta pede - tudo ja declarado no arquivo, no campo "desbloqueio", e tudo
+    // ignorado ate agora. Materias::Lista::Desbloqueada implementa as mesmas
+    // regras sobre os dados, e e pura e testada.
+    //
+    // A TROCA E SEGURA POR MEDIDA, e nao por leitura: ha um teste que compara as
+    // duas respostas em 5120 combinacoes (512 estados de progresso x 10
+    // materias) e exige que concordem. Ele foi escrito para este dia.
+    return Materias::Carregadas().Desbloqueada(static_cast<int>(subject), mProgresso);
 }
 
 
@@ -485,7 +460,7 @@ bool Game::IsStageUnlocked(GameSubject subject) {
 // Quem esta jogando
 // ---------------------------------------------------------------------------
 
-void Game::RegistrarNota(const GameSubject subject, const float nota) {
+void Game::RegistrarNota(const int subject, const float nota) {
 
     mProgresso.RegistrarNota(static_cast<int>(subject), nota, Relogio::Agora());
 

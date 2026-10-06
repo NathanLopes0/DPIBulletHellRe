@@ -427,17 +427,17 @@
     "StateOne": {
       "duracao": 17,
       "proximo": "StateTwo",
-      "movimento": { "tipo": "GoToCenter" },
+      "movimento": { "tipo": "RandomWander", "a": 0.8, "b": 100 },
       "ataques": [
         { "estrategia": "BaloonAttack", "projetil": "Baloes",
           "projeteis": 10, "velocidade": 500, "cooldown": 3.0,
           "balao": { "lado": "Right", "spawnAleatorio": true,
-                     "centradoNoJogador": true, "deslocamento": 600 } },
+                     "centradoNoJogador": true, "deslocamento": 400 } },
 
         { "estrategia": "BaloonAttack", "projetil": "Baloes",
           "projeteis": 10, "velocidade": 500, "cooldown": 3.0,
           "balao": { "lado": "Left", "spawnAleatorio": true,
-                     "centradoNoJogador": true, "deslocamento": 600 } }
+                     "centradoNoJogador": true, "deslocamento": 400 } }
       ]
     },
 
@@ -454,9 +454,9 @@
       "movimento": { "tipo": "RandomWander", "a": 1.8, "b": 300 },
       "ataques": [
         { "estrategia": "BaloonAttack", "projetil": "Baloes",
-          "projeteis": 5, "velocidade": 500, "cooldown": 1.25,
+          "projeteis": 6, "velocidade": 500, "cooldown": 1.25,
           "balao": { "lado": "Down", "spawnAleatorio": true,
-                     "centradoNoJogador": true, "deslocamento": 600 } }
+                     "centradoNoJogador": true, "deslocamento": 400 } }
       ]
     },
 
@@ -474,7 +474,22 @@
           "anguloCentral": 90,    // sobrescrito
           "angulo": 180,          // este VALE: e a abertura do leque
           "intervalo": 0.02,      // este VALE: o atraso entre um projetil e o seguinte
-          "cooldown": 0.9 }
+          "cooldown": 0.9 },
+        {
+          "estrategia": "BaloonAttack", "projetil": "Baloes",
+          "projeteis": 5, "velocidade": 300, "cooldown": 4.0,
+          "balao": { "lado": "Left", "spawnAleatorio": true,
+                    "centradoNoJogador": false, "deslocamento": 600},
+          "regras": "andre_tres"
+        },
+        {
+          "estrategia": "BaloonAttack", "projetil": "Baloes",
+          "projeteis": 5, "velocidade": 300, "cooldown": 4.0,
+          "balao": { "lado": "Right", "spawnAleatorio": true,
+            "centradoNoJogador": false, "deslocamento": 600},
+          "regras": "andre_tres"
+        }
+
       ]
     },
 

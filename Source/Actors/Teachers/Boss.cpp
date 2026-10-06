@@ -104,7 +104,7 @@ void Boss::AddAttackPattern(const std::string &stateName, std::unique_ptr<IAttac
 void Boss::RegisterMovementStrategy(const std::string& stateName, std::unique_ptr<IMovementStrategy> strategy) {
     mMovementStrategies[stateName] = std::move(strategy);
 }
-void Boss::ExecuteAttack(AttackDefinition& attackDef, const std::string& stateName)
+void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& stateName)
 {
 
     if (!attackDef.params || !attackDef.strategy) {

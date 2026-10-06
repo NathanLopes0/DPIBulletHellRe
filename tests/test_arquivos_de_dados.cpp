@@ -864,6 +864,27 @@ TEST_CASE("Dados: toda materia com chefe aponta para um conjunto que existe em f
     CHECK(comChefe == 4);   // hoje sao quatro dos dez
 }
 
+TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
+
+    // Game::GetFactory procura a fabrica PELO NOME que esta no arquivo. Um nome
+    // escrito errado aqui nao da erro de compilacao: a materia abre, nao acha
+    // chefe nenhum e a fase volta sozinha para a selecao. Este teste transforma
+    // isso numa falha de suite, que e onde da para ver.
+    //
+    // A lista espelha Game::InitializeBossFactory, como kFormasEmCodigo espelha
+    // FormaPeloNome. Registrar um chefe novo la pede acrescenta-lo aqui.
+    const std::set<std::string> kFabricasRegistradas = {"salles", "ricardo", "andre", "julio"};
+
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+
+    for (const auto& m : l.materias) {
+        if (m.chefe.empty()) continue;
+        CHECK_MESSAGE(kFabricasRegistradas.count(m.chefe) == 1,
+                      "a materia " << m.codigo << " pede o chefe \"" << m.chefe
+                      << "\", que nao tem fabrica em Game::InitializeBossFactory");
+    }
+}
+
 TEST_CASE("Dados: o desbloqueio em arquivo da a MESMA resposta que o C++ que ele substitui") {
 
     // A regra de hoje, copiada de Game::IsStageUnlocked antes de ela sair, escrita

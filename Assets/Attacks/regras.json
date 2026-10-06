@@ -178,7 +178,15 @@
   // a MESMA forma sai girada de um jeito diferente para cada ponto do anel: seis
   // lacos apontando para fora, sem escrever seis caminhos.
   "julio_final_laco": [
-    { "motion": { "tipo": "Path", "forma": "LacoApertado", "velocidade": 150 } }
+    { "motion": { "tipo": "Path", "forma": "LacoApertado", "velocidade": 650 } }
+  ],
+
+
+  "andre_tres": [
+    {
+      "chance": 0.2,
+      "motion": {"tipo": "Tracking", "atraso":  2.0, "forca": 2, "duracao":  2}
+    }
   ],
 
   // --------------------------------------------------------------------------
