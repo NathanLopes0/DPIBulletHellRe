@@ -69,6 +69,16 @@ namespace Nota {
     /// @brief Se este numero de acertos sofridos ja custou a nota cheia.
     bool PerdeuACheia(int acertosSofridos);
 
+    /**
+     * @brief Se esta nota E a nota cheia - a que vale o dourado e o teste final.
+     *
+     * Existe para que o limiar nao seja escrito a mao em cada lugar que pinta ou
+     * anuncia alguma coisa. Com o teto em 99,99, um ">= 99.9" perdido numa tela
+     * acenderia o dourado para quem nao chegou la, e o jogador leria nota cheia
+     * sem ter tirado - exatamente o que o teto existe para impedir.
+     */
+    bool ECheia(float nota);
+
     /// @brief O maior valor que a nota pode atingir com este tanto de dano.
     float TetoCom(int acertosSofridos);
 

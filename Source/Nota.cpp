@@ -27,6 +27,13 @@ bool PerdeuACheia(const int acertosSofridos) {
     return acertosSofridos >= kAcertosQuePerdemACheia;
 }
 
+bool ECheia(const float nota) {
+    // >= e nao ==: Somar ja limita em kNotaMaxima, entao passar nao deveria
+    // acontecer - mas se um dia acontecer, o certo e acender o dourado, e nao
+    // apaga-lo justamente para quem foi melhor de todos.
+    return nota >= kNotaMaxima;
+}
+
 float TetoCom(const int acertosSofridos) {
     return PerdeuACheia(acertosSofridos) ? kTetoComDano : kNotaMaxima;
 }

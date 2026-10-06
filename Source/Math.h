@@ -1039,6 +1039,9 @@ namespace Color
 	static const Vector3 Green(0.0f, 1.0f, 0.0f);
 	static const Vector3 Blue(0.0f, 0.0f, 1.0f);
 	static const Vector3 Yellow(1.0f, 1.0f, 0.0f);
+	/// A nota cheia. Puxado para o ambar, e nao o amarelo puro, para nao se
+	/// confundir com o amarelo da barra de tempo que fica na tela ao mesmo tempo.
+	static const Vector3 Gold(1.0f, 0.84f, 0.0f);
 	static const Vector3 LightYellow(1.0f, 1.0f, 0.88f);
 	static const Vector3 LightBlue(0.68f, 0.85f, 0.9f);
 	static const Vector3 LightPink(1.0f, 0.71f, 0.76f);

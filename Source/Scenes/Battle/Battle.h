@@ -105,6 +105,10 @@ private:
     Actor* mGradeBarActor = nullptr;
     Actor* mGradeTextActor = nullptr;
 
+    /// O "TESTE FINAL" na faixa da nota. Escondido ate a nota chegar a 100, e a
+    /// partir dali fica - ver GradeTextUpdate.
+    Actor* mTesteFinalActor = nullptr;
+
     void GradeUp(float amount = GRADE_CHANGE_UP);
     void GradeDown();
 

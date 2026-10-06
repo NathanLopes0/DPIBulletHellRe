@@ -6,6 +6,7 @@
 
 #include "../Matricula.h"
 #include "../MateriasArquivo.h"
+#include "../Nota.h"
 #include <sstream>
 #include <iomanip>
 #include "../Math.h"
@@ -410,16 +411,17 @@ void StageSelect::UpdateStageInfo() const {
     if (auto dc = mScoreInfoActor->GetComponent<DrawTextComponent>()) {
         dc->SetText(ss.str());
 
-        // TODO - mudar cor quando criar o SetColor em DrawTextComponent
-        /*
-        if (highScore >= 60.0f) {
-            dc->SetColor(0, 255, 0, 255); // Verde (Aprovado)
-        } else if (highScore > 0.0f) {
-            dc->SetColor(255, 100, 100, 255); // Vermelho (Reprovado)
-        } else {
-            dc->SetColor(200, 200, 200, 255); // Cinza (Nunca jogou)
-        }
-        */
+        // O plano que estava aqui como TODO, agora que DrawTextComponent tem cor.
+        // Ficava comentado esperando por isso, e com uma assinatura de quatro
+        // Uint8 que nunca chegou a existir - descomentar nao compilaria.
+        //
+        // O DOURADO ENTRA AQUI TAMBEM, e nao so na batalha: esta e a tela onde um
+        // aluno compara a propria nota com a dos outros, entao e onde a nota cheia
+        // mais precisa se distinguir do 99,99 de quem levou dano.
+        if (Nota::ECheia(highScore))   dc->SetColor(Color::Gold);
+        else if (highScore >= 60.0f)   dc->SetColor(Color::LightGreen);
+        else if (highScore > 0.0f)     dc->SetColor(Color::LightPink);
+        else                           dc->SetColor(Color::White);
     }
 
 

@@ -162,3 +162,35 @@ TEST_CASE("Nota: chegar a 60 continua custando o mesmo de sempre") {
     }
     CHECK(acertos == 36);
 }
+
+// ------------------------------------------------------------- a nota cheia
+
+TEST_CASE("Nota: so 100 e nota cheia - o teto por dano nao e") {
+
+    // O QUE SEPARA O DOURADO DO QUASE. Quem levou dano demais chega a 99,99 e
+    // para ali; se isso acendesse o dourado, o jogador leria nota cheia sem ter
+    // tirado, e as duas coisas que o teto cria - a distincao e a comemoracao -
+    // morreriam juntas.
+    CHECK(Nota::ECheia(Nota::kNotaMaxima));
+    CHECK_FALSE(Nota::ECheia(Nota::kTetoComDano));
+    CHECK_FALSE(Nota::ECheia(99.9f));
+    CHECK_FALSE(Nota::ECheia(60.0f));
+    CHECK_FALSE(Nota::ECheia(0.0f));
+}
+
+TEST_CASE("Nota: quem sobe limpo chega na cheia; quem leva dano nao chega") {
+
+    // A travessia inteira, do inicio de fase ate onde cada um para. Protege a
+    // ligacao entre as tres pecas - curva, teto e limiar do dourado - que
+    // separadas ja estao testadas, mas que so juntas respondem "o dourado
+    // acende?".
+    float limpo = 40.0f, machucado = 40.0f;
+    for (int i = 0; i < 400; ++i) {
+        limpo     = Nota::Somar(limpo,     0.56f, 0);
+        machucado = Nota::Somar(machucado, 0.56f, Nota::kAcertosQuePerdemACheia);
+    }
+
+    CHECK(Nota::ECheia(limpo));
+    CHECK_FALSE(Nota::ECheia(machucado));
+    CHECK(machucado == doctest::Approx(Nota::kTetoComDano));
+}

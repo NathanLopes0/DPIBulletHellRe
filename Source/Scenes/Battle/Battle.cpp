@@ -208,7 +208,23 @@ void Battle::LoadGradeBar() {
     mGradeBarFont = std::make_unique<Font>();
     mGradeBarFont->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
     auto gradeBarTextActor = std::make_unique<Actor>(this);
-    gradeBarTextActor->AddComponent<DrawTextComponent>("omg", mGradeBarFont.get(), 36, barHeight, 24, 304);
+
+    // A CAIXA E 200x32, E NAO 36x25. Dois defeitos diferentes moravam aqui.
+    //
+    // A LARGURA de 36 esticava o texto: o desenho padrao preenche a caixa
+    // declarada, e "100.00" espremido em 36px saia com digitos finos e altos que
+    // mal davam para ler. As duas casas decimais so servem se der para le-las.
+    //
+    // A ALTURA tem de ser MAIOR que o tamanho da fonte, nunca a altura da barra.
+    // Com o ajuste ao texto ligado, uma caixa baixa demais nao corta: ENCOLHE. A
+    // 24 pontos o texto nasce com 28px de altura, entao a caixa de 25 o reduzia a
+    // 0,893 - e reduzir uma fonte de pixel art por um fator quebrado apaga colunas
+    // inteiras de pixels. Era isso que transformava o "A" de FINAL num "F".
+    // O "+8" e a mesma folga que MainMenu, Identificacao e Opcoes ja usavam.
+    constexpr int tamanhoDaNota = 24;
+    auto gradeText = gradeBarTextActor->AddComponent<DrawTextComponent>(
+        "omg", mGradeBarFont.get(), 200, tamanhoDaNota + 8, tamanhoDaNota, 304);
+    gradeText->SetAjustarAoTexto(true);
 
     const auto textPosX = static_cast<float>(windowWidth) / 2.f;
     const auto textPosY = static_cast<float>(windowHeight - barHeight);
@@ -217,6 +233,24 @@ void Battle::LoadGradeBar() {
     mGradeTextActor = gradeBarTextActor.get();
     this->AddActor(std::move(gradeBarTextActor));
 
+    // O anuncio do teste final, escondido ate a nota chegar a 100.
+    //
+    // MORA NA FAIXA DA NOTA, e nao no meio da tela, embora o meio seja mais
+    // bonito. Quem acabou de chegar a 100 e exatamente quem tem mais a perder
+    // com um projetil escondido atras de um texto de comemoracao: um acerto
+    // derruba a nota cheia, e com tres o teto tranca em 99,99 para sempre. A
+    // faixa ja e area de HUD, entao o anuncio nao custa um pixel de campo.
+    auto avisoActor = std::make_unique<Actor>(this);
+    auto aviso = avisoActor->AddComponent<DrawTextComponent>(
+        "TESTE FINAL", mGradeBarFont.get(), 260, tamanhoDaNota + 8, tamanhoDaNota, 304);
+    aviso->SetAjustarAoTexto(true);
+    aviso->SetColor(Color::Gold);
+    aviso->SetIsVisible(false);
+
+    avisoActor->SetPosition(Vector2(static_cast<float>(windowWidth) / 4.f, textPosY));
+
+    mTesteFinalActor = avisoActor.get();
+    this->AddActor(std::move(avisoActor));
 }
 void Battle::LoadEndScreen() {
     auto textActor = std::make_unique<Actor>(this);
@@ -462,7 +496,23 @@ void Battle::GradeTextUpdate() {
     // que o jogo quebrou. A segunda casa e o que torna o teto visivel.
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2) << mGrade;
-    mGradeTextActor->GetComponent<DrawTextComponent>()->SetText(ss.str());
+
+    const auto texto = mGradeTextActor->GetComponent<DrawTextComponent>();
+    texto->SetText(ss.str());
+
+    // O dourado SEGUE A NOTA, em vez de ser ligado uma vez e ficar aceso: quem
+    // chega a 100 e leva um acerto perde a nota cheia de verdade, e a tela tem de
+    // contar isso. Acender e nunca apagar faria o dourado mentir no momento em
+    // que ele mais importa.
+    const bool cheia = Nota::ECheia(mGrade);
+    texto->SetColor(cheia ? Color::Gold : Color::White);
+
+    // O ANUNCIO, AO CONTRARIO, NAO VOLTA ATRAS. Ele marca que o teste final
+    // comecou - e ter comecado nao deixa de ser verdade quando a nota cai. Se
+    // ele piscasse junto com o dourado, viraria um alarme a cada acerto.
+    if (cheia && mTesteFinalActor) {
+        mTesteFinalActor->GetComponent<DrawTextComponent>()->SetIsVisible(true);
+    }
 
 }
 //endregion UpdateFunctions
