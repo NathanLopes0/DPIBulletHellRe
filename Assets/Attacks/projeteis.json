@@ -180,5 +180,30 @@
     // em C++ mas nunca foi registrada em chefe nenhum, entao nenhum ataque podia
     // pedi-la. A arte continua na pasta; para usa-la, basta copiar o bloco dos
     // baloes, trocar os caminhos e as animacoes, e citar o nome em fases.json.
+  },
+
+  // --------------------------------------------------------------------------
+  // THIAGO - INF 220 (Banco de Dados)
+  // --------------------------------------------------------------------------
+  //
+  // UM TIPO SO, e e o suficiente: toda a batalha do Thiago e feita de celulas de
+  // tabela. O que muda entre uma fase e outra nao e o projetil, e sim QUAL faixa
+  // da tabela ele varre - e isso vive em fases.json, nao aqui.
+  //
+  // "posicionarNoDono" e FALSO: uma consulta nasce na borda da tabela, nao no
+  // professor. Deixar verdadeiro faria todos os projeteis nascerem em cima do
+  // chefe e so depois saltarem para a faixa, o que estragaria o telegrafo - o
+  // jogador veria um amontoado no meio da tela em vez de uma linha carregada.
+  "thiago": {
+
+    "Celula": {
+      "sprite": "Teachers/Projectiles/DPIBHThiagoCelula.png",
+      "dados": "Teachers/Projectiles/DPIBHThiagoCelula.json",
+      "animacoes": { "Linha": [0] },
+      "animacaoInicial": "Linha",
+      "escala": 2,
+      "ordemDeDesenho": 90,
+      "posicionarNoDono": false
+    }
   }
 }

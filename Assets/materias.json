@@ -71,7 +71,7 @@
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
     {
-      "codigo": "INF220", "nome": "INF 220", "coluna": 2,
+      "codigo": "INF220", "nome": "INF 220", "coluna": 2, "chefe": "thiago",
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
     {

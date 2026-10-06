@@ -522,5 +522,143 @@
                      "centradoNoJogador": true, "deslocamento": 600 } }
       ]
     }
+  },
+
+  // ==========================================================================
+  // THIAGO - INF 220 (Banco de Dados)
+  // ==========================================================================
+  //
+  // A BATALHA EM UMA FRASE: o campo de jogo e uma tabela, e cada ataque e uma
+  // consulta que varre uma faixa inteira dela.
+  //
+  // O jogador nao desvia de projetil aqui - ele SAI DA LINHA que foi escolhida.
+  // Por isso o campo "aviso" e o ataque todo: e o tempo em que os projeteis
+  // ficam parados e visiveis na borda, anunciando a faixa. Com 4 linhas numa
+  // tela de 775, uma faixa tem 194 px; o jogador anda 300 px/s, logo atravessar
+  // uma faixa inteira custa 0,65 s. TODO "aviso" ABAIXO DE 0,65 TORNA ALGUMA
+  // POSICAO INESCAPAVEL - e nao e isso que a batalha quer cobrar.
+  //
+  // Colunas sao mais largas (1200/5 = 240 px, 0,8 s para atravessar), entao
+  // consulta por coluna pede aviso maior que consulta por linha.
+  //
+  // QUEM ESCOLHE A FAIXA e o Thiago, em Thiago::CustomizeAttackParams: numa fase
+  // e um contador, noutra e a faixa do proprio jogador. O campo "indice" so
+  // aparece aqui na fase final, onde a treliça precisa ser fixa.
+  "thiago": {
+
+    // FASE 1 - SELECT sem WHERE: a varredura completa.
+    //
+    // Percorre as linhas EM ORDEM, uma por vez, sem olhar para o jogador. E a
+    // fase que ensina a tabela: em 17 s sao ~7 consultas, o bastante para o
+    // jogador contar as linhas e sentir o ritmo. Aleatorio aqui ensinaria nada.
+    //
+    // O chefe fica no centro e nao se mexe: toda a leitura da tela tem de ser
+    // da tabela, e um chefe andando competiria pela atencao.
+    "StateOne": {
+      "duracao": 17,
+      "proximo": "StateTwo",
+      "movimento": { "tipo": "GoToCenter" },
+      "ataques": [
+        { "estrategia": "ConsultaAttack", "projetil": "Celula",
+          "projeteis": 7, "velocidade": 620, "cooldown": 2.3,
+          "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 1.1 },
+          "regras": "thiago_varredura" }
+      ]
+    },
+
+    // FASE 2 - WHERE: a consulta encontra VOCE.
+    //
+    // A faixa varrida passa a ser a do jogador. Ficar parado deixa de ser
+    // neutro e vira a unica coisa que mata - o aviso continua la, so que agora
+    // ele exige uma decisao em vez de paciencia.
+    //
+    // A consulta por COLUNA entra aqui, com cooldown maior e aviso maior: e o
+    // segundo eixo da tabela, e o jogador precisa aprender que ele tambem
+    // existe antes da fase 3 cobrar os dois.
+    "StateTwo": {
+      "duracao": 17,
+      "proximo": "StateThree",
+      "movimento": { "tipo": "HoverAbovePlayer", "a": 120, "b": 150 },
+      "ataques": [
+        { "estrategia": "ConsultaAttack", "projetil": "Celula",
+          "projeteis": 7, "velocidade": 700, "cooldown": 2.0,
+          "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 0.85 },
+          "regras": "thiago_varredura" },
+
+        { "estrategia": "ConsultaAttack", "projetil": "Celula",
+          "projeteis": 8, "velocidade": 640, "cooldown": 3.4,
+          "consulta": { "eixo": "Coluna", "colunas": 5, "aviso": 1.0 },
+          "regras": "thiago_varredura" }
+      ]
+    },
+
+    // FASE 3 - A TRANSACAO: varre, e DESFAZ.
+    //
+    // Metade das consultas vai na faixa do jogador e metade na que ele acabou de
+    // deixar (ver Thiago::CustomizeAttackParams). Quem aprendeu na fase 2 a
+    // pular para o lado e esperar descobre aqui que o espaco limpo atras da
+    // varredura e exatamente para onde o desfazimento vem.
+    //
+    // O "invertido" da segunda consulta faz ela entrar pelo OUTRO lado, que e o
+    // que da a leitura de rollback: a mesma faixa, no sentido contrario.
+    "StateThree": {
+      "duracao": 17,
+      "proximo": "",
+      "movimento": { "tipo": "RandomWander", "a": 2.5, "b": 220 },
+      "ataques": [
+        { "estrategia": "ConsultaAttack", "projetil": "Celula",
+          "projeteis": 7, "velocidade": 760, "cooldown": 1.8,
+          "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 0.8 },
+          "regras": "thiago_varredura" },
+
+        { "estrategia": "ConsultaAttack", "projetil": "Celula",
+          "projeteis": 7, "velocidade": 760, "cooldown": 1.8,
+          "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 0.8,
+                        "invertido": true },
+          "regras": "thiago_desfazimento" }
+      ]
+    },
+
+    // FASE FINAL - CROSS JOIN: o produto cartesiano.
+    //
+    // A juncao sem condicao, o acidente classico de quem esquece o ON: o banco
+    // devolve TODAS as combinacoes e o servidor para. Aqui sao linhas e colunas
+    // ao mesmo tempo, formando uma treliça.
+    //
+    // OS INDICES SAO FIXOS, e e o que torna isto dificil em vez de injusto: as
+    // consultas nao perseguem ninguem, elas cobrem posicoes conhecidas. As
+    // celulas seguras existem e sao as mesmas toda vez - o jogador que leu a
+    // treliça sobrevive. Perseguir o jogador AQUI, com tudo isso em tela, seria
+    // uma fase que nao se pode vencer.
+    //
+    // Linhas 0 e 2, colunas 1 e 3: deixam livres as linhas 1 e 3 e as colunas
+    // 0, 2 e 4, que e onde o jogador tem de estar quando a treliça fecha.
+    "StateFinal": {
+      "duracao": 17,
+      "proximo": "StateOne",
+      "movimento": { "tipo": "GoToCenter" },
+      "ataques": [
+        { "estrategia": "ConsultaAttack", "projetil": "Celula",
+          "projeteis": 7, "velocidade": 700, "cooldown": 3.0,
+          "consulta": { "eixo": "Linha", "linhas": 4, "indice": 0, "aviso": 0.9 },
+          "regras": "thiago_varredura" },
+
+        { "estrategia": "ConsultaAttack", "projetil": "Celula",
+          "projeteis": 7, "velocidade": 700, "cooldown": 3.0,
+          "consulta": { "eixo": "Linha", "linhas": 4, "indice": 2, "aviso": 0.9,
+                        "invertido": true },
+          "regras": "thiago_varredura" },
+
+        { "estrategia": "ConsultaAttack", "projetil": "Celula",
+          "projeteis": 8, "velocidade": 620, "cooldown": 3.0,
+          "consulta": { "eixo": "Coluna", "colunas": 5, "indice": 1, "aviso": 1.2 },
+          "regras": "thiago_juncao" },
+
+        { "estrategia": "ConsultaAttack", "projetil": "Celula",
+          "projeteis": 8, "velocidade": 620, "cooldown": 3.0,
+          "consulta": { "eixo": "Coluna", "colunas": 5, "indice": 3, "aviso": 1.2 },
+          "regras": "thiago_juncao" }
+      ]
+    }
   }
 }

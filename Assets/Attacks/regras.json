@@ -212,5 +212,43 @@
           "ritmo": { "investida": 0.2, "pausa": 1.0, "repeticoes": 6 },
           "investida": 640, "pausa": 15 }
       ] }
+  ],
+
+  // --------------------------------------------------------------------------
+  // THIAGO - INF 220
+  // --------------------------------------------------------------------------
+  //
+  // NENHUMA DESTAS REGRAS TEM "motion", E NAO E ESQUECIMENTO.
+  //
+  // A ConsultaAttack faz o projetil nascer PARADO, visivel, na borda da faixa, e
+  // so lhe da velocidade depois do aviso - e esse intervalo e o telegrafo. Toda
+  // Motion captura a direcao do projetil no instante em que ativa; se uma delas
+  // ativasse durante a espera, encontraria velocidade zero, nao teria direcao
+  // para capturar e cairia na rotacao identidade - o projetil sairia para a
+  // direita em vez de varrer a faixa.
+  //
+  // E o mesmo problema do "atraso": 0.85 do salles_duplamente, so que aqui a
+  // espera nao e de alguns decimos: e o ataque inteiro. Por isso estas regras
+  // mexem so em aparencia.
+
+  // A varredura comum, das fases 1 a 3.
+  "thiago_varredura": [
+    { "animacao": "Linha", "escala": 2 }
+  ],
+
+  // O desfazimento da fase 3: a mesma celula, menor.
+  //
+  // O tamanho e o que distingue as duas consultas em tela. A que vem desfazendo
+  // precisa ser LEGIVEL como outra coisa, senao o jogador ve so "mais balas" e
+  // nao "a varredura esta voltando" - e a fase inteira existe para ensinar isso.
+  "thiago_desfazimento": [
+    { "animacao": "Linha", "escala": 1.5 }
+  ],
+
+  // A juncao da fase final: as colunas do produto cartesiano, maiores que as
+  // linhas para que a treliça tenha dois pesos visuais e de para ler qual eixo
+  // esta fechando primeiro.
+  "thiago_juncao": [
+    { "animacao": "Linha", "escala": 2.5 }
   ]
 }

@@ -17,8 +17,10 @@
 #include "RegrasDeAtaqueArquivo.h"
 #include "AttackParameters/AttackParams.h"
 #include "AttackParameters/BaloonAttackParams.h"
+#include "AttackParameters/ConsultaAttackParams.h"
 #include "BaseStrategies/AngledAttack.h"
 #include "BaseStrategies/BaloonAttack.h"
+#include "BaseStrategies/ConsultaAttack.h"
 #include "BaseStrategies/CircleSpreadAttack.h"
 #include "BaseStrategies/LaserAttack.h"
 #include "BaseStrategies/WaveAttack.h"
@@ -81,6 +83,7 @@ namespace {
         if (tipo == "WaveAttack")         return std::make_unique<WaveAttack>(spawner, boss);
         if (tipo == "BaloonAttack")       return std::make_unique<BaloonAttack>(spawner, boss);
         if (tipo == "LaserAttack")        return std::make_unique<LaserAttack>(spawner, boss);
+        if (tipo == "ConsultaAttack")     return std::make_unique<ConsultaAttack>(spawner, boss);
         return nullptr;
     }
 
@@ -132,6 +135,18 @@ namespace {
             if (a.balao->deslocamento)      balao->centerOnPlayerOffset = *a.balao->deslocamento;
             balao->spawnPoints = a.balao->pontosDeSpawn;
             params = std::move(balao);
+        }
+        else if (a.consulta) {
+            auto consulta = std::make_unique<ConsultaAttackParams>();
+            consulta->eixo = (a.consulta->eixo == "Coluna")
+                                 ? ConsultaAttackParams::Eixo::Coluna
+                                 : ConsultaAttackParams::Eixo::Linha;
+            if (a.consulta->linhas)    consulta->forma.linhas  = *a.consulta->linhas;
+            if (a.consulta->colunas)   consulta->forma.colunas = *a.consulta->colunas;
+            if (a.consulta->indice)    consulta->indice        = *a.consulta->indice;
+            if (a.consulta->aviso)     consulta->aviso         = *a.consulta->aviso;
+            if (a.consulta->invertido) consulta->invertido     = *a.consulta->invertido;
+            params = std::move(consulta);
         }
         else {
             params = std::make_unique<AttackParams>();

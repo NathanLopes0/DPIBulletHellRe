@@ -1,0 +1,37 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHThiago.png 0.aseprite",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 128
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 128,
+    "h": 128
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_thiago.py",
+  "version": "1.0",
+  "image": "DPIBHThiago.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 128,
+   "h": 128
+  },
+  "scale": "1"
+ }
+}

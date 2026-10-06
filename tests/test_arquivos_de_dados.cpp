@@ -863,7 +863,7 @@ TEST_CASE("Dados: toda materia com chefe aponta para um conjunto que existe em f
         CHECK(fases.conjuntos.count(m.chefe) == 1);
         ++comChefe;
     }
-    CHECK(comChefe == 4);   // hoje sao quatro dos dez
+    CHECK(comChefe == 5);   // hoje sao cinco das onze
 }
 
 TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
@@ -875,7 +875,7 @@ TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
     //
     // A lista espelha Game::InitializeBossFactory, como kFormasEmCodigo espelha
     // FormaPeloNome. Registrar um chefe novo la pede acrescenta-lo aqui.
-    const std::set<std::string> kFabricasRegistradas = {"salles", "ricardo", "andre", "julio"};
+    const std::set<std::string> kFabricasRegistradas = {"salles", "ricardo", "andre", "julio", "thiago"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
 

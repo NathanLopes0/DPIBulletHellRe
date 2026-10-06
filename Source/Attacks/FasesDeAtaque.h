@@ -47,6 +47,34 @@ struct DescricaoDeBalao {
 };
 
 /**
+ * @brief Os campos que SO a ConsultaAttack usa.
+ *
+ * Mesmo contrato do bloco de balao: a ConsultaAttack faz um dynamic_cast e, sem
+ * estes campos, nao dispara nada. Por isso o bloco e obrigatorio num ataque
+ * ConsultaAttack e recusado quando falta.
+ */
+struct DescricaoDeConsulta {
+
+    /// "Linha" ou "Coluna". OBRIGATORIO - nao ha padrao razoavel: varrer o eixo
+    /// errado e um ataque que funciona e esta errado, que e pior de achar.
+    std::string eixo;
+
+    std::optional<int>   linhas;    ///< Tabela::Forma::linhas
+    std::optional<int>   colunas;   ///< Tabela::Forma::colunas
+
+    /// Qual faixa varrer, quando a fase quer uma fixa. Omitido, quem decide e o
+    /// chefe em CustomizeAttackParams - que e o caso das fases que perseguem o
+    /// jogador.
+    std::optional<int>   indice;
+
+    /// Segundos de telegrafo. Ver ConsultaAttackParams::aviso: e a diferenca
+    /// entre dificil e injusto, e por isso a leitura recusa valores negativos.
+    std::optional<float> aviso;
+
+    std::optional<bool>  invertido;  ///< entra pelo outro lado
+};
+
+/**
  * @brief Um ataque: a geometria do disparo e as regras de cada projetil.
  *
  * OS CAMPOS NUMERICOS SAO OPCIONAIS DE PROPOSITO.
@@ -105,10 +133,16 @@ struct DescricaoDeAtaque {
 
     /// Presente somente nos ataques BaloonAttack.
     std::optional<DescricaoDeBalao> balao;
+
+    /// Presente somente nos ataques ConsultaAttack.
+    std::optional<DescricaoDeConsulta> consulta;
 };
 
 /// @brief O lado nomeado existe? (Down, Left, Right, Up - nunca None)
 bool LadoDeBalaoExiste(const std::string& nome);
+
+/// @brief O eixo nomeado existe? (Linha ou Coluna)
+bool EixoDeConsultaExiste(const std::string& nome);
 
 /**
  * @brief Como o chefe se move durante a fase.

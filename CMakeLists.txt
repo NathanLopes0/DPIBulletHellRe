@@ -47,6 +47,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Nota.h
         Source/Navegacao.cpp
         Source/Navegacao.h
+        Source/Tabela.cpp
+        Source/Tabela.h
         Source/Matricula.cpp
         Source/Matricula.h
         Source/Materias.cpp
@@ -152,14 +154,17 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teachers/Bosses/Andre.h
         Source/Actors/Teachers/BossFactory/AndreFactory.cpp
         Source/Actors/Teachers/Bosses/Julio.cpp
+        Source/Actors/Teachers/Bosses/Thiago.cpp
         Source/Actors/Teachers/Bosses/Julio.h
         Source/Actors/Teachers/BossFactory/JulioFactory.cpp
+        Source/Actors/Teachers/BossFactory/ThiagoFactory.cpp
         Source/Actors/Teachers/BossFactory/JulioFactory.h
         Source/Actors/Teachers/BossFactory/AndreFactory.h
         Source/Attacks/BaseStrategies/BaloonAttack.cpp
         Source/Attacks/BaseStrategies/BaloonAttack.h
         Source/Attacks/AttackParameters/BaloonAttackParams.h
         Source/Attacks/BaseStrategies/LaserAttack.cpp
+        Source/Attacks/BaseStrategies/ConsultaAttack.cpp
         Source/Attacks/BaseStrategies/LaserAttack.h
         Source/Actors/ProjectilePool.h
 )
@@ -196,6 +201,7 @@ add_executable(dpi_tests
         tests/test_progresso.cpp
         tests/test_nota.cpp
         tests/test_navegacao.cpp
+        tests/test_tabela.cpp
         tests/test_matricula.cpp
         tests/test_ficha.cpp
         tests/test_materias.cpp
@@ -206,6 +212,8 @@ add_executable(dpi_tests
         Source/Nota.h
         Source/Navegacao.cpp
         Source/Navegacao.h
+        Source/Tabela.cpp
+        Source/Tabela.h
         Source/Matricula.cpp
         Source/Matricula.h
         Source/Materias.cpp

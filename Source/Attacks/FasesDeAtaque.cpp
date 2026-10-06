@@ -9,13 +9,14 @@
 namespace {
 
     const std::vector<std::string> kEstrategias = {
-        "AngledAttack", "CircleSpreadAttack", "WaveAttack", "BaloonAttack", "LaserAttack"
+        "AngledAttack", "CircleSpreadAttack", "WaveAttack", "BaloonAttack", "LaserAttack", "ConsultaAttack"
     };
     const std::vector<std::string> kMovimentos = {
         "RandomWander", "HoverAbovePlayer", "GoToCenter"
     };
     /// "None" NAO entra: a propria BaloonAttack recusa side == None.
     const std::vector<std::string> kLadosDeBalao = {"Down", "Left", "Right", "Up"};
+    const std::vector<std::string> kEixosDeConsulta = {"Linha", "Coluna"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"
@@ -62,6 +63,64 @@ namespace {
     std::optional<bool> OpcionalBool(const nlohmann::json& j, const char* nome) {
         if (j.contains(nome) && j[nome].is_boolean()) return j[nome].get<bool>();
         return std::nullopt;
+    }
+
+    /// Inteiro de verdade, nao "numero que por acaso e inteiro": 2.5 linhas nao
+    /// significa nada, e aceitar silenciosamente truncaria para 2.
+    std::optional<int> OpcionalInteiro(const nlohmann::json& j, const char* nome) {
+        if (j.contains(nome) && j[nome].is_number_integer()) return j[nome].get<int>();
+        return std::nullopt;
+    }
+
+    /// Le o bloco de consulta. Devolve false quando ele e inaproveitavel.
+    bool LerConsulta(const nlohmann::json& j, const std::string& onde,
+                     std::vector<std::string>& problemas, DescricaoDeConsulta& saida) {
+
+        if (!j.is_object()) {
+            problemas.emplace_back(onde + "\"consulta\" deveria ser um objeto");
+            return false;
+        }
+
+        saida.eixo = Texto(j, "eixo");
+        if (!EixoDeConsultaExiste(saida.eixo)) {
+            problemas.emplace_back(onde + "\"consulta\" precisa de \"eixo\": Linha ou Coluna");
+            return false;
+        }
+
+        saida.indice    = OpcionalInteiro(j, "indice");
+        saida.linhas    = OpcionalInteiro(j, "linhas");
+        saida.colunas   = OpcionalInteiro(j, "colunas");
+        saida.aviso     = Opcional(j, "aviso");
+        saida.invertido = OpcionalBool(j, "invertido");
+
+        // Uma tabela de zero faixas nao tem onde varrer, e a estrategia recusaria
+        // em tempo de execucao escrevendo no log. Recusar aqui troca um ataque
+        // que nao dispara por uma frase que diz o arquivo e a linha.
+        if (saida.linhas && *saida.linhas <= 0) {
+            problemas.emplace_back(onde + "\"linhas\" precisa ser pelo menos 1");
+            return false;
+        }
+        if (saida.colunas && *saida.colunas <= 0) {
+            problemas.emplace_back(onde + "\"colunas\" precisa ser pelo menos 1");
+            return false;
+        }
+
+        // Aviso negativo nao e so um numero estranho: e a varredura disparando
+        // antes de aparecer. O jogador seria atingido por um ataque que nunca
+        // teve como ler - ver ConsultaAttackParams::aviso.
+        if (saida.aviso && *saida.aviso < 0.0f) {
+            problemas.emplace_back(onde + "\"aviso\" nao pode ser negativo: e o tempo em que o "
+                                          "jogador ve a faixa escolhida antes de ela disparar");
+            return false;
+        }
+
+        if (saida.indice && *saida.indice < 0) {
+            problemas.emplace_back(onde + "\"indice\" nao pode ser negativo; omita o campo para "
+                                          "deixar o chefe escolher a faixa");
+            return false;
+        }
+
+        return true;
     }
 
     /// Le o bloco de balao. Devolve false quando ele e inaproveitavel.
@@ -198,7 +257,7 @@ namespace {
         if (!EstrategiaExiste(saida.estrategia)) {
             problemas.emplace_back(onde + "estrategia \"" + saida.estrategia +
                                    "\" nao existe (use AngledAttack, CircleSpreadAttack, "
-                                   "WaveAttack, BaloonAttack ou LaserAttack)");
+                                   "WaveAttack, BaloonAttack, LaserAttack ou ConsultaAttack)");
             return false;
         }
 
@@ -269,6 +328,25 @@ namespace {
             return false;
         }
 
+        // --- bloco de consulta ---
+        const bool ehConsulta = (saida.estrategia == "ConsultaAttack");
+        if (j.contains("consulta")) {
+            if (!ehConsulta) {
+                problemas.emplace_back(onde + "so a ConsultaAttack usa \"consulta\"; o bloco foi ignorado");
+            }
+            else {
+                DescricaoDeConsulta c;
+                if (!LerConsulta(j["consulta"], onde, problemas, c)) return false;
+                saida.consulta = c;
+            }
+        }
+        else if (ehConsulta) {
+            problemas.emplace_back(onde + "um ataque ConsultaAttack precisa do bloco \"consulta\": "
+                                          "sem ele a estrategia nao sabe que faixa varrer e nao "
+                                          "dispara nada");
+            return false;
+        }
+
         return true;
     }
 
@@ -278,6 +356,7 @@ bool EstrategiaExiste(const std::string& nome)   { return Contem(kEstrategias, n
 bool MovimentoExiste(const std::string& nome)    { return Contem(kMovimentos, nome); }
 bool NomeDeFaseExiste(const std::string& nome)   { return Contem(kNomesDeFase, nome); }
 bool LadoDeBalaoExiste(const std::string& nome)  { return Contem(kLadosDeBalao, nome); }
+bool EixoDeConsultaExiste(const std::string& nome) { return Contem(kEixosDeConsulta, nome); }
 
 FasesLidas LerFases(const std::string& textoJson) {
 
