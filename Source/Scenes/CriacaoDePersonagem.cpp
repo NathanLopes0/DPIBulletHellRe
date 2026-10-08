@@ -141,7 +141,7 @@ void CriacaoDePersonagem::Load() {
     Texto("MANCHE  cima e baixo escolhem o que mudar - os lados trocam",
           largura / 2.0f, altura * 0.86f, 22, 900);
     Texto(Painel::Rodape({{Painel::Botao::Um,   "confirmar"},
-                          {Painel::Botao::Dois, "voltar"}}),
+                          {Painel::Botao::Dois, "voltar"}}, mGame->JeitoDoRodape()),
           largura / 2.0f, altura * 0.92f, 22, 700);
 
     Recompor();

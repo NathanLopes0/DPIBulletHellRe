@@ -71,7 +71,7 @@ void TelaDeRanking::Load() {
     if (const auto dc = mSubtituloAtor->GetComponent<DrawTextComponent>()) {
         dc->SetColor(Color::LightBlue);   // e uma nota de rodape, nao um titulo
     }
-    Texto(Painel::Rodape({{Painel::Botao::Dois, "voltar"}}),
+    Texto(Painel::Rodape({{Painel::Botao::Dois, "voltar"}}, mGame->JeitoDoRodape()),
           largura / 2.0f, altura * 0.93f, 22, 1000);
 
     // As linhas sao criadas uma vez e reescritas na troca de materia. Criar e

@@ -26,7 +26,8 @@ void Opcoes::Load() {
 
     Texto("OPCOES", altura * 0.22f, 52, 760);
     Texto("Nada para configurar ainda.", altura * 0.45f, 28, 760);
-    Texto(Painel::Rodape({{Painel::Botao::Dois, "voltar"}}), altura * 0.80f, 24, 420);
+    Texto(Painel::Rodape({{Painel::Botao::Dois, "voltar"}}, mGame->JeitoDoRodape()),
+          altura * 0.80f, 24, 420);
 }
 
 Actor* Opcoes::Texto(const std::string& conteudo, const float y, const int tamanho,

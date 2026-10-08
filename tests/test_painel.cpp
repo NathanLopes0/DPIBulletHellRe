@@ -5,8 +5,9 @@
 // trocar usuario" e escutava o T - num gabinete que nao tem tecla T. A acao era
 // impossivel, e o rodape ensinava a fazer o impossivel.
 //
-// Por isso os testes insistem em duas coisas: o rodape sai do BOTAO, e os
-// botoes nao compartilham tecla.
+// Por isso os testes insistem em tres coisas: o rodape sai do BOTAO, os botoes
+// nao compartilham tecla, e o nome da tecla que aparece escrito no computador e
+// o nome da tecla que o jogo le.
 
 #include "doctest.h"
 
@@ -48,6 +49,19 @@ TEST_CASE("Painel: cada botao tem um nome so dele, e o nome diz o numero") {
     CHECK(std::string(Painel::Nome(Painel::Botao::Tres)) == "BOTAO 3");
 }
 
+TEST_CASE("Painel: o nome da tecla nao e vazio nem repetido") {
+
+    // Ele aparece escrito na tela no computador. Dois botoes com o mesmo nome
+    // de tecla mandariam quem esta testando apertar a tecla errada.
+    for (const Painel::Botao a : kTodos) {
+        CHECK(std::string(Painel::NomeDaTecla(a)).empty() == false);
+        for (const Painel::Botao b : kTodos) {
+            if (a == b) continue;
+            CHECK(std::string(Painel::NomeDaTecla(a)) != std::string(Painel::NomeDaTecla(b)));
+        }
+    }
+}
+
 TEST_CASE("Painel: Apertado responde pela tecla do botao, e so por ela") {
 
     for (const Painel::Botao a : kTodos) {
@@ -71,7 +85,8 @@ TEST_CASE("Painel: o rodape anuncia o NOME do botao que a cena escuta") {
     // ESTE E O TESTE QUE IMPORTA. O item do rodape e construido a partir do
     // botao, entao nao existe caminho para escrever um nome e escutar outro.
     for (const Painel::Botao b : kTodos) {
-        const std::string linha = Painel::Rodape({{b, "fazer alguma coisa"}});
+        const std::string linha = Painel::Rodape({{b, "fazer alguma coisa"}},
+                                                 Painel::Jeito::SoOPainel);
 
         CHECK(linha.find(Painel::Nome(b)) != std::string::npos);
         CHECK(linha.find("fazer alguma coisa") != std::string::npos);
@@ -84,30 +99,80 @@ TEST_CASE("Painel: o rodape anuncia o NOME do botao que a cena escuta") {
     }
 }
 
+TEST_CASE("Painel: no computador o rodape diz TAMBEM a tecla, e e a tecla certa") {
+
+    // Quem esta testando no teclado nao tem como saber qual e o botao 2. E a
+    // tecla escrita tem de ser a MESMA que Apertado le - se fossem duas fontes,
+    // o rodape mandaria apertar uma tecla que nao faz nada.
+    for (const Painel::Botao b : kTodos) {
+        const std::string linha = Painel::Rodape({{b, "jogar"}}, Painel::Jeito::ComATecla);
+
+        CHECK(linha.find(Painel::Nome(b)) != std::string::npos);
+        CHECK(linha.find(std::string("(") + Painel::NomeDaTecla(b) + ")") != std::string::npos);
+
+        const std::vector<Uint8> teclado = TecladoCom(Painel::Tecla(b));
+        CHECK(Painel::Apertado(teclado.data(), b));
+    }
+}
+
+TEST_CASE("Painel: no gabinete a tecla NAO aparece") {
+
+    // La nao ha teclado. Dizer "ESPACO" para quem tem um botao na mao e ruido.
+    const std::string linha = Painel::Rodape({{Painel::Botao::Um, "jogar"}},
+                                             Painel::Jeito::SoOPainel);
+
+    CHECK(linha.find("ESPACO") == std::string::npos);
+    CHECK(linha.find("(") == std::string::npos);
+    CHECK(linha == std::string("BOTAO 1") + Painel::kEntreNomeEAcao + "jogar");
+}
+
 TEST_CASE("Painel: o rodape junta os itens com o mesmo espacamento") {
 
     const std::string linha = Painel::Rodape({{Painel::Botao::Um, "jogar"},
-                                              {Painel::Botao::Dois, "voltar"}});
+                                              {Painel::Botao::Dois, "voltar"}},
+                                             Painel::Jeito::SoOPainel);
 
     CHECK(linha == std::string("BOTAO 1") + Painel::kEntreNomeEAcao + "jogar"
                  + Painel::kEntreAcoes
                  + "BOTAO 2" + Painel::kEntreNomeEAcao + "voltar");
 }
 
-TEST_CASE("Painel: o manche entra no rodape sem ser botao") {
+TEST_CASE("Painel: o manche entra no rodape sem ser botao, e tem tecla propria") {
 
-    const std::string linha = Painel::Rodape({Painel::Manche("escolher"),
-                                              {Painel::Botao::Um, "digitar"}});
+    const std::string semTecla = Painel::Rodape({Painel::Manche("escolher"),
+                                                 {Painel::Botao::Um, "digitar"}},
+                                                Painel::Jeito::SoOPainel);
+    CHECK(semTecla.find("MANCHE") == 0);
+    CHECK(semTecla.find("BOTAO 1") != std::string::npos);
+    CHECK(semTecla.find("SETAS") == std::string::npos);
 
-    CHECK(linha.find("MANCHE") == 0);
-    CHECK(linha.find("BOTAO 1") != std::string::npos);
+    const std::string comTecla = Painel::Rodape({Painel::Manche("escolher")},
+                                                Painel::Jeito::ComATecla);
+    CHECK(comTecla.find("(SETAS)") != std::string::npos);
 }
 
 TEST_CASE("Painel: rodape vazio e linha vazia, e um item so nao leva separador") {
 
-    CHECK(Painel::Rodape({}).empty());
+    CHECK(Painel::Rodape({}, Painel::Jeito::SoOPainel).empty());
+    CHECK(Painel::Rodape({}, Painel::Jeito::ComATecla).empty());
 
-    const std::string um = Painel::Rodape({{Painel::Botao::Tres, "ranking"}});
+    const std::string um = Painel::Rodape({{Painel::Botao::Tres, "ranking"}},
+                                          Painel::Jeito::SoOPainel);
     CHECK(um == std::string("BOTAO 3") + Painel::kEntreNomeEAcao + "ranking");
     CHECK(um.find(Painel::kEntreAcoes) == std::string::npos);
+}
+
+TEST_CASE("Painel: tecla de letra se chama pela propria letra") {
+
+    // AMARRA AS DUAS COLUNAS DA TABELA. O nome da tecla e escrito na tela e o
+    // scancode e o que o jogo le; sem esta conferencia, trocar o botao 2 de B
+    // para C e esquecer o nome faria a tela mandar apertar a tecla errada - e
+    // nada reclamaria, porque os dois campos continuariam preenchidos.
+    for (const Painel::Botao b : kTodos) {
+        const SDL_Scancode tecla = Painel::Tecla(b);
+        if (tecla < SDL_SCANCODE_A || tecla > SDL_SCANCODE_Z) continue;
+
+        const std::string esperado(1, static_cast<char>('A' + (tecla - SDL_SCANCODE_A)));
+        CHECK(std::string(Painel::NomeDaTecla(b)) == esperado);
+    }
 }

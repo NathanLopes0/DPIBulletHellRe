@@ -80,6 +80,12 @@ Cada tela dá o significado dos botões no rodapé. O Botão 2 é quase sempre
 "voltar" — na seleção de fases, voltar é trocar de aluno, e o rodapé diz isso
 com todas as letras, porque a sessão do aluno acaba ali.
 
+**Fora do gabinete, o rodapé mostra também a tecla**: "BOTÃO 1 (ESPAÇO)
+jogar". Quem está testando no computador não tem botão na mão e não tem como
+saber qual é o Botão 2. Com `--arcade` a tecla some, porque lá não há teclado e
+ela seria ruído. Quem decide isso é o `Game`, numa linha só
+(`JeitoDoRodape`) — não cada tela.
+
 ---
 
 ## Como sair

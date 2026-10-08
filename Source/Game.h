@@ -13,6 +13,7 @@
 #include "Personagens.h"
 #include "Progresso.h"
 #include "Gabinete.h"
+#include "Painel.h"
 
 class IBossFactory;
 class Actor;
@@ -120,6 +121,17 @@ public:
     /// enum: agora ela seria a mesma funcao.
     [[nodiscard]] float GetMelhorNota(const int materia) const {
         return mProgresso.MelhorNota(materia);
+    }
+
+    /**
+     * @brief Como os rodapes nomeiam os botoes nesta sessao.
+     *
+     * No gabinete nao ha teclado, entao a tecla seria ruido; no computador ela
+     * e o unico jeito de saber qual e o botao 2. A decisao fica AQUI, e nao em
+     * cada cena, para nao haver uma tela que esqueca de perguntar.
+     */
+    [[nodiscard]] Painel::Jeito JeitoDoRodape() const {
+        return mGabinete.arcade ? Painel::Jeito::SoOPainel : Painel::Jeito::ComATecla;
     }
 
     /// @brief Se a materia ja foi aprovada. A MESMA regra que o desbloqueio le,

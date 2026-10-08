@@ -145,7 +145,7 @@ void Identificacao::CriarTextos() {
     // para quem desenvolve, mas nao e para elas que esta tela e desenhada.
     Texto(Painel::Rodape({Painel::Manche("escolher"),
                           {Painel::Botao::Um,   "digitar"},
-                          {Painel::Botao::Dois, "apagar"}}),
+                          {Painel::Botao::Dois, "apagar"}}, mGame->JeitoDoRodape()),
           altura * 0.955f, 22, 1100, 34);
 
     CriarTeclado();

@@ -88,7 +88,7 @@ void StageSelect::CriarIdentificacaoNaTela() {
     const auto rodape = trocar->AddComponent<DrawTextComponent>(
         Painel::Rodape({{Painel::Botao::Um,   "jogar"},
                         {Painel::Botao::Dois, "trocar aluno"},
-                        {Painel::Botao::Tres, "ranking da materia"}}),
+                        {Painel::Botao::Tres, "ranking"}}, mGame->JeitoDoRodape()),
         mStageSelectFont.get(), 1100, 34, 22, 255);
     rodape->SetLarguraDeQuebra(1100);
     rodape->SetAjustarAoTexto(true);
