@@ -25,13 +25,19 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 ```json
 {
   "materias": [
-    { "codigo": "INF110", "nome": "INF 110", "coluna": 0, "chefe": "andre",
+    { "codigo": "INF110", "nome": "INF 110",
+      "nomeCompleto": "Programação 1", "professor": "André",
+      "coluna": 0, "chefe": "andre",
       "desbloqueio": { "tipo": "sempre" } },
 
-    { "codigo": "INF213", "nome": "INF 213", "coluna": 1, "chefe": "salles",
-      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF110"] } },
+    { "codigo": "INF330", "nome": "INF 330",
+      "nomeCompleto": "Teoria e Modelos de Grafos", "professor": "Salles",
+      "coluna": 2,
+      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] } },
 
-    { "codigo": "TCC", "nome": "TCC", "coluna": 4,
+    { "codigo": "TCC", "nome": "TCC",
+      "nomeCompleto": "Trabalho de Conclusão de Curso", "professor": "Hugo",
+      "coluna": 4,
       "desbloqueio": { "tipo": "aprovadasNaColuna", "coluna": 3, "quantas": 2 } }
   ]
 }
@@ -41,8 +47,10 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 |---|---|
 | `codigo` | a chave permanente. **É por ele que a nota do aluno é guardada.** |
 | `nome` | o que aparece no botão |
+| `nomeCompleto` | o nome da disciplina. Pode faltar — é só não mostrar. |
+| `professor` | quem dá a matéria. **Não** escolhe chefe nenhum; ver abaixo. |
 | `coluna` | em que coluna da grade o botão fica (0 é a da esquerda) |
-| `chefe` | o nome da fábrica, como registrado em `Game::InitializeBossFactory`. Pode faltar: a matéria aparece e espera um professor. |
+| `chefe` | o nome da fábrica, como registrado em `Game::InitializeBossFactory`. Pode faltar: a matéria aparece e espera uma batalha. |
 | `desbloqueio` | quando ela abre |
 
 **Tipos de desbloqueio:**
@@ -55,6 +63,12 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 > das setas usa. Reordenar muda para onde as setas levam — e há testes que dizem
 > o que acontece. O que a reordenação **não** faz é mexer na nota de ninguém: as
 > fichas são guardadas por `codigo`, nunca por posição.
+
+> **`professor` e `chefe` são coisas diferentes.** A INF 330 é do Salles e não
+> tem batalha — e o Salles já é o chefe da INF 213. Apontar o `chefe` dela para
+> `"salles"` faria duas matérias idênticas de jogar. O professor é quem assina a
+> disciplina; o chefe é a luta que existe no jogo. Há teste exigindo que as duas
+> possam divergir.
 
 > **A coluna 0 não precisa ter uma matéria só.** A grade se monta a partir desta
 > lista; se uma coluna ficar vazia, as setas a pulam em vez de parar nela.

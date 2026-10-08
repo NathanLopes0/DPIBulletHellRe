@@ -62,18 +62,20 @@ foi aprovado:
 
 | Coluna | Matérias | Abre quando |
 |---|---|---|
-| 0 | INF 110 *(André)* | sempre |
-| 1 | INF 213 *(Salles)* | INF 110 aprovada |
-| 2 | INF 250 *(Ricardo)*, INF 220 *(Thiago)*, INF 330, INF 332 | INF 213 aprovada |
-| 3 | INF 420 *(Júlio)*, BIOINF, INF 394, VISCPP | 2 aprovações na coluna 2 |
-| 4 | TCC | 2 aprovações na coluna 3 |
+| 0 | INF 110 — Programação 1 *(André)* | sempre |
+| 1 | INF 213 — Estruturas de Dados *(Salles)* | INF 110 aprovada |
+| 2 | INF 250 — Organização de Computadores *(Ricardo)*, INF 220 — Banco de Dados *(Thiago)*, INF 330 — Teoria e Modelos de Grafos *(Salles)*, INF 331 — Linguagens Formais e Autômatos *(Vladimir)* | INF 213 aprovada |
+| 3 | INF 420 — Inteligência Artificial *(Júlio)*, INF 221 — Engenharia de Software *(Maria Lúcia)*, INF 321 — Programação Web *(Lucas)*, INF 452 — Redes de Computadores *(Vitor)* | 2 aprovações na coluna 2 |
+| 4 | TCC — Trabalho de Conclusão de Curso *(Hugo)* | 2 aprovações na coluna 3 |
 
-Essas são as matérias que eram o plano original, mas elas serão modificadas para refletir o
-atual corpo docente. Colocar todos os professores pode ficar fora do escopo, mas é um desejo meu.
+Toda matéria tem professor; **cinco têm batalha** (André, Salles, Ricardo,
+Thiago e Júlio) e as outras seis aparecem na grade esperando uma. São coisas
+separadas de propósito: a INF 330 é do Salles, que já é o chefe da INF 213 —
+reaproveitar o chefe faria duas matérias idênticas de jogar.
 
-Cinco matérias têm professor; as outras aparecem na grade e esperam um. Quem
-decide tudo isso é `Assets/materias.json` — a ordem, as colunas, as regras de
-desbloqueio e qual chefe atende cada matéria. Não há lista de matérias no C++.
+Quem decide tudo isso é `Assets/materias.json` — a ordem, as colunas, as regras
+de desbloqueio, o professor e qual chefe atende cada matéria. Não há lista de
+matérias no C++.
 
 ## O que fica gravado
 

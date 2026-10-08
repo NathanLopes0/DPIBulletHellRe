@@ -64,18 +64,6 @@ Isso ataca a causa medida de o 100 ser difícil: o tiro sobe reto, então fugir
 desalinha e todo tiro erra. Ver `Nota::kBonusDeFaseLimpa`, que ataca o mesmo
 problema pelo outro lado.
 
-### O nome e o professor de cada matéria
-
-A seleção de fases mostra só o código: "INF 220". Quem não é do curso não sabe
-que é Banco de Dados, nem que o chefe é o Thiago. A linha de estado dessa tela
-já existe e tem onde caber.
-
-Seriam dois campos novos e **opcionais** em `materias.json` — `nomeCompleto` e
-`professor` — mostrados quando existirem. A leitura já trata campo ausente como
-padrão, então nada quebra enquanto não forem preenchidos. Os nomes de verdade
-precisam vir de quem conhece a grade do curso, e não de palpite: é por isso que
-isto está aqui e não feito.
-
 ### A tabela do Thiago não é visível
 
 A batalha do INF 220 trata o campo como uma tabela, mas não há tabela desenhada:

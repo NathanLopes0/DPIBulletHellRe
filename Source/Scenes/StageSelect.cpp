@@ -409,10 +409,14 @@ void StageSelect::AtualizarLinhaDeEstado() const {
         cor = Color::LightPink;
 
     } else if (m && m->chefe.empty()) {
-        // Seis das onze materias ainda nao tem chefe. Sem este aviso, apertar o
-        // botao abre a batalha, ela nao acha a fabrica e volta sozinha - e o
+        // Seis das onze materias ainda nao tem batalha. Sem este aviso, apertar
+        // o botao abre a batalha, ela nao acha a fabrica e volta sozinha - e o
         // aluno ve a tela piscar sem entender o que fez de errado.
-        frase = "Ainda sem professor";
+        //
+        // "Batalha", e nao "professor": desde que materias.json passou a trazer
+        // o professor, a INF 330 TEM professor (o Salles) e mesmo assim nao tem
+        // luta - sao duas coisas diferentes.
+        frase = "Batalha ainda nao pronta";
         cor = Color::LightBlue;
 
     } else {

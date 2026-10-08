@@ -48,12 +48,21 @@ namespace Materias {
         /// O que aparece no botao. Pode mudar sem efeito nenhum sobre os saves.
         std::string nome;
 
+        /// O nome da disciplina: "Banco de Dados". Pode faltar - e so nao
+        /// mostrar. Nunca vai para o disco nem entra em regra nenhuma.
+        std::string nomeCompleto;
+
+        /// Quem da a materia. INDEPENDENTE de 'chefe': a INF 330 e do Salles e
+        /// nao tem batalha, e o Salles ja e o chefe da INF 213. Reaproveitar o
+        /// chefe de uma na outra faria duas materias identicas de jogar.
+        std::string professor;
+
         /// A posicao na grade da selecao de fase, a partir de 0. A coluna tambem e
         /// o que as regras de desbloqueio usam, entao ela e declarada UMA vez.
         int coluna = 0;
 
-        /// Qual chefe esta materia usa. Vazio = materia ainda sem chefe, que e o
-        /// caso de seis das dez hoje.
+        /// Qual chefe esta materia usa. Vazio = batalha ainda nao feita, que e
+        /// o caso de seis das onze hoje. NAO e "sem professor": ver acima.
         std::string chefe;
 
         Desbloqueio desbloqueio;

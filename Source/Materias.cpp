@@ -243,6 +243,13 @@ Lista LerMaterias(const std::string& textoJson) {
         }
 
         m.nome = Texto(j, "nome", m.codigo);
+
+        // Os dois campos de apresentacao. Ausentes viram vazio de proposito, e
+        // nao o codigo: quem desenha decide se mostra ou nao, e um
+        // "nomeCompleto" que fosse "INF330" apareceria duas vezes na tela.
+        m.nomeCompleto = Texto(j, "nomeCompleto");
+        m.professor = Texto(j, "professor");
+
         m.chefe = Texto(j, "chefe");
 
         m.coluna = Inteiro(j, "coluna", -1);

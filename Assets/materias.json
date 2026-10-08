@@ -23,15 +23,18 @@
   // aquela materia e criar outra.
   //
   // CAMPOS
-  //   codigo       a chave estavel. So letras e numeros, sem espaco.
-  //   nome         o que aparece no botao. Pode mudar a vontade.
-  //   coluna       0 a 3, a posicao na grade da selecao de fase. A coluna
-  //                tambem e o que as regras de desbloqueio usam, entao ela e
-  //                declarada UMA vez e nao duas.
-  //   chefe        qual chefe esta materia usa. Vazio ou ausente = materia
-  //                ainda sem chefe: o botao aparece e nao da para jogar, que e
-  //                o que ja acontecia com seis das dez.
-  //   desbloqueio  quando a materia abre. Ver abaixo.
+  //   codigo        a chave estavel. So letras e numeros, sem espaco.
+  //   nome          o que aparece no losango. Pode mudar a vontade.
+  //   nomeCompleto  o nome da disciplina. Opcional; vazio e so nao mostrar.
+  //   professor     quem da a materia. Opcional, e INDEPENDENTE de "chefe":
+  //                 a INF 330 e do Salles e ainda nao tem batalha, e o Salles
+  //                 ja e o chefe da INF 213 - sao coisas diferentes.
+  //   coluna        0 a 4, a posicao na grade da selecao de fase. A coluna
+  //                 tambem e o que as regras de desbloqueio usam, entao ela e
+  //                 declarada UMA vez e nao duas.
+  //   chefe         qual chefe esta materia usa. Vazio ou ausente = batalha
+  //                 ainda nao feita: o losango aparece e nao da para jogar.
+  //   desbloqueio   quando a materia abre. Ver abaixo.
   //
   // REGRAS DE DESBLOQUEIO
   //   { "tipo": "sempre" }
@@ -52,6 +55,8 @@
     {
       "codigo": "INF110",
       "nome": "INF 110",
+      "nomeCompleto": "Programação 1",
+      "professor": "André",
       "coluna": 0,
       "chefe": "andre",
       "desbloqueio": { "tipo": "sempre" }
@@ -61,56 +66,72 @@
     //
     // O INF 213 era a porta de entrada e virou o segundo degrau.
     {
-      "codigo": "INF213", "nome": "INF 213", "coluna": 1, "chefe": "salles",
+      "codigo": "INF213", "nome": "INF 213",
+      "nomeCompleto": "Estruturas de Dados", "professor": "Salles",
+      "coluna": 1, "chefe": "salles",
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF110"] }
     },
 
     // ----- Coluna 2: abre ao passar em INF 213 -----
     {
-      "codigo": "INF250", "nome": "INF 250", "coluna": 2, "chefe": "ricardo",
+      "codigo": "INF250", "nome": "INF 250",
+      "nomeCompleto": "Organização de Computadores", "professor": "Ricardo",
+      "coluna": 2, "chefe": "ricardo",
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
     {
-      "codigo": "INF220", "nome": "INF 220", "coluna": 2, "chefe": "thiago",
+      "codigo": "INF220", "nome": "INF 220",
+      "nomeCompleto": "Banco de Dados", "professor": "Thiago",
+      "coluna": 2, "chefe": "thiago",
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
     {
-      // Ficou sem chefe quando o Andre foi para a INF 110. Continua na lista
-      // para nao apagar a nota de quem ja jogou nela; ganha um chefe quando
-      // houver um.
-      "codigo": "INF330", "nome": "INF 330", "coluna": 2,
+      // Mesmo professor da INF 213, e ainda assim sem batalha: o chefe do
+      // Salles e a luta da INF 213. Por isso "professor" e "chefe" sao campos
+      // diferentes - reaproveitar o chefe faria duas materias identicas.
+      "codigo": "INF330", "nome": "INF 330",
+      "nomeCompleto": "Teoria e Modelos de Grafos", "professor": "Salles",
+      "coluna": 2,
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
     {
-      "codigo": "INF332", "nome": "INF 332", "coluna": 2,
+      "codigo": "INF331", "nome": "INF 331",
+      "nomeCompleto": "Linguagens Formais e Autômatos", "professor": "Vladimir",
+      "coluna": 2,
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
 
     // ----- Coluna 3: abre com duas aprovacoes na coluna 2 -----
     {
-      "codigo": "INF420", "nome": "INF 420", "coluna": 3, "chefe": "julio",
+      "codigo": "INF420", "nome": "INF 420",
+      "nomeCompleto": "Inteligência Artificial", "professor": "Júlio",
+      "coluna": 3, "chefe": "julio",
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
     {
-      "codigo": "BIOINF", "nome": "BIOINF", "coluna": 3,
+      "codigo": "INF221", "nome": "INF 221",
+      "nomeCompleto": "Engenharia de Software", "professor": "Maria Lúcia",
+      "coluna": 3,
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
     {
-      "codigo": "INF394", "nome": "INF394", "coluna": 3,
+      "codigo": "INF321", "nome": "INF 321",
+      "nomeCompleto": "Programação Web", "professor": "Lucas",
+      "coluna": 3,
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
     {
-      // O nome em tela era "VISCPP" e o codigo do enum, "VISCCP". Mantive os
-      // dois como estavam para nao mudar comportamento junto com a migracao;
-      // se um dos dois for erro de digitacao, agora da para corrigir o NOME
-      // sem tocar em save nenhum.
-      "codigo": "VISCCP", "nome": "VISCPP", "coluna": 3,
+      "codigo": "INF452", "nome": "INF 452",
+      "nomeCompleto": "Redes de Computadores", "professor": "Vitor",
+      "coluna": 3,
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
 
     // ----- Coluna 4: o fim do curso -----
     {
-      "codigo": "TCC", "nome": "TCC", "coluna": 4,
+      "codigo": "TCC", "nome": "TCC",
+      "nomeCompleto": "Trabalho de Conclusão de Curso", "professor": "Hugo",
+      "coluna": 4,
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 3 }
     }
   ]

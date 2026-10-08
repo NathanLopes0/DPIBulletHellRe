@@ -110,9 +110,9 @@ void Battle::LoadBoss() {
     } else {
         // %d, e nao %s: mStage e o enum int, ou seja um inteiro. Com %s o
         // SDL_Log tratava o numero como um char* e tentava ler a string no endereco
-        // 2 - segmentation fault DENTRO da mensagem de erro. As seis materias sem
-        // fabrica (INF220, INF332, BIOINF, INF394, VISCCP, TCC) derrubavam o jogo
-        // aqui, e o defeito sobreviveu porque so roda quando o erro acontece.
+        // 2 - segmentation fault DENTRO da mensagem de erro. As materias sem
+        // fabrica (seis das onze, hoje) derrubavam o jogo aqui, e o defeito
+        // sobreviveu porque so roda quando o erro acontece.
         SDL_Log("Erro fatal: Nenhuma BossFactory encontrada para a materia %d, "
                 "voltando pra StageSelect", static_cast<int>(mStage));
         mGame->RequestSceneChange(SceneType::StageSelect);

@@ -837,8 +837,8 @@ TEST_CASE("Dados: as materias do curso estao la, com os codigos esperados") {
     // ser seguro. O que ainda importa travar e que nenhuma materia suma por
     // descuido de edicao.
     const std::set<std::string> esperadas = {
-        "INF110", "INF213", "INF250", "INF220", "INF330", "INF332",
-        "INF420", "BIOINF", "INF394", "VISCCP", "TCC"
+        "INF110", "INF213", "INF250", "INF220", "INF330", "INF331",
+        "INF420", "INF221", "INF321", "INF452", "TCC"
     };
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
@@ -895,11 +895,11 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
     //
     //   INF110 sempre aberta (a porta de entrada do curso);
     //   INF213 abre ao passar em INF110;
-    //   coluna 2 (INF250, INF220, INF330, INF332) abre ao passar em INF213;
-    //   coluna 3 (INF420, BIOINF, INF394, VISCCP) abre com 2 aprovacoes na 2;
+    //   coluna 2 (INF250, INF220, INF330, INF331) abre ao passar em INF213;
+    //   coluna 3 (INF420, INF221, INF321, INF452) abre com 2 aprovacoes na 2;
     //   TCC abre com 2 aprovacoes na coluna 3.
-    const std::vector<std::string> col2 = {"INF250", "INF220", "INF330", "INF332"};
-    const std::vector<std::string> col3 = {"INF420", "BIOINF", "INF394", "VISCCP"};
+    const std::vector<std::string> col2 = {"INF250", "INF220", "INF330", "INF331"};
+    const std::vector<std::string> col3 = {"INF420", "INF221", "INF321", "INF452"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
     REQUIRE(l.Quantas() == 11);
@@ -1201,4 +1201,38 @@ TEST_CASE("Navegacao no materias.json: nenhuma seta sai da grade") {
             CHECK(mover(grade, i) < quantos);
         }
     }
+}
+
+TEST_CASE("Dados: toda materia do curso tem nome de disciplina e professor") {
+
+    // Sao opcionais no formato, para nao quebrar arquivo antigo - mas no curso
+    // de verdade nenhuma pode ficar sem, senao a tela de selecao mostra uma
+    // materia muda no meio das outras.
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    REQUIRE(l.Quantas() > 0);
+
+    for (const auto& m : l.materias) {
+        CAPTURE(m.codigo);
+        CHECK_FALSE(m.nomeCompleto.empty());
+        CHECK_FALSE(m.professor.empty());
+
+        // O nome da disciplina nao pode ser o codigo repetido: a tela mostra
+        // os dois, um ao lado do outro.
+        CHECK(m.nomeCompleto != m.codigo);
+        CHECK(m.nomeCompleto != m.nome);
+    }
+}
+
+TEST_CASE("Dados: ha materia com professor e sem batalha, e isso e proposital") {
+
+    // A INF 330 e do Salles, que ja e chefe da INF 213. Se algum dia alguem
+    // decidir que "tem professor" implica "tem chefe", este teste cai - e e
+    // para cair, porque reaproveitar o chefe faria duas materias identicas.
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+
+    int comProfessorSemChefe = 0;
+    for (const auto& m : l.materias) {
+        if (!m.professor.empty() && m.chefe.empty()) ++comProfessorSemChefe;
+    }
+    CHECK(comProfessorSemChefe == 6);
 }
