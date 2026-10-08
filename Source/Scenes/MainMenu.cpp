@@ -130,6 +130,13 @@ void MainMenu::OnProcessInput(const Uint8 *keyState) {
     if (confirmar && !mConfirmarAnterior) {
         mConfirmarAnterior = true;
         mGame->DefinirModoDeEntrada(kOpcoes[mSelecionada].modo);
+
+        // O ranking aberto pelo menu e o GERAL - a media do curso. O de uma
+        // materia so se chega pela selecao de fases, com a materia em foco.
+        if (kOpcoes[mSelecionada].destino == Scene::SceneType::Ranking) {
+            mGame->PedirRanking(Game::PedidoDeRanking{true, 0, Scene::SceneType::MainMenu});
+        }
+
         mGame->RequestSceneChange(kOpcoes[mSelecionada].destino);
         return;
     }

@@ -55,8 +55,17 @@ void StageSelect::CriarIdentificacaoNaTela() {
 
     auto trocar = std::make_unique<Actor>(this);
     trocar->SetPosition(Vector2(largura / 2.0f, static_cast<float>(mGame->GetWindowHeight()) - 40.f));
-    trocar->AddComponent<DrawTextComponent>("T - trocar usuario", mStageSelectFont.get(),
-                                            300, 40, 48, 255);
+    // As duas teclas do rodape. O "T" ainda nao existe no painel do gabinete -
+    // esta anotado em Documentacao/a-fazer.md, junto com o resto da passada de
+    // revisao de tudo que aparece escrito em tela.
+    // A QUEBRA PRECISA ACOMPANHAR A LARGURA. O padrao de 500 px quebrava esta
+    // linha em duas, e o ajuste ao texto ainda as encolhia para caber na altura
+    // de uma - ficava "trocar usuario" solto embaixo e um "T" perdido na ponta.
+    const auto rodape = trocar->AddComponent<DrawTextComponent>(
+        "BOTAO 2  ranking da materia          T  trocar usuario",
+        mStageSelectFont.get(), 900, 40, 28, 255);
+    rodape->SetLarguraDeQuebra(900);
+    rodape->SetAjustarAoTexto(true);
     mTrocarAtor = trocar.get();
     AddActor(std::move(trocar));
 }
@@ -213,6 +222,18 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
         mInputTimer = 0.0f;
         UpdateStageInfo();
     }
+
+    // O RANKING DA MATERIA EM FOCO. Abre direto na materia certa: perguntar
+    // "como fui nesta?" acontece olhando para ela, e nao no menu principal.
+    const bool verRanking = keyState[SDL_SCANCODE_B];
+    if (verRanking && !mRankingAnterior) {
+        mRankingAnterior = true;
+        mGame->PedirRanking(Game::PedidoDeRanking{false, mSelectedSubject,
+                                                  SceneType::StageSelect});
+        mGame->RequestSceneChange(SceneType::Ranking);
+        return;
+    }
+    mRankingAnterior = verRanking;
 
     // Precisa ser uma batida NOVA do ENTER, nao o estado dele: ver mEntrarAnterior.
     const bool entrar = keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];

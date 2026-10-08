@@ -10,6 +10,7 @@
 
 #include "Scene.h"
 #include "../Exportacao.h"
+#include "../Game.h"
 
 class Font;
 class Actor;
@@ -53,10 +54,12 @@ private:
     /// A turma inteira, lida uma vez. Ver o comentario de classe.
     std::vector<Exportacao::FichaDeAluno> mFichas;
 
-    /// Qual materia esta em exibicao. Indice na lista de materias.
-    int mMateria = 0;
+    /// O que mostrar e para onde voltar, posto por quem pediu a tela.
+    /// Ver Game::PedidoDeRanking.
+    Game::PedidoDeRanking mPedido{};
 
     Actor* mTituloAtor{};
+    Actor* mSubtituloAtor{};
     Actor* mVazioAtor{};
     Actor* mSuaPosicaoAtor{};
 
@@ -64,8 +67,8 @@ private:
     /// Criar e destruir atores a cada troca de materia deixaria lixo na cena.
     std::vector<Actor*> mPosicaoAtores;
     std::vector<Actor*> mMatriculaAtores;
+    std::vector<Actor*> mJogadasAtores;
     std::vector<Actor*> mNotaAtores;
 
-    float mPassoTimer = 0.0f;
     bool mVoltarAnterior = true;
 };

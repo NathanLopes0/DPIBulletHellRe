@@ -58,6 +58,10 @@ private:
     int mSelectedSubject{};
     float mInputTimer{}; // Timer pra mudar de botão selecionado
 
+    /// Ver o BOTAO 2 em HandleSelectionInput: comeca true porque se chega aqui
+    /// vindo do ranking com o botao ainda apertado.
+    bool mRankingAnterior = true;
+
     // Vetor de ponteiros OBSERVADORES para fácil acesso aos botões.
     // A memória real é gerenciada pelo vetor mActors.
     std::vector<StageSelectButton*> mButtonObservers;

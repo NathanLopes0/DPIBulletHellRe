@@ -166,6 +166,24 @@ public:
     void DefinirModoDeEntrada(const ModoDeEntrada modo) { mModoDeEntrada = modo; }
     [[nodiscard]] ModoDeEntrada ModoDeEntradaAtual() const { return mModoDeEntrada; }
 
+    /**
+     * @brief O que a proxima tela de ranking deve mostrar, e para onde ela volta.
+     *
+     * Fica no Game pelo mesmo motivo de mSelectedStage e de mModoDeEntrada: quem
+     * cria as cenas e o ChangeScene, que nao conhece a intencao de quem pediu a
+     * troca. Sem isto, a tela nao teria como saber se foi aberta pelo menu (media
+     * do curso, volta para o menu) ou pela selecao de fases (uma materia so,
+     * volta para a selecao).
+     */
+    struct PedidoDeRanking {
+        bool geral = true;                                 ///< media do curso, e nao uma materia
+        int  materia = 0;                                  ///< so vale quando geral e falso
+        Scene::SceneType voltarPara = Scene::SceneType::MainMenu;
+    };
+
+    void PedirRanking(const PedidoDeRanking& pedido) { mPedidoDeRanking = pedido; }
+    [[nodiscard]] const PedidoDeRanking& RankingPedido() const { return mPedidoDeRanking; }
+
     [[nodiscard]] const std::string& MatriculaAtual() const { return mMatricula; }
 
     /// @brief A aparencia de quem esta jogando. Vazia quer dizer "a padrao".
@@ -236,6 +254,7 @@ private:
 
     /// A que veio a proxima tela de matricula. Ver DefinirModoDeEntrada.
     ModoDeEntrada mModoDeEntrada = ModoDeEntrada::Novo;
+    PedidoDeRanking mPedidoDeRanking{};
 
     /// A aparencia de quem esta jogando, COMO VEIO DO SAVE. Vazia quer dizer
     /// "use a padrao" - e o caso do visitante e de todo save anterior a versao 4.

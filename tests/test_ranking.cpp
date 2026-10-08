@@ -156,3 +156,136 @@ TEST_CASE("Ranking: o teto por dano fica abaixo da nota cheia, tambem aqui") {
     CHECK(r[0].posicao == 1);
     CHECK(r[1].posicao == 2);
 }
+
+// ------------------------------------------------------- o ranking geral
+
+namespace {
+
+    /// Um aluno com notas em varias materias: {materia, nota}.
+    Exportacao::FichaDeAluno Aluno(const std::string& matricula,
+                                   const std::vector<std::pair<int, float>>& notas) {
+        Exportacao::FichaDeAluno f;
+        f.matricula = matricula;
+        for (const auto& [materia, nota] : notas) f.progresso.RegistrarNota(materia, nota);
+        return f;
+    }
+}
+
+TEST_CASE("Ranking geral: a media divide pelo CURSO, nao pelas materias jogadas") {
+
+    // A DECISAO QUE DEFINE O RANKING INTEIRO. Dividindo pelas jogadas, quem fez
+    // UMA materia e tirou 100 ficaria em primeiro, na frente de quem fez oito
+    // com 95 de media - e o ranking premiaria jogar pouco.
+    const std::vector<Exportacao::FichaDeAluno> turma = {
+        Aluno("preguicoso", {{0, 100.0f}}),
+        Aluno("aplicado",   {{0, 95.0f}, {1, 95.0f}, {2, 95.0f}, {3, 95.0f}}),
+    };
+
+    const auto r = Ranking::Geral(turma, 11);
+
+    REQUIRE(r.size() == 2);
+    CHECK(r[0].matricula == "aplicado");
+    CHECK(r[1].matricula == "preguicoso");
+
+    // 4 x 95 / 11 = 34,55   contra   100 / 11 = 9,09
+    CHECK(r[0].nota == doctest::Approx(380.0f / 11.0f));
+    CHECK(r[1].nota == doctest::Approx(100.0f / 11.0f));
+}
+
+TEST_CASE("Ranking geral: materia nao jogada vale zero, e nao e ignorada") {
+
+    // Se as nao jogadas fossem ignoradas, a media voltaria a ser a das jogadas e
+    // o incentivo se inverteria de novo.
+    const std::vector<Exportacao::FichaDeAluno> turma = { Aluno("1", {{0, 100.0f}, {1, 100.0f}}) };
+
+    CHECK(Ranking::Geral(turma, 2)[0].nota  == doctest::Approx(100.0f));
+    CHECK(Ranking::Geral(turma, 4)[0].nota  == doctest::Approx(50.0f));
+    CHECK(Ranking::Geral(turma, 10)[0].nota == doctest::Approx(20.0f));
+}
+
+TEST_CASE("Ranking geral: avancar no curso sempre sobe a media") {
+
+    // A PROPRIEDADE QUE FAZ O NUMERO MEDIR AVANCO. Jogar uma materia a mais
+    // nunca pode baixar a posicao de ninguem - senao o jogo estaria pedindo para
+    // o aluno parar de jogar.
+    auto so3 = Aluno("1", {{0, 90.0f}, {1, 90.0f}, {2, 90.0f}});
+    auto com4 = so3;
+    com4.progresso.RegistrarNota(3, 10.0f);   // uma materia RUIM a mais
+
+    const float antes  = Ranking::Geral({so3}, 11)[0].nota;
+    const float depois = Ranking::Geral({com4}, 11)[0].nota;
+
+    CAPTURE(antes);
+    CAPTURE(depois);
+    CHECK(depois > antes);
+}
+
+TEST_CASE("Ranking geral: quem nao jogou nada nao entra") {
+
+    const std::vector<Exportacao::FichaDeAluno> turma = {
+        Aluno("jogou", {{0, 50.0f}}),
+        Aluno("nao", {}),
+    };
+
+    const auto r = Ranking::Geral(turma, 11);
+    REQUIRE(r.size() == 1);
+    CHECK(r[0].matricula == "jogou");
+    CHECK(Ranking::PosicaoNoGeral(turma, 11, "nao") == 0);
+}
+
+TEST_CASE("Ranking geral: empate divide a posicao, como na materia") {
+
+    // As duas listas passam pela mesma ordenacao, entao a regra de empate tem de
+    // ser a mesma. Se divergisse, o mesmo par apareceria empatado numa tela e
+    // desempatado na outra.
+    const std::vector<Exportacao::FichaDeAluno> turma = {
+        Aluno("10", {{0, 80.0f}}), Aluno("20", {{1, 80.0f}}), Aluno("30", {{0, 40.0f}}),
+    };
+
+    const auto r = Ranking::Geral(turma, 11);
+    REQUIRE(r.size() == 3);
+    CHECK(r[0].posicao == 1);
+    CHECK(r[1].posicao == 1);
+    CHECK(r[2].posicao == 3);
+}
+
+TEST_CASE("Ranking geral: a posicao vem da lista completa, nao do topo exibido") {
+
+    std::vector<Exportacao::FichaDeAluno> turma;
+    for (int i = 0; i < 12; ++i) {
+        turma.push_back(Aluno(std::to_string(100 + i), {{0, 100.0f - static_cast<float>(i)}}));
+    }
+
+    CHECK(Ranking::Geral(turma, 11, 5).size() == 5);
+    CHECK(Ranking::PosicaoNoGeral(turma, 11, "111") == 12);
+}
+
+TEST_CASE("Ranking geral: curso de zero materias nao divide por zero") {
+
+    // Nao deveria acontecer - materias.json sempre tem materia - mas dividir por
+    // zero poria uma nota em NaN, e NaN ordenado produz lista aleatoria.
+    CHECK(Ranking::Geral({Aluno("1", {{0, 50.0f}})}, 0).empty());
+    CHECK(Ranking::PosicaoNoGeral({Aluno("1", {{0, 50.0f}})}, 0, "1") == 0);
+}
+
+TEST_CASE("Ranking geral: a contagem de materias jogadas acompanha a media") {
+
+    // 17,10 sozinho parece uma nota pessima. "2 de 11 jogadas, media 17,10"
+    // conta a historia certa, e e por isso que a contagem viaja junto.
+    const std::vector<Exportacao::FichaDeAluno> turma = {
+        Aluno("1", {{0, 100.0f}, {1, 88.0f}}),
+        Aluno("2", {{0, 90.0f}}),
+    };
+
+    const auto r = Ranking::Geral(turma, 11);
+    REQUIRE(r.size() == 2);
+    CHECK(r[0].materiasJogadas == 2);
+    CHECK(r[1].materiasJogadas == 1);
+}
+
+TEST_CASE("Ranking de materia: a contagem nao e usada, e vale 1") {
+
+    const auto r = Ranking::DaMateria(Turma({{"1", 80.0f}}), 0);
+    REQUIRE(r.size() == 1);
+    CHECK(r[0].materiasJogadas == 1);
+}
