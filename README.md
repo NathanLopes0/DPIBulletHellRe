@@ -5,16 +5,14 @@ chefes são os professores do DPI. No lugar de vidas há uma **Nota**: os projé
 do aluno são Dúvidas que sobem a nota, e ser atingido a derruba. Passar de uma
 prova é terminar o tempo dela com 60 ou mais.
 
-O jogo é escrito em C++17 com SDL2 e roda num arcade de duas posições no
-departamento, o que explica várias decisões adiante: a identificação por
-matrícula, a planilha de notas do professor e a ausência de qualquer coisa que
-dependa de teclado completo ou de mouse.
+O jogo é escrito em C++17 com SDL2 e vai rodar num arcade de duas posições no
+departamento, o que explica as decisões adiante: a identificação por
+matrícula, a planilha de notas pra fazer um ranking.
 
-INF 216 — Projeto e Implementação de Jogos Digitais
 Autor: Nathan da Silva Lopes
 
 Esta é uma reescrita do [projeto original](https://github.com/ufv-inf216/projeto-final-NathanLopes0),
-feito na disciplina.
+feito na disciplina INF 216.
 
 ---
 
@@ -38,22 +36,20 @@ identificar, e nesse caso nada é gravado.
 ## A nota
 
 Toda prova começa em **40**, inclusive para quem já foi bem naquela matéria — a
-nota anterior continua guardada na ficha como informação, mas não é mais o ponto
+nota anterior continua guardada na ficha como informação, mas não é o ponto
 de partida.
 
-Subir até **60** é fácil e custa 36 acertos, como sempre foi. Acima disso cada
+Subir até **60** é fácil e custa poucos acertos. Acima disso cada
 ponto custa mais que o anterior: a nota cheia sai por **256 acertos**, e uma
-batalha de 51 segundos entrega entre 268 e 382. Ou seja, 100 é alcançável, mas só
-por quem acerta quase tudo do início ao fim.
+batalha de 51 segundos entrega entre 268 e 382. Apesar de ser possível, ainda estou achando
+difícil, porque é necessário seguir o Boss que em alguns movimentos são mais rápidos. Talvez eu diminua
+esse número depois de receber feedback externo.
 
 Há um segundo freio, independente da curva: **quem é atingido três vezes para em
 99,99** naquela tentativa, por mais tempo que fique em tela. É isso que faz o 100
 significar "subiu a curva inteira **e** quase não foi atingido" em vez de ser só
 uma questão de paciência — e é por isso que as notas aparecem com duas casas
 decimais em todo lugar.
-
-Chegar a 100 anuncia **TESTE FINAL** e deixa a nota dourada. O dourado segue a
-nota: um acerto derruba e ele apaga.
 
 ## O curso
 
@@ -67,6 +63,9 @@ foi aprovado:
 | 2 | INF 250 *(Ricardo)*, INF 220 *(Thiago)*, INF 330, INF 332 | INF 213 aprovada |
 | 3 | INF 420 *(Júlio)*, BIOINF, INF 394, VISCPP | 2 aprovações na coluna 2 |
 | 4 | TCC | 2 aprovações na coluna 3 |
+
+Essas são as matérias que eram o plano original, mas elas serão modificadas para refletir o
+atual corpo docente. Colocar todos os professores pode ficar fora do escopo, mas é um desejo meu.
 
 Cinco matérias têm professor; as outras aparecem na grade e esperam um. Quem
 decide tudo isso é `Assets/materias.json` — a ordem, as colunas, as regras de
@@ -101,8 +100,8 @@ própria. A fase final acontece quando a nota termina entre 40 e 59 — é o exa
   primeira ele atira a esmo, na segunda mira onde você está, na terceira mira
   onde você **vai estar**.
 - **Thiago — INF 220.** Banco de dados. O campo vira uma tabela e cada ataque é
-  uma consulta que varre uma linha ou uma coluna inteira. Aqui não se desvia de
-  projétil: sai-se da faixa anunciada.
+  uma consulta que varre uma linha ou uma coluna inteira. Aqui ao invés de desviar de
+  projétil, a estratégia é sair da faixa anunciada (representando uma "Busca" em um BD).
 
 ## Como compilar
 
@@ -140,6 +139,8 @@ chefe citado em `materias.json` sem fábrica registrada, um nome de fase que a
 máquina de estados não conhece ou um projétil inexistente derrubam a suíte em vez
 de virarem uma matéria que não abre.
 
+Os testes foram na sua grande maioria gerados pelo Claude por enquanto, mas to confiando.
+
 ## Organização do código
 
 ```
@@ -163,7 +164,7 @@ tests/           a suíte
 A separação entre o par `X.cpp` / `XArquivo.cpp` é o que torna a suíte possível:
 a metade pura entra nos testes, a metade que toca disco e SDL fica de fora.
 
-## Os dados mandam
+## Os dados
 
 Quase tudo que define uma batalha está em JSON, não em C++: as fases de cada
 chefe, os ataques de cada fase, o comportamento de cada projétil, o catálogo de
@@ -176,3 +177,5 @@ jogador está no instante do disparo.
 
 Como esses arquivos são lidos campo a campo, e como adicionar um professor novo,
 está em `Documentacao/`.
+
+Ainda estou pensando se continuo com essa arquitetura de dados ou se volto tudo para ser editado no C++ mesmo.
