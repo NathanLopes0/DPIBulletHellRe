@@ -125,6 +125,10 @@ cmake --build build
 O executável acha a pasta `Assets/` subindo os diretórios a partir de onde ele
 está, então rodar de dentro de `build/` ou da raiz dá na mesma.
 
+No gabinete do departamento ele abre com `--arcade`: tela cheia, sem cursor, sem
+saída acidental e voltando ao menu sozinho quando fica parado. O que isso muda,
+e **como sair da máquina**, está em `Documentacao/gabinete.md`.
+
 ## Os testes
 
 ```bash

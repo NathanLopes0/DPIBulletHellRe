@@ -25,7 +25,7 @@
 #include "CaminhosArquivo.h"
 
 
-Game::Game(int windowWidth, int windowHeight)
+Game::Game(int windowWidth, int windowHeight, const Gabinete::Configuracao& gabinete)
     :mWindow(nullptr),
     mRenderer(nullptr),
     mWindowWidth(windowWidth),
@@ -35,7 +35,13 @@ Game::Game(int windowWidth, int windowHeight)
     mScene(nullptr),
     mSelectedStage(0),
     mPendingSceneChange(false),
-    mNextScene(Scene::SceneType::None)
+    mNextScene(Scene::SceneType::None),
+    mGabinete(gabinete),
+    mOciosidade(gabinete.ociosidade),
+    // A saida do operador existe SO no gabinete. Fora dele o limite e zero, e
+    // uma contagem de limite zero nunca esgota - a regra fica no dado em vez de
+    // num "if" espalhado por quem chama.
+    mSaidaDoOperador(gabinete.arcade ? Gabinete::kSegurarParaSair : 0.0f)
 {
 
 }
@@ -52,7 +58,11 @@ bool Game::Initialize() {
     }
 
     //criando janela do jogo
-    mWindow = SDL_CreateWindow("DPI Bullet Hell", 0, 0, mWindowWidth, mWindowHeight, 0);
+    // No gabinete a janela nasce em tela cheia, do tamanho do monitor que
+    // estiver la. Fora dele nasce do tamanho pedido, que e como se desenvolve.
+    const Uint32 bandeirasDaJanela = mGabinete.arcade ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0u;
+    mWindow = SDL_CreateWindow("DPI Bullet Hell", 0, 0, mWindowWidth, mWindowHeight,
+                               bandeirasDaJanela);
     if(!mWindow)
     {
         SDL_Log("Failed to create window: %s", SDL_GetError());
@@ -70,6 +80,21 @@ bool Game::Initialize() {
         return false;
     }
     SDL_SetRenderDrawBlendMode(mRenderer, SDL_BLENDMODE_BLEND);
+
+    // O JOGO INTEIRO E POSICIONADO EM mWindowWidth x mWindowHeight, inclusive
+    // as telas que usam fracoes da altura. A tela do gabinete nao tem esse
+    // tamanho, e sem escala logica tudo seria desenhado num canto dela. Com a
+    // escala, o SDL amplia e centraliza, e NENHUMA coordenada do jogo muda.
+    //
+    // Fica fora do "if (arcade)" de proposito: numa janela do tamanho exato ela
+    // nao faz nada, e assim existe um caminho so para os dois modos.
+    SDL_RenderSetLogicalSize(mRenderer, mWindowWidth, mWindowHeight);
+
+    if (mGabinete.arcade) {
+        // Nao ha mouse no painel. Sem isto o cursor fica parado no meio da tela
+        // o dia inteiro.
+        SDL_ShowCursor(SDL_DISABLE);
+    }
 
     //iniciando sistema de fontes
     if (TTF_Init() != 0)
@@ -125,13 +150,29 @@ void Game::ProcessInput()
         switch (event.type)
         {
             case SDL_QUIT:
-                Quit();
+                // No gabinete, fechar a janela NAO existe: o jogo fica aberto o
+                // dia todo, e um Alt+F4 de aluno curioso deixaria a area de
+                // trabalho a vista. A saida de quem mantem a maquina esta em
+                // AtualizarGabinete.
+                if (!mGabinete.arcade) Quit();
                 break;
             default: ;
         }
     }
 
-    const Uint8* state = SDL_GetKeyboardState(nullptr);
+    int quantasTeclas = 0;
+    const Uint8* state = SDL_GetKeyboardState(&quantasTeclas);
+
+    // Guardados aqui e usados em AtualizarGabinete, que roda no UpdateGame
+    // porque e la que existe deltaTime.
+    mHouveEntrada = false;
+    for (int i = 0; i < quantasTeclas; ++i) {
+        if (state[i]) {
+            mHouveEntrada = true;
+            break;
+        }
+    }
+    mSaidaSegurada = state[SDL_SCANCODE_LCTRL] && state[SDL_SCANCODE_ESCAPE];
 
     if (mScene) {
         mScene->ProcessInput(state);
@@ -158,6 +199,7 @@ void Game::UpdateGame()
         mScene->Update(deltaTime);
     }
     UpdateCamera();
+    AtualizarGabinete(deltaTime);
 
     if (mPendingSceneChange)
     {
@@ -173,6 +215,43 @@ void Game::UpdateGame()
         ChangeScene(proxima);
     }
 
+}
+
+void Game::AtualizarGabinete(const float deltaTime)
+{
+    // A SAIDA DE QUEM MANTEM A MAQUINA. Ctrl+Esc segurado por alguns segundos,
+    // porque no painel nao existe nenhuma das duas teclas: para sair e preciso
+    // ligar um teclado de proposito. Um toque nao derruba o jogo.
+    if (mSaidaDoOperador.Passou(deltaTime, mSaidaSegurada)) {
+        SDL_Log("GABINETE: Ctrl+Esc segurado por %.0fs, fechando o jogo.",
+                static_cast<double>(Gabinete::kSegurarParaSair));
+        Quit();
+        return;
+    }
+
+    if (!mOciosidade.Ligada() || !mScene) return;
+
+    // A BATALHA NAO VOLTA SOZINHA: ficar parado e uma forma legitima de
+    // desviar, e ela ja termina por tempo. O menu tambem nao, porque e o
+    // destino - e e dali que a tela de atracao vai sair, quando existir.
+    const Scene::SceneType atual = GetCurrSceneType();
+    const bool voltaSozinha = atual != Scene::SceneType::MainMenu
+                           && atual != Scene::SceneType::Battle;
+
+    // Um pedido de troca ja feito pela cena nao pode ser atropelado por este.
+    if (!voltaSozinha || mPendingSceneChange) {
+        mOciosidade.Reiniciar();
+        return;
+    }
+
+    if (mOciosidade.Passou(deltaTime, !mHouveEntrada)) {
+        // O PERFIL DE QUEM JOGOU NAO PODE FICAR PENDURADO. Quem chegasse depois
+        // encontraria a sessao de outra pessoa e jogaria no nome dela.
+        SDL_Log("GABINETE: %.0fs parado, voltando ao menu.",
+                static_cast<double>(mGabinete.ociosidade));
+        JogarComoVisitante();
+        RequestSceneChange(Scene::SceneType::MainMenu);
+    }
 }
 
 void Game::UpdateCamera()

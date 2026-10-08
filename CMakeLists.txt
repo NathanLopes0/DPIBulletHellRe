@@ -52,6 +52,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Tabela.h
         Source/Teclado.cpp
         Source/Teclado.h
+        Source/Gabinete.cpp
+        Source/Gabinete.h
         Source/Ranking.cpp
         Source/Ranking.h
         Source/Matricula.cpp
@@ -208,6 +210,7 @@ add_executable(dpi_tests
         tests/test_navegacao.cpp
         tests/test_tabela.cpp
         tests/test_teclado.cpp
+        tests/test_gabinete.cpp
         tests/test_ranking.cpp
         tests/test_matricula.cpp
         tests/test_ficha.cpp
@@ -223,6 +226,8 @@ add_executable(dpi_tests
         Source/Tabela.h
         Source/Teclado.cpp
         Source/Teclado.h
+        Source/Gabinete.cpp
+        Source/Gabinete.h
         Source/Ranking.cpp
         Source/Ranking.h
         Source/Matricula.cpp

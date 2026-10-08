@@ -92,12 +92,29 @@ Duas coisas para decidir jogando:
 
 ### Modo arcade de verdade
 
-Tela cheia, sem cursor, sem sair para a área de trabalho, volta sozinho ao menu
-depois de um tempo parado, tela de atração e recuperação se o jogo cair.
+A janela está pronta: `--arcade` dá tela cheia com escala lógica, esconde o
+cursor, ignora o fechar da janela, volta ao menu sozinho quando fica parado — e
+solta o perfil do aluno ao voltar. Sair é `Ctrl+Esc` segurado. Está documentado
+em `gabinete.md`.
 
-**Pendência concreta:** a seleção de fases ainda diz "T — trocar usuário", e o
-gabinete não tem a tecla T. Toda tecla que aparece escrita em tela precisa
-existir no painel de controle.
+**Falta:**
+
+- **A tela de atração.** Hoje a máquina parada mostra o menu principal parado.
+  Ela sairia do menu, e `Ranking::Geral` já dá o que mostrar.
+- **Recuperação se o jogo cair.** Nada disso adianta se um `crash` deixa a área
+  de trabalho à vista até alguém passar no corredor. É script de sistema, não
+  código do jogo: um laço que reabre.
+
+### As teclas que aparecem escritas na tela
+
+A seleção de fases diz "T — trocar usuário", e o gabinete não tem a tecla T.
+**Toda tecla que aparece escrita em tela precisa existir no painel de controle.**
+
+Vale varrer as telas de uma vez: o rodapé da seleção, a ajuda da identificação,
+o ESC que várias cenas usam como "voltar". O painel é manche + 2 ou 3 botões, e
+hoje cada cena escolhe a tecla dela por conta própria — é a forma do erro que já
+apareceu quatro vezes neste projeto: a mesma coisa descrita em dois lugares, e
+uma das cópias envelhece.
 
 ### A tela de Opções está vazia
 

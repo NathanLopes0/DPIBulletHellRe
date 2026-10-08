@@ -12,6 +12,7 @@
 #include "Scenes/Scene.h"
 #include "Personagens.h"
 #include "Progresso.h"
+#include "Gabinete.h"
 
 class IBossFactory;
 class Actor;
@@ -26,7 +27,9 @@ public:
     // de la - e so dava a impressao de que a lista morava no C++. O indice NAO
     // vai para o disco: o save grava o codigo da materia.
 
-    Game(int windowWidth, int windowHeight);
+    /// @param gabinete o que a linha de comando pediu. O padrao e janela; ver
+    ///        Gabinete.h para o que muda no arcade.
+    Game(int windowWidth, int windowHeight, const Gabinete::Configuracao& gabinete = {});
     ~Game();
 
     bool Initialize();
@@ -266,6 +269,31 @@ private:
 
     bool mPendingSceneChange;
     Scene::SceneType mNextScene;
+
+    // ---- Gabinete ----------------------------------------------------------
+    // Ver Gabinete.h. As duas esperas sao a MESMA classe com a condicao
+    // trocada, e o limite zero as desliga: por isso nao ha "if (arcade)" dentro
+    // de AtualizarGabinete - fora do gabinete elas nascem desligadas.
+    //
+    // DECLARADAS DEPOIS de mNextScene porque e nessa ordem que o construtor as
+    // inicializa, e o compilador avisa quando as duas listas divergem.
+
+    Gabinete::Configuracao mGabinete;
+
+    /// Tempo sem ninguem mexer. Esgotando, volta ao menu.
+    Gabinete::Contagem mOciosidade;
+
+    /// Tempo com a combinacao de saida segurada. Esgotando, fecha o jogo.
+    Gabinete::Contagem mSaidaDoOperador;
+
+    /// Lidos em ProcessInput e consumidos em UpdateGame, que e onde existe
+    /// deltaTime.
+    bool mHouveEntrada = false;
+    bool mSaidaSegurada = false;
+
+    /// A volta ao menu e a saida do operador, quadro a quadro. A tela cheia
+    /// nao esta aqui: ela acontece uma vez so, em Initialize.
+    void AtualizarGabinete(float deltaTime);
 
 
     /// Monta a ficha a partir do estado da sessao e grava. O unico lugar que faz

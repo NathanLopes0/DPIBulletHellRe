@@ -49,20 +49,8 @@
   // ==========================================================================
 
   // ==========================================================================
-  // SALLES - INF 110 (fabrica de projeteis: "Capivara")
-  //
-  // ATENCAO: este chefe esta em MODO DE TESTE DO PATHING. Os caminhos das quatro
-  // fases foram trocados para exercitar Zigzag, Arc e Loop; o balanceamento
-  // (quantidade, velocidade, angulo, cooldown) e o original e nao foi tocado.
-  // Para voltar ao comportamento anterior a esse teste, troque cada conjunto de
-  // regras por uma Reta mirada no jogador com atraso - o equivalente exato do
-  // antigo HomingBehavior. Os valores de atraso originais estao no historico do
-  // git, no commit 8f54c2b e anteriores.
-  //
-  // Salles SOBRESCREVE anguloCentral nas QUATRO fases (Salles.cpp): nas tres
-  // primeiras ele sorteia entre mirar no jogador (30%) e um angulo aleatorio, e
-  // na final sempre sorteia. Por isso nenhuma fase escreve anguloCentral aqui.
-  // ==========================================================================
+  // SALLES - INF 213
+
   "salles": {
 
     // FASE 1 - LISTA ENCADEADA SIMPLES, e ela vai rapido.
@@ -81,7 +69,9 @@
     "StateOne": {
       "duracao": 17,
       "proximo": "StateTwo",
-      "movimento": { "tipo": "GoToCenter" },
+      "movimento": { "tipo": "RandomWander", "a": 3.0,
+        "b": 120
+      },
       "ataques": [
         { "estrategia": "WaveAttack", "projetil": "Estruturas",
           "projeteis": 10, "velocidade": 430, "angulo": 0, "intervalo": 0.11,
@@ -620,19 +610,7 @@
     },
 
     // FASE FINAL - CROSS JOIN: o produto cartesiano.
-    //
-    // A juncao sem condicao, o acidente classico de quem esquece o ON: o banco
-    // devolve TODAS as combinacoes e o servidor para. Aqui sao linhas e colunas
-    // ao mesmo tempo, formando uma treliça.
-    //
-    // OS INDICES SAO FIXOS, e e o que torna isto dificil em vez de injusto: as
-    // consultas nao perseguem ninguem, elas cobrem posicoes conhecidas. As
-    // celulas seguras existem e sao as mesmas toda vez - o jogador que leu a
-    // treliça sobrevive. Perseguir o jogador AQUI, com tudo isso em tela, seria
-    // uma fase que nao se pode vencer.
-    //
-    // Linhas 0 e 2, colunas 1 e 3: deixam livres as linhas 1 e 3 e as colunas
-    // 0, 2 e 4, que e onde o jogador tem de estar quando a treliça fecha.
+
     "StateFinal": {
       "duracao": 17,
       "proximo": "StateOne",
