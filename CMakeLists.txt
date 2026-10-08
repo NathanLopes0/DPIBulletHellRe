@@ -49,6 +49,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Navegacao.h
         Source/Tabela.cpp
         Source/Tabela.h
+        Source/Teclado.cpp
+        Source/Teclado.h
         Source/Matricula.cpp
         Source/Matricula.h
         Source/Materias.cpp
@@ -202,6 +204,7 @@ add_executable(dpi_tests
         tests/test_nota.cpp
         tests/test_navegacao.cpp
         tests/test_tabela.cpp
+        tests/test_teclado.cpp
         tests/test_matricula.cpp
         tests/test_ficha.cpp
         tests/test_materias.cpp
@@ -214,6 +217,8 @@ add_executable(dpi_tests
         Source/Navegacao.h
         Source/Tabela.cpp
         Source/Tabela.h
+        Source/Teclado.cpp
+        Source/Teclado.h
         Source/Matricula.cpp
         Source/Matricula.h
         Source/Materias.cpp

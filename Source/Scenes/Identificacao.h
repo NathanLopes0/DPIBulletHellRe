@@ -7,7 +7,11 @@
 #include <memory>
 #include <string>
 
+#include <vector>
+
 #include "Scene.h"
+#include "../Navegacao.h"
+#include "../Teclado.h"
 
 class Font;
 class Actor;
@@ -38,6 +42,9 @@ class DrawCaixaComponent;
  */
 class Identificacao : public Scene {
 public:
+    /// Segundos entre dois passos com o manche segurado.
+    static constexpr float kPassoDoManche = 0.18f;
+
     explicit Identificacao(Game* game);
     ~Identificacao() override = default;
 
@@ -48,6 +55,19 @@ public:
 private:
 
     void CriarTextos();
+
+    /// Desenha o teclado digital: uma caixa e um rotulo por tecla.
+    void CriarTeclado();
+
+    /// Acende a tecla sob a selecao e apaga a anterior.
+    void PintarSelecao() const;
+
+    /// Executa a tecla selecionada. E o unico lugar que decide o que cada acao
+    /// faz, entao o botao do gabinete e o ENTER do teclado chegam aqui iguais.
+    void Acionar(const Teclado::Tecla& tecla);
+
+    /// A navegacao do teclado digital, com o atraso de repeticao.
+    void LerManche(const Uint8* keyState, float deltaTime);
 
     /// Cria um ator de texto centrado horizontalmente, no tamanho natural dele.
     /// A largura e a altura dadas sao LIMITE, nao destino - ver
@@ -93,6 +113,26 @@ private:
     bool mApagarAnterior{};
     bool mVisitanteAnterior{};
     bool mVoltarAnterior = true;
+
+    // --- O teclado digital ---
+    //
+    // O GABINETE NAO TEM TECLADO. A matricula e digitada escolhendo numeros numa
+    // grade com o manche e confirmando no botao. O teclado fisico continua
+    // funcionando, para desenvolver sem o gabinete.
+    Navegacao::Grade mGradeDoTeclado;
+    size_t mTeclaSelecionada = 0;
+    std::vector<DrawCaixaComponent*> mCaixasDasTeclas;
+
+    /// Atraso entre dois passos da selecao, para segurar o manche nao atravessar
+    /// a grade. Mesmo recurso da selecao de fases, pelo mesmo motivo.
+    ///
+    /// COMECA PRONTO, e nao em zero: zerado, o primeiro toque no manche e
+    /// engolido enquanto o temporizador carrega, e a tela parece nao responder
+    /// justamente no instante em que a pessoa a esta conhecendo. A selecao de
+    /// fases ja faz assim pelo mesmo motivo.
+    float mPassoTimer = kPassoDoManche;
+
+    bool mAcionarAnterior = true;   ///< ver mEnterAnterior: chega-se aqui com o botao apertado
 
     Actor* mTituloAtor{};
     Actor* mCampoAtor{};
