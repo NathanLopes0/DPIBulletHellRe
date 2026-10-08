@@ -3,6 +3,7 @@
 //
 
 #include "MainMenu.h"
+#include "../Painel.h"
 #include "../Game.h"
 #include "../Actors/Actor.h"
 #include "../Font.h"
@@ -121,11 +122,11 @@ void MainMenu::OnProcessInput(const Uint8 *keyState) {
     }
     mBaixoAnterior = baixo;
 
-    // ESPACO continua valendo junto com ENTER: era a unica tecla do menu antigo,
-    // e quem ja conhece o jogo vai tentar ela primeiro.
-    const bool confirmar = keyState[SDL_SCANCODE_RETURN]
-                        || keyState[SDL_SCANCODE_KP_ENTER]
-                        || keyState[SDL_SCANCODE_SPACE];
+    // O BOTAO 1 do painel e o espaco, entao quem ja conhece o jogo nao perde
+    // nada. O ENTER fica como atalho de teclado, sem aparecer escrito.
+    const bool confirmar = Painel::Apertado(keyState, Painel::Botao::Um)
+                        || keyState[SDL_SCANCODE_RETURN]
+                        || keyState[SDL_SCANCODE_KP_ENTER];
 
     if (confirmar && !mConfirmarAnterior) {
         mConfirmarAnterior = true;

@@ -18,15 +18,19 @@ feito na disciplina INF 216.
 
 ## Como jogar
 
-| Tecla | O que faz |
-|---|---|
-| **W A S D** ou **setas** | mover o aluno |
-| **Espaço** | lançar Dúvidas |
-| **B** | gastar um Ponto Extra: limpa a tela e soma nota, mas sobrecarrega e impede de atirar por alguns segundos |
-| **Enter** | confirmar (menus e seleção de matéria) |
-| **T** | trocar de usuário, na seleção de matérias |
-| **Esc** | voltar, nas telas de identificação, criação de personagem e opções |
-| **0–9** e **Backspace** | digitar a matrícula |
+O jogo é feito para o painel do gabinete — manche e três botões — e **toda tela
+é inteiramente operável com eles**. As teclas do computador são o mesmo painel,
+mais alguns atalhos que não aparecem escritos na tela.
+
+| Painel | Teclado | O que faz |
+|---|---|---|
+| **Manche** | **W A S D** ou **setas** | mover o aluno, escolher na tela |
+| **Botão 1** | **Espaço** | lançar Dúvidas; confirmar; digitar |
+| **Botão 2** | **B** | voltar e apagar; na batalha, gastar um Ponto Extra: limpa a tela e soma nota, mas sobrecarrega e impede de atirar por alguns segundos |
+| **Botão 3** | **N** | o ranking da matéria, na seleção |
+| — | **Enter**, **Esc**, **0–9**, **Backspace** | atalhos de teclado para quem desenvolve |
+
+O que cada botão faz **na tela em que você está** fica escrito no rodapé dela.
 
 Uma partida começa pela matrícula. **Novo Jogo** registra uma matrícula que
 ainda não existe e leva à criação de personagem; **Carregar Perfil** abre uma que

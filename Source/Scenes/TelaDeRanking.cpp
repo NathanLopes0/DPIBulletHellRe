@@ -3,6 +3,7 @@
 //
 
 #include "TelaDeRanking.h"
+#include "../Painel.h"
 
 #include <SDL_scancode.h>
 #include <iomanip>
@@ -70,7 +71,8 @@ void TelaDeRanking::Load() {
     if (const auto dc = mSubtituloAtor->GetComponent<DrawTextComponent>()) {
         dc->SetColor(Color::LightBlue);   // e uma nota de rodape, nao um titulo
     }
-    Texto("ESC  voltar", largura / 2.0f, altura * 0.93f, 22, 1000);
+    Texto(Painel::Rodape({{Painel::Botao::Dois, "voltar"}}),
+          largura / 2.0f, altura * 0.93f, 22, 1000);
 
     // As linhas sao criadas uma vez e reescritas na troca de materia. Criar e
     // destruir ator a cada troca deixaria lixo na cena, que so some no fim dela.
@@ -200,7 +202,8 @@ void TelaDeRanking::Redesenhar() {
 
 void TelaDeRanking::OnProcessInput(const Uint8* keyState) {
 
-    const bool voltar = keyState[SDL_SCANCODE_ESCAPE];
+    const bool voltar = Painel::Apertado(keyState, Painel::Botao::Dois)
+                     || keyState[SDL_SCANCODE_ESCAPE];
     if (voltar && !mVoltarAnterior) {
         // VOLTA PARA ONDE VEIO, e nao sempre para o menu: aberta pela selecao de
         // fases, cair no menu faria o aluno refazer o caminho ate a materia.

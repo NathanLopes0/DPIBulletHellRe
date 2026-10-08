@@ -84,8 +84,12 @@ private:
     Actor* mAlunoAtor = nullptr;
     Actor* mTrocarAtor = nullptr;
 
-    /// Borda da tecla de troca: sem isto, segurar T ficaria reentrando na cena.
-    bool mTrocarAnterior = false;
+    /// Borda do botao de troca, e comeca em TRUE pelo mesmo motivo do
+    /// mEntrarAnterior: trocar de aluno passou a ser o BOTAO 2, que e o mesmo
+    /// botao com que se volta do ranking - e o ranking volta para ca. Com a
+    /// borda em false, voltar do ranking com o botao ainda apertado jogava o
+    /// aluno direto para a tela de matricula.
+    bool mTrocarAnterior = true;
 
     /// Borda do ENTER, e comeca em TRUE de proposito.
     ///

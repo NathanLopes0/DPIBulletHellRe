@@ -3,6 +3,7 @@
 //
 #include <vector>
 #include "Player.h"
+#include "../../Painel.h"
 
 #include "PlayerProjectile.h"
 #include "../../Scenes/Battle/Battle.h"
@@ -148,14 +149,16 @@ void Player::MoveInput(const Uint8 *keyState) {
 }
 void Player::ShootInput(const Uint8 *keyState) {
 
-    if(keyState[SDL_SCANCODE_SPACE] && mOverloadTimer <= 0.0f) {
+    // BOTAO 1 do painel. Ver Painel.h: a tecla mora num lugar so.
+    if(Painel::Apertado(keyState, Painel::Botao::Um) && mOverloadTimer <= 0.0f) {
         Shoot();
     }
 
 }
 void Player::SpecialInput(const Uint8 *keyState) {
 
-    if(keyState[SDL_SCANCODE_B] && mExtraPoints > 0 && mOverloadTimer <= 0.0f) {
+    // BOTAO 2 do painel.
+    if(Painel::Apertado(keyState, Painel::Botao::Dois) && mExtraPoints > 0 && mOverloadTimer <= 0.0f) {
         mExtraPoints--;
         mOverloadTimer = OVERLOAD_DURATION;
         if (const auto battle = dynamic_cast<Battle*>(GetScene())) {

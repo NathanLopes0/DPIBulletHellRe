@@ -56,6 +56,32 @@ ela já termina por tempo. O menu também não, porque é o destino.
 
 ---
 
+## O painel
+
+Manche e **três botões**. É tudo o que existe lá, e é por isso que nenhuma tela
+pode exigir outra tecla.
+
+| | | |
+|---|---|---|
+| **Manche** | setas | andar, escolher |
+| **Botão 1** | `Espaço` | confirmar, atirar, digitar |
+| **Botão 2** | `B` | voltar, apagar, sobrecarga |
+| **Botão 3** | `N` | o extra de cada tela (hoje, o ranking da matéria) |
+
+São essas as teclas que o encoder do painel precisa mandar.
+
+**Toda tela é inteiramente operável com os três.** Nenhuma ação fica só no
+teclado, e nenhum rodapé anuncia tecla que o painel não tem — `Painel::Rodape`
+monta o texto a partir do próprio botão que a cena escuta, então as duas coisas
+não têm como divergir. `ENTER` e `ESC` continuam valendo para quem desenvolve,
+mas **não aparecem escritos em lugar nenhum**.
+
+Cada tela dá o significado dos botões no rodapé. O Botão 2 é quase sempre
+"voltar" — na seleção de fases, voltar é trocar de aluno, e o rodapé diz isso
+com todas as letras, porque a sessão do aluno acaba ali.
+
+---
+
 ## Como sair
 
 ```
@@ -72,9 +98,8 @@ derruba o jogo no meio do corredor.
 
 ## O que ainda falta
 
-Está em `a-fazer.md`, na seção *Gabinete*: a tela de atração, a recuperação se o
-jogo cair, e a varredura das teclas escritas em tela — o painel não tem `T`, e a
-seleção de fases ainda diz "T trocar usuário".
+Está em `a-fazer.md`, na seção *Gabinete*: a tela de atração e a recuperação se
+o jogo cair.
 
 ---
 
@@ -89,4 +114,8 @@ fora do gabinete as duas nascem desligadas.
 `Game::AtualizarGabinete` é quem roda isso a cada quadro, e
 `Game::Initialize` é quem abre a janela em tela cheia.
 
-Os testes estão em `tests/test_gabinete.cpp`.
+`Source/Painel.h` tem os botões: a tecla de cada um, o nome com que cada um
+aparece escrito, e o montador de rodapé. Nenhuma cena escreve `SDL_SCANCODE_`
+para os botões do painel.
+
+Os testes estão em `tests/test_gabinete.cpp` e `tests/test_painel.cpp`.

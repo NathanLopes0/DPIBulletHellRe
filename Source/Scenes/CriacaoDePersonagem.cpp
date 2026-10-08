@@ -3,6 +3,7 @@
 //
 
 #include "CriacaoDePersonagem.h"
+#include "../Painel.h"
 
 #include <SDL_scancode.h>
 
@@ -132,9 +133,16 @@ void CriacaoDePersonagem::Load() {
               largura / 2.0f, altura * 0.80f, 24, 1000);
     }
 
-    Texto("CIMA e BAIXO  escolhem o que mudar", largura / 2.0f, altura * 0.80f, 22, 700);
-    Texto("ESQUERDA e DIREITA  trocam",       largura / 2.0f, altura * 0.86f, 22, 700);
-    Texto("ENTER  confirmar     ESC  voltar", largura / 2.0f, altura * 0.92f, 22, 700);
+    // Uma linha so para o manche, e o rodape saindo dos botoes (ver Painel.h).
+    // Estava escrito ENTER e ESC, que o gabinete nao tem - e a linha do CIMA e
+    // BAIXO caia em 0.80, em cima do aviso de catalogo vazio.
+    // SEM PONTO E VIRGULA: a fonte de pixel nao tem o glifo e desenha um
+    // quadrado vazio no lugar. O traco existe e e usado em outras telas.
+    Texto("MANCHE  cima e baixo escolhem o que mudar - os lados trocam",
+          largura / 2.0f, altura * 0.86f, 22, 900);
+    Texto(Painel::Rodape({{Painel::Botao::Um,   "confirmar"},
+                          {Painel::Botao::Dois, "voltar"}}),
+          largura / 2.0f, altura * 0.92f, 22, 700);
 
     Recompor();
     Redesenhar();
@@ -258,7 +266,8 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
     mEsquerdaAnterior = esquerda;
     mDireitaAnterior = direita;
 
-    const bool confirmar = keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
+    const bool confirmar = Painel::Apertado(keyState, Painel::Botao::Um)
+                        || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
     if (confirmar && !mConfirmarAnterior) {
         mConfirmarAnterior = true;
         // Grava na hora: quem acabou de montar a personagem espera encontra-la
@@ -269,7 +278,8 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
     }
     mConfirmarAnterior = confirmar;
 
-    const bool voltar = keyState[SDL_SCANCODE_ESCAPE];
+    const bool voltar = Painel::Apertado(keyState, Painel::Botao::Dois)
+                     || keyState[SDL_SCANCODE_ESCAPE];
     if (voltar && !mVoltarAnterior) {
         // Volta para a matricula. Nada foi gravado ainda, entao a matricula
         // digitada continua livre para ser usada de novo.

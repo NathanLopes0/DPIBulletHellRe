@@ -3,6 +3,7 @@
 //
 
 #include "Opcoes.h"
+#include "../Painel.h"
 
 #include <SDL_scancode.h>
 
@@ -25,7 +26,7 @@ void Opcoes::Load() {
 
     Texto("OPCOES", altura * 0.22f, 52, 760);
     Texto("Nada para configurar ainda.", altura * 0.45f, 28, 760);
-    Texto("ESC  voltar", altura * 0.80f, 24, 420);
+    Texto(Painel::Rodape({{Painel::Botao::Dois, "voltar"}}), altura * 0.80f, 24, 420);
 }
 
 Actor* Opcoes::Texto(const std::string& conteudo, const float y, const int tamanho,
@@ -46,7 +47,8 @@ Actor* Opcoes::Texto(const std::string& conteudo, const float y, const int taman
 
 void Opcoes::OnProcessInput(const Uint8* keyState) {
 
-    const bool voltar = keyState[SDL_SCANCODE_ESCAPE];
+    const bool voltar = Painel::Apertado(keyState, Painel::Botao::Dois)
+                     || keyState[SDL_SCANCODE_ESCAPE];
     if (voltar && !mVoltarAnterior) {
         mGame->RequestSceneChange(SceneType::MainMenu);
         return;

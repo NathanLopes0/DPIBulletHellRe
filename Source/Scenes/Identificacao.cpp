@@ -3,6 +3,7 @@
 //
 
 #include "Identificacao.h"
+#include "../Painel.h"
 
 #include <SDL_scancode.h>
 
@@ -142,7 +143,9 @@ void Identificacao::CriarTextos() {
     // A ajuda agora fala do GABINETE, e nao do teclado: o manche escolhe, um
     // botao digita e o outro apaga. As teclas do computador continuam valendo
     // para quem desenvolve, mas nao e para elas que esta tela e desenhada.
-    Texto("MANCHE  escolher          BOTAO 1  digitar          BOTAO 2  apagar",
+    Texto(Painel::Rodape({Painel::Manche("escolher"),
+                          {Painel::Botao::Um,   "digitar"},
+                          {Painel::Botao::Dois, "apagar"}}),
           altura * 0.955f, 22, 1100, 34);
 
     CriarTeclado();
@@ -329,7 +332,7 @@ void Identificacao::LerManche(const Uint8* keyState, const float deltaTime) {
 
     // BOTAO 1 - digita a tecla acesa. ENTER tambem cai aqui, e nao mais direto
     // na validacao: no gabinete quem valida e a tecla ENTRAR da grade.
-    const bool acionar = keyState[SDL_SCANCODE_SPACE];
+    const bool acionar = Painel::Apertado(keyState, Painel::Botao::Um);
     if (acionar && !mAcionarAnterior) {
         const auto& teclas = Teclado::Teclas();
         if (mTeclaSelecionada < teclas.size()) Acionar(teclas[mTeclaSelecionada]);
@@ -353,8 +356,8 @@ void Identificacao::LerTeclado(const Uint8* keyState) {
 
     // BOTAO 2 do gabinete, junto com o BACKSPACE: apagar e frequente demais para
     // exigir uma viagem ate a tecla APAGAR da grade a cada erro de digitacao.
-    const bool apagar = keyState[SDL_SCANCODE_BACKSPACE] || keyState[SDL_SCANCODE_DELETE]
-                        || keyState[SDL_SCANCODE_B];
+    const bool apagar = Painel::Apertado(keyState, Painel::Botao::Dois)
+                        || keyState[SDL_SCANCODE_BACKSPACE] || keyState[SDL_SCANCODE_DELETE];
     if (apagar && !mApagarAnterior) {
         mDigitado = Matricula::Apagar(mDigitado);
         mErro.clear();

@@ -3,6 +3,7 @@
 //
 
 #include "StageSelect.h"
+#include "../Painel.h"
 
 #include "../Matricula.h"
 #include "../MateriasArquivo.h"
@@ -55,16 +56,17 @@ void StageSelect::CriarIdentificacaoNaTela() {
 
     auto trocar = std::make_unique<Actor>(this);
     trocar->SetPosition(Vector2(largura / 2.0f, static_cast<float>(mGame->GetWindowHeight()) - 40.f));
-    // As duas teclas do rodape. O "T" ainda nao existe no painel do gabinete -
-    // esta anotado em Documentacao/a-fazer.md, junto com o resto da passada de
-    // revisao de tudo que aparece escrito em tela.
+    // O RODAPE SAI DOS BOTOES, e nao de texto solto: ver Painel.h. Era aqui
+    // que estava escrito "T trocar usuario", numa maquina sem tecla T.
     // A QUEBRA PRECISA ACOMPANHAR A LARGURA. O padrao de 500 px quebrava esta
     // linha em duas, e o ajuste ao texto ainda as encolhia para caber na altura
     // de uma - ficava "trocar usuario" solto embaixo e um "T" perdido na ponta.
     const auto rodape = trocar->AddComponent<DrawTextComponent>(
-        "BOTAO 2  ranking da materia          T  trocar usuario",
-        mStageSelectFont.get(), 900, 40, 28, 255);
-    rodape->SetLarguraDeQuebra(900);
+        Painel::Rodape({{Painel::Botao::Um,   "jogar"},
+                        {Painel::Botao::Dois, "trocar aluno"},
+                        {Painel::Botao::Tres, "ranking da materia"}}),
+        mStageSelectFont.get(), 1100, 34, 22, 255);
+    rodape->SetLarguraDeQuebra(1100);
     rodape->SetAjustarAoTexto(true);
     mTrocarAtor = trocar.get();
     AddActor(std::move(trocar));
@@ -195,7 +197,10 @@ void StageSelect::OnProcessInput(const Uint8 *keyState) {
     // Trocar de usuario volta para a identificacao. Nao grava nada aqui: a ficha
     // do aluno que esta saindo ja foi para o disco ao fim de cada batalha, entao
     // nao ha o que perder - e sair sem ter jogado nao deveria criar arquivo.
-    const bool trocar = keyState[SDL_SCANCODE_T];
+    // O ESC continua valendo para quem desenvolve, mas nao aparece escrito:
+    // o gabinete nao tem ESC, e o rodape so anuncia o que existe no painel.
+    const bool trocar = Painel::Apertado(keyState, Painel::Botao::Dois)
+                     || keyState[SDL_SCANCODE_ESCAPE];
     if (trocar && !mTrocarAnterior) {
         mTrocarAnterior = true;
         mGame->RequestSceneChange(SceneType::Identificacao);
@@ -225,7 +230,7 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
 
     // O RANKING DA MATERIA EM FOCO. Abre direto na materia certa: perguntar
     // "como fui nesta?" acontece olhando para ela, e nao no menu principal.
-    const bool verRanking = keyState[SDL_SCANCODE_B];
+    const bool verRanking = Painel::Apertado(keyState, Painel::Botao::Tres);
     if (verRanking && !mRankingAnterior) {
         mRankingAnterior = true;
         mGame->PedirRanking(Game::PedidoDeRanking{false, mSelectedSubject,
@@ -235,8 +240,9 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
     }
     mRankingAnterior = verRanking;
 
-    // Precisa ser uma batida NOVA do ENTER, nao o estado dele: ver mEntrarAnterior.
-    const bool entrar = keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
+    // Precisa ser uma batida NOVA, e nao o estado: ver mEntrarAnterior.
+    const bool entrar = Painel::Apertado(keyState, Painel::Botao::Um)
+                     || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
     if (entrar && !mEntrarAnterior && mGame->IsStageUnlocked(mSelectedSubject)) {
         mEntrarAnterior = true;
         mGame->SetSelectedStage(mSelectedSubject);

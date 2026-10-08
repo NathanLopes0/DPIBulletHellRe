@@ -105,16 +105,12 @@ em `gabinete.md`.
   de trabalho à vista até alguém passar no corredor. É script de sistema, não
   código do jogo: um laço que reabre.
 
-### As teclas que aparecem escritas na tela
+### Decidir quantos botões o painel terá de verdade
 
-A seleção de fases diz "T — trocar usuário", e o gabinete não tem a tecla T.
-**Toda tecla que aparece escrita em tela precisa existir no painel de controle.**
-
-Vale varrer as telas de uma vez: o rodapé da seleção, a ajuda da identificação,
-o ESC que várias cenas usam como "voltar". O painel é manche + 2 ou 3 botões, e
-hoje cada cena escolhe a tecla dela por conta própria — é a forma do erro que já
-apareceu quatro vezes neste projeto: a mesma coisa descrita em dois lugares, e
-uma das cópias envelhece.
+O jogo hoje supõe **três** (ver `Painel.h` e `gabinete.md`), e o terceiro é só
+atalho: o ranking da matéria. Se o gabinete acabar com dois, nada fica
+inalcançável — basta tirar o Botão 3 do rodapé da seleção e dar outro caminho ao
+ranking. Decidir isso é compra de peça, não código.
 
 ### A tela de Opções está vazia
 
