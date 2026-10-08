@@ -123,6 +123,18 @@ namespace Materias {
          * coluna olhando para a tela.
          */
         [[nodiscard]] std::string ExigenciaDe(int indice) const;
+
+        /**
+         * @brief Se TODA materia desta coluna depende APENAS da coluna de tras.
+         *
+         * A tela de selecao desenha um tronco ligando duas colunas vizinhas, e
+         * esse desenho so diz a verdade quando isto vale. Nada no formato
+         * obriga: uma materia pode exigir outra de tres colunas atras, e ai a
+         * linha estaria mentindo sobre o curso.
+         *
+         * Coluna 0 responde falso: ela nao tem anterior.
+         */
+        [[nodiscard]] bool ColunaDependeDaAnterior(int coluna) const;
     };
 
     /**

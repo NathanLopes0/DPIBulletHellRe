@@ -108,6 +108,42 @@ std::string Lista::ExigenciaDe(const int indice) const {
     return {};
 }
 
+bool Lista::ColunaDependeDaAnterior(const int coluna) const {
+
+    if (coluna <= 0) return false;
+
+    const std::vector<int> daColuna = DaColuna(coluna);
+    if (daColuna.empty()) return false;
+
+    for (const int indice : daColuna) {
+        const Materia* m = Por(indice);
+        if (!m) return false;
+
+        switch (m->desbloqueio.tipo) {
+
+            case TipoDeDesbloqueio::Sempre:
+                // Aberta sempre: nao depende de coluna nenhuma, e uma linha
+                // saindo da coluna de tras diria que depende.
+                return false;
+
+            case TipoDeDesbloqueio::AprovadasNaColuna:
+                if (m->desbloqueio.coluna != coluna - 1) return false;
+                break;
+
+            case TipoDeDesbloqueio::AprovadoEm: {
+                if (m->desbloqueio.materias.empty()) return false;
+                for (const auto& codigo : m->desbloqueio.materias) {
+                    const Materia* exigida = Por(IndiceDe(codigo));
+                    if (!exigida || exigida->coluna != coluna - 1) return false;
+                }
+                break;
+            }
+        }
+    }
+
+    return true;
+}
+
 bool Lista::Desbloqueada(const int indice, const Progresso& progresso) const {
 
     const Materia* m = Por(indice);

@@ -438,3 +438,78 @@ TEST_CASE("Materias: ter professor NAO e ter batalha") {
     CHECK(m->professor == "Salles");
     CHECK(m->chefe.empty());
 }
+
+// ---------------------------------------------------------------------------
+// A ligacao desenhada entre duas colunas
+//
+// A tela de selecao liga as colunas vizinhas com um tronco. O desenho so diz a
+// verdade se toda materia da coluna da frente depender mesmo da de tras - e
+// nada no formato obriga isso.
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Materias: coluna que depende toda da anterior pode ser ligada") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B", "nome": "B", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A"] } },
+        { "codigo": "C", "nome": "C", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A"] } }
+      ]
+    })");
+    CHECK(l.ColunaDependeDaAnterior(1));
+}
+
+TEST_CASE("Materias: a coluna 0 nunca e ligada - ela nao tem anterior") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } }
+      ]
+    })");
+    CHECK_FALSE(l.ColunaDependeDaAnterior(0));
+    CHECK_FALSE(l.ColunaDependeDaAnterior(-1));
+    CHECK_FALSE(l.ColunaDependeDaAnterior(9));   // coluna vazia
+}
+
+TEST_CASE("Materias: dependencia que PULA uma coluna nao vira linha") {
+    // O caso que faria o desenho mentir: a linha sairia da coluna 1 e a regra
+    // olharia para a 0.
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B", "nome": "B", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A"] } },
+        { "codigo": "C", "nome": "C", "coluna": 2,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A"] } }
+      ]
+    })");
+    CHECK(l.ColunaDependeDaAnterior(1));
+    CHECK_FALSE(l.ColunaDependeDaAnterior(2));
+}
+
+TEST_CASE("Materias: basta UMA materia fora do padrao para nao ligar a coluna") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B", "nome": "B", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A"] } },
+        { "codigo": "C", "nome": "C", "coluna": 1, "desbloqueio": { "tipo": "sempre" } }
+      ]
+    })");
+    CHECK_FALSE(l.ColunaDependeDaAnterior(1));
+}
+
+TEST_CASE("Materias: aprovadasNaColuna so liga quando aponta para a coluna de tras") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B", "nome": "B", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "C", "nome": "C", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 0 } },
+        { "codigo": "D", "nome": "D", "coluna": 2,
+          "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 1, "coluna": 0 } }
+      ]
+    })");
+    CHECK(l.ColunaDependeDaAnterior(1));
+    CHECK_FALSE(l.ColunaDependeDaAnterior(2));
+}

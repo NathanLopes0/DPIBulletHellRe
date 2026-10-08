@@ -1236,3 +1236,19 @@ TEST_CASE("Dados: ha materia com professor e sem batalha, e isso e proposital") 
     }
     CHECK(comProfessorSemChefe == 6);
 }
+
+TEST_CASE("Dados: toda coluna do curso depende da anterior, entao a grade pode ser ligada") {
+
+    // E o que autoriza a tela de selecao a desenhar o tronco entre as colunas.
+    // Se alguem criar uma materia que exige algo de duas colunas atras, este
+    // teste cai e a linha daquela coluna some sozinha - e e assim que tem de
+    // ser, porque desenhar uma ligacao que nao existe e pior que nao desenhar.
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    REQUIRE(l.QuantasColunas() == 5);
+
+    CHECK_FALSE(l.ColunaDependeDaAnterior(0));
+    for (int c = 1; c < l.QuantasColunas(); ++c) {
+        CAPTURE(c);
+        CHECK(l.ColunaDependeDaAnterior(c));
+    }
+}

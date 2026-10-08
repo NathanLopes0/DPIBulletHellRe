@@ -57,12 +57,12 @@ void StageSelectButton::OnUpdate(float deltaTime) {
         // Checa o estado do botão (mIsSelected é herdado da classe Button)
 
         if (mIsLocked) {
-            // A SELECAO SO CLAREIA UM POUCO a materia fechada. Clarear ate o
-            // branco, como nas abertas, apagava o nome escrito em cima dela -
-            // e fazia a fechada em foco parecer tao jogavel quanto as outras.
+            // A SELECAO CLAREIA O CADEADO. Desbotar o desenho das correntes nao
+            // atrapalha - o nome da materia fica FORA do losango -, e e o que
+            // torna obvio onde a seta parou numa coluna inteira fechada.
             anim->SetAnimation("Locked");
-            anim->SetColor(mIsSelected ? 140 : 95, mIsSelected ? 140 : 95,
-                           mIsSelected ? 200 : 140);
+            anim->SetColor(mIsSelected ? 195 : 92, mIsSelected ? 198 : 95,
+                           mIsSelected ? 235 : 138);
 
         } else if (mIsSelected) {
             anim->SetAnimation("Selected");

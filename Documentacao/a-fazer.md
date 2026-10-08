@@ -112,6 +112,16 @@ atalho: o ranking da matéria. Se o gabinete acabar com dois, nada fica
 inalcançável — basta tirar o Botão 3 do rodapé da seleção e dar outro caminho ao
 ranking. Decidir isso é compra de peça, não código.
 
+### As outras telas ainda são pretas
+
+A seleção de fases ganhou o corredor do DPI de fundo, com véu por cima para o
+texto continuar legível. A identificação, o ranking e a criação de personagem
+continuam em preto liso, e agora a diferença entre elas salta aos olhos.
+
+É a mesma receita e não precisa de peça nova: `DrawSpriteComponent` com
+`SetColor` escurecendo, mais um `DrawCaixaComponent` de tela inteira com alfa.
+Ver `StageSelect::CriarFundo`.
+
 ### A tela de Opções está vazia
 
 Ela existe e não faz nada. No mínimo precisa de volume: o gabinete fica num

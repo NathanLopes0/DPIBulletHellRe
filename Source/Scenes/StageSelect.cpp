@@ -16,6 +16,8 @@
 #include "../Actors/Buttons/StageSelectButton.h"
 #include "../Font.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
+#include "../Components/DrawComponents/DrawSpriteComponent.h"
+#include "../Components/DrawComponents/DrawCaixaComponent.h"
 
 #include "../CaminhosArquivo.h"
 
@@ -31,10 +33,37 @@ StageSelect::StageSelect(Game *game) : Scene(game, SceneType::StageSelect)
 
 void StageSelect::Load() {
 
+    CriarFundo();
     CreateStageButtons();
+    CriarLigacoes();          // depois dos botoes: as linhas saem das posicoes deles
     CreateStaticUI();
     CriarIdentificacaoNaTela();
 
+}
+
+void StageSelect::CriarFundo() {
+
+    const auto largura = static_cast<float>(mGame->GetWindowWidth());
+    const auto altura = static_cast<float>(mGame->GetWindowHeight());
+
+    // O MESMO CORREDOR DO MENU. A tela era preta: os losangos flutuavam no
+    // vazio e nada dizia que aquilo era a mesma sala do resto do jogo. Com a
+    // foto, a selecao passa a acontecer EM ALGUM LUGAR.
+    auto fundo = std::make_unique<Actor>(this);
+    fundo->SetPosition(Vector2(largura / 2.0f, altura / 2.0f));
+    const auto foto = fundo->AddComponent<DrawSpriteComponent>(
+        Caminhos::Asset("MainMenuBackground.png"), kOrdemDoFundo);
+    foto->SetColor(66, 70, 92);   // puxada para o azul e bem escurecida
+    AddActor(std::move(fundo));
+
+    // O VEU. A foto tem tijolo vermelho e janela clara; sem escurecer de novo
+    // por cima, o nome de uma materia fechada cai em cima de um reflexo e some.
+    auto veu = std::make_unique<Actor>(this);
+    veu->SetPosition(Vector2(largura / 2.0f, altura / 2.0f));
+    veu->AddComponent<DrawCaixaComponent>(
+        static_cast<int>(largura), static_cast<int>(altura),
+        SDL_Color{0, 0, 0, 0}, SDL_Color{6, 8, 18, 200}, 0, kOrdemDoVeu);
+    AddActor(std::move(veu));
 }
 
 void StageSelect::CriarIdentificacaoNaTela() {
@@ -60,24 +89,6 @@ void StageSelect::CriarIdentificacaoNaTela() {
     mAlunoAtor = aluno.get();
     AddActor(std::move(aluno));
 
-    // QUANTO DO CURSO JA FOI, logo abaixo de quem esta jogando. E a unica coisa
-    // nesta tela que fala do conjunto: o resto fala sempre da materia em foco.
-    const Materias::Lista& materias = Materias::Carregadas();
-    int aprovadas = 0;
-    for (int i = 0; i < materias.Quantas(); ++i) {
-        if (mGame->Aprovado(i)) ++aprovadas;
-    }
-
-    auto avanco = std::make_unique<Actor>(this);
-    avanco->SetPosition(Vector2(230.f, 96.f));
-    const auto avancoDc = avanco->AddComponent<DrawTextComponent>(
-        "Aprovadas: " + std::to_string(aprovadas) + " de " + std::to_string(materias.Quantas()),
-        mStageSelectFont.get(), 300, 30, 22, 255);
-    avancoDc->SetLarguraDeQuebra(300);
-    avancoDc->SetAjustarAoTexto(true);
-    avancoDc->SetColor(Color::LightBlue);
-    AddActor(std::move(avanco));
-
     auto trocar = std::make_unique<Actor>(this);
     trocar->SetPosition(Vector2(largura / 2.0f, static_cast<float>(mGame->GetWindowHeight()) - 40.f));
     // O RODAPE SAI DOS BOTOES, e nao de texto solto: ver Painel.h. Era aqui
@@ -94,6 +105,68 @@ void StageSelect::CriarIdentificacaoNaTela() {
     rodape->SetAjustarAoTexto(true);
     mTrocarAtor = trocar.get();
     AddActor(std::move(trocar));
+}
+
+void StageSelect::Linha(const float x, const float y,
+                        const float largura, const float altura) {
+
+    // Uma caixa PREENCHIDA sem moldura: espessura zero deixa os quatro lados
+    // com tamanho zero, entao sobra so o fundo - que e o segmento.
+    auto ator = std::make_unique<Actor>(this);
+    ator->SetPosition(Vector2(x, y));
+    ator->AddComponent<DrawCaixaComponent>(
+        static_cast<int>(largura), static_cast<int>(altura),
+        SDL_Color{0, 0, 0, 0}, kCorDaLigacao, 0, kOrdemDasLigacoes);
+    AddActor(std::move(ator));
+}
+
+void StageSelect::CriarLigacoes() {
+
+    // O CURSO COMO MAPA, e nao como losangos soltos. Entre duas colunas sai um
+    // tronco vertical, e dele um ramo para cada materia dos dois lados - e o
+    // desenho classico de grade curricular, e e a mesma forma para as duas
+    // regras de desbloqueio que o curso usa.
+    //
+    // So desenha onde a ligacao E VERDADE: Materias::ColunaDependeDaAnterior
+    // responde se toda materia da coluna da frente depende mesmo da de tras.
+    // Uma materia que exigisse algo de duas colunas atras faria a linha mentir,
+    // e ai a coluna fica sem tronco em vez de ganhar um errado.
+    const Materias::Lista& materias = Materias::Carregadas();
+
+    for (size_t c = 0; c + 1 < mGrade.size(); ++c) {
+
+        if (mGrade[c].empty() || mGrade[c + 1].empty()) continue;
+        if (!materias.ColunaDependeDaAnterior(static_cast<int>(c) + 1)) continue;
+
+        const float xEsquerda = mButtonObservers[mGrade[c].front()]->GetPosition().x
+                              + kMetadeDoLosango;
+        const float xDireita = mButtonObservers[mGrade[c + 1].front()]->GetPosition().x
+                             - kMetadeDoLosango;
+        const float xTronco = (xEsquerda + xDireita) / 2.0f;
+
+        float yMenor = mButtonObservers[mGrade[c].front()]->GetPosition().y;
+        float yMaior = yMenor;
+        for (const size_t lado : {c, c + 1}) {
+            for (const size_t i : mGrade[lado]) {
+                const float y = mButtonObservers[i]->GetPosition().y;
+                yMenor = Math::Min(yMenor, y);
+                yMaior = Math::Max(yMaior, y);
+            }
+        }
+
+        if (yMaior > yMenor) {
+            Linha(xTronco, (yMenor + yMaior) / 2.0f, kGrossuraDaLigacao, yMaior - yMenor);
+        }
+
+        for (const size_t i : mGrade[c]) {
+            const float y = mButtonObservers[i]->GetPosition().y;
+            Linha((xEsquerda + xTronco) / 2.0f, y, xTronco - xEsquerda, kGrossuraDaLigacao);
+        }
+        for (const size_t i : mGrade[c + 1]) {
+            const float y = mButtonObservers[i]->GetPosition().y;
+            Linha((xTronco + xDireita) / 2.0f, y, xDireita - xTronco, kGrossuraDaLigacao);
+        }
+    }
 }
 
 void StageSelect::CreateStageButtons() {
@@ -226,15 +299,29 @@ void StageSelect::CreateButton(const std::string& text, int subject, const Vecto
     this->AddActor(std::move(button));
 }
 
+Actor* StageSelect::TextoDoCartao(const float y, const int tamanho, const Vector3& cor) {
+
+    auto ator = std::make_unique<Actor>(this);
+    ator->SetPosition(Vector2(kCartaoX, y));
+    const auto dc = ator->AddComponent<DrawTextComponent>(
+        " ", mStageSelectFont.get(), static_cast<int>(kCartaoLargura) - 40,
+        tamanho + 8, tamanho, 255);
+    dc->SetLarguraDeQuebra(static_cast<unsigned>(kCartaoLargura) - 40);
+    dc->SetAjustarAoTexto(true);
+    dc->SetColor(cor);
+
+    Actor* observador = ator.get();
+    AddActor(std::move(ator));
+    return observador;
+}
+
 void StageSelect::CreateStaticUI() {
 
     const auto w = static_cast<float>(mGame->GetWindowWidth());
-    const auto h = static_cast<float>(mGame->GetWindowHeight());
 
-    // O TITULO fica ENTRE a matricula (que ocupa 30..410) e a maior nota (que
-    // ocupa 900..1100), na faixa que a grade desocupou. A caixa de 360 e o que
-    // cabe entre as duas sem encostar em nenhuma; o ajuste ao texto encolhe a
-    // letra se ela passar disso, em vez de invadir os cantos.
+    // O TITULO no meio, e o avanco no curso na direita. A maior nota saiu deste
+    // canto: ela fala da materia em foco, entao foi para o cartao com o resto
+    // do que se sabe dela. No alto fica so o que vale para a tela inteira.
     auto tituloAtor = std::make_unique<Actor>(this);
     tituloAtor->SetPosition(Vector2(w / 2.0f, 52.f));
     const auto titulo = tituloAtor->AddComponent<DrawTextComponent>(
@@ -243,29 +330,36 @@ void StageSelect::CreateStaticUI() {
     titulo->SetAjustarAoTexto(true);
     AddActor(std::move(tituloAtor));
 
-    auto infoActor = std::make_unique<Actor>(this);
-    infoActor->SetPosition(Vector2(w - 190.f, 52.f));
+    const Materias::Lista& materias = Materias::Carregadas();
+    int aprovadas = 0;
+    for (int i = 0; i < materias.Quantas(); ++i) {
+        if (mGame->Aprovado(i)) ++aprovadas;
+    }
 
-    // Tambem ajustada ao texto: na caixa esticada, "Maior Nota: 0.00" e "Maior
-    // Nota: 100.00" saiam com letras de tamanhos diferentes, e as vezes a
-    // segunda quebrava em duas linhas - o numero dancava a cada seta apertada.
-    const auto notaDc = infoActor->AddComponent<DrawTextComponent>(
-        "Maior Nota: --", mStageSelectFont.get(), 320, 44, 30, 255);
-    notaDc->SetLarguraDeQuebra(320);
-    notaDc->SetAjustarAoTexto(true);
-    mScoreInfoActor = infoActor.get();
-    AddActor(std::move(infoActor));
+    auto avanco = std::make_unique<Actor>(this);
+    avanco->SetPosition(Vector2(w - 190.f, 52.f));
+    const auto avancoDc = avanco->AddComponent<DrawTextComponent>(
+        "Aprovadas: " + std::to_string(aprovadas) + " de " + std::to_string(materias.Quantas()),
+        mStageSelectFont.get(), 320, 38, 26, 255);
+    avancoDc->SetLarguraDeQuebra(320);
+    avancoDc->SetAjustarAoTexto(true);
+    avancoDc->SetColor(Color::LightBlue);
+    AddActor(std::move(avanco));
 
-    // A LINHA DE ESTADO, entre a grade e o rodape. E o que a tela nao dizia:
-    // por que a materia esta fechada, e que seis delas ainda nao tem professor.
-    auto estadoAtor = std::make_unique<Actor>(this);
-    estadoAtor->SetPosition(Vector2(w / 2.0f, h * kLinhaDeEstado));
-    const auto estado = estadoAtor->AddComponent<DrawTextComponent>(
-        " ", mStageSelectFont.get(), 900, 32, 24, 255);
-    estado->SetLarguraDeQuebra(900);   // ver o rodape: o padrao e 500
-    estado->SetAjustarAoTexto(true);
-    mEstadoAtor = estadoAtor.get();
-    AddActor(std::move(estadoAtor));
+    // O CARTAO DA MATERIA EM FOCO, no canto que a grade deixa vazio. Tudo o que
+    // se sabe da materia selecionada mora aqui dentro, em vez de ficar espalhado
+    // em textos soltos pela tela.
+    auto moldura = std::make_unique<Actor>(this);
+    moldura->SetPosition(Vector2(kCartaoX, kCartaoY));
+    moldura->AddComponent<DrawCaixaComponent>(
+        static_cast<int>(kCartaoLargura), static_cast<int>(kCartaoAltura),
+        kCorDaMolduraDoCartao, kCorDoFundoDoCartao, 2, kOrdemDoCartao);
+    AddActor(std::move(moldura));
+
+    mCodigoAtor    = TextoDoCartao(kCartaoY - 58.f, 30, Color::White);
+    mNomeAtor      = TextoDoCartao(kCartaoY - 16.f, 22, Color::LightYellow);
+    mProfessorAtor = TextoDoCartao(kCartaoY + 20.f, 20, Color::LightBlue);
+    mEstadoAtor    = TextoDoCartao(kCartaoY + 58.f, 22, Color::White);
 
     UpdateStageInfo();
 }
@@ -356,46 +450,27 @@ void StageSelect::OnUpdate(float deltaTime) {
 
 }
 
-void StageSelect::UpdateStageInfo() const {
-    if (!mScoreInfoActor) return;
+void StageSelect::EscreverNoCartao(Actor* ator, const std::string& texto, const Vector3& cor) {
 
-    const int subject = mSelectedSubject;
-    // Agora e de fato o recorde: antes mostrava a ULTIMA nota, entao uma
-    // tentativa ruim baixava o numero que se chamava highScore.
-    const float highScore = mGame->GetMelhorNota(subject);
-
-    std::stringstream ss;
-    // Duas casas pelo mesmo motivo da barra de nota da batalha: o teto por dano
-    // e 99,99, e com uma casa ele viraria "100.0" na tela do recorde.
-    ss << "Maior Nota: " << std::fixed << std::setprecision(2) << highScore;
-
-    if (auto dc = mScoreInfoActor->GetComponent<DrawTextComponent>()) {
-        dc->SetText(ss.str());
-
-        // O plano que estava aqui como TODO, agora que DrawTextComponent tem cor.
-        // Ficava comentado esperando por isso, e com uma assinatura de quatro
-        // Uint8 que nunca chegou a existir - descomentar nao compilaria.
-        //
-        // O DOURADO ENTRA AQUI TAMBEM, e nao so na batalha: esta e a tela onde um
-        // aluno compara a propria nota com a dos outros, entao e onde a nota cheia
-        // mais precisa se distinguir do 99,99 de quem levou dano.
-        if (Nota::ECheia(highScore))                 dc->SetColor(Color::Gold);
-        else if (highScore >= Nota::kNotaAprovacao)  dc->SetColor(Color::LightGreen);
-        else if (highScore > 0.0f)                   dc->SetColor(Color::LightPink);
-        else                                         dc->SetColor(Color::White);
+    if (!ator) return;
+    if (const auto dc = ator->GetComponent<DrawTextComponent>()) {
+        // Espaco, e nao vazio: o componente precisa de alguma coisa para medir,
+        // e texto vazio deixaria a textura anterior na tela.
+        dc->SetText(texto.empty() ? std::string(" ") : texto);
+        dc->SetColor(cor);
     }
-
-    AtualizarLinhaDeEstado();
 }
 
-void StageSelect::AtualizarLinhaDeEstado() const {
-
-    if (!mEstadoAtor) return;
-    const auto dc = mEstadoAtor->GetComponent<DrawTextComponent>();
-    if (!dc) return;
+void StageSelect::UpdateStageInfo() const {
 
     const Materias::Lista& materias = Materias::Carregadas();
     const Materias::Materia* m = materias.Por(mSelectedSubject);
+
+    EscreverNoCartao(mCodigoAtor, m ? m->nome : std::string(), Color::White);
+    EscreverNoCartao(mNomeAtor, m ? m->nomeCompleto : std::string(), Color::LightYellow);
+    EscreverNoCartao(mProfessorAtor, (m && !m->professor.empty()) ? ("Prof. " + m->professor)
+                                                                 : std::string(),
+                     Color::LightBlue);
 
     std::string frase;
     Vector3 cor = Color::White;
@@ -421,12 +496,25 @@ void StageSelect::AtualizarLinhaDeEstado() const {
 
     } else {
         const float nota = mGame->GetMelhorNota(mSelectedSubject);
-        if (Nota::ECheia(nota))                 { frase = "Aprovado com nota cheia"; cor = Color::Gold; }
-        else if (nota >= Nota::kNotaAprovacao)  { frase = "Aprovado";                cor = Color::LightGreen; }
-        else if (nota > 0.0f)                   { frase = "Ainda nao passou";        cor = Color::LightPink; }
-        else                                    { frase = "Ainda nao jogou";         cor = Color::White; }
+
+        if (nota <= 0.0f) {
+            frase = "Ainda nao jogou";
+        } else {
+            // Duas casas pelo mesmo motivo da barra de nota da batalha: o teto
+            // por dano e 99,99, e com uma casa ele viraria "100.00" na tela.
+            std::stringstream ss;
+            ss << "Maior nota: " << std::fixed << std::setprecision(2) << nota;
+            frase = ss.str();
+        }
+
+        // O DOURADO ENTRA AQUI TAMBEM, e nao so na batalha: esta e a tela onde
+        // um aluno compara a propria nota com a dos outros, entao e onde a nota
+        // cheia mais precisa se distinguir do 99,99 de quem levou dano.
+        if (Nota::ECheia(nota))                 cor = Color::Gold;
+        else if (nota >= Nota::kNotaAprovacao)  cor = Color::LightGreen;
+        else if (nota > 0.0f)                   cor = Color::LightPink;
+        else                                    cor = Color::White;
     }
 
-    dc->SetText(frase);
-    dc->SetColor(cor);
+    EscreverNoCartao(mEstadoAtor, frase, cor);
 }
