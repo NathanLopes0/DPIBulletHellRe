@@ -32,6 +32,7 @@ namespace {
     const Opcao kOpcoes[] = {
         {"Novo Jogo",       Scene::SceneType::Identificacao, Game::ModoDeEntrada::Novo},
         {"Carregar Perfil", Scene::SceneType::Identificacao, Game::ModoDeEntrada::Carregar},
+        {"Ranking",         Scene::SceneType::Ranking,       Game::ModoDeEntrada::Novo},
         {"Opcoes",          Scene::SceneType::Opcoes,        Game::ModoDeEntrada::Novo},
     };
     constexpr int kQuantasOpcoes = static_cast<int>(sizeof(kOpcoes) / sizeof(kOpcoes[0]));
@@ -39,8 +40,17 @@ namespace {
     // A arte do titulo ocupa ate y = 607 numa imagem de 800 de altura, entao as
     // opcoes vivem na faixa de baixo. Em fracao da altura, e nao em pixels, para
     // a tela aguentar outra resolucao.
-    constexpr float kPrimeiraLinha = 0.808f;
-    constexpr float kEspacoEntreLinhas = 0.067f;
+    // A FAIXA ONDE AS OPCOES CABEM, e nao um espacamento fixo.
+    //
+    // Antes havia um passo constante de 0,067 calculado para TRES opcoes. Ao
+    // entrar a quarta - o Ranking - a ultima caiu para 1,009 da altura, ou seja,
+    // para fora da tela, e nada avisou: o menu continuou funcionando, com uma
+    // opcao que so dava para escolher as cegas.
+    //
+    // Agora o passo SAI da faixa e da quantidade. Acrescentar uma quinta aperta
+    // as quatro em vez de empurrar alguem para fora.
+    constexpr float kTopoDasOpcoes  = 0.790f;   // logo abaixo da arte do titulo
+    constexpr float kFundoDasOpcoes = 0.955f;   // com folga para a moldura
 
     constexpr int kTamanhoDaOpcao = 40;
 
@@ -63,7 +73,16 @@ namespace {
     constexpr SDL_Color kFundoPlaca = {12, 13, 17, 185};
 
     float AlturaDaOpcao(const int i, const float alturaDaTela) {
-        return alturaDaTela * (kPrimeiraLinha + static_cast<float>(i) * kEspacoEntreLinhas);
+
+        // Uma opcao so fica no meio da faixa: dividir por zero poria o menu no
+        // infinito, e encostar no topo nao seria o centro de nada.
+        if (kQuantasOpcoes <= 1) {
+            return alturaDaTela * (kTopoDasOpcoes + kFundoDasOpcoes) / 2.0f;
+        }
+
+        const float passo = (kFundoDasOpcoes - kTopoDasOpcoes)
+                          / static_cast<float>(kQuantasOpcoes - 1);
+        return alturaDaTela * (kTopoDasOpcoes + static_cast<float>(i) * passo);
     }
 }
 

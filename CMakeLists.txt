@@ -32,6 +32,7 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Scenes/Identificacao.cpp
         Source/Scenes/Identificacao.h
         Source/Scenes/Opcoes.cpp
+        Source/Scenes/TelaDeRanking.cpp
         Source/Scenes/Opcoes.h
         Source/Scenes/CriacaoDePersonagem.cpp
         Source/Scenes/CriacaoDePersonagem.h
@@ -51,6 +52,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Tabela.h
         Source/Teclado.cpp
         Source/Teclado.h
+        Source/Ranking.cpp
+        Source/Ranking.h
         Source/Matricula.cpp
         Source/Matricula.h
         Source/Materias.cpp
@@ -205,6 +208,7 @@ add_executable(dpi_tests
         tests/test_navegacao.cpp
         tests/test_tabela.cpp
         tests/test_teclado.cpp
+        tests/test_ranking.cpp
         tests/test_matricula.cpp
         tests/test_ficha.cpp
         tests/test_materias.cpp
@@ -219,6 +223,8 @@ add_executable(dpi_tests
         Source/Tabela.h
         Source/Teclado.cpp
         Source/Teclado.h
+        Source/Ranking.cpp
+        Source/Ranking.h
         Source/Matricula.cpp
         Source/Matricula.h
         Source/Materias.cpp

@@ -16,6 +16,7 @@
 #include "Matricula.h"
 #include "Scenes/Identificacao.h"
 #include "Scenes/Opcoes.h"
+#include "Scenes/TelaDeRanking.h"
 #include "Scenes/CriacaoDePersonagem.h"
 #include "Scenes/StageSelect.h"
 #include "Scenes/Battle/Battle.h"
@@ -374,6 +375,9 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
             break;
         case Scene::SceneType::Opcoes:
             mScene = std::make_unique<Opcoes>(this);
+            break;
+        case Scene::SceneType::Ranking:
+            mScene = std::make_unique<TelaDeRanking>(this);
             break;
         case Scene::SceneType::StageSelect:
             mScene = std::make_unique<StageSelect>(this);

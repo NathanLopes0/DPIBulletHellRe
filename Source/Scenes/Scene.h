@@ -23,6 +23,7 @@ public:
         Identificacao,
         CriacaoDePersonagem,
         Opcoes,
+        Ranking,
         StageSelect,
         Battle
     };
