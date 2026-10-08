@@ -63,6 +63,51 @@ int Lista::QuantasColunas() const {
     return maior + 1;
 }
 
+std::string Lista::ExigenciaDe(const int indice) const {
+
+    const Materia* m = Por(indice);
+    if (!m) return {};
+
+    const Desbloqueio& regra = m->desbloqueio;
+
+    switch (regra.tipo) {
+
+        case TipoDeDesbloqueio::Sempre:
+            return {};
+
+        case TipoDeDesbloqueio::AprovadoEm: {
+            if (regra.materias.empty()) return {};
+
+            std::string frase = "Precisa passar em ";
+            for (size_t i = 0; i < regra.materias.size(); ++i) {
+                if (i > 0) frase += (i + 1 == regra.materias.size()) ? " e " : ", ";
+
+                // O nome em tela quando ele existe; o codigo e o ultimo
+                // recurso, para uma regra que cite materia inexistente nao
+                // virar frase vazia (a leitura ja relatou o problema).
+                const Materia* exigida = Por(IndiceDe(regra.materias[i]));
+                frase += exigida ? exigida->nome : regra.materias[i];
+            }
+            return frase;
+        }
+
+        case TipoDeDesbloqueio::AprovadasNaColuna: {
+            std::string frase = (regra.quantas == 1)
+                                    ? "Precisa de 1 aprovacao "
+                                    : "Precisa de " + std::to_string(regra.quantas) + " aprovacoes ";
+
+            // "A coluna anterior" so quando ela e MESMO a anterior. Nada no
+            // formato obriga isso, e uma frase errada seria pior que uma seca.
+            frase += (regra.coluna == m->coluna - 1)
+                         ? "na coluna anterior"
+                         : "na coluna " + std::to_string(regra.coluna + 1);
+            return frase;
+        }
+    }
+
+    return {};
+}
+
 bool Lista::Desbloqueada(const int indice, const Progresso& progresso) const {
 
     const Materia* m = Por(indice);

@@ -45,14 +45,38 @@ void StageSelect::CriarIdentificacaoNaTela() {
     // enfeite: e como o aluno confere que nao esta jogando na ficha do colega que
     // usou antes dele.
     auto aluno = std::make_unique<Actor>(this);
-    aluno->SetPosition(Vector2(220.f, 50.f));
+    aluno->SetPosition(Vector2(230.f, 52.f));
     const bool identificado = mGame->ProgressoEGravado();
     const std::string rotulo = identificado
         ? ("Matricula: " + Matricula::ParaExibir(mGame->MatriculaAtual()))
         : std::string("Visitante - nao salva");
-    aluno->AddComponent<DrawTextComponent>(rotulo, mStageSelectFont.get(), 380, 60, 72, 255);
+    // AJUSTADO AO TEXTO, como o titulo e a maior nota. Sem isso o rotulo era
+    // ESTICADO ate preencher a caixa, entao a letra mudava de tamanho conforme
+    // o texto: "Visitante - nao salva" saia espremido e a matricula, gigante.
+    const auto rotuloDc = aluno->AddComponent<DrawTextComponent>(
+        rotulo, mStageSelectFont.get(), 400, 44, 30, 255);
+    rotuloDc->SetLarguraDeQuebra(400);
+    rotuloDc->SetAjustarAoTexto(true);
     mAlunoAtor = aluno.get();
     AddActor(std::move(aluno));
+
+    // QUANTO DO CURSO JA FOI, logo abaixo de quem esta jogando. E a unica coisa
+    // nesta tela que fala do conjunto: o resto fala sempre da materia em foco.
+    const Materias::Lista& materias = Materias::Carregadas();
+    int aprovadas = 0;
+    for (int i = 0; i < materias.Quantas(); ++i) {
+        if (mGame->Aprovado(i)) ++aprovadas;
+    }
+
+    auto avanco = std::make_unique<Actor>(this);
+    avanco->SetPosition(Vector2(230.f, 96.f));
+    const auto avancoDc = avanco->AddComponent<DrawTextComponent>(
+        "Aprovadas: " + std::to_string(aprovadas) + " de " + std::to_string(materias.Quantas()),
+        mStageSelectFont.get(), 300, 30, 22, 255);
+    avancoDc->SetLarguraDeQuebra(300);
+    avancoDc->SetAjustarAoTexto(true);
+    avancoDc->SetColor(Color::LightBlue);
+    AddActor(std::move(avanco));
 
     auto trocar = std::make_unique<Actor>(this);
     trocar->SetPosition(Vector2(largura / 2.0f, static_cast<float>(mGame->GetWindowHeight()) - 40.f));
@@ -75,7 +99,6 @@ void StageSelect::CriarIdentificacaoNaTela() {
 void StageSelect::CreateStageButtons() {
     // 1. Definições de Tamanho e Bordas
     constexpr float buttonWidth = 128.0f;
-    constexpr float buttonHeight = 64.0f;
 
     // Obtendo dimensões da tela uma única vez para clareza
     const auto screenW = static_cast<float>(mGame->GetWindowWidth());
@@ -83,7 +106,6 @@ void StageSelect::CreateStageButtons() {
 
     // Margens (1/12 da tela)
     const float marginX = screenW / 12.0f;
-    const float marginY = screenH / 12.0f;
 
     // 2. Definindo os Limites Horizontais (Âncoras X)
     // Onde começa o layout (lado esquerdo) e onde termina (lado direito)
@@ -91,9 +113,13 @@ void StageSelect::CreateStageButtons() {
     const float endX = screenW - (marginX + buttonWidth / 2.0f);
 
     // 3. Definindo os Limites Verticais (Âncoras Y) para as Colunas
-    // Definir o topo e o fundo baseados na margem Y.
-    const float startY = marginY + buttonHeight / 2.0f;
-    const float endY = screenH - (marginY + buttonHeight / 2.0f);
+    //
+    // A GRADE NAO OCUPA MAIS A TELA INTEIRA. Com a margem de 1/12 ela ia de 100
+    // a 700 e encostava nas duas pontas: o titulo nao tinha onde ficar em cima e
+    // a linha de estado batia nos losangos de baixo. Agora o topo e o pe da tela
+    // sao de quem escreve, e a grade vive entre os dois.
+    const float startY = screenH * kTopoDaGrade;
+    const float endY = screenH * kFundoDaGrade;
 
     // A GRADE VEM DE materias.json, e nao de listas escritas aqui. Antes os
     // nomes dos botoes, as colunas e quem ficava em cada uma estavam repetidos
@@ -145,7 +171,7 @@ void StageSelect::CreateStageButtons() {
             // as linhas ficarem alinhadas lado a lado. E o que fazia os botoes
             // solitarios do INF 213 e do TCC parecerem centrados de proposito.
             const float yPos = (daColuna.size() == 1)
-                                   ? screenH / 2.0f
+                                   ? (startY + endY) / 2.0f
                                    : startY + stepY * static_cast<float>(i);
 
             const Materias::Materia* m = materias.Por(daColuna[i]);
@@ -175,20 +201,71 @@ void StageSelect::CreateButton(const std::string& text, int subject, const Vecto
     bool unlocked = mGame->IsStageUnlocked(subject);
     auto button = std::make_unique<StageSelectButton>(this, text, subject, Caminhos::Asset("Fonts/Zelda.ttf"), !unlocked);
     button->SetPosition(position);
+    button->SetAprovado(mGame->Aprovado(subject));
+
+    if (!unlocked) {
+        // O NOME DA MATERIA FECHADA, EMBAIXO DO LOSANGO. Dentro dele nao cabe:
+        // o quadro de materia fechada tem correntes e um cadeado desenhados no
+        // centro, bem onde o texto cairia. Sem nome nenhum, que era como estava,
+        // a grade virava uma fileira de cadeados iguais e o aluno nao via para
+        // onde o curso ia - nem que materia tinha acabado de selecionar.
+        auto rotulo = std::make_unique<Actor>(this);
+        rotulo->SetPosition(position + Vector2(0.0f, kNomeAbaixoDoCadeado));
+        const auto dc = rotulo->AddComponent<DrawTextComponent>(
+            text, mStageSelectFont.get(), 150, 26, 18, 255);
+        dc->SetLarguraDeQuebra(150);
+        dc->SetAjustarAoTexto(true);
+
+        // Quem acende o rotulo ao ganhar o foco e o proprio botao, que e quem
+        // sabe da selecao. Ele so observa; o ator e da cena, como todos.
+        button->SetRotuloFechado(rotulo.get());
+        AddActor(std::move(rotulo));
+    }
 
     mButtonObservers.push_back(button.get());
     this->AddActor(std::move(button));
 }
 
 void StageSelect::CreateStaticUI() {
-    auto infoActor = std::make_unique<Actor>(this);
 
     const auto w = static_cast<float>(mGame->GetWindowWidth());
-    infoActor->SetPosition(Vector2(w - 200.f, 50.f));
+    const auto h = static_cast<float>(mGame->GetWindowHeight());
 
-    infoActor->AddComponent<DrawTextComponent>("Maior Nota: --", mStageSelectFont.get(), 200, 60, 72, 255);
+    // O TITULO fica ENTRE a matricula (que ocupa 30..410) e a maior nota (que
+    // ocupa 900..1100), na faixa que a grade desocupou. A caixa de 360 e o que
+    // cabe entre as duas sem encostar em nenhuma; o ajuste ao texto encolhe a
+    // letra se ela passar disso, em vez de invadir os cantos.
+    auto tituloAtor = std::make_unique<Actor>(this);
+    tituloAtor->SetPosition(Vector2(w / 2.0f, 52.f));
+    const auto titulo = tituloAtor->AddComponent<DrawTextComponent>(
+        "ESCOLHA A MATERIA", mStageSelectFont.get(), 360, 44, 30, 255);
+    titulo->SetLarguraDeQuebra(360);
+    titulo->SetAjustarAoTexto(true);
+    AddActor(std::move(tituloAtor));
+
+    auto infoActor = std::make_unique<Actor>(this);
+    infoActor->SetPosition(Vector2(w - 190.f, 52.f));
+
+    // Tambem ajustada ao texto: na caixa esticada, "Maior Nota: 0.00" e "Maior
+    // Nota: 100.00" saiam com letras de tamanhos diferentes, e as vezes a
+    // segunda quebrava em duas linhas - o numero dancava a cada seta apertada.
+    const auto notaDc = infoActor->AddComponent<DrawTextComponent>(
+        "Maior Nota: --", mStageSelectFont.get(), 320, 44, 30, 255);
+    notaDc->SetLarguraDeQuebra(320);
+    notaDc->SetAjustarAoTexto(true);
     mScoreInfoActor = infoActor.get();
     AddActor(std::move(infoActor));
+
+    // A LINHA DE ESTADO, entre a grade e o rodape. E o que a tela nao dizia:
+    // por que a materia esta fechada, e que seis delas ainda nao tem professor.
+    auto estadoAtor = std::make_unique<Actor>(this);
+    estadoAtor->SetPosition(Vector2(w / 2.0f, h * kLinhaDeEstado));
+    const auto estado = estadoAtor->AddComponent<DrawTextComponent>(
+        " ", mStageSelectFont.get(), 900, 32, 24, 255);
+    estado->SetLarguraDeQuebra(900);   // ver o rodape: o padrao e 500
+    estado->SetAjustarAoTexto(true);
+    mEstadoAtor = estadoAtor.get();
+    AddActor(std::move(estadoAtor));
 
     UpdateStageInfo();
 }
@@ -302,12 +379,50 @@ void StageSelect::UpdateStageInfo() const {
         // O DOURADO ENTRA AQUI TAMBEM, e nao so na batalha: esta e a tela onde um
         // aluno compara a propria nota com a dos outros, entao e onde a nota cheia
         // mais precisa se distinguir do 99,99 de quem levou dano.
-        if (Nota::ECheia(highScore))   dc->SetColor(Color::Gold);
-        else if (highScore >= 60.0f)   dc->SetColor(Color::LightGreen);
-        else if (highScore > 0.0f)     dc->SetColor(Color::LightPink);
-        else                           dc->SetColor(Color::White);
+        if (Nota::ECheia(highScore))                 dc->SetColor(Color::Gold);
+        else if (highScore >= Nota::kNotaAprovacao)  dc->SetColor(Color::LightGreen);
+        else if (highScore > 0.0f)                   dc->SetColor(Color::LightPink);
+        else                                         dc->SetColor(Color::White);
     }
 
+    AtualizarLinhaDeEstado();
+}
 
+void StageSelect::AtualizarLinhaDeEstado() const {
 
+    if (!mEstadoAtor) return;
+    const auto dc = mEstadoAtor->GetComponent<DrawTextComponent>();
+    if (!dc) return;
+
+    const Materias::Lista& materias = Materias::Carregadas();
+    const Materias::Materia* m = materias.Por(mSelectedSubject);
+
+    std::string frase;
+    Vector3 cor = Color::White;
+
+    if (!mGame->IsStageUnlocked(mSelectedSubject)) {
+        // A FRASE VEM DA MESMA REGRA QUE FECHOU A MATERIA (Materias::ExigenciaDe),
+        // e nao de um texto escrito aqui: se viesse daqui, mudar o desbloqueio no
+        // JSON deixaria a tela explicando a regra antiga.
+        frase = materias.ExigenciaDe(mSelectedSubject);
+        if (frase.empty()) frase = "Ainda fechada";
+        cor = Color::LightPink;
+
+    } else if (m && m->chefe.empty()) {
+        // Seis das onze materias ainda nao tem chefe. Sem este aviso, apertar o
+        // botao abre a batalha, ela nao acha a fabrica e volta sozinha - e o
+        // aluno ve a tela piscar sem entender o que fez de errado.
+        frase = "Ainda sem professor";
+        cor = Color::LightBlue;
+
+    } else {
+        const float nota = mGame->GetMelhorNota(mSelectedSubject);
+        if (Nota::ECheia(nota))                 { frase = "Aprovado com nota cheia"; cor = Color::Gold; }
+        else if (nota >= Nota::kNotaAprovacao)  { frase = "Aprovado";                cor = Color::LightGreen; }
+        else if (nota > 0.0f)                   { frase = "Ainda nao passou";        cor = Color::LightPink; }
+        else                                    { frase = "Ainda nao jogou";         cor = Color::White; }
+    }
+
+    dc->SetText(frase);
+    dc->SetColor(cor);
 }

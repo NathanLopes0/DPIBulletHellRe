@@ -97,6 +97,23 @@ namespace Materias {
          * laco - elas so ficam ambas fechadas, que e o resultado correto.
          */
         [[nodiscard]] bool Desbloqueada(int indice, const Progresso& progresso) const;
+
+        /**
+         * @brief O que falta para esta materia abrir, numa frase para o aluno.
+         *
+         * Vazio quando a materia abre sempre - nao ha o que explicar.
+         *
+         * NAO olha o progresso: isto e a REGRA, e nao o estado. Quem chama ja
+         * sabe que a materia esta fechada (foi por isso que perguntou), e uma
+         * frase que mudasse conforme o que o aluno ja fez precisaria repetir a
+         * conta que Desbloqueada ja faz.
+         *
+         * Usa o NOME de cada materia exigida, e nao o codigo: e "INF 213" que o
+         * aluno ve no botao ao lado, enquanto o que vai para o disco e
+         * "INF213". A coluna aparece contada a partir de 1, que e como se conta
+         * coluna olhando para a tela.
+         */
+        [[nodiscard]] std::string ExigenciaDe(int indice) const;
     };
 
     /**

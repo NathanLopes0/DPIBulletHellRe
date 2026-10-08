@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include "Nota.h"
+
 /**
  * CAMADA PURA (mesma disciplina de PathAim, RegrasDeAtaque e FasesDeAtaque)
  *
@@ -29,7 +31,11 @@ public:
     static constexpr float kNotaInicial = 40.0f;
 
     /// A partir de quanto a materia conta como aprovada.
-    static constexpr float kNotaDeAprovacao = 60.0f;
+    ///
+    /// E A MESMA de Nota::kNotaAprovacao, e nao outra igual: eram dois 60
+    /// soltos, um aqui e um la, e mexer na regra de aprovacao num deles
+    /// deixaria o outro para tras sem nenhum aviso.
+    static constexpr float kNotaDeAprovacao = Nota::kNotaAprovacao;
 
     /**
      * @brief Registra o resultado de uma batalha.

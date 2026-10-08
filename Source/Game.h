@@ -122,6 +122,12 @@ public:
         return mProgresso.MelhorNota(materia);
     }
 
+    /// @brief Se a materia ja foi aprovada. A MESMA regra que o desbloqueio le,
+    /// e nao uma comparacao com 60 repetida em quem desenha.
+    [[nodiscard]] bool Aprovado(const int materia) const {
+        return mProgresso.Aprovado(materia);
+    }
+
     /// @brief A ultima nota que o jogador tirou nesta materia. NAO e por onde a
     /// batalha comeca - toda fase parte de Progresso::kNotaInicial.
     [[nodiscard]] float GetUltimaNota(const int materia) const {

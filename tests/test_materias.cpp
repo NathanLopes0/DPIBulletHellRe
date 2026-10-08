@@ -266,3 +266,119 @@ TEST_CASE("Materias: reordenar a lista NAO muda os codigos") {
     // ...mas o codigo, que e o que vai para o disco, continua "A".
     CHECK(antes.CodigoDe(antes.IndiceDe("A")) == depois.CodigoDe(depois.IndiceDe("A")));
 }
+
+// ---------------------------------------------------------------------------
+// A frase que explica por que a materia esta fechada
+//
+// A tela de selecao mostrava um losango escuro e nada mais: o aluno via que nao
+// dava para entrar e nao tinha como saber o que faltava. A frase vem da MESMA
+// regra que fecha a materia, entao ela nao pode explicar uma coisa e o jogo
+// exigir outra.
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Materias: materia que abre sempre nao tem o que explicar") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "INF 110", "coluna": 0, "desbloqueio": { "tipo": "sempre" } }
+      ]
+    })");
+    CHECK(l.ExigenciaDe(l.IndiceDe("A")).empty());
+}
+
+TEST_CASE("Materias: a exigencia cita o NOME em tela, nao o codigo") {
+    // O botao ao lado diz "INF 213"; o codigo gravado e "INF213". Citar o
+    // codigo mandaria o aluno procurar na tela uma materia que nao esta escrita
+    // daquele jeito em lugar nenhum.
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "INF213", "nome": "INF 213", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "INF250", "nome": "INF 250", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] } }
+      ]
+    })");
+    CHECK(l.ExigenciaDe(l.IndiceDe("INF250")) == "Precisa passar em INF 213");
+}
+
+TEST_CASE("Materias: a exigencia lista varias materias com virgula e 'e'") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "INF 110", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B", "nome": "INF 213", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "C", "nome": "INF 250", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "D", "nome": "TCC", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A", "B", "C"] } }
+      ]
+    })");
+    CHECK(l.ExigenciaDe(l.IndiceDe("D")) == "Precisa passar em INF 110, INF 213 e INF 250");
+}
+
+TEST_CASE("Materias: aprovacoes na coluna de tras sao 'a coluna anterior'") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B", "nome": "B", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "C", "nome": "C", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 0 } }
+      ]
+    })");
+    CHECK(l.ExigenciaDe(l.IndiceDe("C")) == "Precisa de 2 aprovacoes na coluna anterior");
+}
+
+TEST_CASE("Materias: coluna que NAO e a anterior aparece numerada a partir de 1") {
+    // Nada no formato obriga a regra a olhar para a coluna de tras. Quando ela
+    // olha para outra, dizer "anterior" seria mentira - e o aluno conta coluna
+    // olhando para a tela, da esquerda para a direita, comecando em um.
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B", "nome": "B", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "C", "nome": "C", "coluna": 3,
+          "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 0 } }
+      ]
+    })");
+    CHECK(l.ExigenciaDe(l.IndiceDe("C")) == "Precisa de 2 aprovacoes na coluna 1");
+}
+
+TEST_CASE("Materias: uma aprovacao so e dita no singular") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "C", "nome": "C", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 1, "coluna": 0 } }
+      ]
+    })");
+    CHECK(l.ExigenciaDe(l.IndiceDe("C")) == "Precisa de 1 aprovacao na coluna anterior");
+}
+
+TEST_CASE("Materias: indice fora da lista nao tem exigencia nem quebra") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } }
+      ]
+    })");
+    CHECK(l.ExigenciaDe(-1).empty());
+    CHECK(l.ExigenciaDe(99).empty());
+}
+
+TEST_CASE("Materias: a exigencia concorda com a regra que fecha a materia") {
+    // A PROPRIEDADE QUE IMPORTA. Nao basta a frase existir: ela tem de falar da
+    // mesma regra que Desbloqueada aplica. Aqui o aluno passa na materia que a
+    // frase cita e a porta abre - se a frase citasse outra, abriria sem ela.
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "INF110", "nome": "INF 110", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "INF213", "nome": "INF 213", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF110"] } }
+      ]
+    })");
+    const int fechada = l.IndiceDe("INF213");
+    const std::string frase = l.ExigenciaDe(fechada);
+
+    Progresso vazio;
+    CHECK_FALSE(l.Desbloqueada(fechada, vazio));
+    CHECK(frase.find(l.Por(l.IndiceDe("INF110"))->nome) != std::string::npos);
+
+    Progresso passou;
+    passou.RegistrarNota(l.IndiceDe("INF110"), 70.0f);
+    CHECK(l.Desbloqueada(fechada, passou));
+}

@@ -51,6 +51,21 @@ private:
     static constexpr int RESERVA_DE_BOTOES = 16;
     static constexpr float INPUT_DELAY = 0.2f; // Exemplo de constante para o timer
 
+    /// Onde a grade de materias comeca e termina, em fracao da altura.
+    ///
+    /// Ela ia de ponta a ponta da tela (margem de 1/12) e nao sobrava faixa
+    /// para o titulo em cima nem para a linha de estado embaixo: a linha caia
+    /// em cima dos losangos da ultima fileira.
+    static constexpr float kTopoDaGrade = 0.19f;
+    static constexpr float kFundoDaGrade = 0.78f;
+
+    /// Quanto o nome de uma materia fechada fica abaixo do centro do losango.
+    /// O losango tem 64 de altura, entao 44 deixa o nome logo embaixo dele.
+    static constexpr float kNomeAbaixoDoCadeado = 44.0f;
+
+    /// A linha que explica a materia em foco, entre a grade e o rodape.
+    static constexpr float kLinhaDeEstado = 0.885f;
+
     // --- Membros de Propriedade (Ownership) ---
     std::unique_ptr<Font> mStageSelectFont{};
 
@@ -78,6 +93,12 @@ private:
     // Helper pra atualizar texto na HUD
     void UpdateStageInfo() const;
     Actor* mScoreInfoActor = nullptr;
+
+    /// Por que a materia em foco esta fechada, ou que ela ainda nao tem
+    /// professor, ou como o aluno foi nela. Sai da MESMA regra que fecha a
+    /// materia - ver Materias::ExigenciaDe.
+    void AtualizarLinhaDeEstado() const;
+    Actor* mEstadoAtor = nullptr;
 
     /// Quem esta jogando, e o aviso de que visitante nao salva.
     void CriarIdentificacaoNaTela();
