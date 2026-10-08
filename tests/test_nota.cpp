@@ -7,6 +7,7 @@
 #include "doctest.h"
 
 #include "../Source/Nota.h"
+#include "../Source/Progresso.h"
 
 // ---------------------------------------------------------------- a curva
 
@@ -193,4 +194,70 @@ TEST_CASE("Nota: quem sobe limpo chega na cheia; quem leva dano nao chega") {
     CHECK(Nota::ECheia(limpo));
     CHECK_FALSE(Nota::ECheia(machucado));
     CHECK(machucado == doctest::Approx(Nota::kTetoComDano));
+}
+
+// ------------------------------------------- o que vem depois da fase 3
+
+TEST_CASE("Nota: a nota cheia leva ao teste final, e nao ao fim da batalha") {
+
+    // O PEDIDO. Quem chega a 100 ganha a fase final como premio: subiu a curva
+    // inteira, entao enfrenta o ultimo padrao em vez de a batalha acabar ali.
+    CHECK(Nota::AposTerceiraFase(Nota::kNotaMaxima) == Nota::Desfecho::VaiParaFinal);
+}
+
+TEST_CASE("Nota: o teto por dano NAO leva ao teste final") {
+
+    // 99,99 e a nota de quem foi atingido demais. Ele passou, e passa ali mesmo:
+    // mandar para a fase final quem perdeu a nota cheia daria ao castigo a mesma
+    // recompensa que a corrida limpa.
+    CHECK(Nota::AposTerceiraFase(Nota::kTetoComDano) == Nota::Desfecho::Aprovado);
+    CHECK(Nota::AposTerceiraFase(99.9f)              == Nota::Desfecho::Aprovado);
+}
+
+TEST_CASE("Nota: a faixa de exame continua sendo de 40 a 59") {
+
+    CHECK(Nota::AposTerceiraFase(40.0f) == Nota::Desfecho::VaiParaFinal);
+    CHECK(Nota::AposTerceiraFase(50.0f) == Nota::Desfecho::VaiParaFinal);
+    CHECK(Nota::AposTerceiraFase(59.9f) == Nota::Desfecho::VaiParaFinal);
+}
+
+TEST_CASE("Nota: aprovado entre 60 e 99,99; reprovado abaixo de 40") {
+
+    CHECK(Nota::AposTerceiraFase(60.0f) == Nota::Desfecho::Aprovado);
+    CHECK(Nota::AposTerceiraFase(85.0f) == Nota::Desfecho::Aprovado);
+    CHECK(Nota::AposTerceiraFase(39.9f) == Nota::Desfecho::Reprovado);
+    CHECK(Nota::AposTerceiraFase(0.0f)  == Nota::Desfecho::Reprovado);
+}
+
+TEST_CASE("Nota: so tres notas no mundo inteiro levam a fase final") {
+
+    // Varre o intervalo inteiro de centesimo em centesimo e confere que o
+    // conjunto que vai para a fase final e exatamente [40, 60) mais o 100. Um
+    // buraco aqui seria uma nota que nem termina a batalha nem continua nela.
+    for (int centesimos = 0; centesimos <= 10000; ++centesimos) {
+        const float n = static_cast<float>(centesimos) / 100.0f;
+        const auto d = Nota::AposTerceiraFase(n);
+        const bool deveriaIrAFinal = (n >= Nota::kNotaDeExame && n < Nota::kNotaAprovacao)
+                                     || n >= Nota::kNotaMaxima;
+        CAPTURE(n);
+        CHECK((d == Nota::Desfecho::VaiParaFinal) == deveriaIrAFinal);
+    }
+}
+
+TEST_CASE("Nota: a faixa de exame comeca onde a fase comeca") {
+
+    // Os dois numeros valem 40 e TEM de continuar iguais: a faixa de exame
+    // significa "nao perdeu terreno e nao passou". Se a nota inicial mudasse
+    // sozinha, existiria uma faixa abaixo dela que reprova sem ninguem nunca ter
+    // estado la, ou uma acima que da exame a quem ja subiu.
+    CHECK(Nota::kNotaDeExame == doctest::Approx(Progresso::kNotaInicial));
+}
+
+TEST_CASE("Nota: a aprovacao nao se move junto com o joelho da curva") {
+
+    // Valem 60 os dois hoje. Sao conceitos diferentes - regra academica e
+    // dificuldade - e este teste existe para que mexer num nao mexa no outro sem
+    // alguem perceber.
+    CHECK(Nota::kNotaAprovacao == doctest::Approx(60.0f));
+    CHECK(Nota::kFaixaFacil    == doctest::Approx(60.0f));
 }

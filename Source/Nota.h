@@ -54,6 +54,21 @@ namespace Nota {
     /// A partir de quantos acertos sofridos o teto passa a valer.
     inline constexpr int kAcertosQuePerdemACheia = 3;
 
+    /// A nota de aprovacao.
+    ///
+    /// VALE 60 COMO kFaixaFacil, E ISSO E COINCIDENCIA. Aquele e o joelho da
+    /// curva de ganho; este e a regra academica. Usar um no lugar do outro faria
+    /// mexer na dificuldade mover a aprovacao junto, em silencio.
+    inline constexpr float kNotaAprovacao = 60.0f;
+
+    /// O piso da faixa de exame: daqui ate a aprovacao, a batalha segue para a
+    /// fase final em vez de terminar.
+    ///
+    /// E a nota em que toda fase comeca (Progresso::kNotaInicial), e tem de
+    /// continuar sendo: a faixa de exame significa "nao perdeu terreno e nao
+    /// passou". test_nota.cpp prende os dois numeros um ao outro.
+    inline constexpr float kNotaDeExame = 40.0f;
+
     inline constexpr float kNotaMaxima = 100.0f;
     inline constexpr float kNotaMinima = 0.0f;
 
@@ -78,6 +93,34 @@ namespace Nota {
      * sem ter tirado - exatamente o que o teto existe para impedir.
      */
     bool ECheia(float nota);
+
+    /// O que acontece ao fim da terceira fase de um chefe.
+    enum class Desfecho {
+        Reprovado,     ///< abaixo de 40: a batalha acaba e o aluno nao passou
+        Aprovado,      ///< 60 ou mais, sem ser a nota cheia: acaba e passou
+        VaiParaFinal   ///< a batalha continua na StateFinal
+    };
+
+    /**
+     * @brief Para onde a batalha vai quando a terceira fase termina.
+     *
+     * DUAS NOTAS MUITO DIFERENTES LEVAM A MESMA FASE, de proposito:
+     *
+     *   40 a 59  e o exame. Quem ficou na faixa da recuperacao ganha mais uma
+     *            chance de chegar aos 60.
+     *
+     *   100      e o teste final. Quem subiu a curva inteira enfrenta a fase
+     *            final como premio, e nao como resgate.
+     *
+     * Entre as duas - de 60 a 99,99 - a batalha acaba aprovada ali mesmo.
+     *
+     * O QUE ISTO CUSTA AO JOGADOR DE 100: a nota NAO fica guardada ao entrar.
+     * Um acerto durante o teste final derruba os 6 pontos de sempre, e a partir
+     * do terceiro acerto o teto de 99,99 impede a volta. Quem chega a 100 cedo
+     * tem mais tempo exposto do que quem chega no ultimo segundo. E uma escolha
+     * de design, nao um efeito colateral - ver o comentario em BossAttackState.
+     */
+    Desfecho AposTerceiraFase(float nota);
 
     /// @brief O maior valor que a nota pode atingir com este tanto de dano.
     float TetoCom(int acertosSofridos);

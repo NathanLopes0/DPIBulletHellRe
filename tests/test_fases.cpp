@@ -3,6 +3,7 @@
 
 #include "doctest.h"
 #include "../Source/Attacks/FasesDeAtaque.h"
+#include "../Source/Tabela.h"
 
 // Um conjunto minimo que FECHA, para servir de base aos casos que mexem em uma
 // coisa de cada vez.
@@ -433,4 +434,64 @@ TEST_CASE("Balao: o bloco numa estrategia que nao usa e avisado, nao fatal") {
     REQUIRE(r.conjuntos.at("x").size() == 2);
     for (const auto& f : r.conjuntos.at("x"))
         if (f.nome == "StateOne") CHECK_FALSE(f.ataques[0].balao.has_value());
+}
+
+// ---------------------------------------------------------------- consulta
+
+namespace {
+    /// Uma ConsultaAttack com o bloco "consulta" que o teste quiser.
+    std::string ComConsulta(const std::string& bloco) {
+        return R"({ "x": { "StateOne": { "ataques": [
+            { "estrategia": "ConsultaAttack", "projetil": "P", "cooldown": 1,
+              "consulta": )" + bloco + R"( } ] } } })";
+    }
+}
+
+TEST_CASE("Consulta: um indice fora da tabela e recusado") {
+
+    // O DEFEITO QUE ISTO FECHA. A fase final do Thiago teve quatro ataques
+    // dizendo varrer as faixas 0, 2, 1 e 3 de uma tabela de UMA faixa. A
+    // estrategia limita para a ultima, entao os quatro varriam a mesma coisa - a
+    // tela inteira - e nada avisava. O arquivo descrevia uma trelica que o jogo
+    // nunca desenhou.
+    CHECK_FALSE(LerFases(ComConsulta(R"({ "eixo": "Linha",  "linhas": 1, "indice": 2 })")).problemas.empty());
+    CHECK_FALSE(LerFases(ComConsulta(R"({ "eixo": "Coluna", "colunas": 1, "indice": 3 })")).problemas.empty());
+    CHECK_FALSE(LerFases(ComConsulta(R"({ "eixo": "Linha",  "linhas": 4, "indice": 4 })")).problemas.empty());
+}
+
+TEST_CASE("Consulta: o indice e conferido contra o EIXO, nao contra o outro") {
+
+    // Uma consulta por linha de indice 4 numa tabela de 4 linhas e 5 colunas e
+    // invalida, mesmo havendo 5 colunas. Conferir contra o eixo errado deixaria
+    // passar exatamente o caso que este teste existe para pegar.
+    CHECK_FALSE(LerFases(ComConsulta(
+        R"({ "eixo": "Linha", "linhas": 4, "colunas": 5, "indice": 4 })")).problemas.empty());
+
+    CHECK(LerFases(ComConsulta(
+        R"({ "eixo": "Coluna", "linhas": 4, "colunas": 5, "indice": 4 })")).problemas.empty());
+}
+
+TEST_CASE("Consulta: sem \"linhas\" o padrao da Tabela e que vale") {
+
+    // Omitir o numero de faixas e legitimo - o padrao de Tabela::Forma vale.
+    // A conferencia do indice tem de usar ESSE padrao, senao um indice valido
+    // seria recusado ou um invalido passaria, conforme o arquivo fosse explicito.
+    const Tabela::Forma padrao{};
+    CHECK(LerFases(ComConsulta(
+        R"({ "eixo": "Linha", "indice": )" + std::to_string(padrao.linhas - 1) + " }")).problemas.empty());
+    CHECK_FALSE(LerFases(ComConsulta(
+        R"({ "eixo": "Linha", "indice": )" + std::to_string(padrao.linhas) + " }")).problemas.empty());
+}
+
+TEST_CASE("Consulta: o indice pode ser omitido - quem escolhe e o chefe") {
+
+    CHECK(LerFases(ComConsulta(R"({ "eixo": "Linha", "linhas": 4 })")).problemas.empty());
+}
+
+TEST_CASE("Consulta: aviso negativo e recusado") {
+
+    // Aviso negativo e a varredura disparando antes de aparecer: o jogador seria
+    // atingido por um ataque que nunca teve como ler.
+    CHECK_FALSE(LerFases(ComConsulta(R"({ "eixo": "Linha", "aviso": -0.5 })")).problemas.empty());
+    CHECK(LerFases(ComConsulta(R"({ "eixo": "Linha", "aviso": 0 })")).problemas.empty());
 }

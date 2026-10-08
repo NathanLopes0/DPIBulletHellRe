@@ -639,24 +639,24 @@
       "movimento": { "tipo": "GoToCenter" },
       "ataques": [
         { "estrategia": "ConsultaAttack", "projetil": "Celula",
-          "projeteis": 12, "velocidade": 720, "cooldown": 2.0,
-          "consulta": { "eixo": "Linha", "linhas": 1, "indice": 0, "aviso": 0.9 },
+          "projeteis": 7, "velocidade": 720, "cooldown": 2.0,
+          "consulta": { "eixo": "Linha", "linhas": 4, "indice": 0, "aviso": 0.9 },
           "regras": "thiago_varredura" },
 
         { "estrategia": "ConsultaAttack", "projetil": "Celula",
-          "projeteis": 12, "velocidade": 700, "cooldown": 1.8,
-          "consulta": { "eixo": "Linha", "linhas": 1, "indice": 2, "aviso": 0.9,
+          "projeteis": 7, "velocidade": 700, "cooldown": 1.8,
+          "consulta": { "eixo": "Linha", "linhas": 4, "indice": 2, "aviso": 0.9,
                         "invertido": true },
           "regras": "thiago_varredura" },
 
         { "estrategia": "ConsultaAttack", "projetil": "Celula",
-          "projeteis": 7, "velocidade": 680, "cooldown": 1.6,
-          "consulta": { "eixo": "Coluna", "colunas": 1, "indice": 1, "aviso": 1.2, "invertido": true },
+          "projeteis": 8, "velocidade": 680, "cooldown": 1.6,
+          "consulta": { "eixo": "Coluna", "colunas": 5, "indice": 1, "aviso": 1.2, "invertido": true },
           "regras": "thiago_juncao" },
 
         { "estrategia": "ConsultaAttack", "projetil": "Celula",
-          "projeteis": 12, "velocidade": 740, "cooldown": 2.2,
-          "consulta": { "eixo": "Coluna", "colunas": 1, "indice": 3, "aviso": 1.2 },
+          "projeteis": 8, "velocidade": 740, "cooldown": 2.2,
+          "consulta": { "eixo": "Coluna", "colunas": 5, "indice": 3, "aviso": 1.2 },
           "regras": "thiago_juncao" }
       ]
     }

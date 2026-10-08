@@ -38,6 +38,16 @@ float TetoCom(const int acertosSofridos) {
     return PerdeuACheia(acertosSofridos) ? kTetoComDano : kNotaMaxima;
 }
 
+Desfecho AposTerceiraFase(const float nota) {
+
+    // A ordem importa: a nota cheia e testada ANTES da faixa de aprovacao,
+    // senao 100 cairia em "Aprovado" e o teste final nunca aconteceria.
+    if (ECheia(nota))             return Desfecho::VaiParaFinal;
+    if (nota >= kNotaAprovacao)   return Desfecho::Aprovado;
+    if (nota >= kNotaDeExame)     return Desfecho::VaiParaFinal;
+    return Desfecho::Reprovado;
+}
+
 float Somar(const float notaAtual, const float ganhoBruto, const int acertosSofridos) {
 
     const float nova = notaAtual + Ganho(notaAtual, ganhoBruto);

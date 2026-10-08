@@ -4,6 +4,8 @@
 
 #include "FasesDeAtaque.h"
 
+#include "../Tabela.h"
+
 #include "../JsonDeDados.h"
 
 namespace {
@@ -117,6 +119,26 @@ namespace {
         if (saida.indice && *saida.indice < 0) {
             problemas.emplace_back(onde + "\"indice\" nao pode ser negativo; omita o campo para "
                                           "deixar o chefe escolher a faixa");
+            return false;
+        }
+
+        // UM INDICE FORA DA TABELA E RECUSADO, E NAO LIMITADO EM SILENCIO.
+        //
+        // A ConsultaAttack limita para a ultima faixa, porque em tempo de
+        // execucao nao ha nada melhor a fazer. Mas isso ja produziu uma fase
+        // final inteira em que quatro ataques diziam varrer as faixas 0, 2, 1 e
+        // 3 de uma tabela de UMA faixa: os quatro caiam na mesma, a tela toda, e
+        // nada avisava. O arquivo descrevia uma trelica que o jogo nunca desenhou.
+        const Tabela::Forma padrao{};
+        const int quantas = (saida.eixo == "Coluna")
+                                ? saida.colunas.value_or(padrao.colunas)
+                                : saida.linhas.value_or(padrao.linhas);
+
+        if (saida.indice && *saida.indice >= quantas) {
+            problemas.emplace_back(onde + "\"indice\" " + std::to_string(*saida.indice) +
+                                   " nao existe numa tabela de " + std::to_string(quantas) +
+                                   " faixa(s) nesse eixo: a varredura cairia na ultima e este "
+                                   "ataque varreria uma faixa diferente da que esta escrita aqui");
             return false;
         }
 
