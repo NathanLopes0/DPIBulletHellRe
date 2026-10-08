@@ -68,6 +68,9 @@ void Battle::Load() {
     // porque o teto e desta tentativa. Quem foi atingido ontem nao perde a nota
     // cheia de hoje.
     mAcertosSofridos = 0;
+    mAcertosNaFase = 0;
+    mPrimeiraFase = true;
+    mAvisoDeFaseLimpa = 0.0f;
 
     // 2. Criar os atores principais
     LoadPlayer();
@@ -251,6 +254,20 @@ void Battle::LoadGradeBar() {
 
     mTesteFinalActor = avisoActor.get();
     this->AddActor(std::move(avisoActor));
+
+    // O aviso de fase limpa, na DIREITA da faixa - o TESTE FINAL ocupa a
+    // esquerda, e os dois podem estar acesos ao mesmo tempo numa corrida boa.
+    auto limpaActor = std::make_unique<Actor>(this);
+    auto limpa = limpaActor->AddComponent<DrawTextComponent>(
+        "FASE LIMPA", mGradeBarFont.get(), 260, tamanhoDaNota + 8, tamanhoDaNota, 304);
+    limpa->SetAjustarAoTexto(true);
+    limpa->SetColor(Color::LightGreen);
+    limpa->SetIsVisible(false);
+
+    limpaActor->SetPosition(Vector2(static_cast<float>(windowWidth) * 3.f / 4.f, textPosY));
+
+    mFaseLimpaActor = limpaActor.get();
+    this->AddActor(std::move(limpaActor));
 }
 void Battle::LoadEndScreen() {
     auto textActor = std::make_unique<Actor>(this);
@@ -417,6 +434,8 @@ void Battle::OnUpdate(float deltaTime) {
             return item->GetState() == ActorState::Destroy;
         }), mExtraPoints.end());
 
+    if (mAvisoDeFaseLimpa > 0.0f) mAvisoDeFaseLimpa -= deltaTime;
+
     // Se a nota cair a 0, termina a fase
     if (mGrade <= 0) {
         FinishBattle(false);
@@ -512,6 +531,13 @@ void Battle::GradeTextUpdate() {
     // ele piscasse junto com o dourado, viraria um alarme a cada acerto.
     if (cheia && mTesteFinalActor) {
         mTesteFinalActor->GetComponent<DrawTextComponent>()->SetIsVisible(true);
+    }
+
+    // O aviso de fase limpa some sozinho. Ele informa, nao comemora: deixar na
+    // tela a batalha toda transformaria em enfeite o que precisa ser lido como
+    // "isto acabou de acontecer".
+    if (mFaseLimpaActor) {
+        mFaseLimpaActor->GetComponent<DrawTextComponent>()->SetIsVisible(mAvisoDeFaseLimpa > 0.0f);
     }
 
 }
@@ -618,6 +644,7 @@ void Battle::GradeDown() {
     // seguinte a ordem nao importa - Subtrair nao le a contagem - e nao vale
     // comentar uma dependencia que nao existe.
     ++mAcertosSofridos;
+    ++mAcertosNaFase;
     mGrade = Nota::Subtrair(mGrade, GRADE_CHANGE_DOWN);
 }
 
@@ -625,10 +652,51 @@ bool Battle::PerdeuACheia() const {
     return Nota::PerdeuACheia(mAcertosSofridos);
 }
 
-void Battle::ResetHUDTimer(const float newDuration) {
+/// Segundos que o aviso de fase limpa fica na tela. Curto: ele informa, nao
+/// comemora - e o jogador esta no meio de uma batalha.
+static constexpr float kDuracaoDoAvisoDeFaseLimpa = 2.5f;
+
+void Battle::OnFaseTrocada(const float novaDuracao) {
+
+    // A ORDEM IMPORTA. Fechar a fase ANTES de reiniciar a barra: quem acabou de
+    // terminar uma fase limpa tem de receber por ELA, e nao pela que comeca
+    // agora. Invertido, o contador zeraria antes de ser lido e o bonus sairia
+    // sempre - inclusive para quem levou dano a fase inteira.
+    EncerrarFase();
+
     if (mHUD) {
-        mHUD->ResetTimeBar(newDuration);
+        mHUD->ResetTimeBar(novaDuracao);
     }
+}
+
+void Battle::EncerrarFase() {
+
+    // DEPOIS QUE A BATALHA ACABOU, NAO HA MAIS FASE A FECHAR. A maquina de
+    // estados do chefe continua trocando de fase depois do FinishBattle - a
+    // StateFinal aponta de volta para a StateOne - e sem esta guarda o callback
+    // pagava mais bonus com a batalha ja encerrada, mexendo na nota que aparece
+    // na tela depois de ela ja ter ido para o disco.
+    if (mIsEnding) return;
+
+    // A PRIMEIRA CHAMADA NAO PAGA NADA. O callback da maquina de estados dispara
+    // tambem ao ENTRAR na primeira fase, quando nao ha fase anterior para ter
+    // sido limpa. mPrimeiraFase cobre esse caso.
+    if (mPrimeiraFase) {
+        mPrimeiraFase = false;
+        mAcertosNaFase = 0;
+        return;
+    }
+
+    if (mAcertosNaFase == 0) {
+        GradeUp(Nota::kBonusDeFaseLimpa);
+
+        // O aviso existe para a nota nao subir por motivo invisivel. Um salto sem
+        // explicacao e lido como defeito, e o jogador nunca descobre que desviar
+        // paga - que e justamente o que este bonus veio ensinar.
+        mAvisoDeFaseLimpa = kDuracaoDoAvisoDeFaseLimpa;
+    }
+
+    mAcertosNaFase = 0;
 }
 
 SDL_FRect Battle::GetPlayfieldBounds() const
@@ -662,6 +730,20 @@ void Battle::SpawnExtraPoint(Vector2 position) {
 
 void Battle::FinishBattle(bool approved) {
     if (mIsEnding) return; // Já está acabando, ignora chamadas duplicadas
+
+    // A ULTIMA FASE TAMBEM PAGA. Ela nao troca para fase nenhuma, entao o
+    // callback da maquina de estados nunca dispara por ela - sem esta chamada,
+    // terminar a batalha com uma fase final limpa nao valeria nada, e o jogador
+    // leria isso como o bonus falhando justamente quando mais importa.
+    //
+    // ANTES DE mIsEnding, e nao depois: EncerrarFase se recusa a pagar com a
+    // batalha ja encerrada (e tem de se recusar - a maquina de estados continua
+    // trocando de fase depois daqui). Chamar depois da marcacao faria esta
+    // ultima fase ser a unica que nunca paga.
+    //
+    // A chamada e segura contra repeticao porque o proprio FinishBattle sai
+    // cedo quando ja esta encerrando, logo acima.
+    EncerrarFase();
 
     mIsEnding = true;
 

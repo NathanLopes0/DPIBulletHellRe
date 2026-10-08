@@ -261,3 +261,39 @@ TEST_CASE("Nota: a aprovacao nao se move junto com o joelho da curva") {
     CHECK(Nota::kNotaAprovacao == doctest::Approx(60.0f));
     CHECK(Nota::kFaixaFacil    == doctest::Approx(60.0f));
 }
+
+// ------------------------------------------- o bonus por fase limpa
+
+TEST_CASE("Nota: o bonus de fase limpa passa pela curva, como todo ganho") {
+
+    // O QUE IMPEDE O BONUS DE BANALIZAR O 100. Ele e um ganho como outro
+    // qualquer, entao vale cheio embaixo e quase nada no topo. Se fosse somado
+    // cru, tres fases limpas dariam 36 pontos de presente a quem ja estivesse
+    // em 95 - e a nota cheia deixaria de significar o que significa.
+    const float embaixo = Nota::Somar(45.0f, Nota::kBonusDeFaseLimpa, 0) - 45.0f;
+    const float emCima   = Nota::Somar(97.0f, Nota::kBonusDeFaseLimpa, 0) - 97.0f;
+
+    CHECK(embaixo == doctest::Approx(Nota::kBonusDeFaseLimpa));
+    CHECK(emCima < embaixo / 5.0f);
+    CHECK(emCima > 0.0f);
+}
+
+TEST_CASE("Nota: tres fases limpas nao bastam para a nota cheia") {
+
+    // Quem so desvia e nao atira nao chega a 100 por isso. A fase comeca em 40;
+    // tres bonus seguidos, sem acerto nenhum, tem de parar bem longe da cheia.
+    float n = Nota::kNotaDeExame;
+    for (int fase = 0; fase < 3; ++fase) n = Nota::Somar(n, Nota::kBonusDeFaseLimpa, 0);
+
+    CAPTURE(n);
+    CHECK_FALSE(Nota::ECheia(n));
+    CHECK(n < 80.0f);
+}
+
+TEST_CASE("Nota: o bonus tambem respeita o teto de quem levou dano") {
+
+    // Caso impossivel na pratica - quem levou dano nao tem fase limpa - mas a
+    // aritmetica nao pode depender disso para nao furar o teto.
+    CHECK(Nota::Somar(99.9f, Nota::kBonusDeFaseLimpa, Nota::kAcertosQuePerdemACheia)
+          == doctest::Approx(Nota::kTetoComDano));
+}

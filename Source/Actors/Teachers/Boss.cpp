@@ -29,7 +29,7 @@ void Boss::Start() {
     if (auto fsm = GetComponent<FSMComponent>()) {
         if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
             fsm->SetOnStateChanged([battleScene](float newDuration) {
-                battleScene->ResetHUDTimer(newDuration);
+                battleScene->OnFaseTrocada(newDuration);
             });
         }
 

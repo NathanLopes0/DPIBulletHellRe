@@ -61,6 +61,24 @@ namespace Nota {
     /// mexer na dificuldade mover a aprovacao junto, em silencio.
     inline constexpr float kNotaAprovacao = 60.0f;
 
+    /**
+     * @brief O ganho bruto por terminar uma fase sem ser atingido.
+     *
+     * POR QUE ISTO EXISTE. A nota so subia atirando, e atirar exige estar
+     * alinhado com o professor - mas desviar exige sair do lugar. As duas coisas
+     * disputam o mesmo controle, entao quem desvia bem atira pouco e ficava
+     * impedido de chegar perto de 100 por jogar bem demais de um jeito so.
+     *
+     * Medido no jogo: com desvio apertado um jogador tira entre 308 e 464
+     * acertos e chega aos 100; com desvio cauteloso, 87 no pior chefe, o que
+     * trava a nota em 79,92. O bonus existe para pagar o segundo.
+     *
+     * O VALOR PASSA PELA CURVA, como qualquer ganho, e e isso que o impede de
+     * banalizar a nota cheia: 12 brutos valem 12,00 em 45 e 1,59 em 97. Ele
+     * levanta muito quem esta sofrendo e quase nada quem ja esta no topo.
+     */
+    inline constexpr float kBonusDeFaseLimpa = 12.0f;
+
     /// O piso da faixa de exame: daqui ate a aprovacao, a batalha segue para a
     /// fase final em vez de terminar.
     ///

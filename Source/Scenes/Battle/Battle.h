@@ -30,7 +30,18 @@ public:
     ~Battle() override;
     void Load() override;
     void CheckCollisions();
-    void ResetHUDTimer(float newDuration);
+    /**
+     * @brief Uma fase do chefe acabou e outra comecou.
+     *
+     * Chamado pelo callback que o Boss registra na maquina de estados. Faz duas
+     * coisas: reinicia a barra de tempo e FECHA a fase que terminou, pagando o
+     * bonus de fase limpa quando for o caso.
+     *
+     * Chamava-se ResetHUDTimer e so fazia a primeira. O nome mudou junto com o
+     * trabalho: um nome que descreve metade do que a funcao faz e pior que um
+     * nome generico.
+     */
+    void OnFaseTrocada(float novaDuracao);
 
     [[nodiscard]] Boss* GetBoss() const { return mBoss; }
     [[nodiscard]] Player* GetPlayer() const { return mPlayer; }
@@ -81,6 +92,26 @@ private:
     // --- Membros de Estado da Batalha ---
     float mGrade;
     int mStage{};
+
+    /// Acertos sofridos NA FASE atual. Separado do contador da batalha porque
+    /// responde outra pergunta: o da batalha decide o teto de 99,99, este decide
+    /// o bonus de fase limpa. Zera a cada troca de fase.
+    int mAcertosNaFase{};
+
+    /// Fecha a fase em curso: paga o bonus se ela foi limpa e zera o contador.
+    /// Chamada na troca de fase E no fim da batalha - a ultima fase nao troca
+    /// para lugar nenhum, e sem isso ela nunca pagaria.
+    void EncerrarFase();
+
+    /// O callback da maquina de estados dispara tambem ao ENTRAR na primeira
+    /// fase, quando nao ha fase anterior. Sem isto, a batalha comecaria pagando
+    /// um bonus por uma fase que ninguem jogou.
+    bool mPrimeiraFase = true;
+
+    /// Quanto tempo o aviso de fase limpa ainda fica na tela.
+    float mAvisoDeFaseLimpa{};
+
+    Actor* mFaseLimpaActor = nullptr;
 
     /// Quantos projeteis do chefe acertaram o jogador NESTA batalha. Zera a cada
     /// batalha junto com a nota: o teto de Nota e por batalha, nao por perfil.
