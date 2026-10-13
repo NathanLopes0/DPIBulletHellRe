@@ -87,7 +87,7 @@
   // FASE 2 - "Aprendeu onde voce esta"
   //
   // Mira exata na posicao atual, e os projeteis curvam durante o voo com forca
-  // que decai (regras "julio_fase2": pares corrigem mais que impares).
+  // que decai (regras "fase2": pares corrigem mais que impares).
   //
   // Leitura de jogo: fugir cedo nao adianta, porque o projetil corrige; e
   // preciso esperar a forca decair e desviar no fim. Ensina timing.
@@ -102,7 +102,7 @@
       { "estrategia": "CircleSpreadAttack", "projetil": "Dados",
         "projeteis": 16, "velocidade": 205,
         "cooldown": 1.3,
-        "regras": "julio_fase2" }
+        "regras": "fase2" }
     ]
   },
 
@@ -133,7 +133,7 @@
       { "estrategia": "AngledAttack", "projetil": "Dados",
         "projeteis": 1, "velocidade": 300, "angulo": 0,
         "cooldown": 0.1,
-        "regras": "julio_fase3_previsao" },
+        "regras": "fase3_previsao" },
 
       { "estrategia": "AngledAttack", "projetil": "Dados",
         "projeteis": 1, "velocidade": 120, "angulo": 0,
@@ -167,7 +167,7 @@
       { "estrategia": "CircleSpreadAttack", "projetil": "Dados",
         "projeteis": 6, "velocidade": 150,
         "cooldown": 2.6,
-        "regras": "julio_final_laco" }
+        "regras": "final_laco" }
     ]
   }
 }

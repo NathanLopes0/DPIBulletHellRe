@@ -8,27 +8,24 @@ tem uma direção.
 
 ## Arquitetura
 
-### Separar os arquivos de ataque por professor
+### Os comentários da fase 2 do Salles citam números que os dados não têm
 
-Hoje `fases.json`, `regras.json` e `projeteis.json` são um arquivo cada, com
-todos os professores dentro. Ficariam melhor como uma pasta por professor:
+Encontrado ao separar os arquivos por professor, e **não corrigido** porque não
+dá para saber qual lado está certo sem jogar.
 
-```
-Assets/Attacks/thiago/fases.json
-Assets/Attacks/thiago/regras.json
-Assets/Attacks/thiago/projeteis.json
-```
+| | O comentário diz | O arquivo diz |
+|---|---|---|
+| `atraso` do caminho (`salles/regras.json`, `lista_dupla`) | 0,85 | **1,2** |
+| `cooldown` da fase (`salles/fases.json`, `StateTwo`) | 3,6 | **1,2** |
 
-**O que isso mexe.** Os três leitores guardam os conjuntos num mapa global
-carregado uma vez (`GarantirArquivoLido`), e as fábricas pedem pelo nome do
-professor. Com pastas, quem lê passa a precisar do nome *antes* de ler, e a
-leitura vira sob demanda em vez de tudo de uma vez. As funções puras
-(`LerFases`, `LerRegras`, `LerProjeteis`) recebem texto e não mudam — só as
-pontes `*Arquivo.cpp` e os testes que leem os Assets de verdade.
+Os dois números aparecem também em `Assets/Paths/formas.json`, onde uma conta de
+geometria (`332px`) foi derivada do 0,85. A regra crítica continua valendo —
+`1,2 > 0,70`, e há teste exigindo isso —, então o jogo está correto; o que
+envelheceu foi a prosa.
 
-**Vale notar:** `regras.json` tem conjuntos nomeados por professor
-(`thiago_varredura`), e com pastas esse prefixo deixa de ser necessário. Trocar
-os nomes é mexer em `fases.json` junto.
+O comentário do `cooldown` merece atenção: ele diz que abaixo de 3,6 "uma fila
+nova sai enquanto a anterior ainda está voltando, e as duas se cruzam em sentidos
+opostos". Com 1,2 isso acontece. Pode ter sido de propósito.
 
 ### JSON ou C++ para os ataques
 

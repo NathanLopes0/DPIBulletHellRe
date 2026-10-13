@@ -14,7 +14,7 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 |---|---|
 | `Assets/materias.json` | o curso: matérias, colunas, desbloqueio, professor |
 | `Assets/Attacks/<professor>/fases.json` | as fases daquele professor e os ataques de cada fase |
-| `Assets/Attacks/regras.json` | o que cada projétil faz depois de criado |
+| `Assets/Attacks/<professor>/regras.json` | o que cada projétil daquele professor faz depois de criado |
 | `Assets/Attacks/<professor>/projeteis.json` | o catálogo de projéteis daquele professor |
 | `Assets/personagens.json` | as peças de que o personagem do aluno é montado |
 
@@ -91,7 +91,7 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
       { "estrategia": "ConsultaAttack", "projetil": "Celula",
         "projeteis": 6, "velocidade": 620, "cooldown": 0.9,
         "consulta": { "eixo": "Linha", "linhas": 3, "aviso": 1.1 },
-        "regras": "thiago_varredura" }
+        "regras": "varredura" }
     ]
   }
 }
@@ -194,17 +194,24 @@ preciso dar `pontosDeSpawn`, uma lista de `[x, y]`.
 
 ---
 
-## `regras.json`
+## `<professor>/regras.json`
+
+**Uma pasta por professor**: `Assets/Attacks/salles/regras.json`. Cada chave é um
+conjunto, e é por esse nome que um ataque do `fases.json` ao lado o pede.
+
+> **Os nomes perderam o prefixo do professor.** Eram `salles_lista_simples`
+> porque um arquivo único com todos os conjuntos precisava evitar colisão; com
+> uma pasta por professor o prefixo passou a repetir o nome da pasta.
 
 Um conjunto é uma lista de regras aplicadas a **cada** projétil da rajada, na
 ordem em que aparecem.
 
 ```json
-"salles_lista_simples": [
+"lista_simples": [
   { "animacao": "ListaSimples" }
 ],
 
-"andre_fase3": [
+"fase3": [
   { "quando": "pares",
     "motion": { "tipo": "Wobble", "amplitude": 40, "frequencia": 1.5, "duracao": 2.5 } },
   { "quando": "impares",
@@ -252,6 +259,38 @@ compilador; aqui é a leitura, porque arquivo de texto não passa por compilador
 
 `mira` é `AlinharComVelocidade` (o padrão), `MirarNoJogador` ou `MirarPrevendo`.
 
+### Dois exemplos para copiar
+
+Estes dois conjuntos viviam no `regras.json` como `exemplo_teleguiado` e
+`exemplo_cacador`, sem nenhum professor usá-los. Com uma pasta por professor eles
+deixaram de ter casa — e o lugar deles sempre foi aqui.
+
+```json
+"teleguiado": [
+  { "chance": 0.2,
+    "motion": { "tipo": "Path", "forma": "Reta", "velocidade": 280,
+                "atraso": 1.2, "mira": "MirarNoJogador" },
+    "animacao": "Homing" }
+]
+```
+
+A **investida repetida**: o projétil quase para, re-aponta, e dá um mergulho
+rápido. Precisa das **duas** peças derivadas do **mesmo** ritmo — a motion que
+gira e o modifier que pulsa o módulo. Repare que o ritmo aparece duas vezes:
+mudar um e esquecer o outro faz a mirada acontecer fora do mergulho.
+
+```json
+"cacador": [
+  { "motion": { "tipo": "MiraPeriodica",
+                "ritmo": { "investida": 0.2, "pausa": 1.0, "repeticoes": 6 } },
+    "modifiers": [
+      { "tipo": "PulsoDeVelocidade",
+        "ritmo": { "investida": 0.2, "pausa": 1.0, "repeticoes": 6 },
+        "investida": 640, "pausa": 15 }
+    ] }
+]
+```
+
 ### O que costuma dar errado
 
 > **`velocidade` num `Path` é a do caminho, não a do disparo.** A 340–400 px/s um
@@ -261,7 +300,7 @@ compilador; aqui é a leitura, porque arquivo de texto não passa por compilador
 > **Motion captura a direção no instante em que ativa.** Se o projétil estiver
 > parado nesse momento — por um `Deactivate` ou por ter nascido assim — não há
 > direção para capturar e ele sai para a direita. Foi isso que obrigou o
-> `"atraso": 0.85` do `salles_duplamente` a ser maior que o despertar do último
+> `"atraso"` do `lista_dupla` do Salles a ser maior que o despertar do último
 > nó da fila: mexer em `projeteis` ou `intervalo` naquela fase **obriga** a
 > revisar esse atraso.
 
@@ -376,7 +415,7 @@ motor.
 |---|---|---|
 | `materias.json` | `Materias::LerMaterias` | `MateriasArquivo.cpp` |
 | `<professor>/fases.json` | `LerFases` | `FasesDeAtaqueArquivo.cpp` |
-| `regras.json` | `LerRegras` | `RegrasDeAtaqueArquivo.cpp` |
+| `<professor>/regras.json` | `LerRegras` | `RegrasDeAtaqueArquivo.cpp` |
 | `<professor>/projeteis.json` | `LerProjeteis` | `ProjeteisDeChefeArquivo.cpp` |
 | `personagens.json` | `Personagens::LerCatalogo` | `PersonagensArquivo.cpp` |
 

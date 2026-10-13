@@ -99,6 +99,11 @@ namespace {
         return chefes;
     }
 
+    /// As regras de um chefe, da pasta dele.
+    RegrasLidas RegrasDoChefe(const std::string& chefe) {
+        return LerRegras(LerArquivo(PastaDoChefe::Arquivo(chefe, PastaDoChefe::kRegras)));
+    }
+
     /// As fases de um chefe, da pasta dele.
     FasesLidas FasesDoChefe(const std::string& chefe) {
         return LerFases(LerArquivo(PastaDoChefe::Arquivo(chefe, PastaDoChefe::kFases)));
@@ -121,10 +126,14 @@ TEST_CASE("Dados: Assets/Paths/formas.json nao tem problema nenhum") {
     CHECK(r.formas.size() > 0);
 }
 
-TEST_CASE("Dados: Assets/Attacks/regras.json nao tem problema nenhum") {
-    const auto r = LerRegras(LerArquivo("Attacks/regras.json"));
-    CHECK_MESSAGE(r.problemas.empty(), "problemas em regras.json:" << Juntar(r.problemas));
-    CHECK(r.conjuntos.size() > 0);
+TEST_CASE("Dados: o regras.json de cada chefe nao tem problema nenhum") {
+    for (const auto& chefe : Chefes()) {
+        CAPTURE(chefe);
+        const auto r = RegrasDoChefe(chefe);
+        CHECK_MESSAGE(r.problemas.empty(), "problemas em " << chefe << "/regras.json:"
+                                                           << Juntar(r.problemas));
+        CHECK(r.conjuntos.size() > 0);
+    }
 }
 
 TEST_CASE("Dados: o fases.json de cada chefe nao tem problema nenhum") {
@@ -189,9 +198,8 @@ TEST_CASE("Dados: toda fase tem pelo menos um ataque") {
 TEST_CASE("Dados: todo conjunto de regras citado em fases.json existe em regras.json") {
     // O erro silencioso numero 1: o nome nao bate, o ataque dispara normalmente e
     // os projeteis saem sem comportamento nenhum.
-    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
-
     for (const auto& chefe : Chefes()) {
+        const auto regras = RegrasDoChefe(chefe);
         const auto& lista = FasesDoChefe(chefe).fases;
         for (const auto& f : lista) {
             for (size_t k = 0; k < f.ataques.size(); ++k) {
@@ -211,7 +219,6 @@ TEST_CASE("Dados: todo conjunto de regras citado em fases.json existe em regras.
 TEST_CASE("Dados: toda forma citada em regras.json existe em formas.json") {
     // O erro silencioso numero 2: o nome nao bate, PathShapes::DoArquivo devolve
     // uma reta, e o projetil voa reto em vez de fazer a curva.
-    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
     const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
 
     auto conferir = [&](const std::string& conjunto, const DescricaoDeBehavior& d) {
@@ -223,13 +230,15 @@ TEST_CASE("Dados: toda forma citada em regras.json existe em formas.json") {
                       "a forma \"" << d.forma << "\" nao existe em formas.json");
     };
 
-    for (const auto& par : regras.conjuntos) {
-        const std::string& nome = par.first;
+    for (const auto& chefe : Chefes()) {
+      for (const auto& par : RegrasDoChefe(chefe).conjuntos) {
+        const std::string nome = chefe + "/" + par.first;
         const auto& lista = par.second;
         for (const auto& r : lista) {
             if (r.temMotion) conferir(nome, r.motion);
             for (const auto& m : r.modifiers) conferir(nome, m);
         }
+      }
     }
 }
 
@@ -264,9 +273,8 @@ TEST_CASE("Dados: uma regra por indice nao aponta para fora da rajada") {
     // e o ataque dispara 3 projeteis. Se alguem aumentar para 4 em fases.json e
     // esquecer das regras, o quarto projetil sai sem caminho nenhum e voa reto,
     // sem nenhum aviso. Se DIMINUIR para 2, a regra do indice 2 nunca se aplica.
-    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
-
     for (const auto& chefe : Chefes()) {
+        const auto regras = RegrasDoChefe(chefe);
         const auto& lista = FasesDoChefe(chefe).fases;
         for (const auto& f : lista) {
             for (const auto& a : f.ataques) {
@@ -557,11 +565,10 @@ TEST_CASE("Dados: as animacoes dos projeteis mantem os quadros exatos") {
 
 TEST_CASE("Dados: num WaveAttack, o atraso do caminho supera o despertar do ultimo no") {
 
-    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
-
     int combinacoesConferidas = 0;
 
     for (const auto& chefe : Chefes()) {
+        const auto regras = RegrasDoChefe(chefe);
 
         for (const auto& f : FasesDoChefe(chefe).fases) {
             for (const auto& a : f.ataques) {
@@ -618,11 +625,10 @@ TEST_CASE("Dados: toda animacao pedida por uma regra existe no projetil que o at
     // usa, regras.json diz qual animacao cada regra pede, e projeteis.json diz
     // quais animacoes aquele projetil tem. Nenhum dos tres sabe disso sozinho.
 
-    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
-
     int pedidosConferidos = 0;
 
     for (const auto& chefe : Chefes()) {
+        const auto regras = RegrasDoChefe(chefe);
 
         const auto doChefe = ProjeteisDoChefe(chefe);
 
@@ -673,12 +679,12 @@ TEST_CASE("Dados: uma parada de caminho aponta para um ponto que a forma tem") {
     // rajada, e merece a mesma rede: um numero que nao bate com um tamanho que
     // mora em outro arquivo.
 
-    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
     const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
 
     int paradasConferidas = 0;
 
-    for (const auto& conjunto : regras.conjuntos) {
+    for (const auto& chefe : Chefes())
+      for (const auto& conjunto : RegrasDoChefe(chefe).conjuntos) {
         for (const auto& r : conjunto.second) {
 
             if (!r.temMotion || r.motion.pararNoPonto < 0) continue;
@@ -732,12 +738,12 @@ TEST_CASE("Dados: uma parada de caminho aponta para um ponto que a forma tem") {
 
 TEST_CASE("Dados: toda familia citada por formaPorIndice existe em formas.json") {
 
-    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
     const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
 
     int conferidas = 0;
 
-    for (const auto& conjunto : regras.conjuntos) {
+    for (const auto& chefe : Chefes())
+      for (const auto& conjunto : RegrasDoChefe(chefe).conjuntos) {
         for (const auto& r : conjunto.second) {
             if (!r.temMotion || r.motion.formaPorIndice.empty()) continue;
 
@@ -768,12 +774,12 @@ TEST_CASE("Dados: um ataque que usa familia dispara exatamente o tamanho dela") 
     // Antes eram tres lugares (formas, regras por indice e projeteis); agora e
     // "divisoes" de um lado e "projeteis" do outro, e este teste liga os dois.
 
-    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
     const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
 
     int conferidos = 0;
 
     for (const auto& chefe : Chefes()) {
+        const auto regras = RegrasDoChefe(chefe);
 
         for (const auto& f : FasesDoChefe(chefe).fases) {
             for (const auto& a : f.ataques) {

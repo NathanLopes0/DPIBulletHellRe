@@ -52,7 +52,7 @@
       { "estrategia": "WaveAttack", "projetil": "Estruturas",
         "projeteis": 10, "velocidade": 430, "angulo": 0, "intervalo": 0.11,
         "cooldown": 1.7,
-        "regras": "salles_lista_simples" }
+        "regras": "lista_simples" }
     ]
   },
 
@@ -69,7 +69,7 @@
   //
   // OS NUMEROS ANDAM JUNTOS: 8 projeteis x 0,10 de intervalo = 0,70s ate o
   // ultimo no despertar, e o "atraso": 0,85 do caminho tem de passar disso.
-  // Mexer em um exige revisar o outro - a explicacao esta em "salles_lista_dupla".
+  // Mexer em um exige revisar o outro - a explicacao esta em "lista_dupla".
   //
   // O cooldown 3,6 cobre o ciclo inteiro (0,85 ate o caminho + 0,75 de ida + 0,8
   // parado + a volta). Mais curto que isso e uma fila nova sai enquanto a
@@ -82,7 +82,7 @@
       { "estrategia": "WaveAttack", "projetil": "Duplamente",
         "projeteis": 8, "velocidade": 400, "angulo": 0, "intervalo": 0.10,
         "cooldown": 1.2,
-        "regras": "salles_lista_dupla" }
+        "regras": "lista_dupla" }
     ]
   },
 
@@ -109,7 +109,7 @@
       { "estrategia": "AngledAttack", "projetil": "Estruturas",
         "projeteis": 16, "velocidade": 210, "angulo": 0,
         "cooldown": 2.1,
-        "regras": "salles_arvore" }
+        "regras": "arvore" }
     ]
   },
 
@@ -133,12 +133,12 @@
       { "estrategia": "CircleSpreadAttack", "projetil": "Capivara",
         "projeteis": 12, "velocidade": 200,
         "cooldown": 1.8,
-        "regras": "salles_lista_circular" },
+        "regras": "lista_circular" },
 
       { "estrategia": "CircleSpreadAttack", "projetil": "Capivara",
         "projeteis": 8, "velocidade": 330,
         "cooldown": 2.4,
-        "regras": "salles_anel_reto" }
+        "regras": "anel_reto" }
     ]
   }
 }

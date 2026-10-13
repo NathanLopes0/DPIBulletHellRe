@@ -222,7 +222,7 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
                 configurator = ConfiguratorDeRegras(a.regras);
             }
             else if (!a.regrasNome.empty()) {
-                configurator = ConfiguratorDeArquivo(a.regrasNome);
+                configurator = ConfiguratorDeArquivo(nomeDoConjunto, a.regrasNome);
             }
 
             boss->AddAttackPattern(fase.nome, std::move(estrategia), CriarParams(a),

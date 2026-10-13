@@ -65,7 +65,7 @@
       { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
         "projeteis": 36, "velocidade": 180,
         "cooldown": 2.4,
-        "regras": "ricardo_fase2" }
+        "regras": "fase2" }
     ]
   },
 
@@ -79,7 +79,7 @@
       { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
         "projeteis": 18, "velocidade": 180,
         "cooldown": 2.4,
-        "regras": "ricardo_fase3" }
+        "regras": "fase3" }
     ]
   },
 
@@ -98,7 +98,7 @@
       { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
         "projeteis": 9, "velocidade": 240,
         "cooldown": 1.8,
-        "regras": "ricardo_final_teleguiado" }
+        "regras": "final_teleguiado" }
     ]
   }
 }

@@ -115,14 +115,14 @@
         "projeteis": 5, "velocidade": 300, "cooldown": 4.0,
         "balao": { "lado": "Left", "spawnAleatorio": true,
                   "centradoNoJogador": false, "deslocamento": 600},
-        "regras": "andre_tres"
+        "regras": "tres"
       },
       {
         "estrategia": "BaloonAttack", "projetil": "Baloes",
         "projeteis": 5, "velocidade": 300, "cooldown": 4.0,
         "balao": { "lado": "Right", "spawnAleatorio": true,
           "centradoNoJogador": false, "deslocamento": 600},
-        "regras": "andre_tres"
+        "regras": "tres"
       }
 
     ]

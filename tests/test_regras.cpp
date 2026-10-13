@@ -6,15 +6,15 @@
 
 TEST_CASE("Regras: le uma regra por indice com uma Motion") {
     const auto r = LerRegras(R"({
-        "julio_fase2": [
+        "fase2": [
             { "indices": [0,2], "motion": {"tipo":"Tracking","atraso":0.3,"forca":3.2,"duracao":2.4} }
         ]
     })");
     CHECK(r.problemas.empty());
-    REQUIRE(r.conjuntos.count("julio_fase2") == 1);
-    REQUIRE(r.conjuntos.at("julio_fase2").size() == 1);
+    REQUIRE(r.conjuntos.count("fase2") == 1);
+    REQUIRE(r.conjuntos.at("fase2").size() == 1);
 
-    const Regra& regra = r.conjuntos.at("julio_fase2")[0];
+    const Regra& regra = r.conjuntos.at("fase2")[0];
     CHECK(regra.condicao == Regra::Indices);
     CHECK(regra.temMotion);
     CHECK(regra.motion.tipo == "Tracking");
@@ -145,7 +145,7 @@ TEST_CASE("Regras: o arquivo aceita comentario") {
     // Mesma razao de test_formas: o porque de cada numero precisa caber no
     // arquivo, senao mexer nele seis meses depois e adivinhacao.
     const auto r = LerRegras(R"({
-        "julio_fase2": [
+        "fase2": [
             // Forca diferente entre par e impar: o jogador ve dois
             // comportamentos no mesmo anel e aprende a ler qual e qual.
             { "quando": "pares",
@@ -153,9 +153,9 @@ TEST_CASE("Regras: o arquivo aceita comentario") {
         ]
     })");
     CHECK(r.problemas.empty());
-    REQUIRE(r.conjuntos.count("julio_fase2") == 1);
-    REQUIRE(r.conjuntos.at("julio_fase2").size() == 1);
-    CHECK(r.conjuntos.at("julio_fase2")[0].motion.forca == doctest::Approx(3.2f));
+    REQUIRE(r.conjuntos.count("fase2") == 1);
+    REQUIRE(r.conjuntos.at("fase2").size() == 1);
+    CHECK(r.conjuntos.at("fase2")[0].motion.forca == doctest::Approx(3.2f));
 }
 
 TEST_CASE("Regras: texto que nao e JSON continua sendo recusado") {
@@ -211,15 +211,15 @@ TEST_CASE("Investida: expande em MiraPeriodica + PulsoDeVelocidade") {
     // O equivalente em dados de AplicarInvestidaRepetida. O ritmo e escrito UMA
     // vez e alimenta as duas pecas, que e a propriedade que a receita em C++
     // existia para garantir.
-    const auto r = LerRegras(R"({ "julio_fase1": [
+    const auto r = LerRegras(R"({ "fase1": [
         { "escala": 3, "animacao": "Perseguicao",
           "investidaRepetida": {
             "ritmo": { "investida": 0.6, "pausa": 1.0, "repeticoes": 7 },
             "velocidadeNaInvestida": 900, "velocidadeNaPausa": 15 } }
     ] })");
     CHECK(r.problemas.empty());
-    REQUIRE(r.conjuntos.at("julio_fase1").size() == 1);
-    const Regra& g = r.conjuntos.at("julio_fase1")[0];
+    REQUIRE(r.conjuntos.at("fase1").size() == 1);
+    const Regra& g = r.conjuntos.at("fase1")[0];
 
     REQUIRE(g.temMotion);
     CHECK(g.motion.tipo == "MiraPeriodica");

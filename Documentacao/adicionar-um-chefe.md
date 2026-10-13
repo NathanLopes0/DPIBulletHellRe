@@ -79,7 +79,7 @@ Um conjunto por fase, ou um só reaproveitado. Cada regra se aplica a cada
 projétil da rajada:
 
 ```json
-"thiago_varredura": [
+"varredura": [
   { "animacao": "Linha", "escala": 2 }
 ]
 ```
