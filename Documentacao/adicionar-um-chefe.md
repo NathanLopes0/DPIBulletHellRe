@@ -45,13 +45,14 @@ na mão.
 > **um quadro** (64 numa folha de 128 com dois quadros), e é esse número que o
 > raio do colisor usa. Já custou uma hitbox do dobro do tamanho.
 
-## 2. O projétil, em `Assets/Attacks/projeteis.json`
+## 2. O projétil, em `Assets/Attacks/<professor>/projeteis.json`
 
-Um conjunto com o nome do professor. O nome de cada projétil dentro dele é como
-`fases.json` vai pedi-lo:
+**Crie a pasta do professor** — `Assets/Attacks/thiago/` — e dentro dela um
+`projeteis.json`. A raiz do arquivo já é o mapa de projéteis: o nome de cada um
+é como `fases.json` vai pedi-lo.
 
 ```json
-"thiago": {
+{
   "Celula": {
     "sprite": "Teachers/Projectiles/DPIBHThiagoCelula.png",
     "dados":  "Teachers/Projectiles/DPIBHThiagoCelula.json",

@@ -130,6 +130,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/FasesDeAtaqueArquivo.cpp
         Source/Attacks/FasesDeAtaqueArquivo.h
         Source/Attacks/ProjeteisDeChefe.cpp
+        Source/Attacks/PastaDoChefe.cpp
+        Source/Attacks/PastaDoChefe.h
         Source/Attacks/ProjeteisDeChefe.h
         Source/Attacks/ProjeteisDeChefeArquivo.cpp
         Source/Attacks/ProjeteisDeChefeArquivo.h
@@ -205,6 +207,7 @@ add_executable(dpi_tests
         tests/test_regras.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
+        tests/test_pasta_do_chefe.cpp
         tests/test_arquivos_de_dados.cpp
         tests/test_caminhos.cpp
         tests/test_progresso.cpp
@@ -259,6 +262,8 @@ add_executable(dpi_tests
         Source/Attacks/FasesDeAtaque.cpp
         Source/Attacks/FasesDeAtaque.h
         Source/Attacks/ProjeteisDeChefe.cpp
+        Source/Attacks/PastaDoChefe.cpp
+        Source/Attacks/PastaDoChefe.h
         Source/Attacks/ProjeteisDeChefe.h
         Source/Math.cpp
         Source/Math.h

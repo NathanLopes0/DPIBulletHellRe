@@ -219,47 +219,29 @@ ProjeteisLidos LerProjeteis(const std::string& textoJson) {
     }
 
     if (!raiz.is_object()) {
-        lidos.problemas.emplace_back("a raiz deveria ser um objeto de conjuntos (um por chefe)");
+        lidos.problemas.emplace_back("a raiz deveria ser um objeto de nome -> projetil");
         return lidos;
     }
 
-    for (auto conjunto = raiz.begin(); conjunto != raiz.end(); ++conjunto) {
+    for (auto it = raiz.begin(); it != raiz.end(); ++it) {
 
-        const std::string nomeDoConjunto = conjunto.key();
+        const std::string nome = it.key();
+        const std::string onde = "projetil \"" + nome + "\": ";
 
-        if (!conjunto.value().is_object()) {
-            lidos.problemas.emplace_back("conjunto \"" + nomeDoConjunto +
-                                         "\" deveria ser um objeto de nome -> projetil");
+        if (nome.empty()) {
+            lidos.problemas.emplace_back("ha um projetil com nome vazio");
             continue;
         }
 
-        std::map<std::string, DescricaoDeProjetil> projeteis;
-
-        for (auto it = conjunto.value().begin(); it != conjunto.value().end(); ++it) {
-
-            const std::string nome = it.key();
-            const std::string onde = "conjunto \"" + nomeDoConjunto + "\", projetil \"" + nome + "\": ";
-
-            if (nome.empty()) {
-                lidos.problemas.emplace_back("conjunto \"" + nomeDoConjunto +
-                                             "\": ha um projetil com nome vazio");
-                continue;
-            }
-
-            DescricaoDeProjetil d;
-            if (LerProjetil(it.value(), onde, lidos.problemas, d)) {
-                projeteis[nome] = std::move(d);
-            }
+        DescricaoDeProjetil d;
+        if (LerProjetil(it.value(), onde, lidos.problemas, d)) {
+            lidos.projeteis[nome] = std::move(d);
         }
-
-        if (projeteis.empty()) {
-            lidos.problemas.emplace_back("conjunto \"" + nomeDoConjunto +
-                                         "\" ficou sem nenhum projetil utilizavel");
-            continue;
-        }
-
-        lidos.conjuntos[nomeDoConjunto] = std::move(projeteis);
     }
 
+    // ARQUIVO SEM NENHUM PROJETIL UTILIZAVEL nao e problema de leitura, e por
+    // isso nao entra na lista daqui. Quem pede os projeteis de um chefe e que
+    // sabe se o chefe pode ficar sem eles - e a ponte ja recusa o chefe nesse
+    // caso, com uma mensagem que diz de quem era o arquivo.
     return lidos;
 }

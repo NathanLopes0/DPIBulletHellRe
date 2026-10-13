@@ -1,0 +1,41 @@
+{
+  // ==========================================================================
+  // OS PROJETEIS DO THIAGO
+  //
+  // UMA PASTA POR CHEFE: Assets/Attacks/thiago/. A pasta diz de quem e o
+  // arquivo, entao aqui dentro ficam so os nomes que o campo "projetil" de uma
+  // fase usa -> como aquele projetil e montado. Antes era um projeteis.json so,
+  // com um nivel a mais dizendo o nome do chefe; com uma pasta por chefe esse
+  // nivel seria uma segunda fonte da mesma verdade, livre para discordar do
+  // nome da pasta.
+  //
+  // OS CAMPOS estao documentados em Documentacao/arquivos-de-dados.md.
+  //
+  // O que impede um erro de digitacao aqui de chegar ao jogo e
+  // tests/test_arquivos_de_dados.cpp: ele le este arquivo junto com as fases e
+  // com os atlas de verdade, e quebra a suite se um ataque pedir um projetil
+  // que nao existe ou se uma animacao citar um quadro que a folha nao tem.
+  // ==========================================================================
+// --------------------------------------------------------------------------
+// THIAGO - INF 220 (Banco de Dados)
+// --------------------------------------------------------------------------
+//
+// UM TIPO SO, e e o suficiente: toda a batalha do Thiago e feita de celulas de
+// tabela. O que muda entre uma fase e outra nao e o projetil, e sim QUAL faixa
+// da tabela ele varre - e isso vive em fases.json, nao aqui.
+//
+// "posicionarNoDono" e FALSO: uma consulta nasce na borda da tabela, nao no
+// professor. Deixar verdadeiro faria todos os projeteis nascerem em cima do
+// chefe e so depois saltarem para a faixa, o que estragaria o telegrafo - o
+// jogador veria um amontoado no meio da tela em vez de uma linha carregada.
+
+  "Celula": {
+    "sprite": "Teachers/Projectiles/DPIBHThiagoCelula.png",
+    "dados": "Teachers/Projectiles/DPIBHThiagoCelula.json",
+    "animacoes": { "Linha": [0] },
+    "animacaoInicial": "Linha",
+    "escala": 2,
+    "ordemDeDesenho": 90,
+    "posicionarNoDono": false
+  }
+}

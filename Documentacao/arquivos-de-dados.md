@@ -15,7 +15,7 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 | `Assets/materias.json` | o curso: matérias, colunas, desbloqueio, professor |
 | `Assets/Attacks/fases.json` | as fases de cada professor e os ataques de cada fase |
 | `Assets/Attacks/regras.json` | o que cada projétil faz depois de criado |
-| `Assets/Attacks/projeteis.json` | o catálogo de projéteis de cada professor |
+| `Assets/Attacks/<professor>/projeteis.json` | o catálogo de projéteis daquele professor |
 | `Assets/personagens.json` | as peças de que o personagem do aluno é montado |
 
 ---
@@ -275,12 +275,14 @@ compilador; aqui é a leitura, porque arquivo de texto não passa por compilador
 
 ---
 
-## `projeteis.json`
+## `<professor>/projeteis.json`
 
-Um conjunto por professor. O nome de cada entrada é como `fases.json` o pede.
+**Uma pasta por professor**: `Assets/Attacks/thiago/projeteis.json`. A pasta diz
+de quem é o arquivo, então a raiz dele já é o mapa de projéteis — o nome de cada
+entrada é como `fases.json` vai pedi-lo.
 
 ```json
-"thiago": {
+{
   "Celula": {
     "sprite": "Teachers/Projectiles/DPIBHThiagoCelula.png",
     "dados":  "Teachers/Projectiles/DPIBHThiagoCelula.json",
@@ -294,6 +296,11 @@ Um conjunto por professor. O nome de cada entrada é como `fases.json` o pede.
   }
 }
 ```
+
+> **Era um `projeteis.json` só, com um nível a mais dizendo o nome do professor.**
+> Com uma pasta por professor esse nível virava uma segunda cópia do nome, livre
+> para discordar da pasta. Quem monta o caminho é `PastaDoChefe::Arquivo`, num
+> lugar só — e montar um professor deixou de abrir os arquivos dos outros quatro.
 
 | Campo | |
 |---|---|
@@ -365,7 +372,7 @@ motor.
 | `materias.json` | `Materias::LerMaterias` | `MateriasArquivo.cpp` |
 | `fases.json` | `LerFases` | `FasesDeAtaqueArquivo.cpp` |
 | `regras.json` | `LerRegras` | `RegrasDeAtaqueArquivo.cpp` |
-| `projeteis.json` | `LerProjeteis` | `ProjeteisDeChefeArquivo.cpp` |
+| `<professor>/projeteis.json` | `LerProjeteis` | `ProjeteisDeChefeArquivo.cpp` |
 | `personagens.json` | `Personagens::LerCatalogo` | `PersonagensArquivo.cpp` |
 
 É essa divisão que permite testar a leitura sem SDL e sem disco: os testes

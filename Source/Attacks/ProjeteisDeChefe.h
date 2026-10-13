@@ -100,19 +100,23 @@ struct DescricaoDeProjetil {
 };
 
 /**
- * @brief O resultado da leitura: um mapa de conjuntos e a lista de problemas.
+ * @brief O resultado da leitura: OS PROJETEIS DE UM CHEFE e a lista de problemas.
  *
- * Os conjuntos sao indexados pelo nome do chefe, igual a fases.json, e dentro de
- * cada um os projeteis pelo nome que o campo "projetil" de um ataque usa. Com
- * isso dois chefes podem ter um projetil "Normal" sem colidir.
+ * Indexados pelo nome que o campo "projetil" de um ataque usa. Como o arquivo e
+ * de um chefe so (Assets/Attacks/<chefe>/projeteis.json), dois chefes podem ter
+ * um projetil "Normal" sem colidir - e nenhum deles precisa ler o do outro.
+ *
+ * Era um mapa de conjuntos, com o nome do chefe por fora. Esse nome saiu junto
+ * com o arquivo unico: ele passou a estar na PASTA, e mante-lo aqui dentro
+ * criaria duas versoes da mesma verdade, livres para discordar.
  */
 struct ProjeteisLidos {
-    std::map<std::string, std::map<std::string, DescricaoDeProjetil>> conjuntos;
+    std::map<std::string, DescricaoDeProjetil> projeteis;
     std::vector<std::string> problemas;
 };
 
 /**
- * @brief Interpreta o texto de projeteis.json.
+ * @brief Interpreta o texto do projeteis.json DE UM CHEFE.
  *
  * Nunca lanca e nunca abre arquivo: recebe o texto e devolve o que conseguiu ler
  * mais a lista do que estava errado. Uma entrada com problema GRAVE (sem sprite,

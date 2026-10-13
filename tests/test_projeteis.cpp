@@ -13,14 +13,12 @@
 
 // Uma entrada minima e valida, para os casos mexerem em uma coisa de cada vez.
 static const char* kValido = R"({
-  "salles": {
-    "Capivara": {
-      "sprite": "Teachers/Projectiles/DPIBHSallesCapivara.png",
-      "dados":  "Teachers/Projectiles/DPIBHSallesCapivara.json",
-      "animacoes": { "Normal": [0], "Homing": [1] },
-      "animacaoInicial": "Normal",
-      "ordemDeDesenho": 90
-    }
+  "Capivara": {
+    "sprite": "Teachers/Projectiles/DPIBHSallesCapivara.png",
+    "dados":  "Teachers/Projectiles/DPIBHSallesCapivara.json",
+    "animacoes": { "Normal": [0], "Homing": [1] },
+    "animacaoInicial": "Normal",
+    "ordemDeDesenho": 90
   }
 })";
 
@@ -35,7 +33,7 @@ static bool Menciona(const std::vector<std::string>& problemas, const std::strin
 
 /// Monta um arquivo de um projetil so, com o corpo dado. Encurta os casos.
 static std::string Um(const std::string& corpo) {
-    return "{ \"salles\": { \"P\": " + corpo + " } }";
+    return "{ \"P\": " + corpo + " }";
 }
 
 // ---------------------------------------------------------------------------
@@ -45,10 +43,9 @@ static std::string Um(const std::string& corpo) {
 TEST_CASE("Projeteis: le uma entrada completa") {
     const auto r = LerProjeteis(kValido);
     CHECK(r.problemas.empty());
-    REQUIRE(r.conjuntos.count("salles") == 1);
-    REQUIRE(r.conjuntos.at("salles").count("Capivara") == 1);
+    REQUIRE(r.projeteis.count("Capivara") == 1);
 
-    const auto& p = r.conjuntos.at("salles").at("Capivara");
+    const auto& p = r.projeteis.at("Capivara");
     CHECK(p.sprite == "Teachers/Projectiles/DPIBHSallesCapivara.png");
     CHECK(p.dados  == "Teachers/Projectiles/DPIBHSallesCapivara.json");
     CHECK(p.animacaoInicial == "Normal");
@@ -65,7 +62,7 @@ TEST_CASE("Projeteis: os padroes sao os da classe, nao zeros") {
         "animacoes": { "Normal": [0] }
     })"));
     REQUIRE(r.problemas.empty());
-    const auto& p = r.conjuntos.at("salles").at("P");
+    const auto& p = r.projeteis.at("P");
     CHECK(p.escala == doctest::Approx(1.0f));
     CHECK(p.ordemDeDesenho == 100);
     CHECK(p.colisorDimensao == "largura");
@@ -81,7 +78,7 @@ TEST_CASE("Projeteis: as animacoes guardam a ordem dos quadros") {
         "animacoes": { "Vai": [0, 1, 2, 1] }
     })"));
     REQUIRE(r.problemas.empty());
-    const auto& anims = r.conjuntos.at("salles").at("P").animacoes;
+    const auto& anims = r.projeteis.at("P").animacoes;
     REQUIRE(anims.size() == 1);
     CHECK(anims[0].nome == "Vai");
     REQUIRE(anims[0].quadros.size() == 4);
@@ -91,28 +88,28 @@ TEST_CASE("Projeteis: as animacoes guardam a ordem dos quadros") {
     CHECK(anims[0].quadros[3] == 1);
 }
 
-TEST_CASE("Projeteis: dois conjuntos podem ter projeteis de mesmo nome") {
-    // E a razao de haver conjunto por chefe em vez de um mapa plano.
+TEST_CASE("Projeteis: a raiz e o mapa de projeteis do chefe, sem nivel a mais") {
+    // DOIS CHEFES PODEM TER UM PROJETIL "Normal" sem colidir, e quem garante
+    // isso agora e a PASTA: cada um le o proprio arquivo e nunca enxerga o do
+    // outro. Antes havia aqui dentro um nivel com o nome do chefe - a mesma
+    // informacao que a pasta, e livre para discordar dela.
     const auto r = LerProjeteis(R"({
-      "salles": { "Normal": { "sprite": "s.png", "dados": "s.json",
-                              "animacoes": { "A": [0] } } },
-      "julio":  { "Normal": { "sprite": "j.png", "dados": "j.json",
-                              "animacoes": { "A": [0] } } }
+      "Normal": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] } },
+      "Outro":  { "sprite": "o.png", "dados": "o.json", "animacoes": { "A": [0] } }
     })");
     CHECK(r.problemas.empty());
-    REQUIRE(r.conjuntos.size() == 2);
-    CHECK(r.conjuntos.at("salles").at("Normal").sprite == "s.png");
-    CHECK(r.conjuntos.at("julio").at("Normal").sprite  == "j.png");
+    REQUIRE(r.projeteis.size() == 2);
+    CHECK(r.projeteis.at("Normal").sprite == "s.png");
+    CHECK(r.projeteis.at("Outro").sprite  == "o.png");
 }
 
 TEST_CASE("Projeteis: aceita comentario, como os outros arquivos de dados") {
     const auto r = LerProjeteis(R"({
       // por que este projetil e assim
-      "salles": { "P": { "sprite": "a.png", "dados": "a.json",
-                         "animacoes": { "A": [0] } } }
+      "P": { "sprite": "a.png", "dados": "a.json", "animacoes": { "A": [0] } }
     })");
     CHECK(r.problemas.empty());
-    CHECK(r.conjuntos.at("salles").count("P") == 1);
+    CHECK(r.projeteis.count("P") == 1);
 }
 
 // ---------------------------------------------------------------------------
@@ -128,7 +125,7 @@ TEST_CASE("Projeteis: animacaoInicial omitida vira a primeira animacao") {
         "animacoes": { "Ba": [1], "Aa": [0] }
     })"));
     REQUIRE(r.problemas.empty());
-    const auto& p = r.conjuntos.at("salles").at("P");
+    const auto& p = r.projeteis.at("P");
     CHECK_FALSE(p.animacaoInicial.empty());
     // "Primeira" e a primeira da lista lida, e o nlohmann ordena as chaves de um
     // objeto por nome - "Aa" antes de "Ba".
@@ -145,8 +142,8 @@ TEST_CASE("Projeteis: animacaoInicial que nao existe e relatada e corrigida") {
     CHECK(Menciona(r.problemas, "Noraml"));
     // Corrigida, e nao descartada: um erro de digitacao aqui nao deve apagar o
     // projetil inteiro do chefe.
-    REQUIRE(r.conjuntos.at("salles").count("P") == 1);
-    CHECK(r.conjuntos.at("salles").at("P").animacaoInicial == "Normal");
+    REQUIRE(r.projeteis.count("P") == 1);
+    CHECK(r.projeteis.at("P").animacaoInicial == "Normal");
 }
 
 // ---------------------------------------------------------------------------
@@ -156,13 +153,13 @@ TEST_CASE("Projeteis: animacaoInicial que nao existe e relatada e corrigida") {
 TEST_CASE("Projeteis: sem sprite a entrada cai") {
     const auto r = LerProjeteis(Um(R"({ "dados": "a.json", "animacoes": { "A": [0] } })"));
     CHECK(Menciona(r.problemas, "sprite"));
-    CHECK(r.conjuntos.count("salles") == 0);
+    CHECK(r.projeteis.empty());
 }
 
 TEST_CASE("Projeteis: sem dados a entrada cai") {
     const auto r = LerProjeteis(Um(R"({ "sprite": "a.png", "animacoes": { "A": [0] } })"));
     CHECK(Menciona(r.problemas, "dados"));
-    CHECK(r.conjuntos.count("salles") == 0);
+    CHECK(r.projeteis.empty());
 }
 
 TEST_CASE("Projeteis: sem animacao a entrada cai") {
@@ -170,7 +167,7 @@ TEST_CASE("Projeteis: sem animacao a entrada cai") {
     // pior que um projetil ausente.
     const auto r = LerProjeteis(Um(R"({ "sprite": "a.png", "dados": "a.json" })"));
     CHECK(Menciona(r.problemas, "animacoes"));
-    CHECK(r.conjuntos.count("salles") == 0);
+    CHECK(r.projeteis.empty());
 }
 
 TEST_CASE("Projeteis: animacao de lista vazia nao conta como animacao") {
@@ -179,7 +176,7 @@ TEST_CASE("Projeteis: animacao de lista vazia nao conta como animacao") {
         "animacoes": { "A": [] }
     })"));
     CHECK(Menciona(r.problemas, "vazia"));
-    CHECK(r.conjuntos.count("salles") == 0);
+    CHECK(r.projeteis.empty());
 }
 
 TEST_CASE("Projeteis: quadro negativo derruba a animacao") {
@@ -188,7 +185,7 @@ TEST_CASE("Projeteis: quadro negativo derruba a animacao") {
         "animacoes": { "A": [0, -1] }
     })"));
     CHECK(Menciona(r.problemas, "negativo"));
-    CHECK(r.conjuntos.count("salles") == 0);
+    CHECK(r.projeteis.empty());
 }
 
 TEST_CASE("Projeteis: quadro fracionario e recusado") {
@@ -198,20 +195,17 @@ TEST_CASE("Projeteis: quadro fracionario e recusado") {
         "animacoes": { "A": [0, 1.5] }
     })"));
     CHECK(Menciona(r.problemas, "inteiros"));
-    CHECK(r.conjuntos.count("salles") == 0);
+    CHECK(r.projeteis.empty());
 }
 
 TEST_CASE("Projeteis: uma entrada ruim nao leva as boas do mesmo chefe") {
     const auto r = LerProjeteis(R"({
-      "salles": {
-        "Bom":  { "sprite": "a.png", "dados": "a.json", "animacoes": { "A": [0] } },
-        "Ruim": { "sprite": "b.png", "animacoes": { "A": [0] } }
-      }
+      "Bom":  { "sprite": "a.png", "dados": "a.json", "animacoes": { "A": [0] } },
+      "Ruim": { "sprite": "b.png", "animacoes": { "A": [0] } }
     })");
     CHECK_FALSE(r.problemas.empty());
-    REQUIRE(r.conjuntos.count("salles") == 1);
-    CHECK(r.conjuntos.at("salles").count("Bom") == 1);
-    CHECK(r.conjuntos.at("salles").count("Ruim") == 0);
+    CHECK(r.projeteis.count("Bom") == 1);
+    CHECK(r.projeteis.count("Ruim") == 0);
 }
 
 // ---------------------------------------------------------------------------
@@ -225,8 +219,8 @@ TEST_CASE("Projeteis: escala zero ou negativa volta para 1") {
         "animacoes": { "A": [0] }, "escala": 0
     })"));
     CHECK(Menciona(r.problemas, "escala"));
-    REQUIRE(r.conjuntos.at("salles").count("P") == 1);
-    CHECK(r.conjuntos.at("salles").at("P").escala == doctest::Approx(1.0f));
+    REQUIRE(r.projeteis.count("P") == 1);
+    CHECK(r.projeteis.at("P").escala == doctest::Approx(1.0f));
 }
 
 TEST_CASE("Projeteis: divisor zero volta para 2 em vez de dividir por zero") {
@@ -235,7 +229,7 @@ TEST_CASE("Projeteis: divisor zero volta para 2 em vez de dividir por zero") {
         "animacoes": { "A": [0] }, "colisorDivisor": 0
     })"));
     CHECK(Menciona(r.problemas, "colisorDivisor"));
-    CHECK(r.conjuntos.at("salles").at("P").colisorDivisor == doctest::Approx(2.0f));
+    CHECK(r.projeteis.at("P").colisorDivisor == doctest::Approx(2.0f));
 }
 
 TEST_CASE("Projeteis: dimensao desconhecida volta para largura") {
@@ -244,7 +238,7 @@ TEST_CASE("Projeteis: dimensao desconhecida volta para largura") {
         "animacoes": { "A": [0] }, "colisorDimensao": "diagonal"
     })"));
     CHECK(Menciona(r.problemas, "diagonal"));
-    CHECK(r.conjuntos.at("salles").at("P").colisorDimensao == "largura");
+    CHECK(r.projeteis.at("P").colisorDimensao == "largura");
 }
 
 TEST_CASE("Projeteis: altura e uma dimensao valida") {
@@ -255,7 +249,7 @@ TEST_CASE("Projeteis: altura e uma dimensao valida") {
         "animacoes": { "A": [0] }, "colisorDimensao": "altura"
     })"));
     CHECK(r.problemas.empty());
-    CHECK(r.conjuntos.at("salles").at("P").colisorDimensao == "altura");
+    CHECK(r.projeteis.at("P").colisorDimensao == "altura");
     CHECK(DimensaoDeColisorExiste("altura"));
     CHECK(DimensaoDeColisorExiste("largura"));
     CHECK_FALSE(DimensaoDeColisorExiste("Largura"));
@@ -267,7 +261,7 @@ TEST_CASE("Projeteis: a margem de saida tem como padrao a regra geral do jogo") 
         "sprite": "a.png", "dados": "a.json", "animacoes": { "A": [0] }
     })"));
     REQUIRE(r.problemas.empty());
-    const auto& p = r.conjuntos.at("salles").at("P");
+    const auto& p = r.projeteis.at("P");
     CHECK(p.margemEmSprites == doctest::Approx(1.0f));
     CHECK(p.margemDivisorDeTela == doctest::Approx(12.0f));
 }
@@ -281,7 +275,7 @@ TEST_CASE("Projeteis: divisor de tela ZERO e valido, nao um erro") {
         "margemEmSprites": 2, "margemDivisorDeTela": 0
     })"));
     CHECK(r.problemas.empty());
-    const auto& p = r.conjuntos.at("salles").at("P");
+    const auto& p = r.projeteis.at("P");
     CHECK(p.margemEmSprites == doctest::Approx(2.0f));
     CHECK(p.margemDivisorDeTela == doctest::Approx(0.0f));
 }
@@ -295,7 +289,7 @@ TEST_CASE("Projeteis: margem negativa e recusada") {
     })"));
     CHECK(Menciona(r.problemas, "margemEmSprites"));
     CHECK(Menciona(r.problemas, "margemDivisorDeTela"));
-    const auto& p = r.conjuntos.at("salles").at("P");
+    const auto& p = r.projeteis.at("P");
     CHECK(p.margemEmSprites == doctest::Approx(1.0f));
     CHECK(p.margemDivisorDeTela == doctest::Approx(12.0f));
 }
@@ -306,7 +300,7 @@ TEST_CASE("Projeteis: posicionarNoDono pode ser desligado") {
         "animacoes": { "A": [0] }, "posicionarNoDono": false
     })"));
     CHECK(r.problemas.empty());
-    CHECK(r.conjuntos.at("salles").at("P").posicionarNoDono == false);
+    CHECK(r.projeteis.at("P").posicionarNoDono == false);
 }
 
 // ---------------------------------------------------------------------------
@@ -316,55 +310,54 @@ TEST_CASE("Projeteis: posicionarNoDono pode ser desligado") {
 TEST_CASE("Projeteis: texto que nao e JSON e relatado, nao lancado") {
     const auto r = LerProjeteis("{ isto nao fecha");
     CHECK_FALSE(r.problemas.empty());
-    CHECK(r.conjuntos.empty());
+    CHECK(r.projeteis.empty());
 }
 
 TEST_CASE("Projeteis: arquivo vazio nao quebra") {
-    CHECK(LerProjeteis("").conjuntos.empty());
-    CHECK(LerProjeteis("{}").conjuntos.empty());
+    CHECK(LerProjeteis("").projeteis.empty());
+    CHECK(LerProjeteis("{}").projeteis.empty());
 }
 
 TEST_CASE("Projeteis: raiz que nao e objeto e relatada") {
     const auto r = LerProjeteis("[1, 2, 3]");
     CHECK(Menciona(r.problemas, "raiz"));
-    CHECK(r.conjuntos.empty());
+    CHECK(r.projeteis.empty());
 }
 
-TEST_CASE("Projeteis: conjunto que nao e objeto e relatado") {
-    const auto r = LerProjeteis(R"({ "salles": 7 })");
-    CHECK(Menciona(r.problemas, "salles"));
-    CHECK(r.conjuntos.empty());
+TEST_CASE("Projeteis: entrada que nao e objeto e relatada") {
+    const auto r = LerProjeteis(R"({ "P": 7 })");
+    CHECK(Menciona(r.problemas, "P"));
+    CHECK(r.projeteis.empty());
 }
 
-TEST_CASE("Projeteis: conjunto que ficou sem projetil util nao entra no mapa") {
-    // Melhor nao existir que existir vazio: a ponte distingue "o chefe nao tem
-    // conjunto" de "o conjunto tem zero projeteis" e as duas mensagens de erro
-    // seriam a mesma.
-    const auto r = LerProjeteis(R"({ "salles": { "P": { "sprite": "a.png" } } })");
+TEST_CASE("Projeteis: arquivo sem nenhum projetil util sai vazio, e nao inventado") {
+    // Quem diz que um chefe sem projetil e um problema e a PONTE, que sabe de
+    // quem era o arquivo. Aqui so se exige nao sobrar lixo no mapa.
+    const auto r = LerProjeteis(R"({ "P": { "sprite": "a.png" } })");
     CHECK_FALSE(r.problemas.empty());
-    CHECK(r.conjuntos.count("salles") == 0);
+    CHECK(r.projeteis.empty());
 }
 
 TEST_CASE("Projeteis: por padrao o sprite NAO gira com a velocidade") {
 
     // Girar so faz sentido para arte que tem frente. A capivara do Salles e os
     // baloes do Andre girariam a toa, entao quem nao pede fica parado.
-    const auto r = LerProjeteis(R"({ "salles": { "P": {
+    const auto r = LerProjeteis(R"({ "P": {
         "sprite": "a.png", "dados": "a.json", "animacoes": { "A": [0] }
-    } } })");
+    } })");
 
-    REQUIRE(r.conjuntos.count("salles") == 1);
-    CHECK_FALSE(r.conjuntos.at("salles").at("P").rotacionarComAVelocidade);
+    REQUIRE(r.projeteis.count("P") == 1);
+    CHECK_FALSE(r.projeteis.at("P").rotacionarComAVelocidade);
 }
 
 TEST_CASE("Projeteis: rotacionarComAVelocidade pode ser ligado") {
 
-    const auto r = LerProjeteis(R"({ "salles": { "P": {
+    const auto r = LerProjeteis(R"({ "P": {
         "sprite": "a.png", "dados": "a.json", "animacoes": { "A": [0] },
         "rotacionarComAVelocidade": true
-    } } })");
+    } })");
 
-    REQUIRE(r.conjuntos.count("salles") == 1);
-    CHECK(r.conjuntos.at("salles").at("P").rotacionarComAVelocidade);
+    REQUIRE(r.projeteis.count("P") == 1);
+    CHECK(r.projeteis.at("P").rotacionarComAVelocidade);
     CHECK(r.problemas.empty());
 }

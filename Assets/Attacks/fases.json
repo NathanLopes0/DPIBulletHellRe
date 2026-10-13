@@ -609,8 +609,6 @@
       ]
     },
 
-    // FASE FINAL - CROSS JOIN: o produto cartesiano.
-
     "StateFinal": {
       "duracao": 17,
       "proximo": "StateOne",
@@ -637,6 +635,20 @@
           "consulta": { "eixo": "Coluna", "colunas": 5, "indice": 3, "aviso": 1.2 },
           "regras": "thiago_juncao" }
       ]
+    }
+  },
+  "vladimir": {
+    "StateOne": {
+
+    },
+    "StateTwo": {
+
+    },
+    "StateThree": {
+
+    },
+    "StateFinal": {
+
     }
   }
 }

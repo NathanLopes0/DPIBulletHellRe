@@ -43,6 +43,7 @@
 #include "../Source/Attacks/PathShapes.h"
 #include "../Source/Attacks/RegrasDeAtaque.h"
 #include "../Source/Attacks/ProjeteisDeChefe.h"
+#include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
 #include "../Source/Navegacao.h"
 #include "../Source/Personagens.h"
@@ -76,7 +77,32 @@ namespace {
     /// arquivo. Espelha FormaPeloNome em RegrasDeAtaqueArquivo.cpp.
     const std::set<std::string> kFormasEmCodigo = {"Reta", ""};
 
-    const std::vector<std::string> kChefes = {"salles", "ricardo", "andre", "julio"};
+    /**
+     * OS CHEFES SAO OS QUE materias.json DIZ, e nao uma lista escrita aqui.
+     *
+     * Era uma lista a mao - e ela ficou para tras. O Thiago entrou no curso e
+     * NUNCA foi conferido por nenhum dos sete testes que a usavam: transicoes,
+     * quatro fases, conjunto de projeteis, animacoes. Trinta e duas verificacoes
+     * deixavam de rodar, e nada dizia nada.
+     *
+     * Tirar o nome do chefe de dentro dos arquivos de ataque deixou materias.json
+     * como a unica fonte de quem existe - entao e dali que a lista vem.
+     */
+    const std::vector<std::string>& Chefes() {
+        static const std::vector<std::string> chefes = [] {
+            std::set<std::string> nomes;
+            for (const auto& m : Materias::LerMaterias(LerArquivo("materias.json")).materias) {
+                if (!m.chefe.empty()) nomes.insert(m.chefe);
+            }
+            return std::vector<std::string>(nomes.begin(), nomes.end());
+        }();
+        return chefes;
+    }
+
+    /// Os projeteis de um chefe, da pasta dele.
+    ProjeteisLidos ProjeteisDoChefe(const std::string& chefe) {
+        return LerProjeteis(LerArquivo(PastaDoChefe::Arquivo(chefe, PastaDoChefe::kProjeteis)));
+    }
 
 }
 
@@ -109,7 +135,7 @@ TEST_CASE("Dados: os quatro chefes existem e suas transicoes fecham") {
     // Sem a reserva em C++, um conjunto recusado aqui e um chefe parado em tela.
     const auto r = LerFases(LerArquivo("Attacks/fases.json"));
 
-    for (const auto& chefe : kChefes) {
+    for (const auto& chefe : Chefes()) {
         CAPTURE(chefe);
         REQUIRE_MESSAGE(r.conjuntos.count(chefe) == 1,
                         "falta o conjunto \"" << chefe << "\" em fases.json");
@@ -123,7 +149,7 @@ TEST_CASE("Dados: todo chefe tem as quatro fases") {
     // jogo: os quatro chefes atuais tem StateOne, Two, Three e Final, e perder
     // uma delas por um recorte errado seria dificil de notar jogando.
     const auto r = LerFases(LerArquivo("Attacks/fases.json"));
-    for (const auto& chefe : kChefes) {
+    for (const auto& chefe : Chefes()) {
         CAPTURE(chefe);
         REQUIRE(r.conjuntos.count(chefe) == 1);
         std::set<std::string> nomes;
@@ -313,31 +339,31 @@ TEST_CASE("Dados: um cooldown derivado do ritmo tem mesmo um ritmo para derivar"
 // quadro que a folha nao tem desenha o quadro errado, ou nada.
 // ---------------------------------------------------------------------------
 
-TEST_CASE("Dados: Assets/Attacks/projeteis.json nao tem problema nenhum") {
-    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
-    CHECK_MESSAGE(r.problemas.empty(), "problemas em projeteis.json:" << Juntar(r.problemas));
-    CHECK(r.conjuntos.size() > 0);
-}
-
-TEST_CASE("Dados: todo chefe tem um conjunto de projeteis") {
-    // Sem conjunto, o chefe monta e anda, mas nenhum ataque encontra a fabrica
-    // que pede: ele fica inofensivo, o que em jogo parece bug e nao erro de dados.
-    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
-    for (const auto& chefe : kChefes) {
+TEST_CASE("Dados: o projeteis.json de cada chefe nao tem problema nenhum") {
+    for (const auto& chefe : Chefes()) {
         CAPTURE(chefe);
-        CHECK(r.conjuntos.count(chefe) == 1);
+        const auto r = ProjeteisDoChefe(chefe);
+        CHECK_MESSAGE(r.problemas.empty(), "problemas em " << chefe << "/projeteis.json:"
+                                                           << Juntar(r.problemas));
     }
 }
 
-TEST_CASE("Dados: todo projetil citado em fases.json existe em projeteis.json") {
+TEST_CASE("Dados: todo chefe tem projeteis na pasta dele") {
+    // Sem projetil, o chefe monta e anda, mas nenhum ataque encontra a fabrica
+    // que pede: ele fica inofensivo, o que em jogo parece bug e nao erro de dados.
+    for (const auto& chefe : Chefes()) {
+        CAPTURE(chefe);
+        CHECK_FALSE(ProjeteisDoChefe(chefe).projeteis.empty());
+    }
+}
+
+TEST_CASE("Dados: todo projetil citado em fases.json existe na pasta do chefe") {
     const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
-    const auto projeteis = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
 
-    for (const auto& chefe : kChefes) {
+    for (const auto& chefe : Chefes()) {
         REQUIRE(fases.conjuntos.count(chefe) == 1);
-        REQUIRE(projeteis.conjuntos.count(chefe) == 1);
 
-        const auto& disponiveis = projeteis.conjuntos.at(chefe);
+        const auto& disponiveis = ProjeteisDoChefe(chefe).projeteis;
 
         for (const auto& f : fases.conjuntos.at(chefe)) {
             for (const auto& a : f.ataques) {
@@ -354,11 +380,9 @@ TEST_CASE("Dados: o sprite e o atlas de todo projetil existem no disco") {
     // Este teste pega o erro que passou anos escondido na fabrica da capivara:
     // ela declarava "Capivara.json", arquivo que nunca existiu. Ninguem notou
     // porque o codigo repetia o caminho certo na mao e nunca lia o campo errado.
-    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
-
-    for (const auto& conjunto : r.conjuntos) {
-        for (const auto& entrada : conjunto.second) {
-            const std::string onde = conjunto.first + "/" + entrada.first;
+    for (const auto& chefe : Chefes()) {
+        for (const auto& entrada : ProjeteisDoChefe(chefe).projeteis) {
+            const std::string onde = chefe + "/" + entrada.first;
             CAPTURE(onde);
 
             const std::string png = std::string(DPI_ASSETS_DIR) + "/" + entrada.second.sprite;
@@ -376,12 +400,10 @@ TEST_CASE("Dados: nenhuma animacao cita um quadro que a folha nao tem") {
     // O DrawAnimatedComponent nao reclama de indice fora da lista de quadros; ele
     // desenha o que achar. Entao um 12 numa folha de 12 quadros (indices 0 a 11) e
     // exatamente o tipo de erro que so aparece em jogo, e so as vezes.
-    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
+    for (const auto& chefe : Chefes()) {
+        for (const auto& entrada : ProjeteisDoChefe(chefe).projeteis) {
 
-    for (const auto& conjunto : r.conjuntos) {
-        for (const auto& entrada : conjunto.second) {
-
-            const std::string onde = conjunto.first + "/" + entrada.first;
+            const std::string onde = chefe + "/" + entrada.first;
             CAPTURE(onde);
 
             const auto atlas = LerJsonDeDados(LerArquivo(entrada.second.dados));
@@ -416,8 +438,6 @@ TEST_CASE("Dados: nenhuma animacao cita um quadro que a folha nao tem") {
 // ---------------------------------------------------------------------------
 
 TEST_CASE("Dados: os projeteis mantem exatamente o que as fabricas em C++ tinham") {
-
-    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
 
     struct Esperado {
         const char* conjunto;
@@ -462,10 +482,10 @@ TEST_CASE("Dados: os projeteis mantem exatamente o que as fabricas em C++ tinham
         CAPTURE(e.conjunto);
         CAPTURE(e.nome);
 
-        REQUIRE(r.conjuntos.count(e.conjunto) == 1);
-        REQUIRE(r.conjuntos.at(e.conjunto).count(e.nome) == 1);
+        const auto doChefe = ProjeteisDoChefe(e.conjunto);
+        REQUIRE(doChefe.projeteis.count(e.nome) == 1);
 
-        const auto& p = r.conjuntos.at(e.conjunto).at(e.nome);
+        const auto& p = doChefe.projeteis.at(e.nome);
         CHECK(p.sprite == e.sprite);
         CHECK(p.escala == doctest::Approx(e.escala));
         CHECK(p.ordemDeDesenho == e.ordem);
@@ -482,8 +502,6 @@ TEST_CASE("Dados: os projeteis mantem exatamente o que as fabricas em C++ tinham
 TEST_CASE("Dados: as animacoes dos projeteis mantem os quadros exatos") {
     // Separado do caso acima porque a comparacao e de listas e a mensagem de falha
     // precisa dizer QUAL quadro mudou.
-    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
-
     struct AnimEsperada {
         const char* conjunto;
         const char* projetil;
@@ -513,10 +531,10 @@ TEST_CASE("Dados: as animacoes dos projeteis mantem os quadros exatos") {
         CAPTURE(e.projetil);
         CAPTURE(e.animacao);
 
-        REQUIRE(r.conjuntos.count(e.conjunto) == 1);
-        REQUIRE(r.conjuntos.at(e.conjunto).count(e.projetil) == 1);
+        const auto doChefe = ProjeteisDoChefe(e.conjunto);
+        REQUIRE(doChefe.projeteis.count(e.projetil) == 1);
 
-        const auto& anims = r.conjuntos.at(e.conjunto).at(e.projetil).animacoes;
+        const auto& anims = doChefe.projeteis.at(e.projetil).animacoes;
 
         const AnimacaoDeProjetil* achada = nullptr;
         for (const auto& a : anims) {
@@ -554,7 +572,7 @@ TEST_CASE("Dados: num WaveAttack, o atraso do caminho supera o despertar do ulti
 
     int combinacoesConferidas = 0;
 
-    for (const auto& chefe : kChefes) {
+    for (const auto& chefe : Chefes()) {
         REQUIRE(fases.conjuntos.count(chefe) == 1);
 
         for (const auto& f : fases.conjuntos.at(chefe)) {
@@ -614,19 +632,19 @@ TEST_CASE("Dados: toda animacao pedida por uma regra existe no projetil que o at
 
     const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
     const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
-    const auto projeteis = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
 
     int pedidosConferidos = 0;
 
-    for (const auto& chefe : kChefes) {
+    for (const auto& chefe : Chefes()) {
         REQUIRE(fases.conjuntos.count(chefe) == 1);
-        REQUIRE(projeteis.conjuntos.count(chefe) == 1);
+
+        const auto doChefe = ProjeteisDoChefe(chefe);
 
         for (const auto& f : fases.conjuntos.at(chefe)) {
             for (const auto& a : f.ataques) {
 
-                const auto projetil = projeteis.conjuntos.at(chefe).find(a.projetil);
-                if (projetil == projeteis.conjuntos.at(chefe).end()) continue;  // outro teste cobre
+                const auto projetil = doChefe.projeteis.find(a.projetil);
+                if (projetil == doChefe.projeteis.end()) continue;   // outro teste cobre
 
                 std::set<std::string> tem;
                 for (const auto& anim : projetil->second.animacoes) tem.insert(anim.nome);
@@ -770,7 +788,7 @@ TEST_CASE("Dados: um ataque que usa familia dispara exatamente o tamanho dela") 
 
     int conferidos = 0;
 
-    for (const auto& chefe : kChefes) {
+    for (const auto& chefe : Chefes()) {
         REQUIRE(fases.conjuntos.count(chefe) == 1);
 
         for (const auto& f : fases.conjuntos.at(chefe)) {
@@ -1062,10 +1080,8 @@ TEST_CASE("Dados: as listas do Salles giram com a direcao do movimento") {
     // direita, uma corrente que desce na diagonal nao le como lista encadeada -
     // os nos ficam soltos. Travar isto aqui evita que alguem desligue o campo
     // sem perceber o que ele sustenta.
-    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
-
-    REQUIRE(r.conjuntos.count("salles") == 1);
-    const auto& salles = r.conjuntos.at("salles");
+    const auto r = ProjeteisDoChefe("salles");
+    const auto& salles = r.projeteis;
 
     for (const std::string& nome : {"Estruturas", "Duplamente"}) {
         REQUIRE_MESSAGE(salles.count(nome) == 1, "falta o projetil \"" << nome << "\"");

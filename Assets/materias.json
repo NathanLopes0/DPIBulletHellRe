@@ -98,6 +98,7 @@
       "codigo": "INF331", "nome": "INF 331",
       "nomeCompleto": "Linguagens Formais e Autômatos", "professor": "Vladimir",
       "coluna": 2,
+      "chefe": "vladimir",
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
 
