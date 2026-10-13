@@ -174,10 +174,18 @@ struct DescricaoDeFase {
 };
 
 /**
- * @brief Conjuntos de fases lidos de um arquivo, um por chefe.
+ * @brief AS FASES DE UM CHEFE, lidas do arquivo dele.
+ *
+ * Era um mapa de conjuntos, com o nome do chefe por fora. Esse nome saiu junto
+ * com o arquivo unico: ele passou a estar na PASTA
+ * (Assets/Attacks/<chefe>/fases.json), e mante-lo aqui dentro criaria duas
+ * versoes da mesma verdade, livres para discordar.
+ *
+ * NA ORDEM DO ARQUIVO, que nao e a ordem em que as fases acontecem - quem
+ * encadeia e o campo "proximo" de cada uma. Ver ValidarTransicoes.
  */
 struct FasesLidas {
-    std::map<std::string, std::vector<DescricaoDeFase>> conjuntos;
+    std::vector<DescricaoDeFase> fases;
     std::vector<std::string> problemas;
 };
 
@@ -193,23 +201,20 @@ bool NomeDeFaseExiste(const std::string& nome);
 /**
  * @brief Le fases a partir do TEXTO de um arquivo JSON. Funcao PURA.
  *
- * Formato:
+ * Formato (o arquivo de UM chefe - a pasta diz qual):
  * {
- *   "ricardo": {
- *     "StateOne": {
- *       "duracao": 17, "proximo": "StateTwo",
- *       "movimento": { "tipo": "RandomWander", "a": 4, "b": 100 },
- *       "ataques": [
- *         { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
- *           "projeteis": 36, "velocidade": 180, "cooldown": 2.4 }
- *       ]
- *     }
+ *   "StateOne": {
+ *     "duracao": 17, "proximo": "StateTwo",
+ *     "movimento": { "tipo": "RandomWander", "a": 4, "b": 100 },
+ *     "ataques": [
+ *       { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
+ *         "projeteis": 36, "velocidade": 180, "cooldown": 2.4 }
+ *     ]
  *   }
  * }
  *
  * Um ataque invalido e descartado sem invalidar a fase; uma fase invalida e
- * descartada sem invalidar o conjunto. Cada problema diz qual conjunto, qual
- * fase e qual ataque.
+ * descartada sem invalidar as outras. Cada problema diz qual fase e qual ataque.
  */
 FasesLidas LerFases(const std::string& textoJson);
 

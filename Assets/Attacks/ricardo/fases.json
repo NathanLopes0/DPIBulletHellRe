@@ -1,0 +1,104 @@
+{
+  // ==========================================================================
+  // AS FASES DO RICARDO
+  //
+  // UMA PASTA POR CHEFE: Assets/Attacks/ricardo/. A fabrica dele pede as fases
+  // pelo nome da pasta:
+  //     ConfigurarFasesDeArquivo(boss, fsm, "ricardo")
+  //
+  // OS NOMES DE FASE NAO SAO LIVRES. A maquina de estados procura os estados
+  // por TEXTO, e so estes quatro existem:
+  //     StateOne, StateTwo, StateThree, StateFinal
+  // Um nome inventado e recusado na leitura, porque a fase existiria no arquivo
+  // sem nunca ser alcancada.
+  //
+  // StateFinal E OBRIGATORIO, mesmo num chefe de tres fases. Se a nota ficar
+  // entre 40 e 59 ao fim da terceira fase, a FSM vai para StateFinal; sem o
+  // estado, ela apenas registra um erro no log e O CHEFE CONGELA - sem travar o
+  // jogo e sem avisar em tela. Isso ja custou depuracao uma vez.
+  //
+  // "proximo" vazio ou ausente significa "a batalha e decidida ao fim desta
+  // fase" (ver BossAttackState), e nao "fim do arquivo".
+  //
+  // OS CAMPOS de um ataque e do movimento estao documentados em
+  // Documentacao/arquivos-de-dados.md. Dois merecem lembrete aqui:
+  //
+  //   CAMPO OMITIDO = PADRAO DO MOTOR. A ponte so escreve no AttackParams o que
+  //   este arquivo disser; nao ha valor "zero por omissao" nenhum.
+  //
+  //   anguloCentral pode ser SOBRESCRITO pelo chefe em tempo de execucao, no
+  //   CustomizeAttackParams dele - e o unico pedaco do balanceamento que ainda
+  //   vive em C++. Onde isso acontece esta anotado na fase.
+  // ==========================================================================
+// ==========================================================================
+// RICARDO - INF 250 (fabrica de projeteis: "Arduino")
+//
+// O chefe do anel. As tres fases sao o MESMO anel de CircleSpreadAttack com
+// densidade e comportamento crescentes, e a diferenca entre elas esta toda nas
+// regras dos projeteis.
+//
+// Ricardo NAO sobrescreve nada em CustomizeAttackParams, entao todo o
+// balanceamento dele esta neste arquivo. CircleSpreadAttack tambem ignora
+// angulo, anguloCentral e intervalo - o anel e sempre 360 graus dividido pela
+// quantidade - por isso nenhum dos tres aparece aqui.
+// ==========================================================================
+
+  // Anel denso e SEM regra nenhuma: 36 projeteis retos. E a fase que ensina o
+  // jogador a ler espacamento, antes de qualquer bala comecar a corrigir rota.
+  "StateOne": {
+    "duracao": 17,
+    "proximo": "StateTwo",
+    "movimento": { "tipo": "RandomWander", "a": 4.0, "b": 100 },
+    "ataques": [
+      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
+        "projeteis": 36, "velocidade": 180,
+        "cooldown": 2.4 }
+    ]
+  },
+
+  // Mesmo anel, agora teleguiado: desacelera e depois vira no jogador.
+  "StateTwo": {
+    "duracao": 17,
+    "proximo": "StateThree",
+    "movimento": { "tipo": "RandomWander", "a": 3.0, "b": 160 },
+    "ataques": [
+      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
+        "projeteis": 36, "velocidade": 180,
+        "cooldown": 2.4,
+        "regras": "ricardo_fase2" }
+    ]
+  },
+
+  // Anel de 18 - METADE da fase 2 - mas so os pares viram. Menos balas e mais
+  // decisao: o jogador escolhe por onde passar.
+  "StateThree": {
+    "duracao": 17,
+    "proximo": "",
+    "movimento": { "tipo": "RandomWander", "a": 2.0, "b": 180 },
+    "ataques": [
+      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
+        "projeteis": 18, "velocidade": 180,
+        "cooldown": 2.4,
+        "regras": "ricardo_fase3" }
+    ]
+  },
+
+  // Repescagem: um anel lento e denso sem regra, mais um anel esparso e rapido
+  // que persegue. Os cooldowns diferentes (1.4 e 2.8) fazem os dois aneis
+  // desencontrarem em vez de sairem sempre juntos.
+  "StateFinal": {
+    "duracao": 17,
+    "proximo": "StateOne",
+    "movimento": { "tipo": "GoToCenter" },
+    "ataques": [
+      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
+        "projeteis": 18, "velocidade": 120,
+        "cooldown": 1.4 },
+
+      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
+        "projeteis": 9, "velocidade": 240,
+        "cooldown": 1.8,
+        "regras": "ricardo_final_teleguiado" }
+    ]
+  }
+}

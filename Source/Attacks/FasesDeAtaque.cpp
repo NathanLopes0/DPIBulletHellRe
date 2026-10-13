@@ -393,28 +393,16 @@ FasesLidas LerFases(const std::string& textoJson) {
         return saida;
     }
     if (!raiz.is_object()) {
-        saida.problemas.emplace_back("o arquivo deveria ser um objeto com um conjunto de fases por chefe");
+        saida.problemas.emplace_back("o arquivo deveria ser um objeto com uma fase por chave");
         return saida;
     }
 
-    for (auto itConj = raiz.begin(); itConj != raiz.end(); ++itConj) {
-
-        const std::string& nomeConj = itConj.key();
-        const auto& corpoConj = itConj.value();
-
-        if (!corpoConj.is_object()) {
-            saida.problemas.emplace_back("conjunto \"" + nomeConj +
-                                         "\": deveria ser um objeto com uma fase por chave");
-            continue;
-        }
-
-        std::vector<DescricaoDeFase> fases;
-
-        for (auto itFase = corpoConj.begin(); itFase != corpoConj.end(); ++itFase) {
+    {
+        for (auto itFase = raiz.begin(); itFase != raiz.end(); ++itFase) {
 
             const std::string& nomeFase = itFase.key();
             const auto& corpoFase = itFase.value();
-            const std::string onde = "conjunto \"" + nomeConj + "\", fase \"" + nomeFase + "\": ";
+            const std::string onde = "fase \"" + nomeFase + "\": ";
 
             if (!corpoFase.is_object()) {
                 saida.problemas.emplace_back(onde + "deveria ser um objeto");
@@ -462,10 +450,8 @@ FasesLidas LerFases(const std::string& textoJson) {
                 continue;
             }
 
-            fases.push_back(std::move(f));
+            saida.fases.push_back(std::move(f));
         }
-
-        saida.conjuntos.emplace(nomeConj, std::move(fases));
     }
 
     return saida;

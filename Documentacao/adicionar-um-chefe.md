@@ -92,12 +92,13 @@ a divisão: **uma** `motion` por projétil (ela decide a direção) e quantos
 > parado nesse momento, não há direção para capturar e ele sai para a direita.
 > Por isso os ataques que esperam antes de disparar não levam `motion` nenhuma.
 
-## 4. As fases, em `Assets/Attacks/fases.json`
+## 4. As fases, em `Assets/Attacks/<professor>/fases.json`
 
-Um conjunto com o nome do professor e **quatro** fases, com estes nomes exatos:
+Na mesma pasta do passo 2, um `fases.json` com **quatro** fases, com estes nomes
+exatos:
 
 ```json
-"thiago": {
+{
   "StateOne":   { "duracao": 17, "proximo": "StateTwo",   "movimento": {...}, "ataques": [...] },
   "StateTwo":   { "duracao": 17, "proximo": "StateThree", "movimento": {...}, "ataques": [...] },
   "StateThree": { "duracao": 17, "proximo": "",           "movimento": {...}, "ataques": [...] },

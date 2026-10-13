@@ -1,1 +1,1 @@
-Assets/Attacks/projeteis.json
+Assets/Attacks/fases.json

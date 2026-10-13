@@ -163,7 +163,7 @@ Source/          o jogo
   Scenes/          menu, identificação, criação de personagem, seleção, batalha
   Components/      desenho, colisão, física, máquina de estados
 Assets/          sprites, fontes, sons e os JSON que descrevem o jogo
-  Attacks/         fases.json, regras.json e uma pasta por professor com
+  Attacks/         regras.json e uma pasta por professor com as fases e
                    os projeteis dele
   materias.json    o curso inteiro
   personagens.json o catálogo de peças do personagem

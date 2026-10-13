@@ -99,6 +99,11 @@ namespace {
         return chefes;
     }
 
+    /// As fases de um chefe, da pasta dele.
+    FasesLidas FasesDoChefe(const std::string& chefe) {
+        return LerFases(LerArquivo(PastaDoChefe::Arquivo(chefe, PastaDoChefe::kFases)));
+    }
+
     /// Os projeteis de um chefe, da pasta dele.
     ProjeteisLidos ProjeteisDoChefe(const std::string& chefe) {
         return LerProjeteis(LerArquivo(PastaDoChefe::Arquivo(chefe, PastaDoChefe::kProjeteis)));
@@ -122,38 +127,39 @@ TEST_CASE("Dados: Assets/Attacks/regras.json nao tem problema nenhum") {
     CHECK(r.conjuntos.size() > 0);
 }
 
-TEST_CASE("Dados: Assets/Attacks/fases.json nao tem problema nenhum") {
-    const auto r = LerFases(LerArquivo("Attacks/fases.json"));
-    CHECK_MESSAGE(r.problemas.empty(), "problemas em fases.json:" << Juntar(r.problemas));
+TEST_CASE("Dados: o fases.json de cada chefe nao tem problema nenhum") {
+    for (const auto& chefe : Chefes()) {
+        CAPTURE(chefe);
+        const auto r = FasesDoChefe(chefe);
+        CHECK_MESSAGE(r.problemas.empty(), "problemas em " << chefe << "/fases.json:"
+                                                           << Juntar(r.problemas));
+    }
 }
 
 // ---------------------------------------------------------------------------
-// Os quatro chefes
+// Os chefes
 // ---------------------------------------------------------------------------
 
-TEST_CASE("Dados: os quatro chefes existem e suas transicoes fecham") {
+TEST_CASE("Dados: todo chefe tem fases e as transicoes delas fecham") {
     // Sem a reserva em C++, um conjunto recusado aqui e um chefe parado em tela.
-    const auto r = LerFases(LerArquivo("Attacks/fases.json"));
-
     for (const auto& chefe : Chefes()) {
         CAPTURE(chefe);
-        REQUIRE_MESSAGE(r.conjuntos.count(chefe) == 1,
-                        "falta o conjunto \"" << chefe << "\" em fases.json");
-        const auto problemas = ValidarTransicoes(r.conjuntos.at(chefe), chefe);
+        const auto& fases = FasesDoChefe(chefe).fases;
+        REQUIRE_MESSAGE(!fases.empty(), "nao ha fases em " << chefe << "/fases.json");
+
+        const auto problemas = ValidarTransicoes(fases, chefe);
         CHECK_MESSAGE(problemas.empty(), "transicoes de \"" << chefe << "\":" << Juntar(problemas));
     }
 }
 
 TEST_CASE("Dados: todo chefe tem as quatro fases") {
     // Nao e exigencia do formato - um chefe pode ter tres. E exigencia DESTE
-    // jogo: os quatro chefes atuais tem StateOne, Two, Three e Final, e perder
+    // jogo: os cinco chefes atuais tem StateOne, Two, Three e Final, e perder
     // uma delas por um recorte errado seria dificil de notar jogando.
-    const auto r = LerFases(LerArquivo("Attacks/fases.json"));
     for (const auto& chefe : Chefes()) {
         CAPTURE(chefe);
-        REQUIRE(r.conjuntos.count(chefe) == 1);
         std::set<std::string> nomes;
-        for (const auto& f : r.conjuntos.at(chefe)) nomes.insert(f.nome);
+        for (const auto& f : FasesDoChefe(chefe).fases) nomes.insert(f.nome);
         CHECK(nomes.count("StateOne") == 1);
         CHECK(nomes.count("StateTwo") == 1);
         CHECK(nomes.count("StateThree") == 1);
@@ -164,10 +170,8 @@ TEST_CASE("Dados: todo chefe tem as quatro fases") {
 TEST_CASE("Dados: toda fase tem pelo menos um ataque") {
     // LerFases ja descarta fase sem ataque, entao isto pega o descarte: a fase
     // some do conjunto e o chefe fica parado 17 segundos naquele trecho.
-    const auto r = LerFases(LerArquivo("Attacks/fases.json"));
-    for (const auto& par : r.conjuntos) {
-        const std::string& chefe = par.first;
-        const auto& fases = par.second;
+    for (const auto& chefe : Chefes()) {
+        const auto& fases = FasesDoChefe(chefe).fases;
         for (const auto& f : fases) {
             CAPTURE(chefe);
             CAPTURE(f.nome);
@@ -185,12 +189,10 @@ TEST_CASE("Dados: toda fase tem pelo menos um ataque") {
 TEST_CASE("Dados: todo conjunto de regras citado em fases.json existe em regras.json") {
     // O erro silencioso numero 1: o nome nao bate, o ataque dispara normalmente e
     // os projeteis saem sem comportamento nenhum.
-    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
     const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
 
-    for (const auto& par : fases.conjuntos) {
-        const std::string& chefe = par.first;
-        const auto& lista = par.second;
+    for (const auto& chefe : Chefes()) {
+        const auto& lista = FasesDoChefe(chefe).fases;
         for (const auto& f : lista) {
             for (size_t k = 0; k < f.ataques.size(); ++k) {
                 const auto& a = f.ataques[k];
@@ -234,12 +236,10 @@ TEST_CASE("Dados: toda forma citada em regras.json existe em formas.json") {
 TEST_CASE("Dados: as formas citadas nas regras EM LINHA de fases.json tambem existem") {
     // Um ataque pode trazer as regras escritas nele mesmo, e elas citam formas do
     // mesmo jeito. O caminho e outro, o erro de digitacao e o mesmo.
-    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
     const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
 
-    for (const auto& par : fases.conjuntos) {
-        const std::string& chefe = par.first;
-        const auto& lista = par.second;
+    for (const auto& chefe : Chefes()) {
+        const auto& lista = FasesDoChefe(chefe).fases;
         for (const auto& f : lista) {
             for (const auto& a : f.ataques) {
                 for (const auto& r : a.regras) {
@@ -264,12 +264,10 @@ TEST_CASE("Dados: uma regra por indice nao aponta para fora da rajada") {
     // e o ataque dispara 3 projeteis. Se alguem aumentar para 4 em fases.json e
     // esquecer das regras, o quarto projetil sai sem caminho nenhum e voa reto,
     // sem nenhum aviso. Se DIMINUIR para 2, a regra do indice 2 nunca se aplica.
-    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
     const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
 
-    for (const auto& par : fases.conjuntos) {
-        const std::string& chefe = par.first;
-        const auto& lista = par.second;
+    for (const auto& chefe : Chefes()) {
+        const auto& lista = FasesDoChefe(chefe).fases;
         for (const auto& f : lista) {
             for (const auto& a : f.ataques) {
 
@@ -313,12 +311,8 @@ TEST_CASE("Dados: um cooldown derivado do ritmo tem mesmo um ritmo para derivar"
     // LerFases ja recusa isso, entao este teste confere que nenhum ataque REAL
     // caiu na armadilha - o ataque inteiro sumiria do conjunto, e o chefe
     // atacaria de menos sem nenhum sinal em tela.
-    const auto r = LerFases(LerArquivo("Attacks/fases.json"));
-    CHECK_MESSAGE(r.problemas.empty(), "problemas em fases.json:" << Juntar(r.problemas));
-
-    for (const auto& par : r.conjuntos) {
-        const std::string& chefe = par.first;
-        const auto& lista = par.second;
+    for (const auto& chefe : Chefes()) {
+        const auto& lista = FasesDoChefe(chefe).fases;
         for (const auto& f : lista) {
             for (const auto& a : f.ataques) {
                 CAPTURE(chefe);
@@ -357,15 +351,11 @@ TEST_CASE("Dados: todo chefe tem projeteis na pasta dele") {
     }
 }
 
-TEST_CASE("Dados: todo projetil citado em fases.json existe na pasta do chefe") {
-    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
-
+TEST_CASE("Dados: todo projetil citado nas fases existe na pasta do chefe") {
     for (const auto& chefe : Chefes()) {
-        REQUIRE(fases.conjuntos.count(chefe) == 1);
-
         const auto& disponiveis = ProjeteisDoChefe(chefe).projeteis;
 
-        for (const auto& f : fases.conjuntos.at(chefe)) {
+        for (const auto& f : FasesDoChefe(chefe).fases) {
             for (const auto& a : f.ataques) {
                 const std::string onde = chefe + "/" + f.nome;
                 CAPTURE(onde);
@@ -567,15 +557,13 @@ TEST_CASE("Dados: as animacoes dos projeteis mantem os quadros exatos") {
 
 TEST_CASE("Dados: num WaveAttack, o atraso do caminho supera o despertar do ultimo no") {
 
-    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
     const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
 
     int combinacoesConferidas = 0;
 
     for (const auto& chefe : Chefes()) {
-        REQUIRE(fases.conjuntos.count(chefe) == 1);
 
-        for (const auto& f : fases.conjuntos.at(chefe)) {
+        for (const auto& f : FasesDoChefe(chefe).fases) {
             for (const auto& a : f.ataques) {
 
                 if (a.estrategia != "WaveAttack") continue;
@@ -630,17 +618,15 @@ TEST_CASE("Dados: toda animacao pedida por uma regra existe no projetil que o at
     // usa, regras.json diz qual animacao cada regra pede, e projeteis.json diz
     // quais animacoes aquele projetil tem. Nenhum dos tres sabe disso sozinho.
 
-    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
     const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
 
     int pedidosConferidos = 0;
 
     for (const auto& chefe : Chefes()) {
-        REQUIRE(fases.conjuntos.count(chefe) == 1);
 
         const auto doChefe = ProjeteisDoChefe(chefe);
 
-        for (const auto& f : fases.conjuntos.at(chefe)) {
+        for (const auto& f : FasesDoChefe(chefe).fases) {
             for (const auto& a : f.ataques) {
 
                 const auto projetil = doChefe.projeteis.find(a.projetil);
@@ -782,16 +768,14 @@ TEST_CASE("Dados: um ataque que usa familia dispara exatamente o tamanho dela") 
     // Antes eram tres lugares (formas, regras por indice e projeteis); agora e
     // "divisoes" de um lado e "projeteis" do outro, e este teste liga os dois.
 
-    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
     const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
     const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
 
     int conferidos = 0;
 
     for (const auto& chefe : Chefes()) {
-        REQUIRE(fases.conjuntos.count(chefe) == 1);
 
-        for (const auto& f : fases.conjuntos.at(chefe)) {
+        for (const auto& f : FasesDoChefe(chefe).fases) {
             for (const auto& a : f.ataques) {
 
                 if (a.regrasNome.empty() || regras.conjuntos.count(a.regrasNome) == 0) continue;
@@ -867,18 +851,17 @@ TEST_CASE("Dados: as materias do curso estao la, com os codigos esperados") {
     CHECK(noArquivo == esperadas);
 }
 
-TEST_CASE("Dados: toda materia com chefe aponta para um conjunto que existe em fases.json") {
-    // O campo "chefe" liga as duas migracoes: ele e o mesmo nome de conjunto que
-    // fases.json, regras.json e projeteis.json usam.
+TEST_CASE("Dados: toda materia com chefe aponta para uma pasta de chefe que existe") {
+    // O campo "chefe" e o NOME DA PASTA em Assets/Attacks/. E ele que liga a
+    // materia aos tres arquivos de ataque dela.
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
-    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
 
     int comChefe = 0;
     for (const auto& m : l.materias) {
         if (m.chefe.empty()) continue;   // materia ainda sem chefe e normal
         CAPTURE(m.codigo);
         CAPTURE(m.chefe);
-        CHECK(fases.conjuntos.count(m.chefe) == 1);
+        CHECK_FALSE(FasesDoChefe(m.chefe).fases.empty());
         ++comChefe;
     }
     CHECK(comChefe == 5);   // hoje sao cinco das onze

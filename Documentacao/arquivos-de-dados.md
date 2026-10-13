@@ -13,7 +13,7 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 | Arquivo | O que descreve |
 |---|---|
 | `Assets/materias.json` | o curso: matérias, colunas, desbloqueio, professor |
-| `Assets/Attacks/fases.json` | as fases de cada professor e os ataques de cada fase |
+| `Assets/Attacks/<professor>/fases.json` | as fases daquele professor e os ataques de cada fase |
 | `Assets/Attacks/regras.json` | o que cada projétil faz depois de criado |
 | `Assets/Attacks/<professor>/projeteis.json` | o catálogo de projéteis daquele professor |
 | `Assets/personagens.json` | as peças de que o personagem do aluno é montado |
@@ -75,13 +75,14 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 
 ---
 
-## `fases.json`
+## `<professor>/fases.json`
 
-Um conjunto por professor, com quatro fases de nomes fixos: `StateOne`,
-`StateTwo`, `StateThree`, `StateFinal`. Nome inventado é recusado na leitura.
+**Uma pasta por professor**: `Assets/Attacks/thiago/fases.json`. A raiz do
+arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
+`StateThree`, `StateFinal`. Nome inventado é recusado na leitura.
 
 ```json
-"thiago": {
+{
   "StateOne": {
     "duracao": 17,
     "proximo": "StateTwo",
@@ -95,6 +96,10 @@ Um conjunto por professor, com quatro fases de nomes fixos: `StateOne`,
   }
 }
 ```
+
+> **Montar um professor abre só a pasta dele.** Antes era um `fases.json` com
+> todos dentro: abrir a batalha do Thiago lia os cinco, e um erro no bloco do
+> Júlio aparecia no log de uma batalha do Salles.
 
 ### A fase
 
@@ -370,7 +375,7 @@ motor.
 | Arquivo | Camada pura | Ponte |
 |---|---|---|
 | `materias.json` | `Materias::LerMaterias` | `MateriasArquivo.cpp` |
-| `fases.json` | `LerFases` | `FasesDeAtaqueArquivo.cpp` |
+| `<professor>/fases.json` | `LerFases` | `FasesDeAtaqueArquivo.cpp` |
 | `regras.json` | `LerRegras` | `RegrasDeAtaqueArquivo.cpp` |
 | `<professor>/projeteis.json` | `LerProjeteis` | `ProjeteisDeChefeArquivo.cpp` |
 | `personagens.json` | `Personagens::LerCatalogo` | `PersonagensArquivo.cpp` |

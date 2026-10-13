@@ -1,0 +1,160 @@
+{
+  // ==========================================================================
+  // AS FASES DO ANDRE
+  //
+  // UMA PASTA POR CHEFE: Assets/Attacks/andre/. A fabrica dele pede as fases
+  // pelo nome da pasta:
+  //     ConfigurarFasesDeArquivo(boss, fsm, "andre")
+  //
+  // OS NOMES DE FASE NAO SAO LIVRES. A maquina de estados procura os estados
+  // por TEXTO, e so estes quatro existem:
+  //     StateOne, StateTwo, StateThree, StateFinal
+  // Um nome inventado e recusado na leitura, porque a fase existiria no arquivo
+  // sem nunca ser alcancada.
+  //
+  // StateFinal E OBRIGATORIO, mesmo num chefe de tres fases. Se a nota ficar
+  // entre 40 e 59 ao fim da terceira fase, a FSM vai para StateFinal; sem o
+  // estado, ela apenas registra um erro no log e O CHEFE CONGELA - sem travar o
+  // jogo e sem avisar em tela. Isso ja custou depuracao uma vez.
+  //
+  // "proximo" vazio ou ausente significa "a batalha e decidida ao fim desta
+  // fase" (ver BossAttackState), e nao "fim do arquivo".
+  //
+  // OS CAMPOS de um ataque e do movimento estao documentados em
+  // Documentacao/arquivos-de-dados.md. Dois merecem lembrete aqui:
+  //
+  //   CAMPO OMITIDO = PADRAO DO MOTOR. A ponte so escreve no AttackParams o que
+  //   este arquivo disser; nao ha valor "zero por omissao" nenhum.
+  //
+  //   anguloCentral pode ser SOBRESCRITO pelo chefe em tempo de execucao, no
+  //   CustomizeAttackParams dele - e o unico pedaco do balanceamento que ainda
+  //   vive em C++. Onde isso acontece esta anotado na fase.
+  // ==========================================================================
+// ==========================================================================
+// ANDRE - INF 330 (fabrica de projeteis: "Baloes")
+//
+// O chefe dos baloes. A BaloonAttack nao dispara do chefe: ela faz os
+// projeteis nascerem FORA da tela, de um lado escolhido, e entrarem depois de
+// um atraso sorteado entre 0 e 2 segundos. O bloco "balao" e obrigatorio nela.
+//
+// CONVENCAO DE "lado": e de onde o balao NASCE, e ele vai para o lado oposto.
+//   "Down"  nasce abaixo da tela e SOBE
+//   "Up"    nasce acima e DESCE
+//   "Left"  nasce a esquerda e vai para a DIREITA
+//   "Right" nasce a direita e vai para a ESQUERDA
+//
+// "centradoNoJogador" com "deslocamento" 600 faz os baloes nascerem num trecho
+// de +-600 px em volta da coordenada do jogador no eixo livre, em vez de na
+// largura inteira da tela: e o que faz o ataque parecer dirigido a ele.
+//
+// ATENCAO - PARTE DO BALANCEAMENTO DO ANDRE AINDA VIVE EM C++, em
+// Andre::CustomizeAttackParams, e SOBRESCREVE o que este arquivo diz:
+//   StateOne e StateTwo  anguloCentral (nao usado pela BaloonAttack)
+//   StateThree           projectileSpeed, numProjectiles E anguloCentral, com
+//                        valores diferentes se o jogador esta acima ou abaixo
+// Os numeros da StateThree abaixo estao aqui porque eram os do C++, mas nao
+// tem efeito: o chefe os troca a cada disparo. Mexer neles nao muda nada -
+// para mudar a fase 3, mexa em Andre.cpp.
+// ==========================================================================
+
+  // Dois ataques simultaneos com o MESMO cooldown: uma parede pela direita e
+  // outra pela esquerda ao mesmo tempo, dez baloes cada.
+  "StateOne": {
+    "duracao": 17,
+    "proximo": "StateTwo",
+    "movimento": { "tipo": "RandomWander", "a": 0.8, "b": 100 },
+    "ataques": [
+      { "estrategia": "BaloonAttack", "projetil": "Baloes",
+        "projeteis": 10, "velocidade": 500, "cooldown": 3.0,
+        "balao": { "lado": "Right", "spawnAleatorio": true,
+                   "centradoNoJogador": true, "deslocamento": 400 } },
+
+      { "estrategia": "BaloonAttack", "projetil": "Baloes",
+        "projeteis": 10, "velocidade": 500, "cooldown": 3.0,
+        "balao": { "lado": "Left", "spawnAleatorio": true,
+                   "centradoNoJogador": true, "deslocamento": 400 } }
+    ]
+  },
+
+  // Troca o eixo: agora vem de baixo, em levas menores e mais frequentes.
+  //
+  // O C++ que este conjunto substitui montava TAMBEM um segundo bloco de
+  // parametros com "lado": "Up" e nunca o registrava - codigo morto que
+  // parecia um ataque. Aqui ficou so o que realmente disparava. Se a intencao
+  // era ter os dois, acrescente o par de "Up" a esta lista; o efeito seria
+  // baloes subindo e descendo ao mesmo tempo.
+  "StateTwo": {
+    "duracao": 17,
+    "proximo": "StateThree",
+    "movimento": { "tipo": "RandomWander", "a": 1.8, "b": 300 },
+    "ataques": [
+      { "estrategia": "BaloonAttack", "projetil": "Baloes",
+        "projeteis": 6, "velocidade": 500, "cooldown": 1.25,
+        "balao": { "lado": "Down", "spawnAleatorio": true,
+                   "centradoNoJogador": true, "deslocamento": 400 } }
+    ]
+  },
+
+  // Fase 3: abandona os baloes e vira um leque em onda saindo do chefe.
+  // Os tres numeros marcados abaixo sao SOBRESCRITOS por Andre.cpp a cada
+  // disparo - estao aqui por fidelidade ao C++, nao por terem efeito.
+  "StateThree": {
+    "duracao": 17,
+    "proximo": "",
+    "movimento": { "tipo": "GoToCenter" },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Baloes",
+        "projeteis": 18,        // sobrescrito (18 ou 36, conforme o jogador)
+        "velocidade": 200,      // sobrescrito (500 ou 600)
+        "anguloCentral": 90,    // sobrescrito
+        "angulo": 180,          // este VALE: e a abertura do leque
+        "intervalo": 0.02,      // este VALE: o atraso entre um projetil e o seguinte
+        "cooldown": 0.9 },
+      {
+        "estrategia": "BaloonAttack", "projetil": "Baloes",
+        "projeteis": 5, "velocidade": 300, "cooldown": 4.0,
+        "balao": { "lado": "Left", "spawnAleatorio": true,
+                  "centradoNoJogador": false, "deslocamento": 600},
+        "regras": "andre_tres"
+      },
+      {
+        "estrategia": "BaloonAttack", "projetil": "Baloes",
+        "projeteis": 5, "velocidade": 300, "cooldown": 4.0,
+        "balao": { "lado": "Right", "spawnAleatorio": true,
+          "centradoNoJogador": false, "deslocamento": 600},
+        "regras": "andre_tres"
+      }
+
+    ]
+  },
+
+  // Repescagem: os QUATRO lados ao mesmo tempo, em levas de cinco e mais
+  // lentos (300 em vez de 500). Cerca o jogador, mas devagar o bastante para
+  // dar tempo de achar o buraco - que e o papel de uma repescagem.
+  "StateFinal": {
+    "duracao": 17,
+    "proximo": "StateOne",
+    "movimento": { "tipo": "GoToCenter" },
+    "ataques": [
+      { "estrategia": "BaloonAttack", "projetil": "Baloes",
+        "projeteis": 5, "velocidade": 300, "cooldown": 1.25,
+        "balao": { "lado": "Right", "spawnAleatorio": true,
+                   "centradoNoJogador": true, "deslocamento": 600 } },
+
+      { "estrategia": "BaloonAttack", "projetil": "Baloes",
+        "projeteis": 5, "velocidade": 300, "cooldown": 1.25,
+        "balao": { "lado": "Left", "spawnAleatorio": true,
+                   "centradoNoJogador": true, "deslocamento": 600 } },
+
+      { "estrategia": "BaloonAttack", "projetil": "Baloes",
+        "projeteis": 5, "velocidade": 300, "cooldown": 1.25,
+        "balao": { "lado": "Down", "spawnAleatorio": true,
+                   "centradoNoJogador": true, "deslocamento": 600 } },
+
+      { "estrategia": "BaloonAttack", "projetil": "Baloes",
+        "projeteis": 5, "velocidade": 300, "cooldown": 1.25,
+        "balao": { "lado": "Up", "spawnAleatorio": true,
+                   "centradoNoJogador": true, "deslocamento": 600 } }
+    ]
+  }
+}
