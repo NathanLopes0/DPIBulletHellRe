@@ -55,7 +55,7 @@ TEST_CASE("Exportacao: uma linha por aluno-materia, mais o cabecalho") {
     }, Curso());
 
     CHECK(Linhas(csv) == 4);   // cabecalho + 3
-    CHECK(csv.find("matricula,materia,nome,recorde,retomada,aprovado,quando") == 0);
+    CHECK(csv.find("matricula,materia,nome,recorde,recordeDupla,parceiro,retomada,aprovado,quando") == 0);
 }
 
 TEST_CASE("Exportacao: o codigo E o nome saem, os dois") {
@@ -64,7 +64,8 @@ TEST_CASE("Exportacao: o codigo E o nome saem, os dois") {
     const std::string csv = Exportacao::ParaCsv({
         Aluno("89384", {{0, 85.0f, 85.0f, "2026-10-02 14:00:00"}})
     }, Curso());
-    CHECK(csv.find("89384,INF213,INF 213,85.00,85.00,sim,2026-10-02 14:00:00") != std::string::npos);
+    CHECK(csv.find("89384,INF213,INF 213,85.00,0.00,,85.00,sim,2026-10-02 14:00:00")
+          != std::string::npos);
 }
 
 TEST_CASE("Exportacao: aprovado olha o RECORDE, nao a ultima nota") {
@@ -73,7 +74,7 @@ TEST_CASE("Exportacao: aprovado olha o RECORDE, nao a ultima nota") {
     const std::string csv = Exportacao::ParaCsv({
         Aluno("1", {{0, 85.0f, 30.0f, ""}})
     }, Curso());
-    CHECK(csv.find("85.00,30.00,sim") != std::string::npos);
+    CHECK(csv.find("85.00,0.00,,30.00,sim") != std::string::npos);
 }
 
 TEST_CASE("Exportacao: reprovado sai como nao") {
@@ -170,4 +171,27 @@ TEST_CASE("Exportacao: a nota cheia de verdade sai como 100") {
         Exportacao::ParaCsv({Aluno("1", {{0, Nota::kNotaMaxima, Nota::kNotaMaxima, ""}})}, Curso());
 
     CHECK(csv.find("100.00") != std::string::npos);
+}
+
+TEST_CASE("Exportacao: a planilha e o jogo concordam sobre quem passou") {
+
+    // ERA A MESMA REGRA ESCRITA EM DOIS LUGARES. A planilha comparava o recorde
+    // de SOLO com 60 por conta propria; com o co-op, um aluno que passou
+    // acompanhado sairia como "nao" na planilha e como aprovado no jogo - e o
+    // professor so descobriria conferindo a mao.
+    //
+    // Agora ela chama Progresso::Aprovado, que e o que o mapa do curso le.
+    Progresso p;
+    p.RegistrarNotaDeDupla(0, 75.0f, "90112", "2026-10-14 15:00:00");
+
+    REQUIRE(p.Aprovado(0));   // o jogo diz que passou
+
+    Exportacao::FichaDeAluno f;
+    f.matricula = "89384";
+    f.progresso = p;
+
+    const std::string csv = Exportacao::ParaCsv({f}, Curso());
+
+    CHECK(csv.find(",sim,") != std::string::npos);
+    CHECK(csv.find("90112") != std::string::npos);   // e com quem
 }

@@ -447,12 +447,22 @@ TEST_CASE("Ficha: a aparencia sobrevive a ida e volta") {
     CHECK(lida.dados.aparencia.Por("pele")->cor == "tom4");
 }
 
-TEST_CASE("Ficha: a ficha gravada hoje e da versao 4") {
+TEST_CASE("Ficha: a ficha gravada hoje carrega a versao ATUAL") {
 
+    // O NUMERO SAI DE Ficha::kVersaoAtual, e nao escrito a mao aqui.
+    //
+    // Estava escrito: "versao": 4. Ao subir para a 5 este teste quebrou - o que
+    // foi sorte, porque ele quebrou pelo motivo ERRADO. Ele nao protegia nada:
+    // era so uma segunda copia do numero, e a unica coisa que ele podia pegar
+    // era a propria copia envelhecendo.
+    //
+    // Derivado, ele volta a ter um trabalho: garantir que o numero declarado no
+    // cabecalho chega mesmo ao arquivo gravado.
     Ficha::Dados d = FichaDeExemplo();
     d.aparencia = AparenciaDeExemplo();
 
-    CHECK(Ficha::Serializar(d, Curso()).find("\"versao\": 4") != std::string::npos);
+    const std::string esperado = "\"versao\": " + std::to_string(Ficha::kVersaoAtual);
+    CHECK(Ficha::Serializar(d, Curso()).find(esperado) != std::string::npos);
 }
 
 TEST_CASE("Ficha: um save da versao 3 abre sem aparencia, e isso nao e erro") {
@@ -551,4 +561,148 @@ TEST_CASE("Ficha: a aparencia NAO e conferida contra catalogo nenhum") {
     REQUIRE(r.ok);
     CHECK(r.problemas.empty());
     CHECK(r.dados.aparencia.Por("cabelo")->peca == "moicano-que-nunca-existiu");
+}
+
+// ---------------------------------------------------------------------------
+// A VERSAO 5: o registro das batalhas em dupla
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Ficha: o registro de dupla vai e volta do arquivo") {
+
+    Ficha::Dados d;
+    d.matricula = "89384";
+
+    std::vector<Progresso::Entrada> entradas(1);
+    entradas[0].materia = 0;
+    entradas[0].recorde = 55.0f;
+    entradas[0].retomada = 88.0f;
+    entradas[0].quando = "2026-10-14 15:00:00";
+    entradas[0].recordeDeDupla = 88.0f;
+    entradas[0].parceiroDoRecorde = "90112";
+    entradas[0].quandoDaDupla = "2026-10-14 15:00:00";
+    d.progresso.Restaurar(entradas);
+
+    const Ficha::Lida lida = Ficha::Desserializar(Ficha::Serializar(d, Curso()), Curso());
+
+    REQUIRE(lida.ok);
+    CHECK(lida.dados.progresso.MelhorNotaSolo(0) == doctest::Approx(55.0f));
+    CHECK(lida.dados.progresso.MelhorNotaDeDupla(0) == doctest::Approx(88.0f));
+    CHECK(lida.dados.progresso.ParceiroDoRecorde(0) == "90112");
+}
+
+TEST_CASE("Ficha: quem nunca jogou em dupla nao ganha campos de dupla no arquivo") {
+
+    // Mesma regra da aparencia: tres campos zerados num arquivo que ninguem vai
+    // ler sao tres coisas para manter em dia por nada - e e o que faz um save
+    // da versao 4 continuar abrindo sem conversao.
+    Ficha::Dados d;
+    d.matricula = "89384";
+
+    std::vector<Progresso::Entrada> entradas(1);
+    entradas[0].materia = 0;
+    entradas[0].recorde = 70.0f;
+    entradas[0].retomada = 70.0f;
+    d.progresso.Restaurar(entradas);
+
+    const std::string texto = Ficha::Serializar(d, Curso());
+
+    CHECK(texto.find("recordeDupla") == std::string::npos);
+    CHECK(texto.find("parceiro") == std::string::npos);
+    CHECK(texto.find("quandoDupla") == std::string::npos);
+}
+
+TEST_CASE("Ficha: um save da versao 4 abre sem registro de dupla, e isso nao e erro") {
+
+    // A MIGRACAO. Todo save ja gravado por este jogo e da versao 4 ou anterior,
+    // e todos tem de continuar abrindo - sem registro de co-op, que e a verdade
+    // sobre um aluno que nunca jogou acompanhado.
+    const std::string daVersao4 = R"({
+        "versao": 4,
+        "matricula": "89384",
+        "materias": [ { "materia": "AAA", "recorde": 72.5, "retomada": 68 } ]
+    })";
+
+    const Ficha::Lida lida = Ficha::Desserializar(daVersao4, Curso());
+
+    REQUIRE(lida.ok);
+    CHECK(lida.problemas.empty());
+    CHECK(lida.dados.progresso.MelhorNotaSolo(0) == doctest::Approx(72.5f));
+    CHECK(lida.dados.progresso.MelhorNotaDeDupla(0) == doctest::Approx(0.0f));
+    CHECK(lida.dados.progresso.ParceiroDoRecorde(0).empty());
+}
+
+TEST_CASE("Ficha: retomada acima do recorde de SOLO deixou de ser impossivel") {
+
+    // ESTE E O CASO QUE O CO-OP CRIOU, e que a regra antiga descartaria.
+    //
+    // A ficha recusava retomada > recorde como "estado impossivel jogando", e
+    // era mesmo - com um modo so. Um aluno que tem 50 sozinho e faz 80 em dupla
+    // fica com retomada 80 e recorde de solo 50, e a ficha dele e legitima.
+    const std::string comDupla = R"({
+        "versao": 5,
+        "matricula": "89384",
+        "materias": [ { "materia": "AAA", "recorde": 50, "retomada": 80,
+                        "recordeDupla": 80, "parceiro": "90112" } ]
+    })";
+
+    const Ficha::Lida lida = Ficha::Desserializar(comDupla, Curso());
+
+    REQUIRE(lida.ok);
+    CHECK(lida.problemas.empty());
+    CHECK(lida.dados.progresso.UltimaNota(0) == doctest::Approx(80.0f));
+    CHECK(lida.dados.progresso.MelhorNotaSolo(0) == doctest::Approx(50.0f));
+}
+
+TEST_CASE("Ficha: retomada acima dos DOIS recordes continua sendo descartada") {
+
+    // A regra nao sumiu, so passou a olhar os dois numeros. Uma retomada acima
+    // de ambos continua impossivel jogando, e deixar passar faria "melhor nota"
+    // mentir.
+    const std::string impossivel = R"({
+        "versao": 5,
+        "matricula": "89384",
+        "materias": [ { "materia": "AAA", "recorde": 50, "retomada": 95,
+                        "recordeDupla": 80 } ]
+    })";
+
+    const Ficha::Lida lida = Ficha::Desserializar(impossivel, Curso());
+
+    CHECK(lida.ok);
+    CHECK_FALSE(lida.problemas.empty());
+    CHECK(lida.dados.progresso.QuantasRegistradas() == 0);
+}
+
+TEST_CASE("Ficha: nota de dupla fora da faixa derruba so o registro de dupla") {
+
+    // A materia inteira nao se perde por causa de um campo opcional estragado:
+    // o recorde de solo e a retomada sao bons e continuam valendo.
+    const std::string estragado = R"({
+        "versao": 5,
+        "matricula": "89384",
+        "materias": [ { "materia": "AAA", "recorde": 70, "retomada": 70,
+                        "recordeDupla": 450 } ]
+    })";
+
+    const Ficha::Lida lida = Ficha::Desserializar(estragado, Curso());
+
+    REQUIRE(lida.ok);
+    CHECK_FALSE(lida.problemas.empty());
+    CHECK(lida.dados.progresso.MelhorNotaSolo(0) == doctest::Approx(70.0f));
+    CHECK(lida.dados.progresso.MelhorNotaDeDupla(0) == doctest::Approx(0.0f));
+}
+
+TEST_CASE("Ficha: parceiro sem recorde de dupla e ignorado") {
+
+    // Sem recorde, o nome seria o de alguem com quem nunca se jogou aquilo.
+    const std::string solto = R"({
+        "versao": 5,
+        "matricula": "89384",
+        "materias": [ { "materia": "AAA", "recorde": 70, "retomada": 70,
+                        "parceiro": "90112", "quandoDupla": "2026-10-14 15:00:00" } ]
+    })";
+
+    const Ficha::Lida lida = Ficha::Desserializar(solto, Curso());
+
+    REQUIRE(lida.ok);
+    CHECK(lida.dados.progresso.ParceiroDoRecorde(0).empty());
 }

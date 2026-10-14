@@ -46,7 +46,11 @@ std::string ParaCsv(const std::vector<FichaDeAluno>& fichas,
                     const Materias::Lista& materias) {
 
     std::ostringstream s;
-    s << "matricula,materia,nome,recorde,retomada,aprovado,quando\n";
+    // A PLANILHA GANHOU AS DUAS COLUNAS DO CO-OP, e nao por capricho: sem
+    // elas, "recorde" continuaria sendo so o de solo e "aprovado" diria NAO
+    // para quem passou acompanhado. A planilha e o jogo discordariam sobre quem
+    // passou - a mesma regra escrita em dois lugares, um deles desatualizado.
+    s << "matricula,materia,nome,recorde,recordeDupla,parceiro,retomada,aprovado,quando\n";
 
     // Ordem de matricula: numerica, nao alfabetica ("9" antes de "10"). O mesmo
     // criterio de FichaArquivo::ListarMatriculas.
@@ -67,12 +71,19 @@ std::string ParaCsv(const std::vector<FichaDeAluno>& fichas,
             const Materias::Materia* m = materias.Por(e.materia);
             if (!m) continue;   // materia que saiu do curso
 
+            // A MESMA REGRA QUE O JOGO LE, e nao uma comparacao repetida: ver
+            // Progresso::Aprovado, que olha a maior das duas notas porque
+            // passar e passar, tenha sido com quem for (requisitos-coop, D10).
+            const bool aprovado = f->progresso.Aprovado(e.materia);
+
             s << Campo(f->matricula) << ','
               << Campo(m->codigo) << ','
               << Campo(m->nome) << ','
               << Nota(e.recorde) << ','
+              << Nota(e.recordeDeDupla) << ','
+              << Campo(e.parceiroDoRecorde) << ','
               << Nota(e.retomada) << ','
-              << (e.recorde >= Progresso::kNotaDeAprovacao ? "sim" : "nao") << ','
+              << (aprovado ? "sim" : "nao") << ','
               << Campo(e.quando) << '\n';
         }
     }
