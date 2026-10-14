@@ -24,14 +24,17 @@
 #define BASE_SHOOT_FORWARD_SPEED 800.0f
 #define BLINK_INVINCIBLE_FREQUENCY 0.1f
 
-Player::Player(Scene* scene) :
+Player::Player(Scene* scene, const size_t quem) :
+    // NA ORDEM EM QUE OS MEMBROS SAO DECLARADOS - mQuem e declarado depois de
+    // mMoving, e e nessa ordem que o compilador inicializa de qualquer jeito.
     Actor(scene),
     playerSpeed(PLAYER_SPEED_START),
     atkTimer(ATK_TIMER_START_FULL),
     invincibleTimer(0.0f),
     isInvincible(false),
     mBlinkTimer(BLINK_INVINCIBLE_FREQUENCY),
-    mMoving(false)
+    mMoving(false),
+    mQuem(quem)
 
 {
 
@@ -44,10 +47,9 @@ Player::Player(Scene* scene) :
 
     Game* game = GetScene()->GetGame();
     const Personagens::Composta composta =
-        // A APARENCIA DA POSICAO 1. So ha um Player em campo; o segundo entra
-        // no incremento 4, e e la que esta posicao vira membro - junto com o
-        // manche dele, que ja esta escrito logo abaixo em MoveInput.
-        Personagens::Compor(game, Personagens::Carregado(), game->AparenciaDe(0));
+        // A APARENCIA DA SESSAO DESTE ALUNO. Cada jogador entra com a
+        // personagem do proprio perfil (requisitos-coop, D6).
+        Personagens::Compor(game, Personagens::Carregado(), game->AparenciaDe(mQuem));
 
     if (composta.ok) {
         spritePath = composta.chaveDaTextura;   // ja esta no cache de texturas
@@ -132,13 +134,10 @@ void Player::MoveInput(const Uint8 *keyState) {
     float newXSpeed = 0;
     float newYSpeed = 0;
 
-    // O MANCHE DA POSICAO 1. Era W A S D ou as setas, as duas coisas movendo
-    // este mesmo jogador - e por isso a posicao 2 do gabinete ficava sem manche.
+    // O MANCHE DESTE ALUNO. Era W A S D ou as setas, as duas coisas movendo o
+    // mesmo jogador - e por isso a posicao 2 do gabinete ficava sem manche.
     // As setas sao do jogador 1, o W A S D e do jogador 2; ver Painel.h.
-    //
-    // A posicao esta escrita aqui porque so ha um jogador. Quando o segundo
-    // entrar em campo, ela vira membro do Player (requisitos-coop, incremento 4).
-    constexpr Painel::Jogador kQuem = Painel::Jogador::Um;
+    const Painel::Jogador kQuem = MeuPainel();
 
     // ------ verificação de movimento CIMA/BAIXO ------
     if(Painel::Apertado(keyState, kQuem, Painel::Direcao::Cima))
@@ -160,16 +159,16 @@ void Player::MoveInput(const Uint8 *keyState) {
 }
 void Player::ShootInput(const Uint8 *keyState) {
 
-    // BOTAO 1 do painel. Ver Painel.h: a tecla mora num lugar so.
-    if(Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Um) && mOverloadTimer <= 0.0f) {
+    // BOTAO 1 do painel DESTE ALUNO. Ver Painel.h: a tecla mora num lugar so.
+    if(Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Um) && mOverloadTimer <= 0.0f) {
         Shoot();
     }
 
 }
 void Player::SpecialInput(const Uint8 *keyState) {
 
-    // BOTAO 2 do painel.
-    if(Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois) && mExtraPoints > 0 && mOverloadTimer <= 0.0f) {
+    // BOTAO 2 do painel DESTE ALUNO.
+    if(Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Dois) && mExtraPoints > 0 && mOverloadTimer <= 0.0f) {
         mExtraPoints--;
         mOverloadTimer = OVERLOAD_DURATION;
         if (const auto battle = dynamic_cast<Battle*>(GetScene())) {

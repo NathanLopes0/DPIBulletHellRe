@@ -49,8 +49,8 @@ public:
     /**
      * @brief OS JOGADORES EM CAMPO, na ordem das posicoes do painel.
      *
-     * Hoje sempre um. O gabinete tem duas posicoes, e e por aqui que a segunda
-     * entra - ver Documentacao/requisitos-coop.md, incremento 4.
+     * Um por sessao: quantos jogam foi decidido no menu, e a batalha nao
+     * pergunta se e co-op - ela percorre o que existe.
      *
      * Quem quer MIRAR nao usa esta lista: usa Alvo().
      */
@@ -66,9 +66,14 @@ public:
      *
      * ESTAVEL DENTRO DE UM DISPARO. O laser pergunta duas vezes (o nulo e a
      * posicao) e as duas tem de dar o mesmo jogador; um laser que trocasse de
-     * alvo no meio do tracado seria ruido, nao dificuldade. Por isso o
-     * revezamento entre os dois (requisitos-coop, D3) NAO mora aqui dentro:
-     * ele entra no incremento 4, junto com quem o dispara.
+     * alvo no meio do tracado seria ruido, nao dificuldade.
+     *
+     * POR ENQUANTO DEVOLVE SEMPRE O JOGADOR 1. O revezamento (requisitos-coop,
+     * D3) nao cabe aqui dentro: tres dos chamadores sao do BossProjectile e
+     * perguntam A CADA QUADRO, enquanto o projetil voa - e um projetil
+     * perseguidor trocaria de alvo no meio do voo. Alternar exige que cada
+     * projetil guarde o alvo que tinha ao nascer, e isso e o incremento 5.
+     * Ver requisitos-coop.md, secao 2.1b.
      *
      * Devolve nullptr quando nao ha ninguem em campo, que acontece de verdade
      * entre o Load e a criacao do jogador - os doze chamadores ja tratavam isso.

@@ -23,26 +23,39 @@ BattleHUD::BattleHUD(Scene *scene)
 {
     // ----- CRIAÇÃO DE OBJETOS POWER_ICON QUE SEGUEM O PLAYER ----- //
     // Pertencem à Cena (Scene), mas o HUD guarda referência para movê-los.
-    for (int i = 0; i < 3; i++) {
+    //
+    // UM CONJUNTO POR JOGADOR. O numero vem do Game, e nao da batalha: o HUD e
+    // construido antes de os alunos existirem em campo, e quantos jogam ja foi
+    // decidido no menu.
+    const size_t quantos = scene->GetGame() ? scene->GetGame()->QuantosJogadores() : 1;
 
-        // Cria o Actor que vai segurar a sprite e a posição
-        auto orbActor = std::make_unique<Actor>(scene);
+    for (size_t quem = 0; quem < quantos; ++quem) {
 
-        // Configura o visual
-        orbActor->SetScale(1.5f);
-        const auto dc = orbActor->AddComponent<DrawAnimatedComponent>(
-            Caminhos::Asset("Icons/DPIBHPowerIcon.png"),
-            Caminhos::Asset("Icons/DPIBHPowerIcon.json")
-        );
-        dc->AddAnimation("Idle", {0, 1, 2, 3, 4, 5, 6, 7, 8});
-        dc->SetAnimation("Idle");
-        dc->SetIsVisible(false); // Começa invisível
+        std::vector<Actor*> doJogador;
 
-        // Guarda referência
-        mVisualOrbs.push_back(orbActor.get());
+        for (size_t i = 0; i < kOrbesPorJogador; ++i) {
 
-        // Passa a posse para a cena, pq a cena é dona de todos os Actors que estão nela
-        scene->AddActor(std::move(orbActor));
+            // Cria o Actor que vai segurar a sprite e a posição
+            auto orbActor = std::make_unique<Actor>(scene);
+
+            // Configura o visual
+            orbActor->SetScale(1.5f);
+            const auto dc = orbActor->AddComponent<DrawAnimatedComponent>(
+                Caminhos::Asset("Icons/DPIBHPowerIcon.png"),
+                Caminhos::Asset("Icons/DPIBHPowerIcon.json")
+            );
+            dc->AddAnimation("Idle", {0, 1, 2, 3, 4, 5, 6, 7, 8});
+            dc->SetAnimation("Idle");
+            dc->SetIsVisible(false); // Começa invisível
+
+            // Guarda referência
+            doJogador.push_back(orbActor.get());
+
+            // Passa a posse para a cena, pq a cena é dona de todos os Actors que estão nela
+            scene->AddActor(std::move(orbActor));
+        }
+
+        mOrbesPorJogador.push_back(std::move(doJogador));
     }
 }
 
@@ -68,18 +81,11 @@ void BattleHUD::UpdateVisualOrbs(float deltaTime) {
     // da posicao DELE para orbitar. Alvo() responde outra pergunta: onde o
     // chefe mira. Eram a mesma chamada, e com dois jogadores deixariam de ser:
     // as orbes de um ficariam girando em volta do outro.
-    //
-    // Hoje ha um conjunto de orbes. No incremento 4 passa a haver um por jogador.
     const auto& jogadores = battle->Jogadores();
-    if (jogadores.empty()) return;
 
-    const auto player = jogadores.front();
-    if (!player) return;
-
-    const int numPoints = player->GetExtraPoints();
-    const Vector2 playerPos = player->GetPosition();
-
-    // Animação de respiração
+    // A RESPIRACAO E UMA SO, e por isso o relogio avanca FORA do laco dos
+    // jogadores. Dentro, ele andaria duas vezes por quadro e os dois conjuntos
+    // pulsariam no dobro da velocidade - um defeito que so apareceria no co-op.
     mPulseTimer += deltaTime;
     const float breathing = std::sin(mPulseTimer * 3.0f) * 5.0f;
     const float currentDist = ORB_DISTANCE + breathing;
@@ -91,29 +97,39 @@ void BattleHUD::UpdateVisualOrbs(float deltaTime) {
         Vector2(-currentDist, 0.0f)
     };
 
-    for (int i = 0; i < 3; i++) {
-        const auto dc = mVisualOrbs[i]->GetComponent<DrawAnimatedComponent>();
+    for (size_t quem = 0; quem < jogadores.size() && quem < mOrbesPorJogador.size(); ++quem) {
 
-        // Lógica de Visibilidade
-        if (i < numPoints) {
-            if (!dc->GetIsVisible()) {
-                dc->SetIsVisible(true);
-                // Teleporta para a posição inicial para não vir voando do além
-                mVisualOrbs[i]->SetPosition(playerPos + offsets[i]);
+        const auto player = jogadores[quem];
+        if (!player) continue;
+
+        const std::vector<Actor*>& orbes = mOrbesPorJogador[quem];
+        const int numPoints = player->GetExtraPoints();
+        const Vector2 playerPos = player->GetPosition();
+
+        for (size_t i = 0; i < orbes.size(); i++) {
+            const auto dc = orbes[i]->GetComponent<DrawAnimatedComponent>();
+
+            // Lógica de Visibilidade
+            if (static_cast<int>(i) < numPoints) {
+                if (!dc->GetIsVisible()) {
+                    dc->SetIsVisible(true);
+                    // Teleporta para a posição inicial para não vir voando do além
+                    orbes[i]->SetPosition(playerPos + offsets[i]);
+                }
+
+                // --- LÓGICA DE MOVIMENTO SUAVE (LERP - Linear Interpolation) ---
+                Vector2 targetPos = playerPos + offsets[i];
+                Vector2 currentPos = orbes[i]->GetPosition();
+
+                // O HUD puxa o orbe para perto do Player
+                Vector2 newPos = Vector2::Lerp(currentPos, targetPos, ORB_SMOOTH_SPEED * deltaTime);
+
+                orbes[i]->SetPosition(newPos);
             }
-
-            // --- LÓGICA DE MOVIMENTO SUAVE (LERP - Linear Interpolation) ---
-            Vector2 targetPos = playerPos + offsets[i];
-            Vector2 currentPos = mVisualOrbs[i]->GetPosition();
-
-            // O HUD puxa o orbe para perto do Player
-            Vector2 newPos = Vector2::Lerp(currentPos, targetPos, ORB_SMOOTH_SPEED * deltaTime);
-
-            mVisualOrbs[i]->SetPosition(newPos);
-        }
-        else {
-            if (dc->GetIsVisible()) {
-                dc->SetIsVisible(false);
+            else {
+                if (dc->GetIsVisible()) {
+                    dc->SetIsVisible(false);
+                }
             }
         }
     }

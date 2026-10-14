@@ -616,28 +616,39 @@ void Game::CancelarEntrada() {
 
 void Game::RegistrarNota(const int subject, const float nota) {
 
-    // POR ENQUANTO SO O JOGADOR 1 recebe a nota: a batalha ainda e de um. No
-    // incremento 4 a nota e da dupla e vai para a ficha dos dois (RF5).
-    mSessoes.front().progresso.RegistrarNota(static_cast<int>(subject), nota, Relogio::Agora());
+    // A MESMA NOTA NA FICHA DE CADA UM. A nota do co-op e da dupla
+    // (requisitos-coop, D2), entao nao ha o que repartir aqui: o numero que a
+    // dupla fez e o numero que cada um leva. E por isso que passar em co-op
+    // destranca a proxima materia para os dois (D10).
+    const std::string quando = Relogio::Agora();
+    bool gravouAlguma = false;
 
-    // A ficha vai para o disco AQUI, e nao em quem chama: assim nenhum caminho de
-    // fim de batalha pode esquecer. Visitante nao grava - e o combinado com quem
-    // escolheu nao se identificar.
-    if (!Matricula::Validar(mSessoes.front().matricula).valida) return;
+    for (size_t quem = 0; quem < mSessoes.size(); ++quem) {
 
-    if (GravarFicha(0)) {
-        // A planilha do professor e regravada junto, entao ela esta sempre em dia e
-        // ninguem precisa lembrar de exportar. Ela e DERIVADA das fichas: apagar
-        // notas.csv nao perde nada, volta na proxima batalha.
-        Exportacao::Regravar(Materias::Carregadas());
+        mSessoes[quem].progresso.RegistrarNota(subject, nota, quando);
+
+        // A ficha vai para o disco AQUI, e nao em quem chama: assim nenhum
+        // caminho de fim de batalha pode esquecer. Visitante nao grava - e o
+        // combinado com quem escolheu nao se identificar.
+        if (!ProgressoEGravado(quem)) continue;
+
+        if (GravarFicha(quem)) {
+            gravouAlguma = true;
+        }
+        else {
+            // Nao derruba a batalha nem avisa em tela: o aluno acabou de jogar e
+            // o que ele quer e ver a nota. O log diz o que houve para quem for
+            // investigar.
+            SDL_Log("GAME: nao consegui gravar a ficha da matricula %s. A nota desta "
+                    "batalha vale para esta sessao, mas nao foi para o disco.",
+                    mSessoes[quem].matricula.c_str());
+        }
     }
-    else {
-        // Nao derruba a batalha nem avisa em tela: o aluno acabou de jogar e o que
-        // ele quer e ver a nota. O log diz o que houve para quem for investigar.
-        SDL_Log("GAME: nao consegui gravar a ficha da matricula %s. A nota desta "
-                "batalha vale para esta sessao, mas nao foi para o disco.",
-                mSessoes.front().matricula.c_str());
-    }
+
+    // A planilha do professor e regravada UMA vez, e nao uma por aluno: ela e
+    // derivada da pasta inteira de fichas, entao regravar duas vezes seguidas
+    // daria o mesmo arquivo pelo dobro do trabalho.
+    if (gravouAlguma) Exportacao::Regravar(Materias::Carregadas());
 }
 
 bool Game::GravarFicha(const size_t posicao) {

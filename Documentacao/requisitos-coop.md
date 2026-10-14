@@ -125,6 +125,26 @@ mexe em nada.
    alguém pior que você é um risco que o solo não tem, e é o preço de a nota ser
    uma só.
 
+### 2.1b — A alternância precisa que o projétil seja dono do alvo (D3)
+
+Descoberto ao fazer o incremento 4, e **não estava previsto**: três dos doze
+`GetPlayer()` não perguntam "onde mirar agora" uma vez, no disparo. Eles são do
+`BossProjectile` (`GetPlayerPosition`, `GetPlayerVelocity`,
+`GetPlayerDirection`) e são lidos **a cada quadro**, enquanto o projétil voa —
+é assim que a perseguição e a previsão funcionam.
+
+Com um `Alvo()` que reveza, um projétil perseguidor trocaria de alvo no meio do
+voo, toda vez que outro ataque fosse disparado. Seria exatamente o ruído que D3
+existe para evitar, só que pior: não no traçado de um laser, mas na trajetória
+de dezenas de projéteis ao mesmo tempo.
+
+A alternância exige que **cada projétil guarde o alvo que tinha ao nascer**.
+Isso é mudança no `BossProjectile` e no caminho que o cria, e não cabia junto
+com pôr o segundo aluno em campo. Virou o incremento 5.
+
+Até lá, todos os ataques mirados miram o jogador 1 — o que é jogável e
+honestamente mais difícil para ele que para o parceiro.
+
 ### 2.2 — O que fica singular na batalha, e por quê (D2, D8)
 
 Com uma nota só, três coisas que iam virar plurais **continuam como estão**:
@@ -293,9 +313,12 @@ Cada um compila, passa na suíte e pode ser jogado.
 3. ~~**A segunda sessão no `Game`.**~~ **Feito.** Duas matrículas, dois
    progressos, duas aparências; o menu ganhou a opção e a identificação roda
    duas vezes, cada uma no painel do seu jogador.
-4. **O segundo jogador em campo.** Dois `Player`, colisões para os dois, a
-   divisão de 2.1, fim de batalha quando a nota zera.
-5. **Os dois rankings.** Ficha versão 5, o recorde de co-op com parceiro, o
+4. ~~**O segundo jogador em campo.**~~ **Feito.** Dois `Player`, cada um no seu
+   painel e com a sua personagem, colisões para os dois, a divisão de 2.1, uma
+   barra de nota, e a mesma nota gravada na ficha dos dois.
+5. **A alternância do alvo (D3).** Cada projétil passa a guardar o alvo que
+   tinha ao nascer, e aí o revezamento por disparo fica possível — ver 2.1b.
+6. **Os dois rankings.** Ficha versão 5, o recorde de co-op com parceiro, o
    ranking de duplas e o botão que alterna na tela.
-6. **A medição.** Com o co-op jogável, medir a nota de uma dupla contra a de um
+7. **A medição.** Com o co-op jogável, medir a nota de uma dupla contra a de um
    solo nas mesmas condições e ver se "levemente" é o que está lá.

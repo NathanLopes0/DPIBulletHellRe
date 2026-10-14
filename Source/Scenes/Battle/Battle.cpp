@@ -141,30 +141,37 @@ void Battle::LoadHUD() {
 }
 void Battle::LoadPlayer() {
 
-    auto player = std::make_unique<Player>(this);
+    // UM ALUNO POR SESSAO. Quantas sessoes ha foi decidido no menu, e a
+    // batalha nao pergunta se e co-op: ela percorre o que existe. E isso que
+    // mantem o jogo de um jogador sendo o caso normal, sem "if (co-op)".
+    const size_t quantos = mGame->QuantosJogadores();
 
-
-    // 2. NASCE DENTRO DO CAMPO, e nao numa fracao da JANELA.
-    //
-    // Era 7/8 da altura da janela, ou seja 700. Com o campo acabando onde a
-    // faixa da nota comeca, o chao do aluno passou a ser 682 - e ele nascia
-    // ABAIXO dele, para ser empurrado de volta pelo limite no primeiro quadro.
-    // Um empurrao que ninguem pediu, e que mudaria de tamanho a cada vez que a
-    // faixa da nota mudasse de altura.
-    //
-    // Tirando a posicao do proprio campo, ela nasce legal por construcao.
     const SDL_FRect campo = GetPlayfieldBounds();
-    const auto alturaDoAluno = static_cast<float>(
-        player->GetComponent<DrawAnimatedComponent>()->GetSpriteHeight());
 
-    const float midWidth = campo.x + campo.w / 2.0f;
-    const float startingHeight = campo.y + campo.h - alturaDoAluno;
-    player->SetPosition(Vector2(midWidth, startingHeight));
+    for (size_t quem = 0; quem < quantos; ++quem) {
 
-    // A LISTA, e nao um ponteiro so: o gabinete tem duas posicoes. Hoje entra
-    // um; o segundo entra aqui no incremento 4 (requisitos-coop).
-    mJogadores.push_back(dynamic_cast<Player*>(this->AddActor(std::move(player))));
+        auto player = std::make_unique<Player>(this, quem);
 
+        // NASCE DENTRO DO CAMPO, e nao numa fracao da JANELA.
+        //
+        // Era 7/8 da altura da janela, ou seja 700. Com o campo acabando onde a
+        // faixa da nota comeca, o chao do aluno passou a ser 682 - e ele nascia
+        // ABAIXO dele, para ser empurrado de volta pelo limite no primeiro
+        // quadro. Um empurrao que ninguem pediu, e que mudaria de tamanho a
+        // cada vez que a faixa da nota mudasse de altura.
+        const auto alturaDoAluno = static_cast<float>(
+            player->GetComponent<DrawAnimatedComponent>()->GetSpriteHeight());
+
+        // LADO A LADO, repartindo a largura em partes iguais: com um, a conta
+        // da o meio da tela, que e exatamente onde ele sempre nasceu. Nao ha
+        // um caso para um e outro para dois.
+        const float fatia = campo.w / static_cast<float>(quantos + 1);
+        const float x = campo.x + fatia * static_cast<float>(quem + 1);
+        const float y = campo.y + campo.h - alturaDoAluno;
+
+        player->SetPosition(Vector2(x, y));
+        mJogadores.push_back(dynamic_cast<Player*>(this->AddActor(std::move(player))));
+    }
 }
 void Battle::LoadTimeBar() {
 
