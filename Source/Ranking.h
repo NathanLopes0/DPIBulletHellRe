@@ -139,4 +139,22 @@ namespace Ranking {
      */
     std::vector<LinhaDeDupla> DuplasGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
                                           int quantasMaterias, size_t quantas = 0);
+
+    /**
+     * @brief Em que posicao esta UMA DUPLA, na lista completa da materia.
+     *
+     * Devolve 0 quando os dois nunca jogaram esta materia juntos. Mesma razao
+     * de PosicaoDe: sem isto a lista so conversa com quem ja esta no topo, que
+     * e quem menos precisa de incentivo.
+     *
+     * A ORDEM DOS DOIS ARGUMENTOS NAO IMPORTA. Quem pergunta e a tela, que tem
+     * o jogador 1 e o jogador 2 em maos; qual deles e "o primeiro" na lista e
+     * assunto do ranking, e nao de quem pergunta.
+     */
+    int PosicaoDaDupla(const std::vector<Exportacao::FichaDeAluno>& fichas, int materia,
+                       const std::string& um, const std::string& dois);
+
+    /// @brief A posicao de uma dupla no geral. Zero se eles nunca jogaram juntos.
+    int PosicaoDaDuplaNoGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
+                              int quantasMaterias, const std::string& um, const std::string& dois);
 }

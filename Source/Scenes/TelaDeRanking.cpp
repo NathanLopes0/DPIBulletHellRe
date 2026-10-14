@@ -246,25 +246,45 @@ void TelaDeRanking::Redesenhar() {
 
     // A POSICAO DE QUEM ESTA JOGANDO, quando ela nao cabe no topo. Sem isto o
     // ranking so conversa com quem ja esta bem, que e quem menos precisa.
-    std::string rodape;
+    // CADA LISTA RESPONDE A SUA PERGUNTA. Na de solo "onde estou"; na de duplas
+    // "onde estamos", e o sujeito e a DUPLA - dizer ali a posicao de solo seria
+    // um numero que nao pertence a nada na tela.
+    int posicao = 0;
+    std::string quemEsta = "Voce esta";
 
-    // DO JOGADOR 1: e ele quem abre esta tela, do menu ou da selecao de fases.
-    //
-    // E SO NA LISTA DE SOLO. Na de duplas a pergunta "onde estou" muda de
-    // sujeito - a posicao e da DUPLA, nao do aluno -, e mostrar aqui a posicao
-    // de solo com a lista de duplas aberta seria dizer um numero que nao
-    // pertence a nada na tela. Fica para o incremento seguinte.
-    const std::string& eu = mGame->MatriculaDe(0);
-    if (!mDuplas && !eu.empty()) {
-        const int posicao = mPedido.geral
-            ? Ranking::PosicaoNoGeral(mFichas, materias.Quantas(), eu)
-            : Ranking::PosicaoDe(mFichas, mPedido.materia, eu);
+    if (mDuplas) {
+        // A DUPLA E A DOS DOIS QUE ESTAO JOGANDO AGORA, e nao uma qualquer de
+        // que o jogador 1 tenha feito parte: ele pode ter varias, e nenhuma
+        // seria mais "a dele" que as outras. Jogando sozinho nao ha dupla de
+        // quem perguntar, e o rodape fica vazio - como fica para o visitante,
+        // que nao entra em dupla nenhuma.
+        if (mGame->QuantosJogadores() > 1) {
+            const std::string& um   = mGame->MatriculaDe(0);
+            const std::string& dois = mGame->MatriculaDe(1);
 
-        if (posicao > static_cast<int>(kQuantasLinhas)) {
-            rodape = "Voce esta em " + std::to_string(posicao) + "o";
+            posicao = mPedido.geral
+                ? Ranking::PosicaoDaDuplaNoGeral(mFichas, materias.Quantas(), um, dois)
+                : Ranking::PosicaoDaDupla(mFichas, mPedido.materia, um, dois);
+
+            quemEsta = "Voces estao";
         }
     }
-    escrever(mSuaPosicaoAtor, rodape);
+    else {
+        // DO JOGADOR 1: e ele quem abre esta tela, do menu ou da selecao de fases.
+        const std::string& eu = mGame->MatriculaDe(0);
+        if (!eu.empty()) {
+            posicao = mPedido.geral
+                ? Ranking::PosicaoNoGeral(mFichas, materias.Quantas(), eu)
+                : Ranking::PosicaoDe(mFichas, mPedido.materia, eu);
+        }
+    }
+
+    // SO QUANDO NAO CABE NO TOPO: quem ja esta na lista esta vendo a propria
+    // posicao, e repeti-la embaixo nao acrescenta nada.
+    escrever(mSuaPosicaoAtor,
+             posicao > static_cast<int>(kQuantasLinhas)
+                 ? quemEsta + " em " + std::to_string(posicao) + "o"
+                 : "");
 }
 
 void TelaDeRanking::OnProcessInput(const Uint8* keyState) {
