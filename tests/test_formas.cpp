@@ -250,3 +250,96 @@ TEST_CASE("Arvore: zero divisoes e uma reta, nao um erro") {
     CHECK(p[0].y == doctest::Approx(0.0f));
     CHECK(p[1].y == doctest::Approx(0.0f));
 }
+
+// ------------------------------------ familia escrita a mao ("caminhos")
+
+TEST_CASE("Formas: \"caminhos\" declara uma familia, um caminho por projetil") {
+
+    // POR QUE ESTA PRIMITIVA EXISTE. "arvore" ja fazia familias, mas so arvores
+    // binarias. Qualquer outro conjunto de caminhos que so faca sentido JUNTO
+    // tinha de virar N formas simples mais N regras por indice - o par de
+    // listas que tem de bater, que e o que a familia foi inventada para evitar.
+    const auto lidas = PathShapes::LerFormas(R"({
+      "Escada": { "caminhos": [ [[10, 0]], [[20, 0]], [[30, 0]] ] }
+    })");
+
+    CHECK(lidas.problemas.empty());
+
+    // Familia NAO entra no mapa de formas simples: sao coisas diferentes, e
+    // pedir uma pela outra tem de falhar em vez de devolver meia resposta.
+    CHECK(lidas.formas.count("Escada") == 0);
+
+    REQUIRE(lidas.familias.count("Escada") == 1);
+    const auto& fam = lidas.familias.at("Escada");
+    REQUIRE(fam.size() == 3);
+    CHECK(fam[0][0].x == doctest::Approx(10.0f));
+    CHECK(fam[1][0].x == doctest::Approx(20.0f));
+    CHECK(fam[2][0].x == doctest::Approx(30.0f));
+}
+
+TEST_CASE("Formas: a ordem dos caminhos E o contrato") {
+
+    // O indice do projetil na rajada e o indice na familia (PathShapes.h). Se a
+    // leitura reordenasse, a arvore do Salles cresceria torta e a pilha do
+    // Vladimir desempilharia fora de ordem - sem erro nenhum, so errado.
+    const auto lidas = PathShapes::LerFormas(R"({
+      "Fundo": { "caminhos": [ [[0, 1]], [[0, 2]], [[0, 3]], [[0, 4]] ] }
+    })");
+
+    REQUIRE(lidas.familias.count("Fundo") == 1);
+    const auto& fam = lidas.familias.at("Fundo");
+    REQUIRE(fam.size() == 4);
+    for (size_t i = 0; i < fam.size(); ++i) {
+        CAPTURE(i);
+        CHECK(fam[i][0].y == doctest::Approx(static_cast<float>(i) + 1.0f));
+    }
+}
+
+TEST_CASE("Formas: um caminho de varios pontos continua sendo um caminho") {
+
+    const auto lidas = PathShapes::LerFormas(R"({
+      "Gancho": { "caminhos": [ [[10, 0], [20, 30], [90, 30]], [[5, 0]] ] }
+    })");
+
+    REQUIRE(lidas.familias.count("Gancho") == 1);
+    const auto& fam = lidas.familias.at("Gancho");
+    REQUIRE(fam.size() == 2);
+    CHECK(fam[0].size() == 3);
+    CHECK(fam[1].size() == 1);
+    CHECK(fam[0][2].x == doctest::Approx(90.0f));
+}
+
+TEST_CASE("Formas: \"caminhos\" vazio ou mal formado e recusado, com a frase certa") {
+
+    // O ARQUIVO INTEIRO NUNCA E DESCARTADO por causa de uma entrada errada -
+    // mesma filosofia das formas simples. A entrada ruim fica de fora e vira
+    // uma frase; as outras continuam valendo.
+    const auto lidas = PathShapes::LerFormas(R"({
+      "Vazia":  { "caminhos": [] },
+      "Torta":  { "caminhos": [ [[1, 2]], "nao sou uma lista" ] },
+      "Ponto3": { "caminhos": [ [[1, 2, 3]] ] },
+      "Boa":    { "caminhos": [ [[7, 7]] ] }
+    })");
+
+    CHECK(lidas.familias.count("Vazia") == 0);
+    CHECK(lidas.familias.count("Torta") == 0);
+    CHECK(lidas.familias.count("Ponto3") == 0);
+    CHECK(lidas.familias.count("Boa") == 1);
+    CHECK(lidas.problemas.size() == 3);
+
+    // A frase diz QUAL caminho da familia estava torto, e nao so o nome da
+    // forma: numa familia de doze, "a forma Pilha esta errada" nao ajuda.
+    bool citaOIndice = false;
+    for (const auto& p : lidas.problemas) {
+        if (p.find("caminho 1") != std::string::npos) citaOIndice = true;
+    }
+    CHECK(citaOIndice);
+}
+
+TEST_CASE("Formas: a entrada sem pontos, gerador, arvore nem caminhos se explica") {
+
+    const auto lidas = PathShapes::LerFormas(R"({ "Nada": { "cor": "azul" } })");
+
+    REQUIRE(lidas.problemas.size() == 1);
+    CHECK(lidas.problemas[0].find("caminhos") != std::string::npos);
+}

@@ -186,12 +186,18 @@ namespace PathShapes {
      *
      *   {
      *     "Laco":     { "gerador": {"tipo":"Loop","a":70,"b":500,"n":12} },
-     *     "Serpente": { "pontos": [[60,-40],[120,-50],[160,-20]] }
+     *     "Serpente": { "pontos": [[60,-40],[120,-50],[160,-20]] },
+     *     "Escada":   { "caminhos": [ [[10,0]], [[20,0]], [[30,0]] ] }
      *   }
      *
      * "gerador" reaproveita as formas que ja existem em C++ (Reta, Arc, Loop,
      * Zigzag), com os parametros na ordem em que a funcao os recebe. "pontos" e
      * a lista literal, em espaco de caminho: +X e a direcao de disparo.
+     *
+     * "caminhos" e uma FAMILIA escrita a mao: uma lista de caminhos, e o
+     * projetil numero i recebe o caminho numero i. Existe pelo mesmo motivo de
+     * "arvore" - um conjunto de caminhos que so faz sentido junto -, mas sem
+     * precisar de um gerador em C++ para cada conjunto novo.
      *
      * Uma forma invalida e ignorada e vira uma frase em 'problemas' - o arquivo
      * inteiro nunca e descartado por causa de uma entrada errada.
