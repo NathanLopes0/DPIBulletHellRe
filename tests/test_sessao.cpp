@@ -104,3 +104,78 @@ TEST_CASE("Sessao: uma posicao alem do fim nao pede mais ninguem") {
     CHECK(Sessao::Proximo(Sessao::Modo::Dois, 2) == Sessao::Passo::Jogar);
     CHECK(Sessao::Proximo(Sessao::Modo::Dois, 99) == Sessao::Passo::Jogar);
 }
+
+// ------------------------------------------- quem jogou do outro lado
+
+TEST_CASE("Sessao: o parceiro de uma posicao e a matricula da outra") {
+
+    const auto sessoes = Dupla("89384", "90112");
+
+    CHECK(Sessao::ParceiroDe(sessoes, 0) == "90112");
+    CHECK(Sessao::ParceiroDe(sessoes, 1) == "89384");
+}
+
+TEST_CASE("Sessao: quem jogou sozinho nao tem parceiro") {
+
+    // E o caso normal, e tudo tem de valer nele. Uma matricula aqui viraria uma
+    // dupla no ranking que nunca existiu.
+    std::vector<Sessao::Dados> so_um(1);
+    so_um[0].matricula = "89384";
+
+    CHECK(Sessao::ParceiroDe(so_um, 0).empty());
+}
+
+TEST_CASE("Sessao: visitante nao e parceiro, porque nao tem matricula") {
+
+    // A nota continua valendo para o progresso de quem se identificou (RF6); e
+    // a LINHA do ranking que precisa de dois nomes - "89384 + " nao diz quem
+    // jogou. Esta funcao e o ranking de duplas combinam nesse vazio.
+    const auto comVisitante = Dupla("89384", Matricula::kVisitante);
+
+    CHECK(Sessao::ParceiroDe(comVisitante, 0).empty());
+    CHECK(Sessao::ParceiroDe(comVisitante, 1) == "89384");
+}
+
+TEST_CASE("Sessao: dois visitantes nao tem parceiro nenhum") {
+
+    const auto doisVisitantes = Dupla(Matricula::kVisitante, Matricula::kVisitante);
+
+    CHECK(Sessao::ParceiroDe(doisVisitantes, 0).empty());
+    CHECK(Sessao::ParceiroDe(doisVisitantes, 1).empty());
+}
+
+TEST_CASE("Sessao: o jogo recem-aberto nao tem parceiro") {
+
+    // A matricula vazia nao e um valor especial a mais para lembrar: ela cai do
+    // lado certo porque o teste e por Matricula::Validar, como em
+    // Game::ProgressoEGravado.
+    const std::vector<Sessao::Dados> vazias(2);
+
+    CHECK(Sessao::ParceiroDe(vazias, 0).empty());
+    CHECK(Sessao::ParceiroDe(vazias, 1).empty());
+}
+
+TEST_CASE("Sessao: posicao fora da faixa nao le memoria alheia") {
+
+    const auto sessoes = Dupla("89384", "90112");
+
+    CHECK(Sessao::ParceiroDe(sessoes, 2).empty());
+    CHECK(Sessao::ParceiroDe(sessoes, 99).empty());
+    CHECK(Sessao::ParceiroDe({}, 0).empty());
+}
+
+TEST_CASE("Sessao: tres posicoes nao tem O parceiro") {
+
+    // A palavra so faz sentido numa dupla: nomear um dos dois seria dizer que o
+    // outro nao jogou. Hoje Modo nao chega a tres - este caso guarda o dia em
+    // que chegar, para a resposta ser vazia em vez de arbitraria.
+    std::vector<Sessao::Dados> tres(3);
+    tres[0].matricula = "1";
+    tres[1].matricula = "2";
+    tres[2].matricula = "3";
+
+    for (size_t i = 0; i < tres.size(); ++i) {
+        CAPTURE(i);
+        CHECK(Sessao::ParceiroDe(tres, i).empty());
+    }
+}

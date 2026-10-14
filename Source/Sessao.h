@@ -67,6 +67,25 @@ enum class Modo { Um, Dois };
 [[nodiscard]] bool JaEstaEmUso(const std::vector<Dados>& sessoes, size_t posicao,
                                const std::string& matricula);
 
+/**
+ * @brief A matricula de quem jogou do OUTRO lado, para o registro de dupla.
+ *
+ * Devolve VAZIO quando nao ha parceiro de quem falar, e sao tres casos:
+ *
+ *   - jogou SOZINHO: uma sessao so, e nao ha outro lado;
+ *
+ *   - o parceiro era VISITANTE, que nao tem matricula. A nota continua valendo
+ *     para o progresso de quem se identificou (RF6) e entra como nota de DUPLA
+ *     - a batalha foi em dupla -, so sem nome de parceiro. O ranking de duplas
+ *     descarta exatamente as linhas sem nome, porque "89384 + " nao diz quem
+ *     jogou. As duas metades combinam aqui, e e de proposito;
+ *
+ *   - TRES POSICOES NAO TEM "O PARCEIRO": a palavra so faz sentido numa dupla,
+ *     e nomear um dos dois seria dizer que o outro nao jogou. Hoje Modo so vai
+ *     ate Dois; se um dia crescer, este e o lugar que avisa.
+ */
+[[nodiscard]] std::string ParceiroDe(const std::vector<Dados>& sessoes, size_t posicao);
+
 /// O que vem depois de uma posicao terminar de entrar.
 enum class Passo {
     OutroJogador,   ///< ainda falta alguem se identificar

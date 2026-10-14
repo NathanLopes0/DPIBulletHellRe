@@ -623,9 +623,27 @@ void Game::RegistrarNota(const int subject, const float nota) {
     const std::string quando = Relogio::Agora();
     bool gravouAlguma = false;
 
+    // QUEM DECIDE O REGISTRO E O MODO, E NAO A NOTA. Uma batalha em dupla e
+    // levemente mais facil (D4), entao a nota dela nao pode cair no recorde de
+    // solo: o ranking de solo passaria a premiar quem jogou acompanhado, que e
+    // o contrario do que os dois rankings existem para fazer (D9).
+    //
+    // VALE MESMO QUANDO O PARCEIRO E VISITANTE. A batalha foi em dupla - teve
+    // dois alunos no painel e a mira revezando -, entao a nota e de dupla ainda
+    // que nao haja nome para pos ao lado. ParceiroDe devolve vazio, e o ranking
+    // de duplas descarta a linha sem nome; o progresso de quem se identificou
+    // continua contando (RF6).
+    const bool emDupla = QuantosJogadores() > 1;
+
     for (size_t quem = 0; quem < mSessoes.size(); ++quem) {
 
-        mSessoes[quem].progresso.RegistrarNota(subject, nota, quando);
+        if (emDupla) {
+            mSessoes[quem].progresso.RegistrarNotaDeDupla(
+                subject, nota, Sessao::ParceiroDe(mSessoes, quem), quando);
+        }
+        else {
+            mSessoes[quem].progresso.RegistrarNota(subject, nota, quando);
+        }
 
         // A ficha vai para o disco AQUI, e nao em quem chama: assim nenhum
         // caminho de fim de batalha pode esquecer. Visitante nao grava - e o
