@@ -4,6 +4,7 @@
 
 #include "Opcoes.h"
 #include "../Painel.h"
+#include "FundoDeCena.h"
 
 #include <SDL_scancode.h>
 
@@ -21,6 +22,8 @@ Opcoes::Opcoes(Game* game)
 }
 
 void Opcoes::Load() {
+
+    CriarFundoDoCorredor(*this);
 
     const auto altura = static_cast<float>(mGame->GetWindowHeight());
 

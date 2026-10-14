@@ -17,6 +17,7 @@
 #include "../MateriasArquivo.h"
 #include "../Matricula.h"
 #include "../Painel.h"
+#include "FundoDeCena.h"
 #include "../Ranking.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
@@ -24,15 +25,6 @@
 #include "../Components/DrawComponents/DrawTextComponent.h"
 
 namespace {
-
-    constexpr int kOrdemDoFundo = 40;
-    constexpr int kOrdemDoVeu = 45;
-
-    /// O mesmo tratamento da selecao de fases: a foto do corredor bem escura,
-    /// mais um veu por cima, para o texto branco nao cair em cima de um tijolo
-    /// claro e sumir.
-    constexpr SDL_Color kSemBorda = {0, 0, 0, 0};
-    constexpr SDL_Color kVeu = {6, 8, 18, 205};
 
     std::string ComDuasCasas(const float nota) {
         std::ostringstream s;
@@ -50,7 +42,7 @@ Atracao::Atracao(Game* game)
 
 void Atracao::Load() {
 
-    CriarFundo();
+    CriarFundoDoCorredor(*this);
 
     mCartazes.push_back(CriarChamada());
 
@@ -61,26 +53,6 @@ void Atracao::Load() {
     if (!melhores.empty()) mCartazes.push_back(std::move(melhores));
 
     MostrarSomente(0);
-}
-
-void Atracao::CriarFundo() {
-
-    const auto largura = static_cast<float>(mGame->GetWindowWidth());
-    const auto altura = static_cast<float>(mGame->GetWindowHeight());
-
-    auto fundo = std::make_unique<Actor>(this);
-    fundo->SetPosition(Vector2(largura / 2.0f, altura / 2.0f));
-    const auto foto = fundo->AddComponent<DrawSpriteComponent>(
-        Caminhos::Asset("MainMenuBackground.png"), kOrdemDoFundo);
-    foto->SetColor(66, 70, 92);
-    AddActor(std::move(fundo));
-
-    auto veu = std::make_unique<Actor>(this);
-    veu->SetPosition(Vector2(largura / 2.0f, altura / 2.0f));
-    veu->AddComponent<DrawCaixaComponent>(
-        static_cast<int>(largura), static_cast<int>(altura),
-        kSemBorda, kVeu, 0, kOrdemDoVeu);
-    AddActor(std::move(veu));
 }
 
 Atracao::Cartaz Atracao::CriarChamada() {

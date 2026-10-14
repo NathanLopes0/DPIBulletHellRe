@@ -33,15 +33,12 @@ public:
 private:
 
     // --- Funções Privadas para Organização Lógica ---
-    void CriarFundo();
     void CreateStageButtons();
     void CreateStaticUI();
 
-    /// A ordem de desenho e crescente: o menor fica por baixo. O fundo e o veu
-    /// precisam ficar ATRAS de tudo, e as ligacoes entre colunas, atras dos
-    /// losangos (que usam a ordem padrao, 100).
-    static constexpr int kOrdemDoFundo = 40;
-    static constexpr int kOrdemDoVeu = 45;
+    /// A ordem de desenho e crescente: o menor fica por baixo. As ligacoes
+    /// entre colunas ficam atras dos losangos (que usam a ordem padrao, 100) e
+    /// na frente do fundo (ver FundoDeCena.h).
     static constexpr int kOrdemDasLigacoes = 60;
 
     /// Do centro do losango ate a ponta. Ele tem 128 de largura.

@@ -4,6 +4,7 @@
 
 #include "TelaDeRanking.h"
 #include "../Painel.h"
+#include "FundoDeCena.h"
 
 #include <SDL_scancode.h>
 #include <iomanip>
@@ -49,6 +50,8 @@ TelaDeRanking::TelaDeRanking(Game* game)
 }
 
 void TelaDeRanking::Load() {
+
+    CriarFundoDoCorredor(*this);
 
     const auto altura  = static_cast<float>(mGame->GetWindowHeight());
     const auto largura = static_cast<float>(mGame->GetWindowWidth());

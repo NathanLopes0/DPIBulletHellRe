@@ -4,6 +4,7 @@
 
 #include "CriacaoDePersonagem.h"
 #include "../Painel.h"
+#include "FundoDeCena.h"
 
 #include <SDL_scancode.h>
 
@@ -95,6 +96,8 @@ void CriacaoDePersonagem::MontarLinhas() {
 }
 
 void CriacaoDePersonagem::Load() {
+
+    CriarFundoDoCorredor(*this);
 
     const auto largura = static_cast<float>(mGame->GetWindowWidth());
     const auto altura  = static_cast<float>(mGame->GetWindowHeight());

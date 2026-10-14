@@ -58,7 +58,6 @@ private:
     /// desligar desenho, e o Actor nao expoe a lista de componentes dele.
     using Cartaz = std::vector<DrawComponent*>;
 
-    void CriarFundo();
     Cartaz CriarChamada();
     Cartaz CriarMelhores();
 

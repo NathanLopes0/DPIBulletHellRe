@@ -4,6 +4,7 @@
 
 #include "StageSelect.h"
 #include "../Painel.h"
+#include "FundoDeCena.h"
 
 #include "../Matricula.h"
 #include "../MateriasArquivo.h"
@@ -33,37 +34,12 @@ StageSelect::StageSelect(Game *game) : Scene(game, SceneType::StageSelect)
 
 void StageSelect::Load() {
 
-    CriarFundo();
+    CriarFundoDoCorredor(*this);
     CreateStageButtons();
     CriarLigacoes();          // depois dos botoes: as linhas saem das posicoes deles
     CreateStaticUI();
     CriarIdentificacaoNaTela();
 
-}
-
-void StageSelect::CriarFundo() {
-
-    const auto largura = static_cast<float>(mGame->GetWindowWidth());
-    const auto altura = static_cast<float>(mGame->GetWindowHeight());
-
-    // O MESMO CORREDOR DO MENU. A tela era preta: os losangos flutuavam no
-    // vazio e nada dizia que aquilo era a mesma sala do resto do jogo. Com a
-    // foto, a selecao passa a acontecer EM ALGUM LUGAR.
-    auto fundo = std::make_unique<Actor>(this);
-    fundo->SetPosition(Vector2(largura / 2.0f, altura / 2.0f));
-    const auto foto = fundo->AddComponent<DrawSpriteComponent>(
-        Caminhos::Asset("MainMenuBackground.png"), kOrdemDoFundo);
-    foto->SetColor(66, 70, 92);   // puxada para o azul e bem escurecida
-    AddActor(std::move(fundo));
-
-    // O VEU. A foto tem tijolo vermelho e janela clara; sem escurecer de novo
-    // por cima, o nome de uma materia fechada cai em cima de um reflexo e some.
-    auto veu = std::make_unique<Actor>(this);
-    veu->SetPosition(Vector2(largura / 2.0f, altura / 2.0f));
-    veu->AddComponent<DrawCaixaComponent>(
-        static_cast<int>(largura), static_cast<int>(altura),
-        SDL_Color{0, 0, 0, 0}, SDL_Color{6, 8, 18, 200}, 0, kOrdemDoVeu);
-    AddActor(std::move(veu));
 }
 
 void StageSelect::CriarIdentificacaoNaTela() {

@@ -4,6 +4,7 @@
 
 #include "Identificacao.h"
 #include "../Painel.h"
+#include "FundoDeCena.h"
 
 #include <SDL_scancode.h>
 
@@ -78,6 +79,7 @@ Identificacao::Identificacao(Game* game)
 }
 
 void Identificacao::Load() {
+    CriarFundoDoCorredor(*this);
     CriarTextos();
     Redesenhar();
 }
