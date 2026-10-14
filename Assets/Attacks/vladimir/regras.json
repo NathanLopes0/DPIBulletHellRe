@@ -1,0 +1,64 @@
+{
+  // ==========================================================================
+  // AS REGRAS DE PROJETIL DO VLADIMIR
+  //
+  // Cada conjunto aqui e uma LINGUAGEM, e a rajada que ele veste e uma palavra
+  // dela. E por isso que os nomes sao os da disciplina e nao "fase1", "fase2":
+  // o que define o padrao e a linguagem, e a fase so escolhe qual usar.
+  //
+  // Os campos estao documentados em Documentacao/arquivos-de-dados.md.
+  // ==========================================================================
+
+  // (ab)* - A ESTRELA DE KLEENE.
+  //
+  // Alternancia pura: simbolo par e "a", impar e "b". E a linguagem regular
+  // mais simples que ainda tem o que olhar, e serve de alfabeto visual para o
+  // resto da batalha - e aqui que o jogador aprende que ambar e "a" e azul e
+  // "b", sem o que nenhuma das fases seguintes se le.
+  //
+  // O WOBBLE ALTERNADO E O QUE FAZ A ALTERNANCIA SER VISIVEL EM MOVIMENTO. Com
+  // as duas letras indo retas, a fila e uma linha bicolor; com cada letra
+  // ondulando para um lado, ela vira uma TRANCA, e a repeticao do par fica
+  // legivel de longe - que e o que "estrela" quer dizer.
+  //
+  // O "atraso" E O NUMERO CRITICO, pelo mesmo motivo do "atraso" na fase 2 do
+  // Salles. A WaveAttack cria os simbolos DORMINDO e acorda um a cada
+  // "intervalo"; o WobbleBehavior captura a direcao base na ativacao e, se
+  // encontra o projetil ainda parado, nao tem eixo para oscilar em torno e se
+  // declara terminado (Behaviors.cpp, o Math::NearZero(baseSpeed)). O atraso
+  // tem de ser MAIOR que o despertar do ultimo simbolo.
+  //
+  // MEDIDO: sem atraso, a fila saiu RETA nas fotos dos quadros 320 e 700 - o
+  // wobble morria em todos os doze antes de comecar. 12 simbolos x 0,13 de
+  // intervalo = 1,56s ate o ultimo acordar, entao 1,7 cobre com folga.
+  //
+  // MEXER EM "projeteis" OU "intervalo" NO fases.json OBRIGA A REVISAR ISTO.
+  "kleene": [
+    { "quando": "pares",
+      "animacao": "A",
+      "motion": { "tipo": "Wobble", "atraso": 1.7, "amplitude": 28,
+                  "frequencia": 1.4, "duracao": 4.0 } },
+    { "quando": "impares",
+      "animacao": "B",
+      "motion": { "tipo": "Wobble", "atraso": 1.7, "amplitude": -28,
+                  "frequencia": 1.4, "duracao": 4.0 } }
+  ],
+
+  // a^n b^n - PROVISORIO. O padrao de verdade (n de um lado, n do outro, com o
+  // n crescendo) e o incremento 2; por ora a fase 2 usa a alternancia da fase 1
+  // com os blocos separados, so para a batalha ter quatro fases jogaveis.
+  "blocos": [
+    { "indices": [0, 1, 2, 3], "animacao": "A" },
+    { "indices": [4, 5, 6, 7], "animacao": "B" }
+  ],
+
+  // A PILHA - PROVISORIO, mesma observacao. O desempilhamento em ordem inversa
+  // (cada simbolo com um Activate de atraso proporcional a n-i) e o incremento
+  // 2; aqui ficam so os simbolos parando, que e a metade "empilhar" do efeito.
+  "pilha": [
+    { "quando": "pares",   "animacao": "A" },
+    { "quando": "impares", "animacao": "B" },
+    { "motion": { "tipo": "Path", "forma": "IdaEVolta", "velocidade": 320,
+                  "atraso": 1.0, "pararNoPonto": 0, "pararPor": 1.2 } }
+  ]
+}

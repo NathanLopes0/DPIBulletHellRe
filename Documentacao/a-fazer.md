@@ -141,6 +141,11 @@ roteiro de botões.
 
 ### Arte definitiva
 
+**Vladimir também**, com o mesmo tipo de cartão (`Ferramentas/gerar_vladimir.py`:
+um autômato de dois estados). Os projéteis dele são os símbolos `a` e `b` do
+alfabeto — esses **não** são provisórios no conceito, só no acabamento: num chefe
+de linguagens formais a rajada é uma palavra e cada tiro é uma letra dela.
+
 Júlio e Thiago usam cartão provisório em vez de sprite de professor, e as
 camadas de personagem são placeholders. `Ferramentas/gerar_thiago.py` mostra o
 formato esperado de PNG e JSON.

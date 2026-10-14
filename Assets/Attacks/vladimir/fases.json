@@ -1,0 +1,124 @@
+{
+  // ==========================================================================
+  // AS FASES DO VLADIMIR (INF 331 - Linguagens Formais e Automatos)
+  //
+  // AS QUATRO FASES SAO A HIERARQUIA DE CHOMSKY, um nivel por fase. Nao e
+  // tema: e a estrutura da disciplina, e a batalha sobe por ela. O chefe
+  // comeca regular e termina em maquina de Turing, e cada nivel pede do
+  // jogador exatamente o que aquele nivel pede de uma maquina.
+  //
+  //   StateOne    Regular            (ab)*      um laco de memoria finita
+  //   StateTwo    Livre de contexto  a^n b^n    contar exige uma pilha
+  //   StateThree  Automato de pilha  w . w^R    a pilha desempilha ao contrario
+  //   StateFinal  Maquina de Turing             a fita, e quem nunca decide
+  //
+  // OS NOMES DE FASE NAO SAO LIVRES: a maquina de estados procura por texto, e
+  // so StateOne, StateTwo, StateThree e StateFinal existem. StateFinal e
+  // OBRIGATORIO, mesmo num chefe de tres fases - sem ele, uma nota entre 40 e
+  // 59 ao fim da terceira manda a FSM para um estado que nao existe e o chefe
+  // CONGELA, sem travar o jogo e sem avisar em tela.
+  //
+  // ESTE E O INCREMENTO 1: o esqueleto. StateOne ja e o (ab)* de verdade -
+  // ele e o padrao mais simples da hierarquia e servia de alfabeto visual para
+  // o resto, entao nao fazia sentido deixa-lo provisorio. As outras tres estao
+  // jogaveis e MARCADAS COMO PROVISORIAS no comentario de cada uma: os padroes
+  // de verdade sao o incremento 2.
+  //
+  // GoToCenter em todas, de proposito. As rajadas do Vladimir sao PALAVRAS, e
+  // uma palavra precisa de uma origem fixa para ser lida como uma: com o chefe
+  // vagando, cada simbolo sai de um lugar diferente e a fila deixa de ser fila.
+  // E o mesmo motivo do GoToCenter na fase 1 do Salles.
+  // ==========================================================================
+
+  // FASE 1 - REGULAR: (ab)*
+  //
+  // A ESTRELA DE KLEENE, e a fase que ensina a ler o resto da batalha. Doze
+  // simbolos em fila indiana ("angulo": 0, como a lista do Salles), alternando
+  // ambar e azul, com o wobble de cada letra para um lado - a fila vira uma
+  // tranca, e a repeticao do par "ab" fica visivel de longe.
+  //
+  // O COOLDOWN E LONGO (2,2s) PARA A REPETICAO SER O ASSUNTO. A fase inteira e
+  // sobre reconhecer um laco; rajadas em cima umas das outras virariam ruido e
+  // o laco sumiria no meio.
+  "StateOne": {
+    "duracao": 17,
+    "proximo": "StateTwo",
+    "movimento": { "tipo": "GoToCenter" },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 12, "velocidade": 300, "angulo": 0, "intervalo": 0.13,
+        "cooldown": 2.2,
+        "regras": "kleene" }
+    ]
+  },
+
+  // FASE 2 - LIVRE DE CONTEXTO: a^n b^n   [PROVISORIA - incremento 2]
+  //
+  // O que esta aqui: oito simbolos, quatro "a" seguidos de quatro "b", em
+  // leque. Ja mostra a ideia de "um bloco e depois o outro".
+  //
+  // O que FALTA e o que faz a fase: o n tem de CRESCER a cada ciclo, e os dois
+  // blocos tem de sair para lados opostos, para o jogador poder CONTAR a
+  // primeira metade e saber a segunda. E isso que torna a linguagem nao-regular
+  // e a fase interessante.
+  "StateTwo": {
+    "duracao": 17,
+    "proximo": "StateThree",
+    "movimento": { "tipo": "GoToCenter" },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 8, "velocidade": 280, "angulo": 40, "intervalo": 0.10,
+        "cooldown": 2.6,
+        "regras": "blocos" }
+    ]
+  },
+
+  // FASE 3 - AUTOMATO DE PILHA: w . w^R   [PROVISORIA - incremento 2]
+  //
+  // O que esta aqui: a metade "empilhar". Os simbolos sobem, PARAM no alto por
+  // 1,2s (viram parede, com colisor) e voltam pelo caminho que fizeram.
+  //
+  // O que FALTA: eles voltarem na ORDEM INVERSA, que e o que separa uma pilha
+  // de uma fila. Da para fazer so em dados - "indices" mais um modifier
+  // Activate com atraso proporcional a (n - i) -, e e o incremento 2.
+  "StateThree": {
+    "duracao": 17,
+    "proximo": "",
+    "movimento": { "tipo": "GoToCenter" },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 8, "velocidade": 320, "angulo": 0, "intervalo": 0.12,
+        "cooldown": 3.0,
+        "regras": "pilha" }
+    ]
+  },
+
+  // FASE FINAL - MAQUINA DE TURING   [PROVISORIA - incremento 2]
+  //
+  // O que esta aqui: duas rajadas sobrepostas em ritmos diferentes, que e o
+  // que uma fase final costuma ser.
+  //
+  // O que FALTA: a FITA. Uma cabeca de leitura varrendo o topo do campo e
+  // deixando marcas que viram perigo - o unico nivel da hierarquia que pode
+  // ESCREVER no que le, e e isso que a fase deveria mostrar.
+  "StateFinal": {
+    "duracao": 17,
+    "proximo": "StateOne",
+    "movimento": { "tipo": "GoToCenter" },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 10, "velocidade": 260, "angulo": 0, "intervalo": 0.11,
+        "cooldown": 2.0,
+        "regras": "kleene" },
+      // "kleene", E NAO "blocos": este leque tem 12 simbolos e "blocos" nomeia
+      // os indices 0 a 7 a mao - os quatro ultimos sairiam SEM animacao. A
+      // suite pegou (test_arquivos_de_dados: "uma regra por indice nao aponta
+      // para fora da rajada"), e a licao fica: regra por INDICE amarra o
+      // numero de projeteis, regra por "pares"/"impares" nao.
+      { "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
+        "projeteis": 12, "velocidade": 180,
+        "cooldown": 3.4,
+        "regras": "kleene" }
+    ]
+  }
+}

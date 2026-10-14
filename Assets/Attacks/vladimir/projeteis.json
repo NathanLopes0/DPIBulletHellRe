@@ -1,0 +1,30 @@
+{
+  // ==========================================================================
+  // OS PROJETEIS DO VLADIMIR (INF 331 - Linguagens Formais e Automatos)
+  //
+  // UM SO TIPO, COM DUAS ANIMACOES: "A" e "B". Nao sao dois projeteis, e isso
+  // importa - sao os dois SIMBOLOS DO MESMO ALFABETO. Uma rajada do Vladimir e
+  // uma palavra, e cada tiro e uma letra dela; separar em dois tipos faria o
+  // arquivo dizer que sao coisas diferentes quando sao a mesma coisa com outro
+  // rotulo, que e exatamente o que um alfabeto NAO e.
+  //
+  // Qual letra cada tiro recebe e decidido em regras.json, por "quando":
+  // "pares"/"impares" ou por "indices" - que e como "(ab)*" vira tela.
+  //
+  // A COR CARREGA DE LONGE E A LETRA CONFIRMA DE PERTO. No meio de uma tela de
+  // bala ninguem le um "a" de 32 pixels; o ambar contra o azul, sim. A letra
+  // existe para o jogador conferir quando o padrao desacelera.
+  //
+  // Arte PROVISORIA de Ferramentas/gerar_vladimir.py.
+  // ==========================================================================
+  "Simbolo": {
+    "sprite": "Teachers/Projectiles/DPIBHVladimirSimbolo.png",
+    "dados":  "Teachers/Projectiles/DPIBHVladimirSimbolo.json",
+    "animacoes": {
+      "A": [0, 1, 2, 3],
+      "B": [4, 5, 6, 7]
+    },
+    "animacaoInicial": "A",
+    "ordemDeDesenho": 90
+  }
+}
