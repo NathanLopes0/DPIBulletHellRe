@@ -21,10 +21,10 @@ void Thiago::OnUpdate(const float deltaTime) {
 int Thiago::FaixaDoJogador(const ConsultaAttackParams& consulta) {
 
     const auto battle = dynamic_cast<Battle*>(GetScene());
-    if (!battle || !battle->GetPlayer()) return 0;
+    if (!battle || !battle->Alvo()) return 0;
 
     const SDL_FRect campo = battle->GetPlayfieldBounds();
-    const Vector2 onde = battle->GetPlayer()->GetPosition();
+    const Vector2 onde = battle->Alvo()->GetPosition();
 
     // A MESMA CONTA que a ConsultaAttack usa para posicionar a varredura, de
     // Tabela. Se este arquivo fizesse a propria divisao, bastaria um

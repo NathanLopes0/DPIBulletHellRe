@@ -63,7 +63,17 @@ void BattleHUD::UpdateVisualOrbs(float deltaTime) {
     const auto battle = dynamic_cast<Battle*>(mOwner);
     if (!battle) return;
 
-    const auto player = battle->GetPlayer();
+    // AQUI NAO E Alvo(). As orbes mostram o estoque de Pontos Extras de UM
+    // jogador - que e proprio, nao da dupla (requisitos-coop, D8) - e precisam
+    // da posicao DELE para orbitar. Alvo() responde outra pergunta: onde o
+    // chefe mira. Eram a mesma chamada, e com dois jogadores deixariam de ser:
+    // as orbes de um ficariam girando em volta do outro.
+    //
+    // Hoje ha um conjunto de orbes. No incremento 4 passa a haver um por jogador.
+    const auto& jogadores = battle->Jogadores();
+    if (jogadores.empty()) return;
+
+    const auto player = jogadores.front();
     if (!player) return;
 
     const int numPoints = player->GetExtraPoints();

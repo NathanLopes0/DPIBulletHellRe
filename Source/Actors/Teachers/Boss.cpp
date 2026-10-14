@@ -166,7 +166,7 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
 
 float Boss::GetDistanceToPlayer() const {
     if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
-        if (auto player = battleScene->GetPlayer()) {
+        if (auto player = battleScene->Alvo()) {
             return (player->GetPosition() - GetPosition()).Length();
         }
     }
@@ -175,7 +175,7 @@ float Boss::GetDistanceToPlayer() const {
 
 Vector2 Boss::GetPredictedPlayerDirection(const float leadTime) const {
     if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
-        if (auto player = battleScene->GetPlayer()) {
+        if (auto player = battleScene->Alvo()) {
 
             Vector2 target = player->GetPosition();
 
@@ -198,7 +198,7 @@ Vector2 Boss::GetPredictedPlayerDirection(const float leadTime) const {
 
 Vector2 Boss::GetDirectionToPlayer() const {
     if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
-        if (auto player = battleScene->GetPlayer()) {
+        if (auto player = battleScene->Alvo()) {
             Vector2 direction = player->GetPosition() - GetPosition();
             direction.Normalize();
             return direction;

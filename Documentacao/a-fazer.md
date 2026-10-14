@@ -110,6 +110,15 @@ atalho: o ranking da matéria. Se o gabinete acabar com dois, nada fica
 inalcançável — basta tirar o Botão 3 do rodapé da seleção e dar outro caminho ao
 ranking. Decidir isso é compra de peça, não código.
 
+### Os três `GetPlayerPosition` do `BossProjectile` ainda se chamam assim
+
+`GetPlayerPosition`, `GetPlayerVelocity` e `GetPlayerDirection` são a camada
+fina entre três chamadas a `Battle::Alvo()` e o `Behaviors.cpp`. Elas carregam
+a mesma mentira que `GetPlayer()` carregava — "o jogador", no singular — e a
+verdade é "o alvo". Ficaram de fora do incremento 2 de propósito, para o
+incremento não crescer para dentro da lógica de ataque; o risco é baixo porque
+elas passam por `Alvo()` e não têm como escolher outro jogador.
+
 ### A tela de Opções está vazia
 
 Ela existe e não faz nada. No mínimo precisa de volume: o gabinete fica num

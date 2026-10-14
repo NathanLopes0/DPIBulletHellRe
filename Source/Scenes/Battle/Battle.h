@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 #include "../Scene.h"
 #include "../../Game.h"
 #include "../../AudioSystem.h"
@@ -44,7 +45,35 @@ public:
     void OnFaseTrocada(float novaDuracao);
 
     [[nodiscard]] Boss* GetBoss() const { return mBoss; }
-    [[nodiscard]] Player* GetPlayer() const { return mPlayer; }
+
+    /**
+     * @brief OS JOGADORES EM CAMPO, na ordem das posicoes do painel.
+     *
+     * Hoje sempre um. O gabinete tem duas posicoes, e e por aqui que a segunda
+     * entra - ver Documentacao/requisitos-coop.md, incremento 4.
+     *
+     * Quem quer MIRAR nao usa esta lista: usa Alvo().
+     */
+    [[nodiscard]] const std::vector<Player*>& Jogadores() const { return mJogadores; }
+
+    /**
+     * @brief EM QUEM UM ATAQUE MIRADO MIRA.
+     *
+     * Chamava-se GetPlayer(), e DOZE lugares a chamavam para esta mesma coisa:
+     * onde esta o alvo. O nome mentia por omissao - "o jogador" deixa de
+     * existir quando ha dois, e cada ataque teria de escolher por conta
+     * propria, doze vezes, cada um do seu jeito.
+     *
+     * ESTAVEL DENTRO DE UM DISPARO. O laser pergunta duas vezes (o nulo e a
+     * posicao) e as duas tem de dar o mesmo jogador; um laser que trocasse de
+     * alvo no meio do tracado seria ruido, nao dificuldade. Por isso o
+     * revezamento entre os dois (requisitos-coop, D3) NAO mora aqui dentro:
+     * ele entra no incremento 4, junto com quem o dispara.
+     *
+     * Devolve nullptr quando nao ha ninguem em campo, que acontece de verdade
+     * entre o Load e a criacao do jogador - os doze chamadores ja tratavam isso.
+     */
+    [[nodiscard]] Player* Alvo() const;
     [[nodiscard]] ProjectileManager* GetProjectileManager() const { return mProjectileManager.get(); }
 
     SDL_FRect GetPlayfieldBounds() const override;
@@ -122,7 +151,9 @@ private:
     // do vetor mActors da própria cena Battle. Ideal para, mesmo num vetor de Actors,
     // chamar funções específicas de Player e de Boss, e também para acesso rápido sem percorrer o vetor.
     Boss* mBoss{};
-    Player* mPlayer{};
+
+    /// OS JOGADORES, em vez de um. Ver Jogadores() e Alvo().
+    std::vector<Player*> mJogadores;
 
     // O GERENTE DE PROJÉTEIS: Um sistema especializado, possuído pela cena
     std::unique_ptr<ProjectileManager> mProjectileManager;

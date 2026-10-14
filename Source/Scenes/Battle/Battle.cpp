@@ -38,6 +38,18 @@
 // otimizacao de partida, nunca um limite de projeteis simultaneos. 
 static constexpr int kProjectilePrewarmCountPerType = 300;
 
+namespace {
+
+/// O colisor de um jogador, ou nullptr se nao houver jogador ou colisor.
+///
+/// Existe porque as tres regras de colisao que sao de jogador pedem a mesma
+/// coisa, e com a lista isso passou a acontecer uma vez por jogador por regra.
+const CircleColliderComponent* ColisorDe(const Player* jogador) {
+    return jogador ? jogador->GetComponent<CircleColliderComponent>() : nullptr;
+}
+
+} // namespace
+
 
 
 Battle::Battle(Game* game, const int selectedStage)
@@ -136,7 +148,9 @@ void Battle::LoadPlayer() {
     const auto startingHeight = static_cast<float>(mGame->GetWindowHeight()) * 7.0f / 8.0f;
     player->SetPosition(Vector2(midWidth, startingHeight));
 
-    mPlayer = dynamic_cast<Player*>(this->AddActor(std::move(player)));
+    // A LISTA, e nao um ponteiro so: o gabinete tem duas posicoes. Hoje entra
+    // um; o segundo entra aqui no incremento 4 (requisitos-coop).
+    mJogadores.push_back(dynamic_cast<Player*>(this->AddActor(std::move(player))));
 
 }
 void Battle::LoadTimeBar() {
@@ -312,8 +326,8 @@ void Battle::StartLoadingProjectilePools() {
     // Scene::ProcessInput() já respeitam ActorState::Active/Inactive, então
     // isso já impede movimento/disparo do jogador sem precisar de nenhum
     // mecanismo novo. Revertido em FinishLoadingProjectilePools().
-    if (mPlayer) {
-        mPlayer->SetState(ActorState::Paused);
+    for (Player* jogador : mJogadores) {
+        if (jogador) jogador->SetState(ActorState::Paused);
     }
 
     // Cria o texto de progresso (mesmo padrão de LoadEndScreen).
@@ -368,8 +382,8 @@ void Battle::FinishLoadingProjectilePools() {
     }
 
     // Reativa o Player, pausado em StartLoadingProjectilePools().
-    if (mPlayer) {
-        mPlayer->SetState(ActorState::Active);
+    for (Player* jogador : mJogadores) {
+        if (jogador) jogador->SetState(ActorState::Active);
     }
 
     // Só agora, com os pools já aquecidos, a lógica de ataque do Boss
@@ -545,7 +559,7 @@ void Battle::GradeTextUpdate() {
 
 
 void Battle::OnProcessInput(const Uint8* keyState) {
-    // NAO chame mPlayer->ProcessInput aqui.
+    // NAO chame ProcessInput dos jogadores aqui.
     // Scene::ProcessInput ja percorre mActors e entrega o input a todos os
     // atores Active - e o Player e um deles. A chamada extra que existia aqui
     // fazia Player::OnProcessInput rodar DUAS vezes por frame. Hoje isso passa
@@ -556,31 +570,54 @@ void Battle::OnProcessInput(const Uint8* keyState) {
     // (pausa, debug), que nao pertence a nenhum ator especifico.
 }
 void Battle::CheckCollisions() {
-    if (!mPlayer || !mBoss) return;
+    if (mJogadores.empty() || !mBoss) return;
 
-    const auto *playerCollider = mPlayer->GetComponent<CircleColliderComponent>();
     const auto *bossCollider = mBoss->GetComponent<CircleColliderComponent>();
-
-    if (!playerCollider || !bossCollider) return;
+    if (!bossCollider) return;
 
     const auto &bossProjectiles = mProjectileManager->GetBossProjectiles();
     const auto &playerProjectiles = mProjectileManager->GetPlayerProjectiles();
 
+    // AS QUATRO REGRAS CONTINUAM NESTA ORDEM, e por isso sao quatro lacos em vez
+    // de um. Juntar as tres regras de jogador num laco so seria mais curto, e
+    // poria a regra 2 - que paga ganho - depois das regras 1 e 3, que cobram
+    // dano. A ordem PODE mudar a nota: acima de 60 o ganho passa pela curva, e
+    // Nota::Somar le a nota de agora e quantos acertos ja foram sofridos.
+    //
+    // MEDI, E NAO CONSEGUI VER DIFERENCA. Rodei a batalha do Salles inteira com
+    // as regras reordenadas de tres jeitos e o despejo da nota saiu igual,
+    // quadro a quadro, nos tres. O motivo: abaixo de 60 o ganho e cheio e os
+    // dois caminhos dao o mesmo numero, e acima de 60 a diferenca so aparece
+    // num quadro que tenha ganho E dano ao mesmo tempo - o que nao aconteceu
+    // uma vez sequer em 2400 quadros com dez acertos sofridos acima de 60.
+    //
+    // Mantive a ordem assim mesmo. Ela custa tres lacos em vez de um e tira a
+    // duvida de um refatoramento cujo contrato e nao mudar nada - e o custo de
+    // estar errado aqui e uma nota diferente que ninguem ia notar.
 
     // --- REGRA 1 - Projéteis do Boss vs Player --- //
-    for (const auto &bossProj: bossProjectiles) {
-        if (bossProj->GetState() != ActorState::Active) continue;
-        if (const auto *bossProjCollider = bossProj->GetComponent<CircleColliderComponent>()) {
-            if (playerCollider->Intersect(*bossProjCollider) && !mPlayer->GetIsInvincible()) {
-                mPlayer->SetIsInvincible(true);
-                mPlayer->OnCollision(bossProj.get());
-                bossProj->OnCollision(mPlayer);
-                GradeDown();
+    for (Player* jogador : mJogadores) {
+        const auto *playerCollider = ColisorDe(jogador);
+        if (!playerCollider) continue;
+
+        for (const auto &bossProj: bossProjectiles) {
+            if (bossProj->GetState() != ActorState::Active) continue;
+            if (const auto *bossProjCollider = bossProj->GetComponent<CircleColliderComponent>()) {
+                if (playerCollider->Intersect(*bossProjCollider) && !jogador->GetIsInvincible()) {
+                    jogador->SetIsInvincible(true);
+                    jogador->OnCollision(bossProj.get());
+                    bossProj->OnCollision(jogador);
+                    GradeDown();
+                }
             }
         }
     }
 
     // --- REGRA 2 - Projéteis do Player vs Boss
+    //
+    // ESTA NAO E DE NINGUEM. Os tiros dos dois jogadores saem do mesmo pool e
+    // nao guardam de quem sao - e nao precisam: a nota e da dupla
+    // (requisitos-coop, D2), entao um acerto paga a mesma barra venha de quem vier.
     for (const auto &playerProj: playerProjectiles) {
         if (playerProj->GetState() != ActorState::Active) continue;
         if (const auto *playerProjCollider = playerProj->GetComponent<CircleColliderComponent>()) {
@@ -593,34 +630,49 @@ void Battle::CheckCollisions() {
     }
 
     // --- REGRA 3 - Player vs Boss  (Contato Direto)
-    if (playerCollider->Intersect(*bossCollider) && !mPlayer->GetIsInvincible()) {
-        mPlayer->SetIsInvincible(true);
-        mPlayer->OnCollision(mBoss);
-        mBoss->OnCollision(mPlayer);
-        GradeDown();
+    for (Player* jogador : mJogadores) {
+        const auto *playerCollider = ColisorDe(jogador);
+        if (!playerCollider) continue;
+
+        if (playerCollider->Intersect(*bossCollider) && !jogador->GetIsInvincible()) {
+            jogador->SetIsInvincible(true);
+            jogador->OnCollision(mBoss);
+            mBoss->OnCollision(jogador);
+            GradeDown();
+        }
     }
 
     // --- REGRA 4 - Player vs ExtraPoints
+    //
+    // O item e de QUEM ENCOSTOU (requisitos-coop, D8). O laco do jogador e o de
+    // fora: assim, se os dois tocarem o mesmo item no mesmo quadro, o primeiro
+    // o destroi e o segundo ja o encontra fora de Active.
+    //
+    // O som fica fora dos dois lacos, porque e um por quadro e nao um por item.
     bool playedPowerUpSound = false;
 
-    // --- REGRA 4 - Player vs ExtraPoints
-    for (const auto item : mExtraPoints) {
-        if (item->GetState() != ActorState::Active) continue;
+    for (Player* jogador : mJogadores) {
+        const auto *playerCollider = ColisorDe(jogador);
+        if (!playerCollider) continue;
 
-        if (const auto itemCollider = item->GetComponent<CircleColliderComponent>(); itemCollider && playerCollider->Intersect(*itemCollider)) {
+        for (const auto item : mExtraPoints) {
+            if (item->GetState() != ActorState::Active) continue;
 
-            // 1. Efeito da Coleta
-            mPlayer->AddExtraPoint();
+            if (const auto itemCollider = item->GetComponent<CircleColliderComponent>(); itemCollider && playerCollider->Intersect(*itemCollider)) {
 
-            // 2. Toca o som
-            if (!playedPowerUpSound) {
-                // Toca só se ainda não tocou neste frame
-                mGame->GetAudio()->PlaySound("powerup.wav", false);
-                playedPowerUpSound = true;
+                // 1. Efeito da Coleta
+                jogador->AddExtraPoint();
+
+                // 2. Toca o som
+                if (!playedPowerUpSound) {
+                    // Toca só se ainda não tocou neste frame
+                    mGame->GetAudio()->PlaySound("powerup.wav", false);
+                    playedPowerUpSound = true;
+                }
+
+                // 3. Destroi o item
+                item->SetState(ActorState::Destroy);
             }
-
-            // 3. Destroi o item
-            item->SetState(ActorState::Destroy);
         }
     }
 
@@ -628,6 +680,15 @@ void Battle::CheckCollisions() {
     // de desbloqueio oscilarem a cada dano, e podia re-trancar uma materia
     // aprovada. Quem grava e FinishBattle, uma vez, no fim.
 
+}
+
+Player* Battle::Alvo() const {
+
+    // Hoje ha sempre um. O revezamento entre os dois (requisitos-coop, D3) NAO
+    // entra aqui como "um a cada chamada": o laser pergunta duas vezes no mesmo
+    // disparo, e trocaria de alvo no meio do tracado. Ele entra no incremento
+    // 4, junto com quem souber dizer que um disparo comecou.
+    return mJogadores.empty() ? nullptr : mJogadores.front();
 }
 
 void Battle::GradeUp(const float amount) {
@@ -767,8 +828,8 @@ void Battle::FinishBattle(bool approved) {
     }
 
     // 2. Torna o Player Invencível (para não morrer durante a tela de vitória)
-    if (mPlayer) {
-        mPlayer->SetIsInvincible(true);
+    for (Player* jogador : mJogadores) {
+        if (jogador) jogador->SetIsInvincible(true);
     }
 
     // 3. Configura e Mostra o Texto
