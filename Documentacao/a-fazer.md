@@ -128,12 +128,16 @@ corredor.
 
 ## Ferramentas
 
-### Portar um arnês de medição para `Ferramentas/`
+### Portar o resto dos arnêses para `Ferramentas/`
 
-`build-e-testes.md` descreve a técnica de instrumentar o jogo para medir e
-fotografar, mas os scripts que fazem isso não estão no repositório. Um script
-portável que entre direto numa fase e fotografe por instante de jogo pouparia
-reescrevê-lo toda vez.
+`Ferramentas/medir-dificuldade.sh` é o primeiro: ele monta uma cópia da árvore
+com semente, passo de tempo e piloto presos, e foi com ele que a seção 8 de
+`requisitos-coop.md` foi medida — rodá-lo reproduz os números da tabela.
+
+Faltam os outros dois que `build-e-testes.md` descreve e que vivem fora do
+repositório: o que **fotografa** uma cena num quadro exato (foi assim que o
+retângulo vazio no lugar do "+" apareceu) e o que **dirige o menu** por um
+roteiro de botões.
 
 ### Arte definitiva
 
