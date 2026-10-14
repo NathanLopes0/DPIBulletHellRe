@@ -140,10 +140,17 @@ de dezenas de projéteis ao mesmo tempo.
 
 A alternância exige que **cada projétil guarde o alvo que tinha ao nascer**.
 Isso é mudança no `BossProjectile` e no caminho que o cria, e não cabia junto
-com pôr o segundo aluno em campo. Virou o incremento 5.
+com pôr o segundo aluno em campo. Virou o incremento 5, **feito**.
 
-Até lá, todos os ataques mirados miram o jogador 1 — o que é jogável e
-honestamente mais difícil para ele que para o parceiro.
+Como ficou: cada projétil guarda a **posição** do alvo (0 ou 1), e não o
+ponteiro — os projéteis vêm de um pool que vive no `Game` e sobrevive à troca
+de batalha, e um ponteiro guardado apontaria para um aluno já destruído. Quem
+põe é `Boss::ExecuteAttack`, na leva inteira de uma vez, porque **uma rajada é
+um disparo**: os vinte projéteis de um leque miram o mesmo aluno.
+
+E a vez passa **depois** do disparo, não antes. Antes, o primeiro ataque da
+batalha saía mirado no jogador 2 — a vez começa em 0, e passá-la antes de
+atirar a levava para 1 sem ninguém ter sido mirado.
 
 ### 2.2 — O que fica singular na batalha, e por quê (D2, D8)
 
@@ -329,8 +336,9 @@ Cada um compila, passa na suíte e pode ser jogado.
 4. ~~**O segundo jogador em campo.**~~ **Feito.** Dois `Player`, cada um no seu
    painel e com a sua personagem, colisões para os dois, a divisão de 2.1, uma
    barra de nota, e a mesma nota gravada na ficha dos dois.
-5. **A alternância do alvo (D3).** Cada projétil passa a guardar o alvo que
-   tinha ao nascer, e aí o revezamento por disparo fica possível — ver 2.1b.
+5. ~~**A alternância do alvo (D3).**~~ **Feito.** Cada projétil guarda a
+   posição do alvo que tinha ao nascer, e o revezamento acontece uma vez por
+   disparo, em `Boss::ExecuteAttack` — ver 2.1b.
 6. **Os dois rankings.** Ficha versão 5, o recorde de co-op com parceiro, o
    ranking de duplas e o botão que alterna na tela.
 7. **A medição.** Com o co-op jogável, medir a nota de uma dupla contra a de um
