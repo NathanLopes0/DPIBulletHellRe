@@ -94,10 +94,11 @@ cursor, ignora o fechar da janela, volta ao menu sozinho quando fica parado — 
 solta o perfil do aluno ao voltar. Sair é `Ctrl+Esc` segurado. Está documentado
 em `gabinete.md`.
 
+A tela de atração entrou depois: parado no menu, o gabinete passa a mostrar o
+título com a chamada e os melhores do curso.
+
 **Falta:**
 
-- **A tela de atração.** Hoje a máquina parada mostra o menu principal parado.
-  Ela sairia do menu, e `Ranking::Geral` já dá o que mostrar.
 - **Recuperação se o jogo cair.** Nada disso adianta se um `crash` deixa a área
   de trabalho à vista até alguém passar no corredor. É script de sistema, não
   código do jogo: um laço que reabre.

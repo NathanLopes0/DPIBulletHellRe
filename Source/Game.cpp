@@ -17,6 +17,7 @@
 #include "Scenes/Identificacao.h"
 #include "Scenes/Opcoes.h"
 #include "Scenes/TelaDeRanking.h"
+#include "Scenes/Atracao.h"
 #include "Scenes/CriacaoDePersonagem.h"
 #include "Scenes/StageSelect.h"
 #include "Scenes/Battle/Battle.h"
@@ -217,6 +218,29 @@ void Game::UpdateGame()
 
 }
 
+namespace {
+
+    /**
+     * Para onde a ociosidade leva, conforme a tela em que ela acontece.
+     * None quer dizer "fica onde esta".
+     *
+     * A BATALHA NAO VOLTA SOZINHA: ficar parado e uma forma legitima de
+     * desviar, e ela ja termina por tempo. A ATRACAO tambem nao - ela JA e a
+     * tela de quem nao esta jogando, e so sai dali quem encostar no painel.
+     *
+     * Do menu a ociosidade leva PARA A FRENTE, e nao de volta: um arcade parado
+     * num corredor tem de convidar quem passa.
+     */
+    Scene::SceneType ParaOndeAOciosidadeLeva(const Scene::SceneType atual) {
+        switch (atual) {
+            case Scene::SceneType::Battle:
+            case Scene::SceneType::Atracao:  return Scene::SceneType::None;
+            case Scene::SceneType::MainMenu: return Scene::SceneType::Atracao;
+            default:                         return Scene::SceneType::MainMenu;
+        }
+    }
+}
+
 void Game::AtualizarGabinete(const float deltaTime)
 {
     // A SAIDA DE QUEM MANTEM A MAQUINA. Ctrl+Esc segurado por alguns segundos,
@@ -231,15 +255,10 @@ void Game::AtualizarGabinete(const float deltaTime)
 
     if (!mOciosidade.Ligada() || !mScene) return;
 
-    // A BATALHA NAO VOLTA SOZINHA: ficar parado e uma forma legitima de
-    // desviar, e ela ja termina por tempo. O menu tambem nao, porque e o
-    // destino - e e dali que a tela de atracao vai sair, quando existir.
-    const Scene::SceneType atual = GetCurrSceneType();
-    const bool voltaSozinha = atual != Scene::SceneType::MainMenu
-                           && atual != Scene::SceneType::Battle;
+    const Scene::SceneType destino = ParaOndeAOciosidadeLeva(GetCurrSceneType());
 
     // Um pedido de troca ja feito pela cena nao pode ser atropelado por este.
-    if (!voltaSozinha || mPendingSceneChange) {
+    if (destino == Scene::SceneType::None || mPendingSceneChange) {
         mOciosidade.Reiniciar();
         return;
     }
@@ -247,10 +266,10 @@ void Game::AtualizarGabinete(const float deltaTime)
     if (mOciosidade.Passou(deltaTime, !mHouveEntrada)) {
         // O PERFIL DE QUEM JOGOU NAO PODE FICAR PENDURADO. Quem chegasse depois
         // encontraria a sessao de outra pessoa e jogaria no nome dela.
-        SDL_Log("GABINETE: %.0fs parado, voltando ao menu.",
-                static_cast<double>(mGabinete.ociosidade));
+        SDL_Log("GABINETE: %.0fs parado, indo para a cena %d.",
+                static_cast<double>(mGabinete.ociosidade), static_cast<int>(destino));
         JogarComoVisitante();
-        RequestSceneChange(Scene::SceneType::MainMenu);
+        RequestSceneChange(destino);
     }
 }
 
@@ -457,6 +476,9 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
             break;
         case Scene::SceneType::Ranking:
             mScene = std::make_unique<TelaDeRanking>(this);
+            break;
+        case Scene::SceneType::Atracao:
+            mScene = std::make_unique<Atracao>(this);
             break;
         case Scene::SceneType::StageSelect:
             mScene = std::make_unique<StageSelect>(this);

@@ -33,6 +33,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Scenes/Identificacao.h
         Source/Scenes/Opcoes.cpp
         Source/Scenes/TelaDeRanking.cpp
+        Source/Scenes/Atracao.cpp
+        Source/Scenes/Atracao.h
         Source/Scenes/Opcoes.h
         Source/Scenes/CriacaoDePersonagem.cpp
         Source/Scenes/CriacaoDePersonagem.h

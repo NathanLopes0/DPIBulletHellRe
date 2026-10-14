@@ -52,7 +52,18 @@ a tela volta ao menu principal **e o perfil do aluno é solto**. Sem isso, quem
 chegasse depois encontraria a sessão de outra pessoa e jogaria no nome dela.
 
 A **batalha não volta sozinha**: ficar parado é uma forma legítima de desviar, e
-ela já termina por tempo. O menu também não, porque é o destino.
+ela já termina por tempo.
+
+**Do menu a ociosidade leva para a frente**, não de volta: passado o mesmo tempo
+parado no menu principal, entra a **tela de atração** — o título com a chamada e
+os melhores do curso, alternando a cada seis segundos. Qualquer tecla volta ao
+menu; não há o que escolher ali, então não há botão certo.
+
+A tela de atração também não volta sozinha: ela já é a tela de quem não está
+jogando.
+
+O cartaz dos melhores só aparece se houver ficha gravada. Numa máquina
+recém-instalada a atração mostra só o título.
 
 ---
 
@@ -104,8 +115,8 @@ derruba o jogo no meio do corredor.
 
 ## O que ainda falta
 
-Está em `a-fazer.md`, na seção *Gabinete*: a tela de atração e a recuperação se
-o jogo cair.
+Está em `a-fazer.md`, na seção *Gabinete*: a recuperação se o jogo cair. É
+script de sistema, não código — um laço que reabre.
 
 ---
 
@@ -118,7 +129,12 @@ zero desliga a contagem. É por isso que não há `if (arcade)` espalhado:
 fora do gabinete as duas nascem desligadas.
 
 `Game::AtualizarGabinete` é quem roda isso a cada quadro, e
-`Game::Initialize` é quem abre a janela em tela cheia.
+`Game::Initialize` é quem abre a janela em tela cheia. Para onde a ociosidade
+leva em cada tela está numa tabela só, em `ParaOndeAOciosidadeLeva`.
+
+`Source/Scenes/Atracao.h` é a tela de atração. Os cartazes se alternam com o
+**mesmo** `Gabinete::Contagem` das duas esperas — terceiro uso da classe, com a
+condição sempre verdadeira.
 
 `Source/Painel.h` tem os botões: a tecla de cada um, o nome com que cada um
 aparece escrito, e o montador de rodapé. Nenhuma cena escreve `SDL_SCANCODE_`
