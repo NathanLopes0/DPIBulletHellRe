@@ -77,7 +77,7 @@ Atracao::Cartaz Atracao::CriarChamada() {
     cartaz.push_back(Texto("Voce e o aluno. Os professores sao os chefes.",
                            largura / 2.0f, altura * 0.86f, 28, 1000, Color::White));
 
-    cartaz.push_back(Texto(Painel::Rodape({{Painel::Botao::Um, "jogar"}},
+    cartaz.push_back(Texto(Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um, "jogar"}},
                                           mGame->JeitoDoRodape()),
                            largura / 2.0f, altura * 0.945f, 32, 700, Color::Gold));
 

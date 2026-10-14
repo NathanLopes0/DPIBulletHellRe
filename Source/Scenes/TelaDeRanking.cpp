@@ -74,7 +74,7 @@ void TelaDeRanking::Load() {
     if (const auto dc = mSubtituloAtor->GetComponent<DrawTextComponent>()) {
         dc->SetColor(Color::LightBlue);   // e uma nota de rodape, nao um titulo
     }
-    Texto(Painel::Rodape({{Painel::Botao::Dois, "voltar"}}, mGame->JeitoDoRodape()),
+    Texto(Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Dois, "voltar"}}, mGame->JeitoDoRodape()),
           largura / 2.0f, altura * 0.93f, 22, 1000);
 
     // As linhas sao criadas uma vez e reescritas na troca de materia. Criar e
@@ -205,7 +205,7 @@ void TelaDeRanking::Redesenhar() {
 
 void TelaDeRanking::OnProcessInput(const Uint8* keyState) {
 
-    const bool voltar = Painel::Apertado(keyState, Painel::Botao::Dois)
+    const bool voltar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois)
                      || keyState[SDL_SCANCODE_ESCAPE];
     if (voltar && !mVoltarAnterior) {
         // VOLTA PARA ONDE VEIO, e nao sempre para o menu: aberta pela selecao de

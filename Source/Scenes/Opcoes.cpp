@@ -29,7 +29,7 @@ void Opcoes::Load() {
 
     Texto("OPCOES", altura * 0.22f, 52, 760);
     Texto("Nada para configurar ainda.", altura * 0.45f, 28, 760);
-    Texto(Painel::Rodape({{Painel::Botao::Dois, "voltar"}}, mGame->JeitoDoRodape()),
+    Texto(Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Dois, "voltar"}}, mGame->JeitoDoRodape()),
           altura * 0.80f, 24, 420);
 }
 
@@ -51,7 +51,7 @@ Actor* Opcoes::Texto(const std::string& conteudo, const float y, const int taman
 
 void Opcoes::OnProcessInput(const Uint8* keyState) {
 
-    const bool voltar = Painel::Apertado(keyState, Painel::Botao::Dois)
+    const bool voltar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois)
                      || keyState[SDL_SCANCODE_ESCAPE];
     if (voltar && !mVoltarAnterior) {
         mGame->RequestSceneChange(SceneType::MainMenu);

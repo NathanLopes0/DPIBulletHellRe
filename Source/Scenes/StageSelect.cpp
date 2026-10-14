@@ -73,9 +73,10 @@ void StageSelect::CriarIdentificacaoNaTela() {
     // linha em duas, e o ajuste ao texto ainda as encolhia para caber na altura
     // de uma - ficava "trocar usuario" solto embaixo e um "T" perdido na ponta.
     const auto rodape = trocar->AddComponent<DrawTextComponent>(
-        Painel::Rodape({{Painel::Botao::Um,   "jogar"},
-                        {Painel::Botao::Dois, "trocar aluno"},
-                        {Painel::Botao::Tres, "ranking"}}, mGame->JeitoDoRodape()),
+        Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um,   "jogar"},
+                        {Painel::Jogador::Um, Painel::Botao::Dois, "trocar aluno"},
+                        {Painel::Jogador::Um, Painel::Botao::Tres, "ranking"}},
+                       mGame->JeitoDoRodape()),
         mStageSelectFont.get(), 1100, 34, 22, 255);
     rodape->SetLarguraDeQuebra(1100);
     rodape->SetAjustarAoTexto(true);
@@ -346,7 +347,7 @@ void StageSelect::OnProcessInput(const Uint8 *keyState) {
     // nao ha o que perder - e sair sem ter jogado nao deveria criar arquivo.
     // O ESC continua valendo para quem desenvolve, mas nao aparece escrito:
     // o gabinete nao tem ESC, e o rodape so anuncia o que existe no painel.
-    const bool trocar = Painel::Apertado(keyState, Painel::Botao::Dois)
+    const bool trocar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois)
                      || keyState[SDL_SCANCODE_ESCAPE];
     if (trocar && !mTrocarAnterior) {
         mTrocarAnterior = true;
@@ -377,7 +378,7 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
 
     // O RANKING DA MATERIA EM FOCO. Abre direto na materia certa: perguntar
     // "como fui nesta?" acontece olhando para ela, e nao no menu principal.
-    const bool verRanking = Painel::Apertado(keyState, Painel::Botao::Tres);
+    const bool verRanking = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Tres);
     if (verRanking && !mRankingAnterior) {
         mRankingAnterior = true;
         mGame->PedirRanking(Game::PedidoDeRanking{false, mSelectedSubject,
@@ -388,7 +389,7 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
     mRankingAnterior = verRanking;
 
     // Precisa ser uma batida NOVA, e nao o estado: ver mEntrarAnterior.
-    const bool entrar = Painel::Apertado(keyState, Painel::Botao::Um)
+    const bool entrar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Um)
                      || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
     if (entrar && !mEntrarAnterior && mGame->IsStageUnlocked(mSelectedSubject)) {
         mEntrarAnterior = true;
@@ -412,10 +413,17 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
 
 size_t StageSelect::HandleSelectedChange(const Uint8 *keyState, const size_t currSelected) const {
 
-    if (keyState[SDL_SCANCODE_UP])          return Navegacao::Cima(mGrade, currSelected);
-    if (keyState[SDL_SCANCODE_DOWN])        return Navegacao::Baixo(mGrade, currSelected);
-    if (keyState[SDL_SCANCODE_LEFT])        return Navegacao::Esquerda(mGrade, currSelected);
-    if (keyState[SDL_SCANCODE_RIGHT])       return Navegacao::Direita(mGrade, currSelected);
+    // A SELECAO E SEMPRE DO JOGADOR 1, tambem no co-op: a materia que ele abriu
+    // e a que a dupla joga. Ver Documentacao/requisitos-coop.md, RF3.
+    //
+    // Esta tela era a unica das cinco de menu que NAO aceitava W A S D, porque
+    // lia as setas direto. Agora ela le o manche, pelo nome, como as outras.
+    constexpr Painel::Jogador kQuem = Painel::Jogador::Um;
+
+    if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Cima))     return Navegacao::Cima(mGrade, currSelected);
+    if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Baixo))    return Navegacao::Baixo(mGrade, currSelected);
+    if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Esquerda)) return Navegacao::Esquerda(mGrade, currSelected);
+    if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Direita))  return Navegacao::Direita(mGrade, currSelected);
 
     return currSelected;
 }

@@ -105,8 +105,10 @@ void MainMenu::Load() {
 
 void MainMenu::OnProcessInput(const Uint8 *keyState) {
 
-    const bool cima  = keyState[SDL_SCANCODE_UP]   || keyState[SDL_SCANCODE_W];
-    const bool baixo = keyState[SDL_SCANCODE_DOWN] || keyState[SDL_SCANCODE_S];
+    // Quem escolhe no menu e o jogador 1, inclusive a opcao de dois jogadores.
+    // Ver Documentacao/requisitos-coop.md, RF1.
+    const bool cima  = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Direcao::Cima);
+    const bool baixo = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Direcao::Baixo);
 
     if (cima && !mCimaAnterior) {
         // Soma kQuantasOpcoes antes do resto: em C++ o resto de um negativo e
@@ -124,7 +126,7 @@ void MainMenu::OnProcessInput(const Uint8 *keyState) {
 
     // O BOTAO 1 do painel e o espaco, entao quem ja conhece o jogo nao perde
     // nada. O ENTER fica como atalho de teclado, sem aparecer escrito.
-    const bool confirmar = Painel::Apertado(keyState, Painel::Botao::Um)
+    const bool confirmar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Um)
                         || keyState[SDL_SCANCODE_RETURN]
                         || keyState[SDL_SCANCODE_KP_ENTER];
 

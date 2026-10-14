@@ -18,17 +18,23 @@ feito na disciplina INF 216.
 
 ## Como jogar
 
-O jogo é feito para o painel do gabinete — manche e três botões — e **toda tela
-é inteiramente operável com eles**. As teclas do computador são o mesmo painel,
-mais alguns atalhos que não aparecem escritos na tela.
+O jogo é feito para o painel do gabinete — **duas posições**, cada uma com
+manche e três botões — e **toda tela é inteiramente operável com eles**. As
+teclas do computador são o mesmo painel, mais alguns atalhos que não aparecem
+escritos na tela.
 
-| Painel | Teclado | O que faz |
-|---|---|---|
-| **Manche** | **W A S D** ou **setas** | mover o aluno, escolher na tela |
-| **Botão 1** | **Espaço** | lançar Dúvidas; confirmar; digitar |
-| **Botão 2** | **B** | voltar e apagar; na batalha, gastar um Ponto Extra: limpa a tela e soma nota, mas sobrecarrega e impede de atirar por alguns segundos |
-| **Botão 3** | **N** | o ranking da matéria, na seleção |
-| — | **Enter**, **Esc**, **0–9**, **Backspace** | atalhos de teclado para quem desenvolve |
+| Painel | Jogador 1 | Jogador 2 | O que faz |
+|---|---|---|---|
+| **Manche** | **setas** | **W A S D** | mover o aluno, escolher na tela |
+| **Botão 1** | **Espaço** | **F** | lançar Dúvidas; confirmar; digitar |
+| **Botão 2** | **B** | **G** | voltar e apagar; na batalha, gastar um Ponto Extra: limpa a tela e soma nota, mas sobrecarrega e impede de atirar por alguns segundos |
+| **Botão 3** | **N** | **H** | o ranking da matéria, na seleção |
+| — | **Enter**, **Esc**, **0–9**, **Backspace** | — | atalhos de teclado para quem desenvolve |
+
+> As setas **deixaram de ser atalho do W A S D**: elas são o manche do jogador
+> 1, e o W A S D é o do jogador 2. Por enquanto só o jogador 1 joga — a segunda
+> posição já tem teclas, mas ainda não tem jogador. Ver
+> `Documentacao/requisitos-coop.md`.
 
 O que cada botão faz **na tela em que você está** fica escrito no rodapé dela.
 

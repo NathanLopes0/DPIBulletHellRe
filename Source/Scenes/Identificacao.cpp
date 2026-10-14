@@ -145,9 +145,10 @@ void Identificacao::CriarTextos() {
     // A ajuda agora fala do GABINETE, e nao do teclado: o manche escolhe, um
     // botao digita e o outro apaga. As teclas do computador continuam valendo
     // para quem desenvolve, mas nao e para elas que esta tela e desenhada.
-    Texto(Painel::Rodape({Painel::Manche("escolher"),
-                          {Painel::Botao::Um,   "digitar"},
-                          {Painel::Botao::Dois, "apagar"}}, mGame->JeitoDoRodape()),
+    Texto(Painel::Rodape({Painel::Manche(Painel::Jogador::Um, "escolher"),
+                          {Painel::Jogador::Um, Painel::Botao::Um,   "digitar"},
+                          {Painel::Jogador::Um, Painel::Botao::Dois, "apagar"}},
+                         mGame->JeitoDoRodape()),
           altura * 0.955f, 22, 1100, 34);
 
     CriarTeclado();
@@ -317,13 +318,17 @@ void Identificacao::LerManche(const Uint8* keyState, const float deltaTime) {
     const size_t antes = mTeclaSelecionada;
 
     if (mPassoTimer >= kPassoDoManche) {
-        if (keyState[SDL_SCANCODE_UP]    || keyState[SDL_SCANCODE_W])
+        // Por enquanto so o jogador 1 se identifica. Quando a dupla entrar,
+        // esta tela roda duas vezes e a posicao vira membro (requisitos-coop, RF2).
+        constexpr Painel::Jogador kQuem = Painel::Jogador::Um;
+
+        if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Cima))
             mTeclaSelecionada = Navegacao::Cima(mGradeDoTeclado, mTeclaSelecionada);
-        else if (keyState[SDL_SCANCODE_DOWN]  || keyState[SDL_SCANCODE_S])
+        else if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Baixo))
             mTeclaSelecionada = Navegacao::Baixo(mGradeDoTeclado, mTeclaSelecionada);
-        else if (keyState[SDL_SCANCODE_LEFT]  || keyState[SDL_SCANCODE_A])
+        else if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Esquerda))
             mTeclaSelecionada = Navegacao::Esquerda(mGradeDoTeclado, mTeclaSelecionada);
-        else if (keyState[SDL_SCANCODE_RIGHT] || keyState[SDL_SCANCODE_D])
+        else if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Direita))
             mTeclaSelecionada = Navegacao::Direita(mGradeDoTeclado, mTeclaSelecionada);
     }
 
@@ -334,7 +339,7 @@ void Identificacao::LerManche(const Uint8* keyState, const float deltaTime) {
 
     // BOTAO 1 - digita a tecla acesa. ENTER tambem cai aqui, e nao mais direto
     // na validacao: no gabinete quem valida e a tecla ENTRAR da grade.
-    const bool acionar = Painel::Apertado(keyState, Painel::Botao::Um);
+    const bool acionar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Um);
     if (acionar && !mAcionarAnterior) {
         const auto& teclas = Teclado::Teclas();
         if (mTeclaSelecionada < teclas.size()) Acionar(teclas[mTeclaSelecionada]);
@@ -358,7 +363,7 @@ void Identificacao::LerTeclado(const Uint8* keyState) {
 
     // BOTAO 2 do gabinete, junto com o BACKSPACE: apagar e frequente demais para
     // exigir uma viagem ate a tecla APAGAR da grade a cada erro de digitacao.
-    const bool apagar = Painel::Apertado(keyState, Painel::Botao::Dois)
+    const bool apagar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois)
                         || keyState[SDL_SCANCODE_BACKSPACE] || keyState[SDL_SCANCODE_DELETE];
     if (apagar && !mApagarAnterior) {
         mDigitado = Matricula::Apagar(mDigitado);

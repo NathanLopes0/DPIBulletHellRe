@@ -69,17 +69,28 @@ recém-instalada a atração mostra só o título.
 
 ## O painel
 
-Manche e **três botões**. É tudo o que existe lá, e é por isso que nenhuma tela
-pode exigir outra tecla.
+**Duas posições**, cada uma com manche e **três botões**. É tudo o que existe
+lá, e é por isso que nenhuma tela pode exigir outra tecla.
 
-| | | |
-|---|---|---|
-| **Manche** | setas | andar, escolher |
-| **Botão 1** | `Espaço` | confirmar, atirar, digitar |
-| **Botão 2** | `B` | voltar, apagar, sobrecarga |
-| **Botão 3** | `N` | o extra de cada tela (hoje, o ranking da matéria) |
+| | Jogador 1 | Jogador 2 | |
+|---|---|---|---|
+| **Manche** | setas | `W A S D` | andar, escolher |
+| **Botão 1** | `Espaço` | `F` | confirmar, atirar, digitar |
+| **Botão 2** | `B` | `G` | voltar, apagar, sobrecarga |
+| **Botão 3** | `N` | `H` | o extra de cada tela (hoje, o ranking da matéria) |
 
-São essas as teclas que o encoder do painel precisa mandar.
+São essas as teclas que o encoder do painel precisa mandar — **catorze, não
+sete**, e nenhuma repetida entre as duas posições. Uma tecla repetida faria os
+dois manches moverem o mesmo aluno, que era o estado do código antes de a
+segunda posição existir: o `W A S D` era atalho das setas.
+
+As teclas moram numa tabela só, em `Source/Painel.cpp`. É ela que muda no dia
+em que o encoder chegar e mandar outra coisa; nenhuma cena e nenhum jogador
+guarda tecla própria.
+
+**O JOGO AINDA USA UMA POSIÇÃO.** A segunda já tem teclas e já é lida pelo
+módulo do painel, mas nenhuma tela coloca um segundo jogador em campo. O
+caminho até lá está em `requisitos-coop.md`.
 
 **Toda tela é inteiramente operável com os três.** Nenhuma ação fica só no
 teclado, e nenhum rodapé anuncia tecla que o painel não tem — `Painel::Rodape`

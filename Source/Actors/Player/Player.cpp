@@ -129,16 +129,24 @@ void Player::MoveInput(const Uint8 *keyState) {
     float newXSpeed = 0;
     float newYSpeed = 0;
 
+    // O MANCHE DA POSICAO 1. Era W A S D ou as setas, as duas coisas movendo
+    // este mesmo jogador - e por isso a posicao 2 do gabinete ficava sem manche.
+    // As setas sao do jogador 1, o W A S D e do jogador 2; ver Painel.h.
+    //
+    // A posicao esta escrita aqui porque so ha um jogador. Quando o segundo
+    // entrar em campo, ela vira membro do Player (requisitos-coop, incremento 4).
+    constexpr Painel::Jogador kQuem = Painel::Jogador::Um;
+
     // ------ verificação de movimento CIMA/BAIXO ------
-    if(keyState[SDL_SCANCODE_W] || keyState[SDL_SCANCODE_UP])
+    if(Painel::Apertado(keyState, kQuem, Painel::Direcao::Cima))
         newYSpeed -= playerSpeed;
-    else if(keyState[SDL_SCANCODE_S] || keyState[SDL_SCANCODE_DOWN])
+    else if(Painel::Apertado(keyState, kQuem, Painel::Direcao::Baixo))
         newYSpeed += playerSpeed;
 
     // ------ verificação de movimento ESQUERDA/DIREITA ------
-    if(keyState[SDL_SCANCODE_A] || keyState[SDL_SCANCODE_LEFT])
+    if(Painel::Apertado(keyState, kQuem, Painel::Direcao::Esquerda))
         newXSpeed -= playerSpeed;
-    else if (keyState[SDL_SCANCODE_D] || keyState[SDL_SCANCODE_RIGHT])
+    else if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Direita))
         newXSpeed += playerSpeed;
 
     //vendo se está movendo ou não para mudar a variável mMoving (pra mudar a animação de acordo)
@@ -150,7 +158,7 @@ void Player::MoveInput(const Uint8 *keyState) {
 void Player::ShootInput(const Uint8 *keyState) {
 
     // BOTAO 1 do painel. Ver Painel.h: a tecla mora num lugar so.
-    if(Painel::Apertado(keyState, Painel::Botao::Um) && mOverloadTimer <= 0.0f) {
+    if(Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Um) && mOverloadTimer <= 0.0f) {
         Shoot();
     }
 
@@ -158,7 +166,7 @@ void Player::ShootInput(const Uint8 *keyState) {
 void Player::SpecialInput(const Uint8 *keyState) {
 
     // BOTAO 2 do painel.
-    if(Painel::Apertado(keyState, Painel::Botao::Dois) && mExtraPoints > 0 && mOverloadTimer <= 0.0f) {
+    if(Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois) && mExtraPoints > 0 && mOverloadTimer <= 0.0f) {
         mExtraPoints--;
         mOverloadTimer = OVERLOAD_DURATION;
         if (const auto battle = dynamic_cast<Battle*>(GetScene())) {

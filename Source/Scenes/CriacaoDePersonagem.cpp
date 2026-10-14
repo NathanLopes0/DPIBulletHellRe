@@ -143,8 +143,9 @@ void CriacaoDePersonagem::Load() {
     // quadrado vazio no lugar. O traco existe e e usado em outras telas.
     Texto("MANCHE  cima e baixo escolhem o que mudar - os lados trocam",
           largura / 2.0f, altura * 0.86f, 22, 900);
-    Texto(Painel::Rodape({{Painel::Botao::Um,   "confirmar"},
-                          {Painel::Botao::Dois, "voltar"}}, mGame->JeitoDoRodape()),
+    Texto(Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um,   "confirmar"},
+                          {Painel::Jogador::Um, Painel::Botao::Dois, "voltar"}},
+                         mGame->JeitoDoRodape()),
           largura / 2.0f, altura * 0.92f, 22, 700);
 
     Recompor();
@@ -247,10 +248,14 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
 
     const int quantas = static_cast<int>(mLinhas.size());
 
-    const bool cima     = keyState[SDL_SCANCODE_UP]    || keyState[SDL_SCANCODE_W];
-    const bool baixo    = keyState[SDL_SCANCODE_DOWN]  || keyState[SDL_SCANCODE_S];
-    const bool esquerda = keyState[SDL_SCANCODE_LEFT]  || keyState[SDL_SCANCODE_A];
-    const bool direita  = keyState[SDL_SCANCODE_RIGHT] || keyState[SDL_SCANCODE_D];
+    // Cada jogador monta a propria personagem (requisitos-coop, D6), entao esta
+    // posicao vira membro quando a dupla entrar. Hoje so ha o jogador 1.
+    constexpr Painel::Jogador kQuem = Painel::Jogador::Um;
+
+    const bool cima     = Painel::Apertado(keyState, kQuem, Painel::Direcao::Cima);
+    const bool baixo    = Painel::Apertado(keyState, kQuem, Painel::Direcao::Baixo);
+    const bool esquerda = Painel::Apertado(keyState, kQuem, Painel::Direcao::Esquerda);
+    const bool direita  = Painel::Apertado(keyState, kQuem, Painel::Direcao::Direita);
 
     if (quantas > 0) {
         if (cima && !mCimaAnterior) {
@@ -269,7 +274,7 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
     mEsquerdaAnterior = esquerda;
     mDireitaAnterior = direita;
 
-    const bool confirmar = Painel::Apertado(keyState, Painel::Botao::Um)
+    const bool confirmar = Painel::Apertado(keyState, kQuem, Painel::Botao::Um)
                         || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
     if (confirmar && !mConfirmarAnterior) {
         mConfirmarAnterior = true;
@@ -281,7 +286,7 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
     }
     mConfirmarAnterior = confirmar;
 
-    const bool voltar = Painel::Apertado(keyState, Painel::Botao::Dois)
+    const bool voltar = Painel::Apertado(keyState, kQuem, Painel::Botao::Dois)
                      || keyState[SDL_SCANCODE_ESCAPE];
     if (voltar && !mVoltarAnterior) {
         // Volta para a matricula. Nada foi gravado ainda, entao a matricula
