@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 /**
  * CAMADA PURA. So aritmetica de nota; nao conhece batalha, chefe, SDL nem disco.
  *
@@ -159,4 +161,31 @@ namespace Nota {
      * do que a curva quer.
      */
     float Subtrair(float notaAtual, float perda);
+
+    /**
+     * @brief O que UM JOGADOR causa, repartido pelos que estao em campo.
+     *
+     * A NOTA DO CO-OP E UMA SO (requisitos-coop, D2), e sem isto ela seria
+     * outra coisa em cada direcao. A regra inteira cabe numa frase:
+     *
+     *   O que um jogador sozinho causa e dividido pelo numero de jogadores.
+     *   O que a dupla conquista junta e pago inteiro.
+     *
+     * DIVIDIDO: o ganho por acerto no chefe (dois atiradores somam o dobro de
+     * acertos no mesmo tempo, e assim a barra sobe no ritmo de um solo), a
+     * perda por dano sofrido (sao dois alvos em campo, e sem dividir a barra
+     * drenaria no dobro) e o ganho de gastar um Ponto Extra (sao dois
+     * estoques).
+     *
+     * INTEIRO, e por isso NAO passa por aqui: o bonus de fase limpa, que e da
+     * fase e nao de um jogador - e que ja ficou mais dificil, porque exige que
+     * nenhum dos dois tenha sido atingido.
+     *
+     * COM UM JOGADOR, DIVIDIR POR UM NAO MUDA NADA. E o que mantem o solo sendo
+     * o caso normal, sem um "if (co-op)" espalhado pela batalha.
+     *
+     * Zero jogadores devolve o bruto: nao ha o que repartir, e devolver
+     * infinito seria trocar um caso impossivel por um estrago real.
+     */
+    float PorJogador(float bruto, size_t quantosJogadores);
 }

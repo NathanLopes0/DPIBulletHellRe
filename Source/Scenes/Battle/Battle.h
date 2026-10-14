@@ -176,6 +176,12 @@ private:
     /// preenchimento, cortando a barra em duas. Translucida e da altura exata
     /// da barra, ela escurece a faixa onde o numero esta e a barra continua
     /// sendo uma coisa so.
+    /// O ganho bruto de gastar um Ponto Extra. Era um 10.f solto dentro de
+    /// OnPlayerUsedExtraPoint, ao lado de GRADE_CHANGE_UP e GRADE_CHANGE_DOWN
+    /// que ja moravam em constantes - e agora ele e repartido como os outros,
+    /// entao vale ter nome.
+    static constexpr float kGanhoDoPontoExtra = 10.0f;
+
     static constexpr int kPlacaLargura = 112;
 
     /// A dos avisos e mais larga: "TESTE FINAL" tem onze letras contra as seis
@@ -213,7 +219,21 @@ private:
     /// partir dali fica - ver GradeTextUpdate.
     Actor* mTesteFinalActor = nullptr;
 
-    void GradeUp(float amount = GRADE_CHANGE_UP);
+    /**
+     * @brief Soma um ganho BRUTO na nota da batalha.
+     *
+     * SEM VALOR PADRAO, de proposito. Ha dois tipos de ganho e eles se
+     * repartem de formas diferentes (requisitos-coop, 2.1): o que um jogador
+     * causa passa por Nota::PorJogador, o que a dupla conquista e pago
+     * inteiro. Com um padrao, a chamada mais comum - o acerto no chefe - nao
+     * dizia qual dos dois era, e quem acrescentasse um ganho novo herdaria a
+     * escolha sem notar que havia uma.
+     */
+    void GradeUp(float amount);
+
+    /// Quanto vale, nesta batalha, algo que UM jogador causou. Ver
+    /// Nota::PorJogador: com um jogador em campo, devolve o proprio bruto.
+    [[nodiscard]] float PorJogador(float bruto) const;
     void GradeDown();
 
     std::vector<ExtraPointItem*> mExtraPoints;

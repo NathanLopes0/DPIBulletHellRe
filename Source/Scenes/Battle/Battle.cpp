@@ -674,7 +674,9 @@ void Battle::CheckCollisions() {
             if (bossCollider->Intersect(*playerProjCollider)) {
                 mBoss->OnCollision(playerProj.get());
                 playerProj->OnCollision(mBoss);
-                GradeUp();
+
+                // Acerto de UM jogador: repartido (requisitos-coop, 2.1).
+                GradeUp(PorJogador(GRADE_CHANGE_UP));
             }
         }
     }
@@ -741,11 +743,15 @@ Player* Battle::Alvo() const {
     return mJogadores.empty() ? nullptr : mJogadores.front();
 }
 
+float Battle::PorJogador(const float bruto) const {
+    return Nota::PorJogador(bruto, mJogadores.size());
+}
+
 void Battle::GradeUp(const float amount) {
 
     // A aritmetica inteira vive em Nota: a curva acima de 60, o teto de quem
     // levou dano e os limites de 0 a 100. Aqui so entra o que a batalha sabe e
-    // Nota nao: a nota de agora e quantas vezes este jogador foi atingido.
+    // Nota nao: a nota de agora e quantas vezes a DUPLA foi atingida.
     mGrade = Nota::Somar(mGrade, amount, mAcertosSofridos);
 }
 void Battle::GradeDown() {
@@ -754,9 +760,14 @@ void Battle::GradeDown() {
     // batalha: assim o proximo ganho ja ve o teto novo. Entre esta linha e a
     // seguinte a ordem nao importa - Subtrair nao le a contagem - e nao vale
     // comentar uma dependencia que nao existe.
+    //
+    // A CONTAGEM NAO E REPARTIDA, so a perda. Ela conta acertos, e nao
+    // quantidade de nota: com dois em campo, a dupla perde o direito a nota
+    // cheia no dobro da velocidade - e isso e de proposito (requisitos-coop,
+    // 2.1, o segundo dos tres desafios a mais).
     ++mAcertosSofridos;
     ++mAcertosNaFase;
-    mGrade = Nota::Subtrair(mGrade, GRADE_CHANGE_DOWN);
+    mGrade = Nota::Subtrair(mGrade, PorJogador(GRADE_CHANGE_DOWN));
 }
 
 bool Battle::PerdeuACheia() const {
@@ -799,6 +810,9 @@ void Battle::EncerrarFase() {
     }
 
     if (mAcertosNaFase == 0) {
+        // DA FASE, e nao de um jogador: pago inteiro. E ele ja ficou mais
+        // dificil no co-op, porque mAcertosNaFase conta os dois - a fase so e
+        // limpa se NENHUM dos dois foi atingido.
         GradeUp(Nota::kBonusDeFaseLimpa);
 
         // O aviso existe para a nota nao subir por motivo invisivel. Um salto sem
@@ -836,7 +850,9 @@ void Battle::OnPlayerUsedExtraPoint() {
     if (mProjectileManager) {
         mProjectileManager->ClearBossProjectiles();
     }
-    GradeUp(10.f);
+    // Gastar um Ponto Extra e acao de UM jogador, e sao dois estoques: sem
+    // repartir, a dupla poria 20 brutos na mesma barra.
+    GradeUp(PorJogador(kGanhoDoPontoExtra));
     // TODO - Audio - efeito sonoro de limpeza de campo
 }
 void Battle::SpawnExtraPoint(Vector2 position) {

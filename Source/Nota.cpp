@@ -71,4 +71,9 @@ float Subtrair(const float notaAtual, const float perda) {
     return nova;
 }
 
+float PorJogador(const float bruto, const size_t quantosJogadores) {
+    if (quantosJogadores <= 1) return bruto;
+    return bruto / static_cast<float>(quantosJogadores);
+}
+
 }
