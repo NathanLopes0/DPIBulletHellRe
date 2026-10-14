@@ -339,7 +339,13 @@ Cada um compila, passa na suíte e pode ser jogado.
 5. ~~**A alternância do alvo (D3).**~~ **Feito.** Cada projétil guarda a
    posição do alvo que tinha ao nascer, e o revezamento acontece uma vez por
    disparo, em `Boss::ExecuteAttack` — ver 2.1b.
-6. **Os dois rankings.** Ficha versão 5, o recorde de co-op com parceiro, o
-   ranking de duplas e o botão que alterna na tela.
+6. ~~**Os dois rankings.**~~ **Feito**, em três partes: a ficha na versão 5 com
+   o recorde de co-op e o parceiro ao lado; `Ranking::DuplasDaMateria` e
+   `DuplasGeral`, que juntam as duas fichas de uma dupla numa linha; e o
+   BOTÃO 3 que alterna as duas listas na tela.
+
+   Falta uma coisa pequena: **"você está em 23º" só aparece na lista de solo.**
+   Na de duplas a pergunta muda de sujeito — a posição é da *dupla* — e mostrar
+   ali a posição de solo seria um número que não pertence a nada na tela.
 7. **A medição.** Com o co-op jogável, medir a nota de uma dupla contra a de um
    solo nas mesmas condições e ver se "levemente" é o que está lá.
