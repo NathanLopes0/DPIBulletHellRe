@@ -76,4 +76,15 @@ float PorJogador(const float bruto, const size_t quantosJogadores) {
     return bruto / static_cast<float>(quantosJogadores);
 }
 
+float PerdaPorJogador(const float bruto, const size_t quantosJogadores) {
+
+    const float repartido = PorJogador(bruto, quantosJogadores);
+
+    // SOZINHO NAO HA ALIVIO. Ver o cabecalho: o solo e o caso normal e o numero
+    // dele nao muda por causa de uma regra do co-op.
+    if (quantosJogadores <= 1) return repartido;
+
+    return repartido * kAlivioDaPerdaEmGrupo;
+}
+
 }

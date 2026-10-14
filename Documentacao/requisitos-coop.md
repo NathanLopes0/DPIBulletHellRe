@@ -60,9 +60,10 @@ silêncio. D2 e D4 mudaram de resposta, não de pergunta.
 | D5 | Teclas do jogador 2 | `W A S D` e os botões `F`, `G`, `H` — **feito**, incremento 1 |
 | D6 | Personagem de cada um | Cada um com a sua, do próprio perfil |
 | D7 | Visitante no co-op | Permitido, para qualquer um dos dois ou para os dois |
-| D8 | Pontos extras | Cada jogador apanha os seus; gastar um paga na nota da dupla (2.2) |
+| D8 | Pontos extras | Cada jogador apanha os seus; gastar um paga na nota da dupla (2.2). O **efeito** muda em dupla — ver D11 |
 | D9 | O ranking | **Dois**: o Solo, de alunos, e o Co-op, **de duplas** (2.3) |
 | D10 | Passar jogando em co-op | **Destranca** a próxima matéria, igual ao solo |
+| D11 | O Ponto Extra em dupla | **Não limpa a tela: deixa o _outro_ imune** pelos 3 s que o doador fica sem atirar (2.5) |
 
 ### 2.1 — Uma regra só para a nota compartilhada (D2, D4)
 
@@ -87,9 +88,22 @@ Dividido (ações de um jogador):
 - a **perda por dano sofrido** (`GRADE_CHANGE_DOWN`, 6,0 brutos) — pelo mesmo
   motivo, e é isto que impede o co-op de virar mais difícil. São dois alvos em
   campo; sem dividir a perda, seis brutos por acerto drenariam a barra no dobro
-  da velocidade e a dupla zeraria antes do fim da primeira fase;
+  da velocidade e a dupla zeraria antes do fim da primeira fase.
+
+  **E só a perda leva um alívio a mais** (`Nota::kAlivioDaPerdaEmGrupo`, 0,8):
+  em dupla um acerto custa **2,4** brutos, e não os 3,0 da divisão pura. O
+  motivo não é o total — a medição da seção 8 mostrou que a dupla já pagava 21%
+  menos no fim —, é a **frequência**: ela apanha 57% mais vezes, e a barra caindo
+  quase no dobro das vezes é o que o jogador sente. O pior caso, os dois
+  atingidos no mesmo quadro, custava exatamente um acerto de solo (3,0+3,0=6,0)
+  e agora custa 4,8.
+
+  O alívio **não vale para o ganho**, e isso é o que mantém a regra de pé: o
+  ganho é dividido justamente para a barra subir no ritmo de um solo;
 - o **ganho de gastar um Ponto Extra** (10 brutos) — são dois estoques, e sem
-  dividir seriam 20 na mesma barra.
+  dividir seriam 20 na mesma barra. **O efeito dele muda no co-op**: em vez de
+  limpar a tela, ele deixa o *outro* aluno imune pelos mesmos três segundos que
+  o doador passa sem atirar — ver 2.5.
 
 Pago inteiro (resultado da dupla):
 
@@ -191,6 +205,32 @@ cria. Perguntar antes obrigava o jogador a responder uma pergunta que a própria
 matrícula responde, e numa dupla obrigava os dois ao mesmo caminho.
 
 O menu ficou: **Modo Solo, Modo Dupla, Ranking, Opções**.
+
+### 2.5 — O Ponto Extra em dupla é do *outro* (D11)
+
+Sozinho, gastar o Ponto Extra limpa a tela. **Em dupla, ele deixa o parceiro
+imune** pelos mesmos três segundos que o doador passa sem atirar — e não limpa
+nada.
+
+**O preço é o mesmo tempo, dos dois lados**, e sai de um número só
+(`Player::OVERLOAD_DURATION`): quem gasta fica desarmado no meio do que já
+estava voando, e o parceiro atravessa. Dois números separados fariam mexer na
+sobrecarga sem mexer no presente.
+
+**E não as duas coisas.** Limpar a tela *e* proteger daria, por metade do
+estoque da dupla, o dobro do efeito de um Ponto Extra de solo — e tiraria o que
+torna esta versão interessante: **ela não salva quem aperta.** O item deixa de
+ser um botão de pânico e vira uma decisão sobre o outro, que é o que um modo
+cooperativo deveria cobrar.
+
+A imunidade entrou dentro de `Player::GetIsInvincible`, junto com os quadros de
+graça de quem apanhou: as duas respondem a mesma pergunta — "um tiro encosta
+neste aluno agora?" — e as regras 1 e 3 da batalha já perguntavam isso, então
+a colisão não ganhou linha nenhuma. **O contador, porém, é separado**: os
+quadros de graça duram 1,2 s e piscam, e misturar os dois faria "fui atingido" e
+"estou protegido" terem a mesma cara justamente quando o aluno precisa saber
+qual dos dois é. A imunidade pulsa em **azul**, no mesmo ritmo do vermelho da
+sobrecarga.
 
 ## 3. Requisitos funcionais
 
@@ -346,10 +386,12 @@ Cada um compila, passa na suíte e pode ser jogado.
    Na de duplas a pergunta muda de sujeito — a posição é da *dupla* — e mostrar
    ali a posição de solo seria um número que não pertence a nada na tela.
 7. ~~**A medição.**~~ **Feita** — seção 8. Com a mira equalizada, a dupla
-   termina cerca de **4 pontos acima** do solo numa nota de ~79: "levemente" é
-   o que está lá, e **D4 se cumpre sem fator nenhum**. O que decide de verdade
-   é a posição: parados onde nascem, os dois da dupla não acertam o chefe e a
-   nota zera nas seis sementes.
+   terminava cerca de **4 pontos acima** do solo numa nota de ~79, e o que
+   decide de verdade é a posição: parados onde nascem, os dois da dupla não
+   acertam o chefe e a nota zera nas seis sementes.
+
+   **Remedido depois do alívio da perda (2,4): +7,5.** Ver 8.2b — o número
+   dobrou, e isso é maior que o "levemente" que esta medição tinha concluído.
 
 ## 8. A medição (incremento 7)
 
@@ -412,6 +454,47 @@ modos:
 Uma das seis saiu negativa, o que é a melhor evidência de que o efeito é pequeno:
 ele não domina o resultado, o jogo domina.
 
+### 8.2b — Remedido depois do alívio da perda (2,4)
+
+A tabela acima é de quando um acerto em dupla custava 3,0. Com o alívio de
+`Nota::kAlivioDaPerdaEmGrupo` ele passou a custar **2,4** (2.1), e a medição foi
+refeita com o mesmo arnês e as mesmas sementes:
+
+| semente | solo | dupla com 3,0 | dupla com 2,4 |
+|---|---|---|---|
+| 20261014 | 79,12 | 80,28 *(+1,15)* | 84,21 *(+5,08)* |
+| 7 | 78,50 | 83,46 *(+4,97)* | 86,72 *(+8,22)* |
+| 1234 | 78,79 | 86,40 *(+7,62)* | 89,40 *(+10,61)* |
+| 555 | 83,25 | 87,22 *(+3,97)* | 89,75 *(+6,50)* |
+| 90210 | 74,19 | 80,87 *(+6,68)* | 84,67 *(+10,47)* |
+| 31337 | 78,71 | 78,29 *(−0,41)* | 82,65 *(+3,95)* |
+| | | **média +3,99** | **média +7,47** |
+
+**O solo saiu idêntico nas seis sementes**, até a última casa — o alívio não
+encosta nele (RNF4), e isso serve de controle: se algum número de solo tivesse
+mudado, a mudança teria vazado para onde não devia.
+
+**A vantagem da dupla praticamente dobrou**, de +4,0 para +7,5 pontos — uns 9%
+da nota. E a semente 31337, a única negativa e a melhor evidência de que o
+efeito era pequeno, virou +3,95: **agora a dupla ganha em todas.**
+
+**Isto precisa ser dito com todas as letras: +7,5 é maior do que o "levemente"
+que a seção 8.4 tinha concluído.** D4 pede "levemente mais fácil, mas não
+muito", e dobrar o número pode ter atravessado a linha que a própria decisão
+desenhou. Fica registrado em vez de maquiado.
+
+Duas coisas em defesa de manter assim:
+
+1. **A medição não capta o Ponto Extra novo** (2.5), que é um *nerf*. O arnês
+   nunca aperta o BOTÃO 2, então nenhuma destas doze batalhas gastou Ponto
+   Extra. Na prática a dupla perdeu a limpeza de tela, que valia muito num
+   aperto — o +7,5 é o número **sem** essa perda descontada.
+2. **Os pilotos empilham os dois embaixo do chefe** (8.4), o arranjo mais
+   favorável possível. Dois humanos ficam abaixo disso.
+
+Mexer nisso é uma linha: `kAlivioDaPerdaEmGrupo`. 0,9 (perda 2,7) devolveria o
+número para perto de +5,5, pelo que a medição sugere.
+
 ### 8.3 — De onde vêm esses quatro pontos
 
 O contador de acertos separa as duas metades:
@@ -434,8 +517,11 @@ seção 2.1 previa que sobraria, agora com número.
 
 ### 8.4 — A conclusão, e o que ela não cobre
 
-**D4 está cumprida sem fator nenhum.** Quatro pontos em oitenta é "levemente",
-e a regra da divisão (2.1) já entrega isso sozinha.
+**D4 estava cumprida sem fator nenhum.** Quatro pontos em oitenta é
+"levemente", e a regra da divisão (2.1) entregava isso sozinha. **Essa conclusão
+valeu até o alívio da perda entrar** — com 2,4 por acerto o número foi para
++7,5, e a seção 8.2b trata disso. O resto desta seção continua valendo: é sobre
+o que a *posição* decide, e o alívio não mudou nada disso.
 
 Mas a medição tem um limite que convém dizer: **os dois pilotos empilham os
 jogadores no mesmo X.** É o arranjo mais favorável possível para a dupla, e dois

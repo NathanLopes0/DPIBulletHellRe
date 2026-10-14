@@ -273,6 +273,9 @@ private:
     /// Quanto vale, nesta batalha, algo que UM jogador causou. Ver
     /// Nota::PorJogador: com um jogador em campo, devolve o proprio bruto.
     [[nodiscard]] float PorJogador(float bruto) const;
+
+    /// @brief O que um acerto sofrido custa: dividido E aliviado. Ver Nota.h.
+    [[nodiscard]] float PerdaPorJogador(float bruto) const;
     void GradeDown();
 
     std::vector<ExtraPointItem*> mExtraPoints;

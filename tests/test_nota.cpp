@@ -400,3 +400,61 @@ TEST_CASE("Nota: repartir e proporcional, e nunca inverte o sinal do efeito") {
         CHECK(r <= 6.0f);
     }
 }
+
+// ------------------------------------ o alivio da perda em grupo
+
+TEST_CASE("Nota: apanhar em dupla custa 2,4, e nao 3,0") {
+
+    // A DIVISAO SOZINHA DAVA 3,0 (metade de 6,0), e o total ja era favoravel a
+    // dupla: medido, ela apanhava 57% mais vezes e pagava 21% menos no fim
+    // (requisitos-coop, secao 8). O que o alivio trata nao e o total, e a
+    // FREQUENCIA: a barra caia quase no dobro das vezes, e e a frequencia que o
+    // jogador sente.
+    CHECK(Nota::PerdaPorJogador(6.0f, 2) == doctest::Approx(2.4f));
+    CHECK(Nota::PerdaPorJogador(6.0f, 2) < Nota::PorJogador(6.0f, 2));
+}
+
+TEST_CASE("Nota: o solo nao ganha alivio nenhum") {
+
+    // O CASO NORMAL NAO MUDA POR CAUSA DE UMA REGRA DO CO-OP (RNF4). Se o solo
+    // passasse a pagar menos, a curva inteira da nota - que foi calibrada nele -
+    // mudaria de sentido sem ninguem pedir.
+    CHECK(Nota::PerdaPorJogador(6.0f, 1) == doctest::Approx(6.0f));
+    CHECK(Nota::PerdaPorJogador(6.0f, 1) == doctest::Approx(Nota::PorJogador(6.0f, 1)));
+
+    // Nem o caso impossivel: zero jogadores devolve o bruto, como PorJogador.
+    CHECK(Nota::PerdaPorJogador(6.0f, 0) == doctest::Approx(6.0f));
+}
+
+TEST_CASE("Nota: o alivio e SO da perda, e o ganho continua inteiro na divisao") {
+
+    // ESTE E O CASO QUE PROTEGE A REGRA 2.1. O ganho e dividido justamente para
+    // a barra subir no ritmo de um solo; aliviar o ganho junto faria a dupla
+    // subir mais devagar que o solo, que e o contrario do que a regra quer.
+    CHECK(Nota::PorJogador(0.56f, 2) == doctest::Approx(0.28f));   // metade exata
+    CHECK(Nota::PorJogador(10.0f, 2) == doctest::Approx(5.0f));    // o Ponto Extra tambem
+}
+
+TEST_CASE("Nota: os dois atingidos no mesmo quadro custam menos que um acerto de solo") {
+
+    // ERA O PIOR CASO, E ERA EXATAMENTE UM ACERTO DE SOLO: 3,0 + 3,0 = 6,0.
+    // Com o alivio sao 4,8 - a dupla desatenta ainda paga caro, so que nao o
+    // preco cheio de um erro que um jogador sozinho nao teria como cometer.
+    const float osDoisDeUmaVez = 2.0f * Nota::PerdaPorJogador(6.0f, 2);
+
+    CHECK(osDoisDeUmaVez == doctest::Approx(4.8f));
+    CHECK(osDoisDeUmaVez < 6.0f);
+}
+
+TEST_CASE("Nota: a dupla ainda paga pelo erro - o alivio nao e imunidade") {
+
+    // Um alivio grande demais tiraria o peso do erro e o co-op viraria o modo
+    // facil, que e o que a secao 8 descartou. Metade do dano e o piso.
+    for (const float bruto : {6.0f, 3.0f, 12.0f}) {
+        CAPTURE(bruto);
+        const float emDupla = Nota::PerdaPorJogador(bruto, 2);
+        CHECK(emDupla > 0.0f);
+        CHECK(emDupla > bruto * 0.25f);     // continua doendo
+        CHECK(emDupla < bruto * 0.5f);      // e e menos que a divisao pura
+    }
+}

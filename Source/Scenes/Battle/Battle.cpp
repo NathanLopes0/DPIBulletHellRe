@@ -786,7 +786,16 @@ void Battle::GradeDown() {
     // 2.1, o segundo dos tres desafios a mais).
     ++mAcertosSofridos;
     ++mAcertosNaFase;
-    mGrade = Nota::Subtrair(mGrade, PorJogador(GRADE_CHANGE_DOWN));
+    // PerdaPorJogador, e nao PorJogador: alem da divisao, a perda em grupo leva
+    // um alivio (Nota::kAlivioDaPerdaEmGrupo). Em dupla um acerto custa 2,4
+    // brutos contra os 6,0 do solo. O motivo esta no cabecalho da funcao, e sai
+    // da medicao: o total ja era favoravel a dupla, mas a barra caia quase no
+    // dobro da frequencia - e e a frequencia que o jogador sente.
+    mGrade = Nota::Subtrair(mGrade, PerdaPorJogador(GRADE_CHANGE_DOWN));
+}
+
+float Battle::PerdaPorJogador(const float bruto) const {
+    return Nota::PerdaPorJogador(bruto, mJogadores.size());
 }
 
 bool Battle::PerdeuACheia() const {
