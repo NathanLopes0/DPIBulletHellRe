@@ -46,7 +46,7 @@ private:
     Actor* Texto(const std::string& conteudo, float x, float y, int tamanho,
                  int larguraMaxima, bool aEsquerda = false);
 
-    /// Reescreve as linhas a partir da materia selecionada.
+    /// Reescreve as linhas a partir da materia selecionada e do modo.
     void Redesenhar();
 
     std::unique_ptr<Font> mFonte;
@@ -58,6 +58,19 @@ private:
     /// Ver Game::PedidoDeRanking.
     Game::PedidoDeRanking mPedido{};
 
+    /**
+     * Mostrando o ranking de DUPLAS, e nao o de solo.
+     *
+     * E ESTADO DA TELA, e nao do pedido: o modo nao e algo que a selecao de
+     * fases ou o menu pedem, e quem alterna e o jogador olhando a lista. Pondo
+     * em PedidoDeRanking, os dois lugares que montam o pedido teriam de saber
+     * de um campo que nao lhes diz respeito.
+     *
+     * COMECA NO MODO EM QUE SE ESTA JOGANDO: quem acabou de jogar em dupla quer
+     * ver a lista de duplas. Nao e um campo novo - sai de QuantosJogadores().
+     */
+    bool mDuplas = false;
+
     Actor* mTituloAtor{};
     Actor* mSubtituloAtor{};
     Actor* mVazioAtor{};
@@ -67,8 +80,19 @@ private:
     /// Criar e destruir atores a cada troca de materia deixaria lixo na cena.
     std::vector<Actor*> mPosicaoAtores;
     std::vector<Actor*> mMatriculaAtores;
+
+    /// A dupla inteira ("89384 + 90112") numa caixa so, no lugar da coluna de
+    /// matricula. Uma caixa propria porque duas matriculas e um "+" nao cabem
+    /// na largura de uma, e porque assim as colunas de nota e de materias
+    /// jogadas nao se movem quando o jogador alterna de lista.
+    std::vector<Actor*> mDuplaAtores;
     std::vector<Actor*> mJogadasAtores;
     std::vector<Actor*> mNotaAtores;
 
+    /// O rodape e reescrito na troca de lista: ele anuncia PARA ONDE o BOTAO 3
+    /// leva, e nao onde se esta.
+    Actor* mRodapeAtor{};
+
     bool mVoltarAnterior = true;
+    bool mAlternarAnterior = true;
 };
