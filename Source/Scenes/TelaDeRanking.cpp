@@ -190,7 +190,9 @@ void TelaDeRanking::Redesenhar() {
     // A POSICAO DE QUEM ESTA JOGANDO, quando ela nao cabe no topo. Sem isto o
     // ranking so conversa com quem ja esta bem, que e quem menos precisa.
     std::string rodape;
-    const std::string& eu = mGame->MatriculaAtual();
+    // DO JOGADOR 1: e ele quem abre esta tela, do menu ou da selecao de fases.
+    // O ranking de duplas, com os dois, e o incremento 5 (requisitos-coop, D9).
+    const std::string& eu = mGame->MatriculaDe(0);
     if (!eu.empty()) {
         const int posicao = mPedido.geral
             ? Ranking::PosicaoNoGeral(mFichas, materias.Quantas(), eu)

@@ -21,6 +21,14 @@ namespace {
 
         /// So vale quando o destino e a tela de matricula; ver Game::ModoDeEntrada.
         Game::ModoDeEntrada modo;
+
+        /// Quantos jogam. Como o modo, SO VALE quando o destino e a tela de
+        /// matricula: e ali que uma partida comeca.
+        ///
+        /// E a UNICA porta de entrada do co-op, e o campo existe em todas as
+        /// linhas de proposito - assim nenhuma opcao nova pode esquecer de
+        /// dizer quantos jogam e herdar o numero da anterior.
+        Sessao::Modo jogadores = Sessao::Modo::Um;
     };
 
     /// AS OPCOES DO MENU, numa tabela. Acrescentar uma e acrescentar uma linha:
@@ -33,6 +41,14 @@ namespace {
     const Opcao kOpcoes[] = {
         {"Novo Jogo",       Scene::SceneType::Identificacao, Game::ModoDeEntrada::Novo},
         {"Carregar Perfil", Scene::SceneType::Identificacao, Game::ModoDeEntrada::Carregar},
+
+        // DOIS JOGADORES NAO PERGUNTA "novo ou carregar". Numa dupla um pode
+        // ser veterano e o outro estar jogando pela primeira vez, e obrigar os
+        // dois ao mesmo caminho deixaria metade das duplas de fora. Por isso o
+        // modo Qualquer: digita a matricula e a tela descobre sozinha.
+        {"Dois Jogadores",  Scene::SceneType::Identificacao, Game::ModoDeEntrada::Qualquer,
+                                                             Sessao::Modo::Dois},
+
         {"Ranking",         Scene::SceneType::Ranking,       Game::ModoDeEntrada::Novo},
         {"Opcoes",          Scene::SceneType::Opcoes,        Game::ModoDeEntrada::Novo},
     };
@@ -132,7 +148,15 @@ void MainMenu::OnProcessInput(const Uint8 *keyState) {
 
     if (confirmar && !mConfirmarAnterior) {
         mConfirmarAnterior = true;
-        mGame->DefinirModoDeEntrada(kOpcoes[mSelecionada].modo);
+
+        // SO QUEM COMECA UMA PARTIDA MEXE NAS SESSOES. Definir o modo de jogo
+        // REFAZ as sessoes, e abrir o ranking ou as opcoes nao e comecar
+        // partida nenhuma: zerar ali apagaria quem esta jogando, e a linha
+        // "voce esta em 23o" sumiria do ranking de quem acabou de abri-lo.
+        if (kOpcoes[mSelecionada].destino == Scene::SceneType::Identificacao) {
+            mGame->DefinirModoDeJogo(kOpcoes[mSelecionada].jogadores);
+            mGame->DefinirModoDeEntrada(kOpcoes[mSelecionada].modo);
+        }
 
         // O ranking aberto pelo menu e o GERAL - a media do curso. O de uma
         // materia so se chega pela selecao de fases, com a materia em foco.

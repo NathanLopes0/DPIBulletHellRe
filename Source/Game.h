@@ -7,6 +7,7 @@
 #include <map>
 #include <string>
 #include <memory>
+#include <vector>
 #include <SDL.h>
 #include "Math.h"
 #include "Scenes/Scene.h"
@@ -14,6 +15,7 @@
 #include "Progresso.h"
 #include "Gabinete.h"
 #include "Painel.h"
+#include "Sessao.h"
 
 class IBossFactory;
 class Actor;
@@ -119,8 +121,11 @@ public:
     /// E o que a tela de selecao mostra e o que as regras de desbloqueio leem.
     /// A sobrecarga que existia aqui para receber um int cru sumiu junto com o
     /// enum: agora ela seria a mesma funcao.
+    ///
+    /// LE O PROGRESSO DO JOGADOR 1, como todas as consultas do mapa do curso: a
+    /// materia que ele abriu e a que a dupla joga (requisitos-coop, RF3).
     [[nodiscard]] float GetMelhorNota(const int materia) const {
-        return mProgresso.MelhorNota(materia);
+        return ProgressoDoMapa().MelhorNota(materia);
     }
 
     /**
@@ -135,15 +140,15 @@ public:
     }
 
     /// @brief Se a materia ja foi aprovada. A MESMA regra que o desbloqueio le,
-    /// e nao uma comparacao com 60 repetida em quem desenha.
+    /// e nao uma comparacao com 60 repetida em quem desenha. Do jogador 1 (RF3).
     [[nodiscard]] bool Aprovado(const int materia) const {
-        return mProgresso.Aprovado(materia);
+        return ProgressoDoMapa().Aprovado(materia);
     }
 
     /// @brief A ultima nota que o jogador tirou nesta materia. NAO e por onde a
     /// batalha comeca - toda fase parte de Progresso::kNotaInicial.
     [[nodiscard]] float GetUltimaNota(const int materia) const {
-        return mProgresso.UltimaNota(materia);
+        return ProgressoDoMapa().UltimaNota(materia);
     }
 
     /// @brief Registra o resultado de uma batalha: a retomada passa a ser esta
@@ -161,6 +166,8 @@ public:
      * A matricula ja deve vir CANONICA (ver Matricula::Validar). Trocar de aluno
      * substitui o progresso inteiro: as notas do anterior nao podem ficar
      * penduradas na sessao do seguinte.
+     *
+     * Age sobre a posicao que esta entrando AGORA (ver PosicaoEntrando).
      */
     void IdentificarAluno(const std::string& matriculaCanonica);
 
@@ -172,11 +179,52 @@ public:
      */
     void JogarComoVisitante();
 
+    // ---- A entrada, de um ou de dois ---------------------------------------
+
+    /// @brief Quantos jogam esta partida. So o menu principal decide.
+    void DefinirModoDeJogo(Sessao::Modo modo);
+    [[nodiscard]] Sessao::Modo ModoDeJogo() const { return mModoDeJogo; }
+    [[nodiscard]] size_t QuantosJogadores() const { return mSessoes.size(); }
+
+    /// @brief Qual posicao esta na tela de matricula ou de personagem agora.
+    [[nodiscard]] size_t PosicaoEntrando() const { return mPosicaoEntrando; }
+
+    /// @brief As sessoes, para quem precisa olhar todas (ver Sessao::JaEstaEmUso).
+    [[nodiscard]] const std::vector<Sessao::Dados>& Sessoes() const { return mSessoes; }
+
+    /**
+     * @brief A posicao atual terminou de entrar: chama a proxima ou vai jogar.
+     *
+     * A REGRA MORA AQUI, e nao nas duas telas que terminam a entrada. A
+     * matricula e a criacao de personagem mandavam as duas para a selecao de
+     * fases, cada uma com a sua linha; com dois jogadores as duas precisariam da
+     * mesma condicao nova, e bastaria uma esquecer para o jogador 2 nunca ser
+     * chamado. Quem decide o que e "a proxima" e Sessao::Proximo, que e puro.
+     *
+     * Ja pede a troca de cena - quem chama so precisa dar return depois.
+     */
+    void AvancarEntrada();
+
+    /// @brief Desiste da entrada em curso e volta a ser uma partida de um.
+    ///
+    /// Quem volta da tela de matricula do jogador 2 estaria deixando uma partida
+    /// de dois pela metade; largar o modo ligado faria a proxima entrada pedir
+    /// duas matriculas sem que ninguem tivesse escolhido isso.
+    void CancelarEntrada();
+
     /// @brief A matricula de quem esta jogando, ou Matricula::kVisitante.
     /// Por qual caminho do menu o aluno chegou a tela de matricula.
     enum class ModoDeEntrada {
         Novo,       ///< vai CRIAR um perfil; matricula que ja tem perfil e recusada
-        Carregar    ///< vai ABRIR um perfil; matricula sem perfil e recusada
+        Carregar,   ///< vai ABRIR um perfil; matricula sem perfil e recusada
+
+        /// Aceita as duas: ha perfil, abre; nao ha, cria.
+        ///
+        /// E o modo do co-op. Numa dupla um pode ser veterano e o outro estar
+        /// jogando pela primeira vez; perguntar "novo ou carregar" antes de
+        /// saber quem sao obrigaria os dois ao mesmo caminho. Aqui a pergunta
+        /// e respondida pela propria matricula.
+        Qualquer
     };
 
     /// @brief Diz a que veio a proxima tela de matricula.
@@ -205,10 +253,11 @@ public:
     void PedirRanking(const PedidoDeRanking& pedido) { mPedidoDeRanking = pedido; }
     [[nodiscard]] const PedidoDeRanking& RankingPedido() const { return mPedidoDeRanking; }
 
-    [[nodiscard]] const std::string& MatriculaAtual() const { return mMatricula; }
+    /// @brief A matricula de uma posicao, ou Matricula::kVisitante.
+    [[nodiscard]] const std::string& MatriculaDe(size_t posicao) const;
 
-    /// @brief A aparencia de quem esta jogando. Vazia quer dizer "a padrao".
-    [[nodiscard]] const Personagens::Aparencia& AparenciaAtual() const { return mAparencia; }
+    /// @brief A aparencia de uma posicao. Vazia quer dizer "a padrao".
+    [[nodiscard]] const Personagens::Aparencia& AparenciaDe(size_t posicao) const;
 
     /**
      * @brief Troca a aparencia e grava, se o aluno estiver identificado.
@@ -219,13 +268,27 @@ public:
      */
     void DefinirAparencia(const Personagens::Aparencia& aparencia);
 
-    /// @brief Se o progresso desta sessao vai para o disco.
-    [[nodiscard]] bool ProgressoEGravado() const;
+    /// @brief Se o progresso desta posicao vai para o disco. Visitante nao grava.
+    [[nodiscard]] bool ProgressoEGravado(size_t posicao) const;
 
     // Verifica se uma matéria específica está desbloqueada para jogar
     bool IsStageUnlocked(int subject);
 
 private:
+    /**
+     * @brief O progresso que o MAPA DO CURSO le: o do jogador 1.
+     *
+     * A selecao de fases e uma so, e o desbloqueio e o dele - a materia que ele
+     * abriu e a que a dupla joga (requisitos-coop, RF3). Existe como funcao, e
+     * nao como mSessoes[0].progresso espalhado, para que esta decisao esteja
+     * escrita num lugar e nao quinze vezes implicita.
+     */
+    [[nodiscard]] const Progresso& ProgressoDoMapa() const { return mSessoes.front().progresso; }
+
+    /// A sessao da posicao que esta na tela de matricula ou de personagem.
+    [[nodiscard]] Sessao::Dados& SessaoEntrando();
+    [[nodiscard]] const Sessao::Dados& SessaoEntrando() const;
+
     void ProcessInput();
     void UpdateGame();
     void UpdateCamera();
@@ -266,21 +329,30 @@ private:
     /// As fabricas de chefe, pelo NOME com que materias.json as chama.
     std::map<std::string, std::unique_ptr<IBossFactory>> mBossFactory;
 
-    /// Recordes e pontos de retomada. Ver Progresso.h.
-    Progresso mProgresso;
+    /**
+     * @brief QUEM ESTA JOGANDO, uma entrada por posicao do painel.
+     *
+     * Eram tres membros soltos - mMatricula, mProgresso e mAparencia -, todos no
+     * singular. Com duas posicoes eles virariam tres vetores soltos, e tres
+     * vetores soltos sao o comeco de um estado inconsistente: basta um caminho
+     * acrescentar em dois e esquecer o terceiro. Ver Sessao.h.
+     *
+     * NUNCA ESTA VAZIO. A posicao 0 existe desde o construtor, como visitante,
+     * entao abrir o jogo e sair sem passar pela identificacao nunca grava nada
+     * por engano - e nenhum leitor precisa checar o tamanho antes de ler.
+     */
+    std::vector<Sessao::Dados> mSessoes{1};
 
-    /// Quem esta jogando. Comeca como visitante, entao abrir o jogo e sair sem
-    /// passar pela identificacao nunca grava nada por engano.
-    std::string mMatricula;
+    /// Quantos jogam esta partida. Posto pelo menu e so por ele.
+    Sessao::Modo mModoDeJogo = Sessao::Modo::Um;
+
+    /// Qual posicao esta passando pela matricula/criacao AGORA. Ver
+    /// AvancarEntrada - e so durante a entrada que este numero quer dizer algo.
+    size_t mPosicaoEntrando = 0;
 
     /// A que veio a proxima tela de matricula. Ver DefinirModoDeEntrada.
     ModoDeEntrada mModoDeEntrada = ModoDeEntrada::Novo;
     PedidoDeRanking mPedidoDeRanking{};
-
-    /// A aparencia de quem esta jogando, COMO VEIO DO SAVE. Vazia quer dizer
-    /// "use a padrao" - e o caso do visitante e de todo save anterior a versao 4.
-    /// Quem compoe conserta o que nao existir mais no catalogo.
-    Personagens::Aparencia mAparencia;
 
     //Selected Stage, used by Battle on ChangeScene()
     int mSelectedStage{};
@@ -314,9 +386,9 @@ private:
     void AtualizarGabinete(float deltaTime);
 
 
-    /// Monta a ficha a partir do estado da sessao e grava. O unico lugar que faz
-    /// isso, para nenhum caminho de gravacao esquecer um campo.
-    bool GravarFicha();
+    /// Monta a ficha de UMA posicao e grava. O unico lugar que faz isso, para
+    /// nenhum caminho de gravacao esquecer um campo.
+    bool GravarFicha(size_t posicao);
 
     void InitializeBossFactory();
 

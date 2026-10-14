@@ -102,12 +102,20 @@ void CriacaoDePersonagem::Load() {
     const auto largura = static_cast<float>(mGame->GetWindowWidth());
     const auto altura  = static_cast<float>(mGame->GetWindowHeight());
 
-    Texto("SUA PERSONAGEM", largura / 2.0f, altura * 0.09f, 52, 900);
+    // DE QUEM E A PERSONAGEM. Na dupla cada um monta a sua (requisitos-coop,
+    // D6), e esta tela aparece duas vezes seguidas; sem o numero, o jogador 2
+    // acha que esta mexendo na personagem que acabou de ver pronta.
+    mQuem = mGame->PosicaoEntrando();
+    const bool emDupla = mGame->QuantosJogadores() > 1;
+
+    Texto(emDupla ? ("PERSONAGEM DO JOGADOR " + std::to_string(mQuem + 1))
+                  : std::string("SUA PERSONAGEM"),
+          largura / 2.0f, altura * 0.09f, 52, 900);
 
     // Comeca do que o perfil ja tem - vazio para quem esta criando agora, e
     // nesse caso Resolver devolve a aparencia padrao.
     const Personagens::Catalogo& catalogo = Personagens::Carregado();
-    mAparencia = catalogo.Resolver(mGame->AparenciaAtual());
+    mAparencia = catalogo.Resolver(mGame->AparenciaDe(mQuem));
 
     MontarLinhas();
 
@@ -143,8 +151,8 @@ void CriacaoDePersonagem::Load() {
     // quadrado vazio no lugar. O traco existe e e usado em outras telas.
     Texto("MANCHE  cima e baixo escolhem o que mudar - os lados trocam",
           largura / 2.0f, altura * 0.86f, 22, 900);
-    Texto(Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um,   "confirmar"},
-                          {Painel::Jogador::Um, Painel::Botao::Dois, "voltar"}},
+    Texto(Painel::Rodape({{PainelDaVez(), Painel::Botao::Um,   "confirmar"},
+                          {PainelDaVez(), Painel::Botao::Dois, "voltar"}},
                          mGame->JeitoDoRodape()),
           largura / 2.0f, altura * 0.92f, 22, 700);
 
@@ -248,9 +256,9 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
 
     const int quantas = static_cast<int>(mLinhas.size());
 
-    // Cada jogador monta a propria personagem (requisitos-coop, D6), entao esta
-    // posicao vira membro quando a dupla entrar. Hoje so ha o jogador 1.
-    constexpr Painel::Jogador kQuem = Painel::Jogador::Um;
+    // O PAINEL DA VEZ: quem monta a personagem do jogador 2 e o jogador 2, no
+    // manche dele (requisitos-coop, D6).
+    const Painel::Jogador kQuem = PainelDaVez();
 
     const bool cima     = Painel::Apertado(keyState, kQuem, Painel::Direcao::Cima);
     const bool baixo    = Painel::Apertado(keyState, kQuem, Painel::Direcao::Baixo);
@@ -281,7 +289,11 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
         // Grava na hora: quem acabou de montar a personagem espera encontra-la
         // ao carregar o perfil, mesmo fechando o jogo agora.
         mGame->DefinirAparencia(mAparencia);
-        mGame->RequestSceneChange(SceneType::StageSelect);
+
+        // NAO VAI DIRETO PARA A SELECAO. Quem decide se falta alguem e o Game:
+        // esta tela e a de matricula terminavam as duas escrevendo StageSelect,
+        // e com dois jogadores bastaria uma esquecer para o jogador 2 sumir.
+        mGame->AvancarEntrada();
         return;
     }
     mConfirmarAnterior = confirmar;

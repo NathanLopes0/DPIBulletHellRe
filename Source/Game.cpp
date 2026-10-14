@@ -558,7 +558,9 @@ bool Game::IsStageUnlocked(const int subject) {
     // A TROCA E SEGURA POR MEDIDA, e nao por leitura: ha um teste que compara as
     // duas respostas em 5120 combinacoes (512 estados de progresso x 10
     // materias) e exige que concordem. Ele foi escrito para este dia.
-    return Materias::Carregadas().Desbloqueada(static_cast<int>(subject), mProgresso);
+    // O PROGRESSO DO JOGADOR 1: o mapa do curso e dele, tambem no co-op
+    // (requisitos-coop, RF3). Ver Game::ProgressoDoMapa.
+    return Materias::Carregadas().Desbloqueada(static_cast<int>(subject), ProgressoDoMapa());
 }
 
 
@@ -566,16 +568,64 @@ bool Game::IsStageUnlocked(const int subject) {
 // Quem esta jogando
 // ---------------------------------------------------------------------------
 
+Sessao::Dados& Game::SessaoEntrando() {
+    // A posicao 0 existe desde o construtor; um indice fora da lista so pode vir
+    // de um caminho que esqueceu de criar a sessao, e cair no jogador 1 e melhor
+    // que ler fora do vetor.
+    return mPosicaoEntrando < mSessoes.size() ? mSessoes[mPosicaoEntrando] : mSessoes.front();
+}
+
+const Sessao::Dados& Game::SessaoEntrando() const {
+    return mPosicaoEntrando < mSessoes.size() ? mSessoes[mPosicaoEntrando] : mSessoes.front();
+}
+
+const std::string& Game::MatriculaDe(const size_t posicao) const {
+    return posicao < mSessoes.size() ? mSessoes[posicao].matricula : mSessoes.front().matricula;
+}
+
+const Personagens::Aparencia& Game::AparenciaDe(const size_t posicao) const {
+    return posicao < mSessoes.size() ? mSessoes[posicao].aparencia : mSessoes.front().aparencia;
+}
+
+void Game::DefinirModoDeJogo(const Sessao::Modo modo) {
+
+    mModoDeJogo = modo;
+    mPosicaoEntrando = 0;
+
+    // AS SESSOES SAO REFEITAS, e nao ajustadas. Encolher de dois para um
+    // deixaria o jogador 2 pendurado; crescer de um para dois manteria o aluno
+    // anterior na posicao 1 sem que ele tivesse digitado nada - e ele jogaria
+    // (e gravaria) sem saber. Toda partida comeca com as duas posicoes limpas.
+    mSessoes.assign(Sessao::Quantos(modo), Sessao::Dados{});
+}
+
+void Game::AvancarEntrada() {
+
+    if (Sessao::Proximo(mModoDeJogo, mPosicaoEntrando) == Sessao::Passo::OutroJogador) {
+        ++mPosicaoEntrando;
+        RequestSceneChange(Scene::SceneType::Identificacao);
+        return;
+    }
+
+    RequestSceneChange(Scene::SceneType::StageSelect);
+}
+
+void Game::CancelarEntrada() {
+    DefinirModoDeJogo(Sessao::Modo::Um);
+}
+
 void Game::RegistrarNota(const int subject, const float nota) {
 
-    mProgresso.RegistrarNota(static_cast<int>(subject), nota, Relogio::Agora());
+    // POR ENQUANTO SO O JOGADOR 1 recebe a nota: a batalha ainda e de um. No
+    // incremento 4 a nota e da dupla e vai para a ficha dos dois (RF5).
+    mSessoes.front().progresso.RegistrarNota(static_cast<int>(subject), nota, Relogio::Agora());
 
     // A ficha vai para o disco AQUI, e nao em quem chama: assim nenhum caminho de
     // fim de batalha pode esquecer. Visitante nao grava - e o combinado com quem
     // escolheu nao se identificar.
-    if (!ProgressoEGravado()) return;
+    if (!Matricula::Validar(mSessoes.front().matricula).valida) return;
 
-    if (GravarFicha()) {
+    if (GravarFicha(0)) {
         // A planilha do professor e regravada junto, entao ela esta sempre em dia e
         // ninguem precisa lembrar de exportar. Ela e DERIVADA das fichas: apagar
         // notas.csv nao perde nada, volta na proxima batalha.
@@ -586,63 +636,72 @@ void Game::RegistrarNota(const int subject, const float nota) {
         // ele quer e ver a nota. O log diz o que houve para quem for investigar.
         SDL_Log("GAME: nao consegui gravar a ficha da matricula %s. A nota desta "
                 "batalha vale para esta sessao, mas nao foi para o disco.",
-                mMatricula.c_str());
+                mSessoes.front().matricula.c_str());
     }
 }
 
-bool Game::GravarFicha() {
+bool Game::GravarFicha(const size_t posicao) {
+
+    if (posicao >= mSessoes.size()) return false;
 
     // UM SO LUGAR monta a ficha a partir do estado da sessao. Com a aparencia
     // entrando no arquivo, gravar passou a ter dois campos para lembrar; dois
     // pontos de gravacao viravam duas chances de esquecer um deles.
+    const Sessao::Dados& sessao = mSessoes[posicao];
+
     Ficha::Dados dados;
-    dados.matricula = mMatricula;
-    dados.progresso = mProgresso;
-    dados.aparencia = mAparencia;
+    dados.matricula = sessao.matricula;
+    dados.progresso = sessao.progresso;
+    dados.aparencia = sessao.aparencia;
 
     return FichaArquivo::Gravar(dados, Materias::Carregadas());
 }
 
 void Game::IdentificarAluno(const std::string& matriculaCanonica) {
 
-    mMatricula = matriculaCanonica;
+    Sessao::Dados& sessao = SessaoEntrando();
+    sessao.matricula = matriculaCanonica;
 
     // SUBSTITUI progresso E aparencia. Carregar por cima do anterior deixaria as
     // notas do aluno que acabou de sair penduradas na sessao de quem entrou - e
     // elas iriam para o disco na primeira batalha, no arquivo errado. Com a
     // aparencia o estrago seria menos grave e igualmente confuso: o aluno novo
     // entraria com a cara do anterior.
-    const Ficha::Dados ficha = FichaArquivo::Carregar(mMatricula, Materias::Carregadas());
-    mProgresso = ficha.progresso;
-    mAparencia = ficha.aparencia;
+    const Ficha::Dados ficha = FichaArquivo::Carregar(sessao.matricula, Materias::Carregadas());
+    sessao.progresso = ficha.progresso;
+    sessao.aparencia = ficha.aparencia;
 
-    SDL_Log("GAME: jogando como a matricula %s (%zu materia(s) com registro, aparencia %s).",
-            mMatricula.c_str(), mProgresso.QuantasRegistradas(),
-            mAparencia.Vazia() ? "padrao" : "do save");
+    SDL_Log("GAME: jogador %zu e a matricula %s (%zu materia(s) com registro, aparencia %s).",
+            mPosicaoEntrando + 1, sessao.matricula.c_str(), sessao.progresso.QuantasRegistradas(),
+            sessao.aparencia.Vazia() ? "padrao" : "do save");
 }
 
 void Game::DefinirAparencia(const Personagens::Aparencia& aparencia) {
 
-    mAparencia = aparencia;
+    SessaoEntrando().aparencia = aparencia;
 
-    if (!ProgressoEGravado()) return;   // visitante nao grava
+    if (!ProgressoEGravado(mPosicaoEntrando)) return;   // visitante nao grava
 
-    if (!GravarFicha()) {
+    if (!GravarFicha(mPosicaoEntrando)) {
         SDL_Log("GAME: nao consegui gravar a aparencia da matricula %s. Ela vale para esta "
-                "sessao, mas nao foi para o disco.", mMatricula.c_str());
+                "sessao, mas nao foi para o disco.", SessaoEntrando().matricula.c_str());
     }
 }
 
 void Game::JogarComoVisitante() {
-    mMatricula = Matricula::kVisitante;
-    mProgresso = Progresso();
-    mAparencia = Personagens::Aparencia();
-    SDL_Log("GAME: jogando sem identificacao. O progresso NAO sera gravado.");
+
+    Sessao::Dados& sessao = SessaoEntrando();
+    sessao.matricula = Matricula::kVisitante;
+    sessao.progresso = Progresso();
+    sessao.aparencia = Personagens::Aparencia();
+
+    SDL_Log("GAME: jogador %zu sem identificacao. O progresso NAO sera gravado.",
+            mPosicaoEntrando + 1);
 }
 
-bool Game::ProgressoEGravado() const {
+bool Game::ProgressoEGravado(const size_t posicao) const {
     // Visitante nao grava. O teste e por Matricula::Validar e nao por comparacao
     // com o rotulo: assim qualquer valor que nao seja uma matricula de verdade -
     // inclusive a string vazia do jogo recem-aberto - cai do lado certo.
-    return Matricula::Validar(mMatricula).valida;
+    return Matricula::Validar(MatriculaDe(posicao)).valida;
 }

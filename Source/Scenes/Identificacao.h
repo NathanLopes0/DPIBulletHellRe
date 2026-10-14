@@ -10,7 +10,9 @@
 #include <vector>
 
 #include "Scene.h"
+#include "../Game.h"
 #include "../Navegacao.h"
+#include "../Painel.h"
 #include "../Teclado.h"
 
 class Font;
@@ -93,7 +95,21 @@ private:
     std::unique_ptr<Font> mFonte;
 
     /// A que viemos. Vem do Game, posto pelo menu.
-    bool mModoNovo = true;
+    ///
+    /// Era um bool ("novo?"), e com tres modos um bool nao serve mais: o co-op
+    /// aceita os dois casos e descobre qual e pela propria matricula.
+    Game::ModoDeEntrada mModo = Game::ModoDeEntrada::Novo;
+
+    /// QUAL POSICAO esta digitando, e se ha outra. Esta tela roda duas vezes no
+    /// co-op (requisitos-coop, RF2), e quem diz de quem e a vez e o Game.
+    size_t mQuem = 0;
+    bool mEmDupla = false;
+
+    /// O painel DA VEZ. E por isso que o jogador 2 digita com o manche dele, e
+    /// nao esperando o jogador 1 digitar por ele.
+    [[nodiscard]] Painel::Jogador PainelDaVez() const {
+        return mQuem == 1 ? Painel::Jogador::Dois : Painel::Jogador::Um;
+    }
 
     /// O que o aluno digitou ate agora. So digito, no maximo seis - garantido por
     /// Matricula::Digitar, nao por esta classe.

@@ -68,12 +68,18 @@ namespace {
     // Elas falam do DISCO, que a camada pura nao conhece nem deve conhecer.
     const char* kJaExiste = "Ja existe um perfil com essa matricula. Use Carregar Perfil.";
     const char* kNaoExiste = "Nao ha perfil com essa matricula. Confira, ou use Novo Jogo.";
+
+    // A TERCEIRA e so do co-op, e protege o save: duas sessoes do mesmo aluno
+    // apontam para o mesmo arquivo, e a ultima a fechar sobrescreve a outra.
+    const char* kJaEstaJogando = "Essa matricula ja esta no outro lado do painel.";
 }
 
 Identificacao::Identificacao(Game* game)
     : Scene(game, SceneType::Identificacao),
       mFonte(std::make_unique<Font>()),
-      mModoNovo(game->ModoDeEntradaAtual() == Game::ModoDeEntrada::Novo)
+      mModo(game->ModoDeEntradaAtual()),
+      mQuem(game->PosicaoEntrando()),
+      mEmDupla(game->QuantosJogadores() > 1)
 {
     mFonte->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
 }
@@ -118,11 +124,20 @@ void Identificacao::CriarTextos() {
     //
     // O TITULO DIZ A QUE VEIO. Sem isso as duas telas sao identicas, e quem
     // errou de opcao no menu so descobre quando a matricula e recusada.
-    mTituloAtor = Texto(mModoNovo ? "NOVO JOGO" : "CARREGAR PERFIL",
-                        altura * 0.13f, 52, 760, 70);
-    Texto(mModoNovo ? "Digite sua matricula para criar o perfil"
-                    : "Digite sua matricula para continuar",
-          altura * 0.21f, 28, 760, 42);
+    // NA DUPLA O TITULO DIZ DE QUEM E A VEZ, e nao a que a tela veio. A mesma
+    // tela aparece duas vezes seguidas, iguais; sem isso o jogador 2 digitaria
+    // por cima do 1 achando que a primeira nao pegou. Ver requisitos-coop, RF2.
+    const std::string titulo = mEmDupla
+        ? ("JOGADOR " + std::to_string(mQuem + 1))
+        : (mModo == Game::ModoDeEntrada::Novo ? "NOVO JOGO" : "CARREGAR PERFIL");
+
+    const char* ajuda = mEmDupla
+        ? "Digite sua matricula, ou entre como visitante"
+        : (mModo == Game::ModoDeEntrada::Novo ? "Digite sua matricula para criar o perfil"
+                                              : "Digite sua matricula para continuar");
+
+    mTituloAtor = Texto(titulo, altura * 0.13f, 52, 760, 70);
+    Texto(ajuda, altura * 0.21f, 28, 760, 42);
 
     // A moldura do campo: um ator proprio, com ordem de desenho menor que a do
     // texto para ficar atras dele.
@@ -145,9 +160,11 @@ void Identificacao::CriarTextos() {
     // A ajuda agora fala do GABINETE, e nao do teclado: o manche escolhe, um
     // botao digita e o outro apaga. As teclas do computador continuam valendo
     // para quem desenvolve, mas nao e para elas que esta tela e desenhada.
-    Texto(Painel::Rodape({Painel::Manche(Painel::Jogador::Um, "escolher"),
-                          {Painel::Jogador::Um, Painel::Botao::Um,   "digitar"},
-                          {Painel::Jogador::Um, Painel::Botao::Dois, "apagar"}},
+    // O RODAPE ANUNCIA O PAINEL DA VEZ. Dizer ESPACO para quem esta na segunda
+    // posicao mandaria o jogador 2 apertar o botao do jogador 1.
+    Texto(Painel::Rodape({Painel::Manche(PainelDaVez(), "escolher"),
+                          {PainelDaVez(), Painel::Botao::Um,   "digitar"},
+                          {PainelDaVez(), Painel::Botao::Dois, "apagar"}},
                          mGame->JeitoDoRodape()),
           altura * 0.955f, 22, 1100, 34);
 
@@ -242,24 +259,36 @@ void Identificacao::Redesenhar() const {
 
 void Identificacao::Confirmar(const std::string& canonica) {
 
-    // A PERGUNTA E A MESMA nos dois modos - "ja ha perfil?" -, e so a resposta
-    // aceitavel muda. Por isso uma tela so, e nao duas.
+    // ANTES DE OLHAR O DISCO: o parceiro ja esta com esta matricula? A regra e
+    // pura e esta em Sessao::JaEstaEmUso, com a propria posicao de fora - voltar
+    // e redigitar o proprio numero tem de continuar valendo.
+    if (Sessao::JaEstaEmUso(mGame->Sessoes(), mQuem, canonica)) {
+        mErro = kJaEstaJogando;
+        return;
+    }
+
+    // A PERGUNTA E A MESMA nos tres modos - "ja ha perfil?" -, e so a resposta
+    // aceitavel muda. Por isso uma tela so, e nao tres.
     const bool jaTemPerfil = FichaArquivo::Existe(canonica);
 
-    if (mModoNovo && jaTemPerfil) {
+    if (mModo == Game::ModoDeEntrada::Novo && jaTemPerfil) {
         mErro = kJaExiste;
         return;
     }
-    if (!mModoNovo && !jaTemPerfil) {
+    if (mModo == Game::ModoDeEntrada::Carregar && !jaTemPerfil) {
         mErro = kNaoExiste;
         return;
     }
+    // Qualquer aceita os dois: e o modo do co-op, e quem responde e a matricula.
 
-    // Os dois modos passam por IdentificarAluno: para quem esta criando, nao ha
+    // Os tres modos passam por IdentificarAluno: para quem esta criando, nao ha
     // arquivo para ler e a sessao comeca vazia, que e exatamente o certo.
     mGame->IdentificarAluno(canonica);
 
-    if (mModoNovo) {
+    // QUEM NAO TEM PERFIL MONTA A PERSONAGEM, e a pergunta e essa - nao "a que
+    // modo viemos". Nos modos de um jogador da no mesmo (Novo so chega aqui sem
+    // perfil, Carregar so chega com), e no Qualquer e a unica forma de acertar.
+    if (!jaTemPerfil) {
         // AINDA NAO GRAVA NADA. O perfil so nasce quando a personagem e
         // confirmada (D5), e por isso dar ESC na tela de criacao deixa a
         // matricula livre de novo - do contrario, voltar e tentar outra vez
@@ -268,7 +297,7 @@ void Identificacao::Confirmar(const std::string& canonica) {
         return;
     }
 
-    mGame->RequestSceneChange(SceneType::StageSelect);
+    mGame->AvancarEntrada();
 }
 
 void Identificacao::Acionar(const Teclado::Tecla& tecla) {
@@ -302,10 +331,14 @@ void Identificacao::Acionar(const Teclado::Tecla& tecla) {
             // gabinete nao tem. Ver o comentario de classe sobre por que entrar
             // sem se identificar e permitido.
             mGame->JogarComoVisitante();
-            mGame->RequestSceneChange(SceneType::StageSelect);
+            mGame->AvancarEntrada();
             break;
 
         case Teclado::Acao::Voltar:
+            // DESISTIR DESLIGA A DUPLA. Sair no meio da entrada e desistir dela
+            // inteira; deixar o modo ligado faria a proxima partida pedir duas
+            // matriculas sem que ninguem tivesse escolhido isso no menu.
+            mGame->CancelarEntrada();
             mGame->RequestSceneChange(SceneType::MainMenu);
             break;
     }
@@ -318,9 +351,7 @@ void Identificacao::LerManche(const Uint8* keyState, const float deltaTime) {
     const size_t antes = mTeclaSelecionada;
 
     if (mPassoTimer >= kPassoDoManche) {
-        // Por enquanto so o jogador 1 se identifica. Quando a dupla entrar,
-        // esta tela roda duas vezes e a posicao vira membro (requisitos-coop, RF2).
-        constexpr Painel::Jogador kQuem = Painel::Jogador::Um;
+        const Painel::Jogador kQuem = PainelDaVez();
 
         if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Cima))
             mTeclaSelecionada = Navegacao::Cima(mGradeDoTeclado, mTeclaSelecionada);
@@ -339,7 +370,7 @@ void Identificacao::LerManche(const Uint8* keyState, const float deltaTime) {
 
     // BOTAO 1 - digita a tecla acesa. ENTER tambem cai aqui, e nao mais direto
     // na validacao: no gabinete quem valida e a tecla ENTRAR da grade.
-    const bool acionar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Um);
+    const bool acionar = Painel::Apertado(keyState, PainelDaVez(), Painel::Botao::Um);
     if (acionar && !mAcionarAnterior) {
         const auto& teclas = Teclado::Teclas();
         if (mTeclaSelecionada < teclas.size()) Acionar(teclas[mTeclaSelecionada]);
@@ -363,7 +394,7 @@ void Identificacao::LerTeclado(const Uint8* keyState) {
 
     // BOTAO 2 do gabinete, junto com o BACKSPACE: apagar e frequente demais para
     // exigir uma viagem ate a tecla APAGAR da grade a cada erro de digitacao.
-    const bool apagar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois)
+    const bool apagar = Painel::Apertado(keyState, PainelDaVez(), Painel::Botao::Dois)
                         || keyState[SDL_SCANCODE_BACKSPACE] || keyState[SDL_SCANCODE_DELETE];
     if (apagar && !mApagarAnterior) {
         mDigitado = Matricula::Apagar(mDigitado);
@@ -379,8 +410,12 @@ void Identificacao::LerTeclado(const Uint8* keyState) {
     }
     mEnterAnterior = entrar;
 
+    // OS ATALHOS DE TECLADO FAZEM O MESMO que as teclas da grade, e nao uma
+    // versao parecida: eram dois caminhos escrevendo o fim do fluxo cada um por
+    // si, e bastaria um esquecer do jogador 2 para o ESC largar a dupla ligada.
     const bool voltar = keyState[SDL_SCANCODE_ESCAPE];
     if (voltar && !mVoltarAnterior) {
+        mGame->CancelarEntrada();
         mGame->RequestSceneChange(SceneType::MainMenu);
         return;
     }
@@ -389,7 +424,7 @@ void Identificacao::LerTeclado(const Uint8* keyState) {
     const bool visitante = keyState[SDL_SCANCODE_TAB];
     if (visitante && !mVisitanteAnterior) {
         mGame->JogarComoVisitante();
-        mGame->RequestSceneChange(SceneType::StageSelect);
+        mGame->AvancarEntrada();
     }
     mVisitanteAnterior = visitante;
 }

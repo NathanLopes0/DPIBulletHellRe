@@ -44,7 +44,10 @@ Player::Player(Scene* scene) :
 
     Game* game = GetScene()->GetGame();
     const Personagens::Composta composta =
-        Personagens::Compor(game, Personagens::Carregado(), game->AparenciaAtual());
+        // A APARENCIA DA POSICAO 1. So ha um Player em campo; o segundo entra
+        // no incremento 4, e e la que esta posicao vira membro - junto com o
+        // manche dele, que ja esta escrito logo abaixo em MoveInput.
+        Personagens::Compor(game, Personagens::Carregado(), game->AparenciaDe(0));
 
     if (composta.ok) {
         spritePath = composta.chaveDaTextura;   // ja esta no cache de texturas

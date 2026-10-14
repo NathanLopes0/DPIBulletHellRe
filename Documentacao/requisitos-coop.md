@@ -288,10 +288,11 @@ Cada um compila, passa na suíte e pode ser jogado.
 
 1. ~~**O painel do jogador 2.**~~ **Feito.** `Painel` ganhou a posição e o
    manche; as setas deixaram de ser alias.
-2. **A lista de jogadores na batalha.** `mPlayer` vira lista de um. `Alvo()`
-   substitui os treze `GetPlayer()`. Nada muda em tela.
-3. **A segunda sessão no `Game`.** Duas matrículas, dois progressos, duas
-   aparências. O menu ganha a opção e a identificação roda duas vezes.
+2. ~~**A lista de jogadores na batalha.**~~ **Feito.** `mPlayer` virou lista de
+   um e `Alvo()` substituiu os doze `GetPlayer()`. Nada mudou em tela.
+3. ~~**A segunda sessão no `Game`.**~~ **Feito.** Duas matrículas, dois
+   progressos, duas aparências; o menu ganhou a opção e a identificação roda
+   duas vezes, cada uma no painel do seu jogador.
 4. **O segundo jogador em campo.** Dois `Player`, colisões para os dois, a
    divisão de 2.1, fim de batalha quando a nota zera.
 5. **Os dois rankings.** Ficha versão 5, o recorde de co-op com parceiro, o
