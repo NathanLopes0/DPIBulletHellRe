@@ -147,6 +147,48 @@ private:
     /// Passado dos 2, a nota desta batalha para em 99,99 (ver Nota.h).
     int mAcertosSofridos{};
 
+    // ---- A FAIXA DA NOTA, na base da tela ----------------------------------
+    //
+    // Os numeros estavam soltos dentro de LoadGradeBar, e a altura estava
+    // escrita DE NOVO em GetPlayfieldBounds, com um comentario pedindo para
+    // manter as duas iguais. Pedido em comentario nao segura nada - e a conta
+    // dos textos ja dependia da altura por um caminho que ninguem via.
+
+    /// A altura da barra. Era 25, e subiu junto com a moldura: um retangulo de
+    /// 25 px com 2 px de borda de cada lado sobra 21 de preenchimento.
+    static constexpr int kBarraAltura = 28;
+
+    /// A sobra dos lados. A barra ia de ponta a ponta da tela e encostava nas
+    /// bordas, o que a fazia parecer um risco no monitor em vez de uma peca.
+    static constexpr int kBarraMargemLateral = 40;
+
+    /// Do fundo da tela ate o TOPO da barra.
+    static constexpr int kBarraDoFundo = 54;
+
+    /// A placa atras de um texto da faixa.
+    ///
+    /// EXISTE POR LEITURA, nao por enfeite: o numero e branco e o
+    /// preenchimento passa por laranja - "52.64" sumia em cima dele. O mesmo
+    /// vale para o FASE LIMPA, que e verde claro sobre uma barra verde.
+    ///
+    /// ELA TINGE, NAO TAPA. A primeira versao era opaca e da altura da barra
+    /// mais dois: em vez de uma placa, lia-se um BURACO recortado no meio do
+    /// preenchimento, cortando a barra em duas. Translucida e da altura exata
+    /// da barra, ela escurece a faixa onde o numero esta e a barra continua
+    /// sendo uma coisa so.
+    static constexpr int kPlacaLargura = 112;
+
+    /// A dos avisos e mais larga: "TESTE FINAL" tem onze letras contra as seis
+    /// de "100.00".
+    static constexpr int kPlacaDoAvisoLargura = 196;
+
+    /// A MESMA altura da barra, e nao um numero proprio: dois pixels de
+    /// diferenca ja faziam a placa aparecer por cima da moldura.
+    static constexpr int kPlacaAltura  = kBarraAltura;
+    static constexpr int kOrdemDaPlaca = 303;   ///< o texto da faixa usa 304
+    static inline const SDL_Color kSemMoldura{0, 0, 0, 0};
+    static inline const SDL_Color kFundoDaPlaca{6, 8, 16, 135};
+
     // --- Ponteiros observadores do Boss e do Player, que vão estar dentro
     // do vetor mActors da própria cena Battle. Ideal para, mesmo num vetor de Actors,
     // chamar funções específicas de Player e de Boss, e também para acesso rápido sem percorrer o vetor.

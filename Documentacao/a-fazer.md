@@ -119,6 +119,16 @@ verdade é "o alvo". Ficaram de fora do incremento 2 de propósito, para o
 incremento não crescer para dentro da lógica de ataque; o risco é baixo porque
 elas passam por `Alvo()` e não têm como escolher outro jogador.
 
+### A faixa que o jogador não usa não acompanha a barra de nota
+
+`Battle::GetPlayfieldBounds` reserva 25 px na base da tela, e a barra de nota
+agora tem 28 e fica recuada 54 px do fundo. Os dois números eram o mesmo e
+deixaram de ser: um é **regra de jogo** — até onde o aluno pode descer — e o
+outro é desenho. Hoje o aluno ainda pode parar em cima da barra.
+
+Alinhar os dois muda onde se joga, então ficou de fora da arrumação visual.
+**É decisão do autor:** o aluno deve ser impedido de entrar na faixa da HUD?
+
 ### A tela de Opções está vazia
 
 Ela existe e não faz nada. No mínimo precisa de volume: o gabinete fica num

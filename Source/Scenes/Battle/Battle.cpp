@@ -24,6 +24,7 @@
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
 #include "../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "../../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../../Components/DrawComponents/DrawTextComponent.h"
 #include "../../Components/DrawComponents/ProgressBarComponent.h"
 #include "../../Actors/Teachers/ExtraPointItem.h"
@@ -209,14 +210,24 @@ void Battle::LoadTimeClock() {
 void Battle::LoadGradeBar() {
     auto gradeBarActor = std::make_unique<Actor>(this);
 
-    constexpr int barHeight = 25;
     const int windowWidth = mGame->GetWindowWidth();
     const int windowHeight = mGame->GetWindowHeight();
-    gradeBarActor->SetPosition(Vector2(0.f, static_cast<float>(windowHeight) - barHeight * 1.5));
+
+    // A BARRA RECUADA, e nao de ponta a ponta. Encostada nas bordas ela parecia
+    // um risco no monitor; com a sobra dos lados e a moldura, vira uma peca da
+    // tela. Os numeros vem de Battle.h - ver o comentario de kBarraAltura.
+    const int barraX = kBarraMargemLateral;
+    const int barraY = windowHeight - kBarraDoFundo;
+    const int barraLargura = windowWidth - 2 * kBarraMargemLateral;
+
+    gradeBarActor->SetPosition(Vector2(static_cast<float>(barraX), static_cast<float>(barraY)));
 
     auto gradeBarComp = gradeBarActor->AddComponent<ProgressBarComponent>();
     gradeBarComp->SetOrientation(ProgressBarComponent::Orientation::Horizontal);
-    gradeBarComp->SetSize(windowWidth, barHeight);
+    gradeBarComp->SetSize(barraLargura, kBarraAltura);
+
+    // O acabamento e desta barra, e nao da de tempo: ver SetAcabamento.
+    gradeBarComp->SetAcabamento(true);
 
     mGradeBarActor = gradeBarActor.get();
     this->AddActor(std::move(gradeBarActor));
@@ -239,12 +250,20 @@ void Battle::LoadGradeBar() {
     // inteiras de pixels. Era isso que transformava o "A" de FINAL num "F".
     // O "+8" e a mesma folga que MainMenu, Identificacao e Opcoes ja usavam.
     constexpr int tamanhoDaNota = 24;
+    // A PLACA PRIMEIRO, com ordem menor: a lista e desenhada da menor para a
+    // maior, entao ela fica atras do numero. Sem ela o branco do numero cai em
+    // cima do laranja do preenchimento e some.
+    gradeBarTextActor->AddComponent<DrawCaixaComponent>(
+        kPlacaLargura, kPlacaAltura, kSemMoldura, kFundoDaPlaca, 0, kOrdemDaPlaca);
+
     auto gradeText = gradeBarTextActor->AddComponent<DrawTextComponent>(
         "omg", mGradeBarFont.get(), 200, tamanhoDaNota + 8, tamanhoDaNota, 304);
     gradeText->SetAjustarAoTexto(true);
 
+    // NO MEIO DA BARRA, e nao numa conta solta: o texto seguia a altura antiga
+    // por um caminho que ninguem via, e mover a barra o teria deixado para tras.
     const auto textPosX = static_cast<float>(windowWidth) / 2.f;
-    const auto textPosY = static_cast<float>(windowHeight - barHeight);
+    const auto textPosY = static_cast<float>(barraY + kBarraAltura / 2);
     gradeBarTextActor->SetPosition(Vector2(textPosX, textPosY));
 
     mGradeTextActor = gradeBarTextActor.get();
@@ -258,6 +277,10 @@ void Battle::LoadGradeBar() {
     // derruba a nota cheia, e com tres o teto tranca em 99,99 para sempre. A
     // faixa ja e area de HUD, entao o anuncio nao custa um pixel de campo.
     auto avisoActor = std::make_unique<Actor>(this);
+    auto placaDoTeste = avisoActor->AddComponent<DrawCaixaComponent>(
+        kPlacaDoAvisoLargura, kPlacaAltura, kSemMoldura, kFundoDaPlaca, 0, kOrdemDaPlaca);
+    placaDoTeste->SetIsVisible(false);
+
     auto aviso = avisoActor->AddComponent<DrawTextComponent>(
         "TESTE FINAL", mGradeBarFont.get(), 260, tamanhoDaNota + 8, tamanhoDaNota, 304);
     aviso->SetAjustarAoTexto(true);
@@ -272,6 +295,10 @@ void Battle::LoadGradeBar() {
     // O aviso de fase limpa, na DIREITA da faixa - o TESTE FINAL ocupa a
     // esquerda, e os dois podem estar acesos ao mesmo tempo numa corrida boa.
     auto limpaActor = std::make_unique<Actor>(this);
+    auto placaDaLimpa = limpaActor->AddComponent<DrawCaixaComponent>(
+        kPlacaDoAvisoLargura, kPlacaAltura, kSemMoldura, kFundoDaPlaca, 0, kOrdemDaPlaca);
+    placaDaLimpa->SetIsVisible(false);
+
     auto limpa = limpaActor->AddComponent<DrawTextComponent>(
         "FASE LIMPA", mGradeBarFont.get(), 260, tamanhoDaNota + 8, tamanhoDaNota, 304);
     limpa->SetAjustarAoTexto(true);
@@ -485,7 +512,12 @@ void Battle::GradeBarUpdate() {
 
     // -- DEFINIÇÃO DA PALETA DE CORES -- //
 
-    static const SDL_Color BG_COLOR = {20,20,20,255};
+    // O SULCO, e dele que saem a moldura e a sombra (ver SetAcabamento). Era
+    // {20,20,20}, quase preto: sobre o preto da tela a barra nao tinha contorno
+    // nenhum, e clarear a moldura a partir de um quase-preto nao chega a lugar
+    // nenhum. Puxado para o azul pelo mesmo motivo do fundo das telas de menu -
+    // um cinza neutro deixa a faixa amarelada ao lado do laranja da nota.
+    static const SDL_Color BG_COLOR = {26,28,38,255};
 
     // STATE1 - REPROVADE
     static const SDL_Color FAIL_START = {100, 0, 0, 255};
@@ -544,6 +576,10 @@ void Battle::GradeTextUpdate() {
     // comecou - e ter comecado nao deixa de ser verdade quando a nota cai. Se
     // ele piscasse junto com o dourado, viraria um alarme a cada acerto.
     if (cheia && mTesteFinalActor) {
+        // A PLACA ACENDE JUNTO. Sao dois componentes no mesmo ator, e deixar um
+        // para tras e o jeito classico de a placa ficar acesa sozinha - uma
+        // mancha escura no meio da barra, sem texto nenhum.
+        mTesteFinalActor->GetComponent<DrawCaixaComponent>()->SetIsVisible(true);
         mTesteFinalActor->GetComponent<DrawTextComponent>()->SetIsVisible(true);
     }
 
@@ -551,7 +587,9 @@ void Battle::GradeTextUpdate() {
     // tela a batalha toda transformaria em enfeite o que precisa ser lido como
     // "isto acabou de acontecer".
     if (mFaseLimpaActor) {
-        mFaseLimpaActor->GetComponent<DrawTextComponent>()->SetIsVisible(mAvisoDeFaseLimpa > 0.0f);
+        const bool acesa = mAvisoDeFaseLimpa > 0.0f;
+        mFaseLimpaActor->GetComponent<DrawCaixaComponent>()->SetIsVisible(acesa);
+        mFaseLimpaActor->GetComponent<DrawTextComponent>()->SetIsVisible(acesa);
     }
 
 }
@@ -762,7 +800,13 @@ void Battle::EncerrarFase() {
 
 SDL_FRect Battle::GetPlayfieldBounds() const
 {
-    // A altura da sua barra de nota, como definido em LoadGradeBar
+    // A FAIXA QUE O JOGADOR NAO USA, e NAO a altura da barra de nota.
+    //
+    // Os dois numeros eram 25 e um comentario aqui mandava manter os dois
+    // iguais. Eles deixaram de ser a mesma coisa quando a barra ganhou moldura
+    // e recuo: esta faixa e regra de JOGO - ate onde o aluno pode descer - e a
+    // outra e desenho. Mexer nesta muda onde se joga, e por isso ela nao entrou
+    // na arrumacao visual da barra; esta anotada em a-fazer.md.
     constexpr float gradeBarHeight = 25.0f;
 
     return {
