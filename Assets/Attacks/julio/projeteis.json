@@ -1,0 +1,35 @@
+{
+  // ==========================================================================
+  // OS PROJETEIS DO JULIO
+  //
+  // UMA PASTA POR CHEFE: Assets/Attacks/julio/. A pasta diz de quem e o
+  // arquivo, entao aqui dentro ficam so os nomes que o campo "projetil" de uma
+  // fase usa -> como aquele projetil e montado. Antes era um projeteis.json so,
+  // com um nivel a mais dizendo o nome do chefe; com uma pasta por chefe esse
+  // nivel seria uma segunda fonte da mesma verdade, livre para discordar do
+  // nome da pasta.
+  //
+  // OS CAMPOS estao documentados em Documentacao/arquivos-de-dados.md.
+  //
+  // O que impede um erro de digitacao aqui de chegar ao jogo e
+  // tests/test_arquivos_de_dados.cpp: ele le este arquivo junto com as fases e
+  // com os atlas de verdade, e quebra a suite se um ataque pedir um projetil
+  // que nao existe ou se uma animacao citar um quadro que a folha nao tem.
+  // ==========================================================================
+
+  // Uma animacao por fase da luta, e quem escolhe qual usar e
+  // Julio::OnProjectilesCreated conforme o estado da FSM que disparou.
+  // Sprite de 16x16 desenhada em 32x32.
+  "Dados": {
+    "sprite": "Teachers/Projectiles/DPIBHJulioDado.png",
+    "dados":  "Teachers/Projectiles/DPIBHJulioDado.json",
+    "animacoes": {
+      "Coleta":      [0, 1, 2, 3],
+      "Perseguicao": [4, 5, 6, 7],
+      "Previsao":    [8, 9, 10, 11]
+    },
+    "animacaoInicial": "Coleta",
+    "escala": 2,
+    "ordemDeDesenho": 90
+  }
+}

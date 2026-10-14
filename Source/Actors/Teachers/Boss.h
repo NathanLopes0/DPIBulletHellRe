@@ -138,7 +138,7 @@ private:
     // executar strategy -> configurator -> converter -> entregar ao manager ->
     // audio) e a mesma para todo boss. Quem precisa variar usa os ganchos
     // CustomizeAttackParams e OnProjectilesCreated.
-    void ExecuteAttack(AttackDefinition& attackDef, const std::string& stateName);
+    void ExecuteAttack(const AttackDefinition& attackDef, const std::string& stateName);
 
     void CalculateNextDropThreshold();
     int mHitCounter = 0;

@@ -25,6 +25,32 @@ void BossProjectile::OnUpdate(float deltaTime)
 {
     // 1. Executa a lógica base (verificar se saiu da tela, update nos Behaviors).
     Projectile::OnUpdate(deltaTime);
+
+    // 2. Gira o sprite para acompanhar o movimento, quando a arte pede isso.
+    //
+    // DEPOIS da base de proposito: os Behaviors mexem na velocidade neste mesmo
+    // quadro, e girar antes deixaria a seta um quadro atrasada em relacao ao
+    // caminho - visivel justamente nas curvas, que e onde isto importa.
+    if (!mRotacionarComAVelocidade) return;
+
+    const auto rb = GetComponent<RigidBodyComponent>();
+    if (rb == nullptr) return;
+
+    const Vector2 v = rb->GetVelocity();
+
+    // Parado nao tem direcao. Mantem a ultima em vez de saltar para zero: a
+    // lista duplamente encadeada PARA por 0,8 s antes de voltar, e sem isto
+    // todas as setas apontariam para a direita durante a pausa.
+    if (Math::NearZero(v.Length())) return;
+
+    // O sprite e desenhado apontando para +X, e o eixo Y da tela cresce para
+    // baixo - dai o sinal trocado, a mesma conta do LaserAttack.
+    //
+    // HA UM SEGUNDO SINAL, em DrawAnimatedComponent::Draw, e os dois NAO se
+    // cancelam: este traz a tela para a convencao do Actor (anti-horario, Y
+    // para cima), e aquele leva a convencao do Actor para a do SDL (horario).
+    // Sao duas fronteiras diferentes.
+    SetRotation(Math::Atan2(-v.y, v.x));
 }
 
 // 3. Implementação obrigatória de IsOffScreen

@@ -415,3 +415,140 @@ TEST_CASE("Relogio: Agora devolve algo no mesmo formato") {
     const std::string s = Relogio::Agora();
     CHECK(s.size() == 19);
 }
+
+// ---------------------------------------------------------------------------
+// Aparencia (versao 4 do formato)
+// ---------------------------------------------------------------------------
+
+namespace {
+
+    Personagens::Aparencia AparenciaDeExemplo() {
+        Personagens::Aparencia a;
+        a.Definir("pele",   Personagens::Escolha{"corpo", "tom4"});
+        a.Definir("cabelo", Personagens::Escolha{"longo", "ruivo"});
+        a.Definir("camisa", Personagens::Escolha{"moletom", "cinza"});
+        a.Definir("calca",  Personagens::Escolha{"bermuda", "jeans"});
+        return a;
+    }
+}
+
+TEST_CASE("Ficha: a aparencia sobrevive a ida e volta") {
+
+    Ficha::Dados original = FichaDeExemplo();
+    original.aparencia = AparenciaDeExemplo();
+
+    const auto lida = Ficha::Desserializar(Ficha::Serializar(original, Curso()), Curso());
+
+    REQUIRE(lida.ok);
+    REQUIRE(lida.dados.aparencia.escolhas.size() == 4);
+    CHECK(lida.dados.aparencia.Por("cabelo")->peca == "longo");
+    CHECK(lida.dados.aparencia.Por("cabelo")->cor == "ruivo");
+    CHECK(lida.dados.aparencia.Por("calca")->peca == "bermuda");
+    CHECK(lida.dados.aparencia.Por("pele")->cor == "tom4");
+}
+
+TEST_CASE("Ficha: a ficha gravada hoje e da versao 4") {
+
+    Ficha::Dados d = FichaDeExemplo();
+    d.aparencia = AparenciaDeExemplo();
+
+    CHECK(Ficha::Serializar(d, Curso()).find("\"versao\": 4") != std::string::npos);
+}
+
+TEST_CASE("Ficha: um save da versao 3 abre sem aparencia, e isso nao e erro") {
+
+    // A MIGRACAO. Os saves que o jogo ja gravou durante o desenvolvimento sao
+    // todos da versao 3; eles tem de continuar abrindo, com a aparencia vazia -
+    // que quem compoe le como "use a padrao".
+    const auto r = Ficha::Desserializar(R"({
+      "versao": 3,
+      "matricula": "89384",
+      "materias": [ { "materia": "AAA", "recorde": 72.5, "retomada": 60 } ]
+    })", Curso());
+
+    REQUIRE(r.ok);
+    CHECK(r.problemas.empty());
+    CHECK(r.dados.aparencia.Vazia());
+    CHECK(r.dados.progresso.MelhorNota(0) == doctest::Approx(72.5f));
+}
+
+TEST_CASE("Ficha: aparencia vazia nao escreve o campo no arquivo") {
+
+    // Um objeto vazio no arquivo nao diria nada que a ausencia ja nao diga, e
+    // ainda faria todo save de visitante parecer diferente de um da versao 3.
+    const Ficha::Dados d = FichaDeExemplo();   // sem aparencia
+
+    CHECK(Ficha::Serializar(d, Curso()).find("aparencia") == std::string::npos);
+}
+
+TEST_CASE("Ficha: a aparencia sai sempre na mesma ordem") {
+
+    // Duas fichas iguais tem de dar o MESMO texto, senao dois saves do mesmo
+    // estado nao dao para comparar num diff.
+    Ficha::Dados a = FichaDeExemplo();
+    Ficha::Dados b = FichaDeExemplo();
+
+    a.aparencia.Definir("pele",   Personagens::Escolha{"corpo", "tom1"});
+    a.aparencia.Definir("cabelo", Personagens::Escolha{"curto", "preto"});
+
+    // A MESMA aparencia, inserida na ordem inversa.
+    b.aparencia.Definir("cabelo", Personagens::Escolha{"curto", "preto"});
+    b.aparencia.Definir("pele",   Personagens::Escolha{"corpo", "tom1"});
+
+    CHECK(Ficha::Serializar(a, Curso()) == Ficha::Serializar(b, Curso()));
+}
+
+TEST_CASE("Ficha: escolha de aparencia malformada e descartada, e as outras ficam") {
+
+    const auto r = Ficha::Desserializar(R"({
+      "versao": 4,
+      "matricula": "89384",
+      "aparencia": {
+        "pele":   { "peca": "corpo", "cor": "tom2" },
+        "cabelo": { "peca": 123, "cor": "preto" },
+        "camisa": { "peca": "regata" },
+        "calca":  "nao sou objeto"
+      },
+      "materias": []
+    })", Curso());
+
+    REQUIRE(r.ok);
+    CHECK(r.dados.aparencia.escolhas.size() == 1);
+    CHECK(r.dados.aparencia.Por("pele")->cor == "tom2");
+    CHECK(Menciona(r.problemas, "cabelo"));
+    CHECK(Menciona(r.problemas, "camisa"));
+    CHECK(Menciona(r.problemas, "calca"));
+}
+
+TEST_CASE("Ficha: \"aparencia\" que nao e objeto e ignorada, e o resto vale") {
+
+    const auto r = Ficha::Desserializar(R"({
+      "versao": 4,
+      "matricula": "89384",
+      "aparencia": "cabelo bonito",
+      "materias": [ { "materia": "AAA", "recorde": 50, "retomada": 50 } ]
+    })", Curso());
+
+    REQUIRE(r.ok);
+    CHECK(r.dados.aparencia.Vazia());
+    CHECK(r.dados.progresso.MelhorNota(0) == doctest::Approx(50.0f));
+    CHECK(Menciona(r.problemas, "aparencia"));
+}
+
+TEST_CASE("Ficha: a aparencia NAO e conferida contra catalogo nenhum") {
+
+    // Esta camada transforma texto em dado e nada mais. Uma peca que saiu do
+    // catalogo entra aqui como esta e e consertada por Personagens::Resolver na
+    // hora de compor - que e onde o catalogo existe. Sem isso, trocar o catalogo
+    // invalidaria saves.
+    const auto r = Ficha::Desserializar(R"({
+      "versao": 4,
+      "matricula": "89384",
+      "aparencia": { "cabelo": { "peca": "moicano-que-nunca-existiu", "cor": "neon" } },
+      "materias": []
+    })", Curso());
+
+    REQUIRE(r.ok);
+    CHECK(r.problemas.empty());
+    CHECK(r.dados.aparencia.Por("cabelo")->peca == "moicano-que-nunca-existiu");
+}

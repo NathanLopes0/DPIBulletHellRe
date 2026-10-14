@@ -44,6 +44,10 @@ std::unique_ptr<Projectile> FabricaDeProjetil::createProjectile(Scene* scene, Ac
     // Andre tinham uma SUBCLASSE INTEIRA so para mudar estes dois numeros.
     projectile->DefinirMargemDeSaida(mDescricao.margemEmSprites, mDescricao.margemDivisorDeTela);
 
+    // Se o sprite gira com a direcao do movimento. So para arte que tem frente -
+    // as listas do Salles, cuja seta precisa apontar para o proximo no.
+    projectile->DefinirRotacaoPelaVelocidade(mDescricao.rotacionarComAVelocidade);
+
     // A escala vem ANTES do colisor: CircleColliderComponent multiplica o raio
     // por GetScale(), entao escalar depois mudaria a hitbox sem mudar o numero
     // que passamos adiante.

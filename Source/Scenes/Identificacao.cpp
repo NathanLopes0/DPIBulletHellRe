@@ -3,12 +3,15 @@
 //
 
 #include "Identificacao.h"
+#include "../Painel.h"
+#include "FundoDeCena.h"
 
 #include <SDL_scancode.h>
 
 #include "../Game.h"
 #include "../Font.h"
 #include "../Matricula.h"
+#include "../FichaArquivo.h"
 #include "../CaminhosArquivo.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
@@ -42,17 +45,41 @@ namespace {
     constexpr SDL_Color kFundoDoCampo = { 24,  26,  32, 220};
 
     /// Quanto tempo o cursor fica aceso e apagado.
+    // --- O teclado digital ---
+    constexpr int kTeclaLargura  = 90;    // as teclas de digito
+    constexpr int kAcaoLargura   = 240;   // a coluna de acoes, que tem rotulo
+    constexpr int kTeclaAltura   = 70;
+    constexpr int kVao           = 14;    // entre teclas
+    constexpr int kVaoDaColuna   = 40;    // entre os digitos e as acoes
+    // O teclado comeca ABAIXO da caixa da matricula, que vai ate 319 (centro em
+    // 0,33 da altura, 110 de alto). A primeira versao disto comecava em 400 e a
+    // caixa cobria a fila do 1-2-3: a moldura sumia atras das teclas e o campo
+    // parecia cortado.
+    constexpr int kTopoDoTeclado = 380;
+
+    constexpr SDL_Color kTeclaBorda   = { 90,  96, 110, 255};
+    constexpr SDL_Color kTeclaAcesa   = {255, 214,   0, 255};   // Color::Gold, em SDL_Color
+    constexpr SDL_Color kTeclaFundo   = { 24,  26,  32, 220};
+
     constexpr float kPiscada = 0.5f;
+
+    // AS DUAS RECUSAS DE FLUXO ficam aqui, e nao em Matricula::MensagemDeErro,
+    // porque nao falam da matricula: "89384" e igualmente valida nos dois casos.
+    // Elas falam do DISCO, que a camada pura nao conhece nem deve conhecer.
+    const char* kJaExiste = "Ja existe um perfil com essa matricula. Use Carregar Perfil.";
+    const char* kNaoExiste = "Nao ha perfil com essa matricula. Confira, ou use Novo Jogo.";
 }
 
 Identificacao::Identificacao(Game* game)
     : Scene(game, SceneType::Identificacao),
-      mFonte(std::make_unique<Font>())
+      mFonte(std::make_unique<Font>()),
+      mModoNovo(game->ModoDeEntradaAtual() == Game::ModoDeEntrada::Novo)
 {
     mFonte->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
 }
 
 void Identificacao::Load() {
+    CriarFundoDoCorredor(*this);
     CriarTextos();
     Redesenhar();
 }
@@ -88,26 +115,98 @@ void Identificacao::CriarTextos() {
 
     // 52 e nao 54: Font::Load so pre-carrega alguns tamanhos, e pedir um que nao
     // existe desenhava NADA. O titulo tinha sumido por causa disso.
-    mTituloAtor = Texto("IDENTIFICACAO", altura * 0.19f, 52, 760, 70);
-    Texto("Digite sua matricula", altura * 0.30f, 28, 620, 42);
+    //
+    // O TITULO DIZ A QUE VEIO. Sem isso as duas telas sao identicas, e quem
+    // errou de opcao no menu so descobre quando a matricula e recusada.
+    mTituloAtor = Texto(mModoNovo ? "NOVO JOGO" : "CARREGAR PERFIL",
+                        altura * 0.13f, 52, 760, 70);
+    Texto(mModoNovo ? "Digite sua matricula para criar o perfil"
+                    : "Digite sua matricula para continuar",
+          altura * 0.21f, 28, 760, 42);
 
     // A moldura do campo: um ator proprio, com ordem de desenho menor que a do
     // texto para ficar atras dele.
     auto caixa = std::make_unique<Actor>(this);
-    caixa->SetPosition(Vector2(largura / 2.0f, altura * 0.46f));
+    caixa->SetPosition(Vector2(largura / 2.0f, altura * 0.33f));
     mCaixaDesenho = caixa->AddComponent<DrawCaixaComponent>(kCampoLargura, kCampoAltura,
                                                             kBorda, kFundoDoCampo, 3, 110);
     AddActor(std::move(caixa));
 
     // Os digitos, dentro da caixa. O limite e um pouco menor que ela para o texto
     // nunca encostar na moldura.
-    mCampoAtor = Texto(" ", altura * 0.46f, 72, kCampoLargura - 48, kCampoAltura - 28);
+    mCampoAtor = Texto(" ", altura * 0.33f, 72, kCampoLargura - 48, kCampoAltura - 28);
 
-    mErroAtor  = Texto(" ", altura * 0.60f, 26, 760, 40);
-    // Duas linhas proprias em vez de uma longa: assim cada uma fica centrada de
+    // Largura folgada: as frases de recusa sao bem mais longas que as de erro de
+    // formato, e uma delas quebrava linha com os 760 de antes.
+    mErroAtor  = Texto(" ", altura * 0.425f, 26, 1040, 40);
+
+    // Linhas proprias em vez de uma longa: assim cada uma fica centrada de
     // verdade, e nenhuma depende de caber numa largura de quebra.
-    Texto("ENTER  entrar", altura * 0.76f, 24, 420, 36);
-    Texto("TAB  jogar sem salvar", altura * 0.83f, 24, 460, 36);
+    // A ajuda agora fala do GABINETE, e nao do teclado: o manche escolhe, um
+    // botao digita e o outro apaga. As teclas do computador continuam valendo
+    // para quem desenvolve, mas nao e para elas que esta tela e desenhada.
+    Texto(Painel::Rodape({Painel::Manche(Painel::Jogador::Um, "escolher"),
+                          {Painel::Jogador::Um, Painel::Botao::Um,   "digitar"},
+                          {Painel::Jogador::Um, Painel::Botao::Dois, "apagar"}},
+                         mGame->JeitoDoRodape()),
+          altura * 0.955f, 22, 1100, 34);
+
+    CriarTeclado();
+}
+
+void Identificacao::CriarTeclado() {
+
+    const auto largura = static_cast<float>(mGame->GetWindowWidth());
+
+    mGradeDoTeclado = Teclado::Grade();
+    mTeclaSelecionada = Teclado::Inicial();
+
+    const int blocoDeDigitos = 3 * kTeclaLargura + 2 * kVao;
+    const int total = blocoDeDigitos + kVaoDaColuna + kAcaoLargura;
+    const float x0 = (largura - static_cast<float>(total)) / 2.0f;
+
+    const auto& teclas = Teclado::Teclas();
+    mCaixasDasTeclas.assign(teclas.size(), nullptr);
+
+    for (size_t i = 0; i < teclas.size(); ++i) {
+
+        const Teclado::Tecla& tecla = teclas[i];
+        const bool ehAcao = (tecla.acao != Teclado::Acao::Digito);
+
+        const int larguraDaTecla = ehAcao ? kAcaoLargura : kTeclaLargura;
+        const float cx = ehAcao
+            ? x0 + static_cast<float>(blocoDeDigitos + kVaoDaColuna + kAcaoLargura / 2)
+            : x0 + static_cast<float>(tecla.coluna * (kTeclaLargura + kVao) + kTeclaLargura / 2);
+        const float cy = static_cast<float>(kTopoDoTeclado + tecla.linha * (kTeclaAltura + kVao)
+                                            + kTeclaAltura / 2);
+
+        auto caixa = std::make_unique<Actor>(this);
+        caixa->SetPosition(Vector2(cx, cy));
+        mCaixasDasTeclas[i] = caixa->AddComponent<DrawCaixaComponent>(
+            larguraDaTecla, kTeclaAltura, kTeclaBorda, kTeclaFundo, 3, 110);
+        AddActor(std::move(caixa));
+
+        // O rotulo e um ator proprio, por cima da caixa. Texto curto no tamanho
+        // do digito, rotulo de acao menor para caber na largura declarada.
+        auto rotulo = std::make_unique<Actor>(this);
+        rotulo->SetPosition(Vector2(cx, cy));
+        const int tamanho = ehAcao ? 24 : 44;
+        auto dc = rotulo->AddComponent<DrawTextComponent>(
+            tecla.rotulo, mFonte.get(), larguraDaTecla - 16, tamanho + 8, tamanho, 120);
+        dc->SetAjustarAoTexto(true);
+        AddActor(std::move(rotulo));
+    }
+
+    PintarSelecao();
+}
+
+void Identificacao::PintarSelecao() const {
+
+    for (size_t i = 0; i < mCaixasDasTeclas.size(); ++i) {
+        if (mCaixasDasTeclas[i]) {
+            mCaixasDasTeclas[i]->SetMoldura(i == mTeclaSelecionada ? kTeclaAcesa : kTeclaBorda);
+        }
+    }
 }
 
 void Identificacao::Redesenhar() const {
@@ -141,6 +240,113 @@ void Identificacao::Redesenhar() const {
     }
 }
 
+void Identificacao::Confirmar(const std::string& canonica) {
+
+    // A PERGUNTA E A MESMA nos dois modos - "ja ha perfil?" -, e so a resposta
+    // aceitavel muda. Por isso uma tela so, e nao duas.
+    const bool jaTemPerfil = FichaArquivo::Existe(canonica);
+
+    if (mModoNovo && jaTemPerfil) {
+        mErro = kJaExiste;
+        return;
+    }
+    if (!mModoNovo && !jaTemPerfil) {
+        mErro = kNaoExiste;
+        return;
+    }
+
+    // Os dois modos passam por IdentificarAluno: para quem esta criando, nao ha
+    // arquivo para ler e a sessao comeca vazia, que e exatamente o certo.
+    mGame->IdentificarAluno(canonica);
+
+    if (mModoNovo) {
+        // AINDA NAO GRAVA NADA. O perfil so nasce quando a personagem e
+        // confirmada (D5), e por isso dar ESC na tela de criacao deixa a
+        // matricula livre de novo - do contrario, voltar e tentar outra vez
+        // esbarraria no proprio perfil recem-criado.
+        mGame->RequestSceneChange(SceneType::CriacaoDePersonagem);
+        return;
+    }
+
+    mGame->RequestSceneChange(SceneType::StageSelect);
+}
+
+void Identificacao::Acionar(const Teclado::Tecla& tecla) {
+
+    // UM LUGAR SO decide o que cada acao faz. O botao do gabinete e as teclas do
+    // computador chegam os dois aqui, entao nao ha como um caminho fazer uma
+    // coisa e o outro fazer outra - que e como telas assim costumam divergir.
+    switch (tecla.acao) {
+
+        case Teclado::Acao::Digito: {
+            const std::string antes = mDigitado;
+            mDigitado = Matricula::Digitar(mDigitado, tecla.digito);
+            if (mDigitado != antes) mErro.clear();
+            break;
+        }
+
+        case Teclado::Acao::Apagar:
+            mDigitado = Matricula::Apagar(mDigitado);
+            mErro.clear();
+            break;
+
+        case Teclado::Acao::Entrar: {
+            const auto r = Matricula::Validar(mDigitado);
+            if (r.valida) Confirmar(r.canonica);
+            else          mErro = Matricula::MensagemDeErro(r.erro);
+            break;
+        }
+
+        case Teclado::Acao::Visitante:
+            // Continua existindo, e agora tem tecla propria: era o TAB, que o
+            // gabinete nao tem. Ver o comentario de classe sobre por que entrar
+            // sem se identificar e permitido.
+            mGame->JogarComoVisitante();
+            mGame->RequestSceneChange(SceneType::StageSelect);
+            break;
+
+        case Teclado::Acao::Voltar:
+            mGame->RequestSceneChange(SceneType::MainMenu);
+            break;
+    }
+}
+
+void Identificacao::LerManche(const Uint8* keyState, const float deltaTime) {
+
+    if (mPassoTimer < kPassoDoManche) mPassoTimer += deltaTime;
+
+    const size_t antes = mTeclaSelecionada;
+
+    if (mPassoTimer >= kPassoDoManche) {
+        // Por enquanto so o jogador 1 se identifica. Quando a dupla entrar,
+        // esta tela roda duas vezes e a posicao vira membro (requisitos-coop, RF2).
+        constexpr Painel::Jogador kQuem = Painel::Jogador::Um;
+
+        if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Cima))
+            mTeclaSelecionada = Navegacao::Cima(mGradeDoTeclado, mTeclaSelecionada);
+        else if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Baixo))
+            mTeclaSelecionada = Navegacao::Baixo(mGradeDoTeclado, mTeclaSelecionada);
+        else if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Esquerda))
+            mTeclaSelecionada = Navegacao::Esquerda(mGradeDoTeclado, mTeclaSelecionada);
+        else if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Direita))
+            mTeclaSelecionada = Navegacao::Direita(mGradeDoTeclado, mTeclaSelecionada);
+    }
+
+    if (mTeclaSelecionada != antes) {
+        mPassoTimer = 0.0f;
+        PintarSelecao();
+    }
+
+    // BOTAO 1 - digita a tecla acesa. ENTER tambem cai aqui, e nao mais direto
+    // na validacao: no gabinete quem valida e a tecla ENTRAR da grade.
+    const bool acionar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Um);
+    if (acionar && !mAcionarAnterior) {
+        const auto& teclas = Teclado::Teclas();
+        if (mTeclaSelecionada < teclas.size()) Acionar(teclas[mTeclaSelecionada]);
+    }
+    mAcionarAnterior = acionar;
+}
+
 void Identificacao::LerTeclado(const Uint8* keyState) {
 
     for (int d = 0; d < 10; ++d) {
@@ -155,7 +361,10 @@ void Identificacao::LerTeclado(const Uint8* keyState) {
         mDigitoAnterior[d] = agora;
     }
 
-    const bool apagar = keyState[SDL_SCANCODE_BACKSPACE] || keyState[SDL_SCANCODE_DELETE];
+    // BOTAO 2 do gabinete, junto com o BACKSPACE: apagar e frequente demais para
+    // exigir uma viagem ate a tecla APAGAR da grade a cada erro de digitacao.
+    const bool apagar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois)
+                        || keyState[SDL_SCANCODE_BACKSPACE] || keyState[SDL_SCANCODE_DELETE];
     if (apagar && !mApagarAnterior) {
         mDigitado = Matricula::Apagar(mDigitado);
         mErro.clear();
@@ -165,15 +374,17 @@ void Identificacao::LerTeclado(const Uint8* keyState) {
     const bool entrar = keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
     if (entrar && !mEnterAnterior) {
         const auto r = Matricula::Validar(mDigitado);
-        if (r.valida) {
-            mGame->IdentificarAluno(r.canonica);
-            mGame->RequestSceneChange(SceneType::StageSelect);
-        }
-        else {
-            mErro = Matricula::MensagemDeErro(r.erro);
-        }
+        if (r.valida) Confirmar(r.canonica);
+        else          mErro = Matricula::MensagemDeErro(r.erro);
     }
     mEnterAnterior = entrar;
+
+    const bool voltar = keyState[SDL_SCANCODE_ESCAPE];
+    if (voltar && !mVoltarAnterior) {
+        mGame->RequestSceneChange(SceneType::MainMenu);
+        return;
+    }
+    mVoltarAnterior = voltar;
 
     const bool visitante = keyState[SDL_SCANCODE_TAB];
     if (visitante && !mVisitanteAnterior) {
@@ -185,9 +396,16 @@ void Identificacao::LerTeclado(const Uint8* keyState) {
 
 void Identificacao::OnProcessInput(const Uint8* keyState) {
     LerTeclado(keyState);
+
+    // O manche e lido aqui junto com o resto, mas o atraso de repeticao avanca em
+    // OnUpdate: e la que existe deltaTime. Passar zero aqui faz o temporizador
+    // depender so do que OnUpdate ja somou, que e exatamente o que se quer.
+    LerManche(keyState, 0.0f);
 }
 
 void Identificacao::OnUpdate(const float deltaTime) {
+
+    if (mPassoTimer < kPassoDoManche) mPassoTimer += deltaTime;
 
     mPiscaTimer += deltaTime;
     if (mPiscaTimer >= kPiscada) {

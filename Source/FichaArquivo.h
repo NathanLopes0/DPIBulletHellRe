@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "Ficha.h"
 #include "Materias.h"
 #include "Progresso.h"
 
@@ -28,12 +29,17 @@ namespace FichaArquivo {
      * motivo no log. Um save estragado nao pode impedir alguem de jogar - e no dia
      * da apresentacao isso seria um aluno parado na frente da maquina.
      *
-     * Devolve o progresso por valor. Quem chama decide onde ele vive.
+     * Devolve a FICHA INTEIRA - progresso e aparencia - por valor. Quem chama
+     * decide onde ela vive. Era so o progresso ate a versao 3 do formato; a
+     * aparencia entrou junto porque as duas vem do mesmo arquivo e ninguem quer
+     * abri-lo duas vezes.
      */
-    Progresso Carregar(const std::string& matricula, const Materias::Lista& materias);
+    Ficha::Dados Carregar(const std::string& matricula, const Materias::Lista& materias);
 
     /**
-     * @brief Grava o progresso de uma matricula. Devolve false se nao conseguiu.
+     * @brief Grava a ficha. Devolve false se nao conseguiu.
+     *
+     * A matricula de `dados` e quem decide o nome do arquivo.
      *
      * A gravacao e ATOMICA: escreve num arquivo temporario e so entao renomeia por
      * cima do bom. Sem isso, fechar o jogo no meio da escrita deixaria um save pela
@@ -43,8 +49,7 @@ namespace FichaArquivo {
      * entre texto digitado e um nome de arquivo, entao ela e obrigatoria mesmo que
      * a tela ja valide: quem chama pode mudar.
      */
-    bool Gravar(const std::string& matricula, const Progresso& progresso,
-                const Materias::Lista& materias);
+    bool Gravar(const Ficha::Dados& dados, const Materias::Lista& materias);
 
     /// @brief Se ja existe ficha para esta matricula.
     bool Existe(const std::string& matricula);

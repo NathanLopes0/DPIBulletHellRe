@@ -3,6 +3,7 @@
 //
 #include <vector>
 #include "Player.h"
+#include "../../Painel.h"
 
 #include "PlayerProjectile.h"
 #include "../../Scenes/Battle/Battle.h"
@@ -12,6 +13,9 @@
 #include "../../Components/ColliderComponents/CircleColliderComponent.h"
 
 #include "../../CaminhosArquivo.h"
+#include "../../ComporPersonagem.h"
+#include "../../Game.h"
+#include "../../PersonagensArquivo.h"
 
 #define NUM_PROJECTILES_VECTOR 500
 #define ATK_TIMER_START_FULL 0.12f
@@ -31,8 +35,28 @@ Player::Player(Scene* scene) :
 
 {
 
+    // A APARENCIA VEM DO PERFIL, e nao de um caminho fixo. A personagem e
+    // montada das camadas escolhidas (ou da padrao, para quem nao escolheu) e
+    // vira UMA textura, que daqui para baixo e uma sprite animada como outra
+    // qualquer - ver Source/ComporPersonagem.h.
     std::string spritePath = Caminhos::Asset("Player/DPIBHPlayer.png");
-    std::string dataPath = Caminhos::Asset("Player/DPIBHPlayer.json");
+    std::string dataPath   = Caminhos::Asset("Player/DPIBHPlayer.json");
+
+    Game* game = GetScene()->GetGame();
+    const Personagens::Composta composta =
+        Personagens::Compor(game, Personagens::Carregado(), game->AparenciaAtual());
+
+    if (composta.ok) {
+        spritePath = composta.chaveDaTextura;   // ja esta no cache de texturas
+        dataPath   = composta.atlas;
+    }
+    else {
+        // SOBRA O SPRITE ANTIGO. Um catalogo faltando ou uma arte ilegivel nao
+        // podem impedir alguem de jogar; o motivo ja saiu no log de quem tentou
+        // compor.
+        SDL_Log("PLAYER: a personagem nao pode ser composta; usando o sprite antigo.");
+    }
+
     auto drawComp = AddComponent<DrawAnimatedComponent>(spritePath, dataPath);
     drawComp->AddAnimation("Moving", {0,1,2,3});
     drawComp->AddAnimation("Idle", {1});
@@ -105,16 +129,24 @@ void Player::MoveInput(const Uint8 *keyState) {
     float newXSpeed = 0;
     float newYSpeed = 0;
 
+    // O MANCHE DA POSICAO 1. Era W A S D ou as setas, as duas coisas movendo
+    // este mesmo jogador - e por isso a posicao 2 do gabinete ficava sem manche.
+    // As setas sao do jogador 1, o W A S D e do jogador 2; ver Painel.h.
+    //
+    // A posicao esta escrita aqui porque so ha um jogador. Quando o segundo
+    // entrar em campo, ela vira membro do Player (requisitos-coop, incremento 4).
+    constexpr Painel::Jogador kQuem = Painel::Jogador::Um;
+
     // ------ verificação de movimento CIMA/BAIXO ------
-    if(keyState[SDL_SCANCODE_W] || keyState[SDL_SCANCODE_UP])
+    if(Painel::Apertado(keyState, kQuem, Painel::Direcao::Cima))
         newYSpeed -= playerSpeed;
-    else if(keyState[SDL_SCANCODE_S] || keyState[SDL_SCANCODE_DOWN])
+    else if(Painel::Apertado(keyState, kQuem, Painel::Direcao::Baixo))
         newYSpeed += playerSpeed;
 
     // ------ verificação de movimento ESQUERDA/DIREITA ------
-    if(keyState[SDL_SCANCODE_A] || keyState[SDL_SCANCODE_LEFT])
+    if(Painel::Apertado(keyState, kQuem, Painel::Direcao::Esquerda))
         newXSpeed -= playerSpeed;
-    else if (keyState[SDL_SCANCODE_D] || keyState[SDL_SCANCODE_RIGHT])
+    else if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Direita))
         newXSpeed += playerSpeed;
 
     //vendo se está movendo ou não para mudar a variável mMoving (pra mudar a animação de acordo)
@@ -125,14 +157,16 @@ void Player::MoveInput(const Uint8 *keyState) {
 }
 void Player::ShootInput(const Uint8 *keyState) {
 
-    if(keyState[SDL_SCANCODE_SPACE] && mOverloadTimer <= 0.0f) {
+    // BOTAO 1 do painel. Ver Painel.h: a tecla mora num lugar so.
+    if(Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Um) && mOverloadTimer <= 0.0f) {
         Shoot();
     }
 
 }
 void Player::SpecialInput(const Uint8 *keyState) {
 
-    if(keyState[SDL_SCANCODE_B] && mExtraPoints > 0 && mOverloadTimer <= 0.0f) {
+    // BOTAO 2 do painel.
+    if(Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois) && mExtraPoints > 0 && mOverloadTimer <= 0.0f) {
         mExtraPoints--;
         mOverloadTimer = OVERLOAD_DURATION;
         if (const auto battle = dynamic_cast<Battle*>(GetScene())) {

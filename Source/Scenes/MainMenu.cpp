@@ -3,6 +3,7 @@
 //
 
 #include "MainMenu.h"
+#include "../Painel.h"
 #include "../Game.h"
 #include "../Actors/Actor.h"
 #include "../Font.h"
@@ -17,27 +18,40 @@ namespace {
     struct Opcao {
         const char* texto;
         Scene::SceneType destino;
+
+        /// So vale quando o destino e a tela de matricula; ver Game::ModoDeEntrada.
+        Game::ModoDeEntrada modo;
     };
 
     /// AS OPCOES DO MENU, numa tabela. Acrescentar uma e acrescentar uma linha:
     /// a navegacao, o desenho e o posicionamento saem todos do tamanho desta
     /// lista, e nao de numeros repetidos em tres lugares.
     ///
-    /// NOVO JOGO e CARREGAR PERFIL ainda apontam para a mesma tela. A tela de
-    /// matricula ganha os dois modos num incremento proprio; ate la, o menu ja
-    /// existe e ja navega.
+    /// NOVO JOGO e CARREGAR PERFIL levam a MESMA tela, em modos diferentes: uma
+    /// copia da tela por modo divergiria na primeira correcao feita em so uma
+    /// delas.
     const Opcao kOpcoes[] = {
-        {"Novo Jogo",      Scene::SceneType::Identificacao},
-        {"Carregar Perfil", Scene::SceneType::Identificacao},
-        {"Opcoes",         Scene::SceneType::Opcoes},
+        {"Novo Jogo",       Scene::SceneType::Identificacao, Game::ModoDeEntrada::Novo},
+        {"Carregar Perfil", Scene::SceneType::Identificacao, Game::ModoDeEntrada::Carregar},
+        {"Ranking",         Scene::SceneType::Ranking,       Game::ModoDeEntrada::Novo},
+        {"Opcoes",          Scene::SceneType::Opcoes,        Game::ModoDeEntrada::Novo},
     };
     constexpr int kQuantasOpcoes = static_cast<int>(sizeof(kOpcoes) / sizeof(kOpcoes[0]));
 
     // A arte do titulo ocupa ate y = 607 numa imagem de 800 de altura, entao as
     // opcoes vivem na faixa de baixo. Em fracao da altura, e nao em pixels, para
     // a tela aguentar outra resolucao.
-    constexpr float kPrimeiraLinha = 0.808f;
-    constexpr float kEspacoEntreLinhas = 0.067f;
+    // A FAIXA ONDE AS OPCOES CABEM, e nao um espacamento fixo.
+    //
+    // Antes havia um passo constante de 0,067 calculado para TRES opcoes. Ao
+    // entrar a quarta - o Ranking - a ultima caiu para 1,009 da altura, ou seja,
+    // para fora da tela, e nada avisou: o menu continuou funcionando, com uma
+    // opcao que so dava para escolher as cegas.
+    //
+    // Agora o passo SAI da faixa e da quantidade. Acrescentar uma quinta aperta
+    // as quatro em vez de empurrar alguem para fora.
+    constexpr float kTopoDasOpcoes  = 0.790f;   // logo abaixo da arte do titulo
+    constexpr float kFundoDasOpcoes = 0.955f;   // com folga para a moldura
 
     constexpr int kTamanhoDaOpcao = 40;
 
@@ -60,7 +74,16 @@ namespace {
     constexpr SDL_Color kFundoPlaca = {12, 13, 17, 185};
 
     float AlturaDaOpcao(const int i, const float alturaDaTela) {
-        return alturaDaTela * (kPrimeiraLinha + static_cast<float>(i) * kEspacoEntreLinhas);
+
+        // Uma opcao so fica no meio da faixa: dividir por zero poria o menu no
+        // infinito, e encostar no topo nao seria o centro de nada.
+        if (kQuantasOpcoes <= 1) {
+            return alturaDaTela * (kTopoDasOpcoes + kFundoDasOpcoes) / 2.0f;
+        }
+
+        const float passo = (kFundoDasOpcoes - kTopoDasOpcoes)
+                          / static_cast<float>(kQuantasOpcoes - 1);
+        return alturaDaTela * (kTopoDasOpcoes + static_cast<float>(i) * passo);
     }
 }
 
@@ -82,8 +105,10 @@ void MainMenu::Load() {
 
 void MainMenu::OnProcessInput(const Uint8 *keyState) {
 
-    const bool cima  = keyState[SDL_SCANCODE_UP]   || keyState[SDL_SCANCODE_W];
-    const bool baixo = keyState[SDL_SCANCODE_DOWN] || keyState[SDL_SCANCODE_S];
+    // Quem escolhe no menu e o jogador 1, inclusive a opcao de dois jogadores.
+    // Ver Documentacao/requisitos-coop.md, RF1.
+    const bool cima  = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Direcao::Cima);
+    const bool baixo = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Direcao::Baixo);
 
     if (cima && !mCimaAnterior) {
         // Soma kQuantasOpcoes antes do resto: em C++ o resto de um negativo e
@@ -99,14 +124,22 @@ void MainMenu::OnProcessInput(const Uint8 *keyState) {
     }
     mBaixoAnterior = baixo;
 
-    // ESPACO continua valendo junto com ENTER: era a unica tecla do menu antigo,
-    // e quem ja conhece o jogo vai tentar ela primeiro.
-    const bool confirmar = keyState[SDL_SCANCODE_RETURN]
-                        || keyState[SDL_SCANCODE_KP_ENTER]
-                        || keyState[SDL_SCANCODE_SPACE];
+    // O BOTAO 1 do painel e o espaco, entao quem ja conhece o jogo nao perde
+    // nada. O ENTER fica como atalho de teclado, sem aparecer escrito.
+    const bool confirmar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Um)
+                        || keyState[SDL_SCANCODE_RETURN]
+                        || keyState[SDL_SCANCODE_KP_ENTER];
 
     if (confirmar && !mConfirmarAnterior) {
         mConfirmarAnterior = true;
+        mGame->DefinirModoDeEntrada(kOpcoes[mSelecionada].modo);
+
+        // O ranking aberto pelo menu e o GERAL - a media do curso. O de uma
+        // materia so se chega pela selecao de fases, com a materia em foco.
+        if (kOpcoes[mSelecionada].destino == Scene::SceneType::Ranking) {
+            mGame->PedirRanking(Game::PedidoDeRanking{true, 0, Scene::SceneType::MainMenu});
+        }
+
         mGame->RequestSceneChange(kOpcoes[mSelecionada].destino);
         return;
     }
@@ -128,7 +161,7 @@ void MainMenu::LoadBackground() {
 void MainMenu::LoadTitle() {
     auto title = std::make_unique<Actor>(this);
     title->SetPosition(Vector2(static_cast<float>(mGame->GetWindowWidth()) / 2.0f,
-                                    static_cast<float>(mGame->GetWindowHeight()) / 2.0f));
+                                    static_cast<float>(mGame->GetWindowHeight()) / 2.2f));
 
     title->AddComponent<DrawSpriteComponent>(Caminhos::Asset("DPIBHTitleMainMenu.png"), 75);
 

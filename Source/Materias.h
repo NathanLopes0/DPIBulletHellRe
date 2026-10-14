@@ -48,12 +48,21 @@ namespace Materias {
         /// O que aparece no botao. Pode mudar sem efeito nenhum sobre os saves.
         std::string nome;
 
+        /// O nome da disciplina: "Banco de Dados". Pode faltar - e so nao
+        /// mostrar. Nunca vai para o disco nem entra em regra nenhuma.
+        std::string nomeCompleto;
+
+        /// Quem da a materia. INDEPENDENTE de 'chefe': a INF 330 e do Salles e
+        /// nao tem batalha, e o Salles ja e o chefe da INF 213. Reaproveitar o
+        /// chefe de uma na outra faria duas materias identicas de jogar.
+        std::string professor;
+
         /// A posicao na grade da selecao de fase, a partir de 0. A coluna tambem e
         /// o que as regras de desbloqueio usam, entao ela e declarada UMA vez.
         int coluna = 0;
 
-        /// Qual chefe esta materia usa. Vazio = materia ainda sem chefe, que e o
-        /// caso de seis das dez hoje.
+        /// Qual chefe esta materia usa. Vazio = batalha ainda nao feita, que e
+        /// o caso de seis das onze hoje. NAO e "sem professor": ver acima.
         std::string chefe;
 
         Desbloqueio desbloqueio;
@@ -97,6 +106,35 @@ namespace Materias {
          * laco - elas so ficam ambas fechadas, que e o resultado correto.
          */
         [[nodiscard]] bool Desbloqueada(int indice, const Progresso& progresso) const;
+
+        /**
+         * @brief O que falta para esta materia abrir, numa frase para o aluno.
+         *
+         * Vazio quando a materia abre sempre - nao ha o que explicar.
+         *
+         * NAO olha o progresso: isto e a REGRA, e nao o estado. Quem chama ja
+         * sabe que a materia esta fechada (foi por isso que perguntou), e uma
+         * frase que mudasse conforme o que o aluno ja fez precisaria repetir a
+         * conta que Desbloqueada ja faz.
+         *
+         * Usa o NOME de cada materia exigida, e nao o codigo: e "INF 213" que o
+         * aluno ve no botao ao lado, enquanto o que vai para o disco e
+         * "INF213". A coluna aparece contada a partir de 1, que e como se conta
+         * coluna olhando para a tela.
+         */
+        [[nodiscard]] std::string ExigenciaDe(int indice) const;
+
+        /**
+         * @brief Se TODA materia desta coluna depende APENAS da coluna de tras.
+         *
+         * A tela de selecao desenha um tronco ligando duas colunas vizinhas, e
+         * esse desenho so diz a verdade quando isto vale. Nada no formato
+         * obriga: uma materia pode exigir outra de tres colunas atras, e ai a
+         * linha estaria mentindo sobre o curso.
+         *
+         * Coluna 0 responde falso: ela nao tem anterior.
+         */
+        [[nodiscard]] bool ColunaDependeDaAnterior(int coluna) const;
     };
 
     /**

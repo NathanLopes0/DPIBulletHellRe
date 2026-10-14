@@ -52,6 +52,18 @@ public:
      */
     void DefinirMargemDeSaida(float emSprites, float divisorDeTela);
 
+    /**
+     * @brief Faz o sprite girar para acompanhar a direcao do movimento.
+     *
+     * Para as listas do Salles, cuja arte tem uma seta: sem girar, a seta de
+     * todo no aponta para a direita e o encadeamento nao le como encadeamento.
+     *
+     * A rotacao acompanha a VELOCIDADE a cada quadro, e nao so o angulo de
+     * lancamento, porque os caminhos curvam e a lista duplamente encadeada
+     * chega a voltar - a seta tem de virar junto.
+     */
+    void DefinirRotacaoPelaVelocidade(const bool girar) { mRotacionarComAVelocidade = girar; }
+
 protected:
     // Implementação obrigatória do contrato da classe base.
     [[nodiscard]] bool virtual IsOffScreen() const override;
@@ -60,5 +72,9 @@ protected:
     /// que nunca chama o metodo se comporta como antes desta mudanca.
     float mMargemEmSprites = 1.0f;
     float mMargemDivisorDeTela = 12.0f;
+
+    /// Ver DefinirRotacaoPelaVelocidade. Falso por padrao: girar so faz sentido
+    /// para arte que tem frente.
+    bool mRotacionarComAVelocidade = false;
 
 };

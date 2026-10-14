@@ -5,6 +5,7 @@
 #include "Andre.h"
 #include "../../../Random.h"
 #include "../../ProjectileFactory.h"
+#include "../../../Attacks/AttackParameters/BaloonAttackParams.h"
 #include "../../../Scenes/Battle/Battle.h"
 #include "../../../Scenes/Battle/ProjectileManager.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
@@ -19,22 +20,14 @@ void Andre::OnUpdate(float deltaTime) {
 }
 
 void Andre::CustomizeAttackParams(AttackParams &params, const std::string &stateName) {
-
     // Angulo, em GRAUS, da direcao ate o player, na convencao de
     // AttackParams::centralAngle (0 = direita, 90 = baixo, 180 = esquerda).
-    // Antes usava Math::Acos(dir.x), que so devolve [0, 180] e portanto PERDE
-    // o sinal de y: (0,1) e (0,-1) davam ambos 90 graus. Na pratica, com o
-    // player ACIMA do boss, ele mirava para baixo.
-    // Atan2(y, x) preserva o quadrante e devolve o angulo correto (negativo
-    // para cima, o que o cos/sin das strategies interpreta sem problema).
+
+    if (dynamic_cast<BaloonAttackParams*>(&params)) return;
     const Vector2 dirToPlayer = GetDirectionToPlayer();
     const auto directionToPlayerAngle = Math::ToDegrees(Math::Atan2(dirToPlayer.y, dirToPlayer.x));
-
-    if (stateName == "StateOne" || stateName == "StateTwo") {
-        params.centralAngle = Random::GetFloatRange(directionToPlayerAngle - 20.f, directionToPlayerAngle + 20.f);
-    }
-    else if (stateName == "StateThree") {
-        params.projectileSpeed = 500.f;
+    if (stateName == "StateThree") {
+        params.projectileSpeed = 400.f;
 
         //Se o player tiver acima do Andre, atirar nele
         if (dirToPlayer.y < 0) {

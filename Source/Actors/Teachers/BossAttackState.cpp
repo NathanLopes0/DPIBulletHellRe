@@ -7,6 +7,7 @@
 #include "../Actor.h"
 #include "../../Components/AIComponents/FSMComponent.h"
 #include "../../Scenes/Battle/Battle.h"
+#include "../../Nota.h"
 
 BossAttackState::BossAttackState(FSMComponent* fsm,
                                  const std::string& name,
@@ -28,27 +29,46 @@ void BossAttackState::HandleStateTransition(float stateTime)
     // Adicionar aqui lógicas personalizadas de mudança de estado
     if (mName == "StateThree") {
         const auto scene = mFSM->GetOwner()->GetScene();
-        const auto game = scene->GetGame();
 
         if (const auto battle = dynamic_cast<Battle*>(scene)) {
-            const auto selectedStage = game->GetSelectedStage();
 
             // A nota vem do Battle: e a da batalha em curso, nao a gravada.
-            if (const auto grade = battle->GetNotaAtual(); grade >= 40 && grade < 60) {
-                mNextStateName = "StateFinal";
-            }
-            else {
-                battle->FinishBattle(grade >= 60);
+            //
+            // A REGRA MORA EM Nota::AposTerceiraFase, e nao nos numeros soltos
+            // que estavam aqui. Ela ja mudou uma vez - a nota cheia passou a
+            // levar ao teste final - e uma condicao escrita a mao no meio de um
+            // dynamic_cast e o pior lugar possivel para uma regra que muda.
+            //
+            // SOBRE O JOGADOR DE 100: ele entra na fase final SEM a nota
+            // guardada. Cada acerto custa os 6 pontos de sempre e, a partir do
+            // terceiro, o teto de 99,99 fecha a volta. Isto e deliberado - a
+            // fase final e um desafio, nao uma volta de honra - mas tem um preco
+            // que vale saber: quem chega a 100 cedo fica exposto mais tempo que
+            // quem chega no ultimo segundo.
+            switch (Nota::AposTerceiraFase(battle->GetNotaAtual())) {
+
+                case Nota::Desfecho::VaiParaFinal:
+                    mNextStateName = "StateFinal";
+                    break;
+
+                case Nota::Desfecho::Aprovado:
+                    battle->FinishBattle(true);
+                    break;
+
+                case Nota::Desfecho::Reprovado:
+                    battle->FinishBattle(false);
+                    break;
             }
         }
     }
 
     if (mName == "StateFinal") {
         const auto scene = mFSM->GetOwner()->GetScene();
-        const auto game = scene->GetGame();
 
         if (const auto battle = dynamic_cast<Battle*>(scene)) {
-            battle->FinishBattle(battle->GetNotaAtual() >= 60);
+            // Aqui a batalha acaba de qualquer jeito - tanto quem veio do exame
+            // quanto quem veio do teste final. So o resultado muda.
+            battle->FinishBattle(battle->GetNotaAtual() >= Nota::kNotaAprovacao);
         }
     }
 

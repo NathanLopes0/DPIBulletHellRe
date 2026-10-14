@@ -6,6 +6,7 @@
 #include "Battle.h"
 
 #include "../../Progresso.h"
+#include "../../Nota.h"
 
 #include <locale>
 #include <sstream>
@@ -39,7 +40,7 @@ static constexpr int kProjectilePrewarmCountPerType = 300;
 
 
 
-Battle::Battle(Game* game, const Game::GameSubject selectedStage)
+Battle::Battle(Game* game, const int selectedStage)
     : Scene(game, SceneType::Battle)
     , mGrade(40.0f)
     , mStage(selectedStage)
@@ -62,6 +63,14 @@ void Battle::Load() {
     // tinha passado. A ultima nota continua guardada na ficha, como informacao
     // para o professor; ela so nao e mais o ponto de partida.
     mGrade = Progresso::kNotaInicial;
+
+    // E o mesmo vale para o dano: a contagem de acertos zera junto com a nota,
+    // porque o teto e desta tentativa. Quem foi atingido ontem nao perde a nota
+    // cheia de hoje.
+    mAcertosSofridos = 0;
+    mAcertosNaFase = 0;
+    mPrimeiraFase = true;
+    mAvisoDeFaseLimpa = 0.0f;
 
     // 2. Criar os atores principais
     LoadPlayer();
@@ -99,11 +108,11 @@ void Battle::LoadBoss() {
         // de vários frames (ver comentário em Load()), não de forma síncrona
         // aqui dentro.
     } else {
-        // %d, e nao %s: mStage e o enum GameSubject, ou seja um inteiro. Com %s o
+        // %d, e nao %s: mStage e o enum int, ou seja um inteiro. Com %s o
         // SDL_Log tratava o numero como um char* e tentava ler a string no endereco
-        // 2 - segmentation fault DENTRO da mensagem de erro. As seis materias sem
-        // fabrica (INF220, INF332, BIOINF, INF394, VISCCP, TCC) derrubavam o jogo
-        // aqui, e o defeito sobreviveu porque so roda quando o erro acontece.
+        // 2 - segmentation fault DENTRO da mensagem de erro. As materias sem
+        // fabrica (seis das onze, hoje) derrubavam o jogo aqui, e o defeito
+        // sobreviveu porque so roda quando o erro acontece.
         SDL_Log("Erro fatal: Nenhuma BossFactory encontrada para a materia %d, "
                 "voltando pra StageSelect", static_cast<int>(mStage));
         mGame->RequestSceneChange(SceneType::StageSelect);
@@ -202,7 +211,23 @@ void Battle::LoadGradeBar() {
     mGradeBarFont = std::make_unique<Font>();
     mGradeBarFont->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
     auto gradeBarTextActor = std::make_unique<Actor>(this);
-    gradeBarTextActor->AddComponent<DrawTextComponent>("omg", mGradeBarFont.get(), 36, barHeight, 24, 304);
+
+    // A CAIXA E 200x32, E NAO 36x25. Dois defeitos diferentes moravam aqui.
+    //
+    // A LARGURA de 36 esticava o texto: o desenho padrao preenche a caixa
+    // declarada, e "100.00" espremido em 36px saia com digitos finos e altos que
+    // mal davam para ler. As duas casas decimais so servem se der para le-las.
+    //
+    // A ALTURA tem de ser MAIOR que o tamanho da fonte, nunca a altura da barra.
+    // Com o ajuste ao texto ligado, uma caixa baixa demais nao corta: ENCOLHE. A
+    // 24 pontos o texto nasce com 28px de altura, entao a caixa de 25 o reduzia a
+    // 0,893 - e reduzir uma fonte de pixel art por um fator quebrado apaga colunas
+    // inteiras de pixels. Era isso que transformava o "A" de FINAL num "F".
+    // O "+8" e a mesma folga que MainMenu, Identificacao e Opcoes ja usavam.
+    constexpr int tamanhoDaNota = 24;
+    auto gradeText = gradeBarTextActor->AddComponent<DrawTextComponent>(
+        "omg", mGradeBarFont.get(), 200, tamanhoDaNota + 8, tamanhoDaNota, 304);
+    gradeText->SetAjustarAoTexto(true);
 
     const auto textPosX = static_cast<float>(windowWidth) / 2.f;
     const auto textPosY = static_cast<float>(windowHeight - barHeight);
@@ -211,6 +236,38 @@ void Battle::LoadGradeBar() {
     mGradeTextActor = gradeBarTextActor.get();
     this->AddActor(std::move(gradeBarTextActor));
 
+    // O anuncio do teste final, escondido ate a nota chegar a 100.
+    //
+    // MORA NA FAIXA DA NOTA, e nao no meio da tela, embora o meio seja mais
+    // bonito. Quem acabou de chegar a 100 e exatamente quem tem mais a perder
+    // com um projetil escondido atras de um texto de comemoracao: um acerto
+    // derruba a nota cheia, e com tres o teto tranca em 99,99 para sempre. A
+    // faixa ja e area de HUD, entao o anuncio nao custa um pixel de campo.
+    auto avisoActor = std::make_unique<Actor>(this);
+    auto aviso = avisoActor->AddComponent<DrawTextComponent>(
+        "TESTE FINAL", mGradeBarFont.get(), 260, tamanhoDaNota + 8, tamanhoDaNota, 304);
+    aviso->SetAjustarAoTexto(true);
+    aviso->SetColor(Color::Gold);
+    aviso->SetIsVisible(false);
+
+    avisoActor->SetPosition(Vector2(static_cast<float>(windowWidth) / 4.f, textPosY));
+
+    mTesteFinalActor = avisoActor.get();
+    this->AddActor(std::move(avisoActor));
+
+    // O aviso de fase limpa, na DIREITA da faixa - o TESTE FINAL ocupa a
+    // esquerda, e os dois podem estar acesos ao mesmo tempo numa corrida boa.
+    auto limpaActor = std::make_unique<Actor>(this);
+    auto limpa = limpaActor->AddComponent<DrawTextComponent>(
+        "FASE LIMPA", mGradeBarFont.get(), 260, tamanhoDaNota + 8, tamanhoDaNota, 304);
+    limpa->SetAjustarAoTexto(true);
+    limpa->SetColor(Color::LightGreen);
+    limpa->SetIsVisible(false);
+
+    limpaActor->SetPosition(Vector2(static_cast<float>(windowWidth) * 3.f / 4.f, textPosY));
+
+    mFaseLimpaActor = limpaActor.get();
+    this->AddActor(std::move(limpaActor));
 }
 void Battle::LoadEndScreen() {
     auto textActor = std::make_unique<Actor>(this);
@@ -377,6 +434,8 @@ void Battle::OnUpdate(float deltaTime) {
             return item->GetState() == ActorState::Destroy;
         }), mExtraPoints.end());
 
+    if (mAvisoDeFaseLimpa > 0.0f) mAvisoDeFaseLimpa -= deltaTime;
+
     // Se a nota cair a 0, termina a fase
     if (mGrade <= 0) {
         FinishBattle(false);
@@ -450,9 +509,36 @@ void Battle::GradeBarUpdate() {
 }
 void Battle::GradeTextUpdate() {
 
+    // DUAS CASAS, E NAO UMA. Com uma casa o teto de 99,99 apareceria como
+    // "100.0": quem levou dano demais leria nota cheia na tela, nao veria a
+    // comemoracao que acompanha o 100 de verdade, e teria toda a razao de achar
+    // que o jogo quebrou. A segunda casa e o que torna o teto visivel.
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(1) << mGrade;
-    mGradeTextActor->GetComponent<DrawTextComponent>()->SetText(ss.str());
+    ss << std::fixed << std::setprecision(2) << mGrade;
+
+    const auto texto = mGradeTextActor->GetComponent<DrawTextComponent>();
+    texto->SetText(ss.str());
+
+    // O dourado SEGUE A NOTA, em vez de ser ligado uma vez e ficar aceso: quem
+    // chega a 100 e leva um acerto perde a nota cheia de verdade, e a tela tem de
+    // contar isso. Acender e nunca apagar faria o dourado mentir no momento em
+    // que ele mais importa.
+    const bool cheia = Nota::ECheia(mGrade);
+    texto->SetColor(cheia ? Color::Gold : Color::White);
+
+    // O ANUNCIO, AO CONTRARIO, NAO VOLTA ATRAS. Ele marca que o teste final
+    // comecou - e ter comecado nao deixa de ser verdade quando a nota cai. Se
+    // ele piscasse junto com o dourado, viraria um alarme a cada acerto.
+    if (cheia && mTesteFinalActor) {
+        mTesteFinalActor->GetComponent<DrawTextComponent>()->SetIsVisible(true);
+    }
+
+    // O aviso de fase limpa some sozinho. Ele informa, nao comemora: deixar na
+    // tela a batalha toda transformaria em enfeite o que precisa ser lido como
+    // "isto acabou de acontecer".
+    if (mFaseLimpaActor) {
+        mFaseLimpaActor->GetComponent<DrawTextComponent>()->SetIsVisible(mAvisoDeFaseLimpa > 0.0f);
+    }
 
 }
 //endregion UpdateFunctions
@@ -545,17 +631,72 @@ void Battle::CheckCollisions() {
 }
 
 void Battle::GradeUp(const float amount) {
-    mGrade = Math::Clamp(mGrade + amount, 0.0f, 100.f);
+
+    // A aritmetica inteira vive em Nota: a curva acima de 60, o teto de quem
+    // levou dano e os limites de 0 a 100. Aqui so entra o que a batalha sabe e
+    // Nota nao: a nota de agora e quantas vezes este jogador foi atingido.
+    mGrade = Nota::Somar(mGrade, amount, mAcertosSofridos);
 }
 void Battle::GradeDown() {
-    mGrade -= GRADE_CHANGE_DOWN;
-    mGrade = Math::Clamp(mGrade, 0.0f, 100.f);
+
+    // A contagem mora AQUI, no instante do acerto, e nao num balanco no fim da
+    // batalha: assim o proximo ganho ja ve o teto novo. Entre esta linha e a
+    // seguinte a ordem nao importa - Subtrair nao le a contagem - e nao vale
+    // comentar uma dependencia que nao existe.
+    ++mAcertosSofridos;
+    ++mAcertosNaFase;
+    mGrade = Nota::Subtrair(mGrade, GRADE_CHANGE_DOWN);
 }
 
-void Battle::ResetHUDTimer(const float newDuration) {
+bool Battle::PerdeuACheia() const {
+    return Nota::PerdeuACheia(mAcertosSofridos);
+}
+
+/// Segundos que o aviso de fase limpa fica na tela. Curto: ele informa, nao
+/// comemora - e o jogador esta no meio de uma batalha.
+static constexpr float kDuracaoDoAvisoDeFaseLimpa = 2.5f;
+
+void Battle::OnFaseTrocada(const float novaDuracao) {
+
+    // A ORDEM IMPORTA. Fechar a fase ANTES de reiniciar a barra: quem acabou de
+    // terminar uma fase limpa tem de receber por ELA, e nao pela que comeca
+    // agora. Invertido, o contador zeraria antes de ser lido e o bonus sairia
+    // sempre - inclusive para quem levou dano a fase inteira.
+    EncerrarFase();
+
     if (mHUD) {
-        mHUD->ResetTimeBar(newDuration);
+        mHUD->ResetTimeBar(novaDuracao);
     }
+}
+
+void Battle::EncerrarFase() {
+
+    // DEPOIS QUE A BATALHA ACABOU, NAO HA MAIS FASE A FECHAR. A maquina de
+    // estados do chefe continua trocando de fase depois do FinishBattle - a
+    // StateFinal aponta de volta para a StateOne - e sem esta guarda o callback
+    // pagava mais bonus com a batalha ja encerrada, mexendo na nota que aparece
+    // na tela depois de ela ja ter ido para o disco.
+    if (mIsEnding) return;
+
+    // A PRIMEIRA CHAMADA NAO PAGA NADA. O callback da maquina de estados dispara
+    // tambem ao ENTRAR na primeira fase, quando nao ha fase anterior para ter
+    // sido limpa. mPrimeiraFase cobre esse caso.
+    if (mPrimeiraFase) {
+        mPrimeiraFase = false;
+        mAcertosNaFase = 0;
+        return;
+    }
+
+    if (mAcertosNaFase == 0) {
+        GradeUp(Nota::kBonusDeFaseLimpa);
+
+        // O aviso existe para a nota nao subir por motivo invisivel. Um salto sem
+        // explicacao e lido como defeito, e o jogador nunca descobre que desviar
+        // paga - que e justamente o que este bonus veio ensinar.
+        mAvisoDeFaseLimpa = kDuracaoDoAvisoDeFaseLimpa;
+    }
+
+    mAcertosNaFase = 0;
 }
 
 SDL_FRect Battle::GetPlayfieldBounds() const
@@ -589,6 +730,20 @@ void Battle::SpawnExtraPoint(Vector2 position) {
 
 void Battle::FinishBattle(bool approved) {
     if (mIsEnding) return; // Já está acabando, ignora chamadas duplicadas
+
+    // A ULTIMA FASE TAMBEM PAGA. Ela nao troca para fase nenhuma, entao o
+    // callback da maquina de estados nunca dispara por ela - sem esta chamada,
+    // terminar a batalha com uma fase final limpa nao valeria nada, e o jogador
+    // leria isso como o bonus falhando justamente quando mais importa.
+    //
+    // ANTES DE mIsEnding, e nao depois: EncerrarFase se recusa a pagar com a
+    // batalha ja encerrada (e tem de se recusar - a maquina de estados continua
+    // trocando de fase depois daqui). Chamar depois da marcacao faria esta
+    // ultima fase ser a unica que nunca paga.
+    //
+    // A chamada e segura contra repeticao porque o proprio FinishBattle sai
+    // cedo quando ja esta encerrando, logo acima.
+    EncerrarFase();
 
     mIsEnding = true;
 

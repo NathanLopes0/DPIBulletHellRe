@@ -47,6 +47,34 @@ struct DescricaoDeBalao {
 };
 
 /**
+ * @brief Os campos que SO a ConsultaAttack usa.
+ *
+ * Mesmo contrato do bloco de balao: a ConsultaAttack faz um dynamic_cast e, sem
+ * estes campos, nao dispara nada. Por isso o bloco e obrigatorio num ataque
+ * ConsultaAttack e recusado quando falta.
+ */
+struct DescricaoDeConsulta {
+
+    /// "Linha" ou "Coluna". OBRIGATORIO - nao ha padrao razoavel: varrer o eixo
+    /// errado e um ataque que funciona e esta errado, que e pior de achar.
+    std::string eixo;
+
+    std::optional<int>   linhas;    ///< Tabela::Forma::linhas
+    std::optional<int>   colunas;   ///< Tabela::Forma::colunas
+
+    /// Qual faixa varrer, quando a fase quer uma fixa. Omitido, quem decide e o
+    /// chefe em CustomizeAttackParams - que e o caso das fases que perseguem o
+    /// jogador.
+    std::optional<int>   indice;
+
+    /// Segundos de telegrafo. Ver ConsultaAttackParams::aviso: e a diferenca
+    /// entre dificil e injusto, e por isso a leitura recusa valores negativos.
+    std::optional<float> aviso;
+
+    std::optional<bool>  invertido;  ///< entra pelo outro lado
+};
+
+/**
  * @brief Um ataque: a geometria do disparo e as regras de cada projetil.
  *
  * OS CAMPOS NUMERICOS SAO OPCIONAIS DE PROPOSITO.
@@ -105,10 +133,16 @@ struct DescricaoDeAtaque {
 
     /// Presente somente nos ataques BaloonAttack.
     std::optional<DescricaoDeBalao> balao;
+
+    /// Presente somente nos ataques ConsultaAttack.
+    std::optional<DescricaoDeConsulta> consulta;
 };
 
 /// @brief O lado nomeado existe? (Down, Left, Right, Up - nunca None)
 bool LadoDeBalaoExiste(const std::string& nome);
+
+/// @brief O eixo nomeado existe? (Linha ou Coluna)
+bool EixoDeConsultaExiste(const std::string& nome);
 
 /**
  * @brief Como o chefe se move durante a fase.
@@ -140,10 +174,18 @@ struct DescricaoDeFase {
 };
 
 /**
- * @brief Conjuntos de fases lidos de um arquivo, um por chefe.
+ * @brief AS FASES DE UM CHEFE, lidas do arquivo dele.
+ *
+ * Era um mapa de conjuntos, com o nome do chefe por fora. Esse nome saiu junto
+ * com o arquivo unico: ele passou a estar na PASTA
+ * (Assets/Attacks/<chefe>/fases.json), e mante-lo aqui dentro criaria duas
+ * versoes da mesma verdade, livres para discordar.
+ *
+ * NA ORDEM DO ARQUIVO, que nao e a ordem em que as fases acontecem - quem
+ * encadeia e o campo "proximo" de cada uma. Ver ValidarTransicoes.
  */
 struct FasesLidas {
-    std::map<std::string, std::vector<DescricaoDeFase>> conjuntos;
+    std::vector<DescricaoDeFase> fases;
     std::vector<std::string> problemas;
 };
 
@@ -159,23 +201,20 @@ bool NomeDeFaseExiste(const std::string& nome);
 /**
  * @brief Le fases a partir do TEXTO de um arquivo JSON. Funcao PURA.
  *
- * Formato:
+ * Formato (o arquivo de UM chefe - a pasta diz qual):
  * {
- *   "ricardo": {
- *     "StateOne": {
- *       "duracao": 17, "proximo": "StateTwo",
- *       "movimento": { "tipo": "RandomWander", "a": 4, "b": 100 },
- *       "ataques": [
- *         { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
- *           "projeteis": 36, "velocidade": 180, "cooldown": 2.4 }
- *       ]
- *     }
+ *   "StateOne": {
+ *     "duracao": 17, "proximo": "StateTwo",
+ *     "movimento": { "tipo": "RandomWander", "a": 4, "b": 100 },
+ *     "ataques": [
+ *       { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
+ *         "projeteis": 36, "velocidade": 180, "cooldown": 2.4 }
+ *     ]
  *   }
  * }
  *
  * Um ataque invalido e descartado sem invalidar a fase; uma fase invalida e
- * descartada sem invalidar o conjunto. Cada problema diz qual conjunto, qual
- * fase e qual ataque.
+ * descartada sem invalidar as outras. Cada problema diz qual fase e qual ataque.
  */
 FasesLidas LerFases(const std::string& textoJson);
 

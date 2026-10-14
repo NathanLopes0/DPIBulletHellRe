@@ -1,0 +1,84 @@
+{
+  // ==========================================================================
+  // OS PROJETEIS DO SALLES
+  //
+  // UMA PASTA POR CHEFE: Assets/Attacks/salles/. A pasta diz de quem e o
+  // arquivo, entao aqui dentro ficam so os nomes que o campo "projetil" de uma
+  // fase usa -> como aquele projetil e montado. Antes era um projeteis.json so,
+  // com um nivel a mais dizendo o nome do chefe; com uma pasta por chefe esse
+  // nivel seria uma segunda fonte da mesma verdade, livre para discordar do
+  // nome da pasta.
+  //
+  // OS CAMPOS estao documentados em Documentacao/arquivos-de-dados.md.
+  //
+  // O que impede um erro de digitacao aqui de chegar ao jogo e
+  // tests/test_arquivos_de_dados.cpp: ele le este arquivo junto com as fases e
+  // com os atlas de verdade, e quebra a suite se um ataque pedir um projetil
+  // que nao existe ou se uma animacao citar um quadro que a folha nao tem.
+  // ==========================================================================
+
+  // Dois quadros: capivara marrom e capivara vermelha. A troca para "Homing"
+  // e feita pelo configurator do ataque, logo depois do Acquire.
+  "Capivara": {
+    "sprite": "Teachers/Projectiles/DPIBHSallesCapivara.png",
+    "dados":  "Teachers/Projectiles/DPIBHSallesCapivara.json",
+    "animacoes": {
+      "Normal": [0],
+      "Homing": [1]
+    },
+    "animacaoInicial": "Normal",
+    "ordemDeDesenho": 90
+  },
+
+  // As duas estruturas das fases 1 e 3. Mesma folha, duas animacoes, porque o
+  // que muda entre uma lista e uma arvore e a SILHUETA e a COR - um projetil
+  // atravessa a tela em pouco mais de um segundo e nao da tempo de ver
+  // detalhe. A lista e uma caixa ambar com UM espeto a direita (o ponteiro
+  // next, assimetrico: "esta indo para la"); a arvore e um no verde com DOIS
+  // filhos abaixo (a bifurcacao, simetrica).
+  //
+  // ARTE PROVISORIA, desenhada por programa - o gerador esta ao lado da folha,
+  // em gerar_DPIBHSallesEstruturas.py. Mesmo caso dos dados do Julio: serve
+  // para jogar e balancear, e sai quando houver arte de verdade. Trocar o .png
+  // e o .json pelos definitivos nao exige mexer em codigo nenhum.
+  "Estruturas": {
+    "sprite": "Teachers/Projectiles/DPIBHSallesEstruturas.png",
+    "dados":  "Teachers/Projectiles/DPIBHSallesEstruturas.json",
+    "animacoes": {
+      "ListaSimples": [0, 1, 2, 3],
+      "Arvore":       [4, 5, 6, 7]
+    },
+    "animacaoInicial": "ListaSimples",
+    "ordemDeDesenho": 90,
+
+    // A arte e uma caixa com uma SETA apontando para a direita. Sem girar,
+    // toda seta aponta para a direita qualquer que seja o caminho, e a
+    // sequencia nao le como lista encadeada.
+    "rotacionarComAVelocidade": true
+  },
+
+  // O no de lista duplamente encadeada, com os campos PREV e NEXT desenhados.
+  // A arte ja existia no projeto e a fabrica dela tambem, mas nunca tinha sido
+  // registrada em chefe nenhum - nenhum ataque podia pedi-la. A fase 2 e a
+  // primeira a usar.
+  //
+  // O colisor vem da ALTURA: o no e bem mais largo que alto (os dois campos de
+  // ponteiro ficam lado a lado), e usar a largura daria uma hitbox redonda bem
+  // maior que o desenho.
+  "Duplamente": {
+    "sprite": "Teachers/Projectiles/DPIBHSallesDuplamente.png",
+    "dados":  "Teachers/Projectiles/DPIBHSallesDuplamente.json",
+    "animacoes": {
+      "Normal": [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    },
+    "escala": 0.75,
+    "colisorDimensao": "altura",
+    "ordemDeDesenho": 90,
+    "posicionarNoDono": false,
+
+    // Mesma razao da Estruturas. Aqui importa ainda mais: na fase 2 a lista
+    // PARA e volta pelo caminho, e a seta precisa virar junto para a volta
+    // parecer uma volta.
+    "rotacionarComAVelocidade": true
+  }
+}

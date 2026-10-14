@@ -10,7 +10,10 @@
 #include <SDL.h>
 #include "Math.h"
 #include "Scenes/Scene.h"
+#include "Personagens.h"
 #include "Progresso.h"
+#include "Gabinete.h"
+#include "Painel.h"
 
 class IBossFactory;
 class Actor;
@@ -18,20 +21,16 @@ class Actor;
 class Game {
 public:
 
-    enum GameSubject {
-        INF213,
-        INF250,
-        INF220,
-        INF330,
-        INF332,
-        INF420,
-        BIOINF,
-        INF394,
-        VISCCP,
-        TCC
-    };
+    // UMA MATERIA E O INDICE DELA em Materias::Carregadas().
+    //
+    // Aqui havia um enum com as dez materias escritas a mao. Ele nao descrevia
+    // mais nada que o arquivo nao dissesse - chefe, coluna e desbloqueio ja vem
+    // de la - e so dava a impressao de que a lista morava no C++. O indice NAO
+    // vai para o disco: o save grava o codigo da materia.
 
-    Game(int windowWidth, int windowHeight);
+    /// @param gabinete o que a linha de comando pediu. O padrao e janela; ver
+    ///        Gabinete.h para o que muda no arcade.
+    Game(int windowWidth, int windowHeight, const Gabinete::Configuracao& gabinete = {});
     ~Game();
 
     bool Initialize();
@@ -44,6 +43,35 @@ public:
 
     //Texture
     class SDL_Texture* LoadTexture(const std::string& texturePath);
+
+    /**
+     * @brief A textura guardada sob esta chave, ou nullptr.
+     *
+     * Para texturas que NAO vem de arquivo - a personagem composta e a primeira
+     * delas. A chave nao e um caminho; ver Personagens::ChaveDaAparencia.
+     */
+    [[nodiscard]] class SDL_Texture* TexturaGuardada(const std::string& chave) const;
+
+    /**
+     * @brief Guarda uma textura ja pronta. O Game PASSA A SER DONO dela.
+     *
+     * Entra no mesmo cache das texturas de arquivo de proposito: assim ela e
+     * destruida no mesmo lugar que todas as outras, sem regra de posse nova. Uma
+     * chave ja ocupada e recusada, para nao vazar a textura que estava la.
+     */
+    void GuardarTextura(const std::string& chave, class SDL_Texture* textura);
+
+    /**
+     * @brief Destroi e esquece uma textura guardada.
+     *
+     * Existe para a tela de criacao de personagem, que compoe uma textura nova
+     * a cada seta apertada. Sem isto, trocar de cabelo cem vezes deixaria cem
+     * texturas vivas ate o jogo fechar - e numa maquina compartilhada, que fica
+     * ligada o dia todo, isso se acumula aluno apos aluno.
+     *
+     * QUEM CHAMA GARANTE que ninguem mais aponta para ela.
+     */
+    void EsquecerTextura(const std::string& chave);
 
     /**
      * @brief Devolve (criando na primeira chamada) o xadrez magenta/preto usado
@@ -78,8 +106,8 @@ public:
 
     // Funções pra retornar o estágio escolhido em StageSelect (retorna INF213 caso não tenha sido modificado,
     // porque é oq foi definido no construtor)
-    [[nodiscard]] GameSubject GetSelectedStage() const { return mSelectedStage; }
-    void SetSelectedStage(const GameSubject subject) { mSelectedStage = subject; }
+    [[nodiscard]] int GetSelectedStage() const { return mSelectedStage; }
+    void SetSelectedStage(const int subject) { mSelectedStage = subject; }
 
     // ---- Notas -------------------------------------------------------------
     // O mapa unico de notas foi trocado por Progresso, que separa duas coisas
@@ -89,15 +117,33 @@ public:
 
     /// @brief A maior nota que o jogador ja tirou. Zero se nunca jogou.
     /// E o que a tela de selecao mostra e o que as regras de desbloqueio leem.
-    [[nodiscard]] float GetMelhorNota(const GameSubject subject) const {
-        return mProgresso.MelhorNota(static_cast<int>(subject));
+    /// A sobrecarga que existia aqui para receber um int cru sumiu junto com o
+    /// enum: agora ela seria a mesma funcao.
+    [[nodiscard]] float GetMelhorNota(const int materia) const {
+        return mProgresso.MelhorNota(materia);
     }
-    [[nodiscard]] float GetMelhorNota(const int n) const { return mProgresso.MelhorNota(n); }
+
+    /**
+     * @brief Como os rodapes nomeiam os botoes nesta sessao.
+     *
+     * No gabinete nao ha teclado, entao a tecla seria ruido; no computador ela
+     * e o unico jeito de saber qual e o botao 2. A decisao fica AQUI, e nao em
+     * cada cena, para nao haver uma tela que esqueca de perguntar.
+     */
+    [[nodiscard]] Painel::Jeito JeitoDoRodape() const {
+        return mGabinete.arcade ? Painel::Jeito::SoOPainel : Painel::Jeito::ComATecla;
+    }
+
+    /// @brief Se a materia ja foi aprovada. A MESMA regra que o desbloqueio le,
+    /// e nao uma comparacao com 60 repetida em quem desenha.
+    [[nodiscard]] bool Aprovado(const int materia) const {
+        return mProgresso.Aprovado(materia);
+    }
 
     /// @brief A ultima nota que o jogador tirou nesta materia. NAO e por onde a
     /// batalha comeca - toda fase parte de Progresso::kNotaInicial.
-    [[nodiscard]] float GetUltimaNota(const GameSubject subject) const {
-        return mProgresso.UltimaNota(static_cast<int>(subject));
+    [[nodiscard]] float GetUltimaNota(const int materia) const {
+        return mProgresso.UltimaNota(materia);
     }
 
     /// @brief Registra o resultado de uma batalha: a retomada passa a ser esta
@@ -107,7 +153,7 @@ public:
     /// chama, e o que garante que nenhum caminho de fim de batalha esqueca - era
     /// assim que a nota chegava ao armazenamento por efeito colateral antes de o
     /// Progresso existir, e nao quero repetir o padrao.
-    void RegistrarNota(GameSubject subject, float nota);
+    void RegistrarNota(int subject, float nota);
 
     /**
      * @brief Passa a jogar como este aluno, carregando a ficha dele do disco.
@@ -127,13 +173,57 @@ public:
     void JogarComoVisitante();
 
     /// @brief A matricula de quem esta jogando, ou Matricula::kVisitante.
+    /// Por qual caminho do menu o aluno chegou a tela de matricula.
+    enum class ModoDeEntrada {
+        Novo,       ///< vai CRIAR um perfil; matricula que ja tem perfil e recusada
+        Carregar    ///< vai ABRIR um perfil; matricula sem perfil e recusada
+    };
+
+    /// @brief Diz a que veio a proxima tela de matricula.
+    ///
+    /// Fica no Game, e nao num parametro da cena, pelo mesmo motivo de
+    /// mSelectedStage: quem cria as cenas e o ChangeScene, que nao conhece a
+    /// intencao de quem pediu a troca.
+    void DefinirModoDeEntrada(const ModoDeEntrada modo) { mModoDeEntrada = modo; }
+    [[nodiscard]] ModoDeEntrada ModoDeEntradaAtual() const { return mModoDeEntrada; }
+
+    /**
+     * @brief O que a proxima tela de ranking deve mostrar, e para onde ela volta.
+     *
+     * Fica no Game pelo mesmo motivo de mSelectedStage e de mModoDeEntrada: quem
+     * cria as cenas e o ChangeScene, que nao conhece a intencao de quem pediu a
+     * troca. Sem isto, a tela nao teria como saber se foi aberta pelo menu (media
+     * do curso, volta para o menu) ou pela selecao de fases (uma materia so,
+     * volta para a selecao).
+     */
+    struct PedidoDeRanking {
+        bool geral = true;                                 ///< media do curso, e nao uma materia
+        int  materia = 0;                                  ///< so vale quando geral e falso
+        Scene::SceneType voltarPara = Scene::SceneType::MainMenu;
+    };
+
+    void PedirRanking(const PedidoDeRanking& pedido) { mPedidoDeRanking = pedido; }
+    [[nodiscard]] const PedidoDeRanking& RankingPedido() const { return mPedidoDeRanking; }
+
     [[nodiscard]] const std::string& MatriculaAtual() const { return mMatricula; }
+
+    /// @brief A aparencia de quem esta jogando. Vazia quer dizer "a padrao".
+    [[nodiscard]] const Personagens::Aparencia& AparenciaAtual() const { return mAparencia; }
+
+    /**
+     * @brief Troca a aparencia e grava, se o aluno estiver identificado.
+     *
+     * Grava na hora, e nao no fim da batalha: quem acaba de montar a personagem
+     * espera encontra-la do mesmo jeito ao carregar o perfil, mesmo que feche o
+     * jogo sem jogar nada.
+     */
+    void DefinirAparencia(const Personagens::Aparencia& aparencia);
 
     /// @brief Se o progresso desta sessao vai para o disco.
     [[nodiscard]] bool ProgressoEGravado() const;
 
     // Verifica se uma matéria específica está desbloqueada para jogar
-    bool IsStageUnlocked(GameSubject subject);
+    bool IsStageUnlocked(int subject);
 
 private:
     void ProcessInput();
@@ -173,7 +263,8 @@ private:
     std::unique_ptr<Scene> mScene;
 
     //All Boss factories
-    std::map<GameSubject, std::unique_ptr<IBossFactory>> mBossFactory;
+    /// As fabricas de chefe, pelo NOME com que materias.json as chama.
+    std::map<std::string, std::unique_ptr<IBossFactory>> mBossFactory;
 
     /// Recordes e pontos de retomada. Ver Progresso.h.
     Progresso mProgresso;
@@ -182,18 +273,56 @@ private:
     /// passar pela identificacao nunca grava nada por engano.
     std::string mMatricula;
 
+    /// A que veio a proxima tela de matricula. Ver DefinirModoDeEntrada.
+    ModoDeEntrada mModoDeEntrada = ModoDeEntrada::Novo;
+    PedidoDeRanking mPedidoDeRanking{};
+
+    /// A aparencia de quem esta jogando, COMO VEIO DO SAVE. Vazia quer dizer
+    /// "use a padrao" - e o caso do visitante e de todo save anterior a versao 4.
+    /// Quem compoe conserta o que nao existir mais no catalogo.
+    Personagens::Aparencia mAparencia;
+
     //Selected Stage, used by Battle on ChangeScene()
-    GameSubject mSelectedStage{};
+    int mSelectedStage{};
 
     bool mPendingSceneChange;
     Scene::SceneType mNextScene;
 
+    // ---- Gabinete ----------------------------------------------------------
+    // Ver Gabinete.h. As duas esperas sao a MESMA classe com a condicao
+    // trocada, e o limite zero as desliga: por isso nao ha "if (arcade)" dentro
+    // de AtualizarGabinete - fora do gabinete elas nascem desligadas.
+    //
+    // DECLARADAS DEPOIS de mNextScene porque e nessa ordem que o construtor as
+    // inicializa, e o compilador avisa quando as duas listas divergem.
+
+    Gabinete::Configuracao mGabinete;
+
+    /// Tempo sem ninguem mexer. Esgotando, volta ao menu.
+    Gabinete::Contagem mOciosidade;
+
+    /// Tempo com a combinacao de saida segurada. Esgotando, fecha o jogo.
+    Gabinete::Contagem mSaidaDoOperador;
+
+    /// Lidos em ProcessInput e consumidos em UpdateGame, que e onde existe
+    /// deltaTime.
+    bool mHouveEntrada = false;
+    bool mSaidaSegurada = false;
+
+    /// A volta ao menu e a saida do operador, quadro a quadro. A tela cheia
+    /// nao esta aqui: ela acontece uma vez so, em Initialize.
+    void AtualizarGabinete(float deltaTime);
+
+
+    /// Monta a ficha a partir do estado da sessao e grava. O unico lugar que faz
+    /// isso, para nenhum caminho de gravacao esquecer um campo.
+    bool GravarFicha();
 
     void InitializeBossFactory();
 
     void ChangeScene(Scene::SceneType sceneType);
 
-    bool HasPassed(GameSubject subject);
+    bool HasPassed(int subject);
 
-    int CountPassedInList(const std::vector<GameSubject>& subjects);
+    int CountPassedInList(const std::vector<int>& subjects);
 };

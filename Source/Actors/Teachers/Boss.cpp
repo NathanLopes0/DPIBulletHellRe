@@ -29,7 +29,7 @@ void Boss::Start() {
     if (auto fsm = GetComponent<FSMComponent>()) {
         if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
             fsm->SetOnStateChanged([battleScene](float newDuration) {
-                battleScene->ResetHUDTimer(newDuration);
+                battleScene->OnFaseTrocada(newDuration);
             });
         }
 
@@ -104,7 +104,7 @@ void Boss::AddAttackPattern(const std::string &stateName, std::unique_ptr<IAttac
 void Boss::RegisterMovementStrategy(const std::string& stateName, std::unique_ptr<IMovementStrategy> strategy) {
     mMovementStrategies[stateName] = std::move(strategy);
 }
-void Boss::ExecuteAttack(AttackDefinition& attackDef, const std::string& stateName)
+void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& stateName)
 {
 
     if (!attackDef.params || !attackDef.strategy) {

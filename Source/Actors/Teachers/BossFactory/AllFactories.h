@@ -9,3 +9,5 @@
 #include "RicardoFactory.h"
 #include "AndreFactory.h"
 #include "JulioFactory.h"
+#include "ThiagoFactory.h"
+

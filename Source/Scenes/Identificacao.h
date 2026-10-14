@@ -7,7 +7,11 @@
 #include <memory>
 #include <string>
 
+#include <vector>
+
 #include "Scene.h"
+#include "../Navegacao.h"
+#include "../Teclado.h"
 
 class Font;
 class Actor;
@@ -29,9 +33,18 @@ class DrawCaixaComponent;
  * para o professor saber quem jogou, nao para barrar ninguem. Quem entra como
  * visitante joga igual, mas o progresso dele nao e gravado - e a tela diz isso
  * antes, nao depois.
+ *
+ * DOIS MODOS, UMA TELA. Novo Jogo recusa matricula que JA tem perfil; Carregar
+ * Perfil recusa matricula que NAO tem. E a mesma regra vista dos dois lados, e
+ * o motivo dela e a maquina compartilhada do departamento: quem digita a
+ * matricula de outro por engano nao pode apagar o progresso dele, e quem erra um
+ * digito so redigita. Ver Documentacao/requisitos-perfil-e-personagem.md, D2/D3.
  */
 class Identificacao : public Scene {
 public:
+    /// Segundos entre dois passos com o manche segurado.
+    static constexpr float kPassoDoManche = 0.18f;
+
     explicit Identificacao(Game* game);
     ~Identificacao() override = default;
 
@@ -42,6 +55,19 @@ public:
 private:
 
     void CriarTextos();
+
+    /// Desenha o teclado digital: uma caixa e um rotulo por tecla.
+    void CriarTeclado();
+
+    /// Acende a tecla sob a selecao e apaga a anterior.
+    void PintarSelecao() const;
+
+    /// Executa a tecla selecionada. E o unico lugar que decide o que cada acao
+    /// faz, entao o botao do gabinete e o ENTER do teclado chegam aqui iguais.
+    void Acionar(const Teclado::Tecla& tecla);
+
+    /// A navegacao do teclado digital, com o atraso de repeticao.
+    void LerManche(const Uint8* keyState, float deltaTime);
 
     /// Cria um ator de texto centrado horizontalmente, no tamanho natural dele.
     /// A largura e a altura dadas sao LIMITE, nao destino - ver
@@ -60,7 +86,14 @@ private:
     /// para digitar um temporizador fica lento demais.
     void LerTeclado(const Uint8* keyState);
 
+    /// O que fazer quando a matricula digitada e valida. Separa a REGRA de fluxo
+    /// (criar ou carregar) da leitura de teclado.
+    void Confirmar(const std::string& canonica);
+
     std::unique_ptr<Font> mFonte;
+
+    /// A que viemos. Vem do Game, posto pelo menu.
+    bool mModoNovo = true;
 
     /// O que o aluno digitou ate agora. So digito, no maximo seis - garantido por
     /// Matricula::Digitar, nao por esta classe.
@@ -79,6 +112,27 @@ private:
     bool mEnterAnterior = true;
     bool mApagarAnterior{};
     bool mVisitanteAnterior{};
+    bool mVoltarAnterior = true;
+
+    // --- O teclado digital ---
+    //
+    // O GABINETE NAO TEM TECLADO. A matricula e digitada escolhendo numeros numa
+    // grade com o manche e confirmando no botao. O teclado fisico continua
+    // funcionando, para desenvolver sem o gabinete.
+    Navegacao::Grade mGradeDoTeclado;
+    size_t mTeclaSelecionada = 0;
+    std::vector<DrawCaixaComponent*> mCaixasDasTeclas;
+
+    /// Atraso entre dois passos da selecao, para segurar o manche nao atravessar
+    /// a grade. Mesmo recurso da selecao de fases, pelo mesmo motivo.
+    ///
+    /// COMECA PRONTO, e nao em zero: zerado, o primeiro toque no manche e
+    /// engolido enquanto o temporizador carrega, e a tela parece nao responder
+    /// justamente no instante em que a pessoa a esta conhecendo. A selecao de
+    /// fases ja faz assim pelo mesmo motivo.
+    float mPassoTimer = kPassoDoManche;
+
+    bool mAcionarAnterior = true;   ///< ver mEnterAnterior: chega-se aqui com o botao apertado
 
     Actor* mTituloAtor{};
     Actor* mCampoAtor{};

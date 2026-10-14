@@ -6,6 +6,7 @@
 
 #include "DrawComponent.h"
 #include <string>
+#include "../../Math.h"
 
 class DrawTextComponent : public DrawComponent {
 
@@ -43,6 +44,17 @@ public:
     /// chamadas, que e o tipo de armadilha que so aparece meses depois.
     void SetLarguraDeQuebra(unsigned largura);
 
+    /// @brief A cor do texto. Branco e o padrao, que e o que sempre valeu.
+    ///
+    /// REDESENHA na hora, pela mesma razao de SetLarguraDeQuebra: a cor entra na
+    /// textura no momento em que ela e criada, entao guardar o valor sem
+    /// redesenhar faria a cor pegar ou nao conforme a ordem das chamadas.
+    ///
+    /// Chamar com a cor que ja esta nao faz nada. Isso importa: quem pinta a nota
+    /// chama isto A CADA QUADRO, e refazer a textura 60 vezes por segundo para
+    /// nada e justamente o tipo de desperdicio que nao aparece em teste nenhum.
+    void SetColor(const Vector3& cor);
+
     void Draw(SDL_Renderer* renderer) override;
 
 protected:
@@ -58,6 +70,9 @@ protected:
 
     /// Ver SetLarguraDeQuebra. 500 era o valor fixo de antes.
     unsigned mLarguraDeQuebra = 500;
+
+    /// Ver SetColor. Branco era o valor fixo de antes.
+    Vector3 mCor = Color::White;
 
     /// O texto em exibicao, guardado so para poder redesenhar sem que quem chama
     /// precise repeti-lo.

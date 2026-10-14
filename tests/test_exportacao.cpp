@@ -7,6 +7,7 @@
 
 #include "../Source/Exportacao.h"
 #include "../Source/Materias.h"
+#include "../Source/Nota.h"
 
 namespace {
 
@@ -63,7 +64,7 @@ TEST_CASE("Exportacao: o codigo E o nome saem, os dois") {
     const std::string csv = Exportacao::ParaCsv({
         Aluno("89384", {{0, 85.0f, 85.0f, "2026-10-02 14:00:00"}})
     }, Curso());
-    CHECK(csv.find("89384,INF213,INF 213,85.0,85.0,sim,2026-10-02 14:00:00") != std::string::npos);
+    CHECK(csv.find("89384,INF213,INF 213,85.00,85.00,sim,2026-10-02 14:00:00") != std::string::npos);
 }
 
 TEST_CASE("Exportacao: aprovado olha o RECORDE, nao a ultima nota") {
@@ -72,7 +73,7 @@ TEST_CASE("Exportacao: aprovado olha o RECORDE, nao a ultima nota") {
     const std::string csv = Exportacao::ParaCsv({
         Aluno("1", {{0, 85.0f, 30.0f, ""}})
     }, Curso());
-    CHECK(csv.find("85.0,30.0,sim") != std::string::npos);
+    CHECK(csv.find("85.00,30.00,sim") != std::string::npos);
 }
 
 TEST_CASE("Exportacao: reprovado sai como nao") {
@@ -119,7 +120,7 @@ TEST_CASE("Exportacao: turma vazia produz so o cabecalho") {
 TEST_CASE("Exportacao: sem data o campo fica vazio, nao ausente") {
     // A coluna tem de existir em toda linha, senao a planilha desalinha.
     const std::string csv = Exportacao::ParaCsv({Aluno("1", {{0, 70.0f, 70.0f, ""}})}, Curso());
-    CHECK(csv.find("70.0,sim,\n") != std::string::npos);
+    CHECK(csv.find("70.00,sim,\n") != std::string::npos);
 }
 
 // ---------------------------------------------------------------------------
@@ -147,5 +148,26 @@ TEST_CASE("Exportacao: um nome com virgula nao desalinha a planilha") {
                       "desbloqueio": { "tipo": "sempre" } } ]
     })");
     const std::string csv = Exportacao::ParaCsv({Aluno("1", {{0, 70.0f, 70.0f, ""}})}, comVirgula);
-    CHECK(csv.find("1,X,\"Estruturas, parte 1\",70.0") != std::string::npos);
+    CHECK(csv.find("1,X,\"Estruturas, parte 1\",70.00,") != std::string::npos);
+}
+
+TEST_CASE("Exportacao: o teto de 99,99 nao vira 100 na planilha") {
+
+    // O MOTIVO DAS DUAS CASAS. 99,99 e a nota de quem subiu a curva inteira mas
+    // foi atingido vezes demais; 100 e de quem fez a corrida limpa. Com uma casa
+    // decimal os dois sairiam "100.0" aqui, e o documento que o professor usa
+    // perderia exatamente a distincao que o teto existe para registrar.
+    const std::string csv =
+        Exportacao::ParaCsv({Aluno("1", {{0, Nota::kTetoComDano, Nota::kTetoComDano, ""}})}, Curso());
+
+    CHECK(csv.find("99.99") != std::string::npos);
+    CHECK(csv.find("100.0") == std::string::npos);
+}
+
+TEST_CASE("Exportacao: a nota cheia de verdade sai como 100") {
+
+    const std::string csv =
+        Exportacao::ParaCsv({Aluno("1", {{0, Nota::kNotaMaxima, Nota::kNotaMaxima, ""}})}, Curso());
+
+    CHECK(csv.find("100.00") != std::string::npos);
 }

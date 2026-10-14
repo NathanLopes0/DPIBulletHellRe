@@ -43,7 +43,10 @@
 #include "../Source/Attacks/PathShapes.h"
 #include "../Source/Attacks/RegrasDeAtaque.h"
 #include "../Source/Attacks/ProjeteisDeChefe.h"
+#include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
+#include "../Source/Navegacao.h"
+#include "../Source/Personagens.h"
 #include "../Source/Progresso.h"
 #include "../Source/JsonDeDados.h"
 
@@ -74,7 +77,42 @@ namespace {
     /// arquivo. Espelha FormaPeloNome em RegrasDeAtaqueArquivo.cpp.
     const std::set<std::string> kFormasEmCodigo = {"Reta", ""};
 
-    const std::vector<std::string> kChefes = {"salles", "ricardo", "andre", "julio"};
+    /**
+     * OS CHEFES SAO OS QUE materias.json DIZ, e nao uma lista escrita aqui.
+     *
+     * Era uma lista a mao - e ela ficou para tras. O Thiago entrou no curso e
+     * NUNCA foi conferido por nenhum dos sete testes que a usavam: transicoes,
+     * quatro fases, conjunto de projeteis, animacoes. Trinta e duas verificacoes
+     * deixavam de rodar, e nada dizia nada.
+     *
+     * Tirar o nome do chefe de dentro dos arquivos de ataque deixou materias.json
+     * como a unica fonte de quem existe - entao e dali que a lista vem.
+     */
+    const std::vector<std::string>& Chefes() {
+        static const std::vector<std::string> chefes = [] {
+            std::set<std::string> nomes;
+            for (const auto& m : Materias::LerMaterias(LerArquivo("materias.json")).materias) {
+                if (!m.chefe.empty()) nomes.insert(m.chefe);
+            }
+            return std::vector<std::string>(nomes.begin(), nomes.end());
+        }();
+        return chefes;
+    }
+
+    /// As regras de um chefe, da pasta dele.
+    RegrasLidas RegrasDoChefe(const std::string& chefe) {
+        return LerRegras(LerArquivo(PastaDoChefe::Arquivo(chefe, PastaDoChefe::kRegras)));
+    }
+
+    /// As fases de um chefe, da pasta dele.
+    FasesLidas FasesDoChefe(const std::string& chefe) {
+        return LerFases(LerArquivo(PastaDoChefe::Arquivo(chefe, PastaDoChefe::kFases)));
+    }
+
+    /// Os projeteis de um chefe, da pasta dele.
+    ProjeteisLidos ProjeteisDoChefe(const std::string& chefe) {
+        return LerProjeteis(LerArquivo(PastaDoChefe::Arquivo(chefe, PastaDoChefe::kProjeteis)));
+    }
 
 }
 
@@ -88,44 +126,49 @@ TEST_CASE("Dados: Assets/Paths/formas.json nao tem problema nenhum") {
     CHECK(r.formas.size() > 0);
 }
 
-TEST_CASE("Dados: Assets/Attacks/regras.json nao tem problema nenhum") {
-    const auto r = LerRegras(LerArquivo("Attacks/regras.json"));
-    CHECK_MESSAGE(r.problemas.empty(), "problemas em regras.json:" << Juntar(r.problemas));
-    CHECK(r.conjuntos.size() > 0);
-}
-
-TEST_CASE("Dados: Assets/Attacks/fases.json nao tem problema nenhum") {
-    const auto r = LerFases(LerArquivo("Attacks/fases.json"));
-    CHECK_MESSAGE(r.problemas.empty(), "problemas em fases.json:" << Juntar(r.problemas));
-}
-
-// ---------------------------------------------------------------------------
-// Os quatro chefes
-// ---------------------------------------------------------------------------
-
-TEST_CASE("Dados: os quatro chefes existem e suas transicoes fecham") {
-    // Sem a reserva em C++, um conjunto recusado aqui e um chefe parado em tela.
-    const auto r = LerFases(LerArquivo("Attacks/fases.json"));
-
-    for (const auto& chefe : kChefes) {
+TEST_CASE("Dados: o regras.json de cada chefe nao tem problema nenhum") {
+    for (const auto& chefe : Chefes()) {
         CAPTURE(chefe);
-        REQUIRE_MESSAGE(r.conjuntos.count(chefe) == 1,
-                        "falta o conjunto \"" << chefe << "\" em fases.json");
-        const auto problemas = ValidarTransicoes(r.conjuntos.at(chefe), chefe);
+        const auto r = RegrasDoChefe(chefe);
+        CHECK_MESSAGE(r.problemas.empty(), "problemas em " << chefe << "/regras.json:"
+                                                           << Juntar(r.problemas));
+        CHECK(r.conjuntos.size() > 0);
+    }
+}
+
+TEST_CASE("Dados: o fases.json de cada chefe nao tem problema nenhum") {
+    for (const auto& chefe : Chefes()) {
+        CAPTURE(chefe);
+        const auto r = FasesDoChefe(chefe);
+        CHECK_MESSAGE(r.problemas.empty(), "problemas em " << chefe << "/fases.json:"
+                                                           << Juntar(r.problemas));
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Os chefes
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Dados: todo chefe tem fases e as transicoes delas fecham") {
+    // Sem a reserva em C++, um conjunto recusado aqui e um chefe parado em tela.
+    for (const auto& chefe : Chefes()) {
+        CAPTURE(chefe);
+        const auto& fases = FasesDoChefe(chefe).fases;
+        REQUIRE_MESSAGE(!fases.empty(), "nao ha fases em " << chefe << "/fases.json");
+
+        const auto problemas = ValidarTransicoes(fases, chefe);
         CHECK_MESSAGE(problemas.empty(), "transicoes de \"" << chefe << "\":" << Juntar(problemas));
     }
 }
 
 TEST_CASE("Dados: todo chefe tem as quatro fases") {
     // Nao e exigencia do formato - um chefe pode ter tres. E exigencia DESTE
-    // jogo: os quatro chefes atuais tem StateOne, Two, Three e Final, e perder
+    // jogo: os cinco chefes atuais tem StateOne, Two, Three e Final, e perder
     // uma delas por um recorte errado seria dificil de notar jogando.
-    const auto r = LerFases(LerArquivo("Attacks/fases.json"));
-    for (const auto& chefe : kChefes) {
+    for (const auto& chefe : Chefes()) {
         CAPTURE(chefe);
-        REQUIRE(r.conjuntos.count(chefe) == 1);
         std::set<std::string> nomes;
-        for (const auto& f : r.conjuntos.at(chefe)) nomes.insert(f.nome);
+        for (const auto& f : FasesDoChefe(chefe).fases) nomes.insert(f.nome);
         CHECK(nomes.count("StateOne") == 1);
         CHECK(nomes.count("StateTwo") == 1);
         CHECK(nomes.count("StateThree") == 1);
@@ -136,10 +179,8 @@ TEST_CASE("Dados: todo chefe tem as quatro fases") {
 TEST_CASE("Dados: toda fase tem pelo menos um ataque") {
     // LerFases ja descarta fase sem ataque, entao isto pega o descarte: a fase
     // some do conjunto e o chefe fica parado 17 segundos naquele trecho.
-    const auto r = LerFases(LerArquivo("Attacks/fases.json"));
-    for (const auto& par : r.conjuntos) {
-        const std::string& chefe = par.first;
-        const auto& fases = par.second;
+    for (const auto& chefe : Chefes()) {
+        const auto& fases = FasesDoChefe(chefe).fases;
         for (const auto& f : fases) {
             CAPTURE(chefe);
             CAPTURE(f.nome);
@@ -157,12 +198,9 @@ TEST_CASE("Dados: toda fase tem pelo menos um ataque") {
 TEST_CASE("Dados: todo conjunto de regras citado em fases.json existe em regras.json") {
     // O erro silencioso numero 1: o nome nao bate, o ataque dispara normalmente e
     // os projeteis saem sem comportamento nenhum.
-    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
-    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
-
-    for (const auto& par : fases.conjuntos) {
-        const std::string& chefe = par.first;
-        const auto& lista = par.second;
+    for (const auto& chefe : Chefes()) {
+        const auto regras = RegrasDoChefe(chefe);
+        const auto& lista = FasesDoChefe(chefe).fases;
         for (const auto& f : lista) {
             for (size_t k = 0; k < f.ataques.size(); ++k) {
                 const auto& a = f.ataques[k];
@@ -181,7 +219,6 @@ TEST_CASE("Dados: todo conjunto de regras citado em fases.json existe em regras.
 TEST_CASE("Dados: toda forma citada em regras.json existe em formas.json") {
     // O erro silencioso numero 2: o nome nao bate, PathShapes::DoArquivo devolve
     // uma reta, e o projetil voa reto em vez de fazer a curva.
-    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
     const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
 
     auto conferir = [&](const std::string& conjunto, const DescricaoDeBehavior& d) {
@@ -193,25 +230,25 @@ TEST_CASE("Dados: toda forma citada em regras.json existe em formas.json") {
                       "a forma \"" << d.forma << "\" nao existe em formas.json");
     };
 
-    for (const auto& par : regras.conjuntos) {
-        const std::string& nome = par.first;
+    for (const auto& chefe : Chefes()) {
+      for (const auto& par : RegrasDoChefe(chefe).conjuntos) {
+        const std::string nome = chefe + "/" + par.first;
         const auto& lista = par.second;
         for (const auto& r : lista) {
             if (r.temMotion) conferir(nome, r.motion);
             for (const auto& m : r.modifiers) conferir(nome, m);
         }
+      }
     }
 }
 
 TEST_CASE("Dados: as formas citadas nas regras EM LINHA de fases.json tambem existem") {
     // Um ataque pode trazer as regras escritas nele mesmo, e elas citam formas do
     // mesmo jeito. O caminho e outro, o erro de digitacao e o mesmo.
-    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
     const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
 
-    for (const auto& par : fases.conjuntos) {
-        const std::string& chefe = par.first;
-        const auto& lista = par.second;
+    for (const auto& chefe : Chefes()) {
+        const auto& lista = FasesDoChefe(chefe).fases;
         for (const auto& f : lista) {
             for (const auto& a : f.ataques) {
                 for (const auto& r : a.regras) {
@@ -236,12 +273,9 @@ TEST_CASE("Dados: uma regra por indice nao aponta para fora da rajada") {
     // e o ataque dispara 3 projeteis. Se alguem aumentar para 4 em fases.json e
     // esquecer das regras, o quarto projetil sai sem caminho nenhum e voa reto,
     // sem nenhum aviso. Se DIMINUIR para 2, a regra do indice 2 nunca se aplica.
-    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
-    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
-
-    for (const auto& par : fases.conjuntos) {
-        const std::string& chefe = par.first;
-        const auto& lista = par.second;
+    for (const auto& chefe : Chefes()) {
+        const auto regras = RegrasDoChefe(chefe);
+        const auto& lista = FasesDoChefe(chefe).fases;
         for (const auto& f : lista) {
             for (const auto& a : f.ataques) {
 
@@ -285,12 +319,8 @@ TEST_CASE("Dados: um cooldown derivado do ritmo tem mesmo um ritmo para derivar"
     // LerFases ja recusa isso, entao este teste confere que nenhum ataque REAL
     // caiu na armadilha - o ataque inteiro sumiria do conjunto, e o chefe
     // atacaria de menos sem nenhum sinal em tela.
-    const auto r = LerFases(LerArquivo("Attacks/fases.json"));
-    CHECK_MESSAGE(r.problemas.empty(), "problemas em fases.json:" << Juntar(r.problemas));
-
-    for (const auto& par : r.conjuntos) {
-        const std::string& chefe = par.first;
-        const auto& lista = par.second;
+    for (const auto& chefe : Chefes()) {
+        const auto& lista = FasesDoChefe(chefe).fases;
         for (const auto& f : lista) {
             for (const auto& a : f.ataques) {
                 CAPTURE(chefe);
@@ -311,33 +341,29 @@ TEST_CASE("Dados: um cooldown derivado do ritmo tem mesmo um ritmo para derivar"
 // quadro que a folha nao tem desenha o quadro errado, ou nada.
 // ---------------------------------------------------------------------------
 
-TEST_CASE("Dados: Assets/Attacks/projeteis.json nao tem problema nenhum") {
-    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
-    CHECK_MESSAGE(r.problemas.empty(), "problemas em projeteis.json:" << Juntar(r.problemas));
-    CHECK(r.conjuntos.size() > 0);
-}
-
-TEST_CASE("Dados: todo chefe tem um conjunto de projeteis") {
-    // Sem conjunto, o chefe monta e anda, mas nenhum ataque encontra a fabrica
-    // que pede: ele fica inofensivo, o que em jogo parece bug e nao erro de dados.
-    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
-    for (const auto& chefe : kChefes) {
+TEST_CASE("Dados: o projeteis.json de cada chefe nao tem problema nenhum") {
+    for (const auto& chefe : Chefes()) {
         CAPTURE(chefe);
-        CHECK(r.conjuntos.count(chefe) == 1);
+        const auto r = ProjeteisDoChefe(chefe);
+        CHECK_MESSAGE(r.problemas.empty(), "problemas em " << chefe << "/projeteis.json:"
+                                                           << Juntar(r.problemas));
     }
 }
 
-TEST_CASE("Dados: todo projetil citado em fases.json existe em projeteis.json") {
-    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
-    const auto projeteis = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
+TEST_CASE("Dados: todo chefe tem projeteis na pasta dele") {
+    // Sem projetil, o chefe monta e anda, mas nenhum ataque encontra a fabrica
+    // que pede: ele fica inofensivo, o que em jogo parece bug e nao erro de dados.
+    for (const auto& chefe : Chefes()) {
+        CAPTURE(chefe);
+        CHECK_FALSE(ProjeteisDoChefe(chefe).projeteis.empty());
+    }
+}
 
-    for (const auto& chefe : kChefes) {
-        REQUIRE(fases.conjuntos.count(chefe) == 1);
-        REQUIRE(projeteis.conjuntos.count(chefe) == 1);
+TEST_CASE("Dados: todo projetil citado nas fases existe na pasta do chefe") {
+    for (const auto& chefe : Chefes()) {
+        const auto& disponiveis = ProjeteisDoChefe(chefe).projeteis;
 
-        const auto& disponiveis = projeteis.conjuntos.at(chefe);
-
-        for (const auto& f : fases.conjuntos.at(chefe)) {
+        for (const auto& f : FasesDoChefe(chefe).fases) {
             for (const auto& a : f.ataques) {
                 const std::string onde = chefe + "/" + f.nome;
                 CAPTURE(onde);
@@ -352,11 +378,9 @@ TEST_CASE("Dados: o sprite e o atlas de todo projetil existem no disco") {
     // Este teste pega o erro que passou anos escondido na fabrica da capivara:
     // ela declarava "Capivara.json", arquivo que nunca existiu. Ninguem notou
     // porque o codigo repetia o caminho certo na mao e nunca lia o campo errado.
-    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
-
-    for (const auto& conjunto : r.conjuntos) {
-        for (const auto& entrada : conjunto.second) {
-            const std::string onde = conjunto.first + "/" + entrada.first;
+    for (const auto& chefe : Chefes()) {
+        for (const auto& entrada : ProjeteisDoChefe(chefe).projeteis) {
+            const std::string onde = chefe + "/" + entrada.first;
             CAPTURE(onde);
 
             const std::string png = std::string(DPI_ASSETS_DIR) + "/" + entrada.second.sprite;
@@ -374,12 +398,10 @@ TEST_CASE("Dados: nenhuma animacao cita um quadro que a folha nao tem") {
     // O DrawAnimatedComponent nao reclama de indice fora da lista de quadros; ele
     // desenha o que achar. Entao um 12 numa folha de 12 quadros (indices 0 a 11) e
     // exatamente o tipo de erro que so aparece em jogo, e so as vezes.
-    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
+    for (const auto& chefe : Chefes()) {
+        for (const auto& entrada : ProjeteisDoChefe(chefe).projeteis) {
 
-    for (const auto& conjunto : r.conjuntos) {
-        for (const auto& entrada : conjunto.second) {
-
-            const std::string onde = conjunto.first + "/" + entrada.first;
+            const std::string onde = chefe + "/" + entrada.first;
             CAPTURE(onde);
 
             const auto atlas = LerJsonDeDados(LerArquivo(entrada.second.dados));
@@ -414,8 +436,6 @@ TEST_CASE("Dados: nenhuma animacao cita um quadro que a folha nao tem") {
 // ---------------------------------------------------------------------------
 
 TEST_CASE("Dados: os projeteis mantem exatamente o que as fabricas em C++ tinham") {
-
-    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
 
     struct Esperado {
         const char* conjunto;
@@ -460,10 +480,10 @@ TEST_CASE("Dados: os projeteis mantem exatamente o que as fabricas em C++ tinham
         CAPTURE(e.conjunto);
         CAPTURE(e.nome);
 
-        REQUIRE(r.conjuntos.count(e.conjunto) == 1);
-        REQUIRE(r.conjuntos.at(e.conjunto).count(e.nome) == 1);
+        const auto doChefe = ProjeteisDoChefe(e.conjunto);
+        REQUIRE(doChefe.projeteis.count(e.nome) == 1);
 
-        const auto& p = r.conjuntos.at(e.conjunto).at(e.nome);
+        const auto& p = doChefe.projeteis.at(e.nome);
         CHECK(p.sprite == e.sprite);
         CHECK(p.escala == doctest::Approx(e.escala));
         CHECK(p.ordemDeDesenho == e.ordem);
@@ -480,8 +500,6 @@ TEST_CASE("Dados: os projeteis mantem exatamente o que as fabricas em C++ tinham
 TEST_CASE("Dados: as animacoes dos projeteis mantem os quadros exatos") {
     // Separado do caso acima porque a comparacao e de listas e a mensagem de falha
     // precisa dizer QUAL quadro mudou.
-    const auto r = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
-
     struct AnimEsperada {
         const char* conjunto;
         const char* projetil;
@@ -511,10 +529,10 @@ TEST_CASE("Dados: as animacoes dos projeteis mantem os quadros exatos") {
         CAPTURE(e.projetil);
         CAPTURE(e.animacao);
 
-        REQUIRE(r.conjuntos.count(e.conjunto) == 1);
-        REQUIRE(r.conjuntos.at(e.conjunto).count(e.projetil) == 1);
+        const auto doChefe = ProjeteisDoChefe(e.conjunto);
+        REQUIRE(doChefe.projeteis.count(e.projetil) == 1);
 
-        const auto& anims = r.conjuntos.at(e.conjunto).at(e.projetil).animacoes;
+        const auto& anims = doChefe.projeteis.at(e.projetil).animacoes;
 
         const AnimacaoDeProjetil* achada = nullptr;
         for (const auto& a : anims) {
@@ -547,15 +565,12 @@ TEST_CASE("Dados: as animacoes dos projeteis mantem os quadros exatos") {
 
 TEST_CASE("Dados: num WaveAttack, o atraso do caminho supera o despertar do ultimo no") {
 
-    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
-    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
-
     int combinacoesConferidas = 0;
 
-    for (const auto& chefe : kChefes) {
-        REQUIRE(fases.conjuntos.count(chefe) == 1);
+    for (const auto& chefe : Chefes()) {
+        const auto regras = RegrasDoChefe(chefe);
 
-        for (const auto& f : fases.conjuntos.at(chefe)) {
+        for (const auto& f : FasesDoChefe(chefe).fases) {
             for (const auto& a : f.ataques) {
 
                 if (a.estrategia != "WaveAttack") continue;
@@ -610,21 +625,18 @@ TEST_CASE("Dados: toda animacao pedida por uma regra existe no projetil que o at
     // usa, regras.json diz qual animacao cada regra pede, e projeteis.json diz
     // quais animacoes aquele projetil tem. Nenhum dos tres sabe disso sozinho.
 
-    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
-    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
-    const auto projeteis = LerProjeteis(LerArquivo("Attacks/projeteis.json"));
-
     int pedidosConferidos = 0;
 
-    for (const auto& chefe : kChefes) {
-        REQUIRE(fases.conjuntos.count(chefe) == 1);
-        REQUIRE(projeteis.conjuntos.count(chefe) == 1);
+    for (const auto& chefe : Chefes()) {
+        const auto regras = RegrasDoChefe(chefe);
 
-        for (const auto& f : fases.conjuntos.at(chefe)) {
+        const auto doChefe = ProjeteisDoChefe(chefe);
+
+        for (const auto& f : FasesDoChefe(chefe).fases) {
             for (const auto& a : f.ataques) {
 
-                const auto projetil = projeteis.conjuntos.at(chefe).find(a.projetil);
-                if (projetil == projeteis.conjuntos.at(chefe).end()) continue;  // outro teste cobre
+                const auto projetil = doChefe.projeteis.find(a.projetil);
+                if (projetil == doChefe.projeteis.end()) continue;   // outro teste cobre
 
                 std::set<std::string> tem;
                 for (const auto& anim : projetil->second.animacoes) tem.insert(anim.nome);
@@ -667,12 +679,12 @@ TEST_CASE("Dados: uma parada de caminho aponta para um ponto que a forma tem") {
     // rajada, e merece a mesma rede: um numero que nao bate com um tamanho que
     // mora em outro arquivo.
 
-    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
     const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
 
     int paradasConferidas = 0;
 
-    for (const auto& conjunto : regras.conjuntos) {
+    for (const auto& chefe : Chefes())
+      for (const auto& conjunto : RegrasDoChefe(chefe).conjuntos) {
         for (const auto& r : conjunto.second) {
 
             if (!r.temMotion || r.motion.pararNoPonto < 0) continue;
@@ -726,12 +738,12 @@ TEST_CASE("Dados: uma parada de caminho aponta para um ponto que a forma tem") {
 
 TEST_CASE("Dados: toda familia citada por formaPorIndice existe em formas.json") {
 
-    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
     const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
 
     int conferidas = 0;
 
-    for (const auto& conjunto : regras.conjuntos) {
+    for (const auto& chefe : Chefes())
+      for (const auto& conjunto : RegrasDoChefe(chefe).conjuntos) {
         for (const auto& r : conjunto.second) {
             if (!r.temMotion || r.motion.formaPorIndice.empty()) continue;
 
@@ -762,16 +774,14 @@ TEST_CASE("Dados: um ataque que usa familia dispara exatamente o tamanho dela") 
     // Antes eram tres lugares (formas, regras por indice e projeteis); agora e
     // "divisoes" de um lado e "projeteis" do outro, e este teste liga os dois.
 
-    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
-    const auto regras = LerRegras(LerArquivo("Attacks/regras.json"));
     const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
 
     int conferidos = 0;
 
-    for (const auto& chefe : kChefes) {
-        REQUIRE(fases.conjuntos.count(chefe) == 1);
+    for (const auto& chefe : Chefes()) {
+        const auto regras = RegrasDoChefe(chefe);
 
-        for (const auto& f : fases.conjuntos.at(chefe)) {
+        for (const auto& f : FasesDoChefe(chefe).fases) {
             for (const auto& a : f.ataques) {
 
                 if (a.regrasNome.empty() || regras.conjuntos.count(a.regrasNome) == 0) continue;
@@ -827,96 +837,423 @@ TEST_CASE("Dados: Assets/materias.json nao tem problema nenhum") {
     CHECK(l.Quantas() > 0);
 }
 
-TEST_CASE("Dados: as dez materias estao la, com os codigos do enum que elas substituem") {
-    // A ORDEM IMPORTA AQUI, e so aqui: e por ela que um save do formato antigo,
-    // que gravava a posicao no enum, sera convertido para codigo. Se esta lista
-    // mudar de ordem antes da migracao existir, os saves antigos se perdem.
-    const std::vector<std::string> doEnum = {
-        "INF213", "INF250", "INF220", "INF330", "INF332",
-        "INF420", "BIOINF", "INF394", "VISCCP", "TCC"
+TEST_CASE("Dados: as materias do curso estao la, com os codigos esperados") {
+
+    // ESTA LISTA NAO E A ORDEM, e sim o CONJUNTO. Ate a versao 1 do save a
+    // posicao aqui era a chave gravada em disco, e esta lista travava a ordem
+    // por isso; desde a versao 2 o save guarda o codigo, e reordenar passou a
+    // ser seguro. O que ainda importa travar e que nenhuma materia suma por
+    // descuido de edicao.
+    const std::set<std::string> esperadas = {
+        "INF110", "INF213", "INF250", "INF220", "INF330", "INF331",
+        "INF420", "INF221", "INF321", "INF452", "TCC"
     };
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
-    REQUIRE(l.Quantas() == static_cast<int>(doEnum.size()));
+    REQUIRE(l.Quantas() == static_cast<int>(esperadas.size()));
 
-    for (size_t i = 0; i < doEnum.size(); ++i) {
-        CAPTURE(i);
-        CAPTURE(doEnum[i]);
-        CHECK(l.CodigoDe(static_cast<int>(i)) == doEnum[i]);
-    }
+    std::set<std::string> noArquivo;
+    for (const auto& m : l.materias) noArquivo.insert(m.codigo);
+    CHECK(noArquivo == esperadas);
 }
 
-TEST_CASE("Dados: toda materia com chefe aponta para um conjunto que existe em fases.json") {
-    // O campo "chefe" liga as duas migracoes: ele e o mesmo nome de conjunto que
-    // fases.json, regras.json e projeteis.json usam.
+TEST_CASE("Dados: toda materia com chefe aponta para uma pasta de chefe que existe") {
+    // O campo "chefe" e o NOME DA PASTA em Assets/Attacks/. E ele que liga a
+    // materia aos tres arquivos de ataque dela.
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
-    const auto fases = LerFases(LerArquivo("Attacks/fases.json"));
 
     int comChefe = 0;
     for (const auto& m : l.materias) {
         if (m.chefe.empty()) continue;   // materia ainda sem chefe e normal
         CAPTURE(m.codigo);
         CAPTURE(m.chefe);
-        CHECK(fases.conjuntos.count(m.chefe) == 1);
+        CHECK_FALSE(FasesDoChefe(m.chefe).fases.empty());
         ++comChefe;
     }
-    CHECK(comChefe == 4);   // hoje sao quatro dos dez
+    CHECK(comChefe == 5);   // hoje sao cinco das onze
 }
 
-TEST_CASE("Dados: o desbloqueio em arquivo da a MESMA resposta que o C++ que ele substitui") {
+TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
 
-    // A regra de hoje, copiada de Game::IsStageUnlocked antes de ela sair, escrita
-    // sobre os codigos em vez dos valores do enum:
-    //   - INF213 sempre;
-    //   - coluna 1 (INF250, INF220, INF330, INF332) abre se passou em INF213;
-    //   - coluna 2 (INF420, BIOINF, INF394, VISCCP) abre com 2 aprovacoes na coluna 1;
-    //   - TCC abre com 2 aprovacoes na coluna 2.
-    const std::vector<std::string> col1 = {"INF250", "INF220", "INF330", "INF332"};
-    const std::vector<std::string> col2 = {"INF420", "BIOINF", "INF394", "VISCCP"};
+    // Game::GetFactory procura a fabrica PELO NOME que esta no arquivo. Um nome
+    // escrito errado aqui nao da erro de compilacao: a materia abre, nao acha
+    // chefe nenhum e a fase volta sozinha para a selecao. Este teste transforma
+    // isso numa falha de suite, que e onde da para ver.
+    //
+    // A lista espelha Game::InitializeBossFactory, como kFormasEmCodigo espelha
+    // FormaPeloNome. Registrar um chefe novo la pede acrescenta-lo aqui.
+    const std::set<std::string> kFabricasRegistradas = {"salles", "ricardo", "andre", "julio", "thiago"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
-    REQUIRE(l.Quantas() == 10);
 
-    auto regraAntiga = [&](const std::string& codigo, const Progresso& p) {
+    for (const auto& m : l.materias) {
+        if (m.chefe.empty()) continue;
+        CHECK_MESSAGE(kFabricasRegistradas.count(m.chefe) == 1,
+                      "a materia " << m.codigo << " pede o chefe \"" << m.chefe
+                      << "\", que nao tem fabrica em Game::InitializeBossFactory");
+    }
+}
+
+TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
+
+    // Este teste nasceu comparando materias.json com a regra que vivia em
+    // Game::IsStageUnlocked. Aquela regra ja saiu do C++ - foi ele que tornou a
+    // saida segura -, entao agora ele descreve a progressao PRETENDIDA:
+    //
+    //   INF110 sempre aberta (a porta de entrada do curso);
+    //   INF213 abre ao passar em INF110;
+    //   coluna 2 (INF250, INF220, INF330, INF331) abre ao passar em INF213;
+    //   coluna 3 (INF420, INF221, INF321, INF452) abre com 2 aprovacoes na 2;
+    //   TCC abre com 2 aprovacoes na coluna 3.
+    const std::vector<std::string> col2 = {"INF250", "INF220", "INF330", "INF331"};
+    const std::vector<std::string> col3 = {"INF420", "INF221", "INF321", "INF452"};
+
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    REQUIRE(l.Quantas() == 11);
+
+    auto pretendida = [&](const std::string& codigo, const Progresso& p) {
         auto aprovado = [&](const std::string& c) { return p.Aprovado(l.IndiceDe(c)); };
         auto quantas = [&](const std::vector<std::string>& lista) {
             int n = 0;
             for (const auto& c : lista) if (aprovado(c)) ++n;
             return n;
         };
-        if (codigo == "INF213") return true;
-        for (const auto& c : col1) if (c == codigo) return aprovado("INF213");
-        for (const auto& c : col2) if (c == codigo) return quantas(col1) >= 2;
-        if (codigo == "TCC") return quantas(col2) >= 2;
+        if (codigo == "INF110") return true;
+        if (codigo == "INF213") return aprovado("INF110");
+        for (const auto& c : col2) if (c == codigo) return aprovado("INF213");
+        for (const auto& c : col3) if (c == codigo) return quantas(col2) >= 2;
+        if (codigo == "TCC") return quantas(col3) >= 2;
         return false;
     };
 
-    // Varre TODAS as combinacoes de aprovacao das nove materias que nao sao o TCC.
-    // Sao 512 estados: cobre o espaco inteiro em vez de alguns casos escolhidos a
-    // dedo, que e onde uma diferenca de regra costuma se esconder.
+    // Varre TODAS as combinacoes de aprovacao das onze materias: 2048 estados.
+    // Cobrir o espaco inteiro, em vez de casos escolhidos a dedo, e onde uma
+    // diferenca de regra costuma aparecer.
     int comparacoes = 0;
-    for (int mascara = 0; mascara < 512; ++mascara) {
+    for (int mascara = 0; mascara < (1 << 11); ++mascara) {
 
         Progresso p;
-        for (int bit = 0; bit < 9; ++bit) {
+        for (int bit = 0; bit < 11; ++bit) {
             if (mascara & (1 << bit)) p.RegistrarNota(bit, 80.0f);
         }
 
         for (int i = 0; i < l.Quantas(); ++i) {
             const std::string codigo = l.CodigoDe(i);
             const bool doArquivo = l.Desbloqueada(i, p);
-            const bool doCodigo  = regraAntiga(codigo, p);
+            const bool esperado  = pretendida(codigo, p);
 
-            if (doArquivo != doCodigo) {
+            if (doArquivo != esperado) {
                 CAPTURE(mascara);
                 CAPTURE(codigo);
                 CAPTURE(doArquivo);
-                CAPTURE(doCodigo);
-                FAIL("o arquivo e o C++ discordam");
+                CAPTURE(esperado);
+                FAIL("o arquivo e a progressao pretendida discordam");
             }
             ++comparacoes;
         }
     }
 
-    CHECK(comparacoes == 512 * 10);
+    CHECK(comparacoes == (1 << 11) * 11);
+}
+
+TEST_CASE("Dados: personagens.json e lido sem nenhum problema") {
+
+    const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
+
+    CHECK_MESSAGE(c.problemas.empty(), "problemas em personagens.json:" << Juntar(c.problemas));
+    CHECK_FALSE(c.Vazio());
+}
+
+TEST_CASE("Dados: as categorias que a tela de criacao precisa existem") {
+
+    // Travar os nomes aqui parece burocracia, mas e o que transforma "renomeei
+    // uma categoria no arquivo" num teste vermelho em vez de numa personagem
+    // que perde o cabelo em silencio no proximo carregamento.
+    const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
+
+    // std::string, e nao const char*: com ponteiro de char a mensagem do doctest
+    // saia como "falta a categoria "1"" - o ponteiro ia para o stream como
+    // booleano, e a falha nao dizia QUAL categoria sumiu.
+    for (const std::string& id : {"pele", "cabelo", "camisa", "calca"}) {
+        CHECK_MESSAGE(c.Por(id) != nullptr, "falta a categoria \"" << id << "\"");
+    }
+}
+
+TEST_CASE("Dados: toda arte citada no catalogo existe em disco") {
+
+    const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
+
+    std::vector<std::string> artes;
+    for (const auto& cat : c.categorias) {
+        for (const auto& p : cat.pecas) artes.push_back(p.arte);
+    }
+    for (const auto& f : c.fixas) artes.push_back(f.arte);
+
+    REQUIRE_FALSE(artes.empty());
+
+    for (const auto& arte : artes) {
+        // O catalogo guarda o caminho SEM extensao; quem carrega acrescenta.
+        for (const char* ext : {".png", ".json"}) {
+            const std::string caminho = std::string(DPI_ASSETS_DIR) + "/" + arte + ext;
+            std::ifstream a(caminho, std::ios::binary);
+            CHECK_MESSAGE(a.is_open(), "arte citada no catalogo e ausente em disco: " << caminho);
+        }
+    }
+}
+
+TEST_CASE("Dados: toda peca tem quatro quadros de 64x64") {
+
+    // NAO E DETALHE DE ARTE. O raio do colisor do jogador sai da largura da
+    // sprite (CircleColliderComponent(GetSpriteWidth() / 10.f) em Player.cpp),
+    // entao uma peca com quadro maior daria hitbox maior a quem a escolhesse -
+    // e a escolha de aparencia, que deve ser so estetica, viraria vantagem de
+    // jogo. Ver RNF1 em Documentacao/requisitos-perfil-e-personagem.md.
+    const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
+
+    std::vector<std::string> artes;
+    for (const auto& cat : c.categorias) {
+        for (const auto& p : cat.pecas) artes.push_back(p.arte);
+    }
+    for (const auto& f : c.fixas) artes.push_back(f.arte);
+
+    int conferidas = 0;
+    for (const auto& arte : artes) {
+
+        const std::string caminho = std::string(DPI_ASSETS_DIR) + "/" + arte + ".json";
+        std::ifstream a(caminho);
+        if (!a.is_open()) continue;   // a ausencia ja e relatada no teste acima
+
+        std::ostringstream conteudo;
+        conteudo << a.rdbuf();
+
+        nlohmann::json atlas;
+        try { atlas = LerJsonDeDados(conteudo.str()); }
+        catch (const std::exception& e) {
+            FAIL("atlas invalido em " << caminho << ": " << e.what());
+        }
+
+        REQUIRE_MESSAGE(atlas.contains("frames"), "sem \"frames\": " << caminho);
+        CHECK_MESSAGE(atlas["frames"].size() == 4,
+                      "esperava 4 quadros em " << caminho << ", achei " << atlas["frames"].size());
+
+        for (const auto& quadro : atlas["frames"]) {
+            REQUIRE(quadro.contains("frame"));
+            CHECK_MESSAGE(quadro["frame"]["w"].get<int>() == 64, "quadro nao e 64 de largura: " << caminho);
+            CHECK_MESSAGE(quadro["frame"]["h"].get<int>() == 64, "quadro nao e 64 de altura: " << caminho);
+        }
+        ++conferidas;
+    }
+
+    // Sem isto o teste passaria por vacuidade se o catalogo viesse vazio.
+    CHECK(conferidas >= 10);
+}
+
+TEST_CASE("Dados: a aparencia padrao do catalogo real compoe todas as camadas") {
+
+    const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
+
+    const std::vector<Personagens::Camada> camadas = c.Camadas(c.Padrao());
+
+    // Uma por categoria, mais as fixas.
+    CHECK(camadas.size() == c.categorias.size() + c.fixas.size());
+
+    for (size_t i = 1; i < camadas.size(); ++i) {
+        CHECK_MESSAGE(camadas[i - 1].ordem < camadas[i].ordem,
+                      "duas camadas com a mesma ordem de desenho");
+    }
+}
+
+TEST_CASE("Dados: as listas do Salles giram com a direcao do movimento") {
+
+    // A arte delas e uma caixa com uma SETA. Com a seta sempre apontando para a
+    // direita, uma corrente que desce na diagonal nao le como lista encadeada -
+    // os nos ficam soltos. Travar isto aqui evita que alguem desligue o campo
+    // sem perceber o que ele sustenta.
+    const auto r = ProjeteisDoChefe("salles");
+    const auto& salles = r.projeteis;
+
+    for (const std::string& nome : {"Estruturas", "Duplamente"}) {
+        REQUIRE_MESSAGE(salles.count(nome) == 1, "falta o projetil \"" << nome << "\"");
+        CHECK_MESSAGE(salles.at(nome).rotacionarComAVelocidade,
+                      "\"" << nome << "\" precisa girar com a velocidade");
+    }
+
+    // E a capivara NAO gira: ela nao tem frente.
+    if (salles.count("Capivara") == 1) {
+        CHECK_FALSE(salles.at("Capivara").rotacionarComAVelocidade);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// A NAVEGACAO CONTRA O materias.json DE VERDADE
+//
+// Os testes de test_navegacao.cpp provam a REGRA contra uma grade escrita a mao.
+// Isso nao bastaria aqui: foi justamente uma grade escrita a mao, dentro da
+// StageSelect, que discordou da tela e fez a seta pular o INF 213. Entao estes
+// testes montam a grade do MESMO jeito que a StageSelect monta - percorrendo as
+// colunas de materias.json - e perguntam para onde as setas levam.
+//
+// Se alguem reordenar materias.json, sao estes testes que dizem o que acontece
+// com as setas.
+// ---------------------------------------------------------------------------
+
+namespace {
+
+    /// A grade como a StageSelect a monta: coluna por coluna, na ordem, e o
+    /// indice do botao e a posicao em que ele e criado.
+    Navegacao::Grade GradeDe(const Materias::Lista& l) {
+        Navegacao::Grade grade(static_cast<size_t>(l.QuantasColunas()));
+        size_t proximo = 0;
+        for (int c = 0; c < l.QuantasColunas(); ++c) {
+            for (size_t i = 0; i < l.DaColuna(c).size(); ++i) {
+                grade[static_cast<size_t>(c)].push_back(proximo++);
+            }
+        }
+        return grade;
+    }
+
+    /// De indice de botao para codigo de materia, pela mesma ordem de criacao.
+    std::vector<std::string> CodigosNaOrdemDosBotoes(const Materias::Lista& l) {
+        std::vector<std::string> codigos;
+        for (int c = 0; c < l.QuantasColunas(); ++c) {
+            for (const int m : l.DaColuna(c)) {
+                const Materias::Materia* mat = l.Por(m);
+                codigos.push_back(mat ? mat->codigo : "?");
+            }
+        }
+        return codigos;
+    }
+}
+
+TEST_CASE("Navegacao no materias.json: a seta da direita no INF 110 leva ao INF 213") {
+
+    // O DEFEITO RELATADO. O INF 213 e a unica materia que o INF 110 abre, e a
+    // seta pulava direto para o INF 250, do outro lado da tela.
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    const auto grade = GradeDe(l);
+    const auto codigos = CodigosNaOrdemDosBotoes(l);
+
+    const auto inf110 = std::find(codigos.begin(), codigos.end(), "INF110");
+    REQUIRE(inf110 != codigos.end());
+
+    const size_t destino = Navegacao::Direita(grade, static_cast<size_t>(inf110 - codigos.begin()));
+    REQUIRE(destino < codigos.size());
+    CHECK(codigos[destino] == "INF213");
+}
+
+TEST_CASE("Navegacao no materias.json: descer no INF 250 nao passa pelo INF 213") {
+
+    // O OUTRO DEFEITO RELATADO: a descida entrava num ciclo de quatro que
+    // misturava duas colunas da tela.
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    const auto grade = GradeDe(l);
+    const auto codigos = CodigosNaOrdemDosBotoes(l);
+
+    const auto inicio = std::find(codigos.begin(), codigos.end(), "INF250");
+    REQUIRE(inicio != codigos.end());
+
+    size_t onde = static_cast<size_t>(inicio - codigos.begin());
+    for (int passo = 0; passo < 12; ++passo) {
+        onde = Navegacao::Baixo(grade, onde);
+        REQUIRE(onde < codigos.size());
+        CAPTURE(passo);
+        CAPTURE(codigos[onde]);
+        CHECK(codigos[onde] != "INF213");
+    }
+}
+
+TEST_CASE("Navegacao no materias.json: toda materia e alcancavel pelas setas") {
+
+    // O DEFEITO QUE NINGUEM TINHA VISTO AINDA. Com a grade antiga, tres botoes
+    // diferentes levavam todos ao VISCCP e NADA levava ao TCC - a ultima materia
+    // do curso era inalcancavel. So nao apareceu porque o TCC exige duas
+    // aprovacoes na coluna 3 para ser jogavel, e ninguem tinha chegado la.
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    const auto grade = GradeDe(l);
+    const auto codigos = CodigosNaOrdemDosBotoes(l);
+    REQUIRE(!codigos.empty());
+
+    // Busca em largura a partir do primeiro botao, pelas quatro setas.
+    std::set<size_t> vistos{0};
+    std::vector<size_t> fila{0};
+    while (!fila.empty()) {
+        const size_t onde = fila.back();
+        fila.pop_back();
+        for (const auto mover : {Navegacao::Cima, Navegacao::Baixo,
+                                 Navegacao::Esquerda, Navegacao::Direita}) {
+            if (const size_t destino = mover(grade, onde); vistos.insert(destino).second) {
+                fila.push_back(destino);
+            }
+        }
+    }
+
+    for (size_t i = 0; i < codigos.size(); ++i) {
+        CAPTURE(codigos[i]);
+        CHECK(vistos.count(i) == 1);
+    }
+}
+
+TEST_CASE("Navegacao no materias.json: nenhuma seta sai da grade") {
+
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    const auto grade = GradeDe(l);
+    const auto quantos = CodigosNaOrdemDosBotoes(l).size();
+
+    for (size_t i = 0; i < quantos; ++i) {
+        for (const auto mover : {Navegacao::Cima, Navegacao::Baixo,
+                                 Navegacao::Esquerda, Navegacao::Direita}) {
+            CAPTURE(i);
+            CHECK(mover(grade, i) < quantos);
+        }
+    }
+}
+
+TEST_CASE("Dados: toda materia do curso tem nome de disciplina e professor") {
+
+    // Sao opcionais no formato, para nao quebrar arquivo antigo - mas no curso
+    // de verdade nenhuma pode ficar sem, senao a tela de selecao mostra uma
+    // materia muda no meio das outras.
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    REQUIRE(l.Quantas() > 0);
+
+    for (const auto& m : l.materias) {
+        CAPTURE(m.codigo);
+        CHECK_FALSE(m.nomeCompleto.empty());
+        CHECK_FALSE(m.professor.empty());
+
+        // O nome da disciplina nao pode ser o codigo repetido: a tela mostra
+        // os dois, um ao lado do outro.
+        CHECK(m.nomeCompleto != m.codigo);
+        CHECK(m.nomeCompleto != m.nome);
+    }
+}
+
+TEST_CASE("Dados: ha materia com professor e sem batalha, e isso e proposital") {
+
+    // A INF 330 e do Salles, que ja e chefe da INF 213. Se algum dia alguem
+    // decidir que "tem professor" implica "tem chefe", este teste cai - e e
+    // para cair, porque reaproveitar o chefe faria duas materias identicas.
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+
+    int comProfessorSemChefe = 0;
+    for (const auto& m : l.materias) {
+        if (!m.professor.empty() && m.chefe.empty()) ++comProfessorSemChefe;
+    }
+    CHECK(comProfessorSemChefe == 6);
+}
+
+TEST_CASE("Dados: toda coluna do curso depende da anterior, entao a grade pode ser ligada") {
+
+    // E o que autoriza a tela de selecao a desenhar o tronco entre as colunas.
+    // Se alguem criar uma materia que exige algo de duas colunas atras, este
+    // teste cai e a linha daquela coluna some sozinha - e e assim que tem de
+    // ser, porque desenhar uma ligacao que nao existe e pior que nao desenhar.
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    REQUIRE(l.QuantasColunas() == 5);
+
+    CHECK_FALSE(l.ColunaDependeDaAnterior(0));
+    for (int c = 1; c < l.QuantasColunas(); ++c) {
+        CAPTURE(c);
+        CHECK(l.ColunaDependeDaAnterior(c));
+    }
 }

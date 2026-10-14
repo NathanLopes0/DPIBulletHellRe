@@ -12,19 +12,25 @@
 
 /**
  * @brief Devolve um configurator que aplica um conjunto de regras de
- * Assets/Attacks/regras.json.
+ * Assets/Attacks/<chefe>/regras.json.
  *
  * Substitui o lambda escrito a mao no AddAttackPattern:
  *
  *     boss->AddAttackPattern(STATE, estrategia, params, cooldown,
- *                            ConfiguratorDeArquivo("julio_fase2"));
+ *                            ConfiguratorDeArquivo("julio", "fase2"));
  *
- * O arquivo e lido UMA vez, na primeira chamada. Conjunto inexistente ou
- * arquivo ausente devolvem um configurator que nao faz nada, mais uma linha de
- * log dizendo o que faltou - o ataque continua disparando, so sem os behaviors.
- * Nunca derruba o jogo.
+ * O CHEFE E PARAMETRO porque cada um tem o proprio arquivo. Era um arquivo so,
+ * e os nomes de conjunto levavam o professor na frente ("julio_fase2") para nao
+ * colidirem; com uma pasta por chefe esse prefixo passou a repetir o nome da
+ * pasta, e saiu.
+ *
+ * O arquivo de cada chefe e lido UMA vez, na primeira chamada por ele. Conjunto
+ * inexistente ou arquivo ausente devolvem um configurator que nao faz nada,
+ * mais uma linha de log dizendo o que faltou - o ataque continua disparando, so
+ * sem os behaviors. Nunca derruba o jogo.
  */
-std::function<void(Projectile*, int)> ConfiguratorDeArquivo(const std::string& nomeDoConjunto);
+std::function<void(Projectile*, int)> ConfiguratorDeArquivo(const std::string& chefe,
+                                                            const std::string& nomeDoConjunto);
 
 /**
  * @brief Devolve um configurator que aplica uma lista de regras JA LIDA.

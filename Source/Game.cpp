@@ -16,6 +16,9 @@
 #include "Matricula.h"
 #include "Scenes/Identificacao.h"
 #include "Scenes/Opcoes.h"
+#include "Scenes/TelaDeRanking.h"
+#include "Scenes/Atracao.h"
+#include "Scenes/CriacaoDePersonagem.h"
 #include "Scenes/StageSelect.h"
 #include "Scenes/Battle/Battle.h"
 #include "Actors/Teachers/BossFactory/AllFactories.h"
@@ -23,7 +26,7 @@
 #include "CaminhosArquivo.h"
 
 
-Game::Game(int windowWidth, int windowHeight)
+Game::Game(int windowWidth, int windowHeight, const Gabinete::Configuracao& gabinete)
     :mWindow(nullptr),
     mRenderer(nullptr),
     mWindowWidth(windowWidth),
@@ -31,9 +34,15 @@ Game::Game(int windowWidth, int windowHeight)
     mTicksCount(0),
     mIsGameRunning(true),
     mScene(nullptr),
-    mSelectedStage(INF213),
+    mSelectedStage(0),
     mPendingSceneChange(false),
-    mNextScene(Scene::SceneType::None)
+    mNextScene(Scene::SceneType::None),
+    mGabinete(gabinete),
+    mOciosidade(gabinete.ociosidade),
+    // A saida do operador existe SO no gabinete. Fora dele o limite e zero, e
+    // uma contagem de limite zero nunca esgota - a regra fica no dado em vez de
+    // num "if" espalhado por quem chama.
+    mSaidaDoOperador(gabinete.arcade ? Gabinete::kSegurarParaSair : 0.0f)
 {
 
 }
@@ -50,7 +59,11 @@ bool Game::Initialize() {
     }
 
     //criando janela do jogo
-    mWindow = SDL_CreateWindow("DPI Bullet Hell", 0, 0, mWindowWidth, mWindowHeight, 0);
+    // No gabinete a janela nasce em tela cheia, do tamanho do monitor que
+    // estiver la. Fora dele nasce do tamanho pedido, que e como se desenvolve.
+    const Uint32 bandeirasDaJanela = mGabinete.arcade ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0u;
+    mWindow = SDL_CreateWindow("DPI Bullet Hell", 0, 0, mWindowWidth, mWindowHeight,
+                               bandeirasDaJanela);
     if(!mWindow)
     {
         SDL_Log("Failed to create window: %s", SDL_GetError());
@@ -68,6 +81,21 @@ bool Game::Initialize() {
         return false;
     }
     SDL_SetRenderDrawBlendMode(mRenderer, SDL_BLENDMODE_BLEND);
+
+    // O JOGO INTEIRO E POSICIONADO EM mWindowWidth x mWindowHeight, inclusive
+    // as telas que usam fracoes da altura. A tela do gabinete nao tem esse
+    // tamanho, e sem escala logica tudo seria desenhado num canto dela. Com a
+    // escala, o SDL amplia e centraliza, e NENHUMA coordenada do jogo muda.
+    //
+    // Fica fora do "if (arcade)" de proposito: numa janela do tamanho exato ela
+    // nao faz nada, e assim existe um caminho so para os dois modos.
+    SDL_RenderSetLogicalSize(mRenderer, mWindowWidth, mWindowHeight);
+
+    if (mGabinete.arcade) {
+        // Nao ha mouse no painel. Sem isto o cursor fica parado no meio da tela
+        // o dia inteiro.
+        SDL_ShowCursor(SDL_DISABLE);
+    }
 
     //iniciando sistema de fontes
     if (TTF_Init() != 0)
@@ -123,13 +151,29 @@ void Game::ProcessInput()
         switch (event.type)
         {
             case SDL_QUIT:
-                Quit();
+                // No gabinete, fechar a janela NAO existe: o jogo fica aberto o
+                // dia todo, e um Alt+F4 de aluno curioso deixaria a area de
+                // trabalho a vista. A saida de quem mantem a maquina esta em
+                // AtualizarGabinete.
+                if (!mGabinete.arcade) Quit();
                 break;
             default: ;
         }
     }
 
-    const Uint8* state = SDL_GetKeyboardState(nullptr);
+    int quantasTeclas = 0;
+    const Uint8* state = SDL_GetKeyboardState(&quantasTeclas);
+
+    // Guardados aqui e usados em AtualizarGabinete, que roda no UpdateGame
+    // porque e la que existe deltaTime.
+    mHouveEntrada = false;
+    for (int i = 0; i < quantasTeclas; ++i) {
+        if (state[i]) {
+            mHouveEntrada = true;
+            break;
+        }
+    }
+    mSaidaSegurada = state[SDL_SCANCODE_LCTRL] && state[SDL_SCANCODE_ESCAPE];
 
     if (mScene) {
         mScene->ProcessInput(state);
@@ -156,6 +200,7 @@ void Game::UpdateGame()
         mScene->Update(deltaTime);
     }
     UpdateCamera();
+    AtualizarGabinete(deltaTime);
 
     if (mPendingSceneChange)
     {
@@ -171,6 +216,61 @@ void Game::UpdateGame()
         ChangeScene(proxima);
     }
 
+}
+
+namespace {
+
+    /**
+     * Para onde a ociosidade leva, conforme a tela em que ela acontece.
+     * None quer dizer "fica onde esta".
+     *
+     * A BATALHA NAO VOLTA SOZINHA: ficar parado e uma forma legitima de
+     * desviar, e ela ja termina por tempo. A ATRACAO tambem nao - ela JA e a
+     * tela de quem nao esta jogando, e so sai dali quem encostar no painel.
+     *
+     * Do menu a ociosidade leva PARA A FRENTE, e nao de volta: um arcade parado
+     * num corredor tem de convidar quem passa.
+     */
+    Scene::SceneType ParaOndeAOciosidadeLeva(const Scene::SceneType atual) {
+        switch (atual) {
+            case Scene::SceneType::Battle:
+            case Scene::SceneType::Atracao:  return Scene::SceneType::None;
+            case Scene::SceneType::MainMenu: return Scene::SceneType::Atracao;
+            default:                         return Scene::SceneType::MainMenu;
+        }
+    }
+}
+
+void Game::AtualizarGabinete(const float deltaTime)
+{
+    // A SAIDA DE QUEM MANTEM A MAQUINA. Ctrl+Esc segurado por alguns segundos,
+    // porque no painel nao existe nenhuma das duas teclas: para sair e preciso
+    // ligar um teclado de proposito. Um toque nao derruba o jogo.
+    if (mSaidaDoOperador.Passou(deltaTime, mSaidaSegurada)) {
+        SDL_Log("GABINETE: Ctrl+Esc segurado por %.0fs, fechando o jogo.",
+                static_cast<double>(Gabinete::kSegurarParaSair));
+        Quit();
+        return;
+    }
+
+    if (!mOciosidade.Ligada() || !mScene) return;
+
+    const Scene::SceneType destino = ParaOndeAOciosidadeLeva(GetCurrSceneType());
+
+    // Um pedido de troca ja feito pela cena nao pode ser atropelado por este.
+    if (destino == Scene::SceneType::None || mPendingSceneChange) {
+        mOciosidade.Reiniciar();
+        return;
+    }
+
+    if (mOciosidade.Passou(deltaTime, !mHouveEntrada)) {
+        // O PERFIL DE QUEM JOGOU NAO PODE FICAR PENDURADO. Quem chegasse depois
+        // encontraria a sessao de outra pessoa e jogaria no nome dela.
+        SDL_Log("GABINETE: %.0fs parado, indo para a cena %d.",
+                static_cast<double>(mGabinete.ociosidade), static_cast<int>(destino));
+        JogarComoVisitante();
+        RequestSceneChange(destino);
+    }
 }
 
 void Game::UpdateCamera()
@@ -237,6 +337,41 @@ SDL_Texture* Game::GetPlaceholderTexture() {
     }
 
     return mPlaceholderTexture;
+}
+
+SDL_Texture* Game::TexturaGuardada(const std::string& chave) const {
+    const auto it = mTextureCache.find(chave);
+    return it == mTextureCache.end() ? nullptr : it->second;
+}
+
+void Game::GuardarTextura(const std::string& chave, SDL_Texture* textura) {
+
+    if (textura == nullptr) return;
+
+    // Recusa em vez de sobrescrever: sobrescrevendo, a textura que estava na
+    // chave ficaria sem dono e vazaria ate o jogo fechar. Quem chama confere
+    // com TexturaGuardada antes de montar outra.
+    if (mTextureCache.find(chave) != mTextureCache.end()) {
+        SDL_Log("TEXTURA: a chave \"%s\" ja estava ocupada; a nova foi descartada.",
+                chave.c_str());
+        SDL_DestroyTexture(textura);
+        return;
+    }
+
+    mTextureCache.emplace(chave, textura);
+}
+
+void Game::EsquecerTextura(const std::string& chave) {
+
+    const auto it = mTextureCache.find(chave);
+    if (it == mTextureCache.end()) return;
+
+    // O placeholder e compartilhado por todo caminho de textura ausente e tem
+    // dono proprio; destrui-lo aqui deixaria os outros com ponteiro morto.
+    if (it->second != nullptr && it->second != mPlaceholderTexture) {
+        SDL_DestroyTexture(it->second);
+    }
+    mTextureCache.erase(it);
 }
 
 SDL_Texture* Game::LoadTexture(const std::string& texturePath) {
@@ -333,8 +468,17 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
         case Scene::SceneType::Identificacao:
             mScene = std::make_unique<Identificacao>(this);
             break;
+        case Scene::SceneType::CriacaoDePersonagem:
+            mScene = std::make_unique<CriacaoDePersonagem>(this);
+            break;
         case Scene::SceneType::Opcoes:
             mScene = std::make_unique<Opcoes>(this);
+            break;
+        case Scene::SceneType::Ranking:
+            mScene = std::make_unique<TelaDeRanking>(this);
+            break;
+        case Scene::SceneType::Atracao:
+            mScene = std::make_unique<Atracao>(this);
             break;
         case Scene::SceneType::StageSelect:
             mScene = std::make_unique<StageSelect>(this);
@@ -353,19 +497,42 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
 
 void Game::InitializeBossFactory() {
 
-    mBossFactory[INF213] = std::make_unique<SallesFactory>(this);
-    mBossFactory[INF250] = std::make_unique<RicardoFactory>(this);
-    mBossFactory[INF330] = std::make_unique<AndreFactory>(this);
-    mBossFactory[INF420] = std::make_unique<JulioFactory>(this);
-
-
+    // AS FABRICAS SAO REGISTRADAS POR NOME, e nao por materia. Quem diz qual
+    // chefe cada materia tem e o campo "chefe" de materias.json - ver
+    // GetFactory. Antes este mapa era indexado pela materia, e havia entao duas
+    // listas dizendo a mesma coisa: esta e a do arquivo. Mudar a ordem das
+    // materias no arquivo bastava para a fase abrir com o chefe errado, sem erro
+    // de compilacao e sem aviso em jogo.
+    mBossFactory["salles"]  = std::make_unique<SallesFactory>(this);
+    mBossFactory["ricardo"] = std::make_unique<RicardoFactory>(this);
+    mBossFactory["andre"]   = std::make_unique<AndreFactory>(this);
+    mBossFactory["julio"]   = std::make_unique<JulioFactory>(this);
+    mBossFactory["thiago"]  = std::make_unique<ThiagoFactory>(this);
 }
 
-IBossFactory *Game::GetFactory(size_t n) {
-    if (const auto it = mBossFactory.find(static_cast<GameSubject>(n)); it != mBossFactory.end()) {
-        return it->second.get();
+IBossFactory *Game::GetFactory(const size_t n) {
+
+    // O caminho agora e materia -> nome do chefe (dados) -> fabrica (codigo),
+    // em vez de indice -> fabrica. O indice deixa de significar nada fora da
+    // lista de materias, que e o ponto: reordenar materias.json passa a ser
+    // seguro.
+    const Materias::Materia* materia = Materias::Carregadas().Por(static_cast<int>(n));
+    if (materia == nullptr) return nullptr;
+
+    if (materia->chefe.empty()) return nullptr;   // materia ainda sem chefe
+
+    const auto it = mBossFactory.find(materia->chefe);
+    if (it == mBossFactory.end()) {
+        // Nome escrito errado no arquivo. Vale avisar: a materia existe, o
+        // aluno consegue entrar e a fase volta sozinha para a selecao sem dizer
+        // por que - ver Battle::LoadBoss.
+        SDL_Log("GAME: a materia %s pede o chefe \"%s\", que nao existe. Chefes "
+                "registrados: salles, ricardo, andre, julio.",
+                materia->codigo.c_str(), materia->chefe.c_str());
+        return nullptr;
     }
-    return nullptr;
+
+    return it->second.get();
 }
 
 
@@ -378,67 +545,20 @@ void Game::RequestSceneChange(const Scene::SceneType nextScene) {
     mNextScene = nextScene;
 }
 
-// Função auxiliar simples: Passou se nota >= 60
-bool Game::HasPassed(const GameSubject subject) {
+bool Game::IsStageUnlocked(const int subject) {
 
-    // Le o RECORDE, nao a ultima nota: assim uma tentativa ruim nao re-tranca
-    // uma materia que o jogador ja tinha passado.
-    return mProgresso.Aprovado(static_cast<int>(subject));
-}
-
-// Função genérica para contar aprovações em uma lista
-int Game::CountPassedInList(const std::vector<GameSubject>& subjects) {
-    std::vector<int> materias;
-    materias.reserve(subjects.size());
-    for (const auto& s : subjects) materias.push_back(static_cast<int>(s));
-    return mProgresso.QuantasAprovadas(materias);
-}
-
-bool Game::IsStageUnlocked(GameSubject subject) {
-    // ---------------------------------------------------------
-    // REGRA 1: INF 213 (Primeira Coluna) é sempre desbloqueada
-    // ---------------------------------------------------------
-    if (subject == GameSubject::INF213) return true;
-
-    // Definindo as colunas (conforme o StageSelect está definido)
-    const std::vector<GameSubject> col2 = {
-        GameSubject::INF250, GameSubject::INF220,
-        GameSubject::INF330, GameSubject::INF332
-    };
-
-    const std::vector<GameSubject> col3 = {
-        GameSubject::INF420, GameSubject::BIOINF,
-        GameSubject::INF394, GameSubject::VISCCP
-    };
-
-    // ---------------------------------------------------------
-    // REGRA 2: Coluna 2 desbloqueia se passou em INF 213
-    // ---------------------------------------------------------
-    // Verifica se o 'subject' atual está na lista da coluna 2
-    for (auto s : col2) {
-        if (s == subject) {
-            return HasPassed(GameSubject::INF213);
-        }
-    }
-
-    // ---------------------------------------------------------
-    // REGRA 3: Coluna 3 desbloqueia se passou em 2 matérias da Coluna 2
-    // ---------------------------------------------------------
-    for (auto s : col3) {
-        if (s == subject) {
-            return CountPassedInList(col2) >= 2;
-        }
-    }
-
-    // ---------------------------------------------------------
-    // REGRA 4: TCC desbloqueia se passou em 2 matérias da Coluna 3
-    // ---------------------------------------------------------
-    if (subject == GameSubject::TCC) {
-        return CountPassedInList(col3) >= 2;
-    }
-
-    // Por segurança, bloqueia qualquer coisa desconhecida
-    return false;
+    // AS REGRAS VIVEM EM materias.json, nao mais aqui.
+    //
+    // O que havia nesta funcao era a TERCEIRA lista de materias escrita em C++:
+    // quais estao em cada coluna, quem abre com o que, quantas aprovacoes cada
+    // porta pede - tudo ja declarado no arquivo, no campo "desbloqueio", e tudo
+    // ignorado ate agora. Materias::Lista::Desbloqueada implementa as mesmas
+    // regras sobre os dados, e e pura e testada.
+    //
+    // A TROCA E SEGURA POR MEDIDA, e nao por leitura: ha um teste que compara as
+    // duas respostas em 5120 combinacoes (512 estados de progresso x 10
+    // materias) e exige que concordem. Ele foi escrito para este dia.
+    return Materias::Carregadas().Desbloqueada(static_cast<int>(subject), mProgresso);
 }
 
 
@@ -446,7 +566,7 @@ bool Game::IsStageUnlocked(GameSubject subject) {
 // Quem esta jogando
 // ---------------------------------------------------------------------------
 
-void Game::RegistrarNota(const GameSubject subject, const float nota) {
+void Game::RegistrarNota(const int subject, const float nota) {
 
     mProgresso.RegistrarNota(static_cast<int>(subject), nota, Relogio::Agora());
 
@@ -455,7 +575,7 @@ void Game::RegistrarNota(const GameSubject subject, const float nota) {
     // escolheu nao se identificar.
     if (!ProgressoEGravado()) return;
 
-    if (FichaArquivo::Gravar(mMatricula, mProgresso, Materias::Carregadas())) {
+    if (GravarFicha()) {
         // A planilha do professor e regravada junto, entao ela esta sempre em dia e
         // ninguem precisa lembrar de exportar. Ela e DERIVADA das fichas: apagar
         // notas.csv nao perde nada, volta na proxima batalha.
@@ -470,22 +590,53 @@ void Game::RegistrarNota(const GameSubject subject, const float nota) {
     }
 }
 
+bool Game::GravarFicha() {
+
+    // UM SO LUGAR monta a ficha a partir do estado da sessao. Com a aparencia
+    // entrando no arquivo, gravar passou a ter dois campos para lembrar; dois
+    // pontos de gravacao viravam duas chances de esquecer um deles.
+    Ficha::Dados dados;
+    dados.matricula = mMatricula;
+    dados.progresso = mProgresso;
+    dados.aparencia = mAparencia;
+
+    return FichaArquivo::Gravar(dados, Materias::Carregadas());
+}
+
 void Game::IdentificarAluno(const std::string& matriculaCanonica) {
 
     mMatricula = matriculaCanonica;
 
-    // SUBSTITUI o progresso inteiro. Carregar por cima do anterior deixaria as
+    // SUBSTITUI progresso E aparencia. Carregar por cima do anterior deixaria as
     // notas do aluno que acabou de sair penduradas na sessao de quem entrou - e
-    // elas iriam para o disco na primeira batalha, no arquivo errado.
-    mProgresso = FichaArquivo::Carregar(mMatricula, Materias::Carregadas());
+    // elas iriam para o disco na primeira batalha, no arquivo errado. Com a
+    // aparencia o estrago seria menos grave e igualmente confuso: o aluno novo
+    // entraria com a cara do anterior.
+    const Ficha::Dados ficha = FichaArquivo::Carregar(mMatricula, Materias::Carregadas());
+    mProgresso = ficha.progresso;
+    mAparencia = ficha.aparencia;
 
-    SDL_Log("GAME: jogando como a matricula %s (%zu materia(s) com registro).",
-            mMatricula.c_str(), mProgresso.QuantasRegistradas());
+    SDL_Log("GAME: jogando como a matricula %s (%zu materia(s) com registro, aparencia %s).",
+            mMatricula.c_str(), mProgresso.QuantasRegistradas(),
+            mAparencia.Vazia() ? "padrao" : "do save");
+}
+
+void Game::DefinirAparencia(const Personagens::Aparencia& aparencia) {
+
+    mAparencia = aparencia;
+
+    if (!ProgressoEGravado()) return;   // visitante nao grava
+
+    if (!GravarFicha()) {
+        SDL_Log("GAME: nao consegui gravar a aparencia da matricula %s. Ela vale para esta "
+                "sessao, mas nao foi para o disco.", mMatricula.c_str());
+    }
 }
 
 void Game::JogarComoVisitante() {
     mMatricula = Matricula::kVisitante;
     mProgresso = Progresso();
+    mAparencia = Personagens::Aparencia();
     SDL_Log("GAME: jogando sem identificacao. O progresso NAO sera gravado.");
 }
 

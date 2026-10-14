@@ -26,11 +26,22 @@ class Battle : public Scene {
 
 public:
 
-    explicit Battle(Game* game, Game::GameSubject selectedStage);
+    explicit Battle(Game* game, int selectedStage);
     ~Battle() override;
     void Load() override;
     void CheckCollisions();
-    void ResetHUDTimer(float newDuration);
+    /**
+     * @brief Uma fase do chefe acabou e outra comecou.
+     *
+     * Chamado pelo callback que o Boss registra na maquina de estados. Faz duas
+     * coisas: reinicia a barra de tempo e FECHA a fase que terminou, pagando o
+     * bonus de fase limpa quando for o caso.
+     *
+     * Chamava-se ResetHUDTimer e so fazia a primeira. O nome mudou junto com o
+     * trabalho: um nome que descreve metade do que a funcao faz e pior que um
+     * nome generico.
+     */
+    void OnFaseTrocada(float novaDuracao);
 
     [[nodiscard]] Boss* GetBoss() const { return mBoss; }
     [[nodiscard]] Player* GetPlayer() const { return mPlayer; }
@@ -52,6 +63,9 @@ public:
      * escrever nela durante a batalha fazia as regras de desbloqueio oscilarem.
      */
     [[nodiscard]] float GetNotaAtual() const { return mGrade; }
+
+    /// @brief Se esta batalha ja perdeu o direito a nota cheia por dano sofrido.
+    [[nodiscard]] bool PerdeuACheia() const;
 
 
 protected:
@@ -77,7 +91,32 @@ private:
 
     // --- Membros de Estado da Batalha ---
     float mGrade;
-    Game::GameSubject mStage{};
+    int mStage{};
+
+    /// Acertos sofridos NA FASE atual. Separado do contador da batalha porque
+    /// responde outra pergunta: o da batalha decide o teto de 99,99, este decide
+    /// o bonus de fase limpa. Zera a cada troca de fase.
+    int mAcertosNaFase{};
+
+    /// Fecha a fase em curso: paga o bonus se ela foi limpa e zera o contador.
+    /// Chamada na troca de fase E no fim da batalha - a ultima fase nao troca
+    /// para lugar nenhum, e sem isso ela nunca pagaria.
+    void EncerrarFase();
+
+    /// O callback da maquina de estados dispara tambem ao ENTRAR na primeira
+    /// fase, quando nao ha fase anterior. Sem isto, a batalha comecaria pagando
+    /// um bonus por uma fase que ninguem jogou.
+    bool mPrimeiraFase = true;
+
+    /// Quanto tempo o aviso de fase limpa ainda fica na tela.
+    float mAvisoDeFaseLimpa{};
+
+    Actor* mFaseLimpaActor = nullptr;
+
+    /// Quantos projeteis do chefe acertaram o jogador NESTA batalha. Zera a cada
+    /// batalha junto com a nota: o teto de Nota e por batalha, nao por perfil.
+    /// Passado dos 2, a nota desta batalha para em 99,99 (ver Nota.h).
+    int mAcertosSofridos{};
 
     // --- Ponteiros observadores do Boss e do Player, que vão estar dentro
     // do vetor mActors da própria cena Battle. Ideal para, mesmo num vetor de Actors,
@@ -96,6 +135,10 @@ private:
 
     Actor* mGradeBarActor = nullptr;
     Actor* mGradeTextActor = nullptr;
+
+    /// O "TESTE FINAL" na faixa da nota. Escondido ate a nota chegar a 100, e a
+    /// partir dali fica - ver GradeTextUpdate.
+    Actor* mTesteFinalActor = nullptr;
 
     void GradeUp(float amount = GRADE_CHANGE_UP);
     void GradeDown();

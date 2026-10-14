@@ -13,6 +13,7 @@
 #include <SDL_log.h>
 
 #include "Behaviors.h"
+#include "PastaDoChefe.h"
 #include "PathShapes.h"
 #include "../Random.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
@@ -21,42 +22,41 @@
 
 namespace {
 
-    /// O caminho e montado na PRIMEIRA chamada, e nao na inicializacao estatica.
-    ///
-    /// A diferenca importa: um "const std::string" em escopo de namespace e
-    /// construido ANTES do main, portanto antes de Caminhos::Inicializar()
-    /// descobrir a pasta base. Ele capturava o palpite de reserva ("..") e o
-    /// arquivo passava a ser procurado relativo ao diretorio de onde o jogo foi
-    /// lancado - exatamente o problema que a resolucao de caminhos veio resolver.
-    /// O static DENTRO da funcao e construido na primeira chamada, que acontece
-    /// quando um chefe e montado, bem depois da inicializacao.
-    const std::string& Caminho() {
-        static const std::string c = Caminhos::Asset("Attacks/regras.json");
-        return c;
+    /// O caminho e montado na HORA, e nao guardado num const de namespace: um
+    /// const std::string em escopo de namespace e construido ANTES do main,
+    /// portanto antes de Caminhos::Inicializar() descobrir a pasta base, e
+    /// capturaria o palpite de reserva.
+    std::string Caminho(const std::string& chefe) {
+        return Caminhos::Asset(PastaDoChefe::Arquivo(chefe, PastaDoChefe::kRegras));
     }
-    std::map<std::string, std::vector<Regra>> gConjuntos;
-    bool gArquivoLido = false;
 
-    void GarantirArquivoLido() {
-        if (gArquivoLido) return;
-        gArquivoLido = true;
+    /// UM CHEFE DE CADA VEZ, lido na primeira vez que alguem o pede.
+    std::map<std::string, RegrasLidas> gPorChefe;
 
-        std::ifstream arquivo(Caminho());
+    const RegrasLidas& Lidas(const std::string& chefe) {
+
+        const auto ja = gPorChefe.find(chefe);
+        if (ja != gPorChefe.end()) return ja->second;
+
+        RegrasLidas lidas;
+        const std::string caminho = Caminho(chefe);
+
+        std::ifstream arquivo(caminho);
         if (!arquivo.is_open()) {
-            SDL_Log("REGRAS: nao foi possivel abrir %s. Os ataques que dependem "
-                    "dele ficarao sem configuracao de projetil.", Caminho().c_str());
-            return;
+            SDL_Log("REGRAS: nao foi possivel abrir %s. Os ataques do chefe \"%s\" que "
+                    "dependem dele ficarao sem configuracao de projetil.",
+                    caminho.c_str(), chefe.c_str());
+        } else {
+            const std::string texto((std::istreambuf_iterator<char>(arquivo)),
+                                     std::istreambuf_iterator<char>());
+            lidas = LerRegras(texto);
+
+            for (const auto& p : lidas.problemas) {
+                SDL_Log("REGRAS em %s: %s", caminho.c_str(), p.c_str());
+            }
         }
 
-        const std::string texto((std::istreambuf_iterator<char>(arquivo)),
-                                 std::istreambuf_iterator<char>());
-        RegrasLidas lidas = LerRegras(texto);
-
-        for (const auto& p : lidas.problemas) {
-            SDL_Log("REGRAS em %s: %s", Caminho().c_str(), p.c_str());
-        }
-        gConjuntos = std::move(lidas.conjuntos);
-        SDL_Log("REGRAS: %zu conjunto(s) carregado(s) de %s", gConjuntos.size(), Caminho().c_str());
+        return gPorChefe.emplace(chefe, std::move(lidas)).first->second;
     }
 
     /// Traduz a forma nomeada: primeiro as que existem em codigo, depois o
@@ -107,14 +107,16 @@ namespace {
 
 }
 
-std::function<void(Projectile*, int)> ConfiguratorDeArquivo(const std::string& nomeDoConjunto) {
+std::function<void(Projectile*, int)> ConfiguratorDeArquivo(const std::string& chefe,
+                                                            const std::string& nomeDoConjunto) {
 
-    GarantirArquivoLido();
+    const RegrasLidas& lidas = Lidas(chefe);
 
-    const auto it = gConjuntos.find(nomeDoConjunto);
-    if (it == gConjuntos.end()) {
+    const auto it = lidas.conjuntos.find(nomeDoConjunto);
+    if (it == lidas.conjuntos.end()) {
         SDL_Log("REGRAS: nao existe conjunto chamado \"%s\" em %s. Os projeteis "
-                "deste ataque sairao sem configuracao.", nomeDoConjunto.c_str(), Caminho().c_str());
+                "deste ataque sairao sem configuracao.",
+                nomeDoConjunto.c_str(), Caminho(chefe).c_str());
         return [](Projectile*, int) {};
     }
 

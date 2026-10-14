@@ -14,11 +14,14 @@
 #include <SDL_log.h>
 
 #include "FasesDeAtaque.h"
+#include "PastaDoChefe.h"
 #include "RegrasDeAtaqueArquivo.h"
 #include "AttackParameters/AttackParams.h"
 #include "AttackParameters/BaloonAttackParams.h"
+#include "AttackParameters/ConsultaAttackParams.h"
 #include "BaseStrategies/AngledAttack.h"
 #include "BaseStrategies/BaloonAttack.h"
+#include "BaseStrategies/ConsultaAttack.h"
 #include "BaseStrategies/CircleSpreadAttack.h"
 #include "BaseStrategies/LaserAttack.h"
 #include "BaseStrategies/WaveAttack.h"
@@ -31,45 +34,46 @@
 
 namespace {
 
-    /// O caminho e montado na PRIMEIRA chamada, e nao na inicializacao estatica.
-    ///
-    /// A diferenca importa: um "const std::string" em escopo de namespace e
-    /// construido ANTES do main, portanto antes de Caminhos::Inicializar()
-    /// descobrir a pasta base. Ele capturava o palpite de reserva ("..") e o
-    /// arquivo passava a ser procurado relativo ao diretorio de onde o jogo foi
-    /// lancado - exatamente o problema que a resolucao de caminhos veio resolver.
-    /// O static DENTRO da funcao e construido na primeira chamada, que acontece
-    /// quando um chefe e montado, bem depois da inicializacao.
-    const std::string& Caminho() {
-        static const std::string c = Caminhos::Asset("Attacks/fases.json");
-        return c;
+    /// O caminho e montado na HORA, e nao guardado num const de namespace: um
+    /// const std::string em escopo de namespace e construido ANTES do main,
+    /// portanto antes de Caminhos::Inicializar() descobrir a pasta base, e
+    /// capturaria o palpite de reserva ("..") - o arquivo passaria a ser
+    /// procurado relativo ao diretorio de onde o jogo foi lancado, que e
+    /// exatamente o problema que a resolucao de caminhos veio resolver.
+    std::string Caminho(const std::string& chefe) {
+        return Caminhos::Asset(PastaDoChefe::Arquivo(chefe, PastaDoChefe::kFases));
     }
-    std::map<std::string, std::vector<DescricaoDeFase>> gConjuntos;
-    bool gArquivoLido = false;
 
-    void GarantirArquivoLido() {
-        if (gArquivoLido) return;
-        gArquivoLido = true;
+    /// UM CHEFE DE CADA VEZ, lido na primeira vez que alguem o pede. Montar o
+    /// Thiago nao abre mais os arquivos dos outros quatro.
+    std::map<std::string, FasesLidas> gPorChefe;
 
-        std::ifstream arquivo(Caminho());
+    const FasesLidas& Lidas(const std::string& chefe) {
+
+        const auto ja = gPorChefe.find(chefe);
+        if (ja != gPorChefe.end()) return ja->second;
+
+        FasesLidas lidas;
+        const std::string caminho = Caminho(chefe);
+
+        std::ifstream arquivo(caminho);
         if (!arquivo.is_open()) {
-            SDL_Log("FASES: nao foi possivel abrir %s. NENHUM chefe tera ataque: as fases "
-                    "dos quatro vivem neste arquivo, e nao ha mais configuracao de reserva "
-                    "em C++. Confira se a pasta Assets foi copiada junto com o executavel, "
-                    "e se o jogo esta rodando de um diretorio abaixo da raiz do projeto.",
-                    Caminho().c_str());
-            return;
+            SDL_Log("FASES: nao foi possivel abrir %s. O chefe \"%s\" nao tera ataque "
+                    "nenhum: as fases dele vivem nesse arquivo, e nao ha mais configuracao "
+                    "de reserva em C++. Confira se a pasta Assets foi copiada junto com o "
+                    "executavel, e se o jogo esta rodando de um diretorio abaixo da raiz "
+                    "do projeto.", caminho.c_str(), chefe.c_str());
+        } else {
+            const std::string texto((std::istreambuf_iterator<char>(arquivo)),
+                                     std::istreambuf_iterator<char>());
+            lidas = LerFases(texto);
+
+            for (const auto& p : lidas.problemas) {
+                SDL_Log("FASES em %s: %s", caminho.c_str(), p.c_str());
+            }
         }
 
-        const std::string texto((std::istreambuf_iterator<char>(arquivo)),
-                                 std::istreambuf_iterator<char>());
-        FasesLidas lidas = LerFases(texto);
-
-        for (const auto& p : lidas.problemas) {
-            SDL_Log("FASES em %s: %s", Caminho().c_str(), p.c_str());
-        }
-        gConjuntos = std::move(lidas.conjuntos);
-        SDL_Log("FASES: %zu conjunto(s) carregado(s) de %s", gConjuntos.size(), Caminho().c_str());
+        return gPorChefe.emplace(chefe, std::move(lidas)).first->second;
     }
 
     /// A unica parte que conhece as classes concretas de estrategia. Cresce uma
@@ -81,6 +85,7 @@ namespace {
         if (tipo == "WaveAttack")         return std::make_unique<WaveAttack>(spawner, boss);
         if (tipo == "BaloonAttack")       return std::make_unique<BaloonAttack>(spawner, boss);
         if (tipo == "LaserAttack")        return std::make_unique<LaserAttack>(spawner, boss);
+        if (tipo == "ConsultaAttack")     return std::make_unique<ConsultaAttack>(spawner, boss);
         return nullptr;
     }
 
@@ -133,6 +138,18 @@ namespace {
             balao->spawnPoints = a.balao->pontosDeSpawn;
             params = std::move(balao);
         }
+        else if (a.consulta) {
+            auto consulta = std::make_unique<ConsultaAttackParams>();
+            consulta->eixo = (a.consulta->eixo == "Coluna")
+                                 ? ConsultaAttackParams::Eixo::Coluna
+                                 : ConsultaAttackParams::Eixo::Linha;
+            if (a.consulta->linhas)    consulta->forma.linhas  = *a.consulta->linhas;
+            if (a.consulta->colunas)   consulta->forma.colunas = *a.consulta->colunas;
+            if (a.consulta->indice)    consulta->indice        = *a.consulta->indice;
+            if (a.consulta->aviso)     consulta->aviso         = *a.consulta->aviso;
+            if (a.consulta->invertido) consulta->invertido     = *a.consulta->invertido;
+            params = std::move(consulta);
+        }
         else {
             params = std::make_unique<AttackParams>();
         }
@@ -154,29 +171,27 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
         return false;
     }
 
-    GarantirArquivoLido();
+    const FasesLidas& lidas = Lidas(nomeDoConjunto);
 
-    const auto it = gConjuntos.find(nomeDoConjunto);
-    if (it == gConjuntos.end()) {
-        SDL_Log("FASES: nao existe conjunto chamado \"%s\" em %s.",
-                nomeDoConjunto.c_str(), Caminho().c_str());
+    if (lidas.fases.empty()) {
+        SDL_Log("FASES: %s nao trouxe nenhuma fase.", Caminho(nomeDoConjunto).c_str());
         return false;
     }
 
     // As transicoes sao conferidas ANTES de registrar qualquer coisa: um
     // conjunto pela metade e pior que nenhum, porque deixa o chefe atacando
     // numa fase e congelado na seguinte.
-    const auto problemas = ValidarTransicoes(it->second, nomeDoConjunto);
+    const auto problemas = ValidarTransicoes(lidas.fases, nomeDoConjunto);
     if (!problemas.empty()) {
         for (const auto& p : problemas) {
-            SDL_Log("FASES em %s: %s", Caminho().c_str(), p.c_str());
+            SDL_Log("FASES em %s: %s", Caminho(nomeDoConjunto).c_str(), p.c_str());
         }
-        SDL_Log("FASES: o conjunto \"%s\" foi recusado pela validacao. Nada foi registrado.",
-                nomeDoConjunto.c_str());
+        SDL_Log("FASES: as fases de \"%s\" foram recusadas pela validacao. "
+                "Nada foi registrado.", nomeDoConjunto.c_str());
         return false;
     }
 
-    for (const DescricaoDeFase& fase : it->second) {
+    for (const DescricaoDeFase& fase : lidas.fases) {
 
         for (const DescricaoDeAtaque& a : fase.ataques) {
 
@@ -207,7 +222,7 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
                 configurator = ConfiguratorDeRegras(a.regras);
             }
             else if (!a.regrasNome.empty()) {
-                configurator = ConfiguratorDeArquivo(a.regrasNome);
+                configurator = ConfiguratorDeArquivo(nomeDoConjunto, a.regrasNome);
             }
 
             boss->AddAttackPattern(fase.nome, std::move(estrategia), CriarParams(a),
@@ -220,7 +235,7 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
         boss->RegisterMovementStrategy(fase.nome, CriarMovimento(fase.movimento));
     }
 
-    SDL_Log("FASES: conjunto \"%s\" montado com %zu fase(s).",
-            nomeDoConjunto.c_str(), it->second.size());
+    SDL_Log("FASES: o chefe \"%s\" foi montado com %zu fase(s).",
+            nomeDoConjunto.c_str(), lidas.fases.size());
     return true;
 }

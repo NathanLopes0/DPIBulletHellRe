@@ -21,7 +21,10 @@ public:
         None,
         MainMenu,
         Identificacao,
+        CriacaoDePersonagem,
         Opcoes,
+        Ranking,
+        Atracao,
         StageSelect,
         Battle
     };

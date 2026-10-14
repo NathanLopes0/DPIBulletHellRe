@@ -32,7 +32,14 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Scenes/Identificacao.cpp
         Source/Scenes/Identificacao.h
         Source/Scenes/Opcoes.cpp
+        Source/Scenes/TelaDeRanking.cpp
+        Source/Scenes/Atracao.cpp
+        Source/Scenes/Atracao.h
+        Source/Scenes/FundoDeCena.cpp
+        Source/Scenes/FundoDeCena.h
         Source/Scenes/Opcoes.h
+        Source/Scenes/CriacaoDePersonagem.cpp
+        Source/Scenes/CriacaoDePersonagem.h
         Source/Scenes/MainMenu.h
         Source/Font.cpp
         Source/Font.h
@@ -41,10 +48,30 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Random.cpp
         Source/Math.cpp
         Source/Progresso.cpp
+        Source/Nota.cpp
+        Source/Nota.h
+        Source/Navegacao.cpp
+        Source/Navegacao.h
+        Source/Tabela.cpp
+        Source/Tabela.h
+        Source/Teclado.cpp
+        Source/Teclado.h
+        Source/Gabinete.cpp
+        Source/Gabinete.h
+        Source/Painel.cpp
+        Source/Painel.h
+        Source/Ranking.cpp
+        Source/Ranking.h
         Source/Matricula.cpp
         Source/Matricula.h
         Source/Materias.cpp
         Source/Materias.h
+        Source/Personagens.cpp
+        Source/Personagens.h
+        Source/PersonagensArquivo.cpp
+        Source/PersonagensArquivo.h
+        Source/ComporPersonagem.cpp
+        Source/ComporPersonagem.h
         Source/Relogio.cpp
         Source/Relogio.h
         Source/Exportacao.cpp
@@ -107,6 +134,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/FasesDeAtaqueArquivo.cpp
         Source/Attacks/FasesDeAtaqueArquivo.h
         Source/Attacks/ProjeteisDeChefe.cpp
+        Source/Attacks/PastaDoChefe.cpp
+        Source/Attacks/PastaDoChefe.h
         Source/Attacks/ProjeteisDeChefe.h
         Source/Attacks/ProjeteisDeChefeArquivo.cpp
         Source/Attacks/ProjeteisDeChefeArquivo.h
@@ -140,14 +169,17 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teachers/Bosses/Andre.h
         Source/Actors/Teachers/BossFactory/AndreFactory.cpp
         Source/Actors/Teachers/Bosses/Julio.cpp
+        Source/Actors/Teachers/Bosses/Thiago.cpp
         Source/Actors/Teachers/Bosses/Julio.h
         Source/Actors/Teachers/BossFactory/JulioFactory.cpp
+        Source/Actors/Teachers/BossFactory/ThiagoFactory.cpp
         Source/Actors/Teachers/BossFactory/JulioFactory.h
         Source/Actors/Teachers/BossFactory/AndreFactory.h
         Source/Attacks/BaseStrategies/BaloonAttack.cpp
         Source/Attacks/BaseStrategies/BaloonAttack.h
         Source/Attacks/AttackParameters/BaloonAttackParams.h
         Source/Attacks/BaseStrategies/LaserAttack.cpp
+        Source/Attacks/BaseStrategies/ConsultaAttack.cpp
         Source/Attacks/BaseStrategies/LaserAttack.h
         Source/Actors/ProjectilePool.h
 )
@@ -179,18 +211,43 @@ add_executable(dpi_tests
         tests/test_regras.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
+        tests/test_pasta_do_chefe.cpp
         tests/test_arquivos_de_dados.cpp
         tests/test_caminhos.cpp
         tests/test_progresso.cpp
+        tests/test_nota.cpp
+        tests/test_navegacao.cpp
+        tests/test_tabela.cpp
+        tests/test_teclado.cpp
+        tests/test_gabinete.cpp
+        tests/test_painel.cpp
+        tests/test_ranking.cpp
         tests/test_matricula.cpp
         tests/test_ficha.cpp
         tests/test_materias.cpp
+        tests/test_personagens.cpp
         tests/test_exportacao.cpp
         Source/Progresso.cpp
+        Source/Nota.cpp
+        Source/Nota.h
+        Source/Navegacao.cpp
+        Source/Navegacao.h
+        Source/Tabela.cpp
+        Source/Tabela.h
+        Source/Teclado.cpp
+        Source/Teclado.h
+        Source/Gabinete.cpp
+        Source/Gabinete.h
+        Source/Painel.cpp
+        Source/Painel.h
+        Source/Ranking.cpp
+        Source/Ranking.h
         Source/Matricula.cpp
         Source/Matricula.h
         Source/Materias.cpp
         Source/Materias.h
+        Source/Personagens.cpp
+        Source/Personagens.h
         Source/Relogio.cpp
         Source/Relogio.h
         Source/Exportacao.cpp
@@ -209,6 +266,8 @@ add_executable(dpi_tests
         Source/Attacks/FasesDeAtaque.cpp
         Source/Attacks/FasesDeAtaque.h
         Source/Attacks/ProjeteisDeChefe.cpp
+        Source/Attacks/PastaDoChefe.cpp
+        Source/Attacks/PastaDoChefe.h
         Source/Attacks/ProjeteisDeChefe.h
         Source/Math.cpp
         Source/Math.h

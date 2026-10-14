@@ -19,7 +19,7 @@ DrawTextComponent::DrawTextComponent(Actor *owner, const std::string &text, Font
     mTexto(text)
 {
     mTextSurface = mFont->RenderText(owner->GetScene()->GetGame()->GetRenderer(), text,
-                                     Vector3(1.0, 1.0, 1.0), fontSize, mLarguraDeQuebra);
+                                     mCor, fontSize, mLarguraDeQuebra);
 }
 
 DrawTextComponent::~DrawTextComponent()
@@ -32,13 +32,25 @@ void DrawTextComponent::SetText(const std::string &text)
     mTexto = text;
     SDL_DestroyTexture(mTextSurface);
     mTextSurface = mFont->RenderText(mOwner->GetScene()->GetGame()->GetRenderer(), text,
-                                     Vector3(1.0, 1.0, 1.0), mSize, mLarguraDeQuebra);
+                                     mCor, mSize, mLarguraDeQuebra);
 }
 
 void DrawTextComponent::SetLarguraDeQuebra(const unsigned largura)
 {
     if (largura == mLarguraDeQuebra) return;
     mLarguraDeQuebra = largura;
+    SetText(mTexto);
+}
+
+void DrawTextComponent::SetColor(const Vector3& cor)
+{
+    // Comparacao exata de float, e de proposito: as cores vem de constantes de
+    // Color, entao ou e literalmente a mesma constante ou e outra cor. Um
+    // operator== no Vector3 serviria aqui, mas convidaria a comparar posicoes e
+    // velocidades por igualdade exata no resto do jogo, que nao funciona.
+    if (cor.x == mCor.x && cor.y == mCor.y && cor.z == mCor.z) return;
+
+    mCor = cor;
     SetText(mTexto);
 }
 

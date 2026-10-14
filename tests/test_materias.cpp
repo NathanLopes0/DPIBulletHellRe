@@ -266,3 +266,250 @@ TEST_CASE("Materias: reordenar a lista NAO muda os codigos") {
     // ...mas o codigo, que e o que vai para o disco, continua "A".
     CHECK(antes.CodigoDe(antes.IndiceDe("A")) == depois.CodigoDe(depois.IndiceDe("A")));
 }
+
+// ---------------------------------------------------------------------------
+// A frase que explica por que a materia esta fechada
+//
+// A tela de selecao mostrava um losango escuro e nada mais: o aluno via que nao
+// dava para entrar e nao tinha como saber o que faltava. A frase vem da MESMA
+// regra que fecha a materia, entao ela nao pode explicar uma coisa e o jogo
+// exigir outra.
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Materias: materia que abre sempre nao tem o que explicar") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "INF 110", "coluna": 0, "desbloqueio": { "tipo": "sempre" } }
+      ]
+    })");
+    CHECK(l.ExigenciaDe(l.IndiceDe("A")).empty());
+}
+
+TEST_CASE("Materias: a exigencia cita o NOME em tela, nao o codigo") {
+    // O botao ao lado diz "INF 213"; o codigo gravado e "INF213". Citar o
+    // codigo mandaria o aluno procurar na tela uma materia que nao esta escrita
+    // daquele jeito em lugar nenhum.
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "INF213", "nome": "INF 213", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "INF250", "nome": "INF 250", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] } }
+      ]
+    })");
+    CHECK(l.ExigenciaDe(l.IndiceDe("INF250")) == "Precisa passar em INF 213");
+}
+
+TEST_CASE("Materias: a exigencia lista varias materias com virgula e 'e'") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "INF 110", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B", "nome": "INF 213", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "C", "nome": "INF 250", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "D", "nome": "TCC", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A", "B", "C"] } }
+      ]
+    })");
+    CHECK(l.ExigenciaDe(l.IndiceDe("D")) == "Precisa passar em INF 110, INF 213 e INF 250");
+}
+
+TEST_CASE("Materias: aprovacoes na coluna de tras sao 'a coluna anterior'") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B", "nome": "B", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "C", "nome": "C", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 0 } }
+      ]
+    })");
+    CHECK(l.ExigenciaDe(l.IndiceDe("C")) == "Precisa de 2 aprovacoes na coluna anterior");
+}
+
+TEST_CASE("Materias: coluna que NAO e a anterior aparece numerada a partir de 1") {
+    // Nada no formato obriga a regra a olhar para a coluna de tras. Quando ela
+    // olha para outra, dizer "anterior" seria mentira - e o aluno conta coluna
+    // olhando para a tela, da esquerda para a direita, comecando em um.
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B", "nome": "B", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "C", "nome": "C", "coluna": 3,
+          "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 0 } }
+      ]
+    })");
+    CHECK(l.ExigenciaDe(l.IndiceDe("C")) == "Precisa de 2 aprovacoes na coluna 1");
+}
+
+TEST_CASE("Materias: uma aprovacao so e dita no singular") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "C", "nome": "C", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 1, "coluna": 0 } }
+      ]
+    })");
+    CHECK(l.ExigenciaDe(l.IndiceDe("C")) == "Precisa de 1 aprovacao na coluna anterior");
+}
+
+TEST_CASE("Materias: indice fora da lista nao tem exigencia nem quebra") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } }
+      ]
+    })");
+    CHECK(l.ExigenciaDe(-1).empty());
+    CHECK(l.ExigenciaDe(99).empty());
+}
+
+TEST_CASE("Materias: a exigencia concorda com a regra que fecha a materia") {
+    // A PROPRIEDADE QUE IMPORTA. Nao basta a frase existir: ela tem de falar da
+    // mesma regra que Desbloqueada aplica. Aqui o aluno passa na materia que a
+    // frase cita e a porta abre - se a frase citasse outra, abriria sem ela.
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "INF110", "nome": "INF 110", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "INF213", "nome": "INF 213", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF110"] } }
+      ]
+    })");
+    const int fechada = l.IndiceDe("INF213");
+    const std::string frase = l.ExigenciaDe(fechada);
+
+    Progresso vazio;
+    CHECK_FALSE(l.Desbloqueada(fechada, vazio));
+    CHECK(frase.find(l.Por(l.IndiceDe("INF110"))->nome) != std::string::npos);
+
+    Progresso passou;
+    passou.RegistrarNota(l.IndiceDe("INF110"), 70.0f);
+    CHECK(l.Desbloqueada(fechada, passou));
+}
+
+// ---------------------------------------------------------------------------
+// O nome da disciplina e o professor
+//
+// Sao campos de APRESENTACAO: nao vao para o disco, nao entram em regra de
+// desbloqueio e nao escolhem chefe. O unico cuidado e que "professor" e
+// "chefe" sao coisas diferentes - a INF 330 e do Salles e ainda nao tem
+// batalha, enquanto o Salles ja e o chefe da INF 213.
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Materias: le o nome da disciplina e o professor") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "INF220", "nome": "INF 220",
+          "nomeCompleto": "Banco de Dados", "professor": "Thiago",
+          "coluna": 0, "chefe": "thiago", "desbloqueio": { "tipo": "sempre" } }
+      ]
+    })");
+    const Materias::Materia* m = l.Por(l.IndiceDe("INF220"));
+    REQUIRE(m != nullptr);
+    CHECK(m->nomeCompleto == "Banco de Dados");
+    CHECK(m->professor == "Thiago");
+}
+
+TEST_CASE("Materias: sem os campos novos a materia continua valendo, com eles vazios") {
+    // Toda materia anterior a estes campos cai aqui. Vazio quer dizer "nao
+    // mostre", e nao "mostre o codigo" - senao o codigo apareceria duas vezes
+    // na tela, uma como nome e outra como nome completo.
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } }
+      ]
+    })");
+    CHECK(l.problemas.empty());
+    const Materias::Materia* m = l.Por(l.IndiceDe("A"));
+    REQUIRE(m != nullptr);
+    CHECK(m->nomeCompleto.empty());
+    CHECK(m->professor.empty());
+}
+
+TEST_CASE("Materias: ter professor NAO e ter batalha") {
+    // A INF 330 de verdade: professor conhecido, chefe ainda nao feito. Se a
+    // tela lesse "professor" para decidir se da para jogar, ela mandaria o
+    // aluno para uma batalha que nao existe.
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "INF330", "nome": "INF 330",
+          "nomeCompleto": "Teoria e Modelos de Grafos", "professor": "Salles",
+          "coluna": 0, "desbloqueio": { "tipo": "sempre" } }
+      ]
+    })");
+    const Materias::Materia* m = l.Por(l.IndiceDe("INF330"));
+    REQUIRE(m != nullptr);
+    CHECK(m->professor == "Salles");
+    CHECK(m->chefe.empty());
+}
+
+// ---------------------------------------------------------------------------
+// A ligacao desenhada entre duas colunas
+//
+// A tela de selecao liga as colunas vizinhas com um tronco. O desenho so diz a
+// verdade se toda materia da coluna da frente depender mesmo da de tras - e
+// nada no formato obriga isso.
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Materias: coluna que depende toda da anterior pode ser ligada") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B", "nome": "B", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A"] } },
+        { "codigo": "C", "nome": "C", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A"] } }
+      ]
+    })");
+    CHECK(l.ColunaDependeDaAnterior(1));
+}
+
+TEST_CASE("Materias: a coluna 0 nunca e ligada - ela nao tem anterior") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } }
+      ]
+    })");
+    CHECK_FALSE(l.ColunaDependeDaAnterior(0));
+    CHECK_FALSE(l.ColunaDependeDaAnterior(-1));
+    CHECK_FALSE(l.ColunaDependeDaAnterior(9));   // coluna vazia
+}
+
+TEST_CASE("Materias: dependencia que PULA uma coluna nao vira linha") {
+    // O caso que faria o desenho mentir: a linha sairia da coluna 1 e a regra
+    // olharia para a 0.
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B", "nome": "B", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A"] } },
+        { "codigo": "C", "nome": "C", "coluna": 2,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A"] } }
+      ]
+    })");
+    CHECK(l.ColunaDependeDaAnterior(1));
+    CHECK_FALSE(l.ColunaDependeDaAnterior(2));
+}
+
+TEST_CASE("Materias: basta UMA materia fora do padrao para nao ligar a coluna") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B", "nome": "B", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A"] } },
+        { "codigo": "C", "nome": "C", "coluna": 1, "desbloqueio": { "tipo": "sempre" } }
+      ]
+    })");
+    CHECK_FALSE(l.ColunaDependeDaAnterior(1));
+}
+
+TEST_CASE("Materias: aprovadasNaColuna so liga quando aponta para a coluna de tras") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "nome": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B", "nome": "B", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "C", "nome": "C", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 0 } },
+        { "codigo": "D", "nome": "D", "coluna": 2,
+          "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 1, "coluna": 0 } }
+      ]
+    })");
+    CHECK(l.ColunaDependeDaAnterior(1));
+    CHECK_FALSE(l.ColunaDependeDaAnterior(2));
+}

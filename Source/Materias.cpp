@@ -63,6 +63,87 @@ int Lista::QuantasColunas() const {
     return maior + 1;
 }
 
+std::string Lista::ExigenciaDe(const int indice) const {
+
+    const Materia* m = Por(indice);
+    if (!m) return {};
+
+    const Desbloqueio& regra = m->desbloqueio;
+
+    switch (regra.tipo) {
+
+        case TipoDeDesbloqueio::Sempre:
+            return {};
+
+        case TipoDeDesbloqueio::AprovadoEm: {
+            if (regra.materias.empty()) return {};
+
+            std::string frase = "Precisa passar em ";
+            for (size_t i = 0; i < regra.materias.size(); ++i) {
+                if (i > 0) frase += (i + 1 == regra.materias.size()) ? " e " : ", ";
+
+                // O nome em tela quando ele existe; o codigo e o ultimo
+                // recurso, para uma regra que cite materia inexistente nao
+                // virar frase vazia (a leitura ja relatou o problema).
+                const Materia* exigida = Por(IndiceDe(regra.materias[i]));
+                frase += exigida ? exigida->nome : regra.materias[i];
+            }
+            return frase;
+        }
+
+        case TipoDeDesbloqueio::AprovadasNaColuna: {
+            std::string frase = (regra.quantas == 1)
+                                    ? "Precisa de 1 aprovacao "
+                                    : "Precisa de " + std::to_string(regra.quantas) + " aprovacoes ";
+
+            // "A coluna anterior" so quando ela e MESMO a anterior. Nada no
+            // formato obriga isso, e uma frase errada seria pior que uma seca.
+            frase += (regra.coluna == m->coluna - 1)
+                         ? "na coluna anterior"
+                         : "na coluna " + std::to_string(regra.coluna + 1);
+            return frase;
+        }
+    }
+
+    return {};
+}
+
+bool Lista::ColunaDependeDaAnterior(const int coluna) const {
+
+    if (coluna <= 0) return false;
+
+    const std::vector<int> daColuna = DaColuna(coluna);
+    if (daColuna.empty()) return false;
+
+    for (const int indice : daColuna) {
+        const Materia* m = Por(indice);
+        if (!m) return false;
+
+        switch (m->desbloqueio.tipo) {
+
+            case TipoDeDesbloqueio::Sempre:
+                // Aberta sempre: nao depende de coluna nenhuma, e uma linha
+                // saindo da coluna de tras diria que depende.
+                return false;
+
+            case TipoDeDesbloqueio::AprovadasNaColuna:
+                if (m->desbloqueio.coluna != coluna - 1) return false;
+                break;
+
+            case TipoDeDesbloqueio::AprovadoEm: {
+                if (m->desbloqueio.materias.empty()) return false;
+                for (const auto& codigo : m->desbloqueio.materias) {
+                    const Materia* exigida = Por(IndiceDe(codigo));
+                    if (!exigida || exigida->coluna != coluna - 1) return false;
+                }
+                break;
+            }
+        }
+    }
+
+    return true;
+}
+
 bool Lista::Desbloqueada(const int indice, const Progresso& progresso) const {
 
     const Materia* m = Por(indice);
@@ -198,6 +279,13 @@ Lista LerMaterias(const std::string& textoJson) {
         }
 
         m.nome = Texto(j, "nome", m.codigo);
+
+        // Os dois campos de apresentacao. Ausentes viram vazio de proposito, e
+        // nao o codigo: quem desenha decide se mostra ou nao, e um
+        // "nomeCompleto" que fosse "INF330" apareceria duas vezes na tela.
+        m.nomeCompleto = Texto(j, "nomeCompleto");
+        m.professor = Texto(j, "professor");
+
         m.chefe = Texto(j, "chefe");
 
         m.coluna = Inteiro(j, "coluna", -1);

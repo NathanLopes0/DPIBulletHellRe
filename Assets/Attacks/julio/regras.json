@@ -1,0 +1,52 @@
+{
+  // ==========================================================================
+  // AS REGRAS DE PROJETIL DO JULIO
+  //
+  // UMA PASTA POR CHEFE: Assets/Attacks/julio/. Cada chave e um conjunto de
+  // regras, e e por esse nome que um ataque do fases.json ao lado o pede:
+  //     "regras": "fase2"
+  //
+  // OS NOMES PERDERAM O PREFIXO DO PROFESSOR. Eram "fase2" porque
+  // um arquivo so com todos os conjuntos precisava evitar colisao; com uma pasta
+  // por chefe, o prefixo passou a repetir o nome da pasta.
+  //
+  // UMA REGRA = uma motion (como o projetil se move), modifiers (o que muda nele
+  // com o tempo), uma animacao e uma chance. Tudo opcional: regra so com
+  // "animacao" existe e e legitima.
+  //
+  // OS CAMPOS estao documentados em Documentacao/arquivos-de-dados.md.
+  // ==========================================================================
+  // --------------------------------------------------------------------------
+  // JULIO - INF 420
+  // --------------------------------------------------------------------------
+
+  // Fase 2: forca diferente entre par e impar. O jogador ve dois comportamentos
+  // no mesmo anel e aprende a distinguir qual bala corrige mais.
+  "fase2": [
+    { "quando": "pares",
+      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 3.2, "duracao": 2.4 } },
+    { "quando": "impares",
+      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 2.4 } }
+  ],
+
+  // Fase 3, primeiro ataque: voa reto 0.8s (o jogador VE que o tiro foi
+  // adiantado) e depois da UMA correcao curta de 0.7s.
+  //
+  // A correcao e deliberadamente fraca e limitada. Se fosse uma perseguicao de
+  // verdade, ela desfaria o contrajogo da previsao: a licao da fase e "seja
+  // imprevisivel", e uma bala que corrige de qualquer jeito faz ser imprevisivel
+  // deixar de ajudar. Fraca assim, o jogador ganha DOIS tempos de desvio, e a
+  // leitura fica "ele errou a previsao e tentou consertar na marra".
+  "fase3_previsao": [
+    { "escala": 2,
+      "motion": { "tipo": "Tracking", "atraso": 0.8, "forca": 1.6, "duracao": 0.7 } }
+  ],
+
+  // Fase final: um anel de 6, cada um dando uma volta antes de seguir em frente.
+  // Como o PathBehavior alinha o caminho com a direcao inicial de cada projetil,
+  // a MESMA forma sai girada de um jeito diferente para cada ponto do anel: seis
+  // lacos apontando para fora, sem escrever seis caminhos.
+  "final_laco": [
+    { "motion": { "tipo": "Path", "forma": "LacoApertado", "velocidade": 650 } }
+  ]
+}

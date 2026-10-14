@@ -37,6 +37,22 @@ void DrawAnimatedComponent::LoadSpriteSheet(const std::string& texturePath, cons
     // Load sprite sheet texture
     mSpriteSheetSurface = mOwner->GetScene()->GetGame()->LoadTexture(texturePath);
 
+    // ESVAZIA ANTES DE LER. Sem isto, chamar LoadSpriteSheet uma segunda vez
+    // ACRESCENTA os quadros novos aos antigos em vez de substitui-los.
+    //
+    // Hoje isso nao muda o que aparece na tela - conferido: a imagem sai
+    // identica com e sem esta linha -, porque todas as folhas do jogo tem o
+    // mesmo recorte, e os indices que AddAnimation registrou continuam caindo
+    // nos quadros certos. O que acontece e o vetor crescer quatro posicoes a
+    // cada recarga, sem limite: a tela de criacao de personagem recarrega a
+    // cada seta apertada.
+    //
+    // E no dia em que uma peca tiver outro recorte, os indices passariam a
+    // apontar para os quadros da folha ANTERIOR - um defeito silencioso e
+    // dificil de rastrear. Uma linha compra as duas coisas.
+    mSpriteSheetData.clear();
+    mUsingFallbackSheet = false;
+
     // Load sprite sheet data
     // O parse fica dentro de try/catch porque nlohmann::json LANCA excecao
     // quando o arquivo nao existe ou esta malformado. Sem isso, um .json com
@@ -143,8 +159,15 @@ void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
 
         // mRotation e guardado em radianos (ver Actor.h); SDL_RenderCopyEx
         // espera graus. Esta e a unica fronteira onde a conversao acontece.
+        //
+        // O SINAL TROCADO NAO E ENFEITE. O Actor guarda o angulo na convencao
+        // matematica - anti-horario, com Y para cima, que e o que
+        // Actor::GetForward e os Atan2(-v.y, v.x) de quem define rotacao
+        // assumem. O SDL gira no sentido HORARIO. Passar um pelo outro sem
+        // negar espelha a rotacao na vertical: a corrente do Salles descia para
+        // a direita e as setas dela apontavam para CIMA e para a direita.
         SDL_RenderCopyEx(renderer, mSpriteSheetSurface, &clipRect, &renderQuad,
-                         Math::ToDegrees(mOwner->GetRotation()), nullptr, flip);
+                         -Math::ToDegrees(mOwner->GetRotation()), nullptr, flip);
     }
 }
 
