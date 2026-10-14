@@ -212,33 +212,10 @@ public:
     /// duas matriculas sem que ninguem tivesse escolhido isso.
     void CancelarEntrada();
 
-    /// @brief A matricula de quem esta jogando, ou Matricula::kVisitante.
-    /// Por qual caminho do menu o aluno chegou a tela de matricula.
-    enum class ModoDeEntrada {
-        Novo,       ///< vai CRIAR um perfil; matricula que ja tem perfil e recusada
-        Carregar,   ///< vai ABRIR um perfil; matricula sem perfil e recusada
-
-        /// Aceita as duas: ha perfil, abre; nao ha, cria.
-        ///
-        /// E o modo do co-op. Numa dupla um pode ser veterano e o outro estar
-        /// jogando pela primeira vez; perguntar "novo ou carregar" antes de
-        /// saber quem sao obrigaria os dois ao mesmo caminho. Aqui a pergunta
-        /// e respondida pela propria matricula.
-        Qualquer
-    };
-
-    /// @brief Diz a que veio a proxima tela de matricula.
-    ///
-    /// Fica no Game, e nao num parametro da cena, pelo mesmo motivo de
-    /// mSelectedStage: quem cria as cenas e o ChangeScene, que nao conhece a
-    /// intencao de quem pediu a troca.
-    void DefinirModoDeEntrada(const ModoDeEntrada modo) { mModoDeEntrada = modo; }
-    [[nodiscard]] ModoDeEntrada ModoDeEntradaAtual() const { return mModoDeEntrada; }
-
     /**
      * @brief O que a proxima tela de ranking deve mostrar, e para onde ela volta.
      *
-     * Fica no Game pelo mesmo motivo de mSelectedStage e de mModoDeEntrada: quem
+     * Fica no Game pelo mesmo motivo de mSelectedStage: quem
      * cria as cenas e o ChangeScene, que nao conhece a intencao de quem pediu a
      * troca. Sem isto, a tela nao teria como saber se foi aberta pelo menu (media
      * do curso, volta para o menu) ou pela selecao de fases (uma materia so,
@@ -350,8 +327,6 @@ private:
     /// AvancarEntrada - e so durante a entrada que este numero quer dizer algo.
     size_t mPosicaoEntrando = 0;
 
-    /// A que veio a proxima tela de matricula. Ver DefinirModoDeEntrada.
-    ModoDeEntrada mModoDeEntrada = ModoDeEntrada::Novo;
     PedidoDeRanking mPedidoDeRanking{};
 
     //Selected Stage, used by Battle on ChangeScene()

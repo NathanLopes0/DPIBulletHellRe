@@ -66,18 +66,20 @@ namespace {
     // AS DUAS RECUSAS DE FLUXO ficam aqui, e nao em Matricula::MensagemDeErro,
     // porque nao falam da matricula: "89384" e igualmente valida nos dois casos.
     // Elas falam do DISCO, que a camada pura nao conhece nem deve conhecer.
-    const char* kJaExiste = "Ja existe um perfil com essa matricula. Use Carregar Perfil.";
-    const char* kNaoExiste = "Nao ha perfil com essa matricula. Confira, ou use Novo Jogo.";
-
-    // A TERCEIRA e so do co-op, e protege o save: duas sessoes do mesmo aluno
-    // apontam para o mesmo arquivo, e a ultima a fechar sobrescreve a outra.
+    // A UNICA RECUSA DE FLUXO que sobrou, e so do co-op: ela protege o save.
+    // Duas sessoes do mesmo aluno apontam para o mesmo arquivo, e a ultima a
+    // fechar sobrescreve a outra.
+    //
+    // Havia mais duas - "ja existe um perfil, use Carregar Perfil" e "nao ha
+    // perfil, use Novo Jogo" -, e as duas sairam com o Game::ModoDeEntrada:
+    // elas recusavam uma matricula valida por causa de uma escolha feita no
+    // menu, e essa escolha deixou de existir.
     const char* kJaEstaJogando = "Essa matricula ja esta no outro lado do painel.";
 }
 
 Identificacao::Identificacao(Game* game)
     : Scene(game, SceneType::Identificacao),
       mFonte(std::make_unique<Font>()),
-      mModo(game->ModoDeEntradaAtual()),
       mQuem(game->PosicaoEntrando()),
       mEmDupla(game->QuantosJogadores() > 1)
 {
@@ -124,17 +126,17 @@ void Identificacao::CriarTextos() {
     //
     // O TITULO DIZ A QUE VEIO. Sem isso as duas telas sao identicas, e quem
     // errou de opcao no menu so descobre quando a matricula e recusada.
-    // NA DUPLA O TITULO DIZ DE QUEM E A VEZ, e nao a que a tela veio. A mesma
-    // tela aparece duas vezes seguidas, iguais; sem isso o jogador 2 digitaria
-    // por cima do 1 achando que a primeira nao pegou. Ver requisitos-coop, RF2.
-    const std::string titulo = mEmDupla
-        ? ("JOGADOR " + std::to_string(mQuem + 1))
-        : (mModo == Game::ModoDeEntrada::Novo ? "NOVO JOGO" : "CARREGAR PERFIL");
+    // NA DUPLA O TITULO DIZ DE QUEM E A VEZ. A mesma tela aparece duas vezes
+    // seguidas, iguais; sem isso o jogador 2 digitaria por cima do 1 achando
+    // que a primeira nao pegou. Ver requisitos-coop, RF2.
+    //
+    // NO SOLO ELE DIZ SO O QUE A TELA PEDE. Dizia "NOVO JOGO" ou "CARREGAR
+    // PERFIL", conforme o caminho do menu - e esse caminho deixou de existir:
+    // a matricula responde sozinha se ha perfil.
+    const std::string titulo = mEmDupla ? ("JOGADOR " + std::to_string(mQuem + 1))
+                                        : std::string("SUA MATRICULA");
 
-    const char* ajuda = mEmDupla
-        ? "Digite sua matricula, ou entre como visitante"
-        : (mModo == Game::ModoDeEntrada::Novo ? "Digite sua matricula para criar o perfil"
-                                              : "Digite sua matricula para continuar");
+    const char* ajuda = "Digite sua matricula, ou entre como visitante";
 
     mTituloAtor = Texto(titulo, altura * 0.13f, 52, 760, 70);
     Texto(ajuda, altura * 0.21f, 28, 760, 42);
@@ -267,27 +269,20 @@ void Identificacao::Confirmar(const std::string& canonica) {
         return;
     }
 
-    // A PERGUNTA E A MESMA nos tres modos - "ja ha perfil?" -, e so a resposta
-    // aceitavel muda. Por isso uma tela so, e nao tres.
+    // A MATRICULA RESPONDE SOZINHA: ha arquivo, abre; nao ha, cria.
+    //
+    // Havia duas recusas aqui - "ja existe um perfil, use Carregar Perfil" e
+    // "nao ha perfil, use Novo Jogo" -, e as duas so existiam porque o menu
+    // obrigava o jogador a responder antes uma pergunta que ele nao tinha como
+    // responder. Tirado o caminho do menu, as recusas nao tem mais o que
+    // recusar.
     const bool jaTemPerfil = FichaArquivo::Existe(canonica);
 
-    if (mModo == Game::ModoDeEntrada::Novo && jaTemPerfil) {
-        mErro = kJaExiste;
-        return;
-    }
-    if (mModo == Game::ModoDeEntrada::Carregar && !jaTemPerfil) {
-        mErro = kNaoExiste;
-        return;
-    }
-    // Qualquer aceita os dois: e o modo do co-op, e quem responde e a matricula.
-
-    // Os tres modos passam por IdentificarAluno: para quem esta criando, nao ha
+    // IdentificarAluno vale nos dois casos: para quem esta criando, nao ha
     // arquivo para ler e a sessao comeca vazia, que e exatamente o certo.
     mGame->IdentificarAluno(canonica);
 
-    // QUEM NAO TEM PERFIL MONTA A PERSONAGEM, e a pergunta e essa - nao "a que
-    // modo viemos". Nos modos de um jogador da no mesmo (Novo so chega aqui sem
-    // perfil, Carregar so chega com), e no Qualquer e a unica forma de acertar.
+    // QUEM NAO TEM PERFIL MONTA A PERSONAGEM.
     if (!jaTemPerfil) {
         // AINDA NAO GRAVA NADA. O perfil so nasce quando a personagem e
         // confirmada (D5), e por isso dar ESC na tela de criacao deixa a

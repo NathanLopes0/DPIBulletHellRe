@@ -94,12 +94,6 @@ private:
 
     std::unique_ptr<Font> mFonte;
 
-    /// A que viemos. Vem do Game, posto pelo menu.
-    ///
-    /// Era um bool ("novo?"), e com tres modos um bool nao serve mais: o co-op
-    /// aceita os dois casos e descobre qual e pela propria matricula.
-    Game::ModoDeEntrada mModo = Game::ModoDeEntrada::Novo;
-
     /// QUAL POSICAO esta digitando, e se ha outra. Esta tela roda duas vezes no
     /// co-op (requisitos-coop, RF2), e quem diz de quem e a vez e o Game.
     size_t mQuem = 0;

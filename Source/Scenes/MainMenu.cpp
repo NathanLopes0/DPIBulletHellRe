@@ -19,15 +19,12 @@ namespace {
         const char* texto;
         Scene::SceneType destino;
 
-        /// So vale quando o destino e a tela de matricula; ver Game::ModoDeEntrada.
-        Game::ModoDeEntrada modo;
-
-        /// Quantos jogam. Como o modo, SO VALE quando o destino e a tela de
-        /// matricula: e ali que uma partida comeca.
+        /// Quantos jogam. SO VALE quando o destino e a tela de matricula: e ali
+        /// que uma partida comeca.
         ///
-        /// E a UNICA porta de entrada do co-op, e o campo existe em todas as
-        /// linhas de proposito - assim nenhuma opcao nova pode esquecer de
-        /// dizer quantos jogam e herdar o numero da anterior.
+        /// O campo existe em TODAS as linhas de proposito - assim nenhuma opcao
+        /// nova pode esquecer de dizer quantos jogam e herdar o numero da
+        /// anterior.
         Sessao::Modo jogadores = Sessao::Modo::Um;
     };
 
@@ -35,22 +32,22 @@ namespace {
     /// a navegacao, o desenho e o posicionamento saem todos do tamanho desta
     /// lista, e nao de numeros repetidos em tres lugares.
     ///
-    /// NOVO JOGO e CARREGAR PERFIL levam a MESMA tela, em modos diferentes: uma
-    /// copia da tela por modo divergiria na primeira correcao feita em so uma
-    /// delas.
+    /// ERAM CINCO, E ELAS SE SOBREPUNHAM NA TELA: "Carregar Perfil" saia
+    /// impresso por cima de "Dois Jogadores". O menu escolhia o passo pela
+    /// quantidade, mas o tamanho da letra e a altura da moldura continuavam
+    /// constantes - entao apertar o passo nao apertava nada. As duas coisas
+    /// foram consertadas: a lista encolheu e o tamanho agora SAI do passo.
+    ///
+    /// NOVO JOGO E CARREGAR PERFIL SUMIRAM, e com eles o Game::ModoDeEntrada.
+    /// A tela de matricula descobre sozinha quem ja tem perfil: ha arquivo,
+    /// abre; nao ha, cria. Perguntar antes obrigava o jogador a saber a
+    /// resposta de uma pergunta que a propria matricula responde - e numa dupla
+    /// obrigava os dois ao mesmo caminho.
     const Opcao kOpcoes[] = {
-        {"Novo Jogo",       Scene::SceneType::Identificacao, Game::ModoDeEntrada::Novo},
-        {"Carregar Perfil", Scene::SceneType::Identificacao, Game::ModoDeEntrada::Carregar},
-
-        // DOIS JOGADORES NAO PERGUNTA "novo ou carregar". Numa dupla um pode
-        // ser veterano e o outro estar jogando pela primeira vez, e obrigar os
-        // dois ao mesmo caminho deixaria metade das duplas de fora. Por isso o
-        // modo Qualquer: digita a matricula e a tela descobre sozinha.
-        {"Dois Jogadores",  Scene::SceneType::Identificacao, Game::ModoDeEntrada::Qualquer,
-                                                             Sessao::Modo::Dois},
-
-        {"Ranking",         Scene::SceneType::Ranking,       Game::ModoDeEntrada::Novo},
-        {"Opcoes",          Scene::SceneType::Opcoes,        Game::ModoDeEntrada::Novo},
+        {"Modo Solo",   Scene::SceneType::Identificacao, Sessao::Modo::Um},
+        {"Modo Dupla",  Scene::SceneType::Identificacao, Sessao::Modo::Dois},
+        {"Ranking",     Scene::SceneType::Ranking,       Sessao::Modo::Um},
+        {"Opcoes",      Scene::SceneType::Opcoes,        Sessao::Modo::Um},
     };
     constexpr int kQuantasOpcoes = static_cast<int>(sizeof(kOpcoes) / sizeof(kOpcoes[0]));
 
@@ -66,15 +63,38 @@ namespace {
     //
     // Agora o passo SAI da faixa e da quantidade. Acrescentar uma quinta aperta
     // as quatro em vez de empurrar alguem para fora.
-    constexpr float kTopoDasOpcoes  = 0.790f;   // logo abaixo da arte do titulo
-    constexpr float kFundoDasOpcoes = 0.955f;   // com folga para a moldura
-
-    constexpr int kTamanhoDaOpcao = 40;
+    // A FAIXA FOI MEDIDA NA TELA, e nao escolhida no escuro.
+    //
+    // O comentario antigo dizia que a arte do titulo ocupa ate y = 607. Fui
+    // conferir fotografando o menu e procurando o ultimo pixel branco da arte
+    // FORA da placa: ela acaba em 571 de 800, ou seja 0,714 - trinta e seis
+    // pixels acima do que estava escrito, e ninguem tinha notado porque o
+    // numero so servia para escolher estes dois.
+    //
+    // Com a faixa comecando em 0,775 sobram vinte pixels de respiro entre o
+    // "Bullet Hell" e a placa, treze entre a placa e o fundo da tela, e o passo
+    // fica em 46 px. Nao da para subir muito mais: a 0,76 a placa encosta na
+    // arte, e a 0,79 (o valor antigo) a letra cai no minimo legivel.
+    constexpr float kTopoDasOpcoes  = 0.775f;   // logo abaixo da arte do titulo
+    constexpr float kFundoDasOpcoes = 0.948f;   // com folga para a moldura e a placa
 
     // A moldura e larga o bastante para a maior opcao, e fixa: uma moldura que
     // mudasse de largura a cada passo chamaria mais atencao que a propria escolha.
     constexpr int kSelecaoLargura = 460;
-    constexpr int kSelecaoAltura  = 54;
+
+    /// O TETO da moldura e da letra. A ALTURA DE VERDADE sai do passo - ver
+    /// AlturaDaSelecao. Eram constantes, e e por isso que cinco opcoes se
+    /// sobrepuseram: o passo encolheu de 54 para 33 e a moldura continuou 54.
+    constexpr int kSelecaoAlturaMax = 54;
+    constexpr int kTamanhoMaximo = 40;
+
+    /// Abaixo disto a opcao deixa de ser legivel do outro lado do gabinete, e e
+    /// melhor a lista encolher do que a letra sumir.
+    constexpr int kTamanhoMinimo = 22;
+
+    /// Respiro entre uma moldura e a seguinte, e entre a letra e a moldura.
+    constexpr int kFolgaEntreMolduras = 8;
+    constexpr int kFolgaDoTexto = 14;
 
     /// Sobra de placa em volta das opcoes, em cima e embaixo.
     constexpr int kMargemDaPlaca = 10;
@@ -100,6 +120,41 @@ namespace {
         const float passo = (kFundoDasOpcoes - kTopoDasOpcoes)
                           / static_cast<float>(kQuantasOpcoes - 1);
         return alturaDaTela * (kTopoDasOpcoes + static_cast<float>(i) * passo);
+    }
+
+    /// Quantos pixels separam uma opcao da seguinte.
+    float PassoEmPixels(const float alturaDaTela) {
+        if (kQuantasOpcoes <= 1) return alturaDaTela * (kFundoDasOpcoes - kTopoDasOpcoes);
+        return alturaDaTela * (kFundoDasOpcoes - kTopoDasOpcoes)
+             / static_cast<float>(kQuantasOpcoes - 1);
+    }
+
+    /**
+     * @brief A MOLDURA NUNCA PASSA DO PASSO.
+     *
+     * Era uma constante de 54 ao lado de um passo que encolhe com a quantidade.
+     * O comentario da faixa dizia que acrescentar uma opcao "aperta as quatro
+     * em vez de empurrar alguem para fora" - e o passo apertava mesmo, mas a
+     * moldura e a letra nao. Com cinco opcoes o passo caiu para 33 px e as
+     * molduras de 54 passaram a se sobrepor: "Carregar Perfil" saia impresso
+     * por cima de "Dois Jogadores", e nada avisou.
+     *
+     * Agora o tamanho SAI do passo. Uma sexta opcao encolhe a letra ate o
+     * minimo legivel; passado dele, a faixa e que tem de crescer, e ai o menu
+     * nao cabe mais em silencio - ele fica pequeno demais e da para ver.
+     */
+    int AlturaDaSelecao(const float alturaDaTela) {
+        const int doPasso = static_cast<int>(PassoEmPixels(alturaDaTela)) - kFolgaEntreMolduras;
+        if (doPasso >= kSelecaoAlturaMax) return kSelecaoAlturaMax;
+        return doPasso > kTamanhoMinimo + kFolgaDoTexto ? doPasso
+                                                        : kTamanhoMinimo + kFolgaDoTexto;
+    }
+
+    /// E A LETRA CABE NA MOLDURA, pelo mesmo motivo.
+    int TamanhoDaOpcao(const float alturaDaTela) {
+        const int daMoldura = AlturaDaSelecao(alturaDaTela) - kFolgaDoTexto;
+        if (daMoldura > kTamanhoMaximo) return kTamanhoMaximo;
+        return daMoldura < kTamanhoMinimo ? kTamanhoMinimo : daMoldura;
     }
 }
 
@@ -155,7 +210,6 @@ void MainMenu::OnProcessInput(const Uint8 *keyState) {
         // "voce esta em 23o" sumiria do ranking de quem acabou de abri-lo.
         if (kOpcoes[mSelecionada].destino == Scene::SceneType::Identificacao) {
             mGame->DefinirModoDeJogo(kOpcoes[mSelecionada].jogadores);
-            mGame->DefinirModoDeEntrada(kOpcoes[mSelecionada].modo);
         }
 
         // O ranking aberto pelo menu e o GERAL - a media do curso. O de uma
@@ -207,7 +261,8 @@ void MainMenu::CriarOpcoes() {
     auto placa = std::make_unique<Actor>(this);
     placa->SetPosition(Vector2(largura / 2.0f, (primeira + ultima) / 2.0f));
     placa->AddComponent<DrawCaixaComponent>(kSelecaoLargura + 60,
-                                            static_cast<int>(ultima - primeira) + kSelecaoAltura
+                                            static_cast<int>(ultima - primeira)
+                                                + AlturaDaSelecao(altura)
                                                 + 2 * kMargemDaPlaca,
                                             kSemBorda, kFundoPlaca, 0, 85);
     AddActor(std::move(placa));
@@ -217,7 +272,7 @@ void MainMenu::CriarOpcoes() {
     // menor desenha primeiro.
     auto selecao = std::make_unique<Actor>(this);
     selecao->SetPosition(Vector2(largura / 2.0f, AlturaDaOpcao(0, altura)));
-    selecao->AddComponent<DrawCaixaComponent>(kSelecaoLargura, kSelecaoAltura,
+    selecao->AddComponent<DrawCaixaComponent>(kSelecaoLargura, AlturaDaSelecao(altura),
                                               kBordaDaSelecao, kFundoDaSelecao, 3, 90);
     mSelecaoAtor = selecao.get();
     AddActor(std::move(selecao));
@@ -228,8 +283,9 @@ void MainMenu::CriarOpcoes() {
         ator->SetPosition(Vector2(largura / 2.0f, AlturaDaOpcao(i, altura)));
 
         auto dc = ator->AddComponent<DrawTextComponent>(kOpcoes[i].texto, mMainMenuFont.get(),
-                                                        kSelecaoLargura - 40, kTamanhoDaOpcao + 6,
-                                                        kTamanhoDaOpcao, 100);
+                                                        kSelecaoLargura - 40,
+                                                        TamanhoDaOpcao(altura) + 6,
+                                                        TamanhoDaOpcao(altura), 100);
         dc->SetLarguraDeQuebra(kSelecaoLargura);
         // Sem esticar: a caixa e limite, nao destino. Ver DrawTextComponent.
         dc->SetAjustarAoTexto(true);
