@@ -741,13 +741,25 @@ void Battle::CheckCollisions() {
 
 }
 
+Player* Battle::JogadorEm(const size_t posicao) const {
+    return posicao < mJogadores.size() ? mJogadores[posicao] : nullptr;
+}
+
 Player* Battle::Alvo() const {
 
-    // Hoje ha sempre um. O revezamento entre os dois (requisitos-coop, D3) NAO
-    // entra aqui como "um a cada chamada": o laser pergunta duas vezes no mesmo
-    // disparo, e trocaria de alvo no meio do tracado. Ele entra no incremento
-    // 4, junto com quem souber dizer que um disparo comecou.
-    return mJogadores.empty() ? nullptr : mJogadores.front();
+    // SEM REVEZAR AQUI DENTRO: o laser pergunta duas vezes no mesmo disparo (o
+    // nulo e a posicao) e trocaria de alvo entre uma e outra. Quem passa a vez
+    // e RevezarAlvo, chamado por quem sabe que um disparo comecou.
+    if (mJogadores.empty()) return nullptr;
+    return mVezDoAlvo < mJogadores.size() ? mJogadores[mVezDoAlvo] : mJogadores.front();
+}
+
+void Battle::RevezarAlvo() {
+
+    // O "% tamanho" e o que faz isto nao dar nada com um jogador: 0 + 1 = 1, e
+    // 1 % 1 = 0. Nao ha um caminho para um jogador e outro para dois.
+    if (mJogadores.empty()) { mVezDoAlvo = 0; return; }
+    mVezDoAlvo = (mVezDoAlvo + 1) % mJogadores.size();
 }
 
 float Battle::PorJogador(const float bruto) const {

@@ -124,9 +124,36 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
     auto projManager = battleScene->GetProjectileManager();
     if (!projManager) { return; }
 
+    // O REVEZAMENTO E AQUI, E SO AQUI.
+    //
+    // Este e o unico lugar por onde todo ataque de todo chefe passa, e e por
+    // isso que D3 cabe em duas linhas: ler de quem e a vez, e passa-la depois
+    // do disparo. Dentro de Execute, Alvo() devolve o mesmo aluno do comeco ao
+    // fim - o laser pergunta duas vezes e as duas dao a mesma resposta.
+    //
+    // UMA RAJADA E UM DISPARO. Os vinte projeteis de um leque miram o mesmo
+    // aluno; revezar dentro da rajada espalharia metade para cada lado e nao
+    // seria mira nenhuma.
+    const size_t alvoDoDisparo = battleScene->IndiceDoAlvo();
+
     // ---------- EXECUTA O ATAQUE ---------- //
     auto projectiles = attackDef.strategy->Execute(*(attackDef.params));
     // ---------- ------- - ------ ---------- //
+
+    // CADA PROJETIL SAI DONO DO SEU ALVO. Sem isto, os que perseguem leriam "de
+    // quem e a vez" a cada quadro e trocariam de rumo no meio do voo, todos
+    // juntos, a cada disparo novo. Ver BossProjectile::DefinirAlvo.
+    for (const auto& projetil : projectiles) {
+        if (auto* doChefe = dynamic_cast<BossProjectile*>(projetil.get())) {
+            doChefe->DefinirAlvo(alvoDoDisparo);
+        }
+    }
+
+    // A VEZ PASSA DEPOIS DO DISPARO, e nao antes. Antes, o primeiro ataque da
+    // batalha saia mirado no jogador 2 - a vez comeca em 0 e passar a vez antes
+    // de atirar a levava para 1 sem ninguem ter sido mirado. Nao muda o
+    // equilibrio ao longo da batalha, e muda o que o jogador 1 ve no comeco.
+    battleScene->RevezarAlvo();
 
     // Depois de executar, aplicar a personalização lambda, se existir
     if (attackDef.configurator) {

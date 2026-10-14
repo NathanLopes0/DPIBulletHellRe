@@ -140,10 +140,17 @@ de dezenas de projéteis ao mesmo tempo.
 
 A alternância exige que **cada projétil guarde o alvo que tinha ao nascer**.
 Isso é mudança no `BossProjectile` e no caminho que o cria, e não cabia junto
-com pôr o segundo aluno em campo. Virou o incremento 5.
+com pôr o segundo aluno em campo. Virou o incremento 5, **feito**.
 
-Até lá, todos os ataques mirados miram o jogador 1 — o que é jogável e
-honestamente mais difícil para ele que para o parceiro.
+Como ficou: cada projétil guarda a **posição** do alvo (0 ou 1), e não o
+ponteiro — os projéteis vêm de um pool que vive no `Game` e sobrevive à troca
+de batalha, e um ponteiro guardado apontaria para um aluno já destruído. Quem
+põe é `Boss::ExecuteAttack`, na leva inteira de uma vez, porque **uma rajada é
+um disparo**: os vinte projéteis de um leque miram o mesmo aluno.
+
+E a vez passa **depois** do disparo, não antes. Antes, o primeiro ataque da
+batalha saía mirado no jogador 2 — a vez começa em 0, e passá-la antes de
+atirar a levava para 1 sem ninguém ter sido mirado.
 
 ### 2.2 — O que fica singular na batalha, e por quê (D2, D8)
 
@@ -170,16 +177,29 @@ seja sempre a mesma chave, jogue quem jogar na posição 1.
 
 ### 2.4 — O menu ganha um caminho, não uma tela (D1)
 
-"Dois jogadores" entra na tabela `kOpcoes` do `MainMenu`, que já deriva
-navegação, desenho e espaçamento do tamanho da lista — acrescentar uma opção é
-acrescentar uma linha. O que muda depois dela é o **número de identificações**:
-duas em sequência, a segunda com o mesmo `Identificacao`, em outro modo.
+"Modo Dupla" entra na tabela `kOpcoes` do `MainMenu`. O que muda depois dela é
+o **número de identificações**: duas em sequência, a mesma tela `Identificacao`.
+
+**O menu encolheu em vez de crescer.** A opção entrou como quinta, e as cinco
+passaram a se sobrepor em tela: "Carregar Perfil" saía impresso por cima de
+"Dois Jogadores". O menu derivava o *passo* da quantidade, mas o tamanho da
+letra e a altura da moldura eram constantes — apertar o passo não apertava
+nada, e nada avisou.
+
+A correção foi dupla. O tamanho passou a sair do passo, e **"Novo Jogo" e
+"Carregar Perfil" sumiram**, junto com o `Game::ModoDeEntrada` inteiro: a tela
+de matrícula descobre sozinha quem já tem perfil — há arquivo, abre; não há,
+cria. Perguntar antes obrigava o jogador a responder uma pergunta que a própria
+matrícula responde, e numa dupla obrigava os dois ao mesmo caminho.
+
+O menu ficou: **Modo Solo, Modo Dupla, Ranking, Opções**.
 
 ## 3. Requisitos funcionais
 
 ### RF1 — Menu
-Uma quinta opção, "Dois jogadores". As quatro existentes continuam entrando em
-modo de um jogador.
+Quatro opções: **Modo Solo, Modo Dupla, Ranking, Opções**. O modo é a única
+coisa que o menu decide sobre uma partida — quem é novo e quem é veterano a
+tela de matrícula descobre sozinha (2.4).
 
 ### RF2 — Identificação em dupla
 A tela de matrícula roda duas vezes, anunciando de quem é a vez. Cada uma aceita
@@ -316,8 +336,9 @@ Cada um compila, passa na suíte e pode ser jogado.
 4. ~~**O segundo jogador em campo.**~~ **Feito.** Dois `Player`, cada um no seu
    painel e com a sua personagem, colisões para os dois, a divisão de 2.1, uma
    barra de nota, e a mesma nota gravada na ficha dos dois.
-5. **A alternância do alvo (D3).** Cada projétil passa a guardar o alvo que
-   tinha ao nascer, e aí o revezamento por disparo fica possível — ver 2.1b.
+5. ~~**A alternância do alvo (D3).**~~ **Feito.** Cada projétil guarda a
+   posição do alvo que tinha ao nascer, e o revezamento acontece uma vez por
+   disparo, em `Boss::ExecuteAttack` — ver 2.1b.
 6. **Os dois rankings.** Ficha versão 5, o recorde de co-op com parceiro, o
    ranking de duplas e o botão que alterna na tela.
 7. **A medição.** Com o co-op jogável, medir a nota de uma dupla contra a de um

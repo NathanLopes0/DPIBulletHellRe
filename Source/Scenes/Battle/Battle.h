@@ -68,17 +68,39 @@ public:
      * posicao) e as duas tem de dar o mesmo jogador; um laser que trocasse de
      * alvo no meio do tracado seria ruido, nao dificuldade.
      *
-     * POR ENQUANTO DEVOLVE SEMPRE O JOGADOR 1. O revezamento (requisitos-coop,
-     * D3) nao cabe aqui dentro: tres dos chamadores sao do BossProjectile e
-     * perguntam A CADA QUADRO, enquanto o projetil voa - e um projetil
-     * perseguidor trocaria de alvo no meio do voo. Alternar exige que cada
-     * projetil guarde o alvo que tinha ao nascer, e isso e o incremento 5.
-     * Ver requisitos-coop.md, secao 2.1b.
+     * ELA NAO PASSA A VEZ. Quem passa e RevezarAlvo, uma vez por disparo: se
+     * Alvo() revezasse sozinha, o laser trocaria de alvo entre a verificacao de
+     * nulo e a leitura da posicao, duas linhas depois.
      *
      * Devolve nullptr quando nao ha ninguem em campo, que acontece de verdade
      * entre o Load e a criacao do jogador - os doze chamadores ja tratavam isso.
      */
     [[nodiscard]] Player* Alvo() const;
+
+    /**
+     * @brief Em qual POSICAO esta a vez.
+     *
+     * Quem precisa guardar o alvo guarda este numero, e NAO o ponteiro: os
+     * projeteis vem de um pool que vive no Game, entao um deles pode
+     * sobreviver a batalha que o criou - e um ponteiro para um jogador da
+     * batalha passada seria lixo apontando para memoria liberada.
+     */
+    [[nodiscard]] size_t IndiceDoAlvo() const { return mVezDoAlvo; }
+
+    /// O jogador de uma posicao, ou nullptr fora da lista. E como um projetil
+    /// resolve o numero que guardou.
+    [[nodiscard]] Player* JogadorEm(size_t posicao) const;
+
+    /**
+     * @brief PASSA A VEZ para o proximo jogador.
+     *
+     * Chamado UMA vez por disparo, em Boss::ExecuteAttack - o unico lugar por
+     * onde todo ataque de todo chefe passa. Por disparo, e nao por quadro
+     * (requisitos-coop, D3).
+     *
+     * Com um jogador em campo nao faz nada observavel.
+     */
+    void RevezarAlvo();
     [[nodiscard]] ProjectileManager* GetProjectileManager() const { return mProjectileManager.get(); }
 
     SDL_FRect GetPlayfieldBounds() const override;
@@ -207,6 +229,9 @@ private:
 
     /// OS JOGADORES, em vez de um. Ver Jogadores() e Alvo().
     std::vector<Player*> mJogadores;
+
+    /// De quem e a vez de ser mirado. Ver RevezarAlvo.
+    size_t mVezDoAlvo = 0;
 
     // O GERENTE DE PROJÉTEIS: Um sistema especializado, possuído pela cena
     std::unique_ptr<ProjectileManager> mProjectileManager;
