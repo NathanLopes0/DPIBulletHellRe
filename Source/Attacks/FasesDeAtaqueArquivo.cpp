@@ -95,10 +95,16 @@ namespace {
      *   RandomWander     a = intervalo entre destinos (s), b = velocidade (px/s)
      *   HoverAbovePlayer a = velocidade (px/s),          b = altura acima do jogador
      *   GoToCenter       nao usa nenhum dos dois
+     *   Orbitar          a = raio (px),                  b = voltas por segundo
+     *   Varredura        a = velocidade (px/s),          b = margem das bordas (px)
+     *   Mergulho         a = velocidade (px/s),          b = profundidade (px)
      */
     std::unique_ptr<IMovementStrategy> CriarMovimento(const DescricaoDeMovimento& m) {
         if (m.tipo == "RandomWander")     return std::make_unique<RandomWanderStrategy>(m.a, m.b);
         if (m.tipo == "HoverAbovePlayer") return std::make_unique<HoverAbovePlayerStrategy>(m.a, m.b);
+        if (m.tipo == "Orbitar")          return std::make_unique<OrbitarStrategy>(m.a, m.b);
+        if (m.tipo == "Varredura")        return std::make_unique<VarreduraStrategy>(m.a, m.b);
+        if (m.tipo == "Mergulho")         return std::make_unique<MergulhoStrategy>(m.a, m.b);
         return std::make_unique<GoToCenterStrategy>();
     }
 

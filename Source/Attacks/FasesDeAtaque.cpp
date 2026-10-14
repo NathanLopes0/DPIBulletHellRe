@@ -14,8 +14,23 @@ namespace {
         "AngledAttack", "CircleSpreadAttack", "WaveAttack", "BaloonAttack", "LaserAttack", "ConsultaAttack"
     };
     const std::vector<std::string> kMovimentos = {
-        "RandomWander", "HoverAbovePlayer", "GoToCenter"
+        "RandomWander", "HoverAbovePlayer", "GoToCenter",
+        // As tres do "o movimento e o ataque" - ver MovementStrategies.h.
+        "Orbitar", "Varredura", "Mergulho"
     };
+
+    /// Os nomes aceitos, para a mensagem de erro. DERIVADA da lista acima, e
+    /// nao escrita a mao ao lado dela: a frase antiga citava tres movimentos
+    /// por extenso, e acrescentar um quarto sem lembrar dela faria o erro
+    /// ensinar uma lista incompleta justamente a quem acabou de errar o nome.
+    std::string MovimentosAceitos() {
+        std::string s;
+        for (size_t i = 0; i < kMovimentos.size(); ++i) {
+            if (i > 0) s += (i + 1 == kMovimentos.size()) ? " ou " : ", ";
+            s += kMovimentos[i];
+        }
+        return s;
+    }
     /// "None" NAO entra: a propria BaloonAttack recusa side == None.
     const std::vector<std::string> kLadosDeBalao = {"Down", "Left", "Right", "Up"};
     const std::vector<std::string> kEixosDeConsulta = {"Linha", "Coluna"};
@@ -54,7 +69,7 @@ namespace {
         m.tipo = Texto(j, "tipo", "GoToCenter");
         if (!MovimentoExiste(m.tipo)) {
             problemas.emplace_back(onde + "movimento \"" + m.tipo +
-                                   "\" nao existe (use RandomWander, HoverAbovePlayer ou GoToCenter)");
+                                   "\" nao existe (use " + MovimentosAceitos() + ")");
             m.tipo = "GoToCenter";
         }
         m.a = Campo(j, "a", 0.0f);

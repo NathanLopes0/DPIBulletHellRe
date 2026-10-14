@@ -3,128 +3,179 @@
   // AS FASES DO VLADIMIR (INF 331 - Linguagens Formais e Automatos)
   //
   // AS QUATRO FASES SAO A HIERARQUIA DE CHOMSKY, um nivel por fase. Nao e
-  // tema: e a estrutura da disciplina, e a batalha sobe por ela. O chefe
-  // comeca regular e termina em maquina de Turing, e cada nivel pede do
-  // jogador exatamente o que aquele nivel pede de uma maquina.
+  // tema: e a estrutura da disciplina, e a batalha sobe por ela.
   //
   //   StateOne    Regular            (ab)*      um laco de memoria finita
   //   StateTwo    Livre de contexto  a^n b^n    contar exige uma pilha
-  //   StateThree  Automato de pilha  w . w^R    a pilha desempilha ao contrario
-  //   StateFinal  Maquina de Turing             a fita, e quem nunca decide
+  //   StateThree  Automato de pilha             a pilha, desenhada de lado
+  //   StateFinal  Maquina de Turing             a fita, lida e reescrita
+  //
+  // O MOVIMENTO DO CHEFE E O ATAQUE, E E ASSIM EM TODAS AS QUATRO.
+  //
+  // A primeira versao punha GoToCenter em todas, com a justificativa de que
+  // "uma palavra precisa de origem fixa para ser lida como palavra". Isso
+  // estava errado de um jeito que so jogando aparece: uma palavra se escreve
+  // com a caneta ANDANDO. Com o chefe parado, cada rajada caia na mesma coluna
+  // do meio, a tela ficava vazia dos lados, e a fase nao tinha o que olhar.
+  //
+  // Agora cada fase tem o GESTO dela, e o gesto e a ideia da fase:
+  //
+  //   Orbitar    o laco da estrela de Kleene - a volta que repete
+  //   Varredura  o ir-e-voltar de a^n b^n, e a cabeca da fita de Turing
+  //   Mergulho   empilhar e desempilhar - a profundidade E a altura da pilha
+  //
+  // Ver Source/Movements/MovementStrategies.h.
   //
   // OS NOMES DE FASE NAO SAO LIVRES: a maquina de estados procura por texto, e
   // so StateOne, StateTwo, StateThree e StateFinal existem. StateFinal e
   // OBRIGATORIO, mesmo num chefe de tres fases - sem ele, uma nota entre 40 e
   // 59 ao fim da terceira manda a FSM para um estado que nao existe e o chefe
   // CONGELA, sem travar o jogo e sem avisar em tela.
-  //
-  // ESTE E O INCREMENTO 1: o esqueleto. StateOne ja e o (ab)* de verdade -
-  // ele e o padrao mais simples da hierarquia e servia de alfabeto visual para
-  // o resto, entao nao fazia sentido deixa-lo provisorio. As outras tres estao
-  // jogaveis e MARCADAS COMO PROVISORIAS no comentario de cada uma: os padroes
-  // de verdade sao o incremento 2.
-  //
-  // GoToCenter em todas, de proposito. As rajadas do Vladimir sao PALAVRAS, e
-  // uma palavra precisa de uma origem fixa para ser lida como uma: com o chefe
-  // vagando, cada simbolo sai de um lugar diferente e a fila deixa de ser fila.
-  // E o mesmo motivo do GoToCenter na fase 1 do Salles.
   // ==========================================================================
 
-  // FASE 1 - REGULAR: (ab)*
+  // FASE 1 - REGULAR: (ab)*   |   gesto: A ORBITA
   //
-  // A ESTRELA DE KLEENE, e a fase que ensina a ler o resto da batalha. Doze
-  // simbolos em fila indiana ("angulo": 0, como a lista do Salles), alternando
-  // ambar e azul, com o wobble de cada letra para um lado - a fila vira uma
-  // tranca, e a repeticao do par "ab" fica visivel de longe.
+  // A ESTRELA DE KLEENE E UM LACO QUE REPETE, e a orbita e o laco. O chefe dá
+  // voltas sem parar deixando simbolos pelo anel; cada volta escreve um anel, e
+  // a repeticao fica visivel como repeticao.
   //
-  // O COOLDOWN E LONGO (2,2s) PARA A REPETICAO SER O ASSUNTO. A fase inteira e
-  // sobre reconhecer um laco; rajadas em cima umas das outras virariam ruido e
-  // o laco sumiria no meio.
+  // 0,16 VOLTA POR SEGUNDO = 6,25s por volta, e a fase dura 17s: da duas voltas
+  // e meia. Mais rapido viraria um borrao e a repeticao sumiria no movimento;
+  // mais devagar nao fecharia o anel dentro da fase, e um laco que nao fecha
+  // nao se le como laco.
+  //
+  // O LEQUE DE 40 GRAUS espalha cada rajada em torno da direcao do tiro, e e o
+  // que enche o campo junto com a orbita: o anel tem largura, e nao e um fio.
+  //
+  // UMA RAJADA A CADA 0,9s, e nao 1,1: na foto do quadro 700 a fase estava com
+  // o movimento certo e simbolos de menos - oito na tela inteira. Dez a cada
+  // 0,9 dao onze por segundo contra os sete de antes, e a trilha da orbita
+  // passa a ser continua em vez de tracejada.
   "StateOne": {
     "duracao": 17,
     "proximo": "StateTwo",
-    "movimento": { "tipo": "GoToCenter" },
+    "movimento": { "tipo": "Orbitar", "a": 230, "b": 0.16 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Simbolo",
-        "projeteis": 12, "velocidade": 300, "angulo": 0, "intervalo": 0.13,
-        "cooldown": 2.2,
+        "projeteis": 10, "velocidade": 250, "angulo": 40, "intervalo": 0.06,
+        "cooldown": 0.9,
         "regras": "kleene" }
     ]
   },
 
-  // FASE 2 - LIVRE DE CONTEXTO: a^n b^n
+  // FASE 2 - LIVRE DE CONTEXTO: a^n b^n   |   gesto: A VARREDURA
   //
-  // Doze simbolos numa fila so: seis "a" e depois seis "b", curvando para
-  // lados opostos. A palavra e lida no TEMPO, e contar o primeiro trecho e
-  // saber o segundo - que e o que nenhum automato finito consegue fazer, e por
-  // que esta linguagem precisa de uma pilha.
+  // Doze simbolos: seis "a" e depois seis "b". A palavra e lida no TEMPO, e
+  // contar o primeiro trecho diz quando o segundo comeca.
   //
-  // "angulo": 0 - UMA FILA, E NAO UM LEQUE. Num leque os doze saem juntos e a
-  // palavra nao tem comeco nem fim; a fila e o que faz "primeiro os a, depois
-  // os b" existir como ordem. Quem separa os dois trechos no espaco e o wobble
-  // das regras, e nao o angulo de disparo.
+  // QUEM DEITA A PALAVRA E O LEQUE, E NAO A VARREDURA. Escrevi o contrario
+  // aqui e estava errado - a foto do quadro 1700 mostrou a palavra numa COLUNA
+  // vertical enquanto o chefe ja tinha varrido 200 pixels para longe dela.
   //
-  // O COOLDOWN E MAIS LONGO QUE O DA FASE 1 (2,8 contra 2,2) porque a palavra
-  // e maior: a fila de doze leva 1,32s so para nascer, e rajadas em cima umas
-  // das outras tirariam do jogador o silencio em que ele conta.
+  // O motivo esta em WaveAttack.cpp: a rajada inteira nasce em
+  // params.firePosition, que e lida UMA vez quando o ataque dispara. O
+  // "intervalo" atrasa o DESPERTAR de cada simbolo, e nao o nascimento - os
+  // doze ja estao no mesmo ponto desde o primeiro quadro. O chefe nao e uma
+  // caneta que arrasta tinta; ele e um carimbo.
+  //
+  // O leque, sim, distribui: angleStart + i * angleStep, EM ORDEM DE INDICE.
+  // Com 70 graus a palavra sai escrita num arco, o primeiro "a" numa ponta e o
+  // ultimo "b" na outra - e a contagem vira TAMANHO DO TRECHO COLORIDO, que e
+  // ainda mais legivel do que contar um por um.
+  //
+  // A VARREDURA CONTINUA IMPORTANDO, so que entre palavras e nao dentro de
+  // uma: com cooldown 3,0 e 170 px/s, duas palavras seguidas nascem a 510
+  // pixels uma da outra, e e isso que enche a largura.
   "StateTwo": {
     "duracao": 17,
     "proximo": "StateThree",
-    "movimento": { "tipo": "GoToCenter" },
+    "movimento": { "tipo": "Varredura", "a": 170, "b": 150 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Simbolo",
-        "projeteis": 12, "velocidade": 240, "angulo": 0, "intervalo": 0.07,
-        "cooldown": 2.8,
+        "projeteis": 12, "velocidade": 250, "angulo": 70, "intervalo": 0.09,
+        "cooldown": 3.0,
         "regras": "blocos" }
     ]
   },
 
-  // FASE 3 - AUTOMATO DE PILHA: w . w^R   [PROVISORIA - incremento 2]
+  // FASE 3 - AUTOMATO DE PILHA   |   gesto: O MERGULHO
   //
-  // O que esta aqui: a metade "empilhar". Os simbolos sobem, PARAM no alto por
-  // 1,2s (viram parede, com colisor) e voltam pelo caminho que fizeram.
+  // EMPILHAR E DESCER, DESEMPILHAR E SUBIR. A profundidade do chefe e a altura
+  // da pilha, e os simbolos saem PARA OS LADOS em vez de para baixo - cada
+  // nivel vira uma linha horizontal no campo, e a pilha fica desenhada.
   //
-  // O que FALTA: eles voltarem na ORDEM INVERSA, que e o que separa uma pilha
-  // de uma fila. Da para fazer so em dados - "indices" mais um modifier
-  // Activate com atraso proporcional a (n - i) -, e e o incremento 2.
+  // NAO HA "angulo" AQUI, E ISSO NAO E ESQUECIMENTO.
+  //
+  // CircleSpreadAttack IGNORA params.angle: o passo dela e 360/n, sempre
+  // (CircleSpreadAttack.cpp). Eu tinha escrito "angulo": 150 e depois 260
+  // tentando achatar o leque, e as duas vezes era TEXTO MORTO - o leitor
+  // aceita o campo, a estrategia nao o le, e nada avisa. Perdi uma medicao
+  // inteira achando que o arnes e que nao estava pegando o arquivo.
+  //
+  // Entao o que se controla aqui e a QUANTIDADE. Com 10 simbolos a abertura
+  // entre eles e de 36 graus, buraco de sobra para passar sem encostar: medido,
+  // a fase dava ZERO acerto em dezessete segundos e a nota subia para 90,98.
+  // Com 18 a abertura cai para 20 graus.
+  //
+  // E O ANEL E O DESENHO DA PILHA. Cada mergulho deixa uma coluna de aneis em
+  // alturas diferentes, e cada anel e um nivel - nao sao linhas horizontais
+  // como eu tinha imaginado, mas le-se igual, e e o que a estrategia sabe
+  // fazer de verdade.
+  //
+  // Os simbolos FREIAM depois de meio segundo (o SlowDown em regras.json), e e
+  // isso que faz o desenho parar de pé em vez de escorrer pelas bordas.
+  //
+  // PROFUNDIDADE 320 CONTRA 17s DE FASE: a 190 px/s ele desce em 1,7s e sobe em
+  // 1,7s, entao empilha e desempilha umas cinco vezes na fase. O jogador tem de
+  // ver o ciclo mais de uma vez para a ideia virar regra.
   "StateThree": {
     "duracao": 17,
     "proximo": "",
-    "movimento": { "tipo": "GoToCenter" },
+    "movimento": { "tipo": "Mergulho", "a": 190, "b": 320 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Simbolo",
-        "projeteis": 8, "velocidade": 320, "angulo": 0, "intervalo": 0.12,
-        "cooldown": 3.0,
+      { "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
+        "projeteis": 18, "velocidade": 300,
+        "cooldown": 1.3,
         "regras": "pilha" }
     ]
   },
 
-  // FASE FINAL - MAQUINA DE TURING   [PROVISORIA - incremento 2]
+  // FASE FINAL - MAQUINA DE TURING   |   gesto: A FITA
   //
-  // O que esta aqui: duas rajadas sobrepostas em ritmos diferentes, que e o
-  // que uma fase final costuma ser.
+  // A cabeca de leitura varre a fita, e a varredura e mais rapida e mais baixa
+  // que a da fase 2: a fita final nao e lida com calma.
   //
-  // O que FALTA: a FITA. Uma cabeca de leitura varrendo o topo do campo e
-  // deixando marcas que viram perigo - o unico nivel da hierarquia que pode
-  // ESCREVER no que le, e e isso que a fase deveria mostrar.
+  // DUAS CAMADAS, porque a maquina de Turing e o unico nivel da hierarquia que
+  // LE E ESCREVE. A primeira escreve na passagem (a fileira que ele deixa); a
+  // segunda e um leque largo que relê o que ficou, e e o que fecha o campo.
+  //
+  // Os cooldowns sao PRIMOS ENTRE SI de proposito (1,0 e 1,7): as duas camadas
+  // nunca repetem a mesma sobreposicao, e a fase nao cai num compasso que da
+  // para decorar.
+  //
+  // O ANEL TEM 20 SIMBOLOS, e aqui tambem nao ha "angulo": CircleSpreadAttack
+  // sempre faz a volta inteira (ver a nota na fase 3). Com 20, a abertura entre
+  // vizinhos e de 18 graus - uma parede com portas, que e o que um anel
+  // deveria ser.
+  //
+  // ESTA FASE SO E VISTA POR QUEM ESTA ENTRE 40 E 59 no fim da terceira.
+  // StateThree tem "proximo" vazio, entao a batalha e DECIDIDA ali: quem passou
+  // termina aprovado e nunca ve a maquina de Turing. Medido - e eu tinha
+  // passado duas medicoes rotulando quadros como "StateFinal" numa fase que
+  // nunca rodou.
   "StateFinal": {
     "duracao": 17,
     "proximo": "StateOne",
-    "movimento": { "tipo": "GoToCenter" },
+    "movimento": { "tipo": "Varredura", "a": 330, "b": 110 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Simbolo",
-        "projeteis": 10, "velocidade": 260, "angulo": 0, "intervalo": 0.11,
-        "cooldown": 2.0,
+        "projeteis": 6, "velocidade": 300, "angulo": 20, "intervalo": 0.05,
+        "cooldown": 1.0,
         "regras": "kleene" },
-      // "kleene", E NAO "blocos": este leque tem 12 simbolos e "blocos" nomeia
-      // os indices 0 a 7 a mao - os quatro ultimos sairiam SEM animacao. A
-      // suite pegou (test_arquivos_de_dados: "uma regra por indice nao aponta
-      // para fora da rajada"), e a licao fica: regra por INDICE amarra o
-      // numero de projeteis, regra por "pares"/"impares" nao.
       { "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
-        "projeteis": 12, "velocidade": 180,
-        "cooldown": 3.4,
-        "regras": "kleene" }
+        "projeteis": 20, "velocidade": 200,
+        "cooldown": 1.7,
+        "regras": "fita" }
     ]
   }
 }

@@ -110,9 +110,20 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 | `movimento` | como o professor anda |
 | `ataques` | lista; todos disparam na mesma fase, cada um no seu cooldown |
 
-**Movimentos:** `GoToCenter`, `RandomWander`, `HoverAbovePlayer`. `a` e `b` são
-os dois parâmetros do construtor, na ordem, e cada movimento lhes dá um sentido
-próprio — a tabela está em `FasesDeAtaqueArquivo.cpp`, onde eles são instanciados.
+**Movimentos:** `GoToCenter`, `RandomWander`, `HoverAbovePlayer`, `Orbitar`,
+`Varredura`, `Mergulho`. `a` e `b` são os dois parâmetros do construtor, na
+ordem, e cada movimento lhes dá um sentido próprio — a tabela está em
+`FasesDeAtaqueArquivo.cpp`, onde eles são instanciados.
+
+Os três últimos existem para **o movimento ser o ataque**: a órbita, o ir-e-vir
+e o mergulho são gestos, e cada um deles é a ideia de uma fase do Vladimir em
+vez de um jeito de o chefe não ficar parado. Ver `MovementStrategies.h`.
+
+> **Chefe parado deixa a tela vazia, e isso não aparece numa foto só.** A
+> primeira versão do Vladimir punha `GoToCenter` nas quatro fases: cada rajada
+> caía na mesma coluna do meio e os lados do campo nunca viam um símbolo. Pior,
+> com a origem fixa as frestas dos ataques também ficam fixas, e um alvo parado
+> numa fresta fica nela a batalha inteira.
 
 ### O ataque
 
@@ -238,6 +249,17 @@ Escolha no máximo uma forma:
 | `modifiers` | quantas quiser. Mudam o módulo ou agendam coisas, e acumulam. |
 | `animacao` | nome de uma animação registrada no projétil |
 | `escala` | multiplica o tamanho — e a hitbox junto, porque o colisor multiplica o raio pela escala |
+
+> **`CircleSpreadAttack` IGNORA `angulo`.** O passo dela é sempre `360/n`
+> (`CircleSpreadAttack.cpp`), e o campo é aceito pelo leitor sem ser usado pela
+> estratégia — não há aviso. Quem quiser mudar a densidade do anel mexe em
+> `projeteis`.
+>
+> E as frestas do anel ficam **sempre nas mesmas direções**, porque os ângulos
+> saem de `i * 360/n` a partir de zero. Com o chefe parado, um alvo parado numa
+> fresta fica nela para sempre: foi assim que a fase 3 do Vladimir passou a dar
+> zero acerto em dezessete segundos, e subir `projeteis` de 10 para 18 não
+> mudou nada. O que resolveu foi o chefe **andar**.
 
 **Motions:** `Path`, `Tracking`, `Wobble`, `MiraPeriodica`
 **Modifiers:** `Accelerate`, `SlowDown`, `Activate`, `Deactivate`, `PulsoDeVelocidade`
