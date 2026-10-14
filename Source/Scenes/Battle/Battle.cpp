@@ -865,14 +865,50 @@ SDL_FRect Battle::GetPlayfieldBounds() const
     };
 }
 
-void Battle::OnPlayerUsedExtraPoint() {
-    if (mProjectileManager) {
-        mProjectileManager->ClearBossProjectiles();
+Player* Battle::OutroJogador(const Player* quem) const {
+
+    // Com um jogador so nao ha outro, e quem pergunta trata o nulo - mesma
+    // ideia do "% tamanho" em RevezarAlvo: um caminho so, sem "if (co-op)".
+    if (mJogadores.size() < 2) return nullptr;
+
+    for (size_t i = 0; i < mJogadores.size(); ++i) {
+        if (mJogadores[i] == quem) return mJogadores[(i + 1) % mJogadores.size()];
     }
-    // Gastar um Ponto Extra e acao de UM jogador, e sao dois estoques: sem
-    // repartir, a dupla poria 20 brutos na mesma barra.
+    return nullptr;
+}
+
+void Battle::OnPlayerUsedExtraPoint(Player* quemGastou) {
+
+    // O GANHO E O MESMO NOS DOIS MODOS. Gastar um Ponto Extra e acao de UM
+    // jogador, e sao dois estoques: sem repartir, a dupla poria 20 brutos na
+    // mesma barra.
     GradeUp(PorJogador(kGanhoDoPontoExtra));
-    // TODO - Audio - efeito sonoro de limpeza de campo
+
+    Player* oOutro = OutroJogador(quemGastou);
+
+    if (!oOutro) {
+        // SOZINHO, O PONTO EXTRA LIMPA A TELA, como sempre fez. Nao ha parceiro
+        // a quem dar imunidade, e trocar a limpeza por "proteja a si mesmo"
+        // deixaria o solo com um efeito mais fraco do que ele tem hoje - por
+        // causa de uma regra que so existe para o modo que ele nao esta jogando.
+        if (mProjectileManager) mProjectileManager->ClearBossProjectiles();
+        // TODO - Audio - efeito sonoro de limpeza de campo
+        return;
+    }
+
+    // EM DUPLA, O PONTO EXTRA E DO OUTRO, e nao limpa a tela.
+    //
+    // O PRECO E O MESMO TEMPO, DOS DOIS LADOS: quem gasta passa
+    // OVERLOAD_DURATION sem atirar, e o parceiro passa OVERLOAD_DURATION
+    // atravessando bala. Um numero so (Player::OVERLOAD_DURATION), entao
+    // mexer na sobrecarga mexe no presente junto.
+    //
+    // E NAO AS DUAS COISAS. Limpar a tela E proteger daria, por metade do
+    // estoque da dupla, o dobro do efeito de um Ponto Extra de solo - e tiraria
+    // o que torna esta versao interessante: ela nao salva quem aperta. Gastar
+    // e ficar desarmado tres segundos no meio do que ja estava voando, para
+    // que o outro atravesse.
+    oOutro->Proteger(Player::OVERLOAD_DURATION);
 }
 void Battle::SpawnExtraPoint(Vector2 position) {
     auto item = std::make_unique<ExtraPointItem>(this);

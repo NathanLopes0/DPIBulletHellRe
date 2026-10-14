@@ -104,7 +104,16 @@ public:
     [[nodiscard]] ProjectileManager* GetProjectileManager() const { return mProjectileManager.get(); }
 
     SDL_FRect GetPlayfieldBounds() const override;
-    void OnPlayerUsedExtraPoint();
+    /**
+     * @brief Um aluno gastou um Ponto Extra.
+     *
+     * RECEBE QUEM GASTOU porque em dupla o efeito e no OUTRO: a tela nao e
+     * limpa, o parceiro fica imune. Ver o corpo.
+     */
+    void OnPlayerUsedExtraPoint(Player* quemGastou);
+
+    /// @brief O outro aluno em campo, ou nullptr se este estiver sozinho.
+    [[nodiscard]] Player* OutroJogador(const Player* quem) const;
     void SpawnExtraPoint(Vector2 position);
 
     void FinishBattle(bool approved);

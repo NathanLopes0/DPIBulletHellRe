@@ -96,6 +96,7 @@ void Player::OnUpdate(float deltaTime) {
     DecreaseAtkTimer(deltaTime);
     BorderLimitCheck();
     UpdateOverload(deltaTime);
+    UpdateImunidade(deltaTime);
 
 }
 
@@ -172,7 +173,7 @@ void Player::SpecialInput(const Uint8 *keyState) {
         mExtraPoints--;
         mOverloadTimer = OVERLOAD_DURATION;
         if (const auto battle = dynamic_cast<Battle*>(GetScene())) {
-            battle->OnPlayerUsedExtraPoint();
+            battle->OnPlayerUsedExtraPoint(this);
         }
     }
 
@@ -273,6 +274,47 @@ void Player::UpdateOverload(float deltaTime) {
         dc->SetColor(255, 255, 255);
         mPulseTimer = 0.0f;
     }
+
+}
+
+void Player::Proteger(const float segundos) {
+
+    // O MAIOR DOS DOIS, e nao a soma. Ver o cabecalho: renova, nao acumula.
+    // Usar o maior tambem impede que um presente curto ENCURTE uma protecao
+    // mais longa que ja estivesse valendo.
+    if (segundos > mImunidadeTimer) mImunidadeTimer = segundos;
+}
+
+void Player::UpdateImunidade(const float deltaTime) {
+
+    if (mImunidadeTimer <= 0.0f) return;
+
+    mImunidadeTimer -= deltaTime;
+
+    auto dc = GetComponent<DrawAnimatedComponent>();
+    if (!dc) return;
+
+    if (mImunidadeTimer <= 0.0f) {
+        mImunidadeTimer = 0.0f;
+        mPulsoDaImunidade = 0.0f;
+        dc->SetColor(255, 255, 255);
+        return;
+    }
+
+    // DEPOIS DO OVERLOAD, E POR ISSO ESTA COR VENCE. Os dois podem valer ao
+    // mesmo tempo - se os dois alunos gastarem o Ponto Extra no mesmo instante,
+    // cada um fica sobrecarregado E imune. Entre as duas, a que o jogador
+    // precisa ver e a imunidade: ela decide se da para atravessar o tiro. Que
+    // ele esta sem atirar, o gatilho mudo ja conta.
+    //
+    // O MESMO PULSO DO OVERLOAD, trocando o vermelho pelo azul: a linguagem
+    // visual fica uma so, e as duas se distinguem pela cor em vez de pelo
+    // ritmo - que e o que da para ler no meio de uma tela cheia de bala.
+    const float freq = 5.0f + (OVERLOAD_DURATION - mImunidadeTimer) * 15.0f;
+    mPulsoDaImunidade += freq * deltaTime;
+
+    const auto rg = static_cast<Uint8>((Math::Sin(mPulsoDaImunidade) + 1.0f) * 127.5f);
+    dc->SetColor(rg, rg, 255);
 }
 
 void Player::AddExtraPoint() {
