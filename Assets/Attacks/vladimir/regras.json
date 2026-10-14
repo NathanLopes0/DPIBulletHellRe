@@ -44,12 +44,70 @@
                   "frequencia": 1.4, "duracao": 4.0 } }
   ],
 
-  // a^n b^n - PROVISORIO. O padrao de verdade (n de um lado, n do outro, com o
-  // n crescendo) e o incremento 2; por ora a fase 2 usa a alternancia da fase 1
-  // com os blocos separados, so para a batalha ter quatro fases jogaveis.
+  // a^n b^n - A LINGUAGEM QUE NENHUM AUTOMATO FINITO RECONHECE.
+  //
+  // Seis "a" e depois seis "b", na mesma rajada: a palavra e lida no TEMPO, e
+  // o que o jogador ve e um trecho ambar seguido de um trecho azul do MESMO
+  // tamanho. Contar o primeiro e saber o segundo - que e exatamente o que
+  // torna esta linguagem nao-regular, e por que ela precisa de uma pilha.
+  //
+  // SO O BLOCO "a" DESVIA. O "b" desce reto, e e essa assimetria que faz a
+  // fase existir.
+  //
+  // MEDIDO, E ERA UM DEFEITO SERIO: com os dois blocos curvando para lados
+  // OPOSTOS a palavra ficava simetrica em torno do chefe, e abria um CORREDOR
+  // SEGURO exatamente no meio - onde o jogador fica. A fase inteira dava UM
+  // acerto em dezessete segundos e a nota SUBIA 39 pontos durante ela:
+  //
+  //    fase          sofridos       nota no fim
+  //    StateOne      0  -> 10       48,32
+  //    StateTwo      11 -> 12       87,28     <- inerte
+  //    StateThree    12 -> 21       67,74
+  //
+  // A foto estava linda e a fase nao ameacava ninguem. Por isso trocar 12 por
+  // 2 projeteis nao mudava a nota final em nada - zero ameaca dos dois jeitos,
+  // e foi assim que o defeito apareceu.
+  //
+  // Com o "a" abrindo e o "b" vindo reto, a palavra vira "seis que saem da
+  // frente e seis que vem em cima" - e contar o primeiro trecho passa a dizer
+  // QUANDO o perigo comeca, que e a leitura que a fase quer cobrar.
+  //
+  // TRES NUMEROS QUE ANDAM JUNTOS, e a primeira tentativa errou por nao ver
+  // isso. O wobble so pode comecar depois que o ULTIMO simbolo acordar (a
+  // armadilha da regra "kleene" acima), e depois disso ele precisa de TEMPO DE
+  // VOO para desviar alguma coisa.
+  //
+  // MEDIDO, primeira tentativa: intervalo 0,11 e velocidade 290 davam 1,32s de
+  // despertar contra 1,8s de voo - o atraso comia quase tudo, e os dois blocos
+  // chegavam ao chao separados por SETE PIXELS. A foto do quadro 1400 mostrava
+  // uma fila reta onde o comentario prometia uma bifurcacao.
+  //
+  // Agora: intervalo 0,07 (ultimo acorda em 0,84s), atraso 0,9, velocidade 240
+  // (voo de ~2,2s) - sobra 1,3s de desvio. E "frequencia": 0.35 de proposito,
+  // porque meia onda a 0,35 Hz dura 1,4s: o simbolo chega ao chao ANTES de a
+  // oscilacao voltar, entao o que se ve e uma curva de ida so. Uma frequencia
+  // alta faria os blocos se cruzarem de novo e desfaria a bifurcacao.
+  //
+  // MEXER EM "projeteis", "intervalo" OU "velocidade" NO fases.json OBRIGA A
+  // REVISAR OS TRES.
+  //
+  // OS INDICES COBREM A RAJADA INTEIRA, e a suite exige isso
+  // (test_arquivos_de_dados: "uma regra por indice nao aponta para fora da
+  // rajada"). Aqui a exigencia e um presente: ela garante que os dois blocos
+  // LADRILHAM a palavra, sem simbolo sobrando nem faltando - que e a propria
+  // propriedade que a fase existe para mostrar.
+  //
+  // O QUE FALTA, e e o incremento proprio: o n CRESCER a cada ciclo. Hoje o
+  // bloco tem seis fixos. Crescer pede que a regra saiba o tamanho da rajada,
+  // e RegraSeAplica so recebe o indice - mudar isso mexe na assinatura do
+  // configurator, que todos os chefes usam.
   "blocos": [
-    { "indices": [0, 1, 2, 3], "animacao": "A" },
-    { "indices": [4, 5, 6, 7], "animacao": "B" }
+    { "indices": [0, 1, 2, 3, 4, 5],
+      "animacao": "A",
+      "motion": { "tipo": "Wobble", "atraso": 0.9, "amplitude": 40,
+                  "frequencia": 0.35, "duracao": 6.0 } },
+    { "indices": [6, 7, 8, 9, 10, 11],
+      "animacao": "B" }
   ],
 
   // A PILHA - PROVISORIO, mesma observacao. O desempilhamento em ordem inversa

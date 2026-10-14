@@ -52,23 +52,29 @@
     ]
   },
 
-  // FASE 2 - LIVRE DE CONTEXTO: a^n b^n   [PROVISORIA - incremento 2]
+  // FASE 2 - LIVRE DE CONTEXTO: a^n b^n
   //
-  // O que esta aqui: oito simbolos, quatro "a" seguidos de quatro "b", em
-  // leque. Ja mostra a ideia de "um bloco e depois o outro".
+  // Doze simbolos numa fila so: seis "a" e depois seis "b", curvando para
+  // lados opostos. A palavra e lida no TEMPO, e contar o primeiro trecho e
+  // saber o segundo - que e o que nenhum automato finito consegue fazer, e por
+  // que esta linguagem precisa de uma pilha.
   //
-  // O que FALTA e o que faz a fase: o n tem de CRESCER a cada ciclo, e os dois
-  // blocos tem de sair para lados opostos, para o jogador poder CONTAR a
-  // primeira metade e saber a segunda. E isso que torna a linguagem nao-regular
-  // e a fase interessante.
+  // "angulo": 0 - UMA FILA, E NAO UM LEQUE. Num leque os doze saem juntos e a
+  // palavra nao tem comeco nem fim; a fila e o que faz "primeiro os a, depois
+  // os b" existir como ordem. Quem separa os dois trechos no espaco e o wobble
+  // das regras, e nao o angulo de disparo.
+  //
+  // O COOLDOWN E MAIS LONGO QUE O DA FASE 1 (2,8 contra 2,2) porque a palavra
+  // e maior: a fila de doze leva 1,32s so para nascer, e rajadas em cima umas
+  // das outras tirariam do jogador o silencio em que ele conta.
   "StateTwo": {
     "duracao": 17,
     "proximo": "StateThree",
     "movimento": { "tipo": "GoToCenter" },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Simbolo",
-        "projeteis": 8, "velocidade": 280, "angulo": 40, "intervalo": 0.10,
-        "cooldown": 2.6,
+        "projeteis": 12, "velocidade": 240, "angulo": 0, "intervalo": 0.07,
+        "cooldown": 2.8,
         "regras": "blocos" }
     ]
   },
