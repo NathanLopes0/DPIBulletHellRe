@@ -24,6 +24,7 @@
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
 #include "../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "../../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../../Components/DrawComponents/DrawTextComponent.h"
 #include "../../Components/DrawComponents/ProgressBarComponent.h"
 #include "../../Actors/Teachers/ExtraPointItem.h"
@@ -37,6 +38,18 @@
 // (Acquire cria um novo se estiver vazio), entao este numero e so uma
 // otimizacao de partida, nunca um limite de projeteis simultaneos. 
 static constexpr int kProjectilePrewarmCountPerType = 300;
+
+namespace {
+
+/// O colisor de um jogador, ou nullptr se nao houver jogador ou colisor.
+///
+/// Existe porque as tres regras de colisao que sao de jogador pedem a mesma
+/// coisa, e com a lista isso passou a acontecer uma vez por jogador por regra.
+const CircleColliderComponent* ColisorDe(const Player* jogador) {
+    return jogador ? jogador->GetComponent<CircleColliderComponent>() : nullptr;
+}
+
+} // namespace
 
 
 
@@ -128,16 +141,37 @@ void Battle::LoadHUD() {
 }
 void Battle::LoadPlayer() {
 
-    auto player = std::make_unique<Player>(this);
+    // UM ALUNO POR SESSAO. Quantas sessoes ha foi decidido no menu, e a
+    // batalha nao pergunta se e co-op: ela percorre o que existe. E isso que
+    // mantem o jogo de um jogador sendo o caso normal, sem "if (co-op)".
+    const size_t quantos = mGame->QuantosJogadores();
 
+    const SDL_FRect campo = GetPlayfieldBounds();
 
-    // 2. Configura a posição inicial
-    const auto midWidth = static_cast<float>(mGame->GetWindowWidth()) / 2.0f;
-    const auto startingHeight = static_cast<float>(mGame->GetWindowHeight()) * 7.0f / 8.0f;
-    player->SetPosition(Vector2(midWidth, startingHeight));
+    for (size_t quem = 0; quem < quantos; ++quem) {
 
-    mPlayer = dynamic_cast<Player*>(this->AddActor(std::move(player)));
+        auto player = std::make_unique<Player>(this, quem);
 
+        // NASCE DENTRO DO CAMPO, e nao numa fracao da JANELA.
+        //
+        // Era 7/8 da altura da janela, ou seja 700. Com o campo acabando onde a
+        // faixa da nota comeca, o chao do aluno passou a ser 682 - e ele nascia
+        // ABAIXO dele, para ser empurrado de volta pelo limite no primeiro
+        // quadro. Um empurrao que ninguem pediu, e que mudaria de tamanho a
+        // cada vez que a faixa da nota mudasse de altura.
+        const auto alturaDoAluno = static_cast<float>(
+            player->GetComponent<DrawAnimatedComponent>()->GetSpriteHeight());
+
+        // LADO A LADO, repartindo a largura em partes iguais: com um, a conta
+        // da o meio da tela, que e exatamente onde ele sempre nasceu. Nao ha
+        // um caso para um e outro para dois.
+        const float fatia = campo.w / static_cast<float>(quantos + 1);
+        const float x = campo.x + fatia * static_cast<float>(quem + 1);
+        const float y = campo.y + campo.h - alturaDoAluno;
+
+        player->SetPosition(Vector2(x, y));
+        mJogadores.push_back(dynamic_cast<Player*>(this->AddActor(std::move(player))));
+    }
 }
 void Battle::LoadTimeBar() {
 
@@ -195,14 +229,24 @@ void Battle::LoadTimeClock() {
 void Battle::LoadGradeBar() {
     auto gradeBarActor = std::make_unique<Actor>(this);
 
-    constexpr int barHeight = 25;
     const int windowWidth = mGame->GetWindowWidth();
     const int windowHeight = mGame->GetWindowHeight();
-    gradeBarActor->SetPosition(Vector2(0.f, static_cast<float>(windowHeight) - barHeight * 1.5));
+
+    // A BARRA RECUADA, e nao de ponta a ponta. Encostada nas bordas ela parecia
+    // um risco no monitor; com a sobra dos lados e a moldura, vira uma peca da
+    // tela. Os numeros vem de Battle.h - ver o comentario de kBarraAltura.
+    const int barraX = kBarraMargemLateral;
+    const int barraY = windowHeight - kBarraDoFundo;
+    const int barraLargura = windowWidth - 2 * kBarraMargemLateral;
+
+    gradeBarActor->SetPosition(Vector2(static_cast<float>(barraX), static_cast<float>(barraY)));
 
     auto gradeBarComp = gradeBarActor->AddComponent<ProgressBarComponent>();
     gradeBarComp->SetOrientation(ProgressBarComponent::Orientation::Horizontal);
-    gradeBarComp->SetSize(windowWidth, barHeight);
+    gradeBarComp->SetSize(barraLargura, kBarraAltura);
+
+    // O acabamento e desta barra, e nao da de tempo: ver SetAcabamento.
+    gradeBarComp->SetAcabamento(true);
 
     mGradeBarActor = gradeBarActor.get();
     this->AddActor(std::move(gradeBarActor));
@@ -225,12 +269,20 @@ void Battle::LoadGradeBar() {
     // inteiras de pixels. Era isso que transformava o "A" de FINAL num "F".
     // O "+8" e a mesma folga que MainMenu, Identificacao e Opcoes ja usavam.
     constexpr int tamanhoDaNota = 24;
+    // A PLACA PRIMEIRO, com ordem menor: a lista e desenhada da menor para a
+    // maior, entao ela fica atras do numero. Sem ela o branco do numero cai em
+    // cima do laranja do preenchimento e some.
+    gradeBarTextActor->AddComponent<DrawCaixaComponent>(
+        kPlacaLargura, kPlacaAltura, kSemMoldura, kFundoDaPlaca, 0, kOrdemDaPlaca);
+
     auto gradeText = gradeBarTextActor->AddComponent<DrawTextComponent>(
         "omg", mGradeBarFont.get(), 200, tamanhoDaNota + 8, tamanhoDaNota, 304);
     gradeText->SetAjustarAoTexto(true);
 
+    // NO MEIO DA BARRA, e nao numa conta solta: o texto seguia a altura antiga
+    // por um caminho que ninguem via, e mover a barra o teria deixado para tras.
     const auto textPosX = static_cast<float>(windowWidth) / 2.f;
-    const auto textPosY = static_cast<float>(windowHeight - barHeight);
+    const auto textPosY = static_cast<float>(barraY + kBarraAltura / 2);
     gradeBarTextActor->SetPosition(Vector2(textPosX, textPosY));
 
     mGradeTextActor = gradeBarTextActor.get();
@@ -244,6 +296,10 @@ void Battle::LoadGradeBar() {
     // derruba a nota cheia, e com tres o teto tranca em 99,99 para sempre. A
     // faixa ja e area de HUD, entao o anuncio nao custa um pixel de campo.
     auto avisoActor = std::make_unique<Actor>(this);
+    auto placaDoTeste = avisoActor->AddComponent<DrawCaixaComponent>(
+        kPlacaDoAvisoLargura, kPlacaAltura, kSemMoldura, kFundoDaPlaca, 0, kOrdemDaPlaca);
+    placaDoTeste->SetIsVisible(false);
+
     auto aviso = avisoActor->AddComponent<DrawTextComponent>(
         "TESTE FINAL", mGradeBarFont.get(), 260, tamanhoDaNota + 8, tamanhoDaNota, 304);
     aviso->SetAjustarAoTexto(true);
@@ -258,6 +314,10 @@ void Battle::LoadGradeBar() {
     // O aviso de fase limpa, na DIREITA da faixa - o TESTE FINAL ocupa a
     // esquerda, e os dois podem estar acesos ao mesmo tempo numa corrida boa.
     auto limpaActor = std::make_unique<Actor>(this);
+    auto placaDaLimpa = limpaActor->AddComponent<DrawCaixaComponent>(
+        kPlacaDoAvisoLargura, kPlacaAltura, kSemMoldura, kFundoDaPlaca, 0, kOrdemDaPlaca);
+    placaDaLimpa->SetIsVisible(false);
+
     auto limpa = limpaActor->AddComponent<DrawTextComponent>(
         "FASE LIMPA", mGradeBarFont.get(), 260, tamanhoDaNota + 8, tamanhoDaNota, 304);
     limpa->SetAjustarAoTexto(true);
@@ -312,8 +372,8 @@ void Battle::StartLoadingProjectilePools() {
     // Scene::ProcessInput() já respeitam ActorState::Active/Inactive, então
     // isso já impede movimento/disparo do jogador sem precisar de nenhum
     // mecanismo novo. Revertido em FinishLoadingProjectilePools().
-    if (mPlayer) {
-        mPlayer->SetState(ActorState::Paused);
+    for (Player* jogador : mJogadores) {
+        if (jogador) jogador->SetState(ActorState::Paused);
     }
 
     // Cria o texto de progresso (mesmo padrão de LoadEndScreen).
@@ -368,8 +428,8 @@ void Battle::FinishLoadingProjectilePools() {
     }
 
     // Reativa o Player, pausado em StartLoadingProjectilePools().
-    if (mPlayer) {
-        mPlayer->SetState(ActorState::Active);
+    for (Player* jogador : mJogadores) {
+        if (jogador) jogador->SetState(ActorState::Active);
     }
 
     // Só agora, com os pools já aquecidos, a lógica de ataque do Boss
@@ -471,7 +531,12 @@ void Battle::GradeBarUpdate() {
 
     // -- DEFINIÇÃO DA PALETA DE CORES -- //
 
-    static const SDL_Color BG_COLOR = {20,20,20,255};
+    // O SULCO, e dele que saem a moldura e a sombra (ver SetAcabamento). Era
+    // {20,20,20}, quase preto: sobre o preto da tela a barra nao tinha contorno
+    // nenhum, e clarear a moldura a partir de um quase-preto nao chega a lugar
+    // nenhum. Puxado para o azul pelo mesmo motivo do fundo das telas de menu -
+    // um cinza neutro deixa a faixa amarelada ao lado do laranja da nota.
+    static const SDL_Color BG_COLOR = {26,28,38,255};
 
     // STATE1 - REPROVADE
     static const SDL_Color FAIL_START = {100, 0, 0, 255};
@@ -530,6 +595,10 @@ void Battle::GradeTextUpdate() {
     // comecou - e ter comecado nao deixa de ser verdade quando a nota cai. Se
     // ele piscasse junto com o dourado, viraria um alarme a cada acerto.
     if (cheia && mTesteFinalActor) {
+        // A PLACA ACENDE JUNTO. Sao dois componentes no mesmo ator, e deixar um
+        // para tras e o jeito classico de a placa ficar acesa sozinha - uma
+        // mancha escura no meio da barra, sem texto nenhum.
+        mTesteFinalActor->GetComponent<DrawCaixaComponent>()->SetIsVisible(true);
         mTesteFinalActor->GetComponent<DrawTextComponent>()->SetIsVisible(true);
     }
 
@@ -537,7 +606,9 @@ void Battle::GradeTextUpdate() {
     // tela a batalha toda transformaria em enfeite o que precisa ser lido como
     // "isto acabou de acontecer".
     if (mFaseLimpaActor) {
-        mFaseLimpaActor->GetComponent<DrawTextComponent>()->SetIsVisible(mAvisoDeFaseLimpa > 0.0f);
+        const bool acesa = mAvisoDeFaseLimpa > 0.0f;
+        mFaseLimpaActor->GetComponent<DrawCaixaComponent>()->SetIsVisible(acesa);
+        mFaseLimpaActor->GetComponent<DrawTextComponent>()->SetIsVisible(acesa);
     }
 
 }
@@ -545,7 +616,7 @@ void Battle::GradeTextUpdate() {
 
 
 void Battle::OnProcessInput(const Uint8* keyState) {
-    // NAO chame mPlayer->ProcessInput aqui.
+    // NAO chame ProcessInput dos jogadores aqui.
     // Scene::ProcessInput ja percorre mActors e entrega o input a todos os
     // atores Active - e o Player e um deles. A chamada extra que existia aqui
     // fazia Player::OnProcessInput rodar DUAS vezes por frame. Hoje isso passa
@@ -556,71 +627,111 @@ void Battle::OnProcessInput(const Uint8* keyState) {
     // (pausa, debug), que nao pertence a nenhum ator especifico.
 }
 void Battle::CheckCollisions() {
-    if (!mPlayer || !mBoss) return;
+    if (mJogadores.empty() || !mBoss) return;
 
-    const auto *playerCollider = mPlayer->GetComponent<CircleColliderComponent>();
     const auto *bossCollider = mBoss->GetComponent<CircleColliderComponent>();
-
-    if (!playerCollider || !bossCollider) return;
+    if (!bossCollider) return;
 
     const auto &bossProjectiles = mProjectileManager->GetBossProjectiles();
     const auto &playerProjectiles = mProjectileManager->GetPlayerProjectiles();
 
+    // AS QUATRO REGRAS CONTINUAM NESTA ORDEM, e por isso sao quatro lacos em vez
+    // de um. Juntar as tres regras de jogador num laco so seria mais curto, e
+    // poria a regra 2 - que paga ganho - depois das regras 1 e 3, que cobram
+    // dano. A ordem PODE mudar a nota: acima de 60 o ganho passa pela curva, e
+    // Nota::Somar le a nota de agora e quantos acertos ja foram sofridos.
+    //
+    // MEDI, E NAO CONSEGUI VER DIFERENCA. Rodei a batalha do Salles inteira com
+    // as regras reordenadas de tres jeitos e o despejo da nota saiu igual,
+    // quadro a quadro, nos tres. O motivo: abaixo de 60 o ganho e cheio e os
+    // dois caminhos dao o mesmo numero, e acima de 60 a diferenca so aparece
+    // num quadro que tenha ganho E dano ao mesmo tempo - o que nao aconteceu
+    // uma vez sequer em 2400 quadros com dez acertos sofridos acima de 60.
+    //
+    // Mantive a ordem assim mesmo. Ela custa tres lacos em vez de um e tira a
+    // duvida de um refatoramento cujo contrato e nao mudar nada - e o custo de
+    // estar errado aqui e uma nota diferente que ninguem ia notar.
 
     // --- REGRA 1 - Projéteis do Boss vs Player --- //
-    for (const auto &bossProj: bossProjectiles) {
-        if (bossProj->GetState() != ActorState::Active) continue;
-        if (const auto *bossProjCollider = bossProj->GetComponent<CircleColliderComponent>()) {
-            if (playerCollider->Intersect(*bossProjCollider) && !mPlayer->GetIsInvincible()) {
-                mPlayer->SetIsInvincible(true);
-                mPlayer->OnCollision(bossProj.get());
-                bossProj->OnCollision(mPlayer);
-                GradeDown();
+    for (Player* jogador : mJogadores) {
+        const auto *playerCollider = ColisorDe(jogador);
+        if (!playerCollider) continue;
+
+        for (const auto &bossProj: bossProjectiles) {
+            if (bossProj->GetState() != ActorState::Active) continue;
+            if (const auto *bossProjCollider = bossProj->GetComponent<CircleColliderComponent>()) {
+                if (playerCollider->Intersect(*bossProjCollider) && !jogador->GetIsInvincible()) {
+                    jogador->SetIsInvincible(true);
+                    jogador->OnCollision(bossProj.get());
+                    bossProj->OnCollision(jogador);
+                    GradeDown();
+                }
             }
         }
     }
 
     // --- REGRA 2 - Projéteis do Player vs Boss
+    //
+    // ESTA NAO E DE NINGUEM. Os tiros dos dois jogadores saem do mesmo pool e
+    // nao guardam de quem sao - e nao precisam: a nota e da dupla
+    // (requisitos-coop, D2), entao um acerto paga a mesma barra venha de quem vier.
     for (const auto &playerProj: playerProjectiles) {
         if (playerProj->GetState() != ActorState::Active) continue;
         if (const auto *playerProjCollider = playerProj->GetComponent<CircleColliderComponent>()) {
             if (bossCollider->Intersect(*playerProjCollider)) {
                 mBoss->OnCollision(playerProj.get());
                 playerProj->OnCollision(mBoss);
-                GradeUp();
+
+                // Acerto de UM jogador: repartido (requisitos-coop, 2.1).
+                GradeUp(PorJogador(GRADE_CHANGE_UP));
             }
         }
     }
 
     // --- REGRA 3 - Player vs Boss  (Contato Direto)
-    if (playerCollider->Intersect(*bossCollider) && !mPlayer->GetIsInvincible()) {
-        mPlayer->SetIsInvincible(true);
-        mPlayer->OnCollision(mBoss);
-        mBoss->OnCollision(mPlayer);
-        GradeDown();
+    for (Player* jogador : mJogadores) {
+        const auto *playerCollider = ColisorDe(jogador);
+        if (!playerCollider) continue;
+
+        if (playerCollider->Intersect(*bossCollider) && !jogador->GetIsInvincible()) {
+            jogador->SetIsInvincible(true);
+            jogador->OnCollision(mBoss);
+            mBoss->OnCollision(jogador);
+            GradeDown();
+        }
     }
 
     // --- REGRA 4 - Player vs ExtraPoints
+    //
+    // O item e de QUEM ENCOSTOU (requisitos-coop, D8). O laco do jogador e o de
+    // fora: assim, se os dois tocarem o mesmo item no mesmo quadro, o primeiro
+    // o destroi e o segundo ja o encontra fora de Active.
+    //
+    // O som fica fora dos dois lacos, porque e um por quadro e nao um por item.
     bool playedPowerUpSound = false;
 
-    // --- REGRA 4 - Player vs ExtraPoints
-    for (const auto item : mExtraPoints) {
-        if (item->GetState() != ActorState::Active) continue;
+    for (Player* jogador : mJogadores) {
+        const auto *playerCollider = ColisorDe(jogador);
+        if (!playerCollider) continue;
 
-        if (const auto itemCollider = item->GetComponent<CircleColliderComponent>(); itemCollider && playerCollider->Intersect(*itemCollider)) {
+        for (const auto item : mExtraPoints) {
+            if (item->GetState() != ActorState::Active) continue;
 
-            // 1. Efeito da Coleta
-            mPlayer->AddExtraPoint();
+            if (const auto itemCollider = item->GetComponent<CircleColliderComponent>(); itemCollider && playerCollider->Intersect(*itemCollider)) {
 
-            // 2. Toca o som
-            if (!playedPowerUpSound) {
-                // Toca só se ainda não tocou neste frame
-                mGame->GetAudio()->PlaySound("powerup.wav", false);
-                playedPowerUpSound = true;
+                // 1. Efeito da Coleta
+                jogador->AddExtraPoint();
+
+                // 2. Toca o som
+                if (!playedPowerUpSound) {
+                    // Toca só se ainda não tocou neste frame
+                    mGame->GetAudio()->PlaySound("powerup.wav", false);
+                    playedPowerUpSound = true;
+                }
+
+                // 3. Destroi o item
+                item->SetState(ActorState::Destroy);
             }
-
-            // 3. Destroi o item
-            item->SetState(ActorState::Destroy);
         }
     }
 
@@ -630,11 +741,36 @@ void Battle::CheckCollisions() {
 
 }
 
+Player* Battle::JogadorEm(const size_t posicao) const {
+    return posicao < mJogadores.size() ? mJogadores[posicao] : nullptr;
+}
+
+Player* Battle::Alvo() const {
+
+    // SEM REVEZAR AQUI DENTRO: o laser pergunta duas vezes no mesmo disparo (o
+    // nulo e a posicao) e trocaria de alvo entre uma e outra. Quem passa a vez
+    // e RevezarAlvo, chamado por quem sabe que um disparo comecou.
+    if (mJogadores.empty()) return nullptr;
+    return mVezDoAlvo < mJogadores.size() ? mJogadores[mVezDoAlvo] : mJogadores.front();
+}
+
+void Battle::RevezarAlvo() {
+
+    // O "% tamanho" e o que faz isto nao dar nada com um jogador: 0 + 1 = 1, e
+    // 1 % 1 = 0. Nao ha um caminho para um jogador e outro para dois.
+    if (mJogadores.empty()) { mVezDoAlvo = 0; return; }
+    mVezDoAlvo = (mVezDoAlvo + 1) % mJogadores.size();
+}
+
+float Battle::PorJogador(const float bruto) const {
+    return Nota::PorJogador(bruto, mJogadores.size());
+}
+
 void Battle::GradeUp(const float amount) {
 
     // A aritmetica inteira vive em Nota: a curva acima de 60, o teto de quem
     // levou dano e os limites de 0 a 100. Aqui so entra o que a batalha sabe e
-    // Nota nao: a nota de agora e quantas vezes este jogador foi atingido.
+    // Nota nao: a nota de agora e quantas vezes a DUPLA foi atingida.
     mGrade = Nota::Somar(mGrade, amount, mAcertosSofridos);
 }
 void Battle::GradeDown() {
@@ -643,9 +779,23 @@ void Battle::GradeDown() {
     // batalha: assim o proximo ganho ja ve o teto novo. Entre esta linha e a
     // seguinte a ordem nao importa - Subtrair nao le a contagem - e nao vale
     // comentar uma dependencia que nao existe.
+    //
+    // A CONTAGEM NAO E REPARTIDA, so a perda. Ela conta acertos, e nao
+    // quantidade de nota: com dois em campo, a dupla perde o direito a nota
+    // cheia no dobro da velocidade - e isso e de proposito (requisitos-coop,
+    // 2.1, o segundo dos tres desafios a mais).
     ++mAcertosSofridos;
     ++mAcertosNaFase;
-    mGrade = Nota::Subtrair(mGrade, GRADE_CHANGE_DOWN);
+    // PerdaPorJogador, e nao PorJogador: alem da divisao, a perda em grupo leva
+    // um alivio (Nota::kAlivioDaPerdaEmGrupo). Em dupla um acerto custa 2,4
+    // brutos contra os 6,0 do solo. O motivo esta no cabecalho da funcao, e sai
+    // da medicao: o total ja era favoravel a dupla, mas a barra caia quase no
+    // dobro da frequencia - e e a frequencia que o jogador sente.
+    mGrade = Nota::Subtrair(mGrade, PerdaPorJogador(GRADE_CHANGE_DOWN));
+}
+
+float Battle::PerdaPorJogador(const float bruto) const {
+    return Nota::PerdaPorJogador(bruto, mJogadores.size());
 }
 
 bool Battle::PerdeuACheia() const {
@@ -688,6 +838,9 @@ void Battle::EncerrarFase() {
     }
 
     if (mAcertosNaFase == 0) {
+        // DA FASE, e nao de um jogador: pago inteiro. E ele ja ficou mais
+        // dificil no co-op, porque mAcertosNaFase conta os dois - a fase so e
+        // limpa se NENHUM dos dois foi atingido.
         GradeUp(Nota::kBonusDeFaseLimpa);
 
         // O aviso existe para a nota nao subir por motivo invisivel. Um salto sem
@@ -701,23 +854,70 @@ void Battle::EncerrarFase() {
 
 SDL_FRect Battle::GetPlayfieldBounds() const
 {
-    // A altura da sua barra de nota, como definido em LoadGradeBar
-    constexpr float gradeBarHeight = 25.0f;
-
+    // O CAMPO ACABA ONDE A FAIXA DA NOTA COMECA, e esse numero e o da barra -
+    // nao uma copia dele.
+    //
+    // Eram dois 25 com um comentario pedindo para manter os dois iguais, e
+    // pedido em comentario nao segura nada: quando a barra ganhou moldura e
+    // recuo, a faixa ficou para tras e o aluno continuou podendo parar EM CIMA
+    // da barra, com a personagem por cima da propria nota.
+    //
+    // A conta tambem decide onde ficam as linhas da tabela do Thiago (ver
+    // ConsultaAttack): a ultima linha agora termina onde o jogador termina, em
+    // vez de descer por baixo do HUD - uma linha que so existia para ser
+    // varrida, nunca para ser habitada.
     return {
         0.0f, // x
         0.0f, // y
         static_cast<float>(mGame->GetWindowWidth()), // w
-        static_cast<float>(mGame->GetWindowHeight()) - gradeBarHeight // h
+        static_cast<float>(mGame->GetWindowHeight() - kBarraDoFundo) // h
     };
 }
 
-void Battle::OnPlayerUsedExtraPoint() {
-    if (mProjectileManager) {
-        mProjectileManager->ClearBossProjectiles();
+Player* Battle::OutroJogador(const Player* quem) const {
+
+    // Com um jogador so nao ha outro, e quem pergunta trata o nulo - mesma
+    // ideia do "% tamanho" em RevezarAlvo: um caminho so, sem "if (co-op)".
+    if (mJogadores.size() < 2) return nullptr;
+
+    for (size_t i = 0; i < mJogadores.size(); ++i) {
+        if (mJogadores[i] == quem) return mJogadores[(i + 1) % mJogadores.size()];
     }
-    GradeUp(10.f);
-    // TODO - Audio - efeito sonoro de limpeza de campo
+    return nullptr;
+}
+
+void Battle::OnPlayerUsedExtraPoint(Player* quemGastou) {
+
+    // O GANHO E O MESMO NOS DOIS MODOS. Gastar um Ponto Extra e acao de UM
+    // jogador, e sao dois estoques: sem repartir, a dupla poria 20 brutos na
+    // mesma barra.
+    GradeUp(PorJogador(kGanhoDoPontoExtra));
+
+    Player* oOutro = OutroJogador(quemGastou);
+
+    if (!oOutro) {
+        // SOZINHO, O PONTO EXTRA LIMPA A TELA, como sempre fez. Nao ha parceiro
+        // a quem dar imunidade, e trocar a limpeza por "proteja a si mesmo"
+        // deixaria o solo com um efeito mais fraco do que ele tem hoje - por
+        // causa de uma regra que so existe para o modo que ele nao esta jogando.
+        if (mProjectileManager) mProjectileManager->ClearBossProjectiles();
+        // TODO - Audio - efeito sonoro de limpeza de campo
+        return;
+    }
+
+    // EM DUPLA, O PONTO EXTRA E DO OUTRO, e nao limpa a tela.
+    //
+    // O PRECO E O MESMO TEMPO, DOS DOIS LADOS: quem gasta passa
+    // OVERLOAD_DURATION sem atirar, e o parceiro passa OVERLOAD_DURATION
+    // atravessando bala. Um numero so (Player::OVERLOAD_DURATION), entao
+    // mexer na sobrecarga mexe no presente junto.
+    //
+    // E NAO AS DUAS COISAS. Limpar a tela E proteger daria, por metade do
+    // estoque da dupla, o dobro do efeito de um Ponto Extra de solo - e tiraria
+    // o que torna esta versao interessante: ela nao salva quem aperta. Gastar
+    // e ficar desarmado tres segundos no meio do que ja estava voando, para
+    // que o outro atravesse.
+    oOutro->Proteger(Player::OVERLOAD_DURATION);
 }
 void Battle::SpawnExtraPoint(Vector2 position) {
     auto item = std::make_unique<ExtraPointItem>(this);
@@ -767,8 +967,8 @@ void Battle::FinishBattle(bool approved) {
     }
 
     // 2. Torna o Player Invencível (para não morrer durante a tela de vitória)
-    if (mPlayer) {
-        mPlayer->SetIsInvincible(true);
+    for (Player* jogador : mJogadores) {
+        if (jogador) jogador->SetIsInvincible(true);
     }
 
     // 3. Configura e Mostra o Texto

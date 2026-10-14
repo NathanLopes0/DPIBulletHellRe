@@ -97,7 +97,10 @@ Boss* BossProjectile::GetBossOwner() const
 
 Vector2 BossProjectile::GetPlayerPosition() const {
     if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
-        if (auto player = battleScene->GetPlayer()) {
+        // O ALVO DESTE PROJETIL, e nao de quem e a vez agora. Ver DefinirAlvo:
+        // esta funcao e lida a cada quadro, e perguntar a vez faria o projetil
+        // mudar de rumo no meio do voo.
+        if (auto player = battleScene->JogadorEm(mAlvo)) {
             return player->GetPosition();
         }
         SDL_Log("Erro em BossProjectile.cpp - GetPlayerPosition: nao foi possivel encontrar o Player"
@@ -112,7 +115,7 @@ Vector2 BossProjectile::GetPlayerPosition() const {
 
 Vector2 BossProjectile::GetPlayerVelocity() const {
     if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
-        if (auto player = battleScene->GetPlayer()) {
+        if (auto player = battleScene->JogadorEm(mAlvo)) {
             if (auto rb = player->GetComponent<RigidBodyComponent>()) {
                 return rb->GetVelocity();
             }
@@ -126,7 +129,7 @@ Vector2 BossProjectile::GetPlayerVelocity() const {
 
 bool BossProjectile::HasPlayer() const {
     if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
-        return battleScene->GetPlayer() != nullptr;
+        return battleScene->JogadorEm(mAlvo) != nullptr;
     }
     return false;
 }

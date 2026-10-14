@@ -110,6 +110,15 @@ atalho: o ranking da matéria. Se o gabinete acabar com dois, nada fica
 inalcançável — basta tirar o Botão 3 do rodapé da seleção e dar outro caminho ao
 ranking. Decidir isso é compra de peça, não código.
 
+### Os três `GetPlayerPosition` do `BossProjectile` ainda se chamam assim
+
+`GetPlayerPosition`, `GetPlayerVelocity` e `GetPlayerDirection` são a camada
+fina entre três chamadas a `Battle::Alvo()` e o `Behaviors.cpp`. Elas carregam
+a mesma mentira que `GetPlayer()` carregava — "o jogador", no singular — e a
+verdade é "o alvo". Ficaram de fora do incremento 2 de propósito, para o
+incremento não crescer para dentro da lógica de ataque; o risco é baixo porque
+elas passam por `Alvo()` e não têm como escolher outro jogador.
+
 ### A tela de Opções está vazia
 
 Ela existe e não faz nada. No mínimo precisa de volume: o gabinete fica num
@@ -119,12 +128,16 @@ corredor.
 
 ## Ferramentas
 
-### Portar um arnês de medição para `Ferramentas/`
+### Portar o resto dos arnêses para `Ferramentas/`
 
-`build-e-testes.md` descreve a técnica de instrumentar o jogo para medir e
-fotografar, mas os scripts que fazem isso não estão no repositório. Um script
-portável que entre direto numa fase e fotografe por instante de jogo pouparia
-reescrevê-lo toda vez.
+`Ferramentas/medir-dificuldade.sh` é o primeiro: ele monta uma cópia da árvore
+com semente, passo de tempo e piloto presos, e foi com ele que a seção 8 de
+`requisitos-coop.md` foi medida — rodá-lo reproduz os números da tabela.
+
+Faltam os outros dois que `build-e-testes.md` descreve e que vivem fora do
+repositório: o que **fotografa** uma cena num quadro exato (foi assim que o
+retângulo vazio no lugar do "+" apareceu) e o que **dirige o menu** por um
+roteiro de botões.
 
 ### Arte definitiva
 

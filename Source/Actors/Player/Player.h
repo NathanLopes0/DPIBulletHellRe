@@ -5,7 +5,10 @@
 #ifndef DPIBULLETHELLRE_PLAYER_H
 #define DPIBULLETHELLRE_PLAYER_H
 
+#include <cstddef>
+
 #include "../Actor.h"
+#include "../../Painel.h"
 
 class PlayerProjectile;
 class PlayerOrb;
@@ -13,7 +16,15 @@ class PlayerOrb;
 class Player : public Actor {
 
 public:
-    explicit Player(Scene* scene);
+    /**
+     * @param quem QUAL POSICAO do painel move este aluno, e de qual sessao sai
+     *        a aparencia dele. As duas coisas sao a mesma posicao, e por isso
+     *        entram num parametro so - com duas, haveria como criar um aluno
+     *        que anda com o manche de um e tem a cara do outro.
+     *
+     *        O padrao e a posicao 1, que e o jogo de um jogador.
+     */
+    explicit Player(Scene* scene, size_t quem = 0);
 
     //Process Input -> Update, sobrescritas de Actor para Player
     void OnProcessInput(const Uint8* keyState) override;
@@ -23,7 +34,35 @@ public:
     void OnUpdate(float deltaTime) override;
 
     void SetIsInvincible(const bool invincible) { isInvincible = invincible; }
-    [[nodiscard]] bool GetIsInvincible() const { return isInvincible; }
+
+    /// INVENCIVEL POR QUALQUER MOTIVO: os quadros de graca depois de apanhar OU
+    /// a imunidade dada pelo parceiro. As duas respondem a mesma pergunta - "um
+    /// tiro encosta neste aluno agora?" - e juntando-as aqui a Battle nao
+    /// precisou de linha nenhuma: a regra 1 e a regra 3 ja perguntavam isto.
+    [[nodiscard]] bool GetIsInvincible() const { return isInvincible || mImunidadeTimer > 0.0f; }
+
+    /**
+     * @brief Protege este aluno por um tempo, as custas do Ponto Extra do parceiro.
+     *
+     * RENOVA, NAO ACUMULA. Dois Pontos Extras seguidos dao tres segundos a
+     * partir de agora, e nao seis: acumular premiaria guardar os dois estoques
+     * para o mesmo instante, que e o contrario de uma ajuda dada quando o outro
+     * precisa.
+     */
+    void Proteger(float segundos);
+
+    /// Quanto ainda falta da imunidade do parceiro. Zero quer dizer desprotegido.
+    [[nodiscard]] float TempoDeImunidade() const { return mImunidadeTimer; }
+
+    /**
+     * O tempo que quem gasta um Ponto Extra passa sem atirar - e, no co-op, o
+     * tempo EXATO que o parceiro passa imune.
+     *
+     * UM NUMERO SO, e publico por isso. A Battle precisa dele para pagar a
+     * imunidade; se fossem dois, mexer na sobrecarga e esquecer a imunidade
+     * faria o presente deixar de custar o que custa.
+     */
+    static constexpr float OVERLOAD_DURATION = 3.f;
 
     [[nodiscard]] int GetExtraPoints() const { return mExtraPoints;}
     void AddExtraPoint();
@@ -43,10 +82,32 @@ private:
     /// reinicializam, mas so por sorte.
     float mBlinkTimer;
     bool mMoving;                       //ve se o jogador está se movendo. Usada para mudar a animação
+    /// A posicao deste aluno no painel. Ver o construtor.
+    size_t mQuem = 0;
+
+    /// O painel que move este aluno. Uma funcao, e nao a conversao repetida em
+    /// cada leitura: foi a conversao escrita duas vezes que fez a tela de
+    /// matricula ler o botao do jogador 1 e anunciar o do jogador 2.
+    [[nodiscard]] Painel::Jogador MeuPainel() const {
+        return mQuem == 1 ? Painel::Jogador::Dois : Painel::Jogador::Um;
+    }
+
     int mExtraPoints = 1;
     float mOverloadTimer = 0.0f;
-    const float OVERLOAD_DURATION = 3.f;
     float mPulseTimer = 0.0f;
+
+    /// Quanto resta da imunidade dada pelo parceiro. SEPARADO de invincibleTimer
+    /// de proposito: os quadros de graca de quem apanhou duram 1,2s e piscam, e
+    /// misturar os dois faria "fui atingido" e "estou protegido" terem a mesma
+    /// cara - justamente no momento em que o aluno precisa saber qual dos dois e.
+    float mImunidadeTimer = 0.0f;
+
+    /// O pulso da imunidade, SEPARADO de mPulseTimer. Quase reaproveitei aquele
+    /// e o efeito sumia: UpdateOverload zera mPulseTimer a cada quadro em que
+    /// nao ha sobrecarga, e quem RECEBE a imunidade normalmente nao esta
+    /// sobrecarregado - o seno nunca saia de perto de zero e a cor ficava num
+    /// cinza-azulado parado em vez de pulsar.
+    float mPulsoDaImunidade = 0.0f;
 
 
 
@@ -59,6 +120,7 @@ private:
 
     //OnUpdate Sub-functions
     void InvincibleUpdate(float deltaTime);
+    void UpdateImunidade(float deltaTime);
     void HandleAnimation();
     void DecreaseAtkTimer(float deltaTime);
 

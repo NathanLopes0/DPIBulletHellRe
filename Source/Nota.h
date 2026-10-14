@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 /**
  * CAMADA PURA. So aritmetica de nota; nao conhece batalha, chefe, SDL nem disco.
  *
@@ -159,4 +161,61 @@ namespace Nota {
      * do que a curva quer.
      */
     float Subtrair(float notaAtual, float perda);
+
+    /**
+     * @brief O que UM JOGADOR causa, repartido pelos que estao em campo.
+     *
+     * A NOTA DO CO-OP E UMA SO (requisitos-coop, D2), e sem isto ela seria
+     * outra coisa em cada direcao. A regra inteira cabe numa frase:
+     *
+     *   O que um jogador sozinho causa e dividido pelo numero de jogadores.
+     *   O que a dupla conquista junta e pago inteiro.
+     *
+     * DIVIDIDO: o ganho por acerto no chefe (dois atiradores somam o dobro de
+     * acertos no mesmo tempo, e assim a barra sobe no ritmo de um solo), a
+     * perda por dano sofrido (sao dois alvos em campo, e sem dividir a barra
+     * drenaria no dobro) e o ganho de gastar um Ponto Extra (sao dois
+     * estoques).
+     *
+     * INTEIRO, e por isso NAO passa por aqui: o bonus de fase limpa, que e da
+     * fase e nao de um jogador - e que ja ficou mais dificil, porque exige que
+     * nenhum dos dois tenha sido atingido.
+     *
+     * COM UM JOGADOR, DIVIDIR POR UM NAO MUDA NADA. E o que mantem o solo sendo
+     * o caso normal, sem um "if (co-op)" espalhado pela batalha.
+     *
+     * Zero jogadores devolve o bruto: nao ha o que repartir, e devolver
+     * infinito seria trocar um caso impossivel por um estrago real.
+     */
+    float PorJogador(float bruto, size_t quantosJogadores);
+
+    /**
+     * O alivio que a perda - e SO a perda - ganha em grupo, alem da divisao.
+     *
+     * POR QUE ELE EXISTE, dito com os numeros da medicao (requisitos-coop,
+     * secao 8): com a divisao sozinha, a dupla apanhava 57% mais vezes que o
+     * solo e pagava 21% menos no fim. O total ja era favoravel, mas a barra
+     * CAIA quase no dobro da frequencia, e e a frequencia que o jogador sente.
+     * Dois alunos atentos viam a nota piscar para baixo o tempo todo.
+     *
+     * 0,8 deixa cada acerto em dupla custando 2,4 brutos contra 6,0 do solo -
+     * 40%, e nao os 50% da divisao pura.
+     *
+     * SO A PERDA. Aplicar o mesmo alivio ao ganho desfaria a regra 2.1 inteira:
+     * o ganho e dividido justamente para a barra subir no ritmo de um solo.
+     */
+    constexpr float kAlivioDaPerdaEmGrupo = 0.8f;
+
+    /**
+     * @brief O que um acerto SOFRIDO custa, com a divisao e o alivio.
+     *
+     * Funcao propria, e nao um multiplicador no lugar de chamada, porque a
+     * pergunta "quanto custa apanhar" tem de ter uma resposta so: a regra 1 e a
+     * regra 3 da batalha cobram dano, e um multiplicador escrito a mao nas duas
+     * seria a mesma conta em dois lugares.
+     *
+     * COM UM JOGADOR NAO HA ALIVIO, e o numero do solo nao muda (RNF4). O
+     * co-op pode ganhar regras; o caso normal nao pode mudar por causa delas.
+     */
+    float PerdaPorJogador(float bruto, size_t quantosJogadores);
 }

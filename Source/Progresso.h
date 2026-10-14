@@ -52,13 +52,48 @@ public:
     void RegistrarNota(int materia, float nota, const std::string& quando = "");
 
     /**
-     * @brief A maior nota que o jogador ja tirou nesta materia.
+     * @brief Registra o resultado de uma batalha jogada EM DUPLA.
+     *
+     * Funcao propria, e nao um booleano em RegistrarNota, porque as duas
+     * escrevem em lugares diferentes e esquecer o booleano poria uma nota de
+     * co-op no recorde de solo - exatamente o que os dois rankings existem
+     * para separar (requisitos-coop, D9).
+     *
+     * O PARCEIRO VAI JUNTO porque a nota e da DUPLA, e o ranking de co-op e de
+     * duplas: sem saber com quem, um recorde nao tem como entrar nele. Guarda
+     * o parceiro DO RECORDE - se o aluno fizer melhor com outra pessoa, o nome
+     * muda junto com a nota.
+     *
+     * Visitante nao tem matricula, entao um parceiro vazio e normal: o recorde
+     * vale para o progresso e para o desbloqueio, e fica de fora do ranking de
+     * duplas (RF6).
+     */
+    void RegistrarNotaDeDupla(int materia, float nota, const std::string& parceiro,
+                              const std::string& quando = "");
+
+    /**
+     * @brief A maior nota que o jogador ja tirou nesta materia, SOZINHO OU EM
+     * DUPLA.
      *
      * Zero quando nunca jogou. E const e usa busca, nao operator[]: o getter
      * antigo INSERIA uma entrada zero no mapa a cada leitura, o que e mutacao
      * dentro de uma consulta e fazia o mapa crescer com materias nunca jogadas.
+     *
+     * A MAIOR DAS DUAS, e e disso que o mapa do curso precisa: passar e passar,
+     * tenha sido com quem for (requisitos-coop, D10). Quem precisa separa-las e
+     * o ranking, e para isso ha MelhorNotaSolo e MelhorNotaDeDupla.
      */
     [[nodiscard]] float MelhorNota(int materia) const;
+
+    /// @brief So o recorde de SOLO. Zero quando nunca jogou sozinho.
+    [[nodiscard]] float MelhorNotaSolo(int materia) const;
+
+    /// @brief So o recorde de DUPLA. Zero quando nunca jogou acompanhado.
+    [[nodiscard]] float MelhorNotaDeDupla(int materia) const;
+
+    /// @brief Com quem o recorde de dupla foi feito. Vazio quando nao ha
+    /// recorde de dupla, ou quando o parceiro era visitante.
+    [[nodiscard]] const std::string& ParceiroDoRecorde(int materia) const;
 
     /**
      * @brief A ULTIMA nota que o jogador tirou nesta materia, ou zero.
@@ -78,7 +113,7 @@ public:
     [[nodiscard]] int QuantasAprovadas(const std::vector<int>& materias) const;
 
     /// @brief Quantas materias tem registro. So para diagnostico e teste.
-    [[nodiscard]] size_t QuantasRegistradas() const { return mRecordes.size(); }
+    [[nodiscard]] size_t QuantasRegistradas() const { return mPorMateria.size(); }
 
     /**
      * @brief Uma materia e os dois numeros dela, para gravar e ler de volta.
@@ -98,6 +133,22 @@ public:
         /// E a ultima vez, e nao quando o recorde foi feito: a pergunta que isto
         /// responde e "quem jogou esta semana", nao "quando cada um foi melhor".
         std::string quando;
+
+        // ---- O que veio das batalhas em dupla -----------------------------
+        //
+        // NAO HA "retomadaCoop". A retomada e informacao para o professor sobre
+        // a ultima tentativa, e toda batalha comeca em kNotaInicial de qualquer
+        // jeito; dois campos onde um basta seria mais uma coisa para manter em
+        // dia sem ninguem ler.
+
+        float recordeDeDupla = 0.0f;
+
+        /// A matricula do parceiro QUANDO o recorde de dupla foi feito.
+        std::string parceiroDoRecorde;
+
+        /// Quando a dupla fez esse recorde. Aqui e quando o RECORDE foi feito,
+        /// e nao a ultima vez - e ele que data a linha do ranking de duplas.
+        std::string quandoDaDupla;
     };
 
     /**
@@ -120,12 +171,29 @@ public:
     void Restaurar(const std::vector<Entrada>& entradas);
 
 private:
-    /// O recorde por materia. So sobe.
-    std::map<int, float> mRecordes;
+    /**
+     * @brief TUDO O QUE SE SABE DE UMA MATERIA, numa linha so.
+     *
+     * Eram TRES mapas paralelos - recorde, retomada e data -, e o co-op pediria
+     * mais tres. Seis mapas paralelos sao seis chances de um caminho escrever
+     * em cinco e esquecer o sexto, e Entradas() ja precisava percorrer a UNIAO
+     * das chaves para nao perder uma materia que estivesse num e nao no outro.
+     *
+     * Com um registro so, ou a materia existe inteira ou nao existe.
+     */
+    struct Registro {
+        float recorde = 0.0f;
+        float retomada = 0.0f;
+        std::string quando;
 
-    /// A ultima nota por materia, que e de onde a proxima batalha parte.
-    std::map<int, float> mRetomadas;
+        float recordeDeDupla = 0.0f;
+        std::string parceiroDoRecorde;
+        std::string quandoDaDupla;
+    };
 
-    /// Quando cada materia foi jogada pela ultima vez.
-    std::map<int, std::string> mQuando;
+    std::map<int, Registro> mPorMateria;
+
+    /// O registro de uma materia, ou um vazio. Nao insere - o getter antigo
+    /// usava operator[] e fazia o mapa crescer a cada leitura.
+    [[nodiscard]] const Registro& Ver(int materia) const;
 };

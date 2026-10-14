@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "../../../Projectile.h"
 
 class Boss;
@@ -21,6 +23,24 @@ public:
     void OnUpdate(float deltaTime) override;
 
     [[nodiscard]] Boss* GetBossOwner() const;
+
+    /**
+     * @brief De quem este projetil e. Posto UMA vez, ao ser disparado.
+     *
+     * ESTE E O MOTIVO DE O REVEZAMENTO SER POSSIVEL. Os tres GetPlayer* abaixo
+     * sao lidos A CADA QUADRO enquanto o projetil voa - e assim que a
+     * perseguicao e a mira preditiva funcionam. Se eles perguntassem "de quem e
+     * a vez agora", um projetil perseguidor trocaria de alvo no meio do voo a
+     * cada disparo novo do chefe: dezenas deles mudando de rumo ao mesmo tempo.
+     *
+     * Guarda a POSICAO, e nao o ponteiro. Os projeteis vem de um pool que vive
+     * no Game e sobrevive a troca de batalha; um ponteiro guardado apontaria
+     * para um jogador ja destruido na batalha seguinte.
+     *
+     * Quem poe e Boss::ExecuteAttack, na leva inteira de uma vez - uma rajada e
+     * UM disparo, e todos os projeteis dela miram o mesmo aluno.
+     */
+    void DefinirAlvo(const size_t posicao) { mAlvo = posicao; }
 
     Vector2 GetPlayerPosition() const;
 
@@ -76,5 +96,8 @@ protected:
     /// Ver DefinirRotacaoPelaVelocidade. Falso por padrao: girar so faz sentido
     /// para arte que tem frente.
     bool mRotacionarComAVelocidade = false;
+
+    /// A posicao do jogador que este projetil persegue. Ver DefinirAlvo.
+    size_t mAlvo = 0;
 
 };

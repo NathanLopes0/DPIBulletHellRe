@@ -80,7 +80,7 @@ void HoverAbovePlayerStrategy::Update(Boss* boss, float deltaTime) {
     float targetX = boss->GetPosition().x;
 
     if (const auto battle = dynamic_cast<Battle*>(boss->GetScene())) {
-        if (const auto player = battle->GetPlayer()) {
+        if (const auto player = battle->Alvo()) {
             targetX = player->GetPosition().x;
         }
     }

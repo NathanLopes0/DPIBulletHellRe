@@ -140,7 +140,12 @@ private:
     Actor* mProfessorAtor = nullptr;
     Actor* mEstadoAtor = nullptr;
 
-    /// Quem esta jogando, e o aviso de que visitante nao salva.
+    /// Quanto uma linha de aluno fica abaixo da anterior, quando ha dois. O
+    /// rotulo tem 44 de altura, entao 38 os encosta sem os sobrepor.
+    static constexpr float kEntreOsAlunos = 38.0f;
+
+    /// Quem esta jogando, e o aviso de que visitante nao salva. Uma linha por
+    /// posicao do painel.
     void CriarIdentificacaoNaTela();
     Actor* mAlunoAtor = nullptr;
     Actor* mTrocarAtor = nullptr;

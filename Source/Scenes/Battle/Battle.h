@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 #include "../Scene.h"
 #include "../../Game.h"
 #include "../../AudioSystem.h"
@@ -44,11 +45,75 @@ public:
     void OnFaseTrocada(float novaDuracao);
 
     [[nodiscard]] Boss* GetBoss() const { return mBoss; }
-    [[nodiscard]] Player* GetPlayer() const { return mPlayer; }
+
+    /**
+     * @brief OS JOGADORES EM CAMPO, na ordem das posicoes do painel.
+     *
+     * Um por sessao: quantos jogam foi decidido no menu, e a batalha nao
+     * pergunta se e co-op - ela percorre o que existe.
+     *
+     * Quem quer MIRAR nao usa esta lista: usa Alvo().
+     */
+    [[nodiscard]] const std::vector<Player*>& Jogadores() const { return mJogadores; }
+
+    /**
+     * @brief EM QUEM UM ATAQUE MIRADO MIRA.
+     *
+     * Chamava-se GetPlayer(), e DOZE lugares a chamavam para esta mesma coisa:
+     * onde esta o alvo. O nome mentia por omissao - "o jogador" deixa de
+     * existir quando ha dois, e cada ataque teria de escolher por conta
+     * propria, doze vezes, cada um do seu jeito.
+     *
+     * ESTAVEL DENTRO DE UM DISPARO. O laser pergunta duas vezes (o nulo e a
+     * posicao) e as duas tem de dar o mesmo jogador; um laser que trocasse de
+     * alvo no meio do tracado seria ruido, nao dificuldade.
+     *
+     * ELA NAO PASSA A VEZ. Quem passa e RevezarAlvo, uma vez por disparo: se
+     * Alvo() revezasse sozinha, o laser trocaria de alvo entre a verificacao de
+     * nulo e a leitura da posicao, duas linhas depois.
+     *
+     * Devolve nullptr quando nao ha ninguem em campo, que acontece de verdade
+     * entre o Load e a criacao do jogador - os doze chamadores ja tratavam isso.
+     */
+    [[nodiscard]] Player* Alvo() const;
+
+    /**
+     * @brief Em qual POSICAO esta a vez.
+     *
+     * Quem precisa guardar o alvo guarda este numero, e NAO o ponteiro: os
+     * projeteis vem de um pool que vive no Game, entao um deles pode
+     * sobreviver a batalha que o criou - e um ponteiro para um jogador da
+     * batalha passada seria lixo apontando para memoria liberada.
+     */
+    [[nodiscard]] size_t IndiceDoAlvo() const { return mVezDoAlvo; }
+
+    /// O jogador de uma posicao, ou nullptr fora da lista. E como um projetil
+    /// resolve o numero que guardou.
+    [[nodiscard]] Player* JogadorEm(size_t posicao) const;
+
+    /**
+     * @brief PASSA A VEZ para o proximo jogador.
+     *
+     * Chamado UMA vez por disparo, em Boss::ExecuteAttack - o unico lugar por
+     * onde todo ataque de todo chefe passa. Por disparo, e nao por quadro
+     * (requisitos-coop, D3).
+     *
+     * Com um jogador em campo nao faz nada observavel.
+     */
+    void RevezarAlvo();
     [[nodiscard]] ProjectileManager* GetProjectileManager() const { return mProjectileManager.get(); }
 
     SDL_FRect GetPlayfieldBounds() const override;
-    void OnPlayerUsedExtraPoint();
+    /**
+     * @brief Um aluno gastou um Ponto Extra.
+     *
+     * RECEBE QUEM GASTOU porque em dupla o efeito e no OUTRO: a tela nao e
+     * limpa, o parceiro fica imune. Ver o corpo.
+     */
+    void OnPlayerUsedExtraPoint(Player* quemGastou);
+
+    /// @brief O outro aluno em campo, ou nullptr se este estiver sozinho.
+    [[nodiscard]] Player* OutroJogador(const Player* quem) const;
     void SpawnExtraPoint(Vector2 position);
 
     void FinishBattle(bool approved);
@@ -118,11 +183,64 @@ private:
     /// Passado dos 2, a nota desta batalha para em 99,99 (ver Nota.h).
     int mAcertosSofridos{};
 
+    // ---- A FAIXA DA NOTA, na base da tela ----------------------------------
+    //
+    // Os numeros estavam soltos dentro de LoadGradeBar, e a altura estava
+    // escrita DE NOVO em GetPlayfieldBounds, com um comentario pedindo para
+    // manter as duas iguais. Pedido em comentario nao segura nada - e a conta
+    // dos textos ja dependia da altura por um caminho que ninguem via.
+
+    /// A altura da barra. Era 25, e subiu junto com a moldura: um retangulo de
+    /// 25 px com 2 px de borda de cada lado sobra 21 de preenchimento.
+    static constexpr int kBarraAltura = 28;
+
+    /// A sobra dos lados. A barra ia de ponta a ponta da tela e encostava nas
+    /// bordas, o que a fazia parecer um risco no monitor em vez de uma peca.
+    static constexpr int kBarraMargemLateral = 40;
+
+    /// Do fundo da tela ate o TOPO da barra.
+    static constexpr int kBarraDoFundo = 54;
+
+    /// A placa atras de um texto da faixa.
+    ///
+    /// EXISTE POR LEITURA, nao por enfeite: o numero e branco e o
+    /// preenchimento passa por laranja - "52.64" sumia em cima dele. O mesmo
+    /// vale para o FASE LIMPA, que e verde claro sobre uma barra verde.
+    ///
+    /// ELA TINGE, NAO TAPA. A primeira versao era opaca e da altura da barra
+    /// mais dois: em vez de uma placa, lia-se um BURACO recortado no meio do
+    /// preenchimento, cortando a barra em duas. Translucida e da altura exata
+    /// da barra, ela escurece a faixa onde o numero esta e a barra continua
+    /// sendo uma coisa so.
+    /// O ganho bruto de gastar um Ponto Extra. Era um 10.f solto dentro de
+    /// OnPlayerUsedExtraPoint, ao lado de GRADE_CHANGE_UP e GRADE_CHANGE_DOWN
+    /// que ja moravam em constantes - e agora ele e repartido como os outros,
+    /// entao vale ter nome.
+    static constexpr float kGanhoDoPontoExtra = 10.0f;
+
+    static constexpr int kPlacaLargura = 112;
+
+    /// A dos avisos e mais larga: "TESTE FINAL" tem onze letras contra as seis
+    /// de "100.00".
+    static constexpr int kPlacaDoAvisoLargura = 196;
+
+    /// A MESMA altura da barra, e nao um numero proprio: dois pixels de
+    /// diferenca ja faziam a placa aparecer por cima da moldura.
+    static constexpr int kPlacaAltura  = kBarraAltura;
+    static constexpr int kOrdemDaPlaca = 303;   ///< o texto da faixa usa 304
+    static inline const SDL_Color kSemMoldura{0, 0, 0, 0};
+    static inline const SDL_Color kFundoDaPlaca{6, 8, 16, 135};
+
     // --- Ponteiros observadores do Boss e do Player, que vão estar dentro
     // do vetor mActors da própria cena Battle. Ideal para, mesmo num vetor de Actors,
     // chamar funções específicas de Player e de Boss, e também para acesso rápido sem percorrer o vetor.
     Boss* mBoss{};
-    Player* mPlayer{};
+
+    /// OS JOGADORES, em vez de um. Ver Jogadores() e Alvo().
+    std::vector<Player*> mJogadores;
+
+    /// De quem e a vez de ser mirado. Ver RevezarAlvo.
+    size_t mVezDoAlvo = 0;
 
     // O GERENTE DE PROJÉTEIS: Um sistema especializado, possuído pela cena
     std::unique_ptr<ProjectileManager> mProjectileManager;
@@ -140,7 +258,24 @@ private:
     /// partir dali fica - ver GradeTextUpdate.
     Actor* mTesteFinalActor = nullptr;
 
-    void GradeUp(float amount = GRADE_CHANGE_UP);
+    /**
+     * @brief Soma um ganho BRUTO na nota da batalha.
+     *
+     * SEM VALOR PADRAO, de proposito. Ha dois tipos de ganho e eles se
+     * repartem de formas diferentes (requisitos-coop, 2.1): o que um jogador
+     * causa passa por Nota::PorJogador, o que a dupla conquista e pago
+     * inteiro. Com um padrao, a chamada mais comum - o acerto no chefe - nao
+     * dizia qual dos dois era, e quem acrescentasse um ganho novo herdaria a
+     * escolha sem notar que havia uma.
+     */
+    void GradeUp(float amount);
+
+    /// Quanto vale, nesta batalha, algo que UM jogador causou. Ver
+    /// Nota::PorJogador: com um jogador em campo, devolve o proprio bruto.
+    [[nodiscard]] float PorJogador(float bruto) const;
+
+    /// @brief O que um acerto sofrido custa: dividido E aliviado. Ver Nota.h.
+    [[nodiscard]] float PerdaPorJogador(float bruto) const;
     void GradeDown();
 
     std::vector<ExtraPointItem*> mExtraPoints;
