@@ -144,9 +144,21 @@ void Battle::LoadPlayer() {
     auto player = std::make_unique<Player>(this);
 
 
-    // 2. Configura a posição inicial
-    const auto midWidth = static_cast<float>(mGame->GetWindowWidth()) / 2.0f;
-    const auto startingHeight = static_cast<float>(mGame->GetWindowHeight()) * 7.0f / 8.0f;
+    // 2. NASCE DENTRO DO CAMPO, e nao numa fracao da JANELA.
+    //
+    // Era 7/8 da altura da janela, ou seja 700. Com o campo acabando onde a
+    // faixa da nota comeca, o chao do aluno passou a ser 682 - e ele nascia
+    // ABAIXO dele, para ser empurrado de volta pelo limite no primeiro quadro.
+    // Um empurrao que ninguem pediu, e que mudaria de tamanho a cada vez que a
+    // faixa da nota mudasse de altura.
+    //
+    // Tirando a posicao do proprio campo, ela nasce legal por construcao.
+    const SDL_FRect campo = GetPlayfieldBounds();
+    const auto alturaDoAluno = static_cast<float>(
+        player->GetComponent<DrawAnimatedComponent>()->GetSpriteHeight());
+
+    const float midWidth = campo.x + campo.w / 2.0f;
+    const float startingHeight = campo.y + campo.h - alturaDoAluno;
     player->SetPosition(Vector2(midWidth, startingHeight));
 
     // A LISTA, e nao um ponteiro so: o gabinete tem duas posicoes. Hoje entra
@@ -800,20 +812,23 @@ void Battle::EncerrarFase() {
 
 SDL_FRect Battle::GetPlayfieldBounds() const
 {
-    // A FAIXA QUE O JOGADOR NAO USA, e NAO a altura da barra de nota.
+    // O CAMPO ACABA ONDE A FAIXA DA NOTA COMECA, e esse numero e o da barra -
+    // nao uma copia dele.
     //
-    // Os dois numeros eram 25 e um comentario aqui mandava manter os dois
-    // iguais. Eles deixaram de ser a mesma coisa quando a barra ganhou moldura
-    // e recuo: esta faixa e regra de JOGO - ate onde o aluno pode descer - e a
-    // outra e desenho. Mexer nesta muda onde se joga, e por isso ela nao entrou
-    // na arrumacao visual da barra; esta anotada em a-fazer.md.
-    constexpr float gradeBarHeight = 25.0f;
-
+    // Eram dois 25 com um comentario pedindo para manter os dois iguais, e
+    // pedido em comentario nao segura nada: quando a barra ganhou moldura e
+    // recuo, a faixa ficou para tras e o aluno continuou podendo parar EM CIMA
+    // da barra, com a personagem por cima da propria nota.
+    //
+    // A conta tambem decide onde ficam as linhas da tabela do Thiago (ver
+    // ConsultaAttack): a ultima linha agora termina onde o jogador termina, em
+    // vez de descer por baixo do HUD - uma linha que so existia para ser
+    // varrida, nunca para ser habitada.
     return {
         0.0f, // x
         0.0f, // y
         static_cast<float>(mGame->GetWindowWidth()), // w
-        static_cast<float>(mGame->GetWindowHeight()) - gradeBarHeight // h
+        static_cast<float>(mGame->GetWindowHeight() - kBarraDoFundo) // h
     };
 }
 
