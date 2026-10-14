@@ -109,9 +109,7 @@ leque, balão, laser e as varreduras do Thiago cobrem o campo inteiro de
 qualquer jeito.
 
 Esse é o "levemente mais fácil", e ele **não precisa de fator nenhum**: já está
-lá, de graça. Quanto ele vale é a pergunta da medição (incremento 6). Se a
-medição disser que é muito, o fator aparece; se disser que está bom, não se
-mexe em nada.
+lá, de graça. Quanto ele vale é a pergunta da medição (incremento 7, seção 8).
 
 #### E os três desafios a mais, que também não precisam de regra nova
 
@@ -347,5 +345,105 @@ Cada um compila, passa na suíte e pode ser jogado.
    Falta uma coisa pequena: **"você está em 23º" só aparece na lista de solo.**
    Na de duplas a pergunta muda de sujeito — a posição é da *dupla* — e mostrar
    ali a posição de solo seria um número que não pertence a nada na tela.
-7. **A medição.** Com o co-op jogável, medir a nota de uma dupla contra a de um
-   solo nas mesmas condições e ver se "levemente" é o que está lá.
+7. ~~**A medição.**~~ **Feita** — seção 8. Com a mira equalizada, a dupla
+   termina cerca de **4 pontos acima** do solo numa nota de ~79: "levemente" é
+   o que está lá, e **D4 se cumpre sem fator nenhum**. O que decide de verdade
+   é a posição: parados onde nascem, os dois da dupla não acertam o chefe e a
+   nota zera nas seis sementes.
+
+## 8. A medição (incremento 7)
+
+A pergunta de D4 era **quanto** o co-op é mais fácil, e a resposta tinha de ser
+medida, não estimada: a seção 2.1 diz que a regra da divisão deixa o ritmo
+igual ao do solo, e que o "levemente" vem de uma coisa só — os ataques mirados
+se dividindo entre os dois. Se isso valesse muito, entraria um fator.
+
+**Como foi medido.** `Ferramentas/medir-dificuldade.sh` — rodá-lo reproduz os
+números abaixo. Ele monta uma cópia da árvore com tudo preso: a mesma batalha
+(fase 0), semente fixa, passo de tempo fixo de 0,016 s, tiro automático e um
+piloto no lugar do jogador. Seis sementes,
+cada uma rodada com um e com dois jogadores. Seis, e não uma: com dois jogadores
+há mais colisões, e cada colisão consome números do mesmo sorteador global, então
+a sequência de ataques diverge da do solo depois do primeiro acerto. Uma corrida
+de cada mediria o sorteio daquela corrida.
+
+### 8.1 — O primeiro resultado estava errado, e o erro é o achado
+
+Com o piloto **parado onde o jogador nasce**, a dupla zerou a nota nas seis
+sementes, enquanto o solo passou em duas. Parecia que o co-op não era levemente
+mais fácil, e sim brutalmente mais difícil. O traço quadro a quadro desmentiu:
+
+```
+            solo                  dupla
+q00060   nota=41,12            nota=40,00
+q00180   nota=42,80            nota=40,00
+q00300   nota=42,80            nota=40,00
+q00420   nota=48,96            nota=40,00     <- sete segundos sem ganhar nada
+```
+
+A dupla ficava em 40,00 cravados. Não era dificuldade: **eles não estavam
+acertando o chefe uma vez sequer.** O tiro do jogador sobe reto
+(`Player::Shoot`: velocidade `(0, -800)`), o chefe nasce no meio da tela, e o
+jogador solo nasce no meio também — parado, ele acerta de graça. Os dois da
+dupla nascem a 1/3 e 2/3 da largura (`Battle::LoadPlayer`), e parados atiram no
+vazio. O arnês estava medindo a **posição de nascimento**.
+
+Isso é uma informação sobre o jogo, e não só sobre a medição: **numa dupla, só
+um dos dois pode ficar embaixo do chefe.** O dano da dupla não é o dobro do
+solo de graça — ele depende de os dois se arranjarem, e esse arranjo é a
+habilidade que o modo cobra.
+
+### 8.2 — Com a mira equalizada
+
+Refeita com um piloto que faz cada jogador perseguir o X do chefe, nos dois
+modos:
+
+| semente | solo | dupla | dupla − solo |
+|---|---|---|---|
+| 20261014 | 79,12 | 80,28 | +1,15 |
+| 7 | 78,50 | 83,46 | +4,97 |
+| 1234 | 78,79 | 86,40 | +7,62 |
+| 555 | 83,25 | 87,22 | +3,97 |
+| 90210 | 74,19 | 80,87 | +6,68 |
+| 31337 | 78,71 | 78,29 | **−0,41** |
+| | | **média** | **+3,99** |
+
+**A dupla termina cerca de 4 pontos acima do solo, em uma nota de ~79 — uns 5%.**
+Uma das seis saiu negativa, o que é a melhor evidência de que o efeito é pequeno:
+ele não domina o resultado, o jogo domina.
+
+### 8.3 — De onde vêm esses quatro pontos
+
+O contador de acertos separa as duas metades:
+
+| | solo | dupla | razão |
+|---|---|---|---|
+| acertos **dados** no chefe | 349 | 670 | 1,92× |
+| acertos **sofridos** | 14,2 | 22,3 | 1,57× |
+| sofridos **em moeda de solo** (cada um custa metade) | 14,2 | 11,2 | 0,79× |
+
+**No ataque a dupla fica abaixo do empate.** A regra divide o ganho por dois,
+então ela precisa de 2,00× para empatar com o solo, e consegue 1,92× — os dois
+disputam o mesmo ponto embaixo do chefe e um deles sempre está chegando. Isso
+tira da dupla, não dá.
+
+**Na defesa ela ganha, e é daí que vem o "levemente".** Ela apanha muito mais
+(1,57×) porque são dois alvos em campo — mas, com o revezamento da mira e a
+perda dividida, o estrago em moeda de solo é **21% menor**. É exatamente o que a
+seção 2.1 previa que sobraria, agora com número.
+
+### 8.4 — A conclusão, e o que ela não cobre
+
+**D4 está cumprida sem fator nenhum.** Quatro pontos em oitenta é "levemente",
+e a regra da divisão (2.1) já entrega isso sozinha.
+
+Mas a medição tem um limite que convém dizer: **os dois pilotos empilham os
+jogadores no mesmo X.** É o arranjo mais favorável possível para a dupla, e dois
+humanos não conseguem ocupar o mesmo ponto confortavelmente. O arranjo oposto —
+parados onde nascem — zera a dupla nas seis sementes. **O jogo real fica entre
+os dois**, e onde exatamente depende de quão bem a dupla se coordena.
+
+Para um modo cooperativo, essa é a forma certa da curva: mais fácil para quem se
+coordena, mais difícil para quem não se coordena. O que a medição descarta é a
+hipótese de que o co-op seria fácil demais — ela não se sustenta em arranjo
+nenhum.
