@@ -220,36 +220,6 @@ std::vector<LinhaDeDupla> DuplasDaMateria(const std::vector<Exportacao::FichaDeA
     return Cortar(OrdenarDuplas(std::move(linhas)), quantas);
 }
 
-namespace {
-
-    /// Acha a dupla numa lista ja pronta. AS DUAS BUSCAS PASSAM POR AQUI, pelo
-    /// mesmo motivo de Numerar: "e esta a minha dupla?" tem uma resposta so.
-    int Onde(const std::vector<LinhaDeDupla>& linhas, const std::string& um,
-             const std::string& dois) {
-
-        // Ordenada, como a chave: assim (A,B) e (B,A) acham a mesma linha.
-        const Chave procurada = ChaveDa(um, dois);
-
-        for (const auto& l : linhas) {
-            if (l.um == procurada.first && l.dois == procurada.second) return l.posicao;
-        }
-        return 0;
-    }
-}
-
-int PosicaoDaDupla(const std::vector<Exportacao::FichaDeAluno>& fichas, const int materia,
-                   const std::string& um, const std::string& dois) {
-
-    // SEM CORTE (quantas = 0): e a lista COMPLETA que responde "onde estamos".
-    return Onde(DuplasDaMateria(fichas, materia), um, dois);
-}
-
-int PosicaoDaDuplaNoGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                          const int quantasMaterias, const std::string& um,
-                          const std::string& dois) {
-    return Onde(DuplasGeral(fichas, quantasMaterias), um, dois);
-}
-
 std::vector<LinhaDeDupla> DuplasGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
                                       const int quantasMaterias, const size_t quantas) {
 
