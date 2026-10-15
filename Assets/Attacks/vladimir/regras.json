@@ -6,103 +6,129 @@
   // dela. E por isso que os nomes sao os da disciplina e nao "fase1", "fase2":
   // o que define o padrao e a linguagem, e a fase so escolhe qual usar.
   //
-  // O QUE MUDOU QUANDO O CHEFE COMECOU A SE MEXER. Na primeira versao ele
-  // ficava parado no centro em todas as fases, e as regras aqui faziam o
-  // trabalho de espalhar os simbolos - cada letra com um Wobble para um lado,
-  // para a fila nao ser uma coluna. Era maquiagem: a fase continuava
-  // acontecendo num corredor estreito no meio da tela.
+  // ------------------------------------------------------------------------
+  // "a" E "b" FAZEM COISAS DIFERENTES, E ISSO E O PONTO DO CHEFE.
   //
-  // Com o chefe escrevendo em movimento (ver MovementStrategies.h, as tres
-  // estrategias de gesto), os simbolos ficam deitados ao longo do caminho dele
-  // e o espalhamento e de verdade. Varias regras daqui simplesmente SUMIRAM, e
-  // isso e o sinal de que o desenho melhorou: o efeito saiu de um truque por
-  // projetil e passou a sair da ideia da fase.
+  // Por tres versoes seguidas eles diferiam SO NA ANIMACAO - ambar e azul, e
+  // nada mais. O chefe "anunciava" numa notacao que nao previa nada, e ler a
+  // palavra nao servia para coisa nenhuma: as letras eram pintura.
+  //
+  // A correcao sai da propria disciplina. Num automato, a funcao de transicao
+  // trata os dois simbolos de formas diferentes - d(q,a) e d(q,b) nao sao a
+  // mesma coisa, e e exatamente isso que faz um alfabeto ser um alfabeto. Aqui:
+  //
+  //     "a"  vai RETO.    Rapido de ler, rapido de desviar.
+  //     "b"  PERSEGUE.    Corrige a rota com forca que decai ate zero.
+  //
+  // E com isso as palavras passam a dizer algo:
+  //
+  //     (ab)*    a cada dois tiros, um corre atras - a batida e desvia/escapa
+  //     a^n b^n  CONTAR OS AMBAR DIZ QUANTOS PERSEGUIDORES VEM. A contagem
+  //              deixa de ser um enfeite pedagogico e vira informacao tatica
+  //
+  // O TrackingBehavior decai: "fugir cedo nao resolve, fugir tarde sim". E uma
+  // habilidade diferente de desviar de um tiro reto, e e dela que vem a tensao
+  // de uma palavra misturada.
+  // ------------------------------------------------------------------------
+  //
+  // UM SO PROJETIL PODE TER UM SO MOTION, e Wobble, Tracking, Accelerate e
+  // SlowDown brigam entre si (Behaviors.h avisa: o Wobble reescreve a
+  // velocidade todo quadro e desfaz o que os outros fizeram). Por isso nenhuma
+  // regra daqui poe dois deles no mesmo simbolo - quando o "a" leva um
+  // modifier, o "b" leva um motion, e nunca os dois na mesma letra.
+  //
+  // O "atraso" DO TRACKING NAO E CONTRA A ARMADILHA DO WOBBLE. O Tracking
+  // sobrevive a um projetil dormindo: ele faz "return" quando a velocidade e
+  // zero, em vez de se declarar terminado. Mas a DURACAO corre enquanto ele
+  // dorme, entao numa WaveAttack - que acorda um simbolo por vez - a janela
+  // pode expirar antes de o ultimo acordar. Por isso as duracoes aqui sao
+  // folgadas: 2,4s cobrem o despertar inteiro mais a perseguicao.
   //
   // Os campos estao documentados em Documentacao/arquivos-de-dados.md.
   // ==========================================================================
 
   // (ab)* - A ESTRELA DE KLEENE.
   //
-  // Alternancia pura: simbolo par e "a", impar e "b". E a linguagem regular
-  // mais simples que ainda tem o que olhar, e serve de alfabeto visual para o
-  // resto da batalha - e aqui que o jogador aprende que ambar e "a" e azul e
-  // "b", sem o que nenhuma das fases seguintes se le.
+  // Alternancia pura, e agora ela se sente: um tiro reto, um perseguidor, um
+  // reto, um perseguidor. A fase ensina o alfabeto nos dois sentidos - a cor
+  // de cada letra E o que cada letra faz - e e sobre isso que as outras tres
+  // fases contam depois.
   //
-  // SO AS ANIMACOES, sem movimento nenhum por projetil. Quem faz a repeticao
-  // ser visivel e a ORBITA do chefe: cada volta deixa um anel de simbolos, e
-  // duas voltas deixam dois - a estrela de Kleene desenhada no campo. Um
-  // wobble por letra aqui so embaralharia a leitura do anel.
+  // Quem faz a repeticao ser visivel e a ORBITA do chefe: cada volta deixa uma
+  // trilha de simbolos, e a trilha alterna.
+  //
+  // A FORCA E A MAIS BAIXA DAS QUATRO (1,4), E E POR SER A FASE QUE ENSINA.
+  // Com 1,9 o piloto parado morria AQUI, na fase 1 - nove acertos e nota 1,12
+  // antes de ver a segunda. Um jogador que nunca se mexe deve mesmo reprovar,
+  // mas nao antes de aprender o alfabeto: e nesta fase que ele descobre que
+  // ambar vai reto e azul persegue, e as outras tres contam com isso sabido.
   "kleene": [
     { "quando": "pares",   "animacao": "A" },
-    { "quando": "impares", "animacao": "B" }
+    { "quando": "impares",
+      "animacao": "B",
+      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 2.4 } }
   ],
 
   // a^n b^n - A LINGUAGEM QUE NENHUM AUTOMATO FINITO RECONHECE.
   //
-  // Seis "a" e depois seis "b" na mesma rajada: a palavra e lida no TEMPO, e o
-  // jogador ve um trecho ambar seguido de um trecho azul do MESMO tamanho.
-  // Contar o primeiro e saber o segundo - que e exatamente o que torna esta
-  // linguagem nao-regular, e por que ela precisa de uma pilha.
+  // Seis "a" e depois seis "b". O leque distribui os angulos EM ORDEM DE
+  // INDICE, entao os seis ambar ocupam metade do arco e os seis azuis a outra.
   //
-  // O QUE SEPARA OS DOIS TRECHOS AGORA E O LEQUE, e nao um wobble por letra.
+  // E AQUI A CONTAGEM VIRA INFORMACAO. Antes, saber que vinham seis "b" nao
+  // mudava nada - eram iguais aos "a". Agora os seis "b" sao seis
+  // perseguidores, e a metade ambar do arco e o aviso de quantos vem e de que
+  // lado. Ler a palavra passa a valer o tempo de ler.
   //
-  // Antes, os "a" levavam um Wobble para um lado e os "b" desciam retos, e os
-  // tres numeros disso (atraso, frequencia, velocidade) tinham de ser acertados
-  // juntos - errei duas vezes seguidas, uma delas abrindo um corredor seguro no
-  // meio da tela que deixou a fase inteira inerte.
-  //
-  // O leque da WaveAttack distribui os angulos EM ORDEM DE INDICE, entao os
-  // seis "a" ocupam uma metade do arco e os seis "b" a outra, sozinhos. Nao ha
-  // numero para acertar: a separacao e a propria ordem da rajada.
-  //
-  // OS INDICES COBREM A RAJADA INTEIRA, e a suite exige isso
-  // (test_arquivos_de_dados: "uma regra por indice nao aponta para fora da
-  // rajada"). Aqui a exigencia e um presente: ela garante que os dois blocos
-  // LADRILHAM a palavra, sem simbolo sobrando nem faltando - que e a propria
-  // propriedade que a fase existe para mostrar.
-  //
-  // O QUE FALTA, e e incremento proprio: o n CRESCER a cada ciclo. Hoje o bloco
-  // tem seis fixos. Crescer pede que a regra saiba o tamanho da rajada, e
-  // RegraSeAplica so recebe o indice - mudar isso mexe na assinatura do
-  // configurator, que todos os chefes usam.
+  // A FORCA E MENOR QUE A DO (ab)*: 1,4 contra 1,9. Seis perseguidores de uma
+  // vez com a forca da fase 1 fechariam um cerco de que nao da para sair; com
+  // 1,4 eles curvam o suficiente para obrigar a andar, e pouco o bastante para
+  // haver saida.
   "blocos": [
     { "indices": [0, 1, 2, 3, 4, 5],   "animacao": "A" },
-    { "indices": [6, 7, 8, 9, 10, 11], "animacao": "B" }
+    { "indices": [6, 7, 8, 9, 10, 11],
+      "animacao": "B",
+      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 2.6 } }
   ],
 
   // A PILHA, VISTA DE LADO.
   //
   // O chefe mergulha enquanto empilha e sobe enquanto desempilha, entao a
-  // ALTURA de cada simbolo e a posicao dele na pilha. Os simbolos saem para os
-  // lados, e nao para baixo: assim cada nivel da pilha vira uma LINHA
-  // horizontal no campo, e a pilha inteira fica legivel como uma pilha.
+  // ALTURA de cada anel e a posicao dele na pilha.
   //
-  // O SlowDown e o que faz o nivel PARAR de crescer. Sem ele os simbolos saem
-  // e somem pelas bordas, e o que se ve e um chuveiro; freando, eles ficam
-  // pendurados perto da altura em que nasceram e o desenho se forma.
+  // AQUI AS DUAS LETRAS SAO AS DUAS METADES DA ESTRUTURA:
+  //
+  //     "a"  FICA. Freia e se pendura na altura em que nasceu - e o simbolo
+  //          que esta NA pilha, e vira terreno que o jogador tem de contornar.
+  //     "b"  SAI ATRAS DE VOCE. E o simbolo desempilhado, que nao fica parado
+  //          esperando.
+  //
+  // O SlowDown so no "a" e o Tracking so no "b" tambem e o que mantem a regra
+  // de um motion/modifier por simbolo: os dois no mesmo projetil se anulariam.
   "pilha": [
-    { "quando": "pares",   "animacao": "A" },
-    { "quando": "impares", "animacao": "B" },
-    { "modifiers": [ { "tipo": "SlowDown", "fator": 0.35, "atraso": 0.45 } ] }
+    { "quando": "pares",
+      "animacao": "A",
+      "modifiers": [ { "tipo": "SlowDown", "fator": 0.35, "atraso": 0.45 } ] },
+    { "quando": "impares",
+      "animacao": "B",
+      "motion": { "tipo": "Tracking", "atraso": 0.5, "forca": 1.5, "duracao": 2.0 } }
   ],
 
   // A FITA DA MAQUINA DE TURING.
   //
-  // Na fase final o chefe e a cabeca de leitura varrendo a fita, e o que ele
-  // deixa para tras sao as marcas. O Wobble aqui NAO e para espalhar - disso a
-  // varredura ja cuida - e sim para a marca tremer: uma fita lida e reescrita
-  // nao e uma fileira limpa de simbolos.
+  // O unico nivel da hierarquia que LE E ESCREVE, e as duas letras sao as duas
+  // operacoes: o "a" e a marca deixada na fita (treme no lugar), o "b" e a
+  // cabeca indo buscar o que leu.
   //
-  // SEM "atraso", de proposito. Este conjunto veste um leque (CircleSpread),
-  // em que todos os projeteis nascem ACORDADOS no mesmo quadro - a armadilha
-  // do wobble morrer num projetil parado so existe na WaveAttack, que acorda
-  // um por vez. Pôr atraso aqui so adiaria o efeito sem motivo.
+  // SEM "atraso" NO WOBBLE, de proposito: este conjunto veste um leque
+  // (CircleSpread), em que todos os projeteis nascem ACORDADOS no mesmo quadro.
+  // A armadilha do wobble morrer num projetil parado so existe na WaveAttack,
+  // que acorda um por vez.
   "fita": [
     { "quando": "pares",
       "animacao": "A",
       "motion": { "tipo": "Wobble", "amplitude": 22, "frequencia": 1.6, "duracao": 3.0 } },
     { "quando": "impares",
       "animacao": "B",
-      "motion": { "tipo": "Wobble", "amplitude": -22, "frequencia": 1.6, "duracao": 3.0 } }
+      "motion": { "tipo": "Tracking", "atraso": 0.4, "forca": 1.6, "duracao": 2.2 } }
   ]
 }

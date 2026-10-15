@@ -250,6 +250,20 @@ Escolha no máximo uma forma:
 | `animacao` | nome de uma animação registrada no projétil |
 | `escala` | multiplica o tamanho — e a hitbox junto, porque o colisor multiplica o raio pela escala |
 
+> **Numa `WaveAttack`, a `duracao` de um motion corre enquanto o projétil
+> dorme.** A `WaveAttack` cria a rajada inteira adormecida e acorda um projétil
+> a cada `intervalo`, mas o relógio do behavior começa no nascimento. Os dois
+> casos se parecem e falham diferente:
+>
+> - o `Wobble` **morre**: ao ativar num projétil parado ele não acha direção
+>   para oscilar em torno e se declara terminado. Precisa de um `atraso` maior
+>   que o despertar do último;
+> - o `Tracking` **sobrevive** (ele devolve sem fazer nada enquanto a velocidade
+>   é zero), mas a `duracao` dele já está correndo — numa fila longa a janela
+>   pode expirar antes de o último acordar. Precisa de `duracao` folgada.
+>
+> Em ambos, mexer em `projeteis` ou `intervalo` obriga a revisar os tempos.
+
 > **`CircleSpreadAttack` IGNORA `angulo`.** O passo dela é sempre `360/n`
 > (`CircleSpreadAttack.cpp`), e o campo é aceito pelo leitor sem ser usado pela
 > estratégia — não há aviso. Quem quiser mudar a densidade do anel mexe em
