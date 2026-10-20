@@ -98,9 +98,29 @@
 
   // FASE 2 - EXCLUSAO MUTUA   |   gesto: A ORBITA LENTA
   //
-  // Um anel de travas com UMA fresta de 60 graus, e a fresta gira a cada
-  // disparo (Vitor::CustomizeAttackParams). As travas freiam e ficam: a parede
-  // nao passa sozinha, e atravessar e a unica saida.
+  // Um anel de 60 travas com UMA fresta de 60 graus, e a fresta aponta SEMPRE
+  // PARA BAIXO ("anguloCentral": 270 - o leque e desenhado em torno desse
+  // angulo e a abertura fica oposta a ele, ou seja em 90, que e para baixo).
+  // As travas freiam e ficam: a parede nao passa sozinha, e atravessar e a
+  // unica saida.
+  //
+  // SAO 60 TRAVAS E NAO 24 PORQUE A FRESTA TEM DE SER O UNICO JEITO DE PASSAR.
+  // Com 24 o espacamento no raio em que o jogador encontra o anel (uns 390px)
+  // dava 88 pixels, e o sprite da trava tem 37: sobravam 50px de folga entre
+  // vizinhas e atravessar a parede em qualquer ponto era trivial. Com 60 o
+  // espacamento cai para uns 34px e a parede fecha - a abertura e a porta.
+  //
+  // A FRESTA PAROU DE GIRAR, e isso trocou a fase de lugar. Antes ela girava
+  // 137 graus por disparo e a fase era "ache a abertura". Agora a abertura esta
+  // sempre embaixo, e quem a move e a ORBITA DO CHEFE: o corredor seguro
+  // escorrega de um lado para o outro junto com ele, e a fase virou "fique no
+  // corredor".
+  //
+  // ISSO INVERTE A LICAO DA FASE 1, de proposito. La, seguir o chefe e a pior
+  // coisa a fazer - as faixas descem de onde ele estava e a varredura volta por
+  // cima delas. Aqui seguir o chefe e a UNICA coisa a fazer, porque o corredor
+  // sai de baixo dele. Medido: com o anel denso o piloto que persegue passou de
+  // 14 para 11 acertos, justamente porque ele ja anda colado no x do chefe.
   //
   // O LEQUE E UMA WaveAttack, E NAO UM CircleSpread, por um motivo medido na
   // fase 3 do Vladimir: CircleSpreadAttack ignora "angulo" e "anguloCentral" -
@@ -120,7 +140,8 @@
     "movimento": { "tipo": "Orbitar", "a": 110, "b": 0.08 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Trava",
-        "projeteis": 24, "velocidade": 300, "angulo": 300, "intervalo": 0,
+        "projeteis": 60, "velocidade": 300, "angulo": 300, "anguloCentral": 270,
+        "intervalo": 0,
         "cooldown": 2.6,
         "regras": "secao_critica" }
     ]
@@ -170,7 +191,8 @@
         "cooldown": 1.0,
         "regras": "tarefas_famintas" },
       { "estrategia": "WaveAttack", "projetil": "Trava",
-        "projeteis": 21, "velocidade": 300, "angulo": 300, "intervalo": 0,
+        "projeteis": 52, "velocidade": 300, "angulo": 300, "anguloCentral": 270,
+        "intervalo": 0,
         "cooldown": 2.9,
         "regras": "secao_critica" }
     ]

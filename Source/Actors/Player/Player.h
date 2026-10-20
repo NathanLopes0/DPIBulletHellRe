@@ -139,6 +139,11 @@ private:
     /// MoveInput. Guardar a velocidade antiga para devolver depois seria um
     /// estado a mais para errar - bastaria um caminho de saida esquecido para o
     /// aluno ficar lento o resto da batalha.
+    /// So para o RITMO do pulso: a cor acelera conforme a corrente acaba, e
+    /// precisa de uma referencia para saber "quanto falta". Nao limita nada -
+    /// uma corrente mais longa que isto simplesmente comeca pulsando devagar.
+    static constexpr float kDuracaoTipicaDaCorrente = 3.5f;
+
     float mCorrenteTimer = 0.0f;
     float mFatorDaCorrente = 1.0f;
     float mPulsoDaCorrente = 0.0f;
@@ -163,6 +168,23 @@ private:
     void InvincibleUpdate(float deltaTime);
     void UpdateImunidade(float deltaTime);
     void UpdateCorrente(float deltaTime);
+
+    /**
+     * @brief O UNICO lugar que pinta o aluno.
+     *
+     * Os tres estados que mudam a cor podem valer ao mesmo tempo, e a ordem de
+     * prioridade e esta:
+     *
+     *   imunidade   decide se da para atravessar um tiro - ganha de todas
+     *   overload    o gatilho mudo, que dura pouco
+     *   corrente    dura mais e e a menos urgente
+     *
+     * Cada Update* so anda o relogio e guarda o pulso dele; nenhum chama
+     * SetColor. Era assim que um bug se escondia: quem rodasse por ultimo
+     * ganhava, e o ramo "else" do overload pintava de branco todo quadro em que
+     * o aluno nao estava sobrecarregado.
+     */
+    void AtualizarCorDoEstado();
     void HandleAnimation();
     void DecreaseAtkTimer(float deltaTime);
 

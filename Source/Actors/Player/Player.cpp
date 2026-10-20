@@ -95,19 +95,21 @@ void Player::OnUpdate(float deltaTime) {
     HandleAnimation();
     DecreaseAtkTimer(deltaTime);
     BorderLimitCheck();
-    // A ORDEM DAS TRES CORES E A ORDEM DE PRIORIDADE INVERSA: cada uma
-    // sobrescreve a anterior, entao a ultima a rodar e a que o jogador ve.
+    // CADA UM SO ANDA O RELOGIO DELE; QUEM PINTA E UM SO.
     //
-    //   corrente   dura mais e e a menos urgente - informa um estorvo
-    //   overload   o gatilho mudo, que dura pouco
-    //   imunidade  decide se da para atravessar um tiro, e ganha de todas
+    // Antes cada um destes tres chamava SetColor, e a ultima chamada do quadro
+    // ganhava. Isso escondeu um bug por um commit inteiro: UpdateOverload
+    // pintava de BRANCO no ramo "else", ou seja em todo quadro em que o aluno
+    // nao estava sobrecarregado - e como ele rodava depois de UpdateCorrente,
+    // apagava a cor da corrente antes de alguem ver. O efeito existia, mexia na
+    // velocidade, e era invisivel.
     //
-    // Uma corrente pode valer ao mesmo tempo que as outras duas, e nesses
-    // instantes ela cede a cor - o aluno sente a lentidao no manche, e nao
-    // precisa da cor para saber dela.
+    // Com um pintor so a prioridade vira uma coisa escrita, e nao uma
+    // consequencia da ordem das chamadas.
     UpdateCorrente(deltaTime);
     UpdateOverload(deltaTime);
     UpdateImunidade(deltaTime);
+    AtualizarCorDoEstado();
 
 }
 
@@ -253,44 +255,18 @@ void Player::BorderLimitCheck() {
 
 void Player::UpdateOverload(float deltaTime) {
 
-    auto dc = GetComponent<DrawAnimatedComponent>();
-    if (!dc) return;
-
-    if (mOverloadTimer > 0.0f) {
-        mOverloadTimer -= deltaTime;
-
-        // --- LÓGICA DO PISCAR VERMELHO ---
-
-        // 1. Calcula a velocidade do piscar (Frequência)
-        // Quanto MENOR o timer (mais perto de acabar), MAIOR a frequência.
-        // Começa com 5.0f e aumenta + 15.0f para cada segundo que passou.
-        float freq = 5.0f + (OVERLOAD_DURATION - mOverloadTimer) * 15.0f;
-
-        mPulseTimer += freq * deltaTime;
-        // 2. Oscilador (Seno)
-        // Gera um número entre -1 e 1
-        float osc = Math::Sin(mPulseTimer);
-
-        // 3. Define a cor
-        // Quando oscilador for 1 -> Branco (255, 255, 255)
-        // Quando oscilador for -1 -> Vermelho (255, 0, 0)
-
-        // Mapeia [-1, 1] para [0, 255] nos canais Verde e Azul
-        Uint8 gb = static_cast<Uint8>((osc + 1.0f) * 127.5f);
-
-        // Vermelho sempre 255. Verde e Azul oscilam.
-        // Se GB for 255 -> Branco. Se GB for 0 -> Vermelho Puro.
-        dc->SetColor(255, gb, gb);
-
-
-    } else {
-        // --- ESTADO NORMAL ---
-        // Garante que o player volte a ser branco quando o tempo acabar
-
-        dc->SetColor(255, 255, 255);
+    // SO O RELOGIO E O PULSO. Quem pinta e AtualizarCorDoEstado.
+    if (mOverloadTimer <= 0.0f) {
         mPulseTimer = 0.0f;
+        return;
     }
 
+    mOverloadTimer -= deltaTime;
+
+    // Quanto MENOR o timer (mais perto de acabar), MAIOR a frequencia: comeca
+    // em 5 e sobe 15 por segundo passado.
+    const float freq = 5.0f + (OVERLOAD_DURATION - mOverloadTimer) * 15.0f;
+    mPulseTimer += freq * deltaTime;
 }
 
 void Player::Proteger(const float segundos) {
@@ -321,60 +297,81 @@ void Player::UpdateCorrente(const float deltaTime) {
 
     mCorrenteTimer -= deltaTime;
 
-    auto dc = GetComponent<DrawAnimatedComponent>();
-    if (!dc) return;
-
     if (mCorrenteTimer <= 0.0f) {
         mCorrenteTimer = 0.0f;
         mFatorDaCorrente = 1.0f;
         mPulsoDaCorrente = 0.0f;
-        dc->SetColor(255, 255, 255);
         return;
     }
 
-    // ESCURECE EM VEZ DE PISCAR, e e de proposito que seja a unica das tres
-    // cores que nao pulsa forte: as outras duas avisam de coisas que acabam em
-    // tres segundos e exigem reacao; esta informa um PESO, e peso se le como
-    // peso quando a figura fica mais apagada, nao mais agitada.
+    // FEEDBACK FORTE, E A PRIMEIRA VERSAO ERROU A MAO. Ela escurecia de 120 a
+    // 155 com um azul de leve, "porque peso se le apagado, nao agitado". Na
+    // foto o aluno preso ficava praticamente igual ao normal - e um efeito que
+    // muda a velocidade PRECISA se anunciar, senao o jogador culpa o controle.
     //
-    // O ferro tambem nao e cinza puro: um tom levemente azulado separa a
-    // corrente de um simples escurecimento de animacao.
-    mPulsoDaCorrente += 3.0f * deltaTime;
+    // Agora sao tres coisas ao mesmo tempo, e so as tres juntas se leem de
+    // longe no meio de uma tela cheia:
+    //
+    //   ESCURECE DE VERDADE   o corpo cai para perto de 40% do brilho
+    //   PUXA PARA O FERRO     o azul fica bem acima do vermelho e do verde
+    //   PULSA RAPIDO NO FIM   a frequencia sobe conforme a corrente acaba, e e
+    //                         o aviso de "ja vai soltar" - mesma ideia da
+    //                         imunidade, que acelera quando esta para expirar
+    const float fracaoRestante = mCorrenteTimer / kDuracaoTipicaDaCorrente;
+    mPulsoDaCorrente += (4.0f + (1.0f - fracaoRestante) * 14.0f) * deltaTime;
 
-    const auto base = static_cast<Uint8>(120.0f + (Math::Sin(mPulsoDaCorrente) + 1.0f) * 17.5f);
-    dc->SetColor(base, base, static_cast<Uint8>(base + 35));
+    // Quem pinta e AtualizarCorDoEstado; aqui so anda o pulso.
 }
 
 void Player::UpdateImunidade(const float deltaTime) {
 
+    // SO O RELOGIO E O PULSO. Quem pinta e AtualizarCorDoEstado.
     if (mImunidadeTimer <= 0.0f) return;
 
     mImunidadeTimer -= deltaTime;
-
-    auto dc = GetComponent<DrawAnimatedComponent>();
-    if (!dc) return;
-
     if (mImunidadeTimer <= 0.0f) {
         mImunidadeTimer = 0.0f;
         mPulsoDaImunidade = 0.0f;
-        dc->SetColor(255, 255, 255);
         return;
     }
 
-    // DEPOIS DO OVERLOAD, E POR ISSO ESTA COR VENCE. Os dois podem valer ao
-    // mesmo tempo - se os dois alunos gastarem o Ponto Extra no mesmo instante,
-    // cada um fica sobrecarregado E imune. Entre as duas, a que o jogador
-    // precisa ver e a imunidade: ela decide se da para atravessar o tiro. Que
-    // ele esta sem atirar, o gatilho mudo ja conta.
-    //
-    // O MESMO PULSO DO OVERLOAD, trocando o vermelho pelo azul: a linguagem
-    // visual fica uma so, e as duas se distinguem pela cor em vez de pelo
+    // O MESMO PULSO DO OVERLOAD, e as duas se distinguem pela COR e nao pelo
     // ritmo - que e o que da para ler no meio de uma tela cheia de bala.
     const float freq = 5.0f + (OVERLOAD_DURATION - mImunidadeTimer) * 15.0f;
     mPulsoDaImunidade += freq * deltaTime;
+}
 
-    const auto rg = static_cast<Uint8>((Math::Sin(mPulsoDaImunidade) + 1.0f) * 127.5f);
-    dc->SetColor(rg, rg, 255);
+void Player::AtualizarCorDoEstado() {
+
+    const auto dc = GetComponent<DrawAnimatedComponent>();
+    if (!dc) return;
+
+    // A ORDEM DOS IFS E A PRIORIDADE, e esta escrita de proposito - ver o
+    // cabecalho. O primeiro que casar pinta e sai.
+
+    if (mImunidadeTimer > 0.0f) {
+        const auto rg = static_cast<Uint8>((Math::Sin(mPulsoDaImunidade) + 1.0f) * 127.5f);
+        dc->SetColor(rg, rg, 255);
+        return;
+    }
+
+    if (mOverloadTimer > 0.0f) {
+        const auto gb = static_cast<Uint8>((Math::Sin(mPulseTimer) + 1.0f) * 127.5f);
+        dc->SetColor(255, gb, gb);
+        return;
+    }
+
+    if (mCorrenteTimer > 0.0f) {
+        // FERRO, ESCURO E PULSANDO. Ver UpdateCorrente para o porque dos tres
+        // efeitos juntos.
+        const float osc = (Math::Sin(mPulsoDaCorrente) + 1.0f) * 0.5f;
+        const auto escuro = static_cast<Uint8>(70.0f + osc * 45.0f);
+        const auto azul   = static_cast<Uint8>(150.0f + osc * 60.0f);
+        dc->SetColor(escuro, escuro, azul);
+        return;
+    }
+
+    dc->SetColor(255, 255, 255);
 }
 
 void Player::AddExtraPoint() {

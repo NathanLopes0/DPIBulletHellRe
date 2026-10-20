@@ -57,7 +57,7 @@
   "paralelo": [
     { "animacao": "Correndo" },
     { "quando": "alvoAcorrentado",
-      "motion": { "tipo": "Tracking", "atraso": 0.25, "forca": 1.7, "duracao": 3.4 } }
+      "motion": { "tipo": "Tracking", "atraso": 0.25, "forca": 3.2, "duracao": 3.4 } }
   ],
 
   // FASE 1 - AS CORRENTES.

@@ -33,25 +33,4 @@ public:
 protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
 
-private:
-    /**
-     * Por onde passa a fresta do anel, em graus.
-     *
-     * UM ANEL COM FRESTA FIXA E UM ANEL QUE NAO AMEACA. Foi a licao da fase 3
-     * do Vladimir: CircleSpreadAttack distribui os angulos a partir de zero,
-     * sempre, entao as aberturas ficam nas mesmas direcoes em todo disparo e
-     * quem estiver numa delas fica nela a batalha inteira. Aqui o leque e uma
-     * WaveAttack - que RESPEITA centralAngle - e este campo o faz girar.
-     */
-    float mFrestaAtual = 90.0f;
-
-    /**
-     * Quanto a fresta anda entre uma rajada e a outra.
-     *
-     * 137 GRAUS, E NAO UM DIVISOR DE 360. Com 90 ou 120 a fresta voltaria ao
-     * mesmo lugar a cada quatro ou tres rajadas e o jogador decoraria o ciclo;
-     * com 137 ela so repete depois de 360 disparos. E o mesmo motivo de os
-     * cooldowns da fase final do Vladimir serem primos entre si.
-     */
-    static constexpr float kPassoDaFresta = 137.0f;
 };
