@@ -132,7 +132,7 @@
       // grade inteira por uma troca que e so de nome.
       "codigo": "INF310", "nome": "INF 310",
       "nomeCompleto": "Programação Concorrente e Distribuída", "professor": "Vitor",
-      "coluna": 3,
+      "coluna": 3, "chefe": "vitor",
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
 

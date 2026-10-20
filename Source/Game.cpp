@@ -509,6 +509,7 @@ void Game::InitializeBossFactory() {
     mBossFactory["julio"]   = std::make_unique<JulioFactory>(this);
     mBossFactory["thiago"]  = std::make_unique<ThiagoFactory>(this);
     mBossFactory["vladimir"]= std::make_unique<VladimirFactory>(this);
+    mBossFactory["vitor"]   = std::make_unique<VitorFactory>(this);
 }
 
 IBossFactory *Game::GetFactory(const size_t n) {

@@ -1,0 +1,45 @@
+{
+  // ==========================================================================
+  // OS PROJETEIS DO VITOR (INF 310 - Programacao Concorrente e Distribuida)
+  //
+  // DOIS TIPOS, E ELES FAZEM COISAS DIFERENTES. Esta e a licao que o Vladimir
+  // custou tres versoes a aprender: dois projeteis que diferem so na cor sao
+  // pintura, e o jogador nao tem por que olhar para a diferenca.
+  //
+  //   Tarefa   ATRAVESSA. Trabalho correndo: rapido, reto, passa e vai embora.
+  //   Trava    FICA. Recurso retido: freia quase ate parar e ocupa espaco, e o
+  //            jogador tem de CONTORNAR em vez de esperar passar.
+  //
+  // Sao dois tipos e nao duas animacoes de um (como no Vladimir) porque aqui
+  // sao duas COISAS, e nao duas letras do mesmo alfabeto - e porque escala e
+  // dimensao de colisor sao por tipo, e a trava precisa ocupar mais espaco do
+  // que a tarefa para a parede dela significar alguma coisa.
+  //
+  // OS DOIS DIVIDEM A MESMA FOLHA de sprite, cada um com os quadros dele.
+  // Arte PROVISORIA de Ferramentas/gerar_vitor.py.
+  // ==========================================================================
+  "Tarefa": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorTarefa.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorTarefa.json",
+    "animacoes": {
+      "Correndo": [0, 1, 2, 3]
+    },
+    "animacaoInicial": "Correndo",
+    "ordemDeDesenho": 90
+  },
+
+  "Trava": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorTarefa.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorTarefa.json",
+    "animacoes": {
+      "Retida": [4, 5, 6, 7]
+    },
+    "animacaoInicial": "Retida",
+    "ordemDeDesenho": 88,
+
+    // MAIOR QUE A TAREFA, e de proposito: a trava e um obstaculo, e um
+    // obstaculo que o jogador quase nao ve nao e obstaculo. O colisor
+    // acompanha a escala.
+    "escala": 1.15
+  }
+}

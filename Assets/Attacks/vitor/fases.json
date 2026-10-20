@@ -1,0 +1,139 @@
+{
+  // ==========================================================================
+  // AS FASES DO VITOR (INF 310 - Programacao Concorrente e Distribuida)
+  //
+  // A MATERIA E "VARIAS COISAS AO MESMO TEMPO", e a batalha e construida para
+  // chegar nisso. As duas primeiras fases existem para serem aprendidas
+  // SEPARADAS, porque a terceira as poe juntas - em dois corpos:
+  //
+  //   StateOne    TAREFAS EM PARALELO  faixas descendo de uma vez
+  //   StateTwo    EXCLUSAO MUTUA       um anel com UMA fresta, e a fresta gira
+  //   StateThree  FORK                 o chefe se divide; um corpo faz cada uma
+  //   StateFinal  JOIN                 os dois voltam a ser um, fazendo as duas
+  //
+  // E por isso que as duas primeiras precisam ser LEGIVEIS SOZINHAS: se o
+  // jogador nao aprendeu a passar entre as faixas e a achar a fresta, a fase 3
+  // nao e um desafio, e so confusao.
+  //
+  // O MOVIMENTO E O ATAQUE, como no Vladimir - ver MovementStrategies.h.
+  // ==========================================================================
+
+  // FASE 1 - TAREFAS EM PARALELO   |   gesto: A VARREDURA
+  //
+  // Uma fila curta de tarefas a cada 0,8s, com o chefe varrendo a 220 px/s:
+  // cada rajada nasce 176 pixels ao lado da anterior, e o que se ve sao varias
+  // FAIXAS descendo ao mesmo tempo. Threads correndo em paralelo, desenhadas.
+  //
+  // O COOLDOWN ERA 0,55 E A FASE DERRUBAVA A NOTA DE 40 PARA 20 SOZINHA.
+  //
+  // E apareceu uma dinamica que eu nao tinha previsto: SEGUIR O CHEFE E A PIOR
+  // coisa a fazer nesta fase. As faixas descem de onde ele ESTAVA, entao o
+  // espaco embaixo dele esta sempre limpo - mas quando a varredura inverte na
+  // margem, ele volta por cima das proprias colunas e leva junto quem o estava
+  // seguindo. Medido: o piloto que persegue apanhou 4 vezes na fase 1 e o
+  // piloto PARADO so 2.
+  //
+  // Isso e bom e fica: ensina que perseguir o emissor de threads e burrice. So
+  // precisava doer menos enquanto se aprende.
+  //
+  // O INTERVALO E 0,13, E NAO 0,05. Com 0,05 as tarefas nasciam a 15 pixels
+  // uma da outra e o sprite tem 32: a fila virava uma BARRA SOLIDA verde, e o
+  // jogador nao via tarefas, via uma parede. Com 0,13 elas ficam a 39 pixels e
+  // voltam a ser unidades contaveis - que e o que uma tarefa deve parecer.
+  //
+  // E UMA FILA POR RAJADA, E NAO UM LEQUE. O leque sairia do mesmo ponto e
+  // abriria em cone; sao as rajadas SUCESSIVAS, a posicoes diferentes, que
+  // fazem as faixas serem paralelas. Mesma mecanica da fase 1 do Vladimir, com
+  // outro proposito: la o chefe orbitava e a trilha virava um anel, aqui ele
+  // varre e a trilha vira uma grade.
+  "StateOne": {
+    "duracao": 17,
+    "proximo": "StateTwo",
+    "movimento": { "tipo": "Varredura", "a": 220, "b": 150 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Tarefa",
+        "projeteis": 6, "velocidade": 300, "angulo": 0, "intervalo": 0.13,
+        "cooldown": 0.8,
+        "regras": "paralelo" }
+    ]
+  },
+
+  // FASE 2 - EXCLUSAO MUTUA   |   gesto: A ORBITA LENTA
+  //
+  // Um anel de travas com UMA fresta de 60 graus, e a fresta gira a cada
+  // disparo (Vitor::CustomizeAttackParams). As travas freiam e ficam: a parede
+  // nao passa sozinha, e atravessar e a unica saida.
+  //
+  // O LEQUE E UMA WaveAttack, E NAO UM CircleSpread, por um motivo medido na
+  // fase 3 do Vladimir: CircleSpreadAttack ignora "angulo" e "anguloCentral" -
+  // ela sempre faz a volta inteira a partir do zero. Sem controle do angulo nao
+  // ha fresta, e sem fresta nao ha secao critica. A WaveAttack respeita os dois.
+  //
+  // "intervalo": 0 porque o anel tem de nascer INTEIRO. Com os projeteis
+  // acordando um a um a parede apareceria aos pedacos e a fresta nao seria
+  // legivel enquanto isso.
+  //
+  // A ORBITA E PEQUENA E LENTA (raio 110, 0,08 volta/s): o anel precisa de um
+  // centro para ser lido como anel, mas um chefe completamente parado deixa a
+  // tela morta - e a licao da primeira versao do Vladimir.
+  "StateTwo": {
+    "duracao": 17,
+    "proximo": "StateThree",
+    "movimento": { "tipo": "Orbitar", "a": 110, "b": 0.08 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Trava",
+        "projeteis": 16, "velocidade": 260, "angulo": 300, "intervalo": 0,
+        "cooldown": 2.6,
+        "regras": "secao_critica" }
+    ]
+  },
+
+  // FASE 3 - FORK   [PROVISORIA - a divisao e o proximo incremento]
+  //
+  // O que esta aqui: as duas rajadas saindo do MESMO corpo, em ritmos
+  // diferentes. Ja da para sentir a sobreposicao das duas ideias.
+  //
+  // O que FALTA e o que faz a fase: o chefe tem de se DIVIDIR EM DOIS, um
+  // corpo fazendo cada uma das duas - e qualquer um dos dois tomando dano.
+  // Isso pede que a Battle saiba de mais de um corpo de chefe, que e mudanca
+  // de motor e merece commit proprio.
+  "StateThree": {
+    "duracao": 17,
+    "proximo": "",
+    "movimento": { "tipo": "Varredura", "a": 190, "b": 150 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Tarefa",
+        "projeteis": 6, "velocidade": 300, "angulo": 0, "intervalo": 0.05,
+        "cooldown": 0.8,
+        "regras": "paralelo" },
+      { "estrategia": "WaveAttack", "projetil": "Trava",
+        "projeteis": 16, "velocidade": 260, "angulo": 300, "intervalo": 0,
+        "cooldown": 3.2,
+        "regras": "secao_critica" }
+    ]
+  },
+
+  // FASE FINAL - JOIN
+  //
+  // Os dois fluxos voltam a ser um, e agora as tarefas PERSEGUEM: a parede
+  // parada e o perseguidor movel ao mesmo tempo, que e a soma das duas
+  // primeiras fases com juros.
+  //
+  // So e vista por quem esta entre 40 e 59 no fim da terceira - StateThree tem
+  // "proximo" vazio, entao a batalha e decidida ali (medido no Vladimir).
+  "StateFinal": {
+    "duracao": 17,
+    "proximo": "StateOne",
+    "movimento": { "tipo": "Varredura", "a": 300, "b": 120 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Tarefa",
+        "projeteis": 5, "velocidade": 320, "angulo": 25, "intervalo": 0.04,
+        "cooldown": 1.0,
+        "regras": "tarefas_famintas" },
+      { "estrategia": "WaveAttack", "projetil": "Trava",
+        "projeteis": 14, "velocidade": 240, "angulo": 300, "intervalo": 0,
+        "cooldown": 2.9,
+        "regras": "secao_critica" }
+    ]
+  }
+}

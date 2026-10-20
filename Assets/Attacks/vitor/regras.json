@@ -1,0 +1,51 @@
+{
+  // ==========================================================================
+  // AS REGRAS DE PROJETIL DO VITOR
+  //
+  // Cada conjunto veste uma ideia da materia, e os dois tipos de projetil
+  // (Tarefa e Trava) existem justamente para as regras terem o que diferenciar.
+  // Ver a nota em projeteis.json: dois projeteis que diferem so na cor sao
+  // pintura.
+  // ==========================================================================
+
+  // FASE 1 - TAREFAS EM PARALELO.
+  //
+  // Uma fila de tarefas descendo. O chefe varre enquanto dispara, entao cada
+  // rajada nasce num x diferente e o que se ve sao VARIAS FAIXAS descendo ao
+  // mesmo tempo - que e o desenho de threads correndo em paralelo.
+  //
+  // Sem motion nenhum: tarefa e trabalho que atravessa, e trabalho que
+  // atravessa vai reto. A fase e sobre passar ENTRE as faixas.
+  "paralelo": [
+    { "animacao": "Correndo" }
+  ],
+
+  // FASE 2 - EXCLUSAO MUTUA: o anel e a trava, e a fresta e a secao critica.
+  //
+  // O leque cobre 300 graus, entao sobram 60 de abertura - UM caminho, e so
+  // um. As travas freiam quase ate parar e ficam penduradas: o anel vira uma
+  // PAREDE de verdade, que nao adianta esperar passar.
+  //
+  // QUEM GIRA A FRESTA E O C++ (Vitor::CustomizeAttackParams), e e a unica
+  // coisa deste chefe que dados nao dariam conta: "para onde a abertura aponta
+  // DESTA vez" depende do disparo anterior, e fases.json nao tem memoria.
+  //
+  // O FREIO E FORTE (0,18) DE PROPOSITO. Com um freio leve o anel continua se
+  // expandindo e a fresta passa rapido demais para ser usada; freando quase
+  // ate zero, a parede fica de pe e o jogador tem tempo de achar a abertura e
+  // atravessar - que e o gesto que a fase quer cobrar.
+  "secao_critica": [
+    { "animacao": "Retida",
+      "modifiers": [ { "tipo": "SlowDown", "fator": 0.18, "atraso": 0.55 } ] }
+  ],
+
+  // As tarefas da fase final, que correm ENTRE as travas ja postas.
+  //
+  // Elas perseguem de leve: sozinhas seriam faceis demais no meio de uma
+  // parede parada, e o que faz a fase final ser final e ter de desviar de algo
+  // que se mexe enquanto se procura a fresta de algo que nao se mexe.
+  "tarefas_famintas": [
+    { "animacao": "Correndo",
+      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.5, "duracao": 2.2 } }
+  ]
+}
