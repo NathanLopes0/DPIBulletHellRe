@@ -17,6 +17,7 @@
 #include "PathShapes.h"
 #include "../Random.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"
 
 #include "../CaminhosArquivo.h"
 
@@ -142,6 +143,20 @@ std::function<void(Projectile*, int)> ConfiguratorDeRegras(const std::vector<Reg
             // velocidade), mas manter a ordem deixa o comportamento identico ao
             // do codigo que este arquivo substitui, inclusive sob comparacao.
             if (r.escala) p->SetScale(*r.escala);
+
+            // A ROTACAO E DA RAJADA, E NAO DO TIPO. Ver o campo em
+            // RegrasDeAtaque.h: o mesmo "Estruturas" do Salles e lista na fase
+            // 1 (seta, gira) e arvore na fase 3 (no simetrico, nao gira).
+            //
+            // O dynamic_cast e porque so projetil de chefe gira - o do jogador
+            // nao tem o conceito. Uma regra com "rotacionar" num projetil que
+            // nao e de chefe simplesmente nao faz nada, que e melhor do que
+            // falhar: a regra pode estar certa para os outros projeteis dela.
+            if (r.rotacionar) {
+                if (const auto b = dynamic_cast<BossProjectile*>(p)) {
+                    b->DefinirRotacaoPelaVelocidade(*r.rotacionar);
+                }
+            }
 
             if (r.temMotion) Inserir(p, r.motion, indice);
             for (const auto& m : r.modifiers) Inserir(p, m, indice);

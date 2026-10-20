@@ -354,3 +354,57 @@ TEST_CASE("Regras: \"pausa\" do PulsoDeVelocidade nao e a parada do caminho") {
     CHECK(mod.pararPor == doctest::Approx(0.0f));
     CHECK(mod.pararNoPonto == -1);
 }
+
+// ---------------------------------------------------------------------------
+// "rotacionar": girar e da RAJADA, e nao do tipo de projetil
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Regras: \"rotacionar\" e lido como true e como false") {
+
+    // AUSENTE E DIFERENTE DE FALSE, e e o ponto do campo ser optional: "false"
+    // e uma ordem ("nao gire") e ausente e silencio ("deixe como a fabrica
+    // pediu"). Se fosse um bool simples, toda regra sem o campo desligaria o
+    // giro de todo mundo - inclusive o da lista do Salles, que depende dele.
+    const auto r = LerRegras(R"({
+      "gira":     [ { "animacao": "A", "rotacionar": true  } ],
+      "nao_gira": [ { "animacao": "A", "rotacionar": false } ],
+      "calado":   [ { "animacao": "A" } ]
+    })");
+
+    CHECK(r.problemas.empty());
+    REQUIRE(r.conjuntos.count("gira") == 1);
+    REQUIRE(r.conjuntos.count("nao_gira") == 1);
+    REQUIRE(r.conjuntos.count("calado") == 1);
+
+    REQUIRE(r.conjuntos.at("gira")[0].rotacionar.has_value());
+    CHECK(*r.conjuntos.at("gira")[0].rotacionar == true);
+
+    REQUIRE(r.conjuntos.at("nao_gira")[0].rotacionar.has_value());
+    CHECK(*r.conjuntos.at("nao_gira")[0].rotacionar == false);
+
+    CHECK_FALSE(r.conjuntos.at("calado")[0].rotacionar.has_value());
+}
+
+TEST_CASE("Regras: \"rotacionar\" que nao e booleano derruba a regra") {
+
+    // Nao aceitar 0/1 nem "true" de proposito: um arquivo que escreve 1 aqui
+    // provavelmente quis dizer outra coisa, e aceitar calado esconderia isso.
+    const auto r = LerRegras(R"({ "x": [ { "animacao": "A", "rotacionar": 1 } ] })");
+
+    CHECK(r.conjuntos.at("x").empty());
+    REQUIRE(r.problemas.size() == 1);
+    CHECK(r.problemas[0].find("rotacionar") != std::string::npos);
+}
+
+TEST_CASE("Regras: uma regra SO com \"rotacionar\" ja faz alguma coisa") {
+
+    // Antes deste campo, "nao faz nada" era motion, modifiers, animacao ou
+    // escala. Uma regra que so desliga o giro e legitima - o projetil ja tem
+    // animacao e escala de fabrica - e precisava entrar naquela lista, senao
+    // seria descartada com uma mensagem que nao faz sentido.
+    const auto r = LerRegras(R"({ "x": [ { "rotacionar": false } ] })");
+
+    CHECK(r.problemas.empty());
+    REQUIRE(r.conjuntos.at("x").size() == 1);
+    CHECK_FALSE(*r.conjuntos.at("x")[0].rotacionar);
+}

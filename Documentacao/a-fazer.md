@@ -11,9 +11,12 @@ tem uma direção.
 ### O Salles deixa o jogador parado aprovar
 
 `Ferramentas/parado-reprova.sh` roda os oito chefes com um piloto que não se
-mexe e atira sem parar. **Sete reprovam; o Salles passa com 91,02** — 12
+mexe e atira sem parar. **Sete reprovam; o Salles passa com 80,70** — 15
 acertos sofridos e **309 acertos dados**, o maior de todos (o segundo é o Júlio
 com 314, mas ele toma 36 e termina em zero).
+
+Era 91,02 com 12 acertos até a correção da árvore da fase 3, que sozinha
+devolveu três acertos. O que sobra não é a fase 3: é o `GoToCenter`.
 
 A causa está identificada e é a mesma que a primeira versão do Vladimir tinha:
 **três das quatro fases do Salles usam `GoToCenter`**. Parado no meio da tela,
@@ -31,11 +34,16 @@ estruturas de dados:
 | 3 | árvore binária | mergulho — a profundidade é o nível |
 | final | lista circular | órbita — o laço que fecha |
 
-**Atenção ao mexer:** a batalha do Salles é a referência da rede de regressão
-(`provaigual.sh` contra `base_commit77.bruto`), que vem idêntica desde o commit
-77 e já pegou coisa de verdade. Mudar o balanceamento dele **invalida a
-referência de propósito** — então a referência precisa ser regerada no mesmo
-commit, com o motivo escrito, e não "consertada" depois.
+**Atenção ao mexer:** existe uma rede de regressão quadro a quadro
+(`provaigual.sh` contra uma referência gravada), e ela roda a **batalha 0, que é
+a do André** — não a do Salles, apesar de vários comentários e mensagens de
+commit antigos dizerem o contrário. Foi um erro de rótulo meu, repetido por
+muitos commits; o arquivo e os números sempre foram do André.
+
+A consequência prática é que **a rede não cobre o Salles**: a correção da árvore
+da fase 3 mudou a batalha dele e a referência do André não se mexeu um dígito.
+Vale gravar uma segunda referência para a batalha 1 antes de mexer no
+balanceamento dele.
 
 ---
 

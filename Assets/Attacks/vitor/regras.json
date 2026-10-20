@@ -50,7 +50,7 @@
   // com buracos de quatro sprites de largura.
   "secao_critica": [
     { "animacao": "Retida",
-      "modifiers": [ { "tipo": "SlowDown", "fator": 0.18, "atraso": 1.00 } ] }
+      "modifiers": [ { "tipo": "SlowDown", "fator": 0.2, "atraso": 0.80 } ] }
   ],
 
   // As tarefas da fase final, que correm ENTRE as travas ja postas.
@@ -60,6 +60,6 @@
   // que se mexe enquanto se procura a fresta de algo que nao se mexe.
   "tarefas_famintas": [
     { "animacao": "Correndo",
-      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.5, "duracao": 2.2 } }
+      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1, "duracao": 1.1 } }
   ]
 }

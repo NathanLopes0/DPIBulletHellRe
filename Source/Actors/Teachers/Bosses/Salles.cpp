@@ -46,7 +46,25 @@ void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stat
 
     if (stateName == "StateThree") {
         if (const auto chance = Random::GetFloatRange(0.0f, 1.0f); chance < 0.3f) {
-            params.centralAngle = angleToPlayer;
+
+            // A BUSCA DESCE POR UM RAMO, E NAO POR CIMA DA RAIZ.
+            //
+            // Uma arvore binaria tem numero PAR de folhas - 16, aqui - e elas
+            // se abrem simetricamente em torno do eixo do tiro. Logo existe
+            // sempre um corredor vazio EM CIMA do eixo, da largura de um
+            // espacamento. Mirar o eixo no jogador punha esse corredor
+            // exatamente nele: a arvore se abria em volta e passava sem
+            // encostar, por mais que ele ficasse parado. Da para ver numa foto
+            // da fase - quatro nos longe a esquerda, quatro longe a direita,
+            // nada no meio.
+            //
+            // O desvio poe o jogador SOBRE um ramo em vez de sobre a raiz, que
+            // e o que uma busca faz de verdade: na raiz ela vai para a esquerda
+            // ou para a direita, nunca fica em cima. O sinal alterna para o
+            // desvio nao virar um vies fixo, que o jogador aprenderia a
+            // compensar ficando um pouco de lado.
+            mLadoDaBusca = -mLadoDaBusca;
+            params.centralAngle = angleToPlayer + mLadoDaBusca * kDesvioDaBusca;
         }
         else {
             params.centralAngle = Random::GetFloatRange(0.f, 180.f);

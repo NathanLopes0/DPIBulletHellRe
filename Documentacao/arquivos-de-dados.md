@@ -286,6 +286,15 @@ Escolha no máximo uma forma:
 | `modifiers` | quantas quiser. Mudam o módulo ou agendam coisas, e acumulam. |
 | `animacao` | nome de uma animação registrada no projétil |
 | `escala` | multiplica o tamanho — e a hitbox junto, porque o colisor multiplica o raio pela escala |
+| `rotacionar` | `true`/`false`: se o sprite gira para acompanhar a direção do voo. **Ausente = não mexe** e vale o que `projeteis.json` pediu |
+
+> **`rotacionar` existe porque girar é da rajada, e não do tipo.** O
+> `Estruturas` do Salles serve a duas fases com necessidades opostas: a lista
+> da fase 1 é uma caixa com **seta**, que sem girar aponta sempre para a
+> direita e não se lê como lista encadeada; o nó de árvore da fase 3 tem dois
+> filhos embaixo e é **simétrico**, então girado ele aparece deitado. Como
+> `escala` e `animacao`, é aparência: volta ao padrão de fábrica quando o
+> projétil é reciclado pelo pool.
 
 > **Numa `WaveAttack`, a `duracao` de um motion corre enquanto o projétil
 > dorme.** A `WaveAttack` cria a rajada inteira adormecida e acorda um projétil

@@ -21,6 +21,20 @@ BossProjectile::BossProjectile(Scene* scene, Boss* owner)
 
 
 
+void BossProjectile::MarcarPadraoDeFabrica() {
+    Projectile::MarcarPadraoDeFabrica();
+    mRotacaoPadrao = mRotacionarComAVelocidade;
+}
+
+void BossProjectile::Reset() {
+    Projectile::Reset();
+
+    // A ROTACAO E APARENCIA, e aparencia volta ao padrao de fabrica no pool -
+    // mesma razao da escala e da animacao. Uma regra que desliga o giro vale
+    // para aquele disparo, e nao para sempre.
+    mRotacionarComAVelocidade = mRotacaoPadrao;
+}
+
 void BossProjectile::OnUpdate(float deltaTime)
 {
     // 1. Executa a lógica base (verificar se saiu da tela, update nos Behaviors).

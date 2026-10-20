@@ -270,9 +270,18 @@ namespace {
                 r.escala = j["escala"].get<float>();
             }
 
-            if (!r.temMotion && r.modifiers.empty() && r.animacao.empty() && !r.escala) {
+            if (j.contains("rotacionar")) {
+                if (!j["rotacionar"].is_boolean()) {
+                    problemas.emplace_back(onde + "\"rotacionar\" precisa ser true ou false");
+                    continue;
+                }
+                r.rotacionar = j["rotacionar"].get<bool>();
+            }
+
+            if (!r.temMotion && r.modifiers.empty() && r.animacao.empty()
+                && !r.escala && !r.rotacionar) {
                 problemas.emplace_back(onde + "nao faz nada: precisa de motion, modifiers, "
-                                              "animacao, escala ou investidaRepetida");
+                                              "animacao, escala, rotacionar ou investidaRepetida");
                 continue;
             }
 

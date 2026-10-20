@@ -84,6 +84,20 @@ public:
      */
     void DefinirRotacaoPelaVelocidade(const bool girar) { mRotacionarComAVelocidade = girar; }
 
+    /**
+     * @brief Captura tambem a rotacao de fabrica, alem da escala e da animacao.
+     *
+     * PRECISOU EXISTIR porque girar virou coisa POR REGRA, e nao so por tipo de
+     * projetil. O "Estruturas" do Salles gira - a lista da fase 1 e uma caixa
+     * com seta, e sem girar a seta aponta sempre para a direita -, mas a MESMA
+     * folha serve a arvore da fase 3, cujo no e simetrico e nao deve girar.
+     * Sem capturar o padrao, o primeiro projetil que uma regra desligasse
+     * voltaria do pool desligado e contaminaria a fase 1.
+     */
+    void MarcarPadraoDeFabrica() override;
+
+    void Reset() override;
+
 protected:
     // Implementação obrigatória do contrato da classe base.
     [[nodiscard]] bool virtual IsOffScreen() const override;
@@ -96,6 +110,10 @@ protected:
     /// Ver DefinirRotacaoPelaVelocidade. Falso por padrao: girar so faz sentido
     /// para arte que tem frente.
     bool mRotacionarComAVelocidade = false;
+
+    /// O valor com que a fabrica construiu este projetil. Ver
+    /// MarcarPadraoDeFabrica.
+    bool mRotacaoPadrao = false;
 
     /// A posicao do jogador que este projetil persegue. Ver DefinirAlvo.
     size_t mAlvo = 0;

@@ -85,7 +85,7 @@ public:
      * seu (a do Julio constroi com escala 2 e animacao "Coleta", a do Ricardo
      * com "Normal"). Por isso o padrao e capturado em vez de ser uma constante.
      */
-    void MarcarPadraoDeFabrica();
+    virtual void MarcarPadraoDeFabrica();
 
     /**
      * @brief Define a Motion do projetil: quem ESCREVE a velocidade.

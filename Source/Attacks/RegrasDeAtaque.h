@@ -92,6 +92,19 @@ struct Regra {
 
     std::string animacao;   ///< vazio = nao mexe na animacao
 
+    /// Se o sprite gira para acompanhar a direcao do voo. Ausente = nao mexe,
+    /// e o projetil fica com o que a fabrica dele pediu em projeteis.json.
+    ///
+    /// EXISTE PORQUE GIRAR E DA RAJADA, E NAO DO TIPO. O "Estruturas" do Salles
+    /// serve a lista da fase 1 - uma caixa com SETA, que sem girar aponta
+    /// sempre para a direita e nao se le como lista - e a arvore da fase 3, cujo
+    /// no tem dois filhos embaixo e e SIMETRICO: girado, ele aparece deitado.
+    /// Era o mesmo tipo com duas necessidades opostas.
+    ///
+    /// E optional pela mesma razao da escala: "false" e uma ordem ("nao gire"),
+    /// e ausente e silencio ("deixe como esta").
+    std::optional<bool> rotacionar;
+
     /// Multiplicador de tamanho do sprite E do colisor. Ausente = nao mexe.
     ///
     /// E optional, e nao um zero sentinela, porque escala zero nao quer dizer

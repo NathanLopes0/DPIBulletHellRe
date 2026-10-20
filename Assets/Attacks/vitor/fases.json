@@ -106,8 +106,8 @@
     "movimento": { "tipo": "Orbitar", "a": 110, "b": 0.08 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Trava",
-        "projeteis": 24, "velocidade": 300, "angulo": 300, "intervalo": 0,
-        "cooldown": 2.6,
+        "projeteis": 100, "velocidade": 350, "angulo": 300, "intervalo": 0,
+        "cooldown": 2.4,
         "regras": "secao_critica" }
     ]
   },
