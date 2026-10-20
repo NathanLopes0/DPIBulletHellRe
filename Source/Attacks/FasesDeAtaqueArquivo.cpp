@@ -197,9 +197,24 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
         return false;
     }
 
+    // "ataquesDe" e resolvido AQUI, e nao na camada pura: la a fase que
+    // empresta fica com a lista vazia de proposito, para haver UMA fonte de
+    // verdade. Quem monta precisa da lista de verdade, e e aqui que ela e
+    // procurada - uma vez por fase, e so no momento de registrar.
+    auto ataquesDaFase = [&lidas](const DescricaoDeFase& f) -> const std::vector<DescricaoDeAtaque>& {
+        if (f.ataquesDe.empty()) return f.ataques;
+        for (const auto& origem : lidas.fases) {
+            if (origem.nome == f.ataquesDe) return origem.ataques;
+        }
+        // ValidarTransicoes ja recusou o conjunto se o nome nao existisse, entao
+        // chegar aqui seria bug de codigo e nao de arquivo. A lista vazia deixa
+        // a fase sem ataque em vez de dereferenciar nada.
+        return f.ataques;
+    };
+
     for (const DescricaoDeFase& fase : lidas.fases) {
 
-        for (const DescricaoDeAtaque& a : fase.ataques) {
+        for (const DescricaoDeAtaque& a : ataquesDaFase(fase)) {
 
             ProjectileFactory* spawner = boss->GetProjectileFactory(a.projetil);
             if (!spawner) {
@@ -239,6 +254,14 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
         fsm->RegisterState(std::move(estado));
 
         boss->RegisterMovementStrategy(fase.nome, CriarMovimento(fase.movimento));
+
+        // O CLONE E SO UMA ANOTACAO AQUI. Quem o cria e a batalha, no momento em
+        // que a fase comeca - antes disso nao ha onde pôr um segundo corpo, e
+        // criar um que fica escondido por duas fases seria pagar por ele a luta
+        // inteira.
+        if (fase.clone.existe) {
+            boss->RegistrarClone(fase.nome, fase.clone.ataquesDe);
+        }
     }
 
     SDL_Log("FASES: o chefe \"%s\" foi montado com %zu fase(s).",

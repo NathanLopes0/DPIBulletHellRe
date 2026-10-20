@@ -509,3 +509,148 @@ TEST_CASE("Consulta: aviso negativo e recusado") {
     CHECK_FALSE(LerFases(ComConsulta(R"({ "eixo": "Linha", "aviso": -0.5 })")).problemas.empty());
     CHECK(LerFases(ComConsulta(R"({ "eixo": "Linha", "aviso": 0 })")).problemas.empty());
 }
+
+// --------------------------------- a fase que se divide em dois corpos
+
+namespace {
+
+    /// Um conjunto minimo valido, com a fase 3 declarando um clone.
+    std::string ComClone(const std::string& extraNaTres = "") {
+        return R"({
+          "StateOne":   { "duracao": 10, "proximo": "StateTwo",
+                          "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] },
+          "StateTwo":   { "duracao": 10, "proximo": "StateThree",
+                          "ataques": [ { "estrategia": "CircleSpreadAttack", "projetil": "P" } ] },
+          "StateThree": { "duracao": 10, "proximo": "",
+                          "ataquesDe": "StateOne",
+                          "clone": { "ataquesDe": "StateTwo" })" + extraNaTres + R"( },
+          "StateFinal": { "duracao": 10, "proximo": "StateOne",
+                          "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+        })";
+    }
+}
+
+TEST_CASE("Fases: uma fase pode usar os ataques de outra, e declarar um clone") {
+
+    // POR QUE ISTO EXISTE: na fase que se divide, o corpo original repete o
+    // ataque de uma fase anterior. Escrever a lista de novo seria a mesma coisa
+    // dita duas vezes, e duas copias divergem no dia em que alguem ajusta uma.
+    const auto lidas = LerFases(ComClone());
+
+    CHECK(lidas.problemas.empty());
+    REQUIRE(lidas.fases.size() == 4);
+
+    const DescricaoDeFase* tres = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == "StateThree") tres = &f;
+    REQUIRE(tres != nullptr);
+
+    CHECK(tres->ataquesDe == "StateOne");
+    CHECK(tres->clone.existe);
+    CHECK(tres->clone.ataquesDe == "StateTwo");
+
+    // A fase que empresta NAO ganha a lista aqui: quem resolve e a ponte, e
+    // deixar a lista vazia na camada pura e o que mantem UMA fonte de verdade.
+    CHECK(tres->ataques.empty());
+}
+
+TEST_CASE("Fases: uma fase sem clone nao inventa um") {
+
+    const auto lidas = LerFases(R"({
+      "StateOne":   { "proximo": "StateFinal",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] },
+      "StateFinal": { "proximo": "", 
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+    })");
+
+    REQUIRE(lidas.fases.size() == 2);
+    for (const auto& f : lidas.fases) {
+        CAPTURE(f.nome);
+        CHECK_FALSE(f.clone.existe);
+        CHECK(f.ataquesDe.empty());
+    }
+}
+
+TEST_CASE("Fases: \"ataques\" E \"ataquesDe\" juntos sao recusados") {
+
+    // Seriam duas respostas para "o que ele dispara aqui", e o leitor teria de
+    // escolher uma em silencio - que e o tipo de erro que so aparece jogando.
+    const auto lidas = LerFases(R"({
+      "StateOne":   { "proximo": "StateFinal",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] },
+      "StateFinal": { "proximo": "", "ataquesDe": "StateOne",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+    })");
+
+    bool reclamou = false;
+    for (const auto& p : lidas.problemas) {
+        if (p.find("ataquesDe") != std::string::npos) reclamou = true;
+    }
+    CHECK(reclamou);
+}
+
+TEST_CASE("Fases: um clone sem \"ataquesDe\" e recusado") {
+
+    const auto lidas = LerFases(R"({
+      "StateOne":   { "proximo": "StateFinal",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ],
+                      "clone": { } },
+      "StateFinal": { "proximo": "",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+    })");
+
+    CHECK_FALSE(lidas.problemas.empty());
+}
+
+TEST_CASE("Fases: apontar para uma fase que nao existe e denunciado") {
+
+    // Um nome errado aqui falharia EM SILENCIO: a fase carregaria sem ataque
+    // nenhum e o chefe ficaria parado. Mesma razao da checagem de "proximo".
+    const auto lidas = LerFases(ComClone());
+    auto fases = lidas.fases;
+    for (auto& f : fases) {
+        if (f.nome == "StateThree") { f.clone.ataquesDe = "StateQuinta"; }
+    }
+
+    const auto problemas = ValidarTransicoes(fases, "teste");
+
+    bool citou = false;
+    for (const auto& p : problemas) {
+        if (p.find("StateQuinta") != std::string::npos) citou = true;
+    }
+    CHECK(citou);
+}
+
+TEST_CASE("Fases: uma fase que empresta de si mesma e recusada") {
+
+    // Seria uma fase sem ataques: a resolucao nao tem de onde copiar.
+    auto fases = LerFases(ComClone()).fases;
+    for (auto& f : fases) if (f.nome == "StateThree") f.ataquesDe = "StateThree";
+
+    const auto problemas = ValidarTransicoes(fases, "teste");
+
+    bool citou = false;
+    for (const auto& p : problemas) {
+        if (p.find("ela mesma") != std::string::npos) citou = true;
+    }
+    CHECK(citou);
+}
+
+TEST_CASE("Fases: corrente de \"ataquesDe\" e recusada") {
+
+    // Permitir A -> B -> C exigiria detectar ciclo, e o ganho seria nenhum:
+    // "use os ataques de quem usa os de outro" nao diz nada que apontar direto
+    // para a origem nao diga melhor.
+    auto fases = LerFases(ComClone()).fases;
+    for (auto& f : fases) {
+        if (f.nome == "StateThree") f.ataquesDe = "StateFinal";
+        if (f.nome == "StateFinal") f.ataquesDe = "StateOne";
+    }
+
+    const auto problemas = ValidarTransicoes(fases, "teste");
+
+    bool citou = false;
+    for (const auto& p : problemas) {
+        if (p.find("por sua vez") != std::string::npos) citou = true;
+    }
+    CHECK(citou);
+}

@@ -57,6 +57,19 @@ void Boss::OnUpdate(float deltaTime) {
     // --- LÓGICA DE MOVIMENTO ---
     // Verifica se mudou de estado para trocar a estratégia
     if (currState != mLastStateName) {
+
+        // A DIVISAO ACONTECE NA TROCA DE FASE, e so no corpo original: um clone
+        // que se dividisse viraria quatro corpos, depois oito. Quem o impede de
+        // chegar aqui e BossAttackState, que nao o transiciona - esta guarda e a
+        // segunda tranca, para o dia em que alguem mexer naquela.
+        if (!mEhClone) {
+            if (const auto batalha = dynamic_cast<Battle*>(mScene)) {
+                batalha->JuntarCorpos();                       // desfaz a divisao anterior
+                const std::string doClone = CloneDaFase(currState);
+                if (!doClone.empty()) batalha->DividirChefe(doClone);
+            }
+        }
+
         mLastStateName = currState;
 
         // Procura se existe estratégia para o novo estado
@@ -275,6 +288,15 @@ void Boss::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projec
 
 void Boss::CustomizeAttackParams(AttackParams &params, const std::string &stateName) {
 
+}
+
+void Boss::RegistrarClone(const std::string& fase, const std::string& ataquesDoClone) {
+    mClonePorFase[fase] = ataquesDoClone;
+}
+
+std::string Boss::CloneDaFase(const std::string& fase) const {
+    const auto it = mClonePorFase.find(fase);
+    return it == mClonePorFase.end() ? std::string{} : it->second;
 }
 
 void Boss::SetInitialState(const std::string &stateName) {

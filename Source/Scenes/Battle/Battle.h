@@ -47,6 +47,31 @@ public:
     [[nodiscard]] Boss* GetBoss() const { return mBoss; }
 
     /**
+     * @brief TODOS os corpos do chefe em campo, e nao so o original.
+     *
+     * Normalmente e um so. Na fase que se divide sao dois, e QUALQUER UM DOS
+     * DOIS TOMA DANO - e por isso que as regras de colisao percorrem esta
+     * lista em vez de perguntar a mBoss. Mesma forma que mJogadores: a batalha
+     * nao pergunta "e co-op?" nem "esta dividido?", ela percorre o que existe.
+     *
+     * mBoss continua sendo o ORIGINAL, e e dele que saem a barra de tempo, o
+     * retrato do HUD e o prewarm dos projeteis - coisas que existem uma vez por
+     * luta e nao uma por corpo.
+     */
+    [[nodiscard]] const std::vector<Boss*>& Corpos() const { return mCorpos; }
+
+    /**
+     * @brief Poe um segundo corpo em campo, com os ataques da fase nomeada.
+     *
+     * Chamada pelo chefe ao entrar numa fase que declara "clone" em fases.json.
+     * Nao faz nada se ja houver um segundo corpo.
+     */
+    void DividirChefe(const std::string& faseDoClone);
+
+    /// @brief Tira de campo os corpos extras, deixando so o original.
+    void JuntarCorpos();
+
+    /**
      * @brief OS JOGADORES EM CAMPO, na ordem das posicoes do painel.
      *
      * Um por sessao: quantos jogam foi decidido no menu, e a batalha nao
@@ -235,6 +260,9 @@ private:
     // do vetor mActors da própria cena Battle. Ideal para, mesmo num vetor de Actors,
     // chamar funções específicas de Player e de Boss, e também para acesso rápido sem percorrer o vetor.
     Boss* mBoss{};
+
+    /// O original mais os clones vivos. Ver Corpos().
+    std::vector<Boss*> mCorpos;
 
     /// OS JOGADORES, em vez de um. Ver Jogadores() e Alvo().
     std::vector<Player*> mJogadores;

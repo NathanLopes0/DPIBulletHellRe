@@ -445,7 +445,48 @@ FasesLidas LerFases(const std::string& textoJson) {
                 f.movimento = LerMovimento(corpoFase["movimento"], onde, saida.problemas);
             }
 
-            if (!corpoFase.contains("ataques") || !corpoFase["ataques"].is_array()) {
+            // "ataquesDe": esta fase usa os ataques de OUTRA. Serve a fase que
+            // se divide, em que o corpo original repete o ataque de uma fase
+            // anterior - escrever a lista de novo seria a mesma coisa dita duas
+            // vezes, e duas copias divergem.
+            f.ataquesDe = Texto(corpoFase, "ataquesDe");
+
+            if (corpoFase.contains("clone")) {
+                const auto& c = corpoFase["clone"];
+                if (!c.is_object()) {
+                    saida.problemas.emplace_back(onde + "\"clone\" deveria ser um objeto");
+                    continue;
+                }
+                f.clone.ataquesDe = Texto(c, "ataquesDe");
+                if (f.clone.ataquesDe.empty()) {
+                    saida.problemas.emplace_back(onde + "\"clone\" precisa de \"ataquesDe\" "
+                                                 "dizendo de qual fase o segundo corpo tira os "
+                                                 "ataques");
+                    continue;
+                }
+                f.clone.existe = true;
+            }
+
+            // UMA FASE NAO PODE TER AS DUAS COISAS: "ataques" e "ataquesDe"
+            // juntos seriam duas respostas para "o que ele dispara aqui", e o
+            // leitor teria de escolher uma em silencio.
+            const bool temLista = corpoFase.contains("ataques") && corpoFase["ataques"].is_array();
+
+            if (temLista && !f.ataquesDe.empty()) {
+                saida.problemas.emplace_back(onde + "tem \"ataques\" E \"ataquesDe\". Escolha "
+                                             "um: ou a fase declara os ataques dela, ou usa os "
+                                             "de outra");
+                continue;
+            }
+
+            if (!f.ataquesDe.empty()) {
+                // A lista vem depois, quando todas as fases estiverem lidas:
+                // aqui a fase de origem pode ainda nao ter sido vista.
+                saida.fases.push_back(std::move(f));
+                continue;
+            }
+
+            if (!temLista) {
                 saida.problemas.emplace_back(onde + "falta \"ataques\", que deveria ser uma lista");
                 continue;
             }
@@ -500,6 +541,47 @@ std::vector<std::string> ValidarTransicoes(const std::vector<DescricaoDeFase>& f
                                      "tres fases: se a nota ficar entre 40 e 59 ao fim da "
                                      "terceira, a FSM vai para StateFinal e o chefe congela "
                                      "sem ele");
+    }
+
+    // "ataquesDe" e o "clone" apontam para OUTRA fase, e um nome errado neles
+    // falharia em silencio: a fase carregaria sem ataque nenhum e o chefe
+    // ficaria parado. Mesma razao da checagem de "proximo" logo abaixo.
+    auto existe = [&fases](const std::string& nome) {
+        for (const auto& f : fases) if (f.nome == nome) return true;
+        return false;
+    };
+
+    for (const auto& f : fases) {
+        for (const auto& [campo, alvo] : {std::pair<const char*, std::string>{"ataquesDe", f.ataquesDe},
+                                          {"clone.ataquesDe", f.clone.existe ? f.clone.ataquesDe : std::string{}}}) {
+            if (alvo.empty()) continue;
+
+            if (alvo == f.nome) {
+                // Uma fase que tira os ataques de si mesma e uma fase sem
+                // ataques: a resolucao nao tem de onde copiar.
+                problemas.emplace_back(onde + "a fase \"" + f.nome + "\" usa \"" + campo +
+                                       "\" apontando para ela mesma");
+                continue;
+            }
+            if (!existe(alvo)) {
+                problemas.emplace_back(onde + "a fase \"" + f.nome + "\" tem \"" + campo +
+                                       "\": \"" + alvo + "\", que nao existe neste conjunto");
+                continue;
+            }
+
+            // SEM CORRENTE: a fase apontada tem de declarar os ataques dela.
+            // Permitir A -> B -> C exigiria detectar ciclo, e o ganho seria
+            // nenhum - "use os ataques de quem usa os ataques de outro" nao
+            // diz nada que apontar direto para a origem nao diga melhor.
+            for (const auto& origem : fases) {
+                if (origem.nome != alvo) continue;
+                if (!origem.ataquesDe.empty()) {
+                    problemas.emplace_back(onde + "a fase \"" + f.nome + "\" aponta para \"" +
+                                           alvo + "\", que por sua vez usa os ataques de outra. "
+                                           "Aponte direto para a fase que declara os ataques");
+                }
+            }
+        }
     }
 
     for (const auto& f : fases) {

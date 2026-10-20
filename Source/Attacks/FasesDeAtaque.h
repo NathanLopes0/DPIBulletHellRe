@@ -165,12 +165,45 @@ struct DescricaoDeMovimento {
  * (StateOne, StateTwo, StateThree, StateFinal). 'proximo' vazio significa que a
  * batalha e decidida ao fim desta fase.
  */
+/**
+ * @brief O CORPO EXTRA de uma fase: o chefe se divide em dois.
+ *
+ * Existe para a fase 3 do Vitor, em que a materia e "varias coisas ao mesmo
+ * tempo" e seria estranho a batalha fazer uma de cada vez. Enquanto a fase
+ * dura, ha DOIS corpos em campo: o original e este. Os dois disparam, e
+ * qualquer um dos dois toma dano.
+ *
+ * 'ataquesDe' nomeia de qual fase o clone tira os ataques e o movimento - e
+ * nao uma lista propria. Escrever a lista aqui faria a fase 3 repetir, palavra
+ * por palavra, o que a fase 2 ja diz, e duas copias divergem no dia em que
+ * alguem ajusta uma.
+ */
+struct DescricaoDeClone {
+    bool existe = false;
+    std::string ataquesDe;
+};
+
+/**
+ * @brief Uma fase: quanto dura, o que vem depois, como o chefe anda e o que ele
+ * dispara.
+ *
+ * 'nome' precisa ser um dos nomes que a maquina de estados reconhece
+ * (StateOne, StateTwo, StateThree, StateFinal). 'proximo' vazio significa que a
+ * batalha e decidida ao fim desta fase.
+ *
+ * 'ataquesDe', quando preenchido, diz que esta fase usa os ataques de OUTRA em
+ * vez de declarar os seus - ver DescricaoDeClone. Uma fase nao pode ter os
+ * dois: 'ataques' e 'ataquesDe' juntos seriam duas respostas para "o que ele
+ * dispara aqui".
+ */
 struct DescricaoDeFase {
     std::string nome;
     float duracao = 17.0f;
     std::string proximo;
     DescricaoDeMovimento movimento;
     std::vector<DescricaoDeAtaque> ataques;
+    std::string ataquesDe;
+    DescricaoDeClone clone;
 };
 
 /**

@@ -88,29 +88,30 @@
     ]
   },
 
-  // FASE 3 - FORK   [PROVISORIA - a divisao e o proximo incremento]
+  // FASE 3 - FORK   |   gesto: A VARREDURA, EM DOIS CORPOS
   //
-  // O que esta aqui: as duas rajadas saindo do MESMO corpo, em ritmos
-  // diferentes. Ja da para sentir a sobreposicao das duas ideias.
+  // O CHEFE SE DIVIDE EM DOIS. Um corpo faz o ataque da fase 1 e o outro o da
+  // fase 2, ao mesmo tempo - que e o que a materia trata, e o que uma batalha
+  // que faz uma coisa de cada vez nao consegue dizer.
   //
-  // O que FALTA e o que faz a fase: o chefe tem de se DIVIDIR EM DOIS, um
-  // corpo fazendo cada uma das duas - e qualquer um dos dois tomando dano.
-  // Isso pede que a Battle saiba de mais de um corpo de chefe, que e mudanca
-  // de motor e merece commit proprio.
+  // QUALQUER UM DOS DOIS TOMA DANO. As regras de colisao percorrem
+  // Battle::Corpos(), e acertar um ou outro paga a mesma barra. Nao ha "o
+  // verdadeiro" e "a copia" - fork nao faz copia, faz dois.
+  //
+  // "ataquesDe" EM VEZ DE REPETIR A LISTA. Esta fase usa os ataques da fase 1 e
+  // o clone os da fase 2; escrever as duas listas aqui de novo seria a mesma
+  // coisa dita duas vezes, e duas copias divergem no dia em que alguem ajustar
+  // uma. O clone tambem herda o MOVIMENTO da fase que ele empresta - entao ele
+  // orbita devagar, como na fase 2, enquanto o original varre.
+  //
+  // O SEGUNDO CORPO NASCE ESPELHADO em relacao ao original (Battle::DividirChefe):
+  // dois corpos no mesmo pixel seriam um so para quem olha.
   "StateThree": {
     "duracao": 17,
     "proximo": "",
     "movimento": { "tipo": "Varredura", "a": 190, "b": 150 },
-    "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Tarefa",
-        "projeteis": 6, "velocidade": 300, "angulo": 0, "intervalo": 0.05,
-        "cooldown": 0.8,
-        "regras": "paralelo" },
-      { "estrategia": "WaveAttack", "projetil": "Trava",
-        "projeteis": 16, "velocidade": 260, "angulo": 300, "intervalo": 0,
-        "cooldown": 3.2,
-        "regras": "secao_critica" }
-    ]
+    "ataquesDe": "StateOne",
+    "clone": { "ataquesDe": "StateTwo" }
   },
 
   // FASE FINAL - JOIN

@@ -109,6 +109,35 @@ public:
 
     void RegisterMovementStrategy(const std::string& stateName, std::unique_ptr<IMovementStrategy> strategy);
 
+    // ---- A FASE QUE SE DIVIDE EM DOIS CORPOS -------------------------------
+
+    /**
+     * @brief Anota que, ao entrar nesta fase, o chefe se divide.
+     *
+     * So uma anotacao: quem cria o segundo corpo e a batalha, no momento em que
+     * a fase comeca. Criar antes seria pagar por um corpo escondido durante a
+     * luta inteira.
+     *
+     * @param fase        em qual fase a divisao acontece
+     * @param ataquesDoClone de qual fase o segundo corpo tira os ataques
+     */
+    void RegistrarClone(const std::string& fase, const std::string& ataquesDoClone);
+
+    /// @brief De qual fase o clone desta fase tira os ataques. Vazio = sem clone.
+    [[nodiscard]] std::string CloneDaFase(const std::string& fase) const;
+
+    /**
+     * @brief Este corpo e o SEGUNDO, e nao o original?
+     *
+     * O clone roda a mesma maquina de estados do original - e a mesma fabrica
+     * que o monta -, mas tem de ficar PRESO na fase que lhe coube: sem isto ele
+     * avancaria sozinho e, ao chegar na fase que se divide, criaria um clone do
+     * clone. Quem respeita esta marca e BossAttackState, que nao transiciona um
+     * corpo marcado.
+     */
+    [[nodiscard]] bool EhClone() const { return mEhClone; }
+    void MarcarComoClone() { mEhClone = true; }
+
 
 protected:
     virtual void CustomizeAttackParams(AttackParams& params, const std::string& stateName);
@@ -145,6 +174,11 @@ private:
     int mNextDropThreshold = 0;
 
     std::string mInitialState;
+
+    /// Por fase, de qual fase o clone dela tira os ataques. Ver RegistrarClone.
+    std::map<std::string, std::string> mClonePorFase;
+
+    bool mEhClone = false;
 
     // Mapeia: Nome do projétil -> Fábrica dele (Populado na Fábrica)
     std::unordered_map<std::string, std::unique_ptr<ProjectileFactory>> mProjectileFactories;

@@ -125,6 +125,43 @@ vez de um jeito de o chefe não ficar parado. Ver `MovementStrategies.h`.
 > com a origem fixa as frestas dos ataques também ficam fixas, e um alvo parado
 > numa fresta fica nela a batalha inteira.
 
+### A fase que se divide em dois corpos
+
+Uma fase pode declarar um **clone**: enquanto ela dura, há *dois* chefes em
+campo, cada um com os ataques (e o movimento) de uma fase diferente — e
+**qualquer um dos dois toma dano**.
+
+```json
+"StateThree": {
+  "duracao": 17, "proximo": "",
+  "movimento": { "tipo": "Varredura", "a": 190, "b": 150 },
+  "ataquesDe": "StateOne",
+  "clone": { "ataquesDe": "StateTwo" }
+}
+```
+
+| Campo | O que faz |
+|---|---|
+| `ataquesDe` | esta fase usa os ataques de **outra**, em vez de declarar os seus. Não pode vir junto com `ataques` |
+| `clone.ataquesDe` | de qual fase o **segundo corpo** tira os ataques e o movimento |
+
+**Por que `ataquesDe` e não a lista repetida.** Na fase que se divide, o corpo
+original costuma repetir o ataque de uma fase anterior. Escrever a lista de novo
+seria a mesma coisa dita duas vezes, e duas cópias divergem no dia em que
+alguém ajusta uma.
+
+**Sem corrente e sem apontar para si mesma.** `A → B → C` exigiria detectar
+ciclo e não diz nada que apontar direto para a origem não diga melhor; e uma
+fase que empresta de si mesma é uma fase sem ataques. Os dois casos são
+recusados na leitura, com a frase dizendo qual fase errou.
+
+> **O segundo corpo fica PRESO na fase dele.** Ele roda a mesma máquina de
+> estados do original — é a mesma fábrica que o monta, e é isso que o deixa
+> barato —, mas `BossAttackState` não o transiciona. Sem isso ele avançaria
+> sozinho e, ao chegar na fase que se divide, criaria um clone do clone; pior,
+> ao fim da terceira chamaria `FinishBattle` por conta própria e encerraria a
+> luta no tempo dele.
+
 ### O ataque
 
 | Campo | Vai para |

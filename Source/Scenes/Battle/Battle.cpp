@@ -112,6 +112,12 @@ void Battle::LoadBoss() {
         auto boss = factory->CreateBoss(this);
         mBoss = dynamic_cast<Boss*>(this->AddActor(std::move(boss)));
 
+        // O ORIGINAL E O PRIMEIRO CORPO. A lista existe mesmo sem divisao
+        // nenhuma: e o que faz as regras de colisao terem UM caminho so, em vez
+        // de um para "normal" e outro para "dividido".
+        mCorpos.clear();
+        if (mBoss) mCorpos.push_back(mBoss);
+
         mBoss->SetPosition(Vector2(static_cast<float>(mGame->GetWindowWidth())/2.0f,
                                         static_cast<float>(mGame->GetWindowHeight())/6.0f));
         // O pré-aquecimento dos pools de projétil (que já foi cogitado aqui)
@@ -675,29 +681,55 @@ void Battle::CheckCollisions() {
     // ESTA NAO E DE NINGUEM. Os tiros dos dois jogadores saem do mesmo pool e
     // nao guardam de quem sao - e nao precisam: a nota e da dupla
     // (requisitos-coop, D2), entao um acerto paga a mesma barra venha de quem vier.
+    //
+    // E NAO E DE NENHUM CORPO TAMBEM. Na fase que se divide ha dois chefes em
+    // campo, e acertar qualquer um dos dois paga a mesma barra: o laco percorre
+    // Corpos() em vez de perguntar a mBoss. Com um corpo so a lista tem um
+    // elemento e isto e exatamente o que era antes - sem "if (dividido?)".
     for (const auto &playerProj: playerProjectiles) {
         if (playerProj->GetState() != ActorState::Active) continue;
-        if (const auto *playerProjCollider = playerProj->GetComponent<CircleColliderComponent>()) {
-            if (bossCollider->Intersect(*playerProjCollider)) {
-                mBoss->OnCollision(playerProj.get());
-                playerProj->OnCollision(mBoss);
+
+        const auto *playerProjCollider = playerProj->GetComponent<CircleColliderComponent>();
+        if (!playerProjCollider) continue;
+
+        for (Boss* corpo : mCorpos) {
+            const auto* colisorDoCorpo = corpo ? corpo->GetComponent<CircleColliderComponent>()
+                                               : nullptr;
+            if (!colisorDoCorpo) continue;
+
+            if (colisorDoCorpo->Intersect(*playerProjCollider)) {
+                corpo->OnCollision(playerProj.get());
+                playerProj->OnCollision(corpo);
 
                 // Acerto de UM jogador: repartido (requisitos-coop, 2.1).
                 GradeUp(PorJogador(GRADE_CHANGE_UP));
+
+                // UM TIRO ACERTA UM CORPO SO. Sem este corte, um projetil que
+                // passasse na sobreposicao dos dois pagaria a barra duas vezes.
+                break;
             }
         }
     }
 
     // --- REGRA 3 - Player vs Boss  (Contato Direto)
+    //
+    // Os dois lacos sao por LISTA: jogadores por fora, corpos por dentro.
+    // Encostar em qualquer um dos dois chefes custa o mesmo.
     for (Player* jogador : mJogadores) {
         const auto *playerCollider = ColisorDe(jogador);
         if (!playerCollider) continue;
 
-        if (playerCollider->Intersect(*bossCollider) && !jogador->GetIsInvincible()) {
-            jogador->SetIsInvincible(true);
-            jogador->OnCollision(mBoss);
-            mBoss->OnCollision(jogador);
-            GradeDown();
+        for (Boss* corpo : mCorpos) {
+            const auto* colisorDoCorpo = corpo ? corpo->GetComponent<CircleColliderComponent>()
+                                               : nullptr;
+            if (!colisorDoCorpo) continue;
+
+            if (playerCollider->Intersect(*colisorDoCorpo) && !jogador->GetIsInvincible()) {
+                jogador->SetIsInvincible(true);
+                jogador->OnCollision(corpo);
+                corpo->OnCollision(jogador);
+                GradeDown();
+            }
         }
     }
 
@@ -872,6 +904,54 @@ SDL_FRect Battle::GetPlayfieldBounds() const
         static_cast<float>(mGame->GetWindowWidth()), // w
         static_cast<float>(mGame->GetWindowHeight() - kBarraDoFundo) // h
     };
+}
+
+void Battle::DividirChefe(const std::string& faseDoClone) {
+
+    if (!mBoss || mCorpos.size() > 1) return;   // ja dividido, ou sem original
+
+    IBossFactory* fabrica = mGame->GetFactory(static_cast<size_t>(mStage));
+    if (!fabrica) {
+        SDL_Log("BATALHA: a fase pediu divisao, mas esta materia nao tem fabrica de chefe.");
+        return;
+    }
+
+    // O CLONE E UM CHEFE INTEIRO DA MESMA FABRICA, e e isso que o deixa barato:
+    // ele ganha o mesmo sprite, o mesmo colisor, as mesmas fabricas de projetil
+    // e as mesmas fases, sem uma linha de montagem propria. O que o diferencia
+    // e a MARCA e o estado inicial.
+    auto clone = fabrica->CreateBoss(this);
+    if (!clone) return;
+
+    clone->MarcarComoClone();
+    clone->SetInitialState(faseDoClone);
+
+    // NASCE AO LADO DO ORIGINAL, e nao em cima: dois corpos no mesmo pixel
+    // seriam um so para quem olha, e a fase inteira perderia o sentido.
+    const auto largura = static_cast<float>(mGame->GetWindowWidth());
+    const Vector2 ondeEstava = mBoss->GetPosition();
+    clone->SetPosition(Vector2(largura - ondeEstava.x, ondeEstava.y));
+
+    Boss* bruto = dynamic_cast<Boss*>(this->AddActor(std::move(clone)));
+    if (!bruto) return;
+
+    // Start() e o que dispara a FSM e os primeiros ataques. Sem ele o corpo
+    // aparece e fica parado - o mesmo cuidado que LoadBoss ja tomava.
+    bruto->Start();
+    mCorpos.push_back(bruto);
+
+    SDL_Log("BATALHA: o chefe se dividiu. O segundo corpo usa os ataques de \"%s\".",
+            faseDoClone.c_str());
+}
+
+void Battle::JuntarCorpos() {
+
+    // O ORIGINAL FICA, os extras saem. Percorre de tras para frente porque a
+    // lista encolhe no caminho.
+    for (size_t i = mCorpos.size(); i-- > 1; ) {
+        if (mCorpos[i]) mCorpos[i]->SetState(ActorState::Destroy);
+        mCorpos.pop_back();
+    }
 }
 
 Player* Battle::OutroJogador(const Player* quem) const {

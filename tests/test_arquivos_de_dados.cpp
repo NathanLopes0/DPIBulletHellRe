@@ -176,15 +176,24 @@ TEST_CASE("Dados: todo chefe tem as quatro fases") {
     }
 }
 
-TEST_CASE("Dados: toda fase tem pelo menos um ataque") {
+TEST_CASE("Dados: toda fase tem de onde tirar pelo menos um ataque") {
     // LerFases ja descarta fase sem ataque, entao isto pega o descarte: a fase
     // some do conjunto e o chefe fica parado 17 segundos naquele trecho.
+    //
+    // "OU EMPRESTA DE OUTRA" entrou quando a fase que se divide passou a usar
+    // "ataquesDe" - ela nao declara ataques de proposito, e a lista dela fica
+    // vazia na camada pura (quem resolve e a ponte). O que o caso protege
+    // continua sendo o mesmo: nenhuma fase deixa o chefe parado.
+    //
+    // Que o nome apontado EXISTE e assunto de ValidarTransicoes, e ha caso
+    // proprio para ele em test_fases.cpp.
     for (const auto& chefe : Chefes()) {
         const auto& fases = FasesDoChefe(chefe).fases;
         for (const auto& f : fases) {
             CAPTURE(chefe);
             CAPTURE(f.nome);
-            CHECK(f.ataques.size() >= 1);
+            CAPTURE(f.ataquesDe);
+            CHECK((f.ataques.size() >= 1 || !f.ataquesDe.empty()));
         }
     }
 }
