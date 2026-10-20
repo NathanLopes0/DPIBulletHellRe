@@ -41,18 +41,42 @@
   // jogador nao via tarefas, via uma parede. Com 0,13 elas ficam a 39 pixels e
   // voltam a ser unidades contaveis - que e o que uma tarefa deve parecer.
   //
-  // E UMA FILA POR RAJADA, E NAO UM LEQUE. O leque sairia do mesmo ponto e
-  // abriria em cone; sao as rajadas SUCESSIVAS, a posicoes diferentes, que
-  // fazem as faixas serem paralelas. Mesma mecanica da fase 1 do Vladimir, com
-  // outro proposito: la o chefe orbitava e a trilha virava um anel, aqui ele
-  // varre e a trilha vira uma grade.
+  // O LEQUE DE 22 GRAUS CHEGOU DEPOIS, E CUSTOU A LEITURA DE "COLUNAS
+  // PARALELAS". Vale contar por que, porque a troca foi consciente.
+  //
+  // Com "angulo": 0 a fase tinha um buraco que so aparece medindo: a varredura
+  // e periodica, o cooldown e constante e nada sorteia nada, entao as colunas
+  // caem SEMPRE NOS MESMOS x, passagem apos passagem. Quem ficasse entre duas
+  // ficava entre duas os dezessete segundos. Medido: o piloto que nao se mexe
+  // atravessava a batalha inteira com 5 acertos e terminava APROVADO com 76 -
+  // e ficar parado nao deveria aprovar em chefe nenhum.
+  //
+  // O leque junto com o escalonamento faz a rajada sair em CASCATA diagonal, e
+  // e a cascata que resolve: ela varre uma faixa larga em vez de uma coluna, e
+  // nao sobra bolso permanente. Com 22 graus o piloto parado passa a tomar 20
+  // acertos e reprova com 26,7, enquanto o que persegue continua em 12 - o
+  // mesmo numero do Vladimir, ou seja, o jogador de verdade nao sentiu.
+  //
+  // O QUE EU TENTEI ANTES, e por que nao serviu, para ninguem refazer:
+  //
+  //   inclinar a faixa no C++ (como a fresta gira)   nao fecha os bolsos (a
+  //       inclinacao desloca a coluna uns 50px e a distancia entre elas e 176),
+  //       e ainda ADIANTA a coluna na direcao da varredura, o que massacra quem
+  //       persegue: 21 acertos.
+  //   encurtar o cooldown para 0,40                  colunas mais juntas, mas o
+  //       parado so foi de 6 para 8 acertos: continuava aprovando com 76.
+  //   tirar o escalonamento ("intervalo": 0)         sem a cascata o leque volta
+  //       a ser simetrico e o buraco volta: 12 acertos, aprovado.
+  //
+  // A dinamica de antes CONTINUA VALENDO: seguir o chefe e ruim, porque as
+  // faixas descem de onde ele estava e a varredura volta por cima delas.
   "StateOne": {
     "duracao": 17,
     "proximo": "StateTwo",
     "movimento": { "tipo": "Varredura", "a": 220, "b": 150 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Tarefa",
-        "projeteis": 6, "velocidade": 300, "angulo": 0, "intervalo": 0.13,
+        "projeteis": 6, "velocidade": 300, "angulo": 22, "intervalo": 0.13,
         "cooldown": 0.8,
         "regras": "paralelo" }
     ]
@@ -82,7 +106,7 @@
     "movimento": { "tipo": "Orbitar", "a": 110, "b": 0.08 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Trava",
-        "projeteis": 16, "velocidade": 260, "angulo": 300, "intervalo": 0,
+        "projeteis": 24, "velocidade": 300, "angulo": 300, "intervalo": 0,
         "cooldown": 2.6,
         "regras": "secao_critica" }
     ]
@@ -132,7 +156,7 @@
         "cooldown": 1.0,
         "regras": "tarefas_famintas" },
       { "estrategia": "WaveAttack", "projetil": "Trava",
-        "projeteis": 14, "velocidade": 240, "angulo": 300, "intervalo": 0,
+        "projeteis": 21, "velocidade": 300, "angulo": 300, "intervalo": 0,
         "cooldown": 2.9,
         "regras": "secao_critica" }
     ]

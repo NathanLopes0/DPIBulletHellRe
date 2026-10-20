@@ -34,9 +34,23 @@
   // expandindo e a fresta passa rapido demais para ser usada; freando quase
   // ate zero, a parede fica de pe e o jogador tem tempo de achar a abertura e
   // atravessar - que e o gesto que a fase quer cobrar.
+  //
+  // MAS O FREIO SO ENTRA EM 1,0s, E NAO EM 0,55s, E ISSO E UMA CORRECAO.
+  //
+  // Com 0,55 as travas voavam 143px antes de frear e paravam a uns 240px do
+  // chefe. O centro do anel voa 440px ACIMA da faixa em que o jogador vive,
+  // entao o anel simplesmente NAO CHEGAVA NELE: a fase 2 inteira era cenario
+  // para quem ficasse embaixo. Medido com o piloto parado - um acerto em
+  // dezessete segundos, e a nota SUBINDO 33 pontos no caminho, porque ele
+  // passava a fase fuzilando o chefe sem risco nenhum.
+  //
+  // Com 1,0s a 300 px/s elas chegam a uns 390px e o fundo do anel alcanca a
+  // faixa de baixo. E por isso o anel tambem passou de 16 para 24 travas: num
+  // raio maior, 16 ficam a 140 pixels uma da outra e a "parede" vira uma cerca
+  // com buracos de quatro sprites de largura.
   "secao_critica": [
     { "animacao": "Retida",
-      "modifiers": [ { "tipo": "SlowDown", "fator": 0.18, "atraso": 0.55 } ] }
+      "modifiers": [ { "tipo": "SlowDown", "fator": 0.18, "atraso": 1.00 } ] }
   ],
 
   // As tarefas da fase final, que correm ENTRE as travas ja postas.

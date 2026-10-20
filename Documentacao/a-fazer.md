@@ -6,6 +6,39 @@ tem uma direção.
 
 ---
 
+## Balanceamento
+
+### O Salles deixa o jogador parado aprovar
+
+`Ferramentas/parado-reprova.sh` roda os oito chefes com um piloto que não se
+mexe e atira sem parar. **Sete reprovam; o Salles passa com 91,02** — 12
+acertos sofridos e **309 acertos dados**, o maior de todos (o segundo é o Júlio
+com 314, mas ele toma 36 e termina em zero).
+
+A causa está identificada e é a mesma que a primeira versão do Vladimir tinha:
+**três das quatro fases do Salles usam `GoToCenter`**. Parado no meio da tela,
+ele fica permanentemente na coluna de quem atira para cima — o jogador acerta
+de graça a luta inteira e a nota sobe sozinha.
+
+A cura também é a mesma: **dar um gesto a cada fase**, como em
+`MovementStrategies.h`. E aqui o gesto tem o que dizer, porque as fases dele são
+estruturas de dados:
+
+| Fase | Estrutura | Gesto candidato |
+|---|---|---|
+| 1 | lista encadeada | varredura — a travessia tem direção |
+| 2 | lista duplamente encadeada | varredura que **inverte** — ida e volta |
+| 3 | árvore binária | mergulho — a profundidade é o nível |
+| final | lista circular | órbita — o laço que fecha |
+
+**Atenção ao mexer:** a batalha do Salles é a referência da rede de regressão
+(`provaigual.sh` contra `base_commit77.bruto`), que vem idêntica desde o commit
+77 e já pegou coisa de verdade. Mudar o balanceamento dele **invalida a
+referência de propósito** — então a referência precisa ser regerada no mesmo
+commit, com o motivo escrito, e não "consertada" depois.
+
+---
+
 ## Arquitetura
 
 ### Os comentários da fase 2 do Salles citam números que os dados não têm
