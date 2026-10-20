@@ -846,7 +846,7 @@ TEST_CASE("Dados: as materias do curso estao la, com os codigos esperados") {
     // descuido de edicao.
     const std::set<std::string> esperadas = {
         "INF110", "INF213", "INF250", "INF220", "INF330", "INF331",
-        "INF420", "INF221", "INF321", "INF452", "TCC"
+        "INF420", "INF221", "INF321", "INF310", "TCC"
     };
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
@@ -904,10 +904,10 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
     //   INF110 sempre aberta (a porta de entrada do curso);
     //   INF213 abre ao passar em INF110;
     //   coluna 2 (INF250, INF220, INF330, INF331) abre ao passar em INF213;
-    //   coluna 3 (INF420, INF221, INF321, INF452) abre com 2 aprovacoes na 2;
+    //   coluna 3 (INF420, INF221, INF321, INF310) abre com 2 aprovacoes na 2;
     //   TCC abre com 2 aprovacoes na coluna 3.
     const std::vector<std::string> col2 = {"INF250", "INF220", "INF330", "INF331"};
-    const std::vector<std::string> col3 = {"INF420", "INF221", "INF321", "INF452"};
+    const std::vector<std::string> col3 = {"INF420", "INF221", "INF321", "INF310"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
     REQUIRE(l.Quantas() == 11);

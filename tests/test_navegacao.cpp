@@ -20,13 +20,13 @@ namespace {
     //   INF110 (0)   INF213 (1)   INF250 (2)   INF420 (6)   TCC (10)
     //                             INF220 (3)   INF221 (7)
     //                             INF330 (4)   INF321 (8)
-    //                             INF331 (5)   INF452 (9)
+    //                             INF331 (5)   INF310 (9)
     Navegacao::Grade GradeDeHoje() {
         return { {0}, {1}, {2,3,4,5}, {6,7,8,9}, {10} };
     }
 
     constexpr size_t INF110 = 0, INF213 = 1, INF250 = 2, INF220 = 3,
-                     INF330 = 4, INF331 = 5, INF420 = 6, INF452 = 9, TCC = 10;
+                     INF330 = 4, INF331 = 5, INF420 = 6, INF310 = 9, TCC = 10;
 }
 
 // ------------------------------------------------- os dois casos relatados
@@ -107,7 +107,7 @@ TEST_CASE("Navegacao: a linha e mantida ao andar de lado") {
     CHECK(Navegacao::Direita(grade, INF220)  == 7);
     CHECK(Navegacao::Direita(grade, INF330)  == 8);
     CHECK(Navegacao::Direita(grade, INF331)  == 9);
-    CHECK(Navegacao::Esquerda(grade, INF452) == INF331);
+    CHECK(Navegacao::Esquerda(grade, INF310) == INF331);
 }
 
 TEST_CASE("Navegacao: indo para uma coluna menor, a linha e limitada") {
@@ -115,7 +115,7 @@ TEST_CASE("Navegacao: indo para uma coluna menor, a linha e limitada") {
     // Da linha 3 para uma coluna de um item so: vai para o unico que existe, em
     // vez de para uma linha que nao ha.
     const auto grade = GradeDeHoje();
-    CHECK(Navegacao::Direita(grade, INF452) == TCC);
+    CHECK(Navegacao::Direita(grade, INF310) == TCC);
     CHECK(Navegacao::Esquerda(grade, INF331) == INF213);
     CHECK(Navegacao::Esquerda(grade, INF250) == INF213);
 

@@ -121,8 +121,17 @@
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
     {
-      "codigo": "INF452", "nome": "INF 452",
-      "nomeCompleto": "Redes de Computadores", "professor": "Vitor",
+      // TROCAR O "codigo" APOSENTA A MATERIA ANTIGA E CRIA OUTRA, e aqui isso
+      // foi feito de propósito: a INF 452 (Redes) virou a INF 310. Nenhuma nota
+      // se perdeu porque nenhuma existia - a INF 452 nunca teve chefe, entao
+      // nunca houve como jogá-la. Se ela tivesse batalha, a troca teria de vir
+      // com conversao de save.
+      //
+      // A POSICAO NA LISTA NAO MUDOU (continua a decima entrada). A navegacao da
+      // grade e os testes dela usam o indice, e mover a entrada teria mexido na
+      // grade inteira por uma troca que e so de nome.
+      "codigo": "INF310", "nome": "INF 310",
+      "nomeCompleto": "Programação Concorrente e Distribuída", "professor": "Vitor",
       "coluna": 3,
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
