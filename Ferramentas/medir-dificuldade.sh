@@ -13,7 +13,8 @@
 #
 # DPI_JOGADORES  1 ou 2        DPI_SEGUE   o jogador persegue o X do chefe
 # DPI_SEMENTE    o sorteio     DPI_PARADO  o jogador nao sai do lugar
-# DPI_BATALHA    a fase        DPI_ATIRA   atira sempre que puder
+# DPI_BATALHA    a fase        DPI_VAIVEM  o jogador varre a largura, sem mirar
+#                              DPI_ATIRA   atira sempre que puder
 #
 # USE VARIAS SEMENTES. Com dois jogadores ha mais colisoes, e cada colisao
 # consome numeros do mesmo sorteador global: a sequencia de ataques diverge da
@@ -87,8 +88,33 @@ edit("Source/Game.cpp", "        mTicksCount = SDL_GetTicks();",
 #
 # Com o piloto, os dois modos miram igual e o que sobra para medir e o que a
 # regra 2.1 faz: ganho e perda divididos pelo numero de jogadores.
+# O TERCEIRO PILOTO: VAI E VEM. Existe por causa de um vies dos outros dois que
+# so apareceu medindo a Maria Lucia.
+#
+# DPI_SEGUE casa o x do jogador com o x do chefe. Como o tiro sobe RETO, isso
+# lhe da MIRA PERFEITA: ele acerta quase todo tiro, a nota so sobe e o numero
+# final nao diz nada sobre a fase. E contra um ataque que desce em coluna sobre
+# o chefe ele caminha para dentro da coluna, fazendo a fase parecer muito mais
+# dura do que e.
+#
+# DPI_PARADO tem o vies oposto: mira perfeita se o chefe passar por cima, e
+# nenhuma se nao passar.
+#
+# Este varre a largura jogavel ignorando o chefe. A mira dele e ruim de um jeito
+# mais parecido com o de gente, e ele nunca fica parado - a unica coisa que um
+# jogador de verdade com certeza nao faz. Leia dele os ACERTOS SOFRIDOS, e nao
+# a nota: sem mira, a nota dele termina em zero em qualquer chefe.
 edit("Source/Actors/Player/Player.cpp", "void Player::MoveInput(const Uint8 *keyState) {",
 """void Player::MoveInput(const Uint8 *keyState) {
+    if (std::getenv("DPI_VAIVEM")) {
+        static float dir = 1.0f;
+        const float x = GetPosition().x;
+        if (x > 1060.0f) dir = -1.0f;
+        if (x <  140.0f) dir =  1.0f;
+        GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(dir * PLAYER_SPEED_START, 0));
+        mMoving = true;
+        return;
+    }
     if (std::getenv("DPI_SEGUE")) {
         float alvo = GetPosition().x;
         if (const auto b = dynamic_cast<Battle*>(GetScene())) {

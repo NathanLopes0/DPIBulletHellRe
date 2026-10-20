@@ -57,6 +57,21 @@ void ProjectileManager::AddBossProjectiles(std::vector<std::unique_ptr<BossProje
                             std::make_move_iterator(projectiles.end()));
 }
 
+void ProjectileManager::DescartarProjeteisDe(const Actor* dono) const {
+
+    if (!dono) return;
+
+    for (auto& proj : mBossProjectiles) {
+        if (!proj || proj->GetOwner() != dono) continue;
+
+        // A ORDEM IMPORTA. Desligar a fabrica PRIMEIRO e o que faz MarkDead()
+        // escolher Destroy em vez de Inactive; na ordem inversa o projetil ja
+        // teria entrado na fila do Release.
+        proj->SetOriginFactory(nullptr);
+        proj->Kill();
+    }
+}
+
 void ProjectileManager::ClearBossProjectiles() const {
     // Marcado como Inactive (não Destroy): esses projéteis costumam ser
     // limpos em transições de fase do Boss, que tende a disparar de novo

@@ -949,7 +949,18 @@ void Battle::JuntarCorpos() {
     // O ORIGINAL FICA, os extras saem. Percorre de tras para frente porque a
     // lista encolhe no caminho.
     for (size_t i = mCorpos.size(); i-- > 1; ) {
-        if (mCorpos[i]) mCorpos[i]->SetState(ActorState::Destroy);
+        if (mCorpos[i]) {
+
+            // ANTES DE DESTRUIR O CORPO, TIRA OS TIROS DELE DE CENA. O corpo
+            // leva junto as fabricas de projetil dele, e um tiro que sobreviva
+            // ao dono tenta voltar a um pool que nao existe mais. Ver
+            // ProjectileManager::DescartarProjeteisDe - foi um crash de
+            // verdade, na passagem da fase 3 do Vitor para o exame.
+            if (mProjectileManager) {
+                mProjectileManager->DescartarProjeteisDe(mCorpos[i]);
+            }
+            mCorpos[i]->SetState(ActorState::Destroy);
+        }
         mCorpos.pop_back();
     }
 }
