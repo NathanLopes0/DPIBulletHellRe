@@ -408,3 +408,66 @@ TEST_CASE("Regras: uma regra SO com \"rotacionar\" ja faz alguma coisa") {
     REQUIRE(r.conjuntos.at("x").size() == 1);
     CHECK_FALSE(*r.conjuntos.at("x")[0].rotacionar);
 }
+
+// ---------------------------------------------------------------------------
+// "alvoAcorrentado": a unica condicao que olha para o mundo, e nao para a rajada
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Regras: \"alvoAcorrentado\" e lido como condicao") {
+
+    const auto r = LerRegras(R"({
+      "paralelo": [
+        { "animacao": "Correndo" },
+        { "quando": "alvoAcorrentado",
+          "motion": { "tipo": "Tracking", "atraso": 0.25, "forca": 0.9, "duracao": 3.0 } }
+      ]
+    })");
+
+    CHECK(r.problemas.empty());
+    REQUIRE(r.conjuntos.at("paralelo").size() == 2);
+    CHECK(r.conjuntos.at("paralelo")[0].condicao == Regra::Sempre);
+    CHECK(r.conjuntos.at("paralelo")[1].condicao == Regra::AlvoAcorrentado);
+}
+
+TEST_CASE("Regras: \"alvoAcorrentado\" so se aplica quando o alvo esta preso") {
+
+    // O ESTADO ENTRA COMO PARAMETRO, e e isso que mantem esta camada pura: ela
+    // nao conhece Player nem Scene e nao vai passar a conhecer. Quem pergunta
+    // ao mundo e o configurator em RegrasDeAtaqueArquivo.cpp.
+    Regra r;
+    r.condicao = Regra::AlvoAcorrentado;
+
+    CHECK(RegraSeAplica(r, 0, 0.5f, /*alvoAcorrentado=*/true));
+    CHECK(RegraSeAplica(r, 7, 0.1f, true));
+    CHECK_FALSE(RegraSeAplica(r, 0, 0.5f, /*alvoAcorrentado=*/false));
+    CHECK_FALSE(RegraSeAplica(r, 7, 0.9f, false));
+}
+
+TEST_CASE("Regras: o alvo preso nao muda as outras condicoes") {
+
+    // Era o risco obvio de acrescentar um parametro a um switch: alguem o usa
+    // num ramo errado e "pares" passa a depender do estado do jogo. As outras
+    // quatro condicoes tem de dar o MESMO resultado com o alvo preso e solto.
+    Regra pares;   pares.condicao = Regra::Pares;
+    Regra impares; impares.condicao = Regra::Impares;
+    Regra sempre;  sempre.condicao = Regra::Sempre;
+    Regra chance;  chance.condicao = Regra::Chance; chance.chance = 0.5f;
+
+    for (int i = 0; i < 6; ++i) {
+        CAPTURE(i);
+        CHECK(RegraSeAplica(pares,   i, 0.3f, true) == RegraSeAplica(pares,   i, 0.3f, false));
+        CHECK(RegraSeAplica(impares, i, 0.3f, true) == RegraSeAplica(impares, i, 0.3f, false));
+        CHECK(RegraSeAplica(sempre,  i, 0.3f, true) == RegraSeAplica(sempre,  i, 0.3f, false));
+        CHECK(RegraSeAplica(chance,  i, 0.3f, true) == RegraSeAplica(chance,  i, 0.3f, false));
+    }
+}
+
+TEST_CASE("Regras: o padrao de RegraSeAplica e \"ninguem preso\"") {
+
+    // Toda chamada que existia antes deste parametro continua valendo, e o que
+    // ela quer dizer e "o alvo nao esta acorrentado". Se o padrao fosse true,
+    // uma regra de alvo preso valeria sempre em qualquer chamador antigo.
+    Regra r;
+    r.condicao = Regra::AlvoAcorrentado;
+    CHECK_FALSE(RegraSeAplica(r, 0, 0.5f));
+}

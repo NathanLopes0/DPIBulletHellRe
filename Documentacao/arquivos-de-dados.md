@@ -277,6 +277,17 @@ Escolha no máximo uma forma:
 | `"quando": "sempre" \| "pares" \| "impares"` | por posição na rajada |
 | `"indices": [0, 3, 7]` | posições específicas |
 | `"chance": 0.2` | sorteio por projétil |
+| `"quando": "alvoAcorrentado"` | **só enquanto um aluno estiver preso** por uma corrente |
+
+> **`alvoAcorrentado` é a única condição que olha para o estado do jogo**, e não
+> para a posição na rajada. Por isso ela entra em `RegraSeAplica` como um `bool`
+> em vez de uma consulta: a camada pura não conhece `Player` nem `Scene` e não
+> vai passar a conhecer — quem pergunta ao mundo é o configurator em
+> `RegrasDeAtaqueArquivo.cpp`, que já é a ponte impura.
+>
+> Em dupla, **qualquer um dos dois preso já conta**. É a mesma escolha da nota
+> compartilhada, e evita metade da rajada perseguir um aluno e metade o outro
+> dentro do mesmo disparo.
 
 ### O que a regra faz
 

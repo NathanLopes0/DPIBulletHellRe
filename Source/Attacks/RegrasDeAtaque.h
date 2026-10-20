@@ -79,7 +79,23 @@ struct Regra {
         Chance,    ///< sorteio por projetil
         Indices,   ///< posicoes especificas dentro da rajada
         Pares,     ///< indices 0, 2, 4...
-        Impares    ///< indices 1, 3, 5...
+        Impares,   ///< indices 1, 3, 5...
+
+        /**
+         * So vale enquanto o ALUNO ESTA ACORRENTADO.
+         *
+         * E a unica condicao que nao olha para a rajada, e sim para o ESTADO
+         * DO MUNDO - por isso ela entra em RegraSeAplica como parametro, e nao
+         * como consulta: esta camada nao conhece Player nem Scene, e nao vai
+         * passar a conhecer. Quem pergunta ao mundo e o configurator em
+         * RegrasDeAtaqueArquivo.cpp, que ja e a ponte impura.
+         *
+         * Existe para a fase 1 do Vitor: as correntes prendem o aluno, e
+         * enquanto ele esta preso as TAREFAS passam a persegui-lo de leve. Sem
+         * isso a corrente seria so um incomodo; com isso ela e o que abre a
+         * porta para o resto do ataque.
+         */
+        AlvoAcorrentado
     };
 
     Condicao condicao = Sempre;
@@ -178,4 +194,5 @@ std::vector<Regra> LerListaDeRegras(const std::string& textoDaLista,
  * uma regra probabilistica testavel: o teste passa 0.1 e 0.9 e verifica os dois
  * lados, sem depender de gerador de numeros aleatorios.
  */
-bool RegraSeAplica(const Regra& regra, int indice, float sorteio);
+bool RegraSeAplica(const Regra& regra, int indice, float sorteio,
+                   bool alvoAcorrentado = false);

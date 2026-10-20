@@ -18,6 +18,8 @@
 #include "../Random.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"
+#include "../Actors/Player/Player.h"
+#include "../Scenes/Battle/Battle.h"
 
 #include "../CaminhosArquivo.h"
 
@@ -124,6 +126,26 @@ std::function<void(Projectile*, int)> ConfiguratorDeArquivo(const std::string& c
     return ConfiguratorDeRegras(it->second);
 }
 
+namespace {
+
+    /// @brief Algum aluno em campo esta preso por uma corrente?
+    ///
+    /// Vai pelo projetil ate a cena porque o configurator e criado na MONTAGEM
+    /// do chefe, quando os jogadores ainda nem existem - guardar um ponteiro
+    /// para o Player ali seria guardar um ponteiro para o nada.
+    bool AlgumJogadorAcorrentado(Projectile* p) {
+        if (!p) return false;
+        const auto batalha = dynamic_cast<Battle*>(p->GetScene());
+        if (!batalha) return false;
+
+        for (const Player* jogador : batalha->Jogadores()) {
+            if (jogador && jogador->EstaAcorrentado()) return true;
+        }
+        return false;
+    }
+
+}
+
 std::function<void(Projectile*, int)> ConfiguratorDeRegras(const std::vector<Regra>& regrasLidas) {
 
     // As regras sao copiadas para um shared_ptr e capturadas por valor: o
@@ -133,9 +155,21 @@ std::function<void(Projectile*, int)> ConfiguratorDeRegras(const std::vector<Reg
 
     return [regras](Projectile* p, const int indice) {
         if (!p) return;
+
+        // QUEM PERGUNTA AO MUNDO E ESTA CAMADA, e nao RegrasDeAtaque.cpp. A
+        // condicao "alvoAcorrentado" e a unica que depende do estado do jogo em
+        // vez da posicao na rajada; manter a consulta aqui e o que deixa a
+        // regra pura continuar pura e testavel com um bool.
+        //
+        // QUALQUER UM DOS DOIS SERVE, em dupla: se um esta preso, as tarefas
+        // perseguem. E a mesma escolha da nota compartilhada - o que acontece
+        // com um acontece para a dupla -, e evita o absurdo de metade da rajada
+        // perseguir um e metade o outro dentro do mesmo disparo.
+        const bool alvoAcorrentado = AlgumJogadorAcorrentado(p);
+
         for (const Regra& r : *regras) {
             const float sorteio = Random::GetFloatRange(0.0f, 1.0f);
-            if (!RegraSeAplica(r, indice, sorteio)) continue;
+            if (!RegraSeAplica(r, indice, sorteio, alvoAcorrentado)) continue;
 
             // A escala vem primeiro, na mesma ordem em que os configurators
             // escritos a mao faziam: SetScale antes dos behaviors. As duas coisas

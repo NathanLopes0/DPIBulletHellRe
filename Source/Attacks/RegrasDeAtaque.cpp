@@ -117,8 +117,10 @@ namespace {
                 if (q == "pares")        r.condicao = Regra::Pares;
                 else if (q == "impares") r.condicao = Regra::Impares;
                 else if (q == "sempre")  r.condicao = Regra::Sempre;
+                else if (q == "alvoAcorrentado") r.condicao = Regra::AlvoAcorrentado;
                 else {
-                    problemas.emplace_back(onde + "\"quando\" so aceita sempre, pares ou impares");
+                    problemas.emplace_back(onde + "\"quando\" so aceita sempre, pares, impares "
+                                                  "ou alvoAcorrentado");
                     continue;
                 }
             }
@@ -296,9 +298,11 @@ namespace {
 bool EhMotion(const std::string& tipo)   { return Contem(kMotions, tipo); }
 bool EhModifier(const std::string& tipo) { return Contem(kModifiers, tipo); }
 
-bool RegraSeAplica(const Regra& regra, const int indice, const float sorteio) {
+bool RegraSeAplica(const Regra& regra, const int indice, const float sorteio,
+                   const bool alvoAcorrentado) {
     switch (regra.condicao) {
         case Regra::Sempre:  return true;
+        case Regra::AlvoAcorrentado: return alvoAcorrentado;
         case Regra::Chance:  return sorteio < regra.chance;
         case Regra::Pares:   return indice % 2 == 0;
         case Regra::Impares: return indice % 2 != 0;

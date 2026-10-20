@@ -16,8 +16,48 @@
   //
   // Sem motion nenhum: tarefa e trabalho que atravessa, e trabalho que
   // atravessa vai reto. A fase e sobre passar ENTRE as faixas.
+  //
+  // ---- SALVO ENQUANTO O ALUNO ESTIVER ACORRENTADO ----
+  //
+  // A segunda regra so vale enquanto uma corrente estiver valendo ("quando":
+  // "alvoAcorrentado"), e e ela que transforma a corrente de incomodo em
+  // ameaca: preso, o aluno nao so anda devagar como deixa de estar seguro
+  // entre as faixas - elas passam a vir atras dele.
+  //
+  // E A LEITURA CERTA DA MATERIA, e nao so uma punicao empilhada: um worker
+  // travado nao para de receber trabalho, o escalonador continua mandando
+  // tarefa para ele. A corrente e o bloqueio; as tarefas chegando mesmo assim
+  // sao a fila crescendo.
+  //
+  // 1,7 POR 3,4s, E OS DOIS NUMEROS SAIRAM DE MEDICAO - o segundo surpreende.
+  //
+  // Comecei com 0,9 por 3,0s, querendo "forca baixa" como o oposto da corrente.
+  // A regra disparava - instrumentei e contei 132 projeteis recebendo o
+  // Tracking numa batalha so -, e mesmo assim o piloto parado terminava com os
+  // MESMOS 12 acertos de antes. Forca 0,9 nao curva o bastante para alcancar
+  // um alvo fixo quando a rajada nasce longe do x dele: a regra valia e nao
+  // fazia nada, que e pior do que nao existir.
+  //
+  // A DURACAO TEM UM DEGRAU ENTRE 3,0 E 3,4 SEGUNDOS, e nao e gradual:
+  //
+  //     forca 1,3  por 3,0s   13 acertos, nota 74,6  (aprovado)
+  //     forca 1,7  por 3,0s   16 acertos, nota 61,0  (aprovado por pouco)
+  //     forca 1,7  por 3,4s   25 acertos, nota 21,8  (reprovado)
+  //     forca 1,5  por 4,0s   16 acertos, nota 65,8  (aprovado)
+  //
+  // Alongar sem forca nao adianta - com 1,4 por 4,4s da no mesmo que 1,5 por
+  // 4,0 -, porque a tarefa sai da tela antes de a janela acabar. Os 3,4s sao o
+  // tempo que uma tarefa leva para atravessar a tela inteira depois de nascer:
+  // abaixo disso ela desiste no meio do caminho e o aluno lento sai da frente.
+  //
+  // E A DIFERENCA PARA A CORRENTE NAO E A FORCA, E A QUANTIDADE. A corrente e
+  // UMA que vira forte e desiste em 2,6s; as tarefas sao SEIS que viram quase
+  // igual e insistem ate o fim da travessia. Duas perseguicoes sao um susto;
+  // seis sao um cerco.
   "paralelo": [
-    { "animacao": "Correndo" }
+    { "animacao": "Correndo" },
+    { "quando": "alvoAcorrentado",
+      "motion": { "tipo": "Tracking", "atraso": 0.25, "forca": 1.7, "duracao": 3.4 } }
   ],
 
   // FASE 1 - AS CORRENTES.
