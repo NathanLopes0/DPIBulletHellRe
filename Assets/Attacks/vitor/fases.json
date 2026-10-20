@@ -76,9 +76,23 @@
     "movimento": { "tipo": "Varredura", "a": 220, "b": 150 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Tarefa",
-        "projeteis": 6, "velocidade": 300, "angulo": 22, "intervalo": 0.13,
+        "projeteis": 6, "velocidade": 300, "angulo": 0, "intervalo": 0.13,
         "cooldown": 0.8,
-        "regras": "paralelo" }
+        "regras": "paralelo" },
+
+      // AS CORRENTES: duas a cada 3,2s, contra seis tarefas a cada 0,8.
+      //
+      // RARAS DE PROPOSITO. Um perseguidor de forca 2,6 que viesse junto com
+      // toda rajada nao seria um susto, seria uma parede - o aluno nunca
+      // estaria sem um atras dele. Vindo de vez em quando, cada uma e um
+      // EVENTO: da para ver chegando, decidir para que lado correr, e errar.
+      //
+      // O leque de 20 graus so separa as duas na saida; quem decide para onde
+      // elas vao e o Tracking, nao o angulo.
+      { "estrategia": "WaveAttack", "projetil": "Corrente",
+        "projeteis": 2, "velocidade": 260, "angulo": 20, "intervalo": 0.18,
+        "cooldown": 3.2,
+        "regras": "correntes" }
     ]
   },
 
@@ -106,8 +120,8 @@
     "movimento": { "tipo": "Orbitar", "a": 110, "b": 0.08 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Trava",
-        "projeteis": 100, "velocidade": 350, "angulo": 300, "intervalo": 0,
-        "cooldown": 2.4,
+        "projeteis": 24, "velocidade": 300, "angulo": 300, "intervalo": 0,
+        "cooldown": 2.6,
         "regras": "secao_critica" }
     ]
   },

@@ -28,6 +28,39 @@
     "ordemDeDesenho": 90
   },
 
+  // A PIADA DE "CONCORRENTES": programacao CONCORRENTE, e o chefe atira
+  // CORRENTES. E a unica piada do jogo que tambem e uma mecanica.
+  //
+  // E O PRIMEIRO PROJETIL DO JOGO QUE NAO COBRA NOTA PARA VALER. Ele cobra
+  // 15% da perda normal - uns 0,9 ponto - e em troca PRENDE: 3,5 segundos a
+  // 45% da velocidade. A troca e o ponto: se a corrente custasse os 6 pontos
+  // de um tiro qualquer, seria um tiro qualquer que por acaso tambem prende, e
+  // o jogador leria "tomei dano" em vez de "fiquei preso".
+  //
+  // ELA CONTA COMO ACERTO SOFRIDO, mesmo cobrando pouco - vale para o direito
+  // a nota cheia e para a fase limpa. Ser acorrentado nao e de graca; e so
+  // barato em nota.
+  //
+  // A ARTE NAO E UMA TERCEIRA COR VIVA. A Tarefa e verde e a Trava e vermelha
+  // porque as duas falam de nota; a corrente e FERRO, e fala de peso. O aluno
+  // preso ganha um tom da mesma familia (ver Player::UpdateCorrente), entao a
+  // causa e o efeito se parecem.
+  "Corrente": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorTarefa.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorTarefa.json",
+    "animacoes": {
+      "Arrastando": [8, 9, 10, 11]
+    },
+    "animacaoInicial": "Arrastando",
+    "ordemDeDesenho": 92,
+
+    "acorrenta": {
+      "segundos": 3.5,
+      "fatorDeVelocidade": 0.45,
+      "multiplicadorDaPerda": 0.15
+    }
+  },
+
   "Trava": {
     "sprite": "Teachers/Projectiles/DPIBHVitorTarefa.png",
     "dados":  "Teachers/Projectiles/DPIBHVitorTarefa.json",

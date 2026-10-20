@@ -20,6 +20,31 @@
     { "animacao": "Correndo" }
   ],
 
+  // FASE 1 - AS CORRENTES.
+  //
+  // PERSEGUEM COM MAIS FORCA E POR MAIS TEMPO que todo outro Tracking do jogo:
+  // os outros corrigem a rota e desistem (forca 1,4 a 1,6 por uns dois
+  // segundos), porque la o perseguidor e tempero. Aqui ele e o ataque.
+  //
+  // 1,9 POR 2,6s, E NAO 2,6 POR 3,2s. Comecei com os numeros maiores e medi: o
+  // piloto que persegue tomava 24 acertos e reprovava com 16,6, contra os 12
+  // do Vladimir no mesmo arnes. O motivo e um circulo vicioso - a corrente
+  // acerta, o aluno fica a 45% da velocidade, e a proxima acha um alvo que mal
+  // se mexe. Um efeito que atrapalha precisa ser mais FACIL de evitar do que
+  // um que so tira nota, justamente porque ele se realimenta. Com 1,9 por
+  // 2,6s: 14 acertos, nota 62,4, aprovado.
+  //
+  // Sao DUAS a cada 3,2 segundos, contra seis tarefas a cada 0,8. Da para ver
+  // vindo, e da para fugir se comecar a fugir cedo.
+  //
+  // O "atraso" de 0,2 deixa a corrente SAIR antes de comecar a virar. Sem ele
+  // ela curva colada no chefe, e o jogador perde a informacao mais util que
+  // tem: de que lado ela vem.
+  "correntes": [
+    { "animacao": "Arrastando",
+      "motion": { "tipo": "Tracking", "atraso": 0.2, "forca": 1.9, "duracao": 2.6 } }
+  ],
+
   // FASE 2 - EXCLUSAO MUTUA: o anel e a trava, e a fresta e a secao critica.
   //
   // O leque cobre 300 graus, entao sobram 60 de abertura - UM caminho, e so
@@ -50,7 +75,7 @@
   // com buracos de quatro sprites de largura.
   "secao_critica": [
     { "animacao": "Retida",
-      "modifiers": [ { "tipo": "SlowDown", "fator": 0.2, "atraso": 0.80 } ] }
+      "modifiers": [ { "tipo": "SlowDown", "fator": 0.18, "atraso": 1.00 } ] }
   ],
 
   // As tarefas da fase final, que correm ENTRE as travas ja postas.
@@ -60,6 +85,6 @@
   // que se mexe enquanto se procura a fresta de algo que nao se mexe.
   "tarefas_famintas": [
     { "animacao": "Correndo",
-      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1, "duracao": 1.1 } }
+      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.5, "duracao": 2.2 } }
   ]
 }

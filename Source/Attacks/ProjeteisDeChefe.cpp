@@ -163,6 +163,44 @@ namespace {
         saida.posicionarNoDono = Booleano(j, "posicionarNoDono", true);
         saida.rotacionarComAVelocidade = Booleano(j, "rotacionarComAVelocidade", false);
 
+        // ----- O efeito de acorrentar -----
+        //
+        // RECUSA CHAPADO em vez de corrigir calado: um "segundos" negativo ou
+        // um fator fora de (0, 1] quase sempre e engano de digitacao, e aceitar
+        // produziria um aluno que anda para tras ou que fica MAIS rapido ao ser
+        // acertado - coisas que ninguem ia procurar no arquivo.
+        if (j.contains("acorrenta")) {
+            const auto& a = j["acorrenta"];
+            if (!a.is_object()) {
+                problemas.emplace_back(onde + "\"acorrenta\" deveria ser um objeto com "
+                                              "\"segundos\", \"fatorDeVelocidade\" e "
+                                              "\"multiplicadorDaPerda\"");
+            }
+            else {
+                saida.acorrenta.segundos = Numero(a, "segundos", 0.0f);
+                saida.acorrenta.fatorDeVelocidade = Numero(a, "fatorDeVelocidade", 1.0f);
+                saida.acorrenta.multiplicadorDaPerda = Numero(a, "multiplicadorDaPerda", 1.0f);
+
+                if (saida.acorrenta.segundos <= 0.0f) {
+                    problemas.emplace_back(onde + "\"acorrenta.segundos\" precisa ser maior "
+                                                  "que zero; o efeito foi ignorado");
+                    saida.acorrenta = DescricaoDeProjetil::Acorrentamento{};
+                }
+                else if (saida.acorrenta.fatorDeVelocidade <= 0.0f
+                         || saida.acorrenta.fatorDeVelocidade > 1.0f) {
+                    problemas.emplace_back(onde + "\"acorrenta.fatorDeVelocidade\" precisa "
+                                                  "estar entre 0 (exclusivo) e 1; o efeito foi "
+                                                  "ignorado");
+                    saida.acorrenta = DescricaoDeProjetil::Acorrentamento{};
+                }
+                else if (saida.acorrenta.multiplicadorDaPerda < 0.0f) {
+                    problemas.emplace_back(onde + "\"acorrenta.multiplicadorDaPerda\" nao pode "
+                                                  "ser negativo; o efeito foi ignorado");
+                    saida.acorrenta = DescricaoDeProjetil::Acorrentamento{};
+                }
+            }
+        }
+
         saida.margemEmSprites = Numero(j, "margemEmSprites", 1.0f);
         if (saida.margemEmSprites < 0.0f) {
             problemas.emplace_back(onde + "\"margemEmSprites\" nao pode ser negativa; usando 1");

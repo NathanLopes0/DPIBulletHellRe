@@ -14,9 +14,12 @@ OS PROJETEIS SAO AS DUAS COISAS QUE A MATERIA TRATA, e eles se comportam
 diferente (a licao que o Vladimir custou a aprender - dois simbolos que diferem
 so na cor sao pintura):
 
-    Tarefa  o quadrado que ATRAVESSA. E trabalho correndo: rapido e reto.
-    Trava   o losango que FICA. E um recurso retido: freia e ocupa espaco,
-            e o jogador tem de contornar em vez de esperar passar.
+    Tarefa    o quadrado que ATRAVESSA. E trabalho correndo: rapido e reto.
+    Trava     o losango que FICA. E um recurso retido: freia e ocupa espaco,
+              e o jogador tem de contornar em vez de esperar passar.
+    Corrente  os elos que PERSEGUEM. Sao a piada de "concorrentes": quem leva
+              uma quase nao perde nota e fica PRESO - andando a menos da
+              metade da velocidade por alguns segundos.
 """
 from PIL import Image, ImageDraw
 import json, os
@@ -33,6 +36,12 @@ TRACO  = (40, 52, 70, 255)
 # porque as duas se comportam diferente e a silhueta avisa antes da cor.
 COR_TAREFA = (126, 206, 160, 255)   # verde: trabalho andando
 COR_TRAVA  = (224, 122, 122, 255)   # vermelho: recurso retido
+
+# A corrente e FERRO, e de proposito nao e uma terceira cor viva: ela nao
+# avisa "perigo de nota", avisa "peso". Cinza claro com um toque de azul, que e
+# a mesma familia da cor que o aluno ganha enquanto esta preso.
+COR_ELO    = (186, 192, 208, 255)
+COR_ELO_ESCURO = (120, 128, 148, 255)
 
 
 def quadro_json(nome, w, h, quadros=1, lado=None):
@@ -104,6 +113,23 @@ def trava():
     return im
 
 
+def corrente():
+    """A CORRENTE: dois elos entrelacados. Persegue, prende e quase nao machuca.
+
+    DOIS ELOS, e nao um: um elo sozinho e um anel, e anel ja e a silhueta da
+    Trava. Sao os dois entrelacados que se leem como corrente de longe, que e a
+    distancia em que o jogador precisa reconhecer o que vem vindo.
+    """
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    # elo de tras, mais escuro, deslocado para baixo e para a direita
+    d.ellipse([11, 12, 27, 28], outline=COR_ELO_ESCURO, width=4)
+    # elo da frente
+    d.ellipse([4, 3, 20, 19], outline=COR_ELO, width=4)
+    d.ellipse([4, 3, 20, 19], outline=TRACO, width=1)
+    return im
+
+
 def folha():
     """Quatro quadros de cada, em 4x2 - o mesmo arranjo dos outros chefes.
 
@@ -111,11 +137,13 @@ def folha():
     por animacao. Com um quadro so a animacao existe e nao anima; com quatro da
     para pulsar depois sem mexer em arquivo nenhum.
     """
-    f = Image.new("RGBA", (128, 64), (0, 0, 0, 0))
+    f = Image.new("RGBA", (128, 96), (0, 0, 0, 0))
     for i in range(4):
         f.alpha_composite(tarefa(), (i * 32, 0))
     for i in range(4):
         f.alpha_composite(trava(), (i * 32, 32))
+    for i in range(4):
+        f.alpha_composite(corrente(), (i * 32, 64))
     return f
 
 
@@ -130,4 +158,4 @@ def grava(im, nome, pasta, quadros=1, lado=None):
 
 if __name__ == "__main__":
     grava(vitor(), "DPIBHVitor", "Assets/Teachers")
-    grava(folha(), "DPIBHVitorTarefa", "Assets/Teachers/Projectiles", quadros=8, lado=32)
+    grava(folha(), "DPIBHVitorTarefa", "Assets/Teachers/Projectiles", quadros=12, lado=32)

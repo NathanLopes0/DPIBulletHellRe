@@ -51,6 +51,36 @@ public:
      */
     void Proteger(float segundos);
 
+    /**
+     * @brief Prende o aluno: ele anda a uma fracao da velocidade por um tempo.
+     *
+     * E o efeito das CORRENTES do Vitor - a piada de "concorrentes". Um ataque
+     * que quase nao cobra nota e em troca ATRAPALHA, que e um tipo que o jogo
+     * nao tinha.
+     *
+     * RENOVA, NAO ACUMULA, pelo mesmo motivo de Proteger: duas correntes
+     * seguidas nao devem somar seis segundos de prisao, e uma corrente nova
+     * tambem nao deve ENCURTAR uma mais longa que ja estivesse valendo. O fator
+     * acompanha o timer vencedor - se o que vale e o novo, vale o fator dele.
+     */
+    void Acorrentar(float segundos, float fatorDeVelocidade);
+
+    /// @brief O aluno esta preso agora? Battle e as regras de projetil leem isto.
+    [[nodiscard]] bool EstaAcorrentado() const { return mCorrenteTimer > 0.0f; }
+
+    /**
+     * @brief Quao rapido o aluno anda NESTE instante, ja com a corrente.
+     *
+     * FONTE UNICA DE PROPOSITO. MoveInput usa isto, e os pilotos automaticos
+     * dos arneses de medicao tambem precisam usar: se eles escreverem
+     * PLAYER_SPEED_START direto, atravessam a corrente sem sentir e toda
+     * medicao de dificuldade passa a mentir sobre o efeito que mais importa
+     * desta fase.
+     */
+    [[nodiscard]] float VelocidadeDeAndar() const {
+        return playerSpeed * (mCorrenteTimer > 0.0f ? mFatorDaCorrente : 1.0f);
+    }
+
     /// Quanto ainda falta da imunidade do parceiro. Zero quer dizer desprotegido.
     [[nodiscard]] float TempoDeImunidade() const { return mImunidadeTimer; }
 
@@ -102,6 +132,17 @@ private:
     /// cara - justamente no momento em que o aluno precisa saber qual dos dois e.
     float mImunidadeTimer = 0.0f;
 
+    /// Quanto falta da corrente, e quanto ela corta da velocidade. Ver
+    /// Acorrentar.
+    ///
+    /// O FATOR NAO MEXE EM playerSpeed, de proposito: ele e aplicado no uso, em
+    /// MoveInput. Guardar a velocidade antiga para devolver depois seria um
+    /// estado a mais para errar - bastaria um caminho de saida esquecido para o
+    /// aluno ficar lento o resto da batalha.
+    float mCorrenteTimer = 0.0f;
+    float mFatorDaCorrente = 1.0f;
+    float mPulsoDaCorrente = 0.0f;
+
     /// O pulso da imunidade, SEPARADO de mPulseTimer. Quase reaproveitei aquele
     /// e o efeito sumia: UpdateOverload zera mPulseTimer a cada quadro em que
     /// nao ha sobrecarga, e quem RECEBE a imunidade normalmente nao esta
@@ -121,6 +162,7 @@ private:
     //OnUpdate Sub-functions
     void InvincibleUpdate(float deltaTime);
     void UpdateImunidade(float deltaTime);
+    void UpdateCorrente(float deltaTime);
     void HandleAnimation();
     void DecreaseAtkTimer(float deltaTime);
 

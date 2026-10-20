@@ -97,6 +97,31 @@ struct DescricaoDeProjetil {
      * angulo do jogo (ver Actor::GetForward).
      */
     bool rotacionarComAVelocidade = false;
+
+    /**
+     * O QUE ACONTECE COM O ALUNO QUANDO ESTE PROJETIL ACERTA.
+     *
+     * Nasceu para as CORRENTES do Vitor - a piada de "concorrentes" - e e um
+     * tipo de ataque que o jogo nao tinha: um que quase nao cobra nota e em
+     * troca ATRAPALHA. Acertado por uma corrente, o aluno fica preso: anda a
+     * uma fracao da velocidade por alguns segundos.
+     *
+     * POR QUE A PERDA TAMBEM MORA AQUI. Se a corrente custasse os mesmos 6
+     * pontos de um tiro normal, ela seria um tiro normal que por acaso tambem
+     * prende - e o jogador leria "tomei dano", nao "fiquei preso". O que
+     * distingue um efeito de estado de um dano e justamente a troca: quase
+     * nenhuma nota por bastante estorvo.
+     *
+     * Zero em "segundosDeCorrente" quer dizer que este projetil nao prende
+     * ninguem, que e o caso de todos os outros projeteis do jogo.
+     */
+    struct Acorrentamento {
+        float segundos = 0.0f;              ///< 0 = nao acorrenta
+        float fatorDeVelocidade = 1.0f;     ///< multiplica a velocidade do aluno
+        float multiplicadorDaPerda = 1.0f;  ///< 1 = a perda de nota de sempre
+    };
+
+    Acorrentamento acorrenta;
 };
 
 /**

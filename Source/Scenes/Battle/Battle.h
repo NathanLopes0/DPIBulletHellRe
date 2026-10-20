@@ -304,7 +304,19 @@ private:
 
     /// @brief O que um acerto sofrido custa: dividido E aliviado. Ver Nota.h.
     [[nodiscard]] float PerdaPorJogador(float bruto) const;
-    void GradeDown();
+    /**
+     * @brief Cobra um acerto sofrido.
+     *
+     * @param multiplicadorDaPerda quanto da perda normal este acerto custa. O
+     *        padrao e 1 - a perda de sempre. As CORRENTES do Vitor usam um
+     *        valor baixo: elas quase nao cobram nota e em troca prendem o
+     *        aluno (ver o laco de colisao).
+     *
+     * A CONTAGEM DE ACERTOS NAO E MULTIPLICADA. Uma corrente conta como acerto
+     * para tudo que conta acertos - o direito a nota cheia, a fase limpa -,
+     * porque o aluno foi acertado de verdade.
+     */
+    void GradeDown(float multiplicadorDaPerda = 1.0f);
 
     std::vector<ExtraPointItem*> mExtraPoints;
 

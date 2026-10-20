@@ -84,6 +84,22 @@ public:
      */
     void DefinirRotacaoPelaVelocidade(const bool girar) { mRotacionarComAVelocidade = girar; }
 
+    // ---- O QUE ESTE PROJETIL FAZ AO ACERTAR ---------------------------------
+    //
+    // So dois projeteis do jogo tem efeito: as CORRENTES do Vitor. Todos os
+    // outros deixam estes campos no padrao, que e "nao prende ninguem e custa
+    // a nota de sempre". Quem le e aplica e Battle, no laco de colisao.
+    void DefinirAcorrentamento(const float segundos, const float fator, const float multiplicador) {
+        mSegundosDeCorrente = segundos;
+        mFatorDaCorrente = fator;
+        mMultiplicadorDaPerda = multiplicador;
+    }
+
+    [[nodiscard]] bool Acorrenta() const { return mSegundosDeCorrente > 0.0f; }
+    [[nodiscard]] float SegundosDeCorrente() const { return mSegundosDeCorrente; }
+    [[nodiscard]] float FatorDaCorrente() const { return mFatorDaCorrente; }
+    [[nodiscard]] float MultiplicadorDaPerda() const { return mMultiplicadorDaPerda; }
+
     /**
      * @brief Captura tambem a rotacao de fabrica, alem da escala e da animacao.
      *
@@ -110,6 +126,13 @@ protected:
     /// Ver DefinirRotacaoPelaVelocidade. Falso por padrao: girar so faz sentido
     /// para arte que tem frente.
     bool mRotacionarComAVelocidade = false;
+
+    /// Ver DefinirAcorrentamento. Zero segundos = este projetil nao prende.
+    /// NAO precisam voltar ao padrao no Reset como a rotacao e a escala: sao
+    /// propriedade do TIPO, e nenhuma regra os altera por rajada.
+    float mSegundosDeCorrente = 0.0f;
+    float mFatorDaCorrente = 1.0f;
+    float mMultiplicadorDaPerda = 1.0f;
 
     /// O valor com que a fabrica construiu este projetil. Ver
     /// MarcarPadraoDeFabrica.

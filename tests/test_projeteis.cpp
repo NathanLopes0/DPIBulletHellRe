@@ -361,3 +361,76 @@ TEST_CASE("Projeteis: rotacionarComAVelocidade pode ser ligado") {
     CHECK(r.projeteis.at("P").rotacionarComAVelocidade);
     CHECK(r.problemas.empty());
 }
+
+// ---------------------------------------------------------------------------
+// "acorrenta": o acerto que quase nao cobra nota e em troca prende
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Projeteis: \"acorrenta\" e lido inteiro") {
+
+    const auto p = LerProjeteis(R"({
+      "Corrente": {
+        "sprite": "s.png", "dados": "s.json",
+        "animacoes": { "A": [0] },
+        "acorrenta": { "segundos": 3.5, "fatorDeVelocidade": 0.45,
+                       "multiplicadorDaPerda": 0.15 }
+      }
+    })");
+
+    CHECK(p.problemas.empty());
+    REQUIRE(p.projeteis.count("Corrente") == 1);
+    const auto& a = p.projeteis.at("Corrente").acorrenta;
+    CHECK(a.segundos == doctest::Approx(3.5f));
+    CHECK(a.fatorDeVelocidade == doctest::Approx(0.45f));
+    CHECK(a.multiplicadorDaPerda == doctest::Approx(0.15f));
+}
+
+TEST_CASE("Projeteis: sem \"acorrenta\", o projetil nao prende ninguem") {
+
+    // O PADRAO TEM DE SER INOFENSIVO. Todo projetil do jogo menos um nao tem
+    // este campo, e um default errado aqui prenderia o aluno em TODA batalha.
+    const auto p = LerProjeteis(R"({
+      "Normal": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] } }
+    })");
+
+    REQUIRE(p.projeteis.count("Normal") == 1);
+    const auto& a = p.projeteis.at("Normal").acorrenta;
+    CHECK(a.segundos == doctest::Approx(0.0f));
+    CHECK(a.fatorDeVelocidade == doctest::Approx(1.0f));
+    CHECK(a.multiplicadorDaPerda == doctest::Approx(1.0f));
+}
+
+TEST_CASE("Projeteis: um fator de velocidade fora de (0,1] derruba o efeito") {
+
+    // FATOR MAIOR QUE 1 FARIA O ALUNO ACELERAR AO SER ACERTADO, e fator zero ou
+    // negativo o deixaria parado ou andando para tras. Os tres sao engano de
+    // digitacao, e nenhum deles e coisa que alguem procuraria no arquivo depois
+    // - por isso o efeito inteiro e descartado e o problema e dito em voz alta.
+    for (const char* ruim : {"1.4", "0", "-0.5"}) {
+        CAPTURE(ruim);
+        const auto texto = std::string(R"({ "C": { "sprite": "s.png", "dados": "s.json",
+            "animacoes": { "A": [0] },
+            "acorrenta": { "segundos": 3, "fatorDeVelocidade": )") + ruim + " } } }";
+
+        const auto p = LerProjeteis(texto);
+        REQUIRE(p.projeteis.count("C") == 1);
+        CHECK(p.projeteis.at("C").acorrenta.segundos == doctest::Approx(0.0f));
+        REQUIRE(p.problemas.size() == 1);
+        CHECK(p.problemas[0].find("fatorDeVelocidade") != std::string::npos);
+    }
+}
+
+TEST_CASE("Projeteis: \"acorrenta\" sem segundos nao prende, e reclama") {
+
+    // Um objeto "acorrenta" vazio e alguem que comecou a escrever o efeito e
+    // parou no meio. Aceitar calado daria um projetil que diz prender e nao
+    // prende - pior do que nao ter o campo.
+    const auto p = LerProjeteis(R"({
+      "C": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] },
+             "acorrenta": { "fatorDeVelocidade": 0.5 } }
+    })");
+
+    CHECK(p.projeteis.at("C").acorrenta.segundos == doctest::Approx(0.0f));
+    REQUIRE(p.problemas.size() == 1);
+    CHECK(p.problemas[0].find("segundos") != std::string::npos);
+}

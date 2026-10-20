@@ -111,7 +111,7 @@ edit("Source/Actors/Player/Player.cpp", "void Player::MoveInput(const Uint8 *key
         const float x = GetPosition().x;
         if (x > 1060.0f) dir = -1.0f;
         if (x <  140.0f) dir =  1.0f;
-        GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(dir * PLAYER_SPEED_START, 0));
+        GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(dir * VelocidadeDeAndar(), 0));
         mMoving = true;
         return;
     }
@@ -121,7 +121,7 @@ edit("Source/Actors/Player/Player.cpp", "void Player::MoveInput(const Uint8 *key
             if (const auto chefe = b->GetBoss()) alvo = chefe->GetPosition().x;
         }
         const float d = alvo - GetPosition().x;
-        const float v = (d > 2.0f) ? PLAYER_SPEED_START : (d < -2.0f) ? -PLAYER_SPEED_START : 0.0f;
+        const float v = (d > 2.0f) ? VelocidadeDeAndar() : (d < -2.0f) ? -VelocidadeDeAndar() : 0.0f;
         GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(v, 0));
         mMoving = v != 0.0f;
         return;

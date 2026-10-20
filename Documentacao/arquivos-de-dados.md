@@ -437,6 +437,31 @@ entrada é como `fases.json` vai pedi-lo.
 | `ordemDeDesenho` | menor desenha antes, ou seja, atrás |
 | `posicionarNoDono` | se nasce em cima do professor |
 | `margemEmSprites` / `margemDivisorDeTela` | quão longe da tela ele morre |
+| `rotacionarComAVelocidade` | se o sprite gira para acompanhar o voo (uma regra pode desligar por rajada — ver `rotacionar`) |
+| `acorrenta` | o que acontece com o aluno ao ser acertado: `segundos`, `fatorDeVelocidade`, `multiplicadorDaPerda` |
+
+```jsonc
+"Corrente": {
+  "...": "...",
+  "acorrenta": {
+    "segundos": 3.5,              // quanto tempo o aluno fica preso
+    "fatorDeVelocidade": 0.45,    // entre 0 (exclusivo) e 1
+    "multiplicadorDaPerda": 0.15  // quanto da perda normal este acerto custa
+  }
+}
+```
+
+> **`acorrenta` é a primeira troca "quase nenhuma nota por bastante estorvo".**
+> São as correntes do Vitor — a piada de *concorrentes*. Se ela custasse os 6
+> pontos de um tiro qualquer, seria um tiro qualquer que por acaso também
+> prende, e o jogador leria "tomei dano" em vez de "fiquei preso". **Mas ela
+> conta como acerto sofrido**, para o direito à nota cheia e para a fase limpa:
+> ser acorrentado não é de graça, é só barato em nota.
+>
+> Um `fatorDeVelocidade` fora de `(0, 1]` ou um `segundos` que não seja maior
+> que zero **derrubam o efeito inteiro** e viram problema na leitura — aceitar
+> calado daria um aluno que acelera ao ser acertado, ou um projétil que diz
+> prender e não prende.
 
 A regra geral de morte é um sprite mais um doze avos da tela. Os balões do André
 usam dois sprites e nenhuma parcela, e por isso somem mais cedo — era o único

@@ -95,6 +95,17 @@ void Player::OnUpdate(float deltaTime) {
     HandleAnimation();
     DecreaseAtkTimer(deltaTime);
     BorderLimitCheck();
+    // A ORDEM DAS TRES CORES E A ORDEM DE PRIORIDADE INVERSA: cada uma
+    // sobrescreve a anterior, entao a ultima a rodar e a que o jogador ve.
+    //
+    //   corrente   dura mais e e a menos urgente - informa um estorvo
+    //   overload   o gatilho mudo, que dura pouco
+    //   imunidade  decide se da para atravessar um tiro, e ganha de todas
+    //
+    // Uma corrente pode valer ao mesmo tempo que as outras duas, e nesses
+    // instantes ela cede a cor - o aluno sente a lentidao no manche, e nao
+    // precisa da cor para saber dela.
+    UpdateCorrente(deltaTime);
     UpdateOverload(deltaTime);
     UpdateImunidade(deltaTime);
 
@@ -140,17 +151,22 @@ void Player::MoveInput(const Uint8 *keyState) {
     // As setas sao do jogador 1, o W A S D e do jogador 2; ver Painel.h.
     const Painel::Jogador kQuem = MeuPainel();
 
+    // A VELOCIDADE E LIDA COM O FATOR, e playerSpeed fica intacto. Ver
+    // mCorrenteTimer em Player.h: guardar a velocidade antiga para devolver
+    // depois seria um estado a mais para errar.
+    const float velocidade = VelocidadeDeAndar();
+
     // ------ verificação de movimento CIMA/BAIXO ------
     if(Painel::Apertado(keyState, kQuem, Painel::Direcao::Cima))
-        newYSpeed -= playerSpeed;
+        newYSpeed -= velocidade;
     else if(Painel::Apertado(keyState, kQuem, Painel::Direcao::Baixo))
-        newYSpeed += playerSpeed;
+        newYSpeed += velocidade;
 
     // ------ verificação de movimento ESQUERDA/DIREITA ------
     if(Painel::Apertado(keyState, kQuem, Painel::Direcao::Esquerda))
-        newXSpeed -= playerSpeed;
+        newXSpeed -= velocidade;
     else if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Direita))
-        newXSpeed += playerSpeed;
+        newXSpeed += velocidade;
 
     //vendo se está movendo ou não para mudar a variável mMoving (pra mudar a animação de acordo)
     if(newXSpeed == 0 && newYSpeed == 0) mMoving = false;
@@ -283,6 +299,50 @@ void Player::Proteger(const float segundos) {
     // Usar o maior tambem impede que um presente curto ENCURTE uma protecao
     // mais longa que ja estivesse valendo.
     if (segundos > mImunidadeTimer) mImunidadeTimer = segundos;
+}
+
+void Player::Acorrentar(const float segundos, const float fatorDeVelocidade) {
+
+    // O MAIOR DOS DOIS, como em Proteger: renova, nao acumula, e uma corrente
+    // curta nao encurta uma longa que ja estava valendo.
+    if (segundos > mCorrenteTimer) {
+        mCorrenteTimer = segundos;
+
+        // O FATOR ACOMPANHA O TIMER VENCEDOR. Se o que vale e o da corrente
+        // nova, o quanto ela pesa tambem e dela - guardar o fator antigo faria
+        // uma corrente leve e longa anular uma pesada e curta pela metade.
+        mFatorDaCorrente = fatorDeVelocidade;
+    }
+}
+
+void Player::UpdateCorrente(const float deltaTime) {
+
+    if (mCorrenteTimer <= 0.0f) return;
+
+    mCorrenteTimer -= deltaTime;
+
+    auto dc = GetComponent<DrawAnimatedComponent>();
+    if (!dc) return;
+
+    if (mCorrenteTimer <= 0.0f) {
+        mCorrenteTimer = 0.0f;
+        mFatorDaCorrente = 1.0f;
+        mPulsoDaCorrente = 0.0f;
+        dc->SetColor(255, 255, 255);
+        return;
+    }
+
+    // ESCURECE EM VEZ DE PISCAR, e e de proposito que seja a unica das tres
+    // cores que nao pulsa forte: as outras duas avisam de coisas que acabam em
+    // tres segundos e exigem reacao; esta informa um PESO, e peso se le como
+    // peso quando a figura fica mais apagada, nao mais agitada.
+    //
+    // O ferro tambem nao e cinza puro: um tom levemente azulado separa a
+    // corrente de um simples escurecimento de animacao.
+    mPulsoDaCorrente += 3.0f * deltaTime;
+
+    const auto base = static_cast<Uint8>(120.0f + (Math::Sin(mPulsoDaCorrente) + 1.0f) * 17.5f);
+    dc->SetColor(base, base, static_cast<Uint8>(base + 35));
 }
 
 void Player::UpdateImunidade(const float deltaTime) {

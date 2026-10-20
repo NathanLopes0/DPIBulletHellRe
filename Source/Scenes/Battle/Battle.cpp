@@ -670,7 +670,17 @@ void Battle::CheckCollisions() {
                     jogador->SetIsInvincible(true);
                     jogador->OnCollision(bossProj.get());
                     bossProj->OnCollision(jogador);
-                    GradeDown();
+
+                    // NEM TODO ACERTO E A MESMA COISA. As correntes do Vitor
+                    // quase nao cobram nota e em troca prendem o aluno - e e a
+                    // TROCA que faz o jogador ler "fiquei preso" em vez de
+                    // "tomei dano". Os outros projeteis deixam estes campos no
+                    // padrao e caem no mesmo GradeDown() de sempre.
+                    if (bossProj->Acorrenta()) {
+                        jogador->Acorrentar(bossProj->SegundosDeCorrente(),
+                                            bossProj->FatorDaCorrente());
+                    }
+                    GradeDown(bossProj->MultiplicadorDaPerda());
                 }
             }
         }
@@ -805,7 +815,7 @@ void Battle::GradeUp(const float amount) {
     // Nota nao: a nota de agora e quantas vezes a DUPLA foi atingida.
     mGrade = Nota::Somar(mGrade, amount, mAcertosSofridos);
 }
-void Battle::GradeDown() {
+void Battle::GradeDown(const float multiplicadorDaPerda) {
 
     // A contagem mora AQUI, no instante do acerto, e nao num balanco no fim da
     // batalha: assim o proximo ganho ja ve o teto novo. Entre esta linha e a
@@ -823,7 +833,11 @@ void Battle::GradeDown() {
     // brutos contra os 6,0 do solo. O motivo esta no cabecalho da funcao, e sai
     // da medicao: o total ja era favoravel a dupla, mas a barra caia quase no
     // dobro da frequencia - e e a frequencia que o jogador sente.
-    mGrade = Nota::Subtrair(mGrade, PerdaPorJogador(GRADE_CHANGE_DOWN));
+    // O MULTIPLICADOR NAO MEXE NA CONTAGEM, so na nota - e por isso ele entra
+    // aqui embaixo e nao nos dois ++ acima. Uma corrente E um acerto sofrido:
+    // ela conta para o direito a nota cheia e para a fase limpa, porque o
+    // jogador de fato foi acertado. O que ela nao faz e custar os 6 pontos.
+    mGrade = Nota::Subtrair(mGrade, PerdaPorJogador(GRADE_CHANGE_DOWN) * multiplicadorDaPerda);
 }
 
 float Battle::PerdaPorJogador(const float bruto) const {
