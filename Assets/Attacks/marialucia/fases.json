@@ -53,10 +53,33 @@
   // cima. A primeira versao usava Varredura aqui e a fase ficou morna: com a
   // chefe atravessando a tela devagar, dava para passar andando pouco.
   //
-  // O LEQUE E LARGO (55 graus) E A FILA E CURTA. E o oposto da fase 1 do Vitor,
-  // que usa a mesma estrategia: la o leque e zero e a fila e longa, e o que se
-  // ve sao colunas paralelas; aqui o leque e aberto e o que se ve e um pedido
-  // se ESPALHANDO. A mesma peca diz duas coisas diferentes conforme o angulo.
+  // ATENCAO: "projeteis" E "angulo" AQUI SAO O ESCOPO DE PARTIDA, E NAO O
+  // TAMANHO DA RAJADA. Cada rajada sai maior que a anterior ate a entrega, e aí
+  // o ciclo recomeca deste tamanho. Medido, com a instrumentacao ligada:
+  //
+  //     6 projeteis em 45 graus
+  //     8  em  55
+  //     10 em  65
+  //     12 em  75
+  //     6  em  45   <- a versao saiu, o escopo recomeca
+  //
+  // Quatro voltas completas cabem nos dezessete segundos, que e o que faz o
+  // jogador ler como CICLO em vez de como aleatorio.
+  //
+  // Quem faz isso e MariaLucia::CustomizeAttackParams, e e a unica coisa desta
+  // chefe que nao cabe em dados: "quanto maior que a rajada anterior" depende
+  // da anterior, e este arquivo nao tem memoria. A conta mora em
+  // Source/Attacks/EscopoQueCresce.h, que e pura e tem teste.
+  //
+  // O LEQUE CRESCE JUNTO COM A CONTAGEM, e isso nao e enfeite: com o leque
+  // parado, dobrar os projeteis so os aproxima ate a rajada virar uma BARRA
+  // SOLIDA - foi o que aconteceu com as tarefas do Vitor a 0,05s de intervalo.
+  // Crescendo os dois, o que cresce e a AREA ocupada, que e a leitura certa de
+  // escopo crescendo: nao e mais denso no mesmo lugar, e mais lugar ocupado.
+  //
+  // E o oposto da fase 1 do Vitor, que usa a mesma estrategia: la o leque e
+  // zero e a fila e longa, e o que se ve sao colunas paralelas; aqui o leque e
+  // aberto e o que se ve e um pedido se ESPALHANDO.
   //
   // SEM NENHUM MOTION nos projeteis (regras "escopo"): esta fase nao e sobre a
   // trajetoria de um requisito, e sobre quantos chegam. Qualquer curva aqui
@@ -71,7 +94,7 @@
     "movimento": { "tipo": "Mergulho", "a": 150, "b": 220 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Requisito",
-        "projeteis": 8, "velocidade": 270, "angulo": 55, "intervalo": 0.07,
+        "projeteis": 6, "velocidade": 270, "angulo": 45, "intervalo": 0.07,
         "cooldown": 1.0,
         "regras": "escopo" }
     ]

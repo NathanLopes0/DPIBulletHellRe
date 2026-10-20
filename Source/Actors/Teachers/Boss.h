@@ -140,6 +140,30 @@ public:
 
 
 protected:
+    /**
+     * @brief Gancho para o que depende do DISPARO ANTERIOR - o unico pedaco do
+     * balanceamento que nao cabe em fases.json, porque um arquivo nao tem
+     * memoria. Dai vem a fresta giratoria do Vitor e o escopo que cresce da
+     * Maria Lucia.
+     *
+     * ARMADILHA, e ela custou uma medicao: O 'params' QUE CHEGA AQUI E SEMPRE O
+     * MESMO OBJETO. Ele e construido UMA vez, na montagem da fase, com os
+     * valores de fases.json, e Boss::ExecuteAttack entrega esse mesmo objeto em
+     * todo disparo. Entao:
+     *
+     *   params.centralAngle = x;    OK  - escreve o valor inteiro
+     *   params.numProjectiles += 2; NAO - soma sobre o disparo anterior, e nao
+     *                                     sobre o que o arquivo pediu
+     *
+     * Quem precisa crescer a partir do arquivo tem de GUARDAR o valor de
+     * partida no primeiro disparo e escrever o total depois. Ver
+     * MariaLucia::mProjeteisDePartida. Com a versao relativa, a fase 1 dela
+     * terminava com 54 projeteis num leque de 285 graus em vez de voltar a 6.
+     *
+     * E so o NOME DA FASE chega aqui, e nao qual dos ataques dela esta
+     * disparando. Numa fase com dois ataques, o que for escrito vale para os
+     * dois - foi por isso que o escopo da Maria Lucia so cresce na fase 1.
+     */
     virtual void CustomizeAttackParams(AttackParams& params, const std::string& stateName);
 
     /**
