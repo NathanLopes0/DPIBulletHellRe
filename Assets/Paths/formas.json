@@ -141,5 +141,70 @@
   // entrou em loop) depende de o jogador VER a bala girar.
   "LacoApertado": {
     "gerador": { "tipo": "Loop", "a": 70, "b": 500, "n": 12 }
+  },
+
+  // ==========================================================================
+  // MARIA LUCIA - INF 221 (Engenharia de Software)
+  // ==========================================================================
+
+  // ----- Fase 2: as setas de um diagrama -----
+  // UMA FAMILIA ESCRITA A MAO ("caminhos"): o projetil numero i recebe o
+  // caminho numero i. Esta e a PRIMEIRA USUARIA da familia por caminhos, que
+  // existia no leitor, era testada e nao era usada por chefe nenhum - o
+  // comentario em PathShapes.cpp prometia a pilha do Vladimir, que no fim saiu
+  // por SlowDown e nao por caminho.
+  //
+  // O QUE FAZ ISTO PARECER UM DIAGRAMA E O ANGULO RETO. Toda outra forma do
+  // jogo e curva (arco, laco, zigue) ou reta pura; estas andam, VIRAM 90 graus,
+  // andam de novo. E o roteamento ortogonal que todo editor de UML faz, e o
+  // olho reconhece de longe mesmo sem saber o nome disso.
+  //
+  // Como os pontos sao offsets em espaco de caminho (+X = a direcao de voo,
+  // +Y = a perpendicular a direita), a mesma lista serve em qualquer angulo que
+  // a rajada sorteie: o diagrama nasce alinhado com o tiro.
+  //
+  // A PERNA FINAL E LONGA (820) de proposito. Quando o caminho acaba, o
+  // projetil segue reto na ultima direcao para sempre, entao a perna so precisa
+  // ser grande o bastante para a saida acontecer DEPOIS da virada - se ela
+  // fosse curta, a virada e a saida se confundiriam e o angulo reto, que e a
+  // coisa toda, nao seria visto.
+  //
+  // OS LADOS ALTERNAM e as PROFUNDIDADES SOBEM: o caminho 0 vira cedo para a
+  // esquerda, o 1 vira um pouco depois para a direita, e assim por diante. E
+  // isso que abre um leque de corredores em vez de oito setas empilhadas.
+  "RotasDeDiagrama": {
+    "caminhos": [
+      [[ 40, 0], [ 40, -110], [820, -110]],
+      [[ 65, 0], [ 65,  110], [820,  110]],
+      [[ 95, 0], [ 95, -210], [820, -210]],
+      [[125, 0], [125,  210], [820,  210]],
+      [[155, 0], [155, -310], [820, -310]],
+      [[185, 0], [185,  310], [820,  310]],
+      [[210, 0], [210, -420], [820, -420]],
+      [[230, 0], [230,  420], [820,  420]]
+    ]
+  },
+
+  // ----- Fase 3 e final: onde a divida PARA -----
+  // Uma reta curta e uma reta longa, e a regra manda parar no primeiro ponto
+  // ("pararNoPonto": 0). O projetil voa 460px, CONGELA - visivel e com colisor
+  // ligado - e so depois segue para fora.
+  //
+  // NAO E UM SlowDown, e a diferenca e o chefe inteiro. Freado, o debito
+  // continuaria escorregando e sairia da tela sozinho: a divida se pagaria com
+  // o tempo, que e exatamente o que divida nao faz. Parado, ele fica onde
+  // nasceu ate alguem (o relogio) resolver.
+  //
+  // 460 PX E A DISTANCIA MEDIDA entre a faixa em que a chefe varre (y 144) e a
+  // faixa em que o jogador vive (y 680). A divida tem de aterrissar ONDE SE
+  // ANDA: com 350px ela parava 250px acima do jogador, e a fase ficava mais
+  // FACIL quanto mais tempo a divida ficava em tela - porque parada longe ela
+  // nao atrapalhava, e voando ao menos cruzava a faixa dele uma vez.
+  //
+  // Quem usa esta forma precisa de um leque ESTREITO. Num leque largo so o
+  // tiro vertical percorre os 460px para baixo; um de 45 graus desce 325 e
+  // para bem mais alto. Ver a nota da fase 3 em marialucia/fases.json.
+  "ParaEFica": {
+    "pontos": [[460, 0], [1200, 0]]
   }
 }

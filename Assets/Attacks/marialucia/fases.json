@@ -1,0 +1,220 @@
+{
+  // ==========================================================================
+  // AS FASES DA MARIA LUCIA (INF 221 - Engenharia de Software)
+  //
+  // AS QUATRO FASES SAO O CICLO DE VIDA DE UM SISTEMA, um momento por fase:
+  //
+  //   StateOne    REQUISITOS   o escopo chegando, e chegando por cima
+  //   StateTwo    PROJETO      o diagrama, e o angulo reto que o desenha
+  //   StateThree  DIVIDA       o campo vai ficando menor enquanto a fase corre
+  //   StateFinal  MANUTENCAO   tudo junto, porque manter e lidar com tudo junto
+  //
+  // O QUE DISTINGUE ESTA CHEFE DAS OUTRAS.
+  //
+  // Nos outros chefes, cada fase e uma folha em branco: o Vladimir troca de
+  // nivel da hierarquia e a tela se limpa, o Vitor troca de primitiva e a tela
+  // se limpa. Aqui NAO. Na fase 3 o que cai FICA, e o campo em que se joga vai
+  // encolhendo enquanto a fase corre.
+  //
+  // MEDIDO, contando os pixels da cor do debito em tela:
+  //
+  //     quadro 2150   2,7 blocos parados
+  //     quadro 2350   4,1
+  //     quadro 2550   6,5
+  //     quadro 2750   8,2
+  //
+  // Tres vezes mais terreno ocupado no fim do que no comeco, sem o jogador ter
+  // feito nada de errado. Nenhuma outra fase do jogo faz isso.
+  //
+  // Isso nao e um truque de dificuldade, e a materia. Estruturas de Dados e um
+  // objeto, Linguagens Formais e um objeto, Concorrencia e um objeto;
+  // Engenharia de Software e um PROCESSO - e a unica das quatro em que o tempo
+  // e parte do problema. Uma batalha em que toda fase comeca limpa nao tem como
+  // dizer isso.
+  //
+  // O MOVIMENTO E O ATAQUE, como nos outros dois - ver MovementStrategies.h.
+  // Aqui, em duas das quatro fases, ele e a propria mecanica: e o mergulho que
+  // faz o escopo chegar de cima, e e a varredura que espalha a divida pela
+  // largura inteira.
+  //
+  // A BATALHA DELA E DETERMINISTICA: nenhuma regra usa "chance" e nenhum angulo
+  // e sorteado. Medido - quatro sementes diferentes deram resultado IDENTICO
+  // ate o centesimo. E bom para o TCC, porque toda medicao e reproduzivel, e e
+  // um risco de projeto que fica registrado aqui: padrao fixo e padrao
+  // decoravel. E por isso que os cooldowns da fase final sao quase primos
+  // entre si.
+  // ==========================================================================
+
+  // FASE 1 - REQUISITOS   |   gesto: O MERGULHO
+  //
+  // O ESCOPO NAO CHEGA DE LADO, CHEGA POR CIMA. Ela desce com cada leva de
+  // pedidos e sobe para buscar a proxima, entao o leque larga de perto e o
+  // jogador nao tem os dois segundos de viagem que teria com a chefe la em
+  // cima. A primeira versao usava Varredura aqui e a fase ficou morna: com a
+  // chefe atravessando a tela devagar, dava para passar andando pouco.
+  //
+  // O LEQUE E LARGO (55 graus) E A FILA E CURTA. E o oposto da fase 1 do Vitor,
+  // que usa a mesma estrategia: la o leque e zero e a fila e longa, e o que se
+  // ve sao colunas paralelas; aqui o leque e aberto e o que se ve e um pedido
+  // se ESPALHANDO. A mesma peca diz duas coisas diferentes conforme o angulo.
+  //
+  // SEM NENHUM MOTION nos projeteis (regras "escopo"): esta fase nao e sobre a
+  // trajetoria de um requisito, e sobre quantos chegam. Qualquer curva aqui
+  // roubaria atencao do unico numero que importa.
+  //
+  // COOLDOWN 1,0 E NAO 1,4. Com 1,4 esta fase custava UM acerto em dezessete
+  // segundos ao piloto que persegue. Uma fase que nao cobra nada nao ensina
+  // nada: o jogador sai dela sem ter descoberto o que ela queria dizer.
+  "StateOne": {
+    "duracao": 17,
+    "proximo": "StateTwo",
+    "movimento": { "tipo": "Mergulho", "a": 150, "b": 220 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Requisito",
+        "projeteis": 8, "velocidade": 270, "angulo": 55, "intervalo": 0.07,
+        "cooldown": 1.0,
+        "regras": "escopo" }
+    ]
+  },
+
+  // FASE 2 - PROJETO   |   gesto: A ORBITA PEQUENA
+  //
+  // Ela esta no quadro. A orbita e pequena e lenta (raio 140, 0,10 volta/s)
+  // porque projetar e o momento parado do ciclo - mas parado de verdade nao
+  // serve, e a licao da primeira versao do Vladimir: com a chefe imovel, toda
+  // rajada cai na mesma coluna e a tela morre dos lados.
+  //
+  // O LEQUE E ZERO, E ISSO E O QUE FAZ O DIAGRAMA EXISTIR.
+  //
+  // Eu tinha escrito 70 graus, "para o desenho se espalhar". A foto do quadro
+  // 1500 mostrou um borrao em arco e nenhum angulo reto. O motivo esta em
+  // Behaviors.h: os pontos de um caminho sao offsets em ESPACO DE CAMINHO, em
+  // que +X e a direcao de voo DAQUELE projetil. Com um leque de 70 graus os
+  // oito viram 90 graus cada um em relacao a uma direcao diferente - e oito
+  // angulos retos em oito direcoes somam uma curva.
+  //
+  // Com o leque em zero os oito descem na mesma direcao, e aí as viradas sao
+  // todas horizontais: o que se ve e um tronco descendo e setas saindo dele em
+  // alturas diferentes, para os dois lados. Isso e roteamento ortogonal, o
+  // desenho que todo editor de UML faz, e o olho reconhece sem saber o nome.
+  //
+  // OITO PROJETEIS PARA OITO CAMINHOS, e os dois numeros tem de bater: a
+  // familia "RotasDeDiagrama" tem oito rotas, e um nono projetil receberia a
+  // rota 0 de novo. O teste "um ataque que usa familia dispara exatamente o
+  // tamanho dela" confere o par.
+  //
+  // E A FASE QUE DA FOLEGO, de proposito. Um bom projeto torna o comportamento
+  // de um sistema previsivel, e uma seta ortogonal e exatamente isso: assusta
+  // no primeiro segundo e nao assusta mais no terceiro. O custo dessa fase ser
+  // generosa e pago com juros na seguinte.
+  "StateTwo": {
+    "duracao": 17,
+    "proximo": "StateThree",
+    "movimento": { "tipo": "Orbitar", "a": 140, "b": 0.10 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Requisito",
+        "projeteis": 8, "velocidade": 250, "angulo": 0, "intervalo": 0.05,
+        "cooldown": 1.2,
+        "regras": "diagrama" }
+    ]
+  },
+
+  // FASE 3 - DIVIDA TECNICA   |   gesto: A VARREDURA
+  //
+  // A VARREDURA AQUI NAO E ENFEITE, E O MECANISMO. A chefe atravessa a largura
+  // inteira deixando debito por onde passa, e como o debito PARA onde cai
+  // (regras.json), em meia fase existe uma FAIXA de blocos cruzando a tela na
+  // altura em que o jogador vive. Ele deixa de desviar de bala e passa a
+  // contornar terreno.
+  //
+  // A PRIMEIRA VERSAO USAVA MERGULHO E NAO FUNCIONOU, e o motivo vale guardar.
+  // Mergulhando, a chefe fica numa faixa estreita de x, entao a divida se
+  // empilhava sempre na mesma coluna; e com o leque aberto em 90 graus so o
+  // tiro vertical descia fundo - os de 45 graus paravam 250px mais alto, acima
+  // de onde se joga, e viravam CENARIO.
+  //
+  // O ERRO APARECEU NUM NUMERO QUE NAO FAZIA SENTIDO: alongar a parada da
+  // divida de 6,5s para 8,5s fez o piloto que persegue tomar MENOS acertos (14
+  // para 9). Mais divida em tela e menos dano so pode querer dizer uma coisa -
+  // a divida estava parando onde ninguem passa, e enquanto ela voava ao menos
+  // cruzava a faixa do jogador uma vez.
+  //
+  // Por isso o leque do debito e ESTREITO (36 graus): os quatro descem quase
+  // igual e param todos na mesma faixa, e quem espalha pela largura e a
+  // varredura, nao o angulo.
+  //
+  // DUAS CAMADAS, E ELAS NAO SAO DO MESMO TIPO:
+  //
+  //   o DEBITO para e fica (8,5s congelado, ver regras.json). E o terreno.
+  //   o REQUISITO continua chegando, reto e rapido. E o relogio.
+  //
+  // Nenhuma das duas sozinha e dificil. O que faz a fase e a soma: desviar de
+  // coisa que se mexe num campo que vai ficando menor. E a diferenca entre "tem
+  // bala demais" e "nao tem mais para onde ir", que e a sensacao que esta chefe
+  // inteira existe para produzir.
+  //
+  // 4 BLOCOS A CADA 2,5s CONTRA UMA PARADA DE 8,5s E A CONTA DA FASE. Com 5 a
+  // cada 2,0s o piloto que persegue tomava 27 acertos e reprovava com zero,
+  // contra 12 do Vladimir e 12 do Vitor no mesmo arnes. Nao era dificuldade,
+  // era uma parede: a faixa fechava e nao havia por onde passar.
+  //
+  // ESTA E A FASE QUE DECIDE A BATALHA. StateThree tem "proximo" vazio: quem
+  // chega ao fim dela aprovado termina aprovado e nunca ve a manutencao.
+  "StateThree": {
+    "duracao": 17,
+    "proximo": "",
+    "movimento": { "tipo": "Varredura", "a": 200, "b": 150 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Debito",
+        "projeteis": 4, "velocidade": 320, "angulo": 36, "intervalo": 0,
+        "cooldown": 2.5,
+        "regras": "divida" },
+      { "estrategia": "WaveAttack", "projetil": "Requisito",
+        "projeteis": 5, "velocidade": 300, "angulo": 40, "intervalo": 0.06,
+        "cooldown": 1.3,
+        "regras": "entregas" }
+    ]
+  },
+
+  // FASE FINAL - MANUTENCAO   |   gesto: A VARREDURA RAPIDA
+  //
+  // A mesma varredura da fase 3 a uma vez e meia a velocidade, e a repeticao e
+  // o recado: o ciclo nao acabou, recomecou com o sistema ja velho.
+  //
+  // TRES CAMADAS, uma de cada fase anterior - e e por isso que esta fase existe
+  // assim e nao com um ataque novo. Manter um sistema nao e enfrentar um
+  // problema inedito, e enfrentar os tres que voce ja conhecia ao mesmo tempo.
+  //
+  //   requisitos que PERSEGUEM   (regras "manutencao")   - o pedido te acha
+  //   as setas do diagrama       (regras "diagrama")     - o desenho ainda vale
+  //   o debito                   (regras "divida")       - o que ficou, ficou
+  //
+  // OS COOLDOWNS SAO QUASE PRIMOS ENTRE SI (1,1 / 2,3 / 3,1): as tres camadas
+  // nunca repetem a mesma sobreposicao, e a fase nao cai num compasso que da
+  // para decorar. Isso importa mais nesta chefe do que nas outras, porque a
+  // batalha dela nao tem sorteio nenhum - ver a nota do topo.
+  //
+  // O debito vem em leva de TRES, e nao de quatro: ele ja chega num campo
+  // ocupado, e nao precisa de volume para pesar.
+  //
+  // SO E VISTA POR QUEM ESTA ENTRE 40 E 59 no fim da terceira.
+  "StateFinal": {
+    "duracao": 17,
+    "proximo": "StateOne",
+    "movimento": { "tipo": "Varredura", "a": 300, "b": 120 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Requisito",
+        "projeteis": 5, "velocidade": 300, "angulo": 30, "intervalo": 0.05,
+        "cooldown": 1.1,
+        "regras": "manutencao" },
+      { "estrategia": "WaveAttack", "projetil": "Requisito",
+        "projeteis": 8, "velocidade": 250, "angulo": 0, "intervalo": 0.05,
+        "cooldown": 2.3,
+        "regras": "diagrama" },
+      { "estrategia": "WaveAttack", "projetil": "Debito",
+        "projeteis": 3, "velocidade": 320, "angulo": 40, "intervalo": 0,
+        "cooldown": 3.1,
+        "regras": "divida" }
+    ]
+  }
+}

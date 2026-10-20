@@ -111,7 +111,7 @@
     {
       "codigo": "INF221", "nome": "INF 221",
       "nomeCompleto": "Engenharia de Software", "professor": "Maria Lúcia",
-      "coluna": 3,
+      "coluna": 3, "chefe": "marialucia",
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
     {

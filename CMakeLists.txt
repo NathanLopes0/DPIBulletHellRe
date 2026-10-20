@@ -183,6 +183,10 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teachers/Bosses/Vitor.h
         Source/Actors/Teachers/BossFactory/VitorFactory.cpp
         Source/Actors/Teachers/BossFactory/VitorFactory.h
+        Source/Actors/Teachers/Bosses/MariaLucia.cpp
+        Source/Actors/Teachers/Bosses/MariaLucia.h
+        Source/Actors/Teachers/BossFactory/MariaLuciaFactory.cpp
+        Source/Actors/Teachers/BossFactory/MariaLuciaFactory.h
         Source/Actors/Teachers/BossFactory/JulioFactory.h
         Source/Actors/Teachers/BossFactory/AndreFactory.h
         Source/Attacks/BaseStrategies/BaloonAttack.cpp

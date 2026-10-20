@@ -336,9 +336,15 @@ FormasLidas LerFormas(const std::string& textoJson) {
             // regras por indice, que e exatamente o par de listas que tem de
             // bater e que a familia foi inventada para evitar.
             //
-            // O primeiro uso e a pilha do Vladimir, em que o caminho numero i
-            // precisa ir a uma profundidade diferente para a rajada desempilhar
-            // na ordem inversa - geometria pura, sem C++ nenhum.
+            // O PRIMEIRO USO E A FASE 2 DA MARIA LUCIA: oito setas que andam,
+            // viram 90 graus e andam de novo, cada uma virando numa altura e
+            // para um lado. Nenhum gerador desenha um angulo reto, e as oito so
+            // fazem sentido juntas - que e exatamente o caso que a familia por
+            // caminhos existe para cobrir. Geometria pura, sem C++ nenhum.
+            //
+            // (Este comentario prometia a pilha do Vladimir, que no fim saiu por
+            // SlowDown e nao por caminho. A familia ficou escrita e testada sem
+            // usuario nenhum por dois commits.)
             const auto& lista = corpo["caminhos"];
             if (!lista.is_array() || lista.empty()) {
                 saida.problemas.emplace_back("forma \"" + nome + "\": \"caminhos\" deveria ser"

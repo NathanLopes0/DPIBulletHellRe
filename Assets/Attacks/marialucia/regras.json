@@ -1,0 +1,113 @@
+{
+  // ==========================================================================
+  // AS REGRAS DE PROJETIL DA MARIA LUCIA
+  //
+  // Cada conjunto veste um momento do projeto. Os dois tipos de projetil
+  // (Requisito e Debito) existem para as regras terem o que diferenciar - ver
+  // a nota em projeteis.json.
+  //
+  // UM SO MOTION POR PROJETIL, e Path, Tracking e Wobble brigam entre si
+  // (Behaviors.h avisa: cada um escreve a velocidade todo quadro e desfaz o que
+  // o outro fez). Por isso nenhuma regra daqui poe dois.
+  //
+  // Os campos estao documentados em Documentacao/arquivos-de-dados.md.
+  // ==========================================================================
+
+  // FASE 1 - O ESCOPO.
+  //
+  // Sem motion nenhum: requisito e pedido que chega, e pedido que chega vem
+  // reto. A fase nao e sobre a trajetoria de um requisito, e sobre QUANTOS
+  // chegam - e quem conta isso e o leque, nao o projetil.
+  "escopo": [
+    { "animacao": "Novo" }
+  ],
+
+  // FASE 2 - O DIAGRAMA.
+  //
+  // Cada projetil pega uma seta da familia "RotasDeDiagrama" (Assets/Paths/
+  // formas.json): anda, vira 90 graus, anda. O angulo reto e a coisa toda -
+  // e o que faz a tela parecer um diagrama e nao um tiroteio.
+  //
+  // E A FASE QUE SE APRENDE, e nao a que se sofre. Uma seta ortogonal e dificil
+  // de ler no primeiro segundo e FACIL no terceiro, porque depois da virada ela
+  // nao surpreende mais - que e precisamente o que um bom projeto faz com o
+  // comportamento de um sistema. A dificuldade dela e curta de proposito.
+  //
+  // O "atraso" DE 0,50 NAO E ESTETICA, E O MINIMO QUE O CAMINHO ACEITA.
+  //
+  // Eu tinha escrito 0,25, com a justificativa de "deixar o leque abrir antes
+  // de as setas virarem". O teste "num WaveAttack, o atraso do caminho supera
+  // o despertar do ultimo no" derrubou na hora: com oito projeteis a 0,05s de
+  // intervalo, o ULTIMO so acorda aos 0,35s, e um Path que ativa antes disso
+  // captura a direcao de um projetil PARADO - ou seja, direcao zero, e a
+  // rotacao do caminho inteiro sai de uma divisao por nada.
+  //
+  // Nao da para ver isso jogando: a seta simplesmente vai para o lugar errado
+  // e parece uma forma mal desenhada. E a mesma familia de armadilha do
+  // Wobble, que em vez de errar a direcao se declara terminado e some.
+  //
+  // Com 0,50 o efeito que eu queria acontece de graca, e ate melhor: cada no
+  // ja andou uma distancia DIFERENTE quando o caminho pega (o primeiro 125px,
+  // o ultimo 37px), entao as oito viradas se escalonam em vez de acontecerem
+  // no mesmo quadro.
+  "diagrama": [
+    { "animacao": "Novo",
+      "motion": { "tipo": "Path", "formaPorIndice": "RotasDeDiagrama",
+                  "atraso": 0.50, "velocidade": 250 } }
+  ],
+
+  // FASE 3 - A DIVIDA QUE FICA.
+  //
+  // O debito voa 460px, CONGELA por 8,5s - visivel e com colisor ligado - e so
+  // entao segue para fora. Com a leva saindo a cada 2,5s, tres ou quatro levas
+  // ficam paradas ao mesmo tempo, e o campo vai ficando menor enquanto a fase
+  // corre. Medido: 2,7 blocos em tela no quadro 2150 e 8,2 no 2750.
+  //
+  // ESSE E O CHEFE INTEIRO, numa linha: o segundo quinze desta fase e a
+  // consequencia do segundo dois. Nenhuma outra fase do jogo faz isso - em
+  // todas as outras, o campo no fim esta como estava no comeco.
+  //
+  // O "atraso" DE 0,08 E A MESMA ARMADILHA DA FASE 2, e por isso a leva nasce
+  // inteira ("intervalo": 0 em fases.json): um Path que ativa num projetil
+  // ainda dormindo captura direcao zero. Com a leva inteira acordada no
+  // primeiro quadro, basta um atraso simbolico para o caminho pegar num
+  // projetil que ja tem direcao.
+  //
+  // E NASCER INTEIRA TAMBEM E O DESENHO CERTO: divida nao chega pingando,
+  // chega em LEVA - quatro blocos aterrissam juntos, como uma entrega que
+  // fechou com pressa.
+  //
+  // 8,5s E NAO "PARA SEMPRE". Um debito eterno encheria a tela ate nao haver
+  // jogada possivel, e aí a fase deixaria de ser dificil e viraria injusta;
+  // alem disso um projetil que nunca sai nunca volta para o pool. A divida
+  // sai de cena, mas sai TARDE - tarde o bastante para ter atrapalhado.
+  "divida": [
+    { "animacao": "Acumulado",
+      "motion": { "tipo": "Path", "forma": "ParaEFica", "atraso": 0.08,
+                  "velocidade": 320, "pararNoPonto": 0, "pararPor": 8.5 } }
+  ],
+
+  // FASE 3 - O TRABALHO QUE NAO PARA.
+  //
+  // Os requisitos continuam chegando enquanto a divida se acumula, porque e
+  // assim que e: ninguem para de pedir coisa nova porque o codigo esta ruim.
+  // Retos e rapidos - o perigo da fase e o terreno, nao estes.
+  "entregas": [
+    { "animacao": "Novo" }
+  ],
+
+  // FASE FINAL - O LEGADO.
+  //
+  // Os requisitos da manutencao PERSEGUEM. E a unica regra do chefe com
+  // Tracking, e ela guarda a diferenca entre manter e construir: num sistema
+  // novo o pedido chega e voce decide onde por; num sistema velho o pedido vai
+  // ATRAS de voce, porque so existe um lugar onde ele cabe.
+  //
+  // Forca 1,4 e a mesma da fase que ensina do Vladimir, de proposito: aqui o
+  // perseguidor nao e o desafio, e o tempero. O desafio e ele chegar enquanto
+  // o campo ja esta tomado de divida.
+  "manutencao": [
+    { "animacao": "Novo",
+      "motion": { "tipo": "Tracking", "atraso": 0.35, "forca": 1.4, "duracao": 2.2 } }
+  ]
+}

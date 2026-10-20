@@ -1,0 +1,191 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHMariaLuciaRequisito 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 1.placeholder",
+   "frame": {
+    "x": 32,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 2.placeholder",
+   "frame": {
+    "x": 64,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 3.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 4.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 32,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 5.placeholder",
+   "frame": {
+    "x": 32,
+    "y": 32,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 6.placeholder",
+   "frame": {
+    "x": 64,
+    "y": 32,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 7.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 32,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_maria_lucia.py",
+  "version": "1.0",
+  "image": "DPIBHMariaLuciaRequisito.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 128,
+   "h": 64
+  },
+  "scale": "1"
+ }
+}

@@ -12,4 +12,5 @@
 #include "ThiagoFactory.h"
 #include "VladimirFactory.h"
 #include "VitorFactory.h"
+#include "MariaLuciaFactory.h"
 

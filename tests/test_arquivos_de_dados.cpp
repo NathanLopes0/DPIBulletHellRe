@@ -879,7 +879,8 @@ TEST_CASE("Dados: toda materia com chefe aponta para uma pasta de chefe que exis
         CHECK_FALSE(FasesDoChefe(m.chefe).fases.empty());
         ++comChefe;
     }
-    CHECK(comChefe == 7);   // hoje sao sete das onze (Vladimir na 331, Vitor na 310)
+    CHECK(comChefe == 8);   // hoje sao oito das onze (Vladimir na 331, Vitor na 310,
+                            // Maria Lucia na 221)
 }
 
 TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
@@ -892,7 +893,8 @@ TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
     // A lista espelha Game::InitializeBossFactory, como kFormasEmCodigo espelha
     // FormaPeloNome. Registrar um chefe novo la pede acrescenta-lo aqui.
     const std::set<std::string> kFabricasRegistradas = {"salles", "ricardo", "andre", "julio",
-                                                        "thiago", "vladimir", "vitor"};
+                                                        "thiago", "vladimir", "vitor",
+                                                        "marialucia"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
 
@@ -1249,7 +1251,7 @@ TEST_CASE("Dados: ha materia com professor e sem batalha, e isso e proposital") 
     for (const auto& m : l.materias) {
         if (!m.professor.empty() && m.chefe.empty()) ++comProfessorSemChefe;
     }
-    CHECK(comProfessorSemChefe == 4);   // a INF 331 e a INF 310 ganharam chefe
+    CHECK(comProfessorSemChefe == 3);   // a INF 331, a INF 310 e a INF 221 ganharam chefe
 }
 
 TEST_CASE("Dados: toda coluna do curso depende da anterior, entao a grade pode ser ligada") {

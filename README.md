@@ -71,13 +71,14 @@ foi aprovado:
 | 0 | INF 110 — Programação 1 *(André)* | sempre |
 | 1 | INF 213 — Estruturas de Dados *(Salles)* | INF 110 aprovada |
 | 2 | INF 250 — Organização de Computadores *(Ricardo)*, INF 220 — Banco de Dados *(Thiago)*, INF 330 — Teoria e Modelos de Grafos *(Salles)*, INF 331 — Linguagens Formais e Autômatos *(Vladimir)* | INF 213 aprovada |
-| 3 | INF 420 — Inteligência Artificial *(Júlio)*, INF 221 — Engenharia de Software *(Maria Lúcia)*, INF 321 — Programação Web *(Lucas)*, INF 452 — Redes de Computadores *(Vitor)* | 2 aprovações na coluna 2 |
+| 3 | INF 420 — Inteligência Artificial *(Júlio)*, INF 221 — Engenharia de Software *(Maria Lúcia)*, INF 321 — Programação Web *(Lucas)*, INF 310 — Programação Concorrente e Distribuída *(Vitor)* | 2 aprovações na coluna 2 |
 | 4 | TCC — Trabalho de Conclusão de Curso *(Hugo)* | 2 aprovações na coluna 3 |
 
-Toda matéria tem professor; **cinco têm batalha** (André, Salles, Ricardo,
-Thiago e Júlio) e as outras seis aparecem na grade esperando uma. São coisas
-separadas de propósito: a INF 330 é do Salles, que já é o chefe da INF 213 —
-reaproveitar o chefe faria duas matérias idênticas de jogar.
+Toda matéria tem professor; **oito têm batalha** (André, Salles, Ricardo,
+Thiago, Júlio, Vladimir, Vitor e Maria Lúcia) e as outras três aparecem na
+grade esperando uma. São coisas separadas de propósito: a INF 330 é do
+Salles, que já é o chefe da INF 213 — reaproveitar o chefe faria duas
+matérias idênticas de jogar.
 
 Quem decide tudo isso é `Assets/materias.json` — a ordem, as colunas, as regras
 de desbloqueio, o professor e qual chefe atende cada matéria. Não há lista de

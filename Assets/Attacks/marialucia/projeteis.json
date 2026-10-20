@@ -1,0 +1,54 @@
+{
+  // ==========================================================================
+  // OS PROJETEIS DA MARIA LUCIA (INF 221 - Engenharia de Software)
+  //
+  // DOIS TIPOS, E ELES FAZEM COISAS DIFERENTES - a licao que o Vladimir custou
+  // tres versoes a aprender: dois projeteis que diferem so na cor sao pintura,
+  // e o jogador nao tem por que olhar para a diferenca.
+  //
+  //   Requisito  ATRAVESSA. Pedido chegando: rapido, reto, passa e vai embora.
+  //   Debito     FICA. O que voce nao resolveu: para no meio do campo e
+  //              continua la segundos depois, virando terreno.
+  //
+  // A DIFERENCA PARA A "Trava" DO VITOR, que a primeira vista e o mesmo
+  // projetil, e o motivo de existirem os dois:
+  //
+  //   a Trava e uma parede que se contorna AGORA, e ela reinicia a cada
+  //   rajada - a fase dela e sobre achar a fresta;
+  //
+  //   o Debito nao esta no seu caminho agora, esta no seu caminho DEPOIS, e
+  //   ele NAO reinicia - a fase dele e sobre o campo ir ficando menor.
+  //
+  // Por isso o Debito nao freia (SlowDown), ele PARA num ponto do caminho
+  // ("pararNoPonto" em regras.json): freado ele continuaria escorregando para
+  // fora da tela e a divida se pagaria sozinha, que e justamente o que divida
+  // nao faz.
+  //
+  // OS DOIS DIVIDEM A MESMA FOLHA de sprite, cada um com os quadros dele.
+  // Arte PROVISORIA de Ferramentas/gerar_maria_lucia.py.
+  // ==========================================================================
+  "Requisito": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
+    "animacoes": {
+      "Novo": [0, 1, 2, 3]
+    },
+    "animacaoInicial": "Novo",
+    "ordemDeDesenho": 90
+  },
+
+  "Debito": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
+    "animacoes": {
+      "Acumulado": [4, 5, 6, 7]
+    },
+    "animacaoInicial": "Acumulado",
+    "ordemDeDesenho": 88,
+
+    // MAIOR QUE O REQUISITO, e de proposito: ele passa a vida PARADO, e um
+    // obstaculo parado que o jogador mal enxerga nao e obstaculo, e armadilha.
+    // O colisor acompanha a escala.
+    "escala": 1.2
+  }
+}
