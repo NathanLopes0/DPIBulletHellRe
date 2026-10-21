@@ -1286,3 +1286,45 @@ TEST_CASE("Dados: as quatro fases do Vladimir anunciam alguma coisa no placar") 
         CHECK_FALSE(f.anuncio.empty());
     }
 }
+
+TEST_CASE("Dados: o bloco do meio da rajada do Luizinho para em cima do aluno") {
+
+    // CANARIO, e espelha o C++ de proposito. Na fase 3 a velocidade da rajada
+    // sai de Luizinho::kTempoAteOBlocoMaisLonge (1,4 s): e a que leva o bloco
+    // mais longe a parar EM CIMA do aluno, se o SlowDown dele disparar nesse
+    // mesmo instante - e o SlowDown mora aqui, em regras.json. Mudar um sem o
+    // outro faz o bloco parar antes ou depois, calado.
+    //
+    // E O BLOCO DO MEIO TEM DE SER UM DOS MAIS LONGE: o leque e centrado no
+    // aluno, e e o do meio que vai na direcao dele. Com um numero par de blocos
+    // nao ha bloco no meio; com o meio numa posicao par, ele para no meio do
+    // caminho. Os dois ja aconteceram, e o piloto parado tomou 1 acerto na fase
+    // em vez de 8.
+    constexpr float kTempoAteOBlocoMaisLonge = 1.4f;   // espelho de Luizinho.h
+
+    const auto regras = RegrasDoChefe("luizinho");
+    REQUIRE(regras.conjuntos.count("blocos") == 1);
+    float atrasoDosImpares = -1.0f;
+    for (const auto& r : regras.conjuntos.at("blocos")) {
+        if (r.condicao != Regra::Impares) continue;
+        for (const auto& m : r.modifiers) {
+            if (m.tipo == "SlowDown" && m.fator == 0.0f) atrasoDosImpares = m.atraso;
+        }
+    }
+    CHECK(atrasoDosImpares == doctest::Approx(kTempoAteOBlocoMaisLonge));
+
+    bool achou = false;
+    for (const auto& f : FasesDoChefe("luizinho").fases) {
+        if (f.nome != "StateThree") continue;
+        for (const auto& a : f.ataques) {
+            if (a.regrasNome != "blocos") continue;
+            achou = true;
+            REQUIRE(a.projeteis.has_value());
+            const int n = *a.projeteis;
+            CAPTURE(n);
+            CHECK(n % 2 == 1);              // ha um bloco no meio...
+            CHECK((n / 2) % 2 == 1);        // ...e ele esta numa posicao impar
+        }
+    }
+    CHECK(achou);
+}

@@ -99,13 +99,33 @@
 
   // FASE 3 - GERENCIA DE MEMORIA   |   gesto: O MERGULHO
   //
-  // Alocar e deixar coisa no campo: o chefe desce e sobe, e os blocos ficam em
-  // alturas diferentes, como a memoria que vai enchendo.
+  // Alocar e deixar coisa no campo: o chefe desce e sobe, e os blocos param em
+  // alturas diferentes, como a memoria que vai enchendo. Quem limpa e o
+  // COLETOR (Luizinho.cpp): a cada 4,25 s ele para o mundo, marca o que o
+  // professor nao alcanca pelas referencias desenhadas, e varre.
   //
-  // PROVISORIO: os blocos freiam e se acumulam, mas ainda nao ha coletor.
-  // Comecou com 5 blocos a cada 0,9s, freando para 15%, e o piloto que
-  // persegue passava com 89,3 e 9 acertos, acima da faixa dos outros chefes.
-  // Com 8 a cada 0,5s, freando para 25%, ele passa com 71,2 e 14 acertos.
+  // O anuncio e o latim; o professor o traduz no placar ("lembra-te de que
+  // morreras"), e na varredura diz "requiescant in pace".
+  //
+  // A MEMORIA E ALOCADA EM CIMA DO ALUNO: o leque e centrado nele, e a
+  // velocidade (Luizinho::CustomizeAttackParams) faz o bloco do meio parar
+  // exatamente onde ele estava. Os pares param no meio do caminho.
+  //
+  // TRES COISAS ACERTAM: o bloco chegando, o bloco parado e o LIXO CAINDO na
+  // varredura. Medido na fase sozinha:
+  //   - o parado leva 8 (3 chegando, 2 parados em cima dele, 3 do lixo) e
+  //     termina com zero;
+  //   - o que persegue o professor quase nunca esta onde o bloco para: 3 dos 4
+  //     acertos dele sao do lixo;
+  //   - o que vai e vem leva 5 (2 parados, 2 do lixo, 1 chegando).
+  //
+  // A PRIMEIRA VERSAO DEIXAVA A MEMORIA LA EM CIMA: 6 blocos num leque para
+  // baixo, parando a 190 e 340 px do professor. Na fase o parado levou 1
+  // acerto e o que persegue nenhum, e na batalha inteira este passava com
+  // 88,0. Com o leque mirado no aluno
+  // mas com 6 blocos, nao havia bloco no meio, e o parado levou 1 acerto em
+  // vez de 8 - e por isso que sao 7, com o do meio numa posicao impar (o
+  // canario de tests/test_arquivos_de_dados.cpp segura as duas coisas).
   "StateThree": {
     "duracao": 17,
     "proximo": "",
@@ -113,8 +133,8 @@
     "movimento": { "tipo": "Mergulho", "a": 160, "b": 220 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Bloco",
-        "projeteis": 8, "velocidade": 260, "angulo": 150, "intervalo": 0.05,
-        "cooldown": 0.5,
+        "projeteis": 7, "velocidade": 240, "angulo": 120, "intervalo": 0,
+        "cooldown": 0.9,
         "regras": "blocos" }
     ]
   },

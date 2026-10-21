@@ -83,8 +83,15 @@ void ProjectileManager::ClearBossProjectiles() const {
     // pelo resto da batalha. Kill() delega para MarkDead(), entao limpar a tela
     // agora segue exatamente o mesmo caminho de um projetil que morre saindo da
     // tela ou colidindo.
+    //
+    // O PARADO TAMBEM: e o projetil que o coletor do Luizinho congelou durante
+    // a varredura. Sem ele aqui, um Ponto Extra no meio da pausa deixaria os
+    // blocos parados, e eles voltariam a valer quando a pausa acabasse; no fim
+    // da batalha, ficariam congelados por cima da tela de nota.
     for (auto& proj : mBossProjectiles) {
-        if (proj && proj->GetState() == ActorState::Active) {
+        if (!proj) continue;
+        const auto estado = proj->GetState();
+        if (estado == ActorState::Active || estado == ActorState::Paused) {
             proj->Kill();
         }
     }

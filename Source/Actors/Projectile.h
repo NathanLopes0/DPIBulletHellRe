@@ -73,6 +73,14 @@ public:
     // complementar com o que for específico delas (ex: reiniciar animação).
     virtual void Reset();
 
+    /// @brief Joga fora a Motion e os Modifiers, sem mexer em mais nada.
+    ///
+    /// Para quem muda o destino de um projetil por fora, no meio da vida dele:
+    /// o coletor do Luizinho joga o lixo para fora da tela, e um SlowDown que
+    /// ainda nao tivesse disparado o faria parar no meio da queda. NAO chame
+    /// de dentro de um behavior - o laco dos Modifiers esta rodando.
+    void DescartarComportamentos() { mMotion.reset(); mModifiers.clear(); }
+
     /**
      * @brief Registra a aparencia com que a fabrica construiu este projetil,
      * para que Reset() possa devolve-la.

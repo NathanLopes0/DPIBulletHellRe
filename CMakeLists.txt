@@ -24,6 +24,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Components/DrawComponents/DrawTextComponent.cpp
         Source/Components/DrawComponents/DrawCaixaComponent.cpp
         Source/Components/DrawComponents/DrawCaixaComponent.h
+        Source/Components/DrawComponents/DrawLinhasComponent.cpp
+        Source/Components/DrawComponents/DrawLinhasComponent.h
         Source/Components/DrawComponents/DrawTextComponent.h
         Source/Components/ColliderComponents/CircleColliderComponent.cpp
         Source/Components/ColliderComponents/CircleColliderComponent.h
@@ -144,6 +146,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Amarra.h
         Source/Attacks/Capsula.cpp
         Source/Attacks/Capsula.h
+        Source/Attacks/Coletor.cpp
+        Source/Attacks/Coletor.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
@@ -263,6 +267,7 @@ add_executable(dpi_tests
         tests/test_promessa.cpp
         tests/test_amarra.cpp
         tests/test_capsula.cpp
+        tests/test_coletor.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -334,6 +339,8 @@ add_executable(dpi_tests
         Source/Attacks/Amarra.h
         Source/Attacks/Capsula.cpp
         Source/Attacks/Capsula.h
+        Source/Attacks/Coletor.cpp
+        Source/Attacks/Coletor.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
