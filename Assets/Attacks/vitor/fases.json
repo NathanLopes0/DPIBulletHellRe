@@ -7,7 +7,7 @@
   // SEPARADAS, porque a terceira as poe juntas - em dois corpos:
   //
   //   StateOne    TAREFAS EM PARALELO  faixas descendo de uma vez
-  //   StateTwo    EXCLUSAO MUTUA       um anel com UMA fresta, e a fresta gira
+  //   StateTwo    EXCLUSAO MUTUA       um anel com UMA fresta, que anda embaixo
   //   StateThree  FORK                 o chefe se divide; um corpo faz cada uma
   //   StateFinal  JOIN                 os dois voltam a ser um, fazendo as duas
   //
@@ -59,7 +59,7 @@
   //
   // O QUE EU TENTEI ANTES, e por que nao serviu, para ninguem refazer:
   //
-  //   inclinar a faixa no C++ (como a fresta gira)   nao fecha os bolsos (a
+  //   inclinar a faixa no C++ (como a fresta anda)   nao fecha os bolsos (a
   //       inclinacao desloca a coluna uns 50px e a distancia entre elas e 176),
   //       e ainda ADIANTA a coluna na direcao da varredura, o que massacra quem
   //       persegue: 21 acertos.
@@ -80,47 +80,55 @@
         "cooldown": 0.8,
         "regras": "paralelo" },
 
-      // AS CORRENTES: duas a cada 3,2s, contra seis tarefas a cada 0,8.
+      // AS CORRENTES: duas a cada 4,4s, contra seis tarefas a cada 0,8.
       //
-      // RARAS DE PROPOSITO. Um perseguidor de forca 2,6 que viesse junto com
-      // toda rajada nao seria um susto, seria uma parede - o aluno nunca
-      // estaria sem um atras dele. Vindo de vez em quando, cada uma e um
-      // EVENTO: da para ver chegando, decidir para que lado correr, e errar.
+      // RARAS DE PROPOSITO, e mais raras do que eram (3,2s): com forca 6 a
+      // corrente quase nao erra (ver regras.json), entao vindo junto com toda
+      // rajada o aluno nunca estaria solto. Vindo de vez em quando, cada uma e
+      // um EVENTO: da para ver chegando, decidir para que lado correr, e errar.
       //
       // O leque de 20 graus so separa as duas na saida; quem decide para onde
       // elas vao e o Tracking, nao o angulo.
       { "estrategia": "WaveAttack", "projetil": "Corrente",
         "projeteis": 2, "velocidade": 260, "angulo": 20, "intervalo": 0.18,
-        "cooldown": 3.2,
+        "cooldown": 4.4,
         "regras": "correntes" }
     ]
   },
 
   // FASE 2 - EXCLUSAO MUTUA   |   gesto: A ORBITA LENTA
   //
-  // Um anel de 60 travas com UMA fresta de 60 graus, e a fresta aponta SEMPRE
-  // PARA BAIXO ("anguloCentral": 270 - o leque e desenhado em torno desse
-  // angulo e a abertura fica oposta a ele, ou seja em 90, que e para baixo).
-  // As travas freiam e ficam: a parede nao passa sozinha, e atravessar e a
-  // unica saida.
+  // Um anel de 60 travas com UMA fresta de 30 graus ("angulo": 330 e o leque;
+  // o que sobra da volta e a abertura). As travas freiam e ficam: a parede nao
+  // passa sozinha, e atravessar e a unica saida.
   //
-  // SAO 60 TRAVAS E NAO 24 PORQUE A FRESTA TEM DE SER O UNICO JEITO DE PASSAR.
-  // Com 24 o espacamento no raio em que o jogador encontra o anel (uns 390px)
-  // dava 88 pixels, e o sprite da trava tem 37: sobravam 50px de folga entre
-  // vizinhas e atravessar a parede em qualquer ponto era trivial. Com 60 o
-  // espacamento cai para uns 34px e a parede fecha - a abertura e a porta.
+  // A FRESTA ANDA, SEMPRE PELA METADE DE BAIXO: de 60 a 120 graus, 37 por
+  // rajada, e quem a move e Vitor::CustomizeAttackParams - para onde ela aponta
+  // depende do anel anterior, e este arquivo nao tem memoria. Por isso NAO HA
+  // "anguloCentral" aqui: o C++ escreve por cima, e o campo seria texto morto.
   //
-  // A FRESTA PAROU DE GIRAR, e isso trocou a fase de lugar. Antes ela girava
-  // 137 graus por disparo e a fase era "ache a abertura". Agora a abertura esta
-  // sempre embaixo, e quem a move e a ORBITA DO CHEFE: o corredor seguro
-  // escorrega de um lado para o outro junto com ele, e a fase virou "fique no
-  // corredor".
+  // SAO 60 TRAVAS PORQUE A FRESTA TEM DE SER O UNICO JEITO DE PASSAR. Com 24 o
+  // espacamento no raio em que o jogador encontra o anel (uns 390px) dava 88
+  // pixels contra um sprite de 37, e atravessar a parede em qualquer ponto era
+  // trivial. Com 60 num leque de 330 sao uns 38px. Medi com 66, que volta aos
+  // 34px de antes, e os tres pilotos terminaram com os mesmos acertos: ficou 60.
   //
-  // ISSO INVERTE A LICAO DA FASE 1, de proposito. La, seguir o chefe e a pior
-  // coisa a fazer - as faixas descem de onde ele estava e a varredura volta por
-  // cima delas. Aqui seguir o chefe e a UNICA coisa a fazer, porque o corredor
-  // sai de baixo dele. Medido: com o anel denso o piloto que persegue passou de
-  // 14 para 11 acertos, justamente porque ele ja anda colado no x do chefe.
+  // A FRESTA ANDAR TROCOU A FASE DE LUGAR. Fixa embaixo, o corredor saia de
+  // baixo do chefe e a fase era "fique no corredor". Agora cada porta esta num
+  // x diferente, ate uns 320px para o lado, e a fase e TROCAR DE PORTA. A porta
+  // em si e larga - pelo menos uns 180px na faixa do jogador, conforme a altura
+  // do chefe. O dificil e o caminho: as travas andam a 54px/s depois de frear,
+  // cada anel nasce de outro ponto da orbita, e a parede do anel anterior ainda
+  // esta cruzando a faixa entre uma porta e a outra. No par de 90 e 67 graus a
+  // janela para mudar de porta sem encostar foi de uns 1,1s.
+  //
+  // MEDIDO SO COM A FRESTA MUDANDO: o piloto que persegue tomava 1 acerto
+  // nesta fase e passou a 5, e um que corre direto para a porta seguinte toma
+  // 4. Um piloto que so da o passo quando o lugar do passo esta livre de
+  // parede toma 1, o mesmo de antes. A fase continua passavel; ela cobra
+  // ESPERAR a parede anterior passar, e castiga quem nao espera. (Esses dois
+  // pilotos foram feitos para esta medicao e nao estao em medir-dificuldade.sh:
+  // eles leem onde cada anel nasceu, e so o Vitor sabe disso.)
   //
   // O LEQUE E UMA WaveAttack, E NAO UM CircleSpread, por um motivo medido na
   // fase 3 do Vladimir: CircleSpreadAttack ignora "angulo" e "anguloCentral" -
@@ -140,7 +148,7 @@
     "movimento": { "tipo": "Orbitar", "a": 110, "b": 0.08 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Trava",
-        "projeteis": 60, "velocidade": 300, "angulo": 300, "anguloCentral": 270,
+        "projeteis": 60, "velocidade": 300, "angulo": 330,
         "intervalo": 0,
         "cooldown": 2.6,
         "regras": "secao_critica" }

@@ -50,10 +50,9 @@
   // tempo que uma tarefa leva para atravessar a tela inteira depois de nascer:
   // abaixo disso ela desiste no meio do caminho e o aluno lento sai da frente.
   //
-  // E A DIFERENCA PARA A CORRENTE NAO E A FORCA, E A QUANTIDADE. A corrente e
-  // UMA que vira forte e desiste em 2,6s; as tarefas sao SEIS que viram quase
-  // igual e insistem ate o fim da travessia. Duas perseguicoes sao um susto;
-  // seis sao um cerco.
+  // E A DIFERENCA PARA A CORRENTE E A QUANTIDADE. As correntes vem em DUAS que
+  // viram com forca 6; as tarefas sao SEIS que viram com 3,2. Duas
+  // perseguicoes sao um susto; seis sao um cerco.
   "paralelo": [
     { "animacao": "Correndo" },
     { "quando": "alvoAcorrentado",
@@ -66,32 +65,37 @@
   // os outros corrigem a rota e desistem (forca 1,4 a 1,6 por uns dois
   // segundos), porque la o perseguidor e tempero. Aqui ele e o ataque.
   //
-  // 1,9 POR 2,6s, E NAO 2,6 POR 3,2s. Comecei com os numeros maiores e medi: o
-  // piloto que persegue tomava 24 acertos e reprovava com 16,6, contra os 12
-  // do Vladimir no mesmo arnes. O motivo e um circulo vicioso - a corrente
-  // acerta, o aluno fica a 45% da velocidade, e a proxima acha um alvo que mal
-  // se mexe. Um efeito que atrapalha precisa ser mais FACIL de evitar do que
-  // um que so tira nota, justamente porque ele se realimenta. Com 1,9 por
-  // 2,6s: 14 acertos, nota 62,4, aprovado.
+  // FORCA 6 POR 4,4s, NO LIMITE QUE Behaviors.h DESCREVE COMO "GRUDA NO
+  // JOGADOR" - e gruda: com 1,9 por 2,6s o piloto que persegue nao tomava
+  // nenhuma corrente na fase 1, e com estes numeros toma 3. O que segura a
+  // fase e o resto da troca: cada corrente cobra 15% de um acerto, e o par sai
+  // a cada 4,4s em vez de 3,2 - a perseguicao de um par acaba mais ou menos
+  // quando o seguinte sai.
   //
-  // Sao DUAS a cada 3,2 segundos, contra seis tarefas a cada 0,8. Da para ver
-  // vindo, e da para fugir se comecar a fugir cedo.
+  // O CIRCULO VICIOSO CONTINUA LA, e foi ele que derrubou a primeira versao
+  // (2,6 por 3,2s: 24 acertos, nota 16,6): a corrente acerta, o
+  // aluno fica a 45% da velocidade, e a proxima acha um alvo que mal se mexe.
+  //
+  // MEDIDO SO COM A MUDANCA DAS CORRENTES, sem mexer na fase 2: o piloto que
+  // persegue passa com 70,8 e 12 acertos - e o PARADO TAMBEM PASSA, com 68,2
+  // (antes reprovava com 22,2). Quem reprova o parado hoje e a fresta da fase
+  // 2, e nao as correntes: mexer naquela fresta pede rodar parado-reprova.sh.
   //
   // O "atraso" de 0,2 deixa a corrente SAIR antes de comecar a virar. Sem ele
   // ela curva colada no chefe, e o jogador perde a informacao mais util que
   // tem: de que lado ela vem.
   "correntes": [
     { "animacao": "Arrastando",
-      "motion": { "tipo": "Tracking", "atraso": 0.2, "forca": 1.9, "duracao": 2.6 } }
+      "motion": { "tipo": "Tracking", "atraso": 0.2, "forca": 6.0, "duracao": 4.4 } }
   ],
 
   // FASE 2 - EXCLUSAO MUTUA: o anel e a trava, e a fresta e a secao critica.
   //
-  // O leque cobre 300 graus, entao sobram 60 de abertura - UM caminho, e so
+  // O leque cobre 330 graus, entao sobram 30 de abertura - UM caminho, e so
   // um. As travas freiam quase ate parar e ficam penduradas: o anel vira uma
   // PAREDE de verdade, que nao adianta esperar passar.
   //
-  // QUEM GIRA A FRESTA E O C++ (Vitor::CustomizeAttackParams), e e a unica
+  // QUEM MOVE A FRESTA E O C++ (Vitor::CustomizeAttackParams), e e a unica
   // coisa deste chefe que dados nao dariam conta: "para onde a abertura aponta
   // DESTA vez" depende do disparo anterior, e fases.json nao tem memoria.
   //
@@ -110,9 +114,9 @@
   // passava a fase fuzilando o chefe sem risco nenhum.
   //
   // Com 1,0s a 300 px/s elas chegam a uns 390px e o fundo do anel alcanca a
-  // faixa de baixo. E por isso o anel tambem passou de 16 para 24 travas: num
-  // raio maior, 16 ficam a 140 pixels uma da outra e a "parede" vira uma cerca
-  // com buracos de quatro sprites de largura.
+  // faixa de baixo. E por isso o anel tambem deixou de ter 16 travas (hoje sao
+  // 60, ver fases.json): num raio maior, 16 ficam a 140 pixels uma da outra e
+  // a "parede" vira uma cerca com buracos de quatro sprites de largura.
   "secao_critica": [
     { "animacao": "Retida",
       "modifiers": [ { "tipo": "SlowDown", "fator": 0.18, "atraso": 1.00 } ] }
