@@ -11,6 +11,8 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <optional>
+#include <utility>
 
 #include "../ProjectileFactory.h"
 #include "../../Attacks/IAttackStrategy.h"
@@ -135,6 +137,17 @@ public:
     /// @brief O anuncio desta fase. Vazio = a fase nao anuncia nada.
     [[nodiscard]] std::string AnuncioDaFase(const std::string& fase) const;
 
+    // ---- O INTERCAMBIO ----------------------------------------------------
+
+    /// @brief Anota que nesta fase os alunos trocam de lugar a cada 'aCada'
+    /// segundos, com aviso 'aviso' segundos antes. So uma anotacao, como o
+    /// anuncio: quem move os alunos e a batalha (Battle::AtualizarIntercambio).
+    void RegistrarIntercambio(const std::string& fase, float aCada, float aviso);
+
+    /// @brief O periodo e o aviso do intercambio desta fase, se ela tiver um.
+    [[nodiscard]] std::optional<std::pair<float, float>>
+    IntercambioDaFase(const std::string& fase) const;
+
     /// @brief A fase em que o chefe esta AGINDO - a mesma que escolhe o
     /// movimento e os ataques do quadro. Vazio antes do primeiro OnUpdate.
     [[nodiscard]] const std::string& FaseAtual() const { return mLastStateName; }
@@ -217,6 +230,9 @@ private:
 
     /// Por fase, o texto do placar. Ver RegistrarAnuncio.
     std::map<std::string, std::string> mAnuncioPorFase;
+
+    /// Por fase, o periodo e o aviso do intercambio. Ver RegistrarIntercambio.
+    std::map<std::string, std::pair<float, float>> mIntercambioPorFase;
 
     bool mEhClone = false;
 

@@ -450,6 +450,32 @@ FasesLidas LerFases(const std::string& textoJson) {
             }
             f.anuncio = Texto(corpoFase, "anuncio");
 
+            // "intercambio": os alunos trocam de lugar a cada "aCada" segundos.
+            // Os tres jeitos de errar sao recusados aqui, porque em jogo nenhum
+            // deles da erro: sem periodo a troca nunca acontece, um aviso do
+            // tamanho do periodo fica aceso para sempre, e um numero que falta
+            // vira zero sem ninguem ver.
+            if (corpoFase.contains("intercambio")) {
+                const auto& ic = corpoFase["intercambio"];
+                if (!ic.is_object() || !ic.contains("aCada") || !ic["aCada"].is_number()
+                    || !ic.contains("aviso") || !ic["aviso"].is_number()) {
+                    saida.problemas.emplace_back(onde + "\"intercambio\" precisa ser um objeto "
+                                                 "com \"aCada\" e \"aviso\", em segundos");
+                    continue;
+                }
+                DescricaoDeIntercambio d;
+                d.aCada = ic["aCada"].get<float>();
+                d.aviso = ic["aviso"].get<float>();
+                if (d.aCada <= 0.0f || d.aviso < 0.0f || d.aviso >= d.aCada) {
+                    saida.problemas.emplace_back(onde + "\"intercambio\" precisa de \"aCada\" "
+                                                 "maior que zero e \"aviso\" entre zero e "
+                                                 "\"aCada\" - um aviso do tamanho do periodo "
+                                                 "ficaria aceso para sempre");
+                    continue;
+                }
+                f.intercambio = d;
+            }
+
             if (corpoFase.contains("movimento")) {
                 f.movimento = LerMovimento(corpoFase["movimento"], onde, saida.problemas);
             }

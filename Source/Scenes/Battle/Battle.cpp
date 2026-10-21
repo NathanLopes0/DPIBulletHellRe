@@ -144,6 +144,7 @@ void Battle::LoadHUD() {
     LoadTimeBar();
     LoadGradeBar();
     LoadPlacar();
+    LoadIntercambio();
 
 }
 void Battle::LoadPlayer() {
@@ -377,11 +378,15 @@ void Battle::AtualizarPlacar() {
     // FaseAtual, e nao o nome que a maquina de estados acabou de trocar: e a
     // fase em que o chefe esta agindo neste quadro, a mesma que escolhe o
     // movimento e os ataques. O placar e os tiros mudam juntos.
-    const std::string& fase = mBoss->FaseAtual();
-    if (fase == mFaseDoPlacar) return;
-    mFaseDoPlacar = fase;
+    //
+    // DURANTE O AVISO DO INTERCAMBIO o placar avisa em vez de anunciar: e o
+    // unico texto da tela que o aluno ja aprendeu a ler antes de cada rajada.
+    const std::string anuncio = Intercambio::Avisando(mRelogioDoIntercambio)
+                                    ? kTextoDoIntercambio
+                                    : mBoss->AnuncioDaFase(mBoss->FaseAtual());
+    if (anuncio == mTextoDoPlacar) return;
+    mTextoDoPlacar = anuncio;
 
-    const std::string anuncio = mBoss->AnuncioDaFase(fase);
     const bool aceso = !anuncio.empty();
 
     // So escreve quando ha o que escrever: um texto vazio nao gera textura, e
@@ -390,6 +395,72 @@ void Battle::AtualizarPlacar() {
     if (aceso) texto->SetText(anuncio);
     texto->SetIsVisible(aceso);
     mPlacarActor->GetComponent<DrawCaixaComponent>()->SetIsVisible(aceso);
+}
+
+void Battle::LoadIntercambio() {
+
+    // UM MARCADOR POR ALUNO, do tamanho dele: e o contorno de onde ele vai
+    // estar quando a troca acontecer. Nascem apagados - so acendem durante o
+    // aviso, e so numa fase com "intercambio".
+    for (const Player* jogador : mJogadores) {
+        if (!jogador) continue;
+        const auto* sprite = jogador->GetComponent<DrawAnimatedComponent>();
+        const int largura = sprite ? sprite->GetSpriteWidth()  : 32;
+        const int altura  = sprite ? sprite->GetSpriteHeight() : 48;
+
+        auto marcador = std::make_unique<Actor>(this);
+        auto contorno = marcador->AddComponent<DrawCaixaComponent>(
+            largura + 8, altura + 8, SDL_Color{235, 235, 225, 220}, SDL_Color{0, 0, 0, 0},
+            2, kOrdemDoMarcador);
+        contorno->SetIsVisible(false);
+
+        mMarcadoresDoIntercambio.push_back(marcador.get());
+        this->AddActor(std::move(marcador));
+    }
+}
+
+void Battle::AtualizarIntercambio(const float deltaTime) {
+    if (!mBoss) return;
+
+    // O RELOGIO E DA FASE. Entrar numa fase recomeca a contagem do zero, e numa
+    // fase sem intercambio ele fica invalido - e um relogio invalido nunca
+    // avisa nem troca.
+    const std::string& fase = mBoss->FaseAtual();
+    if (fase != mFaseDoIntercambio) {
+        mFaseDoIntercambio = fase;
+        mRelogioDoIntercambio = Intercambio::Relogio{};
+        if (const auto ic = mBoss->IntercambioDaFase(fase)) {
+            mRelogioDoIntercambio.aCada = ic->first;
+            mRelogioDoIntercambio.aviso = ic->second;
+        }
+    }
+
+    const bool trocou = Intercambio::Avancar(mRelogioDoIntercambio, deltaTime);
+
+    // O DESTINO E RECALCULADO TODO QUADRO, e nao congelado quando o aviso
+    // acende. Sozinho, o aluno escolhe onde vai cair andando - o espelho anda
+    // junto. Em dupla, cada um cai onde o parceiro esta AGORA. Nos dois casos
+    // o marcador diz a verdade ate o ultimo quadro.
+    std::vector<Vector2> posicoes;
+    for (const Player* jogador : mJogadores) {
+        if (jogador) posicoes.push_back(jogador->GetPosition());
+    }
+    const auto destinos = Intercambio::Destinos(
+        posicoes, static_cast<float>(mGame->GetWindowWidth()));
+
+    if (trocou) {
+        for (size_t i = 0; i < mJogadores.size() && i < destinos.size(); ++i) {
+            if (mJogadores[i]) mJogadores[i]->SetPosition(destinos[i]);
+        }
+    }
+
+    const bool aceso = Intercambio::Avisando(mRelogioDoIntercambio);
+    for (size_t i = 0; i < mMarcadoresDoIntercambio.size(); ++i) {
+        Actor* marcador = mMarcadoresDoIntercambio[i];
+        if (!marcador) continue;
+        if (i < destinos.size()) marcador->SetPosition(destinos[i]);
+        marcador->GetComponent<DrawCaixaComponent>()->SetIsVisible(aceso && i < destinos.size());
+    }
 }
 
 void Battle::LoadEndScreen() {
@@ -546,6 +617,10 @@ void Battle::OnUpdate(float deltaTime) {
 
     TimeBarUpdate();
     GradeBarUpdate();
+
+    // O INTERCAMBIO ANTES DO PLACAR: e ele que decide se o aviso esta aceso
+    // neste quadro, e o placar so le a resposta.
+    AtualizarIntercambio(deltaTime);
     AtualizarPlacar();
 
     // Purga os ponteiros observadores de pontos extras. Precisa rodar DEPOIS de

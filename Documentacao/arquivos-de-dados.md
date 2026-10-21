@@ -108,6 +108,7 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 | `duracao` | segundos |
 | `proximo` | a próxima fase. **Vazio significa "a batalha é decidida aqui"**, não "fim do arquivo". |
 | `anuncio` | opcional. O texto do **placar**, o quadro no canto de cima, enquanto a fase dura. Sem ele o placar fica apagado |
+| `intercambio` | opcional. `{ "aCada": 8, "aviso": 1.5 }`: os alunos **trocam de lugar** a cada `aCada` segundos da fase, com aviso `aviso` segundos antes |
 | `movimento` | como o professor anda |
 | `ataques` | lista; todos disparam na mesma fase, cada um no seu cooldown |
 
@@ -116,6 +117,15 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 > sobrescrito, `δ` e `→` saem como são. Um `anuncio` que não é texto é recusado
 > na leitura em vez de virar um quadro apagado — e cuidado com a chave: escrita
 > com acento, `anúncio`, ela é ignorada calada como qualquer campo desconhecido.
+
+> **O Intercâmbio funciona sozinho e em dupla.** Em dupla, os dois trocam de
+> lugar; sozinho, o aluno vai para a posição espelhada (`x` vira
+> `largura − x`, na mesma altura) — o lugar onde o outro aluno estaria. Durante
+> o aviso o placar diz "Programa de Intercâmbio" e um contorno marca onde cada
+> um vai cair. O destino é recalculado todo quadro: sozinho, o aluno escolhe
+> onde cai andando; em dupla, cada um cai onde o parceiro está **agora**. As
+> contas estão em `Intercambio.h`. `aCada` zero, `aviso` negativo ou do tamanho
+> de `aCada`, e campo faltando são recusados na leitura.
 
 **Movimentos:** `GoToCenter`, `RandomWander`, `HoverAbovePlayer`, `Orbitar`,
 `Varredura`, `Mergulho`. `a` e `b` são os dois parâmetros do construtor, na

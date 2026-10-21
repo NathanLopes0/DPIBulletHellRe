@@ -268,6 +268,12 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
         if (!fase.anuncio.empty()) {
             boss->RegistrarAnuncio(fase.nome, fase.anuncio);
         }
+
+        // E O INTERCAMBIO, pelo mesmo caminho: quem move os alunos e a batalha.
+        if (fase.intercambio) {
+            boss->RegistrarIntercambio(fase.nome, fase.intercambio->aCada,
+                                       fase.intercambio->aviso);
+        }
     }
 
     SDL_Log("FASES: o chefe \"%s\" foi montado com %zu fase(s).",

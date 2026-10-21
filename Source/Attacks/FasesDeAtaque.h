@@ -184,6 +184,17 @@ struct DescricaoDeClone {
 };
 
 /**
+ * @brief O Programa de Intercambio da fase: os alunos trocam de lugar.
+ *
+ * A cada 'aCada' segundos, com o aviso aceso 'aviso' segundos antes. Ver
+ * Intercambio.h para o que "trocar de lugar" quer dizer em dupla e sozinho.
+ */
+struct DescricaoDeIntercambio {
+    float aCada = 0.0f;
+    float aviso = 0.0f;
+};
+
+/**
  * @brief Uma fase: quanto dura, o que vem depois, como o chefe anda e o que ele
  * dispara.
  *
@@ -210,6 +221,9 @@ struct DescricaoDeFase {
     std::vector<DescricaoDeAtaque> ataques;
     std::string ataquesDe;
     DescricaoDeClone clone;
+
+    /// Presente so nas fases com Intercambio.
+    std::optional<DescricaoDeIntercambio> intercambio;
 };
 
 /**

@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include "../Scene.h"
+#include "../../Intercambio.h"
 #include "../../Game.h"
 #include "../../AudioSystem.h"
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
@@ -182,6 +183,10 @@ private:
     void LoadPlacar();
     void AtualizarPlacar();
 
+    // ---- O INTERCAMBIO: os alunos trocam de lugar ("intercambio" em fases.json) ----
+    void LoadIntercambio();
+    void AtualizarIntercambio(float deltaTime);
+
 
     // --- Membros de Estado da Batalha ---
     float mGrade;
@@ -288,10 +293,31 @@ private:
     std::unique_ptr<Font> mFonteDoPlacar;
     Actor* mPlacarActor = nullptr;
 
-    /// A fase que o placar mostra agora. O texto so e refeito quando ela muda:
-    /// SetText renderiza uma textura nova, e fazer isso todo quadro seria
-    /// pagar por um texto que nao mudou.
-    std::string mFaseDoPlacar;
+    /// O texto que o placar mostra agora. So e refeito quando muda: SetText
+    /// renderiza uma textura nova, e fazer isso todo quadro seria pagar por um
+    /// texto que nao mudou. E o TEXTO, e nao a fase, que se compara: dentro de
+    /// uma fase com Intercambio o placar troca de texto durante o aviso.
+    std::string mTextoDoPlacar;
+
+    /// O relogio do Intercambio da fase atual. Sem Intercambio ele fica
+    /// invalido, e um relogio invalido nunca avisa nem troca (Intercambio.h).
+    Intercambio::Relogio mRelogioDoIntercambio;
+
+    /// A fase de que o relogio e. Trocar de fase zera o relogio: o periodo
+    /// conta do comeco de cada fase, e nao da batalha.
+    std::string mFaseDoIntercambio;
+
+    /// Um marcador por aluno, no lugar onde ele vai cair. So aparecem durante
+    /// o aviso, e andam junto com o destino - que muda quando os alunos andam.
+    std::vector<Actor*> mMarcadoresDoIntercambio;
+
+    /// O placar troca o anuncio da fase por isto enquanto o aviso esta aceso.
+    static inline const std::string kTextoDoIntercambio = "Programa de Intercâmbio";
+
+    /// Logo acima dos projeteis (88 a 92) e abaixo do aluno (100): o marcador e
+    /// so uma moldura vazia, entao por cima dos tiros ele nao esconde nada, e
+    /// por baixo deles sumiria justo onde o campo esta cheio.
+    static constexpr int kOrdemDoMarcador = 95;
 
     static constexpr int kPlacarLargura = 320;
     static constexpr int kPlacarAltura  = 46;

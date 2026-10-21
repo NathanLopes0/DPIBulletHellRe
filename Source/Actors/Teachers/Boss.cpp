@@ -308,6 +308,16 @@ std::string Boss::AnuncioDaFase(const std::string& fase) const {
     return it == mAnuncioPorFase.end() ? std::string{} : it->second;
 }
 
+void Boss::RegistrarIntercambio(const std::string& fase, const float aCada, const float aviso) {
+    mIntercambioPorFase[fase] = {aCada, aviso};
+}
+
+std::optional<std::pair<float, float>> Boss::IntercambioDaFase(const std::string& fase) const {
+    const auto it = mIntercambioPorFase.find(fase);
+    if (it == mIntercambioPorFase.end()) return std::nullopt;
+    return it->second;
+}
+
 void Boss::SetInitialState(const std::string &stateName) {
     mInitialState = stateName;
 }

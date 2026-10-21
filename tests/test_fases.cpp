@@ -701,3 +701,55 @@ TEST_CASE("Fases: um anuncio que nao e texto e recusado, e nao lido como vazio")
     }
     CHECK(reclamou);
 }
+
+// ---------------------------------------------------------------------------
+// O Programa de Intercambio
+// ---------------------------------------------------------------------------
+
+namespace {
+    /// Duas fases que fecham, com o "intercambio" que o caso pedir na primeira.
+    std::string ComIntercambio(const std::string& intercambio) {
+        return R"({
+          "StateOne":   { "proximo": "StateFinal", "intercambio": )" + intercambio + R"(,
+                          "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] },
+          "StateFinal": { "proximo": "",
+                          "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+        })";
+    }
+}
+
+TEST_CASE("Fases: o intercambio e lido, e sem ele a fase nao troca ninguem") {
+    const auto lidas = LerFases(ComIntercambio(R"({ "aCada": 8, "aviso": 1.5 })"));
+
+    CHECK(lidas.problemas.empty());
+    REQUIRE(lidas.fases.size() == 2);
+    for (const auto& f : lidas.fases) {
+        CAPTURE(f.nome);
+        if (f.nome == "StateOne") {
+            REQUIRE(f.intercambio.has_value());
+            CHECK(f.intercambio->aCada == doctest::Approx(8.0f));
+            CHECK(f.intercambio->aviso == doctest::Approx(1.5f));
+        }
+        if (f.nome == "StateFinal") CHECK_FALSE(f.intercambio.has_value());
+    }
+}
+
+TEST_CASE("Fases: um intercambio que nao trocaria ninguem e recusado") {
+
+    // Cada um destes passaria calado em jogo: sem periodo a troca nunca vem, um
+    // aviso do tamanho do periodo fica aceso para sempre, e um campo que falta
+    // viraria zero sem ninguem ver.
+    for (const char* ruim : { R"({ "aCada": 0, "aviso": 0 })",
+                              R"({ "aCada": 8, "aviso": 8 })",
+                              R"({ "aCada": 8, "aviso": -1 })",
+                              R"({ "aCada": 8 })",
+                              R"(8)" }) {
+        CAPTURE(ruim);
+        const auto lidas = LerFases(ComIntercambio(ruim));
+        bool reclamou = false;
+        for (const auto& p : lidas.problemas) {
+            if (p.find("intercambio") != std::string::npos) reclamou = true;
+        }
+        CHECK(reclamou);
+    }
+}
