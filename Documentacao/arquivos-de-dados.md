@@ -30,8 +30,8 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
       "coluna": 0, "chefe": "andre",
       "desbloqueio": { "tipo": "sempre" } },
 
-    { "codigo": "INF330", "nome": "INF 330",
-      "nomeCompleto": "Teoria e Modelos de Grafos", "professor": "Salles",
+    { "codigo": "INF340", "nome": "INF 340",
+      "nomeCompleto": "Linguagens de Programação", "professor": "Luizinho",
       "coluna": 2,
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] } },
 
@@ -64,11 +64,9 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 > o que acontece. O que a reordenação **não** faz é mexer na nota de ninguém: as
 > fichas são guardadas por `codigo`, nunca por posição.
 
-> **`professor` e `chefe` são coisas diferentes.** A INF 330 é do Salles e não
-> tem batalha — e o Salles já é o chefe da INF 213. Apontar o `chefe` dela para
-> `"salles"` faria duas matérias idênticas de jogar. O professor é quem assina a
-> disciplina; o chefe é a luta que existe no jogo. Há teste exigindo que as duas
-> possam divergir.
+> **`professor` e `chefe` são coisas diferentes.** O TCC é do Hugo e não tem
+> batalha. O professor é quem assina a disciplina; o chefe é a luta que existe
+> no jogo. Há teste exigindo que as duas possam divergir.
 
 > **A coluna 0 não precisa ter uma matéria só.** A grade se monta a partir desta
 > lista; se uma coluna ficar vazia, as setas a pulam em vez de parar nela.

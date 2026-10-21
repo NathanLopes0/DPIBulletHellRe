@@ -31,7 +31,7 @@
   //   vive em C++. Onde isso acontece esta anotado na fase.
   // ==========================================================================
 // ==========================================================================
-// ANDRE - INF 330 (fabrica de projeteis: "Baloes")
+// ANDRE - INF 110 (fabrica de projeteis: "Baloes")
 //
 // O chefe dos baloes. A BaloonAttack nao dispara do chefe: ela faz os
 // projeteis nascerem FORA da tela, de um lado escolhido, e entrarem depois de

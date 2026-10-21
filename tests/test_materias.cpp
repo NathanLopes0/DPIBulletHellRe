@@ -388,8 +388,7 @@ TEST_CASE("Materias: a exigencia concorda com a regra que fecha a materia") {
 //
 // Sao campos de APRESENTACAO: nao vao para o disco, nao entram em regra de
 // desbloqueio e nao escolhem chefe. O unico cuidado e que "professor" e
-// "chefe" sao coisas diferentes - a INF 330 e do Salles e ainda nao tem
-// batalha, enquanto o Salles ja e o chefe da INF 213.
+// "chefe" sao coisas diferentes - o TCC e do Hugo e ainda nao tem batalha.
 // ---------------------------------------------------------------------------
 
 TEST_CASE("Materias: le o nome da disciplina e o professor") {
@@ -423,19 +422,19 @@ TEST_CASE("Materias: sem os campos novos a materia continua valendo, com eles va
 }
 
 TEST_CASE("Materias: ter professor NAO e ter batalha") {
-    // A INF 330 de verdade: professor conhecido, chefe ainda nao feito. Se a
-    // tela lesse "professor" para decidir se da para jogar, ela mandaria o
-    // aluno para uma batalha que nao existe.
+    // O TCC de verdade: professor conhecido, chefe ainda nao feito. Se a tela
+    // lesse "professor" para decidir se da para jogar, ela mandaria o aluno
+    // para uma batalha que nao existe.
     const auto l = Materias::LerMaterias(R"({
       "materias": [
-        { "codigo": "INF330", "nome": "INF 330",
-          "nomeCompleto": "Teoria e Modelos de Grafos", "professor": "Salles",
+        { "codigo": "TCC", "nome": "TCC",
+          "nomeCompleto": "Trabalho de Conclusao de Curso", "professor": "Hugo",
           "coluna": 0, "desbloqueio": { "tipo": "sempre" } }
       ]
     })");
-    const Materias::Materia* m = l.Por(l.IndiceDe("INF330"));
+    const Materias::Materia* m = l.Por(l.IndiceDe("TCC"));
     REQUIRE(m != nullptr);
-    CHECK(m->professor == "Salles");
+    CHECK(m->professor == "Hugo");
     CHECK(m->chefe.empty());
 }
 

@@ -27,8 +27,8 @@
   //   nome          o que aparece no losango. Pode mudar a vontade.
   //   nomeCompleto  o nome da disciplina. Opcional; vazio e so nao mostrar.
   //   professor     quem da a materia. Opcional, e INDEPENDENTE de "chefe":
-  //                 a INF 330 e do Salles e ainda nao tem batalha, e o Salles
-  //                 ja e o chefe da INF 213 - sao coisas diferentes.
+  //                 o TCC e do Hugo e ainda nao tem batalha - ter professor nao
+  //                 e ter luta.
   //   coluna        0 a 4, a posicao na grade da selecao de fase. A coluna
   //                 tambem e o que as regras de desbloqueio usam, entao ela e
   //                 declarada UMA vez e nao duas.
@@ -49,8 +49,8 @@
 
     // ----- Coluna 0: a porta de entrada do curso -----
     //
-    // O Andre mudou de materia: ele era o chefe de INF 330 e passou a ser o da
-    // INF 110, que e por onde o aluno comeca. Como o save grava o CODIGO da
+    // O Andre mudou de materia: ele era o chefe da antiga INF 330 (hoje INF 340)
+    // e passou a ser o da INF 110, que e por onde o aluno comeca. Como o save grava o CODIGO da
     // materia, mover um chefe de uma para outra nao mexe em nota de ninguem.
     {
       "codigo": "INF110",
@@ -86,11 +86,20 @@
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
     {
-      // Mesmo professor da INF 213, e ainda assim sem batalha: o chefe do
-      // Salles e a luta da INF 213. Por isso "professor" e "chefe" sao campos
-      // diferentes - reaproveitar o chefe faria duas materias identicas.
-      "codigo": "INF330", "nome": "INF 330",
-      "nomeCompleto": "Teoria e Modelos de Grafos", "professor": "Salles",
+      // ERA A INF 330 - TEORIA E MODELOS DE GRAFOS, DO SALLES, e virou a INF
+      // 340, do Luizinho: o Salles ja e o chefe da INF 213, e um professor so
+      // aparece uma vez na grade.
+      //
+      // TROCAR O CODIGO APOSENTOU A MATERIA ANTIGA, e aqui isso e seguro: desde
+      // que o Andre saiu dela para a INF 110 (06/10) a INF 330 nao tinha
+      // batalha, entao nao havia como ganhar nota nela. Um save de teste da
+      // semana em que o Andre era o chefe dela guarda uma nota com o codigo
+      // velho, e essa nota fica orfa - a ficha so conta codigos que existem.
+      //
+      // A POSICAO NA LISTA NAO MUDOU, como na troca da INF 452 pela INF 310: a
+      // navegacao da grade usa o indice.
+      "codigo": "INF340", "nome": "INF 340",
+      "nomeCompleto": "Linguagens de Programação", "professor": "Luizinho",
       "coluna": 2,
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },

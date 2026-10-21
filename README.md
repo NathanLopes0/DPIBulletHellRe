@@ -70,15 +70,14 @@ foi aprovado:
 |---|---|---|
 | 0 | INF 110 — Programação 1 *(André)* | sempre |
 | 1 | INF 213 — Estruturas de Dados *(Salles)* | INF 110 aprovada |
-| 2 | INF 250 — Organização de Computadores *(Ricardo)*, INF 220 — Banco de Dados *(Thiago)*, INF 330 — Teoria e Modelos de Grafos *(Salles)*, INF 331 — Linguagens Formais e Autômatos *(Vladimir)* | INF 213 aprovada |
+| 2 | INF 250 — Organização de Computadores *(Ricardo)*, INF 220 — Banco de Dados *(Thiago)*, INF 340 — Linguagens de Programação *(Luizinho)*, INF 331 — Linguagens Formais e Autômatos *(Vladimir)* | INF 213 aprovada |
 | 3 | INF 420 — Inteligência Artificial *(Júlio)*, INF 221 — Engenharia de Software *(Maria Lúcia)*, INF 321 — Programação Web *(Lucas)*, INF 310 — Programação Concorrente e Distribuída *(Vitor)* | 2 aprovações na coluna 2 |
 | 4 | TCC — Trabalho de Conclusão de Curso *(Hugo)* | 2 aprovações na coluna 3 |
 
 Toda matéria tem professor; **nove têm batalha** (André, Salles, Ricardo,
 Thiago, Júlio, Vladimir, Vitor, Maria Lúcia e Lucas) e as outras duas aparecem
-na grade esperando uma. São coisas separadas de propósito: a INF 330 é do
-Salles, que já é o chefe da INF 213 — reaproveitar o chefe faria duas
-matérias idênticas de jogar.
+na grade esperando uma. Ter professor e ter batalha são coisas separadas de
+propósito, e cada professor aparece uma vez só na grade.
 
 Quem decide tudo isso é `Assets/materias.json` — a ordem, as colunas, as regras
 de desbloqueio, o professor e qual chefe atende cada matéria. Não há lista de

@@ -81,14 +81,7 @@
         "regras": "paralelo" },
 
       // AS CORRENTES: duas a cada 4,4s, contra seis tarefas a cada 0,8.
-      //
-      // RARAS DE PROPOSITO, e mais raras do que eram (3,2s): com forca 6 a
-      // corrente quase nao erra (ver regras.json), entao vindo junto com toda
-      // rajada o aluno nunca estaria solto. Vindo de vez em quando, cada uma e
-      // um EVENTO: da para ver chegando, decidir para que lado correr, e errar.
-      //
-      // O leque de 20 graus so separa as duas na saida; quem decide para onde
-      // elas vao e o Tracking, nao o angulo.
+
       { "estrategia": "WaveAttack", "projetil": "Corrente",
         "projeteis": 2, "velocidade": 260, "angulo": 20, "intervalo": 0.18,
         "cooldown": 4.4,
@@ -148,9 +141,9 @@
     "movimento": { "tipo": "Orbitar", "a": 110, "b": 0.08 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Trava",
-        "projeteis": 60, "velocidade": 300, "angulo": 330,
+        "projeteis": 50, "velocidade": 300, "angulo": 330,
         "intervalo": 0,
-        "cooldown": 2.6,
+        "cooldown": 2.1,
         "regras": "secao_critica" }
     ]
   },

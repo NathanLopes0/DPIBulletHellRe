@@ -484,8 +484,8 @@ void StageSelect::UpdateStageInfo() const {
         // aluno ve a tela piscar sem entender o que fez de errado.
         //
         // "Batalha", e nao "professor": desde que materias.json passou a trazer
-        // o professor, a INF 330 TEM professor (o Salles) e mesmo assim nao tem
-        // luta - sao duas coisas diferentes.
+        // o professor, o TCC TEM professor (o Hugo) e mesmo assim nao tem luta -
+        // sao duas coisas diferentes.
         frase = "Batalha ainda nao pronta";
         cor = Color::LightBlue;
 

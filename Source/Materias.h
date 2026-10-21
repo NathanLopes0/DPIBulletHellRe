@@ -52,9 +52,9 @@ namespace Materias {
         /// mostrar. Nunca vai para o disco nem entra em regra nenhuma.
         std::string nomeCompleto;
 
-        /// Quem da a materia. INDEPENDENTE de 'chefe': a INF 330 e do Salles e
-        /// nao tem batalha, e o Salles ja e o chefe da INF 213. Reaproveitar o
-        /// chefe de uma na outra faria duas materias identicas de jogar.
+        /// Quem da a materia. INDEPENDENTE de 'chefe': o TCC e do Hugo e nao tem
+        /// batalha. Ter professor nao e ter luta, e a tela nao pode ler um pelo
+        /// outro.
         std::string professor;
 
         /// A posicao na grade da selecao de fase, a partir de 0. A coluna tambem e

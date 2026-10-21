@@ -854,7 +854,7 @@ TEST_CASE("Dados: as materias do curso estao la, com os codigos esperados") {
     // ser seguro. O que ainda importa travar e que nenhuma materia suma por
     // descuido de edicao.
     const std::set<std::string> esperadas = {
-        "INF110", "INF213", "INF250", "INF220", "INF330", "INF331",
+        "INF110", "INF213", "INF250", "INF220", "INF340", "INF331",
         "INF420", "INF221", "INF321", "INF310", "TCC"
     };
 
@@ -914,10 +914,10 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
     //
     //   INF110 sempre aberta (a porta de entrada do curso);
     //   INF213 abre ao passar em INF110;
-    //   coluna 2 (INF250, INF220, INF330, INF331) abre ao passar em INF213;
+    //   coluna 2 (INF250, INF220, INF340, INF331) abre ao passar em INF213;
     //   coluna 3 (INF420, INF221, INF321, INF310) abre com 2 aprovacoes na 2;
     //   TCC abre com 2 aprovacoes na coluna 3.
-    const std::vector<std::string> col2 = {"INF250", "INF220", "INF330", "INF331"};
+    const std::vector<std::string> col2 = {"INF250", "INF220", "INF340", "INF331"};
     const std::vector<std::string> col3 = {"INF420", "INF221", "INF321", "INF310"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
@@ -1242,9 +1242,9 @@ TEST_CASE("Dados: toda materia do curso tem nome de disciplina e professor") {
 
 TEST_CASE("Dados: ha materia com professor e sem batalha, e isso e proposital") {
 
-    // A INF 330 e do Salles, que ja e chefe da INF 213. Se algum dia alguem
-    // decidir que "tem professor" implica "tem chefe", este teste cai - e e
-    // para cair, porque reaproveitar o chefe faria duas materias identicas.
+    // O TCC e do Hugo e ainda nao tem batalha. Se algum dia alguem decidir que
+    // "tem professor" implica "tem chefe", este teste cai - e e para cair: a
+    // tela mandaria o aluno para uma luta que nao existe.
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
 
     int comProfessorSemChefe = 0;
