@@ -96,6 +96,13 @@ namespace {
             p->insertMotion<WobbleBehavior>(d.atraso, d.amplitude, d.frequencia, d.duracao);
         else if (d.tipo == "MiraPeriodica")
             p->insertMotion<MiraPeriodicaBehavior>(d.ritmo);
+        else if (d.tipo == "Amarrar") {
+            Amarra::Corda corda;
+            corda.comprimento = d.comprimento;
+            corda.duracao = d.duracao;
+            Amarra::SentidoPeloNome(d.sentido, corda.sentido);   // a leitura ja o validou
+            p->insertMotion<AmarrarBehavior>(corda, d.escreve);
+        }
         else if (d.tipo == "Accelerate")
             p->insertModifier<AccelerateBehavior>(d.atraso, d.fator);
         else if (d.tipo == "SlowDown")

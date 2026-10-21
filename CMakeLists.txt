@@ -140,6 +140,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Flex.h
         Source/Attacks/Promessa.cpp
         Source/Attacks/Promessa.h
+        Source/Attacks/Amarra.cpp
+        Source/Attacks/Amarra.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
@@ -254,6 +256,7 @@ add_executable(dpi_tests
         tests/test_caixa.cpp
         tests/test_flex.cpp
         tests/test_promessa.cpp
+        tests/test_amarra.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -321,6 +324,8 @@ add_executable(dpi_tests
         Source/Attacks/Flex.h
         Source/Attacks/Promessa.cpp
         Source/Attacks/Promessa.h
+        Source/Attacks/Amarra.cpp
+        Source/Attacks/Amarra.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp

@@ -71,6 +71,11 @@ struct DescricaoDeBehavior {
     /// Promessa: a parte das promessas que resolvem, de 0 a 1. Ver Promessa.h.
     float resolve = 0.5f;
 
+    /// Amarrar: o comprimento da corda, em pixels. Ver Amarra.h.
+    float comprimento = 0.0f;
+    /// Amarrar: "horario" ou "antihorario", como se ve na tela.
+    std::string sentido = "horario";
+
     RitmoDeCiclos ritmo;            ///< MiraPeriodica, PulsoDeVelocidade
     float moduloInvestida = 0.0f;   ///< PulsoDeVelocidade
     float moduloPausa = 0.0f;       ///< PulsoDeVelocidade
@@ -153,7 +158,8 @@ struct RegrasLidas {
     std::vector<std::string> problemas;
 };
 
-/// @brief O tipo nomeado e uma Motion? (Path, Tracking, Wobble, MiraPeriodica)
+/// @brief O tipo nomeado e uma Motion? (Path, Tracking, Wobble, MiraPeriodica,
+/// Amarrar)
 bool EhMotion(const std::string& tipo);
 
 /// @brief O tipo nomeado e um Modifier? (Accelerate, SlowDown, Activate,

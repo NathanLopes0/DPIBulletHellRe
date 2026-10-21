@@ -27,11 +27,23 @@
   // FASE 1 - AMARRACOES   |   gesto: A VARREDURA
   //
   // Uma amarracao estatica e decidida ANTES de o programa rodar, e uma
-  // dinamica so DURANTE. Para o aluno ver a diferenca, o chefe precisa estar
-  // num lugar diferente a cada disparo: o tiro que ja nasce decidido sai de
-  // onde ele estava, e o que decide depois decide de onde a letra estiver.
+  // dinamica so DURANTE. As duas letras da fase sao as duas amarracoes:
   //
-  // PROVISORIO: um leque reto, sem amarracao dinamica.
+  //   a de pedra (C)    sai num leque centrado em onde o aluno estava no
+  //                     disparo, e nao muda mais;
+  //   a tabuinha (V)    sai em branco numa roda, ganha a letra quando a corda
+  //                     estica e fica AMARRADA ao professor (ligare, "atar"):
+  //                     gira em volta dele e vai junto na varredura. Quando a
+  //                     amarracao acaba ela sai pela tangente, de onde o
+  //                     professor estiver - decidido durante, e nao antes.
+  //
+  // A varredura e o que faz a diferenca aparecer: parado, o professor deixaria
+  // a roda girando sempre no mesmo lugar, e ela pareceria presa a um ponto.
+  //
+  // E AS DUAS CASTIGAM COISAS OPOSTAS, medido nos acertos que as letras da fase
+  // dao: a pedra acerta quem fica parado (as 9 do piloto parado sao de pedra),
+  // e a tabuinha quem nao para de andar (4 das 5 do que vai e vem). O que
+  // persegue o professor leva 3 de pedra e 1 de tabuinha.
   "StateOne": {
     "duracao": 17,
     "proximo": "StateTwo",
@@ -39,9 +51,17 @@
     "movimento": { "tipo": "Varredura", "a": 200, "b": 150 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Letra",
-        "projeteis": 7, "velocidade": 230, "angulo": 60, "intervalo": 0,
-        "cooldown": 1.0,
-        "regras": "estatica" }
+        "projeteis": 5, "velocidade": 240, "angulo": 40, "intervalo": 0,
+        "cooldown": 1.1,
+        "regras": "estatica" },
+      { "estrategia": "CircleSpreadAttack", "projetil": "Letra",
+        "projeteis": 10, "velocidade": 200,
+        "cooldown": 2.0,
+        "regras": "dinamica" },
+      { "estrategia": "CircleSpreadAttack", "projetil": "Letra",
+        "projeteis": 10, "velocidade": 200,
+        "cooldown": 2.6,
+        "regras": "dinamica_contraria" }
     ]
   },
 

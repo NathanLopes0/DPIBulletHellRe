@@ -20,6 +20,9 @@
  *   fase 3  Gerencia de memoria memento mori  lembra-te de que morreras
  *   final   Sequenciadores      sequi         seguir
  *
+ * O que nao cabe em dados mora aqui: a mira do leque estatico da fase 1, que
+ * depende de onde o aluno esta no instante do disparo.
+ *
  * O BALANCEAMENTO VIVE EM DADOS, como o dos outros: Assets/Attacks/luizinho/.
  */
 class Luizinho : public Boss {

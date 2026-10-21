@@ -5,10 +5,12 @@
 #include "RegrasDeAtaque.h"
 
 #include "../JsonDeDados.h"
+#include "Amarra.h"
 
 namespace {
 
-    const std::vector<std::string> kMotions   = {"Path", "Tracking", "Wobble", "MiraPeriodica"};
+    const std::vector<std::string> kMotions   = {"Path", "Tracking", "Wobble", "MiraPeriodica",
+                                                 "Amarrar"};
     const std::vector<std::string> kModifiers = {"Accelerate", "SlowDown", "Activate",
                                                  "Deactivate", "PulsoDeVelocidade",
                                                  "Reescrever", "Promessa"};
@@ -82,6 +84,28 @@ namespace {
                         ? j["escreve"].get<std::string>() : "";
 
         d.resolve = Campo(j, "resolve", 0.5f);
+
+        d.comprimento = Campo(j, "comprimento", 0.0f);
+        if (j.contains("sentido") && j["sentido"].is_string()) d.sentido = j["sentido"].get<std::string>();
+
+        // A CORDA QUE NAO AMARRARIA NADA E RECUSADA. Comprimento zero e uma letra
+        // amarrada no instante em que nasce, girando em cima do professor; sem
+        // duracao, a corda e cortada no quadro em que estica e a letra so faz uma
+        // curva de noventa graus. E um sentido escrito errado nao vira o padrao
+        // calado: o lado do giro e o que o aluno le para desviar da letra solta.
+        if (d.tipo == "Amarrar") {
+            Amarra::Sentido s;
+            if (d.comprimento <= 0.0f)
+                erro = "\"Amarrar\" precisa de \"comprimento\" maior que zero: e a distancia "
+                       "em que a corda estica";
+            else if (d.duracao <= 0.0f)
+                erro = "\"Amarrar\" precisa de \"duracao\" maior que zero: e quanto tempo a "
+                       "letra fica amarrada";
+            else if (!Amarra::SentidoPeloNome(d.sentido, s))
+                erro = "\"sentido\" do \"Amarrar\" e \"horario\" ou \"antihorario\", e nao \""
+                       + d.sentido + "\"";
+            return d;
+        }
 
         // A PROMESSA PARADA, OU COM UMA FRACAO QUE NAO E FRACAO, e recusada.
         // Velocidade zero e uma promessa resolvida que nao sai do lugar - e,

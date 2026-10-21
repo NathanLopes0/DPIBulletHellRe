@@ -6,6 +6,7 @@
 
 #include "../Math.h"
 #include "PathAim.h"
+#include "Amarra.h"
 #include <vector>
 #include <memory>
 #include <string>
@@ -33,7 +34,7 @@ public:
  * ultimo a rodar venceria, o que produz movimento aleatorio e dificil de
  * depurar. Projectile::insertMotion garante a exclusividade.
  *
- * Sao Motion: Tracking, Wobble e Path. (O antigo HomingBehavior foi removido
+ * Sao Motion: Tracking, Wobble, Path, MiraPeriodica e Amarrar. (O antigo HomingBehavior foi removido
  * na fase 3: um homing e um PathBehavior com PathShapes::Reta() e
  * Mira(MirarNoJogador).)
  */
@@ -494,4 +495,34 @@ struct PromessaBehavior : public ProjectileModifier {
     std::string escreve;
     float t = 0.0f;
     bool assentou = false;
+};
+
+/**
+ * @brief A LETRA AMARRADA (ligare, "atar"): presa ao professor por uma corda que
+ * nao se ve, ela gira em volta dele enquanto a amarracao dura, e depois sai
+ * pela tangente, como a pedra de uma funda.
+ *
+ * E a amarracao DINAMICA da fase 1 do Luizinho: o no da corda e procurado a
+ * cada quadro, entao a letra vai junto para onde o professor for. A conta do
+ * quadro e pura e esta em Amarra.h, coberta por test_amarra.cpp.
+ *
+ * O NO E O CORPO DO CHEFE MAIS PERTO DA LETRA (Battle::Corpos), procurado a
+ * cada quadro, e nao o dono guardado num ponteiro: um clone que deixasse de
+ * existir deixaria a corda presa a memoria solta. Com um corpo so, e ele.
+ *
+ * E UMA MOTION, e cumpre o contrato: decide a direcao e preserva o modulo. Ela
+ * tambem poe a letra de volta na circunferencia a cada quadro (o RigidBody,
+ * que roda antes, a leva pela tangente, um pouco para fora), como o Deslocar
+ * mexe na posicao.
+ *
+ * 'escreve', se houver, e a animacao que a letra passa a ter quando a corda
+ * estica - a amarracao acontecendo na frente do aluno.
+ */
+struct AmarrarBehavior : public ProjectileMotion {
+    AmarrarBehavior(const Amarra::Corda& corda, std::string escreve)
+        : corda(corda), escreve(std::move(escreve)) {}
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return corda.cortada; }
+    Amarra::Corda corda;
+    std::string escreve;
 };

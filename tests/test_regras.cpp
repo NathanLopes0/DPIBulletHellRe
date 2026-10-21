@@ -555,3 +555,49 @@ TEST_CASE("Regras: uma Promessa parada, ou com uma fracao fora de 0 a 1, e recus
         CHECK(r.problemas[0].find(c.campo) != std::string::npos);
     }
 }
+
+// ---------------------------------------------------------------------------
+// Amarrar: ligare, "atar"
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Regras: le o Amarrar com os campos dele") {
+    const auto r = LerRegras(R"({ "a": [ { "animacao": "Livre", "motion":
+        {"tipo":"Amarrar","comprimento":140,"duracao":2.4,"sentido":"antihorario","escreve":"Ligada"} } ] })");
+
+    CHECK(r.problemas.empty());
+    CHECK(r.conjuntos.at("a").at(0).temMotion);
+    const auto& d = r.conjuntos.at("a").at(0).motion;
+    CHECK(d.tipo == "Amarrar");
+    CHECK(d.comprimento == doctest::Approx(140.0f));
+    CHECK(d.duracao     == doctest::Approx(2.4f));
+    CHECK(d.sentido     == "antihorario");
+    CHECK(d.escreve     == "Ligada");
+}
+
+TEST_CASE("Regras: sem sentido, a corda gira no horario") {
+    const auto r = LerRegras(R"({"a":[{"motion":{"tipo":"Amarrar","comprimento":140,"duracao":2}}]})");
+    CHECK(r.problemas.empty());
+    CHECK(r.conjuntos.at("a").at(0).motion.sentido == "horario");
+}
+
+TEST_CASE("Regras: uma corda sem comprimento, sem duracao ou com sentido errado e recusada") {
+    struct Caso { const char* json; const char* campo; };
+    const Caso casos[] = {
+        { R"({"x":[{"motion":{"tipo":"Amarrar","duracao":2}}]})",                                      "comprimento" },
+        { R"({"x":[{"motion":{"tipo":"Amarrar","comprimento":0,"duracao":2}}]})",                      "comprimento" },
+        { R"({"x":[{"motion":{"tipo":"Amarrar","comprimento":140}}]})",                                "duracao" },
+        { R"({"x":[{"motion":{"tipo":"Amarrar","comprimento":140,"duracao":2,"sentido":"Horario"}}]})", "sentido" },
+    };
+    for (const auto& c : casos) {
+        CAPTURE(c.campo);
+        const auto r = LerRegras(c.json);
+        REQUIRE(r.problemas.size() == 1);
+        CHECK(r.problemas[0].find(c.campo) != std::string::npos);
+    }
+}
+
+TEST_CASE("Regras: Amarrar e uma Motion, e nao pode ir em \"modifiers\"") {
+    const auto r = LerRegras(R"({"x":[{"modifiers":[{"tipo":"Amarrar","comprimento":140,"duracao":2}]}]})");
+    REQUIRE(r.problemas.size() == 1);
+    CHECK(r.problemas[0].find("Motion") != std::string::npos);
+}

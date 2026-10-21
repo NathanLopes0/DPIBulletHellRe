@@ -385,7 +385,7 @@ Escolha no máximo uma forma:
 > zero acerto em dezessete segundos, e subir `projeteis` de 10 para 18 não
 > mudou nada. O que resolveu foi o chefe **andar**.
 
-**Motions:** `Path`, `Tracking`, `Wobble`, `MiraPeriodica`
+**Motions:** `Path`, `Tracking`, `Wobble`, `MiraPeriodica`, `Amarrar`
 **Modifiers:** `Accelerate`, `SlowDown`, `Activate`, `Deactivate`, `PulsoDeVelocidade`, `Reescrever`, `Promessa`
 
 Pôr um modifier em `motion` é recusado na leitura. No C++ quem garante isso é o
@@ -399,6 +399,7 @@ compilador; aqui é a leitura, porque arquivo de texto não passa por compilador
 | `Tracking` | `forca`, `duracao`, `atraso` |
 | `Wobble` | `amplitude` (graus), `frequencia`, `duracao`, `atraso` |
 | `MiraPeriodica` | `ritmo` |
+| `Amarrar` | `comprimento`, `duracao`, `sentido` (`horario` ou `antihorario`, padrão horário), `escreve` (opcional) |
 | `Accelerate` / `SlowDown` | `fator`, `atraso` |
 | `Activate` / `Deactivate` | `atraso` |
 | `PulsoDeVelocidade` | `ritmo`, `moduloInvestida`, `moduloPausa` |
@@ -416,6 +417,18 @@ casa nasce **embaixo** da cabeça que a escreveu, e sem ele seria reescrita no
 mesmo quadro. `raio` e `velocidade` zero e `escreve` ausente são recusados na
 leitura, porque cada um faria uma casa que não muda em tela. A regra de quando
 reescrever é pura e mora em `Fita.h`.
+
+**`Amarrar` é a corda da fase 1 do Luizinho** (*ligāre*, "atar"). A letra
+nasce presa ao professor por uma corda que não se vê: a corda desenrola enquanto
+ela se afasta dele, estica em `comprimento` pixels, e dali a letra **gira em
+volta do professor e vai junto** para onde ele for — o nó é procurado a cada
+quadro, e é isso que faz a amarração ser dinâmica. Passados `duracao` segundos
+esticada, a corda é cortada e a letra sai pela **tangente**, como a pedra de uma
+funda. `escreve` é a animação que ela ganha quando a corda estica. A corda nasce
+no professor, então a letra tem de ser disparada de cima dele (uma
+`CircleSpreadAttack`, por exemplo); `comprimento` e `duracao` zero e um
+`sentido` que não seja um dos dois são recusados na leitura. A conta de cada
+quadro é pura e mora em `Amarra.h`.
 
 **`Promessa` é a Promise do JavaScript.** Aos `atraso` segundos o projétil
 assenta: uma parte `resolve` deles sai em direção ao alvo a `velocidade` (e troca

@@ -12,6 +12,7 @@
 #include "Fita.h"
 #include "Flex.h"
 #include "Promessa.h"
+#include "Amarra.h"
 #include "../Random.h"
 
 void AccelerateBehavior::update(Projectile* p, float deltaTime) {
@@ -421,6 +422,31 @@ void PromessaBehavior::update(Projectile* p, const float deltaTime) {
     if (promessa && rb) rb->SetVelocity(promessa->GetPlayerDirection() * velocidade);
 
     if (!escreve.empty()) {
+        if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(escreve);
+    }
+}
+
+void AmarrarBehavior::update(Projectile* p, const float deltaTime) {
+
+    auto* rb = p->GetComponent<RigidBodyComponent>();
+    const auto* batalha = dynamic_cast<Battle*>(p->GetScene());
+    if (!rb || !batalha) { corda.cortada = true; return; }
+
+    const Vector2 letra = p->GetPosition();
+    const Boss* no = nullptr;
+    float maisPerto = 0.0f;
+    for (const Boss* corpo : batalha->Corpos()) {
+        if (!corpo) continue;
+        const float d = (corpo->GetPosition() - letra).LengthSq();
+        if (!no || d < maisPerto) { no = corpo; maisPerto = d; }
+    }
+    if (!no) { corda.cortada = true; return; }   // sem professor, a corda cai
+
+    const auto lance = Amarra::Passo(corda, letra, rb->GetVelocity(), no->GetPosition(), deltaTime);
+    p->SetPosition(lance.posicao);
+    rb->SetVelocity(lance.velocidade);
+
+    if (lance.evento == Amarra::Evento::Amarrou && !escreve.empty()) {
         if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(escreve);
     }
 }
