@@ -1,0 +1,40 @@
+{
+  // ==========================================================================
+  // OS PROJETEIS DO LUCAS (INF 321 - Programacao Web)
+  //
+  // UM TIPO PARA O FRONT, COM TRES ANIMACOES, E UM TIPO PARA O BACK.
+  //
+  //   Codigo    "Tag" (HTML, laranja), "Regra" (CSS, azul) e "Promessa"
+  //             (JavaScript, amarelo). Sao as tres camadas da mesma pagina, e
+  //             mudam de comportamento pela regra da rajada, nao pelo tipo.
+  //   Processo  o que roda no servidor (Elixir, roxo). E um tipo separado
+  //             porque vai ganhar uma propriedade de TIPO que os outros nao
+  //             tem: poder ser derrubado pelo aluno, e voltar.
+  //
+  // Cada tipo registrado custa 300 instancias no pre-aquecimento; tres
+  // animacoes do mesmo tipo custam uma vez so.
+  //
+  // Arte PROVISORIA de Ferramentas/gerar_lucas.py.
+  // ==========================================================================
+  "Codigo": {
+    "sprite": "Teachers/Projectiles/DPIBHLucasCodigo.png",
+    "dados":  "Teachers/Projectiles/DPIBHLucasCodigo.json",
+    "animacoes": {
+      "Tag":      [0, 1, 2, 3],
+      "Regra":    [4, 5, 6, 7],
+      "Promessa": [8, 9, 10, 11]
+    },
+    "animacaoInicial": "Tag",
+    "ordemDeDesenho": 90
+  },
+
+  "Processo": {
+    "sprite": "Teachers/Projectiles/DPIBHLucasCodigo.png",
+    "dados":  "Teachers/Projectiles/DPIBHLucasCodigo.json",
+    "animacoes": {
+      "Rodando": [12, 13, 14, 15]
+    },
+    "animacaoInicial": "Rodando",
+    "ordemDeDesenho": 91
+  }
+}

@@ -1,0 +1,104 @@
+{
+  // ==========================================================================
+  // AS FASES DO LUCAS (INF 321 - Programacao Web)
+  //
+  // A ORDEM DA MATERIA, e a batalha sobe por ela:
+  //
+  //   StateOne    HTML        a estrutura: caixas, uma dentro da outra
+  //   StateTwo    CSS         o arranjo: a fileira que se redistribui
+  //   StateThree  Elixir      o servidor: processos que voltam sozinhos
+  //   StateFinal  full stack  o front e o back juntos
+  //
+  // O ELIXIR E A FASE 3, E NAO A FINAL, de proposito. E o que o Lucas mais
+  // gosta, e a fase 3 e a que DECIDE a batalha ("proximo" vazio): a final so e
+  // vista por quem termina entre 40 e 59, ou com 100. Deixar o Elixir la seria
+  // esconder justamente a parte que da identidade ao chefe.
+  //
+  // ESTE E O ESQUELETO: as quatro fases ja tem o gesto e o anuncio que vao
+  // manter, mas os ATAQUES SAO PROVISORIOS, montados com as estrategias que ja
+  // existiam. Cada fase ganha a mecanica dela num commit proprio.
+  //
+  // O MOVIMENTO E O ATAQUE, como no Vladimir e no Vitor - nenhuma fase usa
+  // GoToCenter, que deixa o chefe na coluna de quem atira para cima.
+  // ==========================================================================
+
+  // FASE 1 - HTML   |   gesto: A ORBITA LENTA
+  //
+  // As caixas vao nascer EM VOLTA dele, entao ele precisa de um centro - mas um
+  // chefe parado deixa a tela morta. A orbita pequena e lenta e o meio-termo,
+  // o mesmo da fase 2 do Vitor.
+  //
+  // PROVISORIO: um anel no lugar das caixas aninhadas.
+  "StateOne": {
+    "duracao": 17,
+    "proximo": "StateTwo",
+    "anuncio": "<div><div>…</div></div>",
+    "movimento": { "tipo": "Orbitar", "a": 110, "b": 0.08 },
+    "ataques": [
+      { "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
+        "projeteis": 22, "velocidade": 200,
+        "cooldown": 1.3,
+        "regras": "html" }
+    ]
+  },
+
+  // FASE 2 - CSS   |   gesto: A VARREDURA
+  //
+  // Um layout se le da esquerda para a direita, e as fileiras precisam nascer
+  // em lugares diferentes para encher a largura.
+  //
+  // PROVISORIO: um leque no lugar da fileira que se redistribui.
+  "StateTwo": {
+    "duracao": 17,
+    "proximo": "StateThree",
+    "anuncio": "display: flex",
+    "movimento": { "tipo": "Varredura", "a": 170, "b": 150 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 9, "velocidade": 240, "angulo": 70, "intervalo": 0,
+        "cooldown": 1.1,
+        "regras": "css" }
+    ]
+  },
+
+  // FASE 3 - ELIXIR   |   gesto: A ORBITA
+  //
+  // O servidor da voltas e solta processos pelo caminho.
+  //
+  // PROVISORIO: os processos ja perseguem, mas ainda nao podem ser derrubados.
+  "StateThree": {
+    "duracao": 17,
+    "proximo": "",
+    "anuncio": "let it crash",
+    "movimento": { "tipo": "Orbitar", "a": 230, "b": 0.12 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Processo",
+        "projeteis": 5, "velocidade": 170, "angulo": 120, "intervalo": 0.08,
+        "cooldown": 1.0,
+        "regras": "processos" }
+    ]
+  },
+
+  // FASE FINAL - FULL STACK   |   gesto: A VARREDURA RAPIDA
+  //
+  // O front e o back ao mesmo tempo. So e vista por quem termina a terceira
+  // entre 40 e 59, ou com 100.
+  //
+  // PROVISORIO: o anel do HTML e os processos do Elixir juntos.
+  "StateFinal": {
+    "duracao": 17,
+    "proximo": "StateOne",
+    "anuncio": "full stack",
+    "movimento": { "tipo": "Varredura", "a": 300, "b": 110 },
+    "ataques": [
+      { "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
+        "projeteis": 18, "velocidade": 200,
+        "cooldown": 1.7,
+        "regras": "html" },
+      { "estrategia": "WaveAttack", "projetil": "Processo",
+        "projeteis": 4, "velocidade": 170, "angulo": 90, "intervalo": 0.08,
+        "cooldown": 1.3,
+        "regras": "processos" }
+    ]
+  }
+}

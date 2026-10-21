@@ -1,0 +1,26 @@
+{
+  // ==========================================================================
+  // AS REGRAS DE PROJETIL DO LUCAS
+  //
+  // Um conjunto por camada da web. Os campos estao documentados em
+  // Documentacao/arquivos-de-dados.md.
+  // ==========================================================================
+
+  // HTML: a tag vai reta. A estrutura nao corre atras de ninguem - ela ocupa
+  // espaco.
+  "html": [
+    { "animacao": "Tag" }
+  ],
+
+  // CSS: a regra tambem vai reta. O que o CSS faz e REARRANJAR o que ja esta
+  // na tela, e isso e da estrategia, nao do projetil.
+  "css": [
+    { "animacao": "Regra" }
+  ],
+
+  // ELIXIR: o processo vai atras do aluno, devagar e por bastante tempo. Um
+  // processo e leve e insistente: nao corre, mas nao desiste cedo.
+  "processos": [
+    { "motion": { "tipo": "Tracking", "atraso": 0.4, "forca": 1.2, "duracao": 3.0 } }
+  ]
+}

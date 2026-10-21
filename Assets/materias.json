@@ -117,7 +117,7 @@
     {
       "codigo": "INF321", "nome": "INF 321",
       "nomeCompleto": "Programação Web", "professor": "Lucas",
-      "coluna": 3,
+      "coluna": 3, "chefe": "lucas",
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
     {
