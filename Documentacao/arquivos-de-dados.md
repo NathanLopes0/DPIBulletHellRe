@@ -183,7 +183,7 @@ recusados na leitura, com a frase dizendo qual fase errou.
 
 | Campo | Vai para |
 |---|---|
-| `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack` |
+| `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack`, `FlexAttack` |
 | `projetil` | o nome dentro do conjunto deste professor em `projeteis.json` |
 | `projeteis` | quantos por disparo |
 | `velocidade` | px/s |
@@ -274,6 +274,26 @@ curtos), que nasce em volta do professor e cresce sem deformar. `velocidade` é 
 da meia-altura; os cantos andam mais rápido. Os ladrilhos se afastam enquanto a
 caixa cresce, então ela nasce fechada e chega ao aluno com frestas. `angulo` e
 `anguloCentral` são ignorados. Zero ou negativo nos dois campos é recusado.
+
+**`flex`**, obrigatório na `FlexAttack`:
+
+```json
+"flex": { "de": "center", "para": "space-between", "aos": 0.7, "em": 0.5,
+          "item": 44, "largura": 760 }
+```
+
+| Campo | |
+|---|---|
+| `de` / `para` | o `justify-content` em que a fileira nasce e o em que ela termina: `flex-start`, `flex-end`, `center`, `space-between` ou `space-around`. Obrigatórios |
+| `aos` | segundos de queda antes do rearranjo. Padrão 0,6 |
+| `em` | quanto dura o rearranjo, pela curva suave de uma `transition`. Padrão 0,5 |
+| `item` | a largura de cada item, em pixels. Padrão 44 |
+| `largura` | a largura do contêiner, **centrado no professor**. Padrão 760 |
+
+A `FlexAttack` solta `projeteis` itens numa fileira, na altura do professor, todos
+caindo a `velocidade`. Depois de `aos` segundos cada item escorrega até onde `para`
+o poria — as posições são as do CSS de verdade (`Flex.h`), porque o placar escreve
+o nome do valor. Um nome que o CSS não tem, ou que a fase não usa, é recusado.
 
 ---
 

@@ -24,6 +24,8 @@
 #include "BaseStrategies/ConsultaAttack.h"
 #include "BaseStrategies/CaixaAttack.h"
 #include "AttackParameters/CaixaAttackParams.h"
+#include "BaseStrategies/FlexAttack.h"
+#include "AttackParameters/FlexAttackParams.h"
 #include "BaseStrategies/CircleSpreadAttack.h"
 #include "BaseStrategies/LaserAttack.h"
 #include "BaseStrategies/WaveAttack.h"
@@ -89,6 +91,7 @@ namespace {
         if (tipo == "LaserAttack")        return std::make_unique<LaserAttack>(spawner, boss);
         if (tipo == "ConsultaAttack")     return std::make_unique<ConsultaAttack>(spawner, boss);
         if (tipo == "CaixaAttack")        return std::make_unique<CaixaAttack>(spawner, boss);
+        if (tipo == "FlexAttack")         return std::make_unique<FlexAttack>(spawner, boss);
         return nullptr;
     }
 
@@ -166,6 +169,16 @@ namespace {
             if (a.caixa && a.caixa->proporcao)         caixa->proporcao         = *a.caixa->proporcao;
             if (a.caixa && a.caixa->meiaAlturaInicial) caixa->meiaAlturaInicial = *a.caixa->meiaAlturaInicial;
             params = std::move(caixa);
+        }
+        else if (a.flex) {
+            auto flex = std::make_unique<FlexAttackParams>();
+            Flex::PeloNome(a.flex->de, flex->de);       // LerFases ja recusou nome errado
+            Flex::PeloNome(a.flex->para, flex->para);
+            if (a.flex->aos)     flex->aos     = *a.flex->aos;
+            if (a.flex->em)      flex->em      = *a.flex->em;
+            if (a.flex->item)    flex->item    = *a.flex->item;
+            if (a.flex->largura) flex->largura = *a.flex->largura;
+            params = std::move(flex);
         }
         else {
             params = std::make_unique<AttackParams>();

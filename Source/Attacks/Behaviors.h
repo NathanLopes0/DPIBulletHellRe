@@ -44,8 +44,8 @@ class ProjectileMotion : public ProjectileBehavior {
  * @brief Behavior que MODIFICA a velocidade ja existente, ou agenda quando ela
  * comeca a valer. Varios podem coexistir no mesmo projetil.
  *
- * Sao Modifier: Accelerate, SlowDown, Activate, Deactivate, PulsoDeVelocidade
- * e Reescrever.
+ * Sao Modifier: Accelerate, SlowDown, Activate, Deactivate, PulsoDeVelocidade,
+ * Reescrever e Deslocar.
  *
  * O QUE ESTA SEPARACAO GARANTE, E O QUE NAO GARANTE
  *
@@ -436,4 +436,31 @@ struct ReescreverBehavior : public ProjectileModifier {
     float velocidade, forca, duracao;
     float idade = 0.0f;
     bool reescrita = false;
+};
+
+/**
+ * @brief Desloca o projetil 'dx' pixels na horizontal, comecando em 'atraso' e
+ * levando 'duracao' segundos, pela curva suave de uma transition do CSS.
+ *
+ * E a transicao de justify-content da FlexAttack: cada item da fileira escorrega
+ * de onde o primeiro arranjo o pos ate onde o segundo o poe.
+ *
+ * MEXE NA POSICAO, E NAO NA VELOCIDADE. Somar uma velocidade horizontal por
+ * 'duracao' segundos erraria o destino em ate um quadro de cada lado - a
+ * fileira chegaria torta, e um arranjo torto nao se le como arranjo. Aqui cada
+ * quadro aplica so o que falta para a posicao da curva (Flex::Progresso), entao
+ * o total e exatamente 'dx', e a queda - que e da velocidade - segue intacta.
+ */
+struct DeslocarBehavior : public ProjectileModifier {
+
+    DeslocarBehavior(float atraso, float duracao, float dx)
+        : atraso(atraso), duracao(duracao), dx(dx) {}
+
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return terminou; }
+
+    float atraso, duracao, dx;
+    float t = 0.0f;
+    float jaDeslocado = 0.0f;
+    bool terminou = false;
 };

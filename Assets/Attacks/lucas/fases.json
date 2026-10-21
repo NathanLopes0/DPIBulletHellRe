@@ -60,20 +60,36 @@
     ]
   },
 
-  // FASE 2 - CSS   |   gesto: A VARREDURA
+  // FASE 2 - CSS: O FLEXBOX   |   gesto: A VARREDURA
   //
-  // Um layout se le da esquerda para a direita, e as fileiras precisam nascer
-  // em lugares diferentes para encher a largura.
+  // O CSS nao cria nada, ele REARRANJA. Cada disparo e uma fileira de 8 regras
+  // que nasce arrumada de um jeito e cai reta; aos 0,7s de queda, em 0,5s, cada
+  // uma escorrega ate onde o outro justify-content a poria (FlexAttack). A
+  // fileira junta no meio ("center") se abre ate as bordas ("space-between"),
+  // e a seguinte faz o caminho de volta - quem alterna e Lucas::
+  // CustomizeAttackParams, porque depende da fileira anterior.
   //
-  // PROVISORIO: um leque no lugar da fileira que se redistribui.
+  // O LUGAR SEGURO TROCA NO MEIO DA QUEDA: com a fileira junta, as laterais
+  // estao livres; depois que ela se abre, o livre e o vao entre duas regras. E
+  // O PLACAR ESCREVE A REGRA DE CADA FILEIRA ("justify-content: center") no
+  // instante em que ela sai - os 0,7s antes do rearranjo sao o tempo de ler.
+  //
+  // O CONTEINER E A DIV DELE, 760px centrados no chefe: e por isso que a
+  // varredura importa - cada fileira cai num lugar diferente da largura.
+  //
+  // 8 REGRAS A 220 px/s, A CADA 1,1s, foi a que manteve a fase no peso do
+  // esqueleto. Medido nesta fase (persegue / parado / vai e vem): o leque
+  // provisorio dava 3 / 5 / 5, e esta da 2 / 5 / 4. Com 10 regras foi a 4 / 6 / 5;
+  // mais rapida (260 px/s a cada 0,9s), a 6 / 4 / 4.
   "StateTwo": {
     "duracao": 17,
     "proximo": "StateThree",
     "anuncio": "display: flex",
     "movimento": { "tipo": "Varredura", "a": 170, "b": 150 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 9, "velocidade": 240, "angulo": 70, "intervalo": 0,
+      { "estrategia": "FlexAttack", "projetil": "Codigo",
+        "projeteis": 8, "velocidade": 220,
+        "flex": { "de": "center", "para": "space-between", "aos": 0.7, "em": 0.5 },
         "cooldown": 1.1,
         "regras": "css" }
     ]

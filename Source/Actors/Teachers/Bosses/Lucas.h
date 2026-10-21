@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../Boss.h"
+#include "../../../Attacks/Flex.h"
 
 /**
  * @class Lucas
@@ -32,4 +33,19 @@ public:
 
 protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
+
+private:
+    /**
+     * Quantas fileiras do flexbox ja sairam. A fase 2 ALTERNA: as pares vao do
+     * arranjo do arquivo ("de" para "para"), as impares fazem o caminho de volta.
+     * E a unica coisa que fases.json nao guarda - depende da rajada anterior.
+     */
+    int mFileirasDoFlex = 0;
+
+    /// O "de" e o "para" que o arquivo pediu, guardados no primeiro disparo.
+    /// GUARDADOS, e nao relidos: o params e o mesmo objeto a cada disparo, e
+    /// depois da primeira troca ele ja nao diz o que o arquivo disse (Boss.h).
+    bool mGuardouOFlex = false;
+    Flex::Justificar mDeDoArquivo = Flex::Justificar::Centro;
+    Flex::Justificar mParaDoArquivo = Flex::Justificar::EspacoEntre;
 };

@@ -10,6 +10,7 @@
 #include "../Scenes/Battle/Battle.h"
 #include "../Actors/Teachers/Boss.h"
 #include "Fita.h"
+#include "Flex.h"
 
 void AccelerateBehavior::update(Projectile* p, float deltaTime) {
     if (auto bossProj = dynamic_cast<BossProjectile*>(p)) {
@@ -387,4 +388,15 @@ void ReescreverBehavior::update(Projectile* p, const float deltaTime) {
     if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(escreve);
 
     reescrita = true;
+}
+
+void DeslocarBehavior::update(Projectile* p, const float deltaTime) {
+    t += deltaTime;
+
+    const float alvo = dx * Flex::Progresso(t, atraso, duracao);
+    const Vector2 pos = p->GetPosition();
+    p->SetPosition(Vector2(pos.x + (alvo - jaDeslocado), pos.y));
+    jaDeslocado = alvo;
+
+    if (t >= atraso + duracao) terminou = true;
 }

@@ -804,3 +804,39 @@ TEST_CASE("Fases: uma caixa de lado zero e recusada, e o bloco em outra estrateg
     for (const auto& p : fora.problemas) if (p.find("so a CaixaAttack") != std::string::npos) avisou = true;
     CHECK(avisou);
 }
+
+// ---------------------------------------------------------------------------
+// O flexbox do CSS
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Fases: a FlexAttack le o bloco flex com nomes do CSS") {
+    const auto lidas = LerFases(ComAtaque(R"({ "estrategia": "FlexAttack", "projetil": "P",
+        "flex": { "de": "center", "para": "space-between", "aos": 0.7, "em": 0.5 } })"));
+    CHECK(lidas.problemas.empty());
+    for (const auto& f : lidas.fases) {
+        if (f.nome != "StateOne") continue;
+        REQUIRE(f.ataques.size() == 1);
+        REQUIRE(f.ataques[0].flex.has_value());
+        CHECK(f.ataques[0].flex->de == "center");
+        CHECK(f.ataques[0].flex->para == "space-between");
+        CHECK(*f.ataques[0].flex->aos == doctest::Approx(0.7f));
+    }
+}
+
+TEST_CASE("Fases: uma FlexAttack sem bloco, ou com um valor que o CSS nao tem, e recusada") {
+
+    // O placar escreve o nome do valor, e quem estudou a materia vai ler: um
+    // nome inventado ensinaria CSS errado. "space-evenly" existe no CSS, mas
+    // nao nesta fase - e recusado tambem, para ninguem achar que ele funciona.
+    for (const char* ataque : {
+             R"({ "estrategia": "FlexAttack", "projetil": "P" })",
+             R"({ "estrategia": "FlexAttack", "projetil": "P", "flex": { "de": "centro", "para": "center" } })",
+             R"({ "estrategia": "FlexAttack", "projetil": "P", "flex": { "de": "center", "para": "space-evenly" } })",
+             R"({ "estrategia": "FlexAttack", "projetil": "P", "flex": { "de": "center", "para": "center", "item": 0 } })" }) {
+        CAPTURE(ataque);
+        const auto lidas = LerFases(ComAtaque(ataque));
+        bool reclamou = false;
+        for (const auto& p : lidas.problemas) if (p.find("flex") != std::string::npos) reclamou = true;
+        CHECK(reclamou);
+    }
+}

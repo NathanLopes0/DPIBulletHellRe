@@ -7,12 +7,13 @@
 #include "../Tabela.h"
 
 #include "../JsonDeDados.h"
+#include "Flex.h"
 
 namespace {
 
     const std::vector<std::string> kEstrategias = {
         "AngledAttack", "CircleSpreadAttack", "WaveAttack", "BaloonAttack", "LaserAttack", "ConsultaAttack",
-        "CaixaAttack"
+        "CaixaAttack", "FlexAttack"
     };
     const std::vector<std::string> kMovimentos = {
         "RandomWander", "HoverAbovePlayer", "GoToCenter",
@@ -409,6 +410,47 @@ namespace {
                 }
                 saida.caixa = c;
             }
+        }
+
+        // --- bloco de flex (obrigatorio na FlexAttack) ---
+        const bool ehFlex = (saida.estrategia == "FlexAttack");
+        if (j.contains("flex")) {
+            if (!ehFlex) {
+                problemas.emplace_back(onde + "so a FlexAttack usa \"flex\"; o bloco foi ignorado");
+            }
+            else {
+                const auto& fj = j["flex"];
+                DescricaoDeFlex f;
+                if (fj.is_object()) {
+                    f.de      = Texto(fj, "de");
+                    f.para    = Texto(fj, "para");
+                    f.aos     = Opcional(fj, "aos");
+                    f.em      = Opcional(fj, "em");
+                    f.item    = Opcional(fj, "item");
+                    f.largura = Opcional(fj, "largura");
+                }
+                Flex::Justificar lixo{};
+                if (!fj.is_object() || !Flex::PeloNome(f.de, lixo) || !Flex::PeloNome(f.para, lixo)) {
+                    problemas.emplace_back(onde + "\"flex\" precisa de \"de\" e \"para\" com nomes "
+                                                  "de justify-content: flex-start, flex-end, center, "
+                                                  "space-between ou space-around");
+                    return false;
+                }
+                if ((f.aos && *f.aos < 0.0f) || (f.em && *f.em < 0.0f)
+                    || (f.item && *f.item <= 0.0f) || (f.largura && *f.largura <= 0.0f)) {
+                    problemas.emplace_back(onde + "\"flex\": \"aos\" e \"em\" nao podem ser "
+                                                  "negativos, e \"item\" e \"largura\" precisam ser "
+                                                  "maiores que zero");
+                    return false;
+                }
+                saida.flex = f;
+            }
+        }
+        else if (ehFlex) {
+            problemas.emplace_back(onde + "um ataque FlexAttack precisa do bloco \"flex\" com "
+                                          "\"de\" e \"para\": sem eles a fileira nao sabe como "
+                                          "nascer nem como terminar");
+            return false;
         }
 
         return true;
