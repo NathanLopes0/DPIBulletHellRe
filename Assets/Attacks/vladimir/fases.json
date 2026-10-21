@@ -99,10 +99,33 @@
   // A VARREDURA CONTINUA IMPORTANDO, so que entre palavras e nao dentro de
   // uma: com cooldown 3,0 e 170 px/s, duas palavras seguidas nascem a 510
   // pixels uma da outra, e e isso que enche a largura.
+  //
+  // E O PROGRAMA DE INTERCAMBIO MORA AQUI. O Vladimir e professor de linguagens
+  // nos dois sentidos, e o outro sentido - a diretoria de Relacoes
+  // Internacionais - vira mecanica nesta fase: aos 8s e aos 16s os alunos
+  // trocam de lugar (sozinho, o aluno vai para o espelho). E aqui porque esta
+  // e a fase do ir e voltar: a varredura vai e volta, a palavra vai em "a" e
+  // volta em "b", e um intercambio e uma ida com volta marcada.
+  //
+  // O AVISO E DE 1,5s, com o placar escrevendo "Programa de Intercambio" e um
+  // contorno onde cada um vai cair. E tempo de ler as duas coisas e de andar
+  // ate um destino melhor, que e o que o espelho deixa fazer sozinho.
+  //
+  // NAO E UM BOTAO DE DIFICULDADE, e foi medido para nao ser: com e sem a
+  // troca, na batalha inteira, o piloto que persegue fica em 74,5 contra 73,6
+  // (11 acertos contra 12), o que vai e vem toma 15 nos dois casos, e a dupla
+  // que vai e vem toma 31 nos dois. Nenhum piloto foi atingido no segundo
+  // seguinte a uma troca. O que a troca faz e desarrumar: os "b" que ja
+  // estavam perseguindo um aluno continuam atras do mesmo aluno, que agora
+  // esta do outro lado.
+  //
+  // O ALUNO PARADO NO MEIO NAO SAI DO LUGAR: o espelho de x = 600 e 600. O
+  // piloto parado tomou os mesmos acertos com e sem intercambio.
   "StateTwo": {
     "duracao": 17,
     "proximo": "StateThree",
     "anuncio": "aⁿbⁿ",
+    "intercambio": { "aCada": 8, "aviso": 1.5 },
     "movimento": { "tipo": "Varredura", "a": 170, "b": 150 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Simbolo",
