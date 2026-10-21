@@ -32,10 +32,12 @@
 # qualquer chefe.
 #
 # ESTADO NA ULTIMA MEDICAO: sete dos oito reprovam o piloto parado. O Salles
-# ainda passa (nota 91), e a causa esta identificada: tres das quatro fases
-# dele usam GoToCenter, entao ele para na coluna do meio e leva 309 tiros de
-# graca. E o mesmo defeito que a primeira versao do Vladimir tinha, e a cura
-# tambem e a mesma - dar um gesto a cada fase. Esta registrado em a-fazer.md.
+# ainda passa (nota 80,70, com 15 acertos sofridos e 309 dados), e a causa esta
+# identificada: tres das quatro fases dele usam GoToCenter, entao ele para na
+# coluna do meio e leva os tiros de graca. E o mesmo defeito que a primeira
+# versao do Vladimir tinha, e a cura tambem e a mesma - dar um gesto a cada
+# fase. O gesto candidato de cada uma esta no cabecalho de
+# Assets/Attacks/salles/fases.json.
 
 set -uo pipefail
 S="$(cd "$(dirname "$0")/.." && pwd)"

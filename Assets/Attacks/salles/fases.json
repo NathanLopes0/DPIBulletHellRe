@@ -29,6 +29,27 @@
   //   anguloCentral pode ser SOBRESCRITO pelo chefe em tempo de execucao, no
   //   CustomizeAttackParams dele - e o unico pedaco do balanceamento que ainda
   //   vive em C++. Onde isso acontece esta anotado na fase.
+  //
+  // ---- EM ABERTO: O JOGADOR PARADO APROVA AQUI ----------------------------
+  //
+  // Ferramentas/parado-reprova.sh: sete chefes reprovam o piloto que nao se
+  // mexe, e o Salles o aprova com 80,70 - 15 acertos sofridos e 309 dados, o
+  // maior numero de acertos dados entre os oito. A causa e o GoToCenter das
+  // fases 1, 3 e final: parado no meio da tela, ele fica na coluna de quem
+  // atira para cima, e a nota sobe sozinha.
+  //
+  // A cura e a mesma do Vladimir, dar um gesto a cada fase - e aqui o gesto tem
+  // o que dizer, porque cada fase e uma estrutura de dados:
+  //
+  //   fase 1      lista encadeada     varredura - a travessia tem direcao
+  //   fase 2      lista dupla         varredura que INVERTE - ida e volta
+  //   fase 3      arvore binaria      mergulho - a profundidade e o nivel
+  //   final       lista circular      orbita - o laco que fecha
+  //
+  // ANTES DE MEXER: a rede de regressao quadro a quadro (provaigual.sh, fora
+  // do repositorio) roda a BATALHA 0, QUE E A DO ANDRE - nao a do Salles, por
+  // mais que comentarios antigos digam o contrario. O Salles nao tem rede:
+  // grave uma referencia da batalha 1 antes de mexer no balanceamento dele.
   // ==========================================================================
 
   // FASE 1 - LISTA ENCADEADA SIMPLES, e ela vai rapido.
@@ -74,6 +95,13 @@
   // O cooldown 3,6 cobre o ciclo inteiro (0,85 ate o caminho + 0,75 de ida + 0,8
   // parado + a volta). Mais curto que isso e uma fila nova sai enquanto a
   // anterior ainda esta voltando, e as duas se cruzam em sentidos opostos.
+  //
+  // ATENCAO: OS DOIS PARAGRAFOS ACIMA ENVELHECERAM e nao foram corrigidos,
+  // porque nao da para saber sem jogar qual lado esta certo. O "atraso" em
+  // regras.json ("lista_dupla") e 1,2, e nao 0,85, e o cooldown abaixo e 1,2, e
+  // nao 3,6 - entao as filas se cruzam, e pode ter sido de proposito. A regra
+  // critica continua valendo (1,2 > 0,70, e ha teste exigindo). A conta de
+  // 332px em Assets/Paths/formas.json tambem saiu do 0,85.
   "StateTwo": {
     "duracao": 17,
     "proximo": "StateThree",

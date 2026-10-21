@@ -126,8 +126,9 @@ derruba o jogo no meio do corredor.
 
 ## O que ainda falta
 
-Está em `a-fazer.md`, na seção *Gabinete*: a recuperação se o jogo cair. É
-script de sistema, não código — um laço que reabre.
+A recuperação se o jogo cair. Nada desta página adianta se um `crash` deixa a
+área de trabalho à vista até alguém passar no corredor. É script de sistema, não
+código — um laço que reabre.
 
 ---
 

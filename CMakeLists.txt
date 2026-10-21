@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(DPIBulletHellRe Source/main.cpp
         Source/Game.cpp
         Source/Game.h
-        Source/CSV.h
         Source/Json.h
         Source/JsonDeDados.h
         Source/Scenes/Scene.cpp
