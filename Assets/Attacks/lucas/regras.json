@@ -34,6 +34,6 @@
   // ELIXIR: o processo vai atras do aluno, devagar e por bastante tempo. Um
   // processo e leve e insistente: nao corre, mas nao desiste cedo.
   "processos": [
-    { "motion": { "tipo": "Tracking", "atraso": 0.4, "forca": 1.2, "duracao": 3.0 } }
+    { "motion": { "tipo": "Tracking", "atraso": 0.4, "forca": 2.2, "duracao": 3.6 } }
   ]
 }

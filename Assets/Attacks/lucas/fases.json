@@ -90,7 +90,7 @@
       { "estrategia": "FlexAttack", "projetil": "Codigo",
         "projeteis": 8, "velocidade": 220,
         "flex": { "de": "center", "para": "space-between", "aos": 0.7, "em": 0.5 },
-        "cooldown": 1.1,
+        "cooldown": 0.8,
         "regras": "css" }
     ]
   },
@@ -124,8 +124,8 @@
     "movimento": { "tipo": "Orbitar", "a": 230, "b": 0.12 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Processo",
-        "projeteis": 4, "velocidade": 170, "angulo": 120, "intervalo": 0.08,
-        "cooldown": 0.8,
+        "projeteis": 4, "velocidade": 270, "angulo": 120, "intervalo": 0.08,
+        "cooldown": 0.6,
         "regras": "processos" }
     ]
   },
