@@ -30,9 +30,9 @@
   // quadro do canto de cima enquanto a fase dura: e ali que "ele anuncia" deixa
   // de ser so uma frase deste arquivo. Nas duas primeiras e a LINGUAGEM, e cada
   // rajada e uma palavra dela - dez simbolos alternados sao (ab)^5, que esta em
-  // (ab)*; seis ambar e seis azuis sao a^6 b^6, que esta em a^n b^n. Na
-  // terceira, que e uma maquina e nao uma linguagem, e o que ela FAZ com cada
-  // letra; na final, uma transicao que serve de emblema (ver a fase).
+  // (ab)*; seis ambar e seis azuis sao a^6 b^6, que esta em a^n b^n. Nas duas
+  // ultimas, que sao maquinas e nao linguagens, e o que a maquina FAZ com cada
+  // letra: a pilha guarda o "a" e solta o "b", e a fita le "a" e escreve "b".
   //
   // O TEXTO E UTF-8 E SAI NA CARLITO, e nao na Zelda das outras telas: a Zelda
   // nao tem "*" nem "^". Por isso o arquivo pode escrever "aⁿbⁿ" com os
@@ -162,21 +162,33 @@
 
   // FASE FINAL - MAQUINA DE TURING   |   gesto: A FITA
   //
-  // A cabeca de leitura varre a fita, e a varredura e mais rapida e mais baixa
-  // que a da fase 2: a fita final nao e lida com calma.
+  // A MAQUINA DE TURING E O UNICO NIVEL DA HIERARQUIA QUE LE E ESCREVE, e a
+  // fase faz as duas coisas com a mesma fileira de simbolos.
   //
-  // DUAS CAMADAS, porque a maquina de Turing e o unico nivel da hierarquia que
-  // LE E ESCREVE. A primeira escreve na passagem (a fileira que ele deixa); a
-  // segunda e um leque largo que relê o que ficou, e e o que fecha o campo.
+  // ESCREVE NA IDA. O chefe varre a 330 px/s e solta um "a" reto para baixo a
+  // cada 0,2s; cada um freia em 0,79s (ver "fita" em regras.json) e fica numa
+  // fileira em y = 379 (medido: as 74 casas da fase frearam ali), uma casa a
+  // cada 66 pixels. O que se ve e a cabeca deixando a fita escrita atras dela.
   //
-  // Os cooldowns sao PRIMOS ENTRE SI de proposito (1,0 e 1,7): as duas camadas
-  // nunca repetem a mesma sobreposicao, e a fase nao cai num compasso que da
-  // para decorar.
+  // REESCREVE NA VOLTA. Quando a varredura traz a cabeca de novo por cima de uma
+  // casa, ela a le e a reescreve: o "a" parado vira "b" e sai atras do aluno. E
+  // a transicao do placar, delta(q, a) = (q, b, ->). Medido em 17s: das 74
+  // casas que pararam na fileira, 59 foram reescritas, com idade mediana de
+  // 3,6s e maxima de 5,9s - a cabeca leva ate uma volta inteira da varredura
+  // para voltar a cada lugar. As 15 que sobram sao as dos ultimos segundos.
   //
-  // O ANEL TEM 20 SIMBOLOS, e aqui tambem nao ha "angulo": CircleSpreadAttack
-  // sempre faz a volta inteira (ver a nota na fase 3). Com 20, a abertura entre
-  // vizinhos e de 18 graus - uma parede com portas, que e o que um anel
-  // deveria ser.
+  // UMA CAMADA SO, E NAO DUAS COMO ANTES. Testei a fita (uma casa a cada 0,3s)
+  // junto com o (ab)* que esta fase tinha: os acertos somados dos tres pilotos
+  // voltavam aos 18 da fase antiga, mas na foto a fileira se perdia no meio das
+  // rajadas, e a fita e o que a fase tem para ser lido. Sozinha, com 0,3s ela
+  // da 12; com uma casa a cada 0,2s, 14:
+  //
+  //                    parado   persegue   vai e vem
+  //     fase antiga       6         5          7
+  //     fita, 0,2s        8         3          3
+  //
+  // E A TROCA E BOA: quem fica parado apanha mais, porque as casas reescritas
+  // vao atras de quem nao sai do lugar, e quem anda apanha menos.
   //
   // ESTA FASE SO E VISTA POR QUEM ESTA ENTRE 40 E 59 no fim da terceira.
   // StateThree tem "proximo" vazio, entao a batalha e DECIDIDA ali: quem passou
@@ -184,10 +196,8 @@
   // passado duas medicoes rotulando quadros como "StateFinal" numa fase que
   // nunca rodou.
   //
-  // O ANUNCIO E UMA TRANSICAO DE MAQUINA DE TURING - le "a", escreve "b", anda
-  // para a direita -, o emblema do nivel. Ele NAO descreve os dois ataques
-  // desta fase; a fase da fita lida e reescrita ainda nao existe, e quando
-  // existir este texto deve passar a dizer o que ela faz.
+  // O ANUNCIO E A TRANSICAO QUE A FITA EXECUTA: le "a", escreve "b", e a cabeca
+  // segue andando.
   "StateFinal": {
     "duracao": 17,
     "proximo": "StateOne",
@@ -195,12 +205,9 @@
     "movimento": { "tipo": "Varredura", "a": 330, "b": 110 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Simbolo",
-        "projeteis": 6, "velocidade": 300, "angulo": 20, "intervalo": 0.05,
-        "cooldown": 1.0,
-        "regras": "kleene" },
-      { "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
-        "projeteis": 20, "velocidade": 200,
-        "cooldown": 1.7,
+        "projeteis": 1, "velocidade": 300, "angulo": 0, "anguloCentral": 90,
+        "intervalo": 0,
+        "cooldown": 0.2,
         "regras": "fita" }
     ]
   }
