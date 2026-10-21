@@ -33,6 +33,10 @@ void BossProjectile::Reset() {
     // mesma razao da escala e da animacao. Uma regra que desliga o giro vale
     // para aquele disparo, e nao para sempre.
     mRotacionarComAVelocidade = mRotacaoPadrao;
+
+    // A BLINDAGEM TAMBEM E DO DISPARO: quem a poe e a CapsulaAttack, e quem a
+    // tira e a capsula abrindo. A que morreu fechada voltaria blindada.
+    mBlindado = false;
 }
 
 void BossProjectile::OnUpdate(float deltaTime)

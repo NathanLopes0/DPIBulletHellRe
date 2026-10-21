@@ -67,16 +67,32 @@
 
   // FASE 2 - ENCAPSULAMENTO   |   gesto: A ORBITA
   //
-  // PROVISORIO: um anel de capsulas fechadas, que ainda nao abrem.
+  // As letras viajam DENTRO de uma capsa, o estojo dos rolos de onde vem
+  // "capsula". O de fora nao alcanca o de dentro:
+  //
+  //   - a capsula voa para onde o aluno estava no disparo, e fechada ela e
+  //     BLINDADA: o tiro do aluno some nela e nao chega ao professor. Como ela
+  //     desce pela mesma linha em que o tiro sobe, quem fica embaixo do
+  //     professor perde tiros para ela;
+  //   - ela so abre por dentro, no tempo dela, num anel de letras de pedra -
+  //     e uma das letras do anel segue para onde a capsula ia.
+  //
+  // A PRIMEIRA VERSAO ERA CRUEL, e o numero que mostrou foi a batalha inteira:
+  // 12 letras a 260 px/s, a cada 1,3s, abrindo aos 1,1s. A capsula abria quase
+  // em cima do aluno, comia 81 tiros do piloto que persegue, e ele caiu de 70,5
+  // para 14,0, reprovado no exame. Abrindo aos 0,8s o anel chega ao aluno ja
+  // largo; com 10 letras, a 240 e a cada 1,5s, ela come 67 tiros dele (6 do que
+  // vai e vem, que quase nunca esta embaixo do professor) e ele passa com 66,3.
   "StateTwo": {
     "duracao": 17,
     "proximo": "StateThree",
     "anuncio": "in capsulā · na caixinha",
     "movimento": { "tipo": "Orbitar", "a": 160, "b": 0.1 },
     "ataques": [
-      { "estrategia": "CircleSpreadAttack", "projetil": "Letra",
-        "projeteis": 16, "velocidade": 190,
-        "cooldown": 1.2,
+      { "estrategia": "CapsulaAttack", "projetil": "Letra",
+        "projeteis": 10, "velocidade": 240,
+        "cooldown": 1.5,
+        "capsula": { "abre": 0.8, "velocidade": 150, "escreve": "Estatica" },
         "regras": "capsula" }
     ]
   },

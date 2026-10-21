@@ -87,6 +87,16 @@ struct DescricaoDeCaixa {
 };
 
 /**
+ * @brief Os campos que SO a CapsulaAttack usa. Opcional, como o da caixa: todo
+ * campo tem padrao em CapsulaAttackParams.
+ */
+struct DescricaoDeCapsula {
+    std::optional<float> abre;         ///< segundos fechada
+    std::optional<float> velocidade;   ///< o modulo das letras depois de aberta
+    std::string escreve;               ///< a animacao delas depois de aberta
+};
+
+/**
  * @brief Os campos que SO a FlexAttack usa.
  *
  * "de" e "para" sao OBRIGATORIOS e tem de ser nomes de justify-content do CSS
@@ -170,6 +180,9 @@ struct DescricaoDeAtaque {
 
     /// Presente somente nos ataques FlexAttack.
     std::optional<DescricaoDeFlex> flex;
+
+    /// Presente so nos ataques CapsulaAttack que escreveram o bloco.
+    std::optional<DescricaoDeCapsula> capsula;
 };
 
 /// @brief O lado nomeado existe? (Down, Left, Right, Up - nunca None)

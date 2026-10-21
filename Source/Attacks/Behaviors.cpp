@@ -450,3 +450,16 @@ void AmarrarBehavior::update(Projectile* p, const float deltaTime) {
         if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(escreve);
     }
 }
+
+void AbrirCapsulaBehavior::update(Projectile* p, const float deltaTime) {
+    t += deltaTime;
+    if (t < atraso) return;
+    aberta = true;
+
+    if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(velocidade);
+    if (auto* letra = dynamic_cast<BossProjectile*>(p)) letra->DefinirBlindado(false);
+    p->SetScale(escala);
+    if (!escreve.empty()) {
+        if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(escreve);
+    }
+}

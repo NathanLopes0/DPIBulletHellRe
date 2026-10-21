@@ -181,7 +181,7 @@ recusados na leitura, com a frase dizendo qual fase errou.
 
 | Campo | Vai para |
 |---|---|
-| `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack`, `FlexAttack` |
+| `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack`, `FlexAttack`, `CapsulaAttack` |
 | `projetil` | o nome dentro do conjunto deste professor em `projeteis.json` |
 | `projeteis` | quantos por disparo |
 | `velocidade` | px/s |
@@ -292,6 +292,28 @@ A `FlexAttack` solta `projeteis` itens numa fileira, na altura do professor, tod
 caindo a `velocidade`. Depois de `aos` segundos cada item escorrega até onde `para`
 o poria — as posições são as do CSS de verdade (`Flex.h`), porque o placar escreve
 o nome do valor. Um nome que o CSS não tem, ou que a fase não usa, é recusado.
+
+**`capsula`**, opcional na `CapsulaAttack`:
+
+```json
+"capsula": { "abre": 0.8, "velocidade": 150, "escreve": "Estatica" }
+```
+
+| Campo | |
+|---|---|
+| `abre` | segundos de voo fechada. Padrão 1,1 |
+| `velocidade` | o módulo das letras depois de aberta. Padrão 150 |
+| `escreve` | a animação delas depois de aberta. Sem ela, continuam com a cara da casca |
+
+A `CapsulaAttack` é o encapsulamento do Luizinho (*in capsulā*, "na caixinha"):
+as `projeteis` letras nascem **empilhadas**, voando juntas a `velocidade` para
+`anguloCentral`, e a pilha se lê como uma capsula só. Fechada ela é
+**blindada**: o tiro do aluno some nela, sem derrubá-la e sem chegar ao
+professor. Aos `abre` segundos ela abre num anel igualmente espaçado, medido a
+partir do voo — a primeira letra segue em frente —, e cada letra troca para
+`escreve` e volta ao tamanho de fábrica (a regra da rajada pode aumentar a
+casca com `escala`). A geometria está em `Capsula.h`. `angulo` é ignorado;
+`abre` e `velocidade` zero são recusados.
 
 ---
 

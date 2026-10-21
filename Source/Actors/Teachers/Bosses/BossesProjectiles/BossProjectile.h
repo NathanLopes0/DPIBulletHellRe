@@ -101,6 +101,16 @@ public:
     /// DescricaoDeProjetil::derrubavel. Propriedade do TIPO, como a corrente.
     void DefinirDerrubavel(const bool derrubavel) { mDerrubavel = derrubavel; }
     [[nodiscard]] bool Derrubavel() const { return mDerrubavel; }
+    /// @brief O tiro do aluno SOME neste projetil, sem derruba-lo e sem chegar
+    /// ao chefe? E a capsula fechada do Luizinho (CapsulaAttack): o de fora nao
+    /// alcanca o de dentro.
+    ///
+    /// Ao contrario do derrubavel, e do DISPARO, e nao do tipo: a mesma letra
+    /// deixa de ser blindada quando a capsula abre. Por isso volta a falso no
+    /// Reset - uma capsula que morreu fechada nao pode emprestar a blindagem a
+    /// letra que sair do pool no ataque seguinte.
+    void DefinirBlindado(const bool blindado) { mBlindado = blindado; }
+    [[nodiscard]] bool Blindado() const { return mBlindado; }
     [[nodiscard]] float SegundosDeCorrente() const { return mSegundosDeCorrente; }
     [[nodiscard]] float FatorDaCorrente() const { return mFatorDaCorrente; }
     [[nodiscard]] float MultiplicadorDaPerda() const { return mMultiplicadorDaPerda; }
@@ -141,6 +151,9 @@ protected:
 
     /// Ver DefinirDerrubavel. Do tipo, como a corrente: nao volta no Reset.
     bool mDerrubavel = false;
+
+    /// Ver DefinirBlindado. Do disparo: volta a falso no Reset.
+    bool mBlindado = false;
 
     /// O valor com que a fabrica construiu este projetil. Ver
     /// MarcarPadraoDeFabrica.

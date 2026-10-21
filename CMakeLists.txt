@@ -142,6 +142,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Promessa.h
         Source/Attacks/Amarra.cpp
         Source/Attacks/Amarra.h
+        Source/Attacks/Capsula.cpp
+        Source/Attacks/Capsula.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
@@ -221,6 +223,9 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/BaseStrategies/FlexAttack.cpp
         Source/Attacks/BaseStrategies/FlexAttack.h
         Source/Attacks/AttackParameters/FlexAttackParams.h
+        Source/Attacks/BaseStrategies/CapsulaAttack.cpp
+        Source/Attacks/BaseStrategies/CapsulaAttack.h
+        Source/Attacks/AttackParameters/CapsulaAttackParams.h
         Source/Attacks/BaseStrategies/LaserAttack.h
         Source/Actors/ProjectilePool.h
 )
@@ -257,6 +262,7 @@ add_executable(dpi_tests
         tests/test_flex.cpp
         tests/test_promessa.cpp
         tests/test_amarra.cpp
+        tests/test_capsula.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -326,6 +332,8 @@ add_executable(dpi_tests
         Source/Attacks/Promessa.h
         Source/Attacks/Amarra.cpp
         Source/Attacks/Amarra.h
+        Source/Attacks/Capsula.cpp
+        Source/Attacks/Capsula.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp

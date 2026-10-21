@@ -827,20 +827,26 @@ void Battle::CheckCollisions() {
     //
     // QUEM E AVISADO E O CORPO ORIGINAL (mBoss), e nao o dono do projetil: o
     // supervisor e um so, e o dono pode ser um clone que ja deixou de existir.
+    //
+    // O BLINDADO CAI NA MESMA REGRA, pela mesma razao de ordem, e so o tiro
+    // some: e a capsula fechada do Luizinho, que o aluno nao abre de fora.
     for (const auto &playerProj: playerProjectiles) {
         if (playerProj->GetState() != ActorState::Active) continue;
         const auto *tiro = playerProj->GetComponent<CircleColliderComponent>();
         if (!tiro) continue;
 
         for (const auto &bossProj: bossProjectiles) {
-            if (bossProj->GetState() != ActorState::Active || !bossProj->Derrubavel()) continue;
+            if (bossProj->GetState() != ActorState::Active) continue;
+            if (!bossProj->Derrubavel() && !bossProj->Blindado()) continue;
             const auto *alvo = bossProj->GetComponent<CircleColliderComponent>();
             if (!alvo || !alvo->Intersect(*tiro)) continue;
 
-            bossProj->OnCollision(playerProj.get());
             playerProj->OnCollision(bossProj.get());
-            if (mBoss) mBoss->OnProjetilDerrubado();
-            break;   // um tiro derruba um processo so
+            if (bossProj->Derrubavel()) {
+                bossProj->OnCollision(playerProj.get());
+                if (mBoss) mBoss->OnProjetilDerrubado();
+            }
+            break;   // um tiro derruba um processo so, ou some numa capsula so
         }
     }
 

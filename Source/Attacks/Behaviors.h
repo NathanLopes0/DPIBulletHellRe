@@ -46,7 +46,7 @@ class ProjectileMotion : public ProjectileBehavior {
  * comeca a valer. Varios podem coexistir no mesmo projetil.
  *
  * Sao Modifier: Accelerate, SlowDown, Activate, Deactivate, PulsoDeVelocidade,
- * Reescrever, Deslocar e Promessa.
+ * Reescrever, Deslocar, Promessa e AbrirCapsula.
  *
  * O QUE ESTA SEPARACAO GARANTE, E O QUE NAO GARANTE
  *
@@ -495,6 +495,32 @@ struct PromessaBehavior : public ProjectileModifier {
     std::string escreve;
     float t = 0.0f;
     bool assentou = false;
+};
+
+/**
+ * @brief A CAPSULA QUE ABRE: aos 'atraso' segundos a letra sai da pilha com a
+ * velocidade dela no anel, troca para a animacao 'escreve', volta a 'escala' e
+ * deixa de ser blindada.
+ *
+ * 'escala' e o tamanho da letra de dentro: a casca pode ser maior (a regra da
+ * rajada a aumenta), e o que sai dela tem o tamanho de fabrica - quem passa a
+ * escala e a CapsulaAttack, lida antes de a regra mexer nela.
+ *
+ * Quem a poe e a CapsulaAttack, uma por letra, cada uma com a sua velocidade
+ * de Capsula::Abertura. Nao vai para regras.json: abrir sem a pilha e a
+ * blindagem que a estrategia monta nao seria capsula nenhuma.
+ */
+struct AbrirCapsulaBehavior : public ProjectileModifier {
+    AbrirCapsulaBehavior(float atraso, Vector2 velocidade, std::string escreve, float escala)
+        : atraso(atraso), velocidade(velocidade), escreve(std::move(escreve)), escala(escala) {}
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return aberta; }
+    float atraso;
+    Vector2 velocidade;
+    std::string escreve;
+    float escala;
+    float t = 0.0f;
+    bool aberta = false;
 };
 
 /**

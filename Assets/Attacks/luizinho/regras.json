@@ -36,9 +36,12 @@
                   "sentido": "antihorario", "escreve": "Ligada" } }
   ],
 
-  // ENCAPSULAMENTO: provisorio, a capsula ainda nao abre.
+  // ENCAPSULAMENTO: a casca. Todas as letras de dentro nascem com a cara da
+  // capsa, empilhadas, e a pilha inteira se le como uma capsula so; a
+  // CapsulaAttack troca a cara de cada uma quando ela abre, e devolve o
+  // tamanho de fabrica - a casca e maior que o que tem dentro.
   "capsula": [
-    { "animacao": "Capsula" }
+    { "animacao": "Capsula", "escala": 1.5 }
   ],
 
   // MEMORIA: o bloco alocado freia e fica. O que ninguem libera se acumula.

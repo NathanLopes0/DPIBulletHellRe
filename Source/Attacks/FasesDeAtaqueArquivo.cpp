@@ -26,6 +26,8 @@
 #include "AttackParameters/CaixaAttackParams.h"
 #include "BaseStrategies/FlexAttack.h"
 #include "AttackParameters/FlexAttackParams.h"
+#include "BaseStrategies/CapsulaAttack.h"
+#include "AttackParameters/CapsulaAttackParams.h"
 #include "BaseStrategies/CircleSpreadAttack.h"
 #include "BaseStrategies/LaserAttack.h"
 #include "BaseStrategies/WaveAttack.h"
@@ -92,6 +94,7 @@ namespace {
         if (tipo == "ConsultaAttack")     return std::make_unique<ConsultaAttack>(spawner, boss);
         if (tipo == "CaixaAttack")        return std::make_unique<CaixaAttack>(spawner, boss);
         if (tipo == "FlexAttack")         return std::make_unique<FlexAttack>(spawner, boss);
+        if (tipo == "CapsulaAttack")      return std::make_unique<CapsulaAttack>(spawner, boss);
         return nullptr;
     }
 
@@ -169,6 +172,14 @@ namespace {
             if (a.caixa && a.caixa->proporcao)         caixa->proporcao         = *a.caixa->proporcao;
             if (a.caixa && a.caixa->meiaAlturaInicial) caixa->meiaAlturaInicial = *a.caixa->meiaAlturaInicial;
             params = std::move(caixa);
+        }
+        else if (a.estrategia == "CapsulaAttack") {
+            // Como a caixa: para todo ataque CapsulaAttack, com bloco ou sem.
+            auto capsula = std::make_unique<CapsulaAttackParams>();
+            if (a.capsula && a.capsula->abre)       capsula->abre                 = *a.capsula->abre;
+            if (a.capsula && a.capsula->velocidade) capsula->velocidadeDaAbertura = *a.capsula->velocidade;
+            if (a.capsula)                          capsula->escreve              = a.capsula->escreve;
+            params = std::move(capsula);
         }
         else if (a.flex) {
             auto flex = std::make_unique<FlexAttackParams>();
