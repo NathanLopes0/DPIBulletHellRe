@@ -45,7 +45,7 @@ class ProjectileMotion : public ProjectileBehavior {
  * comeca a valer. Varios podem coexistir no mesmo projetil.
  *
  * Sao Modifier: Accelerate, SlowDown, Activate, Deactivate, PulsoDeVelocidade,
- * Reescrever e Deslocar.
+ * Reescrever, Deslocar e Promessa.
  *
  * O QUE ESTA SEPARACAO GARANTE, E O QUE NAO GARANTE
  *
@@ -463,4 +463,35 @@ struct DeslocarBehavior : public ProjectileModifier {
     float t = 0.0f;
     float jaDeslocado = 0.0f;
     bool terminou = false;
+};
+
+/**
+ * @brief A PROMISE: o projetil espera pendente e, aos 'atraso' segundos, se
+ * resolve ou e rejeitado.
+ *
+ * Resolvida, ela sai a 'velocidade' ja apontada para o alvo e troca para a
+ * animacao 'escreve' (se houver). Rejeitada, ela some - vai para o pool, como
+ * um projetil que saiu da tela. 'fracao' e a parte das promessas que resolvem;
+ * a decisao e pura e esta em Promessa.h.
+ *
+ * Ela nao espera parada sozinha: quem a para e um SlowDown antes dela, na mesma
+ * regra. Assim a promessa pode tambem resolver no meio do voo, se a regra
+ * quiser.
+ *
+ * NAO INSERE MODIFIER NENHUM, pelo mesmo motivo do Reescrever: roda dentro do
+ * laco de modifiers. Matar o proprio projetil daqui e seguro - Kill() so marca
+ * o estado, e quem limpa os behaviors e o pool, depois.
+ */
+struct PromessaBehavior : public ProjectileModifier {
+
+    PromessaBehavior(float atraso, float fracao, float velocidade, std::string escreve)
+        : atraso(atraso), fracao(fracao), velocidade(velocidade), escreve(std::move(escreve)) {}
+
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return assentou; }
+
+    float atraso, fracao, velocidade;
+    std::string escreve;
+    float t = 0.0f;
+    bool assentou = false;
 };

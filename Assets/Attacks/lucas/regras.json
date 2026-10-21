@@ -18,6 +18,19 @@
     { "animacao": "Regra" }
   ],
 
+  // JAVASCRIPT: A PROMESSA. Sai no leque, para pendente aos 0,7s (SlowDown com
+  // fator zero) e assenta aos 1,5s: a parte que resolve e 0,6, e as resolvidas
+  // saem contra o aluno a 280 px/s, ja como TAG - o fetch voltou com HTML -;
+  // as outras sao rejeitadas e somem (Promessa, ver Promessa.h). Numa final
+  // medida, 37 das 70 promessas resolveram. Parada, uma promessa nunca sairia da
+  // tela; e o assentar, resolvendo ou rejeitando, que a tira de la.
+  "promessas": [
+    { "animacao": "Promessa",
+      "modifiers": [
+        { "tipo": "SlowDown", "atraso": 0.7, "fator": 0.0 },
+        { "tipo": "Promessa", "atraso": 1.5, "resolve": 0.6, "velocidade": 280, "escreve": "Tag" } ] }
+  ],
+
   // ELIXIR: o processo vai atras do aluno, devagar e por bastante tempo. Um
   // processo e leve e insistente: nao corre, mas nao desiste cedo.
   "processos": [

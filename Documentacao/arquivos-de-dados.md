@@ -388,7 +388,7 @@ Escolha no máximo uma forma:
 > mudou nada. O que resolveu foi o chefe **andar**.
 
 **Motions:** `Path`, `Tracking`, `Wobble`, `MiraPeriodica`
-**Modifiers:** `Accelerate`, `SlowDown`, `Activate`, `Deactivate`, `PulsoDeVelocidade`, `Reescrever`
+**Modifiers:** `Accelerate`, `SlowDown`, `Activate`, `Deactivate`, `PulsoDeVelocidade`, `Reescrever`, `Promessa`
 
 Pôr um modifier em `motion` é recusado na leitura. No C++ quem garante isso é o
 compilador; aqui é a leitura, porque arquivo de texto não passa por compilador.
@@ -405,6 +405,7 @@ compilador; aqui é a leitura, porque arquivo de texto não passa por compilador
 | `Activate` / `Deactivate` | `atraso` |
 | `PulsoDeVelocidade` | `ritmo`, `moduloInvestida`, `moduloPausa` |
 | `Reescrever` | `atraso` (idade mínima), `raio`, `escreve`, `velocidade`, `forca`, `duracao` |
+| `Promessa` | `atraso` (quando assenta), `resolve` (a parte que resolve, de 0 a 1), `velocidade`, `escreve` (opcional) |
 
 `mira` é `AlinharComVelocidade` (o padrão), `MirarNoJogador` ou `MirarPrevendo`.
 
@@ -417,6 +418,12 @@ casa nasce **embaixo** da cabeça que a escreveu, e sem ele seria reescrita no
 mesmo quadro. `raio` e `velocidade` zero e `escreve` ausente são recusados na
 leitura, porque cada um faria uma casa que não muda em tela. A regra de quando
 reescrever é pura e mora em `Fita.h`.
+
+**`Promessa` é a Promise do JavaScript.** Aos `atraso` segundos o projétil
+assenta: uma parte `resolve` deles sai em direção ao alvo a `velocidade` (e troca
+para a animação `escreve`, se houver), e o resto é rejeitado e some. Ela não
+para sozinha — quem a deixa pendente é um `SlowDown` com `fator` zero antes
+dela, na mesma regra. `velocidade` zero e `resolve` fora de 0 a 1 são recusados.
 
 ### Dois exemplos para copiar
 

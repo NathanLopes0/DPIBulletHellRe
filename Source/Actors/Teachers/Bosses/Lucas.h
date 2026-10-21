@@ -15,12 +15,13 @@
  * - e no fim ensina o que ele gosta de verdade, que e Elixir no back-end. A
  * batalha conta a mesma historia. As duas primeiras fases sao o front certinho
  * e geometrico; a terceira, a que decide, e o Elixir, onde o que o aluno
- * derruba volta sozinho ("let it crash"); a final mistura tudo.
+ * derruba volta sozinho ("let it crash"); a final volta ao front, agora
+ * assincrono.
  *
  *   fase 1  HTML        caixas aninhadas, uma div dentro da outra
  *   fase 2  CSS         a fileira que se redistribui, como um flexbox
  *   fase 3  Elixir      processos que o supervisor reinicia
- *   final   full stack  o front e o back ao mesmo tempo
+ *   final   JavaScript  promessas que resolvem ou sao rejeitadas
  *
  * O BALANCEAMENTO VIVE EM DADOS, como o dos outros: Assets/Attacks/lucas/.
  */

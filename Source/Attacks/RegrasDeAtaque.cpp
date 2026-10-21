@@ -11,7 +11,7 @@ namespace {
     const std::vector<std::string> kMotions   = {"Path", "Tracking", "Wobble", "MiraPeriodica"};
     const std::vector<std::string> kModifiers = {"Accelerate", "SlowDown", "Activate",
                                                  "Deactivate", "PulsoDeVelocidade",
-                                                 "Reescrever"};
+                                                 "Reescrever", "Promessa"};
 
     bool Contem(const std::vector<std::string>& lista, const std::string& v) {
         for (const auto& x : lista) if (x == v) return true;
@@ -80,6 +80,22 @@ namespace {
         d.raio    = Campo(j, "raio", 0.0f);
         d.escreve = (j.contains("escreve") && j["escreve"].is_string())
                         ? j["escreve"].get<std::string>() : "";
+
+        d.resolve = Campo(j, "resolve", 0.5f);
+
+        // A PROMESSA PARADA, OU COM UMA FRACAO QUE NAO E FRACAO, e recusada.
+        // Velocidade zero e uma promessa resolvida que nao sai do lugar - e,
+        // parada, nunca deixa a tela nem volta ao pool. Fracao fora de [0, 1]
+        // nao e "muitas" nem "poucas": e um numero que alguem digitou errado.
+        if (d.tipo == "Promessa") {
+            if (d.velocidade <= 0.0f)
+                erro = "\"Promessa\" precisa de \"velocidade\" maior que zero: e com ela que "
+                       "a promessa resolvida sai";
+            else if (d.resolve < 0.0f || d.resolve > 1.0f)
+                erro = "\"resolve\" da \"Promessa\" precisa estar entre 0 e 1: e a parte das "
+                       "promessas que resolvem";
+            return d;
+        }
 
         // O REESCREVER QUE NAO FARIA NADA E RECUSADO AQUI, e nao no jogo.
         // Cada um destes tres sai calado em tela: raio zero e uma cabeca que

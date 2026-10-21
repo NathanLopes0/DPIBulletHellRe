@@ -68,6 +68,9 @@ struct DescricaoDeBehavior {
     /// muda de comportamento com a mesma cor, e a cor e o que se le de longe.
     std::string escreve;
 
+    /// Promessa: a parte das promessas que resolvem, de 0 a 1. Ver Promessa.h.
+    float resolve = 0.5f;
+
     RitmoDeCiclos ritmo;            ///< MiraPeriodica, PulsoDeVelocidade
     float moduloInvestida = 0.0f;   ///< PulsoDeVelocidade
     float moduloPausa = 0.0f;       ///< PulsoDeVelocidade
@@ -154,7 +157,7 @@ struct RegrasLidas {
 bool EhMotion(const std::string& tipo);
 
 /// @brief O tipo nomeado e um Modifier? (Accelerate, SlowDown, Activate,
-/// Deactivate, PulsoDeVelocidade, Reescrever)
+/// Deactivate, PulsoDeVelocidade, Reescrever, Promessa)
 bool EhModifier(const std::string& tipo);
 
 /**

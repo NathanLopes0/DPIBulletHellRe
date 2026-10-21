@@ -7,7 +7,7 @@
   //   StateOne    HTML        a estrutura: caixas, uma dentro da outra
   //   StateTwo    CSS         o arranjo: a fileira que se redistribui
   //   StateThree  Elixir      o servidor: processos que voltam sozinhos
-  //   StateFinal  full stack  o front e o back juntos
+  //   StateFinal  JavaScript  promessas que resolvem ou sao rejeitadas
   //
   // O ELIXIR E A FASE 3, E NAO A FINAL, de proposito. E o que o Lucas mais
   // gosta, e a fase 3 e a que DECIDE a batalha ("proximo" vazio): a final so e
@@ -130,26 +130,41 @@
     ]
   },
 
-  // FASE FINAL - FULL STACK   |   gesto: A VARREDURA RAPIDA
+  // FASE FINAL - JAVASCRIPT: AS PROMESSAS   |   gesto: A VARREDURA RAPIDA
   //
-  // O front e o back ao mesmo tempo. So e vista por quem termina a terceira
-  // entre 40 e 59, ou com 100.
+  // O JavaScript entra aqui, e nao numa fase sua, porque a fase 3 e do Elixir:
+  // a final e o front inteiro de novo, agora assincrono. So e vista por quem
+  // termina a terceira entre 40 e 59, ou com 100.
   //
-  // PROVISORIO: o anel do HTML e os processos do Elixir juntos.
+  // CADA RAJADA E UM LEQUE DE 7 PROMESSAS que param pendentes (os tres pontos)
+  // e, 1,5s depois de sair, se resolvem ou sao rejeitadas ("promessas" em
+  // regras.json). As resolvidas saem contra o aluno e voltam como TAG - o fetch
+  // trouxe HTML do servidor; as rejeitadas somem. Ninguem sabe quais vao
+  // resolver ate elas resolverem, e e isso que um await espera.
+  //
+  // AS CAIXAS DO HTML CONTINUAM, mais ralas (24 tags a cada 2,4s): a pagina
+  // continua de pe enquanto o JavaScript espera.
+  //
+  // A PROMESSA RESOLVIDA MIRA ONDE O ALUNO ESTA, entao ela castiga quem fica
+  // parado. Medido nesta fase (persegue / parado / vai e vem): a final
+  // provisoria dava 2 / 3 / 3, e esta da 4 / 8 / 3. So as promessas, sem as
+  // caixas, davam 4 / 8 / 0 - quem andava nunca era pego, e as caixas sao o
+  // que cobra dele.
   "StateFinal": {
     "duracao": 17,
     "proximo": "StateOne",
-    "anuncio": "full stack",
+    "anuncio": "await fetch(…)",
     "movimento": { "tipo": "Varredura", "a": 300, "b": 110 },
     "ataques": [
-      { "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
-        "projeteis": 18, "velocidade": 200,
-        "cooldown": 1.7,
+      { "estrategia": "CaixaAttack", "projetil": "Codigo",
+        "projeteis": 24, "velocidade": 120,
+        "cooldown": 2.4,
         "regras": "html" },
-      { "estrategia": "WaveAttack", "projetil": "Processo",
-        "projeteis": 4, "velocidade": 170, "angulo": 90, "intervalo": 0.08,
-        "cooldown": 1.3,
-        "regras": "processos" }
+      { "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 7, "velocidade": 300, "angulo": 150, "anguloCentral": 90,
+        "intervalo": 0,
+        "cooldown": 1.6,
+        "regras": "promessas" }
     ]
   }
 }

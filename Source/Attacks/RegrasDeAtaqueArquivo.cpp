@@ -109,6 +109,8 @@ namespace {
         else if (d.tipo == "Reescrever")
             p->insertModifier<ReescreverBehavior>(d.atraso, d.raio, d.escreve,
                                                   d.velocidade, d.forca, d.duracao);
+        else if (d.tipo == "Promessa")
+            p->insertModifier<PromessaBehavior>(d.atraso, d.resolve, d.velocidade, d.escreve);
     }
 
 }

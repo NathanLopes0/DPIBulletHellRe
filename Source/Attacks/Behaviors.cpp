@@ -11,6 +11,8 @@
 #include "../Actors/Teachers/Boss.h"
 #include "Fita.h"
 #include "Flex.h"
+#include "Promessa.h"
+#include "../Random.h"
 
 void AccelerateBehavior::update(Projectile* p, float deltaTime) {
     if (auto bossProj = dynamic_cast<BossProjectile*>(p)) {
@@ -399,4 +401,26 @@ void DeslocarBehavior::update(Projectile* p, const float deltaTime) {
     jaDeslocado = alvo;
 
     if (t >= atraso + duracao) terminou = true;
+}
+
+void PromessaBehavior::update(Projectile* p, const float deltaTime) {
+
+    t += deltaTime;
+    if (t < atraso) return;
+    assentou = true;
+
+    if (!Promessa::Resolve(Random::GetFloatRange(0.0f, 1.0f), fracao)) {
+        p->Kill();   // rejeitada
+        return;
+    }
+
+    // RESOLVIDA: sai apontada para o alvo, com o modulo do arquivo. Parada, ela
+    // nao tem direcao nenhuma, entao a direcao vem do alvo, e nao da velocidade.
+    auto* promessa = dynamic_cast<BossProjectile*>(p);
+    auto* rb = p->GetComponent<RigidBodyComponent>();
+    if (promessa && rb) rb->SetVelocity(promessa->GetPlayerDirection() * velocidade);
+
+    if (!escreve.empty()) {
+        if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(escreve);
+    }
 }

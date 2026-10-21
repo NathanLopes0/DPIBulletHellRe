@@ -522,3 +522,36 @@ TEST_CASE("Regras: Reescrever e um Modifier, e nao pode ir em \"motion\"") {
     REQUIRE(r.problemas.size() == 1);
     CHECK(r.problemas[0].find("Modifier") != std::string::npos);
 }
+
+// ---------------------------------------------------------------------------
+// Promessa: a Promise do JavaScript
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Regras: le a Promessa com os campos dela") {
+    const auto r = LerRegras(R"({ "p": [ { "animacao": "Promessa", "modifiers": [
+        {"tipo":"SlowDown","atraso":0.8,"fator":0.0},
+        {"tipo":"Promessa","atraso":1.6,"resolve":0.6,"velocidade":280,"escreve":"Tag"} ] } ] })");
+
+    CHECK(r.problemas.empty());
+    const auto& d = r.conjuntos.at("p").at(0).modifiers.at(1);
+    CHECK(d.tipo == "Promessa");
+    CHECK(d.atraso     == doctest::Approx(1.6f));
+    CHECK(d.resolve    == doctest::Approx(0.6f));
+    CHECK(d.velocidade == doctest::Approx(280.0f));
+    CHECK(d.escreve    == "Tag");
+}
+
+TEST_CASE("Regras: uma Promessa parada, ou com uma fracao fora de 0 a 1, e recusada") {
+    struct Caso { const char* json; const char* campo; };
+    const Caso casos[] = {
+        { R"({"x":[{"modifiers":[{"tipo":"Promessa","atraso":1,"resolve":0.5}]}]})",                  "velocidade" },
+        { R"({"x":[{"modifiers":[{"tipo":"Promessa","atraso":1,"resolve":1.5,"velocidade":280}]}]})", "resolve" },
+        { R"({"x":[{"modifiers":[{"tipo":"Promessa","atraso":1,"resolve":-0.1,"velocidade":280}]}]})","resolve" },
+    };
+    for (const auto& c : casos) {
+        CAPTURE(c.campo);
+        const auto r = LerRegras(c.json);
+        REQUIRE(r.problemas.size() == 1);
+        CHECK(r.problemas[0].find(c.campo) != std::string::npos);
+    }
+}
