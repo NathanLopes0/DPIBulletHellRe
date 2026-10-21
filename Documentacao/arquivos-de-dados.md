@@ -183,7 +183,7 @@ recusados na leitura, com a frase dizendo qual fase errou.
 
 | Campo | Vai para |
 |---|---|
-| `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack` |
+| `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack` |
 | `projetil` | o nome dentro do conjunto deste professor em `projeteis.json` |
 | `projeteis` | quantos por disparo |
 | `velocidade` | px/s |
@@ -256,6 +256,24 @@ preciso dar `pontosDeSpawn`, uma lista de `[x, y]`.
 > **O número de projéteis segue a espessura da faixa.** A célula tem 32 px
 > desenhados; uma linha de 4 mede 194 px, logo 7 projéteis fazem uma parede
 > sólida. Mais que isso só empilha projétil no mesmo lugar.
+
+**`caixa`**, opcional na `CaixaAttack`:
+
+```json
+"caixa": { "proporcao": 1.6, "meiaAlturaInicial": 72 }
+```
+
+| Campo | |
+|---|---|
+| `proporcao` | largura dividida pela altura. Padrão 1,6 |
+| `meiaAlturaInicial` | a meia-altura com que a caixa nasce, em pixels. Padrão 72, um pouco maior que a metade do cartão do professor |
+
+A `CaixaAttack` é a div do Lucas: um retângulo de `projeteis` ladrilhos, igualmente
+espaçados pelo **contorno** (e não pelo ângulo, o que deixaria buraco nos lados
+curtos), que nasce em volta do professor e cresce sem deformar. `velocidade` é a
+da meia-altura; os cantos andam mais rápido. Os ladrilhos se afastam enquanto a
+caixa cresce, então ela nasce fechada e chega ao aluno com frestas. `angulo` e
+`anguloCentral` são ignorados. Zero ou negativo nos dois campos é recusado.
 
 ---
 

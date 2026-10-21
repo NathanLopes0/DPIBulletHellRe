@@ -134,6 +134,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/EscopoQueCresce.h
         Source/Attacks/Fita.cpp
         Source/Attacks/Fita.h
+        Source/Attacks/Caixa.cpp
+        Source/Attacks/Caixa.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
@@ -203,6 +205,9 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/AttackParameters/BaloonAttackParams.h
         Source/Attacks/BaseStrategies/LaserAttack.cpp
         Source/Attacks/BaseStrategies/ConsultaAttack.cpp
+        Source/Attacks/BaseStrategies/CaixaAttack.cpp
+        Source/Attacks/BaseStrategies/CaixaAttack.h
+        Source/Attacks/AttackParameters/CaixaAttackParams.h
         Source/Attacks/BaseStrategies/LaserAttack.h
         Source/Actors/ProjectilePool.h
 )
@@ -235,6 +240,7 @@ add_executable(dpi_tests
         tests/test_escopo.cpp
         tests/test_fita.cpp
         tests/test_intercambio.cpp
+        tests/test_caixa.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -296,6 +302,8 @@ add_executable(dpi_tests
         Source/Attacks/EscopoQueCresce.h
         Source/Attacks/Fita.cpp
         Source/Attacks/Fita.h
+        Source/Attacks/Caixa.cpp
+        Source/Attacks/Caixa.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp

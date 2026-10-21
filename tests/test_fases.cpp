@@ -753,3 +753,54 @@ TEST_CASE("Fases: um intercambio que nao trocaria ninguem e recusado") {
         CHECK(reclamou);
     }
 }
+
+// ---------------------------------------------------------------------------
+// A caixa do HTML
+// ---------------------------------------------------------------------------
+
+namespace {
+    std::string ComAtaque(const std::string& ataque) {
+        return R"({
+          "StateOne":   { "proximo": "StateFinal", "ataques": [ )" + ataque + R"( ] },
+          "StateFinal": { "proximo": "",
+                          "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+        })";
+    }
+}
+
+TEST_CASE("Fases: a CaixaAttack existe e o bloco dela e opcional") {
+
+    // SEM BLOCO e valido: os dois campos tem padrao (CaixaAttackParams), e a
+    // ponte constroi a struct para todo ataque CaixaAttack.
+    const auto sem = LerFases(ComAtaque(R"({ "estrategia": "CaixaAttack", "projetil": "P" })"));
+    CHECK(sem.problemas.empty());
+
+    const auto com = LerFases(ComAtaque(R"({ "estrategia": "CaixaAttack", "projetil": "P",
+                                             "caixa": { "proporcao": 2, "meiaAlturaInicial": 80 } })"));
+    CHECK(com.problemas.empty());
+    for (const auto& f : com.fases) {
+        if (f.nome != "StateOne") continue;
+        REQUIRE(f.ataques.size() == 1);
+        REQUIRE(f.ataques[0].caixa.has_value());
+        CHECK(*f.ataques[0].caixa->proporcao == doctest::Approx(2.0f));
+        CHECK(*f.ataques[0].caixa->meiaAlturaInicial == doctest::Approx(80.0f));
+    }
+}
+
+TEST_CASE("Fases: uma caixa de lado zero e recusada, e o bloco em outra estrategia e avisado") {
+
+    // Zero nao e uma caixa estranha, e caixa nenhuma: o ataque nao dispararia.
+    const auto zero = LerFases(ComAtaque(R"({ "estrategia": "CaixaAttack", "projetil": "P",
+                                              "caixa": { "proporcao": 0 } })"));
+    bool reclamou = false;
+    for (const auto& p : zero.problemas) if (p.find("caixa") != std::string::npos) reclamou = true;
+    CHECK(reclamou);
+
+    // Num WaveAttack o bloco nao seria lido por ninguem - avisar evita uma
+    // tarde ajustando um numero que nao muda nada.
+    const auto fora = LerFases(ComAtaque(R"({ "estrategia": "WaveAttack", "projetil": "P",
+                                              "caixa": { "proporcao": 2 } })"));
+    bool avisou = false;
+    for (const auto& p : fora.problemas) if (p.find("so a CaixaAttack") != std::string::npos) avisou = true;
+    CHECK(avisou);
+}

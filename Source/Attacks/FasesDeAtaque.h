@@ -75,6 +75,18 @@ struct DescricaoDeConsulta {
 };
 
 /**
+ * @brief Os campos que SO a CaixaAttack usa.
+ *
+ * Diferente dos blocos de balao e de consulta, este e OPCIONAL: os dois campos
+ * tem um padrao razoavel (CaixaAttackParams), e uma caixa sem bloco e uma caixa
+ * na proporcao de uma janela deitada.
+ */
+struct DescricaoDeCaixa {
+    std::optional<float> proporcao;           ///< largura / altura
+    std::optional<float> meiaAlturaInicial;   ///< em pixels
+};
+
+/**
  * @brief Um ataque: a geometria do disparo e as regras de cada projetil.
  *
  * OS CAMPOS NUMERICOS SAO OPCIONAIS DE PROPOSITO.
@@ -136,6 +148,9 @@ struct DescricaoDeAtaque {
 
     /// Presente somente nos ataques ConsultaAttack.
     std::optional<DescricaoDeConsulta> consulta;
+
+    /// Presente so nos ataques CaixaAttack que escreveram o bloco.
+    std::optional<DescricaoDeCaixa> caixa;
 };
 
 /// @brief O lado nomeado existe? (Down, Left, Right, Up - nunca None)

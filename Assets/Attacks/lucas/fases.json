@@ -22,22 +22,40 @@
   // GoToCenter, que deixa o chefe na coluna de quem atira para cima.
   // ==========================================================================
 
-  // FASE 1 - HTML   |   gesto: A ORBITA LENTA
+  // FASE 1 - HTML: AS CAIXAS ANINHADAS   |   gesto: A ORBITA LENTA
   //
-  // As caixas vao nascer EM VOLTA dele, entao ele precisa de um centro - mas um
-  // chefe parado deixa a tela morta. A orbita pequena e lenta e o meio-termo,
-  // o mesmo da fase 2 do Vitor.
+  // Cada disparo e uma div: um retangulo de 32 tags que nasce fechado em volta
+  // dele e cresce sem deformar (CaixaAttack). Uma caixa a cada 1,4s, crescendo
+  // a 110 px/s, e o que fica na tela sao caixas uma dentro da outra - o HTML
+  // desenhado. O espaco entre duas caixas e o padding.
   //
-  // PROVISORIO: um anel no lugar das caixas aninhadas.
+  // A ORBITA LENTA DESLOCA AS CAIXAS: cada uma nasce de um ponto um pouco
+  // diferente, e o aninhamento sai torto, como indentacao. Com o chefe parado
+  // no centro elas ficam concentricas, e eu esperava que isso abrisse um bolso
+  // seguro, como no anel do Vladimir. Medido, e o contrario: um ladrilho da
+  // base passa SEMPRE no mesmo x, e quem esta ali come todas as caixas - o
+  // piloto parado e o que persegue tomaram 9 acertos nesta fase, contra 2 e 4
+  // com a orbita.
+  //
+  // DIFERENTE DO ANEL, E SE SENTE: a base chega como uma LINHA inteira, e nao
+  // pelo ponto mais perto, entao correr para o lado nao tira ninguem dela - so
+  // achar a fresta entre dois ladrilhos. Medido contra o anel do esqueleto, na
+  // fase 1: o piloto que vai e vem toma 7 acertos em vez de 5, e o que persegue
+  // 4 em vez de 3. Os ladrilhos se afastam enquanto a caixa cresce, e a fresta
+  // que importa e a da altura do aluno.
+  //
+  // 32 E O MAIS LEVE QUE AINDA LE COMO CAIXA. Com 40 e 48 ladrilhos o piloto
+  // que persegue toma 5 nesta fase em vez de 4, e a caixa nao fica mais
+  // legivel: com 32 ela ja tem os quatro lados.
   "StateOne": {
     "duracao": 17,
     "proximo": "StateTwo",
     "anuncio": "<div><div>…</div></div>",
     "movimento": { "tipo": "Orbitar", "a": 110, "b": 0.08 },
     "ataques": [
-      { "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
-        "projeteis": 22, "velocidade": 200,
-        "cooldown": 1.3,
+      { "estrategia": "CaixaAttack", "projetil": "Codigo",
+        "projeteis": 32, "velocidade": 110,
+        "cooldown": 1.4,
         "regras": "html" }
     ]
   },

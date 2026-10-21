@@ -22,6 +22,8 @@
 #include "BaseStrategies/AngledAttack.h"
 #include "BaseStrategies/BaloonAttack.h"
 #include "BaseStrategies/ConsultaAttack.h"
+#include "BaseStrategies/CaixaAttack.h"
+#include "AttackParameters/CaixaAttackParams.h"
 #include "BaseStrategies/CircleSpreadAttack.h"
 #include "BaseStrategies/LaserAttack.h"
 #include "BaseStrategies/WaveAttack.h"
@@ -86,6 +88,7 @@ namespace {
         if (tipo == "BaloonAttack")       return std::make_unique<BaloonAttack>(spawner, boss);
         if (tipo == "LaserAttack")        return std::make_unique<LaserAttack>(spawner, boss);
         if (tipo == "ConsultaAttack")     return std::make_unique<ConsultaAttack>(spawner, boss);
+        if (tipo == "CaixaAttack")        return std::make_unique<CaixaAttack>(spawner, boss);
         return nullptr;
     }
 
@@ -155,6 +158,14 @@ namespace {
             if (a.consulta->aviso)     consulta->aviso         = *a.consulta->aviso;
             if (a.consulta->invertido) consulta->invertido     = *a.consulta->invertido;
             params = std::move(consulta);
+        }
+        else if (a.estrategia == "CaixaAttack") {
+            // PARA TODO ataque CaixaAttack, com bloco ou sem: a estrategia faz
+            // dynamic_cast e nao dispara sem esta struct, e o bloco e opcional.
+            auto caixa = std::make_unique<CaixaAttackParams>();
+            if (a.caixa && a.caixa->proporcao)         caixa->proporcao         = *a.caixa->proporcao;
+            if (a.caixa && a.caixa->meiaAlturaInicial) caixa->meiaAlturaInicial = *a.caixa->meiaAlturaInicial;
+            params = std::move(caixa);
         }
         else {
             params = std::make_unique<AttackParams>();

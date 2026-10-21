@@ -11,7 +11,8 @@
 namespace {
 
     const std::vector<std::string> kEstrategias = {
-        "AngledAttack", "CircleSpreadAttack", "WaveAttack", "BaloonAttack", "LaserAttack", "ConsultaAttack"
+        "AngledAttack", "CircleSpreadAttack", "WaveAttack", "BaloonAttack", "LaserAttack", "ConsultaAttack",
+        "CaixaAttack"
     };
     const std::vector<std::string> kMovimentos = {
         "RandomWander", "HoverAbovePlayer", "GoToCenter",
@@ -382,6 +383,32 @@ namespace {
                                           "sem ele a estrategia nao sabe que faixa varrer e nao "
                                           "dispara nada");
             return false;
+        }
+
+        // --- bloco de caixa (opcional) ---
+        if (j.contains("caixa")) {
+            if (saida.estrategia != "CaixaAttack") {
+                problemas.emplace_back(onde + "so a CaixaAttack usa \"caixa\"; o bloco foi ignorado");
+            }
+            else if (!j["caixa"].is_object()) {
+                problemas.emplace_back(onde + "\"caixa\" deveria ser um objeto");
+                return false;
+            }
+            else {
+                DescricaoDeCaixa c;
+                c.proporcao         = Opcional(j["caixa"], "proporcao");
+                c.meiaAlturaInicial = Opcional(j["caixa"], "meiaAlturaInicial");
+
+                // Zero ou negativo nao e "uma caixa estranha": e caixa nenhuma.
+                // PontosDoContorno devolve vazio e o ataque nao dispara - calado.
+                if ((c.proporcao && *c.proporcao <= 0.0f)
+                    || (c.meiaAlturaInicial && *c.meiaAlturaInicial <= 0.0f)) {
+                    problemas.emplace_back(onde + "\"proporcao\" e \"meiaAlturaInicial\" da "
+                                                  "caixa precisam ser maiores que zero");
+                    return false;
+                }
+                saida.caixa = c;
+            }
         }
 
         return true;
