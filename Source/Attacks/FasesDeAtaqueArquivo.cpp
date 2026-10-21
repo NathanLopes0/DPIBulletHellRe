@@ -262,6 +262,12 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
         if (fase.clone.existe) {
             boss->RegistrarClone(fase.nome, fase.clone.ataquesDe);
         }
+
+        // O ANUNCIO TAMBEM. Quem o mostra e a batalha, que pergunta ao chefe em
+        // que fase ele esta - ver Battle::AtualizarPlacar.
+        if (!fase.anuncio.empty()) {
+            boss->RegistrarAnuncio(fase.nome, fase.anuncio);
+        }
     }
 
     SDL_Log("FASES: o chefe \"%s\" foi montado com %zu fase(s).",

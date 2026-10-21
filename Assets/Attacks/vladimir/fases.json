@@ -26,6 +26,18 @@
   //
   // Ver Source/Movements/MovementStrategies.h.
   //
+  // E O PLACAR ESCREVE O QUE ELE ANUNCIA. O "anuncio" de cada fase aparece no
+  // quadro do canto de cima enquanto a fase dura: e ali que "ele anuncia" deixa
+  // de ser so uma frase deste arquivo. Nas duas primeiras e a LINGUAGEM, e cada
+  // rajada e uma palavra dela - dez simbolos alternados sao (ab)^5, que esta em
+  // (ab)*; seis ambar e seis azuis sao a^6 b^6, que esta em a^n b^n. Na
+  // terceira, que e uma maquina e nao uma linguagem, e o que ela FAZ com cada
+  // letra; na final, uma transicao que serve de emblema (ver a fase).
+  //
+  // O TEXTO E UTF-8 E SAI NA CARLITO, e nao na Zelda das outras telas: a Zelda
+  // nao tem "*" nem "^". Por isso o arquivo pode escrever "aⁿbⁿ" com os
+  // sobrescritos de verdade.
+  //
   // OS NOMES DE FASE NAO SAO LIVRES: a maquina de estados procura por texto, e
   // so StateOne, StateTwo, StateThree e StateFinal existem. StateFinal e
   // OBRIGATORIO, mesmo num chefe de tres fases - sem ele, uma nota entre 40 e
@@ -54,6 +66,7 @@
   "StateOne": {
     "duracao": 17,
     "proximo": "StateTwo",
+    "anuncio": "(ab)*",
     "movimento": { "tipo": "Orbitar", "a": 230, "b": 0.16 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Simbolo",
@@ -89,6 +102,7 @@
   "StateTwo": {
     "duracao": 17,
     "proximo": "StateThree",
+    "anuncio": "aⁿbⁿ",
     "movimento": { "tipo": "Varredura", "a": 170, "b": 150 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Simbolo",
@@ -128,9 +142,15 @@
   // PROFUNDIDADE 320 CONTRA 17s DE FASE: a 190 px/s ele desce em 1,7s e sobe em
   // 1,7s, entao empilha e desempilha umas cinco vezes na fase. O jogador tem de
   // ver o ciclo mais de uma vez para a ideia virar regra.
+  //
+  // O ANUNCIO DIZ O QUE CADA LETRA FAZ AQUI, porque aqui ela faz outra coisa:
+  // na fase 1 o "a" ia reto, e nesta ele freia e fica pendurado - e o simbolo
+  // que esta NA pilha. O "b" continua perseguindo, agora como o desempilhado
+  // (ver "pilha" em regras.json).
   "StateThree": {
     "duracao": 17,
     "proximo": "",
+    "anuncio": "a empilha · b desempilha",
     "movimento": { "tipo": "Mergulho", "a": 190, "b": 320 },
     "ataques": [
       { "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
@@ -163,9 +183,15 @@
   // termina aprovado e nunca ve a maquina de Turing. Medido - e eu tinha
   // passado duas medicoes rotulando quadros como "StateFinal" numa fase que
   // nunca rodou.
+  //
+  // O ANUNCIO E UMA TRANSICAO DE MAQUINA DE TURING - le "a", escreve "b", anda
+  // para a direita -, o emblema do nivel. Ele NAO descreve os dois ataques
+  // desta fase; a fase da fita lida e reescrita ainda nao existe, e quando
+  // existir este texto deve passar a dizer o que ela faz.
   "StateFinal": {
     "duracao": 17,
     "proximo": "StateOne",
+    "anuncio": "δ(q, a) = (q, b, →)",
     "movimento": { "tipo": "Varredura", "a": 330, "b": 110 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Simbolo",

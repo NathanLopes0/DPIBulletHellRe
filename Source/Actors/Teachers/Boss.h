@@ -126,6 +126,19 @@ public:
     /// @brief De qual fase o clone desta fase tira os ataques. Vazio = sem clone.
     [[nodiscard]] std::string CloneDaFase(const std::string& fase) const;
 
+    // ---- O PLACAR ---------------------------------------------------------
+
+    /// @brief Anota o que o placar mostra enquanto esta fase dura ("anuncio" em
+    /// fases.json). Como o clone, e so uma anotacao: quem desenha e a batalha.
+    void RegistrarAnuncio(const std::string& fase, const std::string& texto);
+
+    /// @brief O anuncio desta fase. Vazio = a fase nao anuncia nada.
+    [[nodiscard]] std::string AnuncioDaFase(const std::string& fase) const;
+
+    /// @brief A fase em que o chefe esta AGINDO - a mesma que escolhe o
+    /// movimento e os ataques do quadro. Vazio antes do primeiro OnUpdate.
+    [[nodiscard]] const std::string& FaseAtual() const { return mLastStateName; }
+
     /**
      * @brief Este corpo e o SEGUNDO, e nao o original?
      *
@@ -201,6 +214,9 @@ private:
 
     /// Por fase, de qual fase o clone dela tira os ataques. Ver RegistrarClone.
     std::map<std::string, std::string> mClonePorFase;
+
+    /// Por fase, o texto do placar. Ver RegistrarAnuncio.
+    std::map<std::string, std::string> mAnuncioPorFase;
 
     bool mEhClone = false;
 

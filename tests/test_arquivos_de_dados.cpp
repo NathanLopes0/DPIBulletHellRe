@@ -1269,3 +1269,20 @@ TEST_CASE("Dados: toda coluna do curso depende da anterior, entao a grade pode s
         CHECK(l.ColunaDependeDaAnterior(c));
     }
 }
+
+TEST_CASE("Dados: as quatro fases do Vladimir anunciam alguma coisa no placar") {
+
+    // CANARIO, e espelha os dados de proposito. O anuncio e a identidade do
+    // chefe ("os outros surpreendem, e ele ANUNCIA"), e o jeito mais facil de
+    // perde-lo e escrever a chave em portugues de verdade - "anuncio" com
+    // acento - num arquivo que aceita campo desconhecido calado. O placar
+    // apagaria naquela fase e nada mais quebraria.
+    //
+    // Se uma fase do Vladimir deixar de anunciar DE PROPOSITO, tire-a daqui.
+    const auto fases = FasesDoChefe("vladimir").fases;
+    REQUIRE(fases.size() == 4);
+    for (const auto& f : fases) {
+        CAPTURE(f.nome);
+        CHECK_FALSE(f.anuncio.empty());
+    }
+}

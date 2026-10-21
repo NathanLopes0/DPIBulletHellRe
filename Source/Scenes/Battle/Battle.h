@@ -178,6 +178,10 @@ private:
     void LoadTimeBar();
     void LoadGradeBar();
 
+    // ---- O PLACAR: o que o chefe anuncia na fase ("anuncio" em fases.json) ----
+    void LoadPlacar();
+    void AtualizarPlacar();
+
 
     // --- Membros de Estado da Batalha ---
     float mGrade;
@@ -276,6 +280,29 @@ private:
     // O HUD
     std::unique_ptr<BattleHUD> mHUD;
     std::unique_ptr<Font> mGradeBarFont;
+
+    /// A FONTE DO PLACAR NAO E A ZELDA, e nao por gosto: a Zelda nao tem "*" nem
+    /// "^" (nem "+" e "_", que ja viraram quadrado na tela), e "(ab)*" e "aⁿbⁿ" sao
+    /// justamente o que o placar do Vladimir escreve. A Carlito tem a notacao
+    /// inteira, inclusive os sobrescritos e o delta.
+    std::unique_ptr<Font> mFonteDoPlacar;
+    Actor* mPlacarActor = nullptr;
+
+    /// A fase que o placar mostra agora. O texto so e refeito quando ela muda:
+    /// SetText renderiza uma textura nova, e fazer isso todo quadro seria
+    /// pagar por um texto que nao mudou.
+    std::string mFaseDoPlacar;
+
+    static constexpr int kPlacarLargura = 320;
+    static constexpr int kPlacarAltura  = 46;
+    static constexpr int kPlacarMargem  = 16;
+    static constexpr int kTamanhoDoPlacar = 30;
+
+    /// ATRAS DOS PROJETEIS (88 a 92) e do aluno (100), e de proposito. O aluno
+    /// alcanca o campo inteiro, cantos de cima inclusive, e um placar por cima
+    /// esconderia um tiro justo de quem esta embaixo dele. Atras, ele e
+    /// CENARIO: o quadro da sala, e nao uma janela por cima do jogo.
+    static constexpr int kOrdemDoPlacar = 60;
     Actor* mHUDTimeBarActor = nullptr;
     Actor* mHUDClockActor = nullptr;
 

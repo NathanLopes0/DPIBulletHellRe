@@ -441,6 +441,15 @@ FasesLidas LerFases(const std::string& textoJson) {
                 continue;
             }
 
+            // "anuncio": o texto do placar nesta fase. Um valor que nao e texto
+            // e RECUSADO, e nao lido como vazio: viraria um placar que some sem
+            // aviso nenhum, e o jogador nunca saberia que havia algo a ler.
+            if (corpoFase.contains("anuncio") && !corpoFase["anuncio"].is_string()) {
+                saida.problemas.emplace_back(onde + "\"anuncio\" deveria ser um texto");
+                continue;
+            }
+            f.anuncio = Texto(corpoFase, "anuncio");
+
             if (corpoFase.contains("movimento")) {
                 f.movimento = LerMovimento(corpoFase["movimento"], onde, saida.problemas);
             }

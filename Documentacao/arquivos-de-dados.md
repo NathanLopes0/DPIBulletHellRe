@@ -107,8 +107,15 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 |---|---|
 | `duracao` | segundos |
 | `proximo` | a próxima fase. **Vazio significa "a batalha é decidida aqui"**, não "fim do arquivo". |
+| `anuncio` | opcional. O texto do **placar**, o quadro no canto de cima, enquanto a fase dura. Sem ele o placar fica apagado |
 | `movimento` | como o professor anda |
 | `ataques` | lista; todos disparam na mesma fase, cada um no seu cooldown |
+
+> **O placar escreve na Carlito, e não na Zelda.** A Zelda não tem `*` nem `^`,
+> e o placar existe para o Vladimir escrever `(ab)*` e `aⁿbⁿ`. O texto é UTF-8:
+> sobrescrito, `δ` e `→` saem como são. Um `anuncio` que não é texto é recusado
+> na leitura em vez de virar um quadro apagado — e cuidado com a chave: escrita
+> com acento, `anúncio`, ela é ignorada calada como qualquer campo desconhecido.
 
 **Movimentos:** `GoToCenter`, `RandomWander`, `HoverAbovePlayer`, `Orbitar`,
 `Varredura`, `Mergulho`. `a` e `b` são os dois parâmetros do construtor, na

@@ -143,6 +143,7 @@ void Battle::LoadHUD() {
     mHUD = std::make_unique<BattleHUD>(this);
     LoadTimeBar();
     LoadGradeBar();
+    LoadPlacar();
 
 }
 void Battle::LoadPlayer() {
@@ -335,6 +336,62 @@ void Battle::LoadGradeBar() {
     mFaseLimpaActor = limpaActor.get();
     this->AddActor(std::move(limpaActor));
 }
+void Battle::LoadPlacar() {
+
+    // O QUADRO DA SALA, no canto de cima a esquerda. E o canto que os chefes
+    // menos visitam - a orbita e a varredura do Vladimir ficam longe dele - e o
+    // relogio de fase ja anda colado no chefe, entao o canto estava livre.
+    //
+    // NASCE APAGADO. So acende numa fase que tenha "anuncio": um chefe que nao
+    // anuncia nada nao ganha um quadro vazio no canto.
+    mFonteDoPlacar = std::make_unique<Font>();
+    mFonteDoPlacar->Load(Caminhos::Asset("Fonts/Carlito-Regular.ttf"));
+
+    auto placar = std::make_unique<Actor>(this);
+
+    // Verde de quadro-negro e moldura de giz. Translucido como as placas da
+    // faixa, para o campo continuar aparecendo atras.
+    auto quadro = placar->AddComponent<DrawCaixaComponent>(
+        kPlacarLargura, kPlacarAltura, SDL_Color{205, 210, 200, 170},
+        SDL_Color{18, 42, 30, 150}, 2, kOrdemDoPlacar);
+    quadro->SetIsVisible(false);
+
+    // A caixa do texto e MENOR que o quadro, e o ajuste ao texto so encolhe:
+    // uma expressao comprida diminui para caber em vez de vazar pela moldura.
+    auto texto = placar->AddComponent<DrawTextComponent>(
+        " ", mFonteDoPlacar.get(), kPlacarLargura - 24, kPlacarAltura - 6,
+        kTamanhoDoPlacar, kOrdemDoPlacar + 1);
+    texto->SetAjustarAoTexto(true);
+    texto->SetIsVisible(false);
+
+    placar->SetPosition(Vector2(static_cast<float>(kPlacarMargem + kPlacarLargura / 2),
+                                static_cast<float>(kPlacarMargem + kPlacarAltura / 2)));
+
+    mPlacarActor = placar.get();
+    this->AddActor(std::move(placar));
+}
+
+void Battle::AtualizarPlacar() {
+    if (!mPlacarActor || !mBoss) return;
+
+    // FaseAtual, e nao o nome que a maquina de estados acabou de trocar: e a
+    // fase em que o chefe esta agindo neste quadro, a mesma que escolhe o
+    // movimento e os ataques. O placar e os tiros mudam juntos.
+    const std::string& fase = mBoss->FaseAtual();
+    if (fase == mFaseDoPlacar) return;
+    mFaseDoPlacar = fase;
+
+    const std::string anuncio = mBoss->AnuncioDaFase(fase);
+    const bool aceso = !anuncio.empty();
+
+    // So escreve quando ha o que escrever: um texto vazio nao gera textura, e
+    // a ultima expressao ficaria guardada esperando a placa acender de novo.
+    auto* texto = mPlacarActor->GetComponent<DrawTextComponent>();
+    if (aceso) texto->SetText(anuncio);
+    texto->SetIsVisible(aceso);
+    mPlacarActor->GetComponent<DrawCaixaComponent>()->SetIsVisible(aceso);
+}
+
 void Battle::LoadEndScreen() {
     auto textActor = std::make_unique<Actor>(this);
 
@@ -489,6 +546,7 @@ void Battle::OnUpdate(float deltaTime) {
 
     TimeBarUpdate();
     GradeBarUpdate();
+    AtualizarPlacar();
 
     // Purga os ponteiros observadores de pontos extras. Precisa rodar DEPOIS de
     // CheckCollisions (que e quem marca um item coletado como Destroy) e ANTES

@@ -200,6 +200,12 @@ struct DescricaoDeFase {
     std::string nome;
     float duracao = 17.0f;
     std::string proximo;
+
+    /// O que o PLACAR da batalha mostra enquanto esta fase dura - a linguagem
+    /// de que cada rajada e uma palavra, no caso do Vladimir. Vazio = a fase nao
+    /// anuncia nada e o placar fica apagado. Quem desenha e Battle::AtualizarPlacar.
+    std::string anuncio;
+
     DescricaoDeMovimento movimento;
     std::vector<DescricaoDeAtaque> ataques;
     std::string ataquesDe;

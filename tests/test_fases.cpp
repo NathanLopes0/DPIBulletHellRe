@@ -654,3 +654,50 @@ TEST_CASE("Fases: corrente de \"ataquesDe\" e recusada") {
     }
     CHECK(citou);
 }
+
+// ---------------------------------------------------------------------------
+// O anuncio do placar
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Fases: o anuncio da fase e lido como texto, e sem ele a fase nao anuncia") {
+
+    // UTF-8 inteiro, porque e o que o placar desenha: "aⁿbⁿ" com o sobrescrito
+    // de verdade. A leitura nao pode tocar nos bytes.
+    //
+    // OS BYTES VAO ESCRITOS UM A UM, e nao como "ⁿ" nem "\u207f": as duas formas
+    // dependem do conjunto de caracteres que o compilador assume, e o CMake nao
+    // fixa nenhum. Em \x o teste e o mesmo em qualquer compilador.
+    const std::string aNbN = "a\xE2\x81\xBF" "b\xE2\x81\xBF";
+    const auto lidas = LerFases(R"({
+      "StateOne":   { "proximo": "StateFinal", "anuncio": ")" + aNbN + R"(",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] },
+      "StateFinal": { "proximo": "",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+    })");
+
+    CHECK(lidas.problemas.empty());
+    REQUIRE(lidas.fases.size() == 2);
+    for (const auto& f : lidas.fases) {
+        CAPTURE(f.nome);
+        if (f.nome == "StateOne")   CHECK(f.anuncio == aNbN);
+        if (f.nome == "StateFinal") CHECK(f.anuncio.empty());
+    }
+}
+
+TEST_CASE("Fases: um anuncio que nao e texto e recusado, e nao lido como vazio") {
+
+    // Lido como vazio, ele viraria um placar que apaga sem aviso - e quem
+    // escreveu um numero ali nunca saberia que o quadro nao acende.
+    const auto lidas = LerFases(R"({
+      "StateOne":   { "proximo": "StateFinal", "anuncio": 42,
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] },
+      "StateFinal": { "proximo": "",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+    })");
+
+    bool reclamou = false;
+    for (const auto& p : lidas.problemas) {
+        if (p.find("anuncio") != std::string::npos) reclamou = true;
+    }
+    CHECK(reclamou);
+}

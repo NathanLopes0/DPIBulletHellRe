@@ -299,6 +299,15 @@ std::string Boss::CloneDaFase(const std::string& fase) const {
     return it == mClonePorFase.end() ? std::string{} : it->second;
 }
 
+void Boss::RegistrarAnuncio(const std::string& fase, const std::string& texto) {
+    mAnuncioPorFase[fase] = texto;
+}
+
+std::string Boss::AnuncioDaFase(const std::string& fase) const {
+    const auto it = mAnuncioPorFase.find(fase);
+    return it == mAnuncioPorFase.end() ? std::string{} : it->second;
+}
+
 void Boss::SetInitialState(const std::string &stateName) {
     mInitialState = stateName;
 }
