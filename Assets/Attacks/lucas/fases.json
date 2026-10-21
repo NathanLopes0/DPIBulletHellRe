@@ -95,11 +95,28 @@
     ]
   },
 
-  // FASE 3 - ELIXIR   |   gesto: A ORBITA
+  // FASE 3 - ELIXIR: LET IT CRASH   |   gesto: A ORBITA
   //
-  // O servidor da voltas e solta processos pelo caminho.
+  // O servidor da voltas e solta processos - leves, lentos e insistentes. O
+  // aluno PODE DERRUBA-LOS ("derrubavel" em projeteis.json): a Duvida some junto
+  // com o processo e nao chega ao chefe. E o supervisor poe de volta, na rodada
+  // seguinte, cada processo que caiu (Lucas::OnProjetilDerrubado, no maximo 4
+  // por rodada). Derrubar abre o caminho por um instante, e nao para sempre.
   //
-  // PROVISORIO: os processos ja perseguem, mas ainda nao podem ser derrubados.
+  // O SUPERVISOR E O QUE FAZ A FASE. Medido com ele desligado: o piloto que
+  // persegue derruba 43 processos, nao toma acerto nenhum nesta fase e termina
+  // com 84,4 - atirar resolvia tudo. Com ele, derruba 64 e toma 3.
+  //
+  // A TROCA E A FASE: limpar o caminho custa os acertos que iriam para a nota.
+  // Medido na batalha inteira, contra os processos imortais do esqueleto: o
+  // piloto que persegue derruba 64 processos, toma 3 acertos nesta fase em vez
+  // de 4, e termina com 64,5 em vez de 69,6, porque acertou o chefe 190 vezes
+  // em vez de 227.
+  //
+  // 4 POR RODADA A CADA 0,8s, e nao 5 a cada 1,0. Com 5 o piloto que persegue
+  // se protegia tao bem que terminava com 78,6 e 8 acertos - o Elixir, que e a
+  // fase que decide a batalha, virava a mais facil. Com rodadas menores e mais
+  // frequentes ele toma 3 acertos ali em vez de 1.
   "StateThree": {
     "duracao": 17,
     "proximo": "",
@@ -107,8 +124,8 @@
     "movimento": { "tipo": "Orbitar", "a": 230, "b": 0.12 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Processo",
-        "projeteis": 5, "velocidade": 170, "angulo": 120, "intervalo": 0.08,
-        "cooldown": 1.0,
+        "projeteis": 4, "velocidade": 170, "angulo": 120, "intervalo": 0.08,
+        "cooldown": 0.8,
         "regras": "processos" }
     ]
   },

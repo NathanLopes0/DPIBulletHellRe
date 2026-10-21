@@ -163,6 +163,14 @@ namespace {
         saida.posicionarNoDono = Booleano(j, "posicionarNoDono", true);
         saida.rotacionarComAVelocidade = Booleano(j, "rotacionarComAVelocidade", false);
 
+        // "derrubavel" so aceita true ou false. Um texto ou um numero ali seria
+        // lido como falso e o processo ficaria imortal, calado - e o aluno
+        // passaria a fase atirando num projetil que nao cai.
+        if (j.contains("derrubavel") && !j["derrubavel"].is_boolean()) {
+            problemas.emplace_back(onde + "\"derrubavel\" precisa ser true ou false; usando false");
+        }
+        saida.derrubavel = Booleano(j, "derrubavel", false);
+
         // ----- O efeito de acorrentar -----
         //
         // RECUSA CHAPADO em vez de corrigir calado: um "segundos" negativo ou

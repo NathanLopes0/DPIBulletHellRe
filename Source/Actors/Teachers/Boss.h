@@ -128,6 +128,17 @@ public:
     /// @brief De qual fase o clone desta fase tira os ataques. Vazio = sem clone.
     [[nodiscard]] std::string CloneDaFase(const std::string& fase) const;
 
+    // ---- O PROJETIL DERRUBADO ----------------------------------------------
+
+    /**
+     * @brief Um tiro do aluno derrubou um projetil derrubavel deste chefe.
+     *
+     * Quem chama e Battle, no laco de colisao, SEMPRE no corpo original - mesmo
+     * que o projetil tenha saido de um clone. O padrao nao faz nada; o Lucas
+     * usa para o supervisor reiniciar o processo ("let it crash").
+     */
+    virtual void OnProjetilDerrubado() {}
+
     // ---- O PLACAR ---------------------------------------------------------
 
     /// @brief Anota o que o placar mostra enquanto esta fase dura ("anuncio" em

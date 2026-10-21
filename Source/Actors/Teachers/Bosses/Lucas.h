@@ -31,6 +31,16 @@ public:
 
     void OnUpdate(float deltaTime) override;
 
+    /**
+     * @brief O SUPERVISOR: um processo caiu, e ele vai voltar.
+     *
+     * "Let it crash" e a filosofia do Elixir: deixar um processo falhar e
+     * barato, porque um supervisor o reinicia. Aqui, cada processo que o aluno
+     * derruba entra na proxima rodada da fase 3 - o tiro abriu caminho por um
+     * instante, e nao para sempre.
+     */
+    void OnProjetilDerrubado() override;
+
 protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
 
@@ -48,4 +58,18 @@ private:
     bool mGuardouOFlex = false;
     Flex::Justificar mDeDoArquivo = Flex::Justificar::Centro;
     Flex::Justificar mParaDoArquivo = Flex::Justificar::EspacoEntre;
+
+    /// Quantos processos cairam desde a ultima rodada da fase 3. Ver
+    /// OnProjetilDerrubado.
+    int mParaReiniciar = 0;
+
+    /// Quantos processos a rodada da fase 3 tem pelo ARQUIVO, guardado no
+    /// primeiro disparo pelo mesmo motivo do flexbox: depois do primeiro
+    /// reinicio, params ja nao diz o que o arquivo disse.
+    int mProcessosDoArquivo = -1;
+
+    /// O MAXIMO QUE O SUPERVISOR DEVOLVE NUMA RODADA. Sem teto, um aluno que
+    /// derrubasse doze processos num segundo receberia doze de uma vez - o
+    /// supervisor viraria castigo, e o Elixir nao castiga: ele so insiste.
+    static constexpr int kReiniciosPorRodada = 4;
 };

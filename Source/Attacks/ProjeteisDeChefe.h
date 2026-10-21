@@ -122,6 +122,19 @@ struct DescricaoDeProjetil {
     };
 
     Acorrentamento acorrenta;
+
+    /**
+     * @brief O tiro do aluno pode derrubar este projetil?
+     *
+     * So os PROCESSOS do Lucas. Um projetil derrubavel some quando uma Duvida o
+     * acerta - e a Duvida some junto, sem chegar ao chefe. Quem decide o que
+     * acontece depois e o chefe dono dele (Boss::OnProjetilDerrubado): no Lucas,
+     * o supervisor poe o processo de volta.
+     *
+     * Falso por padrao: um padrao errado aqui faria os tiros do aluno pararem
+     * em todo projetil de todo chefe.
+     */
+    bool derrubavel = false;
 };
 
 /**

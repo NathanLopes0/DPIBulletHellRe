@@ -87,7 +87,11 @@ void PlayerProjectile::OnCollision(Actor *other) {
     auto otherCollider = other->GetComponent<CircleColliderComponent>();
     if (!otherCollider) return;
 
-    if (otherCollider->GetColliderTag() == ColliderTag::Boss) {
+    // O CHEFE, OU UM PROJETIL DELE QUE O TIRO DERRUBOU. Battle so chama isto com
+    // um projetil de chefe quando ele e derrubavel (os processos do Lucas): o
+    // tiro gasta-se nele e nao segue ate o chefe.
+    if (otherCollider->GetColliderTag() == ColliderTag::Boss
+        || otherCollider->GetColliderTag() == ColliderTag::BossProjectile) {
         DeactivateProjectile();
     }
 }

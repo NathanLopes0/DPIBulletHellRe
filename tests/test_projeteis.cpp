@@ -434,3 +434,40 @@ TEST_CASE("Projeteis: \"acorrenta\" sem segundos nao prende, e reclama") {
     REQUIRE(p.problemas.size() == 1);
     CHECK(p.problemas[0].find("segundos") != std::string::npos);
 }
+
+// ---------------------------------------------------------------------------
+// O projetil que o aluno derruba (os processos do Lucas)
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Projeteis: \"derrubavel\" e falso por padrao, e pode ser ligado") {
+
+    // O PADRAO TEM DE SER FALSO: verdadeiro em todo projetil faria cada tiro do
+    // aluno parar no primeiro projetil do caminho, em toda batalha.
+    const auto p = LerProjeteis(R"({
+      "Normal":   { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] } },
+      "Processo": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] },
+                    "derrubavel": true }
+    })");
+
+    CHECK(p.problemas.empty());
+    REQUIRE(p.projeteis.count("Normal") == 1);
+    REQUIRE(p.projeteis.count("Processo") == 1);
+    CHECK_FALSE(p.projeteis.at("Normal").derrubavel);
+    CHECK(p.projeteis.at("Processo").derrubavel);
+}
+
+TEST_CASE("Projeteis: \"derrubavel\" que nao e booleano reclama e fica falso") {
+
+    // "sim" ou 1 seriam lidos como falso sem aviso, e o processo ficaria
+    // imortal - o aluno atiraria nele a fase inteira sem saber por que nao cai.
+    for (const char* ruim : {"\"sim\"", "1"}) {
+        CAPTURE(ruim);
+        const auto texto = std::string(R"({ "P": { "sprite": "s.png", "dados": "s.json",
+            "animacoes": { "A": [0] }, "derrubavel": )") + ruim + " } }";
+        const auto p = LerProjeteis(texto);
+        REQUIRE(p.projeteis.count("P") == 1);
+        CHECK_FALSE(p.projeteis.at("P").derrubavel);
+        REQUIRE(p.problemas.size() == 1);
+        CHECK(p.problemas[0].find("derrubavel") != std::string::npos);
+    }
+}

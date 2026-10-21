@@ -819,6 +819,31 @@ void Battle::CheckCollisions() {
         }
     }
 
+    // --- REGRA 1b - Projéteis do Player vs Projéteis DERRUBAVEIS do Boss
+    //
+    // ANTES DA REGRA 2, e de proposito: um tiro que derruba um processo se gasta
+    // nele e nao chega ao chefe. E a troca da fase do Elixir - limpar o caminho
+    // custa os acertos que iriam para a nota.
+    //
+    // QUEM E AVISADO E O CORPO ORIGINAL (mBoss), e nao o dono do projetil: o
+    // supervisor e um so, e o dono pode ser um clone que ja deixou de existir.
+    for (const auto &playerProj: playerProjectiles) {
+        if (playerProj->GetState() != ActorState::Active) continue;
+        const auto *tiro = playerProj->GetComponent<CircleColliderComponent>();
+        if (!tiro) continue;
+
+        for (const auto &bossProj: bossProjectiles) {
+            if (bossProj->GetState() != ActorState::Active || !bossProj->Derrubavel()) continue;
+            const auto *alvo = bossProj->GetComponent<CircleColliderComponent>();
+            if (!alvo || !alvo->Intersect(*tiro)) continue;
+
+            bossProj->OnCollision(playerProj.get());
+            playerProj->OnCollision(bossProj.get());
+            if (mBoss) mBoss->OnProjetilDerrubado();
+            break;   // um tiro derruba um processo so
+        }
+    }
+
     // --- REGRA 2 - Projéteis do Player vs Boss
     //
     // ESTA NAO E DE NINGUEM. Os tiros dos dois jogadores saem do mesmo pool e

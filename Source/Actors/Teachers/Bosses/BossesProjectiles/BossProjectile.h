@@ -96,6 +96,11 @@ public:
     }
 
     [[nodiscard]] bool Acorrenta() const { return mSegundosDeCorrente > 0.0f; }
+
+    /// @brief O tiro do aluno pode derrubar este projetil? Ver
+    /// DescricaoDeProjetil::derrubavel. Propriedade do TIPO, como a corrente.
+    void DefinirDerrubavel(const bool derrubavel) { mDerrubavel = derrubavel; }
+    [[nodiscard]] bool Derrubavel() const { return mDerrubavel; }
     [[nodiscard]] float SegundosDeCorrente() const { return mSegundosDeCorrente; }
     [[nodiscard]] float FatorDaCorrente() const { return mFatorDaCorrente; }
     [[nodiscard]] float MultiplicadorDaPerda() const { return mMultiplicadorDaPerda; }
@@ -133,6 +138,9 @@ protected:
     float mSegundosDeCorrente = 0.0f;
     float mFatorDaCorrente = 1.0f;
     float mMultiplicadorDaPerda = 1.0f;
+
+    /// Ver DefinirDerrubavel. Do tipo, como a corrente: nao volta no Reset.
+    bool mDerrubavel = false;
 
     /// O valor com que a fabrica construiu este projetil. Ver
     /// MarcarPadraoDeFabrica.

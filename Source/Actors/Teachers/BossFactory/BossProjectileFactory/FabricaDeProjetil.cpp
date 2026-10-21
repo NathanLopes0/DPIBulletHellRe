@@ -53,6 +53,9 @@ std::unique_ptr<Projectile> FabricaDeProjetil::createProjectile(Scene* scene, Ac
                                       mDescricao.acorrenta.fatorDeVelocidade,
                                       mDescricao.acorrenta.multiplicadorDaPerda);
 
+    // Se o tiro do aluno o derruba. So os processos do Lucas.
+    projectile->DefinirDerrubavel(mDescricao.derrubavel);
+
     // A escala vem ANTES do colisor: CircleColliderComponent multiplica o raio
     // por GetScale(), entao escalar depois mudaria a hitbox sem mudar o numero
     // que passamos adiante.

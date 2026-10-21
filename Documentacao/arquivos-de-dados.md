@@ -515,6 +515,7 @@ entrada é como `fases.json` vai pedi-lo.
 | `posicionarNoDono` | se nasce em cima do professor |
 | `margemEmSprites` / `margemDivisorDeTela` | quão longe da tela ele morre |
 | `rotacionarComAVelocidade` | se o sprite gira para acompanhar o voo (uma regra pode desligar por rajada — ver `rotacionar`) |
+| `derrubavel` | `true` se o tiro do aluno derruba este projétil. Os dois somem, o tiro não chega ao professor, e o professor é avisado (`Boss::OnProjetilDerrubado`). Padrão `false`; só os processos do Lucas usam |
 | `acorrenta` | o que acontece com o aluno ao ser acertado: `segundos`, `fatorDeVelocidade`, `multiplicadorDaPerda` |
 
 ```jsonc
