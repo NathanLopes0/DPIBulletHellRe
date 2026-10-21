@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # "FICAR PARADO NAO DEVERIA APROVAR EM CHEFE NENHUM."
 #
-# Roda os nove chefes com um piloto que NAO SE MEXE e atira sem parar, e
+# Roda os dez chefes com um piloto que NAO SE MEXE e atira sem parar, e
 # reprova o chefe que o deixar passar.
 #
 #   bash Ferramentas/parado-reprova.sh
@@ -31,7 +31,7 @@
 # dpi_tests. E uma ferramenta de rodar a mao quando se mexe no balanceamento de
 # qualquer chefe.
 #
-# ESTADO NA ULTIMA MEDICAO: oito dos nove reprovam o piloto parado. O Salles
+# ESTADO NA ULTIMA MEDICAO: nove dos dez reprovam o piloto parado. O Salles
 # ainda passa (nota 80,70, com 15 acertos sofridos e 309 dados), e a causa esta
 # identificada: tres das quatro fases dele usam GoToCenter, entao ele para na
 # coluna do meio e leva os tiros de graca. E o mesmo defeito que a primeira
@@ -57,7 +57,7 @@ rm -rf "$saidas" && mkdir -p "$saidas"
 
 # indice:nome - os indices sao a ordem das materias em Assets/materias.json, e
 # e assim que Game::mSelectedStage as enxerga. Materia sem chefe fica de fora.
-CHEFES="0:Andre 1:Salles 2:Ricardo 3:Thiago 5:Vladimir 6:Julio 7:MariaLucia 8:Lucas 9:Vitor"
+CHEFES="0:Andre 1:Salles 2:Ricardo 3:Thiago 4:Luizinho 5:Vladimir 6:Julio 7:MariaLucia 8:Lucas 9:Vitor"
 
 for par in $CHEFES; do
   b="${par%%:*}"; nome="${par##*:}"
@@ -81,7 +81,7 @@ done
 
 echo
 if [ "$falhas" -eq 0 ]; then
-  echo "OK: o piloto parado reprova nos nove."
+  echo "OK: o piloto parado reprova nos dez."
   exit 0
 fi
 echo "$falhas chefe(s) deixam o jogador parado aprovar - marcados com !!"

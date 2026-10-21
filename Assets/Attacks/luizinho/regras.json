@@ -1,0 +1,32 @@
+{
+  // ==========================================================================
+  // AS REGRAS DE PROJETIL DO LUIZINHO
+  //
+  // Um conjunto por assunto da ementa. Os campos estao documentados em
+  // Documentacao/arquivos-de-dados.md.
+  // ==========================================================================
+
+  // AMARRACAO ESTATICA: a letra sai reta. O que e estatico ja foi decidido
+  // antes de ela nascer.
+  "estatica": [
+    { "animacao": "Estatica" }
+  ],
+
+  // ENCAPSULAMENTO: provisorio, a capsula ainda nao abre.
+  "capsula": [
+    { "animacao": "Capsula" }
+  ],
+
+  // MEMORIA: o bloco alocado freia e fica. O que ninguem libera se acumula.
+  "blocos": [
+    { "animacao": "Alocado",
+      "modifiers": [ { "tipo": "SlowDown", "atraso": 0.6, "fator": 0.25 } ] }
+  ],
+
+  // SEQUENCIA: provisorio, cada gomo persegue sozinho, e ainda nao ha
+  // cabeca; a fila que acorda com intervalo ja lembra uma serpente.
+  "serpente": [
+    { "animacao": "Corpo",
+      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 3.0 } }
+  ]
+}

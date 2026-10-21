@@ -74,9 +74,9 @@ foi aprovado:
 | 3 | INF 420 — Inteligência Artificial *(Júlio)*, INF 221 — Engenharia de Software *(Maria Lúcia)*, INF 321 — Programação Web *(Lucas)*, INF 310 — Programação Concorrente e Distribuída *(Vitor)* | 2 aprovações na coluna 2 |
 | 4 | TCC — Trabalho de Conclusão de Curso *(Hugo)* | 2 aprovações na coluna 3 |
 
-Toda matéria tem professor; **nove têm batalha** (André, Salles, Ricardo,
-Thiago, Júlio, Vladimir, Vitor, Maria Lúcia e Lucas) e as outras duas aparecem
-na grade esperando uma. Ter professor e ter batalha são coisas separadas de
+Toda matéria tem professor; **dez têm batalha** (André, Salles, Ricardo,
+Thiago, Júlio, Vladimir, Vitor, Maria Lúcia, Lucas e Luizinho) e a outra, o TCC,
+aparece na grade esperando uma. Ter professor e ter batalha são coisas separadas de
 propósito, e cada professor aparece uma vez só na grade.
 
 Quem decide tudo isso é `Assets/materias.json` — a ordem, as colunas, as regras

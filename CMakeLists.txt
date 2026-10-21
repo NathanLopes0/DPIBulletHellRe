@@ -194,6 +194,10 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teachers/Bosses/Lucas.h
         Source/Actors/Teachers/BossFactory/LucasFactory.cpp
         Source/Actors/Teachers/BossFactory/LucasFactory.h
+        Source/Actors/Teachers/Bosses/Luizinho.cpp
+        Source/Actors/Teachers/Bosses/Luizinho.h
+        Source/Actors/Teachers/BossFactory/LuizinhoFactory.cpp
+        Source/Actors/Teachers/BossFactory/LuizinhoFactory.h
         Source/Actors/Teachers/Bosses/Vitor.cpp
         Source/Actors/Teachers/Bosses/Vitor.h
         Source/Actors/Teachers/BossFactory/VitorFactory.cpp

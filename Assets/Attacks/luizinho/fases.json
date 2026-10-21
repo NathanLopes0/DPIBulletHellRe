@@ -1,0 +1,103 @@
+{
+  // ==========================================================================
+  // AS FASES DO LUIZINHO (INF 340 - Linguagens de Programacao)
+  //
+  // A ETIMOLOGIA VIRA MECANICA. O Luizinho e o professor que conta de onde vem
+  // cada palavra da materia, e cada fase pega um assunto da ementa e faz o
+  // projetil obedecer ao sentido LITERAL da palavra latina. O placar mostra a
+  // palavra e o que ela queria dizer:
+  //
+  //   StateOne    Amarracoes          ligare, "atar"
+  //   StateTwo    Encapsulamento      in capsula, "na caixinha"
+  //   StateThree  Gerencia de memoria memento mori, "lembra-te de que morreras"
+  //   StateFinal  Sequenciadores      sequi, "seguir"
+  //
+  // A MEMORIA E A FASE 3, a que DECIDE a batalha ("proximo" vazio): e a
+  // mecanica mais propria do chefe - o coletor que para o mundo - e a final so
+  // e vista por quem termina entre 40 e 59, ou com 100.
+  //
+  // ESTE E O ESQUELETO: as quatro fases ja tem o gesto e o anuncio que vao
+  // manter, mas os ATAQUES SAO PROVISORIOS, montados com as estrategias que ja
+  // existiam. Cada fase ganha a mecanica dela num commit proprio.
+  //
+  // O MOVIMENTO E O ATAQUE, como no Vladimir, no Vitor e no Lucas - nenhuma
+  // fase usa GoToCenter, que deixa o chefe na coluna de quem atira para cima.
+  // ==========================================================================
+
+  // FASE 1 - AMARRACOES   |   gesto: A VARREDURA
+  //
+  // Uma amarracao estatica e decidida ANTES de o programa rodar, e uma
+  // dinamica so DURANTE. Para o aluno ver a diferenca, o chefe precisa estar
+  // num lugar diferente a cada disparo: o tiro que ja nasce decidido sai de
+  // onde ele estava, e o que decide depois decide de onde a letra estiver.
+  //
+  // PROVISORIO: um leque reto, sem amarracao dinamica.
+  "StateOne": {
+    "duracao": 17,
+    "proximo": "StateTwo",
+    "anuncio": "ligāre · atar",
+    "movimento": { "tipo": "Varredura", "a": 200, "b": 150 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Letra",
+        "projeteis": 7, "velocidade": 230, "angulo": 60, "intervalo": 0,
+        "cooldown": 1.0,
+        "regras": "estatica" }
+    ]
+  },
+
+  // FASE 2 - ENCAPSULAMENTO   |   gesto: A ORBITA
+  //
+  // PROVISORIO: um anel de capsulas fechadas, que ainda nao abrem.
+  "StateTwo": {
+    "duracao": 17,
+    "proximo": "StateThree",
+    "anuncio": "in capsulā · na caixinha",
+    "movimento": { "tipo": "Orbitar", "a": 160, "b": 0.1 },
+    "ataques": [
+      { "estrategia": "CircleSpreadAttack", "projetil": "Letra",
+        "projeteis": 16, "velocidade": 190,
+        "cooldown": 1.2,
+        "regras": "capsula" }
+    ]
+  },
+
+  // FASE 3 - GERENCIA DE MEMORIA   |   gesto: O MERGULHO
+  //
+  // Alocar e deixar coisa no campo: o chefe desce e sobe, e os blocos ficam em
+  // alturas diferentes, como a memoria que vai enchendo.
+  //
+  // PROVISORIO: os blocos freiam e se acumulam, mas ainda nao ha coletor.
+  // Comecou com 5 blocos a cada 0,9s, freando para 15%, e o piloto que
+  // persegue passava com 89,3 e 9 acertos, acima da faixa dos outros chefes.
+  // Com 8 a cada 0,5s, freando para 25%, ele passa com 71,2 e 14 acertos.
+  "StateThree": {
+    "duracao": 17,
+    "proximo": "",
+    "anuncio": "memento mori",
+    "movimento": { "tipo": "Mergulho", "a": 160, "b": 220 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Bloco",
+        "projeteis": 8, "velocidade": 260, "angulo": 150, "intervalo": 0.05,
+        "cooldown": 0.5,
+        "regras": "blocos" }
+    ]
+  },
+
+  // FASE FINAL - SEQUENCIADORES   |   gesto: A VARREDURA RAPIDA
+  //
+  // So e vista por quem termina a terceira entre 40 e 59, ou com 100.
+  //
+  // PROVISORIO: uma fila de gomos que acordam um depois do outro e perseguem.
+  "StateFinal": {
+    "duracao": 17,
+    "proximo": "StateOne",
+    "anuncio": "sequī · seguir",
+    "movimento": { "tipo": "Varredura", "a": 280, "b": 120 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Serpente",
+        "projeteis": 8, "velocidade": 210, "angulo": 0, "intervalo": 0.1,
+        "cooldown": 1.6,
+        "regras": "serpente" }
+    ]
+  }
+}

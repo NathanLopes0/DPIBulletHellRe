@@ -1,0 +1,56 @@
+{
+  // ==========================================================================
+  // OS PROJETEIS DO LUIZINHO (INF 340 - Linguagens de Programacao)
+  //
+  // LADRILHOS COM LETRA ROMANA, e um tipo para cada coisa que tem de ser
+  // reconhecida pelo TIPO, e nao pela aparencia:
+  //
+  //   Letra     o que se amarra e o que se encapsula. As animacoes contam em
+  //             que estado a letra esta: "Estatica" (pedra, um C de constans),
+  //             "Livre" (tabuinha de cera ainda em branco), "Ligada" (a mesma
+  //             tabuinha com um V de variabilis) e "Capsula" (a capsa, o
+  //             estojo dos rolos).
+  //   Bloco     a memoria. "Alocado" e um tijolo com endereco; "Marcado" e o
+  //             mesmo tijolo depois que o coletor o marcou.
+  //   Serpente  a sequencia: a "Cabeca" e os gomos do "Corpo".
+  //
+  // Cada tipo registrado custa 300 instancias no pre-aquecimento; as animacoes
+  // do mesmo tipo custam uma vez so.
+  //
+  // Arte PROVISORIA de Ferramentas/gerar_luizinho.py.
+  // ==========================================================================
+  "Letra": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoLetras.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoLetras.json",
+    "animacoes": {
+      "Estatica": [0, 1, 2, 3],
+      "Livre":    [4, 5, 6, 7],
+      "Ligada":   [8, 9, 10, 11],
+      "Capsula":  [12, 13, 14, 15]
+    },
+    "animacaoInicial": "Estatica",
+    "ordemDeDesenho": 90
+  },
+
+  "Bloco": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoLetras.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoLetras.json",
+    "animacoes": {
+      "Alocado": [16, 17, 18, 19],
+      "Marcado": [20, 21, 22, 23]
+    },
+    "animacaoInicial": "Alocado",
+    "ordemDeDesenho": 89
+  },
+
+  "Serpente": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoLetras.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoLetras.json",
+    "animacoes": {
+      "Cabeca": [24, 25, 26, 27],
+      "Corpo":  [28, 29, 30, 31]
+    },
+    "animacaoInicial": "Corpo",
+    "ordemDeDesenho": 91
+  }
+}

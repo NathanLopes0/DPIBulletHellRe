@@ -100,7 +100,7 @@
       // navegacao da grade usa o indice.
       "codigo": "INF340", "nome": "INF 340",
       "nomeCompleto": "Linguagens de Programação", "professor": "Luizinho",
-      "coluna": 2,
+      "coluna": 2, "chefe": "luizinho",
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
     {
