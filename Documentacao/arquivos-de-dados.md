@@ -340,7 +340,7 @@ Escolha no máximo uma forma:
 > mudou nada. O que resolveu foi o chefe **andar**.
 
 **Motions:** `Path`, `Tracking`, `Wobble`, `MiraPeriodica`
-**Modifiers:** `Accelerate`, `SlowDown`, `Activate`, `Deactivate`, `PulsoDeVelocidade`
+**Modifiers:** `Accelerate`, `SlowDown`, `Activate`, `Deactivate`, `PulsoDeVelocidade`, `Reescrever`
 
 Pôr um modifier em `motion` é recusado na leitura. No C++ quem garante isso é o
 compilador; aqui é a leitura, porque arquivo de texto não passa por compilador.
@@ -356,8 +356,19 @@ compilador; aqui é a leitura, porque arquivo de texto não passa por compilador
 | `Accelerate` / `SlowDown` | `fator`, `atraso` |
 | `Activate` / `Deactivate` | `atraso` |
 | `PulsoDeVelocidade` | `ritmo`, `moduloInvestida`, `moduloPausa` |
+| `Reescrever` | `atraso` (idade mínima), `raio`, `escreve`, `velocidade`, `forca`, `duracao` |
 
 `mira` é `AlinharComVelocidade` (o padrão), `MirarNoJogador` ou `MirarPrevendo`.
+
+**`Reescrever` é a casa da fita de Turing.** O projétil espera onde está até
+**qualquer corpo do chefe** passar por cima dele — a menos de `raio` pixels no
+`x`, a qualquer altura — e então é reescrito: troca para a animação `escreve`,
+sai em direção ao alvo a `velocidade` e persegue com um `Tracking` de `forca` e
+`duracao`. O `atraso` é a idade mínima da casa, e não é opcional na prática: a
+casa nasce **embaixo** da cabeça que a escreveu, e sem ele seria reescrita no
+mesmo quadro. `raio` e `velocidade` zero e `escreve` ausente são recusados na
+leitura, porque cada um faria uma casa que não muda em tela. A regra de quando
+reescrever é pura e mora em `Fita.h`.
 
 ### Dois exemplos para copiar
 

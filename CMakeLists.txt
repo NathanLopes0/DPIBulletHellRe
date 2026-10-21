@@ -132,6 +132,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/RegrasDeAtaqueArquivo.h
         Source/Attacks/EscopoQueCresce.cpp
         Source/Attacks/EscopoQueCresce.h
+        Source/Attacks/Fita.cpp
+        Source/Attacks/Fita.h
         Source/Attacks/FasesDeAtaque.cpp
         Source/Attacks/FasesDeAtaque.h
         Source/Attacks/FasesDeAtaqueArquivo.cpp
@@ -225,6 +227,7 @@ add_executable(dpi_tests
         tests/test_formas.cpp
         tests/test_regras.cpp
         tests/test_escopo.cpp
+        tests/test_fita.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -284,6 +287,8 @@ add_executable(dpi_tests
         Source/Attacks/RegrasDeAtaque.h
         Source/Attacks/EscopoQueCresce.cpp
         Source/Attacks/EscopoQueCresce.h
+        Source/Attacks/Fita.cpp
+        Source/Attacks/Fita.h
         Source/Attacks/FasesDeAtaque.cpp
         Source/Attacks/FasesDeAtaque.h
         Source/Attacks/ProjeteisDeChefe.cpp

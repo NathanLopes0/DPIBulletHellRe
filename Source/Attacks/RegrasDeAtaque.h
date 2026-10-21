@@ -60,6 +60,14 @@ struct DescricaoDeBehavior {
     float fator = 1.0f;             ///< Accelerate, SlowDown
     Vector2 velocidadeInicial;      ///< Activate
 
+    /// Reescrever: a que distancia, no x, a cabeca le a casa. Ver Fita.h.
+    float raio = 0.0f;
+
+    /// Reescrever: a animacao que a casa passa a ter - a letra que a maquina
+    /// ESCREVE. Obrigatoria: reescrever sem trocar de letra seria uma casa que
+    /// muda de comportamento com a mesma cor, e a cor e o que se le de longe.
+    std::string escreve;
+
     RitmoDeCiclos ritmo;            ///< MiraPeriodica, PulsoDeVelocidade
     float moduloInvestida = 0.0f;   ///< PulsoDeVelocidade
     float moduloPausa = 0.0f;       ///< PulsoDeVelocidade
@@ -146,7 +154,7 @@ struct RegrasLidas {
 bool EhMotion(const std::string& tipo);
 
 /// @brief O tipo nomeado e um Modifier? (Accelerate, SlowDown, Activate,
-/// Deactivate, PulsoDeVelocidade)
+/// Deactivate, PulsoDeVelocidade, Reescrever)
 bool EhModifier(const std::string& tipo);
 
 /**
