@@ -52,11 +52,18 @@
     { "animacao": "Um" }
   ],
 
-  // Fase final, segundo ataque: o anel esparso de 9, que desacelera antes e
-  // corrige depois.
-  "final_teleguiado": [
-    { "modifiers": [ { "tipo": "SlowDown", "atraso": 0.8, "fator": 0.8 } ],
-      "motion": { "tipo": "Path", "forma": "Reta", "velocidade": 240,
-                  "atraso": 1.0, "mira": "MirarNoJogador" } }
+  // FASE FINAL: as quatro placas do Blink, presas ao professor duas de cada
+  // lado e um pouco abaixo dele, no posto "placas" - de onde o Ricardo as poe
+  // e tira do posto "acesas" conforme o LED. Ficam 7,5 s e se soltam: a cada
+  // 8 s ele pluga quatro novas, e as velhas caem.
+  "placas": [
+    { "indices": [0], "posto": "placas",
+      "motion": { "tipo": "Ancorar", "dx": -210, "dy": 30,  "duracao": 7.5, "velocidade": 220 } },
+    { "indices": [1], "posto": "placas",
+      "motion": { "tipo": "Ancorar", "dx": -120, "dy": 100, "duracao": 7.5, "velocidade": 220 } },
+    { "indices": [2], "posto": "placas",
+      "motion": { "tipo": "Ancorar", "dx": 120,  "dy": 100, "duracao": 7.5, "velocidade": 220 } },
+    { "indices": [3], "posto": "placas",
+      "motion": { "tipo": "Ancorar", "dx": 210,  "dy": 30,  "duracao": 7.5, "velocidade": 220 } }
   ]
 }

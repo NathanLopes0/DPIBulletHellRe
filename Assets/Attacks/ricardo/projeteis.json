@@ -17,16 +17,10 @@
   // que nao existe ou se uma animacao citar um quadro que a folha nao tem.
   // ==========================================================================
 
-  // Sprite de 16x16 desenhada em 32x32, dai a escala 2.
-  "Arduino": {
-    "sprite": "Teachers/Projectiles/DPIBHRicardoProjectile.png",
-    "dados":  "Teachers/Projectiles/DPIBHRicardoProjectile.json",
-    "animacoes": {
-      "Normal": [0]
-    },
-    "escala": 2,
-    "ordemDeDesenho": 90
-  },
+  // O ARDUINO DE ANTES SAIU NO 132: nenhuma fase o atira mais. A arte dele
+  // (DPIBHRicardoProjectile.png, a original do repositorio) continua em
+  // Assets/Teachers/Projectiles, e e dela que gerar_ricardo.py desenha a Placa
+  // da fase final.
 
   // O BIT DA FASE 1: um bit de uma palavra de 16, do verde da camiseta dele.
   // O UM e a celula acesa, que pulsa; o ZERO e so o contorno apagado - e a
@@ -95,5 +89,33 @@
     "ordemDeDesenho": 89,
     "derrubavel": true,
     "resistencia": 2
+  },
+
+  // A PLACA DA FASE FINAL: o Arduino da arte original, ampliado, apagada ou
+  // com o LED do pino 13 aceso (as caras de Blink.h). Derrubavel com QUATRO
+  // tiros: desplugada, para de piscar.
+  "Placa": {
+    "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
+    "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",
+    "animacoes": {
+      "Apagada": [22], "Acesa": [23]
+    },
+    "animacaoInicial": "Apagada",
+    "escala": 2.5,
+    "ordemDeDesenho": 89,
+    "derrubavel": true,
+    "resistencia": 4
+  },
+
+  // O LED: o tiro da placa que acende.
+  "Led": {
+    "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
+    "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",
+    "animacoes": {
+      "Aceso": [24]
+    },
+    "animacaoInicial": "Aceso",
+    "escala": 1.2,
+    "ordemDeDesenho": 91
   }
 }

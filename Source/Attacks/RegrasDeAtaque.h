@@ -185,6 +185,7 @@ bool EhModifier(const std::string& tipo);
 /// (Nuvem::kPostoDasNuvens), "palavra" e "portas" os bits e as portas logicas
 /// do Ricardo (Logica.h), "registradores" os bits do clock dele (Relogio.h)
 /// e "estagios" e "pipeline" as molduras e as instrucoes do pipeline (Pipeline.h),
+/// e "placas" e "acesas" os Arduinos do Blink, apagados e acesos (Blink.h),
 /// que uma regra poe no posto ao nascer - e alguns o chefe procura la, em vez
 /// de atirar deles.
 bool PostoExiste(const std::string& nome);

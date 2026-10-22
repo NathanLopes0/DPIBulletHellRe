@@ -45,7 +45,8 @@ namespace {
     const std::vector<std::string> kLadosDeBalao = {"Down", "Left", "Right", "Up"};
     const std::vector<std::string> kEixosDeConsulta = {"Linha", "Coluna"};
     const std::vector<std::string> kGatilhos = {"notificacao", "consulta", "agir", "nuvens", "chover", "portas",
-                                                "contador", "estagios", "buscar", "lw", "sw", "add", "addi"};
+                                                "contador", "estagios", "buscar", "lw", "sw", "add", "addi",
+                                                "acender"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"

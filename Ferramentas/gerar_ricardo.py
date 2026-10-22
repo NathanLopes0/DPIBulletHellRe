@@ -21,6 +21,10 @@ OS PROJETEIS SAO AS PECAS DE UM CIRCUITO:
             cima - IF, ID, EX, MEM, WB.
     Instrucao  um chip com a instrucao de assembly que anda pelo pipeline -
             lw, sw, add, addi, bne, j - e a BOLHA, o estagio vazio.
+    Placa   a placa da fase final: o ARDUINO DA ARTE ORIGINAL
+            (DPIBHRicardoProjectile.png, lido daqui e ampliado), apagada e com
+            o LED do pino 13 aceso.
+    Led     o tiro da placa acesa: a luz vermelha do LED.
 """
 from PIL import Image, ImageDraw, ImageFont
 import json, os
@@ -212,6 +216,37 @@ def bolha():
     return im
 
 
+LED_ACESO = (255, 70, 60, 255)
+LED_BRILHO = (255, 200, 170, 255)
+LED_HALO = (255, 90, 70, 110)
+
+
+def placa(acesa):
+    """A PLACA: o Arduino original, ampliado de 16 para 32 px; acesa, o LED do
+    pino 13 - no canto de cima, perto dos pinos digitais - brilha."""
+    original = Image.open(os.path.join(RAIZ, "Assets", "Teachers", "Projectiles",
+                                       "DPIBHRicardoProjectile.png")).convert("RGBA")
+    im = original.resize((32, 32), Image.NEAREST)
+    d = ImageDraw.Draw(im)
+    if acesa:
+        d.ellipse([20, 0, 31, 11], fill=LED_HALO)
+        d.rectangle([24, 4, 27, 7], fill=LED_ACESO)
+        d.rectangle([25, 4, 26, 5], fill=LED_BRILHO)
+    else:
+        d.rectangle([24, 4, 27, 7], fill=(90, 30, 30, 255))
+    return im
+
+
+def led():
+    """O LED: a luz vermelha, com o halo."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.ellipse([7, 7, 24, 24], fill=LED_HALO)
+    d.ellipse([11, 11, 20, 20], fill=LED_ACESO)
+    d.ellipse([13, 12, 16, 15], fill=LED_BRILHO)
+    return im
+
+
 def folha():
     """Quatro quadros por linha, de 32 px. As linhas novas vao sempre no FIM:
     os quadros de antes ficam onde estavam.
@@ -221,7 +256,8 @@ def folha():
         8 XOR B=1   9 NOT   10 IF   11 ID
         12 EX   13 MEM   14 WB   15 lw
         16 sw   17 add   18 addi   19 bne
-        20 j   21 bolha
+        20 j   21 bolha   22 Placa apagada   23 Placa acesa
+        24 Led
     """
     desenhos = [bit_zero(), bit_um(False), bit_um(True),
                 porta_and(0), porta_and(1), porta_or(0), porta_or(1),
@@ -229,6 +265,7 @@ def folha():
     desenhos += [estagio(n) for n in ("IF", "ID", "EX", "MEM", "WB")]
     desenhos += [instrucao(n) for n in ("lw", "sw", "add", "addi", "bne", "j")]
     desenhos += [bolha()]
+    desenhos += [placa(False), placa(True), led()]
     linhas = (len(desenhos) + 3) // 4
     f = Image.new("RGBA", (128, 32 * linhas), (0, 0, 0, 0))
     for i, im in enumerate(desenhos):

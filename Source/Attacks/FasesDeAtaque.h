@@ -279,7 +279,8 @@ bool EixoDeConsultaExiste(const std::string& nome);
 /// (Nuvem.h), "portas" a fileira de portas logicas do Ricardo (Logica.h),
 /// "contador" o leque do clock dele (Relogio.h), e "estagios", "buscar",
 /// "lw", "sw", "add" e "addi" o pipeline dele (Pipeline.h) - os quatro
-/// ultimos, o ataque de cada instrucao no seu estagio.
+/// ultimos, o ataque de cada instrucao no seu estagio -, e "acender" o LED
+/// das placas do Blink (Blink.h).
 bool GatilhoExiste(const std::string& nome);
 
 /**

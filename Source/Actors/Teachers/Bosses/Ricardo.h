@@ -13,6 +13,7 @@
 #include "../../../Attacks/Logica.h"
 #include "../../../Attacks/Relogio.h"
 #include "../../../Attacks/Pipeline.h"
+#include "../../../Attacks/Blink.h"
 
 /**
  * @class Ricardo
@@ -38,6 +39,9 @@
  * no alto da tela, e as instrucoes de um laco em assembly andando neles, uma
  * por ciclo, cada uma atacando no seu estagio. Aqui moram os chips em campo,
  * os ataques que saem de cada estagio e o placar, que diz o que esta no EX.
+ *
+ * A FINAL E HARDWARE: quatro Arduinos rodando o Blink (Blink.h), duas placas
+ * de cada lado dele, e o lado que acende atira. Aqui mora o LED de cada placa.
  */
 class Ricardo : public Boss {
 public:
@@ -147,4 +151,20 @@ private:
 
     /// Quao depressa o chip anda de um estagio ao seguinte (Ancora::Aproximar).
     static constexpr float kRapidezDoChip = 12.0f;
+
+    // ---- O BLINK DA FINAL ---------------------------------------------------
+    //
+    // A cada quadro, cada placa em campo acende ou apaga conforme o lado dela
+    // e o delay do placar - a acesa vai para o posto "acesas", de onde o leque
+    // sai -, e quando o LED troca de lado as placas que acenderam atiram (o
+    // gatilho "acender").
+
+    void AtualizarBlink();
+
+    /// O tempo da fase no quadro anterior (negativo: fora do Blink).
+    float mAntesNoBlink = -1.0f;
+
+    /// Quanto abaixo do professor a placa ja esta solta: a mais funda das
+    /// presas fica a 100 px (regras.json), e a Ancorar nao passa do lugar.
+    static constexpr float kSoltaAbaixo = 160.0f;
 };

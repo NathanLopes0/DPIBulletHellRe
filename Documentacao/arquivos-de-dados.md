@@ -210,7 +210,7 @@ fase só declara o `clone`.
 | Campo | Vai para |
 |---|---|
 | `etapa` | opcional. Em qual etapa da fase o ataque dispara. Sem ela, a fase inteira |
-| `gatilho` | opcional. O ataque **não dispara pelo relógio**: dispara quando o professor puxa o gatilho (`Boss::Disparar`), e o `cooldown` é ignorado. Só existem os gatilhos que algum professor puxa — `notificacao` e `consulta` (o padrão Observer da Maria Lúcia), `agir` (os agentes do Júlio), `nuvens` e `chover` (as nuvens do Vitor), `portas` (a fileira de portas lógicas do Ricardo), `contador` (o leque do clock dele, a cada segundo), `estagios`, `buscar`, `lw`, `sw`, `add` e `addi` (o pipeline dele: as molduras, a busca e o ataque de cada instrução no seu estágio); um nome desconhecido é recusado |
+| `gatilho` | opcional. O ataque **não dispara pelo relógio**: dispara quando o professor puxa o gatilho (`Boss::Disparar`), e o `cooldown` é ignorado. Só existem os gatilhos que algum professor puxa — `notificacao` e `consulta` (o padrão Observer da Maria Lúcia), `agir` (os agentes do Júlio), `nuvens` e `chover` (as nuvens do Vitor), `portas` (a fileira de portas lógicas do Ricardo), `contador` (o leque do clock dele, a cada segundo), `estagios`, `buscar`, `lw`, `sw`, `add` e `addi` (o pipeline dele: as molduras, a busca e o ataque de cada instrução no seu estágio), `acender` (o LED das placas do Blink dele); um nome desconhecido é recusado |
 | `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack`, `FlexAttack`, `CapsulaAttack`, `SerpenteAttack`, `SprintAttack`, `PontosAttack`, `TokenAttack`, `PalavraAttack` |
 | `projetil` | o nome dentro do conjunto deste professor em `projeteis.json` |
 | `projeteis` | quantos por disparo |
@@ -453,7 +453,7 @@ bit, é recusado.
 
 | Campo | |
 |---|---|
-| `posto` | de onde atirar: `quadro` (as histórias paradas no quadro da sprint), `observadores` (os olhos do Observer da Maria Lúcia), `agentes` (os robôs do Júlio), `nuvens` (as nuvens do Vitor), `palavra` ou `portas` (os bits do Ricardo que ainda não passaram pela porta, e as portas), `registradores` (os bits que andam no clock dele), `estagios` ou `pipeline` (as molduras e as instruções do pipeline dele) — todos menos o primeiro, a regra `posto` põe lá ao nascer. Um posto desconhecido é recusado — ninguém o ocuparia, e o ataque nunca dispararia |
+| `posto` | de onde atirar: `quadro` (as histórias paradas no quadro da sprint), `observadores` (os olhos do Observer da Maria Lúcia), `agentes` (os robôs do Júlio), `nuvens` (as nuvens do Vitor), `palavra` ou `portas` (os bits do Ricardo que ainda não passaram pela porta, e as portas), `registradores` (os bits que andam no clock dele), `estagios` ou `pipeline` (as molduras e as instruções do pipeline dele), `placas` ou `acesas` (os Arduinos do Blink dele, apagados e acesos) — todos menos o primeiro, a regra `posto` põe lá ao nascer. Um posto desconhecido é recusado — ninguém o ocuparia, e o ataque nunca dispararia |
 | `mirar` | cada ponto mira o aluno. Sem ele, todos saem em `anguloCentral` |
 | `prever` | mirando, mira onde o aluno **vai estar** se continuar andando |
 
@@ -520,7 +520,7 @@ Escolha no máximo uma forma:
 | `animacao` | nome de uma animação registrada no projétil |
 | `escala` | multiplica o tamanho — e a hitbox junto, porque o colisor multiplica o raio pela escala |
 | `rotacionar` | `true`/`false`: se o sprite gira para acompanhar a direção do voo. **Ausente = não mexe** e vale o que `projeteis.json` pediu |
-| `posto` | o **posto** em que o projétil entra ao nascer: um lugar de onde uma `PontosAttack` atira, ou onde o professor o procura. Existem `quadro`, `observadores`, `agentes`, `nuvens`, `palavra`, `portas`, `registradores`, `estagios` e `pipeline`; um nome desconhecido é recusado. Volta a vazio quando o pool recicla o projétil |
+| `posto` | o **posto** em que o projétil entra ao nascer: um lugar de onde uma `PontosAttack` atira, ou onde o professor o procura. Existem `quadro`, `observadores`, `agentes`, `nuvens`, `palavra`, `portas`, `registradores`, `estagios`, `pipeline`, `placas` e `acesas`; um nome desconhecido é recusado. Volta a vazio quando o pool recicla o projétil |
 
 > **`rotacionar` existe porque girar é da rajada, e não do tipo.** O
 > `Estruturas` do Salles serve a duas fases com necessidades opostas: a lista

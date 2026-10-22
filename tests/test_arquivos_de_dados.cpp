@@ -51,6 +51,7 @@
 #include "../Source/Attacks/Logica.h"
 #include "../Source/Attacks/Relogio.h"
 #include "../Source/Attacks/Pipeline.h"
+#include "../Source/Attacks/Blink.h"
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
 #include "../Source/Navegacao.h"
@@ -472,10 +473,9 @@ TEST_CASE("Dados: os projeteis mantem exatamente o que as fabricas em C++ tinham
     const std::vector<Esperado> esperados = {
         {"salles",  "Capivara", "Teachers/Projectiles/DPIBHSallesCapivara.png",
          1.0f, 90, "Normal", "largura", 2.0f, true,  1.0f, 12.0f, 2},
-        {"ricardo", "Arduino",  "Teachers/Projectiles/DPIBHRicardoProjectile.png",
-         2.0f, 90, "Normal", "largura", 2.0f, true,  1.0f, 12.0f, 1},
         // (Os "Dados" do Julio sairam no 126, quando a ultima fase dele que os
-        // usava virou o modelo em loop.)
+        // usava virou o modelo em loop, e o "Arduino" do Ricardo no 132, quando
+        // a fase final virou o Blink - a arte dele virou a da Placa.)
         // Os baloes sao o unico que difere em tres campos de uma vez, e os tres
         // eram de proposito: hitbox menor que o desenho (divisor 4), nao nascer na
         // posicao do chefe (a BaloonAttack escolhe o lado da tela) e morrer com
@@ -527,7 +527,6 @@ TEST_CASE("Dados: as animacoes dos projeteis mantem os quadros exatos") {
     const std::vector<AnimEsperada> esperadas = {
         {"salles",  "Capivara", "Normal",      {0}},
         {"salles",  "Capivara", "Homing",      {1}},
-        {"ricardo", "Arduino",  "Normal",      {0}},
         // A folha dos baloes tem 24 quadros e as animacoes comecam no 6: os seis
         // primeiros sao de uma versao antiga e nenhuma animacao os usa.
         {"andre",   "Baloes",   "Red",         {6, 7, 8, 9, 10, 11}},
@@ -1506,6 +1505,7 @@ TEST_CASE("Dados: toda fase com ataque de notificacao tem o de consulta, e cada 
                     std::string esperado = Observer::kPostoDosObservadores;
                     if (a.gatilho == ReAct::kGatilhoDeAgir) esperado = ReAct::kPostoDosAgentes;
                     if (a.gatilho == Nuvem::kGatilhoDaChuva) esperado = Nuvem::kPostoDasNuvens;
+                    if (a.gatilho == Blink::kGatilhoDoLed) esperado = Blink::kPostoDasAcesas;
                     CHECK(a.pontos->posto == esperado);
                 }
             }
@@ -1773,4 +1773,52 @@ TEST_CASE("Dados: o pipeline do Ricardo - toda instrucao que ataca tem o ataque 
     // E O ALUNO FAZ BOLHA: a instrucao tem de ser derrubavel.
     REQUIRE(tipos.count("Instrucao") == 1);
     CHECK(tipos.at("Instrucao").derrubavel);
+}
+
+TEST_CASE("Dados: o Blink do Ricardo - o placar de cada etapa e um delay, e as placas sao as do posto que ele procura") {
+    CHECK(GatilhoExiste(Blink::kGatilhoDoLed));
+    CHECK(PostoExiste(Blink::kPostoDasPlacas));
+    CHECK(PostoExiste(Blink::kPostoDasAcesas));
+
+    const auto lidas = FasesDoChefe("ricardo");
+    const DescricaoDeFase* fase = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Blink::kFaseDoBlink) fase = &f;
+    REQUIRE(fase);
+    REQUIRE_FALSE(fase->etapas.empty());
+
+    // O PLACAR E O SKETCH: um anuncio sem delay deixaria as placas piscando no
+    // de reserva, com o placar dizendo outro.
+    for (const auto& etapa : fase->etapas) {
+        CAPTURE(etapa.anuncio);
+        CHECK(Blink::LerDelay(etapa.anuncio));
+    }
+
+    // AS PLACAS NASCEM NO POSTO "placas" - e dali que o Ricardo as acende -, e
+    // o LED sai das acesas.
+    const auto regras = RegrasDoChefe("ricardo");
+    int placas = 0, leds = 0;
+    for (const auto& a : fase->ataques) {
+        if (a.gatilho == Blink::kGatilhoDoLed) {
+            ++leds;
+            REQUIRE(a.pontos);
+            CHECK(a.pontos->posto == Blink::kPostoDasAcesas);
+        }
+        if (a.projetil == "Placa") {
+            ++placas;
+            bool posta = false;
+            if (regras.conjuntos.count(a.regrasNome)) {
+                for (const auto& r : regras.conjuntos.at(a.regrasNome)) if (r.posto == Blink::kPostoDasPlacas) posta = true;
+            }
+            CHECK(posta);
+        }
+    }
+    CHECK(placas >= 1);
+    CHECK(leds == 1);
+
+    const auto& tipos = ProjeteisDoChefe("ricardo").projeteis;
+    REQUIRE(tipos.count("Placa") == 1);
+    std::set<std::string> caras;
+    for (const auto& anim : tipos.at("Placa").animacoes) caras.insert(anim.nome);
+    CHECK(caras.count(Blink::kAnimacaoApagada) == 1);
+    CHECK(caras.count(Blink::kAnimacaoAcesa) == 1);
 }

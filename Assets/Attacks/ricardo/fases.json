@@ -34,17 +34,19 @@
 // RICARDO - INF 250, Organizacao de Computadores
 //
 // Ele tambem da Sistemas Logicos e Arquitetura, e pesquisa hardware - a
-// camiseta dele diz 10110. A batalha esta sendo refeita UMA MATERIA POR FASE:
+// camiseta dele diz 10110. A batalha e UMA MATERIA POR FASE (do 129 ao 132;
+// antes eram tres aneis de Arduinos com regras diferentes):
 //
 //   fase 1  SISTEMAS LOGICOS - palavras de bits que atravessam portas logicas
 //   fase 2  ORGANIZACAO DE COMPUTADORES - o clock, e os tiros que andam nele
 //   fase 3  ARQUITETURA DE COMPUTADORES - o pipeline
-//   final   (ainda o anel de Arduinos de antes)
+//   final   HARDWARE - quatro Arduinos rodando o Blink
 //
-// O que dados nao sabem fazer mora em Ricardo.cpp: a fileira de portas, a
-// travessia e o sorteio da palavra. CircleSpreadAttack ignora angulo,
-// anguloCentral e intervalo - o anel e sempre 360 graus dividido pela
-// quantidade - por isso nenhum dos tres aparece nos aneis.
+// O que dados nao sabem fazer mora em Ricardo.cpp - as portas e a travessia,
+// o relogio dos registradores, o pipeline, o LED das placas -, e a logica de
+// cada materia em um modulo puro com testes: Logica.h, Relogio.h, Pipeline.h
+// e Blink.h. E O PLACAR E A REGRA: a porta, o clock e o delay do sketch sao
+// lidos do que o placar anuncia - e no pipeline ele diz a instrucao no EX.
 // ==========================================================================
 
   // FASE 1 - SISTEMAS LOGICOS   |   gesto: LER A PORTA E IR PARA ONDE VAI ABRIR
@@ -195,22 +197,50 @@
     ]
   },
 
-  // Repescagem: um anel lento e denso sem regra, mais um anel esparso e rapido
-  // que persegue. Os cooldowns diferentes (1.4 e 2.8) fazem os dois aneis
-  // desencontrarem em vez de sairem sempre juntos.
+  // FASE FINAL - HARDWARE   |   gesto: O PISCA-PISCA
+  //
+  // A repescagem e o primeiro programa de quem pega um Arduino, o BLINK:
+  // acende o LED, espera, apaga, espera. QUATRO PLACAS - o Arduino da arte
+  // original, com o LED do pino 13 - ficam presas ao professor, duas de cada
+  // lado (a cada 8 s ele pluga quatro novas; as de antes se soltam e caem), e
+  // piscam em dupla: enquanto um lado esta aceso o outro esta apagado. A placa
+  // que ACENDE atira um leque de LEDs mirado no aluno (gatilho "acender",
+  // posto "acesas"); a apagada nao (Ricardo::AtualizarBlink; Blink.h).
+  //
+  // O PLACAR E O SKETCH: cada etapa anuncia o delay, e e dali que as placas o
+  // leem (Blink::LerDelay). Ele cai pela metade - 1000, 500, 250 ms -, e o
+  // pisca-pisca acelera: o lado que atira troca cada vez mais depressa.
+  //
+  // A PLACA E DERRUBAVEL, com quatro tiros: desplugada, ela para de piscar - e
+  // o tiro gasto nela nao chega ao professor.
+  //
+  // O LED A 210 PX/S, E A VELOCIDADE PESA: o leque e mirado, e o piloto que
+  // persegue anda devagar com o professor. Comecando com 40, ele levou 2
+  // acertos com o LED a 190 px/s e saiu com 83,3; 6 a 210, saindo com 68,1;
+  // 11 a 250, reprovado com 42,9. A batalha nao sorteia nada aqui: as
+  // sementes 7, 1234, 99 e 2026 deram o mesmo resultado.
+  //
+  // Antes era um anel lento e denso mais um esparso que perseguia, com o
+  // professor parado no centro: comecando com 40, todo piloto reprovava - o
+  // que persegue e o parado com 39,7 e 12 acertos.
   "StateFinal": {
     "duracao": 17,
     "proximo": "StateOne",
-    "movimento": { "tipo": "GoToCenter" },
+    "anuncio": "void loop()",
+    "etapas": [
+      { "nome": "Lento",  "duracao": 5, "anuncio": "digitalWrite(13, HIGH); delay(1000);" },
+      { "nome": "Medio",  "duracao": 6, "anuncio": "digitalWrite(13, HIGH); delay(500);" },
+      { "nome": "Rapido", "duracao": 6, "anuncio": "digitalWrite(13, HIGH); delay(250);" }
+    ],
+    "movimento": { "tipo": "Varredura", "a": 60, "b": 260 },
     "ataques": [
-      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
-        "projeteis": 18, "velocidade": 120,
-        "cooldown": 1.4 },
-
-      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
-        "projeteis": 9, "velocidade": 240,
-        "cooldown": 1.8,
-        "regras": "final_teleguiado" }
+      { "estrategia": "WaveAttack", "projetil": "Placa",
+        "projeteis": 4, "velocidade": 150, "angulo": 120, "anguloCentral": 90, "intervalo": 0,
+        "cooldown": 8,
+        "regras": "placas" },
+      { "gatilho": "acender", "estrategia": "PontosAttack", "projetil": "Led",
+        "projeteis": 3, "velocidade": 210, "angulo": 24,
+        "pontos": { "posto": "acesas", "mirar": true } }
     ]
   }
 }

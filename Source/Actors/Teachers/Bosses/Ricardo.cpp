@@ -28,6 +28,50 @@ void Ricardo::OnUpdate(const float deltaTime) {
     AtualizarPortas();
     AtualizarRelogio();
     AtualizarPipeline(deltaTime);
+    AtualizarBlink();
+}
+
+void Ricardo::AtualizarBlink() {
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool noBlink = fsm && fsm->GetStateName() == Blink::kFaseDoBlink && !EhClone();
+    if (!noBlink) {
+        mAntesNoBlink = -1.0f;
+        return;
+    }
+    if (mAntesNoBlink < 0.0f) mAntesNoBlink = 0.0f;
+
+    const float agora = fsm->GetStateTime();
+    const float delay = Blink::LerDelay(AnuncioDaFase(Blink::kFaseDoBlink)).value_or(1.0f);
+    const bool esquerda = Blink::EsquerdaAcesa(agora, delay);
+
+    // O LED DE CADA PLACA: aceso no lado da vez. O lado e o da placa em relacao
+    // ao professor - as duas da esquerda piscam juntas, e as da direita ao
+    // contrario.
+    std::vector<BossProjectile*> placas = NoPosto(Blink::kPostoDasPlacas);
+    for (BossProjectile* acesa : NoPosto(Blink::kPostoDasAcesas)) placas.push_back(acesa);
+    for (BossProjectile* placa : placas) {
+        // A PLACA QUE SE SOLTOU ESTA DESPLUGADA: cai apagada, e nao atira
+        // mais - caindo, ela passaria do aluno e atiraria nele de baixo. A
+        // soltura se ve pela altura: presa, nenhuma fica mais que 100 px abaixo
+        // do professor (regras.json). (Pela velocidade nao da: a WaveAttack
+        // que a solta tambem a faz nascer andando para baixo.)
+        if (placa->GetPosition().y > GetPosition().y + kSoltaAbaixo) {
+            placa->DefinirPosto("");
+            if (auto* anim = placa->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(Blink::kAnimacaoApagada);
+            continue;
+        }
+        const bool daEsquerda = placa->GetPosition().x < GetPosition().x;
+        const bool acesa = (daEsquerda == esquerda);
+        placa->DefinirPosto(acesa ? Blink::kPostoDasAcesas : Blink::kPostoDasPlacas);
+        const char* cara = acesa ? Blink::kAnimacaoAcesa : Blink::kAnimacaoApagada;
+        if (auto* anim = placa->GetComponent<DrawAnimatedComponent>(); anim && anim->GetAnimation() != cara) {
+            anim->SetAnimation(cara);
+        }
+    }
+
+    // ACENDEU: o lado da vez atira.
+    if (Blink::Trocou(mAntesNoBlink, agora, delay)) Disparar(Blink::kGatilhoDoLed);
+    mAntesNoBlink = agora;
 }
 
 std::vector<Vector2> Ricardo::CentrosDosEstagios() const {

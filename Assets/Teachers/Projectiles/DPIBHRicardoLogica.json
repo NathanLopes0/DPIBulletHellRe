@@ -483,6 +483,72 @@
     "h": 32
    },
    "duration": 160
+  },
+  {
+   "filename": "DPIBHRicardoLogica 22.placeholder",
+   "frame": {
+    "x": 64,
+    "y": 160,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 160
+  },
+  {
+   "filename": "DPIBHRicardoLogica 23.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 160,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 160
+  },
+  {
+   "filename": "DPIBHRicardoLogica 24.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 192,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 160
   }
  ],
  "meta": {
@@ -492,7 +558,7 @@
   "format": "RGBA8888",
   "size": {
    "w": 128,
-   "h": 192
+   "h": 224
   },
   "scale": "1"
  }
