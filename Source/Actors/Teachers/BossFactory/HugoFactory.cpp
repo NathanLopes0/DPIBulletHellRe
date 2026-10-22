@@ -29,8 +29,8 @@ void HugoFactory::ConfigureComponents(Boss* boss) {
     // formatura em cima de uma monografia. Trocar o PNG basta: o json de
     // quadro continua valendo.
     auto drawComp = boss->AddComponent<DrawAnimatedComponent>(
-        Caminhos::Asset("Teachers/DPIBHHugo.png"),
-        Caminhos::Asset("Teachers/DPIBHHugo.json"));
+        Caminhos::Asset(Retrato() + ".png"),
+        Caminhos::Asset(Retrato() + ".json"));
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 

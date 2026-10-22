@@ -29,8 +29,8 @@ void VladimirFactory::ConfigureComponents(Boss* boss) {
     // um automato de dois estados. Trocar o PNG basta - o json de quadro
     // continua valendo.
     auto drawComp = boss->AddComponent<DrawAnimatedComponent>(
-        Caminhos::Asset("Teachers/DPIBHVladimir.png"),
-        Caminhos::Asset("Teachers/DPIBHVladimir.json"));
+        Caminhos::Asset(Retrato() + ".png"),
+        Caminhos::Asset(Retrato() + ".json"));
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 

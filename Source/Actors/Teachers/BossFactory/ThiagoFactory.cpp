@@ -24,8 +24,8 @@ std::unique_ptr<Boss> ThiagoFactory::InstantiateBoss(Scene* scene) {
 void ThiagoFactory::ConfigureComponents(Boss* boss) {
 
     // ----- DRAW COMPONENT ----- //
-    auto drawComp = boss->AddComponent<DrawAnimatedComponent>(Caminhos::Asset("Teachers/DPIBHThiago.png"),
-                                                              Caminhos::Asset("Teachers/DPIBHThiago.json"));
+    auto drawComp = boss->AddComponent<DrawAnimatedComponent>(Caminhos::Asset(Retrato() + ".png"),
+                                                              Caminhos::Asset(Retrato() + ".json"));
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 

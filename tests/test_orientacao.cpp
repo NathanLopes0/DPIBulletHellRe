@@ -124,3 +124,66 @@ TEST_CASE("Orientacao: a votacao - concordando e esse, discordando vence o de no
     CHECK(Orientacao::Resultado(cs, {}) == -1);
     CHECK(Orientacao::Resultado({}, {0}) == -1);
 }
+
+TEST_CASE("Orientacao: na tela o cursor da a volta, e o voto trava o cursor ate ser desfeito") {
+    Orientacao::Votacao v(3, 1);
+    CHECK(v.Cursor(0) == 0);                 // comeca no de nota mais alta
+    v.Mover(0, -1);
+    CHECK(v.Cursor(0) == 2);                 // da a volta pela esquerda
+    v.Mover(0, 1);
+    v.Mover(0, 1);
+    CHECK(v.Cursor(0) == 1);
+    CHECK(v.Votos() == std::vector<int>{-1});
+
+    v.Votar(0);
+    CHECK(v.Votou(0));
+    v.Mover(0, 1);
+    CHECK(v.Cursor(0) == 1);                 // votou, nao anda
+    CHECK(v.Votos() == std::vector<int>{1});
+    CHECK(v.Concordaram());                  // sozinho, votar ja e concordar
+
+    CHECK(v.Desfazer(0));
+    CHECK_FALSE(v.Desfazer(0));              // nao havia mais voto: quem chama decide
+    CHECK(v.Cursor(0) == 1);                 // o cursor fica onde estava
+    v.Mover(0, 1);
+    CHECK(v.Cursor(0) == 2);
+}
+
+TEST_CASE("Orientacao: em dupla cada um tem o seu cursor, e o escolhido so sai com os dois votos") {
+    std::vector<Orientacao::Candidato> cs(3);
+    Orientacao::Votacao v(3, 2);
+    v.Mover(1, 2);
+    CHECK(v.Cursor(0) == 0);
+    CHECK(v.Cursor(1) == 2);
+
+    v.Votar(1);
+    CHECK(Orientacao::Resultado(cs, v.Votos()) == -1);   // o J1 ainda nao votou
+    CHECK_FALSE(v.Concordaram());
+    v.Votar(0);
+    CHECK(Orientacao::Resultado(cs, v.Votos()) == 0);    // discordaram: a maior nota
+    CHECK_FALSE(v.Concordaram());
+
+    v.Desfazer(0);
+    v.Mover(0, 2);
+    v.Votar(0);
+    CHECK(v.Concordaram());
+    CHECK(Orientacao::Resultado(cs, v.Votos()) == 2);
+}
+
+TEST_CASE("Orientacao: sem candidato nao ha em quem votar, e aluno fora da conta e ignorado") {
+    Orientacao::Votacao vazia(0, 1);
+    vazia.Mover(0, 1);
+    vazia.Votar(0);
+    CHECK_FALSE(vazia.Votou(0));
+    CHECK(vazia.Votos() == std::vector<int>{-1});
+
+    Orientacao::Votacao v(2, 1);
+    v.Mover(5, 1);
+    v.Votar(-1);
+    CHECK_FALSE(v.Votou(5));
+    CHECK_FALSE(v.Desfazer(-1));
+    CHECK(v.Cursor(7) == 0);
+    CHECK(v.Votos().size() == 1);
+    CHECK(v.QuantosCandidatos() == 2);
+    CHECK(v.Alunos() == 1);
+}

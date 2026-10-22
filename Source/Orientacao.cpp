@@ -62,4 +62,51 @@ namespace Orientacao {
         }
         return vencedor;
     }
+
+    Votacao::Votacao(const int candidatos, const int alunos)
+        : mCandidatos(std::max(0, candidatos)),
+          mCursor(static_cast<size_t>(std::max(0, alunos)), 0),
+          mVotou(static_cast<size_t>(std::max(0, alunos)), false) {
+    }
+
+    int Votacao::Cursor(const int aluno) const {
+        return Valido(aluno) ? mCursor[static_cast<size_t>(aluno)] : 0;
+    }
+
+    bool Votacao::Votou(const int aluno) const {
+        return Valido(aluno) && mVotou[static_cast<size_t>(aluno)];
+    }
+
+    void Votacao::Mover(const int aluno, const int passo) {
+        if (!Valido(aluno) || mCandidatos <= 0 || Votou(aluno)) return;
+        int& c = mCursor[static_cast<size_t>(aluno)];
+        // O RESTO DE C++ E NEGATIVO para negativo: soma n antes de tirar o resto.
+        c = ((c + passo) % mCandidatos + mCandidatos) % mCandidatos;
+    }
+
+    void Votacao::Votar(const int aluno) {
+        if (!Valido(aluno) || mCandidatos <= 0) return;
+        mVotou[static_cast<size_t>(aluno)] = true;
+    }
+
+    bool Votacao::Desfazer(const int aluno) {
+        if (!Votou(aluno)) return false;
+        mVotou[static_cast<size_t>(aluno)] = false;
+        return true;
+    }
+
+    std::vector<int> Votacao::Votos() const {
+        std::vector<int> votos;
+        votos.reserve(mCursor.size());
+        for (int a = 0; a < Alunos(); ++a) votos.push_back(Votou(a) ? Cursor(a) : -1);
+        return votos;
+    }
+
+    bool Votacao::Concordaram() const {
+        if (Alunos() == 0) return false;
+        for (int a = 0; a < Alunos(); ++a) {
+            if (!Votou(a) || Cursor(a) != Cursor(0)) return false;
+        }
+        return true;
+    }
 }

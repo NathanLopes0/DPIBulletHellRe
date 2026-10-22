@@ -29,8 +29,8 @@ void LuizinhoFactory::ConfigureComponents(Boss* boss) {
     // uma coluna e um pergaminho. Trocar o PNG basta - o json de quadro
     // continua valendo.
     auto drawComp = boss->AddComponent<DrawAnimatedComponent>(
-        Caminhos::Asset("Teachers/DPIBHLuizinho.png"),
-        Caminhos::Asset("Teachers/DPIBHLuizinho.json"));
+        Caminhos::Asset(Retrato() + ".png"),
+        Caminhos::Asset(Retrato() + ".json"));
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 

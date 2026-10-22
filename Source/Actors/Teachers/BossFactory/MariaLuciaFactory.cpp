@@ -29,8 +29,8 @@ void MariaLuciaFactory::ConfigureComponents(Boss* boss) {
     // com uma classe em UML - a caixa de tres reparticoes e a seta de heranca
     // saindo por cima. Trocar o PNG basta: o json de quadro continua valendo.
     auto drawComp = boss->AddComponent<DrawAnimatedComponent>(
-        Caminhos::Asset("Teachers/DPIBHMariaLucia.png"),
-        Caminhos::Asset("Teachers/DPIBHMariaLucia.json"));
+        Caminhos::Asset(Retrato() + ".png"),
+        Caminhos::Asset(Retrato() + ".json"));
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 

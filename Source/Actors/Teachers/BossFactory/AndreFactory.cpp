@@ -25,8 +25,8 @@ std::unique_ptr<Boss> AndreFactory::InstantiateBoss(Scene* scene) {
 void AndreFactory::ConfigureComponents(Boss *boss) {
 
     // ----- DRAW COMPONENT ----- //
-    auto drawComp = boss->AddComponent<DrawAnimatedComponent>(Caminhos::Asset("Teachers/DPIBHAndre.png"),
-                                                                               Caminhos::Asset("Teachers/DPIBHAndre.json"));
+    auto drawComp = boss->AddComponent<DrawAnimatedComponent>(Caminhos::Asset(Retrato() + ".png"),
+                                                                               Caminhos::Asset(Retrato() + ".json"));
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 

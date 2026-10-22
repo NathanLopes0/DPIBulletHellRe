@@ -405,7 +405,14 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
     if (entrar && !mEntrarAnterior && mGame->IsStageUnlocked(mSelectedSubject)) {
         mEntrarAnterior = true;
         mGame->SetSelectedStage(mSelectedSubject);
-        mGame->RequestSceneChange(SceneType::Battle);
+
+        // A MATERIA QUE PEDE ORIENTACAO PASSA PELA ESCOLHA ANTES DA BATALHA - o
+        // TCC (materias.json, "orientacao"). O orientador e zerado em toda
+        // entrada: o escolhido num TCC nao pode aparecer na batalha seguinte,
+        // de outra materia, so porque ficou guardado.
+        mGame->DefinirOrientador(-1);
+        const Materias::Materia* m = Materias::Carregadas().Por(mSelectedSubject);
+        mGame->RequestSceneChange((m && m->orientacao) ? SceneType::EscolhaDoOrientador : SceneType::Battle);
         return;
     }
     mEntrarAnterior = entrar;

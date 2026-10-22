@@ -20,6 +20,7 @@
 #include "Scenes/Atracao.h"
 #include "Scenes/CriacaoDePersonagem.h"
 #include "Scenes/StageSelect.h"
+#include "Scenes/EscolhaDoOrientador.h"
 #include "Scenes/Battle/Battle.h"
 #include "Actors/Teachers/BossFactory/AllFactories.h"
 
@@ -482,6 +483,9 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
             break;
         case Scene::SceneType::StageSelect:
             mScene = std::make_unique<StageSelect>(this);
+            break;
+        case Scene::SceneType::EscolhaDoOrientador:
+            mScene = std::make_unique<EscolhaDoOrientador>(this);
             break;
         case Scene::SceneType::Battle:
             mScene = std::make_unique<Battle>(this, mSelectedStage);

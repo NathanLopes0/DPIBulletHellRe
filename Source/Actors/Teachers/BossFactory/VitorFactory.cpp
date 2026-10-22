@@ -30,8 +30,8 @@ void VitorFactory::ConfigureComponents(Boss* boss) {
     // juntar, que e o que a fase 3 dele faz de verdade. Trocar o PNG basta: o
     // json de quadro continua valendo.
     auto drawComp = boss->AddComponent<DrawAnimatedComponent>(
-        Caminhos::Asset("Teachers/DPIBHVitor.png"),
-        Caminhos::Asset("Teachers/DPIBHVitor.json"));
+        Caminhos::Asset(Retrato() + ".png"),
+        Caminhos::Asset(Retrato() + ".json"));
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 

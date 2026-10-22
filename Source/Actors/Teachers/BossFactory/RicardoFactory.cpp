@@ -24,8 +24,8 @@ std::unique_ptr<Boss> RicardoFactory::InstantiateBoss(Scene *scene) {
 void RicardoFactory::ConfigureComponents(Boss *boss) {
 
     // ----- DRAW COMPONENT ----- //
-    auto drawComp = boss->AddComponent<DrawAnimatedComponent>(Caminhos::Asset("Teachers/DPIBHRicardo.png"),
-        Caminhos::Asset("Teachers/DPIBHRicardo.json"));
+    auto drawComp = boss->AddComponent<DrawAnimatedComponent>(Caminhos::Asset(Retrato() + ".png"),
+        Caminhos::Asset(Retrato() + ".json"));
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 

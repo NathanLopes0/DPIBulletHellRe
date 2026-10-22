@@ -111,6 +111,19 @@ public:
     [[nodiscard]] int GetSelectedStage() const { return mSelectedStage; }
     void SetSelectedStage(const int subject) { mSelectedStage = subject; }
 
+    /**
+     * @brief O orientador da proxima batalha: o indice da materia de que ele e
+     * professor, ou -1 para batalha sem orientador.
+     *
+     * Fica aqui pelo mesmo motivo de mSelectedStage: quem escolhe e uma cena (a
+     * Orientacao) e quem usa e outra (a Battle), e entre as duas o ChangeScene
+     * so passa o que o Game guarda. A selecao de fases ZERA o orientador ao
+     * entrar em qualquer batalha, entao ele vale so para o TCC em que foi
+     * escolhido - nao sobra de uma partida para a seguinte.
+     */
+    void DefinirOrientador(const int materia) { mOrientador = materia; }
+    [[nodiscard]] int Orientador() const { return mOrientador; }
+
     // ---- Notas -------------------------------------------------------------
     // O mapa unico de notas foi trocado por Progresso, que separa duas coisas
     // que antes eram a mesma: o RECORDE de cada materia e o PONTO DE RETOMADA
@@ -331,6 +344,9 @@ private:
 
     //Selected Stage, used by Battle on ChangeScene()
     int mSelectedStage{};
+
+    /// Ver DefinirOrientador.
+    int mOrientador = -1;
 
     bool mPendingSceneChange;
     Scene::SceneType mNextScene;

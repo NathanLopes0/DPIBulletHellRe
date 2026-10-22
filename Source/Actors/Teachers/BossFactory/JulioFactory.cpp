@@ -24,8 +24,8 @@ std::unique_ptr<Boss> JulioFactory::InstantiateBoss(Scene* scene) {
 void JulioFactory::ConfigureComponents(Boss* boss) {
 
     // ----- DRAW COMPONENT ----- //
-    auto drawComp = boss->AddComponent<DrawAnimatedComponent>(Caminhos::Asset("Teachers/DPIBHJulio.png"),
-                                                              Caminhos::Asset("Teachers/DPIBHJulio.json"));
+    auto drawComp = boss->AddComponent<DrawAnimatedComponent>(Caminhos::Asset(Retrato() + ".png"),
+                                                              Caminhos::Asset(Retrato() + ".json"));
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 

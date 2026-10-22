@@ -51,7 +51,7 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 | `professor` | quem dá a matéria. **Não** escolhe chefe nenhum; ver abaixo. |
 | `coluna` | em que coluna da grade o botão fica (0 é a da esquerda) |
 | `chefe` | o nome da fábrica, como registrado em `Game::InitializeBossFactory`. Pode faltar: a matéria aparece e espera uma batalha. |
-| `orientacao` | `true` se a batalha pede um **orientador** antes de começar — o TCC. Opcional, falso por padrão; um valor que não é booleano vira aviso. |
+| `orientacao` | `true` se a batalha pede um **orientador** antes de começar — o TCC. Entrar nela pela seleção de fases abre antes a tela de escolha: os três professores das maiores notas aprovadas (em dupla, a maior nota dos dois em cada matéria), e em dupla os dois votam. Opcional, falso por padrão; um valor que não é booleano vira aviso. |
 | `desbloqueio` | quando ela abre |
 
 **Tipos de desbloqueio:**

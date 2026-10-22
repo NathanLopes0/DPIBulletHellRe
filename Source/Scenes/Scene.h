@@ -26,6 +26,7 @@ public:
         Ranking,
         Atracao,
         StageSelect,
+        EscolhaDoOrientador,
         Battle
     };
 

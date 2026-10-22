@@ -29,8 +29,8 @@ void LucasFactory::ConfigureComponents(Boss* boss) {
     // uma janela de navegador. Trocar o PNG basta - o json de quadro continua
     // valendo.
     auto drawComp = boss->AddComponent<DrawAnimatedComponent>(
-        Caminhos::Asset("Teachers/DPIBHLucas.png"),
-        Caminhos::Asset("Teachers/DPIBHLucas.json"));
+        Caminhos::Asset(Retrato() + ".png"),
+        Caminhos::Asset(Retrato() + ".json"));
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 
