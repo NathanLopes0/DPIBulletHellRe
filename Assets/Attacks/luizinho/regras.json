@@ -52,12 +52,9 @@
       "modifiers": [ { "tipo": "SlowDown", "atraso": 0.8, "fator": 0.0 } ] },
     { "quando": "impares", "animacao": "Alocado",
       "modifiers": [ { "tipo": "SlowDown", "atraso": 1.4, "fator": 0.0 } ] }
-  ],
-
-  // SEQUENCIA: provisorio, cada gomo persegue sozinho, e ainda nao ha
-  // cabeca; a fila que acorda com intervalo ja lembra uma serpente.
-  "serpente": [
-    { "animacao": "Corpo",
-      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 3.0 } }
   ]
+
+  // A SERPENTE DA FINAL NAO TEM REGRA, de proposito: quem a move sao as duas
+  // Motions que a SerpenteAttack poe em cada gomo, e uma "motion" aqui as
+  // SUBSTITUIRIA - a regra roda depois da estrategia.
 }

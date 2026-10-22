@@ -97,6 +97,18 @@ struct DescricaoDeCapsula {
 };
 
 /**
+ * @brief Os campos que SO a SerpenteAttack usa. Opcional: todo campo tem padrao
+ * em SerpenteAttackParams.
+ */
+struct DescricaoDeSerpente {
+    std::optional<float> espaco;    ///< pixels de caminho entre dois gomos
+    std::optional<float> giro;      ///< radianos por segundo
+    std::optional<float> duracao;   ///< segundos perseguindo
+    std::string cabeca;             ///< a animacao da cabeca
+    std::string corpo;              ///< a animacao dos gomos
+};
+
+/**
  * @brief Os campos que SO a FlexAttack usa.
  *
  * "de" e "para" sao OBRIGATORIOS e tem de ser nomes de justify-content do CSS
@@ -183,6 +195,9 @@ struct DescricaoDeAtaque {
 
     /// Presente so nos ataques CapsulaAttack que escreveram o bloco.
     std::optional<DescricaoDeCapsula> capsula;
+
+    /// Presente so nos ataques SerpenteAttack que escreveram o bloco.
+    std::optional<DescricaoDeSerpente> serpente;
 };
 
 /// @brief O lado nomeado existe? (Down, Left, Right, Up - nunca None)

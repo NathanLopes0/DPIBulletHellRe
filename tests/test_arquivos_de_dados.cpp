@@ -1328,3 +1328,28 @@ TEST_CASE("Dados: o bloco do meio da rajada do Luizinho para em cima do aluno") 
     }
     CHECK(achou);
 }
+
+TEST_CASE("Dados: nenhuma regra de uma SerpenteAttack tem motion") {
+
+    // A SERPENTE E SUAS DUAS MOTIONS: a SerpenteAttack poe a da cabeca no
+    // primeiro gomo e a do corpo nos outros, e as regras rodam DEPOIS da
+    // estrategia. Uma "motion" numa regra substituiria a da serpente, e o corpo
+    // deixaria de seguir a cabeca - calado, porque cada gomo continuaria
+    // voando.
+    for (const auto& chefe : Chefes()) {
+        const auto regras = RegrasDoChefe(chefe);
+        for (const auto& f : FasesDoChefe(chefe).fases) {
+            for (const auto& a : f.ataques) {
+                if (a.estrategia != "SerpenteAttack") continue;
+                std::vector<Regra> aplicaveis = a.regras;
+                if (!a.regrasNome.empty() && regras.conjuntos.count(a.regrasNome)) {
+                    const auto& r = regras.conjuntos.at(a.regrasNome);
+                    aplicaveis.insert(aplicaveis.end(), r.begin(), r.end());
+                }
+                CAPTURE(chefe);
+                CAPTURE(f.nome);
+                for (const auto& r : aplicaveis) CHECK_FALSE(r.temMotion);
+            }
+        }
+    }
+}

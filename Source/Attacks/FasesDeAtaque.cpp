@@ -13,7 +13,7 @@ namespace {
 
     const std::vector<std::string> kEstrategias = {
         "AngledAttack", "CircleSpreadAttack", "WaveAttack", "BaloonAttack", "LaserAttack", "ConsultaAttack",
-        "CaixaAttack", "FlexAttack", "CapsulaAttack"
+        "CaixaAttack", "FlexAttack", "CapsulaAttack", "SerpenteAttack"
     };
     const std::vector<std::string> kMovimentos = {
         "RandomWander", "HoverAbovePlayer", "GoToCenter",
@@ -436,6 +436,38 @@ namespace {
                     return false;
                 }
                 saida.capsula = c;
+            }
+        }
+
+        // --- bloco de serpente (opcional) ---
+        if (j.contains("serpente")) {
+            if (saida.estrategia != "SerpenteAttack") {
+                problemas.emplace_back(onde + "so a SerpenteAttack usa \"serpente\"; o bloco foi ignorado");
+            }
+            else if (!j["serpente"].is_object()) {
+                problemas.emplace_back(onde + "\"serpente\" deveria ser um objeto");
+                return false;
+            }
+            else {
+                DescricaoDeSerpente sp;
+                sp.espaco  = Opcional(j["serpente"], "espaco");
+                sp.giro    = Opcional(j["serpente"], "giro");
+                sp.duracao = Opcional(j["serpente"], "duracao");
+                sp.cabeca  = Texto(j["serpente"], "cabeca");
+                sp.corpo   = Texto(j["serpente"], "corpo");
+
+                // Espaco zero empilha o corpo inteiro em cima da cabeca, e giro
+                // ou duracao negativos nao sao uma serpente estranha: sao um
+                // numero digitado errado. Giro e duracao ZERO valem - e a
+                // serpente que so vai reta.
+                if ((sp.espaco && *sp.espaco <= 0.0f) || (sp.giro && *sp.giro < 0.0f)
+                    || (sp.duracao && *sp.duracao < 0.0f)) {
+                    problemas.emplace_back(onde + "\"serpente\": \"espaco\" precisa ser maior "
+                                                  "que zero, e \"giro\" e \"duracao\" nao podem "
+                                                  "ser negativos");
+                    return false;
+                }
+                saida.serpente = sp;
             }
         }
 

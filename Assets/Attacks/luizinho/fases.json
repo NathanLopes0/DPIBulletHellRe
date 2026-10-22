@@ -139,21 +139,35 @@
     ]
   },
 
-  // FASE FINAL - SEQUENCIADORES   |   gesto: A VARREDURA RAPIDA
+  // FASE FINAL - SEQUENCIADORES   |   gesto: A ORBITA
   //
   // So e vista por quem termina a terceira entre 40 e 59, ou com 100.
   //
-  // PROVISORIO: uma fila de gomos que acordam um depois do outro e perseguem.
+  // UMA SERPENTE: a cabeca persegue o aluno, e cada gomo passa exatamente por
+  // onde ela passou - sequi, "seguir", a sequencia. O sequenciador e o GOTO
+  // (Luizinho::AtualizarGoto): a cada 3 s um rotulo aparece do outro lado do
+  // aluno, o placar diz "vade ad II" ("vai para o II"), e a cabeca salta para
+  // la; o corpo salta quando chega no ponto do salto. Uma serpente a cada 5 s,
+  // e a cabeca persegue por 4,5: so ha uma cabeca obedecendo quando o goto
+  // vem, e duas nunca caem no mesmo rotulo.
+  //
+  // A ORBITA E PARA O EXAME TER COMO PASSAR. Com a varredura rapida do
+  // esqueleto (280 px/s), o tiro de quem esta embaixo do professor chegava
+  // depois que ele ja tinha saido: comecando a final com 40, o piloto que
+  // persegue acertou o professor 10 vezes em 17 s e terminou com 39,6, e
+  // varrendo a 160 acertou 9 e terminou com 39,0. Com a orbita lenta ele acerta 100 vezes e sai
+  // aprovado com 67,0 (4 acertos sofridos); o parado sai com 21,4.
   "StateFinal": {
     "duracao": 17,
     "proximo": "StateOne",
     "anuncio": "sequī · seguir",
-    "movimento": { "tipo": "Varredura", "a": 280, "b": 120 },
+    "movimento": { "tipo": "Orbitar", "a": 180, "b": 0.12 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Serpente",
-        "projeteis": 8, "velocidade": 210, "angulo": 0, "intervalo": 0.1,
-        "cooldown": 1.6,
-        "regras": "serpente" }
+      { "estrategia": "SerpenteAttack", "projetil": "Serpente",
+        "projeteis": 14, "velocidade": 220,
+        "cooldown": 5.0,
+        "serpente": { "espaco": 24, "giro": 1.5, "duracao": 4.5,
+                      "cabeca": "Cabeca", "corpo": "Corpo" } }
     ]
   }
 }

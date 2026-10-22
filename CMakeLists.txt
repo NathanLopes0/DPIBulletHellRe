@@ -148,6 +148,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Capsula.h
         Source/Attacks/Coletor.cpp
         Source/Attacks/Coletor.h
+        Source/Attacks/Rastro.cpp
+        Source/Attacks/Rastro.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
@@ -230,6 +232,9 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/BaseStrategies/CapsulaAttack.cpp
         Source/Attacks/BaseStrategies/CapsulaAttack.h
         Source/Attacks/AttackParameters/CapsulaAttackParams.h
+        Source/Attacks/BaseStrategies/SerpenteAttack.cpp
+        Source/Attacks/BaseStrategies/SerpenteAttack.h
+        Source/Attacks/AttackParameters/SerpenteAttackParams.h
         Source/Attacks/BaseStrategies/LaserAttack.h
         Source/Actors/ProjectilePool.h
 )
@@ -268,6 +273,7 @@ add_executable(dpi_tests
         tests/test_amarra.cpp
         tests/test_capsula.cpp
         tests/test_coletor.cpp
+        tests/test_rastro.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -341,6 +347,8 @@ add_executable(dpi_tests
         Source/Attacks/Capsula.h
         Source/Attacks/Coletor.cpp
         Source/Attacks/Coletor.h
+        Source/Attacks/Rastro.cpp
+        Source/Attacks/Rastro.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp

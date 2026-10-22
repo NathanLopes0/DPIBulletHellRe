@@ -28,6 +28,8 @@
 #include "AttackParameters/FlexAttackParams.h"
 #include "BaseStrategies/CapsulaAttack.h"
 #include "AttackParameters/CapsulaAttackParams.h"
+#include "BaseStrategies/SerpenteAttack.h"
+#include "AttackParameters/SerpenteAttackParams.h"
 #include "BaseStrategies/CircleSpreadAttack.h"
 #include "BaseStrategies/LaserAttack.h"
 #include "BaseStrategies/WaveAttack.h"
@@ -95,6 +97,7 @@ namespace {
         if (tipo == "CaixaAttack")        return std::make_unique<CaixaAttack>(spawner, boss);
         if (tipo == "FlexAttack")         return std::make_unique<FlexAttack>(spawner, boss);
         if (tipo == "CapsulaAttack")      return std::make_unique<CapsulaAttack>(spawner, boss);
+        if (tipo == "SerpenteAttack")     return std::make_unique<SerpenteAttack>(spawner, boss);
         return nullptr;
     }
 
@@ -180,6 +183,14 @@ namespace {
             if (a.capsula && a.capsula->velocidade) capsula->velocidadeDaAbertura = *a.capsula->velocidade;
             if (a.capsula)                          capsula->escreve              = a.capsula->escreve;
             params = std::move(capsula);
+        }
+        else if (a.estrategia == "SerpenteAttack") {
+            auto serpente = std::make_unique<SerpenteAttackParams>();
+            if (a.serpente && a.serpente->espaco)  serpente->espaco  = *a.serpente->espaco;
+            if (a.serpente && a.serpente->giro)    serpente->giro    = *a.serpente->giro;
+            if (a.serpente && a.serpente->duracao) serpente->duracao = *a.serpente->duracao;
+            if (a.serpente) { serpente->cabeca = a.serpente->cabeca; serpente->corpo = a.serpente->corpo; }
+            params = std::move(serpente);
         }
         else if (a.flex) {
             auto flex = std::make_unique<FlexAttackParams>();

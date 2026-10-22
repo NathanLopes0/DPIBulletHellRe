@@ -128,7 +128,7 @@
   "StateThree": {
     "duracao": 17,
     "proximo": "",
-    "movimento": { "tipo": "GoToCenter" },
+    "movimento": { "tipo": "HoverAbovePlayer", "a": 135, "b": 170 },
     "ataques": [
       { "estrategia": "AngledAttack", "projetil": "Dados",
         "projeteis": 1, "velocidade": 300, "angulo": 0,

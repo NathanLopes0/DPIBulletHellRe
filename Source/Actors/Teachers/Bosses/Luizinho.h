@@ -9,8 +9,10 @@
 
 #include "../Boss.h"
 #include "../../../Attacks/Coletor.h"
+#include "../../../Attacks/Rastro.h"
 
 class DrawLinhasComponent;
+class RotuloDoGoto;
 
 /**
  * @class Luizinho
@@ -28,7 +30,8 @@ class DrawLinhasComponent;
  *
  * O que nao cabe em dados mora aqui: a mira do leque estatico da fase 1 e a da
  * capsula da fase 2, que dependem de onde o aluno esta no instante do disparo,
- * e o COLETOR DE LIXO da fase 3, que olha para a tela inteira.
+ * o COLETOR DE LIXO da fase 3, que olha para a tela inteira, e o GOTO da
+ * final, que manda a cabeca de cada serpente saltar.
  *
  * O BALANCEAMENTO VIVE EM DADOS, como o dos outros: Assets/Attacks/luizinho/.
  */
@@ -41,6 +44,9 @@ public:
 
     /// A fase da memoria, a que decide a batalha.
     static constexpr const char* kFaseDaMemoria = "StateThree";
+
+    /// A fase dos sequenciadores, a final.
+    static constexpr const char* kFaseDaSequencia = "StateFinal";
 
 protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
@@ -117,4 +123,33 @@ private:
 
     /// Atras dos projeteis (89 a 91) e na frente do placar (60).
     static constexpr int kOrdemDasReferencias = 85;
+
+    // ---- A FINAL: O GOTO --------------------------------------------------
+    //
+    // A cada kGotoACada segundos o professor da um goto: um rotulo aparece
+    // (o numero dele em algarismos romanos, "II:"), o placar diz "vade ad II"
+    // - "vai para o II" - e depois de kGotoAviso segundos a cabeca de cada
+    // serpente que ainda persegue salta para la. O corpo salta quando chega no
+    // ponto do salto (Rastro::Caminho).
+
+    void AtualizarGoto(float deltaTime);
+
+    /// Onde o proximo rotulo fica: no lado oposto ao do aluno, no alto. A
+    /// cabeca reaparece longe dele e tem de voltar.
+    [[nodiscard]] Vector2 OndeFicaORotulo() const;
+
+    std::shared_ptr<Rastro::Desvio> mDesvio = std::make_shared<Rastro::Desvio>();
+    bool mNaSequencia = false;
+    bool mAvisandoOGoto = false;
+    float mTempoDoGoto = 0.0f;
+    Vector2 mProximoRotulo;
+    std::string mLatimDaSequencia;
+
+    /// O marcador do rotulo. O ator e da cena; o professor so o mostra.
+    RotuloDoGoto* mRotulo = nullptr;
+
+    static constexpr float kGotoACada = 3.0f;
+    static constexpr float kGotoAviso = 0.8f;
+    static constexpr float kAlturaDoRotulo = 220.0f;
+    static constexpr float kMargemDoRotulo = 90.0f;
 };

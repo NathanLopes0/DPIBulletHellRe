@@ -119,7 +119,7 @@
   // a "parede" vira uma cerca com buracos de quatro sprites de largura.
   "secao_critica": [
     { "animacao": "Retida",
-      "modifiers": [ { "tipo": "SlowDown", "fator": 0.18, "atraso": 1.00 },
+      "modifiers": [ { "tipo": "SlowDown", "fator": 0.18, "atraso": 0.8 },
         {
           "tipo": "Accelerate", "fator": 2.5,
           "atraso": 2.00

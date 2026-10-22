@@ -7,10 +7,17 @@
 #include <cmath>
 
 #include "../../../Components/AIComponents/FSMComponent.h"
+#include "../../../CaminhosArquivo.h"
+#include "../../../Font.h"
+#include "../../../Attacks/AttackParameters/SerpenteAttackParams.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "../../../Components/DrawComponents/DrawCaixaComponent.h"
+#include "../../../Components/DrawComponents/DrawTextComponent.h"
 #include "../../../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../../../Components/RigidBodyComponent.h"
 #include "../../../Scenes/Battle/Battle.h"
+#include "../../../Game.h"
+#include "../../Player/Player.h"
 #include "../../../Scenes/Battle/ProjectileManager.h"
 #include "BossesProjectiles/BossProjectile.h"
 
@@ -22,7 +29,41 @@ namespace {
 
     const SDL_Color kReferenciaViva = {246, 206, 92, 150};    // ouro: alcancado
     const SDL_Color kReferenciaMorta = {150, 140, 130, 90};   // cinza: lixo
+
+    /// Na frente dos projeteis, como o marcador do intercambio.
+    constexpr int kOrdemDoRotulo = 95;
 }
+
+/**
+ * @brief O marcador do rotulo do goto: uma moldura de ouro com "II:" dentro.
+ *
+ * A FONTE E DELE, e nao do professor: o texto guarda um ponteiro para ela, e o
+ * ator e da cena - viva o quanto a cena viver, a fonte vive junto.
+ */
+class RotuloDoGoto : public Actor {
+public:
+    explicit RotuloDoGoto(Scene* cena) : Actor(cena) {
+        mFonte.Load(Caminhos::Asset("Fonts/Carlito-Regular.ttf"));
+        mCaixa = AddComponent<DrawCaixaComponent>(84, 40, SDL_Color{246, 206, 92, 230},
+                                                  SDL_Color{40, 30, 20, 170}, 2, kOrdemDoRotulo);
+        mTexto = AddComponent<DrawTextComponent>(" ", &mFonte, 76, 34, 26, kOrdemDoRotulo + 1);
+        mTexto->SetAjustarAoTexto(true);
+        mTexto->SetColor(Vector3(1.0f, 0.86f, 0.42f));
+        Mostrar(false);
+    }
+
+    void Mostrar(const bool mostrar) {
+        mCaixa->SetIsVisible(mostrar);
+        mTexto->SetIsVisible(mostrar);
+    }
+
+    void Escrever(const std::string& texto) { mTexto->SetText(texto); }
+
+private:
+    Font mFonte;
+    DrawCaixaComponent* mCaixa = nullptr;
+    DrawTextComponent* mTexto = nullptr;
+};
 
 Luizinho::Luizinho(Scene* scene) : Boss(scene) {
 }
@@ -41,6 +82,7 @@ void Luizinho::OnUpdate(const float deltaTime) {
     }
 
     AtualizarMemoria(deltaTime);
+    AtualizarGoto(deltaTime);
 }
 
 void Luizinho::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
@@ -60,6 +102,12 @@ void Luizinho::CustomizeAttackParams(AttackParams& params, const std::string& st
         // professor, e a capsula desce pela mesma linha.
         const Vector2 d = GetDirectionToPlayer();
         params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x));
+    }
+    else if (stateName == kFaseDaSequencia) {
+        // A CABECA SAI EM DIRECAO AO ALUNO, e leva o goto do professor.
+        const Vector2 d = GetDirectionToPlayer();
+        params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x));
+        if (auto* serpente = dynamic_cast<SerpenteAttackParams*>(&params)) serpente->desvio = mDesvio;
     }
     else if (stateName == kFaseDaMemoria) {
         // A MEMORIA E ALOCADA ONDE O ALUNO ESTA. O leque sai centrado nele, e a
@@ -226,5 +274,70 @@ void Luizinho::AtualizarMemoria(const float deltaTime) {
         const Vector2 de = (a == Coletor::kRaiz) ? GetPosition() : blocos[static_cast<size_t>(a)]->GetPosition();
         mReferencias->Acrescentar(de, blocos[static_cast<size_t>(b)]->GetPosition(),
                                   vivo ? kReferenciaViva : kReferenciaMorta);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// A final: o goto
+// ---------------------------------------------------------------------------
+
+Vector2 Luizinho::OndeFicaORotulo() const {
+    const auto* batalha = dynamic_cast<Battle*>(mScene);
+    const float largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
+    float x = largura / 2.0f;
+    if (batalha && batalha->Alvo()) x = largura - batalha->Alvo()->GetPosition().x;
+    x = std::fmax(kMargemDoRotulo, std::fmin(largura - kMargemDoRotulo, x));
+    return Vector2(x, kAlturaDoRotulo);
+}
+
+void Luizinho::AtualizarGoto(const float deltaTime) {
+
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool naSequencia = fsm && fsm->GetStateName() == kFaseDaSequencia && !EhClone();
+
+    if (!naSequencia) {
+        if (mNaSequencia) {
+            mNaSequencia = false;
+            mAvisandoOGoto = false;
+            if (mRotulo) mRotulo->Mostrar(false);
+            if (!mLatimDaSequencia.empty()) RegistrarAnuncio(kFaseDaSequencia, mLatimDaSequencia);
+        }
+        return;
+    }
+
+    if (!mNaSequencia) {
+        mNaSequencia = true;
+        mTempoDoGoto = 0.0f;
+        if (mLatimDaSequencia.empty()) mLatimDaSequencia = AnuncioDaFase(kFaseDaSequencia);
+    }
+    if (!mRotulo) {
+        auto rotulo = std::make_unique<RotuloDoGoto>(mScene);
+        mRotulo = rotulo.get();
+        mScene->AddActor(std::move(rotulo));
+    }
+
+    mTempoDoGoto += deltaTime;
+    const int proximo = mDesvio->geracao + 1;
+
+    if (!mAvisandoOGoto && mTempoDoGoto >= kGotoACada - kGotoAviso) {
+        // O AVISO: o rotulo aparece onde a cabeca vai cair, e o placar diz o
+        // goto em latim. O lugar e decidido AGORA e nao muda - quem andou depois
+        // do aviso ja sabe para onde a serpente vai.
+        mAvisandoOGoto = true;
+        mProximoRotulo = OndeFicaORotulo();
+        const std::string numero = Rastro::Romano(proximo);
+        mRotulo->SetPosition(mProximoRotulo);
+        mRotulo->Escrever(numero + ":");
+        mRotulo->Mostrar(true);
+        RegistrarAnuncio(kFaseDaSequencia, "vāde ad " + numero);
+    }
+
+    if (mTempoDoGoto >= kGotoACada) {
+        mTempoDoGoto -= kGotoACada;
+        mAvisandoOGoto = false;
+        mDesvio->rotulo = mProximoRotulo;
+        mDesvio->geracao = proximo;
+        mRotulo->Mostrar(false);
+        RegistrarAnuncio(kFaseDaSequencia, mLatimDaSequencia);
     }
 }

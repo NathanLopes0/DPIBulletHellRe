@@ -181,7 +181,7 @@ recusados na leitura, com a frase dizendo qual fase errou.
 
 | Campo | Vai para |
 |---|---|
-| `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack`, `FlexAttack`, `CapsulaAttack` |
+| `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack`, `FlexAttack`, `CapsulaAttack`, `SerpenteAttack` |
 | `projetil` | o nome dentro do conjunto deste professor em `projeteis.json` |
 | `projeteis` | quantos por disparo |
 | `velocidade` | px/s |
@@ -314,6 +314,33 @@ partir do voo — a primeira letra segue em frente —, e cada letra troca para
 `escreve` e volta ao tamanho de fábrica (a regra da rajada pode aumentar a
 casca com `escala`). A geometria está em `Capsula.h`. `angulo` é ignorado;
 `abre` e `velocidade` zero são recusados.
+
+**`serpente`**, opcional na `SerpenteAttack`:
+
+```json
+"serpente": { "espaco": 24, "giro": 1.5, "duracao": 4.5,
+              "cabeca": "Cabeca", "corpo": "Corpo" }
+```
+
+| Campo | |
+|---|---|
+| `espaco` | pixels de caminho entre um gomo e o seguinte. Padrão 24 |
+| `giro` | quanto a cabeça vira, em radianos por segundo. Padrão 1,5 |
+| `duracao` | por quantos segundos a cabeça persegue antes de seguir reta. Padrão 4,5 |
+| `cabeca` / `corpo` | as animações da cabeça e dos gomos. Sem elas, não mexe |
+
+A `SerpenteAttack` é a sequência do Luizinho (*sequī*, "seguir"): `projeteis`
+gomos, o primeiro é a cabeça, que sai para `anguloCentral` e vira em direção ao
+aluno, e cada um dos outros anda pelo **caminho da cabeça**, `espaco` pixels
+atrás do anterior — passa exatamente por onde ela passou. Se o professor der um
+*goto* (`Luizinho::AtualizarGoto`), a cabeça que ainda persegue salta para o
+rótulo, e cada gomo salta quando chega no ponto do salto. O caminho está em
+`Rastro.h`. `espaco` zero e `giro` ou `duracao` negativos são recusados; giro
+zero é a serpente que só vai reta.
+
+> **Uma serpente não leva regra com `motion`.** As regras rodam depois da
+> estratégia, e uma `motion` ali substituiria a da cabeça ou a do gomo — o corpo
+> deixaria de seguir, calado. Um teste em `test_arquivos_de_dados.cpp` recusa.
 
 ---
 

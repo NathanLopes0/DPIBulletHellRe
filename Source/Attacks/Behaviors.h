@@ -7,6 +7,7 @@
 #include "../Math.h"
 #include "PathAim.h"
 #include "Amarra.h"
+#include "Rastro.h"
 #include <vector>
 #include <memory>
 #include <string>
@@ -34,7 +35,8 @@ public:
  * ultimo a rodar venceria, o que produz movimento aleatorio e dificil de
  * depurar. Projectile::insertMotion garante a exclusividade.
  *
- * Sao Motion: Tracking, Wobble, Path, MiraPeriodica e Amarrar. (O antigo HomingBehavior foi removido
+ * Sao Motion: Tracking, Wobble, Path, MiraPeriodica, Amarrar e as duas da
+ * serpente. (O antigo HomingBehavior foi removido
  * na fase 3: um homing e um PathBehavior com PathShapes::Reta() e
  * Mira(MirarNoJogador).)
  */
@@ -551,4 +553,54 @@ struct AmarrarBehavior : public ProjectileMotion {
     bool isFinished() const override { return corda.cortada; }
     Amarra::Corda corda;
     std::string escreve;
+};
+
+/**
+ * @brief A CABECA DA SERPENTE (sequi, "seguir"): vira em direcao ao alvo,
+ * marca o caminho por onde passa, e SALTA para o rotulo quando o professor da
+ * um goto.
+ *
+ * Vira no maximo 'giro' radianos por segundo durante 'duracao' segundos, e
+ * depois segue reta - e so enquanto vira ela obedece ao goto: uma serpente ja
+ * de saida nao volta. Marca o caminho a vida inteira, porque e por ele que o
+ * corpo anda.
+ *
+ * O SALTO MEXE NA POSICAO. O caminho guarda o salto sem somar comprimento
+ * (Rastro::Caminho), e cada gomo salta quando chega nele.
+ */
+struct CabecaDaSerpenteBehavior : public ProjectileMotion {
+    CabecaDaSerpenteBehavior(std::shared_ptr<Rastro::Serpente> serpente,
+                             std::shared_ptr<const Rastro::Desvio> desvio,
+                             float giro, float duracao)
+        : serpente(std::move(serpente)), desvio(std::move(desvio)), giro(giro), duracao(duracao),
+          geracaoVista(this->desvio ? this->desvio->geracao : 0) {}
+    void update(Projectile* p, float deltaTime) override;
+    std::shared_ptr<Rastro::Serpente> serpente;
+    std::shared_ptr<const Rastro::Desvio> desvio;
+    float giro, duracao;
+    float t = 0.0f;
+    int geracaoVista;
+};
+
+/**
+ * @brief UM GOMO DA SERPENTE: anda pelo caminho da cabeca, 'distancia' pixels
+ * atras dela, na velocidade em que nasceu.
+ *
+ * O gomo nao pergunta onde a cabeca esta: ele soma a propria velocidade a sua
+ * posicao no caminho, e o caminho diz onde isso fica. E por isso que um gomo
+ * salta exatamente onde a cabeca saltou, e que a serpente continua inteira
+ * depois que a cabeca morre - o corpo termina o caminho e sai reto, na direcao
+ * do ultimo trecho.
+ *
+ * Enquanto a sua posicao no caminho e negativa ele espera em cima do ponto
+ * onde a serpente nasceu: o corpo sai do professor um gomo por vez.
+ */
+struct GomoDaSerpenteBehavior : public ProjectileMotion {
+    GomoDaSerpenteBehavior(std::shared_ptr<const Rastro::Serpente> serpente, float distancia)
+        : serpente(std::move(serpente)), s(-distancia) {}
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return saiu; }
+    std::shared_ptr<const Rastro::Serpente> serpente;
+    float s;
+    bool saiu = false;
 };

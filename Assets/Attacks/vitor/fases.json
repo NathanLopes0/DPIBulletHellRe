@@ -180,8 +180,6 @@
   // parada e o perseguidor movel ao mesmo tempo, que e a soma das duas
   // primeiras fases com juros.
   //
-  // So e vista por quem esta entre 40 e 59 no fim da terceira - StateThree tem
-  // "proximo" vazio, entao a batalha e decidida ali (medido no Vladimir).
   "StateFinal": {
     "duracao": 17,
     "proximo": "StateOne",
@@ -189,10 +187,10 @@
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Tarefa",
         "projeteis": 5, "velocidade": 320, "angulo": 25, "intervalo": 0.04,
-        "cooldown": 1.0,
+        "cooldown": 0.8,
         "regras": "tarefas_famintas" },
       { "estrategia": "WaveAttack", "projetil": "Trava",
-        "projeteis": 52, "velocidade": 300, "angulo": 300, "anguloCentral": 270,
+        "projeteis": 60, "velocidade": 300, "angulo": 300, "anguloCentral": 270,
         "intervalo": 0,
         "cooldown": 2.9,
         "regras": "secao_critica" }
