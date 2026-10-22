@@ -153,7 +153,7 @@
     {
       "codigo": "TCC", "nome": "TCC",
       "nomeCompleto": "Trabalho de Conclusão de Curso", "professor": "Hugo",
-      "coluna": 4, "orientacao": true,
+      "coluna": 4, "chefe": "hugo", "orientacao": true,
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 3 }
     }
   ]

@@ -1,0 +1,40 @@
+{
+  // ==========================================================================
+  // OS PROJETEIS DO HUGO
+  //
+  // UMA PASTA POR CHEFE: Assets/Attacks/hugo/. A raiz e o mapa de projeteis, e
+  // o nome de cada um e como fases.json o pede. Os campos estao em
+  // Documentacao/arquivos-de-dados.md. Arte PROVISORIA de
+  // Ferramentas/gerar_hugo.py.
+  // ==========================================================================
+
+  // A PAGINA: uma folha do texto, o grosso do que o TCC atira.
+  "Pagina": {
+    "sprite": "Teachers/Projectiles/DPIBHHugoTcc.png",
+    "dados":  "Teachers/Projectiles/DPIBHHugoTcc.json",
+    "animacoes": { "Folha": [0] },
+    "animacaoInicial": "Folha",
+    "escala": 1.6,
+    "ordemDeDesenho": 90
+  },
+
+  // A MONOGRAFIA: o volume encadernado - maior e mais lento que a pagina.
+  "Monografia": {
+    "sprite": "Teachers/Projectiles/DPIBHHugoTcc.png",
+    "dados":  "Teachers/Projectiles/DPIBHHugoTcc.json",
+    "animacoes": { "Volume": [1] },
+    "animacaoInicial": "Volume",
+    "escala": 2.4,
+    "ordemDeDesenho": 91
+  },
+
+  // A PERGUNTA DE BANCA: o balao com a interrogacao, que persegue o aluno.
+  "Pergunta": {
+    "sprite": "Teachers/Projectiles/DPIBHHugoTcc.png",
+    "dados":  "Teachers/Projectiles/DPIBHHugoTcc.json",
+    "animacoes": { "Balao": [2] },
+    "animacaoInicial": "Balao",
+    "escala": 1.6,
+    "ordemDeDesenho": 92
+  }
+}

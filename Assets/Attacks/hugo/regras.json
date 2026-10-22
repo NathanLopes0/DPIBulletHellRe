@@ -1,0 +1,16 @@
+{
+  // ==========================================================================
+  // AS REGRAS DE PROJETIL DO HUGO
+  //
+  // UMA PASTA POR CHEFE: cada chave e um conjunto de regras, e e por esse nome
+  // que um ataque do fases.json ao lado o pede ("regras": "perguntas"). Os
+  // campos estao em Documentacao/arquivos-de-dados.md.
+  // ==========================================================================
+
+  // AS PERGUNTAS DE BANCA PERSEGUEM o aluno por um tempo - a pergunta que ele
+  // nao responde nao vai embora sozinha. PROVISORIO: a banca de verdade vem
+  // depois.
+  "perguntas": [
+    { "motion": { "tipo": "Tracking", "atraso": 0.4, "forca": 1.2, "duracao": 1.8 } }
+  ]
+}

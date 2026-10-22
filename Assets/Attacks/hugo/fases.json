@@ -1,0 +1,81 @@
+{
+  // ==========================================================================
+  // HUGO - TCC, Trabalho de Conclusao de Curso
+  //
+  // A ultima materia do curso, e a unica que o aluno nao luta sozinho: antes
+  // dela ele escolhe um ORIENTADOR (Source/Orientacao.h), que luta do lado dele.
+  //
+  // AS FASES SAO AS ETAPAS DE UM TCC: a proposta, o desenvolvimento, a defesa
+  // diante da banca e as correcoes da versao final. Por enquanto elas sao
+  // PROVISORIAS - so com as estrategias que ja existem, para o TCC ser jogavel
+  // enquanto o orientador e montado. As monografias e as perguntas de banca de
+  // verdade vem depois, e o balanceamento definitivo e com o orientador em
+  // campo.
+  //
+  // Os campos estao em Documentacao/arquivos-de-dados.md; os nomes de fase nao
+  // sao livres (StateOne, StateTwo, StateThree, StateFinal), e StateFinal e
+  // obrigatorio.
+  // ==========================================================================
+
+  // FASE 1 - A PROPOSTA: leques de paginas, de onde ele estiver.
+  "StateOne": {
+    "duracao": 17,
+    "proximo": "StateTwo",
+    "anuncio": "Proposta",
+    "movimento": { "tipo": "RandomWander", "a": 3.0, "b": 120 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Pagina",
+        "projeteis": 7, "velocidade": 230, "angulo": 70, "anguloCentral": 90, "intervalo": 0,
+        "cooldown": 1.1 }
+    ]
+  },
+
+  // FASE 2 - O DESENVOLVIMENTO: aneis de paginas e a monografia, que desce
+  // devagar e pesada.
+  "StateTwo": {
+    "duracao": 17,
+    "proximo": "StateThree",
+    "anuncio": "Desenvolvimento",
+    "movimento": { "tipo": "Varredura", "a": 90, "b": 200 },
+    "ataques": [
+      { "estrategia": "CircleSpreadAttack", "projetil": "Pagina",
+        "projeteis": 20, "velocidade": 170,
+        "cooldown": 2.2 },
+      { "estrategia": "WaveAttack", "projetil": "Monografia",
+        "projeteis": 1, "velocidade": 140, "angulo": 0, "anguloCentral": 90, "intervalo": 0,
+        "cooldown": 2.8 }
+    ]
+  },
+
+  // FASE 3 - A DEFESA: as perguntas da banca, que perseguem o aluno.
+  "StateThree": {
+    "duracao": 17,
+    "proximo": "",
+    "anuncio": "Defesa",
+    "movimento": { "tipo": "Orbitar", "a": 120, "b": 0.08 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Pergunta",
+        "projeteis": 5, "velocidade": 200, "angulo": 80, "anguloCentral": 90, "intervalo": 0.05,
+        "cooldown": 1.6,
+        "regras": "perguntas" }
+    ]
+  },
+
+  // FASE FINAL - AS CORRECOES: o anel de paginas lento e as perguntas que
+  // ficaram.
+  "StateFinal": {
+    "duracao": 17,
+    "proximo": "StateOne",
+    "anuncio": "Correções",
+    "movimento": { "tipo": "Orbitar", "a": 100, "b": 0.06 },
+    "ataques": [
+      { "estrategia": "CircleSpreadAttack", "projetil": "Pagina",
+        "projeteis": 14, "velocidade": 140,
+        "cooldown": 1.5 },
+      { "estrategia": "WaveAttack", "projetil": "Pergunta",
+        "projeteis": 3, "velocidade": 200, "angulo": 50, "anguloCentral": 90, "intervalo": 0.05,
+        "cooldown": 2.2,
+        "regras": "perguntas" }
+    ]
+  }
+}

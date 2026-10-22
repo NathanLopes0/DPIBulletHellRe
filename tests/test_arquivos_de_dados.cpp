@@ -884,8 +884,7 @@ TEST_CASE("Dados: toda materia com chefe aponta para uma pasta de chefe que exis
         CHECK_FALSE(FasesDoChefe(m.chefe).fases.empty());
         ++comChefe;
     }
-    CHECK(comChefe == 10);  // hoje sao dez das onze (Vladimir na 331, Vitor na 310,
-                            // Maria Lucia na 221, Lucas na 321, Luizinho na 340)
+    CHECK(comChefe == 11);  // hoje sao todas as onze: o Hugo, no TCC, foi o ultimo
 }
 
 TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
@@ -899,7 +898,7 @@ TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
     // FormaPeloNome. Registrar um chefe novo la pede acrescenta-lo aqui.
     const std::set<std::string> kFabricasRegistradas = {"salles", "ricardo", "andre", "julio",
                                                         "thiago", "vladimir", "vitor",
-                                                        "marialucia", "lucas", "luizinho"};
+                                                        "marialucia", "lucas", "luizinho", "hugo"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
 
@@ -1245,18 +1244,20 @@ TEST_CASE("Dados: toda materia do curso tem nome de disciplina e professor") {
     }
 }
 
-TEST_CASE("Dados: ha materia com professor e sem batalha, e isso e proposital") {
+TEST_CASE("Dados: toda materia com professor ja tem batalha - o TCC foi a ultima") {
 
-    // O TCC e do Hugo e ainda nao tem batalha. Se algum dia alguem decidir que
-    // "tem professor" implica "tem chefe", este teste cai - e e para cair: a
-    // tela mandaria o aluno para uma luta que nao existe.
+    // ERA A MATERIA COM PROFESSOR E SEM BATALHA, e o teste existia para provar
+    // que as duas coisas sao independentes: o TCC era do Hugo e nao tinha luta.
+    // Desde o 134 ele tem. A independencia continua coberta, com um curso
+    // escrito no proprio teste, em test_materias.cpp ("professor" e "chefe"
+    // sao coisas diferentes); aqui fica o retrato do curso de hoje.
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
 
     int comProfessorSemChefe = 0;
     for (const auto& m : l.materias) {
         if (!m.professor.empty() && m.chefe.empty()) ++comProfessorSemChefe;
     }
-    CHECK(comProfessorSemChefe == 1);   // so o TCC: a INF 331, a 310, a 221, a 321 e a 340 ganharam chefe
+    CHECK(comProfessorSemChefe == 0);
 }
 
 TEST_CASE("Dados: toda coluna do curso depende da anterior, entao a grade pode ser ligada") {

@@ -15,4 +15,5 @@
 #include "MariaLuciaFactory.h"
 #include "LucasFactory.h"
 #include "LuizinhoFactory.h"
+#include "HugoFactory.h"
 
