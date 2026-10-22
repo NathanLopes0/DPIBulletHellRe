@@ -57,6 +57,12 @@ struct DescricaoDeBehavior {
     float duracao = 0.0f;           ///< Tracking, Wobble
     float amplitude = 0.0f;         ///< Wobble: graus
     float frequencia = 0.0f;        ///< Wobble
+
+    /// Ancorar: o lugar da janela em relacao ao corpo do chefe mais perto, em
+    /// pixels. Usa tambem "duracao" (quanto fica ancorada) e "velocidade" (a
+    /// da queda, quando solta).
+    float dx = 0.0f;
+    float dy = 0.0f;
     float fator = 1.0f;             ///< Accelerate, SlowDown
     Vector2 velocidadeInicial;      ///< Activate
 

@@ -7,10 +7,7 @@
   //   StateOne    CASCATA      cinco etapas em ordem, e ela descendo a escada
   //   StateTwo    AGEIS        cinco sprints, e o cursor que arrasta as historias
   //   StateThree  OBSERVER     os olhos que assinam o aluno, e o aviso quando ele vira
-  //   StateFinal  MANUTENCAO   tudo junto, porque manter e lidar com tudo junto
-  //
-  // (A fase final vira a IHC no commit que segue o 121; ate la fica a de
-  // antes.)
+  //   StateFinal  MANUTENCAO   as janelas modais do sistema velho, e o que ele acumulou
   //
   // O QUE DISTINGUE ESTA CHEFE DAS OUTRAS: O TEMPO E PARTE DO PROBLEMA.
   // Estruturas de Dados e um objeto, Linguagens Formais e um objeto,
@@ -22,8 +19,9 @@
   // causa dela: as etapas, as sprints e os gatilhos.
   //
   // A IHC - a outra materia que ela da - entra pelo cursor da fase 2 (o
-  // arrastar-e-soltar, a lei de Fitts) e pelos olhos da fase 3 (o
-  // rastreamento do olhar).
+  // arrastar-e-soltar, a lei de Fitts), pelos olhos e pelo selo de
+  // notificacao da fase 3 (o rastreamento do olhar), e pelas janelas modais
+  // da final.
   //
   // O MOVIMENTO E O ATAQUE, como nos outros - ver MovementStrategies.h. Aqui,
   // em duas das quatro fases, ele e a propria mecanica: a escada e o diagrama
@@ -34,8 +32,7 @@
   // e sorteado. Medido - quatro sementes diferentes deram resultado IDENTICO
   // ate o centesimo. E bom para o TCC, porque toda medicao e reproduzivel, e e
   // um risco de projeto que fica registrado aqui: padrao fixo e padrao
-  // decoravel. E por isso que os cooldowns da fase final sao quase primos
-  // entre si.
+  // decoravel.
   // ==========================================================================
 
   // FASE 1 - O MODELO CASCATA   |   gesto: A ESCADA
@@ -212,41 +209,42 @@
     ]
   },
 
-  // FASE FINAL - MANUTENCAO   |   gesto: A VARREDURA RAPIDA
+  // FASE FINAL - A MANUTENCAO   |   gesto: A ORBITA LENTA
   //
-  // A mesma varredura da fase 3 a uma vez e meia a velocidade, e a repeticao e
-  // o recado: o ciclo nao acabou, recomecou com o sistema ja velho.
+  // So e vista por quem termina a terceira entre 40 e 59, ou com 100.
   //
-  // TRES CAMADAS, uma de cada fase anterior - e e por isso que esta fase existe
-  // assim e nao com um ataque novo. Manter um sistema nao e enfrentar um
-  // problema inedito, e enfrentar os tres que voce ja conhecia ao mesmo tempo.
+  // MANTER UM SISTEMA VELHO E LIDAR COM A INTERFACE DELE: a professora abre
+  // JANELAS MODAIS ("Tem certeza?"), tres por leva, presas a ela como dialogos
+  // centrados na janela que os abriu (regra "modal", Ancora.h). Uma janela e um
+  // ANTEPARO - o tiro que a acerta nao chega na professora -, fecha-la custa
+  // tres tiros ("resistencia" em projeteis.json), e a que ninguem fecha em 5,5 s
+  // solta e cai em cima de quem esta embaixo. Junto, as duas coisas que um
+  // sistema velho acumula: os pedidos que PERSEGUEM (regra "manutencao") e a
+  // divida que para e fica.
   //
-  //   requisitos que PERSEGUEM   (regras "manutencao")   - o pedido te acha
-  //   as setas do diagrama       (regras "diagrama")     - o desenho ainda vale
-  //   o debito                   (regras "divida")       - o que ficou, ficou
+  // A ORBITA E PARA O EXAME TER COMO PASSAR, a licao da final do Luizinho: na
+  // final de antes, que varria a 300 px/s, o piloto que persegue a
+  // professora, comecando com 40, acertou-a 10 vezes em 17 s e saiu com 27,6.
+  // Na orbita lenta ele a acerta 91 vezes e passa com 66,3 (4 acertos
+  // sofridos); o parado sai com 10,3. Os tres tiros de cada janela lhe custam
+  // 6 acertos na professora: com janelas que fecham num tiro so, 97 e 69,0.
   //
-  // OS COOLDOWNS SAO QUASE PRIMOS ENTRE SI (1,1 / 2,3 / 3,1): as tres camadas
-  // nunca repetem a mesma sobreposicao, e a fase nao cai num compasso que da
-  // para decorar. Isso importa mais nesta chefe do que nas outras, porque a
-  // batalha dela nao tem sorteio nenhum - ver a nota do topo.
-  //
-  // O debito vem em leva de TRES, e nao de quatro: ele ja chega num campo
-  // ocupado, e nao precisa de volume para pesar.
-  //
-  // SO E VISTA POR QUEM ESTA ENTRE 40 E 59 no fim da terceira.
+  // OS PEDIDOS SAEM A CADA 1,7 s, e nao a 1,1 como antes: com as janelas no
+  // caminho, a 1,1 o piloto que persegue reprovava com 55,0.
   "StateFinal": {
     "duracao": 17,
     "proximo": "StateOne",
-    "movimento": { "tipo": "Varredura", "a": 300, "b": 120 },
+    "anuncio": "Manutenção · Tem certeza?",
+    "movimento": { "tipo": "Orbitar", "a": 180, "b": 0.12 },
     "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Dialogo",
+        "projeteis": 3, "velocidade": 200, "angulo": 60, "intervalo": 0,
+        "cooldown": 6.0,
+        "regras": "modal" },
       { "estrategia": "WaveAttack", "projetil": "Requisito",
         "projeteis": 5, "velocidade": 300, "angulo": 30, "intervalo": 0.05,
-        "cooldown": 1.1,
+        "cooldown": 1.7,
         "regras": "manutencao" },
-      { "estrategia": "WaveAttack", "projetil": "Requisito",
-        "projeteis": 8, "velocidade": 250, "angulo": 0, "intervalo": 0.05,
-        "cooldown": 2.3,
-        "regras": "diagrama" },
       { "estrategia": "WaveAttack", "projetil": "Debito",
         "projeteis": 3, "velocidade": 320, "angulo": 40, "intervalo": 0,
         "cooldown": 3.1,

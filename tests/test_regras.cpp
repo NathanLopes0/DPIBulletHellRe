@@ -621,3 +621,25 @@ TEST_CASE("Regras: uma regra pode por o projetil num posto, e so num posto que e
     CHECK(PostoExiste("observadores"));
     CHECK_FALSE(PostoExiste(""));
 }
+
+TEST_CASE("Regras: Ancorar e uma Motion com lugar, duracao e queda") {
+    const auto ok = LerRegras(R"({"m":[{"motion":{"tipo":"Ancorar","dx":-100,"dy":120,"duracao":5.5,"velocidade":220}}]})");
+    CHECK(ok.problemas.empty());
+    REQUIRE(ok.conjuntos.at("m").size() == 1);
+    const auto& d = ok.conjuntos.at("m")[0].motion;
+    CHECK(d.tipo == "Ancorar");
+    CHECK(d.dx == doctest::Approx(-100.0f));
+    CHECK(d.dy == doctest::Approx(120.0f));
+    CHECK(d.duracao == doctest::Approx(5.5f));
+    CHECK(d.velocidade == doctest::Approx(220.0f));
+    CHECK(EhMotion("Ancorar"));
+
+    // Sem duracao ela solta ao chegar; sem velocidade, solta, nunca sai da tela.
+    for (const char* json : { R"({"x":[{"motion":{"tipo":"Ancorar","dy":100,"velocidade":220}}]})",
+                              R"({"x":[{"motion":{"tipo":"Ancorar","dy":100,"duracao":5}}]})" }) {
+        CAPTURE(json);
+        const auto r = LerRegras(json);
+        REQUIRE(r.problemas.size() == 1);
+        CHECK(r.problemas[0].find("Ancorar") != std::string::npos);
+    }
+}

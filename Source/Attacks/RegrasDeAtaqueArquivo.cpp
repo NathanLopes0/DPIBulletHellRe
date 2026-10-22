@@ -103,6 +103,8 @@ namespace {
             Amarra::SentidoPeloNome(d.sentido, corda.sentido);   // a leitura ja o validou
             p->insertMotion<AmarrarBehavior>(corda, d.escreve);
         }
+        else if (d.tipo == "Ancorar")
+            p->insertMotion<AncorarBehavior>(Vector2(d.dx, d.dy), d.duracao, d.velocidade);
         else if (d.tipo == "Accelerate")
             p->insertModifier<AccelerateBehavior>(d.atraso, d.fator);
         else if (d.tipo == "SlowDown")

@@ -103,6 +103,14 @@ public:
     /// DescricaoDeProjetil::derrubavel. Propriedade do TIPO, como a corrente.
     void DefinirDerrubavel(const bool derrubavel) { mDerrubavel = derrubavel; }
     [[nodiscard]] bool Derrubavel() const { return mDerrubavel; }
+
+    /// @brief Quantos tiros o derrubam (DescricaoDeProjetil::resistencia). Do
+    /// TIPO, como o derrubavel; os golpes ja levados sao do disparo.
+    void DefinirResistencia(const int resistencia) { mResistencia = resistencia < 1 ? 1 : resistencia; }
+
+    /// @brief Um tiro o acertou. Devolve true no golpe que o derruba - o
+    /// ultimo da resistencia; nos anteriores o tiro so some nele.
+    bool Golpear() { return ++mGolpes >= mResistencia; }
     /// @brief O tiro do aluno SOME neste projetil, sem derruba-lo e sem chegar
     /// ao chefe? E a capsula fechada do Luizinho (CapsulaAttack): o de fora nao
     /// alcanca o de dentro.
@@ -168,6 +176,11 @@ protected:
 
     /// Ver DefinirDerrubavel. Do tipo, como a corrente: nao volta no Reset.
     bool mDerrubavel = false;
+
+    /// Ver DefinirResistencia e Golpear. A resistencia e do tipo; os golpes,
+    /// do disparo - voltam a zero no Reset.
+    int mResistencia = 1;
+    int mGolpes = 0;
 
     /// Ver DefinirBlindado. Do disparo: volta a falso no Reset.
     bool mBlindado = false;

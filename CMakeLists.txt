@@ -154,6 +154,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Sprint.h
         Source/Attacks/Observer.cpp
         Source/Attacks/Observer.h
+        Source/Attacks/Ancora.cpp
+        Source/Attacks/Ancora.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
@@ -286,6 +288,7 @@ add_executable(dpi_tests
         tests/test_escada.cpp
         tests/test_sprint.cpp
         tests/test_observer.cpp
+        tests/test_ancora.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -365,6 +368,8 @@ add_executable(dpi_tests
         Source/Attacks/Sprint.h
         Source/Attacks/Observer.cpp
         Source/Attacks/Observer.h
+        Source/Attacks/Ancora.cpp
+        Source/Attacks/Ancora.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp

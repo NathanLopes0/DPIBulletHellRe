@@ -9,6 +9,7 @@
 #include "Amarra.h"
 #include "Rastro.h"
 #include "Sprint.h"
+#include "Ancora.h"
 #include <vector>
 #include <memory>
 #include <string>
@@ -36,8 +37,8 @@ public:
  * ultimo a rodar venceria, o que produz movimento aleatorio e dificil de
  * depurar. Projectile::insertMotion garante a exclusividade.
  *
- * Sao Motion: Tracking, Wobble, Path, MiraPeriodica, Amarrar, as duas da
- * serpente e as duas da sprint. (O antigo HomingBehavior foi removido
+ * Sao Motion: Tracking, Wobble, Path, MiraPeriodica, Amarrar, Ancorar, as
+ * duas da serpente e as duas da sprint. (O antigo HomingBehavior foi removido
  * na fase 3: um homing e um PathBehavior com PathShapes::Reta() e
  * Mira(MirarNoJogador).)
  */
@@ -653,4 +654,28 @@ struct CursorDaSprintBehavior : public ProjectileMotion {
     float t = 0.0f;
     bool clicando = false;
     bool acabou = false;
+};
+
+/**
+ * @brief A JANELA ANCORADA: vai para o lugar dela em relacao ao professor
+ * ('offset') e o acompanha por 'duracao' segundos, como um dialogo modal fica
+ * centrado na janela que o abriu. Depois SOLTA e cai reto, a 'queda' px/s -
+ * a janela que ninguem fechou.
+ *
+ * O PROFESSOR E O CORPO MAIS PERTO, procurado a cada quadro, como no Amarrar:
+ * um clone que deixasse de existir nao pode deixar a janela presa a memoria
+ * solta. Sem professor, a janela solta na hora.
+ *
+ * MEXE NA POSICAO (Ancora::Aproximar), e a velocidade fica em zero enquanto
+ * ancorada: e um anteparo, e nao um tiro.
+ */
+struct AncorarBehavior : public ProjectileMotion {
+    AncorarBehavior(Vector2 offset, float duracao, float queda)
+        : offset(offset), duracao(duracao), queda(queda) {}
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return soltou; }
+    Vector2 offset;
+    float duracao, queda;
+    float t = 0.0f;
+    bool soltou = false;
 };

@@ -847,8 +847,12 @@ void Battle::CheckCollisions() {
             // A BLINDAGEM VENCE: uma historia que o cursor ainda arrasta e
             // derrubavel (e do tipo), mas na mao dele o tiro so some.
             if (bossProj->Derrubavel() && !bossProj->Blindado()) {
-                bossProj->OnCollision(playerProj.get());
-                if (mBoss) mBoss->OnProjetilDerrubado();
+                // A RESISTENCIA: so o ultimo golpe derruba. Os outros so comem o
+                // tiro - a janela modal que pede mais de um clique.
+                if (bossProj->Golpear()) {
+                    bossProj->OnCollision(playerProj.get());
+                    if (mBoss) mBoss->OnProjetilDerrubado();
+                }
             }
             break;   // um tiro derruba um processo so, ou some numa capsula so
         }

@@ -10,7 +10,7 @@
 namespace {
 
     const std::vector<std::string> kMotions   = {"Path", "Tracking", "Wobble", "MiraPeriodica",
-                                                 "Amarrar"};
+                                                 "Amarrar", "Ancorar"};
     const std::vector<std::string> kModifiers = {"Accelerate", "SlowDown", "Activate",
                                                  "Deactivate", "PulsoDeVelocidade",
                                                  "Reescrever", "Promessa"};
@@ -86,6 +86,22 @@ namespace {
                         ? j["escreve"].get<std::string>() : "";
 
         d.resolve = Campo(j, "resolve", 0.5f);
+
+        d.dx = Campo(j, "dx", 0.0f);
+        d.dy = Campo(j, "dy", 0.0f);
+
+        // A JANELA QUE NAO FICARIA E RECUSADA: sem duracao ela solta no quadro em
+        // que chega, e sem velocidade, solta, fica parada para sempre - nunca
+        // sai da tela nem volta ao pool.
+        if (d.tipo == "Ancorar") {
+            if (d.duracao <= 0.0f)
+                erro = "\"Ancorar\" precisa de \"duracao\" maior que zero: e quanto tempo a "
+                       "janela fica presa ao chefe";
+            else if (d.velocidade <= 0.0f)
+                erro = "\"Ancorar\" precisa de \"velocidade\" maior que zero: e a da queda, "
+                       "quando a janela solta";
+            return d;
+        }
 
         d.comprimento = Campo(j, "comprimento", 0.0f);
         if (j.contains("sentido") && j["sentido"].is_string()) d.sentido = j["sentido"].get<std::string>();

@@ -471,3 +471,29 @@ TEST_CASE("Projeteis: \"derrubavel\" que nao e booleano reclama e fica falso") {
         CHECK(p.problemas[0].find("derrubavel") != std::string::npos);
     }
 }
+
+TEST_CASE("Projeteis: a resistencia e 1 por padrao, e so vale num derrubavel") {
+    const auto p = LerProjeteis(R"({
+      "Processo": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] },
+                    "derrubavel": true },
+      "Janela":   { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] },
+                    "derrubavel": true, "resistencia": 3 }
+    })");
+    CHECK(p.problemas.empty());
+    CHECK(p.projeteis.at("Processo").resistencia == 1);
+    CHECK(p.projeteis.at("Janela").resistencia == 3);
+
+    // Zero, negativa, quebrada, ou num projetil que o tiro nao derruba: reclama
+    // e fica 1. A ultima e quase sempre um "derrubavel" esquecido.
+    for (const char* resto : { R"("derrubavel": true, "resistencia": 0)",
+                               R"("derrubavel": true, "resistencia": 2.5)",
+                               R"("resistencia": 3)" }) {
+        CAPTURE(resto);
+        const auto r = LerProjeteis(std::string(R"({ "P": { "sprite": "s.png", "dados": "s.json",
+            "animacoes": { "A": [0] }, )") + resto + " } }");
+        REQUIRE(r.projeteis.count("P") == 1);
+        CHECK(r.projeteis.at("P").resistencia == 1);
+        REQUIRE(r.problemas.size() == 1);
+        CHECK(r.problemas[0].find("resistencia") != std::string::npos);
+    }
+}

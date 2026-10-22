@@ -126,5 +126,23 @@
     "ordemDeDesenho": 92,
     "escala": 1.3,
     "colisorDivisor": 4
+  },
+
+  // A JANELA MODAL DA FASE FINAL: a janelinha com a barra de titulo, o X e o
+  // OK pulsando. Fica presa a professora (regra "modal") como um dialogo
+  // centrado na janela que o abriu, e e um ANTEPARO: o tiro que a acerta nao
+  // chega na professora. Fecha-la custa TRES tiros - "Tem certeza?", "Sim",
+  // "OK" -, e a que ninguem fecha solta e cai.
+  "Dialogo": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
+    "animacoes": {
+      "Modal": [28, 29, 30, 31]
+    },
+    "animacaoInicial": "Modal",
+    "ordemDeDesenho": 92,
+    "escala": 1.6,
+    "derrubavel": true,
+    "resistencia": 3
   }
 }

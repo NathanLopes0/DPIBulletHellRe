@@ -44,6 +44,10 @@ void BossProjectile::Reset() {
 
     // E O POSTO: uma historia entregue no quadro voltaria do pool atirando.
     mPosto.clear();
+
+    // E OS GOLPES: uma janela que levou dois tiros e saiu da tela voltaria do
+    // pool fechando no primeiro.
+    mGolpes = 0;
 }
 
 void BossProjectile::OnUpdate(float deltaTime)

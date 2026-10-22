@@ -171,6 +171,19 @@ namespace {
         }
         saida.derrubavel = Booleano(j, "derrubavel", false);
 
+        // A RESISTENCIA E UM INTEIRO DE 1 PARA CIMA, e so num derrubavel: num
+        // projetil que o tiro nao derruba ela nao teria o que contar, e quem a
+        // escreveu provavelmente esqueceu o "derrubavel".
+        if (j.contains("resistencia")) {
+            if (!j["resistencia"].is_number_integer() || j["resistencia"].get<int>() < 1) {
+                problemas.emplace_back(onde + "\"resistencia\" precisa ser um inteiro de 1 para cima; usando 1");
+            } else if (!saida.derrubavel) {
+                problemas.emplace_back(onde + "\"resistencia\" so vale num projetil \"derrubavel\"; ignorada");
+            } else {
+                saida.resistencia = j["resistencia"].get<int>();
+            }
+        }
+
         // ----- O efeito de acorrentar -----
         //
         // RECUSA CHAPADO em vez de corrigir calado: um "segundos" negativo ou

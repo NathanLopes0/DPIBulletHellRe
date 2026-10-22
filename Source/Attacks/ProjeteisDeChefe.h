@@ -126,7 +126,8 @@ struct DescricaoDeProjetil {
     /**
      * @brief O tiro do aluno pode derrubar este projetil?
      *
-     * Os PROCESSOS do Lucas, e os bugs e as historias da Maria Lucia. Um
+     * Os PROCESSOS do Lucas, e os bugs, as historias e as janelas da Maria
+     * Lucia. Um
      * projetil derrubavel some quando um tiro do aluno o acerta - e o tiro some
      * junto, sem chegar ao chefe. Quem decide o que acontece depois e o chefe
      * dono dele (Boss::OnProjetilDerrubado): no Lucas, o supervisor poe o
@@ -137,6 +138,16 @@ struct DescricaoDeProjetil {
      * em todo projetil de todo chefe.
      */
     bool derrubavel = false;
+
+    /**
+     * @brief Quantos tiros derrubam este projetil, se ele for derrubavel.
+     *
+     * Os tiros antes do ultimo SOMEM nele, sem chegar ao chefe e sem derruba-lo:
+     * e a janela modal da Maria Lucia, que pede mais de um clique para fechar
+     * ("Tem certeza?"). 1 por padrao - o derrubavel de sempre, que cai no
+     * primeiro tiro. Sem "derrubavel", nao vale nada, e a leitura avisa.
+     */
+    int resistencia = 1;
 };
 
 /**

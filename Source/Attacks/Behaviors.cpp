@@ -578,3 +578,29 @@ void CursorDaSprintBehavior::update(Projectile* p, const float deltaTime) {
         }
     }
 }
+
+void AncorarBehavior::update(Projectile* p, const float deltaTime) {
+    auto* rb = p->GetComponent<RigidBodyComponent>();
+    if (!rb) { soltou = true; return; }
+
+    t += deltaTime;
+    const Boss* mae = nullptr;
+    if (const auto* batalha = dynamic_cast<Battle*>(p->GetScene()); batalha && t < duracao) {
+        float maisPerto = 0.0f;
+        for (const Boss* corpo : batalha->Corpos()) {
+            if (!corpo) continue;
+            const float d = (corpo->GetPosition() - p->GetPosition()).LengthSq();
+            if (!mae || d < maisPerto) { mae = corpo; maisPerto = d; }
+        }
+    }
+
+    // O TEMPO ACABOU, ou nao ha professor: a janela solta e cai.
+    if (!mae) {
+        rb->SetVelocity(Vector2(0.0f, queda));
+        soltou = true;
+        return;
+    }
+
+    p->SetPosition(Ancora::Aproximar(p->GetPosition(), mae->GetPosition() + offset, Ancora::kTaxa, deltaTime));
+    rb->SetVelocity(Vector2::Zero);
+}

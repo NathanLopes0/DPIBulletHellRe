@@ -494,7 +494,7 @@ Escolha no máximo uma forma:
 > zero acerto em dezessete segundos, e subir `projeteis` de 10 para 18 não
 > mudou nada. O que resolveu foi o chefe **andar**.
 
-**Motions:** `Path`, `Tracking`, `Wobble`, `MiraPeriodica`, `Amarrar`
+**Motions:** `Path`, `Tracking`, `Wobble`, `MiraPeriodica`, `Amarrar`, `Ancorar`
 **Modifiers:** `Accelerate`, `SlowDown`, `Activate`, `Deactivate`, `PulsoDeVelocidade`, `Reescrever`, `Promessa`
 
 Pôr um modifier em `motion` é recusado na leitura. No C++ quem garante isso é o
@@ -509,6 +509,7 @@ compilador; aqui é a leitura, porque arquivo de texto não passa por compilador
 | `Wobble` | `amplitude` (graus), `frequencia`, `duracao`, `atraso` |
 | `MiraPeriodica` | `ritmo` |
 | `Amarrar` | `comprimento`, `duracao`, `sentido` (`horario` ou `antihorario`, padrão horário), `escreve` (opcional) |
+| `Ancorar` | `dx`, `dy` (o lugar em relação ao professor), `duracao`, `velocidade` (a da queda) |
 | `Accelerate` / `SlowDown` | `fator`, `atraso` |
 | `Activate` / `Deactivate` | `atraso` |
 | `PulsoDeVelocidade` | `ritmo`, `moduloInvestida`, `moduloPausa` |
@@ -538,6 +539,14 @@ no professor, então a letra tem de ser disparada de cima dele (uma
 `CircleSpreadAttack`, por exemplo); `comprimento` e `duracao` zero e um
 `sentido` que não seja um dos dois são recusados na leitura. A conta de cada
 quadro é pura e mora em `Amarra.h`.
+
+**`Ancorar` é a janela modal da fase final da Maria Lúcia.** O projétil vai
+para o lugar `(dx, dy)` em relação ao corpo do professor mais perto e fica
+**preso a ele** enquanto ele anda, como um diálogo centrado na janela que o
+abriu, por `duracao` segundos; depois solta e cai reto a `velocidade`. Ancorada,
+a velocidade dela é zero: é um anteparo, e não um tiro. Para cada janela da
+leva ter o seu lugar, a regra usa `indices`. `duracao` e `velocidade` zero são
+recusados. O passo da aproximação é puro e mora em `Ancora.h`.
 
 **`Promessa` é a Promise do JavaScript.** Aos `atraso` segundos o projétil
 assenta: uma parte `resolve` deles sai em direção ao alvo a `velocidade` (e troca
@@ -642,7 +651,8 @@ entrada é como `fases.json` vai pedi-lo.
 | `posicionarNoDono` | se nasce em cima do professor |
 | `margemEmSprites` / `margemDivisorDeTela` | quão longe da tela ele morre |
 | `rotacionarComAVelocidade` | se o sprite gira para acompanhar o voo (uma regra pode desligar por rajada — ver `rotacionar`) |
-| `derrubavel` | `true` se o tiro do aluno derruba este projétil. Os dois somem, o tiro não chega ao professor, e o professor é avisado (`Boss::OnProjetilDerrubado`). Padrão `false`; usam os processos do Lucas e os bugs e as histórias da Maria Lúcia |
+| `derrubavel` | `true` se o tiro do aluno derruba este projétil. Os dois somem, o tiro não chega ao professor, e o professor é avisado (`Boss::OnProjetilDerrubado`). Padrão `false`; usam os processos do Lucas e os bugs, as histórias e as janelas da Maria Lúcia |
+| `resistencia` | quantos tiros derrubam um projétil `derrubavel`; os anteriores **somem nele**, sem derrubá-lo e sem chegar ao professor. Padrão 1. Num projétil que não é `derrubavel`, a leitura avisa e ignora |
 | `acorrenta` | o que acontece com o aluno ao ser acertado: `segundos`, `fatorDeVelocidade`, `multiplicadorDaPerda` |
 
 ```jsonc

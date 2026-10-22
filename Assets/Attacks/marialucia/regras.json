@@ -124,6 +124,18 @@
                   "velocidade": 260, "pararNoPonto": 0, "pararPor": 7.0 } }
   ],
 
+  // FASE FINAL - AS JANELAS MODAIS.
+  //
+  // Tres janelas por leva, cada uma num lugar em relacao a professora - dos
+  // dois lados e embaixo dela -, presas a ela enquanto ela anda, como dialogos
+  // centrados na janela que os abriu. Ficam 5,5 s e soltam, caindo reto: a
+  // janela que ninguem fechou trava e cai em cima de quem esta embaixo.
+  "modal": [
+    { "indices": [0], "motion": { "tipo": "Ancorar", "dx": -100, "dy": 100, "duracao": 5.5, "velocidade": 220 } },
+    { "indices": [1], "motion": { "tipo": "Ancorar", "dx": 0,    "dy": 125, "duracao": 5.5, "velocidade": 220 } },
+    { "indices": [2], "motion": { "tipo": "Ancorar", "dx": 100,  "dy": 100, "duracao": 5.5, "velocidade": 220 } }
+  ],
+
   // FASE FINAL - O LEGADO.
   //
   // Os requisitos da manutencao PERSEGUEM. E a unica regra do chefe com
