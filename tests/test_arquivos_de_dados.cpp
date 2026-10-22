@@ -1353,3 +1353,25 @@ TEST_CASE("Dados: nenhuma regra de uma SerpenteAttack tem motion") {
         }
     }
 }
+
+TEST_CASE("Dados: a escada tem um degrau por etapa, do tamanho da etapa") {
+
+    // A ESCADA E O DIAGRAMA DA CASCATA: um degrau por etapa. O movimento
+    // conta os degraus pelo relogio ("a" segundos cada, "b" degraus), e as
+    // etapas contam pelo delas - sao dois relogios dizendo a mesma coisa, e
+    // so batem se os numeros baterem. Com um degrau mais curto que a etapa, a
+    // professora chegaria na Manutencao enquanto o placar ainda diz Testes.
+    for (const auto& chefe : Chefes()) {
+        for (const auto& f : FasesDoChefe(chefe).fases) {
+            if (f.movimento.tipo != "Escada") continue;
+            CAPTURE(chefe);
+            CAPTURE(f.nome);
+            REQUIRE_FALSE(f.etapas.empty());
+            CHECK(static_cast<int>(f.movimento.b) == static_cast<int>(f.etapas.size()));
+            for (const auto& e : f.etapas) {
+                CAPTURE(e.nome);
+                CHECK(e.duracao == doctest::Approx(f.movimento.a));
+            }
+        }
+    }
+}

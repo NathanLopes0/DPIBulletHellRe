@@ -925,3 +925,86 @@ TEST_CASE("Fases: uma serpente sem espaco, ou com giro ou duracao negativos, e r
     for (const auto& p : fora.problemas) if (p.find("so a SerpenteAttack") != std::string::npos) avisou = true;
     CHECK(avisou);
 }
+
+// ---------------------------------------------------------------------------
+// As etapas de uma fase (a cascata)
+// ---------------------------------------------------------------------------
+
+namespace {
+    std::string FaseComEtapas(const std::string& etapas, const std::string& ataques) {
+        return R"({
+          "StateOne":   { "duracao": 10, "proximo": "StateFinal", "etapas": )" + etapas +
+               R"(, "ataques": [ )" + ataques + R"( ] },
+          "StateFinal": { "proximo": "", "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+        })";
+    }
+}
+
+TEST_CASE("Fases: as etapas sao lidas em ordem, e cada ataque diz a sua") {
+    const auto r = LerFases(FaseComEtapas(
+        R"([ { "nome": "Requisitos", "duracao": 3 }, { "nome": "Projeto", "duracao": 4, "anuncio": "2 - Projeto" } ])",
+        R"({ "estrategia": "WaveAttack", "projetil": "P", "etapa": "Projeto" },
+           { "estrategia": "WaveAttack", "projetil": "P" })"));
+    CHECK(r.problemas.empty());
+    for (const auto& f : r.fases) {
+        if (f.nome != "StateOne") continue;
+        REQUIRE(f.etapas.size() == 2);
+        CHECK(f.etapas[0].nome == "Requisitos");
+        CHECK(f.etapas[0].anuncio.empty());
+        CHECK(f.etapas[1].anuncio == "2 - Projeto");
+        REQUIRE(f.ataques.size() == 2);
+        CHECK(f.ataques[0].etapa == "Projeto");
+        CHECK(f.ataques[1].etapa.empty());     // sem etapa: a fase inteira
+
+        float de = -1.0f, ate = -1.0f;
+        REQUIRE(JanelaDaEtapa(f.etapas, "Projeto", de, ate));
+        CHECK(de == doctest::Approx(3.0f));
+        CHECK(ate == doctest::Approx(7.0f));
+        CHECK_FALSE(JanelaDaEtapa(f.etapas, "Testes", de, ate));
+    }
+}
+
+TEST_CASE("Fases: a etapa de cada instante, e nenhuma depois da ultima") {
+    std::vector<DescricaoDeEtapa> e(3);
+    e[0].nome = "a"; e[0].duracao = 2.0f;
+    e[1].nome = "b"; e[1].duracao = 2.0f;
+    e[2].nome = "c"; e[2].duracao = 1.0f;
+    CHECK(EtapaNoTempo(e, -1.0f) == 0);
+    CHECK(EtapaNoTempo(e, 0.0f) == 0);
+    CHECK(EtapaNoTempo(e, 1.99f) == 0);
+    CHECK(EtapaNoTempo(e, 2.0f) == 1);     // a fronteira ja e da seguinte
+    CHECK(EtapaNoTempo(e, 4.5f) == 2);
+    CHECK(EtapaNoTempo(e, 5.0f) == -1);
+    CHECK(EtapaNoTempo({}, 1.0f) == -1);
+}
+
+TEST_CASE("Fases: etapas mal escritas, ou que nao cabem na fase, sao recusadas") {
+    const char* ruins[] = {
+        R"([ { "nome": "a", "duracao": 0 } ])",
+        R"([ { "nome": "a", "duracao": 3 }, { "nome": "a", "duracao": 3 } ])",
+        R"([ { "duracao": 3 } ])",
+        R"([ { "nome": "a", "duracao": 6 }, { "nome": "b", "duracao": 6 } ])",   // 12 s numa fase de 10
+        R"([])",
+        R"("a")"
+    };
+    for (const char* etapas : ruins) {
+        CAPTURE(etapas);
+        const auto r = LerFases(FaseComEtapas(etapas, R"({ "estrategia": "WaveAttack", "projetil": "P" })"));
+        bool reclamou = false;
+        for (const auto& p : r.problemas) if (p.find("etapas") != std::string::npos) reclamou = true;
+        CHECK(reclamou);
+    }
+}
+
+TEST_CASE("Fases: um ataque que pede uma etapa que a fase nao tem e descartado") {
+    const auto r = LerFases(FaseComEtapas(
+        R"([ { "nome": "Requisitos", "duracao": 3 } ])",
+        R"({ "estrategia": "WaveAttack", "projetil": "P", "etapa": "Testes" },
+           { "estrategia": "WaveAttack", "projetil": "P", "etapa": "Requisitos" })"));
+    bool reclamou = false;
+    for (const auto& p : r.problemas) if (p.find("Testes") != std::string::npos) reclamou = true;
+    CHECK(reclamou);
+    for (const auto& f : r.fases) {
+        if (f.nome == "StateOne") CHECK(f.ataques.size() == 1);
+    }
+}

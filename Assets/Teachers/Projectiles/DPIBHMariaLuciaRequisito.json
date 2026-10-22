@@ -175,6 +175,534 @@
     "h": 32
    },
    "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 8.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 64,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 9.placeholder",
+   "frame": {
+    "x": 32,
+    "y": 64,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 10.placeholder",
+   "frame": {
+    "x": 64,
+    "y": 64,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 11.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 64,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 12.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 96,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 13.placeholder",
+   "frame": {
+    "x": 32,
+    "y": 96,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 14.placeholder",
+   "frame": {
+    "x": 64,
+    "y": 96,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 15.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 96,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 16.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 128,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 17.placeholder",
+   "frame": {
+    "x": 32,
+    "y": 128,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 18.placeholder",
+   "frame": {
+    "x": 64,
+    "y": 128,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 19.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 128,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 20.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 160,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 21.placeholder",
+   "frame": {
+    "x": 32,
+    "y": 160,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 22.placeholder",
+   "frame": {
+    "x": 64,
+    "y": 160,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 23.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 160,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 24.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 192,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 25.placeholder",
+   "frame": {
+    "x": 32,
+    "y": 192,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 26.placeholder",
+   "frame": {
+    "x": 64,
+    "y": 192,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 27.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 192,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 28.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 224,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 29.placeholder",
+   "frame": {
+    "x": 32,
+    "y": 224,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 30.placeholder",
+   "frame": {
+    "x": 64,
+    "y": 224,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaRequisito 31.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 224,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 120
   }
  ],
  "meta": {
@@ -184,7 +712,7 @@
   "format": "RGBA8888",
   "size": {
    "w": 128,
-   "h": 64
+   "h": 256
   },
   "scale": "1"
  }

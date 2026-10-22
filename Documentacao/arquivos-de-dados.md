@@ -107,6 +107,7 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 | `proximo` | a próxima fase. **Vazio significa "a batalha é decidida aqui"**, não "fim do arquivo". |
 | `anuncio` | opcional. O texto do **placar**, o quadro no canto de cima, enquanto a fase dura. Sem ele o placar fica apagado |
 | `intercambio` | opcional. `{ "aCada": 8, "aviso": 1.5 }`: os alunos **trocam de lugar** a cada `aCada` segundos da fase, com aviso `aviso` segundos antes |
+| `etapas` | opcional. A fase em **trechos com nome**, em ordem: `[ { "nome": "Requisitos", "duracao": 3.4, "anuncio": "1 · Requisitos" }, ... ]`. Cada ataque que diz `"etapa"` só dispara na sua, e o placar mostra o `anuncio` da etapa corrente (sem ele, o `nome`) |
 | `movimento` | como o professor anda |
 | `ataques` | lista; todos disparam na mesma fase, cada um no seu cooldown |
 
@@ -115,6 +116,15 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 > sobrescrito, `δ` e `→` saem como são. Um `anuncio` que não é texto é recusado
 > na leitura em vez de virar um quadro apagado — e cuidado com a chave: escrita
 > com acento, `anúncio`, ela é ignorada calada como qualquer campo desconhecido.
+
+> **As etapas são um processo em ordem**, a cascata da Maria Lúcia: uma etapa só
+> começa quando a anterior acaba. Um ataque fora da sua etapa não conta o
+> cooldown nem dispara, e quando ela abre o primeiro disparo sai em 0,25 s. A
+> soma das durações tem de caber na fase, os nomes não se repetem, e um ataque
+> que pede uma etapa que a fase não tem é descartado com aviso. O movimento
+> `Escada` (`a` = segundos por degrau, `b` = degraus) é o diagrama da cascata:
+> um degrau por etapa, da esquerda para a direita — e um teste confere que os
+> dois relógios batem.
 
 > **O Intercâmbio funciona sozinho e em dupla.** Em dupla, os dois trocam de
 > lugar; sozinho, o aluno vai para a posição espelhada (`x` vira
@@ -126,7 +136,7 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 > de `aCada`, e campo faltando são recusados na leitura.
 
 **Movimentos:** `GoToCenter`, `RandomWander`, `HoverAbovePlayer`, `Orbitar`,
-`Varredura`, `Mergulho`. `a` e `b` são os dois parâmetros do construtor, na
+`Varredura`, `Mergulho`, `Escada`. `a` e `b` são os dois parâmetros do construtor, na
 ordem, e cada movimento lhes dá um sentido próprio — a tabela está em
 `FasesDeAtaqueArquivo.cpp`, onde eles são instanciados.
 
@@ -181,6 +191,7 @@ recusados na leitura, com a frase dizendo qual fase errou.
 
 | Campo | Vai para |
 |---|---|
+| `etapa` | opcional. Em qual etapa da fase o ataque dispara. Sem ela, a fase inteira |
 | `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack`, `FlexAttack`, `CapsulaAttack`, `SerpenteAttack` |
 | `projetil` | o nome dentro do conjunto deste professor em `projeteis.json` |
 | `projeteis` | quantos por disparo |

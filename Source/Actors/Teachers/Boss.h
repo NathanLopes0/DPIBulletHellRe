@@ -47,13 +47,27 @@ public:
         ProjectileConfigurator configurator;       // Lambda para customização (behaviors, animação)
         float cooldownTotal;                       // Tempo entre disparos desse ataque
         float currentTimer;                        // Timer atual desse ataque específico
+
+        /// O TRECHO DA FASE em que este ataque dispara, em segundos desde o
+        /// comeco dela. O padrao e a fase inteira. Fora do trecho o ataque nao
+        /// conta o cooldown nem dispara; quando o trecho abre, o primeiro disparo
+        /// sai em kPrimeiroDisparoDaJanela. Vem das "etapas" de fases.json.
+        float janelaDe = 0.0f;
+        float janelaAte = 1.0e9f;
     };
+
+    /// Quanto o primeiro disparo de um ataque espera depois que a janela dele
+    /// abre. Pouco, mas nao zero: a etapa anterior acabou de parar, e os dois
+    /// ataques nascendo no mesmo quadro se leriam como um so.
+    static constexpr float kPrimeiroDisparoDaJanela = 0.25f;
 
     void AddAttackPattern(const std::string& stateName,
                           std::unique_ptr<IAttackStrategy> strategy,
                           std::unique_ptr<AttackParams> params,
                           float cooldown,
-                          ProjectileConfigurator config = nullptr);
+                          ProjectileConfigurator config = nullptr,
+                          float janelaDe = 0.0f,
+                          float janelaAte = 1.0e9f);
 
     void SetInitialState(const std::string& stateName);
 
@@ -146,7 +160,15 @@ public:
     void RegistrarAnuncio(const std::string& fase, const std::string& texto);
 
     /// @brief O anuncio desta fase. Vazio = a fase nao anuncia nada.
+    ///
+    /// NUMA FASE COM ETAPAS, e a fase em que o chefe esta agindo, o anuncio e o
+    /// da ETAPA corrente, contada pelo relogio da maquina de estados. Depois da
+    /// ultima etapa volta o anuncio da fase.
     [[nodiscard]] std::string AnuncioDaFase(const std::string& fase) const;
+
+    /// @brief Anota as etapas da fase: onde cada uma ACABA, em segundos desde o
+    /// comeco da fase, e o que o placar diz durante ela. Ver AnuncioDaFase.
+    void RegistrarEtapas(const std::string& fase, std::vector<std::pair<float, std::string>> fimETexto);
 
     // ---- O INTERCAMBIO ----------------------------------------------------
 
@@ -241,6 +263,9 @@ private:
 
     /// Por fase, o texto do placar. Ver RegistrarAnuncio.
     std::map<std::string, std::string> mAnuncioPorFase;
+
+    /// Por fase, as etapas: onde cada uma acaba e o texto dela. Ver RegistrarEtapas.
+    std::map<std::string, std::vector<std::pair<float, std::string>>> mEtapasPorFase;
 
     /// Por fase, o periodo e o aviso do intercambio. Ver RegistrarIntercambio.
     std::map<std::string, std::pair<float, float>> mIntercambioPorFase;

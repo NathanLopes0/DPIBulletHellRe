@@ -91,8 +91,18 @@ void Boss::OnUpdate(float deltaTime) {
     // Verifica se existem ataques registrados pro estado atual
     if (mAttacksMap.find(currState) != mAttacksMap.end()) {
 
+        // O RELOGIO DA FASE, para as janelas das etapas.
+        const float tempoNaFase = fsm->GetStateTime();
+
         // Itera sobre todos os ataques configurados para esse estado
         for (auto& attackDefinition : mAttacksMap[currState]) {
+
+            // FORA DA JANELA, o ataque espera sem contar. Ao abrir, o primeiro
+            // disparo sai logo - e nao depois de um cooldown inteiro.
+            if (tempoNaFase < attackDefinition.janelaDe || tempoNaFase >= attackDefinition.janelaAte) {
+                attackDefinition.currentTimer = std::min(attackDefinition.currentTimer, kPrimeiroDisparoDaJanela);
+                continue;
+            }
 
             attackDefinition.currentTimer -= deltaTime;
 
@@ -104,8 +114,11 @@ void Boss::OnUpdate(float deltaTime) {
     }
 }
 
-void Boss::AddAttackPattern(const std::string &stateName, std::unique_ptr<IAttackStrategy> strategy, std::unique_ptr<AttackParams> params, float cooldown, ProjectileConfigurator config) {
+void Boss::AddAttackPattern(const std::string &stateName, std::unique_ptr<IAttackStrategy> strategy, std::unique_ptr<AttackParams> params, float cooldown, ProjectileConfigurator config,
+                            const float janelaDe, const float janelaAte) {
     AttackDefinition def;
+    def.janelaDe = janelaDe;
+    def.janelaAte = janelaAte;
     def.strategy = std::move(strategy);
     def.params = std::move(params);
     def.configurator = std::move(config);
@@ -304,8 +317,21 @@ void Boss::RegistrarAnuncio(const std::string& fase, const std::string& texto) {
 }
 
 std::string Boss::AnuncioDaFase(const std::string& fase) const {
+    const auto etapas = mEtapasPorFase.find(fase);
+    if (etapas != mEtapasPorFase.end() && fase == mLastStateName) {
+        if (const auto* fsm = GetComponent<FSMComponent>()) {
+            const float t = fsm->GetStateTime();
+            for (const auto& [fim, texto] : etapas->second) {
+                if (t < fim) return texto;
+            }
+        }
+    }
     const auto it = mAnuncioPorFase.find(fase);
     return it == mAnuncioPorFase.end() ? std::string{} : it->second;
+}
+
+void Boss::RegistrarEtapas(const std::string& fase, std::vector<std::pair<float, std::string>> fimETexto) {
+    mEtapasPorFase[fase] = std::move(fimETexto);
 }
 
 void Boss::RegistrarIntercambio(const std::string& fase, const float aCada, const float aviso) {

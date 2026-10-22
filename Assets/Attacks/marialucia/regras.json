@@ -13,13 +13,30 @@
   // Os campos estao documentados em Documentacao/arquivos-de-dados.md.
   // ==========================================================================
 
-  // FASE 1 - O ESCOPO.
+  // CASCATA, ETAPA 1 - OS REQUISITOS.
   //
   // Sem motion nenhum: requisito e pedido que chega, e pedido que chega vem
-  // reto. A fase nao e sobre a trajetoria de um requisito, e sobre QUANTOS
-  // chegam - e quem conta isso e o leque, nao o projetil.
+  // reto.
   "escopo": [
     { "animacao": "Novo" }
+  ],
+
+  // CASCATA, ETAPA 3 - A IMPLEMENTACAO. O cartao de terminal, reto e rapido: e
+  // a etapa em que mais coisa sai, e sai sem desvio.
+  "codigo": [
+    { "animacao": "Codigo" }
+  ],
+
+  // CASCATA, ETAPA 4 - OS TESTES. Os bugs andam tortos (Wobble), e o tiro do
+  // aluno os derruba - testar e achar bug. Mas o tiro que acha um bug nao chega
+  // nela.
+  //
+  // O "atraso" do Wobble nao pode ser zero: ele captura a direcao no instante
+  // em que ativa, e a leva nasce inteira ("intervalo" 0) justamente para todos
+  // ja estarem andando quando ele pega.
+  "bugs": [
+    { "motion": { "tipo": "Wobble", "atraso": 0.15, "amplitude": 40,
+                  "frequencia": 2.2, "duracao": 4.0 } }
   ],
 
   // FASE 2 - O DIAGRAMA.

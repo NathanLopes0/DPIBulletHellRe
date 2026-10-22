@@ -18,7 +18,9 @@ namespace {
     const std::vector<std::string> kMovimentos = {
         "RandomWander", "HoverAbovePlayer", "GoToCenter",
         // As tres do "o movimento e o ataque" - ver MovementStrategies.h.
-        "Orbitar", "Varredura", "Mergulho"
+        "Orbitar", "Varredura", "Mergulho",
+        // A escada da cascata - ver Escada.h.
+        "Escada"
     };
 
     /// Os nomes aceitos, para a mensagem de erro. DERIVADA da lista acima, e
@@ -320,6 +322,12 @@ namespace {
             saida.projeteis = n;
         }
 
+        if (j.contains("etapa") && !j["etapa"].is_string()) {
+            problemas.emplace_back(onde + "\"etapa\" deveria ser o nome de uma etapa da fase");
+            return false;
+        }
+        saida.etapa = Texto(j, "etapa");
+
         saida.velocidade    = Opcional(j, "velocidade");
         saida.angulo        = Opcional(j, "angulo");
         saida.anguloCentral = Opcional(j, "anguloCentral");
@@ -604,6 +612,42 @@ FasesLidas LerFases(const std::string& textoJson) {
                 f.intercambio = d;
             }
 
+            // "etapas": a fase em trechos com nome, em ordem. Recusadas inteiras se
+            // qualquer uma estiver errada: uma etapa a menos desloca todas as
+            // seguintes, e o ataque de Testes dispararia na hora da Manutencao.
+            if (corpoFase.contains("etapas")) {
+                const auto& lista = corpoFase["etapas"];
+                bool boas = lista.is_array() && !lista.empty();
+                float soma = 0.0f;
+                for (size_t k = 0; boas && k < lista.size(); ++k) {
+                    const auto& e = lista[k];
+                    if (!e.is_object() || !e.contains("nome") || !e["nome"].is_string()
+                        || !e.contains("duracao") || !e["duracao"].is_number()
+                        || (e.contains("anuncio") && !e["anuncio"].is_string())) { boas = false; break; }
+                    DescricaoDeEtapa etapa;
+                    etapa.nome = e["nome"].get<std::string>();
+                    etapa.duracao = e["duracao"].get<float>();
+                    etapa.anuncio = Texto(e, "anuncio");
+                    if (etapa.nome.empty() || etapa.duracao <= 0.0f) { boas = false; break; }
+                    for (const auto& outra : f.etapas) if (outra.nome == etapa.nome) boas = false;
+                    soma += etapa.duracao;
+                    f.etapas.push_back(std::move(etapa));
+                }
+                if (!boas) {
+                    saida.problemas.emplace_back(onde + "\"etapas\" precisa ser uma lista de objetos "
+                                                 "com \"nome\" (sem repetir) e \"duracao\" maior "
+                                                 "que zero");
+                    continue;
+                }
+                // A ULTIMA ETAPA TEM DE CABER NA FASE: a que passasse do fim
+                // nunca terminaria, e o ataque dela simplesmente pararia antes.
+                if (soma > f.duracao + 0.001f) {
+                    saida.problemas.emplace_back(onde + "as \"etapas\" somam mais que a \"duracao\" "
+                                                 "da fase");
+                    continue;
+                }
+            }
+
             if (corpoFase.contains("movimento")) {
                 f.movimento = LerMovimento(corpoFase["movimento"], onde, saida.problemas);
             }
@@ -665,6 +709,23 @@ FasesLidas LerFases(const std::string& textoJson) {
 
             if (f.ataques.empty()) {
                 // Uma fase sem ataque nenhum e um chefe parado por 17 segundos.
+                saida.problemas.emplace_back(onde + "nenhum ataque valido, a fase foi descartada");
+                continue;
+            }
+
+            // UM ATAQUE QUE PEDE UMA ETAPA QUE A FASE NAO TEM nunca dispararia.
+            // Descartado com aviso, como um ataque mal escrito.
+            for (auto it = f.ataques.begin(); it != f.ataques.end();) {
+                float de = 0.0f, ate = 0.0f;
+                if (!it->etapa.empty() && !JanelaDaEtapa(f.etapas, it->etapa, de, ate)) {
+                    saida.problemas.emplace_back(onde + "um ataque pede a etapa \"" + it->etapa +
+                                                 "\", que a fase nao tem");
+                    it = f.ataques.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+            if (f.ataques.empty()) {
                 saida.problemas.emplace_back(onde + "nenhum ataque valido, a fase foi descartada");
                 continue;
             }
@@ -760,4 +821,23 @@ std::vector<std::string> ValidarTransicoes(const std::vector<DescricaoDeFase>& f
     }
 
     return problemas;
+}
+
+bool JanelaDaEtapa(const std::vector<DescricaoDeEtapa>& etapas, const std::string& nome,
+                   float& de, float& ate) {
+    float t = 0.0f;
+    for (const auto& e : etapas) {
+        if (e.nome == nome) { de = t; ate = t + e.duracao; return true; }
+        t += e.duracao;
+    }
+    return false;
+}
+
+int EtapaNoTempo(const std::vector<DescricaoDeEtapa>& etapas, const float t) {
+    float fim = 0.0f;
+    for (size_t i = 0; i < etapas.size(); ++i) {
+        fim += etapas[i].duracao;
+        if (t < fim) return static_cast<int>(i);
+    }
+    return -1;
 }

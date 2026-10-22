@@ -3,6 +3,7 @@
 //
 
 #include "MovementStrategies.h"
+#include "Escada.h"
 #include "../Scenes/Battle/Battle.h"
 #include "../Actors/Player/Player.h"
 
@@ -262,4 +263,37 @@ void MergulhoStrategy::Update(Boss* boss, const float deltaTime) {
     else if (x < kMargemDaDeriva)     mDeriva = 1.0f;
 
     rb->SetVelocity(Vector2(kVelocidadeDaDeriva * mDeriva, mVelocidade * mDirecao));
+}
+
+EscadaStrategy::EscadaStrategy(const float segundosPorDegrau, const float degraus)
+    : mSegundosPorDegrau(segundosPorDegrau), mDegraus(static_cast<int>(degraus))
+{
+}
+
+void EscadaStrategy::Initialize(Boss* boss) {
+    (void)boss;
+    mTempo = 0.0f;
+}
+
+void EscadaStrategy::Update(Boss* boss, const float deltaTime) {
+    auto rb = boss->GetComponent<RigidBodyComponent>();
+    if (!rb) return;
+    mTempo += deltaTime;
+
+    Escada::Geometria g;
+    g.largura = static_cast<float>(boss->GetScene()->GetGame()->GetWindowWidth());
+    const Vector2 alvo = Escada::Degrau(Escada::DegrauNoTempo(mTempo, mSegundosPorDegrau, mDegraus),
+                                        mDegraus, g);
+
+    // VAI ATE O DEGRAU E PARA NELE. O ultimo passo e so o que falta, para nao
+    // tremer em volta do ponto.
+    const Vector2 falta = alvo - boss->GetPosition();
+    const float d = falta.Length();
+    const float passo = kVelocidadeEntreDegraus * deltaTime;
+    if (d <= passo || deltaTime <= 0.0f) {
+        boss->SetPosition(alvo);
+        rb->SetVelocity(Vector2::Zero);
+        return;
+    }
+    rb->SetVelocity(falta * (kVelocidadeEntreDegraus / d));
 }

@@ -156,3 +156,28 @@ private:
     static constexpr float kVelocidadeDaDeriva = 70.0f;
     static constexpr float kMargemDaDeriva = 170.0f;
 };
+
+/**
+ * @brief Desce a escada do modelo cascata: um degrau a cada 'segundosPorDegrau',
+ * da esquerda para a direita, e nao sobe mais.
+ *
+ * O GESTO DA CASCATA. Cada etapa do modelo e um degrau, e o chefe so anda para
+ * baixo - o que ja passou nao volta. A geometria (onde cada degrau fica) e pura
+ * e esta em Escada.h.
+ *
+ * @param segundosPorDegrau quanto tempo em cada degrau
+ * @param degraus           quantos degraus a escada tem
+ */
+class EscadaStrategy : public IMovementStrategy {
+public:
+    EscadaStrategy(float segundosPorDegrau = 3.4f, float degraus = 5.0f);
+    void Initialize(Boss* boss) override;
+    void Update(Boss* boss, float deltaTime) override;
+private:
+    float mSegundosPorDegrau;
+    int mDegraus;
+    float mTempo = 0.0f;
+    /// A velocidade com que ele vai de um degrau ao seguinte: depressa, para o
+    /// degrau ser um degrau e nao uma rampa.
+    static constexpr float kVelocidadeEntreDegraus = 420.0f;
+};

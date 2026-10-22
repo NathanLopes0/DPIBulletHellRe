@@ -198,6 +198,10 @@ struct DescricaoDeAtaque {
 
     /// Presente so nos ataques SerpenteAttack que escreveram o bloco.
     std::optional<DescricaoDeSerpente> serpente;
+
+    /// Em qual etapa da fase este ataque dispara. Vazio = a fase inteira. Fora
+    /// da etapa ele nao conta o cooldown nem dispara.
+    std::string etapa;
 };
 
 /// @brief O lado nomeado existe? (Down, Left, Right, Up - nunca None)
@@ -269,10 +273,36 @@ struct DescricaoDeIntercambio {
  * dois: 'ataques' e 'ataquesDe' juntos seriam duas respostas para "o que ele
  * dispara aqui".
  */
+/**
+ * @brief UMA ETAPA de uma fase: um trecho do tempo dela, com nome.
+ *
+ * Existe para a fase que e um PROCESSO em ordem - a cascata da Maria Lucia, em
+ * que Requisitos acaba antes de Projeto comecar. As etapas se seguem na ordem do
+ * arquivo, cada uma 'duracao' segundos; cada ataque diz em qual etapa dispara
+ * ("etapa" no ataque), e o placar mostra o 'anuncio' da etapa corrente.
+ */
+struct DescricaoDeEtapa {
+    std::string nome;
+    float duracao = 0.0f;
+    std::string anuncio;   ///< o texto do placar; vazio = o proprio nome
+};
+
+/// @brief O trecho [de, ate) da fase em que a etapa nomeada acontece, contado
+/// do comeco da fase. Devolve false se nao houver etapa com esse nome.
+bool JanelaDaEtapa(const std::vector<DescricaoDeEtapa>& etapas, const std::string& nome,
+                   float& de, float& ate);
+
+/// @brief A etapa que vale no instante 't' da fase: o indice, ou -1 depois da
+/// ultima (ou sem etapas). Antes de zero vale a primeira.
+int EtapaNoTempo(const std::vector<DescricaoDeEtapa>& etapas, float t);
+
 struct DescricaoDeFase {
     std::string nome;
     float duracao = 17.0f;
     std::string proximo;
+
+    /// As etapas da fase, em ordem. Vazio = a fase e um trecho so, como sempre.
+    std::vector<DescricaoDeEtapa> etapas;
 
     /// O que o PLACAR da batalha mostra enquanto esta fase dura - a linguagem
     /// de que cada rajada e uma palavra, no caso do Vladimir. Vazio = a fase nao

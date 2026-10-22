@@ -27,6 +27,15 @@ simbolos que diferem so na cor sao pintura):
 A diferenca com as Travas do Vitor e o motivo de existirem as duas: a trava e
 uma parede que se contorna AGORA e reinicia a cada rajada; o debito nao esta no
 seu caminho agora, esta no seu caminho DEPOIS, e nao reinicia.
+
+AS LINHAS SEGUINTES SAO OS PROCESSOS E A IHC (do 119 em diante):
+
+    Codigo      o cartao de terminal da Implementacao, com as linhas acendendo.
+    Bug         o inseto dos Testes - as perninhas andam de um quadro ao outro.
+    Cursor      a seta do mouse, e o clique: e a IHC, a materia que ela tambem da.
+    Observador  o post-it com um olho, do padrao Observer: abre e pisca.
+    Historia    o cartao azul de uma historia de usuario, nas sprints.
+    Dialogo     uma janelinha com barra de titulo e o X, o modal da IHC.
 """
 from PIL import Image, ImageDraw
 import json, os
@@ -47,6 +56,13 @@ COR_REQUISITO = (238, 212, 114, 255)   # amarelo de post-it: pedido novo
 COR_DOBRA     = (206, 176,  84, 255)   # a quina dobrada do post-it
 COR_DEBITO    = (150,  86,  70, 255)   # ferrugem: codigo apodrecendo
 COR_RACHA     = ( 74,  40,  34, 255)
+COR_TERMINAL  = ( 28,  36,  44, 255)   # o fundo do terminal
+COR_VERDE     = (110, 220, 130, 255)   # o texto do terminal
+COR_BUG       = (150, 200,  70, 255)   # o inseto
+COR_HISTORIA  = (130, 190, 240, 255)   # o cartao de historia
+COR_JANELA    = (220, 226, 236, 255)
+COR_TITULO    = ( 70, 110, 190, 255)
+COR_FECHAR    = (210,  70,  70, 255)
 
 
 def quadro_json(nome, w, h, quadros=1, lado=None):
@@ -126,18 +142,101 @@ def debito():
     return im
 
 
+def codigo(fase):
+    """O CODIGO: um cartao de terminal, as linhas acendendo uma por quadro."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([4, 5, 27, 26], fill=COR_TERMINAL, outline=TRACO, width=2)
+    for i, (y, w) in enumerate(((10, 14), (14, 10), (18, 16), (22, 8))):
+        cor = COR_VERDE if i <= fase else (60, 110, 70, 255)
+        d.line([8, y, 8 + w, y], fill=cor, width=2)
+    return im
+
+
+def bug(fase):
+    """O BUG: um besouro visto de cima, com as perninhas alternando."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    a = 2 if fase % 2 == 0 else -2
+    for y in (12, 17, 22):
+        d.line([9, y, 4, y + a], fill=TRACO, width=2)
+        d.line([22, y, 27, y - a], fill=TRACO, width=2)
+    d.line([13, 8, 10, 3], fill=TRACO, width=1)       # antenas
+    d.line([18, 8, 21, 3], fill=TRACO, width=1)
+    d.ellipse([9, 7, 22, 27], fill=COR_BUG, outline=TRACO, width=2)
+    d.line([15, 11, 15, 26], fill=TRACO, width=1)     # a divisao das asas
+    return im
+
+
+def cursor(fase):
+    """O CURSOR: a seta do mouse. Nos quadros 2 e 3, o clique."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    if fase >= 2:
+        r = 4 + (fase - 2) * 3
+        d.ellipse([6 - r, 6 - r, 6 + r, 6 + r], outline=(255, 255, 255, 200), width=1)
+    d.polygon([(6, 4), (6, 24), (11, 19), (15, 27), (18, 26), (14, 18), (21, 18)],
+              fill=(250, 250, 250, 255), outline=TRACO)
+    return im
+
+
+def observador(fase):
+    """O OBSERVADOR: o post-it com um olho, que abre, olha e pisca."""
+    im = requisito().copy()
+    d = ImageDraw.Draw(im)
+    d.rectangle([6, 8, 24, 18], fill=COR_REQUISITO)   # apaga o texto
+    if fase == 3:
+        d.line([9, 13, 21, 13], fill=TRACO, width=2)  # piscou
+    else:
+        d.ellipse([8, 8, 22, 18], fill=(255, 255, 255, 255), outline=TRACO)
+        dx = (-2, 0, 2)[fase]
+        d.ellipse([13 + dx, 10, 17 + dx, 16], fill=TRACO)
+    return im
+
+
+def historia(fase):
+    """A HISTORIA: um cartao azul de historia de usuario, com o titulo."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    m = fase % 2
+    d.rectangle([4, 5 + m, 27, 26 - m], fill=COR_HISTORIA, outline=TRACO, width=2)
+    d.line([8, 11, 23, 11], fill=TRACO, width=2)
+    d.line([8, 16, 20, 16], fill=TRACO, width=1)
+    d.line([8, 20, 17, 20], fill=TRACO, width=1)
+    return im
+
+
+def dialogo(fase):
+    """O DIALOGO: uma janelinha com a barra de titulo e o X de fechar."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([2, 4, 29, 27], fill=COR_JANELA, outline=TRACO, width=2)
+    d.rectangle([3, 5, 28, 10], fill=COR_TITULO)
+    d.rectangle([23, 5, 28, 10], fill=COR_FECHAR)
+    d.line([24, 6, 27, 9], fill=(255, 255, 255, 255))
+    d.line([27, 6, 24, 9], fill=(255, 255, 255, 255))
+    # O botao "OK", que pulsa: e o que o dialogo quer que voce clique.
+    cor = COR_TITULO if fase % 2 == 0 else (110, 150, 220, 255)
+    d.rectangle([11, 19, 20, 24], fill=cor, outline=TRACO)
+    d.line([7, 14, 24, 14], fill=RISCO, width=1)
+    return im
+
+
 def folha():
-    """Quatro quadros de cada, em 4x2 - o mesmo arranjo dos outros chefes.
+    """Quatro quadros de cada, uma coisa por linha, em 4x8.
 
     QUATRO, e nao um, porque o leitor de animacao recebe uma LISTA de quadros
     por animacao. Com um quadro so a animacao existe e nao anima; com quatro da
     para pulsar depois sem mexer em arquivo nenhum.
+
+    As duas primeiras linhas sao as de sempre, e ficam nos mesmos quadros.
     """
-    f = Image.new("RGBA", (128, 64), (0, 0, 0, 0))
-    for i in range(4):
-        f.alpha_composite(requisito(), (i * 32, 0))
-    for i in range(4):
-        f.alpha_composite(debito(), (i * 32, 32))
+    linhas = (lambda i: requisito(), lambda i: debito(), codigo, bug, cursor,
+              observador, historia, dialogo)
+    f = Image.new("RGBA", (128, 32 * len(linhas)), (0, 0, 0, 0))
+    for linha, desenho in enumerate(linhas):
+        for i in range(4):
+            f.alpha_composite(desenho(i), (i * 32, linha * 32))
     return f
 
 
@@ -152,4 +251,4 @@ def grava(im, nome, pasta, quadros=1, lado=None):
 
 if __name__ == "__main__":
     grava(maria_lucia(), "DPIBHMariaLucia", "Assets/Teachers")
-    grava(folha(), "DPIBHMariaLuciaRequisito", "Assets/Teachers/Projectiles", quadros=8, lado=32)
+    grava(folha(), "DPIBHMariaLuciaRequisito", "Assets/Teachers/Projectiles", quadros=32, lado=32)

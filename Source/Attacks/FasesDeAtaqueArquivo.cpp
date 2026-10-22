@@ -110,6 +110,7 @@ namespace {
      *   Orbitar          a = raio (px),                  b = voltas por segundo
      *   Varredura        a = velocidade (px/s),          b = margem das bordas (px)
      *   Mergulho         a = velocidade (px/s),          b = profundidade (px)
+     *   Escada           a = segundos por degrau,         b = quantos degraus
      */
     std::unique_ptr<IMovementStrategy> CriarMovimento(const DescricaoDeMovimento& m) {
         if (m.tipo == "RandomWander")     return std::make_unique<RandomWanderStrategy>(m.a, m.b);
@@ -117,6 +118,7 @@ namespace {
         if (m.tipo == "Orbitar")          return std::make_unique<OrbitarStrategy>(m.a, m.b);
         if (m.tipo == "Varredura")        return std::make_unique<VarreduraStrategy>(m.a, m.b);
         if (m.tipo == "Mergulho")         return std::make_unique<MergulhoStrategy>(m.a, m.b);
+        if (m.tipo == "Escada")           return std::make_unique<EscadaStrategy>(m.a, m.b);
         return std::make_unique<GoToCenterStrategy>();
     }
 
@@ -292,8 +294,18 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
                 configurator = ConfiguratorDeArquivo(nomeDoConjunto, a.regrasNome);
             }
 
+            // A JANELA DA ETAPA, se o ataque pediu uma. LerFases ja recusou a
+            // etapa que a fase nao tem; um ataque emprestado ("ataquesDe") que
+            // pedisse a etapa de outra fase cai aqui na fase inteira.
+            float janelaDe = 0.0f, janelaAte = 1.0e9f;
+            if (!a.etapa.empty() && !JanelaDaEtapa(fase.etapas, a.etapa, janelaDe, janelaAte)) {
+                SDL_Log("FASES: a fase \"%s\" usa um ataque da etapa \"%s\", que ela nao tem. "
+                        "O ataque dispara na fase inteira.", fase.nome.c_str(), a.etapa.c_str());
+                janelaDe = 0.0f; janelaAte = 1.0e9f;
+            }
+
             boss->AddAttackPattern(fase.nome, std::move(estrategia), CriarParams(a),
-                                   a.cooldown, configurator);
+                                   a.cooldown, configurator, janelaDe, janelaAte);
         }
 
         auto estado = std::make_unique<BossAttackState>(fsm, fase.nome, fase.duracao, fase.proximo);
@@ -313,6 +325,17 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
         // que fase ele esta - ver Battle::AtualizarPlacar.
         if (!fase.anuncio.empty()) {
             boss->RegistrarAnuncio(fase.nome, fase.anuncio);
+        }
+
+        // E AS ETAPAS: onde cada uma acaba, e o que o placar diz durante ela.
+        if (!fase.etapas.empty()) {
+            std::vector<std::pair<float, std::string>> fimETexto;
+            float fim = 0.0f;
+            for (const auto& e : fase.etapas) {
+                fim += e.duracao;
+                fimETexto.emplace_back(fim, e.anuncio.empty() ? e.nome : e.anuncio);
+            }
+            boss->RegistrarEtapas(fase.nome, std::move(fimETexto));
         }
 
         // E O INTERCAMBIO, pelo mesmo caminho: quem move os alunos e a batalha.

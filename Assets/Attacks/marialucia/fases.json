@@ -2,12 +2,15 @@
   // ==========================================================================
   // AS FASES DA MARIA LUCIA (INF 221 - Engenharia de Software)
   //
-  // AS QUATRO FASES SAO O CICLO DE VIDA DE UM SISTEMA, um momento por fase:
+  // CADA FASE E UM PROCESSO DE SOFTWARE:
   //
-  //   StateOne    REQUISITOS   o escopo chegando, e chegando por cima
+  //   StateOne    CASCATA      cinco etapas em ordem, e ela descendo a escada
   //   StateTwo    PROJETO      o diagrama, e o angulo reto que o desenha
   //   StateThree  DIVIDA       o campo vai ficando menor enquanto a fase corre
   //   StateFinal  MANUTENCAO   tudo junto, porque manter e lidar com tudo junto
+  //
+  // (A fase 2 vira os metodos ageis, e a 3 o padrao Observer, nos commits que
+  // seguem o 119; ate la ficam as de antes.)
   //
   // O QUE DISTINGUE ESTA CHEFE DAS OUTRAS.
   //
@@ -45,58 +48,56 @@
   // entre si.
   // ==========================================================================
 
-  // FASE 1 - REQUISITOS   |   gesto: O MERGULHO
+  // FASE 1 - O MODELO CASCATA   |   gesto: A ESCADA
   //
-  // O ESCOPO NAO CHEGA DE LADO, CHEGA POR CIMA. Ela desce com cada leva de
-  // pedidos e sobe para buscar a proxima, entao o leque larga de perto e o
-  // jogador nao tem os dois segundos de viagem que teria com a chefe la em
-  // cima. A primeira versao usava Varredura aqui e a fase ficou morna: com a
-  // chefe atravessando a tela devagar, dava para passar andando pouco.
+  // A FASE E UM PROCESSO EM CASCATA, e nao um ataque. Ela tem as cinco etapas
+  // do modelo ("etapas", 3,4 s cada), e o placar diz em qual se esta. Cada
+  // ataque pertence a UMA etapa e so dispara nela: uma etapa so comeca quando
+  // a anterior acaba, e o que acabou nao volta.
   //
-  // ATENCAO: "projeteis" E "angulo" AQUI SAO O ESCOPO DE PARTIDA, E NAO O
-  // TAMANHO DA RAJADA. Cada rajada sai maior que a anterior ate a entrega, e aí
-  // o ciclo recomeca deste tamanho. Medido, com a instrumentacao ligada:
+  //   1 Requisitos     os post-its chegando, num leque largo
+  //   2 Projeto        as setas do diagrama, que viram em angulo reto
+  //   3 Implementacao  o codigo, denso e rapido
+  //   4 Testes         os bugs, que andam tortos - e o tiro do aluno os acha
+  //   5 Manutencao     a divida, que para e fica para a fase seguinte
   //
-  //     6 projeteis em 45 graus
-  //     8  em  55
-  //     10 em  65
-  //     12 em  75
-  //     6  em  45   <- a versao saiu, o escopo recomeca
-  //
-  // Quatro voltas completas cabem nos dezessete segundos, que e o que faz o
-  // jogador ler como CICLO em vez de como aleatorio.
-  //
-  // Quem faz isso e MariaLucia::CustomizeAttackParams, e e a unica coisa desta
-  // chefe que nao cabe em dados: "quanto maior que a rajada anterior" depende
-  // da anterior, e este arquivo nao tem memoria. A conta mora em
-  // Source/Attacks/EscopoQueCresce.h, que e pura e tem teste.
-  //
-  // O LEQUE CRESCE JUNTO COM A CONTAGEM, e isso nao e enfeite: com o leque
-  // parado, dobrar os projeteis so os aproxima ate a rajada virar uma BARRA
-  // SOLIDA - foi o que aconteceu com as tarefas do Vitor a 0,05s de intervalo.
-  // Crescendo os dois, o que cresce e a AREA ocupada, que e a leitura certa de
-  // escopo crescendo: nao e mais denso no mesmo lugar, e mais lugar ocupado.
-  //
-  // E o oposto da fase 1 do Vitor, que usa a mesma estrategia: la o leque e
-  // zero e a fila e longa, e o que se ve sao colunas paralelas; aqui o leque e
-  // aberto e o que se ve e um pedido se ESPALHANDO.
-  //
-  // SEM NENHUM MOTION nos projeteis (regras "escopo"): esta fase nao e sobre a
-  // trajetoria de um requisito, e sobre quantos chegam. Qualquer curva aqui
-  // roubaria atencao do unico numero que importa.
-  //
-  // COOLDOWN 1,0 E NAO 1,4. Com 1,4 esta fase custava UM acerto em dezessete
-  // segundos ao piloto que persegue. Uma fase que nao cobra nada nao ensina
-  // nada: o jogador sai dela sem ter descoberto o que ela queria dizer.
+  // O MOVIMENTO E O DIAGRAMA: ela desce uma escada, um degrau por etapa, da
+  // esquerda para a direita - a forma em que o modelo cascata e desenhado. Os
+  // 3,4 s por degrau e os 5 degraus do "movimento" sao os das etapas, e o
+  // canario de tests/test_arquivos_de_dados.cpp segura os dois juntos.
   "StateOne": {
     "duracao": 17,
     "proximo": "StateTwo",
-    "movimento": { "tipo": "Mergulho", "a": 150, "b": 220 },
+    "anuncio": "Cascata",
+    "etapas": [
+      { "nome": "Requisitos",    "duracao": 3.4, "anuncio": "1 · Requisitos" },
+      { "nome": "Projeto",       "duracao": 3.4, "anuncio": "2 · Projeto" },
+      { "nome": "Implementacao", "duracao": 3.4, "anuncio": "3 · Implementação" },
+      { "nome": "Testes",        "duracao": 3.4, "anuncio": "4 · Testes" },
+      { "nome": "Manutencao",    "duracao": 3.4, "anuncio": "5 · Manutenção" }
+    ],
+    "movimento": { "tipo": "Escada", "a": 3.4, "b": 5 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Requisito",
-        "projeteis": 6, "velocidade": 270, "angulo": 45, "intervalo": 0.07,
+      { "etapa": "Requisitos", "estrategia": "WaveAttack", "projetil": "Requisito",
+        "projeteis": 9, "velocidade": 260, "angulo": 80, "intervalo": 0.03,
+        "cooldown": 0.7,
+        "regras": "escopo" },
+      { "etapa": "Projeto", "estrategia": "WaveAttack", "projetil": "Requisito",
+        "projeteis": 8, "velocidade": 250, "angulo": 0, "intervalo": 0.05,
         "cooldown": 1.0,
-        "regras": "escopo" }
+        "regras": "diagrama" },
+      { "etapa": "Implementacao", "estrategia": "WaveAttack", "projetil": "Requisito",
+        "projeteis": 6, "velocidade": 320, "angulo": 40, "intervalo": 0,
+        "cooldown": 0.5,
+        "regras": "codigo" },
+      { "etapa": "Testes", "estrategia": "WaveAttack", "projetil": "Bug",
+        "projeteis": 5, "velocidade": 150, "angulo": 110, "intervalo": 0,
+        "cooldown": 0.9,
+        "regras": "bugs" },
+      { "etapa": "Manutencao", "estrategia": "WaveAttack", "projetil": "Debito",
+        "projeteis": 4, "velocidade": 320, "angulo": 36, "intervalo": 0,
+        "cooldown": 1.3,
+        "regras": "divida" }
     ]
   },
 

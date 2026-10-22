@@ -31,7 +31,8 @@
     "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
     "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
     "animacoes": {
-      "Novo": [0, 1, 2, 3]
+      "Novo":   [0, 1, 2, 3],
+      "Codigo": [8, 9, 10, 11]
     },
     "animacaoInicial": "Novo",
     "ordemDeDesenho": 90
@@ -50,5 +51,21 @@
     // obstaculo parado que o jogador mal enxerga nao e obstaculo, e armadilha.
     // O colisor acompanha a escala.
     "escala": 1.2
+  },
+
+  // O BUG DOS TESTES E UM TIPO A PARTE porque tem uma propriedade de TIPO: o
+  // tiro do aluno o derruba. Testar e achar bug - mas o tiro que acha um bug se
+  // gasta nele e nao chega na professora.
+  "Bug": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
+    "animacoes": {
+      "Andando": [12, 13, 14, 15]
+    },
+    "animacaoInicial": "Andando",
+    "ordemDeDesenho": 91,
+    // Sem escala, as perninhas de 2 px somem e o bug vira um ponto verde.
+    "escala": 1.4,
+    "derrubavel": true
   }
 }
