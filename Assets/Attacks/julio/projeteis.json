@@ -47,5 +47,35 @@
     "animacaoInicial": "o",
     "escala": 1.3,
     "ordemDeDesenho": 90
+  },
+
+  // O AGENTE DA FASE 2: o robo que o professor convoca, e que age por ele no
+  // ciclo do placar. E derrubavel e aguenta QUATRO tiros: tem de ser vencido,
+  // e quem gasta os tiros nele nao os gasta no professor.
+  "Agente": {
+    "sprite": "Teachers/Projectiles/DPIBHJulioToken.png",
+    "dados":  "Teachers/Projectiles/DPIBHJulioToken.json",
+    "animacoes": {
+      "Varrendo": [8, 9, 10, 11]
+    },
+    "animacaoInicial": "Varrendo",
+    "escala": 1.5,
+    "ordemDeDesenho": 89,
+    "derrubavel": true,
+    "resistencia": 4
+  },
+
+  // A FERRAMENTA: a engrenagem que cada agente manda no Age - a chamada de
+  // ferramenta de um agente de IA.
+  "Ferramenta": {
+    "sprite": "Teachers/Projectiles/DPIBHJulioToken.png",
+    "dados":  "Teachers/Projectiles/DPIBHJulioToken.json",
+    "animacoes": {
+      "Girando": [12, 13, 14, 15]
+    },
+    "animacaoInicial": "Girando",
+    "escala": 1.1,
+    "ordemDeDesenho": 91,
+    "colisorDivisor": 2.6
   }
 }

@@ -35,16 +35,18 @@
 //
 // O PROFESSOR DE IA, E A AREA DELE SAO OS MODELOS DE LINGUAGEM. A batalha vai
 // virando um LLM, uma fase por commit: a fase 1 ja e a geracao de tokens com
-// temperatura; as outras ainda sao a historia de antes - o modelo aprende onde
-// voce esta, aprende como voce se move, e na repescagem entra em loop.
+// temperatura, a fase 2 os agentes que ele convoca; as outras ainda sao a
+// historia de antes - o modelo aprende como voce se move, e na repescagem
+// entra em loop.
 //
 // Julio SOBRESCREVE anguloCentral nas QUATRO fases (Julio.cpp), e cada uma de
 // um jeito diferente:
 //   StateOne    mira exata no aluno - quem desvia e a temperatura dos tokens
-//   StateTwo    mira exata na posicao ATUAL
+//   StateTwo    nao mexe: os agentes saem no leque daqui, e cada um mira por si
 //   StateThree  mira em onde o jogador ESTARA (GetPredictedPlayerDirection)
 //   StateFinal  volta a atirar para baixo, 90 graus fixos
-// Por isso nenhuma fase escreve anguloCentral aqui: nao teria efeito.
+// Por isso as fases 1, 3 e final nao escrevem anguloCentral aqui: nao teria
+// efeito.
 //
 // A animacao dos DADOS tambem e decidida por fase em Julio::OnProjectilesCreated,
 // que roda DEPOIS do configurator - "Coleta", "Perseguicao" e "Previsao". Uma
@@ -104,25 +106,40 @@
     ]
   },
 
-  // FASE 2 - "Aprendeu onde voce esta"
+  // FASE 2 - OS AGENTES   |   o ciclo ReAct
   //
-  // Mira exata na posicao atual, e os projeteis curvam durante o voo com forca
-  // que decai (regras "fase2": pares corrigem mais que impares).
+  // O PROFESSOR CONVOCA ROBOS QUE AGEM POR ELE. A cada 6 s ele solta tres
+  // agentes (regra "convocar"), que param a 260px dele - um embaixo, dois dos
+  // lados - e ficam 10 s. Cada um aguenta QUATRO tiros ("resistencia"): tem de
+  // ser vencido, e o tiro gasto nele nao vai para o professor.
   //
-  // Leitura de jogo: fugir cedo nao adianta, porque o projetil corrige; e
-  // preciso esperar a forca decair e desviar no fim. Ensina timing.
+  // OS AGENTES TRABALHAM NO CICLO DE UM AGENTE DE LLM, o ReAct (ReAct.h,
+  // Julio::AtualizarAgentes): PENSAM por 1 s, AGEM por 0,5 s e OBSERVAM por
+  // 0,6 s, e o placar diz o passo. No Age todos mandam a ferramenta - a
+  // engrenagem - ao mesmo tempo, mirada no aluno ("gatilho": "agir").
   //
-  // Movimento: o chefe DESCE na direcao do jogador, 135 px/s, parando 170 px
-  // acima dele.
+  // A MIRA E ONDE O ALUNO ESTA, e nao onde ele vai estar. Prevendo, os agentes
+  // erravam quem desvia: um piloto que ziguezagueia levou 0, 0 e 1 acerto na
+  // fase (virando a cada 0,6, 1,0 e 1,5 s), contra 3, 5 e 3 mirando no aluno
+  // de agora.
+  //
+  // MEDIDO NA FASE, todo acerto e de ferramenta: o piloto que persegue leva 5,
+  // vence os 3 agentes que param embaixo do professor - na coluna do tiro
+  // dele - e sai com 70,6; o parado leva 8; o que vai e vem passa por baixo
+  // dos agentes, vence 5 e nao leva nenhum.
   "StateTwo": {
     "duracao": 17,
     "proximo": "StateThree",
-    "movimento": { "tipo": "HoverAbovePlayer", "a": 135, "b": 170 },
+    "anuncio": "Agentes",
+    "movimento": { "tipo": "RandomWander", "a": 3.5, "b": 115 },
     "ataques": [
-      { "estrategia": "CircleSpreadAttack", "projetil": "Dados",
-        "projeteis": 16, "velocidade": 205,
-        "cooldown": 1.3,
-        "regras": "fase2" }
+      { "estrategia": "WaveAttack", "projetil": "Agente",
+        "projeteis": 3, "velocidade": 260, "angulo": 120, "intervalo": 0,
+        "cooldown": 6.0,
+        "regras": "convocar" },
+      { "gatilho": "agir", "estrategia": "PontosAttack", "projetil": "Ferramenta",
+        "projeteis": 1, "velocidade": 250,
+        "pontos": { "posto": "agentes", "mirar": true } }
     ]
   },
 

@@ -217,5 +217,12 @@
   // campo, e perto o bastante para os olhos se lerem como dela.
   "Inscrito": {
     "pontos": [[230, 0], [1400, 0]]
+  },
+
+  // O AGENTE CONVOCADO (Julio, fase 2): sai do professor, para a 260px dele e
+  // fica la agindo ate "pararPor" acabar - e ai segue em frente, para fora da
+  // tela. Num leque de 120 graus, um para embaixo dele e dois dos lados.
+  "Convocado": {
+    "pontos": [[260, 0], [1400, 0]]
   }
 }

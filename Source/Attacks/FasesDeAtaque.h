@@ -258,7 +258,8 @@ bool EixoDeConsultaExiste(const std::string& nome);
 /// @brief O gatilho nomeado existe? Um ataque com "gatilho" nao dispara pelo
 /// relogio: dispara quando o chefe puxa o gatilho (Boss::Disparar). So existe
 /// o gatilho que algum chefe puxa: "notificacao" e "consulta" sao o sujeito
-/// do padrao Observer da Maria Lucia (Observer.h).
+/// do padrao Observer da Maria Lucia (Observer.h), e "agir" e o ciclo dos
+/// agentes do Julio (ReAct.h).
 bool GatilhoExiste(const std::string& nome);
 
 /**

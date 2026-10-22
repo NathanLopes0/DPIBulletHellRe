@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include <string>
+
 #include "../Boss.h"
+#include "../../../Attacks/ReAct.h"
 
 /**
  * @class Julio
@@ -12,9 +15,11 @@
  *
  * Tema: um MODELO DE LINGUAGEM, a área do professor. A fase 1 é a geração de
  * tokens com temperatura (TokenAttack, Temperatura.h): o professor solta
- * frases, token por token, sorteadas em volta da mira. As outras fases ainda
- * são a história de antes — o modelo aprende onde você está, como você se move,
- * e na repescagem entra em loop.
+ * frases, token por token, sorteadas em volta da mira. A fase 2 são os
+ * AGENTES: robôs que ele convoca e que agem por ele no ciclo ReAct (ReAct.h) —
+ * o relógio do ciclo e o placar moram aqui. A fase 3 e a final ainda são a
+ * história de antes — o modelo aprende como você se move, e na repescagem
+ * entra em loop.
  *
  * Toda a customização passa pelos dois ganchos do Boss; ExecuteAttack não é
  * sobrescrito.
@@ -25,6 +30,9 @@ public:
     ~Julio() override = default;
 
     void OnUpdate(float deltaTime) override;
+
+    /// A fase dos agentes.
+    static constexpr const char* kFaseDosAgentes = "StateTwo";
 
 protected:
     /**
@@ -45,4 +53,19 @@ protected:
      */
     void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
                               const std::string& stateName) override;
+
+private:
+    /// O ciclo dos agentes num quadro: o relogio, o gatilho do Age e o placar.
+    void AtualizarAgentes(float deltaTime);
+
+    ReAct::Ciclo mCiclo;
+    bool mNosAgentes = false;
+
+    /// O anuncio da fase 2 em fases.json, guardado na primeira vez: volta ao
+    /// placar quando a fase acaba.
+    std::string mNomeDosAgentes;
+
+    static constexpr const char* kPensando = "agente: pensando...";
+    static constexpr const char* kAgindo = "agente: usar_ferramenta()";
+    static constexpr const char* kObservando = "agente: observando";
 };

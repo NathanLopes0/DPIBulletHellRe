@@ -180,8 +180,9 @@ bool EhModifier(const std::string& tipo);
 /// @brief O posto nomeado existe? Um posto e um lugar de onde uma PontosAttack
 /// atira, e so existe se alguem no motor o ocupa: "quadro" sao as historias
 /// paradas no quadro da sprint (Sprint::kPostoDoQuadro), e "observadores" os
-/// olhos do padrao Observer (Observer::kPostoDosObservadores), que uma regra
-/// poe no posto ao nascer.
+/// olhos do padrao Observer (Observer::kPostoDosObservadores) e "agentes" os
+/// robos do Julio (ReAct::kPostoDosAgentes), que uma regra poe no posto ao
+/// nascer.
 bool PostoExiste(const std::string& nome);
 
 /**

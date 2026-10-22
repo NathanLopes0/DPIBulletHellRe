@@ -20,13 +20,14 @@
   // JULIO - INF 420
   // --------------------------------------------------------------------------
 
-  // Fase 2: forca diferente entre par e impar. O jogador ve dois comportamentos
-  // no mesmo anel e aprende a distinguir qual bala corrige mais.
-  "fase2": [
-    { "quando": "pares",
-      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 3.2, "duracao": 2.4 } },
-    { "quando": "impares",
-      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 2.4 } }
+  // Fase 2: o agente convocado nasce ja no posto dos agentes - de onde as
+  // ferramentas saem no Age -, voa 260px e para ali por 10 s. O mesmo "atraso"
+  // simbolico dos olhos da Maria Lucia: o Path tem de pegar num projetil ja
+  // acordado, e a leva nasce inteira ("intervalo" 0).
+  "convocar": [
+    { "posto": "agentes",
+      "motion": { "tipo": "Path", "forma": "Convocado", "atraso": 0.08,
+                  "velocidade": 260, "pararNoPonto": 0, "pararPor": 10.0 } }
   ],
 
   // Fase 3, primeiro ataque: voa reto 0.8s (o jogador VE que o tiro foi

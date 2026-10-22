@@ -8,6 +8,7 @@
 
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "BossesProjectiles/BossProjectile.h"
+#include "../../../Components/AIComponents/FSMComponent.h"
 
 Julio::Julio(Scene* scene) : Boss(scene)
 {
@@ -15,6 +16,35 @@ Julio::Julio(Scene* scene) : Boss(scene)
 
 void Julio::OnUpdate(const float deltaTime) {
     Boss::OnUpdate(deltaTime);
+    AtualizarAgentes(deltaTime);
+}
+
+void Julio::AtualizarAgentes(const float deltaTime) {
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool nosAgentes = fsm && fsm->GetStateName() == kFaseDosAgentes && !EhClone();
+
+    if (!nosAgentes) {
+        // A FASE ACABOU: o placar volta ao nome dela, para a proxima vez.
+        if (mNosAgentes && !mNomeDosAgentes.empty()) RegistrarAnuncio(kFaseDosAgentes, mNomeDosAgentes);
+        mNosAgentes = false;
+        return;
+    }
+    if (!mNosAgentes) {
+        mNosAgentes = true;
+        mCiclo.t = 0.0f;
+        if (mNomeDosAgentes.empty()) mNomeDosAgentes = AnuncioDaFase(kFaseDosAgentes);
+    }
+
+    // O AGE: todos os agentes em campo mandam a ferramenta ao mesmo tempo.
+    if (ReAct::Avancar(mCiclo, deltaTime)) Disparar(ReAct::kGatilhoDeAgir);
+
+    const char* texto = kPensando;
+    switch (ReAct::PassoDe(mCiclo)) {
+        case ReAct::Passo::Pensa:   texto = kPensando; break;
+        case ReAct::Passo::Age:     texto = kAgindo; break;
+        case ReAct::Passo::Observa: texto = kObservando; break;
+    }
+    if (AnuncioDaFase(kFaseDosAgentes) != texto) RegistrarAnuncio(kFaseDosAgentes, texto);
 }
 
 // Fracao do tempo de voo usada como antecipacao na fase 3.
@@ -44,11 +74,8 @@ void Julio::CustomizeAttackParams(AttackParams& params, const std::string& state
         // mira (TokenAttack, Temperatura.h) - e nao um ruido daqui.
         params.centralAngle = anguloDe(GetDirectionToPlayer());
     }
-    else if (stateName == "StateTwo") {
-        // APRENDEU ONDE VOCE ESTA. Mira exata na posicao ATUAL. O desafio vem
-        // da curva que os projeteis fazem depois (TrackingBehavior).
-        params.centralAngle = anguloDe(GetDirectionToPlayer());
-    }
+    // A FASE 2 NAO MEXE NA MIRA: os agentes saem no leque escrito em fases.json,
+    // e quem mira e cada agente, da PontosAttack.
     else if (stateName == "StateThree") {
         // APRENDEU COMO VOCE SE MOVE. Mira em onde o jogador ESTARA, nao onde
         // ele esta.

@@ -46,6 +46,7 @@
 #include "../Source/Attacks/ProjeteisDeChefe.h"
 #include "../Source/Attacks/Sprint.h"
 #include "../Source/Attacks/Observer.h"
+#include "../Source/Attacks/ReAct.h"
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
 #include "../Source/Navegacao.h"
@@ -1481,7 +1482,7 @@ TEST_CASE("Dados: o olho do Observer tem as caras que a professora poe nele") {
     }
 }
 
-TEST_CASE("Dados: toda fase com ataque de notificacao tem o de consulta, e os dois saem dos olhos") {
+TEST_CASE("Dados: toda fase com ataque de notificacao tem o de consulta, e cada gatilho sai do posto de quem o puxa") {
 
     // O OBSERVER E O POLLING SAO A MESMA FASE: quem nao muda de estado tambem
     // leva aviso, so que mais devagar. Uma fase so com notificacao deixaria o
@@ -1493,11 +1494,18 @@ TEST_CASE("Dados: toda fase com ataque de notificacao tem o de consulta, e os do
             for (const auto& a : f.ataques) {
                 if (a.gatilho == Observer::kGatilhoDaNotificacao) notifica = true;
                 if (a.gatilho == Observer::kGatilhoDaConsulta) consulta = true;
+                // OS AVISOS SAEM DOS OLHOS, E AS FERRAMENTAS DOS AGENTES: quem
+                // puxa cada gatilho e quem ocupa o posto dele. Um aviso do posto
+                // errado sairia de ninguem, calado.
                 if (!a.gatilho.empty() && a.estrategia == "PontosAttack") {
                     CAPTURE(chefe);
                     CAPTURE(f.nome);
+                    CAPTURE(a.gatilho);
                     REQUIRE(a.pontos.has_value());
-                    CHECK(a.pontos->posto == Observer::kPostoDosObservadores);
+                    const std::string esperado = (a.gatilho == ReAct::kGatilhoDeAgir)
+                                                     ? ReAct::kPostoDosAgentes
+                                                     : Observer::kPostoDosObservadores;
+                    CHECK(a.pontos->posto == esperado);
                 }
             }
             CAPTURE(chefe);
@@ -1535,4 +1543,9 @@ TEST_CASE("Dados: toda palavra da frase de uma TokenAttack e uma animacao do tok
         }
     }
     CHECK(achou);
+}
+
+TEST_CASE("Dados: o gatilho e o posto dos agentes do Julio sao nomes que a leitura aceita") {
+    CHECK(GatilhoExiste(ReAct::kGatilhoDeAgir));
+    CHECK(PostoExiste(ReAct::kPostoDosAgentes));
 }
