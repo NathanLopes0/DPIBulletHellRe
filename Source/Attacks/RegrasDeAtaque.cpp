@@ -16,7 +16,7 @@ namespace {
                                                  "Reescrever", "Promessa"};
 
     const std::vector<std::string> kPostos = {"quadro", "observadores", "agentes", "nuvens",
-                                              "palavra", "portas", "registradores"};
+                                              "palavra", "portas", "registradores", "estagios", "pipeline"};
 
     bool Contem(const std::vector<std::string>& lista, const std::string& v) {
         for (const auto& x : lista) if (x == v) return true;

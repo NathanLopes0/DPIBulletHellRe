@@ -38,13 +38,18 @@
     { "posto": "registradores" }
   ],
 
-  // Fase 3: METADE do anel vira para o jogador e a outra metade segue reta. O
-  // jogador consegue ler quais balas vao atras dele, e e isso que torna um anel
-  // de 18 atravessavel.
-  "fase3": [
-    { "quando": "pares",
-      "motion": { "tipo": "Path", "forma": "Reta", "velocidade": 200,
-                  "atraso": 1.0, "mira": "MirarNoJogador" } }
+  // FASE 3: as molduras dos estagios e os chips das instrucoes nascem nos
+  // postos em que o Ricardo os procura - "estagios" e "pipeline". O que sai
+  // de uma instrucao no estagio dela (a soma, o store) e um bit aceso: o tipo
+  // nasce com a cara do zero.
+  "estagios": [
+    { "posto": "estagios" }
+  ],
+  "pipeline": [
+    { "posto": "pipeline" }
+  ],
+  "resultado": [
+    { "animacao": "Um" }
   ],
 
   // Fase final, segundo ataque: o anel esparso de 9, que desacelera antes e

@@ -12,6 +12,8 @@
 #include "../../../Attacks/AttackParameters/PalavraAttackParams.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/RigidBodyComponent.h"
+#include "../../../Attacks/Ancora.h"
+#include "../../../Actors/Player/Player.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Scenes/Battle/Battle.h"
 #include "../../../Scenes/Battle/ProjectileManager.h"
@@ -25,6 +27,145 @@ void Ricardo::OnUpdate(const float deltaTime) {
     Boss::OnUpdate(deltaTime);
     AtualizarPortas();
     AtualizarRelogio();
+    AtualizarPipeline(deltaTime);
+}
+
+std::vector<Vector2> Ricardo::CentrosDosEstagios() const {
+    std::vector<Vector2> centros;
+    for (const BossProjectile* moldura : NoPosto(Pipeline::kPostoDosEstagios)) centros.push_back(moldura->GetPosition());
+    std::sort(centros.begin(), centros.end(), [](const Vector2& a, const Vector2& b) { return a.x < b.x; });
+    if (static_cast<int>(centros.size()) != Pipeline::kEstagios) centros.clear();
+    return centros;
+}
+
+void Ricardo::DispararDoEstagio(const std::string& gatilho, const int estagio, const bool mirar) {
+    const auto centros = CentrosDosEstagios();
+    if (centros.empty() || gatilho.empty()) return;
+    mDisparandoDoEstagio = true;
+    mMirandoDoEstagio = mirar;
+    mDisparoDoEstagio = centros[static_cast<size_t>(estagio)];
+    Disparar(gatilho);
+    mDisparandoDoEstagio = false;
+    mMirandoDoEstagio = false;
+}
+
+void Ricardo::AtualizarPipeline(const float deltaTime) {
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool noPipeline = fsm && fsm->GetStateName() == Pipeline::kFaseDoPipeline && !EhClone();
+
+    if (!noPipeline) {
+        // A FASE ACABOU: o pipeline se desfaz, e o placar volta ao nome dela.
+        if (mNoPipeline) {
+            for (BossProjectile* chip : NoPosto(Pipeline::kPostoDoPipeline)) chip->Kill();
+            for (BossProjectile* moldura : NoPosto(Pipeline::kPostoDosEstagios)) moldura->Kill();
+            mChips.fill(nullptr);
+            if (!mNomeDaFaseDoPipeline.empty()) RegistrarAnuncio(Pipeline::kFaseDoPipeline, mNomeDaFaseDoPipeline);
+            mNoPipeline = false;
+        }
+        return;
+    }
+    if (!mNoPipeline) {
+        mNoPipeline = true;
+        mEstagiosFormados = false;
+        mPipeline = Pipeline::Estado{};
+        mChips.fill(nullptr);
+        mTempoNoPipeline = 0.0f;
+        mProximoCiclo = Pipeline::kPrimeiroCiclo;
+        if (mNomeDaFaseDoPipeline.empty()) mNomeDaFaseDoPipeline = AnuncioDaFase(Pipeline::kFaseDoPipeline);
+    }
+    mTempoNoPipeline += deltaTime;
+
+    if (!mEstagiosFormados && mTempoNoPipeline >= kFormaAsPortas) {
+        mFormandoEstagios = true;
+        Disparar(Pipeline::kGatilhoDosEstagios);
+        mFormandoEstagios = false;
+        mEstagiosFormados = true;
+    }
+    const auto centros = CentrosDosEstagios();
+    if (centros.empty()) return;
+
+    // O NOME DE CADA ESTAGIO, pela ordem da esquerda para a direita.
+    if (mScene && mScene->GetGame()) {
+        const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
+        for (BossProjectile* moldura : NoPosto(Pipeline::kPostoDosEstagios)) {
+            const char* nome = Pipeline::NomeDoEstagio(Logica::Coluna(moldura->GetPosition().x, largura, Pipeline::kEstagios));
+            if (auto* anim = moldura->GetComponent<DrawAnimatedComponent>(); anim && anim->GetAnimation() != nome) {
+                anim->SetAnimation(nome);
+            }
+        }
+    }
+
+    // O CHIP DERRUBADO A TIRO VIRA BOLHA no estagio em que estava, e nao faz o
+    // ataque dele. (Visto antes da busca deste quadro: o objeto que o pool
+    // devolver para ela ainda nao foi buscado.)
+    for (int s = 0; s < Pipeline::kEstagios; ++s) {
+        BossProjectile*& chip = mChips[static_cast<size_t>(s)];
+        if (chip && (chip->GetState() != ActorState::Active || chip->Posto() != Pipeline::kPostoDoPipeline)) {
+            Pipeline::Estourar(mPipeline, s);
+            chip = nullptr;
+        }
+    }
+
+    if (mTempoNoPipeline >= mProximoCiclo) {
+        mProximoCiclo += Pipeline::kCiclo;
+
+        // O QUE ESTAVA NO WB SAI, e todo mundo anda um estagio.
+        if (BossProjectile* saindo = mChips[Pipeline::WB]) saindo->Kill();
+        for (int s = Pipeline::WB; s > Pipeline::IF; --s) mChips[static_cast<size_t>(s)] = mChips[static_cast<size_t>(s - 1)];
+        mChips[Pipeline::IF] = nullptr;
+        const auto ciclo = Pipeline::Avancar(mPipeline);
+        const auto& programa = Pipeline::Programa();
+
+        // A BUSCA: o chip da instrucao nasce no IF.
+        if (mPipeline.estagio[Pipeline::IF] != Pipeline::kBolha) {
+            mBuscada = nullptr;
+            DispararDoEstagio(Pipeline::kGatilhoDaBusca, Pipeline::IF, false);
+            if (mBuscada) {
+                const auto& instrucao = programa[static_cast<size_t>(mPipeline.estagio[Pipeline::IF])];
+                if (auto* anim = mBuscada->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(Pipeline::Animacao(instrucao.tipo));
+                mChips[Pipeline::IF] = mBuscada;
+            }
+        }
+
+        // O FLUSH: o que foi buscado pelo caminho errado vira bolha - e anda
+        // vazia ate o fim, por onde o aluno passa o tiro. A do IF acabou de ser
+        // buscada (Pipeline::Avancar busca e so depois resolve o desvio): o
+        // chip dela nasce ja bolha.
+        if (ciclo.flush) {
+            mBuscada = nullptr;
+            DispararDoEstagio(Pipeline::kGatilhoDaBusca, Pipeline::IF, false);
+            if (mBuscada) mChips[Pipeline::IF] = mBuscada;
+            for (const int s : {Pipeline::IF, Pipeline::ID}) {
+                if (BossProjectile* chip = mChips[static_cast<size_t>(s)]) {
+                    if (auto* anim = chip->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(Pipeline::kAnimacaoDaBolha);
+                    chip->DefinirEnfeite(true);
+                }
+            }
+        }
+
+        // OS ATAQUES: quem chegou ao estagio do seu ataque o faz, de la.
+        for (const int s : {Pipeline::EX, Pipeline::MEM}) {
+            const int i = mPipeline.estagio[static_cast<size_t>(s)];
+            if (i == Pipeline::kBolha) continue;
+            const auto tipo = programa[static_cast<size_t>(i)].tipo;
+            DispararDoEstagio(Pipeline::Gatilho(tipo, s), s, tipo == Pipeline::Tipo::Add || tipo == Pipeline::Tipo::Addi);
+        }
+
+        // O PLACAR DIZ O QUE ESTA NO EX - ou o flush.
+        const int noEX = mPipeline.estagio[Pipeline::EX];
+        std::string placar = "EX: " + (noEX == Pipeline::kBolha ? std::string("bolha")
+                                                                : programa[static_cast<size_t>(noEX)].texto);
+        if (ciclo.flush) placar += " \xC2\xB7 flush";   // o ponto do meio, em UTF-8
+        RegistrarAnuncio(Pipeline::kFaseDoPipeline, placar);
+    }
+
+    // CADA CHIP ANDA ATE O SEU ESTAGIO.
+    for (int s = 0; s < Pipeline::kEstagios; ++s) {
+        BossProjectile* chip = mChips[static_cast<size_t>(s)];
+        if (!chip) continue;
+        chip->SetPosition(Ancora::Aproximar(chip->GetPosition(), centros[static_cast<size_t>(s)], kRapidezDoChip, deltaTime));
+        if (auto* rb = chip->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+    }
 }
 
 std::vector<BossProjectile*> Ricardo::NoPosto(const char* posto) const {
@@ -169,6 +310,15 @@ void Ricardo::AtualizarRelogio() {
 void Ricardo::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
                                    const std::string& stateName) {
     Boss::OnProjectilesCreated(projectiles, stateName);
+
+    // A BUSCA DO PIPELINE: o chip que nasceu e o da instrucao buscada.
+    if (stateName == Pipeline::kFaseDoPipeline && mDisparandoDoEstagio && !projectiles.empty()) {
+        if (auto* chip = dynamic_cast<BossProjectile*>(projectiles.front().get());
+            chip && chip->Posto() == Pipeline::kPostoDoPipeline) {
+            mBuscada = chip;
+        }
+        return;
+    }
     if (stateName != Relogio::kFaseDoRelogio) return;
 
     // O LEQUE E O VALOR DO CONTADOR: um bit por tiro, o mais alto a esquerda de
@@ -192,6 +342,29 @@ void Ricardo::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& pro
 
 void Ricardo::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
     Boss::CustomizeAttackParams(params, stateName);
+
+    // NO PIPELINE o ataque sai do estagio, e nao do professor: a soma mira o
+    // aluno (com um tiro no meio do leque, como o contador), e a palavra que o
+    // load traz da memoria e uma parede com porta.
+    if (stateName == Pipeline::kFaseDoPipeline) {
+        if (mFormandoEstagios || !mDisparandoDoEstagio) return;
+        params.firePosition = mDisparoDoEstagio;
+        if (mMirandoDoEstagio) {
+            Vector2 d(0.0f, 1.0f);
+            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
+                d = batalha->Alvo()->GetPosition() - mDisparoDoEstagio;
+                if (d.LengthSq() > 0.0f) d.Normalize();
+            }
+            const bool par = params.numProjectiles > 1 && params.numProjectiles % 2 == 0;
+            const float meioPasso = par ? 0.5f * params.angle / static_cast<float>(params.numProjectiles - 1) : 0.0f;
+            params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x)) + meioPasso;
+        }
+        if (auto* palavra = dynamic_cast<PalavraAttackParams*>(&params)) {
+            const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
+            palavra->palavra = Logica::Sortear(Logica::Porta{Logica::Operacao::Nao, 0u}, params.numProjectiles, sorteio);
+        }
+        return;
+    }
 
     // O LEQUE DO CONTADOR SAI MIRADO NO ALUNO, com UM BIT apontado para ele:
     // num leque de 8 o meio cai entre dois bits, e quem fica parado ficava

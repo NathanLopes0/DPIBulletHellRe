@@ -64,5 +64,36 @@
     "animacaoInicial": "NOT",
     "escala": 2.0,
     "ordemDeDesenho": 88
+  },
+
+  // O ESTAGIO DO PIPELINE DA FASE 3: a moldura tracejada, com o nome em cima.
+  // A fileira de cinco e uma PalavraAttack toda de enfeite, e quem poe o nome
+  // de cada uma e o Ricardo, pela ordem - os nomes de Pipeline::NomeDoEstagio.
+  "Estagio": {
+    "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
+    "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",
+    "animacoes": {
+      "IF": [10], "ID": [11], "EX": [12], "MEM": [13], "WB": [14]
+    },
+    "animacaoInicial": "IF",
+    "escala": 3.0,
+    "ordemDeDesenho": 86
+  },
+
+  // A INSTRUCAO: o chip com a instrucao de assembly que anda pelo pipeline, e
+  // a BOLHA. Derrubavel com DOIS tiros: a derrubada vira bolha e nao ataca -
+  // e o tiro gasto nela nao chega ao professor, que fica atras do pipeline.
+  "Instrucao": {
+    "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
+    "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",
+    "animacoes": {
+      "lw": [15], "sw": [16], "add": [17], "addi": [18], "bne": [19], "j": [20],
+      "bolha": [21]
+    },
+    "animacaoInicial": "bolha",
+    "escala": 2.5,
+    "ordemDeDesenho": 89,
+    "derrubavel": true,
+    "resistencia": 2
   }
 }

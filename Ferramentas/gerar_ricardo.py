@@ -17,8 +17,12 @@ OS PROJETEIS SAO AS PECAS DE UM CIRCUITO:
     Porta   uma porta logica com a entrada B escrita nela, apontada para BAIXO:
             o dado desce pela tela, entra por cima e sai por baixo. AND, OR e
             XOR com B = 0 e com B = 1, e o NOT, que nao tem B.
+    Estagio um estagio do pipeline da fase 3: a moldura com o nome dele em
+            cima - IF, ID, EX, MEM, WB.
+    Instrucao  um chip com a instrucao de assembly que anda pelo pipeline -
+            lw, sw, add, addi, bne, j - e a BOLHA, o estagio vazio.
 """
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import json, os
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -160,17 +164,71 @@ def porta_not():
     return im
 
 
+ESTAGIO = (120, 140, 170, 255)   # a moldura do estagio
+ROTULO  = (200, 215, 235, 255)
+CHIP    = (24, 30, 48, 255)
+BORDA_CHIP = (90, 230, 120, 255)  # o verde da camiseta
+PINO    = (120, 140, 160, 255)
+BOLHA   = (150, 190, 230, 140)
+
+
+def estagio(nome):
+    """O ESTAGIO: a moldura tracejada, com o nome em cima."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    for x in range(1, 31, 3):
+        d.point((x, 6), fill=ESTAGIO)
+        d.point((x, 30), fill=ESTAGIO)
+    for y in range(6, 31, 3):
+        d.point((1, y), fill=ESTAGIO)
+        d.point((30, y), fill=ESTAGIO)
+    fonte = ImageFont.load_default(size=8)
+    d.text((16, 3), nome, fill=ROTULO, font=fonte, anchor="mm")
+    return im
+
+
+def instrucao(texto):
+    """A INSTRUCAO: um chip com a instrucao escrita, e as perninhas."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    for x in (9, 15, 21):
+        d.line([x, 8, x, 10], fill=PINO, width=1)
+        d.line([x, 22, x, 24], fill=PINO, width=1)
+    d.rounded_rectangle([3, 10, 28, 22], radius=3, fill=CHIP, outline=BORDA_CHIP, width=1)
+    fonte = ImageFont.load_default(size=9)
+    d.text((16, 16), texto, fill=BORDA_CHIP, font=fonte, anchor="mm")
+    return im
+
+
+def bolha():
+    """A BOLHA: o estagio vazio - uma bolha translucida escrita nop."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.ellipse([6, 7, 25, 26], outline=BOLHA, width=1)
+    d.point((11, 12), fill=BOLHA)
+    d.point((12, 11), fill=BOLHA)
+    fonte = ImageFont.load_default(size=8)
+    d.text((16, 17), "nop", fill=BOLHA, font=fonte, anchor="mm")
+    return im
+
+
 def folha():
     """Quatro quadros por linha, de 32 px. As linhas novas vao sempre no FIM:
     os quadros de antes ficam onde estavam.
 
         0 Zero   1 Um   2 Um (brilho)   3 AND B=0
         4 AND B=1   5 OR B=0   6 OR B=1   7 XOR B=0
-        8 XOR B=1   9 NOT
+        8 XOR B=1   9 NOT   10 IF   11 ID
+        12 EX   13 MEM   14 WB   15 lw
+        16 sw   17 add   18 addi   19 bne
+        20 j   21 bolha
     """
     desenhos = [bit_zero(), bit_um(False), bit_um(True),
                 porta_and(0), porta_and(1), porta_or(0), porta_or(1),
                 porta_xor(0), porta_xor(1), porta_not()]
+    desenhos += [estagio(n) for n in ("IF", "ID", "EX", "MEM", "WB")]
+    desenhos += [instrucao(n) for n in ("lw", "sw", "add", "addi", "bne", "j")]
+    desenhos += [bolha()]
     linhas = (len(desenhos) + 3) // 4
     f = Image.new("RGBA", (128, 32 * linhas), (0, 0, 0, 0))
     for i, im in enumerate(desenhos):

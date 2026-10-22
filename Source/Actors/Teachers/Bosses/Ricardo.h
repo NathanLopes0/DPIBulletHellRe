@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -11,6 +12,7 @@
 #include "../Boss.h"
 #include "../../../Attacks/Logica.h"
 #include "../../../Attacks/Relogio.h"
+#include "../../../Attacks/Pipeline.h"
 
 /**
  * @class Ricardo
@@ -31,6 +33,11 @@
  * leque com o valor de um contador Johnson. Aqui moram o relogio dos tiros, a
  * mira do leque e os bits dele; o professor anda na onda quadrada sozinho
  * (OndaQuadradaStrategy), lendo o mesmo placar.
+ *
+ * A FASE 3 E ARQUITETURA: o pipeline (Pipeline.h). Cinco estagios atravessados
+ * no alto da tela, e as instrucoes de um laco em assembly andando neles, uma
+ * por ciclo, cada uma atacando no seu estagio. Aqui moram os chips em campo,
+ * os ataques que saem de cada estagio e o placar, que diz o que esta no EX.
  */
 class Ricardo : public Boss {
 public:
@@ -102,4 +109,42 @@ private:
     float mFrequencia = 1.0f;
     /// O estado do contador Johnson: o do proximo leque.
     int mContador = 1;
+
+    // ---- O PIPELINE DA FASE 3 -----------------------------------------------
+    //
+    // Logo que a fase comeca o Ricardo forma os cinco estagios (o gatilho
+    // "estagios"), e a cada ciclo: o chip derrubado vira bolha, todo mundo anda
+    // um estagio, a instrucao buscada entra no IF (o gatilho "buscar"), e quem
+    // chegou ao estagio do seu ataque o faz, de la. O flush do bne mal previsto
+    // transforma em bolha o que estava no IF e no ID.
+
+    void AtualizarPipeline(float deltaTime);
+
+    /// Dispara o gatilho de dentro do estagio: o ataque sai dali, e nao do
+    /// professor. 'mirar': o leque sai mirado no aluno.
+    void DispararDoEstagio(const std::string& gatilho, int estagio, bool mirar);
+
+    /// Onde fica cada estagio: o meio das molduras, da esquerda para a direita.
+    /// Vazio enquanto elas nao se formaram.
+    [[nodiscard]] std::vector<Vector2> CentrosDosEstagios() const;
+
+    Pipeline::Estado mPipeline;
+    /// O chip de cada estagio, ou nenhum - a bolha que o aluno fez a tiro nao
+    /// tem chip; a do flush tem, e anda vazia ate o fim.
+    std::array<BossProjectile*, Pipeline::kEstagios> mChips{};
+    bool mNoPipeline = false;
+    bool mEstagiosFormados = false;
+    float mTempoNoPipeline = 0.0f;
+    float mProximoCiclo = 0.0f;
+    std::string mNomeDaFaseDoPipeline;
+
+    /// Disparando de um estagio: de onde, se mira, e o chip que a busca criou.
+    bool mDisparandoDoEstagio = false;
+    bool mMirandoDoEstagio = false;
+    bool mFormandoEstagios = false;
+    Vector2 mDisparoDoEstagio;
+    BossProjectile* mBuscada = nullptr;
+
+    /// Quao depressa o chip anda de um estagio ao seguinte (Ancora::Aproximar).
+    static constexpr float kRapidezDoChip = 12.0f;
 };

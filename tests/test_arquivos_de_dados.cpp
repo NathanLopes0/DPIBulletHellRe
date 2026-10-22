@@ -50,6 +50,7 @@
 #include "../Source/Attacks/Nuvem.h"
 #include "../Source/Attacks/Logica.h"
 #include "../Source/Attacks/Relogio.h"
+#include "../Source/Attacks/Pipeline.h"
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
 #include "../Source/Navegacao.h"
@@ -1700,4 +1701,76 @@ TEST_CASE("Dados: o clock do Ricardo - o placar de cada etapa e uma frequencia i
         CHECK(registra);
     }
     CHECK(leques == 1);
+}
+
+TEST_CASE("Dados: o pipeline do Ricardo - toda instrucao que ataca tem o ataque na fase, e as caras existem") {
+    CHECK(GatilhoExiste(Pipeline::kGatilhoDosEstagios));
+    CHECK(GatilhoExiste(Pipeline::kGatilhoDaBusca));
+    CHECK(PostoExiste(Pipeline::kPostoDosEstagios));
+    CHECK(PostoExiste(Pipeline::kPostoDoPipeline));
+
+    const auto lidas = FasesDoChefe("ricardo");
+    const DescricaoDeFase* fase = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Pipeline::kFaseDoPipeline) fase = &f;
+    REQUIRE(fase);
+    const auto temGatilho = [&](const std::string& g) {
+        for (const auto& a : fase->ataques) if (a.gatilho == g) return true;
+        return false;
+    };
+
+    // UMA INSTRUCAO CUJO GATILHO A FASE NAO TEM chega ao estagio dela e nao
+    // faz nada - calada, porque Disparar de um gatilho sem ataque e permitido.
+    for (const auto& instrucao : Pipeline::Programa()) {
+        for (int s = 0; s < Pipeline::kEstagios; ++s) {
+            const std::string g = Pipeline::Gatilho(instrucao.tipo, s);
+            if (g.empty()) continue;
+            CAPTURE(g);
+            CHECK(GatilhoExiste(g));
+            CHECK(temGatilho(g));
+        }
+    }
+
+    // A FILEIRA DE ESTAGIOS tem um por estagio, parada e toda enfeite; e cada
+    // um, molduras e chips, nasce no posto em que o Ricardo o procura.
+    const auto regras = RegrasDoChefe("ricardo");
+    const auto poe = [&](const DescricaoDeAtaque& a, const char* posto) {
+        if (!regras.conjuntos.count(a.regrasNome)) return false;
+        for (const auto& r : regras.conjuntos.at(a.regrasNome)) if (r.posto == posto) return true;
+        return false;
+    };
+    int fileiras = 0, buscas = 0;
+    for (const auto& a : fase->ataques) {
+        if (a.gatilho == Pipeline::kGatilhoDosEstagios) {
+            ++fileiras;
+            CHECK(a.estrategia == "PalavraAttack");
+            REQUIRE(a.projeteis);
+            CHECK(*a.projeteis == Pipeline::kEstagios);
+            REQUIRE(a.palavra);
+            CHECK(a.palavra->todosAtravessam);
+            CHECK(poe(a, Pipeline::kPostoDosEstagios));
+        }
+        if (a.gatilho == Pipeline::kGatilhoDaBusca) {
+            ++buscas;
+            REQUIRE(a.projeteis);
+            CHECK(*a.projeteis == 1);   // a busca traz UMA instrucao
+            CHECK(poe(a, Pipeline::kPostoDoPipeline));
+        }
+    }
+    CHECK(fileiras == 1);
+    CHECK(buscas == 1);
+
+    // AS CARAS: o nome de cada estagio, cada instrucao do programa e a bolha.
+    const auto& tipos = ProjeteisDoChefe("ricardo").projeteis;
+    const auto tem = [&](const char* tipo, const std::string& cara) {
+        if (tipos.count(tipo) == 0) return false;
+        for (const auto& a : tipos.at(tipo).animacoes) if (a.nome == cara) return true;
+        return false;
+    };
+    for (int s = 0; s < Pipeline::kEstagios; ++s) CHECK(tem("Estagio", Pipeline::NomeDoEstagio(s)));
+    for (const auto& instrucao : Pipeline::Programa()) CHECK(tem("Instrucao", Pipeline::Animacao(instrucao.tipo)));
+    CHECK(tem("Instrucao", Pipeline::kAnimacaoDaBolha));
+
+    // E O ALUNO FAZ BOLHA: a instrucao tem de ser derrubavel.
+    REQUIRE(tipos.count("Instrucao") == 1);
+    CHECK(tipos.at("Instrucao").derrubavel);
 }

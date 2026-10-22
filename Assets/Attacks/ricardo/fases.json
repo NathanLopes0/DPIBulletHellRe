@@ -38,7 +38,7 @@
 //
 //   fase 1  SISTEMAS LOGICOS - palavras de bits que atravessam portas logicas
 //   fase 2  ORGANIZACAO DE COMPUTADORES - o clock, e os tiros que andam nele
-//   fase 3  (ainda o anel de Arduinos de antes)
+//   fase 3  ARQUITETURA DE COMPUTADORES - o pipeline
 //   final   (ainda o anel de Arduinos de antes)
 //
 // O que dados nao sabem fazer mora em Ricardo.cpp: a fileira de portas, a
@@ -146,17 +146,52 @@
     ]
   },
 
-  // Anel de 18 - METADE da fase 2 - mas so os pares viram. Menos balas e mais
-  // decisao: o jogador escolhe por onde passar.
+  // FASE 3 - ARQUITETURA DE COMPUTADORES   |   gesto: O PIPELINE
+  //
+  // CINCO ESTAGIOS ATRAVESSADOS NO ALTO DA TELA - IF, ID, EX, MEM, WB (gatilho
+  // "estagios"), e as instrucoes de um laco em assembly MIPS andando neles, um
+  // estagio a cada 0,9 s, uma entrando no IF a cada ciclo (gatilho "buscar";
+  // Pipeline.h). O programa soma os elementos de um vetor: lw, add, addi, bne,
+  // e no fim sw e j.
+  //
+  // CADA INSTRUCAO ATACA NO SEU ESTAGIO, e o ataque sai DALI, e nao do
+  // professor: a soma no EX (add, um leque de 5 mirado no aluno; addi, um
+  // tiro), o load e o store no MEM (lw traz da memoria uma palavra de 16 bits,
+  // a parede da fase 1; sw grava uma coluna de bits reta para baixo). O
+  // placar diz o que esta no EX.
+  //
+  // O BNE E PREVISTO TOMADO, e acerta em todas as voltas do laco menos na
+  // ultima: ai as duas instrucoes buscadas pelo caminho errado viram BOLHA -
+  // o flush - e o pipeline da um respiro.
+  //
+  // E O ALUNO TAMBEM FAZ BOLHA: a instrucao e derrubavel, com dois tiros, e a
+  // derrubada vira bolha e nao ataca. O tiro gasto nela nao chega ao
+  // professor, que fica atras do pipeline.
   "StateThree": {
     "duracao": 17,
     "proximo": "",
-    "movimento": { "tipo": "RandomWander", "a": 2.0, "b": 180 },
+    "anuncio": "Arquitetura de Computadores",
+    "movimento": { "tipo": "Varredura", "a": 70, "b": 220 },
     "ataques": [
-      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
-        "projeteis": 18, "velocidade": 180,
-        "cooldown": 2.4,
-        "regras": "fase3" }
+      { "gatilho": "estagios", "estrategia": "PalavraAttack", "projetil": "Estagio",
+        "projeteis": 5, "velocidade": 0,
+        "palavra": { "altura": 280, "atravessa": "todos" },
+        "regras": "estagios" },
+      { "gatilho": "buscar", "estrategia": "WaveAttack", "projetil": "Instrucao",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "pipeline" },
+      { "gatilho": "add", "estrategia": "WaveAttack", "projetil": "Bit",
+        "projeteis": 5, "velocidade": 230, "angulo": 50, "intervalo": 0,
+        "regras": "resultado" },
+      { "gatilho": "addi", "estrategia": "WaveAttack", "projetil": "Bit",
+        "projeteis": 1, "velocidade": 320, "angulo": 0, "intervalo": 0,
+        "regras": "resultado" },
+      { "gatilho": "lw", "estrategia": "PalavraAttack", "projetil": "Bit",
+        "projeteis": 16, "velocidade": 150,
+        "palavra": { "altura": 330 } },
+      { "gatilho": "sw", "estrategia": "WaveAttack", "projetil": "Bit",
+        "projeteis": 3, "velocidade": 260, "angulo": 0, "anguloCentral": 90, "intervalo": 0.12,
+        "regras": "resultado" }
     ]
   },
 
