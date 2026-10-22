@@ -194,9 +194,17 @@
   //
   // O SEGUNDO CORPO NASCE ESPELHADO em relacao ao original (Battle::DividirChefe):
   // dois corpos no mesmo pixel seriam um so para quem olha.
+  //
+  // E ELE SE DIVIDE PELA NUVEM. As duas nuvens da fase 2 se juntam numa so em
+  // cima dele, ele entra nela, ela processa o fork (o placar diz "fork()") e,
+  // ao abrir, saem dois: o original fica onde estava e o outro anda ate o
+  // espelho - 1,6 s ao todo (Nuvem::Fork). Nesse tempo nenhum dos dois ataca
+  // nem anda sozinho, mas os dois continuam levando tiro: o fork nao e um
+  // intervalo. Quem comeca direto nesta fase, sem nuvem, se divide como antes.
   "StateThree": {
     "duracao": 17,
     "proximo": "",
+    "anuncio": "fork · dois processos",
     "movimento": { "tipo": "Varredura", "a": 190, "b": 150 },
     "ataquesDe": "StateOne",
     "clone": { "ataquesDe": "StateTwo" }

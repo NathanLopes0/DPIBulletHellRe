@@ -1564,3 +1564,23 @@ TEST_CASE("Dados: as nuvens do Vitor - gatilhos, posto e caras sao nomes que os 
         CHECK(tem);
     }
 }
+
+TEST_CASE("Dados: o fork do Vitor e pela nuvem - a fase do fork vem logo depois da das nuvens, e se divide") {
+    // O VITOR SO JUNTA AS NUVENS se a fase delas acaba NA do fork; em qualquer
+    // outra ele as desfaz, e o fork volta a ser o de sempre sem ninguem notar.
+    const auto lidas = FasesDoChefe("vitor");
+    const DescricaoDeFase* nuvens = nullptr;
+    const DescricaoDeFase* fork = nullptr;
+    for (const auto& f : lidas.fases) {
+        if (f.nome == Nuvem::kFaseDasNuvens) nuvens = &f;
+        if (f.nome == Nuvem::kFaseDoFork) fork = &f;
+    }
+    REQUIRE(nuvens);
+    REQUIRE(fork);
+    CHECK(nuvens->proximo == Nuvem::kFaseDoFork);
+    CHECK(fork->clone.existe);
+
+    bool formaNuvens = false;
+    for (const auto& a : nuvens->ataques) if (a.gatilho == Nuvem::kGatilhoDasNuvens) formaNuvens = true;
+    CHECK(formaNuvens);
+}

@@ -26,4 +26,16 @@ namespace Nuvem {
         c.t = std::fmod(depois, volta);
         return chove;
     }
+
+    bool Visivel(const Fork& f, const float t, const bool nasceuDentro) {
+        if (t >= f.abre) return true;
+        return !nasceuDentro && t < f.entra;
+    }
+
+    float Saida(const Fork& f, const float t) {
+        if (t <= f.abre) return 0.0f;
+        if (t >= f.sai) return 1.0f;
+        const float u = (t - f.abre) / (f.sai - f.abre);
+        return u * u * (3.0f - 2.0f * u);
+    }
 }

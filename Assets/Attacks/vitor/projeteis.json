@@ -79,6 +79,12 @@
   // AS NUVENS DA FASE 2: a computacao em nuvem, em cima do professor. Ociosa
   // ela balanca; processando, as luzinhas acendem em fila (quem troca a cara e
   // Vitor::AtualizarNuvens). Ficam acima dele, fora do caminho do tiro.
+  //
+  // DESENHADAS POR CIMA DELE - o chefe desenha em 100 -, e as unicas: na fase
+  // 2 elas ficam do lado dele e isso nao muda nada, mas na passagem para a 3
+  // as duas se juntam numa nuvem so, ele entra nela, e dela saem dois
+  // (Vitor::ComecarOFork). A nuvem tem de cobri-lo. Os pacotes (91) saem de
+  // dentro dela.
   "Nuvem": {
     "sprite": "Teachers/Projectiles/DPIBHVitorTarefa.png",
     "dados":  "Teachers/Projectiles/DPIBHVitorTarefa.json",
@@ -87,7 +93,7 @@
       "Processando": [16, 17, 18, 19]
     },
     "animacaoInicial": "Ociosa",
-    "ordemDeDesenho": 87,
+    "ordemDeDesenho": 101,
     "escala": 2.2
   },
 

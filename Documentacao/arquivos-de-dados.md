@@ -189,6 +189,12 @@ recusados na leitura, com a frase dizendo qual fase errou.
 > ao fim da terceira chamaria `FinishBattle` por conta própria e encerraria a
 > luta no tempo dele.
 
+O segundo corpo nasce no **espelho** do original (`Battle::DividirChefe`). O
+Vitor faz a passagem pela nuvem: as nuvens da fase 2 se juntam em cima dele, ele
+entra, e saem dois — o outro anda da nuvem até o espelho. Isso é código dele
+(`Vitor::ComecarOFork`, com os tempos em `Nuvem::Fork`), e não um campo: a
+fase só declara o `clone`.
+
 ### O ataque
 
 | Campo | Vai para |

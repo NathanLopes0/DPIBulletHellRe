@@ -29,7 +29,9 @@
  *
  * E ELE TAMBEM DA REDES: na fase 2 ha duas NUVENS em cima dele, a computacao
  * em nuvem, que processam e chovem pacotes (Nuvem.h). O relogio delas, a cara
- * delas e o placar moram aqui (AtualizarNuvens).
+ * delas e o placar moram aqui (AtualizarNuvens). E e pela nuvem que ele se
+ * divide na fase 3: as duas se juntam em cima dele, ele entra, e saem dois
+ * (ComecarOFork).
  */
 class Vitor : public Boss {
 public:
@@ -38,8 +40,9 @@ public:
 
     void OnUpdate(float deltaTime) override;
 
-    /// A fase das nuvens.
-    static constexpr const char* kFaseDasNuvens = "StateTwo";
+    /// A fase das nuvens, e a do fork, que a nuvem abre (Nuvem.h).
+    static constexpr const char* kFaseDasNuvens = Nuvem::kFaseDasNuvens;
+    static constexpr const char* kFaseDoFork = Nuvem::kFaseDoFork;
 
 protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
@@ -62,6 +65,28 @@ private:
     /// delas, e nao do anel - e a fresta do anel nao anda por causa delas.
     void DispararNuvem(const char* gatilho);
 
+    /// O fork pela nuvem, no corpo original: junta as nuvens em cima dele,
+    /// manda os dois corpos para dentro dela, e a desfaz quando eles saem.
+    void ComecarOFork();
+    void AtualizarANuvemDoFork();
+    void SairDaNuvem();
+
+    /**
+     * @brief Um corpo entra no fork pela nuvem (Nuvem::Fork): fica em 'onde',
+     * some ou nasce dentro dela, e quando ela abre anda ate 'destino'. Ate la
+     * nao anda sozinho nem ataca - mas o colisor fica: o tiro que entra na
+     * nuvem acerta quem esta dentro dela. O original chama isto nos dois.
+     */
+    void EntrarNaNuvem(Vector2 onde, Vector2 destino, bool nasceuDentro);
+
+    /// Ha quanto tempo o corpo esta no fork (negativo: nao esta), de onde ele
+    /// sai e para onde vai.
+    float mTempoNoFork = -1.0f;
+    bool mNasceuDentro = false;
+    Vector2 mSaiDe;
+    Vector2 mVaiPara;
+    float mEscalaDaNuvem = 1.0f;
+
     Nuvem::Ciclo mChuva;
     bool mNasNuvens = false;
     bool mNuvensFormadas = false;
@@ -75,6 +100,14 @@ private:
 
     static constexpr const char* kProcessando = "nuvem: processando...";
     static constexpr const char* kEnviando = "nuvem: enviando pacotes";
+
+    /// O FORK: os tempos dele, e o tamanho da nuvem juntada - as duas viram
+    /// uma maior que o professor: o quadro da nuvem tem 32 px e o dele 128, e
+    /// a 5x ela fica mais larga que ele.
+    static constexpr Nuvem::Fork kFork{};
+    static constexpr float kEscalaDaNuvemJunta = 5.0f;
+    static constexpr const char* kNoFork = "nuvem: fork()";
+    std::string mNomeDaFaseDoFork;
 
     /**
      * Para onde a fresta do anel aponta, medido a partir da ponta da janela

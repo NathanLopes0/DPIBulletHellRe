@@ -134,11 +134,15 @@
 
   // AS NUVENS DA FASE 2: nascem ja no posto das nuvens - de onde os pacotes
   // chovem - e ficam presas ao professor, uma de cada lado e um pouco acima
-  // dele, pela fase inteira. Quem as desfaz no fim e o Vitor.
+  // dele, pela fase inteira. Quem as desfaz no fim e o Vitor - ou, na passagem
+  // para o fork, as junta em cima dele (Vitor::ComecarOFork).
+  //
+  // 17 S, A FASE INTEIRA DE VERDADE: elas nascem a 0,6 s, e com 16 se soltavam
+  // aos 16,6 e caiam nos ultimos quadros da fase - o fork as pegava caindo.
   "nuvens": [
     { "indices": [0], "posto": "nuvens",
-      "motion": { "tipo": "Ancorar", "dx": -125, "dy": -55, "duracao": 16.0, "velocidade": 200 } },
+      "motion": { "tipo": "Ancorar", "dx": -125, "dy": -55, "duracao": 17.0, "velocidade": 200 } },
     { "indices": [1], "posto": "nuvens",
-      "motion": { "tipo": "Ancorar", "dx": 125,  "dy": -55, "duracao": 16.0, "velocidade": 200 } }
+      "motion": { "tipo": "Ancorar", "dx": 125,  "dy": -55, "duracao": 17.0, "velocidade": 200 } }
   ]
 }
