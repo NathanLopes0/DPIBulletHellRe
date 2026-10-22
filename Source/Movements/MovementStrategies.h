@@ -211,3 +211,30 @@ private:
     /// Depressa, para o passo ser um passo e nao um deslizar.
     static constexpr float kVelocidadeDoPasso = 500.0f;
 };
+
+/**
+ * @brief Anda na onda quadrada do clock: no nivel alto em cima, no baixo
+ * embaixo, saltando nas bordas - e de lado a lado, devagar.
+ *
+ * O GESTO DO CLOCK. A frequencia e a do placar da fase (Relogio::LerFrequencia,
+ * 1 Hz se o placar nao disser): o professor e o sinal que marca o passo dos
+ * tiros dele, e no overclock ele treme.
+ *
+ * @param amplitude  a distancia entre o nivel alto e o baixo, em pixels
+ * @param velocidade de lado a lado, em px/s - devagar: o tiro do aluno leva
+ *                   quase 1 s ate ele (ver Deslocamento)
+ */
+class OndaQuadradaStrategy : public IMovementStrategy {
+public:
+    explicit OndaQuadradaStrategy(float amplitude = 60.0f, float velocidade = 50.0f);
+    void Initialize(Boss* boss) override;
+    void Update(Boss* boss, float deltaTime) override;
+private:
+    float mAmplitude;
+    float mVelocidade;
+    float mDirecao = 1.0f;
+    float mAltura = 0.0f;
+    static constexpr float kMargem = 180.0f;
+    /// Quao depressa ele vai de um nivel ao outro: o salto da borda.
+    static constexpr float kRapidezDaBorda = 30.0f;
+};

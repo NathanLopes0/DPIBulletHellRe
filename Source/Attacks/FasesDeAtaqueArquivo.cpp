@@ -124,6 +124,7 @@ namespace {
      *   Mergulho         a = velocidade (px/s),          b = profundidade (px)
      *   Escada           a = segundos por degrau,         b = quantos degraus
      *   Deslocamento     a = segundos por passo,          b = quantas colunas
+     *   OndaQuadrada     a = amplitude (px),              b = velocidade lateral (px/s)
      */
     std::unique_ptr<IMovementStrategy> CriarMovimento(const DescricaoDeMovimento& m) {
         if (m.tipo == "RandomWander")     return std::make_unique<RandomWanderStrategy>(m.a, m.b);
@@ -133,6 +134,7 @@ namespace {
         if (m.tipo == "Mergulho")         return std::make_unique<MergulhoStrategy>(m.a, m.b);
         if (m.tipo == "Escada")           return std::make_unique<EscadaStrategy>(m.a, m.b);
         if (m.tipo == "Deslocamento")     return std::make_unique<DeslocamentoStrategy>(m.a, m.b);
+        if (m.tipo == "OndaQuadrada")     return std::make_unique<OndaQuadradaStrategy>(m.a, m.b);
         return std::make_unique<GoToCenterStrategy>();
     }
 

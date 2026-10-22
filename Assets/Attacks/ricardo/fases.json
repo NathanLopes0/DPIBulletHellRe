@@ -37,7 +37,7 @@
 // camiseta dele diz 10110. A batalha esta sendo refeita UMA MATERIA POR FASE:
 //
 //   fase 1  SISTEMAS LOGICOS - palavras de bits que atravessam portas logicas
-//   fase 2  (ainda o anel de Arduinos de antes)
+//   fase 2  ORGANIZACAO DE COMPUTADORES - o clock, e os tiros que andam nele
 //   fase 3  (ainda o anel de Arduinos de antes)
 //   final   (ainda o anel de Arduinos de antes)
 //
@@ -104,16 +104,45 @@
     ]
   },
 
-  // Mesmo anel, agora teleguiado: desacelera e depois vira no jogador.
+  // FASE 2 - ORGANIZACAO DE COMPUTADORES   |   gesto: O TIRO ANDA NO CLOCK
+  //
+  // OS TIROS SAO REGISTRADORES. Ficam parados entre uma borda e outra do
+  // clock, e a cada borda de subida dao um passo de 72 px - um bit e um pouco
+  // (Relogio::kPasso; Ricardo::AtualizarRelogio). Parado, da para ler o campo
+  // inteiro e planejar; o perigo e a proxima borda.
+  //
+  // O PLACAR E O CLOCK: cada etapa anuncia a frequencia, e e dali que o
+  // professor e os tiros a leem (Relogio::LerFrequencia). Ela DOBRA de etapa
+  // em etapa - 1, 2, 4 Hz - ate o overclock de 8 Hz, em que o passo vira
+  // quase um escorrer e o mesmo tiro anda a 576 px/s. As etapas trocam em
+  // segundos inteiros e as frequencias sao inteiras: toda troca cai numa
+  // borda, e todo segundo e borda de qualquer clock.
+  //
+  // A CADA SEGUNDO SAI UM LEQUE DE 8 BITS, mirado no aluno (gatilho
+  // "contador"): o valor de um CONTADOR JOHNSON - o registrador de
+  // deslocamento com a saida invertida de volta na entrada -, que enche de
+  // uns pela esquerda e esvazia pela esquerda. O 1 machuca e o 0 e a fresta,
+  // e de um leque ao seguinte muda um bit so: a fresta anda. A "velocidade"
+  // do leque so da a direcao: no primeiro quadro em que o bit anda, o Ricardo
+  // a anota e o para - quem o faz andar e a borda.
+  //
+  // O MOVIMENTO E A ONDA QUADRADA: em cima no nivel alto, embaixo no baixo,
+  // saltando nas bordas do mesmo clock do placar - e no overclock ele treme.
   "StateTwo": {
     "duracao": 17,
     "proximo": "StateThree",
-    "movimento": { "tipo": "RandomWander", "a": 3.0, "b": 160 },
+    "anuncio": "Organização de Computadores",
+    "etapas": [
+      { "nome": "Hz1", "duracao": 4, "anuncio": "clock 1 Hz" },
+      { "nome": "Hz2", "duracao": 4, "anuncio": "clock 2 Hz" },
+      { "nome": "Hz4", "duracao": 5, "anuncio": "clock 4 Hz" },
+      { "nome": "Hz8", "duracao": 4, "anuncio": "overclock 8 Hz" }
+    ],
+    "movimento": { "tipo": "OndaQuadrada", "a": 60, "b": 50 },
     "ataques": [
-      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
-        "projeteis": 36, "velocidade": 180,
-        "cooldown": 2.4,
-        "regras": "fase2" }
+      { "gatilho": "contador", "estrategia": "WaveAttack", "projetil": "Bit",
+        "projeteis": 8, "velocidade": 72, "angulo": 90, "intervalo": 0,
+        "regras": "registradores" }
     ]
   },
 

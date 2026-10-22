@@ -5,10 +5,12 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "../Boss.h"
 #include "../../../Attacks/Logica.h"
+#include "../../../Attacks/Relogio.h"
 
 /**
  * @class Ricardo
@@ -23,6 +25,12 @@
  * paredes - o UM machuca, o ZERO se atravessa - e cruzam uma fileira de portas
  * logicas, uma por coluna, que transformam cada bit. Aqui moram as portas (a
  * cara de cada uma, conforme a etapa), a travessia, e o sorteio da palavra.
+ *
+ * A FASE 2 E ORGANIZACAO DE COMPUTADORES: o clock (Relogio.h). Os tiros sao
+ * registradores, que so andam na borda de subida, e a cada segundo sai um
+ * leque com o valor de um contador Johnson. Aqui moram o relogio dos tiros, a
+ * mira do leque e os bits dele; o professor anda na onda quadrada sozinho
+ * (OndaQuadradaStrategy), lendo o mesmo placar.
  */
 class Ricardo : public Boss {
 public:
@@ -33,6 +41,8 @@ public:
 
 protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
+    void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
+                              const std::string& stateName) override;
 
 private:
     // ---- AS PORTAS DA FASE 1 ------------------------------------------------
@@ -63,4 +73,33 @@ private:
     /// Quanto depois do comeco da fase as portas se formam: antes da primeira
     /// palavra, que sai a 1 s.
     static constexpr float kFormaAsPortas = 0.2f;
+
+    // ---- O CLOCK DA FASE 2 --------------------------------------------------
+    //
+    // A cada quadro: se houve borda de subida do clock do placar, todo
+    // registrador em campo da um passo; se o segundo virou, o contador anda e
+    // sai um leque (o gatilho "contador"). Quando a fase acaba, o clock para e
+    // os registradores que sobraram escorrem para fora da tela.
+
+    void AtualizarRelogio();
+
+    /// Todo registrador em campo passa a andar a 'velocidade', na direcao
+    /// dele (zero: parado).
+    void MoverRegistradores(float velocidade);
+
+    /// A DIRECAO DE CADA REGISTRADOR, anotada aqui e nao no vetor velocidade:
+    /// parado, ele tem velocidade ZERO, e zero nao guarda direcao (e o
+    /// RigidBody zera o x abaixo de 1 px/s, entao nem "quase zero" guarda).
+    /// O registrador nasce andando na direcao do leque, e no primeiro quadro
+    /// em que se move ela e anotada e ele para.
+    std::unordered_map<const BossProjectile*, Vector2> mDirecoes;
+
+    /// O tempo da fase no quadro anterior (negativo: fora da fase do clock).
+    float mAntesNoRelogio = -1.0f;
+    /// Quando o passo em curso acaba (negativo: nenhum passo em curso).
+    float mFimDoPasso = -1.0f;
+    /// A frequencia do ultimo quadro na fase - a dos registradores que sobram.
+    float mFrequencia = 1.0f;
+    /// O estado do contador Johnson: o do proximo leque.
+    int mContador = 1;
 };

@@ -5,6 +5,8 @@
 #include "MovementStrategies.h"
 #include "Escada.h"
 #include "../Attacks/Logica.h"
+#include "../Attacks/Relogio.h"
+#include "../Components/AIComponents/FSMComponent.h"
 #include "../Scenes/Battle/Battle.h"
 #include "../Actors/Player/Player.h"
 
@@ -335,4 +337,40 @@ void DeslocamentoStrategy::Update(Boss* boss, const float deltaTime) {
         return;
     }
     rb->SetVelocity(falta * (kVelocidadeDoPasso / d));
+}
+
+// =========================================================
+// ONDA QUADRADA STRATEGY  -  o gesto do clock
+// =========================================================
+
+OndaQuadradaStrategy::OndaQuadradaStrategy(const float amplitude, const float velocidade)
+    : mAmplitude(amplitude), mVelocidade(velocidade)
+{
+}
+
+void OndaQuadradaStrategy::Initialize(Boss* boss) {
+    const auto h = static_cast<float>(boss->GetScene()->GetGame()->GetWindowHeight());
+    const auto w = static_cast<float>(boss->GetScene()->GetGame()->GetWindowWidth());
+    mAltura = h * 0.18f;
+    mDirecao = boss->GetPosition().x < w / 2.0f ? 1.0f : -1.0f;
+}
+
+void OndaQuadradaStrategy::Update(Boss* boss, const float deltaTime) {
+    (void)deltaTime;
+    auto rb = boss->GetComponent<RigidBodyComponent>();
+    if (!rb) return;
+
+    // O CLOCK E O DO PLACAR, e o tempo e o da fase: o mesmo relogio que faz os
+    // tiros andarem (Ricardo::AtualizarRelogio).
+    const float f = Relogio::LerFrequencia(boss->AnuncioDaFase(boss->FaseAtual())).value_or(1.0f);
+    const auto* fsm = boss->GetComponent<FSMComponent>();
+    const float t = fsm ? fsm->GetStateTime() : 0.0f;
+    const float alvoY = mAltura + (Relogio::Alto(t, f) ? -0.5f : 0.5f) * mAmplitude;
+
+    const auto w = static_cast<float>(boss->GetScene()->GetGame()->GetWindowWidth());
+    const float x = boss->GetPosition().x;
+    if (x > w - kMargem) mDirecao = -1.0f;
+    else if (x < kMargem) mDirecao = 1.0f;
+
+    rb->SetVelocity(Vector2(mVelocidade * mDirecao, (alvoY - boss->GetPosition().y) * kRapidezDaBorda));
 }

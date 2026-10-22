@@ -275,8 +275,9 @@ bool EixoDeConsultaExiste(const std::string& nome);
 /// relogio: dispara quando o chefe puxa o gatilho (Boss::Disparar). So existe
 /// o gatilho que algum chefe puxa: "notificacao" e "consulta" sao o sujeito
 /// do padrao Observer da Maria Lucia (Observer.h), "agir" e o ciclo dos
-/// agentes do Julio (ReAct.h), e "nuvens" e "chover" as nuvens do Vitor
-/// (Nuvem.h).
+/// agentes do Julio (ReAct.h), "nuvens" e "chover" as nuvens do Vitor
+/// (Nuvem.h), "portas" a fileira de portas logicas do Ricardo (Logica.h) e
+/// "contador" o leque do clock dele (Relogio.h).
 bool GatilhoExiste(const std::string& nome);
 
 /**

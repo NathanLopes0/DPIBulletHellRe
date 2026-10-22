@@ -164,6 +164,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Nuvem.h
         Source/Attacks/Logica.cpp
         Source/Attacks/Logica.h
+        Source/Attacks/Relogio.cpp
+        Source/Attacks/Relogio.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
@@ -307,6 +309,7 @@ add_executable(dpi_tests
         tests/test_react.cpp
         tests/test_nuvem.cpp
         tests/test_logica.cpp
+        tests/test_relogio.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -396,6 +399,8 @@ add_executable(dpi_tests
         Source/Attacks/Nuvem.h
         Source/Attacks/Logica.cpp
         Source/Attacks/Logica.h
+        Source/Attacks/Relogio.cpp
+        Source/Attacks/Relogio.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp

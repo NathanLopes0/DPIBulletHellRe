@@ -49,6 +49,7 @@
 #include "../Source/Attacks/ReAct.h"
 #include "../Source/Attacks/Nuvem.h"
 #include "../Source/Attacks/Logica.h"
+#include "../Source/Attacks/Relogio.h"
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
 #include "../Source/Navegacao.h"
@@ -1655,4 +1656,48 @@ TEST_CASE("Dados: a fase das portas do Ricardo - todo placar de etapa e uma port
     }
     CHECK(fileiras == 1);
     CHECK(palavras >= 1);
+}
+
+TEST_CASE("Dados: o clock do Ricardo - o placar de cada etapa e uma frequencia inteira, trocada num segundo inteiro") {
+    CHECK(GatilhoExiste(Relogio::kGatilhoDoContador));
+    CHECK(PostoExiste(Relogio::kPostoDosRegistradores));
+
+    const auto lidas = FasesDoChefe("ricardo");
+    const DescricaoDeFase* fase = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Relogio::kFaseDoRelogio) fase = &f;
+    REQUIRE(fase);
+    REQUIRE_FALSE(fase->etapas.empty());
+
+    // O PLACAR E O CLOCK. E as contas do Ricardo - o leque a cada segundo
+    // inteiro, que tem de ser borda de subida; a troca de frequencia, que tem
+    // de cair numa borda - so fecham com frequencias inteiras trocadas em
+    // segundos inteiros.
+    float inicio = 0.0f;
+    for (const auto& etapa : fase->etapas) {
+        CAPTURE(etapa.anuncio);
+        const auto f = Relogio::LerFrequencia(etapa.anuncio);
+        REQUIRE(f);
+        CHECK(*f >= 1.0f);
+        CHECK(*f == std::floor(*f));
+        CHECK(inicio == std::floor(inicio));
+        inicio += etapa.duracao;
+    }
+
+    // O LEQUE DO CONTADOR: uma WaveAttack de gatilho, cujos bits nascem no posto
+    // dos registradores - e com velocidade acima de 1 px/s: e dela que o
+    // Ricardo tira a direcao de cada bit, e o RigidBody zera o x abaixo disso.
+    const auto regras = RegrasDoChefe("ricardo");
+    int leques = 0;
+    for (const auto& a : fase->ataques) {
+        if (a.gatilho != Relogio::kGatilhoDoContador) continue;
+        ++leques;
+        CHECK(a.estrategia == "WaveAttack");
+        CHECK((a.velocidade && *a.velocidade > 1.0f));
+        bool registra = false;
+        if (regras.conjuntos.count(a.regrasNome)) {
+            for (const auto& r : regras.conjuntos.at(a.regrasNome)) if (r.posto == Relogio::kPostoDosRegistradores) registra = true;
+        }
+        CHECK(registra);
+    }
+    CHECK(leques == 1);
 }

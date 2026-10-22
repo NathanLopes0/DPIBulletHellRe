@@ -24,8 +24,9 @@ namespace {
         "Orbitar", "Varredura", "Mergulho",
         // A escada da cascata - ver Escada.h.
         "Escada",
-        // O registrador de deslocamento do Ricardo - ver Logica.h.
-        "Deslocamento"
+        // O registrador de deslocamento e o clock do Ricardo - ver Logica.h
+        // e Relogio.h.
+        "Deslocamento", "OndaQuadrada"
     };
 
     /// Os nomes aceitos, para a mensagem de erro. DERIVADA da lista acima, e
@@ -43,7 +44,8 @@ namespace {
     /// "None" NAO entra: a propria BaloonAttack recusa side == None.
     const std::vector<std::string> kLadosDeBalao = {"Down", "Left", "Right", "Up"};
     const std::vector<std::string> kEixosDeConsulta = {"Linha", "Coluna"};
-    const std::vector<std::string> kGatilhos = {"notificacao", "consulta", "agir", "nuvens", "chover", "portas"};
+    const std::vector<std::string> kGatilhos = {"notificacao", "consulta", "agir", "nuvens", "chover", "portas",
+                                                "contador"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"

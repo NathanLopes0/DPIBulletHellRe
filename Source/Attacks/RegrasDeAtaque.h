@@ -181,8 +181,11 @@ bool EhModifier(const std::string& tipo);
 /// atira, e so existe se alguem no motor o ocupa: "quadro" sao as historias
 /// paradas no quadro da sprint (Sprint::kPostoDoQuadro), e "observadores" os
 /// olhos do padrao Observer (Observer::kPostoDosObservadores), "agentes" os
-/// robos do Julio (ReAct::kPostoDosAgentes) e "nuvens" as nuvens do Vitor
-/// (Nuvem::kPostoDasNuvens), que uma regra poe no posto ao nascer.
+/// robos do Julio (ReAct::kPostoDosAgentes), "nuvens" as nuvens do Vitor
+/// (Nuvem::kPostoDasNuvens), "palavra" e "portas" os bits e as portas logicas
+/// do Ricardo (Logica.h) e "registradores" os bits do clock dele (Relogio.h),
+/// que uma regra poe no posto ao nascer - e alguns o chefe procura la, em vez
+/// de atirar deles.
 bool PostoExiste(const std::string& nome);
 
 /**

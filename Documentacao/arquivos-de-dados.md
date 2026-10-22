@@ -138,7 +138,7 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 > de `aCada`, e campo faltando são recusados na leitura.
 
 **Movimentos:** `GoToCenter`, `RandomWander`, `HoverAbovePlayer`, `Orbitar`,
-`Varredura`, `Mergulho`, `Escada`, `Deslocamento`. `a` e `b` são os dois parâmetros do construtor, na
+`Varredura`, `Mergulho`, `Escada`, `Deslocamento`, `OndaQuadrada`. `a` e `b` são os dois parâmetros do construtor, na
 ordem, e cada movimento lhes dá um sentido próprio — a tabela está em
 `FasesDeAtaqueArquivo.cpp`, onde eles são instanciados.
 
@@ -147,7 +147,10 @@ e o mergulho são gestos, e cada um deles é a ideia de uma fase do Vladimir em
 vez de um jeito de o chefe não ficar parado. Ver `MovementStrategies.h`. O
 `Deslocamento` (`a` = segundos em cada coluna, `b` = colunas) é o registrador de
 deslocamento do Ricardo: um passo seco de uma coluna por vez, de ponta a ponta,
-sempre parando no meio de uma das colunas da palavra de bits.
+sempre parando no meio de uma das colunas da palavra de bits. A `OndaQuadrada`
+(`a` = amplitude, `b` = velocidade de lado a lado) é o clock dele: em cima no
+nível alto, embaixo no baixo, saltando nas bordas da frequência que o placar da
+fase anuncia (`Relogio::LerFrequencia`; 1 Hz se ele não disser).
 
 > **Um chefe que anda o tempo todo não leva tiro do piloto que persegue.** O
 > tiro leva quase 1 s até o professor; andando uma coluna a cada 0,6 s, o
@@ -207,7 +210,7 @@ fase só declara o `clone`.
 | Campo | Vai para |
 |---|---|
 | `etapa` | opcional. Em qual etapa da fase o ataque dispara. Sem ela, a fase inteira |
-| `gatilho` | opcional. O ataque **não dispara pelo relógio**: dispara quando o professor puxa o gatilho (`Boss::Disparar`), e o `cooldown` é ignorado. Só existem os gatilhos que algum professor puxa — `notificacao` e `consulta` (o padrão Observer da Maria Lúcia), `agir` (os agentes do Júlio), `nuvens` e `chover` (as nuvens do Vitor), `portas` (a fileira de portas lógicas do Ricardo); um nome desconhecido é recusado |
+| `gatilho` | opcional. O ataque **não dispara pelo relógio**: dispara quando o professor puxa o gatilho (`Boss::Disparar`), e o `cooldown` é ignorado. Só existem os gatilhos que algum professor puxa — `notificacao` e `consulta` (o padrão Observer da Maria Lúcia), `agir` (os agentes do Júlio), `nuvens` e `chover` (as nuvens do Vitor), `portas` (a fileira de portas lógicas do Ricardo), `contador` (o leque do clock dele, a cada segundo); um nome desconhecido é recusado |
 | `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack`, `FlexAttack`, `CapsulaAttack`, `SerpenteAttack`, `SprintAttack`, `PontosAttack`, `TokenAttack`, `PalavraAttack` |
 | `projetil` | o nome dentro do conjunto deste professor em `projeteis.json` |
 | `projeteis` | quantos por disparo |
@@ -450,7 +453,7 @@ bit, é recusado.
 
 | Campo | |
 |---|---|
-| `posto` | de onde atirar: `quadro` (as histórias paradas no quadro da sprint), `observadores` (os olhos do Observer da Maria Lúcia), `agentes` (os robôs do Júlio), `nuvens` (as nuvens do Vitor), `palavra` ou `portas` (os bits do Ricardo que ainda não passaram pela porta, e as portas) — todos menos o primeiro, a regra `posto` põe lá ao nascer. Um posto desconhecido é recusado — ninguém o ocuparia, e o ataque nunca dispararia |
+| `posto` | de onde atirar: `quadro` (as histórias paradas no quadro da sprint), `observadores` (os olhos do Observer da Maria Lúcia), `agentes` (os robôs do Júlio), `nuvens` (as nuvens do Vitor), `palavra` ou `portas` (os bits do Ricardo que ainda não passaram pela porta, e as portas), `registradores` (os bits que andam no clock dele) — todos menos o primeiro, a regra `posto` põe lá ao nascer. Um posto desconhecido é recusado — ninguém o ocuparia, e o ataque nunca dispararia |
 | `mirar` | cada ponto mira o aluno. Sem ele, todos saem em `anguloCentral` |
 | `prever` | mirando, mira onde o aluno **vai estar** se continuar andando |
 
@@ -517,7 +520,7 @@ Escolha no máximo uma forma:
 | `animacao` | nome de uma animação registrada no projétil |
 | `escala` | multiplica o tamanho — e a hitbox junto, porque o colisor multiplica o raio pela escala |
 | `rotacionar` | `true`/`false`: se o sprite gira para acompanhar a direção do voo. **Ausente = não mexe** e vale o que `projeteis.json` pediu |
-| `posto` | o **posto** em que o projétil entra ao nascer: um lugar de onde uma `PontosAttack` atira, ou onde o professor o procura. Existem `quadro`, `observadores`, `agentes`, `nuvens`, `palavra` e `portas`; um nome desconhecido é recusado. Volta a vazio quando o pool recicla o projétil |
+| `posto` | o **posto** em que o projétil entra ao nascer: um lugar de onde uma `PontosAttack` atira, ou onde o professor o procura. Existem `quadro`, `observadores`, `agentes`, `nuvens`, `palavra`, `portas` e `registradores`; um nome desconhecido é recusado. Volta a vazio quando o pool recicla o projétil |
 
 > **`rotacionar` existe porque girar é da rajada, e não do tipo.** O
 > `Estruturas` do Salles serve a duas fases com necessidades opostas: a lista
