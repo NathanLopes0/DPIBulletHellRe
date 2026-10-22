@@ -23,6 +23,7 @@ class Player;
 class ProjectileManager;
 class BattleHUD;
 class ExtraPointItem;
+class Orientador;
 
 class Battle : public Scene {
 
@@ -46,6 +47,13 @@ public:
     void OnFaseTrocada(float novaDuracao);
 
     [[nodiscard]] Boss* GetBoss() const { return mBoss; }
+
+    /// O orientador do TCC, quando ha um em campo. Ver LoadOrientador.
+    [[nodiscard]] Orientador* GetOrientador() const { return mOrientador; }
+
+    /// Se a luta esta valendo: nem carregando os projeteis, nem na tela de fim.
+    /// Quem age por conta propria (o orientador) so age enquanto isto vale.
+    [[nodiscard]] bool EmCombate() const { return !mIsLoading && !mIsEnding; }
 
     /**
      * @brief TODOS os corpos do chefe em campo, e nao so o original.
@@ -183,6 +191,13 @@ private:
     void LoadPlayer();
     void LoadBoss();
 
+    /**
+     * O ORIENTADOR, SE A MATERIA PEDE UM E ALGUEM FOI ESCOLHIDO. Quem escolhe e
+     * a EscolhaDoOrientador, e o escolhido chega pelo Game (Game::Orientador).
+     * Depois dos jogadores, porque nasce ao lado deles.
+     */
+    void LoadOrientador();
+
     void LoadTimeClock();
 
     void LoadTimeBar();
@@ -284,6 +299,9 @@ private:
 
     /// OS JOGADORES, em vez de um. Ver Jogadores() e Alvo().
     std::vector<Player*> mJogadores;
+
+    /// O orientador do TCC, ou nulo. O ator e da cena, como todos.
+    Orientador* mOrientador = nullptr;
 
     /// De quem e a vez de ser mirado. Ver RevezarAlvo.
     size_t mVezDoAlvo = 0;

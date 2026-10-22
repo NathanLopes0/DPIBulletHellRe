@@ -16,7 +16,7 @@
 
 
 
-PlayerProjectile::PlayerProjectile(Scene *scene, Player *owner) :
+PlayerProjectile::PlayerProjectile(Scene *scene, Actor *owner) :
         Projectile(scene, owner)
 
 {

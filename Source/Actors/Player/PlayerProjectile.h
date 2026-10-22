@@ -10,9 +10,12 @@
 class PlayerProjectile : public Projectile {
 
     friend class Player;
+    friend class Orientador;
 
 public:
-    PlayerProjectile(class Scene* scene, class Player* owner);
+    /// O dono e quem atira: o aluno, ou o orientador que luta do lado dele no
+    /// TCC. O tiro nasce onde o dono esta, e paga a nota do mesmo jeito.
+    PlayerProjectile(class Scene* scene, class Actor* owner);
     void OnUpdate(float deltaTime) override;
     [[nodiscard]] bool IsOffScreen() const override;
     void OnCollision(Actor* other) override;
@@ -20,7 +23,7 @@ public:
 
 private:
 
-    Player* mOwner;
+    Actor* mOwner;
 
     void ActivateProjectile();
     void DeactivateProjectile();

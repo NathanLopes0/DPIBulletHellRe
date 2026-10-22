@@ -28,6 +28,8 @@
 #include "../../Components/DrawComponents/DrawTextComponent.h"
 #include "../../Components/DrawComponents/ProgressBarComponent.h"
 #include "../../Actors/Teachers/ExtraPointItem.h"
+#include "../../Actors/Orientador/Orientador.h"
+#include "../../MateriasArquivo.h"
 
 #include "../../CaminhosArquivo.h"
 
@@ -88,6 +90,7 @@ void Battle::Load() {
     // 2. Criar os atores principais
     LoadPlayer();
     LoadBoss();
+    LoadOrientador();
     LoadHUD();
     LoadEndScreen();
 
@@ -137,6 +140,33 @@ void Battle::LoadBoss() {
         mGame->RequestSceneChange(SceneType::StageSelect);
     }
 }
+void Battle::LoadOrientador() {
+
+    mOrientador = nullptr;
+
+    // SO NA MATERIA QUE PEDE ORIENTACAO. O Game ja zera o orientador a cada
+    // entrada pela selecao de fases; conferir aqui tambem e o que impede um
+    // orientador perdido de aparecer numa batalha que nao o pediu.
+    const Materias::Lista& materias = Materias::Carregadas();
+    const Materias::Materia* aqui = materias.Por(mStage);
+    if (!aqui || !aqui->orientacao) return;
+
+    const int materia = mGame->Orientador();
+    if (materia < 0) return;
+    const Materias::Materia* dele = materias.Por(materia);
+    IBossFactory* fabrica = mGame->GetFactory(static_cast<size_t>(materia));
+    if (!dele || !fabrica) {
+        SDL_Log("ORIENTADOR: a materia %d nao tem professor com batalha - o TCC segue sem orientador.",
+                materia);
+        return;
+    }
+
+    auto orientador = std::make_unique<Orientador>(this, dele->professor,
+                                                   Caminhos::Asset(fabrica->Retrato() + ".png"));
+    mOrientador = dynamic_cast<Orientador*>(AddActor(std::move(orientador)));
+    if (mOrientador) mOrientador->Pousar();
+}
+
 void Battle::LoadHUD() {
 
     //Cria a HUD para segurar todas as infos

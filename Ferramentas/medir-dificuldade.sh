@@ -15,6 +15,9 @@
 # DPI_SEMENTE    o sorteio     DPI_PARADO  o jogador nao sai do lugar
 # DPI_BATALHA    a fase        DPI_VAIVEM  o jogador varre a largura, sem mirar
 #                              DPI_ATIRA   atira sempre que puder
+# DPI_ORIENTADOR o codigo da materia do orientador do TCC (INF213, ...): a
+#                batalha que pede orientacao nasce com ele, como se tivesse
+#                sido escolhido na tela de escolha
 #
 # USE VARIAS SEMENTES. Com dois jogadores ha mais colisoes, e cada colisao
 # consome numeros do mesmo sorteador global: a sequencia de ataques diverge da
@@ -62,6 +65,9 @@ edit("Source/Game.cpp", "    ChangeScene(Scene::SceneType::MainMenu);",
         // batalha pergunta a Game::QuantosJogadores quantos Player criar.
         if (const char* n = std::getenv("DPI_JOGADORES")) {
             DefinirModoDeJogo(std::atoi(n) >= 2 ? Sessao::Modo::Dois : Sessao::Modo::Um);
+        }
+        if (const char* o = std::getenv("DPI_ORIENTADOR")) {
+            DefinirOrientador(Materias::Carregadas().IndiceDe(o));
         }
         ChangeScene(Scene::SceneType::Battle);
     } else
