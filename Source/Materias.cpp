@@ -288,6 +288,17 @@ Lista LerMaterias(const std::string& textoJson) {
 
         m.chefe = Texto(j, "chefe");
 
+        // "orientacao": a batalha pede um orientador antes de comecar. Um valor
+        // que nao e booleano e um erro de digitacao, e nao "sim": avisa e fica
+        // sem orientador.
+        if (j.contains("orientacao")) {
+            if (j["orientacao"].is_boolean()) {
+                m.orientacao = j["orientacao"].get<bool>();
+            } else {
+                lista.problemas.emplace_back(onde + "\"orientacao\" e true ou false; ficou sem orientador");
+            }
+        }
+
         m.coluna = Inteiro(j, "coluna", -1);
         if (m.coluna < 0) {
             lista.problemas.emplace_back(onde + "falta \"coluna\" (0 e a primeira); descartada");

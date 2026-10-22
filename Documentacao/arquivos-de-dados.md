@@ -37,7 +37,7 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 
     { "codigo": "TCC", "nome": "TCC",
       "nomeCompleto": "Trabalho de Conclusão de Curso", "professor": "Hugo",
-      "coluna": 4,
+      "coluna": 4, "orientacao": true,
       "desbloqueio": { "tipo": "aprovadasNaColuna", "coluna": 3, "quantas": 2 } }
   ]
 }
@@ -51,6 +51,7 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 | `professor` | quem dá a matéria. **Não** escolhe chefe nenhum; ver abaixo. |
 | `coluna` | em que coluna da grade o botão fica (0 é a da esquerda) |
 | `chefe` | o nome da fábrica, como registrado em `Game::InitializeBossFactory`. Pode faltar: a matéria aparece e espera uma batalha. |
+| `orientacao` | `true` se a batalha pede um **orientador** antes de começar — o TCC. Opcional, falso por padrão; um valor que não é booleano vira aviso. |
 | `desbloqueio` | quando ela abre |
 
 **Tipos de desbloqueio:**
@@ -70,6 +71,14 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 
 > **A coluna 0 não precisa ter uma matéria só.** A grade se monta a partir desta
 > lista; se uma coluna ficar vazia, as setas a pulam em vez de parar nela.
+
+> **Quem pode orientar** (`Source/Orientacao.h`): o professor de uma matéria em
+> que o aluno foi **aprovado** e que tem `chefe`, menos as que pedem orientação.
+> Entram os três de nota mais alta, a maior primeiro; no empate, a que vem antes
+> nesta lista; um professor aparece uma vez só. Em dupla, a nota de cada matéria
+> é a **maior dos dois**, e os dois votam: discordando, vence o de nota mais
+> alta. Um teste percorre toda combinação de aprovações que dá para alcançar
+> jogando e confere que quem abre o TCC tem sempre os três para escolher.
 
 ---
 

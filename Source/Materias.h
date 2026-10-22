@@ -64,6 +64,9 @@ namespace Materias {
         /// Qual chefe esta materia usa. Vazio = batalha ainda nao feita, que e
         /// o caso de seis das onze hoje. NAO e "sem professor": ver acima.
         std::string chefe;
+        /// Se a batalha desta materia pede um ORIENTADOR antes de comecar - o
+        /// TCC. Quem pode orientar e quem decide entre eles e Orientacao.h.
+        bool orientacao = false;
 
         Desbloqueio desbloqueio;
     };

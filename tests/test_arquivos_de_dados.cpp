@@ -54,6 +54,7 @@
 #include "../Source/Attacks/Blink.h"
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
+#include "../Source/Orientacao.h"
 #include "../Source/Navegacao.h"
 #include "../Source/Personagens.h"
 #include "../Source/Progresso.h"
@@ -1821,4 +1822,42 @@ TEST_CASE("Dados: o Blink do Ricardo - o placar de cada etapa e um delay, e as p
     for (const auto& anim : tipos.at("Placa").animacoes) caras.insert(anim.nome);
     CHECK(caras.count(Blink::kAnimacaoApagada) == 1);
     CHECK(caras.count(Blink::kAnimacaoAcesa) == 1);
+}
+
+TEST_CASE("Dados: so o TCC pede orientacao, e quem abre o TCC sempre tem tres orientadores para escolher") {
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    std::vector<int> pedem;
+    for (int i = 0; i < l.Quantas(); ++i) if (l.Por(i)->orientacao) pedem.push_back(i);
+    REQUIRE(pedem.size() == 1);
+    const int tcc = pedem.front();
+    CHECK(l.CodigoDe(tcc) == "TCC");
+
+    // TODA COMBINACAO DE APROVACOES nas outras materias, com a nota minima de
+    // aprovacao: a que abre o TCC tem de deixar kCandidatos para escolher. Se o
+    // curso mudar e der para chegar ao TCC com menos, a tela da escolha
+    // mostraria uma lista curta - ou vazia.
+    //
+    // SO AS QUE DA PARA ALCANCAR JOGANDO: toda materia aprovada no conjunto
+    // estava aberta por ele. Desbloqueada nao recorre (Materias.h), entao duas
+    // aprovacoes soltas na coluna 3 abririam o TCC no papel - um progresso que
+    // ninguem tem, porque a coluna 3 so abre depois da 2.
+    std::vector<int> outras;
+    for (int i = 0; i < l.Quantas(); ++i) if (i != tcc) outras.push_back(i);
+    REQUIRE(outras.size() < 20);
+    int abriram = 0;
+    for (unsigned conjunto = 0; conjunto < (1u << outras.size()); ++conjunto) {
+        Progresso p;
+        for (size_t k = 0; k < outras.size(); ++k) {
+            if (conjunto & (1u << k)) p.RegistrarNota(outras[k], Progresso::kNotaDeAprovacao);
+        }
+        bool alcancavel = true;
+        for (size_t k = 0; k < outras.size(); ++k) {
+            if ((conjunto & (1u << k)) && !l.Desbloqueada(outras[k], p)) alcancavel = false;
+        }
+        if (!alcancavel || !l.Desbloqueada(tcc, p)) continue;
+        ++abriram;
+        CAPTURE(conjunto);
+        CHECK(static_cast<int>(Orientacao::Candidatos(l, {&p}).size()) == Orientacao::kCandidatos);
+    }
+    CHECK(abriram > 0);
 }
