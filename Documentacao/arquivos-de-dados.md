@@ -194,7 +194,7 @@ recusados na leitura, com a frase dizendo qual fase errou.
 | Campo | Vai para |
 |---|---|
 | `etapa` | opcional. Em qual etapa da fase o ataque dispara. Sem ela, a fase inteira |
-| `gatilho` | opcional. O ataque **não dispara pelo relógio**: dispara quando o professor puxa o gatilho (`Boss::Disparar`), e o `cooldown` é ignorado. Só existem os gatilhos que algum professor puxa — `notificacao` e `consulta`, os do padrão Observer da Maria Lúcia; um nome desconhecido é recusado |
+| `gatilho` | opcional. O ataque **não dispara pelo relógio**: dispara quando o professor puxa o gatilho (`Boss::Disparar`), e o `cooldown` é ignorado. Só existem os gatilhos que algum professor puxa — `notificacao` e `consulta` (o padrão Observer da Maria Lúcia), `agir` (os agentes do Júlio), `nuvens` e `chover` (as nuvens do Vitor); um nome desconhecido é recusado |
 | `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack`, `FlexAttack`, `CapsulaAttack`, `SerpenteAttack`, `SprintAttack`, `PontosAttack`, `TokenAttack` |
 | `projetil` | o nome dentro do conjunto deste professor em `projeteis.json` |
 | `projeteis` | quantos por disparo |
@@ -414,7 +414,7 @@ confere que toda palavra da `frase` é uma animação do projétil.
 
 | Campo | |
 |---|---|
-| `posto` | de onde atirar: `quadro` (as histórias paradas no quadro da sprint) ou `observadores` (os olhos do padrão Observer, que a regra `posto` põe lá ao nascer). Um posto desconhecido é recusado — ninguém o ocuparia, e o ataque nunca dispararia |
+| `posto` | de onde atirar: `quadro` (as histórias paradas no quadro da sprint), `observadores` (os olhos do Observer da Maria Lúcia), `agentes` (os robôs do Júlio) ou `nuvens` (as nuvens do Vitor) — os três últimos, a regra `posto` põe lá ao nascer. Um posto desconhecido é recusado — ninguém o ocuparia, e o ataque nunca dispararia |
 | `mirar` | cada ponto mira o aluno. Sem ele, todos saem em `anguloCentral` |
 | `prever` | mirando, mira onde o aluno **vai estar** se continuar andando |
 
@@ -481,7 +481,7 @@ Escolha no máximo uma forma:
 | `animacao` | nome de uma animação registrada no projétil |
 | `escala` | multiplica o tamanho — e a hitbox junto, porque o colisor multiplica o raio pela escala |
 | `rotacionar` | `true`/`false`: se o sprite gira para acompanhar a direção do voo. **Ausente = não mexe** e vale o que `projeteis.json` pediu |
-| `posto` | o **posto** em que o projétil entra ao nascer: um lugar de onde uma `PontosAttack` atira. Só `quadro` e `observadores` existem; um nome desconhecido é recusado. Volta a vazio quando o pool recicla o projétil |
+| `posto` | o **posto** em que o projétil entra ao nascer: um lugar de onde uma `PontosAttack` atira. Existem `quadro`, `observadores`, `agentes` e `nuvens`; um nome desconhecido é recusado. Volta a vazio quando o pool recicla o projétil |
 
 > **`rotacionar` existe porque girar é da rajada, e não do tipo.** O
 > `Estruturas` do Salles serve a duas fases com necessidades opostas: a lista

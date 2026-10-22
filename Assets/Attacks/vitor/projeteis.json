@@ -74,5 +74,34 @@
     // obstaculo que o jogador quase nao ve nao e obstaculo. O colisor
     // acompanha a escala.
     "escala": 1.15
+  },
+
+  // AS NUVENS DA FASE 2: a computacao em nuvem, em cima do professor. Ociosa
+  // ela balanca; processando, as luzinhas acendem em fila (quem troca a cara e
+  // Vitor::AtualizarNuvens). Ficam acima dele, fora do caminho do tiro.
+  "Nuvem": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorTarefa.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorTarefa.json",
+    "animacoes": {
+      "Ociosa":      [12, 13, 14, 15],
+      "Processando": [16, 17, 18, 19]
+    },
+    "animacaoInicial": "Ociosa",
+    "ordemDeDesenho": 87,
+    "escala": 2.2
+  },
+
+  // O PACOTE: o que a nuvem manda quando acaba de processar. O corpo do
+  // pacote tem 16px num quadro de 32, e o colisor e o dele.
+  "Pacote": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorTarefa.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorTarefa.json",
+    "animacoes": {
+      "Piscando": [20, 21, 22, 23]
+    },
+    "animacaoInicial": "Piscando",
+    "ordemDeDesenho": 91,
+    "escala": 1.2,
+    "colisorDivisor": 4
   }
 }

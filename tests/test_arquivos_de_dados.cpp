@@ -47,6 +47,7 @@
 #include "../Source/Attacks/Sprint.h"
 #include "../Source/Attacks/Observer.h"
 #include "../Source/Attacks/ReAct.h"
+#include "../Source/Attacks/Nuvem.h"
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
 #include "../Source/Navegacao.h"
@@ -1499,9 +1500,9 @@ TEST_CASE("Dados: toda fase com ataque de notificacao tem o de consulta, e cada 
                     CAPTURE(f.nome);
                     CAPTURE(a.gatilho);
                     REQUIRE(a.pontos.has_value());
-                    const std::string esperado = (a.gatilho == ReAct::kGatilhoDeAgir)
-                                                     ? ReAct::kPostoDosAgentes
-                                                     : Observer::kPostoDosObservadores;
+                    std::string esperado = Observer::kPostoDosObservadores;
+                    if (a.gatilho == ReAct::kGatilhoDeAgir) esperado = ReAct::kPostoDosAgentes;
+                    if (a.gatilho == Nuvem::kGatilhoDaChuva) esperado = Nuvem::kPostoDasNuvens;
                     CHECK(a.pontos->posto == esperado);
                 }
             }
@@ -1545,4 +1546,21 @@ TEST_CASE("Dados: toda palavra da frase de uma TokenAttack e uma animacao do tok
 TEST_CASE("Dados: o gatilho e o posto dos agentes do Julio sao nomes que a leitura aceita") {
     CHECK(GatilhoExiste(ReAct::kGatilhoDeAgir));
     CHECK(PostoExiste(ReAct::kPostoDosAgentes));
+}
+
+TEST_CASE("Dados: as nuvens do Vitor - gatilhos, posto e caras sao nomes que os dados tem") {
+    CHECK(GatilhoExiste(Nuvem::kGatilhoDasNuvens));
+    CHECK(GatilhoExiste(Nuvem::kGatilhoDaChuva));
+    CHECK(PostoExiste(Nuvem::kPostoDasNuvens));
+
+    // QUEM TROCA A CARA DA NUVEM E O VITOR, pelos nomes de Nuvem.h. Uma cara
+    // que o tipo nao tem e uma nuvem que para de avisar que vai chover.
+    const auto& tipos = ProjeteisDoChefe("vitor").projeteis;
+    REQUIRE(tipos.count("Nuvem") == 1);
+    for (const char* cara : { Nuvem::kCaraOciosa, Nuvem::kCaraProcessando }) {
+        CAPTURE(cara);
+        bool tem = false;
+        for (const auto& a : tipos.at("Nuvem").animacoes) if (a.nome == cara) tem = true;
+        CHECK(tem);
+    }
 }

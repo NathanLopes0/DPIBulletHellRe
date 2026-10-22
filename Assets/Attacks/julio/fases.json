@@ -91,12 +91,12 @@
         "tokens": { "temperatura": 0.2, "candidatos": 9, "abertura": 120,
                     "frase": ["o", "mo", "de", "lo", "te", "pre", "diz"] } },
       { "etapa": "Morna", "estrategia": "TokenAttack", "projetil": "Token",
-        "projeteis": 7, "velocidade": 300, "intervalo": 0.07, "cooldown": 2.0,
-        "tokens": { "temperatura": 0.8, "candidatos": 9, "abertura": 120,
+        "projeteis": 14, "velocidade": 300, "intervalo": 0.07, "cooldown": 2.0,
+        "tokens": { "temperatura": 0.8, "candidatos": 18, "abertura": 120,
                     "frase": ["o", "mo", "de", "lo", "te", "pre", "diz"] } },
       { "etapa": "Quente", "estrategia": "TokenAttack", "projetil": "Token",
-        "projeteis": 7, "velocidade": 300, "intervalo": 0.07, "cooldown": 2.0,
-        "tokens": { "temperatura": 1.6, "candidatos": 9, "abertura": 120,
+        "projeteis":21, "velocidade": 300, "intervalo": 0.07, "cooldown": 2.0,
+        "tokens": { "temperatura": 1.6, "candidatos": 27, "abertura": 120,
                     "frase": ["o", "mo", "de", "lo", "te", "pre", "diz"] } }
     ]
   },

@@ -4,7 +4,11 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include "../Boss.h"
+#include "../../../Attacks/Nuvem.h"
 
 /**
  * @class Vitor
@@ -22,6 +26,10 @@
  *   fase 1  TAREFAS EM PARALELO - varias faixas descendo de uma vez
  *   fase 2  EXCLUSAO MUTUA      - um anel com UMA fresta, sempre embaixo
  *   fase 3  FORK                - dois corpos, um fazendo cada uma das duas
+ *
+ * E ELE TAMBEM DA REDES: na fase 2 ha duas NUVENS em cima dele, a computacao
+ * em nuvem, que processam e chovem pacotes (Nuvem.h). O relogio delas, a cara
+ * delas e o placar moram aqui (AtualizarNuvens).
  */
 class Vitor : public Boss {
 public:
@@ -30,10 +38,44 @@ public:
 
     void OnUpdate(float deltaTime) override;
 
+    /// A fase das nuvens.
+    static constexpr const char* kFaseDasNuvens = "StateTwo";
+
 protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
 
 private:
+    // ---- AS NUVENS DA FASE 2 -----------------------------------------------
+    //
+    // Pouco depois de a fase comecar o Vitor forma as duas nuvens (o gatilho
+    // "nuvens"), e dali elas trabalham no ciclo de Nuvem.h: processam, e no
+    // fim do processamento ele puxa o gatilho "chover". SO O CORPO ORIGINAL:
+    // o clone da fase 3 roda os ataques da fase 2, mas a nuvem e do Vitor, e
+    // nao de cada copia dele.
+
+    void AtualizarNuvens(float deltaTime);
+
+    /// As nuvens em campo: os projeteis no posto das nuvens.
+    [[nodiscard]] std::vector<BossProjectile*> Nuvens() const;
+
+    /// Puxa um gatilho das nuvens. O CustomizeAttackParams sabe que o disparo e
+    /// delas, e nao do anel - e a fresta do anel nao anda por causa delas.
+    void DispararNuvem(const char* gatilho);
+
+    Nuvem::Ciclo mChuva;
+    bool mNasNuvens = false;
+    bool mNuvensFormadas = false;
+    bool mDisparandoNuvem = false;
+    float mTempoNasNuvens = 0.0f;
+    std::string mNomeDaFaseDasNuvens;
+
+    /// Quanto depois do comeco da fase as nuvens se formam: antes do primeiro
+    /// anel, que sai a 1 s.
+    static constexpr float kFormaAsNuvens = 0.6f;
+
+    static constexpr const char* kProcessando = "nuvem: processando...";
+    static constexpr const char* kEnviando = "nuvem: enviando pacotes";
+
     /**
      * Para onde a fresta do anel aponta, medido a partir da ponta da janela
      * (kFrestaMaisADireita). COMECA NO MEIO, entao o primeiro anel da fase abre

@@ -20,6 +20,13 @@ so na cor sao pintura):
     Corrente  os elos que PERSEGUEM. Sao a piada de "concorrentes": quem leva
               uma quase nao perde nota e fica PRESO - andando a menos da
               metade da velocidade por alguns segundos.
+
+AS LINHAS SEGUINTES SAO AS REDES, a outra materia que ele da (do 127 em diante):
+
+    Nuvem     a nuvem da computacao em nuvem, em cima dele na fase 2: ociosa
+              ela so balanca; PROCESSANDO, as luzinhas dela acendem em fila.
+    Pacote    o pacote de rede que a nuvem manda: o cabecalho colorido e o
+              corpo, piscando.
 """
 from PIL import Image, ImageDraw
 import json, os
@@ -42,6 +49,12 @@ COR_TRAVA  = (224, 122, 122, 255)   # vermelho: recurso retido
 # a mesma familia da cor que o aluno ganha enquanto esta preso.
 COR_ELO    = (186, 192, 208, 255)
 COR_ELO_ESCURO = (120, 128, 148, 255)
+
+COR_NUVEM  = (214, 226, 242, 255)
+COR_NUVEM_SOMBRA = (150, 166, 192, 255)
+COR_LUZ    = (120, 230, 255, 255)   # as luzinhas do processamento
+COR_CABECALHO = (250, 190, 70, 255)
+COR_CORPO  = (90, 140, 220, 255)
 
 
 def quadro_json(nome, w, h, quadros=1, lado=None):
@@ -130,20 +143,56 @@ def corrente():
     return im
 
 
+def nuvem(fase, processando):
+    """A NUVEM: tres bolhas e uma base. Processando, as luzinhas acendem."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    dy = (0, 1, 0, -1)[fase] if not processando else 0
+    for caixa in ([3, 12, 15, 24], [9, 6, 23, 20], [17, 10, 29, 22]):
+        d.ellipse([caixa[0], caixa[1] + dy, caixa[2], caixa[3] + dy], fill=COR_NUVEM, outline=TRACO)
+    d.rectangle([7, 16 + dy, 25, 23 + dy], fill=COR_NUVEM)
+    d.line([6, 24 + dy, 26, 24 + dy], fill=COR_NUVEM_SOMBRA, width=2)
+    if processando:
+        for k in range(4):
+            cor = COR_LUZ if k <= fase else COR_NUVEM_SOMBRA
+            d.rectangle([9 + 4 * k, 18, 11 + 4 * k, 20], fill=cor)
+    return im
+
+
+def pacote(fase):
+    """O PACOTE: um cabecalho e um corpo, piscando."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([8, 9, 23, 23], fill=COR_CORPO, outline=TRACO, width=2)
+    d.rectangle([9, 10, 22, 13], fill=COR_CABECALHO if fase % 2 == 0 else (255, 230, 150, 255))
+    d.line([11, 17, 20, 17], fill=(255, 255, 255, 140), width=1)
+    d.line([11, 20, 17, 20], fill=(255, 255, 255, 110), width=1)
+    return im
+
+
 def folha():
-    """Quatro quadros de cada, em 4x2 - o mesmo arranjo dos outros chefes.
+    """Quatro quadros de cada, uma coisa por linha - o mesmo arranjo dos
+    outros chefes.
 
     QUATRO, e nao um, porque o leitor de animacao recebe uma LISTA de quadros
     por animacao. Com um quadro so a animacao existe e nao anima; com quatro da
     para pulsar depois sem mexer em arquivo nenhum.
+
+    As linhas novas vao sempre no FIM: os quadros de antes ficam onde estavam.
     """
-    f = Image.new("RGBA", (128, 96), (0, 0, 0, 0))
+    f = Image.new("RGBA", (128, 192), (0, 0, 0, 0))
     for i in range(4):
         f.alpha_composite(tarefa(), (i * 32, 0))
     for i in range(4):
         f.alpha_composite(trava(), (i * 32, 32))
     for i in range(4):
         f.alpha_composite(corrente(), (i * 32, 64))
+    for i in range(4):
+        f.alpha_composite(nuvem(i, False), (i * 32, 96))
+    for i in range(4):
+        f.alpha_composite(nuvem(i, True), (i * 32, 128))
+    for i in range(4):
+        f.alpha_composite(pacote(i), (i * 32, 160))
     return f
 
 
@@ -158,4 +207,4 @@ def grava(im, nome, pasta, quadros=1, lado=None):
 
 if __name__ == "__main__":
     grava(vitor(), "DPIBHVitor", "Assets/Teachers")
-    grava(folha(), "DPIBHVitorTarefa", "Assets/Teachers/Projectiles", quadros=12, lado=32)
+    grava(folha(), "DPIBHVitorTarefa", "Assets/Teachers/Projectiles", quadros=24, lado=32)

@@ -81,7 +81,14 @@
         "regras": "paralelo" },
 
       // AS CORRENTES: duas a cada 4,4s, contra seis tarefas a cada 0,8.
-
+      //
+      // RARAS DE PROPOSITO, e mais raras do que eram (3,2s): com forca 6 a
+      // corrente quase nao erra (ver regras.json), entao vindo junto com toda
+      // rajada o aluno nunca estaria solto. Vindo de vez em quando, cada uma e
+      // um EVENTO: da para ver chegando, decidir para que lado correr, e errar.
+      //
+      // O leque de 20 graus so separa as duas na saida; quem decide para onde
+      // elas vao e o Tracking, nao o angulo.
       { "estrategia": "WaveAttack", "projetil": "Corrente",
         "projeteis": 2, "velocidade": 260, "angulo": 20, "intervalo": 0.18,
         "cooldown": 4.4,
@@ -135,16 +142,37 @@
   // A ORBITA E PEQUENA E LENTA (raio 110, 0,08 volta/s): o anel precisa de um
   // centro para ser lido como anel, mas um chefe completamente parado deixa a
   // tela morta - e a licao da primeira versao do Vladimir.
+  //
+  // E HA NUVENS EM CIMA DELE: o Vitor tambem da Redes, e esta e a computacao
+  // em nuvem. Aos 0,6 s ele forma duas (gatilho "nuvens", regra "nuvens"),
+  // presas a ele uma de cada lado, e elas trabalham no ciclo de Nuvem.h:
+  // PROCESSAM por 2,4 s - as luzinhas acendem e o placar diz "processando" -
+  // e no fim chovem tres PACOTES cada, retos para baixo (gatilho "chover").
+  // O processamento e o aviso de que vai chover.
+  //
+  // A CHUVA CAI DOS LADOS DO CHEFE, e nao embaixo dele: quem passa pela porta
+  // do anel - que sai de baixo dele - e quem a chuva encontra. Medido na fase,
+  // ela so acertou o piloto que persegue, 3 vezes (ele leva 5, e levava 2); o
+  // parado e o que vai e vem tomaram exatamente os acertos de antes. E a
+  // sequencia de portas e a mesma de antes: o disparo das nuvens nao empurra a
+  // fresta (Vitor::DispararNuvem).
   "StateTwo": {
     "duracao": 17,
     "proximo": "StateThree",
+    "anuncio": "exclusão mútua",
     "movimento": { "tipo": "Orbitar", "a": 110, "b": 0.08 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Trava",
-        "projeteis": 50, "velocidade": 300, "angulo": 330,
+        "projeteis": 60, "velocidade": 300, "angulo": 330,
         "intervalo": 0,
-        "cooldown": 2.1,
-        "regras": "secao_critica" }
+        "cooldown": 2.6,
+        "regras": "secao_critica" },
+      { "gatilho": "nuvens", "estrategia": "WaveAttack", "projetil": "Nuvem",
+        "projeteis": 2, "velocidade": 150, "angulo": 90, "intervalo": 0,
+        "regras": "nuvens" },
+      { "gatilho": "chover", "estrategia": "PontosAttack", "projetil": "Pacote",
+        "projeteis": 3, "velocidade": 240, "angulo": 36, "anguloCentral": 90,
+        "pontos": { "posto": "nuvens" } }
     ]
   },
 
@@ -180,6 +208,8 @@
   // parada e o perseguidor movel ao mesmo tempo, que e a soma das duas
   // primeiras fases com juros.
   //
+  // So e vista por quem esta entre 40 e 59 no fim da terceira - StateThree tem
+  // "proximo" vazio, entao a batalha e decidida ali (medido no Vladimir).
   "StateFinal": {
     "duracao": 17,
     "proximo": "StateOne",
@@ -187,10 +217,10 @@
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Tarefa",
         "projeteis": 5, "velocidade": 320, "angulo": 25, "intervalo": 0.04,
-        "cooldown": 0.8,
+        "cooldown": 1.0,
         "regras": "tarefas_famintas" },
       { "estrategia": "WaveAttack", "projetil": "Trava",
-        "projeteis": 60, "velocidade": 300, "angulo": 300, "anguloCentral": 270,
+        "projeteis": 52, "velocidade": 300, "angulo": 300, "anguloCentral": 270,
         "intervalo": 0,
         "cooldown": 2.9,
         "regras": "secao_critica" }
