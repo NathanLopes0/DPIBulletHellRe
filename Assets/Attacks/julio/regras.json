@@ -41,6 +41,7 @@
   // a MESMA forma sai girada de um jeito diferente para cada ponto do anel: seis
   // lacos apontando para fora, sem escrever seis caminhos.
   "final_laco": [
-    { "motion": { "tipo": "Path", "forma": "LacoApertado", "velocidade": 650 } }
+    { "animacao": "e",
+      "motion": { "tipo": "Path", "forma": "LacoApertado", "velocidade": 650 } }
   ]
 }

@@ -19,8 +19,8 @@
  * AGENTES: robôs que ele convoca e que agem por ele no ciclo ReAct (ReAct.h) —
  * o relógio do ciclo e o placar moram aqui. A fase 3 são os GUARDRAILS: o
  * anel de robôs-escudo que barra o tiro, e o placar que recusa ("desculpe, não
- * posso ajudar com isso") e comemora o jailbreak. A final ainda é a de antes —
- * o modelo entra em loop.
+ * posso ajudar com isso") e comemora o jailbreak. A final é o modelo que
+ * degenerou em repetição: só gera "e", e o placar repete junto.
  *
  * Toda a customização passa pelos dois ganchos do Boss; ExecuteAttack não é
  * sobrescrito.
@@ -38,6 +38,9 @@ public:
     /// A fase dos guardrails, a que decide a batalha.
     static constexpr const char* kFaseDosGuardrails = "StateThree";
 
+    /// A repescagem: o modelo em loop.
+    static constexpr const char* kFaseDoLoop = "StateFinal";
+
 protected:
     /**
      * @brief Gancho 1 — ajusta os parâmetros ANTES do disparo.
@@ -49,11 +52,8 @@ protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
 
     /**
-     * @brief Gancho 2 — customiza os projéteis DEPOIS de criados.
-     *
-     * Pinta a rajada inteira com a animação da fase atual. Diferente do André,
-     * que sorteia uma cor, aqui a cor é determinística: ela comunica ao jogador
-     * em que fase da luta ele está.
+     * @brief Gancho 2 — roda DEPOIS de a rajada ser criada: na final, poe mais
+     * um "e" no placar a cada disparo.
      */
     void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
                               const std::string& stateName) override;
@@ -90,6 +90,13 @@ private:
     float mTempoDaFala = 0.0f;
 
     static constexpr float kTempoDaFala = 0.8f;
+
+    /// O placar da final: o nome dela no comeco, e um "e" a mais por disparo.
+    void AtualizarLoop();
+    bool mNoLoop = false;
+    int mRepeticoes = 0;
+    std::string mNomeDoLoop;
+    static constexpr int kRepeticoesNoPlacar = 14;
     static constexpr const char* kRecusa = "desculpe, não posso ajudar com isso";
     static constexpr const char* kJailbreak = "jailbreak!";
 };

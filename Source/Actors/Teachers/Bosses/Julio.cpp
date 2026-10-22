@@ -8,8 +8,6 @@
 
 #include <SDL_log.h>
 
-#include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
-#include "BossesProjectiles/BossProjectile.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 
 Julio::Julio(Scene* scene) : Boss(scene)
@@ -20,6 +18,7 @@ void Julio::OnUpdate(const float deltaTime) {
     Boss::OnUpdate(deltaTime);
     AtualizarAgentes(deltaTime);
     AtualizarGuardrails(deltaTime);
+    AtualizarLoop();
 }
 
 bool Julio::NosGuardrails() const {
@@ -37,6 +36,19 @@ void Julio::OnProjetilDerrubado() {
     if (!NosGuardrails()) return;
     mFalaDoGuardrail = kJailbreak;
     mTempoDaFala = kTempoDaFala;
+}
+
+void Julio::AtualizarLoop() {
+    // A FINAL COMECA SEM REPETICAO: o placar diz o nome dela, e o primeiro
+    // disparo poe o primeiro "e".
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool noLoop = fsm && fsm->GetStateName() == kFaseDoLoop;
+    if (noLoop && !mNoLoop) {
+        if (mNomeDoLoop.empty()) mNomeDoLoop = AnuncioDaFase(kFaseDoLoop);
+        mRepeticoes = 0;
+        RegistrarAnuncio(kFaseDoLoop, mNomeDoLoop);
+    }
+    mNoLoop = noLoop;
 }
 
 void Julio::AtualizarGuardrails(const float deltaTime) {
@@ -132,35 +144,26 @@ void Julio::CustomizeAttackParams(AttackParams& params, const std::string& state
         params.centralAngle = anguloDe(GetPredictedPlayerDirection(tempoDeVoo * kLeadFraction));
     }
     else if (stateName == "StateFinal") {
-        // RECOMECOU DO ZERO. Volta a atirar para baixo, previsivel e justo.
-        params.centralAngle = 90.0f;
+        // O LOOP: as frases de "e" saem miradas no aluno. Os aneis sao uma
+        // CircleSpreadAttack, que nem le o angulo.
+        params.centralAngle = anguloDe(GetDirectionToPlayer());
     }
 }
 
 void Julio::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
                                  const std::string& stateName) {
+    Boss::OnProjectilesCreated(projectiles, stateName);
 
-    // Animacao por FASE, nao por projetil: o jogador aprende a associar a arte ao
-    // comportamento que vem a seguir.
+    // O LOOP NO PLACAR: na final, cada disparo poe mais um "e" - o modelo
+    // repetindo a mesma palavra, ate encher o placar.
     //
-    // Os nomes seguem os registrados em JulioProjectile1Factory. Estavam
-    // desatualizados ("Ruido", "Gradiente", "Overfit") desde o redesenho das
-    // fases, e o componente respondia com um aviso e mantinha a animacao
-    // anterior - 78 avisos numa luta de 85s, e a arte exibida era a que sobrou
-    // do projetil reciclado.
-    std::string animation = "Coleta";
-    if (stateName == "StateTwo")        animation = "Perseguicao";
-    else if (stateName == "StateThree") animation = "Previsao";
-
-    // SO OS DADOS: os tokens da fase 1 tem a cara da frase, que a TokenAttack
-    // ja escolheu, e o tipo deles nem tem estas animacoes.
-    const ProjectileFactory* dados = GetProjectileFactory("Dados");
-    for (auto& p : projectiles) {
-        if (!p) continue;
-        const auto* doChefe = dynamic_cast<BossProjectile*>(p.get());
-        if (!doChefe || doChefe->GetOriginFactory() != dados) continue;
-        if (auto drawComp = p->GetComponent<DrawAnimatedComponent>()) {
-            drawComp->SetAnimation(animation);
-        }
+    // (Este gancho pintava os DADOS com a cor de cada fase. Desde o 126 o
+    // Julio nao usa dado nenhum - tokens, agentes e guardrails tem a cara que
+    // a estrategia ou o tipo deles da.)
+    if (stateName == kFaseDoLoop) {
+        if (mRepeticoes < kRepeticoesNoPlacar) ++mRepeticoes;
+        std::string texto = "e";
+        for (int i = 1; i < mRepeticoes; ++i) texto += " e";
+        RegistrarAnuncio(kFaseDoLoop, texto);
     }
 }

@@ -17,21 +17,9 @@
   // que nao existe ou se uma animacao citar um quadro que a folha nao tem.
   // ==========================================================================
 
-  // Uma animacao por fase da luta, e quem escolhe qual usar e
-  // Julio::OnProjectilesCreated conforme o estado da FSM que disparou.
-  // Sprite de 16x16 desenhada em 32x32.
-  "Dados": {
-    "sprite": "Teachers/Projectiles/DPIBHJulioDado.png",
-    "dados":  "Teachers/Projectiles/DPIBHJulioDado.json",
-    "animacoes": {
-      "Coleta":      [0, 1, 2, 3],
-      "Perseguicao": [4, 5, 6, 7],
-      "Previsao":    [8, 9, 10, 11]
-    },
-    "animacaoInicial": "Coleta",
-    "escala": 2,
-    "ordemDeDesenho": 90
-  },
+  // OS DADOS DE ANTES SAIRAM NO 126: nenhuma fase do Julio os usa mais. A arte
+  // deles (DPIBHJulioDado.png, a original do repositorio) fica guardada em
+  // Assets/Teachers/Projectiles.
 
   // OS TOKENS DA FASE 1: pedacos de palavra num chip, como um modelo de
   // linguagem quebra o texto. Uma animacao por token, com o nome do proprio

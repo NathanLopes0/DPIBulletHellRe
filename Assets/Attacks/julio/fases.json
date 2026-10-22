@@ -31,26 +31,22 @@
   //   vive em C++. Onde isso acontece esta anotado na fase.
   // ==========================================================================
 // ==========================================================================
-// JULIO - INF 420, Inteligencia Artificial (fabrica de projeteis: "Dados")
+// JULIO - INF 420, Inteligencia Artificial
 //
-// O PROFESSOR DE IA, E A AREA DELE SAO OS MODELOS DE LINGUAGEM. A batalha vai
-// virando um LLM, uma fase por commit: a fase 1 ja e a geracao de tokens com
-// temperatura, a fase 2 os agentes que ele convoca, a fase 3 os guardrails
-// que o protegem; a repescagem ainda e a de antes - o modelo entra em loop.
+// O PROFESSOR DE IA, E A AREA DELE SAO OS MODELOS DE LINGUAGEM. A batalha e um
+// LLM: a fase 1 e a geracao de tokens com temperatura, a fase 2 os agentes que
+// ele convoca, a fase 3 os guardrails que o protegem, e a repescagem o modelo
+// que degenerou em repeticao. A arte dos projeteis e de
+// Ferramentas/gerar_julio.py.
 //
 // Julio SOBRESCREVE anguloCentral nas QUATRO fases (Julio.cpp), e cada uma de
 // um jeito diferente:
 //   StateOne    mira exata no aluno - quem desvia e a temperatura dos tokens
 //   StateTwo    nao mexe: os agentes saem no leque daqui, e cada um mira por si
 //   StateThree  mira em onde o aluno ESTARA (GetPredictedPlayerDirection)
-//   StateFinal  volta a atirar para baixo, 90 graus fixos
+//   StateFinal  mira exata no aluno - as frases de "e" vem para cima dele
 // Por isso as fases 1, 3 e final nao escrevem anguloCentral aqui: nao teria
 // efeito. (O anel de guardrails e uma CircleSpreadAttack, que nem o le.)
-//
-// A animacao dos DADOS tambem e decidida por fase em Julio::OnProjectilesCreated,
-// que roda DEPOIS do configurator - "Coleta", "Perseguicao" e "Previsao". Uma
-// animacao escrita nas regras destas fases seria sobrescrita por ela. Os
-// tokens nao passam por la: a cara deles e a da frase.
 // ==========================================================================
 
   // FASE 1 - OS TOKENS   |   "o modelo te prediz"
@@ -178,24 +174,34 @@
     ]
   },
 
-  // FASE FINAL - "Entrou em loop" (repescagem, nota entre 40 e 59)
+  // FASE FINAL - O LOOP   |   gesto: A ORBITA LENTA
   //
-  // PRECISA existir mesmo o Julio sendo um chefe de 3 fases. Se a nota cair
-  // nessa faixa ao fim da fase 3, a FSM tenta ir para StateFinal; sem o estado,
-  // ela apenas registra o erro e o chefe TRAVA.
+  // So e vista por quem termina a terceira entre 40 e 59, ou com 100.
   //
-  // Tema: o modelo travou. A piada e de graca para calouro de computacao - as
-  // balas entram em LOOP antes de vir para cima de voce. Continua sendo a fase
-  // mais facil da luta, que e o papel de uma repescagem.
+  // O MODELO DEGENEROU EM REPETICAO, o defeito classico de um modelo de
+  // linguagem que entra em loop: ele so gera "e". Aneis de dez tokens "e" que
+  // dao uma volta antes de seguir (regra "final_laco", a forma LacoApertado), e
+  // frases de cinco "e" mirados no aluno. O placar vai repetindo junto - um "e"
+  // a mais a cada disparo (Julio::OnProjectilesCreated).
+  //
+  // A ORBITA E PARA O EXAME TER COMO PASSAR E O PARADO NAO. Na final de antes
+  // (aneis de seis, vagando pelo centro) ate o parado passava, com 70,9 e
+  // nenhum acerto: o professor ficava em cima dele. Na orbita, comecando com
+  // 40, o piloto que persegue passa com 65,9 (4 acertos), e o parado e o que
+  // vai e vem reprovam com 9,4 e 40,3.
   "StateFinal": {
     "duracao": 17,
     "proximo": "StateOne",
-    "movimento": { "tipo": "RandomWander", "a": 4.5, "b": 85 },
+    "anuncio": "o modelo entrou em loop",
+    "movimento": { "tipo": "Orbitar", "a": 180, "b": 0.12 },
     "ataques": [
-      { "estrategia": "CircleSpreadAttack", "projetil": "Dados",
-        "projeteis": 6, "velocidade": 150,
-        "cooldown": 2.6,
-        "regras": "final_laco" }
+      { "estrategia": "CircleSpreadAttack", "projetil": "Token",
+        "projeteis": 10, "velocidade": 150,
+        "cooldown": 1.6,
+        "regras": "final_laco" },
+      { "estrategia": "TokenAttack", "projetil": "Token",
+        "projeteis": 5, "velocidade": 280, "intervalo": 0.08, "cooldown": 2.2,
+        "tokens": { "temperatura": 0.3, "frase": ["e"] } }
     ]
   }
 }

@@ -470,8 +470,8 @@ TEST_CASE("Dados: os projeteis mantem exatamente o que as fabricas em C++ tinham
          1.0f, 90, "Normal", "largura", 2.0f, true,  1.0f, 12.0f, 2},
         {"ricardo", "Arduino",  "Teachers/Projectiles/DPIBHRicardoProjectile.png",
          2.0f, 90, "Normal", "largura", 2.0f, true,  1.0f, 12.0f, 1},
-        {"julio",   "Dados",    "Teachers/Projectiles/DPIBHJulioDado.png",
-         2.0f, 90, "Coleta", "largura", 2.0f, true,  1.0f, 12.0f, 3},
+        // (Os "Dados" do Julio sairam no 126, quando a ultima fase dele que os
+        // usava virou o modelo em loop.)
         // Os baloes sao o unico que difere em tres campos de uma vez, e os tres
         // eram de proposito: hitbox menor que o desenho (divisor 4), nao nascer na
         // posicao do chefe (a BaloonAttack escolhe o lado da tela) e morrer com
@@ -524,9 +524,6 @@ TEST_CASE("Dados: as animacoes dos projeteis mantem os quadros exatos") {
         {"salles",  "Capivara", "Normal",      {0}},
         {"salles",  "Capivara", "Homing",      {1}},
         {"ricardo", "Arduino",  "Normal",      {0}},
-        {"julio",   "Dados",    "Coleta",      {0, 1, 2, 3}},
-        {"julio",   "Dados",    "Perseguicao", {4, 5, 6, 7}},
-        {"julio",   "Dados",    "Previsao",    {8, 9, 10, 11}},
         // A folha dos baloes tem 24 quadros e as animacoes comecam no 6: os seis
         // primeiros sao de uma versao antiga e nenhuma animacao os usa.
         {"andre",   "Baloes",   "Red",         {6, 7, 8, 9, 10, 11}},
