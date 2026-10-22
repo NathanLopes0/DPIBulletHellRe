@@ -159,6 +159,14 @@ public:
      */
     virtual void OnProjetilDerrubado() {}
 
+    /**
+     * @brief Um tiro do aluno acertou um projetil derrubavel deste chefe e NAO o
+     * derrubou: a resistencia dele (DescricaoDeProjetil::resistencia) comeu o
+     * tiro. Mesma regra de quem e chamado do OnProjetilDerrubado. O padrao nao
+     * faz nada; o Julio usa para o guardrail dizer que nao pode ajudar.
+     */
+    virtual void OnProjetilBarrado() {}
+
     // ---- O PLACAR ---------------------------------------------------------
 
     /// @brief Anota o que o placar mostra enquanto esta fase dura ("anuncio" em

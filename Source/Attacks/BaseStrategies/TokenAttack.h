@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "../IAttackStrategy.h"
 
 /**
@@ -22,6 +24,10 @@
  * nasce inteira em cima do professor e sai escrita, um token por vez. A mira e
  * a do disparo - a frase inteira vai para onde o aluno estava.
  *
+ * A FRASE CONTINUA DE UM DISPARO PARA O OUTRO: a estrategia guarda em que
+ * token parou. Um disparo do tamanho da frase comeca sempre do comeco dela; um
+ * disparo de um token so a escreve aos poucos, um token por disparo.
+ *
  * Le de TokenAttackParams: temperatura, candidatos, abertura, frase. De
  * AttackParams: numProjectiles, projectileSpeed, creationSpeed, centralAngle (a
  * mira, que o professor poe) e firePosition. angle e IGNORADO.
@@ -32,4 +38,7 @@ public:
     ~TokenAttack() override = default;
 
     std::vector<std::unique_ptr<Projectile>> Execute(const AttackParams& params) override;
+
+private:
+    std::size_t mProximoToken = 0;
 };

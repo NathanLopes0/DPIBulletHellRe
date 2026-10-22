@@ -852,6 +852,8 @@ void Battle::CheckCollisions() {
                 if (bossProj->Golpear()) {
                     bossProj->OnCollision(playerProj.get());
                     if (mBoss) mBoss->OnProjetilDerrubado();
+                } else if (mBoss) {
+                    mBoss->OnProjetilBarrado();
                 }
             }
             break;   // um tiro derruba um processo so, ou some numa capsula so

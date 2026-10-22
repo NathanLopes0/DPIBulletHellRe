@@ -17,6 +17,8 @@ A MATERIA E A DE UM LLM, e os projeteis sao as pecas dele:
                 e um visor que varre de um lado para o outro.
     Ferramenta  a engrenagem que o agente manda quando age - a "chamada de
                 ferramenta" de um agente de IA -, girando de um quadro ao outro.
+    Guardrail   o robo-escudo da fase 3, que gira em volta do professor e
+                barra o tiro do aluno: um escudo com o visor aceso, pulsando.
 """
 from PIL import Image, ImageDraw, ImageFont
 import json, os
@@ -105,6 +107,20 @@ def ferramenta(fase):
     return im
 
 
+def guardrail(fase):
+    """O GUARDRAIL: um escudo de metal com o visor do robo, pulsando."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.polygon([(5, 5), (26, 5), (26, 16), (16, 28), (5, 16)], fill=METAL, outline=VISOR)
+    d.polygon([(8, 8), (23, 8), (23, 15), (16, 24), (8, 15)], fill=SOMBRA)
+    brilho = (OLHO, (150, 250, 225, 255), OLHO, (60, 170, 140, 255))[fase]
+    d.rectangle([10, 11, 21, 14], fill=VISOR)
+    d.rectangle([11, 12, 20, 13], fill=brilho)
+    d.line([12, 18, 16, 21], fill=LUZ, width=2)                          # a divisa
+    d.line([16, 21, 20, 18], fill=LUZ, width=2)
+    return im
+
+
 def folha():
     """Quatro quadros por linha, de 32 px: os oito tokens em duas linhas, e
     uma linha para cada coisa que vem depois. As linhas novas vao sempre no
@@ -112,6 +128,7 @@ def folha():
     desenhos = [token(t) for t in TOKENS]
     desenhos += [agente(i) for i in range(4)]
     desenhos += [ferramenta(i) for i in range(4)]
+    desenhos += [guardrail(i) for i in range(4)]
     linhas = (len(desenhos) + 3) // 4
     f = Image.new("RGBA", (128, 32 * linhas), (0, 0, 0, 0))
     for i, im in enumerate(desenhos):

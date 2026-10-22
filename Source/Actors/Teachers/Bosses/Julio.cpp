@@ -4,6 +4,8 @@
 
 #include "Julio.h"
 
+#include <algorithm>
+
 #include <SDL_log.h>
 
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
@@ -17,6 +19,43 @@ Julio::Julio(Scene* scene) : Boss(scene)
 void Julio::OnUpdate(const float deltaTime) {
     Boss::OnUpdate(deltaTime);
     AtualizarAgentes(deltaTime);
+    AtualizarGuardrails(deltaTime);
+}
+
+bool Julio::NosGuardrails() const {
+    const auto* fsm = GetComponent<FSMComponent>();
+    return fsm && fsm->GetStateName() == kFaseDosGuardrails && !EhClone();
+}
+
+void Julio::OnProjetilBarrado() {
+    if (!NosGuardrails()) return;
+    mFalaDoGuardrail = kRecusa;
+    mTempoDaFala = kTempoDaFala;
+}
+
+void Julio::OnProjetilDerrubado() {
+    if (!NosGuardrails()) return;
+    mFalaDoGuardrail = kJailbreak;
+    mTempoDaFala = kTempoDaFala;
+}
+
+void Julio::AtualizarGuardrails(const float deltaTime) {
+    if (!NosGuardrails()) {
+        if (mNosGuardrails && !mNomeDosGuardrails.empty()) RegistrarAnuncio(kFaseDosGuardrails, mNomeDosGuardrails);
+        mNosGuardrails = false;
+        mTempoDaFala = 0.0f;
+        return;
+    }
+    if (!mNosGuardrails) {
+        mNosGuardrails = true;
+        if (mNomeDosGuardrails.empty()) mNomeDosGuardrails = AnuncioDaFase(kFaseDosGuardrails);
+    }
+
+    // A FALA DURA UM POUCO E VOLTA AO NOME DA FASE. Um tiro barrado no meio da
+    // fala a renova: enquanto o aluno insiste, o guardrail recusa.
+    mTempoDaFala = std::max(0.0f, mTempoDaFala - deltaTime);
+    const std::string& texto = (mTempoDaFala > 0.0f) ? mFalaDoGuardrail : mNomeDosGuardrails;
+    if (AnuncioDaFase(kFaseDosGuardrails) != texto) RegistrarAnuncio(kFaseDosGuardrails, texto);
 }
 
 void Julio::AtualizarAgentes(const float deltaTime) {
@@ -77,8 +116,8 @@ void Julio::CustomizeAttackParams(AttackParams& params, const std::string& state
     // A FASE 2 NAO MEXE NA MIRA: os agentes saem no leque escrito em fases.json,
     // e quem mira e cada agente, da PontosAttack.
     else if (stateName == "StateThree") {
-        // APRENDEU COMO VOCE SE MOVE. Mira em onde o jogador ESTARA, nao onde
-        // ele esta.
+        // O MODELO TE PREDIZ. Mira em onde o jogador ESTARA, nao onde ele esta
+        // - e o token da fase dos guardrails.
         //
         // Sem ruido aleatorio de proposito: se o tiro errasse tambem por acaso,
         // o jogador nao conseguiria distinguir "ele me previu" de "ele errou

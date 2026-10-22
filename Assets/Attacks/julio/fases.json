@@ -35,18 +35,17 @@
 //
 // O PROFESSOR DE IA, E A AREA DELE SAO OS MODELOS DE LINGUAGEM. A batalha vai
 // virando um LLM, uma fase por commit: a fase 1 ja e a geracao de tokens com
-// temperatura, a fase 2 os agentes que ele convoca; as outras ainda sao a
-// historia de antes - o modelo aprende como voce se move, e na repescagem
-// entra em loop.
+// temperatura, a fase 2 os agentes que ele convoca, a fase 3 os guardrails
+// que o protegem; a repescagem ainda e a de antes - o modelo entra em loop.
 //
 // Julio SOBRESCREVE anguloCentral nas QUATRO fases (Julio.cpp), e cada uma de
 // um jeito diferente:
 //   StateOne    mira exata no aluno - quem desvia e a temperatura dos tokens
 //   StateTwo    nao mexe: os agentes saem no leque daqui, e cada um mira por si
-//   StateThree  mira em onde o jogador ESTARA (GetPredictedPlayerDirection)
+//   StateThree  mira em onde o aluno ESTARA (GetPredictedPlayerDirection)
 //   StateFinal  volta a atirar para baixo, 90 graus fixos
 // Por isso as fases 1, 3 e final nao escrevem anguloCentral aqui: nao teria
-// efeito.
+// efeito. (O anel de guardrails e uma CircleSpreadAttack, que nem o le.)
 //
 // A animacao dos DADOS tambem e decidida por fase em Julio::OnProjectilesCreated,
 // que roda DEPOIS do configurator - "Coleta", "Perseguicao" e "Previsao". Uma
@@ -143,47 +142,39 @@
     ]
   },
 
-  // FASE 3 - "Aprendeu como voce se move"
+  // FASE 3 - OS GUARDRAILS   |   gesto: A ORBITA
   //
-  // Dois ataques ao mesmo tempo, com papeis diferentes:
+  // O MODELO GANHA UMA CAMADA DE SEGURANCA. A cada 6 s o professor solta um
+  // anel de oito GUARDRAILS (regra "guardrails"), robos-escudo amarrados a ele
+  // por uma corda de 95px, girando em volta dele por 5,5 s. Cada um aguenta
+  // tres tiros: o tiro que ele come nao chega ao professor, e o placar diz o
+  // que um guardrail diz - "desculpe, nao posso ajudar com isso". O que cai e
+  // um "jailbreak!". E o anel volta, RETREINADO, a cada 6 s; o que sobrou do
+  // anterior sai pela tangente quando a corda e cortada.
   //
-  // 1. UM projetil rapido por vez com cooldown curtissimo (0.1s): um fluxo
-  //    continuo de balas individualmente legiveis, em vez de uma rajada que o
-  //    jogador so pode atravessar torcendo. AJUSTE O 0.1 para calibrar a
-  //    pressao da fase - e o knob mais sensivel do chefe.
-  //    AngledAttack com 1 projetil e angulo 0 dispara um tiro unico exatamente
-  //    em anguloCentral: o angleStep fica zerado e o laco roda uma vez. O
-  //    "angulo": 0 e OBRIGATORIO aqui - sem ele o padrao de 90 graus deslocaria
-  //    o tiro 45 graus do centro, porque o leque comeca em centro - angulo/2.
+  // E O MODELO TE PREDIZ, agora de verdade: um token a cada 0,35 s, mirado
+  // onde o aluno VAI ESTAR (Julio::CustomizeAttackParams), e a frase da fase 1
+  // ("o mo de lo te pre diz") se escreve aos poucos, um token por disparo.
   //
-  // 2. O cacador da fase 1 de novo, mais lento e com cinco investidas, para
-  //    haver uma ameaca que persegue enquanto o fluxo pressiona.
-  //
-  // Movimento: o chefe se fixa no centro. Parou de procurar, agora so calcula.
-  //
-  // "proximo" vazio: e aqui que a batalha e decidida.
+  // A ORBITA E PARA A FASE TER COMO PASSAR. Com o professor parado no centro
+  // (GoToCenter, a fase de antes) o piloto que persegue fica parado embaixo
+  // dele, onde a mira prevista e a mira de agora: com o tiro de previsao da
+  // fase de antes, a cada 0,25 s, ele levava um acerto a cada fim de
+  // invencibilidade - 12 em 17 s - e zerava a nota. Na orbita lenta ele leva 3 na fase, todos de token,
+  // e vence os 24 guardrails dos tres aneis; o parado leva 8 e zera.
   "StateThree": {
     "duracao": 17,
     "proximo": "",
-    "movimento": { "tipo": "GoToCenter" },
+    "anuncio": "Guardrails",
+    "movimento": { "tipo": "Orbitar", "a": 160, "b": 0.10 },
     "ataques": [
-      { "estrategia": "AngledAttack", "projetil": "Dados",
-        "projeteis": 1, "velocidade": 300, "angulo": 0,
-        "cooldown": 0.1,
-        "regras": "fase3_previsao" },
-
-      { "estrategia": "AngledAttack", "projetil": "Dados",
-        "projeteis": 1, "velocidade": 120, "angulo": 0,
-        // Metade da sequencia: o cacador seguinte entra quando o anterior
-        // esta na quinta investida, entao ha no maximo dois na tela.
-        "cooldown": { "doRitmo": "total", "dividirPor": 2 },
-        "regras": [
-          { "escala": 3, "animacao": "Perseguicao",
-            "investidaRepetida": {
-              "ritmo": { "investida": 0.6, "pausa": 1.0, "repeticoes": 5 },
-              "velocidadeNaInvestida": 800,
-              "velocidadeNaPausa": 15 } }
-        ] }
+      { "estrategia": "CircleSpreadAttack", "projetil": "Guardrail",
+        "projeteis": 8, "velocidade": 160,
+        "cooldown": 6.0,
+        "regras": "guardrails" },
+      { "estrategia": "TokenAttack", "projetil": "Token",
+        "projeteis": 1, "velocidade": 300, "cooldown": 0.35,
+        "tokens": { "temperatura": 0, "frase": ["o", "mo", "de", "lo", "te", "pre", "diz"] } }
     ]
   },
 

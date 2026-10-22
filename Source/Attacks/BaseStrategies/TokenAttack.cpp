@@ -56,10 +56,11 @@ std::vector<std::unique_ptr<Projectile>> TokenAttack::Execute(const AttackParams
         token->insertModifier<ActivateBehavior>(static_cast<float>(i) * params.creationSpeed,
                                                 Vector2(Math::Cos(a), Math::Sin(a)) * params.projectileSpeed);
         if (!tokens->frase.empty()) {
-            const std::string& palavra = tokens->frase[static_cast<size_t>(i) % tokens->frase.size()];
+            const std::string& palavra = tokens->frase[(mProximoToken + static_cast<size_t>(i)) % tokens->frase.size()];
             if (auto* anim = token->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(palavra);
         }
         projectiles.push_back(std::move(token));
     }
+    mProximoToken += static_cast<size_t>(params.numProjectiles);
     return projectiles;
 }
