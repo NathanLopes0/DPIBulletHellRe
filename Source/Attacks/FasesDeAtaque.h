@@ -109,6 +109,27 @@ struct DescricaoDeSerpente {
 };
 
 /**
+ * @brief Os campos que SO a SprintAttack usa. Opcional: todo campo tem padrao
+ * em SprintAttackParams.
+ */
+struct DescricaoDeSprint {
+    std::optional<float> revisao;   ///< segundos do disparo ate o que sobrou cair
+    std::string historia;           ///< a animacao das historias
+    std::string cursor;             ///< a do cursor apontando
+    std::string clique;             ///< a do cursor clicando
+};
+
+/**
+ * @brief Os campos que SO a PontosAttack usa. OBRIGATORIO nela: sem posto, ela
+ * nao teria de onde atirar.
+ */
+struct DescricaoDePontos {
+    std::string posto;      ///< de onde se atira (PostoExiste)
+    bool mirar = false;     ///< cada ponto mira o aluno
+    bool prever = false;    ///< ...onde ele vai estar (so vale mirando)
+};
+
+/**
  * @brief Os campos que SO a FlexAttack usa.
  *
  * "de" e "para" sao OBRIGATORIOS e tem de ser nomes de justify-content do CSS
@@ -199,6 +220,12 @@ struct DescricaoDeAtaque {
     /// Presente so nos ataques SerpenteAttack que escreveram o bloco.
     std::optional<DescricaoDeSerpente> serpente;
 
+    /// Presente so nos ataques SprintAttack que escreveram o bloco.
+    std::optional<DescricaoDeSprint> sprint;
+
+    /// Presente em todo ataque PontosAttack, e so neles.
+    std::optional<DescricaoDePontos> pontos;
+
     /// Em qual etapa da fase este ataque dispara. Vazio = a fase inteira. Fora
     /// da etapa ele nao conta o cooldown nem dispara.
     std::string etapa;
@@ -209,6 +236,11 @@ bool LadoDeBalaoExiste(const std::string& nome);
 
 /// @brief O eixo nomeado existe? (Linha ou Coluna)
 bool EixoDeConsultaExiste(const std::string& nome);
+
+/// @brief O posto nomeado existe? Um posto e um lugar de onde uma PontosAttack
+/// atira, e so existe se alguem no motor o ocupa: "quadro" sao as historias
+/// paradas no quadro da sprint (Sprint::kPostoDoQuadro).
+bool PostoExiste(const std::string& nome);
 
 /**
  * @brief Como o chefe se move durante a fase.
@@ -295,6 +327,24 @@ bool JanelaDaEtapa(const std::vector<DescricaoDeEtapa>& etapas, const std::strin
 /// @brief A etapa que vale no instante 't' da fase: o indice, ou -1 depois da
 /// ultima (ou sem etapas). Antes de zero vale a primeira.
 int EtapaNoTempo(const std::vector<DescricaoDeEtapa>& etapas, float t);
+
+/// Quanto o primeiro disparo de um ataque espera depois que a janela dele
+/// abre. Pouco, mas nao zero: a etapa anterior acabou de parar, e os dois
+/// ataques nascendo no mesmo quadro se leriam como um so.
+constexpr float kPrimeiroDisparoDaJanela = 0.25f;
+
+/// Quanto o primeiro disparo de cada ataque espera na primeira vez que a FASE
+/// dele roda. E maior que o da janela, e vale tambem para o ataque cuja etapa
+/// abre a fase: uma etapa que comeca no zero dispara aos 1 s, e as outras
+/// 0,25 s depois de abrir.
+constexpr float kPrimeiroDisparoDaFase = 1.0f;
+
+/// @brief Quando sai o primeiro disparo de um ataque cuja janela abre 'de'
+/// segundos depois do comeco da fase, na primeira vez que ela roda. E a conta
+/// que o Boss faz quadro a quadro (Boss::OnUpdate), escrita uma vez para os
+/// dados poderem confere-la: quem precisa que todas as etapas disparem no
+/// mesmo ponto - as sprints da Maria Lucia - comeca a primeira depois do zero.
+float PrimeiroDisparoNaJanela(float de);
 
 struct DescricaoDeFase {
     std::string nome;

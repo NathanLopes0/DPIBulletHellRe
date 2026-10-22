@@ -132,8 +132,6 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/RegrasDeAtaque.h
         Source/Attacks/RegrasDeAtaqueArquivo.cpp
         Source/Attacks/RegrasDeAtaqueArquivo.h
-        Source/Attacks/EscopoQueCresce.cpp
-        Source/Attacks/EscopoQueCresce.h
         Source/Attacks/Fita.cpp
         Source/Attacks/Fita.h
         Source/Attacks/Caixa.cpp
@@ -152,6 +150,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Rastro.h
         Source/Movements/Escada.cpp
         Source/Movements/Escada.h
+        Source/Attacks/Sprint.cpp
+        Source/Attacks/Sprint.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
@@ -237,6 +237,12 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/BaseStrategies/SerpenteAttack.cpp
         Source/Attacks/BaseStrategies/SerpenteAttack.h
         Source/Attacks/AttackParameters/SerpenteAttackParams.h
+        Source/Attacks/BaseStrategies/SprintAttack.cpp
+        Source/Attacks/BaseStrategies/SprintAttack.h
+        Source/Attacks/AttackParameters/SprintAttackParams.h
+        Source/Attacks/BaseStrategies/PontosAttack.cpp
+        Source/Attacks/BaseStrategies/PontosAttack.h
+        Source/Attacks/AttackParameters/PontosAttackParams.h
         Source/Attacks/BaseStrategies/LaserAttack.h
         Source/Actors/ProjectilePool.h
 )
@@ -266,7 +272,6 @@ add_executable(dpi_tests
         tests/test_investida.cpp
         tests/test_formas.cpp
         tests/test_regras.cpp
-        tests/test_escopo.cpp
         tests/test_fita.cpp
         tests/test_intercambio.cpp
         tests/test_caixa.cpp
@@ -277,6 +282,7 @@ add_executable(dpi_tests
         tests/test_coletor.cpp
         tests/test_rastro.cpp
         tests/test_escada.cpp
+        tests/test_sprint.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -334,8 +340,6 @@ add_executable(dpi_tests
         Source/Attacks/PathShapes.h
         Source/Attacks/RegrasDeAtaque.cpp
         Source/Attacks/RegrasDeAtaque.h
-        Source/Attacks/EscopoQueCresce.cpp
-        Source/Attacks/EscopoQueCresce.h
         Source/Attacks/Fita.cpp
         Source/Attacks/Fita.h
         Source/Attacks/Caixa.cpp
@@ -354,6 +358,8 @@ add_executable(dpi_tests
         Source/Attacks/Rastro.h
         Source/Movements/Escada.cpp
         Source/Movements/Escada.h
+        Source/Attacks/Sprint.cpp
+        Source/Attacks/Sprint.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp

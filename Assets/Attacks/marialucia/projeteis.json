@@ -67,5 +67,24 @@
     // Sem escala, as perninhas de 2 px somem e o bug vira um ponto verde.
     "escala": 1.4,
     "derrubavel": true
+  },
+
+  // A HISTORIA DAS SPRINTS E O CURSOR QUE A ARRASTA vem do mesmo tipo: a
+  // SprintAttack tira os dois da mesma fabrica, e o cursor e marcado como
+  // ENFEITE no disparo - nao acerta o aluno e o tiro passa por ele. A historia
+  // e derrubavel: derrubar e ENTREGAR, e o tiro que entrega uma historia nao
+  // chega na professora.
+  "Historia": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
+    "animacoes": {
+      "Historia": [24, 25, 26, 27],
+      "Cursor":   [16, 17],
+      "Clique":   [18, 19]
+    },
+    "animacaoInicial": "Historia",
+    "ordemDeDesenho": 91,
+    "escala": 1.3,
+    "derrubavel": true
   }
 }

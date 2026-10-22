@@ -4,6 +4,8 @@
 
 #include "FasesDeAtaque.h"
 
+#include <algorithm>
+
 #include "../Tabela.h"
 
 #include "../JsonDeDados.h"
@@ -13,7 +15,8 @@ namespace {
 
     const std::vector<std::string> kEstrategias = {
         "AngledAttack", "CircleSpreadAttack", "WaveAttack", "BaloonAttack", "LaserAttack", "ConsultaAttack",
-        "CaixaAttack", "FlexAttack", "CapsulaAttack", "SerpenteAttack"
+        "CaixaAttack", "FlexAttack", "CapsulaAttack", "SerpenteAttack", "SprintAttack",
+        "PontosAttack"
     };
     const std::vector<std::string> kMovimentos = {
         "RandomWander", "HoverAbovePlayer", "GoToCenter",
@@ -38,6 +41,7 @@ namespace {
     /// "None" NAO entra: a propria BaloonAttack recusa side == None.
     const std::vector<std::string> kLadosDeBalao = {"Down", "Left", "Right", "Up"};
     const std::vector<std::string> kEixosDeConsulta = {"Linha", "Coluna"};
+    const std::vector<std::string> kPostos = {"quadro"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"
@@ -479,6 +483,58 @@ namespace {
             }
         }
 
+        // --- bloco de sprint (opcional) ---
+        if (j.contains("sprint")) {
+            if (saida.estrategia != "SprintAttack") {
+                problemas.emplace_back(onde + "so a SprintAttack usa \"sprint\"; o bloco foi ignorado");
+            }
+            else if (!j["sprint"].is_object()) {
+                problemas.emplace_back(onde + "\"sprint\" deveria ser um objeto");
+                return false;
+            }
+            else {
+                DescricaoDeSprint sp;
+                sp.revisao  = Opcional(j["sprint"], "revisao");
+                sp.historia = Texto(j["sprint"], "historia");
+                sp.cursor   = Texto(j["sprint"], "cursor");
+                sp.clique   = Texto(j["sprint"], "clique");
+
+                // Uma revisao em zero, ou antes, derrubaria as historias em
+                // cima do aluno antes de o cursor sair do professor: nao e uma
+                // sprint curta, e um numero digitado errado.
+                if (sp.revisao && *sp.revisao <= 0.0f) {
+                    problemas.emplace_back(onde + "\"sprint\": \"revisao\" precisa ser maior que zero");
+                    return false;
+                }
+                saida.sprint = sp;
+            }
+        }
+
+        // --- bloco de pontos (obrigatorio na PontosAttack) ---
+        const bool ehPontos = (saida.estrategia == "PontosAttack");
+        if (j.contains("pontos") && !ehPontos) {
+            problemas.emplace_back(onde + "so a PontosAttack usa \"pontos\"; o bloco foi ignorado");
+        }
+        if (ehPontos) {
+            if (!j.contains("pontos") || !j["pontos"].is_object()) {
+                problemas.emplace_back(onde + "a PontosAttack precisa do bloco \"pontos\", com o \"posto\" "
+                                              "de onde atira");
+                return false;
+            }
+            DescricaoDePontos pt;
+            pt.posto = Texto(j["pontos"], "posto");
+            pt.mirar = OpcionalBool(j["pontos"], "mirar").value_or(false);
+            pt.prever = OpcionalBool(j["pontos"], "prever").value_or(false);
+
+            // UM POSTO QUE NINGUEM OCUPA NAO DISPARA NADA, e calado: o Boss nao
+            // acha ponto nenhum e o ataque nunca aparece. Recusado na leitura.
+            if (!PostoExiste(pt.posto)) {
+                problemas.emplace_back(onde + "\"pontos\": o posto \"" + pt.posto + "\" nao existe");
+                return false;
+            }
+            saida.pontos = pt;
+        }
+
         // --- bloco de flex (obrigatorio na FlexAttack) ---
         const bool ehFlex = (saida.estrategia == "FlexAttack");
         if (j.contains("flex")) {
@@ -530,6 +586,7 @@ bool MovimentoExiste(const std::string& nome)    { return Contem(kMovimentos, no
 bool NomeDeFaseExiste(const std::string& nome)   { return Contem(kNomesDeFase, nome); }
 bool LadoDeBalaoExiste(const std::string& nome)  { return Contem(kLadosDeBalao, nome); }
 bool EixoDeConsultaExiste(const std::string& nome) { return Contem(kEixosDeConsulta, nome); }
+bool PostoExiste(const std::string& nome)          { return Contem(kPostos, nome); }
 
 FasesLidas LerFases(const std::string& textoJson) {
 
@@ -840,4 +897,13 @@ int EtapaNoTempo(const std::vector<DescricaoDeEtapa>& etapas, const float t) {
         if (t < fim) return static_cast<int>(i);
     }
     return -1;
+}
+
+float PrimeiroDisparoNaJanela(const float de) {
+    // A janela que abre no zero nunca esteve fechada: o relogio do ataque
+    // comeca em kPrimeiroDisparoDaFase e conta dali. A que abre depois passou
+    // o comeco da fase fechada, e fechada o relogio fica em no maximo
+    // kPrimeiroDisparoDaJanela.
+    if (de <= 0.0f) return kPrimeiroDisparoDaFase;
+    return de + std::min(kPrimeiroDisparoDaFase, kPrimeiroDisparoDaJanela);
 }

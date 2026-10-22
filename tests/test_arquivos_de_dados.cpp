@@ -34,6 +34,7 @@
 #include "doctest.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <fstream>
 #include <set>
 #include <sstream>
@@ -43,6 +44,7 @@
 #include "../Source/Attacks/PathShapes.h"
 #include "../Source/Attacks/RegrasDeAtaque.h"
 #include "../Source/Attacks/ProjeteisDeChefe.h"
+#include "../Source/Attacks/Sprint.h"
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
 #include "../Source/Navegacao.h"
@@ -1329,18 +1331,21 @@ TEST_CASE("Dados: o bloco do meio da rajada do Luizinho para em cima do aluno") 
     CHECK(achou);
 }
 
-TEST_CASE("Dados: nenhuma regra de uma SerpenteAttack tem motion") {
+TEST_CASE("Dados: nenhuma regra de uma SerpenteAttack ou de uma SprintAttack tem motion") {
 
     // A SERPENTE E SUAS DUAS MOTIONS: a SerpenteAttack poe a da cabeca no
     // primeiro gomo e a do corpo nos outros, e as regras rodam DEPOIS da
     // estrategia. Uma "motion" numa regra substituiria a da serpente, e o corpo
     // deixaria de seguir a cabeca - calado, porque cada gomo continuaria
     // voando.
+    //
+    // A SPRINT TAMBEM: a historia que perdesse a motion dela nunca chegaria ao
+    // quadro, e o cursor - que nao acerta ninguem - sairia voando pela tela.
     for (const auto& chefe : Chefes()) {
         const auto regras = RegrasDoChefe(chefe);
         for (const auto& f : FasesDoChefe(chefe).fases) {
             for (const auto& a : f.ataques) {
-                if (a.estrategia != "SerpenteAttack") continue;
+                if (a.estrategia != "SerpenteAttack" && a.estrategia != "SprintAttack") continue;
                 std::vector<Regra> aplicaveis = a.regras;
                 if (!a.regrasNome.empty() && regras.conjuntos.count(a.regrasNome)) {
                     const auto& r = regras.conjuntos.at(a.regrasNome);
@@ -1374,4 +1379,77 @@ TEST_CASE("Dados: a escada tem um degrau por etapa, do tamanho da etapa") {
             }
         }
     }
+}
+
+TEST_CASE("Dados: toda sprint dispara uma vez na etapa dela, e a revisao cai antes de a etapa acabar") {
+
+    // O TIMEBOX E A ETAPA. A sprint dispara quando a etapa abre
+    // (PrimeiroDisparoNaJanela - que NAO e o mesmo ponto para a etapa que abre
+    // a fase), e a revisao vem "revisao" segundos depois. Se a revisao caisse
+    // fora da etapa, o placar ja diria "Sprint 3" enquanto o que sobrou da 2
+    // ainda esperava no quadro; e se o cooldown fosse menor que a etapa, uma
+    // segunda leva de historias saia por cima da primeira.
+    //
+    // E A REVISAO DA ULTIMA SPRINT CAI DENTRO DA FASE: a primeira versao
+    // revisava a sprint de oito historias aos 16,7 s, e o que sobrava dela
+    // so chegava no aluno ja na fase seguinte. Pelo menos um segundo de fase
+    // depois de cada revisao.
+    bool achou = false;
+    for (const auto& chefe : Chefes()) {
+        for (const auto& f : FasesDoChefe(chefe).fases) {
+            for (const auto& a : f.ataques) {
+                if (a.estrategia != "SprintAttack") continue;
+                CAPTURE(chefe);
+                CAPTURE(f.nome);
+                CAPTURE(a.etapa);
+                REQUIRE_FALSE(a.etapa.empty());
+                float de = 0.0f, ate = 0.0f;
+                REQUIRE(JanelaDaEtapa(f.etapas, a.etapa, de, ate));
+
+                const float disparo = PrimeiroDisparoNaJanela(de);
+                const float revisao = (a.sprint && a.sprint->revisao) ? *a.sprint->revisao : Sprint::kRevisaoPadrao;
+                CHECK(disparo + revisao <= ate + 1.0e-4f);
+                CHECK(disparo + a.cooldown >= ate);
+                CHECK(disparo + revisao + 1.0f <= f.duracao + 1.0e-4f);
+                achou = true;
+            }
+        }
+    }
+    CHECK(achou);
+}
+
+TEST_CASE("Dados: o placar de cada sprint diz quantas historias ela tem") {
+
+    // O PLANNING POKER ESTA ESCRITO DUAS VEZES: no anuncio da etapa ("Sprint 4
+    // · 5 pontos") e nos "projeteis" do ataque dela. Mudar um sem o outro faria
+    // o placar prometer cinco historias e o cursor arrastar tres.
+    bool achou = false;
+    for (const auto& chefe : Chefes()) {
+        for (const auto& f : FasesDoChefe(chefe).fases) {
+            for (const auto& a : f.ataques) {
+                if (a.estrategia != "SprintAttack" || a.etapa.empty()) continue;
+                for (const auto& e : f.etapas) {
+                    if (e.nome != a.etapa) continue;
+                    const auto ponto = e.anuncio.find("\xC2\xB7");   // o ponto do meio, em UTF-8
+                    if (ponto == std::string::npos) continue;
+                    CAPTURE(chefe);
+                    CAPTURE(e.anuncio);
+                    const int prometidas = std::atoi(e.anuncio.c_str() + ponto + 2);
+                    REQUIRE(a.projeteis.has_value());
+                    CHECK(prometidas == *a.projeteis);
+                    achou = true;
+                }
+            }
+        }
+    }
+    CHECK(achou);
+}
+
+TEST_CASE("Dados: o posto do quadro da sprint e um posto que a leitura aceita") {
+
+    // O NOME ESTA EM DOIS LUGARES: o behavior da historia poe o projetil no
+    // posto Sprint::kPostoDoQuadro, e a leitura de fases.json so aceita os
+    // postos de PostoExiste. Trocar um sem o outro faria a leitura recusar a
+    // PontosAttack da Maria Lucia - ou aceitar um nome que ninguem ocupa.
+    CHECK(PostoExiste(Sprint::kPostoDoQuadro));
 }

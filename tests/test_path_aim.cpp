@@ -4,6 +4,8 @@
 // O main do doctest fica em test_main.cpp - ver o comentario la.
 #include "doctest.h"
 
+#include <cmath>
+
 #include "../Source/Attacks/PathAim.h"
 
 namespace {
@@ -157,4 +159,27 @@ TEST_CASE("RF2: o referencial e resolvido UMA vez, nao acompanha o alvo") {
     // a funcao e pura e que "resolver uma vez so" e responsabilidade de quem
     // chama (PathBehavior, via flag 'started'), nao da geometria.
     CHECK(antes.cos != doctest::Approx(depois.cos));
+}
+
+TEST_CASE("RumoPrevendo: parado, mira onde o alvo esta; andando, mira na frente dele") {
+    const Vector2 de(0.0f, 0.0f);
+    const Vector2 alvo(0.0f, 300.0f);
+
+    const Vector2 parado = RumoPrevendo(de, alvo, Vector2::Zero, 300.0f);
+    CHECK(parado.x == doctest::Approx(0.0f));
+    CHECK(parado.y == doctest::Approx(1.0f));
+
+    // A 300 px/s o tiro leva 1 s ate onde o alvo esta: andando 100 px/s para a
+    // direita, ele estara 100 px a direita, e e para la que o tiro vai.
+    const Vector2 andando = RumoPrevendo(de, alvo, Vector2(100.0f, 0.0f), 300.0f);
+    CHECK(andando.x == doctest::Approx(100.0f / std::sqrt(100.0f * 100.0f + 300.0f * 300.0f)));
+    CHECK(andando.y == doctest::Approx(300.0f / std::sqrt(100.0f * 100.0f + 300.0f * 300.0f)));
+    CHECK(andando.Length() == doctest::Approx(1.0f));
+
+    // O alvo em cima do tiro: para baixo, e nunca NaN.
+    const Vector2 emCima = RumoPrevendo(alvo, alvo, Vector2::Zero, 300.0f);
+    CHECK(emCima.x == doctest::Approx(0.0f));
+    CHECK(emCima.y == doctest::Approx(1.0f));
+    const Vector2 semRapidez = RumoPrevendo(de, alvo, Vector2(100.0f, 0.0f), 0.0f);
+    CHECK(semRapidez.y == doctest::Approx(1.0f));
 }

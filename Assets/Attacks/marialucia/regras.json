@@ -2,9 +2,12 @@
   // ==========================================================================
   // AS REGRAS DE PROJETIL DA MARIA LUCIA
   //
-  // Cada conjunto veste um momento do projeto. Os dois tipos de projetil
-  // (Requisito e Debito) existem para as regras terem o que diferenciar - ver
-  // a nota em projeteis.json.
+  // Cada conjunto veste um momento do projeto. Os tipos de projetil existem
+  // para as regras terem o que diferenciar - ver a nota em projeteis.json.
+  //
+  // AS SPRINTS DA FASE 2 NAO TEM REGRA, de proposito: quem move a historia e o
+  // cursor sao as duas Motions que a SprintAttack poe neles, e uma "motion"
+  // aqui as SUBSTITUIRIA - a regra roda depois da estrategia.
   //
   // UM SO MOTION POR PROJETIL, e Path, Tracking e Wobble brigam entre si
   // (Behaviors.h avisa: cada um escreve a velocidade todo quadro e desfaz o que
@@ -23,6 +26,9 @@
 
   // CASCATA, ETAPA 3 - A IMPLEMENTACAO. O cartao de terminal, reto e rapido: e
   // a etapa em que mais coisa sai, e sai sem desvio.
+  //
+  // E O MESMO CARTAO NAS SPRINTS (fase 2): e o codigo que cada historia em
+  // andamento solta no aluno, do posto do quadro.
   "codigo": [
     { "animacao": "Codigo" }
   ],
@@ -39,13 +45,13 @@
                   "frequencia": 2.2, "duracao": 4.0 } }
   ],
 
-  // FASE 2 - O DIAGRAMA.
+  // CASCATA, ETAPA 2 - O PROJETO (e a fase final, que o repete).
   //
   // Cada projetil pega uma seta da familia "RotasDeDiagrama" (Assets/Paths/
   // formas.json): anda, vira 90 graus, anda. O angulo reto e a coisa toda -
   // e o que faz a tela parecer um diagrama e nao um tiroteio.
   //
-  // E A FASE QUE SE APRENDE, e nao a que se sofre. Uma seta ortogonal e dificil
+  // E A ETAPA QUE SE APRENDE, e nao a que se sofre. Uma seta ortogonal e dificil
   // de ler no primeiro segundo e FACIL no terceiro, porque depois da virada ela
   // nao surpreende mais - que e precisamente o que um bom projeto faz com o
   // comportamento de um sistema. A dificuldade dela e curta de proposito.

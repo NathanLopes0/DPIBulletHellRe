@@ -8,6 +8,7 @@
 #include "PathAim.h"
 #include "Amarra.h"
 #include "Rastro.h"
+#include "Sprint.h"
 #include <vector>
 #include <memory>
 #include <string>
@@ -35,8 +36,8 @@ public:
  * ultimo a rodar venceria, o que produz movimento aleatorio e dificil de
  * depurar. Projectile::insertMotion garante a exclusividade.
  *
- * Sao Motion: Tracking, Wobble, Path, MiraPeriodica, Amarrar e as duas da
- * serpente. (O antigo HomingBehavior foi removido
+ * Sao Motion: Tracking, Wobble, Path, MiraPeriodica, Amarrar, as duas da
+ * serpente e as duas da sprint. (O antigo HomingBehavior foi removido
  * na fase 3: um homing e um PathBehavior com PathShapes::Reta() e
  * Mira(MirarNoJogador).)
  */
@@ -603,4 +604,53 @@ struct GomoDaSerpenteBehavior : public ProjectileMotion {
     std::shared_ptr<const Rastro::Serpente> serpente;
     float s;
     bool saiu = false;
+};
+
+/**
+ * @brief UMA HISTORIA DA SPRINT: vai na pilha que o cursor arrasta, se espalha
+ * para a vaga dela no quadro e espera a revisao - quando cai em cima do aluno,
+ * a 'queda' pixels por segundo.
+ *
+ * MEXE NA POSICAO, como o gomo da serpente: ate a revisao quem diz onde ela
+ * esta e o plano (Sprint::PosicaoDaHistoria), e a velocidade fica em zero -
+ * parada no quadro, ela e um alvo. Na revisao ela mira o aluno uma vez, e dali
+ * quem a move e o RigidBody.
+ *
+ * O aluno a ENTREGA derrubando-a a tiro: quem a tira do campo e o tipo do
+ * projetil ("derrubavel"), e nao este behavior. Enquanto o cursor a arrasta
+ * ela e BLINDADA - o tiro some na pilha -, e parada na vaga ela esta no
+ * posto do quadro (Sprint::kPostoDoQuadro), de onde a PontosAttack atira.
+ */
+struct HistoriaDaSprintBehavior : public ProjectileMotion {
+    HistoriaDaSprintBehavior(std::shared_ptr<const Sprint::Plano> plano, int indice, float queda)
+        : plano(std::move(plano)), indice(indice), queda(queda) {}
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return caiu; }
+    std::shared_ptr<const Sprint::Plano> plano;
+    int indice;
+    float queda;
+    float t = 0.0f;
+    bool solta = false;
+    bool noQuadro = false;
+    bool caiu = false;
+};
+
+/**
+ * @brief O CURSOR DA SPRINT: a mao do professor. Arrasta a pilha ate o quadro,
+ * clica ao soltar, espera, e clica de novo um pouco antes da revisao - o aviso
+ * de que o que sobrou vai cair. Na revisao ele some.
+ *
+ * 'seta' e 'clique' sao as duas caras dele. Quem o faz inofensivo e a
+ * SprintAttack (BossProjectile::DefinirEnfeite), e nao este behavior.
+ */
+struct CursorDaSprintBehavior : public ProjectileMotion {
+    CursorDaSprintBehavior(std::shared_ptr<const Sprint::Plano> plano, std::string seta, std::string clique)
+        : plano(std::move(plano)), seta(std::move(seta)), clique(std::move(clique)) {}
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return acabou; }
+    std::shared_ptr<const Sprint::Plano> plano;
+    std::string seta, clique;
+    float t = 0.0f;
+    bool clicando = false;
+    bool acabou = false;
 };

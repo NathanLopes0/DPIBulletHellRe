@@ -30,6 +30,10 @@
 #include "AttackParameters/CapsulaAttackParams.h"
 #include "BaseStrategies/SerpenteAttack.h"
 #include "AttackParameters/SerpenteAttackParams.h"
+#include "BaseStrategies/SprintAttack.h"
+#include "AttackParameters/SprintAttackParams.h"
+#include "BaseStrategies/PontosAttack.h"
+#include "AttackParameters/PontosAttackParams.h"
 #include "BaseStrategies/CircleSpreadAttack.h"
 #include "BaseStrategies/LaserAttack.h"
 #include "BaseStrategies/WaveAttack.h"
@@ -98,6 +102,8 @@ namespace {
         if (tipo == "FlexAttack")         return std::make_unique<FlexAttack>(spawner, boss);
         if (tipo == "CapsulaAttack")      return std::make_unique<CapsulaAttack>(spawner, boss);
         if (tipo == "SerpenteAttack")     return std::make_unique<SerpenteAttack>(spawner, boss);
+        if (tipo == "SprintAttack")       return std::make_unique<SprintAttack>(spawner, boss);
+        if (tipo == "PontosAttack")       return std::make_unique<PontosAttack>(spawner, boss);
         return nullptr;
     }
 
@@ -193,6 +199,25 @@ namespace {
             if (a.serpente && a.serpente->duracao) serpente->duracao = *a.serpente->duracao;
             if (a.serpente) { serpente->cabeca = a.serpente->cabeca; serpente->corpo = a.serpente->corpo; }
             params = std::move(serpente);
+        }
+        else if (a.estrategia == "SprintAttack") {
+            auto sprint = std::make_unique<SprintAttackParams>();
+            if (a.sprint && a.sprint->revisao) sprint->revisao = *a.sprint->revisao;
+            if (a.sprint) {
+                sprint->historia = a.sprint->historia;
+                sprint->cursor   = a.sprint->cursor;
+                sprint->clique   = a.sprint->clique;
+            }
+            params = std::move(sprint);
+        }
+        else if (a.estrategia == "PontosAttack") {
+            auto pontos = std::make_unique<PontosAttackParams>();
+            if (a.pontos) {
+                pontos->posto = a.pontos->posto;
+                pontos->mirar = a.pontos->mirar;
+                pontos->prever = a.pontos->prever;
+            }
+            params = std::move(pontos);
         }
         else if (a.flex) {
             auto flex = std::make_unique<FlexAttackParams>();

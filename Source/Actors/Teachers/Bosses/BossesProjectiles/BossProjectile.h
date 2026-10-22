@@ -5,6 +5,8 @@
 #pragma once
 
 #include <cstddef>
+#include <string>
+#include <utility>
 
 #include "../../../Projectile.h"
 
@@ -111,6 +113,21 @@ public:
     /// letra que sair do pool no ataque seguinte.
     void DefinirBlindado(const bool blindado) { mBlindado = blindado; }
     [[nodiscard]] bool Blindado() const { return mBlindado; }
+
+    /// @brief Este projetil e so um ENFEITE: nao acerta o aluno, e o tiro do
+    /// aluno passa por ele, mesmo que o tipo seja derrubavel. E o cursor da
+    /// sprint da Maria Lucia (SprintAttack): sai da mesma fabrica que as
+    /// historias, para usar a mesma folha, mas e a mao da professora, e nao um
+    /// projetil. Do disparo, como a blindagem: volta a falso no Reset.
+    void DefinirEnfeite(const bool enfeite) { mEnfeite = enfeite; }
+    [[nodiscard]] bool Enfeite() const { return mEnfeite; }
+
+    /// @brief O POSTO em que este projetil esta: um lugar de onde o chefe atira
+    /// (PontosAttack, Boss::PontosDoPosto). Vazio = nenhum. E a historia parada
+    /// no quadro da sprint, que solta o codigo dela; quem a poe e a tira do
+    /// posto e o behavior dela. Do disparo: volta a vazio no Reset.
+    void DefinirPosto(std::string posto) { mPosto = std::move(posto); }
+    [[nodiscard]] const std::string& Posto() const { return mPosto; }
     [[nodiscard]] float SegundosDeCorrente() const { return mSegundosDeCorrente; }
     [[nodiscard]] float FatorDaCorrente() const { return mFatorDaCorrente; }
     [[nodiscard]] float MultiplicadorDaPerda() const { return mMultiplicadorDaPerda; }
@@ -154,6 +171,12 @@ protected:
 
     /// Ver DefinirBlindado. Do disparo: volta a falso no Reset.
     bool mBlindado = false;
+
+    /// Ver DefinirEnfeite. Do disparo: volta a falso no Reset.
+    bool mEnfeite = false;
+
+    /// Ver DefinirPosto. Do disparo: volta a vazio no Reset.
+    std::string mPosto;
 
     /// O valor com que a fabrica construiu este projetil. Ver
     /// MarcarPadraoDeFabrica.

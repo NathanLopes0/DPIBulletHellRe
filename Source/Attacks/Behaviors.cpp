@@ -512,3 +512,69 @@ void GomoDaSerpenteBehavior::update(Projectile* p, const float deltaTime) {
     p->SetPosition(caminho.Em(s));
     rb->SetVelocity(caminho.DirecaoEm(s) * modulo);
 }
+
+void HistoriaDaSprintBehavior::update(Projectile* p, const float deltaTime) {
+    auto* rb = p->GetComponent<RigidBodyComponent>();
+    if (!rb || !plano) { caiu = true; return; }
+
+    auto* historia = dynamic_cast<BossProjectile*>(p);
+
+    t += deltaTime;
+    if (t < plano->revisao) {
+        p->SetPosition(Sprint::PosicaoDaHistoria(*plano, indice, t));
+        rb->SetVelocity(Vector2::Zero);
+
+        // SOLTA, ela deixa de ser blindada: na mao do cursor o tiro so some.
+        if (!solta && t >= plano->arraste) {
+            solta = true;
+            if (historia) historia->DefinirBlindado(false);
+        }
+        // PARADA NA VAGA, ela entra no posto do quadro: esta em andamento, e
+        // a PontosAttack atira dela.
+        if (!noQuadro && t >= plano->arraste + plano->espalha) {
+            noQuadro = true;
+            if (historia) historia->DefinirPosto(Sprint::kPostoDoQuadro);
+        }
+        return;
+    }
+
+    // A REVISAO: o que nao foi entregue sai do quadro e cai em cima do aluno.
+    // Mira UMA vez, onde ele vai estar (RumoPrevendo, PathAim.h); sem aluno,
+    // cai reto.
+    Vector2 rumo(0.0f, 1.0f);
+    if (historia) {
+        historia->DefinirBlindado(false);
+        historia->DefinirPosto("");
+        if (historia->HasPlayer()) {
+            rumo = RumoPrevendo(p->GetPosition(), historia->GetPlayerPosition(),
+                                historia->GetPlayerVelocity(), queda);
+        }
+    }
+    rb->SetVelocity(rumo * queda);
+    caiu = true;
+}
+
+void CursorDaSprintBehavior::update(Projectile* p, const float deltaTime) {
+    t += deltaTime;
+    if (!plano) { acabou = true; p->Kill(); return; }
+
+    const auto gesto = Sprint::GestoDoCursor(*plano, t);
+    if (gesto == Sprint::Gesto::Acabou) {
+        // Kill() so marca o estado: quem limpa os behaviors e o pool, depois.
+        acabou = true;
+        p->Kill();
+        return;
+    }
+
+    p->SetPosition(Sprint::CentroDoCursor(Sprint::PontaDoCursor(*plano, t), p->GetScale()));
+    if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+
+    const bool clica = (gesto == Sprint::Gesto::Soltando || gesto == Sprint::Gesto::Clicando);
+    if (clica != clicando) {
+        clicando = clica;
+        const std::string& cara = clica ? clique : seta;
+        if (!cara.empty()) {
+            if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(cara);
+        }
+    }
+}

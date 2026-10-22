@@ -12,6 +12,8 @@
 #include "../../Movements/MovementStrategies.h"
 #include "../../Components/RigidBodyComponent.h"
 #include "../../Components/AIComponents/FSMComponent.h"
+#include "../../Attacks/FasesDeAtaque.h"
+#include "../../Attacks/AttackParameters/PontosAttackParams.h"
 #include "SDL_log.h"
 #include "../Player/PlayerProjectile.h"
 
@@ -123,7 +125,7 @@ void Boss::AddAttackPattern(const std::string &stateName, std::unique_ptr<IAttac
     def.params = std::move(params);
     def.configurator = std::move(config);
     def.cooldownTotal = cooldown;
-    def.currentTimer = 1.f;
+    def.currentTimer = kPrimeiroDisparoDaFase;
 
     mAttacksMap[stateName].push_back(std::move(def));
 }
@@ -162,9 +164,28 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
     // seria mira nenhuma.
     const size_t alvoDoDisparo = battleScene->IndiceDoAlvo();
 
+    // A PONTOS ATTACK ATIRA DE ONDE O CHEFE DISSER, e o chefe diz na hora: os
+    // pontos de um posto mudam a cada quadro (uma historia entregue sai do
+    // quadro), entao sao lidos aqui, e nao guardados.
+    if (auto* pontos = dynamic_cast<PontosAttackParams*>(attackDef.params.get())) {
+        pontos->pontos = PontosDoPosto(pontos->posto);
+        pontos->temAlvo = false;
+        pontos->velocidadeDoAlvo = Vector2::Zero;
+        if (const auto* aluno = battleScene->Alvo()) {
+            pontos->alvo = aluno->GetPosition();
+            if (const auto* rb = aluno->GetComponent<RigidBodyComponent>()) pontos->velocidadeDoAlvo = rb->GetVelocity();
+            pontos->temAlvo = true;
+        }
+    }
+
     // ---------- EXECUTA O ATAQUE ---------- //
     auto projectiles = attackDef.strategy->Execute(*(attackDef.params));
     // ---------- ------- - ------ ---------- //
+
+    // UM DISPARO QUE NAO SOLTOU NADA NAO E DISPARO: nao passa a vez e nao faz
+    // barulho. So a PontosAttack de um posto vazio chega aqui - a sprint que
+    // ainda nao tem historia parada no quadro.
+    if (projectiles.empty()) return;
 
     // CADA PROJETIL SAI DONO DO SEU ALVO. Sem isto, os que perseguem leriam "de
     // quem e a vez" a cada quadro e trocariam de rumo no meio do voo, todos
@@ -247,6 +268,18 @@ Vector2 Boss::GetPredictedPlayerDirection(const float leadTime) const {
 
     // Failsafe igual ao de GetDirectionToPlayer: atira para baixo.
     return Vector2(0.0f, 1.0f);
+}
+
+std::vector<Vector2> Boss::PontosDoPosto(const std::string& posto) const {
+    std::vector<Vector2> pontos;
+    const auto* batalha = dynamic_cast<Battle*>(mScene);
+    if (posto.empty() || !batalha || !batalha->GetProjectileManager()) return pontos;
+
+    for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+        if (!p || p->GetState() != ActorState::Active) continue;
+        if (p->Posto() == posto) pontos.push_back(p->GetPosition());
+    }
+    return pontos;
 }
 
 Vector2 Boss::GetDirectionToPlayer() const {

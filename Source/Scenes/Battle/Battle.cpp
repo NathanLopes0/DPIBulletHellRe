@@ -798,6 +798,7 @@ void Battle::CheckCollisions() {
 
         for (const auto &bossProj: bossProjectiles) {
             if (bossProj->GetState() != ActorState::Active) continue;
+            if (bossProj->Enfeite()) continue;   // o cursor da sprint e a mao, nao um tiro
             if (const auto *bossProjCollider = bossProj->GetComponent<CircleColliderComponent>()) {
                 if (playerCollider->Intersect(*bossProjCollider) && !jogador->GetIsInvincible()) {
                     jogador->SetIsInvincible(true);
@@ -838,11 +839,14 @@ void Battle::CheckCollisions() {
         for (const auto &bossProj: bossProjectiles) {
             if (bossProj->GetState() != ActorState::Active) continue;
             if (!bossProj->Derrubavel() && !bossProj->Blindado()) continue;
+            if (bossProj->Enfeite()) continue;   // o tiro passa pelo cursor
             const auto *alvo = bossProj->GetComponent<CircleColliderComponent>();
             if (!alvo || !alvo->Intersect(*tiro)) continue;
 
             playerProj->OnCollision(bossProj.get());
-            if (bossProj->Derrubavel()) {
+            // A BLINDAGEM VENCE: uma historia que o cursor ainda arrasta e
+            // derrubavel (e do tipo), mas na mao dele o tiro so some.
+            if (bossProj->Derrubavel() && !bossProj->Blindado()) {
                 bossProj->OnCollision(playerProj.get());
                 if (mBoss) mBoss->OnProjetilDerrubado();
             }

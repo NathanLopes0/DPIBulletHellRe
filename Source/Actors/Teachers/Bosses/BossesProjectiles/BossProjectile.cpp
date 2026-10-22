@@ -37,6 +37,13 @@ void BossProjectile::Reset() {
     // A BLINDAGEM TAMBEM E DO DISPARO: quem a poe e a CapsulaAttack, e quem a
     // tira e a capsula abrindo. A que morreu fechada voltaria blindada.
     mBlindado = false;
+
+    // O ENFEITE TAMBEM: um cursor que voltasse do pool como enfeite faria a
+    // historia do disparo seguinte passar pelo aluno sem acerta-lo.
+    mEnfeite = false;
+
+    // E O POSTO: uma historia entregue no quadro voltaria do pool atirando.
+    mPosto.clear();
 }
 
 void BossProjectile::OnUpdate(float deltaTime)

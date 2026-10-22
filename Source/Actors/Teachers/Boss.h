@@ -56,10 +56,10 @@ public:
         float janelaAte = 1.0e9f;
     };
 
-    /// Quanto o primeiro disparo de um ataque espera depois que a janela dele
-    /// abre. Pouco, mas nao zero: a etapa anterior acabou de parar, e os dois
-    /// ataques nascendo no mesmo quadro se leriam como um so.
-    static constexpr float kPrimeiroDisparoDaJanela = 0.25f;
+    // QUANDO SAI O PRIMEIRO DISPARO de cada ataque (kPrimeiroDisparoDaFase e
+    // kPrimeiroDisparoDaJanela) mora em FasesDeAtaque.h, e nao aqui: os dados
+    // precisam conferir a mesma conta (PrimeiroDisparoNaJanela), e o teste
+    // deles nao enxerga o Boss.
 
     void AddAttackPattern(const std::string& stateName,
                           std::unique_ptr<IAttackStrategy> strategy,
@@ -221,7 +221,7 @@ protected:
      *
      * E so o NOME DA FASE chega aqui, e nao qual dos ataques dela esta
      * disparando. Numa fase com dois ataques, o que for escrito vale para os
-     * dois - foi por isso que o escopo da Maria Lucia so cresce na fase 1.
+     * dois.
      */
     virtual void CustomizeAttackParams(AttackParams& params, const std::string& stateName);
 
@@ -244,12 +244,22 @@ protected:
     virtual void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
                                       const std::string& stateName);
 
+    /**
+     * @brief De onde uma PontosAttack atira: os pontos do posto nomeado.
+     *
+     * O padrao sao os projeteis do chefe em campo que estao naquele posto
+     * (BossProjectile::DefinirPosto) - as historias paradas no quadro da
+     * sprint, por exemplo. Um chefe cujo posto nao e feito de projeteis
+     * sobrescreve. Vazio = a PontosAttack nao dispara nada.
+     */
+    [[nodiscard]] virtual std::vector<Vector2> PontosDoPosto(const std::string& posto) const;
+
 private:
     // Função interna para executar um ataque específico.
     // NAO e virtual de proposito: a sequencia de passos (customizar params ->
     // executar strategy -> configurator -> converter -> entregar ao manager ->
     // audio) e a mesma para todo boss. Quem precisa variar usa os ganchos
-    // CustomizeAttackParams e OnProjectilesCreated.
+    // CustomizeAttackParams, OnProjectilesCreated e PontosDoPosto.
     void ExecuteAttack(const AttackDefinition& attackDef, const std::string& stateName);
 
     void CalculateNextDropThreshold();

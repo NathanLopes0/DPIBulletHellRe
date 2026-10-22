@@ -8,7 +8,7 @@
 #include <vector>
 
 /**
- * CAMADA PURA (mesma disciplina de EscopoQueCresce e PathAim).
+ * CAMADA PURA (mesma disciplina de PathAim).
  *
  * A fase final do Vladimir e a maquina de Turing: o chefe escreve a fita na
  * passagem - simbolos que descem e param numa fileira - e, quando volta por

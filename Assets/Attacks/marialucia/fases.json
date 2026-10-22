@@ -5,12 +5,12 @@
   // CADA FASE E UM PROCESSO DE SOFTWARE:
   //
   //   StateOne    CASCATA      cinco etapas em ordem, e ela descendo a escada
-  //   StateTwo    PROJETO      o diagrama, e o angulo reto que o desenha
+  //   StateTwo    AGEIS        cinco sprints, e o cursor que arrasta as historias
   //   StateThree  DIVIDA       o campo vai ficando menor enquanto a fase corre
   //   StateFinal  MANUTENCAO   tudo junto, porque manter e lidar com tudo junto
   //
-  // (A fase 2 vira os metodos ageis, e a 3 o padrao Observer, nos commits que
-  // seguem o 119; ate la ficam as de antes.)
+  // (A fase 3 vira o padrao Observer no commit que segue o 120; ate la fica a
+  // de antes.)
   //
   // O QUE DISTINGUE ESTA CHEFE DAS OUTRAS.
   //
@@ -36,9 +36,9 @@
   // dizer isso.
   //
   // O MOVIMENTO E O ATAQUE, como nos outros dois - ver MovementStrategies.h.
-  // Aqui, em duas das quatro fases, ele e a propria mecanica: e o mergulho que
-  // faz o escopo chegar de cima, e e a varredura que espalha a divida pela
-  // largura inteira.
+  // Aqui, em duas das quatro fases, ele e a propria mecanica: a escada e o
+  // diagrama da cascata, e a varredura e o que espalha a divida pela largura
+  // inteira.
   //
   // A BATALHA DELA E DETERMINISTICA: nenhuma regra usa "chance" e nenhum angulo
   // e sorteado. Medido - quatro sementes diferentes deram resultado IDENTICO
@@ -101,45 +101,74 @@
     ]
   },
 
-  // FASE 2 - PROJETO   |   gesto: A ORBITA PEQUENA
+  // FASE 2 - OS METODOS AGEIS   |   gesto: A ORBITA, o ciclo iterativo
   //
-  // Ela esta no quadro. A orbita e pequena e lenta (raio 140, 0,10 volta/s)
-  // porque projetar e o momento parado do ciclo - mas parado de verdade nao
-  // serve, e a licao da primeira versao do Vladimir: com a chefe imovel, toda
-  // rajada cai na mesma coluna e a tela morre dos lados.
+  // A MESMA FASE DA CASCATA, CORTADA EM CICLOS CURTOS. Depois de um instante
+  // de backlog, cinco SPRINTS de 3 s cada ("etapas"), de tempo fixo - o
+  // timebox -, e no fim a retrospectiva. Em cada sprint, um ataque so
+  // (SprintAttack, ver Sprint.h):
   //
-  // O LEQUE E ZERO, E ISSO E O QUE FAZ O DIAGRAMA EXISTIR.
+  //   - um CURSOR de mouse - a IHC, a outra materia dela - pega a pilha de
+  //     historias da professora e a ARRASTA ate o quadro. Quanto ele leva e a
+  //     lei de Fitts, com o quadro inteiro de alvo: a sprint cheia, de quadro
+  //     largo, e arrastada mais depressa. Na mao dele a pilha e blindada, e o
+  //     tiro some nela;
+  //   - ao soltar, as historias se espalham pelas vagas e ficam EM ANDAMENTO:
+  //     cada uma solta o codigo dela no aluno, mirando onde ele vai estar (a
+  //     PontosAttack, do posto "quadro"). O aluno ENTREGA uma historia
+  //     derrubando-a a tiro - e o tiro que entrega nao chega na professora;
+  //   - o cursor clica de novo 0,4 s antes da REVISAO, o aviso, e na revisao o
+  //     que nao foi entregue CAI EM CIMA DO ALUNO, mirado onde ele vai estar.
   //
-  // Eu tinha escrito 70 graus, "para o desenho se espalhar". A foto do quadro
-  // 1500 mostrou um borrao em arco e nenhum angulo reto. O motivo esta em
-  // Behaviors.h: os pontos de um caminho sao offsets em ESPACO DE CAMINHO, em
-  // que +X e a direcao de voo DAQUELE projetil. Com um leque de 70 graus os
-  // oito viram 90 graus cada um em relacao a uma direcao diferente - e oito
-  // angulos retos em oito direcoes somam uma curva.
+  // QUANTAS HISTORIAS E O PLANNING POKER: 1, 2, 3, 5 e 8, a sequencia do
+  // baralho, uma sprint para cada carta, e o placar diz quantos pontos sao. A
+  // ultima nao cabe no tempo de ninguem - e o compromisso grande demais.
   //
-  // Com o leque em zero os oito descem na mesma direcao, e aí as viradas sao
-  // todas horizontais: o que se ve e um tronco descendo e setas saindo dele em
-  // alturas diferentes, para os dois lados. Isso e roteamento ortogonal, o
-  // desenho que todo editor de UML faz, e o olho reconhece sem saber o nome.
+  // A PROFESSORA NAO ATIRA NESTA FASE, de proposito: quem entrega e o time, e
+  // ela e quem traz as historias. Uma versao com post-its caindo dela a cada
+  // 1,4 s fazia deles 6 dos 7 acertos do piloto que persegue - a fase virava a
+  // dos post-its, e as historias, enfeite.
   //
-  // OITO PROJETEIS PARA OITO CAMINHOS, e os dois numeros tem de bater: a
-  // familia "RotasDeDiagrama" tem oito rotas, e um nono projetil receberia a
-  // rota 0 de novo. O teste "um ataque que usa familia dispara exatamente o
-  // tamanho dela" confere o par.
-  //
-  // E A FASE QUE DA FOLEGO, de proposito. Um bom projeto torna o comportamento
-  // de um sistema previsivel, e uma seta ortogonal e exatamente isso: assusta
-  // no primeiro segundo e nao assusta mais no terceiro. O custo dessa fase ser
-  // generosa e pago com juros na seguinte.
+  // AS SPRINTS COMECAM DEPOIS DO ZERO, de proposito: o ataque cuja etapa abre a
+  // fase so dispara aos kPrimeiroDisparoDaFase (1 s, FasesDeAtaque.h), e os
+  // outros 0,25 s depois de a etapa abrir. Com o backlog de 0,75 s as cinco
+  // disparam no mesmo ponto da sprint, a revisao de 2,5 s cai 0,25 s antes do
+  // fim de cada uma, e a retrospectiva deixa a ultima revisao cair dentro da
+  // fase. O canario de tests/test_arquivos_de_dados.cpp segura as contas.
   "StateTwo": {
     "duracao": 17,
     "proximo": "StateThree",
-    "movimento": { "tipo": "Orbitar", "a": 140, "b": 0.10 },
+    "anuncio": "Métodos Ágeis",
+    "etapas": [
+      { "nome": "Backlog", "duracao": 0.75, "anuncio": "Product Backlog" },
+      { "nome": "Sprint1", "duracao": 3.0, "anuncio": "Sprint 1 · 1 ponto" },
+      { "nome": "Sprint2", "duracao": 3.0, "anuncio": "Sprint 2 · 2 pontos" },
+      { "nome": "Sprint3", "duracao": 3.0, "anuncio": "Sprint 3 · 3 pontos" },
+      { "nome": "Sprint4", "duracao": 3.0, "anuncio": "Sprint 4 · 5 pontos" },
+      { "nome": "Sprint5", "duracao": 3.0, "anuncio": "Sprint 5 · 8 pontos" },
+      { "nome": "Retrospectiva", "duracao": 1.25, "anuncio": "Retrospectiva" }
+    ],
+    "movimento": { "tipo": "Orbitar", "a": 120, "b": 0.10 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Requisito",
-        "projeteis": 8, "velocidade": 250, "angulo": 0, "intervalo": 0.05,
-        "cooldown": 1.2,
-        "regras": "diagrama" }
+      { "etapa": "Sprint1", "estrategia": "SprintAttack", "projetil": "Historia",
+        "projeteis": 1, "velocidade": 300, "cooldown": 3.0,
+        "sprint": { "revisao": 2.5, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
+      { "etapa": "Sprint2", "estrategia": "SprintAttack", "projetil": "Historia",
+        "projeteis": 2, "velocidade": 300, "cooldown": 3.0,
+        "sprint": { "revisao": 2.5, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
+      { "etapa": "Sprint3", "estrategia": "SprintAttack", "projetil": "Historia",
+        "projeteis": 3, "velocidade": 300, "cooldown": 3.0,
+        "sprint": { "revisao": 2.5, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
+      { "etapa": "Sprint4", "estrategia": "SprintAttack", "projetil": "Historia",
+        "projeteis": 5, "velocidade": 300, "cooldown": 3.0,
+        "sprint": { "revisao": 2.5, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
+      { "etapa": "Sprint5", "estrategia": "SprintAttack", "projetil": "Historia",
+        "projeteis": 8, "velocidade": 300, "cooldown": 3.0,
+        "sprint": { "revisao": 2.5, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
+      { "estrategia": "PontosAttack", "projetil": "Requisito",
+        "projeteis": 1, "velocidade": 260, "cooldown": 1.0,
+        "pontos": { "posto": "quadro", "mirar": true, "prever": true },
+        "regras": "codigo" }
     ]
   },
 

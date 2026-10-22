@@ -119,7 +119,9 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 
 > **As etapas são um processo em ordem**, a cascata da Maria Lúcia: uma etapa só
 > começa quando a anterior acaba. Um ataque fora da sua etapa não conta o
-> cooldown nem dispara, e quando ela abre o primeiro disparo sai em 0,25 s. A
+> cooldown nem dispara, e quando ela abre o primeiro disparo sai em 0,25 s —
+> **menos na etapa que abre a fase**, que dispara a 1 s, como todo ataque no
+> começo de uma fase (`PrimeiroDisparoNaJanela`, em `FasesDeAtaque.h`). A
 > soma das durações tem de caber na fase, os nomes não se repetem, e um ataque
 > que pede uma etapa que a fase não tem é descartado com aviso. O movimento
 > `Escada` (`a` = segundos por degrau, `b` = degraus) é o diagrama da cascata:
@@ -192,7 +194,7 @@ recusados na leitura, com a frase dizendo qual fase errou.
 | Campo | Vai para |
 |---|---|
 | `etapa` | opcional. Em qual etapa da fase o ataque dispara. Sem ela, a fase inteira |
-| `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack`, `FlexAttack`, `CapsulaAttack`, `SerpenteAttack` |
+| `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack`, `FlexAttack`, `CapsulaAttack`, `SerpenteAttack`, `SprintAttack`, `PontosAttack` |
 | `projetil` | o nome dentro do conjunto deste professor em `projeteis.json` |
 | `projeteis` | quantos por disparo |
 | `velocidade` | px/s |
@@ -352,6 +354,51 @@ zero é a serpente que só vai reta.
 > **Uma serpente não leva regra com `motion`.** As regras rodam depois da
 > estratégia, e uma `motion` ali substituiria a da cabeça ou a do gomo — o corpo
 > deixaria de seguir, calado. Um teste em `test_arquivos_de_dados.cpp` recusa.
+
+**`sprint`**, opcional na `SprintAttack`:
+
+```json
+"sprint": { "revisao": 2.5, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" }
+```
+
+| Campo | |
+|---|---|
+| `revisao` | quantos segundos depois do disparo vem a revisão. Padrão 2,5; zero ou menos é recusado |
+| `historia` | a animação das histórias |
+| `cursor` / `clique` | as animações do cursor apontando e clicando |
+
+A `SprintAttack` é a sprint dos métodos ágeis da Maria Lúcia: um **cursor** de
+mouse pega a pilha de `projeteis` histórias no professor e a arrasta até o
+quadro (a lei de Fitts diz quanto ele leva; `Sprint.h`), onde elas se espalham
+pelas vagas e esperam. O tipo do projétil deve ser `derrubavel`: derrubar uma
+história é **entregá-la**. Na mão do cursor a pilha é blindada (o tiro some
+nela), parada na vaga a história entra no **posto** `quadro`, e na revisão o
+que sobrou cai em cima do aluno a `velocidade` px/s, mirando onde ele vai estar.
+O cursor sai da mesma fábrica, para usar a mesma folha, mas é um **enfeite**:
+não acerta o aluno e o tiro passa por ele. `angulo` e `anguloCentral` são
+ignorados, e uma sprint também não leva regra com `motion`.
+
+> **Uma sprint por etapa.** Um teste confere que cada `SprintAttack` dispara
+> uma vez só na etapa dela (`cooldown` que cobre a etapa), que a revisão cai
+> antes de a etapa acabar e pelo menos 1 s antes do fim da fase, e que o número
+> no anúncio da etapa ("Sprint 4 · 5 pontos") é o número de histórias.
+
+**`pontos`**, obrigatório na `PontosAttack`:
+
+```json
+"pontos": { "posto": "quadro", "mirar": true, "prever": true }
+```
+
+| Campo | |
+|---|---|
+| `posto` | de onde atirar. Só existe `quadro`: as histórias paradas no quadro da sprint. Um posto desconhecido é recusado — ninguém o ocuparia, e o ataque nunca dispararia |
+| `mirar` | cada ponto mira o aluno. Sem ele, todos saem em `anguloCentral` |
+| `prever` | mirando, mira onde o aluno **vai estar** se continuar andando |
+
+A `PontosAttack` não sai do professor: sai de **cada ponto** do posto, um leque
+de `projeteis` com abertura `angulo` em cada um. Quem diz onde estão os pontos
+é o professor, na hora do disparo (`Boss::PontosDoPosto`); um posto vazio não
+dispara nada, e esse disparo vazio não passa a vez nem faz barulho.
 
 ---
 
@@ -593,7 +640,7 @@ entrada é como `fases.json` vai pedi-lo.
 | `posicionarNoDono` | se nasce em cima do professor |
 | `margemEmSprites` / `margemDivisorDeTela` | quão longe da tela ele morre |
 | `rotacionarComAVelocidade` | se o sprite gira para acompanhar o voo (uma regra pode desligar por rajada — ver `rotacionar`) |
-| `derrubavel` | `true` se o tiro do aluno derruba este projétil. Os dois somem, o tiro não chega ao professor, e o professor é avisado (`Boss::OnProjetilDerrubado`). Padrão `false`; só os processos do Lucas usam |
+| `derrubavel` | `true` se o tiro do aluno derruba este projétil. Os dois somem, o tiro não chega ao professor, e o professor é avisado (`Boss::OnProjetilDerrubado`). Padrão `false`; usam os processos do Lucas e os bugs e as histórias da Maria Lúcia |
 | `acorrenta` | o que acontece com o aluno ao ser acertado: `segundos`, `fatorDeVelocidade`, `multiplicadorDaPerda` |
 
 ```jsonc

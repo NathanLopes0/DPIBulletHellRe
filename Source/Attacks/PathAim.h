@@ -116,6 +116,20 @@ Vector2 DirecionarPreservandoModulo(const Vector2& velocidadeAtual,
 Vector2 AjustarModulo(const Vector2& velocidade, float novoModulo);
 
 /**
+ * @brief O rumo de um tiro que sai de 'de' a 'rapidez' px/s para onde o alvo
+ * VAI ESTAR, se continuar andando como anda.
+ *
+ * Uma aproximacao de um passo: o tempo de voo e a distancia de AGORA dividida
+ * pela rapidez. Para um alvo lento perto do tiro e quase exato; e serve ao que
+ * existe para servir - castigar quem anda sempre na mesma direcao. Parado, e
+ * mirar onde ele esta. Com o alvo em cima do tiro (ou rapidez que nao e
+ * positiva com o alvo em cima), devolve "para baixo".
+ *
+ * Usada pela queda da revisao da sprint e pela PontosAttack que preve.
+ */
+Vector2 RumoPrevendo(const Vector2& de, const Vector2& alvo, const Vector2& velocidadeDoAlvo, float rapidez);
+
+/**
  * @brief O ritmo de um ataque em ciclos: quando comeca, quanto dura cada fase e
  * quantas vezes repete.
  *

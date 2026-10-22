@@ -126,10 +126,12 @@ struct DescricaoDeProjetil {
     /**
      * @brief O tiro do aluno pode derrubar este projetil?
      *
-     * So os PROCESSOS do Lucas. Um projetil derrubavel some quando uma Duvida o
-     * acerta - e a Duvida some junto, sem chegar ao chefe. Quem decide o que
-     * acontece depois e o chefe dono dele (Boss::OnProjetilDerrubado): no Lucas,
-     * o supervisor poe o processo de volta.
+     * Os PROCESSOS do Lucas, e os bugs e as historias da Maria Lucia. Um
+     * projetil derrubavel some quando um tiro do aluno o acerta - e o tiro some
+     * junto, sem chegar ao chefe. Quem decide o que acontece depois e o chefe
+     * dono dele (Boss::OnProjetilDerrubado): no Lucas, o supervisor poe o
+     * processo de volta. Um projetil BLINDADO naquele disparo nao cai: a
+     * historia que o cursor ainda arrasta so come o tiro.
      *
      * Falso por padrao: um padrao errado aqui faria os tiros do aluno pararem
      * em todo projetil de todo chefe.
