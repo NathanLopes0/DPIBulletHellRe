@@ -45,6 +45,7 @@
 #include "../Source/Attacks/RegrasDeAtaque.h"
 #include "../Source/Attacks/ProjeteisDeChefe.h"
 #include "../Source/Attacks/Sprint.h"
+#include "../Source/Attacks/Observer.h"
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
 #include "../Source/Navegacao.h"
@@ -1452,4 +1453,58 @@ TEST_CASE("Dados: o posto do quadro da sprint e um posto que a leitura aceita") 
     // postos de PostoExiste. Trocar um sem o outro faria a leitura recusar a
     // PontosAttack da Maria Lucia - ou aceitar um nome que ninguem ocupa.
     CHECK(PostoExiste(Sprint::kPostoDoQuadro));
+}
+
+TEST_CASE("Dados: os gatilhos e o posto do Observer sao nomes que a leitura aceita") {
+
+    // A MARIA LUCIA PUXA OS GATILHOS PELOS NOMES DE Observer.h, e os olhos
+    // entram no posto pela regra "inscrever". Trocar um nome so de um lado faria
+    // a leitura recusar o ataque - ou aceitar um gatilho que ninguem puxa.
+    CHECK(GatilhoExiste(Observer::kGatilhoDaNotificacao));
+    CHECK(GatilhoExiste(Observer::kGatilhoDaConsulta));
+    CHECK(PostoExiste(Observer::kPostoDosObservadores));
+}
+
+TEST_CASE("Dados: o olho do Observer tem as caras que a professora poe nele") {
+
+    // QUEM ANIMA O OLHO E A PROFESSORA, a cada quadro, pelos nomes de
+    // Observer.h. Uma cara que o tipo nao tem e um SetAnimation que nao acha
+    // nada - o olho para de olhar para o aluno, calado.
+    const auto& tipos = ProjeteisDoChefe("marialucia").projeteis;
+    REQUIRE(tipos.count("Observador") == 1);
+    const auto& olho = tipos.at("Observador");
+    for (const char* cara : { Observer::kOlhaEsquerda, Observer::kOlhaFrente, Observer::kOlhaDireita, Observer::kPisca }) {
+        CAPTURE(cara);
+        bool tem = false;
+        for (const auto& a : olho.animacoes) if (a.nome == cara) tem = true;
+        CHECK(tem);
+    }
+}
+
+TEST_CASE("Dados: toda fase com ataque de notificacao tem o de consulta, e os dois saem dos olhos") {
+
+    // O OBSERVER E O POLLING SAO A MESMA FASE: quem nao muda de estado tambem
+    // leva aviso, so que mais devagar. Uma fase so com notificacao deixaria o
+    // aluno parado sem aviso nenhum - a fase inteira resolvida ficando quieto.
+    bool achou = false;
+    for (const auto& chefe : Chefes()) {
+        for (const auto& f : FasesDoChefe(chefe).fases) {
+            bool notifica = false, consulta = false;
+            for (const auto& a : f.ataques) {
+                if (a.gatilho == Observer::kGatilhoDaNotificacao) notifica = true;
+                if (a.gatilho == Observer::kGatilhoDaConsulta) consulta = true;
+                if (!a.gatilho.empty() && a.estrategia == "PontosAttack") {
+                    CAPTURE(chefe);
+                    CAPTURE(f.nome);
+                    REQUIRE(a.pontos.has_value());
+                    CHECK(a.pontos->posto == Observer::kPostoDosObservadores);
+                }
+            }
+            CAPTURE(chefe);
+            CAPTURE(f.nome);
+            CHECK(notifica == consulta);
+            achou = achou || notifica;
+        }
+    }
+    CHECK(achou);
 }

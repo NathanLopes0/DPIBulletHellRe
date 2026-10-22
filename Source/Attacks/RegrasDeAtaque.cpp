@@ -15,6 +15,8 @@ namespace {
                                                  "Deactivate", "PulsoDeVelocidade",
                                                  "Reescrever", "Promessa"};
 
+    const std::vector<std::string> kPostos = {"quadro", "observadores"};
+
     bool Contem(const std::vector<std::string>& lista, const std::string& v) {
         for (const auto& x : lista) if (x == v) return true;
         return false;
@@ -342,10 +344,20 @@ namespace {
                 r.rotacionar = j["rotacionar"].get<bool>();
             }
 
+            if (j.contains("posto")) {
+                // UM POSTO QUE NINGUEM LE e um projetil que ninguem usa como
+                // ponto de tiro, calado. Recusado na leitura.
+                if (!j["posto"].is_string() || !PostoExiste(j["posto"].get<std::string>())) {
+                    problemas.emplace_back(onde + "\"posto\" precisa ser o nome de um posto que existe");
+                    continue;
+                }
+                r.posto = j["posto"].get<std::string>();
+            }
+
             if (!r.temMotion && r.modifiers.empty() && r.animacao.empty()
-                && !r.escala && !r.rotacionar) {
+                && !r.escala && !r.rotacionar && r.posto.empty()) {
                 problemas.emplace_back(onde + "nao faz nada: precisa de motion, modifiers, "
-                                              "animacao, escala, rotacionar ou investidaRepetida");
+                                              "animacao, escala, rotacionar, posto ou investidaRepetida");
                 continue;
             }
 
@@ -359,6 +371,7 @@ namespace {
 
 bool EhMotion(const std::string& tipo)   { return Contem(kMotions, tipo); }
 bool EhModifier(const std::string& tipo) { return Contem(kModifiers, tipo); }
+bool PostoExiste(const std::string& nome) { return Contem(kPostos, nome); }
 
 bool RegraSeAplica(const Regra& regra, const int indice, const float sorteio,
                    const bool alvoAcorrentado) {

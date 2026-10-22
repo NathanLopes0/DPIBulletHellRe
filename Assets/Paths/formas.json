@@ -203,8 +203,19 @@
   //
   // Quem usa esta forma precisa de um leque ESTREITO. Num leque largo so o
   // tiro vertical percorre os 460px para baixo; um de 45 graus desce 325 e
-  // para bem mais alto. Ver a nota da fase 3 em marialucia/fases.json.
+  // para bem mais alto. Por isso a Manutencao da cascata, em
+  // marialucia/fases.json, sai num leque de 36 graus.
   "ParaEFica": {
     "pontos": [[460, 0], [1200, 0]]
+  },
+
+  // O OLHO QUE ASSINA (Maria Lucia, fase 3 - o padrao Observer): sai da
+  // professora, para a 230px dela e fica olhando o aluno ate "pararPor"
+  // acabar - e ai segue em frente, para fora da tela, como quem cancela a
+  // assinatura. 230px num leque largo poe os olhos num arco em volta dela, no
+  // meio do campo: longe o bastante do aluno para o aviso ter de atravessar o
+  // campo, e perto o bastante para os olhos se lerem como dela.
+  "Inscrito": {
+    "pontos": [[230, 0], [1400, 0]]
   }
 }

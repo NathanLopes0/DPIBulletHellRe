@@ -127,6 +127,15 @@ public:
      * Com um jogador em campo nao faz nada observavel.
      */
     void RevezarAlvo();
+
+    /**
+     * @brief DA A VEZ a um jogador, antes de um disparo que e DELE.
+     *
+     * So o padrao Observer da Maria Lucia usa: quem mudou de estado e quem
+     * recebe os avisos, e nao o jogador da vez. O disparo passa a vez depois,
+     * como todos (RevezarAlvo). Posicao fora da lista nao faz nada.
+     */
+    void DarAVez(size_t posicao);
     [[nodiscard]] ProjectileManager* GetProjectileManager() const { return mProjectileManager.get(); }
 
     SDL_FRect GetPlayfieldBounds() const override;

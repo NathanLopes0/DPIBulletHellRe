@@ -964,6 +964,10 @@ Player* Battle::Alvo() const {
     return mVezDoAlvo < mJogadores.size() ? mJogadores[mVezDoAlvo] : mJogadores.front();
 }
 
+void Battle::DarAVez(const size_t posicao) {
+    if (posicao < mJogadores.size()) mVezDoAlvo = posicao;
+}
+
 void Battle::RevezarAlvo() {
 
     // O "% tamanho" e o que faz isto nao dar nada com um jogador: 0 + 1 = 1, e

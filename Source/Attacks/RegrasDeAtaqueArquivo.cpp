@@ -204,6 +204,12 @@ std::function<void(Projectile*, int)> ConfiguratorDeRegras(const std::vector<Reg
                 }
             }
 
+            // O POSTO TAMBEM E DO DISPARO: o projetil volta do pool sem posto
+            // (BossProjectile::Reset), e a regra o poe de novo a cada rajada.
+            if (!r.posto.empty()) {
+                if (const auto b = dynamic_cast<BossProjectile*>(p)) b->DefinirPosto(r.posto);
+            }
+
             if (r.temMotion) Inserir(p, r.motion, indice);
             for (const auto& m : r.modifiers) Inserir(p, m, indice);
 

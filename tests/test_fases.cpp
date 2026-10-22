@@ -983,6 +983,33 @@ TEST_CASE("Fases: o primeiro disparo de uma janela - 1 s na que abre a fase, 0,2
     CHECK(kPrimeiroDisparoDaJanela == doctest::Approx(0.25f));
 }
 
+TEST_CASE("Fases: um ataque pode ter gatilho, e so um gatilho que algum chefe puxa") {
+    const auto ok = LerFases(ComAtaque(R"({ "gatilho": "notificacao", "estrategia": "WaveAttack", "projetil": "P" })"));
+    CHECK(ok.problemas.empty());
+    bool viu = false;
+    for (const auto& f : ok.fases) {
+        if (f.nome != "StateOne") continue;
+        REQUIRE(f.ataques.size() == 1);
+        CHECK(f.ataques[0].gatilho == "notificacao");
+        viu = true;
+    }
+    CHECK(viu);
+
+    // Sem gatilho, o relogio.
+    const auto sem = LerFases(ComAtaque(R"({ "estrategia": "WaveAttack", "projetil": "P" })"));
+    for (const auto& f : sem.fases) if (f.nome == "StateOne") CHECK(f.ataques[0].gatilho.empty());
+
+    // Um gatilho que ninguem puxa e um ataque que nunca aparece: recusado.
+    for (const char* g : { R"("gatilho": "trovao")", R"("gatilho": 2)" }) {
+        CAPTURE(g);
+        const auto r = LerFases(ComAtaque(std::string("{ ") + g + R"(, "estrategia": "WaveAttack", "projetil": "P" })"));
+        bool reclamou = false;
+        for (const auto& p : r.problemas) if (p.find("gatilho") != std::string::npos) reclamou = true;
+        CHECK(reclamou);
+        for (const auto& f : r.fases) if (f.nome == "StateOne") CHECK(f.ataques.empty());
+    }
+}
+
 TEST_CASE("Fases: a PontosAttack precisa de um posto que existe") {
     const auto ok = LerFases(ComAtaque(R"({ "estrategia": "PontosAttack", "projetil": "P",
         "pontos": { "posto": "quadro", "mirar": true } })"));

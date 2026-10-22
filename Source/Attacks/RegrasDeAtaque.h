@@ -144,6 +144,11 @@ struct Regra {
     /// pool com a escala de fabrica (MarcarPadraoDeFabrica), entao uma regra que
     /// nao diz nada sobre escala deixa o projetil no tamanho certo por si.
     std::optional<float> escala;
+
+    /// O POSTO em que o projetil entra ao nascer (PostoExiste,
+    /// BossProjectile::DefinirPosto). Vazio = nao mexe. E o olho do padrao
+    /// Observer da Maria Lucia: ele ja nasce assinando o aluno.
+    std::string posto;
 };
 
 /**
@@ -165,6 +170,13 @@ bool EhMotion(const std::string& tipo);
 /// @brief O tipo nomeado e um Modifier? (Accelerate, SlowDown, Activate,
 /// Deactivate, PulsoDeVelocidade, Reescrever, Promessa)
 bool EhModifier(const std::string& tipo);
+
+/// @brief O posto nomeado existe? Um posto e um lugar de onde uma PontosAttack
+/// atira, e so existe se alguem no motor o ocupa: "quadro" sao as historias
+/// paradas no quadro da sprint (Sprint::kPostoDoQuadro), e "observadores" os
+/// olhos do padrao Observer (Observer::kPostoDosObservadores), que uma regra
+/// poe no posto ao nascer.
+bool PostoExiste(const std::string& nome);
 
 /**
  * @brief Le conjuntos de regras a partir do TEXTO de um arquivo JSON. PURA.

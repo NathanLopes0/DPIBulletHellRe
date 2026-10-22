@@ -36,6 +36,10 @@ AS LINHAS SEGUINTES SAO OS PROCESSOS E A IHC (do 119 em diante):
     Observador  o post-it com um olho, do padrao Observer: abre e pisca.
     Historia    o cartao azul de uma historia de usuario, nas sprints.
     Dialogo     uma janelinha com barra de titulo e o X, o modal da IHC.
+    Notificacao o selo vermelho com o "1" - o simbolo de interface para "algo
+                mudou" -, que e o aviso que cada olho do Observer manda. Nao e
+                um post-it de proposito: o aviso amarelo se confundia com o
+                proprio olho, que tambem e post-it.
 """
 from PIL import Image, ImageDraw
 import json, os
@@ -63,6 +67,7 @@ COR_HISTORIA  = (130, 190, 240, 255)   # o cartao de historia
 COR_JANELA    = (220, 226, 236, 255)
 COR_TITULO    = ( 70, 110, 190, 255)
 COR_FECHAR    = (210,  70,  70, 255)
+COR_SELO      = (226,  56,  60, 255)   # o vermelho do selo de notificacao
 
 
 def quadro_json(nome, w, h, quadros=1, lado=None):
@@ -222,8 +227,20 @@ def dialogo(fase):
     return im
 
 
+def notificacao(fase):
+    """A NOTIFICACAO: o selo vermelho com o "1", pulsando de leve."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    r = (8, 9, 8, 7)[fase]
+    d.ellipse([16 - r, 16 - r, 16 + r, 16 + r], fill=COR_SELO, outline=(255, 255, 255, 255), width=2)
+    # O "1": a haste e a bandeirinha.
+    d.line([16, 12, 16, 20], fill=(255, 255, 255, 255), width=2)
+    d.line([14, 13, 16, 11], fill=(255, 255, 255, 255), width=1)
+    return im
+
+
 def folha():
-    """Quatro quadros de cada, uma coisa por linha, em 4x8.
+    """Quatro quadros de cada, uma coisa por linha, em 4x9.
 
     QUATRO, e nao um, porque o leitor de animacao recebe uma LISTA de quadros
     por animacao. Com um quadro so a animacao existe e nao anima; com quatro da
@@ -232,7 +249,7 @@ def folha():
     As duas primeiras linhas sao as de sempre, e ficam nos mesmos quadros.
     """
     linhas = (lambda i: requisito(), lambda i: debito(), codigo, bug, cursor,
-              observador, historia, dialogo)
+              observador, historia, dialogo, notificacao)
     f = Image.new("RGBA", (128, 32 * len(linhas)), (0, 0, 0, 0))
     for linha, desenho in enumerate(linhas):
         for i in range(4):
@@ -251,4 +268,4 @@ def grava(im, nome, pasta, quadros=1, lado=None):
 
 if __name__ == "__main__":
     grava(maria_lucia(), "DPIBHMariaLucia", "Assets/Teachers")
-    grava(folha(), "DPIBHMariaLuciaRequisito", "Assets/Teachers/Projectiles", quadros=32, lado=32)
+    grava(folha(), "DPIBHMariaLuciaRequisito", "Assets/Teachers/Projectiles", quadros=36, lado=32)

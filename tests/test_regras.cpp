@@ -601,3 +601,23 @@ TEST_CASE("Regras: Amarrar e uma Motion, e nao pode ir em \"modifiers\"") {
     REQUIRE(r.problemas.size() == 1);
     CHECK(r.problemas[0].find("Motion") != std::string::npos);
 }
+
+TEST_CASE("Regras: uma regra pode por o projetil num posto, e so num posto que existe") {
+    // O posto sozinho ja e uma regra que faz alguma coisa: o olho do Observer
+    // nasce assinando o aluno, e e so isso que a regra diz.
+    const auto ok = LerRegras(R"({"olho":[{"posto":"observadores"}]})");
+    CHECK(ok.problemas.empty());
+    REQUIRE(ok.conjuntos.count("olho") == 1);
+    REQUIRE(ok.conjuntos.at("olho").size() == 1);
+    CHECK(ok.conjuntos.at("olho")[0].posto == "observadores");
+
+    for (const char* json : { R"({"x":[{"posto":"nuvem"}]})", R"({"x":[{"posto":3}]})" }) {
+        CAPTURE(json);
+        const auto r = LerRegras(json);
+        REQUIRE(r.problemas.size() == 1);
+        CHECK(r.problemas[0].find("posto") != std::string::npos);
+    }
+    CHECK(PostoExiste("quadro"));
+    CHECK(PostoExiste("observadores"));
+    CHECK_FALSE(PostoExiste(""));
+}

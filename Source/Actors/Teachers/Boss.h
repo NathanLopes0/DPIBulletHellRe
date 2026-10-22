@@ -54,6 +54,11 @@ public:
         /// sai em kPrimeiroDisparoDaJanela. Vem das "etapas" de fases.json.
         float janelaDe = 0.0f;
         float janelaAte = 1.0e9f;
+
+        /// O GATILHO que o dispara, de fases.json. Vazio = o relogio: o ataque
+        /// dispara a cada cooldown. Com gatilho, o relogio nao conta, e o
+        /// ataque so sai quando o chefe chama Disparar(gatilho).
+        std::string gatilho;
     };
 
     // QUANDO SAI O PRIMEIRO DISPARO de cada ataque (kPrimeiroDisparoDaFase e
@@ -67,7 +72,8 @@ public:
                           float cooldown,
                           ProjectileConfigurator config = nullptr,
                           float janelaDe = 0.0f,
-                          float janelaAte = 1.0e9f);
+                          float janelaAte = 1.0e9f,
+                          std::string gatilho = "");
 
     void SetInitialState(const std::string& stateName);
 
@@ -253,6 +259,19 @@ protected:
      * sobrescreve. Vazio = a PontosAttack nao dispara nada.
      */
     [[nodiscard]] virtual std::vector<Vector2> PontosDoPosto(const std::string& posto) const;
+
+    /**
+     * @brief PUXA O GATILHO: dispara agora todo ataque da fase corrente que tem
+     * este gatilho (e cuja etapa esta aberta), sem esperar relogio nenhum.
+     *
+     * Quem puxa e o chefe concreto, quando acontece o que o gatilho nomeia - na
+     * Maria Lucia, o aluno mudar de estado (Observer.h). Um gatilho que
+     * nenhum ataque da fase tem nao faz nada.
+     *
+     * 'alvo', se nao for negativo, e a posicao do jogador que o disparo mira
+     * (Battle::DarAVez): o aluno que mudou de estado e quem recebe os avisos.
+     */
+    void Disparar(const std::string& gatilho, int alvo = -1);
 
 private:
     // Função interna para executar um ataque específico.

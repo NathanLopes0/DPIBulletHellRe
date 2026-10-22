@@ -99,6 +99,10 @@ void Boss::OnUpdate(float deltaTime) {
         // Itera sobre todos os ataques configurados para esse estado
         for (auto& attackDefinition : mAttacksMap[currState]) {
 
+            // O ATAQUE DE GATILHO NAO TEM RELOGIO: sai quando o chefe chama
+            // Disparar, e so.
+            if (!attackDefinition.gatilho.empty()) continue;
+
             // FORA DA JANELA, o ataque espera sem contar. Ao abrir, o primeiro
             // disparo sai logo - e nao depois de um cooldown inteiro.
             if (tempoNaFase < attackDefinition.janelaDe || tempoNaFase >= attackDefinition.janelaAte) {
@@ -117,10 +121,11 @@ void Boss::OnUpdate(float deltaTime) {
 }
 
 void Boss::AddAttackPattern(const std::string &stateName, std::unique_ptr<IAttackStrategy> strategy, std::unique_ptr<AttackParams> params, float cooldown, ProjectileConfigurator config,
-                            const float janelaDe, const float janelaAte) {
+                            const float janelaDe, const float janelaAte, std::string gatilho) {
     AttackDefinition def;
     def.janelaDe = janelaDe;
     def.janelaAte = janelaAte;
+    def.gatilho = std::move(gatilho);
     def.strategy = std::move(strategy);
     def.params = std::move(params);
     def.configurator = std::move(config);
@@ -268,6 +273,25 @@ Vector2 Boss::GetPredictedPlayerDirection(const float leadTime) const {
 
     // Failsafe igual ao de GetDirectionToPlayer: atira para baixo.
     return Vector2(0.0f, 1.0f);
+}
+
+void Boss::Disparar(const std::string& gatilho, const int alvo) {
+    if (gatilho.empty()) return;
+    const auto* fsm = GetComponent<FSMComponent>();
+    if (!fsm) return;
+    const std::string estado = fsm->GetStateName();
+    const auto fase = mAttacksMap.find(estado);
+    if (fase == mAttacksMap.end()) return;
+
+    const float tempoNaFase = fsm->GetStateTime();
+    for (const auto& ataque : fase->second) {
+        if (ataque.gatilho != gatilho) continue;
+        if (tempoNaFase < ataque.janelaDe || tempoNaFase >= ataque.janelaAte) continue;
+        if (alvo >= 0) {
+            if (auto* batalha = dynamic_cast<Battle*>(mScene)) batalha->DarAVez(static_cast<size_t>(alvo));
+        }
+        ExecuteAttack(ataque, estado);
+    }
 }
 
 std::vector<Vector2> Boss::PontosDoPosto(const std::string& posto) const {

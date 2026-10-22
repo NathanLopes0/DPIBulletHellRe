@@ -2,43 +2,33 @@
   // ==========================================================================
   // AS FASES DA MARIA LUCIA (INF 221 - Engenharia de Software)
   //
-  // CADA FASE E UM PROCESSO DE SOFTWARE:
+  // CADA FASE E UM PROCESSO OU UM PADRAO DE SOFTWARE:
   //
   //   StateOne    CASCATA      cinco etapas em ordem, e ela descendo a escada
   //   StateTwo    AGEIS        cinco sprints, e o cursor que arrasta as historias
-  //   StateThree  DIVIDA       o campo vai ficando menor enquanto a fase corre
+  //   StateThree  OBSERVER     os olhos que assinam o aluno, e o aviso quando ele vira
   //   StateFinal  MANUTENCAO   tudo junto, porque manter e lidar com tudo junto
   //
-  // (A fase 3 vira o padrao Observer no commit que segue o 120; ate la fica a
-  // de antes.)
+  // (A fase final vira a IHC no commit que segue o 121; ate la fica a de
+  // antes.)
   //
-  // O QUE DISTINGUE ESTA CHEFE DAS OUTRAS.
+  // O QUE DISTINGUE ESTA CHEFE DAS OUTRAS: O TEMPO E PARTE DO PROBLEMA.
+  // Estruturas de Dados e um objeto, Linguagens Formais e um objeto,
+  // Concorrencia e um objeto; Engenharia de Software e um PROCESSO. A cascata
+  // e o tempo em ordem (uma etapa so comeca quando a anterior acaba), o agil e
+  // o tempo em ciclos (o timebox, e o que nao coube cai na revisao), e o
+  // Observer e o tempo dos eventos (o aviso sai quando o aluno muda, e nao
+  // quando um relogio manda). As tres usam pecas do motor que existem por
+  // causa dela: as etapas, as sprints e os gatilhos.
   //
-  // Nos outros chefes, cada fase e uma folha em branco: o Vladimir troca de
-  // nivel da hierarquia e a tela se limpa, o Vitor troca de primitiva e a tela
-  // se limpa. Aqui NAO. Na fase 3 o que cai FICA, e o campo em que se joga vai
-  // encolhendo enquanto a fase corre.
+  // A IHC - a outra materia que ela da - entra pelo cursor da fase 2 (o
+  // arrastar-e-soltar, a lei de Fitts) e pelos olhos da fase 3 (o
+  // rastreamento do olhar).
   //
-  // MEDIDO, contando os pixels da cor do debito em tela:
-  //
-  //     quadro 2150   2,7 blocos parados
-  //     quadro 2350   4,1
-  //     quadro 2550   6,5
-  //     quadro 2750   8,2
-  //
-  // Tres vezes mais terreno ocupado no fim do que no comeco, sem o jogador ter
-  // feito nada de errado. Nenhuma outra fase do jogo faz isso.
-  //
-  // Isso nao e um truque de dificuldade, e a materia. Estruturas de Dados e um
-  // objeto, Linguagens Formais e um objeto, Concorrencia e um objeto;
-  // Engenharia de Software e um PROCESSO - e a unica das quatro em que o tempo
-  // e parte do problema. Uma batalha em que toda fase comeca limpa nao tem como
-  // dizer isso.
-  //
-  // O MOVIMENTO E O ATAQUE, como nos outros dois - ver MovementStrategies.h.
-  // Aqui, em duas das quatro fases, ele e a propria mecanica: a escada e o
-  // diagrama da cascata, e a varredura e o que espalha a divida pela largura
-  // inteira.
+  // O MOVIMENTO E O ATAQUE, como nos outros - ver MovementStrategies.h. Aqui,
+  // em duas das quatro fases, ele e a propria mecanica: a escada e o diagrama
+  // da cascata, e a varredura e o que espalha os olhos do Observer pela
+  // largura inteira.
   //
   // A BATALHA DELA E DETERMINISTICA: nenhuma regra usa "chance" e nenhum angulo
   // e sorteado. Medido - quatro sementes diferentes deram resultado IDENTICO
@@ -172,60 +162,53 @@
     ]
   },
 
-  // FASE 3 - DIVIDA TECNICA   |   gesto: A VARREDURA
+  // FASE 3 - O PADRAO OBSERVER   |   gesto: A VARREDURA
   //
-  // A VARREDURA AQUI NAO E ENFEITE, E O MECANISMO. A chefe atravessa a largura
-  // inteira deixando debito por onde passa, e como o debito PARA onde cai
-  // (regras.json), em meia fase existe uma FAIXA de blocos cruzando a tela na
-  // altura em que o jogador vive. Ele deixa de desviar de bala e passa a
-  // contornar terreno.
+  // O ALUNO E O SUJEITO, e a professora prende nele OBSERVADORES: a cada 2,4 s
+  // ela solta tres post-its com um olho (regra "inscrever"), que param a 230px
+  // dela e ficam 7 s olhando o aluno, cada um ligado a ele por uma linha - a
+  // assinatura. O olho OLHA para o lado em que ele esta: e o rastreamento do
+  // olhar, da IHC. A varredura e o que espalha os olhos pela largura inteira.
   //
-  // A PRIMEIRA VERSAO USAVA MERGULHO E NAO FUNCIONOU, e o motivo vale guardar.
-  // Mergulhando, a chefe fica numa faixa estreita de x, entao a divida se
-  // empilhava sempre na mesma coluna; e com o leque aberto em 90 graus so o
-  // tiro vertical descia fundo - os de 45 graus paravam 250px mais alto, acima
-  // de onde se joga, e viravam CENARIO.
+  // QUANDO O ESTADO DO ALUNO MUDA, ELE NOTIFICA (MariaLucia, Observer.h): os
+  // olhos piscam, as linhas acendem, e cada olho manda um aviso - o selo
+  // vermelho de notificacao - para onde ele vai estar. O estado e para onde
+  // ele esta INDO: parar nao notifica, virar sim, e quem vira e volta antes de
+  // 0,5 s nao notifica nada.
   //
-  // O ERRO APARECEU NUM NUMERO QUE NAO FAZIA SENTIDO: alongar a parada da
-  // divida de 6,5s para 8,5s fez o piloto que persegue tomar MENOS acertos (14
-  // para 9). Mais divida em tela e menos dano so pode querer dizer uma coisa -
-  // a divida estava parando onde ninguem passa, e enquanto ela voava ao menos
-  // cruzava a faixa do jogador uma vez.
+  // E QUANDO NADA MUDA, ELA PERGUNTA: sem aviso por 2 s, ela consulta o estado
+  // - o polling, a alternativa que o padrao existe para evitar - e manda o
+  // aviso mirado onde ele esta. Quem fica parado so leva o do polling.
   //
-  // Por isso o leque do debito e ESTREITO (36 graus): os quatro descem quase
-  // igual e param todos na mesma faixa, e quem espalha pela largura e a
-  // varredura, nao o angulo.
+  // OS AVISOS TEM "gatilho" EM VEZ DE COOLDOWN: nao disparam pelo relogio,
+  // disparam quando ela puxa (Boss::Disparar).
   //
-  // DUAS CAMADAS, E ELAS NAO SAO DO MESMO TIPO:
-  //
-  //   o DEBITO para e fica (8,5s congelado, ver regras.json). E o terreno.
-  //   o REQUISITO continua chegando, reto e rapido. E o relogio.
-  //
-  // Nenhuma das duas sozinha e dificil. O que faz a fase e a soma: desviar de
-  // coisa que se mexe num campo que vai ficando menor. E a diferenca entre "tem
-  // bala demais" e "nao tem mais para onde ir", que e a sensacao que esta chefe
-  // inteira existe para produzir.
-  //
-  // 4 BLOCOS A CADA 2,5s CONTRA UMA PARADA DE 8,5s E A CONTA DA FASE. Com 5 a
-  // cada 2,0s o piloto que persegue tomava 27 acertos e reprovava com zero,
-  // contra 12 do Vladimir e 12 do Vitor no mesmo arnes. Nao era dificuldade,
-  // era uma parede: a faixa fechava e nao havia por onde passar.
+  // MEDIDO, a fase castiga QUEM VIRA E SEGUE, e nao quem vira: um piloto que
+  // ziguezagueia virando a cada 0,6, 1,0 e 1,5 s notificou 27, 16 e 11 vezes
+  // na fase e levou 6, 2 e 6 acertos - o aviso vai para onde ele ia, e ele ja
+  // voltou. Na batalha inteira o piloto que persegue a professora entra com
+  // 79,2 e sai aprovado com 65,1 (3 acertos, com 4 notificacoes e 6
+  // consultas), o mesmo que a fase da divida que esta substituiu lhe dava; o
+  // parado so leva polling e termina com zero.
   //
   // ESTA E A FASE QUE DECIDE A BATALHA. StateThree tem "proximo" vazio: quem
   // chega ao fim dela aprovado termina aprovado e nunca ve a manutencao.
   "StateThree": {
     "duracao": 17,
     "proximo": "",
-    "movimento": { "tipo": "Varredura", "a": 200, "b": 150 },
+    "anuncio": "Observer",
+    "movimento": { "tipo": "Varredura", "a": 160, "b": 150 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Debito",
-        "projeteis": 4, "velocidade": 320, "angulo": 36, "intervalo": 0,
-        "cooldown": 2.5,
-        "regras": "divida" },
-      { "estrategia": "WaveAttack", "projetil": "Requisito",
-        "projeteis": 5, "velocidade": 300, "angulo": 40, "intervalo": 0.06,
-        "cooldown": 1.3,
-        "regras": "entregas" }
+      { "estrategia": "WaveAttack", "projetil": "Observador",
+        "projeteis": 3, "velocidade": 260, "angulo": 120, "intervalo": 0,
+        "cooldown": 2.4,
+        "regras": "inscrever" },
+      { "gatilho": "notificacao", "estrategia": "PontosAttack", "projetil": "Aviso",
+        "projeteis": 1, "velocidade": 260,
+        "pontos": { "posto": "observadores", "mirar": true, "prever": true } },
+      { "gatilho": "consulta", "estrategia": "PontosAttack", "projetil": "Aviso",
+        "projeteis": 1, "velocidade": 260,
+        "pontos": { "posto": "observadores", "mirar": true } }
     ]
   },
 

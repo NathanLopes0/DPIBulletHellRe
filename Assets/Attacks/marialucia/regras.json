@@ -79,29 +79,30 @@
                   "atraso": 0.50, "velocidade": 250 } }
   ],
 
-  // FASE 3 - A DIVIDA QUE FICA.
+  // A DIVIDA QUE FICA - a Manutencao da cascata, e a fase final.
   //
   // O debito voa 460px, CONGELA por 8,5s - visivel e com colisor ligado - e so
-  // entao segue para fora. Com a leva saindo a cada 2,5s, tres ou quatro levas
-  // ficam paradas ao mesmo tempo, e o campo vai ficando menor enquanto a fase
-  // corre. Medido: 2,7 blocos em tela no quadro 2150 e 8,2 no 2750.
+  // entao segue para fora - e atravessa a troca de fase: a divida da
+  // Manutencao, a ultima etapa da cascata, ainda esta parada no campo quando
+  // as sprints comecam. O que nao se resolveu no fim de um processo e o
+  // comeco do seguinte.
   //
-  // ESSE E O CHEFE INTEIRO, numa linha: o segundo quinze desta fase e a
-  // consequencia do segundo dois. Nenhuma outra fase do jogo faz isso - em
-  // todas as outras, o campo no fim esta como estava no comeco.
+  // (Ate o 121 ela era a fase 3 inteira: uma leva a cada 2,5 s, tres ou quatro
+  // paradas ao mesmo tempo, e o campo encolhendo - medido, 2,7 blocos em tela
+  // no quadro 2150 e 8,2 no 2750. O padrao Observer tomou o lugar dela.)
   //
-  // O "atraso" DE 0,08 E A MESMA ARMADILHA DA FASE 2, e por isso a leva nasce
+  // O "atraso" DE 0,08 E A MESMA ARMADILHA DO DIAGRAMA, e por isso a leva nasce
   // inteira ("intervalo": 0 em fases.json): um Path que ativa num projetil
   // ainda dormindo captura direcao zero. Com a leva inteira acordada no
   // primeiro quadro, basta um atraso simbolico para o caminho pegar num
   // projetil que ja tem direcao.
   //
   // E NASCER INTEIRA TAMBEM E O DESENHO CERTO: divida nao chega pingando,
-  // chega em LEVA - quatro blocos aterrissam juntos, como uma entrega que
-  // fechou com pressa.
+  // chega em LEVA - os blocos aterrissam juntos, como uma entrega que fechou
+  // com pressa.
   //
   // 8,5s E NAO "PARA SEMPRE". Um debito eterno encheria a tela ate nao haver
-  // jogada possivel, e aí a fase deixaria de ser dificil e viraria injusta;
+  // jogada possivel, e ai a fase deixaria de ser dificil e viraria injusta;
   // alem disso um projetil que nunca sai nunca volta para o pool. A divida
   // sai de cena, mas sai TARDE - tarde o bastante para ter atrapalhado.
   "divida": [
@@ -110,13 +111,17 @@
                   "velocidade": 320, "pararNoPonto": 0, "pararPor": 8.5 } }
   ],
 
-  // FASE 3 - O TRABALHO QUE NAO PARA.
+  // FASE 3 - O PADRAO OBSERVER: O OLHO QUE ASSINA.
   //
-  // Os requisitos continuam chegando enquanto a divida se acumula, porque e
-  // assim que e: ninguem para de pedir coisa nova porque o codigo esta ruim.
-  // Retos e rapidos - o perigo da fase e o terreno, nao estes.
-  "entregas": [
-    { "animacao": "Novo" }
+  // Nasce ja no posto dos observadores - assinando o aluno, de onde os avisos
+  // saem (Observer::kPostoDosObservadores) -, voa 230px e PARA, olhando, por
+  // "pararPor" segundos; depois segue em frente, para fora da tela. O mesmo
+  // "atraso" simbolico da divida, pelo mesmo motivo: o Path tem de pegar num
+  // projetil ja acordado, e a leva nasce inteira ("intervalo" 0).
+  "inscrever": [
+    { "posto": "observadores",
+      "motion": { "tipo": "Path", "forma": "Inscrito", "atraso": 0.08,
+                  "velocidade": 260, "pararNoPonto": 0, "pararPor": 7.0 } }
   ],
 
   // FASE FINAL - O LEGADO.

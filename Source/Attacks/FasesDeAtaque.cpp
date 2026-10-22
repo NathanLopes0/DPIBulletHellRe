@@ -41,7 +41,7 @@ namespace {
     /// "None" NAO entra: a propria BaloonAttack recusa side == None.
     const std::vector<std::string> kLadosDeBalao = {"Down", "Left", "Right", "Up"};
     const std::vector<std::string> kEixosDeConsulta = {"Linha", "Coluna"};
-    const std::vector<std::string> kPostos = {"quadro"};
+    const std::vector<std::string> kGatilhos = {"notificacao", "consulta"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"
@@ -332,6 +332,17 @@ namespace {
         }
         saida.etapa = Texto(j, "etapa");
 
+        // O GATILHO: um ataque que dispara quando o chefe puxa, e nao pelo
+        // relogio. Um gatilho que nenhum chefe puxa e um ataque que nunca
+        // aparece, calado - recusado na leitura.
+        if (j.contains("gatilho")) {
+            if (!j["gatilho"].is_string() || !GatilhoExiste(j["gatilho"].get<std::string>())) {
+                problemas.emplace_back(onde + "\"gatilho\" precisa ser o nome de um gatilho que existe");
+                return false;
+            }
+            saida.gatilho = j["gatilho"].get<std::string>();
+        }
+
         saida.velocidade    = Opcional(j, "velocidade");
         saida.angulo        = Opcional(j, "angulo");
         saida.anguloCentral = Opcional(j, "anguloCentral");
@@ -586,7 +597,7 @@ bool MovimentoExiste(const std::string& nome)    { return Contem(kMovimentos, no
 bool NomeDeFaseExiste(const std::string& nome)   { return Contem(kNomesDeFase, nome); }
 bool LadoDeBalaoExiste(const std::string& nome)  { return Contem(kLadosDeBalao, nome); }
 bool EixoDeConsultaExiste(const std::string& nome) { return Contem(kEixosDeConsulta, nome); }
-bool PostoExiste(const std::string& nome)          { return Contem(kPostos, nome); }
+bool GatilhoExiste(const std::string& nome)        { return Contem(kGatilhos, nome); }
 
 FasesLidas LerFases(const std::string& textoJson) {
 

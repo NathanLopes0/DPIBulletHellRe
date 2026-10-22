@@ -94,7 +94,7 @@ namespace Sprint {
 
     /// O POSTO das historias paradas no quadro (BossProjectile::DefinirPosto):
     /// e dele que a PontosAttack atira, e a historia em andamento solta o
-    /// codigo dela. Tem de ser um dos nomes de PostoExiste (FasesDeAtaque.h).
+    /// codigo dela. Tem de ser um dos nomes de PostoExiste (RegrasDeAtaque.h).
     constexpr const char* kPostoDoQuadro = "quadro";
 
     /// O plano de uma sprint de 'n' historias saindo de 'origem'. A revisao

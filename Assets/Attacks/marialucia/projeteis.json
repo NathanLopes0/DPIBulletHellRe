@@ -86,5 +86,45 @@
     "ordemDeDesenho": 91,
     "escala": 1.3,
     "derrubavel": true
+  },
+
+  // O OBSERVADOR DO PADRAO OBSERVER (fase 3): o post-it com um olho. A
+  // professora troca a cara dele a cada quadro (MariaLucia::AtualizarObserver):
+  // o olho OLHA para o lado em que o aluno esta - o rastreamento do olhar, da
+  // IHC - e PISCA quando o aluno notifica. Um quadro por cara, porque quem
+  // anima e ela. NAO e derrubavel: a assinatura nao se cancela a tiro, se
+  // evita mudando pouco de estado.
+  "Observador": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
+    "animacoes": {
+      "OlhaEsquerda": [20],
+      "OlhaFrente":   [21],
+      "OlhaDireita":  [22],
+      "Pisca":        [23]
+    },
+    "animacaoInicial": "OlhaFrente",
+    "ordemDeDesenho": 89,
+    "escala": 1.3
+  },
+
+  // O AVISO DO OBSERVER: o que cada olho manda quando o aluno notifica - o
+  // selo vermelho de notificacao, o "algo mudou" de toda interface. A primeira
+  // versao mandava um post-it, e o aviso amarelo se confundia com o olho, que
+  // tambem e post-it.
+  //
+  // O COLISOR E O DO SELO, e nao o do quadro: o selo tem 8 px de raio num
+  // quadro de 32, e com o divisor de sempre (2) o aviso acertaria a 16 px, onde
+  // nao ha nada desenhado.
+  "Aviso": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
+    "animacoes": {
+      "Notificacao": [32, 33, 34, 35]
+    },
+    "animacaoInicial": "Notificacao",
+    "ordemDeDesenho": 92,
+    "escala": 1.3,
+    "colisorDivisor": 4
   }
 }

@@ -229,6 +229,10 @@ struct DescricaoDeAtaque {
     /// Em qual etapa da fase este ataque dispara. Vazio = a fase inteira. Fora
     /// da etapa ele nao conta o cooldown nem dispara.
     std::string etapa;
+
+    /// O gatilho que o dispara (GatilhoExiste). Vazio = o relogio, pelo
+    /// cooldown. Com gatilho, o cooldown e ignorado.
+    std::string gatilho;
 };
 
 /// @brief O lado nomeado existe? (Down, Left, Right, Up - nunca None)
@@ -237,10 +241,11 @@ bool LadoDeBalaoExiste(const std::string& nome);
 /// @brief O eixo nomeado existe? (Linha ou Coluna)
 bool EixoDeConsultaExiste(const std::string& nome);
 
-/// @brief O posto nomeado existe? Um posto e um lugar de onde uma PontosAttack
-/// atira, e so existe se alguem no motor o ocupa: "quadro" sao as historias
-/// paradas no quadro da sprint (Sprint::kPostoDoQuadro).
-bool PostoExiste(const std::string& nome);
+/// @brief O gatilho nomeado existe? Um ataque com "gatilho" nao dispara pelo
+/// relogio: dispara quando o chefe puxa o gatilho (Boss::Disparar). So existe
+/// o gatilho que algum chefe puxa: "notificacao" e "consulta" sao o sujeito
+/// do padrao Observer da Maria Lucia (Observer.h).
+bool GatilhoExiste(const std::string& nome);
 
 /**
  * @brief Como o chefe se move durante a fase.
