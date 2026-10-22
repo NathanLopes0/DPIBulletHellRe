@@ -48,6 +48,7 @@
 #include "../Source/Attacks/Observer.h"
 #include "../Source/Attacks/ReAct.h"
 #include "../Source/Attacks/Nuvem.h"
+#include "../Source/Attacks/Logica.h"
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
 #include "../Source/Navegacao.h"
@@ -1583,4 +1584,75 @@ TEST_CASE("Dados: o fork do Vitor e pela nuvem - a fase do fork vem logo depois 
     bool formaNuvens = false;
     for (const auto& a : nuvens->ataques) if (a.gatilho == Nuvem::kGatilhoDasNuvens) formaNuvens = true;
     CHECK(formaNuvens);
+}
+
+TEST_CASE("Dados: as portas do Ricardo - gatilho, postos e caras sao nomes que os dados tem") {
+    CHECK(GatilhoExiste(Logica::kGatilhoDasPortas));
+    CHECK(PostoExiste(Logica::kPostoDaPalavra));
+    CHECK(PostoExiste(Logica::kPostoDasPortas));
+
+    // QUEM TROCA A CARA DO BIT E DA PORTA E O RICARDO, pelos nomes de
+    // Logica.h. Uma cara que o tipo nao tem e um bit que atravessa a porta e
+    // continua mostrando o valor de antes.
+    const auto& tipos = ProjeteisDoChefe("ricardo").projeteis;
+    const auto tem = [&](const char* tipo, const std::string& cara) {
+        if (tipos.count(tipo) == 0) return false;
+        for (const auto& a : tipos.at(tipo).animacoes) if (a.nome == cara) return true;
+        return false;
+    };
+    CHECK(tem("Bit", Logica::kAnimacaoDoZero));
+    CHECK(tem("Bit", Logica::kAnimacaoDoUm));
+    for (const auto op : { Logica::Operacao::E, Logica::Operacao::Ou,
+                           Logica::Operacao::OuExclusivo, Logica::Operacao::Nao }) {
+        for (const std::uint32_t b : { 0x0000u, 0xFFFFu }) {
+            const std::string cara = Logica::AnimacaoDaPorta(Logica::Porta{op, b}, 0, Logica::kBits);
+            CAPTURE(cara);
+            CHECK(tem("Porta", cara));
+        }
+    }
+}
+
+TEST_CASE("Dados: a fase das portas do Ricardo - todo placar de etapa e uma porta, e toda porta admite palavra justa") {
+    const auto lidas = FasesDoChefe("ricardo");
+    const DescricaoDeFase* fase = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Logica::kFaseDasPortas) fase = &f;
+    REQUIRE(fase);
+    REQUIRE_FALSE(fase->etapas.empty());
+
+    // O PLACAR E A PORTA: um anuncio que nao se le como porta deixaria as
+    // portas fazendo a operacao da etapa anterior, com o placar dizendo outra.
+    for (const auto& etapa : fase->etapas) {
+        CAPTURE(etapa.anuncio);
+        const auto porta = Logica::LerPorta(etapa.anuncio, Logica::kBits);
+        REQUIRE(porta);
+
+        // E UMA PORTA SEM PALAVRA JUSTA faria o sorteio devolver qualquer
+        // coisa - um muro inteiro, ou nada.
+        bool admite = false;
+        for (std::uint32_t a = 0; a < (1u << Logica::kBits) && !admite; ++a) admite = Logica::Justa(*porta, a, Logica::kBits);
+        CHECK(admite);
+    }
+
+    // A PALAVRA E A FILEIRA DE PORTAS TEM UM BIT POR COLUNA, as kBits colunas
+    // em que o Ricardo divide a tela: com outro numero, o bit da coluna 3 da
+    // palavra passaria pela porta da coluna 2.
+    int palavras = 0, fileiras = 0;
+    for (const auto& a : fase->ataques) {
+        if (a.estrategia != "PalavraAttack") continue;
+        CAPTURE(a.projetil);
+        REQUIRE(a.projeteis);
+        CHECK(*a.projeteis == Logica::kBits);
+        if (a.gatilho == Logica::kGatilhoDasPortas) {
+            ++fileiras;
+            REQUIRE(a.palavra);
+            CHECK(a.palavra->todosAtravessam);   // a porta nao machuca
+            CHECK(a.palavra->altura);            // fica numa altura so
+            CHECK((!a.velocidade || *a.velocidade == 0.0f));
+        } else {
+            ++palavras;
+            CHECK((a.velocidade && *a.velocidade > 0.0f));
+        }
+    }
+    CHECK(fileiras == 1);
+    CHECK(palavras >= 1);
 }

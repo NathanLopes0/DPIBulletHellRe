@@ -374,13 +374,17 @@ void Boss::RegistrarAnuncio(const std::string& fase, const std::string& texto) {
 }
 
 std::string Boss::AnuncioDaFase(const std::string& fase) const {
+    if (fase == mLastStateName) {
+        if (const auto* fsm = GetComponent<FSMComponent>()) return AnuncioDaFaseEm(fase, fsm->GetStateTime());
+    }
+    return AnuncioDaFaseEm(fase, -1.0f);
+}
+
+std::string Boss::AnuncioDaFaseEm(const std::string& fase, const float t) const {
     const auto etapas = mEtapasPorFase.find(fase);
-    if (etapas != mEtapasPorFase.end() && fase == mLastStateName) {
-        if (const auto* fsm = GetComponent<FSMComponent>()) {
-            const float t = fsm->GetStateTime();
-            for (const auto& [fim, texto] : etapas->second) {
-                if (t < fim) return texto;
-            }
+    if (etapas != mEtapasPorFase.end() && t >= 0.0f) {
+        for (const auto& [fim, texto] : etapas->second) {
+            if (t < fim) return texto;
         }
     }
     const auto it = mAnuncioPorFase.find(fase);

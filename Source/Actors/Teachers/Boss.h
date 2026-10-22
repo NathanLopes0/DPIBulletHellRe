@@ -180,6 +180,14 @@ public:
     /// ultima etapa volta o anuncio da fase.
     [[nodiscard]] std::string AnuncioDaFase(const std::string& fase) const;
 
+    /// @brief O anuncio que a fase tem no instante 't' dela, contando as
+    /// etapas - o de agora ou o de daqui a pouco. Com 't' negativo, o da fase.
+    ///
+    /// Para quem decide AGORA uma coisa que acontece DEPOIS: o Ricardo sorteia
+    /// a palavra para a porta que ela vai atravessar, e a porta esta escrita no
+    /// placar da etapa em que a travessia cai.
+    [[nodiscard]] std::string AnuncioDaFaseEm(const std::string& fase, float t) const;
+
     /// @brief Anota as etapas da fase: onde cada uma ACABA, em segundos desde o
     /// comeco da fase, e o que o placar diz durante ela. Ver AnuncioDaFase.
     void RegistrarEtapas(const std::string& fase, std::vector<std::pair<float, std::string>> fimETexto);

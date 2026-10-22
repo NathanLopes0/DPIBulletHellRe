@@ -162,6 +162,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/ReAct.h
         Source/Attacks/Nuvem.cpp
         Source/Attacks/Nuvem.h
+        Source/Attacks/Logica.cpp
+        Source/Attacks/Logica.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
@@ -256,6 +258,9 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/BaseStrategies/TokenAttack.cpp
         Source/Attacks/BaseStrategies/TokenAttack.h
         Source/Attacks/AttackParameters/TokenAttackParams.h
+        Source/Attacks/BaseStrategies/PalavraAttack.cpp
+        Source/Attacks/BaseStrategies/PalavraAttack.h
+        Source/Attacks/AttackParameters/PalavraAttackParams.h
         Source/Attacks/BaseStrategies/LaserAttack.h
         Source/Actors/ProjectilePool.h
 )
@@ -301,6 +306,7 @@ add_executable(dpi_tests
         tests/test_temperatura.cpp
         tests/test_react.cpp
         tests/test_nuvem.cpp
+        tests/test_logica.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -388,6 +394,8 @@ add_executable(dpi_tests
         Source/Attacks/ReAct.h
         Source/Attacks/Nuvem.cpp
         Source/Attacks/Nuvem.h
+        Source/Attacks/Logica.cpp
+        Source/Attacks/Logica.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp

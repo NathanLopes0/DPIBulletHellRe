@@ -4,6 +4,7 @@
 
 #include "MovementStrategies.h"
 #include "Escada.h"
+#include "../Attacks/Logica.h"
 #include "../Scenes/Battle/Battle.h"
 #include "../Actors/Player/Player.h"
 
@@ -296,4 +297,42 @@ void EscadaStrategy::Update(Boss* boss, const float deltaTime) {
         return;
     }
     rb->SetVelocity(falta * (kVelocidadeEntreDegraus / d));
+}
+
+// =========================================================
+// DESLOCAMENTO STRATEGY
+// =========================================================
+
+DeslocamentoStrategy::DeslocamentoStrategy(const float segundosPorPasso, const float colunas)
+    : mSegundosPorPasso(segundosPorPasso), mColunas(static_cast<int>(colunas))
+{
+}
+
+void DeslocamentoStrategy::Initialize(Boss* boss) {
+    mTempo = 0.0f;
+    mAltura = boss->GetPosition().y;
+    const auto largura = static_cast<float>(boss->GetScene()->GetGame()->GetWindowWidth());
+    mInicio = Logica::Coluna(boss->GetPosition().x, largura, mColunas);
+}
+
+void DeslocamentoStrategy::Update(Boss* boss, const float deltaTime) {
+    auto rb = boss->GetComponent<RigidBodyComponent>();
+    if (!rb || mColunas <= 0) return;
+    mTempo += deltaTime;
+
+    const auto largura = static_cast<float>(boss->GetScene()->GetGame()->GetWindowWidth());
+    const int coluna = Logica::ColunaDoDeslocamento(mTempo, mSegundosPorPasso, kColunasDaBorda,
+                                                    mColunas - 1 - kColunasDaBorda, mInicio);
+    const Vector2 alvo(Logica::CentroDaColuna(coluna, largura, mColunas), mAltura);
+
+    // VAI ATE A COLUNA E PARA NELA, como a escada.
+    const Vector2 falta = alvo - boss->GetPosition();
+    const float d = falta.Length();
+    const float passo = kVelocidadeDoPasso * deltaTime;
+    if (d <= passo || deltaTime <= 0.0f) {
+        boss->SetPosition(alvo);
+        rb->SetVelocity(Vector2::Zero);
+        return;
+    }
+    rb->SetVelocity(falta * (kVelocidadeDoPasso / d));
 }

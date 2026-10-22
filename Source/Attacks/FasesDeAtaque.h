@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <map>
 #include <optional>
 #include <string>
@@ -131,6 +132,18 @@ struct DescricaoDeTokens {
 };
 
 /**
+ * @brief Os campos que SO a PalavraAttack usa. Opcional: todo campo tem padrao
+ * em PalavraAttackParams.
+ */
+struct DescricaoDePalavra {
+    std::optional<std::uint32_t> valor;   ///< os bits, escritos com 0 e 1
+    std::optional<float> altura;          ///< o y da fileira; ausente = o do professor
+    std::string zero;                     ///< a animacao do zero
+    std::string um;                       ///< a do um
+    bool todosAtravessam = false;         ///< o um tambem e enfeite (as portas)
+};
+
+/**
  * @brief Os campos que SO a PontosAttack usa. OBRIGATORIO nela: sem posto, ela
  * nao teria de onde atirar.
  */
@@ -239,6 +252,9 @@ struct DescricaoDeAtaque {
 
     /// Presente so nos ataques TokenAttack que escreveram o bloco.
     std::optional<DescricaoDeTokens> tokens;
+
+    /// Presente so nos ataques PalavraAttack que escreveram o bloco.
+    std::optional<DescricaoDePalavra> palavra;
 
     /// Em qual etapa da fase este ataque dispara. Vazio = a fase inteira. Fora
     /// da etapa ele nao conta o cooldown nem dispara.

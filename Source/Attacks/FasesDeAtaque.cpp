@@ -16,14 +16,16 @@ namespace {
     const std::vector<std::string> kEstrategias = {
         "AngledAttack", "CircleSpreadAttack", "WaveAttack", "BaloonAttack", "LaserAttack", "ConsultaAttack",
         "CaixaAttack", "FlexAttack", "CapsulaAttack", "SerpenteAttack", "SprintAttack",
-        "PontosAttack", "TokenAttack"
+        "PontosAttack", "TokenAttack", "PalavraAttack"
     };
     const std::vector<std::string> kMovimentos = {
         "RandomWander", "HoverAbovePlayer", "GoToCenter",
         // As tres do "o movimento e o ataque" - ver MovementStrategies.h.
         "Orbitar", "Varredura", "Mergulho",
         // A escada da cascata - ver Escada.h.
-        "Escada"
+        "Escada",
+        // O registrador de deslocamento do Ricardo - ver Logica.h.
+        "Deslocamento"
     };
 
     /// Os nomes aceitos, para a mensagem de erro. DERIVADA da lista acima, e
@@ -41,7 +43,7 @@ namespace {
     /// "None" NAO entra: a propria BaloonAttack recusa side == None.
     const std::vector<std::string> kLadosDeBalao = {"Down", "Left", "Right", "Up"};
     const std::vector<std::string> kEixosDeConsulta = {"Linha", "Coluna"};
-    const std::vector<std::string> kGatilhos = {"notificacao", "consulta", "agir", "nuvens", "chover"};
+    const std::vector<std::string> kGatilhos = {"notificacao", "consulta", "agir", "nuvens", "chover", "portas"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"
@@ -567,6 +569,61 @@ namespace {
                     return false;
                 }
                 saida.tokens = tk;
+            }
+        }
+
+        // --- bloco de palavra (opcional) ---
+        if (j.contains("palavra")) {
+            if (saida.estrategia != "PalavraAttack") {
+                problemas.emplace_back(onde + "so a PalavraAttack usa \"palavra\"; o bloco foi ignorado");
+            }
+            else if (!j["palavra"].is_object()) {
+                problemas.emplace_back(onde + "\"palavra\" deveria ser um objeto");
+                return false;
+            }
+            else {
+                const auto& pj = j["palavra"];
+                DescricaoDePalavra pl;
+                pl.altura = Opcional(pj, "altura");
+                pl.zero = Texto(pj, "zero");
+                pl.um = Texto(pj, "um");
+
+                // QUEM SE ATRAVESSA: o zero sempre; "todos" e a fileira de
+                // portas, que nao machuca ninguem.
+                const std::string atravessa = Texto(pj, "atravessa", "zeros");
+                if (atravessa != "zeros" && atravessa != "todos") {
+                    problemas.emplace_back(onde + "\"palavra\": \"atravessa\" e \"zeros\" ou \"todos\"");
+                    return false;
+                }
+                pl.todosAtravessam = (atravessa == "todos");
+
+                // O VALOR, escrito como se le: 0 e 1, com espacos para agrupar.
+                // Tantos digitos quantos bits a fileira tem - um digito a mais
+                // ou a menos deslocaria a palavra inteira de coluna.
+                if (pj.contains("valor")) {
+                    if (!pj["valor"].is_string()) {
+                        problemas.emplace_back(onde + "\"palavra\": \"valor\" se escreve com 0 e 1, entre aspas");
+                        return false;
+                    }
+                    std::uint32_t v = 0;
+                    int digitos = 0;
+                    for (const char c : pj["valor"].get<std::string>()) {
+                        if (c == ' ') continue;
+                        if (c != '0' && c != '1') {
+                            problemas.emplace_back(onde + "\"palavra\": \"valor\" so tem 0, 1 e espacos");
+                            return false;
+                        }
+                        v = (v << 1) | (c == '1' ? 1u : 0u);
+                        ++digitos;
+                    }
+                    if (digitos > 31 || (saida.projeteis && digitos != *saida.projeteis)) {
+                        problemas.emplace_back(onde + "\"palavra\": \"valor\" precisa de um digito por bit "
+                                                      "(\"projeteis\")");
+                        return false;
+                    }
+                    pl.valor = v;
+                }
+                saida.palavra = pl;
             }
         }
 

@@ -1050,6 +1050,46 @@ TEST_CASE("Fases: tokens com temperatura ou abertura negativas, candidatos que n
     CHECK(gulosa.problemas.empty());
 }
 
+TEST_CASE("Fases: a PalavraAttack existe, e o bloco dela e opcional") {
+    const auto sem = LerFases(ComAtaque(R"({ "estrategia": "PalavraAttack", "projetil": "P", "projeteis": 16 })"));
+    CHECK(sem.problemas.empty());
+
+    const auto com = LerFases(ComAtaque(R"({ "estrategia": "PalavraAttack", "projetil": "P", "projeteis": 8,
+        "palavra": { "altura": 390, "zero": "Z", "um": "U", "atravessa": "todos", "valor": "1011 0010" } })"));
+    CHECK(com.problemas.empty());
+    bool viu = false;
+    for (const auto& f : com.fases) {
+        if (f.nome != "StateOne") continue;
+        REQUIRE(f.ataques.size() == 1);
+        REQUIRE(f.ataques[0].palavra.has_value());
+        const auto& p = *f.ataques[0].palavra;
+        CHECK(*p.altura == doctest::Approx(390.0f));
+        CHECK(p.zero == "Z");
+        CHECK(p.um == "U");
+        CHECK(p.todosAtravessam);
+        REQUIRE(p.valor);
+        CHECK(*p.valor == 0xB2u);   // escrito como se le: o primeiro digito e o bit mais alto
+        viu = true;
+    }
+    CHECK(viu);
+}
+
+TEST_CASE("Fases: uma palavra com valor do tamanho errado, digito que nao e bit ou travessia inventada e recusada") {
+    for (const char* bloco : { R"("palavra": { "valor": "1011 001" })",      // um digito a menos
+                               R"("palavra": { "valor": "1011 00101" })",    // um a mais
+                               R"("palavra": { "valor": "1021 0010" })",
+                               R"("palavra": { "valor": 178 })",
+                               R"("palavra": { "atravessa": "uns" })" }) {
+        CAPTURE(bloco);
+        const auto r = LerFases(ComAtaque(std::string(R"({ "estrategia": "PalavraAttack", "projetil": "P", "projeteis": 8, )")
+                                          + bloco + " }"));
+        bool reclamou = false;
+        for (const auto& p : r.problemas) if (p.find("palavra") != std::string::npos) reclamou = true;
+        CHECK(reclamou);
+        for (const auto& f : r.fases) if (f.nome == "StateOne") CHECK(f.ataques.empty());
+    }
+}
+
 TEST_CASE("Fases: a PontosAttack precisa de um posto que existe") {
     const auto ok = LerFases(ComAtaque(R"({ "estrategia": "PontosAttack", "projetil": "P",
         "pontos": { "posto": "quadro", "mirar": true } })"));

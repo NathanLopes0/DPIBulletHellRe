@@ -26,5 +26,43 @@
     },
     "escala": 2,
     "ordemDeDesenho": 90
+  },
+
+  // O BIT DA FASE 1: um bit de uma palavra de 16, do verde da camiseta dele.
+  // O UM e a celula acesa, que pulsa; o ZERO e so o contorno apagado - e a
+  // PalavraAttack o faz enfeite, que se atravessa. A cara troca na porta
+  // (Ricardo::AtualizarPortas), pelos nomes de Logica.h.
+  //
+  // ESCALA 2,2: 70 px numa coluna de 75. Entre dois uns sobram 5 px, menos que
+  // os 13 do aluno - e a hitbox acompanha a escala. Arte PROVISORIA de
+  // Ferramentas/gerar_ricardo.py.
+  "Bit": {
+    "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
+    "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",
+    "animacoes": {
+      "Zero": [0],
+      "Um":   [1, 2]
+    },
+    "animacaoInicial": "Zero",
+    "escala": 2.2,
+    "ordemDeDesenho": 90
+  },
+
+  // A PORTA LOGICA DA FASE 1: apontada para baixo - o dado entra por cima e
+  // sai por baixo -, com a entrada B escrita nela. Uma animacao por operacao
+  // e valor de B, com os nomes que Logica::AnimacaoDaPorta monta. Fica atras
+  // dos bits, que passam por cima dela.
+  "Porta": {
+    "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
+    "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",
+    "animacoes": {
+      "AND0": [3], "AND1": [4],
+      "OR0":  [5], "OR1":  [6],
+      "XOR0": [7], "XOR1": [8],
+      "NOT":  [9]
+    },
+    "animacaoInicial": "NOT",
+    "escala": 2.0,
+    "ordemDeDesenho": 88
   }
 }

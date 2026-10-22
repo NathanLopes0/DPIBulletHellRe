@@ -20,6 +20,18 @@
   // RICARDO - INF 250
   // --------------------------------------------------------------------------
 
+  // FASE 1: a palavra nasce no posto "palavra" - os bits que ainda nao
+  // passaram pela porta - e a fileira de portas no posto "portas". Quem os
+  // procura nos postos e o Ricardo: a cada quadro ele poe a cara da etapa em
+  // cada porta e passa pela porta todo bit que chegou a altura dela, que entao
+  // deixa o posto.
+  "palavra": [
+    { "posto": "palavra" }
+  ],
+  "portas": [
+    { "posto": "portas" }
+  ],
+
   // Fase 2: o anel sai reto, DESACELERA, e so depois de 1.5s vira na direcao do
   // jogador. Path com a forma Reta e mira no jogador e exatamente o que o antigo
   // HomingBehavior fazia - provado em tests/test_motion_contract.cpp.

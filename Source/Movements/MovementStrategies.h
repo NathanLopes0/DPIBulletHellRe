@@ -181,3 +181,33 @@ private:
     /// degrau ser um degrau e nao uma rampa.
     static constexpr float kVelocidadeEntreDegraus = 420.0f;
 };
+
+/**
+ * @brief Anda de coluna em coluna, uma a cada 'segundosPorPasso', ate a ponta
+ * e de volta - um bit num registrador de deslocamento.
+ *
+ * O GESTO DO DESLOCADOR. A tela da fase 1 do Ricardo e uma palavra de bits, uma
+ * coluna por bit, e o professor anda nela como o dado anda num registrador: um
+ * passo seco de cada vez, sempre parando no meio de uma coluna. As colunas sao
+ * as da palavra (Logica::CentroDaColuna); a altura e a dele no comeco da fase.
+ *
+ * @param segundosPorPasso quanto tempo em cada coluna
+ * @param colunas          em quantas a tela se divide
+ */
+class DeslocamentoStrategy : public IMovementStrategy {
+public:
+    DeslocamentoStrategy(float segundosPorPasso = 0.6f, float colunas = 16.0f);
+    void Initialize(Boss* boss) override;
+    void Update(Boss* boss, float deltaTime) override;
+private:
+    float mSegundosPorPasso;
+    int mColunas;
+    int mInicio = 0;
+    float mAltura = 0.0f;
+    float mTempo = 0.0f;
+    /// Quantas colunas de cada borda ele nao pisa: a ponta da palavra e o
+    /// canto da tela.
+    static constexpr int kColunasDaBorda = 2;
+    /// Depressa, para o passo ser um passo e nao um deslizar.
+    static constexpr float kVelocidadeDoPasso = 500.0f;
+};

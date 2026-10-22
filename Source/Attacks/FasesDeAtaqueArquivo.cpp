@@ -36,6 +36,8 @@
 #include "AttackParameters/PontosAttackParams.h"
 #include "BaseStrategies/TokenAttack.h"
 #include "AttackParameters/TokenAttackParams.h"
+#include "BaseStrategies/PalavraAttack.h"
+#include "AttackParameters/PalavraAttackParams.h"
 #include "BaseStrategies/CircleSpreadAttack.h"
 #include "BaseStrategies/LaserAttack.h"
 #include "BaseStrategies/WaveAttack.h"
@@ -107,6 +109,7 @@ namespace {
         if (tipo == "SprintAttack")       return std::make_unique<SprintAttack>(spawner, boss);
         if (tipo == "PontosAttack")       return std::make_unique<PontosAttack>(spawner, boss);
         if (tipo == "TokenAttack")        return std::make_unique<TokenAttack>(spawner, boss);
+        if (tipo == "PalavraAttack")      return std::make_unique<PalavraAttack>(spawner, boss);
         return nullptr;
     }
 
@@ -120,6 +123,7 @@ namespace {
      *   Varredura        a = velocidade (px/s),          b = margem das bordas (px)
      *   Mergulho         a = velocidade (px/s),          b = profundidade (px)
      *   Escada           a = segundos por degrau,         b = quantos degraus
+     *   Deslocamento     a = segundos por passo,          b = quantas colunas
      */
     std::unique_ptr<IMovementStrategy> CriarMovimento(const DescricaoDeMovimento& m) {
         if (m.tipo == "RandomWander")     return std::make_unique<RandomWanderStrategy>(m.a, m.b);
@@ -128,6 +132,7 @@ namespace {
         if (m.tipo == "Varredura")        return std::make_unique<VarreduraStrategy>(m.a, m.b);
         if (m.tipo == "Mergulho")         return std::make_unique<MergulhoStrategy>(m.a, m.b);
         if (m.tipo == "Escada")           return std::make_unique<EscadaStrategy>(m.a, m.b);
+        if (m.tipo == "Deslocamento")     return std::make_unique<DeslocamentoStrategy>(m.a, m.b);
         return std::make_unique<GoToCenterStrategy>();
     }
 
@@ -220,6 +225,17 @@ namespace {
             if (a.tokens && a.tokens->abertura)    tokens->abertura    = *a.tokens->abertura;
             if (a.tokens) tokens->frase = a.tokens->frase;
             params = std::move(tokens);
+        }
+        else if (a.estrategia == "PalavraAttack") {
+            auto palavra = std::make_unique<PalavraAttackParams>();
+            if (a.palavra) {
+                if (a.palavra->valor)  palavra->palavra = *a.palavra->valor;
+                if (a.palavra->altura) palavra->altura  = *a.palavra->altura;
+                if (!a.palavra->zero.empty()) palavra->zero = a.palavra->zero;
+                if (!a.palavra->um.empty())   palavra->um   = a.palavra->um;
+                palavra->umAtravessa = a.palavra->todosAtravessam;
+            }
+            params = std::move(palavra);
         }
         else if (a.estrategia == "PontosAttack") {
             auto pontos = std::make_unique<PontosAttackParams>();

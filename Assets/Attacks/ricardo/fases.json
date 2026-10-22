@@ -31,28 +31,76 @@
   //   vive em C++. Onde isso acontece esta anotado na fase.
   // ==========================================================================
 // ==========================================================================
-// RICARDO - INF 250 (fabrica de projeteis: "Arduino")
+// RICARDO - INF 250, Organizacao de Computadores
 //
-// O chefe do anel. As tres fases sao o MESMO anel de CircleSpreadAttack com
-// densidade e comportamento crescentes, e a diferenca entre elas esta toda nas
-// regras dos projeteis.
+// Ele tambem da Sistemas Logicos e Arquitetura, e pesquisa hardware - a
+// camiseta dele diz 10110. A batalha esta sendo refeita UMA MATERIA POR FASE:
 //
-// Ricardo NAO sobrescreve nada em CustomizeAttackParams, entao todo o
-// balanceamento dele esta neste arquivo. CircleSpreadAttack tambem ignora
-// angulo, anguloCentral e intervalo - o anel e sempre 360 graus dividido pela
-// quantidade - por isso nenhum dos tres aparece aqui.
+//   fase 1  SISTEMAS LOGICOS - palavras de bits que atravessam portas logicas
+//   fase 2  (ainda o anel de Arduinos de antes)
+//   fase 3  (ainda o anel de Arduinos de antes)
+//   final   (ainda o anel de Arduinos de antes)
+//
+// O que dados nao sabem fazer mora em Ricardo.cpp: a fileira de portas, a
+// travessia e o sorteio da palavra. CircleSpreadAttack ignora angulo,
+// anguloCentral e intervalo - o anel e sempre 360 graus dividido pela
+// quantidade - por isso nenhum dos tres aparece nos aneis.
 // ==========================================================================
 
-  // Anel denso e SEM regra nenhuma: 36 projeteis retos. E a fase que ensina o
-  // jogador a ler espacamento, antes de qualquer bala comecar a corrigir rota.
+  // FASE 1 - SISTEMAS LOGICOS   |   gesto: LER A PORTA E IR PARA ONDE VAI ABRIR
+  //
+  // A cada 1,5 s ele solta uma PALAVRA DE 16 BITS que desce como uma parede,
+  // um bit por coluna (PalavraAttack). O UM e nivel alto: aceso, machuca. O
+  // ZERO e nivel baixo: apagado, se atravessa.
+  //
+  // NO MEIO DO CAMINHO HA UMA FILEIRA DE PORTAS LOGICAS, uma por coluna, com a
+  // entrada B escrita em cada uma (gatilho "portas", aos 0,2 s). Todo bit sai
+  // da porta da coluna dele transformado (Ricardo::AtualizarPortas): o aluno
+  // ve a palavra chegando, le a porta, e tem de ir para onde a parede VAI
+  // abrir.
+  //
+  // O PLACAR E A PORTA. O anuncio de cada etapa e a operacao, e e esse texto
+  // que o Ricardo le (Logica::LerPorta): o que o aluno le e o que o codigo faz.
+  // A ordem ensina e aperta:
+  //   AND  B nas pontas e 0: as pontas sempre abrem - "AND com 0 zera"
+  //   OR   B nas pontas e 1: as pontas sempre fecham - quem aprendeu a se
+  //        esconder nelas tem de sair
+  //   NOT  tudo vira: o buraco vira parede e a parede vira buraco
+  //   XOR  a metade da esquerda vira, a da direita passa como esta
+  //
+  // A PALAVRA E SORTEADA PARA A PORTA QUE VAI ATRAVESSAR, e e justa (Logica::
+  // Justa): antes e depois da porta ha ao menos 3 buracos e 5 bits acesos, e
+  // a porta muda alguma coisa nela.
+  //
+  // 75 PX POR COLUNA, E O BIT TEM 70: entre dois uns vizinhos sobram 5 px, e o
+  // aluno precisa de 13 - a parede e parede. O buraco de um zero entre dois
+  // uns tem 80.
+  //
+  // O MOVIMENTO E O DESLOCADOR: ele anda uma coluna de cada vez, como um bit
+  // num registrador de deslocamento, e PARA 2 S EM CADA UMA. O tiro do aluno
+  // leva quase 1 s ate ele: andando a cada 0,6 s, o piloto que persegue
+  // acertou o professor 8 vezes na fase inteira e saiu dela com 14,5; a cada
+  // 1,5 s, com 49,9; a cada 2 s, com 61,8.
   "StateOne": {
     "duracao": 17,
     "proximo": "StateTwo",
-    "movimento": { "tipo": "RandomWander", "a": 4.0, "b": 100 },
+    "anuncio": "Sistemas Lógicos",
+    "etapas": [
+      { "nome": "E",  "duracao": 4.0, "anuncio": "AND 0000 1111 1111 0000" },
+      { "nome": "Ou", "duracao": 4.3, "anuncio": "OR 1100 0000 0000 0011" },
+      { "nome": "Nao", "duracao": 4.3, "anuncio": "NOT" },
+      { "nome": "Xou", "duracao": 4.4, "anuncio": "XOR 1111 1111 0000 0000" }
+    ],
+    "movimento": { "tipo": "Deslocamento", "a": 2.0, "b": 16 },
     "ataques": [
-      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
-        "projeteis": 36, "velocidade": 180,
-        "cooldown": 2.4 }
+      { "gatilho": "portas", "estrategia": "PalavraAttack", "projetil": "Porta",
+        "projeteis": 16, "velocidade": 0,
+        "palavra": { "altura": 390, "atravessa": "todos" },
+        "regras": "portas" },
+      { "estrategia": "PalavraAttack", "projetil": "Bit",
+        "projeteis": 16, "velocidade": 140,
+        "cooldown": 1.5,
+        "regras": "palavra" }
     ]
   },
 
