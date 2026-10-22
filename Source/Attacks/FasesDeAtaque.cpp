@@ -16,7 +16,7 @@ namespace {
     const std::vector<std::string> kEstrategias = {
         "AngledAttack", "CircleSpreadAttack", "WaveAttack", "BaloonAttack", "LaserAttack", "ConsultaAttack",
         "CaixaAttack", "FlexAttack", "CapsulaAttack", "SerpenteAttack", "SprintAttack",
-        "PontosAttack"
+        "PontosAttack", "TokenAttack"
     };
     const std::vector<std::string> kMovimentos = {
         "RandomWander", "HoverAbovePlayer", "GoToCenter",
@@ -518,6 +518,55 @@ namespace {
                     return false;
                 }
                 saida.sprint = sp;
+            }
+        }
+
+        // --- bloco de tokens (opcional) ---
+        if (j.contains("tokens")) {
+            if (saida.estrategia != "TokenAttack") {
+                problemas.emplace_back(onde + "so a TokenAttack usa \"tokens\"; o bloco foi ignorado");
+            }
+            else if (!j["tokens"].is_object()) {
+                problemas.emplace_back(onde + "\"tokens\" deveria ser um objeto");
+                return false;
+            }
+            else {
+                const auto& tj = j["tokens"];
+                DescricaoDeTokens tk;
+                tk.temperatura = Opcional(tj, "temperatura");
+                tk.abertura = Opcional(tj, "abertura");
+                if (tj.contains("candidatos")) {
+                    if (!tj["candidatos"].is_number_integer() || tj["candidatos"].get<int>() < 1) {
+                        problemas.emplace_back(onde + "\"tokens\": \"candidatos\" precisa ser um inteiro "
+                                                      "de 1 para cima");
+                        return false;
+                    }
+                    tk.candidatos = tj["candidatos"].get<int>();
+                }
+                if (tj.contains("frase")) {
+                    if (!tj["frase"].is_array()) {
+                        problemas.emplace_back(onde + "\"tokens\": \"frase\" precisa ser uma lista de nomes");
+                        return false;
+                    }
+                    for (const auto& palavra : tj["frase"]) {
+                        if (!palavra.is_string()) {
+                            problemas.emplace_back(onde + "\"tokens\": todo item de \"frase\" e o nome de "
+                                                          "uma animacao");
+                            return false;
+                        }
+                        tk.frase.push_back(palavra.get<std::string>());
+                    }
+                }
+
+                // Temperatura negativa nao e "mais fria que zero": e um sinal
+                // digitado errado. E um leque negativo poe os candidatos de
+                // tras para a frente, com a mesma cara de leque.
+                if ((tk.temperatura && *tk.temperatura < 0.0f) || (tk.abertura && *tk.abertura < 0.0f)) {
+                    problemas.emplace_back(onde + "\"tokens\": \"temperatura\" e \"abertura\" nao podem "
+                                                  "ser negativas");
+                    return false;
+                }
+                saida.tokens = tk;
             }
         }
 

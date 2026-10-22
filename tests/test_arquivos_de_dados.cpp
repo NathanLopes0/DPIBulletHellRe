@@ -1508,3 +1508,31 @@ TEST_CASE("Dados: toda fase com ataque de notificacao tem o de consulta, e os do
     }
     CHECK(achou);
 }
+
+TEST_CASE("Dados: toda palavra da frase de uma TokenAttack e uma animacao do token") {
+
+    // A FRASE E UMA LISTA DE NOMES DE ANIMACAO, e a TokenAttack os pede um por
+    // token. Uma palavra que o tipo nao tem e um SetAnimation que nao acha
+    // nada: o token sai com a cara do anterior, e a frase muda calada.
+    bool achou = false;
+    for (const auto& chefe : Chefes()) {
+        const auto tipos = ProjeteisDoChefe(chefe).projeteis;
+        for (const auto& f : FasesDoChefe(chefe).fases) {
+            for (const auto& a : f.ataques) {
+                if (a.estrategia != "TokenAttack" || !a.tokens) continue;
+                CAPTURE(chefe);
+                CAPTURE(f.nome);
+                REQUIRE(tipos.count(a.projetil) == 1);
+                const auto& tipo = tipos.at(a.projetil);
+                for (const auto& palavra : a.tokens->frase) {
+                    CAPTURE(palavra);
+                    bool tem = false;
+                    for (const auto& anim : tipo.animacoes) if (anim.nome == palavra) tem = true;
+                    CHECK(tem);
+                    achou = true;
+                }
+            }
+        }
+    }
+    CHECK(achou);
+}

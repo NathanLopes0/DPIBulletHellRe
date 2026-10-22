@@ -1010,6 +1010,46 @@ TEST_CASE("Fases: um ataque pode ter gatilho, e so um gatilho que algum chefe pu
     }
 }
 
+TEST_CASE("Fases: a TokenAttack existe e o bloco dela e opcional") {
+    const auto sem = LerFases(ComAtaque(R"({ "estrategia": "TokenAttack", "projetil": "P" })"));
+    CHECK(sem.problemas.empty());
+
+    const auto com = LerFases(ComAtaque(R"({ "estrategia": "TokenAttack", "projetil": "P",
+        "tokens": { "temperatura": 0.8, "candidatos": 9, "abertura": 120, "frase": ["o", "mo"] } })"));
+    CHECK(com.problemas.empty());
+    bool viu = false;
+    for (const auto& f : com.fases) {
+        if (f.nome != "StateOne") continue;
+        REQUIRE(f.ataques.size() == 1);
+        REQUIRE(f.ataques[0].tokens.has_value());
+        const auto& t = *f.ataques[0].tokens;
+        CHECK(*t.temperatura == doctest::Approx(0.8f));
+        CHECK(*t.candidatos == 9);
+        CHECK(*t.abertura == doctest::Approx(120.0f));
+        REQUIRE(t.frase.size() == 2);
+        CHECK(t.frase[1] == "mo");
+        viu = true;
+    }
+    CHECK(viu);
+}
+
+TEST_CASE("Fases: tokens com temperatura ou abertura negativas, candidatos que nao sao inteiros ou frase quebrada sao recusados") {
+    for (const char* bloco : { R"("tokens": { "temperatura": -0.1 })", R"("tokens": { "abertura": -10 })",
+                               R"("tokens": { "candidatos": 0 })", R"("tokens": { "candidatos": 2.5 })",
+                               R"("tokens": { "frase": "o mo" })", R"("tokens": { "frase": ["o", 3] })" }) {
+        CAPTURE(bloco);
+        const auto r = LerFases(ComAtaque(std::string(R"({ "estrategia": "TokenAttack", "projetil": "P", )")
+                                          + bloco + " }"));
+        bool reclamou = false;
+        for (const auto& p : r.problemas) if (p.find("tokens") != std::string::npos) reclamou = true;
+        CHECK(reclamou);
+        for (const auto& f : r.fases) if (f.nome == "StateOne") CHECK(f.ataques.empty());
+    }
+    // Temperatura zero vale: e a escolha gulosa.
+    const auto gulosa = LerFases(ComAtaque(R"({ "estrategia": "TokenAttack", "projetil": "P", "tokens": { "temperatura": 0 } })"));
+    CHECK(gulosa.problemas.empty());
+}
+
 TEST_CASE("Fases: a PontosAttack precisa de um posto que existe") {
     const auto ok = LerFases(ComAtaque(R"({ "estrategia": "PontosAttack", "projetil": "P",
         "pontos": { "posto": "quadro", "mirar": true } })"));

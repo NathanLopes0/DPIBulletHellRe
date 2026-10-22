@@ -31,5 +31,21 @@
     "animacaoInicial": "Coleta",
     "escala": 2,
     "ordemDeDesenho": 90
+  },
+
+  // OS TOKENS DA FASE 1: pedacos de palavra num chip, como um modelo de
+  // linguagem quebra o texto. Uma animacao por token, com o nome do proprio
+  // token - e por esse nome que a "frase" da TokenAttack os pede, em ordem.
+  // Arte PROVISORIA de Ferramentas/gerar_julio.py.
+  "Token": {
+    "sprite": "Teachers/Projectiles/DPIBHJulioToken.png",
+    "dados":  "Teachers/Projectiles/DPIBHJulioToken.json",
+    "animacoes": {
+      "o": [0], "mo": [1], "de": [2], "lo": [3],
+      "te": [4], "pre": [5], "diz": [6], "e": [7]
+    },
+    "animacaoInicial": "o",
+    "escala": 1.3,
+    "ordemDeDesenho": 90
   }
 }

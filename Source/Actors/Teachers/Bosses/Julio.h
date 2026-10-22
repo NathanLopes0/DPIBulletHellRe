@@ -10,9 +10,11 @@
  * @class Julio
  * @brief Boss da matéria INF 420.
  *
- * Tema: um modelo sendo treinado. As três fases percorrem exploração aleatória,
- * convergência por gradiente e overfitting — cada uma com um padrão de
- * movimento e de projétil correspondente.
+ * Tema: um MODELO DE LINGUAGEM, a área do professor. A fase 1 é a geração de
+ * tokens com temperatura (TokenAttack, Temperatura.h): o professor solta
+ * frases, token por token, sorteadas em volta da mira. As outras fases ainda
+ * são a história de antes — o modelo aprende onde você está, como você se move,
+ * e na repescagem entra em loop.
  *
  * Toda a customização passa pelos dois ganchos do Boss; ExecuteAttack não é
  * sobrescrito.

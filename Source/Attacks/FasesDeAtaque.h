@@ -120,6 +120,17 @@ struct DescricaoDeSprint {
 };
 
 /**
+ * @brief Os campos que SO a TokenAttack usa. Opcional: todo campo tem padrao
+ * em TokenAttackParams.
+ */
+struct DescricaoDeTokens {
+    std::optional<float> temperatura;   ///< a do sorteio; zero = sempre o mais provavel
+    std::optional<int> candidatos;      ///< quantos angulos candidatos
+    std::optional<float> abertura;      ///< o leque deles, em graus
+    std::vector<std::string> frase;     ///< as animacoes dos tokens, em ordem
+};
+
+/**
  * @brief Os campos que SO a PontosAttack usa. OBRIGATORIO nela: sem posto, ela
  * nao teria de onde atirar.
  */
@@ -225,6 +236,9 @@ struct DescricaoDeAtaque {
 
     /// Presente em todo ataque PontosAttack, e so neles.
     std::optional<DescricaoDePontos> pontos;
+
+    /// Presente so nos ataques TokenAttack que escreveram o bloco.
+    std::optional<DescricaoDeTokens> tokens;
 
     /// Em qual etapa da fase este ataque dispara. Vazio = a fase inteira. Fora
     /// da etapa ele nao conta o cooldown nem dispara.

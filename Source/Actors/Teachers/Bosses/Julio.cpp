@@ -6,8 +6,8 @@
 
 #include <SDL_log.h>
 
-#include "../../../Random.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "BossesProjectiles/BossProjectile.h"
 
 Julio::Julio(Scene* scene) : Boss(scene)
 {
@@ -39,13 +39,10 @@ void Julio::CustomizeAttackParams(AttackParams& params, const std::string& state
     };
 
     if (stateName == "StateOne") {
-        // AINDA NAO TE CONHECE. Mira jogada fora com desvio grande: o jogador
-        // le como "ele esta atirando a esmo".
-        // Desvio menor que antes (era +-70): a varredura da fase 1 ja e larga
-        // o bastante para nao parecer mirada, e um centro muito deslocado
-        // jogaria metade do leque para fora da tela.
-        params.centralAngle = anguloDe(GetDirectionToPlayer())
-                            + static_cast<float>(Random::GetIntRange(-40, 40));
+        // OS TOKENS SAEM MIRADOS NO ALUNO: o mais provavel e o tiro certo. Quem
+        // os desvia e a temperatura, sorteando entre os candidatos em volta da
+        // mira (TokenAttack, Temperatura.h) - e nao um ruido daqui.
+        params.centralAngle = anguloDe(GetDirectionToPlayer());
     }
     else if (stateName == "StateTwo") {
         // APRENDEU ONDE VOCE ESTA. Mira exata na posicao ATUAL. O desafio vem
@@ -89,8 +86,13 @@ void Julio::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& proje
     if (stateName == "StateTwo")        animation = "Perseguicao";
     else if (stateName == "StateThree") animation = "Previsao";
 
+    // SO OS DADOS: os tokens da fase 1 tem a cara da frase, que a TokenAttack
+    // ja escolheu, e o tipo deles nem tem estas animacoes.
+    const ProjectileFactory* dados = GetProjectileFactory("Dados");
     for (auto& p : projectiles) {
         if (!p) continue;
+        const auto* doChefe = dynamic_cast<BossProjectile*>(p.get());
+        if (!doChefe || doChefe->GetOriginFactory() != dados) continue;
         if (auto drawComp = p->GetComponent<DrawAnimatedComponent>()) {
             drawComp->SetAnimation(animation);
         }

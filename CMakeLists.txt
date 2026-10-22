@@ -156,6 +156,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Observer.h
         Source/Attacks/Ancora.cpp
         Source/Attacks/Ancora.h
+        Source/Attacks/Temperatura.cpp
+        Source/Attacks/Temperatura.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
@@ -247,6 +249,9 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/BaseStrategies/PontosAttack.cpp
         Source/Attacks/BaseStrategies/PontosAttack.h
         Source/Attacks/AttackParameters/PontosAttackParams.h
+        Source/Attacks/BaseStrategies/TokenAttack.cpp
+        Source/Attacks/BaseStrategies/TokenAttack.h
+        Source/Attacks/AttackParameters/TokenAttackParams.h
         Source/Attacks/BaseStrategies/LaserAttack.h
         Source/Actors/ProjectilePool.h
 )
@@ -289,6 +294,7 @@ add_executable(dpi_tests
         tests/test_sprint.cpp
         tests/test_observer.cpp
         tests/test_ancora.cpp
+        tests/test_temperatura.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -370,6 +376,8 @@ add_executable(dpi_tests
         Source/Attacks/Observer.h
         Source/Attacks/Ancora.cpp
         Source/Attacks/Ancora.h
+        Source/Attacks/Temperatura.cpp
+        Source/Attacks/Temperatura.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp

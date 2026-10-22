@@ -195,13 +195,13 @@ recusados na leitura, com a frase dizendo qual fase errou.
 |---|---|
 | `etapa` | opcional. Em qual etapa da fase o ataque dispara. Sem ela, a fase inteira |
 | `gatilho` | opcional. O ataque **não dispara pelo relógio**: dispara quando o professor puxa o gatilho (`Boss::Disparar`), e o `cooldown` é ignorado. Só existem os gatilhos que algum professor puxa — `notificacao` e `consulta`, os do padrão Observer da Maria Lúcia; um nome desconhecido é recusado |
-| `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack`, `FlexAttack`, `CapsulaAttack`, `SerpenteAttack`, `SprintAttack`, `PontosAttack` |
+| `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack`, `FlexAttack`, `CapsulaAttack`, `SerpenteAttack`, `SprintAttack`, `PontosAttack`, `TokenAttack` |
 | `projetil` | o nome dentro do conjunto deste professor em `projeteis.json` |
 | `projeteis` | quantos por disparo |
 | `velocidade` | px/s |
 | `angulo` | a **abertura** do leque, em graus |
 | `anguloCentral` | o **meio** do leque. 0 = direita, 90 = baixo, 180 = esquerda |
-| `intervalo` | atraso entre um projétil e o seguinte — só a `WaveAttack` lê |
+| `intervalo` | atraso entre um projétil e o seguinte — só a `WaveAttack` e a `TokenAttack` leem |
 | `cooldown` | segundos entre dois disparos |
 | `regras` | o nome de um conjunto de `regras.json`, ou a lista escrita ali mesmo |
 
@@ -383,6 +383,28 @@ ignorados, e uma sprint também não leva regra com `motion`.
 > uma vez só na etapa dela (`cooldown` que cobre a etapa), que a revisão cai
 > antes de a etapa acabar e pelo menos 1 s antes do fim da fase, e que o número
 > no anúncio da etapa ("Sprint 4 · 5 pontos") é o número de histórias.
+
+**`tokens`**, opcional na `TokenAttack`:
+
+```json
+"tokens": { "temperatura": 0.8, "candidatos": 9, "abertura": 120,
+            "frase": ["o", "mo", "de", "lo", "te", "pre", "diz"] }
+```
+
+| Campo | |
+|---|---|
+| `temperatura` | a do sorteio de cada token. Zero = sempre o mais provável, o tiro mirado. Padrão 0 |
+| `candidatos` | quantos ângulos candidatos, um inteiro de 1 para cima. Padrão 9 |
+| `abertura` | o leque dos candidatos, em graus, centrado em `anguloCentral`. Padrão 120 |
+| `frase` | as animações dos tokens, na ordem em que saem. Sem ela, não mexe |
+
+A `TokenAttack` é a geração de texto do Júlio: cada disparo é uma **frase** de
+`projeteis` tokens que saem um depois do outro (`intervalo`, como na
+`WaveAttack`), e cada token sai num ângulo **sorteado** entre os candidatos
+com probabilidade softmax(logit / `temperatura`) — o logit é maior quanto mais
+perto da mira (`Temperatura.h`). Fria, a frase chega inteira em fila; quente,
+ela se espalha. `temperatura` e `abertura` negativas são recusadas, e um teste
+confere que toda palavra da `frase` é uma animação do projétil.
 
 **`pontos`**, obrigatório na `PontosAttack`:
 

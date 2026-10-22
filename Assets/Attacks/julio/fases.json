@@ -33,54 +33,74 @@
 // ==========================================================================
 // JULIO - INF 420, Inteligencia Artificial (fabrica de projeteis: "Dados")
 //
-// As fases contam uma historia: o modelo nao te conhece, aprende onde voce
-// esta, aprende como voce se move, e na repescagem entra em loop.
+// O PROFESSOR DE IA, E A AREA DELE SAO OS MODELOS DE LINGUAGEM. A batalha vai
+// virando um LLM, uma fase por commit: a fase 1 ja e a geracao de tokens com
+// temperatura; as outras ainda sao a historia de antes - o modelo aprende onde
+// voce esta, aprende como voce se move, e na repescagem entra em loop.
 //
 // Julio SOBRESCREVE anguloCentral nas QUATRO fases (Julio.cpp), e cada uma de
-// um jeito diferente - e ali que a historia acontece:
-//   StateOne    mira no jogador com desvio de +-40 graus (nao te conhece)
+// um jeito diferente:
+//   StateOne    mira exata no aluno - quem desvia e a temperatura dos tokens
 //   StateTwo    mira exata na posicao ATUAL
 //   StateThree  mira em onde o jogador ESTARA (GetPredictedPlayerDirection)
 //   StateFinal  volta a atirar para baixo, 90 graus fixos
 // Por isso nenhuma fase escreve anguloCentral aqui: nao teria efeito.
 //
-// A animacao tambem e decidida por fase em Julio::OnProjectilesCreated, que
-// roda DEPOIS do configurator - "Coleta", "Perseguicao" e "Previsao". Uma
-// animacao escrita nas regras destas fases seria sobrescrita por ela; a das
-// regras de investida esta aqui de proposito, para o caso de o gancho mudar.
+// A animacao dos DADOS tambem e decidida por fase em Julio::OnProjectilesCreated,
+// que roda DEPOIS do configurator - "Coleta", "Perseguicao" e "Previsao". Uma
+// animacao escrita nas regras destas fases seria sobrescrita por ela. Os
+// tokens nao passam por la: a cara deles e a da frase.
 // ==========================================================================
 
-  // FASE 1 - "Esta te procurando"
+  // FASE 1 - OS TOKENS   |   "o modelo te prediz"
   //
-  // UM cacador por vez, grande e lento, que quase para, re-aponta e da um
-  // mergulho rapido. Sete investidas cabem nos 17s da fase.
+  // O PROFESSOR E UM MODELO DE LINGUAGEM GERANDO TEXTO. A cada 2 s ele solta
+  // uma FRASE de sete tokens (TokenAttack), um saindo depois do outro: "o mo
+  // de lo te pre diz" - o modelo te prediz -, cada token num chip
+  // (Ferramentas/gerar_julio.py). A frase sai mirada onde o aluno estava.
   //
-  // O cooldown e DERIVADO do ritmo em vez de escrito a mao: um unico ritmo
-  // alimenta a mirada, o pulso de velocidade E a cadencia do ataque. Mexer na
-  // pausa move as tres coisas juntas. Com um numero solto aqui, mexer no ritmo
-  // e esquecer o cooldown deixaria varios cacadores na tela ao mesmo tempo, sem
-  // erro nenhum aparecer.
+  // CADA TOKEN E SORTEADO COM TEMPERATURA (Temperatura.h): os candidatos sao
+  // nove angulos em volta da mira, e o mais provavel e o tiro certo. O placar
+  // diz a temperatura de cada etapa:
   //
-  // As regras vem EM LINHA, e nao por nome, porque e de onde o cooldown tira o
-  // ritmo - derivar de um ritmo escrito em regras.json criaria uma dependencia
-  // invisivel entre os dois arquivos.
+  //   Fria    0,2  sai sempre o mais provavel: a frase chega inteira, em fila
+  //   Morna   0,8  a frase se abre num leque
+  //   Quente  1,6  qualquer angulo sai - a frase vira alucinacao
+  //
+  // Fria, a fila inteira vem num lugar so, e um passo para o lado desvia de
+  // tudo; quente, o leque pega quem desviou. Medido com um piloto que
+  // ziguezagueia, virando a cada 0,6, 1,0 e 1,5 s: nas etapas morna e quente
+  // ele levou 4, 2 e 3 acertos, e com a temperatura desligada - todo token
+  // mirado - 1, 1 e 2. Quem nao desvia leva o mesmo nas duas: o parado, 9.
+  //
+  // EM FRASES, E NAO EM FLUXO. Com um token a cada 0,12 s o piloto que
+  // persegue o professor - e fica embaixo dele, onde a mira cai - levava um
+  // acerto toda vez que a invencibilidade acabava: 8 na fase, os tres
+  // primeiros a 1,2 s um do outro. Em frases de sete a cada 2 s, ele leva 5 e
+  // termina a fase com 74,8; o parado leva 9 e cai para 17,4.
   "StateOne": {
     "duracao": 17,
     "proximo": "StateTwo",
+    "anuncio": "Gerando tokens",
+    "etapas": [
+      { "nome": "Fria",   "duracao": 5.6, "anuncio": "temperatura = 0,2" },
+      { "nome": "Morna",  "duracao": 5.7, "anuncio": "temperatura = 0,8" },
+      { "nome": "Quente", "duracao": 5.7, "anuncio": "temperatura = 1,6 · alucinando" }
+    ],
     "movimento": { "tipo": "RandomWander", "a": 3.5, "b": 115 },
     "ataques": [
-      { "estrategia": "AngledAttack", "projetil": "Dados",
-        "projeteis": 13, "velocidade": 175, "angulo": 150,
-        "cooldown": { "doRitmo": "total", "dividirPor": 7 },
-        "regras": [
-          { "escala": 3, "animacao": "Perseguicao",
-            "investidaRepetida": {
-              "ritmo": { "investida": 0.6, "pausa": 1.0, "repeticoes": 7 },
-              "velocidadeNaInvestida": 900,
-              // NAO use zero: a direcao mora dentro do vetor velocidade, e com
-              // modulo zero a mirada seguinte nao tem o que girar.
-              "velocidadeNaPausa": 15 } }
-        ] }
+      { "etapa": "Fria", "estrategia": "TokenAttack", "projetil": "Token",
+        "projeteis": 7, "velocidade": 300, "intervalo": 0.07, "cooldown": 2.0,
+        "tokens": { "temperatura": 0.2, "candidatos": 9, "abertura": 120,
+                    "frase": ["o", "mo", "de", "lo", "te", "pre", "diz"] } },
+      { "etapa": "Morna", "estrategia": "TokenAttack", "projetil": "Token",
+        "projeteis": 7, "velocidade": 300, "intervalo": 0.07, "cooldown": 2.0,
+        "tokens": { "temperatura": 0.8, "candidatos": 9, "abertura": 120,
+                    "frase": ["o", "mo", "de", "lo", "te", "pre", "diz"] } },
+      { "etapa": "Quente", "estrategia": "TokenAttack", "projetil": "Token",
+        "projeteis": 7, "velocidade": 300, "intervalo": 0.07, "cooldown": 2.0,
+        "tokens": { "temperatura": 1.6, "candidatos": 9, "abertura": 120,
+                    "frase": ["o", "mo", "de", "lo", "te", "pre", "diz"] } }
     ]
   },
 
@@ -128,7 +148,7 @@
   "StateThree": {
     "duracao": 17,
     "proximo": "",
-    "movimento": { "tipo": "HoverAbovePlayer", "a": 135, "b": 170 },
+    "movimento": { "tipo": "GoToCenter" },
     "ataques": [
       { "estrategia": "AngledAttack", "projetil": "Dados",
         "projeteis": 1, "velocidade": 300, "angulo": 0,

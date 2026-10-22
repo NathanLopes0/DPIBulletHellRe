@@ -34,6 +34,8 @@
 #include "AttackParameters/SprintAttackParams.h"
 #include "BaseStrategies/PontosAttack.h"
 #include "AttackParameters/PontosAttackParams.h"
+#include "BaseStrategies/TokenAttack.h"
+#include "AttackParameters/TokenAttackParams.h"
 #include "BaseStrategies/CircleSpreadAttack.h"
 #include "BaseStrategies/LaserAttack.h"
 #include "BaseStrategies/WaveAttack.h"
@@ -104,6 +106,7 @@ namespace {
         if (tipo == "SerpenteAttack")     return std::make_unique<SerpenteAttack>(spawner, boss);
         if (tipo == "SprintAttack")       return std::make_unique<SprintAttack>(spawner, boss);
         if (tipo == "PontosAttack")       return std::make_unique<PontosAttack>(spawner, boss);
+        if (tipo == "TokenAttack")        return std::make_unique<TokenAttack>(spawner, boss);
         return nullptr;
     }
 
@@ -209,6 +212,14 @@ namespace {
                 sprint->clique   = a.sprint->clique;
             }
             params = std::move(sprint);
+        }
+        else if (a.estrategia == "TokenAttack") {
+            auto tokens = std::make_unique<TokenAttackParams>();
+            if (a.tokens && a.tokens->temperatura) tokens->temperatura = *a.tokens->temperatura;
+            if (a.tokens && a.tokens->candidatos)  tokens->candidatos  = *a.tokens->candidatos;
+            if (a.tokens && a.tokens->abertura)    tokens->abertura    = *a.tokens->abertura;
+            if (a.tokens) tokens->frase = a.tokens->frase;
+            params = std::move(tokens);
         }
         else if (a.estrategia == "PontosAttack") {
             auto pontos = std::make_unique<PontosAttackParams>();
