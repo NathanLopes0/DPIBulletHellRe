@@ -30,21 +30,22 @@
   //   CustomizeAttackParams dele - e o unico pedaco do balanceamento que ainda
   //   vive em C++. Onde isso acontece esta anotado na fase.
   //
-  // ---- EM ABERTO: O JOGADOR PARADO APROVA AQUI ----------------------------
+  // UMA ESTRUTURA DE DADOS POR FASE, e o placar e a regra: ele escreve cada
+  // operacao da estrutura, e e lendo a operacao que o aluno sabe o que vem.
   //
-  // Ferramentas/parado-reprova.sh: sete chefes reprovam o piloto que nao se
-  // mexe, e o Salles o aprova com 80,70 - 15 acertos sofridos e 309 dados, o
-  // maior numero de acertos dados entre os oito. A causa e o GoToCenter das
-  // fases 1, 3 e final: parado no meio da tela, ele fica na coluna de quem
-  // atira para cima, e a nota sobe sozinha.
+  //   StateOne    a pilha            push e pop, pendurada no professor
+  //   StateTwo    a tabela hash      h(k) = k mod m, encadeamento, rehash
+  //   StateThree  a arvore de busca  a chave desce comparando ate virar folha
+  //   StateFinal  a lista circular   o anel de capivaras (a repescagem)
   //
-  // A cura e a mesma do Vladimir, dar um gesto a cada fase - e aqui o gesto tem
-  // o que dizer, porque cada fase e uma estrutura de dados:
+  // E EM TODA ESTRUTURA O TIRO DO ALUNO E UMA OPERACAO TAMBEM: tira o topo da
+  // pilha, remove a chave do fim da lista, derruba o no - e a subarvore junto.
   //
-  //   fase 1      lista encadeada     varredura - a travessia tem direcao
-  //   fase 2      lista dupla         varredura que INVERTE - ida e volta
-  //   fase 3      arvore binaria      mergulho - a profundidade e o nivel
-  //   final       lista circular      orbita - o laco que fecha
+  // O JOGADOR PARADO REPROVA. Era a pendencia deste chefe: com o GoToCenter das
+  // fases antigas, parado no meio ele ficava na coluna de quem atira para cima
+  // e aprovava com 80,70. Medido na batalha inteira, com a semente de sempre:
+  // o piloto parado termina com 0 e 13 acertos sofridos, e o que persegue com
+  // 63,9 (de 64,9 a 84,0 em seis sementes, todas aprovadas).
   //
   // A CAPIVARA APARECE EM QUALQUER FASE (Capivara.h). O Salles poe capivara em
   // todo exercicio, e em seis de cada dez fases ela atravessa o campo, uma vez,
@@ -138,32 +139,51 @@
     ]
   },
 
-  // FASE 3 - ARVORE BINARIA: uma busca descendo da raiz.
+  // FASE 3 - A ARVORE BINARIA DE BUSCA   |   gesto: A VARREDURA LENTA
   //
-  // AngledAttack com "angulo": 0, projeteis que saem sobrepostos
+  // A ARVORE ESTA PLANTADA EMBAIXO DO PROFESSOR (Arvore.h): a raiz no alto e,
+  // a cada nivel, o dobro de lugares com metade do espaco - o lugar de cada no
+  // e o indice dele num heap. Uma operacao por vez, e o placar acompanha:
   //
-  // GoToCenter e obrigatorio aqui. Com o chefe vagando, cada disparo plantaria a
-  // raiz num lugar diferente e as arvores nao se acumulariam na mesma regiao - e
-  // e o acumulo, disparo sobre disparo, que faz a tela parecer uma arvore e nao
-  // quatro tiros tortos.
+  //   INSERIR   inserir(42): a chave sai do professor, entra pela raiz e DESCE
+  //             COMPARANDO, um no a cada 0,2s - "42 < 50: esquerda" -, ate um
+  //             lugar vazio, onde vira folha. Cada no por onde ela passa atira
+  //             no aluno. Passou do quarto nivel: a chave cai da
+  //             arvore, em cima do aluno ("42: altura demais!").
+  //   BUSCAR    busca(42): o mesmo caminho, com uma chave que nao machuca.
+  //             Achou, o no achado estoura num anel; nao achou, o NULL cai do
+  //             lugar vazio, mirado no aluno.
   //
-  // "projeteis": 16 TEM de bater com as 16 folhas de "divisoes": 4 na familia
-  // ArvoreDeBusca, em formas.json. E o unico numero que precisa andar junto, e um
-  // teste confere: a mais, o projetil extra repete um ramo; a menos, metade da
-  // arvore nao aparece.
-
+  // O ALUNO DERRUBA NOS A TIRO (quatro tiros), e cada no leva a SUBARVORE junto:
+  // tudo o que pendia dele cai. A raiz fica em cima de quem esta no meio - e
+  // derruba-la derruba a arvore inteira.
+  //
+  // ELE VARRE DEVAGAR, de 380 a 820: a raiz fica no lugar, e o tiro do aluno
+  // chega a ele.
+  //
+  // UM TIRO POR NO VISITADO, e nao um leque: com tres, o piloto que persegue o
+  // professor tomava 9 acertos na fase sozinha e a batalha caia na repescagem
+  // (59,5 no fim); com um, 3 acertos e 75,1.
   "StateThree": {
     "duracao": 17,
     // Vazio de proposito: e aqui que a batalha e decidida.
     "proximo": "",
-    "movimento": { "tipo": "GoToCenter" },
+    "anuncio": "árvore binária de busca",
+    "movimento": { "tipo": "Varredura", "a": 60, "b": 380 },
     "ataques": [
       { "gatilho": "capivara", "estrategia": "WaveAttack", "projetil": "Capivarona",
         "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0 },
-      { "estrategia": "AngledAttack", "projetil": "Estruturas",
-        "projeteis": 16, "velocidade": 210, "angulo": 0,
-        "cooldown": 2.1,
-        "regras": "arvore" }
+      { "gatilho": "no", "estrategia": "WaveAttack", "projetil": "No",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "arvore" },
+      { "gatilho": "visitar", "estrategia": "WaveAttack", "projetil": "Percurso",
+        "projeteis": 1, "velocidade": 260, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "aresta", "estrategia": "WaveAttack", "projetil": "Elo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "folha_nula", "estrategia": "WaveAttack", "projetil": "Nulo",
+        "projeteis": 1, "velocidade": 400, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "achado", "estrategia": "CircleSpreadAttack", "projetil": "Percurso",
+        "projeteis": 10, "velocidade": 220 }
     ]
   },
 

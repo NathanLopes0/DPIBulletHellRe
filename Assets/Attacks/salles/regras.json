@@ -31,37 +31,10 @@
     { "posto": "chaves" }
   ],
 
-  // FASE 3 - arvore binaria: a busca descendo da raiz.
-  //
-  // UMA REGRA SO, para oito folhas. "formaPorIndice" entrega ao projetil numero i
-  // a forma numero i da familia "ArvoreDeBusca", declarada em formas.json. Antes
-  // eram quatro regras por indice que tinham de bater com quatro formas escritas a
-  // mao; mudar a profundidade da arvore mexia em tres lugares.
-  //
-  // Agora a arvore inteira e "divisoes": 3 em formas.json, e aqui nao ha numero
-  // nenhum para acertar junto.
-  //
-  // "mira": "MirarNoJogador" planta a RAIZ apontada para o jogador, e com atraso
-  // zero todas as quatro miram do mesmo ponto, entao a arvore inteira gira junto e
-  // a geometria nao se desfaz. Sem isso ela crescia na direcao que o Salles
-  // sorteia (0 a 180 graus em CustomizeAttackParams, no C++), e metade das vezes
-  // saia de lado sem ameacar ninguem. Medindo: a fase passava 0.22 por segundo a
-  // menos de 120px do jogador contra 0.42 do desenho anterior.
-
-  // A ARVORE NAO GIRA, e e a unica regra do jogo que diz isso.
-  //
-  // "Estruturas" e um tipo so com duas animacoes, e as duas querem coisas
-  // opostas: a lista da fase 1 e uma caixa com SETA, que sem girar aponta
-  // sempre para a direita e nao se le como lista encadeada; o no de arvore tem
-  // dois filhos EMBAIXO e e simetrico, entao girado com a velocidade ele
-  // aparece deitado ou de cabeca para baixo conforme o ramo. Era o mesmo tipo
-  // com duas necessidades, e por isso "rotacionar" passou a ser campo de
-  // REGRA e nao so de projeteis.json.
+  // A ARVORE DA FASE 3: a chave nasce no posto "arvore", e e por la que o
+  // Salles a acha depois de assentada.
   "arvore": [
-    { "motion": { "tipo": "Path", "formaPorIndice": "ArvoreDeBusca", "velocidade": 360,
-                  "mira": "AlinharComVelocidade" },
-      "animacao": "Arvore",
-      "rotacionar": false }
+    { "posto": "arvore" }
   ],
 
   // FASE FINAL - lista circular

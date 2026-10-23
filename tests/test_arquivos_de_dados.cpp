@@ -61,6 +61,7 @@
 #include "../Source/Attacks/Capivara.h"
 #include "../Source/Attacks/Pilha.h"
 #include "../Source/Attacks/Hash.h"
+#include "../Source/Attacks/Arvore.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
@@ -1577,6 +1578,40 @@ TEST_CASE("Dados: a tabela hash do Salles - gatilhos, postos e caras sao nomes q
         CAPTURE(gatilho);
         REQUIRE(regras.conjuntos.count(regraDoGatilho[gatilho]) == 1);
         for (const auto& r : regras.conjuntos.at(regraDoGatilho[gatilho])) CHECK(r.posto == posto);
+    }
+}
+
+TEST_CASE("Dados: a arvore do Salles - gatilhos, posto e caras sao nomes que os dados tem") {
+    for (const char* g : {Arvore::kGatilhoDaChave, Arvore::kGatilhoDaVisita, Arvore::kGatilhoDoNulo,
+                          Arvore::kGatilhoDoAchado, Arvore::kGatilhoDaAresta}) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+    }
+    CHECK(PostoExiste(Arvore::kPostoDaArvore));
+
+    // O NO E DERRUBAVEL, tem a cara de toda chave que a arvore sorteia (as da
+    // tabela hash, Hash::CaraDaChave), e nasce no posto da arvore.
+    const auto& tipos = ProjeteisDoChefe("salles").projeteis;
+    const auto regras = RegrasDoChefe("salles");
+    std::set<std::string> gatilhos;
+    for (const auto& f : FasesDoChefe("salles").fases) {
+        if (f.nome != Arvore::kFaseDaArvore) continue;
+        for (const auto& a : f.ataques) {
+            gatilhos.insert(a.gatilho);
+            if (a.gatilho != Arvore::kGatilhoDaChave) continue;
+            REQUIRE(tipos.count(a.projetil) == 1);
+            CHECK(tipos.at(a.projetil).derrubavel);
+            std::set<std::string> caras;
+            for (const auto& anim : tipos.at(a.projetil).animacoes) caras.insert(anim.nome);
+            for (int k = 1; k <= Arvore::kMaiorChave; ++k) CHECK(caras.count(Hash::CaraDaChave(k)) == 1);
+            REQUIRE(regras.conjuntos.count(a.regrasNome) == 1);
+            for (const auto& r : regras.conjuntos.at(a.regrasNome)) CHECK(r.posto == Arvore::kPostoDaArvore);
+        }
+    }
+    for (const char* g : {Arvore::kGatilhoDaChave, Arvore::kGatilhoDaVisita, Arvore::kGatilhoDoNulo,
+                          Arvore::kGatilhoDoAchado, Arvore::kGatilhoDaAresta}) {
+        CAPTURE(g);
+        CHECK(gatilhos.count(g) == 1);
     }
 }
 

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -13,6 +14,7 @@
 #include "../../../Attacks/Capivara.h"
 #include "../../../Attacks/Pilha.h"
 #include "../../../Attacks/Hash.h"
+#include "../../../Attacks/Arvore.h"
 
 /**
  * @class Salles
@@ -38,6 +40,11 @@
  * pendura a chave; buscar percorre a lista atirando de cada no, e o achado sai
  * atirado - ou o NULL cai pela coluna. Com mais chaves que baldes, o rehash
  * refaz as listas. Aqui mora a tabela em campo; ele vai ao balde da operacao.
+ *
+ * A FASE 3 E UMA ARVORE BINARIA DE BUSCA (Arvore.h), plantada embaixo dele: a
+ * chave nova desce comparando ate virar folha, e cada no por onde ela passa
+ * atira no aluno. O aluno derruba nos a tiro, e cada no leva a subarvore junto.
+ * Aqui mora a arvore em campo e a descida em curso.
  */
 class Salles : public Boss {
 
@@ -53,17 +60,6 @@ protected:
                               const std::string& stateName) override;
 
 private:
-    /// Quantos graus a arvore da fase 3 erra o jogador DE PROPOSITO quando mira
-    /// nele. Ver CustomizeAttackParams: e o que impede o corredor vazio do eixo
-    /// de cair em cima de quem esta parado.
-    ///
-    /// 4 graus porque o jogador costuma estar a uns 450px do chefe, e meio
-    /// espacamento de folha (30px) a essa distancia da pouco menos de 4 graus.
-    static constexpr float kDesvioDaBusca = 4.0f;
-
-    /// Para que lado a busca desceu da ultima vez. Alterna.
-    float mLadoDaBusca = 1.0f;
-
     // ---- A CAPIVARA ---------------------------------------------------------
     //
     // A cada fase nova, um sorteio diz se ela vem, quando e de que lado. Na hora,
@@ -183,4 +179,48 @@ private:
     static constexpr float kAlturaNoHash = 110.0f;
     static constexpr float kRapidezDaChave = 9.0f;
     static constexpr float kVelocidadeDoAchado = 320.0f;
+
+    // ---- A ARVORE DA FASE 3 -------------------------------------------------
+    //
+    // Os nos assentados, pelo indice de heap de cada um, e a descida em curso:
+    // a chave que vai da raiz ao lugar dela, um no por Arvore::kEmCadaNo.
+
+    void AtualizarArvore(float deltaTime);
+
+    /// O no e tudo o que pende dele caem, e saem da arvore.
+    void DerrubarSubarvore(int indice);
+
+    /// Dispara 'gatilho' de 'onde'. 'mirar': o leque sai mirado no aluno.
+    void DispararDaArvore(const char* gatilho, Vector2 onde, bool mirar);
+
+    Arvore::Nos mNosDaArvore;
+    std::map<int, BossProjectile*> mProjeteisDaArvore;
+
+    /// Os pontos da aresta de cada no ate o pai, pelo indice do no.
+    std::map<int, std::vector<BossProjectile*>> mArestas;
+    void AtualizarArestas();
+
+    struct Descida {
+        bool ativa = false;
+        Arvore::Operacao op;
+        std::vector<int> caminho;
+        size_t passo = 0;
+        float proximo = 0.0f;
+        BossProjectile* chave = nullptr;
+    };
+    Descida mDescida;
+
+    bool mNaArvore = false;
+    float mProximaOperacaoDaArvore = 0.0f;
+    std::string mAnuncioDaArvore;
+
+    bool mDisparandoDaArvore = false;
+    bool mMirandoDaArvore = false;
+    Vector2 mDisparoDaArvore;
+    BossProjectile* mCriadaNaArvore = nullptr;
+
+    /// Quanto acima do no a chave que desce para, para os dois se verem.
+    static constexpr float kAcimaDoNo = 30.0f;
+    static constexpr float kRapidezDaDescida = 16.0f;
+    static constexpr float kVelocidadeDaQueda = 340.0f;
 };

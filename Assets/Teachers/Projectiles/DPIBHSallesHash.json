@@ -2617,6 +2617,28 @@
     "h": 40
    },
    "duration": 120
+  },
+  {
+   "filename": "DPIBHSallesHash 119.placeholder",
+   "frame": {
+    "x": 120,
+    "y": 1160,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "duration": 120
   }
  ],
  "meta": {

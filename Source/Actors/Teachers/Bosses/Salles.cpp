@@ -30,6 +30,184 @@ void Salles::OnUpdate(float deltaTime) {
     AtualizarCapivara(deltaTime);
     AtualizarPilha(deltaTime);
     AtualizarHash(deltaTime);
+    AtualizarArvore(deltaTime);
+}
+
+void Salles::DispararDaArvore(const char* gatilho, const Vector2 onde, const bool mirar) {
+    mDisparandoDaArvore = true;
+    mMirandoDaArvore = mirar;
+    mDisparoDaArvore = onde;
+    mCriadaNaArvore = nullptr;
+    Disparar(gatilho);
+    mDisparandoDaArvore = false;
+    mMirandoDaArvore = false;
+}
+
+void Salles::AtualizarArestas() {
+    // A ARESTA DE QUEM SAIU SOME; a de quem entrou (e tem pai) nasce.
+    for (auto it = mArestas.begin(); it != mArestas.end();) {
+        if (mNosDaArvore.count(it->first) && mNosDaArvore.count(it->first / 2)) { ++it; continue; }
+        for (BossProjectile* p : it->second) if (p->GetState() == ActorState::Active) p->Kill();
+        it = mArestas.erase(it);
+    }
+    for (const auto& [i, chave] : mNosDaArvore) {
+        if (i == 1 || mArestas.count(i) || !mNosDaArvore.count(i / 2)) continue;
+        std::vector<BossProjectile*> pontos;
+        for (int k = 1; k <= Arvore::kPontosPorAresta; ++k) {
+            const float t = static_cast<float>(k) / static_cast<float>(Arvore::kPontosPorAresta + 1);
+            const Vector2 pai(Arvore::X(i / 2), Arvore::Y(i / 2));
+            const Vector2 filho(Arvore::X(i), Arvore::Y(i));
+            DispararDaArvore(Arvore::kGatilhoDaAresta, pai + (filho - pai) * t, false);
+            if (!mCriadaNaArvore) continue;
+            mCriadaNaArvore->DefinirEnfeite(true);
+            pontos.push_back(mCriadaNaArvore);
+        }
+        mArestas[i] = pontos;
+    }
+}
+
+void Salles::DerrubarSubarvore(const int indice) {
+    for (const int i : Arvore::Subarvore(mNosDaArvore, indice)) {
+        const auto it = mProjeteisDaArvore.find(i);
+        if (it != mProjeteisDaArvore.end()) {
+            BossProjectile* p = it->second;
+            if (p->GetState() == ActorState::Active) {
+                p->DefinirPosto("");
+                if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2(0.0f, 280.0f));
+            }
+            mProjeteisDaArvore.erase(it);
+        }
+        mNosDaArvore.erase(i);
+    }
+}
+
+void Salles::AtualizarArvore(const float deltaTime) {
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool naArvore = fsm && fsm->GetStateName() == Arvore::kFaseDaArvore && !EhClone();
+
+    if (!naArvore) {
+        // A FASE ACABOU: a arvore cai inteira, e a chave que descia tambem.
+        if (mNaArvore) {
+            DerrubarSubarvore(1);
+            for (auto& [i, p] : mProjeteisDaArvore) {
+                if (p->GetState() == ActorState::Active) {
+                    p->DefinirPosto("");
+                    if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2(0.0f, 280.0f));
+                }
+            }
+            mProjeteisDaArvore.clear();
+            mNosDaArvore.clear();
+            AtualizarArestas();
+            if (mDescida.chave && mDescida.chave->GetState() == ActorState::Active) mDescida.chave->Kill();
+            mDescida = Descida{};
+            if (!mAnuncioDaArvore.empty()) RegistrarAnuncio(Arvore::kFaseDaArvore, mAnuncioDaArvore);
+            mNaArvore = false;
+        }
+        return;
+    }
+    if (!mNaArvore) {
+        mNaArvore = true;
+        mNosDaArvore.clear();
+        mProjeteisDaArvore.clear();
+        mDescida = Descida{};
+        mProximaOperacaoDaArvore = Arvore::kPrimeira;
+        if (mAnuncioDaArvore.empty()) mAnuncioDaArvore = AnuncioDaFase(Arvore::kFaseDaArvore);
+    }
+    const float agora = fsm->GetStateTime();
+
+    // O NO DERRUBADO A TIRO LEVA A SUBARVORE JUNTO. Visto do mais alto para o
+    // mais fundo: derrubar um pai ja derruba os filhos que estavam na fila.
+    std::vector<int> derrubados;
+    for (const auto& [i, p] : mProjeteisDaArvore) {
+        if (p->GetState() != ActorState::Active || p->Posto() != Arvore::kPostoDaArvore) derrubados.push_back(i);
+    }
+    for (const int i : derrubados) if (mNosDaArvore.count(i)) DerrubarSubarvore(i);
+
+    // A DESCIDA EM CURSO: um no por vez - o no visitado atira no aluno, e o
+    // placar diz a comparacao. No fim, a chave entra como folha, ou cai.
+    if (mDescida.ativa && mDescida.chave && mDescida.chave->GetState() != ActorState::Active) {
+        mDescida.ativa = false;                       // o aluno derrubou a chave que descia
+        mProximaOperacaoDaArvore = agora + Arvore::kEntreOperacoes;
+    }
+    if (mDescida.ativa && agora >= mDescida.proximo) {
+        mDescida.proximo += Arvore::kEmCadaNo;
+        const int k = mDescida.op.chave;
+        if (mDescida.passo + 1 < mDescida.caminho.size()) {
+            const int i = mDescida.caminho[mDescida.passo++];
+            // O no do caminho pode ter caido no meio da descida, a tiro: ai nao
+            // ha quem atire nem com quem comparar.
+            if (const auto no = mNosDaArvore.find(i); no != mNosDaArvore.end()) {
+                DispararDaArvore(Arvore::kGatilhoDaVisita, Vector2(Arvore::X(i), Arvore::Y(i)), true);
+                RegistrarAnuncio(Arvore::kFaseDaArvore, Arvore::PlacarDaComparacao(k, no->second));
+            }
+        } else {
+            const int fim = mDescida.caminho.back();
+            // CABE se esta dentro da profundidade E o pai ainda esta la: uma
+            // subarvore que caiu no meio da descida deixa o lugar sem pai.
+            const bool cabe = Arvore::Cabe(fim) && (fim == 1 || mNosDaArvore.count(fim / 2) == 1);
+            const auto achado = mNosDaArvore.find(fim);
+            const bool achou = achado != mNosDaArvore.end() && achado->second == k;
+            BossProjectile* chave = mDescida.chave;
+            if (mDescida.op.tipo == Arvore::Tipo::Inserir && cabe && !mNosDaArvore.count(fim)) {
+                // ENTRA: a chave vira a folha daquele lugar.
+                mNosDaArvore[fim] = k;
+                mProjeteisDaArvore[fim] = chave;
+                chave->DefinirPosto(Arvore::kPostoDaArvore);
+            } else if (mDescida.op.tipo == Arvore::Tipo::Inserir) {
+                // ALTURA DEMAIS: a chave cai da arvore, em cima do aluno.
+                chave->DefinirPosto("");
+                Vector2 d(0.0f, 1.0f);
+                if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
+                    d = batalha->Alvo()->GetPosition() - chave->GetPosition();
+                    if (d.LengthSq() > 0.0f) d.Normalize();
+                }
+                if (auto* rb = chave->GetComponent<RigidBodyComponent>()) rb->SetVelocity(d * kVelocidadeDaQueda);
+            } else {
+                // A BUSCA: achou, o no achado estoura; nao achou, o NULL cai do
+                // lugar vazio. A chave que buscava some.
+                if (achou) DispararDaArvore(Arvore::kGatilhoDoAchado, Vector2(Arvore::X(fim), Arvore::Y(fim)), false);
+                else DispararDaArvore(Arvore::kGatilhoDoNulo, chave->GetPosition(), true);
+                chave->Kill();
+            }
+            RegistrarAnuncio(Arvore::kFaseDaArvore, Arvore::PlacarDoFim(mDescida.op, achou, cabe));
+            mDescida.ativa = false;
+            mProximaOperacaoDaArvore = agora + Arvore::kEntreOperacoes;
+        }
+    }
+
+    // UMA OPERACAO NOVA: a chave sai do professor e comeca a descer.
+    if (!mDescida.ativa && agora >= mProximaOperacaoDaArvore) {
+        const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
+        const Arvore::Operacao op = Arvore::Proxima(mNosDaArvore, sorteio);
+        DispararDaArvore(Arvore::kGatilhoDaChave, GetPosition(), false);
+        if (mCriadaNaArvore) {
+            if (auto* anim = mCriadaNaArvore->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(Hash::CaraDaChave(op.chave));
+            // A CHAVE QUE BUSCA NAO MACHUCA: e a pergunta, e nao um tiro.
+            mCriadaNaArvore->DefinirEnfeite(op.tipo == Arvore::Tipo::Buscar);
+            mDescida = Descida{};
+            mDescida.ativa = true;
+            mDescida.op = op;
+            mDescida.caminho = Arvore::Caminho(mNosDaArvore, op.chave);
+            mDescida.proximo = agora + Arvore::kEmCadaNo;
+            mDescida.chave = mCriadaNaArvore;
+            RegistrarAnuncio(Arvore::kFaseDaArvore, Arvore::PlacarDaOperacao(op));
+        }
+    }
+
+    AtualizarArestas();
+
+    // CADA NO NO LUGAR DELE, e a chave que desce em cima do no da vez.
+    for (const auto& [i, p] : mProjeteisDaArvore) {
+        p->SetPosition(Ancora::Aproximar(p->GetPosition(), Vector2(Arvore::X(i), Arvore::Y(i)), kRapidezDaChave, deltaTime));
+        if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+    }
+    if (mDescida.ativa && mDescida.chave) {
+        const int i = mDescida.caminho[std::min(mDescida.passo, mDescida.caminho.size() - 1)];
+        const bool ultimo = mDescida.passo + 1 >= mDescida.caminho.size();
+        const Vector2 lugar(Arvore::X(i), Arvore::Y(i) - (ultimo ? 0.0f : kAcimaDoNo));
+        mDescida.chave->SetPosition(Ancora::Aproximar(mDescida.chave->GetPosition(), lugar, kRapidezDaDescida, deltaTime));
+        if (auto* rb = mDescida.chave->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+    }
 }
 
 void Salles::DispararDoHash(const char* gatilho, const Vector2 onde, const bool mirar) {
@@ -371,6 +549,12 @@ void Salles::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& proj
                                   const std::string& stateName) {
     Boss::OnProjectilesCreated(projectiles, stateName);
 
+    // O QUE A ARVORE CRIOU: a chave que vai descer.
+    if (mDisparandoDaArvore) {
+        if (!projectiles.empty() && !mCriadaNaArvore) mCriadaNaArvore = dynamic_cast<BossProjectile*>(projectiles.front().get());
+        return;
+    }
+
     // O QUE O HASH CRIOU: o balde ou a chave que o Salles acabou de pedir.
     if (mDisparandoDoHash) {
         if (!projectiles.empty()) mCriadaNoHash = dynamic_cast<BossProjectile*>(projectiles.front().get());
@@ -426,6 +610,21 @@ void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stat
         return;
     }
 
+    // NA ARVORE, o que sai de um no sai dele - mirado no aluno, quando e tiro.
+    if (stateName == Arvore::kFaseDaArvore) {
+        if (!mDisparandoDaArvore) return;
+        params.firePosition = mDisparoDaArvore;
+        if (mMirandoDaArvore) {
+            Vector2 d(0.0f, 1.0f);
+            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
+                d = batalha->Alvo()->GetPosition() - mDisparoDaArvore;
+                if (d.LengthSq() > 0.0f) d.Normalize();
+            }
+            params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x));
+        }
+        return;
+    }
+
     // O POP ESTOURA ONDE O BLOCO ESTA, em tantas lascas quanto o numero dele.
     // O total e escrito inteiro a cada disparo (params e o mesmo objeto - ver
     // Boss.h). E o push nasce no professor, parado: quem o leva ao lugar e a
@@ -448,39 +647,7 @@ void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stat
         return;
     }
 
-    // Mesmo conserto de Andre::CustomizeAttackParams: Math::Acos(dir.x) so
-    // devolve [0, 180] e perdia o sinal de y, fazendo o boss mirar para baixo
-    // quando o player estava acima. Calculado uma vez, em vez de tres.
-    const Vector2 dirToPlayer = GetDirectionToPlayer();
-    const float angleToPlayer = Math::ToDegrees(Math::Atan2(dirToPlayer.y, dirToPlayer.x));
-
-    if (stateName == "StateThree") {
-        if (const auto chance = Random::GetFloatRange(0.0f, 1.0f); chance < 0.3f) {
-
-            // A BUSCA DESCE POR UM RAMO, E NAO POR CIMA DA RAIZ.
-            //
-            // Uma arvore binaria tem numero PAR de folhas - 16, aqui - e elas
-            // se abrem simetricamente em torno do eixo do tiro. Logo existe
-            // sempre um corredor vazio EM CIMA do eixo, da largura de um
-            // espacamento. Mirar o eixo no jogador punha esse corredor
-            // exatamente nele: a arvore se abria em volta e passava sem
-            // encostar, por mais que ele ficasse parado. Da para ver numa foto
-            // da fase - quatro nos longe a esquerda, quatro longe a direita,
-            // nada no meio.
-            //
-            // O desvio poe o jogador SOBRE um ramo em vez de sobre a raiz, que
-            // e o que uma busca faz de verdade: na raiz ela vai para a esquerda
-            // ou para a direita, nunca fica em cima. O sinal alterna para o
-            // desvio nao virar um vies fixo, que o jogador aprenderia a
-            // compensar ficando um pouco de lado.
-            mLadoDaBusca = -mLadoDaBusca;
-            params.centralAngle = angleToPlayer + mLadoDaBusca * kDesvioDaBusca;
-        }
-        else {
-            params.centralAngle = Random::GetFloatRange(0.f, 180.f);
-        }
-    }
-
+    // A REPESCAGEM sorteia o meio de cada anel de capivaras.
     if (stateName == "StateFinal") {
         params.centralAngle = Random::GetFloatRange(0.f, 180.f);
     }

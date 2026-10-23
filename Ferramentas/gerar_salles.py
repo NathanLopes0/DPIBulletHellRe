@@ -171,9 +171,18 @@ def nulo():
     return no_quadro(desenho)
 
 
+def elo():
+    """Um ponto da aresta da arvore da fase 3: apagado, porque e o desenho da
+    arvore, e nao um tiro."""
+    def desenho(d, s):
+        d.ellipse([15 * s, 15 * s, 25 * s, 25 * s], fill=(200, 200, 215, 150))
+    return no_quadro(desenho)
+
+
 def hash_():
-    """As 100 chaves, os 17 baldes, o percurso (117) e o NULL (118)."""
-    quadros = [chave(k) for k in range(100)] + [balde(i) for i in range(17)] + [percurso(), nulo()]
+    """As 100 chaves, os 17 baldes, o percurso (117), o NULL (118) e o elo da
+    arvore (119)."""
+    quadros = [chave(k) for k in range(100)] + [balde(i) for i in range(17)] + [percurso(), nulo(), elo()]
     linhas = (len(quadros) + 3) // 4
     folha = Image.new("RGBA", (40 * 4, 40 * linhas), (0, 0, 0, 0))
     for i, q in enumerate(quadros):
