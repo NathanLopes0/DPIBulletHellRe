@@ -49,6 +49,7 @@
 #include "../Source/Attacks/Observer.h"
 #include "../Source/Attacks/ReAct.h"
 #include "../Source/Attacks/Nuvem.h"
+#include "../Source/Attacks/Semaforo.h"
 #include "../Source/Attacks/Logica.h"
 #include "../Source/Attacks/Relogio.h"
 #include "../Source/Attacks/Pipeline.h"
@@ -2983,4 +2984,46 @@ TEST_CASE("Dados: a pilha de chamadas do Luizinho - gatilhos, velocidades e cara
     }
     CHECK(caras(projetilDe[Excecao::kGatilhoDoDestroco]).count(Excecao::kCaraDoDestroco) == 1);
     CHECK(caras(projetilDe[Excecao::kGatilhoDoFinally]).count(Excecao::kCaraDoFinally) == 1);
+}
+
+TEST_CASE("Dados: os semaforos do Vitor - o gatilho, a velocidade e a cara de cada thread sao os de Semaforo.h") {
+
+    // O VITOR PUXA O GATILHO e pinta cada instrucao com o nome da coluna: uma
+    // thread sem a cara dela no tipo sairia com a cor de outra, e o placar
+    // ("fila: T3 T1") deixaria de apontar para uma coluna.
+    const auto lidas = FasesDoChefe("vitor");
+    const DescricaoDeFase* fase = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Semaforo::kFaseDosSemaforos) fase = &f;
+    REQUIRE(fase != nullptr);
+    CHECK(fase->movimento.tipo == "Conduzido");
+    CHECK(GatilhoExiste(Semaforo::kGatilhoDaInstrucao));
+
+    std::string tipo;
+    int quantos = 0;
+    for (const auto& a : fase->ataques) {
+        if (a.gatilho != Semaforo::kGatilhoDaInstrucao) continue;
+        ++quantos;
+        tipo = a.projetil;
+        // A WaveAttack escreve a velocidade do arquivo no primeiro quadro: e a
+        // que a pilha conta para chegar a porta.
+        REQUIRE(a.velocidade.has_value());
+        CHECK(*a.velocidade == doctest::Approx(Semaforo::kVelocidadeDaInstrucao));
+        CHECK(a.projeteis.value_or(0) == 1);
+    }
+    CHECK(quantos == 1);
+
+    const auto& tipos = ProjeteisDoChefe("vitor").projeteis;
+    REQUIRE(tipos.count(tipo) == 1);
+    std::set<std::string> caras;
+    for (const auto& a : tipos.at(tipo).animacoes) caras.insert(a.nome);
+    for (int i = 0; i < Semaforo::kMaisThreads; ++i) CHECK(caras.count(Semaforo::Nome(i)) == 1);
+
+    // AS CORRENTES CONTINUAM NA FASE: um ataque de relogio de um projetil que
+    // acorrenta.
+    bool corrente = false;
+    for (const auto& a : fase->ataques) {
+        if (!a.gatilho.empty() || tipos.count(a.projetil) == 0) continue;
+        corrente = corrente || tipos.at(a.projetil).acorrenta.segundos > 0.0f;
+    }
+    CHECK(corrente);
 }

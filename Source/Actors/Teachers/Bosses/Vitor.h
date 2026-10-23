@@ -4,11 +4,22 @@
 
 #pragma once
 
+#include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
+#include <SDL_rect.h>
+
 #include "../Boss.h"
 #include "../../../Attacks/Nuvem.h"
+#include "../../../Attacks/Semaforo.h"
+
+class BossProjectile;
+class DrawLinhasComponent;
+class EtiquetaDeCodigo;
+class PainelDeCodigo;
+class Player;
 
 /**
  * @class Vitor
@@ -20,12 +31,18 @@
  * direcao da fresta da secao critica entre uma rajada e a outra.
  *
  * A IDEIA DO CHEFE: concorrencia e "varias coisas ao mesmo tempo", e e por isso
- * que a fase 3 dele se divide em dois corpos. As duas primeiras fases existem
- * para serem aprendidas SEPARADAS, porque a terceira as poe juntas:
+ * que a fase 3 dele se divide em dois corpos.
  *
- *   fase 1  TAREFAS EM PARALELO - varias faixas descendo de uma vez
+ *   fase 1  SEMAFOROS           - as threads, a secao critica e a fila do P(s)
  *   fase 2  EXCLUSAO MUTUA      - um anel com UMA fresta, sempre embaixo
  *   fase 3  FORK                - dois corpos, um fazendo cada uma das duas
+ *
+ * A FASE 1 E A SINCRONIZACAO (Semaforo.h): cada thread e uma coluna de
+ * instrucoes descendo ate a secao critica, no meio do campo. Quem nao tem o
+ * semaforo para na borda e se empilha - a fila do P(s) -, e o V(s) de quem sai
+ * acorda a primeira da fila: a pilha desce de uma vez, em leque. O professor
+ * fica ao lado da coluna que ele vai acordar, e as correntes continuam: o
+ * aluno acorrentado fica lento, e a coluna em cima dele fura a fila.
  *
  * E ELE TAMBEM DA REDES: na fase 2 ha duas NUVENS em cima dele, a computacao
  * em nuvem, que processam e chovem pacotes (Nuvem.h). O relogio delas, a cara
@@ -39,6 +56,8 @@ public:
     ~Vitor() override = default;
 
     void OnUpdate(float deltaTime) override;
+    [[nodiscard]] std::optional<Vector2> AlvoDoMovimento() const override;
+    void AoTerminarABatalha() override;
 
     /// A fase das nuvens, e a do fork, que a nuvem abre (Nuvem.h).
     static constexpr const char* kFaseDasNuvens = Nuvem::kFaseDasNuvens;
@@ -46,8 +65,107 @@ public:
 
 protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
+    void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
+                              const std::string& stateName) override;
 
 private:
+    // ---- O QUE AS FASES DIVIDEM ---------------------------------------------
+
+    [[nodiscard]] SDL_FRect Campo() const;
+
+    /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram (o
+    /// mesmo do Luizinho). 'quantos' > 0 troca o numero de projeteis, 'centro'
+    /// o meio do leque e 'abertura' a abertura dele.
+    std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
+                                            std::optional<float> centro = std::nullopt,
+                                            std::optional<float> abertura = std::nullopt);
+
+    bool mDisparandoEm = false;
+    Vector2 mOndeDisparar;
+    int mQuantos = 0;
+    std::optional<float> mCentroEm;
+    std::optional<float> mAberturaEm;
+    std::vector<BossProjectile*> mCriados;
+
+    [[nodiscard]] Player* Aluno() const;
+    [[nodiscard]] Vector2 PosicaoDoAluno() const;
+
+    /// O placar: o que a fase diz no arquivo e guardado na primeira vez, e
+    /// volta quando a fase acaba.
+    void Anunciar(const std::string& fase, const std::string& texto);
+    void Restaurar(const std::string& fase);
+    std::map<std::string, std::string> mAnunciosDoArquivo;
+
+    /// Para onde o movimento "Conduzido" leva o professor.
+    std::optional<Vector2> mAlvo;
+
+    /// As linhas do campo, limpas a cada quadro e redesenhadas por quem
+    /// estiver rodando.
+    DrawLinhasComponent* mLinhas = nullptr;
+    static constexpr int kOrdemDasLinhas = 80;
+
+    // ---- A FASE 1: OS SEMAFOROS ---------------------------------------------
+
+    void AtualizarSemaforos();
+    void MontarSemaforos();
+    void DesmontarSemaforos();
+    void ComecarRodadaDoSemaforo(int k);
+    void SoltarAsPilhas(bool matando);
+    void Mandar(int thread);
+    void Acordar(int thread);
+    void MoverInstrucoes(float t);
+    void PintarThreads();
+    void DesenharSemaforos();
+
+    bool mNosSemaforos = false;
+    int mRodadaDoSemaforo = -1;
+    float mInicioDaRodada = 0.0f;
+    Semaforo::Escalonador mEscalonador;
+    std::vector<float> mColunas;
+
+    /// Uma instrucao em campo: se ela ja saiu torta da faixa (na corrida).
+    struct Instrucao {
+        BossProjectile* p = nullptr;
+        bool desviou = false;
+    };
+
+    /// Uma thread: quantas instrucoes ja mandou, quando manda a proxima, as
+    /// que descem (ainda livres) e as paradas na pilha - ou girando, na espera
+    /// ocupada. As que ja passaram pela porta nao sao mais dela.
+    struct Thread {
+        int mandadas = 0;
+        float proximaEm = 0.0f;
+        std::vector<Instrucao> descendo;
+        std::vector<BossProjectile*> paradas;
+        EtiquetaDeCodigo* nome = nullptr;
+    };
+    std::vector<Thread> mThreads;
+
+    /// As que passaram pela porta e ainda estao descendo: so a corrida as
+    /// entorta, uma vez, ao sair da faixa.
+    std::vector<Instrucao> mPassando;
+
+    PainelDeCodigo* mSecao = nullptr;
+    EtiquetaDeCodigo* mCodigoDaSecao = nullptr;
+
+    /// O aluno estava acorrentado no quadro anterior? A coluna dele fura a
+    /// fila na hora em que ele e pego, uma vez por corrente.
+    bool mAlunoPreso = false;
+
+    /// Onde o professor fica: ao lado da coluna que ele vai acordar, entre ela
+    /// e a vizinha - fora das duas colunas, e fora da pilha.
+    static constexpr float kAoLadoDaColuna = 110.0f;
+    static constexpr float kAlturaDoProfessor = 200.0f;
+
+    /// A perseguicao da rajada de quem acorda com o aluno acorrentado: preso,
+    /// ele deixa de estar seguro ao lado da coluna (a regra "paralelo" das
+    /// tarefas de antes, que fazia o mesmo).
+    static constexpr float kAtrasoDaPerseguicao = 0.2f;
+    static constexpr float kForcaDaPerseguicao = 2.4f;
+    static constexpr float kDuracaoDaPerseguicao = 2.2f;
+
+    static constexpr int kOrdemDaSecao = 52;
+    static constexpr int kOrdemDosNomes = 57;
     // ---- AS NUVENS DA FASE 2 -----------------------------------------------
     //
     // Pouco depois de a fase comecar o Vitor forma as duas nuvens (o gatilho

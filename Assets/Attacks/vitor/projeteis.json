@@ -18,6 +18,24 @@
   // OS DOIS DIVIDEM A MESMA FOLHA de sprite, cada um com os quadros dele.
   // Arte PROVISORIA de Ferramentas/gerar_vitor.py.
   // ==========================================================================
+  // A INSTRUCAO DA FASE 1: um chip na cor da thread, com o numero dela - uma
+  // animacao por thread, e quem escolhe qual e o Vitor ao mandar (o nome da
+  // coluna, Semaforo::Nome). Desce reta ate a secao critica; quem nao tem o
+  // semaforo para na borda e se empilha.
+  "Instrucao": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorThreads.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorThreads.json",
+    "animacoes": {
+      "T1": [0, 1, 2, 3],
+      "T2": [4, 5, 6, 7],
+      "T3": [8, 9, 10, 11],
+      "T4": [12, 13, 14, 15],
+      "T5": [16, 17, 18, 19]
+    },
+    "animacaoInicial": "T1",
+    "ordemDeDesenho": 90
+  },
+
   "Tarefa": {
     "sprite": "Teachers/Projectiles/DPIBHVitorTarefa.png",
     "dados":  "Teachers/Projectiles/DPIBHVitorTarefa.json",

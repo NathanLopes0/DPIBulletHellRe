@@ -21,6 +21,13 @@ so na cor sao pintura):
               uma quase nao perde nota e fica PRESO - andando a menos da
               metade da velocidade por alguns segundos.
 
+AS INSTRUCOES DA FASE 1 (DPIBHVitorThreads), uma cor por thread:
+
+    Instrucao T1..T5  o chip de uma instrucao, na cor da thread dela e com o
+              numero dela. A fase 1 e a sincronizacao: cada thread e uma
+              coluna de instrucoes descendo ate a secao critica, e quem le o
+              placar ("fila: T3 T1 T5") precisa achar a coluna pela cor.
+
 AS LINHAS SEGUINTES SAO AS REDES, a outra materia que ele da (do 127 em diante):
 
     Nuvem     a nuvem da computacao em nuvem, em cima dele na fase 2: ociosa
@@ -28,10 +35,11 @@ AS LINHAS SEGUINTES SAO AS REDES, a outra materia que ele da (do 127 em diante):
     Pacote    o pacote de rede que a nuvem manda: o cabecalho colorido e o
               corpo, piscando.
 """
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import json, os
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CARLITO = os.path.join(RAIZ, "Assets", "Fonts", "Carlito-Regular.ttf")
 
 CARTAO = (74, 94, 128, 255)
 BORDA  = (150, 180, 220, 255)
@@ -49,6 +57,18 @@ COR_TRAVA  = (224, 122, 122, 255)   # vermelho: recurso retido
 # a mesma familia da cor que o aluno ganha enquanto esta preso.
 COR_ELO    = (186, 192, 208, 255)
 COR_ELO_ESCURO = (120, 128, 148, 255)
+
+# AS CINCO THREADS DA FASE 1. Cinco matizes bem separados - laranja, ciano,
+# rosa, lima e violeta -, e nenhum deles e o vermelho de "perigo" nem o cinza
+# da corrente. O NUMERO no chip confirma de perto o que a cor diz de longe.
+# O Vitor pinta o nome de cada coluna com estas mesmas cores (Vitor.cpp).
+CORES_DAS_THREADS = [
+    (240, 160, 60, 255),
+    (90, 200, 235, 255),
+    (235, 110, 190, 255),
+    (160, 220, 90, 255),
+    (170, 140, 245, 255),
+]
 
 COR_NUVEM  = (214, 226, 242, 255)
 COR_NUVEM_SOMBRA = (150, 166, 192, 255)
@@ -170,6 +190,33 @@ def pacote(fase):
     return im
 
 
+def instrucao(t, fase):
+    """A INSTRUCAO da thread t: um chip na cor dela, com o numero. Pisca o
+    cantinho de cima, como o cursor de quem esta executando."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    cor = CORES_DAS_THREADS[t]
+    d.rounded_rectangle([5, 5, 26, 26], radius=5, fill=cor, outline=TRACO, width=2)
+    fonte = ImageFont.truetype(CARLITO, 17)
+    texto = str(t + 1)
+    caixa = d.textbbox((0, 0), texto, font=fonte)
+    w, h = caixa[2] - caixa[0], caixa[3] - caixa[1]
+    d.text((16 - w / 2 - caixa[0], 16 - h / 2 - caixa[1]), texto, fill=TRACO, font=fonte,
+           stroke_width=1, stroke_fill=TRACO)
+    if fase % 2 == 0:
+        d.rectangle([20, 8, 23, 10], fill=(255, 255, 255, 200))
+    return im
+
+
+def folha_das_threads():
+    """Quatro quadros por thread, uma thread por linha."""
+    f = Image.new("RGBA", (128, 160), (0, 0, 0, 0))
+    for t in range(5):
+        for i in range(4):
+            f.alpha_composite(instrucao(t, i), (i * 32, t * 32))
+    return f
+
+
 def folha():
     """Quatro quadros de cada, uma coisa por linha - o mesmo arranjo dos
     outros chefes.
@@ -208,3 +255,4 @@ def grava(im, nome, pasta, quadros=1, lado=None):
 if __name__ == "__main__":
     grava(vitor(), "DPIBHVitor", "Assets/Teachers")
     grava(folha(), "DPIBHVitorTarefa", "Assets/Teachers/Projectiles", quadros=24, lado=32)
+    grava(folha_das_threads(), "DPIBHVitorThreads", "Assets/Teachers/Projectiles", quadros=20, lado=32)

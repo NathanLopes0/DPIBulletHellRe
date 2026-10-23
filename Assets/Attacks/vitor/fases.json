@@ -3,89 +3,67 @@
   // AS FASES DO VITOR (INF 310 - Programacao Concorrente e Distribuida)
   //
   // A MATERIA E "VARIAS COISAS AO MESMO TEMPO", e a batalha e construida para
-  // chegar nisso. As duas primeiras fases existem para serem aprendidas
-  // SEPARADAS, porque a terceira as poe juntas - em dois corpos:
+  // chegar nisso - em dois corpos, na fase 3:
   //
-  //   StateOne    TAREFAS EM PARALELO  faixas descendo de uma vez
+  //   StateOne    SEMAFOROS            as threads, a secao critica e o P(s)
   //   StateTwo    EXCLUSAO MUTUA       um anel com UMA fresta, que anda embaixo
   //   StateThree  FORK                 o chefe se divide; um corpo faz cada uma
   //   StateFinal  JOIN                 os dois voltam a ser um, fazendo as duas
   //
-  // E por isso que as duas primeiras precisam ser LEGIVEIS SOZINHAS: se o
-  // jogador nao aprendeu a passar entre as faixas e a achar a fresta, a fase 3
-  // nao e um desafio, e so confusao.
-  //
   // O MOVIMENTO E O ATAQUE, como no Vladimir - ver MovementStrategies.h.
   // ==========================================================================
 
-  // FASE 1 - TAREFAS EM PARALELO   |   gesto: A VARREDURA
+  // FASE 1 - OS SEMAFOROS   |   gesto: AO LADO DA PORTA
   //
-  // Uma fila curta de tarefas a cada 0,8s, com o chefe varrendo a 220 px/s:
-  // cada rajada nasce 176 pixels ao lado da anterior, e o que se ve sao varias
-  // FAIXAS descendo ao mesmo tempo. Threads correndo em paralelo, desenhadas.
+  // A sincronizacao, o comeco da ementa (Semaforo.h). Cada THREAD e uma
+  // coluna - o nome dela no alto, na cor dela - e as instrucoes descem ate a
+  // SECAO CRITICA, a faixa dourada no meio do campo, com o codigo dela no
+  // canto. Antes de entrar toda thread faz P(s): sem permissao ela BLOQUEIA,
+  // e as instrucoes param na borda e se empilham - a fila do P(s), ate seis;
+  // cheia, a thread para de mandar. O V(s) de quem sai acorda a primeira da
+  // fila, e a pilha dela desce de uma vez, em leque.
   //
-  // O COOLDOWN ERA 0,55 E A FASE DERRUBAVA A NOTA DE 40 PARA 20 SOZINHA.
+  // O PLACAR DIZ s E A FILA ("s = 0 · fila: T4 T1 T5"): quem le a fila sabe
+  // de que coluna vem a proxima rajada. As colunas nascem com uma EM CIMA DO
+  // ALUNO, e ela chega entre as tres primeiras da fila - parado, ele nao fica
+  // entre duas colunas nem espera a rodada inteira. Quatro rodadas de 4,9 s:
   //
-  // E apareceu uma dinamica que eu nao tinha previsto: SEGUIR O CHEFE E A PIOR
-  // coisa a fazer nesta fase. As faixas descem de onde ele ESTAVA, entao o
-  // espaco embaixo dele esta sempre limpo - mas quando a varredura inverte na
-  // margem, ele volta por cima das proprias colunas e leva junto quem o estava
-  // seguindo. Medido: o piloto que persegue apanhou 4 vezes na fase 1 e o
-  // piloto PARADO so 2.
+  //   mutex            s = 1, uma de cada vez, 0,65 s cada, na ordem
+  //   semaforo         s = 2, duas de cada vez, 1 s cada
+  //   espera ocupada   as bloqueadas GIRAM na porta - o while gastando
+  //                    processador -, entra quem ganhar o test-and-set (nao
+  //                    a primeira), e o giro estoura num anel ao entrar
+  //   corrida          sem trava: todas entram juntas, cada instrucao sai da
+  //                    faixa torta (elas se intercalam), e o placar mostra o
+  //                    saldo errado - 1 em vez de 5, a atualizacao perdida
   //
-  // Isso e bom e fica: ensina que perseguir o emissor de threads e burrice. So
-  // precisava doer menos enquanto se aprende.
+  // O PROFESSOR fica AO LADO da coluna que ele vai acordar (Conduzido), entre
+  // ela e a vizinha: embaixo dele nao desce coluna nenhuma, mas quando ele
+  // acorda a do lado o leque abre para cima de quem o seguia.
   //
-  // O INTERVALO E 0,13, E NAO 0,05. Com 0,05 as tarefas nasciam a 15 pixels
-  // uma da outra e o sprite tem 32: a fila virava uma BARRA SOLIDA verde, e o
-  // jogador nao via tarefas, via uma parede. Com 0,13 elas ficam a 39 pixels e
-  // voltam a ser unidades contaveis - que e o que uma tarefa deve parecer.
+  // AS CORRENTES CONTINUAM, as mesmas de antes (duas a cada 4,4 s, regra
+  // "correntes"): o aluno preso anda a 45% e, pior, esta bloqueado em P(s) -
+  // a coluna em cima dele FURA A FILA e e a proxima a entrar, e a rajada que
+  // sai com ele preso persegue (Vitor.h, kForcaDaPerseguicao).
   //
-  // O LEQUE DE 22 GRAUS CHEGOU DEPOIS, E CUSTOU A LEITURA DE "COLUNAS
-  // PARALELAS". Vale contar por que, porque a troca foi consciente.
-  //
-  // Com "angulo": 0 a fase tinha um buraco que so aparece medindo: a varredura
-  // e periodica, o cooldown e constante e nada sorteia nada, entao as colunas
-  // caem SEMPRE NOS MESMOS x, passagem apos passagem. Quem ficasse entre duas
-  // ficava entre duas os dezessete segundos. Medido: o piloto que nao se mexe
-  // atravessava a batalha inteira com 5 acertos e terminava APROVADO com 76 -
-  // e ficar parado nao deveria aprovar em chefe nenhum.
-  //
-  // O leque junto com o escalonamento faz a rajada sair em CASCATA diagonal, e
-  // e a cascata que resolve: ela varre uma faixa larga em vez de uma coluna, e
-  // nao sobra bolso permanente. Com 22 graus o piloto parado passa a tomar 20
-  // acertos e reprova com 26,7, enquanto o que persegue continua em 12 - o
-  // mesmo numero do Vladimir, ou seja, o jogador de verdade nao sentiu.
-  //
-  // O QUE EU TENTEI ANTES, e por que nao serviu, para ninguem refazer:
-  //
-  //   inclinar a faixa no C++ (como a fresta anda)   nao fecha os bolsos (a
-  //       inclinacao desloca a coluna uns 50px e a distancia entre elas e 176),
-  //       e ainda ADIANTA a coluna na direcao da varredura, o que massacra quem
-  //       persegue: 21 acertos.
-  //   encurtar o cooldown para 0,40                  colunas mais juntas, mas o
-  //       parado so foi de 6 para 8 acertos: continuava aprovando com 76.
-  //   tirar o escalonamento ("intervalo": 0)         sem a cascata o leque volta
-  //       a ser simetrico e o buraco volta: 12 acertos, aprovado.
-  //
-  // A dinamica de antes CONTINUA VALENDO: seguir o chefe e ruim, porque as
-  // faixas descem de onde ele estava e a varredura volta por cima delas.
+  // A INSTRUCAO E DE GATILHO: o professor diz onde ela nasce e com a cara de
+  // qual thread; a velocidade e a de Semaforo.h (um teste confere), e quem
+  // para, empilha e solta e ele.
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
-    "movimento": { "tipo": "Varredura", "a": 220, "b": 150 },
+    "anuncio": "semáforos",
+    "movimento": { "tipo": "Conduzido", "a": 520 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Tarefa",
-        "projeteis": 6, "velocidade": 300, "angulo": 0, "intervalo": 0.13,
-        "cooldown": 0.8,
-        "regras": "paralelo" },
+      { "gatilho": "instrucao", "estrategia": "WaveAttack", "projetil": "Instrucao",
+        "projeteis": 1, "velocidade": 200, "angulo": 0, "anguloCentral": 90, "intervalo": 0 },
 
-      // AS CORRENTES: duas a cada 4,4s, contra seis tarefas a cada 0,8.
+      // AS CORRENTES: duas a cada 4,4s.
       //
-      // RARAS DE PROPOSITO, e mais raras do que eram (3,2s): com forca 6 a
-      // corrente quase nao erra (ver regras.json), entao vindo junto com toda
-      // rajada o aluno nunca estaria solto. Vindo de vez em quando, cada uma e
-      // um EVENTO: da para ver chegando, decidir para que lado correr, e errar.
+      // RARAS DE PROPOSITO: com forca 6 a corrente quase nao erra (ver
+      // regras.json), entao vindo junto com toda rajada o aluno nunca estaria
+      // solto. Vindo de vez em quando, cada uma e um EVENTO: da para ver
+      // chegando, decidir para que lado correr, e errar.
       //
       // O leque de 20 graus so separa as duas na saida; quem decide para onde
       // elas vao e o Tracking, nao o angulo.
@@ -178,19 +156,19 @@
 
   // FASE 3 - FORK   |   gesto: A VARREDURA, EM DOIS CORPOS
   //
-  // O CHEFE SE DIVIDE EM DOIS. Um corpo faz o ataque da fase 1 e o outro o da
-  // fase 2, ao mesmo tempo - que e o que a materia trata, e o que uma batalha
-  // que faz uma coisa de cada vez nao consegue dizer.
+  // O CHEFE SE DIVIDE EM DOIS. Um corpo faz as tarefas em paralelo e o outro
+  // o anel da fase 2, ao mesmo tempo - que e o que a materia trata, e o que
+  // uma batalha que faz uma coisa de cada vez nao consegue dizer.
   //
   // QUALQUER UM DOS DOIS TOMA DANO. As regras de colisao percorrem
   // Battle::Corpos(), e acertar um ou outro paga a mesma barra. Nao ha "o
   // verdadeiro" e "a copia" - fork nao faz copia, faz dois.
   //
-  // "ataquesDe" EM VEZ DE REPETIR A LISTA. Esta fase usa os ataques da fase 1 e
-  // o clone os da fase 2; escrever as duas listas aqui de novo seria a mesma
-  // coisa dita duas vezes, e duas copias divergem no dia em que alguem ajustar
-  // uma. O clone tambem herda o MOVIMENTO da fase que ele empresta - entao ele
-  // orbita devagar, como na fase 2, enquanto o original varre.
+  // O CLONE USA OS ATAQUES DA FASE 2 ("ataquesDe"), em vez de repeti-los: duas
+  // copias divergem no dia em que alguem ajusta uma. Ele tambem herda o
+  // MOVIMENTO da fase que empresta - entao orbita devagar, como na fase 2,
+  // enquanto o original varre. O original tem a lista dele: as tarefas eram a
+  // fase 1, que virou os semaforos, e moram aqui agora.
   //
   // O SEGUNDO CORPO NASCE ESPELHADO em relacao ao original (Battle::DividirChefe):
   // dois corpos no mesmo pixel seriam um so para quem olha.
@@ -206,7 +184,21 @@
     "proximo": "",
     "anuncio": "fork · dois processos",
     "movimento": { "tipo": "Varredura", "a": 190, "b": 150 },
-    "ataquesDe": "StateOne",
+
+    // AS TAREFAS EM PARALELO, que eram a fase 1, com os numeros de la: uma
+    // fila curta de tarefas a cada 0,8 s com o chefe varrendo, e o que se ve
+    // sao varias FAIXAS descendo ao mesmo tempo. O intervalo de 0,13 deixa as
+    // tarefas a 39 px uma da outra - unidades contaveis, e nao uma barra.
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Tarefa",
+        "projeteis": 6, "velocidade": 300, "angulo": 0, "intervalo": 0.13,
+        "cooldown": 0.8,
+        "regras": "paralelo" },
+      { "estrategia": "WaveAttack", "projetil": "Corrente",
+        "projeteis": 2, "velocidade": 260, "angulo": 20, "intervalo": 0.18,
+        "cooldown": 4.4,
+        "regras": "correntes" }
+    ],
     "clone": { "ataquesDe": "StateTwo" }
   },
 

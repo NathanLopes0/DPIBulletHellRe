@@ -8,7 +8,8 @@
   // pintura.
   // ==========================================================================
 
-  // FASE 1 - TAREFAS EM PARALELO.
+  // AS TAREFAS EM PARALELO - a fase 3, no corpo original. Eram a fase 1, que
+  // virou os semaforos; os numeros abaixo foram medidos la.
   //
   // Uma fila de tarefas descendo. O chefe varre enquanto dispara, entao cada
   // rajada nasce num x diferente e o que se ve sao VARIAS FAIXAS descendo ao
@@ -59,7 +60,11 @@
       "motion": { "tipo": "Tracking", "atraso": 0.25, "forca": 3.2, "duracao": 3.4 } }
   ],
 
-  // FASE 1 - AS CORRENTES.
+  // AS CORRENTES - fases 1 e 3.
+  //
+  // Na fase 1 a corrente tambem e o P(s): o aluno preso esta bloqueado, e a
+  // coluna em cima dele fura a fila (Semaforo::Furar). Essa parte nao e regra
+  // de projetil, e do Vitor.
   //
   // PERSEGUEM COM MAIS FORCA E POR MAIS TEMPO que todo outro Tracking do jogo:
   // os outros corrigem a rota e desistem (forca 1,4 a 1,6 por uns dois
