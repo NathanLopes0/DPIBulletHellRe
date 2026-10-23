@@ -374,3 +374,32 @@ void OndaQuadradaStrategy::Update(Boss* boss, const float deltaTime) {
 
     rb->SetVelocity(Vector2(mVelocidade * mDirecao, (alvoY - boss->GetPosition().y) * kRapidezDaBorda));
 }
+
+// =========================================================
+// CONDUZIDO STRATEGY  -  vai aonde o professor diz
+// =========================================================
+
+ConduzidoStrategy::ConduzidoStrategy(const float velocidade)
+    : mVelocidade(velocidade)
+{
+}
+
+void ConduzidoStrategy::Update(Boss* boss, const float deltaTime) {
+    auto rb = boss->GetComponent<RigidBodyComponent>();
+    if (!rb) return;
+    const auto alvo = boss->AlvoDoMovimento();
+    if (!alvo || mVelocidade <= 0.0f) {
+        rb->SetVelocity(Vector2::Zero);
+        return;
+    }
+
+    // VAI ATE O ALVO E PARA NELE, como o deslocamento: sem passar do ponto.
+    const Vector2 falta = *alvo - boss->GetPosition();
+    const float d = falta.Length();
+    if (d <= mVelocidade * deltaTime || deltaTime <= 0.0f) {
+        boss->SetPosition(*alvo);
+        rb->SetVelocity(Vector2::Zero);
+        return;
+    }
+    rb->SetVelocity(falta * (mVelocidade / d));
+}

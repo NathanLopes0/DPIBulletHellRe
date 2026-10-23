@@ -26,7 +26,9 @@ namespace {
         "Escada",
         // O registrador de deslocamento e o clock do Ricardo - ver Logica.h
         // e Relogio.h.
-        "Deslocamento", "OndaQuadrada"
+        "Deslocamento", "OndaQuadrada",
+        // O professor que diz para onde vai - o automato do Vladimir.
+        "Conduzido"
     };
 
     /// Os nomes aceitos, para a mensagem de erro. DERIVADA da lista acima, e
@@ -46,7 +48,8 @@ namespace {
     const std::vector<std::string> kEixosDeConsulta = {"Linha", "Coluna"};
     const std::vector<std::string> kGatilhos = {"notificacao", "consulta", "agir", "nuvens", "chover", "portas",
                                                 "contador", "estagios", "buscar", "lw", "sw", "add", "addi",
-                                                "acender"};
+                                                "acender", "estados", "diagrama", "ler_a", "ler_b",
+                                                "aceita", "rejeita"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"

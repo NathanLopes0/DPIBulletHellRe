@@ -151,7 +151,7 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 > de `aCada`, e campo faltando são recusados na leitura.
 
 **Movimentos:** `GoToCenter`, `RandomWander`, `HoverAbovePlayer`, `Orbitar`,
-`Varredura`, `Mergulho`, `Escada`, `Deslocamento`, `OndaQuadrada`. `a` e `b` são os dois parâmetros do construtor, na
+`Varredura`, `Mergulho`, `Escada`, `Deslocamento`, `OndaQuadrada`, `Conduzido`. `a` e `b` são os dois parâmetros do construtor, na
 ordem, e cada movimento lhes dá um sentido próprio — a tabela está em
 `FasesDeAtaqueArquivo.cpp`, onde eles são instanciados.
 
@@ -163,7 +163,10 @@ deslocamento do Ricardo: um passo seco de uma coluna por vez, de ponta a ponta,
 sempre parando no meio de uma das colunas da palavra de bits. A `OndaQuadrada`
 (`a` = amplitude, `b` = velocidade de lado a lado) é o clock dele: em cima no
 nível alto, embaixo no baixo, saltando nas bordas da frequência que o placar da
-fase anuncia (`Relogio::LerFrequencia`; 1 Hz se ele não disser).
+fase anuncia (`Relogio::LerFrequencia`; 1 Hz se ele não disser). O `Conduzido`
+(`a` = velocidade) leva o professor aonde ele mesmo diz (`Boss::AlvoDoMovimento`)
+e para lá: é o autômato do Vladimir, que voa de estado em estado conforme a
+palavra que lê.
 
 > **Um chefe que anda o tempo todo não leva tiro do piloto que persegue.** O
 > tiro leva quase 1 s até o professor; andando uma coluna a cada 0,6 s, o

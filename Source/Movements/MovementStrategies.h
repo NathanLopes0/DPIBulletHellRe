@@ -238,3 +238,21 @@ private:
     /// Quao depressa ele vai de um nivel ao outro: o salto da borda.
     static constexpr float kRapidezDaBorda = 30.0f;
 };
+
+/**
+ * @brief Vai aonde o PROPRIO PROFESSOR diz (Boss::AlvoDoMovimento), e para la.
+ *
+ * Para o chefe cujo caminho e a regra da fase, e nao um gesto: no automato do
+ * Vladimir ele voa de estado em estado conforme a palavra que le, e quem sabe
+ * para qual estado e ele. Sem alvo, fica parado.
+ *
+ * @param velocidade a do voo, em px/s - depressa: uma transicao e um salto, e
+ *                   o aluno precisa ver o professor CHEGAR, e nao deslizar
+ */
+class ConduzidoStrategy : public IMovementStrategy {
+public:
+    explicit ConduzidoStrategy(float velocidade = 900.0f);
+    void Update(Boss* boss, float deltaTime) override;
+private:
+    float mVelocidade;
+};

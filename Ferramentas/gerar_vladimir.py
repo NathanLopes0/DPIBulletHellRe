@@ -14,7 +14,7 @@ rajada E uma palavra, e cada tiro e uma letra dela - entao "a" e "b" nao sao
 enfeite de placeholder, sao o desenho certo. A folha tem oito quadros de 32x32
 em 4x2, no mesmo arranjo dos projeteis do Salles.
 """
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import json, os
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -39,16 +39,18 @@ def quadro_json(nome, w, h, quadros=1, lado=None):
     Com "quadros" > 1 a folha e lida como uma grade de 4 colunas, igual a dos
     projeteis do Salles - 4 em cima, o resto embaixo.
     """
-    lado = lado or w
+    # UM QUADRO SO E A FOLHA INTEIRA, quadrada ou nao: o diagrama do automato
+    # e mais largo que alto, e um quadro quadrado o desenharia esticado.
+    largo, alto = (lado, lado) if lado else (w, h)
     frames = []
     for i in range(quadros):
-        x, y = (i % 4) * lado, (i // 4) * lado
+        x, y = (i % 4) * largo, (i // 4) * alto
         frames.append({
             "filename": f"{nome} {i}.placeholder",
-            "frame": {"x": x, "y": y, "w": lado, "h": lado},
+            "frame": {"x": x, "y": y, "w": largo, "h": alto},
             "rotated": False, "trimmed": False,
-            "spriteSourceSize": {"x": 0, "y": 0, "w": lado, "h": lado},
-            "sourceSize": {"w": lado, "h": lado},
+            "spriteSourceSize": {"x": 0, "y": 0, "w": largo, "h": alto},
+            "sourceSize": {"w": largo, "h": alto},
             "duration": 120,
         })
     return {
@@ -120,7 +122,162 @@ def grava(im, nome, pasta, quadros=1, lado=None):
     print(f"  {pasta}/{nome}.png  {im.width}x{im.height}  ({quadros} quadro(s))")
 
 
+# ---------------------------------------------------------------------------
+# A FASE 1: O AUTOMATO FINITO DESENHADO NO CAMPO
+#
+# Os tres estados sao aneis GRANDES, maiores que o cartao do professor (128 px):
+# ele pousa DENTRO do estado em que esta, e o anel fica aparecendo em volta.
+# O nome do estado fica embaixo, fora do cartao, para ser lido com ele em cima.
+#
+# O DIAGRAMA E UMA FIGURA SO, e nao uma seta por projetil: os estados tem lugar
+# fixo no campo (Automato::kCentros, em Vladimir.cpp), entao as transicoes
+# tambem tem - e uma figura so e o que deixa o desenho ser o da disciplina, com
+# os lacos e as setas curvas, em vez de seis tiros parados.
+# ---------------------------------------------------------------------------
+
+LADO_DO_ESTADO = 192
+RAIO_DO_ESTADO = 84
+
+# Onde os estados ficam no campo (1200 x 800) e onde o diagrama comeca. Tem de
+# bater com Vladimir::kCentrosDosEstados e kCentroDoDiagrama - ha teste.
+CENTROS = [(220, 170), (600, 260), (980, 170)]
+DIAGRAMA_X0, DIAGRAMA_Y0 = 100, 30
+DIAGRAMA_W, DIAGRAMA_H = 1000, 400
+
+
+def fonte(tamanho):
+    return ImageFont.load_default(size=tamanho)
+
+
+def estado(q, aceita, ativo):
+    """Um estado do automato: o anel, o anel duplo se aceita, e o nome embaixo."""
+    s = 2   # desenhado no dobro e reduzido: o anel sai liso
+    im = Image.new("RGBA", (LADO_DO_ESTADO * s, LADO_DO_ESTADO * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    c = LADO_DO_ESTADO * s // 2
+    r = RAIO_DO_ESTADO * s
+    cor = (235, 245, 255, 255) if ativo else ESTADO
+    if ativo:
+        d.ellipse([c - r, c - r, c + r, c + r], fill=(122, 170, 220, 60))
+    d.ellipse([c - r, c - r, c + r, c + r], outline=cor, width=(8 if ativo else 5) * s // 2 * 2)
+    if aceita:
+        r2 = r - 12 * s
+        d.ellipse([c - r2, c - r2, c + r2, c + r2], outline=ACEITA if not ativo else cor, width=4 * s)
+    im = im.resize((LADO_DO_ESTADO, LADO_DO_ESTADO), Image.LANCZOS)
+
+    # O NOME, numa placa embaixo do anel: q0, q1, q2.
+    d = ImageDraw.Draw(im)
+    c = LADO_DO_ESTADO // 2
+    d.rounded_rectangle([c - 22, 162, c + 22, 186], radius=6, fill=CARTAO, outline=cor, width=2)
+    d.text((c, 174), f"q{q}", fill=TINTA, font=fonte(16), anchor="mm")
+    return im
+
+
+def estados():
+    """A folha dos estados: q0, q1, q2 e os tres acesos, em 4 colunas."""
+    folha = Image.new("RGBA", (LADO_DO_ESTADO * 4, LADO_DO_ESTADO * 2), (0, 0, 0, 0))
+    for i in range(6):
+        q, ativo = i % 3, i >= 3
+        x, y = (i % 4) * LADO_DO_ESTADO, (i // 4) * LADO_DO_ESTADO
+        folha.alpha_composite(estado(q, q == 2, ativo), (x, y))
+    return folha
+
+
+def _bezier(p0, p1, p2, n=48):
+    pts = []
+    for i in range(n + 1):
+        u = i / n
+        x = (1 - u) ** 2 * p0[0] + 2 * (1 - u) * u * p1[0] + u * u * p2[0]
+        y = (1 - u) ** 2 * p0[1] + 2 * (1 - u) * u * p1[1] + u * u * p2[1]
+        pts.append((x, y))
+    return pts
+
+
+def _na_borda(centro, rumo, folga=0):
+    import math
+    (cx, cy), (rx, ry) = centro, rumo
+    n = math.hypot(rx, ry) or 1.0
+    r = RAIO_DO_ESTADO + folga
+    return (cx + rx / n * r, cy + ry / n * r)
+
+
+def _seta(d, pts, cor, s):
+    import math
+    d.line(pts, fill=cor, width=3 * s, joint="curve")
+    (x1, y1), (x2, y2) = pts[-4], pts[-1]
+    a = math.atan2(y2 - y1, x2 - x1)
+    L, W = 16 * s, 8 * s
+    d.polygon([(x2, y2),
+               (x2 - L * math.cos(a) + W * math.sin(a), y2 - L * math.sin(a) - W * math.cos(a)),
+               (x2 - L * math.cos(a) - W * math.sin(a), y2 - L * math.sin(a) + W * math.cos(a))], fill=cor)
+
+
+def _rotulo(d, onde, letra, s):
+    cor = COR_A if letra == "a" else COR_B
+    x, y = onde
+    d.ellipse([x - 13 * s, y - 13 * s, x + 13 * s, y + 13 * s], fill=cor, outline=TRACO, width=2 * s)
+    d.text((x, y), letra, fill=TRACO, font=fonte(18 * s), anchor="mm")
+
+
+def diagrama():
+    """As transicoes de "termina em ab", desenhadas entre os tres estados.
+
+    Esmaecido de proposito: e o mapa, e nao um tiro - o que machuca sao as
+    letras. Cada seta leva a letra que a dispara, na cor dela.
+    """
+    s = 2
+    im = Image.new("RGBA", (DIAGRAMA_W * s, DIAGRAMA_H * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    q = [((x - DIAGRAMA_X0) * s, (y - DIAGRAMA_Y0) * s) for x, y in CENTROS]
+    cor = (200, 215, 235, 150)
+    R = RAIO_DO_ESTADO * s
+
+    def borda(i, alvo, folga=6):
+        (cx, cy) = q[i]
+        return _na_borda((cx / s, cy / s), (alvo[0] - cx, alvo[1] - cy), folga)
+
+    def em_s(p):
+        return (p[0] * s, p[1] * s)
+
+    def arco(i, j, curva, letra):
+        meio = ((q[i][0] + q[j][0]) / 2, (q[i][1] + q[j][1]) / 2)
+        dx, dy = q[j][0] - q[i][0], q[j][1] - q[i][1]
+        import math
+        n = math.hypot(dx, dy)
+        ctrl = (meio[0] - dy / n * curva * s, meio[1] + dx / n * curva * s)
+        a, b = em_s(borda(i, ctrl)), em_s(borda(j, ctrl))
+        pts = _bezier(a, ctrl, b)
+        _seta(d, pts, cor, s)
+        _rotulo(d, pts[len(pts) // 2], letra, s)
+
+    def laco(i, para_cima, letra):
+        cx, cy = q[i]
+        sinal = -1 if para_cima else 1
+        a = (cx - 34 * s, cy + sinal * (R - 10 * s))
+        b = (cx + 34 * s, cy + sinal * (R - 10 * s))
+        ctrl = (cx, cy + sinal * (R + 110 * s))
+        pts = _bezier(a, ctrl, b)
+        _seta(d, pts, cor, s)
+        _rotulo(d, (cx, cy + sinal * (R + 52 * s)), letra, s)
+
+    arco(0, 1, 40, "a")     # q0 -a-> q1
+    arco(1, 2, 40, "b")     # q1 -b-> q2
+    arco(2, 1, 40, "a")     # q2 -a-> q1
+    arco(2, 0, 150, "b")    # q2 -b-> q0, por cima
+    laco(0, False, "b")     # q0 -b-> q0
+    laco(1, False, "a")     # q1 -a-> q1
+
+    # A SETA DE ENTRADA, que marca o estado inicial.
+    cx, cy = q[0]
+    pts = [(cx - R - 70 * s, cy), (cx - R - 40 * s, cy), (cx - R - 8 * s, cy), (cx - R - 4 * s, cy)]
+    _seta(d, pts, cor, s)
+    return im.resize((DIAGRAMA_W, DIAGRAMA_H), Image.LANCZOS)
+
+
 if __name__ == "__main__":
     grava(vladimir(), "DPIBHVladimir", "Assets/Teachers")
     grava(alfabeto(), "DPIBHVladimirSimbolo", "Assets/Teachers/Projectiles",
           quadros=8, lado=32)
+    grava(estados(), "DPIBHVladimirEstado", "Assets/Teachers/Projectiles",
+          quadros=6, lado=LADO_DO_ESTADO)
+    grava(diagrama(), "DPIBHVladimirDiagrama", "Assets/Teachers/Projectiles")

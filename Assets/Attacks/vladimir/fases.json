@@ -5,7 +5,7 @@
   // AS QUATRO FASES SAO A HIERARQUIA DE CHOMSKY, um nivel por fase. Nao e
   // tema: e a estrutura da disciplina, e a batalha sobe por ela.
   //
-  //   StateOne    Regular            (ab)*      um laco de memoria finita
+  //   StateOne    Regular            o automato finito, desenhado no campo
   //   StateTwo    Livre de contexto  a^n b^n    contar exige uma pilha
   //   StateThree  Automato de pilha             a pilha, desenhada de lado
   //   StateFinal  Maquina de Turing             a fita, lida e reescrita
@@ -20,7 +20,7 @@
   //
   // Agora cada fase tem o GESTO dela, e o gesto e a ideia da fase:
   //
-  //   Orbitar    o laco da estrela de Kleene - a volta que repete
+  //   Conduzido  a transicao - ele voa para o estado que a tabela manda
   //   Varredura  o ir-e-voltar de a^n b^n, e a cabeca da fita de Turing
   //   Mergulho   empilhar e desempilhar - a profundidade E a altura da pilha
   //
@@ -28,9 +28,9 @@
   //
   // E O PLACAR ESCREVE O QUE ELE ANUNCIA. O "anuncio" de cada fase aparece no
   // quadro do canto de cima enquanto a fase dura: e ali que "ele anuncia" deixa
-  // de ser so uma frase deste arquivo. Nas duas primeiras e a LINGUAGEM, e cada
-  // rajada e uma palavra dela - dez simbolos alternados sao (ab)^5, que esta em
-  // (ab)*; seis ambar e seis azuis sao a^6 b^6, que esta em a^n b^n. Nas duas
+  // de ser so uma frase deste arquivo. Na primeira e a CONFIGURACAO do automato
+  // - o estado e o que falta ler -, e na segunda e a LINGUAGEM, e cada rajada e
+  // uma palavra dela: seis ambar e seis azuis sao a^6 b^6. Nas duas
   // ultimas, que sao maquinas e nao linguagens, e o que a maquina FAZ com cada
   // letra: a pilha guarda o "a" e solta o "b", e a fita le "a" e escreve "b".
   //
@@ -64,62 +64,55 @@
   // CONGELA, sem travar o jogo e sem avisar em tela.
   // ==========================================================================
 
-  // FASE 1 - REGULAR: (ab)*   |   gesto: A ORBITA
+  // FASE 1 - REGULAR: O AUTOMATO FINITO   |   gesto: A TRANSICAO
   //
-  // A ESTRELA DE KLEENE E UM LACO QUE REPETE, e a orbita e o laco. O chefe dá
-  // voltas sem parar deixando simbolos pelo anel; cada volta escreve um anel, e
-  // a repeticao fica visivel como repeticao.
+  // O AUTOMATO ESTA DESENHADO NO CAMPO: o diagrama das transicoes e os tres
+  // estados, q0 (o inicial, com a seta de entrada), q1 e q2 (o de aceitacao, com
+  // o circulo duplo). A linguagem e "termina em ab" (Automato.h), e o placar
+  // comeca dizendo isso.
   //
-  // 0,16 VOLTA POR SEGUNDO = 6,25s por volta, e a fase dura 17s: da duas voltas
-  // e meia. Mais rapido viraria um borrao e a repeticao sumiria no movimento;
-  // mais devagar nao fecharia o anel dentro da fase, e um laco que nao fecha
-  // nao se le como laco.
+  // O PROFESSOR E A CABECA DO AUTOMATO. A cada 1,1s ele le um simbolo da
+  // palavra, atira do estado em que esta a letra que leu e VOA para o estado
+  // que a tabela manda - o movimento "Conduzido", que vai aonde ele diz. O
+  // estado em que ele esta fica aceso. Lida a palavra, o veredito: ACEITA, e o
+  // q2 estoura num anel; ou REJEITA, e saem perseguidores de onde ele parou.
+  // Depois ele volta ao q0 e le outra.
   //
-  // O LEQUE DE 40 GRAUS espalha cada rajada em torno da direcao do tiro, e e o
-  // que enche o campo junto com a orbita: o anel tem largura, e nao e um fio.
+  // O PLACAR E A CONFIGURACAO: (q1, bab) - o estado e o que falta ler. Com o
+  // placar e o diagrama o aluno PREVE: sabe para onde o professor vai, e se vem
+  // um "a" reto ou um "b" que persegue. E a troca do intercambio muda o que
+  // falta ler (Automato::Trocar): o placar muda, e o caminho tambem.
   //
-  // UMA RAJADA A CADA 0,9s, e nao 1,1: na foto do quadro 700 a fase estava com
-  // o movimento certo e simbolos de menos - oito na tela inteira. Dez a cada
-  // 0,9 dao onze por segundo contra os sete de antes, e a trilha da orbita
-  // passa a ser continua em vez de tracejada.
+  // A LETRA SAI MIRADA NO ALUNO (Vladimir::CustomizeAttackParams), com um tiro
+  // no meio do leque.
   "StateOne": {
     "duracao": 17,
     "proximo": "StateTwo",
-    "anuncio": "(ab)*",
+    "anuncio": "L: termina em ab",
     "intercambio": { "aCada": 8, "aviso": 1.5 },
-    "movimento": { "tipo": "Orbitar", "a": 230, "b": 0.16 },
+    "movimento": { "tipo": "Conduzido", "a": 900 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Simbolo",
-        "projeteis": 10, "velocidade": 250, "angulo": 40, "intervalo": 0.06,
-        "cooldown": 0.9,
-        "regras": "kleene" }
+      { "gatilho": "diagrama", "estrategia": "WaveAttack", "projetil": "Diagrama",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "estados" },
+      { "gatilho": "estados", "estrategia": "WaveAttack", "projetil": "Estado",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "estados" },
+      { "gatilho": "ler_a", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 5, "velocidade": 250, "angulo": 44, "intervalo": 0.05,
+        "regras": "letra_a" },
+      { "gatilho": "ler_b", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 3, "velocidade": 220, "angulo": 30, "intervalo": 0.08,
+        "regras": "letra_b" },
+      { "gatilho": "aceita", "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
+        "projeteis": 14, "velocidade": 200,
+        "regras": "letra_a" },
+      { "gatilho": "rejeita", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 4, "velocidade": 220, "angulo": 60, "intervalo": 0,
+        "regras": "letra_b" }
     ]
   },
 
-  // FASE 2 - LIVRE DE CONTEXTO: a^n b^n   |   gesto: A VARREDURA
-  //
-  // Doze simbolos: seis "a" e depois seis "b". A palavra e lida no TEMPO, e
-  // contar o primeiro trecho diz quando o segundo comeca.
-  //
-  // QUEM DEITA A PALAVRA E O LEQUE, E NAO A VARREDURA. Escrevi o contrario
-  // aqui e estava errado - a foto do quadro 1700 mostrou a palavra numa COLUNA
-  // vertical enquanto o chefe ja tinha varrido 200 pixels para longe dela.
-  //
-  // O motivo esta em WaveAttack.cpp: a rajada inteira nasce em
-  // params.firePosition, que e lida UMA vez quando o ataque dispara. O
-  // "intervalo" atrasa o DESPERTAR de cada simbolo, e nao o nascimento - os
-  // doze ja estao no mesmo ponto desde o primeiro quadro. O chefe nao e uma
-  // caneta que arrasta tinta; ele e um carimbo.
-  //
-  // O leque, sim, distribui: angleStart + i * angleStep, EM ORDEM DE INDICE.
-  // Com 70 graus a palavra sai escrita num arco, o primeiro "a" numa ponta e o
-  // ultimo "b" na outra - e a contagem vira TAMANHO DO TRECHO COLORIDO, que e
-  // ainda mais legivel do que contar um por um.
-  //
-  // A VARREDURA CONTINUA IMPORTANDO, so que entre palavras e nao dentro de
-  // uma: com cooldown 3,0 e 170 px/s, duas palavras seguidas nascem a 510
-  // pixels uma da outra, e e isso que enche a largura.
-  //
   // O INTERCAMBIO NASCEU AQUI, aos 8s e aos 16s, quando era so desta fase. A
   // medida de entao continua valendo para a troca de lugar: com e sem ela, na
   // batalha inteira, o piloto que persegue ficou em 74,5 contra 73,6, e nenhum

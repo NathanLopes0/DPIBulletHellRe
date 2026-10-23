@@ -220,6 +220,14 @@ public:
      */
     virtual void OnIntercambio() {}
 
+    /**
+     * @brief Para onde o professor quer ir, quando e ele quem diz - o movimento
+     * "Conduzido" de fases.json o leva ate la. Sem alvo, o Conduzido o deixa
+     * parado. O padrao nao tem alvo; o Vladimir voa de estado em estado do
+     * automato dele.
+     */
+    [[nodiscard]] virtual std::optional<Vector2> AlvoDoMovimento() const { return std::nullopt; }
+
     /// @brief A fase em que o chefe esta AGINDO - a mesma que escolhe o
     /// movimento e os ataques do quadro. Vazio antes do primeiro OnUpdate.
     [[nodiscard]] const std::string& FaseAtual() const { return mLastStateName; }

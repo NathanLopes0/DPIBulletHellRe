@@ -53,6 +53,8 @@
 #include "../Source/Attacks/Pipeline.h"
 #include "../Source/Attacks/Blink.h"
 #include "../Source/Attacks/Alfabeto.h"
+#include "../Source/Attacks/Automato.h"
+#include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
 #include "../Source/Orientacao.h"
@@ -438,6 +440,50 @@ TEST_CASE("Dados: nenhuma animacao cita um quadro que a folha nao tem") {
                     CAPTURE(quadro);
                     CHECK(static_cast<size_t>(quadro) < total);
                 }
+            }
+        }
+    }
+}
+
+namespace {
+    /// A largura e a altura de um PNG, lidas do cabecalho (IHDR): os quatro
+    /// bytes de cada uma comecam no byte 16 e vem do mais alto para o mais
+    /// baixo. Zero se o arquivo nao abrir ou nao for PNG.
+    std::pair<int, int> TamanhoDoPng(const std::string& caminhoRelativo) {
+        std::ifstream f(std::string(DPI_ASSETS_DIR) + "/" + caminhoRelativo, std::ios::binary);
+        unsigned char b[24] = {};
+        if (!f.read(reinterpret_cast<char*>(b), sizeof b)) return {0, 0};
+        if (b[1] != 'P' || b[2] != 'N' || b[3] != 'G') return {0, 0};
+        const auto u32 = [&](const int i) { return (b[i] << 24) | (b[i + 1] << 16) | (b[i + 2] << 8) | b[i + 3]; };
+        return {u32(16), u32(20)};
+    }
+}
+
+TEST_CASE("Dados: todo quadro de toda folha de projetil cabe na imagem") {
+    // O DrawAnimatedComponent desenha o retangulo do quadro no tamanho que o
+    // .json diz, e um quadro maior que a folha nao da erro: sai ESTICADO. Foi
+    // assim que o diagrama do automato do Vladimir (1000 x 400) saiu com quadro
+    // de 1000 x 1000 e apareceu duas vezes e meia mais alto, sem nada reclamar.
+    for (const auto& chefe : Chefes()) {
+        for (const auto& entrada : ProjeteisDoChefe(chefe).projeteis) {
+            const std::string onde = chefe + "/" + entrada.first;
+            CAPTURE(onde);
+            const auto [largura, altura] = TamanhoDoPng(entrada.second.sprite);
+            REQUIRE_MESSAGE(largura > 0, "nao li o PNG " << entrada.second.sprite);
+
+            const auto atlas = LerJsonDeDados(LerArquivo(entrada.second.dados));
+            REQUIRE(atlas.contains("frames"));
+            for (const auto& item : atlas["frames"]) {
+                // Lista ou objeto, como no teste de cima: o quadro e o mesmo.
+                const auto& quadro = item.contains("frame") ? item["frame"] : item;
+                REQUIRE(quadro.contains("x"));
+                const int x = quadro["x"].get<int>(), y = quadro["y"].get<int>();
+                const int w = quadro["w"].get<int>(), h = quadro["h"].get<int>();
+                CAPTURE(x); CAPTURE(y); CAPTURE(w); CAPTURE(h);
+                CHECK(x >= 0);
+                CHECK(y >= 0);
+                CHECK(x + w <= largura);
+                CHECK(y + h <= altura);
             }
         }
     }
@@ -1325,6 +1371,68 @@ TEST_CASE("Dados: o intercambio do Vladimir troca as letras que o Simbolo tem, e
     const auto regras = RegrasDoChefe("vladimir");
     REQUIRE(regras.conjuntos.count("fita") == 1);
     for (const auto& r : regras.conjuntos.at("fita")) CHECK(r.posto == Alfabeto::kPostoDaFita);
+}
+
+TEST_CASE("Dados: o automato do Vladimir - gatilhos, posto e caras sao nomes que os dados tem") {
+    for (const char* g : {Automato::kGatilhoDosEstados, Automato::kGatilhoDoDiagrama, Automato::kGatilhoDoA,
+                          Automato::kGatilhoDoB, Automato::kGatilhoDeAceitar, Automato::kGatilhoDeRejeitar}) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+    }
+    CHECK(PostoExiste(Automato::kPostoDosEstados));
+
+    // AS CARAS DOS ESTADOS: o Vladimir as monta como "Q" + estado + "Aceso"
+    // (Vladimir::CaraDoEstado). Espelhado aqui, porque o Vladimir nao entra nos
+    // testes.
+    const auto& tipos = ProjeteisDoChefe("vladimir").projeteis;
+    REQUIRE(tipos.count("Estado") == 1);
+    REQUIRE(tipos.count("Diagrama") == 1);
+    std::set<std::string> caras;
+    for (const auto& a : tipos.at("Estado").animacoes) caras.insert(a.nome);
+    for (int q = 0; q < Automato::kEstados; ++q) {
+        CHECK(caras.count("Q" + std::to_string(q)) == 1);
+        CHECK(caras.count("Q" + std::to_string(q) + "Aceso") == 1);
+    }
+    bool temDiagrama = false;
+    for (const auto& a : tipos.at("Diagrama").animacoes) temDiagrama = temDiagrama || a.nome == Automato::kCaraDoDiagrama;
+    CHECK(temDiagrama);
+
+    // TODO GATILHO DO AUTOMATO ESTA NA FASE DELE: um que faltasse deixaria o
+    // professor lendo sem atirar, ou o mapa sem desenhar.
+    std::set<std::string> naFase;
+    for (const auto& f : FasesDoChefe("vladimir").fases) {
+        if (f.nome != Automato::kFaseDoAutomato) continue;
+        for (const auto& a : f.ataques) naFase.insert(a.gatilho);
+    }
+    for (const char* g : {Automato::kGatilhoDosEstados, Automato::kGatilhoDoDiagrama, Automato::kGatilhoDoA,
+                          Automato::kGatilhoDoB, Automato::kGatilhoDeAceitar, Automato::kGatilhoDeRejeitar}) {
+        CAPTURE(g);
+        CHECK(naFase.count(g) == 1);
+    }
+}
+
+TEST_CASE("Dados: o diagrama do automato do Vladimir foi desenhado para os estados onde ele os poe") {
+    // O DIAGRAMA E UMA FIGURA SO, gerada por Ferramentas/gerar_vladimir.py com os
+    // centros dos estados escritos la. Se o C++ mudar um estado de lugar e o
+    // gerador nao, as setas apontam para o vazio - e nada reclama.
+    std::ifstream f(std::string(DPI_ASSETS_DIR) + "/../Ferramentas/gerar_vladimir.py");
+    REQUIRE(f.is_open());
+    std::ostringstream texto;
+    texto << f.rdbuf();
+    const std::string py = texto.str();
+
+    std::smatch m;
+    REQUIRE(std::regex_search(py, m, std::regex(R"(CENTROS = \[\((\d+), (\d+)\), \((\d+), (\d+)\), \((\d+), (\d+)\)\])")));
+    for (int q = 0; q < Automato::kEstados; ++q) {
+        CAPTURE(q);
+        CHECK(std::stof(m[1 + 2 * q]) == doctest::Approx(Automato::kXDosEstados[static_cast<size_t>(q)]));
+        CHECK(std::stof(m[2 + 2 * q]) == doctest::Approx(Automato::kYDosEstados[static_cast<size_t>(q)]));
+    }
+    REQUIRE(std::regex_search(py, m, std::regex(R"(DIAGRAMA_X0, DIAGRAMA_Y0 = (\d+), (\d+))")));
+    const float x0 = std::stof(m[1]), y0 = std::stof(m[2]);
+    REQUIRE(std::regex_search(py, m, std::regex(R"(DIAGRAMA_W, DIAGRAMA_H = (\d+), (\d+))")));
+    CHECK(x0 + std::stof(m[1]) / 2.0f == doctest::Approx(Automato::kXDoDiagrama));
+    CHECK(y0 + std::stof(m[2]) / 2.0f == doctest::Approx(Automato::kYDoDiagrama));
 }
 
 TEST_CASE("Dados: o bloco do meio da rajada do Luizinho para em cima do aluno") {

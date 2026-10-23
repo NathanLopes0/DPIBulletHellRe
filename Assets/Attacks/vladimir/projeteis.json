@@ -26,5 +26,36 @@
     },
     "animacaoInicial": "A",
     "ordemDeDesenho": 90
+  },
+
+  // OS ESTADOS DO AUTOMATO DA FASE 1: q0, q1 e q2, e cada um aceso - o estado
+  // em que o professor esta. Aneis maiores que o cartao dele (192 contra 128):
+  // ele pousa DENTRO do estado, e o anel continua aparecendo em volta. O q2 tem
+  // o circulo duplo do estado de aceitacao.
+  //
+  // Sao enfeite (Vladimir::OnProjectilesCreated): o mapa nao machuca, e o tiro
+  // do aluno passa por ele. Quem acende e apaga e o Vladimir, pelos nomes de
+  // Vladimir::CaraDoEstado.
+  "Estado": {
+    "sprite": "Teachers/Projectiles/DPIBHVladimirEstado.png",
+    "dados":  "Teachers/Projectiles/DPIBHVladimirEstado.json",
+    "animacoes": {
+      "Q0": [0], "Q1": [1], "Q2": [2],
+      "Q0Aceso": [3], "Q1Aceso": [4], "Q2Aceso": [5]
+    },
+    "animacaoInicial": "Q0",
+    "ordemDeDesenho": 86
+  },
+
+  // AS TRANSICOES DO AUTOMATO, numa figura so: os estados tem lugar fixo no
+  // campo, entao as setas tambem tem. Esmaecida - e o mapa, e nao um tiro.
+  "Diagrama": {
+    "sprite": "Teachers/Projectiles/DPIBHVladimirDiagrama.png",
+    "dados":  "Teachers/Projectiles/DPIBHVladimirDiagrama.json",
+    "animacoes": {
+      "Diagrama": [0]
+    },
+    "animacaoInicial": "Diagrama",
+    "ordemDeDesenho": 85
   }
 }

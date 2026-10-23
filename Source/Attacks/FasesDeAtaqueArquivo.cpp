@@ -125,6 +125,7 @@ namespace {
      *   Escada           a = segundos por degrau,         b = quantos degraus
      *   Deslocamento     a = segundos por passo,          b = quantas colunas
      *   OndaQuadrada     a = amplitude (px),              b = velocidade lateral (px/s)
+     *   Conduzido        a = velocidade (px/s),          b nao usa
      */
     std::unique_ptr<IMovementStrategy> CriarMovimento(const DescricaoDeMovimento& m) {
         if (m.tipo == "RandomWander")     return std::make_unique<RandomWanderStrategy>(m.a, m.b);
@@ -135,6 +136,7 @@ namespace {
         if (m.tipo == "Escada")           return std::make_unique<EscadaStrategy>(m.a, m.b);
         if (m.tipo == "Deslocamento")     return std::make_unique<DeslocamentoStrategy>(m.a, m.b);
         if (m.tipo == "OndaQuadrada")     return std::make_unique<OndaQuadradaStrategy>(m.a, m.b);
+        if (m.tipo == "Conduzido")        return std::make_unique<ConduzidoStrategy>(m.a);
         return std::make_unique<GoToCenterStrategy>();
     }
 

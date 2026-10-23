@@ -47,25 +47,21 @@
   // Os campos estao documentados em Documentacao/arquivos-de-dados.md.
   // ==========================================================================
 
-  // (ab)* - A ESTRELA DE KLEENE.
+  // O AUTOMATO DA FASE 1: o mapa e as duas letras que ele le.
   //
-  // Alternancia pura, e agora ela se sente: um tiro reto, um perseguidor, um
-  // reto, um perseguidor. A fase ensina o alfabeto nos dois sentidos - a cor
-  // de cada letra E o que cada letra faz - e e sobre isso que as outras tres
-  // fases contam depois.
-  //
-  // Quem faz a repeticao ser visivel e a ORBITA do chefe: cada volta deixa uma
-  // trilha de simbolos, e a trilha alterna.
-  //
-  // A FORCA E A MAIS BAIXA DAS QUATRO (1,4), E E POR SER A FASE QUE ENSINA.
-  // Com 1,9 o piloto parado morria AQUI, na fase 1 - nove acertos e nota 1,12
-  // antes de ver a segunda. Um jogador que nunca se mexe deve mesmo reprovar,
-  // mas nao antes de aprender o alfabeto: e nesta fase que ele descobre que
-  // ambar vai reto e azul persegue, e as outras tres contam com isso sabido.
-  "kleene": [
-    { "quando": "pares",   "animacao": "A" },
-    { "quando": "impares",
-      "animacao": "B",
+  // O mapa (o diagrama e os tres estados) fica no posto "estados", e e por la
+  // que o Vladimir o acende e o desfaz no fim da fase.
+  "estados": [
+    { "posto": "estados" }
+  ],
+
+  // A letra lida. As duas fazem o que fazem a luta inteira: o "a" vai reto, o
+  // "b" persegue, com a forca e a duracao do "b" do (ab)*.
+  "letra_a": [
+    { "animacao": "A" }
+  ],
+  "letra_b": [
+    { "animacao": "B",
       "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 2.4 } }
   ],
 
