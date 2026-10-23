@@ -66,6 +66,7 @@
 #include "../Source/Attacks/Banco.h"
 #include "../Source/Attacks/Transacao.h"
 #include "../Source/Attacks/Cascata.h"
+#include "../Source/Attacks/Condicional.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
@@ -1981,6 +1982,68 @@ TEST_CASE("Dados: a cascata da Maria Lucia - etapas, gatilhos e caras sao nomes 
     for (size_t k = 0; k < Cascata::kEtapas.size(); ++k) {
         CHECK(caras.count("P" + std::to_string(k)) == 1);
         CHECK(caras.count("A" + std::to_string(k)) == 1);
+    }
+}
+
+TEST_CASE("Dados: o fluxograma do Andre - gatilhos, velocidade do confete e caras sao nomes que os dados tem") {
+
+    // O ANDRE PUXA OS GATILHOS e pinta os projeteis pelos nomes de
+    // Condicional.h. Um cabecalho sem a cara do ramo ficaria com a do ramo
+    // anterior - o aluno leria "if (n > 5)" num switch -, e um balao sem a do
+    // numero mostraria o numero errado: a fase inteira e ler o numero.
+    const char* gatilhos[] = {Condicional::kGatilhoDoRotulo, Condicional::kGatilhoDoBalao, Condicional::kGatilhoDoConfete};
+    for (const char* g : gatilhos) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+    }
+
+    const auto lidas = FasesDoChefe("andre");
+    const DescricaoDeFase* fase = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Condicional::kFaseDoSe) fase = &f;
+    REQUIRE(fase != nullptr);
+
+    const auto& tipos = ProjeteisDoChefe("andre").projeteis;
+    auto caras = [&tipos](const std::string& tipo) {
+        std::set<std::string> nomes;
+        REQUIRE(tipos.count(tipo) == 1);
+        for (const auto& a : tipos.at(tipo).animacoes) nomes.insert(a.nome);
+        return nomes;
+    };
+
+    std::map<std::string, std::string> projetilDe;
+    for (const char* g : gatilhos) {
+        CAPTURE(g);
+        int quantos = 0;
+        for (const auto& a : fase->ataques) {
+            if (a.gatilho != g) continue;
+            ++quantos;
+            projetilDe[g] = a.projetil;
+            // O CONFETE NASCE NA VELOCIDADE do Andre: ele o reposiciona pela
+            // faixa e escreve a mesma velocidade de novo.
+            if (a.gatilho == Condicional::kGatilhoDoConfete) {
+                REQUIRE(a.velocidade.has_value());
+                CHECK(*a.velocidade == doctest::Approx(Condicional::kVelocidadeDoConfete));
+            }
+        }
+        CHECK(quantos == 1);
+    }
+
+    const auto rotulos = caras(projetilDe[Condicional::kGatilhoDoRotulo]);
+    for (const auto& c : Condicional::Todos()) {
+        for (int r = 0; r < Condicional::Ramos(c); ++r) {
+            CAPTURE(Condicional::Rotulo(c, r));
+            CHECK(rotulos.count(Condicional::CaraDoRotulo(c, r)) == 1);
+            CHECK(rotulos.count(Condicional::CaraDoRotuloAceso(c, r)) == 1);
+        }
+    }
+    const auto baloes = caras(projetilDe[Condicional::kGatilhoDoBalao]);
+    const auto confetes = caras(projetilDe[Condicional::kGatilhoDoConfete]);
+    for (int cor = 0; cor < Condicional::kCores; ++cor) {
+        CHECK(confetes.count(Condicional::CaraDoConfete(cor)) == 1);
+        for (int n = 0; n <= Condicional::kMaiorValor; ++n) {
+            CAPTURE(Condicional::CaraDoBalao(n, cor));
+            CHECK(baloes.count(Condicional::CaraDoBalao(n, cor)) == 1);
+        }
     }
 }
 

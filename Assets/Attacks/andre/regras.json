@@ -16,6 +16,12 @@
   //
   // OS CAMPOS estao documentados em Documentacao/arquivos-de-dados.md.
   // ==========================================================================
+  // O CONFETE nao cai reto: balanca de um lado para o outro, como papel. A
+  // faixa continua a do ramo - o balanco e de poucos graus.
+  "confete": [
+    { "motion": { "tipo": "Wobble", "amplitude": 18, "frequencia": 2.2, "duracao": 3.0 } }
+  ],
+
   "tres": [
     {
       "chance": 0.2,

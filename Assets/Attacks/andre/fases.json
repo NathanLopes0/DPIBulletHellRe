@@ -31,48 +31,47 @@
   //   vive em C++. Onde isso acontece esta anotado na fase.
   // ==========================================================================
 // ==========================================================================
-// ANDRE - INF 110 (fabrica de projeteis: "Baloes")
+// ANDRE - INF 110 (Programacao 1)
 //
-// O chefe dos baloes. A BaloonAttack nao dispara do chefe: ela faz os
-// projeteis nascerem FORA da tela, de um lado escolhido, e entrarem depois de
-// um atraso sorteado entre 0 e 2 segundos. O bloco "balao" e obrigatorio nela.
-//
-// CONVENCAO DE "lado": e de onde o balao NASCE, e ele vai para o lado oposto.
-//   "Down"  nasce abaixo da tela e SOBE
-//   "Up"    nasce acima e DESCE
-//   "Left"  nasce a esquerda e vai para a DIREITA
-//   "Right" nasce a direita e vai para a ESQUERDA
-//
-// "centradoNoJogador" com "deslocamento" 600 faz os baloes nascerem num trecho
-// de +-600 px em volta da coordenada do jogador no eixo livre, em vez de na
-// largura inteira da tela: e o que faz o ataque parecer dirigido a ele.
-//
-// ATENCAO - PARTE DO BALANCEAMENTO DO ANDRE AINDA VIVE EM C++, em
-// Andre::CustomizeAttackParams, e SOBRESCREVE o que este arquivo diz:
-//   StateOne e StateTwo  anguloCentral (nao usado pela BaloonAttack)
-//   StateThree           projectileSpeed, numProjectiles E anguloCentral, com
-//                        valores diferentes se o jogador esta acima ou abaixo
-// Os numeros da StateThree abaixo estao aqui porque eram os do C++, mas nao
-// tem efeito: o chefe os troca a cada disparo. Mexer neles nao muda nada -
-// para mudar a fase 3, mexa em Andre.cpp.
+// A PRIMEIRA MATERIA DO CURSO, um conceito de Programacao 1 por fase: o placar
+// e o codigo que o professor esta rodando, e o campo e a execucao dele. Os
+// BALOES DO BOCA ficam - no BOCA, cada problema resolvido vale um balao da cor
+// dele.
 // ==========================================================================
 
-  // Dois ataques simultaneos com o MESMO cooldown: uma parede pela direita e
-  // outra pela esquerda ao mesmo tempo, dez baloes cada.
+  // FASE 1 - O DESVIO CONDICIONAL   |   gesto: O FLUXOGRAMA
+  //
+  // O FLUXOGRAMA ESTA DESENHADO NO CAMPO (Condicional.h): o losango da
+  // decisao embaixo do professor, e um RAMO por faixa, da esquerda para a
+  // direita na ordem do codigo, com o cabecalho no alto ("if (n > 5)",
+  // "else"). A cada 0,9 s sai do professor um balao com um numero; ele para no
+  // losango, a condicao e avaliada com o numero DELE, e ele segue a seta do
+  // ramo ate o cabecalho, onde estoura - e o confete cai pela faixa daquele
+  // ramo, de cima a baixo. O aluno le o numero e a condicao e sai da faixa.
+  //
+  // Um comando a cada 3,4 s, cada um com o seu placar: if/else, o resto da
+  // divisao por 2, else if (tres faixas: vale o primeiro), o switch SEM BREAK
+  // (quatro faixas: o case de n estoura e cai nos de baixo, um depois do
+  // outro; n sem case nao executa nada) e if (n = 0) - a ATRIBUICAO: o numero
+  // do balao vira 0 no losango, e o if e sempre falso.
+  //
+  // Todos os ataques sao de GATILHO: quem diz onde e quando e o Andre. O
+  // confete nasce no cabecalho com a velocidade daqui, a de
+  // Condicional::kVelocidadeDoConfete (um teste confere), e o Andre o espalha
+  // pela faixa.
   "StateOne": {
     "duracao": 17,
     "proximo": "StateTwo",
-    "movimento": { "tipo": "RandomWander", "a": 0.8, "b": 100 },
+    "anuncio": "if / else",
+    "movimento": { "tipo": "Conduzido", "a": 380 },
     "ataques": [
-      { "estrategia": "BaloonAttack", "projetil": "Baloes",
-        "projeteis": 10, "velocidade": 500, "cooldown": 3.0,
-        "balao": { "lado": "Right", "spawnAleatorio": true,
-                   "centradoNoJogador": true, "deslocamento": 400 } },
-
-      { "estrategia": "BaloonAttack", "projetil": "Baloes",
-        "projeteis": 10, "velocidade": 500, "cooldown": 3.0,
-        "balao": { "lado": "Left", "spawnAleatorio": true,
-                   "centradoNoJogador": true, "deslocamento": 400 } }
+      { "gatilho": "rotulo", "estrategia": "WaveAttack", "projetil": "Rotulo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "balao", "estrategia": "WaveAttack", "projetil": "Balao",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "confete", "estrategia": "WaveAttack", "projetil": "Confete",
+        "projeteis": 12, "velocidade": 300, "angulo": 0, "anguloCentral": 90, "intervalo": 0,
+        "regras": "confete" }
     ]
   },
 

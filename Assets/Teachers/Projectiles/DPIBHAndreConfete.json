@@ -1,0 +1,191 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHAndreConfete 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreConfete 1.placeholder",
+   "frame": {
+    "x": 8,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreConfete 2.placeholder",
+   "frame": {
+    "x": 16,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreConfete 3.placeholder",
+   "frame": {
+    "x": 24,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreConfete 4.placeholder",
+   "frame": {
+    "x": 32,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreConfete 5.placeholder",
+   "frame": {
+    "x": 40,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreConfete 6.placeholder",
+   "frame": {
+    "x": 48,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreConfete 7.placeholder",
+   "frame": {
+    "x": 56,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 8
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_andre.py",
+  "version": "1.0",
+  "image": "DPIBHAndreConfete.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 64,
+   "h": 8
+  },
+  "scale": "1"
+ }
+}

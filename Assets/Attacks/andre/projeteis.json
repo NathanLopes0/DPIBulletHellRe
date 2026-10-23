@@ -44,6 +44,67 @@
     // -64 e os outros em -132, ou seja, o balao some mais cedo.
     "margemEmSprites": 2,
     "margemDivisorDeTela": 0
+  },
+
+  // A FASE 1 - O DESVIO CONDICIONAL (Condicional.h). Arte de
+  // Ferramentas/gerar_andre.py, no estilo de pixel do balao acima.
+  //
+  // O BALAO NUMERADO e o dado: o numero n pintado nele e o que a condicao le
+  // no losango. Uma cara por numero e por cor, "Vermelho7" - quem escolhe e o
+  // Andre (Condicional::CaraDoBalao). Ele mesmo o move, entao nasce parado.
+  "Balao": {
+    "sprite": "Teachers/Projectiles/DPIBHAndreBaloes.png",
+    "dados":  "Teachers/Projectiles/DPIBHAndreBaloes.json",
+    "animacoes": {
+      "Vermelho0": [0], "Vermelho1": [1], "Vermelho2": [2], "Vermelho3": [3], "Vermelho4": [4], "Vermelho5": [5],
+      "Vermelho6": [6], "Vermelho7": [7], "Vermelho8": [8], "Vermelho9": [9],
+      "Azul0": [10], "Azul1": [11], "Azul2": [12], "Azul3": [13], "Azul4": [14], "Azul5": [15],
+      "Azul6": [16], "Azul7": [17], "Azul8": [18], "Azul9": [19],
+      "Amarelo0": [20], "Amarelo1": [21], "Amarelo2": [22], "Amarelo3": [23], "Amarelo4": [24], "Amarelo5": [25],
+      "Amarelo6": [26], "Amarelo7": [27], "Amarelo8": [28], "Amarelo9": [29],
+      "Verde0": [30], "Verde1": [31], "Verde2": [32], "Verde3": [33], "Verde4": [34], "Verde5": [35],
+      "Verde6": [36], "Verde7": [37], "Verde8": [38], "Verde9": [39]
+    },
+    "animacaoInicial": "Vermelho0",
+    "escala": 2,
+    "colisorDivisor": 4,
+    "ordemDeDesenho": 92,
+    "posicionarNoDono": false
+  },
+
+  // O CONFETE do balao que estoura: cai pela faixa do ramo, girando, na cor
+  // do balao (Condicional::CaraDoConfete).
+  "Confete": {
+    "sprite": "Teachers/Projectiles/DPIBHAndreConfete.png",
+    "dados":  "Teachers/Projectiles/DPIBHAndreConfete.json",
+    "animacoes": { "Vermelho": [0, 1], "Azul": [2, 3], "Amarelo": [4, 5], "Verde": [6, 7] },
+    "animacaoInicial": "Vermelho",
+    "escala": 2,
+    "colisorDivisor": 3,
+    "ordemDeDesenho": 90,
+    "posicionarNoDono": false
+  },
+
+  // O CABECALHO DE CADA RAMO do fluxograma, no alto da faixa dele: a linha de
+  // codigo do ramo ("if (n > 5)", "else", "case 2:"), apagada e acesa. E
+  // enfeite (Andre::NovoComando): nao machuca.
+  "Rotulo": {
+    "sprite": "Teachers/Projectiles/DPIBHAndreRotulos.png",
+    "dados":  "Teachers/Projectiles/DPIBHAndreRotulos.json",
+    "animacoes": {
+      "Maior3": [0], "Maior4": [1], "Maior5": [2], "Maior6": [3], "Entre2e7": [4], "Entre3e8": [5],
+      "Entre1e6": [6], "Par": [7], "Impar": [8], "Menor3": [9], "Menor4": [10], "SenaoMenor6": [11],
+      "SenaoMenor7": [12], "Senao": [13], "Caso0": [14], "Caso1": [15], "Caso2": [16], "Caso3": [17],
+      "Atribui0": [18], "Atribui7": [19],
+      "Maior3Aceso": [20], "Maior4Aceso": [21], "Maior5Aceso": [22], "Maior6Aceso": [23],
+      "Entre2e7Aceso": [24], "Entre3e8Aceso": [25], "Entre1e6Aceso": [26], "ParAceso": [27], "ImparAceso": [28],
+      "Menor3Aceso": [29], "Menor4Aceso": [30], "SenaoMenor6Aceso": [31], "SenaoMenor7Aceso": [32],
+      "SenaoAceso": [33], "Caso0Aceso": [34], "Caso1Aceso": [35], "Caso2Aceso": [36], "Caso3Aceso": [37],
+      "Atribui0Aceso": [38], "Atribui7Aceso": [39]
+    },
+    "animacaoInicial": "Senao",
+    "ordemDeDesenho": 70,
+    "posicionarNoDono": false
   }
 
   // NAO ESTA AQUI, e de proposito: o projetil de GRAFOS

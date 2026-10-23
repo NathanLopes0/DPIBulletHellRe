@@ -1,0 +1,895 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHAndreBaloes 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 1.placeholder",
+   "frame": {
+    "x": 24,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 2.placeholder",
+   "frame": {
+    "x": 48,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 3.placeholder",
+   "frame": {
+    "x": 72,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 4.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 5.placeholder",
+   "frame": {
+    "x": 120,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 6.placeholder",
+   "frame": {
+    "x": 144,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 7.placeholder",
+   "frame": {
+    "x": 168,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 8.placeholder",
+   "frame": {
+    "x": 192,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 9.placeholder",
+   "frame": {
+    "x": 216,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 10.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 34,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 11.placeholder",
+   "frame": {
+    "x": 24,
+    "y": 34,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 12.placeholder",
+   "frame": {
+    "x": 48,
+    "y": 34,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 13.placeholder",
+   "frame": {
+    "x": 72,
+    "y": 34,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 14.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 34,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 15.placeholder",
+   "frame": {
+    "x": 120,
+    "y": 34,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 16.placeholder",
+   "frame": {
+    "x": 144,
+    "y": 34,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 17.placeholder",
+   "frame": {
+    "x": 168,
+    "y": 34,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 18.placeholder",
+   "frame": {
+    "x": 192,
+    "y": 34,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 19.placeholder",
+   "frame": {
+    "x": 216,
+    "y": 34,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 20.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 68,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 21.placeholder",
+   "frame": {
+    "x": 24,
+    "y": 68,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 22.placeholder",
+   "frame": {
+    "x": 48,
+    "y": 68,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 23.placeholder",
+   "frame": {
+    "x": 72,
+    "y": 68,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 24.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 68,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 25.placeholder",
+   "frame": {
+    "x": 120,
+    "y": 68,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 26.placeholder",
+   "frame": {
+    "x": 144,
+    "y": 68,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 27.placeholder",
+   "frame": {
+    "x": 168,
+    "y": 68,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 28.placeholder",
+   "frame": {
+    "x": 192,
+    "y": 68,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 29.placeholder",
+   "frame": {
+    "x": 216,
+    "y": 68,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 30.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 102,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 31.placeholder",
+   "frame": {
+    "x": 24,
+    "y": 102,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 32.placeholder",
+   "frame": {
+    "x": 48,
+    "y": 102,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 33.placeholder",
+   "frame": {
+    "x": 72,
+    "y": 102,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 34.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 102,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 35.placeholder",
+   "frame": {
+    "x": 120,
+    "y": 102,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 36.placeholder",
+   "frame": {
+    "x": 144,
+    "y": 102,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 37.placeholder",
+   "frame": {
+    "x": 168,
+    "y": 102,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 38.placeholder",
+   "frame": {
+    "x": 192,
+    "y": 102,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBaloes 39.placeholder",
+   "frame": {
+    "x": 216,
+    "y": 102,
+    "w": 24,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 34
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_andre.py",
+  "version": "1.0",
+  "image": "DPIBHAndreBaloes.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 240,
+   "h": 136
+  },
+  "scale": "1"
+ }
+}
