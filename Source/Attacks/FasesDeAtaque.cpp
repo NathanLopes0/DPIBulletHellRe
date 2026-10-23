@@ -27,7 +27,8 @@ namespace {
         // O registrador de deslocamento e o clock do Ricardo - ver Logica.h
         // e Relogio.h.
         "Deslocamento", "OndaQuadrada",
-        // O professor que diz para onde vai - o automato do Vladimir.
+        // O professor que diz para onde vai (Boss::AlvoDoMovimento): o
+        // Vladimir e o Salles, que levam o corpo ate o lugar da estrutura.
         "Conduzido"
     };
 
@@ -713,6 +714,7 @@ bool NomeDeFaseExiste(const std::string& nome)   { return Contem(kNomesDeFase, n
 bool LadoDeBalaoExiste(const std::string& nome)  { return Contem(kLadosDeBalao, nome); }
 bool EixoDeConsultaExiste(const std::string& nome) { return Contem(kEixosDeConsulta, nome); }
 bool GatilhoExiste(const std::string& nome)        { return Contem(kGatilhos, nome); }
+const std::vector<std::string>& NomesDosGatilhos() { return kGatilhos; }
 
 FasesLidas LerFases(const std::string& textoJson) {
 

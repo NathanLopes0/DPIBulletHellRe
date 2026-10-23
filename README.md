@@ -104,9 +104,13 @@ própria. A fase final acontece quando a nota termina entre 40 e 59 — é o exa
 
 - **André — INF 110.** A primeira matéria do curso: balões que sobem e descem
   pelas bordas da tela.
-- **Salles — INF 213.** Estruturas de dados: listas encadeadas que avançam em
-  fila, listas duplamente encadeadas que avançam e voltam, e uma capivara no
-  exame.
+- **Salles — INF 213.** Estruturas de dados, uma por fase, com o placar
+  escrevendo cada operação: uma pilha pendurada nele (push, pop e stack
+  overflow), uma tabela hash que encadeia, busca e faz rehash na sua frente, e
+  uma árvore binária de busca em que a chave desce comparando — e o seu tiro
+  também é uma operação: tira o topo, derruba o nó e a subárvore junto. Em
+  qualquer fase pode atravessar uma capivara: embaixo dela os tiros soltos não
+  te alcançam, e o seu não alcança o professor.
 - **Ricardo — INF 250.** Anéis de Arduinos que se abrem a partir dele.
 - **Júlio — INF 420.** Inteligência artificial, e as fases contam isso: na
   primeira ele atira a esmo, na segunda mira onde você está, na terceira mira
@@ -114,6 +118,11 @@ própria. A fase final acontece quando a nota termina entre 40 e 59 — é o exa
 - **Thiago — INF 220.** Banco de dados. O campo vira uma tabela e cada ataque é
   uma consulta que varre uma linha ou uma coluna inteira. Aqui ao invés de desviar de
   projétil, a estratégia é sair da faixa anunciada (representando uma "Busca" em um BD).
+- **Vladimir — INF 331.** Teoria da computação: um autômato que lê a palavra
+  e atira cada letra lida, a gramática S → aSb derivando em voo, uma máquina de
+  Turing cuja cabeça escreve a fita em cima de você e, no exame, o problema da
+  parada com o 3x + 1. O "a" vai reto e o "b" persegue, até o Programa de
+  Intercâmbio trocar os dois — e ele vale a luta inteira.
 
 ## Como compilar
 

@@ -2208,3 +2208,47 @@ TEST_CASE("Dados: so o TCC pede orientacao, e quem abre o TCC sempre tem tres or
     }
     CHECK(abriram > 0);
 }
+
+// ---------------------------------------------------------------------------
+// A DOCUMENTACAO NAO ESQUECE NOME NENHUM
+//
+// Os gatilhos e os postos sao listas fechadas: o leitor recusa um nome que nao
+// conhece. Quem escreve dados novos aprende os nomes na tabela de
+// Documentacao/arquivos-de-dados.md - e ela ficou parada nos do Ricardo
+// enquanto o Vladimir e o Salles ganhavam trinta nomes. Este teste e o que faltava: cada nome que o motor aceita tem de
+// aparecer, entre crases, na linha da tabela que fala dele.
+
+namespace {
+    std::vector<std::string> LinhasDaTabela(const std::string& campo) {
+        std::ifstream f(std::string(DPI_ASSETS_DIR) + "/../Documentacao/arquivos-de-dados.md");
+        std::vector<std::string> linhas;
+        std::string linha;
+        const std::string inicio = "| `" + campo + "` |";
+        while (std::getline(f, linha)) {
+            if (linha.rfind(inicio, 0) == 0) linhas.push_back(linha);
+        }
+        return linhas;
+    }
+}
+
+TEST_CASE("Documentacao: a tabela de arquivos-de-dados.md cita todo gatilho que o motor aceita") {
+    const auto linhas = LinhasDaTabela("gatilho");
+    REQUIRE(linhas.size() == 1);
+    for (const std::string& nome : NomesDosGatilhos()) {
+        CAPTURE(nome);
+        CHECK(linhas.front().find("`" + nome + "`") != std::string::npos);
+    }
+}
+
+TEST_CASE("Documentacao: as duas linhas de posto em arquivos-de-dados.md citam todo posto que o motor aceita") {
+    // Uma e a do ataque (de onde a PontosAttack atira), a outra a da regra (em
+    // que posto o projetil entra ao nascer).
+    const auto linhas = LinhasDaTabela("posto");
+    REQUIRE(linhas.size() == 2);
+    for (const std::string& linha : linhas) {
+        for (const std::string& nome : NomesDosPostos()) {
+            CAPTURE(nome);
+            CHECK(linha.find("`" + nome + "`") != std::string::npos);
+        }
+    }
+}

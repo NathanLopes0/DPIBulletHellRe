@@ -391,6 +391,7 @@ namespace {
 bool EhMotion(const std::string& tipo)   { return Contem(kMotions, tipo); }
 bool EhModifier(const std::string& tipo) { return Contem(kModifiers, tipo); }
 bool PostoExiste(const std::string& nome) { return Contem(kPostos, nome); }
+const std::vector<std::string>& NomesDosPostos() { return kPostos; }
 
 bool RegraSeAplica(const Regra& regra, const int indice, const float sorteio,
                    const bool alvoAcorrentado) {

@@ -179,16 +179,16 @@ bool EhModifier(const std::string& tipo);
 
 /// @brief O posto nomeado existe? Um posto e um lugar de onde uma PontosAttack
 /// atira, e so existe se alguem no motor o ocupa: "quadro" sao as historias
-/// paradas no quadro da sprint (Sprint::kPostoDoQuadro), e "observadores" os
-/// olhos do padrao Observer (Observer::kPostoDosObservadores), "agentes" os
-/// robos do Julio (ReAct::kPostoDosAgentes), "nuvens" as nuvens do Vitor
-/// (Nuvem::kPostoDasNuvens), "palavra" e "portas" os bits e as portas logicas
-/// do Ricardo (Logica.h), "registradores" os bits do clock dele (Relogio.h)
-/// e "estagios" e "pipeline" as molduras e as instrucoes do pipeline (Pipeline.h),
-/// e "placas" e "acesas" os Arduinos do Blink, apagados e acesos (Blink.h),
-/// que uma regra poe no posto ao nascer - e alguns o chefe procura la, em vez
-/// de atirar deles.
+/// paradas no quadro da sprint (Sprint::kPostoDoQuadro), e os outros a regra
+/// poe no posto ao nascer - e alguns o chefe procura la, em vez de atirar
+/// deles. Cada nome mora no modulo puro de quem o ocupa (Observer.h, Pilha.h,
+/// ...).
 bool PostoExiste(const std::string& nome);
+
+/// @brief Todos os postos. A lista com quem ocupa cada um esta em
+/// Documentacao/arquivos-de-dados.md, e um teste confere que ela nao esquece
+/// nenhum.
+const std::vector<std::string>& NomesDosPostos();
 
 /**
  * @brief Le conjuntos de regras a partir do TEXTO de um arquivo JSON. PURA.

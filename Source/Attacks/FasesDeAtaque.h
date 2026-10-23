@@ -273,15 +273,14 @@ bool EixoDeConsultaExiste(const std::string& nome);
 
 /// @brief O gatilho nomeado existe? Um ataque com "gatilho" nao dispara pelo
 /// relogio: dispara quando o chefe puxa o gatilho (Boss::Disparar). So existe
-/// o gatilho que algum chefe puxa: "notificacao" e "consulta" sao o sujeito
-/// do padrao Observer da Maria Lucia (Observer.h), "agir" e o ciclo dos
-/// agentes do Julio (ReAct.h), "nuvens" e "chover" as nuvens do Vitor
-/// (Nuvem.h), "portas" a fileira de portas logicas do Ricardo (Logica.h),
-/// "contador" o leque do clock dele (Relogio.h), e "estagios", "buscar",
-/// "lw", "sw", "add" e "addi" o pipeline dele (Pipeline.h) - os quatro
-/// ultimos, o ataque de cada instrucao no seu estagio -, e "acender" o LED
-/// das placas do Blink (Blink.h).
+/// o gatilho que algum chefe puxa, e cada um mora no modulo puro de quem o
+/// puxa ("notificacao" em Observer.h, "capivara" em Capivara.h, ...).
 bool GatilhoExiste(const std::string& nome);
+
+/// @brief Todos os gatilhos, na ordem em que entraram. A lista com o que cada
+/// um faz e a tabela de Documentacao/arquivos-de-dados.md, e um teste confere
+/// que ela nao esquece nenhum.
+const std::vector<std::string>& NomesDosGatilhos();
 
 /**
  * @brief Como o chefe se move durante a fase.
