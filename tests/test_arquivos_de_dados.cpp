@@ -1742,6 +1742,25 @@ TEST_CASE("Dados: a tabela do Thiago - toda fase a monta, e o SELECT e o produto
             CHECK(gatilhos.count(Banco::kGatilhoDoAviso) == 1);
             CHECK(gatilhos.count(Banco::kGatilhoDaCasa) == 1);
         }
+        if (f.nome == Banco::kFaseDaEscrita) {
+            // O INSERT E O DELETE VARREM A LINHA, e o UPDATE acende a casa.
+            for (const char* g : {Banco::kGatilhoDoAviso, Banco::kGatilhoDaSelecao, Banco::kGatilhoDaCasa}) {
+                CAPTURE(g);
+                CHECK(gatilhos.count(g) == 1);
+            }
+        }
+        // A VARREDURA DA LINHA E A MESMA EM QUALQUER FASE que a use.
+        for (const auto& a : f.ataques) {
+            if (a.gatilho != Banco::kGatilhoDaSelecao) continue;
+            REQUIRE(a.consulta.has_value());
+            CHECK(a.consulta->eixo == "Linha");
+            REQUIRE(a.consulta->linhas.has_value());
+            CHECK(*a.consulta->linhas == Banco::kLinhas);
+            REQUIRE(a.consulta->aviso.has_value());
+            CHECK(*a.consulta->aviso == doctest::Approx(Banco::kAvisoDaLinha));
+            REQUIRE(a.velocidade.has_value());
+            CHECK(*a.velocidade == doctest::Approx(Banco::kVelocidadeDaLinha));
+        }
 
         if (f.nome != Banco::kFaseDaSelecao) continue;
         for (const char* g : {Banco::kGatilhoDoAviso, Banco::kGatilhoDaSelecao, Banco::kGatilhoDaProjecao,

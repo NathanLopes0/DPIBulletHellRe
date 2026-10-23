@@ -67,6 +67,10 @@ private:
     /// Monta os cabecalhos e as casas, uma vez: a tabela fica a batalha inteira.
     void CriarTabela();
 
+    /// Escreve um registro na linha 'linha' da tabela: um valor por coluna,
+    /// nascendo em 'de' (e indo para o lugar dele).
+    void EscreverRegistro(size_t linha, Vector2 de);
+
     /// Cada casa no lugar dela - e a que trocou de linha num ORDER BY, a
     /// caminho da nova.
     void AtualizarTabela(float deltaTime);
@@ -130,6 +134,23 @@ private:
     /// para acabar acaba, e o fim da fase apaga tudo.
     void AtualizarCasas(float agora);
     void ApagarCasas();
+
+    // ---- A FASE 2: O INSERT, O UPDATE E O DELETE ----------------------------
+
+    void AtualizarEscrita();
+
+    /// O DELETE apaga a linha de verdade: os valores dela deixam de ser
+    /// enfeite e caem pelo campo, e as linhas de baixo sobem.
+    void Apagar(int linha);
+
+    bool mNaEscrita = false;
+    float mProximaEscrita = 0.0f;
+    std::string mAnuncioDaEscrita;
+
+    /// O comando que ja foi anunciado e ainda vai acontecer (o UPDATE quando a
+    /// casa acende, o DELETE quando a varredura passa).
+    struct Execucao { Banco::Escrita escrita; float quando = 0.0f; };
+    std::vector<Execucao> mExecucoes;
 
     // ---- A REPESCAGEM: O PRODUTO CARTESIANO ---------------------------------
 

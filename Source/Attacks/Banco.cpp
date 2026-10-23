@@ -208,6 +208,81 @@ namespace Banco {
         return coluna >= kColunas - 1 ? meio - kAoLado : meio + kAoLado;
     }
 
+    namespace {
+        /// Um registro que nao repete matricula, nome nem nota de ninguem.
+        Registro Novo(const Registros& regs, std::mt19937& g) {
+            std::vector<int> mats, nomes, notas;
+            for (const Registro& r : regs) {
+                mats.push_back(r.mat);
+                nomes.push_back(r.nome);
+                notas.push_back(r.nota);
+            }
+            Registro r;
+            r.mat = Novo(g, 10, 99, mats);
+            r.nome = Novo(g, 0, static_cast<int>(kNomes.size()) - 1, nomes);
+            r.curso = Ate(g, static_cast<int>(kCursos.size()));
+            r.nota = Novo(g, 0, 99, notas);
+            r.ano = 1 + Ate(g, kMaiorAno);
+            return r;
+        }
+    }
+
+    Escrita ProximaEscrita(const Registros& regs, const std::uint32_t sorteio) {
+        std::mt19937 g(sorteio);
+        const int n = static_cast<int>(regs.size());
+        Escrita e;
+        const int sorte = Ate(g, 100);
+        if (n <= 2) e.comando = Comando::Insert;
+        else if (n >= kLinhas) e.comando = sorte < 60 ? Comando::Delete : Comando::Update;
+        else e.comando = sorte < 35 ? Comando::Insert : sorte < 70 ? Comando::Delete : Comando::Update;
+
+        switch (e.comando) {
+            case Comando::Insert:
+                e.novo = Novo(regs, g);
+                break;
+            case Comando::Delete:
+                e.onde = Escolher(regs, g, 1, std::min(2, n - 1));
+                break;
+            case Comando::Update: {
+                e.onde = Escolher(regs, g, 1, std::min(2, n));
+                std::vector<int> notas;
+                for (const Registro& r : regs) notas.push_back(r.nota);
+                e.nota = Novo(g, 0, 99, notas);
+                break;
+            }
+        }
+        return e;
+    }
+
+    std::string Sql(const Escrita& e) {
+        switch (e.comando) {
+            case Comando::Insert: return std::string("INSERT INTO alunos: ") + kNomes[static_cast<size_t>(std::clamp(e.novo.nome, 0, 7))];
+            case Comando::Update: return "UPDATE SET nota = " + std::to_string(e.nota) + " WHERE " + TextoDaCondicao(e.onde);
+            case Comando::Delete: return "DELETE WHERE " + TextoDaCondicao(e.onde);
+        }
+        return "";
+    }
+
+    std::vector<int> Executar(Registros& regs, const Escrita& e) {
+        switch (e.comando) {
+            case Comando::Insert:
+                if (static_cast<int>(regs.size()) >= kLinhas) return {};
+                regs.push_back(e.novo);
+                return {static_cast<int>(regs.size()) - 1};
+            case Comando::Update: {
+                const auto linhas = Linhas(regs, e.onde);
+                for (const int l : linhas) regs[static_cast<size_t>(l)].nota = e.nota;
+                return linhas;
+            }
+            case Comando::Delete: {
+                const auto linhas = Linhas(regs, e.onde);
+                for (auto it = linhas.rbegin(); it != linhas.rend(); ++it) regs.erase(regs.begin() + *it);
+                return linhas;
+            }
+        }
+        return {};
+    }
+
     std::vector<Casa> Produto(const Plano plano) {
         std::vector<Casa> casas;
         switch (plano) {

@@ -211,3 +211,69 @@ TEST_CASE("Banco: as voltas do produto seguem os quatro planos, cada uma mais de
     CHECK(Banco::PlacarDoProduto(Banco::Plano::PorColuna) == "JOIN sem WHERE: por coluna");
     CHECK(Banco::PlacarDoProduto(Banco::Plano::ZigueZague) == "JOIN sem WHERE: em zigue-zague");
 }
+
+TEST_CASE("Banco: os comandos da fase 2 nunca esvaziam nem estouram a tabela") {
+    using C = Banco::Comando;
+    for (std::uint32_t s = 0; s < 200; ++s) {
+        auto regs = Banco::Sortear(s * 131u + 7u);
+        for (int vez = 0; vez < 40; ++vez) {
+            CAPTURE(s);
+            CAPTURE(vez);
+            const int n = static_cast<int>(regs.size());
+            const auto e = Banco::ProximaEscrita(regs, s * 1000u + static_cast<std::uint32_t>(vez));
+            if (n <= 2) CHECK(e.comando == C::Insert);
+            if (n >= Banco::kLinhas) CHECK(e.comando != C::Insert);
+            const auto linhas = Banco::Linhas(regs, e.onde);
+            if (e.comando == C::Delete) {
+                CHECK(!linhas.empty());
+                CHECK(static_cast<int>(linhas.size()) < n);
+            }
+            if (e.comando == C::Update) {
+                CHECK(!linhas.empty());
+                CHECK(linhas.size() <= 2);
+            }
+            if (e.comando == C::Insert) {
+                // O REGISTRO NOVO NAO REPETE NINGUEM.
+                for (const auto& r : regs) {
+                    CHECK(r.mat != e.novo.mat);
+                    CHECK(r.nome != e.novo.nome);
+                    CHECK(r.nota != e.novo.nota);
+                }
+            }
+            const auto mexidas = Banco::Executar(regs, e);
+            CHECK(!mexidas.empty());
+            CHECK(!regs.empty());
+            CHECK(static_cast<int>(regs.size()) <= Banco::kLinhas);
+        }
+    }
+}
+
+TEST_CASE("Banco: o que cada comando faz com a tabela, e o SQL dele") {
+    using C = Banco::Coluna;
+    using O = Banco::Op;
+    auto regs = Exemplo();
+
+    Banco::Escrita apaga;
+    apaga.comando = Banco::Comando::Delete;
+    apaga.onde = {C::Nota, O::Menor, 60};
+    CHECK(Banco::Sql(apaga) == "DELETE WHERE nota < 60");
+    CHECK(Banco::Executar(regs, apaga) == std::vector<int>{1, 2});
+    REQUIRE(regs.size() == 2);
+    CHECK(regs[0].mat == 12);
+    CHECK(regs[1].mat == 81);   // a de baixo subiu
+
+    Banco::Escrita muda;
+    muda.comando = Banco::Comando::Update;
+    muda.onde = {C::Curso, O::Igual, 0};
+    muda.nota = 5;
+    CHECK(Banco::Sql(muda) == "UPDATE SET nota = 5 WHERE curso = 'FIS'");
+    CHECK(Banco::Executar(regs, muda) == std::vector<int>{1});
+    CHECK(regs[1].nota == 5);
+
+    Banco::Escrita poe;
+    poe.comando = Banco::Comando::Insert;
+    poe.novo = {50, 4, 2, 66, 3};
+    CHECK(Banco::Sql(poe) == "INSERT INTO alunos: Eva");
+    CHECK(Banco::Executar(regs, poe) == std::vector<int>{2});
+    CHECK(regs.back().mat == 50);
+}

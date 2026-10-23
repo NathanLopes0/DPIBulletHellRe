@@ -113,33 +113,48 @@
     ]
   },
 
-  // FASE 2 - WHERE: a consulta encontra VOCE.
+  // FASE 2 - INSERT, UPDATE, DELETE   |   gesto: A TABELA QUE MUDA
   //
-  // A faixa varrida passa a ser a do jogador. Ficar parado deixa de ser
-  // neutro e vira a unica coisa que mata - o aviso continua la, so que agora
-  // ele exige uma decisao em vez de paciencia.
+  // A TABELA DEIXA DE SER SO LIDA E PASSA A SER ESCRITA (Banco.h). A cada 1,7s
+  // um comando, com o SQL no placar, e o que ele mexe e o ataque:
   //
-  // A consulta por COLUNA entra aqui, com cooldown maior e aviso maior: e o
-  // segundo eixo da tabela, e o jogador precisa aprender que ele tambem
-  // existe antes da fase 3 cobrar os dois.
+  //   "DELETE WHERE nota < 30"           a linha acende e e varrida, e quando
+  //                                      a varredura a atravessa ela e APAGADA:
+  //                                      os valores dela caem pelo campo (agora
+  //                                      machucam), e as linhas de baixo sobem
+  //   "UPDATE SET nota = 95 WHERE ..."   a casa da nota de cada linha do WHERE
+  //                                      acende cheia, e o valor muda
+  //   "INSERT INTO alunos: Eva"          o registro novo sai do professor para
+  //                                      a primeira linha vazia, e a linha e
+  //                                      gravada - acende e e varrida
+  //
+  // A TABELA NUNCA ESVAZIA NEM ESTOURA: com duas linhas ou menos so ha INSERT,
+  // cheia nao ha INSERT, e o DELETE nunca apaga todas. A linha vazia e um lugar
+  // seguro - ate o proximo INSERT a gravar.
+  //
+  // MEDIDO COM A FASE SOZINHA: o piloto de fora do repositorio que sai da casa
+  // acesa termina sem acerto (77,0, como no SELECT); os que so andam no chao
+  // tomam 3 (o que persegue), 4 (o parado) e 4 (o que vai e vem) - um a dois
+  // a mais que no SELECT, das linhas apagadas que caem e das que sobem para o
+  // lugar delas.
   "StateTwo": {
     "duracao": 17,
     "proximo": "StateThree",
-    "movimento": { "tipo": "HoverAbovePlayer", "a": 120, "b": 150 },
+    "anuncio": "INSERT, UPDATE, DELETE",
+    "movimento": { "tipo": "Conduzido", "a": 600 },
     "ataques": [
       { "gatilho": "cabecalho", "estrategia": "WaveAttack", "projetil": "Cabecalho",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
       { "gatilho": "registro", "estrategia": "WaveAttack", "projetil": "Dado",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
-      { "estrategia": "ConsultaAttack", "projetil": "Celula",
-        "projeteis": 7, "velocidade": 750, "cooldown": 1.8,
-        "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 0.85 },
+      { "gatilho": "marcar", "estrategia": "WaveAttack", "projetil": "Aviso",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "aviso" },
+      { "gatilho": "selecionar", "estrategia": "ConsultaAttack", "projetil": "Celula",
+        "projeteis": 7, "velocidade": 700,
+        "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 1.0 },
         "regras": "varredura" },
-
-      { "estrategia": "ConsultaAttack", "projetil": "Celula",
-        "projeteis": 8, "velocidade": 640, "cooldown": 1.4,
-        "consulta": { "eixo": "Coluna", "colunas": 5, "aviso": 1.0 },
-        "regras": "varredura" }
+      { "gatilho": "celula", "estrategia": "WaveAttack", "projetil": "Celula",
+        "projeteis": 12, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "clarao" }
     ]
   },
 

@@ -29,6 +29,7 @@ void Thiago::OnUpdate(const float deltaTime) {
     if (!fsm || fsm->GetStateName().empty()) return;
     if (!mTabelaCriada) CriarTabela();
     AtualizarSelecao(deltaTime);
+    AtualizarEscrita();
     AtualizarProduto();
     AtualizarTabela(deltaTime);
 }
@@ -94,16 +95,20 @@ void Thiago::CriarTabela() {
         }
     }
     mCasas.assign(mRegistros.size(), {});
-    for (size_t l = 0; l < mRegistros.size(); ++l) {
-        for (int c = 0; c < Banco::kColunas; ++c) {
-            const auto col = static_cast<Banco::Coluna>(c);
-            const auto criados = DispararEm(Banco::kGatilhoDoDado, LugarDoDado(static_cast<int>(l), c));
-            BossProjectile* p = criados.empty() ? nullptr : criados.front();
-            mCasas[l][static_cast<size_t>(c)] = p;
-            if (!p) continue;
-            p->DefinirEnfeite(true);
-            if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(Banco::Cara(mRegistros[l], col));
-        }
+    for (size_t l = 0; l < mRegistros.size(); ++l) EscreverRegistro(l, Vector2::Zero);
+}
+
+void Thiago::EscreverRegistro(const size_t linha, const Vector2 de) {
+    if (linha >= mCasas.size() || linha >= mRegistros.size()) return;
+    for (int c = 0; c < Banco::kColunas; ++c) {
+        const auto col = static_cast<Banco::Coluna>(c);
+        const Vector2 onde = (de.x == 0.0f && de.y == 0.0f) ? LugarDoDado(static_cast<int>(linha), c) : de;
+        const auto criados = DispararEm(Banco::kGatilhoDoDado, onde);
+        BossProjectile* p = criados.empty() ? nullptr : criados.front();
+        mCasas[linha][static_cast<size_t>(c)] = p;
+        if (!p) continue;
+        p->DefinirEnfeite(true);
+        if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(Banco::Cara(mRegistros[linha], col));
     }
 }
 
@@ -267,6 +272,119 @@ void Thiago::AtualizarCasas(const float agora) {
         if (it->p->GetState() == ActorState::Active) it->p->Kill();
         it = mClaroes.erase(it);
     }
+}
+
+// ---------------------------------------------------------------------------
+// A FASE 2: O INSERT, O UPDATE E O DELETE
+// ---------------------------------------------------------------------------
+
+void Thiago::Apagar(const int linha) {
+    if (linha < 0 || static_cast<size_t>(linha) >= mCasas.size()) return;
+    for (BossProjectile* p : mCasas[static_cast<size_t>(linha)]) {
+        if (!p || p->GetState() != ActorState::Active) continue;
+        p->DefinirEnfeite(false);
+        p->DefinirPosto("");
+        if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2(0.0f, Banco::kVelocidadeDoApagado));
+    }
+    mCasas.erase(mCasas.begin() + linha);
+}
+
+void Thiago::AtualizarEscrita() {
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool naEscrita = fsm && fsm->GetStateName() == Banco::kFaseDaEscrita;
+
+    if (!naEscrita) {
+        if (mNaEscrita) {
+            ApagarCasas();
+            mExecucoes.clear();
+            if (!mAnuncioDaEscrita.empty()) RegistrarAnuncio(Banco::kFaseDaEscrita, mAnuncioDaEscrita);
+            mAlvo.reset();
+            mNaEscrita = false;
+        }
+        return;
+    }
+    if (!mNaEscrita) {
+        mNaEscrita = true;
+        mExecucoes.clear();
+        mProximaEscrita = Banco::kPrimeiraEscrita;
+        if (mAnuncioDaEscrita.empty()) mAnuncioDaEscrita = AnuncioDaFase(Banco::kFaseDaEscrita);
+        mAlvo = Vector2(Banco::XDoProfessor(Banco::kColunas / 2, Campo().w), Banco::kYDoProfessor);
+    }
+    const float agora = fsm->GetStateTime();
+
+    // O COMANDO NOVO: o placar o escreve, e o que ele vai mexer acende.
+    if (agora >= mProximaEscrita && mExecucoes.empty()) {
+        const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
+        const Banco::Escrita e = Banco::ProximaEscrita(mRegistros, sorteio);
+        RegistrarAnuncio(Banco::kFaseDaEscrita, Banco::Sql(e));
+        mProximaEscrita = agora + Banco::kPassoDaEscrita;
+        const int nome = static_cast<int>(Banco::Coluna::Nome);
+
+        switch (e.comando) {
+            case Banco::Comando::Insert: {
+                // O REGISTRO NOVO SAI DO PROFESSOR para a primeira linha vazia,
+                // e a linha e gravada - varrida de ponta a ponta.
+                const auto linhas = Banco::Executar(mRegistros, e);
+                if (linhas.empty()) break;
+                const int l = linhas.front();
+                mCasas.resize(mRegistros.size());
+                EscreverRegistro(static_cast<size_t>(l), GetPosition());
+                std::vector<Banco::Casa> casas;
+                for (int c = 0; c < Banco::kColunas; ++c) casas.push_back({l, c});
+                MarcarVarredura(casas, true, agora, Banco::kAvisoDaLinha);
+                Varrer(Banco::kGatilhoDaSelecao, l, Banco::kAvisoDaLinha, Banco::kVelocidadeDaLinha);
+                mAlvo = Vector2(Banco::XDoProfessor(nome, Campo().w), Banco::kYDoProfessor);
+                break;
+            }
+            case Banco::Comando::Update: {
+                // A NOTA DE CADA LINHA DO WHERE: a casa acende, e o valor muda.
+                std::vector<Banco::Casa> casas;
+                for (const int l : Banco::Linhas(mRegistros, e.onde)) casas.push_back({l, static_cast<int>(Banco::Coluna::Nota)});
+                Marcar(casas, agora + Banco::kAvisoDaCasa);
+                mPendentes.push_back(Pendente{casas, agora + Banco::kAvisoDaCasa});
+                mExecucoes.push_back(Execucao{e, agora + Banco::kAvisoDaCasa});
+                mAlvo = Vector2(Banco::XDoProfessor(static_cast<int>(e.onde.coluna), Campo().w), Banco::kYDoProfessor);
+                break;
+            }
+            case Banco::Comando::Delete: {
+                // A LINHA DO WHERE e varrida - e apagada quando a varredura a
+                // atravessa.
+                const auto linhas = Banco::Linhas(mRegistros, e.onde);
+                std::vector<Banco::Casa> casas;
+                for (const int l : linhas) for (int c = 0; c < Banco::kColunas; ++c) casas.push_back({l, c});
+                MarcarVarredura(casas, true, agora, Banco::kAvisoDaLinha);
+                for (const int l : linhas) Varrer(Banco::kGatilhoDaSelecao, l, Banco::kAvisoDaLinha, Banco::kVelocidadeDaLinha);
+                const float travessia = (Campo().w - Banco::kMargemDaVarredura) / Banco::kVelocidadeDaLinha;
+                mExecucoes.push_back(Execucao{e, agora + Banco::kAvisoDaLinha + travessia});
+                mAlvo = Vector2(Banco::XDoProfessor(static_cast<int>(e.onde.coluna), Campo().w), Banco::kYDoProfessor);
+                break;
+            }
+        }
+    }
+
+    // O QUE FOI ANUNCIADO ACONTECE: o valor novo aparece, a linha apagada cai.
+    for (auto it = mExecucoes.begin(); it != mExecucoes.end();) {
+        if (agora < it->quando) { ++it; continue; }
+        const Banco::Escrita e = it->escrita;
+        it = mExecucoes.erase(it);
+        if (e.comando == Banco::Comando::Delete) {
+            const auto linhas = Banco::Linhas(mRegistros, e.onde);
+            for (auto l = linhas.rbegin(); l != linhas.rend(); ++l) Apagar(*l);
+            Banco::Executar(mRegistros, e);
+        } else if (e.comando == Banco::Comando::Update) {
+            for (const int l : Banco::Executar(mRegistros, e)) {
+                if (static_cast<size_t>(l) >= mCasas.size()) continue;
+                BossProjectile* p = mCasas[static_cast<size_t>(l)][static_cast<size_t>(Banco::Coluna::Nota)];
+                if (p && p->GetState() == ActorState::Active) {
+                    if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) {
+                        anim->SetAnimation(Banco::Cara(mRegistros[static_cast<size_t>(l)], Banco::Coluna::Nota));
+                    }
+                }
+            }
+        }
+    }
+
+    AtualizarCasas(agora);
 }
 
 // ---------------------------------------------------------------------------

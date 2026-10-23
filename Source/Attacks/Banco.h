@@ -173,6 +173,51 @@ namespace Banco {
     /// 'largura'.
     float XDoProfessor(int coluna, float largura);
 
+    // ---- A FASE 2: O INSERT, O UPDATE E O DELETE ----------------------------
+    //
+    // A tabela deixa de ser so lida e passa a ser ESCRITA. Cada comando muda o
+    // que esta no campo, e o que ele muda e o ataque:
+    //
+    //   "DELETE WHERE nota < 30"           a linha e varrida e APAGADA: os
+    //                                      valores dela caem pelo campo, e as
+    //                                      linhas de baixo sobem para o lugar
+    //   "UPDATE SET nota = 95 WHERE ..."   a casa da nota de cada linha do WHERE
+    //                                      acende, e o valor muda
+    //   "INSERT INTO alunos: Eva"          o registro novo sai do professor para
+    //                                      a primeira linha vazia, e a linha e
+    //                                      gravada (varrida)
+    //
+    // A tabela nunca fica vazia nem passa de kLinhas: com duas linhas ou menos
+    // so ha INSERT, cheia nao ha INSERT, e o DELETE nunca apaga todas.
+
+    constexpr const char* kFaseDaEscrita = "StateTwo";
+
+    enum class Comando { Insert, Update, Delete };
+
+    struct Escrita {
+        Comando comando = Comando::Insert;
+        Condicao onde;          ///< Update e Delete
+        Registro novo;          ///< Insert
+        int nota = 0;           ///< Update: a nota nova
+    };
+
+    /// @brief O proximo comando da fase 2, sobre a tabela como ela esta.
+    Escrita ProximaEscrita(const Registros& regs, std::uint32_t sorteio);
+
+    /// @brief "INSERT INTO alunos: Eva", "UPDATE SET nota = 95 WHERE ano = 2",
+    /// "DELETE WHERE nota < 30".
+    std::string Sql(const Escrita& e);
+
+    /// @brief Executa o comando. Devolve as linhas que ele mexeu, contadas na
+    /// tabela de ANTES: a linha nova do INSERT, as atualizadas, as apagadas.
+    std::vector<int> Executar(Registros& regs, const Escrita& e);
+
+    /// O relogio da fase 2, o aviso do UPDATE (o do DELETE e do INSERT e o da
+    /// linha), e a velocidade com que o que foi apagado cai.
+    constexpr float kPrimeiraEscrita = 1.2f;
+    constexpr float kPassoDaEscrita = 1.7f;
+    constexpr float kVelocidadeDoApagado = 260.0f;
+
     // ---- A REPESCAGEM: O PRODUTO CARTESIANO ---------------------------------
     //
     // "SELECT * FROM alunos, cursos" - o JOIN que esqueceu o WHERE, e por isso
