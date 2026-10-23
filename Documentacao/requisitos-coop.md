@@ -440,6 +440,10 @@ habilidade que o modo cobra.
 Refeita com um piloto que faz cada jogador perseguir o X do chefe, nos dois
 modos:
 
+> As tabelas desta seção são da batalha 0, a do André, **antes de ele ser
+> refeito** (commits 154 a 156). Com as fases novas os números do solo são
+> outros; elas ficam como registro do experimento, não como referência.
+
 | semente | solo | dupla | dupla − solo |
 |---|---|---|---|
 | 20261014 | 79,12 | 80,28 | +1,15 |

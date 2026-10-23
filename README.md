@@ -102,8 +102,18 @@ no JSON não reatribui a nota de ninguém.
 Cada chefe tem três fases mais uma fase final, e uma identidade de ataque
 própria. A fase final acontece quando a nota termina entre 40 e 59 — é o exame.
 
-- **André — INF 110.** A primeira matéria do curso: balões que sobem e descem
-  pelas bordas da tela.
+- **André — INF 110.** Programação 1, um conceito por fase, com o placar
+  mostrando o código que ele está rodando — e os balões do BOCA. Na primeira,
+  o fluxograma do `if`: balões numerados descem até o losango e seguem pelo
+  ramo que a condição escolhe, e o confete cai na faixa daquele ramo; depois
+  vêm o `else if`, o `switch` sem `break` caindo de case em case e a pegadinha
+  `if (n = 0)`. Na segunda, o chão vira o vetor `v[0..11]` e de cada casa por
+  onde o `i` do laço passa sobe um cacho de balões — o `i <= 12` estoura em
+  *segmentation fault* e o `while (1)` só para no *Time limit exceeded*. Na
+  terceira, funções: os argumentos voam até o cartão da função e o retorno
+  volta, a passagem por valor ataca onde você estava e `segue(&aluno)` vai
+  atrás de você. O exame é a prova no BOCA: um problema de cada fase, e o
+  balão do problema sobe no YES.
 - **Salles — INF 213.** Estruturas de dados, uma por fase, com o placar
   escrevendo cada operação: uma pilha pendurada nele (push, pop e stack
   overflow), uma tabela hash que encadeia, busca e faz rehash na sua frente, e
@@ -116,9 +126,22 @@ própria. A fase final acontece quando a nota termina entre 40 e 59 — é o exa
 - **Júlio — INF 420.** Inteligência artificial, e as fases contam isso: na
   primeira ele atira a esmo, na segunda mira onde você está, na terceira mira
   onde você **vai estar**.
-- **Thiago — INF 220.** Banco de dados. O campo vira uma tabela e cada ataque é
-  uma consulta que varre uma linha ou uma coluna inteira. Aqui ao invés de desviar de
-  projétil, a estratégia é sair da faixa anunciada (representando uma "Busca" em um BD).
+- **Thiago — INF 220.** Banco de dados. A tabela `alunos` está escrita no
+  campo e cada ataque é uma consulta sobre ela, com o SQL no placar: o `WHERE`
+  varre as linhas que satisfazem a condição, a projeção varre a coluna e o
+  `ORDER BY` troca as linhas de lugar. Em vez de desviar de projétil, você lê
+  a consulta e sai da faixa que ela vai buscar. Depois a tabela muda na sua
+  frente (`INSERT`, `UPDATE`, `DELETE`), e na terceira fase várias transações
+  disputam as linhas, com lock, `COMMIT`, `ROLLBACK` e deadlock. O exame é o
+  produto cartesiano, casa por casa.
+- **Maria Lúcia — INF 221.** Engenharia de Software, um processo ou padrão por
+  fase. A cascata é uma linha de produção: os pedidos do cliente viram
+  post-its no backlog, os post-its viram classes ligadas por setas, as classes
+  compilam código, cada uma solta o seu bug, e o bug que sobra vira dívida
+  parada no campo — e o post-it que você derruba é escopo cortado. Depois vêm
+  cinco sprints de métodos ágeis, com o cursor arrastando as histórias, o
+  padrão Observer (olhos que te assinam e avisam quando você vira) e, no exame,
+  as janelas modais do sistema velho.
 - **Vladimir — INF 331.** Teoria da computação: um autômato que lê a palavra
   e atira cada letra lida, a gramática S → aSb derivando em voo, uma máquina de
   Turing cuja cabeça escreve a fita em cima de você e, no exame, o problema da
@@ -157,7 +180,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 385 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 858 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha — e também **leem os arquivos de
 `Assets/` de verdade**, quebrando ao primeiro erro de digitação num JSON. Um

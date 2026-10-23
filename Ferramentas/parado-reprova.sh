@@ -31,13 +31,14 @@
 # dpi_tests. E uma ferramenta de rodar a mao quando se mexe no balanceamento de
 # qualquer chefe.
 #
-# ESTADO NA ULTIMA MEDICAO: nove dos dez reprovam o piloto parado. O Salles
-# ainda passa (nota 80,70, com 15 acertos sofridos e 309 dados), e a causa esta
-# identificada: tres das quatro fases dele usam GoToCenter, entao ele para na
-# coluna do meio e leva os tiros de graca. E o mesmo defeito que a primeira
-# versao do Vladimir tinha, e a cura tambem e a mesma - dar um gesto a cada
-# fase. O gesto candidato de cada uma esta no cabecalho de
-# Assets/Attacks/salles/fases.json.
+# ESTADO NA ULTIMA MEDICAO (commit 156, o Andre refeito): os dez reprovam o
+# piloto parado. O que chegou mais perto foi o Vitor (17,2, com 26 acertos
+# sofridos e 180 dados); todos os outros ficaram abaixo de 5. O Salles passava
+# por parar na coluna do meio em tres fases, e deixou de passar quando cada
+# fase dele ganhou um gesto - a mesma cura da primeira versao do Vladimir. O
+# Andre passou num estado intermediario (commit 155: a fase 2 nova, a fase 3 e
+# o exame ainda os antigos, com GoToCenter); desde o 156 reprova o parado nas
+# cinco sementes medidas.
 
 set -uo pipefail
 S="$(cd "$(dirname "$0")/.." && pwd)"
