@@ -105,5 +105,38 @@
     "ordemDeDesenho": 95,
     "posicionarNoDono": false,
     "abrigo": true
+  },
+
+  // OS BLOCOS DA PILHA DA FASE 1 (Pilha.h), numerados de 0 a 9. Derrubaveis,
+  // com tres tiros: o tiro do aluno acerta primeiro o bloco de baixo - o topo
+  // -, e so da para tirar o topo. Enquanto a pilha esta pendurada, ela e a
+  // armadura do professor.
+  //
+  // Arte PROVISORIA de Ferramentas/gerar_salles.py.
+  "Bloco": {
+    "sprite": "Teachers/Projectiles/DPIBHSallesPilha.png",
+    "dados":  "Teachers/Projectiles/DPIBHSallesPilha.json",
+    "animacoes": {
+      "N0": [0], "N1": [1], "N2": [2], "N3": [3], "N4": [4],
+      "N5": [5], "N6": [6], "N7": [7], "N8": [8], "N9": [9]
+    },
+    "animacaoInicial": "N0",
+    "escala": 1.1,
+    "ordemDeDesenho": 89,
+    "derrubavel": true,
+    "resistencia": 3
+  },
+
+  // AS LASCAS DE UM BLOCO QUE ESTOUROU: o pop e o valor do topo, e o bloco
+  // tirado estoura em tantas lascas quanto o numero dele.
+  "Lasca": {
+    "sprite": "Teachers/Projectiles/DPIBHSallesPilha.png",
+    "dados":  "Teachers/Projectiles/DPIBHSallesPilha.json",
+    "animacoes": {
+      "Lasca": [10]
+    },
+    "animacaoInicial": "Lasca",
+    "escala": 1.6,
+    "ordemDeDesenho": 90
   }
 }

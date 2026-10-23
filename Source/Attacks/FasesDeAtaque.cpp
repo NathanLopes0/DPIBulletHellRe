@@ -50,7 +50,7 @@ namespace {
                                                 "contador", "estagios", "buscar", "lw", "sw", "add", "addi",
                                                 "acender", "estados", "diagrama", "ler_a", "ler_b",
                                                 "aceita", "rejeita", "derivar", "variavel", "metade", "triplo",
-                                                "parou", "escrever", "capivara"};
+                                                "parou", "escrever", "capivara", "push", "estourar"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"

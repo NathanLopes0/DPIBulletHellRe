@@ -58,6 +58,7 @@
 #include "../Source/Attacks/Parada.h"
 #include "../Source/Attacks/Fita.h"
 #include "../Source/Attacks/Capivara.h"
+#include "../Source/Attacks/Pilha.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
@@ -1501,6 +1502,36 @@ TEST_CASE("Dados: a capivara do Salles pode aparecer em toda fase dele, e e um a
         }
         CHECK(capivaras == 1);
     }
+}
+
+TEST_CASE("Dados: a pilha do Salles - gatilhos, posto e caras sao nomes que os dados tem") {
+    CHECK(GatilhoExiste(Pilha::kGatilhoDoPush));
+    CHECK(GatilhoExiste(Pilha::kGatilhoDoEstouro));
+    CHECK(PostoExiste(Pilha::kPostoDaPilha));
+
+    // O BLOCO E DERRUBAVEL - e o pop do aluno, a tiro - e tem a cara de cada
+    // digito que o programa empurra (Pilha::CaraDoBloco).
+    const auto& tipos = ProjeteisDoChefe("salles").projeteis;
+    const auto regras = RegrasDoChefe("salles");
+    std::set<std::string> gatilhos;
+    for (const auto& f : FasesDoChefe("salles").fases) {
+        if (f.nome != Pilha::kFaseDaPilha) continue;
+        for (const auto& a : f.ataques) {
+            gatilhos.insert(a.gatilho);
+            if (a.gatilho != Pilha::kGatilhoDoPush) continue;
+            REQUIRE(tipos.count(a.projetil) == 1);
+            const auto& bloco = tipos.at(a.projetil);
+            CHECK(bloco.derrubavel);
+            std::set<std::string> caras;
+            for (const auto& anim : bloco.animacoes) caras.insert(anim.nome);
+            for (int v = 0; v <= 9; ++v) CHECK(caras.count(Pilha::CaraDoBloco(v)) == 1);
+            // E nasce no posto em que o Salles o procura.
+            REQUIRE(regras.conjuntos.count(a.regrasNome) == 1);
+            for (const auto& r : regras.conjuntos.at(a.regrasNome)) CHECK(r.posto == Pilha::kPostoDaPilha);
+        }
+    }
+    CHECK(gatilhos.count(Pilha::kGatilhoDoPush) == 1);
+    CHECK(gatilhos.count(Pilha::kGatilhoDoEstouro) == 1);
 }
 
 TEST_CASE("Dados: o diagrama do automato do Vladimir foi desenhado para os estados onde ele os poe") {

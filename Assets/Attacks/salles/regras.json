@@ -16,8 +16,10 @@
   //
   // OS CAMPOS estao documentados em Documentacao/arquivos-de-dados.md.
   // ==========================================================================
-  "lista_simples": [
-    { "animacao": "ListaSimples" }
+  // A PILHA DA FASE 1: o bloco do push nasce no posto "pilha", e e por la que
+  // o Salles o acha para pendura-lo, tira-lo e derruba-lo.
+  "pilha": [
+    { "posto": "pilha" }
   ],
 
   // FASE 2 - lista duplamente encadeada: vai rapido e VOLTA.

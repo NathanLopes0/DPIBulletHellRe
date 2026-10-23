@@ -10,7 +10,7 @@ disciplina, e de vez em quando ela aparece no meio da fase: atravessa o campo
 de lado a lado, andando. Vista de lado, com quatro passos, e cada passo virado
 para os dois lados (ela anda para a direita ou para a esquerda).
 """
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import json, os
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -83,6 +83,46 @@ def capivarona():
     return folha
 
 
+# OS BLOCOS DA PILHA DA FASE 1: um no numerado, de 0 a 9, com o elo em cima -
+# o ponteiro para o bloco de baixo, o que entrou antes. Verdes, para nao se
+# confundir com a lista ambar e a arvore das outras fases.
+CARLITO = os.path.join(RAIZ, "Assets", "Fonts", "Carlito-Regular.ttf")
+BLOCO = (110, 186, 150, 255)
+BLOCO_CLARO = (160, 220, 190, 255)
+TRACO = (30, 52, 44, 255)
+
+
+def bloco(valor):
+    s = 4
+    L = 40
+    im = Image.new("RGBA", (L * s, L * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([18 * s, 0, 22 * s, 6 * s], fill=TRACO)                    # o elo
+    d.rounded_rectangle([3 * s, 5 * s, 37 * s, 37 * s], radius=6 * s, fill=BLOCO, outline=TRACO, width=2 * s)
+    d.rounded_rectangle([7 * s, 9 * s, 33 * s, 15 * s], radius=3 * s, fill=BLOCO_CLARO)
+    d.text((20 * s, 23 * s), str(valor), fill=TRACO, font=ImageFont.truetype(CARLITO, 22 * s), anchor="mm")
+    return im.resize((L, L), Image.LANCZOS)
+
+
+def lasca():
+    """O pedaco de um bloco que estourou: o valor do topo vira lascas."""
+    s = 4
+    L = 40
+    im = Image.new("RGBA", (L * s, L * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([12 * s, 12 * s, 28 * s, 28 * s], radius=3 * s, fill=BLOCO_CLARO, outline=TRACO, width=2 * s)
+    return im.resize((L, L), Image.LANCZOS)
+
+
+def pilha():
+    """Os dez blocos numerados, e a lasca no quadro 10."""
+    folha = Image.new("RGBA", (40 * 4, 40 * 3), (0, 0, 0, 0))
+    for v in range(10):
+        folha.alpha_composite(bloco(v), ((v % 4) * 40, (v // 4) * 40))
+    folha.alpha_composite(lasca(), ((10 % 4) * 40, (10 // 4) * 40))
+    return folha
+
+
 def grava(im, nome, pasta, largo, alto, quadros):
     destino = os.path.join(RAIZ, pasta)
     os.makedirs(destino, exist_ok=True)
@@ -94,3 +134,4 @@ def grava(im, nome, pasta, largo, alto, quadros):
 
 if __name__ == "__main__":
     grava(capivarona(), "DPIBHSallesCapivarona", "Assets/Teachers/Projectiles", 96, 64, 8)
+    grava(pilha(), "DPIBHSallesPilha", "Assets/Teachers/Projectiles", 40, 40, 11)

@@ -59,30 +59,38 @@
   // grave uma referencia da batalha 1 antes de mexer no balanceamento dele.
   // ==========================================================================
 
-  // FASE 1 - LISTA ENCADEADA SIMPLES, e ela vai rapido.
+  // FASE 1 - A PILHA   |   gesto: DE COLUNA EM COLUNA
   //
-  // WaveAttack com "angulo": 0. O angulo zero e o que torna isto uma lista: sem
-  // leque, os dez nos saem na MESMA direcao, e como a WaveAttack acorda um a cada
-  // 0.11s eles ficam em fila indiana com 430 x 0.11 = 47px entre vizinhos.
+  // A PILHA ESTA PENDURADA NO PROFESSOR (Pilha.h). A cada 0,7s o programa da
+  // a operacao, e o placar a escreve: push(7) poe um bloco numerado na ponta de
+  // baixo - o TOPO -, e pop() -> 7 tira o topo e o atira no aluno, e o bloco
+  // estoura no caminho num leque de tantas lascas quanto o numero dele, mirado
+  // no aluno: o placar diz o tamanho do leque que vem. LIFO: o ultimo
+  // que entra e o primeiro que sai, e o topo e sempre o bloco de baixo.
   //
-  // A fila inteira cabe na tela: o ultimo no desperta em 0.99s e o primeiro gasta
-  // 1.55s para atravessar os 667px ate a borda de baixo, entao ha um instante em
-  // que os dez estao visiveis ao mesmo tempo. E o que faz a lista ser lida como
-  // uma lista e nao como dez tiros.
+  // O ALUNO TAMBEM DA POP, A TIRO: o tiro dele acerta primeiro o bloco de baixo,
+  // e tres tiros o derrubam. So da para tirar o topo - a pilha pela geometria -,
+  // e enquanto ela esta pendurada, e a armadura do professor.
   //
-  // GoToCenter: o chefe fica parado para a fila ter uma origem clara. Com ele
-  // vagando, cada no sairia de um lugar diferente e nao haveria fila.
+  // STACK OVERFLOW: com cinco blocos, o push seguinte derruba a pilha inteira,
+  // aberta em leque, em cima de quem estiver embaixo.
+  //
+  // ELE VAI DE COLUNA EM COLUNA e para 2,6s em cada uma (o movimento
+  // "Conduzido"): parado, ele leva tiro; e andando, a pilha pendurada varre o
+  // campo.
   "StateOne": {
     "duracao": 17,
     "proximo": "StateTwo",
-    "movimento": { "tipo": "GoToCenter" },
+    "anuncio": "pilha: LIFO",
+    "movimento": { "tipo": "Conduzido", "a": 300 },
     "ataques": [
       { "gatilho": "capivara", "estrategia": "WaveAttack", "projetil": "Capivarona",
         "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0 },
-      { "estrategia": "WaveAttack", "projetil": "Estruturas",
-        "projeteis": 10, "velocidade": 430, "angulo": 0, "intervalo": 0.11,
-        "cooldown": 1.7,
-        "regras": "lista_simples" }
+      { "gatilho": "push", "estrategia": "WaveAttack", "projetil": "Bloco",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "pilha" },
+      { "gatilho": "estourar", "estrategia": "WaveAttack", "projetil": "Lasca",
+        "projeteis": 5, "velocidade": 240, "angulo": 80, "intervalo": 0 }
     ]
   },
 
