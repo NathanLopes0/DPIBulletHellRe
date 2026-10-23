@@ -31,14 +31,15 @@
 # dpi_tests. E uma ferramenta de rodar a mao quando se mexe no balanceamento de
 # qualquer chefe.
 #
-# ESTADO NA ULTIMA MEDICAO (commit 159, as fases de 20 s): os dez reprovam o
+# ESTADO NA ULTIMA MEDICAO (commit 164, o Luizinho refeito): os dez reprovam o
 # piloto parado. O que chegou mais perto foi o Vitor (26,1, com 25 acertos
-# sofridos e 176 dados); o Lucas ficou com 5,5 e os outros oito com zero. O Salles passava
-# por parar na coluna do meio em tres fases, e deixou de passar quando cada
-# fase dele ganhou um gesto - a mesma cura da primeira versao do Vladimir. O
-# Andre passou num estado intermediario (commit 155: a fase 2 nova, a fase 3 e
-# o exame ainda os antigos, com GoToCenter); desde o 156 reprova o parado nas
-# cinco sementes medidas.
+# sofridos e 176 dados); o Lucas ficou com 5,5 e os outros oito com zero - o
+# Luizinho com 18 acertos sofridos: o alocador da fase 3 poe bloco atras de
+# bloco em cima de quem nao sai do lugar. O Salles passava por parar na coluna do meio em tres fases,
+# e deixou de passar quando cada fase dele ganhou um gesto - a mesma cura da
+# primeira versao do Vladimir. O Andre passou num estado intermediario (commit
+# 155: a fase 2 nova, a fase 3 e o exame ainda os antigos, com GoToCenter);
+# desde o 156 reprova o parado nas cinco sementes medidas.
 
 set -uo pipefail
 S="$(cd "$(dirname "$0")/.." && pwd)"

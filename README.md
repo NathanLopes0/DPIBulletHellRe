@@ -148,6 +148,20 @@ identidade de ataque própria. A fase final acontece quando a nota termina entre
   Turing cuja cabeça escreve a fita em cima de você e, no exame, o problema da
   parada com o 3x + 1. O "a" vai reto e o "b" persegue, até o Programa de
   Intercâmbio trocar os dois — e ele vale a luta inteira.
+- **Luizinho — INF 340.** Linguagens de Programação, um assunto da ementa por
+  fase: cada uma abre com a palavra latina por trás dele, e depois o placar
+  mostra o código. Na primeira o campo é o texto do programa, um painel por
+  bloco com as declarações no canto, e a variável que a busca acha chove onde
+  ela é visível — menos nos blocos que têm outra com o mesmo nome; no fim, a
+  mesma chamada em escopo estático e em escopo dinâmico. Na segunda, a mesma
+  conta em JavaScript, PHP, Python e Haskell: os operandos voam até em cima de
+  você, o convertido troca de cor no meio do voo, e o resultado ataca do jeito
+  do tipo dele — o número é um anel, o texto é a palavra, o `TypeError` estoura
+  onde a conta roda e o erro de compilação, no professor. Na terceira o campo é
+  o heap e o alocador te escolhe: no Java o coletor para o mundo e derruba o
+  lixo, no C++ o ponteiro pendente estoura e o laço que só aloca vaza até o
+  `bad_alloc`. O exame é uma exceção subindo pela pilha de chamadas: cada
+  faixa que não a trata cai em cima de você — e a repescagem é um `catch`.
 
 ## Como compilar
 
@@ -181,7 +195,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 858 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 874 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha — e também **leem os arquivos de
 `Assets/` de verdade**, quebrando ao primeiro erro de digitação num JSON. Um
