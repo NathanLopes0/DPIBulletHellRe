@@ -32,10 +32,13 @@ Actor* Scene::AddActor(std::unique_ptr<Actor> actor) {
 }
 
 void Scene::ProcessInput(const Uint8* keyState) {
-    // Delega o input para todos os atores da cena
-    for (const auto& actor : mActors) {
-        if (actor->GetState() == ActorState::Active) {
-            actor->ProcessInput(keyState);
+    // Delega o input para todos os atores da cena - menos com ela congelada,
+    // em que o aluno nao atira nem anda (Scene.h).
+    if (!mAtoresCongelados) {
+        for (const auto& actor : mActors) {
+            if (actor->GetState() == ActorState::Active) {
+                actor->ProcessInput(keyState);
+            }
         }
     }
 
@@ -44,10 +47,12 @@ void Scene::ProcessInput(const Uint8* keyState) {
 
 void Scene::Update(float deltaTime) {
 
-    // Atualiza todos os atores da cena
+    // Atualiza todos os atores da cena - menos com ela congelada (Scene.h).
     mIsUpdatingActors = true;
-    for (const auto& actor : mActors) {
-        actor->Update(deltaTime);
+    if (!mAtoresCongelados) {
+        for (const auto& actor : mActors) {
+            actor->Update(deltaTime);
+        }
     }
     mIsUpdatingActors = false;
 

@@ -12,6 +12,7 @@
 #include "../../Intercambio.h"
 #include "../../Game.h"
 #include "../../AudioSystem.h"
+#include "../../Pausa.h"
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
 
 #define GRADE_CHANGE_UP 0.56f
@@ -430,6 +431,55 @@ private:
     void StartLoadingProjectilePools();
     void UpdateLoadingStep(); // processa 1 tipo de projétil por chamada
     void FinishLoadingProjectilePools();
+
+    // ---- A PAUSA, so no computador (Pausa.h) --------------------------------
+    //
+    // O ESC congela a cena (Scene::mAtoresCongelados) e o OnUpdate para antes
+    // dos projeteis, das colisoes e dos relogios: a batalha inteira espera, e
+    // volta do quadro em que parou. O menu e um veu por cima de tudo, com as
+    // opcoes no meio.
+
+    void LoadPausa();
+    void AbrirPausa();
+    void FecharPausa();
+    void MostrarPausa(bool visivel);
+    void PosicionarSelecaoDaPausa();
+    void ProcessarPausa(const Uint8* keyState, bool escNovo);
+    void EscolherNaPausa();
+
+    /**
+     * @brief Sai da batalha no meio, para 'destino', SEM REGISTRAR A NOTA.
+     *
+     * Quem sai pelo menu desistiu da tentativa, e uma tentativa abandonada nao
+     * e uma nota: gravar o 40 do comeco como "ultima nota" mentiria na ficha.
+     * A limpeza e a mesma do fim da batalha - os projeteis voltam aos pools e
+     * o que o chefe desenhou no campo some -, so que sem a tela de nota.
+     */
+    void SairDaBatalha(SceneType destino);
+
+    Pausa::Menu mPausa;
+
+    /// Comecam apertadas: um ESC ou um botao que ja vinha segurado de antes nao
+    /// conta como batida nova.
+    bool mEscAnterior = true;
+    bool mCimaNaPausa = true;
+    bool mBaixoNaPausa = true;
+    bool mConfirmarNaPausa = true;
+
+    Actor* mVeuDaPausa = nullptr;
+    Actor* mPlacaDaPausa = nullptr;
+    Actor* mTituloDaPausa = nullptr;
+    Actor* mSelecaoDaPausa = nullptr;
+    Actor* mRodapeDaPausa = nullptr;
+    std::vector<Actor*> mOpcoesDaPausa;
+
+    /// POR CIMA DE TUDO: a faixa da nota vai ate 304 e o texto do fim usa 300.
+    static constexpr int kOrdemDaPausa = 900;
+    static constexpr int kLarguraDaPlacaDaPausa = 620;
+    static constexpr int kAlturaDaPlacaDaPausa = 380;
+    static constexpr int kLarguraDaSelecaoDaPausa = 440;
+    static constexpr int kAlturaDaSelecaoDaPausa = 54;
+    static constexpr float kPassoDaPausa = 66.0f;
 };
 
 

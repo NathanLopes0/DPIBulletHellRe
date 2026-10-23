@@ -63,6 +63,24 @@ protected:
 
     void RemoveDeadActors();
 
+    /**
+     * @brief A CENA CONGELADA: os atores nao recebem input nem quadro.
+     *
+     * E a pausa da batalha (Pausa.h). Os atores param do jeito que estao - o
+     * chefe no meio do ataque, a maquina de estados no meio da fase, a
+     * animacao no quadro em que estava -, e voltam exatamente dali, porque o
+     * tempo deles e o deltaTime que deixou de chegar.
+     *
+     * NAO E O ActorState::Paused. Pausar cada ator mexeria no estado de quem
+     * ja estava parado de proposito (o aluno durante o carregamento), e
+     * despausar teria de lembrar quem era quem. Aqui a cena so deixa de
+     * chamar, e o estado de cada um fica intocado.
+     *
+     * O OnUpdate e o OnProcessInput da cena continuam rodando: e por eles que
+     * a propria cena desenha o menu e ouve quem quer sair dele.
+     */
+    bool mAtoresCongelados = false;
+
     Game* mGame;
     SceneType mType;
 

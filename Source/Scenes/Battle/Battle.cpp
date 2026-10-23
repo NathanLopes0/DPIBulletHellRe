@@ -23,6 +23,7 @@
 #include "../../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
 #include "../../Components/ColliderComponents/CircleColliderComponent.h"
+#include "../../Components/RigidBodyComponent.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../../Components/DrawComponents/DrawTextComponent.h"
@@ -30,6 +31,7 @@
 #include "../../Actors/Teachers/ExtraPointItem.h"
 #include "../../Actors/Orientador/Orientador.h"
 #include "../../MateriasArquivo.h"
+#include "../../Painel.h"
 
 #include "../../CaminhosArquivo.h"
 
@@ -93,6 +95,7 @@ void Battle::Load() {
     LoadOrientador();
     LoadHUD();
     LoadEndScreen();
+    LoadPausa();
 
     if (mGame->GetAudio()) {
         mMusicHandle = mGame->GetAudio()->PlaySound("backgroundmusic.ogg", true);
@@ -620,6 +623,11 @@ void Battle::OnUpdate(float deltaTime) {
         return;
     }
 
+    // -- A PAUSA: a cena ja nao atualizou os atores (Scene::mAtoresCongelados),
+    // e aqui param os projeteis, as colisoes e os relogios da batalha. Nada
+    // anda, e nada conta tempo.
+    if (mPausa.aberto) return;
+
     // -- Lógica de Fim de Jogo
     if (mIsEnding) {
         mEndTimer += deltaTime;
@@ -797,7 +805,191 @@ void Battle::OnProcessInput(const Uint8* keyState) {
     // dobro.
     // Este gancho continua sendo o lugar certo para input da BATALHA em si
     // (pausa, debug), que nao pertence a nenhum ator especifico.
+
+    // O ESC E BORDA, e nao estado: segurado, ele abriria e fecharia a pausa a
+    // cada quadro. NAO E O Ctrl+Esc do operador - esse so existe no gabinete,
+    // e no gabinete a pausa nao abre (Pausa::PodePausar).
+    const bool esc = keyState[SDL_SCANCODE_ESCAPE] != 0;
+    const bool escNovo = esc && !mEscAnterior;
+    mEscAnterior = esc;
+
+    if (mPausa.aberto) {
+        ProcessarPausa(keyState, escNovo);
+        return;
+    }
+    if (escNovo && Pausa::PodePausar(mGame->NoGabinete(), EmCombate())) AbrirPausa();
 }
+
+//region Pausa
+void Battle::LoadPausa() {
+    const auto w = static_cast<float>(mGame->GetWindowWidth());
+    const auto h = static_cast<float>(mGame->GetWindowHeight());
+    const Vector2 meio(w / 2.0f, h / 2.0f);
+
+    // O VEU escurece a batalha inteira: ela continua a vista, congelada, para
+    // quem volta saber onde estava cada tiro.
+    auto veu = std::make_unique<Actor>(this);
+    veu->SetPosition(meio);
+    veu->AddComponent<DrawCaixaComponent>(static_cast<int>(w), static_cast<int>(h), kSemMoldura,
+                                          SDL_Color{6, 8, 16, 165}, 0, kOrdemDaPausa);
+    mVeuDaPausa = AddActor(std::move(veu));
+
+    auto placa = std::make_unique<Actor>(this);
+    placa->SetPosition(meio);
+    placa->AddComponent<DrawCaixaComponent>(kLarguraDaPlacaDaPausa, kAlturaDaPlacaDaPausa,
+                                            SDL_Color{120, 140, 180, 230}, SDL_Color{12, 13, 17, 225},
+                                            3, kOrdemDaPausa + 1);
+    mPlacaDaPausa = AddActor(std::move(placa));
+
+    auto titulo = std::make_unique<Actor>(this);
+    titulo->SetPosition(meio + Vector2(0.0f, -128.0f));
+    auto* dcTitulo = titulo->AddComponent<DrawTextComponent>("PAUSA", mGradeBarFont.get(),
+                                                             400, 64, 52, kOrdemDaPausa + 3);
+    dcTitulo->SetAjustarAoTexto(true);
+    mTituloDaPausa = AddActor(std::move(titulo));
+
+    // A moldura da opcao em foco entra antes dos textos e com ordem menor, para
+    // ficar atras deles - como no menu principal.
+    auto selecao = std::make_unique<Actor>(this);
+    selecao->SetPosition(meio);
+    selecao->AddComponent<DrawCaixaComponent>(kLarguraDaSelecaoDaPausa, kAlturaDaSelecaoDaPausa,
+                                              SDL_Color{235, 235, 235, 255}, SDL_Color{34, 38, 48, 150},
+                                              3, kOrdemDaPausa + 2);
+    mSelecaoDaPausa = AddActor(std::move(selecao));
+
+    for (int i = 0; i < Pausa::kQuantas; ++i) {
+        auto opcao = std::make_unique<Actor>(this);
+        opcao->SetPosition(meio + Vector2(0.0f, -40.0f + static_cast<float>(i) * kPassoDaPausa));
+        auto* dc = opcao->AddComponent<DrawTextComponent>(Pausa::Texto(Pausa::kOpcoes[i]), mGradeBarFont.get(),
+                                                          kLarguraDaSelecaoDaPausa - 40, 42, 34,
+                                                          kOrdemDaPausa + 3);
+        dc->SetLarguraDeQuebra(static_cast<unsigned>(kLarguraDaSelecaoDaPausa));
+        dc->SetAjustarAoTexto(true);
+        mOpcoesDaPausa.push_back(AddActor(std::move(opcao)));
+    }
+
+    // O RODAPE SAI DO PAINEL, como o de toda tela (Painel.h). O ESC entra
+    // escrito so aqui: a pausa so existe no computador, e e ele que a fecha.
+    const std::string rodape = Painel::Rodape({Painel::Manche(Painel::Jogador::Um, "escolher"),
+                                               {Painel::Jogador::Um, Painel::Botao::Um, "confirmar"},
+                                               {std::string("ESC"), std::string(), std::string("continuar")}},
+                                              mGame->JeitoDoRodape());
+    auto pe = std::make_unique<Actor>(this);
+    pe->SetPosition(meio + Vector2(0.0f, 150.0f));
+    auto* dcPe = pe->AddComponent<DrawTextComponent>(rodape, mGradeBarFont.get(),
+                                                     kLarguraDaPlacaDaPausa - 40, 28, 18, kOrdemDaPausa + 3);
+    dcPe->SetLarguraDeQuebra(static_cast<unsigned>(kLarguraDaPlacaDaPausa - 40));
+    dcPe->SetAjustarAoTexto(true);
+    mRodapeDaPausa = AddActor(std::move(pe));
+
+    MostrarPausa(false);
+}
+
+void Battle::MostrarPausa(const bool visivel) {
+    for (Actor* a : {mVeuDaPausa, mPlacaDaPausa, mSelecaoDaPausa}) {
+        if (a) if (auto* c = a->GetComponent<DrawCaixaComponent>()) c->SetIsVisible(visivel);
+    }
+    for (Actor* a : {mTituloDaPausa, mRodapeDaPausa}) {
+        if (a) if (auto* t = a->GetComponent<DrawTextComponent>()) t->SetIsVisible(visivel);
+    }
+    for (Actor* a : mOpcoesDaPausa) {
+        if (a) if (auto* t = a->GetComponent<DrawTextComponent>()) t->SetIsVisible(visivel);
+    }
+}
+
+void Battle::PosicionarSelecaoDaPausa() {
+    if (!mSelecaoDaPausa) return;
+    const auto w = static_cast<float>(mGame->GetWindowWidth());
+    const auto h = static_cast<float>(mGame->GetWindowHeight());
+    mSelecaoDaPausa->SetPosition(Vector2(w / 2.0f, h / 2.0f - 40.0f
+                                                   + static_cast<float>(mPausa.selecionada) * kPassoDaPausa));
+}
+
+void Battle::AbrirPausa() {
+    Pausa::Abrir(mPausa);
+    mAtoresCongelados = true;
+
+    // Quem estava segurando o manche ou o tiro quando apertou ESC nao anda no
+    // menu por isso: so conta a batida seguinte.
+    mCimaNaPausa = mBaixoNaPausa = mConfirmarNaPausa = true;
+
+    // O ALUNO PARA ONDE ESTA. Congelado, o Update dele nao roda - mas a
+    // velocidade do ultimo quadro ficaria guardada no corpo dele, e e o
+    // primeiro quadro depois da pausa que a usaria. Zerar aqui faz a volta
+    // comecar parada, como comeca qualquer movimento.
+    for (Player* jogador : mJogadores) {
+        if (jogador) if (auto* rb = jogador->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+    }
+    if (mGame->GetAudio()) mGame->GetAudio()->PauseSound(mMusicHandle);
+
+    PosicionarSelecaoDaPausa();
+    MostrarPausa(true);
+}
+
+void Battle::FecharPausa() {
+    Pausa::Fechar(mPausa);
+    mAtoresCongelados = false;
+    if (mGame->GetAudio()) mGame->GetAudio()->ResumeSound(mMusicHandle);
+    MostrarPausa(false);
+}
+
+void Battle::ProcessarPausa(const Uint8* keyState, const bool escNovo) {
+    if (escNovo) {
+        FecharPausa();
+        return;
+    }
+
+    // QUALQUER UM DOS DOIS mexe no menu: a pausa e da dupla, e quem esta mais
+    // perto do teclado nao precisa pedir ao outro. O ENTER fica como atalho,
+    // sem aparecer escrito - como no menu principal.
+    bool cima = false, baixo = false, confirmar = false;
+    for (const Painel::Jogador quem : Painel::kJogadores) {
+        cima = cima || Painel::Apertado(keyState, quem, Painel::Direcao::Cima);
+        baixo = baixo || Painel::Apertado(keyState, quem, Painel::Direcao::Baixo);
+        confirmar = confirmar || Painel::Apertado(keyState, quem, Painel::Botao::Um);
+    }
+    confirmar = confirmar || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
+
+    if (cima && !mCimaNaPausa) {
+        Pausa::Mover(mPausa, -1);
+        PosicionarSelecaoDaPausa();
+    }
+    if (baixo && !mBaixoNaPausa) {
+        Pausa::Mover(mPausa, 1);
+        PosicionarSelecaoDaPausa();
+    }
+    const bool escolheu = confirmar && !mConfirmarNaPausa;
+    mCimaNaPausa = cima;
+    mBaixoNaPausa = baixo;
+    mConfirmarNaPausa = confirmar;
+    if (escolheu) EscolherNaPausa();
+}
+
+void Battle::EscolherNaPausa() {
+    switch (Pausa::Escolhida(mPausa)) {
+        case Pausa::Opcao::Continuar:
+            FecharPausa();
+            break;
+        case Pausa::Opcao::Recomecar:
+            // A MESMA MATERIA, de novo e do zero: a troca de cena refaz a
+            // batalha com o que o Game guarda - a materia e o orientador.
+            SairDaBatalha(SceneType::Battle);
+            break;
+        case Pausa::Opcao::Sair:
+            SairDaBatalha(SceneType::StageSelect);
+            break;
+    }
+}
+
+void Battle::SairDaBatalha(const SceneType destino) {
+    if (mProjectileManager) {
+        mProjectileManager->ClearBossProjectiles();
+        mProjectileManager->Cleanup();
+    }
+    for (Boss* corpo : Corpos()) if (corpo) corpo->AoTerminarABatalha();
+    mGame->RequestSceneChange(destino);
+}
+//endregion Pausa
 void Battle::CheckCollisions() {
     if (mJogadores.empty() || !mBoss) return;
 

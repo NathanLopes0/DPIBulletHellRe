@@ -152,6 +152,11 @@ public:
         return mGabinete.arcade ? Painel::Jeito::SoOPainel : Painel::Jeito::ComATecla;
     }
 
+    /// @brief Se o jogo abriu no gabinete (--arcade). Quem precisa saber e quem
+    /// muda de comportamento la - a pausa da batalha, que no gabinete nao existe
+    /// (Pausa.h).
+    [[nodiscard]] bool NoGabinete() const { return mGabinete.arcade; }
+
     /// @brief Se a materia ja foi aprovada. A MESMA regra que o desbloqueio le,
     /// e nao uma comparacao com 60 repetida em quem desenha. Do jogador 1 (RF3).
     [[nodiscard]] bool Aprovado(const int materia) const {
