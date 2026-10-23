@@ -18,6 +18,10 @@
 # DPI_ORIENTADOR o codigo da materia do orientador do TCC (INF213, ...): a
 #                batalha que pede orientacao nasce com ele, como se tivesse
 #                sido escolhido na tela de escolha
+# DPI_ESTADO     a fase em que o chefe comeca (StateTwo, StateFinal, ...): mede
+#                ou fotografa uma fase sozinha. Toda batalha comeca com a nota
+#                inicial (40), e StateThree a decide - a StateFinal sozinha mede
+#                quem chega a ela com 40, o pior caso de quem a ve
 #
 # USE VARIAS SEMENTES. Com dois jogadores ha mais colisoes, e cada colisao
 # consome numeros do mesmo sorteador global: a sequencia de ataques diverge da
@@ -72,6 +76,17 @@ edit("Source/Game.cpp", "    ChangeScene(Scene::SceneType::MainMenu);",
         ChangeScene(Scene::SceneType::Battle);
     } else
     ChangeScene(Scene::SceneType::MainMenu);""")
+
+# ---- DPI_ESTADO: o chefe comeca na fase pedida. A ancora e a mesma linha nas
+# ---- onze fabricas; uma fabrica nova que a escreva de outro jeito derruba o
+# ---- arnes aqui, em vez de comecar calada na fase 1.
+import glob, os
+for arq in sorted(glob.glob("Source/Actors/Teachers/BossFactory/*Factory.cpp")):
+    fab = os.path.basename(arq)[:-4]
+    if fab == "IBossFactory": continue
+    edit(arq, 'boss->SetInitialState("StateOne");',
+         'boss->SetInitialState(std::getenv("DPI_ESTADO") ? std::getenv("DPI_ESTADO") : "StateOne");')
+    edit(arq, '#include "' + fab + '.h"', '#include "' + fab + '.h"\n#include <cstdlib>')
 
 # ---- passo de tempo fixo
 edit("Source/Game.cpp", "        while(!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16)) {}",
