@@ -172,4 +172,42 @@ namespace Banco {
     /// @brief O x do professor quando ele le a coluna c, numa tabela de
     /// 'largura'.
     float XDoProfessor(int coluna, float largura);
+
+    // ---- A REPESCAGEM: O PRODUTO CARTESIANO ---------------------------------
+    //
+    // "SELECT * FROM alunos, cursos" - o JOIN que esqueceu o WHERE, e por isso
+    // junta TUDO com TUDO. O banco executa num laco aninhado, e e o laco que se
+    // ve: uma casa por vez acende e se enche, ate a tabela inteira ter passado.
+    // Nao ha casa que escape - quem fica parado e atingido a cada volta -, e o
+    // lugar seguro e o que o laco ja leu. O placar diz o PLANO da volta: em que
+    // ordem o laco anda.
+
+    constexpr const char* kFaseDoProduto = "StateFinal";
+
+    enum class Plano { PorLinha, PorColuna, DeTrasParaFrente, ZigueZague };
+    constexpr int kPlanos = 4;
+
+    /// @brief Todas as casas, na ordem em que o plano as le.
+    std::vector<Casa> Produto(Plano plano);
+
+    /// @brief O plano da volta 'vez': os quatro, um depois do outro.
+    Plano PlanoDaVolta(int vez);
+
+    /// @brief "JOIN sem WHERE: por linha", "... por coluna", "... de tras pra
+    /// frente", "... em zigue-zague".
+    std::string PlacarDoProduto(Plano plano);
+
+    /// @brief De quanto em quanto tempo o laco passa para a casa seguinte, na
+    /// volta 'vez': cada volta mais depressa, ate kPassoMinimoDoProduto.
+    float PassoDoProduto(int vez);
+
+    /// O relogio da repescagem: a primeira volta, quanto antes de acender a casa
+    /// fica marcada (com 0,55s, so tres de cinco sementes aprovavam quem desvia;
+    /// com 0,7s, cinco de seis), e a pausa entre uma volta e a seguinte.
+    constexpr float kPrimeiroProduto = 1.0f;
+    constexpr float kAvisoDoProduto = 0.7f;
+    constexpr float kEntreVoltas = 0.8f;
+    constexpr float kPassoDoProduto = 0.15f;
+    constexpr float kPassoMinimoDoProduto = 0.10f;
+    constexpr float kAceleracaoDoProduto = 0.01f;
 }

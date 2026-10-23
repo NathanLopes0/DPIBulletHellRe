@@ -174,49 +174,42 @@
     ]
   },
 
-  // FASE FINAL - CROSS JOIN: o produto cartesiano.
+  // FASE FINAL - O PRODUTO CARTESIANO   |   gesto: O LACO QUE ANDA
   //
-  // A juncao sem condicao, o acidente classico de quem esquece o ON: o banco
-  // devolve TODAS as combinacoes e o servidor para. Aqui sao linhas e colunas
-  // ao mesmo tempo, formando uma treliça.
+  // "SELECT * FROM alunos, cursos": o JOIN que esqueceu o WHERE e por isso junta
+  // TUDO com TUDO - o acidente classico que trava o servidor. O banco o executa
+  // num laco aninhado, e e o laco que se ve (Banco.h): uma casa por vez e
+  // marcada e, 0,7s depois, se enche, ate a tabela inteira ter passado. Cada
+  // volta tem um PLANO, e o placar o diz - por linha, por coluna, de tras pra
+  // frente, em zigue-zague -, e cada volta anda mais depressa (0,15s por casa
+  // na primeira, ate 0,10s).
   //
-  // OS INDICES SAO FIXOS, e e o que torna isto dificil em vez de injusto: as
-  // consultas nao perseguem ninguem, elas cobrem posicoes conhecidas. As
-  // celulas seguras existem e sao as mesmas toda vez - o jogador que leu a
-  // treliça sobrevive. Perseguir o jogador AQUI, com tudo isso em tela, seria
-  // uma fase que nao se pode vencer.
+  // NAO HA CASA QUE ESCAPE. A versao anterior desta fase era uma trelica de
+  // indices fixos - as linhas 0 e 2 e as colunas 1 e 3 -, e as casas das linhas
+  // 1 e 3 nas colunas 0, 2 e 4 nunca eram varridas: o aluno parado no meio de
+  // baixo terminava a repescagem sem acerto nenhum e com 88,4, so atirando no
+  // professor parado no centro. Agora toda casa acende a cada volta, e o lugar
+  // seguro e o que o laco ja leu: e ler o plano e andar atras dele.
   //
-  // Linhas 0 e 2, colunas 1 e 3: deixam livres as linhas 1 e 3 e as colunas
-  // 0, 2 e 4, que e onde o jogador tem de estar quando a treliça fecha.
+  // MEDIDO COM A FASE SOZINHA (comecando com 40), em seis sementes: o parado
+  // reprova em todas, de 22,0 a 27,6 e com 3 acertos; o que persegue e o piloto
+  // de fora do repositorio que sai da casa marcada passam em cinco (de 63,3 a
+  // 76,2, e de 62,1 a 75,7 com 2 acertos), e caem para 52 na mesma semente. Com
+  // o aviso de 0,55s eram so tres de cinco de cada.
   "StateFinal": {
     "duracao": 17,
     "proximo": "StateOne",
-    "movimento": { "tipo": "GoToCenter" },
+    "anuncio": "SELECT * FROM alunos, cursos",
+    "movimento": { "tipo": "Conduzido", "a": 600 },
     "ataques": [
       { "gatilho": "cabecalho", "estrategia": "WaveAttack", "projetil": "Cabecalho",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
       { "gatilho": "registro", "estrategia": "WaveAttack", "projetil": "Dado",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
-      { "estrategia": "ConsultaAttack", "projetil": "Celula",
-        "projeteis": 7, "velocidade": 720, "cooldown": 2.0,
-        "consulta": { "eixo": "Linha", "linhas": 4, "indice": 0, "aviso": 0.9 },
-        "regras": "varredura" },
-
-      { "estrategia": "ConsultaAttack", "projetil": "Celula",
-        "projeteis": 7, "velocidade": 700, "cooldown": 1.8,
-        "consulta": { "eixo": "Linha", "linhas": 4, "indice": 2, "aviso": 0.9,
-                      "invertido": true },
-        "regras": "varredura" },
-
-      { "estrategia": "ConsultaAttack", "projetil": "Celula",
-        "projeteis": 8, "velocidade": 680, "cooldown": 1.6,
-        "consulta": { "eixo": "Coluna", "colunas": 5, "indice": 1, "aviso": 1.2, "invertido": true },
-        "regras": "juncao" },
-
-      { "estrategia": "ConsultaAttack", "projetil": "Celula",
-        "projeteis": 8, "velocidade": 740, "cooldown": 2.2,
-        "consulta": { "eixo": "Coluna", "colunas": 5, "indice": 3, "aviso": 1.2 },
-        "regras": "juncao" }
+      { "gatilho": "marcar", "estrategia": "WaveAttack", "projetil": "Aviso",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "aviso" },
+      { "gatilho": "celula", "estrategia": "WaveAttack", "projetil": "Celula",
+        "projeteis": 12, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "clarao" }
     ]
   }
 }

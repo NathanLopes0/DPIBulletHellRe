@@ -208,6 +208,45 @@ namespace Banco {
         return coluna >= kColunas - 1 ? meio - kAoLado : meio + kAoLado;
     }
 
+    std::vector<Casa> Produto(const Plano plano) {
+        std::vector<Casa> casas;
+        switch (plano) {
+            case Plano::PorLinha:
+                for (int l = 0; l < kLinhas; ++l) for (int c = 0; c < kColunas; ++c) casas.push_back({l, c});
+                break;
+            case Plano::PorColuna:
+                for (int c = 0; c < kColunas; ++c) for (int l = 0; l < kLinhas; ++l) casas.push_back({l, c});
+                break;
+            case Plano::DeTrasParaFrente:
+                for (int l = kLinhas - 1; l >= 0; --l) for (int c = kColunas - 1; c >= 0; --c) casas.push_back({l, c});
+                break;
+            case Plano::ZigueZague:
+                for (int l = 0; l < kLinhas; ++l) {
+                    for (int k = 0; k < kColunas; ++k) casas.push_back({l, l % 2 == 0 ? k : kColunas - 1 - k});
+                }
+                break;
+        }
+        return casas;
+    }
+
+    Plano PlanoDaVolta(const int vez) {
+        return static_cast<Plano>(((vez % kPlanos) + kPlanos) % kPlanos);
+    }
+
+    std::string PlacarDoProduto(const Plano plano) {
+        switch (plano) {
+            case Plano::PorLinha:         return "JOIN sem WHERE: por linha";
+            case Plano::PorColuna:        return "JOIN sem WHERE: por coluna";
+            case Plano::DeTrasParaFrente: return "JOIN sem WHERE: de tr\xC3\xA1s pra frente";
+            case Plano::ZigueZague:       return "JOIN sem WHERE: em zigue-zague";
+        }
+        return "";
+    }
+
+    float PassoDoProduto(const int vez) {
+        return std::max(kPassoMinimoDoProduto, kPassoDoProduto - kAceleracaoDoProduto * static_cast<float>(std::max(0, vez)));
+    }
+
     std::vector<int> Ordenar(Registros& regs, const Coluna c) {
         std::vector<int> antes(regs.size());
         std::iota(antes.begin(), antes.end(), 0);

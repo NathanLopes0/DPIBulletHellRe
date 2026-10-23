@@ -5,6 +5,7 @@
 #include "doctest.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <set>
 
 #include "../Source/Attacks/Banco.h"
@@ -166,4 +167,47 @@ TEST_CASE("Banco: o ORDER BY ordena, e diz de onde veio cada registro") {
     CHECK(std::is_sorted(Banco::kCursos.begin(), Banco::kCursos.end(), [](const char* a, const char* b) {
         return std::string(a) < std::string(b);
     }));
+}
+
+TEST_CASE("Banco: todo plano do produto cartesiano passa por toda casa, uma vez") {
+    for (int k = 0; k < Banco::kPlanos; ++k) {
+        const auto plano = static_cast<Banco::Plano>(k);
+        CAPTURE(k);
+        const auto casas = Banco::Produto(plano);
+        REQUIRE(static_cast<int>(casas.size()) == Banco::kLinhas * Banco::kColunas);
+        std::set<std::pair<int, int>> vistas;
+        for (const auto& c : casas) {
+            CHECK(c.linha >= 0);
+            CHECK(c.linha < Banco::kLinhas);
+            CHECK(c.coluna >= 0);
+            CHECK(c.coluna < Banco::kColunas);
+            vistas.insert({c.linha, c.coluna});
+        }
+        CHECK(static_cast<int>(vistas.size()) == Banco::kLinhas * Banco::kColunas);
+        // O LACO ANDA DE VIZINHA EM VIZINHA, menos na virada do laco de fora:
+        // e o que deixa o plano ser seguido com os olhos.
+        int saltos = 0;
+        for (size_t i = 1; i < casas.size(); ++i) {
+            const int d = std::abs(casas[i].linha - casas[i - 1].linha) + std::abs(casas[i].coluna - casas[i - 1].coluna);
+            if (d != 1) ++saltos;
+        }
+        CHECK(saltos <= std::max(Banco::kLinhas, Banco::kColunas));
+    }
+    CHECK(Banco::Produto(Banco::Plano::PorLinha).front() == Banco::Casa{0, 0});
+    CHECK(Banco::Produto(Banco::Plano::PorColuna)[1] == Banco::Casa{1, 0});
+    CHECK(Banco::Produto(Banco::Plano::DeTrasParaFrente).front() == Banco::Casa{Banco::kLinhas - 1, Banco::kColunas - 1});
+    CHECK(Banco::Produto(Banco::Plano::ZigueZague)[Banco::kColunas] == Banco::Casa{1, Banco::kColunas - 1});
+}
+
+TEST_CASE("Banco: as voltas do produto seguem os quatro planos, cada uma mais depressa") {
+    for (int vez = 0; vez < 12; ++vez) {
+        CHECK(static_cast<int>(Banco::PlanoDaVolta(vez)) == vez % Banco::kPlanos);
+        CHECK(Banco::PassoDoProduto(vez + 1) <= Banco::PassoDoProduto(vez));
+        CHECK(Banco::PassoDoProduto(vez) >= Banco::kPassoMinimoDoProduto);
+    }
+    CHECK(Banco::PassoDoProduto(0) == doctest::Approx(Banco::kPassoDoProduto));
+    CHECK(Banco::PassoDoProduto(100) == doctest::Approx(Banco::kPassoMinimoDoProduto));
+    CHECK(Banco::PlacarDoProduto(Banco::Plano::PorLinha) == "JOIN sem WHERE: por linha");
+    CHECK(Banco::PlacarDoProduto(Banco::Plano::PorColuna) == "JOIN sem WHERE: por coluna");
+    CHECK(Banco::PlacarDoProduto(Banco::Plano::ZigueZague) == "JOIN sem WHERE: em zigue-zague");
 }

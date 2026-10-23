@@ -47,13 +47,6 @@
     { "animacao": "Linha", "escala": 1.5 }
   ],
 
-  // A juncao da fase final: as colunas do produto cartesiano, maiores que as
-  // linhas para que a treliça tenha dois pesos visuais e de para ler qual eixo
-  // esta fechando primeiro.
-  "juncao": [
-    { "animacao": "Linha", "escala": 2.5 }
-  ],
-
   // A TABELA ESCRITA NO CAMPO: o valor de cada casa e o cabecalho de cada
   // coluna ficam no posto "tabela" (Banco.h), e o Thiago os mantem no lugar.
   "tabela": [
@@ -66,9 +59,18 @@
     { "posto": "aviso" }
   ],
 
-  // A CASA QUE ACENDE (as duas operacoes juntas): doze pedacos de celula,
-  // parados, que cobrem a casa inteira por um instante (Banco::kDuracaoDaCasa).
+  // A CASA QUE ACENDE (as duas operacoes juntas, e o produto cartesiano): doze
+  // pedacos de celula, parados, que cobrem a casa INTEIRA por um instante
+  // (Banco::kDuracaoDaCasa).
+  //
+  // A ESCALA E A DA COBERTURA, e nao a do desenho. O colisor do aluno tem um
+  // decimo da largura dele (3px), entao o que conta e o raio do pedaco: numa
+  // grade de 4 x 3 numa casa de 240 x 187, o ponto mais longe de todo centro
+  // fica a 43px de algum. Na escala 3 (raio 24) sobravam furos - medido, o
+  // piloto parado no meio de baixo atravessou a repescagem sem acerto nenhum,
+  // com a casa dele acendendo a cada volta. Na 5,25 o raio e 42, e com o do
+  // aluno passa dos 43; os pedacos se sobrepoem, e a casa acende cheia.
   "clarao": [
-    { "animacao": "Linha", "escala": 3 }
+    { "animacao": "Linha", "escala": 5.25 }
   ]
 }

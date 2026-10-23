@@ -29,6 +29,7 @@ void Thiago::OnUpdate(const float deltaTime) {
     if (!fsm || fsm->GetStateName().empty()) return;
     if (!mTabelaCriada) CriarTabela();
     AtualizarSelecao(deltaTime);
+    AtualizarProduto();
     AtualizarTabela(deltaTime);
 }
 
@@ -158,11 +159,7 @@ void Thiago::AtualizarSelecao(const float deltaTime) {
     if (!naSelecao) {
         // A FASE ACABOU: o que estava aceso apaga, e o placar volta ao do arquivo.
         if (mNaSelecao) {
-            for (const Marca& m : mMarcas) if (m.p->GetState() == ActorState::Active) m.p->Kill();
-            for (const Clarao& c : mClaroes) if (c.p->GetState() == ActorState::Active) c.p->Kill();
-            mMarcas.clear();
-            mClaroes.clear();
-            mPendentes.clear();
+            ApagarCasas();
             if (!mAnuncioDaSelecao.empty()) RegistrarAnuncio(Banco::kFaseDaSelecao, mAnuncioDaSelecao);
             mAlvo.reset();
             mNaSelecao = false;
@@ -221,6 +218,18 @@ void Thiago::AtualizarSelecao(const float deltaTime) {
         }
     }
 
+    AtualizarCasas(agora);
+}
+
+void Thiago::ApagarCasas() {
+    for (const Marca& m : mMarcas) if (m.p->GetState() == ActorState::Active) m.p->Kill();
+    for (const Clarao& c : mClaroes) if (c.p->GetState() == ActorState::Active) c.p->Kill();
+    mMarcas.clear();
+    mClaroes.clear();
+    mPendentes.clear();
+}
+
+void Thiago::AtualizarCasas(const float agora) {
     // AS CASAS QUE ACENDEM: cada uma se enche de pedacos, por um instante.
     for (auto it = mPendentes.begin(); it != mPendentes.end();) {
         if (agora < it->quando) { ++it; continue; }
@@ -258,6 +267,63 @@ void Thiago::AtualizarSelecao(const float deltaTime) {
         if (it->p->GetState() == ActorState::Active) it->p->Kill();
         it = mClaroes.erase(it);
     }
+}
+
+// ---------------------------------------------------------------------------
+// A REPESCAGEM: O PRODUTO CARTESIANO
+// ---------------------------------------------------------------------------
+
+void Thiago::AtualizarProduto() {
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool noProduto = fsm && fsm->GetStateName() == Banco::kFaseDoProduto;
+
+    if (!noProduto) {
+        if (mNoProduto) {
+            ApagarCasas();
+            mAgendadas.clear();
+            if (!mAnuncioDoProduto.empty()) RegistrarAnuncio(Banco::kFaseDoProduto, mAnuncioDoProduto);
+            mAlvo.reset();
+            mNoProduto = false;
+        }
+        return;
+    }
+    if (!mNoProduto) {
+        mNoProduto = true;
+        mVolta = 0;
+        mAgendadas.clear();
+        mProximaVolta = Banco::kPrimeiroProduto;
+        if (mAnuncioDoProduto.empty()) mAnuncioDoProduto = AnuncioDaFase(Banco::kFaseDoProduto);
+        mAlvo = Vector2(Banco::XDoProfessor(Banco::kColunas / 2, Campo().w), Banco::kYDoProfessor);
+    }
+    const float agora = fsm->GetStateTime();
+
+    // UMA VOLTA NOVA DO LACO: o placar diz o plano, e cada casa ganha a hora
+    // de ser marcada - uma depois da outra, cada volta mais depressa.
+    if (mAgendadas.empty() && agora >= mProximaVolta) {
+        const Banco::Plano plano = Banco::PlanoDaVolta(mVolta);
+        const float passo = Banco::PassoDoProduto(mVolta);
+        ++mVolta;
+        RegistrarAnuncio(Banco::kFaseDoProduto, Banco::PlacarDoProduto(plano));
+        const auto casas = Banco::Produto(plano);
+        for (size_t k = 0; k < casas.size(); ++k) {
+            mAgendadas.push_back(Agendada{casas[k], agora + passo * static_cast<float>(k)});
+        }
+        // O professor le de uma coluna sorteada, a volta inteira.
+        const int coluna = Random::GetIntRange(0, Banco::kColunas - 1);
+        mAlvo = Vector2(Banco::XDoProfessor(coluna, Campo().w), Banco::kYDoProfessor);
+        mProximaVolta = agora + passo * static_cast<float>(casas.size()) + Banco::kAvisoDoProduto
+                      + Banco::kDuracaoDaCasa + Banco::kEntreVoltas;
+    }
+
+    // A CASA DA VEZ E MARCADA, e acende kAvisoDoProduto depois.
+    for (auto it = mAgendadas.begin(); it != mAgendadas.end();) {
+        if (agora < it->marca) { ++it; continue; }
+        Marcar({it->casa}, it->marca + Banco::kAvisoDoProduto);
+        mPendentes.push_back(Pendente{{it->casa}, it->marca + Banco::kAvisoDoProduto});
+        it = mAgendadas.erase(it);
+    }
+
+    AtualizarCasas(agora);
 }
 
 // ---------------------------------------------------------------------------

@@ -126,6 +126,24 @@ private:
     struct Clarao { BossProjectile* p = nullptr; float ate = 0.0f; };
     std::vector<Clarao> mClaroes;
 
+    /// As casas que acenderam ou vao acender, de qualquer fase: o que tem hora
+    /// para acabar acaba, e o fim da fase apaga tudo.
+    void AtualizarCasas(float agora);
+    void ApagarCasas();
+
+    // ---- A REPESCAGEM: O PRODUTO CARTESIANO ---------------------------------
+
+    void AtualizarProduto();
+
+    bool mNoProduto = false;
+    int mVolta = 0;
+    float mProximaVolta = 0.0f;
+    std::string mAnuncioDoProduto;
+
+    /// A casa da volta em curso, e a hora em que ela e marcada.
+    struct Agendada { Banco::Casa casa; float marca = 0.0f; };
+    std::vector<Agendada> mAgendadas;
+
     std::optional<Vector2> mAlvo;
 
     /// Quao depressa uma casa chega ao lugar dela (Ancora::Aproximar): devagar,

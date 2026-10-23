@@ -1673,7 +1673,7 @@ TEST_CASE("Dados: o bubble sort do Salles - gatilhos, posto e caras sao nomes qu
     }
 }
 
-TEST_CASE("Dados: a tabela do Thiago - toda fase a monta, e o SELECT da fase 1 tem os numeros de Banco.h") {
+TEST_CASE("Dados: a tabela do Thiago - toda fase a monta, e o SELECT e o produto tem os numeros de Banco.h") {
     for (const char* g : {Banco::kGatilhoDoCabecalho, Banco::kGatilhoDoDado, Banco::kGatilhoDoAviso,
                           Banco::kGatilhoDaSelecao, Banco::kGatilhoDaProjecao, Banco::kGatilhoDaCasa}) {
         CAPTURE(g);
@@ -1728,6 +1728,21 @@ TEST_CASE("Dados: a tabela do Thiago - toda fase a monta, e o SELECT da fase 1 t
         CHECK(gatilhos.count(Banco::kGatilhoDoCabecalho) == 1);
         CHECK(gatilhos.count(Banco::kGatilhoDoDado) == 1);
 
+        // O MARCADOR E A CASA QUE ACENDE servem ao SELECT e ao produto
+        // cartesiano: em qualquer fase, o marcador no posto do aviso, e a casa
+        // com o numero de pedacos que o Thiago espalha nela.
+        for (const auto& a : f.ataques) {
+            if (a.gatilho == Banco::kGatilhoDoAviso) CHECK(postoDe(a.regrasNome) == Banco::kPostoDoAviso);
+            if (a.gatilho == Banco::kGatilhoDaCasa) {
+                REQUIRE(a.projeteis.has_value());
+                CHECK(*a.projeteis == Banco::kPedacosNaLargura * Banco::kPedacosNaAltura);
+            }
+        }
+        if (f.nome == Banco::kFaseDoProduto) {
+            CHECK(gatilhos.count(Banco::kGatilhoDoAviso) == 1);
+            CHECK(gatilhos.count(Banco::kGatilhoDaCasa) == 1);
+        }
+
         if (f.nome != Banco::kFaseDaSelecao) continue;
         for (const char* g : {Banco::kGatilhoDoAviso, Banco::kGatilhoDaSelecao, Banco::kGatilhoDaProjecao,
                               Banco::kGatilhoDaCasa}) {
@@ -1735,11 +1750,6 @@ TEST_CASE("Dados: a tabela do Thiago - toda fase a monta, e o SELECT da fase 1 t
             CHECK(gatilhos.count(g) == 1);
         }
         for (const auto& a : f.ataques) {
-            if (a.gatilho == Banco::kGatilhoDoAviso) CHECK(postoDe(a.regrasNome) == Banco::kPostoDoAviso);
-            if (a.gatilho == Banco::kGatilhoDaCasa) {
-                REQUIRE(a.projeteis.has_value());
-                CHECK(*a.projeteis == Banco::kPedacosNaLargura * Banco::kPedacosNaAltura);
-            }
             // A VARREDURA E A DA TABELA DE Banco.h: a mesma forma, e o aviso e a
             // velocidade que o Thiago escreve ao disparar - os daqui nao podem
             // dizer outra coisa.
