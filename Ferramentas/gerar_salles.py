@@ -123,6 +123,64 @@ def pilha():
     return folha
 
 
+# A TABELA HASH DA FASE 2: as chaves (0 a 99), os baldes (0 a 16), o tiro do
+# percurso e o NULL do fim da lista. As chaves sao ambar, como a lista
+# encadeada que elas formam; os baldes sao a fileira escura da tabela.
+CHAVE = (236, 190, 100, 255)
+CHAVE_CLARA = (250, 220, 150, 255)
+TRACO_CHAVE = (70, 46, 20, 255)
+BALDE = (52, 70, 110, 255)
+BALDE_BORDA = (140, 170, 220, 255)
+NULO = (210, 90, 90, 255)
+
+
+def no_quadro(desenho):
+    s = 4
+    L = 40
+    im = Image.new("RGBA", (L * s, L * s), (0, 0, 0, 0))
+    desenho(ImageDraw.Draw(im), s)
+    return im.resize((L, L), Image.LANCZOS)
+
+
+def chave(k):
+    def desenho(d, s):
+        d.rectangle([18 * s, 32 * s, 22 * s, 40 * s], fill=TRACO_CHAVE)    # o next, para baixo
+        d.rounded_rectangle([3 * s, 3 * s, 37 * s, 33 * s], radius=6 * s, fill=CHAVE, outline=TRACO_CHAVE, width=2 * s)
+        d.rounded_rectangle([7 * s, 6 * s, 33 * s, 11 * s], radius=2 * s, fill=CHAVE_CLARA)
+        d.text((20 * s, 19 * s), str(k), fill=TRACO_CHAVE, font=ImageFont.truetype(CARLITO, 18 * s), anchor="mm")
+    return no_quadro(desenho)
+
+
+def balde(i):
+    def desenho(d, s):
+        d.rectangle([2 * s, 6 * s, 38 * s, 34 * s], fill=BALDE, outline=BALDE_BORDA, width=2 * s)
+        d.text((20 * s, 20 * s), str(i), fill=(230, 240, 255, 255), font=ImageFont.truetype(CARLITO, 18 * s), anchor="mm")
+    return no_quadro(desenho)
+
+
+def percurso():
+    def desenho(d, s):
+        d.ellipse([13 * s, 13 * s, 27 * s, 27 * s], fill=CHAVE_CLARA, outline=TRACO_CHAVE, width=2 * s)
+    return no_quadro(desenho)
+
+
+def nulo():
+    def desenho(d, s):
+        d.rounded_rectangle([2 * s, 8 * s, 38 * s, 32 * s], radius=5 * s, fill=NULO, outline=(80, 20, 20, 255), width=2 * s)
+        d.text((20 * s, 20 * s), "NULL", fill=(255, 235, 235, 255), font=ImageFont.truetype(CARLITO, 12 * s), anchor="mm")
+    return no_quadro(desenho)
+
+
+def hash_():
+    """As 100 chaves, os 17 baldes, o percurso (117) e o NULL (118)."""
+    quadros = [chave(k) for k in range(100)] + [balde(i) for i in range(17)] + [percurso(), nulo()]
+    linhas = (len(quadros) + 3) // 4
+    folha = Image.new("RGBA", (40 * 4, 40 * linhas), (0, 0, 0, 0))
+    for i, q in enumerate(quadros):
+        folha.alpha_composite(q, ((i % 4) * 40, (i // 4) * 40))
+    return folha, len(quadros)
+
+
 def grava(im, nome, pasta, largo, alto, quadros):
     destino = os.path.join(RAIZ, pasta)
     os.makedirs(destino, exist_ok=True)
@@ -135,3 +193,5 @@ def grava(im, nome, pasta, largo, alto, quadros):
 if __name__ == "__main__":
     grava(capivarona(), "DPIBHSallesCapivarona", "Assets/Teachers/Projectiles", 96, 64, 8)
     grava(pilha(), "DPIBHSallesPilha", "Assets/Teachers/Projectiles", 40, 40, 11)
+    folha, n = hash_()
+    grava(folha, "DPIBHSallesHash", "Assets/Teachers/Projectiles", 40, 40, n)

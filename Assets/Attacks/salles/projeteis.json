@@ -138,5 +138,64 @@
     "animacaoInicial": "Lasca",
     "escala": 1.6,
     "ordemDeDesenho": 90
+  },
+
+  // A TABELA HASH DA FASE 2 (Hash.h). A CHAVE, de 0 a 99, pendurada na lista do
+  // balde dela: derrubavel com dois tiros - o aluno remove a chave a tiro, e o
+  // tiro que sobe acerta primeiro o fim da lista. Quem escolhe a cara e o
+  // Salles (Hash::CaraDaChave).
+  //
+  // Arte PROVISORIA de Ferramentas/gerar_salles.py.
+  "Chave": {
+    "sprite": "Teachers/Projectiles/DPIBHSallesHash.png",
+    "dados":  "Teachers/Projectiles/DPIBHSallesHash.json",
+    "animacoes": {
+      "K0": [0], "K1": [1], "K2": [2], "K3": [3], "K4": [4], "K5": [5], "K6": [6], "K7": [7], "K8": [8], "K9": [9]
+      , "K10": [10], "K11": [11], "K12": [12], "K13": [13], "K14": [14], "K15": [15], "K16": [16], "K17": [17], "K18": [18], "K19": [19]
+      , "K20": [20], "K21": [21], "K22": [22], "K23": [23], "K24": [24], "K25": [25], "K26": [26], "K27": [27], "K28": [28], "K29": [29]
+      , "K30": [30], "K31": [31], "K32": [32], "K33": [33], "K34": [34], "K35": [35], "K36": [36], "K37": [37], "K38": [38], "K39": [39]
+      , "K40": [40], "K41": [41], "K42": [42], "K43": [43], "K44": [44], "K45": [45], "K46": [46], "K47": [47], "K48": [48], "K49": [49]
+      , "K50": [50], "K51": [51], "K52": [52], "K53": [53], "K54": [54], "K55": [55], "K56": [56], "K57": [57], "K58": [58], "K59": [59]
+      , "K60": [60], "K61": [61], "K62": [62], "K63": [63], "K64": [64], "K65": [65], "K66": [66], "K67": [67], "K68": [68], "K69": [69]
+      , "K70": [70], "K71": [71], "K72": [72], "K73": [73], "K74": [74], "K75": [75], "K76": [76], "K77": [77], "K78": [78], "K79": [79]
+      , "K80": [80], "K81": [81], "K82": [82], "K83": [83], "K84": [84], "K85": [85], "K86": [86], "K87": [87], "K88": [88], "K89": [89]
+      , "K90": [90], "K91": [91], "K92": [92], "K93": [93], "K94": [94], "K95": [95], "K96": [96], "K97": [97], "K98": [98], "K99": [99]
+    },
+    "animacaoInicial": "K0",
+    "ordemDeDesenho": 89,
+    "derrubavel": true,
+    "resistencia": 2
+  },
+
+  // OS BALDES, a fileira da tabela: enfeite (Salles::FormarBaldes). Ate 17, o
+  // maior tamanho de Hash::kTamanhos.
+  "Balde": {
+    "sprite": "Teachers/Projectiles/DPIBHSallesHash.png",
+    "dados":  "Teachers/Projectiles/DPIBHSallesHash.json",
+    "animacoes": {
+      "B0": [100], "B1": [101], "B2": [102], "B3": [103], "B4": [104], "B5": [105], "B6": [106], "B7": [107], "B8": [108], "B9": [109], "B10": [110], "B11": [111], "B12": [112], "B13": [113], "B14": [114], "B15": [115], "B16": [116]
+    },
+    "animacaoInicial": "B0",
+    "escala": 1.3,
+    "ordemDeDesenho": 86
+  },
+
+  // O TIRO DE CADA NO LIDO numa busca, e o NULL que cai do fim da lista quando
+  // ela nao acha.
+  "Percurso": {
+    "sprite": "Teachers/Projectiles/DPIBHSallesHash.png",
+    "dados":  "Teachers/Projectiles/DPIBHSallesHash.json",
+    "animacoes": { "Percurso": [117] },
+    "animacaoInicial": "Percurso",
+    "escala": 1.8,
+    "ordemDeDesenho": 90
+  },
+  "Nulo": {
+    "sprite": "Teachers/Projectiles/DPIBHSallesHash.png",
+    "dados":  "Teachers/Projectiles/DPIBHSallesHash.json",
+    "animacoes": { "Nulo": [118] },
+    "animacaoInicial": "Nulo",
+    "escala": 1.5,
+    "ordemDeDesenho": 90
   }
 }

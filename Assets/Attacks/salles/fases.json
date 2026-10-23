@@ -94,42 +94,47 @@
     ]
   },
 
-  // FASE 2 - LISTA DUPLAMENTE ENCADEADA: vai ate o fim, PARA, e volta por onde veio.
+  // FASE 2 - A TABELA HASH   |   gesto: O PROFESSOR VAI AO BALDE
   //
-  // A fila se forma como na fase 1. Em 0,85s o caminho assume, leva todos ate o
-  // fim da tela, SEGURA A FILA PARADA POR 0,8s e entao manda a fila inteira de
-  // volta exatamente pelo caminho que fez.
+  // A TABELA ESTA NO ALTO DO CAMPO (Hash.h): m baldes lado a lado, e de cada um
+  // pende a lista das chaves que cairam nele - encadeamento. A cada 0,75s, uma
+  // operacao, e o placar a escreve por extenso:
   //
-  // A parada e o que faz a fase. Sem ela, a volta parecia so mais uma curva; com
-  // ela o jogador ve a fila CHEGAR AO FIM, decidir, e refazer o percurso - que e
-  // o que uma lista duplamente encadeada permite e uma simples nao. E durante os
-  // 0,8s parados os nos continuam visiveis e com colisor: viram uma parede.
+  //   INSERIR    h(23) = 23 mod 7 = 2: a chave sai do professor e vai para o
+  //              fim da lista do balde 2. Duas no mesmo balde sao uma colisao,
+  //              e a lista cresce para baixo.
+  //   BUSCAR     busca(23): o professor percorre a lista do balde, no por no, e
+  //              cada no lido atira um leque de tres no aluno - uma lista de
+  //              muitas colisoes e uma rajada longa.
+  //              Achando, a chave sai atirada no aluno; nao achando, o NULL do
+  //              fim da lista cai pela coluna inteira. E quem limpou a propria
+  //              coluna a tiro acha o NULL em cima dele: lista vazia, busca
+  //              sem achar.
+  //   REHASH     com mais chaves que baldes, a tabela cresce para o proximo primo
+  //              (7, 11, 13, 17), e toda chave muda de balde na frente do aluno.
   //
-  // OS NUMEROS ANDAM JUNTOS: 8 projeteis x 0,10 de intervalo = 0,70s ate o
-  // ultimo no despertar, e o "atraso": 0,85 do caminho tem de passar disso.
-  // Mexer em um exige revisar o outro - a explicacao esta em "lista_dupla".
+  // O ALUNO REMOVE A TIRO: a chave e derrubavel com dois tiros, e o tiro que
+  // sobe acerta primeiro o fim da lista.
   //
-  // O cooldown 3,6 cobre o ciclo inteiro (0,85 ate o caminho + 0,75 de ida + 0,8
-  // parado + a volta). Mais curto que isso e uma fila nova sai enquanto a
-  // anterior ainda esta voltando, e as duas se cruzam em sentidos opostos.
-  //
-  // ATENCAO: OS DOIS PARAGRAFOS ACIMA ENVELHECERAM e nao foram corrigidos,
-  // porque nao da para saber sem jogar qual lado esta certo. O "atraso" em
-  // regras.json ("lista_dupla") e 1,2, e nao 0,85, e o cooldown abaixo e 1,2, e
-  // nao 3,6 - entao as filas se cruzam, e pode ter sido de proposito. A regra
-  // critica continua valendo (1,2 > 0,70, e ha teste exigindo). A conta de
-  // 332px em Assets/Paths/formas.json tambem saiu do 0,85.
+  // O PROFESSOR VAI AO BALDE DA OPERACAO (o movimento "Conduzido").
   "StateTwo": {
     "duracao": 17,
     "proximo": "StateThree",
-    "movimento": { "tipo": "RandomWander", "a": 2.0, "b": 500 },
+    "anuncio": "h(k) = k mod m",
+    "movimento": { "tipo": "Conduzido", "a": 700 },
     "ataques": [
       { "gatilho": "capivara", "estrategia": "WaveAttack", "projetil": "Capivarona",
         "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0 },
-      { "estrategia": "WaveAttack", "projetil": "Duplamente",
-        "projeteis": 8, "velocidade": 400, "angulo": 0, "intervalo": 0.10,
-        "cooldown": 1.2,
-        "regras": "lista_dupla" }
+      { "gatilho": "baldes", "estrategia": "WaveAttack", "projetil": "Balde",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "baldes" },
+      { "gatilho": "chave", "estrategia": "WaveAttack", "projetil": "Chave",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "chaves" },
+      { "gatilho": "percorrer", "estrategia": "WaveAttack", "projetil": "Percurso",
+        "projeteis": 3, "velocidade": 280, "angulo": 30, "intervalo": 0 },
+      { "gatilho": "nulo", "estrategia": "WaveAttack", "projetil": "Nulo",
+        "projeteis": 1, "velocidade": 420, "angulo": 0, "anguloCentral": 90, "intervalo": 0 }
     ]
   },
 

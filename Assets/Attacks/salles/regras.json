@@ -22,25 +22,13 @@
     { "posto": "pilha" }
   ],
 
-  // FASE 2 - lista duplamente encadeada: vai rapido e VOLTA.
-  //
-  // A mesma WaveAttack forma a fila, e UM caminho faz a fila inteira voltar.
-  //
-  // O "atraso" E O NUMERO CRITICO desta fase. Ele tem de ser MAIOR que o
-  // despertar do ultimo no (8 nos x 0.10 = 0.70s). Se for menor, o caminho ativa
-  // num no que ainda esta parado, com velocidade zero, e sem direcao para capturar
-  // ele cai na rotacao identidade - o no voa para a direita em vez de seguir a
-  // fila. Mexer em "projeteis" ou "intervalo" em fases.json OBRIGA a revisar este
-  // atraso.
-  //
-  // Como todos os nos ativam o caminho no MESMO instante, cada um a partir da
-  // posicao onde estava, a fila vira em bloco e volta em formacao. Isso e o
-  // ponteiro prev: a lista duplamente encadeada e a unica que pode ser percorrida
-  // de tras para frente, e e a unica fase em que os tiros voltam.
-  "lista_dupla": [
-    { "motion": { "tipo": "Path", "forma": "IdaEVolta",
-                  "velocidade": 500, "atraso": 1.2,
-                  "pararNoPonto": 0, "pararPor": 0.8 } }
+  // A TABELA HASH DA FASE 2: os baldes e as chaves nascem nos postos em que o
+  // Salles os procura.
+  "baldes": [
+    { "posto": "baldes" }
+  ],
+  "chaves": [
+    { "posto": "chaves" }
   ],
 
   // FASE 3 - arvore binaria: a busca descendo da raiz.

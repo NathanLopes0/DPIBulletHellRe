@@ -36,6 +36,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
+#include <map>
 #include <set>
 #include <sstream>
 #include <string>
@@ -59,6 +60,7 @@
 #include "../Source/Attacks/Fita.h"
 #include "../Source/Attacks/Capivara.h"
 #include "../Source/Attacks/Pilha.h"
+#include "../Source/Attacks/Hash.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
@@ -1532,6 +1534,50 @@ TEST_CASE("Dados: a pilha do Salles - gatilhos, posto e caras sao nomes que os d
     }
     CHECK(gatilhos.count(Pilha::kGatilhoDoPush) == 1);
     CHECK(gatilhos.count(Pilha::kGatilhoDoEstouro) == 1);
+}
+
+TEST_CASE("Dados: a tabela hash do Salles - gatilhos, postos e caras sao nomes que os dados tem") {
+    for (const char* g : {Hash::kGatilhoDosBaldes, Hash::kGatilhoDaChave, Hash::kGatilhoDoPercurso, Hash::kGatilhoDoNulo}) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+    }
+    CHECK(PostoExiste(Hash::kPostoDosBaldes));
+    CHECK(PostoExiste(Hash::kPostoDasChaves));
+
+    // TODA CHAVE QUE O PROGRAMA PODE SORTEAR TEM CARA, e todo balde do maior
+    // tamanho tambem: uma cara que faltasse deixaria a chave com o numero errado.
+    const auto& tipos = ProjeteisDoChefe("salles").projeteis;
+    const auto regras = RegrasDoChefe("salles");
+    std::map<std::string, std::string> projetilDoGatilho, regraDoGatilho;
+    for (const auto& f : FasesDoChefe("salles").fases) {
+        if (f.nome != Hash::kFaseDoHash) continue;
+        for (const auto& a : f.ataques) {
+            projetilDoGatilho[a.gatilho] = a.projetil;
+            regraDoGatilho[a.gatilho] = a.regrasNome;
+        }
+    }
+    const auto caras = [&](const std::string& tipo) {
+        std::set<std::string> c;
+        if (tipos.count(tipo)) for (const auto& a : tipos.at(tipo).animacoes) c.insert(a.nome);
+        return c;
+    };
+    REQUIRE(projetilDoGatilho.count(Hash::kGatilhoDaChave) == 1);
+    REQUIRE(projetilDoGatilho.count(Hash::kGatilhoDosBaldes) == 1);
+    const auto dasChaves = caras(projetilDoGatilho[Hash::kGatilhoDaChave]);
+    for (int k = 0; k <= Hash::kMaiorChave; ++k) CHECK(dasChaves.count(Hash::CaraDaChave(k)) == 1);
+    const auto dosBaldes = caras(projetilDoGatilho[Hash::kGatilhoDosBaldes]);
+    for (int i = 0; i < Hash::kTamanhos.back(); ++i) CHECK(dosBaldes.count(Hash::CaraDoBalde(i)) == 1);
+    CHECK(tipos.at(projetilDoGatilho[Hash::kGatilhoDaChave]).derrubavel);
+    CHECK(projetilDoGatilho.count(Hash::kGatilhoDoPercurso) == 1);
+    CHECK(projetilDoGatilho.count(Hash::kGatilhoDoNulo) == 1);
+
+    // E cada uma nasce no posto em que o Salles a procura.
+    for (const auto& [gatilho, posto] : std::map<std::string, std::string>{
+             {Hash::kGatilhoDaChave, Hash::kPostoDasChaves}, {Hash::kGatilhoDosBaldes, Hash::kPostoDosBaldes}}) {
+        CAPTURE(gatilho);
+        REQUIRE(regras.conjuntos.count(regraDoGatilho[gatilho]) == 1);
+        for (const auto& r : regras.conjuntos.at(regraDoGatilho[gatilho])) CHECK(r.posto == posto);
+    }
 }
 
 TEST_CASE("Dados: o diagrama do automato do Vladimir foi desenhado para os estados onde ele os poe") {

@@ -12,6 +12,7 @@
 #include "../Boss.h"
 #include "../../../Attacks/Capivara.h"
 #include "../../../Attacks/Pilha.h"
+#include "../../../Attacks/Hash.h"
 
 /**
  * @class Salles
@@ -31,6 +32,12 @@
  * estoura em tantas lascas quanto o numero dele. O tiro do aluno so alcanca o
  * topo. Aqui mora a pilha em campo e o programa dela; ele vai de coluna em
  * coluna (o movimento "Conduzido"), parando em cada uma.
+ *
+ * A FASE 2 E UMA TABELA HASH (Hash.h): os baldes no alto, a lista de cada um
+ * pendurada embaixo dele, e o placar escrevendo h(k) = k mod m. Inserir
+ * pendura a chave; buscar percorre a lista atirando de cada no, e o achado sai
+ * atirado - ou o NULL cai pela coluna. Com mais chaves que baldes, o rehash
+ * refaz as listas. Aqui mora a tabela em campo; ele vai ao balde da operacao.
  */
 class Salles : public Boss {
 
@@ -121,4 +128,59 @@ private:
 
     /// Quao depressa um bloco chega ao lugar dele (Ancora::Aproximar).
     static constexpr float kRapidezDoBloco = 14.0f;
+
+    // ---- A TABELA HASH DA FASE 2 --------------------------------------------
+    //
+    // As chaves em campo, na ordem em que entraram - e o balde e a posicao de
+    // cada uma na lista dele. A cada Hash::kPasso, a operacao (ou o rehash que
+    // ficou pendente); a cada quadro, cada chave vai para o lugar dela, e a
+    // busca em curso le o proximo no.
+
+    void AtualizarHash(float deltaTime);
+
+    /// Desenha os baldes de uma tabela de m baldes, desfazendo os de antes.
+    void FormarBaldes(int m);
+
+    /// Refaz a posicao de cada chave na lista do balde dela, pela ordem de
+    /// entrada.
+    void RefazerListas();
+
+    /// Dispara 'gatilho' de 'onde'. 'mirar': o leque sai mirado no aluno.
+    void DispararDoHash(const char* gatilho, Vector2 onde, bool mirar = false);
+
+    struct Chave {
+        BossProjectile* p = nullptr;
+        int valor = 0;
+        int balde = 0;
+        int posicao = 0;
+    };
+    std::vector<Chave> mChaves;
+    std::vector<BossProjectile*> mBaldes;
+    int mTamanho = Hash::kTamanhos[0];
+    bool mRehashPendente = false;
+
+    struct Busca {
+        bool ativa = false;
+        int chave = 0;
+        bool achou = false;
+        std::vector<BossProjectile*> nos;   ///< os que ela le, ate o achado
+        size_t lidos = 0;
+        float proximo = 0.0f;
+        Vector2 fim;                        ///< de onde cai o NULL
+    };
+    Busca mBusca;
+
+    bool mNoHash = false;
+    float mProximaOperacaoDoHash = 0.0f;
+    std::string mAnuncioDoHash;
+
+    /// Disparando do hash: de onde, e o que o disparo criou.
+    bool mDisparandoDoHash = false;
+    bool mMirandoDoHash = false;
+    Vector2 mDisparoDoHash;
+    BossProjectile* mCriadaNoHash = nullptr;
+
+    static constexpr float kAlturaNoHash = 110.0f;
+    static constexpr float kRapidezDaChave = 9.0f;
+    static constexpr float kVelocidadeDoAchado = 320.0f;
 };

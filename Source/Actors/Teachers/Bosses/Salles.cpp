@@ -29,6 +29,170 @@ void Salles::OnUpdate(float deltaTime) {
     Boss::OnUpdate(deltaTime);
     AtualizarCapivara(deltaTime);
     AtualizarPilha(deltaTime);
+    AtualizarHash(deltaTime);
+}
+
+void Salles::DispararDoHash(const char* gatilho, const Vector2 onde, const bool mirar) {
+    mDisparandoDoHash = true;
+    mMirandoDoHash = mirar;
+    mDisparoDoHash = onde;
+    mCriadaNoHash = nullptr;
+    Disparar(gatilho);
+    mDisparandoDoHash = false;
+    mMirandoDoHash = false;
+}
+
+void Salles::FormarBaldes(const int m) {
+    for (BossProjectile* b : mBaldes) if (b->GetState() == ActorState::Active) b->Kill();
+    mBaldes.clear();
+    if (!mScene || !mScene->GetGame()) return;
+    const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
+    for (int i = 0; i < m; ++i) {
+        DispararDoHash(Hash::kGatilhoDosBaldes, Vector2(Hash::CentroDoBalde(i, m, largura), Hash::kYDosBaldes));
+        if (!mCriadaNoHash) continue;
+        mCriadaNoHash->DefinirEnfeite(true);
+        if (auto* anim = mCriadaNoHash->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(Hash::CaraDoBalde(i));
+        mBaldes.push_back(mCriadaNoHash);
+    }
+}
+
+void Salles::RefazerListas() {
+    std::vector<int> naLista(static_cast<size_t>(mTamanho), 0);
+    for (Chave& c : mChaves) {
+        c.balde = Hash::Balde(c.valor, mTamanho);
+        c.posicao = naLista[static_cast<size_t>(c.balde)]++;
+    }
+}
+
+void Salles::AtualizarHash(const float deltaTime) {
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool noHash = fsm && fsm->GetStateName() == Hash::kFaseDoHash && !EhClone();
+
+    if (!noHash) {
+        // A FASE ACABOU: a tabela cai inteira, e os baldes somem.
+        if (mNoHash) {
+            for (const Chave& c : mChaves) {
+                c.p->DefinirPosto("");
+                if (auto* rb = c.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2(0.0f, 280.0f));
+            }
+            mChaves.clear();
+            for (BossProjectile* b : mBaldes) if (b->GetState() == ActorState::Active) b->Kill();
+            mBaldes.clear();
+            mBusca = Busca{};
+            if (!mAnuncioDoHash.empty()) RegistrarAnuncio(Hash::kFaseDoHash, mAnuncioDoHash);
+            mAlvo.reset();
+            mNoHash = false;
+        }
+        return;
+    }
+    if (!mScene || !mScene->GetGame()) return;
+    const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
+
+    if (!mNoHash) {
+        mNoHash = true;
+        mChaves.clear();
+        mBaldes.clear();
+        mBusca = Busca{};
+        mTamanho = Hash::kTamanhos[0];
+        mRehashPendente = false;
+        mProximaOperacaoDoHash = Hash::kPrimeira;
+        if (mAnuncioDoHash.empty()) mAnuncioDoHash = AnuncioDaFase(Hash::kFaseDoHash);
+        mAlvo = Vector2(largura / 2.0f, kAlturaNoHash);
+        FormarBaldes(mTamanho);
+    }
+    const float agora = fsm->GetStateTime();
+
+    // QUEM SAIU DA TABELA SAI DA CONTA - a chave que o aluno derrubou -, e as
+    // listas se refazem.
+    const auto antes = mChaves.size();
+    mChaves.erase(std::remove_if(mChaves.begin(), mChaves.end(), [](const Chave& c) {
+        return c.p->GetState() != ActorState::Active || c.p->Posto() != Hash::kPostoDasChaves;
+    }), mChaves.end());
+    if (mChaves.size() != antes) RefazerListas();
+
+    // A BUSCA EM CURSO: um no por vez atira para baixo; no fim, o achado sai
+    // atirado no aluno, ou o NULL cai pela coluna.
+    if (mBusca.ativa && agora >= mBusca.proximo) {
+        mBusca.proximo += Hash::kEntreNos;
+        if (mBusca.lidos < mBusca.nos.size()) {
+            BossProjectile* no = mBusca.nos[mBusca.lidos++];
+            if (no->GetState() == ActorState::Active) DispararDoHash(Hash::kGatilhoDoPercurso, no->GetPosition(), true);
+        } else {
+            if (mBusca.achou && !mBusca.nos.empty() && mBusca.nos.back()->GetState() == ActorState::Active) {
+                BossProjectile* achado = mBusca.nos.back();
+                achado->DefinirPosto("");
+                Vector2 d(0.0f, 1.0f);
+                if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
+                    d = batalha->Alvo()->GetPosition() - achado->GetPosition();
+                    if (d.LengthSq() > 0.0f) d.Normalize();
+                }
+                if (auto* rb = achado->GetComponent<RigidBodyComponent>()) rb->SetVelocity(d * kVelocidadeDoAchado);
+            } else if (!mBusca.achou) {
+                DispararDoHash(Hash::kGatilhoDoNulo, mBusca.fim);
+            }
+            mBusca.ativa = false;
+        }
+    }
+
+    // A OPERACAO - menos durante uma busca, que le a lista ate o fim.
+    if (agora >= mProximaOperacaoDoHash && !mBusca.ativa) {
+        mProximaOperacaoDoHash += Hash::kPasso;
+
+        if (mRehashPendente) {
+            // O REHASH: a tabela cresce, e toda chave muda de balde.
+            const int novo = Hash::ProximoTamanho(mTamanho);
+            RegistrarAnuncio(Hash::kFaseDoHash, Hash::PlacarDoRehash(mTamanho, novo));
+            mTamanho = novo;
+            FormarBaldes(mTamanho);
+            RefazerListas();
+            mRehashPendente = false;
+            mAlvo = Vector2(largura / 2.0f, kAlturaNoHash);
+        } else {
+            std::vector<int> naTabela;
+            for (const Chave& c : mChaves) naTabela.push_back(c.valor);
+            const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
+            const Hash::Operacao op = Hash::Proxima(naTabela, sorteio);
+            const int balde = Hash::Balde(op.chave, mTamanho);
+            mAlvo = Vector2(Hash::CentroDoBalde(balde, mTamanho, largura), kAlturaNoHash);
+
+            if (op.tipo == Hash::Tipo::Inserir) {
+                DispararDoHash(Hash::kGatilhoDaChave, GetPosition());
+                if (mCriadaNoHash) {
+                    if (auto* anim = mCriadaNoHash->GetComponent<DrawAnimatedComponent>()) {
+                        anim->SetAnimation(Hash::CaraDaChave(op.chave));
+                    }
+                    mChaves.push_back(Chave{mCriadaNoHash, op.chave, 0, 0});
+                    RefazerListas();
+                }
+                RegistrarAnuncio(Hash::kFaseDoHash, Hash::PlacarDaInsercao(op.chave, mTamanho));
+                mRehashPendente = Hash::PrecisaDeRehash(static_cast<int>(mChaves.size()), mTamanho);
+            } else {
+                // A BUSCA LE A LISTA DO BALDE do comeco ate a chave - ou ate o fim.
+                std::vector<const Chave*> lista;
+                for (const Chave& c : mChaves) if (c.balde == balde) lista.push_back(&c);
+                std::sort(lista.begin(), lista.end(), [](const Chave* a, const Chave* b) { return a->posicao < b->posicao; });
+                mBusca = Busca{};
+                mBusca.ativa = true;
+                mBusca.chave = op.chave;
+                mBusca.proximo = agora + Hash::kEntreNos;
+                for (const Chave* c : lista) {
+                    mBusca.nos.push_back(c->p);
+                    if (c->valor == op.chave) { mBusca.achou = true; break; }
+                }
+                mBusca.fim = Vector2(Hash::CentroDoBalde(balde, mTamanho, largura),
+                                     Hash::AlturaNaLista(static_cast<int>(lista.size())));
+                RegistrarAnuncio(Hash::kFaseDoHash, Hash::PlacarDaBusca(op.chave, mBusca.achou));
+            }
+        }
+    }
+
+    // CADA CHAVE NO LUGAR DELA, pendurada no balde: a que acabou de entrar sai
+    // do professor, e no rehash todas atravessam para a lista nova.
+    for (const Chave& c : mChaves) {
+        const Vector2 lugar(Hash::CentroDoBalde(c.balde, mTamanho, largura), Hash::AlturaNaLista(c.posicao));
+        c.p->SetPosition(Ancora::Aproximar(c.p->GetPosition(), lugar, kRapidezDaChave, deltaTime));
+        if (auto* rb = c.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+    }
 }
 
 std::optional<Vector2> Salles::AlvoDoMovimento() const {
@@ -207,6 +371,12 @@ void Salles::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& proj
                                   const std::string& stateName) {
     Boss::OnProjectilesCreated(projectiles, stateName);
 
+    // O QUE O HASH CRIOU: o balde ou a chave que o Salles acabou de pedir.
+    if (mDisparandoDoHash) {
+        if (!projectiles.empty()) mCriadaNoHash = dynamic_cast<BossProjectile*>(projectiles.front().get());
+        return;
+    }
+
     // O BLOCO QUE O PUSH CRIOU: e ele que entra na pilha.
     if (mEmpurrando) {
         for (auto& p : projectiles) {
@@ -238,6 +408,24 @@ void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stat
         return;
     }
 
+    // NA TABELA HASH, cada coisa nasce onde o Salles diz: o balde no lugar
+    // dele, a chave no professor, o tiro do percurso no no lido, o NULL no fim
+    // da lista. Os angulos sao os do arquivo (para baixo).
+    if (stateName == Hash::kFaseDoHash) {
+        if (!mDisparandoDoHash) return;
+        params.firePosition = mDisparoDoHash;
+        // O NO LIDO ATIRA NO ALUNO, com um tiro no meio do leque.
+        if (mMirandoDoHash) {
+            Vector2 d(0.0f, 1.0f);
+            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
+                d = batalha->Alvo()->GetPosition() - mDisparoDoHash;
+                if (d.LengthSq() > 0.0f) d.Normalize();
+            }
+            params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x));
+        }
+        return;
+    }
+
     // O POP ESTOURA ONDE O BLOCO ESTA, em tantas lascas quanto o numero dele.
     // O total e escrito inteiro a cada disparo (params e o mesmo objeto - ver
     // Boss.h). E o push nasce no professor, parado: quem o leva ao lugar e a
@@ -265,25 +453,6 @@ void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stat
     // quando o player estava acima. Calculado uma vez, em vez de tres.
     const Vector2 dirToPlayer = GetDirectionToPlayer();
     const float angleToPlayer = Math::ToDegrees(Math::Atan2(dirToPlayer.y, dirToPlayer.x));
-
-    if (stateName == "StateOne") {
-        if (const auto chance = Random::GetFloatRange(0.0f, 1.0f); chance < 0.3f) {
-            params.centralAngle = angleToPlayer;
-        }
-        else {
-            params.centralAngle = Random::GetFloatRange(45.f, 135.f);
-        }
-
-    }
-
-    if (stateName == "StateTwo") {
-        if (const auto chance = Random::GetFloatRange(0.0f, 1.0f); chance < 0.3f) {
-            params.centralAngle = angleToPlayer;
-        }
-        else {
-            params.centralAngle = Random::GetFloatRange(45.f, 135.f);
-        }
-    }
 
     if (stateName == "StateThree") {
         if (const auto chance = Random::GetFloatRange(0.0f, 1.0f); chance < 0.3f) {
