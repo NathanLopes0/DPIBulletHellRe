@@ -84,10 +84,11 @@ void ProjectileManager::ClearBossProjectiles() const {
     // agora segue exatamente o mesmo caminho de um projetil que morre saindo da
     // tela ou colidindo.
     //
-    // O PARADO TAMBEM: e o projetil que o coletor do Luizinho congelou durante
-    // a varredura. Sem ele aqui, um Ponto Extra no meio da pausa deixaria os
-    // blocos parados, e eles voltariam a valer quando a pausa acabasse; no fim
-    // da batalha, ficariam congelados por cima da tela de nota.
+    // O PARADO TAMBEM: e o projetil que o System.gc() do Luizinho congelou
+    // durante a marcacao. Sem ele aqui, um Ponto Extra no meio da pausa
+    // deixaria os blocos parados, e eles voltariam a valer quando a pausa
+    // acabasse; no fim da batalha, ficariam congelados por cima da tela de
+    // nota.
     for (auto& proj : mBossProjectiles) {
         if (!proj) continue;
         const auto estado = proj->GetState();

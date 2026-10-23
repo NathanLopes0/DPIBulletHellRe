@@ -76,9 +76,9 @@ public:
     /// @brief Joga fora a Motion e os Modifiers, sem mexer em mais nada.
     ///
     /// Para quem muda o destino de um projetil por fora, no meio da vida dele:
-    /// o coletor do Luizinho joga o lixo para fora da tela, e um SlowDown que
-    /// ainda nao tivesse disparado o faria parar no meio da queda. NAO chame
-    /// de dentro de um behavior - o laco dos Modifiers esta rodando.
+    /// o S da gramatica do Vladimir que vira a palavra vazia e para, e um
+    /// behavior que ainda nao tivesse disparado o poria para andar de novo.
+    /// NAO chame de dentro de um behavior - o laco dos Modifiers esta rodando.
     void DescartarComportamentos() { mMotion.reset(); mModifiers.clear(); }
 
     /// @brief Joga fora so a Motion: o projetil segue reto, no rumo e no modulo

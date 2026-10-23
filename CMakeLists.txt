@@ -150,8 +150,6 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Promessa.h
         Source/Attacks/Amarra.cpp
         Source/Attacks/Amarra.h
-        Source/Attacks/Coletor.cpp
-        Source/Attacks/Coletor.h
         Source/Attacks/Rastro.cpp
         Source/Attacks/Rastro.h
         Source/Movements/Escada.cpp
@@ -212,6 +210,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Escopo.h
         Source/Attacks/Coercao.cpp
         Source/Attacks/Coercao.h
+        Source/Attacks/Memoria.cpp
+        Source/Attacks/Memoria.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
@@ -348,7 +348,6 @@ add_executable(dpi_tests
         tests/test_flex.cpp
         tests/test_promessa.cpp
         tests/test_amarra.cpp
-        tests/test_coletor.cpp
         tests/test_rastro.cpp
         tests/test_escada.cpp
         tests/test_sprint.cpp
@@ -379,6 +378,7 @@ add_executable(dpi_tests
         tests/test_prova.cpp
         tests/test_escopo.cpp
         tests/test_coercao.cpp
+        tests/test_memoria.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -452,8 +452,6 @@ add_executable(dpi_tests
         Source/Attacks/Promessa.h
         Source/Attacks/Amarra.cpp
         Source/Attacks/Amarra.h
-        Source/Attacks/Coletor.cpp
-        Source/Attacks/Coletor.h
         Source/Attacks/Rastro.cpp
         Source/Attacks/Rastro.h
         Source/Movements/Escada.cpp
@@ -514,6 +512,8 @@ add_executable(dpi_tests
         Source/Attacks/Escopo.h
         Source/Attacks/Coercao.cpp
         Source/Attacks/Coercao.h
+        Source/Attacks/Memoria.cpp
+        Source/Attacks/Memoria.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp

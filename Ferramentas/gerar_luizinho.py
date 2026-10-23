@@ -26,14 +26,21 @@ OS PROJETEIS, um par de animacoes por assunto:
               Vezes     quando ela da erro (DPIBHLuizinhoOperadores).
     Erro      TypeError o estilhaco do erro de execucao, e o "erro de tipo"
               Compilacao da compilacao (DPIBHLuizinhoErros).
-    Bloco     Alocado   um tijolo com um numero romano: um bloco de memoria.
-              Marcado   o mesmo tijolo com a marca do coletor.
+    Celula    Aviso     um int de um bloco do heap da fase 3: o contorno de
+              Viva      onde ele vai nascer, o 0 do Java, o "?" do C++ (que
+              Crua      nao inicia), o campo prox de um no, o lixo, o lixo
+              Prox      marcado pelo coletor e o que vazou
+              Lixo      (DPIBHLuizinhoMemoria).
+              Marcada
+              Vazou
+    Estilhaco Corrompido o caco do ponteiro pendente e do bad_alloc
+                        (DPIBHLuizinhoEstilhacos).
     Serpente  Cabeca    a cabeca da serpente, que segue o aluno.
               Corpo     os gomos, que seguem a cabeca.
 
-O Bloco e a Serpente moram em DPIBHLuizinhoLetras, nas quatro ultimas linhas;
-as quatro primeiras sao as letras da etimologia (a pedra, a tabuinha em branco
-e escrita, a capsa), que nenhuma fase usa mais.
+A Serpente mora em DPIBHLuizinhoLetras, nas duas ultimas linhas; as outras
+seis sao as letras da etimologia e os tijolos do coletor antigo, que nenhuma
+fase usa mais.
 """
 from PIL import Image, ImageDraw, ImageFont
 import json, os
@@ -331,6 +338,52 @@ ERROS = [("TypeError", "TypeError", ((150, 24, 30, 240), (255, 110, 90, 255), (2
          ("Compilacao", "erro de tipo", ((70, 20, 60, 235), (220, 120, 230, 255), (250, 226, 255, 255)))]
 
 
+# ---- A FASE 3: A GERENCIA DE MEMORIA ----------------------------------------
+
+CW = 30   # a celula do heap: o colisor e metade disto (Memoria::kLadoDaCelula)
+
+
+def celula(texto, fundo, borda, tinta, x_vermelho=False, apagada=False):
+    """Uma celula do heap: um int (ou o campo prox de um no) num chip."""
+    s = 4
+    im = Image.new("RGBA", (CW * s, CW * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([2 * s, 2 * s, (CW - 3) * s, (CW - 3) * s], fill=fundo, outline=borda,
+                width=(1 if apagada else 2) * s)
+    if texto:
+        d.text((CW * s // 2, CW * s // 2), texto, fill=tinta,
+               font=ImageFont.truetype(CARLITO, 18 * s), anchor="mm")
+    if x_vermelho:
+        d.line([(6 * s, 6 * s), ((CW - 7) * s, (CW - 7) * s)], fill=(220, 40, 40, 255), width=3 * s)
+        d.line([((CW - 7) * s, 6 * s), (6 * s, (CW - 7) * s)], fill=(220, 40, 40, 255), width=3 * s)
+    return im.resize((CW, CW), Image.LANCZOS)
+
+
+# A ordem dos quadros, a das animacoes de projeteis.json.
+CELULAS = [
+    ("Aviso",   lambda: celula("", (200, 210, 230, 60), (225, 232, 255, 210), None, apagada=True)),
+    ("Viva",    lambda: celula("0", (40, 70, 110, 240), (120, 170, 230, 255), (220, 232, 255, 255))),
+    ("Crua",    lambda: celula("?", (40, 70, 110, 240), (120, 170, 230, 255), (255, 214, 150, 255))),
+    ("Prox",    lambda: celula("\u2192", (40, 70, 110, 240), (120, 170, 230, 255), (150, 230, 255, 255))),
+    ("Lixo",    lambda: celula("", (90, 90, 96, 220), (150, 150, 158, 230), None)),
+    ("Marcada", lambda: celula("", (90, 90, 96, 220), (150, 150, 158, 230), None, x_vermelho=True)),
+    ("Vazou",   lambda: celula("?", (110, 62, 26, 240), (236, 150, 64, 255), (255, 214, 160, 255))),
+]
+
+
+def estilhaco_de_memoria():
+    """O que estoura do ponteiro pendente e do bad_alloc: um caco de memoria
+    corrompida."""
+    s = 4
+    im = Image.new("RGBA", (16 * s, 16 * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.polygon([(8 * s, 1 * s), (15 * s, 8 * s), (8 * s, 15 * s), (1 * s, 8 * s)],
+              fill=(170, 30, 90, 240), outline=(255, 120, 180, 255))
+    d.text((8 * s, 8 * s), "?", fill=(255, 230, 240, 255),
+           font=ImageFont.truetype(CARLITO, 11 * s), anchor="mm")
+    return im.resize((16, 16), Image.LANCZOS)
+
+
 def tira(quadros, w, h, colunas):
     linhas = (len(quadros) + colunas - 1) // colunas
     f = Image.new("RGBA", (w * colunas, h * linhas), (0, 0, 0, 0))
@@ -373,6 +426,7 @@ def animacoes():
         "Valor": {nome: [i] for i, (nome, _) in enumerate(valores_quadros())},
         "Operador": {nome: [i] for i, (nome, _, _) in enumerate(OPERADORES)},
         "Erro": {nome: [i] for i, (nome, _, _) in enumerate(ERROS)},
+        "Celula": {nome: [i] for i, (nome, _) in enumerate(CELULAS)},
     }
 
 
@@ -396,3 +450,5 @@ if __name__ == "__main__":
     grava_tira([im for _, im in valores_quadros()], "DPIBHLuizinhoValores", VW, VW, 10)
     grava_tira([operador(sim, erro) for _, sim, erro in OPERADORES], "DPIBHLuizinhoOperadores", OW, OW, 4)
     grava_tira([estilhaco(t, c) for _, t, c in ERROS], "DPIBHLuizinhoErros", EW, EH, 2)
+    grava_tira([f() for _, f in CELULAS], "DPIBHLuizinhoMemoria", CW, CW, len(CELULAS))
+    grava_tira([estilhaco_de_memoria()], "DPIBHLuizinhoEstilhacos", 16, 16, 1)

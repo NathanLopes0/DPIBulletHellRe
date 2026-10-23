@@ -1,5 +1,5 @@
 //
-// Segmentos de reta desenhados: o grafo de referencias do coletor.
+// Segmentos de reta desenhados: ponteiros, buscas e chamadas no campo.
 //
 
 #pragma once
@@ -15,10 +15,11 @@
  * @brief Desenha uma lista de segmentos, cada um com a sua cor, em coordenadas
  * de TELA - e nao relativas ao dono, como os outros desenhos.
  *
- * Existe para a fase 3 do Luizinho mostrar os ponteiros: cada referencia entre
- * dois blocos de memoria e uma linha, e o aluno ve o que esta ligado ao
- * professor antes de o coletor passar. Quem preenche a lista e o professor, a
- * cada quadro; o componente so desenha o que recebeu.
+ * Nasceu para a fase 3 do Luizinho mostrar os ponteiros - cada variavel dele
+ * e uma linha ate o bloco para onde aponta, e o aluno ve o que esta ligado
+ * antes de o coletor passar -, e hoje desenha tambem a busca do nome no
+ * escopo, o fluxograma e as chamadas do Andre. Quem preenche a lista e o
+ * professor, a cada quadro; o componente so desenha o que recebeu.
  *
  * As linhas tem 2 px: uma linha de 1 px some atras de um projetil de 32.
  */

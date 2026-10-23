@@ -1,5 +1,5 @@
 //
-// Segmentos de reta desenhados: o grafo de referencias do coletor.
+// Segmentos de reta desenhados: ponteiros, buscas e chamadas no campo.
 //
 
 #include "DrawLinhasComponent.h"

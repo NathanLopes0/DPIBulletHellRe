@@ -11,10 +11,10 @@
   //   StateFinal  Sequenciadores      sequi, "seguir"
   //
   // DEPOIS DO LATIM, O CODIGO, como nas fases do Andre: o placar mostra o que
-  // o professor roda, e o campo e a execucao. As fases 1 e 2 ja sao assim (o
-  // escopo, Escopo.h, e a coercao, Coercao.h); as outras duas ainda sao as da
-  // etimologia - o projetil obedecendo ao sentido literal da palavra -, e cada
-  // uma ganha a sua num commit proprio.
+  // o professor roda, e o campo e a execucao: o escopo (Escopo.h), a
+  // coercao (Coercao.h) e o heap (Memoria.h). A final ainda e a da
+  // etimologia - o projetil obedecendo ao sentido literal da palavra -, e
+  // ganha a sua no commit seguinte.
   //
   // A MEMORIA E A FASE 3, a que DECIDE a batalha ("proximo" vazio): a final
   // so e vista por quem termina entre 40 e 59, ou com 100.
@@ -96,45 +96,37 @@
     ]
   },
 
-  // FASE 3 - GERENCIA DE MEMORIA   |   gesto: O MERGULHO
+  // FASE 3 - GERENCIA DE MEMORIA   |   gesto: O ALOCADOR ESCOLHE O ALUNO
   //
-  // Alocar e deixar coisa no campo: o chefe desce e sobe, e os blocos param em
-  // alturas diferentes, como a memoria que vai enchendo. Quem limpa e o
-  // COLETOR (Luizinho.cpp): a cada 5 s ele para o mundo, marca o que o
-  // professor nao alcanca pelas referencias desenhadas, e varre.
+  // O campo e o heap (Memoria.h). Cada new poe o bloco - uma fileira de
+  // celulas, uma por int - no lugar livre mais perto do aluno: nasce apagado,
+  // e 0,6 s depois e memoria e acerta. As variaveis sao do professor: uma
+  // etiqueta embaixo dele e uma linha ate o bloco de cada uma.
   //
-  // O anuncio e o latim; o professor o traduz no placar ("lembra-te de que
-  // morreras"), e na varredura diz "requiescant in pace".
+  // Metade em Java, metade em C++. No Java o bloco que ninguem alcanca fica
+  // cinza - lixo, mas ainda no campo -, e o System.gc() PARA O MUNDO, marca o
+  // que as raizes alcancam e derruba o resto. No C++ o delete tira o bloco e
+  // deixa p apontando para o lugar dele (o ponteiro pendente, em vermelho);
+  // escrever ali estoura, e o while (1) new int[4] enche o campo de blocos
+  // que vazam ate o std::bad_alloc, em que todos estouram de uma vez.
   //
-  // A MEMORIA E ALOCADA EM CIMA DO ALUNO: o leque e centrado nele, e a
-  // velocidade (Luizinho::CustomizeAttackParams) faz o bloco do meio parar
-  // exatamente onde ele estava. Os pares param no meio do caminho.
-  //
-  // TRES COISAS ACERTAM: o bloco chegando, o bloco parado e o LIXO CAINDO na
-  // varredura. Medido na fase sozinha:
-  //   - o parado leva 8 (3 chegando, 2 parados em cima dele, 3 do lixo) e
-  //     termina com zero;
-  //   - o que persegue o professor quase nunca esta onde o bloco para: 3 dos 4
-  //     acertos dele sao do lixo;
-  //   - o que vai e vem leva 5 (2 parados, 2 do lixo, 1 chegando).
-  //
-  // A PRIMEIRA VERSAO DEIXAVA A MEMORIA LA EM CIMA: 6 blocos num leque para
-  // baixo, parando a 190 e 340 px do professor. Na fase o parado levou 1
-  // acerto e o que persegue nenhum, e na batalha inteira este passava com
-  // 88,0. Com o leque mirado no aluno
-  // mas com 6 blocos, nao havia bloco no meio, e o parado levou 1 acerto em
-  // vez de 8 - e por isso que sao 7, com o do meio numa posicao impar (o
-  // canario de tests/test_arquivos_de_dados.cpp segura as duas coisas).
+  // A MEMORIA E A FASE QUE DECIDE ("proximo" vazio). O ataque e todo de
+  // gatilho: o professor diz onde cada celula nasce, quantos cacos saem e
+  // para onde; as velocidades dos cacos sao as de Memoria.h (um teste
+  // confere), e a celula nasce parada.
   "StateThree": {
     "duracao": 20,
     "proximo": "",
     "anuncio": "memento mori",
-    "movimento": { "tipo": "Mergulho", "a": 160, "b": 220 },
+    "movimento": { "tipo": "Conduzido", "a": 600 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Bloco",
-        "projeteis": 7, "velocidade": 240, "angulo": 120, "intervalo": 0,
-        "cooldown": 0.9,
-        "regras": "blocos" }
+      { "gatilho": "celula", "estrategia": "WaveAttack", "projetil": "Celula",
+        "projeteis": 4, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "pendente", "estrategia": "WaveAttack", "projetil": "Estilhaco",
+        "projeteis": 16, "velocidade": 240, "angulo": 337.5, "intervalo": 0,
+        "regras": "indefinido" },
+      { "gatilho": "estouro", "estrategia": "WaveAttack", "projetil": "Estilhaco",
+        "projeteis": 4, "velocidade": 280, "angulo": 270, "intervalo": 0 }
     ]
   },
 

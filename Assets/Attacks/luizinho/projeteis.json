@@ -12,8 +12,8 @@
   //             resultado texto.
   //   Operador  onde a conta da fase 2 roda.
   //   Erro      o TypeError e o erro de compilacao da fase 2.
-  //   Bloco     a memoria. "Alocado" e um tijolo com endereco; "Marcado" e o
-  //             mesmo tijolo depois que o coletor o marcou.
+  //   Celula    um int de um bloco de memoria da fase 3.
+  //   Estilhaco a memoria corrompida que estoura na fase 3.
   //   Serpente  a sequencia: a "Cabeca" e os gomos do "Corpo".
   //
   // Cada tipo registrado custa 300 instancias no pre-aquecimento; as animacoes
@@ -85,15 +85,31 @@
     "ordemDeDesenho": 91
   },
 
-  "Bloco": {
-    "sprite": "Teachers/Projectiles/DPIBHLuizinhoLetras.png",
-    "dados":  "Teachers/Projectiles/DPIBHLuizinhoLetras.json",
+  // A MEMORIA DA FASE 3 (Memoria.h): uma celula por int do bloco. "Aviso" e o
+  // contorno de onde o bloco vai nascer; "Viva" tem o 0 com que o Java inicia
+  // todo int, e "Crua" o "?" do C++, que nao inicia; "Prox" e o campo prox de
+  // um no; "Lixo" e o bloco que ninguem alcanca, "Marcada" o mesmo marcado
+  // pelo coletor, e "Vazou" o que o C++ nunca vai liberar. O colisor e metade
+  // da largura: 15 px, o Memoria::kLadoDaCelula (um teste confere).
+  "Celula": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoMemoria.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoMemoria.json",
     "animacoes": {
-      "Alocado": [16, 17, 18, 19],
-      "Marcado": [20, 21, 22, 23]
+      "Aviso": [0], "Viva": [1], "Crua": [2], "Prox": [3],
+      "Lixo": [4], "Marcada": [5], "Vazou": [6]
     },
-    "animacaoInicial": "Alocado",
+    "animacaoInicial": "Aviso",
     "ordemDeDesenho": 89
+  },
+
+  // O CACO DE MEMORIA CORROMPIDA: o que estoura do ponteiro pendente e do
+  // bad_alloc.
+  "Estilhaco": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoEstilhacos.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoEstilhacos.json",
+    "animacoes": { "Corrompido": [0] },
+    "animacaoInicial": "Corrompido",
+    "ordemDeDesenho": 91
   },
 
   "Serpente": {

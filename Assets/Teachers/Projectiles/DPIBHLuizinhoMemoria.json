@@ -1,0 +1,169 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHLuizinhoMemoria 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoMemoria 1.placeholder",
+   "frame": {
+    "x": 30,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoMemoria 2.placeholder",
+   "frame": {
+    "x": 60,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoMemoria 3.placeholder",
+   "frame": {
+    "x": 90,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoMemoria 4.placeholder",
+   "frame": {
+    "x": 120,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoMemoria 5.placeholder",
+   "frame": {
+    "x": 150,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoMemoria 6.placeholder",
+   "frame": {
+    "x": 180,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_luizinho.py",
+  "version": "1.0",
+  "image": "DPIBHLuizinhoMemoria.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 210,
+   "h": 30
+  },
+  "scale": "1"
+ }
+}

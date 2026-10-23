@@ -122,9 +122,7 @@ void Luizinho::OnUpdate(const float deltaTime) {
     // STOP THE WORLD: com o mundo parado, o professor para junto - nem anda nem
     // dispara. A maquina de estados continua (ela e componente, e roda antes
     // daqui), entao a pausa NAO alonga a fase.
-    const auto* fsm = GetComponent<FSMComponent>();
-    const bool naMemoria = fsm && fsm->GetStateName() == kFaseDaMemoria;
-    if (naMemoria && mNaMemoria && Coletor::Estado(mColetor) == Coletor::Mundo::Parado) {
+    if (mMundoParado) {
         if (auto* rb = GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
     } else {
         Boss::OnUpdate(deltaTime);
@@ -139,7 +137,7 @@ void Luizinho::OnUpdate(const float deltaTime) {
 
     AtualizarEscopo();
     AtualizarTipos();
-    AtualizarMemoria(deltaTime);
+    AtualizarMemoria();
     AtualizarGoto(deltaTime);
 }
 
@@ -150,7 +148,7 @@ void Luizinho::AoTerminarABatalha() {
     for (EtiquetaDeCodigo* c : mCantos) if (c) c->Mostrar(false);
     LimparConta();
     if (mLinhas) mLinhas->Limpar();
-    if (mReferencias) mReferencias->Limpar();
+    for (auto& [nome, etiqueta] : mRaizes) if (etiqueta) etiqueta->Mostrar(false);
     if (mRotulo) mRotulo->Mostrar(false);
 }
 
@@ -172,16 +170,6 @@ void Luizinho::CustomizeAttackParams(AttackParams& params, const std::string& st
         const Vector2 d = GetDirectionToPlayer();
         params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x));
         if (auto* serpente = dynamic_cast<SerpenteAttackParams*>(&params)) serpente->desvio = mDesvio;
-    }
-    else if (stateName == kFaseDaMemoria) {
-        // A MEMORIA E ALOCADA ONDE O ALUNO ESTA. O leque sai centrado nele, e a
-        // velocidade e a que leva o bloco mais longe da rajada a parar EM CIMA
-        // dele no instante kTempoAteOBlocoMaisLonge: quem ficou parado recebe o
-        // bloco, quem andou o deixa para tras, ocupando o lugar onde estava.
-        // Escrita inteira a cada disparo, como pede o gancho (Boss.h).
-        const Vector2 d = GetDirectionToPlayer();
-        params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x));
-        params.projectileSpeed = GetDistanceToPlayer() / kTempoAteOBlocoMaisLonge;
     }
 }
 
@@ -656,32 +644,15 @@ void Luizinho::AtualizarTipos() {
 }
 
 // ---------------------------------------------------------------------------
-// A fase 3: o coletor de lixo
+// A fase 3: a gerencia de memoria
 // ---------------------------------------------------------------------------
 
-std::vector<BossProjectile*> Luizinho::Blocos() const {
-    std::vector<BossProjectile*> blocos;
-    auto* batalha = dynamic_cast<Battle*>(mScene);
-    const ProjectileFactory* fabrica = GetProjectileFactory("Bloco");
-    if (!batalha || !batalha->GetProjectileManager() || !fabrica) return blocos;
-
-    // O BLOCO E RECONHECIDO PELA FABRICA, e nao pela cara: a cara muda quando o
-    // coletor o marca. Os outros projeteis (uma letra da fase 2 que ainda
-    // voa no comeco da fase) nao sao memoria.
-    //
-    // E O LIXO QUE JA FOI JOGADO FORA NAO E MAIS MEMORIA: marcado e rodando, ele
-    // esta caindo para fora da tela. Marcado e PARADO e o lixo durante a pausa,
-    // e esse ainda conta - e o grafo daquele instante.
-    for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
-        if (!p || p->GetOriginFactory() != fabrica) continue;
-        const auto estado = p->GetState();
-        if (estado == ActorState::Paused) { blocos.push_back(p.get()); continue; }
-        if (estado != ActorState::Active) continue;
-        const auto* anim = p->GetComponent<DrawAnimatedComponent>();
-        if (anim && anim->GetAnimation() == kAnimacaoDoLixo) continue;
-        blocos.push_back(p.get());
-    }
-    return blocos;
+namespace {
+    // As linhas do heap: a raiz que aponta, o prox de um no, e o ponteiro
+    // pendente para onde o bloco estava.
+    constexpr SDL_Color kLinhaDaRaiz{255, 214, 72, 230};
+    constexpr SDL_Color kLinhaDoProx{90, 200, 240, 220};
+    constexpr SDL_Color kLinhaPendente{236, 70, 70, 240};
 }
 
 void Luizinho::PararOMundo(const bool parar) const {
@@ -689,12 +660,9 @@ void Luizinho::PararOMundo(const bool parar) const {
     if (!batalha || !batalha->GetProjectileManager()) return;
 
     // PARADO, O PROJETIL NAO FAZ NADA: Actor::Update so roda o que esta ativo,
-    // entao o corpo, os behaviors e a animacao esperam juntos. Congelar so a
-    // velocidade nao bastaria - um SlowDown agendado dispararia durante a pausa
-    // e se perderia, e o bloco sairia dela na velocidade do disparo.
-    //
-    // E PARADO ELE NAO ACERTA NINGUEM (a colisao da batalha so olha o que esta
-    // ativo): durante a varredura o aluno pode passar por entre os blocos.
+    // entao o corpo, os behaviors e a animacao esperam juntos. E parado ele
+    // nao acerta ninguem (a colisao da batalha so olha o que esta ativo):
+    // durante a marcacao o aluno pode passar por entre os blocos.
     for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
         if (!p) continue;
         if (parar && p->GetState() == ActorState::Active) p->SetState(ActorState::Paused);
@@ -702,113 +670,313 @@ void Luizinho::PararOMundo(const bool parar) const {
     }
 }
 
-void Luizinho::DevolverAMemoria() {
-    PararOMundo(false);
+void Luizinho::LimparHeap() {
+    for (BlocoEmCampo& b : mBlocos) for (BossProjectile* c : b.p) if (Vivo(c)) c->Kill();
+    mBlocos.clear();
+    mHeap = Memoria::Heap{};
+    mLiberado.reset();
+    mCelulasDoLiberado = 0;
+}
 
-    // TODO BLOCO, e nao so os de Blocos(): a ultima pausa da fase termina junto
-    // com ela (4 x 5 s = 20 s), entao o lixo daquela pausa sai marcado e
-    // ainda nao varrido - parado e com a cara de lixo, que Blocos() deixa de
-    // fora. Medido, ele ficava 20 s no campo da fase seguinte ate o tempo
-    // maximo de vida o encerrar.
-    auto* batalha = dynamic_cast<Battle*>(mScene);
-    const ProjectileFactory* fabrica = GetProjectileFactory("Bloco");
-    if (batalha && batalha->GetProjectileManager() && fabrica) {
-        for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
-            if (p && p->GetOriginFactory() == fabrica && p->GetState() == ActorState::Active) p->Kill();
+void Luizinho::DesmontarMemoria() {
+    if (mMundoParado) PararOMundo(false);
+    mMundoParado = false;
+    LimparHeap();
+    for (auto& [nome, etiqueta] : mRaizes) if (etiqueta) etiqueta->SetState(ActorState::Destroy);
+    mRaizes.clear();
+    Restaurar(Memoria::kFaseDaMemoria);
+    mNaMemoria = false;
+    mPassoDaVez = -1;
+    mEventos.clear();
+    mProximoEvento = 0;
+    mAlvo.reset();
+}
+
+void Luizinho::ComecarPasso(const int i) {
+    mPassoDaVez = i;
+    const auto passo = static_cast<Memoria::Passo>(i);
+    mEventos = Memoria::Eventos(passo);
+    mProximoEvento = 0;
+    Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(passo, false));
+
+    // O PROGRAMA JAVA ACABOU: o sistema devolve a memoria dele, e o de C++
+    // comeca com o heap vazio.
+    if (passo == Memoria::Passo::NovoP) LimparHeap();
+
+    const SDL_FRect campo = Campo();
+    const float fracao = static_cast<float>(Sorteio() % 1001u) / 1000.0f;
+    mBaseDaMemoria = Vector2(campo.x + Memoria::kXMinimo + fracao * (Memoria::kXMaximo - Memoria::kXMinimo),
+                             campo.y + Memoria::kYDoProfessor);
+}
+
+void Luizinho::Alocar(const Memoria::Evento& e) {
+    const SDL_FRect campo = Campo();
+    const auto* fsm = GetComponent<FSMComponent>();
+    const float agora = fsm ? fsm->GetStateTime() : 0.0f;
+
+    // O ALOCADOR ESCOLHE O ALUNO: o lugar livre mais perto dele.
+    std::vector<Memoria::Retangulo> ocupados;
+    for (const BlocoEmCampo& b : mBlocos) {
+        ocupados.push_back(Memoria::Area({b.centro.x - campo.x, b.centro.y - campo.y}, b.celulas));
+    }
+    const Vector2 aluno = PosicaoDoAluno();
+    const Memoria::Ponto onde = Memoria::OndeAlocar(e.celulas, {aluno.x - campo.x, aluno.y - campo.y},
+                                                    ocupados, campo.w, campo.h);
+
+    const int id = Memoria::Novo(mHeap, e.celulas);
+    if (!e.raiz.empty()) {
+        if (e.noProx) {
+            const auto it = mHeap.raizes.find(e.raiz);
+            if (it != mHeap.raizes.end()) Memoria::ApontarProx(mHeap, it->second, id);
+        } else {
+            Memoria::Apontar(mHeap, e.raiz, id);
         }
     }
-    if (mReferencias) mReferencias->Limpar();
-    mColetor.t = 0.0f;
-    mNaMemoria = false;
-}
 
-void Luizinho::AnunciarAMemoria() {
-    // O PROFESSOR DIZ O LATIM E TRADUZ, alternando; na varredura ele diz outra
-    // coisa. O placar le o anuncio da fase a cada quadro e so redesenha quando
-    // o texto muda (Battle::AtualizarPlacar).
-    std::string texto;
-    if (Coletor::Estado(mColetor) == Coletor::Mundo::Parado) {
-        texto = kNaVarredura;
-    } else {
-        const int vez = static_cast<int>(mTempoNoPlacar / kTempoDeCadaLingua);
-        texto = (vez % 2 == 0) ? mLatimDaMemoria : kTraducaoDaMemoria;
+    BlocoEmCampo bloco;
+    bloco.id = id;
+    bloco.centro = Vector2(campo.x + onde.x, campo.y + onde.y);
+    bloco.celulas = e.celulas;
+    bloco.java = Memoria::LinguagemDe(static_cast<Memoria::Passo>(mPassoDaVez)) == Memoria::Linguagem::Java;
+    bloco.no = bloco.java && e.celulas == 2;
+    bloco.acendeEm = agora + Memoria::kAvisoDaAlocacao;
+
+    // NASCE APAGADO, sem colisor: o aviso de onde o bloco vai ficar.
+    const auto criadas = DispararEm(Memoria::kGatilhoDaCelula, bloco.centro, e.celulas);
+    const auto centros = Memoria::Celulas(onde, e.celulas);
+    for (size_t k = 0; k < criadas.size() && k < centros.size(); ++k) {
+        BossProjectile* c = criadas[k];
+        c->SetPosition(Vector2(campo.x + centros[k].x, campo.y + centros[k].y));
+        if (auto* rb = c->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+        PorCara(c, Memoria::kCaraDoAviso);
+        Colidir(c, false);
+        c->DefinirPosto("aviso");
+        bloco.p.push_back(c);
     }
-    if (AnuncioDaFase(kFaseDaMemoria) != texto) RegistrarAnuncio(kFaseDaMemoria, texto);
+    mBlocos.push_back(bloco);
 }
 
-void Luizinho::AtualizarMemoria(const float deltaTime) {
+void Luizinho::Coletar() {
+    // A VARREDURA: o que a marcacao nao alcancou e jogado fora - cai reto para
+    // fora da tela, e na queda ainda acerta quem estiver embaixo.
+    const auto varridos = Memoria::Varrer(mHeap);
+    PararOMundo(false);
+    mMundoParado = false;
+    for (auto it = mBlocos.begin(); it != mBlocos.end();) {
+        if (std::find(varridos.begin(), varridos.end(), it->id) == varridos.end()) { ++it; continue; }
+        for (BossProjectile* c : it->p) {
+            if (!Vivo(c)) continue;
+            Colidir(c, true);
+            c->DefinirPosto("");
+            PorCara(c, Memoria::kCaraMarcada);
+            if (auto* rb = c->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2(0.0f, Memoria::kQuedaDoLixo));
+        }
+        it = mBlocos.erase(it);
+    }
+}
+
+void Luizinho::LiberarBloco(const std::string& raiz) {
+    const auto r = mHeap.raizes.find(raiz);
+    if (r == mHeap.raizes.end()) return;
+    const int id = r->second;
+    Memoria::Liberar(mHeap, raiz);
+    const SDL_FRect campo = Campo();
+    for (auto it = mBlocos.begin(); it != mBlocos.end(); ++it) {
+        if (it->id != id) continue;
+        // O BLOCO SAI, e o lugar dele fica marcado: e para la que p aponta.
+        mLiberado = Memoria::Area({it->centro.x - campo.x, it->centro.y - campo.y}, it->celulas);
+        mCelulasDoLiberado = it->celulas;
+        for (BossProjectile* c : it->p) if (Vivo(c)) c->Kill();
+        mBlocos.erase(it);
+        break;
+    }
+}
+
+void Luizinho::EscreverNoPendente(const Memoria::Evento& e) {
+    if (!Memoria::Pendente(mHeap, e.raiz) || !mLiberado) return;
+    // ESCREVER ONDE O BLOCO ESTAVA E COMPORTAMENTO INDEFINIDO: aquela memoria
+    // nao e de ninguem, e o 7 estoura em cacos.
+    const SDL_FRect campo = Campo();
+    const auto centros = Memoria::Celulas(mLiberado->Centro(), mCelulasDoLiberado);
+    const size_t k = std::min(static_cast<size_t>(std::max(0, e.indice)), centros.size() - 1);
+    const Vector2 onde(campo.x + centros[k].x, campo.y + centros[k].y);
+    const int n = Memoria::kEstilhacosDoPendente;
+    const auto cacos = DispararEm(Memoria::kGatilhoDoPendente, onde, n,
+                                  Coercao::CentroDoAnel(n, AnguloAteOAluno(onde)), Coercao::AberturaDoAnel(n));
+    for (BossProjectile* c : cacos) PorCara(c, Memoria::kCaraDoEstilhaco);
+    Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(static_cast<Memoria::Passo>(mPassoDaVez), true));
+}
+
+void Luizinho::EstourarOsVazados() {
+    // O std::bad_alloc: o heap encheu de blocos que ninguem libera, e todos
+    // estouram de uma vez - cada celula em quatro cacos, em X.
+    for (auto it = mBlocos.begin(); it != mBlocos.end();) {
+        const Memoria::Bloco* b = Memoria::Achar(mHeap, it->id);
+        if (!b || b->estado != Memoria::Estado::Vazou) { ++it; continue; }
+        for (BossProjectile* c : it->p) {
+            if (!Vivo(c)) continue;
+            const Vector2 onde = c->GetPosition();
+            c->Kill();
+            const auto cacos = DispararEm(Memoria::kGatilhoDoEstouro, onde, Memoria::kEstilhacosPorCelula,
+                                          90.0f, 270.0f);
+            for (BossProjectile* k : cacos) PorCara(k, Memoria::kCaraDoEstilhaco);
+        }
+        it = mBlocos.erase(it);
+    }
+    Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(static_cast<Memoria::Passo>(mPassoDaVez), true));
+}
+
+void Luizinho::Executar(const Memoria::Evento& e) {
+    switch (e.acao) {
+        case Memoria::Acao::Alocar:
+            Alocar(e);
+            break;
+        case Memoria::Acao::Parar:
+            // STOP THE WORLD: o professor e os projeteis param, e o coletor marca.
+            mMundoParado = true;
+            PararOMundo(true);
+            Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(static_cast<Memoria::Passo>(mPassoDaVez), true));
+            break;
+        case Memoria::Acao::Varrer:
+            Coletar();
+            break;
+        case Memoria::Acao::Liberar:
+            LiberarBloco(e.raiz);
+            Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(static_cast<Memoria::Passo>(mPassoDaVez), true));
+            break;
+        case Memoria::Acao::Escrever:
+            EscreverNoPendente(e);
+            break;
+        case Memoria::Acao::Estourar:
+            EstourarOsVazados();
+            break;
+    }
+    // SEM COLETOR, O LIXO VAZA na hora em que fica sem ninguem.
+    if (Memoria::LinguagemDe(static_cast<Memoria::Passo>(mPassoDaVez)) == Memoria::Linguagem::Cpp) {
+        Memoria::Vazar(mHeap);
+    }
+}
+
+void Luizinho::PintarHeap() {
+    const auto lixo = Memoria::Lixo(mHeap);
+    for (BlocoEmCampo& b : mBlocos) {
+        if (!b.aceso) continue;
+        const Memoria::Bloco* h = Memoria::Achar(mHeap, b.id);
+        const bool ehLixo = std::find(lixo.begin(), lixo.end(), b.id) != lixo.end();
+        for (size_t k = 0; k < b.p.size(); ++k) {
+            BossProjectile* c = b.p[k];
+            if (!Vivo(c) && !(c && c->GetState() == ActorState::Paused)) continue;
+            std::string cara;
+            if (h && h->estado == Memoria::Estado::Vazou) cara = Memoria::kCaraQueVazou;
+            else if (ehLixo) cara = mMundoParado ? Memoria::kCaraMarcada : Memoria::kCaraDoLixo;
+            else if (b.no && k + 1 == b.p.size()) cara = Memoria::kCaraDoProx;
+            else cara = b.java ? Memoria::kCaraViva : Memoria::kCaraCrua;
+            PorCara(c, cara);
+        }
+    }
+}
+
+void Luizinho::DesenharHeap() {
+    if (!mLinhas) return;
+    auto primeira = [](const BlocoEmCampo& b) {
+        for (BossProjectile* c : b.p) if (c && c->GetState() != ActorState::Inactive) return c->GetPosition();
+        return b.centro;
+    };
+    auto achar = [this](const int id) -> const BlocoEmCampo* {
+        for (const BlocoEmCampo& b : mBlocos) if (b.id == id) return &b;
+        return nullptr;
+    };
+    const SDL_FRect campo = Campo();
+
+    // AS RAIZES: a etiqueta embaixo do professor, e a linha ate o bloco. A
+    // variavel de um programa que ja acabou (o "a" do Java, no C++) some.
+    for (auto& [nome, etiqueta] : mRaizes) if (etiqueta) etiqueta->Mostrar(false);
+    for (const auto& [nome, id] : mHeap.raizes) {
+        auto it = mRaizes.find(nome);
+        if (it == mRaizes.end()) {
+            auto etiqueta = std::make_unique<EtiquetaDeCodigo>(mScene, nome, 30, 24, kOrdemDosCantos);
+            etiqueta->Pintar(kMolduraAchada, kFundoAchado, kTintaAchada);
+            it = mRaizes.emplace(nome, etiqueta.get()).first;
+            mScene->AddActor(std::move(etiqueta));
+        }
+        EtiquetaDeCodigo* etiqueta = it->second;
+        const Vector2 de = GetPosition() + Vector2(0.0f, kAbaixoDoProfessor);
+        etiqueta->SetPosition(de);
+        etiqueta->Mostrar(true);
+        if (Memoria::Pendente(mHeap, nome) && mLiberado) {
+            const Memoria::Ponto c = mLiberado->Centro();
+            const Vector2 ate(campo.x + c.x, campo.y + c.y);
+            mLinhas->Acrescentar(de, ate, kLinhaPendente);
+            // O contorno de onde o bloco estava.
+            const float x0 = campo.x + mLiberado->x, y0 = campo.y + mLiberado->y;
+            const float x1 = x0 + mLiberado->w, y1 = y0 + mLiberado->h;
+            mLinhas->Acrescentar(Vector2(x0, y0), Vector2(x1, y0), kLinhaPendente);
+            mLinhas->Acrescentar(Vector2(x1, y0), Vector2(x1, y1), kLinhaPendente);
+            mLinhas->Acrescentar(Vector2(x1, y1), Vector2(x0, y1), kLinhaPendente);
+            mLinhas->Acrescentar(Vector2(x0, y1), Vector2(x0, y0), kLinhaPendente);
+        } else if (const BlocoEmCampo* b = achar(id)) {
+            mLinhas->Acrescentar(de, primeira(*b), kLinhaDaRaiz);
+        }
+    }
+
+    // OS PROX: do campo prox de um no ate o no para onde ele aponta.
+    for (const BlocoEmCampo& b : mBlocos) {
+        const Memoria::Bloco* h = Memoria::Achar(mHeap, b.id);
+        if (!h || h->prox < 0 || b.p.empty()) continue;
+        if (const BlocoEmCampo* alvo = achar(h->prox)) {
+            const BossProjectile* campoProx = b.p.back();
+            const Vector2 de = campoProx ? campoProx->GetPosition() : b.centro;
+            mLinhas->Acrescentar(de, primeira(*alvo), kLinhaDoProx);
+        }
+    }
+}
+
+void Luizinho::AtualizarMemoria() {
+    // O que o campo levou (o Ponto Extra) sai das celulas antes de qualquer
+    // disparo deste quadro. Uma celula PARADA esta viva: e o mundo parado.
+    for (BlocoEmCampo& b : mBlocos) {
+        for (BossProjectile*& c : b.p) {
+            if (c && c->GetState() != ActorState::Active && c->GetState() != ActorState::Paused) c = nullptr;
+        }
+    }
 
     const auto* fsm = GetComponent<FSMComponent>();
-    const bool naMemoria = fsm && fsm->GetStateName() == kFaseDaMemoria && !EhClone();
-
-    if (!naMemoria) {
-        if (mNaMemoria) DevolverAMemoria();   // a fase acabou: o programa terminou
+    const bool aqui = fsm && fsm->GetStateName() == Memoria::kFaseDaMemoria && !EhClone();
+    if (!aqui) {
+        if (mNaMemoria) DesmontarMemoria();
         return;
     }
-
     if (!mNaMemoria) {
         mNaMemoria = true;
-        mColetor.t = 0.0f;
-        mTempoNoPlacar = 0.0f;
-        if (mLatimDaMemoria.empty()) mLatimDaMemoria = AnuncioDaFase(kFaseDaMemoria);
+        mPassoDaVez = -1;
+        const SDL_FRect campo = Campo();
+        mBaseDaMemoria = Vector2(campo.x + campo.w / 2.0f, campo.y + Memoria::kYDoProfessor);
     }
 
-    if (!mReferencias) {
-        auto ator = std::make_unique<Actor>(mScene);
-        mReferencias = ator->AddComponent<DrawLinhasComponent>(kOrdemDasReferencias);
-        mScene->AddActor(std::move(ator));
+    const float t = fsm->GetStateTime();
+    mAlvo = mBaseDaMemoria;
+    const int i = Memoria::PassoEm(t);
+    if (i < 0) return;
+    if (i != mPassoDaVez) ComecarPasso(i);
+
+    const float u = t - Memoria::Inicio(static_cast<Memoria::Passo>(mPassoDaVez));
+    while (mProximoEvento < mEventos.size() && u >= mEventos[mProximoEvento].quando) {
+        Executar(mEventos[mProximoEvento++]);
     }
 
-    // O GRAFO DESTE QUADRO, com o professor de raiz.
-    const auto blocos = Blocos();
-    std::vector<Vector2> onde;
-    onde.reserve(blocos.size());
-    for (const BossProjectile* b : blocos) onde.push_back(b->GetPosition());
-    const auto grafo = Coletor::Referencias(onde, GetPosition(), kAlcanceDaReferencia);
-
-    switch (Coletor::Avancar(mColetor, deltaTime)) {
-        case Coletor::Evento::Para:
-            // O MUNDO PARA, e o lixo ganha a marca: e o aviso do que vai sumir.
-            PararOMundo(true);
-            for (size_t i = 0; i < blocos.size(); ++i) {
-                if (grafo.vivo[i]) continue;
-                if (auto* anim = blocos[i]->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(kAnimacaoDoLixo);
-            }
-            break;
-
-        case Coletor::Evento::Varre:
-            // A VARREDURA: o grafo e o do fim da pausa, que e o do comeco - nada
-            // se mexeu no meio. O que ninguem alcanca e JOGADO FORA: cai reto
-            // para fora da tela, e na queda ainda acerta quem estiver embaixo.
-            // A marca da pausa e o aviso de onde vai chover.
-            for (size_t i = 0; i < blocos.size(); ++i) {
-                if (grafo.vivo[i]) continue;
-                blocos[i]->DescartarComportamentos();
-                if (auto* rb = blocos[i]->GetComponent<RigidBodyComponent>()) {
-                    rb->SetVelocity(Vector2(0.0f, kQuedaDoLixo));
-                }
-            }
-            PararOMundo(false);
-            break;
-
-        case Coletor::Evento::Nenhum:
-            break;
+    // O BLOCO ACENDE: ganha colisor, sai do posto de aviso, e e memoria.
+    for (BlocoEmCampo& b : mBlocos) {
+        if (b.aceso || t < b.acendeEm) continue;
+        b.aceso = true;
+        for (BossProjectile* c : b.p) {
+            if (!c) continue;
+            Colidir(c, true);
+            c->DefinirPosto("");
+        }
     }
 
-    if (Coletor::Estado(mColetor) == Coletor::Mundo::Rodando) mTempoNoPlacar += deltaTime;
-    AnunciarAMemoria();
-
-    // AS LINHAS: ouro entre o que esta vivo, cinza entre o lixo. No quadro da
-    // varredura o lixo ja foi jogado fora, e nao tem mais linha.
-    mReferencias->Limpar();
-    const bool varreu = (Coletor::Estado(mColetor) == Coletor::Mundo::Rodando);
-    for (const auto& [a, b] : grafo.arestas) {
-        const bool vivo = grafo.vivo[static_cast<size_t>(b)];
-        if (!vivo && varreu) continue;
-        const Vector2 de = (a == Coletor::kRaiz) ? GetPosition() : blocos[static_cast<size_t>(a)]->GetPosition();
-        mReferencias->Acrescentar(de, blocos[static_cast<size_t>(b)]->GetPosition(),
-                                  vivo ? kReferenciaViva : kReferenciaMorta);
-    }
+    PintarHeap();
+    DesenharHeap();
 }
 
 // ---------------------------------------------------------------------------

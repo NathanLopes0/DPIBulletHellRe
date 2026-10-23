@@ -14,8 +14,8 @@
 
 #include "../Boss.h"
 #include "../../../Attacks/Coercao.h"
-#include "../../../Attacks/Coletor.h"
 #include "../../../Attacks/Escopo.h"
+#include "../../../Attacks/Memoria.h"
 #include "../../../Attacks/Rastro.h"
 
 class BossProjectile;
@@ -52,9 +52,15 @@ class RotuloDoGoto;
  * palavra, o TypeError estoura onde a conta roda e o erro de compilacao no
  * professor.
  *
- * O que nao cabe em dados mora aqui tambem: o COLETOR DE LIXO da fase 3, que
- * olha para a tela inteira, e o GOTO da final, que manda a cabeca de cada
- * serpente saltar.
+ * A FASE 3 E A GERENCIA DE MEMORIA (Memoria.h), e a que decide: o campo e o
+ * heap, e o alocador poe cada bloco no lugar livre mais perto do aluno. As
+ * variaveis do professor tem uma etiqueta e uma linha ate o bloco delas. No
+ * Java o que ninguem alcanca fica cinza ate o System.gc() parar o mundo e
+ * derruba-lo; no C++ o delete deixa o ponteiro pendente, a escrita nele
+ * estoura, e o laco que so aloca vaza ate o bad_alloc.
+ *
+ * O que nao cabe em dados mora aqui tambem: o GOTO da final, que manda a
+ * cabeca de cada serpente saltar.
  *
  * O BALANCEAMENTO VIVE EM DADOS, como o dos outros: Assets/Attacks/luizinho/.
  */
@@ -66,9 +72,6 @@ public:
     void OnUpdate(float deltaTime) override;
     [[nodiscard]] std::optional<Vector2> AlvoDoMovimento() const override;
     void AoTerminarABatalha() override;
-
-    /// A fase da memoria, a que decide a batalha.
-    static constexpr const char* kFaseDaMemoria = "StateThree";
 
     /// A fase dos sequenciadores, a final.
     static constexpr const char* kFaseDaSequencia = "StateFinal";
@@ -188,77 +191,58 @@ private:
     /// O arco do voo dos operandos, para os dois nao andarem na mesma linha.
     static constexpr float kArcoDoVoo = 46.0f;
 
-    // ---- A FASE 3: O COLETOR DE LIXO ---------------------------------------
-    //
-    // Os blocos que o professor aloca param no campo e ficam. A cada quadro o
-    // grafo de referencias e desenhado: ouro entre o que a raiz (ele) alcanca,
-    // cinza entre o lixo. A cada kColetaACada segundos o coletor PARA O MUNDO
-    // por kPausaDoMundo: o professor e todos os projeteis congelam - so o aluno
-    // anda -, o lixo ganha a marca, e no fim da pausa e jogado fora, caindo
-    // reto para fora da tela. O que estava ligado a ele sobrevive, e e esse o
-    // vazamento. Quanto sobra depende de onde o mergulho esta quando o coletor
-    // passa: medido na fase sozinha, o piloto que vai e vem deixou 11, 15 e 1
-    // blocos vivos nas tres varreduras, e o que persegue o professor nenhum.
+    // ---- A FASE 3: A GERENCIA DE MEMORIA -------------------------------------
 
-    /// Tudo o que a memoria faz num quadro: relogio, marca, varredura, grafo.
-    void AtualizarMemoria(float deltaTime);
-
-    /// Os blocos de memoria em campo, rodando ou congelados.
-    [[nodiscard]] std::vector<BossProjectile*> Blocos() const;
+    void AtualizarMemoria();
+    void DesmontarMemoria();
+    void ComecarPasso(int i);
+    void Executar(const Memoria::Evento& e);
+    void Alocar(const Memoria::Evento& e);
+    void Coletar();
+    void LiberarBloco(const std::string& raiz);
+    void EscreverNoPendente(const Memoria::Evento& e);
+    void EstourarOsVazados();
+    void LimparHeap();
+    void PintarHeap();
+    void DesenharHeap();
 
     /// Congela (ou descongela) TODOS os projeteis do professor - stop the world.
     void PararOMundo(bool parar) const;
 
-    /// O fim da fase e o fim do programa: toda a memoria volta, viva ou nao.
-    void DevolverAMemoria();
-
-    /// O placar da fase 3: o latim, a traducao, e o que se diz na varredura.
-    void AnunciarAMemoria();
-
-    Coletor::Relogio mColetor{kColetaACada, kPausaDoMundo, 0.0f};
-
-    /// As linhas do grafo. O ator que as guarda e da cena, criado na primeira
-    /// vez que a fase 3 roda; o professor so as escreve.
-    DrawLinhasComponent* mReferencias = nullptr;
-
     bool mNaMemoria = false;
+    int mPassoDaVez = -1;
+    std::vector<Memoria::Evento> mEventos;
+    size_t mProximoEvento = 0;
+    Vector2 mBaseDaMemoria;
 
-    /// O anuncio da fase 3 em fases.json, guardado na primeira vez: e o latim.
-    std::string mLatimDaMemoria;
-    float mTempoNoPlacar = 0.0f;
+    /// O heap de verdade (Memoria.h) e o que esta em campo: um bloco por
+    /// alocacao, com as celulas dele. O que o delete ou a varredura levou sai
+    /// daqui; o que vazou fica ate o bad_alloc.
+    Memoria::Heap mHeap;
+    struct BlocoEmCampo {
+        int id = 0;
+        Vector2 centro;
+        int celulas = 0;
+        bool java = false;
+        bool no = false;              ///< um No do Java: a segunda celula e o prox
+        float acendeEm = 0.0f;        ///< no relogio da fase
+        bool aceso = false;
+        std::vector<BossProjectile*> p;
+    };
+    std::vector<BlocoEmCampo> mBlocos;
 
-    /// O RELOGIO E A QUEDA FORAM MEDIDOS JUNTOS, na batalha inteira com o
-    /// piloto que persegue: com 1 s de pausa e o lixo a 380 px/s ele passava
-    /// com 83,1 e 9 acertos, acima da faixa dos outros chefes; com 0,7 s e
-    /// 520 px/s, com 76,8 e 11. So o lixo mais rapido nao mudou nada (83,1):
-    /// quem pesou foi a pausa, que e tempo de tiro livre - o professor esta
-    /// parado e nada acerta o aluno.
-    static constexpr float kColetaACada = 5.0f;
-    static constexpr float kPausaDoMundo = 0.7f;
+    /// O mundo parado do System.gc(): o professor e os projeteis esperam.
+    bool mMundoParado = false;
 
-    /// AUMENTAR O ALCANCE AUMENTA O VAZAMENTO E DIMINUI A CHUVA. Com o professor
-    /// alcancando 160 px, o piloto que persegue terminava a fase com 51 blocos
-    /// vivos e passava com 82,4; com 140 entre os blocos, com 80,9. Com 110,
-    /// ele nao deixa bloco vivo nenhum, e tudo o que se aloca vira chuva.
-    static constexpr float kAlcanceDaReferencia = 110.0f;
+    /// Onde estava o bloco que o delete levou - para onde o ponteiro pendente
+    /// continua apontando.
+    std::optional<Memoria::Retangulo> mLiberado;
+    int mCelulasDoLiberado = 0;
 
-    /// A velocidade com que o lixo cai para fora da tela na varredura.
-    static constexpr float kQuedaDoLixo = 520.0f;
-
-    /// A cara do bloco marcado - a da pausa, e a do lixo caindo.
-    static constexpr const char* kAnimacaoDoLixo = "Marcado";
-
-    /// O "atraso" do SlowDown dos blocos impares em regras.json: o bloco mais
-    /// longe da rajada para aos 1,4 s. A velocidade da rajada sai daqui, para
-    /// que ele pare em cima do aluno. MUDAR UM PEDE MUDAR O OUTRO - o canario
-    /// em tests/test_arquivos_de_dados.cpp espelha este numero.
-    static constexpr float kTempoAteOBlocoMaisLonge = 1.4f;
-
-    /// Quanto tempo o placar mostra o latim antes da traducao, e vice-versa.
-    static constexpr float kTempoDeCadaLingua = 1.6f;
-
-    /// Atras dos projeteis (89 a 91) e na frente do placar (60).
-    static constexpr int kOrdemDasReferencias = 85;
+    /// As raizes: a etiqueta de cada variavel do professor ("a" no Java, "p"
+    /// no C++), embaixo dele.
+    std::map<std::string, EtiquetaDeCodigo*> mRaizes;
+    static constexpr float kAbaixoDoProfessor = 74.0f;
 
     // ---- A FINAL: O GOTO --------------------------------------------------
     //

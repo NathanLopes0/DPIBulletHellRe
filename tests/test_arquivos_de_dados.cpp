@@ -72,6 +72,7 @@
 #include "../Source/Attacks/Prova.h"
 #include "../Source/Attacks/Escopo.h"
 #include "../Source/Attacks/Coercao.h"
+#include "../Source/Attacks/Memoria.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
@@ -1847,48 +1848,6 @@ TEST_CASE("Dados: o diagrama do automato do Vladimir foi desenhado para os estad
     CHECK(y0 + std::stof(m[2]) / 2.0f == doctest::Approx(Automato::kYDoDiagrama));
 }
 
-TEST_CASE("Dados: o bloco do meio da rajada do Luizinho para em cima do aluno") {
-
-    // CANARIO, e espelha o C++ de proposito. Na fase 3 a velocidade da rajada
-    // sai de Luizinho::kTempoAteOBlocoMaisLonge (1,4 s): e a que leva o bloco
-    // mais longe a parar EM CIMA do aluno, se o SlowDown dele disparar nesse
-    // mesmo instante - e o SlowDown mora aqui, em regras.json. Mudar um sem o
-    // outro faz o bloco parar antes ou depois, calado.
-    //
-    // E O BLOCO DO MEIO TEM DE SER UM DOS MAIS LONGE: o leque e centrado no
-    // aluno, e e o do meio que vai na direcao dele. Com um numero par de blocos
-    // nao ha bloco no meio; com o meio numa posicao par, ele para no meio do
-    // caminho. Os dois ja aconteceram, e o piloto parado tomou 1 acerto na fase
-    // em vez de 8.
-    constexpr float kTempoAteOBlocoMaisLonge = 1.4f;   // espelho de Luizinho.h
-
-    const auto regras = RegrasDoChefe("luizinho");
-    REQUIRE(regras.conjuntos.count("blocos") == 1);
-    float atrasoDosImpares = -1.0f;
-    for (const auto& r : regras.conjuntos.at("blocos")) {
-        if (r.condicao != Regra::Impares) continue;
-        for (const auto& m : r.modifiers) {
-            if (m.tipo == "SlowDown" && m.fator == 0.0f) atrasoDosImpares = m.atraso;
-        }
-    }
-    CHECK(atrasoDosImpares == doctest::Approx(kTempoAteOBlocoMaisLonge));
-
-    bool achou = false;
-    for (const auto& f : FasesDoChefe("luizinho").fases) {
-        if (f.nome != "StateThree") continue;
-        for (const auto& a : f.ataques) {
-            if (a.regrasNome != "blocos") continue;
-            achou = true;
-            REQUIRE(a.projeteis.has_value());
-            const int n = *a.projeteis;
-            CAPTURE(n);
-            CHECK(n % 2 == 1);              // ha um bloco no meio...
-            CHECK((n / 2) % 2 == 1);        // ...e ele esta numa posicao impar
-        }
-    }
-    CHECK(achou);
-}
-
 TEST_CASE("Dados: nenhuma regra de uma SerpenteAttack ou de uma SprintAttack tem motion") {
 
     // A SERPENTE E SUAS DUAS MOTIONS: a SerpenteAttack poe a da cabeca no
@@ -2918,4 +2877,66 @@ TEST_CASE("Dados: a coercao do Luizinho - gatilhos, velocidades e caras sao os d
     }
     CHECK(caras(projetilDe[Coercao::kGatilhoDoErro]).count(Coercao::kCaraDoTypeError) == 1);
     CHECK(caras(projetilDe[Coercao::kGatilhoDaCompilacao]).count(Coercao::kCaraDaCompilacao) == 1);
+}
+
+TEST_CASE("Dados: o heap do Luizinho - gatilhos, velocidades, raio e caras sao os de Memoria.h") {
+
+    // O LUIZINHO PUXA OS GATILHOS e pinta cada celula pelo estado do heap: uma
+    // celula sem a cara de lixo deixaria o aluno sem saber o que o coletor vai
+    // derrubar. A celula nasce PARADA - e o aviso - e o professor a deixa ali;
+    // os cacos nascem na velocidade do arquivo, que e a de Memoria.h.
+    const auto lidas = FasesDoChefe("luizinho");
+    const DescricaoDeFase* fase = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Memoria::kFaseDaMemoria) fase = &f;
+    REQUIRE(fase != nullptr);
+    CHECK(fase->movimento.tipo == "Conduzido");
+    CHECK(fase->proximo.empty());   // a memoria decide a batalha
+
+    const std::map<std::string, float> velocidades = {
+        {Memoria::kGatilhoDaCelula, 0.0f},
+        {Memoria::kGatilhoDoPendente, Memoria::kVelocidadeDoPendente},
+        {Memoria::kGatilhoDoEstouro, Memoria::kVelocidadeDoEstouro},
+    };
+    std::map<std::string, std::string> projetilDe;
+    for (const auto& a : fase->ataques) CHECK(!a.gatilho.empty());
+    for (const auto& [g, v] : velocidades) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+        int quantos = 0;
+        for (const auto& a : fase->ataques) {
+            if (a.gatilho != g) continue;
+            ++quantos;
+            projetilDe[g] = a.projetil;
+            REQUIRE(a.velocidade.has_value());
+            CHECK(*a.velocidade == doctest::Approx(v));
+        }
+        CHECK(quantos == 1);
+    }
+
+    const auto& tipos = ProjeteisDoChefe("luizinho").projeteis;
+    REQUIRE(tipos.count(projetilDe[Memoria::kGatilhoDaCelula]) == 1);
+    const auto& celula = tipos.at(projetilDe[Memoria::kGatilhoDaCelula]);
+    std::set<std::string> caras;
+    for (const auto& a : celula.animacoes) caras.insert(a.nome);
+    for (const char* c : {Memoria::kCaraDoAviso, Memoria::kCaraViva, Memoria::kCaraCrua, Memoria::kCaraDoProx,
+                          Memoria::kCaraDoLixo, Memoria::kCaraMarcada, Memoria::kCaraQueVazou}) {
+        CAPTURE(c);
+        CHECK(caras.count(c) == 1);
+    }
+    for (const char* g : {Memoria::kGatilhoDoPendente, Memoria::kGatilhoDoEstouro}) {
+        REQUIRE(tipos.count(projetilDe[g]) == 1);
+        bool tem = false;
+        for (const auto& a : tipos.at(projetilDe[g]).animacoes) tem = tem || a.nome == Memoria::kCaraDoEstilhaco;
+        CHECK(tem);
+    }
+
+    // O COLISOR DA CELULA E A METADE DO LADO com que o alocador a encaixa.
+    CHECK(celula.escala == doctest::Approx(1.0f));
+    const auto atlas = LerJsonDeDados(LerArquivo(celula.dados));
+    REQUIRE(atlas.contains("frames"));
+    for (const auto& item : atlas["frames"]) {
+        const auto& quadro = item.contains("frame") ? item["frame"] : item;
+        const float lado = (celula.colisorDimensao == "altura") ? quadro["h"].get<float>() : quadro["w"].get<float>();
+        CHECK(lado / celula.colisorDivisor == doctest::Approx(Memoria::kLadoDaCelula / 2.0f));
+    }
 }
