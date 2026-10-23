@@ -6,36 +6,6 @@
   // Documentacao/arquivos-de-dados.md.
   // ==========================================================================
 
-  // AMARRACAO ESTATICA: a letra de pedra sai reta. Para onde ela vai foi
-  // decidido no disparo (Luizinho::CustomizeAttackParams mira o leque no
-  // aluno), e dali nao muda mais.
-  "estatica": [
-    { "animacao": "Estatica" }
-  ],
-
-  // AMARRACAO DINAMICA: a tabuinha sai em branco, e quando a corda estica ela
-  // ganha a letra - a amarracao acontecendo na frente do aluno. Dali ela gira
-  // em volta do professor, vai junto para onde ele for, e quando a amarracao
-  // acaba sai pela tangente.
-  //
-  // DUAS RODAS, EM SENTIDOS CONTRARIOS E DE RAIOS DIFERENTES. Com uma roda so,
-  // girando no horario, toda letra solta do lado direito dele cai reta para
-  // baixo a uma corda de distancia, e a coluna embaixo do professor ficava
-  // limpa: medido, das 14 letras que acertaram os tres pilotos na fase, 13
-  // eram de pedra. A contraria poe a queda do outro lado, e o raio diferente
-  // deixa as duas rodas legiveis como duas, em vez de um bolo de letras que se
-  // cruzam.
-  "dinamica": [
-    { "animacao": "Livre",
-      "motion": { "tipo": "Amarrar", "comprimento": 120, "duracao": 2.4,
-                  "sentido": "horario", "escreve": "Ligada" } }
-  ],
-  "dinamica_contraria": [
-    { "animacao": "Livre",
-      "motion": { "tipo": "Amarrar", "comprimento": 170, "duracao": 2.4,
-                  "sentido": "antihorario", "escreve": "Ligada" } }
-  ],
-
   // ENCAPSULAMENTO: a casca. Todas as letras de dentro nascem com a cara da
   // capsa, empilhadas, e a pilha inteira se le como uma capsula so; a
   // CapsulaAttack troca a cara de cada uma quando ela abre, e devolve o

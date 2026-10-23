@@ -11,8 +11,9 @@
 /**
  * CAMADA PURA.
  *
- * Na fase 1 do Luizinho (Amarracoes) a letra da amarracao dinamica nasce
- * AMARRADA ao professor por uma corda que nao se ve: a corda vai se
+ * Na primeira fase 1 do Luizinho (Amarracoes) a letra da amarracao dinamica
+ * nascia AMARRADA ao professor; hoje quem amarra sao os guardrails do Julio,
+ * e a fase do Luizinho e o escopo (Escopo.h). A corda que nao se ve vai se
  * desenrolando enquanto a letra se afasta dele, estica, e dali em diante a
  * letra gira em volta do professor, indo junto para onde ele for. Quando o tempo
  * de vida da amarracao acaba, a corda e cortada e a letra sai pela TANGENTE,

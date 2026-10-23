@@ -10,12 +10,16 @@ O MOTIVO DO CARTAO E UMA COLUNA E UM PERGAMINHO: o professor que conta de onde
 vem cada palavra da materia, e quase sempre ela vem do latim. A coluna e o
 pergaminho dizem "latim" sem escrever uma palavra.
 
-OS PROJETEIS SAO LADRILHOS COM LETRA ROMANA, um par de animacoes por assunto:
+OS PROJETEIS, um par de animacoes por assunto:
 
-    Letra     Estatica  ladrilho de pedra com um "C" (de constans): a amarracao
-                        feita uma vez, que nao muda mais.
-              Livre     tabuinha de cera ainda em branco: a amarracao que espera.
-              Ligada    a mesma tabuinha com um "V" (de variabilis) em ouro.
+    Gota      X, Y      a variavel do escopo da fase 1: o nome dela num chip de
+                        editor, x em ambar e y em ciano (DPIBHLuizinhoGotas).
+              AvisoX,   o mesmo chip apagado: onde a chuva vai cair.
+              AvisoY
+    Letra     Estatica  ladrilho de pedra com um "C" (de constans): a letra que
+                        sai da capsula.
+              Livre     tabuinha de cera em branco, e Ligada, a mesma com um "V"
+              Ligada    em ouro: eram da primeira fase 1, a das amarracoes.
               Capsula   a capsa, o estojo cilindrico em que se guardavam os
                         rolos - e de onde vem "capsula", a caixinha.
     Bloco     Alocado   um tijolo com um numero romano: um bloco de memoria.
@@ -23,10 +27,11 @@ OS PROJETEIS SAO LADRILHOS COM LETRA ROMANA, um par de animacoes por assunto:
     Serpente  Cabeca    a cabeca da serpente, que segue o aluno.
               Corpo     os gomos, que seguem a cabeca.
 """
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import json, os
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CARLITO = os.path.join(RAIZ, "Assets", "Fonts", "Carlito-Regular.ttf")
 
 CARTAO = (74, 58, 50, 255)
 BORDA  = (206, 176, 112, 255)
@@ -199,6 +204,44 @@ def folha():
     return f
 
 
+# ---- A FASE 1: O ESCOPO ----------------------------------------------------
+
+# As cores das duas variaveis do programa (Escopo.h): x ambar, y ciano.
+CORES_DAS_VARIAVEIS = {"X": (255, 196, 72), "Y": (96, 204, 240)}
+GW = 28   # o quadro da gota: o colisor e metade disto (Escopo::kRaioDaGota)
+
+
+def gota(nome, acesa):
+    """UMA GOTA DA VARIAVEL: o nome dela num chip de editor. Apagada (o aviso
+    de onde vai chover), so o contorno e a letra fraca; acesa, cheia."""
+    s = 4
+    r, g, b = CORES_DAS_VARIAVEIS[nome]
+    im = Image.new("RGBA", (GW * s, GW * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    if acesa:
+        d.rounded_rectangle([2 * s, 2 * s, (GW - 3) * s, (GW - 3) * s], radius=6 * s,
+                            fill=(34, 30, 24, 235), outline=(r, g, b, 255), width=2 * s)
+        tinta = (r, g, b, 255)
+    else:
+        d.rounded_rectangle([3 * s, 3 * s, (GW - 4) * s, (GW - 4) * s], radius=6 * s,
+                            fill=(r, g, b, 34), outline=(r, g, b, 120), width=1 * s)
+        tinta = (r, g, b, 120)
+    d.text((GW * s // 2, GW * s // 2 - 2 * s), nome.lower(), fill=tinta,
+           font=ImageFont.truetype(CARLITO, 22 * s), anchor="mm")
+    return im.resize((GW, GW), Image.LANCZOS)
+
+
+# A ordem dos quadros, a das animacoes de projeteis.json.
+GOTAS = [("AvisoX", "X", False), ("X", "X", True), ("AvisoY", "Y", False), ("Y", "Y", True)]
+
+
+def gotas():
+    f = Image.new("RGBA", (GW * len(GOTAS), GW), (0, 0, 0, 0))
+    for i, (_, nome, acesa) in enumerate(GOTAS):
+        f.alpha_composite(gota(nome, acesa), (i * GW, 0))
+    return f
+
+
 def grava(im, nome, pasta, quadros=1, lado=None):
     destino = os.path.join(RAIZ, pasta)
     os.makedirs(destino, exist_ok=True)
@@ -211,3 +254,4 @@ def grava(im, nome, pasta, quadros=1, lado=None):
 if __name__ == "__main__":
     grava(luizinho(), "DPIBHLuizinho", "Assets/Teachers")
     grava(folha(), "DPIBHLuizinhoLetras", "Assets/Teachers/Projectiles", quadros=32, lado=32)
+    grava(gotas(), "DPIBHLuizinhoGotas", "Assets/Teachers/Projectiles", quadros=len(GOTAS), lado=GW)

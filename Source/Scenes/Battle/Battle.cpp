@@ -1307,6 +1307,8 @@ void Battle::FinishBattle(bool approved) {
         mProjectileManager->ClearBossProjectiles();
         // Se tiver função para limpar projéteis do player, chame aqui também
     }
+    // E O QUE O CHEFE DESENHOU NO CAMPO SEM SER PROJETIL (Boss.h).
+    for (Boss* corpo : Corpos()) if (corpo) corpo->AoTerminarABatalha();
 
     // 2. Torna o Player Invencível (para não morrer durante a tela de vitória)
     for (Player* jogador : mJogadores) {

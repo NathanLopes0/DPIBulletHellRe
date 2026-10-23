@@ -2,14 +2,14 @@
   // ==========================================================================
   // OS PROJETEIS DO LUIZINHO (INF 340 - Linguagens de Programacao)
   //
-  // LADRILHOS COM LETRA ROMANA, e um tipo para cada coisa que tem de ser
-  // reconhecida pelo TIPO, e nao pela aparencia:
+  // UM TIPO PARA CADA COISA QUE TEM DE SER RECONHECIDA PELO TIPO, e nao pela
+  // aparencia:
   //
-  //   Letra     o que se amarra e o que se encapsula. As animacoes contam em
-  //             que estado a letra esta: "Estatica" (pedra, um C de constans),
-  //             "Livre" (tabuinha de cera ainda em branco), "Ligada" (a mesma
-  //             tabuinha com um V de variabilis) e "Capsula" (a capsa, o
-  //             estojo dos rolos).
+  //   Gota      a variavel da fase 1 (o escopo), que chove na regiao em que e
+  //             visivel.
+  //   Letra     o que se encapsula na fase 2: "Capsula" (a capsa, o estojo dos
+  //             rolos) e "Estatica" (a letra de pedra que sai dela). "Livre" e
+  //             "Ligada" sao da fase 1 antiga, e saem com a fase 2 nova.
   //   Bloco     a memoria. "Alocado" e um tijolo com endereco; "Marcado" e o
   //             mesmo tijolo depois que o coletor o marcou.
   //   Serpente  a sequencia: a "Cabeca" e os gomos do "Corpo".
@@ -19,6 +19,24 @@
   //
   // Arte PROVISORIA de Ferramentas/gerar_luizinho.py.
   // ==========================================================================
+
+  // A VARIAVEL DA FASE 1 (Escopo.h): o nome dela num chip de editor, x em
+  // ambar e y em ciano. "AvisoX" e o chip apagado - onde a chuva vai cair -,
+  // e "X" o aceso, que acerta. O colisor e metade da largura do quadro: 14 px,
+  // o Escopo::kRaioDaGota com que a regiao e coberta (um teste confere).
+  "Gota": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoGotas.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoGotas.json",
+    "animacoes": {
+      "AvisoX": [0],
+      "X":      [1],
+      "AvisoY": [2],
+      "Y":      [3]
+    },
+    "animacaoInicial": "AvisoX",
+    "ordemDeDesenho": 88
+  },
+
   "Letra": {
     "sprite": "Teachers/Projectiles/DPIBHLuizinhoLetras.png",
     "dados":  "Teachers/Projectiles/DPIBHLuizinhoLetras.json",

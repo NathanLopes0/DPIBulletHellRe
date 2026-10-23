@@ -2,66 +2,55 @@
   // ==========================================================================
   // AS FASES DO LUIZINHO (INF 340 - Linguagens de Programacao)
   //
-  // A ETIMOLOGIA VIRA MECANICA. O Luizinho e o professor que conta de onde vem
-  // cada palavra da materia, e cada fase pega um assunto da ementa e faz o
-  // projetil obedecer ao sentido LITERAL da palavra latina. O placar mostra a
-  // palavra e o que ela queria dizer:
+  // CADA FASE E UM ASSUNTO DA EMENTA, e abre com a palavra latina por tras
+  // dele - o Luizinho e o professor que conta de onde vem cada palavra:
   //
   //   StateOne    Amarracoes          ligare, "atar"
   //   StateTwo    Encapsulamento      in capsula, "na caixinha"
   //   StateThree  Gerencia de memoria memento mori, "lembra-te de que morreras"
   //   StateFinal  Sequenciadores      sequi, "seguir"
   //
-  // A MEMORIA E A FASE 3, a que DECIDE a batalha ("proximo" vazio): e a
-  // mecanica mais propria do chefe - o coletor que para o mundo - e a final so
-  // e vista por quem termina entre 40 e 59, ou com 100.
+  // DEPOIS DO LATIM, O CODIGO, como nas fases do Andre: o placar mostra o que
+  // o professor roda, e o campo e a execucao. A fase 1 ja e assim (o escopo,
+  // Escopo.h); as outras tres ainda sao as da etimologia - o projetil
+  // obedecendo ao sentido literal da palavra -, e cada uma ganha a sua num
+  // commit proprio.
   //
-  // ESTE E O ESQUELETO: as quatro fases ja tem o gesto e o anuncio que vao
-  // manter, mas os ATAQUES SAO PROVISORIOS, montados com as estrategias que ja
-  // existiam. Cada fase ganha a mecanica dela num commit proprio.
+  // A MEMORIA E A FASE 3, a que DECIDE a batalha ("proximo" vazio): a final
+  // so e vista por quem termina entre 40 e 59, ou com 100.
   //
   // O MOVIMENTO E O ATAQUE, como no Vladimir, no Vitor e no Lucas - nenhuma
   // fase usa GoToCenter, que deixa o chefe na coluna de quem atira para cima.
   // ==========================================================================
 
-  // FASE 1 - AMARRACOES   |   gesto: A VARREDURA
+  // FASE 1 - AMARRACOES: O ESCOPO   |   gesto: O PROFESSOR E O COMANDO
   //
-  // Uma amarracao estatica e decidida ANTES de o programa rodar, e uma
-  // dinamica so DURANTE. As duas letras da fase sao as duas amarracoes:
+  // O campo e o texto do programa (Escopo.h): o global e o campo inteiro, com
+  // "int x, y;" no canto de cima; g e o painel da esquerda, com o bloco
+  // interno dentro; h o da direita; f um cartao no alto. Cada painel tem as
+  // declaracoes dele no canto.
   //
-  //   a de pedra (C)    sai num leque centrado em onde o aluno estava no
-  //                     disparo, e nao muda mais;
-  //   a tabuinha (V)    sai em branco numa roda, ganha a letra quando a corda
-  //                     estica e fica AMARRADA ao professor (ligare, "atar"):
-  //                     gira em volta dele e vai junto na varredura. Quando a
-  //                     amarracao acaba ela sai pela tangente, de onde o
-  //                     professor estiver - decidido durante, e nao antes.
+  // Seis comandos, um a cada 3,25 s, e o placar diz cada um. O professor vai
+  // ate o bloco em que o comando esta (Conduzido), a busca do nome sobe de
+  // bloco em bloco - uma linha do professor ao canto de cada um -, e a
+  // variavel achada CHOVE na regiao em que ela e visivel: o painel dela, menos
+  // os de dentro que tem outra com o mesmo nome (esses acendem de verde). As
+  // gotas nascem apagadas, acendem 0,9 s depois e caem 0,7 s, ate a borda de
+  // baixo ou o buraco embaixo delas. O ultimo comando e a pegadinha: a mesma
+  // chamada de f de dentro de h, no escopo DINAMICO - o x de f passa a ser o
+  // de h, e so o painel de h chove.
   //
-  // A varredura e o que faz a diferenca aparecer: parado, o professor deixaria
-  // a roda girando sempre no mesmo lugar, e ela pareceria presa a um ponto.
-  //
-  // E AS DUAS CASTIGAM COISAS OPOSTAS, medido nos acertos que as letras da fase
-  // dao: a pedra acerta quem fica parado (as 9 do piloto parado sao de pedra),
-  // e a tabuinha quem nao para de andar (4 das 5 do que vai e vem). O que
-  // persegue o professor leva 3 de pedra e 1 de tabuinha.
+  // O ATAQUE E DE GATILHO: a chuva sai quando o professor chama "gota", com
+  // tantas gotas quantas a regiao pede (ate 292, no global menos os dois
+  // buracos), e cada uma vai para o seu lugar.
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
     "anuncio": "ligāre · atar",
-    "movimento": { "tipo": "Varredura", "a": 200, "b": 150 },
+    "movimento": { "tipo": "Conduzido", "a": 900 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Letra",
-        "projeteis": 5, "velocidade": 240, "angulo": 40, "intervalo": 0,
-        "cooldown": 1.1,
-        "regras": "estatica" },
-      { "estrategia": "CircleSpreadAttack", "projetil": "Letra",
-        "projeteis": 10, "velocidade": 200,
-        "cooldown": 2.0,
-        "regras": "dinamica" },
-      { "estrategia": "CircleSpreadAttack", "projetil": "Letra",
-        "projeteis": 10, "velocidade": 200,
-        "cooldown": 2.6,
-        "regras": "dinamica_contraria" }
+      { "gatilho": "gota", "estrategia": "WaveAttack", "projetil": "Gota",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
     ]
   },
 

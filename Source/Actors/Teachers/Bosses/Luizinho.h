@@ -4,14 +4,23 @@
 
 #pragma once
 
+#include <array>
+#include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
+#include <SDL_rect.h>
+
 #include "../Boss.h"
 #include "../../../Attacks/Coletor.h"
+#include "../../../Attacks/Escopo.h"
 #include "../../../Attacks/Rastro.h"
 
+class BossProjectile;
 class DrawLinhasComponent;
+class EtiquetaDeCodigo;
+class PainelDeCodigo;
 class RotuloDoGoto;
 
 /**
@@ -19,19 +28,26 @@ class RotuloDoGoto;
  * @brief O professor de Linguagens de Programacao (INF 340).
  *
  * A IDEIA DO CHEFE: ele e conhecido por saber de onde vem cada expressao, quase
- * sempre do latim, e por passar isso para os alunos. A batalha faz o mesmo: em
- * cada fase o projetil obedece ao sentido LITERAL da palavra latina por tras de
- * um assunto da ementa, e o placar mostra a palavra e o que ela queria dizer.
+ * sempre do latim. Cada fase e um assunto da ementa, e o placar abre com a
+ * palavra latina por tras dele; depois, como nas fases do Andre, o placar
+ * mostra o codigo que ele roda, e o campo e a execucao desse codigo.
  *
  *   fase 1  Amarracoes          ligare        atar
  *   fase 2  Encapsulamento      in capsula    na caixinha
  *   fase 3  Gerencia de memoria memento mori  lembra-te de que morreras
  *   final   Sequenciadores      sequi         seguir
  *
- * O que nao cabe em dados mora aqui: a mira do leque estatico da fase 1 e a da
- * capsula da fase 2, que dependem de onde o aluno esta no instante do disparo,
- * o COLETOR DE LIXO da fase 3, que olha para a tela inteira, e o GOTO da
- * final, que manda a cabeca de cada serpente saltar.
+ * A FASE 1 E O ESCOPO (Escopo.h): o campo e o texto do programa, um painel por
+ * bloco com as declaracoes no canto. O professor vai ate o bloco do comando,
+ * a busca do nome sobe de bloco em bloco - pelo texto no escopo estatico, por
+ * quem chamou no dinamico -, e a variavel achada chove na regiao em que e
+ * visivel: o bloco dela menos os de dentro que declaram outra com o mesmo
+ * nome.
+ *
+ * O que nao cabe em dados mora aqui: a mira da capsula da fase 2, que depende
+ * de onde o aluno esta no instante do disparo, o COLETOR DE LIXO da fase 3,
+ * que olha para a tela inteira, e o GOTO da final, que manda a cabeca de cada
+ * serpente saltar.
  *
  * O BALANCEAMENTO VIVE EM DADOS, como o dos outros: Assets/Attacks/luizinho/.
  */
@@ -41,6 +57,8 @@ public:
     ~Luizinho() override = default;
 
     void OnUpdate(float deltaTime) override;
+    [[nodiscard]] std::optional<Vector2> AlvoDoMovimento() const override;
+    void AoTerminarABatalha() override;
 
     /// A fase da memoria, a que decide a batalha.
     static constexpr const char* kFaseDaMemoria = "StateThree";
@@ -50,8 +68,73 @@ public:
 
 protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
+    void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
+                              const std::string& stateName) override;
 
 private:
+    // ---- O QUE AS FASES DIVIDEM ---------------------------------------------
+
+    [[nodiscard]] SDL_FRect Campo() const;
+
+    /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram.
+    /// 'quantos' > 0 troca o numero de projeteis do ataque.
+    std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0);
+
+    bool mDisparandoEm = false;
+    Vector2 mOndeDisparar;
+    int mQuantos = 0;
+    std::vector<BossProjectile*> mCriados;
+
+    /// Para onde o movimento "Conduzido" leva o professor.
+    std::optional<Vector2> mAlvo;
+
+    /// O placar: o que a fase diz no arquivo (o latim) e guardado na primeira
+    /// vez, e volta quando a fase acaba.
+    void Anunciar(const std::string& fase, const std::string& texto);
+    void Restaurar(const std::string& fase);
+    std::map<std::string, std::string> mAnunciosDoArquivo;
+
+    /// As linhas do campo - a busca do nome, a chamada -, limpas a cada quadro
+    /// e redesenhadas por quem estiver rodando.
+    DrawLinhasComponent* mLinhas = nullptr;
+    static constexpr int kOrdemDasLinhas = 80;
+
+    // ---- A FASE 1: O ESCOPO -------------------------------------------------
+
+    void AtualizarEscopo();
+    void MontarEscopo();
+    void DesmontarEscopo();
+    void ComecarComando(int k);
+    void ChoverAvisos();
+    void AcenderGotas();
+    void SecarGotas();
+    void DesenharEscopo(float u);
+
+    bool mNoEscopo = false;
+    int mComandoDoEscopo = -1;
+    float mInicioDoComando = 0.0f;
+    Escopo::Forma mForma = Escopo::Forma::XEmG;
+
+    /// A chuva de um comando: espera a busca, nasce apagada (o aviso), acende
+    /// e cai, e seca.
+    enum class Chuva { Esperando, Aviso, Viva, Seca };
+    Chuva mChuva = Chuva::Esperando;
+
+    struct GotaEmCampo { BossProjectile* p = nullptr; float fim = 0.0f; };
+    std::vector<GotaEmCampo> mGotas;
+
+    /// Um painel e um canto por bloco (o global nao tem painel - e o campo -,
+    /// e o cartao de f e so o canto). Os atores sao da cena; o professor os
+    /// cria quando a fase abre e os destroi quando ela fecha.
+    std::array<PainelDeCodigo*, Escopo::kBlocos> mPaineis{};
+    std::array<EtiquetaDeCodigo*, Escopo::kBlocos> mCantos{};
+
+    /// Os paineis atras do placar (60) e dos projeteis; o de dentro na frente
+    /// do de fora.
+    static constexpr int kOrdemDosPaineis = 52;
+    static constexpr int kOrdemDoInterno = 54;
+    static constexpr int kOrdemDosCantos = 57;
+
     // ---- A FASE 3: O COLETOR DE LIXO ---------------------------------------
     //
     // Os blocos que o professor aloca param no campo e ficam. A cada quadro o

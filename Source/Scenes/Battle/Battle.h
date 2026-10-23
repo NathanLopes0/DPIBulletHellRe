@@ -146,6 +146,10 @@ public:
     void DarAVez(size_t posicao);
     [[nodiscard]] ProjectileManager* GetProjectileManager() const { return mProjectileManager.get(); }
 
+    /// @brief A fonte do placar (Carlito), para quem escreve codigo no campo
+    /// (EtiquetaDeCodigo). E da batalha, que vive mais que os atores dela.
+    [[nodiscard]] Font* FonteDoPlacar() const { return mFonteDoPlacar.get(); }
+
     SDL_FRect GetPlayfieldBounds() const override;
     /**
      * @brief Um aluno gastou um Ponto Extra.

@@ -70,6 +70,7 @@
 #include "../Source/Attacks/Laco.h"
 #include "../Source/Attacks/Funcao.h"
 #include "../Source/Attacks/Prova.h"
+#include "../Source/Attacks/Escopo.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
@@ -2793,5 +2794,54 @@ TEST_CASE("Documentacao: as duas linhas de posto em arquivos-de-dados.md citam t
             CAPTURE(nome);
             CHECK(linha.find("`" + nome + "`") != std::string::npos);
         }
+    }
+}
+
+TEST_CASE("Dados: a chuva do escopo do Luizinho - gatilho, gota parada, raio e caras sao os de Escopo.h") {
+
+    // O LUIZINHO PUXA O GATILHO e cobre a regiao com gotas pelas contas de
+    // Escopo.h: a grade e feita para o raio kRaioDaGota, e uma gota maior
+    // acertaria quem esta no buraco (a outra variavel), uma menor deixaria
+    // fresta na regiao. A gota nasce PARADA - e o aviso - e quem a faz cair e
+    // o professor, quando ela acende; uma velocidade aqui faria o aviso andar.
+    CHECK(GatilhoExiste(Escopo::kGatilhoDaGota));
+
+    const auto lidas = FasesDoChefe("luizinho");
+    const DescricaoDeFase* fase = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Escopo::kFaseDoEscopo) fase = &f;
+    REQUIRE(fase != nullptr);
+    CHECK(fase->movimento.tipo == "Conduzido");
+
+    std::string tipo;
+    int quantos = 0;
+    for (const auto& a : fase->ataques) {
+        // A FASE E TODA DE GATILHO: um ataque de relogio choveria fora da busca.
+        CHECK(!a.gatilho.empty());
+        if (a.gatilho != Escopo::kGatilhoDaGota) continue;
+        ++quantos;
+        tipo = a.projetil;
+        REQUIRE(a.velocidade.has_value());
+        CHECK(*a.velocidade == doctest::Approx(0.0f));
+    }
+    CHECK(quantos == 1);
+
+    const auto& tipos = ProjeteisDoChefe("luizinho").projeteis;
+    REQUIRE(tipos.count(tipo) == 1);
+    const auto& gota = tipos.at(tipo);
+    std::set<std::string> caras;
+    for (const auto& a : gota.animacoes) caras.insert(a.nome);
+    for (const char nome : {'x', 'y'}) {
+        CHECK(caras.count(Escopo::CaraDoAviso(nome)) == 1);
+        CHECK(caras.count(Escopo::CaraDaGota(nome)) == 1);
+    }
+
+    // O COLISOR E O QUADRO DIVIDIDO PELO DIVISOR, vezes a escala.
+    CHECK(gota.escala == doctest::Approx(1.0f));
+    const auto atlas = LerJsonDeDados(LerArquivo(gota.dados));
+    REQUIRE(atlas.contains("frames"));
+    for (const auto& item : atlas["frames"]) {
+        const auto& quadro = item.contains("frame") ? item["frame"] : item;
+        const float lado = (gota.colisorDimensao == "altura") ? quadro["h"].get<float>() : quadro["w"].get<float>();
+        CHECK(lado / gota.colisorDivisor == doctest::Approx(Escopo::kRaioDaGota));
     }
 }

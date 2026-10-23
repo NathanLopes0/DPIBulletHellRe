@@ -30,6 +30,7 @@ public:
     void Draw(SDL_Renderer* renderer) override;
 
     void SetMoldura(const SDL_Color cor) { mMoldura = cor; }
+    void SetFundo(const SDL_Color cor) { mFundo = cor; }
 
 private:
     int mLargura;

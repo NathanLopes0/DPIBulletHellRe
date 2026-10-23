@@ -221,6 +221,16 @@ public:
     virtual void OnIntercambio() {}
 
     /**
+     * @brief A batalha acabou: a tela da nota vai entrar.
+     *
+     * Quem chama e Battle::FinishBattle, depois de limpar os projeteis. O que
+     * nao e projetil - um painel de codigo, as linhas no campo - nao sai com
+     * eles, e o chefe que pos isso em campo esconde aqui. O padrao nao faz
+     * nada.
+     */
+    virtual void AoTerminarABatalha() {}
+
+    /**
      * @brief Para onde o professor quer ir, quando e ele quem diz - o movimento
      * "Conduzido" de fases.json o leva ate la. Sem alvo, o Conduzido o deixa
      * parado. O padrao nao tem alvo; o Vladimir voa de estado em estado do

@@ -210,6 +210,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Funcao.h
         Source/Attacks/Prova.cpp
         Source/Attacks/Prova.h
+        Source/Attacks/Escopo.cpp
+        Source/Attacks/Escopo.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
@@ -267,6 +269,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teachers/BossFactory/LucasFactory.h
         Source/Actors/Teachers/Bosses/Luizinho.cpp
         Source/Actors/Teachers/Bosses/Luizinho.h
+        Source/Actors/Teachers/Bosses/PainelDeCodigo.cpp
+        Source/Actors/Teachers/Bosses/PainelDeCodigo.h
         Source/Actors/Teachers/BossFactory/LuizinhoFactory.cpp
         Source/Actors/Teachers/BossFactory/LuizinhoFactory.h
         Source/Actors/Teachers/Bosses/Vitor.cpp
@@ -377,6 +381,7 @@ add_executable(dpi_tests
         tests/test_laco.cpp
         tests/test_funcao.cpp
         tests/test_prova.cpp
+        tests/test_escopo.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -510,6 +515,8 @@ add_executable(dpi_tests
         Source/Attacks/Funcao.h
         Source/Attacks/Prova.cpp
         Source/Attacks/Prova.h
+        Source/Attacks/Escopo.cpp
+        Source/Attacks/Escopo.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
