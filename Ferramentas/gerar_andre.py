@@ -14,6 +14,11 @@ mesmas cores, o mesmo brilho, o mesmo barbante):
                      (Laco.h): apagado, aceso (o i esta nela), pulado (o
                      continue) e vermelho (o segfault)
   DPIBHAndreBytes    a memoria despejada do segfault: um byte em hexa
+  DPIBHAndreCartoes  o cartao de cada funcao da fase 3 (Funcao.h), com a
+                     assinatura dela - apagado e aceso (executando)
+  DPIBHAndreValores  o valor que voa de quem chama ate a funcao, e o retorno
+                     que volta
+  DPIBHAndrePonto    o ponto-e-virgula que o leque atira
 
 Os nomes das animacoes estao em Assets/Attacks/andre/projeteis.json, e um teste
 confere que toda cara que o Andre pede existe la.
@@ -48,6 +53,11 @@ DIGITOS = {
     "7": ["11111", "00001", "00010", "00100", "01000", "01000", "01000"],
     "8": ["01110", "10001", "10001", "01110", "10001", "10001", "01110"],
     "9": ["01110", "10001", "10001", "01111", "00001", "00010", "01100"],
+    # as letras dos problemas do BOCA, para o balao da repescagem (Prova.h)
+    "A": ["01110", "10001", "10001", "11111", "10001", "10001", "10001"],
+    "B": ["11110", "10001", "10001", "11110", "10001", "10001", "11110"],
+    "C": ["01110", "10001", "10000", "10000", "10000", "10001", "01110"],
+    "D": ["11110", "10001", "10001", "10001", "10001", "10001", "11110"],
 }
 
 BW, BH = 24, 34   # o quadro do balao numerado
@@ -106,8 +116,10 @@ def balao(cor, texto):
 
 def baloes():
     """Os quadros na ordem de Condicional::CaraDoBalao: cor por cor, e em cada
-    cor os numeros de 0 a 9."""
+    cor os numeros de 0 a 9 - e depois, do 40 em diante, o balao de cada
+    problema da prova no BOCA, com a letra dele, na cor dele (Prova.h)."""
     quadros = [balao(cor, str(n)) for cor in ORDEM_DAS_CORES for n in range(10)]
+    quadros += [balao(cor, letra) for cor, letra in zip(ORDEM_DAS_CORES, "ABCD")]
     return folha(quadros, BW, BH, 10), len(quadros)
 
 
@@ -217,6 +229,64 @@ def bytes_():
     return folha(quadros, 22, 16, 6), len(quadros)
 
 
+# Os cartoes das funcoes, na ordem de Funcao::Nome: (animacao, assinatura).
+CARTOES = [("Baloes", "void baloes(int de, int ate)"), ("Leque", "void leque(int n)"),
+           ("Dobro", "int dobro(int x)"), ("Meio", "int meio(int a, int b)"),
+           ("Segue", "void segue(int *p)")]
+CW, CH = 270, 38
+
+
+def cartao(texto, aceso):
+    """O cartao da funcao: a assinatura dela, como a primeira linha de uma
+    definicao, com as chaves embaixo; aceso enquanto ela executa."""
+    s = 4
+    im = Image.new("RGBA", (CW * s, CH * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    fundo = (34, 70, 52, 240) if aceso else (30, 36, 54, 230)
+    borda = (130, 240, 160, 255) if aceso else (140, 160, 210, 235)
+    d.rounded_rectangle([1 * s, 1 * s, (CW - 2) * s, (CH - 2) * s], radius=7 * s,
+                        fill=fundo, outline=borda, width=2 * s)
+    tinta = (226, 255, 232, 255) if aceso else (222, 232, 252, 255)
+    d.text((CW * s // 2, CH * s // 2), texto + " { }", fill=tinta,
+           font=ImageFont.truetype(CARLITO, 19 * s), anchor="mm")
+    return im.resize((CW, CH), Image.LANCZOS)
+
+
+def cartoes():
+    quadros = [cartao(t, False) for _, t in CARTOES] + [cartao(t, True) for _, t in CARTOES]
+    return folha(quadros, CW, CH, 5), len(quadros)
+
+
+VALORES = list(range(-1, 23))   # Funcao::kMenorValor a kMaiorValor
+VW, VH = 34, 24
+
+
+def valores():
+    """O valor que voa: o numero num chip, como uma variavel."""
+    quadros = []
+    for v in VALORES:
+        s = 4
+        im = Image.new("RGBA", (VW * s, VH * s), (0, 0, 0, 0))
+        d = ImageDraw.Draw(im)
+        d.rounded_rectangle([1 * s, 1 * s, (VW - 2) * s, (VH - 2) * s], radius=5 * s,
+                            fill=(240, 236, 214, 245), outline=(120, 96, 40, 255), width=2 * s)
+        d.text((VW * s // 2, VH * s // 2 + 1 * s), str(v), fill=(40, 30, 10, 255),
+               font=ImageFont.truetype(CARLITO, 17 * s), anchor="mm")
+        quadros.append(im.resize((VW, VH), Image.LANCZOS))
+    return folha(quadros, VW, VH, 8), len(quadros)
+
+
+def ponto():
+    """O ponto-e-virgula que o leque atira - o que sempre falta."""
+    s = 4
+    im = Image.new("RGBA", (16 * s, 16 * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.ellipse([1 * s, 1 * s, 14 * s, 14 * s], fill=(96, 46, 150, 240), outline=(214, 180, 255, 255), width=1 * s)
+    d.text((8 * s, 8 * s), ";", fill=(255, 255, 255, 255),
+           font=ImageFont.truetype(CARLITO, 15 * s), anchor="mm")
+    return folha([im.resize((16, 16), Image.LANCZOS)], 16, 16, 1), 1
+
+
 def folha(quadros, largo, alto, colunas):
     linhas = (len(quadros) + colunas - 1) // colunas
     im = Image.new("RGBA", (largo * colunas, alto * linhas), (0, 0, 0, 0))
@@ -255,13 +325,18 @@ def animacoes():
     """As animacoes de projeteis.json, para copiar de la para ca quando a
     folha mudar."""
     bal = {f"{cor}{n}": [i * 10 + n] for i, cor in enumerate(ORDEM_DAS_CORES) for n in range(10)}
+    bal.update({f"Letra{letra}": [40 + i] for i, letra in enumerate("ABCD")})
     conf = {cor: [2 * i, 2 * i + 1] for i, cor in enumerate(ORDEM_DAS_CORES)}
     rot = {nome: [k] for k, (nome, _) in enumerate(ROTULOS)}
     rot.update({nome + "Aceso": [k + len(ROTULOS)] for k, (nome, _) in enumerate(ROTULOS)})
     sufixos = ["", "Aceso", "Pulado", "Erro"]
     ind = {f"V{i}{suf}": [k * 12 + i] for k, suf in enumerate(sufixos) for i in range(12)}
     byt = {b: [k] for k, b in enumerate(BYTES)}
-    return {"Balao": bal, "Confete": conf, "Rotulo": rot, "Indice": ind, "Byte": byt}
+    car = {nome: [k] for k, (nome, _) in enumerate(CARTOES)}
+    car.update({nome + "Aceso": [k + len(CARTOES)] for k, (nome, _) in enumerate(CARTOES)})
+    val = {f"N{v}": [k] for k, v in enumerate(VALORES)}
+    return {"Balao": bal, "Confete": conf, "Rotulo": rot, "Indice": ind, "Byte": byt,
+            "Cartao": car, "Valor": val}
 
 
 if __name__ == "__main__":
@@ -279,3 +354,9 @@ if __name__ == "__main__":
     grava_folha(im, "DPIBHAndreIndices", IW, IH, n)
     im, n = bytes_()
     grava_folha(im, "DPIBHAndreBytes", 22, 16, n)
+    im, n = cartoes()
+    grava_folha(im, "DPIBHAndreCartoes", CW, CH, n)
+    im, n = valores()
+    grava_folha(im, "DPIBHAndreValores", VW, VH, n)
+    im, n = ponto()
+    grava_folha(im, "DPIBHAndrePonto", 16, 16, n)

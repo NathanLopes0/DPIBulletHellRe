@@ -1,0 +1,235 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHAndreCartoes 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 270,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 270,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 270,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreCartoes 1.placeholder",
+   "frame": {
+    "x": 270,
+    "y": 0,
+    "w": 270,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 270,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 270,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreCartoes 2.placeholder",
+   "frame": {
+    "x": 540,
+    "y": 0,
+    "w": 270,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 270,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 270,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreCartoes 3.placeholder",
+   "frame": {
+    "x": 810,
+    "y": 0,
+    "w": 270,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 270,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 270,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreCartoes 4.placeholder",
+   "frame": {
+    "x": 1080,
+    "y": 0,
+    "w": 270,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 270,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 270,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreCartoes 5.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 38,
+    "w": 270,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 270,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 270,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreCartoes 6.placeholder",
+   "frame": {
+    "x": 270,
+    "y": 38,
+    "w": 270,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 270,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 270,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreCartoes 7.placeholder",
+   "frame": {
+    "x": 540,
+    "y": 38,
+    "w": 270,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 270,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 270,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreCartoes 8.placeholder",
+   "frame": {
+    "x": 810,
+    "y": 38,
+    "w": 270,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 270,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 270,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreCartoes 9.placeholder",
+   "frame": {
+    "x": 1080,
+    "y": 38,
+    "w": 270,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 270,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 270,
+    "h": 38
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_andre.py",
+  "version": "1.0",
+  "image": "DPIBHAndreCartoes.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1350,
+   "h": 76
+  },
+  "scale": "1"
+ }
+}

@@ -17,6 +17,10 @@
   // que nao existe ou se uma animacao citar um quadro que a folha nao tem.
   // ==========================================================================
 
+  // O BALAO ORIGINAL, que sobe em cacho de cada casa do vetor do chao (as
+  // fases 2 e 3 e a prova): "subir" em fases.json. A cor de cada cacho e o
+  // Andre quem sorteia.
+  //
   // A folha tem 24 quadros e as animacoes comecam no 6: os seis primeiros sao
   // de uma versao antiga do balao e nenhuma animacao os usa. Ficam na folha
   // porque remove-los renumeraria todos os outros.
@@ -52,6 +56,8 @@
   // O BALAO NUMERADO e o dado: o numero n pintado nele e o que a condicao le
   // no losango. Uma cara por numero e por cor, "Vermelho7" - quem escolhe e o
   // Andre (Condicional::CaraDoBalao). Ele mesmo o move, entao nasce parado.
+  // E o balao de cada problema da prova no BOCA, com a letra dele
+  // (Prova::CaraDoTrofeu), que sobe no YES.
   "Balao": {
     "sprite": "Teachers/Projectiles/DPIBHAndreBaloes.png",
     "dados":  "Teachers/Projectiles/DPIBHAndreBaloes.json",
@@ -63,7 +69,8 @@
       "Amarelo0": [20], "Amarelo1": [21], "Amarelo2": [22], "Amarelo3": [23], "Amarelo4": [24], "Amarelo5": [25],
       "Amarelo6": [26], "Amarelo7": [27], "Amarelo8": [28], "Amarelo9": [29],
       "Verde0": [30], "Verde1": [31], "Verde2": [32], "Verde3": [33], "Verde4": [34], "Verde5": [35],
-      "Verde6": [36], "Verde7": [37], "Verde8": [38], "Verde9": [39]
+      "Verde6": [36], "Verde7": [37], "Verde8": [38], "Verde9": [39],
+      "LetraA": [40], "LetraB": [41], "LetraC": [42], "LetraD": [43]
     },
     "animacaoInicial": "Vermelho0",
     "escala": 2,
@@ -139,6 +146,49 @@
     "animacoes": { "DE": [0], "AD": [1], "BE": [2], "EF": [3], "00": [4], "FF": [5] },
     "animacaoInicial": "DE",
     "escala": 1.5,
+    "colisorDivisor": 3,
+    "ordemDeDesenho": 91,
+    "posicionarNoDono": false
+  },
+
+  // A FASE 3 - AS FUNCOES (Funcao.h).
+  //
+  // O CARTAO DE CADA FUNCAO, com a assinatura dela ("void leque(int n)"),
+  // apagado e aceso enquanto ela executa. E enfeite (Andre::PorCartao).
+  "Cartao": {
+    "sprite": "Teachers/Projectiles/DPIBHAndreCartoes.png",
+    "dados":  "Teachers/Projectiles/DPIBHAndreCartoes.json",
+    "animacoes": {
+      "Baloes": [0], "Leque": [1], "Dobro": [2], "Meio": [3], "Segue": [4],
+      "BaloesAceso": [5], "LequeAceso": [6], "DobroAceso": [7], "MeioAceso": [8], "SegueAceso": [9]
+    },
+    "animacaoInicial": "Baloes",
+    "ordemDeDesenho": 72,
+    "posicionarNoDono": false
+  },
+
+  // O VALOR que voa de quem chama ate a funcao - o argumento -, e o retorno
+  // que volta. Enfeite: o que machuca e o que a funcao faz com ele.
+  "Valor": {
+    "sprite": "Teachers/Projectiles/DPIBHAndreValores.png",
+    "dados":  "Teachers/Projectiles/DPIBHAndreValores.json",
+    "animacoes": {
+      "N-1": [0], "N0": [1], "N1": [2], "N2": [3], "N3": [4], "N4": [5], "N5": [6], "N6": [7],
+      "N7": [8], "N8": [9], "N9": [10], "N10": [11], "N11": [12], "N12": [13], "N13": [14], "N14": [15],
+      "N15": [16], "N16": [17], "N17": [18], "N18": [19], "N19": [20], "N20": [21], "N21": [22], "N22": [23]
+    },
+    "animacaoInicial": "N0",
+    "escala": 1.5,
+    "ordemDeDesenho": 94,
+    "posicionarNoDono": false
+  },
+
+  // O PONTO-E-VIRGULA que o leque(n) atira - o que sempre falta.
+  "Ponto": {
+    "sprite": "Teachers/Projectiles/DPIBHAndrePonto.png",
+    "dados":  "Teachers/Projectiles/DPIBHAndrePonto.json",
+    "animacoes": { "Ponto": [0] },
+    "escala": 2,
     "colisorDivisor": 3,
     "ordemDeDesenho": 91,
     "posicionarNoDono": false

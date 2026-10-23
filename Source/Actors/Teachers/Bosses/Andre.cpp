@@ -9,12 +9,13 @@
 #include <limits>
 
 #include "../../../Random.h"
-#include "../../../Attacks/AttackParameters/BaloonAttackParams.h"
+#include "../../../Attacks/Prova.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../../../Components/RigidBodyComponent.h"
 #include "../../../Scenes/Battle/Battle.h"
+#include "../../Player/Player.h"
 #include "BossesProjectiles/BossProjectile.h"
 
 namespace {
@@ -34,6 +35,13 @@ namespace {
         }
     }
 
+    constexpr SDL_Color kApagado{110, 130, 170, 200};
+    constexpr SDL_Color kAceso{255, 214, 72, 255};
+    constexpr SDL_Color kVerdadeiro{96, 222, 112, 255};
+    constexpr SDL_Color kFalso{236, 84, 72, 255};
+
+    // A fase 1.
+
     /// O losango do fluxograma: meia largura e meia altura.
     constexpr float kMeioLosango = 44.0f;
     constexpr float kMeiaAlturaDoLosango = 32.0f;
@@ -51,30 +59,122 @@ namespace {
     /// O balao sem case sobe e sai do campo.
     constexpr float kVelocidadeDeSaida = 260.0f;
 
-    constexpr SDL_Color kApagado{110, 130, 170, 200};
-    constexpr SDL_Color kAceso{255, 214, 72, 255};
-    constexpr SDL_Color kVerdadeiro{96, 222, 112, 255};
-    constexpr SDL_Color kFalso{236, 84, 72, 255};
+    // A fase 2.
+
+    /// O cacho: o lugar de cada balao em relacao ao meio da casa - um cacho
+    /// de verdade nao sobe em fila.
+    constexpr float kDesvioDoCacho[Laco::kBaloesPorCacho] = {0.0f, 14.0f, 6.0f};
+    const char* const kCoresDoBalaoOriginal[] = {"Red", "Blue", "Yellow"};
+
+    /// O continue acende o indice de azul por este tempo.
+    constexpr float kPuladoAceso = 0.45f;
+
+    // A fase 3.
+
+    /// Dois valores voando juntos vao lado a lado, para os dois numeros se
+    /// lerem.
+    constexpr float kEntreValores = 20.0f;
+
+    /// O cartao de fora fica aceso este tanto depois de a funcao rodar.
+    constexpr float kCartaoAceso = 0.45f;
 }
 
 Andre::Andre(Scene* scene) : Boss(scene)
 {
 }
 
+std::optional<Vector2> Andre::AlvoDoMovimento() const {
+    return mAlvo;
+}
+
 void Andre::OnUpdate(const float deltaTime) {
     Boss::OnUpdate(deltaTime);
     if (EhClone()) return;
-    AtualizarCondicional(deltaTime);
-    AtualizarLaco(deltaTime);
+    mRelogio += deltaTime;
+
+    if (!mLinhas && mScene) {
+        auto ator = std::make_unique<Actor>(mScene);
+        mLinhas = ator->AddComponent<DrawLinhasComponent>(kOrdemDasLinhas);
+        mScene->AddActor(std::move(ator));
+    }
+    if (mLinhas) mLinhas->Limpar();
+
+    // UMA MECANICA POR VEZ: quem fecha desmonta antes de quem abre montar, e
+    // a prova escreve a abertura de cada problema por cima de tudo.
+    const Sessao s = SessaoAtual();
+    AtualizarCondicional(deltaTime, s);
+    AtualizarLaco(s);
+    AtualizarFuncao(deltaTime, s);
+    AtualizarVetor(s.vetor);
+    AtualizarProva();
 }
 
-std::optional<Vector2> Andre::AlvoDoMovimento() const {
-    return mAlvo;
+Andre::Sessao Andre::SessaoAtual() {
+    Sessao s;
+    const auto* fsm = GetComponent<FSMComponent>();
+    if (!fsm) return s;
+    s.fase = fsm->GetStateName();
+    const float t = fsm->GetStateTime();
+    std::string chave = s.fase;
+
+    s.agora = t;
+    if (s.fase == Condicional::kFaseDoSe) {
+        s.qual = Mecanica::Condicional;
+    } else if (s.fase == Laco::kFaseDoLaco) {
+        s.qual = Mecanica::Laco;
+    } else if (s.fase == Funcao::kFaseDaFuncao) {
+        s.qual = Mecanica::Funcao;
+    } else if (s.fase == Prova::kFaseDaProva) {
+        // A PROVA: cada problema e uma sessao da mecanica da fase de onde ele
+        // vem, depois da abertura dele.
+        const int k = Prova::ProblemaEm(t);
+        chave += "/" + std::to_string(k);
+        s.agora = 0.0f;
+        auto usaOVetor = [](const int j) {
+            return j >= 0 && j < Prova::kProblemas && Prova::kProva[static_cast<size_t>(j)].tema != Prova::Tema::Condicional;
+        };
+        if (k >= 0) {
+            const auto& p = Prova::kProva[static_cast<size_t>(k)];
+            const float local = t - p.inicio - Prova::kAbertura;
+            // O VETOR FICA durante o problema que o usa e na abertura do
+            // seguinte: os ultimos cachos ainda estao subindo.
+            s.vetor = usaOVetor(k) || (local < 0.0f && usaOVetor(k - 1));
+            if (local >= 0.0f) {
+                s.qual = p.tema == Prova::Tema::Condicional ? Mecanica::Condicional
+                       : p.tema == Prova::Tema::Laco ? Mecanica::Laco : Mecanica::Funcao;
+                s.primeiraVez = p.vez;
+                s.quantos = p.quantos;
+                s.agora = local;
+                chave += "/roda";
+            }
+        }
+    }
+    if (s.qual == Mecanica::Laco || s.qual == Mecanica::Funcao) s.vetor = true;
+
+    if (chave != mChaveDaSessao) {
+        mChaveDaSessao = chave;
+        ++mNumeroDaSessao;
+    }
+    s.numero = mNumeroDaSessao;
+    return s;
 }
 
 SDL_FRect Andre::Campo() const {
     if (const auto* battle = dynamic_cast<Battle*>(mScene)) return battle->GetPlayfieldBounds();
     return SDL_FRect{0.0f, 0.0f, 1200.0f, 746.0f};
+}
+
+Vector2 Andre::PosicaoDoAluno() const {
+    if (const auto* battle = dynamic_cast<Battle*>(mScene); battle && battle->Alvo()) {
+        return battle->Alvo()->GetPosition();
+    }
+    const SDL_FRect campo = Campo();
+    return Vector2(campo.x + campo.w / 2.0f, campo.y + campo.h - 60.0f);
+}
+
+int Andre::CasaDoAluno() const {
+    const SDL_FRect campo = Campo();
+    return Funcao::CasaDoX(PosicaoDoAluno().x - campo.x, campo.w);
 }
 
 std::vector<BossProjectile*> Andre::DispararEm(const char* gatilho, const Vector2 onde, const int quantos,
@@ -89,6 +189,118 @@ std::vector<BossProjectile*> Andre::DispararEm(const char* gatilho, const Vector
     mQuantos = 0;
     mAnguloEm.reset();
     return mCriados;
+}
+
+void Andre::MudarDeLugar(const float de, const float ate, const float y) {
+    const SDL_FRect campo = Campo();
+    const float fracao = static_cast<float>(Sorteio() % 1001u) / 1000.0f;
+    mAlvo = Vector2(campo.x + de + fracao * (ate - de), campo.y + y);
+}
+
+void Andre::Anunciar(const std::string& fase, const std::string& texto) {
+    if (mAnunciosDoArquivo.count(fase) == 0) mAnunciosDoArquivo[fase] = AnuncioDaFase(fase);
+    RegistrarAnuncio(fase, texto);
+}
+
+void Andre::Restaurar(const std::string& fase) {
+    const auto it = mAnunciosDoArquivo.find(fase);
+    if (it != mAnunciosDoArquivo.end()) RegistrarAnuncio(fase, it->second);
+}
+
+// ---------------------------------------------------------------------------
+// O VETOR DO CHAO
+// ---------------------------------------------------------------------------
+
+void Andre::CriarVetor() {
+    const SDL_FRect campo = Campo();
+    mIndices.clear();
+    mAcesoDoIndice.assign(Laco::kCasas, -1.0f);
+    mPuladoDoIndice.assign(Laco::kCasas, -1.0f);
+    mErroAte = -1.0f;
+    for (int i = 0; i < Laco::kCasas; ++i) {
+        const Vector2 onde(campo.x + Laco::XDaCasa(i, campo.w), campo.y + campo.h - Laco::kAcimaDaBorda);
+        const auto criados = DispararEm(Laco::kGatilhoDoIndice, onde);
+        BossProjectile* p = criados.empty() ? nullptr : criados.front();
+        mIndices.push_back(p);
+        if (!p) continue;
+        p->DefinirEnfeite(true);
+        Parar(p);
+        PorCara(p, Laco::CaraDoIndice(i));
+    }
+}
+
+void Andre::ApagarVetor() {
+    for (BossProjectile* p : mIndices) if (Vivo(p)) p->Kill();
+    mIndices.clear();
+    mAcesoDoIndice.clear();
+    mPuladoDoIndice.clear();
+    mCachos.clear();
+    mSubindo.clear();
+}
+
+void Andre::AgendarCacho(const int casa, const float quando, const int dono) {
+    mCachos.push_back(Cacho{casa, quando, dono, false});
+}
+
+void Andre::AtualizarVetor(const bool preciso) {
+    // O que o campo ja levou sai da conta antes de qualquer disparo deste
+    // quadro: um projetil morto pode voltar do pool como outro.
+    mSubindo.erase(std::remove_if(mSubindo.begin(), mSubindo.end(),
+                                  [](const Subindo& s) { return !Vivo(s.p); }), mSubindo.end());
+    for (BossProjectile*& p : mIndices) if (!Vivo(p)) p = nullptr;
+
+    if (!preciso) {
+        if (!mIndices.empty()) ApagarVetor();
+        return;
+    }
+    // Um indice que o campo levou (nao deveria: e enfeite) volta com o vetor.
+    if (mIndices.empty() || std::find(mIndices.begin(), mIndices.end(), nullptr) != mIndices.end()) {
+        for (BossProjectile* p : mIndices) if (Vivo(p)) p->Kill();
+        CriarVetor();
+    }
+
+    for (auto it = mCachos.begin(); it != mCachos.end();) {
+        if (mRelogio < it->quando) { ++it; continue; }
+        if (!it->aceso) {
+            // A CASA ACENDE quando o i passa por ela - e o cacho sobe kAviso
+            // depois.
+            it->aceso = true;
+            if (it->casa >= 0 && it->casa < Laco::kCasas) {
+                auto& ate = mAcesoDoIndice[static_cast<size_t>(it->casa)];
+                ate = std::max(ate, it->quando + Laco::kAviso);
+            }
+        }
+        if (mRelogio < it->quando + Laco::kAviso) { ++it; continue; }
+        const Cacho c = *it;
+        it = mCachos.erase(it);
+        SoltarCacho(c.casa, c.dono);
+    }
+
+    for (int i = 0; i < static_cast<int>(mIndices.size()); ++i) {
+        BossProjectile* p = mIndices[static_cast<size_t>(i)];
+        if (!p) continue;
+        Parar(p);
+        const auto k = static_cast<size_t>(i);
+        if (mRelogio < mErroAte) PorCara(p, Laco::CaraDoIndiceErro(i));
+        else if (mRelogio < mAcesoDoIndice[k]) PorCara(p, Laco::CaraDoIndiceAceso(i));
+        else if (mRelogio < mPuladoDoIndice[k]) PorCara(p, Laco::CaraDoIndicePulado(i));
+        else PorCara(p, Laco::CaraDoIndice(i));
+    }
+}
+
+void Andre::SoltarCacho(const int casa, const int dono) {
+    const SDL_FRect campo = Campo();
+    const Vector2 onde(campo.x + Laco::XDaCasa(casa, campo.w), campo.y + campo.h + Laco::kAbaixoDoChao);
+    const auto baloes = DispararEm(Laco::kGatilhoDoCacho, onde);
+    const char* cor = kCoresDoBalaoOriginal[Sorteio() % 3u];
+    for (size_t k = 0; k < baloes.size() && k < static_cast<size_t>(Laco::kBaloesPorCacho); ++k) {
+        const float lado = (static_cast<float>(k) - 1.0f) * Laco::kLadoDoCacho;
+        // A VELOCIDADE E A DO ATAQUE em fases.json: a WaveAttack a escreve no
+        // primeiro quadro do projetil, por cima de qualquer outra.
+        baloes[k]->SetPosition(onde + Vector2(lado, kDesvioDoCacho[k]));
+        PorCara(baloes[k], cor);
+        if (dono == mDonoQueOJuizMata) mSubindo.push_back(Subindo{baloes[k], dono});
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -118,42 +330,34 @@ std::vector<Vector2> Andre::Caminho(const Condicional::Comando& c, const int ram
     return {saida, Vector2(alvo.x, saida.y), alvo};
 }
 
-void Andre::AtualizarCondicional(const float deltaTime) {
-    const auto* fsm = GetComponent<FSMComponent>();
-    const bool noSe = fsm && fsm->GetStateName() == Condicional::kFaseDoSe;
-
-    if (!noSe) {
-        // A FASE ACABOU: o fluxograma sai, e o placar volta ao do arquivo.
-        if (mNoSe) {
+void Andre::AtualizarCondicional(const float deltaTime, const Sessao& s) {
+    const bool ativo = s.qual == Mecanica::Condicional;
+    if (!ativo || s.numero != mSessaoDoSe) {
+        // A SESSAO FECHOU: o fluxograma sai, e o placar volta ao do arquivo.
+        if (mSessaoDoSe >= 0) {
             DesmontarCondicional();
-            if (!mAnuncioDoSe.empty()) RegistrarAnuncio(Condicional::kFaseDoSe, mAnuncioDoSe);
-            mAlvo.reset();
-            mNoSe = false;
+            Restaurar(mFaseDoSe);
+            mSessaoDoSe = -1;
         }
-        return;
-    }
-    const float agora = fsm->GetStateTime();
-    if (!mNoSe) {
-        mNoSe = true;
-        mVez = 0;
+        if (!ativo) return;
+        mSessaoDoSe = s.numero;
+        mFaseDoSe = s.fase;
+        mVez = s.primeiraVez;
+        mFeitosDoSe = 0;
+        mLimiteDoSe = s.quantos;
         mProximoComando = 0.0f;
+        mBaloesDoComando = Condicional::kBaloesPorComando;
         mBaloes.clear();
         mQuedas.clear();
-        if (mAnuncioDoSe.empty()) mAnuncioDoSe = AnuncioDaFase(Condicional::kFaseDoSe);
-        if (!mFluxograma && mScene) {
-            auto ator = std::make_unique<Actor>(mScene);
-            mFluxograma = ator->AddComponent<DrawLinhasComponent>(kOrdemDoFluxograma);
-            mScene->AddActor(std::move(ator));
-        }
     }
+    const float agora = s.agora;
 
-    // O QUE O CAMPO JA LEVOU (o tiro, a borda) sai da conta ANTES de qualquer
-    // disparo deste quadro: um projetil morto pode voltar do pool como outro.
+    // O que o campo ja levou sai da conta antes de qualquer disparo.
     mBaloes.erase(std::remove_if(mBaloes.begin(), mBaloes.end(),
                                  [](const Balao& b) { return !Vivo(b.p); }), mBaloes.end());
     for (BossProjectile*& p : mRotulos) if (!Vivo(p)) p = nullptr;
 
-    if (agora >= mProximoComando) NovoComando(agora);
+    if (agora >= mProximoComando && (mLimiteDoSe == 0 || mFeitosDoSe < mLimiteDoSe)) NovoComando(agora);
     if (mBaloesDoComando < Condicional::kBaloesPorComando && agora >= mProximoBalao) {
         SoltarBalao();
         ++mBaloesDoComando;
@@ -184,17 +388,15 @@ void Andre::AtualizarCondicional(const float deltaTime) {
 
 void Andre::NovoComando(const float agora) {
     mComando = Condicional::Proximo(mVez++, Sorteio());
-    mProximoComando = static_cast<float>(mVez) * Condicional::kPorComando;
+    ++mFeitosDoSe;
+    mProximoComando = static_cast<float>(mFeitosDoSe) * Condicional::kPorComando;
     mBaloesDoComando = 0;
     mProximoBalao = agora + Condicional::kPrimeiroBalao;
-    RegistrarAnuncio(Condicional::kFaseDoSe, Condicional::Placar(mComando));
+    Anunciar(mFaseDoSe, Condicional::Placar(mComando));
 
     // O PROFESSOR MUDA DE LUGAR a cada comando: o losango vai com ele, e a
     // faixa embaixo dele nao fica sempre a mesma.
-    const SDL_FRect campo = Campo();
-    const float fracao = static_cast<float>(Sorteio() % 1001u) / 1000.0f;
-    mAlvo = Vector2(campo.x + Condicional::kXMinimo + fracao * (Condicional::kXMaximo - Condicional::kXMinimo),
-                    campo.y + Condicional::kYDoProfessor);
+    MudarDeLugar(Condicional::kXMinimo, Condicional::kXMaximo, Condicional::kYDoProfessor);
 
     // OS CABECALHOS DOS RAMOS, um por faixa.
     for (BossProjectile* p : mRotulos) if (Vivo(p)) p->Kill();
@@ -258,7 +460,7 @@ void Andre::AtualizarBaloes(const float deltaTime, const float agora) {
                 // comando no balao seguinte que nao tem o que explicar.
                 if (b.c == mComando) {
                     const std::string porque = Condicional::Explicacao(b.c, b.n);
-                    RegistrarAnuncio(Condicional::kFaseDoSe, porque.empty() ? Condicional::Placar(b.c) : porque);
+                    Anunciar(mFaseDoSe, porque.empty() ? Condicional::Placar(b.c) : porque);
                 }
                 break;
             }
@@ -322,9 +524,6 @@ void Andre::Estourar(const Condicional::Comando& c, const int ramo, const int co
     for (size_t k = 0; k < pedacos.size() && k < confetes.size(); ++k) {
         const float tremor = Random::GetFloatRange(0.0f, kTremor);
         pedacos[k]->SetPosition(Vector2(confetes[k].x, y - confetes[k].acima - tremor));
-        if (auto* rb = pedacos[k]->GetComponent<RigidBodyComponent>()) {
-            rb->SetVelocity(Vector2(0.0f, Condicional::kVelocidadeDoConfete));
-        }
         PorCara(pedacos[k], Condicional::CaraDoConfete(cor));
     }
     if (c == mComando && ramo >= 0 && static_cast<size_t>(ramo) < mAcesoAte.size()) {
@@ -333,12 +532,11 @@ void Andre::Estourar(const Condicional::Comando& c, const int ramo, const int co
 }
 
 void Andre::DesenharFluxograma(const float agora) {
-    if (!mFluxograma) return;
-    mFluxograma->Limpar();
+    if (!mLinhas || mRotulos.empty()) return;
     const Vector2 d = Decisao();
 
     // A SETA QUE ENTRA NO LOSANGO, do professor.
-    mFluxograma->Acrescentar(GetPosition() + Vector2(0.0f, 40.0f), Vector2(d.x, d.y - kMeiaAlturaDoLosango), kApagado);
+    mLinhas->Acrescentar(GetPosition() + Vector2(0.0f, 40.0f), Vector2(d.x, d.y - kMeiaAlturaDoLosango), kApagado);
 
     // O LOSANGO: verde quando a condicao deu verdadeiro, vermelho no else, e
     // amarelo no case do switch.
@@ -349,10 +547,10 @@ void Andre::DesenharFluxograma(const float agora) {
     }
     const Vector2 cima(d.x, d.y - kMeiaAlturaDoLosango), baixo(d.x, d.y + kMeiaAlturaDoLosango);
     const Vector2 esquerda(d.x - kMeioLosango, d.y), direita(d.x + kMeioLosango, d.y);
-    mFluxograma->Acrescentar(cima, direita, cor);
-    mFluxograma->Acrescentar(direita, baixo, cor);
-    mFluxograma->Acrescentar(baixo, esquerda, cor);
-    mFluxograma->Acrescentar(esquerda, cima, cor);
+    mLinhas->Acrescentar(cima, direita, cor);
+    mLinhas->Acrescentar(direita, baixo, cor);
+    mLinhas->Acrescentar(baixo, esquerda, cor);
+    mLinhas->Acrescentar(esquerda, cima, cor);
 
     // AS SETAS DOS RAMOS: a que tem um balao andando nela, ou cujo confete
     // acabou de cair, acesa.
@@ -364,7 +562,7 @@ void Andre::DesenharFluxograma(const float agora) {
         }
         const auto caminho = Caminho(mComando, k);
         for (size_t i = 1; i < caminho.size(); ++i) {
-            mFluxograma->Acrescentar(caminho[i - 1], caminho[i], aceso ? kAceso : kApagado);
+            mLinhas->Acrescentar(caminho[i - 1], caminho[i], aceso ? kAceso : kApagado);
         }
     }
 }
@@ -376,147 +574,89 @@ void Andre::DesmontarCondicional() {
     mAcesoAte.clear();
     mBaloes.clear();
     mQuedas.clear();
-    if (mFluxograma) mFluxograma->Limpar();
 }
 
 // ---------------------------------------------------------------------------
 // A FASE 2: A REPETICAO
 // ---------------------------------------------------------------------------
 
-namespace {
-    /// O cacho: o lugar de cada balao em relacao ao meio da casa, e a
-    /// diferenca de velocidade dele - um cacho de verdade nao sobe em fila.
-    constexpr float kDesvioDoCacho[Laco::kBaloesPorCacho] = {0.0f, 14.0f, 6.0f};
-    constexpr float kVariacaoDoCacho[Laco::kBaloesPorCacho] = {0.0f, -12.0f, 10.0f};
-    const char* const kCoresDoBalaoOriginal[] = {"Red", "Blue", "Yellow"};
-
-    /// O continue acende o indice de azul por este tempo.
-    constexpr float kPuladoAceso = 0.45f;
-}
-
-void Andre::AtualizarLaco(const float deltaTime) {
-    (void)deltaTime;
-    const auto* fsm = GetComponent<FSMComponent>();
-    const bool noLaco = fsm && fsm->GetStateName() == Laco::kFaseDoLaco;
-
-    if (!noLaco) {
-        if (mNoLaco) {
-            DesmontarLaco();
-            if (!mAnuncioDoLaco.empty()) RegistrarAnuncio(Laco::kFaseDoLaco, mAnuncioDoLaco);
-            mAlvo.reset();
-            mNoLaco = false;
+void Andre::AtualizarLaco(const Sessao& s) {
+    const bool ativo = s.qual == Mecanica::Laco;
+    if (!ativo || s.numero != mSessaoDoLaco) {
+        if (mSessaoDoLaco >= 0) {
+            mRodando = false;
+            mDonoQueOJuizMata = -1;
+            Restaurar(mFaseDoLaco);
+            mSessaoDoLaco = -1;
         }
-        return;
-    }
-    const float agora = fsm->GetStateTime();
-    const SDL_FRect campo = Campo();
-    if (!mNoLaco) {
-        mNoLaco = true;
-        mVezDoLaco = 0;
+        if (!ativo) return;
+        mSessaoDoLaco = s.numero;
+        mFaseDoLaco = s.fase;
+        mVezDoLaco = s.primeiraVez;
+        mFeitosDoLaco = 0;
+        mLimiteDoLaco = s.quantos;
         mRodando = false;
         mProximoLaco = Laco::kPrimeiro;
-        mErroAte = 0.0f;
-        mCachos.clear();
-        mSubindo.clear();
-        if (mAnuncioDoLaco.empty()) mAnuncioDoLaco = AnuncioDaFase(Laco::kFaseDoLaco);
-
-        // O VETOR NO CHAO: o indice de cada casa, embaixo.
-        mIndices.clear();
-        mAcesoDoIndice.assign(Laco::kCasas, -1.0f);
-        mPuladoDoIndice.assign(Laco::kCasas, -1.0f);
-        for (int i = 0; i < Laco::kCasas; ++i) {
-            const Vector2 onde(campo.x + Laco::XDaCasa(i, campo.w), campo.y + campo.h - Laco::kAcimaDaBorda);
-            const auto criados = DispararEm(Laco::kGatilhoDoIndice, onde);
-            BossProjectile* p = criados.empty() ? nullptr : criados.front();
-            mIndices.push_back(p);
-            if (!p) continue;
-            p->DefinirEnfeite(true);
-            Parar(p);
-            PorCara(p, Laco::CaraDoIndice(i));
-        }
     }
+    const float agora = s.agora;
 
-    // O que o campo ja levou sai da conta antes de qualquer disparo.
-    mSubindo.erase(std::remove_if(mSubindo.begin(), mSubindo.end(),
-                                  [](const Subindo& s) { return !Vivo(s.p); }), mSubindo.end());
-    for (BossProjectile*& p : mIndices) if (!Vivo(p)) p = nullptr;
+    if (!mRodando && agora >= mProximoLaco && (mLimiteDoLaco == 0 || mFeitosDoLaco < mLimiteDoLaco)) NovoLaco(agora);
+    if (!mRodando) return;
 
-    if (!mRodando && agora >= mProximoLaco) NovoLaco(agora);
-
-    if (mRodando) {
-        const float t = agora - mInicioDoLaco;
-        while (mProximaVisita < mVisitas.size() && mVisitas[mProximaVisita].quando <= t) {
-            Visitar(mVisitas[mProximaVisita++], agora);
-        }
-        // O JUIZ DO BOCA MATA O while (1): o placar da o veredito, e o que o
-        // programa soltou some com ele.
-        if (mPrograma.forma == Laco::Forma::Infinito && !mTempoEsgotado && t >= Laco::kLimiteDeTempo) {
-            mTempoEsgotado = true;
-            RegistrarAnuncio(Laco::kFaseDoLaco, Laco::kTempoEsgotado);
-            for (const Subindo& s : mSubindo) if (s.laco == mVezDoLaco && Vivo(s.p)) s.p->Kill();
-            mSubindo.erase(std::remove_if(mSubindo.begin(), mSubindo.end(),
-                                          [this](const Subindo& s) { return s.laco == mVezDoLaco; }), mSubindo.end());
-            mCachos.erase(std::remove_if(mCachos.begin(), mCachos.end(),
-                                         [this](const Cacho& c) { return c.laco == mVezDoLaco; }), mCachos.end());
-            for (float& ate : mAcesoDoIndice) ate = -1.0f;
-        }
-        if (t >= mDuracaoDoLaco) {
-            mRodando = false;
-            mProximoLaco = agora + Laco::kEntreLacos;
-        }
+    const float t = agora - mInicioDoLaco;
+    while (mProximaVisita < mVisitas.size() && mVisitas[mProximaVisita].quando <= t) {
+        Visitar(mVisitas[mProximaVisita++]);
     }
-
-    for (auto it = mCachos.begin(); it != mCachos.end();) {
-        if (agora < it->quando) { ++it; continue; }
-        const Cacho c = *it;
-        it = mCachos.erase(it);
-        SoltarCacho(c.casa, c.laco);
+    // O JUIZ DO BOCA MATA O while (1): o placar da o veredito, e o que o
+    // programa soltou some com ele.
+    if (mPrograma.forma == Laco::Forma::Infinito && !mTempoEsgotado && t >= Laco::kLimiteDeTempo) {
+        mTempoEsgotado = true;
+        Anunciar(mFaseDoLaco, Laco::kTempoEsgotado);
+        for (const Subindo& b : mSubindo) if (b.dono == mDonoDoLaco && Vivo(b.p)) b.p->Kill();
+        mSubindo.erase(std::remove_if(mSubindo.begin(), mSubindo.end(),
+                                      [this](const Subindo& b) { return b.dono == mDonoDoLaco; }), mSubindo.end());
+        mCachos.erase(std::remove_if(mCachos.begin(), mCachos.end(),
+                                     [this](const Cacho& c) { return c.dono == mDonoDoLaco; }), mCachos.end());
+        for (float& ate : mAcesoDoIndice) ate = -1.0f;
+        mDonoQueOJuizMata = -1;
     }
-
-    for (int i = 0; i < static_cast<int>(mIndices.size()); ++i) {
-        BossProjectile* p = mIndices[static_cast<size_t>(i)];
-        if (!p) continue;
-        Parar(p);
-        const auto k = static_cast<size_t>(i);
-        if (agora < mErroAte) PorCara(p, Laco::CaraDoIndiceErro(i));
-        else if (agora < mAcesoDoIndice[k]) PorCara(p, Laco::CaraDoIndiceAceso(i));
-        else if (agora < mPuladoDoIndice[k]) PorCara(p, Laco::CaraDoIndicePulado(i));
-        else PorCara(p, Laco::CaraDoIndice(i));
+    if (t >= mDuracaoDoLaco) {
+        mRodando = false;
+        mProximoLaco = agora + Laco::kEntreLacos;
     }
 }
 
 void Andre::NovoLaco(const float agora) {
-    ++mVezDoLaco;
-    mPrograma = Laco::Proximo(mVezDoLaco - 1, Sorteio());
+    mPrograma = Laco::Proximo(mVezDoLaco++, Sorteio());
+    ++mFeitosDoLaco;
+    ++mDonoDoLaco;
     mVisitas = Laco::Execucao(mPrograma, Sorteio());
     mDuracaoDoLaco = Laco::Duracao(mPrograma, mVisitas);
     mProximaVisita = 0;
     mInicioDoLaco = agora;
     mRodando = true;
     mTempoEsgotado = false;
-    RegistrarAnuncio(Laco::kFaseDoLaco, Laco::Placar(mPrograma));
-
-    const SDL_FRect campo = Campo();
-    const float fracao = static_cast<float>(Sorteio() % 1001u) / 1000.0f;
-    mAlvo = Vector2(campo.x + Laco::kXMinimo + fracao * (Laco::kXMaximo - Laco::kXMinimo),
-                    campo.y + Laco::kYDoProfessor);
+    mDonoQueOJuizMata = mPrograma.forma == Laco::Forma::Infinito ? mDonoDoLaco : -1;
+    Anunciar(mFaseDoLaco, Laco::Placar(mPrograma));
+    MudarDeLugar(Laco::kXMinimo, Laco::kXMaximo, Laco::kYDoProfessor);
 }
 
-void Andre::Visitar(const Laco::Visita& v, const float agora) {
+void Andre::Visitar(const Laco::Visita& v) {
     const SDL_FRect campo = Campo();
     switch (v.tipo) {
         case Laco::Tipo::Balao:
-            if (v.i >= 0 && v.i < Laco::kCasas) mAcesoDoIndice[static_cast<size_t>(v.i)] = agora + Laco::kAviso;
-            mCachos.push_back(Cacho{v.i, agora + Laco::kAviso, mVezDoLaco});
+            AgendarCacho(v.i, mRelogio, mDonoDoLaco);
             break;
         case Laco::Tipo::Pulado:
-            if (v.i >= 0 && v.i < Laco::kCasas) mPuladoDoIndice[static_cast<size_t>(v.i)] = agora + kPuladoAceso;
+            if (v.i >= 0 && v.i < Laco::kCasas && static_cast<size_t>(v.i) < mPuladoDoIndice.size()) {
+                mPuladoDoIndice[static_cast<size_t>(v.i)] = mRelogio + kPuladoAceso;
+            }
             break;
         case Laco::Tipo::Fora: {
             // O i SAIU DO VETOR: o programa capota, e a memoria despejada voa
             // da borda por onde ele saiu, para dentro do campo.
-            RegistrarAnuncio(Laco::kFaseDoLaco, Laco::kSegfault);
-            mErroAte = agora + Laco::kCapotando;
+            Anunciar(mFaseDoLaco, Laco::kSegfault);
+            mErroAte = mRelogio + Laco::kCapotando;
             const bool direita = v.i >= Laco::kCasas;
             const Vector2 borda(direita ? campo.x + campo.w : campo.x, campo.y + campo.h - Laco::kAcimaDoChao);
             const float angulo = direita ? 180.0f + Laco::kInclinacaoDoDespejo : 360.0f - Laco::kInclinacaoDoDespejo;
@@ -527,91 +667,295 @@ void Andre::Visitar(const Laco::Visita& v, const float agora) {
     }
 }
 
-void Andre::SoltarCacho(const int casa, const int laco) {
-    const SDL_FRect campo = Campo();
-    const Vector2 onde(campo.x + Laco::XDaCasa(casa, campo.w), campo.y + campo.h + Laco::kAbaixoDoChao);
-    const auto baloes = DispararEm(Laco::kGatilhoDoCacho, onde);
-    const char* cor = kCoresDoBalaoOriginal[Sorteio() % 3u];
-    for (size_t k = 0; k < baloes.size() && k < static_cast<size_t>(Laco::kBaloesPorCacho); ++k) {
-        const float lado = (static_cast<float>(k) - 1.0f) * Laco::kLadoDoCacho;
-        baloes[k]->SetPosition(onde + Vector2(lado, kDesvioDoCacho[k]));
-        if (auto* rb = baloes[k]->GetComponent<RigidBodyComponent>()) {
-            rb->SetVelocity(Vector2(0.0f, -(Laco::kVelocidadeDoCacho + kVariacaoDoCacho[k])));
-        }
-        PorCara(baloes[k], cor);
-        if (mPrograma.forma == Laco::Forma::Infinito && laco == mVezDoLaco) mSubindo.push_back(Subindo{baloes[k], laco});
+// ---------------------------------------------------------------------------
+// A FASE 3: AS FUNCOES
+// ---------------------------------------------------------------------------
+
+BossProjectile* Andre::PorCartao(const Funcao::Nome f, const Vector2 onde) {
+    const auto criados = DispararEm(Funcao::kGatilhoDoCartao, onde);
+    BossProjectile* p = criados.empty() ? nullptr : criados.front();
+    if (!p) return nullptr;
+    p->DefinirEnfeite(true);
+    Parar(p);
+    PorCara(p, Funcao::CaraDoCartao(f));
+    return p;
+}
+
+void Andre::ApagarCartoes() {
+    if (Vivo(mCartaoDeFora)) mCartaoDeFora->Kill();
+    if (Vivo(mCartaoDeDentro)) mCartaoDeDentro->Kill();
+    mCartaoDeFora = nullptr;
+    mCartaoDeDentro = nullptr;
+}
+
+void Andre::Levar(const std::vector<int>& valores, const Vector2 de, const std::optional<Vector2> para) {
+    for (const Valor& v : mValores) if (Vivo(v.p)) v.p->Kill();
+    mValores.clear();
+    const float meio = (static_cast<float>(valores.size()) - 1.0f) / 2.0f;
+    for (size_t k = 0; k < valores.size(); ++k) {
+        const Vector2 desvio((static_cast<float>(k) - meio) * kEntreValores * 2.0f, 0.0f);
+        const auto criados = DispararEm(Funcao::kGatilhoDoValor, de + desvio);
+        if (criados.empty()) continue;
+        BossProjectile* p = criados.front();
+        p->DefinirEnfeite(true);
+        Parar(p);
+        PorCara(p, Funcao::CaraDoValor(valores[k]));
+        mValores.push_back(Valor{p, desvio, para});
     }
 }
 
-void Andre::DesmontarLaco() {
-    for (BossProjectile* p : mIndices) if (Vivo(p)) p->Kill();
-    mIndices.clear();
-    mAcesoDoIndice.clear();
-    mPuladoDoIndice.clear();
-    mCachos.clear();
-    mSubindo.clear();
-    mRodando = false;
+bool Andre::MoverValores(const float deltaTime) {
+    const float passo = Funcao::kVelocidadeDoValor * deltaTime;
+    bool todos = true;
+    for (auto it = mValores.begin(); it != mValores.end();) {
+        BossProjectile* p = it->p;
+        if (!Vivo(p)) { it = mValores.erase(it); continue; }
+        Parar(p);
+        const Vector2 alvo = (it->para ? *it->para : GetPosition()) + it->desvio;
+        const Vector2 falta = alvo - p->GetPosition();
+        if (falta.Length() <= passo) {
+            // CHEGOU: o valor entra na funcao (ou volta para quem chamou).
+            p->Kill();
+            it = mValores.erase(it);
+            continue;
+        }
+        p->SetPosition(p->GetPosition() + Vector2::Normalize(falta) * passo);
+        todos = false;
+        ++it;
+    }
+    return todos;
+}
+
+void Andre::AtualizarFuncao(const float deltaTime, const Sessao& s) {
+    const bool ativo = s.qual == Mecanica::Funcao;
+    if (!ativo || s.numero != mSessaoDaFuncao) {
+        if (mSessaoDaFuncao >= 0) {
+            DesmontarFuncao();
+            Restaurar(mFaseDaFuncao);
+            mSessaoDaFuncao = -1;
+        }
+        if (!ativo) return;
+        mSessaoDaFuncao = s.numero;
+        mFaseDaFuncao = s.fase;
+        mVezDaFuncao = s.primeiraVez;
+        mFeitasDaFuncao = 0;
+        mLimiteDaFuncao = s.quantos;
+        mPasso = Passo::Parado;
+        mProximaChamada = Funcao::kPrimeiro;
+    }
+    const float agora = s.agora;
+
+    if (mPasso == Passo::Parado) {
+        if (agora >= mProximaChamada && (mLimiteDaFuncao == 0 || mFeitasDaFuncao < mLimiteDaFuncao)) NovaChamada(agora);
+    }
+
+    const bool chegaram = MoverValores(deltaTime);
+    switch (mPasso) {
+        case Passo::Parado:
+            break;
+        case Passo::IdaDeDentro:
+            if (chegaram) {
+                mPasso = Passo::NaDeDentro;
+                mAteDoPasso = agora + Funcao::kExecutando;
+            }
+            break;
+        case Passo::NaDeDentro:
+            if (agora >= mAteDoPasso) {
+                // O RETORNO VOLTA PARA QUEM CHAMOU - o professor, onde ele
+                // estiver.
+                Levar({Funcao::Retorno(mChamada)}, mOndeDeDentro, std::nullopt);
+                mPasso = Passo::Volta;
+            }
+            break;
+        case Passo::Volta:
+            if (chegaram) {
+                // E O PLACAR TROCA A CHAMADA PELO VALOR DELA.
+                Anunciar(mFaseDaFuncao, Funcao::PlacarComValores(mChamada, 0));
+                mArgumentos = Funcao::ArgumentosDaExterna(mChamada, 0);
+                Levar(mArgumentos, GetPosition(), mOndeDeFora);
+                mPasso = Passo::IdaDeFora;
+            }
+            break;
+        case Passo::IdaDeFora:
+            if (chegaram) {
+                mPasso = Passo::NaDeFora;
+                mAteDoPasso = agora + Funcao::kExecutando;
+            }
+            break;
+        case Passo::NaDeFora:
+            if (agora >= mAteDoPasso) Executar(agora);
+            break;
+        case Passo::Seguindo:
+            // O PONTEIRO: o cartao ligado ao aluno, e o cacho sobe onde ele
+            // esta agora.
+            if (mLinhas && Vivo(mCartaoDeFora)) mLinhas->Acrescentar(mOndeDeFora, PosicaoDoAluno(), kAceso);
+            if (agora >= mProximoSegue) {
+                mProximoSegue += Funcao::kEntreSegue;
+                AgendarCacho(CasaDoAluno(), mRelogio, 0);
+            }
+            if (agora >= mSeguindoAte) TerminarChamada(agora);
+            break;
+    }
+
+    // OS CARTOES: o de dentro aceso enquanto executa; o de fora enquanto
+    // executa e um pouco depois. E as chamadas, do professor a cada um.
+    if (Vivo(mCartaoDeDentro)) {
+        const bool aceso = mPasso == Passo::NaDeDentro;
+        PorCara(mCartaoDeDentro, aceso ? Funcao::CaraDoCartaoAceso(Funcao::Interna(mChamada))
+                                       : Funcao::CaraDoCartao(Funcao::Interna(mChamada)));
+        Parar(mCartaoDeDentro);
+        if (mLinhas) {
+            const bool indo = mPasso == Passo::IdaDeDentro || mPasso == Passo::NaDeDentro || mPasso == Passo::Volta;
+            mLinhas->Acrescentar(GetPosition(), mOndeDeDentro, indo ? kAceso : kApagado);
+        }
+    }
+    if (Vivo(mCartaoDeFora)) {
+        const bool aceso = mPasso == Passo::NaDeFora || mPasso == Passo::Seguindo || agora < mForaAcesoAte;
+        PorCara(mCartaoDeFora, aceso ? Funcao::CaraDoCartaoAceso(Funcao::Externa(mChamada))
+                                     : Funcao::CaraDoCartao(Funcao::Externa(mChamada)));
+        Parar(mCartaoDeFora);
+        if (mLinhas) {
+            const bool indo = mPasso == Passo::IdaDeFora || mPasso == Passo::NaDeFora;
+            mLinhas->Acrescentar(GetPosition(), mOndeDeFora, indo ? kAceso : kApagado);
+        }
+    }
+}
+
+void Andre::NovaChamada(const float agora) {
+    mChamada = Funcao::Proximo(mVezDaFuncao++, Sorteio());
+    ++mFeitasDaFuncao;
+    Anunciar(mFaseDaFuncao, Funcao::Placar(mChamada));
+    MudarDeLugar(Funcao::kXMinimo, Funcao::kXMaximo, Funcao::kYDoProfessor);
+
+    // OS CARTOES DESTA CHAMADA: o da funcao de fora no meio, o da de dentro
+    // de um lado.
+    ApagarCartoes();
+    const SDL_FRect campo = Campo();
+    mOndeDeFora = Vector2(campo.x + campo.w / 2.0f, campo.y + Funcao::kYDoCartao);
+    mCartaoDeFora = PorCartao(Funcao::Externa(mChamada), mOndeDeFora);
+    if (Funcao::TemInterna(mChamada)) {
+        const bool esquerda = (Sorteio() % 2u) == 0u;
+        mOndeDeDentro = Vector2(campo.x + campo.w * (esquerda ? Funcao::kXDoLado : 1.0f - Funcao::kXDoLado),
+                                campo.y + Funcao::kYDoCartaoDeDentro);
+        mCartaoDeDentro = PorCartao(Funcao::Interna(mChamada), mOndeDeDentro);
+        Levar(Funcao::ArgumentosDaInterna(mChamada), GetPosition(), mOndeDeDentro);
+        mPasso = Passo::IdaDeDentro;
+        return;
+    }
+    switch (mChamada.forma) {
+        case Funcao::Forma::PorValor: {
+            // A COPIA: a casa do aluno agora, e o valor sai DELE para a funcao.
+            const int casa = CasaDoAluno();
+            Anunciar(mFaseDaFuncao, Funcao::PlacarComValores(mChamada, casa));
+            mArgumentos = Funcao::ArgumentosDaExterna(mChamada, casa);
+            Levar(mArgumentos, PosicaoDoAluno(), mOndeDeFora);
+            mPasso = Passo::IdaDeFora;
+            break;
+        }
+        case Funcao::Forma::PorReferencia:
+            // O ENDERECO nao voa: a funcao passa a enxergar o aluno.
+            mArgumentos.clear();
+            mPasso = Passo::NaDeFora;
+            mAteDoPasso = agora + Funcao::kExecutando;
+            break;
+        default:
+            mArgumentos = Funcao::ArgumentosDaExterna(mChamada, 0);
+            Levar(mArgumentos, GetPosition(), mOndeDeFora);
+            mPasso = Passo::IdaDeFora;
+            break;
+    }
+}
+
+void Andre::Executar(const float agora) {
+    switch (Funcao::Externa(mChamada)) {
+        case Funcao::Nome::Baloes: {
+            // UM LACO DENTRO DA FUNCAO: de 'de' a 'ate', um cacho por casa.
+            const auto casas = mArgumentos.size() >= 2 ? Funcao::CasasDosBaloes(mArgumentos[0], mArgumentos[1])
+                                                       : std::vector<int>{};
+            for (size_t k = 0; k < casas.size(); ++k) {
+                AgendarCacho(casas[k], mRelogio + Funcao::kEntreCachos * static_cast<float>(k), 0);
+            }
+            TerminarChamada(agora);
+            break;
+        }
+        case Funcao::Nome::Leque: {
+            const int n = mArgumentos.empty() ? 0 : mArgumentos.front();
+            const Vector2 d = PosicaoDoAluno() - mOndeDeFora;
+            const float angulo = Math::ToDegrees(Math::Atan2(d.y, d.x));
+            if (n > 0) DispararEm(Funcao::kGatilhoDoLeque, mOndeDeFora, n, angulo);
+            TerminarChamada(agora);
+            break;
+        }
+        case Funcao::Nome::Segue:
+            mPasso = Passo::Seguindo;
+            mSeguindoAte = agora + Funcao::kDuracaoDoSegue;
+            mProximoSegue = agora;
+            break;
+        default:
+            TerminarChamada(agora);
+            break;
+    }
+}
+
+void Andre::TerminarChamada(const float agora) {
+    mPasso = Passo::Parado;
+    mProximaChamada = agora + Funcao::kEntreComandos;
+    mForaAcesoAte = agora + kCartaoAceso;
+}
+
+void Andre::DesmontarFuncao() {
+    ApagarCartoes();
+    for (const Valor& v : mValores) if (Vivo(v.p)) v.p->Kill();
+    mValores.clear();
+    mPasso = Passo::Parado;
+}
+
+// ---------------------------------------------------------------------------
+// A REPESCAGEM: A PROVA NO BOCA
+// ---------------------------------------------------------------------------
+
+void Andre::AtualizarProva() {
+    const auto* fsm = GetComponent<FSMComponent>();
+    if (!fsm || fsm->GetStateName() != Prova::kFaseDaProva) {
+        if (mProblema != -2) Restaurar(Prova::kFaseDaProva);
+        mProblema = -2;
+        return;
+    }
+    const int k = Prova::ProblemaEm(fsm->GetStateTime());
+    if (k == mProblema) return;
+
+    // O PROBLEMA QUE FECHOU GANHA O BALAO DELE - o YES do BOCA -, que sobe do
+    // professor com a letra do problema.
+    if (mProblema >= 0) {
+        for (BossProjectile* p : DispararEm(Prova::kGatilhoDoTrofeu, GetPosition())) {
+            p->DefinirEnfeite(true);
+            PorCara(p, Prova::CaraDoTrofeu(mProblema));
+        }
+    }
+    Anunciar(Prova::kFaseDaProva, k >= 0 ? Prova::Abertura(k) : Prova::Veredito(mProblema));
+    mProblema = k;
 }
 
 // ---------------------------------------------------------------------------
 // OS GANCHOS DO DISPARO
 // ---------------------------------------------------------------------------
 
-void Andre::CustomizeAttackParams(AttackParams &params, const std::string &stateName) {
+void Andre::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
     Boss::CustomizeAttackParams(params, stateName);
 
-    // O QUE O ANDRE DISPARA NUM LUGAR nasce nele, no numero que ele pediu.
-    if (mDisparandoEm) {
-        params.firePosition = mOndeDisparar;
-        if (mQuantos > 0) params.numProjectiles = mQuantos;
-        if (mAnguloEm) params.centralAngle = *mAnguloEm;
-        return;
-    }
-
-    // Angulo, em GRAUS, da direcao ate o player, na convencao de
-    // AttackParams::centralAngle (0 = direita, 90 = baixo, 180 = esquerda).
-    if (dynamic_cast<BaloonAttackParams*>(&params)) return;
-    const Vector2 dirToPlayer = GetDirectionToPlayer();
-    const auto directionToPlayerAngle = Math::ToDegrees(Math::Atan2(dirToPlayer.y, dirToPlayer.x));
-    if (stateName == "StateThree") {
-        params.projectileSpeed = 400.f;
-
-        //Se o player tiver acima do Andre, atirar nele
-        if (dirToPlayer.y < 0) {
-            params.projectileSpeed = 600.f;
-            params.numProjectiles = 36;
-            params.centralAngle = directionToPlayerAngle;
-        }
-        else {
-            params.numProjectiles = 18;
-            params.centralAngle = Random::GetFloatRange(75.f, 105.f);
-        }
-    }
+    // TODO ataque do Andre e de gatilho: nasce onde ele disse, no numero e na
+    // direcao que ele pediu.
+    if (!mDisparandoEm) return;
+    params.firePosition = mOndeDisparar;
+    if (mQuantos > 0) params.numProjectiles = mQuantos;
+    if (mAnguloEm) params.centralAngle = *mAnguloEm;
 }
 
 void Andre::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
                                  const std::string& stateName) {
     Boss::OnProjectilesCreated(projectiles, stateName);
-
-    // O QUE ELE DISPAROU NUM LUGAR, ele mesmo pinta e move.
-    if (mDisparandoEm) {
-        for (auto& p : projectiles) {
-            if (auto* b = dynamic_cast<BossProjectile*>(p.get())) mCriados.push_back(b);
-        }
-        return;
-    }
-
-    // Uma cor por RAJADA, nao por projetil: o sorteio fica fora do laco, igual
-    // ao codigo original.
-    static const std::vector<std::string> colors = { "Red", "Blue", "Yellow" };
-    const int choose = Random::GetIntRange(0, static_cast<int>(colors.size()) - 1);
-
+    if (!mDisparandoEm) return;
     for (auto& p : projectiles) {
-        if (!p) continue;
-        // Guarda de nulo que a versao antiga nao tinha: ela dereferenciava
-        // GetComponent<DrawAnimatedComponent>() direto.
-        if (auto drawComp = p->GetComponent<DrawAnimatedComponent>()) {
-            drawComp->SetAnimation(colors[choose]);
-        }
+        if (auto* b = dynamic_cast<BossProjectile*>(p.get())) mCriados.push_back(b);
     }
 }

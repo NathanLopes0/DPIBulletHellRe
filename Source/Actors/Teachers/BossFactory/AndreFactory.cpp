@@ -50,14 +50,10 @@ void AndreFactory::ConfigureAttacksAndFSM(Boss *boss) {
     auto fsm = boss->GetComponent<FSMComponent>();
     if (!fsm) { SDL_Log("ERRO CRÍTICO: Boss não tem FSMComponent!"); return; }
 
-    // As fases deste chefe vivem em Assets/Attacks/fases.json, no conjunto
-    // "andre".
-    //
-    // ATENCAO: parte do balanceamento NAO esta la. Andre::CustomizeAttackParams
-    // sobrescreve numProjectiles, projectileSpeed e anguloCentral da fase 3 a
-    // cada disparo, com valores diferentes conforme o jogador esteja acima ou
-    // abaixo. Mexer nesses tres no arquivo nao tem efeito; para mudar a fase 3,
-    // mexa em Andre.cpp.
+    // As fases deste chefe vivem em Assets/Attacks/andre/fases.json. Todos os
+    // ataques sao de GATILHO: quem diz onde, quando e quantos e o Andre (o
+    // fluxograma, o vetor do chao, as funcoes e a prova no BOCA), e o arquivo
+    // diz o que cada um e.
     //
     // NAO HA MAIS CONFIGURACAO DE RESERVA EM C++. Se o arquivo faltar, estiver
     // malformado ou tiver uma transicao quebrada, ConfigurarFasesDeArquivo

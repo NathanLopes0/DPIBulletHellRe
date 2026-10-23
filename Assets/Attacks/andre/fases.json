@@ -58,7 +58,9 @@
   // Todos os ataques sao de GATILHO: quem diz onde e quando e o Andre. O
   // confete nasce no cabecalho com a velocidade daqui, a de
   // Condicional::kVelocidadeDoConfete (um teste confere), e o Andre o espalha
-  // pela faixa.
+  // pela faixa. A VELOCIDADE DE QUEM ANDA SOZINHO E SEMPRE A DAQUI: a
+  // WaveAttack a escreve no primeiro quadro do projetil, por cima do que o
+  // chefe tiver escrito.
   "StateOne": {
     "duracao": 17,
     "proximo": "StateTwo",
@@ -111,66 +113,85 @@
     ]
   },
 
-  // Fase 3: abandona os baloes e vira um leque em onda saindo do chefe.
-  // Os tres numeros marcados abaixo sao SOBRESCRITOS por Andre.cpp a cada
-  // disparo - estao aqui por fidelidade ao C++, nao por terem efeito.
+  // FASE 3 - AS FUNCOES   |   gesto: A CHAMADA E O RETORNO
+  //
+  // O PROFESSOR E O MAIN (Funcao.h): cada comando dele e uma chamada, escrita
+  // no placar, e cada funcao chamada e um CARTAO no meio do campo com a
+  // assinatura dela. Os argumentos sao valores que voam do professor ate o
+  // cartao, e so quando chegam a funcao roda; a que devolve alguma coisa manda
+  // o retorno de volta para ele, e o placar troca a chamada pelo valor
+  // ("baloes(dobro(3), 11);" vira "baloes(6, 11);"). O vetor do chao da fase 2
+  // continua la, e e nele que as funcoes trabalham:
+  //
+  //   baloes(de, ate)    um cacho de cada casa, de v[de] a v[ate] - um laco
+  //                      dentro da funcao
+  //   leque(n)           n ponto-e-virgulas mirados no aluno, do cartao
+  //   dobro, meio        devolvem 2x e (a + b) / 2, a divisao de inteiros
+  //   baloes(aluno - 1, aluno + 1)   POR VALOR: a casa do aluno e copiada na
+  //                      hora da chamada e voa DELE ate a funcao - quem saiu
+  //                      dali ja nao esta onde a copia diz
+  //   segue(&aluno)      POR REFERENCIA: uma linha liga o cartao ao aluno, e
+  //                      cada cacho sobe onde ele esta AGORA
+  //
+  // Todos os ataques sao de GATILHO. O cacho e o indice sao os da fase 2, com
+  // as mesmas velocidades (um teste confere); o leque sai do cartao mirado no
+  // aluno - quem escolhe quantos e o argumento.
   "StateThree": {
     "duracao": 17,
     "proximo": "",
-    "movimento": { "tipo": "GoToCenter" },
+    "anuncio": "funcoes",
+    "movimento": { "tipo": "Conduzido", "a": 380 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Baloes",
-        "projeteis": 18,        // sobrescrito (18 ou 36, conforme o jogador)
-        "velocidade": 200,      // sobrescrito (500 ou 600)
-        "anguloCentral": 90,    // sobrescrito
-        "angulo": 180,          // este VALE: e a abertura do leque
-        "intervalo": 0.02,      // este VALE: o atraso entre um projetil e o seguinte
-        "cooldown": 0.9 },
-      {
-        "estrategia": "BaloonAttack", "projetil": "Baloes",
-        "projeteis": 5, "velocidade": 300, "cooldown": 4.0,
-        "balao": { "lado": "Left", "spawnAleatorio": true,
-                  "centradoNoJogador": false, "deslocamento": 600},
-        "regras": "tres"
-      },
-      {
-        "estrategia": "BaloonAttack", "projetil": "Baloes",
-        "projeteis": 5, "velocidade": 300, "cooldown": 4.0,
-        "balao": { "lado": "Right", "spawnAleatorio": true,
-          "centradoNoJogador": false, "deslocamento": 600},
-        "regras": "tres"
-      }
-
+      { "gatilho": "indice", "estrategia": "WaveAttack", "projetil": "Indice",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "subir", "estrategia": "WaveAttack", "projetil": "Baloes",
+        "projeteis": 3, "velocidade": 240, "angulo": 0, "anguloCentral": 270, "intervalo": 0 },
+      { "gatilho": "cartao", "estrategia": "WaveAttack", "projetil": "Cartao",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "valor", "estrategia": "WaveAttack", "projetil": "Valor",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "leque", "estrategia": "WaveAttack", "projetil": "Ponto",
+        "projeteis": 5, "velocidade": 320, "angulo": 50, "anguloCentral": 90, "intervalo": 0 }
     ]
   },
 
-  // Repescagem: os QUATRO lados ao mesmo tempo, em levas de cinco e mais
-  // lentos (300 em vez de 500). Cerca o jogador, mas devagar o bastante para
-  // dar tempo de achar o buraco - que e o papel de uma repescagem.
+  // REPESCAGEM - A PROVA NO BOCA   |   gesto: O BALAO DO YES
+  //
+  // A PROVA CAI TUDO (Prova.h): quatro problemas, A a D, cada um rodado pelo
+  // mesmo codigo da fase de onde vem - o if/else, o laco aninhado, o
+  // baloes(dobro(a), b) e o switch sem break. O placar abre cada um ("Problema
+  // B: for aninhado"), e quando ele fecha o juiz da o YES e o balao do
+  // problema sobe do professor, com a letra dele.
+  //
+  // Os ataques sao os das tres fases, os mesmos, com os mesmos numeros (os
+  // testes conferem fase por fase), mais o balao do YES.
   "StateFinal": {
     "duracao": 17,
     "proximo": "StateOne",
-    "movimento": { "tipo": "GoToCenter" },
+    "anuncio": "BOCA",
+    "movimento": { "tipo": "Conduzido", "a": 380 },
     "ataques": [
-      { "estrategia": "BaloonAttack", "projetil": "Baloes",
-        "projeteis": 5, "velocidade": 300, "cooldown": 1.25,
-        "balao": { "lado": "Right", "spawnAleatorio": true,
-                   "centradoNoJogador": true, "deslocamento": 600 } },
-
-      { "estrategia": "BaloonAttack", "projetil": "Baloes",
-        "projeteis": 5, "velocidade": 300, "cooldown": 1.25,
-        "balao": { "lado": "Left", "spawnAleatorio": true,
-                   "centradoNoJogador": true, "deslocamento": 600 } },
-
-      { "estrategia": "BaloonAttack", "projetil": "Baloes",
-        "projeteis": 5, "velocidade": 300, "cooldown": 1.25,
-        "balao": { "lado": "Down", "spawnAleatorio": true,
-                   "centradoNoJogador": true, "deslocamento": 600 } },
-
-      { "estrategia": "BaloonAttack", "projetil": "Baloes",
-        "projeteis": 5, "velocidade": 300, "cooldown": 1.25,
-        "balao": { "lado": "Up", "spawnAleatorio": true,
-                   "centradoNoJogador": true, "deslocamento": 600 } }
+      { "gatilho": "rotulo", "estrategia": "WaveAttack", "projetil": "Rotulo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "balao", "estrategia": "WaveAttack", "projetil": "Balao",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "confete", "estrategia": "WaveAttack", "projetil": "Confete",
+        "projeteis": 12, "velocidade": 300, "angulo": 0, "anguloCentral": 90, "intervalo": 0,
+        "regras": "confete" },
+      { "gatilho": "indice", "estrategia": "WaveAttack", "projetil": "Indice",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "subir", "estrategia": "WaveAttack", "projetil": "Baloes",
+        "projeteis": 3, "velocidade": 240, "angulo": 0, "anguloCentral": 270, "intervalo": 0 },
+      { "gatilho": "core", "estrategia": "WaveAttack", "projetil": "Byte",
+        "projeteis": 12, "velocidade": 280, "angulo": 90, "anguloCentral": 195, "intervalo": 0 },
+      { "gatilho": "cartao", "estrategia": "WaveAttack", "projetil": "Cartao",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "valor", "estrategia": "WaveAttack", "projetil": "Valor",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "leque", "estrategia": "WaveAttack", "projetil": "Ponto",
+        "projeteis": 5, "velocidade": 320, "angulo": 50, "anguloCentral": 90, "intervalo": 0 },
+      { "gatilho": "trofeu", "estrategia": "WaveAttack", "projetil": "Balao",
+        "projeteis": 1, "velocidade": 90, "angulo": 0, "anguloCentral": 270, "intervalo": 0 }
     ]
   }
 }

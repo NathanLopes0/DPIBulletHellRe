@@ -68,6 +68,8 @@
 #include "../Source/Attacks/Cascata.h"
 #include "../Source/Attacks/Condicional.h"
 #include "../Source/Attacks/Laco.h"
+#include "../Source/Attacks/Funcao.h"
+#include "../Source/Attacks/Prova.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
@@ -2103,6 +2105,131 @@ TEST_CASE("Dados: o vetor do chao do Andre - gatilhos, velocidade do cacho e car
     for (int k = 0; k < Laco::kBytes; ++k) CHECK(bytes.count(Laco::CaraDoByte(k)) == 1);
     const auto cachos = caras(projetilDe[Laco::kGatilhoDoCacho]);
     for (const char* cor : {"Red", "Blue", "Yellow"}) CHECK(cachos.count(cor) == 1);
+}
+
+TEST_CASE("Dados: as funcoes do Andre - gatilhos, leque e caras sao nomes que os dados tem") {
+
+    // O ANDRE POE O CARTAO DE CADA FUNCAO e o valor que voa pelos nomes de
+    // Funcao.h. Um cartao sem a cara da funcao mostraria a assinatura de
+    // outra; um valor sem a cara do numero, o numero errado - e a fase inteira
+    // e ler o que vai e o que volta.
+    const char* gatilhos[] = {Laco::kGatilhoDoIndice, Laco::kGatilhoDoCacho, Funcao::kGatilhoDoCartao,
+                              Funcao::kGatilhoDoValor, Funcao::kGatilhoDoLeque};
+    for (const char* g : gatilhos) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+    }
+
+    const auto lidas = FasesDoChefe("andre");
+    const DescricaoDeFase* fase = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Funcao::kFaseDaFuncao) fase = &f;
+    REQUIRE(fase != nullptr);
+
+    const auto& tipos = ProjeteisDoChefe("andre").projeteis;
+    auto caras = [&tipos](const std::string& tipo) {
+        std::set<std::string> nomes;
+        REQUIRE(tipos.count(tipo) == 1);
+        for (const auto& a : tipos.at(tipo).animacoes) nomes.insert(a.nome);
+        return nomes;
+    };
+
+    std::map<std::string, std::string> projetilDe;
+    for (const char* g : gatilhos) {
+        CAPTURE(g);
+        int quantos = 0;
+        for (const auto& a : fase->ataques) {
+            if (a.gatilho != g) continue;
+            ++quantos;
+            projetilDe[g] = a.projetil;
+            // O CACHO E O DA FASE 2, com a velocidade dela; o leque abre o que
+            // Funcao.h diz.
+            if (a.gatilho == Laco::kGatilhoDoCacho) {
+                REQUIRE(a.velocidade.has_value());
+                CHECK(*a.velocidade == doctest::Approx(Laco::kVelocidadeDoCacho));
+            }
+            if (a.gatilho == Funcao::kGatilhoDoLeque) {
+                REQUIRE(a.angulo.has_value());
+                CHECK(*a.angulo == doctest::Approx(Funcao::kAberturaDoLeque));
+            }
+        }
+        CHECK(quantos == 1);
+    }
+
+    const auto cartoes = caras(projetilDe[Funcao::kGatilhoDoCartao]);
+    for (int f = 0; f < Funcao::kFuncoes; ++f) {
+        const auto nome = static_cast<Funcao::Nome>(f);
+        CAPTURE(Funcao::Assinatura(nome));
+        CHECK(cartoes.count(Funcao::CaraDoCartao(nome)) == 1);
+        CHECK(cartoes.count(Funcao::CaraDoCartaoAceso(nome)) == 1);
+    }
+    const auto valores = caras(projetilDe[Funcao::kGatilhoDoValor]);
+    for (int v = Funcao::kMenorValor; v <= Funcao::kMaiorValor; ++v) {
+        CAPTURE(v);
+        CHECK(valores.count(Funcao::CaraDoValor(v)) == 1);
+    }
+}
+
+TEST_CASE("Dados: a prova do Andre roda cada problema com os mesmos ataques da fase de onde ele vem") {
+
+    // A REPESCAGEM REUSA AS TRES MECANICAS: o Andre puxa nela os mesmos
+    // gatilhos, e cada um tem de ser o MESMO ataque da fase de origem - outro
+    // numero aqui (um confete mais rapido, um cacho de dois baloes) faria o
+    // problema ser outra coisa que a fase que ele cobra.
+    CHECK(GatilhoExiste(Prova::kGatilhoDoTrofeu));
+    const auto lidas = FasesDoChefe("andre");
+    auto achar = [&lidas](const std::string& nome) -> const DescricaoDeFase* {
+        for (const auto& f : lidas.fases) if (f.nome == nome) return &f;
+        return nullptr;
+    };
+    const DescricaoDeFase* prova = achar(Prova::kFaseDaProva);
+    REQUIRE(prova != nullptr);
+
+    std::set<std::string> fasesCobradas;
+    for (const auto& p : Prova::kProva) {
+        fasesCobradas.insert(p.tema == Prova::Tema::Condicional ? Condicional::kFaseDoSe
+                           : p.tema == Prova::Tema::Laco ? Laco::kFaseDoLaco : Funcao::kFaseDaFuncao);
+    }
+    // O baloes(...) da funcao usa o vetor do chao, que e o da fase 2.
+    for (const auto& origem : fasesCobradas) {
+        const DescricaoDeFase* f = achar(origem);
+        REQUIRE(f != nullptr);
+        for (const auto& a : f->ataques) {
+            CAPTURE(origem);
+            CAPTURE(a.gatilho);
+            REQUIRE_FALSE(a.gatilho.empty());
+            int iguais = 0;
+            for (const auto& b : prova->ataques) {
+                if (b.gatilho != a.gatilho) continue;
+                ++iguais;
+                CHECK(b.estrategia == a.estrategia);
+                CHECK(b.projetil == a.projetil);
+                CHECK(b.projeteis == a.projeteis);
+                CHECK(b.velocidade == a.velocidade);
+                CHECK(b.angulo == a.angulo);
+                CHECK(b.anguloCentral == a.anguloCentral);
+                CHECK(b.regrasNome == a.regrasNome);
+            }
+            CHECK(iguais == 1);
+        }
+    }
+
+    // O BALAO DO YES: a letra de cada problema, subindo na velocidade de
+    // Prova.h.
+    std::string projetil;
+    for (const auto& b : prova->ataques) {
+        if (b.gatilho != Prova::kGatilhoDoTrofeu) continue;
+        projetil = b.projetil;
+        REQUIRE(b.velocidade.has_value());
+        CHECK(*b.velocidade == doctest::Approx(Prova::kVelocidadeDoTrofeu));
+        REQUIRE(b.anguloCentral.has_value());
+        CHECK(*b.anguloCentral == doctest::Approx(270.0f));
+    }
+    const auto& tipos = ProjeteisDoChefe("andre").projeteis;
+    REQUIRE(tipos.count(projetil) == 1);
+    std::set<std::string> caras;
+    for (const auto& a : tipos.at(projetil).animacoes) caras.insert(a.nome);
+    for (int k = 0; k < Prova::kProblemas; ++k) CHECK(caras.count(Prova::CaraDoTrofeu(k)) == 1);
+    CHECK(prova->duracao >= Prova::kProva[Prova::kProblemas - 1].fim);
 }
 
 TEST_CASE("Dados: toda sprint dispara uma vez na etapa dela, e a revisao cai antes de a etapa acabar") {
