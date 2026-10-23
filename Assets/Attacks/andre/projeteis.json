@@ -105,6 +105,43 @@
     "animacaoInicial": "Senao",
     "ordemDeDesenho": 70,
     "posicionarNoDono": false
+  },
+
+  // A FASE 2 - A REPETICAO (Laco.h). Os cachos que sobem de cada casa sao os
+  // "Baloes" de cima, o balao original.
+  //
+  // O INDICE DE CADA CASA do vetor do chao, "v[5]": apagado, aceso (o i esta
+  // nela e o cacho vai subir), pulado (o continue) e vermelho (o segfault). E
+  // enfeite (Andre::AtualizarLaco): nao machuca.
+  "Indice": {
+    "sprite": "Teachers/Projectiles/DPIBHAndreIndices.png",
+    "dados":  "Teachers/Projectiles/DPIBHAndreIndices.json",
+    "animacoes": {
+      "V0": [0], "V1": [1], "V2": [2], "V3": [3], "V4": [4], "V5": [5],
+      "V6": [6], "V7": [7], "V8": [8], "V9": [9], "V10": [10], "V11": [11],
+      "V0Aceso": [12], "V1Aceso": [13], "V2Aceso": [14], "V3Aceso": [15], "V4Aceso": [16], "V5Aceso": [17],
+      "V6Aceso": [18], "V7Aceso": [19], "V8Aceso": [20], "V9Aceso": [21], "V10Aceso": [22], "V11Aceso": [23],
+      "V0Pulado": [24], "V1Pulado": [25], "V2Pulado": [26], "V3Pulado": [27], "V4Pulado": [28], "V5Pulado": [29],
+      "V6Pulado": [30], "V7Pulado": [31], "V8Pulado": [32], "V9Pulado": [33], "V10Pulado": [34], "V11Pulado": [35],
+      "V0Erro": [36], "V1Erro": [37], "V2Erro": [38], "V3Erro": [39], "V4Erro": [40], "V5Erro": [41],
+      "V6Erro": [42], "V7Erro": [43], "V8Erro": [44], "V9Erro": [45], "V10Erro": [46], "V11Erro": [47]
+    },
+    "animacaoInicial": "V0",
+    "ordemDeDesenho": 70,
+    "posicionarNoDono": false
+  },
+
+  // A MEMORIA DESPEJADA do segfault ("core dumped"): bytes em hexa que voam
+  // da borda por onde o i saiu do vetor (Laco::CaraDoByte).
+  "Byte": {
+    "sprite": "Teachers/Projectiles/DPIBHAndreBytes.png",
+    "dados":  "Teachers/Projectiles/DPIBHAndreBytes.json",
+    "animacoes": { "DE": [0], "AD": [1], "BE": [2], "EF": [3], "00": [4], "FF": [5] },
+    "animacaoInicial": "DE",
+    "escala": 1.5,
+    "colisorDivisor": 3,
+    "ordemDeDesenho": 91,
+    "posicionarNoDono": false
   }
 
   // NAO ESTA AQUI, e de proposito: o projetil de GRAFOS

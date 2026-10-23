@@ -12,6 +12,7 @@
 
 #include "../Boss.h"
 #include "../../../Attacks/Condicional.h"
+#include "../../../Attacks/Laco.h"
 
 class BossProjectile;
 class DrawLinhasComponent;
@@ -28,6 +29,11 @@ class DrawLinhasComponent;
  * campo - o losango embaixo do professor e um ramo por faixa, com o
  * cabecalho no alto -, e os baloes numerados que seguem pelo ramo que a
  * condicao escolhe e estouram em confete na faixa dele.
+ *
+ * A FASE 2 E A REPETICAO (Laco.h): o chao e um vetor de doze casas, cada laco
+ * anda por ele com o i - a casa da vez acende -, e de cada casa visitada
+ * sobe um cacho de baloes. O <= que passa do fim capota o programa, e o
+ * while (1) e morto pelo juiz do BOCA.
  */
 class Andre : public Boss {
 
@@ -51,12 +57,15 @@ private:
     [[nodiscard]] SDL_FRect Campo() const;
 
     /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram.
-    /// 'quantos' > 0 troca o numero de projeteis do ataque.
-    std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0);
+    /// 'quantos' > 0 troca o numero de projeteis do ataque, e 'angulo' o meio
+    /// do leque dele.
+    std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
+                                            std::optional<float> angulo = std::nullopt);
 
     bool mDisparandoEm = false;
     Vector2 mOndeDisparar;
     int mQuantos = 0;
+    std::optional<float> mAnguloEm;
     std::vector<BossProjectile*> mCriados;
 
     std::optional<Vector2> mAlvo;
@@ -114,4 +123,34 @@ private:
     int mDecisaoRamo = -1;
 
     static constexpr int kOrdemDoFluxograma = 80;
+
+    // ---- A FASE 2: A REPETICAO ----------------------------------------------
+
+    void AtualizarLaco(float deltaTime);
+    void NovoLaco(float agora);
+    void Visitar(const Laco::Visita& v, float agora);
+    void SoltarCacho(int casa, int laco);
+    void DesmontarLaco();
+
+    bool mNoLaco = false;
+    std::string mAnuncioDoLaco;
+    int mVezDoLaco = 0;
+    bool mRodando = false;
+    float mProximoLaco = 0.0f;
+    float mInicioDoLaco = 0.0f;
+    float mDuracaoDoLaco = 0.0f;
+    bool mTempoEsgotado = false;
+    Laco::Programa mPrograma;
+    std::vector<Laco::Visita> mVisitas;
+    size_t mProximaVisita = 0;
+
+    std::vector<BossProjectile*> mIndices;      ///< um por casa do vetor
+    std::vector<float> mAcesoDoIndice;          ///< ate quando cada um fica aceso
+    std::vector<float> mPuladoDoIndice;
+    float mErroAte = 0.0f;
+
+    struct Cacho { int casa = 0; float quando = 0.0f; int laco = 0; };
+    std::vector<Cacho> mCachos;                 ///< os que ainda vao subir
+    struct Subindo { BossProjectile* p = nullptr; int laco = 0; };
+    std::vector<Subindo> mSubindo;              ///< os do while (1), que o juiz mata
 };

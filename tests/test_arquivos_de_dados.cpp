@@ -67,6 +67,7 @@
 #include "../Source/Attacks/Transacao.h"
 #include "../Source/Attacks/Cascata.h"
 #include "../Source/Attacks/Condicional.h"
+#include "../Source/Attacks/Laco.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
@@ -2045,6 +2046,63 @@ TEST_CASE("Dados: o fluxograma do Andre - gatilhos, velocidade do confete e cara
             CHECK(baloes.count(Condicional::CaraDoBalao(n, cor)) == 1);
         }
     }
+}
+
+TEST_CASE("Dados: o vetor do chao do Andre - gatilhos, velocidade do cacho e caras sao nomes que os dados tem") {
+
+    // O ANDRE ACENDE O INDICE da casa por onde o i passa e solta o cacho dela
+    // pelos nomes de Laco.h. Um indice sem a cara acesa deixaria o aluno sem
+    // o aviso; um cacho em outra velocidade chegaria ao chao antes do aviso
+    // acabar - ou depois de o aluno ja ter voltado para a casa.
+    const char* gatilhos[] = {Laco::kGatilhoDoIndice, Laco::kGatilhoDoCacho, Laco::kGatilhoDoDespejo};
+    for (const char* g : gatilhos) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+    }
+
+    const auto lidas = FasesDoChefe("andre");
+    const DescricaoDeFase* fase = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Laco::kFaseDoLaco) fase = &f;
+    REQUIRE(fase != nullptr);
+
+    const auto& tipos = ProjeteisDoChefe("andre").projeteis;
+    auto caras = [&tipos](const std::string& tipo) {
+        std::set<std::string> nomes;
+        REQUIRE(tipos.count(tipo) == 1);
+        for (const auto& a : tipos.at(tipo).animacoes) nomes.insert(a.nome);
+        return nomes;
+    };
+
+    std::map<std::string, std::string> projetilDe;
+    for (const char* g : gatilhos) {
+        CAPTURE(g);
+        int quantos = 0;
+        for (const auto& a : fase->ataques) {
+            if (a.gatilho != g) continue;
+            ++quantos;
+            projetilDe[g] = a.projetil;
+            if (a.gatilho == Laco::kGatilhoDoCacho) {
+                REQUIRE(a.velocidade.has_value());
+                CHECK(*a.velocidade == doctest::Approx(Laco::kVelocidadeDoCacho));
+                REQUIRE(a.projeteis.has_value());
+                CHECK(*a.projeteis == Laco::kBaloesPorCacho);
+            }
+        }
+        CHECK(quantos == 1);
+    }
+
+    const auto indices = caras(projetilDe[Laco::kGatilhoDoIndice]);
+    for (int i = 0; i < Laco::kCasas; ++i) {
+        CAPTURE(i);
+        CHECK(indices.count(Laco::CaraDoIndice(i)) == 1);
+        CHECK(indices.count(Laco::CaraDoIndiceAceso(i)) == 1);
+        CHECK(indices.count(Laco::CaraDoIndicePulado(i)) == 1);
+        CHECK(indices.count(Laco::CaraDoIndiceErro(i)) == 1);
+    }
+    const auto bytes = caras(projetilDe[Laco::kGatilhoDoDespejo]);
+    for (int k = 0; k < Laco::kBytes; ++k) CHECK(bytes.count(Laco::CaraDoByte(k)) == 1);
+    const auto cachos = caras(projetilDe[Laco::kGatilhoDoCacho]);
+    for (const char* cor : {"Red", "Blue", "Yellow"}) CHECK(cachos.count(cor) == 1);
 }
 
 TEST_CASE("Dados: toda sprint dispara uma vez na etapa dela, e a revisao cai antes de a etapa acabar") {

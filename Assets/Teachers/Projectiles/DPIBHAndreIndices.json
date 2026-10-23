@@ -1,0 +1,1071 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHAndreIndices 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 1.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 2.placeholder",
+   "frame": {
+    "x": 192,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 3.placeholder",
+   "frame": {
+    "x": 288,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 4.placeholder",
+   "frame": {
+    "x": 384,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 5.placeholder",
+   "frame": {
+    "x": 480,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 6.placeholder",
+   "frame": {
+    "x": 576,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 7.placeholder",
+   "frame": {
+    "x": 672,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 8.placeholder",
+   "frame": {
+    "x": 768,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 9.placeholder",
+   "frame": {
+    "x": 864,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 10.placeholder",
+   "frame": {
+    "x": 960,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 11.placeholder",
+   "frame": {
+    "x": 1056,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 12.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 28,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 13.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 28,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 14.placeholder",
+   "frame": {
+    "x": 192,
+    "y": 28,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 15.placeholder",
+   "frame": {
+    "x": 288,
+    "y": 28,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 16.placeholder",
+   "frame": {
+    "x": 384,
+    "y": 28,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 17.placeholder",
+   "frame": {
+    "x": 480,
+    "y": 28,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 18.placeholder",
+   "frame": {
+    "x": 576,
+    "y": 28,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 19.placeholder",
+   "frame": {
+    "x": 672,
+    "y": 28,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 20.placeholder",
+   "frame": {
+    "x": 768,
+    "y": 28,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 21.placeholder",
+   "frame": {
+    "x": 864,
+    "y": 28,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 22.placeholder",
+   "frame": {
+    "x": 960,
+    "y": 28,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 23.placeholder",
+   "frame": {
+    "x": 1056,
+    "y": 28,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 24.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 56,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 25.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 56,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 26.placeholder",
+   "frame": {
+    "x": 192,
+    "y": 56,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 27.placeholder",
+   "frame": {
+    "x": 288,
+    "y": 56,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 28.placeholder",
+   "frame": {
+    "x": 384,
+    "y": 56,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 29.placeholder",
+   "frame": {
+    "x": 480,
+    "y": 56,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 30.placeholder",
+   "frame": {
+    "x": 576,
+    "y": 56,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 31.placeholder",
+   "frame": {
+    "x": 672,
+    "y": 56,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 32.placeholder",
+   "frame": {
+    "x": 768,
+    "y": 56,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 33.placeholder",
+   "frame": {
+    "x": 864,
+    "y": 56,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 34.placeholder",
+   "frame": {
+    "x": 960,
+    "y": 56,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 35.placeholder",
+   "frame": {
+    "x": 1056,
+    "y": 56,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 36.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 84,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 37.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 84,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 38.placeholder",
+   "frame": {
+    "x": 192,
+    "y": 84,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 39.placeholder",
+   "frame": {
+    "x": 288,
+    "y": 84,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 40.placeholder",
+   "frame": {
+    "x": 384,
+    "y": 84,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 41.placeholder",
+   "frame": {
+    "x": 480,
+    "y": 84,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 42.placeholder",
+   "frame": {
+    "x": 576,
+    "y": 84,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 43.placeholder",
+   "frame": {
+    "x": 672,
+    "y": 84,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 44.placeholder",
+   "frame": {
+    "x": 768,
+    "y": 84,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 45.placeholder",
+   "frame": {
+    "x": 864,
+    "y": 84,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 46.placeholder",
+   "frame": {
+    "x": 960,
+    "y": 84,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreIndices 47.placeholder",
+   "frame": {
+    "x": 1056,
+    "y": 84,
+    "w": 96,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 28
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_andre.py",
+  "version": "1.0",
+  "image": "DPIBHAndreIndices.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1152,
+   "h": 112
+  },
+  "scale": "1"
+ }
+}

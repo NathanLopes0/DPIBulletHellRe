@@ -65,6 +65,7 @@ void Andre::OnUpdate(const float deltaTime) {
     Boss::OnUpdate(deltaTime);
     if (EhClone()) return;
     AtualizarCondicional(deltaTime);
+    AtualizarLaco(deltaTime);
 }
 
 std::optional<Vector2> Andre::AlvoDoMovimento() const {
@@ -76,14 +77,17 @@ SDL_FRect Andre::Campo() const {
     return SDL_FRect{0.0f, 0.0f, 1200.0f, 746.0f};
 }
 
-std::vector<BossProjectile*> Andre::DispararEm(const char* gatilho, const Vector2 onde, const int quantos) {
+std::vector<BossProjectile*> Andre::DispararEm(const char* gatilho, const Vector2 onde, const int quantos,
+                                               const std::optional<float> angulo) {
     mDisparandoEm = true;
     mOndeDisparar = onde;
     mQuantos = quantos;
+    mAnguloEm = angulo;
     mCriados.clear();
     Disparar(gatilho);
     mDisparandoEm = false;
     mQuantos = 0;
+    mAnguloEm.reset();
     return mCriados;
 }
 
@@ -376,6 +380,180 @@ void Andre::DesmontarCondicional() {
 }
 
 // ---------------------------------------------------------------------------
+// A FASE 2: A REPETICAO
+// ---------------------------------------------------------------------------
+
+namespace {
+    /// O cacho: o lugar de cada balao em relacao ao meio da casa, e a
+    /// diferenca de velocidade dele - um cacho de verdade nao sobe em fila.
+    constexpr float kDesvioDoCacho[Laco::kBaloesPorCacho] = {0.0f, 14.0f, 6.0f};
+    constexpr float kVariacaoDoCacho[Laco::kBaloesPorCacho] = {0.0f, -12.0f, 10.0f};
+    const char* const kCoresDoBalaoOriginal[] = {"Red", "Blue", "Yellow"};
+
+    /// O continue acende o indice de azul por este tempo.
+    constexpr float kPuladoAceso = 0.45f;
+}
+
+void Andre::AtualizarLaco(const float deltaTime) {
+    (void)deltaTime;
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool noLaco = fsm && fsm->GetStateName() == Laco::kFaseDoLaco;
+
+    if (!noLaco) {
+        if (mNoLaco) {
+            DesmontarLaco();
+            if (!mAnuncioDoLaco.empty()) RegistrarAnuncio(Laco::kFaseDoLaco, mAnuncioDoLaco);
+            mAlvo.reset();
+            mNoLaco = false;
+        }
+        return;
+    }
+    const float agora = fsm->GetStateTime();
+    const SDL_FRect campo = Campo();
+    if (!mNoLaco) {
+        mNoLaco = true;
+        mVezDoLaco = 0;
+        mRodando = false;
+        mProximoLaco = Laco::kPrimeiro;
+        mErroAte = 0.0f;
+        mCachos.clear();
+        mSubindo.clear();
+        if (mAnuncioDoLaco.empty()) mAnuncioDoLaco = AnuncioDaFase(Laco::kFaseDoLaco);
+
+        // O VETOR NO CHAO: o indice de cada casa, embaixo.
+        mIndices.clear();
+        mAcesoDoIndice.assign(Laco::kCasas, -1.0f);
+        mPuladoDoIndice.assign(Laco::kCasas, -1.0f);
+        for (int i = 0; i < Laco::kCasas; ++i) {
+            const Vector2 onde(campo.x + Laco::XDaCasa(i, campo.w), campo.y + campo.h - Laco::kAcimaDaBorda);
+            const auto criados = DispararEm(Laco::kGatilhoDoIndice, onde);
+            BossProjectile* p = criados.empty() ? nullptr : criados.front();
+            mIndices.push_back(p);
+            if (!p) continue;
+            p->DefinirEnfeite(true);
+            Parar(p);
+            PorCara(p, Laco::CaraDoIndice(i));
+        }
+    }
+
+    // O que o campo ja levou sai da conta antes de qualquer disparo.
+    mSubindo.erase(std::remove_if(mSubindo.begin(), mSubindo.end(),
+                                  [](const Subindo& s) { return !Vivo(s.p); }), mSubindo.end());
+    for (BossProjectile*& p : mIndices) if (!Vivo(p)) p = nullptr;
+
+    if (!mRodando && agora >= mProximoLaco) NovoLaco(agora);
+
+    if (mRodando) {
+        const float t = agora - mInicioDoLaco;
+        while (mProximaVisita < mVisitas.size() && mVisitas[mProximaVisita].quando <= t) {
+            Visitar(mVisitas[mProximaVisita++], agora);
+        }
+        // O JUIZ DO BOCA MATA O while (1): o placar da o veredito, e o que o
+        // programa soltou some com ele.
+        if (mPrograma.forma == Laco::Forma::Infinito && !mTempoEsgotado && t >= Laco::kLimiteDeTempo) {
+            mTempoEsgotado = true;
+            RegistrarAnuncio(Laco::kFaseDoLaco, Laco::kTempoEsgotado);
+            for (const Subindo& s : mSubindo) if (s.laco == mVezDoLaco && Vivo(s.p)) s.p->Kill();
+            mSubindo.erase(std::remove_if(mSubindo.begin(), mSubindo.end(),
+                                          [this](const Subindo& s) { return s.laco == mVezDoLaco; }), mSubindo.end());
+            mCachos.erase(std::remove_if(mCachos.begin(), mCachos.end(),
+                                         [this](const Cacho& c) { return c.laco == mVezDoLaco; }), mCachos.end());
+            for (float& ate : mAcesoDoIndice) ate = -1.0f;
+        }
+        if (t >= mDuracaoDoLaco) {
+            mRodando = false;
+            mProximoLaco = agora + Laco::kEntreLacos;
+        }
+    }
+
+    for (auto it = mCachos.begin(); it != mCachos.end();) {
+        if (agora < it->quando) { ++it; continue; }
+        const Cacho c = *it;
+        it = mCachos.erase(it);
+        SoltarCacho(c.casa, c.laco);
+    }
+
+    for (int i = 0; i < static_cast<int>(mIndices.size()); ++i) {
+        BossProjectile* p = mIndices[static_cast<size_t>(i)];
+        if (!p) continue;
+        Parar(p);
+        const auto k = static_cast<size_t>(i);
+        if (agora < mErroAte) PorCara(p, Laco::CaraDoIndiceErro(i));
+        else if (agora < mAcesoDoIndice[k]) PorCara(p, Laco::CaraDoIndiceAceso(i));
+        else if (agora < mPuladoDoIndice[k]) PorCara(p, Laco::CaraDoIndicePulado(i));
+        else PorCara(p, Laco::CaraDoIndice(i));
+    }
+}
+
+void Andre::NovoLaco(const float agora) {
+    ++mVezDoLaco;
+    mPrograma = Laco::Proximo(mVezDoLaco - 1, Sorteio());
+    mVisitas = Laco::Execucao(mPrograma, Sorteio());
+    mDuracaoDoLaco = Laco::Duracao(mPrograma, mVisitas);
+    mProximaVisita = 0;
+    mInicioDoLaco = agora;
+    mRodando = true;
+    mTempoEsgotado = false;
+    RegistrarAnuncio(Laco::kFaseDoLaco, Laco::Placar(mPrograma));
+
+    const SDL_FRect campo = Campo();
+    const float fracao = static_cast<float>(Sorteio() % 1001u) / 1000.0f;
+    mAlvo = Vector2(campo.x + Laco::kXMinimo + fracao * (Laco::kXMaximo - Laco::kXMinimo),
+                    campo.y + Laco::kYDoProfessor);
+}
+
+void Andre::Visitar(const Laco::Visita& v, const float agora) {
+    const SDL_FRect campo = Campo();
+    switch (v.tipo) {
+        case Laco::Tipo::Balao:
+            if (v.i >= 0 && v.i < Laco::kCasas) mAcesoDoIndice[static_cast<size_t>(v.i)] = agora + Laco::kAviso;
+            mCachos.push_back(Cacho{v.i, agora + Laco::kAviso, mVezDoLaco});
+            break;
+        case Laco::Tipo::Pulado:
+            if (v.i >= 0 && v.i < Laco::kCasas) mPuladoDoIndice[static_cast<size_t>(v.i)] = agora + kPuladoAceso;
+            break;
+        case Laco::Tipo::Fora: {
+            // O i SAIU DO VETOR: o programa capota, e a memoria despejada voa
+            // da borda por onde ele saiu, para dentro do campo.
+            RegistrarAnuncio(Laco::kFaseDoLaco, Laco::kSegfault);
+            mErroAte = agora + Laco::kCapotando;
+            const bool direita = v.i >= Laco::kCasas;
+            const Vector2 borda(direita ? campo.x + campo.w : campo.x, campo.y + campo.h - Laco::kAcimaDoChao);
+            const float angulo = direita ? 180.0f + Laco::kInclinacaoDoDespejo : 360.0f - Laco::kInclinacaoDoDespejo;
+            const auto bytes = DispararEm(Laco::kGatilhoDoDespejo, borda, 0, angulo);
+            for (size_t k = 0; k < bytes.size(); ++k) PorCara(bytes[k], Laco::CaraDoByte(static_cast<int>(k)));
+            break;
+        }
+    }
+}
+
+void Andre::SoltarCacho(const int casa, const int laco) {
+    const SDL_FRect campo = Campo();
+    const Vector2 onde(campo.x + Laco::XDaCasa(casa, campo.w), campo.y + campo.h + Laco::kAbaixoDoChao);
+    const auto baloes = DispararEm(Laco::kGatilhoDoCacho, onde);
+    const char* cor = kCoresDoBalaoOriginal[Sorteio() % 3u];
+    for (size_t k = 0; k < baloes.size() && k < static_cast<size_t>(Laco::kBaloesPorCacho); ++k) {
+        const float lado = (static_cast<float>(k) - 1.0f) * Laco::kLadoDoCacho;
+        baloes[k]->SetPosition(onde + Vector2(lado, kDesvioDoCacho[k]));
+        if (auto* rb = baloes[k]->GetComponent<RigidBodyComponent>()) {
+            rb->SetVelocity(Vector2(0.0f, -(Laco::kVelocidadeDoCacho + kVariacaoDoCacho[k])));
+        }
+        PorCara(baloes[k], cor);
+        if (mPrograma.forma == Laco::Forma::Infinito && laco == mVezDoLaco) mSubindo.push_back(Subindo{baloes[k], laco});
+    }
+}
+
+void Andre::DesmontarLaco() {
+    for (BossProjectile* p : mIndices) if (Vivo(p)) p->Kill();
+    mIndices.clear();
+    mAcesoDoIndice.clear();
+    mPuladoDoIndice.clear();
+    mCachos.clear();
+    mSubindo.clear();
+    mRodando = false;
+}
+
+// ---------------------------------------------------------------------------
 // OS GANCHOS DO DISPARO
 // ---------------------------------------------------------------------------
 
@@ -386,6 +564,7 @@ void Andre::CustomizeAttackParams(AttackParams &params, const std::string &state
     if (mDisparandoEm) {
         params.firePosition = mOndeDisparar;
         if (mQuantos > 0) params.numProjectiles = mQuantos;
+        if (mAnguloEm) params.centralAngle = *mAnguloEm;
         return;
     }
 

@@ -204,6 +204,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Cascata.h
         Source/Attacks/Condicional.cpp
         Source/Attacks/Condicional.h
+        Source/Attacks/Laco.cpp
+        Source/Attacks/Laco.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
@@ -367,6 +369,7 @@ add_executable(dpi_tests
         tests/test_transacao.cpp
         tests/test_cascata.cpp
         tests/test_condicional.cpp
+        tests/test_laco.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -494,6 +497,8 @@ add_executable(dpi_tests
         Source/Attacks/Cascata.h
         Source/Attacks/Condicional.cpp
         Source/Attacks/Condicional.h
+        Source/Attacks/Laco.cpp
+        Source/Attacks/Laco.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp

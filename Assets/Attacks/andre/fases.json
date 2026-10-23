@@ -75,22 +75,39 @@
     ]
   },
 
-  // Troca o eixo: agora vem de baixo, em levas menores e mais frequentes.
+  // FASE 2 - A REPETICAO   |   gesto: O VETOR NO CHAO
   //
-  // O C++ que este conjunto substitui montava TAMBEM um segundo bloco de
-  // parametros com "lado": "Up" e nunca o registrava - codigo morto que
-  // parecia um ataque. Aqui ficou so o que realmente disparava. Se a intencao
-  // era ter os dois, acrescente o par de "Up" a esta lista; o efeito seria
-  // baloes subindo e descendo ao mesmo tempo.
+  // O CHAO E UM VETOR (Laco.h): doze casas, v[0] a v[11], uma por faixa de
+  // 100 px, com o indice escrito embaixo. Cada laco anda pelo vetor com o i
+  // dele - a casa da vez acende -, e 0,6 s depois sobe do chao, naquela casa,
+  // um cacho de tres baloes do BOCA. O placar e o cabecalho do laco: o aluno le
+  // onde comeca, ate onde vai e de quanto em quanto, e fica numa casa por onde
+  // o i nao passa.
+  //
+  // Sete lacos, um depois do outro: o for de passo 2 ou 3, o de tras para a
+  // frente, o i *= 2, o continue (o i passa por todas, as do continue acendem
+  // azuis e ficam sem balao), o aninhado (uma passada por k, cada uma uma casa
+  // para o lado), o <= 12 que passa do fim - "Segmentation fault (core
+  // dumped)", e os bytes da memoria voam da borda - e o while (1), que sorteia
+  // casas ate o juiz do BOCA matar o programa ("Time limit exceeded") e os
+  // baloes dele sumirem.
+  //
+  // Todos os ataques sao de GATILHO. O cacho nasce embaixo do campo na
+  // velocidade daqui, a de Laco::kVelocidadeDoCacho (um teste confere); o
+  // despejo sai da borda, para dentro do campo - quem escolhe o lado e o
+  // Andre.
   "StateTwo": {
     "duracao": 17,
     "proximo": "StateThree",
-    "movimento": { "tipo": "RandomWander", "a": 1.8, "b": 300 },
+    "anuncio": "for / while",
+    "movimento": { "tipo": "Conduzido", "a": 380 },
     "ataques": [
-      { "estrategia": "BaloonAttack", "projetil": "Baloes",
-        "projeteis": 6, "velocidade": 500, "cooldown": 1.25,
-        "balao": { "lado": "Down", "spawnAleatorio": true,
-                   "centradoNoJogador": true, "deslocamento": 400 } }
+      { "gatilho": "indice", "estrategia": "WaveAttack", "projetil": "Indice",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "subir", "estrategia": "WaveAttack", "projetil": "Baloes",
+        "projeteis": 3, "velocidade": 240, "angulo": 0, "anguloCentral": 270, "intervalo": 0 },
+      { "gatilho": "core", "estrategia": "WaveAttack", "projetil": "Byte",
+        "projeteis": 12, "velocidade": 280, "angulo": 90, "anguloCentral": 195, "intervalo": 0 }
     ]
   },
 

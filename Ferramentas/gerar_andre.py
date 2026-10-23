@@ -10,6 +10,10 @@ mesmas cores, o mesmo brilho, o mesmo barbante):
   DPIBHAndreConfete  o confete do balao que estoura, girando
   DPIBHAndreRotulos  o cabecalho de cada ramo do fluxograma da fase 1, como
                      uma linha de codigo num editor - apagado e aceso
+  DPIBHAndreIndices  o indice de cada casa do vetor no chao da fase 2
+                     (Laco.h): apagado, aceso (o i esta nela), pulado (o
+                     continue) e vermelho (o segfault)
+  DPIBHAndreBytes    a memoria despejada do segfault: um byte em hexa
 
 Os nomes das animacoes estao em Assets/Attacks/andre/projeteis.json, e um teste
 confere que toda cara que o Andre pede existe la.
@@ -164,6 +168,55 @@ def rotulos():
     return folha(quadros, RW, RH, 4), len(quadros)
 
 
+IW, IH = 96, 28
+
+
+def indice(i, estado):
+    """O indice da casa i do vetor do chao: "v[5]" numa plaquinha."""
+    s = 4
+    im = Image.new("RGBA", (IW * s, IH * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    fundo, borda, tinta = {
+        "apagado": ((28, 32, 46, 200), (90, 104, 140, 220), (170, 184, 214, 255)),
+        "aceso":   ((92, 78, 20, 240), (255, 214, 72, 255), (255, 244, 200, 255)),
+        "pulado":  ((24, 40, 58, 220), (90, 170, 220, 255), (150, 210, 250, 255)),
+        "erro":    ((110, 20, 24, 240), (255, 90, 80, 255), (255, 220, 214, 255)),
+    }[estado]
+    d.rounded_rectangle([2 * s, 2 * s, (IW - 3) * s, (IH - 3) * s], radius=5 * s,
+                        fill=fundo, outline=borda, width=2 * s)
+    d.text((IW * s // 2, IH * s // 2), f"v[{i}]", fill=tinta,
+           font=ImageFont.truetype(CARLITO, 17 * s), anchor="mm")
+    return im.resize((IW, IH), Image.LANCZOS)
+
+
+ESTADOS_DO_INDICE = ["apagado", "aceso", "pulado", "erro"]   # a ordem dos quadros
+
+
+def indices():
+    """Os quadros: os doze indices apagados, depois os doze acesos, os doze
+    pulados e os doze do segfault."""
+    quadros = [indice(i, e) for e in ESTADOS_DO_INDICE for i in range(12)]
+    return folha(quadros, IW, IH, 12), len(quadros)
+
+
+BYTES = ["DE", "AD", "BE", "EF", "00", "FF"]   # a ordem de Laco::CaraDoByte
+
+
+def bytes_():
+    """Um byte da memoria despejada: dois digitos hexa num chip vermelho."""
+    quadros = []
+    for b in BYTES:
+        s = 4
+        im = Image.new("RGBA", (22 * s, 16 * s), (0, 0, 0, 0))
+        d = ImageDraw.Draw(im)
+        d.rounded_rectangle([1 * s, 1 * s, 20 * s, 14 * s], radius=3 * s,
+                            fill=(150, 28, 34, 240), outline=(255, 120, 100, 255), width=1 * s)
+        d.text((11 * s, 8 * s), b, fill=(255, 236, 220, 255),
+               font=ImageFont.truetype(CARLITO, 11 * s), anchor="mm")
+        quadros.append(im.resize((22, 16), Image.LANCZOS))
+    return folha(quadros, 22, 16, 6), len(quadros)
+
+
 def folha(quadros, largo, alto, colunas):
     linhas = (len(quadros) + colunas - 1) // colunas
     im = Image.new("RGBA", (largo * colunas, alto * linhas), (0, 0, 0, 0))
@@ -205,7 +258,10 @@ def animacoes():
     conf = {cor: [2 * i, 2 * i + 1] for i, cor in enumerate(ORDEM_DAS_CORES)}
     rot = {nome: [k] for k, (nome, _) in enumerate(ROTULOS)}
     rot.update({nome + "Aceso": [k + len(ROTULOS)] for k, (nome, _) in enumerate(ROTULOS)})
-    return {"Balao": bal, "Confete": conf, "Rotulo": rot}
+    sufixos = ["", "Aceso", "Pulado", "Erro"]
+    ind = {f"V{i}{suf}": [k * 12 + i] for k, suf in enumerate(sufixos) for i in range(12)}
+    byt = {b: [k] for k, b in enumerate(BYTES)}
+    return {"Balao": bal, "Confete": conf, "Rotulo": rot, "Indice": ind, "Byte": byt}
 
 
 if __name__ == "__main__":
@@ -219,3 +275,7 @@ if __name__ == "__main__":
     grava_folha(im, "DPIBHAndreConfete", 8, 8, n)
     im, n = rotulos()
     grava_folha(im, "DPIBHAndreRotulos", RW, RH, n)
+    im, n = indices()
+    grava_folha(im, "DPIBHAndreIndices", IW, IH, n)
+    im, n = bytes_()
+    grava_folha(im, "DPIBHAndreBytes", 22, 16, n)
