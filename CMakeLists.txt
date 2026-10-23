@@ -214,6 +214,7 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
         Source/Attacks/FasesDeAtaque.h
+        Source/Attacks/Fase.h
         Source/Attacks/FasesDeAtaqueArquivo.cpp
         Source/Attacks/FasesDeAtaqueArquivo.h
         Source/Attacks/ProjeteisDeChefe.cpp
@@ -513,6 +514,7 @@ add_executable(dpi_tests
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
         Source/Attacks/FasesDeAtaque.h
+        Source/Attacks/Fase.h
         Source/Attacks/ProjeteisDeChefe.cpp
         Source/Attacks/PastaDoChefe.cpp
         Source/Attacks/PastaDoChefe.h

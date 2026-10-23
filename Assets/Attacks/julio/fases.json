@@ -76,13 +76,13 @@
   // primeiros a 1,2 s um do outro. Em frases de sete a cada 2 s, ele leva 5 e
   // termina a fase com 74,8; o parado leva 9 e cai para 17,4.
   "StateOne": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateTwo",
     "anuncio": "Gerando tokens",
     "etapas": [
-      { "nome": "Fria",   "duracao": 5.6, "anuncio": "temperatura = 0,2" },
-      { "nome": "Morna",  "duracao": 5.7, "anuncio": "temperatura = 0,8" },
-      { "nome": "Quente", "duracao": 5.7, "anuncio": "temperatura = 1,6 · alucinando" }
+      { "nome": "Fria",   "duracao": 6.6, "anuncio": "temperatura = 0,2" },
+      { "nome": "Morna",  "duracao": 6.7, "anuncio": "temperatura = 0,8" },
+      { "nome": "Quente", "duracao": 6.7, "anuncio": "temperatura = 1,6 · alucinando" }
     ],
     "movimento": { "tipo": "RandomWander", "a": 3.5, "b": 115 },
     "ataques": [
@@ -91,12 +91,12 @@
         "tokens": { "temperatura": 0.2, "candidatos": 9, "abertura": 120,
                     "frase": ["o", "mo", "de", "lo", "te", "pre", "diz"] } },
       { "etapa": "Morna", "estrategia": "TokenAttack", "projetil": "Token",
-        "projeteis": 14, "velocidade": 300, "intervalo": 0.07, "cooldown": 2.0,
-        "tokens": { "temperatura": 0.8, "candidatos": 18, "abertura": 120,
+        "projeteis": 7, "velocidade": 300, "intervalo": 0.07, "cooldown": 2.0,
+        "tokens": { "temperatura": 0.8, "candidatos": 9, "abertura": 120,
                     "frase": ["o", "mo", "de", "lo", "te", "pre", "diz"] } },
       { "etapa": "Quente", "estrategia": "TokenAttack", "projetil": "Token",
-        "projeteis":21, "velocidade": 300, "intervalo": 0.07, "cooldown": 2.0,
-        "tokens": { "temperatura": 1.6, "candidatos": 27, "abertura": 120,
+        "projeteis": 7, "velocidade": 300, "intervalo": 0.07, "cooldown": 2.0,
+        "tokens": { "temperatura": 1.6, "candidatos": 9, "abertura": 120,
                     "frase": ["o", "mo", "de", "lo", "te", "pre", "diz"] } }
     ]
   },
@@ -123,7 +123,7 @@
   // dele - e sai com 70,6; o parado leva 8; o que vai e vem passa por baixo
   // dos agentes, vence 5 e nao leva nenhum.
   "StateTwo": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateThree",
     "anuncio": "Agentes",
     "movimento": { "tipo": "RandomWander", "a": 3.5, "b": 115 },
@@ -159,7 +159,7 @@
   // invencibilidade - 12 em 17 s - e zerava a nota. Na orbita lenta ele leva 3 na fase, todos de token,
   // e vence os 24 guardrails dos tres aneis; o parado leva 8 e zera.
   "StateThree": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "",
     "anuncio": "Guardrails",
     "movimento": { "tipo": "Orbitar", "a": 160, "b": 0.10 },
@@ -190,7 +190,7 @@
   // 40, o piloto que persegue passa com 65,9 (4 acertos), e o parado e o que
   // vai e vem reprovam com 9,4 e 40,3.
   "StateFinal": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateOne",
     "anuncio": "o modelo entrou em loop",
     "movimento": { "tipo": "Orbitar", "a": 180, "b": 0.12 },

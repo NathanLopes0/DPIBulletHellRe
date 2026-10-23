@@ -32,7 +32,7 @@ namespace Capivara {
     /// A chance de ela aparecer numa fase, e quando.
     constexpr float kChance = 0.6f;
     constexpr float kDe = 4.0f;
-    constexpr float kAte = 10.0f;
+    constexpr float kAte = 12.0f;     // a 170 px/s a travessia leva 7,6 s: acaba antes da fase (ha teste)
 
     /// Por onde ela anda: a altura, e de quanto fora da tela ela entra.
     constexpr float kAltura = 470.0f;

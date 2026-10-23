@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdint>
+#include "Fase.h"
 #include <string>
 #include <vector>
 
@@ -124,8 +125,10 @@ namespace Condicional {
 
     // ---- O RELOGIO E O DESENHO ---------------------------------------------
 
-    /// Um comando a cada kPorComando: cinco na fase de 17 s.
-    constexpr float kPorComando = 3.4f;
+    /// Um comando a cada kPorComando: seis na fase (Fase::kDuracao) - as cinco
+    /// formas e, no sexto, a primeira de novo, com o E logico as vezes.
+    constexpr int kComandosPorFase = 6;
+    constexpr float kPorComando = Fase::kDuracao / static_cast<float>(kComandosPorFase);
 
     /// Os baloes de cada comando: o primeiro kPrimeiroBalao depois de ele
     /// abrir, um a cada kEntreBaloes. O ultimo estoura antes de o comando
@@ -138,7 +141,7 @@ namespace Condicional {
     /// dele, fica kNaDecisao parado la, e segue a seta do ramo ate o
     /// cabecalho: de lado ate a faixa, e depois para cima, em angulo reto.
     constexpr float kAbaixoDoProfessor = 105.0f;
-    constexpr float kVelocidadeDoBalao = 900.0f;
+    constexpr float kVelocidadeDoBalao = 950.0f;
     constexpr float kNaDecisao = 0.3f;
 
     /// Onde o professor fica: nesta altura, num x sorteado a cada comando.

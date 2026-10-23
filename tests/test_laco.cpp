@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <set>
 
+#include "../Source/Attacks/Fase.h"
 #include "../Source/Attacks/Laco.h"
 
 using namespace Laco;
@@ -116,7 +117,7 @@ TEST_CASE("Laco: todo laco sorteado fica dentro do vetor - menos o que e para sa
     }
 }
 
-TEST_CASE("Laco: os sete lacos cabem na fase de 17 s, ate com os numeros mais compridos") {
+TEST_CASE("Laco: os sete lacos cabem na fase, ate com os numeros mais compridos") {
     float total = kPrimeiro;
     for (int vez = 0; vez < kFormas; ++vez) {
         float pior = 0.0f;
@@ -126,7 +127,7 @@ TEST_CASE("Laco: os sete lacos cabem na fase de 17 s, ate com os numeros mais co
         }
         total += pior + (vez + 1 < kFormas ? kEntreLacos : 0.0f);
     }
-    CHECK(total <= 17.0f);
+    CHECK(total <= Fase::kDuracao);
 }
 
 TEST_CASE("Laco: as casas dividem o campo, e v[-1] e v[12] ficam fora dele") {

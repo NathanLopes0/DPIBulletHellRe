@@ -175,8 +175,8 @@ TEST_CASE("Condicional: o ultimo balao do comando estoura antes de o comando aca
     const float ultimo = kPrimeiroBalao + static_cast<float>(kBaloesPorComando - 1) * kEntreBaloes;
     const float estoura = ultimo + kAbaixoDoProfessor / kVelocidadeDoBalao + kNaDecisao + voo;
     CHECK(estoura < kPorComando);
-    // E a fase de 17 s tem cinco comandos inteiros.
-    CHECK(5.0f * kPorComando == doctest::Approx(17.0f));
+    // E a fase tem kComandosPorFase comandos inteiros.
+    CHECK(static_cast<float>(kComandosPorFase) * kPorComando == doctest::Approx(Fase::kDuracao));
 }
 
 TEST_CASE("Condicional: cada balao tem uma cara por numero e por cor") {

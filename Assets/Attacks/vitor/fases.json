@@ -71,7 +71,7 @@
   // A dinamica de antes CONTINUA VALENDO: seguir o chefe e ruim, porque as
   // faixas descem de onde ele estava e a varredura volta por cima delas.
   "StateOne": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateTwo",
     "movimento": { "tipo": "Varredura", "a": 220, "b": 150 },
     "ataques": [
@@ -157,7 +157,7 @@
   // sequencia de portas e a mesma de antes: o disparo das nuvens nao empurra a
   // fresta (Vitor::DispararNuvem).
   "StateTwo": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateThree",
     "anuncio": "exclusão mútua",
     "movimento": { "tipo": "Orbitar", "a": 110, "b": 0.08 },
@@ -202,7 +202,7 @@
   // nem anda sozinho, mas os dois continuam levando tiro: o fork nao e um
   // intervalo. Quem comeca direto nesta fase, sem nuvem, se divide como antes.
   "StateThree": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "",
     "anuncio": "fork · dois processos",
     "movimento": { "tipo": "Varredura", "a": 190, "b": 150 },
@@ -219,7 +219,7 @@
   // So e vista por quem esta entre 40 e 59 no fim da terceira - StateThree tem
   // "proximo" vazio, entao a batalha e decidida ali (medido no Vladimir).
   "StateFinal": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateOne",
     "movimento": { "tipo": "Varredura", "a": 300, "b": 120 },
     "ataques": [

@@ -760,7 +760,7 @@ FasesLidas LerFases(const std::string& textoJson) {
 
             DescricaoDeFase f;
             f.nome = nomeFase;
-            f.duracao = Campo(corpoFase, "duracao", 17.0f);
+            f.duracao = Campo(corpoFase, "duracao", Fase::kDuracao);
             f.proximo = Texto(corpoFase, "proximo");
 
             if (f.duracao <= 0.0f) {
@@ -899,7 +899,7 @@ FasesLidas LerFases(const std::string& textoJson) {
             }
 
             if (f.ataques.empty()) {
-                // Uma fase sem ataque nenhum e um chefe parado por 17 segundos.
+                // Uma fase sem ataque nenhum e um chefe parado a fase inteira.
                 saida.problemas.emplace_back(onde + "nenhum ataque valido, a fase foi descartada");
                 continue;
             }

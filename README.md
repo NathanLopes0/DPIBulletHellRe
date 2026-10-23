@@ -99,8 +99,9 @@ no JSON não reatribui a nota de ninguém.
 
 ## Os professores
 
-Cada chefe tem três fases mais uma fase final, e uma identidade de ataque
-própria. A fase final acontece quando a nota termina entre 40 e 59 — é o exame.
+Cada chefe tem três fases mais uma fase final, de 20 segundos cada, e uma
+identidade de ataque própria. A fase final acontece quando a nota termina entre
+40 e 59 — é o exame.
 
 - **André — INF 110.** Programação 1, um conceito por fase, com o placar
   mostrando o código que ele está rodando — e os balões do BOCA. Na primeira,
@@ -112,8 +113,8 @@ própria. A fase final acontece quando a nota termina entre 40 e 59 — é o exa
   *segmentation fault* e o `while (1)` só para no *Time limit exceeded*. Na
   terceira, funções: os argumentos voam até o cartão da função e o retorno
   volta, a passagem por valor ataca onde você estava e `segue(&aluno)` vai
-  atrás de você. O exame é a prova no BOCA: um problema de cada fase, e o
-  balão do problema sobe no YES.
+  atrás de você. O exame é a prova no BOCA: um problema de cada fase, o balão
+  do problema sobe no YES — e o último capota em *Runtime error*.
 - **Salles — INF 213.** Estruturas de dados, uma por fase, com o placar
   escrevendo cada operação: uma pilha pendurada nele (push, pop e stack
   overflow), uma tabela hash que encadeia, busca e faz rehash na sua frente, e

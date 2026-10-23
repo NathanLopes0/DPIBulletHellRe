@@ -925,8 +925,8 @@ void Andre::AtualizarProva() {
     if (k == mProblema) return;
 
     // O PROBLEMA QUE FECHOU GANHA O BALAO DELE - o YES do BOCA -, que sobe do
-    // professor com a letra do problema.
-    if (mProblema >= 0) {
+    // professor com a letra do problema. O que nao foi aceito nao ganha nada.
+    if (Prova::Aceito(mProblema)) {
         for (BossProjectile* p : DispararEm(Prova::kGatilhoDoTrofeu, GetPosition())) {
             p->DefinirEnfeite(true);
             PorCara(p, Prova::CaraDoTrofeu(mProblema));

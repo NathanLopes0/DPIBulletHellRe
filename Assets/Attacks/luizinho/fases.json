@@ -45,7 +45,7 @@
   // e a tabuinha quem nao para de andar (4 das 5 do que vai e vem). O que
   // persegue o professor leva 3 de pedra e 1 de tabuinha.
   "StateOne": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateTwo",
     "anuncio": "ligāre · atar",
     "movimento": { "tipo": "Varredura", "a": 200, "b": 150 },
@@ -84,7 +84,7 @@
   // largo; com 10 letras, a 240 e a cada 1,5s, ela come 67 tiros dele (6 do que
   // vai e vem, que quase nunca esta embaixo do professor) e ele passa com 66,3.
   "StateTwo": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateThree",
     "anuncio": "in capsulā · na caixinha",
     "movimento": { "tipo": "Orbitar", "a": 160, "b": 0.1 },
@@ -101,7 +101,7 @@
   //
   // Alocar e deixar coisa no campo: o chefe desce e sobe, e os blocos param em
   // alturas diferentes, como a memoria que vai enchendo. Quem limpa e o
-  // COLETOR (Luizinho.cpp): a cada 4,25 s ele para o mundo, marca o que o
+  // COLETOR (Luizinho.cpp): a cada 5 s ele para o mundo, marca o que o
   // professor nao alcanca pelas referencias desenhadas, e varre.
   //
   // O anuncio e o latim; o professor o traduz no placar ("lembra-te de que
@@ -127,7 +127,7 @@
   // vez de 8 - e por isso que sao 7, com o do meio numa posicao impar (o
   // canario de tests/test_arquivos_de_dados.cpp segura as duas coisas).
   "StateThree": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "",
     "anuncio": "memento mori",
     "movimento": { "tipo": "Mergulho", "a": 160, "b": 220 },
@@ -158,7 +158,7 @@
   // varrendo a 160 acertou 9 e terminou com 39,0. Com a orbita lenta ele acerta 100 vezes e sai
   // aprovado com 67,0 (4 acertos sofridos); o parado sai com 21,4.
   "StateFinal": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateOne",
     "anuncio": "sequī · seguir",
     "movimento": { "tipo": "Orbitar", "a": 180, "b": 0.12 },

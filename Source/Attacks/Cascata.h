@@ -10,12 +10,13 @@
 #include <vector>
 
 #include "../Math.h"
+#include "Fase.h"
 
 /**
  * CAMADA PURA.
  *
  * A FASE 1 DA MARIA LUCIA E O MODELO CASCATA, e numa cascata O QUE UMA ETAPA
- * ENTREGA E O QUE A SEGUINTE RECEBE. Cinco etapas de 3,4s, em ordem, e o que
+ * ENTREGA E O QUE A SEGUINTE RECEBE. Cinco etapas de 4 s, em ordem, e o que
  * sai de cada uma se ve passando para a outra:
  *
  *   1 Requisitos     o cliente pede: post-its chegam pelos lados do campo e
@@ -51,7 +52,7 @@ namespace Cascata {
 
     /// A duracao de cada etapa: a mesma das "etapas" de fases.json e dos
     /// degraus da escada (um teste confere).
-    constexpr float kDuracaoDaEtapa = 3.4f;
+    constexpr float kDuracaoDaEtapa = Fase::kDuracao / static_cast<float>(kEtapas.size());
 
     /// @brief Em que etapa se esta no instante 't' da fase: 0 a 4, e 5 depois
     /// da ultima.

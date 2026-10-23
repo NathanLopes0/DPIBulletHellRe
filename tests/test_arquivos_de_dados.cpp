@@ -1527,6 +1527,11 @@ TEST_CASE("Dados: a capivara do Salles pode aparecer em toda fase dele, e e um a
             for (const auto& anim : tipo.animacoes) caras.insert(anim.nome);
             CHECK(caras.count(Capivara::kAnimacaoDireita) == 1);
             CHECK(caras.count(Capivara::kAnimacaoEsquerda) == 1);
+            // A TRAVESSIA ACABA DENTRO DA FASE: a que sai no ultimo instante
+            // da janela atravessa o campo e as duas folgas antes do fim.
+            REQUIRE(a.velocidade.has_value());
+            const float travessia = (1200.0f + 2.0f * Capivara::kForaDaTela) / *a.velocidade;
+            CHECK(Capivara::kAte + travessia <= f.duracao);
         }
         CHECK(capivaras == 1);
     }
@@ -1910,6 +1915,30 @@ TEST_CASE("Dados: nenhuma regra de uma SerpenteAttack ou de uma SprintAttack tem
     }
 }
 
+TEST_CASE("Dados: toda fase de todo chefe dura Fase::kDuracao, e as etapas cobrem a fase inteira") {
+
+    // A DURACAO MORA EM DOIS LUGARES: em cada fases.json e em Fase.h, de onde
+    // os modulos que cortam a fase em pedacos a tiram (os comandos do Andre, as
+    // etapas da cascata, os problemas da prova). Uma fase de outro tamanho
+    // faria um deles acabar antes - ou depois - dela.
+    //
+    // E AS ETAPAS SOMAM A FASE: a leitura so recusa etapas que PASSAM da
+    // fase. Quando as fases foram de 17 para 20 s, as etapas de 17 teriam
+    // deixado 3 s no fim sem etapa nenhuma - sem placar da etapa e sem os
+    // ataques dela.
+    for (const auto& chefe : Chefes()) {
+        for (const auto& f : FasesDoChefe(chefe).fases) {
+            CAPTURE(chefe);
+            CAPTURE(f.nome);
+            CHECK(f.duracao == doctest::Approx(Fase::kDuracao));
+            if (f.etapas.empty()) continue;
+            float soma = 0.0f;
+            for (const auto& e : f.etapas) soma += e.duracao;
+            CHECK(soma == doctest::Approx(f.duracao));
+        }
+    }
+}
+
 TEST_CASE("Dados: a escada tem um degrau por etapa, do tamanho da etapa") {
 
     // A ESCADA E O DIAGRAMA DA CASCATA: um degrau por etapa. O movimento
@@ -2228,7 +2257,7 @@ TEST_CASE("Dados: a prova do Andre roda cada problema com os mesmos ataques da f
     REQUIRE(tipos.count(projetil) == 1);
     std::set<std::string> caras;
     for (const auto& a : tipos.at(projetil).animacoes) caras.insert(a.nome);
-    for (int k = 0; k < Prova::kProblemas; ++k) CHECK(caras.count(Prova::CaraDoTrofeu(k)) == 1);
+    for (int k = 0; k < Prova::kProblemas; ++k) if (Prova::Aceito(k)) CHECK(caras.count(Prova::CaraDoTrofeu(k)) == 1);
     CHECK(prova->duracao >= Prova::kProva[Prova::kProblemas - 1].fim);
 }
 

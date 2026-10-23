@@ -5,6 +5,7 @@
 #include "BattleHUD.h"
 
 #include "Battle.h"
+#include "../../Attacks/Fase.h"
 #include "../Scene.h"
 #include "../../Actors/Actor.h"
 #include "../../Actors/Player/Player.h"
@@ -19,7 +20,7 @@
 BattleHUD::BattleHUD(Scene *scene)
     :mOwner(scene),
     mCurrentStateTime(0.0f),
-    mTotalStateTime(17.f)
+    mTotalStateTime(Fase::kDuracao)
 {
     // ----- CRIAÇÃO DE OBJETOS POWER_ICON QUE SEGUEM O PLAYER ----- //
     // Pertencem à Cena (Scene), mas o HUD guarda referência para movê-los.

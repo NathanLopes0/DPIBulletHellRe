@@ -48,7 +48,7 @@
   // que persegue toma 5 nesta fase em vez de 4, e a caixa nao fica mais
   // legivel: com 32 ela ja tem os quatro lados.
   "StateOne": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateTwo",
     "anuncio": "<div><div>…</div></div>",
     "movimento": { "tipo": "Orbitar", "a": 110, "b": 0.08 },
@@ -82,7 +82,7 @@
   // provisorio dava 3 / 5 / 5, e esta da 2 / 5 / 4. Com 10 regras foi a 4 / 6 / 5;
   // mais rapida (260 px/s a cada 0,9s), a 6 / 4 / 4.
   "StateTwo": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateThree",
     "anuncio": "display: flex",
     "movimento": { "tipo": "Varredura", "a": 170, "b": 150 },
@@ -90,7 +90,7 @@
       { "estrategia": "FlexAttack", "projetil": "Codigo",
         "projeteis": 8, "velocidade": 220,
         "flex": { "de": "center", "para": "space-between", "aos": 0.7, "em": 0.5 },
-        "cooldown": 0.8,
+        "cooldown": 1.1,
         "regras": "css" }
     ]
   },
@@ -118,14 +118,14 @@
   // fase que decide a batalha, virava a mais facil. Com rodadas menores e mais
   // frequentes ele toma 3 acertos ali em vez de 1.
   "StateThree": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "",
     "anuncio": "let it crash",
     "movimento": { "tipo": "Orbitar", "a": 230, "b": 0.12 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Processo",
-        "projeteis": 4, "velocidade": 270, "angulo": 120, "intervalo": 0.08,
-        "cooldown": 0.6,
+        "projeteis": 4, "velocidade": 170, "angulo": 120, "intervalo": 0.08,
+        "cooldown": 0.8,
         "regras": "processos" }
     ]
   },
@@ -151,7 +151,7 @@
   // caixas, davam 4 / 8 / 0 - quem andava nunca era pego, e as caixas sao o
   // que cobra dele.
   "StateFinal": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateOne",
     "anuncio": "await fetch(…)",
     "movimento": { "tipo": "Varredura", "a": 300, "b": 110 },

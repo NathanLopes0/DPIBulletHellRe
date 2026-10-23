@@ -8,12 +8,14 @@
 
 #include "../Source/Attacks/Cascata.h"
 
-TEST_CASE("Cascata: as etapas vem em ordem, uma a cada 3,4s, e nao voltam") {
+TEST_CASE("Cascata: as etapas vem em ordem, uma a cada 4 s, e cabem na fase") {
+    CHECK(Cascata::kDuracaoDaEtapa == doctest::Approx(4.0f));
+    CHECK(Cascata::kDuracaoDaEtapa * static_cast<float>(Cascata::kEtapas.size()) == doctest::Approx(Fase::kDuracao));
     CHECK(Cascata::EtapaNoTempo(0.0f) == 0);
-    CHECK(Cascata::EtapaNoTempo(3.39f) == 0);
-    CHECK(Cascata::EtapaNoTempo(3.41f) == 1);
-    CHECK(Cascata::EtapaNoTempo(13.7f) == 4);
-    CHECK(Cascata::EtapaNoTempo(17.0f) == 5);
+    CHECK(Cascata::EtapaNoTempo(3.99f) == 0);
+    CHECK(Cascata::EtapaNoTempo(4.01f) == 1);
+    CHECK(Cascata::EtapaNoTempo(16.1f) == 4);
+    CHECK(Cascata::EtapaNoTempo(20.0f) == 5);
     CHECK(Cascata::EtapaNoTempo(100.0f) == 5);
     CHECK(Cascata::EtapaNoTempo(-1.0f) == 0);
     int antes = 0;

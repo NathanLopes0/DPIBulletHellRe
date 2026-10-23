@@ -31,9 +31,9 @@
 # dpi_tests. E uma ferramenta de rodar a mao quando se mexe no balanceamento de
 # qualquer chefe.
 #
-# ESTADO NA ULTIMA MEDICAO (commit 156, o Andre refeito): os dez reprovam o
-# piloto parado. O que chegou mais perto foi o Vitor (17,2, com 26 acertos
-# sofridos e 180 dados); todos os outros ficaram abaixo de 5. O Salles passava
+# ESTADO NA ULTIMA MEDICAO (commit 159, as fases de 20 s): os dez reprovam o
+# piloto parado. O que chegou mais perto foi o Vitor (26,1, com 25 acertos
+# sofridos e 176 dados); o Lucas ficou com 5,5 e os outros oito com zero. O Salles passava
 # por parar na coluna do meio em tres fases, e deixou de passar quando cada
 # fase dele ganhou um gesto - a mesma cura da primeira versao do Vladimir. O
 # Andre passou num estado intermediario (commit 155: a fase 2 nova, a fase 3 e

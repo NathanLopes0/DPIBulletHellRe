@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "Fase.h"
 #include "RegrasDeAtaque.h"
 
 /**
@@ -388,7 +389,7 @@ float PrimeiroDisparoNaJanela(float de);
 
 struct DescricaoDeFase {
     std::string nome;
-    float duracao = 17.0f;
+    float duracao = Fase::kDuracao;
     std::string proximo;
 
     /// As etapas da fase, em ordem. Vazio = a fase e um trecho so, como sempre.
@@ -439,7 +440,7 @@ bool NomeDeFaseExiste(const std::string& nome);
  * Formato (o arquivo de UM chefe - a pasta diz qual):
  * {
  *   "StateOne": {
- *     "duracao": 17, "proximo": "StateTwo",
+ *     "duracao": 20, "proximo": "StateTwo",
  *     "movimento": { "tipo": "RandomWander", "a": 4, "b": 100 },
  *     "ataques": [
  *       { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",

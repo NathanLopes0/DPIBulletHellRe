@@ -19,7 +19,7 @@
 
   // FASE 1 - A PROPOSTA: leques de paginas, de onde ele estiver.
   "StateOne": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateTwo",
     "anuncio": "Proposta",
     "movimento": { "tipo": "RandomWander", "a": 3.0, "b": 120 },
@@ -33,7 +33,7 @@
   // FASE 2 - O DESENVOLVIMENTO: aneis de paginas e a monografia, que desce
   // devagar e pesada.
   "StateTwo": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateThree",
     "anuncio": "Desenvolvimento",
     "movimento": { "tipo": "Varredura", "a": 90, "b": 200 },
@@ -49,7 +49,7 @@
 
   // FASE 3 - A DEFESA: as perguntas da banca, que perseguem o aluno.
   "StateThree": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "",
     "anuncio": "Defesa",
     "movimento": { "tipo": "Orbitar", "a": 120, "b": 0.08 },
@@ -64,7 +64,7 @@
   // FASE FINAL - AS CORRECOES: o anel de paginas lento e as perguntas que
   // ficaram.
   "StateFinal": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateOne",
     "anuncio": "Correções",
     "movimento": { "tipo": "Orbitar", "a": 100, "b": 0.06 },

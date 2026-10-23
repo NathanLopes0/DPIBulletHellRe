@@ -9,13 +9,14 @@
 #include <set>
 
 #include "../Source/Attacks/Condicional.h"
+#include "../Source/Attacks/Fase.h"
 #include "../Source/Attacks/Funcao.h"
 #include "../Source/Attacks/Laco.h"
 #include "../Source/Attacks/Prova.h"
 
 using namespace Prova;
 
-TEST_CASE("Prova: os quatro problemas vem em ordem, um depois do outro, dentro dos 17 s") {
+TEST_CASE("Prova: os problemas vem em ordem, um depois do outro, dentro da fase") {
     for (int k = 0; k < kProblemas; ++k) {
         const auto& p = kProva[static_cast<std::size_t>(k)];
         CAPTURE(p.letra);
@@ -27,7 +28,7 @@ TEST_CASE("Prova: os quatro problemas vem em ordem, um depois do outro, dentro d
         CHECK(p.quantos >= 1);
     }
     CHECK(kProva[0].inicio == doctest::Approx(0.0f));
-    CHECK(kProva[kProblemas - 1].fim <= 17.0f);
+    CHECK(kProva[kProblemas - 1].fim <= Fase::kDuracao);
     CHECK(ProblemaEm(kProva[kProblemas - 1].fim) == -1);
 }
 
@@ -80,9 +81,21 @@ TEST_CASE("Prova: o placar abre cada problema com o veredito do anterior, e cada
     CHECK(Abertura(1).rfind("A: YES!", 0) == 0);
     CHECK(Abertura(1).find("Problema B") != std::string::npos);
     CHECK(Veredito(3) == "Problema D: YES");
+    // O ULTIMO CAPOTA: o laco que passa do fim do vetor, e o juiz nao aceita.
+    CHECK(Veredito(4) == "Problema E: NO - Runtime error");
+    CHECK_FALSE(Aceito(4));
+    CHECK(CaraDoTrofeu(4).empty());
+    CHECK(Laco::Proximo(kProva[4].vez, 1u).forma == Laco::Forma::ForaDoVetor);
+    CHECK(Abertura(4).rfind("D: YES!", 0) == 0);
     std::set<std::string> trofeus;
-    for (int k = 0; k < kProblemas; ++k) trofeus.insert(CaraDoTrofeu(k));
-    CHECK(static_cast<int>(trofeus.size()) == kProblemas);
+    int aceitos = 0;
+    for (int k = 0; k < kProblemas; ++k) {
+        if (!Aceito(k)) continue;
+        ++aceitos;
+        trofeus.insert(CaraDoTrofeu(k));
+    }
+    CHECK(aceitos == 4);
+    CHECK(static_cast<int>(trofeus.size()) == aceitos);
     CHECK(CaraDoTrofeu(-1).empty());
     CHECK(Abertura(kProblemas).empty());
 }

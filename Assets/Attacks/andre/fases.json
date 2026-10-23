@@ -49,7 +49,7 @@
   // ramo ate o cabecalho, onde estoura - e o confete cai pela faixa daquele
   // ramo, de cima a baixo. O aluno le o numero e a condicao e sai da faixa.
   //
-  // Um comando a cada 3,4 s, cada um com o seu placar: if/else, o resto da
+  // Um comando a cada 3,33 s (seis na fase), cada um com o seu placar: if/else, o resto da
   // divisao por 2, else if (tres faixas: vale o primeiro), o switch SEM BREAK
   // (quatro faixas: o case de n estoura e cai nos de baixo, um depois do
   // outro; n sem case nao executa nada) e if (n = 0) - a ATRIBUICAO: o numero
@@ -62,7 +62,7 @@
   // WaveAttack a escreve no primeiro quadro do projetil, por cima do que o
   // chefe tiver escrito.
   "StateOne": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateTwo",
     "anuncio": "if / else",
     "movimento": { "tipo": "Conduzido", "a": 380 },
@@ -92,14 +92,15 @@
   // para o lado), o <= 12 que passa do fim - "Segmentation fault (core
   // dumped)", e os bytes da memoria voam da borda - e o while (1), que sorteia
   // casas ate o juiz do BOCA matar o programa ("Time limit exceeded") e os
-  // baloes dele sumirem.
+  // baloes dele sumirem. Os sete cabem na fase com folga, e o que sobra dela
+  // recomeca a ordem.
   //
   // Todos os ataques sao de GATILHO. O cacho nasce embaixo do campo na
   // velocidade daqui, a de Laco::kVelocidadeDoCacho (um teste confere); o
   // despejo sai da borda, para dentro do campo - quem escolhe o lado e o
   // Andre.
   "StateTwo": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateThree",
     "anuncio": "for / while",
     "movimento": { "tipo": "Conduzido", "a": 380 },
@@ -137,7 +138,7 @@
   // as mesmas velocidades (um teste confere); o leque sai do cartao mirado no
   // aluno - quem escolhe quantos e o argumento.
   "StateThree": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "",
     "anuncio": "funcoes",
     "movimento": { "tipo": "Conduzido", "a": 380 },
@@ -157,16 +158,17 @@
 
   // REPESCAGEM - A PROVA NO BOCA   |   gesto: O BALAO DO YES
   //
-  // A PROVA CAI TUDO (Prova.h): quatro problemas, A a D, cada um rodado pelo
+  // A PROVA CAI TUDO (Prova.h): cinco problemas, A a E, cada um rodado pelo
   // mesmo codigo da fase de onde vem - o if/else, o laco aninhado, o
-  // baloes(dobro(a), b) e o switch sem break. O placar abre cada um ("Problema
-  // B: for aninhado"), e quando ele fecha o juiz da o YES e o balao do
-  // problema sobe do professor, com a letra dele.
+  // baloes(dobro(a), b), o switch sem break e o for que passa do fim do vetor.
+  // O placar abre cada um ("Problema B: for aninhado"), e quando ele fecha o
+  // juiz da o veredito: no YES o balao do problema sobe do professor, com a
+  // letra dele; o ultimo capota, e e "NO - Runtime error", sem balao.
   //
   // Os ataques sao os das tres fases, os mesmos, com os mesmos numeros (os
   // testes conferem fase por fase), mais o balao do YES.
   "StateFinal": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateOne",
     "anuncio": "BOCA",
     "movimento": { "tipo": "Conduzido", "a": 380 },

@@ -84,14 +84,14 @@
   // acertou o professor 8 vezes na fase inteira e saiu dela com 14,5; a cada
   // 1,5 s, com 49,9; a cada 2 s, com 61,8.
   "StateOne": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateTwo",
     "anuncio": "Sistemas Lógicos",
     "etapas": [
-      { "nome": "E",  "duracao": 4.0, "anuncio": "AND 0000 1111 1111 0000" },
-      { "nome": "Ou", "duracao": 4.3, "anuncio": "OR 1100 0000 0000 0011" },
-      { "nome": "Nao", "duracao": 4.3, "anuncio": "NOT" },
-      { "nome": "Xou", "duracao": 4.4, "anuncio": "XOR 1111 1111 0000 0000" }
+      { "nome": "E",  "duracao": 5.0, "anuncio": "AND 0000 1111 1111 0000" },
+      { "nome": "Ou", "duracao": 5.0, "anuncio": "OR 1100 0000 0000 0011" },
+      { "nome": "Nao", "duracao": 5.0, "anuncio": "NOT" },
+      { "nome": "Xou", "duracao": 5.0, "anuncio": "XOR 1111 1111 0000 0000" }
     ],
     "movimento": { "tipo": "Deslocamento", "a": 2.0, "b": 16 },
     "ataques": [
@@ -100,7 +100,7 @@
         "palavra": { "altura": 390, "atravessa": "todos" },
         "regras": "portas" },
       { "estrategia": "PalavraAttack", "projetil": "Bit",
-        "projeteis": 16, "velocidade": 180,
+        "projeteis": 16, "velocidade": 140,
         "cooldown": 1.5,
         "regras": "palavra" }
     ]
@@ -131,14 +131,14 @@
   // O MOVIMENTO E A ONDA QUADRADA: em cima no nivel alto, embaixo no baixo,
   // saltando nas bordas do mesmo clock do placar - e no overclock ele treme.
   "StateTwo": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateThree",
     "anuncio": "Organização de Computadores",
     "etapas": [
-      { "nome": "Hz1", "duracao": 4, "anuncio": "clock 1 Hz" },
-      { "nome": "Hz2", "duracao": 4, "anuncio": "clock 2 Hz" },
+      { "nome": "Hz1", "duracao": 5, "anuncio": "clock 1 Hz" },
+      { "nome": "Hz2", "duracao": 5, "anuncio": "clock 2 Hz" },
       { "nome": "Hz4", "duracao": 5, "anuncio": "clock 4 Hz" },
-      { "nome": "Hz8", "duracao": 4, "anuncio": "overclock 8 Hz" }
+      { "nome": "Hz8", "duracao": 5, "anuncio": "overclock 8 Hz" }
     ],
     "movimento": { "tipo": "OndaQuadrada", "a": 60, "b": 50 },
     "ataques": [
@@ -170,7 +170,7 @@
   // derrubada vira bolha e nao ataca. O tiro gasto nela nao chega ao
   // professor, que fica atras do pipeline.
   "StateThree": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "",
     "anuncio": "Arquitetura de Computadores",
     "movimento": { "tipo": "Varredura", "a": 70, "b": 220 },
@@ -224,13 +224,13 @@
   // professor parado no centro: comecando com 40, todo piloto reprovava - o
   // que persegue e o parado com 39,7 e 12 acertos.
   "StateFinal": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateOne",
     "anuncio": "void loop()",
     "etapas": [
-      { "nome": "Lento",  "duracao": 5, "anuncio": "digitalWrite(13, HIGH); delay(1000);" },
-      { "nome": "Medio",  "duracao": 6, "anuncio": "digitalWrite(13, HIGH); delay(500);" },
-      { "nome": "Rapido", "duracao": 6, "anuncio": "digitalWrite(13, HIGH); delay(250);" }
+      { "nome": "Lento",  "duracao": 6, "anuncio": "digitalWrite(13, HIGH); delay(1000);" },
+      { "nome": "Medio",  "duracao": 7, "anuncio": "digitalWrite(13, HIGH); delay(500);" },
+      { "nome": "Rapido", "duracao": 7, "anuncio": "digitalWrite(13, HIGH); delay(250);" }
     ],
     "movimento": { "tipo": "Varredura", "a": 60, "b": 260 },
     "ataques": [

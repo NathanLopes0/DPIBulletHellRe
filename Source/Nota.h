@@ -47,6 +47,12 @@ namespace Nota {
     /// Com 2,0 custaria 392 - mais do que qualquer batalha medida entrega, e
     /// entao a nota cheia seria inalcancavel e a comemoracao dourada nunca
     /// aconteceria. Com 1,0 custaria 179, alcancado em 21 dos 51 segundos.
+    ///
+    /// COM AS FASES DE 20 S (commit 159) a batalha dura 60 s e o teto e 500
+    /// tiros. O expoente ficou: o piloto que persegue o professor acertou-o
+    /// de 92 a 392 vezes nos dez chefes (de 130 a 330 com 17 s), e a nota
+    /// dele subiu 3,7 pontos em media - em oito chefes, de 1 a 13; na Maria
+    /// Lucia e no Lucas, que ganharam mais ataque que tempo, caiu.
     inline constexpr float kExpoente = 1.5f;
 
     /// O maximo de quem levou dano demais. NAO e 100, e esse e o ponto: a nota

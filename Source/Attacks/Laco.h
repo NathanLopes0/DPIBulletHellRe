@@ -111,7 +111,8 @@ namespace Laco {
     /// O primeiro laco comeca kPrimeiro depois de a fase abrir; uma iteracao
     /// a cada kPasso; no laco aninhado, kEntrePassadas a mais entre uma
     /// passada e a outra; kEntreLacos entre um laco e o seguinte. Os sete
-    /// cabem na fase de 17 s, ate com os numeros mais compridos (ha teste).
+    /// cabem na fase (Fase::kDuracao), ate com os numeros mais compridos (ha
+    /// teste); o tempo que sobra recomeca a ordem.
     constexpr float kPrimeiro = 0.3f;
     constexpr float kPasso = 0.2f;
     constexpr float kEntrePassadas = 0.3f;

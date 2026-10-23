@@ -80,7 +80,7 @@
   // "Conduzido"): parado, ele leva tiro; e andando, a pilha pendurada varre o
   // campo.
   "StateOne": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateTwo",
     "anuncio": "pilha: LIFO",
     "movimento": { "tipo": "Conduzido", "a": 300 },
@@ -119,7 +119,7 @@
   //
   // O PROFESSOR VAI AO BALDE DA OPERACAO (o movimento "Conduzido").
   "StateTwo": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateThree",
     "anuncio": "h(k) = k mod m",
     "movimento": { "tipo": "Conduzido", "a": 700 },
@@ -165,7 +165,7 @@
   // professor tomava 9 acertos na fase sozinha e a batalha caia na repescagem
   // (59,5 no fim); com um, 3 acertos e 75,1.
   "StateThree": {
-    "duracao": 17,
+    "duracao": 20,
     // Vazio de proposito: e aqui que a batalha e decidida.
     "proximo": "",
     "anuncio": "árvore binária de busca",
@@ -221,7 +221,7 @@
   // da troca vem miradas -, e o que vai e vem com 49,5 e nenhum: sem mira, ele
   // nao sobe a nota.
   "StateFinal": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateOne",
     "anuncio": "bubble sort",
     "movimento": { "tipo": "Conduzido", "a": 500 },

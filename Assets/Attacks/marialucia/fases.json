@@ -38,7 +38,7 @@
   // FASE 1 - O MODELO CASCATA   |   gesto: A ESCADA
   //
   // A FASE E UM PROCESSO EM CASCATA, e numa cascata O QUE UMA ETAPA ENTREGA E O
-  // QUE A SEGUINTE RECEBE (Cascata.h). Cinco etapas de 3,4s ("etapas"), em
+  // QUE A SEGUINTE RECEBE (Cascata.h). Cinco etapas de 4 s ("etapas"), em
   // ordem, cada uma numa caixa acesa debaixo do degrau dela, e o que sai de uma
   // se ve passando para a outra:
   //
@@ -70,20 +70,20 @@
   //
   // O MOVIMENTO E O DIAGRAMA: ela desce uma escada, um degrau por etapa, da
   // esquerda para a direita - a forma em que o modelo cascata e desenhado. Os
-  // 3,4 s por degrau e os 5 degraus do "movimento" sao os das etapas, e o
+  // 4 s por degrau e os 5 degraus do "movimento" sao os das etapas, e o
   // canario de tests/test_arquivos_de_dados.cpp segura os dois juntos.
   "StateOne": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateTwo",
     "anuncio": "Cascata",
     "etapas": [
-      { "nome": "Requisitos",    "duracao": 3.4, "anuncio": "1 · Requisitos" },
-      { "nome": "Projeto",       "duracao": 3.4, "anuncio": "2 · Projeto" },
-      { "nome": "Implementacao", "duracao": 3.4, "anuncio": "3 · Implementação" },
-      { "nome": "Testes",        "duracao": 3.4, "anuncio": "4 · Testes" },
-      { "nome": "Manutencao",    "duracao": 3.4, "anuncio": "5 · Manutenção" }
+      { "nome": "Requisitos",    "duracao": 4.0, "anuncio": "1 · Requisitos" },
+      { "nome": "Projeto",       "duracao": 4.0, "anuncio": "2 · Projeto" },
+      { "nome": "Implementacao", "duracao": 4.0, "anuncio": "3 · Implementação" },
+      { "nome": "Testes",        "duracao": 4.0, "anuncio": "4 · Testes" },
+      { "nome": "Manutencao",    "duracao": 4.0, "anuncio": "5 · Manutenção" }
     ],
-    "movimento": { "tipo": "Escada", "a": 3.4, "b": 5 },
+    "movimento": { "tipo": "Escada", "a": 4.0, "b": 5 },
     "ataques": [
       { "gatilho": "placa", "estrategia": "WaveAttack", "projetil": "Placa",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
@@ -109,7 +109,7 @@
   // FASE 2 - OS METODOS AGEIS   |   gesto: A ORBITA, o ciclo iterativo
   //
   // A MESMA FASE DA CASCATA, CORTADA EM CICLOS CURTOS. Depois de um instante
-  // de backlog, cinco SPRINTS de 3 s cada ("etapas"), de tempo fixo - o
+  // de backlog, cinco SPRINTS de 3,6 s cada ("etapas"), de tempo fixo - o
   // timebox -, e no fim a retrospectiva. Em cada sprint, um ataque so
   // (SprintAttack, ver Sprint.h):
   //
@@ -137,39 +137,39 @@
   // AS SPRINTS COMECAM DEPOIS DO ZERO, de proposito: o ataque cuja etapa abre a
   // fase so dispara aos kPrimeiroDisparoDaFase (1 s, FasesDeAtaque.h), e os
   // outros 0,25 s depois de a etapa abrir. Com o backlog de 0,75 s as cinco
-  // disparam no mesmo ponto da sprint, a revisao de 2,5 s cai 0,25 s antes do
+  // disparam no mesmo ponto da sprint, a revisao de 3,1 s cai 0,25 s antes do
   // fim de cada uma, e a retrospectiva deixa a ultima revisao cair dentro da
   // fase. O canario de tests/test_arquivos_de_dados.cpp segura as contas.
   "StateTwo": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateThree",
     "anuncio": "Métodos Ágeis",
     "etapas": [
       { "nome": "Backlog", "duracao": 0.75, "anuncio": "Product Backlog" },
-      { "nome": "Sprint1", "duracao": 3.0, "anuncio": "Sprint 1 · 1 ponto" },
-      { "nome": "Sprint2", "duracao": 3.0, "anuncio": "Sprint 2 · 2 pontos" },
-      { "nome": "Sprint3", "duracao": 3.0, "anuncio": "Sprint 3 · 3 pontos" },
-      { "nome": "Sprint4", "duracao": 3.0, "anuncio": "Sprint 4 · 5 pontos" },
-      { "nome": "Sprint5", "duracao": 3.0, "anuncio": "Sprint 5 · 8 pontos" },
+      { "nome": "Sprint1", "duracao": 3.6, "anuncio": "Sprint 1 · 1 ponto" },
+      { "nome": "Sprint2", "duracao": 3.6, "anuncio": "Sprint 2 · 2 pontos" },
+      { "nome": "Sprint3", "duracao": 3.6, "anuncio": "Sprint 3 · 3 pontos" },
+      { "nome": "Sprint4", "duracao": 3.6, "anuncio": "Sprint 4 · 5 pontos" },
+      { "nome": "Sprint5", "duracao": 3.6, "anuncio": "Sprint 5 · 8 pontos" },
       { "nome": "Retrospectiva", "duracao": 1.25, "anuncio": "Retrospectiva" }
     ],
     "movimento": { "tipo": "Orbitar", "a": 120, "b": 0.10 },
     "ataques": [
       { "etapa": "Sprint1", "estrategia": "SprintAttack", "projetil": "Historia",
-        "projeteis": 1, "velocidade": 300, "cooldown": 3.0,
-        "sprint": { "revisao": 2.5, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
+        "projeteis": 1, "velocidade": 300, "cooldown": 3.6,
+        "sprint": { "revisao": 3.1, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
       { "etapa": "Sprint2", "estrategia": "SprintAttack", "projetil": "Historia",
-        "projeteis": 2, "velocidade": 300, "cooldown": 3.0,
-        "sprint": { "revisao": 2.5, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
+        "projeteis": 2, "velocidade": 300, "cooldown": 3.6,
+        "sprint": { "revisao": 3.1, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
       { "etapa": "Sprint3", "estrategia": "SprintAttack", "projetil": "Historia",
-        "projeteis": 3, "velocidade": 300, "cooldown": 3.0,
-        "sprint": { "revisao": 2.5, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
+        "projeteis": 3, "velocidade": 300, "cooldown": 3.6,
+        "sprint": { "revisao": 3.1, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
       { "etapa": "Sprint4", "estrategia": "SprintAttack", "projetil": "Historia",
-        "projeteis": 5, "velocidade": 300, "cooldown": 3.0,
-        "sprint": { "revisao": 2.5, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
+        "projeteis": 5, "velocidade": 300, "cooldown": 3.6,
+        "sprint": { "revisao": 3.1, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
       { "etapa": "Sprint5", "estrategia": "SprintAttack", "projetil": "Historia",
-        "projeteis": 8, "velocidade": 300, "cooldown": 3.0,
-        "sprint": { "revisao": 2.5, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
+        "projeteis": 8, "velocidade": 300, "cooldown": 3.6,
+        "sprint": { "revisao": 3.1, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
       { "estrategia": "PontosAttack", "projetil": "Requisito",
         "projeteis": 1, "velocidade": 260, "cooldown": 1.0,
         "pontos": { "posto": "quadro", "mirar": true, "prever": true },
@@ -209,7 +209,7 @@
   // ESTA E A FASE QUE DECIDE A BATALHA. StateThree tem "proximo" vazio: quem
   // chega ao fim dela aprovado termina aprovado e nunca ve a manutencao.
   "StateThree": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "",
     "anuncio": "Observer",
     "movimento": { "tipo": "Varredura", "a": 160, "b": 150 },
@@ -250,7 +250,7 @@
   // OS PEDIDOS SAEM A CADA 1,7 s, e nao a 1,1 como antes: com as janelas no
   // caminho, a 1,1 o piloto que persegue reprovava com 55,0.
   "StateFinal": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateOne",
     "anuncio": "Manutenção · Tem certeza?",
     "movimento": { "tipo": "Orbitar", "a": 180, "b": 0.12 },

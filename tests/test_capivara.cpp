@@ -8,7 +8,7 @@
 
 #include "../Source/Attacks/Capivara.h"
 
-TEST_CASE("Capivara: ela vem em mais ou menos seis de cada dez fases, entre 4 e 10 segundos, dos dois lados") {
+TEST_CASE("Capivara: ela vem em mais ou menos seis de cada dez fases, entre kDe e kAte segundos, dos dois lados") {
     int vieram = 0, daEsquerda = 0;
     float primeiro = 99.0f, ultimo = 0.0f;
     constexpr int kFases = 5000;

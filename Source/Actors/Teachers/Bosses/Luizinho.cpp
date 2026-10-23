@@ -172,7 +172,7 @@ void Luizinho::DevolverAMemoria() {
     PararOMundo(false);
 
     // TODO BLOCO, e nao so os de Blocos(): a ultima pausa da fase termina junto
-    // com ela (4 x 4,25 s = 17 s), entao o lixo daquela pausa sai marcado e
+    // com ela (4 x 5 s = 20 s), entao o lixo daquela pausa sai marcado e
     // ainda nao varrido - parado e com a cara de lixo, que Blocos() deixa de
     // fora. Medido, ele ficava 20 s no campo da fase seguinte ate o tempo
     // maximo de vida o encerrar.

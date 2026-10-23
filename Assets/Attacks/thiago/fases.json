@@ -92,7 +92,7 @@
   // consulta ao disparar), e um teste confere que os numeros daqui sao os de
   // la.
   "StateOne": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateTwo",
     "anuncio": "SELECT",
     "movimento": { "tipo": "Conduzido", "a": 600 },
@@ -141,7 +141,7 @@
   // a mais que no SELECT, das linhas apagadas que caem e das que sobem para o
   // lugar delas.
   "StateTwo": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateThree",
     "anuncio": "INSERT, UPDATE, DELETE",
     "movimento": { "tipo": "Conduzido", "a": 600 },
@@ -196,7 +196,7 @@
   // terminava a batalha com 88,6 a 95,9 e no maximo um acerto: a fase que
   // decide era a mais facil das tres.
   "StateThree": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "",
     "anuncio": "BEGIN TRANSACTION",
     "movimento": { "tipo": "Conduzido", "a": 600 },
@@ -243,7 +243,7 @@
   // 76,2, e de 62,1 a 75,7 com 2 acertos), e caem para 52 na mesma semente. Com
   // o aviso de 0,55s eram so tres de cinco de cada.
   "StateFinal": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateOne",
     "anuncio": "SELECT * FROM alunos, cursos",
     "movimento": { "tipo": "Conduzido", "a": 600 },

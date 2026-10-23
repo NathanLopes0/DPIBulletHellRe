@@ -97,7 +97,7 @@ private:
     /// 520 px/s, com 76,8 e 11. So o lixo mais rapido nao mudou nada (83,1):
     /// quem pesou foi a pausa, que e tempo de tiro livre - o professor esta
     /// parado e nada acerta o aluno.
-    static constexpr float kColetaACada = 4.25f;
+    static constexpr float kColetaACada = 5.0f;
     static constexpr float kPausaDoMundo = 0.7f;
 
     /// AUMENTAR O ALCANCE AUMENTA O VAZAMENTO E DIMINUI A CHUVA. Com o professor

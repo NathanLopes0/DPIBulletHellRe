@@ -91,7 +91,7 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 ```json
 {
   "StateOne": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateTwo",
     "movimento": { "tipo": "RandomWander", "a": 2.5, "b": 320 },
     "ataques": [
@@ -112,11 +112,11 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 
 | Campo | |
 |---|---|
-| `duracao` | segundos |
+| `duracao` | segundos. **Toda fase dura 20** (`Fase::kDuracao`, em `Source/Attacks/Fase.h`), e um teste confere — há módulos que cortam a fase em pedaços contando com isso |
 | `proximo` | a próxima fase. **Vazio significa "a batalha é decidida aqui"**, não "fim do arquivo". |
 | `anuncio` | opcional. O texto do **placar**, o quadro no canto de cima, enquanto a fase dura. Sem ele o placar fica apagado |
 | `intercambio` | opcional. `{ "aCada": 8, "aviso": 1.5 }`: os alunos **trocam de lugar** a cada `aCada` segundos da fase, com aviso `aviso` segundos antes |
-| `etapas` | opcional. A fase em **trechos com nome**, em ordem: `[ { "nome": "Requisitos", "duracao": 3.4, "anuncio": "1 · Requisitos" }, ... ]`. Cada ataque que diz `"etapa"` só dispara na sua, e o placar mostra o `anuncio` da etapa corrente (sem ele, o `nome`) |
+| `etapas` | opcional. A fase em **trechos com nome**, em ordem: `[ { "nome": "Requisitos", "duracao": 4.0, "anuncio": "1 · Requisitos" }, ... ]`. Cada ataque que diz `"etapa"` só dispara na sua, e o placar mostra o `anuncio` da etapa corrente (sem ele, o `nome`). A leitura recusa etapas que passam da fase, e um teste cobra que elas a **cubram inteira** |
 | `movimento` | como o professor anda |
 | `ataques` | lista; todos disparam na mesma fase, cada um no seu cooldown |
 
@@ -186,7 +186,7 @@ campo, cada um com os ataques (e o movimento) de uma fase diferente — e
 
 ```json
 "StateThree": {
-  "duracao": 17, "proximo": "",
+  "duracao": 20, "proximo": "",
   "movimento": { "tipo": "Varredura", "a": 190, "b": 150 },
   "ataquesDe": "StateOne",
   "clone": { "ataquesDe": "StateTwo" }

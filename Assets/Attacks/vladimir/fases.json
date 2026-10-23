@@ -79,7 +79,7 @@
   // A LETRA SAI MIRADA NO ALUNO (Vladimir::CustomizeAttackParams), com um tiro
   // no meio do leque.
   "StateOne": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateTwo",
     "anuncio": "L: termina em ab",
     "intercambio": { "aCada": 8, "aviso": 1.5 },
@@ -133,7 +133,7 @@
   // piloto foi atingido no segundo seguinte a uma troca. O ALUNO PARADO NO MEIO
   // NAO SAI DO LUGAR: o espelho de x = 600 e 600.
   "StateTwo": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateThree",
     "anuncio": "S → aSb | ε",
     "intercambio": { "aCada": 8, "aviso": 1.5 },
@@ -183,7 +183,7 @@
   // AS CASAS DA FITA NAO TROCAM NO INTERCAMBIO: estao no posto "fita". Quem as
   // reescreve e a cabeca.
   "StateThree": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "",
     "anuncio": "máquina de Turing",
     "intercambio": { "aCada": 8, "aviso": 1.5 },
@@ -214,7 +214,7 @@
   //
   // Repescagem: so vista por quem termina a fase 3 entre 40 e 59.
   "StateFinal": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateOne",
     "anuncio": "while (x ≠ 1) … para?",
     "intercambio": { "aCada": 8, "aviso": 1.5 },
