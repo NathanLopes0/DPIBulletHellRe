@@ -104,6 +104,11 @@ public:
     void DefinirDerrubavel(const bool derrubavel) { mDerrubavel = derrubavel; }
     [[nodiscard]] bool Derrubavel() const { return mDerrubavel; }
 
+    /// @brief Este projetil e um abrigo? Ver DescricaoDeProjetil::abrigo. Do
+    /// TIPO, como o derrubavel.
+    void DefinirAbrigo(const bool abrigo) { mAbrigo = abrigo; }
+    [[nodiscard]] bool Abrigo() const { return mAbrigo; }
+
     /// @brief Quantos tiros o derrubam (DescricaoDeProjetil::resistencia). Do
     /// TIPO, como o derrubavel; os golpes ja levados sao do disparo.
     void DefinirResistencia(const int resistencia) { mResistencia = resistencia < 1 ? 1 : resistencia; }
@@ -176,6 +181,9 @@ protected:
 
     /// Ver DefinirDerrubavel. Do tipo, como a corrente: nao volta no Reset.
     bool mDerrubavel = false;
+
+    /// Ver Abrigo.
+    bool mAbrigo = false;
 
     /// Ver DefinirResistencia e Golpear. A resistencia e do tipo; os golpes,
     /// do disparo - voltam a zero no Reset.

@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+"""Arte PROVISORIA do Salles (INF 213 - Estruturas de Dados).
+
+Desenhada por programa, como a dos outros chefes refeitos: serve para jogar e
+balancear, e sai quando houver arte de verdade. Trocar o .png basta - o json de
+quadro continua valendo.
+
+A CAPIVARA QUE ATRAVESSA O CAMPO. O Salles poe capivara em todo exercicio da
+disciplina, e de vez em quando ela aparece no meio da fase: atravessa o campo
+de lado a lado, andando. Vista de lado, com quatro passos, e cada passo virado
+para os dois lados (ela anda para a direita ou para a esquerda).
+"""
+from PIL import Image, ImageDraw
+import json, os
+
+RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+PELO = (156, 108, 66, 255)
+PELO_CLARO = (186, 138, 92, 255)
+PELO_ESCURO = (112, 76, 46, 255)
+CONTORNO = (64, 42, 26, 255)
+FOCINHO = (92, 62, 40, 255)
+
+
+def quadro_json(nome, w, h, largo, alto, quadros):
+    """O formato que o leitor de sprites do projeto espera, em 4 colunas."""
+    frames = []
+    for i in range(quadros):
+        x, y = (i % 4) * largo, (i // 4) * alto
+        frames.append({
+            "filename": f"{nome} {i}.placeholder",
+            "frame": {"x": x, "y": y, "w": largo, "h": alto},
+            "rotated": False, "trimmed": False,
+            "spriteSourceSize": {"x": 0, "y": 0, "w": largo, "h": alto},
+            "sourceSize": {"w": largo, "h": alto},
+            "duration": 120,
+        })
+    return {"frames": frames,
+            "meta": {"app": "gerar_salles.py", "version": "1.0", "image": f"{nome}.png",
+                     "format": "RGBA8888", "size": {"w": w, "h": h}, "scale": "1"}}
+
+
+def capivara(passo):
+    """Uma capivara andando para a direita, no passo 0 a 3."""
+    s = 4   # desenhada grande e reduzida: o contorno sai liso
+    W, H = 96, 64
+    im = Image.new("RGBA", (W * s, H * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+
+    def r(x0, y0, x1, y1, raio, cor, borda=True):
+        d.rounded_rectangle([x0 * s, y0 * s, x1 * s, y1 * s], radius=raio * s, fill=cor,
+                            outline=CONTORNO if borda else None, width=2 * s if borda else 0)
+
+    # AS PERNAS, que andam: as de tras e as da frente trocam de lugar a cada
+    # passo, como num trote.
+    avanco = [0, 3, 0, -3][passo]
+    for x, lado in ((24, 1), (34, -1), (62, 1), (72, -1)):
+        dx = avanco * lado
+        r(x + dx - 4, 40, x + dx + 4, 58, 3, PELO_ESCURO)
+
+    # O CORPO: um barril, e a barriga mais clara.
+    r(10, 16, 82, 50, 16, PELO)
+    r(20, 36, 72, 48, 8, PELO_CLARO, borda=False)
+
+    # A CABECA, grande e quadrada, com o focinho rombudo.
+    r(62, 8, 92, 38, 10, PELO)
+    r(80, 20, 94, 36, 6, FOCINHO)
+    d.ellipse([84 * s, 24 * s, 87 * s, 27 * s], fill=CONTORNO)          # a narina
+    d.ellipse([74 * s, 15 * s, 79 * s, 20 * s], fill=CONTORNO)          # o olho
+    d.ellipse([75 * s, 15 * s, 77 * s, 17 * s], fill=(255, 255, 255, 200))
+    r(64, 4, 72, 12, 3, PELO_ESCURO)                                     # a orelha
+
+    return im.resize((W, H), Image.LANCZOS)
+
+
+def capivarona():
+    """A folha: os quatro passos para a direita em cima, e para a esquerda embaixo."""
+    folha = Image.new("RGBA", (96 * 4, 64 * 2), (0, 0, 0, 0))
+    for p in range(4):
+        direita = capivara(p)
+        folha.alpha_composite(direita, (p * 96, 0))
+        folha.alpha_composite(direita.transpose(Image.FLIP_LEFT_RIGHT), (p * 96, 64))
+    return folha
+
+
+def grava(im, nome, pasta, largo, alto, quadros):
+    destino = os.path.join(RAIZ, pasta)
+    os.makedirs(destino, exist_ok=True)
+    im.save(os.path.join(destino, nome + ".png"))
+    with open(os.path.join(destino, nome + ".json"), "w", encoding="utf-8") as f:
+        json.dump(quadro_json(nome, im.width, im.height, largo, alto, quadros), f, indent=1)
+    print(f"  {pasta}/{nome}.png  {im.width}x{im.height}  ({quadros} quadro(s))")
+
+
+if __name__ == "__main__":
+    grava(capivarona(), "DPIBHSallesCapivarona", "Assets/Teachers/Projectiles", 96, 64, 8)

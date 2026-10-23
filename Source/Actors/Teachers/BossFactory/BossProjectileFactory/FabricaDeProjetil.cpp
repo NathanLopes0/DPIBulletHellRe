@@ -57,6 +57,9 @@ std::unique_ptr<Projectile> FabricaDeProjetil::createProjectile(Scene* scene, Ac
     projectile->DefinirDerrubavel(mDescricao.derrubavel);
     projectile->DefinirResistencia(mDescricao.resistencia);
 
+    // Se ele abriga o aluno: come os projeteis do chefe e os tiros do aluno.
+    projectile->DefinirAbrigo(mDescricao.abrigo);
+
     // A escala vem ANTES do colisor: CircleColliderComponent multiplica o raio
     // por GetScale(), entao escalar depois mudaria a hitbox sem mudar o numero
     // que passamos adiante.

@@ -186,6 +186,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Gramatica.h
         Source/Attacks/Parada.cpp
         Source/Attacks/Parada.h
+        Source/Attacks/Capivara.cpp
+        Source/Attacks/Capivara.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
@@ -340,6 +342,7 @@ add_executable(dpi_tests
         tests/test_automato.cpp
         tests/test_gramatica.cpp
         tests/test_parada.cpp
+        tests/test_capivara.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -449,6 +452,8 @@ add_executable(dpi_tests
         Source/Attacks/Gramatica.h
         Source/Attacks/Parada.cpp
         Source/Attacks/Parada.h
+        Source/Attacks/Capivara.cpp
+        Source/Attacks/Capivara.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp

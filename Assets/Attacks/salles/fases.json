@@ -46,6 +46,13 @@
   //   fase 3      arvore binaria      mergulho - a profundidade e o nivel
   //   final       lista circular      orbita - o laco que fecha
   //
+  // A CAPIVARA APARECE EM QUALQUER FASE (Capivara.h). O Salles poe capivara em
+  // todo exercicio, e em seis de cada dez fases ela atravessa o campo, uma vez,
+  // num instante sorteado entre 4 e 10 segundos, andando de uma borda a outra a
+  // 170 px/s. Ela e um ABRIGO: come os projeteis dele e os tiros do aluno. Por
+  // isso toda fase tem o ataque de gatilho "capivara" - quem o puxa e o Salles,
+  // e o placar avisa "uma capivara apareceu!".
+  //
   // ANTES DE MEXER: a rede de regressao quadro a quadro (provaigual.sh, fora
   // do repositorio) roda a BATALHA 0, QUE E A DO ANDRE - nao a do Salles, por
   // mais que comentarios antigos digam o contrario. O Salles nao tem rede:
@@ -70,6 +77,8 @@
     "proximo": "StateTwo",
     "movimento": { "tipo": "GoToCenter" },
     "ataques": [
+      { "gatilho": "capivara", "estrategia": "WaveAttack", "projetil": "Capivarona",
+        "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0 },
       { "estrategia": "WaveAttack", "projetil": "Estruturas",
         "projeteis": 10, "velocidade": 430, "angulo": 0, "intervalo": 0.11,
         "cooldown": 1.7,
@@ -107,6 +116,8 @@
     "proximo": "StateThree",
     "movimento": { "tipo": "RandomWander", "a": 2.0, "b": 500 },
     "ataques": [
+      { "gatilho": "capivara", "estrategia": "WaveAttack", "projetil": "Capivarona",
+        "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0 },
       { "estrategia": "WaveAttack", "projetil": "Duplamente",
         "projeteis": 8, "velocidade": 400, "angulo": 0, "intervalo": 0.10,
         "cooldown": 1.2,
@@ -134,6 +145,8 @@
     "proximo": "",
     "movimento": { "tipo": "GoToCenter" },
     "ataques": [
+      { "gatilho": "capivara", "estrategia": "WaveAttack", "projetil": "Capivarona",
+        "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0 },
       { "estrategia": "AngledAttack", "projetil": "Estruturas",
         "projeteis": 16, "velocidade": 210, "angulo": 0,
         "cooldown": 2.1,
@@ -158,6 +171,8 @@
     "proximo": "StateOne",
     "movimento": { "tipo": "GoToCenter" },
     "ataques": [
+      { "gatilho": "capivara", "estrategia": "WaveAttack", "projetil": "Capivarona",
+        "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0 },
       { "estrategia": "CircleSpreadAttack", "projetil": "Capivara",
         "projeteis": 12, "velocidade": 200,
         "cooldown": 1.8,

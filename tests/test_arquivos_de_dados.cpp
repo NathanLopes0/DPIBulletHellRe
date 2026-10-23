@@ -57,6 +57,7 @@
 #include "../Source/Attacks/Gramatica.h"
 #include "../Source/Attacks/Parada.h"
 #include "../Source/Attacks/Fita.h"
+#include "../Source/Attacks/Capivara.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
@@ -1472,6 +1473,33 @@ TEST_CASE("Dados: a fita e o problema da parada do Vladimir estao nas fases que 
         CAPTURE(g);
         CHECK(GatilhoExiste(g));
         CHECK(gatilhosDaParada.count(g) == 1);
+    }
+}
+
+TEST_CASE("Dados: a capivara do Salles pode aparecer em toda fase dele, e e um abrigo que anda para os dois lados") {
+    CHECK(GatilhoExiste(Capivara::kGatilho));
+
+    // EM TODA FASE: o Salles sorteia a visita em qualquer uma, e uma fase sem o
+    // ataque de gatilho faria o sorteio dar "vem" e nada aparecer.
+    const auto& tipos = ProjeteisDoChefe("salles").projeteis;
+    const auto fases = FasesDoChefe("salles").fases;
+    REQUIRE(fases.size() == 4);
+    for (const auto& f : fases) {
+        CAPTURE(f.nome);
+        int capivaras = 0;
+        for (const auto& a : f.ataques) {
+            if (a.gatilho != Capivara::kGatilho) continue;
+            ++capivaras;
+            REQUIRE(tipos.count(a.projetil) == 1);
+            const auto& tipo = tipos.at(a.projetil);
+            CHECK(tipo.abrigo);
+            CHECK_FALSE(tipo.derrubavel);
+            std::set<std::string> caras;
+            for (const auto& anim : tipo.animacoes) caras.insert(anim.nome);
+            CHECK(caras.count(Capivara::kAnimacaoDireita) == 1);
+            CHECK(caras.count(Capivara::kAnimacaoEsquerda) == 1);
+        }
+        CHECK(capivaras == 1);
     }
 }
 

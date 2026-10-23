@@ -171,6 +171,13 @@ namespace {
         }
         saida.derrubavel = Booleano(j, "derrubavel", false);
 
+        // O ABRIGO, pela mesma razao: um texto ali seria lido como falso, e a
+        // capivara passaria pelo campo sem proteger ninguem.
+        if (j.contains("abrigo") && !j["abrigo"].is_boolean()) {
+            problemas.emplace_back(onde + "\"abrigo\" precisa ser true ou false; usando false");
+        }
+        saida.abrigo = Booleano(j, "abrigo", false);
+
         // A RESISTENCIA E UM INTEIRO DE 1 PARA CIMA, e so num derrubavel: num
         // projetil que o tiro nao derruba ela nao teria o que contar, e quem a
         // escreveu provavelmente esqueceu o "derrubavel".

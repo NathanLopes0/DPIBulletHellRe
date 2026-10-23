@@ -456,6 +456,27 @@ TEST_CASE("Projeteis: \"derrubavel\" e falso por padrao, e pode ser ligado") {
     CHECK(p.projeteis.at("Processo").derrubavel);
 }
 
+TEST_CASE("Projeteis: \"abrigo\" e falso por padrao, liga com true, e reclama do que nao e booleano") {
+
+    // O PADRAO TEM DE SER FALSO: um abrigo come os projeteis do chefe, e um
+    // padrao errado faria todo projetil comer os vizinhos.
+    const auto p = LerProjeteis(R"({
+      "Normal":   { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] } },
+      "Capivara": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] },
+                    "abrigo": true },
+      "Errada":   { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] },
+                    "abrigo": "sim" }
+    })");
+    REQUIRE(p.projeteis.count("Normal") == 1);
+    REQUIRE(p.projeteis.count("Capivara") == 1);
+    REQUIRE(p.projeteis.count("Errada") == 1);
+    CHECK_FALSE(p.projeteis.at("Normal").abrigo);
+    CHECK(p.projeteis.at("Capivara").abrigo);
+    CHECK_FALSE(p.projeteis.at("Errada").abrigo);
+    REQUIRE(p.problemas.size() == 1);
+    CHECK(p.problemas[0].find("abrigo") != std::string::npos);
+}
+
 TEST_CASE("Projeteis: \"derrubavel\" que nao e booleano reclama e fica falso") {
 
     // "sim" ou 1 seriam lidos como falso sem aviso, e o processo ficaria

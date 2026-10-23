@@ -148,6 +148,20 @@ struct DescricaoDeProjetil {
      * primeiro tiro. Sem "derrubavel", nao vale nada, e a leitura avisa.
      */
     int resistencia = 1;
+
+    /**
+     * @brief Este projetil e um ABRIGO: os projeteis do chefe que encostam
+     * nele somem, ele nao machuca o aluno, e o tiro do aluno some nele.
+     *
+     * E a capivara que atravessa o campo do Salles: todo bicho se da bem com
+     * a capivara, e o aluno que anda embaixo dela fica protegido - mas os tiros
+     * dele ficam nela tambem. So come o que esta solto: um projetil num posto
+     * (a pilha do professor, uma chave na tabela) e parte de uma estrutura, e
+     * fica.
+     *
+     * Falso por padrao, e propriedade do TIPO, como o derrubavel.
+     */
+    bool abrigo = false;
 };
 
 /**

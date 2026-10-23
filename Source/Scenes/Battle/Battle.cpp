@@ -824,6 +824,27 @@ void Battle::CheckCollisions() {
     // duvida de um refatoramento cujo contrato e nao mudar nada - e o custo de
     // estar errado aqui e uma nota diferente que ninguem ia notar.
 
+    // --- REGRA 0 - O ABRIGO come os projeteis do chefe
+    //
+    // ANTES DA REGRA 1, de proposito: um projetil que encosta no abrigo e no
+    // aluno no mesmo quadro some no abrigo - quem esta embaixo da capivara esta
+    // protegido de verdade, e nao "quase sempre".
+    //
+    // SO COME O QUE ESTA SOLTO. Enfeite nao e tiro, outro abrigo nao se come, e
+    // um projetil num posto e parte de uma estrutura do professor - a pilha
+    // pendurada nele, uma chave na tabela -, que a capivara nao desmonta.
+    for (const auto &abrigo : bossProjectiles) {
+        if (abrigo->GetState() != ActorState::Active || !abrigo->Abrigo()) continue;
+        const auto *colisorDoAbrigo = abrigo->GetComponent<CircleColliderComponent>();
+        if (!colisorDoAbrigo) continue;
+        for (const auto &bossProj : bossProjectiles) {
+            if (bossProj->GetState() != ActorState::Active) continue;
+            if (bossProj->Abrigo() || bossProj->Enfeite() || !bossProj->Posto().empty()) continue;
+            const auto *outro = bossProj->GetComponent<CircleColliderComponent>();
+            if (outro && colisorDoAbrigo->Intersect(*outro)) bossProj->Kill();
+        }
+    }
+
     // --- REGRA 1 - Projéteis do Boss vs Player --- //
     for (Player* jogador : mJogadores) {
         const auto *playerCollider = ColisorDe(jogador);
@@ -832,6 +853,7 @@ void Battle::CheckCollisions() {
         for (const auto &bossProj: bossProjectiles) {
             if (bossProj->GetState() != ActorState::Active) continue;
             if (bossProj->Enfeite()) continue;   // o cursor da sprint e a mao, nao um tiro
+            if (bossProj->Abrigo()) continue;    // a capivara nao machuca ninguem
             if (const auto *bossProjCollider = bossProj->GetComponent<CircleColliderComponent>()) {
                 if (playerCollider->Intersect(*bossProjCollider) && !jogador->GetIsInvincible()) {
                     jogador->SetIsInvincible(true);
@@ -871,7 +893,9 @@ void Battle::CheckCollisions() {
 
         for (const auto &bossProj: bossProjectiles) {
             if (bossProj->GetState() != ActorState::Active) continue;
-            if (!bossProj->Derrubavel() && !bossProj->Blindado()) continue;
+            // O ABRIGO TAMBEM COME O TIRO: quem se esconde embaixo da capivara
+            // nao acerta o professor atraves dela.
+            if (!bossProj->Derrubavel() && !bossProj->Blindado() && !bossProj->Abrigo()) continue;
             if (bossProj->Enfeite()) continue;   // o tiro passa pelo cursor
             const auto *alvo = bossProj->GetComponent<CircleColliderComponent>();
             if (!alvo || !alvo->Intersect(*tiro)) continue;
@@ -879,7 +903,7 @@ void Battle::CheckCollisions() {
             playerProj->OnCollision(bossProj.get());
             // A BLINDAGEM VENCE: uma historia que o cursor ainda arrasta e
             // derrubavel (e do tipo), mas na mao dele o tiro so some.
-            if (bossProj->Derrubavel() && !bossProj->Blindado()) {
+            if (bossProj->Derrubavel() && !bossProj->Blindado() && !bossProj->Abrigo()) {
                 // A RESISTENCIA: so o ultimo golpe derruba. Os outros so comem o
                 // tiro - a janela modal que pede mais de um clique.
                 if (bossProj->Golpear()) {

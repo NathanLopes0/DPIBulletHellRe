@@ -80,5 +80,30 @@
     // PARA e volta pelo caminho, e a seta precisa virar junto para a volta
     // parecer uma volta.
     "rotacionarComAVelocidade": true
+  },
+
+  // A CAPIVARA QUE ATRAVESSA O CAMPO (Capivara.h). Nao e tiro: e um ABRIGO.
+  // Todo projetil do professor que encosta nela some, ela nao machuca o aluno,
+  // e o tiro do aluno some nela tambem (DescricaoDeProjetil::abrigo). Quem anda
+  // embaixo dela fica protegido - e nao acerta o professor.
+  //
+  // Vista de lado, com quatro passos para cada lado; quem escolhe o lado e o
+  // Salles, conforme a borda por onde ela entra. Por cima dos outros projeteis,
+  // para o aluno VER os tiros sumirem nela. O colisor vem da largura: o abrigo
+  // e o corpo inteiro, de ponta a ponta.
+  //
+  // Arte PROVISORIA de Ferramentas/gerar_salles.py.
+  "Capivarona": {
+    "sprite": "Teachers/Projectiles/DPIBHSallesCapivarona.png",
+    "dados":  "Teachers/Projectiles/DPIBHSallesCapivarona.json",
+    "animacoes": {
+      "AndaDireita":  [0, 1, 2, 3],
+      "AndaEsquerda": [4, 5, 6, 7]
+    },
+    "animacaoInicial": "AndaDireita",
+    "escala": 1.6,
+    "ordemDeDesenho": 95,
+    "posicionarNoDono": false,
+    "abrigo": true
   }
 }
