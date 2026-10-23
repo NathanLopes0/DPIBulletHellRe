@@ -65,6 +65,7 @@
 #include "../Source/Attacks/Ordenacao.h"
 #include "../Source/Attacks/Banco.h"
 #include "../Source/Attacks/Transacao.h"
+#include "../Source/Attacks/Cascata.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
@@ -1924,6 +1925,62 @@ TEST_CASE("Dados: a escada tem um degrau por etapa, do tamanho da etapa") {
                 CHECK(e.duracao == doctest::Approx(f.movimento.a));
             }
         }
+    }
+}
+
+TEST_CASE("Dados: a cascata da Maria Lucia - etapas, gatilhos e caras sao nomes que os dados tem") {
+
+    // A PROFESSORA CONTA AS ETAPAS PELO RELOGIO DELA (Cascata::EtapaNoTempo) e
+    // dispara o gatilho de cada uma quando a etapa abre; quem deixa o disparo
+    // passar e a janela da "etapa" do ataque, contada pelo relogio de
+    // fases.json. Sao dois relogios dizendo a mesma coisa: com uma etapa de
+    // outro nome ou de outra duracao, ou um gatilho na etapa errada, o disparo
+    // cai fora da janela e nada nasce - os bugs nao viram divida, calados.
+    const char* gatilhos[] = {Cascata::kGatilhoDaPlaca, Cascata::kGatilhoDoPedido, Cascata::kGatilhoDaClasse,
+                              Cascata::kGatilhoDaMensagem, Cascata::kGatilhoDoCodigo, Cascata::kGatilhoDoBug,
+                              Cascata::kGatilhoDaDivida};
+    // A etapa de cada gatilho, na ordem acima ("" = a fase toda).
+    const char* etapaDe[] = {"", Cascata::kEtapas[0], Cascata::kEtapas[1], Cascata::kEtapas[1],
+                             Cascata::kEtapas[2], Cascata::kEtapas[3], Cascata::kEtapas[4]};
+    for (const char* g : gatilhos) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+    }
+
+    const auto lidas = FasesDoChefe("marialucia");
+    const DescricaoDeFase* cascata = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Cascata::kFaseDaCascata) cascata = &f;
+    REQUIRE(cascata != nullptr);
+
+    REQUIRE(cascata->etapas.size() == Cascata::kEtapas.size());
+    for (size_t k = 0; k < Cascata::kEtapas.size(); ++k) {
+        CAPTURE(k);
+        CHECK(cascata->etapas[k].nome == Cascata::kEtapas[k]);
+        CHECK(cascata->etapas[k].duracao == doctest::Approx(Cascata::kDuracaoDaEtapa));
+    }
+
+    for (size_t i = 0; i < std::size(gatilhos); ++i) {
+        CAPTURE(gatilhos[i]);
+        int quantos = 0;
+        for (const auto& a : cascata->ataques) {
+            if (a.gatilho != gatilhos[i]) continue;
+            ++quantos;
+            CHECK(a.etapa == std::string(etapaDe[i]));
+        }
+        CHECK(quantos == 1);
+    }
+
+    // A CAIXA DE CADA ETAPA tem a cara apagada (P) e a acesa (A) que a
+    // professora poe nela quando a etapa abre.
+    const auto& tipos = ProjeteisDoChefe("marialucia").projeteis;
+    std::string placa;
+    for (const auto& a : cascata->ataques) if (a.gatilho == Cascata::kGatilhoDaPlaca) placa = a.projetil;
+    REQUIRE(tipos.count(placa) == 1);
+    std::set<std::string> caras;
+    for (const auto& anim : tipos.at(placa).animacoes) caras.insert(anim.nome);
+    for (size_t k = 0; k < Cascata::kEtapas.size(); ++k) {
+        CHECK(caras.count("P" + std::to_string(k)) == 1);
+        CHECK(caras.count("A" + std::to_string(k)) == 1);
     }
 }
 

@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 #include <vector>
 
 #include "../Boss.h"
+#include "../../../Attacks/Cascata.h"
 #include "../../../Attacks/Observer.h"
 
 class DrawLinhasComponent;
@@ -25,14 +27,16 @@ class DrawLinhasComponent;
  * Software e um PROCESSO, e cada fase dela e um processo ou um padrao de
  * verdade:
  *
- *   fase 1  o MODELO CASCATA: cinco etapas em ordem, e ela descendo a escada
- *           do diagrama (EscadaStrategy);
+ *   fase 1  o MODELO CASCATA: cinco etapas em ordem, ela descendo a escada
+ *           do diagrama (EscadaStrategy), e o que cada etapa entrega passando
+ *           para a seguinte (Cascata.h): os pedidos viram classes, as classes
+ *           viram codigo e bugs, os bugs que sobram viram divida;
  *   fase 2  os METODOS AGEIS: cinco sprints, e o cursor que arrasta as
  *           historias (SprintAttack);
  *   fase 3  o padrao OBSERVER: o aluno e o sujeito, e os olhos dela o assinam.
  *
- * As duas primeiras sao do motor e dos dados. O que mora aqui e o SUJEITO da
- * fase 3 (Observer.h): a cada quadro ela le para onde cada aluno esta indo e,
+ * O que mora aqui e a cascata da fase 1 em campo, e o SUJEITO da fase 3
+ * (Observer.h): a cada quadro ela le para onde cada aluno esta indo e,
  * quando o estado muda - ou quando ninguem avisa por um tempo, o polling -,
  * puxa o gatilho dos avisos (Boss::Disparar). Desenha tambem as assinaturas,
  * uma linha de cada olho ate o aluno, e faz cada olho olhar para ele.
@@ -47,7 +51,56 @@ public:
     /// A fase do padrao Observer, a que decide a batalha.
     static constexpr const char* kFaseDoObserver = "StateThree";
 
+protected:
+    void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
+    void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
+                              const std::string& stateName) override;
+
 private:
+    // ---- A CASCATA (fase 1) -------------------------------------------------
+
+    void AtualizarCascata(float deltaTime);
+
+    /// O que vale a fase toda e alem dela: a divida parada, que atravessa a
+    /// troca de fase e so sai no tempo dela.
+    void AtualizarDividas(float deltaTime);
+
+    /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram.
+    /// 'mirar': sai mirado no aluno.
+    std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, bool mirar = false);
+
+    /// Desfaz tudo o que a cascata pos em campo (o fim da fase).
+    void DesmontarCascata();
+
+    bool mDisparandoEm = false;
+    bool mMirandoEm = false;
+    Vector2 mOndeDisparar;
+    std::vector<BossProjectile*> mCriados;
+
+    bool mNaCascata = false;
+    int mEtapaDaCascata = -1;
+    std::array<BossProjectile*, Cascata::kEtapas.size()> mPlacas{};
+
+    struct Pedido { BossProjectile* p = nullptr; int lugar = 0; };
+    std::vector<Pedido> mPedidos;                 ///< no ar, a caminho do backlog
+    std::vector<BossProjectile*> mBacklog;        ///< colados no quadro
+    float mProximoPedido = 0.0f;
+
+    struct Classe { BossProjectile* p = nullptr; Vector2 lugar; bool pronta = false; };
+    std::vector<Classe> mClasses;
+    DrawLinhasComponent* mDiagrama = nullptr;
+    float mProximaMensagem = 0.0f;
+    float mProximaCompilacao = 0.0f;
+    size_t mClasseDaVez = 0;
+
+    std::vector<BossProjectile*> mBugs;
+
+    struct Divida { BossProjectile* p = nullptr; float ate = 0.0f; };
+    std::vector<Divida> mDividas;
+    float mRelogio = 0.0f;
+
+    static constexpr float kRapidezDoPostIt = 7.0f;
+
     /// Tudo o que o sujeito faz num quadro: le os alunos, avisa, desenha.
     void AtualizarObserver(float deltaTime);
 

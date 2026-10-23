@@ -144,5 +144,60 @@
     "escala": 1.6,
     "derrubavel": true,
     "resistencia": 3
+  },
+
+  // A CASCATA DA FASE 1 (Cascata.h). O PEDIDO e o post-it que o cliente manda:
+  // atravessa o campo ate o quadro do backlog, e o tiro do aluno o derruba no
+  // caminho - escopo cortado. Ao colar no quadro ele vira enfeite.
+  "Pedido": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
+    "animacoes": { "Novo": [0, 1, 2, 3] },
+    "animacaoInicial": "Novo",
+    "ordemDeDesenho": 90,
+    "posicionarNoDono": false,
+    "derrubavel": true
+  },
+
+  // A CLASSE que o post-it vira no Projeto: a caixa de UML, parada no meio do
+  // campo ate a Manutencao. Machuca, e aguenta quatro tiros - cortar uma classe
+  // ja projetada custa mais que cortar um pedido.
+  "Classe": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
+    "animacoes": { "Classe": [36, 37, 38, 39] },
+    "animacaoInicial": "Classe",
+    "escala": 1.7,
+    "ordemDeDesenho": 89,
+    "posicionarNoDono": false,
+    "derrubavel": true,
+    "resistencia": 4
+  },
+
+  // A MENSAGEM que sai de uma classe pelas setas do diagrama: a ponta de seta,
+  // virando em angulo reto (regra "diagrama"). Gira com a velocidade - a seta
+  // aponta para onde anda.
+  "Seta": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
+    "animacoes": { "Seta": [40, 41, 42, 43] },
+    "animacaoInicial": "Seta",
+    "ordemDeDesenho": 90,
+    "posicionarNoDono": false,
+    "rotacionarComAVelocidade": true
+  },
+
+  // AS CAIXAS DO DIAGRAMA DA CASCATA, debaixo dos degraus: "P0" a "P4" apagadas,
+  // "A0" a "A4" acesas - a da etapa em curso. Enfeite.
+  "Placa": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaCascata.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaCascata.json",
+    "animacoes": {
+      "P0": [0], "P1": [1], "P2": [2], "P3": [3], "P4": [4],
+      "A0": [5], "A1": [6], "A2": [7], "A3": [8], "A4": [9]
+    },
+    "animacaoInicial": "P0",
+    "ordemDeDesenho": 86,
+    "posicionarNoDono": false
   }
 }

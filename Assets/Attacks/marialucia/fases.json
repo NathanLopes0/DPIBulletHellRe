@@ -37,16 +37,36 @@
 
   // FASE 1 - O MODELO CASCATA   |   gesto: A ESCADA
   //
-  // A FASE E UM PROCESSO EM CASCATA, e nao um ataque. Ela tem as cinco etapas
-  // do modelo ("etapas", 3,4 s cada), e o placar diz em qual se esta. Cada
-  // ataque pertence a UMA etapa e so dispara nela: uma etapa so comeca quando
-  // a anterior acaba, e o que acabou nao volta.
+  // A FASE E UM PROCESSO EM CASCATA, e numa cascata O QUE UMA ETAPA ENTREGA E O
+  // QUE A SEGUINTE RECEBE (Cascata.h). Cinco etapas de 3,4s ("etapas"), em
+  // ordem, cada uma numa caixa acesa debaixo do degrau dela, e o que sai de uma
+  // se ve passando para a outra:
   //
-  //   1 Requisitos     os post-its chegando, num leque largo
-  //   2 Projeto        as setas do diagrama, que viram em angulo reto
-  //   3 Implementacao  o codigo, denso e rapido
-  //   4 Testes         os bugs, que andam tortos - e o tiro do aluno os acha
-  //   5 Manutencao     a divida, que para e fica para a fase seguinte
+  //   1 Requisitos     o cliente pede: um post-it a cada 0,3s chega por um dos
+  //                    lados do campo e cola no quadro do backlog, ao lado da
+  //                    professora - ate dez
+  //   2 Projeto        o backlog vira o DIAGRAMA: cada post-it voa para o meio
+  //                    do campo e vira uma CLASSE (a caixa de UML), as classes
+  //                    se ligam por setas, e uma de cada vez solta as MENSAGENS,
+  //                    pontas de seta que viram em angulo reto
+  //   3 Implementacao  uma classe de cada vez compila: o codigo sai mirado
+  //   4 Testes         cada classe solta o bug dela, que desce devagar, torto,
+  //                    para o lado do aluno (70px/s: na Manutencao ele ainda
+  //                    esta no campo - a 150, todos ja tinham saido por baixo e
+  //                    nenhum virava divida)
+  //   5 Manutencao     o sistema e entregue - as classes somem -, e cada bug
+  //                    que o teste nao achou vira DIVIDA, parada onde estava, e
+  //                    fica 8,5s - atravessa a troca de fase
+  //
+  // O TIRO DO ALUNO E UMA DECISAO DE PROCESSO: o post-it derrubado no caminho e
+  // escopo cortado - uma classe a menos, menos codigo, um bug a menos -, a
+  // classe derrubada (quatro tiros) tambem, e o bug derrubado nos Testes nao
+  // vira divida. Uma etapa so comeca quando a anterior acaba, e o que acabou
+  // nao volta.
+  //
+  // (Ate o 152 o Projeto eram post-its saindo da professora e virando em angulo
+  // reto - sem caixa, sem seta, sem nada que dissesse "diagrama" -, e cada
+  // etapa atirava o seu tipo sem relacao com a anterior.)
   //
   // O MOVIMENTO E O DIAGRAMA: ela desce uma escada, um degrau por etapa, da
   // esquerda para a direita - a forma em que o modelo cascata e desenhado. Os
@@ -65,26 +85,24 @@
     ],
     "movimento": { "tipo": "Escada", "a": 3.4, "b": 5 },
     "ataques": [
-      { "etapa": "Requisitos", "estrategia": "WaveAttack", "projetil": "Requisito",
-        "projeteis": 9, "velocidade": 260, "angulo": 80, "intervalo": 0.03,
-        "cooldown": 0.7,
+      { "gatilho": "placa", "estrategia": "WaveAttack", "projetil": "Placa",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "etapa": "Requisitos", "gatilho": "pedido", "estrategia": "WaveAttack", "projetil": "Pedido",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
         "regras": "escopo" },
-      { "etapa": "Projeto", "estrategia": "WaveAttack", "projetil": "Requisito",
-        "projeteis": 8, "velocidade": 250, "angulo": 0, "intervalo": 0.05,
-        "cooldown": 1.0,
+      { "etapa": "Projeto", "gatilho": "classe", "estrategia": "WaveAttack", "projetil": "Classe",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "etapa": "Projeto", "gatilho": "mensagem", "estrategia": "WaveAttack", "projetil": "Seta",
+        "projeteis": 8, "velocidade": 250, "angulo": 0, "anguloCentral": 90, "intervalo": 0.05,
         "regras": "diagrama" },
-      { "etapa": "Implementacao", "estrategia": "WaveAttack", "projetil": "Requisito",
-        "projeteis": 6, "velocidade": 320, "angulo": 40, "intervalo": 0,
-        "cooldown": 0.5,
+      { "etapa": "Implementacao", "gatilho": "compilar", "estrategia": "WaveAttack", "projetil": "Requisito",
+        "projeteis": 2, "velocidade": 330, "angulo": 18, "intervalo": 0,
         "regras": "codigo" },
-      { "etapa": "Testes", "estrategia": "WaveAttack", "projetil": "Bug",
-        "projeteis": 5, "velocidade": 150, "angulo": 110, "intervalo": 0,
-        "cooldown": 0.9,
+      { "etapa": "Testes", "gatilho": "bug", "estrategia": "WaveAttack", "projetil": "Bug",
+        "projeteis": 1, "velocidade": 70, "angulo": 0, "anguloCentral": 90, "intervalo": 0,
         "regras": "bugs" },
-      { "etapa": "Manutencao", "estrategia": "WaveAttack", "projetil": "Debito",
-        "projeteis": 4, "velocidade": 320, "angulo": 36, "intervalo": 0,
-        "cooldown": 1.3,
-        "regras": "divida" }
+      { "etapa": "Manutencao", "gatilho": "debito", "estrategia": "WaveAttack", "projetil": "Debito",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
     ]
   },
 

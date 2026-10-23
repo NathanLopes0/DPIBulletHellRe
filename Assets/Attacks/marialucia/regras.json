@@ -45,11 +45,14 @@
                   "frequencia": 2.2, "duracao": 4.0 } }
   ],
 
-  // CASCATA, ETAPA 2 - O PROJETO (e a fase final, que o repete).
+  // CASCATA, ETAPA 2 - O PROJETO: as MENSAGENS
+  // que saem de uma classe do diagrama.
   //
-  // Cada projetil pega uma seta da familia "RotasDeDiagrama" (Assets/Paths/
+  // Cada seta pega um caminho da familia "RotasDeDiagrama" (Assets/Paths/
   // formas.json): anda, vira 90 graus, anda. O angulo reto e a coisa toda -
-  // e o que faz a tela parecer um diagrama e nao um tiroteio.
+  // e o roteamento de todo editor de UML. Sem animacao: e a ponta de seta do
+  // tipo "Seta", e nao mais um post-it - um post-it virando em angulo reto,
+  // saindo da professora, ninguem lia como seta de diagrama.
   //
   // E A ETAPA QUE SE APRENDE, e nao a que se sofre. Uma seta ortogonal e dificil
   // de ler no primeiro segundo e FACIL no terceiro, porque depois da virada ela
@@ -74,8 +77,7 @@
   // o ultimo 37px), entao as oito viradas se escalonam em vez de acontecerem
   // no mesmo quadro.
   "diagrama": [
-    { "animacao": "Novo",
-      "motion": { "tipo": "Path", "formaPorIndice": "RotasDeDiagrama",
+    { "motion": { "tipo": "Path", "formaPorIndice": "RotasDeDiagrama",
                   "atraso": 0.50, "velocidade": 250 } }
   ],
 

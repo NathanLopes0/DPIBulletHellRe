@@ -239,6 +239,32 @@ def notificacao(fase):
     return im
 
 
+def classe(fase):
+    """A CLASSE do diagrama da Cascata: a caixa de UML em tres reparticoes, que
+    o post-it vira no Projeto. A borda pulsa devagar."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    borda = (60, 90, 160, 255) if fase % 2 == 0 else (90, 130, 210, 255)
+    d.rectangle([3, 5, 28, 27], fill=PAPEL, outline=borda, width=2)
+    d.line([3, 11, 28, 11], fill=borda, width=1)
+    d.line([3, 19, 28, 19], fill=borda, width=1)
+    d.line([10, 8, 21, 8], fill=TRACO, width=2)       # o nome
+    d.line([7, 15, 22, 15], fill=RISCO, width=1)      # um atributo
+    d.line([7, 23, 19, 23], fill=RISCO, width=1)      # um metodo
+    return im
+
+
+def seta(fase):
+    """A MENSAGEM entre classes: a ponta de seta de um diagrama, apontando para
+    onde anda (o projetil gira com a velocidade)."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    cor = (70, 110, 200, 255) if fase % 2 == 0 else (110, 150, 235, 255)
+    d.line([6, 16, 20, 16], fill=cor, width=3)
+    d.polygon([(28, 16), (18, 9), (18, 23)], fill=cor)
+    return im
+
+
 def folha():
     """Quatro quadros de cada, uma coisa por linha, em 4x9.
 
@@ -249,7 +275,7 @@ def folha():
     As duas primeiras linhas sao as de sempre, e ficam nos mesmos quadros.
     """
     linhas = (lambda i: requisito(), lambda i: debito(), codigo, bug, cursor,
-              observador, historia, dialogo, notificacao)
+              observador, historia, dialogo, notificacao, classe, seta)
     f = Image.new("RGBA", (128, 32 * len(linhas)), (0, 0, 0, 0))
     for linha, desenho in enumerate(linhas):
         for i in range(4):
@@ -266,6 +292,54 @@ def grava(im, nome, pasta, quadros=1, lado=None):
     print(f"  {pasta}/{nome}.png  {im.width}x{im.height}  ({quadros} quadro(s))")
 
 
+ETAPAS = ["Requisitos", "Projeto", "Implementação", "Testes", "Manutenção"]
+
+
+def placas():
+    """AS CAIXAS DA CASCATA, uma por etapa, para ficarem debaixo dos degraus:
+    0 a 4 apagadas, 5 a 9 acesas (a etapa em curso). 150 x 30 cada."""
+    from PIL import ImageFont
+    fonte = os.path.join(RAIZ, "Assets", "Fonts", "Carlito-Regular.ttf")
+    s = 4
+    W, H = 150, 30
+    folha = Image.new("RGBA", (W, H * 10), (0, 0, 0, 0))
+    for acesa in (0, 1):
+        for k, nome in enumerate(ETAPAS):
+            im = Image.new("RGBA", (W * s, H * s), (0, 0, 0, 0))
+            d = ImageDraw.Draw(im)
+            fundo = (70, 110, 190, 235) if acesa else (60, 66, 84, 170)
+            borda = (210, 228, 255, 255) if acesa else (120, 130, 150, 200)
+            tinta = (255, 255, 255, 255) if acesa else (190, 196, 210, 230)
+            d.rounded_rectangle([1 * s, 1 * s, (W - 2) * s, (H - 2) * s], radius=5 * s,
+                                fill=fundo, outline=borda, width=2 * s)
+            d.text((W * s // 2, H * s // 2), f"{k + 1} · {nome}", fill=tinta,
+                   font=ImageFont.truetype(fonte, 17 * s), anchor="mm")
+            folha.alpha_composite(im.resize((W, H), Image.LANCZOS), (0, (acesa * 5 + k) * H))
+    return folha
+
+
+def placas_json(nome, w, h):
+    frames = []
+    for i in range(10):
+        frames.append({
+            "filename": f"{nome} {i}.placeholder",
+            "frame": {"x": 0, "y": i * 30, "w": 150, "h": 30},
+            "rotated": False, "trimmed": False,
+            "spriteSourceSize": {"x": 0, "y": 0, "w": 150, "h": 30},
+            "sourceSize": {"w": 150, "h": 30},
+            "duration": 120,
+        })
+    return {"frames": frames,
+            "meta": {"app": "gerar_maria_lucia.py", "version": "1.0", "image": f"{nome}.png",
+                     "format": "RGBA8888", "size": {"w": w, "h": h}, "scale": "1"}}
+
+
 if __name__ == "__main__":
     grava(maria_lucia(), "DPIBHMariaLucia", "Assets/Teachers")
-    grava(folha(), "DPIBHMariaLuciaRequisito", "Assets/Teachers/Projectiles", quadros=36, lado=32)
+    grava(folha(), "DPIBHMariaLuciaRequisito", "Assets/Teachers/Projectiles", quadros=44, lado=32)
+    im = placas()
+    destino = os.path.join(RAIZ, "Assets/Teachers/Projectiles")
+    im.save(os.path.join(destino, "DPIBHMariaLuciaCascata.png"))
+    with open(os.path.join(destino, "DPIBHMariaLuciaCascata.json"), "w", encoding="utf-8") as f:
+        json.dump(placas_json("DPIBHMariaLuciaCascata", im.width, im.height), f, indent=1)
+    print(f"  Assets/Teachers/Projectiles/DPIBHMariaLuciaCascata.png  {im.width}x{im.height}  (10 quadro(s))")
