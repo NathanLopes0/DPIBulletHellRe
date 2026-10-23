@@ -412,7 +412,7 @@ void Battle::AtualizarPlacar() {
     // DURANTE O AVISO DO INTERCAMBIO o placar avisa em vez de anunciar: e o
     // unico texto da tela que o aluno ja aprendeu a ler antes de cada rajada.
     const std::string anuncio = Intercambio::Avisando(mRelogioDoIntercambio)
-                                    ? kTextoDoIntercambio
+                                    ? mBoss->AvisoDoIntercambio()
                                     : mBoss->AnuncioDaFase(mBoss->FaseAtual());
     if (anuncio == mTextoDoPlacar) return;
     mTextoDoPlacar = anuncio;
@@ -482,6 +482,9 @@ void Battle::AtualizarIntercambio(const float deltaTime) {
         for (size_t i = 0; i < mJogadores.size() && i < destinos.size(); ++i) {
             if (mJogadores[i]) mJogadores[i]->SetPosition(destinos[i]);
         }
+        // O CHEFE FICA SABENDO, depois que os alunos ja estao no lugar novo: o
+        // Vladimir troca as letras em voo no mesmo quadro (Alfabeto.h).
+        mBoss->OnIntercambio();
     }
 
     const bool aceso = Intercambio::Avisando(mRelogioDoIntercambio);

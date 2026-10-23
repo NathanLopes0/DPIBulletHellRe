@@ -17,7 +17,7 @@ namespace {
 
     const std::vector<std::string> kPostos = {"quadro", "observadores", "agentes", "nuvens",
                                               "palavra", "portas", "registradores", "estagios", "pipeline",
-                                              "placas", "acesas"};
+                                              "placas", "acesas", "fita"};
 
     bool Contem(const std::vector<std::string>& lista, const std::string& v) {
         for (const auto& x : lista) if (x == v) return true;

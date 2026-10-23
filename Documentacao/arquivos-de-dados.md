@@ -140,8 +140,12 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 > **O Intercâmbio funciona sozinho e em dupla.** Em dupla, os dois trocam de
 > lugar; sozinho, o aluno vai para a posição espelhada (`x` vira
 > `largura − x`, na mesma altura) — o lugar onde o outro aluno estaria. Durante
-> o aviso o placar diz "Programa de Intercâmbio" e um contorno marca onde cada
-> um vai cair. O destino é recalculado todo quadro: sozinho, o aluno escolhe
+> o aviso o placar diz "Programa de Intercâmbio" (ou o que o professor disser,
+> em `Boss::AvisoDoIntercambio`) e um contorno marca onde cada um vai cair. No
+> Vladimir o intercâmbio vale nas quatro fases, e no quadro da troca as letras
+> em voo trocam também — o "a" passa a perseguir e o "b" segue reto
+> (`Alfabeto.h`, `Vladimir::OnIntercambio`); por isso o placar dele avisa
+> "Intercâmbio: a ↔ b". O destino é recalculado todo quadro: sozinho, o aluno escolhe
 > onde cai andando; em dupla, cada um cai onde o parceiro está **agora**. As
 > contas estão em `Intercambio.h`. `aCada` zero, `aviso` negativo ou do tamanho
 > de `aCada`, e campo faltando são recusados na leitura.
@@ -462,7 +466,7 @@ bit, é recusado.
 
 | Campo | |
 |---|---|
-| `posto` | de onde atirar: `quadro` (as histórias paradas no quadro da sprint), `observadores` (os olhos do Observer da Maria Lúcia), `agentes` (os robôs do Júlio), `nuvens` (as nuvens do Vitor), `palavra` ou `portas` (os bits do Ricardo que ainda não passaram pela porta, e as portas), `registradores` (os bits que andam no clock dele), `estagios` ou `pipeline` (as molduras e as instruções do pipeline dele), `placas` ou `acesas` (os Arduinos do Blink dele, apagados e acesos) — todos menos o primeiro, a regra `posto` põe lá ao nascer. Um posto desconhecido é recusado — ninguém o ocuparia, e o ataque nunca dispararia |
+| `posto` | de onde atirar: `quadro` (as histórias paradas no quadro da sprint), `observadores` (os olhos do Observer da Maria Lúcia), `agentes` (os robôs do Júlio), `nuvens` (as nuvens do Vitor), `palavra` ou `portas` (os bits do Ricardo que ainda não passaram pela porta, e as portas), `registradores` (os bits que andam no clock dele), `estagios` ou `pipeline` (as molduras e as instruções do pipeline dele), `placas` ou `acesas` (os Arduinos do Blink dele, apagados e acesos), `fita` (as casas da fita de Turing do Vladimir, que o intercâmbio não troca) — todos menos o primeiro, a regra `posto` põe lá ao nascer. Um posto desconhecido é recusado — ninguém o ocuparia, e o ataque nunca dispararia |
 | `mirar` | cada ponto mira o aluno. Sem ele, todos saem em `anguloCentral` |
 | `prever` | mirando, mira onde o aluno **vai estar** se continuar andando |
 
@@ -529,7 +533,7 @@ Escolha no máximo uma forma:
 | `animacao` | nome de uma animação registrada no projétil |
 | `escala` | multiplica o tamanho — e a hitbox junto, porque o colisor multiplica o raio pela escala |
 | `rotacionar` | `true`/`false`: se o sprite gira para acompanhar a direção do voo. **Ausente = não mexe** e vale o que `projeteis.json` pediu |
-| `posto` | o **posto** em que o projétil entra ao nascer: um lugar de onde uma `PontosAttack` atira, ou onde o professor o procura. Existem `quadro`, `observadores`, `agentes`, `nuvens`, `palavra`, `portas`, `registradores`, `estagios`, `pipeline`, `placas` e `acesas`; um nome desconhecido é recusado. Volta a vazio quando o pool recicla o projétil |
+| `posto` | o **posto** em que o projétil entra ao nascer: um lugar de onde uma `PontosAttack` atira, ou onde o professor o procura. Existem `quadro`, `observadores`, `agentes`, `nuvens`, `palavra`, `portas`, `registradores`, `estagios`, `pipeline`, `placas`, `acesas` e `fita`; um nome desconhecido é recusado. Volta a vazio quando o pool recicla o projétil |
 
 > **`rotacionar` existe porque girar é da rajada, e não do tipo.** O
 > `Estruturas` do Salles serve a duas fases com necessidades opostas: a lista

@@ -81,6 +81,12 @@ public:
     /// de dentro de um behavior - o laco dos Modifiers esta rodando.
     void DescartarComportamentos() { mMotion.reset(); mModifiers.clear(); }
 
+    /// @brief Joga fora so a Motion: o projetil segue reto, no rumo e no modulo
+    /// em que estava, e os Modifiers continuam. E o "b" que o intercambio do
+    /// Vladimir troca por "a" - ele para de perseguir. Mesma regra de
+    /// DescartarComportamentos: nao chame de dentro de um behavior.
+    void DescartarMotion() { mMotion.reset(); }
+
     /**
      * @brief Registra a aparencia com que a fabrica construiu este projetil,
      * para que Reset() possa devolve-la.

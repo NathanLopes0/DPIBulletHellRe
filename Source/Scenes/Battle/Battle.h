@@ -338,8 +338,8 @@ private:
     /// o aviso, e andam junto com o destino - que muda quando os alunos andam.
     std::vector<Actor*> mMarcadoresDoIntercambio;
 
-    /// O placar troca o anuncio da fase por isto enquanto o aviso esta aceso.
-    static inline const std::string kTextoDoIntercambio = "Programa de Intercâmbio";
+    // O que o placar diz enquanto o aviso esta aceso e do chefe: ver
+    // Boss::AvisoDoIntercambio.
 
     /// Logo acima dos projeteis (88 a 92) e abaixo do aluno (100): o marcador e
     /// so uma moldura vazia, entao por cima dos tiros ele nao esconde nada, e

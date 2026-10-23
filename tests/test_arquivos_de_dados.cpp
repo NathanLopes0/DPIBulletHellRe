@@ -52,6 +52,7 @@
 #include "../Source/Attacks/Relogio.h"
 #include "../Source/Attacks/Pipeline.h"
 #include "../Source/Attacks/Blink.h"
+#include "../Source/Attacks/Alfabeto.h"
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
 #include "../Source/Orientacao.h"
@@ -1291,6 +1292,39 @@ TEST_CASE("Dados: as quatro fases do Vladimir anunciam alguma coisa no placar") 
         CAPTURE(f.nome);
         CHECK_FALSE(f.anuncio.empty());
     }
+}
+
+TEST_CASE("Dados: o Programa de Intercambio do Vladimir vale nas quatro fases") {
+
+    // CANARIO, e espelha os dados de proposito: o intercambio e a mecanica que
+    // atravessa a luta dele inteira, e uma fase nova escrita sem o bloco
+    // "intercambio" ficaria sem troca nenhuma, calada. Se uma fase deixar de
+    // trocar DE PROPOSITO, tire-a daqui.
+    const auto fases = FasesDoChefe("vladimir").fases;
+    REQUIRE(fases.size() == 4);
+    for (const auto& f : fases) {
+        CAPTURE(f.nome);
+        CHECK(f.intercambio.has_value());
+    }
+}
+
+TEST_CASE("Dados: o intercambio do Vladimir troca as letras que o Simbolo tem, e deixa a fita no posto dela") {
+    CHECK(PostoExiste(Alfabeto::kPostoDaFita));
+
+    // AS DUAS LETRAS SAO ANIMACOES DO SIMBOLO: a troca muda a cara pelo nome, e
+    // uma cara que o tipo nao tem deixaria a letra trocada com a cara antiga.
+    const auto& tipos = ProjeteisDoChefe("vladimir").projeteis;
+    REQUIRE(tipos.count("Simbolo") == 1);
+    std::set<std::string> caras;
+    for (const auto& a : tipos.at("Simbolo").animacoes) caras.insert(a.nome);
+    CHECK(caras.count(Alfabeto::kA) == 1);
+    CHECK(caras.count(Alfabeto::kB) == 1);
+
+    // A CASA DA FITA NAO E LETRA EM VOO: toda regra da fita a poe no posto
+    // dela, e o intercambio deixa a casa como esta (Alfabeto::Troca).
+    const auto regras = RegrasDoChefe("vladimir");
+    REQUIRE(regras.conjuntos.count("fita") == 1);
+    for (const auto& r : regras.conjuntos.at("fita")) CHECK(r.posto == Alfabeto::kPostoDaFita);
 }
 
 TEST_CASE("Dados: o bloco do meio da rajada do Luizinho para em cima do aluno") {

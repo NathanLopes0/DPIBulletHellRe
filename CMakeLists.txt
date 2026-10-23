@@ -178,6 +178,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Pipeline.h
         Source/Attacks/Blink.cpp
         Source/Attacks/Blink.h
+        Source/Attacks/Alfabeto.cpp
+        Source/Attacks/Alfabeto.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
@@ -328,6 +330,7 @@ add_executable(dpi_tests
         tests/test_relogio.cpp
         tests/test_pipeline.cpp
         tests/test_blink.cpp
+        tests/test_alfabeto.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -429,6 +432,8 @@ add_executable(dpi_tests
         Source/Attacks/Pipeline.h
         Source/Attacks/Blink.cpp
         Source/Attacks/Blink.h
+        Source/Attacks/Alfabeto.cpp
+        Source/Attacks/Alfabeto.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp

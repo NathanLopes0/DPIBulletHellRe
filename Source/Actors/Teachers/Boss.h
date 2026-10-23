@@ -203,6 +203,23 @@ public:
     [[nodiscard]] std::optional<std::pair<float, float>>
     IntercambioDaFase(const std::string& fase) const;
 
+    /// O que o placar diz durante o aviso do intercambio, quando o chefe nao
+    /// diz outra coisa.
+    static inline const std::string kAvisoDoIntercambio = "Programa de Interc\xC3\xA2mbio";
+
+    /// @brief O que o placar diz durante o aviso do intercambio. O padrao e o
+    /// nome do programa; o Vladimir avisa tambem o que a troca faz com as letras.
+    [[nodiscard]] virtual std::string AvisoDoIntercambio() const { return kAvisoDoIntercambio; }
+
+    /**
+     * @brief Os alunos acabaram de trocar de lugar.
+     *
+     * Quem chama e Battle (AtualizarIntercambio), no quadro da troca, e so no
+     * corpo original - como OnProjetilDerrubado. O padrao nao faz nada; o
+     * Vladimir troca tambem as letras em voo (Alfabeto.h).
+     */
+    virtual void OnIntercambio() {}
+
     /// @brief A fase em que o chefe esta AGINDO - a mesma que escolhe o
     /// movimento e os ataques do quadro. Vazio antes do primeiro OnUpdate.
     [[nodiscard]] const std::string& FaseAtual() const { return mLastStateName; }

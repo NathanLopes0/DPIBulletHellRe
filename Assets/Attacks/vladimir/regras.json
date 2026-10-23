@@ -134,10 +134,14 @@
   // freia para 10% - 74 das 77 frearam assim, e o piloto nao tomou acerto
   // nenhum. Com 0,9 ela ja esta parada na fileira quando pode ser lida.
   //
+  // A CASA ESTA NO POSTO "fita", e e isso que a deixa fora do intercambio: a
+  // troca a <-> b e das letras em voo (Alfabeto.h), e a casa parada e da
+  // maquina - quem a reescreve e a cabeca.
+  //
   // O "b" REESCRITO persegue com a forca e a duracao do "b" da fita antiga
   // (1,6 por 2,2s), saindo a 260 px/s ja apontado para o aluno.
   "fita": [
-    { "animacao": "A",
+    { "animacao": "A", "posto": "fita",
       "modifiers": [
         { "tipo": "SlowDown", "atraso": 0.79, "fator": 0.1 },
         { "tipo": "Reescrever", "atraso": 0.9, "raio": 24, "escreve": "B",

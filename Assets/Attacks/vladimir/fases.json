@@ -38,6 +38,25 @@
   // nao tem "*" nem "^". Por isso o arquivo pode escrever "aⁿbⁿ" com os
   // sobrescritos de verdade.
   //
+  // O PROGRAMA DE INTERCAMBIO VALE A LUTA INTEIRA. O Vladimir e o professor de
+  // linguagens nos dois sentidos - as formais e as estrangeiras da diretoria de
+  // Relacoes Internacionais -, e o segundo sentido e a mecanica que atravessa
+  // as quatro fases: a cada "aCada" segundos os alunos trocam de lugar (sozinho,
+  // o aluno vai para o espelho), com o placar avisando "aviso" segundos antes.
+  //
+  // E A TROCA E TAMBEM DAS LETRAS. No quadro em que os alunos trocam, toda
+  // letra em voo troca de letra e de comportamento: o "a" que vinha reto passa
+  // a perseguir, e o "b" que perseguia segue reto (Alfabeto.h). E o
+  // homomorfismo h(a) = b, h(b) = a, e o placar avisa assim:
+  // "Intercâmbio: a ↔ b". As casas da fita de Turing ficam como estao - estao no
+  // posto "fita", e quem as reescreve e a cabeca da maquina.
+  //
+  // A CADA 8s EM TODA FASE, aos 8 e aos 16. Medido na batalha inteira, com o
+  // piloto que persegue: so na fase 2, como era, 74,5 e 11 acertos sofridos;
+  // nas quatro a cada 8s, 68,1 e 14; nas quatro a cada 7s, 34,9 e 20 - ele caia
+  // na repescagem e reprovava nela. A troca das letras pesa menos do que
+  // parece: das tres fases, so a 2 perdeu um acerto com ela.
+  //
   // OS NOMES DE FASE NAO SAO LIVRES: a maquina de estados procura por texto, e
   // so StateOne, StateTwo, StateThree e StateFinal existem. StateFinal e
   // OBRIGATORIO, mesmo num chefe de tres fases - sem ele, uma nota entre 40 e
@@ -67,6 +86,7 @@
     "duracao": 17,
     "proximo": "StateTwo",
     "anuncio": "(ab)*",
+    "intercambio": { "aCada": 8, "aviso": 1.5 },
     "movimento": { "tipo": "Orbitar", "a": 230, "b": 0.16 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Simbolo",
@@ -100,27 +120,11 @@
   // uma: com cooldown 3,0 e 170 px/s, duas palavras seguidas nascem a 510
   // pixels uma da outra, e e isso que enche a largura.
   //
-  // E O PROGRAMA DE INTERCAMBIO MORA AQUI. O Vladimir e professor de linguagens
-  // nos dois sentidos, e o outro sentido - a diretoria de Relacoes
-  // Internacionais - vira mecanica nesta fase: aos 8s e aos 16s os alunos
-  // trocam de lugar (sozinho, o aluno vai para o espelho). E aqui porque esta
-  // e a fase do ir e voltar: a varredura vai e volta, a palavra vai em "a" e
-  // volta em "b", e um intercambio e uma ida com volta marcada.
-  //
-  // O AVISO E DE 1,5s, com o placar escrevendo "Programa de Intercambio" e um
-  // contorno onde cada um vai cair. E tempo de ler as duas coisas e de andar
-  // ate um destino melhor, que e o que o espelho deixa fazer sozinho.
-  //
-  // NAO E UM BOTAO DE DIFICULDADE, e foi medido para nao ser: com e sem a
-  // troca, na batalha inteira, o piloto que persegue fica em 74,5 contra 73,6
-  // (11 acertos contra 12), o que vai e vem toma 15 nos dois casos, e a dupla
-  // que vai e vem toma 31 nos dois. Nenhum piloto foi atingido no segundo
-  // seguinte a uma troca. O que a troca faz e desarrumar: os "b" que ja
-  // estavam perseguindo um aluno continuam atras do mesmo aluno, que agora
-  // esta do outro lado.
-  //
-  // O ALUNO PARADO NO MEIO NAO SAI DO LUGAR: o espelho de x = 600 e 600. O
-  // piloto parado tomou os mesmos acertos com e sem intercambio.
+  // O INTERCAMBIO NASCEU AQUI, aos 8s e aos 16s, quando era so desta fase. A
+  // medida de entao continua valendo para a troca de lugar: com e sem ela, na
+  // batalha inteira, o piloto que persegue ficou em 74,5 contra 73,6, e nenhum
+  // piloto foi atingido no segundo seguinte a uma troca. O ALUNO PARADO NO MEIO
+  // NAO SAI DO LUGAR: o espelho de x = 600 e 600.
   "StateTwo": {
     "duracao": 17,
     "proximo": "StateThree",
@@ -174,6 +178,7 @@
     "duracao": 17,
     "proximo": "",
     "anuncio": "a empilha · b desempilha",
+    "intercambio": { "aCada": 8, "aviso": 1.5 },
     "movimento": { "tipo": "Mergulho", "a": 190, "b": 320 },
     "ataques": [
       { "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
@@ -225,6 +230,7 @@
     "duracao": 17,
     "proximo": "StateOne",
     "anuncio": "δ(q, a) = (q, b, →)",
+    "intercambio": { "aCada": 8, "aviso": 1.5 },
     "movimento": { "tipo": "Varredura", "a": 330, "b": 110 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Simbolo",
