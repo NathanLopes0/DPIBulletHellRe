@@ -97,6 +97,16 @@ void ProjectileManager::ClearBossProjectiles() const {
     }
 }
 
+void ProjectileManager::ClearAtaquesDoChefe() const {
+    for (auto& proj : mBossProjectiles) {
+        if (!proj || proj->Enfeite()) continue;
+        const auto estado = proj->GetState();
+        if (estado == ActorState::Active || estado == ActorState::Paused) {
+            proj->Kill();
+        }
+    }
+}
+
 void ProjectileManager::Cleanup()
 {
     CleanupProjectiles();

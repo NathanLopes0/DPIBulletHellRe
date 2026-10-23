@@ -1240,7 +1240,9 @@ void Battle::OnPlayerUsedExtraPoint(Player* quemGastou) {
         // a quem dar imunidade, e trocar a limpeza por "proteja a si mesmo"
         // deixaria o solo com um efeito mais fraco do que ele tem hoje - por
         // causa de uma regra que so existe para o modo que ele nao esta jogando.
-        if (mProjectileManager) mProjectileManager->ClearBossProjectiles();
+        // O CENARIO FICA (ClearAtaquesDoChefe): a tabela do Thiago, o vetor do
+        // Andre, as caixas da cascata. So o que machuca sai.
+        if (mProjectileManager) mProjectileManager->ClearAtaquesDoChefe();
         // TODO - Audio - efeito sonoro de limpeza de campo
         return;
     }

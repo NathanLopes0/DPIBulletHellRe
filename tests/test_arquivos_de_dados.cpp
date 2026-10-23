@@ -2417,6 +2417,19 @@ TEST_CASE("Dados: as nuvens do Vitor - gatilhos, posto e caras sao nomes que os 
     }
 }
 
+TEST_CASE("Dados: a nuvem que o Ponto Extra derruba volta a tempo de chover na fase dela") {
+
+    // A NUVEM FORA DO AR volta kVoltaDasNuvens depois, e chove um ciclo de
+    // processamento depois disso. Se as duas coisas juntas passassem da
+    // metade da fase, um Ponto Extra no meio dela a deixaria sem chuva ate o
+    // fim - o defeito que existia antes de a nuvem voltar.
+    const auto lidas = FasesDoChefe("vitor");
+    const DescricaoDeFase* fase = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Nuvem::kFaseDasNuvens) fase = &f;
+    REQUIRE(fase != nullptr);
+    CHECK(Nuvem::kVoltaDasNuvens + Nuvem::Ciclo{}.processa <= fase->duracao / 2.0f);
+}
+
 TEST_CASE("Dados: o fork do Vitor e pela nuvem - a fase do fork vem logo depois da das nuvens, e se divide") {
     // O VITOR SO JUNTA AS NUVENS se a fase delas acaba NA do fork; em qualquer
     // outra ele as desfaz, e o fork volta a ser o de sempre sem ninguem notar.

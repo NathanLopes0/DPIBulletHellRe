@@ -145,6 +145,7 @@ void Vitor::AtualizarNuvens(const float deltaTime) {
         mNasNuvens = true;
         mNuvensFormadas = false;
         mTempoNasNuvens = 0.0f;
+        mSemNuvensHa = 0.0f;
         mChuva.t = 0.0f;
         if (mNomeDaFaseDasNuvens.empty()) mNomeDaFaseDasNuvens = AnuncioDaFase(kFaseDasNuvens);
     }
@@ -155,7 +156,21 @@ void Vitor::AtualizarNuvens(const float deltaTime) {
         DispararNuvem(Nuvem::kGatilhoDasNuvens);
         mNuvensFormadas = true;
         mChuva.t = 0.0f;
+        return;     // as nuvens recem-disparadas so entram no campo no quadro seguinte
     }
+
+    // A NUVEM FORA DO AR: o Ponto Extra levou as duas. O placar avisa, e elas
+    // voltam kVoltaDasNuvens depois, com o ciclo do comeco.
+    if (Nuvens().empty()) {
+        mSemNuvensHa += deltaTime;
+        if (AnuncioDaFase(kFaseDasNuvens) != kForaDoAr) RegistrarAnuncio(kFaseDasNuvens, kForaDoAr);
+        if (mSemNuvensHa < Nuvem::kVoltaDasNuvens) return;
+        DispararNuvem(Nuvem::kGatilhoDasNuvens);
+        mChuva.t = 0.0f;
+        mSemNuvensHa = 0.0f;
+        return;
+    }
+    mSemNuvensHa = 0.0f;
 
     // O CICLO: processa, e no fim do processamento chove.
     if (Nuvem::Avancar(mChuva, deltaTime)) DispararNuvem(Nuvem::kGatilhoDaChuva);

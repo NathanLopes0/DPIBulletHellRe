@@ -42,6 +42,11 @@ namespace Nuvem {
         float t = 0.0f;
     };
 
+    /// A NUVEM FORA DO AR: o Ponto Extra limpa a tela - as nuvens junto -, e
+    /// elas voltam kVoltaDasNuvens depois, com o ciclo do comeco. Sem isso a
+    /// fase 2 ficava sem nuvem ate o fim, e a chuva sem de onde sair.
+    constexpr float kVoltaDasNuvens = 3.0f;
+
     /// A nuvem esta processando (e o placar e as luzinhas avisam)?
     bool Processando(const Ciclo& c);
 

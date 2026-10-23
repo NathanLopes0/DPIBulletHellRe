@@ -92,6 +92,7 @@ private:
     bool mNuvensFormadas = false;
     bool mDisparandoNuvem = false;
     float mTempoNasNuvens = 0.0f;
+    float mSemNuvensHa = 0.0f;     ///< ha quanto tempo as nuvens formadas sumiram
     std::string mNomeDaFaseDasNuvens;
 
     /// Quanto depois do comeco da fase as nuvens se formam: antes do primeiro
@@ -100,6 +101,7 @@ private:
 
     static constexpr const char* kProcessando = "nuvem: processando...";
     static constexpr const char* kEnviando = "nuvem: enviando pacotes";
+    static constexpr const char* kForaDoAr = "nuvem: fora do ar";
 
     /// O FORK: os tempos dele, e o tamanho da nuvem juntada - as duas viram
     /// uma maior que o professor: o quadro da nuvem tem 32 px e o dele 128, e
