@@ -55,7 +55,7 @@ namespace {
                                                 "chave", "percorrer", "nulo", "no", "visitar", "folha_nula",
                                                 "achado", "aresta", "elemento", "trocar", "assentar",
                                                 "cabecalho", "registro", "marcar", "selecionar",
-                                                "projetar", "celula"};
+                                                "projetar", "celula", "gravar", "desfazer"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"

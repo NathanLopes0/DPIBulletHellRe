@@ -33,18 +33,10 @@
   // espera nao e de alguns decimos: e o ataque inteiro. Por isso estas regras
   // mexem so em aparencia.
 
-  // A varredura comum, das fases 1 a 3.
+  // A varredura de uma linha ou de uma coluna: a selecao e a projecao do
+  // SELECT, e o DELETE e o INSERT da fase 2.
   "varredura": [
     { "animacao": "Linha", "escala": 2 }
-  ],
-
-  // O desfazimento da fase 3: a mesma celula, menor.
-  //
-  // O tamanho e o que distingue as duas consultas em tela. A que vem desfazendo
-  // precisa ser LEGIVEL como outra coisa, senao o jogador ve so "mais balas" e
-  // nao "a varredura esta voltando" - e a fase inteira existe para ensinar isso.
-  "desfazimento": [
-    { "animacao": "Linha", "escala": 1.5 }
   ],
 
   // A TABELA ESCRITA NO CAMPO: o valor de cada casa e o cabecalho de cada

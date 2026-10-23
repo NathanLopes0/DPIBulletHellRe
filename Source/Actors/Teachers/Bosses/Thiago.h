@@ -13,6 +13,7 @@
 
 #include "../Boss.h"
 #include "../../../Attacks/Banco.h"
+#include "../../../Attacks/Transacao.h"
 
 class BossProjectile;
 
@@ -34,11 +35,20 @@ class BossProjectile;
  * A FASE 1 E O SELECT: a selecao varre as linhas que satisfazem o WHERE, a
  * projecao varre a coluna, as duas juntas so as casas do cruzamento, e o ORDER
  * BY troca as linhas de lugar. O placar e a consulta, e o professor vai para
- * cima da coluna que ela le.
+ * a coluna que ela le.
  *
- * QUEM ESCOLHE A FAIXA DAS FASES ANTIGAS E ESTE ARQUIVO, nao a estrategia: so o
- * chefe sabe onde o jogador esta, e a ConsultaAttack nao deve saber. Ver
- * CustomizeAttackParams.
+ * A FASE 2 E A ESCRITA (INSERT, UPDATE, DELETE): a tabela muda - a linha
+ * apagada cai, as de baixo sobem, o registro novo vem do professor.
+ *
+ * A FASE 3 SAO AS TRANSACOES (Transacao.h): o UPDATE trava a linha com as
+ * escritas paradas nela, o COMMIT as apaga, o ROLLBACK as faz voltar com a
+ * varredura do outro lado, e o deadlock aborta a mais nova.
+ *
+ * A REPESCAGEM E O PRODUTO CARTESIANO: o laco aninhado acende casa por casa, a
+ * tabela inteira, num plano por volta.
+ *
+ * QUEM ESCOLHE A FAIXA E ESTE ARQUIVO, nao a estrategia: a ConsultaAttack so
+ * varre o que ele manda (CustomizeAttackParams).
  */
 class Thiago : public Boss {
 
@@ -55,13 +65,6 @@ protected:
                               const std::string& stateName) override;
 
 private:
-    /// Em que faixa o jogador esta AGORA, no eixo que a consulta pede.
-    [[nodiscard]] int FaixaDoJogador(const struct ConsultaAttackParams& consulta);
-
-    /// Contador da varredura das fases antigas. Vive aqui, e nao na
-    /// estrategia: a estrategia e sem memoria de proposito.
-    int mProximaFaixa = 0;
-
     // ---- A TABELA VISIVEL ---------------------------------------------------
 
     /// Monta os cabecalhos e as casas, uma vez: a tabela fica a batalha inteira.
@@ -112,7 +115,8 @@ private:
 
     /// Acende o marcador de cada casa da linha (ou da coluna) varrida, ate a
     /// varredura passar por ela.
-    void MarcarVarredura(const std::vector<Banco::Casa>& casas, bool porLinha, float agora, float aviso);
+    void MarcarVarredura(const std::vector<Banco::Casa>& casas, bool porLinha, float agora, float aviso,
+                         bool invertida = false);
 
     bool mNaSelecao = false;
     float mProximaConsulta = 0.0f;
@@ -151,6 +155,56 @@ private:
     /// casa acende, o DELETE quando a varredura passa).
     struct Execucao { Banco::Escrita escrita; float quando = 0.0f; };
     std::vector<Execucao> mExecucoes;
+
+    // ---- A FASE 3: AS TRANSACOES -------------------------------------------
+
+    void AtualizarTransacoes();
+
+    /// O UPDATE da transacao na linha: o placar, o marcador, e o valor que vai
+    /// ser escrito quando as escritas sairem.
+    void Anunciar(int id, int linha, float agora);
+
+    /// As escritas saem do professor para as casas da linha, e o valor da nota
+    /// fica sujo.
+    void Gravar(int id, int linha);
+
+    /// COMMIT (as escritas somem, o valor fica) ou ROLLBACK (as escritas voltam
+    /// pelo caminho, o valor antigo volta). Libera os locks. 'agora' e o tempo
+    /// da fase, para o aviso da varredura que desfaz.
+    void Terminar(int id, bool desfaz, float agora);
+
+    /// As escritas de uma transacao desfeita, esperando a varredura que desfaz
+    /// partir para voltarem com ela.
+    struct Volta { int tx = 0; float quando = 0.0f; };
+    std::vector<Volta> mVoltas;
+
+    enum class Etapa { MarcandoPrimeira, Segurando, Esperando, MarcandoSegunda, Fechando };
+
+    struct TxEmCampo {
+        int id = 0;
+        Etapa etapa = Etapa::MarcandoPrimeira;
+        float proximo = 0.0f;
+        int linhaDaVez = -1;                              ///< a linha do UPDATE em curso
+        std::vector<std::pair<int, int>> antes;           ///< (linha, nota de antes)
+        std::vector<std::pair<int, int>> novas;           ///< (linha, nota nova)
+    };
+
+    struct Gravacao {
+        BossProjectile* p = nullptr;
+        int tx = 0;
+        Vector2 origem;
+        Vector2 destino;
+        bool parada = false;
+        bool voltando = false;
+    };
+
+    bool mNasTransacoes = false;
+    float mProximaTransacao = 0.0f;
+    int mProximoId = 1;
+    std::string mAnuncioDasTransacoes;
+    Transacao::Txs mLocks;
+    std::vector<TxEmCampo> mEmCampo;
+    std::vector<Gravacao> mGravacoes;
 
     // ---- A REPESCAGEM: O PRODUTO CARTESIANO ---------------------------------
 

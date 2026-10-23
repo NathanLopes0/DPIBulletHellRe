@@ -105,13 +105,21 @@ def chip(texto, fundo, borda, tinta, tamanho):
     return im.resize((LARGO, ALTO), Image.LANCZOS)
 
 
+SUJO = (250, 206, 200, 225)
+SUJO_BORDA = (196, 64, 52, 240)
+TINTA_SUJA = (150, 24, 18, 255)
+
+
 def dados():
     """Os quadros da folha, na ordem de Banco::Cara: 0 a 99 os numeros, depois
-    os oito nomes, os tres cursos e os cinco cabecalhos."""
+    os oito nomes, os tres cursos e os cinco cabecalhos - e, a partir do 116,
+    os numeros SUJOS de 0 a 99: o valor escrito por uma transacao que ainda nao
+    fez COMMIT (Transacao.h), em vermelho."""
     quadros = [chip(str(v), PAPEL, PAPEL_BORDA, TINTA_DADO, 17) for v in range(100)]
     quadros += [chip(n, PAPEL, PAPEL_BORDA, TINTA_DADO, 16) for n in NOMES]
     quadros += [chip(c, PAPEL, PAPEL_BORDA, TINTA_DADO, 16) for c in CURSOS]
     quadros += [chip(c, CAB, CAB_BORDA, (240, 246, 255, 255), 15) for c in COLUNAS]
+    quadros += [chip(str(v), SUJO, SUJO_BORDA, TINTA_SUJA, 17) for v in range(100)]
     linhas = (len(quadros) + 3) // 4
     folha = Image.new("RGBA", (LARGO * 4, ALTO * linhas), (0, 0, 0, 0))
     for i, q in enumerate(quadros):
@@ -128,6 +136,19 @@ def aviso():
         x = i * 60
         d.rectangle([x + 1, 1, x + 58, 44], fill=(255, 206, 84, alfa), outline=(255, 214, 96, 220))
     return folha, 2
+
+
+def escrita():
+    """A escrita de uma transacao (Transacao.h): o lapis do UPDATE, que voa
+    do professor ate a casa e fica la ate o COMMIT ou o ROLLBACK."""
+    s = 4
+    im = Image.new("RGBA", (24 * s, 24 * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.ellipse([2 * s, 2 * s, 21 * s, 21 * s], fill=(214, 70, 56, 235), outline=(255, 214, 200, 255), width=2 * s)
+    # o lapis, inclinado
+    d.line([7 * s, 16 * s, 16 * s, 7 * s], fill=(255, 240, 230, 255), width=3 * s)
+    d.polygon([(6 * s, 17 * s), (8 * s, 14 * s), (9 * s, 18 * s)], fill=(255, 240, 230, 255))
+    return im.resize((24, 24), Image.LANCZOS), 1
 
 
 def folha_json(nome, w, h, largo, alto, quadros):
@@ -164,3 +185,5 @@ if __name__ == "__main__":
     grava_folha(folha, "DPIBHThiagoDados", "Assets/Teachers/Projectiles", LARGO, ALTO, n)
     folha, n = aviso()
     grava_folha(folha, "DPIBHThiagoAviso", "Assets/Teachers/Projectiles", 60, 46, n)
+    folha, n = escrita()
+    grava_folha(folha, "DPIBHThiagoEscrita", "Assets/Teachers/Projectiles", 24, 24, n)

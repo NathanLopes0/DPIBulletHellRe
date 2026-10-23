@@ -64,6 +64,7 @@
 #include "../Source/Attacks/Arvore.h"
 #include "../Source/Attacks/Ordenacao.h"
 #include "../Source/Attacks/Banco.h"
+#include "../Source/Attacks/Transacao.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
@@ -1741,6 +1742,29 @@ TEST_CASE("Dados: a tabela do Thiago - toda fase a monta, e o SELECT e o produto
         if (f.nome == Banco::kFaseDoProduto) {
             CHECK(gatilhos.count(Banco::kGatilhoDoAviso) == 1);
             CHECK(gatilhos.count(Banco::kGatilhoDaCasa) == 1);
+        }
+        if (f.nome == Transacao::kFaseDaTransacao) {
+            // O UPDATE VARRE A LINHA, as escritas a travam, e o ROLLBACK a varre
+            // do outro lado.
+            for (const char* g : {Banco::kGatilhoDaSelecao, Transacao::kGatilhoDaEscrita,
+                                  Transacao::kGatilhoDoDesfazer}) {
+                CAPTURE(g);
+                CHECK(GatilhoExiste(g));
+                CHECK(gatilhos.count(g) == 1);
+            }
+            for (const auto& a : f.ataques) {
+                if (a.gatilho != Transacao::kGatilhoDoDesfazer) continue;
+                REQUIRE(a.consulta.has_value());
+                CHECK(a.consulta->eixo == "Linha");
+                REQUIRE(a.consulta->invertido.has_value());
+                CHECK(*a.consulta->invertido);
+                REQUIRE(a.consulta->linhas.has_value());
+                CHECK(*a.consulta->linhas == Banco::kLinhas);
+                REQUIRE(a.consulta->aviso.has_value());
+                CHECK(*a.consulta->aviso == doctest::Approx(Banco::kAvisoDaLinha));
+                REQUIRE(a.velocidade.has_value());
+                CHECK(*a.velocidade == doctest::Approx(Banco::kVelocidadeDaLinha));
+            }
         }
         if (f.nome == Banco::kFaseDaEscrita) {
             // O INSERT E O DELETE VARREM A LINHA, e o UPDATE acende a casa.

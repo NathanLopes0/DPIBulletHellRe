@@ -81,6 +81,10 @@ namespace Banco {
     std::string Cara(const Registro& r, Coluna c);
     std::string CaraDoCabecalho(Coluna c);
 
+    /// @brief A nota escrita por uma transacao que ainda nao confirmou: "S42",
+    /// o mesmo numero em vermelho.
+    std::string CaraSuja(int nota);
+
     enum class Op { Menor, MaiorOuIgual, Igual };
 
     struct Condicao {
@@ -200,6 +204,10 @@ namespace Banco {
         Registro novo;          ///< Insert
         int nota = 0;           ///< Update: a nota nova
     };
+
+    /// @brief Um registro que nao repete a matricula, o nome nem a nota de
+    /// ninguem da tabela.
+    Registro NovoRegistro(const Registros& regs, std::uint32_t sorteio);
 
     /// @brief O proximo comando da fase 2, sobre a tabela como ela esta.
     Escrita ProximaEscrita(const Registros& regs, std::uint32_t sorteio);

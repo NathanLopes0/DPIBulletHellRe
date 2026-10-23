@@ -103,6 +103,10 @@ namespace Banco {
         return "V" + std::to_string(std::clamp(Valor(r, c), 0, 99));
     }
 
+    std::string CaraSuja(const int nota) {
+        return "S" + std::to_string(std::clamp(nota, 0, 99));
+    }
+
     std::string CaraDoCabecalho(const Coluna c) {
         return std::string("C") + kNomesDasColunas[static_cast<size_t>(c)];
     }
@@ -225,6 +229,11 @@ namespace Banco {
             r.ano = 1 + Ate(g, kMaiorAno);
             return r;
         }
+    }
+
+    Registro NovoRegistro(const Registros& regs, const std::uint32_t sorteio) {
+        std::mt19937 g(sorteio);
+        return Novo(regs, g);
     }
 
     Escrita ProximaEscrita(const Registros& regs, const std::uint32_t sorteio) {

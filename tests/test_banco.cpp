@@ -277,3 +277,15 @@ TEST_CASE("Banco: o que cada comando faz com a tabela, e o SQL dele") {
     CHECK(Banco::Executar(regs, poe) == std::vector<int>{2});
     CHECK(regs.back().mat == 50);
 }
+
+TEST_CASE("Banco: o registro novo nunca repete ninguem da tabela") {
+    for (std::uint32_t s = 0; s < 300; ++s) {
+        const auto regs = Banco::Sortear(s);
+        const auto r = Banco::NovoRegistro(Banco::Registros(regs.begin(), regs.begin() + 3), s * 17u + 1u);
+        for (size_t i = 0; i < 3; ++i) {
+            CHECK(regs[i].mat != r.mat);
+            CHECK(regs[i].nome != r.nome);
+            CHECK(regs[i].nota != r.nota);
+        }
+    }
+}

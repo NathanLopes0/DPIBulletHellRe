@@ -30,6 +30,7 @@ void Thiago::OnUpdate(const float deltaTime) {
     if (!mTabelaCriada) CriarTabela();
     AtualizarSelecao(deltaTime);
     AtualizarEscrita();
+    AtualizarTransacoes();
     AtualizarProduto();
     AtualizarTabela(deltaTime);
 }
@@ -141,16 +142,23 @@ void Thiago::Marcar(const std::vector<Banco::Casa>& casas, const float ate) {
 }
 
 void Thiago::MarcarVarredura(const std::vector<Banco::Casa>& casas, const bool porLinha,
-                             const float agora, const float aviso) {
+                             const float agora, const float aviso, const bool invertida) {
     // A CASA APAGA QUANDO A VARREDURA PASSA POR ELA: a parede nasce na borda
     // (kMargemDaVarredura) e anda na velocidade dela, e a casa deixa de ser
     // perigo quando a parede sai pelo outro lado dela.
     const SDL_FRect campo = Campo();
     for (const Banco::Casa& casa : casas) {
-        const float fim = porLinha
+        float fim = porLinha
             ? Tabela::Inicio(campo.x, campo.w, Banco::kColunas, casa.coluna) + Tabela::Espessura(campo.w, Banco::kColunas)
             : Tabela::Inicio(campo.y, campo.h, Banco::kLinhas, casa.linha) + Tabela::Espessura(campo.h, Banco::kLinhas);
-        const float inicio = porLinha ? campo.x : campo.y;
+        float inicio = porLinha ? campo.x : campo.y;
+        if (invertida) {
+            // DO OUTRO LADO: a casa apaga quando a parede passa pela borda de
+            // cima dela - contada a partir da outra ponta do campo.
+            const float extensao = porLinha ? campo.w : campo.h;
+            const float comeco = fim - Tabela::Espessura(extensao, porLinha ? Banco::kColunas : Banco::kLinhas);
+            fim = (inicio + extensao) - comeco + inicio;
+        }
         const float velocidade = porLinha ? Banco::kVelocidadeDaLinha : Banco::kVelocidadeDaColuna;
         Marcar({casa}, agora + aviso + (fim - inicio - Banco::kMargemDaVarredura) / velocidade);
     }
@@ -388,6 +396,297 @@ void Thiago::AtualizarEscrita() {
 }
 
 // ---------------------------------------------------------------------------
+// A FASE 3: AS TRANSACOES
+// ---------------------------------------------------------------------------
+
+namespace {
+    std::uint32_t Sorteio() {
+        return static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
+    }
+}
+
+void Thiago::Anunciar(const int id, const int linha, const float agora) {
+    if (linha < 0 || static_cast<size_t>(linha) >= mRegistros.size()) return;
+    // UMA NOTA NOVA, diferente da que esta la.
+    int nota = Random::GetIntRange(0, 99);
+    if (nota == mRegistros[static_cast<size_t>(linha)].nota) nota = (nota + 37) % 100;
+    for (TxEmCampo& t : mEmCampo) {
+        if (t.id != id) continue;
+        t.linhaDaVez = linha;
+        t.novas.emplace_back(linha, nota);
+    }
+    RegistrarAnuncio(Transacao::kFaseDaTransacao,
+                     Transacao::PlacarDoUpdate(id, nota, mRegistros[static_cast<size_t>(linha)].mat));
+
+    // O UPDATE GRAVA A LINHA: ela acende e e varrida, como a do INSERT.
+    std::vector<Banco::Casa> casas;
+    for (int c = 0; c < Banco::kColunas; ++c) casas.push_back({linha, c});
+    MarcarVarredura(casas, true, agora, Banco::kAvisoDaLinha);
+    Varrer(Banco::kGatilhoDaSelecao, linha, Banco::kAvisoDaLinha, Banco::kVelocidadeDaLinha);
+}
+
+void Thiago::Gravar(const int id, const int linha) {
+    if (linha < 0 || static_cast<size_t>(linha) >= mRegistros.size() || static_cast<size_t>(linha) >= mCasas.size()) return;
+    TxEmCampo* tx = nullptr;
+    for (TxEmCampo& t : mEmCampo) if (t.id == id) tx = &t;
+    if (!tx) return;
+    int nota = mRegistros[static_cast<size_t>(linha)].nota;
+    for (const auto& [l, n] : tx->novas) if (l == linha) nota = n;
+
+    // AS ESCRITAS SAEM DO PROFESSOR e ficam na linha, no meio dela, de ponta a
+    // ponta: o LOCK. Atravessar a linha travada e passar entre elas.
+    const Vector2 origem = GetPosition();
+    const SDL_FRect campo = Campo();
+    const float y = CentroDaCasa(linha, 0).y;
+    for (int k = 0; k < Transacao::kEscritasPorLinha; ++k) {
+        const Vector2 destino(campo.x + (static_cast<float>(k) + 0.5f) * campo.w / Transacao::kEscritasPorLinha, y);
+        for (BossProjectile* p : DispararEm(Transacao::kGatilhoDaEscrita, origem)) {
+            Vector2 ida = destino - origem;
+            if (ida.LengthSq() > 0.0f) ida.Normalize();
+            if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(ida * Transacao::kVelocidadeDaEscrita);
+            mGravacoes.push_back(Gravacao{p, id, origem, destino, false, false});
+        }
+    }
+
+    // O VALOR NOVO APARECE SUJO: escrito, mas ainda nao de verdade.
+    tx->antes.emplace_back(linha, mRegistros[static_cast<size_t>(linha)].nota);
+    mRegistros[static_cast<size_t>(linha)].nota = nota;
+    if (BossProjectile* chip = mCasas[static_cast<size_t>(linha)][static_cast<size_t>(Banco::Coluna::Nota)]) {
+        if (auto* anim = chip->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(Banco::CaraSuja(nota));
+    }
+}
+
+void Thiago::Terminar(const int id, const bool desfaz, const float agora) {
+    TxEmCampo* tx = nullptr;
+    for (TxEmCampo& t : mEmCampo) if (t.id == id) tx = &t;
+    if (!tx) return;
+
+    // O VALOR FICA LIMPO: o novo (COMMIT) ou o de antes (ROLLBACK).
+    for (const auto& [linha, notaAntiga] : tx->antes) {
+        if (static_cast<size_t>(linha) >= mRegistros.size()) continue;
+        if (desfaz) mRegistros[static_cast<size_t>(linha)].nota = notaAntiga;
+        if (static_cast<size_t>(linha) >= mCasas.size()) continue;
+        if (BossProjectile* chip = mCasas[static_cast<size_t>(linha)][static_cast<size_t>(Banco::Coluna::Nota)]) {
+            if (auto* anim = chip->GetComponent<DrawAnimatedComponent>()) {
+                anim->SetAnimation(Banco::Cara(mRegistros[static_cast<size_t>(linha)], Banco::Coluna::Nota));
+            }
+        }
+    }
+
+    if (!desfaz) {
+        // COMMIT: as escritas somem - o que estava escrito passou a ser de verdade.
+        for (Gravacao& g : mGravacoes) if (g.tx == id && g.p->GetState() == ActorState::Active) g.p->Kill();
+    } else {
+        // ROLLBACK: cada linha gravada e desfeita - acende e e varrida do outro
+        // lado, o log lido de tras para a frente -, e as escritas voltam com a
+        // varredura, pelo caminho por onde vieram.
+        for (const auto& [linha, notaAntiga] : tx->antes) {
+            (void)notaAntiga;
+            std::vector<Banco::Casa> casas;
+            for (int c = 0; c < Banco::kColunas; ++c) casas.push_back({linha, c});
+            MarcarVarredura(casas, true, agora, Banco::kAvisoDaLinha, true);
+            Varrer(Transacao::kGatilhoDoDesfazer, linha, Banco::kAvisoDaLinha, Banco::kVelocidadeDaLinha);
+        }
+        mVoltas.push_back(Volta{id, agora + Banco::kAvisoDaLinha});
+    }
+    mGravacoes.erase(std::remove_if(mGravacoes.begin(), mGravacoes.end(), [](const Gravacao& g) {
+        return g.p->GetState() != ActorState::Active;
+    }), mGravacoes.end());
+
+    Transacao::Liberar(mLocks, id);
+    mEmCampo.erase(std::remove_if(mEmCampo.begin(), mEmCampo.end(), [id](const TxEmCampo& t) { return t.id == id; }),
+                   mEmCampo.end());
+}
+
+void Thiago::AtualizarTransacoes() {
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool nasTransacoes = fsm && fsm->GetStateName() == Transacao::kFaseDaTransacao;
+
+    if (!nasTransacoes) {
+        if (mNasTransacoes) {
+            // A FASE ACABOU NO MEIO DAS TRANSACOES: o banco desfaz as que nao
+            // fecharam - o valor de antes volta -, sem o ataque da volta.
+            for (const TxEmCampo& tx : mEmCampo) {
+                for (auto it = tx.antes.rbegin(); it != tx.antes.rend(); ++it) {
+                    const auto [linha, notaAntiga] = *it;
+                    if (static_cast<size_t>(linha) >= mRegistros.size() || static_cast<size_t>(linha) >= mCasas.size()) continue;
+                    mRegistros[static_cast<size_t>(linha)].nota = notaAntiga;
+                    if (BossProjectile* chip = mCasas[static_cast<size_t>(linha)][static_cast<size_t>(Banco::Coluna::Nota)]) {
+                        if (auto* anim = chip->GetComponent<DrawAnimatedComponent>()) {
+                            anim->SetAnimation(Banco::Cara(mRegistros[static_cast<size_t>(linha)], Banco::Coluna::Nota));
+                        }
+                    }
+                }
+            }
+            mEmCampo.clear();
+            for (Gravacao& g : mGravacoes) if (g.p->GetState() == ActorState::Active) g.p->Kill();
+            mGravacoes.clear();
+            mVoltas.clear();
+            mLocks.clear();
+            ApagarCasas();
+            if (!mAnuncioDasTransacoes.empty()) RegistrarAnuncio(Transacao::kFaseDaTransacao, mAnuncioDasTransacoes);
+            mAlvo.reset();
+            mNasTransacoes = false;
+        }
+        return;
+    }
+    if (!mNasTransacoes) {
+        mNasTransacoes = true;
+        mEmCampo.clear();
+        mGravacoes.clear();
+        mVoltas.clear();
+        mLocks.clear();
+        mProximaTransacao = Transacao::kPrimeira;
+        if (mAnuncioDasTransacoes.empty()) mAnuncioDasTransacoes = AnuncioDaFase(Transacao::kFaseDaTransacao);
+        mAlvo = Vector2(Banco::XDoProfessor(Banco::kColunas / 2, Campo().w), Banco::kYDoProfessor);
+        // A TABELA CHEIA DE NOVO: o que o DELETE apagou na fase 2 e reinserido,
+        // vindo do professor.
+        while (static_cast<int>(mRegistros.size()) < Banco::kLinhas) {
+            Banco::Escrita poe;
+            poe.comando = Banco::Comando::Insert;
+            poe.novo = Banco::NovoRegistro(mRegistros, Sorteio());
+            const auto linhas = Banco::Executar(mRegistros, poe);
+            if (linhas.empty()) break;
+            mCasas.resize(mRegistros.size());
+            EscreverRegistro(static_cast<size_t>(linhas.front()), GetPosition());
+        }
+    }
+    const float agora = fsm->GetStateTime();
+    const int linhas = static_cast<int>(mRegistros.size());
+
+    // UMA TRANSACAO NOVA: o primeiro UPDATE numa linha que ninguem trava.
+    if (agora >= mProximaTransacao && static_cast<int>(mEmCampo.size()) < Transacao::kMaximo) {
+        const int linha = Transacao::LinhaLivre(mLocks, linhas, Sorteio());
+        mProximaTransacao = agora + Transacao::kNovaTransacao;
+        if (linha >= 0) {
+            const int id = mProximoId++;
+            mLocks.push_back(Transacao::Tx{id, {linha}, -1});
+            mEmCampo.push_back(TxEmCampo{id, Etapa::MarcandoPrimeira, agora + Banco::kAvisoDaLinha, -1, {}, {}});
+            Anunciar(id, linha, agora);
+            mAlvo = Vector2(Banco::XDoProfessor(Random::GetIntRange(0, Banco::kColunas - 1), Campo().w), Banco::kYDoProfessor);
+        }
+    }
+
+    // CADA TRANSACAO NA ETAPA DELA. Copia dos ids: Terminar mexe na lista.
+    std::vector<int> ids;
+    for (const TxEmCampo& t : mEmCampo) ids.push_back(t.id);
+    for (const int id : ids) {
+        TxEmCampo* tx = nullptr;
+        for (TxEmCampo& t : mEmCampo) if (t.id == id) tx = &t;
+        if (!tx) continue;   // abortada por um deadlock nesta mesma volta
+
+        switch (tx->etapa) {
+            case Etapa::MarcandoPrimeira:
+            case Etapa::MarcandoSegunda: {
+                if (agora < tx->proximo) break;
+                const bool segunda = tx->etapa == Etapa::MarcandoSegunda;
+                Gravar(id, tx->linhaDaVez);
+                tx->etapa = segunda ? Etapa::Fechando : Etapa::Segurando;
+                tx->proximo = agora + (segunda ? Transacao::kSegurando : Transacao::kEntreUpdates);
+                break;
+            }
+            case Etapa::Segurando: {
+                if (agora < tx->proximo) break;
+                // O SEGUNDO UPDATE: as vezes numa linha de outra transacao.
+                const auto sorteio = Sorteio();
+                const bool disputa = static_cast<float>(sorteio % 1000u) / 1000.0f < Transacao::kChanceDeDisputa;
+                int alvo = disputa ? Transacao::LinhaDeOutra(mLocks, id, sorteio / 7u) : -1;
+                if (alvo < 0) {
+                    int primeira = -1;
+                    for (const auto& t : mLocks) if (t.id == id && !t.segura.empty()) primeira = t.segura.front();
+                    alvo = Transacao::LinhaLivre(mLocks, linhas, sorteio / 3u, primeira);
+                }
+                if (alvo < 0) {
+                    tx->etapa = Etapa::Fechando;
+                    tx->proximo = agora + Transacao::kSegurando;
+                    break;
+                }
+                for (auto& t : mLocks) if (t.id == id) t.quer = alvo;
+                tx->linhaDaVez = alvo;
+                tx->etapa = Etapa::Esperando;
+                const int dono = Transacao::Dono(mLocks, alvo);
+                if (dono != 0) RegistrarAnuncio(Transacao::kFaseDaTransacao, Transacao::PlacarDaEspera(id, dono));
+                // DEADLOCK: se a espera fecha um ciclo, a mais nova desfaz tudo.
+                const auto ciclo = Transacao::CicloDeEspera(mLocks, id);
+                if (!ciclo.empty()) {
+                    const int vitima = Transacao::Vitima(ciclo);
+                    RegistrarAnuncio(Transacao::kFaseDaTransacao, Transacao::PlacarDoDeadlock(vitima));
+                    Terminar(vitima, true, agora);
+                }
+                break;
+            }
+            case Etapa::Esperando: {
+                // A LINHA FICOU LIVRE: o lock passa a ser dela, e o UPDATE sai.
+                int quer = -1;
+                for (const auto& t : mLocks) if (t.id == id) quer = t.quer;
+                if (quer < 0 || Transacao::Dono(mLocks, quer) != 0) break;
+                for (auto& t : mLocks) {
+                    if (t.id != id) continue;
+                    t.segura.push_back(quer);
+                    t.quer = -1;
+                }
+                tx->etapa = Etapa::MarcandoSegunda;
+                tx->proximo = agora + Banco::kAvisoDaLinha;
+                Anunciar(id, quer, agora);
+                break;
+            }
+            case Etapa::Fechando: {
+                if (agora < tx->proximo) break;
+                const bool desfaz = Transacao::Desfaz(Sorteio());
+                RegistrarAnuncio(Transacao::kFaseDaTransacao, Transacao::PlacarDoFim(id, desfaz));
+                Terminar(id, desfaz, agora);
+                break;
+            }
+        }
+    }
+
+    // O ROLLBACK SOLTA AS ESCRITAS junto com a varredura que desfaz.
+    for (auto it = mVoltas.begin(); it != mVoltas.end();) {
+        if (agora < it->quando) { ++it; continue; }
+        for (Gravacao& g : mGravacoes) {
+            if (g.tx != it->tx || g.p->GetState() != ActorState::Active) continue;
+            g.voltando = true;
+            g.parada = false;
+            Vector2 volta = g.origem - g.p->GetPosition();
+            if (volta.LengthSq() > 0.0f) volta.Normalize();
+            if (auto* rb = g.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(volta * Transacao::kVelocidadeDaEscrita);
+        }
+        it = mVoltas.erase(it);
+    }
+
+    // AS ESCRITAS: as que vao param na casa, as que voltam somem ao chegar.
+    for (auto it = mGravacoes.begin(); it != mGravacoes.end();) {
+        Gravacao& g = *it;
+        if (g.p->GetState() != ActorState::Active) { it = mGravacoes.erase(it); continue; }
+        auto* rb = g.p->GetComponent<RigidBodyComponent>();
+        const Vector2 aqui = g.p->GetPosition();
+        if (g.voltando) {
+            if ((g.origem - aqui).LengthSq() < 20.0f * 20.0f) {
+                g.p->Kill();
+                it = mGravacoes.erase(it);
+                continue;
+            }
+        } else if (!g.parada) {
+            const Vector2 falta = g.destino - aqui;
+            Vector2 ida = falta;
+            if (ida.LengthSq() > 0.0f) ida.Normalize();
+            const bool chegou = falta.LengthSq() < 12.0f * 12.0f
+                             || (rb && Vector2::Dot(rb->GetVelocity(), falta) <= 0.0f);
+            if (chegou) {
+                g.p->SetPosition(g.destino);
+                g.parada = true;
+                if (rb) rb->SetVelocity(Vector2::Zero);
+            }
+        } else if (rb) {
+            rb->SetVelocity(Vector2::Zero);
+        }
+        ++it;
+    }
+
+    AtualizarCasas(agora);
+}
+
+// ---------------------------------------------------------------------------
 // A REPESCAGEM: O PRODUTO CARTESIANO
 // ---------------------------------------------------------------------------
 
@@ -457,23 +756,6 @@ void Thiago::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& proj
     }
 }
 
-int Thiago::FaixaDoJogador(const ConsultaAttackParams& consulta) {
-
-    const auto battle = dynamic_cast<Battle*>(GetScene());
-    if (!battle || !battle->Alvo()) return 0;
-
-    const SDL_FRect campo = battle->GetPlayfieldBounds();
-    const Vector2 onde = battle->Alvo()->GetPosition();
-
-    // A MESMA CONTA que a ConsultaAttack usa para posicionar a varredura, de
-    // Tabela. Se este arquivo fizesse a propria divisao, bastaria um
-    // arredondamento diferente para o chefe anunciar uma linha e varrer a
-    // vizinha - e o jogador seria atingido por um ataque que leu certo.
-    return (consulta.eixo == ConsultaAttackParams::Eixo::Linha)
-               ? Tabela::FaixaDe(campo.y, campo.h, consulta.forma.linhas,  onde.y)
-               : Tabela::FaixaDe(campo.x, campo.w, consulta.forma.colunas, onde.x);
-}
-
 void Thiago::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
     Boss::CustomizeAttackParams(params, stateName);
 
@@ -487,47 +769,5 @@ void Thiago::CustomizeAttackParams(AttackParams& params, const std::string& stat
             consulta->projectileSpeed = mVelocidadeDaConsulta;
         }
         return;
-    }
-
-    // Fases que nao usam ConsultaAttack caem fora daqui e seguem com o que o
-    // arquivo disser - e o caso dos ataques comuns misturados as consultas.
-    auto* consulta = dynamic_cast<ConsultaAttackParams*>(&params);
-    if (!consulta) return;
-
-    const int quantas = (consulta->eixo == ConsultaAttackParams::Eixo::Linha)
-                            ? consulta->forma.linhas
-                            : consulta->forma.colunas;
-    if (quantas <= 0) return;
-
-    if (stateName == "StateTwo") {
-        // WHERE. A consulta encontra o jogador. O aviso continua valendo, entao
-        // ficar parado e que mata - nao a consulta em si.
-        consulta->indice = FaixaDoJogador(*consulta);
-    }
-    else if (stateName == "StateThree") {
-        // A TRANSACAO. Metade das consultas vai na faixa do jogador e metade na
-        // que ele acabou de deixar: a varredura anterior "volta". Quem aprendeu
-        // na fase 2 a pular para o lado e esperar descobre que o espaco limpo e
-        // justamente para onde o desfazimento vem.
-        const int aquiAgora = FaixaDoJogador(*consulta);
-
-        if (mProximaFaixa % 2 == 0) {
-            consulta->indice = aquiAgora;
-        }
-        else {
-            // A vizinha, alternando o lado para nao virar um padrao de um lado so.
-            const int lado = (Random::GetIntRange(0, 1) == 0) ? -1 : 1;
-            int vizinha = aquiAgora + lado;
-            if (vizinha < 0) vizinha = 1;
-            if (vizinha >= quantas) vizinha = quantas - 2;
-            consulta->indice = (vizinha < 0) ? 0 : vizinha;
-        }
-        ++mProximaFaixa;
-    }
-    else if (stateName == "StateFinal") {
-        // CROSS JOIN. Aqui NAO ha escolha de faixa: o arquivo dispara varias
-        // consultas por rajada, cada uma com o proprio indice fixo, e juntas
-        // elas formam o produto cartesiano. Mexer no indice aqui desmontaria a
-        // treliça que o arquivo descreve.
     }
 }

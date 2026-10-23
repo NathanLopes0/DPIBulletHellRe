@@ -1,0 +1,37 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHThiagoEscrita 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 24,
+    "h": 24
+   },
+   "duration": 220
+  }
+ ],
+ "meta": {
+  "app": "gerar_thiago.py",
+  "version": "1.0",
+  "image": "DPIBHThiagoEscrita.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 24,
+   "h": 24
+  },
+  "scale": "1"
+ }
+}

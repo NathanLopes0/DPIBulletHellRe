@@ -34,22 +34,25 @@
 // THIAGO - INF 220 (Banco de Dados)
 // ==========================================================================
 //
-// A BATALHA EM UMA FRASE: o campo de jogo e uma tabela, e cada ataque e uma
-// consulta que varre uma faixa inteira dela.
+// A BATALHA EM UMA FRASE: o campo de jogo e uma tabela, ESCRITA nele, e cada
+// ataque e uma operacao do banco sobre ela.
 //
-// O jogador nao desvia de projetil aqui - ele SAI DA LINHA que foi escolhida.
-// Por isso o campo "aviso" e o ataque todo: e o tempo em que os projeteis
-// ficam parados e visiveis na borda, anunciando a faixa. Com 4 linhas numa
-// tela de 775, uma faixa tem 194 px; o jogador anda 300 px/s, logo atravessar
-// uma faixa inteira custa 0,65 s. TODO "aviso" ABAIXO DE 0,65 TORNA ALGUMA
-// POSICAO INESCAPAVEL - e nao e isso que a batalha quer cobrar.
+//   StateOne    o SELECT          a selecao, a projecao e as duas juntas
+//   StateTwo    INSERT/UPDATE/DELETE   a tabela muda na frente do aluno
+//   StateThree  as TRANSACOES     o lock, o COMMIT, o ROLLBACK e o deadlock
+//   StateFinal  o PRODUTO CARTESIANO   o JOIN sem WHERE, casa por casa
 //
-// Colunas sao mais largas (1200/5 = 240 px, 0,8 s para atravessar), entao
-// consulta por coluna pede aviso maior que consulta por linha.
+// O jogador nao desvia de projetil aqui - ele SAI DAS CASAS que a operacao vai
+// ler. Toda operacao ACENDE antes as casas que le (o marcador, no posto
+// "aviso"), e o placar e o SQL dela. Com 4 linhas num campo de 746px, uma linha
+// tem 187px; o jogador anda 300px/s, logo atravessar uma linha inteira custa
+// 0,62s. TODO AVISO ABAIXO DISSO TORNA ALGUMA POSICAO INESCAPAVEL - e nao e
+// isso que a batalha quer cobrar. Colunas sao mais largas (240px, 0,8s), entao
+// a coluna avisa antes. Os avisos e as velocidades moram em Banco.h, e um teste
+// segura os daqui iguais aos de la.
 //
-// QUEM ESCOLHE A FAIXA e o Thiago, em Thiago::CustomizeAttackParams: numa fase
-// e um contador, noutra e a faixa do proprio jogador. O campo "indice" so
-// aparece aqui na fase final, onde a treliça precisa ser fixa.
+// QUEM ESCOLHE A LINHA, A COLUNA OU A CASA e o Thiago (Thiago.cpp), lendo a
+// tabela: a ConsultaAttack so varre a faixa que ele manda.
 
   // FASE 1 - O SELECT   |   gesto: O PROFESSOR EM CIMA DA COLUNA QUE LE
   //
@@ -158,34 +161,62 @@
     ]
   },
 
-  // FASE 3 - A TRANSACAO: varre, e DESFAZ.
+  // FASE 3 - AS TRANSACOES   |   gesto: O LOG, QUE VAI E VOLTA
   //
-  // Metade das consultas vai na faixa do jogador e metade na que ele acabou de
-  // deixar (ver Thiago::CustomizeAttackParams). Quem aprendeu na fase 2 a
-  // pular para o lado e esperar descobre aqui que o espaco limpo atras da
-  // varredura e exatamente para onde o desfazimento vem.
+  // VARIAS TRANSACOES AO MESMO TEMPO (Transacao.h), uma nova a cada 1,8s, ate
+  // tres. Cada uma faz dois UPDATE, em duas linhas, e o placar escreve cada
+  // passo:
   //
-  // O "invertido" da segunda consulta faz ela entrar pelo OUTRO lado, que e o
-  // que da a leitura de rollback: a mesma faixa, no sentido contrario.
+  //   "T3: UPDATE SET nota=12 WHERE mat=42"   a linha acende e e varrida -
+  //                                           gravada -, e as escritas saem do
+  //                                           professor e FICAM nela, dez em
+  //                                           fila no meio: a linha esta
+  //                                           travada, e a nota nova esta em
+  //                                           vermelho
+  //   "T3: COMMIT"                            as escritas somem, a nota fica
+  //   "T3: ROLLBACK"                          a linha acende e e varrida DO
+  //                                           OUTRO LADO - o log lido de tras
+  //                                           para a frente -, as escritas
+  //                                           VOLTAM pelo caminho por onde
+  //                                           vieram, e a nota antiga volta
+  //   "T3 espera T2"                          o segundo UPDATE pediu uma linha
+  //                                           travada por outra, e espera
+  //   "deadlock! T4: ROLLBACK"                duas se esperam: a mais nova e
+  //                                           abortada e desfaz tudo
+  //
+  // A TABELA COMECA CHEIA: o que o DELETE apagou na fase 2 e reinserido, vindo
+  // do professor, quando esta fase comeca.
+  //
+  // ESTA E A FASE QUE DECIDE A BATALHA. StateThree tem "proximo" vazio.
+  //
+  // MEDIDO NA BATALHA INTEIRA, em cinco sementes: o que persegue passa com 71,5
+  // a 75,7 (6 a 9 acertos), o piloto de fora do repositorio que sai da casa
+  // acesa com 72,0 a 87,3 (1 a 4), e o parado reprova em todas (de 0,6 a
+  // 36,7). Com uma transacao nova a cada 2,2s, quem sai da casa acesa
+  // terminava a batalha com 88,6 a 95,9 e no maximo um acerto: a fase que
+  // decide era a mais facil das tres.
   "StateThree": {
     "duracao": 17,
     "proximo": "",
-    "movimento": { "tipo": "RandomWander", "a": 2.5, "b": 220 },
+    "anuncio": "BEGIN TRANSACTION",
+    "movimento": { "tipo": "Conduzido", "a": 600 },
     "ataques": [
       { "gatilho": "cabecalho", "estrategia": "WaveAttack", "projetil": "Cabecalho",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
       { "gatilho": "registro", "estrategia": "WaveAttack", "projetil": "Dado",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
-      { "estrategia": "ConsultaAttack", "projetil": "Celula",
-        "projeteis": 7, "velocidade": 760, "cooldown": 1.4,
-        "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 0.8 },
+      { "gatilho": "marcar", "estrategia": "WaveAttack", "projetil": "Aviso",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "aviso" },
+      { "gatilho": "selecionar", "estrategia": "ConsultaAttack", "projetil": "Celula",
+        "projeteis": 7, "velocidade": 700,
+        "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 1.0 },
         "regras": "varredura" },
-
-      { "estrategia": "ConsultaAttack", "projetil": "Celula",
-        "projeteis": 7, "velocidade": 760, "cooldown": 1.4,
-        "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 0.8,
-                      "invertido": true },
-        "regras": "desfazimento" }
+      { "gatilho": "desfazer", "estrategia": "ConsultaAttack", "projetil": "Celula",
+        "projeteis": 7, "velocidade": 700,
+        "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 1.0, "invertido": true },
+        "regras": "varredura" },
+      { "gatilho": "gravar", "estrategia": "WaveAttack", "projetil": "Escrita",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
     ]
   },
 

@@ -198,6 +198,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Ordenacao.h
         Source/Attacks/Banco.cpp
         Source/Attacks/Banco.h
+        Source/Attacks/Transacao.cpp
+        Source/Attacks/Transacao.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
@@ -358,6 +360,7 @@ add_executable(dpi_tests
         tests/test_arvore.cpp
         tests/test_ordenacao.cpp
         tests/test_banco.cpp
+        tests/test_transacao.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -479,6 +482,8 @@ add_executable(dpi_tests
         Source/Attacks/Ordenacao.h
         Source/Attacks/Banco.cpp
         Source/Attacks/Banco.h
+        Source/Attacks/Transacao.cpp
+        Source/Attacks/Transacao.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
