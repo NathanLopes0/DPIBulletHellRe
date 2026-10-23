@@ -54,6 +54,7 @@
 #include "../Source/Attacks/Blink.h"
 #include "../Source/Attacks/Alfabeto.h"
 #include "../Source/Attacks/Automato.h"
+#include "../Source/Attacks/Gramatica.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
@@ -1409,6 +1410,42 @@ TEST_CASE("Dados: o automato do Vladimir - gatilhos, posto e caras sao nomes que
         CAPTURE(g);
         CHECK(naFase.count(g) == 1);
     }
+}
+
+TEST_CASE("Dados: a gramatica do Vladimir - gatilhos, posto e caras sao nomes que os dados tem") {
+    CHECK(GatilhoExiste(Gramatica::kGatilhoDoPar));
+    CHECK(GatilhoExiste(Gramatica::kGatilhoDaVariavel));
+    CHECK(PostoExiste(Gramatica::kPostoDaDerivacao));
+
+    // O S E DERRUBAVEL, e as letras nao: e o que deixa o aluno interromper a
+    // derivacao. E o S tem as duas caras que o Vladimir lhe da.
+    const auto& tipos = ProjeteisDoChefe("vladimir").projeteis;
+    REQUIRE(tipos.count("Variavel") == 1);
+    CHECK(tipos.at("Variavel").derrubavel);
+    CHECK_FALSE(tipos.at("Simbolo").derrubavel);
+    std::set<std::string> caras;
+    for (const auto& a : tipos.at("Variavel").animacoes) caras.insert(a.nome);
+    CHECK(caras.count(Gramatica::kCaraDaVariavel) == 1);
+    CHECK(caras.count(Gramatica::kCaraDaVazia) == 1);
+
+    // A FASE TEM O S DO RELOGIO E OS DOIS GATILHOS DA DERIVACAO, e todo S dela
+    // nasce no posto em que o Vladimir o procura.
+    const auto regras = RegrasDoChefe("vladimir");
+    std::set<std::string> gatilhos;
+    int sDoRelogio = 0;
+    for (const auto& f : FasesDoChefe("vladimir").fases) {
+        if (f.nome != Gramatica::kFaseDaGramatica) continue;
+        for (const auto& a : f.ataques) {
+            gatilhos.insert(a.gatilho);
+            if (a.projetil != "Variavel") continue;
+            if (a.gatilho.empty()) ++sDoRelogio;
+            REQUIRE(regras.conjuntos.count(a.regrasNome) == 1);
+            for (const auto& r : regras.conjuntos.at(a.regrasNome)) CHECK(r.posto == Gramatica::kPostoDaDerivacao);
+        }
+    }
+    CHECK(sDoRelogio == 1);
+    CHECK(gatilhos.count(Gramatica::kGatilhoDoPar) == 1);
+    CHECK(gatilhos.count(Gramatica::kGatilhoDaVariavel) == 1);
 }
 
 TEST_CASE("Dados: o diagrama do automato do Vladimir foi desenhado para os estados onde ele os poe") {

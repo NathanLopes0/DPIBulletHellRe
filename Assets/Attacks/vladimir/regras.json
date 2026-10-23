@@ -65,25 +65,25 @@
       "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 2.4 } }
   ],
 
-  // a^n b^n - A LINGUAGEM QUE NENHUM AUTOMATO FINITO RECONHECE.
+  // A GRAMATICA DA FASE 2: S -> aSb | e.
   //
-  // Seis "a" e depois seis "b". O leque distribui os angulos EM ORDEM DE
-  // INDICE, entao os seis ambar ocupam metade do arco e os seis azuis a outra.
+  // O S fica no posto "derivacao", e e por la que o Vladimir o acha para
+  // derivar (Vladimir::AtualizarGramatica).
+  "variavel": [
+    { "posto": "derivacao", "animacao": "S" }
+  ],
+
+  // O PAR QUE A DERIVACAO SOLTA: o "a" de um lado e o "b" do outro, abertos em
+  // volta do rumo do S. Com o S descendo, o indice 0 sai a direita e o 1 a
+  // esquerda (a WaveAttack abre do angulo menor para o maior) - por isso o 0 e
+  // o "b": a derivacao fica escrita na tela como se le, "a S b".
   //
-  // E AQUI A CONTAGEM VIRA INFORMACAO. Antes, saber que vinham seis "b" nao
-  // mudava nada - eram iguais aos "a". Agora os seis "b" sao seis
-  // perseguidores, e a metade ambar do arco e o aviso de quantos vem e de que
-  // lado. Ler a palavra passa a valer o tempo de ler.
-  //
-  // A FORCA E MENOR QUE A DO (ab)*: 1,4 contra 1,9. Seis perseguidores de uma
-  // vez com a forca da fase 1 fechariam um cerco de que nao da para sair; com
-  // 1,4 eles curvam o suficiente para obrigar a andar, e pouco o bastante para
-  // haver saida.
-  "blocos": [
-    { "indices": [0, 1, 2, 3, 4, 5],   "animacao": "A" },
-    { "indices": [6, 7, 8, 9, 10, 11],
-      "animacao": "B",
-      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 2.6 } }
+  // O "b" persegue com a forca e a duracao do "b" do automato: e o que o aluno
+  // aprendeu na fase 1.
+  "par": [
+    { "indices": [0], "animacao": "B",
+      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 2.4 } },
+    { "indices": [1], "animacao": "A" }
   ],
 
   // A PILHA, VISTA DE LADO.

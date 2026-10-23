@@ -4,6 +4,7 @@
 
 #include "Vladimir.h"
 
+#include <algorithm>
 #include <limits>
 
 #include "../../../Random.h"
@@ -11,6 +12,7 @@
 #include "../../../Attacks/Behaviors.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "../../../Components/RigidBodyComponent.h"
 #include "../../../Scenes/Battle/Battle.h"
 #include "../../../Scenes/Battle/ProjectileManager.h"
 #include "BossesProjectiles/BossProjectile.h"
@@ -21,6 +23,7 @@ Vladimir::Vladimir(Scene* scene) : Boss(scene) {
 void Vladimir::OnUpdate(const float deltaTime) {
     Boss::OnUpdate(deltaTime);
     AtualizarAutomato();
+    AtualizarGramatica(deltaTime);
 }
 
 std::string Vladimir::AvisoDoIntercambio() const {
@@ -163,9 +166,115 @@ void Vladimir::AtualizarAutomato() {
     }
 }
 
+void Vladimir::AtualizarGramatica(const float deltaTime) {
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool naGramatica = fsm && fsm->GetStateName() == Gramatica::kFaseDaGramatica && !EhClone();
+
+    // AS PALAVRAS VAZIAS SOMEM no tempo delas, dentro ou fora da fase.
+    for (auto& [vazia, falta] : mVazias) {
+        falta -= deltaTime;
+        if (falta <= 0.0f && vazia->GetState() == ActorState::Active) vazia->Kill();
+    }
+    mVazias.erase(std::remove_if(mVazias.begin(), mVazias.end(),
+                                 [](const auto& v) { return v.second <= 0.0f || v.first->GetState() != ActorState::Active; }),
+                  mVazias.end());
+
+    if (!naGramatica) {
+        // A FASE ACABOU: o S que ainda voa segue reto, sem derivar mais, e o
+        // placar volta ao que o arquivo diz.
+        if (mNaGramatica) {
+            mVariaveis.clear();
+            mFormas.clear();
+            if (!mAnuncioDaGramatica.empty()) RegistrarAnuncio(Gramatica::kFaseDaGramatica, mAnuncioDaGramatica);
+            mNaGramatica = false;
+        }
+        return;
+    }
+    if (!mNaGramatica) {
+        mNaGramatica = true;
+        if (mAnuncioDaGramatica.empty()) mAnuncioDaGramatica = AnuncioDaFase(Gramatica::kFaseDaGramatica);
+    }
+
+    // QUEM NAO ESTA MAIS EM CAMPO SAI DA CONTA: o S derrubado pelo aluno, o que
+    // saiu da tela. E o S que o professor acabou de atirar entra, com o sorteio.
+    const auto emCampo = NoPosto(Gramatica::kPostoDaDerivacao);
+    for (auto it = mVariaveis.begin(); it != mVariaveis.end();) {
+        const bool esta = std::find(emCampo.begin(), emCampo.end(), it->first) != emCampo.end();
+        it = esta ? std::next(it) : mVariaveis.erase(it);
+    }
+    for (BossProjectile* s : emCampo) {
+        if (mVariaveis.count(s)) continue;
+        const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
+        const int cadeia = mProximaCadeia++;
+        mVariaveis[s] = Variavel{0.0f, Gramatica::SortearDerivacoes(sorteio), cadeia};
+        mFormas[cadeia] = Gramatica::kCaraDaVariavel;
+        mCadeiaDoPlacar = cadeia;
+        RegistrarAnuncio(Gramatica::kFaseDaGramatica, mAnuncioDaGramatica);
+    }
+
+    // OS QUE CHEGARAM A IDADE DE DERIVAR, separados antes: derivar mexe na conta.
+    std::vector<BossProjectile*> derivam;
+    for (auto& [s, v] : mVariaveis) {
+        v.idade += deltaTime;
+        if (v.idade >= Gramatica::kDerivar) derivam.push_back(const_cast<BossProjectile*>(s));
+    }
+
+    for (BossProjectile* s : derivam) {
+        const Variavel v = mVariaveis[s];
+        mVariaveis.erase(s);
+        std::string& forma = mFormas[v.cadeia];
+        const std::string antes = forma;
+
+        Vector2 rumo(0.0f, 1.0f);
+        if (const auto* rb = s->GetComponent<RigidBodyComponent>(); rb && rb->GetVelocity().LengthSq() > 0.0f) {
+            rumo = rb->GetVelocity();
+            rumo.Normalize();
+        }
+
+        if (v.restantes > 0) {
+            // S -> aSb: o par sai aberto em volta do rumo, e o S novo segue nele.
+            mDerivando = true;
+            mDisparoDaDerivacao = s->GetPosition();
+            mRumoDaDerivacao = Math::ToDegrees(Math::Atan2(rumo.y, rumo.x));
+            Disparar(Gramatica::kGatilhoDoPar);
+            mNascida = nullptr;
+            Disparar(Gramatica::kGatilhoDaVariavel);
+            if (mNascida) mVariaveis[mNascida] = Variavel{0.0f, v.restantes - 1, v.cadeia};
+            mDerivando = false;
+            s->Kill();
+            forma = Gramatica::Derivar(forma);
+        } else {
+            // S -> e: o S vira a palavra vazia, que nao machuca e some logo.
+            s->DefinirPosto("");
+            s->DefinirEnfeite(true);
+            if (auto* anim = s->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(Gramatica::kCaraDaVazia);
+            if (auto* rb = s->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+            s->DescartarComportamentos();
+            mVazias.emplace_back(s, Gramatica::kVaziaNaTela);
+            forma = Gramatica::Esvaziar(forma);
+        }
+        if (v.cadeia == mCadeiaDoPlacar) {
+            RegistrarAnuncio(Gramatica::kFaseDaGramatica, Gramatica::Passo(antes, forma));
+        }
+    }
+}
+
 void Vladimir::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
                                     const std::string& stateName) {
     Boss::OnProjectilesCreated(projectiles, stateName);
+
+    // O S QUE NASCEU DE UMA DERIVACAO: e ele que herda a conta do pai. E todo
+    // S que nasce sai da conta antiga: o objeto do pool pode ter sido um S que
+    // o aluno derrubou neste mesmo quadro, e herdaria a idade dele.
+    if (stateName == Gramatica::kFaseDaGramatica) {
+        for (auto& p : projectiles) {
+            auto* s = dynamic_cast<BossProjectile*>(p.get());
+            if (!s || s->Posto() != Gramatica::kPostoDaDerivacao) continue;
+            mVariaveis.erase(s);
+            if (mDerivando) mNascida = s;
+        }
+        return;
+    }
     if (!mFormando) return;
 
     // O DIAGRAMA E OS ESTADOS SAO O MAPA, e nao tiro: ninguem se machuca neles,
@@ -182,6 +291,20 @@ void Vladimir::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& pr
 
 void Vladimir::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
     Boss::CustomizeAttackParams(params, stateName);
+
+    // NA GRAMATICA, o que nasce de uma derivacao sai do S, no rumo dele; e o
+    // par de S que o professor atira sai aberto em volta do aluno - o meio do
+    // leque e ele, e os dois S passam um de cada lado (ver fases.json).
+    if (stateName == Gramatica::kFaseDaGramatica) {
+        if (mDerivando) {
+            params.firePosition = mDisparoDaDerivacao;
+            params.centralAngle = mRumoDaDerivacao;
+            return;
+        }
+        const Vector2 d = GetDirectionToPlayer();
+        params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x));
+        return;
+    }
 
     if (stateName != Automato::kFaseDoAutomato) return;
 

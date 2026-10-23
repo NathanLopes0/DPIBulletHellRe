@@ -97,19 +97,47 @@ def simbolo(letra, cor):
     return im
 
 
+# A VARIAVEL S DA GRAMATICA, e a palavra vazia. O S e quadrado e roxo, e nao
+# redondo: ele NAO E LETRA do alfabeto - e o que ainda vai virar letras -, e o
+# aluno precisa ver isso de longe. A vazia e um epsilon apagado, que some logo.
+COR_S = (190, 150, 240, 255)
+CARLITO = os.path.join(RAIZ, "Assets", "Fonts", "Carlito-Regular.ttf")
+
+
+def variavel():
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([2, 2, 29, 29], radius=6, fill=COR_S, outline=TRACO, width=2)
+    d.text((16, 16), "S", fill=TRACO, font=ImageFont.truetype(CARLITO, 20), anchor="mm")
+    return im
+
+
+def vazia():
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.ellipse([4, 4, 27, 27], outline=(200, 200, 220, 150), width=2)
+    d.text((16, 15), "\u03b5", fill=(220, 220, 240, 200), font=ImageFont.truetype(CARLITO, 20), anchor="mm")
+    return im
+
+
 def alfabeto():
-    """A folha dos simbolos: 4 quadros de "a" e 4 de "b", em 4x2.
+    """A folha dos simbolos, em 4x4: 4 quadros de "a", 4 de "b", 4 do S e 4 da
+    palavra vazia.
 
     QUATRO DE CADA, e nao um, porque o leitor de animacao do projeto recebe uma
     LISTA de quadros por animacao ("animacoes": {"A": [0,1,2,3]}). Com um quadro
     so a animacao existe e nao anima; com quatro da para pulsar depois sem mexer
     em arquivo nenhum.
+
+    AS DUAS LINHAS DE BAIXO VIERAM DEPOIS, com a gramatica da fase 2, e ficam
+    DEPOIS das letras: os quadros 0 a 7 continuam onde estavam.
     """
-    folha = Image.new("RGBA", (128, 64), (0, 0, 0, 0))
+    folha = Image.new("RGBA", (128, 128), (0, 0, 0, 0))
     for i in range(4):
         folha.alpha_composite(simbolo("a", COR_A), (i * 32, 0))
-    for i in range(4):
         folha.alpha_composite(simbolo("b", COR_B), (i * 32, 32))
+        folha.alpha_composite(variavel(), (i * 32, 64))
+        folha.alpha_composite(vazia(), (i * 32, 96))
     return folha
 
 
@@ -277,7 +305,7 @@ def diagrama():
 if __name__ == "__main__":
     grava(vladimir(), "DPIBHVladimir", "Assets/Teachers")
     grava(alfabeto(), "DPIBHVladimirSimbolo", "Assets/Teachers/Projectiles",
-          quadros=8, lado=32)
+          quadros=16, lado=32)
     grava(estados(), "DPIBHVladimirEstado", "Assets/Teachers/Projectiles",
           quadros=6, lado=LADO_DO_ESTADO)
     grava(diagrama(), "DPIBHVladimirDiagrama", "Assets/Teachers/Projectiles")

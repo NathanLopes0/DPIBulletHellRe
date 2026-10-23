@@ -28,6 +28,28 @@
     "ordemDeDesenho": 90
   },
 
+  // A VARIAVEL S DA GRAMATICA DA FASE 2, e a palavra vazia em que ela termina.
+  // Mesma folha das letras, nas duas linhas de baixo - mas um TIPO a parte,
+  // porque o S e derrubavel e as letras nao: o aluno pode interromper a
+  // derivacao, e derrubar um "a" nao quer dizer nada. Dois tiros derrubam: o S
+  // vem descendo, e um tiro so o derrubaria antes de ele derivar uma vez.
+  //
+  // Um pouco maior que as letras, e quadrado: nao e letra do alfabeto - e o que
+  // ainda vai virar letras.
+  "Variavel": {
+    "sprite": "Teachers/Projectiles/DPIBHVladimirSimbolo.png",
+    "dados":  "Teachers/Projectiles/DPIBHVladimirSimbolo.json",
+    "animacoes": {
+      "S": [8, 9, 10, 11],
+      "Vazia": [12, 13, 14, 15]
+    },
+    "animacaoInicial": "S",
+    "escala": 1.4,
+    "ordemDeDesenho": 91,
+    "derrubavel": true,
+    "resistencia": 2
+  },
+
   // OS ESTADOS DO AUTOMATO DA FASE 1: q0, q1 e q2, e cada um aceso - o estado
   // em que o professor esta. Aneis maiores que o cartao dele (192 contra 128):
   // ele pousa DENTRO do estado, e o anel continua aparecendo em volta. O q2 tem

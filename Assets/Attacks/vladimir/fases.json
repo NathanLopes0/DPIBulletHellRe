@@ -113,7 +113,28 @@
     ]
   },
 
-  // O INTERCAMBIO NASCEU AQUI, aos 8s e aos 16s, quando era so desta fase. A
+  // FASE 2 - LIVRE DE CONTEXTO: A GRAMATICA   |   gesto: A VARREDURA
+  //
+  // S -> aSb | e, a gramatica classica de aⁿbⁿ (Gramatica.h). O professor
+  // varre o alto da tela e atira o S - a VARIAVEL, quadrada e roxa, que ainda
+  // nao e letra -, dois de cada vez, abertos em volta do aluno. O S DERIVA EM
+  // VOO: a cada 0,55s ele vira um
+  // "a" de um lado, um "b" do outro e um S novo no meio, que segue e deriva de
+  // novo; na ultima vez vira a palavra vazia e some. Cada S deriva de duas a
+  // quatro vezes, e deixa aⁿbⁿ escrito no campo na ordem da derivacao.
+  //
+  // O ALUNO PODE INTERROMPER A DERIVACAO: o S e derrubavel (dois tiros). O que
+  // ele ja soltou fica.
+  //
+  // E POR ISSO O S NAO VEM EM CIMA DO ALUNO. Com um S so, mirado nele, o S descia
+  // pela coluna dos tiros do proprio aluno e morria antes de derivar uma vez:
+  // medido, a fase sozinha deu ZERO acerto nos tres pilotos. Com dois S abertos
+  // 32 graus para cada lado, ele cruza a coluna de tiro so de passagem: 2
+  // acertos no que persegue, 7 no parado e 5 no que vai e vem.
+  //
+  // O PLACAR E O ULTIMO PASSO DA DERIVACAO do ultimo S atirado: "aSb → aaSbb".
+  //
+  // O INTERCAMBIO NASCEU NESTA FASE, aos 8s e aos 16s, quando era so dela. A
   // medida de entao continua valendo para a troca de lugar: com e sem ela, na
   // batalha inteira, o piloto que persegue ficou em 74,5 contra 73,6, e nenhum
   // piloto foi atingido no segundo seguinte a uma troca. O ALUNO PARADO NO MEIO
@@ -121,14 +142,20 @@
   "StateTwo": {
     "duracao": 17,
     "proximo": "StateThree",
-    "anuncio": "aⁿbⁿ",
+    "anuncio": "S → aSb | ε",
     "intercambio": { "aCada": 8, "aviso": 1.5 },
-    "movimento": { "tipo": "Varredura", "a": 170, "b": 150 },
+    "movimento": { "tipo": "Varredura", "a": 150, "b": 160 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Simbolo",
-        "projeteis": 12, "velocidade": 250, "angulo": 70, "intervalo": 0.09,
-        "cooldown": 3.0,
-        "regras": "blocos" }
+      { "estrategia": "WaveAttack", "projetil": "Variavel",
+        "projeteis": 2, "velocidade": 190, "angulo": 64, "intervalo": 0,
+        "cooldown": 2.0,
+        "regras": "variavel" },
+      { "gatilho": "variavel", "estrategia": "WaveAttack", "projetil": "Variavel",
+        "projeteis": 1, "velocidade": 190, "angulo": 0, "intervalo": 0,
+        "regras": "variavel" },
+      { "gatilho": "derivar", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 2, "velocidade": 230, "angulo": 70, "intervalo": 0,
+        "regras": "par" }
     ]
   },
 

@@ -7,10 +7,13 @@
 #include <array>
 #include <optional>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "../Boss.h"
 #include "../../../Attacks/Automato.h"
+#include "../../../Attacks/Gramatica.h"
 
 /**
  * @class Vladimir
@@ -37,6 +40,10 @@
  * palavra do placar um simbolo por vez, atira a letra que leu e voa para o
  * estado que a tabela manda (o movimento "Conduzido", que pergunta aqui o
  * destino). Lida a palavra, aceita ou rejeita.
+ *
+ * A FASE 2 E UMA GRAMATICA LIVRE DE CONTEXTO (Gramatica.h), S -> aSb | e: ele
+ * atira o S, e o S deriva em voo - vira um "a", um "b" e um S novo, que deriva
+ * de novo, ate virar a palavra vazia. Aqui mora a derivacao de cada S em campo.
  */
 class Vladimir : public Boss {
 public:
@@ -107,4 +114,39 @@ private:
     /// Quanto dura cada simbolo lido, e o veredito no fim da palavra.
     static constexpr float kPasso = 1.1f;
     static constexpr float kVeredito = 1.3f;
+
+    // ---- A GRAMATICA DA FASE 2 ----------------------------------------------
+    //
+    // Todo S em campo (o posto "derivacao") tem a idade dele e quantas vezes
+    // ainda deriva. O S que o professor atira pelo relogio nasce com um sorteio
+    // (Gramatica::SortearDerivacoes); o que nasce de uma derivacao herda um a
+    // menos. Com a idade de derivar: se ainda deriva, sai o par - um "a" e um
+    // "b" - e um S novo no meio, e o velho some (os gatilhos "derivar" e
+    // "variavel"); se nao, vira a palavra vazia, que nao machuca e some logo.
+
+    void AtualizarGramatica(float deltaTime);
+
+    struct Variavel {
+        float idade = 0.0f;
+        int restantes = 0;
+        int cadeia = 0;   ///< de qual S do professor ele descende - o placar segue o ultimo
+    };
+    std::unordered_map<const BossProjectile*, Variavel> mVariaveis;
+
+    /// A forma sentencial de cada cadeia, e qual e a do placar.
+    std::unordered_map<int, std::string> mFormas;
+    int mCadeiaDoPlacar = 0;
+    int mProximaCadeia = 1;
+
+    /// As palavras vazias na tela, e quanto falta para cada uma sumir.
+    std::vector<std::pair<BossProjectile*, float>> mVazias;
+
+    bool mNaGramatica = false;
+    std::string mAnuncioDaGramatica;
+
+    /// Derivando: de onde e para onde sai o que nasce, e o S que nasceu.
+    bool mDerivando = false;
+    Vector2 mDisparoDaDerivacao;
+    float mRumoDaDerivacao = 90.0f;
+    BossProjectile* mNascida = nullptr;
 };
