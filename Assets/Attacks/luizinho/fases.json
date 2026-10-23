@@ -8,13 +8,12 @@
   //   StateOne    Amarracoes          ligare, "atar"
   //   StateTwo    Sistemas de tipos   coercere, "forcar"
   //   StateThree  Gerencia de memoria memento mori, "lembra-te de que morreras"
-  //   StateFinal  Sequenciadores      sequi, "seguir"
+  //   StateFinal  Sequenciadores      excipere, "tirar de fora"
   //
   // DEPOIS DO LATIM, O CODIGO, como nas fases do Andre: o placar mostra o que
   // o professor roda, e o campo e a execucao: o escopo (Escopo.h), a
-  // coercao (Coercao.h) e o heap (Memoria.h). A final ainda e a da
-  // etimologia - o projetil obedecendo ao sentido literal da palavra -, e
-  // ganha a sua no commit seguinte.
+  // coercao (Coercao.h), o heap (Memoria.h) e a pilha de chamadas da final
+  // (Excecao.h).
   //
   // A MEMORIA E A FASE 3, a que DECIDE a batalha ("proximo" vazio): a final
   // so e vista por quem termina entre 40 e 59, ou com 100.
@@ -130,35 +129,36 @@
     ]
   },
 
-  // FASE FINAL - SEQUENCIADORES   |   gesto: A ORBITA
+  // FASE FINAL - SEQUENCIADORES: AS EXCECOES   |   gesto: O PONTO DE EXECUCAO
   //
-  // So e vista por quem termina a terceira entre 40 e 59, ou com 100.
+  // So e vista por quem termina a terceira entre 40 e 59, ou com 100 - e a
+  // repescagem e, ela mesma, um catch.
   //
-  // UMA SERPENTE: a cabeca persegue o aluno, e cada gomo passa exatamente por
-  // onde ela passou - sequi, "seguir", a sequencia. O sequenciador e o GOTO
-  // (Luizinho::AtualizarGoto): a cada 3 s um rotulo aparece do outro lado do
-  // aluno, o placar diz "vade ad II" ("vai para o II"), e a cabeca salta para
-  // la; o corpo salta quando chega no ponto do salto. Uma serpente a cada 5 s,
-  // e a cabeca persegue por 4,5: so ha uma cabeca obedecendo quando o goto
-  // vem, e duas nunca caem no mesmo rotulo.
+  // O campo e a pilha de chamadas (Excecao.h): cada chamada empilha uma faixa
+  // no alto, com o que ela faz com uma excecao no canto. O professor desce ate
+  // a mais funda e lanca; a excecao SOBE uma faixa a cada 0,4 s, o finally
+  // roda no caminho (um anel), e cada faixa que nao a trata e desempilhada e
+  // cai numa cortina de destrocos sobre o aluno, com um em cima dele. Ela para
+  // no primeiro catch do tipo dela ou de um tipo acima na hierarquia; se nem o
+  // main trata, a pilha inteira cai. Cinco rodadas: a IOException que f trata,
+  // a NullPointerException que so o main trata, a que o catch de
+  // RuntimeException trata, a que ninguem trata, e a do proprio programa:
+  // catch (Reprovado e) { repescagem(); }.
   //
-  // A ORBITA E PARA O EXAME TER COMO PASSAR. Com a varredura rapida do
-  // esqueleto (280 px/s), o tiro de quem esta embaixo do professor chegava
-  // depois que ele ja tinha saido: comecando a final com 40, o piloto que
-  // persegue acertou o professor 10 vezes em 17 s e terminou com 39,6, e
-  // varrendo a 160 acertou 9 e terminou com 39,0. Com a orbita lenta ele acerta 100 vezes e sai
-  // aprovado com 67,0 (4 acertos sofridos); o parado sai com 21,4.
+  // A velocidade dos destrocos e a do anel sao as de Excecao.h (um teste
+  // confere); a excecao e enfeite e quem a move e o professor.
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
-    "anuncio": "sequī · seguir",
-    "movimento": { "tipo": "Orbitar", "a": 180, "b": 0.12 },
+    "anuncio": "excipere · tirar de fora",
+    "movimento": { "tipo": "Conduzido", "a": 900 },
     "ataques": [
-      { "estrategia": "SerpenteAttack", "projetil": "Serpente",
-        "projeteis": 14, "velocidade": 220,
-        "cooldown": 5.0,
-        "serpente": { "espaco": 24, "giro": 1.5, "duracao": 4.5,
-                      "cabeca": "Cabeca", "corpo": "Corpo" } }
+      { "gatilho": "excecao", "estrategia": "WaveAttack", "projetil": "Excecao",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "destroco", "estrategia": "WaveAttack", "projetil": "Destroco",
+        "projeteis": 17, "velocidade": 280, "angulo": 0, "anguloCentral": 90, "intervalo": 0 },
+      { "gatilho": "finally", "estrategia": "WaveAttack", "projetil": "Destroco",
+        "projeteis": 12, "velocidade": 220, "angulo": 330, "intervalo": 0 }
     ]
   }
 }

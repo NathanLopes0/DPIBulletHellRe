@@ -14,7 +14,8 @@
   //   Erro      o TypeError e o erro de compilacao da fase 2.
   //   Celula    um int de um bloco de memoria da fase 3.
   //   Estilhaco a memoria corrompida que estoura na fase 3.
-  //   Serpente  a sequencia: a "Cabeca" e os gomos do "Corpo".
+  //   Excecao   a excecao da final, que sobe pela pilha de chamadas.
+  //   Destroco  o que cai da pilha: a faixa desempilhada e o finally.
   //
   // Cada tipo registrado custa 300 instancias no pre-aquecimento; as animacoes
   // do mesmo tipo custam uma vez so.
@@ -112,14 +113,26 @@
     "ordemDeDesenho": 91
   },
 
-  "Serpente": {
-    "sprite": "Teachers/Projectiles/DPIBHLuizinhoLetras.png",
-    "dados":  "Teachers/Projectiles/DPIBHLuizinhoLetras.json",
+  // A EXCECAO DA FINAL (Excecao.h): o nome do tipo num chip vermelho, que sobe
+  // pela pilha. E enfeite: o que acerta sao os destrocos.
+  "Excecao": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoExcecoes.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoExcecoes.json",
     "animacoes": {
-      "Cabeca": [24, 25, 26, 27],
-      "Corpo":  [28, 29, 30, 31]
+      "Exception": [0], "IOException": [1], "RuntimeException": [2],
+      "NullPointerException": [3], "Reprovado": [4]
     },
-    "animacaoInicial": "Corpo",
-    "ordemDeDesenho": 91
+    "animacaoInicial": "Exception",
+    "ordemDeDesenho": 92
+  },
+
+  // O QUE CAI DA PILHA: o "Destroco" de cada faixa desempilhada, e o anel do
+  // "Finally", que roda de qualquer jeito.
+  "Destroco": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoPilha.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoPilha.json",
+    "animacoes": { "Destroco": [0], "Finally": [1] },
+    "animacaoInicial": "Destroco",
+    "ordemDeDesenho": 90
   }
 }

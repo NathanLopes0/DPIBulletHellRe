@@ -15,14 +15,13 @@
 #include "../Boss.h"
 #include "../../../Attacks/Coercao.h"
 #include "../../../Attacks/Escopo.h"
+#include "../../../Attacks/Excecao.h"
 #include "../../../Attacks/Memoria.h"
-#include "../../../Attacks/Rastro.h"
 
 class BossProjectile;
 class DrawLinhasComponent;
 class EtiquetaDeCodigo;
 class PainelDeCodigo;
-class RotuloDoGoto;
 
 /**
  * @class Luizinho
@@ -59,8 +58,11 @@ class RotuloDoGoto;
  * derruba-lo; no C++ o delete deixa o ponteiro pendente, a escrita nele
  * estoura, e o laco que so aloca vaza ate o bad_alloc.
  *
- * O que nao cabe em dados mora aqui tambem: o GOTO da final, que manda a
- * cabeca de cada serpente saltar.
+ * A FINAL SAO OS SEQUENCIADORES (Excecao.h), e a repescagem e um catch: o
+ * campo e a pilha de chamadas, uma faixa por chamada. O professor desce ate a
+ * mais funda e lanca a excecao; ela sobe procurando quem a trate, o finally
+ * roda no caminho, e cada faixa que nao a trata e desempilhada e cai em
+ * destrocos sobre o aluno.
  *
  * O BALANCEAMENTO VIVE EM DADOS, como o dos outros: Assets/Attacks/luizinho/.
  */
@@ -72,9 +74,6 @@ public:
     void OnUpdate(float deltaTime) override;
     [[nodiscard]] std::optional<Vector2> AlvoDoMovimento() const override;
     void AoTerminarABatalha() override;
-
-    /// A fase dos sequenciadores, a final.
-    static constexpr const char* kFaseDaSequencia = "StateFinal";
 
 protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
@@ -244,32 +243,36 @@ private:
     std::map<std::string, EtiquetaDeCodigo*> mRaizes;
     static constexpr float kAbaixoDoProfessor = 74.0f;
 
-    // ---- A FINAL: O GOTO --------------------------------------------------
-    //
-    // A cada kGotoACada segundos o professor da um goto: um rotulo aparece
-    // (o numero dele em algarismos romanos, "II:"), o placar diz "vade ad II"
-    // - "vai para o II" - e depois de kGotoAviso segundos a cabeca de cada
-    // serpente que ainda persegue salta para la. O corpo salta quando chega no
-    // ponto do salto (Rastro::Caminho).
+    // ---- A FINAL: AS EXCECOES ------------------------------------------------
 
-    void AtualizarGoto(float deltaTime);
+    void AtualizarExcecoes();
+    void DesmontarExcecoes();
+    void ComecarRodada(int k);
+    void Empilhar(int i);
+    void Desempilhar(int i, bool quebrando);
+    void ExecutarPasso(const Excecao::Passo& p);
+    void PintarFaixa(int i, SDL_Color moldura, SDL_Color fundo);
+    [[nodiscard]] Vector2 MeioDaFaixa(int i) const;
 
-    /// Onde o proximo rotulo fica: no lado oposto ao do aluno, no alto. A
-    /// cabeca reaparece longe dele e tem de voltar.
-    [[nodiscard]] Vector2 OndeFicaORotulo() const;
+    bool mNasExcecoes = false;
+    int mRodadaDaVez = -1;
+    Excecao::Rodada mRodada;
+    std::vector<Excecao::Passo> mPassos;
+    size_t mProximoPasso = 0;
+    size_t mEmpilhados = 0;
+    bool mLancou = false;
+    bool mRetornou = false;
+    int mCapturouEm = -1;
+    float mXDaRodada = 0.0f;
 
-    std::shared_ptr<Rastro::Desvio> mDesvio = std::make_shared<Rastro::Desvio>();
-    bool mNaSequencia = false;
-    bool mAvisandoOGoto = false;
-    float mTempoDoGoto = 0.0f;
-    Vector2 mProximoRotulo;
-    std::string mLatimDaSequencia;
+    /// A excecao em campo: um enfeite com o nome do tipo, que sobe pela pilha.
+    BossProjectile* mExcecao = nullptr;
 
-    /// O marcador do rotulo. O ator e da cena; o professor so o mostra.
-    RotuloDoGoto* mRotulo = nullptr;
-
-    static constexpr float kGotoACada = 3.0f;
-    static constexpr float kGotoAviso = 0.8f;
-    static constexpr float kAlturaDoRotulo = 220.0f;
-    static constexpr float kMargemDoRotulo = 90.0f;
+    /// Uma faixa por chamada empilhada: o painel e o canto com o que ela faz
+    /// com a excecao. Os atores sao da cena; o professor os cria e destroi.
+    struct FaixaEmCampo {
+        PainelDeCodigo* painel = nullptr;
+        EtiquetaDeCodigo* canto = nullptr;
+    };
+    std::array<FaixaEmCampo, Excecao::kMaiorPilha> mFaixas{};
 };

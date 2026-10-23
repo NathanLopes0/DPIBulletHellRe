@@ -35,12 +35,10 @@ OS PROJETEIS, um par de animacoes por assunto:
               Vazou
     Estilhaco Corrompido o caco do ponteiro pendente e do bad_alloc
                         (DPIBHLuizinhoEstilhacos).
-    Serpente  Cabeca    a cabeca da serpente, que segue o aluno.
-              Corpo     os gomos, que seguem a cabeca.
-
-A Serpente mora em DPIBHLuizinhoLetras, nas duas ultimas linhas; as outras
-seis sao as letras da etimologia e os tijolos do coletor antigo, que nenhuma
-fase usa mais.
+    Excecao   o nome do tipo num chip vermelho: a excecao da final, que sobe
+              pela pilha (DPIBHLuizinhoExcecoes).
+    Destroco  Destroco  o pedaco da faixa desempilhada, e o anel do finally
+              Finally   (DPIBHLuizinhoPilha).
 """
 from PIL import Image, ImageDraw, ImageFont
 import json, os
@@ -55,15 +53,7 @@ TRACO  = (34, 28, 24, 255)
 
 PEDRA  = (176, 170, 158, 255)
 SULCO  = (92, 86, 78, 255)
-CERA   = (168, 128, 62, 255)
-MOLDURA = (104, 72, 40, 255)
-OURO   = (246, 206, 92, 255)
 COURO  = (128, 76, 44, 255)
-BRONZE = (196, 140, 72, 255)
-TIJOLO = (178, 92, 62, 255)
-MARCA  = (120, 18, 24, 255)
-ESCAMA = (82, 150, 92, 255)
-VENTRE = (172, 210, 120, 255)
 
 
 def quadro_json(nome, w, h, quadros=1, lado=None):
@@ -114,109 +104,6 @@ def luizinho():
 
     d.text((40, 98), "LUIZINHO", fill=TINTA)
     return im
-
-
-def ladrilho(d, m, fundo, borda):
-    d.rounded_rectangle([m, m, 31 - m, 31 - m], radius=4, fill=fundo, outline=borda, width=2)
-
-
-def estatica(fase):
-    """A LETRA ESTATICA: pedra com um "C" talhado. Brilha de leve."""
-    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    ladrilho(d, 3 + (fase % 2), PEDRA, TRACO)
-    d.arc([9, 8, 23, 24], start=40, end=320, fill=SULCO, width=3)
-    return im
-
-
-def livre(fase):
-    """A AMARRACAO QUE ESPERA: tabuinha de cera em branco, com o estilete
-    piscando no meio, como um cursor."""
-    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    ladrilho(d, 3, MOLDURA, TRACO)
-    d.rectangle([8, 8, 23, 23], fill=CERA)
-    if fase % 2 == 0:
-        d.line([(16, 11), (16, 20)], fill=TRACO, width=2)
-    return im
-
-
-def ligada(fase):
-    """A AMARRACAO FEITA: a mesma tabuinha, agora com um "V" em ouro."""
-    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    ladrilho(d, 3, MOLDURA, TRACO)
-    d.rectangle([8, 8, 23, 23], fill=CERA)
-    cor = OURO if fase % 2 == 0 else (255, 236, 150, 255)
-    d.line([(10, 10), (16, 22), (22, 10)], fill=cor, width=3)
-    return im
-
-
-def capsula(fase):
-    """A CAPSA: o estojo cilindrico dos rolos, com a tampa e duas cintas."""
-    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    a = fase % 2
-    d.rounded_rectangle([8, 4 + a, 23, 28 - a], radius=6, fill=COURO, outline=TRACO, width=2)
-    d.rectangle([7, 7 + a, 24, 11 + a], fill=BRONZE, outline=TRACO)   # a tampa
-    d.line([(9, 18), (22, 18)], fill=BRONZE, width=2)
-    d.line([(9, 23), (22, 23)], fill=BRONZE, width=2)
-    return im
-
-
-def numero_romano(d, x, y, cor):
-    """Um "XII" desenhado a traco, pequeno."""
-    d.line([(x, y), (x + 5, y + 7)], fill=cor, width=2)
-    d.line([(x + 5, y), (x, y + 7)], fill=cor, width=2)
-    d.line([(x + 8, y), (x + 8, y + 7)], fill=cor, width=2)
-    d.line([(x + 11, y), (x + 11, y + 7)], fill=cor, width=2)
-
-
-def bloco(fase, marcado=False):
-    """O BLOCO DE MEMORIA: um tijolo com junta e um numero romano, o endereco.
-    Marcado, ganha um X escuro por cima - a marca do coletor."""
-    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    m = 4 + (fase % 2 if marcado else 0)
-    d.rectangle([3, 7 + m // 2, 28, 24 - m // 2], fill=TIJOLO, outline=TRACO, width=2)
-    numero_romano(d, 9, 12, TINTA)
-    if marcado:
-        d.line([(5, 7), (26, 24)], fill=MARCA, width=3)
-        d.line([(26, 7), (5, 24)], fill=MARCA, width=3)
-    return im
-
-
-def cabeca(fase):
-    """A CABECA DA SERPENTE, de cima: olhos e a lingua que entra e sai."""
-    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    d.ellipse([5, 5, 26, 26], fill=ESCAMA, outline=TRACO, width=2)
-    d.ellipse([10, 11, 14, 15], fill=TRACO)
-    d.ellipse([17, 11, 21, 15], fill=TRACO)
-    if fase % 2 == 0:
-        d.line([(15, 26), (15, 30)], fill=MARCA, width=2)
-    return im
-
-
-def corpo(fase):
-    """UM GOMO DO CORPO: escama verde com o ventre claro no meio."""
-    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    m = 7 + (fase % 2)
-    d.ellipse([m, m, 31 - m, 31 - m], fill=ESCAMA, outline=TRACO, width=2)
-    d.ellipse([13, 13, 18, 18], fill=VENTRE)
-    return im
-
-
-def folha():
-    """Quatro quadros de cada, uma animacao por linha, numa folha 4x8."""
-    linhas = (estatica, livre, ligada, capsula,
-              bloco, lambda i: bloco(i, marcado=True), cabeca, corpo)
-    f = Image.new("RGBA", (128, 32 * len(linhas)), (0, 0, 0, 0))
-    for linha, desenho in enumerate(linhas):
-        for i in range(4):
-            f.alpha_composite(desenho(i), (i * 32, linha * 32))
-    return f
 
 
 # ---- A FASE 1: O ESCOPO ----------------------------------------------------
@@ -384,6 +271,56 @@ def estilhaco_de_memoria():
     return im.resize((16, 16), Image.LANCZOS)
 
 
+# ---- A FINAL: AS EXCECOES ---------------------------------------------------
+
+XW, XH = 168, 24   # a excecao: o nome do tipo num chip; e enfeite, sem colisor
+EXCECOES = ["Exception", "IOException", "RuntimeException", "NullPointerException", "Reprovado"]
+
+
+def excecao(nome):
+    """A excecao que sobe pela pilha: o nome do tipo num chip vermelho."""
+    s = 4
+    im = Image.new("RGBA", (XW * s, XH * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    fonte = ImageFont.truetype(CARLITO, 15 * s)
+    largura = d.textlength(nome, font=fonte) / s + 20
+    x0 = (XW - largura) / 2
+    d.rounded_rectangle([x0 * s, 1 * s, (XW - x0) * s, (XH - 2) * s], radius=6 * s,
+                        fill=(150, 24, 30, 240), outline=(255, 120, 100, 255), width=2 * s)
+    d.text((XW * s // 2, XH * s // 2), nome, fill=(255, 236, 228, 255), font=fonte, anchor="mm")
+    return im.resize((XW, XH), Image.LANCZOS)
+
+
+PW = 18   # o destroco e o anel do finally: o colisor e metade disto
+
+
+def destroco():
+    """Um pedaco da faixa desempilhada: uma chave quebrada."""
+    s = 4
+    im = Image.new("RGBA", (PW * s, PW * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.polygon([(2 * s, 4 * s), (14 * s, 1 * s), (16 * s, 13 * s), (5 * s, 16 * s)],
+              fill=(52, 60, 86, 245), outline=(150, 170, 220, 255))
+    d.text((PW * s // 2, PW * s // 2), "}", fill=(214, 226, 250, 255),
+           font=ImageFont.truetype(CARLITO, 13 * s), anchor="mm")
+    return im.resize((PW, PW), Image.LANCZOS)
+
+
+def do_finally():
+    """O que o finally solta: ele roda de qualquer jeito."""
+    s = 4
+    im = Image.new("RGBA", (PW * s, PW * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.ellipse([1 * s, 1 * s, (PW - 2) * s, (PW - 2) * s], fill=(150, 100, 20, 245), outline=(255, 206, 92, 255),
+              width=2 * s)
+    d.text((PW * s // 2, PW * s // 2), "f", fill=(255, 244, 210, 255),
+           font=ImageFont.truetype(CARLITO, 13 * s), anchor="mm")
+    return im.resize((PW, PW), Image.LANCZOS)
+
+
+PILHA = [("Destroco", destroco), ("Finally", do_finally)]
+
+
 def tira(quadros, w, h, colunas):
     linhas = (len(quadros) + colunas - 1) // colunas
     f = Image.new("RGBA", (w * colunas, h * linhas), (0, 0, 0, 0))
@@ -427,6 +364,8 @@ def animacoes():
         "Operador": {nome: [i] for i, (nome, _, _) in enumerate(OPERADORES)},
         "Erro": {nome: [i] for i, (nome, _, _) in enumerate(ERROS)},
         "Celula": {nome: [i] for i, (nome, _) in enumerate(CELULAS)},
+        "Excecao": {nome: [i] for i, nome in enumerate(EXCECOES)},
+        "Destroco": {nome: [i] for i, (nome, _) in enumerate(PILHA)},
     }
 
 
@@ -445,10 +384,11 @@ if __name__ == "__main__":
         print(json.dumps(animacoes(), ensure_ascii=False))
         sys.exit(0)
     grava(luizinho(), "DPIBHLuizinho", "Assets/Teachers")
-    grava(folha(), "DPIBHLuizinhoLetras", "Assets/Teachers/Projectiles", quadros=32, lado=32)
     grava(gotas(), "DPIBHLuizinhoGotas", "Assets/Teachers/Projectiles", quadros=len(GOTAS), lado=GW)
     grava_tira([im for _, im in valores_quadros()], "DPIBHLuizinhoValores", VW, VW, 10)
     grava_tira([operador(sim, erro) for _, sim, erro in OPERADORES], "DPIBHLuizinhoOperadores", OW, OW, 4)
     grava_tira([estilhaco(t, c) for _, t, c in ERROS], "DPIBHLuizinhoErros", EW, EH, 2)
     grava_tira([f() for _, f in CELULAS], "DPIBHLuizinhoMemoria", CW, CW, len(CELULAS))
     grava_tira([estilhaco_de_memoria()], "DPIBHLuizinhoEstilhacos", 16, 16, 1)
+    grava_tira([excecao(n) for n in EXCECOES], "DPIBHLuizinhoExcecoes", XW, XH, 1)
+    grava_tira([f() for _, f in PILHA], "DPIBHLuizinhoPilha", PW, PW, len(PILHA))

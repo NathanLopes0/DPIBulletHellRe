@@ -150,8 +150,6 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Promessa.h
         Source/Attacks/Amarra.cpp
         Source/Attacks/Amarra.h
-        Source/Attacks/Rastro.cpp
-        Source/Attacks/Rastro.h
         Source/Movements/Escada.cpp
         Source/Movements/Escada.h
         Source/Attacks/Sprint.cpp
@@ -212,6 +210,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Coercao.h
         Source/Attacks/Memoria.cpp
         Source/Attacks/Memoria.h
+        Source/Attacks/Excecao.cpp
+        Source/Attacks/Excecao.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
@@ -298,9 +298,6 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/BaseStrategies/FlexAttack.cpp
         Source/Attacks/BaseStrategies/FlexAttack.h
         Source/Attacks/AttackParameters/FlexAttackParams.h
-        Source/Attacks/BaseStrategies/SerpenteAttack.cpp
-        Source/Attacks/BaseStrategies/SerpenteAttack.h
-        Source/Attacks/AttackParameters/SerpenteAttackParams.h
         Source/Attacks/BaseStrategies/SprintAttack.cpp
         Source/Attacks/BaseStrategies/SprintAttack.h
         Source/Attacks/AttackParameters/SprintAttackParams.h
@@ -348,7 +345,6 @@ add_executable(dpi_tests
         tests/test_flex.cpp
         tests/test_promessa.cpp
         tests/test_amarra.cpp
-        tests/test_rastro.cpp
         tests/test_escada.cpp
         tests/test_sprint.cpp
         tests/test_observer.cpp
@@ -379,6 +375,7 @@ add_executable(dpi_tests
         tests/test_escopo.cpp
         tests/test_coercao.cpp
         tests/test_memoria.cpp
+        tests/test_excecao.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -452,8 +449,6 @@ add_executable(dpi_tests
         Source/Attacks/Promessa.h
         Source/Attacks/Amarra.cpp
         Source/Attacks/Amarra.h
-        Source/Attacks/Rastro.cpp
-        Source/Attacks/Rastro.h
         Source/Movements/Escada.cpp
         Source/Movements/Escada.h
         Source/Attacks/Sprint.cpp
@@ -514,6 +509,8 @@ add_executable(dpi_tests
         Source/Attacks/Coercao.h
         Source/Attacks/Memoria.cpp
         Source/Attacks/Memoria.h
+        Source/Attacks/Excecao.cpp
+        Source/Attacks/Excecao.h
         Source/Intercambio.cpp
         Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp

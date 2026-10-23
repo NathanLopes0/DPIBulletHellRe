@@ -842,52 +842,6 @@ TEST_CASE("Fases: uma FlexAttack sem bloco, ou com um valor que o CSS nao tem, e
 }
 
 // ---------------------------------------------------------------------------
-// A serpente dos sequenciadores
-// ---------------------------------------------------------------------------
-
-TEST_CASE("Fases: a SerpenteAttack existe e o bloco dela e opcional") {
-    const auto sem = LerFases(ComAtaque(R"({ "estrategia": "SerpenteAttack", "projetil": "P" })"));
-    CHECK(sem.problemas.empty());
-
-    const auto com = LerFases(ComAtaque(R"({ "estrategia": "SerpenteAttack", "projetil": "P",
-        "serpente": { "espaco": 24, "giro": 1.5, "duracao": 4.5, "cabeca": "Cabeca", "corpo": "Corpo" } })"));
-    CHECK(com.problemas.empty());
-    for (const auto& f : com.fases) {
-        if (f.nome != "StateOne") continue;
-        REQUIRE(f.ataques.size() == 1);
-        REQUIRE(f.ataques[0].serpente.has_value());
-        const auto& s = *f.ataques[0].serpente;
-        CHECK(*s.espaco == doctest::Approx(24.0f));
-        CHECK(*s.giro == doctest::Approx(1.5f));
-        CHECK(*s.duracao == doctest::Approx(4.5f));
-        CHECK(s.cabeca == "Cabeca");
-        CHECK(s.corpo == "Corpo");
-    }
-}
-
-TEST_CASE("Fases: uma serpente sem espaco, ou com giro ou duracao negativos, e recusada") {
-    for (const char* bloco : { R"("serpente": { "espaco": 0 })", R"("serpente": { "giro": -1 })",
-                               R"("serpente": { "duracao": -2 })" }) {
-        CAPTURE(bloco);
-        const auto r = LerFases(ComAtaque(std::string(R"({ "estrategia": "SerpenteAttack", "projetil": "P", )")
-                                          + bloco + " }"));
-        bool reclamou = false;
-        for (const auto& p : r.problemas) if (p.find("serpente") != std::string::npos) reclamou = true;
-        CHECK(reclamou);
-    }
-    // Giro zero vale: e a serpente que so vai reta.
-    const auto reta = LerFases(ComAtaque(R"({ "estrategia": "SerpenteAttack", "projetil": "P",
-                                              "serpente": { "giro": 0, "duracao": 0 } })"));
-    CHECK(reta.problemas.empty());
-
-    const auto fora = LerFases(ComAtaque(R"({ "estrategia": "WaveAttack", "projetil": "P",
-                                              "serpente": { "espaco": 20 } })"));
-    bool avisou = false;
-    for (const auto& p : fora.problemas) if (p.find("so a SerpenteAttack") != std::string::npos) avisou = true;
-    CHECK(avisou);
-}
-
-// ---------------------------------------------------------------------------
 // A sprint dos metodos ageis
 // ---------------------------------------------------------------------------
 

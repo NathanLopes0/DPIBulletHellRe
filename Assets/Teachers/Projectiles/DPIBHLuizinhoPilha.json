@@ -1,0 +1,59 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHLuizinhoPilha 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 18,
+    "h": 18
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 18,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 18,
+    "h": 18
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoPilha 1.placeholder",
+   "frame": {
+    "x": 18,
+    "y": 0,
+    "w": 18,
+    "h": 18
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 18,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 18,
+    "h": 18
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_luizinho.py",
+  "version": "1.0",
+  "image": "DPIBHLuizinhoPilha.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 36,
+   "h": 18
+  },
+  "scale": "1"
+ }
+}

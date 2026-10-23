@@ -12,7 +12,7 @@
 /**
  * @brief Uma sprint: quando e a revisao, e as caras da historia e do cursor.
  *
- * Mesmo padrao da SerpenteAttackParams: o bloco "sprint" e OPCIONAL em
+ * Mesmo padrao da CaixaAttackParams: o bloco "sprint" e OPCIONAL em
  * fases.json, e a ponte constroi esta struct para todo ataque SprintAttack.
  */
 struct SprintAttackParams : AttackParams {

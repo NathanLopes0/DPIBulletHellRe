@@ -1,0 +1,125 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHLuizinhoExcecoes 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 168,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 168,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 168,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoExcecoes 1.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 24,
+    "w": 168,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 168,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 168,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoExcecoes 2.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 48,
+    "w": 168,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 168,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 168,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoExcecoes 3.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 72,
+    "w": 168,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 168,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 168,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoExcecoes 4.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 96,
+    "w": 168,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 168,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 168,
+    "h": 24
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_luizinho.py",
+  "version": "1.0",
+  "image": "DPIBHLuizinhoExcecoes.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 168,
+   "h": 120
+  },
+  "scale": "1"
+ }
+}

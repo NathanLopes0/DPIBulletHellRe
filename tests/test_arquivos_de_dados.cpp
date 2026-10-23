@@ -73,6 +73,7 @@
 #include "../Source/Attacks/Escopo.h"
 #include "../Source/Attacks/Coercao.h"
 #include "../Source/Attacks/Memoria.h"
+#include "../Source/Attacks/Excecao.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
@@ -1848,21 +1849,17 @@ TEST_CASE("Dados: o diagrama do automato do Vladimir foi desenhado para os estad
     CHECK(y0 + std::stof(m[2]) / 2.0f == doctest::Approx(Automato::kYDoDiagrama));
 }
 
-TEST_CASE("Dados: nenhuma regra de uma SerpenteAttack ou de uma SprintAttack tem motion") {
+TEST_CASE("Dados: nenhuma regra de uma SprintAttack tem motion") {
 
-    // A SERPENTE E SUAS DUAS MOTIONS: a SerpenteAttack poe a da cabeca no
-    // primeiro gomo e a do corpo nos outros, e as regras rodam DEPOIS da
-    // estrategia. Uma "motion" numa regra substituiria a da serpente, e o corpo
-    // deixaria de seguir a cabeca - calado, porque cada gomo continuaria
-    // voando.
-    //
-    // A SPRINT TAMBEM: a historia que perdesse a motion dela nunca chegaria ao
-    // quadro, e o cursor - que nao acerta ninguem - sairia voando pela tela.
+    // A SPRINT E AS SUAS DUAS MOTIONS: as regras rodam DEPOIS da estrategia, e
+    // uma "motion" numa regra substituiria a dela. A historia que perdesse a
+    // motion nunca chegaria ao quadro, e o cursor - que nao acerta ninguem -
+    // sairia voando pela tela. (A serpente do Luizinho antigo era o outro caso.)
     for (const auto& chefe : Chefes()) {
         const auto regras = RegrasDoChefe(chefe);
         for (const auto& f : FasesDoChefe(chefe).fases) {
             for (const auto& a : f.ataques) {
-                if (a.estrategia != "SerpenteAttack" && a.estrategia != "SprintAttack") continue;
+                if (a.estrategia != "SprintAttack") continue;
                 std::vector<Regra> aplicaveis = a.regras;
                 if (!a.regrasNome.empty() && regras.conjuntos.count(a.regrasNome)) {
                     const auto& r = regras.conjuntos.at(a.regrasNome);
@@ -2939,4 +2936,51 @@ TEST_CASE("Dados: o heap do Luizinho - gatilhos, velocidades, raio e caras sao o
         const float lado = (celula.colisorDimensao == "altura") ? quadro["h"].get<float>() : quadro["w"].get<float>();
         CHECK(lado / celula.colisorDivisor == doctest::Approx(Memoria::kLadoDaCelula / 2.0f));
     }
+}
+
+TEST_CASE("Dados: a pilha de chamadas do Luizinho - gatilhos, velocidades e caras sao os de Excecao.h") {
+
+    // O LUIZINHO PUXA OS GATILHOS e pinta a excecao com o nome do tipo: um
+    // chip sem a cara do tipo diria IOException onde voa uma
+    // NullPointerException, e a rodada inteira e ler o tipo contra os catch.
+    const auto lidas = FasesDoChefe("luizinho");
+    const DescricaoDeFase* fase = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Excecao::kFaseDasExcecoes) fase = &f;
+    REQUIRE(fase != nullptr);
+    CHECK(fase->movimento.tipo == "Conduzido");
+
+    const std::map<std::string, float> velocidades = {
+        {Excecao::kGatilhoDaExcecao, 0.0f},
+        {Excecao::kGatilhoDoDestroco, Excecao::kVelocidadeDoDestroco},
+        {Excecao::kGatilhoDoFinally, Excecao::kVelocidadeDoFinally},
+    };
+    std::map<std::string, std::string> projetilDe;
+    for (const auto& a : fase->ataques) CHECK(!a.gatilho.empty());
+    for (const auto& [g, v] : velocidades) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+        int quantos = 0;
+        for (const auto& a : fase->ataques) {
+            if (a.gatilho != g) continue;
+            ++quantos;
+            projetilDe[g] = a.projetil;
+            REQUIRE(a.velocidade.has_value());
+            CHECK(*a.velocidade == doctest::Approx(v));
+        }
+        CHECK(quantos == 1);
+    }
+
+    const auto& tipos = ProjeteisDoChefe("luizinho").projeteis;
+    auto caras = [&tipos](const std::string& tipo) {
+        std::set<std::string> nomes;
+        REQUIRE(tipos.count(tipo) == 1);
+        for (const auto& a : tipos.at(tipo).animacoes) nomes.insert(a.nome);
+        return nomes;
+    };
+    const auto excecoes = caras(projetilDe[Excecao::kGatilhoDaExcecao]);
+    for (int k = 0; k < Excecao::kRodadas; ++k) {
+        CHECK(excecoes.count(Excecao::CaraDaExcecao(Excecao::RodadaDaVez(k).lancada)) == 1);
+    }
+    CHECK(caras(projetilDe[Excecao::kGatilhoDoDestroco]).count(Excecao::kCaraDoDestroco) == 1);
+    CHECK(caras(projetilDe[Excecao::kGatilhoDoFinally]).count(Excecao::kCaraDoFinally) == 1);
 }

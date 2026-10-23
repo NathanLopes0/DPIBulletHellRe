@@ -13,7 +13,7 @@
  * @brief A geracao de tokens: a temperatura do sorteio, os candidatos de
  * angulo e a frase que os tokens formam.
  *
- * Mesmo padrao da SerpenteAttackParams: o bloco "tokens" e OPCIONAL em
+ * Mesmo padrao da CaixaAttackParams: o bloco "tokens" e OPCIONAL em
  * fases.json, e a ponte constroi esta struct para todo ataque TokenAttack.
  */
 struct TokenAttackParams : AttackParams {

@@ -12,8 +12,4 @@
   "indefinido": [
     { "motion": { "tipo": "Wobble", "amplitude": 35, "frequencia": 2.5, "duracao": 3.0 } }
   ]
-
-  // A SERPENTE DA FINAL NAO TEM REGRA, de proposito: quem a move sao as duas
-  // Motions que a SerpenteAttack poe em cada gomo, e uma "motion" aqui as
-  // SUBSTITUIRIA - a regra roda depois da estrategia.
 }

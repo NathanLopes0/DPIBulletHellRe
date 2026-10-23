@@ -13,7 +13,6 @@
 #include "Flex.h"
 #include "Promessa.h"
 #include "Amarra.h"
-#include "Rastro.h"
 #include "../Random.h"
 
 void AccelerateBehavior::update(Projectile* p, float deltaTime) {
@@ -450,54 +449,6 @@ void AmarrarBehavior::update(Projectile* p, const float deltaTime) {
     if (lance.evento == Amarra::Evento::Amarrou && !escreve.empty()) {
         if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(escreve);
     }
-}
-
-void CabecaDaSerpenteBehavior::update(Projectile* p, const float deltaTime) {
-    auto* rb = p->GetComponent<RigidBodyComponent>();
-    if (!rb || !serpente) return;
-    t += deltaTime;
-
-    const Vector2 v = rb->GetVelocity();
-    const float modulo = v.Length();
-    if (modulo <= 0.0f) return;
-
-    if (serpente->caminho.Vazio()) serpente->caminho.Marcar(p->GetPosition());
-
-    if (t < duracao) {
-        // O GOTO: o contador mudou desde a ultima vez que esta cabeca olhou.
-        if (desvio && desvio->geracao != geracaoVista) {
-            geracaoVista = desvio->geracao;
-            p->SetPosition(desvio->rotulo);
-            serpente->caminho.Marcar(desvio->rotulo, true);
-            return;
-        }
-        if (const auto* cabeca = dynamic_cast<BossProjectile*>(p)) {
-            const Vector2 nova = Rastro::Girar(v * (1.0f / modulo), cabeca->GetPlayerDirection(),
-                                               giro * deltaTime);
-            rb->SetVelocity(nova * modulo);
-        }
-    }
-    serpente->caminho.Marcar(p->GetPosition());
-}
-
-void GomoDaSerpenteBehavior::update(Projectile* p, const float deltaTime) {
-    auto* rb = p->GetComponent<RigidBodyComponent>();
-    if (!rb || !serpente || serpente->caminho.Vazio()) return;
-
-    const float modulo = rb->GetVelocity().Length();
-    s += modulo * deltaTime;
-
-    const auto& caminho = serpente->caminho;
-    if (s > caminho.Comprimento()) {
-        // O caminho acabou: a cabeca morreu, e o gomo sai reto pelo ultimo
-        // trecho. Daqui em diante quem anda e o RigidBody.
-        p->SetPosition(caminho.Em(caminho.Comprimento()));
-        rb->SetVelocity(caminho.DirecaoEm(caminho.Comprimento()) * modulo);
-        saiu = true;
-        return;
-    }
-    p->SetPosition(caminho.Em(s));
-    rb->SetVelocity(caminho.DirecaoEm(s) * modulo);
 }
 
 void HistoriaDaSprintBehavior::update(Projectile* p, const float deltaTime) {

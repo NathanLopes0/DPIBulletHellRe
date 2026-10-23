@@ -10,33 +10,17 @@
 
 #include "../../../Random.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
-#include "../../../CaminhosArquivo.h"
-#include "../../../Font.h"
-#include "../../../Attacks/AttackParameters/SerpenteAttackParams.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
-#include "../../../Components/DrawComponents/DrawCaixaComponent.h"
-#include "../../../Components/DrawComponents/DrawTextComponent.h"
 #include "../../../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../../Components/RigidBodyComponent.h"
 #include "../../../Scenes/Battle/Battle.h"
-#include "../../../Game.h"
 #include "../../Player/Player.h"
 #include "../../../Scenes/Battle/ProjectileManager.h"
 #include "BossesProjectiles/BossProjectile.h"
 #include "PainelDeCodigo.h"
 
 namespace {
-
-    /// O que o professor diz quando o coletor passa: descansem em paz.
-    const char* const kNaVarredura = "requiescant in pace";
-    const char* const kTraducaoDaMemoria = "lembra-te de que morrerás";
-
-    const SDL_Color kReferenciaViva = {246, 206, 92, 150};    // ouro: alcancado
-    const SDL_Color kReferenciaMorta = {150, 140, 130, 90};   // cinza: lixo
-
-    /// Na frente dos projeteis, como o marcador do intercambio.
-    constexpr int kOrdemDoRotulo = 95;
 
     bool Vivo(const BossProjectile* p) { return p && p->GetState() == ActorState::Active; }
 
@@ -79,37 +63,6 @@ namespace {
         Escopo::Bloco::Global, Escopo::Bloco::F, Escopo::Bloco::G, Escopo::Bloco::Interno, Escopo::Bloco::H};
 }
 
-/**
- * @brief O marcador do rotulo do goto: uma moldura de ouro com "II:" dentro.
- *
- * A FONTE E DELE, e nao do professor: o texto guarda um ponteiro para ela, e o
- * ator e da cena - viva o quanto a cena viver, a fonte vive junto.
- */
-class RotuloDoGoto : public Actor {
-public:
-    explicit RotuloDoGoto(Scene* cena) : Actor(cena) {
-        mFonte.Load(Caminhos::Asset("Fonts/Carlito-Regular.ttf"));
-        mCaixa = AddComponent<DrawCaixaComponent>(84, 40, SDL_Color{246, 206, 92, 230},
-                                                  SDL_Color{40, 30, 20, 170}, 2, kOrdemDoRotulo);
-        mTexto = AddComponent<DrawTextComponent>(" ", &mFonte, 76, 34, 26, kOrdemDoRotulo + 1);
-        mTexto->SetAjustarAoTexto(true);
-        mTexto->SetColor(Vector3(1.0f, 0.86f, 0.42f));
-        Mostrar(false);
-    }
-
-    void Mostrar(const bool mostrar) {
-        mCaixa->SetIsVisible(mostrar);
-        mTexto->SetIsVisible(mostrar);
-    }
-
-    void Escrever(const std::string& texto) { mTexto->SetText(texto); }
-
-private:
-    Font mFonte;
-    DrawCaixaComponent* mCaixa = nullptr;
-    DrawTextComponent* mTexto = nullptr;
-};
-
 Luizinho::Luizinho(Scene* scene) : Boss(scene) {
 }
 
@@ -138,7 +91,7 @@ void Luizinho::OnUpdate(const float deltaTime) {
     AtualizarEscopo();
     AtualizarTipos();
     AtualizarMemoria();
-    AtualizarGoto(deltaTime);
+    AtualizarExcecoes();
 }
 
 void Luizinho::AoTerminarABatalha() {
@@ -149,7 +102,10 @@ void Luizinho::AoTerminarABatalha() {
     LimparConta();
     if (mLinhas) mLinhas->Limpar();
     for (auto& [nome, etiqueta] : mRaizes) if (etiqueta) etiqueta->Mostrar(false);
-    if (mRotulo) mRotulo->Mostrar(false);
+    for (const FaixaEmCampo& f : mFaixas) {
+        if (f.painel) f.painel->Mostrar(false);
+        if (f.canto) f.canto->Mostrar(false);
+    }
 }
 
 void Luizinho::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
@@ -162,14 +118,6 @@ void Luizinho::CustomizeAttackParams(AttackParams& params, const std::string& st
         if (mQuantos > 0) params.numProjectiles = mQuantos;
         if (mCentroEm) params.centralAngle = *mCentroEm;
         if (mAberturaEm) params.angle = *mAberturaEm;
-        return;
-    }
-
-    if (stateName == kFaseDaSequencia) {
-        // A CABECA SAI EM DIRECAO AO ALUNO, e leva o goto do professor.
-        const Vector2 d = GetDirectionToPlayer();
-        params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x));
-        if (auto* serpente = dynamic_cast<SerpenteAttackParams*>(&params)) serpente->desvio = mDesvio;
     }
 }
 
@@ -980,66 +928,196 @@ void Luizinho::AtualizarMemoria() {
 }
 
 // ---------------------------------------------------------------------------
-// A final: o goto
+// A final: as excecoes
 // ---------------------------------------------------------------------------
 
-Vector2 Luizinho::OndeFicaORotulo() const {
-    const auto* batalha = dynamic_cast<Battle*>(mScene);
-    const float largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
-    float x = largura / 2.0f;
-    if (batalha && batalha->Alvo()) x = largura - batalha->Alvo()->GetPosition().x;
-    x = std::fmax(kMargemDoRotulo, std::fmin(largura - kMargemDoRotulo, x));
-    return Vector2(x, kAlturaDoRotulo);
+namespace {
+    constexpr SDL_Color kMolduraDoFinally{255, 206, 92, 255};
+    constexpr SDL_Color kFundoDoFinally{90, 64, 16, 140};
+    constexpr SDL_Color kMolduraDoCatch{96, 222, 112, 255};
+    constexpr SDL_Color kFundoDoCatch{20, 60, 36, 150};
+    constexpr int kOrdemDasFaixas = 52;
 }
 
-void Luizinho::AtualizarGoto(const float deltaTime) {
+Vector2 Luizinho::MeioDaFaixa(const int i) const {
+    const SDL_FRect campo = Campo();
+    const Excecao::Retangulo f = Excecao::Faixa(i, campo.w);
+    return Vector2(campo.x + f.x + f.w / 2.0f, campo.y + f.y + f.h / 2.0f);
+}
+
+void Luizinho::PintarFaixa(const int i, const SDL_Color moldura, const SDL_Color fundo) {
+    if (i < 0 || i >= Excecao::kMaiorPilha) return;
+    const FaixaEmCampo& f = mFaixas[static_cast<size_t>(i)];
+    if (f.painel) f.painel->Pintar(moldura, fundo);
+    if (f.canto) f.canto->Pintar(moldura, kFundoDoCanto, kTintaDoCanto);
+}
+
+void Luizinho::Empilhar(const int i) {
+    if (i < 0 || i >= Excecao::kMaiorPilha || i >= static_cast<int>(mRodada.pilha.size())) return;
+    const SDL_FRect campo = Campo();
+    const Excecao::Retangulo r = Excecao::Faixa(i, campo.w);
+    FaixaEmCampo& f = mFaixas[static_cast<size_t>(i)];
+
+    auto painel = std::make_unique<PainelDeCodigo>(mScene, static_cast<int>(r.w), static_cast<int>(r.h), kOrdemDasFaixas);
+    painel->SetPosition(MeioDaFaixa(i));
+    painel->Pintar(kMolduraDoPainel, kFundoDoPainel);
+    f.painel = painel.get();
+    mScene->AddActor(std::move(painel));
+
+    const std::string texto = Excecao::Rotulo(mRodada.pilha[static_cast<size_t>(i)]);
+    const float largura = Escopo::LarguraDoCanto(texto);
+    auto canto = std::make_unique<EtiquetaDeCodigo>(mScene, texto, static_cast<int>(largura),
+                                                    static_cast<int>(Escopo::kAlturaDoCanto), kOrdemDosCantos);
+    canto->SetPosition(Vector2(campo.x + r.x + 10.0f + largura / 2.0f, campo.y + r.y + r.h / 2.0f));
+    canto->Pintar(kMolduraDoCanto, kFundoDoCanto, kTintaDoCanto);
+    f.canto = canto.get();
+    mScene->AddActor(std::move(canto));
+}
+
+void Luizinho::Desempilhar(const int i, const bool quebrando) {
+    if (i < 0 || i >= Excecao::kMaiorPilha) return;
+    FaixaEmCampo& f = mFaixas[static_cast<size_t>(i)];
+    if (!f.painel && !f.canto) return;
+
+    if (quebrando) {
+        // A FAIXA SE QUEBRA, e os destrocos caem numa cortina - um em cima
+        // do aluno, para quem ficar parado nao ficar na fresta.
+        const SDL_FRect campo = Campo();
+        const auto xs = Excecao::Cortina(PosicaoDoAluno().x - campo.x, campo.w);
+        const float y = MeioDaFaixa(i).y;
+        const auto cacos = DispararEm(Excecao::kGatilhoDoDestroco, Vector2(campo.x + campo.w / 2.0f, y),
+                                      static_cast<int>(xs.size()), 90.0f, 0.0f);
+        for (size_t k = 0; k < cacos.size() && k < xs.size(); ++k) {
+            cacos[k]->SetPosition(Vector2(campo.x + xs[k], y));
+            PorCara(cacos[k], Excecao::kCaraDoDestroco);
+        }
+    }
+    if (f.painel) f.painel->SetState(ActorState::Destroy);
+    if (f.canto) f.canto->SetState(ActorState::Destroy);
+    f = FaixaEmCampo{};
+}
+
+void Luizinho::DesmontarExcecoes() {
+    for (int i = 0; i < Excecao::kMaiorPilha; ++i) Desempilhar(i, false);
+    if (Vivo(mExcecao)) mExcecao->Kill();
+    mExcecao = nullptr;
+    Restaurar(Excecao::kFaseDasExcecoes);
+    mNasExcecoes = false;
+    mRodadaDaVez = -1;
+    mPassos.clear();
+    mAlvo.reset();
+}
+
+void Luizinho::ComecarRodada(const int k) {
+    // O QUE SOBROU DA RODADA ANTERIOR retorna, sem quebrar.
+    for (int i = 0; i < Excecao::kMaiorPilha; ++i) Desempilhar(i, false);
+    if (Vivo(mExcecao)) mExcecao->Kill();
+    mExcecao = nullptr;
+
+    mRodadaDaVez = k;
+    mRodada = Excecao::RodadaDaVez(k);
+    mPassos = Excecao::Propagar(mRodada);
+    mProximoPasso = 0;
+    mEmpilhados = 0;
+    mLancou = false;
+    mRetornou = false;
+    mCapturouEm = -1;
+    const float fracao = static_cast<float>(Sorteio() % 1001u) / 1000.0f;
+    mXDaRodada = Campo().x + Excecao::kXMinimo + fracao * (Excecao::kXMaximo - Excecao::kXMinimo);
+    Anunciar(Excecao::kFaseDasExcecoes, Excecao::PlacarDasChamadas(mRodada));
+}
+
+void Luizinho::ExecutarPasso(const Excecao::Passo& p) {
+    switch (p.o) {
+        case Excecao::Acontece::Finally: {
+            // O FINALLY RODA DE QUALQUER JEITO: um anel de onde a excecao passa.
+            PintarFaixa(p.quadro, kMolduraDoFinally, kFundoDoFinally);
+            const Vector2 onde(mXDaRodada - Excecao::kAEsquerda, MeioDaFaixa(p.quadro).y);
+            const int n = Excecao::kAnelDoFinally;
+            const auto anel = DispararEm(Excecao::kGatilhoDoFinally, onde, n,
+                                         Coercao::CentroDoAnel(n, AnguloAteOAluno(onde)), Coercao::AberturaDoAnel(n));
+            for (BossProjectile* a : anel) PorCara(a, Excecao::kCaraDoFinally);
+            break;
+        }
+        case Excecao::Acontece::Desempilha:
+            Desempilhar(p.quadro, true);
+            // O PONTO DE EXECUCAO SOBE para quem chamou.
+            if (p.quadro > 0) mAlvo = Vector2(mXDaRodada, MeioDaFaixa(p.quadro - 1).y);
+            break;
+        case Excecao::Acontece::Captura:
+            mCapturouEm = p.quadro;
+            PintarFaixa(p.quadro, kMolduraDoCatch, kFundoDoCatch);
+            if (Vivo(mExcecao)) mExcecao->Kill();
+            mExcecao = nullptr;
+            mAlvo = Vector2(mXDaRodada, MeioDaFaixa(p.quadro).y);
+            Anunciar(Excecao::kFaseDasExcecoes, Excecao::PlacarDoDesfecho(mRodada));
+            break;
+        case Excecao::Acontece::Escapa:
+            // NINGUEM TRATOU: o programa capota.
+            if (Vivo(mExcecao)) mExcecao->Kill();
+            mExcecao = nullptr;
+            Anunciar(Excecao::kFaseDasExcecoes, Excecao::PlacarDoDesfecho(mRodada));
+            break;
+    }
+}
+
+void Luizinho::AtualizarExcecoes() {
+    if (mExcecao && !Vivo(mExcecao)) mExcecao = nullptr;
 
     const auto* fsm = GetComponent<FSMComponent>();
-    const bool naSequencia = fsm && fsm->GetStateName() == kFaseDaSequencia && !EhClone();
-
-    if (!naSequencia) {
-        if (mNaSequencia) {
-            mNaSequencia = false;
-            mAvisandoOGoto = false;
-            if (mRotulo) mRotulo->Mostrar(false);
-            if (!mLatimDaSequencia.empty()) RegistrarAnuncio(kFaseDaSequencia, mLatimDaSequencia);
-        }
+    const bool aqui = fsm && fsm->GetStateName() == Excecao::kFaseDasExcecoes && !EhClone();
+    if (!aqui) {
+        if (mNasExcecoes) DesmontarExcecoes();
         return;
     }
-
-    if (!mNaSequencia) {
-        mNaSequencia = true;
-        mTempoDoGoto = 0.0f;
-        if (mLatimDaSequencia.empty()) mLatimDaSequencia = AnuncioDaFase(kFaseDaSequencia);
-    }
-    if (!mRotulo) {
-        auto rotulo = std::make_unique<RotuloDoGoto>(mScene);
-        mRotulo = rotulo.get();
-        mScene->AddActor(std::move(rotulo));
+    if (!mNasExcecoes) {
+        mNasExcecoes = true;
+        mRodadaDaVez = -1;
+        mAlvo = Vector2(Campo().x + Campo().w / 2.0f, MeioDaFaixa(0).y);
     }
 
-    mTempoDoGoto += deltaTime;
-    const int proximo = mDesvio->geracao + 1;
+    const float t = fsm->GetStateTime();
+    if (t < Excecao::kPrimeiro) return;
+    const int k = std::min(Excecao::kRodadas - 1, static_cast<int>((t - Excecao::kPrimeiro) / Excecao::kPorRodada));
+    if (k != mRodadaDaVez) ComecarRodada(k);
+    const float u = t - (Excecao::kPrimeiro + static_cast<float>(k) * Excecao::kPorRodada);
 
-    if (!mAvisandoOGoto && mTempoDoGoto >= kGotoACada - kGotoAviso) {
-        // O AVISO: o rotulo aparece onde a cabeca vai cair, e o placar diz o
-        // goto em latim. O lugar e decidido AGORA e nao muda - quem andou depois
-        // do aviso ja sabe para onde a serpente vai.
-        mAvisandoOGoto = true;
-        mProximoRotulo = OndeFicaORotulo();
-        const std::string numero = Rastro::Romano(proximo);
-        mRotulo->SetPosition(mProximoRotulo);
-        mRotulo->Escrever(numero + ":");
-        mRotulo->Mostrar(true);
-        RegistrarAnuncio(kFaseDaSequencia, "vāde ad " + numero);
+    // AS CHAMADAS EMPILHAM, e o professor desce ate a mais funda.
+    while (mEmpilhados < mRodada.pilha.size() && u >= static_cast<float>(mEmpilhados) * Excecao::kEntreChamadas) {
+        Empilhar(static_cast<int>(mEmpilhados));
+        mAlvo = Vector2(mXDaRodada, MeioDaFaixa(static_cast<int>(mEmpilhados)).y);
+        ++mEmpilhados;
     }
 
-    if (mTempoDoGoto >= kGotoACada) {
-        mTempoDoGoto -= kGotoACada;
-        mAvisandoOGoto = false;
-        mDesvio->rotulo = mProximoRotulo;
-        mDesvio->geracao = proximo;
-        mRotulo->Mostrar(false);
-        RegistrarAnuncio(kFaseDaSequencia, mLatimDaSequencia);
+    // O LANCAMENTO: a excecao nasce no professor, na faixa de quem lanca.
+    const int ultimo = static_cast<int>(mRodada.pilha.size()) - 1;
+    if (!mLancou && u >= Excecao::kLancamento) {
+        mLancou = true;
+        Anunciar(Excecao::kFaseDasExcecoes, Excecao::PlacarDoLancamento(mRodada));
+        const auto criada = DispararEm(Excecao::kGatilhoDaExcecao,
+                                       Vector2(mXDaRodada - Excecao::kAEsquerda, MeioDaFaixa(ultimo).y), 1);
+        if (!criada.empty()) {
+            mExcecao = criada.front();
+            mExcecao->DefinirEnfeite(true);
+            PorCara(mExcecao, Excecao::CaraDaExcecao(mRodada.lancada));
+        }
+    }
+    if (!mLancou) return;
+
+    // ELA SOBE uma faixa a cada kPorQuadro.
+    const float subindo = u - Excecao::kLancamento;
+    if (Vivo(mExcecao)) {
+        const float passo = Excecao::kAlturaDaFaixa + Excecao::kEntreFaixas;
+        const float y = MeioDaFaixa(ultimo).y - passo * subindo / Excecao::kPorQuadro;
+        mExcecao->SetPosition(Vector2(mXDaRodada - Excecao::kAEsquerda, y));
+    }
+    while (mProximoPasso < mPassos.size() && subindo >= mPassos[mProximoPasso].quando) {
+        ExecutarPasso(mPassos[mProximoPasso++]);
+    }
+
+    // QUEM SOBROU RETORNA, depois do desfecho.
+    if (!mRetornou && !mPassos.empty() && subindo >= mPassos.back().quando + Excecao::kRetorno) {
+        mRetornou = true;
+        for (int i = 0; i < Excecao::kMaiorPilha; ++i) Desempilhar(i, false);
     }
 }

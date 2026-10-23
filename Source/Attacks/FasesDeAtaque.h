@@ -89,18 +89,6 @@ struct DescricaoDeCaixa {
 };
 
 /**
- * @brief Os campos que SO a SerpenteAttack usa. Opcional: todo campo tem padrao
- * em SerpenteAttackParams.
- */
-struct DescricaoDeSerpente {
-    std::optional<float> espaco;    ///< pixels de caminho entre dois gomos
-    std::optional<float> giro;      ///< radianos por segundo
-    std::optional<float> duracao;   ///< segundos perseguindo
-    std::string cabeca;             ///< a animacao da cabeca
-    std::string corpo;              ///< a animacao dos gomos
-};
-
-/**
  * @brief Os campos que SO a SprintAttack usa. Opcional: todo campo tem padrao
  * em SprintAttackParams.
  */
@@ -228,9 +216,6 @@ struct DescricaoDeAtaque {
 
     /// Presente somente nos ataques FlexAttack.
     std::optional<DescricaoDeFlex> flex;
-
-    /// Presente so nos ataques SerpenteAttack que escreveram o bloco.
-    std::optional<DescricaoDeSerpente> serpente;
 
     /// Presente so nos ataques SprintAttack que escreveram o bloco.
     std::optional<DescricaoDeSprint> sprint;

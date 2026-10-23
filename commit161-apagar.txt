@@ -1,6 +1,0 @@
-Source/Attacks/AttackParameters/CapsulaAttackParams.h
-Source/Attacks/BaseStrategies/CapsulaAttack.cpp
-Source/Attacks/BaseStrategies/CapsulaAttack.h
-Source/Attacks/Capsula.cpp
-Source/Attacks/Capsula.h
-tests/test_capsula.cpp

@@ -226,8 +226,8 @@ fase só declara o `clone`.
 | Campo | Vai para |
 |---|---|
 | `etapa` | opcional. Em qual etapa da fase o ataque dispara. Sem ela, a fase inteira |
-| `gatilho` | opcional. O ataque **não dispara pelo relógio**: dispara quando o professor puxa o gatilho (`Boss::Disparar`), e o `cooldown` é ignorado. Só existem os gatilhos que algum professor puxa — `notificacao` e `consulta` (o padrão Observer da Maria Lúcia), `agir` (os agentes do Júlio), `nuvens` e `chover` (as nuvens do Vitor), `portas` (a fileira de portas lógicas do Ricardo), `contador` (o leque do clock dele, a cada segundo), `estagios`, `buscar`, `lw`, `sw`, `add` e `addi` (o pipeline dele: as molduras, a busca e o ataque de cada instrução no seu estágio), `acender` (o LED das placas do Blink dele), `estados`, `diagrama`, `ler_a`, `ler_b`, `aceita` e `rejeita` (o autômato da fase 1 do Vladimir: o mapa, a letra lida e o veredito), `derivar` e `variavel` (a gramática S → aSb da fase 2 dele), `escrever` (a cabeça da fita de Turing, que só escreve andando), `metade`, `triplo` e `parou` (o 3x + 1 da repescagem dele), `capivara` (a que atravessa o campo do Salles em qualquer fase), `push` e `estourar` (a pilha da fase 1 dele: o bloco empilhado, e o desempilhado que estoura em lascas), `baldes`, `chave`, `percorrer` e `nulo` (a tabela hash da fase 2: os baldes, a chave inserida, cada nó lido na busca e o NULL do fim da lista), `no`, `visitar`, `aresta`, `folha_nula` e `achado` (a árvore de busca da fase 3: a chave que desce e vira nó, cada nó por onde ela passa, os pontos da aresta, a busca que não acha e a que acha), `elemento`, `trocar` e `assentar` (o bubble sort da repescagem dele: o elemento do vetor, a capivara de cada troca e o anel de quem chega ao lugar), `cabecalho` e `registro` (a tabela escrita no campo do Thiago: o cabeçalho de cada coluna e o valor de cada casa), `marcar` (o marcador da casa que a consulta vai ler), `selecionar`, `projetar` e `celula` (as três formas do SELECT dele: a linha do WHERE, a coluna projetada e a casa do cruzamento), `gravar` (a escrita de uma transação dele, que vai até a linha, fica e volta no ROLLBACK), `desfazer` (a varredura do ROLLBACK, do outro lado da linha), `placa`, `pedido`, `classe`, `mensagem`, `compilar`, `bug` e `debito` (a Cascata da Maria Lúcia: a caixa de cada etapa, o post-it do cliente, a classe que ele vira no Projeto, as mensagens dela pelas setas, o código, o bug de cada classe e a dívida de cada bug que sobrou), `rotulo`, `balao` e `confete` (o fluxograma da fase 1 do André: o cabeçalho de cada ramo, o balão numerado que a condição manda para um ramo e o confete dele estourado), `indice`, `subir` e `core` (o vetor no chão da fase 2 dele: o índice de cada casa, o cacho de balões que sobe da casa por onde o `i` passa e a memória despejada pelo segfault), `cartao`, `valor` e `leque` (as funções da fase 3 dele: o cartão com a assinatura de cada função, o valor que vai como argumento e volta como retorno, e o leque de ponto-e-vírgulas), `trofeu` (o balão de cada problema da prova no BOCA, que sobe no YES) `gota` (a chuva da variável na fase 1 do Luizinho, o escopo: nasce apagada na região em que o nome é visível, acende e cai), `operador`, `operando`, `anel`, `texto`, `erro` e `compilacao` (a coerção da fase 2 dele: o operador em cima do aluno, os dois operandos que voam até ele, o anel do resultado número, a palavra do resultado texto, os estilhaços do TypeError onde a conta roda e os do erro de compilação no professor), `celula`, `pendente` e `estouro` (o heap da fase 3 dele: cada int de um bloco alocado, os cacos do ponteiro pendente e os de cada célula vazada no `std::bad_alloc`); um nome desconhecido é recusado |
-| `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack`, `FlexAttack`, `SerpenteAttack`, `SprintAttack`, `PontosAttack`, `TokenAttack`, `PalavraAttack` |
+| `gatilho` | opcional. O ataque **não dispara pelo relógio**: dispara quando o professor puxa o gatilho (`Boss::Disparar`), e o `cooldown` é ignorado. Só existem os gatilhos que algum professor puxa — `notificacao` e `consulta` (o padrão Observer da Maria Lúcia), `agir` (os agentes do Júlio), `nuvens` e `chover` (as nuvens do Vitor), `portas` (a fileira de portas lógicas do Ricardo), `contador` (o leque do clock dele, a cada segundo), `estagios`, `buscar`, `lw`, `sw`, `add` e `addi` (o pipeline dele: as molduras, a busca e o ataque de cada instrução no seu estágio), `acender` (o LED das placas do Blink dele), `estados`, `diagrama`, `ler_a`, `ler_b`, `aceita` e `rejeita` (o autômato da fase 1 do Vladimir: o mapa, a letra lida e o veredito), `derivar` e `variavel` (a gramática S → aSb da fase 2 dele), `escrever` (a cabeça da fita de Turing, que só escreve andando), `metade`, `triplo` e `parou` (o 3x + 1 da repescagem dele), `capivara` (a que atravessa o campo do Salles em qualquer fase), `push` e `estourar` (a pilha da fase 1 dele: o bloco empilhado, e o desempilhado que estoura em lascas), `baldes`, `chave`, `percorrer` e `nulo` (a tabela hash da fase 2: os baldes, a chave inserida, cada nó lido na busca e o NULL do fim da lista), `no`, `visitar`, `aresta`, `folha_nula` e `achado` (a árvore de busca da fase 3: a chave que desce e vira nó, cada nó por onde ela passa, os pontos da aresta, a busca que não acha e a que acha), `elemento`, `trocar` e `assentar` (o bubble sort da repescagem dele: o elemento do vetor, a capivara de cada troca e o anel de quem chega ao lugar), `cabecalho` e `registro` (a tabela escrita no campo do Thiago: o cabeçalho de cada coluna e o valor de cada casa), `marcar` (o marcador da casa que a consulta vai ler), `selecionar`, `projetar` e `celula` (as três formas do SELECT dele: a linha do WHERE, a coluna projetada e a casa do cruzamento), `gravar` (a escrita de uma transação dele, que vai até a linha, fica e volta no ROLLBACK), `desfazer` (a varredura do ROLLBACK, do outro lado da linha), `placa`, `pedido`, `classe`, `mensagem`, `compilar`, `bug` e `debito` (a Cascata da Maria Lúcia: a caixa de cada etapa, o post-it do cliente, a classe que ele vira no Projeto, as mensagens dela pelas setas, o código, o bug de cada classe e a dívida de cada bug que sobrou), `rotulo`, `balao` e `confete` (o fluxograma da fase 1 do André: o cabeçalho de cada ramo, o balão numerado que a condição manda para um ramo e o confete dele estourado), `indice`, `subir` e `core` (o vetor no chão da fase 2 dele: o índice de cada casa, o cacho de balões que sobe da casa por onde o `i` passa e a memória despejada pelo segfault), `cartao`, `valor` e `leque` (as funções da fase 3 dele: o cartão com a assinatura de cada função, o valor que vai como argumento e volta como retorno, e o leque de ponto-e-vírgulas), `trofeu` (o balão de cada problema da prova no BOCA, que sobe no YES) `gota` (a chuva da variável na fase 1 do Luizinho, o escopo: nasce apagada na região em que o nome é visível, acende e cai), `operador`, `operando`, `anel`, `texto`, `erro` e `compilacao` (a coerção da fase 2 dele: o operador em cima do aluno, os dois operandos que voam até ele, o anel do resultado número, a palavra do resultado texto, os estilhaços do TypeError onde a conta roda e os do erro de compilação no professor), `celula`, `pendente` e `estouro` (o heap da fase 3 dele: cada int de um bloco alocado, os cacos do ponteiro pendente e os de cada célula vazada no `std::bad_alloc`), `excecao`, `destroco` e `finally` (a pilha de chamadas da final dele: a exceção que sobe, a cortina de cada faixa desempilhada e o anel do `finally`); um nome desconhecido é recusado |
+| `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack`, `FlexAttack`, `SprintAttack`, `PontosAttack`, `TokenAttack`, `PalavraAttack` |
 | `projetil` | o nome dentro do conjunto deste professor em `projeteis.json` |
 | `projeteis` | quantos por disparo |
 | `velocidade` | px/s |
@@ -339,33 +339,6 @@ caindo a `velocidade`. Depois de `aos` segundos cada item escorrega até onde `p
 o poria — as posições são as do CSS de verdade (`Flex.h`), porque o placar escreve
 o nome do valor. Um nome que o CSS não tem, ou que a fase não usa, é recusado.
 
-**`serpente`**, opcional na `SerpenteAttack`:
-
-```json
-"serpente": { "espaco": 24, "giro": 1.5, "duracao": 4.5,
-              "cabeca": "Cabeca", "corpo": "Corpo" }
-```
-
-| Campo | |
-|---|---|
-| `espaco` | pixels de caminho entre um gomo e o seguinte. Padrão 24 |
-| `giro` | quanto a cabeça vira, em radianos por segundo. Padrão 1,5 |
-| `duracao` | por quantos segundos a cabeça persegue antes de seguir reta. Padrão 4,5 |
-| `cabeca` / `corpo` | as animações da cabeça e dos gomos. Sem elas, não mexe |
-
-A `SerpenteAttack` é a sequência do Luizinho (*sequī*, "seguir"): `projeteis`
-gomos, o primeiro é a cabeça, que sai para `anguloCentral` e vira em direção ao
-aluno, e cada um dos outros anda pelo **caminho da cabeça**, `espaco` pixels
-atrás do anterior — passa exatamente por onde ela passou. Se o professor der um
-*goto* (`Luizinho::AtualizarGoto`), a cabeça que ainda persegue salta para o
-rótulo, e cada gomo salta quando chega no ponto do salto. O caminho está em
-`Rastro.h`. `espaco` zero e `giro` ou `duracao` negativos são recusados; giro
-zero é a serpente que só vai reta.
-
-> **Uma serpente não leva regra com `motion`.** As regras rodam depois da
-> estratégia, e uma `motion` ali substituiria a da cabeça ou a do gomo — o corpo
-> deixaria de seguir, calado. Um teste em `test_arquivos_de_dados.cpp` recusa.
-
 **`sprint`**, opcional na `SprintAttack`:
 
 ```json
@@ -387,7 +360,7 @@ nela), parada na vaga a história entra no **posto** `quadro`, e na revisão o
 que sobrou cai em cima do aluno a `velocidade` px/s, mirando onde ele vai estar.
 O cursor sai da mesma fábrica, para usar a mesma folha, mas é um **enfeite**:
 não acerta o aluno e o tiro passa por ele. `angulo` e `anguloCentral` são
-ignorados, e uma sprint também não leva regra com `motion`.
+ignorados, e uma sprint não leva regra com `motion`: as regras rodam depois da estratégia, e a `motion` dela substituiria a da história (um teste em `test_arquivos_de_dados.cpp` recusa).
 
 > **Uma sprint por etapa.** Um teste confere que cada `SprintAttack` dispara
 > uma vez só na etapa dela (`cooldown` que cobre a etapa), que a revisão cai

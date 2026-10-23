@@ -26,8 +26,6 @@
 #include "AttackParameters/CaixaAttackParams.h"
 #include "BaseStrategies/FlexAttack.h"
 #include "AttackParameters/FlexAttackParams.h"
-#include "BaseStrategies/SerpenteAttack.h"
-#include "AttackParameters/SerpenteAttackParams.h"
 #include "BaseStrategies/SprintAttack.h"
 #include "AttackParameters/SprintAttackParams.h"
 #include "BaseStrategies/PontosAttack.h"
@@ -102,7 +100,6 @@ namespace {
         if (tipo == "ConsultaAttack")     return std::make_unique<ConsultaAttack>(spawner, boss);
         if (tipo == "CaixaAttack")        return std::make_unique<CaixaAttack>(spawner, boss);
         if (tipo == "FlexAttack")         return std::make_unique<FlexAttack>(spawner, boss);
-        if (tipo == "SerpenteAttack")     return std::make_unique<SerpenteAttack>(spawner, boss);
         if (tipo == "SprintAttack")       return std::make_unique<SprintAttack>(spawner, boss);
         if (tipo == "PontosAttack")       return std::make_unique<PontosAttack>(spawner, boss);
         if (tipo == "TokenAttack")        return std::make_unique<TokenAttack>(spawner, boss);
@@ -192,14 +189,6 @@ namespace {
             if (a.caixa && a.caixa->proporcao)         caixa->proporcao         = *a.caixa->proporcao;
             if (a.caixa && a.caixa->meiaAlturaInicial) caixa->meiaAlturaInicial = *a.caixa->meiaAlturaInicial;
             params = std::move(caixa);
-        }
-        else if (a.estrategia == "SerpenteAttack") {
-            auto serpente = std::make_unique<SerpenteAttackParams>();
-            if (a.serpente && a.serpente->espaco)  serpente->espaco  = *a.serpente->espaco;
-            if (a.serpente && a.serpente->giro)    serpente->giro    = *a.serpente->giro;
-            if (a.serpente && a.serpente->duracao) serpente->duracao = *a.serpente->duracao;
-            if (a.serpente) { serpente->cabeca = a.serpente->cabeca; serpente->corpo = a.serpente->corpo; }
-            params = std::move(serpente);
         }
         else if (a.estrategia == "SprintAttack") {
             auto sprint = std::make_unique<SprintAttackParams>();
