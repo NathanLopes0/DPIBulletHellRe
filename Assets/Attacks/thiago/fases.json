@@ -51,23 +51,65 @@
 // e um contador, noutra e a faixa do proprio jogador. O campo "indice" so
 // aparece aqui na fase final, onde a treliça precisa ser fixa.
 
-  // FASE 1 - SELECT sem WHERE: a varredura completa.
+  // FASE 1 - O SELECT   |   gesto: O PROFESSOR EM CIMA DA COLUNA QUE LE
   //
-  // Percorre as linhas EM ORDEM, uma por vez, sem olhar para o jogador. E a
-  // fase que ensina a tabela: em 17 s sao ~7 consultas, o bastante para o
-  // jogador contar as linhas e sentir o ritmo. Aleatorio aqui ensinaria nada.
+  // A TABELA ESTA ESCRITA NO CAMPO (Banco.h): o cabecalho de cada coluna no
+  // alto - mat, nome, curso, nota, ano - e os quatro registros, um por linha,
+  // cada valor na sua casa. Ela nasce aqui e fica ate o fim da batalha, por isso
+  // TODA fase tem os gatilhos "cabecalho" e "registro": a fase em que a batalha
+  // comeca e a que monta a tabela.
   //
-  // O chefe fica no centro e nao se mexe: toda a leitura da tela tem de ser
-  // da tabela, e um chefe andando competiria pela atencao.
+  // A cada 1,8s uma consulta, e o placar e o SQL dela. As casas que ela le
+  // ACENDEM antes - o marcador, no posto "aviso" -, e o professor vai para cima
+  // da coluna que ela le:
+  //
+  //   "SELECT * WHERE nota < 50"    a SELECAO: as linhas que satisfazem o
+  //                                 WHERE sao varridas de ponta a ponta (nunca
+  //                                 todas - sempre sobra uma linha)
+  //   "SELECT nota"                 a PROJECAO: a coluna e varrida de cima a
+  //                                 baixo
+  //   "SELECT nome WHERE ano = 2"   AS DUAS: so as casas do cruzamento acendem,
+  //                                 cheias, por um instante
+  //   "ORDER BY nota"               os registros trocam de linha, devagar - e a
+  //                                 casa que era segura pode deixar de ser
+  //
+  // O ALUNO PODE LER A TABELA: o WHERE fala do que esta escrito nas casas, e
+  // quem le "nota < 50" ja sabe que linhas vao ser varridas antes de elas
+  // acenderem.
+  //
+  // MEDIDO COM A FASE SOZINHA: um piloto de fora do repositorio que le os
+  // marcadores e sai da casa acesa para a livre mais perto termina com 0
+  // acertos e 77,9; os tres que so andam no chao, que nao mudam de linha, tomam
+  // 3 (o que persegue, 55,0), 2 (o parado, 33,0) e 2 (o que vai e vem, 49,3).
+  // E a fase que ensina a ler a tabela, e quem le passa por ela inteiro.
+  //
+  // O AVISO E O DA TABELA ANTIGA: uma linha (187px) se atravessa em 0,62s a
+  // 300px/s, e o aviso dela e de 1,0s; uma coluna (240px) em 0,8s, e o dela e
+  // de 1,2s. Quem manda nos dois e Banco.h (o Thiago escreve o aviso na
+  // consulta ao disparar), e um teste confere que os numeros daqui sao os de
+  // la.
   "StateOne": {
     "duracao": 17,
     "proximo": "StateTwo",
-    "movimento": { "tipo": "RandomWander", "a": 2.5, "b": 320 },
+    "anuncio": "SELECT",
+    "movimento": { "tipo": "Conduzido", "a": 600 },
     "ataques": [
-      { "estrategia": "ConsultaAttack", "projetil": "Celula",
-        "projeteis": 6, "velocidade": 620, "cooldown": 0.9,
-        "consulta": { "eixo": "Linha", "linhas": 3, "aviso": 1.1 },
-        "regras": "varredura" }
+      { "gatilho": "cabecalho", "estrategia": "WaveAttack", "projetil": "Cabecalho",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
+      { "gatilho": "registro", "estrategia": "WaveAttack", "projetil": "Dado",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
+      { "gatilho": "marcar", "estrategia": "WaveAttack", "projetil": "Aviso",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "aviso" },
+      { "gatilho": "selecionar", "estrategia": "ConsultaAttack", "projetil": "Celula",
+        "projeteis": 7, "velocidade": 700,
+        "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 1.0 },
+        "regras": "varredura" },
+      { "gatilho": "projetar", "estrategia": "ConsultaAttack", "projetil": "Celula",
+        "projeteis": 8, "velocidade": 640,
+        "consulta": { "eixo": "Coluna", "colunas": 5, "aviso": 1.2 },
+        "regras": "varredura" },
+      { "gatilho": "celula", "estrategia": "WaveAttack", "projetil": "Celula",
+        "projeteis": 12, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "clarao" }
     ]
   },
 
@@ -85,6 +127,10 @@
     "proximo": "StateThree",
     "movimento": { "tipo": "HoverAbovePlayer", "a": 120, "b": 150 },
     "ataques": [
+      { "gatilho": "cabecalho", "estrategia": "WaveAttack", "projetil": "Cabecalho",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
+      { "gatilho": "registro", "estrategia": "WaveAttack", "projetil": "Dado",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
       { "estrategia": "ConsultaAttack", "projetil": "Celula",
         "projeteis": 7, "velocidade": 750, "cooldown": 1.8,
         "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 0.85 },
@@ -111,6 +157,10 @@
     "proximo": "",
     "movimento": { "tipo": "RandomWander", "a": 2.5, "b": 220 },
     "ataques": [
+      { "gatilho": "cabecalho", "estrategia": "WaveAttack", "projetil": "Cabecalho",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
+      { "gatilho": "registro", "estrategia": "WaveAttack", "projetil": "Dado",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
       { "estrategia": "ConsultaAttack", "projetil": "Celula",
         "projeteis": 7, "velocidade": 760, "cooldown": 1.4,
         "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 0.8 },
@@ -143,6 +193,10 @@
     "proximo": "StateOne",
     "movimento": { "tipo": "GoToCenter" },
     "ataques": [
+      { "gatilho": "cabecalho", "estrategia": "WaveAttack", "projetil": "Cabecalho",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
+      { "gatilho": "registro", "estrategia": "WaveAttack", "projetil": "Dado",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
       { "estrategia": "ConsultaAttack", "projetil": "Celula",
         "projeteis": 7, "velocidade": 720, "cooldown": 2.0,
         "consulta": { "eixo": "Linha", "linhas": 4, "indice": 0, "aviso": 0.9 },

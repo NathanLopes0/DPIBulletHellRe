@@ -63,6 +63,7 @@
 #include "../Source/Attacks/Hash.h"
 #include "../Source/Attacks/Arvore.h"
 #include "../Source/Attacks/Ordenacao.h"
+#include "../Source/Attacks/Banco.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
@@ -1669,6 +1670,91 @@ TEST_CASE("Dados: o bubble sort do Salles - gatilhos, posto e caras sao nomes qu
     for (const char* g : nomes) {
         CAPTURE(g);
         CHECK(gatilhos.count(g) == 1);
+    }
+}
+
+TEST_CASE("Dados: a tabela do Thiago - toda fase a monta, e o SELECT da fase 1 tem os numeros de Banco.h") {
+    for (const char* g : {Banco::kGatilhoDoCabecalho, Banco::kGatilhoDoDado, Banco::kGatilhoDoAviso,
+                          Banco::kGatilhoDaSelecao, Banco::kGatilhoDaProjecao, Banco::kGatilhoDaCasa}) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+    }
+    CHECK(PostoExiste(Banco::kPostoDaTabela));
+    CHECK(PostoExiste(Banco::kPostoDoAviso));
+
+    const auto& tipos = ProjeteisDoChefe("thiago").projeteis;
+    const auto regras = RegrasDoChefe("thiago");
+    auto postoDe = [&regras](const std::string& conjunto) {
+        REQUIRE(regras.conjuntos.count(conjunto) == 1);
+        std::string posto;
+        for (const auto& r : regras.conjuntos.at(conjunto)) if (!r.posto.empty()) posto = r.posto;
+        return posto;
+    };
+
+    for (const auto& f : FasesDoChefe("thiago").fases) {
+        CAPTURE(f.nome);
+        std::set<std::string> gatilhos;
+        for (const auto& a : f.ataques) {
+            gatilhos.insert(a.gatilho);
+            if (a.gatilho == Banco::kGatilhoDoCabecalho || a.gatilho == Banco::kGatilhoDoDado) {
+                // A TABELA NASCE PARADA, no posto dela, com a cara de tudo que
+                // pode estar escrito numa casa.
+                REQUIRE(a.velocidade.has_value());
+                CHECK(*a.velocidade == doctest::Approx(0.0f));
+                CHECK(postoDe(a.regrasNome) == Banco::kPostoDaTabela);
+                REQUIRE(tipos.count(a.projetil) == 1);
+                std::set<std::string> caras;
+                for (const auto& anim : tipos.at(a.projetil).animacoes) caras.insert(anim.nome);
+                for (int c = 0; c < Banco::kColunas; ++c) {
+                    const auto col = static_cast<Banco::Coluna>(c);
+                    if (a.gatilho == Banco::kGatilhoDoCabecalho) {
+                        CHECK(caras.count(Banco::CaraDoCabecalho(col)) == 1);
+                        continue;
+                    }
+                    for (const auto& r : Banco::Sortear(static_cast<std::uint32_t>(c) * 77u + 5u)) {
+                        CAPTURE(Banco::Cara(r, col));
+                        CHECK(caras.count(Banco::Cara(r, col)) == 1);
+                    }
+                }
+                if (a.gatilho == Banco::kGatilhoDoDado) {
+                    for (int v = 0; v <= 99; ++v) CHECK(caras.count("V" + std::to_string(v)) == 1);
+                    for (const char* n : Banco::kNomes) CHECK(caras.count(n) == 1);
+                    for (const char* c : Banco::kCursos) CHECK(caras.count(c) == 1);
+                }
+            }
+        }
+        // A FASE EM QUE A BATALHA COMECA E A QUE MONTA A TABELA: toda fase tem
+        // os dois gatilhos.
+        CHECK(gatilhos.count(Banco::kGatilhoDoCabecalho) == 1);
+        CHECK(gatilhos.count(Banco::kGatilhoDoDado) == 1);
+
+        if (f.nome != Banco::kFaseDaSelecao) continue;
+        for (const char* g : {Banco::kGatilhoDoAviso, Banco::kGatilhoDaSelecao, Banco::kGatilhoDaProjecao,
+                              Banco::kGatilhoDaCasa}) {
+            CAPTURE(g);
+            CHECK(gatilhos.count(g) == 1);
+        }
+        for (const auto& a : f.ataques) {
+            if (a.gatilho == Banco::kGatilhoDoAviso) CHECK(postoDe(a.regrasNome) == Banco::kPostoDoAviso);
+            if (a.gatilho == Banco::kGatilhoDaCasa) {
+                REQUIRE(a.projeteis.has_value());
+                CHECK(*a.projeteis == Banco::kPedacosNaLargura * Banco::kPedacosNaAltura);
+            }
+            // A VARREDURA E A DA TABELA DE Banco.h: a mesma forma, e o aviso e a
+            // velocidade que o Thiago escreve ao disparar - os daqui nao podem
+            // dizer outra coisa.
+            const bool linha = a.gatilho == Banco::kGatilhoDaSelecao;
+            const bool coluna = a.gatilho == Banco::kGatilhoDaProjecao;
+            if (!linha && !coluna) continue;
+            REQUIRE(a.consulta.has_value());
+            CHECK(a.consulta->eixo == (linha ? "Linha" : "Coluna"));
+            if (linha) { REQUIRE(a.consulta->linhas.has_value()); CHECK(*a.consulta->linhas == Banco::kLinhas); }
+            if (coluna) { REQUIRE(a.consulta->colunas.has_value()); CHECK(*a.consulta->colunas == Banco::kColunas); }
+            REQUIRE(a.consulta->aviso.has_value());
+            CHECK(*a.consulta->aviso == doctest::Approx(linha ? Banco::kAvisoDaLinha : Banco::kAvisoDaColuna));
+            REQUIRE(a.velocidade.has_value());
+            CHECK(*a.velocidade == doctest::Approx(linha ? Banco::kVelocidadeDaLinha : Banco::kVelocidadeDaColuna));
+        }
     }
 }
 

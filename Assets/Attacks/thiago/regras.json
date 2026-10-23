@@ -52,5 +52,23 @@
   // esta fechando primeiro.
   "juncao": [
     { "animacao": "Linha", "escala": 2.5 }
+  ],
+
+  // A TABELA ESCRITA NO CAMPO: o valor de cada casa e o cabecalho de cada
+  // coluna ficam no posto "tabela" (Banco.h), e o Thiago os mantem no lugar.
+  "tabela": [
+    { "posto": "tabela" }
+  ],
+
+  // O MARCADOR DA CASA QUE VAI SER LIDA, no posto "aviso": e o telegrafo de
+  // toda consulta, e o que diz ao aluno de onde sair.
+  "aviso": [
+    { "posto": "aviso" }
+  ],
+
+  // A CASA QUE ACENDE (as duas operacoes juntas): doze pedacos de celula,
+  // parados, que cobrem a casa inteira por um instante (Banco::kDuracaoDaCasa).
+  "clarao": [
+    { "animacao": "Linha", "escala": 3 }
   ]
 }
