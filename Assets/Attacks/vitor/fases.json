@@ -8,7 +8,7 @@
   //   StateOne    SEMAFOROS            as threads, a secao critica e o P(s)
   //   StateTwo    TCP                  as nuvens, o roteador e o dente de serra
   //   StateThree  FORK                 o chefe se divide; um corpo faz cada uma
-  //   StateFinal  JOIN                 os dois voltam a ser um, fazendo as duas
+  //   StateFinal  DEADLOCK             o jantar dos filosofos
   //
   // O MOVIMENTO E O ATAQUE, como no Vladimir - ver MovementStrategies.h.
   // ==========================================================================
@@ -134,11 +134,10 @@
   // Battle::Corpos(), e acertar um ou outro paga a mesma barra. Nao ha "o
   // verdadeiro" e "a copia" - fork nao faz copia, faz dois.
   //
-  // O CLONE USA OS ATAQUES DA FINAL ("ataquesDe") - o anel das travas e as
-  // tarefas que perseguem -, em vez de repeti-los: duas copias divergem no
-  // dia em que alguem ajusta uma. Ele tambem herda o MOVIMENTO da fase que
-  // empresta, entao varre mais rapido que o original. O original tem a lista
-  // dele: as tarefas eram a fase 1, que virou os semaforos.
+  // O CLONE EMPRESTA A FINAL ("ataquesDe"): o movimento dela e conduzido, e
+  // todo ataque dela e de gatilho - entao o clone nao anda nem atira sozinho,
+  // e quem o conduz e o original. O original tem a lista dele: as tarefas
+  // eram a fase 1, que virou os semaforos.
   //
   // O SEGUNDO CORPO NASCE ESPELHADO em relacao ao original (Battle::DividirChefe):
   // dois corpos no mesmo pixel seriam um so para quem olha.
@@ -172,28 +171,47 @@
     "clone": { "ataquesDe": "StateFinal" }
   },
 
-  // FASE FINAL - JOIN
+  // FASE FINAL - O JANTAR DOS FILOSOFOS   |   gesto: O MONITOR NA MESA
   //
-  // Os dois fluxos voltam a ser um, e agora as tarefas PERSEGUEM: a parede
-  // parada e o perseguidor movel ao mesmo tempo, que e a soma das duas
-  // primeiras fases com juros.
+  // So e vista por quem termina a terceira entre 40 e 59, ou com 100 - StateThree
+  // tem "proximo" vazio, e decide a batalha.
   //
-  // So e vista por quem esta entre 40 e 59 no fim da terceira - StateThree tem
-  // "proximo" vazio, entao a batalha e decidida ali (medido no Vladimir).
+  // O deadlock, no problema que todo curso de concorrencia conta (Filosofos.h):
+  // cinco filosofos em volta da mesa, um garfo entre cada dois, e para comer
+  // cada um precisa dos dois do lado dele. O professor e o monitor: vai ate
+  // quem come, ou ate quem ele escolheu (Vitor.h). Os garfos ANDAM ate a mao de
+  // quem os pega; quem come da garfadas num leque estreito de tres, a do meio
+  // no aluno, a cada 0,4 s; quem espera um garfo
+  // tem uma seta vermelha ate quem esta com ele. Quatro rodadas de 4,9 s:
+  //
+  //   jantar           dois comem de cada vez, sem vizinhos: ninguem espera
+  //   deadlock         todos pegam o garfo da ESQUERDA, e todos esperam o da
+  //                    direita - a espera circular. O pentagono das esperas
+  //                    vira um CERCO de projeteis, aresta por aresta, e o
+  //                    professor vai ate o filosofo mais perto do aluno: kill
+  //                    -9. O cerco estoura para fora, e quem esperava o garfo
+  //                    da vitima come
+  //   ordem            o garfo de MENOR numero primeiro: o ultimo disputa o
+  //                    garfo 0 com o primeiro, e a espera vira uma fila que
+  //                    termina em quem come
+  //   garcom           um semaforo de quatro lugares: o professor tira da mesa
+  //                    quem esta mais perto do aluno, e com quatro nao ha ciclo
+  //
+  // TODO ATAQUE E DE GATILHO: o garfo e um enfeite que o professor move, a
+  // espera nasce parada e e ele quem a solta no estouro; a velocidade da
+  // garfada e a de Filosofos.h (um teste confere).
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
-    "movimento": { "tipo": "Varredura", "a": 300, "b": 120 },
+    "anuncio": "jantar dos filósofos",
+    "movimento": { "tipo": "Conduzido", "a": 400 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Tarefa",
-        "projeteis": 5, "velocidade": 320, "angulo": 25, "intervalo": 0.04,
-        "cooldown": 1.0,
-        "regras": "tarefas_famintas" },
-      { "estrategia": "WaveAttack", "projetil": "Trava",
-        "projeteis": 52, "velocidade": 300, "angulo": 300, "anguloCentral": 270,
-        "intervalo": 0,
-        "cooldown": 2.9,
-        "regras": "secao_critica" }
+      { "gatilho": "garfo", "estrategia": "WaveAttack", "projetil": "Garfo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "garfada", "estrategia": "WaveAttack", "projetil": "Garfada",
+        "projeteis": 3, "velocidade": 210, "angulo": 16, "intervalo": 0 },
+      { "gatilho": "espera", "estrategia": "WaveAttack", "projetil": "Espera",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
     ]
   }
 }

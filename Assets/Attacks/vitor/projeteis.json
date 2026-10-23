@@ -2,22 +2,15 @@
   // ==========================================================================
   // OS PROJETEIS DO VITOR (INF 310 - Programacao Concorrente e Distribuida)
   //
-  // DOIS TIPOS, E ELES FAZEM COISAS DIFERENTES. Esta e a licao que o Vladimir
-  // custou tres versoes a aprender: dois projeteis que diferem so na cor sao
-  // pintura, e o jogador nao tem por que olhar para a diferenca.
+  // CADA TIPO FAZ UMA COISA, e e por isso que sao tipos e nao cores: a licao
+  // que o Vladimir custou tres versoes a aprender - dois projeteis que
+  // diferem so na cor sao pintura, e o jogador nao tem por que olhar para a
+  // diferenca. A instrucao para na porta, a tarefa atravessa, a corrente
+  // prende, o segmento se perde no roteador, o garfo anda de mao em mao.
   //
-  //   Tarefa   ATRAVESSA. Trabalho correndo: rapido, reto, passa e vai embora.
-  //   Trava    FICA. Recurso retido: freia quase ate parar e ocupa espaco, e o
-  //            jogador tem de CONTORNAR em vez de esperar passar.
-  //
-  // Sao dois tipos e nao duas animacoes de um (como no Vladimir) porque aqui
-  // sao duas COISAS, e nao duas letras do mesmo alfabeto - e porque escala e
-  // dimensao de colisor sao por tipo, e a trava precisa ocupar mais espaco do
-  // que a tarefa para a parede dela significar alguma coisa.
-  //
-  // OS DOIS DIVIDEM A MESMA FOLHA de sprite, cada um com os quadros dele.
   // Arte PROVISORIA de Ferramentas/gerar_vitor.py.
   // ==========================================================================
+
   // A INSTRUCAO DA FASE 1: um chip na cor da thread, com o numero dela - uma
   // animacao por thread, e quem escolhe qual e o Vitor ao mandar (o nome da
   // coluna, Semaforo::Nome). Desce reta ate a secao critica; quem nao tem o
@@ -59,8 +52,8 @@
   // a nota cheia e para a fase limpa. Ser acorrentado nao e de graca; e so
   // barato em nota.
   //
-  // A ARTE NAO E UMA TERCEIRA COR VIVA. A Tarefa e verde e a Trava e vermelha
-  // porque as duas falam de nota; a corrente e FERRO, e fala de peso. O aluno
+  // A ARTE NAO E UMA COR VIVA. As cores vivas do Vitor falam de nota - a
+  // tarefa, as threads; a corrente e FERRO, e fala de peso. O aluno
   // preso ganha um tom da mesma familia (ver Player::UpdateCorrente), entao a
   // causa e o efeito se parecem.
   "Corrente": {
@@ -77,21 +70,6 @@
       "fatorDeVelocidade": 0.45,
       "multiplicadorDaPerda": 0.15
     }
-  },
-
-  "Trava": {
-    "sprite": "Teachers/Projectiles/DPIBHVitorTarefa.png",
-    "dados":  "Teachers/Projectiles/DPIBHVitorTarefa.json",
-    "animacoes": {
-      "Retida": [4, 5, 6, 7]
-    },
-    "animacaoInicial": "Retida",
-    "ordemDeDesenho": 88,
-
-    // MAIOR QUE A TAREFA, e de proposito: a trava e um obstaculo, e um
-    // obstaculo que o jogador quase nao ve nao e obstaculo. O colisor
-    // acompanha a escala.
-    "escala": 1.15
   },
 
   // AS NUVENS DA FASE 2: a computacao em nuvem, em cima do professor. Ociosa
@@ -131,5 +109,39 @@
     "ordemDeDesenho": 91,
     "escala": 1.2,
     "colisorDivisor": 4
+  },
+
+  // O JANTAR DA FINAL. O GARFO e enfeite - nao machuca, o Ponto Extra nao o
+  // leva - e quem o move e o Vitor, da mesa a mao de quem o pega. A GARFADA e
+  // o que quem come atira. A ESPERA e o cerco do deadlock: nasce parada nas
+  // arestas do pentagono e o Vitor a solta para fora no kill -9.
+  "Garfo": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorFilosofos.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorFilosofos.json",
+    "animacoes": {
+      "Brilhando": [0, 1, 2, 3]
+    },
+    "animacaoInicial": "Brilhando",
+    "ordemDeDesenho": 89
+  },
+
+  "Garfada": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorFilosofos.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorFilosofos.json",
+    "animacoes": {
+      "Girando": [4, 5, 6, 7]
+    },
+    "animacaoInicial": "Girando",
+    "ordemDeDesenho": 91
+  },
+
+  "Espera": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorFilosofos.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorFilosofos.json",
+    "animacoes": {
+      "Ampulheta": [8, 9, 10, 11]
+    },
+    "animacaoInicial": "Ampulheta",
+    "ordemDeDesenho": 90
   }
 }

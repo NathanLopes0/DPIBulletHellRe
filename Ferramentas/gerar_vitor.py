@@ -28,6 +28,14 @@ AS INSTRUCOES DA FASE 1 (DPIBHVitorThreads), uma cor por thread:
               coluna de instrucoes descendo ate a secao critica, e quem le o
               placar ("fila: T3 T1 T5") precisa achar a coluna pela cor.
 
+O JANTAR DA FINAL (DPIBHVitorFilosofos):
+
+    Garfo     o garfo de prata entre dois filosofos, que anda ate a mao de
+              quem o pega.
+    Garfada   o novelo de macarrao que quem come atira, girando.
+    Espera    o chip vermelho com a ampulheta: a espera de um filosofo por
+              outro, que vira o cerco do deadlock.
+
 AS LINHAS SEGUINTES SAO AS REDES, a outra materia que ele da (do 127 em diante):
 
     Nuvem     a nuvem da computacao em nuvem, em cima dele na fase 2: ociosa
@@ -71,6 +79,13 @@ CORES_DAS_THREADS = [
     (160, 220, 90, 255),
     (170, 140, 245, 255),
 ]
+
+COR_PRATA = (214, 220, 232, 255)
+COR_PRATA_ESCURA = (132, 140, 160, 255)
+COR_MACARRAO = (246, 214, 120, 255)
+COR_MACARRAO_ESCURO = (206, 160, 70, 255)
+COR_MOLHO = (210, 70, 50, 255)
+COR_ESPERA = (220, 70, 80, 255)
 
 COR_NUVEM  = (214, 226, 242, 255)
 COR_NUVEM_SOMBRA = (150, 166, 192, 255)
@@ -212,6 +227,60 @@ def instrucao(t, fase):
     return im
 
 
+def garfo(fase):
+    """O GARFO: o cabo e quatro dentes, de prata. Brilha de leve."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([14, 15, 17, 28], fill=COR_PRATA, outline=TRACO)        # o cabo
+    d.rectangle([9, 11, 22, 15], fill=COR_PRATA, outline=TRACO)         # a base dos dentes
+    for k in range(4):
+        x = 9 + 4 * k
+        d.rectangle([x, 3, x + 1, 11], fill=COR_PRATA, outline=TRACO)
+    if fase % 2 == 0:
+        d.point([(15, 20), (15, 21)], fill=(255, 255, 255, 230))
+    else:
+        d.point([(16, 24), (16, 25)], fill=(255, 255, 255, 230))
+    return im
+
+
+def garfada(fase):
+    """A GARFADA: um novelo de macarrao com molho, girando."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.ellipse([7, 7, 25, 25], fill=COR_MACARRAO, outline=TRACO)
+    for k in range(3):
+        a0 = fase * 90 + k * 120
+        d.arc([10, 10, 22, 22], start=a0, end=a0 + 80, fill=COR_MACARRAO_ESCURO, width=2)
+    d.ellipse([13, 12, 19, 18], fill=COR_MOLHO)
+    return im
+
+
+def espera(fase):
+    """A ESPERA: o chip vermelho com a ampulheta - a areia desce a cada quadro."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([6, 6, 25, 25], radius=4, fill=COR_ESPERA, outline=TRACO, width=2)
+    d.polygon([(11, 10), (21, 10), (16, 16)], outline=TRACO, fill=(255, 236, 200, 255))
+    d.polygon([(11, 22), (21, 22), (16, 16)], outline=TRACO, fill=(255, 236, 200, 255))
+    areia = (230, 180, 90, 255)
+    cima = 4 - fase
+    if cima > 0:
+        d.polygon([(16 - cima, 15 - cima), (16 + cima, 15 - cima), (16, 15)], fill=areia)
+    if fase > 0:
+        d.polygon([(16 - fase, 21), (16 + fase, 21), (16, 21 - fase)], fill=areia)
+    return im
+
+
+def folha_dos_filosofos():
+    """O garfo, a garfada e a espera: quatro quadros de cada, um por linha."""
+    f = Image.new("RGBA", (128, 96), (0, 0, 0, 0))
+    for i in range(4):
+        f.alpha_composite(garfo(i), (i * 32, 0))
+        f.alpha_composite(garfada(i), (i * 32, 32))
+        f.alpha_composite(espera(i), (i * 32, 64))
+    return f
+
+
 def folha_das_threads():
     """Quatro quadros por thread, uma thread por linha."""
     f = Image.new("RGBA", (128, 160), (0, 0, 0, 0))
@@ -291,3 +360,4 @@ if __name__ == "__main__":
     grava(vitor(), "DPIBHVitor", "Assets/Teachers")
     grava(folha(), "DPIBHVitorTarefa", "Assets/Teachers/Projectiles", quadros=32, lado=32)
     grava(folha_das_threads(), "DPIBHVitorThreads", "Assets/Teachers/Projectiles", quadros=20, lado=32)
+    grava(folha_dos_filosofos(), "DPIBHVitorFilosofos", "Assets/Teachers/Projectiles", quadros=12, lado=32)

@@ -170,6 +170,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Semaforo.h
         Source/Attacks/Tcp.cpp
         Source/Attacks/Tcp.h
+        Source/Attacks/Filosofos.cpp
+        Source/Attacks/Filosofos.h
         Source/Attacks/Logica.cpp
         Source/Attacks/Logica.h
         Source/Attacks/Relogio.cpp
@@ -360,6 +362,7 @@ add_executable(dpi_tests
         tests/test_nuvem.cpp
         tests/test_semaforo.cpp
         tests/test_tcp.cpp
+        tests/test_filosofos.cpp
         tests/test_logica.cpp
         tests/test_relogio.cpp
         tests/test_pipeline.cpp
@@ -478,6 +481,8 @@ add_executable(dpi_tests
         Source/Attacks/Semaforo.h
         Source/Attacks/Tcp.cpp
         Source/Attacks/Tcp.h
+        Source/Attacks/Filosofos.cpp
+        Source/Attacks/Filosofos.h
         Source/Attacks/Logica.cpp
         Source/Attacks/Logica.h
         Source/Attacks/Relogio.cpp

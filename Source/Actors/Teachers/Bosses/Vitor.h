@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <map>
 #include <optional>
 #include <string>
@@ -15,6 +16,7 @@
 #include "../../../Attacks/Nuvem.h"
 #include "../../../Attacks/Semaforo.h"
 #include "../../../Attacks/Tcp.h"
+#include "../../../Attacks/Filosofos.h"
 
 class BossProjectile;
 class DrawLinhasComponent;
@@ -37,6 +39,7 @@ class Player;
  *   fase 1  SEMAFOROS           - as threads, a secao critica e a fila do P(s)
  *   fase 2  TCP                 - as nuvens, o roteador e o dente de serra
  *   fase 3  FORK                - dois corpos, um fazendo cada uma das duas
+ *   final   DEADLOCK            - o jantar dos filosofos
  *
  * A FASE 1 E A SINCRONIZACAO (Semaforo.h): cada thread e uma coluna de
  * instrucoes descendo ate a secao critica, no meio do campo. Quem nao tem o
@@ -53,6 +56,13 @@ class Player;
  * no canto. O Ponto Extra derruba as nuvens, e elas voltam num timeout, com
  * cwnd = 1. E e pela nuvem que ele se divide na fase 3: as duas se juntam em
  * cima dele, ele entra, e saem dois (ComecarOFork).
+ *
+ * A FINAL E O DEADLOCK, no jantar dos filosofos (Filosofos.h): cinco em volta
+ * da mesa, um garfo entre cada dois, e o professor no meio, de monitor. Os
+ * garfos andam ate a mao de quem os pega, quem come ataca em leque, e quem
+ * espera tem uma linha ate quem tem o garfo dele. Na rodada do deadlock as
+ * esperas fecham um pentagono, que vira um cerco de projeteis ate o professor
+ * matar um filosofo e o cerco estourar para fora.
  */
 class Vitor : public Boss {
 public:
@@ -182,6 +192,64 @@ private:
 
     static constexpr int kOrdemDaSecao = 52;
     static constexpr int kOrdemDosNomes = 57;
+    // ---- A FINAL: O JANTAR DOS FILOSOFOS --------------------------------------
+
+    void AtualizarJantar(float deltaTime);
+    void MontarJantar();
+    void DesmontarJantar();
+    void ComecarRodadaDoJantar(int k);
+    void ExecutarNoJantar(const Filosofos::Passo& p);
+    void MoverGarfos(float deltaTime);
+    void PintarFilosofos();
+    void DesenharJantar();
+    void FecharCerco(float u);
+    void EstourarCerco();
+
+    [[nodiscard]] Vector2 NoCampo(Filosofos::Ponto p) const;
+
+    /// O filosofo mais perto do aluno: e quem o professor escolhe - a vitima
+    /// do kill -9, e quem o garcom tira da mesa.
+    [[nodiscard]] int FilosofoMaisPerto() const;
+
+    bool mNoJantar = false;
+    int mRodadaDoJantar = -1;
+    float mInicioDoJantar = 0.0f;
+    int mEscolhido = 0;
+    Filosofos::Mesa mMesa;
+    std::vector<Filosofos::Passo> mPassos;
+    size_t mProximoPasso = 0;
+    float mRelogioDoJantar = 0.0f;
+
+    std::array<EtiquetaDeCodigo*, Filosofos::kFilosofos> mNomesDosFilosofos{};
+    std::array<BossProjectile*, Filosofos::kFilosofos> mGarfos{};
+    std::array<float, Filosofos::kFilosofos> mProximaGarfada{};
+
+    /// O cerco do deadlock: as esperas ja postas, e quantas ja sairam.
+    std::vector<BossProjectile*> mCerco;
+    int mPostasNoCerco = 0;
+    float mInicioDoCerco = 0.0f;
+    bool mCercoAberto = false;
+
+    /// OS NOMES DOS FILOSOFOS FICAM POR CIMA DO PROFESSOR (100), e so eles:
+    /// ele vai ate quem vigia, e por baixo dele o nome de quem come sumia -
+    /// justo o que o placar manda ler.
+    static constexpr int kOrdemDosFilosofos = 102;
+
+    /// Os garfos andam a kVelocidadeDoGarfo ate onde devem estar.
+    static constexpr float kVelocidadeDoGarfo = 520.0f;
+
+    /// O professor vai ate perto de quem ele vigia (kPertoDoEscolhido do
+    /// caminho do meio da mesa ate o filosofo), e sem ninguem para vigiar
+    /// balanca no meio.
+    ///
+    /// ELE NAO PODE MORAR NO MEIO: o aluno parado embaixo do meio da mesa
+    /// atirava nele a fase inteira - 153 acertos na final sozinha - e passava
+    /// mesmo tomando dez garfadas.
+    static constexpr float kBalancoNaMesa = 60.0f;
+    static constexpr float kRitmoDoBalanco = 1.0f;
+    static constexpr float kPertoDoEscolhido = 0.45f;
+    static constexpr float kAbertoDaGarfada = 16.0f;
+
     // ---- A FASE 2: AS NUVENS E O TCP ----------------------------------------
     //
     // Pouco depois de a fase comecar o Vitor forma as duas nuvens (o gatilho

@@ -75,6 +75,17 @@ namespace {
     constexpr SDL_Color kCorDaSerra{250, 190, 70, 255};
     constexpr int kAlturaDaCaixaDoRoteador = 30;
 
+    // A final: a mesa, os filosofos conforme o que fazem, e as esperas.
+    constexpr SDL_Color kCorDaMesa{186, 130, 80, 230};
+    constexpr SDL_Color kPensando{150, 170, 210, 255};
+    constexpr SDL_Color kComendo{96, 222, 112, 255};
+    constexpr SDL_Color kFundoDeQuemCome{20, 60, 36, 235};
+    constexpr SDL_Color kEsperando{235, 96, 96, 255};
+    constexpr SDL_Color kFundoDeQuemEspera{70, 24, 28, 235};
+    constexpr SDL_Color kMorto{110, 110, 118, 220};
+    constexpr SDL_Color kDeFora{120, 126, 140, 160};
+    constexpr SDL_Color kLinhaDaEspera{235, 96, 96, 230};
+
     /// O nome da coluna e o codigo da faixa: a mesma conta de largura do
     /// canto do Luizinho (9,5 px por letra mais a folga).
     int LarguraDoTexto(const std::string& texto) {
@@ -99,6 +110,7 @@ void Vitor::AoTerminarABatalha() {
     if (mFilaDoRoteador) mFilaDoRoteador->Mostrar(false);
     if (mQuadroDoGrafico) mQuadroDoGrafico->Mostrar(false);
     if (mNomeDoGrafico) mNomeDoGrafico->Mostrar(false);
+    for (EtiquetaDeCodigo* nome : mNomesDosFilosofos) if (nome) nome->Mostrar(false);
     if (mLinhas) mLinhas->Limpar();
 }
 
@@ -482,6 +494,7 @@ void Vitor::OnUpdate(const float deltaTime) {
     if (!EhClone()) AcompanharOAluno(deltaTime);
     AtualizarNuvens(deltaTime);
     AtualizarSemaforos();
+    AtualizarJantar(deltaTime);
 }
 
 void Vitor::EntrarNaNuvem(const Vector2 onde, const Vector2 destino, const bool nasceuDentro) {
@@ -839,4 +852,259 @@ void Vitor::CustomizeAttackParams(AttackParams& params, const std::string& state
         if (mCentroEm) params.centralAngle = *mCentroEm;
         if (mAberturaEm) params.angle = *mAberturaEm;
     }
+}
+
+// ---------------------------------------------------------------------------
+// A final: o jantar dos filosofos
+// ---------------------------------------------------------------------------
+
+Vector2 Vitor::NoCampo(const Filosofos::Ponto p) const {
+    const SDL_FRect campo = Campo();
+    return Vector2(campo.x + p.x, campo.y + p.y);
+}
+
+int Vitor::FilosofoMaisPerto() const {
+    const float w = Campo().w;
+    const Vector2 aluno = PosicaoDoAluno();
+    int melhor = 0;
+    float menor = std::numeric_limits<float>::max();
+    for (int f = 0; f < Filosofos::kFilosofos; ++f) {
+        const float d = (NoCampo(Filosofos::Lugar(f, w)) - aluno).Length();
+        if (d < menor) { menor = d; melhor = f; }
+    }
+    return melhor;
+}
+
+void Vitor::MontarJantar() {
+    mNoJantar = true;
+    mRodadaDoJantar = -1;
+    mRelogioDoJantar = 0.0f;
+    mMesa = Filosofos::MesaPosta();
+    const float w = Campo().w;
+
+    // OS FILOSOFOS: o nome de cada um, em volta da mesa.
+    for (int f = 0; f < Filosofos::kFilosofos; ++f) {
+        const std::string nome = Filosofos::Nome(f);
+        auto etiqueta = std::make_unique<EtiquetaDeCodigo>(mScene, nome, LarguraDoTexto(nome), kAlturaDoNome,
+                                                           kOrdemDosFilosofos);
+        etiqueta->SetPosition(NoCampo(Filosofos::Lugar(f, w)));
+        mNomesDosFilosofos[static_cast<size_t>(f)] = etiqueta.get();
+        mScene->AddActor(std::move(etiqueta));
+    }
+
+    // OS GARFOS: enfeites - nao machucam, e o Ponto Extra nao os leva -, na
+    // mesa, entre cada dois.
+    for (int g = 0; g < Filosofos::kFilosofos; ++g) {
+        const auto criados = DispararEm(Filosofos::kGatilhoDoGarfo, NoCampo(Filosofos::LugarDoGarfo(g, w)), 1);
+        BossProjectile* garfo = criados.empty() ? nullptr : criados.front();
+        if (garfo) {
+            garfo->DefinirEnfeite(true);
+            Parar(garfo);
+        }
+        mGarfos[static_cast<size_t>(g)] = garfo;
+    }
+    PintarFilosofos();
+}
+
+void Vitor::DesmontarJantar() {
+    for (EtiquetaDeCodigo*& nome : mNomesDosFilosofos) {
+        if (nome) nome->SetState(ActorState::Destroy);
+        nome = nullptr;
+    }
+    for (BossProjectile*& garfo : mGarfos) {
+        if (Vivo(garfo)) garfo->Kill();
+        garfo = nullptr;
+    }
+    for (BossProjectile* p : mCerco) if (Vivo(p)) p->Kill();
+    mCerco.clear();
+    Restaurar(Filosofos::kFaseDoJantar);
+    mNoJantar = false;
+    mRodadaDoJantar = -1;
+    mPassos.clear();
+    mAlvo.reset();
+}
+
+void Vitor::ComecarRodadaDoJantar(const int k) {
+    // A MESA E POSTA DE NOVO: os garfos voltam ao lugar, e quem morreu ou
+    // saiu volta a mesa - e outra rodada, outro jantar.
+    for (BossProjectile* p : mCerco) if (Vivo(p)) p->Kill();
+    mCerco.clear();
+    mPostasNoCerco = 0;
+    mCercoAberto = false;
+    mMesa = Filosofos::MesaPosta();
+    mProximaGarfada.fill(0.0f);
+
+    mRodadaDoJantar = k;
+    mInicioDoJantar = Filosofos::kPrimeiro + static_cast<float>(k) * Filosofos::kPorRodada;
+    mEscolhido = FilosofoMaisPerto();
+    mPassos = Filosofos::Roteiro(Filosofos::RodadaDaVez(k), mEscolhido);
+    mProximoPasso = 0;
+}
+
+void Vitor::ExecutarNoJantar(const Filosofos::Passo& p) {
+    if (!Filosofos::Aplicar(mMesa, p)) return;
+    switch (p.acao) {
+        case Filosofos::Acao::Come:
+            mProximaGarfada[static_cast<size_t>(p.filosofo)] =
+                mRelogioDoJantar + Filosofos::kPrimeiraGarfada;
+            break;
+        case Filosofos::Acao::Morre:
+            // KILL -9: o ciclo quebra, e o cerco das esperas estoura para fora.
+            EstourarCerco();
+            break;
+        default:
+            break;
+    }
+}
+
+void Vitor::MoverGarfos(const float deltaTime) {
+    const float w = Campo().w;
+    for (int g = 0; g < Filosofos::kFilosofos; ++g) {
+        BossProjectile* garfo = mGarfos[static_cast<size_t>(g)];
+        if (!Vivo(garfo)) continue;
+        const int dono = mMesa.dono[static_cast<size_t>(g)];
+        const Vector2 alvo = NoCampo(dono >= 0 ? Filosofos::NaMao(dono, g, w) : Filosofos::LugarDoGarfo(g, w));
+        const Vector2 falta = alvo - garfo->GetPosition();
+        const float passo = kVelocidadeDoGarfo * deltaTime;
+        garfo->SetPosition(falta.Length() <= passo ? alvo : garfo->GetPosition() + falta * (passo / falta.Length()));
+        Parar(garfo);
+    }
+}
+
+void Vitor::FecharCerco(const float u) {
+    // O CERCO CRESCE enquanto ninguem cede: uma espera a cada kEntreEsperas,
+    // aresta por aresta do pentagono.
+    if (mCercoAberto || !Filosofos::EmDeadlock(mMesa)) return;
+    const float w = Campo().w;
+    const auto esperas = Filosofos::Esperas(mMesa);
+    const int total = static_cast<int>(esperas.size()) * Filosofos::kPorAresta;
+    if (mPostasNoCerco == 0) mInicioDoCerco = u;
+    while (mPostasNoCerco < total
+           && u >= mInicioDoCerco + static_cast<float>(mPostasNoCerco) * Filosofos::kEntreEsperas) {
+        const auto& [de, para] = esperas[static_cast<size_t>(mPostasNoCerco / Filosofos::kPorAresta)];
+        const auto pontos = Filosofos::Cerco(de, para, w);
+        const Vector2 onde = NoCampo(pontos[static_cast<size_t>(mPostasNoCerco % Filosofos::kPorAresta)]);
+        for (BossProjectile* p : DispararEm(Filosofos::kGatilhoDaEspera, onde, 1)) {
+            Parar(p);
+            mCerco.push_back(p);
+        }
+        ++mPostasNoCerco;
+    }
+}
+
+void Vitor::EstourarCerco() {
+    mCercoAberto = true;
+    const Vector2 c = NoCampo(Filosofos::Centro(Campo().w));
+    for (BossProjectile* p : mCerco) {
+        if (!Vivo(p)) continue;
+        Lancar(p, Angulo(c, p->GetPosition()), Filosofos::kVelocidadeDoEstouro);
+    }
+    mCerco.clear();
+}
+
+void Vitor::PintarFilosofos() {
+    for (int f = 0; f < Filosofos::kFilosofos; ++f) {
+        EtiquetaDeCodigo* nome = mNomesDosFilosofos[static_cast<size_t>(f)];
+        if (!nome) continue;
+        switch (mMesa.estado[static_cast<size_t>(f)]) {
+            case Filosofos::Estado::Comendo:   nome->Pintar(kComendo, kFundoDeQuemCome, kComendo); break;
+            case Filosofos::Estado::Esperando: nome->Pintar(kEsperando, kFundoDeQuemEspera, kEsperando); break;
+            case Filosofos::Estado::Morto:     nome->Pintar(kMorto, kFundoDoNome, kMorto); break;
+            case Filosofos::Estado::DeFora:    nome->Pintar(kDeFora, kFundoDoNome, kDeFora); break;
+            default:                           nome->Pintar(kPensando, kFundoDoNome, kPensando); break;
+        }
+    }
+}
+
+void Vitor::DesenharJantar() {
+    if (!mLinhas) return;
+    const float w = Campo().w;
+    const Vector2 c = NoCampo(Filosofos::Centro(w));
+
+    // A MESA: um circulo de 24 lados.
+    constexpr int kLados = 24;
+    for (int i = 0; i < kLados; ++i) {
+        const float a0 = Math::TwoPi * static_cast<float>(i) / kLados;
+        const float a1 = Math::TwoPi * static_cast<float>(i + 1) / kLados;
+        mLinhas->Acrescentar(c + Vector2(std::cos(a0), std::sin(a0)) * Filosofos::kRaioDaMesa,
+                             c + Vector2(std::cos(a1), std::sin(a1)) * Filosofos::kRaioDaMesa, kCorDaMesa);
+    }
+
+    // AS ESPERAS: de quem espera ate quem tem o garfo, com a ponta da seta -
+    // encurtadas para nao entrar nos nomes.
+    for (const auto& [quem, de] : Filosofos::Esperas(mMesa)) {
+        const Vector2 a = NoCampo(Filosofos::Lugar(quem, w));
+        const Vector2 b = NoCampo(Filosofos::Lugar(de, w));
+        Vector2 d = b - a;
+        const float n = d.Length();
+        if (n < 1.0f) continue;
+        d = d * (1.0f / n);
+        const Vector2 de0 = a + d * 30.0f;
+        const Vector2 ate = b - d * 30.0f;
+        mLinhas->Acrescentar(de0, ate, kLinhaDaEspera);
+        const Vector2 lado(-d.y, d.x);
+        mLinhas->Acrescentar(ate, ate - d * 12.0f + lado * 7.0f, kLinhaDaEspera);
+        mLinhas->Acrescentar(ate, ate - d * 12.0f - lado * 7.0f, kLinhaDaEspera);
+    }
+}
+
+void Vitor::AtualizarJantar(const float deltaTime) {
+    mCerco.erase(std::remove_if(mCerco.begin(), mCerco.end(),
+                                [](const BossProjectile* p) { return !Vivo(p); }), mCerco.end());
+
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool aqui = fsm && fsm->GetStateName() == Filosofos::kFaseDoJantar && !EhClone();
+    if (!aqui) {
+        if (mNoJantar) DesmontarJantar();
+        return;
+    }
+    if (!mNoJantar) MontarJantar();
+
+    const float t = fsm->GetStateTime();
+    const SDL_FRect campo = Campo();
+    const Vector2 centro = NoCampo(Filosofos::Centro(campo.w));
+    mAlvo = centro;
+    MoverGarfos(deltaTime);
+    DesenharJantar();
+    if (t < Filosofos::kPrimeiro) return;
+
+    const int k = std::min(Filosofos::kRodadas - 1,
+                           static_cast<int>((t - Filosofos::kPrimeiro) / Filosofos::kPorRodada));
+    if (k != mRodadaDoJantar) ComecarRodadaDoJantar(k);
+    const float u = t - mInicioDoJantar;
+    mRelogioDoJantar = u;
+
+    while (mProximoPasso < mPassos.size() && u >= mPassos[mProximoPasso].quando) {
+        ExecutarNoJantar(mPassos[mProximoPasso++]);
+    }
+    FecharCerco(u);
+
+    // QUEM COME, ATACA: garfadas em leque, miradas no aluno.
+    const Vector2 aluno = PosicaoDoAluno();
+    for (int f = 0; f < Filosofos::kFilosofos; ++f) {
+        if (mMesa.estado[static_cast<size_t>(f)] != Filosofos::Estado::Comendo) continue;
+        float& proxima = mProximaGarfada[static_cast<size_t>(f)];
+        if (u < proxima) continue;
+        const Vector2 de = NoCampo(Filosofos::Lugar(f, campo.w));
+        DispararEm(Filosofos::kGatilhoDaGarfada, de, Filosofos::kGarfadasPorLeque, Angulo(de, aluno), kAbertoDaGarfada);
+        proxima = u + Filosofos::kEntreGarfadas;
+    }
+
+    // O PROFESSOR E O MONITOR: no deadlock vai ate a vitima; fora dele, vai
+    // ate quem come - e quem pega os dois garfos que ele vigia -; e o garcom
+    // fica ao lado de quem ele tirou da mesa. Sem nada disso, balanca no meio.
+    const Filosofos::Rodada rodada = Filosofos::RodadaDaVez(k);
+    Vector2 alvo = centro + Vector2(kBalancoNaMesa * std::sin(kRitmoDoBalanco * t), 0.0f);
+    int vigiado = -1;
+    if (rodada == Filosofos::Rodada::Deadlock && Filosofos::EmDeadlock(mMesa)) vigiado = mEscolhido;
+    else if (const auto comem = Filosofos::Comendo(mMesa); !comem.empty()) vigiado = comem.front();
+    else if (rodada == Filosofos::Rodada::Garcom && u >= 0.1f) vigiado = mEscolhido;
+    if (vigiado >= 0) {
+        const Vector2 la = NoCampo(Filosofos::Lugar(vigiado, campo.w));
+        alvo = centro + (la - centro) * kPertoDoEscolhido;
+    }
+    mAlvo = alvo;
+
+    PintarFilosofos();
+    Anunciar(Filosofos::kFaseDoJantar, Filosofos::Placar(rodada, mMesa));
 }

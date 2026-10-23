@@ -2,10 +2,10 @@
   // ==========================================================================
   // AS REGRAS DE PROJETIL DO VITOR
   //
-  // Cada conjunto veste uma ideia da materia, e os dois tipos de projetil
-  // (Tarefa e Trava) existem justamente para as regras terem o que diferenciar.
-  // Ver a nota em projeteis.json: dois projeteis que diferem so na cor sao
-  // pintura.
+  // Cada conjunto veste uma ideia da materia. A maior parte do Vitor nao
+  // precisa de regra - a instrucao, o segmento e o garfo sao movidos por ele
+  // (Vitor.cpp) -, e o que sobrou aqui e o que o motor de regras faz bem:
+  // perseguir, prender e ancorar.
   // ==========================================================================
 
   // AS TAREFAS EM PARALELO - a fase 3, no corpo original. Eram a fase 1, que
@@ -81,10 +81,11 @@
   // (2,6 por 3,2s: 24 acertos, nota 16,6): a corrente acerta, o
   // aluno fica a 45% da velocidade, e a proxima acha um alvo que mal se mexe.
   //
-  // MEDIDO SO COM A MUDANCA DAS CORRENTES, sem mexer na fase 2: o piloto que
-  // persegue passa com 70,8 e 12 acertos - e o PARADO TAMBEM PASSA, com 68,2
-  // (antes reprovava com 22,2). Quem reprova o parado hoje e a fresta da fase
-  // 2, e nao as correntes: mexer naquela fresta pede rodar parado-reprova.sh.
+  // MEDIDO SO COM A MUDANCA DAS CORRENTES, na batalha de antes dos
+  // semaforos: o piloto que persegue passava com 70,8 e 12 acertos - e o
+  // PARADO TAMBEM PASSAVA, com 68,2. As correntes sozinhas nao reprovam
+  // ninguem; quem reprova o parado e a fase em volta delas, e mexer nela pede
+  // rodar parado-reprova.sh.
   //
   // O "atraso" de 0,2 deixa a corrente SAIR antes de comecar a virar. Sem ele
   // ela curva colada no chefe, e o jogador perde a informacao mais util que
@@ -92,46 +93,6 @@
   "correntes": [
     { "animacao": "Arrastando",
       "motion": { "tipo": "Tracking", "atraso": 0.2, "forca": 6.0, "duracao": 4.4 } }
-  ],
-
-  // A EXCLUSAO MUTUA: o anel e a trava, e a fresta e a secao critica. Era a
-  // fase 2, que virou o TCP; hoje e da final (e do clone da fase 3).
-  //
-  // O leque cobre 330 graus, entao sobram 30 de abertura - UM caminho, e so
-  // um. As travas freiam quase ate parar e ficam penduradas: o anel vira uma
-  // PAREDE de verdade, que nao adianta esperar passar.
-  //
-  // O FREIO E FORTE (0,18) DE PROPOSITO. Com um freio leve o anel continua se
-  // expandindo e a fresta passa rapido demais para ser usada; freando quase
-  // ate zero, a parede fica de pe e o jogador tem tempo de achar a abertura e
-  // atravessar - que e o gesto que a fase quer cobrar.
-  //
-  // MAS O FREIO SO ENTRA EM 1,0s, E NAO EM 0,55s, E ISSO E UMA CORRECAO.
-  //
-  // Com 0,55 as travas voavam 143px antes de frear e paravam a uns 240px do
-  // chefe. O centro do anel voa 440px ACIMA da faixa em que o jogador vive,
-  // entao o anel simplesmente NAO CHEGAVA NELE: a fase 2 inteira era cenario
-  // para quem ficasse embaixo. Medido com o piloto parado - um acerto em
-  // dezessete segundos, e a nota SUBINDO 33 pontos no caminho, porque ele
-  // passava a fase fuzilando o chefe sem risco nenhum.
-  //
-  // Com 1,0s a 300 px/s elas chegam a uns 390px e o fundo do anel alcanca a
-  // faixa de baixo. E por isso o anel tambem deixou de ter 16 travas (hoje sao
-  // 60, ver fases.json): num raio maior, 16 ficam a 140 pixels uma da outra e
-  // a "parede" vira uma cerca com buracos de quatro sprites de largura.
-  "secao_critica": [
-    { "animacao": "Retida",
-      "modifiers": [ { "tipo": "SlowDown", "fator": 0.18, "atraso": 1.00 } ] }
-  ],
-
-  // As tarefas da fase final, que correm ENTRE as travas ja postas.
-  //
-  // Elas perseguem de leve: sozinhas seriam faceis demais no meio de uma
-  // parede parada, e o que faz a fase final ser final e ter de desviar de algo
-  // que se mexe enquanto se procura a fresta de algo que nao se mexe.
-  "tarefas_famintas": [
-    { "animacao": "Correndo",
-      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.5, "duracao": 2.2 } }
   ],
 
   // AS NUVENS DA FASE 2: nascem ja no posto das nuvens - e por ele que o Vitor

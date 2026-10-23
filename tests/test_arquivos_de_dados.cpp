@@ -51,6 +51,7 @@
 #include "../Source/Attacks/Nuvem.h"
 #include "../Source/Attacks/Semaforo.h"
 #include "../Source/Attacks/Tcp.h"
+#include "../Source/Attacks/Filosofos.h"
 #include "../Source/Attacks/Logica.h"
 #include "../Source/Attacks/Relogio.h"
 #include "../Source/Attacks/Pipeline.h"
@@ -3096,4 +3097,40 @@ TEST_CASE("Dados: o TCP do Vitor - gatilhos, velocidades e caras sao os de Tcp.h
     CHECK(doSegmento.count(Tcp::kCaraDoRetransmitido) == 1);
     CHECK(caras(projetilDe[Tcp::kGatilhoDoEncaminhado]).count(Tcp::kCaraDoNovo) == 1);
     CHECK(caras(projetilDe[Tcp::kGatilhoDoDescarte]).count(Tcp::kCaraDoDescartado) == 1);
+}
+
+TEST_CASE("Dados: o jantar dos filosofos do Vitor - gatilhos e velocidades sao os de Filosofos.h") {
+
+    const auto lidas = FasesDoChefe("vitor");
+    const DescricaoDeFase* fase = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Filosofos::kFaseDoJantar) fase = &f;
+    REQUIRE(fase != nullptr);
+    CHECK(fase->movimento.tipo == "Conduzido");
+
+    // A garfada sai na velocidade do arquivo; o garfo e a espera nascem
+    // parados, e quem os move e o Vitor.
+    const std::map<std::string, float> velocidades = {
+        {Filosofos::kGatilhoDoGarfo, 0.0f},
+        {Filosofos::kGatilhoDaGarfada, Filosofos::kVelocidadeDaGarfada},
+        {Filosofos::kGatilhoDaEspera, 0.0f},
+    };
+    for (const auto& [g, v] : velocidades) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+        int quantos = 0;
+        for (const auto& a : fase->ataques) {
+            if (a.gatilho != g) continue;
+            ++quantos;
+            REQUIRE(a.velocidade.has_value());
+            CHECK(*a.velocidade == doctest::Approx(v));
+            if (g == Filosofos::kGatilhoDaGarfada) CHECK(a.projeteis.value_or(0) == Filosofos::kGarfadasPorLeque);
+        }
+        CHECK(quantos == 1);
+    }
+    // TODO ATAQUE E DE GATILHO - e e por isso que o clone da fase 3 pode
+    // emprestar esta fase: ele nao atira sozinho.
+    for (const auto& a : fase->ataques) CHECK(!a.gatilho.empty());
+    for (const auto& f : lidas.fases) {
+        if (f.clone.existe) CHECK(f.clone.ataquesDe == Filosofos::kFaseDoJantar);
+    }
 }
