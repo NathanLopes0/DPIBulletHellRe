@@ -452,19 +452,6 @@ void AmarrarBehavior::update(Projectile* p, const float deltaTime) {
     }
 }
 
-void AbrirCapsulaBehavior::update(Projectile* p, const float deltaTime) {
-    t += deltaTime;
-    if (t < atraso) return;
-    aberta = true;
-
-    if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(velocidade);
-    if (auto* letra = dynamic_cast<BossProjectile*>(p)) letra->DefinirBlindado(false);
-    p->SetScale(escala);
-    if (!escreve.empty()) {
-        if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(escreve);
-    }
-}
-
 void CabecaDaSerpenteBehavior::update(Projectile* p, const float deltaTime) {
     auto* rb = p->GetComponent<RigidBodyComponent>();
     if (!rb || !serpente) return;

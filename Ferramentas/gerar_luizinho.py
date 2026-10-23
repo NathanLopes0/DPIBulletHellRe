@@ -16,16 +16,24 @@ OS PROJETEIS, um par de animacoes por assunto:
                         editor, x em ambar e y em ciano (DPIBHLuizinhoGotas).
               AvisoX,   o mesmo chip apagado: onde a chuva vai cair.
               AvisoY
-    Letra     Estatica  ladrilho de pedra com um "C" (de constans): a letra que
-                        sai da capsula.
-              Livre     tabuinha de cera em branco, e Ligada, a mesma com um "V"
-              Ligada    em ouro: eram da primeira fase 1, a das amarracoes.
-              Capsula   a capsa, o estojo cilindrico em que se guardavam os
-                        rolos - e de onde vem "capsula", a caixinha.
+    Valor     Numero0   o numero num chip azul (o operando, e o anel do
+              ...20     resultado com o n escrito), o texto num verde com as
+              Texto0    aspas (o operando), e as letras da palavra do
+              ...9      resultado, sem aspas, com as aspas em chips proprios
+              Letra0..9 (DPIBHLuizinhoValores).
+              Aspas
+    Operador  Mais      o losango onde a conta roda; MaisErro e VezesErro
+              Vezes     quando ela da erro (DPIBHLuizinhoOperadores).
+    Erro      TypeError o estilhaco do erro de execucao, e o "erro de tipo"
+              Compilacao da compilacao (DPIBHLuizinhoErros).
     Bloco     Alocado   um tijolo com um numero romano: um bloco de memoria.
               Marcado   o mesmo tijolo com a marca do coletor.
     Serpente  Cabeca    a cabeca da serpente, que segue o aluno.
               Corpo     os gomos, que seguem a cabeca.
+
+O Bloco e a Serpente moram em DPIBHLuizinhoLetras, nas quatro ultimas linhas;
+as quatro primeiras sao as letras da etimologia (a pedra, a tabuinha em branco
+e escrita, a capsa), que nenhuma fase usa mais.
 """
 from PIL import Image, ImageDraw, ImageFont
 import json, os
@@ -242,6 +250,132 @@ def gotas():
     return f
 
 
+# ---- A FASE 2: OS SISTEMAS DE TIPOS -----------------------------------------
+
+VW = 28   # o chip do valor: o colisor e metade disto
+
+NUMERO = ((30, 52, 116, 240), (120, 170, 255, 255), (220, 232, 255, 255))   # fundo, borda, tinta
+TEXTO  = ((22, 70, 40, 240), (110, 220, 130, 255), (214, 255, 220, 255))
+
+
+def chip(texto, cores, tamanho=19):
+    """Um valor num chip: o numero no azul, o texto no verde."""
+    s = 4
+    fundo, borda, tinta = cores
+    im = Image.new("RGBA", (VW * s, VW * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([2 * s, 2 * s, (VW - 3) * s, (VW - 3) * s], radius=7 * s,
+                        fill=fundo, outline=borda, width=2 * s)
+    d.text((VW * s // 2, VW * s // 2), texto, fill=tinta,
+           font=ImageFont.truetype(CARLITO, tamanho * s), anchor="mm")
+    return im.resize((VW, VW), Image.LANCZOS)
+
+
+MAIOR_NUMERO = 20   # Coercao::kMaiorNumero
+
+
+def valores_quadros():
+    """Os quadros, na ordem das animacoes: Numero0 a Numero20, Texto0 a Texto9
+    (o algarismo entre aspas: o operando), Letra0 a Letra9 (a letra da palavra,
+    sem aspas) e Aspas."""
+    q = [(f"Numero{n}", chip(str(n), NUMERO, 19 if n < 10 else 16)) for n in range(MAIOR_NUMERO + 1)]
+    q += [(f"Texto{n}", chip(f'"{n}"', TEXTO, 15)) for n in range(10)]
+    q += [(f"Letra{n}", chip(str(n), TEXTO, 19)) for n in range(10)]
+    q += [("Aspas", chip('"', TEXTO, 24))]
+    return q
+
+
+OW = 40   # o operador
+
+
+def operador(simbolo, erro):
+    """O operador onde a conta roda: um losango com o simbolo; vermelho quando
+    ela da erro."""
+    s = 4
+    im = Image.new("RGBA", (OW * s, OW * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    fundo, borda, tinta = (((110, 20, 24, 240), (255, 96, 80, 255), (255, 226, 220, 255)) if erro
+                           else ((60, 52, 20, 235), (255, 214, 72, 255), (255, 244, 200, 255)))
+    m = OW * s // 2
+    r = (OW // 2 - 2) * s
+    d.polygon([(m, m - r), (m + r, m), (m, m + r), (m - r, m)], fill=fundo, outline=borda)
+    d.polygon([(m, m - r + 2 * s), (m + r - 2 * s, m), (m, m + r - 2 * s), (m - r + 2 * s, m)], outline=borda)
+    # O ASTERISCO DA CARLITO E UM SOBRESCRITO: maior e mais baixo, ele fica no
+    # meio do losango como o +.
+    if simbolo == "*":
+        d.text((m, m + 7 * s), simbolo, fill=tinta, font=ImageFont.truetype(CARLITO, 36 * s), anchor="mm")
+    else:
+        d.text((m, m), simbolo, fill=tinta, font=ImageFont.truetype(CARLITO, 22 * s), anchor="mm")
+    return im.resize((OW, OW), Image.LANCZOS)
+
+
+OPERADORES = [("Mais", "+", False), ("Vezes", "*", False), ("MaisErro", "+", True), ("VezesErro", "*", True)]
+
+
+EW, EH = 84, 22   # o estilhaco do erro: largo, e o colisor e a altura
+
+
+def estilhaco(texto, cores):
+    s = 4
+    fundo, borda, tinta = cores
+    im = Image.new("RGBA", (EW * s, EH * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([1 * s, 1 * s, (EW - 2) * s, (EH - 2) * s], radius=5 * s,
+                        fill=fundo, outline=borda, width=2 * s)
+    d.text((EW * s // 2, EH * s // 2), texto, fill=tinta,
+           font=ImageFont.truetype(CARLITO, 15 * s), anchor="mm")
+    return im.resize((EW, EH), Image.LANCZOS)
+
+
+ERROS = [("TypeError", "TypeError", ((150, 24, 30, 240), (255, 110, 90, 255), (255, 232, 226, 255))),
+         ("Compilacao", "erro de tipo", ((70, 20, 60, 235), (220, 120, 230, 255), (250, 226, 255, 255)))]
+
+
+def tira(quadros, w, h, colunas):
+    linhas = (len(quadros) + colunas - 1) // colunas
+    f = Image.new("RGBA", (w * colunas, h * linhas), (0, 0, 0, 0))
+    for i, im in enumerate(quadros):
+        f.alpha_composite(im, ((i % colunas) * w, (i // colunas) * h))
+    return f
+
+
+def tira_json(nome, f, w, h, n):
+    colunas = f.width // w
+    frames = []
+    for i in range(n):
+        x, y = (i % colunas) * w, (i // colunas) * h
+        frames.append({
+            "filename": f"{nome} {i}.placeholder",
+            "frame": {"x": x, "y": y, "w": w, "h": h},
+            "rotated": False, "trimmed": False,
+            "spriteSourceSize": {"x": 0, "y": 0, "w": w, "h": h},
+            "sourceSize": {"w": w, "h": h},
+            "duration": 120,
+        })
+    return {"frames": frames,
+            "meta": {"app": "gerar_luizinho.py", "version": "1.0", "image": f"{nome}.png",
+                     "format": "RGBA8888", "size": {"w": f.width, "h": f.height}, "scale": "1"}}
+
+
+def grava_tira(quadros, nome, w, h, colunas):
+    f = tira(quadros, w, h, colunas)
+    destino = os.path.join(RAIZ, "Assets/Teachers/Projectiles")
+    f.save(os.path.join(destino, nome + ".png"))
+    with open(os.path.join(destino, nome + ".json"), "w", encoding="utf-8") as arq:
+        json.dump(tira_json(nome, f, w, h, len(quadros)), arq, indent=1)
+    print(f"  Assets/Teachers/Projectiles/{nome}.png  {f.width}x{f.height}  ({len(quadros)} quadro(s))")
+
+
+def animacoes():
+    """As animacoes de projeteis.json das folhas da fase 2, para copiar de la
+    para ca quando a folha mudar."""
+    return {
+        "Valor": {nome: [i] for i, (nome, _) in enumerate(valores_quadros())},
+        "Operador": {nome: [i] for i, (nome, _, _) in enumerate(OPERADORES)},
+        "Erro": {nome: [i] for i, (nome, _, _) in enumerate(ERROS)},
+    }
+
+
 def grava(im, nome, pasta, quadros=1, lado=None):
     destino = os.path.join(RAIZ, pasta)
     os.makedirs(destino, exist_ok=True)
@@ -252,6 +386,13 @@ def grava(im, nome, pasta, quadros=1, lado=None):
 
 
 if __name__ == "__main__":
+    import sys
+    if "--animacoes" in sys.argv:
+        print(json.dumps(animacoes(), ensure_ascii=False))
+        sys.exit(0)
     grava(luizinho(), "DPIBHLuizinho", "Assets/Teachers")
     grava(folha(), "DPIBHLuizinhoLetras", "Assets/Teachers/Projectiles", quadros=32, lado=32)
     grava(gotas(), "DPIBHLuizinhoGotas", "Assets/Teachers/Projectiles", quadros=len(GOTAS), lado=GW)
+    grava_tira([im for _, im in valores_quadros()], "DPIBHLuizinhoValores", VW, VW, 10)
+    grava_tira([operador(sim, erro) for _, sim, erro in OPERADORES], "DPIBHLuizinhoOperadores", OW, OW, 4)
+    grava_tira([estilhaco(t, c) for _, t, c in ERROS], "DPIBHLuizinhoErros", EW, EH, 2)

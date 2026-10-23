@@ -885,7 +885,7 @@ void Battle::CheckCollisions() {
     // supervisor e um so, e o dono pode ser um clone que ja deixou de existir.
     //
     // O BLINDADO CAI NA MESMA REGRA, pela mesma razao de ordem, e so o tiro
-    // some: e a capsula fechada do Luizinho, que o aluno nao abre de fora.
+    // some: e a historia que o cursor da Maria Lucia ainda arrasta.
     for (const auto &playerProj: playerProjectiles) {
         if (playerProj->GetState() != ActorState::Active) continue;
         const auto *tiro = playerProj->GetComponent<CircleColliderComponent>();
@@ -913,7 +913,7 @@ void Battle::CheckCollisions() {
                     mBoss->OnProjetilBarrado();
                 }
             }
-            break;   // um tiro derruba um processo so, ou some numa capsula so
+            break;   // um tiro derruba um processo so, ou some numa historia so
         }
     }
 

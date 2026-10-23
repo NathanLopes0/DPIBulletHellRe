@@ -89,16 +89,6 @@ struct DescricaoDeCaixa {
 };
 
 /**
- * @brief Os campos que SO a CapsulaAttack usa. Opcional, como o da caixa: todo
- * campo tem padrao em CapsulaAttackParams.
- */
-struct DescricaoDeCapsula {
-    std::optional<float> abre;         ///< segundos fechada
-    std::optional<float> velocidade;   ///< o modulo das letras depois de aberta
-    std::string escreve;               ///< a animacao delas depois de aberta
-};
-
-/**
  * @brief Os campos que SO a SerpenteAttack usa. Opcional: todo campo tem padrao
  * em SerpenteAttackParams.
  */
@@ -238,9 +228,6 @@ struct DescricaoDeAtaque {
 
     /// Presente somente nos ataques FlexAttack.
     std::optional<DescricaoDeFlex> flex;
-
-    /// Presente so nos ataques CapsulaAttack que escreveram o bloco.
-    std::optional<DescricaoDeCapsula> capsula;
 
     /// Presente so nos ataques SerpenteAttack que escreveram o bloco.
     std::optional<DescricaoDeSerpente> serpente;

@@ -6,14 +6,6 @@
   // Documentacao/arquivos-de-dados.md.
   // ==========================================================================
 
-  // ENCAPSULAMENTO: a casca. Todas as letras de dentro nascem com a cara da
-  // capsa, empilhadas, e a pilha inteira se le como uma capsula so; a
-  // CapsulaAttack troca a cara de cada uma quando ela abre, e devolve o
-  // tamanho de fabrica - a casca e maior que o que tem dentro.
-  "capsula": [
-    { "animacao": "Capsula", "escala": 1.5 }
-  ],
-
   // MEMORIA: o bloco alocado para e fica - quem o tira do campo e o coletor
   // (Luizinho), e nao a borda da tela. As duas distancias, nas posicoes pares
   // e impares da rajada, espalham a memoria em duas faixas em vez de uma so.

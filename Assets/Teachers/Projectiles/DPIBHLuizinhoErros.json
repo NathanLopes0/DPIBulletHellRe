@@ -1,0 +1,59 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHLuizinhoErros 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 84,
+    "h": 22
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 84,
+    "h": 22
+   },
+   "sourceSize": {
+    "w": 84,
+    "h": 22
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoErros 1.placeholder",
+   "frame": {
+    "x": 84,
+    "y": 0,
+    "w": 84,
+    "h": 22
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 84,
+    "h": 22
+   },
+   "sourceSize": {
+    "w": 84,
+    "h": 22
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_luizinho.py",
+  "version": "1.0",
+  "image": "DPIBHLuizinhoErros.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 168,
+   "h": 22
+  },
+  "scale": "1"
+ }
+}

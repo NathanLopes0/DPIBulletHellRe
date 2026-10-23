@@ -1,0 +1,103 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHLuizinhoOperadores 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoOperadores 1.placeholder",
+   "frame": {
+    "x": 40,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoOperadores 2.placeholder",
+   "frame": {
+    "x": 80,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoOperadores 3.placeholder",
+   "frame": {
+    "x": 120,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 40,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 40,
+    "h": 40
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_luizinho.py",
+  "version": "1.0",
+  "image": "DPIBHLuizinhoOperadores.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 160,
+   "h": 40
+  },
+  "scale": "1"
+ }
+}

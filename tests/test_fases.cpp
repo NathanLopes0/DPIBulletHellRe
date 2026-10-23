@@ -842,45 +842,6 @@ TEST_CASE("Fases: uma FlexAttack sem bloco, ou com um valor que o CSS nao tem, e
 }
 
 // ---------------------------------------------------------------------------
-// A capsula do encapsulamento
-// ---------------------------------------------------------------------------
-
-TEST_CASE("Fases: a CapsulaAttack existe e o bloco dela e opcional") {
-    const auto sem = LerFases(ComAtaque(R"({ "estrategia": "CapsulaAttack", "projetil": "P" })"));
-    CHECK(sem.problemas.empty());
-
-    const auto com = LerFases(ComAtaque(R"({ "estrategia": "CapsulaAttack", "projetil": "P",
-        "capsula": { "abre": 1.2, "velocidade": 140, "escreve": "Estatica" } })"));
-    CHECK(com.problemas.empty());
-    for (const auto& f : com.fases) {
-        if (f.nome != "StateOne") continue;
-        REQUIRE(f.ataques.size() == 1);
-        REQUIRE(f.ataques[0].capsula.has_value());
-        CHECK(*f.ataques[0].capsula->abre == doctest::Approx(1.2f));
-        CHECK(*f.ataques[0].capsula->velocidade == doctest::Approx(140.0f));
-        CHECK(f.ataques[0].capsula->escreve == "Estatica");
-    }
-}
-
-TEST_CASE("Fases: uma capsula que nunca abre, ou que abre parada, e recusada") {
-    for (const char* bloco : { R"("capsula": { "abre": 0 })", R"("capsula": { "velocidade": 0 })",
-                               R"("capsula": { "abre": -1 })" }) {
-        CAPTURE(bloco);
-        const auto r = LerFases(ComAtaque(std::string(R"({ "estrategia": "CapsulaAttack", "projetil": "P", )")
-                                          + bloco + " }"));
-        bool reclamou = false;
-        for (const auto& p : r.problemas) if (p.find("capsula") != std::string::npos) reclamou = true;
-        CHECK(reclamou);
-    }
-
-    const auto fora = LerFases(ComAtaque(R"({ "estrategia": "WaveAttack", "projetil": "P",
-                                              "capsula": { "abre": 1 } })"));
-    bool avisou = false;
-    for (const auto& p : fora.problemas) if (p.find("so a CapsulaAttack") != std::string::npos) avisou = true;
-    CHECK(avisou);
-}
-
-// ---------------------------------------------------------------------------
 // A serpente dos sequenciadores
 // ---------------------------------------------------------------------------
 

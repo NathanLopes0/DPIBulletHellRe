@@ -6,15 +6,15 @@
   // dele - o Luizinho e o professor que conta de onde vem cada palavra:
   //
   //   StateOne    Amarracoes          ligare, "atar"
-  //   StateTwo    Encapsulamento      in capsula, "na caixinha"
+  //   StateTwo    Sistemas de tipos   coercere, "forcar"
   //   StateThree  Gerencia de memoria memento mori, "lembra-te de que morreras"
   //   StateFinal  Sequenciadores      sequi, "seguir"
   //
   // DEPOIS DO LATIM, O CODIGO, como nas fases do Andre: o placar mostra o que
-  // o professor roda, e o campo e a execucao. A fase 1 ja e assim (o escopo,
-  // Escopo.h); as outras tres ainda sao as da etimologia - o projetil
-  // obedecendo ao sentido literal da palavra -, e cada uma ganha a sua num
-  // commit proprio.
+  // o professor roda, e o campo e a execucao. As fases 1 e 2 ja sao assim (o
+  // escopo, Escopo.h, e a coercao, Coercao.h); as outras duas ainda sao as da
+  // etimologia - o projetil obedecendo ao sentido literal da palavra -, e cada
+  // uma ganha a sua num commit proprio.
   //
   // A MEMORIA E A FASE 3, a que DECIDE a batalha ("proximo" vazio): a final
   // so e vista por quem termina entre 40 e 59, ou com 100.
@@ -54,35 +54,45 @@
     ]
   },
 
-  // FASE 2 - ENCAPSULAMENTO   |   gesto: A ORBITA
+  // FASE 2 - SISTEMAS DE TIPOS: A COERCAO   |   gesto: A CONTA EM CIMA DO ALUNO
   //
-  // As letras viajam DENTRO de uma capsa, o estojo dos rolos de onde vem
-  // "capsula". O de fora nao alcanca o de dentro:
+  // A mesma conta em linguagens diferentes (Coercao.h). O placar diz a
+  // linguagem e como ela tipa, e embaixo a expressao; o operador aparece em
+  // cima do aluno - e o aviso de onde a conta vai rodar -, e os dois operandos
+  // voam do professor ate ele, o numero num chip azul e o texto num verde, com
+  // aspas. NO MEIO DO VOO, O CONVERTIDO TROCA DE CHIP: a coercao se ve.
   //
-  //   - a capsula voa para onde o aluno estava no disparo, e fechada ela e
-  //     BLINDADA: o tiro do aluno some nela e nao chega ao professor. Como ela
-  //     desce pela mesma linha em que o tiro sobe, quem fica embaixo do
-  //     professor perde tiros para ela;
-  //   - ela so abre por dentro, no tempo dela, num anel de letras de pedra -
-  //     e uma das letras do anel segue para onde a capsula ia.
+  //   JavaScript   3 + "4"    o 3 vira texto: a palavra "34" voa para o aluno
+  //   PHP          3 + "4"    o "4" vira numero: um anel de 7
+  //   Python       3 + "4"    TypeError: um anel de estilhacos no operador,
+  //                           onde a conta rodou
+  //   JavaScript   "6" * "2"  os dois viram numero: um anel de 12
+  //   Python       "3" * 4    repetir o texto, sem converter: "3333"
+  //   Haskell      3 + "4"    recusado na COMPILACAO: os operandos estouram no
+  //                           professor, devagar e longe do aluno
   //
-  // A PRIMEIRA VERSAO ERA CRUEL, e o numero que mostrou foi a batalha inteira:
-  // 12 letras a 260 px/s, a cada 1,3s, abrindo aos 1,1s. A capsula abria quase
-  // em cima do aluno, comia 81 tiros do piloto que persegue, e ele caiu de 70,5
-  // para 14,0, reprovado no exame. Abrindo aos 0,8s o anel chega ao aluno ja
-  // largo; com 10 letras, a 240 e a cada 1,5s, ela come 67 tiros dele (6 do que
-  // vai e vem, que quase nunca esta embaixo do professor) e ele passa com 66,3.
+  // AS VELOCIDADES SAO AS DE Coercao.h (um teste confere): o projetil da
+  // WaveAttack nasce na velocidade do arquivo, e o professor so escolhe onde
+  // ele nasce, quantos sao e para onde vao. O operando e o operador tem
+  // velocidade zero - quem os move e o professor.
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
-    "anuncio": "in capsulā · na caixinha",
-    "movimento": { "tipo": "Orbitar", "a": 160, "b": 0.1 },
+    "anuncio": "coercēre · forçar",
+    "movimento": { "tipo": "Conduzido", "a": 600 },
     "ataques": [
-      { "estrategia": "CapsulaAttack", "projetil": "Letra",
-        "projeteis": 10, "velocidade": 240,
-        "cooldown": 1.5,
-        "capsula": { "abre": 0.8, "velocidade": 150, "escreve": "Estatica" },
-        "regras": "capsula" }
+      { "gatilho": "operador", "estrategia": "WaveAttack", "projetil": "Operador",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "operando", "estrategia": "WaveAttack", "projetil": "Valor",
+        "projeteis": 2, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "anel", "estrategia": "WaveAttack", "projetil": "Valor",
+        "projeteis": 7, "velocidade": 240, "angulo": 308, "intervalo": 0 },
+      { "gatilho": "texto", "estrategia": "WaveAttack", "projetil": "Valor",
+        "projeteis": 4, "velocidade": 420, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "erro", "estrategia": "WaveAttack", "projetil": "Erro",
+        "projeteis": 20, "velocidade": 260, "angulo": 342, "intervalo": 0 },
+      { "gatilho": "compilacao", "estrategia": "WaveAttack", "projetil": "Erro",
+        "projeteis": 10, "velocidade": 150, "angulo": 324, "intervalo": 0 }
     ]
   },
 

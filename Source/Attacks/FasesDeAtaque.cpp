@@ -15,7 +15,7 @@ namespace {
 
     const std::vector<std::string> kEstrategias = {
         "AngledAttack", "CircleSpreadAttack", "WaveAttack", "BaloonAttack", "LaserAttack", "ConsultaAttack",
-        "CaixaAttack", "FlexAttack", "CapsulaAttack", "SerpenteAttack", "SprintAttack",
+        "CaixaAttack", "FlexAttack", "SerpenteAttack", "SprintAttack",
         "PontosAttack", "TokenAttack", "PalavraAttack"
     };
     const std::vector<std::string> kMovimentos = {
@@ -59,7 +59,8 @@ namespace {
                                                 "placa", "pedido", "classe", "mensagem", "compilar",
                                                 "bug", "debito", "rotulo", "balao", "confete",
                                                 "indice", "subir", "core", "cartao", "valor", "leque",
-                                                "trofeu", "gota"};
+                                                "trofeu", "gota", "operador", "operando",
+                                                "anel", "texto", "erro", "compilacao"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"
@@ -450,33 +451,6 @@ namespace {
                     return false;
                 }
                 saida.caixa = c;
-            }
-        }
-
-        // --- bloco de capsula (opcional) ---
-        if (j.contains("capsula")) {
-            if (saida.estrategia != "CapsulaAttack") {
-                problemas.emplace_back(onde + "so a CapsulaAttack usa \"capsula\"; o bloco foi ignorado");
-            }
-            else if (!j["capsula"].is_object()) {
-                problemas.emplace_back(onde + "\"capsula\" deveria ser um objeto");
-                return false;
-            }
-            else {
-                DescricaoDeCapsula c;
-                c.abre       = Opcional(j["capsula"], "abre");
-                c.velocidade = Opcional(j["capsula"], "velocidade");
-                c.escreve    = Texto(j["capsula"], "escreve");
-
-                // Uma capsula que nunca abre leva as letras empilhadas e
-                // blindadas ate fora da tela; uma que abre parada deixa o anel
-                // em cima do ponto onde abriu, e parado ele nunca sai da tela.
-                if ((c.abre && *c.abre <= 0.0f) || (c.velocidade && *c.velocidade <= 0.0f)) {
-                    problemas.emplace_back(onde + "\"abre\" e \"velocidade\" da capsula "
-                                                  "precisam ser maiores que zero");
-                    return false;
-                }
-                saida.capsula = c;
             }
         }
 

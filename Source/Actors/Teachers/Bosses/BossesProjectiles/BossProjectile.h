@@ -117,13 +117,14 @@ public:
     /// ultimo da resistencia; nos anteriores o tiro so some nele.
     bool Golpear() { return ++mGolpes >= mResistencia; }
     /// @brief O tiro do aluno SOME neste projetil, sem derruba-lo e sem chegar
-    /// ao chefe? E a capsula fechada do Luizinho (CapsulaAttack): o de fora nao
-    /// alcanca o de dentro.
+    /// ao chefe? E a historia que o cursor da Maria Lucia ainda arrasta
+    /// (SprintAttack): derrubavel pelo tipo, mas na mao dele o tiro so some.
+    /// Nasceu com a capsula fechada do Luizinho antigo.
     ///
-    /// Ao contrario do derrubavel, e do DISPARO, e nao do tipo: a mesma letra
-    /// deixa de ser blindada quando a capsula abre. Por isso volta a falso no
-    /// Reset - uma capsula que morreu fechada nao pode emprestar a blindagem a
-    /// letra que sair do pool no ataque seguinte.
+    /// Ao contrario do derrubavel, e do DISPARO, e nao do tipo: a mesma
+    /// historia deixa de ser blindada quando o cursor a solta. Por isso volta a
+    /// falso no Reset - uma que morreu na mao dele nao pode emprestar a
+    /// blindagem ao projetil que sair do pool no ataque seguinte.
     void DefinirBlindado(const bool blindado) { mBlindado = blindado; }
     [[nodiscard]] bool Blindado() const { return mBlindado; }
 

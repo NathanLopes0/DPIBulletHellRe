@@ -6,7 +6,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
+#include "../../../Random.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../CaminhosArquivo.h"
 #include "../../../Font.h"
@@ -37,6 +39,10 @@ namespace {
     constexpr int kOrdemDoRotulo = 95;
 
     bool Vivo(const BossProjectile* p) { return p && p->GetState() == ActorState::Active; }
+
+    std::uint32_t Sorteio() {
+        return static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
+    }
 
     void PorCara(BossProjectile* p, const std::string& cara) {
         if (auto* anim = p->GetComponent<DrawAnimatedComponent>(); anim && anim->GetAnimation() != cara) {
@@ -132,6 +138,7 @@ void Luizinho::OnUpdate(const float deltaTime) {
     if (mLinhas) mLinhas->Limpar();
 
     AtualizarEscopo();
+    AtualizarTipos();
     AtualizarMemoria(deltaTime);
     AtualizarGoto(deltaTime);
 }
@@ -141,6 +148,7 @@ void Luizinho::AoTerminarABatalha() {
     // programa e as linhas sao do professor.
     for (PainelDeCodigo* p : mPaineis) if (p) p->Mostrar(false);
     for (EtiquetaDeCodigo* c : mCantos) if (c) c->Mostrar(false);
+    LimparConta();
     if (mLinhas) mLinhas->Limpar();
     if (mReferencias) mReferencias->Limpar();
     if (mRotulo) mRotulo->Mostrar(false);
@@ -154,17 +162,12 @@ void Luizinho::CustomizeAttackParams(AttackParams& params, const std::string& st
     if (mDisparandoEm) {
         params.firePosition = mOndeDisparar;
         if (mQuantos > 0) params.numProjectiles = mQuantos;
+        if (mCentroEm) params.centralAngle = *mCentroEm;
+        if (mAberturaEm) params.angle = *mAberturaEm;
         return;
     }
 
-    if (stateName == "StateTwo") {
-        // FASE 2 - A CAPSULA VOA para onde o aluno esta no disparo, e e por isso
-        // que ela fica no caminho do tiro dele: o tiro sobe em direcao ao
-        // professor, e a capsula desce pela mesma linha.
-        const Vector2 d = GetDirectionToPlayer();
-        params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x));
-    }
-    else if (stateName == kFaseDaSequencia) {
+    if (stateName == kFaseDaSequencia) {
         // A CABECA SAI EM DIRECAO AO ALUNO, e leva o goto do professor.
         const Vector2 d = GetDirectionToPlayer();
         params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x));
@@ -196,15 +199,34 @@ SDL_FRect Luizinho::Campo() const {
     return SDL_FRect{0.0f, 0.0f, Escopo::kLargura, Escopo::kAltura};
 }
 
-std::vector<BossProjectile*> Luizinho::DispararEm(const char* gatilho, const Vector2 onde, const int quantos) {
+std::vector<BossProjectile*> Luizinho::DispararEm(const char* gatilho, const Vector2 onde, const int quantos,
+                                                 const std::optional<float> centro,
+                                                 const std::optional<float> abertura) {
     mDisparandoEm = true;
     mOndeDisparar = onde;
     mQuantos = quantos;
+    mCentroEm = centro;
+    mAberturaEm = abertura;
     mCriados.clear();
     Disparar(gatilho);
     mDisparandoEm = false;
     mQuantos = 0;
+    mCentroEm.reset();
+    mAberturaEm.reset();
     return mCriados;
+}
+
+Vector2 Luizinho::PosicaoDoAluno() const {
+    if (const auto* battle = dynamic_cast<Battle*>(mScene); battle && battle->Alvo()) {
+        return battle->Alvo()->GetPosition();
+    }
+    const SDL_FRect campo = Campo();
+    return Vector2(campo.x + campo.w / 2.0f, campo.y + campo.h - 60.0f);
+}
+
+float Luizinho::AnguloAteOAluno(const Vector2 de) const {
+    const Vector2 d = PosicaoDoAluno() - de;
+    return Math::ToDegrees(Math::Atan2(d.y, d.x));
 }
 
 void Luizinho::Anunciar(const std::string& fase, const std::string& texto) {
@@ -417,6 +439,219 @@ void Luizinho::DesenharEscopo(const float u) {
             if (PainelDeCodigo* p = mPaineis[indice(b)]) p->Pintar(kMolduraDoBuraco, kFundoDoBuraco);
             if (EtiquetaDeCodigo* c = mCantos[indice(b)]) c->Pintar(kMolduraDoBuraco, kFundoDoCanto, kTintaDoBuraco);
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// A fase 2: os sistemas de tipos
+// ---------------------------------------------------------------------------
+
+void Luizinho::LimparConta() {
+    for (Operando& o : mOperandos) {
+        if (Vivo(o.p)) o.p->Kill();
+        o = Operando{};
+    }
+    if (Vivo(mOperador)) mOperador->Kill();
+    mOperador = nullptr;
+}
+
+void Luizinho::DesmontarTipos() {
+    LimparConta();
+    Restaurar(Coercao::kFaseDosTipos);
+    mNosTipos = false;
+    mContaDaVez = -1;
+    mEtapa = EtapaDaConta::Esperando;
+    mAlvo.reset();
+}
+
+void Luizinho::ComecarConta(const int k) {
+    LimparConta();
+    mContaDaVez = k;
+    mConta = Coercao::Proximo(k, Sorteio());
+    mInicioDaConta = Coercao::kPrimeiro + static_cast<float>(k) * Coercao::kPorComando;
+    mEtapa = EtapaDaConta::Esperando;
+    Anunciar(Coercao::kFaseDosTipos, Coercao::Placar(mConta));
+
+    // O PROFESSOR MUDA DE LUGAR a cada conta, no alto - e balanca em volta
+    // dele (AtualizarTipos).
+    const SDL_FRect campo = Campo();
+    const float fracao = static_cast<float>(Sorteio() % 1001u) / 1000.0f;
+    mBaseDoProfessor = Vector2(campo.x + Coercao::kXMinimo + fracao * (Coercao::kXMaximo - Coercao::kXMinimo),
+                               campo.y + Coercao::kYDoProfessor);
+    mAlvo = mBaseDoProfessor;
+
+    // O OPERADOR APARECE EM CIMA DO ALUNO, decidido agora: e o aviso de onde a
+    // conta vai rodar. Enfeite - o tiro passa por ele, e ele nao acerta.
+    const Coercao::Ponto onde = Coercao::OndeFicaOOperador(PosicaoDoAluno().x - campo.x, campo.w);
+    mOndeDaConta = Vector2(campo.x + onde.x, campo.y + onde.y);
+    const auto criados = DispararEm(Coercao::kGatilhoDoOperador, mOndeDaConta, 1);
+    if (!criados.empty()) {
+        mOperador = criados.front();
+        mOperador->DefinirEnfeite(true);
+        mOperador->DefinirPosto("aviso");
+        PorCara(mOperador, Coercao::CaraDoOperador(Coercao::OperacaoDe(mConta.forma), false));
+    }
+}
+
+void Luizinho::LancarOperandos() {
+    const Coercao::Resultado r = Coercao::Avaliar(mConta);
+    const Coercao::Valor valores[2] = {Coercao::Esquerdo(mConta), Coercao::Direito(mConta)};
+    const bool coagidos[2] = {r.coagidoEsquerdo, r.coagidoDireito};
+    const Coercao::Valor depois[2] = {r.esquerdoDepois, r.direitoDepois};
+
+    const Vector2 professor = GetPosition();
+    const auto criados = DispararEm(Coercao::kGatilhoDoOperando, professor, 2);
+    for (size_t i = 0; i < mOperandos.size() && i < criados.size(); ++i) {
+        Operando& o = mOperandos[i];
+        const float lado = (i == 0) ? -1.0f : 1.0f;
+        o.p = criados[i];
+        o.lado = lado;
+        o.de = professor + Vector2(lado * 20.0f, 0.0f);
+        o.para = mOndeDaConta + Vector2(lado * Coercao::kLadoDoOperando, 0.0f);
+        o.depois = coagidos[i] ? Coercao::CaraDoOperando(depois[i]) : "";
+        o.trocou = false;
+        o.p->SetPosition(o.de);
+        PorCara(o.p, Coercao::CaraDoOperando(valores[i]));
+    }
+}
+
+void Luizinho::Compilar() {
+    // O COMPILADOR RECUSA ANTES DE RODAR: os operandos estouram no professor,
+    // e a conta nunca chega ao operador.
+    const Vector2 professor = GetPosition();
+    for (Operando& o : mOperandos) {
+        if (Vivo(o.p)) o.p->Kill();
+        o = Operando{};
+    }
+    if (Vivo(mOperador)) mOperador->Kill();
+    mOperador = nullptr;
+
+    const int n = Coercao::kEstilhacosDaCompilacao;
+    const auto cacos = DispararEm(Coercao::kGatilhoDaCompilacao, professor, n,
+                                  Coercao::CentroDoAnel(n, AnguloAteOAluno(professor)), Coercao::AberturaDoAnel(n));
+    for (BossProjectile* c : cacos) PorCara(c, Coercao::kCaraDaCompilacao);
+    Anunciar(Coercao::kFaseDosTipos, Coercao::PlacarComResultado(mConta));
+}
+
+void Luizinho::FazerAConta() {
+    // OS DOIS TEM DE CHEGAR: o Ponto Extra que leva um operando leva a conta.
+    for (const Operando& o : mOperandos) if (!Vivo(o.p)) { LimparConta(); return; }
+    for (Operando& o : mOperandos) {
+        o.p->Kill();
+        o = Operando{};
+    }
+
+    const Coercao::Resultado r = Coercao::Avaliar(mConta);
+    const Vector2 onde = mOndeDaConta;
+    const float alvo = AnguloAteOAluno(onde);
+
+    if (r.desfecho == Coercao::Desfecho::ErroDeExecucao) {
+        // O TypeError ESTOURA ONDE A CONTA RODOU.
+        const int n = Coercao::kEstilhacosDoErro;
+        const auto cacos = DispararEm(Coercao::kGatilhoDoErro, onde, n, Coercao::CentroDoAnel(n, alvo),
+                                      Coercao::AberturaDoAnel(n));
+        for (BossProjectile* c : cacos) PorCara(c, Coercao::kCaraDoTypeError);
+        if (Vivo(mOperador)) PorCara(mOperador, Coercao::CaraDoOperador(Coercao::OperacaoDe(mConta.forma), true));
+    }
+    else if (r.valor.tipo == Coercao::Tipo::Numero) {
+        // UM NUMERO n E UM ANEL DE n, cada chip com o n escrito.
+        const int n = r.valor.numero;
+        const auto chips = DispararEm(Coercao::kGatilhoDoAnel, onde, n, Coercao::CentroDoAnel(n, alvo),
+                                      Coercao::AberturaDoAnel(n));
+        for (BossProjectile* c : chips) PorCara(c, Coercao::CaraDoNumero(n));
+    }
+    else {
+        // UM TEXTO E A PALAVRA, letra por letra entre aspas, de frente para o aluno.
+        const auto letras = Coercao::Letras(r.valor);
+        const auto desvios = Coercao::DesviosDaPalavra(static_cast<int>(letras.size()), alvo);
+        const auto chips = DispararEm(Coercao::kGatilhoDoTexto, onde, static_cast<int>(letras.size()), alvo, 0.0f);
+        for (size_t i = 0; i < chips.size() && i < letras.size(); ++i) {
+            chips[i]->SetPosition(onde + Vector2(desvios[i].x, desvios[i].y));
+            PorCara(chips[i], Coercao::CaraDaLetra(letras[i]));
+        }
+    }
+    Anunciar(Coercao::kFaseDosTipos, Coercao::PlacarComResultado(mConta));
+}
+
+void Luizinho::AtualizarTipos() {
+    for (Operando& o : mOperandos) if (o.p && !Vivo(o.p)) o.p = nullptr;
+    if (mOperador && !Vivo(mOperador)) mOperador = nullptr;
+
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool aqui = fsm && fsm->GetStateName() == Coercao::kFaseDosTipos && !EhClone();
+    if (!aqui) {
+        if (mNosTipos) DesmontarTipos();
+        return;
+    }
+    if (!mNosTipos) {
+        mNosTipos = true;
+        mContaDaVez = -1;
+        const SDL_FRect campo = Campo();
+        mBaseDoProfessor = Vector2(campo.x + campo.w / 2.0f, campo.y + Coercao::kYDoProfessor);
+        mAlvo = mBaseDoProfessor;
+    }
+
+    const float t = fsm->GetStateTime();
+    if (t < Coercao::kPrimeiro) return;
+    const int k = std::min(Coercao::kComandos - 1,
+                           static_cast<int>((t - Coercao::kPrimeiro) / Coercao::kPorComando));
+    if (k != mContaDaVez) ComecarConta(k);
+    mAlvo = mBaseDoProfessor + Vector2(Coercao::kBalanco * std::sin(2.0f * Math::Pi * t / Coercao::kPeriodoDoBalanco), 0.0f);
+    const float u = t - mInicioDaConta;
+    const bool estatica = Coercao::TipagemDe(Coercao::LinguagemDe(mConta.forma)) == Coercao::Tipagem::ForteEstatica;
+
+    switch (mEtapa) {
+        case EtapaDaConta::Esperando:
+            if (u >= Coercao::kSaida) {
+                LancarOperandos();
+                mEtapa = estatica ? EtapaDaConta::Checando : EtapaDaConta::Voando;
+            }
+            break;
+
+        case EtapaDaConta::Checando:
+            // OS OPERANDOS ESPERAM O COMPILADOR NA MAO DO PROFESSOR.
+            for (Operando& o : mOperandos) {
+                if (Vivo(o.p)) o.p->SetPosition(GetPosition() + Vector2(o.lado * 20.0f, 0.0f));
+            }
+            if (u >= Coercao::kSaida + Coercao::kChecagem) {
+                Compilar();
+                mEtapa = EtapaDaConta::Feita;
+            }
+            break;
+
+        case EtapaDaConta::Voando: {
+            const float s = std::clamp((u - Coercao::kSaida) / Coercao::kVoo, 0.0f, 1.0f);
+            for (Operando& o : mOperandos) {
+                if (!Vivo(o.p)) continue;
+                // EM ARCO, cada um para o seu lado: os dois se leem no caminho.
+                const Vector2 reta = o.de + (o.para - o.de) * s;
+                const float arco = std::sin(s * Math::Pi) * kArcoDoVoo * o.lado;
+                o.p->SetPosition(reta + Vector2(arco, 0.0f));
+                // A COERCAO SE VE: no meio do voo o convertido troca de chip.
+                if (!o.trocou && !o.depois.empty() && s >= Coercao::kCoercao) {
+                    PorCara(o.p, o.depois);
+                    o.trocou = true;
+                }
+            }
+            if (u >= Coercao::kConta) {
+                FazerAConta();
+                mEtapa = EtapaDaConta::Feita;
+            }
+            break;
+        }
+
+        case EtapaDaConta::Feita:
+            // O operador fica um pouco depois da conta, aceso, e sai.
+            if (u >= Coercao::kConta + 0.8f && Vivo(mOperador)) {
+                mOperador->Kill();
+                mOperador = nullptr;
+            }
+            break;
+    }
+
+    // A conta que vai rodar: uma linha do professor ao operador.
+    if (mEtapa != EtapaDaConta::Feita && Vivo(mOperador) && mLinhas) {
+        mLinhas->Acrescentar(GetPosition(), mOperador->GetPosition(), kLinhaDaChamada);
     }
 }
 

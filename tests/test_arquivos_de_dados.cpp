@@ -71,6 +71,7 @@
 #include "../Source/Attacks/Funcao.h"
 #include "../Source/Attacks/Prova.h"
 #include "../Source/Attacks/Escopo.h"
+#include "../Source/Attacks/Coercao.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
@@ -2844,4 +2845,77 @@ TEST_CASE("Dados: a chuva do escopo do Luizinho - gatilho, gota parada, raio e c
         const float lado = (gota.colisorDimensao == "altura") ? quadro["h"].get<float>() : quadro["w"].get<float>();
         CHECK(lado / gota.colisorDivisor == doctest::Approx(Escopo::kRaioDaGota));
     }
+}
+
+TEST_CASE("Dados: a coercao do Luizinho - gatilhos, velocidades e caras sao os de Coercao.h") {
+
+    // O LUIZINHO PUXA OS GATILHOS e pinta cada chip pelo nome de Coercao.h.
+    // Um chip sem a cara do numero mostraria o anel errado - a fase inteira e
+    // ler a conta -, e a velocidade do arquivo e a do projetil: o da WaveAttack
+    // nasce nela, e o professor so diz onde, quantos e para onde.
+    const auto lidas = FasesDoChefe("luizinho");
+    const DescricaoDeFase* fase = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Coercao::kFaseDosTipos) fase = &f;
+    REQUIRE(fase != nullptr);
+    CHECK(fase->movimento.tipo == "Conduzido");
+
+    const std::map<std::string, float> velocidades = {
+        {Coercao::kGatilhoDoOperador, 0.0f},
+        {Coercao::kGatilhoDoOperando, 0.0f},
+        {Coercao::kGatilhoDoAnel, Coercao::kVelocidadeDoAnel},
+        {Coercao::kGatilhoDoTexto, Coercao::kVelocidadeDoTexto},
+        {Coercao::kGatilhoDoErro, Coercao::kVelocidadeDoErro},
+        {Coercao::kGatilhoDaCompilacao, Coercao::kVelocidadeDaCompilacao},
+    };
+    std::map<std::string, std::string> projetilDe;
+    for (const auto& a : fase->ataques) CHECK(!a.gatilho.empty());
+    for (const auto& [g, v] : velocidades) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+        int quantos = 0;
+        for (const auto& a : fase->ataques) {
+            if (a.gatilho != g) continue;
+            ++quantos;
+            projetilDe[g] = a.projetil;
+            REQUIRE(a.velocidade.has_value());
+            CHECK(*a.velocidade == doctest::Approx(v));
+        }
+        CHECK(quantos == 1);
+    }
+
+    const auto& tipos = ProjeteisDoChefe("luizinho").projeteis;
+    auto caras = [&tipos](const std::string& tipo) {
+        std::set<std::string> nomes;
+        REQUIRE(tipos.count(tipo) == 1);
+        for (const auto& a : tipos.at(tipo).animacoes) nomes.insert(a.nome);
+        return nomes;
+    };
+
+    const auto operandos = caras(projetilDe[Coercao::kGatilhoDoOperando]);
+    const auto aneis = caras(projetilDe[Coercao::kGatilhoDoAnel]);
+    const auto letras = caras(projetilDe[Coercao::kGatilhoDoTexto]);
+    for (std::uint32_t s = 0; s < 200; ++s) {
+        for (int v = 0; v < Coercao::kComandos; ++v) {
+            const auto c = Coercao::Proximo(v, s * 2654435761u + static_cast<std::uint32_t>(v));
+            const auto r = Coercao::Avaliar(c);
+            CHECK(operandos.count(Coercao::CaraDoOperando(Coercao::Esquerdo(c))) == 1);
+            CHECK(operandos.count(Coercao::CaraDoOperando(Coercao::Direito(c))) == 1);
+            CHECK(operandos.count(Coercao::CaraDoOperando(r.esquerdoDepois)) == 1);
+            CHECK(operandos.count(Coercao::CaraDoOperando(r.direitoDepois)) == 1);
+            if (r.desfecho != Coercao::Desfecho::Valor) continue;
+            if (r.valor.tipo == Coercao::Tipo::Numero) {
+                CHECK(aneis.count(Coercao::CaraDoNumero(r.valor.numero)) == 1);
+            } else {
+                for (const char l : Coercao::Letras(r.valor)) CHECK(letras.count(Coercao::CaraDaLetra(l)) == 1);
+            }
+        }
+    }
+
+    const auto operadores = caras(projetilDe[Coercao::kGatilhoDoOperador]);
+    for (const auto op : {Coercao::Operacao::Soma, Coercao::Operacao::Produto}) {
+        CHECK(operadores.count(Coercao::CaraDoOperador(op, false)) == 1);
+        CHECK(operadores.count(Coercao::CaraDoOperador(op, true)) == 1);
+    }
+    CHECK(caras(projetilDe[Coercao::kGatilhoDoErro]).count(Coercao::kCaraDoTypeError) == 1);
+    CHECK(caras(projetilDe[Coercao::kGatilhoDaCompilacao]).count(Coercao::kCaraDaCompilacao) == 1);
 }

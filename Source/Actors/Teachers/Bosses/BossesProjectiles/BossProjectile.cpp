@@ -34,8 +34,9 @@ void BossProjectile::Reset() {
     // para aquele disparo, e nao para sempre.
     mRotacionarComAVelocidade = mRotacaoPadrao;
 
-    // A BLINDAGEM TAMBEM E DO DISPARO: quem a poe e a CapsulaAttack, e quem a
-    // tira e a capsula abrindo. A que morreu fechada voltaria blindada.
+    // A BLINDAGEM TAMBEM E DO DISPARO: quem a poe e a SprintAttack, e quem a
+    // tira e o cursor soltando a historia. A que morreu na mao dele voltaria
+    // blindada.
     mBlindado = false;
 
     // O ENFEITE TAMBEM: um cursor que voltasse do pool como enfeite faria a
