@@ -10,6 +10,7 @@
 #include "../../../Random.h"
 #include "../../../Attacks/Alfabeto.h"
 #include "../../../Attacks/Behaviors.h"
+#include "../../../Attacks/Fita.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Components/RigidBodyComponent.h"
@@ -24,6 +25,118 @@ void Vladimir::OnUpdate(const float deltaTime) {
     Boss::OnUpdate(deltaTime);
     AtualizarAutomato();
     AtualizarGramatica(deltaTime);
+    AtualizarFita(deltaTime);
+    AtualizarParada(deltaTime);
+}
+
+void Vladimir::AtualizarFita(const float deltaTime) {
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool naFita = fsm && fsm->GetStateName() == Fita::kFaseDaFita && !EhClone();
+    if (!naFita) {
+        if (mNaFita) {
+            if (!mAnuncioDaFita.empty()) RegistrarAnuncio(Fita::kFaseDaFita, mAnuncioDaFita);
+            mAlvo.reset();
+        }
+        mNaFita = false;
+        return;
+    }
+    if (!mScene || !mScene->GetGame()) return;
+    const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
+    const auto ponta = [&](const int sentido) {
+        return Vector2(sentido > 0 ? largura - Fita::kMargem : Fita::kMargem, Fita::kAlturaDaCabeca);
+    };
+
+    if (!mNaFita) {
+        // A CABECA COMECA INDO PARA A DIREITA, em q0, escrevendo desde ja.
+        mNaFita = true;
+        mSentidoDaFita = 1;
+        mPausaNaPonta = 0.0f;
+        mProximaEscrita = 0.0f;
+        if (mAnuncioDaFita.empty()) mAnuncioDaFita = AnuncioDaFase(Fita::kFaseDaFita);
+        mAlvo = ponta(mSentidoDaFita);
+        RegistrarAnuncio(Fita::kFaseDaFita, Fita::Transicao(true));
+    }
+
+    // NA PONTA: parada, sem escrever, ate a pausa acabar - e entao volta.
+    if (mPausaNaPonta > 0.0f) {
+        mPausaNaPonta -= deltaTime;
+        if (mPausaNaPonta <= 0.0f) {
+            mSentidoDaFita = -mSentidoDaFita;
+            mAlvo = ponta(mSentidoDaFita);
+            mProximaEscrita = 0.0f;
+            RegistrarAnuncio(Fita::kFaseDaFita, Fita::Transicao(mSentidoDaFita > 0));
+        }
+        return;
+    }
+
+    // CHEGOU A PONTA: le o branco e troca de estado.
+    if ((GetPosition() - ponta(mSentidoDaFita)).LengthSq() <= 1.0f) {
+        mPausaNaPonta = Fita::kPausaNaPonta;
+        RegistrarAnuncio(Fita::kFaseDaFita, Fita::Branco(mSentidoDaFita > 0));
+        return;
+    }
+
+    // ANDANDO, ESCREVE: uma casa a cada Fita::kEscrita.
+    mProximaEscrita -= deltaTime;
+    if (mProximaEscrita <= 0.0f) {
+        Disparar(Fita::kGatilhoDaEscrita);
+        mProximaEscrita += Fita::kEscrita;
+    }
+}
+
+void Vladimir::AtualizarParada(const float deltaTime) {
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool naParada = fsm && fsm->GetStateName() == Parada::kFaseDaParada && !EhClone();
+    if (!naParada) {
+        if (mNaParada) {
+            if (!mAnuncioDaParada.empty()) RegistrarAnuncio(Parada::kFaseDaParada, mAnuncioDaParada);
+            mNaParada = false;
+            mAlvo.reset();
+        }
+        return;
+    }
+    if (!mNaParada) {
+        mNaParada = true;
+        mX = 0;
+        mProximoPassoDaParada = Parada::kPrimeiro;
+        mXDaParada = GetPosition().x;
+        mSentidoDaParada = 1.0f;
+        if (mAnuncioDaParada.empty()) mAnuncioDaParada = AnuncioDaFase(Parada::kFaseDaParada);
+        RegistrarAnuncio(Parada::kFaseDaParada, mAnuncioDaParada);
+    }
+
+    // DE LADO A LADO, devagar, e na ALTURA DO VALOR DE X: o granizo.
+    if (mScene && mScene->GetGame()) {
+        const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
+        mXDaParada += mSentidoDaParada * kVarreduraDaParada * deltaTime;
+        if (mXDaParada > largura - kMargemDaParada) { mXDaParada = largura - kMargemDaParada; mSentidoDaParada = -1.0f; }
+        if (mXDaParada < kMargemDaParada)          { mXDaParada = kMargemDaParada;          mSentidoDaParada = 1.0f; }
+    }
+    mAlvo = Vector2(mXDaParada, Parada::Altura(mX == 0 ? 1u : mX));
+
+    const float agora = fsm->GetStateTime();
+    if (agora < mProximoPassoDaParada) return;
+
+    if (mX == 0) {
+        // UM PROGRAMA NOVO, de uma semente sorteada.
+        const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
+        mX = Parada::Sortear(sorteio);
+        mProximoPassoDaParada += Parada::kPasso;
+    } else if (!Parada::Parou(mX)) {
+        // UM PASSO: atira conforme a paridade - a metade sao "a" retos, o
+        // 3x + 1 sao "b" que perseguem -, e da o passo.
+        Disparar(mX % 2u == 0u ? Parada::kGatilhoDaMetade : Parada::kGatilhoDoTriplo);
+        mX = Parada::Proximo(mX);
+        mProximoPassoDaParada += Parada::kPasso;
+    } else {
+        // PAROU: o anel, e depois de um tempo, outro programa.
+        Disparar(Parada::kGatilhoDeParar);
+        mX = 0;
+        mProximoPassoDaParada += Parada::kParado;
+        RegistrarAnuncio(Parada::kFaseDaParada, Parada::Placar(1u));
+        return;
+    }
+    RegistrarAnuncio(Parada::kFaseDaParada, Parada::Placar(mX));
 }
 
 std::string Vladimir::AvisoDoIntercambio() const {
@@ -306,7 +419,7 @@ void Vladimir::CustomizeAttackParams(AttackParams& params, const std::string& st
         return;
     }
 
-    if (stateName != Automato::kFaseDoAutomato) return;
+    if (stateName != Automato::kFaseDoAutomato && stateName != Parada::kFaseDaParada) return;
 
     // O MAPA NASCE ONDE FICA.
     if (mFormando) {
@@ -317,6 +430,7 @@ void Vladimir::CustomizeAttackParams(AttackParams& params, const std::string& st
     // A LETRA LIDA SAI MIRADA NO ALUNO, com um tiro no meio do leque: num leque
     // par o meio cai entre dois tiros, e quem fica parado ficaria na fresta
     // (ver Ricardo::CustomizeAttackParams). O anel da aceitacao ignora o angulo.
+    // Vale igual para os passos do programa da repescagem.
     const Vector2 d = GetDirectionToPlayer();
     const bool par = params.numProjectiles > 1 && params.numProjectiles % 2 == 0;
     const float meioPasso = par ? 0.5f * params.angle / static_cast<float>(params.numProjectiles - 1) : 0.0f;

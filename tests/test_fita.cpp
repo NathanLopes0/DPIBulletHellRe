@@ -47,3 +47,13 @@ TEST_CASE("Fita: qualquer corpo do chefe e uma cabeca, e sem corpo nada e reescr
     const std::vector<float> nenhum;
     CHECK_FALSE(Fita::DeveReescrever(2.0f, 0.9f, nenhum, 500.0f, 24.0f));
 }
+
+TEST_CASE("Fita: na ponta a cabeca le o branco, troca de estado e volta") {
+    CHECK(Fita::Branco(true) == "\xCE\xB4(q\xE2\x82\x80, \xE2\x96\xA1) = (q\xE2\x82\x81, \xE2\x96\xA1, \xE2\x86\x90)");
+    CHECK(Fita::Branco(false) == "\xCE\xB4(q\xE2\x82\x81, \xE2\x96\xA1) = (q\xE2\x82\x80, \xE2\x96\xA1, \xE2\x86\x92)");
+}
+
+TEST_CASE("Fita: o placar e a transicao, e a seta e o sentido da cabeca") {
+    CHECK(Fita::Transicao(true) == "\xCE\xB4(q\xE2\x82\x80, a) = (q\xE2\x82\x80, b, \xE2\x86\x92)");
+    CHECK(Fita::Transicao(false) == "\xCE\xB4(q\xE2\x82\x81, a) = (q\xE2\x82\x81, b, \xE2\x86\x90)");
+}

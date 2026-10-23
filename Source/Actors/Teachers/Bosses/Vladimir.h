@@ -14,6 +14,7 @@
 #include "../Boss.h"
 #include "../../../Attacks/Automato.h"
 #include "../../../Attacks/Gramatica.h"
+#include "../../../Attacks/Parada.h"
 
 /**
  * @class Vladimir
@@ -44,6 +45,14 @@
  * A FASE 2 E UMA GRAMATICA LIVRE DE CONTEXTO (Gramatica.h), S -> aSb | e: ele
  * atira o S, e o S deriva em voo - vira um "a", um "b" e um S novo, que deriva
  * de novo, ate virar a palavra vazia. Aqui mora a derivacao de cada S em campo.
+ *
+ * A FASE 3 E A MAQUINA DE TURING (Fita.h): ele escreve a fita na passagem e a
+ * reescreve na volta. Aqui mora so o placar, que diz a transicao com a seta do
+ * sentido em que ele anda.
+ *
+ * A REPESCAGEM E O PROBLEMA DA PARADA (Parada.h): ele roda o programa de
+ * Collatz, um passo por vez, na altura do valor de x - e ninguem sabe provar
+ * que ele sempre para.
  */
 class Vladimir : public Boss {
 public:
@@ -149,4 +158,37 @@ private:
     Vector2 mDisparoDaDerivacao;
     float mRumoDaDerivacao = 90.0f;
     BossProjectile* mNascida = nullptr;
+
+    // ---- A FITA DA FASE 3 ---------------------------------------------------
+    //
+    // A cabeca vai de ponta a ponta (o movimento "Conduzido") escrevendo uma
+    // casa a cada Fita::kEscrita (o gatilho "escrever"); na ponta le o branco,
+    // troca de estado e para Fita::kPausaNaPonta antes de voltar. O placar e a
+    // transicao que ela esta fazendo.
+
+    void AtualizarFita(float deltaTime);
+    bool mNaFita = false;
+    int mSentidoDaFita = 1;   ///< +1 direita, -1 esquerda
+    float mPausaNaPonta = 0.0f;
+    float mProximaEscrita = 0.0f;
+    std::string mAnuncioDaFita;
+
+    // ---- O PROBLEMA DA PARADA DA REPESCAGEM ---------------------------------
+    //
+    // A cada passo: atira conforme a paridade de x (os gatilhos "metade" e
+    // "triplo"), da o passo e escreve o placar; no 1, o programa parou (o
+    // gatilho "parou"), e depois de um tempo roda outra semente. O professor
+    // vai de lado a lado, na altura do valor de x (Parada::Altura).
+
+    void AtualizarParada(float deltaTime);
+    bool mNaParada = false;
+    std::uint32_t mX = 0;     ///< o x do programa; 0 = nenhum rodando
+    float mProximoPassoDaParada = 0.0f;
+    float mXDaParada = 0.0f;
+    float mSentidoDaParada = 1.0f;
+    std::string mAnuncioDaParada;
+
+    /// De lado a lado, devagar: o tiro do aluno leva quase 1s ate ele.
+    static constexpr float kVarreduraDaParada = 110.0f;
+    static constexpr float kMargemDaParada = 170.0f;
 };

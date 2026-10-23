@@ -2,37 +2,30 @@
   // ==========================================================================
   // AS FASES DO VLADIMIR (INF 331 - Linguagens Formais e Automatos)
   //
-  // AS QUATRO FASES SAO A HIERARQUIA DE CHOMSKY, um nivel por fase. Nao e
-  // tema: e a estrutura da disciplina, e a batalha sobe por ela.
+  // AS QUATRO FASES SOBEM A HIERARQUIA DE CHOMSKY, um nivel por fase, e a
+  // repescagem passa do topo. Nao e tema: e a estrutura da disciplina, e cada
+  // fase e o objeto daquele nivel funcionando na tela.
   //
-  //   StateOne    Regular            o automato finito, desenhado no campo
-  //   StateTwo    Livre de contexto  a^n b^n    contar exige uma pilha
-  //   StateThree  Automato de pilha             a pilha, desenhada de lado
-  //   StateFinal  Maquina de Turing             a fita, lida e reescrita
+  //   StateOne    Regular                 o automato finito, desenhado no campo
+  //   StateTwo    Livre de contexto       a gramatica S -> aSb | e, derivando em voo
+  //   StateThree  Recursivamente enum.    a maquina de Turing, lendo e reescrevendo a fita
+  //   StateFinal  Indecidivel             o problema da parada: o programa de Collatz
   //
-  // O MOVIMENTO DO CHEFE E O ATAQUE, E E ASSIM EM TODAS AS QUATRO.
+  // O MOVIMENTO DO CHEFE E A IDEIA DA FASE:
   //
-  // A primeira versao punha GoToCenter em todas, com a justificativa de que
-  // "uma palavra precisa de origem fixa para ser lida como palavra". Isso
-  // estava errado de um jeito que so jogando aparece: uma palavra se escreve
-  // com a caneta ANDANDO. Com o chefe parado, cada rajada caia na mesma coluna
-  // do meio, a tela ficava vazia dos lados, e a fase nao tinha o que olhar.
+  //   Conduzido  ele vai aonde a fase manda: o estado da transicao, a ponta da
+  //              fita, a altura do valor de x (Boss::AlvoDoMovimento)
+  //   Varredura  o alto da tela, de onde o S e atirado
   //
-  // Agora cada fase tem o GESTO dela, e o gesto e a ideia da fase:
+  // Um chefe parado deixa a tela vazia dos lados, e um que anda sem parar nao
+  // leva tiro (o tiro do aluno leva quase 1s ate ele): o automato pousa em cada
+  // estado, e a cabeca da fita para nas pontas.
   //
-  //   Conduzido  a transicao - ele voa para o estado que a tabela manda
-  //   Varredura  o ir-e-voltar de a^n b^n, e a cabeca da fita de Turing
-  //   Mergulho   empilhar e desempilhar - a profundidade E a altura da pilha
-  //
-  // Ver Source/Movements/MovementStrategies.h.
-  //
-  // E O PLACAR ESCREVE O QUE ELE ANUNCIA. O "anuncio" de cada fase aparece no
-  // quadro do canto de cima enquanto a fase dura: e ali que "ele anuncia" deixa
-  // de ser so uma frase deste arquivo. Na primeira e a CONFIGURACAO do automato
-  // - o estado e o que falta ler -, e na segunda e a LINGUAGEM, e cada rajada e
-  // uma palavra dela: seis ambar e seis azuis sao a^6 b^6. Nas duas
-  // ultimas, que sao maquinas e nao linguagens, e o que a maquina FAZ com cada
-  // letra: a pilha guarda o "a" e solta o "b", e a fita le "a" e escreve "b".
+  // E O PLACAR E A REGRA. O "anuncio" de cada fase abre no quadro do canto de
+  // cima, e dali em diante o Vladimir o reescreve com o que a maquina esta
+  // fazendo: a configuracao do automato, (q1, bab); o ultimo passo da
+  // derivacao, aSb → aaSbb; a transicao da cabeca, δ(q0, a) = (q0, b, →); o
+  // passo do programa, x = 41: 3x + 1. Lendo o placar o aluno sabe o que vem.
   //
   // O TEXTO E UTF-8 E SAI NA CARLITO, e nao na Zelda das outras telas: a Zelda
   // nao tem "*" nem "^". Por isso o arquivo pode escrever "aⁿbⁿ" com os
@@ -159,105 +152,83 @@
     ]
   },
 
-  // FASE 3 - AUTOMATO DE PILHA   |   gesto: O MERGULHO
+  // FASE 3 - RECURSIVAMENTE ENUMERAVEL: A MAQUINA DE TURING   |   gesto: A FITA
   //
-  // EMPILHAR E DESCER, DESEMPILHAR E SUBIR. A profundidade do chefe e a altura
-  // da pilha, e os simbolos saem PARA OS LADOS em vez de para baixo - cada
-  // nivel vira uma linha horizontal no campo, e a pilha fica desenhada.
+  // A MAQUINA DE TURING E O UNICO NIVEL DA HIERARQUIA QUE LE E ESCREVE, e a
+  // fase faz as duas coisas com a mesma fileira de simbolos. Era a repescagem,
+  // e so quem terminava a fase 3 entre 40 e 59 a via; agora e a fase que decide
+  // a batalha, e todo mundo ve.
   //
-  // NAO HA "angulo" AQUI, E ISSO NAO E ESQUECIMENTO.
+  // ESCREVE NA IDA. A cabeca vai de ponta a ponta a 330 px/s e solta um "a" reto
+  // para baixo a cada 0,2s (o gatilho "escrever", puxado pelo Vladimir so
+  // enquanto ela anda); cada um freia em 0,79s (ver "fita" em regras.json) e
+  // fica numa fileira em y = 379, uma casa a cada 66 pixels. O que se ve e a
+  // cabeca deixando a fita escrita atras dela.
   //
-  // CircleSpreadAttack IGNORA params.angle: o passo dela e 360/n, sempre
-  // (CircleSpreadAttack.cpp). Eu tinha escrito "angulo": 150 e depois 260
-  // tentando achatar o leque, e as duas vezes era TEXTO MORTO - o leitor
-  // aceita o campo, a estrategia nao o le, e nada avisa. Perdi uma medicao
-  // inteira achando que o arnes e que nao estava pegando o arquivo.
+  // E PARA NAS PONTAS: le o branco, troca de estado - "δ(q₀, □) = (q₁, □, ←)" -
+  // e fica 1,2s parada antes de voltar (Fita.h). E a pausa que deixa o aluno
+  // acertar o professor: varrendo sem parar, como era, o piloto que persegue o
+  // acertou 12 vezes na fase inteira.
   //
-  // Entao o que se controla aqui e a QUANTIDADE. Com 10 simbolos a abertura
-  // entre eles e de 36 graus, buraco de sobra para passar sem encostar: medido,
-  // a fase dava ZERO acerto em dezessete segundos e a nota subia para 90,98.
-  // Com 18 a abertura cai para 20 graus.
+  // REESCREVE NA VOLTA. Quando a varredura traz a cabeca de novo por cima de uma
+  // casa, ela a le e a reescreve: o "a" parado vira "b" e sai atras do aluno.
+  // Medido em 17s: das 74 casas que pararam na fileira, 59 foram reescritas,
+  // com idade mediana de 3,6s e maxima de 5,9s - a cabeca leva ate uma volta
+  // inteira da varredura para voltar a cada lugar.
   //
-  // E O ANEL E O DESENHO DA PILHA. Cada mergulho deixa uma coluna de aneis em
-  // alturas diferentes, e cada anel e um nivel - nao sao linhas horizontais
-  // como eu tinha imaginado, mas le-se igual, e e o que a estrategia sabe
-  // fazer de verdade.
+  // O PLACAR E A TRANSICAO, e a seta e o sentido em que a cabeca anda agora:
+  // indo, "δ(q₀, a) = (q₀, b, →)"; voltando, "δ(q₁, a) = (q₁, b, ←)" (Fita.h).
+  // O anuncio abaixo so aparece antes de ele andar.
   //
-  // Os simbolos FREIAM depois de meio segundo (o SlowDown em regras.json), e e
-  // isso que faz o desenho parar de pé em vez de escorrer pelas bordas.
-  //
-  // PROFUNDIDADE 320 CONTRA 17s DE FASE: a 190 px/s ele desce em 1,7s e sobe em
-  // 1,7s, entao empilha e desempilha umas cinco vezes na fase. O jogador tem de
-  // ver o ciclo mais de uma vez para a ideia virar regra.
-  //
-  // O ANUNCIO DIZ O QUE CADA LETRA FAZ AQUI, porque aqui ela faz outra coisa:
-  // na fase 1 o "a" ia reto, e nesta ele freia e fica pendurado - e o simbolo
-  // que esta NA pilha. O "b" continua perseguindo, agora como o desempilhado
-  // (ver "pilha" em regras.json).
+  // AS CASAS DA FITA NAO TROCAM NO INTERCAMBIO: estao no posto "fita". Quem as
+  // reescreve e a cabeca.
   "StateThree": {
     "duracao": 17,
     "proximo": "",
-    "anuncio": "a empilha · b desempilha",
+    "anuncio": "máquina de Turing",
     "intercambio": { "aCada": 8, "aviso": 1.5 },
-    "movimento": { "tipo": "Mergulho", "a": 190, "b": 320 },
+    "movimento": { "tipo": "Conduzido", "a": 330 },
     "ataques": [
-      { "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
-        "projeteis": 18, "velocidade": 300,
-        "cooldown": 1.3,
-        "regras": "pilha" }
+      { "gatilho": "escrever", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 1, "velocidade": 300, "angulo": 0, "anguloCentral": 90,
+        "intervalo": 0,
+        "regras": "fita" }
     ]
   },
 
-  // FASE FINAL - MAQUINA DE TURING   |   gesto: A FITA
+  // FASE FINAL - INDECIDIVEL: O PROBLEMA DA PARADA   |   gesto: O GRANIZO
   //
-  // A MAQUINA DE TURING E O UNICO NIVEL DA HIERARQUIA QUE LE E ESCREVE, e a
-  // fase faz as duas coisas com a mesma fileira de simbolos.
+  // ACIMA DA MAQUINA DE TURING SO HA O QUE NENHUMA MAQUINA DECIDE, e o exemplo
+  // mais simples de programa que ninguem sabe dizer se sempre para e o de
+  // Collatz (Parada.h): while (x ≠ 1) x = x par ? x/2 : 3x + 1.
   //
-  // ESCREVE NA IDA. O chefe varre a 330 px/s e solta um "a" reto para baixo a
-  // cada 0,2s; cada um freia em 0,79s (ver "fita" em regras.json) e fica numa
-  // fileira em y = 379 (medido: as 74 casas da fase frearam ali), uma casa a
-  // cada 66 pixels. O que se ve e a cabeca deixando a fita escrita atras dela.
+  // O PROFESSOR RODA O PROGRAMA, um passo a cada 0,45s, de uma semente
+  // sorteada. A cada passo atira conforme a paridade: x par, um leque de tres
+  // "a" retos (a metade); x impar, dois "b" que perseguem (o 3x + 1). E a altura
+  // dele e o tamanho de x: sobe quando x cresce e cai quando diminui - os
+  // "numeros granizo" -, chegando ao 1 la embaixo, mais perto do aluno. No 1 o
+  // programa PAROU, e estoura num anel; depois de 1,3s roda outra semente.
   //
-  // REESCREVE NA VOLTA. Quando a varredura traz a cabeca de novo por cima de uma
-  // casa, ela a le e a reescreve: o "a" parado vira "b" e sai atras do aluno. E
-  // a transicao do placar, delta(q, a) = (q, b, ->). Medido em 17s: das 74
-  // casas que pararam na fileira, 59 foram reescritas, com idade mediana de
-  // 3,6s e maxima de 5,9s - a cabeca leva ate uma volta inteira da varredura
-  // para voltar a cada lugar. As 15 que sobram sao as dos ultimos segundos.
+  // O PLACAR E O PASSO DE AGORA: "x = 41: 3x + 1". Com ele o aluno sabe o que
+  // vem.
   //
-  // UMA CAMADA SO, E NAO DUAS COMO ANTES. Testei a fita (uma casa a cada 0,3s)
-  // junto com o (ab)* que esta fase tinha: os acertos somados dos tres pilotos
-  // voltavam aos 18 da fase antiga, mas na foto a fileira se perdia no meio das
-  // rajadas, e a fita e o que a fase tem para ser lido. Sozinha, com 0,3s ela
-  // da 12; com uma casa a cada 0,2s, 14:
-  //
-  //                    parado   persegue   vai e vem
-  //     fase antiga       6         5          7
-  //     fita, 0,2s        8         3          3
-  //
-  // E A TROCA E BOA: quem fica parado apanha mais, porque as casas reescritas
-  // vao atras de quem nao sai do lugar, e quem anda apanha menos.
-  //
-  // ESTA FASE SO E VISTA POR QUEM ESTA ENTRE 40 E 59 no fim da terceira.
-  // StateThree tem "proximo" vazio, entao a batalha e DECIDIDA ali: quem passou
-  // termina aprovado e nunca ve a maquina de Turing. Medido - e eu tinha
-  // passado duas medicoes rotulando quadros como "StateFinal" numa fase que
-  // nunca rodou.
-  //
-  // O ANUNCIO E A TRANSICAO QUE A FITA EXECUTA: le "a", escreve "b", e a cabeca
-  // segue andando.
+  // Repescagem: so vista por quem termina a fase 3 entre 40 e 59.
   "StateFinal": {
     "duracao": 17,
     "proximo": "StateOne",
-    "anuncio": "δ(q, a) = (q, b, →)",
+    "anuncio": "while (x ≠ 1) … para?",
     "intercambio": { "aCada": 8, "aviso": 1.5 },
-    "movimento": { "tipo": "Varredura", "a": 330, "b": 110 },
+    "movimento": { "tipo": "Conduzido", "a": 260 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Simbolo",
-        "projeteis": 1, "velocidade": 300, "angulo": 0, "anguloCentral": 90,
-        "intervalo": 0,
-        "cooldown": 0.2,
-        "regras": "fita" }
+      { "gatilho": "metade", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 3, "velocidade": 240, "angulo": 30, "intervalo": 0,
+        "regras": "letra_a" },
+      { "gatilho": "triplo", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 2, "velocidade": 210, "angulo": 40, "intervalo": 0,
+        "regras": "letra_b" },
+      { "gatilho": "parou", "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
+        "projeteis": 16, "velocidade": 190,
+        "regras": "letra_a" }
     ]
   }
 }

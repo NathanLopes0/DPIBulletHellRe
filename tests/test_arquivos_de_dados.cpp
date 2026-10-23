@@ -55,6 +55,8 @@
 #include "../Source/Attacks/Alfabeto.h"
 #include "../Source/Attacks/Automato.h"
 #include "../Source/Attacks/Gramatica.h"
+#include "../Source/Attacks/Parada.h"
+#include "../Source/Attacks/Fita.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
@@ -1446,6 +1448,31 @@ TEST_CASE("Dados: a gramatica do Vladimir - gatilhos, posto e caras sao nomes qu
     CHECK(sDoRelogio == 1);
     CHECK(gatilhos.count(Gramatica::kGatilhoDoPar) == 1);
     CHECK(gatilhos.count(Gramatica::kGatilhoDaVariavel) == 1);
+}
+
+TEST_CASE("Dados: a fita e o problema da parada do Vladimir estao nas fases que o C++ le") {
+    // A FITA: a fase em que o Vladimir escreve o placar da transicao tem de ser
+    // a que escreve a fita - senao a seta mente sobre uma fase sem fita.
+    bool achouAFita = false;
+    std::set<std::string> gatilhosDaParada;
+    for (const auto& f : FasesDoChefe("vladimir").fases) {
+        for (const auto& a : f.ataques) {
+            if (f.nome == Fita::kFaseDaFita && a.regrasNome == "fita") {
+                achouAFita = true;
+                CHECK(a.gatilho == Fita::kGatilhoDaEscrita);   // quem escreve e a cabeca, andando
+            }
+            if (f.nome == Parada::kFaseDaParada) gatilhosDaParada.insert(a.gatilho);
+        }
+    }
+    CHECK(achouAFita);
+    CHECK(GatilhoExiste(Fita::kGatilhoDaEscrita));
+
+    // A PARADA: os tres gatilhos que o programa puxa, todos na fase dele.
+    for (const char* g : {Parada::kGatilhoDaMetade, Parada::kGatilhoDoTriplo, Parada::kGatilhoDeParar}) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+        CHECK(gatilhosDaParada.count(g) == 1);
+    }
 }
 
 TEST_CASE("Dados: o diagrama do automato do Vladimir foi desenhado para os estados onde ele os poe") {

@@ -20,11 +20,11 @@
   //     "a"  vai RETO.    Rapido de ler, rapido de desviar.
   //     "b"  PERSEGUE.    Corrige a rota com forca que decai ate zero.
   //
-  // E com isso as palavras passam a dizer algo:
-  //
-  //     (ab)*    a cada dois tiros, um corre atras - a batida e desvia/escapa
-  //     a^n b^n  CONTAR OS AMBAR DIZ QUANTOS PERSEGUIDORES VEM. A contagem
-  //              deixa de ser um enfeite pedagogico e vira informacao tatica
+  // E com isso ler a letra passa a dizer algo, nas quatro fases: o automato
+  // atira a letra que leu, e o placar diz qual e a proxima; a derivacao abre um
+  // "a" de um lado e um "b" do outro; a fita escreve "a" e a cabeca o reescreve
+  // em "b"; o programa da metade solta "a" e o do 3x + 1 solta "b". E o
+  // intercambio TROCA as duas (Alfabeto.h): o "a" em voo passa a perseguir.
   //
   // O TrackingBehavior decai: "fugir cedo nao resolve, fugir tarde sim". E uma
   // habilidade diferente de desviar de um tiro reto, e e dela que vem a tensao
@@ -84,29 +84,6 @@
     { "indices": [0], "animacao": "B",
       "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 2.4 } },
     { "indices": [1], "animacao": "A" }
-  ],
-
-  // A PILHA, VISTA DE LADO.
-  //
-  // O chefe mergulha enquanto empilha e sobe enquanto desempilha, entao a
-  // ALTURA de cada anel e a posicao dele na pilha.
-  //
-  // AQUI AS DUAS LETRAS SAO AS DUAS METADES DA ESTRUTURA:
-  //
-  //     "a"  FICA. Freia e se pendura na altura em que nasceu - e o simbolo
-  //          que esta NA pilha, e vira terreno que o jogador tem de contornar.
-  //     "b"  SAI ATRAS DE VOCE. E o simbolo desempilhado, que nao fica parado
-  //          esperando.
-  //
-  // O SlowDown so no "a" e o Tracking so no "b" tambem e o que mantem a regra
-  // de um motion/modifier por simbolo: os dois no mesmo projetil se anulariam.
-  "pilha": [
-    { "quando": "pares",
-      "animacao": "A",
-      "modifiers": [ { "tipo": "SlowDown", "fator": 0.35, "atraso": 0.45 } ] },
-    { "quando": "impares",
-      "animacao": "B",
-      "motion": { "tipo": "Tracking", "atraso": 0.5, "forca": 1.5, "duracao": 2.0 } }
   ],
 
   // A FITA DA MAQUINA DE TURING.
