@@ -8,10 +8,10 @@
  * CAMADA PURA.
  *
  * O Vitor da Programacao Concorrente e Distribuida e tambem de Redes, e na fase
- * 2 dele ha NUVENS em cima dele - a computacao em nuvem. Elas trabalham num
- * ciclo: PROCESSAM (as luzinhas acendem, e o placar avisa) e, quando acabam,
- * mandam o resultado para baixo - uma chuva de PACOTES de rede. O
- * processamento e o aviso: quem le a nuvem sabe quando vai chover.
+ * 2 dele ha NUVENS em cima dele - a computacao em nuvem, o servidor. Elas
+ * trabalham num ciclo: PROCESSAM (as luzinhas acendem) e, quando acabam,
+ * mandam a janela de segmentos TCP para baixo (Tcp.h). O processamento e o
+ * aviso: quem le a nuvem sabe quando a janela vai sair.
  *
  * E E PELA NUVEM QUE ELE SE DIVIDE na fase 3: as duas nuvens se juntam em cima
  * dele, ele entra, e dela saem dois - os dois processos de um fork.
@@ -21,13 +21,12 @@
  */
 namespace Nuvem {
 
-    /// Os gatilhos (FasesDeAtaque.h, GatilhoExiste): o que forma as nuvens, no
-    /// comeco da fase, e o que faz chover.
+    /// O gatilho (FasesDeAtaque.h, GatilhoExiste) que forma as nuvens, no
+    /// comeco da fase. Os segmentos que elas mandam sao de Tcp.h.
     constexpr const char* kGatilhoDasNuvens = "nuvens";
-    constexpr const char* kGatilhoDaChuva = "chover";
 
-    /// O posto das nuvens (BossProjectile::DefinirPosto), de onde os pacotes
-    /// saem. Tem de ser um dos nomes de PostoExiste.
+    /// O posto das nuvens (BossProjectile::DefinirPosto): e por ele que o
+    /// Vitor as acha em campo. Tem de ser um dos nomes de PostoExiste.
     constexpr const char* kPostoDasNuvens = "nuvens";
 
     /// As duas caras da nuvem, que o Vitor troca conforme o ciclo. Tem de
@@ -35,7 +34,9 @@ namespace Nuvem {
     constexpr const char* kCaraOciosa = "Ociosa";
     constexpr const char* kCaraProcessando = "Processando";
 
-    /// O relogio: quanto a nuvem processa, e quanto descansa depois de chover.
+    /// O relogio: quanto a nuvem processa, e quanto descansa depois de mandar.
+    /// O Vitor usa os tempos do RTT (Tcp::kProcessa, Tcp::kDescansa); os de
+    /// aqui sao os de uma nuvem qualquer.
     struct Ciclo {
         float processa = 2.4f;
         float descansa = 0.8f;

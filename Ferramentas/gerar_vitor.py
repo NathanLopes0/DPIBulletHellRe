@@ -32,8 +32,10 @@ AS LINHAS SEGUINTES SAO AS REDES, a outra materia que ele da (do 127 em diante):
 
     Nuvem     a nuvem da computacao em nuvem, em cima dele na fase 2: ociosa
               ela so balanca; PROCESSANDO, as luzinhas dela acendem em fila.
-    Pacote    o pacote de rede que a nuvem manda: o cabecalho colorido e o
-              corpo, piscando.
+    Pacote    o segmento TCP que a nuvem manda: o cabecalho colorido e o
+              corpo, piscando. RETRANSMITIDO, o cabecalho e laranja e o corpo
+              ganha a seta de volta; DESCARTADO no roteador, e um caco do
+              pacote partido (as duas linhas do fim da folha, do 167 em diante).
 """
 from PIL import Image, ImageDraw, ImageFont
 import json, os
@@ -75,6 +77,8 @@ COR_NUVEM_SOMBRA = (150, 166, 192, 255)
 COR_LUZ    = (120, 230, 255, 255)   # as luzinhas do processamento
 COR_CABECALHO = (250, 190, 70, 255)
 COR_CORPO  = (90, 140, 220, 255)
+COR_RETRANSMISSAO = (255, 128, 48, 255)
+COR_DESCARTE = (230, 92, 92, 255)       # o caco: o pacote que o roteador jogou fora
 
 
 def quadro_json(nome, w, h, quadros=1, lado=None):
@@ -217,6 +221,33 @@ def folha_das_threads():
     return f
 
 
+def retransmitido(fase):
+    """O SEGMENTO RETRANSMITIDO: o mesmo pacote, com o cabecalho laranja e a
+    seta de quem volta - o que se perdeu e vai de novo."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([8, 9, 23, 23], fill=COR_CORPO, outline=TRACO, width=2)
+    d.rectangle([9, 10, 22, 13], fill=COR_RETRANSMISSAO if fase % 2 == 0 else (255, 196, 140, 255))
+    # a seta circular, de "de novo"
+    d.arc([11, 15, 20, 22], start=200, end=500, fill=(255, 255, 255, 220), width=2)
+    d.polygon([(18, 14), (21, 17), (17, 18)], fill=(255, 255, 255, 220))
+    return im
+
+
+def descartado(fase):
+    """O CACO do segmento descartado no roteador: um pedaco do pacote, girando."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    pontas = [(10, 10), (22, 12), (19, 22), (11, 20)]
+    giro = fase * 1.5708
+    import math
+    centro = (16, 16)
+    rot = [(centro[0] + (x - 16) * math.cos(giro) - (y - 16) * math.sin(giro),
+            centro[1] + (x - 16) * math.sin(giro) + (y - 16) * math.cos(giro)) for x, y in pontas]
+    d.polygon(rot, fill=COR_DESCARTE, outline=TRACO)
+    return im
+
+
 def folha():
     """Quatro quadros de cada, uma coisa por linha - o mesmo arranjo dos
     outros chefes.
@@ -227,7 +258,7 @@ def folha():
 
     As linhas novas vao sempre no FIM: os quadros de antes ficam onde estavam.
     """
-    f = Image.new("RGBA", (128, 192), (0, 0, 0, 0))
+    f = Image.new("RGBA", (128, 256), (0, 0, 0, 0))
     for i in range(4):
         f.alpha_composite(tarefa(), (i * 32, 0))
     for i in range(4):
@@ -240,6 +271,10 @@ def folha():
         f.alpha_composite(nuvem(i, True), (i * 32, 128))
     for i in range(4):
         f.alpha_composite(pacote(i), (i * 32, 160))
+    for i in range(4):
+        f.alpha_composite(retransmitido(i), (i * 32, 192))
+    for i in range(4):
+        f.alpha_composite(descartado(i), (i * 32, 224))
     return f
 
 
@@ -254,5 +289,5 @@ def grava(im, nome, pasta, quadros=1, lado=None):
 
 if __name__ == "__main__":
     grava(vitor(), "DPIBHVitor", "Assets/Teachers")
-    grava(folha(), "DPIBHVitorTarefa", "Assets/Teachers/Projectiles", quadros=24, lado=32)
+    grava(folha(), "DPIBHVitorTarefa", "Assets/Teachers/Projectiles", quadros=32, lado=32)
     grava(folha_das_threads(), "DPIBHVitorThreads", "Assets/Teachers/Projectiles", quadros=20, lado=32)

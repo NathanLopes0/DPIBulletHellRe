@@ -14,6 +14,7 @@
 #include "../Boss.h"
 #include "../../../Attacks/Nuvem.h"
 #include "../../../Attacks/Semaforo.h"
+#include "../../../Attacks/Tcp.h"
 
 class BossProjectile;
 class DrawLinhasComponent;
@@ -27,14 +28,14 @@ class Player;
  *
  * O BALANCEAMENTO DELE VIVE EM DADOS, como o dos outros: as fases em
  * Assets/Attacks/vitor/fases.json e as regras de projetil no regras.json ao
- * lado. O que mora aqui e a UNICA coisa que dados nao sabem fazer - mudar a
- * direcao da fresta da secao critica entre uma rajada e a outra.
+ * lado. O que mora aqui e o que dados nao sabem fazer: a fila do semaforo, a
+ * janela do TCP, o fork pela nuvem.
  *
  * A IDEIA DO CHEFE: concorrencia e "varias coisas ao mesmo tempo", e e por isso
  * que a fase 3 dele se divide em dois corpos.
  *
  *   fase 1  SEMAFOROS           - as threads, a secao critica e a fila do P(s)
- *   fase 2  EXCLUSAO MUTUA      - um anel com UMA fresta, sempre embaixo
+ *   fase 2  TCP                 - as nuvens, o roteador e o dente de serra
  *   fase 3  FORK                - dois corpos, um fazendo cada uma das duas
  *
  * A FASE 1 E A SINCRONIZACAO (Semaforo.h): cada thread e uma coluna de
@@ -44,11 +45,14 @@ class Player;
  * fica ao lado da coluna que ele vai acordar, e as correntes continuam: o
  * aluno acorrentado fica lento, e a coluna em cima dele fura a fila.
  *
- * E ELE TAMBEM DA REDES: na fase 2 ha duas NUVENS em cima dele, a computacao
- * em nuvem, que processam e chovem pacotes (Nuvem.h). O relogio delas, a cara
- * delas e o placar moram aqui (AtualizarNuvens). E e pela nuvem que ele se
- * divide na fase 3: as duas se juntam em cima dele, ele entra, e saem dois
- * (ComecarOFork).
+ * E ELE TAMBEM DA REDES: na fase 2 as duas NUVENS em cima dele sao o
+ * servidor, e cada chuva e uma janela TCP (Tcp.h). Os segmentos voam ate o
+ * ROTEADOR no meio do campo, que encaminha ao aluno o que cabe e descarta o
+ * resto num anel de cacos; a janela dobra no slow start, cresce de um na
+ * evitacao, e cai a metade na perda - o dente de serra, desenhado num grafico
+ * no canto. O Ponto Extra derruba as nuvens, e elas voltam num timeout, com
+ * cwnd = 1. E e pela nuvem que ele se divide na fase 3: as duas se juntam em
+ * cima dele, ele entra, e saem dois (ComecarOFork).
  */
 class Vitor : public Boss {
 public:
@@ -89,6 +93,18 @@ private:
 
     [[nodiscard]] Player* Aluno() const;
     [[nodiscard]] Vector2 PosicaoDoAluno() const;
+
+    /**
+     * @brief COMO O ALUNO ANDA: a velocidade media dos ultimos instantes, e
+     * nao a do quadro. Quem segue alguem anda aos trancos - corre um quadro,
+     * para dois -, e a velocidade do quadro diria 300 ou 0, nunca os 90 em
+     * que ele anda de fato. Quem mira adiante (o roteador da fase 2) le esta.
+     */
+    void AcompanharOAluno(float deltaTime);
+    Vector2 mVelocidadeDoAluno = Vector2::Zero;
+    Vector2 mUltimaDoAluno = Vector2::Zero;
+    bool mViuOAluno = false;
+    static constexpr float kMemoriaDoAndar = 0.25f;
 
     /// O placar: o que a fase diz no arquivo e guardado na primeira vez, e
     /// volta quando a fase acaba.
@@ -166,22 +182,32 @@ private:
 
     static constexpr int kOrdemDaSecao = 52;
     static constexpr int kOrdemDosNomes = 57;
-    // ---- AS NUVENS DA FASE 2 -----------------------------------------------
+    // ---- A FASE 2: AS NUVENS E O TCP ----------------------------------------
     //
     // Pouco depois de a fase comecar o Vitor forma as duas nuvens (o gatilho
-    // "nuvens"), e dali elas trabalham no ciclo de Nuvem.h: processam, e no
-    // fim do processamento ele puxa o gatilho "chover". SO O CORPO ORIGINAL:
-    // o clone da fase 3 roda os ataques da fase 2, mas a nuvem e do Vitor, e
-    // nao de cada copia dele.
+    // "nuvens"), e dali elas trabalham num RTT (Tcp.h): processam, e no fim do
+    // processamento mandam a janela - os segmentos voam ate o roteador, que
+    // encaminha ao aluno o que cabe e descarta o resto. SO O CORPO ORIGINAL:
+    // a nuvem e do Vitor, e nao de cada copia dele.
 
     void AtualizarNuvens(float deltaTime);
+    void MontarRede();
+    void DesmontarRede();
+    void MandarSegmentos(float agora);
+    void ChegarNoRoteador(float agora);
+    void Encaminhar(float agora);
+    void DesenharGrafico();
 
     /// As nuvens em campo: os projeteis no posto das nuvens.
     [[nodiscard]] std::vector<BossProjectile*> Nuvens() const;
 
-    /// Puxa um gatilho das nuvens. O CustomizeAttackParams sabe que o disparo e
-    /// delas, e nao do anel - e a fresta do anel nao anda por causa delas.
+    /// Puxa um gatilho das nuvens.
     void DispararNuvem(const char* gatilho);
+
+    /// O angulo, em graus, de 'de' ate 'para'.
+    static float Angulo(Vector2 de, Vector2 para);
+
+    [[nodiscard]] Vector2 PosicaoDoRoteador() const;
 
     /// O fork pela nuvem, no corpo original: junta as nuvens em cima dele,
     /// manda os dois corpos para dentro dela, e a desfaz quando eles saem.
@@ -205,20 +231,53 @@ private:
     Vector2 mVaiPara;
     float mEscalaDaNuvem = 1.0f;
 
-    Nuvem::Ciclo mChuva;
+    /// O RTT e o ciclo da nuvem, com os tempos do TCP.
+    Nuvem::Ciclo mChuva{Tcp::kProcessa, Tcp::kDescansa, 0.0f};
     bool mNasNuvens = false;
     bool mNuvensFormadas = false;
-    bool mDisparandoNuvem = false;
     float mTempoNasNuvens = 0.0f;
     float mSemNuvensHa = 0.0f;     ///< ha quanto tempo as nuvens formadas sumiram
     std::string mNomeDaFaseDasNuvens;
 
-    /// Quanto depois do comeco da fase as nuvens se formam: antes do primeiro
-    /// anel, que sai a 1 s.
-    static constexpr float kFormaAsNuvens = 0.6f;
+    /// A CONEXAO e a janela em voo. A janela sai segmento a segmento
+    /// (Tcp::kEntreSegmentos), alternando as nuvens; quando o ultimo chegou ao
+    /// roteador - ou foi descartado -, os ACKs voltam e a conexao reage.
+    Tcp::Conexao mConexao;
+    Tcp::Janela mJanela;
+    bool mMandando = false;
+    int mMandados = 0;
+    float mInicioDaJanela = 0.0f;
+    bool mJanelaReconhecida = true;
 
-    static constexpr const char* kProcessando = "nuvem: processando...";
-    static constexpr const char* kEnviando = "nuvem: enviando pacotes";
+    struct Segmento {
+        BossProjectile* p = nullptr;
+        bool perdido = false;
+        bool retransmitido = false;
+    };
+    std::vector<Segmento> mEmVoo;
+
+    /// A FILA DO ROTEADOR: os que ele ainda vai encaminhar (se cada um e
+    /// retransmitido), e quando sai o proximo.
+    std::vector<bool> mFila;
+    int mEncaminhados = 0;
+    int mRecebidosNaJanela = 0;
+    float mProximoEncaminhado = 0.0f;
+    int mDescartes = 0;
+
+    /// O que o placar diz ate a janela seguinte sair: o estado da conexao, ou
+    /// a perda, ou o timeout.
+    std::string mTextoDaConexao;
+    bool mAvisoPendente = false;
+
+    /// O que o grafico ja desenhou: o cwnd de cada janela mandada, e onde a
+    /// conexao recomecou (o timeout).
+    std::vector<int> mJanelasDoGrafico;
+
+    PainelDeCodigo* mRoteador = nullptr;
+    EtiquetaDeCodigo* mFilaDoRoteador = nullptr;
+    PainelDeCodigo* mQuadroDoGrafico = nullptr;
+    EtiquetaDeCodigo* mNomeDoGrafico = nullptr;
+
     static constexpr const char* kForaDoAr = "nuvem: fora do ar";
 
     /// O FORK: os tempos dele, e o tamanho da nuvem juntada - as duas viram
@@ -228,30 +287,4 @@ private:
     static constexpr float kEscalaDaNuvemJunta = 5.0f;
     static constexpr const char* kNoFork = "nuvem: fork()";
     std::string mNomeDaFaseDoFork;
-
-    /**
-     * Para onde a fresta do anel aponta, medido a partir da ponta da janela
-     * (kFrestaMaisADireita). COMECA NO MEIO, entao o primeiro anel da fase abre
-     * reto para baixo e so depois a fresta passa a escorregar para os lados.
-     */
-    float mDesvioDaFresta = 30.0f;
-
-    /**
-     * A JANELA E A METADE DE BAIXO, E NAO A VOLTA INTEIRA. A fresta vai de 60
-     * a 120 graus (90 e reto para baixo): no maximo 30 graus inclinada, que na
-     * faixa em que o jogador vive - de 330 a 550px abaixo do chefe, conforme a
-     * orbita - desloca a porta ate uns 320px para o lado, e ela fica entre
-     * x=171 e x=1029 numa tela de 1200. Uma fresta apontando para cima nao
-     * seria porta nenhuma, so mais parede.
-     */
-    static constexpr float kFrestaMaisADireita = 60.0f;
-    static constexpr float kJanelaDaFresta = 60.0f;
-
-    /**
-     * 37 GRAUS POR RAJADA, PRIMO COM A JANELA DE 60. A fresta zigue-zagueia
-     * (90, 67, 104, 81, 118, 95...) e so repete depois de 60 rajadas, entao o
-     * jogador nao decora o ciclo. E o mesmo motivo dos 137 graus que a fresta
-     * girava antes, quando dava a volta inteira.
-     */
-    static constexpr float kPassoDaFresta = 37.0f;
 };

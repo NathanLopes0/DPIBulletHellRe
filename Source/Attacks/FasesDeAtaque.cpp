@@ -47,7 +47,7 @@ namespace {
     /// "None" NAO entra: a propria BaloonAttack recusa side == None.
     const std::vector<std::string> kLadosDeBalao = {"Down", "Left", "Right", "Up"};
     const std::vector<std::string> kEixosDeConsulta = {"Linha", "Coluna"};
-    const std::vector<std::string> kGatilhos = {"notificacao", "consulta", "agir", "nuvens", "chover", "portas",
+    const std::vector<std::string> kGatilhos = {"notificacao", "consulta", "agir", "nuvens", "portas",
                                                 "contador", "estagios", "buscar", "lw", "sw", "add", "addi",
                                                 "acender", "estados", "diagrama", "ler_a", "ler_b",
                                                 "aceita", "rejeita", "derivar", "variavel", "metade", "triplo",
@@ -62,7 +62,7 @@ namespace {
                                                 "trofeu", "gota", "operador", "operando",
                                                 "anel", "texto", "erro", "compilacao",
                                                 "celula", "pendente", "estouro", "excecao", "destroco", "finally",
-                                                "instrucao"};
+                                                "instrucao", "segmento", "encaminhar", "descarte"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"

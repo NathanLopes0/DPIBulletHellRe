@@ -6,7 +6,7 @@
   // chegar nisso - em dois corpos, na fase 3:
   //
   //   StateOne    SEMAFOROS            as threads, a secao critica e o P(s)
-  //   StateTwo    EXCLUSAO MUTUA       um anel com UMA fresta, que anda embaixo
+  //   StateTwo    TCP                  as nuvens, o roteador e o dente de serra
   //   StateThree  FORK                 o chefe se divide; um corpo faz cada uma
   //   StateFinal  JOIN                 os dois voltam a ser um, fazendo as duas
   //
@@ -74,83 +74,53 @@
     ]
   },
 
-  // FASE 2 - EXCLUSAO MUTUA   |   gesto: A ORBITA LENTA
+  // FASE 2 - O TCP NAS NUVENS   |   gesto: A ORBITA LENTA
   //
-  // Um anel de 60 travas com UMA fresta de 30 graus ("angulo": 330 e o leque;
-  // o que sobra da volta e a abertura). As travas freiam e ficam: a parede nao
-  // passa sozinha, e atravessar e a unica saida.
+  // Redes, a camada de transporte (Tcp.h). Aos 0,6 s o professor forma as
+  // duas NUVENS (gatilho "nuvens", regra "nuvens"), presas a ele uma de cada
+  // lado - o servidor -, e elas trabalham num RTT de 1,75 s: PROCESSAM 1 s
+  // (as luzinhas acendem; e o aviso) e mandam uma JANELA de segmentos, um a
+  // cada 0,05 s, alternando as duas. Os segmentos voam ate o ROTEADOR, no
+  // meio do campo, que os encaminha ao aluno um a cada 0,06 s, mirados nele.
   //
-  // A FRESTA ANDA, SEMPRE PELA METADE DE BAIXO: de 60 a 120 graus, 37 por
-  // rajada, e quem a move e Vitor::CustomizeAttackParams - para onde ela aponta
-  // depende do anel anterior, e este arquivo nao tem memoria. Por isso NAO HA
-  // "anguloCentral" aqui: o C++ escreve por cima, e o campo seria texto morto.
+  // O ROTEADOR DA CONTA DE 10 POR RTT. O que passa disso e descartado ali
+  // mesmo, e estoura num anel de oito cacos com um deles no aluno. E a janela
+  // segue o controle de congestionamento: dobra no slow start (1, 2, 4, 8,
+  // 16), passa a crescer de um na evitacao, e na perda - os ACKs duplicados -
+  // cai a metade, com o que se perdeu retransmitido primeiro (o cabecalho
+  // laranja). Numa fase sao onze janelas: 1, 2, 4, 8, 16, 8, 9, 10, 11, 5 e
+  // 6, o dente de serra que o grafico no canto de cima vai desenhando, com a
+  // linha vermelha da capacidade. O placar diz o cwnd e o estado.
   //
-  // SAO 60 TRAVAS PORQUE A FRESTA TEM DE SER O UNICO JEITO DE PASSAR. Com 24 o
-  // espacamento no raio em que o jogador encontra o anel (uns 390px) dava 88
-  // pixels contra um sprite de 37, e atravessar a parede em qualquer ponto era
-  // trivial. Com 60 num leque de 330 sao uns 38px. Medi com 66, que volta aos
-  // 34px de antes, e os tres pilotos terminaram com os mesmos acertos: ficou 60.
+  // O PONTO EXTRA DERRUBA AS NUVENS (e o que estava na rede com elas), e
+  // elas voltam 3 s depois num TIMEOUT: cwnd = 1, do slow start. Gastar o B
+  // com a janela grande e aliviar a fase; com ela pequena, e jogar fora.
   //
-  // A FRESTA ANDAR TROCOU A FASE DE LUGAR. Fixa embaixo, o corredor saia de
-  // baixo do chefe e a fase era "fique no corredor". Agora cada porta esta num
-  // x diferente, ate uns 320px para o lado, e a fase e TROCAR DE PORTA. A porta
-  // em si e larga - pelo menos uns 180px na faixa do jogador, conforme a altura
-  // do chefe. O dificil e o caminho: as travas andam a 54px/s depois de frear,
-  // cada anel nasce de outro ponto da orbita, e a parede do anel anterior ainda
-  // esta cruzando a faixa entre uma porta e a outra. No par de 90 e 67 graus a
-  // janela para mudar de porta sem encostar foi de uns 1,1s.
+  // O PROFESSOR VARRE O ALTO com as nuvens, devagar (90 px/s) e no meio
+  // (para a 380 px das bordas, e o grafico fica a direita: Tcp.h), e os
+  // segmentos descem ate o roteador de onde elas estiverem. Era a orbita do
+  // anel de antes, em volta do meio da tela - e o aluno parado no meio
+  // passava a fase inteira embaixo dele, atirando de graca. A 170 px/s o tiro
+  // do aluno, que sobe reto, chegava ao alto depois de o professor ter saido
+  // dali, e quem o seguia quase nao acertava.
   //
-  // MEDIDO SO COM A FRESTA MUDANDO: o piloto que persegue tomava 1 acerto
-  // nesta fase e passou a 5, e um que corre direto para a porta seguinte toma
-  // 4. Um piloto que so da o passo quando o lugar do passo esta livre de
-  // parede toma 1, o mesmo de antes. A fase continua passavel; ela cobra
-  // ESPERAR a parede anterior passar, e castiga quem nao espera. (Esses dois
-  // pilotos foram feitos para esta medicao e nao estao em medir-dificuldade.sh:
-  // eles leem onde cada anel nasceu, e so o Vitor sabe disso.)
-  //
-  // O LEQUE E UMA WaveAttack, E NAO UM CircleSpread, por um motivo medido na
-  // fase 3 do Vladimir: CircleSpreadAttack ignora "angulo" e "anguloCentral" -
-  // ela sempre faz a volta inteira a partir do zero. Sem controle do angulo nao
-  // ha fresta, e sem fresta nao ha secao critica. A WaveAttack respeita os dois.
-  //
-  // "intervalo": 0 porque o anel tem de nascer INTEIRO. Com os projeteis
-  // acordando um a um a parede apareceria aos pedacos e a fresta nao seria
-  // legivel enquanto isso.
-  //
-  // A ORBITA E PEQUENA E LENTA (raio 110, 0,08 volta/s): o anel precisa de um
-  // centro para ser lido como anel, mas um chefe completamente parado deixa a
-  // tela morta - e a licao da primeira versao do Vladimir.
-  //
-  // E HA NUVENS EM CIMA DELE: o Vitor tambem da Redes, e esta e a computacao
-  // em nuvem. Aos 0,6 s ele forma duas (gatilho "nuvens", regra "nuvens"),
-  // presas a ele uma de cada lado, e elas trabalham no ciclo de Nuvem.h:
-  // PROCESSAM por 2,4 s - as luzinhas acendem e o placar diz "processando" -
-  // e no fim chovem tres PACOTES cada, retos para baixo (gatilho "chover").
-  // O processamento e o aviso de que vai chover.
-  //
-  // A CHUVA CAI DOS LADOS DO CHEFE, e nao embaixo dele: quem passa pela porta
-  // do anel - que sai de baixo dele - e quem a chuva encontra. Medido na fase,
-  // ela so acertou o piloto que persegue, 3 vezes (ele leva 5, e levava 2); o
-  // parado e o que vai e vem tomaram exatamente os acertos de antes. E a
-  // sequencia de portas e a mesma de antes: o disparo das nuvens nao empurra a
-  // fresta (Vitor::DispararNuvem).
+  // TODO ATAQUE E DE GATILHO: quem diz de onde e para onde cada segmento sai
+  // e o Vitor; as velocidades sao as de Tcp.h (um teste confere).
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
-    "anuncio": "exclusão mútua",
-    "movimento": { "tipo": "Orbitar", "a": 110, "b": 0.08 },
+    "anuncio": "TCP · congestionamento",
+    "movimento": { "tipo": "Varredura", "a": 90, "b": 380 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Trava",
-        "projeteis": 60, "velocidade": 300, "angulo": 330,
-        "intervalo": 0,
-        "cooldown": 2.6,
-        "regras": "secao_critica" },
       { "gatilho": "nuvens", "estrategia": "WaveAttack", "projetil": "Nuvem",
         "projeteis": 2, "velocidade": 150, "angulo": 90, "intervalo": 0,
         "regras": "nuvens" },
-      { "gatilho": "chover", "estrategia": "PontosAttack", "projetil": "Pacote",
-        "projeteis": 3, "velocidade": 240, "angulo": 36, "anguloCentral": 90,
-        "pontos": { "posto": "nuvens" } }
+      { "gatilho": "segmento", "estrategia": "WaveAttack", "projetil": "Pacote",
+        "projeteis": 1, "velocidade": 320, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "encaminhar", "estrategia": "WaveAttack", "projetil": "Pacote",
+        "projeteis": 1, "velocidade": 340, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "descarte", "estrategia": "WaveAttack", "projetil": "Pacote",
+        "projeteis": 8, "velocidade": 220, "angulo": 315, "intervalo": 0 }
     ]
   },
 
@@ -164,11 +134,11 @@
   // Battle::Corpos(), e acertar um ou outro paga a mesma barra. Nao ha "o
   // verdadeiro" e "a copia" - fork nao faz copia, faz dois.
   //
-  // O CLONE USA OS ATAQUES DA FASE 2 ("ataquesDe"), em vez de repeti-los: duas
-  // copias divergem no dia em que alguem ajusta uma. Ele tambem herda o
-  // MOVIMENTO da fase que empresta - entao orbita devagar, como na fase 2,
-  // enquanto o original varre. O original tem a lista dele: as tarefas eram a
-  // fase 1, que virou os semaforos, e moram aqui agora.
+  // O CLONE USA OS ATAQUES DA FINAL ("ataquesDe") - o anel das travas e as
+  // tarefas que perseguem -, em vez de repeti-los: duas copias divergem no
+  // dia em que alguem ajusta uma. Ele tambem herda o MOVIMENTO da fase que
+  // empresta, entao varre mais rapido que o original. O original tem a lista
+  // dele: as tarefas eram a fase 1, que virou os semaforos.
   //
   // O SEGUNDO CORPO NASCE ESPELHADO em relacao ao original (Battle::DividirChefe):
   // dois corpos no mesmo pixel seriam um so para quem olha.
@@ -199,7 +169,7 @@
         "cooldown": 4.4,
         "regras": "correntes" }
     ],
-    "clone": { "ataquesDe": "StateTwo" }
+    "clone": { "ataquesDe": "StateFinal" }
   },
 
   // FASE FINAL - JOIN

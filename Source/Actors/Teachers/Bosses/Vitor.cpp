@@ -13,6 +13,7 @@
 #include "../../Player/Player.h"
 #include "BossesProjectiles/BossProjectile.h"
 #include "PainelDeCodigo.h"
+#include "../../../Attacks/Coercao.h"
 #include "../../../Attacks/Behaviors.h"
 #include "../../../Components/RigidBodyComponent.h"
 #include "../../../Random.h"
@@ -63,6 +64,17 @@ namespace {
 
     SDL_Color ComAlfa(SDL_Color c, const Uint8 a) { c.a = a; return c; }
 
+    // A fase 2: o roteador e o grafico do cwnd.
+    constexpr SDL_Color kMolduraDoRoteador{90, 140, 220, 240};
+    constexpr SDL_Color kFundoDoRoteador{18, 28, 52, 230};
+    constexpr SDL_Color kTintaDoRoteador{200, 222, 255, 255};
+    constexpr SDL_Color kMolduraDoGrafico{100, 120, 165, 190};
+    constexpr SDL_Color kFundoDoGrafico{14, 18, 30, 170};
+    constexpr SDL_Color kEixoDoGrafico{120, 130, 160, 200};
+    constexpr SDL_Color kCorDaCapacidade{230, 92, 92, 220};
+    constexpr SDL_Color kCorDaSerra{250, 190, 70, 255};
+    constexpr int kAlturaDaCaixaDoRoteador = 30;
+
     /// O nome da coluna e o codigo da faixa: a mesma conta de largura do
     /// canto do Luizinho (9,5 px por letra mais a folga).
     int LarguraDoTexto(const std::string& texto) {
@@ -84,6 +96,9 @@ void Vitor::AoTerminarABatalha() {
     if (mSecao) mSecao->Mostrar(false);
     if (mCodigoDaSecao) mCodigoDaSecao->Mostrar(false);
     for (const Thread& th : mThreads) if (th.nome) th.nome->Mostrar(false);
+    if (mFilaDoRoteador) mFilaDoRoteador->Mostrar(false);
+    if (mQuadroDoGrafico) mQuadroDoGrafico->Mostrar(false);
+    if (mNomeDoGrafico) mNomeDoGrafico->Mostrar(false);
     if (mLinhas) mLinhas->Limpar();
 }
 
@@ -121,6 +136,19 @@ void Vitor::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& proje
 Player* Vitor::Aluno() const {
     if (const auto* battle = dynamic_cast<Battle*>(mScene)) return battle->Alvo();
     return nullptr;
+}
+
+void Vitor::AcompanharOAluno(const float deltaTime) {
+    if (deltaTime <= 0.0f) return;
+    const Vector2 agora = PosicaoDoAluno();
+    if (mViuOAluno) {
+        // A MEDIA QUE ESQUECE: cada quadro pesa deltaTime / kMemoriaDoAndar.
+        const Vector2 doQuadro = (agora - mUltimaDoAluno) * (1.0f / deltaTime);
+        const float peso = std::min(1.0f, deltaTime / kMemoriaDoAndar);
+        mVelocidadeDoAluno = mVelocidadeDoAluno + (doQuadro - mVelocidadeDoAluno) * peso;
+    }
+    mUltimaDoAluno = agora;
+    mViuOAluno = true;
 }
 
 Vector2 Vitor::PosicaoDoAluno() const {
@@ -451,6 +479,7 @@ void Vitor::OnUpdate(const float deltaTime) {
     }
     if (mLinhas) mLinhas->Limpar();
 
+    if (!EhClone()) AcompanharOAluno(deltaTime);
     AtualizarNuvens(deltaTime);
     AtualizarSemaforos();
 }
@@ -532,12 +561,160 @@ std::vector<BossProjectile*> Vitor::Nuvens() const {
 }
 
 void Vitor::DispararNuvem(const char* gatilho) {
-    mDisparandoNuvem = true;
     Disparar(gatilho);
-    mDisparandoNuvem = false;
+}
+
+float Vitor::Angulo(const Vector2 de, const Vector2 para) {
+    const Vector2 d = para - de;
+    return Math::ToDegrees(Math::Atan2(d.y, d.x));
+}
+
+Vector2 Vitor::PosicaoDoRoteador() const {
+    const SDL_FRect campo = Campo();
+    const Tcp::Ponto r = Tcp::Roteador(campo.w);
+    return Vector2(campo.x + r.x, campo.y + r.y);
+}
+
+void Vitor::MontarRede() {
+    const SDL_FRect campo = Campo();
+
+    // O ROTEADOR: a caixa no meio do campo, com a fila dele escrita.
+    const std::string fila = Tcp::Fila(Tcp::kCapacidade);
+    auto roteador = std::make_unique<EtiquetaDeCodigo>(mScene, fila, LarguraDoTexto(fila), kAlturaDaCaixaDoRoteador,
+                                                       kOrdemDosNomes);
+    roteador->SetPosition(PosicaoDoRoteador());
+    roteador->Pintar(kMolduraDoRoteador, kFundoDoRoteador, kTintaDoRoteador);
+    roteador->Escrever(Tcp::Fila(0));
+    mFilaDoRoteador = roteador.get();
+    mScene->AddActor(std::move(roteador));
+
+    // O GRAFICO DO cwnd, no canto de cima a direita.
+    const Tcp::Retangulo g = Tcp::Grafico(campo.w);
+    auto quadro = std::make_unique<PainelDeCodigo>(mScene, static_cast<int>(g.w), static_cast<int>(g.h), kOrdemDaSecao);
+    quadro->SetPosition(Vector2(campo.x + g.x + g.w / 2.0f, campo.y + g.y + g.h / 2.0f));
+    quadro->Pintar(kMolduraDoGrafico, kFundoDoGrafico);
+    mQuadroDoGrafico = quadro.get();
+    mScene->AddActor(std::move(quadro));
+
+    const std::string nome = "cwnd";
+    auto etiqueta = std::make_unique<EtiquetaDeCodigo>(mScene, nome, LarguraDoTexto(nome), kAlturaDoNome, kOrdemDosNomes);
+    etiqueta->SetPosition(Vector2(campo.x + g.x + 8.0f + static_cast<float>(LarguraDoTexto(nome)) / 2.0f,
+                                  campo.y + g.y + 4.0f + static_cast<float>(kAlturaDoNome) / 2.0f));
+    etiqueta->Pintar(kMolduraDoGrafico, kFundoDoNome, kCorDaSerra);
+    mNomeDoGrafico = etiqueta.get();
+    mScene->AddActor(std::move(etiqueta));
+}
+
+void Vitor::DesmontarRede() {
+    for (Actor* a : {static_cast<Actor*>(mFilaDoRoteador), static_cast<Actor*>(mQuadroDoGrafico),
+                     static_cast<Actor*>(mNomeDoGrafico)}) {
+        if (a) a->SetState(ActorState::Destroy);
+    }
+    mFilaDoRoteador = nullptr;
+    mQuadroDoGrafico = nullptr;
+    mNomeDoGrafico = nullptr;
+    mEmVoo.clear();
+    mFila.clear();
+    mMandando = false;
+    mJanelasDoGrafico.clear();
+}
+
+void Vitor::MandarSegmentos(const float agora) {
+    // A JANELA SAI AOS POUCOS, um segmento a cada kEntreSegmentos, alternando
+    // as nuvens - e cada um voa reto ate o roteador.
+    const auto nuvens = Nuvens();
+    if (nuvens.empty()) {
+        mMandando = false;
+        return;
+    }
+    const Vector2 roteador = PosicaoDoRoteador();
+    while (mMandados < mJanela.Total()
+           && agora >= mInicioDaJanela + static_cast<float>(mMandados) * Tcp::kEntreSegmentos) {
+        const Vector2 de = nuvens[static_cast<size_t>(mMandados) % nuvens.size()]->GetPosition();
+        for (BossProjectile* p : DispararEm(Tcp::kGatilhoDoSegmento, de, 1, Angulo(de, roteador))) {
+            PorCara(p, mJanela.Retransmitido(mMandados) ? Tcp::kCaraDoRetransmitido : Tcp::kCaraDoNovo);
+            mEmVoo.push_back({p, mJanela.Perdido(mMandados), mJanela.Retransmitido(mMandados)});
+        }
+        ++mMandados;
+    }
+    if (mMandados >= mJanela.Total()) mMandando = false;
+}
+
+void Vitor::ChegarNoRoteador(const float agora) {
+    const Vector2 r = PosicaoDoRoteador();
+    for (auto it = mEmVoo.begin(); it != mEmVoo.end();) {
+        BossProjectile* p = it->p;
+        const Vector2 falta = r - p->GetPosition();
+        Vector2 v = Vector2::Zero;
+        if (auto* rb = p->GetComponent<RigidBodyComponent>()) v = rb->GetVelocity();
+        const bool chegou = falta.Length() < Tcp::kChegou || Vector2::Dot(falta, v) < 0.0f;
+        if (!chegou) { ++it; continue; }
+
+        if (it->perdido) {
+            // O ROTEADOR ESTAVA CHEIO: o segmento e descartado ali mesmo, e
+            // estoura num anel de cacos - com um deles no aluno.
+            const int n = Tcp::kAnelDoDescarte;
+            const float centro = Coercao::CentroDoAnel(n, Angulo(r, PosicaoDoAluno()) + Tcp::GiroDoDescarte(mDescartes++));
+            for (BossProjectile* caco : DispararEm(Tcp::kGatilhoDoDescarte, r, n, centro, Coercao::AberturaDoAnel(n))) {
+                PorCara(caco, Tcp::kCaraDoDescartado);
+            }
+        } else {
+            if (mFila.empty()) mProximoEncaminhado = std::max(mProximoEncaminhado, agora);
+            mFila.push_back(it->retransmitido);
+            ++mRecebidosNaJanela;
+        }
+        p->Kill();
+        it = mEmVoo.erase(it);
+    }
+}
+
+void Vitor::Encaminhar(const float agora) {
+    // O ENLACE DE SAIDA: um a cada kEntreEncaminhados, mirado ADIANTE do aluno
+    // - para onde ele estara se continuar andando como anda (Tcp::Mira).
+    if (mFila.empty() || agora < mProximoEncaminhado) return;
+    const bool retransmitido = mFila.front();
+    mFila.erase(mFila.begin());
+
+    const Vector2 r = PosicaoDoRoteador();
+    const Vector2 aluno = PosicaoDoAluno();
+    const Vector2 andando = mVelocidadeDoAluno;
+    const Tcp::Ponto alvo = Tcp::Mira({r.x, r.y}, {aluno.x, aluno.y}, {andando.x, andando.y},
+                                      Tcp::kVelocidadeDoEncaminhado,
+                                      Tcp::Antecipacao(mEncaminhados++, retransmitido));
+    for (BossProjectile* p : DispararEm(Tcp::kGatilhoDoEncaminhado, r, 1, Angulo(r, Vector2(alvo.x, alvo.y)))) {
+        PorCara(p, retransmitido ? Tcp::kCaraDoRetransmitido : Tcp::kCaraDoNovo);
+    }
+    mProximoEncaminhado = agora + Tcp::kEntreEncaminhados;
+}
+
+void Vitor::DesenharGrafico() {
+    if (!mLinhas || !mQuadroDoGrafico) return;
+    const float w = Campo().w;
+    const float x0 = Campo().x;
+    const float y0 = Campo().y;
+    auto ponto = [w, x0, y0](const int rtt, const int cwnd) {
+        const Tcp::Ponto p = Tcp::NoGrafico(rtt, cwnd, w);
+        return Vector2(x0 + p.x, y0 + p.y);
+    };
+    // O EIXO e a CAPACIDADE do roteador: o que passa da linha vermelha se perde.
+    mLinhas->Acrescentar(ponto(0, 0), ponto(Tcp::kRttsNoGrafico - 1, 0), kEixoDoGrafico);
+    mLinhas->Acrescentar(ponto(0, Tcp::kCapacidade), ponto(Tcp::kRttsNoGrafico - 1, Tcp::kCapacidade), kCorDaCapacidade);
+    // O DENTE DE SERRA: o tamanho de cada janela mandada.
+    for (size_t i = 1; i < mJanelasDoGrafico.size(); ++i) {
+        mLinhas->Acrescentar(ponto(static_cast<int>(i) - 1, mJanelasDoGrafico[i - 1]),
+                             ponto(static_cast<int>(i), mJanelasDoGrafico[i]), kCorDaSerra);
+    }
+    if (!mJanelasDoGrafico.empty()) {
+        const Vector2 u = ponto(static_cast<int>(mJanelasDoGrafico.size()) - 1, mJanelasDoGrafico.back());
+        mLinhas->Acrescentar(u + Vector2(-3.0f, 0.0f), u + Vector2(3.0f, 0.0f), kCorDaSerra);
+        mLinhas->Acrescentar(u + Vector2(0.0f, -3.0f), u + Vector2(0.0f, 3.0f), kCorDaSerra);
+    }
 }
 
 void Vitor::AtualizarNuvens(const float deltaTime) {
+    mEmVoo.erase(std::remove_if(mEmVoo.begin(), mEmVoo.end(),
+                                [](const Segmento& s) { return !Vivo(s.p); }), mEmVoo.end());
+
     const auto* fsm = GetComponent<FSMComponent>();
     const bool nasNuvens = fsm && fsm->GetStateName() == kFaseDasNuvens && !EhClone();
 
@@ -545,7 +722,8 @@ void Vitor::AtualizarNuvens(const float deltaTime) {
         if (mNasNuvens) {
             // A FASE ACABOU. Se a seguinte e o fork, as nuvens sao a porta dele;
             // se nao, elas se desfazem. O placar volta ao nome.
-            if (!mNomeDaFaseDasNuvens.empty()) RegistrarAnuncio(kFaseDasNuvens, mNomeDaFaseDasNuvens);
+            Restaurar(kFaseDasNuvens);
+            DesmontarRede();
             mNasNuvens = false;
             if (fsm && fsm->GetStateName() == kFaseDoFork && !EhClone()) {
                 ComecarOFork();
@@ -561,24 +739,47 @@ void Vitor::AtualizarNuvens(const float deltaTime) {
         mTempoNasNuvens = 0.0f;
         mSemNuvensHa = 0.0f;
         mChuva.t = 0.0f;
-        if (mNomeDaFaseDasNuvens.empty()) mNomeDaFaseDasNuvens = AnuncioDaFase(kFaseDasNuvens);
+        mConexao = Tcp::Conexao{};
+        mJanela = Tcp::Janela{};
+        mJanelaReconhecida = true;
+        mAvisoPendente = false;
+        mMandando = false;
+        mFila.clear();
+        mDescartes = 0;
+        mTextoDaConexao = Tcp::Placar(mConexao);
+        MontarRede();
     }
 
     mTempoNasNuvens += deltaTime;
+    const float agora = mTempoNasNuvens;
+
+    // O QUE JA ESTA NA REDE continua andando, com ou sem nuvem.
+    ChegarNoRoteador(agora);
+    Encaminhar(agora);
+    if (mFilaDoRoteador) mFilaDoRoteador->Escrever(Tcp::Fila(mRecebidosNaJanela));
+    DesenharGrafico();
+
     if (!mNuvensFormadas) {
-        if (mTempoNasNuvens < kFormaAsNuvens) return;
+        if (mTempoNasNuvens < Tcp::kFormam) return;
         DispararNuvem(Nuvem::kGatilhoDasNuvens);
         mNuvensFormadas = true;
         mChuva.t = 0.0f;
         return;     // as nuvens recem-disparadas so entram no campo no quadro seguinte
     }
 
-    // A NUVEM FORA DO AR: o Ponto Extra levou as duas. O placar avisa, e elas
-    // voltam kVoltaDasNuvens depois, com o ciclo do comeco.
+    // A NUVEM FORA DO AR: o Ponto Extra levou as duas, e o que estava na rede
+    // com elas. Quando elas voltam, e um TIMEOUT: a conexao recomeca do slow
+    // start, com cwnd = 1.
     if (Nuvens().empty()) {
         mSemNuvensHa += deltaTime;
-        if (AnuncioDaFase(kFaseDasNuvens) != kForaDoAr) RegistrarAnuncio(kFaseDasNuvens, kForaDoAr);
+        mMandando = false;
+        mFila.clear();
+        Anunciar(kFaseDasNuvens, kForaDoAr);
         if (mSemNuvensHa < Nuvem::kVoltaDasNuvens) return;
+        Tcp::Timeout(mConexao);
+        mJanelaReconhecida = true;
+        mTextoDaConexao = Tcp::PlacarDoTimeout(mConexao);
+        mAvisoPendente = true;
         DispararNuvem(Nuvem::kGatilhoDasNuvens);
         mChuva.t = 0.0f;
         mSemNuvensHa = 0.0f;
@@ -586,19 +787,44 @@ void Vitor::AtualizarNuvens(const float deltaTime) {
     }
     mSemNuvensHa = 0.0f;
 
-    // O CICLO: processa, e no fim do processamento chove.
-    if (Nuvem::Avancar(mChuva, deltaTime)) DispararNuvem(Nuvem::kGatilhoDaChuva);
+    if (mMandando) MandarSegmentos(agora);
 
-    const bool processando = Nuvem::Processando(mChuva);
-    const char* texto = processando ? kProcessando : kEnviando;
-    if (AnuncioDaFase(kFaseDasNuvens) != texto) RegistrarAnuncio(kFaseDasNuvens, texto);
+    // O FIM DO PROCESSAMENTO: a janela sai. Os ACKs da anterior que ainda nao
+    // tinham voltado voltam agora.
+    if (Nuvem::Avancar(mChuva, deltaTime)) {
+        if (!mJanelaReconhecida) {
+            if (Tcp::Reconhecer(mConexao, mJanela) == Tcp::Desfecho::Cortou) {
+                mTextoDaConexao = Tcp::PlacarDaPerda(mConexao);
+                mAvisoPendente = true;
+            }
+        }
+        mJanela = Tcp::Enviar(mConexao);
+        mJanelasDoGrafico.push_back(mJanela.Total());
+        mRecebidosNaJanela = 0;
+        mMandando = true;
+        mMandados = 0;
+        mInicioDaJanela = agora;
+        mJanelaReconhecida = false;
+        // A PERDA E O TIMEOUT FICAM ESCRITOS na janela que eles cortaram.
+        if (!mAvisoPendente) mTextoDaConexao = Tcp::Placar(mConexao);
+        mAvisoPendente = false;
+        MandarSegmentos(agora);
+    }
 
-    const char* cara = processando ? Nuvem::kCaraProcessando : Nuvem::kCaraOciosa;
-    for (BossProjectile* nuvem : Nuvens()) {
-        if (auto* anim = nuvem->GetComponent<DrawAnimatedComponent>(); anim && anim->GetAnimation() != cara) {
-            anim->SetAnimation(cara);
+    // OS ACKS VOLTAM quando a janela inteira saiu e chegou ao roteador - ou se
+    // perdeu nele.
+    if (!mJanelaReconhecida && !mMandando && mEmVoo.empty()) {
+        mJanelaReconhecida = true;
+        if (Tcp::Reconhecer(mConexao, mJanela) == Tcp::Desfecho::Cortou) {
+            mTextoDaConexao = Tcp::PlacarDaPerda(mConexao);
+            mAvisoPendente = true;
         }
     }
+
+    Anunciar(kFaseDasNuvens, mTextoDaConexao);
+
+    const char* cara = Nuvem::Processando(mChuva) ? Nuvem::kCaraProcessando : Nuvem::kCaraOciosa;
+    for (BossProjectile* nuvem : Nuvens()) PorCara(nuvem, cara);
 }
 
 void Vitor::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
@@ -606,38 +832,11 @@ void Vitor::CustomizeAttackParams(AttackParams& params, const std::string& state
     Boss::CustomizeAttackParams(params, stateName);
 
     // O ATAQUE DE GATILHO nasce onde o professor disse, no numero que ele
-    // pediu - e so ele: os de relogio das outras fases seguem abaixo.
+    // pediu, para o lado que ele pediu.
     if (mDisparandoEm) {
         params.firePosition = mOndeDisparar;
         if (mQuantos > 0) params.numProjectiles = mQuantos;
         if (mCentroEm) params.centralAngle = *mCentroEm;
         if (mAberturaEm) params.angle = *mAberturaEm;
-        return;
-    }
-
-    // AS NUVENS NAO SAO O ANEL: nem a formacao delas nem a chuva mexem na
-    // fresta. Sem isto cada chuva empurraria a fresta um passo, e a sequencia
-    // de portas do anel mudaria por causa de uma coisa que nao e anel.
-    if (mDisparandoNuvem) return;
-
-    // A FRESTA ANDA, MAS SO PELA METADE DE BAIXO DA TELA.
-    //
-    // E a unica coisa do Vitor que nao cabe em dados: "para onde a abertura
-    // aponta DESTA vez" depende da rajada anterior, e fases.json nao tem
-    // memoria. O TAMANHO da fresta continua no arquivo ("angulo": 330 deixa 30
-    // graus abertos); daqui sai so a DIRECAO.
-    //
-    // O clone da fase 3 tambem passa por aqui: ele roda os ataques de
-    // StateTwo, e e outro Vitor, com a propria fresta comecando do meio.
-    if (stateName == "StateTwo") {
-        const float fresta = kFrestaMaisADireita + mDesvioDaFresta;
-
-        // O leque e desenhado EM TORNO de centralAngle, entao a abertura fica
-        // oposta a ele: somar 180 poe a fresta onde a variavel diz. E escrever
-        // o valor inteiro, e nao somar sobre o disparo anterior - params e o
-        // mesmo objeto a cada disparo (ver Boss.h).
-        params.centralAngle = fresta + 180.0f;
-
-        mDesvioDaFresta = std::fmod(mDesvioDaFresta + kPassoDaFresta, kJanelaDaFresta);
     }
 }

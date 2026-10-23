@@ -50,6 +50,7 @@
 #include "../Source/Attacks/ReAct.h"
 #include "../Source/Attacks/Nuvem.h"
 #include "../Source/Attacks/Semaforo.h"
+#include "../Source/Attacks/Tcp.h"
 #include "../Source/Attacks/Logica.h"
 #include "../Source/Attacks/Relogio.h"
 #include "../Source/Attacks/Pipeline.h"
@@ -2341,7 +2342,6 @@ TEST_CASE("Dados: toda fase com ataque de notificacao tem o de consulta, e cada 
                     REQUIRE(a.pontos.has_value());
                     std::string esperado = Observer::kPostoDosObservadores;
                     if (a.gatilho == ReAct::kGatilhoDeAgir) esperado = ReAct::kPostoDosAgentes;
-                    if (a.gatilho == Nuvem::kGatilhoDaChuva) esperado = Nuvem::kPostoDasNuvens;
                     if (a.gatilho == Blink::kGatilhoDoLed) esperado = Blink::kPostoDasAcesas;
                     CHECK(a.pontos->posto == esperado);
                 }
@@ -2390,11 +2390,10 @@ TEST_CASE("Dados: o gatilho e o posto dos agentes do Julio sao nomes que a leitu
 
 TEST_CASE("Dados: as nuvens do Vitor - gatilhos, posto e caras sao nomes que os dados tem") {
     CHECK(GatilhoExiste(Nuvem::kGatilhoDasNuvens));
-    CHECK(GatilhoExiste(Nuvem::kGatilhoDaChuva));
     CHECK(PostoExiste(Nuvem::kPostoDasNuvens));
 
     // QUEM TROCA A CARA DA NUVEM E O VITOR, pelos nomes de Nuvem.h. Uma cara
-    // que o tipo nao tem e uma nuvem que para de avisar que vai chover.
+    // que o tipo nao tem e uma nuvem que para de avisar que a janela vai sair.
     const auto& tipos = ProjeteisDoChefe("vitor").projeteis;
     REQUIRE(tipos.count("Nuvem") == 1);
     for (const char* cara : { Nuvem::kCaraOciosa, Nuvem::kCaraProcessando }) {
@@ -2405,7 +2404,7 @@ TEST_CASE("Dados: as nuvens do Vitor - gatilhos, posto e caras sao nomes que os 
     }
 }
 
-TEST_CASE("Dados: a nuvem que o Ponto Extra derruba volta a tempo de chover na fase dela") {
+TEST_CASE("Dados: a nuvem que o Ponto Extra derruba volta a tempo de mandar janela na fase dela") {
 
     // A NUVEM FORA DO AR volta kVoltaDasNuvens depois, e chove um ciclo de
     // processamento depois disso. Se as duas coisas juntas passassem da
@@ -2415,7 +2414,30 @@ TEST_CASE("Dados: a nuvem que o Ponto Extra derruba volta a tempo de chover na f
     const DescricaoDeFase* fase = nullptr;
     for (const auto& f : lidas.fases) if (f.nome == Nuvem::kFaseDasNuvens) fase = &f;
     REQUIRE(fase != nullptr);
-    CHECK(Nuvem::kVoltaDasNuvens + Nuvem::Ciclo{}.processa <= fase->duracao / 2.0f);
+    CHECK(Nuvem::kVoltaDasNuvens + Tcp::kProcessa <= fase->duracao / 2.0f);
+}
+
+TEST_CASE("Dados: as nuvens do Vitor ficam presas a ele a fase inteira") {
+
+    // A ANCORA DAS NUVENS COBRE A FASE: elas nascem em Tcp::kFormam e, solta
+    // antes do fim, a nuvem cai pelo campo. Foi o que aconteceu quando as
+    // fases passaram de 17 para 20 s e a ancora ficou nos 17.
+    const auto lidas = FasesDoChefe("vitor");
+    const DescricaoDeFase* fase = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Nuvem::kFaseDasNuvens) fase = &f;
+    REQUIRE(fase != nullptr);
+    std::string conjunto;
+    for (const auto& a : fase->ataques) if (a.gatilho == Nuvem::kGatilhoDasNuvens) conjunto = a.regrasNome;
+    REQUIRE(!conjunto.empty());
+    const auto regras = RegrasDoChefe("vitor");
+    REQUIRE(regras.conjuntos.count(conjunto) == 1);
+    int ancoras = 0;
+    for (const Regra& r : regras.conjuntos.at(conjunto)) {
+        if (!r.temMotion || r.motion.tipo != "Ancorar") continue;
+        ++ancoras;
+        CHECK(r.motion.duracao >= fase->duracao - Tcp::kFormam);
+    }
+    CHECK(ancoras == 2);
 }
 
 TEST_CASE("Dados: o fork do Vitor e pela nuvem - a fase do fork vem logo depois da das nuvens, e se divide") {
@@ -3026,4 +3048,52 @@ TEST_CASE("Dados: os semaforos do Vitor - o gatilho, a velocidade e a cara de ca
         corrente = corrente || tipos.at(a.projetil).acorrenta.segundos > 0.0f;
     }
     CHECK(corrente);
+}
+
+TEST_CASE("Dados: o TCP do Vitor - gatilhos, velocidades e caras sao os de Tcp.h") {
+
+    // A FASE DO TCP E A DAS NUVENS: sao elas que mandam a janela.
+    CHECK(std::string(Tcp::kFaseDoTcp) == Nuvem::kFaseDasNuvens);
+    const auto lidas = FasesDoChefe("vitor");
+    const DescricaoDeFase* fase = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Tcp::kFaseDoTcp) fase = &f;
+    REQUIRE(fase != nullptr);
+
+    // A WaveAttack escreve a velocidade do arquivo no primeiro quadro, e o
+    // Vitor so escolhe de onde e para onde: a velocidade e a de Tcp.h.
+    const std::map<std::string, float> velocidades = {
+        {Tcp::kGatilhoDoSegmento, Tcp::kVelocidadeDoSegmento},
+        {Tcp::kGatilhoDoEncaminhado, Tcp::kVelocidadeDoEncaminhado},
+        {Tcp::kGatilhoDoDescarte, Tcp::kVelocidadeDoDescarte},
+    };
+    std::map<std::string, std::string> projetilDe;
+    for (const auto& [g, v] : velocidades) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+        int quantos = 0;
+        for (const auto& a : fase->ataques) {
+            if (a.gatilho != g) continue;
+            ++quantos;
+            projetilDe[g] = a.projetil;
+            REQUIRE(a.velocidade.has_value());
+            CHECK(*a.velocidade == doctest::Approx(v));
+            if (g == Tcp::kGatilhoDoDescarte) CHECK(a.projeteis.value_or(0) == Tcp::kAnelDoDescarte);
+        }
+        CHECK(quantos == 1);
+    }
+    // TODO ATAQUE DA FASE E DE GATILHO: o relogio dela e o RTT.
+    for (const auto& a : fase->ataques) CHECK(!a.gatilho.empty());
+
+    const auto& tipos = ProjeteisDoChefe("vitor").projeteis;
+    auto caras = [&tipos](const std::string& tipo) {
+        std::set<std::string> nomes;
+        REQUIRE(tipos.count(tipo) == 1);
+        for (const auto& a : tipos.at(tipo).animacoes) nomes.insert(a.nome);
+        return nomes;
+    };
+    const auto doSegmento = caras(projetilDe[Tcp::kGatilhoDoSegmento]);
+    CHECK(doSegmento.count(Tcp::kCaraDoNovo) == 1);
+    CHECK(doSegmento.count(Tcp::kCaraDoRetransmitido) == 1);
+    CHECK(caras(projetilDe[Tcp::kGatilhoDoEncaminhado]).count(Tcp::kCaraDoNovo) == 1);
+    CHECK(caras(projetilDe[Tcp::kGatilhoDoDescarte]).count(Tcp::kCaraDoDescartado) == 1);
 }
