@@ -62,6 +62,7 @@
 #include "../Source/Attacks/Pilha.h"
 #include "../Source/Attacks/Hash.h"
 #include "../Source/Attacks/Arvore.h"
+#include "../Source/Attacks/Ordenacao.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Materias.h"
@@ -1627,6 +1628,45 @@ TEST_CASE("Dados: a arvore do Salles - gatilhos, posto e caras sao nomes que os 
     }
     for (const char* g : {Arvore::kGatilhoDaChave, Arvore::kGatilhoDaVisita, Arvore::kGatilhoDoNulo,
                           Arvore::kGatilhoDoAchado, Arvore::kGatilhoDaAresta}) {
+        CAPTURE(g);
+        CHECK(gatilhos.count(g) == 1);
+    }
+}
+
+TEST_CASE("Dados: o bubble sort do Salles - gatilhos, posto e caras sao nomes que os dados tem") {
+    const std::vector<const char*> nomes = {Ordenacao::kGatilhoDoElemento, Ordenacao::kGatilhoDaTroca,
+                                            Ordenacao::kGatilhoDoLugar};
+    for (const char* g : nomes) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+    }
+    CHECK(PostoExiste(Ordenacao::kPostoDoVetor));
+
+    // O ELEMENTO E DERRUBAVEL, tem a cara de todo valor que o vetor sorteia, e
+    // nasce no posto do vetor - e parado: quem o leva ao lugar e o Salles.
+    const auto& tipos = ProjeteisDoChefe("salles").projeteis;
+    const auto regras = RegrasDoChefe("salles");
+    std::set<std::string> gatilhos;
+    for (const auto& f : FasesDoChefe("salles").fases) {
+        if (f.nome != Ordenacao::kFaseDaOrdenacao) continue;
+        for (const auto& a : f.ataques) {
+            gatilhos.insert(a.gatilho);
+            if (a.gatilho != Ordenacao::kGatilhoDoElemento) continue;
+            REQUIRE(tipos.count(a.projetil) == 1);
+            CHECK(tipos.at(a.projetil).derrubavel);
+            REQUIRE(a.velocidade.has_value());
+            CHECK(*a.velocidade == doctest::Approx(0.0f));
+            std::set<std::string> caras;
+            for (const auto& anim : tipos.at(a.projetil).animacoes) caras.insert(anim.nome);
+            for (int v = Ordenacao::kMenorValor; v <= Ordenacao::kMaiorValor; ++v) {
+                CAPTURE(v);
+                CHECK(caras.count(Ordenacao::CaraDoElemento(v)) == 1);
+            }
+            REQUIRE(regras.conjuntos.count(a.regrasNome) == 1);
+            for (const auto& r : regras.conjuntos.at(a.regrasNome)) CHECK(r.posto == Ordenacao::kPostoDoVetor);
+        }
+    }
+    for (const char* g : nomes) {
         CAPTURE(g);
         CHECK(gatilhos.count(g) == 1);
     }

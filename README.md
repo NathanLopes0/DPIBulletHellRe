@@ -108,9 +108,10 @@ própria. A fase final acontece quando a nota termina entre 40 e 59 — é o exa
   escrevendo cada operação: uma pilha pendurada nele (push, pop e stack
   overflow), uma tabela hash que encadeia, busca e faz rehash na sua frente, e
   uma árvore binária de busca em que a chave desce comparando — e o seu tiro
-  também é uma operação: tira o topo, derruba o nó e a subárvore junto. Em
-  qualquer fase pode atravessar uma capivara: embaixo dela os tiros soltos não
-  te alcançam, e o seu não alcança o professor.
+  também é uma operação: tira o topo, derruba o nó e a subárvore junto. O
+  exame é um bubble sort: os pares trocam na sua frente, e o vetor ordenado
+  cai em rampa. Em qualquer fase pode atravessar uma capivara: embaixo dela os
+  tiros soltos não te alcançam, e o seu não alcança o professor.
 - **Ricardo — INF 250.** Anéis de Arduinos que se abrem a partir dele.
 - **Júlio — INF 420.** Inteligência artificial, e as fases contam isso: na
   primeira ele atira a esmo, na segunda mira onde você está, na terceira mira

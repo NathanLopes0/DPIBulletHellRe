@@ -37,22 +37,21 @@
     { "posto": "arvore" }
   ],
 
-  // FASE FINAL - lista circular
-  //
-  // O professor coloca capivara em todo exercicio, entao a repescagem e um anel de
-  // capivaras em que cada uma fecha um laco: a lista que volta ao inicio. O laco e
-  // lento de proposito - a 400px/s ele vira um borrao e o jogador nao ve o circulo
-  // fechar, que e a graca.
+  // A REPESCAGEM: o elemento do vetor nasce no posto "vetor", e e por la que o
+  // Salles o acha para leva-lo ao lugar, troca-lo e entrega-lo
+  // (Salles::AtualizarOrdenacao).
+  "vetor": [
+    { "posto": "vetor" }
+  ],
+
+  // A LISTA CIRCULAR que quem assenta solta: um anel de capivaras em que cada
+  // uma fecha um laco e volta ao inicio. O laco e lento de proposito - a
+  // 400px/s ele vira um borrao e o jogador nao ve o circulo fechar, que e a
+  // graca.
   //
   // A arte "Homing" (capivara vermelha) avisa que a bala vai curvar.
   "lista_circular": [
     { "motion": { "tipo": "Path", "forma": "LacoLento", "velocidade": 175 },
       "animacao": "Homing" }
-  ],
-
-  // Fase final, segundo ataque: o anel rapido e reto, sem caminho. Existe para o
-  // jogador nao poder ficar parado esperando os lacos passarem.
-  "anel_reto": [
-    { "animacao": "Normal" }
   ]
 }

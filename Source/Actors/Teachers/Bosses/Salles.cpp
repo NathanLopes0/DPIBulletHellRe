@@ -31,6 +31,153 @@ void Salles::OnUpdate(float deltaTime) {
     AtualizarPilha(deltaTime);
     AtualizarHash(deltaTime);
     AtualizarArvore(deltaTime);
+    AtualizarOrdenacao(deltaTime);
+}
+
+void Salles::DispararDaOrdenacao(const char* gatilho, const Vector2 onde, const bool mirar) {
+    mDisparandoDaOrdenacao = true;
+    mMirandoDaOrdenacao = mirar;
+    mDisparoDaOrdenacao = onde;
+    mCriadaNaOrdenacao = nullptr;
+    Disparar(gatilho);
+    mDisparandoDaOrdenacao = false;
+    mMirandoDaOrdenacao = false;
+}
+
+void Salles::SoltarVetor(const bool entregue) {
+    for (size_t k = 0; k < mVetor.size(); ++k) {
+        BossProjectile* p = mVetor[k];
+        if (p->GetState() != ActorState::Active) continue;
+        p->DefinirPosto("");
+        const int valor = k < mBolha.v.size() ? mBolha.v[k] : Ordenacao::kMenorValor;
+        const float v = entregue ? Ordenacao::VelocidadeDaQueda(valor) : kVelocidadeDaQueda;
+        if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2(0.0f, v));
+    }
+    mVetor.clear();
+    mVetorEmCampo = false;
+    mComparando = -1;
+    mSobe = mDesce = nullptr;
+}
+
+void Salles::AtualizarOrdenacao(const float deltaTime) {
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool naOrdenacao = fsm && fsm->GetStateName() == Ordenacao::kFaseDaOrdenacao && !EhClone();
+
+    if (!naOrdenacao) {
+        // A FASE ACABOU: o vetor cai inteiro, e o placar volta ao do arquivo.
+        if (mNaOrdenacao) {
+            SoltarVetor(false);
+            if (!mAnuncioDaOrdenacao.empty()) RegistrarAnuncio(Ordenacao::kFaseDaOrdenacao, mAnuncioDaOrdenacao);
+            mAlvo.reset();
+            mNaOrdenacao = false;
+        }
+        return;
+    }
+    if (!mScene || !mScene->GetGame()) return;
+    const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
+
+    if (!mNaOrdenacao) {
+        mNaOrdenacao = true;
+        mVetor.clear();
+        mVetorEmCampo = false;
+        mComparando = -1;
+        mSobe = mDesce = nullptr;
+        mProximoVetor = Ordenacao::kPrimeiro;
+        if (mAnuncioDaOrdenacao.empty()) mAnuncioDaOrdenacao = AnuncioDaFase(Ordenacao::kFaseDaOrdenacao);
+    }
+    const float agora = fsm->GetStateTime();
+
+    // QUEM O ALUNO DERRUBOU SAI DO VETOR, e o vetor fecha o buraco. De tras
+    // para a frente, para os indices de quem falta conferir nao mudarem.
+    if (mVetorEmCampo) {
+        for (int k = static_cast<int>(mVetor.size()) - 1; k >= 0; --k) {
+            BossProjectile* p = mVetor[static_cast<size_t>(k)];
+            if (p->GetState() == ActorState::Active && p->Posto() == Ordenacao::kPostoDoVetor) continue;
+            if (p == mSobe || p == mDesce) mSobe = mDesce = nullptr;
+            mVetor.erase(mVetor.begin() + k);
+            Ordenacao::Remover(mBolha, k);
+            mComparando = -1;
+        }
+    }
+
+    // UM VETOR NOVO: os elementos saem do professor e vao para os lugares.
+    if (!mVetorEmCampo && agora >= mProximoVetor) {
+        const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
+        std::vector<int> valores;
+        for (const int v : Ordenacao::Sortear(sorteio, Ordenacao::kTamanho)) {
+            DispararDaOrdenacao(Ordenacao::kGatilhoDoElemento, GetPosition(), false);
+            if (!mCriadaNaOrdenacao) continue;
+            if (auto* anim = mCriadaNaOrdenacao->GetComponent<DrawAnimatedComponent>()) {
+                anim->SetAnimation(Ordenacao::CaraDoElemento(v));
+            }
+            mVetor.push_back(mCriadaNaOrdenacao);
+            valores.push_back(v);
+        }
+        mBolha = Ordenacao::Comecar(valores);
+        mLugares = static_cast<int>(mVetor.size());
+        mVetorEmCampo = !mVetor.empty();
+        mProximoPasso = agora + Ordenacao::kAteComparar;
+        RegistrarAnuncio(Ordenacao::kFaseDaOrdenacao, Ordenacao::PlacarDoComeco(static_cast<int>(mVetor.size())));
+    }
+
+    // O PASSO DO ALGORITMO.
+    if (mVetorEmCampo && agora >= mProximoPasso) {
+        const Ordenacao::Passo p = Ordenacao::Avancar(mBolha);
+        mProximoPasso = agora + Ordenacao::kPasso;
+        switch (p.tipo) {
+            case Ordenacao::Tipo::Fica:
+                mComparando = p.i;
+                break;
+            case Ordenacao::Tipo::Troca: {
+                // OS DOS PULAM UM POR CIMA DO OUTRO, e cada um atira no aluno.
+                mComparando = p.i;
+                auto& esquerda = mVetor[static_cast<size_t>(p.i)];
+                auto& direita = mVetor[static_cast<size_t>(p.i + 1)];
+                std::swap(esquerda, direita);
+                mSobe = direita;     // o maior, que foi para a direita
+                mDesce = esquerda;
+                mFimDoArco = agora + Ordenacao::kDuracaoDoArco;
+                DispararDaOrdenacao(Ordenacao::kGatilhoDaTroca, esquerda->GetPosition(), true);
+                DispararDaOrdenacao(Ordenacao::kGatilhoDaTroca, direita->GetPosition(), true);
+                break;
+            }
+            case Ordenacao::Tipo::NoLugar:
+                // A BOLHA CHEGOU: quem assentou solta a lista circular.
+                mComparando = -1;
+                DispararDaOrdenacao(Ordenacao::kGatilhoDoLugar, mVetor[static_cast<size_t>(p.i)]->GetPosition(), false);
+                mProximoPasso += Ordenacao::kNoLugar;
+                break;
+            case Ordenacao::Tipo::Ordenado:
+                // ENTREGUE: cada um cai na velocidade do valor dele - a rampa.
+                SoltarVetor(true);
+                mProximoVetor = agora + Ordenacao::kDepoisDeOrdenar;
+                break;
+        }
+        RegistrarAnuncio(Ordenacao::kFaseDaOrdenacao, Ordenacao::Placar(p));
+    }
+
+    // O PROFESSOR NA FRONTEIRA, no vao entre o que falta e o que ja esta no
+    // lugar. Sem vetor, ele espera onde o proximo comeca.
+    const int n = mVetorEmCampo ? mLugares : Ordenacao::kTamanho;
+    const float fronteira = mVetorEmCampo ? static_cast<float>(mBolha.fim) + 0.5f : static_cast<float>(n) - 0.5f;
+    mAlvo = Vector2(Ordenacao::X(fronteira, n, largura), Ordenacao::kYDoProfessor);
+
+    // CADA ELEMENTO NO LUGAR DELE: quem ja esta ordenado na prateleira, o par
+    // comparado erguido, e a troca em arco.
+    for (size_t k = 0; k < mVetor.size(); ++k) {
+        BossProjectile* e = mVetor[k];
+        const int i = static_cast<int>(k);
+        float y = Ordenacao::kYDoVetor;
+        if (mBolha.ordenado || i > mBolha.fim) y += Ordenacao::kPrateleira;
+        if (mComparando >= 0 && (i == mComparando || i == mComparando + 1)) y -= Ordenacao::kErguido;
+        if (agora < mFimDoArco) {
+            if (e == mSobe) y -= Ordenacao::kArco;
+            if (e == mDesce) y += Ordenacao::kArco;
+        }
+        const Vector2 lugar(Ordenacao::X(static_cast<float>(i), n, largura), y);
+        e->SetPosition(Ancora::Aproximar(e->GetPosition(), lugar, kRapidezDoElemento, deltaTime));
+        if (auto* rb = e->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+    }
 }
 
 void Salles::DispararDaArvore(const char* gatilho, const Vector2 onde, const bool mirar) {
@@ -549,6 +696,12 @@ void Salles::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& proj
                                   const std::string& stateName) {
     Boss::OnProjectilesCreated(projectiles, stateName);
 
+    // O QUE A ORDENACAO CRIOU: o elemento novo do vetor.
+    if (mDisparandoDaOrdenacao) {
+        if (!projectiles.empty() && !mCriadaNaOrdenacao) mCriadaNaOrdenacao = dynamic_cast<BossProjectile*>(projectiles.front().get());
+        return;
+    }
+
     // O QUE A ARVORE CRIOU: a chave que vai descer.
     if (mDisparandoDaArvore) {
         if (!projectiles.empty() && !mCriadaNaArvore) mCriadaNaArvore = dynamic_cast<BossProjectile*>(projectiles.front().get());
@@ -647,9 +800,19 @@ void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stat
         return;
     }
 
-    // A REPESCAGEM sorteia o meio de cada anel de capivaras.
-    if (stateName == "StateFinal") {
-        params.centralAngle = Random::GetFloatRange(0.f, 180.f);
+    // NA REPESCAGEM, o que sai de um elemento sai dele - mirado no aluno,
+    // quando e a capivara da troca. O anel e uma volta inteira de qualquer jeito.
+    if (stateName == Ordenacao::kFaseDaOrdenacao) {
+        if (!mDisparandoDaOrdenacao) return;
+        params.firePosition = mDisparoDaOrdenacao;
+        if (mMirandoDaOrdenacao) {
+            Vector2 d(0.0f, 1.0f);
+            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
+                d = batalha->Alvo()->GetPosition() - mDisparoDaOrdenacao;
+                if (d.LengthSq() > 0.0f) d.Normalize();
+            }
+            params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x));
+        }
     }
 }
 

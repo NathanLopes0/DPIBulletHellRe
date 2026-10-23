@@ -39,14 +39,16 @@
   // ==========================================================================
   // SALLES - INF 213 (Estruturas de Dados)
   //
-  // So a fase final dele usa forma. A pilha, a tabela hash e a arvore de busca
-  // das tres primeiras sao estruturas de verdade, que o C++ monta e desfaz no
-  // campo (Pilha.h, Hash.h, Arvore.h) - nao trajetorias.
+  // So o anel da fase final dele usa forma. A pilha, a tabela hash, a arvore de
+  // busca e o vetor do bubble sort sao estruturas de verdade, que o C++ monta e
+  // desfaz no campo (Pilha.h, Hash.h, Arvore.h, Ordenacao.h) - nao
+  // trajetorias.
   // ==========================================================================
 
   // ----- Fase final: a lista circular -----
+  // O anel que o elemento solta quando assenta no bubble sort da repescagem.
   // Raio pequeno e muitos segmentos: a volta precisa ser LENTA para ser lida. Um
-  // laco rapido vira um borrao, e a piada da fase - a lista que volta ao inicio -
+  // laco rapido vira um borrao, e a piada - a lista que volta ao inicio -
   // depende de o jogador VER a capivara fechar o circulo.
   "LacoLento": {
     "gerador": { "tipo": "Loop", "a": 80, "b": 500, "n": 12 }

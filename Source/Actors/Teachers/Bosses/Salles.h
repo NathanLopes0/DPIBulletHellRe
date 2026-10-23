@@ -15,6 +15,7 @@
 #include "../../../Attacks/Pilha.h"
 #include "../../../Attacks/Hash.h"
 #include "../../../Attacks/Arvore.h"
+#include "../../../Attacks/Ordenacao.h"
 
 /**
  * @class Salles
@@ -45,6 +46,12 @@
  * chave nova desce comparando ate virar folha, e cada no por onde ela passa
  * atira no aluno. O aluno derruba nos a tiro, e cada no leva a subarvore junto.
  * Aqui mora a arvore em campo e a descida em curso.
+ *
+ * A REPESCAGEM E UM BUBBLE SORT (Ordenacao.h): um vetor numerado no alto, o par
+ * comparado sobe, a troca pula e atira capivaras, quem chega ao lugar solta a
+ * lista circular, e o vetor ordenado e entregue caindo em rampa. Ele fica
+ * parado na fronteira entre o que falta e o que ja esta ordenado. Aqui mora o
+ * vetor em campo e o relogio do algoritmo.
  */
 class Salles : public Boss {
 
@@ -223,4 +230,50 @@ private:
     static constexpr float kAcimaDoNo = 30.0f;
     static constexpr float kRapidezDaDescida = 16.0f;
     static constexpr float kVelocidadeDaQueda = 340.0f;
+
+    // ---- O BUBBLE SORT DA REPESCAGEM ---------------------------------------
+    //
+    // Os elementos em campo, na ordem do vetor do algoritmo (mBolha.v), e o
+    // relogio: um passo a cada Ordenacao::kPasso, e um vetor novo depois de
+    // cada entrega.
+
+    void AtualizarOrdenacao(float deltaTime);
+
+    /// Solta o vetor para baixo: 'entregue', cada um na velocidade do valor
+    /// dele (a rampa); senao, todos juntos (o fim da fase).
+    void SoltarVetor(bool entregue);
+
+    /// Dispara 'gatilho' de 'onde'. 'mirar': o tiro sai mirado no aluno.
+    void DispararDaOrdenacao(const char* gatilho, Vector2 onde, bool mirar);
+
+    std::vector<BossProjectile*> mVetor;
+    Ordenacao::Bolha mBolha;
+
+    /// Quantos lugares o vetor tinha ao nascer. Os lugares sao os desse
+    /// tamanho a fileira inteira: quem o aluno tira deixa o vetor encostar a
+    /// esquerda, e nao recentrar - recentrado, todo elemento andava meio lugar,
+    /// os vaos viravam elementos, e o tiro que passava pelo vao derrubava o
+    /// seguinte (seis de oito numa fase so, em cascata).
+    int mLugares = Ordenacao::kTamanho;
+    bool mNaOrdenacao = false;
+    bool mVetorEmCampo = false;
+    float mProximoPasso = 0.0f;
+    float mProximoVetor = 0.0f;
+    std::string mAnuncioDaOrdenacao;
+
+    /// O par que esta sendo comparado (o da esquerda), ou -1.
+    int mComparando = -1;
+
+    /// O pulo da troca: quem vai para a direita sobe, quem vai para a esquerda
+    /// desce, ate mFimDoArco.
+    BossProjectile* mSobe = nullptr;
+    BossProjectile* mDesce = nullptr;
+    float mFimDoArco = 0.0f;
+
+    bool mDisparandoDaOrdenacao = false;
+    bool mMirandoDaOrdenacao = false;
+    Vector2 mDisparoDaOrdenacao;
+    BossProjectile* mCriadaNaOrdenacao = nullptr;
+
+    static constexpr float kRapidezDoElemento = 12.0f;
 };

@@ -100,7 +100,7 @@
         "palavra": { "altura": 390, "atravessa": "todos" },
         "regras": "portas" },
       { "estrategia": "PalavraAttack", "projetil": "Bit",
-        "projeteis": 16, "velocidade": 140,
+        "projeteis": 16, "velocidade": 180,
         "cooldown": 1.5,
         "regras": "palavra" }
     ]

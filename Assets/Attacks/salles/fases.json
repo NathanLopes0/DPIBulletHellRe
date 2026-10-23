@@ -36,7 +36,7 @@
   //   StateOne    a pilha            push e pop, pendurada no professor
   //   StateTwo    a tabela hash      h(k) = k mod m, encadeamento, rehash
   //   StateThree  a arvore de busca  a chave desce comparando ate virar folha
-  //   StateFinal  a lista circular   o anel de capivaras (a repescagem)
+  //   StateFinal  a ordenacao        o bubble sort, e o vetor entregue (a repescagem)
   //
   // E EM TODA ESTRUTURA O TIRO DO ALUNO E UMA OPERACAO TAMBEM: tira o topo da
   // pilha, remove a chave do fim da lista, derruba o no - e a subarvore junto.
@@ -187,34 +187,55 @@
     ]
   },
 
-  // FASE FINAL - LISTA CIRCULAR, com as capivaras.
+  // FASE FINAL - A ORDENACAO   |   gesto: A FRONTEIRA QUE ANDA
   //
-  // Repescagem (nota entre 40 e 59 ao fim da fase 3). O professor coloca capivara
-  // em todo exercicio da disciplina, entao a ultima fase e o anel de capivaras em
-  // que cada uma fecha um laco e volta ao inicio: a lista circular.
+  // A REPESCAGEM E ORDENAR UM VETOR (Ordenacao.h): oito elementos numerados no
+  // alto, e o professor rodando o BUBBLE SORT neles, um passo a cada 0,32s. O
+  // par comparado sobe, e o placar diz o veredito:
   //
-  // Dois ataques ao mesmo tempo, como no desenho anterior: o anel de lacos lentos
-  // e um anel reto e rapido. O segundo existe para o jogador nao poder ficar
-  // parado esperando os lacos passarem.
+  //   "57 > 42: troca"   os dois pulam um por cima do outro, e cada um atira
+  //                      uma capivara no aluno
+  //   "42 < 57: fica"    nada sai
+  //   "87 no lugar"      a bolha chegou a fronteira: o maior desce para a
+  //                      prateleira dos ordenados e solta a lista circular -
+  //                      o anel de capivaras que fecham um laco, que era a fase
+  //                      final inteira antes
+  //   "ordenado!"        o vetor e ENTREGUE: cada elemento cai tanto mais
+  //                      depressa quanto maior, e a queda desenha uma rampa.
+  //                      Depois, um vetor novo.
   //
-  // CircleSpreadAttack ignora angulo, anguloCentral e intervalo - o anel e sempre
-  // 360 graus divididos pela quantidade -, por isso nenhum dos tres aparece aqui.
+  // O PROFESSOR FICA PARADO NA FRONTEIRA entre o que falta ordenar e o que ja
+  // esta no lugar, no vao entre dois elementos, e da um passo para a esquerda a
+  // cada passada. Parado ali, o tiro do aluno passa pelo vao e chega a ele; o
+  // elemento e derrubavel com tres tiros, e tirar um do meio da passada a
+  // recomeca.
+  //
+  // A CAPIVARA DO SALLES CONTINUA NO EXAME: e ela que voa na troca e no anel.
+  //
+  // O ANEL E DE OITO, e nao dos doze da lista circular antiga. Ele nasce em
+  // quem assenta, colado na fronteira - em cima de quem esta embaixo do
+  // professor. Medido com a fase sozinha (comecando com 40) em sete sementes, o
+  // piloto que persegue reprovava em tres com doze (de 51,7 a 77,1, ate 3
+  // acertos), em uma com dez (56,5), e com oito passa nas sete, de 62,5 a 77,1
+  // e com no maximo 1 acerto. O parado sai com 7,5 e 7 acertos - as capivaras
+  // da troca vem miradas -, e o que vai e vem com 49,5 e nenhum: sem mira, ele
+  // nao sobe a nota.
   "StateFinal": {
     "duracao": 17,
     "proximo": "StateOne",
-    "movimento": { "tipo": "GoToCenter" },
+    "anuncio": "bubble sort",
+    "movimento": { "tipo": "Conduzido", "a": 500 },
     "ataques": [
       { "gatilho": "capivara", "estrategia": "WaveAttack", "projetil": "Capivarona",
         "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0 },
-      { "estrategia": "CircleSpreadAttack", "projetil": "Capivara",
-        "projeteis": 12, "velocidade": 200,
-        "cooldown": 1.8,
-        "regras": "lista_circular" },
-
-      { "estrategia": "CircleSpreadAttack", "projetil": "Capivara",
-        "projeteis": 8, "velocidade": 330,
-        "cooldown": 2.4,
-        "regras": "anel_reto" }
+      { "gatilho": "elemento", "estrategia": "WaveAttack", "projetil": "Elemento",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "vetor" },
+      { "gatilho": "trocar", "estrategia": "WaveAttack", "projetil": "Capivara",
+        "projeteis": 1, "velocidade": 260, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "assentar", "estrategia": "CircleSpreadAttack", "projetil": "Capivara",
+        "projeteis": 8, "velocidade": 200,
+        "regras": "lista_circular" }
     ]
   }
 }
