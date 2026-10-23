@@ -193,8 +193,8 @@ std::function<void(Projectile*, int)> ConfiguratorDeRegras(const std::vector<Reg
             if (r.escala) p->SetScale(*r.escala);
 
             // A ROTACAO E DA RAJADA, E NAO DO TIPO. Ver o campo em
-            // RegrasDeAtaque.h: o mesmo "Estruturas" do Salles e lista na fase
-            // 1 (seta, gira) e arvore na fase 3 (no simetrico, nao gira).
+            // RegrasDeAtaque.h: a mesma folha pode ser seta numa rajada (gira)
+            // e um no simetrico na outra (nao gira).
             //
             // O dynamic_cast e porque so projetil de chefe gira - o do jogador
             // nao tem o conceito. Uma regra com "rotacionar" num projetil que

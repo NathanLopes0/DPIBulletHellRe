@@ -4,9 +4,9 @@
   //
   // UMA PASTA POR CHEFE: Assets/Attacks/salles/. Cada chave e um conjunto de
   // regras, e e por esse nome que um ataque do fases.json ao lado o pede:
-  //     "regras": "lista_simples"
+  //     "regras": "pilha"
   //
-  // OS NOMES PERDERAM O PREFIXO DO PROFESSOR. Eram "lista_simples" porque
+  // OS NOMES NAO TEM O PREFIXO DO PROFESSOR. Eram "salles_lista_simples" porque
   // um arquivo so com todos os conjuntos precisava evitar colisao; com uma pasta
   // por chefe, o prefixo passou a repetir o nome da pasta.
   //

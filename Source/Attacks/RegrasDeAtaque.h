@@ -133,11 +133,13 @@ struct Regra {
     /// Se o sprite gira para acompanhar a direcao do voo. Ausente = nao mexe,
     /// e o projetil fica com o que a fabrica dele pediu em projeteis.json.
     ///
-    /// EXISTE PORQUE GIRAR E DA RAJADA, E NAO DO TIPO. O "Estruturas" do Salles
-    /// serve a lista da fase 1 - uma caixa com SETA, que sem girar aponta
-    /// sempre para a direita e nao se le como lista - e a arvore da fase 3, cujo
-    /// no tem dois filhos embaixo e e SIMETRICO: girado, ele aparece deitado.
-    /// Era o mesmo tipo com duas necessidades opostas.
+    /// EXISTE PORQUE GIRAR E DA RAJADA, E NAO DO TIPO. Nasceu com o "Estruturas"
+    /// do Salles antigo, que servia a lista da fase 1 - uma caixa com SETA, que
+    /// sem girar aponta sempre para a direita e nao se le como lista - e a
+    /// arvore da fase 3, cujo no tinha dois filhos embaixo e era SIMETRICO:
+    /// girado, aparecia deitado. Era o mesmo tipo com duas necessidades
+    /// opostas. O tipo saiu com as listas (commit 146), e o campo fica: o
+    /// problema e de qualquer folha que sirva a duas rajadas.
     ///
     /// E optional pela mesma razao da escala: "false" e uma ordem ("nao gire"),
     /// e ausente e silencio ("deixe como esta").

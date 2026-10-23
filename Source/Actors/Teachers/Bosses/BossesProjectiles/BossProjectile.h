@@ -149,11 +149,9 @@ public:
      * @brief Captura tambem a rotacao de fabrica, alem da escala e da animacao.
      *
      * PRECISOU EXISTIR porque girar virou coisa POR REGRA, e nao so por tipo de
-     * projetil. O "Estruturas" do Salles gira - a lista da fase 1 e uma caixa
-     * com seta, e sem girar a seta aponta sempre para a direita -, mas a MESMA
-     * folha serve a arvore da fase 3, cujo no e simetrico e nao deve girar.
-     * Sem capturar o padrao, o primeiro projetil que uma regra desligasse
-     * voltaria do pool desligado e contaminaria a fase 1.
+     * projetil (Regra::rotacionar). Sem capturar o padrao, o primeiro
+     * projetil que uma regra desligasse voltaria do pool desligado e
+     * contaminaria as rajadas do mesmo tipo que querem girar.
      */
     void MarcarPadraoDeFabrica() override;
 

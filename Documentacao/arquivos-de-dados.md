@@ -493,8 +493,9 @@ Um conjunto é uma lista de regras aplicadas a **cada** projétil da rajada, na
 ordem em que aparecem.
 
 ```json
-"lista_simples": [
-  { "animacao": "ListaSimples" }
+"letra_b": [
+  { "animacao": "B",
+    "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 2.4 } }
 ],
 
 "fase3": [
@@ -538,11 +539,12 @@ Escolha no máximo uma forma:
 | `rotacionar` | `true`/`false`: se o sprite gira para acompanhar a direção do voo. **Ausente = não mexe** e vale o que `projeteis.json` pediu |
 | `posto` | o **posto** em que o projétil entra ao nascer: um lugar de onde uma `PontosAttack` atira, ou onde o professor o procura. Existem `quadro`, `observadores`, `agentes`, `nuvens`, `palavra`, `portas`, `registradores`, `estagios`, `pipeline`, `placas`, `acesas`, `fita`, `estados`, `derivacao`, `pilha`, `baldes`, `chaves` e `arvore`; um nome desconhecido é recusado. Volta a vazio quando o pool recicla o projétil |
 
-> **`rotacionar` existe porque girar é da rajada, e não do tipo.** O
-> `Estruturas` do Salles serve a duas fases com necessidades opostas: a lista
-> da fase 1 é uma caixa com **seta**, que sem girar aponta sempre para a
-> direita e não se lê como lista encadeada; o nó de árvore da fase 3 tem dois
-> filhos embaixo e é **simétrico**, então girado ele aparece deitado. Como
+> **`rotacionar` existe porque girar é da rajada, e não do tipo.** Nasceu
+> com o `Estruturas` do Salles antigo, que servia a duas fases com
+> necessidades opostas: a lista da fase 1 era uma caixa com **seta**, que sem
+> girar aponta sempre para a direita e não se lê como lista encadeada; o nó de
+> árvore da fase 3 tinha dois filhos embaixo e era **simétrico**, então girado
+> aparecia deitado. O tipo saiu com as listas, e o campo ficou. Como
 > `escala` e `animacao`, é aparência: volta ao padrão de fábrica quando o
 > projétil é reciclado pelo pool.
 
@@ -672,9 +674,10 @@ mudar um e esquecer o outro faz a mirada acontecer fora do mergulho.
 > **Motion captura a direção no instante em que ativa.** Se o projétil estiver
 > parado nesse momento — por um `Deactivate` ou por ter nascido assim — não há
 > direção para capturar e ele sai para a direita. Foi isso que obrigou o
-> `"atraso"` do `lista_dupla` do Salles a ser maior que o despertar do último
-> nó da fila: mexer em `projeteis` ou `intervalo` naquela fase **obriga** a
-> revisar esse atraso.
+> `"atraso"` da `lista_dupla` do Salles antigo a ser maior que o despertar do
+> último nó da fila: numa `WaveAttack` com caminho, mexer em `projeteis` ou
+> `intervalo` **obriga** a revisar esse atraso — e um teste confere a conta
+> (hoje, no `diagrama` da Maria Lúcia).
 
 > **Motions que escrevem velocidade não compõem com modifiers que a modificam.**
 > `Wobble` e `Path` reescrevem a velocidade todo frame a partir do que

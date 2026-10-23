@@ -530,23 +530,16 @@ TEST_CASE("Dados: os projeteis mantem exatamente o que as fabricas em C++ tinham
         {"salles",  "Capivara", "Teachers/Projectiles/DPIBHSallesCapivara.png",
          1.0f, 90, "Normal", "largura", 2.0f, true,  1.0f, 12.0f, 2},
         // (Os "Dados" do Julio sairam no 126, quando a ultima fase dele que os
-        // usava virou o modelo em loop, e o "Arduino" do Ricardo no 132, quando
-        // a fase final virou o Blink - a arte dele virou a da Placa.)
+        // usava virou o modelo em loop, o "Arduino" do Ricardo no 132, quando
+        // a fase final virou o Blink - a arte dele virou a da Placa -, e a
+        // "Estruturas" e a "Duplamente" do Salles no 146, depois que as listas
+        // das fases dele viraram a pilha, a tabela hash e a arvore de busca.)
         // Os baloes sao o unico que difere em tres campos de uma vez, e os tres
         // eram de proposito: hitbox menor que o desenho (divisor 4), nao nascer na
         // posicao do chefe (a BaloonAttack escolhe o lado da tela) e morrer com
         // folga de dois sprites sem parcela de tela.
         {"andre",   "Baloes",   "Teachers/Projectiles/DPIBHAndreBaloon.png",
          2.0f, 90, "Red",    "largura", 4.0f, false, 2.0f,  0.0f, 3},
-
-        // Os dois do redesenho do Salles por Estruturas de Dados. O "Duplamente"
-        // tira o raio do colisor da ALTURA porque o no e bem mais largo que alto -
-        // os campos PREV e NEXT ficam lado a lado - e pela largura a hitbox
-        // redonda sairia bem maior que o desenho.
-        {"salles",  "Estruturas", "Teachers/Projectiles/DPIBHSallesEstruturas.png",
-         1.0f, 90, "ListaSimples", "largura", 2.0f, true,  1.0f, 12.0f, 2},
-        {"salles",  "Duplamente", "Teachers/Projectiles/DPIBHSallesDuplamente.png",
-         0.75f, 90, "Normal",     "altura",  2.0f, false, 1.0f, 12.0f, 1},
     };
 
     for (const auto& e : esperados) {
@@ -588,9 +581,6 @@ TEST_CASE("Dados: as animacoes dos projeteis mantem os quadros exatos") {
         {"andre",   "Baloes",   "Red",         {6, 7, 8, 9, 10, 11}},
         {"andre",   "Baloes",   "Blue",        {12, 13, 14, 15, 16, 17}},
         {"andre",   "Baloes",   "Yellow",      {18, 19, 20, 21, 22, 23}},
-        {"salles",  "Estruturas", "ListaSimples", {0, 1, 2, 3}},
-        {"salles",  "Estruturas", "Arvore",       {4, 5, 6, 7}},
-        {"salles",  "Duplamente", "Normal",       {0, 1, 2, 3, 4, 5, 6, 7, 8}},
     };
 
     for (const auto& e : esperadas) {
@@ -674,11 +664,43 @@ TEST_CASE("Dados: num WaveAttack, o atraso do caminho supera o despertar do ulti
         }
     }
 
-    // O redesenho do Salles por Estruturas de Dados tem exatamente uma combinacao
-    // destas (a fase 2, a lista duplamente encadeada que volta). Se este numero
-    // cair a zero, o teste passou a nao conferir nada - foi assim que eu quase
-    // deixei passar uma medicao invalida antes.
+    // Hoje so uma combinacao destas existe: o diagrama da fase 1 da Maria
+    // Lucia (oito pecas, 0,05s entre elas, o caminho com 0,5s). A que o criou
+    // - a lista duplamente encadeada do Salles - saiu quando a fase 2 dele
+    // virou a tabela hash. Se este numero cair a zero, o teste passou a nao
+    // conferir nada - foi assim que eu quase deixei passar uma medicao
+    // invalida antes.
     CHECK(combinacoesConferidas >= 1);
+}
+
+TEST_CASE("Dados: todo projetil e todo conjunto de regras de um chefe e usado por alguma fase dele") {
+
+    // O ORFAO NAO DA ERRO NENHUM: um tipo de projeteis.json que nenhuma fase
+    // pede so ocupa a pasta, e quem le o arquivo acredita que ele esta em jogo.
+    // Foi assim que a "Estruturas" e a "Duplamente" do Salles ficaram na pasta
+    // depois que as fases que as disparavam viraram a hash e a arvore - e com
+    // elas um teste que trancava o giro de uma seta que ninguem mais via. Quem
+    // tira a ultima fase que usa um tipo, tira o tipo junto (ou o teste diz
+    // qual sobrou).
+    for (const auto& chefe : Chefes()) {
+        std::set<std::string> projeteis, conjuntos;
+        for (const auto& f : FasesDoChefe(chefe).fases) {
+            for (const auto& a : f.ataques) {
+                projeteis.insert(a.projetil);
+                if (!a.regrasNome.empty()) conjuntos.insert(a.regrasNome);
+            }
+        }
+        for (const auto& [nome, _] : ProjeteisDoChefe(chefe).projeteis) {
+            CAPTURE(chefe);
+            CAPTURE(nome);
+            CHECK_MESSAGE(projeteis.count(nome) == 1, "o projetil nao e disparado por fase nenhuma");
+        }
+        for (const auto& [nome, _] : RegrasDoChefe(chefe).conjuntos) {
+            CAPTURE(chefe);
+            CAPTURE(nome);
+            CHECK_MESSAGE(conjuntos.count(nome) == 1, "o conjunto de regras nao e vestido por ataque nenhum");
+        }
+    }
 }
 
 TEST_CASE("Dados: toda animacao pedida por uma regra existe no projetil que o ataque dispara") {
@@ -1134,24 +1156,19 @@ TEST_CASE("Dados: a aparencia padrao do catalogo real compoe todas as camadas") 
     }
 }
 
-TEST_CASE("Dados: as listas do Salles giram com a direcao do movimento") {
+TEST_CASE("Dados: nenhum projetil do Salles gira com a direcao do movimento") {
 
-    // A arte delas e uma caixa com uma SETA. Com a seta sempre apontando para a
-    // direita, uma corrente que desce na diagonal nao le como lista encadeada -
-    // os nos ficam soltos. Travar isto aqui evita que alguem desligue o campo
-    // sem perceber o que ele sustenta.
+    // Era o contrario: as listas encadeadas antigas eram uma caixa com SETA, e
+    // precisavam girar para a corrente se ler como lista. Hoje todo projetil
+    // dele se LE em pe - a chave, o bloco e o no levam o numero escrito, e a
+    // capivara anda de lado, com um passo para cada direcao. Girado, o 42 de
+    // uma chave que desce viraria um rabisco, e a capivara que volta andaria
+    // de cabeca para baixo.
     const auto r = ProjeteisDoChefe("salles");
-    const auto& salles = r.projeteis;
-
-    for (const std::string& nome : {"Estruturas", "Duplamente"}) {
-        REQUIRE_MESSAGE(salles.count(nome) == 1, "falta o projetil \"" << nome << "\"");
-        CHECK_MESSAGE(salles.at(nome).rotacionarComAVelocidade,
-                      "\"" << nome << "\" precisa girar com a velocidade");
-    }
-
-    // E a capivara NAO gira: ela nao tem frente.
-    if (salles.count("Capivara") == 1) {
-        CHECK_FALSE(salles.at("Capivara").rotacionarComAVelocidade);
+    REQUIRE(!r.projeteis.empty());
+    for (const auto& [nome, p] : r.projeteis) {
+        CAPTURE(nome);
+        CHECK_FALSE(p.rotacionarComAVelocidade);
     }
 }
 
