@@ -3,6 +3,9 @@
 //
 
 #include "doctest.h"
+#include <algorithm>
+#include <cmath>
+#include <cstdlib>
 
 #include "../Source/Attacks/ReAct.h"
 
@@ -48,4 +51,51 @@ TEST_CASE("ReAct: sem tempo nao anda, e um ciclo de duracao zero nao age") {
     CHECK_FALSE(ReAct::Avancar(c, 0.0f));
     ReAct::Ciclo zero{0.0f, 0.0f, 0.0f, 0.0f};
     CHECK_FALSE(ReAct::Avancar(zero, 1.0f));
+}
+
+TEST_CASE("ReAct: o Pensa de cada volta e sorteado em volta do do degrau, e o Age sai uma vez por volta") {
+    for (const auto nivel : {Dificuldade::Nivel::Normal, Dificuldade::Nivel::Dificil}) {
+        const ReAct::Degrau d = ReAct::DegrauDo(nivel);
+        Variacao::Sorteio s(42u);
+        float menor = 9.0f, maior = 0.0f;
+        for (int i = 0; i < 2000; ++i) {
+            const float p = ReAct::PensaDaVolta(s, d.pensa);
+            REQUIRE(p >= 0.7f * d.pensa);
+            REQUIRE(p < 1.3f * d.pensa);
+            menor = std::min(menor, p);
+            maior = std::max(maior, p);
+        }
+        CHECK(menor < 0.72f * d.pensa);
+        CHECK(maior > 1.28f * d.pensa);
+
+        // COMO O JULIO RODA: um Pensa novo a cada volta. O Age sai uma vez por
+        // volta, sem pular nenhuma, quadro a quadro.
+        ReAct::Ciclo c;
+        c.observa = d.observa;
+        c.pensa = ReAct::PensaDaVolta(s, d.pensa);
+        int ages = 0, voltas = 0;
+        for (int q = 0; q < 60 * 60; ++q) {
+            const float antes = c.t;
+            ages += ReAct::Avancar(c, 1.0f / 60.0f) ? 1 : 0;
+            if (c.t < antes) {
+                ++voltas;
+                c.pensa = std::max(ReAct::PensaDaVolta(s, d.pensa), c.t + 0.01f);
+            }
+        }
+        CHECK(std::abs(ages - voltas) <= 1);
+        // UMA FERRAMENTA A CADA VOLTA DE (pensa + age + observa) EM MEDIA.
+        const float volta = d.pensa + ReAct::kAge + d.observa;
+        CHECK(static_cast<float>(voltas) == doctest::Approx(60.0f / volta).epsilon(0.08));
+    }
+}
+
+TEST_CASE("ReAct: o degrau do Normal e o de sempre, e o do Dificil age mais vezes") {
+    const ReAct::Degrau n = ReAct::DegrauDo(Dificuldade::Nivel::Normal);
+    CHECK(n.pensa == ReAct::kPensa);
+    CHECK(n.observa == ReAct::kObserva);
+    const ReAct::Degrau d = ReAct::DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.pensa < n.pensa);
+    CHECK(d.observa < n.observa);
+    // O PLACAR AINDA SE LE: o Pensa mais curto do Dificil passa de meio segundo.
+    CHECK(0.7f * d.pensa >= 0.5f);
 }

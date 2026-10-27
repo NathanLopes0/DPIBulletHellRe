@@ -8,13 +8,41 @@
 
 #include <SDL_log.h>
 
+#include "../../../Attacks/AttackParameters/TokenAttackParams.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 
 Julio::Julio(Scene* scene) : Boss(scene)
 {
 }
 
+void Julio::SortearALuta() {
+    mLutaSorteada = true;
+    mDegrauDosAgentes = ReAct::DegrauDo(NivelDeDificuldade());
+    mSorteioDosAgentes = SorteioDaFase(kFaseDosAgentes);
+
+    // A FASE 1: cada etapa com a sua temperatura, e o placar dela dizendo o
+    // numero - o placar e a regra.
+    Variacao::Sorteio sorteio = SorteioDaFase(kFaseDosTokens);
+    mTemperaturas = Temperatura::Sortear(sorteio, NivelDeDificuldade());
+    auto etapas = EtapasDa(kFaseDosTokens);
+    for (std::size_t k = 0; k < etapas.size() && k < mTemperaturas.size(); ++k) {
+        etapas[k].second = Temperatura::Anuncio(mTemperaturas[k], k + 1 == mTemperaturas.size());
+    }
+    if (!etapas.empty()) RegistrarEtapas(kFaseDosTokens, etapas);
+}
+
+int Julio::EtapaDosTokens() const {
+    const auto* fsm = GetComponent<FSMComponent>();
+    const float t = fsm ? fsm->GetStateTime() : 0.0f;
+    const auto etapas = EtapasDa(kFaseDosTokens);
+    for (std::size_t k = 0; k < etapas.size(); ++k) {
+        if (t < etapas[k].first) return static_cast<int>(std::min(k, mTemperaturas.size() - 1));
+    }
+    return static_cast<int>(mTemperaturas.size()) - 1;
+}
+
 void Julio::OnUpdate(const float deltaTime) {
+    if (!mLutaSorteada && !EhClone()) SortearALuta();
     Boss::OnUpdate(deltaTime);
     AtualizarAgentes(deltaTime);
     AtualizarGuardrails(deltaTime);
@@ -82,12 +110,20 @@ void Julio::AtualizarAgentes(const float deltaTime) {
     }
     if (!mNosAgentes) {
         mNosAgentes = true;
-        mCiclo.t = 0.0f;
+        mCiclo = ReAct::Ciclo{};
+        mCiclo.observa = mDegrauDosAgentes.observa;
+        mCiclo.pensa = ReAct::PensaDaVolta(mSorteioDosAgentes, mDegrauDosAgentes.pensa);
         if (mNomeDosAgentes.empty()) mNomeDosAgentes = AnuncioDaFase(kFaseDosAgentes);
     }
 
     // O AGE: todos os agentes em campo mandam a ferramenta ao mesmo tempo.
+    const float antes = mCiclo.t;
     if (ReAct::Avancar(mCiclo, deltaTime)) Disparar(ReAct::kGatilhoDeAgir);
+
+    // UMA VOLTA NOVA, um Pensa novo - nunca menor que o que a volta ja andou.
+    if (mCiclo.t < antes) {
+        mCiclo.pensa = std::max(ReAct::PensaDaVolta(mSorteioDosAgentes, mDegrauDosAgentes.pensa), mCiclo.t + 0.01f);
+    }
 
     const char* texto = kPensando;
     switch (ReAct::PassoDe(mCiclo)) {
@@ -103,13 +139,15 @@ void Julio::AtualizarAgentes(const float deltaTime) {
 // 1.0 seria interceptacao perfeita: quem anda em linha reta e SEMPRE atingido.
 // 0.85 deixa uma margem pequena, entao correr reto quase sempre custa caro, mas
 // nao e sentenca automatica. AJUSTE AQUI se a fase 3 ficar injusta (menor) ou
-// facil demais (maior, ate 1.0).
+// facil demais (maior, ate 1.0). NO DIFICIL o modelo preve melhor:
+// kLeadFractionNoDificil.
 //
 // Derivar do tempo de voo, em vez de usar um numero fixo de segundos, importa:
 // com antecipacao fixa de 0.5s e projetil a 265 px/s cruzando ~400 px, o tiro
 // antecipava 150 px enquanto o jogador andava 450 px no mesmo intervalo - ou
 // seja, correr reto era SEGURO, exatamente o oposto da intencao da fase.
 static constexpr float kLeadFraction = 0.85f;
+static constexpr float kLeadFractionNoDificil = 0.97f;
 
 void Julio::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
     Boss::CustomizeAttackParams(params, stateName);
@@ -124,6 +162,11 @@ void Julio::CustomizeAttackParams(AttackParams& params, const std::string& state
         // os desvia e a temperatura, sorteando entre os candidatos em volta da
         // mira (TokenAttack, Temperatura.h) - e nao um ruido daqui.
         params.centralAngle = anguloDe(GetDirectionToPlayer());
+
+        // E A TEMPERATURA E A DA ETAPA NESTA LUTA - a que o placar diz.
+        if (auto* tokens = dynamic_cast<TokenAttackParams*>(&params)) {
+            tokens->temperatura = mTemperaturas[static_cast<std::size_t>(EtapaDosTokens())];
+        }
     }
     // A FASE 2 NAO MEXE NA MIRA: os agentes saem no leque escrito em fases.json,
     // e quem mira e cada agente, da PontosAttack.
@@ -141,12 +184,23 @@ void Julio::CustomizeAttackParams(AttackParams& params, const std::string& state
                                      ? distancia / params.projectileSpeed
                                      : 0.0f;
 
-        params.centralAngle = anguloDe(GetPredictedPlayerDirection(tempoDeVoo * kLeadFraction));
+        params.centralAngle = anguloDe(GetPredictedPlayerDirection(tempoDeVoo * NoNivel(kLeadFraction, kLeadFractionNoDificil)));
+
+        // NO DIFICIL saem dois tokens por vez (o bloco "dificil" do ataque),
+        // e o segundo nao vai exatamente no mesmo lugar: um pouco de
+        // temperatura abre o par em volta da previsao.
+        if (auto* tokens = dynamic_cast<TokenAttackParams*>(&params)) {
+            tokens->temperatura = NoNivel(tokens->temperatura, Temperatura::kDaPrevisaoNoDificil);
+        }
     }
     else if (stateName == "StateFinal") {
         // O LOOP: as frases de "e" saem miradas no aluno. Os aneis sao uma
-        // CircleSpreadAttack, que nem le o angulo.
+        // CircleSpreadAttack, que nem le o angulo. No Dificil o modelo em loop
+        // tambem esquenta, e as frases se abrem.
         params.centralAngle = anguloDe(GetDirectionToPlayer());
+        if (auto* tokens = dynamic_cast<TokenAttackParams*>(&params)) {
+            tokens->temperatura = NoNivel(tokens->temperatura, Temperatura::kDoLoopNoDificil);
+        }
     }
 }
 

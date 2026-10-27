@@ -52,4 +52,21 @@ namespace Temperatura {
         }
         return c;
     }
+
+    Temperaturas Sortear(Variacao::Sorteio& s) { return Sortear(s, Dificuldade::Nivel::Normal); }
+
+    Temperaturas Sortear(Variacao::Sorteio& s, const Dificuldade::Nivel n) {
+        const bool dificil = n == Dificuldade::Nivel::Dificil;
+        return {static_cast<float>(dificil ? s.Inteiro(3, 5) : s.Inteiro(1, 3)) / 10.0f,
+                static_cast<float>(dificil ? s.Inteiro(9, 13) : s.Inteiro(6, 10)) / 10.0f,
+                static_cast<float>(dificil ? s.Inteiro(18, 22) : s.Inteiro(14, 18)) / 10.0f};
+    }
+
+    std::string Anuncio(const float temperatura, const bool alucinando) {
+        // \xc2\xb7 e o ponto do meio: o MSVC nao le acento em literal.
+        const long decimos = std::lround(std::max(0.0f, temperatura) * 10.0f);
+        std::string texto = "temperatura = " + std::to_string(decimos / 10) + "," + std::to_string(decimos % 10);
+        if (alucinando) texto += " \xc2\xb7 alucinando";
+        return texto;
+    }
 }

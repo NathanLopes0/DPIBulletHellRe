@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "../Dificuldade.h"
+#include "../Variacao.h"
+
 /**
  * CAMADA PURA.
  *
@@ -28,10 +31,13 @@ namespace ReAct {
     enum class Passo { Pensa, Age, Observa };
 
     /// O relogio: quanto dura cada passo, e onde ele esta.
+    constexpr float kPensa = 1.0f;
+    constexpr float kAge = 0.5f;
+    constexpr float kObserva = 0.6f;
     struct Ciclo {
-        float pensa = 1.0f;
-        float age = 0.5f;
-        float observa = 0.6f;
+        float pensa = kPensa;
+        float age = kAge;
+        float observa = kObserva;
         float t = 0.0f;
     };
 
@@ -41,4 +47,19 @@ namespace ReAct {
     /// Um quadro. Devolve true no quadro em que o ciclo ENTRA no Age - uma vez
     /// por volta, mesmo que um quadro muito longo pule o passo inteiro.
     bool Avancar(Ciclo& c, float deltaTime);
+
+    // ---- O QUE MUDA DE UMA VOLTA PARA A OUTRA, E O DEGRAU -------------------
+
+    /// O PENSA DE CADA VOLTA E SORTEADO, de 70% a 130% do do degrau: o agente
+    /// pensa mais ou menos a cada vez, e quem diz quando ele age e o placar - o
+    /// ritmo nao se decora.
+    float PensaDaVolta(Variacao::Sorteio& s, float pensa);
+
+    /// O que o Dificil muda: o agente pensa 0,8 s em media (e nao 1,0) e
+    /// observa 0,5 s (e nao 0,6) - uma ferramenta a cada 1,8 s, e nao 2,1.
+    struct Degrau {
+        float pensa = kPensa;
+        float observa = kObserva;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

@@ -8,6 +8,7 @@
 
 #include "../Boss.h"
 #include "../../../Attacks/ReAct.h"
+#include "../../../Attacks/Temperatura.h"
 
 /**
  * @class Julio
@@ -65,6 +66,25 @@ protected:
     void OnProjetilDerrubado() override;
 
 private:
+    // ---- A LUTA SORTEADA ----------------------------------------------------
+    //
+    // Antes do primeiro quadro (Variacao.h): a temperatura de cada etapa da
+    // fase 1, escrita no placar dela, e o degrau do modo. Na fase 2 o Pensa de
+    // cada volta do ReAct e sorteado na hora, da sequencia da fase.
+
+    void SortearALuta();
+
+    /// A etapa da fase 1 em que o professor esta agora (0 fria, 1 morna, 2
+    /// quente), pelo relogio da fase e pelos fins registrados.
+    [[nodiscard]] int EtapaDosTokens() const;
+
+    bool mLutaSorteada = false;
+    Temperatura::Temperaturas mTemperaturas = Temperatura::kDeSempre;
+    ReAct::Degrau mDegrauDosAgentes;
+    Variacao::Sorteio mSorteioDosAgentes{0u};
+
+    static constexpr const char* kFaseDosTokens = "StateOne";
+
     /// O ciclo dos agentes num quadro: o relogio, o gatilho do Age e o placar.
     void AtualizarAgentes(float deltaTime);
 

@@ -31,4 +31,15 @@ namespace ReAct {
         c.t = std::fmod(depois, volta);
         return cruzou;
     }
+
+    float PensaDaVolta(Variacao::Sorteio& s, const float pensa) {
+        return s.Real(0.7f * pensa, 1.3f * pensa);
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.pensa = Dificuldade::Escolher(n, kPensa, 0.8f);
+        d.observa = Dificuldade::Escolher(n, kObserva, 0.5f);
+        return d;
+    }
 }

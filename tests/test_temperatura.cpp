@@ -6,6 +6,8 @@
 
 #include <cmath>
 #include <numeric>
+#include <cstdint>
+#include <set>
 
 #include "../Source/Attacks/Temperatura.h"
 
@@ -64,4 +66,58 @@ TEST_CASE("Temperatura: os candidatos de angulo vao de -abertura/2 a +abertura/2
     const auto um = Temperatura::DeAngulo(1, 120.0f);
     REQUIRE(um.desvios.size() == 1);
     CHECK(um.desvios[0] == doctest::Approx(0.0f));
+}
+
+TEST_CASE("Temperatura: cada luta sorteia a temperatura de cada etapa na faixa dela, em decimos") {
+    std::set<int> fria, morna, quente;
+    for (std::uint32_t semente = 0; semente < 300; ++semente) {
+        Variacao::Sorteio s = Variacao::SorteioDa(semente, "StateOne");
+        const auto t = Temperatura::Sortear(s);
+        const int f = static_cast<int>(std::lround(t[0] * 10.0f));
+        const int m = static_cast<int>(std::lround(t[1] * 10.0f));
+        const int q = static_cast<int>(std::lround(t[2] * 10.0f));
+        CHECK(std::fabs(t[0] * 10.0f - static_cast<float>(f)) < 1e-4f);   // decimos exatos
+        CHECK(f >= 1);
+        CHECK(f <= 3);
+        CHECK(m >= 6);
+        CHECK(m <= 10);
+        CHECK(q >= 14);
+        CHECK(q <= 18);
+        fria.insert(f);
+        morna.insert(m);
+        quente.insert(q);
+    }
+    CHECK(fria.size() == 3u);
+    CHECK(morna.size() == 5u);
+    CHECK(quente.size() == 5u);
+}
+
+TEST_CASE("Temperatura: o placar da etapa diz o numero, e o de sempre e o do arquivo") {
+    // OS TEXTOS DE julio/fases.json, que o placar mostrava antes do sorteio.
+    CHECK(Temperatura::Anuncio(Temperatura::kDeSempre[0], false) == "temperatura = 0,2");
+    CHECK(Temperatura::Anuncio(Temperatura::kDeSempre[1], false) == "temperatura = 0,8");
+    CHECK(Temperatura::Anuncio(Temperatura::kDeSempre[2], true) == "temperatura = 1,6 \xc2\xb7 alucinando");
+    CHECK(Temperatura::Anuncio(1.0f, false) == "temperatura = 1,0");
+    CHECK(Temperatura::Anuncio(0.1f, false) == "temperatura = 0,1");
+}
+
+TEST_CASE("Temperatura: no Dificil cada etapa roda mais quente, e o Normal e o de antes") {
+    for (std::uint32_t semente = 0; semente < 300; ++semente) {
+        Variacao::Sorteio a = Variacao::SorteioDa(semente, "StateOne");
+        Variacao::Sorteio b = Variacao::SorteioDa(semente, "StateOne");
+        Variacao::Sorteio c = Variacao::SorteioDa(semente, "StateOne");
+        CHECK(Temperatura::Sortear(a) == Temperatura::Sortear(b, Dificuldade::Nivel::Normal));
+        const auto d = Temperatura::Sortear(c, Dificuldade::Nivel::Dificil);
+        CHECK(d[0] >= 0.3f - 1e-4f);
+        CHECK(d[0] <= 0.5f + 1e-4f);
+        CHECK(d[1] >= 0.9f - 1e-4f);
+        CHECK(d[1] <= 1.3f + 1e-4f);
+        CHECK(d[2] >= 1.8f - 1e-4f);
+        CHECK(d[2] <= 2.2f + 1e-4f);
+        // AS ETAPAS AINDA SOBEM: a fria do Dificil e mais fria que a morna, e
+        // a morna que a quente.
+        CHECK(d[0] < d[1]);
+        CHECK(d[1] < d[2]);
+    }
+    CHECK(Temperatura::kDoLoopNoDificil > 0.3f);
 }
