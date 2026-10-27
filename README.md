@@ -209,7 +209,9 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
 - **Luizinho — INF 340.** Linguagens de Programação, um assunto da ementa por
   fase: cada uma abre com a palavra latina por trás dele, e depois o placar
   mostra o código — e uma legenda embaixo dele diz, em português, o que cada
-  comando faz e o que o ataque quer dizer.
+  comando faz e o que o ataque quer dizer. O programa da primeira fase e as
+  exceções do exame são gerados a cada luta.
+
  Na primeira o campo é o texto do programa, um painel por
   bloco com as declarações no canto, e a variável que a busca acha chove onde
   ela é visível — menos nos blocos que têm outra com o mesmo nome; no fim, a
@@ -278,7 +280,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 1015 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 1017 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha — e também **leem os arquivos de
 `Assets/` de verdade**, quebrando ao primeiro erro de digitação num JSON. Um

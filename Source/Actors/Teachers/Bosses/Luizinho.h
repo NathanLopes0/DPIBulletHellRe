@@ -91,7 +91,7 @@ private:
     void SortearALuta();
 
     bool mLutaSorteada = false;
-    std::vector<int> mOrdemDoEscopo;
+    Escopo::Plano mPlanoDoEscopo;
     std::vector<int> mOrdemDosTipos;
     Memoria::Roteiro mRoteiro = Memoria::RoteiroDeSempre();
     Variacao::Sorteio mSorteioDasRodadas{0u};
@@ -156,7 +156,10 @@ private:
     bool mNoEscopo = false;
     int mComandoDoEscopo = -1;
     float mInicioDoComando = 0.0f;
-    Escopo::Forma mForma = Escopo::Forma::XEmG;
+    Escopo::Comando mComando;
+
+    /// O comando k da fase 1 nesta luta (Escopo::Sortear).
+    [[nodiscard]] Escopo::Comando ComandoDoEscopo(int k) const;
 
     /// A chuva de um comando: espera a busca, nasce apagada (o aviso), acende
     /// e cai, e seca.

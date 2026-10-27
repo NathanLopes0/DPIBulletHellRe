@@ -79,7 +79,7 @@ void Luizinho::SortearALuta() {
     mDegrauDasExcecoes = Excecao::DegrauDo(nivel);
     {
         Variacao::Sorteio sorteio = SorteioDaFase(Escopo::kFaseDoEscopo);
-        mOrdemDoEscopo = Escopo::OrdemDosComandos(sorteio);
+        mPlanoDoEscopo = Escopo::Sortear(sorteio);
     }
     {
         Variacao::Sorteio sorteio = SorteioDaFase(Coercao::kFaseDosTipos);
@@ -241,12 +241,12 @@ void Luizinho::MontarEscopo() {
             mScene->AddActor(std::move(painel));
         }
 
-        const std::string texto = Escopo::Declaracoes(b);
+        const std::string texto = Escopo::Declaracoes(mPlanoDoEscopo.programa, b);
         const bool cartao = (b == Escopo::Bloco::F);
         const int largura = cartao ? static_cast<int>(r.w) : static_cast<int>(Escopo::LarguraDoCanto(texto));
         const int altura = cartao ? static_cast<int>(r.h) : static_cast<int>(Escopo::kAlturaDoCanto);
         auto canto = std::make_unique<EtiquetaDeCodigo>(mScene, texto, largura, altura, kOrdemDosCantos);
-        const Escopo::Ponto c = Escopo::Canto(b, campo.w, campo.h);
+        const Escopo::Ponto c = Escopo::Canto(mPlanoDoEscopo.programa, b, campo.w, campo.h);
         canto->SetPosition(Vector2(campo.x + c.x, campo.y + c.y));
         canto->Pintar(kMolduraDoCanto, kFundoDoCanto, kTintaDoCanto);
         mCantos[static_cast<size_t>(i)] = canto.get();
@@ -276,17 +276,23 @@ void Luizinho::SecarGotas() {
     mGotas.clear();
 }
 
+Escopo::Comando Luizinho::ComandoDoEscopo(const int k) const {
+    const auto& cs = mPlanoDoEscopo.comandos;
+    if (cs.empty()) return Escopo::DaForma(Escopo::Proxima(k));
+    return cs[static_cast<size_t>(((k % static_cast<int>(cs.size())) + static_cast<int>(cs.size())) % static_cast<int>(cs.size()))];
+}
+
 void Luizinho::ComecarComando(const int k) {
     SecarGotas();
     mComandoDoEscopo = k;
-    mForma = Escopo::Proxima(Variacao::NaOrdem(mOrdemDoEscopo, k));
+    mComando = ComandoDoEscopo(k);
     mInicioDoComando = Escopo::kPrimeiro + static_cast<float>(k) * Escopo::kPorComando;
     mChuva = Chuva::Esperando;
-    Anunciar(Escopo::kFaseDoEscopo, Escopo::Placar(mForma));
-    RegistrarLegenda(Escopo::kFaseDoEscopo, Escopo::Legenda(mForma));
+    Anunciar(Escopo::kFaseDoEscopo, Escopo::Placar(mPlanoDoEscopo.programa, mComando));
+    RegistrarLegenda(Escopo::kFaseDoEscopo, Escopo::Legenda(mPlanoDoEscopo.programa, mComando));
 
     const SDL_FRect campo = Campo();
-    const Escopo::Ponto onde = Escopo::OndeFicaOProfessor(mForma, campo.w, campo.h);
+    const Escopo::Ponto onde = Escopo::OndeFicaOProfessor(mComando, campo.w, campo.h);
     mAlvo = Vector2(campo.x + onde.x, campo.y + onde.y);
 }
 
@@ -295,11 +301,11 @@ void Luizinho::ChoverAvisos() {
     // a variavel e visivel. Sem colisor ate acender - e sem ser enfeite: o
     // Ponto Extra a leva junto, como leva qualquer ataque.
     const SDL_FRect campo = Campo();
-    const auto gotas = Escopo::Gotas(mForma, campo.w, campo.h);
+    const auto gotas = Escopo::Gotas(mPlanoDoEscopo.programa, mComando, campo.w, campo.h);
     if (gotas.empty()) return;
     const auto criadas = DispararEm(Escopo::kGatilhoDaGota, Vector2(campo.x + campo.w / 2.0f, campo.y),
                                     static_cast<int>(gotas.size()));
-    const std::string cara = Escopo::CaraDoAviso(Escopo::Nome(mForma));
+    const std::string cara = Escopo::CaraDoAviso(mComando.nome);
     const size_t n = std::min(criadas.size(), gotas.size());
     for (size_t i = 0; i < n; ++i) {
         BossProjectile* p = criadas[i];
@@ -313,7 +319,7 @@ void Luizinho::ChoverAvisos() {
 }
 
 void Luizinho::AcenderGotas() {
-    const std::string cara = Escopo::CaraDaGota(Escopo::Nome(mForma));
+    const std::string cara = Escopo::CaraDaGota(mComando.nome);
     for (const GotaEmCampo& g : mGotas) {
         if (!Vivo(g.p)) continue;
         PorCara(g.p, cara);
@@ -343,7 +349,7 @@ void Luizinho::AtualizarEscopo() {
         mComandoDoEscopo = -1;
         // O professor ja vai para o primeiro comando enquanto o placar diz o latim.
         const SDL_FRect campo = Campo();
-        const Escopo::Ponto onde = Escopo::OndeFicaOProfessor(Escopo::Proxima(Variacao::NaOrdem(mOrdemDoEscopo, 0)), campo.w, campo.h);
+        const Escopo::Ponto onde = Escopo::OndeFicaOProfessor(ComandoDoEscopo(0), campo.w, campo.h);
         mAlvo = Vector2(campo.x + onde.x, campo.y + onde.y);
     }
 
@@ -382,7 +388,7 @@ void Luizinho::AtualizarEscopo() {
 void Luizinho::DesenharEscopo(const float u) {
     const SDL_FRect campo = Campo();
     auto canto = [&](const Escopo::Bloco b) {
-        const Escopo::Ponto c = Escopo::Canto(b, campo.w, campo.h);
+        const Escopo::Ponto c = Escopo::Canto(mPlanoDoEscopo.programa, b, campo.w, campo.h);
         return Vector2(campo.x + c.x, campo.y + c.y);
     };
     auto indice = [](const Escopo::Bloco b) { return static_cast<size_t>(b); };
@@ -395,13 +401,13 @@ void Luizinho::DesenharEscopo(const float u) {
     for (EtiquetaDeCodigo* c : mCantos) if (c) c->Pintar(kMolduraDoCanto, kFundoDoCanto, kTintaDoCanto);
 
     // A CHAMADA: de h ate o cartao de f, o comando inteiro.
-    if (const auto quem = Escopo::QuemChamou(mForma)) {
+    if (const auto quem = mComando.quemChamou) {
         mLinhas->Acrescentar(canto(*quem), canto(Escopo::Bloco::F), kLinhaDaChamada);
     }
     if (!mostrar) return;
 
     // A BUSCA: um salto por bloco olhado, do professor ate a declaracao.
-    const auto busca = Escopo::Busca(mForma);
+    const auto busca = Escopo::Busca(mPlanoDoEscopo.programa, mComando);
     Vector2 de = GetPosition();
     for (size_t i = 0; i < busca.size(); ++i) {
         if (u < static_cast<float>(i) * Escopo::kPorSalto) break;
@@ -419,7 +425,7 @@ void Luizinho::DesenharEscopo(const float u) {
 
     // OS BURACOS: os blocos que tem outra variavel com o nome. Aqui nao chove.
     if (chovendo) {
-        for (const Escopo::Bloco b : Escopo::Ocultam(Escopo::Dono(mForma), Escopo::Nome(mForma))) {
+        for (const Escopo::Bloco b : Escopo::Ocultam(mPlanoDoEscopo.programa, Escopo::Dono(mPlanoDoEscopo.programa, mComando), mComando.nome)) {
             if (PainelDeCodigo* p = mPaineis[indice(b)]) p->Pintar(kMolduraDoBuraco, kFundoDoBuraco);
             if (EtiquetaDeCodigo* c = mCantos[indice(b)]) c->Pintar(kMolduraDoBuraco, kFundoDoCanto, kTintaDoBuraco);
         }

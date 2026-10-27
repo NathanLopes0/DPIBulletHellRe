@@ -263,23 +263,6 @@ TEST_CASE("Escopo: o relogio da fase") {
     CHECK(CaraDoAviso('x') != CaraDaGota('x'));
 }
 
-TEST_CASE("Escopo: a ordem da luta embaralha as quatro buscas, e a pegadinha fecha a fase") {
-    std::set<std::vector<int>> vistas;
-    for (std::uint32_t semente = 0; semente < 600; ++semente) {
-        Variacao::Sorteio s = Variacao::SorteioDa(semente, kFaseDoEscopo);
-        const auto ordem = OrdemDosComandos(s);
-        REQUIRE(ordem.size() == static_cast<size_t>(kComandos));
-        std::vector<int> buscas(ordem.begin(), ordem.begin() + 4);
-        std::sort(buscas.begin(), buscas.end());
-        CHECK(buscas == std::vector<int>{0, 1, 2, 3});
-        // O ESTATICO E LOGO DEPOIS O DINAMICO, no fim: a comparacao das duas.
-        CHECK(Proxima(ordem[4]) == Forma::FEstatico);
-        CHECK(Proxima(ordem[5]) == Forma::FDinamico);
-        vistas.insert(ordem);
-    }
-    CHECK(vistas.size() == 24u);   // 4!, e em 600 sementes nao falta nenhuma
-}
-
 TEST_CASE("Escopo: o degrau do Normal e o de sempre, e o do Dificil acende antes e cai mais depressa") {
     const Degrau n = DegrauDo(Dificuldade::Nivel::Normal);
     CHECK(n.aviso == kAviso);
@@ -310,4 +293,111 @@ TEST_CASE("Escopo: a legenda diz a regra, onde o nome foi achado e o que a chuva
     CHECK(Escopo::Legenda(F::FDinamico).find("din\xc3\xa2mico") != std::string::npos);
     CHECK(Escopo::Legenda(F::FDinamico).find("de h()") != std::string::npos);
     CHECK(Escopo::Legenda(F::FEstatico).find("global") != std::string::npos);
+}
+
+TEST_CASE("Escopo: cada luta sorteia o programa, e os comandos seguem as regras da fase") {
+    std::set<std::string> programas;
+    std::set<std::string> primeiros;
+    for (std::uint32_t semente = 0; semente < 300; ++semente) {
+        Variacao::Sorteio s = Variacao::SorteioDa(semente, kFaseDoEscopo);
+        const Plano plano = Sortear(s);
+        const Programa& p = plano.programa;
+        // O GLOBAL TEM OS DOIS, F NENHUM, H O x, O INTERNO ALGUM.
+        CHECK(p.Declara(Bloco::Global, 'x'));
+        CHECK(p.Declara(Bloco::Global, 'y'));
+        CHECK_FALSE(p.Declara(Bloco::F, 'x'));
+        CHECK_FALSE(p.Declara(Bloco::F, 'y'));
+        CHECK(p.Declara(Bloco::H, 'x'));
+        CHECK((p.Declara(Bloco::Interno, 'x') || p.Declara(Bloco::Interno, 'y')));
+
+        REQUIRE(plano.comandos.size() == static_cast<size_t>(kComandos));
+        std::set<std::pair<int, char>> buscas;
+        std::set<int> donos;
+        for (int k = 0; k < 4; ++k) {
+            const Comando& c = plano.comandos[static_cast<size_t>(k)];
+            CHECK(c.regra == Regra::Estatico);
+            CHECK_FALSE(c.quemChamou.has_value());
+            buscas.insert({static_cast<int>(c.onde), c.nome});
+            donos.insert(static_cast<int>(Dono(p, c)));
+        }
+        CHECK(buscas.size() == 4u);
+        CHECK(donos.size() >= 2u);
+
+        // A PEGADINHA FECHA, e as duas regras acham donos diferentes.
+        const Comando& estatico = plano.comandos[4];
+        const Comando& dinamico = plano.comandos[5];
+        CHECK(estatico.regra == Regra::Estatico);
+        CHECK(dinamico.regra == Regra::Dinamico);
+        CHECK(Dono(p, estatico) == Bloco::Global);
+        CHECK(Dono(p, dinamico) == Bloco::H);
+
+        // TODA CHUVA DA LUTA CABE NO POOL.
+        for (const Comando& c : plano.comandos) CHECK(Gotas(p, c).size() <= kMaisGotas);
+        // ALGUEM ALEM DO GLOBAL DECLARA y: o global nunca chove sem buraco.
+        CHECK((p.Declara(Bloco::G, 'y') || p.Declara(Bloco::Interno, 'y') || p.Declara(Bloco::H, 'y')));
+
+        programas.insert(Declaracoes(p, Bloco::G) + "|" + Declaracoes(p, Bloco::Interno) + "|" +
+                         Declaracoes(p, Bloco::H));
+        primeiros.insert(Placar(p, plano.comandos[0]));
+    }
+    // 4 x 3 x 2 PROGRAMAS, menos os 2 em que so o global declararia y (ali h
+    // passa a declarar, e o programa vira um dos outros) - e a primeira busca
+    // nao e sempre a mesma.
+    CHECK(programas.size() == 22u);
+
+    CHECK(primeiros.size() >= 10u);
+}
+
+TEST_CASE("Escopo: o placar e o canto escrevem o programa sorteado") {
+    Programa p = Programa::DeSempre();
+    const auto i = [](const Bloco b) { return static_cast<size_t>(b); };
+    p.y[i(Bloco::G)] = false;                       // g nao declara nada
+    p.y[i(Bloco::Interno)] = true;                  // o interno declara os dois
+    CHECK(Declaracoes(p, Bloco::G) == "void g() {");
+    CHECK(Declaracoes(p, Bloco::Interno) == "{ int x, y;");
+    CHECK(Placar(p, Comando{Bloco::G, 'x', Regra::Estatico, std::nullopt}) == "g() { x++; }");
+    CHECK(Placar(p, Comando{Bloco::Interno, 'y', Regra::Estatico, std::nullopt}) == "g() { { int x, y;  y++; } }");
+    // E A BUSCA SEGUE O PROGRAMA: o y do interno agora e dele mesmo.
+    CHECK(Dono(p, Comando{Bloco::Interno, 'y', Regra::Estatico, std::nullopt}) == Bloco::Interno);
+    CHECK(Dono(Programa::DeSempre(), Comando{Bloco::Interno, 'y', Regra::Estatico, std::nullopt}) == Bloco::G);
+}
+
+TEST_CASE("Escopo: em todo programa sorteado a chuva cobre a regiao, nao toca nos buracos e cabe no pool") {
+    constexpr float kRente = 6.0f;
+    constexpr float kChao = 700.0f;
+    for (std::uint32_t semente = 0; semente < 24; ++semente) {
+        Variacao::Sorteio s = Variacao::SorteioDa(semente, kFaseDoEscopo);
+        const Plano plano = Sortear(s);
+        for (const Comando& c : plano.comandos) {
+            const Programa& p = plano.programa;
+            const std::string caso = Declaracoes(p, Bloco::G) + " | " + Declaracoes(p, Bloco::Interno) + " | " +
+                                     Placar(p, c);
+            INFO(caso);
+
+            const auto gotas = Gotas(p, c);
+            CHECK_FALSE(gotas.empty());
+            CHECK(gotas.size() <= 300u);
+            const Retangulo dono = Area(Dono(p, c));
+            std::vector<Retangulo> buracos;
+            for (const Bloco b : Ocultam(p, Dono(p, c), c.nome)) buracos.push_back(Area(b));
+            int descobertos = 0, invadidos = 0;
+            for (float y = 3.0f; y <= kChao; y += 8.0f) {
+                for (float x = 3.0f; x < kLargura; x += 8.0f) {
+                    float borda = ABorda(dono, x, y);
+                    bool noBuraco = false;
+                    for (const Retangulo& b : buracos) {
+                        borda = std::min(borda, ABorda(b, x, y));
+                        if (b.Contem(x, y)) noBuraco = true;
+                    }
+                    const float tolerancia = noBuraco ? 1.5f : kRaioDoAluno + 0.5f;
+                    const bool visivel = dono.Contem(x, y) && !noBuraco;
+                    CHECK(visivel == Visivel(p, c, x, y));
+                    if (visivel && borda > kRente && !Alcancado(gotas, x, y)) ++descobertos;
+                    if (!visivel && borda > tolerancia && Alcancado(gotas, x, y)) ++invadidos;
+                }
+            }
+            CHECK(descobertos == 0);
+            CHECK(invadidos == 0);
+        }
+    }
 }

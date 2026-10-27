@@ -30,9 +30,9 @@
   // fase usa GoToCenter, que deixa o chefe na coluna de quem atira para cima.
   //
   // CADA LUTA E OUTRA (Variacao.h; Luizinho::SortearALuta), e o que define
-  // cada fase fica no lugar: no escopo, as quatro buscas do estatico vem em
-  // qualquer ordem e a pegadinha - f no estatico e logo depois no dinamico -
-  // fecha; nos tipos, a soma do JavaScript abre, o Haskell fecha e as seis do
+  // cada fase fica no lugar: no escopo, O PROGRAMA E SORTEADO - o que g, o
+  // bloco interno e h declaram - e as quatro buscas do estatico sao geradas
+  // para ele, e a pegadinha - f no estatico e logo depois no dinamico - fecha; nos tipos, a soma do JavaScript abre, o Haskell fecha e as seis do
   // meio se embaralham; na memoria, metade das lutas roda o programa em C++
   // antes do de Java, cada um inteiro; e na final cada rodada E GERADA - a
   // pilha, os catch e os finally de cada chamada e a excecao lancada -, com o
@@ -62,7 +62,16 @@
   // interno dentro; h o da direita; f um cartao no alto. Cada painel tem as
   // declaracoes dele no canto.
   //
-  // Seis comandos, um a cada 3,25 s, e o placar diz cada um. O professor vai
+  // O PROGRAMA E DA LUTA (Escopo::Sortear): o global declara x e y, sempre;
+  // h declara x, sempre - e o que faz a pegadinha do dinamico existir - e y
+  // por sorteio; g declara x, y, os dois ou nenhum; o bloco interno, x, y ou
+  // os dois. Se so o global declarasse y, h declara: sem nenhum buraco, o y
+  // global choveria no campo inteiro, 358 gotas, mais que as 300 do pool. Os
+  // cantos dos paineis, o placar e a legenda escrevem o programa da luta. Ate
+  // o 191 o programa era sempre o mesmo, e os comandos, seis fixos.
+  //
+  // Seis comandos, um a cada 3,25 s, e o placar diz cada um: quatro buscas no
+  // estatico, geradas entre g, o bloco interno e h com x ou y, e a pegadinha. O professor vai
   // ate o bloco em que o comando esta (Conduzido), a busca do nome sobe de
   // bloco em bloco - uma linha do professor ao canto de cada um -, e a
   // variavel achada CHOVE na regiao em que ela e visivel: o painel dela, menos

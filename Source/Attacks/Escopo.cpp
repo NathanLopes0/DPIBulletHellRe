@@ -55,25 +55,11 @@ namespace Escopo {
     }
 
     bool Declara(const Bloco b, const char nome) {
-        switch (b) {
-            case Bloco::Global:  return nome == 'x' || nome == 'y';
-            case Bloco::G:       return nome == 'y';
-            case Bloco::Interno: return nome == 'x';
-            case Bloco::H:       return nome == 'x';
-            case Bloco::F:       return false;
-        }
-        return false;
+        return Programa::DeSempre().Declara(b, nome);
     }
 
     std::string Declaracoes(const Bloco b) {
-        switch (b) {
-            case Bloco::Global:  return "int x, y;";
-            case Bloco::F:       return "void f() { x++; }";
-            case Bloco::G:       return "void g() { int y;";
-            case Bloco::Interno: return "{ int x;";
-            case Bloco::H:       return "void h() { int x;";
-        }
-        return "";
+        return Declaracoes(Programa::DeSempre(), b);
     }
 
     Retangulo Area(const Bloco b, const float largura, const float altura) {
@@ -109,58 +95,19 @@ namespace Escopo {
     }
 
     std::vector<Bloco> Busca(const Forma f) {
-        const char nome = Nome(f);
-        std::vector<Bloco> olhados;
-
-        if (RegraDe(f) == Regra::Dinamico) {
-            // NO DINAMICO A BUSCA SEGUE A PILHA: o bloco que roda, quem o
-            // chamou, e por fim o global (quem chamou h).
-            std::vector<Bloco> pilha = {Onde(f)};
-            if (const auto quem = QuemChamou(f)) pilha.push_back(*quem);
-            pilha.push_back(Bloco::Global);
-            for (const Bloco b : pilha) {
-                olhados.push_back(b);
-                if (Declara(b, nome)) break;
-            }
-            return olhados;
-        }
-
-        // NO ESTATICO, O TEXTO: de dentro para fora, ate o global.
-        Bloco b = Onde(f);
-        while (true) {
-            olhados.push_back(b);
-            if (Declara(b, nome) || b == Bloco::Global) break;
-            b = Pai(b);
-        }
-        return olhados;
+        return Busca(Programa::DeSempre(), DaForma(f));
     }
 
     Bloco Dono(const Forma f) {
-        return Busca(f).back();
+        return Dono(Programa::DeSempre(), DaForma(f));
     }
 
     std::vector<Bloco> Ocultam(const Bloco dono, const char nome) {
-        std::vector<Bloco> buracos;
-        for (const Bloco b : kTodos) {
-            if (b == dono || !Dentro(b, dono) || !Declara(b, nome)) continue;
-            // SO OS DE FORA: se um bloco entre ele e o dono ja declara o nome,
-            // ele esta dentro desse buraco.
-            bool porFora = true;
-            for (Bloco meio = Pai(b); meio != dono && meio != Bloco::Global; meio = Pai(meio)) {
-                if (Declara(meio, nome)) { porFora = false; break; }
-            }
-            if (porFora) buracos.push_back(b);
-        }
-        return buracos;
+        return Ocultam(Programa::DeSempre(), dono, nome);
     }
 
     bool Visivel(const Forma f, const float px, const float py, const float largura, const float altura) {
-        const Bloco dono = Dono(f);
-        if (!Area(dono, largura, altura).Contem(px, py)) return false;
-        for (const Bloco b : Ocultam(dono, Nome(f))) {
-            if (Area(b, largura, altura).Contem(px, py)) return false;
-        }
-        return true;
+        return Visivel(Programa::DeSempre(), DaForma(f), px, py, largura, altura);
     }
 
     Forma Proxima(const int vez) {
@@ -169,21 +116,164 @@ namespace Escopo {
     }
 
     std::string Placar(const Forma f) {
-        switch (f) {
-            case Forma::XEmG:       return "g() { int y;  x++; }";
-            case Forma::XNoInterno: return "g() { { int x;  x++; } }";
-            case Forma::YNoInterno: return "g() { { int x;  y++; } }";
-            case Forma::YEmH:       return "h() { int x;  y++; }";
-            // \xc3\xa1 e o a agudo, e \xc3\xa2 o a circunflexo: o MSVC nao
-            // le acento em literal.
-            case Forma::FEstatico:  return "escopo est\xc3\xa1" "tico\nh() { int x;  f(); }";
-            case Forma::FDinamico:  return "escopo din\xc3\xa2" "mico\nh() { int x;  f(); }";
+        return Placar(Programa::DeSempre(), DaForma(f));
+    }
+
+    Ponto OndeFicaOProfessor(const Forma f, const float largura, const float altura) {
+        return OndeFicaOProfessor(DaForma(f), largura, altura);
+    }
+
+    float LarguraDoCanto(const std::string& texto) {
+        return static_cast<float>(texto.size()) * kPorLetra + kMargemDoCanto;
+    }
+
+    Ponto Canto(const Bloco b, const float largura, const float altura) {
+        return Canto(Programa::DeSempre(), b, largura, altura);
+    }
+
+    std::vector<Gota> Gotas(const Forma f, const float largura, const float altura) {
+        return Gotas(Programa::DeSempre(), DaForma(f), largura, altura);
+    }
+
+    std::string CaraDoAviso(const char nome) {
+        return nome == 'y' ? "AvisoY" : "AvisoX";
+    }
+
+    std::string CaraDaGota(const char nome) {
+        return nome == 'y' ? "Y" : "X";
+    }
+
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.aviso = Dificuldade::Escolher(n, kAviso, 0.72f);
+        d.queda = Dificuldade::Escolher(n, kQueda, 150.0f);
+        return d;
+    }
+    std::string Legenda(const Forma f) {
+        return Legenda(Programa::DeSempre(), DaForma(f));
+    }
+    // ---- O PROGRAMA E OS COMANDOS DE CADA LUTA ------------------------------
+
+    bool Programa::Declara(const Bloco b, const char nome) const {
+        const auto i = static_cast<size_t>(b);
+        return nome == 'x' ? x[i] : (nome == 'y' ? y[i] : false);
+    }
+
+    Programa Programa::DeSempre() {
+        Programa p;
+        auto i = [](const Bloco b) { return static_cast<size_t>(b); };
+        p.x[i(Bloco::Global)] = p.y[i(Bloco::Global)] = true;
+        p.y[i(Bloco::G)] = true;
+        p.x[i(Bloco::Interno)] = true;
+        p.x[i(Bloco::H)] = true;
+        return p;
+    }
+
+    Comando DaForma(const Forma f) {
+        return Comando{Onde(f), Nome(f), RegraDe(f), QuemChamou(f)};
+    }
+
+    std::string DeclaracaoDe(const Programa& p, const Bloco b) {
+        const bool x = p.Declara(b, 'x');
+        const bool y = p.Declara(b, 'y');
+        if (x && y) return "int x, y;";
+        if (x) return "int x;";
+        if (y) return "int y;";
+        return "";
+    }
+
+    std::string Declaracoes(const Programa& p, const Bloco b) {
+        const std::string d = DeclaracaoDe(p, b);
+        const std::string depois = d.empty() ? "" : " " + d;
+        switch (b) {
+            case Bloco::Global:  return d;
+            case Bloco::F:       return "void f() { x++; }";
+            case Bloco::G:       return "void g() {" + depois;
+            case Bloco::Interno: return "{" + depois;
+            case Bloco::H:       return "void h() {" + depois;
         }
         return "";
     }
 
-    Ponto OndeFicaOProfessor(const Forma f, const float largura, const float altura) {
-        const Bloco b = Onde(f);
+    std::vector<Bloco> Busca(const Programa& p, const Comando& c) {
+        std::vector<Bloco> olhados;
+        if (c.regra == Regra::Dinamico) {
+            // NO DINAMICO A BUSCA SEGUE A PILHA: o bloco que roda, quem o
+            // chamou, e por fim o global (quem chamou h).
+            std::vector<Bloco> pilha = {c.onde};
+            if (c.quemChamou) pilha.push_back(*c.quemChamou);
+            pilha.push_back(Bloco::Global);
+            for (const Bloco b : pilha) {
+                olhados.push_back(b);
+                if (p.Declara(b, c.nome)) break;
+            }
+            return olhados;
+        }
+        // NO ESTATICO, O TEXTO: de dentro para fora, ate o global.
+        Bloco b = c.onde;
+        while (true) {
+            olhados.push_back(b);
+            if (p.Declara(b, c.nome) || b == Bloco::Global) break;
+            b = Pai(b);
+        }
+        return olhados;
+    }
+
+    Bloco Dono(const Programa& p, const Comando& c) {
+        return Busca(p, c).back();
+    }
+
+    std::vector<Bloco> Ocultam(const Programa& p, const Bloco dono, const char nome) {
+        std::vector<Bloco> buracos;
+        for (const Bloco b : kTodos) {
+            if (b == dono || !Dentro(b, dono) || !p.Declara(b, nome)) continue;
+            // SO OS DE FORA: se um bloco entre ele e o dono ja declara o nome,
+            // ele esta dentro desse buraco.
+            bool porFora = true;
+            for (Bloco meio = Pai(b); meio != dono && meio != Bloco::Global; meio = Pai(meio)) {
+                if (p.Declara(meio, nome)) { porFora = false; break; }
+            }
+            if (porFora) buracos.push_back(b);
+        }
+        return buracos;
+    }
+
+    bool Visivel(const Programa& p, const Comando& c, const float px, const float py,
+                 const float largura, const float altura) {
+        const Bloco dono = Dono(p, c);
+        if (!Area(dono, largura, altura).Contem(px, py)) return false;
+        for (const Bloco b : Ocultam(p, dono, c.nome)) {
+            if (Area(b, largura, altura).Contem(px, py)) return false;
+        }
+        return true;
+    }
+
+    std::string Placar(const Programa& p, const Comando& c) {
+        auto comDeclaracao = [&](const Bloco b, const std::string& resto) {
+            const std::string d = DeclaracaoDe(p, b);
+            return d.empty() ? resto : d + "  " + resto;
+        };
+        const std::string uso = std::string(1, c.nome) + "++;";
+        if (c.quemChamou) {
+            // \xc3\xa1 e o a agudo, e \xc3\xa2 o a circunflexo: o MSVC nao le
+            // acento em literal.
+            const std::string regra = (c.regra == Regra::Dinamico) ? "escopo din\xc3\xa2" "mico"
+                                                                   : "escopo est\xc3\xa1" "tico";
+            return regra + "\nh() { " + comDeclaracao(Bloco::H, "f();") + " }";
+        }
+        switch (c.onde) {
+            case Bloco::G:       return "g() { " + comDeclaracao(Bloco::G, uso) + " }";
+            case Bloco::Interno: return "g() { { " + comDeclaracao(Bloco::Interno, uso) + " } }";
+            case Bloco::H:       return "h() { " + comDeclaracao(Bloco::H, uso) + " }";
+            case Bloco::F:       return "f() { " + uso + " }";
+            case Bloco::Global:  break;
+        }
+        return uso;
+    }
+
+    Ponto OndeFicaOProfessor(const Comando& c, const float largura, const float altura) {
+        const Bloco b = c.onde;
         const Retangulo r = Area(b, largura, altura);
         const float ey = altura / kAltura;
         const float ex = largura / kLargura;
@@ -197,13 +287,9 @@ namespace Escopo {
         return {largura / 2.0f, 150.0f * ey};
     }
 
-    float LarguraDoCanto(const std::string& texto) {
-        return static_cast<float>(texto.size()) * kPorLetra + kMargemDoCanto;
-    }
-
-    Ponto Canto(const Bloco b, const float largura, const float altura) {
+    Ponto Canto(const Programa& p, const Bloco b, const float largura, const float altura) {
         const Retangulo r = Area(b, largura, altura);
-        const float w = LarguraDoCanto(Declaracoes(b));
+        const float w = LarguraDoCanto(Declaracoes(p, b));
         if (b == Bloco::F) return {r.x + r.w / 2.0f, r.y + r.h / 2.0f};
         if (b == Bloco::Global) {
             // O GLOBAL ESCREVE NO CANTO DE CIMA A DIREITA: o da esquerda e do
@@ -213,15 +299,16 @@ namespace Escopo {
         return {r.x + kRecuoDoCanto + w / 2.0f, r.y + kRecuoDoCanto + kAlturaDoCanto / 2.0f};
     }
 
-    std::vector<Gota> Gotas(const Forma f, const float largura, const float altura) {
-        const Retangulo area = Area(Dono(f), largura, altura);
+    std::vector<Gota> Gotas(const Programa& p, const Comando& c, const float largura, const float altura) {
+        const Bloco dono = Dono(p, c);
+        const Retangulo area = Area(dono, largura, altura);
         const float r = kRaioDaGota;
         const float folga = kRaioDaGota + kFolga;
 
         // OS BURACOS CRESCEM uma gota e a folga: nenhuma gota nasce, nem cai,
         // perto o bastante para alcancar quem esta la dentro.
         std::vector<Retangulo> buracos;
-        for (const Bloco b : Ocultam(Dono(f), Nome(f))) {
+        for (const Bloco b : Ocultam(p, dono, c.nome)) {
             const Retangulo h = Area(b, largura, altura);
             buracos.push_back({h.x - folga, h.y - folga, h.w + 2.0f * folga, h.h + 2.0f * folga});
         }
@@ -255,7 +342,6 @@ namespace Escopo {
                 if (!perto) xs.push_back(x);
             }
             std::sort(xs.begin(), xs.end());
-
             for (const float x : xs) {
                 bool noBuraco = false;
                 float fim = baixo;
@@ -270,28 +356,7 @@ namespace Escopo {
         return gotas;
     }
 
-    std::string CaraDoAviso(const char nome) {
-        return nome == 'y' ? "AvisoY" : "AvisoX";
-    }
-
-    std::string CaraDaGota(const char nome) {
-        return nome == 'y' ? "Y" : "X";
-    }
-
-    std::vector<int> OrdemDosComandos(Variacao::Sorteio& s) {
-        constexpr int kBuscas = static_cast<int>(Forma::FEstatico);
-        std::vector<int> ordem = Variacao::Ordem(s, kBuscas, 0);
-        for (int k = kBuscas; k < kFormas; ++k) ordem.push_back(k);
-        return ordem;
-    }
-
-    Degrau DegrauDo(const Dificuldade::Nivel n) {
-        Degrau d;
-        d.aviso = Dificuldade::Escolher(n, kAviso, 0.72f);
-        d.queda = Dificuldade::Escolher(n, kQueda, 150.0f);
-        return d;
-    }
-    std::string Legenda(const Forma f) {
+    std::string Legenda(const Programa& p, const Comando& c) {
         // \xc3\xa1 a agudo, \xc3\xa2 a circunflexo, \xc3\xa9 e agudo, \xc3\xad i agudo.
         auto doBloco = [](const Bloco b, const char nome) {
             const std::string n(1, nome);
@@ -304,20 +369,55 @@ namespace Escopo {
             }
             return n;
         };
-        const char nome = Nome(f);
-        const std::string n(1, nome);
-        const std::string achou = doBloco(Dono(f), nome);
+        const std::string n(1, c.nome);
+        const std::string achou = doBloco(Dono(p, c), c.nome);
         const std::string chuva = " A chuva cai onde esse " + n + " \xc3\xa9 vis\xc3\xadvel.";
-        if (RegraDe(f) == Regra::Dinamico) {
+        if (c.regra == Regra::Dinamico) {
             return "Escopo din\xc3\xa2mico: f() procura o " + n + " em quem a chamou, h(), e usa " +
                    achou + "." + chuva;
         }
-        if (QuemChamou(f)) {
+        if (c.quemChamou) {
             return "Escopo est\xc3\xa1tico: f() procura o " + n + " no texto, fora dela, e usa " + achou +
                    " - mesmo chamada de h()." + chuva;
         }
         return "Escopo est\xc3\xa1tico: " + n + "++ procura de dentro para fora e acha " + achou + "." +
                chuva;
+    }
 
+    Plano Sortear(Variacao::Sorteio& s) {
+        Plano plano;
+        Programa& p = plano.programa;
+        p = Programa{};
+        auto i = [](const Bloco b) { return static_cast<size_t>(b); };
+        p.x[i(Bloco::Global)] = p.y[i(Bloco::Global)] = true;
+        p.x[i(Bloco::H)] = true;
+        p.y[i(Bloco::H)] = s.Chance(0.5f);
+        const int g = s.Inteiro(0, 3);              // nenhum, x, y, os dois
+        p.x[i(Bloco::G)] = (g & 1) != 0;
+        p.y[i(Bloco::G)] = (g & 2) != 0;
+        const int interno = s.Inteiro(1, 3);        // x, y, os dois
+        p.x[i(Bloco::Interno)] = (interno & 1) != 0;
+        p.y[i(Bloco::Interno)] = (interno & 2) != 0;
+        if (!p.y[i(Bloco::G)] && !p.y[i(Bloco::Interno)] && !p.y[i(Bloco::H)]) p.y[i(Bloco::H)] = true;
+
+        // AS QUATRO BUSCAS, sem repetir. Dois donos, pelo menos, sempre ha: no
+        // maximo tres das seis buscas acabam no global.
+        std::vector<Comando> candidatos;
+        for (const Bloco onde : {Bloco::G, Bloco::Interno, Bloco::H}) {
+            for (const char nome : {'x', 'y'}) {
+                const Comando c{onde, nome, Regra::Estatico, std::nullopt};
+                if (Gotas(p, c).size() <= kMaisGotas) candidatos.push_back(c);
+            }
+        }
+
+        s.Embaralhar(candidatos);
+
+        plano.comandos.assign(candidatos.begin(), candidatos.begin() + std::min<std::ptrdiff_t>(4, static_cast<std::ptrdiff_t>(candidatos.size())));
+
+
+        // A PEGADINHA FECHA: f chamada de h, no estatico e logo depois no dinamico.
+        plano.comandos.push_back(DaForma(Forma::FEstatico));
+        plano.comandos.push_back(DaForma(Forma::FDinamico));
+        return plano;
     }
 }

@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <array>
 #include <optional>
+
 #include <string>
 #include <vector>
 
@@ -188,14 +190,6 @@ namespace Escopo {
     constexpr float kVivas = 0.7f;
     constexpr float kQueda = 125.0f;
 
-    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA ---------------------------------
-
-    /// A ORDEM DOS COMANDOS desta luta (o comando k e Proxima(ordem[k])): as
-    /// quatro buscas do escopo estatico em qualquer ordem, e a pegadinha fecha
-    /// a fase - a chamada de f no estatico e logo depois a mesma no dinamico,
-    /// porque e a comparacao das duas que ensina.
-    std::vector<int> OrdemDosComandos(Variacao::Sorteio& s);
-
     // ---- O DEGRAU -------------------------------------------------------------
 
     /// O que o Dificil muda: as gotas acendem 0,72 s depois de nascer (e nao
@@ -211,4 +205,78 @@ namespace Escopo {
     /// onde o nome foi achado e o que a chuva quer dizer. O placar mostra o
     /// codigo; isto o explica.
     std::string Legenda(Forma f);
+    // ---- O PROGRAMA E OS COMANDOS DE CADA LUTA ------------------------------
+    //
+    // Ate o 191 o programa era um so - o global com x e y, g com y, o bloco
+    // interno com x, h com x - e os comandos eram as seis Formas de cima, so
+    // em ordem sorteada: em poucas lutas o aluno decorava onde a chuva caia.
+    // Agora cada luta SORTEIA O PROGRAMA (o que g, o bloco interno e h
+    // declaram) e GERA OS COMANDOS; as funcoes por Forma continuam, valendo
+    // para o programa de sempre, e as de baixo recebem o programa e o comando.
+
+    /// O que cada bloco declara: x, y, os dois ou nenhum.
+    struct Programa {
+        std::array<bool, kBlocos> x{};
+        std::array<bool, kBlocos> y{};
+        [[nodiscard]] bool Declara(Bloco b, char nome) const;
+        /// O de sempre: o global com x e y, g com y, o interno com x, h com x.
+        static Programa DeSempre();
+    };
+
+    /// Um comando: onde ele roda, o nome que usa e a regra; nas chamadas de
+    /// f, quem a chamou.
+    struct Comando {
+        Bloco onde = Bloco::G;
+        char nome = 'x';
+        Regra regra = Regra::Estatico;
+        std::optional<Bloco> quemChamou;
+    };
+    Comando DaForma(Forma f);
+
+    /// O que o bloco declara, como o codigo escreve: "int x, y;", "int y;", "".
+    std::string DeclaracaoDe(const Programa& p, Bloco b);
+    std::string Declaracoes(const Programa& p, Bloco b);
+    std::vector<Bloco> Busca(const Programa& p, const Comando& c);
+    Bloco Dono(const Programa& p, const Comando& c);
+    std::vector<Bloco> Ocultam(const Programa& p, Bloco dono, char nome);
+    bool Visivel(const Programa& p, const Comando& c, float px, float py,
+                 float largura = kLargura, float altura = kAltura);
+    std::string Placar(const Programa& p, const Comando& c);
+    std::string Legenda(const Programa& p, const Comando& c);
+    Ponto OndeFicaOProfessor(const Comando& c, float largura = kLargura, float altura = kAltura);
+    Ponto Canto(const Programa& p, Bloco b, float largura = kLargura, float altura = kAltura);
+    std::vector<Gota> Gotas(const Programa& p, const Comando& c,
+                            float largura = kLargura, float altura = kAltura);
+
+    /// O MAXIMO DE GOTAS de uma chuva: o pool pre-aquece 300 por tipo
+    /// (Battle::kProjectilePrewarmCountPerType), e uma chuva maior criaria
+    /// projetil no meio da luta. O global sem buraco nenhum daria 358.
+    constexpr size_t kMaisGotas = 300;
+
+    /// A FASE DESTA LUTA: o programa e os kComandos comandos, em ordem.
+    struct Plano {
+        Programa programa = Programa::DeSempre();
+        std::vector<Comando> comandos;
+    };
+
+    /**
+     * @brief O programa e os comandos de uma luta.
+     *
+     * O global declara x e y, sempre - todo nome acha um dono -, e f nao
+     * declara nada. h declara x, sempre, e y por sorteio: sem o x de h, as
+     * duas chamadas de f achariam o mesmo x, e a pegadinha do dinamico nao
+     * existiria. g declara x, y, os dois ou nenhum; o bloco interno, x, y ou
+     * os dois. Se nenhum dos tres declarar y, h declara: o global sem buraco
+     * para o y choveria no campo inteiro, mais gotas que o pool tem.
+     *
+     * Os comandos: quatro buscas no escopo estatico, sorteadas entre g, o
+     * bloco interno e h com x ou y, sem repetir e com a chuva cabendo no pool
+     * (kMaisGotas) - e com pelo menos dois donos diferentes, sem precisar de
+     * regra: no maximo tres das seis acabam no global; e a pegadinha
+
+     * fecha a fase, como sempre - f chamada de h, no estatico e logo depois
+     * no dinamico.
+
+     */
+    Plano Sortear(Variacao::Sorteio& s);
 }
