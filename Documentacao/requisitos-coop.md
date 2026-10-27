@@ -81,7 +81,7 @@ A correção é uma regra só:
 
 Dividido (ações de um jogador):
 
-- o **ganho por acerto no chefe** (`GRADE_CHANGE_UP`, 0,56 brutos) — **cada
+- o **ganho por acerto no chefe** (`Nota::kGanhoPorAcerto`, 0,476 brutos com fases de 20 s) — **cada
   jogador precisa acertar o mesmo tanto que um solo precisaria**. A dupla soma o
   dobro de acertos no mesmo tempo, e cada um vale metade, então a barra sobe no
   ritmo de antes;

@@ -194,8 +194,8 @@ edit("Source/Scenes/Battle/Battle.cpp", '#include "Battle.h"',
 # ---- o solo se acertar o DOBRO - e acertar o dobro depende de os dois
 # ---- conseguirem mirar, que e o que a posicao decide.
 edit("Source/Scenes/Battle/Battle.cpp",
-     "                GradeUp(PorJogador(GRADE_CHANGE_UP));",
-     "                ++gAcertosDados;\n                GradeUp(PorJogador(GRADE_CHANGE_UP));")
+     "                GradeUp(PorJogador(Nota::kGanhoPorAcerto));",
+     "                ++gAcertosDados;\n                GradeUp(PorJogador(Nota::kGanhoPorAcerto));")
 edit("Source/Scenes/Battle/Battle.cpp", "void Battle::CheckCollisions() {",
 """void Battle::CheckCollisions() {
     static int quadro = 0;
