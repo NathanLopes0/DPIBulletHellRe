@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "../Dificuldade.h"
+
 #include <cstdint>
 #include <map>
 #include <optional>
@@ -163,6 +165,25 @@ struct DescricaoDeFlex {
  * O campo ausente nao e "zero" nem "um palpite", e o padrao do proprio motor,
  * qualquer que ele seja hoje ou depois.
  */
+/**
+ * O DEGRAU DO DIFICIL de um ataque (Dificuldade.h), quando o arquivo o
+ * escreve:
+ *
+ *     "dificil": { "cooldown": 3.6, "velocidade": 300, "projeteis": 3 }
+ *
+ * Cada campo e opcional, e o ausente fica como no Normal. E aplicado ao
+ * MONTAR o ataque (NoNivel), e nao a cada disparo: o AttackParams ja nasce com
+ * os numeros do modo, e todo C++ que os le - a palavra do Ricardo calcula com
+ * a velocidade quando ela chega na porta - ve o numero certo. E so para os
+ * ataques que o C++ do chefe nao conduz; o de gatilho o chefe acelera na hora
+ * (Boss::Disparar). Uma chave desconhecida aqui e recusada na leitura.
+ */
+struct DescricaoDoDificil {
+    std::optional<int>   projeteis;
+    std::optional<float> velocidade;
+    std::optional<float> cooldown;
+};
+
 struct DescricaoDeAtaque {
     std::string estrategia;
 
@@ -236,7 +257,14 @@ struct DescricaoDeAtaque {
     /// O gatilho que o dispara (GatilhoExiste). Vazio = o relogio, pelo
     /// cooldown. Com gatilho, o cooldown e ignorado.
     std::string gatilho;
+
+    /// O degrau do Dificil, se o arquivo escreveu um. Ver DescricaoDoDificil.
+    std::optional<DescricaoDoDificil> dificil;
 };
+
+/// @brief O ataque no modo: no Dificil, com o que o bloco "dificil" troca; no
+/// Normal (ou sem bloco), igual.
+DescricaoDeAtaque NoNivel(const DescricaoDeAtaque& a, Dificuldade::Nivel n);
 
 /// @brief O lado nomeado existe? (Down, Left, Right, Up - nunca None)
 bool LadoDeBalaoExiste(const std::string& nome);

@@ -4,6 +4,12 @@
 
 #include "doctest.h"
 
+#include <algorithm>
+#include <cstdint>
+#include <set>
+#include <vector>
+#include "../Source/Attacks/Fase.h"
+
 #include "../Source/Attacks/Logica.h"
 
 using Logica::Operacao;
@@ -148,4 +154,36 @@ TEST_CASE("Logica: o deslocamento anda uma coluna por passo, vai ate a ponta e v
     CHECK(Logica::ColunaDoDeslocamento(0.0f, 0.5f, 2, 5, 9) == 5);   // um inicio fora: a ponta
     CHECK(Logica::ColunaDoDeslocamento(3.0f, 0.5f, 4, 4, 4) == 4);   // uma coluna so: parado
     CHECK(Logica::ColunaDoDeslocamento(3.0f, 0.0f, 2, 5, 3) == 3);   // sem passo, sem andar
+}
+
+TEST_CASE("Logica: as portas da luta - as quatro operacoes, um B que admite parede com porta, e o placar que volta a porta") {
+    std::set<std::vector<int>> ordens;
+    for (std::uint32_t semente = 0; semente < 300; ++semente) {
+        CAPTURE(semente);
+        Variacao::Sorteio s(semente);
+        const Logica::Plano plano = Logica::Sortear(s);
+        std::vector<int> ops;
+        for (const Logica::Porta& p : plano.portas) {
+            ops.push_back(static_cast<int>(p.operacao));
+            // O PLACAR E A PORTA: o texto dela le de volta a mesma porta.
+            const auto lida = Logica::LerPorta(Logica::Anuncio(p), Logica::kBits);
+            REQUIRE(lida.has_value());
+            CHECK(lida->operacao == p.operacao);
+            if (p.operacao == Logica::Operacao::Nao) continue;
+            CHECK(lida->b == p.b);
+            CHECK(Logica::Uns(p.b, Logica::kBits) >= 4);
+            CHECK(Logica::Uns(p.b, Logica::kBits) <= 12);
+            // E ELA ADMITE PALAVRA JUSTA, de qualquer sorteio.
+            for (std::uint32_t k = 0; k < 8; ++k) {
+                CHECK(Logica::Justa(p, Logica::Sortear(p, Logica::kBits, semente * 7919u + k * 104729u), Logica::kBits));
+            }
+        }
+        std::vector<int> ordenadas = ops;
+        std::sort(ordenadas.begin(), ordenadas.end());
+        CHECK(ordenadas == std::vector<int>{0, 1, 2, 3});
+        ordens.insert(ops);
+    }
+    CHECK(ordens.size() == 24u);
+    CHECK(Logica::Anuncio({Logica::Operacao::E, 0x0FF0u}) == "AND 0000 1111 1111 0000");
+    CHECK(Logica::Anuncio({Logica::Operacao::Nao, 0u}) == "NOT");
 }

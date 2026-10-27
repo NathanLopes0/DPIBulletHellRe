@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include <array>
+
+#include "../Variacao.h"
+
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -106,4 +110,21 @@ namespace Logica {
     /// direita ate 'ultima', dali ate 'primeira', e de volta - um bit num
     /// registrador de deslocamento, para um lado e para o outro.
     int ColunaDoDeslocamento(float t, float segundosPorPasso, int primeira, int ultima, int inicio);
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA --------------------------------
+
+    /**
+     * @brief As quatro portas desta luta, uma por etapa da fase: AND, OR, NOT
+     * e XOR, cada uma uma vez, em ordem sorteada, e o B de cada uma feito de
+     * quatro grupos de quatro bits (0000, 1111, 1100 ou 0011), com 4 a 12 uns -
+     * e de um jeito que admita palavra justa (Justa). O placar de cada etapa e
+     * Anuncio(porta), e o Ricardo continua lendo a porta dele.
+     */
+    struct Plano {
+        std::array<Porta, 4> portas{};
+    };
+    Plano Sortear(Variacao::Sorteio& s);
+
+    /// O placar da porta: "AND 0000 1111 1111 0000", "NOT".
+    std::string Anuncio(const Porta& p);
 }

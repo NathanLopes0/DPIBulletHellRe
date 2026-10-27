@@ -4,6 +4,11 @@
 
 #pragma once
 
+#include <string>
+
+#include "../Dificuldade.h"
+#include "../Variacao.h"
+
 #include <optional>
 #include <string>
 
@@ -50,4 +55,26 @@ namespace Blink {
     /// O LED trocou de lado entre 'antes' (exclusive) e 'agora' (inclusive)?
     /// E quando um lado acende - e as placas dele atiram.
     bool Trocou(float antes, float agora, float delay);
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA, E O DEGRAU -------------------
+
+    /// O sketch desta luta: o delay de partida (800, 1000 ou 1200 ms), que
+    /// cai pela metade de etapa em etapa como sempre.
+    struct Plano {
+        int delayInicial = 1000;
+    };
+    Plano Sortear(Variacao::Sorteio& s);
+
+    /// O que o Dificil muda: o sketch e mais apressado - o delay e 80% do da
+    /// luta (escrito assim no placar, que e a regra) - e o LED atira 20% mais
+    /// depressa.
+    struct Degrau {
+        float delay = 1.0f;    ///< multiplica o delay do plano
+        float rapidez = 1.0f;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
+
+    /// O placar da etapa k (0, 1, 2): "digitalWrite(13, HIGH); delay(500);",
+    /// com o delay do plano no modo, pela metade a cada etapa.
+    std::string Anuncio(int etapa, const Plano& p, const Degrau& d);
 }

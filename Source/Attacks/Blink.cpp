@@ -38,4 +38,23 @@ namespace Blink {
         if (!(delay > 0.0f) || agora <= antes) return false;
         return std::floor(agora / delay) > std::floor(std::max(0.0f, antes) / delay);
     }
+
+    Plano Sortear(Variacao::Sorteio& s) {
+        Plano p;
+        p.delayInicial = 800 + 200 * s.Inteiro(0, 2);
+        return p;
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.delay = Dificuldade::Escolher(n, 1.0f, 0.8f);
+        d.rapidez = Dificuldade::Escolher(n, 1.0f, 1.2f);
+        return d;
+    }
+
+    std::string Anuncio(const int etapa, const Plano& p, const Degrau& d) {
+        const int k = etapa < 0 ? 0 : etapa;
+        const int ms = static_cast<int>(static_cast<float>(p.delayInicial) * d.delay + 0.5f) >> k;
+        return "digitalWrite(13, HIGH); delay(" + std::to_string(ms) + ");";
+    }
 }

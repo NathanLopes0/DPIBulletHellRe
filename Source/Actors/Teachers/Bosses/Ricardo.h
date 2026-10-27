@@ -56,6 +56,18 @@ protected:
                               const std::string& stateName) override;
 
 private:
+    // ---- O QUE ESTA LUTA SORTEIA, E O DEGRAU --------------------------------
+
+    /// No primeiro quadro da batalha: sorteia as portas da fase 1, o tempo de
+    /// cada clock da 2, as voltas do laco da 3 e o delay do Blink, e reescreve
+    /// as etapas de fases.json com eles - o placar continua sendo a regra.
+    void SortearALuta();
+    bool mLutaSorteada = false;
+    Relogio::Plano mPlanoDoRelogio;
+    Relogio::Degrau mDegrauDoRelogio;
+    Pipeline::Plano mPlanoDoPipeline;
+    Pipeline::Degrau mDegrauDoPipeline;
+    Blink::Degrau mDegrauDoBlink;
     // ---- AS PORTAS DA FASE 1 ------------------------------------------------
     //
     // Logo que a fase comeca o Ricardo forma a fileira de portas (o gatilho

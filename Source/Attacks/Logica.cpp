@@ -157,4 +157,34 @@ namespace Logica {
         const int m = (dados + ja) % (2 * n);
         return primeira + (m <= n ? m : 2 * n - m);
     }
+
+    std::string Anuncio(const Porta& p) {
+        if (p.operacao == Operacao::Nao) return NomeDaOperacao(p.operacao);
+        return std::string(NomeDaOperacao(p.operacao)) + " " + Texto(p.b, kBits);
+    }
+
+    Plano Sortear(Variacao::Sorteio& s) {
+        static constexpr std::uint32_t kGrupos[] = {0x0u, 0xFu, 0xCu, 0x3u};
+        std::vector<Operacao> ops = {Operacao::E, Operacao::Ou, Operacao::OuExclusivo, Operacao::Nao};
+        s.Embaralhar(ops);
+        Plano plano;
+        for (std::size_t k = 0; k < ops.size(); ++k) {
+            Porta p;
+            p.operacao = ops[k];
+            if (p.operacao != Operacao::Nao) {
+                // ATE ACHAR UM B QUE ADMITA PALAVRA JUSTA - quase sempre na
+                // primeira: so os extremos (quase todo 0 num AND) nao admitem.
+                for (int tentativa = 0; tentativa < 64; ++tentativa) {
+                    std::uint32_t b = 0;
+                    for (int g = 0; g < 4; ++g) b = (b << 4) | kGrupos[s.Inteiro(0, 3)];
+                    const int uns = Uns(b, kBits);
+                    p.b = b;
+                    if (uns < 4 || uns > 12) continue;
+                    if (Justa(p, Sortear(p, kBits, s.Bruto()), kBits)) break;
+                }
+            }
+            plano.portas[k] = p;
+        }
+        return plano;
+    }
 }

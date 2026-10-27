@@ -4,6 +4,12 @@
 
 #include "doctest.h"
 
+#include <algorithm>
+#include <cstdint>
+#include <set>
+#include <vector>
+#include "../Source/Attacks/Fase.h"
+
 #include "../Source/Attacks/Relogio.h"
 
 TEST_CASE("Relogio: o placar e o clock - le o numero antes de Hz") {
@@ -96,4 +102,30 @@ TEST_CASE("Relogio: o contador Johnson enche pela esquerda e esvazia pela esquer
         CHECK(d != 0u);
         CHECK((d & (d - 1u)) == 0u);
     }
+}
+
+TEST_CASE("Relogio: o tempo de cada clock da luta - inteiros de 4 a 6 que somam a fase") {
+    std::set<std::vector<int>> vistas;
+    for (std::uint32_t semente = 0; semente < 300; ++semente) {
+        Variacao::Sorteio s(semente);
+        const Relogio::Plano p = Relogio::Sortear(s);
+        int soma = 0;
+        for (const int d : p.duracoes) {
+            CHECK(d >= 4);
+            CHECK(d <= 6);
+            soma += d;
+        }
+        CHECK(static_cast<float>(soma) == doctest::Approx(Fase::kDuracao));
+        CHECK(p.inicioDoContador >= 0);
+        CHECK(p.inicioDoContador <= Relogio::kMaiorInicioDoContador);
+        vistas.insert(std::vector<int>(p.duracoes.begin(), p.duracoes.end()));
+    }
+    CHECK(vistas.size() > 8u);
+    // TODA TROCA CAI NUMA BORDA: os fins sao segundos inteiros, e todo
+    // segundo inteiro e borda de 1, 2, 4 e 8 Hz.
+    for (const float f : {1.0f, 2.0f, 4.0f, 8.0f}) {
+        for (int t = 4; t <= 16; ++t) CHECK(Relogio::Subiu(static_cast<float>(t) - 0.001f, static_cast<float>(t), f));
+    }
+    CHECK(Relogio::DegrauDo(Dificuldade::Nivel::Normal).passo == doctest::Approx(Relogio::kPasso));
+    CHECK(Relogio::DegrauDo(Dificuldade::Nivel::Dificil).passo > Relogio::kPasso);
 }

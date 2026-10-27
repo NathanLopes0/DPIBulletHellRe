@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "../Dificuldade.h"
+#include "../Variacao.h"
+
 #include <array>
 #include <string>
 #include <vector>
@@ -80,6 +83,7 @@ namespace Pipeline {
         std::array<int, kEstagios> estagio{kBolha, kBolha, kBolha, kBolha, kBolha};
         int pc = 0;           ///< a proxima instrucao a buscar
         int desvios = 0;      ///< quantos bne ja se resolveram nesta volta do programa
+        int voltas = kVoltas; ///< quantas voltas o laco da (o vetor tem tantos elementos)
     };
 
     /// O que um ciclo fez.
@@ -104,4 +108,23 @@ namespace Pipeline {
     /// e o store no MEM -, ou vazio. O bne e o j nao atacam: o desvio ja e o
     /// que eles fazem.
     std::string Gatilho(Tipo t, int estagio);
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA, E O DEGRAU -------------------
+
+    /// O programa desta luta: o vetor tem 2, 3 ou 4 elementos - o laco da
+    /// tantas voltas, e o flush do bne mal previsto vem depois delas.
+    struct Plano {
+        int voltas = kVoltas;
+    };
+    Plano Sortear(Variacao::Sorteio& s);
+    constexpr int kMenosVoltas = 2;
+    constexpr int kMaisVoltas = 4;
+
+    /// O que o Dificil muda: o ciclo e mais curto (0,62 s), e o ataque de cada
+    /// estagio anda 20% mais depressa.
+    struct Degrau {
+        float ciclo = kCiclo;
+        float rapidez = 1.0f;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

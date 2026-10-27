@@ -23,7 +23,56 @@ Ricardo::Ricardo(Scene* scene) : Boss(scene)
 {
 }
 
+void Ricardo::SortearALuta() {
+    mLutaSorteada = true;
+    const Dificuldade::Nivel nivel = NivelDeDificuldade();
+
+    // FASE 1: as portas, uma por etapa, nos fins que o arquivo deu.
+    {
+        Variacao::Sorteio sorteio = SorteioDaFase(Logica::kFaseDasPortas);
+        const Logica::Plano plano = Logica::Sortear(sorteio);
+        auto etapas = EtapasDa(Logica::kFaseDasPortas);
+        for (std::size_t k = 0; k < etapas.size() && k < plano.portas.size(); ++k) {
+            etapas[k].second = Logica::Anuncio(plano.portas[k]);
+        }
+        if (!etapas.empty()) RegistrarEtapas(Logica::kFaseDasPortas, etapas);
+    }
+    // FASE 2: as mesmas frequencias, com o tempo de cada uma sorteado.
+    {
+        Variacao::Sorteio sorteio = SorteioDaFase(Relogio::kFaseDoRelogio);
+        mPlanoDoRelogio = Relogio::Sortear(sorteio);
+        mDegrauDoRelogio = Relogio::DegrauDo(nivel);
+        auto etapas = EtapasDa(Relogio::kFaseDoRelogio);
+        float fim = 0.0f;
+        for (std::size_t k = 0; k < etapas.size() && k < mPlanoDoRelogio.duracoes.size(); ++k) {
+            fim += static_cast<float>(mPlanoDoRelogio.duracoes[k]);
+            etapas[k].first = fim;
+        }
+        if (!etapas.empty()) RegistrarEtapas(Relogio::kFaseDoRelogio, etapas);
+    }
+    // FASE 3: as voltas do laco.
+    {
+        Variacao::Sorteio sorteio = SorteioDaFase(Pipeline::kFaseDoPipeline);
+        mPlanoDoPipeline = Pipeline::Sortear(sorteio);
+        mDegrauDoPipeline = Pipeline::DegrauDo(nivel);
+    }
+    // A REPESCAGEM: o delay do sketch, pela metade a cada etapa.
+    {
+        Variacao::Sorteio sorteio = SorteioDaFase(Blink::kFaseDoBlink);
+        const Blink::Plano plano = Blink::Sortear(sorteio);
+        mDegrauDoBlink = Blink::DegrauDo(nivel);
+        auto etapas = EtapasDa(Blink::kFaseDoBlink);
+        for (std::size_t k = 0; k < etapas.size(); ++k) {
+            etapas[k].second = Blink::Anuncio(static_cast<int>(k), plano, mDegrauDoBlink);
+        }
+        if (!etapas.empty()) RegistrarEtapas(Blink::kFaseDoBlink, etapas);
+    }
+}
+
 void Ricardo::OnUpdate(const float deltaTime) {
+    // ANTES DE QUALQUER ATAQUE: a primeira palavra ja e sorteada para a porta
+    // da luta.
+    if (!mLutaSorteada && !EhClone()) SortearALuta();
     Boss::OnUpdate(deltaTime);
     AtualizarPortas();
     AtualizarRelogio();
@@ -70,7 +119,7 @@ void Ricardo::AtualizarBlink() {
     }
 
     // ACENDEU: o lado da vez atira.
-    if (Blink::Trocou(mAntesNoBlink, agora, delay)) Disparar(Blink::kGatilhoDoLed);
+    if (Blink::Trocou(mAntesNoBlink, agora, delay)) Disparar(Blink::kGatilhoDoLed, -1, mDegrauDoBlink.rapidez);
     mAntesNoBlink = agora;
 }
 
@@ -88,7 +137,7 @@ void Ricardo::DispararDoEstagio(const std::string& gatilho, const int estagio, c
     mDisparandoDoEstagio = true;
     mMirandoDoEstagio = mirar;
     mDisparoDoEstagio = centros[static_cast<size_t>(estagio)];
-    Disparar(gatilho);
+    Disparar(gatilho, -1, mFormandoEstagios ? 1.0f : mDegrauDoPipeline.rapidez);
     mDisparandoDoEstagio = false;
     mMirandoDoEstagio = false;
 }
@@ -112,6 +161,7 @@ void Ricardo::AtualizarPipeline(const float deltaTime) {
         mNoPipeline = true;
         mEstagiosFormados = false;
         mPipeline = Pipeline::Estado{};
+        mPipeline.voltas = mPlanoDoPipeline.voltas;
         mChips.fill(nullptr);
         mTempoNoPipeline = 0.0f;
         mProximoCiclo = Pipeline::kPrimeiroCiclo;
@@ -151,7 +201,7 @@ void Ricardo::AtualizarPipeline(const float deltaTime) {
     }
 
     if (mTempoNoPipeline >= mProximoCiclo) {
-        mProximoCiclo += Pipeline::kCiclo;
+        mProximoCiclo += mDegrauDoPipeline.ciclo;
 
         // O QUE ESTAVA NO WB SAI, e todo mundo anda um estagio.
         if (BossProjectile* saindo = mChips[Pipeline::WB]) saindo->Kill();
@@ -298,7 +348,7 @@ void Ricardo::AtualizarRelogio() {
         // parado escorre na velocidade do ultimo clock - e sai da tela, em vez
         // de ficar congelado no meio da fase seguinte.
         if (mAntesNoRelogio >= 0.0f) {
-            MoverRegistradores(Relogio::kPasso * mFrequencia);
+            MoverRegistradores(mDegrauDoRelogio.passo * mFrequencia);
             for (BossProjectile* r : NoPosto(Relogio::kPostoDosRegistradores)) r->DefinirPosto("");
             mDirecoes.clear();
             mAntesNoRelogio = -1.0f;
@@ -308,7 +358,7 @@ void Ricardo::AtualizarRelogio() {
     }
     if (mAntesNoRelogio < 0.0f) {
         mAntesNoRelogio = 0.0f;
-        mContador = 1;
+        mContador = mPlanoDoRelogio.inicioDoContador;
     }
 
     const float agora = fsm->GetStateTime();
@@ -340,7 +390,7 @@ void Ricardo::AtualizarRelogio() {
     // A BORDA DE SUBIDA: todo registrador da um passo de kPasso pixels...
     if (Relogio::Subiu(mAntesNoRelogio, agora, mFrequencia)) {
         const float duracao = Relogio::DuracaoDoPasso(mFrequencia);
-        MoverRegistradores(Relogio::kPasso / duracao);
+        MoverRegistradores(mDegrauDoRelogio.passo / duracao);
         mFimDoPasso = agora + duracao;
     }
     // ...e para, ate a proxima.

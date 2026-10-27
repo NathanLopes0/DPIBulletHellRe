@@ -50,7 +50,7 @@ namespace Pipeline {
         const int noEX = e.estagio[EX];
         if (noEX != kBolha && programa[static_cast<size_t>(noEX)].tipo == Tipo::Bne) {
             ++e.desvios;
-            if (e.desvios >= kVoltas) {
+            if (e.desvios >= e.voltas) {
                 e.estagio[ID] = kBolha;
                 e.estagio[IF] = kBolha;
                 e.pc = noEX + 1;
@@ -81,5 +81,18 @@ namespace Pipeline {
         if (estagio == EX && (t == Tipo::Add || t == Tipo::Addi)) return Animacao(t);
         if (estagio == MEM && (t == Tipo::Lw || t == Tipo::Sw)) return Animacao(t);
         return {};
+    }
+
+    Plano Sortear(Variacao::Sorteio& s) {
+        Plano p;
+        p.voltas = s.Inteiro(kMenosVoltas, kMaisVoltas);
+        return p;
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.ciclo = Dificuldade::Escolher(n, kCiclo, 0.62f);
+        d.rapidez = Dificuldade::Escolher(n, 1.0f, 1.2f);
+        return d;
     }
 }

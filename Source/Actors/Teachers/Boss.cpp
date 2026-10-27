@@ -410,6 +410,11 @@ void Boss::RegistrarEtapas(const std::string& fase, std::vector<std::pair<float,
     mEtapasPorFase[fase] = std::move(fimETexto);
 }
 
+std::vector<std::pair<float, std::string>> Boss::EtapasDa(const std::string& fase) const {
+    const auto it = mEtapasPorFase.find(fase);
+    return it == mEtapasPorFase.end() ? std::vector<std::pair<float, std::string>>{} : it->second;
+}
+
 void Boss::RegistrarIntercambio(const std::string& fase, const float aCada, const float aviso) {
     mIntercambioPorFase[fase] = {aCada, aviso};
 }

@@ -4,6 +4,12 @@
 
 #include "doctest.h"
 
+#include <algorithm>
+#include <cstdint>
+#include <set>
+#include <vector>
+#include "../Source/Attacks/Fase.h"
+
 #include "../Source/Attacks/Pipeline.h"
 
 using Pipeline::Tipo;
@@ -92,4 +98,39 @@ TEST_CASE("Pipeline: cada instrucao ataca no estagio dela") {
     CHECK(Pipeline::Gatilho(Tipo::Bne, Pipeline::EX).empty());
     CHECK(Pipeline::Gatilho(Tipo::J, Pipeline::ID).empty());
     CHECK(std::string(Pipeline::NomeDoEstagio(Pipeline::MEM)) == "MEM");
+}
+
+TEST_CASE("Pipeline: com 2, 3 ou 4 voltas o flush vem depois da ultima, e o programa recomeca") {
+    std::set<int> vistas;
+    for (std::uint32_t semente = 0; semente < 100; ++semente) {
+        Variacao::Sorteio s(semente);
+        const Pipeline::Plano p = Pipeline::Sortear(s);
+        CHECK(p.voltas >= Pipeline::kMenosVoltas);
+        CHECK(p.voltas <= Pipeline::kMaisVoltas);
+        vistas.insert(p.voltas);
+    }
+    CHECK(vistas == std::set<int>{2, 3, 4});
+    for (int voltas = Pipeline::kMenosVoltas; voltas <= Pipeline::kMaisVoltas; ++voltas) {
+        CAPTURE(voltas);
+        Pipeline::Estado e;
+        e.voltas = voltas;
+        int ciclo = 0, flushNo = -1;
+        for (; ciclo < 60; ++ciclo) {
+            if (Pipeline::Avancar(e).flush) { flushNo = ciclo; break; }
+        }
+        // 'voltas' voltas de quatro instrucoes, e o bne da ultima chega ao EX
+        // dois ciclos depois de buscado.
+        CHECK(flushNo == voltas * 4 - 1 + 2);
+        CHECK(TipoNo(e, Pipeline::EX) == Tipo::Bne);
+        // UMA EXECUCAO INTEIRA cabe na fase, com o ciclo de qualquer modo.
+        const float execucao = static_cast<float>(voltas * 4 + 2 + 2) *
+                               Pipeline::DegrauDo(Dificuldade::Nivel::Normal).ciclo;
+        CHECK(Pipeline::kPrimeiroCiclo + execucao < Fase::kDuracao);
+    }
+    const auto n = Pipeline::DegrauDo(Dificuldade::Nivel::Normal);
+    const auto d = Pipeline::DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(n.ciclo == doctest::Approx(Pipeline::kCiclo));
+    CHECK(n.rapidez == doctest::Approx(1.0f));
+    CHECK(d.ciclo < n.ciclo);
+    CHECK(d.rapidez > n.rapidez);
 }

@@ -4,6 +4,11 @@
 
 #pragma once
 
+#include <array>
+
+#include "../Dificuldade.h"
+#include "../Variacao.h"
+
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -72,4 +77,31 @@ namespace Relogio {
     /// pela esquerda ate encher, e saem pela esquerda ate esvaziar - 2*bits
     /// estados por volta. 0000, 1000, 1100, 1110, 1111, 0111, 0011, 0001, 0000...
     std::uint32_t Johnson(int k, int bits);
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA, E O DEGRAU -------------------
+
+    /**
+     * @brief O clock desta luta: quanto dura cada frequencia (as etapas de
+     * fases.json, 1, 2, 4 e 8 Hz, sempre nessa ordem - a frequencia DOBRA),
+     * em segundos INTEIROS de 4 a 6 que somam a fase - toda troca continua
+     * caindo numa borda -, e de que estado o contador Johnson comeca.
+     */
+    struct Plano {
+        std::array<int, 4> duracoes{5, 5, 5, 5};
+        int inicioDoContador = 1;
+    };
+
+    /// O CONTADOR COMECA NA PRIMEIRA METADE DA VOLTA (0 a 5, enchendo de uns).
+    /// O estado de partida decide o que sai no overclock, e medido na fase
+    /// sozinha com o piloto que desvia: de 0 a 5 ele levou 3 ou 4 acertos (o
+    /// de sempre, 1, leva 4); de 7 a 12, 0 ou 1 - a fase ficava facil.
+    constexpr int kMaiorInicioDoContador = 5;
+    Plano Sortear(Variacao::Sorteio& s);
+
+    /// O que o Dificil muda: o registrador anda mais a cada borda (84 px, e
+    /// nao 72) - o mesmo clock, tiros mais rapidos.
+    struct Degrau {
+        float passo = kPasso;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

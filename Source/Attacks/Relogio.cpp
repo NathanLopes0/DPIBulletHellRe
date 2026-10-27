@@ -63,4 +63,27 @@ namespace Relogio {
         // ESVAZIANDO: sobram 2*bits - m uns, encostados na direita.
         return (1u << (volta - m)) - 1u;
     }
+
+    Plano Sortear(Variacao::Sorteio& s) {
+        Plano p;
+        // QUATRO INTEIROS DE 4 A 6 QUE SOMAM 20: comeca em 5 cada, e troca um
+        // segundo de uma etapa para outra uma ou duas vezes.
+        const int trocas = s.Inteiro(0, 2);
+        for (int k = 0; k < trocas; ++k) {
+            const int de = s.Inteiro(0, 3);
+            const int para = s.Inteiro(0, 3);
+            if (de == para || p.duracoes[static_cast<std::size_t>(de)] <= 4 ||
+                p.duracoes[static_cast<std::size_t>(para)] >= 6) continue;
+            --p.duracoes[static_cast<std::size_t>(de)];
+            ++p.duracoes[static_cast<std::size_t>(para)];
+        }
+        p.inicioDoContador = s.Inteiro(0, kMaiorInicioDoContador);
+        return p;
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.passo = Dificuldade::Escolher(n, kPasso, 84.0f);
+        return d;
+    }
 }

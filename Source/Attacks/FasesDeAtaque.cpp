@@ -391,6 +391,39 @@ namespace {
 
         if (!LerCooldown(j, onde, saida, problemas)) return false;
 
+        // --- o degrau do Dificil ---
+        if (j.contains("dificil")) {
+            const auto& d = j["dificil"];
+            if (!d.is_object()) {
+                problemas.emplace_back(onde + "\"dificil\" deveria ser um objeto");
+                return false;
+            }
+            DescricaoDoDificil dif;
+            for (auto it = d.begin(); it != d.end(); ++it) {
+                const std::string& chave = it.key();
+                if (chave == "projeteis") {
+                    if (!it->is_number_integer() || it->get<int>() < 1) {
+                        problemas.emplace_back(onde + "\"dificil.projeteis\" precisa ser um inteiro, 1 ou mais");
+                        return false;
+                    }
+                    dif.projeteis = it->get<int>();
+                } else if (chave == "velocidade" || chave == "cooldown") {
+                    if (!it->is_number() || it->get<float>() <= 0.0f) {
+                        problemas.emplace_back(onde + "\"dificil." + chave + "\" precisa ser um numero maior que zero");
+                        return false;
+                    }
+                    (chave == "velocidade" ? dif.velocidade : dif.cooldown) = it->get<float>();
+                } else {
+                    // UMA CHAVE QUE NINGUEM LE seria um degrau que nao existe,
+                    // calado - a armadilha 9 do RETOMAR.
+                    problemas.emplace_back(onde + "\"dificil\" nao conhece \"" + chave +
+                                           "\" (so projeteis, velocidade e cooldown)");
+                    return false;
+                }
+            }
+            saida.dificil = dif;
+        }
+
         // --- bloco de balao ---
         const bool ehBalao = (saida.estrategia == "BaloonAttack");
         if (j.contains("balao")) {
@@ -985,4 +1018,13 @@ float PrimeiroDisparoNaJanela(const float de) {
     // kPrimeiroDisparoDaJanela.
     if (de <= 0.0f) return kPrimeiroDisparoDaFase;
     return de + std::min(kPrimeiroDisparoDaFase, kPrimeiroDisparoDaJanela);
+}
+
+DescricaoDeAtaque NoNivel(const DescricaoDeAtaque& a, const Dificuldade::Nivel n) {
+    DescricaoDeAtaque saida = a;
+    if (n != Dificuldade::Nivel::Dificil || !a.dificil) return saida;
+    if (a.dificil->projeteis) saida.projeteis = *a.dificil->projeteis;
+    if (a.dificil->velocidade) saida.velocidade = *a.dificil->velocidade;
+    if (a.dificil->cooldown) saida.cooldown = *a.dificil->cooldown;
+    return saida;
 }

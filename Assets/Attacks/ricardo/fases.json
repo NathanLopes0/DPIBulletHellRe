@@ -47,6 +47,24 @@
 // cada materia em um modulo puro com testes: Logica.h, Relogio.h, Pipeline.h
 // e Blink.h. E O PLACAR E A REGRA: a porta, o clock e o delay do sketch sao
 // lidos do que o placar anuncia - e no pipeline ele diz a instrucao no EX.
+//
+// CADA LUTA E OUTRA (Variacao.h). No primeiro quadro o Ricardo sorteia e
+// REESCREVE AS ETAPAS daqui (Ricardo::SortearALuta) - o placar continua sendo
+// a regra: as quatro portas da fase 1 em ordem sorteada, cada uma com outro B
+// (Logica::Plano); o tempo de cada clock da fase 2, em segundos inteiros de 4
+// a 6, e o estado de que o contador Johnson parte; as voltas do laco da fase
+// 3 (2, 3 ou 4 - o vetor tem tantos elementos); e o delay de partida do Blink
+// (800, 1000 ou 1200 ms). Os textos das etapas abaixo sao os do Normal sem
+// sorteio, e e deles que o Ricardo tira os fins.
+//
+// NO DIFICIL (Dificuldade.h): a palavra sai a cada 1,25 s e a 160 px/s (o
+// bloco "dificil" do ataque dela), o registrador anda 84 px por borda, o
+// pipeline cicla a cada 0,62 s e ataca 20% mais rapido, e o sketch roda com
+// 80% do delay (escrito no placar) e o LED 20% mais rapido. Medido em cinco
+// sementes, a batalha inteira: no Normal o que persegue termina com 82,0 a
+// 86,9 e o que desvia com 73,4 a 85,0 (5 a 14 acertos); no Dificil, 72,4 a
+// 82,8 e 64,0 a 79,4 (10 a 14, 12 em media, contra 9,8). O parado e o que vai
+// e vem reprovam nos dois.
 // ==========================================================================
 
   // FASE 1 - SISTEMAS LOGICOS   |   gesto: LER A PORTA E IR PARA ONDE VAI ABRIR
@@ -102,6 +120,7 @@
       { "estrategia": "PalavraAttack", "projetil": "Bit",
         "projeteis": 16, "velocidade": 140,
         "cooldown": 1.5,
+        "dificil": { "cooldown": 1.25, "velocidade": 160 },
         "regras": "palavra" }
     ]
   },

@@ -296,7 +296,11 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
 
     for (const DescricaoDeFase& fase : lidas.fases) {
 
-        for (const DescricaoDeAtaque& a : ataquesDaFase(fase)) {
+        for (const DescricaoDeAtaque& doArquivo : ataquesDaFase(fase)) {
+
+            // O MODO DA BATALHA decide os numeros: o bloco "dificil" do ataque,
+            // no Dificil (FasesDeAtaque.h, NoNivel).
+            const DescricaoDeAtaque a = NoNivel(doArquivo, boss->NivelDeDificuldade());
 
             ProjectileFactory* spawner = boss->GetProjectileFactory(a.projetil);
             if (!spawner) {

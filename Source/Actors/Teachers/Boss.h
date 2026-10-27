@@ -194,6 +194,11 @@ public:
     /// comeco da fase, e o que o placar diz durante ela. Ver AnuncioDaFase.
     void RegistrarEtapas(const std::string& fase, std::vector<std::pair<float, std::string>> fimETexto);
 
+    /// @brief As etapas registradas da fase (onde cada uma acaba e o texto
+    /// dela), ou vazia. E por aqui que um chefe que sorteia a regra de cada
+    /// etapa (o Ricardo) reescreve so os textos, ou so os fins.
+    [[nodiscard]] std::vector<std::pair<float, std::string>> EtapasDa(const std::string& fase) const;
+
     // ---- O INTERCAMBIO ----------------------------------------------------
 
     /// @brief Anota que nesta fase os alunos trocam de lugar a cada 'aCada'

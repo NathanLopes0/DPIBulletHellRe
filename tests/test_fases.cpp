@@ -2,6 +2,9 @@
 // transicoes. Camada pura: nao abre arquivo, nao escreve log, nao sobe SDL.
 
 #include "doctest.h"
+
+#include <stdexcept>
+#include <string>
 #include "../Source/Attacks/FasesDeAtaque.h"
 #include "../Source/Tabela.h"
 
@@ -1122,4 +1125,73 @@ TEST_CASE("Fases: um ataque que pede uma etapa que a fase nao tem e descartado")
     for (const auto& f : r.fases) {
         if (f.nome == "StateOne") CHECK(f.ataques.size() == 1);
     }
+}
+
+// ---------------------------------------------------------------------------
+// O degrau do Dificil, por ataque
+// ---------------------------------------------------------------------------
+
+namespace {
+    std::string ComDificil(const std::string& bloco) {
+        return std::string(R"({
+  "StateOne": {
+    "duracao": 17, "proximo": "StateFinal",
+    "movimento": { "tipo": "RandomWander", "a": 4, "b": 100 },
+    "ataques": [
+      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
+        "projeteis": 36, "velocidade": 180, "cooldown": 2.4)") + bloco + R"( }
+    ]
+  },
+  "StateFinal": {
+    "duracao": 17, "proximo": "StateOne",
+    "movimento": { "tipo": "GoToCenter" },
+    "ataques": [
+      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
+        "projeteis": 18, "velocidade": 120, "cooldown": 1.4 }
+    ]
+  }
+})";
+    }
+
+    const DescricaoDeAtaque& PrimeiroDe(const FasesLidas& r, const char* fase) {
+        for (const auto& f : r.fases) if (f.nome == fase) return f.ataques.at(0);
+        throw std::runtime_error("sem fase");
+    }
+}
+
+TEST_CASE("Fases: o bloco dificil troca so o que escreve, e so no Dificil") {
+    const auto r = LerFases(ComDificil(R"(, "dificil": { "cooldown": 1.8, "velocidade": 230 })"));
+    CHECK(r.problemas.empty());
+    const DescricaoDeAtaque& a = PrimeiroDe(r, "StateOne");
+    REQUIRE(a.dificil.has_value());
+
+    const DescricaoDeAtaque normal = NoNivel(a, Dificuldade::Nivel::Normal);
+    CHECK(normal.cooldown == doctest::Approx(2.4f));
+    CHECK(*normal.velocidade == doctest::Approx(180.0f));
+    CHECK(*normal.projeteis == 36);
+
+    const DescricaoDeAtaque dificil = NoNivel(a, Dificuldade::Nivel::Dificil);
+    CHECK(dificil.cooldown == doctest::Approx(1.8f));
+    CHECK(*dificil.velocidade == doctest::Approx(230.0f));
+    CHECK(*dificil.projeteis == 36);          // nao escrito: o do Normal
+
+    // SEM BLOCO, o Dificil e o Normal.
+    const DescricaoDeAtaque& sem = PrimeiroDe(r, "StateFinal");
+    CHECK_FALSE(sem.dificil.has_value());
+    CHECK(NoNivel(sem, Dificuldade::Nivel::Dificil).cooldown == doctest::Approx(1.4f));
+}
+
+TEST_CASE("Fases: o bloco dificil recusa o que ninguem le") {
+    for (const char* ruim : {R"(, "dificil": { "cooldwn": 1.8 })",
+                             R"(, "dificil": { "projeteis": 0 })",
+                             R"(, "dificil": { "projeteis": 2.5 })",
+                             R"(, "dificil": { "velocidade": -3 })",
+                             R"(, "dificil": 3)"}) {
+        CAPTURE(ruim);
+        const auto r = LerFases(ComDificil(ruim));
+        CHECK_FALSE(r.problemas.empty());
+    }
+    const auto ok = LerFases(ComDificil(R"(, "dificil": { "projeteis": 40 })"));
+    CHECK(ok.problemas.empty());
+    CHECK(*NoNivel(PrimeiroDe(ok, "StateOne"), Dificuldade::Nivel::Dificil).projeteis == 40);
 }
