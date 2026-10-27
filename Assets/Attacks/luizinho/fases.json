@@ -34,7 +34,9 @@
   // bloco interno e h declaram - e as quatro buscas do estatico sao geradas
   // para ele, e a pegadinha - f no estatico e logo depois no dinamico - fecha; nos tipos, a soma do JavaScript abre, o Haskell fecha e as seis do
   // meio se embaralham; na memoria, metade das lutas roda o programa em C++
-  // antes do de Java, cada um inteiro; e na final cada rodada E GERADA - a
+  // antes do de Java, cada um inteiro, e OS NUMEROS DO PROGRAMA sao da luta
+  // (Memoria::SortearNumeros) - o tamanho de cada new, as voltas do for do
+  // Java (de 4 a 7) e o p[i] = v do ponteiro pendente; e na final cada rodada E GERADA - a
   // pilha, os catch e os finally de cada chamada e a excecao lancada -, com o
   // catch (Reprovado e) por ultimo.
   //

@@ -88,6 +88,7 @@ void Luizinho::SortearALuta() {
     {
         Variacao::Sorteio sorteio = SorteioDaFase(Memoria::kFaseDaMemoria);
         mRoteiro = Memoria::Sortear(sorteio);
+        mNumerosDaMemoria = Memoria::SortearNumeros(sorteio);
     }
     // AS RODADAS DA FINAL SAO GERADAS na hora, uma de cada vez, desta
     // sequencia (Excecao::RodadaDaLuta).
@@ -700,9 +701,9 @@ void Luizinho::DesmontarMemoria() {
 void Luizinho::ComecarPasso(const int i) {
     mPassoDaVez = i;
     const Memoria::Passo passo = PassoDaVez();
-    mEventos = Memoria::Eventos(passo, mDegrauDaMemoria);
+    mEventos = Memoria::Eventos(passo, mDegrauDaMemoria, mNumerosDaMemoria);
     mProximoEvento = 0;
-    Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(passo, false));
+    Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(passo, false, mNumerosDaMemoria));
     RegistrarLegenda(Memoria::kFaseDaMemoria, Memoria::Legenda(passo));
 
     // O PRIMEIRO PROGRAMA ACABOU: o sistema devolve a memoria dele, e o
@@ -811,7 +812,7 @@ void Luizinho::EscreverNoPendente(const Memoria::Evento& e) {
                                   Coercao::CentroDoAnel(n, AnguloAteOAluno(onde)), Coercao::AberturaDoAnel(n),
                                   mDegrauDaMemoria.rapidez);
     for (BossProjectile* c : cacos) PorCara(c, Memoria::kCaraDoEstilhaco);
-    Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(PassoDaVez(), true));
+    Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(PassoDaVez(), true, mNumerosDaMemoria));
 }
 
 void Luizinho::EstourarOsVazados() {
@@ -830,7 +831,7 @@ void Luizinho::EstourarOsVazados() {
         }
         it = mBlocos.erase(it);
     }
-    Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(PassoDaVez(), true));
+    Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(PassoDaVez(), true, mNumerosDaMemoria));
 }
 
 void Luizinho::Executar(const Memoria::Evento& e) {
@@ -842,14 +843,14 @@ void Luizinho::Executar(const Memoria::Evento& e) {
             // STOP THE WORLD: o professor e os projeteis param, e o coletor marca.
             mMundoParado = true;
             PararOMundo(true);
-            Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(PassoDaVez(), true));
+            Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(PassoDaVez(), true, mNumerosDaMemoria));
             break;
         case Memoria::Acao::Varrer:
             Coletar();
             break;
         case Memoria::Acao::Liberar:
             LiberarBloco(e.raiz);
-            Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(PassoDaVez(), true));
+            Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(PassoDaVez(), true, mNumerosDaMemoria));
             break;
         case Memoria::Acao::Escrever:
             EscreverNoPendente(e);

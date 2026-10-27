@@ -261,4 +261,26 @@ namespace Memoria {
     /// @brief A LEGENDA do passo, em portugues: o que o codigo do placar faz
     /// com o heap, e o que isso vira no campo.
     std::string Legenda(Passo p);
+    // ---- OS NUMEROS DE CADA LUTA --------------------------------------------
+
+    /**
+     * @brief Os numeros do programa: o tamanho de cada new, as voltas do for
+     * do Java, e onde e o que o p[i] = v escreve. Ate o 192 eram sempre os
+     * mesmos - new int[3], i < 6, new int[4], p[2] = 7 -, e o programa da fase
+     * 3 era o unico texto do Luizinho que nunca mudava. O placar escreve os da
+     * luta, e o heap no campo segue eles.
+     */
+    struct Numeros {
+        int noLacoJava = kNoLacoJava;     ///< for (i < n): de 4 a 7
+        int celulasDoLacoJava = 3;        ///< new int[k] no for: de 2 a 4
+        int celulasDeP = 4;               ///< int* p = new int[k]: de 3 a 5
+        int indice = 2;                   ///< p[indice]: dentro do bloco
+        int valor = 7;                    ///< = valor: de 1 a 9
+        int celulasDoLacoCpp = 4;         ///< while (1) new int[k]: de 3 a 5
+    };
+    Numeros NumerosDeSempre();
+    Numeros SortearNumeros(Variacao::Sorteio& s);
+
+    std::vector<Evento> Eventos(Passo p, const Degrau& d, const Numeros& n);
+    std::string Placar(Passo p, bool depois, const Numeros& n);
 }

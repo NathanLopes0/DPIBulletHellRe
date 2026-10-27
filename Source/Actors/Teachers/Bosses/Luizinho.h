@@ -94,6 +94,7 @@ private:
     Escopo::Plano mPlanoDoEscopo;
     std::vector<int> mOrdemDosTipos;
     Memoria::Roteiro mRoteiro = Memoria::RoteiroDeSempre();
+    Memoria::Numeros mNumerosDaMemoria = Memoria::NumerosDeSempre();
     Variacao::Sorteio mSorteioDasRodadas{0u};
 
 

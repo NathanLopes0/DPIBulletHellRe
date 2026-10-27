@@ -117,7 +117,9 @@ namespace Memoria {
 
     std::vector<Evento> Eventos(const Passo p) { return Eventos(p, Degrau{}); }
 
-    std::vector<Evento> Eventos(const Passo p, const Degrau& d) {
+    std::vector<Evento> Eventos(const Passo p, const Degrau& d) { return Eventos(p, d, NumerosDeSempre()); }
+
+    std::vector<Evento> Eventos(const Passo p, const Degrau& d, const Numeros& n) {
         std::vector<Evento> e;
         auto alocar = [&e](const float quando, const int celulas, const std::string& raiz, const bool noProx) {
             Evento ev;
@@ -145,8 +147,8 @@ namespace Memoria {
                 alocar(0.3f, 2, "a", false);
                 break;
             case Passo::LacoJava:
-                for (int k = 0; k < kNoLacoJava; ++k) {
-                    alocar(kPrimeiraAlocacao + static_cast<float>(k) * d.entreAlocacoes, 3, "", false);
+                for (int k = 0; k < n.noLacoJava; ++k) {
+                    alocar(kPrimeiraAlocacao + static_cast<float>(k) * d.entreAlocacoes, n.celulasDoLacoJava, "", false);
                 }
                 break;
             case Passo::Coleta:
@@ -154,17 +156,17 @@ namespace Memoria {
                 so(1.0f, Acao::Varrer, "", 0);
                 break;
             case Passo::NovoP:
-                alocar(0.3f, 4, "p", false);
+                alocar(0.3f, n.celulasDeP, "p", false);
                 break;
             case Passo::Libera:
                 so(0.3f, Acao::Liberar, "p", 0);
                 break;
             case Passo::Escreve:
-                so(0.5f, Acao::Escrever, "p", 2);
+                so(0.5f, Acao::Escrever, "p", n.indice);
                 break;
             case Passo::LacoCpp:
                 for (int k = 0; k < d.noLacoCpp; ++k) {
-                    alocar(kPrimeiraAlocacao + static_cast<float>(k) * d.entreAlocacoes, 4, "", false);
+                    alocar(kPrimeiraAlocacao + static_cast<float>(k) * d.entreAlocacoes, n.celulasDoLacoCpp, "", false);
                 }
                 so(kEstouro, Acao::Estourar, "", 0);
                 break;
@@ -229,7 +231,9 @@ namespace Memoria {
         return LinguagemDe(roteiro[static_cast<size_t>(i)]) != LinguagemDe(roteiro[static_cast<size_t>(i - 1)]);
     }
 
-    std::string Placar(const Passo p, const bool depois) {
+    std::string Placar(const Passo p, const bool depois) { return Placar(p, depois, NumerosDeSempre()); }
+
+    std::string Placar(const Passo p, const bool depois, const Numeros& n) {
         // \xc2\xb7 e o ponto do meio, \xc3\xaa o e circunflexo, \xc3\xa1 o a
         // agudo e \xe2\x86\x92 a seta: o MSVC nao le acento em literal.
         const std::string cabecalho = LinguagemDe(p) == Linguagem::Java
@@ -240,12 +244,19 @@ namespace Memoria {
         switch (p) {
             case Passo::NovosAeB: codigo = "No a = new No();  a.prox = new No();"; break;
             case Passo::NovoC:    codigo = "a = new No();"; break;
-            case Passo::LacoJava: codigo = "for (int i = 0; i < 6; i++) new int[3];"; break;
+            case Passo::LacoJava:
+                codigo = "for (int i = 0; i < " + std::to_string(n.noLacoJava) + "; i++) new int[" +
+                         std::to_string(n.celulasDoLacoJava) + "];";
+                break;
             case Passo::Coleta:   codigo = "System.gc();"; fim = "  // stop the world"; break;
-            case Passo::NovoP:    codigo = "int* p = new int[4];"; break;
+            case Passo::NovoP:    codigo = "int* p = new int[" + std::to_string(n.celulasDeP) + "];"; break;
             case Passo::Libera:   codigo = "delete[] p;"; fim = "  // p ainda aponta para l\xc3\xa1"; break;
-            case Passo::Escreve:  codigo = "p[2] = 7;"; fim = "  \xe2\x86\x92  comportamento indefinido"; break;
-            case Passo::LacoCpp:  codigo = "while (1) new int[4];"; fim = "  \xe2\x86\x92  bad_alloc"; break;
+            case Passo::Escreve:
+                codigo = "p[" + std::to_string(n.indice) + "] = " + std::to_string(n.valor) + ";";
+                fim = "  \xe2\x86\x92  comportamento indefinido"; break;
+            case Passo::LacoCpp:
+                codigo = "while (1) new int[" + std::to_string(n.celulasDoLacoCpp) + "];";
+                fim = "  \xe2\x86\x92  bad_alloc"; break;
         }
         return cabecalho + "\n" + codigo + (depois ? fim : "");
     }
@@ -343,5 +354,18 @@ namespace Memoria {
                        "bad_alloc.";
         }
         return "";
+    }
+
+    Numeros NumerosDeSempre() { return Numeros{}; }
+
+    Numeros SortearNumeros(Variacao::Sorteio& s) {
+        Numeros n;
+        n.noLacoJava = s.Inteiro(4, 7);
+        n.celulasDoLacoJava = s.Inteiro(2, 4);
+        n.celulasDeP = s.Inteiro(3, 5);
+        n.indice = s.Inteiro(0, n.celulasDeP - 1);
+        n.valor = s.Inteiro(1, 9);
+        n.celulasDoLacoCpp = s.Inteiro(3, 5);
+        return n;
     }
 }

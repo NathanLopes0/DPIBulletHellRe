@@ -302,3 +302,39 @@ TEST_CASE("Memoria: todo passo tem legenda, e a do delete fala do ponteiro pende
     CHECK(Memoria::Legenda(Memoria::Passo::Coleta).find("coletor") != std::string::npos);
     CHECK(Memoria::Legenda(Memoria::Passo::LacoCpp).find("bad_alloc") != std::string::npos);
 }
+
+TEST_CASE("Memoria: os numeros do programa sao sorteados por luta, e o placar e o heap seguem eles") {
+    using P = Memoria::Passo;
+    std::set<std::string> placares;
+    for (std::uint32_t semente = 0; semente < 300; ++semente) {
+        Variacao::Sorteio s = Variacao::SorteioDa(semente, Memoria::kFaseDaMemoria);
+        const Memoria::Numeros n = Memoria::SortearNumeros(s);
+        CHECK(n.noLacoJava >= 4);
+        CHECK(n.noLacoJava <= 7);
+        CHECK(n.indice >= 0);
+        CHECK(n.indice < n.celulasDeP);             // p[i] cai dentro do bloco
+        CHECK(n.valor >= 1);
+        CHECK(n.valor <= 9);
+
+        // O LACO DO JAVA aloca o que o placar diz, do tamanho que ele diz - e
+        // cabe no passo, mesmo no Dificil.
+        for (const auto nivel : {Dificuldade::Nivel::Normal, Dificuldade::Nivel::Dificil}) {
+            const auto ev = Memoria::Eventos(P::LacoJava, Memoria::DegrauDo(nivel), n);
+            REQUIRE(ev.size() == static_cast<size_t>(n.noLacoJava));
+            for (const auto& e : ev) {
+                CHECK(e.celulas == n.celulasDoLacoJava);
+                CHECK(e.quando < Memoria::Duracao(P::LacoJava));
+            }
+        }
+        CHECK(Memoria::Eventos(P::NovoP, Memoria::Degrau{}, n).front().celulas == n.celulasDeP);
+        CHECK(Memoria::Eventos(P::Escreve, Memoria::Degrau{}, n).front().indice == n.indice);
+        const std::string laco = Memoria::Placar(P::LacoJava, false, n);
+        CHECK(laco.find("i < " + std::to_string(n.noLacoJava)) != std::string::npos);
+        CHECK(laco.find("new int[" + std::to_string(n.celulasDoLacoJava) + "]") != std::string::npos);
+        placares.insert(Memoria::Placar(P::Escreve, false, n));
+    }
+    // p[i] = v MUDA DE LUTA PARA LUTA.
+    CHECK(placares.size() >= 20u);
+    // E OS NUMEROS DE SEMPRE SAO OS DE ANTES.
+    CHECK(Memoria::Placar(P::Escreve, false, Memoria::NumerosDeSempre()) == Memoria::Placar(P::Escreve, false));
+}
