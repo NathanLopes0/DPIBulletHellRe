@@ -61,6 +61,10 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Gabinete.h
         Source/Pausa.cpp
         Source/Pausa.h
+        Source/Dificuldade.cpp
+        Source/Dificuldade.h
+        Source/Configuracao.cpp
+        Source/Configuracao.h
         Source/Painel.cpp
         Source/Painel.h
         Source/Sessao.cpp
@@ -93,6 +97,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Ficha.h
         Source/FichaArquivo.cpp
         Source/FichaArquivo.h
+        Source/ConfiguracaoArquivo.cpp
+        Source/ConfiguracaoArquivo.h
         Source/Progresso.h
         Source/Caminhos.cpp
         Source/Caminhos.h
@@ -403,6 +409,7 @@ add_executable(dpi_tests
         tests/test_gabinete.cpp
         tests/test_painel.cpp
         tests/test_pausa.cpp
+        tests/test_dificuldade.cpp
         tests/test_sessao.cpp
         tests/test_ranking.cpp
         tests/test_matricula.cpp
@@ -425,6 +432,10 @@ add_executable(dpi_tests
         Source/Gabinete.h
         Source/Pausa.cpp
         Source/Pausa.h
+        Source/Dificuldade.cpp
+        Source/Dificuldade.h
+        Source/Configuracao.cpp
+        Source/Configuracao.h
         Source/Painel.cpp
         Source/Painel.h
         Source/Sessao.cpp

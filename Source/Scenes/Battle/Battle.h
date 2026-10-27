@@ -13,6 +13,7 @@
 #include "../../Game.h"
 #include "../../AudioSystem.h"
 #include "../../Pausa.h"
+#include "../../Dificuldade.h"
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
 
 #define GRADE_CHANGE_UP 0.56f
@@ -69,6 +70,15 @@ public:
      * luta e nao uma por corpo.
      */
     [[nodiscard]] const std::vector<Boss*>& Corpos() const { return mCorpos; }
+
+    /**
+     * @brief O modo desta batalha (Dificuldade.h).
+     *
+     * Lido do Game no comeco do Load, antes de o chefe nascer, e o mesmo do
+     * comeco ao fim: a tela de Opcoes nao abre no meio de uma luta. E daqui que
+     * cada chefe le o proprio degrau (Boss::NoNivel).
+     */
+    [[nodiscard]] Dificuldade::Nivel NivelDeDificuldade() const { return mNivel; }
 
     /**
      * @brief Poe um segundo corpo em campo, com os ataques da fase nomeada.
@@ -240,6 +250,14 @@ private:
     float mAvisoDeFaseLimpa{};
 
     Actor* mFaseLimpaActor = nullptr;
+
+    /// Ver NivelDeDificuldade.
+    Dificuldade::Nivel mNivel = Dificuldade::Nivel::Normal;
+
+    /// O selo DIFICIL, na ponta direita da faixa da nota. So existe no Dificil:
+    /// quem ve uma luta no corredor sabe que ela nao e a de sempre, e quem joga
+    /// sabe que a opcao ficou ligada por quem jogou antes.
+    Actor* mSeloDoNivel = nullptr;
 
     /// Quantos projeteis do chefe acertaram o jogador NESTA batalha. Zera a cada
     /// batalha junto com a nota: o teto de Nota e por batalha, nao por perfil.

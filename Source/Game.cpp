@@ -25,6 +25,7 @@
 #include "Actors/Teachers/BossFactory/AllFactories.h"
 
 #include "CaminhosArquivo.h"
+#include "ConfiguracaoArquivo.h"
 
 
 Game::Game(int windowWidth, int windowHeight, const Gabinete::Configuracao& gabinete)
@@ -130,6 +131,9 @@ void Game::LoadInitialScene()
         SDL_Log("ERRO: a pasta Assets nao foi encontrada. O jogo vai abrir sem "
                 "sprite, sem fonte e sem som, e nao vai salvar progresso.");
     }
+
+    // AS OPCOES DEPOIS DA BASE: o arquivo mora em Saves, que e relativa a ela.
+    mConfiguracao = ConfiguracaoArquivo::Carregar();
 
     InitializeBossFactory();
     ChangeScene(Scene::SceneType::MainMenu);
@@ -595,6 +599,12 @@ const std::string& Game::MatriculaDe(const size_t posicao) const {
 
 const Personagens::Aparencia& Game::AparenciaDe(const size_t posicao) const {
     return posicao < mSessoes.size() ? mSessoes[posicao].aparencia : mSessoes.front().aparencia;
+}
+
+void Game::DefinirDificuldade(const Dificuldade::Nivel nivel) {
+    if (mConfiguracao.dificuldade == nivel) return;
+    mConfiguracao.dificuldade = nivel;
+    ConfiguracaoArquivo::Gravar(mConfiguracao);
 }
 
 void Game::DefinirModoDeJogo(const Sessao::Modo modo) {

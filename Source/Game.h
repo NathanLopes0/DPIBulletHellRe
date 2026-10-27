@@ -16,6 +16,7 @@
 #include "Gabinete.h"
 #include "Painel.h"
 #include "Sessao.h"
+#include "Configuracao.h"
 
 class IBossFactory;
 class Actor;
@@ -156,6 +157,20 @@ public:
     /// muda de comportamento la - a pausa da batalha, que no gabinete nao existe
     /// (Pausa.h).
     [[nodiscard]] bool NoGabinete() const { return mGabinete.arcade; }
+
+    /**
+     * @brief O modo de dificuldade das batalhas (Dificuldade.h).
+     *
+     * E DA MAQUINA, e nao do aluno: vem de Saves/opcoes.cfg ao abrir o jogo, e
+     * a tela de Opcoes e quem o troca. A batalha o le ao carregar
+     * (Battle::NivelDeDificuldade), e cada chefe escreve o proprio degrau com
+     * Boss::NoNivel.
+     */
+    [[nodiscard]] Dificuldade::Nivel NivelDeDificuldade() const { return mConfiguracao.dificuldade; }
+
+    /// @brief Troca o modo e grava o arquivo de opcoes na hora. Se a gravacao
+    /// falhar, o modo vale ate o jogo fechar (o motivo vai para o log).
+    void DefinirDificuldade(Dificuldade::Nivel nivel);
 
     /// @brief Se a materia ja foi aprovada. A MESMA regra que o desbloqueio le,
     /// e nao uma comparacao com 60 repetida em quem desenha. Do jogador 1 (RF3).
@@ -352,6 +367,10 @@ private:
 
     /// Ver DefinirOrientador.
     int mOrientador = -1;
+
+    /// As opcoes da maquina (Configuracao.h). Lidas do disco em
+    /// LoadInitialScene, depois que a pasta base e descoberta.
+    Configuracao::Dados mConfiguracao{};
 
     bool mPendingSceneChange;
     Scene::SceneType mNextScene;

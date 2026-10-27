@@ -1,0 +1,68 @@
+//
+// O modo de dificuldade: Normal ou Dificil.
+//
+
+#pragma once
+
+#include <string>
+
+/**
+ * CAMADA PURA. Coberto por test_dificuldade.cpp.
+ *
+ * O NORMAL E O JOGO COMO ELE FOI MEDIDO: cada fase foi afinada para que o
+ * piloto que persegue passe com folga e o parado reprove (Ferramentas/), e
+ * nada aqui mexe nisso. O DIFICIL e um degrau acima, escolhido na tela de
+ * Opcoes, para quem ja tira 100 no Normal: mais coisa para desviar - mais
+ * tiros, mais depressa, menos tempo entre eles.
+ *
+ * O DEGRAU NAO E UM MULTIPLICADOR UNICO. Quase todo ataque de hoje e conduzido
+ * pelo C++ do chefe, e o tempo dele e o conceito: a palavra do Ricardo chega na
+ * porta que o placar anunciou, o pacote do Vitor chega ao roteador no RTT.
+ * Acelerar todo projetil por igual quebraria essas contas. Por isso cada chefe
+ * decide o proprio degrau, no modulo de cada fase, e pergunta aqui so QUAL
+ * valor usar (Escolher).
+ *
+ * A nota vale o mesmo nos dois modos: o Dificil e para quem quer, e nao uma
+ * exigencia do curso.
+ */
+namespace Dificuldade {
+
+    enum class Nivel { Normal, Dificil };
+
+    /// Os niveis, na ordem em que a tela de Opcoes os percorre.
+    constexpr Nivel kNiveis[] = {Nivel::Normal, Nivel::Dificil};
+    constexpr int kQuantos = static_cast<int>(sizeof(kNiveis) / sizeof(kNiveis[0]));
+
+    /// Como o nivel se chama na tela, em maiusculas: "NORMAL", "DIFICIL" (com
+    /// acento, em UTF-8 - a Zelda tem o I agudo).
+    const char* Nome(Nivel n);
+
+    /// A COR DO DIFICIL na tela (r, g, b de 0 a 1): o selo da batalha e o valor
+    /// na tela de Opcoes sao a mesma coisa, e tem de se reconhecer. Um vermelho
+    /// claro, que le como aviso e nao se confunde com o dourado do TESTE FINAL
+    /// nem com o verde da FASE LIMPA.
+    constexpr float kCorDoDificil[3] = {1.0f, 0.42f, 0.36f};
+
+    /// Uma linha que diz o que o nivel muda, para a tela de Opcoes.
+    const char* Descricao(Nivel n);
+
+    /// Como o nivel e escrito no arquivo de opcoes: "normal", "dificil". Sem
+    /// acento de proposito - o arquivo pode ser editado a mao em qualquer
+    /// editor, e a chave nao pode depender da codificacao dele.
+    const char* Chave(Nivel n);
+
+    /// O nivel de uma chave do arquivo. Devolve false (e nao mexe em `saida`)
+    /// quando a chave nao e de nenhum nivel.
+    bool DeChave(const std::string& chave, Nivel& saida);
+
+    /// Anda `passo` niveis, dando a volta nas pontas - com dois niveis, para
+    /// qualquer lado e trocar.
+    Nivel Mover(Nivel n, int passo);
+
+    /// O valor do nivel: `normal` no Normal, `dificil` no Dificil. E por aqui
+    /// que cada chefe escreve o proprio degrau, ao lado do valor de sempre.
+    template <typename T>
+    T Escolher(const Nivel n, const T normal, const T dificil) {
+        return n == Nivel::Dificil ? dificil : normal;
+    }
+}

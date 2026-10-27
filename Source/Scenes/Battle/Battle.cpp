@@ -41,7 +41,7 @@
 // O pool CRESCE sozinho quando falta
 // (Acquire cria um novo se estiver vazio), entao este numero e so uma
 // otimizacao de partida, nunca um limite de projeteis simultaneos. 
-static constexpr int kProjectilePrewarmCountPerType = 200;
+static constexpr int kProjectilePrewarmCountPerType = 300;
 
 namespace {
 
@@ -88,6 +88,9 @@ void Battle::Load() {
     mAcertosNaFase = 0;
     mPrimeiraFase = true;
     mAvisoDeFaseLimpa = 0.0f;
+
+    // O MODO ANTES DO CHEFE: a fabrica e o chefe podem perguntar por ele.
+    mNivel = mGame->NivelDeDificuldade();
 
     // 2. Criar os atores principais
     LoadPlayer();
@@ -369,6 +372,25 @@ void Battle::LoadGradeBar() {
 
     mFaseLimpaActor = limpaActor.get();
     this->AddActor(std::move(limpaActor));
+
+    // O SELO DO DIFICIL, na ponta direita da faixa: entre a placa de FASE LIMPA
+    // (que vai ate 3/4 da largura mais meia placa) e o fim da barra. Aceso a
+    // luta inteira, sem piscar - e um aviso de modo, e nao um acontecimento.
+    if (mNivel == Dificuldade::Nivel::Dificil) {
+        auto selo = std::make_unique<Actor>(this);
+        selo->AddComponent<DrawCaixaComponent>(
+            kPlacaLargura, kPlacaAltura, kSemMoldura, kFundoDaPlaca, 0, kOrdemDaPlaca);
+        auto texto = selo->AddComponent<DrawTextComponent>(
+            Dificuldade::Nome(mNivel), mGradeBarFont.get(), kPlacaLargura, tamanhoDaNota + 8,
+            tamanhoDaNota, 304);
+        texto->SetAjustarAoTexto(true);
+        texto->SetColor(Vector3(Dificuldade::kCorDoDificil[0], Dificuldade::kCorDoDificil[1],
+                                Dificuldade::kCorDoDificil[2]));
+        selo->SetPosition(Vector2(static_cast<float>(windowWidth - kBarraMargemLateral - kPlacaLargura / 2 - 8),
+                                  textPosY));
+        mSeloDoNivel = selo.get();
+        this->AddActor(std::move(selo));
+    }
 }
 void Battle::LoadPlacar() {
 

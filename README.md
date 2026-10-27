@@ -39,6 +39,12 @@ escritos na tela.
 
 O que cada botão faz **na tela em que você está** fica escrito no rodapé dela.
 
+Na tela de **Opções**, do menu principal, fica a **dificuldade**: **Normal**, as
+fases como foram medidas, ou **Difícil**, um degrau acima para quem já tira 100
+— mais coisa para desviar. A nota vale o mesmo nos dois, e a batalha no Difícil
+mostra o selo **DIFÍCIL** na ponta da faixa da nota. A opção é da máquina, e não
+do aluno: vale para todos que jogarem ali até alguém trocar.
+
 Uma partida começa pela matrícula. **Novo Jogo** registra uma matrícula que
 ainda não existe e leva à criação de personagem; **Carregar Perfil** abre uma que
 já existe e traz de volta a aparência escolhida. Dá para jogar sem se
@@ -91,6 +97,8 @@ Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
 - **`<matrícula>.json`** — uma ficha por aluno: aparência do personagem, recorde
   e última nota de cada matéria, com data. A nota vai para o disco **uma vez, no
   fim da batalha**, e não durante.
+- **`opcoes.cfg`** — as opções da máquina (hoje, a dificuldade), em
+  `chave=valor`. A tela de Opções o escreve na hora em que algo muda.
 - **`notas.csv`** — a planilha do professor, com uma linha por aluno-matéria.
   É regravada a cada batalha, então está sempre em dia e ninguém precisa lembrar
   de exportar. Ela é **derivada** das fichas: apagá-la não perde nada.
@@ -211,7 +219,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 913 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 921 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha — e também **leem os arquivos de
 `Assets/` de verdade**, quebrando ao primeiro erro de digitação num JSON. Um

@@ -275,6 +275,11 @@ Vector2 Boss::GetPredictedPlayerDirection(const float leadTime) const {
     return Vector2(0.0f, 1.0f);
 }
 
+Dificuldade::Nivel Boss::NivelDeDificuldade() const {
+    if (const auto* batalha = dynamic_cast<const Battle*>(mScene)) return batalha->NivelDeDificuldade();
+    return Dificuldade::Nivel::Normal;
+}
+
 void Boss::Disparar(const std::string& gatilho, const int alvo) {
     if (gatilho.empty()) return;
     const auto* fsm = GetComponent<FSMComponent>();

@@ -18,6 +18,7 @@
 #include "../../Attacks/IAttackStrategy.h"
 #include "../../Attacks/AttackParameters/AttackParams.h"
 #include "Bosses/BossesProjectiles/BossProjectile.h"
+#include "../../Dificuldade.h"
 
 class IMovementStrategy;
 class FSMComponent;
@@ -241,6 +242,20 @@ public:
     /// @brief A fase em que o chefe esta AGINDO - a mesma que escolhe o
     /// movimento e os ataques do quadro. Vazio antes do primeiro OnUpdate.
     [[nodiscard]] const std::string& FaseAtual() const { return mLastStateName; }
+
+    /**
+     * @brief O modo da batalha em que o chefe luta (Battle::NivelDeDificuldade).
+     * Normal fora de uma Battle - nos testes, por exemplo.
+     */
+    [[nodiscard]] Dificuldade::Nivel NivelDeDificuldade() const;
+
+    /// O valor do modo da batalha: `normal` no Normal, `dificil` no Dificil. E
+    /// como cada chefe escreve o proprio degrau (Dificuldade.h): ao lado do
+    /// valor de sempre, e nao num multiplicador que ninguem le junto com ele.
+    template <typename T>
+    [[nodiscard]] T NoNivel(const T normal, const T dificil) const {
+        return Dificuldade::Escolher(NivelDeDificuldade(), normal, dificil);
+    }
 
     /**
      * @brief Este corpo e o SEGUNDO, e nao o original?

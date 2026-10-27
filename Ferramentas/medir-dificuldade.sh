@@ -18,6 +18,9 @@
 # DPI_ORIENTADOR o codigo da materia do orientador do TCC (INF213, ...): a
 #                batalha que pede orientacao nasce com ele, como se tivesse
 #                sido escolhido na tela de escolha
+# DPI_DIFICIL    a batalha no modo Dificil (Dificuldade.h). Sem ela, Normal -
+#                SEMPRE: o Saves/opcoes.cfg da maquina nao decide o modo de
+#                uma medida
 # DPI_ESTADO     a fase em que o chefe comeca (StateTwo, StateFinal, ...): mede
 #                ou fotografa uma fase sozinha. Toda batalha comeca com a nota
 #                inicial (40), e StateThree a decide - a StateFinal sozinha mede
@@ -73,6 +76,10 @@ edit("Source/Game.cpp", "    ChangeScene(Scene::SceneType::MainMenu);",
         if (const char* o = std::getenv("DPI_ORIENTADOR")) {
             DefinirOrientador(Materias::Carregadas().IndiceDe(o));
         }
+        // O MODO E SEMPRE ESCRITO, e no membro (DefinirDificuldade gravaria o
+        // arquivo de opcoes da copia).
+        mConfiguracao.dificuldade = std::getenv("DPI_DIFICIL") ? Dificuldade::Nivel::Dificil
+                                                               : Dificuldade::Nivel::Normal;
         ChangeScene(Scene::SceneType::Battle);
     } else
     ChangeScene(Scene::SceneType::MainMenu);""")
