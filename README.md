@@ -173,8 +173,10 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   rodando o Blink.
 - **Júlio — INF 420.** Inteligência artificial, e a batalha é um modelo de
   linguagem. Na primeira fase ele gera a frase "o mo de lo te pre diz" token a
-  token, com temperatura: fria, a frase vem em fila; quente, ela alucina num
-  leque. Na segunda convoca agentes que trabalham no ciclo ReAct — pensam,
+  token, cada um nascendo na ponta da frase com um leque que mostra as chances
+  do próximo: fria, a frase é uma curva lisa que vem na sua direção; quente,
+  ela ziguezagueia e alucina, passando do fim. Na segunda
+ convoca agentes que trabalham no ciclo ReAct — pensam,
   agem mandando a ferramenta em você e observam. Na terceira ganha guardrails
   que comem o seu tiro, e o modelo te prediz de verdade: mira onde você **vai
   estar**. No exame, o modelo degenerou em repetição e só gera "e".
@@ -270,7 +272,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 1001 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 1006 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha — e também **leem os arquivos de
 `Assets/` de verdade**, quebrando ao primeiro erro de digitação num JSON. Um

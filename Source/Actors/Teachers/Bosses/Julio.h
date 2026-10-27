@@ -7,6 +7,7 @@
 #include <string>
 
 #include "../Boss.h"
+#include "../../../Attacks/Geracao.h"
 #include "../../../Attacks/ReAct.h"
 #include "../../../Attacks/Temperatura.h"
 
@@ -15,8 +16,9 @@
  * @brief Boss da matéria INF 420.
  *
  * Tema: um MODELO DE LINGUAGEM, a área do professor. A fase 1 é a geração de
- * tokens com temperatura (TokenAttack, Temperatura.h): o professor solta
- * frases, token por token, sorteadas em volta da mira. A fase 2 são os
+ * tokens com temperatura (Geracao.h): cada frase se escreve um token de cada
+ * vez, cada um nascendo na ponta dela, no rumo sorteado. A fase 2 são os
+
  * AGENTES: robôs que ele convoca e que agem por ele no ciclo ReAct (ReAct.h) —
  * o relógio do ciclo e o placar moram aqui. A fase 3 são os GUARDRAILS: o
  * anel de robôs-escudo que barra o tiro, e o placar que recusa ("desculpe, não
@@ -84,6 +86,50 @@ private:
     Variacao::Sorteio mSorteioDosAgentes{0u};
 
     static constexpr const char* kFaseDosTokens = "StateOne";
+
+    // ---- A GERACAO DA FASE 1 (Geracao.h) -------------------------------------
+    //
+    // Cada frase e gerada um token de cada vez, e cada token nasce na PONTA da
+    // frase, no rumo sorteado com a temperatura da etapa. Da ponta sai, a cada
+    // token, o leque da distribuicao: um raio por candidato, mais aceso quanto
+    // mais provavel - a temperatura desenhada.
+
+    void AtualizarTokens(float deltaTime);
+
+    struct Frase {
+        Vector2 ponta;          ///< onde esta o ultimo token gerado
+        float rumo = 90.0f;     ///< o rumo dele, em graus
+        int feitos = 0;
+        int total = Geracao::kTokensDaFrase;
+        float relogio = 0.0f;   ///< ate o proximo token
+    };
+    std::vector<Frase> mFrases;
+    float mProximaFrase = 0.0f;
+    bool mNosTokens = false;
+    Geracao::Degrau mDegrauDaGeracao;
+
+    struct Raio {
+        Vector2 de;
+        float rumo = 0.0f;
+        float peso = 0.0f;      ///< a chance, relativa a do mais provavel
+        bool escolhido = false;
+        float idade = 0.0f;
+    };
+    std::vector<Raio> mRaios;
+    class DrawLinhasComponent* mDistribuicao = nullptr;
+
+    /// O disparo de UM token, na ponta: CustomizeAttackParams le daqui.
+    bool mGerando = false;
+    Vector2 mOndeGerar;
+    float mRumoAGerar = 90.0f;
+    float mVelocidadeDoToken = 300.0f;
+    std::vector<class BossProjectile*> mGerados;
+
+    static constexpr const char* kGatilhoDoToken = "token";
+    static constexpr float kPrimeiraFrase = 1.0f;
+    static constexpr float kVidaDoRaio = 0.35f;
+    static constexpr float kTamanhoDoRaio = 70.0f;
+
 
     /// O ciclo dos agentes num quadro: o relogio, o gatilho do Age e o placar.
     void AtualizarAgentes(float deltaTime);

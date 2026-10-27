@@ -41,7 +41,7 @@
 //
 // Julio SOBRESCREVE anguloCentral nas QUATRO fases (Julio.cpp), e cada uma de
 // um jeito diferente:
-//   StateOne    mira exata no aluno - quem desvia e a temperatura dos tokens
+//   StateOne    cada token nasce na ponta da frase, no rumo sorteado (Geracao.h)
 //   StateTwo    nao mexe: os agentes saem no leque daqui, e cada um mira por si
 //   StateThree  mira em onde o aluno ESTARA (GetPredictedPlayerDirection)
 //   StateFinal  mira exata no aluno - as frases de "e" vem para cima dele
@@ -57,7 +57,7 @@
 // se decora.
 //
 // NO DIFICIL o modelo roda mais quente - fria de 0,3 a 0,5, morna de 0,9 a
-// 1,3, quente de 1,8 a 2,2 -, e a frase sai a cada 1,5 s, a 350 px/s; o agente
+// 1,3, quente de 1,8 a 2,2 -, e a frase sai a cada 1,75 s, a 320 px/s; o agente
 // pensa 0,8 s e observa 0,5 s (ReAct::Degrau), e cada um manda um leque de
 // CINCO ferramentas em 26 graus; a previsao da fase 3 sai em pares, a cada 0,3
 // s, com antecipacao de 0,97 (e nao 0,85) e temperatura 0,4 abrindo o par; e o
@@ -78,30 +78,33 @@
 
   // FASE 1 - OS TOKENS   |   "o modelo te prediz"
   //
-  // O PROFESSOR E UM MODELO DE LINGUAGEM GERANDO TEXTO. A cada 2 s ele solta
-  // uma FRASE de sete tokens (TokenAttack), um saindo depois do outro: "o mo
-  // de lo te pre diz" - o modelo te prediz -, cada token num chip
-  // (Ferramentas/gerar_julio.py). A frase sai mirada onde o aluno estava.
+  // O PROFESSOR E UM MODELO DE LINGUAGEM GERANDO TEXTO, um token de cada vez -
+  // e cada um depende do anterior (Geracao.h, Julio::AtualizarTokens). A cada
+  // 2 s (1,75 no Dificil) ele comeca uma FRASE, "o mo de lo te pre diz" - o
+  // modelo te prediz -, e cada token nasce A FRENTE DO ANTERIOR, na ponta da
+  // frase, num rumo sorteado com a temperatura da etapa em volta do rumo do
+  // anterior virado um pouco para o aluno. A frase vira uma cobra de texto que
+  // se escreve pelo campo e se curva atras dele.
   //
-  // CADA TOKEN E SORTEADO COM TEMPERATURA (Temperatura.h): os candidatos sao
-  // nove angulos em volta da mira, e o mais provavel e o tiro certo. O placar
-  // diz a temperatura de cada etapa:
+  // E A DISTRIBUICAO APARECE: a cada token sai da ponta um leque de raios,
+  // um por candidato, mais aceso quanto mais provavel. O placar diz a
+  // temperatura de cada etapa, e o leque mostra o que ela faz:
   //
-  //   Fria    0,2  sai sempre o mais provavel: a frase chega inteira, em fila
-  //   Morna   0,8  a frase se abre num leque
-  //   Quente  1,6  qualquer angulo sai - a frase vira alucinacao
+  //   Fria    0,2  um raio so aceso: a frase e uma curva lisa que vem na
+  //                direcao do aluno, e um passo para o lado a desvia
+  //   Morna   0,8  a frase ziguezagueia
+  //   Quente  1,6  todos os raios acesos, e a frase alucina - e passa do
+  //                "diz": a quente tem tokens a mais (Geracao::TokensDaFrase)
   //
-  // Fria, a fila inteira vem num lugar so, e um passo para o lado desvia de
-  // tudo; quente, o leque pega quem desviou. Medido com um piloto que
-  // ziguezagueia, virando a cada 0,6, 1,0 e 1,5 s: nas etapas morna e quente
-  // ele levou 4, 2 e 3 acertos, e com a temperatura desligada - todo token
-  // mirado - 1, 1 e 2. Quem nao desvia leva o mesmo nas duas: o parado, 9.
-  //
-  // EM FRASES, E NAO EM FLUXO. Com um token a cada 0,12 s o piloto que
-  // persegue o professor - e fica embaixo dele, onde a mira cai - levava um
-  // acerto toda vez que a invencibilidade acabava: 8 na fase, os tres
-  // primeiros a 1,2 s um do outro. Em frases de sete a cada 2 s, ele leva 5 e
-  // termina a fase com 74,8; o parado leva 9 e cai para 17,4.
+  // ERA UMA RAJADA, e era sem graca. Ate o 187 a frase inteira saia do
+  // professor, os sete tokens um atras do outro no mesmo ponto, mirados ou
+  // abertos num leque pela temperatura. Medido na batalha inteira, a fase
+  // nova pesa mais: o piloto que persegue toma de 4 a 10 acertos nela, e o que
+  // desvia de 1 a 6 (antes, nenhum); a batalha deixa o primeiro com 69 a 78 e
+  // o segundo com 88 a 96. No Dificil, com a frase a cada 1,5 s e a 350 px/s,
+  // o que desvia tomava de 7 a 11 e reprovava uma luta em tres: a 1,75 s e 320
+  // px/s ele passa nas cinco medidas, com 67 a 79, e o que so persegue reprova
+  // nas cinco.
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
@@ -113,21 +116,9 @@
     ],
     "movimento": { "tipo": "RandomWander", "a": 3.5, "b": 115 },
     "ataques": [
-      { "etapa": "Fria", "estrategia": "TokenAttack", "projetil": "Token",
-        "projeteis": 7, "velocidade": 300, "intervalo": 0.07, "cooldown": 2.0,
-        "dificil": { "cooldown": 1.5, "velocidade": 350 },
-        "tokens": { "temperatura": 0.2, "candidatos": 9, "abertura": 120,
-                    "frase": ["o", "mo", "de", "lo", "te", "pre", "diz"] } },
-      { "etapa": "Morna", "estrategia": "TokenAttack", "projetil": "Token",
-        "projeteis": 7, "velocidade": 300, "intervalo": 0.07, "cooldown": 2.0,
-        "dificil": { "cooldown": 1.5, "velocidade": 350 },
-        "tokens": { "temperatura": 0.8, "candidatos": 9, "abertura": 120,
-                    "frase": ["o", "mo", "de", "lo", "te", "pre", "diz"] } },
-      { "etapa": "Quente", "estrategia": "TokenAttack", "projetil": "Token",
-        "projeteis": 7, "velocidade": 300, "intervalo": 0.07, "cooldown": 2.0,
-        "dificil": { "cooldown": 1.5, "velocidade": 350 },
-        "tokens": { "temperatura": 1.6, "candidatos": 9, "abertura": 120,
-                    "frase": ["o", "mo", "de", "lo", "te", "pre", "diz"] } }
+      { "gatilho": "token", "estrategia": "WaveAttack", "projetil": "Token",
+        "projeteis": 1, "velocidade": 300, "angulo": 0, "intervalo": 0,
+        "dificil": { "velocidade": 320 } }
     ]
   },
 

@@ -10,6 +10,18 @@
 
 #include "../../../Attacks/AttackParameters/TokenAttackParams.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
+#include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "../../../Components/DrawComponents/DrawLinhasComponent.h"
+#include "../../../Random.h"
+#include "../../../Scenes/Scene.h"
+
+#include "BossesProjectiles/BossProjectile.h"
+
+namespace {
+    /// A frase do modelo, um token por silaba: "o modelo te prediz".
+    const char* const kFrase[] = {"o", "mo", "de", "lo", "te", "pre", "diz"};
+    constexpr int kSilabas = 7;
+}
 
 Julio::Julio(Scene* scene) : Boss(scene)
 {
@@ -18,6 +30,7 @@ Julio::Julio(Scene* scene) : Boss(scene)
 void Julio::SortearALuta() {
     mLutaSorteada = true;
     mDegrauDosAgentes = ReAct::DegrauDo(NivelDeDificuldade());
+    mDegrauDaGeracao = Geracao::DegrauDo(NivelDeDificuldade());
     mSorteioDosAgentes = SorteioDaFase(kFaseDosAgentes);
 
     // A FASE 1: cada etapa com a sua temperatura, e o placar dela dizendo o
@@ -44,6 +57,7 @@ int Julio::EtapaDosTokens() const {
 void Julio::OnUpdate(const float deltaTime) {
     if (!mLutaSorteada && !EhClone()) SortearALuta();
     Boss::OnUpdate(deltaTime);
+    AtualizarTokens(deltaTime);
     AtualizarAgentes(deltaTime);
     AtualizarGuardrails(deltaTime);
     AtualizarLoop();
@@ -64,6 +78,111 @@ void Julio::OnProjetilDerrubado() {
     if (!NosGuardrails()) return;
     mFalaDoGuardrail = kJailbreak;
     mTempoDaFala = kTempoDaFala;
+}
+
+void Julio::AtualizarTokens(const float deltaTime) {
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool nosTokens = fsm && fsm->GetStateName() == kFaseDosTokens && !EhClone();
+
+    if (!nosTokens) {
+        if (mNosTokens) {
+            mFrases.clear();
+            mRaios.clear();
+            if (mDistribuicao) mDistribuicao->Limpar();
+        }
+        mNosTokens = false;
+        return;
+    }
+    if (!mNosTokens) {
+        mNosTokens = true;
+        mProximaFrase = kPrimeiraFrase;
+        if (!mDistribuicao) {
+            auto ator = std::make_unique<Actor>(mScene);
+            mDistribuicao = ator->AddComponent<DrawLinhasComponent>(92);
+            mScene->AddActor(std::move(ator));
+        }
+    }
+
+    auto anguloDe = [](const Vector2& dir) { return Math::ToDegrees(Math::Atan2(dir.y, dir.x)); };
+    const float temperatura = mTemperaturas[static_cast<std::size_t>(EtapaDosTokens())];
+
+    // UMA FRASE NOVA a cada entreFrases, saindo do professor mirada no aluno.
+    mProximaFrase -= deltaTime;
+    if (mProximaFrase <= 0.0f) {
+        mProximaFrase += mDegrauDaGeracao.entreFrases;
+        Frase f;
+        f.ponta = GetPosition();
+        f.rumo = anguloDe(GetDirectionToPlayer());
+        f.total = Geracao::TokensDaFrase(temperatura);
+        mFrases.push_back(f);
+    }
+
+    // CADA FRASE ANDA: a ponta segue o ultimo token, e a cada kEntreTokens
+    // nasce o proximo, sorteado em volta do rumo dele virado para o aluno.
+    const Vector2 aluno = GetPosition() + GetDirectionToPlayer() * GetDistanceToPlayer();
+    for (Frase& f : mFrases) {
+        if (f.feitos > 0) {
+            const float r = Math::ToRadians(f.rumo);
+            f.ponta += Vector2(Math::Cos(r), Math::Sin(r)) * (mVelocidadeDoToken * deltaTime);
+        }
+        f.relogio -= deltaTime;
+        if (f.relogio > 0.0f || f.feitos >= f.total) continue;
+        f.relogio += Geracao::kEntreTokens;
+
+        const float aoAlvo = anguloDe(aluno - f.ponta);
+        const Geracao::Passo passo = (f.feitos == 0)
+            ? Geracao::Passo{{f.rumo}, {1.0f}, 0}     // o primeiro sai mirado
+            : Geracao::Proximo(f.rumo, aoAlvo, temperatura, Random::GetFloatRange(0.0f, 1.0f));
+
+        // O LEQUE DA DISTRIBUICAO, saindo da ponta.
+        float maior = 0.0f;
+        for (const float p : passo.probabilidades) maior = std::max(maior, p);
+        for (std::size_t k = 0; k < passo.rumos.size() && maior > 0.0f; ++k) {
+            mRaios.push_back(Raio{f.ponta, passo.rumos[k], passo.probabilidades[k] / maior,
+                                  static_cast<int>(k) == passo.escolhido, 0.0f});
+        }
+
+        // O TOKEN, A FRENTE DA PONTA, no rumo sorteado - o primeiro sai do
+        // professor. A ponta passa a ser ele.
+        f.rumo = passo.Rumo();
+        if (f.feitos > 0) {
+            const float r = Math::ToRadians(f.rumo);
+            f.ponta += Vector2(Math::Cos(r), Math::Sin(r)) * Geracao::kPasso;
+        }
+        mGerando = true;
+        mOndeGerar = f.ponta;
+
+        mRumoAGerar = f.rumo;
+        mGerados.clear();
+        Disparar(kGatilhoDoToken);
+        mGerando = false;
+
+        // A SILABA: a frase em ordem, e o que passa do fim e alucinacao - uma
+        // silaba qualquer da frase.
+        const int silaba = (f.feitos < kSilabas) ? f.feitos : Random::GetIntRange(0, kSilabas - 1);
+        for (BossProjectile* p : mGerados) {
+            if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(kFrase[silaba]);
+        }
+        ++f.feitos;
+    }
+    mFrases.erase(std::remove_if(mFrases.begin(), mFrases.end(),
+        [](const Frase& f) { return f.feitos >= f.total; }), mFrases.end());
+
+    // OS RAIOS SE APAGAM em kVidaDoRaio.
+    for (Raio& r : mRaios) r.idade += deltaTime;
+    mRaios.erase(std::remove_if(mRaios.begin(), mRaios.end(),
+        [](const Raio& r) { return r.idade >= kVidaDoRaio; }), mRaios.end());
+    if (!mDistribuicao) return;
+    mDistribuicao->Limpar();
+    for (const Raio& r : mRaios) {
+        const float vida = 1.0f - r.idade / kVidaDoRaio;
+        const auto alfa = static_cast<Uint8>((40.0f + 215.0f * r.peso) * vida);
+        const float a = Math::ToRadians(r.rumo);
+        const float tamanho = kTamanhoDoRaio * (0.45f + 0.55f * r.peso);
+        const Vector2 ate = r.de + Vector2(Math::Cos(a), Math::Sin(a)) * tamanho;
+        const SDL_Color cor = r.escolhido ? SDL_Color{240, 250, 255, alfa} : SDL_Color{110, 200, 230, alfa};
+        mDistribuicao->Acrescentar(r.de, ate, cor);
+    }
 }
 
 void Julio::AtualizarLoop() {
@@ -158,14 +277,12 @@ void Julio::CustomizeAttackParams(AttackParams& params, const std::string& state
     };
 
     if (stateName == "StateOne") {
-        // OS TOKENS SAEM MIRADOS NO ALUNO: o mais provavel e o tiro certo. Quem
-        // os desvia e a temperatura, sorteando entre os candidatos em volta da
-        // mira (TokenAttack, Temperatura.h) - e nao um ruido daqui.
-        params.centralAngle = anguloDe(GetDirectionToPlayer());
-
-        // E A TEMPERATURA E A DA ETAPA NESTA LUTA - a que o placar diz.
-        if (auto* tokens = dynamic_cast<TokenAttackParams*>(&params)) {
-            tokens->temperatura = mTemperaturas[static_cast<std::size_t>(EtapaDosTokens())];
+        // O TOKEN NASCE NA PONTA DA FRASE, no rumo que AtualizarTokens
+        // sorteou com a temperatura da etapa (Geracao.h) - e nao no professor.
+        if (mGerando) {
+            params.firePosition = mOndeGerar;
+            params.centralAngle = mRumoAGerar;
+            mVelocidadeDoToken = params.projectileSpeed;
         }
     }
     // A FASE 2 NAO MEXE NA MIRA: os agentes saem no leque escrito em fases.json,
@@ -207,6 +324,12 @@ void Julio::CustomizeAttackParams(AttackParams& params, const std::string& state
 void Julio::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
                                  const std::string& stateName) {
     Boss::OnProjectilesCreated(projectiles, stateName);
+    if (mGerando) {
+        for (auto& p : projectiles) {
+            if (auto* b = dynamic_cast<BossProjectile*>(p.get())) mGerados.push_back(b);
+        }
+    }
+
 
     // O LOOP NO PLACAR: na final, cada disparo poe mais um "e" - o modelo
     // repetindo a mesma palavra, ate encher o placar.

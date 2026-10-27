@@ -171,6 +171,7 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Ancora.cpp
         Source/Attacks/Ancora.h
         Source/Attacks/Temperatura.cpp
+        Source/Attacks/Geracao.cpp
         Source/Attacks/Temperatura.h
         Source/Attacks/ReAct.cpp
         Source/Attacks/ReAct.h
@@ -370,6 +371,7 @@ add_executable(dpi_tests
         tests/test_observer.cpp
         tests/test_ancora.cpp
         tests/test_temperatura.cpp
+        tests/test_geracao.cpp
         tests/test_react.cpp
         tests/test_nuvem.cpp
         tests/test_semaforo.cpp
@@ -496,6 +498,7 @@ add_executable(dpi_tests
         Source/Attacks/Ancora.cpp
         Source/Attacks/Ancora.h
         Source/Attacks/Temperatura.cpp
+        Source/Attacks/Geracao.cpp
         Source/Attacks/Temperatura.h
         Source/Attacks/ReAct.cpp
         Source/Attacks/ReAct.h
