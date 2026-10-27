@@ -10,6 +10,8 @@
 #include <vector>
 
 #include "Fase.h"
+#include "../Dificuldade.h"
+#include "../Variacao.h"
 
 /**
  * CAMADA PURA.
@@ -154,7 +156,7 @@ namespace Filosofos {
     /// O cerco de uma espera: kPorAresta pontos de um filosofo ao outro, sem
     /// as pontas (que sao os filosofos).
     constexpr int kPorAresta = 5;
-    std::vector<Ponto> Cerco(int de, int para, float largura);
+    std::vector<Ponto> Cerco(int de, int para, float largura, int porAresta = kPorAresta);
 
     /// As velocidades: a da garfada e a do arquivo (um teste confere); a do
     /// estouro do cerco e a que o Vitor da a cada espera quando o ciclo quebra.
@@ -176,4 +178,48 @@ namespace Filosofos {
     /// a espera circular no deadlock ("deadlock · espera circular"), e o
     /// kill -9 da vitima.
     std::string Placar(Rodada r, const Mesa& m);
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA (Variacao.h) ---------------------
+
+    /**
+     * @brief O jantar desta batalha.
+     *
+     * A HISTORIA TEM ORDEM: o jantar sem briga abre, o deadlock vem em
+     * seguida, e as duas solucoes - a ordem pelo menor garfo e o garcom - vem
+     * depois dele, em qualquer ordem. Quem se senta a mesa e outro a cada luta
+     * (cinco de kPensadores, em lugares sorteados), e o jantar e a ordem
+     * comecam de outro lugar da mesa (Rodar): quem come primeiro, e quem e o
+     * ultimo na ordem dos garfos. No deadlock e no garcom quem o professor
+     * escolhe ja muda sozinho - e o filosofo mais perto do aluno.
+     */
+    struct Plano {
+        std::array<Rodada, kRodadas> rodadas{};
+        std::array<std::string, kFilosofos> nomes{};
+        int giro = 0;                  ///< de quantos lugares o jantar e a ordem andam
+    };
+    Plano PlanoDeSempre();
+    Plano Sortear(Variacao::Sorteio& s);
+
+    /// Os pensadores que podem se sentar a mesa.
+    constexpr int kPensadores = 10;
+    std::string Pensador(int i);
+
+    /// @brief O roteiro com todos andando 'giro' lugares em volta da mesa (e
+    /// os garfos junto): o mesmo jantar, comecando de outro lugar.
+    std::vector<Passo> Rodar(std::vector<Passo> passos, int giro);
+
+    /// O placar com os nomes desta luta.
+    std::string Placar(Rodada r, const Mesa& m, const Plano& p);
+
+    // ---- O DEGRAU (Dificuldade.h) -----------------------------------------------
+
+    /// O que o Dificil muda: quem come da garfadas mais seguidas e mais
+    /// rapidas, e o cerco do deadlock e mais cheio e estoura mais depressa.
+    struct Degrau {
+        float entreGarfadas = kEntreGarfadas;
+        float rapidez = 1.0f;          ///< da garfada
+        int porAresta = kPorAresta;
+        float velocidadeDoEstouro = kVelocidadeDoEstouro;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

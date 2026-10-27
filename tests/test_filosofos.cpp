@@ -5,6 +5,7 @@
 #include "doctest.h"
 
 #include <cmath>
+#include <cstdint>
 #include <set>
 
 #include "../Source/Attacks/Filosofos.h"
@@ -175,4 +176,109 @@ TEST_CASE("Filosofos: os textos") {
     Mesa morta = MesaPosta();
     Aplicar(morta, {0.0f, 3, Acao::Morre});
     CHECK(Placar(Rodada::Deadlock, morta) == "kill -9 Kant");
+}
+
+// ---- A VARIACAO E O DEGRAU ---------------------------------------------------
+
+TEST_CASE("Filosofos: o plano de sempre e o jantar de sempre") {
+    const Plano p = PlanoDeSempre();
+    for (int k = 0; k < kRodadas; ++k) CHECK(p.rodadas[static_cast<size_t>(k)] == RodadaDaVez(k));
+    for (int f = 0; f < kFilosofos; ++f) CHECK(p.nomes[static_cast<size_t>(f)] == Nome(f));
+    CHECK(p.giro == 0);
+    // O placar com o plano de sempre e o placar de sempre.
+    Mesa m = MesaPosta();
+    for (const Passo& passo : Roteiro(Rodada::Jantar, 0)) {
+        REQUIRE(Aplicar(m, passo));
+        CHECK(Placar(Rodada::Jantar, m, p) == Placar(Rodada::Jantar, m));
+    }
+}
+
+TEST_CASE("Filosofos: a historia tem ordem - o jantar, o deadlock, e as duas solucoes em qualquer ordem") {
+    std::set<std::string> sentaram;
+    std::set<int> giros;
+    int ordemPrimeiro = 0;
+    constexpr int kSementes = 400;
+    for (std::uint32_t semente = 0; semente < kSementes; ++semente) {
+        CAPTURE(semente);
+        Variacao::Sorteio s(semente);
+        const Plano p = Sortear(s);
+        CHECK(p.rodadas[0] == Rodada::Jantar);
+        CHECK(p.rodadas[1] == Rodada::Deadlock);
+        const bool ordem = p.rodadas[2] == Rodada::Ordem;
+        CHECK((ordem ? p.rodadas[3] == Rodada::Garcom
+                     : (p.rodadas[2] == Rodada::Garcom && p.rodadas[3] == Rodada::Ordem)));
+        ordemPrimeiro += ordem ? 1 : 0;
+
+        // CINCO PENSADORES DIFERENTES, da lista.
+        std::set<std::string> mesa(p.nomes.begin(), p.nomes.end());
+        CHECK(mesa.size() == static_cast<size_t>(kFilosofos));
+        for (const std::string& n : p.nomes) {
+            bool daLista = false;
+            for (int i = 0; i < kPensadores; ++i) daLista = daLista || n == Pensador(i);
+            CHECK(daLista);
+            sentaram.insert(n);
+        }
+        CHECK(p.giro >= 0);
+        CHECK(p.giro < kFilosofos);
+        giros.insert(p.giro);
+    }
+    CHECK(sentaram.size() == static_cast<size_t>(kPensadores));   // todos ja se sentaram em alguma luta
+    CHECK(giros.size() == static_cast<size_t>(kFilosofos));
+    CHECK(ordemPrimeiro > kSementes / 3);
+    CHECK(ordemPrimeiro < kSementes * 2 / 3);
+}
+
+TEST_CASE("Filosofos: o jantar e a ordem girados continuam o mesmo jantar") {
+    for (int giro = 0; giro < kFilosofos; ++giro) {
+        CAPTURE(giro);
+        for (const Rodada r : {Rodada::Jantar, Rodada::Ordem}) {
+            CAPTURE(static_cast<int>(r));
+            Mesa m = MesaPosta();
+            int comeram = 0;
+            bool deadlock = false;
+            std::set<int> quemComeu;
+            const auto passos = Filosofos::Rodar(Roteiro(r, 0), giro);
+            REQUIRE(passos.size() == Roteiro(r, 0).size());
+            for (const Passo& p : passos) {
+                REQUIRE(Aplicar(m, p));
+                CHECK(p.quando < kPorRodada);
+                if (p.acao == Acao::Come) { ++comeram; quemComeu.insert(p.filosofo); }
+                deadlock = deadlock || EmDeadlock(m);
+            }
+            CHECK_FALSE(deadlock);
+            CHECK(comeram == (r == Rodada::Jantar ? 5 : 3));
+            // GIRAR E OUTRA GENTE COMENDO: na ordem, quem nao come muda com o giro.
+            if (r == Rodada::Ordem) CHECK(quemComeu.count((0 + giro) % kFilosofos) == 0);
+        }
+    }
+    CHECK(Filosofos::Rodar(Roteiro(Rodada::Jantar, 0), kFilosofos).front().filosofo ==
+          Roteiro(Rodada::Jantar, 0).front().filosofo);   // uma volta inteira e o de sempre
+}
+
+TEST_CASE("Filosofos: o placar fala os nomes desta luta") {
+    Plano p = PlanoDeSempre();
+    p.nomes = {"Hume", "Beauvoir", "Hip\xc3\xa1tia", "Espinosa", "Conf\xc3\xba" "cio"};
+    Mesa m = MesaPosta();
+    REQUIRE(Aplicar(m, {0.0f, 2, Acao::Pega, 2}));
+    REQUIRE(Aplicar(m, {0.0f, 2, Acao::Pega, 3}));
+    REQUIRE(Aplicar(m, {0.0f, 2, Acao::Come}));
+    CHECK(Placar(Rodada::Jantar, m, p) == "jantar \xc2\xb7 comendo: Hip\xc3\xa1tia");
+    REQUIRE(Aplicar(m, {0.0f, 4, Acao::Morre}));
+    CHECK(Placar(Rodada::Deadlock, m, p) == "kill -9 Conf\xc3\xba" "cio \xc2\xb7 comendo: Hip\xc3\xa1tia");
+}
+
+TEST_CASE("Filosofos: o degrau - o Normal e o de sempre, o Dificil e mais cheio") {
+    const Degrau n = DegrauDo(Dificuldade::Nivel::Normal);
+    CHECK(n.entreGarfadas == doctest::Approx(kEntreGarfadas));
+    CHECK(n.rapidez == doctest::Approx(1.0f));
+    CHECK(n.porAresta == kPorAresta);
+    CHECK(n.velocidadeDoEstouro == doctest::Approx(kVelocidadeDoEstouro));
+    const Degrau d = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.entreGarfadas < n.entreGarfadas);
+    CHECK(d.rapidez > n.rapidez);
+    CHECK(d.porAresta > n.porAresta);
+    CHECK(d.velocidadeDoEstouro > n.velocidadeDoEstouro);
+    // O CERCO MAIS CHEIO continua entre os dois filosofos, sem tocar neles.
+    const auto cerco = Cerco(0, 1, 1200.0f, d.porAresta);
+    CHECK(static_cast<int>(cerco.size()) == d.porAresta);
 }

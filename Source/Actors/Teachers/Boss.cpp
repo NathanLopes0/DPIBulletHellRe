@@ -137,7 +137,7 @@ void Boss::AddAttackPattern(const std::string &stateName, std::unique_ptr<IAttac
 void Boss::RegisterMovementStrategy(const std::string& stateName, std::unique_ptr<IMovementStrategy> strategy) {
     mMovementStrategies[stateName] = std::move(strategy);
 }
-void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& stateName)
+void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& stateName, const float rapidez)
 {
 
     if (!attackDef.params || !attackDef.strategy) {
@@ -184,7 +184,12 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
     }
 
     // ---------- EXECUTA O ATAQUE ---------- //
+    // A RAPIDEZ VALE SO PARA ESTE DISPARO (Disparar): a estrategia le a
+    // velocidade aqui dentro, e o objeto e o mesmo no disparo seguinte.
+    const float velocidadeDoArquivo = attackDef.params->projectileSpeed;
+    attackDef.params->projectileSpeed = velocidadeDoArquivo * rapidez;
     auto projectiles = attackDef.strategy->Execute(*(attackDef.params));
+    attackDef.params->projectileSpeed = velocidadeDoArquivo;
     // ---------- ------- - ------ ---------- //
 
     // UM DISPARO QUE NAO SOLTOU NADA NAO E DISPARO: nao passa a vez e nao faz
@@ -285,7 +290,7 @@ Variacao::Sorteio Boss::SorteioDaFase(const std::string& fase) const {
     return Variacao::SorteioDa(batalha ? batalha->SementeDaBatalha() : 0u, fase);
 }
 
-void Boss::Disparar(const std::string& gatilho, const int alvo) {
+void Boss::Disparar(const std::string& gatilho, const int alvo, const float rapidez) {
     if (gatilho.empty()) return;
     const auto* fsm = GetComponent<FSMComponent>();
     if (!fsm) return;
@@ -300,7 +305,7 @@ void Boss::Disparar(const std::string& gatilho, const int alvo) {
         if (alvo >= 0) {
             if (auto* batalha = dynamic_cast<Battle*>(mScene)) batalha->DarAVez(static_cast<size_t>(alvo));
         }
-        ExecuteAttack(ataque, estado);
+        ExecuteAttack(ataque, estado, rapidez);
     }
 }
 

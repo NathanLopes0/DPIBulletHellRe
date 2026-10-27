@@ -4,6 +4,10 @@
 
 #include "doctest.h"
 
+#include <algorithm>
+#include <cstdint>
+#include <iterator>
+#include <set>
 #include <vector>
 
 #include "../Source/Attacks/Tcp.h"
@@ -140,4 +144,90 @@ TEST_CASE("Tcp: os textos") {
     CHECK(PlacarDoTimeout(c) == "timeout \xc2\xb7 cwnd = 9");
     CHECK(Fila(7) == "roteador \xc2\xb7 7/10");
     CHECK(Fila(15) == "roteador \xc2\xb7 10/10");
+}
+
+// ---- A VARIACAO E O DEGRAU ---------------------------------------------------
+
+TEST_CASE("Tcp: a rede sorteada - toda combinacao tem slow start, perda e o dente de serra") {
+    // QUANTAS JANELAS UMA FASE MANDA: a primeira quando as nuvens se formam,
+    // uma por RTT ate a fase acabar.
+    const int janelas = static_cast<int>((Fase::kDuracao - kFormam) / kRtt) + 1;
+    REQUIRE(janelas >= 10);
+    for (const Dificuldade::Nivel nivel : Dificuldade::kNiveis)
+    for (const int sorteada : kCapacidades) {
+        for (const int ssthresh : kSsthreshs) {
+            CAPTURE(static_cast<int>(nivel));
+            CAPTURE(sorteada);
+            CAPTURE(ssthresh);
+            Plano p;
+            p.capacidade = sorteada;
+            p.ssthreshInicial = ssthresh;
+            p = NoDegrau(p, DegrauDo(nivel));
+            const int capacidade = p.capacidade;
+            CHECK(capacidade >= kMenorCapacidade);
+            if (nivel == Dificuldade::Nivel::Normal) CHECK(capacidade == sorteada);
+            else CHECK(capacidade < sorteada);
+            Conexao c = Abrir(p);
+            CHECK(c.cwnd == kJanelaInicial);
+            CHECK(c.estado == Estado::SlowStart);
+            int cortes = 0, primeiroCorte = -1;
+            for (int i = 0; i < janelas; ++i) {
+                const Janela j = Enviar(c);
+                CHECK(j.Total() <= kMaiorNoGrafico);        // cabe no grafico
+                CHECK(j.Total() - j.perdidos <= capacidade); // o roteador nao passa da capacidade
+                if (Reconhecer(c, j) == Desfecho::Cortou) {
+                    ++cortes;
+                    if (primeiroCorte < 0) primeiroCorte = i;
+                }
+            }
+            CHECK(cortes >= 1);                  // a serra tem dente
+            CHECK(primeiroCorte < janelas - 2);  // e ele vem com tempo de ver a janela cair e crescer
+            CHECK(static_cast<float>(capacidade) * DegrauDo(Dificuldade::Nivel::Dificil).entreEncaminhados < kRtt);
+            CHECK(static_cast<float>(capacidade) * kEntreEncaminhados < kRtt);
+        }
+    }
+}
+
+TEST_CASE("Tcp: o sorteio cobre as capacidades, os ssthresh e a faixa do roteador") {
+    std::set<int> capacidades, ssthreshs;
+    float menor = 1.0f, maior = 0.0f;
+    for (std::uint32_t semente = 0; semente < 300; ++semente) {
+        Variacao::Sorteio s(semente);
+        const Plano p = Sortear(s);
+        capacidades.insert(p.capacidade);
+        ssthreshs.insert(p.ssthreshInicial);
+        CHECK(p.fracaoDoRoteador >= kMenorFracaoDoRoteador);
+        CHECK(p.fracaoDoRoteador < kMaiorFracaoDoRoteador);
+        menor = std::min(menor, p.fracaoDoRoteador);
+        maior = std::max(maior, p.fracaoDoRoteador);
+        // O ROTEADOR NAO ENCOSTA NO GRAFICO, onde quer que caia.
+        const Ponto r = Roteador(1200.0f, p.fracaoDoRoteador);
+        const Retangulo g = Grafico(1200.0f);
+        CHECK((r.x < g.x - 80.0f || r.y > g.y + g.h + 40.0f));
+    }
+    CHECK(capacidades == std::set<int>(std::begin(kCapacidades), std::end(kCapacidades)));
+    CHECK(ssthreshs == std::set<int>(std::begin(kSsthreshs), std::end(kSsthreshs)));
+    CHECK(menor < 0.42f);
+    CHECK(maior > 0.58f);
+    CHECK(PlanoDeSempre().capacidade == kCapacidade);
+    CHECK(PlanoDeSempre().ssthreshInicial == kSsthreshInicial);
+    CHECK(Roteador(1200.0f, PlanoDeSempre().fracaoDoRoteador).x == doctest::Approx(Roteador(1200.0f).x));
+    CHECK(Fila(7, 12) == "roteador \xc2\xb7 7/12");
+    CHECK(Fila(15, 8) == "roteador \xc2\xb7 8/8");
+}
+
+TEST_CASE("Tcp: o degrau - o Normal e o de sempre, o Dificil encaminha mais e mais depressa") {
+    const Degrau n = DegrauDo(Dificuldade::Nivel::Normal);
+    CHECK(n.entreEncaminhados == doctest::Approx(kEntreEncaminhados));
+    CHECK(n.rapidez == doctest::Approx(1.0f));
+    CHECK(n.anelDoDescarte == kAnelDoDescarte);
+    const Degrau d = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.entreEncaminhados < n.entreEncaminhados);
+    CHECK(d.rapidez > n.rapidez);
+    CHECK(d.anelDoDescarte > n.anelDoDescarte);
+    // TRES ANEIS SEGUIDOS fecham o circulo com qualquer numero de cacos.
+    for (const int anel : {n.anelDoDescarte, d.anelDoDescarte}) {
+        CHECK(GiroDoDescarte(3, anel) == doctest::Approx(0.0f));
+        CHECK(GiroDoDescarte(1, anel) * 3.0f == doctest::Approx(360.0f / static_cast<float>(anel)));
+    }
 }

@@ -97,10 +97,12 @@ private:
 
     /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram (o
     /// mesmo do Luizinho). 'quantos' > 0 troca o numero de projeteis, 'centro'
-    /// o meio do leque e 'abertura' a abertura dele.
+    /// o meio do leque, 'abertura' a abertura dele e 'rapidez' multiplica a
+    /// velocidade do arquivo so neste disparo (o degrau do Dificil).
     std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
                                             std::optional<float> centro = std::nullopt,
-                                            std::optional<float> abertura = std::nullopt);
+                                            std::optional<float> abertura = std::nullopt,
+                                            float rapidez = 1.0f);
 
     bool mDisparandoEm = false;
     Vector2 mOndeDisparar;
@@ -157,6 +159,11 @@ private:
     Semaforo::Escalonador mEscalonador;
     std::vector<float> mColunas;
 
+    /// O que esta batalha sorteou para a fase (a ordem das rodadas, o s do
+    /// contador, o passo das colunas) e o degrau do modo. Sorteados ao montar.
+    Semaforo::Plano mPlanoDosSemaforos = Semaforo::PlanoDeSempre();
+    Semaforo::Degrau mDegrauDosSemaforos;
+
     /// Uma instrucao em campo: se ela ja saiu torta da faixa (na corrida).
     struct Instrucao {
         BossProjectile* p = nullptr;
@@ -186,9 +193,11 @@ private:
     /// fila na hora em que ele e pego, uma vez por corrente.
     bool mAlunoPreso = false;
 
-    /// Onde o professor fica: ao lado da coluna que ele vai acordar, entre ela
-    /// e a vizinha - fora das duas colunas, e fora da pilha.
-    static constexpr float kAoLadoDaColuna = 110.0f;
+    /// Onde o professor fica: ao lado da coluna que ele vai acordar, NO MEIO
+    /// entre ela e a vizinha - fora das duas colunas, e fora da pilha. O passo
+    /// das colunas muda de luta para luta (Semaforo::Plano), entao a distancia
+    /// e meio passo; esta e a do comeco da fase, antes da primeira rodada.
+    static constexpr float kAoLadoDaColuna = Semaforo::kEntreThreads / 2.0f;
     static constexpr float kAlturaDoProfessor = 200.0f;
 
     /// A perseguicao da rajada de quem acorda com o aluno acorrentado: preso,
@@ -220,6 +229,12 @@ private:
     int mRodadaDasMensagens = -1;
     float mInicioDasMensagens = 0.0f;
     std::vector<Mensagens::Evento> mRoteiroDasMensagens;
+
+    /// A fase desta batalha (a ordem, as contas da rpc, os lugares) e o degrau
+    /// do modo. Sorteados quando os dois saem da nuvem.
+    Mensagens::Plano mPlanoDasMensagens = Mensagens::PlanoDeSempre();
+    Mensagens::Degrau mDegrauDasMensagens;
+    [[nodiscard]] Mensagens::Rodada RodadaDasMensagens(int k) const;
     size_t mProximaMensagem = 0;
     float mRelogioDasMensagens = 0.0f;
     int mChamadaDaRpc = 0;
@@ -267,6 +282,11 @@ private:
     float mInicioDoJantar = 0.0f;
     int mEscolhido = 0;
     Filosofos::Mesa mMesa;
+
+    /// O jantar desta batalha (a ordem das solucoes, quem se senta, de onde o
+    /// jantar comeca) e o degrau do modo. Sorteados ao por a mesa.
+    Filosofos::Plano mPlanoDoJantar = Filosofos::PlanoDeSempre();
+    Filosofos::Degrau mDegrauDoJantar;
     std::vector<Filosofos::Passo> mPassos;
     size_t mProximoPasso = 0;
     float mRelogioDoJantar = 0.0f;
@@ -367,6 +387,11 @@ private:
     /// (Tcp::kEntreSegmentos), alternando as nuvens; quando o ultimo chegou ao
     /// roteador - ou foi descartado -, os ACKs voltam e a conexao reage.
     Tcp::Conexao mConexao;
+
+    /// A rede desta batalha (a capacidade, o ssthresh, onde fica o roteador) e
+    /// o degrau do modo. Sorteados quando a fase abre.
+    Tcp::Plano mPlanoDaRede = Tcp::PlanoDeSempre();
+    Tcp::Degrau mDegrauDaRede;
     Tcp::Janela mJanela;
     bool mMandando = false;
     int mMandados = 0;

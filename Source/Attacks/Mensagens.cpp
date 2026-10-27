@@ -36,23 +36,28 @@ namespace Mensagens {
     int Soma(const Chamada& c) { return c.a + c.b; }
 
     std::vector<Evento> Roteiro(const Rodada r) {
+        return Roteiro(r, PlanoDeSempre(), Degrau{});
+    }
+
+    std::vector<Evento> Roteiro(const Rodada r, const Plano& plano, const Degrau& d) {
         std::vector<Evento> e;
         switch (r) {
             case Rodada::Assincrona:
                 // O FILHO MANDA SEM ESPERAR, mais depressa do que o pai recebe:
                 // a caixa postal enche, e depois esvazia.
-                for (int i = 0; i < 12; ++i) {
-                    e.push_back({0.3f + 0.18f * static_cast<float>(i), Acontece::Envia, kFilho, 0, 1.3f, false});
+                for (int i = 0; i < d.assincronos; ++i) {
+                    e.push_back({0.3f + d.entreEnvios * static_cast<float>(i), Acontece::Envia, kFilho, 0, 1.3f, false});
                 }
-                for (int j = 0; j < 12; ++j) {
-                    e.push_back({1.7f + 0.25f * static_cast<float>(j), Acontece::Recebe, kPai});
+                for (int j = 0; j < d.assincronos; ++j) {
+                    e.push_back({1.7f + d.entreRecebidos * static_cast<float>(j), Acontece::Recebe, kPai});
                 }
                 break;
             case Rodada::Sincrona:
                 // O PAI MANDA E ESPERA: quando o envelope chega, o rendezvous.
-                for (const float t : {0.3f, 1.75f, 3.2f}) {
-                    e.push_back({t, Acontece::Envia, kPai, 0, 1.1f, false});
-                    e.push_back({t + 1.1f, Acontece::Encontro, kPai});
+                for (int i = 0; i < d.sincronos; ++i) {
+                    const float t = 0.3f + d.entreSincronos * static_cast<float>(i);
+                    e.push_back({t, Acontece::Envia, kPai, 0, d.vooSincrono, false});
+                    e.push_back({t + d.vooSincrono, Acontece::Encontro, kPai});
                 }
                 break;
             case Rodada::Rpc: {
@@ -60,7 +65,7 @@ namespace Mensagens {
                 // volta - e o pai so segue quando ela chega.
                 float t = 0.3f;
                 for (int i = 0; i < kChamadas; ++i) {
-                    const int valor = Soma(ChamadaDaVez(i));
+                    const int valor = Soma(plano.chamadas[static_cast<size_t>(i)]);
                     e.push_back({t, Acontece::Envia, kPai, valor, 0.85f, false});
                     e.push_back({t + 1.15f, Acontece::Responde, kFilho, valor, 0.85f, false});
                     e.push_back({t + 2.0f, Acontece::Resultado, kPai, valor});
@@ -74,13 +79,13 @@ namespace Mensagens {
                 e.push_back({0.3f, Acontece::Envia, kFilho, 0, 1.1f, true});
                 e.push_back({2.3f, Acontece::Estoura, kPai});
                 // E DEPOIS DO TIMEOUT, os dois mandam sem esperar.
-                for (int i = 0; i < 4; ++i) {
-                    const float t = 2.6f + 0.25f * static_cast<float>(i);
+                for (int i = 0; i < d.depoisDoTimeout; ++i) {
+                    const float t = 2.6f + d.entreDepoisDoTimeout * static_cast<float>(i);
                     e.push_back({t, Acontece::Envia, kPai, 0, 1.0f, false});
                     e.push_back({t, Acontece::Envia, kFilho, 0, 1.0f, false});
                 }
-                for (int j = 0; j < 4; ++j) {
-                    const float t = 3.7f + 0.25f * static_cast<float>(j);
+                for (int j = 0; j < d.depoisDoTimeout; ++j) {
+                    const float t = 3.7f + d.entreDepoisDoTimeout * static_cast<float>(j);
                     e.push_back({t, Acontece::Recebe, kPai});
                     e.push_back({t, Acontece::Recebe, kFilho});
                 }
@@ -90,18 +95,87 @@ namespace Mensagens {
         return e;
     }
 
-    Ponto Lugar(const int processo, const int k, const float largura) {
+    namespace {
         // A FRACAO DA LARGURA E A ALTURA de cada um, rodada a rodada: o canal
         // muda de inclinacao, e o fundo do arco anda pelo campo.
-        static const float kLugares[kRodadas][2][2] = {
+        constexpr float kLugares[kRodadas][2][2] = {
             {{0.19f, 150.0f}, {0.81f, 150.0f}},
             {{0.28f, 210.0f}, {0.72f, 120.0f}},
             {{0.21f, 120.0f}, {0.79f, 220.0f}},
             {{0.17f, 170.0f}, {0.83f, 170.0f}},
         };
+
+        /// Quanto um lugar sorteado pode sair do de sempre.
+        constexpr float kFolgaEmX = 0.04f;
+        constexpr float kFolgaEmY = 30.0f;
+        constexpr float kMaisAlto = 120.0f;     ///< abaixo do placar, com o cartao do professor
+        constexpr float kMaisBaixo = 250.0f;
+    }
+
+    Ponto Lugar(const int processo, const int k, const float largura) {
+        return Lugar(processo, k, largura, PlanoDeSempre());
+    }
+
+    Ponto Lugar(const int processo, const int k, const float largura, const Plano& plano) {
         const int r = ((k % kRodadas) + kRodadas) % kRodadas;
         const int p = processo == kPai ? 0 : 1;
-        return {kLugares[r][p][0] * largura, kLugares[r][p][1]};
+        const Ponto l = plano.lugares[static_cast<size_t>(r)][static_cast<size_t>(p)];
+        return {l.x * largura, l.y};
+    }
+
+    Plano PlanoDeSempre() {
+        Plano p;
+        for (int k = 0; k < kRodadas; ++k) {
+            p.rodadas[static_cast<size_t>(k)] = RodadaDaVez(k);
+            for (int q = 0; q < 2; ++q) {
+                p.lugares[static_cast<size_t>(k)][static_cast<size_t>(q)] = {kLugares[k][q][0], kLugares[k][q][1]};
+            }
+        }
+        for (int i = 0; i < kChamadas; ++i) p.chamadas[static_cast<size_t>(i)] = ChamadaDaVez(i);
+        return p;
+    }
+
+    Plano Sortear(Variacao::Sorteio& s) {
+        Plano p = PlanoDeSempre();
+        std::vector<Rodada> resto(p.rodadas.begin() + 1, p.rodadas.end());
+        s.Embaralhar(resto);
+        for (size_t i = 0; i < resto.size(); ++i) p.rodadas[i + 1] = resto[i];
+
+        // DUAS SOMAS DIFERENTES, cada uma partida em dois numeros.
+        std::vector<int> somas(std::begin(kSomas), std::end(kSomas));
+        s.Embaralhar(somas);
+        for (int i = 0; i < kChamadas; ++i) {
+            const int soma = somas[static_cast<size_t>(i)];
+            const int a = s.Inteiro(1, soma - 1);
+            p.chamadas[static_cast<size_t>(i)] = {a, soma - a};
+        }
+
+        for (auto& par : p.lugares) {
+            for (Ponto& l : par) {
+                l.x += s.Real(-kFolgaEmX, kFolgaEmX);
+                l.y = std::clamp(l.y + s.Real(-kFolgaEmY, kFolgaEmY), kMaisAlto, kMaisBaixo);
+            }
+        }
+        return p;
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        if (n == Dificuldade::Nivel::Dificil) {
+            d.sincronos = 4;
+            d.vooSincrono = 0.9f;
+            d.entreSincronos = 1.0f;
+            d.lequeDoRecebido = 3;
+            d.aberturaDoRecebido = 12.0f;
+            d.assincronos = 15;
+            d.entreEnvios = 0.13f;
+            d.entreRecebidos = 0.18f;
+            d.depoisDoTimeout = 6;
+            d.entreDepoisDoTimeout = 0.15f;
+            d.anelDoEncontro = 10;
+            d.rapidez = 1.25f;
+        }
+        return d;
     }
 
     Ponto NoArco(const Ponto de, const Ponto para, const float s, const float fundo) {
@@ -131,13 +205,18 @@ namespace Mensagens {
     }
 
     std::string Placar(const Rodada r, const int naCaixa, const int chamada, const bool bloqueado, const bool estourou) {
+        return Placar(r, naCaixa, chamada, bloqueado, estourou, PlanoDeSempre());
+    }
+
+    std::string Placar(const Rodada r, const int naCaixa, const int chamada, const bool bloqueado, const bool estourou,
+                       const Plano& plano) {
         switch (r) {
             case Rodada::Assincrona:
                 return "send sem esperar" + std::string(kPonto) + "caixa do pai: " + std::to_string(naCaixa);
             case Rodada::Sincrona:
                 return bloqueado ? "send s\xc3\xadncrono" + std::string(kPonto) + "pai bloqueado" : std::string("rendezvous");
             case Rodada::Rpc: {
-                const Chamada c = ChamadaDaVez(chamada);
+                const Chamada c = plano.chamadas[static_cast<size_t>(((chamada % kChamadas) + kChamadas) % kChamadas)];
                 if (bloqueado) {
                     return "r = soma(" + std::to_string(c.a) + ", " + std::to_string(c.b) + ")" + kPonto + "rpc no filho";
                 }

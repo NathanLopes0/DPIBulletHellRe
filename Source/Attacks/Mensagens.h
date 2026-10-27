@@ -4,10 +4,13 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 #include <vector>
 
 #include "Fase.h"
+#include "../Dificuldade.h"
+#include "../Variacao.h"
 
 /**
  * CAMADA PURA.
@@ -79,14 +82,62 @@ namespace Mensagens {
         bool paraNaPorta = false;    ///< Envia do impasse: ninguem recebe
     };
 
-    /// O roteiro da rodada, em ordem de tempo.
-    std::vector<Evento> Roteiro(Rodada r);
-
     /// A RPC: as duas chamadas e o que elas devolvem.
     struct Chamada { int a = 0; int b = 0; };
     constexpr int kChamadas = 2;
+    /// As chamadas de sempre: soma(2, 3) e soma(3, 4).
     Chamada ChamadaDaVez(int i);
     int Soma(const Chamada& c);
+
+    struct Ponto { float x = 0.0f; float y = 0.0f; };
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA (Variacao.h) ---------------------
+
+    /**
+     * @brief A fase desta batalha.
+     *
+     * A ASSINCRONA ABRE SEMPRE: e a troca de mensagens mais simples, e as
+     * outras tres sao o que se pede a mais dela - esperar, devolver um valor,
+     * esperar os dois ao mesmo tempo. Essas vem em qualquer ordem. As duas
+     * chamadas da rpc sao outras contas, com somas IMPARES (o leque do retorno
+     * tem um tiro no meio, mirado no aluno), e os dois processos ficam em
+     * outros lugares a cada rodada (Lugar), sempre no alto, o pai a esquerda.
+     */
+    struct Plano {
+        std::array<Rodada, kRodadas> rodadas{};
+        std::array<Chamada, kChamadas> chamadas{};
+        std::array<std::array<Ponto, 2>, kRodadas> lugares{};   ///< x em fracao da largura, y em px
+    };
+    Plano PlanoDeSempre();
+    Plano Sortear(Variacao::Sorteio& s);
+    constexpr int kSomas[] = {5, 7, 9};
+
+    // ---- O DEGRAU (Dificuldade.h) -----------------------------------------------
+
+    /// O que o Dificil muda: a caixa postal da assincrona enche com mais
+    /// envelopes (o filho manda mais depressa, e o pai recebe mais depressa) e
+    /// cada receive() atira um leque de tres; a sincrona tem um rendezvous a
+    /// mais (o envelope corre mais depressa); os aneis tem mais tiros, depois
+    /// do timeout os dois mandam mais, e o que eles atiram anda mais depressa.
+    struct Degrau {
+        int sincronos = 3;
+        float vooSincrono = 1.1f;
+        float entreSincronos = 1.45f;
+        int lequeDoRecebido = 1;       ///< cada receive() atira um leque deste tamanho
+        float aberturaDoRecebido = 0.0f;
+        int assincronos = 12;
+        float entreEnvios = 0.18f;
+        float entreRecebidos = 0.25f;
+        int depoisDoTimeout = 4;
+        float entreDepoisDoTimeout = 0.25f;
+        int anelDoEncontro = 8;
+        float rapidez = 1.0f;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
+
+    /// O roteiro da rodada, em ordem de tempo - o de sempre, ou o desta luta.
+    std::vector<Evento> Roteiro(Rodada r);
+    std::vector<Evento> Roteiro(Rodada r, const Plano& p, const Degrau& d);
 
     /// @brief Quanto tempo depois de sair um envelope chega - e, no impasse,
     /// quando ele para na porta (kNaPorta do caminho).
@@ -101,11 +152,11 @@ namespace Mensagens {
 
     // ---- O CAMPO ------------------------------------------------------------
 
-    struct Ponto { float x = 0.0f; float y = 0.0f; };
-
     /// Onde fica cada processo na rodada k: o pai a esquerda, o filho a
-    /// direita, no alto, cada rodada num par de alturas.
+    /// direita, no alto, cada rodada num par de alturas - os de sempre, ou os
+    /// desta luta.
     Ponto Lugar(int processo, int k, float largura);
+    Ponto Lugar(int processo, int k, float largura, const Plano& p);
 
     /// @brief O ARCO DO CANAL: de 'de' a 'para', descendo ate 'fundo' no meio.
     /// s vai de 0 (em 'de') a 1 (em 'para').
@@ -137,4 +188,5 @@ namespace Mensagens {
     // ---- OS TEXTOS ----------------------------------------------------------
 
     std::string Placar(Rodada r, int naCaixa, int chamada, bool bloqueado, bool estourou);
+    std::string Placar(Rodada r, int naCaixa, int chamada, bool bloqueado, bool estourou, const Plano& p);
 }

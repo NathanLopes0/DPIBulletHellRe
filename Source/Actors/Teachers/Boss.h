@@ -347,8 +347,15 @@ protected:
      *
      * 'alvo', se nao for negativo, e a posicao do jogador que o disparo mira
      * (Battle::DarAVez): o aluno que mudou de estado e quem recebe os avisos.
+     *
+     * 'rapidez' multiplica a velocidade do arquivo SO NESTE DISPARO - e o jeito
+     * de o degrau do Dificil (NoNivel) acelerar um projetil que nasce andando:
+     * mudar a velocidade dele depois do disparo nao adianta, porque o
+     * ActivateBehavior da WaveAttack a escreve de novo no primeiro quadro (a
+     * armadilha 42 do RETOMAR). Depois do disparo a velocidade volta a do
+     * arquivo, porque o AttackParams e o mesmo objeto a cada disparo.
      */
-    void Disparar(const std::string& gatilho, int alvo = -1);
+    void Disparar(const std::string& gatilho, int alvo = -1, float rapidez = 1.0f);
 
 private:
     // Função interna para executar um ataque específico.
@@ -356,7 +363,7 @@ private:
     // executar strategy -> configurator -> converter -> entregar ao manager ->
     // audio) e a mesma para todo boss. Quem precisa variar usa os ganchos
     // CustomizeAttackParams, OnProjectilesCreated e PontosDoPosto.
-    void ExecuteAttack(const AttackDefinition& attackDef, const std::string& stateName);
+    void ExecuteAttack(const AttackDefinition& attackDef, const std::string& stateName, float rapidez = 1.0f);
 
     void CalculateNextDropThreshold();
     int mHitCounter = 0;

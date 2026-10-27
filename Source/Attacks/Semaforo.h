@@ -4,11 +4,14 @@
 
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <string>
 #include <vector>
 
 #include "Fase.h"
+#include "../Dificuldade.h"
+#include "../Variacao.h"
 
 /**
  * CAMADA PURA.
@@ -69,6 +72,8 @@ namespace Semaforo {
     };
 
     constexpr int kRodadas = 4;
+
+    /// A ORDEM DE SEMPRE: mutex, s = 2, espera ocupada, corrida.
     Rodada RodadaDaVez(int k);
 
     // ---- AS THREADS ---------------------------------------------------------
@@ -76,8 +81,8 @@ namespace Semaforo {
     /// As colunas: uma EM CIMA DO ALUNO - parado, ele nao fica entre duas -,
     /// as outras a cada kEntreThreads, dentro do campo, ate kMaisThreads, as
     /// mais perto dele. Da esquerda para a direita: T1, T2...
-    std::vector<float> Colunas(float xDoAluno, float largura);
     constexpr float kEntreThreads = 220.0f;
+    std::vector<float> Colunas(float xDoAluno, float largura, float entreThreads = kEntreThreads);
     constexpr float kMargem = 70.0f;
     constexpr int kMaisThreads = 5;
 
@@ -168,8 +173,8 @@ namespace Semaforo {
     /// A RAJADA de quem entra: a pilha desce em leque, cada instrucao num
     /// angulo (graus; 90 e reto para baixo), alternando os lados.
     constexpr float kVelocidadeDaRajada = 320.0f;
-    float AnguloNaRajada(int i);
     constexpr float kAberturaDaRajada = 7.0f;
+    float AnguloNaRajada(int i, float abertura = kAberturaDaRajada);
 
     /// A ESPERA OCUPADA: as bloqueadas giram num circulo acima da faixa, e ao
     /// entrar saem pelo raio, num anel.
@@ -205,6 +210,42 @@ namespace Semaforo {
     /// ocupada, quem gira; na corrida, o saldo. Com o aluno acorrentado, ele
     /// diz que o aluno esta em P(s).
     std::string Placar(const Escalonador& e, bool alunoBloqueado);
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA (Variacao.h) ---------------------
+
+    /**
+     * @brief A fase desta batalha: a ordem das rodadas e os numeros delas.
+     *
+     * O MUTEX ABRE SEMPRE: e a definicao, e as outras tres sao variacoes dele -
+     * mais permissoes, girar em vez de dormir, nenhuma trava. Essas tres vem
+     * em qualquer ordem. O semaforo contador tem s = 2 ou s = 3, e as colunas
+     * ficam entre 200 e 250 px umas das outras (as cinco cabem no campo com
+     * qualquer uma).
+     */
+    struct Plano {
+        std::array<Rodada, kRodadas> rodadas{};
+        float entreThreads = kEntreThreads;
+    };
+    Plano PlanoDeSempre();
+    Plano Sortear(Variacao::Sorteio& s);
+    constexpr int kMenorContador = 2;
+    constexpr int kMaiorContador = 3;
+    constexpr float kMenorEntreThreads = 200.0f;
+    constexpr float kMaiorEntreThreads = 250.0f;
+
+    // ---- O DEGRAU (Dificuldade.h) -----------------------------------------------
+
+    /// O que o Dificil muda: as threads mandam mais instrucoes, mais depressa,
+    /// e a rajada de quem entra sai mais rapida e mais aberta. A regra (a
+    /// pilha, a fila, o giro) e a mesma - e a pilha tambem, porque com sete a
+    /// de cima nasceria acima do alto da coluna.
+    struct Degrau {
+        float entreInstrucoes = kEntreInstrucoes;
+        int instrucoesPorThread = kInstrucoesPorThread;
+        float rapidez = 1.0f;          ///< multiplica a da instrucao, da rajada e do anel
+        float aberturaDaRajada = kAberturaDaRajada;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 
     /// O SALDO DA CORRIDA: cada thread le o saldo, soma um e escreve. Todas
     /// leram o mesmo valor, e o saldo termina em 1 em vez de 'threads' - a

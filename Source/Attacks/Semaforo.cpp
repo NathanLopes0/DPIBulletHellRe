@@ -42,7 +42,8 @@ namespace Semaforo {
         }
     }
 
-    std::vector<float> Colunas(const float xDoAluno, const float largura) {
+    std::vector<float> Colunas(const float xDoAluno, const float largura, const float entreThreads) {
+        const float passo = entreThreads > 1.0f ? entreThreads : kEntreThreads;
         const float de = kMargem;
         const float ate = largura - kMargem;
         if (ate < de) return {largura / 2.0f};
@@ -51,8 +52,8 @@ namespace Semaforo {
         // Todas as posicoes da grade que passa pelo aluno, e delas as
         // kMaisThreads mais perto dele.
         std::vector<float> todas;
-        float x = meio - std::floor((meio - de) / kEntreThreads) * kEntreThreads;
-        for (; x <= ate + 0.01f; x += kEntreThreads) todas.push_back(x);
+        float x = meio - std::floor((meio - de) / passo) * passo;
+        for (; x <= ate + 0.01f; x += passo) todas.push_back(x);
         std::stable_sort(todas.begin(), todas.end(), [meio](const float a, const float b) {
             return std::fabs(a - meio) < std::fabs(b - meio);
         });
@@ -179,11 +180,11 @@ namespace Semaforo {
         return kTopoDaSecao - 16.0f - static_cast<float>(i) * kEntreEmpilhadas;
     }
 
-    float AnguloNaRajada(const int i) {
+    float AnguloNaRajada(const int i, const float abertura) {
         // 0, +a, -a, +2a, -2a...: o leque abre para os dois lados por igual.
         const int passo = (i + 1) / 2;
         const float lado = (i % 2 == 1) ? 1.0f : -1.0f;
-        return 90.0f + lado * static_cast<float>(passo) * kAberturaDaRajada;
+        return 90.0f + lado * static_cast<float>(passo) * abertura;
     }
 
     Ponto NoGiro(const int i, const int n, const float t) {
@@ -240,6 +241,33 @@ namespace Semaforo {
         }
         if (alunoBloqueado) texto = "aluno em P(s)" + std::string(kPonto) + texto;
         return texto;
+    }
+
+    Plano PlanoDeSempre() {
+        Plano p;
+        for (int k = 0; k < kRodadas; ++k) p.rodadas[static_cast<size_t>(k)] = RodadaDaVez(k);
+        return p;
+    }
+
+    Plano Sortear(Variacao::Sorteio& s) {
+        Plano p = PlanoDeSempre();
+        std::vector<Rodada> resto(p.rodadas.begin() + 1, p.rodadas.end());
+        s.Embaralhar(resto);
+        for (size_t i = 0; i < resto.size(); ++i) p.rodadas[i + 1] = resto[i];
+        for (Rodada& r : p.rodadas) {
+            if (r.tipo == Tipo::Contador) r.permissoes = s.Inteiro(kMenorContador, kMaiorContador);
+        }
+        p.entreThreads = s.Real(kMenorEntreThreads, kMaiorEntreThreads);
+        return p;
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.entreInstrucoes = Dificuldade::Escolher(n, kEntreInstrucoes, 0.22f);
+        d.instrucoesPorThread = Dificuldade::Escolher(n, kInstrucoesPorThread, 11);
+        d.rapidez = Dificuldade::Escolher(n, 1.0f, 1.25f);
+        d.aberturaDaRajada = Dificuldade::Escolher(n, kAberturaDaRajada, 10.0f);
+        return d;
     }
 
     int SaldoDaCorrida(const int threads) {

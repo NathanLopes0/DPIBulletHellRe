@@ -246,19 +246,75 @@ namespace Filosofos {
         return {quem.x + (garfo.x - quem.x) * 0.42f, quem.y + (garfo.y - quem.y) * 0.42f};
     }
 
-    std::vector<Ponto> Cerco(const int de, const int para, const float largura) {
+    std::vector<Ponto> Cerco(const int de, const int para, const float largura, const int porAresta) {
         const Ponto a = Lugar(de, largura);
         const Ponto b = Lugar(para, largura);
         std::vector<Ponto> pontos;
-        for (int i = 1; i <= kPorAresta; ++i) {
-            const float t = static_cast<float>(i) / static_cast<float>(kPorAresta + 1);
+        for (int i = 1; i <= porAresta; ++i) {
+            const float t = static_cast<float>(i) / static_cast<float>(porAresta + 1);
             pontos.push_back({a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t});
         }
         return pontos;
     }
 
     std::string Placar(const Rodada r, const Mesa& m) {
+        return Placar(r, m, PlanoDeSempre());
+    }
+
+    std::string Pensador(const int i) {
+        switch (((i % kPensadores) + kPensadores) % kPensadores) {
+            case 0:  return "S\xc3\xb3" "crates";
+            case 1:  return "Plat\xc3\xa3o";
+            case 2:  return "Arist\xc3\xb3teles";
+            case 3:  return "Kant";
+            case 4:  return "Descartes";
+            case 5:  return "Hume";
+            case 6:  return "Hip\xc3\xa1tia";
+            case 7:  return "Conf\xc3\xba" "cio";
+            case 8:  return "Espinosa";
+            default: return "Beauvoir";
+        }
+    }
+
+    Plano PlanoDeSempre() {
+        Plano p;
+        for (int k = 0; k < kRodadas; ++k) p.rodadas[static_cast<size_t>(k)] = RodadaDaVez(k);
+        for (int f = 0; f < kFilosofos; ++f) p.nomes[static_cast<size_t>(f)] = Nome(f);
+        return p;
+    }
+
+    Plano Sortear(Variacao::Sorteio& s) {
+        Plano p = PlanoDeSempre();
+        if (s.Chance(0.5f)) std::swap(p.rodadas[2], p.rodadas[3]);
+        std::vector<int> quem;
+        for (int i = 0; i < kPensadores; ++i) quem.push_back(i);
+        s.Embaralhar(quem);
+        for (int f = 0; f < kFilosofos; ++f) p.nomes[static_cast<size_t>(f)] = Pensador(quem[static_cast<size_t>(f)]);
+        p.giro = s.Inteiro(0, kFilosofos - 1);
+        return p;
+    }
+
+    std::vector<Passo> Rodar(std::vector<Passo> passos, const int giro) {
+        const int g = ((giro % kFilosofos) + kFilosofos) % kFilosofos;
+        for (Passo& p : passos) {
+            p.filosofo = (p.filosofo + g) % kFilosofos;
+            if (p.garfo >= 0) p.garfo = (p.garfo + g) % kFilosofos;
+        }
+        return passos;
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.entreGarfadas = Dificuldade::Escolher(n, kEntreGarfadas, 0.33f);
+        d.rapidez = Dificuldade::Escolher(n, 1.0f, 1.15f);
+        d.porAresta = Dificuldade::Escolher(n, kPorAresta, 6);
+        d.velocidadeDoEstouro = Dificuldade::Escolher(n, kVelocidadeDoEstouro, 260.0f);
+        return d;
+    }
+
+    std::string Placar(const Rodada r, const Mesa& m, const Plano& plano) {
         if (EmDeadlock(m)) return "deadlock" + std::string(kPonto) + "espera circular";
+        auto nome = [&plano](const int f) { return plano.nomes[static_cast<size_t>(f)]; };
 
         std::string texto;
         switch (r) {
@@ -268,12 +324,12 @@ namespace Filosofos {
             case Rodada::Garcom:   texto = "gar\xc3\xa7om: 4 \xc3\xa0 mesa"; break;
         }
         for (int f = 0; f < kFilosofos; ++f) {
-            if (m.estado[static_cast<size_t>(f)] == Estado::Morto) texto = "kill -9 " + Nome(f);
+            if (m.estado[static_cast<size_t>(f)] == Estado::Morto) texto = "kill -9 " + nome(f);
         }
         const auto c = Comendo(m);
         if (!c.empty()) {
             texto += std::string(kPonto) + "comendo:";
-            for (size_t i = 0; i < c.size(); ++i) texto += (i == 0 ? " " : ", ") + Nome(c[i]);
+            for (size_t i = 0; i < c.size(); ++i) texto += (i == 0 ? " " : ", ") + nome(c[i]);
         }
         return texto;
     }

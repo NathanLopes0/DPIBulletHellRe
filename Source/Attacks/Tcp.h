@@ -7,6 +7,9 @@
 #include <string>
 #include <vector>
 
+#include "../Dificuldade.h"
+#include "../Variacao.h"
+
 /**
  * CAMADA PURA.
  *
@@ -61,6 +64,7 @@ namespace Tcp {
     struct Conexao {
         int cwnd = kJanelaInicial;
         int ssthresh = kSsthreshInicial;
+        int capacidade = kCapacidade;  ///< do roteador, por RTT (Plano)
         Estado estado = Estado::SlowStart;
         int aRetransmitir = 0;       ///< perdidos na janela anterior
         int rtt = 0;                 ///< quantas janelas ja foram mandadas
@@ -117,7 +121,7 @@ namespace Tcp {
 
     /// @brief O roteador: no meio da largura, kAlturaDoRoteador abaixo do alto
     /// - bem abaixo do professor, que varre o alto do campo com as nuvens.
-    Ponto Roteador(float largura);
+    Ponto Roteador(float largura, float fracao = 0.5f);
     constexpr float kAlturaDoRoteador = 400.0f;
     constexpr float kChegou = 14.0f;     ///< a distancia em que o segmento entra nele
 
@@ -147,7 +151,7 @@ namespace Tcp {
     /// @brief O meio do anel do descarte de numero k: cada um gira um pouco
     /// em relacao ao anterior, para os cacos de uma perda grande cobrirem as
     /// frestas uns dos outros.
-    float GiroDoDescarte(int k);
+    float GiroDoDescarte(int k, int anel = kAnelDoDescarte);
 
     // ---- O GRAFICO DO cwnd --------------------------------------------------
 
@@ -179,5 +183,52 @@ namespace Tcp {
 
     /// O roteador: quantos desta janela ele ja recebeu, contra a capacidade -
     /// "roteador · 7/10". Em 10/10, o que chega e descartado.
-    std::string Fila(int recebidos);
+    std::string Fila(int recebidos, int capacidade = kCapacidade);
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA (Variacao.h) ---------------------
+
+    /**
+     * @brief A rede desta batalha: a capacidade do roteador (8, 10 ou 12 por
+     * RTT), o ssthresh com que a conexao abre (8, 12 ou 16) e onde o roteador
+     * fica na largura (de 40% a 60%).
+     *
+     * O dente de serra muda com os dois numeros - com o ssthresh baixo a
+     * janela sai do slow start antes de encher o roteador e a primeira perda
+     * vem na evitacao, devagar; com a capacidade baixa as perdas vem cedo e
+     * vem muitas -, e e o mesmo controle de congestionamento em toda luta. O
+     * grafico desenha a linha vermelha na capacidade sorteada.
+     */
+    struct Plano {
+        int capacidade = kCapacidade;
+        int ssthreshInicial = kSsthreshInicial;
+        float fracaoDoRoteador = 0.5f;
+    };
+    Plano PlanoDeSempre();
+    Plano Sortear(Variacao::Sorteio& s);
+    constexpr int kCapacidades[] = {8, 10, 12};
+    constexpr int kSsthreshs[] = {8, 12, 16};
+    constexpr float kMenorFracaoDoRoteador = 0.4f;
+    constexpr float kMaiorFracaoDoRoteador = 0.6f;
+
+    /// A conexao que abre a fase com o plano.
+    Conexao Abrir(const Plano& p);
+
+    // ---- O DEGRAU (Dificuldade.h) -----------------------------------------------
+
+    /// O que o Dificil muda: o enlace de saida do roteador e mais rapido (sai
+    /// mais segmento por segundo, e cada um anda mais depressa), o roteador da
+    /// conta de dois a menos por RTT - perde-se mais - e o descarte estoura em
+    /// mais cacos. O TCP e o mesmo.
+    struct Degrau {
+        float entreEncaminhados = kEntreEncaminhados;
+        float rapidez = 1.0f;            ///< do encaminhado e do caco
+        int anelDoDescarte = kAnelDoDescarte;
+        int menosCapacidade = 0;         ///< o roteador da conta de menos: mais perdas, mais aneis
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
+
+    /// A rede da luta no modo: a capacidade do plano menos a do degrau, nunca
+    /// abaixo de kMenorCapacidade.
+    Plano NoDegrau(Plano p, const Degrau& d);
+    constexpr int kMenorCapacidade = 6;
 }

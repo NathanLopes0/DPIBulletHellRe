@@ -175,3 +175,78 @@ TEST_CASE("Semaforo: as rodadas cabem na fase, e os textos") {
     g.fila = {1};
     CHECK(Placar(g, false) == "espera ocupada \xc2\xb7 girando: T2");
 }
+
+// ---- A VARIACAO E O DEGRAU ---------------------------------------------------
+
+TEST_CASE("Semaforo: o plano de sempre e a fase de sempre") {
+    const Plano p = PlanoDeSempre();
+    for (int k = 0; k < kRodadas; ++k) {
+        CHECK(p.rodadas[static_cast<size_t>(k)].tipo == RodadaDaVez(k).tipo);
+        CHECK(p.rodadas[static_cast<size_t>(k)].permissoes == RodadaDaVez(k).permissoes);
+    }
+    CHECK(p.entreThreads == doctest::Approx(kEntreThreads));
+}
+
+TEST_CASE("Semaforo: o mutex abre, as outras tres vem em qualquer ordem, e toda rodada sorteada fecha a tempo") {
+    std::set<int> contadores;
+    std::set<std::vector<int>> ordens;
+    float menor = 1e9f, maior = 0.0f;
+    for (std::uint32_t semente = 0; semente < 300; ++semente) {
+        CAPTURE(semente);
+        Variacao::Sorteio s(semente);
+        const Plano p = Sortear(s);
+        CHECK(p.rodadas[0].tipo == Tipo::Mutex);
+        CHECK(p.rodadas[0].permissoes == 1);
+        std::vector<int> tipos;
+        for (const Rodada& r : p.rodadas) tipos.push_back(static_cast<int>(r.tipo));
+        ordens.insert(tipos);
+        std::vector<int> ordenados = tipos;
+        std::sort(ordenados.begin(), ordenados.end());
+        CHECK(ordenados == std::vector<int>{0, 1, 2, 3});   // as quatro, uma vez cada
+
+        for (const Rodada& r : p.rodadas) {
+            if (r.tipo == Tipo::Contador) {
+                CHECK(r.permissoes >= kMenorContador);
+                CHECK(r.permissoes <= kMaiorContador);
+                contadores.insert(r.permissoes);
+            }
+            // TODAS PASSAM antes de a rodada acabar (a corrida nao sai: e o ponto dela).
+            if (r.tipo == Tipo::Corrida) continue;
+            Escalonador e = Comecar(r, kMaisThreads, 0, semente + 1u);
+            Rodar(e);
+            CHECK(e.passaram.size() == static_cast<size_t>(kMaisThreads));
+        }
+
+        CHECK(p.entreThreads >= kMenorEntreThreads);
+        CHECK(p.entreThreads < kMaiorEntreThreads);
+        menor = std::min(menor, p.entreThreads);
+        maior = std::max(maior, p.entreThreads);
+        // COM QUALQUER PASSO as colunas ficam no campo, e uma em cima do aluno.
+        for (const float x : {600.0f, 0.0f, 1200.0f, 845.0f}) {
+            const auto xs = Colunas(x, 1200.0f, p.entreThreads);
+            REQUIRE(xs.size() >= 4u);
+            CHECK(static_cast<int>(xs.size()) <= kMaisThreads);
+            CHECK(xs.front() >= kMargem - 0.01f);
+            CHECK(xs.back() <= 1200.0f - kMargem + 0.01f);
+            const float alvo = std::clamp(x, kMargem, 1200.0f - kMargem);
+            CHECK(xs[static_cast<size_t>(MaisPerto(xs, x))] == doctest::Approx(alvo));
+        }
+    }
+    CHECK(ordens.size() == 6u);                        // 3! ordens para as tres depois do mutex
+    CHECK(contadores == std::set<int>{2, 3});
+    CHECK(menor < kMenorEntreThreads + 5.0f);
+    CHECK(maior > kMaiorEntreThreads - 5.0f);
+}
+
+TEST_CASE("Semaforo: o degrau - o Normal e o de sempre, o Dificil manda mais e mais depressa") {
+    const Degrau n = DegrauDo(Dificuldade::Nivel::Normal);
+    CHECK(n.entreInstrucoes == doctest::Approx(kEntreInstrucoes));
+    CHECK(n.instrucoesPorThread == kInstrucoesPorThread);
+    CHECK(n.rapidez == doctest::Approx(1.0f));
+    const Degrau d = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.entreInstrucoes < n.entreInstrucoes);
+    CHECK(d.instrucoesPorThread > n.instrucoesPorThread);
+    CHECK(d.rapidez > n.rapidez);
+    // A THREAD AINDA ACABA DE MANDAR dentro da rodada.
+    CHECK(kComecaAMandar + static_cast<float>(d.instrucoesPorThread - 1) * d.entreInstrucoes < kPorRodada);
+}

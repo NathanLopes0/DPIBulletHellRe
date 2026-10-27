@@ -11,6 +11,21 @@
   //   StateFinal  DEADLOCK             o jantar dos filosofos
   //
   // O MOVIMENTO E O ATAQUE, como no Vladimir - ver MovementStrategies.h.
+  //
+  // CADA LUTA E OUTRA (Variacao.h): ao montar cada fase o Vitor tira da
+  // semente da batalha a ordem das rodadas e os numeros delas, sempre dentro
+  // do conceito - o Plano de Semaforo.h, Tcp.h, Mensagens.h e Filosofos.h. A
+  // rodada que define o conceito abre a fase; o resto muda de lugar.
+  //
+  // NO DIFICIL (Dificuldade.h) cada fase sobe um degrau no proprio modulo (o
+  // Degrau dele): mais coisa no campo, mais depressa. As velocidades daqui sao
+  // as do Normal; a do Dificil e a deste arquivo vezes a rapidez do degrau,
+  // so naquele disparo (Boss::Disparar). Medido em cinco sementes, a batalha
+  // inteira: no Normal o que persegue termina com 75,1 a 82,1 e o que desvia
+  // com 82,9 a 96,6 (3 a 6 acertos); no Dificil, 72,0 a 81,6 e 68,8 a 92,4
+  // (2 a 9 acertos, 5,6 em media). O parado e o que vai e vem reprovam nos
+  // dois. A final sozinha, comecando com 40, deixa o que desvia com 54 a 68
+  // no Normal e 39 a 64 no Dificil.
   // ==========================================================================
 
   // FASE 1 - OS SEMAFOROS   |   gesto: AO LADO DA PORTA
@@ -26,10 +41,11 @@
   // O PLACAR DIZ s E A FILA ("s = 0 · fila: T4 T1 T5"): quem le a fila sabe
   // de que coluna vem a proxima rajada. As colunas nascem com uma EM CIMA DO
   // ALUNO, e ela chega entre as tres primeiras da fila - parado, ele nao fica
-  // entre duas colunas nem espera a rodada inteira. Quatro rodadas de 4,9 s:
+  // entre duas colunas nem espera a rodada inteira. Quatro rodadas de 4,9 s;
+  // o mutex abre, e as outras tres vem em qualquer ordem:
   //
   //   mutex            s = 1, uma de cada vez, 0,65 s cada, na ordem
-  //   semaforo         s = 2, duas de cada vez, 1 s cada
+  //   semaforo         s = 2 ou s = 3, de duas ou tres de cada vez, 1 s cada
   //   espera ocupada   as bloqueadas GIRAM na porta - o while gastando
   //                    processador -, entra quem ganhar o test-and-set (nao
   //                    a primeira), e o giro estoura num anel ao entrar
@@ -40,6 +56,10 @@
   // O PROFESSOR fica AO LADO da coluna que ele vai acordar (Conduzido), entre
   // ela e a vizinha: embaixo dele nao desce coluna nenhuma, mas quando ele
   // acorda a do lado o leque abre para cima de quem o seguia.
+  //
+  // As colunas ficam a 200 a 250 px umas das outras, sorteado por luta. No
+  // Dificil as threads mandam 11 instrucoes, uma a cada 0,22 s (e nao 8 a cada
+  // 0,3), e tudo anda 25% mais depressa, com a rajada aberta a 10 graus.
   //
   // AS CORRENTES CONTINUAM, as mesmas de antes (duas a cada 4,4 s, regra
   // "correntes"): o aluno preso anda a 45% e, pior, esta bloqueado em P(s) -
@@ -83,14 +103,18 @@
   // cada 0,05 s, alternando as duas. Os segmentos voam ate o ROTEADOR, no
   // meio do campo, que os encaminha ao aluno um a cada 0,06 s, mirados nele.
   //
-  // O ROTEADOR DA CONTA DE 10 POR RTT. O que passa disso e descartado ali
-  // mesmo, e estoura num anel de oito cacos com um deles no aluno. E a janela
-  // segue o controle de congestionamento: dobra no slow start (1, 2, 4, 8,
-  // 16), passa a crescer de um na evitacao, e na perda - os ACKs duplicados -
-  // cai a metade, com o que se perdeu retransmitido primeiro (o cabecalho
-  // laranja). Numa fase sao onze janelas: 1, 2, 4, 8, 16, 8, 9, 10, 11, 5 e
-  // 6, o dente de serra que o grafico no canto de cima vai desenhando, com a
-  // linha vermelha da capacidade. O placar diz o cwnd e o estado.
+  // O ROTEADOR DA CONTA DE 8, 10 OU 12 POR RTT (sorteado por luta, e escrito
+  // nele). O que passa disso e descartado ali mesmo, e estoura num anel de oito
+  // cacos com um deles no aluno. E a janela segue o controle de
+  // congestionamento: dobra no slow start ate o ssthresh (8, 12 ou 16, tambem
+  // sorteado), passa a crescer de um na evitacao, e na perda - os ACKs
+  // duplicados - cai a metade, com o que se perdeu retransmitido primeiro (o
+  // cabecalho laranja). Com 10 e 16, as onze janelas da fase sao 1, 2, 4, 8,
+  // 16, 8, 9, 10, 11, 5 e 6, o dente de serra que o grafico no canto de cima
+  // vai desenhando, com a linha vermelha da capacidade. O placar diz o cwnd e
+  // o estado. O roteador fica de 40% a 60% da largura. No Dificil ele da
+  // conta de dois a menos, encaminha um a cada 0,045 s, e os segmentos dele e
+  // os dez cacos do descarte andam 25% mais depressa.
   //
   // O PONTO EXTRA DERRUBA AS NUVENS (e o que estava na rede com elas), e
   // elas voltam 3 s depois num TIMEOUT: cwnd = 1, do slow start. Gastar o B
@@ -138,7 +162,9 @@
   // que desce pelo campo, e cada mensagem e um envelope correndo por ele -
   // nas rodadas de muitos envelopes, ate o chao. Os tiros dos processos se
   // alternam entre onde o aluno esta e onde ele estara.
-  // Quatro rodadas de 4,6 s, cada uma com os dois num par de lugares:
+  // Quatro rodadas de 4,6 s, cada uma com os dois num par de lugares (que
+  // mudam um pouco a cada luta); a assincrona abre, e as outras vem em
+  // qualquer ordem:
   //
   //   assincrona   o filho manda sem esperar, mais depressa do que o pai
   //                recebe: a caixa postal do pai enche (o placar conta), e
@@ -146,7 +172,8 @@
   //   sincrona     o pai manda e fica bloqueado ate o filho receber: no
   //                rendezvous os dois atiram um anel juntos
   //   rpc          r = soma(2, 3) no filho: o pedido vai, a resposta volta, e
-  //                o resultado e um leque de 5 no aluno; depois soma(3, 4)
+  //                o resultado e um leque de 5 no aluno; depois soma(3, 4).
+  //                As contas sao sorteadas, com somas 5, 7 ou 9
   //   impasse      os dois fazem send() ao mesmo tempo e ninguem recebe: os
   //                envelopes param vermelhos na porta, ate o timeout os
   //                estourar; dali os dois mandam sem esperar
@@ -155,6 +182,10 @@
   // todo ataque dela e de gatilho, entao o clone nao anda nem atira sozinho -
   // quem o leva de lugar e o original, e quem atira do lugar dele tambem.
   // Quem comeca direto nesta fase, sem nuvem, se divide como antes.
+  //
+  // NO DIFICIL a assincrona manda 15 envelopes e cada receive() e um leque de
+  // tres, a sincrona tem quatro rendezvous, os aneis tem dez, e tudo anda 25%
+  // mais depressa.
   "StateThree": {
     "duracao": 20,
     "proximo": "",
@@ -182,7 +213,11 @@
   // quem come, ou ate quem ele escolheu (Vitor.h). Os garfos ANDAM ate a mao de
   // quem os pega; quem come da garfadas num leque estreito de tres, a do meio
   // no aluno, a cada 0,4 s; quem espera um garfo
-  // tem uma seta vermelha ate quem esta com ele. Quatro rodadas de 4,9 s:
+  // tem uma seta vermelha ate quem esta com ele. Quatro rodadas de 4,9 s; o
+  // jantar e o deadlock abrem, e as duas solucoes vem em qualquer ordem. Quem
+  // se senta a mesa e outro a cada luta (cinco de dez pensadores), e o jantar
+  // e a ordem comecam de outro lugar dela. No Dificil a garfada sai a cada
+  // 0,33 s e 15% mais depressa, e o cerco tem seis por aresta:
   //
   //   jantar           dois comem de cada vez, sem vizinhos: ninguem espera
   //   deadlock         todos pegam o garfo da ESQUERDA, e todos esperam o da

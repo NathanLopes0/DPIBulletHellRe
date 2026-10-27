@@ -20,7 +20,7 @@ namespace Tcp {
         const int total = std::max(1, c.cwnd);
         j.retransmitidos = std::min(c.aRetransmitir, total);
         j.novos = total - j.retransmitidos;
-        j.perdidos = std::max(0, total - kCapacidade);
+        j.perdidos = std::max(0, total - c.capacidade);
         c.aRetransmitir = 0;
         ++c.rtt;
         return j;
@@ -68,14 +68,14 @@ namespace Tcp {
         return (i % 2 == 0) ? 0.0f : 1.0f;
     }
 
-    Ponto Roteador(const float largura) {
-        return {largura / 2.0f, kAlturaDoRoteador};
+    Ponto Roteador(const float largura, const float fracao) {
+        return {largura * fracao, kAlturaDoRoteador};
     }
 
-    float GiroDoDescarte(const int k) {
+    float GiroDoDescarte(const int k, const int anel) {
         // Um terco do espaco entre dois cacos a cada anel: tres perdas seguidas
         // fecham o circulo.
-        return static_cast<float>(k % 3) * (360.0f / static_cast<float>(kAnelDoDescarte)) / 3.0f;
+        return static_cast<float>(k % 3) * (360.0f / static_cast<float>(std::max(1, anel))) / 3.0f;
     }
 
     Retangulo Grafico(const float largura) {
@@ -104,8 +104,39 @@ namespace Tcp {
         return "timeout" + std::string(kPonto) + "cwnd = " + std::to_string(c.cwnd);
     }
 
-    std::string Fila(const int recebidos) {
-        return "roteador" + std::string(kPonto) + std::to_string(std::clamp(recebidos, 0, kCapacidade)) + "/" +
-               std::to_string(kCapacidade);
+    std::string Fila(const int recebidos, const int capacidade) {
+        return "roteador" + std::string(kPonto) + std::to_string(std::clamp(recebidos, 0, capacidade)) + "/" +
+               std::to_string(capacidade);
+    }
+
+    Plano PlanoDeSempre() { return {}; }
+
+    Plano Sortear(Variacao::Sorteio& s) {
+        Plano p;
+        p.capacidade = kCapacidades[s.Inteiro(0, 2)];
+        p.ssthreshInicial = kSsthreshs[s.Inteiro(0, 2)];
+        p.fracaoDoRoteador = s.Real(kMenorFracaoDoRoteador, kMaiorFracaoDoRoteador);
+        return p;
+    }
+
+    Conexao Abrir(const Plano& p) {
+        Conexao c;
+        c.capacidade = p.capacidade;
+        c.ssthresh = p.ssthreshInicial;
+        return c;
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.entreEncaminhados = Dificuldade::Escolher(n, kEntreEncaminhados, 0.045f);
+        d.rapidez = Dificuldade::Escolher(n, 1.0f, 1.25f);
+        d.anelDoDescarte = Dificuldade::Escolher(n, kAnelDoDescarte, 10);
+        d.menosCapacidade = Dificuldade::Escolher(n, 0, 2);
+        return d;
+    }
+
+    Plano NoDegrau(Plano p, const Degrau& d) {
+        p.capacidade = std::max(kMenorCapacidade, p.capacidade - d.menosCapacidade);
+        return p;
     }
 }
