@@ -142,11 +142,6 @@ namespace Excecao {
         return xs;
     }
 
-    std::vector<int> OrdemDasRodadas(Variacao::Sorteio& s) {
-        std::vector<int> ordem = Variacao::Ordem(s, kRodadas - 1, 0);
-        ordem.push_back(kRodadas - 1);
-        return ordem;
-    }
 
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
@@ -176,5 +171,28 @@ namespace Excecao {
         if (tratado == x) return "Capturada em " + q.funcao + "(): o catch dela trata exatamente " + x + ".";
         return "Capturada em " + q.funcao + "(): " + x + " \xc3\xa9 um " + tratado +
                ", o tipo que o catch dela trata.";
+    }
+    Rodada Gerar(Variacao::Sorteio& s) {
+        static const char* const kFuncoes[] = {"main", "f", "g", "h"};
+        static const std::vector<Tipo> kLancaveis = {Tipo::IOException, Tipo::RuntimeException,
+                                                     Tipo::NullPointerException};
+        static const std::vector<Tipo> kCapturaveis = {Tipo::Exception, Tipo::IOException,
+                                                       Tipo::RuntimeException, Tipo::NullPointerException};
+        Rodada r;
+        const int n = s.Inteiro(3, kMaiorPilha);
+        for (int i = 0; i < n; ++i) {
+            Quadro q = Chamada(kFuncoes[i]);
+            const bool lanca = (i == n - 1);
+            if (!lanca && s.Chance(0.5f)) q.captura = s.Um(kCapturaveis);
+            q.finally = s.Chance(lanca ? 0.25f : 0.35f);
+            r.pilha.push_back(q);
+        }
+        r.lancada = s.Um(kLancaveis);
+        return r;
+    }
+
+    Rodada RodadaDaLuta(Variacao::Sorteio& s, const int k) {
+        if (((k % kRodadas) + kRodadas) % kRodadas == kRodadas - 1) return RodadaDaVez(kRodadas - 1);
+        return Gerar(s);
     }
 }

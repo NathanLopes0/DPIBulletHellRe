@@ -34,8 +34,9 @@
   // qualquer ordem e a pegadinha - f no estatico e logo depois no dinamico -
   // fecha; nos tipos, a soma do JavaScript abre, o Haskell fecha e as seis do
   // meio se embaralham; na memoria, metade das lutas roda o programa em C++
-  // antes do de Java, cada um inteiro; e na final as quatro rodadas da
-  // linguagem vem em qualquer ordem, com o catch (Reprovado e) por ultimo.
+  // antes do de Java, cada um inteiro; e na final cada rodada E GERADA - a
+  // pilha, os catch e os finally de cada chamada e a excecao lancada -, com o
+  // catch (Reprovado e) por ultimo.
   //
   // NO DIFICIL (o Degrau de cada modulo; os numeros daqui sao os do Normal):
   // as gotas acendem 0,72 s depois de nascer e caem a 150 px/s; os operandos
@@ -172,10 +173,20 @@
   // roda no caminho (um anel), e cada faixa que nao a trata e desempilhada e
   // cai numa cortina de destrocos sobre o aluno, com um em cima dele. Ela para
   // no primeiro catch do tipo dela ou de um tipo acima na hierarquia; se nem o
-  // main trata, a pilha inteira cai. Cinco rodadas: a IOException que f trata,
-  // a NullPointerException que so o main trata, a que o catch de
-  // RuntimeException trata, a que ninguem trata, e a do proprio programa:
-  // catch (Reprovado e) { repescagem(); }.
+  // main trata, a pilha inteira cai.
+  //
+  // CADA RODADA E GERADA (Excecao::Gerar): a pilha tem de 3 a 4 chamadas,
+  // cada uma acima de quem lanca tem, por sorteio, um catch de um tipo
+  // qualquer da hierarquia e um finally, e a excecao lancada e IOException,
+  // RuntimeException ou NullPointerException. Onde ela para - no tipo exato,
+  // pela hierarquia, ou em lugar nenhum - sai da propagacao, e a legenda diz
+  // por que. Antes eram cinco rodadas escritas a mao, so embaralhadas: em
+  // tres lutas o aluno ja as conhecia. A ultima de cada volta continua sendo
+  // a do proprio programa: catch (Reprovado e) { repescagem(); }.
+  //
+  // Medido partindo de 40, em cinco lutas: quem persegue sai com 53 a 69
+  // (59 sempre, com as rodadas fixas), quem desvia com 81 a 87, e o parado e
+  // o que vai e vem reprovam.
   //
   // A velocidade dos destrocos e a do anel sao as de Excecao.h (um teste
   // confere); a excecao e enfeite e quem a move e o professor.

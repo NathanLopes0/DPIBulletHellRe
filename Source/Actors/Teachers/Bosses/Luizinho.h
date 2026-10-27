@@ -94,7 +94,8 @@ private:
     std::vector<int> mOrdemDoEscopo;
     std::vector<int> mOrdemDosTipos;
     Memoria::Roteiro mRoteiro = Memoria::RoteiroDeSempre();
-    std::vector<int> mOrdemDasRodadas;
+    Variacao::Sorteio mSorteioDasRodadas{0u};
+
 
     /// O degrau do modo, fase por fase (o do Normal e o de sempre).
     Escopo::Degrau mDegrauDoEscopo;

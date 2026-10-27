@@ -148,21 +148,6 @@ TEST_CASE("Excecao: os textos") {
     CHECK(CaraDaExcecao(Tipo::IOException) == "IOException");
 }
 
-TEST_CASE("Excecao: a ordem da luta embaralha as quatro rodadas da linguagem, e o Reprovado fecha") {
-    std::set<std::vector<int>> vistas;
-    for (std::uint32_t semente = 0; semente < 600; ++semente) {
-        Variacao::Sorteio s = Variacao::SorteioDa(semente, kFaseDasExcecoes);
-        const auto ordem = OrdemDasRodadas(s);
-        REQUIRE(ordem.size() == static_cast<size_t>(kRodadas));
-        std::vector<int> primeiras(ordem.begin(), ordem.end() - 1);
-        std::sort(primeiras.begin(), primeiras.end());
-        CHECK(primeiras == std::vector<int>{0, 1, 2, 3});
-        CHECK(RodadaDaVez(ordem.back()).lancada == Tipo::Reprovado);
-        vistas.insert(ordem);
-    }
-    CHECK(vistas.size() == 24u);
-}
-
 TEST_CASE("Excecao: a cortina do Dificil e mais fechada, e ainda tem um destroco em cima do aluno") {
     const Degrau n = DegrauDo(Dificuldade::Nivel::Normal);
     CHECK(n.entreDestrocos == kEntreDestrocos);
@@ -193,4 +178,46 @@ TEST_CASE("Excecao: a legenda diz o que a excecao faz, e depois quem a tratou") 
     CHECK(Excecao::Legenda(r2, true).find("\xc3\xa9 um RuntimeException") != std::string::npos);
     // NINGUEM TRATA.
     CHECK(Excecao::Legenda(Excecao::RodadaDaVez(3), true).find("escapou do main()") != std::string::npos);
+}
+
+TEST_CASE("Excecao: as rodadas sao geradas, e todo desfecho acontece") {
+    using T = Excecao::Tipo;
+    bool exata = false, hierarquia = false, escapa = false, finally = false;
+    std::set<size_t> alturas;
+    std::set<int> lancadas;
+    for (std::uint32_t semente = 0; semente < 400; ++semente) {
+        Variacao::Sorteio s = Variacao::SorteioDa(semente, "StateFinal");
+        const Excecao::Rodada r = Excecao::Gerar(s);
+        REQUIRE(r.pilha.size() >= 3u);
+        REQUIRE(r.pilha.size() <= static_cast<size_t>(Excecao::kMaiorPilha));
+        CHECK(r.pilha.front().funcao == "main");
+        CHECK_FALSE(r.pilha.back().captura.has_value());   // quem lanca nao trata a propria
+        CHECK(r.lancada != T::Reprovado);
+        CHECK(r.lancada != T::Exception);
+        alturas.insert(r.pilha.size());
+        lancadas.insert(static_cast<int>(r.lancada));
+        for (const auto& q : r.pilha) finally = finally || q.finally;
+        const int k = Excecao::QuemCaptura(r);
+        if (k < 0) { escapa = true; continue; }
+        const auto& q = r.pilha[static_cast<size_t>(k)];
+        REQUIRE(q.captura.has_value());
+        CHECK(Excecao::EhUm(r.lancada, *q.captura));
+        if (*q.captura == r.lancada) exata = true; else hierarquia = true;
+    }
+    CHECK(exata);
+    CHECK(hierarquia);
+    CHECK(escapa);
+    CHECK(finally);
+    CHECK(alturas.size() == 2u);
+    // A EXCECAO LANCADA TAMBEM E SORTEADA: as tres concretas aparecem.
+    CHECK(lancadas.size() == 3u);
+
+}
+
+TEST_CASE("Excecao: a ultima rodada de cada volta da luta e sempre o catch da repescagem") {
+    Variacao::Sorteio s = Variacao::SorteioDa(3u, "StateFinal");
+    for (int k = 0; k < 2 * Excecao::kRodadas; ++k) {
+        const Excecao::Rodada r = Excecao::RodadaDaLuta(s, k);
+        CHECK((r.lancada == Excecao::Tipo::Reprovado) == (k % Excecao::kRodadas == Excecao::kRodadas - 1));
+    }
 }

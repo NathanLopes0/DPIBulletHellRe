@@ -89,10 +89,9 @@ void Luizinho::SortearALuta() {
         Variacao::Sorteio sorteio = SorteioDaFase(Memoria::kFaseDaMemoria);
         mRoteiro = Memoria::Sortear(sorteio);
     }
-    {
-        Variacao::Sorteio sorteio = SorteioDaFase(Excecao::kFaseDasExcecoes);
-        mOrdemDasRodadas = Excecao::OrdemDasRodadas(sorteio);
-    }
+    // AS RODADAS DA FINAL SAO GERADAS na hora, uma de cada vez, desta
+    // sequencia (Excecao::RodadaDaLuta).
+    mSorteioDasRodadas = SorteioDaFase(Excecao::kFaseDasExcecoes);
 }
 
 void Luizinho::OnUpdate(const float deltaTime) {
@@ -1070,7 +1069,8 @@ void Luizinho::ComecarRodada(const int k) {
     mExcecao = nullptr;
 
     mRodadaDaVez = k;
-    mRodada = Excecao::RodadaDaVez(Variacao::NaOrdem(mOrdemDasRodadas, k));
+    mRodada = Excecao::RodadaDaLuta(mSorteioDasRodadas, k);
+
     mPassos = Excecao::Propagar(mRodada);
     mProximoPasso = 0;
     mEmpilhados = 0;

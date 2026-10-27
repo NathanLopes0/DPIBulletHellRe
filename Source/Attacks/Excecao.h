@@ -167,13 +167,6 @@ namespace Excecao {
     constexpr float kVelocidadeDoFinally = 220.0f;
     constexpr int kAnelDoFinally = 12;
 
-    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA ---------------------------------
-
-    /// A ORDEM DAS RODADAS desta luta (a rodada k e RodadaDaVez(ordem[k])): as
-    /// quatro da linguagem em qualquer ordem, e a do proprio programa - o catch
-    /// (Reprovado e) - sempre por ultimo.
-    std::vector<int> OrdemDasRodadas(Variacao::Sorteio& s);
-
     // ---- O DEGRAU -------------------------------------------------------------
 
     /// O que o Dificil muda: a cortina tem um destroco a cada 52 px (e nao 60)
@@ -187,4 +180,19 @@ namespace Excecao {
     /// @brief A LEGENDA da rodada, em portugues: antes, o que a excecao vai
     /// fazer; 'depois', quem a tratou e por que - ou que ninguem tratou.
     std::string Legenda(const Rodada& r, bool depois);
+    // ---- AS RODADAS GERADAS -------------------------------------------------
+
+    /**
+     * @brief UMA RODADA GERADA: a pilha tem de 3 a kMaiorPilha chamadas, do
+     * main ate quem lanca; cada uma acima de quem lanca tem, por sorteio, um
+     * catch de um tipo qualquer da hierarquia e um finally; e a excecao
+     * lancada e uma das tres concretas. Quem captura - pelo tipo exato, pela
+     * hierarquia, ou ninguem - sai da propagacao. Antes as rodadas eram cinco,
+     * escritas a mao, so em ordem sorteada: decoravam-se.
+     */
+    Rodada Gerar(Variacao::Sorteio& s);
+
+    /// @brief A rodada k da luta: gerada, e a ultima de cada kRodadas e sempre
+    /// o catch (Reprovado e) - a repescagem e um catch.
+    Rodada RodadaDaLuta(Variacao::Sorteio& s, int k);
 }
