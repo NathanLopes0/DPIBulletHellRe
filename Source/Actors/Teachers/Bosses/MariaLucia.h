@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "../Boss.h"
+#include "../../../Attacks/BalaDePrata.h"
 #include "../../../Attacks/Cascata.h"
 #include "../../../Attacks/Observer.h"
 #include "../../../Attacks/Sprint.h"
@@ -34,7 +35,10 @@ class DrawLinhasComponent;
  *           viram codigo e bugs, os bugs que sobram viram divida;
  *   fase 2  os METODOS AGEIS: cinco sprints, e o cursor que arrasta as
  *           historias (SprintAttack);
- *   fase 3  o padrao OBSERVER: o aluno e o sujeito, e os olhos dela o assinam.
+ *   fase 3  o padrao OBSERVER: o aluno e o sujeito, e os olhos dela o assinam;
+ *   final   NAO HA BALA DE PRATA (BalaDePrata.h): as promessas da industria
+ *           que se desfazem em bugs, e o tiro do aluno como teste com usuario.
+
  *
  * O que mora aqui e a cascata da fase 1 em campo, e o SUJEITO da fase 3
  * (Observer.h): a cada quadro ela le para onde cada aluno esta indo e,
@@ -51,6 +55,9 @@ public:
 
     /// A fase do padrao Observer, a que decide a batalha.
     static constexpr const char* kFaseDoObserver = "StateThree";
+
+    /// A repescagem: nao ha bala de prata.
+    static constexpr const char* kFaseDaBala = "StateFinal";
 
 protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
@@ -76,6 +83,27 @@ private:
     Observer::Sujeito mSujeitoDaLuta;
 
     static constexpr const char* kFaseDosMetodos = "StateTwo";
+
+    // ---- NAO HA BALA DE PRATA (a repescagem, BalaDePrata.h) ----------------
+
+    void AtualizarBalas(float deltaTime);
+
+    struct Bala {
+        BossProjectile* p = nullptr;
+        float saiu = 0.0f;     ///< no relogio da batalha (mRelogio)
+
+        int promessa = 0;
+    };
+    std::vector<Bala> mBalas;
+    std::vector<int> mOrdemDasPromessas;
+    int mProximaPromessa = 0;
+    float mProximaBala = 0.0f;
+    bool mNaBala = false;
+    BalaDePrata::Degrau mDegrauDaBala;
+    std::string mNomeDaBala;
+    std::string mTextoDaBala;
+    float mTextoDaBalaPor = 0.0f;
+
 
     // ---- A CASCATA (fase 1) -------------------------------------------------
 

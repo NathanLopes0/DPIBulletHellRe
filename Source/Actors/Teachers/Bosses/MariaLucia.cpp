@@ -49,6 +49,10 @@ void MariaLucia::SortearALuta() {
 
     Variacao::Sorteio observer = SorteioDaFase(kFaseDoObserver);
     mSujeitoDaLuta = Observer::Sortear(observer, Observer::DegrauDo(NivelDeDificuldade()));
+
+    Variacao::Sorteio bala = SorteioDaFase(kFaseDaBala);
+    mOrdemDasPromessas = BalaDePrata::Sortear(bala);
+    mDegrauDaBala = BalaDePrata::DegrauDo(NivelDeDificuldade());
 }
 
 int MariaLucia::SprintDaVez() const {
@@ -68,7 +72,73 @@ void MariaLucia::OnUpdate(const float deltaTime) {
     AtualizarCascata(deltaTime);
     AtualizarDividas(deltaTime);
     AtualizarObserver(deltaTime);
+    AtualizarBalas(deltaTime);
 }
+
+void MariaLucia::AtualizarBalas(const float deltaTime) {
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool naBala = fsm && fsm->GetStateName() == kFaseDaBala && !EhClone();
+
+    if (!naBala) {
+        if (mNaBala) {
+            for (const Bala& b : mBalas) if (b.p->GetState() == ActorState::Active) b.p->Kill();
+            mBalas.clear();
+            if (!mNomeDaBala.empty()) RegistrarAnuncio(kFaseDaBala, mNomeDaBala);
+        }
+        mNaBala = false;
+        return;
+    }
+    if (!mNaBala) {
+        mNaBala = true;
+        mProximaBala = 1.0f;
+        mTextoDaBalaPor = 0.0f;
+        if (mNomeDaBala.empty()) mNomeDaBala = AnuncioDaFase(kFaseDaBala);
+    }
+    const auto& promessas = BalaDePrata::Promessas();
+    auto promessa = [&](const int k) -> const std::string& {
+        const int i = mOrdemDasPromessas.empty() ? k : mOrdemDasPromessas[static_cast<size_t>(k) % mOrdemDasPromessas.size()];
+        return promessas[static_cast<size_t>(i) % promessas.size()];
+    };
+
+    // UMA BALA DE PRATA, mirada no aluno, com o nome da promessa no placar.
+    mProximaBala -= deltaTime;
+    if (mProximaBala <= 0.0f) {
+        mProximaBala += mDegrauDaBala.entreBalas;
+        const int k = mProximaPromessa++;
+        for (BossProjectile* p : DispararEm(BalaDePrata::kGatilhoDaBala, GetPosition(), true)) {
+            mBalas.push_back(Bala{p, mRelogio, k});
+        }
+        mTextoDaBala = promessa(k) + "?";
+        mTextoDaBalaPor = BalaDePrata::kNoPlacar;
+    }
+
+    // A BALA QUE CHEGA PERTO DO ALUNO SE DESFAZ num leque de bugs, mirado
+    // nele; a que o aluno acertou antes - o teste com usuario - so cai.
+    const auto* batalha = dynamic_cast<Battle*>(mScene);
+    const Player* alvo = batalha ? batalha->Alvo() : nullptr;
+    for (auto it = mBalas.begin(); it != mBalas.end();) {
+        if (it->p->GetState() != ActorState::Active) {
+            mTextoDaBala = BalaDePrata::Testada(promessa(it->promessa));
+            mTextoDaBalaPor = BalaDePrata::kNoPlacar;
+            it = mBalas.erase(it);
+            continue;
+        }
+        const float distancia = alvo ? (alvo->GetPosition() - it->p->GetPosition()).Length() : 0.0f;
+        if (!BalaDePrata::SeDesfaz(distancia, mRelogio - it->saiu)) { ++it; continue; }
+
+        const Vector2 onde = it->p->GetPosition();
+        it->p->Kill();
+        DispararEm(BalaDePrata::kGatilhoDoEstilhaco, onde, true);
+        mTextoDaBala = BalaDePrata::Desfeita(promessa(it->promessa));
+        mTextoDaBalaPor = BalaDePrata::kNoPlacar;
+        it = mBalas.erase(it);
+    }
+
+    mTextoDaBalaPor = std::max(0.0f, mTextoDaBalaPor - deltaTime);
+    const std::string& texto = (mTextoDaBalaPor > 0.0f) ? mTextoDaBala : mNomeDaBala;
+    if (AnuncioDaFase(kFaseDaBala) != texto) RegistrarAnuncio(kFaseDaBala, texto);
+}
+
 
 // ---------------------------------------------------------------------------
 // A CASCATA

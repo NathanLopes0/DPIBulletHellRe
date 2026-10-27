@@ -7,7 +7,7 @@
   //   StateOne    CASCATA      cinco etapas em ordem, e ela descendo a escada
   //   StateTwo    AGEIS        cinco sprints, e o cursor que arrasta as historias
   //   StateThree  OBSERVER     os olhos que assinam o aluno, e o aviso quando ele vira
-  //   StateFinal  MANUTENCAO   as janelas modais do sistema velho, e o que ele acumulou
+  //   StateFinal  BALA DE PRATA nao ha bala de prata: as promessas que se desfazem em bugs
   //
   // O QUE DISTINGUE ESTA CHEFE DAS OUTRAS: O TEMPO E PARTE DO PROBLEMA.
   // Estruturas de Dados e um objeto, Linguagens Formais e um objeto,
@@ -21,7 +21,7 @@
   // A IHC - a outra materia que ela da - entra pelo cursor da fase 2 (o
   // arrastar-e-soltar, a lei de Fitts), pelos olhos e pelo selo de
   // notificacao da fase 3 (o rastreamento do olhar), e pelas janelas modais
-  // da final.
+  // e pelo teste com usuario da final.
   //
   // O MOVIMENTO E O ATAQUE, como nos outros - ver MovementStrategies.h. Aqui,
   // em duas das quatro fases, ele e a propria mecanica: a escada e o diagrama
@@ -251,42 +251,60 @@
     ]
   },
 
-  // FASE FINAL - A MANUTENCAO   |   gesto: A ORBITA LENTA
+  // FASE FINAL - NAO HA BALA DE PRATA   |   gesto: A ORBITA LENTA
   //
   // So e vista por quem termina a terceira entre 40 e 59, ou com 100.
   //
-  // MANTER UM SISTEMA VELHO E LIDAR COM A INTERFACE DELE: a professora abre
-  // JANELAS MODAIS ("Tem certeza?"), tres por leva, presas a ela como dialogos
-  // centrados na janela que os abriu (regra "modal", Ancora.h). Uma janela e um
-  // ANTEPARO - o tiro que a acerta nao chega na professora -, fecha-la custa
-  // tres tiros ("resistencia" em projeteis.json), e a que ninguem fecha em 5,5 s
-  // solta e cai em cima de quem esta embaixo. Junto, as duas coisas que um
-  // sistema velho acumula: os pedidos que PERSEGUEM (regra "manutencao") e a
-  // divida que para e fica.
+  // "NAO HA BALA DE PRATA", a frase que a professora repete - do ensaio de
+  // Fred Brooks (No Silver Bullet, 1986): nenhuma tecnica, sozinha, resolve a
+  // complexidade ESSENCIAL de construir software. A cada 1,7 s (1,4 no
+  // Dificil) ela dispara uma BALA DE PRATA mirada no aluno, e o placar diz a
+  // promessa dela - IA, UML, orientacao a objetos, metodos ageis, nuvem,
+  // low-code, microsservicos, ferramenta CASE, numa ordem sorteada por luta
+  // (BalaDePrata.h). Quando a bala chega perto dele, ELA SE DESFAZ num leque de
+  // bugs, e o placar responde: "IA? Nao ha bala de prata." A complexidade
+  // continua la.
   //
-  // A ORBITA E PARA O EXAME TER COMO PASSAR, a licao da final do Luizinho: na
-  // final de antes, que varria a 300 px/s, o piloto que persegue a
-  // professora, comecando com 40, acertou-a 10 vezes em 17 s e saiu com 27,6.
-  // Na orbita lenta ele a acerta 91 vezes e passa com 66,3 (4 acertos
-  // sofridos); o parado sai com 10,3. Os tres tiros de cada janela lhe custam
-  // 6 acertos na professora: com janelas que fecham num tiro so, 97 e 69,0.
+  // O TIRO DO ALUNO E UM TESTE COM USUARIO - a pesquisa dela, IHC e
+  // experiencia do usuario: a bala atingida antes de se desfazer cai sem
+  // soltar nada, e o placar diz que o teste a reprovou. Testar cedo e mais
+  // barato. Ela cai com UM tiro: com dois, mirada na coluna em que o aluno
+  // atira, ela comia os tiros que iam para a professora, e o piloto que
+  // desvia, partindo de 40, saia reprovado sem tomar acerto nenhum.
   //
-  // OS PEDIDOS SAEM A CADA 1,7 s, e nao a 1,1 como antes: com as janelas no
-  // caminho, a 1,1 o piloto que persegue reprovava com 55,0.
+  // A BALA SE DESFAZ PERTO DO ALUNO, e nao depois de um tempo fixo: a
+  // professora anda na orbita junto com a bala, e com o tempo fixo os bugs
+  // nasciam perto dela, longe de quem tinham de cobrar.
+  //
+  // CONTINUAM AS JANELAS MODAIS ("Tem certeza?") - a IHC, tres por leva,
+  // presas a ela como dialogos centrados na janela que os abriu (regra
+  // "modal", Ancora.h). Uma janela e um ANTEPARO - o tiro que a acerta nao
+  // chega na professora -, fecha-la custa tres tiros, e a que ninguem fecha em
+  // 5,5 s solta e cai em cima de quem esta embaixo. E a divida, que para e
+  // fica. A bala de prata ocupa o lugar dos pedidos de manutencao que
+  // perseguiam.
+  //
+  // A ORBITA E PARA O EXAME TER COMO PASSAR, a licao da final do Luizinho.
+  // Medido partindo de 40: o piloto que persegue sai com 64,5 (63,5 no
+  // Dificil) e o que desvia com 62,7 (56,7); o parado e o que vai e vem
+  // reprovam com 39 e 18. Na batalha inteira, quem cai na repescagem com 49 a
+  // 55 sai dela aprovado com 66 a 74.
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
-    "anuncio": "Manutenção · Tem certeza?",
+    "anuncio": "Não há bala de prata",
     "movimento": { "tipo": "Orbitar", "a": 180, "b": 0.12 },
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Dialogo",
         "projeteis": 3, "velocidade": 200, "angulo": 60, "intervalo": 0,
         "cooldown": 6.0,
         "regras": "modal" },
-      { "estrategia": "WaveAttack", "projetil": "Requisito",
-        "projeteis": 5, "velocidade": 300, "angulo": 30, "intervalo": 0.05,
-        "cooldown": 1.7,
-        "regras": "manutencao" },
+      { "gatilho": "bala", "estrategia": "WaveAttack", "projetil": "BalaDePrata",
+        "projeteis": 1, "velocidade": 230, "angulo": 0, "intervalo": 0,
+        "dificil": { "velocidade": 260 } },
+      { "gatilho": "estilhaco", "estrategia": "WaveAttack", "projetil": "Bug",
+        "projeteis": 5, "velocidade": 210, "angulo": 70, "intervalo": 0,
+        "dificil": { "projeteis": 7 } },
       { "estrategia": "WaveAttack", "projetil": "Debito",
         "projeteis": 3, "velocidade": 320, "angulo": 40, "intervalo": 0,
         "cooldown": 3.1,

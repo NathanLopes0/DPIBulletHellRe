@@ -136,20 +136,5 @@
     { "indices": [0], "motion": { "tipo": "Ancorar", "dx": -100, "dy": 100, "duracao": 5.5, "velocidade": 220 } },
     { "indices": [1], "motion": { "tipo": "Ancorar", "dx": 0,    "dy": 125, "duracao": 5.5, "velocidade": 220 } },
     { "indices": [2], "motion": { "tipo": "Ancorar", "dx": 100,  "dy": 100, "duracao": 5.5, "velocidade": 220 } }
-  ],
-
-  // FASE FINAL - O LEGADO.
-  //
-  // Os requisitos da manutencao PERSEGUEM. E a unica regra do chefe com
-  // Tracking, e ela guarda a diferenca entre manter e construir: num sistema
-  // novo o pedido chega e voce decide onde por; num sistema velho o pedido vai
-  // ATRAS de voce, porque so existe um lugar onde ele cabe.
-  //
-  // Forca 1,4 e a mesma da fase que ensina do Vladimir, de proposito: aqui o
-  // perseguidor nao e o desafio, e o tempero. O desafio e ele chegar enquanto
-  // o campo ja esta tomado de divida.
-  "manutencao": [
-    { "animacao": "Novo",
-      "motion": { "tipo": "Tracking", "atraso": 0.35, "forca": 1.4, "duracao": 2.2 } }
   ]
 }

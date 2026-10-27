@@ -196,7 +196,11 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   parada no campo — e o post-it que você derruba é escopo cortado. Depois vêm
   cinco sprints de métodos ágeis, com o cursor arrastando as histórias, o
   padrão Observer (olhos que te assinam e avisam quando você vira) e, no exame,
-  as janelas modais do sistema velho.
+  a frase dela: **não há bala de prata**. Cada bala de prata tem o nome de uma
+  promessa (IA, UML, low-code...) e se desfaz em bugs quando chega perto — a
+  menos que você a teste antes, com um tiro: é o teste com usuário, da IHC e
+  da experiência do usuário que ela pesquisa.
+
 - **Vladimir — INF 331.** Teoria da computação: um autômato que lê a palavra
   e atira cada letra lida, a gramática S → aSb derivando em voo, uma máquina de
   Turing cuja cabeça escreve a fita em cima de você e, no exame, o problema da
@@ -272,7 +276,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 1006 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 1010 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha — e também **leem os arquivos de
 `Assets/` de verdade**, quebrando ao primeiro erro de digitação num JSON. Um

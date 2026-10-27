@@ -265,6 +265,24 @@ def seta(fase):
     return im
 
 
+def bala(fase):
+    """A BALA DE PRATA da repescagem - "nao ha bala de prata", a frase que ela
+    repete (Brooks, 1986). Uma bala de verdade, deitada e apontando para a
+    direita (o projetil gira com a velocidade), em prata com um brilho que
+    corre pelo corpo de quadro em quadro: e o que a torna atraente, e o que
+    some quando ela se desfaz."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    prata, sombra, estojo = (206, 212, 222, 255), (120, 128, 142, 255), (168, 174, 186, 255)
+    d.rectangle([4, 11, 15, 21], fill=estojo, outline=TRACO)                 # o estojo
+    d.line([6, 11, 6, 21], fill=sombra, width=1)                             # o friso
+    d.polygon([(15, 11), (22, 11), (29, 16), (22, 21), (15, 21)], fill=prata, outline=TRACO)   # a ogiva
+    d.line([16, 19, 23, 19], fill=sombra, width=1)
+    x = (8, 13, 18, 23)[fase]                                                # o brilho que corre
+    d.line([x, 13, x + 2, 13], fill=(255, 255, 255, 255), width=2)
+    return im
+
+
 def folha():
     """Quatro quadros de cada, uma coisa por linha, em 4x9.
 
@@ -275,7 +293,7 @@ def folha():
     As duas primeiras linhas sao as de sempre, e ficam nos mesmos quadros.
     """
     linhas = (lambda i: requisito(), lambda i: debito(), codigo, bug, cursor,
-              observador, historia, dialogo, notificacao, classe, seta)
+              observador, historia, dialogo, notificacao, classe, seta, bala)
     f = Image.new("RGBA", (128, 32 * len(linhas)), (0, 0, 0, 0))
     for linha, desenho in enumerate(linhas):
         for i in range(4):
@@ -336,7 +354,8 @@ def placas_json(nome, w, h):
 
 if __name__ == "__main__":
     grava(maria_lucia(), "DPIBHMariaLucia", "Assets/Teachers")
-    grava(folha(), "DPIBHMariaLuciaRequisito", "Assets/Teachers/Projectiles", quadros=44, lado=32)
+    grava(folha(), "DPIBHMariaLuciaRequisito", "Assets/Teachers/Projectiles", quadros=48, lado=32)
+
     im = placas()
     destino = os.path.join(RAIZ, "Assets/Teachers/Projectiles")
     im.save(os.path.join(destino, "DPIBHMariaLuciaCascata.png"))

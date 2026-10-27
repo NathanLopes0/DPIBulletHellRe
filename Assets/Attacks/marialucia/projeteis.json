@@ -187,6 +187,21 @@
     "rotacionarComAVelocidade": true
   },
 
+  // A BALA DE PRATA da repescagem: "nao ha bala de prata" (BalaDePrata.h).
+  // Aponta para onde voa, e o tiro do aluno a derruba antes de ela se
+  // desfazer em bugs - o teste com usuario.
+  "BalaDePrata": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
+    "animacoes": { "Brilho": [44, 45, 46, 47] },
+    "animacaoInicial": "Brilho",
+    "ordemDeDesenho": 92,
+    "escala": 1.6,
+    "posicionarNoDono": false,
+    "rotacionarComAVelocidade": true,
+    "derrubavel": true
+  },
+
   // AS CAIXAS DO DIAGRAMA DA CASCATA, debaixo dos degraus: "P0" a "P4" apagadas,
   // "A0" a "A4" acesas - a da etapa em curso. Enfeite.
   "Placa": {
