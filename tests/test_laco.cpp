@@ -4,6 +4,12 @@
 
 #include "doctest.h"
 
+#include <cstdint>
+#include <set>
+#include <string>
+
+#include "../Source/Variacao.h"
+
 #include <algorithm>
 #include <set>
 
@@ -143,4 +149,33 @@ TEST_CASE("Laco: as casas dividem o campo, e v[-1] e v[12] ficam fora dele") {
         caras.insert(CaraDoIndiceErro(i));
     }
     CHECK(static_cast<int>(caras.size()) == 4 * kCasas);
+}
+
+TEST_CASE("Laco: o degrau - o Normal e o de sempre, o Dificil avisa menos e sobe mais rapido") {
+    const Degrau n = DegrauDo(Dificuldade::Nivel::Normal);
+    CHECK(n.aviso == doctest::Approx(kAviso));
+    CHECK(n.rapidez == doctest::Approx(1.0f));
+    const Degrau d = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.aviso < n.aviso);
+    CHECK(d.aviso > kPasso);       // a casa ainda acende antes de o cacho sair
+    CHECK(d.rapidez > n.rapidez);
+    CHECK(n.baloesPorCacho == kBaloesPorCacho);
+    CHECK(d.baloesPorCacho > n.baloesPorCacho);
+    CHECK(d.baloesPorCacho % 2 == 1);   // um no meio da casa
+    // O CACHO MAIS LARGO cabe na casa (100 px numa tela de 1200).
+    for (const Degrau& g : {n, d}) {
+        CHECK(static_cast<float>(g.baloesPorCacho - 1) * g.ladoDoCacho <= 1200.0f / static_cast<float>(kCasas) + 0.01f);
+    }
+    CHECK(n.ladoDoCacho == doctest::Approx(kLadoDoCacho));
+}
+
+TEST_CASE("Laco: em qualquer ordem da luta, os sete lacos aparecem e o for simples abre") {
+    for (std::uint32_t semente = 0; semente < 200; ++semente) {
+        Variacao::Sorteio s(semente);
+        const auto ordem = Variacao::Ordem(s, kFormas);
+        CHECK(Proximo(Variacao::NaOrdem(ordem, 0), semente).forma == Forma::Para);
+        std::set<int> formas;
+        for (int vez = 0; vez < kFormas; ++vez) formas.insert(static_cast<int>(Proximo(Variacao::NaOrdem(ordem, vez), semente).forma));
+        CHECK(formas.size() == static_cast<size_t>(kFormas));
+    }
 }

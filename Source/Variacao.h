@@ -90,6 +90,20 @@ namespace Variacao {
         std::mt19937 mGerador;
     };
 
+    /**
+     * @brief UMA ORDEM PARA AS FORMAS de uma fase: 0 a n - 1 embaralhados, com
+     * as `fixas` primeiras no lugar - a que define o conceito abre a fase.
+     *
+     * E o molde dos chefes que tem um "Proximo(vez, ...)": a vez k da fase
+     * passa a ser a forma NaOrdem(ordem, k).
+     */
+    std::vector<int> Ordem(Sorteio& s, int n, int fixas = 1);
+
+    /// A forma da vez `vez` numa ordem de n: a volta seguinte repete a ordem,
+    /// n adiante (vez n + 2 e ordem[2] + n), para quem conta voltas pela vez.
+    /// Sem ordem (vazia), a vez de sempre.
+    int NaOrdem(const std::vector<int>& ordem, int vez);
+
     /// A sequencia da fase `fase` numa batalha de semente `semente`.
     inline Sorteio SorteioDa(const std::uint32_t semente, const std::string& fase) {
         return Sorteio(Misturar(semente, Rotulo(fase)));

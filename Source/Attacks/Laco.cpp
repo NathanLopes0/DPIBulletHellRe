@@ -144,4 +144,13 @@ namespace Laco {
     std::string CaraDoByte(const int k) {
         return kNomesDosBytes[static_cast<std::size_t>(((k % kBytes) + kBytes) % kBytes)];
     }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.aviso = Dificuldade::Escolher(n, kAviso, 0.4f);
+        d.rapidez = Dificuldade::Escolher(n, 1.0f, 1.15f);
+        d.baloesPorCacho = Dificuldade::Escolher(n, kBaloesPorCacho, 5);
+        d.ladoDoCacho = Dificuldade::Escolher(n, kLadoDoCacho, 24.0f);
+        return d;
+    }
 }

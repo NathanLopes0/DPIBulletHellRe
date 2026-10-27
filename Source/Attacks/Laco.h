@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "../Dificuldade.h"
+
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -148,4 +150,21 @@ namespace Laco {
     constexpr float kYDoProfessor = 170.0f;
     constexpr float kXMinimo = 300.0f;
     constexpr float kXMaximo = 900.0f;
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA, E O DEGRAU -------------------
+
+    /// Os lacos se revezam numa ORDEM DA LUTA (Variacao::Ordem de kFormas, com
+    /// o for simples abrindo): a vez k da fase e Proximo(NaOrdem(ordem, k)).
+
+    /// O que o Dificil muda: o cacho sobe mais cedo depois de a casa acender
+    /// (menos aviso), mais depressa e mais largo - cinco baloes, de borda a
+    /// borda da casa, e nao tres no meio -, e a memoria do segfault voa mais
+    /// rapido.
+    struct Degrau {
+        float aviso = kAviso;
+        float rapidez = 1.0f;          ///< do cacho e do despejo
+        int baloesPorCacho = kBaloesPorCacho;
+        float ladoDoCacho = kLadoDoCacho;   ///< de um balao ao do lado
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

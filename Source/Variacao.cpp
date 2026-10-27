@@ -4,6 +4,7 @@
 
 #include "Variacao.h"
 
+#include <algorithm>
 #include <cmath>
 
 namespace Variacao {
@@ -49,6 +50,23 @@ float Sorteio::Real(const float de, const float ate) {
     const float u = static_cast<float>(Bruto() >> 8) * (1.0f / 16777216.0f);   // [0, 1)
     const float r = de + u * (ate - de);
     return r < ate ? r : std::nextafter(ate, de);
+}
+
+std::vector<int> Ordem(Sorteio& s, const int n, const int fixas) {
+    std::vector<int> ordem;
+    for (int i = 0; i < n; ++i) ordem.push_back(i);
+    if (fixas < n) {
+        std::vector<int> resto(ordem.begin() + std::max(0, fixas), ordem.end());
+        s.Embaralhar(resto);
+        std::copy(resto.begin(), resto.end(), ordem.begin() + std::max(0, fixas));
+    }
+    return ordem;
+}
+
+int NaOrdem(const std::vector<int>& ordem, const int vez) {
+    const int n = static_cast<int>(ordem.size());
+    if (n == 0 || vez < 0) return vez;
+    return ordem[static_cast<size_t>(vez % n)] + (vez / n) * n;
 }
 
 bool Sorteio::Chance(const float p) {

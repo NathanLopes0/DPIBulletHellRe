@@ -212,4 +212,15 @@ namespace Condicional {
         }
         return confetes;
     }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        if (n == Dificuldade::Nivel::Dificil) {
+            d.baloesPorComando = 4;
+            d.entreBaloes = 0.6f;
+            d.naDecisao = 0.15f;
+            d.rapidez = 1.4f;
+        }
+        return d;
+    }
 }

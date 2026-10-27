@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "../Dificuldade.h"
+
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -152,4 +154,17 @@ namespace Funcao {
     constexpr float kYDoProfessor = 170.0f;
     constexpr float kXMinimo = 400.0f;
     constexpr float kXMaximo = 800.0f;
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA, E O DEGRAU -------------------
+
+    /// As chamadas se revezam numa ORDEM DA LUTA (Variacao::Ordem de kFormas,
+    /// com o baloes(a, b) abrindo): a vez k da fase e Proximo(NaOrdem(ordem, k)).
+
+    /// O que o Dificil muda: o leque sai mais rapido, e o segue(&aluno) solta
+    /// um cacho a cada 0,3 s em vez de 0,4.
+    struct Degrau {
+        float entreSegue = kEntreSegue;
+        float rapidez = 1.0f;          ///< do leque
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

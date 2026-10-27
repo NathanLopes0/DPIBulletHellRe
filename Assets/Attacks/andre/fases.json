@@ -37,6 +37,20 @@
 // e o codigo que o professor esta rodando, e o campo e a execucao dele. Os
 // BALOES DO BOCA ficam - no BOCA, cada problema resolvido vale um balao da cor
 // dele.
+//
+// CADA LUTA E OUTRA (Variacao.h): a forma que define cada fase abre - o if
+// simples, o for simples, o baloes(a, b) -, e as outras vem numa ordem sorteada
+// da semente da batalha (Variacao::Ordem); os numeros de cada comando ja eram
+// sorteados. Na prova os quatro primeiros problemas trocam de lugar (a letra e
+// do lugar, como no BOCA), e o que capota fecha sempre.
+//
+// NO DIFICIL (Dificuldade.h): um balao a mais por comando, menos tempo no
+// losango e o confete 40% mais rapido; o cacho mais largo (cinco, de borda a
+// borda da casa), mais cedo e 15% mais rapido; o leque 30% mais rapido e o
+// segue(&aluno) a cada 0,3 s. Medido em cinco sementes, a batalha inteira: no
+// Normal o que persegue termina com 66,3 a 77,0 e o que desvia com 65,2 a
+// 79,7 (7 a 14 acertos); no Dificil, 64,0 a 74,7 e 63,3 a 84,5 (9 a 15, 12,2
+// em media, contra 9,8). O parado e o que vai e vem reprovam nos dois.
 // ==========================================================================
 
   // FASE 1 - O DESVIO CONDICIONAL   |   gesto: O FLUXOGRAMA
@@ -49,7 +63,8 @@
   // ramo ate o cabecalho, onde estoura - e o confete cai pela faixa daquele
   // ramo, de cima a baixo. O aluno le o numero e a condicao e sai da faixa.
   //
-  // Um comando a cada 3,33 s (seis na fase), cada um com o seu placar: if/else, o resto da
+  // Um comando a cada 3,33 s (seis na fase; o if simples abre, e as outras
+  // formas vem na ordem da luta), cada um com o seu placar: if/else, o resto da
   // divisao por 2, else if (tres faixas: vale o primeiro), o switch SEM BREAK
   // (quatro faixas: o case de n estoura e cai nos de baixo, um depois do
   // outro; n sem case nao executa nada) e if (n = 0) - a ATRIBUICAO: o numero
@@ -93,7 +108,7 @@
   // dumped)", e os bytes da memoria voam da borda - e o while (1), que sorteia
   // casas ate o juiz do BOCA matar o programa ("Time limit exceeded") e os
   // baloes dele sumirem. Os sete cabem na fase com folga, e o que sobra dela
-  // recomeca a ordem.
+  // recomeca a ordem. O for simples abre; os outros seis vem na ordem da luta.
   //
   // Todos os ataques sao de GATILHO. O cacho nasce embaixo do campo na
   // velocidade daqui, a de Laco::kVelocidadeDoCacho (um teste confere); o
@@ -161,6 +176,8 @@
   // A PROVA CAI TUDO (Prova.h): cinco problemas, A a E, cada um rodado pelo
   // mesmo codigo da fase de onde vem - o if/else, o laco aninhado, o
   // baloes(dobro(a), b), o switch sem break e o for que passa do fim do vetor.
+  // Os quatro primeiros caem numa ordem sorteada por luta, e o for que capota
+  // fecha a prova.
   // O placar abre cada um ("Problema B: for aninhado"), e quando ele fecha o
   // juiz da o veredito: no YES o balao do problema sobe do professor, com a
   // letra dele; o ultimo capota, e e "NO - Runtime error", sem balao.

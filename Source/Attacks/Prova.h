@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "../Variacao.h"
+
 #include <array>
 #include <string>
 
@@ -85,4 +87,26 @@ namespace Prova {
 
     /// O balao do problema sobe devagar, do professor ate sair por cima.
     constexpr float kVelocidadeDoTrofeu = 90.0f;
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA -------------------------------
+
+    /// Uma prova: os cinco problemas, na ordem em que caem.
+    using Lista = std::array<Problema, kProblemas>;
+
+    /**
+     * @brief A prova desta luta: os quatro primeiros problemas em outra ordem,
+     * e o que capota sempre por ultimo - o "NO" fecha a prova.
+     *
+     * A LETRA E DO LUGAR, como no BOCA: o primeiro problema e o A, seja ele o
+     * if ou o for. Cada problema leva o proprio tempo (fim - inicio), e os
+     * lugares sao refeitos um depois do outro a partir do zero.
+     */
+    Lista Embaralhada(Variacao::Sorteio& s);
+
+    /// As funcoes de cima, numa prova qualquer.
+    int ProblemaEm(float t, const Lista& prova);
+    bool Aceito(int k, const Lista& prova);
+    std::string Abertura(int k, const Lista& prova);
+    std::string Veredito(int k, const Lista& prova);
+    std::string CaraDoTrofeu(int k, const Lista& prova);
 }

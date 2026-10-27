@@ -4,6 +4,12 @@
 
 #include "doctest.h"
 
+#include <cstdint>
+#include <set>
+#include <string>
+
+#include "../Source/Variacao.h"
+
 #include <algorithm>
 #include <cmath>
 #include <set>
@@ -98,4 +104,45 @@ TEST_CASE("Prova: o placar abre cada problema com o veredito do anterior, e cada
     CHECK(static_cast<int>(trofeus.size()) == aceitos);
     CHECK(CaraDoTrofeu(-1).empty());
     CHECK(Abertura(kProblemas).empty());
+}
+
+TEST_CASE("Prova: a prova da luta - os quatro primeiros em qualquer ordem, o que capota no fim, a letra do lugar") {
+    std::set<std::string> ordens;
+    for (std::uint32_t semente = 0; semente < 300; ++semente) {
+        CAPTURE(semente);
+        Variacao::Sorteio s(semente);
+        const Lista prova = Embaralhada(s);
+        std::string nomes;
+        std::multiset<std::string> todos;
+        for (int k = 0; k < kProblemas; ++k) {
+            const auto& p = prova[static_cast<std::size_t>(k)];
+            CHECK(p.letra == 'A' + k);
+            if (k == 0) CHECK(p.inicio == doctest::Approx(0.0f));
+            else CHECK(p.inicio == doctest::Approx(prova[static_cast<std::size_t>(k - 1)].fim));
+            CHECK(ProblemaEm(p.inicio, prova) == k);
+            CHECK(ProblemaEm(p.fim - 0.01f, prova) == k);
+            todos.insert(p.nome);
+            nomes += p.nome;
+            nomes += "|";
+            // CADA PROBLEMA LEVA O PROPRIO TEMPO para onde vai.
+            bool achou = false;
+            for (const auto& q : kProva) {
+                if (std::string(q.nome) != p.nome) continue;
+                achou = true;
+                CHECK(p.fim - p.inicio == doctest::Approx(q.fim - q.inicio));
+                CHECK(p.tema == q.tema);
+                CHECK(p.vez == q.vez);
+            }
+            CHECK(achou);
+        }
+        CHECK(todos.size() == static_cast<size_t>(kProblemas));
+        std::set<std::string> distintos(todos.begin(), todos.end());
+        CHECK(distintos.size() == static_cast<size_t>(kProblemas));
+        CHECK_FALSE(Aceito(kProblemas - 1, prova));                 // o NO fecha a prova
+        for (int k = 0; k + 1 < kProblemas; ++k) CHECK(Aceito(k, prova));
+        CHECK(prova[kProblemas - 1].fim == doctest::Approx(kProva[kProblemas - 1].fim));
+        CHECK(Abertura(1, prova).rfind(std::string("A: YES!  Problema B: ") + prova[1].nome, 0) == 0);
+        ordens.insert(nomes);
+    }
+    CHECK(ordens.size() == 24u);
 }

@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include "Fase.h"
+#include "../Dificuldade.h"
 #include <string>
 #include <vector>
 
@@ -163,4 +164,21 @@ namespace Condicional {
     /// No switch sem break, cada case de baixo estoura kCascata depois do de
     /// cima.
     constexpr float kCascata = 0.3f;
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA, E O DEGRAU -------------------
+
+    /// As formas se revezam numa ORDEM DA LUTA (Variacao::Ordem de kFormas, com
+    /// o if simples abrindo): a vez k da fase e Proximo(NaOrdem(ordem, k)).
+    constexpr int kFormas = 5;
+
+    /// O que o Dificil muda: um balao a mais por comando, um atras do outro
+    /// mais depressa, o balao fica menos tempo no losango - le-se a condicao
+    /// com menos folga - e o confete cai mais rapido. A regra e a mesma.
+    struct Degrau {
+        int baloesPorComando = kBaloesPorComando;
+        float entreBaloes = kEntreBaloes;
+        float naDecisao = kNaDecisao;
+        float rapidez = 1.0f;          ///< do confete
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

@@ -4,6 +4,12 @@
 
 #include "doctest.h"
 
+#include <cstdint>
+#include <set>
+#include <string>
+
+#include "../Source/Variacao.h"
+
 #include <algorithm>
 #include <cmath>
 #include <set>
@@ -186,4 +192,41 @@ TEST_CASE("Condicional: cada balao tem uma cara por numero e por cor") {
     }
     CHECK(static_cast<int>(caras.size()) == (kMaiorValor + 1) * kCores);
     CHECK(CaraDoBalao(3, kCores) == CaraDoBalao(3, 0));
+}
+
+TEST_CASE("Condicional: o degrau - o Normal e o de sempre, e no Dificil o ultimo balao ainda estoura a tempo") {
+    const Degrau n = DegrauDo(Dificuldade::Nivel::Normal);
+    CHECK(n.baloesPorComando == kBaloesPorComando);
+    CHECK(n.entreBaloes == doctest::Approx(kEntreBaloes));
+    CHECK(n.rapidez == doctest::Approx(1.0f));
+    CHECK(n.naDecisao == doctest::Approx(kNaDecisao));
+    const Degrau d = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.naDecisao < n.naDecisao);
+    CHECK(d.naDecisao > 0.0f);
+    CHECK(d.baloesPorComando > n.baloesPorComando);
+    CHECK(d.entreBaloes < n.entreBaloes);
+    CHECK(d.rapidez > n.rapidez);
+    // O MESMO PIOR CAMINHO do teste de cima, com o degrau do Dificil.
+    const float largura = 1200.0f;
+    const float xFaixa = (InicioDaFaixa(kCases - 1, kCases, largura) + FimDaFaixa(kCases - 1, kCases, largura)) / 2.0f;
+    const float voo = ((xFaixa - kXMinimo) + (kYDoProfessor + kAbaixoDoProfessor - kYDosRotulos)) / kVelocidadeDoBalao;
+    for (const Degrau& g : {n, d}) {
+        const float ultimo = kPrimeiroBalao + static_cast<float>(g.baloesPorComando - 1) * g.entreBaloes;
+        CHECK(ultimo + kAbaixoDoProfessor / kVelocidadeDoBalao + g.naDecisao + voo < kPorComando);
+    }
+}
+
+TEST_CASE("Condicional: em qualquer ordem da luta, a fase tem as cinco formas e abre no if simples") {
+    for (std::uint32_t semente = 0; semente < 200; ++semente) {
+        Variacao::Sorteio s(semente);
+        const auto ordem = Variacao::Ordem(s, kFormas);
+        CHECK(Proximo(Variacao::NaOrdem(ordem, 0), semente).forma == Forma::Maior);
+        std::set<int> formas;
+        for (int vez = 0; vez < kFormas; ++vez) {
+            const Forma f = Proximo(Variacao::NaOrdem(ordem, vez), semente + 7u).forma;
+            formas.insert(f == Forma::Impar ? static_cast<int>(Forma::Par)
+                        : f == Forma::Intervalo ? static_cast<int>(Forma::Maior) : static_cast<int>(f));
+        }
+        CHECK(formas.size() == static_cast<size_t>(kFormas));
+    }
 }

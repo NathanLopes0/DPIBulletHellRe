@@ -118,6 +118,7 @@ Andre::Sessao Andre::SessaoAtual() {
     std::string chave = s.fase;
 
     s.agora = t;
+    s.sorteada = true;
     if (s.fase == Condicional::kFaseDoSe) {
         s.qual = Mecanica::Condicional;
     } else if (s.fase == Laco::kFaseDoLaco) {
@@ -126,15 +127,21 @@ Andre::Sessao Andre::SessaoAtual() {
         s.qual = Mecanica::Funcao;
     } else if (s.fase == Prova::kFaseDaProva) {
         // A PROVA: cada problema e uma sessao da mecanica da fase de onde ele
-        // vem, depois da abertura dele.
-        const int k = Prova::ProblemaEm(t);
+        // vem, depois da abertura dele. A ordem dos problemas e desta luta.
+        s.sorteada = false;
+        if (!mProvaSorteada) {
+            Variacao::Sorteio sorteio = SorteioDaFase(Prova::kFaseDaProva);
+            mProva = Prova::Embaralhada(sorteio);
+            mProvaSorteada = true;
+        }
+        const int k = Prova::ProblemaEm(t, mProva);
         chave += "/" + std::to_string(k);
         s.agora = 0.0f;
-        auto usaOVetor = [](const int j) {
-            return j >= 0 && j < Prova::kProblemas && Prova::kProva[static_cast<size_t>(j)].tema != Prova::Tema::Condicional;
+        auto usaOVetor = [this](const int j) {
+            return j >= 0 && j < Prova::kProblemas && mProva[static_cast<size_t>(j)].tema != Prova::Tema::Condicional;
         };
         if (k >= 0) {
-            const auto& p = Prova::kProva[static_cast<size_t>(k)];
+            const auto& p = mProva[static_cast<size_t>(k)];
             const float local = t - p.inicio - Prova::kAbertura;
             // O VETOR FICA durante o problema que o usa e na abertura do
             // seguinte: os ultimos cachos ainda estao subindo.
@@ -178,13 +185,13 @@ int Andre::CasaDoAluno() const {
 }
 
 std::vector<BossProjectile*> Andre::DispararEm(const char* gatilho, const Vector2 onde, const int quantos,
-                                               const std::optional<float> angulo) {
+                                               const std::optional<float> angulo, const float rapidez) {
     mDisparandoEm = true;
     mOndeDisparar = onde;
     mQuantos = quantos;
     mAnguloEm = angulo;
     mCriados.clear();
-    Disparar(gatilho);
+    Disparar(gatilho, -1, rapidez);
     mDisparandoEm = false;
     mQuantos = 0;
     mAnguloEm.reset();
@@ -253,6 +260,7 @@ void Andre::AtualizarVetor(const bool preciso) {
         if (!mIndices.empty()) ApagarVetor();
         return;
     }
+    mDegrauDoLaco = Laco::DegrauDo(NivelDeDificuldade());
     // Um indice que o campo levou (nao deveria: e enfeite) volta com o vetor.
     if (mIndices.empty() || std::find(mIndices.begin(), mIndices.end(), nullptr) != mIndices.end()) {
         for (BossProjectile* p : mIndices) if (Vivo(p)) p->Kill();
@@ -267,10 +275,10 @@ void Andre::AtualizarVetor(const bool preciso) {
             it->aceso = true;
             if (it->casa >= 0 && it->casa < Laco::kCasas) {
                 auto& ate = mAcesoDoIndice[static_cast<size_t>(it->casa)];
-                ate = std::max(ate, it->quando + Laco::kAviso);
+                ate = std::max(ate, it->quando + mDegrauDoLaco.aviso);
             }
         }
-        if (mRelogio < it->quando + Laco::kAviso) { ++it; continue; }
+        if (mRelogio < it->quando + mDegrauDoLaco.aviso) { ++it; continue; }
         const Cacho c = *it;
         it = mCachos.erase(it);
         SoltarCacho(c.casa, c.dono);
@@ -291,13 +299,15 @@ void Andre::AtualizarVetor(const bool preciso) {
 void Andre::SoltarCacho(const int casa, const int dono) {
     const SDL_FRect campo = Campo();
     const Vector2 onde(campo.x + Laco::XDaCasa(casa, campo.w), campo.y + campo.h + Laco::kAbaixoDoChao);
-    const auto baloes = DispararEm(Laco::kGatilhoDoCacho, onde);
+    const int n = mDegrauDoLaco.baloesPorCacho;
+    const auto baloes = DispararEm(Laco::kGatilhoDoCacho, onde, n, std::nullopt, mDegrauDoLaco.rapidez);
     const char* cor = kCoresDoBalaoOriginal[Sorteio() % 3u];
-    for (size_t k = 0; k < baloes.size() && k < static_cast<size_t>(Laco::kBaloesPorCacho); ++k) {
-        const float lado = (static_cast<float>(k) - 1.0f) * Laco::kLadoDoCacho;
+    const float meio = (static_cast<float>(n) - 1.0f) / 2.0f;
+    for (size_t k = 0; k < baloes.size() && k < static_cast<size_t>(n); ++k) {
+        const float lado = (static_cast<float>(k) - meio) * mDegrauDoLaco.ladoDoCacho;
         // A VELOCIDADE E A DO ATAQUE em fases.json: a WaveAttack a escreve no
         // primeiro quadro do projetil, por cima de qualquer outra.
-        baloes[k]->SetPosition(onde + Vector2(lado, kDesvioDoCacho[k]));
+        baloes[k]->SetPosition(onde + Vector2(lado, kDesvioDoCacho[k % Laco::kBaloesPorCacho]));
         PorCara(baloes[k], cor);
         if (dono == mDonoQueOJuizMata) mSubindo.push_back(Subindo{baloes[k], dono});
     }
@@ -346,7 +356,14 @@ void Andre::AtualizarCondicional(const float deltaTime, const Sessao& s) {
         mFeitosDoSe = 0;
         mLimiteDoSe = s.quantos;
         mProximoComando = 0.0f;
-        mBaloesDoComando = Condicional::kBaloesPorComando;
+        mDegrauDoSe = Condicional::DegrauDo(NivelDeDificuldade());
+        if (s.sorteada) {
+            Variacao::Sorteio sorteio = SorteioDaFase(s.fase);
+            mOrdemDoSe = Variacao::Ordem(sorteio, Condicional::kFormas);
+        } else {
+            mOrdemDoSe.clear();
+        }
+        mBaloesDoComando = mDegrauDoSe.baloesPorComando;
         mBaloes.clear();
         mQuedas.clear();
     }
@@ -358,10 +375,10 @@ void Andre::AtualizarCondicional(const float deltaTime, const Sessao& s) {
     for (BossProjectile*& p : mRotulos) if (!Vivo(p)) p = nullptr;
 
     if (agora >= mProximoComando && (mLimiteDoSe == 0 || mFeitosDoSe < mLimiteDoSe)) NovoComando(agora);
-    if (mBaloesDoComando < Condicional::kBaloesPorComando && agora >= mProximoBalao) {
+    if (mBaloesDoComando < mDegrauDoSe.baloesPorComando && agora >= mProximoBalao) {
         SoltarBalao();
         ++mBaloesDoComando;
-        mProximoBalao += Condicional::kEntreBaloes;
+        mProximoBalao += mDegrauDoSe.entreBaloes;
     }
 
     // O SWITCH SEM BREAK: os cases de baixo, cada um na sua vez.
@@ -387,7 +404,7 @@ void Andre::AtualizarCondicional(const float deltaTime, const Sessao& s) {
 }
 
 void Andre::NovoComando(const float agora) {
-    mComando = Condicional::Proximo(mVez++, Sorteio());
+    mComando = Condicional::Proximo(Variacao::NaOrdem(mOrdemDoSe, mVez++), Sorteio());
     ++mFeitosDoSe;
     mProximoComando = static_cast<float>(mFeitosDoSe) * Condicional::kPorComando;
     mBaloesDoComando = 0;
@@ -453,7 +470,7 @@ void Andre::AtualizarBaloes(const float deltaTime, const float agora) {
                 }
                 b.ramos = Condicional::Executados(b.c, b.n);
                 b.etapa = Etapa::Decidindo;
-                b.ate = agora + Condicional::kNaDecisao;
+                b.ate = agora + mDegrauDoSe.naDecisao;
                 mDecisaoAte = b.ate;
                 mDecisaoRamo = b.ramos.empty() ? -1 : b.ramos.front();
                 // O PLACAR EXPLICA a regra que este balao mostrou - e volta ao
@@ -520,7 +537,7 @@ void Andre::Estourar(const Condicional::Comando& c, const int ramo, const int co
     const float y = campo.y + Condicional::kYDosRotulos;
     const auto confetes = Condicional::Confetes(inicio, fim);
     const auto pedacos = DispararEm(Condicional::kGatilhoDoConfete, Vector2((inicio + fim) / 2.0f, y),
-                                    static_cast<int>(confetes.size()));
+                                    static_cast<int>(confetes.size()), std::nullopt, mDegrauDoSe.rapidez);
     for (size_t k = 0; k < pedacos.size() && k < confetes.size(); ++k) {
         const float tremor = Random::GetFloatRange(0.0f, kTremor);
         pedacos[k]->SetPosition(Vector2(confetes[k].x, y - confetes[k].acima - tremor));
@@ -593,6 +610,12 @@ void Andre::AtualizarLaco(const Sessao& s) {
         mSessaoDoLaco = s.numero;
         mFaseDoLaco = s.fase;
         mVezDoLaco = s.primeiraVez;
+        if (s.sorteada) {
+            Variacao::Sorteio sorteio = SorteioDaFase(s.fase);
+            mOrdemDoLaco = Variacao::Ordem(sorteio, Laco::kFormas);
+        } else {
+            mOrdemDoLaco.clear();
+        }
         mFeitosDoLaco = 0;
         mLimiteDoLaco = s.quantos;
         mRodando = false;
@@ -627,7 +650,7 @@ void Andre::AtualizarLaco(const Sessao& s) {
 }
 
 void Andre::NovoLaco(const float agora) {
-    mPrograma = Laco::Proximo(mVezDoLaco++, Sorteio());
+    mPrograma = Laco::Proximo(Variacao::NaOrdem(mOrdemDoLaco, mVezDoLaco++), Sorteio());
     ++mFeitosDoLaco;
     ++mDonoDoLaco;
     mVisitas = Laco::Execucao(mPrograma, Sorteio());
@@ -660,7 +683,7 @@ void Andre::Visitar(const Laco::Visita& v) {
             const bool direita = v.i >= Laco::kCasas;
             const Vector2 borda(direita ? campo.x + campo.w : campo.x, campo.y + campo.h - Laco::kAcimaDoChao);
             const float angulo = direita ? 180.0f + Laco::kInclinacaoDoDespejo : 360.0f - Laco::kInclinacaoDoDespejo;
-            const auto bytes = DispararEm(Laco::kGatilhoDoDespejo, borda, 0, angulo);
+            const auto bytes = DispararEm(Laco::kGatilhoDoDespejo, borda, 0, angulo, mDegrauDoLaco.rapidez);
             for (size_t k = 0; k < bytes.size(); ++k) PorCara(bytes[k], Laco::CaraDoByte(static_cast<int>(k)));
             break;
         }
@@ -738,6 +761,13 @@ void Andre::AtualizarFuncao(const float deltaTime, const Sessao& s) {
         mSessaoDaFuncao = s.numero;
         mFaseDaFuncao = s.fase;
         mVezDaFuncao = s.primeiraVez;
+        mDegrauDaFuncao = Funcao::DegrauDo(NivelDeDificuldade());
+        if (s.sorteada) {
+            Variacao::Sorteio sorteio = SorteioDaFase(s.fase);
+            mOrdemDaFuncao = Variacao::Ordem(sorteio, Funcao::kFormas);
+        } else {
+            mOrdemDaFuncao.clear();
+        }
         mFeitasDaFuncao = 0;
         mLimiteDaFuncao = s.quantos;
         mPasso = Passo::Parado;
@@ -790,7 +820,7 @@ void Andre::AtualizarFuncao(const float deltaTime, const Sessao& s) {
             // esta agora.
             if (mLinhas && Vivo(mCartaoDeFora)) mLinhas->Acrescentar(mOndeDeFora, PosicaoDoAluno(), kAceso);
             if (agora >= mProximoSegue) {
-                mProximoSegue += Funcao::kEntreSegue;
+                mProximoSegue += mDegrauDaFuncao.entreSegue;
                 AgendarCacho(CasaDoAluno(), mRelogio, 0);
             }
             if (agora >= mSeguindoAte) TerminarChamada(agora);
@@ -822,7 +852,7 @@ void Andre::AtualizarFuncao(const float deltaTime, const Sessao& s) {
 }
 
 void Andre::NovaChamada(const float agora) {
-    mChamada = Funcao::Proximo(mVezDaFuncao++, Sorteio());
+    mChamada = Funcao::Proximo(Variacao::NaOrdem(mOrdemDaFuncao, mVezDaFuncao++), Sorteio());
     ++mFeitasDaFuncao;
     Anunciar(mFaseDaFuncao, Funcao::Placar(mChamada));
     MudarDeLugar(Funcao::kXMinimo, Funcao::kXMaximo, Funcao::kYDoProfessor);
@@ -882,7 +912,7 @@ void Andre::Executar(const float agora) {
             const int n = mArgumentos.empty() ? 0 : mArgumentos.front();
             const Vector2 d = PosicaoDoAluno() - mOndeDeFora;
             const float angulo = Math::ToDegrees(Math::Atan2(d.y, d.x));
-            if (n > 0) DispararEm(Funcao::kGatilhoDoLeque, mOndeDeFora, n, angulo);
+            if (n > 0) DispararEm(Funcao::kGatilhoDoLeque, mOndeDeFora, n, angulo, mDegrauDaFuncao.rapidez);
             TerminarChamada(agora);
             break;
         }
@@ -919,20 +949,21 @@ void Andre::AtualizarProva() {
     if (!fsm || fsm->GetStateName() != Prova::kFaseDaProva) {
         if (mProblema != -2) Restaurar(Prova::kFaseDaProva);
         mProblema = -2;
+        mProvaSorteada = false;
         return;
     }
-    const int k = Prova::ProblemaEm(fsm->GetStateTime());
+    const int k = Prova::ProblemaEm(fsm->GetStateTime(), mProva);
     if (k == mProblema) return;
 
     // O PROBLEMA QUE FECHOU GANHA O BALAO DELE - o YES do BOCA -, que sobe do
     // professor com a letra do problema. O que nao foi aceito nao ganha nada.
-    if (Prova::Aceito(mProblema)) {
+    if (Prova::Aceito(mProblema, mProva)) {
         for (BossProjectile* p : DispararEm(Prova::kGatilhoDoTrofeu, GetPosition())) {
             p->DefinirEnfeite(true);
-            PorCara(p, Prova::CaraDoTrofeu(mProblema));
+            PorCara(p, Prova::CaraDoTrofeu(mProblema, mProva));
         }
     }
-    Anunciar(Prova::kFaseDaProva, k >= 0 ? Prova::Abertura(k) : Prova::Veredito(mProblema));
+    Anunciar(Prova::kFaseDaProva, k >= 0 ? Prova::Abertura(k, mProva) : Prova::Veredito(mProblema, mProva));
     mProblema = k;
 }
 

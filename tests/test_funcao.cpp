@@ -4,6 +4,12 @@
 
 #include "doctest.h"
 
+#include <cstdint>
+#include <set>
+#include <string>
+
+#include "../Source/Variacao.h"
+
 #include <set>
 
 #include "../Source/Attacks/Funcao.h"
@@ -115,4 +121,24 @@ TEST_CASE("Funcao: cada funcao tem a sua assinatura e as suas caras, e cada valo
     std::set<std::string> valores;
     for (int v = kMenorValor; v <= kMaiorValor; ++v) valores.insert(CaraDoValor(v));
     CHECK(static_cast<int>(valores.size()) == kMaiorValor - kMenorValor + 1);
+}
+
+TEST_CASE("Funcao: o degrau - o Normal e o de sempre, o Dificil segue mais de perto") {
+    const Degrau n = DegrauDo(Dificuldade::Nivel::Normal);
+    CHECK(n.entreSegue == doctest::Approx(kEntreSegue));
+    CHECK(n.rapidez == doctest::Approx(1.0f));
+    const Degrau d = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.entreSegue < n.entreSegue);
+    CHECK(d.rapidez > n.rapidez);
+}
+
+TEST_CASE("Funcao: em qualquer ordem da luta, as seis chamadas aparecem e o baloes abre") {
+    for (std::uint32_t semente = 0; semente < 200; ++semente) {
+        Variacao::Sorteio s(semente);
+        const auto ordem = Variacao::Ordem(s, kFormas);
+        CHECK(Proximo(Variacao::NaOrdem(ordem, 0), semente).forma == Forma::Baloes);
+        std::set<int> formas;
+        for (int vez = 0; vez < kFormas; ++vez) formas.insert(static_cast<int>(Proximo(Variacao::NaOrdem(ordem, vez), semente).forma));
+        CHECK(formas.size() == static_cast<size_t>(kFormas));
+    }
 }

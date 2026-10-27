@@ -15,6 +15,7 @@
 #include "../../../Attacks/Condicional.h"
 #include "../../../Attacks/Funcao.h"
 #include "../../../Attacks/Laco.h"
+#include "../../../Attacks/Prova.h"
 
 class BossProjectile;
 class DrawLinhasComponent;
@@ -77,6 +78,10 @@ private:
         int primeiraVez = 0;
         int quantos = 0;      ///< quantos comandos ela roda; 0 = ate a fase acabar
         bool vetor = false;   ///< se o vetor do chao fica em campo
+        /// As formas vem na ordem DESTA LUTA (Variacao::Ordem). Nas fases sim;
+        /// na prova nao: cada problema e uma forma escolhida, pela vez dela na
+        /// ordem de sempre.
+        bool sorteada = false;
     };
     Sessao SessaoAtual();
     std::string mChaveDaSessao;
@@ -87,10 +92,12 @@ private:
     [[nodiscard]] Vector2 PosicaoDoAluno() const;
 
     /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram.
-    /// 'quantos' > 0 troca o numero de projeteis do ataque, e 'angulo' o meio
-    /// do leque dele.
+    /// 'quantos' > 0 troca o numero de projeteis do ataque, 'angulo' o meio
+    /// do leque dele, e 'rapidez' multiplica a velocidade do arquivo so neste
+    /// disparo (o degrau do Dificil).
     std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
-                                            std::optional<float> angulo = std::nullopt);
+                                            std::optional<float> angulo = std::nullopt,
+                                            float rapidez = 1.0f);
 
     bool mDisparandoEm = false;
     Vector2 mOndeDisparar;
@@ -156,6 +163,8 @@ private:
     int mSessaoDoSe = -1;
     std::string mFaseDoSe;
     int mVez = 0;
+    std::vector<int> mOrdemDoSe;      ///< vazia = a ordem de sempre
+    Condicional::Degrau mDegrauDoSe;
     int mFeitosDoSe = 0;
     int mLimiteDoSe = 0;
     float mProximoComando = 0.0f;
@@ -194,6 +203,9 @@ private:
     int mSessaoDoLaco = -1;
     std::string mFaseDoLaco;
     int mVezDoLaco = 0;
+    std::vector<int> mOrdemDoLaco;
+    /// O do cacho vale em toda fase que usa o vetor - a 2, a 3 e a prova.
+    Laco::Degrau mDegrauDoLaco;
     int mFeitosDoLaco = 0;
     int mLimiteDoLaco = 0;
     int mDonoDoLaco = 0;
@@ -225,6 +237,8 @@ private:
     int mSessaoDaFuncao = -1;
     std::string mFaseDaFuncao;
     int mVezDaFuncao = 0;
+    std::vector<int> mOrdemDaFuncao;
+    Funcao::Degrau mDegrauDaFuncao;
     int mFeitasDaFuncao = 0;
     int mLimiteDaFuncao = 0;
     float mProximaChamada = 0.0f;
@@ -250,4 +264,8 @@ private:
 
     void AtualizarProva();
     int mProblema = -2;   ///< o problema da prova em curso; -2 fora dela
+
+    /// A prova desta luta (Prova::Embaralhada), sorteada ao entrar nela.
+    Prova::Lista mProva = Prova::kProva;
+    bool mProvaSorteada = false;
 };

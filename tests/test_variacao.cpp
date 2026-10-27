@@ -141,3 +141,28 @@ TEST_CASE("Variacao: cada fase tem a propria sequencia, e o filho nao gasta o pa
     CHECK(p.Filho(2).Bruto() != p.Filho(1).Bruto());
     CHECK(p.Bruto() == q.Bruto());     // pedir filhos nao mexeu no pai
 }
+
+TEST_CASE("Variacao: a ordem das formas - as fixas no lugar, o resto embaralhado, e a volta seguinte") {
+    std::set<std::vector<int>> vistas;
+    for (std::uint32_t semente = 0; semente < 400; ++semente) {
+        Sorteio s(semente);
+        const auto ordem = Ordem(s, 5, 1);
+        REQUIRE(ordem.size() == 5u);
+        CHECK(ordem[0] == 0);
+        std::vector<int> ordenada = ordem;
+        std::sort(ordenada.begin(), ordenada.end());
+        CHECK(ordenada == std::vector<int>{0, 1, 2, 3, 4});
+        vistas.insert(ordem);
+        for (int vez = 0; vez < 15; ++vez) {
+            CHECK(NaOrdem(ordem, vez) % 5 == ordem[static_cast<size_t>(vez % 5)]);
+            CHECK(NaOrdem(ordem, vez) / 5 == vez / 5);   // a volta e a mesma
+        }
+    }
+    CHECK(vistas.size() == 24u);   // 4! ordens para as quatro depois da primeira
+    Sorteio s(3u);
+    const auto duas = Ordem(s, 4, 2);
+    CHECK(duas[0] == 0);
+    CHECK(duas[1] == 1);
+    CHECK(NaOrdem({}, 7) == 7);
+    CHECK(Ordem(s, 3, 3) == std::vector<int>{0, 1, 2});
+}

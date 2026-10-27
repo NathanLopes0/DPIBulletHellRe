@@ -166,4 +166,11 @@ namespace Funcao {
         const int casa = static_cast<int>(std::floor(x / (largura / static_cast<float>(kCasas))));
         return std::clamp(casa, 0, kCasas - 1);
     }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.entreSegue = Dificuldade::Escolher(n, kEntreSegue, 0.3f);
+        d.rapidez = Dificuldade::Escolher(n, 1.0f, 1.3f);
+        return d;
+    }
 }
