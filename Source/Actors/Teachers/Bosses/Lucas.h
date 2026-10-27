@@ -46,19 +46,33 @@ protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
 
 private:
-    /**
-     * Quantas fileiras do flexbox ja sairam. A fase 2 ALTERNA: as pares vao do
-     * arranjo do arquivo ("de" para "para"), as impares fazem o caminho de volta.
-     * E a unica coisa que fases.json nao guarda - depende da rajada anterior.
-     */
-    int mFileirasDoFlex = 0;
+    // ---- A LUTA SORTEADA ----------------------------------------------------
+    //
+    // Antes do primeiro quadro (Variacao.h): a sequencia da fase 2, de onde
+    // cada fileira do flexbox tira a regra dela (Flex::Proxima). E uma funcao
+    // da semente da luta e do numero da fileira, e nao do que o aluno fez.
 
-    /// O "de" e o "para" que o arquivo pediu, guardados no primeiro disparo.
-    /// GUARDADOS, e nao relidos: o params e o mesmo objeto a cada disparo, e
-    /// depois da primeira troca ele ja nao diz o que o arquivo disse (Boss.h).
+    void SortearALuta();
+
+    bool mLutaSorteada = false;
+    Variacao::Sorteio mSorteioDoFlex{0u};
+
+
+
+    static constexpr const char* kFaseDoFlex = "StateTwo";
+
+
+    /**
+     * Para onde a ultima fileira do flexbox se rearranjou: a seguinte sai dali.
+     * A primeira sai do "de" do arquivo, guardado no primeiro disparo -
+     * GUARDADO, e nao relido: o params e o mesmo objeto a cada disparo, e
+     * depois da primeira troca ele ja nao diz o que o arquivo disse (Boss.h).
+     */
     bool mGuardouOFlex = false;
-    Flex::Justificar mDeDoArquivo = Flex::Justificar::Centro;
-    Flex::Justificar mParaDoArquivo = Flex::Justificar::EspacoEntre;
+    Flex::Justificar mUltimoArranjo = Flex::Justificar::Centro;
+
+
+
 
     /// Quantos processos cairam desde a ultima rodada da fase 3. Ver
     /// OnProjetilDerrubado.

@@ -6,7 +6,10 @@
 
 #include "../Source/Attacks/Flex.h"
 
+#include <cstdint>
+#include <set>
 #include <vector>
+
 
 // A PARTE QUE DA PARA TESTAR DE UMA ESTRATEGIA QUE CRIA PROJETEIS.
 //
@@ -69,4 +72,39 @@ TEST_CASE("Flex: a transicao comeca e termina devagar, e fica parada fora da jan
 
     // Duracao zero: um degrau.
     CHECK(Flex::Progresso(0.6001f, 0.6f, 0.0f) == doctest::Approx(1.0f));
+}
+
+TEST_CASE("Flex: a regra de cada fileira e sorteada, sempre de junta para espalhada e de volta") {
+    using J = Flex::Justificar;
+    CHECK(Flex::Junto(J::Inicio));
+    CHECK(Flex::Junto(J::Fim));
+    CHECK(Flex::Junto(J::Centro));
+    CHECK_FALSE(Flex::Junto(J::EspacoEntre));
+    CHECK_FALSE(Flex::Junto(J::EspacoEmVolta));
+
+    std::set<int> vistas;
+    for (std::uint32_t semente = 0; semente < 100; ++semente) {
+        Variacao::Sorteio s = Variacao::SorteioDa(semente, "StateTwo");
+        J de = J::Centro;
+        for (int fileira = 0; fileira < 20; ++fileira) {
+            const J para = Flex::Proxima(s, de);
+            // O LUGAR SEGURO TROCA: as laterais livres viram o vao, e o vao
+            // vira as laterais.
+            CHECK(Flex::Junto(para) != Flex::Junto(de));
+            vistas.insert(static_cast<int>(para));
+            de = para;
+        }
+    }
+    // AS CINCO REGRAS SAEM.
+    CHECK(vistas.size() == 5u);
+
+    // A MESMA SEMENTE, A MESMA FASE.
+    Variacao::Sorteio a = Variacao::SorteioDa(42u, "StateTwo");
+    Variacao::Sorteio b = Variacao::SorteioDa(42u, "StateTwo");
+    J da = J::Centro, db = J::Centro;
+    for (int fileira = 0; fileira < 20; ++fileira) {
+        da = Flex::Proxima(a, da);
+        db = Flex::Proxima(b, db);
+        CHECK(da == db);
+    }
 }

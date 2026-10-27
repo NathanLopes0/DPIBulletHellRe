@@ -20,12 +20,30 @@
   //
   // O MOVIMENTO E O ATAQUE, como no Vladimir e no Vitor - nenhuma fase usa
   // GoToCenter, que deixa o chefe na coluna de quem atira para cima.
+  //
+  // O NORMAL FOI REBALANCEADO junto com a variacao. Medido na batalha
+  // inteira, o piloto que persegue REPROVAVA em toda semente, com 41,5: a fase
+  // 2 o derrubava a uns 50 - ele anda para dentro da fileira que cai sobre o
+  // chefe -, ele caia na repescagem, e a repescagem varria a 300 px/s e lhe
+  // dava 16,7 partindo de 40 - a licao da final do Luizinho, que as outras
+  // finais ja tinham aprendido. Agora a repescagem e uma orbita, e o Normal
+  // solta uma caixa a cada 1,6 s na fase 1 (e nao 1,4). O Dificil e o Lucas
+  // de antes nas fases 1 e 2, com as caixas a cada 1,2 s.
+  //
+  // CADA LUTA E OUTRA (Variacao.h; Lucas::SortearALuta): a regra de cada
+  // fileira do flexbox e sorteada (fase 2).
+  //
+  // Medido em cinco sementes, a batalha inteira: no Normal o que persegue
+  // termina com 63,0 a 65,6 e o que desvia com 79,0 a 92,4 (1 a 4 acertos,
+  // 2,6 em media); no Dificil, 61,3 a 64,1 e 76,6 a 86,0 (2 a 4, 3,2 em
+  // media). O parado e o que vai e vem reprovam nos dois.
   // ==========================================================================
 
   // FASE 1 - HTML: AS CAIXAS ANINHADAS   |   gesto: A ORBITA LENTA
   //
   // Cada disparo e uma div: um retangulo de 32 tags que nasce fechado em volta
-  // dele e cresce sem deformar (CaixaAttack). Uma caixa a cada 1,4s, crescendo
+  // dele e cresce sem deformar (CaixaAttack). Uma caixa a cada 1,6s (1,2s no
+  // Dificil; era 1,4s nos dois), crescendo
   // a 110 px/s, e o que fica na tela sao caixas uma dentro da outra - o HTML
   // desenhado. O espaco entre duas caixas e o padding.
   //
@@ -55,7 +73,8 @@
     "ataques": [
       { "estrategia": "CaixaAttack", "projetil": "Codigo",
         "projeteis": 32, "velocidade": 110,
-        "cooldown": 1.4,
+        "cooldown": 1.6,
+        "dificil": { "cooldown": 1.2 },
         "regras": "html" }
     ]
   },
@@ -65,9 +84,19 @@
   // O CSS nao cria nada, ele REARRANJA. Cada disparo e uma fileira de 8 regras
   // que nasce arrumada de um jeito e cai reta; aos 0,7s de queda, em 0,5s, cada
   // uma escorrega ate onde o outro justify-content a poria (FlexAttack). A
-  // fileira junta no meio ("center") se abre ate as bordas ("space-between"),
-  // e a seguinte faz o caminho de volta - quem alterna e Lucas::
-  // CustomizeAttackParams, porque depende da fileira anterior.
+  // primeira fileira sai junta no meio ("center", o "de" daqui), e cada uma
+  // das seguintes nasce onde a anterior terminou e vai para uma regra
+  // SORTEADA (Flex::Proxima): da junta - flex-start, flex-end ou center -
+  // para uma espalhada - space-between ou space-around -, e da espalhada
+  // para uma junta. Quem escolhe e Lucas::CustomizeAttackParams, porque
+  // depende da fileira anterior; o "para" daqui e o de antes do sorteio, em
+  // que as fileiras so alternavam center e space-between.
+  //
+  // SEMPRE DE JUNTA PARA ESPALHADA E DE VOLTA, e nao qualquer regra: sorteando
+  // entre todas, o piloto que desvia tomava 2 a 5 acertos nesta fase (e nao 1)
+  // e o que persegue reprovava em duas de cinco lutas. E no Dificil, deixar a
+  // espalhada ir para a outra espalhada - o vao andando no meio da queda -
+  // reprovava o que persegue em quatro de cinco e nao pegava o que desvia.
   //
   // O LUGAR SEGURO TROCA NO MEIO DA QUEDA: com a fileira junta, as laterais
   // estao livres; depois que ela se abre, o livre e o vao entre duas regras. E
@@ -130,7 +159,7 @@
     ]
   },
 
-  // FASE FINAL - JAVASCRIPT: AS PROMESSAS   |   gesto: A VARREDURA RAPIDA
+  // FASE FINAL - JAVASCRIPT: AS PROMESSAS   |   gesto: A ORBITA
   //
   // O JavaScript entra aqui, e nao numa fase sua, porque a fase 3 e do Elixir:
   // a final e o front inteiro de novo, agora assincrono. So e vista por quem
@@ -150,11 +179,19 @@
   // provisoria dava 2 / 3 / 3, e esta da 4 / 8 / 3. So as promessas, sem as
   // caixas, davam 4 / 8 / 0 - quem andava nunca era pego, e as caixas sao o
   // que cobra dele.
+  //
+  // A ORBITA E PARA O EXAME TER COMO PASSAR. Varrendo a 300 px/s, o piloto
+  // que persegue, partindo de 40, saia com 16,7; o parado com 0 e o que vai e
+  // vem com 28,7. Na orbita de 200 px a 0,14 ele sai com 64,4, o que desvia
+  // com 64,9 a 67,6, e o parado e o que vai e vem ficam em 0 e 32,2. Na
+  // orbita de 180 a 0,12, a das outras finais, ele saia com 78 - generosa
+  // demais para quem chega reprovando.
+
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
     "anuncio": "await fetch(…)",
-    "movimento": { "tipo": "Varredura", "a": 300, "b": 110 },
+    "movimento": { "tipo": "Orbitar", "a": 200, "b": 0.14 },
     "ataques": [
       { "estrategia": "CaixaAttack", "projetil": "Codigo",
         "projeteis": 24, "velocidade": 120,

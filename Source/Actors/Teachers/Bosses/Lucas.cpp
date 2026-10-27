@@ -9,7 +9,13 @@
 Lucas::Lucas(Scene* scene) : Boss(scene) {
 }
 
+void Lucas::SortearALuta() {
+    mLutaSorteada = true;
+    mSorteioDoFlex = SorteioDaFase(kFaseDoFlex);
+}
+
 void Lucas::OnUpdate(const float deltaTime) {
+    if (!mLutaSorteada && !EhClone()) SortearALuta();
     Boss::OnUpdate(deltaTime);
 }
 
@@ -31,23 +37,30 @@ void Lucas::CustomizeAttackParams(AttackParams& params, const std::string& state
         params.numProjectiles = mProcessosDoArquivo + voltam;
         mParaReiniciar -= voltam;
         return;
+
+
     }
 
-    // O FLEXBOX VAI E VOLTA. Uma fileira se espalha, a seguinte se junta: o
-    // lugar seguro nunca e o mesmo duas rajadas seguidas, e decorar nao serve.
+    // O FLEXBOX SAI DE ONDE PAROU. Cada fileira nasce no arranjo em que a
+    // anterior terminou e se rearranja para uma regra sorteada, nunca a mesma
+    // (Flex::Proxima): o lugar seguro nunca e o mesmo duas rajadas seguidas, e
+    // qual regra vem nao se decora - quem diz e o placar.
     auto* flex = dynamic_cast<FlexAttackParams*>(&params);
     if (!flex) return;
 
     if (!mGuardouOFlex) {
-        mDeDoArquivo = flex->de;
-        mParaDoArquivo = flex->para;
+        mUltimoArranjo = flex->de;
         mGuardouOFlex = true;
     }
 
-    const bool deVolta = (mFileirasDoFlex % 2) == 1;
-    flex->de   = deVolta ? mParaDoArquivo : mDeDoArquivo;
-    flex->para = deVolta ? mDeDoArquivo   : mParaDoArquivo;
-    ++mFileirasDoFlex;
+
+
+    flex->de = mUltimoArranjo;
+    flex->para = Flex::Proxima(mSorteioDoFlex, mUltimoArranjo);
+
+
+    mUltimoArranjo = flex->para;
+
 
     // E O PLACAR ESCREVE A REGRA DESTA FILEIRA. A fileira nasce no arranjo
     // velho e so muda depois de "aos" segundos: e o tempo de ler o quadro e

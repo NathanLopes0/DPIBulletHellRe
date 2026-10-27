@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include "../Variacao.h"
+
 /**
  * CAMADA PURA (mesma disciplina de Caixa, Fita e Tabela).
  *
@@ -53,4 +55,24 @@ namespace Flex {
      * termina devagar. Duracao zero ou negativa vira um degrau.
      */
     float Progresso(float t, float atraso, float duracao);
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA -------------------------------
+
+    /// @brief Se o arranjo deixa os itens JUNTOS (flex-start, flex-end,
+    /// center) - e o livre sao as laterais -, ou espalhados pela linha
+    /// (space-between, space-around) - e o livre e o vao entre dois.
+    bool Junto(Justificar j);
+
+    /**
+     * @brief Para onde a proxima fileira se rearranja, saindo de 'de': do
+     * junto para um espalhado, e do espalhado para um junto, sorteado entre
+     * os do outro lado. Antes o arquivo alternava sempre center e
+     * space-between; a troca do lugar seguro no meio da queda continua - e o
+     * que faz a fase -, e qual regra vem nao se decora: quem diz e o placar.
+     */
+    Justificar Proxima(Variacao::Sorteio& s, Justificar de);
+
+
+
 }
+
