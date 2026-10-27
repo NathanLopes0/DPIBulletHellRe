@@ -13,6 +13,7 @@
 
 #include "../Boss.h"
 #include "../../../Attacks/Automato.h"
+#include "../../../Attacks/Fita.h"
 #include "../../../Attacks/Gramatica.h"
 #include "../../../Attacks/Parada.h"
 
@@ -81,6 +82,24 @@ protected:
                               const std::string& stateName) override;
 
 private:
+    // ---- A LUTA SORTEADA ----------------------------------------------------
+    //
+    // Antes do primeiro quadro (Variacao.h): a fita - a pausa nas pontas e onde
+    // cai a primeira casa de cada varredura -, a ordem das sementes de Collatz e
+    // o lado para onde o professor comeca a varrer na repescagem, e o degrau do
+    // modo em cada fase. A palavra do automato, as derivacoes de cada S e o
+    // resto continuam sorteados na hora, como eram.
+
+    void SortearALuta();
+
+    bool mLutaSorteada = false;
+    Gramatica::Degrau mDegrauDaGramatica;
+    Fita::Plano mPlanoDaFita;
+    Fita::Degrau mDegrauDaFita;
+    Parada::Plano mPlanoDaParada;
+    Parada::Degrau mDegrauDaParada;
+    int mProgramaDaVez = 0;
+
     // ---- O AUTOMATO DA FASE 1 -----------------------------------------------
     //
     // Logo que a fase comeca o Vladimir desenha o diagrama e os tres estados (os

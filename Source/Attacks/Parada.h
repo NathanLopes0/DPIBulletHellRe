@@ -7,6 +7,10 @@
 #include <array>
 #include <cstdint>
 #include <string>
+#include <vector>
+
+#include "../Dificuldade.h"
+#include "../Variacao.h"
 
 /**
  * CAMADA PURA.
@@ -75,4 +79,26 @@ namespace Parada {
 
     /// @brief O placar do passo: "x = 41: 3x + 1", "x = 124: x / 2", "x = 1: parou".
     std::string Placar(std::uint32_t x);
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA, E O DEGRAU -------------------
+
+    /// As sementes desta luta, na ordem em que rodam: as doze, embaralhadas,
+    /// sem repetir nenhuma antes de rodar todas. E o lado para onde o professor
+    /// comeca a varrer.
+    struct Plano {
+        std::vector<std::uint32_t> sementes;
+        float sentido = 1.0f;
+    };
+    Plano Sortear(Variacao::Sorteio& s);
+
+    /// A semente do programa numero 'vez' da luta.
+    std::uint32_t SementeDaVez(const Plano& p, int vez);
+
+    /// O que o Dificil muda: um passo a cada 0,38 s (e nao 0,45), e o que ele
+    /// atira sai 15% mais rapido.
+    struct Degrau {
+        float passo = kPasso;
+        float rapidez = 1.0f;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

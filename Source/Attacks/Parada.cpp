@@ -42,4 +42,24 @@ namespace Parada {
         if (Parou(x)) return valor + "parou";
         return valor + ((x % 2u == 0u) ? "x / 2" : "3x + 1");
     }
+
+    Plano Sortear(Variacao::Sorteio& s) {
+        Plano p;
+        p.sementes.assign(kSementes.begin(), kSementes.end());
+        s.Embaralhar(p.sementes);
+        p.sentido = s.Chance(0.5f) ? 1.0f : -1.0f;
+        return p;
+    }
+
+    std::uint32_t SementeDaVez(const Plano& p, const int vez) {
+        if (p.sementes.empty()) return kSementes[static_cast<size_t>(std::max(0, vez)) % kSementes.size()];
+        return p.sementes[static_cast<size_t>(std::max(0, vez)) % p.sementes.size()];
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.passo = Dificuldade::Escolher(n, kPasso, 0.38f);
+        d.rapidez = Dificuldade::Escolher(n, 1.0f, 1.15f);
+        return d;
+    }
 }

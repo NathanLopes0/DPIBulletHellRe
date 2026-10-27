@@ -37,3 +37,11 @@ TEST_CASE("Gramatica: o S deriva de duas a quatro vezes, todas possiveis") {
     }
     for (int n = Gramatica::kMenosDerivacoes; n <= Gramatica::kMaisDerivacoes; ++n) CHECK(viu[n]);
 }
+
+TEST_CASE("Gramatica: o degrau do Normal e o de sempre, e o do Dificil deriva mais depressa") {
+    const Gramatica::Degrau n = Gramatica::DegrauDo(Dificuldade::Nivel::Normal);
+    CHECK(n.derivar == Gramatica::kDerivar);
+    const Gramatica::Degrau d = Gramatica::DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.derivar < n.derivar);
+    CHECK(d.derivar > 0.0f);
+}

@@ -8,6 +8,9 @@
 #include <string>
 #include <vector>
 
+#include "../Dificuldade.h"
+#include "../Variacao.h"
+
 /**
  * CAMADA PURA (mesma disciplina de PathAim).
  *
@@ -80,4 +83,23 @@ namespace Fita {
      * vai.
      */
     std::string Branco(bool chegouADireita);
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA, E O DEGRAU -------------------
+
+    /// A fita desta luta: quanto a cabeca fica parada na ponta (de 1,0 a 1,4
+    /// s, 1,2 na media) e quanto ela anda antes da primeira casa de cada
+    /// varredura (de zero a uma escrita inteira) - as casas caem em outros
+    /// lugares da fileira.
+    struct Plano {
+        float pausaNaPonta = kPausaNaPonta;
+        float primeiraEscrita = 0.0f;
+    };
+    Plano Sortear(Variacao::Sorteio& s);
+
+    /// O que o Dificil muda: uma casa a cada 0,16 s (e nao 0,2) - a fita fica
+    /// mais cheia, e a volta tem mais o que reescrever.
+    struct Degrau {
+        float escrita = kEscrita;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

@@ -7,6 +7,9 @@
 #include <cstdint>
 #include <string>
 
+#include "../Dificuldade.h"
+#include "../Variacao.h"
+
 /**
  * CAMADA PURA.
  *
@@ -65,4 +68,17 @@ namespace Gramatica {
 
     /// @brief A forma que um S que deriva 'n' vezes deixa: aⁿbⁿ.
     std::string Palavra(int n);
+
+    // ---- O DEGRAU -------------------------------------------------------------
+
+    /// O que o Dificil muda: o S deriva a cada 0,45 s (e nao 0,55) - a palavra
+    /// se escreve mais depressa no campo. O par de S continua saindo a cada 2
+    /// s (ver vladimir/fases.json), e o par "a" e "b" na velocidade do arquivo:
+    /// 15% mais rapido, ele acertava quem fica embaixo do S (o piloto que
+    /// persegue tomava 4 acertos na fase sozinha, e nao 2) sem tocar em quem
+    /// desvia.
+    struct Degrau {
+        float derivar = kDerivar;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

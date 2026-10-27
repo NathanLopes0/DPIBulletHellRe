@@ -21,7 +21,24 @@
 Vladimir::Vladimir(Scene* scene) : Boss(scene) {
 }
 
+void Vladimir::SortearALuta() {
+    mLutaSorteada = true;
+    const Dificuldade::Nivel nivel = NivelDeDificuldade();
+    mDegrauDaGramatica = Gramatica::DegrauDo(nivel);
+    mDegrauDaFita = Fita::DegrauDo(nivel);
+    mDegrauDaParada = Parada::DegrauDo(nivel);
+    {
+        Variacao::Sorteio sorteio = SorteioDaFase(Fita::kFaseDaFita);
+        mPlanoDaFita = Fita::Sortear(sorteio);
+    }
+    {
+        Variacao::Sorteio sorteio = SorteioDaFase(Parada::kFaseDaParada);
+        mPlanoDaParada = Parada::Sortear(sorteio);
+    }
+}
+
 void Vladimir::OnUpdate(const float deltaTime) {
+    if (!mLutaSorteada && !EhClone()) SortearALuta();
     Boss::OnUpdate(deltaTime);
     AtualizarAutomato();
     AtualizarGramatica(deltaTime);
@@ -51,7 +68,7 @@ void Vladimir::AtualizarFita(const float deltaTime) {
         mNaFita = true;
         mSentidoDaFita = 1;
         mPausaNaPonta = 0.0f;
-        mProximaEscrita = 0.0f;
+        mProximaEscrita = mPlanoDaFita.primeiraEscrita;
         if (mAnuncioDaFita.empty()) mAnuncioDaFita = AnuncioDaFase(Fita::kFaseDaFita);
         mAlvo = ponta(mSentidoDaFita);
         RegistrarAnuncio(Fita::kFaseDaFita, Fita::Transicao(true));
@@ -63,7 +80,7 @@ void Vladimir::AtualizarFita(const float deltaTime) {
         if (mPausaNaPonta <= 0.0f) {
             mSentidoDaFita = -mSentidoDaFita;
             mAlvo = ponta(mSentidoDaFita);
-            mProximaEscrita = 0.0f;
+            mProximaEscrita = mPlanoDaFita.primeiraEscrita;
             RegistrarAnuncio(Fita::kFaseDaFita, Fita::Transicao(mSentidoDaFita > 0));
         }
         return;
@@ -71,16 +88,17 @@ void Vladimir::AtualizarFita(const float deltaTime) {
 
     // CHEGOU A PONTA: le o branco e troca de estado.
     if ((GetPosition() - ponta(mSentidoDaFita)).LengthSq() <= 1.0f) {
-        mPausaNaPonta = Fita::kPausaNaPonta;
+        mPausaNaPonta = mPlanoDaFita.pausaNaPonta;
         RegistrarAnuncio(Fita::kFaseDaFita, Fita::Branco(mSentidoDaFita > 0));
         return;
     }
 
-    // ANDANDO, ESCREVE: uma casa a cada Fita::kEscrita.
+    // ANDANDO, ESCREVE: uma casa a cada escrita do degrau (Fita::kEscrita no
+    // Normal).
     mProximaEscrita -= deltaTime;
     if (mProximaEscrita <= 0.0f) {
         Disparar(Fita::kGatilhoDaEscrita);
-        mProximaEscrita += Fita::kEscrita;
+        mProximaEscrita += mDegrauDaFita.escrita;
     }
 }
 
@@ -100,7 +118,8 @@ void Vladimir::AtualizarParada(const float deltaTime) {
         mX = 0;
         mProximoPassoDaParada = Parada::kPrimeiro;
         mXDaParada = GetPosition().x;
-        mSentidoDaParada = 1.0f;
+        mSentidoDaParada = mPlanoDaParada.sentido;
+        mProgramaDaVez = 0;
         if (mAnuncioDaParada.empty()) mAnuncioDaParada = AnuncioDaFase(Parada::kFaseDaParada);
         RegistrarAnuncio(Parada::kFaseDaParada, mAnuncioDaParada);
     }
@@ -118,16 +137,15 @@ void Vladimir::AtualizarParada(const float deltaTime) {
     if (agora < mProximoPassoDaParada) return;
 
     if (mX == 0) {
-        // UM PROGRAMA NOVO, de uma semente sorteada.
-        const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
-        mX = Parada::Sortear(sorteio);
-        mProximoPassoDaParada += Parada::kPasso;
+        // UM PROGRAMA NOVO, da proxima semente da luta.
+        mX = Parada::SementeDaVez(mPlanoDaParada, mProgramaDaVez++);
+        mProximoPassoDaParada += mDegrauDaParada.passo;
     } else if (!Parada::Parou(mX)) {
         // UM PASSO: atira conforme a paridade - a metade sao "a" retos, o
         // 3x + 1 sao "b" que perseguem -, e da o passo.
-        Disparar(mX % 2u == 0u ? Parada::kGatilhoDaMetade : Parada::kGatilhoDoTriplo);
+        Disparar(mX % 2u == 0u ? Parada::kGatilhoDaMetade : Parada::kGatilhoDoTriplo, -1, mDegrauDaParada.rapidez);
         mX = Parada::Proximo(mX);
-        mProximoPassoDaParada += Parada::kPasso;
+        mProximoPassoDaParada += mDegrauDaParada.passo;
     } else {
         // PAROU: o anel, e depois de um tempo, outro programa.
         Disparar(Parada::kGatilhoDeParar);
@@ -329,7 +347,7 @@ void Vladimir::AtualizarGramatica(const float deltaTime) {
     std::vector<BossProjectile*> derivam;
     for (auto& [s, v] : mVariaveis) {
         v.idade += deltaTime;
-        if (v.idade >= Gramatica::kDerivar) derivam.push_back(const_cast<BossProjectile*>(s));
+        if (v.idade >= mDegrauDaGramatica.derivar) derivam.push_back(const_cast<BossProjectile*>(s));
     }
 
     for (BossProjectile* s : derivam) {

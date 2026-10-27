@@ -41,4 +41,17 @@ bool DeveReescrever(const float idade, const float idadeMinima,
         const std::string seta = chegouADireita ? "\xE2\x86\x90" : "\xE2\x86\x92";
         return "\xCE\xB4(" + de + ", " + branco + ") = (" + para + ", " + branco + ", " + seta + ")";
     }
+
+    Plano Sortear(Variacao::Sorteio& s) {
+        Plano p;
+        p.pausaNaPonta = s.Real(1.0f, 1.4f);
+        p.primeiraEscrita = s.Real(0.0f, kEscrita);
+        return p;
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.escrita = Dificuldade::Escolher(n, kEscrita, 0.16f);
+        return d;
+    }
 }

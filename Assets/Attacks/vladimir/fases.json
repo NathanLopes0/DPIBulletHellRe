@@ -50,6 +50,30 @@
   // na repescagem e reprovava nela. A troca das letras pesa menos do que
   // parece: das tres fases, so a 2 perdeu um acerto com ela.
   //
+  // CADA LUTA E OUTRA (Variacao.h; Vladimir::SortearALuta). A palavra do
+  // automato, as derivacoes de cada S e a semente de Collatz ja eram
+  // sorteadas na hora; agora a fita tambem e da luta - a cabeca fica de 1,0 a
+  // 1,4 s parada em cada ponta, e a primeira casa de cada varredura cai num
+  // lugar sorteado (Fita::Plano) -, e a repescagem roda as doze sementes numa
+  // ordem propria, sem repetir antes de rodar todas, varrendo primeiro para um
+  // lado sorteado (Parada::Plano).
+  //
+  // NO DIFICIL: a letra lida sai em mais tiros - o "a" num leque de 7 (e nao
+  // 5), o "b" em 4 (e nao 3) e o rejeita em 6 (e nao 4), o bloco "dificil" de
+  // cada ataque -; o S deriva a cada 0,45 s (Gramatica::Degrau); a fita ganha
+  // uma casa a cada 0,16 s (Fita::Degrau); e o Collatz da um passo a cada 0,38
+  // s, 15% mais rapido, com a metade em 5 tiros e o 3x + 1 em 3
+  // (Parada::Degrau e o bloco "dificil"). O relogio do automato e o do par de S
+  // sao os de sempre: com um simbolo a cada 0,9 s e um par de S a cada 1,6 s,
+  // tres de cinco lutas reprovavam no piloto que desvia e no que persegue - o
+  // professor voava mais de estado em estado, e quem desvia o acertava menos
+  // (72 a 100 tiros, e nao 77 a 129) sem ser muito mais atingido.
+  //
+  // Medido em cinco sementes, a batalha inteira: no Normal o que persegue
+  // termina com 75,8 a 83,5 e o que desvia com 71,3 a 86,1 (1 a 3 acertos, 1,8
+  // em media); no Dificil, 61,9 a 74,4 e 65,4 a 86,7 (1 a 5, 3,0 em media). O
+  // parado e o que vai e vem reprovam nos dois.
+  //
   // OS NOMES DE FASE NAO SAO LIVRES: a maquina de estados procura por texto, e
   // so StateOne, StateTwo, StateThree e StateFinal existem. StateFinal e
   // OBRIGATORIO, mesmo num chefe de tres fases - sem ele, uma nota entre 40 e
@@ -93,15 +117,18 @@
         "regras": "estados" },
       { "gatilho": "ler_a", "estrategia": "WaveAttack", "projetil": "Simbolo",
         "projeteis": 5, "velocidade": 250, "angulo": 44, "intervalo": 0.05,
+        "dificil": { "projeteis": 7 },
         "regras": "letra_a" },
       { "gatilho": "ler_b", "estrategia": "WaveAttack", "projetil": "Simbolo",
         "projeteis": 3, "velocidade": 220, "angulo": 30, "intervalo": 0.08,
+        "dificil": { "projeteis": 4 },
         "regras": "letra_b" },
       { "gatilho": "aceita", "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
         "projeteis": 14, "velocidade": 200,
         "regras": "letra_a" },
       { "gatilho": "rejeita", "estrategia": "WaveAttack", "projetil": "Simbolo",
         "projeteis": 4, "velocidade": 220, "angulo": 60, "intervalo": 0,
+        "dificil": { "projeteis": 6 },
         "regras": "letra_b" }
     ]
   },
@@ -222,9 +249,11 @@
     "ataques": [
       { "gatilho": "metade", "estrategia": "WaveAttack", "projetil": "Simbolo",
         "projeteis": 3, "velocidade": 240, "angulo": 30, "intervalo": 0,
+        "dificil": { "projeteis": 5 },
         "regras": "letra_a" },
       { "gatilho": "triplo", "estrategia": "WaveAttack", "projetil": "Simbolo",
         "projeteis": 2, "velocidade": 210, "angulo": 40, "intervalo": 0,
+        "dificil": { "projeteis": 3 },
         "regras": "letra_b" },
       { "gatilho": "parou", "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
         "projeteis": 16, "velocidade": 190,

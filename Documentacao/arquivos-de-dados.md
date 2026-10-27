@@ -235,7 +235,7 @@ fase só declara o `clone`.
 | `anguloCentral` | o **meio** do leque. 0 = direita, 90 = baixo, 180 = esquerda |
 | `intervalo` | atraso entre um projétil e o seguinte — só a `WaveAttack` e a `TokenAttack` leem |
 | `cooldown` | segundos entre dois disparos |
-| `dificil` | opcional. O **degrau do modo Difícil** deste ataque: `{ "cooldown": 1.25, "velocidade": 160, "projeteis": 18 }`, cada campo opcional, e o ausente fica como no Normal. Vale ao **montar** o ataque, e não a cada disparo: o `AttackParams` nasce com os números do modo, e o C++ que os lê vê o número certo. Serve aos ataques de relógio; o de gatilho o professor acelera na hora (`Boss::Disparar(gatilho, alvo, rapidez)`). Uma chave desconhecida é recusada |
+| `dificil` | opcional. O **degrau do modo Difícil** deste ataque: `{ "cooldown": 1.25, "velocidade": 160, "projeteis": 18 }`, cada campo opcional, e o ausente fica como no Normal. Vale ao **montar** o ataque, e não a cada disparo: o `AttackParams` nasce com os números do modo, e o C++ que os lê vê o número certo. Serve aos ataques de relógio, e à quantidade de projéteis dos de gatilho (o Vladimir lê mais letras no Difícil); a velocidade de um de gatilho o professor muda na hora (`Boss::Disparar(gatilho, alvo, rapidez)`). Uma chave desconhecida é recusada |
 | `regras` | o nome de um conjunto de `regras.json`, ou a lista escrita ali mesmo |
 
 > **Campo omitido = padrão do motor.** A ponte só escreve no `AttackParams` o que

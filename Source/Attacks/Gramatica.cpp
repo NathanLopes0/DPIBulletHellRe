@@ -38,4 +38,10 @@ namespace Gramatica {
         return std::string(static_cast<size_t>(n < 0 ? 0 : n), 'a')
              + std::string(static_cast<size_t>(n < 0 ? 0 : n), 'b');
     }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.derivar = Dificuldade::Escolher(n, kDerivar, 0.45f);
+        return d;
+    }
 }

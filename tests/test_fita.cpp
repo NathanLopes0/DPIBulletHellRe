@@ -7,6 +7,8 @@
 #include "../Source/Attacks/Fita.h"
 
 #include <vector>
+#include <algorithm>
+#include <cstdint>
 
 // A PARTE QUE DA PARA TESTAR DE UM COMPORTAMENTO QUE PRECISA DE SDL.
 //
@@ -56,4 +58,37 @@ TEST_CASE("Fita: na ponta a cabeca le o branco, troca de estado e volta") {
 TEST_CASE("Fita: o placar e a transicao, e a seta e o sentido da cabeca") {
     CHECK(Fita::Transicao(true) == "\xCE\xB4(q\xE2\x82\x80, a) = (q\xE2\x82\x80, b, \xE2\x86\x92)");
     CHECK(Fita::Transicao(false) == "\xCE\xB4(q\xE2\x82\x81, a) = (q\xE2\x82\x81, b, \xE2\x86\x90)");
+}
+
+TEST_CASE("Fita: a pausa nas pontas e a primeira casa mudam de luta para luta, em volta das de sempre") {
+    float soma = 0.0f, menorPausa = 9.0f, maiorPausa = 0.0f, menorEscrita = 9.0f, maiorEscrita = -1.0f;
+    constexpr int kLutas = 2000;
+    for (std::uint32_t semente = 0; semente < static_cast<std::uint32_t>(kLutas); ++semente) {
+        Variacao::Sorteio s = Variacao::SorteioDa(semente, Fita::kFaseDaFita);
+        const Fita::Plano p = Fita::Sortear(s);
+        REQUIRE(p.pausaNaPonta >= 1.0f);
+        REQUIRE(p.pausaNaPonta < 1.4f);
+        REQUIRE(p.primeiraEscrita >= 0.0f);
+        REQUIRE(p.primeiraEscrita < Fita::kEscrita);
+        soma += p.pausaNaPonta;
+        menorPausa = std::min(menorPausa, p.pausaNaPonta);
+        maiorPausa = std::max(maiorPausa, p.pausaNaPonta);
+        menorEscrita = std::min(menorEscrita, p.primeiraEscrita);
+        maiorEscrita = std::max(maiorEscrita, p.primeiraEscrita);
+    }
+    // NA MEDIA, A PAUSA DE SEMPRE: e ela que deixa o aluno acertar o professor.
+    CHECK(soma / kLutas == doctest::Approx(Fita::kPausaNaPonta).epsilon(0.02));
+    CHECK(menorPausa < 1.02f);
+    CHECK(maiorPausa > 1.38f);
+    CHECK(menorEscrita < 0.01f);
+    CHECK(maiorEscrita > Fita::kEscrita - 0.01f);
+    const Fita::Plano sempre;
+    CHECK(sempre.pausaNaPonta == Fita::kPausaNaPonta);
+    CHECK(sempre.primeiraEscrita == 0.0f);
+}
+
+TEST_CASE("Fita: o degrau do Normal e o de sempre, e o do Dificil escreve mais casas") {
+    CHECK(Fita::DegrauDo(Dificuldade::Nivel::Normal).escrita == Fita::kEscrita);
+    CHECK(Fita::DegrauDo(Dificuldade::Nivel::Dificil).escrita < Fita::kEscrita);
+    CHECK(Fita::DegrauDo(Dificuldade::Nivel::Dificil).escrita > 0.0f);
 }
