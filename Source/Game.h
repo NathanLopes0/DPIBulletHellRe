@@ -172,6 +172,22 @@ public:
     /// falhar, o modo vale ate o jogo fechar (o motivo vai para o log).
     void DefinirDificuldade(Dificuldade::Nivel nivel);
 
+    // ---- AS OUTRAS OPCOES DA MAQUINA (Configuracao.h) ----------------------
+    //
+    // Cada Definir aplica na hora - o som, a janela - e grava o arquivo, como
+    // a dificuldade: sem um "salvar" que alguem esqueca de apertar.
+
+    [[nodiscard]] int VolumeDaMusica() const { return mConfiguracao.volumeMusica; }
+    [[nodiscard]] int VolumeDosEfeitos() const { return mConfiguracao.volumeEfeitos; }
+    [[nodiscard]] bool TelaCheia() const { return mConfiguracao.telaCheia; }
+    [[nodiscard]] bool MostrarHitbox() const { return mConfiguracao.mostrarHitbox; }
+
+    void DefinirVolumeDaMusica(int volume);
+    void DefinirVolumeDosEfeitos(int volume);
+    void DefinirTelaCheia(bool cheia);
+    void DefinirHitbox(bool mostrar);
+
+
     /// @brief Se a materia ja foi aprovada. A MESMA regra que o desbloqueio le,
     /// e nao uma comparacao com 60 repetida em quem desenha. Do jogador 1 (RF3).
     [[nodiscard]] bool Aprovado(const int materia) const {
@@ -285,6 +301,10 @@ public:
     bool IsStageUnlocked(int subject);
 
 private:
+    /// Passam as opcoes de som e de janela para o AudioSystem e o SDL.
+    void AplicarVolumes();
+    void AplicarTelaCheia();
+
     /**
      * @brief O progresso que o MAPA DO CURSO le: o do jogador 1.
      *

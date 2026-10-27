@@ -107,3 +107,50 @@ TEST_CASE("Configuracao: o que nao se entende vira problema, e o resto vale") {
         CHECK(lida.dados.dificuldade == Nivel::Normal);
     }
 }
+
+TEST_CASE("Configuracao: o volume, a tela cheia e a hitbox vao e voltam, e o padrao e o jogo de sempre") {
+    const Configuracao::Dados padrao;
+    CHECK(padrao.volumeMusica == Configuracao::kVolumeMaximo);
+    CHECK(padrao.volumeEfeitos == Configuracao::kVolumeMaximo);
+    CHECK_FALSE(padrao.telaCheia);
+    CHECK_FALSE(padrao.mostrarHitbox);
+
+    Configuracao::Dados d;
+    d.dificuldade = Nivel::Dificil;
+    d.volumeMusica = 0;
+    d.volumeEfeitos = 7;
+    d.telaCheia = true;
+    d.mostrarHitbox = true;
+    const auto lida = Configuracao::Ler(Configuracao::Serializar(d));
+    CHECK(lida.problemas.empty());
+    CHECK(lida.dados.dificuldade == Nivel::Dificil);
+    CHECK(lida.dados.volumeMusica == 0);
+    CHECK(lida.dados.volumeEfeitos == 7);
+    CHECK(lida.dados.telaCheia);
+    CHECK(lida.dados.mostrarHitbox);
+
+    // O ARQUIVO DE ANTES, so com a dificuldade, continua valendo: o resto
+    // fica no padrao, sem problema.
+    const auto antigo = Configuracao::Ler("dificuldade=dificil\n");
+    CHECK(antigo.problemas.empty());
+    CHECK(antigo.dados.volumeMusica == Configuracao::kVolumeMaximo);
+    CHECK_FALSE(antigo.dados.telaCheia);
+}
+
+TEST_CASE("Configuracao: volume fora da faixa e sim/nao estranho viram problema e ficam no padrao") {
+    const auto lida = Configuracao::Ler("volume_musica=11\nvolume_efeitos=-1\ntela_cheia=talvez\nhitbox=1\n");
+    CHECK(lida.problemas.size() == 4u);
+    CHECK(lida.dados.volumeMusica == Configuracao::kVolumeMaximo);
+    CHECK(lida.dados.volumeEfeitos == Configuracao::kVolumeMaximo);
+    CHECK_FALSE(lida.dados.telaCheia);
+    CHECK_FALSE(lida.dados.mostrarHitbox);
+}
+
+TEST_CASE("Configuracao: o volume anda preso entre mudo e o maximo, e o fator vai de 0 a 1") {
+    CHECK(Configuracao::MoverVolume(5, 1) == 6);
+    CHECK(Configuracao::MoverVolume(0, -1) == 0);
+    CHECK(Configuracao::MoverVolume(Configuracao::kVolumeMaximo, 1) == Configuracao::kVolumeMaximo);
+    CHECK(Configuracao::FatorDoVolume(0) == 0.0f);
+    CHECK(Configuracao::FatorDoVolume(Configuracao::kVolumeMaximo) == 1.0f);
+    CHECK(Configuracao::FatorDoVolume(5) == doctest::Approx(0.5f));
+}

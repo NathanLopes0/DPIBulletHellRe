@@ -687,7 +687,7 @@ void Battle::OnUpdate(float deltaTime) {
 
     // Orquestra a checagem de colisões
     CheckCollisions();
-    AtualizarPontoExtra(deltaTime);
+    AtualizarDesenhoSobreOsAlunos(deltaTime);
 
     if (mHUD) mHUD->OnUpdate(deltaTime);
 
@@ -1510,14 +1510,15 @@ void Battle::OnPlayerUsedExtraPoint(Player* quemGastou) {
     mFeixes.push_back(FeixeDoPontoExtra{quemGastou, oOutro, 0.0f});
 }
 
-void Battle::AtualizarPontoExtra(const float deltaTime) {
-    if (!mDesenhoDoPontoExtra) {
-        if (mJogadores.size() < 2) return;   // so a dupla tem feixe e escudo
+void Battle::AtualizarDesenhoSobreOsAlunos(const float deltaTime) {
+    const bool hitbox = mGame && mGame->MostrarHitbox();
+    if (!mDesenhoSobreOsAlunos) {
+        if (mJogadores.size() < 2 && !hitbox) return;   // so a dupla tem feixe e escudo
         auto ator = std::make_unique<Actor>(this);
-        mDesenhoDoPontoExtra = ator->AddComponent<DrawLinhasComponent>(kOrdemDoPontoExtra);
+        mDesenhoSobreOsAlunos = ator->AddComponent<DrawLinhasComponent>(kOrdemSobreOsAlunos);
         AddActor(std::move(ator));
     }
-    mDesenhoDoPontoExtra->Limpar();
+    mDesenhoSobreOsAlunos->Limpar();
 
     auto centroDe = [](const Player* p) {
         const auto* c = ColisorDe(p);
@@ -1533,15 +1534,15 @@ void Battle::AtualizarPontoExtra(const float deltaTime) {
         const Vector2 de = centroDe(f.de), ate = centroDe(f.ate);
         const PontoExtra::Feixe feixe = PontoExtra::FeixeEm(de, ate, f.t);
         const auto alfa = static_cast<Uint8>(110.0f * feixe.rastro);
-        if (alfa > 0) mDesenhoDoPontoExtra->Acrescentar(de, ate, SDL_Color{150, 210, 255, alfa});
+        if (alfa > 0) mDesenhoSobreOsAlunos->Acrescentar(de, ate, SDL_Color{150, 210, 255, alfa});
         if (feixe.cabeca) {
             // A CABECA TEM CORPO: tres tracos lado a lado, o do meio mais
             // claro. Uma linha de 2 px sumia no meio da tela cheia.
             Vector2 lado(ate.y - de.y, de.x - ate.x);
             if (lado.LengthSq() > 0.0f) lado.Normalize();
-            mDesenhoDoPontoExtra->Acrescentar(feixe.cabecaDe + lado * 2.0f, feixe.cabecaAte + lado * 2.0f, SDL_Color{150, 210, 255, 200});
-            mDesenhoDoPontoExtra->Acrescentar(feixe.cabecaDe - lado * 2.0f, feixe.cabecaAte - lado * 2.0f, SDL_Color{150, 210, 255, 200});
-            mDesenhoDoPontoExtra->Acrescentar(feixe.cabecaDe, feixe.cabecaAte, SDL_Color{235, 250, 255, 255});
+            mDesenhoSobreOsAlunos->Acrescentar(feixe.cabecaDe + lado * 2.0f, feixe.cabecaAte + lado * 2.0f, SDL_Color{150, 210, 255, 200});
+            mDesenhoSobreOsAlunos->Acrescentar(feixe.cabecaDe - lado * 2.0f, feixe.cabecaAte - lado * 2.0f, SDL_Color{150, 210, 255, 200});
+            mDesenhoSobreOsAlunos->Acrescentar(feixe.cabecaDe, feixe.cabecaAte, SDL_Color{235, 250, 255, 255});
         }
     }
 
@@ -1554,14 +1555,29 @@ void Battle::AtualizarPontoExtra(const float deltaTime) {
         const auto alfa = static_cast<Uint8>(120.0f + 120.0f * pulso);
         // DOIS ANEIS, o de dentro mais apagado: a borda do escudo tem espessura.
         for (const auto& [a, b] : PontoExtra::Anel(centroDe(p), PontoExtra::kRaioDoEscudo)) {
-            mDesenhoDoPontoExtra->Acrescentar(a, b, SDL_Color{120, 190, 255, alfa});
+            mDesenhoSobreOsAlunos->Acrescentar(a, b, SDL_Color{120, 190, 255, alfa});
         }
         for (const auto& [a, b] : PontoExtra::Anel(centroDe(p), PontoExtra::kRaioDoEscudo - 3.0f)) {
-            mDesenhoDoPontoExtra->Acrescentar(a, b, SDL_Color{120, 190, 255, static_cast<Uint8>(alfa / 2)});
+            mDesenhoSobreOsAlunos->Acrescentar(a, b, SDL_Color{120, 190, 255, static_cast<Uint8>(alfa / 2)});
         }
+    }
 
+    // A HITBOX (opcao da tela de Opcoes): o circulo de colisao de verdade, e
+    // um ponto no meio. E menor que o sprite - o que se aprende vendo isto e
+    // que o tiro que passa no cabelo nao acerta.
+    if (!hitbox) return;
+    for (const Player* p : mJogadores) {
+        const auto* c = p ? ColisorDe(p) : nullptr;
+        if (!c) continue;
+        const SDL_Color vermelho{255, 70, 70, 230};
+        for (const auto& [a, b] : PontoExtra::Anel(c->GetCenter(), c->GetRadius(), 16)) {
+            mDesenhoSobreOsAlunos->Acrescentar(a, b, vermelho);
+        }
+        const Vector2 m = c->GetCenter();
+        mDesenhoSobreOsAlunos->Acrescentar(m - Vector2(2.0f, 0.0f), m + Vector2(2.0f, 0.0f), SDL_Color{255, 255, 255, 255});
     }
 }
+
 
 void Battle::SpawnExtraPoint(Vector2 position) {
     auto item = std::make_unique<ExtraPointItem>(this);

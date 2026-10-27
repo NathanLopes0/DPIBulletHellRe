@@ -40,11 +40,21 @@ escritos na tela.
 
 O que cada botão faz **na tela em que você está** fica escrito no rodapé dela.
 
-Na tela de **Opções**, do menu principal, fica a **dificuldade**: **Normal**, as
-fases como foram medidas, ou **Difícil**, um degrau acima para quem já tira 100
-— mais coisa para desviar. A nota vale o mesmo nos dois, e a batalha no Difícil
-mostra o selo **DIFÍCIL** na ponta da faixa da nota. A opção é da máquina, e não
-do aluno: vale para todos que jogarem ali até alguém trocar.
+Na tela de **Opções**, do menu principal, ficam:
+
+- a **dificuldade**: **Normal**, as fases como foram medidas, ou **Difícil**, um
+  degrau acima para quem já tira 100 — mais coisa para desviar. A nota vale o
+  mesmo nos dois, e a batalha no Difícil mostra o selo **DIFÍCIL** na ponta da
+  faixa da nota;
+- o volume da **música** e o dos **efeitos**, de mudo a 10;
+- a **tela cheia** (no gabinete o jogo é sempre em tela cheia);
+- a **hitbox**: mostra na batalha o círculo onde um tiro acerta o aluno de
+  verdade, bem menor que o desenho dele.
+
+O manche para cima e para baixo escolhe a opção, e para os lados (ou o botão 1)
+troca. As opções são da máquina, e não do aluno: ficam em `Saves/opcoes.cfg` e
+valem para todos que jogarem ali até alguém trocar.
+
 
 Uma partida começa pela matrícula. **Novo Jogo** registra uma matrícula que
 ainda não existe e leva à criação de personagem; **Carregar Perfil** abre uma que
@@ -223,7 +233,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 998 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 1001 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha — e também **leem os arquivos de
 `Assets/` de verdade**, quebrando ao primeiro erro de digitação num JSON. Um

@@ -134,6 +134,9 @@ void Game::LoadInitialScene()
 
     // AS OPCOES DEPOIS DA BASE: o arquivo mora em Saves, que e relativa a ela.
     mConfiguracao = ConfiguracaoArquivo::Carregar();
+    AplicarVolumes();
+    AplicarTelaCheia();
+
 
     InitializeBossFactory();
     ChangeScene(Scene::SceneType::MainMenu);
@@ -604,6 +607,48 @@ const Personagens::Aparencia& Game::AparenciaDe(const size_t posicao) const {
 void Game::DefinirDificuldade(const Dificuldade::Nivel nivel) {
     if (mConfiguracao.dificuldade == nivel) return;
     mConfiguracao.dificuldade = nivel;
+    ConfiguracaoArquivo::Gravar(mConfiguracao);
+}
+
+void Game::AplicarVolumes() {
+    if (mAudio) mAudio->DefinirVolumes(Configuracao::FatorDoVolume(mConfiguracao.volumeMusica),
+                                       Configuracao::FatorDoVolume(mConfiguracao.volumeEfeitos));
+}
+
+void Game::AplicarTelaCheia() {
+    // NO GABINETE A JANELA E SEMPRE CHEIA: a opcao e de quem joga num
+    // computador, e uma janela no meio do monitor do arcade nao serve a
+    // ninguem.
+    if (!mWindow || mGabinete.arcade) return;
+    SDL_SetWindowFullscreen(mWindow, mConfiguracao.telaCheia ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0u);
+}
+
+void Game::DefinirVolumeDaMusica(const int volume) {
+    const int v = Configuracao::MoverVolume(volume, 0);
+    if (mConfiguracao.volumeMusica == v) return;
+    mConfiguracao.volumeMusica = v;
+    AplicarVolumes();
+    ConfiguracaoArquivo::Gravar(mConfiguracao);
+}
+
+void Game::DefinirVolumeDosEfeitos(const int volume) {
+    const int v = Configuracao::MoverVolume(volume, 0);
+    if (mConfiguracao.volumeEfeitos == v) return;
+    mConfiguracao.volumeEfeitos = v;
+    AplicarVolumes();
+    ConfiguracaoArquivo::Gravar(mConfiguracao);
+}
+
+void Game::DefinirTelaCheia(const bool cheia) {
+    if (mConfiguracao.telaCheia == cheia) return;
+    mConfiguracao.telaCheia = cheia;
+    AplicarTelaCheia();
+    ConfiguracaoArquivo::Gravar(mConfiguracao);
+}
+
+void Game::DefinirHitbox(const bool mostrar) {
+    if (mConfiguracao.mostrarHitbox == mostrar) return;
+    mConfiguracao.mostrarHitbox = mostrar;
     ConfiguracaoArquivo::Gravar(mConfiguracao);
 }
 

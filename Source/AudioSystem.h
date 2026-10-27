@@ -121,7 +121,23 @@ public:
 
     void SetSoundVolume(SoundHandle soundHandler, int volume);
 
+    /**
+     * @brief O volume da tela de Opcoes, de 0 a 1: um para a MUSICA (o som em
+     * laco) e outro para os EFEITOS (o resto).
+     *
+     * MULTIPLICA o volume que cada som pediu (SetSoundVolume, ou 128 se nao
+     * pediu): quem chama continua pedindo o volume dele, e a opcao escala por
+     * cima. Vale tambem para o que ja esta tocando.
+     */
+    void DefinirVolumes(float musica, float efeitos);
+
 private:
+    /// O volume que o canal toca: o pedido, escalado pelo fator da categoria.
+    [[nodiscard]] int VolumeAplicado(int pedido, bool musica) const;
+
+    float mFatorDaMusica = 1.0f;
+    float mFatorDosEfeitos = 1.0f;
+
     // If the sound is already loaded, returns Mix_Chunk from the map.
     // Otherwise, will attempt to load the file and save it in the map.
     // Returns nullptr if sound is not found.
@@ -137,6 +153,8 @@ private:
         int mChannel = -1;
         bool mIsLooping = false;
         bool mIsPaused = false;
+        int mVolume = 128;   ///< o que quem tocou pediu, antes da opcao
+
     };
 
     // Tracks the active SoundHandle for each channel

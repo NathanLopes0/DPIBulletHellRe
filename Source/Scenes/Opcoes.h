@@ -17,12 +17,14 @@ class DrawTextComponent;
  * @class Opcoes
  * @brief Onde as configuracoes da maquina moram (Configuracao.h).
  *
- * Hoje ha uma opcao so, a dificuldade (Dificuldade.h): o manche para os lados
- * ou o botao 1 trocam, e a troca vai para o disco na hora - sem um "salvar" que
- * alguem esqueca de apertar. O botao 2 (ou o ESC) volta ao menu.
+ * CINCO LINHAS: a dificuldade (Dificuldade.h), o volume da musica e o dos
+ * efeitos, a tela cheia e a hitbox do aluno visivel. O manche para cima e para
+ * baixo escolhe a linha; para os lados, ou o botao 1, troca o valor - e a
+ * troca vale e vai para o disco na hora, sem um "salvar" que alguem esqueca de
+ * apertar. O botao 2 (ou o ESC) volta ao menu.
  *
- * As outras ideias para esta tela estao no RETOMAR: volume, tela cheia, a
- * hitbox do aluno visivel, menos flashes, uma paleta para daltonicos.
+ * O botao 1 num volume SOBE e da a volta no maximo, para quem so tem o botao
+ * conseguir chegar a qualquer valor; o manche para por la, nos dois extremos.
  */
 class Opcoes : public Scene {
 public:
@@ -35,16 +37,28 @@ public:
 
 private:
 
+    enum class Item { Dificuldade, Musica, Efeitos, TelaCheia, Hitbox };
+    static constexpr int kItens = 5;
+
     /// Cria um ator de texto no x pedido, no tamanho natural dele.
     Actor* Texto(const std::string& conteudo, float x, float y, int tamanho, int larguraMaxima);
 
-    /// Escreve na tela o nivel em vigor e o que ele muda.
-    void MostrarDificuldade();
+    /// Anda o valor da linha escolhida 'passo' casas. 'peloBotao': o botao 1,
+    /// que num volume da a volta.
+    void Trocar(int passo, bool peloBotao);
+
+    /// Reescreve o valor de cada linha, destaca a escolhida e escreve o que ela faz.
+    void Mostrar();
 
     std::unique_ptr<Font> mFonte;
 
-    DrawTextComponent* mValor = nullptr;
+    struct Linha {
+        class DrawCaixaComponent* caixa = nullptr;
+        DrawTextComponent* valor = nullptr;
+    };
+    Linha mLinhas[kItens];
     DrawTextComponent* mDescricao = nullptr;
+    int mEscolhida = 0;
 
     /// As bordas, para uma acao por toque. Comecam em TRUE pela mesma regra
     /// das outras cenas: quem entra aqui segurando o botao 1 do menu nao
@@ -53,4 +67,6 @@ private:
     bool mTrocarAnterior = true;
     bool mEsquerdaAnterior = true;
     bool mDireitaAnterior = true;
+    bool mCimaAnterior = true;
+    bool mBaixoAnterior = true;
 };

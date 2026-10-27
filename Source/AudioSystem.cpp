@@ -119,7 +119,8 @@ SoundHandle AudioSystem::PlaySound(const std::string& soundName, bool looping)
     mHandleMap.emplace(mLastHandle, hi);
     mChannels[availableChannel] = mLastHandle;
 
-    // Play sound on selected channel
+    // Play sound on selected channel, ja no volume da opcao
+    Mix_Volume(availableChannel, VolumeAplicado(hi.mVolume, looping));
     Mix_PlayChannel(availableChannel, sound, looping ? -1 : 0);
 
     return mLastHandle;
@@ -307,8 +308,24 @@ void AudioSystem::SetSoundVolume(const SoundHandle soundHandler, int volume)
     if (volume < 0) volume = 0;
     if (volume > 128) volume = 128;
 
-    const int channel = mHandleMap[soundHandler].mChannel;
+    HandleInfo& hi = mHandleMap[soundHandler];
+    hi.mVolume = volume;
 
-    // Mix_Volume define o volume do canal específico
-    Mix_Volume(channel, volume);
+    // Mix_Volume define o volume do canal específico, escalado pela opcao
+    Mix_Volume(hi.mChannel, VolumeAplicado(volume, hi.mIsLooping));
 }
+
+int AudioSystem::VolumeAplicado(const int pedido, const bool musica) const {
+    const float fator = musica ? mFatorDaMusica : mFatorDosEfeitos;
+    const int v = static_cast<int>(static_cast<float>(pedido) * fator + 0.5f);
+    return v < 0 ? 0 : (v > 128 ? 128 : v);
+}
+
+void AudioSystem::DefinirVolumes(const float musica, const float efeitos) {
+    mFatorDaMusica = musica < 0.0f ? 0.0f : (musica > 1.0f ? 1.0f : musica);
+    mFatorDosEfeitos = efeitos < 0.0f ? 0.0f : (efeitos > 1.0f ? 1.0f : efeitos);
+    for (const auto& [handle, hi] : mHandleMap) {
+        Mix_Volume(hi.mChannel, VolumeAplicado(hi.mVolume, hi.mIsLooping));
+    }
+}
+

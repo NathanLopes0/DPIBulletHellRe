@@ -321,14 +321,16 @@ private:
         float t = 0.0f;
     };
     std::vector<FeixeDoPontoExtra> mFeixes;
-    class DrawLinhasComponent* mDesenhoDoPontoExtra = nullptr;
+    class DrawLinhasComponent* mDesenhoSobreOsAlunos = nullptr;
     float mPulsoDoEscudo = 0.0f;
 
     /// Na frente do aluno (100): o escudo e o que se le, e nao o sprite.
-    static constexpr int kOrdemDoPontoExtra = 102;
+    static constexpr int kOrdemSobreOsAlunos = 102;
 
-    /// Anda os feixes e redesenha os feixes e os escudos.
-    void AtualizarPontoExtra(float deltaTime);
+    /// Anda os feixes e redesenha o que fica por cima dos alunos: os feixes,
+    /// os escudos e, se a opcao estiver ligada, a hitbox de cada um.
+    void AtualizarDesenhoSobreOsAlunos(float deltaTime);
+
 
 
     static constexpr int kPlacaLargura = 112;
