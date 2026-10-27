@@ -9,6 +9,8 @@
 #include <vector>
 
 #include "Fase.h"
+#include "../Dificuldade.h"
+#include "../Variacao.h"
 
 /**
  * CAMADA PURA.
@@ -185,4 +187,24 @@ namespace Escopo {
     constexpr float kAviso = 0.9f;
     constexpr float kVivas = 0.7f;
     constexpr float kQueda = 125.0f;
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA ---------------------------------
+
+    /// A ORDEM DOS COMANDOS desta luta (o comando k e Proxima(ordem[k])): as
+    /// quatro buscas do escopo estatico em qualquer ordem, e a pegadinha fecha
+    /// a fase - a chamada de f no estatico e logo depois a mesma no dinamico,
+    /// porque e a comparacao das duas que ensina.
+    std::vector<int> OrdemDosComandos(Variacao::Sorteio& s);
+
+    // ---- O DEGRAU -------------------------------------------------------------
+
+    /// O que o Dificil muda: as gotas acendem 0,72 s depois de nascer (e nao
+    /// 0,9) e caem a 150 px/s. A queda vezes o tempo aceso so cresce, entao a
+    /// colmeia continua fechada.
+    struct Degrau {
+        float aviso = kAviso;
+        float vivas = kVivas;
+        float queda = kQueda;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

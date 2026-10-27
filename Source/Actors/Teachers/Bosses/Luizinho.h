@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <map>
 #include <optional>
@@ -81,16 +82,38 @@ protected:
                               const std::string& stateName) override;
 
 private:
+    // ---- A LUTA SORTEADA ----------------------------------------------------
+    //
+    // Antes do primeiro quadro (Variacao.h): a ordem dos comandos do escopo e
+    // dos tipos, qual programa da memoria vem primeiro, e a ordem das rodadas
+    // da final - cada uma com o que define a fase no lugar dela.
+
+    void SortearALuta();
+
+    bool mLutaSorteada = false;
+    std::vector<int> mOrdemDoEscopo;
+    std::vector<int> mOrdemDosTipos;
+    Memoria::Roteiro mRoteiro = Memoria::RoteiroDeSempre();
+    std::vector<int> mOrdemDasRodadas;
+
+    /// O degrau do modo, fase por fase (o do Normal e o de sempre).
+    Escopo::Degrau mDegrauDoEscopo;
+    Coercao::Degrau mDegrauDosTipos;
+    Memoria::Degrau mDegrauDaMemoria;
+    Excecao::Degrau mDegrauDasExcecoes;
+
     // ---- O QUE AS FASES DIVIDEM ---------------------------------------------
 
     [[nodiscard]] SDL_FRect Campo() const;
 
     /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram.
     /// 'quantos' > 0 troca o numero de projeteis do ataque, 'centro' o meio do
-    /// leque e 'abertura' a abertura dele.
+    /// leque e 'abertura' a abertura dele; 'rapidez' multiplica a velocidade
+    /// do arquivo so neste disparo (o degrau do Dificil).
     std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
                                             std::optional<float> centro = std::nullopt,
-                                            std::optional<float> abertura = std::nullopt);
+                                            std::optional<float> abertura = std::nullopt,
+                                            float rapidez = 1.0f);
 
     bool mDisparandoEm = false;
     Vector2 mOndeDisparar;
@@ -209,7 +232,12 @@ private:
     void PararOMundo(bool parar) const;
 
     bool mNaMemoria = false;
-    int mPassoDaVez = -1;
+    int mPassoDaVez = -1;           ///< o indice no roteiro da luta
+
+    /// O passo em curso, no roteiro da luta.
+    [[nodiscard]] Memoria::Passo PassoDaVez() const {
+        return mRoteiro[static_cast<size_t>(std::clamp(mPassoDaVez, 0, Memoria::kPassos - 1))];
+    }
     std::vector<Memoria::Evento> mEventos;
     size_t mProximoEvento = 0;
     Vector2 mBaseDaMemoria;

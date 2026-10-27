@@ -6,6 +6,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
+#include <set>
+#include <vector>
 
 #include "../Source/Attacks/Excecao.h"
 
@@ -142,4 +145,37 @@ TEST_CASE("Excecao: os textos") {
     CHECK(PlacarDoDesfecho(RodadaDaVez(0)) == "throw new IOException();\ncapturada em f()");
     CHECK(PlacarDoDesfecho(RodadaDaVez(3)) == "Exception in thread \"main\"\njava.lang.NullPointerException");
     CHECK(CaraDaExcecao(Tipo::IOException) == "IOException");
+}
+
+TEST_CASE("Excecao: a ordem da luta embaralha as quatro rodadas da linguagem, e o Reprovado fecha") {
+    std::set<std::vector<int>> vistas;
+    for (std::uint32_t semente = 0; semente < 600; ++semente) {
+        Variacao::Sorteio s = Variacao::SorteioDa(semente, kFaseDasExcecoes);
+        const auto ordem = OrdemDasRodadas(s);
+        REQUIRE(ordem.size() == static_cast<size_t>(kRodadas));
+        std::vector<int> primeiras(ordem.begin(), ordem.end() - 1);
+        std::sort(primeiras.begin(), primeiras.end());
+        CHECK(primeiras == std::vector<int>{0, 1, 2, 3});
+        CHECK(RodadaDaVez(ordem.back()).lancada == Tipo::Reprovado);
+        vistas.insert(ordem);
+    }
+    CHECK(vistas.size() == 24u);
+}
+
+TEST_CASE("Excecao: a cortina do Dificil e mais fechada, e ainda tem um destroco em cima do aluno") {
+    const Degrau n = DegrauDo(Dificuldade::Nivel::Normal);
+    CHECK(n.entreDestrocos == kEntreDestrocos);
+    CHECK(n.rapidez == 1.0f);
+    const Degrau d = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.entreDestrocos < n.entreDestrocos);
+    CHECK(d.rapidez > 1.0f);
+    for (float x = 0.0f; x <= 1200.0f; x += 37.0f) {
+        CAPTURE(x);
+        CHECK(Cortina(x, 1200.0f) == Cortina(x, 1200.0f, kEntreDestrocos));
+        const auto xs = Cortina(x, 1200.0f, d.entreDestrocos);
+        CHECK(xs.size() > Cortina(x, 1200.0f).size());
+        const float meio = std::clamp(x, kMargem, 1200.0f - kMargem);
+        CHECK(std::any_of(xs.begin(), xs.end(), [meio](const float c) { return std::fabs(c - meio) < 0.01f; }));
+        for (size_t k = 1; k < xs.size(); ++k) CHECK(xs[k] - xs[k - 1] == doctest::Approx(d.entreDestrocos));
+    }
 }

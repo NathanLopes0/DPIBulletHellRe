@@ -277,4 +277,18 @@ namespace Escopo {
     std::string CaraDaGota(const char nome) {
         return nome == 'y' ? "Y" : "X";
     }
+
+    std::vector<int> OrdemDosComandos(Variacao::Sorteio& s) {
+        constexpr int kBuscas = static_cast<int>(Forma::FEstatico);
+        std::vector<int> ordem = Variacao::Ordem(s, kBuscas, 0);
+        for (int k = kBuscas; k < kFormas; ++k) ordem.push_back(k);
+        return ordem;
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.aviso = Dificuldade::Escolher(n, kAviso, 0.72f);
+        d.queda = Dificuldade::Escolher(n, kQueda, 150.0f);
+        return d;
+    }
 }

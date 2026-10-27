@@ -6,6 +6,9 @@
 
 #include <cmath>
 #include <set>
+#include <algorithm>
+#include <cstdint>
+#include <vector>
 
 #include "../Source/Attacks/Coercao.h"
 
@@ -180,5 +183,41 @@ TEST_CASE("Coercao: o relogio da fase") {
     CHECK(kConta + 1.0f < kPorComando);
     CHECK(kChecagem < kVoo);
     CHECK(kCoercao > 0.0f);
+    CHECK(kCoercao < 1.0f);
+}
+
+TEST_CASE("Coercao: a ordem da luta embaralha as seis do meio, com o JavaScript abrindo e o Haskell fechando") {
+    std::set<std::vector<int>> vistas;
+    for (std::uint32_t semente = 0; semente < 3000; ++semente) {
+        Variacao::Sorteio s = Variacao::SorteioDa(semente, kFaseDosTipos);
+        const auto ordem = OrdemDosComandos(s);
+        REQUIRE(ordem.size() == static_cast<size_t>(kComandos));
+        std::vector<int> ordenada = ordem;
+        std::sort(ordenada.begin(), ordenada.end());
+        CHECK(ordenada == std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7});
+        CHECK(OrdemDaFase(ordem.front()) == Forma::JsSoma);
+        CHECK(OrdemDaFase(ordem.back()) == Forma::HaskellSoma);
+        // AS MESMAS OITO CONTAS de sempre, so em outra ordem.
+        std::multiset<int> formas, deSempre;
+        for (int k = 0; k < kComandos; ++k) {
+            formas.insert(static_cast<int>(Proximo(Variacao::NaOrdem(ordem, k), semente).forma));
+            deSempre.insert(static_cast<int>(OrdemDaFase(k)));
+        }
+        CHECK(formas == deSempre);
+        vistas.insert(ordem);
+    }
+    // 6! = 720 ordens; em 3000 sementes faltam, em media, 720 * e^(-4,2), umas 11.
+    CHECK(vistas.size() > 680u);
+}
+
+TEST_CASE("Coercao: o degrau do Normal e o de sempre, e o do Dificil voa mais curto e sai mais rapido") {
+    const Degrau n = DegrauDo(Dificuldade::Nivel::Normal);
+    CHECK(n.voo == kVoo);
+    CHECK(n.rapidez == 1.0f);
+    const Degrau d = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.voo < n.voo);
+    CHECK(d.voo > 0.0f);
+    CHECK(d.rapidez > 1.0f);
+    // A troca de chip ainda acontece NO VOO: kCoercao e uma fracao dele.
     CHECK(kCoercao < 1.0f);
 }

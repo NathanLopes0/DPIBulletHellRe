@@ -4,12 +4,15 @@
 
 #pragma once
 
+#include <array>
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
 
 #include "Fase.h"
+#include "../Dificuldade.h"
+#include "../Variacao.h"
 
 /**
  * CAMADA PURA.
@@ -128,6 +131,15 @@ namespace Memoria {
     };
     std::vector<Evento> Eventos(Passo p);
 
+    /// Os lacos: um bloco a cada kEntreAlocacoes, o primeiro kPrimeiraAlocacao
+    /// depois de o passo abrir. O do Java aloca kNoLacoJava - e o placar diz
+    /// "i < 6" -, e o while (1) do C++ aloca kNoLacoCpp ate o bad_alloc.
+    constexpr float kPrimeiraAlocacao = 0.25f;
+    constexpr float kEntreAlocacoes = 0.3f;
+    constexpr int kNoLacoJava = 6;
+    constexpr int kNoLacoCpp = 7;
+    constexpr float kEstouro = 2.95f;   ///< o bad_alloc, no passo do while (1)
+
     /// @brief Quanto dura cada passo, e quando ele comeca (desde o comeco da
     /// fase). Antes de kPrimeiro o placar diz o latim.
     float Duracao(Passo p);
@@ -136,6 +148,22 @@ namespace Memoria {
 
     /// @brief O passo em curso no instante t da fase; -1 antes do primeiro.
     int PassoEm(float t);
+
+    /// @brief A ORDEM DOS PASSOS: as duas metades, cada uma com o seu programa.
+    /// A de sempre e o Java primeiro; a da luta pode por o C++ primeiro
+    /// (Sortear). Dentro de cada metade a ordem e a do programa - alocar antes
+    /// de coletar, liberar antes de escrever no pendente.
+    using Roteiro = std::array<Passo, kPassos>;
+    Roteiro RoteiroDeSempre();
+    Roteiro Sortear(Variacao::Sorteio& s);
+
+    /// @brief Inicio e PassoEm para um roteiro: o passo da vez 'i' e
+    /// roteiro[i], e PassoEm devolve esse i.
+    float InicioDaVez(int i, const Roteiro& roteiro);
+    int PassoEm(float t, const Roteiro& roteiro);
+
+    /// @brief O passo da vez 'i' abre um programa novo (o heap comeca vazio)?
+    bool TrocaDeLinguagem(int i, const Roteiro& roteiro);
 
     /// @brief O placar: a linguagem e como ela gerencia a memoria, e embaixo o
     /// codigo; 'depois' acrescenta o que aconteceu, quando ha o que dizer.
@@ -210,4 +238,24 @@ namespace Memoria {
     constexpr float kYDoProfessor = 150.0f;
     constexpr float kXMinimo = 300.0f;
     constexpr float kXMaximo = 900.0f;
+
+    // ---- O DEGRAU -------------------------------------------------------------
+
+    /// O que o Dificil muda: o bloco acende 0,55 s depois de alocado (e nao
+    /// 0,8); os lacos alocam um bloco a cada 0,24 s (e nao 0,3), e o while (1)
+    /// chega a nove antes do bad_alloc (e nao sete) - o do Java continua nos
+    /// seis do placar -; o ponteiro pendente estoura em 20 estilhacos (e nao
+    /// 16); e os estilhacos saem 20% mais rapido.
+    struct Degrau {
+        float avisoDaAlocacao = kAvisoDaAlocacao;
+        float entreAlocacoes = kEntreAlocacoes;
+        int noLacoCpp = kNoLacoCpp;
+        int estilhacosDoPendente = kEstilhacosDoPendente;
+        float rapidez = 1.0f;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
+
+    /// @brief Os eventos do passo com o degrau do modo (o do Normal da os de
+    /// sempre).
+    std::vector<Evento> Eventos(Passo p, const Degrau& d);
 }

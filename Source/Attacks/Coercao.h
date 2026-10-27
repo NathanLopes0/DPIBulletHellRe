@@ -9,6 +9,8 @@
 #include <vector>
 
 #include "Fase.h"
+#include "../Dificuldade.h"
+#include "../Variacao.h"
 
 /**
  * CAMADA PURA.
@@ -204,4 +206,22 @@ namespace Coercao {
     /// Os aneis de erro: quantos estilhacos.
     constexpr int kEstilhacosDoErro = 20;
     constexpr int kEstilhacosDaCompilacao = 10;
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA ---------------------------------
+
+    /// A ORDEM DOS COMANDOS desta luta (o comando k e Proximo(ordem[k], ...)):
+    /// a soma do JavaScript abre - a coercao mais conhecida - e o Haskell
+    /// fecha - a tipagem que protege -, e as seis do meio vem em qualquer
+    /// ordem.
+    std::vector<int> OrdemDosComandos(Variacao::Sorteio& s);
+
+    // ---- O DEGRAU -------------------------------------------------------------
+
+    /// O que o Dificil muda: os operandos voam em 0,5 s (e nao 0,6) - a conta
+    /// roda antes -, e o resultado sai 20% mais rapido.
+    struct Degrau {
+        float voo = kVoo;
+        float rapidez = 1.0f;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

@@ -20,6 +20,30 @@
   //
   // O MOVIMENTO E O ATAQUE, como no Vladimir, no Vitor e no Lucas - nenhuma
   // fase usa GoToCenter, que deixa o chefe na coluna de quem atira para cima.
+  //
+  // CADA LUTA E OUTRA (Variacao.h; Luizinho::SortearALuta), e o que define
+  // cada fase fica no lugar: no escopo, as quatro buscas do estatico vem em
+  // qualquer ordem e a pegadinha - f no estatico e logo depois no dinamico -
+  // fecha; nos tipos, a soma do JavaScript abre, o Haskell fecha e as seis do
+  // meio se embaralham; na memoria, metade das lutas roda o programa em C++
+  // antes do de Java, cada um inteiro; e na final as quatro rodadas da
+  // linguagem vem em qualquer ordem, com o catch (Reprovado e) por ultimo.
+  //
+  // NO DIFICIL (o Degrau de cada modulo; os numeros daqui sao os do Normal):
+  // as gotas acendem 0,72 s depois de nascer e caem a 150 px/s; os operandos
+  // voam em 0,5 s e o resultado sai 20% mais rapido; o bloco acende 0,55 s
+  // depois de alocado, os lacos alocam a cada 0,24 s e o while (1) chega a
+  // nove blocos antes do bad_alloc (o for do Java fica nos seis do placar), o
+  // pendente estoura em 20 e os estilhacos saem 20% mais rapido; e a cortina
+  // da final tem um destroco a cada 52 px, 20% mais rapidos, como o anel do
+  // finally.
+  //
+  // Medido em cinco sementes, a batalha inteira: no Normal o que persegue
+  // termina com 65,1 a 74,6 e o que desvia com 70,5 a 87,0 (2 a 5 acertos,
+  // 3,8 em media); no Dificil, 61,6 a 75,2 e 71,1 a 80,8 (4 a 7, 5,2 em
+  // media). O parado e o que vai e vem reprovam nos dois. A memoria sozinha,
+  // que decide, deixa o que desvia com 3 a 4 acertos no Dificil (2 a 3 no
+  // Normal).
   // ==========================================================================
 
   // FASE 1 - AMARRACOES: O ESCOPO   |   gesto: O PROFESSOR E O COMANDO
@@ -99,8 +123,8 @@
   //
   // O campo e o heap (Memoria.h). Cada new poe o bloco - uma fileira de
   // celulas, uma por int - no lugar livre mais perto do aluno: nasce apagado,
-  // e 0,6 s depois e memoria e acerta. As variaveis sao do professor: uma
-  // etiqueta embaixo dele e uma linha ate o bloco de cada uma.
+  // e 0,8 s depois (0,55 no Dificil) e memoria e acerta. As variaveis sao do
+  // professor: uma etiqueta embaixo dele e uma linha ate o bloco de cada uma.
   //
   // Metade em Java, metade em C++. No Java o bloco que ninguem alcanca fica
   // cinza - lixo, mas ainda no campo -, e o System.gc() PARA O MUNDO, marca o

@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <cmath>
 #include <set>
+#include <cstdint>
+#include <vector>
 
 #include "../Source/Attacks/Escopo.h"
 
@@ -259,4 +261,36 @@ TEST_CASE("Escopo: o relogio da fase") {
 
     CHECK(CaraDaGota('x') != CaraDaGota('y'));
     CHECK(CaraDoAviso('x') != CaraDaGota('x'));
+}
+
+TEST_CASE("Escopo: a ordem da luta embaralha as quatro buscas, e a pegadinha fecha a fase") {
+    std::set<std::vector<int>> vistas;
+    for (std::uint32_t semente = 0; semente < 600; ++semente) {
+        Variacao::Sorteio s = Variacao::SorteioDa(semente, kFaseDoEscopo);
+        const auto ordem = OrdemDosComandos(s);
+        REQUIRE(ordem.size() == static_cast<size_t>(kComandos));
+        std::vector<int> buscas(ordem.begin(), ordem.begin() + 4);
+        std::sort(buscas.begin(), buscas.end());
+        CHECK(buscas == std::vector<int>{0, 1, 2, 3});
+        // O ESTATICO E LOGO DEPOIS O DINAMICO, no fim: a comparacao das duas.
+        CHECK(Proxima(ordem[4]) == Forma::FEstatico);
+        CHECK(Proxima(ordem[5]) == Forma::FDinamico);
+        vistas.insert(ordem);
+    }
+    CHECK(vistas.size() == 24u);   // 4!, e em 600 sementes nao falta nenhuma
+}
+
+TEST_CASE("Escopo: o degrau do Normal e o de sempre, e o do Dificil acende antes e cai mais depressa") {
+    const Degrau n = DegrauDo(Dificuldade::Nivel::Normal);
+    CHECK(n.aviso == kAviso);
+    CHECK(n.vivas == kVivas);
+    CHECK(n.queda == kQueda);
+    const Degrau d = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.aviso < n.aviso);
+    CHECK(d.queda > n.queda);
+    // A COLMEIA CONTINUA FECHADA: cada gota varre pelo menos o que varria.
+    CHECK(d.queda * d.vivas >= n.queda * n.vivas);
+    // E O AVISO AINDA DA PARA SAIR: atravessar a regiao da gota (o raio dela e
+    // o do aluno, mais a folga) a 300 px/s leva bem menos que ele.
+    CHECK((kRaioDaGota + kRaioDoAluno + kFolga) * 2.0f / 300.0f < d.aviso);
 }

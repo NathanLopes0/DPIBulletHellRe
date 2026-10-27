@@ -250,4 +250,17 @@ namespace Coercao {
     Ponto OndeFicaOOperador(const float xDoAluno, const float largura) {
         return {std::clamp(xDoAluno, kMargemDoOperador, largura - kMargemDoOperador), kYDoOperador};
     }
+
+    std::vector<int> OrdemDosComandos(Variacao::Sorteio& s) {
+        std::vector<int> ordem = Variacao::Ordem(s, kComandos - 1, 1);
+        ordem.push_back(kComandos - 1);
+        return ordem;
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.voo = Dificuldade::Escolher(n, kVoo, 0.5f);
+        d.rapidez = Dificuldade::Escolher(n, 1.0f, 1.2f);
+        return d;
+    }
 }

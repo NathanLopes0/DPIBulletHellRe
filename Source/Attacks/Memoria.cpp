@@ -21,12 +21,6 @@ namespace Memoria {
             Passo::NovosAeB, Passo::NovoC, Passo::LacoJava, Passo::Coleta,
             Passo::NovoP, Passo::Libera, Passo::Escreve, Passo::LacoCpp};
 
-        /// Os lacos: um bloco a cada kEntreAlocacoes, o primeiro kPrimeiraAlocacao
-        /// depois de o passo abrir.
-        constexpr float kPrimeiraAlocacao = 0.25f;
-        constexpr float kEntreAlocacoes = 0.3f;
-        constexpr int kNoLacoJava = 6;
-        constexpr int kNoLacoCpp = 7;
 
         constexpr float kPi = 3.14159265358979f;
     }
@@ -121,7 +115,9 @@ namespace Memoria {
         }
     }
 
-    std::vector<Evento> Eventos(const Passo p) {
+    std::vector<Evento> Eventos(const Passo p) { return Eventos(p, Degrau{}); }
+
+    std::vector<Evento> Eventos(const Passo p, const Degrau& d) {
         std::vector<Evento> e;
         auto alocar = [&e](const float quando, const int celulas, const std::string& raiz, const bool noProx) {
             Evento ev;
@@ -150,7 +146,7 @@ namespace Memoria {
                 break;
             case Passo::LacoJava:
                 for (int k = 0; k < kNoLacoJava; ++k) {
-                    alocar(kPrimeiraAlocacao + static_cast<float>(k) * kEntreAlocacoes, 3, "", false);
+                    alocar(kPrimeiraAlocacao + static_cast<float>(k) * d.entreAlocacoes, 3, "", false);
                 }
                 break;
             case Passo::Coleta:
@@ -167,10 +163,10 @@ namespace Memoria {
                 so(0.5f, Acao::Escrever, "p", 2);
                 break;
             case Passo::LacoCpp:
-                for (int k = 0; k < kNoLacoCpp; ++k) {
-                    alocar(kPrimeiraAlocacao + static_cast<float>(k) * kEntreAlocacoes, 4, "", false);
+                for (int k = 0; k < d.noLacoCpp; ++k) {
+                    alocar(kPrimeiraAlocacao + static_cast<float>(k) * d.entreAlocacoes, 4, "", false);
                 }
-                so(2.95f, Acao::Estourar, "", 0);
+                so(kEstouro, Acao::Estourar, "", 0);
                 break;
         }
         return e;
@@ -199,14 +195,38 @@ namespace Memoria {
         return t;
     }
 
-    int PassoEm(const float t) {
+    int PassoEm(const float t) { return PassoEm(t, kRoteiro); }
+
+    Roteiro RoteiroDeSempre() { return kRoteiro; }
+
+    Roteiro Sortear(Variacao::Sorteio& s) {
+        if (!s.Chance(0.5f)) return kRoteiro;
+        // O C++ PRIMEIRO: as duas metades trocam de lugar, cada uma inteira.
+        constexpr int kMetade = kPassos / 2;
+        Roteiro r{};
+        for (int i = 0; i < kPassos; ++i) r[static_cast<size_t>(i)] = kRoteiro[static_cast<size_t>((i + kMetade) % kPassos)];
+        return r;
+    }
+
+    float InicioDaVez(const int i, const Roteiro& roteiro) {
+        float t = kPrimeiro;
+        for (int k = 0; k < i && k < kPassos; ++k) t += Duracao(roteiro[static_cast<size_t>(k)]);
+        return t;
+    }
+
+    int PassoEm(const float t, const Roteiro& roteiro) {
         if (t < kPrimeiro) return -1;
         float inicio = kPrimeiro;
         for (int i = 0; i < kPassos; ++i) {
-            inicio += Duracao(kRoteiro[static_cast<size_t>(i)]);
+            inicio += Duracao(roteiro[static_cast<size_t>(i)]);
             if (t < inicio) return i;
         }
         return kPassos - 1;
+    }
+
+    bool TrocaDeLinguagem(const int i, const Roteiro& roteiro) {
+        if (i <= 0 || i >= kPassos) return false;
+        return LinguagemDe(roteiro[static_cast<size_t>(i)]) != LinguagemDe(roteiro[static_cast<size_t>(i - 1)]);
     }
 
     std::string Placar(const Passo p, const bool depois) {
@@ -283,5 +303,15 @@ namespace Memoria {
             }
         }
         return meio;
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.avisoDaAlocacao = Dificuldade::Escolher(n, kAvisoDaAlocacao, 0.55f);
+        d.entreAlocacoes = Dificuldade::Escolher(n, kEntreAlocacoes, 0.24f);
+        d.noLacoCpp = Dificuldade::Escolher(n, kNoLacoCpp, 9);
+        d.estilhacosDoPendente = Dificuldade::Escolher(n, kEstilhacosDoPendente, 20);
+        d.rapidez = Dificuldade::Escolher(n, 1.0f, 1.2f);
+        return d;
     }
 }

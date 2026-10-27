@@ -9,6 +9,8 @@
 #include <vector>
 
 #include "Fase.h"
+#include "../Dificuldade.h"
+#include "../Variacao.h"
 
 /**
  * CAMADA PURA.
@@ -132,6 +134,9 @@ namespace Excecao {
     std::vector<float> Cortina(float xDoAluno, float largura);
     constexpr float kEntreDestrocos = 60.0f;
 
+    /// @brief A mesma, com um destroco a cada 'entre' (o degrau do Dificil).
+    std::vector<float> Cortina(float xDoAluno, float largura, float entre);
+
     /// Onde o professor fica na faixa: no meio da altura dela, num x sorteado
     /// a cada rodada entre kXMinimo e kXMaximo (o canto da esquerda e do
     /// rotulo). A excecao sobe kAEsquerda a esquerda dele, para o nome dela
@@ -158,4 +163,22 @@ namespace Excecao {
     constexpr float kVelocidadeDoDestroco = 280.0f;
     constexpr float kVelocidadeDoFinally = 220.0f;
     constexpr int kAnelDoFinally = 12;
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA ---------------------------------
+
+    /// A ORDEM DAS RODADAS desta luta (a rodada k e RodadaDaVez(ordem[k])): as
+    /// quatro da linguagem em qualquer ordem, e a do proprio programa - o catch
+    /// (Reprovado e) - sempre por ultimo.
+    std::vector<int> OrdemDasRodadas(Variacao::Sorteio& s);
+
+    // ---- O DEGRAU -------------------------------------------------------------
+
+    /// O que o Dificil muda: a cortina tem um destroco a cada 52 px (e nao 60)
+    /// - a fresta entre dois fica mais estreita -, e os destrocos e o anel do
+    /// finally saem 20% mais rapido.
+    struct Degrau {
+        float entreDestrocos = kEntreDestrocos;
+        float rapidez = 1.0f;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

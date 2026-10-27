@@ -128,12 +128,30 @@ namespace Excecao {
     }
 
     std::vector<float> Cortina(const float xDoAluno, const float largura) {
+        return Cortina(xDoAluno, largura, kEntreDestrocos);
+    }
+
+    std::vector<float> Cortina(const float xDoAluno, const float largura, const float entre) {
+        const float passo = std::max(1.0f, entre);
         const float de = kMargem;
         const float ate = largura - kMargem;
         const float meio = std::clamp(xDoAluno, de, ate);
-        float x = meio - std::floor((meio - de) / kEntreDestrocos) * kEntreDestrocos;
+        float x = meio - std::floor((meio - de) / passo) * passo;
         std::vector<float> xs;
-        for (; x <= ate + 0.01f; x += kEntreDestrocos) xs.push_back(x);
+        for (; x <= ate + 0.01f; x += passo) xs.push_back(x);
         return xs;
+    }
+
+    std::vector<int> OrdemDasRodadas(Variacao::Sorteio& s) {
+        std::vector<int> ordem = Variacao::Ordem(s, kRodadas - 1, 0);
+        ordem.push_back(kRodadas - 1);
+        return ordem;
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.entreDestrocos = Dificuldade::Escolher(n, kEntreDestrocos, 52.0f);
+        d.rapidez = Dificuldade::Escolher(n, 1.0f, 1.2f);
+        return d;
     }
 }
