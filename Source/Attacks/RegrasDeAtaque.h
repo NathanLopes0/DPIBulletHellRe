@@ -112,10 +112,13 @@ struct Regra {
          * passar a conhecer. Quem pergunta ao mundo e o configurator em
          * RegrasDeAtaqueArquivo.cpp, que ja e a ponte impura.
          *
-         * Existe para a fase 1 do Vitor: as correntes prendem o aluno, e
-         * enquanto ele esta preso as TAREFAS passam a persegui-lo de leve. Sem
-         * isso a corrente seria so um incomodo; com isso ela e o que abre a
-         * porta para o resto do ataque.
+         * Nasceu para a fase 1 antiga do Vitor: as correntes prendiam o aluno,
+         * e enquanto ele estava preso as TAREFAS passavam a persegui-lo. Sem
+         * isso a corrente seria so um incomodo; com isso ela abria a porta
+         * para o resto do ataque. A fase 1 de hoje (os semaforos) faz o mesmo
+         * no C++ - a rajada que sai com o aluno preso persegue -, e nenhum
+         * arquivo usa a condicao; ela continua aqui, coberta pelos testes,
+         * para o proximo ataque que quiser punir quem foi pego.
          */
         AlvoAcorrentado
     };

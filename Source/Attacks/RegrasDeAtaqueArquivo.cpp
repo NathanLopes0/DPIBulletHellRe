@@ -175,8 +175,7 @@ std::function<void(Projectile*, int)> ConfiguratorDeRegras(const std::vector<Reg
         // vez da posicao na rajada; manter a consulta aqui e o que deixa a
         // regra pura continuar pura e testavel com um bool.
         //
-        // QUALQUER UM DOS DOIS SERVE, em dupla: se um esta preso, as tarefas
-        // perseguem. E a mesma escolha da nota compartilhada - o que acontece
+        // QUALQUER UM DOS DOIS SERVE, em dupla: se um esta preso, a regra vale. E a mesma escolha da nota compartilhada - o que acontece
         // com um acontece para a dupla -, e evita o absurdo de metade da rajada
         // perseguir um e metade o outro dentro do mesmo disparo.
         const bool alvoAcorrentado = AlgumJogadorAcorrentado(p);

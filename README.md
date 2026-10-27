@@ -163,6 +163,21 @@ identidade de ataque própria. A fase final acontece quando a nota termina entre
   lixo, no C++ o ponteiro pendente estoura e o laço que só aloca vaza até o
   `bad_alloc`. O exame é uma exceção subindo pela pilha de chamadas: cada
   faixa que não a trata cai em cima de você — e a repescagem é um `catch`.
+- **Vitor — INF 310.** Programação Concorrente e Distribuída — e Redes, que
+  ele também dá. Na primeira, semáforos: cada thread é uma coluna de
+  instruções descendo até a seção crítica, quem não tem o semáforo se empilha
+  na porta (a fila do `P(s)`, que o placar mostra) e o `V(s)` solta a pilha
+  seguinte em leque, com mutex, semáforo de 2, espera ocupada e uma condição
+  de corrida em que o saldo dá errado. As correntes prendem: preso, você fica
+  lento, e a coluna em cima de você fura a fila. Na segunda, as nuvens mandam
+  janelas TCP ao roteador do meio do campo, que só dá conta de 10 por RTT e
+  descarta o resto em cacos; a janela segue o dente de serra do controle de
+  congestionamento, desenhado num gráfico, e o Ponto Extra vira um timeout. Na
+  terceira ele se divide pela nuvem em pai e filho, que trocam mensagens por
+  um canal em arco: a caixa postal que enche, o rendezvous, a RPC que devolve
+  um leque e o impasse dos dois mandando ao mesmo tempo. O exame é o jantar
+  dos filósofos — os garfos andam de mão em mão, e o deadlock vira um cerco
+  até o `kill -9`.
 
 ## Como compilar
 
@@ -196,7 +211,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 877 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 913 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha — e também **leem os arquivos de
 `Assets/` de verdade**, quebrando ao primeiro erro de digitação num JSON. Um
