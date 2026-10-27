@@ -159,6 +159,10 @@ namespace Banco {
     }
 
     Consulta Proxima(const Registros& regs, const std::uint32_t sorteio, const int vez) {
+        return Proxima(regs, sorteio, vez, 1);
+    }
+
+    Consulta Proxima(const Registros& regs, const std::uint32_t sorteio, const int vez, const int linhasDaSelecao) {
         static constexpr std::array<Tipo, 6> kCiclo = {Tipo::Selecao, Tipo::Projecao, Tipo::Ambas,
                                                        Tipo::Selecao, Tipo::Projecao, Tipo::Ordenacao};
         std::mt19937 g(sorteio);
@@ -170,7 +174,7 @@ namespace Banco {
                 c.coluna = static_cast<Coluna>(Ate(g, kColunas));
                 break;
             case Tipo::Selecao:
-                c.onde = Escolher(regs, g, 1, std::max(1, n - 1));
+                c.onde = Escolher(regs, g, std::clamp(linhasDaSelecao, 1, std::max(1, n - 1)), std::max(1, n - 1));
                 break;
             case Tipo::Ambas:
                 c.coluna = static_cast<Coluna>(Ate(g, kColunas));
@@ -341,5 +345,22 @@ namespace Banco {
         for (const int i : antes) novos.push_back(regs[static_cast<size_t>(i)]);
         regs = novos;
         return antes;
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        if (n != Dificuldade::Nivel::Dificil) return d;
+        d.passo = 1.5f;
+        d.linhasDaSelecao = 2;
+        d.avisoDaLinha = 0.85f;
+        d.avisoDaColuna = 1.0f;
+        d.avisoDaCasa = 0.75f;
+        d.velocidadeDaLinha = 800.0f;
+        d.velocidadeDaColuna = 730.0f;
+        d.passoDaEscrita = 1.45f;
+        d.velocidadeDoApagado = 310.0f;
+        d.avisoDoProduto = 0.6f;
+        d.passoDoProduto = 0.87f;
+        return d;
     }
 }

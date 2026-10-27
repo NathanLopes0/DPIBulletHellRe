@@ -65,6 +65,21 @@ protected:
                               const std::string& stateName) override;
 
 private:
+    // ---- A LUTA SORTEADA ----------------------------------------------------
+    //
+    // Antes do primeiro quadro: a ordem do ciclo de consultas da fase 1 e a dos
+    // planos da repescagem (Variacao::Ordem, a forma que define a fase abrindo),
+    // as chances das transacoes da fase 3, e o degrau do modo.
+
+    void SortearALuta();
+
+    bool mLutaSorteada = false;
+    std::vector<int> mOrdemDasConsultas;
+    std::vector<int> mOrdemDosPlanos;
+    Banco::Degrau mDegrau;
+    Transacao::Plano mPlanoDasTransacoes;
+    Transacao::Degrau mDegrauDasTransacoes;
+
     // ---- A TABELA VISIVEL ---------------------------------------------------
 
     /// Monta os cabecalhos e as casas, uma vez: a tabela fica a batalha inteira.

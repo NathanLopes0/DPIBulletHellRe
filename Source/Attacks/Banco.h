@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "../Dificuldade.h"
+
 #include <array>
 #include <cstdint>
 #include <string>
@@ -125,6 +127,10 @@ namespace Banco {
     /// de uma linha a todas menos uma - sempre ha uma linha que sobra -, e as
     /// duas pegam de uma a duas casas.
     Consulta Proxima(const Registros& regs, std::uint32_t sorteio, int vez);
+
+    /// @brief A mesma, com a selecao pegando pelo menos 'linhasDaSelecao'
+    /// linhas (o degrau do Dificil) - e ainda nunca todas.
+    Consulta Proxima(const Registros& regs, std::uint32_t sorteio, int vez, int linhasDaSelecao);
 
     /// @brief "SELECT * WHERE nota < 50", "SELECT nota", "SELECT nome WHERE
     /// ano = 2", "ORDER BY nota".
@@ -263,4 +269,33 @@ namespace Banco {
     constexpr float kPassoDoProduto = 0.15f;
     constexpr float kPassoMinimoDoProduto = 0.10f;
     constexpr float kAceleracaoDoProduto = 0.01f;
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA, E O DEGRAU -------------------
+    //
+    // A TABELA JA E SORTEADA (Sortear), e as consultas tambem. O que passa a
+    // ser da luta e a ORDEM: na fase 1 o ciclo de seis consultas e outro a cada
+    // luta (Variacao::Ordem de kConsultasNoCiclo, com a selecao abrindo), e na
+    // repescagem os quatro planos do laco tambem (o por linha abrindo). O Thiago
+    // passa a vez por Variacao::NaOrdem.
+    constexpr int kConsultasNoCiclo = 6;
+
+    /// O que o Dificil muda: uma consulta a cada 1,5 s (e nao 1,8), menos
+    /// aviso em cada forma, varreduras mais rapidas, o WHERE da selecao pegando
+    /// pelo menos duas linhas (e ainda nunca todas), a escrita a cada 1,45 s, o
+    /// que foi apagado cai mais depressa, e o produto avisa 0,6 s antes e anda
+    /// 13% mais depressa. A regra de cada consulta e a mesma.
+    struct Degrau {
+        float passo = kPasso;
+        int linhasDaSelecao = 1;         ///< o menor numero de linhas do WHERE
+        float avisoDaLinha = kAvisoDaLinha;
+        float avisoDaColuna = kAvisoDaColuna;
+        float avisoDaCasa = kAvisoDaCasa;
+        float velocidadeDaLinha = kVelocidadeDaLinha;
+        float velocidadeDaColuna = kVelocidadeDaColuna;
+        float passoDaEscrita = kPassoDaEscrita;
+        float velocidadeDoApagado = kVelocidadeDoApagado;
+        float avisoDoProduto = kAvisoDoProduto;
+        float passoDoProduto = 1.0f;     ///< multiplica PassoDoProduto
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

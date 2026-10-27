@@ -53,6 +53,34 @@
 //
 // QUEM ESCOLHE A LINHA, A COLUNA OU A CASA e o Thiago (Thiago.cpp), lendo a
 // tabela: a ConsultaAttack so varre a faixa que ele manda.
+//
+// CADA LUTA E OUTRA (Variacao.h). A tabela e o WHERE de cada consulta ja eram
+// sorteados; agora a ORDEM tambem e da luta (Thiago::SortearALuta): o ciclo de
+// seis consultas da fase 1 - a selecao sempre abre, e as seis sao as mesmas -
+// e os quatro planos do JOIN da repescagem - o por linha sempre abre. Na fase
+// 3, cada luta tem as proprias chances (Transacao::Plano): o segundo UPDATE
+// disputa uma linha com chance de 0,35 a 0,65, e a transacao termina em
+// ROLLBACK com chance de 0,25 a 0,55.
+//
+// NO DIFICIL (Banco::Degrau e Transacao::Degrau; os numeros daqui sao os do
+// Normal): uma consulta a cada 1,5 s; os avisos da linha, da coluna e da casa
+// em 0,85, 1,0 e 0,75 s - ainda acima da travessia de cima; as varreduras a
+// 800 e 730 px/s; o WHERE da selecao pegando duas ou tres linhas, nunca uma
+// so; um comando da fase 2 a cada 1,45 s, com a linha apagada caindo a 310
+// px/s; uma transacao nova a cada 1,2 s, ate quatro de uma vez, com as
+// escritas a 600 px/s e doze delas travando a linha (e nao dez); e o produto
+// marcando 0,6 s antes e andando 13% mais depressa.
+//
+// Medido em cinco sementes (o que persegue no Dificil, em dez), a batalha
+// inteira: no Normal o que persegue termina com 62,0 a 86,8 (5 a 12 acertos)
+// e o que desvia com 77,7 a 90,5 (1 a 4); no Dificil, o que desvia com 77,0 a
+// 83,8 (2 a 4, 2,6 em media contra 2,2), e o que persegue com 62,8 a 76,5 em
+// nove de dez sementes - na outra reprova com 31,4, porque nunca sai da linha
+// em que esta, e com o WHERE mais largo a linha dele e lida mais vezes. O parado e o que vai e vem reprovam
+// nos dois. QUEM LE A TABELA SENTE POUCO O DEGRAU nas fases 1 e 2: o piloto
+// que sai da casa acesa no quadro em que ela acende tomou no maximo um acerto
+// por fase ate com aviso de 0,65 s e varredura a 1100 px/s. O que ele sente e
+// a fase 3; para o aluno de verdade, o degrau e ler a consulta mais depressa.
 
   // FASE 1 - O SELECT   |   gesto: O PROFESSOR EM CIMA DA COLUNA QUE LE
   //

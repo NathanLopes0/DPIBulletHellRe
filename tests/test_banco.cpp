@@ -9,6 +9,8 @@
 #include <set>
 
 #include "../Source/Attacks/Banco.h"
+#include "../Source/Variacao.h"
+#include "../Source/Dificuldade.h"
 
 namespace {
     Banco::Registros Exemplo() {
@@ -288,4 +290,131 @@ TEST_CASE("Banco: o registro novo nunca repete ninguem da tabela") {
             CHECK(regs[i].nota != r.nota);
         }
     }
+}
+
+TEST_CASE("Banco: o ciclo de consultas muda de ordem a cada luta, com as mesmas consultas e a selecao abrindo") {
+    using T = Banco::Tipo;
+    const auto regs = Exemplo();
+    std::set<std::vector<int>> tipos;
+    for (std::uint32_t semente = 0; semente < 1000; ++semente) {
+        Variacao::Sorteio s = Variacao::SorteioDa(semente, Banco::kFaseDaSelecao);
+        const auto ordem = Variacao::Ordem(s, Banco::kConsultasNoCiclo);
+        std::vector<int> estaLuta;
+        for (int volta = 0; volta < 2; ++volta) {
+            int selecoes = 0, projecoes = 0, ambas = 0, ordenacoes = 0;
+            for (int k = 0; k < Banco::kConsultasNoCiclo; ++k) {
+                const int vez = volta * Banco::kConsultasNoCiclo + k;
+                const auto c = Banco::Proxima(regs, semente + static_cast<std::uint32_t>(vez), Variacao::NaOrdem(ordem, vez));
+                if (k == 0) CHECK(c.tipo == T::Selecao);   // o SELECT ... WHERE abre cada volta
+                selecoes += c.tipo == T::Selecao;
+                projecoes += c.tipo == T::Projecao;
+                ambas += c.tipo == T::Ambas;
+                ordenacoes += c.tipo == T::Ordenacao;
+                if (volta == 0) estaLuta.push_back(static_cast<int>(c.tipo));
+            }
+            // AS MESMAS SEIS de sempre, em outra ordem.
+            CHECK(selecoes == 2);
+            CHECK(projecoes == 2);
+            CHECK(ambas == 1);
+            CHECK(ordenacoes == 1);
+        }
+        tipos.insert(estaLuta);
+    }
+    // DEPOIS DA SELECAO QUE ABRE vem uma selecao, duas projecoes, as duas e o
+    // ORDER BY: 5! / 2! = 60 sequencias, e em 1000 sementes a chance de faltar
+    // alguma e de 60 * (59/60)^1000, menos de uma em cem mil.
+    CHECK(tipos.size() == 60u);
+}
+
+TEST_CASE("Banco: os planos do produto mudam de ordem a cada luta, o por linha abrindo") {
+    std::set<std::vector<int>> vistas;
+    for (std::uint32_t semente = 0; semente < 200; ++semente) {
+        Variacao::Sorteio s = Variacao::SorteioDa(semente, Banco::kFaseDoProduto);
+        const auto ordem = Variacao::Ordem(s, Banco::kPlanos);
+        std::vector<int> planos;
+        for (int vez = 0; vez < 2 * Banco::kPlanos; ++vez) {
+            planos.push_back(static_cast<int>(Banco::PlanoDaVolta(Variacao::NaOrdem(ordem, vez))));
+        }
+        CHECK(planos[0] == static_cast<int>(Banco::Plano::PorLinha));
+        std::vector<int> primeira(planos.begin(), planos.begin() + Banco::kPlanos);
+        std::vector<int> ordenada = primeira;
+        std::sort(ordenada.begin(), ordenada.end());
+        CHECK(ordenada == std::vector<int>{0, 1, 2, 3});   // os quatro, uma vez cada
+        CHECK(std::vector<int>(planos.begin() + Banco::kPlanos, planos.end()) == primeira);
+        vistas.insert(primeira);
+    }
+    CHECK(vistas.size() == 6u);   // 3! depois do por linha
+}
+
+TEST_CASE("Banco: no Dificil o WHERE da selecao pega pelo menos duas linhas, e ainda sobra onde ficar") {
+    using T = Banco::Tipo;
+    int duas = 0, tres = 0;
+    for (std::uint32_t s = 0; s < 400; ++s) {
+        const auto regs = Banco::Sortear(s * 7919u + 3u);
+        for (int vez = 0; vez < 12; ++vez) {
+            CAPTURE(s);
+            CAPTURE(vez);
+            const std::uint32_t sorteio = s * 31u + static_cast<std::uint32_t>(vez);
+            // O NORMAL E O DE SEMPRE: o minimo de uma linha e a consulta antiga.
+            const auto sempre = Banco::Proxima(regs, sorteio, vez);
+            const auto normal = Banco::Proxima(regs, sorteio, vez, 1);
+            CHECK(Banco::Sql(normal) == Banco::Sql(sempre));
+            const auto c = Banco::Proxima(regs, sorteio, vez, 2);
+            CHECK(c.tipo == sempre.tipo);
+            if (c.tipo != T::Selecao) continue;
+            const auto linhas = Banco::Linhas(regs, c.onde);
+            CHECK(linhas.size() >= 2u);
+            CHECK(linhas.size() < regs.size());
+            duas += linhas.size() == 2u;
+            tres += linhas.size() == 3u;
+        }
+    }
+    CHECK(duas > 0);
+    CHECK(tres > 0);
+    // COM POUCAS LINHAS o minimo cede: nunca pede todas. (As duas notas abaixo
+    // de 50: a condicao de reserva, "nota < 50", pegaria as duas.)
+    const Banco::Registros duasLinhas = {{12, 0, 1, 30, 1}, {45, 3, 2, 38, 2}};
+    for (std::uint32_t s = 0; s < 50; ++s) {
+        const auto c = Banco::Proxima(duasLinhas, s, 0, 2);
+        CHECK(Banco::Linhas(duasLinhas, c.onde).size() == 1u);
+    }
+}
+
+TEST_CASE("Banco: o degrau do Normal e o de sempre, e o do Dificil aperta cada relogio") {
+    const Banco::Degrau n = Banco::DegrauDo(Dificuldade::Nivel::Normal);
+    CHECK(n.passo == Banco::kPasso);
+    CHECK(n.avisoDaLinha == Banco::kAvisoDaLinha);
+    CHECK(n.avisoDaColuna == Banco::kAvisoDaColuna);
+    CHECK(n.avisoDaCasa == Banco::kAvisoDaCasa);
+    CHECK(n.velocidadeDaLinha == Banco::kVelocidadeDaLinha);
+    CHECK(n.velocidadeDaColuna == Banco::kVelocidadeDaColuna);
+    CHECK(n.passoDaEscrita == Banco::kPassoDaEscrita);
+    CHECK(n.velocidadeDoApagado == Banco::kVelocidadeDoApagado);
+    CHECK(n.avisoDoProduto == Banco::kAvisoDoProduto);
+    CHECK(n.passoDoProduto == 1.0f);
+    CHECK(n.linhasDaSelecao == 1);
+
+    const Banco::Degrau d = Banco::DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.passo < n.passo);
+    CHECK(d.avisoDaLinha < n.avisoDaLinha);
+    CHECK(d.avisoDaColuna < n.avisoDaColuna);
+    CHECK(d.avisoDaCasa < n.avisoDaCasa);
+    CHECK(d.velocidadeDaLinha > n.velocidadeDaLinha);
+    CHECK(d.velocidadeDaColuna > n.velocidadeDaColuna);
+    CHECK(d.passoDaEscrita < n.passoDaEscrita);
+    CHECK(d.velocidadeDoApagado > n.velocidadeDoApagado);
+    CHECK(d.avisoDoProduto < n.avisoDoProduto);
+    CHECK(d.passoDoProduto < 1.0f);
+    CHECK(d.linhasDaSelecao == 2);
+    // O AVISO AINDA VEM ANTES DA PROXIMA CONSULTA: as casas de uma apagam
+    // antes de a seguinte acender - a mesma leitura, so que mais depressa.
+    CHECK(d.avisoDaLinha < d.passo);
+    CHECK(d.avisoDaColuna < d.passo);
+    CHECK(d.avisoDaCasa < d.passo);
+    // E NENHUMA FAIXA FICA INESCAPAVEL (o cabecalho de thiago/fases.json): no
+    // campo de 1200 x 746 e a 300 px/s, atravessar uma linha inteira custa
+    // 0,62 s e uma coluna 0,8 s - o aviso do Dificil ainda e maior que isso.
+    constexpr float kAndar = 300.0f;
+    CHECK(d.avisoDaLinha > 746.0f / Banco::kLinhas / kAndar);
+    CHECK(d.avisoDaColuna > 1200.0f / Banco::kColunas / kAndar);
 }

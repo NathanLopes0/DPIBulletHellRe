@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "../Dificuldade.h"
+#include "../Variacao.h"
+
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -98,4 +101,27 @@ namespace Transacao {
 
     /// A velocidade das escritas, na ida e na volta.
     constexpr float kVelocidadeDaEscrita = 450.0f;
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA, E O DEGRAU -------------------
+
+    /// As transacoes desta luta: com que chance o segundo UPDATE disputa uma
+    /// linha (de 0,35 a 0,65 - com mais, mais espera e mais deadlock) e com
+    /// que chance a transacao termina em ROLLBACK (de 0,25 a 0,55).
+    struct Plano {
+        float chanceDeDisputa = kChanceDeDisputa;
+        float chanceDeRollback = kChanceDeRollback;
+    };
+    Plano Sortear(Variacao::Sorteio& s);
+    bool Desfaz(std::uint32_t sorteio, float chance);
+
+    /// O que o Dificil muda: uma transacao nova a cada 1,2 s, ate quatro de
+    /// uma vez (e nao tres), as escritas indo e voltando a 600 px/s, e doze
+    /// delas travando cada linha - passar entre elas fica mais apertado.
+    struct Degrau {
+        float novaTransacao = kNovaTransacao;
+        int maximo = kMaximo;
+        float velocidadeDaEscrita = kVelocidadeDaEscrita;
+        int escritasPorLinha = kEscritasPorLinha;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

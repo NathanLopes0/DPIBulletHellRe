@@ -4,6 +4,7 @@
 
 #include "doctest.h"
 
+#include <algorithm>
 #include <set>
 
 #include "../Source/Attacks/Transacao.h"
@@ -78,4 +79,58 @@ TEST_CASE("Transacao: os placares") {
     CHECK(Transacao::PlacarDoFim(4, true) == "T4: ROLLBACK");
     CHECK(Transacao::PlacarDaEspera(3, 2) == "T3 espera T2");
     CHECK(Transacao::PlacarDoDeadlock(5) == "deadlock! T5: ROLLBACK");
+}
+
+TEST_CASE("Transacao: as chances de cada luta ficam em volta das de sempre") {
+    float menorDisputa = 1.0f, maiorDisputa = 0.0f, menorRollback = 1.0f, maiorRollback = 0.0f;
+    for (std::uint32_t semente = 0; semente < 500; ++semente) {
+        Variacao::Sorteio s = Variacao::SorteioDa(semente, Transacao::kFaseDaTransacao);
+        const Transacao::Plano p = Transacao::Sortear(s);
+        REQUIRE(p.chanceDeDisputa >= 0.35f);
+        REQUIRE(p.chanceDeDisputa < 0.65f);
+        REQUIRE(p.chanceDeRollback >= 0.25f);
+        REQUIRE(p.chanceDeRollback < 0.55f);
+        menorDisputa = std::min(menorDisputa, p.chanceDeDisputa);
+        maiorDisputa = std::max(maiorDisputa, p.chanceDeDisputa);
+        menorRollback = std::min(menorRollback, p.chanceDeRollback);
+        maiorRollback = std::max(maiorRollback, p.chanceDeRollback);
+    }
+    CHECK(menorDisputa < 0.37f);
+    CHECK(maiorDisputa > 0.63f);
+    CHECK(menorRollback < 0.27f);
+    CHECK(maiorRollback > 0.53f);
+    // O DE SEMPRE e o meio das duas faixas.
+    const Transacao::Plano sempre;
+    CHECK(sempre.chanceDeDisputa == doctest::Approx(0.5f));
+    CHECK(sempre.chanceDeRollback == doctest::Approx(0.4f));
+}
+
+TEST_CASE("Transacao: o ROLLBACK segue a chance da luta, e a de sempre e a de antes") {
+    for (std::uint32_t s = 0; s < 500; ++s) {
+        const std::uint32_t x = s * 2654435761u;
+        CHECK(Transacao::Desfaz(x) == Transacao::Desfaz(x, Transacao::kChanceDeRollback));
+        CHECK_FALSE(Transacao::Desfaz(x, 0.0f));
+        CHECK(Transacao::Desfaz(x, 1.0f));
+    }
+    int poucas = 0, muitas = 0;
+    for (std::uint32_t s = 0; s < 2000; ++s) {
+        poucas += Transacao::Desfaz(s * 2654435761u, 0.25f) ? 1 : 0;
+        muitas += Transacao::Desfaz(s * 2654435761u, 0.55f) ? 1 : 0;
+    }
+    CHECK(poucas < muitas);
+    CHECK(poucas > 2000 * 0.19f);
+    CHECK(muitas < 2000 * 0.61f);
+}
+
+TEST_CASE("Transacao: o degrau do Normal e o de sempre, e o do Dificil abre mais, grava mais depressa e trava com mais escritas") {
+    const Transacao::Degrau n = Transacao::DegrauDo(Dificuldade::Nivel::Normal);
+    CHECK(n.novaTransacao == Transacao::kNovaTransacao);
+    CHECK(n.velocidadeDaEscrita == Transacao::kVelocidadeDaEscrita);
+    CHECK(n.maximo == Transacao::kMaximo);
+    CHECK(n.escritasPorLinha == Transacao::kEscritasPorLinha);
+    const Transacao::Degrau d = Transacao::DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.novaTransacao < n.novaTransacao);
+    CHECK(d.velocidadeDaEscrita > n.velocidadeDaEscrita);
+    CHECK(d.maximo > n.maximo);
+    CHECK(d.escritasPorLinha > n.escritasPorLinha);
 }

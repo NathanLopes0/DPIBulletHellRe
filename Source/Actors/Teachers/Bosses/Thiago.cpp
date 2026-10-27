@@ -22,7 +22,27 @@ Thiago::Thiago(Scene* scene) : Boss(scene)
 {
 }
 
+void Thiago::SortearALuta() {
+    mLutaSorteada = true;
+    const Dificuldade::Nivel nivel = NivelDeDificuldade();
+    mDegrau = Banco::DegrauDo(nivel);
+    mDegrauDasTransacoes = Transacao::DegrauDo(nivel);
+    {
+        Variacao::Sorteio sorteio = SorteioDaFase(Banco::kFaseDaSelecao);
+        mOrdemDasConsultas = Variacao::Ordem(sorteio, Banco::kConsultasNoCiclo);
+    }
+    {
+        Variacao::Sorteio sorteio = SorteioDaFase(Transacao::kFaseDaTransacao);
+        mPlanoDasTransacoes = Transacao::Sortear(sorteio);
+    }
+    {
+        Variacao::Sorteio sorteio = SorteioDaFase(Banco::kFaseDoProduto);
+        mOrdemDosPlanos = Variacao::Ordem(sorteio, Banco::kPlanos);
+    }
+}
+
 void Thiago::OnUpdate(const float deltaTime) {
+    if (!mLutaSorteada && !EhClone()) SortearALuta();
     Boss::OnUpdate(deltaTime);
     if (EhClone()) return;
     const auto* fsm = GetComponent<FSMComponent>();
@@ -159,7 +179,7 @@ void Thiago::MarcarVarredura(const std::vector<Banco::Casa>& casas, const bool p
             const float comeco = fim - Tabela::Espessura(extensao, porLinha ? Banco::kColunas : Banco::kLinhas);
             fim = (inicio + extensao) - comeco + inicio;
         }
-        const float velocidade = porLinha ? Banco::kVelocidadeDaLinha : Banco::kVelocidadeDaColuna;
+        const float velocidade = porLinha ? mDegrau.velocidadeDaLinha : mDegrau.velocidadeDaColuna;
         Marcar({casa}, agora + aviso + (fim - inicio - Banco::kMargemDaVarredura) / velocidade);
     }
 }
@@ -192,31 +212,31 @@ void Thiago::AtualizarSelecao(const float deltaTime) {
     // que ela le, e as casas que ela le acendem.
     if (agora >= mProximaConsulta) {
         const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
-        const Banco::Consulta c = Banco::Proxima(mRegistros, sorteio, mVez++);
+        const Banco::Consulta c = Banco::Proxima(mRegistros, sorteio, Variacao::NaOrdem(mOrdemDasConsultas, mVez++), mDegrau.linhasDaSelecao);
         RegistrarAnuncio(Banco::kFaseDaSelecao, Banco::Sql(c));
         const Banco::Coluna lida = (c.tipo == Banco::Tipo::Selecao) ? c.onde.coluna : c.coluna;
         mAlvo = Vector2(Banco::XDoProfessor(static_cast<int>(lida), Campo().w), Banco::kYDoProfessor);
-        mProximaConsulta = agora + Banco::kPasso;
+        mProximaConsulta = agora + mDegrau.passo;
 
         const auto casas = Banco::Casas(mRegistros, c);
         switch (c.tipo) {
             case Banco::Tipo::Selecao:
                 // AS LINHAS DO WHERE, varridas de ponta a ponta.
-                MarcarVarredura(casas, true, agora, Banco::kAvisoDaLinha);
+                MarcarVarredura(casas, true, agora, mDegrau.avisoDaLinha);
                 for (const int l : Banco::Linhas(mRegistros, c.onde)) {
-                    Varrer(Banco::kGatilhoDaSelecao, l, Banco::kAvisoDaLinha, Banco::kVelocidadeDaLinha);
+                    Varrer(Banco::kGatilhoDaSelecao, l, mDegrau.avisoDaLinha, mDegrau.velocidadeDaLinha);
                 }
                 break;
             case Banco::Tipo::Projecao:
                 // A COLUNA, varrida de cima a baixo.
-                MarcarVarredura(casas, false, agora, Banco::kAvisoDaColuna);
-                Varrer(Banco::kGatilhoDaProjecao, static_cast<int>(c.coluna), Banco::kAvisoDaColuna,
-                       Banco::kVelocidadeDaColuna);
+                MarcarVarredura(casas, false, agora, mDegrau.avisoDaColuna);
+                Varrer(Banco::kGatilhoDaProjecao, static_cast<int>(c.coluna), mDegrau.avisoDaColuna,
+                       mDegrau.velocidadeDaColuna);
                 break;
             case Banco::Tipo::Ambas:
                 // SO OS CRUZAMENTOS: as casas acendem por inteiro.
-                Marcar(casas, agora + Banco::kAvisoDaCasa);
-                mPendentes.push_back(Pendente{casas, agora + Banco::kAvisoDaCasa});
+                Marcar(casas, agora + mDegrau.avisoDaCasa);
+                mPendentes.push_back(Pendente{casas, agora + mDegrau.avisoDaCasa});
                 break;
             case Banco::Tipo::Ordenacao: {
                 // AS LINHAS TROCAM DE LUGAR: cada registro leva as casas dele
@@ -292,7 +312,7 @@ void Thiago::Apagar(const int linha) {
         if (!p || p->GetState() != ActorState::Active) continue;
         p->DefinirEnfeite(false);
         p->DefinirPosto("");
-        if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2(0.0f, Banco::kVelocidadeDoApagado));
+        if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2(0.0f, mDegrau.velocidadeDoApagado));
     }
     mCasas.erase(mCasas.begin() + linha);
 }
@@ -325,7 +345,7 @@ void Thiago::AtualizarEscrita() {
         const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
         const Banco::Escrita e = Banco::ProximaEscrita(mRegistros, sorteio);
         RegistrarAnuncio(Banco::kFaseDaEscrita, Banco::Sql(e));
-        mProximaEscrita = agora + Banco::kPassoDaEscrita;
+        mProximaEscrita = agora + mDegrau.passoDaEscrita;
         const int nome = static_cast<int>(Banco::Coluna::Nome);
 
         switch (e.comando) {
@@ -339,8 +359,8 @@ void Thiago::AtualizarEscrita() {
                 EscreverRegistro(static_cast<size_t>(l), GetPosition());
                 std::vector<Banco::Casa> casas;
                 for (int c = 0; c < Banco::kColunas; ++c) casas.push_back({l, c});
-                MarcarVarredura(casas, true, agora, Banco::kAvisoDaLinha);
-                Varrer(Banco::kGatilhoDaSelecao, l, Banco::kAvisoDaLinha, Banco::kVelocidadeDaLinha);
+                MarcarVarredura(casas, true, agora, mDegrau.avisoDaLinha);
+                Varrer(Banco::kGatilhoDaSelecao, l, mDegrau.avisoDaLinha, mDegrau.velocidadeDaLinha);
                 mAlvo = Vector2(Banco::XDoProfessor(nome, Campo().w), Banco::kYDoProfessor);
                 break;
             }
@@ -348,9 +368,9 @@ void Thiago::AtualizarEscrita() {
                 // A NOTA DE CADA LINHA DO WHERE: a casa acende, e o valor muda.
                 std::vector<Banco::Casa> casas;
                 for (const int l : Banco::Linhas(mRegistros, e.onde)) casas.push_back({l, static_cast<int>(Banco::Coluna::Nota)});
-                Marcar(casas, agora + Banco::kAvisoDaCasa);
-                mPendentes.push_back(Pendente{casas, agora + Banco::kAvisoDaCasa});
-                mExecucoes.push_back(Execucao{e, agora + Banco::kAvisoDaCasa});
+                Marcar(casas, agora + mDegrau.avisoDaCasa);
+                mPendentes.push_back(Pendente{casas, agora + mDegrau.avisoDaCasa});
+                mExecucoes.push_back(Execucao{e, agora + mDegrau.avisoDaCasa});
                 mAlvo = Vector2(Banco::XDoProfessor(static_cast<int>(e.onde.coluna), Campo().w), Banco::kYDoProfessor);
                 break;
             }
@@ -360,10 +380,10 @@ void Thiago::AtualizarEscrita() {
                 const auto linhas = Banco::Linhas(mRegistros, e.onde);
                 std::vector<Banco::Casa> casas;
                 for (const int l : linhas) for (int c = 0; c < Banco::kColunas; ++c) casas.push_back({l, c});
-                MarcarVarredura(casas, true, agora, Banco::kAvisoDaLinha);
-                for (const int l : linhas) Varrer(Banco::kGatilhoDaSelecao, l, Banco::kAvisoDaLinha, Banco::kVelocidadeDaLinha);
-                const float travessia = (Campo().w - Banco::kMargemDaVarredura) / Banco::kVelocidadeDaLinha;
-                mExecucoes.push_back(Execucao{e, agora + Banco::kAvisoDaLinha + travessia});
+                MarcarVarredura(casas, true, agora, mDegrau.avisoDaLinha);
+                for (const int l : linhas) Varrer(Banco::kGatilhoDaSelecao, l, mDegrau.avisoDaLinha, mDegrau.velocidadeDaLinha);
+                const float travessia = (Campo().w - Banco::kMargemDaVarredura) / mDegrau.velocidadeDaLinha;
+                mExecucoes.push_back(Execucao{e, agora + mDegrau.avisoDaLinha + travessia});
                 mAlvo = Vector2(Banco::XDoProfessor(static_cast<int>(e.onde.coluna), Campo().w), Banco::kYDoProfessor);
                 break;
             }
@@ -421,8 +441,8 @@ void Thiago::Anunciar(const int id, const int linha, const float agora) {
     // O UPDATE GRAVA A LINHA: ela acende e e varrida, como a do INSERT.
     std::vector<Banco::Casa> casas;
     for (int c = 0; c < Banco::kColunas; ++c) casas.push_back({linha, c});
-    MarcarVarredura(casas, true, agora, Banco::kAvisoDaLinha);
-    Varrer(Banco::kGatilhoDaSelecao, linha, Banco::kAvisoDaLinha, Banco::kVelocidadeDaLinha);
+    MarcarVarredura(casas, true, agora, mDegrau.avisoDaLinha);
+    Varrer(Banco::kGatilhoDaSelecao, linha, mDegrau.avisoDaLinha, mDegrau.velocidadeDaLinha);
 }
 
 void Thiago::Gravar(const int id, const int linha) {
@@ -438,12 +458,12 @@ void Thiago::Gravar(const int id, const int linha) {
     const Vector2 origem = GetPosition();
     const SDL_FRect campo = Campo();
     const float y = CentroDaCasa(linha, 0).y;
-    for (int k = 0; k < Transacao::kEscritasPorLinha; ++k) {
-        const Vector2 destino(campo.x + (static_cast<float>(k) + 0.5f) * campo.w / Transacao::kEscritasPorLinha, y);
+    for (int k = 0; k < mDegrauDasTransacoes.escritasPorLinha; ++k) {
+        const Vector2 destino(campo.x + (static_cast<float>(k) + 0.5f) * campo.w / mDegrauDasTransacoes.escritasPorLinha, y);
         for (BossProjectile* p : DispararEm(Transacao::kGatilhoDaEscrita, origem)) {
             Vector2 ida = destino - origem;
             if (ida.LengthSq() > 0.0f) ida.Normalize();
-            if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(ida * Transacao::kVelocidadeDaEscrita);
+            if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(ida * mDegrauDasTransacoes.velocidadeDaEscrita);
             mGravacoes.push_back(Gravacao{p, id, origem, destino, false, false});
         }
     }
@@ -484,10 +504,10 @@ void Thiago::Terminar(const int id, const bool desfaz, const float agora) {
             (void)notaAntiga;
             std::vector<Banco::Casa> casas;
             for (int c = 0; c < Banco::kColunas; ++c) casas.push_back({linha, c});
-            MarcarVarredura(casas, true, agora, Banco::kAvisoDaLinha, true);
-            Varrer(Transacao::kGatilhoDoDesfazer, linha, Banco::kAvisoDaLinha, Banco::kVelocidadeDaLinha);
+            MarcarVarredura(casas, true, agora, mDegrau.avisoDaLinha, true);
+            Varrer(Transacao::kGatilhoDoDesfazer, linha, mDegrau.avisoDaLinha, mDegrau.velocidadeDaLinha);
         }
-        mVoltas.push_back(Volta{id, agora + Banco::kAvisoDaLinha});
+        mVoltas.push_back(Volta{id, agora + mDegrau.avisoDaLinha});
     }
     mGravacoes.erase(std::remove_if(mGravacoes.begin(), mGravacoes.end(), [](const Gravacao& g) {
         return g.p->GetState() != ActorState::Active;
@@ -555,13 +575,13 @@ void Thiago::AtualizarTransacoes() {
     const int linhas = static_cast<int>(mRegistros.size());
 
     // UMA TRANSACAO NOVA: o primeiro UPDATE numa linha que ninguem trava.
-    if (agora >= mProximaTransacao && static_cast<int>(mEmCampo.size()) < Transacao::kMaximo) {
+    if (agora >= mProximaTransacao && static_cast<int>(mEmCampo.size()) < mDegrauDasTransacoes.maximo) {
         const int linha = Transacao::LinhaLivre(mLocks, linhas, Sorteio());
-        mProximaTransacao = agora + Transacao::kNovaTransacao;
+        mProximaTransacao = agora + mDegrauDasTransacoes.novaTransacao;
         if (linha >= 0) {
             const int id = mProximoId++;
             mLocks.push_back(Transacao::Tx{id, {linha}, -1});
-            mEmCampo.push_back(TxEmCampo{id, Etapa::MarcandoPrimeira, agora + Banco::kAvisoDaLinha, -1, {}, {}});
+            mEmCampo.push_back(TxEmCampo{id, Etapa::MarcandoPrimeira, agora + mDegrau.avisoDaLinha, -1, {}, {}});
             Anunciar(id, linha, agora);
             mAlvo = Vector2(Banco::XDoProfessor(Random::GetIntRange(0, Banco::kColunas - 1), Campo().w), Banco::kYDoProfessor);
         }
@@ -589,7 +609,7 @@ void Thiago::AtualizarTransacoes() {
                 if (agora < tx->proximo) break;
                 // O SEGUNDO UPDATE: as vezes numa linha de outra transacao.
                 const auto sorteio = Sorteio();
-                const bool disputa = static_cast<float>(sorteio % 1000u) / 1000.0f < Transacao::kChanceDeDisputa;
+                const bool disputa = static_cast<float>(sorteio % 1000u) / 1000.0f < mPlanoDasTransacoes.chanceDeDisputa;
                 int alvo = disputa ? Transacao::LinhaDeOutra(mLocks, id, sorteio / 7u) : -1;
                 if (alvo < 0) {
                     int primeira = -1;
@@ -626,13 +646,13 @@ void Thiago::AtualizarTransacoes() {
                     t.quer = -1;
                 }
                 tx->etapa = Etapa::MarcandoSegunda;
-                tx->proximo = agora + Banco::kAvisoDaLinha;
+                tx->proximo = agora + mDegrau.avisoDaLinha;
                 Anunciar(id, quer, agora);
                 break;
             }
             case Etapa::Fechando: {
                 if (agora < tx->proximo) break;
-                const bool desfaz = Transacao::Desfaz(Sorteio());
+                const bool desfaz = Transacao::Desfaz(Sorteio(), mPlanoDasTransacoes.chanceDeRollback);
                 RegistrarAnuncio(Transacao::kFaseDaTransacao, Transacao::PlacarDoFim(id, desfaz));
                 Terminar(id, desfaz, agora);
                 break;
@@ -649,7 +669,7 @@ void Thiago::AtualizarTransacoes() {
             g.parada = false;
             Vector2 volta = g.origem - g.p->GetPosition();
             if (volta.LengthSq() > 0.0f) volta.Normalize();
-            if (auto* rb = g.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(volta * Transacao::kVelocidadeDaEscrita);
+            if (auto* rb = g.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(volta * mDegrauDasTransacoes.velocidadeDaEscrita);
         }
         it = mVoltas.erase(it);
     }
@@ -717,8 +737,8 @@ void Thiago::AtualizarProduto() {
     // UMA VOLTA NOVA DO LACO: o placar diz o plano, e cada casa ganha a hora
     // de ser marcada - uma depois da outra, cada volta mais depressa.
     if (mAgendadas.empty() && agora >= mProximaVolta) {
-        const Banco::Plano plano = Banco::PlanoDaVolta(mVolta);
-        const float passo = Banco::PassoDoProduto(mVolta);
+        const Banco::Plano plano = Banco::PlanoDaVolta(Variacao::NaOrdem(mOrdemDosPlanos, mVolta));
+        const float passo = Banco::PassoDoProduto(mVolta) * mDegrau.passoDoProduto;
         ++mVolta;
         RegistrarAnuncio(Banco::kFaseDoProduto, Banco::PlacarDoProduto(plano));
         const auto casas = Banco::Produto(plano);
@@ -728,15 +748,15 @@ void Thiago::AtualizarProduto() {
         // O professor le de uma coluna sorteada, a volta inteira.
         const int coluna = Random::GetIntRange(0, Banco::kColunas - 1);
         mAlvo = Vector2(Banco::XDoProfessor(coluna, Campo().w), Banco::kYDoProfessor);
-        mProximaVolta = agora + passo * static_cast<float>(casas.size()) + Banco::kAvisoDoProduto
+        mProximaVolta = agora + passo * static_cast<float>(casas.size()) + mDegrau.avisoDoProduto
                       + Banco::kDuracaoDaCasa + Banco::kEntreVoltas;
     }
 
     // A CASA DA VEZ E MARCADA, e acende kAvisoDoProduto depois.
     for (auto it = mAgendadas.begin(); it != mAgendadas.end();) {
         if (agora < it->marca) { ++it; continue; }
-        Marcar({it->casa}, it->marca + Banco::kAvisoDoProduto);
-        mPendentes.push_back(Pendente{{it->casa}, it->marca + Banco::kAvisoDoProduto});
+        Marcar({it->casa}, it->marca + mDegrau.avisoDoProduto);
+        mPendentes.push_back(Pendente{{it->casa}, it->marca + mDegrau.avisoDoProduto});
         it = mAgendadas.erase(it);
     }
 

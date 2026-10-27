@@ -68,9 +68,11 @@ namespace Transacao {
         return delas[g() % delas.size()];
     }
 
-    bool Desfaz(const std::uint32_t sorteio) {
+    bool Desfaz(const std::uint32_t sorteio) { return Desfaz(sorteio, kChanceDeRollback); }
+
+    bool Desfaz(const std::uint32_t sorteio, const float chance) {
         std::mt19937 g(sorteio);
-        return static_cast<float>(g() % 1000u) / 1000.0f < kChanceDeRollback;
+        return static_cast<float>(g() % 1000u) / 1000.0f < chance;
     }
 
     std::string PlacarDoUpdate(const int id, const int nota, const int mat) {
@@ -87,5 +89,21 @@ namespace Transacao {
 
     std::string PlacarDoDeadlock(const int vitima) {
         return "deadlock! T" + std::to_string(vitima) + ": ROLLBACK";
+    }
+
+    Plano Sortear(Variacao::Sorteio& s) {
+        Plano p;
+        p.chanceDeDisputa = s.Real(0.35f, 0.65f);
+        p.chanceDeRollback = s.Real(0.25f, 0.55f);
+        return p;
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.novaTransacao = Dificuldade::Escolher(n, kNovaTransacao, 1.2f);
+        d.maximo = Dificuldade::Escolher(n, kMaximo, 4);
+        d.velocidadeDaEscrita = Dificuldade::Escolher(n, kVelocidadeDaEscrita, 600.0f);
+        d.escritasPorLinha = Dificuldade::Escolher(n, kEscritasPorLinha, 12);
+        return d;
     }
 }
