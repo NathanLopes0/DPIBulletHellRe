@@ -313,6 +313,24 @@ private:
     /// entao vale ter nome.
     static constexpr float kGanhoDoPontoExtra = 10.0f;
 
+    // --- O PONTO EXTRA DO CO-OP, A VISTA (PontoExtra.h): o feixe de quem gastou
+    // ate o parceiro, e o anel do escudo em volta de quem esta protegido.
+    struct FeixeDoPontoExtra {
+        const Player* de = nullptr;
+        const Player* ate = nullptr;
+        float t = 0.0f;
+    };
+    std::vector<FeixeDoPontoExtra> mFeixes;
+    class DrawLinhasComponent* mDesenhoDoPontoExtra = nullptr;
+    float mPulsoDoEscudo = 0.0f;
+
+    /// Na frente do aluno (100): o escudo e o que se le, e nao o sprite.
+    static constexpr int kOrdemDoPontoExtra = 102;
+
+    /// Anda os feixes e redesenha os feixes e os escudos.
+    void AtualizarPontoExtra(float deltaTime);
+
+
     static constexpr int kPlacaLargura = 112;
 
     /// A dos avisos e mais larga: "TESTE FINAL" tem onze letras contra as seis

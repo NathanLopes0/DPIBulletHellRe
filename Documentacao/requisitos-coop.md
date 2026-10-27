@@ -63,7 +63,7 @@ silêncio. D2 e D4 mudaram de resposta, não de pergunta.
 | D8 | Pontos extras | Cada jogador apanha os seus; gastar um paga na nota da dupla (2.2). O **efeito** muda em dupla — ver D11 |
 | D9 | O ranking | **Dois**: o Solo, de alunos, e o Co-op, **de duplas** (2.3) |
 | D10 | Passar jogando em co-op | **Destranca** a próxima matéria, igual ao solo |
-| D11 | O Ponto Extra em dupla | **Não limpa a tela: deixa o _outro_ imune** pelos 3 s que o doador fica sem atirar (2.5) |
+| D11 | O Ponto Extra em dupla | **Não limpa a tela: dá ao _outro_ imunidade e um escudo** por 3 s, e o doador **segue atirando** (2.5) |
 
 ### 2.1 — Uma regra só para a nota compartilhada (D2, D4)
 
@@ -208,20 +208,30 @@ O menu ficou: **Modo Solo, Modo Dupla, Ranking, Opções**.
 
 ### 2.5 — O Ponto Extra em dupla é do *outro* (D11)
 
-Sozinho, gastar o Ponto Extra limpa a tela. **Em dupla, ele deixa o parceiro
-imune** pelos mesmos três segundos que o doador passa sem atirar — e não limpa
-nada.
+Sozinho, gastar o Ponto Extra limpa a tela. **Em dupla, ele dá ao parceiro
+imunidade e um escudo** por três segundos (`Player::OVERLOAD_DURATION`) — e não
+limpa a tela.
 
-**O preço é o mesmo tempo, dos dois lados**, e sai de um número só
-(`Player::OVERLOAD_DURATION`): quem gasta fica desarmado no meio do que já
-estava voando, e o parceiro atravessa. Dois números separados fariam mexer na
-sobrecarga sem mexer no presente.
+**O escudo destrói os projéteis do chefe que encostam nele** (`PontoExtra.h`, a
+regra 0,5 de `Battle::CheckCollisions`, com o mesmo filtro do abrigo: enfeite e
+o que está num posto ficam). Ele se vê: um anel azul em volta do parceiro, que
+pulsa mais depressa no fim, e um **feixe** que corre de quem gastou até ele no
+instante do Ponto Extra. Antes a única pista era o aluno piscar azul, e no meio
+de uma tela cheia ninguém via quem tinha protegido quem.
 
-**E não as duas coisas.** Limpar a tela *e* proteger daria, por metade do
-estoque da dupla, o dobro do efeito de um Ponto Extra de solo — e tiraria o que
-torna esta versão interessante: **ela não salva quem aperta.** O item deixa de
-ser um botão de pânico e vira uma decisão sobre o outro, que é o que um modo
-cooperativo deveria cobrar.
+**Quem gasta segue atirando.** A primeira versão cobrava o presente em
+sobrecarga: o doador passava os mesmos três segundos sem atirar. Isso deixava a
+dupla com um atirador só justamente quando o outro estava protegido e podia
+avançar. O preço passou a ser o estoque, que vai inteiro para o outro, e uma
+espera de três segundos antes do próximo — para segurar o botão não queimar os
+dois Pontos Extras em dois quadros.
+
+**E não limpa a tela.** Limpar a tela *e* proteger daria, por metade do
+estoque da dupla, o dobro do efeito de um Ponto Extra de solo; o escudo já
+limpa o que chega perto de quem mais precisa. **Ele não salva quem aperta:** o
+item deixa de ser um botão de pânico e vira uma decisão sobre o outro, que é o
+que um modo cooperativo deveria cobrar.
+
 
 A imunidade entrou dentro de `Player::GetIsInvincible`, junto com os quadros de
 graça de quem apanhou: as duas respondem a mesma pergunta — "um tiro encosta

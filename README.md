@@ -27,7 +27,8 @@ escritos na tela.
 |---|---|---|---|
 | **Manche** | **setas** | **W A S D** | mover o aluno, escolher na tela |
 | **Botão 1** | **Espaço** | **F** | lançar Dúvidas; confirmar; digitar |
-| **Botão 2** | **B** | **G** | voltar e apagar; na batalha, gastar um Ponto Extra: limpa a tela e soma nota, mas sobrecarrega e impede de atirar por alguns segundos |
+| **Botão 2** | **B** | **G** | voltar e apagar; na batalha, gastar um Ponto Extra: soma nota e, sozinho, limpa a tela, mas sobrecarrega e impede de atirar por alguns segundos; em dupla, dá ao parceiro um escudo que destrói os projéteis do chefe, e quem gastou segue atirando |
+
 | **Botão 3** | **N** | **H** | o ranking da matéria, na seleção |
 | — | **Esc** | — | na batalha, **só no computador**: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota |
 | — | **Enter**, **Esc**, **0–9**, **Backspace** | — | atalhos de teclado para quem desenvolve |
@@ -219,7 +220,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 994 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 997 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha — e também **leem os arquivos de
 `Assets/` de verdade**, quebrando ao primeiro erro de digitação num JSON. Um

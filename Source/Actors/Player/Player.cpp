@@ -1,7 +1,9 @@
 //
 // Created by nslop on 03/10/2024.
 //
+#include <algorithm>
 #include <vector>
+
 #include "Player.h"
 #include "../../Painel.h"
 
@@ -187,12 +189,14 @@ void Player::ShootInput(const Uint8 *keyState) {
 void Player::SpecialInput(const Uint8 *keyState) {
 
     // BOTAO 2 do painel DESTE ALUNO.
-    if(Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Dois) && mExtraPoints > 0 && mOverloadTimer <= 0.0f) {
+    if(Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Dois) && mExtraPoints > 0 && mEsperaDoPontoExtra <= 0.0f) {
         mExtraPoints--;
-        mOverloadTimer = OVERLOAD_DURATION;
-        if (const auto battle = dynamic_cast<Battle*>(GetScene())) {
-            battle->OnPlayerUsedExtraPoint(this);
-        }
+        mEsperaDoPontoExtra = OVERLOAD_DURATION;
+        const auto battle = dynamic_cast<Battle*>(GetScene());
+        // SO O SOLO SOBRECARREGA. Em dupla o presente vai para o outro, e quem
+        // gastou continua atirando (ver OVERLOAD_DURATION).
+        if (!battle || !battle->OutroJogador(this)) mOverloadTimer = OVERLOAD_DURATION;
+        if (battle) battle->OnPlayerUsedExtraPoint(this);
     }
 
 }
@@ -256,10 +260,13 @@ void Player::BorderLimitCheck() {
 void Player::UpdateOverload(float deltaTime) {
 
     // SO O RELOGIO E O PULSO. Quem pinta e AtualizarCorDoEstado.
+    mEsperaDoPontoExtra = std::max(0.0f, mEsperaDoPontoExtra - deltaTime);
+
     if (mOverloadTimer <= 0.0f) {
         mPulseTimer = 0.0f;
         return;
     }
+
 
     mOverloadTimer -= deltaTime;
 

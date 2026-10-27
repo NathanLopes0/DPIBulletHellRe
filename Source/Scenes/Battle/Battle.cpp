@@ -30,6 +30,8 @@
 #include "../../Components/DrawComponents/DrawTextComponent.h"
 #include "../../Components/DrawComponents/ProgressBarComponent.h"
 #include "../../Actors/Teachers/ExtraPointItem.h"
+#include "../../Components/DrawComponents/DrawLinhasComponent.h"
+#include "../../PontoExtra.h"
 #include "../../Actors/Orientador/Orientador.h"
 #include "../../MateriasArquivo.h"
 #include "../../Painel.h"
@@ -685,6 +687,7 @@ void Battle::OnUpdate(float deltaTime) {
 
     // Orquestra a checagem de colisões
     CheckCollisions();
+    AtualizarPontoExtra(deltaTime);
 
     if (mHUD) mHUD->OnUpdate(deltaTime);
 
@@ -1066,6 +1069,24 @@ void Battle::CheckCollisions() {
             if (bossProj->Abrigo() || bossProj->Enfeite() || !bossProj->Posto().empty()) continue;
             const auto *outro = bossProj->GetComponent<CircleColliderComponent>();
             if (outro && colisorDoAbrigo->Intersect(*outro)) bossProj->Kill();
+        }
+    }
+
+    // --- REGRA 0,5 - O ESCUDO DO PONTO EXTRA come os projeteis do chefe
+    //
+    // Em dupla, quem recebeu o Ponto Extra do parceiro fica com um escudo
+    // pelo tempo da imunidade (PontoExtra.h): o que encosta nele some. Mesmo
+    // filtro do abrigo - enfeite nao e tiro, e o que esta num posto e parte de
+    // uma estrutura do professor, que o escudo nao desmonta.
+    for (Player* jogador : mJogadores) {
+        if (!jogador || jogador->TempoDeImunidade() <= 0.0f) continue;
+        const auto* colisor = ColisorDe(jogador);
+        const Vector2 centro = colisor ? colisor->GetCenter() : jogador->GetPosition();
+        for (const auto &bossProj : bossProjectiles) {
+            if (bossProj->GetState() != ActorState::Active) continue;
+            if (bossProj->Abrigo() || bossProj->Enfeite() || !bossProj->Posto().empty()) continue;
+            const auto *outro = bossProj->GetComponent<CircleColliderComponent>();
+            if (outro && PontoExtra::NoEscudo(centro, outro->GetCenter(), outro->GetRadius())) bossProj->Kill();
         }
     }
 
@@ -1473,18 +1494,74 @@ void Battle::OnPlayerUsedExtraPoint(Player* quemGastou) {
 
     // EM DUPLA, O PONTO EXTRA E DO OUTRO, e nao limpa a tela.
     //
-    // O PRECO E O MESMO TEMPO, DOS DOIS LADOS: quem gasta passa
-    // OVERLOAD_DURATION sem atirar, e o parceiro passa OVERLOAD_DURATION
-    // atravessando bala. Um numero so (Player::OVERLOAD_DURATION), entao
-    // mexer na sobrecarga mexe no presente junto.
+    // O PARCEIRO PASSA OVERLOAD_DURATION IMUNE E COM O ESCUDO, que come os
+    // projeteis do chefe que encostam nele (a regra 0,5 de CheckCollisions).
+    // Quem gastou CONTINUA ATIRANDO: a sobrecarga deixava a dupla com um
+    // atirador so justamente quando o outro podia avancar. Um numero so
+    // (Player::OVERLOAD_DURATION) para o escudo e para a espera de quem gastou.
     //
-    // E NAO AS DUAS COISAS. Limpar a tela E proteger daria, por metade do
-    // estoque da dupla, o dobro do efeito de um Ponto Extra de solo - e tiraria
-    // o que torna esta versao interessante: ela nao salva quem aperta. Gastar
-    // e ficar desarmado tres segundos no meio do que ja estava voando, para
-    // que o outro atravesse.
+    // E NAO LIMPA A TELA. Limpar a tela E proteger daria, por metade do
+    // estoque da dupla, o dobro do efeito de um Ponto Extra de solo - e o
+    // escudo ja limpa o que chega perto de quem mais precisa.
+    //
+    // E SE VE: o feixe corre de quem gastou ate o parceiro (PontoExtra.h).
     oOutro->Proteger(Player::OVERLOAD_DURATION);
+    mFeixes.push_back(FeixeDoPontoExtra{quemGastou, oOutro, 0.0f});
 }
+
+void Battle::AtualizarPontoExtra(const float deltaTime) {
+    if (!mDesenhoDoPontoExtra) {
+        if (mJogadores.size() < 2) return;   // so a dupla tem feixe e escudo
+        auto ator = std::make_unique<Actor>(this);
+        mDesenhoDoPontoExtra = ator->AddComponent<DrawLinhasComponent>(kOrdemDoPontoExtra);
+        AddActor(std::move(ator));
+    }
+    mDesenhoDoPontoExtra->Limpar();
+
+    auto centroDe = [](const Player* p) {
+        const auto* c = ColisorDe(p);
+        return c ? c->GetCenter() : p->GetPosition();
+    };
+
+    // OS FEIXES: a cabeca corre ate o parceiro, e depois a linha se apaga.
+    for (FeixeDoPontoExtra& f : mFeixes) f.t += deltaTime;
+    mFeixes.erase(std::remove_if(mFeixes.begin(), mFeixes.end(),
+        [](const FeixeDoPontoExtra& f) { return !PontoExtra::FeixeAceso(f.t); }), mFeixes.end());
+    for (const FeixeDoPontoExtra& f : mFeixes) {
+        if (!f.de || !f.ate) continue;
+        const Vector2 de = centroDe(f.de), ate = centroDe(f.ate);
+        const PontoExtra::Feixe feixe = PontoExtra::FeixeEm(de, ate, f.t);
+        const auto alfa = static_cast<Uint8>(110.0f * feixe.rastro);
+        if (alfa > 0) mDesenhoDoPontoExtra->Acrescentar(de, ate, SDL_Color{150, 210, 255, alfa});
+        if (feixe.cabeca) {
+            // A CABECA TEM CORPO: tres tracos lado a lado, o do meio mais
+            // claro. Uma linha de 2 px sumia no meio da tela cheia.
+            Vector2 lado(ate.y - de.y, de.x - ate.x);
+            if (lado.LengthSq() > 0.0f) lado.Normalize();
+            mDesenhoDoPontoExtra->Acrescentar(feixe.cabecaDe + lado * 2.0f, feixe.cabecaAte + lado * 2.0f, SDL_Color{150, 210, 255, 200});
+            mDesenhoDoPontoExtra->Acrescentar(feixe.cabecaDe - lado * 2.0f, feixe.cabecaAte - lado * 2.0f, SDL_Color{150, 210, 255, 200});
+            mDesenhoDoPontoExtra->Acrescentar(feixe.cabecaDe, feixe.cabecaAte, SDL_Color{235, 250, 255, 255});
+        }
+    }
+
+    // OS ESCUDOS: um anel azul pulsando em volta de quem esta protegido, que
+    // aperta nos ultimos instantes - o aviso de que vai acabar.
+    mPulsoDoEscudo += deltaTime;
+    for (const Player* p : mJogadores) {
+        if (!p || p->TempoDeImunidade() <= 0.0f) continue;
+        const float pulso = 0.5f + 0.5f * Math::Sin(mPulsoDoEscudo * (p->TempoDeImunidade() < 0.8f ? 22.0f : 8.0f));
+        const auto alfa = static_cast<Uint8>(120.0f + 120.0f * pulso);
+        // DOIS ANEIS, o de dentro mais apagado: a borda do escudo tem espessura.
+        for (const auto& [a, b] : PontoExtra::Anel(centroDe(p), PontoExtra::kRaioDoEscudo)) {
+            mDesenhoDoPontoExtra->Acrescentar(a, b, SDL_Color{120, 190, 255, alfa});
+        }
+        for (const auto& [a, b] : PontoExtra::Anel(centroDe(p), PontoExtra::kRaioDoEscudo - 3.0f)) {
+            mDesenhoDoPontoExtra->Acrescentar(a, b, SDL_Color{120, 190, 255, static_cast<Uint8>(alfa / 2)});
+        }
+
+    }
+}
+
 void Battle::SpawnExtraPoint(Vector2 position) {
     auto item = std::make_unique<ExtraPointItem>(this);
     item->SetPosition(position);

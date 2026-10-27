@@ -85,13 +85,20 @@ public:
     [[nodiscard]] float TempoDeImunidade() const { return mImunidadeTimer; }
 
     /**
-     * O tempo que quem gasta um Ponto Extra passa sem atirar - e, no co-op, o
-     * tempo EXATO que o parceiro passa imune.
+     * O tempo que quem gasta um Ponto Extra SOZINHO passa sem atirar - e, no
+     * co-op, o tempo EXATO que o parceiro passa imune e com o escudo, e o que
+     * quem gastou espera ate poder gastar outro.
      *
      * UM NUMERO SO, e publico por isso. A Battle precisa dele para pagar a
-     * imunidade; se fossem dois, mexer na sobrecarga e esquecer a imunidade
-     * faria o presente deixar de custar o que custa.
+     * imunidade; se fossem dois, mexer num e esquecer o outro faria o presente
+     * deixar de custar o que custa.
+     *
+     * NO CO-OP QUEM GASTA CONTINUA ATIRANDO. A sobrecarga era o preco do
+     * presente, e deixava a dupla com um atirador so por tres segundos -
+     * justamente quando o outro estava protegido e podia avancar. O preco do
+     * co-op passou a ser o estoque: o Ponto Extra vai inteiro para o outro.
      */
+
     static constexpr float OVERLOAD_DURATION = 3.f;
 
     [[nodiscard]] int GetExtraPoints() const { return mExtraPoints;}
@@ -125,6 +132,12 @@ private:
     int mExtraPoints = 1;
     float mOverloadTimer = 0.0f;
     float mPulseTimer = 0.0f;
+
+    /// Quanto falta para este aluno poder gastar outro Ponto Extra. No solo e a
+    /// sobrecarga; no co-op, quem gasta segue atirando, e isto e o que impede
+    /// que segurar o botao queime os dois estoques em dois quadros.
+    float mEsperaDoPontoExtra = 0.0f;
+
 
     /// Quanto resta da imunidade dada pelo parceiro. SEPARADO de invincibleTimer
     /// de proposito: os quadros de graca de quem apanhou duram 1,2s e piscam, e

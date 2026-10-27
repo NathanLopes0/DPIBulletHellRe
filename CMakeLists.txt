@@ -51,6 +51,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Progresso.cpp
         Source/Nota.cpp
         Source/Nota.h
+        Source/PontoExtra.cpp
+        Source/PontoExtra.h
         Source/Navegacao.cpp
         Source/Navegacao.h
         Source/Tabela.cpp
@@ -405,6 +407,7 @@ add_executable(dpi_tests
         tests/test_caminhos.cpp
         tests/test_progresso.cpp
         tests/test_nota.cpp
+        tests/test_ponto_extra.cpp
         tests/test_navegacao.cpp
         tests/test_tabela.cpp
         tests/test_teclado.cpp
@@ -425,6 +428,8 @@ add_executable(dpi_tests
         Source/Progresso.cpp
         Source/Nota.cpp
         Source/Nota.h
+        Source/PontoExtra.cpp
+        Source/PontoExtra.h
         Source/Navegacao.cpp
         Source/Navegacao.h
         Source/Tabela.cpp
