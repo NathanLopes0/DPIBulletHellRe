@@ -28,15 +28,21 @@ escritos na tela.
 | **Manche** | **setas** | **W A S D** | mover o aluno, escolher na tela |
 | **Botão 1** | **Espaço** | **F** | lançar Dúvidas; confirmar; digitar |
 | **Botão 2** | **B** | **G** | voltar e apagar; na batalha, gastar um Ponto Extra: soma nota e, sozinho, limpa a tela, mas sobrecarrega e impede de atirar por alguns segundos; em dupla, dá ao parceiro um escudo que destrói os projéteis do chefe, e quem gastou segue atirando |
-
 | **Botão 3** | **N** | **H** | o ranking da matéria, na seleção |
 | — | **Esc** | — | na batalha, **só no computador**: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota |
 | — | **Enter**, **Esc**, **0–9**, **Backspace** | — | atalhos de teclado para quem desenvolve |
 
-> As setas **deixaram de ser atalho do W A S D**: elas são o manche do jogador
-> 1, e o W A S D é o do jogador 2. Por enquanto só o jogador 1 joga — a segunda
-> posição já tem teclas, mas ainda não tem jogador. Ver
-> `Documentacao/requisitos-coop.md`.
+> As setas **não são atalho do W A S D**: elas são o manche do jogador 1, e o
+> W A S D é o do jogador 2.
+
+O menu principal tem **Modo Solo** e **Modo Dupla**. Em dupla, cada aluno se
+identifica, os dois jogam a mesma batalha e a **nota é uma só, da dupla**: o
+que um jogador causa sozinho — o acerto no professor, o acerto sofrido, o Ponto
+Extra — é dividido entre os dois, e o que a dupla conquista junta, como o bônus
+de fase limpa, vale inteiro. O **Ponto Extra em dupla é do outro**: em vez de
+limpar a tela, um feixe sai de quem o gastou e dá ao parceiro um escudo que
+destrói os projéteis do chefe por três segundos. As decisões do modo, e o
+porquê de cada uma, estão em `Documentacao/requisitos-coop.md`.
 
 O que cada botão faz **na tela em que você está** fica escrito no rodapé dela.
 
@@ -72,7 +78,6 @@ ponto custa mais que o anterior: a nota cheia sai por **301 acertos**, e uma
 batalha de 60 segundos tem tempo para até 500 tiros. O ganho de cada acerto
 acompanha a duração das fases: a nota sobe por segundo o mesmo que subia quando
 as fases tinham 17 segundos. Apesar de ser possível, ainda estou achando
-
 difícil, porque é necessário seguir o Boss que em alguns movimentos são mais rápidos. Talvez eu diminua
 esse número depois de receber feedback externo.
 
@@ -111,8 +116,9 @@ Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
 - **`<matrícula>.json`** — uma ficha por aluno: aparência do personagem, recorde
   e última nota de cada matéria, com data. A nota vai para o disco **uma vez, no
   fim da batalha**, e não durante.
-- **`opcoes.cfg`** — as opções da máquina (hoje, a dificuldade), em
-  `chave=valor`. A tela de Opções o escreve na hora em que algo muda.
+- **`opcoes.cfg`** — as opções da máquina (a dificuldade, os volumes, a tela
+  cheia e a hitbox), em `chave=valor`. A tela de Opções o escreve na hora em
+  que algo muda.
 - **`notas.csv`** — a planilha do professor, com uma linha por aluno-matéria.
   É regravada a cada batalha, então está sempre em dia e ninguém precisa lembrar
   de exportar. Ela é **derivada** das fichas: apagá-la não perde nada.
@@ -125,6 +131,20 @@ no JSON não reatribui a nota de ninguém.
 Cada chefe tem três fases mais uma fase final, de 20 segundos cada, e uma
 identidade de ataque própria. A fase final acontece quando a nota termina entre
 40 e 59 — é o exame.
+
+**Cada luta é outra.** Toda batalha sorteia uma semente, e cada professor tira
+dela o que varia **dentro do conceito de cada fase**: a ordem das portas
+lógicas do Ricardo, a temperatura de cada etapa do Júlio (escrita no placar),
+o *planning poker* das sprints da Maria Lúcia, a regra de cada fileira do
+flexbox do Lucas, a fita da máquina de Turing do Vladimir. O conceito é o mesmo
+em toda luta; o que muda é o exemplo — como uma lista de exercícios em que cada
+aluno pega outros números. Decorar o padrão não serve, e o placar continua
+sendo a regra: ele diz o que vai acontecer.
+
+**No Difícil**, cada professor sobe um degrau dentro da mesma ideia — mais
+tokens, leques mais largos, relógios mais curtos —, medido para cobrar de quem
+**só persegue o professor sem desviar**: esse reprova em parte das lutas, e
+quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
 
 - **André — INF 110.** Programação 1, um conceito por fase, com o placar
   mostrando o código que ele está rodando — e os balões do BOCA. Na primeira,
@@ -146,10 +166,19 @@ identidade de ataque própria. A fase final acontece quando a nota termina entre
   exame é um bubble sort: os pares trocam na sua frente, e o vetor ordenado
   cai em rampa. Em qualquer fase pode atravessar uma capivara: embaixo dela os
   tiros soltos não te alcançam, e o seu não alcança o professor.
-- **Ricardo — INF 250.** Anéis de Arduinos que se abrem a partir dele.
-- **Júlio — INF 420.** Inteligência artificial, e as fases contam isso: na
-  primeira ele atira a esmo, na segunda mira onde você está, na terceira mira
-  onde você **vai estar**.
+- **Ricardo — INF 250.** Uma matéria de hardware por fase, e o placar é a
+  regra: palavras de bits atravessando portas lógicas (Sistemas Lógicos), o
+  clock e os registradores que andam nele (Organização), o pipeline com a
+  instrução no estágio de execução (Arquitetura) e, no exame, quatro Arduinos
+  rodando o Blink.
+- **Júlio — INF 420.** Inteligência artificial, e a batalha é um modelo de
+  linguagem. Na primeira fase ele gera a frase "o mo de lo te pre diz" token a
+  token, com temperatura: fria, a frase vem em fila; quente, ela alucina num
+  leque. Na segunda convoca agentes que trabalham no ciclo ReAct — pensam,
+  agem mandando a ferramenta em você e observam. Na terceira ganha guardrails
+  que comem o seu tiro, e o modelo te prediz de verdade: mira onde você **vai
+  estar**. No exame, o modelo degenerou em repetição e só gera "e".
+
 - **Thiago — INF 220.** Banco de dados. A tabela `alunos` está escrita no
   campo e cada ataque é uma consulta sobre ela, com o SQL no placar: o `WHERE`
   varre as linhas que satisfazem a condição, a projeção varre a coluna e o
@@ -200,6 +229,14 @@ identidade de ataque própria. A fase final acontece quando a nota termina entre
   um leque e o impasse dos dois mandando ao mesmo tempo. O exame é o jantar
   dos filósofos — os garfos andam de mão em mão, e o deadlock vira um cerco
   até o `kill -9`.
+- **Lucas — INF 321.** Programação Web, na ordem da matéria. O HTML são caixas
+  de tags crescendo uma dentro da outra; o CSS é uma fileira de regras que cai
+  e se rearranja no meio da queda conforme o `justify-content` que o placar
+  escreve; o Elixir solta processos que você pode derrubar — e o supervisor
+  os põe de volta, *let it crash*. O exame é JavaScript: promessas pendentes
+  que, ao resolver, voltam contra você como tag.
+
+O **TCC** *(Hugo)* aparece na grade esperando uma batalha própria.
 
 ## Como compilar
 
@@ -260,7 +297,9 @@ Assets/          sprites, fontes, sons e os JSON que descrevem o jogo
   materias.json    o curso inteiro
   personagens.json o catálogo de peças do personagem
 Documentacao/    receitas para quem for mexer no código
-Ferramentas/     geradores de arte provisória
+Ferramentas/     geradores de arte provisória e os arneses de medição
+                 (medir-dificuldade.sh, parado-reprova.sh)
+
 tests/           a suíte
 ```
 
