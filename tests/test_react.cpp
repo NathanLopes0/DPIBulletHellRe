@@ -5,6 +5,7 @@
 #include "doctest.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <cstdlib>
 
 #include "../Source/Attacks/ReAct.h"
@@ -98,4 +99,30 @@ TEST_CASE("ReAct: o degrau do Normal e o de sempre, e o do Dificil age mais veze
     CHECK(d.observa < n.observa);
     // O PLACAR AINDA SE LE: o Pensa mais curto do Dificil passa de meio segundo.
     CHECK(0.7f * d.pensa >= 0.5f);
+}
+
+TEST_CASE("ReAct: os lugares dos agentes ficam no campo, perto do aluno e afastados entre si") {
+    // O ALUNO EM QUALQUER LUGAR, inclusive colado nas bordas: era com o
+    // professor perto de uma borda que o agente saia da tela.
+    int aperto = 0;
+    for (std::uint32_t semente = 0; semente < 300; ++semente) {
+        Variacao::Sorteio s = Variacao::SorteioDa(semente, "StateTwo");
+        const float xDoAluno = s.Real(0.0f, 1200.0f);
+        const auto lugares = ReAct::Destinos(s, xDoAluno, 3, 1200.0f);
+        REQUIRE(lugares.size() == 3u);
+        for (size_t i = 0; i < lugares.size(); ++i) {
+            const ReAct::Ponto& p = lugares[i];
+            CHECK(p.x >= ReAct::kMargem);
+            CHECK(p.x <= 1200.0f - ReAct::kMargem);
+            CHECK(p.y >= ReAct::kYMinimo);
+            CHECK(p.y <= ReAct::kYMaximo);
+            CHECK(std::fabs(p.x - xDoAluno) <= 2.0f * ReAct::kAlcance + ReAct::kMargem);   // colado na borda, a janela entra no campo
+            for (size_t j = 0; j < i; ++j) {
+                if (std::hypot(p.x - lugares[j].x, p.y - lugares[j].y) < ReAct::kSeparacao) ++aperto;
+            }
+        }
+    }
+    // A SEPARACAO e quase sempre respeitada: so o sorteio muito azarado fica
+    // com o mais afastado que achou.
+    CHECK(aperto <= 3);
 }

@@ -179,6 +179,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Temperatura.h
         Source/Attacks/ReAct.cpp
         Source/Attacks/ReAct.h
+        Source/Attacks/Guardrail.cpp
+        Source/Attacks/Guardrail.h
         Source/Attacks/Nuvem.cpp
         Source/Attacks/Nuvem.h
         Source/Attacks/Semaforo.cpp
@@ -377,6 +379,7 @@ add_executable(dpi_tests
         tests/test_bala_de_prata.cpp
         tests/test_compilador.cpp
         tests/test_react.cpp
+        tests/test_guardrail.cpp
         tests/test_nuvem.cpp
         tests/test_semaforo.cpp
         tests/test_tcp.cpp
@@ -510,6 +513,8 @@ add_executable(dpi_tests
         Source/Attacks/Temperatura.h
         Source/Attacks/ReAct.cpp
         Source/Attacks/ReAct.h
+        Source/Attacks/Guardrail.cpp
+        Source/Attacks/Guardrail.h
         Source/Attacks/Nuvem.cpp
         Source/Attacks/Nuvem.h
         Source/Attacks/Semaforo.cpp

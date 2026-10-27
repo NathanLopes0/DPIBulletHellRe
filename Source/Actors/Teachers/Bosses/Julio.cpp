@@ -8,7 +8,15 @@
 
 #include <SDL_log.h>
 
+#include "../../../Attacks/Amarra.h"
+#include "../../../Attacks/Ancora.h"
+#include "../../../Attacks/Behaviors.h"
+#include "../../../Attacks/Guardrail.h"
 #include "../../../Attacks/AttackParameters/TokenAttackParams.h"
+#include "../../../Components/RigidBodyComponent.h"
+#include "../../../Scenes/Battle/Battle.h"
+#include "../../../Scenes/Battle/ProjectileManager.h"
+#include "../../Player/Player.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Components/DrawComponents/DrawLinhasComponent.h"
@@ -203,7 +211,9 @@ void Julio::AtualizarGuardrails(const float deltaTime) {
         if (mNosGuardrails && !mNomeDosGuardrails.empty()) RegistrarAnuncio(kFaseDosGuardrails, mNomeDosGuardrails);
         mNosGuardrails = false;
         mTempoDaFala = 0.0f;
+        mOndaDosGuardrails = 0;   // zerada na saida: a primeira onda pode nascer antes deste quadro
         return;
+
     }
     if (!mNosGuardrails) {
         mNosGuardrails = true;
@@ -222,8 +232,13 @@ void Julio::AtualizarAgentes(const float deltaTime) {
     const bool nosAgentes = fsm && fsm->GetStateName() == kFaseDosAgentes && !EhClone();
 
     if (!nosAgentes) {
-        // A FASE ACABOU: o placar volta ao nome dela, para a proxima vez.
+        // A FASE ACABOU: os agentes vao embora, e o placar volta ao nome dela,
+        // para a proxima vez.
         if (mNosAgentes && !mNomeDosAgentes.empty()) RegistrarAnuncio(kFaseDosAgentes, mNomeDosAgentes);
+        if (mNosAgentes) {
+            for (auto& [agente, dados] : mAgentes) SoltarAgente(agente);
+            mAgentes.clear();
+        }
         mNosAgentes = false;
         return;
     }
@@ -239,10 +254,14 @@ void Julio::AtualizarAgentes(const float deltaTime) {
     const float antes = mCiclo.t;
     if (ReAct::Avancar(mCiclo, deltaTime)) Disparar(ReAct::kGatilhoDeAgir);
 
-    // UMA VOLTA NOVA, um Pensa novo - nunca menor que o que a volta ja andou.
-    if (mCiclo.t < antes) {
+    // UMA VOLTA NOVA, um Pensa novo - nunca menor que o que a volta ja andou -
+    // e os agentes replanejam: cada um vai pensar num lugar novo.
+    const bool voltaNova = mCiclo.t < antes;
+    if (voltaNova) {
         mCiclo.pensa = std::max(ReAct::PensaDaVolta(mSorteioDosAgentes, mDegrauDosAgentes.pensa), mCiclo.t + 0.01f);
     }
+    MoverAgentes(deltaTime, voltaNova);
+
 
     const char* texto = kPensando;
     switch (ReAct::PassoDe(mCiclo)) {
@@ -251,6 +270,56 @@ void Julio::AtualizarAgentes(const float deltaTime) {
         case ReAct::Passo::Observa: texto = kObservando; break;
     }
     if (AnuncioDaFase(kFaseDosAgentes) != texto) RegistrarAnuncio(kFaseDosAgentes, texto);
+}
+
+void Julio::SoltarAgente(BossProjectile* agente) {
+    // SAI DO POSTO, e as ferramentas deixam de sair dele; e vai embora por
+    // cima, por onde veio o professor.
+    if (!agente || agente->GetState() != ActorState::Active) return;
+    agente->DefinirPosto("");
+    if (auto* rb = agente->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2(0.0f, -kSaidaDoAgente));
+}
+
+void Julio::MoverAgentes(const float deltaTime, bool replanejar) {
+    const auto* batalha = dynamic_cast<Battle*>(mScene);
+    if (!batalha || !batalha->GetProjectileManager() || !mScene->GetGame()) return;
+
+    // QUEM ESTA EM CAMPO: o agente derrubado sai da conta, e o recem-convocado
+    // entra - e a chegada dele replaneja o grupo, para ninguem cair em cima de
+    // ninguem.
+    std::unordered_map<BossProjectile*, Agente> emCampo;
+    for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+        if (!p || p->GetState() != ActorState::Active || p->Posto() != ReAct::kPostoDosAgentes) continue;
+        const auto it = mAgentes.find(p.get());
+        if (it == mAgentes.end()) replanejar = true;
+        emCampo[p.get()] = it == mAgentes.end() ? Agente{0.0f, p->GetPosition()} : it->second;
+    }
+    mAgentes = std::move(emCampo);
+
+    // A VIDA ACABOU: vai embora. Os outros envelhecem.
+    for (auto it = mAgentes.begin(); it != mAgentes.end();) {
+        it->second.idade += deltaTime;
+        if (it->second.idade < ReAct::kVidaDoAgente) { ++it; continue; }
+        SoltarAgente(it->first);
+        it = mAgentes.erase(it);
+    }
+
+    if (replanejar && !mAgentes.empty()) {
+        const float xDoAluno = batalha->Alvo() ? batalha->Alvo()->GetPosition().x : GetPosition().x;
+        const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
+        const auto lugares = ReAct::Destinos(mSorteioDosAgentes, xDoAluno, static_cast<int>(mAgentes.size()), largura);
+        size_t k = 0;
+        for (auto& [agente, dados] : mAgentes) {
+            dados.lugar = Vector2(lugares[k].x, lugares[k].y);
+            ++k;
+        }
+    }
+
+    // CADA UM VOA ATE O SEU LUGAR, e la fica, olhando o aluno.
+    for (auto& [agente, dados] : mAgentes) {
+        agente->SetPosition(Ancora::Aproximar(agente->GetPosition(), dados.lugar, ReAct::kRapidezDoAgente, deltaTime));
+        if (auto* rb = agente->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+    }
 }
 
 // Fracao do tempo de voo usada como antecipacao na fase 3.
@@ -329,6 +398,27 @@ void Julio::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& proje
             if (auto* b = dynamic_cast<BossProjectile*>(p.get())) mGerados.push_back(b);
         }
     }
+
+    // O ANEL RETREINADO (Guardrail.h): cada onda de guardrails alterna o anel
+    // fechado e o aberto, troca o giro e gira mais depressa. O guardrail e o
+    // unico derrubavel da fase - o token nao e.
+    if (stateName == kFaseDosGuardrails) {
+        bool houveOnda = false;
+        const Guardrail::Onda onda = Guardrail::DaVez(mOndaDosGuardrails);
+        for (auto& p : projectiles) {
+            auto* g = dynamic_cast<BossProjectile*>(p.get());
+            if (!g || !g->Derrubavel()) continue;
+            houveOnda = true;
+            Amarra::Corda corda;
+            corda.comprimento = onda.comprimento;
+            corda.duracao = kDuracaoDoAnel;
+            corda.sentido = onda.horario ? Amarra::Sentido::Horario : Amarra::Sentido::AntiHorario;
+            g->insertMotion<AmarrarBehavior>(corda, "");
+            if (auto* rb = g->GetComponent<RigidBodyComponent>()) rb->SetVelocity(rb->GetVelocity() * onda.rapidez);
+        }
+        if (houveOnda) ++mOndaDosGuardrails;
+    }
+
 
 
     // O LOOP NO PLACAR: na final, cada disparo poe mais um "e" - o modelo

@@ -70,10 +70,12 @@
 // quatro, ele ainda passava por fora do leque; com cinco o leque fica mais
 // largo que o passo dele.
 //
-// Medido em tres sementes, a batalha inteira: no Normal o que persegue
-// termina com 72,5 a 78,7 (77,2 a 82,9 antes do sorteio) e o que desvia com
-// 97,2 a 100 (0 ou 1 acerto); no Dificil, 63,6 a 67,2 e 76,8 a 84,9 (4 ou 5
-// acertos, de 3 a 5 deles na fase 2). O parado e o que vai e vem reprovam nos dois.
+// Medido em cinco sementes, a batalha inteira, com os agentes que
+// replanejam e os aneis retreinados: no Normal o que persegue termina com
+// 67,7 a 75,1 e o que desvia com 88,9 a 95,4 (1 a 6 acertos); no Dificil o
+// que persegue reprova em tres de cinco (28,7 a 65,4, com a repescagem) e o
+// que desvia termina com 76,9 a 87,4 (4 a 6 acertos). O parado e o que vai e
+// vem reprovam nos dois.
 // ==========================================================================
 
   // FASE 1 - OS TOKENS   |   "o modelo te prediz"
@@ -125,9 +127,18 @@
   // FASE 2 - OS AGENTES   |   o ciclo ReAct
   //
   // O PROFESSOR CONVOCA ROBOS QUE AGEM POR ELE. A cada 6 s ele solta tres
-  // agentes (regra "convocar"), que param a 260px dele - um embaixo, dois dos
-  // lados - e ficam 10 s. Cada um aguenta QUATRO tiros ("resistencia"): tem de
-  // ser vencido, e o tiro gasto nele nao vai para o professor.
+  // agentes (regra "convocar"), que ficam 10 s em campo e depois vao embora
+  // por cima. Cada um aguenta QUATRO tiros ("resistencia"): tem de ser
+  // vencido, e o tiro gasto nele nao vai para o professor.
+  //
+  // E A CADA VOLTA ELES REPLANEJAM (ReAct::Destinos, Julio::MoverAgentes): no
+  // comeco do Pensa cada agente ganha um lugar novo - na faixa do meio do
+  // campo, ate 360 px do aluno para cada lado, afastados uns dos outros - e
+  // voa ate la enquanto pensa; age de la, e observa. Antes paravam a 260 px
+  // do professor num leque fixo e ficavam la: com o professor perto de uma
+  // borda, o agente da ponta parava FORA DA TELA, onde o tiro do aluno nao
+  // chega (medido: ate 35 de 120 posicoes, com x de -105 a 1329). Agora
+  // nenhum sai do campo.
   //
   // OS AGENTES TRABALHAM NO CICLO DE UM AGENTE DE LLM, o ReAct (ReAct.h,
   // Julio::AtualizarAgentes): PENSAM por 1 s, AGEM por 0,5 s e OBSERVAM por
@@ -164,11 +175,16 @@
   //
   // O MODELO GANHA UMA CAMADA DE SEGURANCA. A cada 6 s o professor solta um
   // anel de oito GUARDRAILS (regra "guardrails"), robos-escudo amarrados a ele
-  // por uma corda de 95px, girando em volta dele por 5,5 s. Cada um aguenta
+  // por uma corda, girando em volta dele por 5,5 s. Cada um aguenta
   // tres tiros: o tiro que ele come nao chega ao professor, e o placar diz o
   // que um guardrail diz - "desculpe, nao posso ajudar com isso". O que cai e
   // um "jailbreak!". E o anel volta, RETREINADO, a cada 6 s; o que sobrou do
   // anterior sai pela tangente quando a corda e cortada.
+  //
+  // CADA RETREINO MUDA O ANEL (Guardrail.h): ele alterna entre FECHADO (85
+  // px) e ABERTO (110 px), troca o sentido do giro e gira 15% mais depressa a
+  // cada onda, ate 1,5 vez. Antes todo anel era igual, e a janela por onde
+  // atirar se decorava.
   //
   // E O MODELO TE PREDIZ, agora de verdade: um token a cada 0,35 s, mirado
   // onde o aluno VAI ESTAR (Julio::CustomizeAttackParams), e a frase da fase 1
@@ -178,13 +194,17 @@
   // (GoToCenter, a fase de antes) o piloto que persegue fica parado embaixo
   // dele, onde a mira prevista e a mira de agora: com o tiro de previsao da
   // fase de antes, a cada 0,25 s, ele levava um acerto a cada fim de
-  // invencibilidade - 12 em 17 s - e zerava a nota. Na orbita lenta ele leva 3 na fase, todos de token,
-  // e vence os 24 guardrails dos tres aneis; o parado leva 8 e zera.
+  // invencibilidade - 12 em 17 s - e zerava a nota. Na orbita ele leva 3 na
+  // fase, todos de token, e vence os guardrails dos aneis; o parado zera.
+  //
+  // A ORBITA E PEQUENA E RAPIDA (90 px, 0,17 volta/s): com os 160 px de
+  // antes o professor subia ate y = 81, e o guardrail de cima passava da
+  // borda da tela. Agora o mais alto fica em y = 41.
   "StateThree": {
     "duracao": 20,
     "proximo": "",
     "anuncio": "Guardrails",
-    "movimento": { "tipo": "Orbitar", "a": 160, "b": 0.10 },
+    "movimento": { "tipo": "Orbitar", "a": 90, "b": 0.17 },
     "ataques": [
       { "estrategia": "CircleSpreadAttack", "projetil": "Guardrail",
         "projeteis": 8, "velocidade": 160,

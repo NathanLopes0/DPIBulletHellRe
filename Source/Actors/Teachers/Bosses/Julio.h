@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 
 #include "../Boss.h"
 #include "../../../Attacks/Geracao.h"
@@ -134,8 +135,23 @@ private:
     /// O ciclo dos agentes num quadro: o relogio, o gatilho do Age e o placar.
     void AtualizarAgentes(float deltaTime);
 
+    /// Os agentes em campo andam: a cada volta replanejam (ReAct::Destinos) e
+    /// voam ate o lugar novo enquanto pensam; com a vida acabada, vao embora
+    /// por cima.
+    void MoverAgentes(float deltaTime, bool replanejar);
+    void SoltarAgente(class BossProjectile* agente);
+
+    struct Agente {
+        float idade = 0.0f;
+        Vector2 lugar;
+    };
+    std::unordered_map<class BossProjectile*, Agente> mAgentes;
+    static constexpr float kSaidaDoAgente = 320.0f;
+
+
     ReAct::Ciclo mCiclo;
     bool mNosAgentes = false;
+
 
     /// O anuncio da fase 2 em fases.json, guardado na primeira vez: volta ao
     /// placar quando a fase acaba.
@@ -151,6 +167,12 @@ private:
     [[nodiscard]] bool NosGuardrails() const;
 
     bool mNosGuardrails = false;
+
+    /// Quantas ondas de guardrails ja sairam nesta fase (Guardrail::DaVez), e
+    /// quanto cada anel fica amarrado - o "duracao" da regra "guardrails".
+    int mOndaDosGuardrails = 0;
+    static constexpr float kDuracaoDoAnel = 5.5f;
+
     std::string mNomeDosGuardrails;
     std::string mFalaDoGuardrail;
     float mTempoDaFala = 0.0f;

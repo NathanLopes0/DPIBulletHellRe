@@ -4,6 +4,7 @@
 
 #include "ReAct.h"
 
+#include <algorithm>
 #include <cmath>
 
 namespace ReAct {
@@ -42,4 +43,30 @@ namespace ReAct {
         d.observa = Dificuldade::Escolher(n, kObserva, 0.5f);
         return d;
     }
+
+    std::vector<Ponto> Destinos(Variacao::Sorteio& s, const float xDoAluno, const int n, const float largura) {
+        std::vector<Ponto> lugares;
+        const float esquerda = kMargem;
+        const float direita = largura - kMargem;
+        const float de = std::max(esquerda, std::min(xDoAluno - kAlcance, direita - 2.0f * kAlcance));
+        const float ate = std::min(direita, std::max(xDoAluno + kAlcance, esquerda + 2.0f * kAlcance));
+        const auto distancia = [&](const Ponto& p) {
+            float menor = 1e9f;
+            for (const Ponto& q : lugares) menor = std::min(menor, std::hypot(p.x - q.x, p.y - q.y));
+            return menor;
+        };
+        for (int k = 0; k < n; ++k) {
+            Ponto melhor;
+            float maisLonge = -1.0f;
+            for (int tentativa = 0; tentativa < 24; ++tentativa) {
+                const Ponto p{s.Real(de, ate), s.Real(kYMinimo, kYMaximo)};
+                const float d = distancia(p);
+                if (d > maisLonge) { maisLonge = d; melhor = p; }
+                if (d >= kSeparacao) break;
+            }
+            lugares.push_back(melhor);
+        }
+        return lugares;
+    }
 }
+

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "../Dificuldade.h"
 #include "../Variacao.h"
 
@@ -62,4 +64,35 @@ namespace ReAct {
         float observa = kObserva;
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
+
+    // ---- PARA ONDE OS AGENTES VAO --------------------------------------------
+
+    /// A CADA VOLTA OS AGENTES REPLANEJAM: no comeco do Pensa cada um ganha um
+    /// lugar novo e voa para la enquanto pensa, para agir de outro ponto. Os
+    /// lugares sao na faixa do meio do campo, ate kAlcance do aluno para cada
+    /// lado, a kMargem das bordas e a kSeparacao uns dos outros. Antes iam a
+    /// 260 px do professor num leque fixo e ficavam la: com o professor perto
+    /// de uma borda, o agente da ponta parava fora da tela, onde o tiro do
+    /// aluno nao chega.
+    constexpr float kYMinimo = 170.0f;
+    constexpr float kYMaximo = 360.0f;
+    constexpr float kMargem = 90.0f;
+    constexpr float kAlcance = 360.0f;
+    constexpr float kSeparacao = 150.0f;
+
+    /// Quanto o agente fica em campo, e quao depressa ele chega ao lugar
+    /// (Ancora::Aproximar).
+    constexpr float kVidaDoAgente = 10.0f;
+    constexpr float kRapidezDoAgente = 5.0f;
+
+    struct Ponto {
+        float x = 0.0f;
+        float y = 0.0f;
+    };
+
+    /// @brief Os 'n' lugares desta volta, para um aluno em 'xDoAluno' num campo
+    /// de 'largura'. Sorteia candidatos e fica com o primeiro que respeita a
+    /// separacao; se nenhum respeitar, com o mais afastado dos ja escolhidos.
+    std::vector<Ponto> Destinos(Variacao::Sorteio& s, float xDoAluno, int n, float largura);
 }
+
