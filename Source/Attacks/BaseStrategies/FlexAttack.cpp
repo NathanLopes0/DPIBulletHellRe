@@ -29,8 +29,10 @@ std::vector<std::unique_ptr<Projectile>> FlexAttack::Execute(const AttackParams&
         return projectiles;
     }
 
-    const float inicio = params.firePosition.x - flex->largura / 2.0f;
-    const float fim    = params.firePosition.x + flex->largura / 2.0f;
+    // O EIXO PRINCIPAL: x numa fileira, y numa coluna.
+    const float meio   = flex->coluna ? params.firePosition.y : params.firePosition.x;
+    const float inicio = meio - flex->largura / 2.0f;
+    const float fim    = meio + flex->largura / 2.0f;
     const auto antes  = Flex::Posicoes(flex->de,   params.numProjectiles, flex->item, inicio, fim);
     const auto depois = Flex::Posicoes(flex->para, params.numProjectiles, flex->item, inicio, fim);
 
@@ -40,14 +42,19 @@ std::vector<std::unique_ptr<Projectile>> FlexAttack::Execute(const AttackParams&
         auto projectile = Acquire();
         if (!projectile) continue;
 
-        // NASCE NA ALTURA DO CHEFE, JA CAINDO, e a fileira inteira no mesmo
-        // quadro: um arranjo que aparece aos pedacos nao se le como arranjo.
-        projectile->SetPosition(Vector2(antes[i], params.firePosition.y));
-        if (const auto rb = projectile->GetComponent<RigidBodyComponent>()) {
-            rb->SetVelocity(Vector2(0.0f, params.projectileSpeed));
-        }
+        // NASCE TODA NO MESMO QUADRO, ja andando: um arranjo que aparece aos
+        // pedacos nao se le como arranjo. A FILEIRA nasce na altura do chefe e
+        // cai; a COLUNA nasce na borda e atravessa a tela de lado.
+        const Vector2 lugar = flex->coluna ? Vector2(params.firePosition.x, antes[i])
+                                           : Vector2(antes[i], params.firePosition.y);
+        const Vector2 voo = flex->coluna ? Vector2(flex->sentido * params.projectileSpeed, 0.0f)
+                                         : Vector2(0.0f, params.projectileSpeed);
+        const Vector2 rearranjo = flex->coluna ? Vector2(0.0f, depois[i] - antes[i])
+                                               : Vector2(depois[i] - antes[i], 0.0f);
+        projectile->SetPosition(lugar);
+        if (const auto rb = projectile->GetComponent<RigidBodyComponent>()) rb->SetVelocity(voo);
 
-        projectile->insertModifier<DeslocarBehavior>(flex->aos, flex->em, depois[i] - antes[i]);
+        projectile->insertModifier<DeslocarBehavior>(flex->aos, flex->em, rearranjo);
 
         projectiles.push_back(std::move(projectile));
     }

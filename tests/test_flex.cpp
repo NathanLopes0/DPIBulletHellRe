@@ -6,6 +6,8 @@
 
 #include "../Source/Attacks/Flex.h"
 
+#include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <set>
 #include <vector>
@@ -107,4 +109,41 @@ TEST_CASE("Flex: a regra de cada fileira e sorteada, sempre de junta para espalh
         db = Flex::Proxima(b, db);
         CHECK(da == db);
     }
+}
+
+TEST_CASE("Flex: uma coluna a cada tantos disparos, e a coluna entra pelos dois lados") {
+    Variacao::Sorteio s = Variacao::SorteioDa(7u, "StateTwo");
+    int daEsquerda = 0, daDireita = 0;
+    for (int k = 0; k < 200; ++k) {
+        const Flex::Direcao d = Flex::DirecaoDoDisparo(s, k);
+        CHECK(d.coluna == (k % Flex::kCadaQuantasColunas == Flex::kCadaQuantasColunas - 1));
+        if (!d.coluna) { CHECK(d.sentido == 1.0f); continue; }
+        if (d.sentido > 0.0f) ++daEsquerda; else ++daDireita;
+    }
+    CHECK(daEsquerda > 20);
+    CHECK(daDireita > 20);
+    // NO DIFICIL, uma coluna a cada dois.
+    for (int k = 0; k < 10; ++k) CHECK(Flex::DirecaoDoDisparo(s, k, Flex::kCadaQuantasColunasNoDificil).coluna == (k % 2 == 1));
+    CHECK(Flex::NomeDaDirecao(true) == "column");
+    CHECK(Flex::NomeDaDirecao(false) == "row");
+    // A COLUNA CABE NA TELA, na altura do aluno.
+    CHECK(Flex::kYDaColuna - Flex::kAlturaDaColuna / 2.0f > 150.0f);
+    CHECK(Flex::kYDaColuna + Flex::kAlturaDaColuna / 2.0f < 800.0f);
+}
+
+TEST_CASE("Flex: a varredura vai e volta entre as margens, na velocidade pedida") {
+    const float w = 1200.0f;
+    float menor = w, maior = 0.0f;
+    float anterior = Flex::XDaVarredura(0.0f, 600.0f, Flex::kVarredura, w);
+    CHECK(anterior == doctest::Approx(600.0f));
+    for (int k = 1; k < 3000; ++k) {
+        const float x = Flex::XDaVarredura(static_cast<float>(k) * 0.01f, 600.0f, Flex::kVarredura, w);
+        menor = std::min(menor, x);
+        maior = std::max(maior, x);
+        CHECK(std::fabs(x - anterior) <= Flex::kVarredura * 0.01f + 0.01f);   // nunca salta
+        anterior = x;
+    }
+    CHECK(menor == doctest::Approx(Flex::kMargemDaVarredura).epsilon(0.01));
+    CHECK(maior == doctest::Approx(w - Flex::kMargemDaVarredura).epsilon(0.01));
+    CHECK(Flex::kVarreduraNoDificil > Flex::kVarredura);
 }

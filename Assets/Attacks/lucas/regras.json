@@ -33,6 +33,12 @@
 
   // ELIXIR: o processo vai atras do aluno, devagar e por bastante tempo. Um
   // processo e leve e insistente: nao corre, mas nao desiste cedo.
+  // A MENSAGEM de um processo para o aluno - o send do Elixir. Sai reta,
+  // mirada nele, do processo da vez (Lucas::AtualizarElixir).
+  "mensagem": [
+    { "animacao": "Mensagem" }
+  ],
+
   "processos": [
     { "motion": { "tipo": "Tracking", "atraso": 0.4, "forca": 2.2, "duracao": 3.6 } }
   ]

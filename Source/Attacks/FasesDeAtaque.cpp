@@ -51,7 +51,7 @@ namespace {
                                                 "contador", "estagios", "buscar", "lw", "sw", "add", "addi",
                                                 "acender", "estados", "diagrama", "ler_a", "ler_b",
                                                 "aceita", "rejeita", "metade", "triplo",
-                                                "parou", "escrever", "apagar", "reescrever", "reler", "pare", "capivara", "push", "estourar", "baldes",
+                                                "parou", "escrever", "apagar", "reescrever", "reler", "pare", "abrir", "vazio", "send", "capivara", "push", "estourar", "baldes",
                                                 "chave", "percorrer", "nulo", "no", "visitar", "folha_nula",
                                                 "achado", "aresta", "elemento", "trocar", "assentar",
                                                 "cabecalho", "registro", "marcar", "selecionar",

@@ -19,6 +19,7 @@ OS PROJETEIS, um por assunto, e cada um com a cor de uma camada da web:
     Regra     azul, "{}": o estilo (CSS).
     Promessa  amarelo, "...": o que ainda nao chegou (JavaScript).
     Processo  roxo, um circulo com "|>": o que roda no servidor (Elixir).
+    Mensagem  lilas, um envelope: o send de um processo (Elixir).
 
 O Processo e um TIPO separado em projeteis.json, e nao so uma animacao, porque
 ele vai ganhar regras de tipo (ser derrubavel) que os outros nao tem.
@@ -39,6 +40,7 @@ COR_TAG      = (232, 120, 64, 255)    # laranja: estrutura
 COR_REGRA    = (86, 150, 232, 255)    # azul: estilo
 COR_PROMESSA = (238, 206, 86, 255)    # amarelo: o que ainda nao chegou
 COR_PROCESSO = (150, 104, 210, 255)   # roxo: o servidor
+COR_MENSAGEM = (206, 176, 246, 255)   # lilas: a mensagem entre processos
 
 
 def quadro_json(nome, w, h, quadros=1, lado=None):
@@ -134,10 +136,21 @@ def processo(fase):
     return im
 
 
+def mensagem(fase):
+    """A MENSAGEM: um envelope lilas, a cor do processo mais clara - o send
+    de um processo do Elixir. A aba pisca entre os quadros."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([5, 9, 26, 23], radius=3, fill=COR_MENSAGEM, outline=TRACO, width=2)
+    aba = 16 + (fase % 2)
+    d.line([(6, 10), (16, aba), (25, 10)], fill=TINTA, width=2)
+    return im
+
+
 def folha():
-    """Quatro quadros de cada, um assunto por linha, numa folha 4x4."""
-    f = Image.new("RGBA", (128, 128), (0, 0, 0, 0))
-    for linha, desenho in enumerate((tag, regra, promessa, processo)):
+    """Quatro quadros de cada, um assunto por linha, numa folha 4x5."""
+    f = Image.new("RGBA", (128, 160), (0, 0, 0, 0))
+    for linha, desenho in enumerate((tag, regra, promessa, processo, mensagem)):
         for i in range(4):
             f.alpha_composite(desenho(i), (i * 32, linha * 32))
     return f
@@ -154,4 +167,4 @@ def grava(im, nome, pasta, quadros=1, lado=None):
 
 if __name__ == "__main__":
     grava(lucas(), "DPIBHLucas", "Assets/Teachers")
-    grava(folha(), "DPIBHLucasCodigo", "Assets/Teachers/Projectiles", quadros=16, lado=32)
+    grava(folha(), "DPIBHLucasCodigo", "Assets/Teachers/Projectiles", quadros=20, lado=32)

@@ -33,4 +33,11 @@ struct FlexAttackParams : AttackParams {
     /// A largura do conteiner. Ele e CENTRADO NO CHEFE: e a div dele, e e por
     /// isso que a varredura muda onde as fileiras caem.
     float largura = 760.0f;
+
+    /// flex-direction: column. O conteiner e uma COLUNA de 'largura' de altura,
+    /// centrada no y do disparo, que atravessa a tela de lado - para a direita
+    /// com 'sentido' +1, para a esquerda com -1 -, e o rearranjo e na vertical.
+    /// Quem liga e o Lucas, a cada disparo; o arquivo so fala de fileiras.
+    bool coluna = false;
+    float sentido = 1.0f;
 };

@@ -246,11 +246,14 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   um leque e o impasse dos dois mandando ao mesmo tempo. O exame é o jantar
   dos filósofos — os garfos andam de mão em mão, e o deadlock vira um cerco
   até o `kill -9`.
-- **Lucas — INF 321.** Programação Web, na ordem da matéria. O HTML são caixas
-  de tags crescendo uma dentro da outra; o CSS é uma fileira de regras que cai
-  e se rearranja no meio da queda conforme o `justify-content` que o placar
-  escreve; o Elixir solta processos que você pode derrubar — e o supervisor
-  os põe de volta, *let it crash*. O exame é JavaScript: promessas pendentes
+- **Lucas — INF 321.** Programação Web, na ordem da matéria. No HTML ele
+  escreve um documento gerado a cada luta, tag por tag: cada elemento aberto é
+  uma caixa de tags que cresce dentro da do pai, e cada tag fechada vira a
+  caixa do avesso. No CSS, fileiras que caem e colunas que atravessam a tela
+  se rearranjam no meio do caminho conforme o `flex-direction` e o
+  `justify-content` que o placar escreve. O Elixir solta processos que te
+  perseguem e te mandam mensagens (`send`) — e que você pode derrubar, mas o
+  supervisor os põe de volta, *let it crash*. O exame é JavaScript: promessas pendentes
   que, ao resolver, voltam contra você como tag.
 
 O **TCC** *(Hugo)* aparece na grade esperando uma batalha própria.

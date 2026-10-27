@@ -4,9 +4,9 @@
   //
   // A ORDEM DA MATERIA, e a batalha sobe por ela:
   //
-  //   StateOne    HTML        a estrutura: caixas, uma dentro da outra
-  //   StateTwo    CSS         o arranjo: a fileira que se redistribui
-  //   StateThree  Elixir      o servidor: processos que voltam sozinhos
+  //   StateOne    HTML        um documento escrito tag por tag: caixas aninhadas
+  //   StateTwo    CSS         o flexbox: fileiras e colunas que se redistribuem
+  //   StateThree  Elixir      o servidor: processos que mandam mensagens e voltam
   //   StateFinal  JavaScript  promessas que resolvem ou sao rejeitadas
   //
   // O ELIXIR E A FASE 3, E NAO A FINAL, de proposito. E o que o Lucas mais
@@ -30,56 +30,73 @@
   // solta uma caixa a cada 1,6 s na fase 1 (e nao 1,4). O Dificil e o Lucas
   // de antes nas fases 1 e 2, com as caixas a cada 1,2 s.
   //
-  // CADA LUTA E OUTRA (Variacao.h; Lucas::SortearALuta): a regra de cada
-  // fileira do flexbox e sorteada (fase 2).
+  // CADA LUTA E OUTRA (Variacao.h; Lucas::SortearALuta): os documentos HTML da
+  // fase 1 sao gerados (Dom::Gerar), e na fase 2 a regra de cada fileira e o
+  // lado de cada coluna sao sorteados.
+  //
+  // MAIS RAPIDO E MAIS DINAMICO, como os outros: o documento da fase 1, a
+  // coluna da fase 2 e as mensagens da fase 3 entraram juntos. Antes ele era o
+  // mais parado da grade - uma caixa a cada 1,6 s, a mesma em toda luta.
   //
   // Medido em cinco sementes, a batalha inteira: no Normal o que persegue
-  // termina com 63,0 a 65,6 e o que desvia com 79,0 a 92,4 (1 a 4 acertos,
-  // 2,6 em media); no Dificil, 61,3 a 64,1 e 76,6 a 86,0 (2 a 4, 3,2 em
-  // media). O parado e o que vai e vem reprovam nos dois.
+  // termina com 72,0 a 79,8 e o que desvia com 69,3 a 86,5 (2 a 6 acertos);
+  // no Dificil o que persegue reprova nas cinco (49,7 a 56,9, depois da
+  // repescagem) e o que desvia termina com 69,2 a 82,5 (3 ou 4 acertos). O
+  // parado e o que vai e vem reprovam nos dois.
   // ==========================================================================
 
-  // FASE 1 - HTML: AS CAIXAS ANINHADAS   |   gesto: A ORBITA LENTA
+  // FASE 1 - HTML: O DOCUMENTO   |   gesto: O PROFESSOR VAI A CADA ELEMENTO
   //
-  // Cada disparo e uma div: um retangulo de 32 tags que nasce fechado em volta
-  // dele e cresce sem deformar (CaixaAttack). Uma caixa a cada 1,6s (1,2s no
-  // Dificil; era 1,4s nos dois), crescendo
-  // a 110 px/s, e o que fica na tela sao caixas uma dentro da outra - o HTML
-  // desenhado. O espaco entre duas caixas e o padding.
+  // O LUCAS ESCREVE UM DOCUMENTO HTML, tag por tag, e o documento e gerado a
+  // cada vez (Dom.h): um <main> com uma lista, um paragrafo com link, uma
+  // div com imagem... Uma tag a cada 0,4 s (0,32 no Dificil), e o placar a
+  // escreve com o caminho dela no DOM - "<li>" e embaixo "main > ul > li".
   //
-  // A ORBITA LENTA DESLOCA AS CAIXAS: cada uma nasce de um ponto um pouco
-  // diferente, e o aninhamento sai torto, como indentacao. Com o chefe parado
-  // no centro elas ficam concentricas, e eu esperava que isso abrisse um bolso
-  // seguro, como no anel do Vladimir. Medido, e o contrario: um ladrilho da
-  // base passa SEMPRE no mesmo x, e quem esta ali come todas as caixas - o
-  // piloto parado e o que persegue tomaram 9 acertos nesta fase, contra 2 e 4
-  // com a orbita.
+  //   <ul>    ABRE: a caixa de tags do elemento nasce no lugar dele e cresce
+  //           (CaixaAttack, o gatilho "abrir"). O filho nasce embaixo do pai,
+  //           e a caixa dele e 30% menor a cada geracao - o box model
+  //           desenhado.
+  //   </ul>   FECHA: a caixa daquele elemento vira do avesso - as tags que
+  //           ainda estao no campo voltam, passam pelo centro e saem do outro
+  //           lado, 30% mais rapido. Lendo o placar, o aluno sabe qual caixa
+  //           vai voltar: a do ultimo elemento aberto.
+  //   <img>   o elemento VAZIO abre e fecha de uma vez: um anel ("vazio").
   //
-  // DIFERENTE DO ANEL, E SE SENTE: a base chega como uma LINHA inteira, e nao
-  // pelo ponto mais perto, entao correr para o lado nao tira ninguem dela - so
-  // achar a fresta entre dois ladrilhos. Medido contra o anel do esqueleto, na
-  // fase 1: o piloto que vai e vem toma 7 acertos em vez de 5, e o que persegue
-  // 4 em vez de 3. Os ladrilhos se afastam enquanto a caixa cresce, e a fresta
-  // que importa e a da altura do aluno.
+  // O PROFESSOR VAI ATE CADA ELEMENTO para abri-lo (o movimento "Conduzido"),
+  // e entre um documento e o seguinte respira 0,9 s.
   //
-  // 32 E O MAIS LEVE QUE AINDA LE COMO CAIXA. Com 40 e 48 ladrilhos o piloto
-  // que persegue toma 5 nesta fase em vez de 4, e a caixa nao fica mais
-  // legivel: com 32 ela ja tem os quatro lados.
+  // Era uma caixa a cada 1,6 s, sempre igual, com o professor orbitando
+  // devagar: a fase mais parada da batalha, e a mesma em toda luta.
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
-    "anuncio": "<div><div>…</div></div>",
-    "movimento": { "tipo": "Orbitar", "a": 110, "b": 0.08 },
+    "anuncio": "<!DOCTYPE html>",
+    "movimento": { "tipo": "Conduzido", "a": 300 },
     "ataques": [
-      { "estrategia": "CaixaAttack", "projetil": "Codigo",
-        "projeteis": 32, "velocidade": 110,
-        "cooldown": 1.6,
-        "dificil": { "cooldown": 1.2 },
+      { "gatilho": "abrir", "estrategia": "CaixaAttack", "projetil": "Codigo",
+        "projeteis": 28, "velocidade": 130,
+        "dificil": { "velocidade": 150 },
+        "regras": "html" },
+      { "gatilho": "vazio", "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
+        "projeteis": 10, "velocidade": 190,
+        "dificil": { "projeteis": 14 },
         "regras": "html" }
     ]
   },
 
   // FASE 2 - CSS: O FLEXBOX   |   gesto: A VARREDURA
+  //
+  // flex-direction TAMBEM: a cada tres disparos (dois no Dificil) sai uma
+  // COLUNA em vez de uma fileira - 5 regras em 520 px de altura, na altura do
+  // aluno -, que entra por um lado sorteado e atravessa a tela, rearranjando-
+  // se na VERTICAL (Flex::DirecaoDoDisparo). O placar diz as duas regras:
+  // "flex-direction: column" e embaixo o justify-content. Com os 8 itens da
+  // fileira, o "center" de uma coluna era uma parede de 352 px na altura do
+  // aluno, e quem desviava tomava 3,7 acertos na fase sozinha.
+  //
+  // O PROFESSOR VARRE O ALTO A 90 px/s (120 no Dificil; Flex::XDaVarredura,
+  // pelo movimento "Conduzido"). A 170 px/s, como era, o tiro do aluno nao o
+  // achava: ate quem o seguia perdia nota na fase.
   //
   // O CSS nao cria nada, ele REARRANJA. Cada disparo e uma fileira de 8 regras
   // que nasce arrumada de um jeito e cai reta; aos 0,7s de queda, em 0,5s, cada
@@ -114,17 +131,25 @@
     "duracao": 20,
     "proximo": "StateThree",
     "anuncio": "display: flex",
-    "movimento": { "tipo": "Varredura", "a": 170, "b": 150 },
+    "movimento": { "tipo": "Conduzido", "a": 400 },
     "ataques": [
       { "estrategia": "FlexAttack", "projetil": "Codigo",
         "projeteis": 8, "velocidade": 220,
         "flex": { "de": "center", "para": "space-between", "aos": 0.7, "em": 0.5 },
         "cooldown": 1.1,
+        "dificil": { "cooldown": 0.9 },
         "regras": "css" }
     ]
   },
 
   // FASE 3 - ELIXIR: LET IT CRASH   |   gesto: A ORBITA
+  //
+  // E OS PROCESSOS CONVERSAM: no Elixir processo so fala por mensagem, e a
+  // cada 0,6 s (0,35 no Dificil) um processo vivo - um de cada vez, da
+  // esquerda para a direita - manda uma ao aluno, um envelope reto mirado
+  // nele (o gatilho "send", Elixir.h). O placar escreve o send. Derrubar um
+  // processo tambem cala as mensagens dele. No Dificil a rodada tem 6
+  // processos, e nao 4.
   //
   // O servidor da voltas e solta processos - leves, lentos e insistentes. O
   // aluno PODE DERRUBA-LOS ("derrubavel" em projeteis.json): a Duvida some junto
@@ -155,7 +180,12 @@
       { "estrategia": "WaveAttack", "projetil": "Processo",
         "projeteis": 4, "velocidade": 170, "angulo": 120, "intervalo": 0.08,
         "cooldown": 0.8,
-        "regras": "processos" }
+        "dificil": { "projeteis": 6 },
+        "regras": "processos" },
+      { "gatilho": "send", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 1, "velocidade": 240, "angulo": 0, "intervalo": 0,
+        "dificil": { "velocidade": 280 },
+        "regras": "mensagem" }
     ]
   },
 

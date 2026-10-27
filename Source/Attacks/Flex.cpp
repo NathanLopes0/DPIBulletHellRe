@@ -5,6 +5,9 @@
 
 #include "Flex.h"
 
+#include <algorithm>
+#include <cmath>
+
 namespace Flex {
 
 bool PeloNome(const std::string& nome, Justificar& saida) {
@@ -81,6 +84,30 @@ Justificar Proxima(Variacao::Sorteio& s, const Justificar de) {
     if (Junto(de)) return s.Chance(0.5f) ? Justificar::EspacoEntre : Justificar::EspacoEmVolta;
     const Justificar juntos[] = {Justificar::Inicio, Justificar::Fim, Justificar::Centro};
     return juntos[s.Inteiro(0, 2)];
+}
+
+Direcao DirecaoDoDisparo(Variacao::Sorteio& s, const int k, const int cada) {
+    Direcao d;
+    const int n = cada < 1 ? 1 : cada;
+    d.coluna = (k % n) == n - 1;
+
+    if (d.coluna) d.sentido = s.Chance(0.5f) ? 1.0f : -1.0f;
+    return d;
+}
+
+std::string NomeDaDirecao(const bool coluna) {
+    return coluna ? "column" : "row";
+}
+
+float XDaVarredura(const float t, const float x0, const float velocidade, const float largura) {
+    const float de = kMargemDaVarredura;
+    const float ate = largura - kMargemDaVarredura;
+    const float trecho = ate - de;
+    if (trecho <= 0.0f) return largura / 2.0f;
+    // A posicao num vai e volta e uma onda triangular: o caminho andado,
+    // dobrado nas margens.
+    const float andado = std::fmod(std::max(0.0f, (std::clamp(x0, de, ate) - de) + velocidade * t), 2.0f * trecho);
+    return de + (andado <= trecho ? andado : 2.0f * trecho - andado);
 }
 
 

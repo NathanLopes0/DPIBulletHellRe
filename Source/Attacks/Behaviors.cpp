@@ -365,9 +365,8 @@ void PulsoDeVelocidadeBehavior::update(Projectile* p, float deltaTime) {
 void DeslocarBehavior::update(Projectile* p, const float deltaTime) {
     t += deltaTime;
 
-    const float alvo = dx * Flex::Progresso(t, atraso, duracao);
-    const Vector2 pos = p->GetPosition();
-    p->SetPosition(Vector2(pos.x + (alvo - jaDeslocado), pos.y));
+    const float alvo = Flex::Progresso(t, atraso, duracao);
+    p->SetPosition(p->GetPosition() + delta * (alvo - jaDeslocado));
     jaDeslocado = alvo;
 
     if (t >= atraso + duracao) terminou = true;

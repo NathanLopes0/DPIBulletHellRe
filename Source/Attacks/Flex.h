@@ -72,6 +72,52 @@ namespace Flex {
      */
     Justificar Proxima(Variacao::Sorteio& s, Justificar de);
 
+    // ---- flex-direction ------------------------------------------------------
+
+    /// A COLUNA (flex-direction: column): 'kAlturaDaColuna' de altura, centrada
+    /// em kYDaColuna - na altura do aluno -, com kItensDaColuna itens, nasce
+    /// kForaDaTela pixels alem de uma borda e atravessa a tela ate a outra,
+    /// rearranjando-se na vertical. Com os 8 itens da fileira, o "center"
+    /// virava uma parede de 352 px na altura do aluno, e quem desviava tomava
+    /// 3,7 acertos na fase sozinha.
+    constexpr float kYDaColuna = 500.0f;
+    constexpr float kAlturaDaColuna = 520.0f;
+    constexpr float kForaDaTela = 30.0f;
+    constexpr int kItensDaColuna = 5;
+    /// Uma coluna a cada kCadaQuantasColunas disparos - no Dificil, a cada
+    /// kCadaQuantasColunasNoDificil.
+    constexpr int kCadaQuantasColunas = 3;
+    constexpr int kCadaQuantasColunasNoDificil = 2;
+
+    /// O k-esimo disparo da fase (0 e o primeiro): uma COLUNA a cada 'cada' -
+    /// row, row, column, row, row, column... -, e cada coluna entra por um lado
+    /// sorteado (sentido +1 vem da esquerda, -1 da direita).
+
+
+    struct Direcao {
+        bool coluna = false;
+        float sentido = 1.0f;
+    };
+    Direcao DirecaoDoDisparo(Variacao::Sorteio& s, int k, int cada = kCadaQuantasColunas);
+
+    /// "row" ou "column".
+    std::string NomeDaDirecao(bool coluna);
+
+    // ---- A VARREDURA DO PROFESSOR --------------------------------------------
+
+    /// O PROFESSOR VARRE O ALTO DA TELA, de margem a margem, e as fileiras caem
+    /// de onde ele esta. Devagar no Normal - a 170 px/s, como era, o tiro do
+    /// aluno (quase 1 s de voo) nao o achava, e ate quem o seguia perdia nota
+    /// na fase -, mais depressa no Dificil.
+    constexpr float kYDaVarredura = 144.0f;
+    constexpr float kMargemDaVarredura = 150.0f;
+    constexpr float kVarredura = 90.0f;
+    constexpr float kVarreduraNoDificil = 120.0f;
+
+    /// @brief O x do professor 't' segundos depois de comecar a varrer de 'x0':
+    /// vai e volta entre as margens, a 'velocidade', comecando para a direita.
+    float XDaVarredura(float t, float x0, float velocidade, float largura);
+
 
 
 }

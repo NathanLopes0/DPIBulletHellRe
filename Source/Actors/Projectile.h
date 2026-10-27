@@ -118,6 +118,11 @@ public:
      */
     void RenovarTempoDeVida() { mTempoDeVida = 0.0f; }
 
+    /// @brief Ha quanto tempo o projetil saiu do pool. Serve para quem guarda um
+    /// ponteiro conferir que ele ainda e o mesmo tiro: reciclado, ele volta com
+    /// o relogio zerado (Lucas::AtualizarDom).
+    [[nodiscard]] float TempoDeVida() const { return mTempoDeVida; }
+
     template <typename M, typename... Args>
     void insertMotion(Args&&... args) {
         static_assert(std::is_base_of_v<ProjectileMotion, M>,
