@@ -21,6 +21,10 @@
 # DPI_DIFICIL    a batalha no modo Dificil (Dificuldade.h). Sem ela, Normal -
 #                SEMPRE: o Saves/opcoes.cfg da maquina nao decide o modo de
 #                uma medida
+# DPI_VARIACAO   a semente da batalha (Battle::SementeDaBatalha), de onde cada
+#                fase tira o que varia de uma luta para a outra. Sem ela, e a
+#                DPI_SEMENTE: uma corrida continua sendo uma funcao de um numero
+#                so, e duas sementes diferentes variam as duas coisas juntas
 # DPI_ESTADO     a fase em que o chefe comeca (StateTwo, StateFinal, ...): mede
 #                ou fotografa uma fase sozinha. Toda batalha comeca com a nota
 #                inicial (40), e StateThree a decide - a StateFinal sozinha mede
@@ -94,6 +98,12 @@ for arq in sorted(glob.glob("Source/Actors/Teachers/BossFactory/*Factory.cpp")):
     edit(arq, 'boss->SetInitialState("StateOne");',
          'boss->SetInitialState(std::getenv("DPI_ESTADO") ? std::getenv("DPI_ESTADO") : "StateOne");')
     edit(arq, '#include "' + fab + '.h"', '#include "' + fab + '.h"\n#include <cstdlib>')
+
+# ---- A SEMENTE DA BATALHA, presa: no jogo ela vem do random_device.
+edit("Source/Scenes/Battle/Battle.cpp", "    mSemente = static_cast<std::uint32_t>(std::random_device{}());",
+"""    mSemente = static_cast<std::uint32_t>(std::strtoul(
+        std::getenv("DPI_VARIACAO") ? std::getenv("DPI_VARIACAO")
+      : std::getenv("DPI_SEMENTE") ? std::getenv("DPI_SEMENTE") : "20261014", nullptr, 10));""")
 
 # ---- passo de tempo fixo
 edit("Source/Game.cpp", "        while(!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16)) {}",

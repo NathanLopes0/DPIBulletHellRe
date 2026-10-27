@@ -14,6 +14,7 @@
 #include "../../AudioSystem.h"
 #include "../../Pausa.h"
 #include "../../Dificuldade.h"
+#include "../../Variacao.h"
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
 
 #define GRADE_CHANGE_UP 0.56f
@@ -79,6 +80,16 @@ public:
      * cada chefe le o proprio degrau (Boss::NoNivel).
      */
     [[nodiscard]] Dificuldade::Nivel NivelDeDificuldade() const { return mNivel; }
+
+    /**
+     * @brief A semente desta luta (Variacao.h): de onde cada chefe tira o que
+     * muda de uma batalha para a outra dentro de cada fase.
+     *
+     * Sorteada no comeco do Load e escrita no log, para que uma luta estranha
+     * possa ser repetida (no arnes, DPI_VARIACAO). Recomecar a fase pela pausa
+     * recarrega a cena, e a luta nova tem outra semente.
+     */
+    [[nodiscard]] std::uint32_t SementeDaBatalha() const { return mSemente; }
 
     /**
      * @brief Poe um segundo corpo em campo, com os ataques da fase nomeada.
@@ -253,6 +264,9 @@ private:
 
     /// Ver NivelDeDificuldade.
     Dificuldade::Nivel mNivel = Dificuldade::Nivel::Normal;
+
+    /// Ver SementeDaBatalha.
+    std::uint32_t mSemente = 0;
 
     /// O selo DIFICIL, na ponta direita da faixa da nota. So existe no Dificil:
     /// quem ve uma luta no corredor sabe que ela nao e a de sempre, e quem joga

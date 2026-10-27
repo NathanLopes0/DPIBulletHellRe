@@ -9,6 +9,7 @@
 #include "../../Nota.h"
 
 #include <locale>
+#include <random>
 #include <sstream>
 #include <iomanip>
 
@@ -89,8 +90,17 @@ void Battle::Load() {
     mPrimeiraFase = true;
     mAvisoDeFaseLimpa = 0.0f;
 
-    // O MODO ANTES DO CHEFE: a fabrica e o chefe podem perguntar por ele.
+    // O MODO E A SEMENTE ANTES DO CHEFE: a fabrica e o chefe podem perguntar
+    // pelos dois.
+    //
+    // A SEMENTE NAO SAI DO Random DO JOGO: tirar um numero de la mudaria tudo
+    // o que ele sorteia depois (a capivara do Salles, a porta do semaforo do
+    // Vitor) e a mesma DPI_SEMENTE do arnes daria outra luta. Ela vem do
+    // random_device, como a do proprio Random (Random::Init); no arnes, de
+    // DPI_VARIACAO.
     mNivel = mGame->NivelDeDificuldade();
+    mSemente = static_cast<std::uint32_t>(std::random_device{}());
+    SDL_Log("BATALHA: semente %u, modo %s", mSemente, Dificuldade::Chave(mNivel));
 
     // 2. Criar os atores principais
     LoadPlayer();

@@ -63,6 +63,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Pausa.h
         Source/Dificuldade.cpp
         Source/Dificuldade.h
+        Source/Variacao.cpp
+        Source/Variacao.h
         Source/Configuracao.cpp
         Source/Configuracao.h
         Source/Painel.cpp
@@ -410,6 +412,7 @@ add_executable(dpi_tests
         tests/test_painel.cpp
         tests/test_pausa.cpp
         tests/test_dificuldade.cpp
+        tests/test_variacao.cpp
         tests/test_sessao.cpp
         tests/test_ranking.cpp
         tests/test_matricula.cpp
@@ -434,6 +437,8 @@ add_executable(dpi_tests
         Source/Pausa.h
         Source/Dificuldade.cpp
         Source/Dificuldade.h
+        Source/Variacao.cpp
+        Source/Variacao.h
         Source/Configuracao.cpp
         Source/Configuracao.h
         Source/Painel.cpp

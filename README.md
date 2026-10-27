@@ -219,7 +219,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 921 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 927 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha — e também **leem os arquivos de
 `Assets/` de verdade**, quebrando ao primeiro erro de digitação num JSON. Um

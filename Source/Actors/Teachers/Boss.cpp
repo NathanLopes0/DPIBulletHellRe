@@ -280,6 +280,11 @@ Dificuldade::Nivel Boss::NivelDeDificuldade() const {
     return Dificuldade::Nivel::Normal;
 }
 
+Variacao::Sorteio Boss::SorteioDaFase(const std::string& fase) const {
+    const auto* batalha = dynamic_cast<const Battle*>(mScene);
+    return Variacao::SorteioDa(batalha ? batalha->SementeDaBatalha() : 0u, fase);
+}
+
 void Boss::Disparar(const std::string& gatilho, const int alvo) {
     if (gatilho.empty()) return;
     const auto* fsm = GetComponent<FSMComponent>();

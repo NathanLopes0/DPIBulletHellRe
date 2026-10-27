@@ -19,6 +19,7 @@
 #include "../../Attacks/AttackParameters/AttackParams.h"
 #include "Bosses/BossesProjectiles/BossProjectile.h"
 #include "../../Dificuldade.h"
+#include "../../Variacao.h"
 
 class IMovementStrategy;
 class FSMComponent;
@@ -256,6 +257,16 @@ public:
     [[nodiscard]] T NoNivel(const T normal, const T dificil) const {
         return Dificuldade::Escolher(NivelDeDificuldade(), normal, dificil);
     }
+
+    /**
+     * @brief A sequencia da fase `fase` nesta batalha (Variacao::SorteioDa).
+     *
+     * Pedida de novo, devolve a MESMA sequencia desde o comeco: o roteiro de
+     * uma fase e uma funcao da semente da luta e do nome da fase, e nao do que
+     * aconteceu antes. O clone, na mesma batalha, ve a mesma.
+     * Fora de uma Battle (nos testes), a semente e 0.
+     */
+    [[nodiscard]] Variacao::Sorteio SorteioDaFase(const std::string& fase) const;
 
     /**
      * @brief Este corpo e o SEGUNDO, e nao o original?

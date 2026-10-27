@@ -1,0 +1,60 @@
+//
+// O sorteio de cada batalha: o que muda de uma luta para a outra.
+//
+
+#include "Variacao.h"
+
+#include <cmath>
+
+namespace Variacao {
+
+std::uint32_t Misturar(const std::uint32_t semente, const std::uint32_t rotulo) {
+    std::uint64_t z = (static_cast<std::uint64_t>(semente) << 32) | rotulo;
+    z += 0x9e3779b97f4a7c15ull;
+    z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ull;
+    z = (z ^ (z >> 27)) * 0x94d049bb133111ebull;
+    z ^= z >> 31;
+    return static_cast<std::uint32_t>(z ^ (z >> 32));
+}
+
+std::uint32_t Rotulo(const std::string& nome) {
+    std::uint32_t h = 2166136261u;
+    for (const char c : nome) {
+        h ^= static_cast<std::uint8_t>(c);
+        h *= 16777619u;
+    }
+    return h;
+}
+
+Sorteio Sorteio::Filho(const std::uint32_t rotulo) const {
+    // UMA COPIA do gerador da o proximo numero sem gasta-lo aqui.
+    std::mt19937 copia = mGerador;
+    return Sorteio(Misturar(static_cast<std::uint32_t>(copia()), rotulo));
+}
+
+int Sorteio::Inteiro(const int de, const int ate) {
+    if (ate <= de) return de;
+    const std::uint64_t n = static_cast<std::uint64_t>(static_cast<std::int64_t>(ate) - de) + 1u;
+    if (n > 0xffffffffull) return static_cast<int>(static_cast<std::int64_t>(de) + Bruto());   // o int inteiro
+    // O MAIOR MULTIPLO de n que cabe em 2^32: o que passa dele e sorteado de
+    // novo, senao os primeiros restos sairiam uma vez a mais.
+    const std::uint64_t limite = (0x100000000ull / n) * n;
+    std::uint64_t x;
+    do { x = Bruto(); } while (x >= limite);
+    return static_cast<int>(static_cast<std::int64_t>(de) + static_cast<std::int64_t>(x % n));
+}
+
+float Sorteio::Real(const float de, const float ate) {
+    if (!(ate > de)) return de;
+    const float u = static_cast<float>(Bruto() >> 8) * (1.0f / 16777216.0f);   // [0, 1)
+    const float r = de + u * (ate - de);
+    return r < ate ? r : std::nextafter(ate, de);
+}
+
+bool Sorteio::Chance(const float p) {
+    if (p <= 0.0f) return false;
+    if (p >= 1.0f) return true;
+    return Real(0.0f, 1.0f) < p;
+}
+
+}
