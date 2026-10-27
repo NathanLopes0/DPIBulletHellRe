@@ -51,9 +51,11 @@ class DrawLinhasComponent;
  * numa instrucao mirada no aluno. Aqui mora o relogio de cada rodada, a arvore
  * em campo e as arestas dela.
  *
- * A FASE 3 E A MAQUINA DE TURING (Fita.h): ele escreve a fita na passagem e a
- * reescreve na volta. Aqui mora so o placar, que diz a transicao com a seta do
- * sentido em que ele anda.
+ * A FASE 3 E UMA MAQUINA DE TURING DE VERDADE (Fita.h): o castor mais ocupado
+ * de 4 estados, que da 107 passos e para com 13 marcas na fita. Cada passo
+ * vira tiro - a marca escrita fica, a apagada persegue, a relida atira uma
+ * copia. Aqui moram o relogio dos passos, as marcas em campo e a cabeca
+ * desenhada.
  *
  * A REPESCAGEM E O PROBLEMA DA PARADA (Parada.h): ele roda o programa de
  * Collatz, um passo por vez, na altura do valor de x - e ninguem sabe provar
@@ -88,8 +90,8 @@ protected:
 private:
     // ---- A LUTA SORTEADA ----------------------------------------------------
     //
-    // Antes do primeiro quadro (Variacao.h): a fita - a pausa nas pontas e onde
-    // cai a primeira casa de cada varredura -, a ordem das sementes de Collatz e
+    // Antes do primeiro quadro (Variacao.h): a fita - o castor como ele e, ou
+    // espelhado -, a ordem das sementes de Collatz e
     // o lado para onde o professor comeca a varrer na repescagem, as tres linhas
     // que o compilador compila, e o degrau do modo em cada fase. A palavra do
     // automato continua sorteada na hora, como era.
@@ -101,6 +103,7 @@ private:
     Compilador::Degrau mDegrauDoCompilador;
     Fita::Plano mPlanoDaFita;
     Fita::Degrau mDegrauDaFita;
+
     Parada::Plano mPlanoDaParada;
     Parada::Degrau mDegrauDaParada;
     int mProgramaDaVez = 0;
@@ -168,9 +171,10 @@ private:
     void DesenharArestas();
 
     /// Dispara 'gatilho' de 'onde', no rumo 'rumo' - ou mirado no aluno, sem
-    /// rumo -, com a cara 'cara' no que nascer. Devolve o que nasceu.
-    std::vector<BossProjectile*> Compilar(const char* gatilho, Vector2 onde, std::optional<float> rumo,
-                                          const std::string& cara);
+    /// rumo -, com a cara 'cara' no que nascer. Devolve o que nasceu. O
+    /// compilador e a fita atiram por aqui.
+    std::vector<BossProjectile*> DispararDe(const char* gatilho, Vector2 onde, std::optional<float> rumo,
+                                            const std::string& cara);
 
     [[nodiscard]] Vector2 PosicaoDoAluno() const;
 
@@ -193,31 +197,38 @@ private:
     std::vector<BossProjectile*> mLexemas;   ///< a ficha de cada token caindo, por indice
     bool mFilaParada = false;            ///< os tokens ja pararam para o parser
 
-    DrawLinhasComponent* mArestas = nullptr;
+    /// As arestas da arvore, e a cabeca da fita: um desenho so, que cada fase
+    /// limpa ao sair.
+    DrawLinhasComponent* mLinhas = nullptr;
+    void CriarLinhas();
 
-    /// Compilando: de onde e para onde sai o que nasce, com que cara, e quem
-    /// nasceu.
-    bool mCompilando = false;
-    Vector2 mOndeCompilar;
-    float mRumoDoCompilado = 90.0f;
-    std::string mCaraDoCompilado;
-    std::vector<BossProjectile*> mCompilados;
+    /// Disparando de um lugar (DispararDe): de onde e para onde sai o que
+    /// nasce, com que cara, e quem nasceu.
+    bool mDisparandoDe = false;
+    Vector2 mOndeDisparar;
+    float mRumoDoDisparo = 90.0f;
+    std::string mCaraDoDisparo;
+    std::vector<BossProjectile*> mDisparados;
 
     /// Quao depressa um no chega ao lugar dele na arvore (Ancora::Aproximar).
     static constexpr float kRapidezDoNo = 9.0f;
 
     // ---- A FITA DA FASE 3 ---------------------------------------------------
     //
-    // A cabeca vai de ponta a ponta (o movimento "Conduzido") escrevendo uma
-    // casa a cada Fita::kEscrita (o gatilho "escrever"); na ponta le o branco,
-    // troca de estado e para Fita::kPausaNaPonta antes de voltar. O placar e a
-    // transicao que ela esta fazendo.
+    // O castor mais ocupado de 4 estados (Fita.h), um passo a cada
+    // Fita::kPasso: a cabeca le a casa, e o que a tabela manda vira tiro - a
+    // marca nova fica na fileira (o gatilho "escrever"), a apagada sai
+    // perseguindo ("apagar") e a relida atira uma copia ("reler"); parada, um
+    // anel ("pare"). A cabeca e o quadro desenhado em volta da casa; o
+    // professor a segue de cima, mais devagar (o movimento "Conduzido"), com
+    // uma linha ate ela.
 
-    void AtualizarFita(float deltaTime);
+    void AtualizarFita();
+    void DesenharCabeca();
     bool mNaFita = false;
-    int mSentidoDaFita = 1;   ///< +1 direita, -1 esquerda
-    float mPausaNaPonta = 0.0f;
-    float mProximaEscrita = 0.0f;
+    Fita::Estado mFita;
+    float mProximoPassoDaFita = 0.0f;
+    std::array<BossProjectile*, Fita::kCasas> mMarcas{};   ///< a marca de cada casa, se houver
     std::string mAnuncioDaFita;
 
     // ---- O PROBLEMA DA PARADA DA REPESCAGEM ---------------------------------

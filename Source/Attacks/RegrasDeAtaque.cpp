@@ -13,7 +13,7 @@ namespace {
                                                  "Amarrar", "Ancorar"};
     const std::vector<std::string> kModifiers = {"Accelerate", "SlowDown", "Activate",
                                                  "Deactivate", "PulsoDeVelocidade",
-                                                 "Reescrever", "Promessa"};
+                                                 "Promessa"};
 
     const std::vector<std::string> kPostos = {"quadro", "observadores", "agentes", "nuvens",
                                               "palavra", "portas", "registradores", "estagios", "pipeline",
@@ -85,7 +85,6 @@ namespace {
         }
         if (j.contains("ritmo")) d.ritmo = LerRitmo(j["ritmo"]);
 
-        d.raio    = Campo(j, "raio", 0.0f);
         d.escreve = (j.contains("escreve") && j["escreve"].is_string())
                         ? j["escreve"].get<std::string>() : "";
 
@@ -143,22 +142,6 @@ namespace {
             return d;
         }
 
-        // O REESCREVER QUE NAO FARIA NADA E RECUSADO AQUI, e nao no jogo.
-        // Cada um destes tres sai calado em tela: raio zero e uma cabeca que
-        // nunca acha a casa; velocidade zero e um "b" que nasce parado e o
-        // Tracking nao tem direcao para corrigir; sem "escreve", a casa troca de
-        // comportamento e fica com a cor de antes.
-        if (d.tipo == "Reescrever") {
-            if (d.raio <= 0.0f)
-                erro = "\"Reescrever\" precisa de \"raio\" maior que zero: e a distancia "
-                       "em que a cabeca le a casa";
-            else if (d.velocidade <= 0.0f)
-                erro = "\"Reescrever\" precisa de \"velocidade\" maior que zero: a casa "
-                       "reescrita sai daqui, e parada o Tracking nao tem o que girar";
-            else if (d.escreve.empty())
-                erro = "\"Reescrever\" precisa de \"escreve\": a animacao da letra que a "
-                       "casa passa a ter";
-        }
         return d;
     }
 

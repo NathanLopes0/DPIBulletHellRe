@@ -49,7 +49,7 @@ class ProjectileMotion : public ProjectileBehavior {
  * comeca a valer. Varios podem coexistir no mesmo projetil.
  *
  * Sao Modifier: Accelerate, SlowDown, Activate, Deactivate, PulsoDeVelocidade,
- * Reescrever, Deslocar e Promessa.
+ * Deslocar e Promessa.
  *
  * O QUE ESTA SEPARACAO GARANTE, E O QUE NAO GARANTE
  *
@@ -395,54 +395,6 @@ struct DeactivateBehavior : public ProjectileModifier {
 };
 
 /**
- * @brief A CASA DA FITA: o projetil fica onde esta ate a cabeca passar por cima,
- * e entao e REESCRITO - troca de letra e sai perseguindo o alvo.
- *
- * E a maquina de Turing da fase final do Vladimir. O chefe escreve a fita na
- * passagem (simbolos que descem e param), e quando a varredura o traz de volta
- * por cima de uma casa, ele a le e a reescreve: o "a" parado vira "b".
- *
- * A CABECA E QUALQUER CORPO DO CHEFE (Battle::Corpos), e nao o dono do
- * projetil. O dono e quem disparou; quem LE a fita e quem estiver em cima dela
- * agora, e com o chefe dividido em dois os dois leem. Ir pela cena tambem evita
- * guardar um ponteiro para um corpo que pode deixar de existir.
- *
- * A decisao de "quando" e pura e esta em Fita.h, coberta por test_fita.cpp. Aqui
- * fica so o efeito.
- *
- * ESTE MODIFIER TROCA A MOTION DO PROJETIL, e isso so e seguro porque
- * Projectile::OnUpdate roda a Motion ANTES do laco dos Modifiers: substituir
- * mMotion dentro do laco nao mexe em nada que esteja sendo percorrido. Inserir
- * um MODIFIER daqui, ao contrario, realocaria o vetor no meio do laco - por isso
- * a reescrita nao insere modifier nenhum.
- */
-struct ReescreverBehavior : public ProjectileModifier {
-
-    /**
-     * @param idadeMinima segundos antes de a casa poder ser lida. A casa nasce
-     *        EMBAIXO da cabeca: sem isto, seria reescrita no quadro em que foi
-     *        escrita.
-     * @param raio        a que distancia, no x, a cabeca le a casa
-     * @param escreve     a animacao da letra nova
-     * @param velocidade  com que modulo a casa reescrita sai em direcao ao alvo
-     * @param forca, duracao o Tracking que ela leva depois de sair
-     */
-    ReescreverBehavior(float idadeMinima, float raio, std::string escreve,
-                       float velocidade, float forca, float duracao)
-        : idadeMinima(idadeMinima), raio(raio), escreve(std::move(escreve)),
-          velocidade(velocidade), forca(forca), duracao(duracao) {}
-
-    void update(Projectile* p, float deltaTime) override;
-    bool isFinished() const override { return reescrita; }
-
-    float idadeMinima, raio;
-    std::string escreve;
-    float velocidade, forca, duracao;
-    float idade = 0.0f;
-    bool reescrita = false;
-};
-
-/**
  * @brief Desloca o projetil 'dx' pixels na horizontal, comecando em 'atraso' e
  * levando 'duracao' segundos, pela curva suave de uma transition do CSS.
  *
@@ -482,8 +434,8 @@ struct DeslocarBehavior : public ProjectileModifier {
  * regra. Assim a promessa pode tambem resolver no meio do voo, se a regra
  * quiser.
  *
- * NAO INSERE MODIFIER NENHUM, pelo mesmo motivo do Reescrever: roda dentro do
- * laco de modifiers. Matar o proprio projetil daqui e seguro - Kill() so marca
+ * NAO INSERE MODIFIER NENHUM: roda dentro do laco de modifiers, e inserir um
+ * realocaria o vetor no meio do laco. Matar o proprio projetil daqui e seguro - Kill() so marca
  * o estado, e quem limpa os behaviors e o pool, depois.
  */
 struct PromessaBehavior : public ProjectileModifier {

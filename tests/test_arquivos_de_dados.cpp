@@ -1504,21 +1504,32 @@ TEST_CASE("Dados: o compilador do Vladimir - gatilhos, posto e caras sao nomes q
 }
 
 TEST_CASE("Dados: a fita e o problema da parada do Vladimir estao nas fases que o C++ le") {
-    // A FITA: a fase em que o Vladimir escreve o placar da transicao tem de ser
-    // a que escreve a fita - senao a seta mente sobre uma fase sem fita.
+    // A FITA: a fase em que o Vladimir roda o castor tem os quatro gatilhos de
+    // um passo, e a marca escrita nasce no posto em que ele a procura para
+    // apagar - senao a marca apagada ficaria na fileira, e o "b" sairia de
+    // uma casa que continua escrita.
     bool achouAFita = false;
+    std::set<std::string> gatilhosDaFita;
     std::set<std::string> gatilhosDaParada;
+    const auto regras = RegrasDoChefe("vladimir");
     for (const auto& f : FasesDoChefe("vladimir").fases) {
         for (const auto& a : f.ataques) {
-            if (f.nome == Fita::kFaseDaFita && a.regrasNome == "fita") {
+            if (f.nome == Fita::kFaseDaFita) gatilhosDaFita.insert(a.gatilho);
+            if (f.nome == Fita::kFaseDaFita && a.gatilho == Fita::kGatilhoDaEscrita) {
                 achouAFita = true;
-                CHECK(a.gatilho == Fita::kGatilhoDaEscrita);   // quem escreve e a cabeca, andando
+                REQUIRE(regras.conjuntos.count(a.regrasNome) == 1);
+                for (const auto& r : regras.conjuntos.at(a.regrasNome)) CHECK(r.posto == Fita::kPostoDaFita);
             }
             if (f.nome == Parada::kFaseDaParada) gatilhosDaParada.insert(a.gatilho);
         }
     }
     CHECK(achouAFita);
-    CHECK(GatilhoExiste(Fita::kGatilhoDaEscrita));
+    CHECK(PostoExiste(Fita::kPostoDaFita));
+    for (const char* g : {Fita::kGatilhoDaEscrita, Fita::kGatilhoDoApagar, Fita::kGatilhoDoReler, Fita::kGatilhoDaParada}) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+        CHECK(gatilhosDaFita.count(g) == 1);
+    }
 
     // A PARADA: os tres gatilhos que o programa puxa, todos na fase dele.
     for (const char* g : {Parada::kGatilhoDaMetade, Parada::kGatilhoDoTriplo, Parada::kGatilhoDeParar}) {

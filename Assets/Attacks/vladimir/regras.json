@@ -22,8 +22,8 @@
   //
   // E com isso ler a letra passa a dizer algo, nas quatro fases: o automato
   // atira a letra que leu, e o placar diz qual e a proxima; o compilador solta
-  // cada a e b da linha de codigo; a fita escreve "a" e a cabeca o reescreve
-  // em "b"; o programa da metade solta "a" e o do 3x + 1 solta "b". E o
+  // cada a e b da linha de codigo; a fita escreve "a" e, apagado, ele sai como
+  // "b"; o programa da metade solta "a" e o do 3x + 1 solta "b". E o
   // intercambio TROCA as duas (Alfabeto.h): o "a" em voo passa a perseguir.
   //
   // O TrackingBehavior decai: "fugir cedo nao resolve, fugir tarde sim". E uma
@@ -73,38 +73,12 @@
     { "posto": "arvore" }
   ],
 
-  // A FITA DA MAQUINA DE TURING.
-  //
-  // Toda casa nasce "a" - a marca escrita na fita - e vira "b" quando a cabeca
-  // passa por cima dela de novo (Reescrever). As duas letras continuam fazendo
-  // o que fizeram a batalha inteira: o "a" fica, o "b" persegue. O que muda e
-  // que aqui a mesma casa e uma e depois a outra.
-  //
-  // O FREIO E EM 0,79s PORQUE E A ALTURA DA FITA: a cabeca varre em y = 144, e
-  // 300 px/s por 0,79s poe a casa em y = 379 (medido), no meio do caminho ate o
-  // aluno. O fator 0,1 deixa a casa escorrer a 30 px/s em vez de parar de vez -
-  // parada, uma casa que a cabeca nunca relesse ficaria no campo para sempre e
-  // nunca voltaria para o pool. Medido: a casa mais velha foi reescrita com
-  // 5,9s, uns 150px abaixo da fileira.
-  //
-  // A IDADE MINIMA E 0,9s, E TEM DE PASSAR DO FREIO, por dois motivos medidos.
-  // A casa nasce embaixo da cabeca: com idade minima zero, as 77 casas da fase
-  // foram reescritas com menos de 0,1s, e a fita nunca existiu. E o freio
-  // continua agendado: reescrita antes de 0,79s, a casa vira "b" e LOGO DEPOIS
-  // freia para 10% - 74 das 77 frearam assim, e o piloto nao tomou acerto
-  // nenhum. Com 0,9 ela ja esta parada na fileira quando pode ser lida.
-  //
-  // A CASA ESTA NO POSTO "fita", e e isso que a deixa fora do intercambio: a
-  // troca a <-> b e das letras em voo (Alfabeto.h), e a casa parada e da
-  // maquina - quem a reescreve e a cabeca.
-  //
-  // O "b" REESCRITO persegue com a forca e a duracao do "b" da fita antiga
-  // (1,6 por 2,2s), saindo a 260 px/s ja apontado para o aluno.
+  // A FITA DA MAQUINA DE TURING: a marca que o castor escreve, um "a" parado
+  // na casa. Fica no posto "fita", e e por la que o Vladimir a acha para
+  // apagar - e e isso que a deixa fora do intercambio: a troca a <-> b e das
+  // letras em voo (Alfabeto.h), e a marca parada e da maquina. Apagada, ela
+  // sai como um "b" do "letra_b" (Vladimir::AtualizarFita).
   "fita": [
-    { "animacao": "A", "posto": "fita",
-      "modifiers": [
-        { "tipo": "SlowDown", "atraso": 0.79, "fator": 0.1 },
-        { "tipo": "Reescrever", "atraso": 0.9, "raio": 24, "escreve": "B",
-          "velocidade": 260, "forca": 1.6, "duracao": 2.2 } ] }
+    { "animacao": "A", "posto": "fita" }
   ]
 }

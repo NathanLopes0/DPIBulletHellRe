@@ -8,18 +8,19 @@
   //
   //   StateOne    Regular                 o automato finito, desenhado no campo
   //   StateTwo    Livre de contexto       o compilador: a gramatica da expressao montando a arvore
-  //   StateThree  Recursivamente enum.    a maquina de Turing, lendo e reescrevendo a fita
+  //   StateThree  Recursivamente enum.    o castor mais ocupado: uma maquina de Turing de verdade
   //   StateFinal  Indecidivel             o problema da parada: o programa de Collatz
   //
   // O MOVIMENTO DO CHEFE E A IDEIA DA FASE:
   //
   //   Conduzido  ele vai aonde a fase manda: o estado da transicao, o token ou
-  //              o no que o compilador le, a ponta da fita, a altura do valor
+  //              o meio da arvore, a cabeca da fita, a altura do valor
   //              de x (Boss::AlvoDoMovimento)
   //
   // Um chefe parado deixa a tela vazia dos lados, e um que anda sem parar nao
   // leva tiro (o tiro do aluno leva quase 1s ate ele): o automato pousa em cada
-  // estado, e a cabeca da fita para nas pontas.
+  // estado, o compilador para em cima da arvore, e o professor segue a cabeca
+  // da fita mais devagar que ela.
   //
   // E O PLACAR E A REGRA. O "anuncio" de cada fase abre no quadro do canto de
   // cima, e dali em diante o Vladimir o reescreve com o que a maquina esta
@@ -41,8 +42,8 @@
   // letra em voo troca de letra e de comportamento: o "a" que vinha reto passa
   // a perseguir, e o "b" que perseguia segue reto (Alfabeto.h). E o
   // homomorfismo h(a) = b, h(b) = a, e o placar avisa assim:
-  // "Intercâmbio: a ↔ b". As casas da fita de Turing ficam como estao - estao no
-  // posto "fita", e quem as reescreve e a cabeca da maquina.
+  // "Intercâmbio: a ↔ b". As marcas da fita de Turing ficam como estao - estao no
+  // posto "fita", e quem as apaga e a maquina.
   //
   // A CADA 8s EM TODA FASE, aos 8 e aos 16. Medido na batalha inteira, com o
   // piloto que persegue: so na fase 2, como era, 74,5 e 11 acertos sofridos;
@@ -52,31 +53,30 @@
   //
   // CADA LUTA E OUTRA (Variacao.h; Vladimir::SortearALuta). A palavra do
   // automato e a semente de Collatz ja eram sorteadas na hora; as tres linhas
-  // que o compilador compila sao da luta (Compilador::Plano); a fita tambem - a cabeca fica de 1,0 a
-  // 1,4 s parada em cada ponta, e a primeira casa de cada varredura cai num
-  // lugar sorteado (Fita::Plano) -, e a repescagem roda as doze sementes numa
-  // ordem propria, sem repetir antes de rodar todas, varrendo primeiro para um
-  // lado sorteado (Parada::Plano).
+  // que o compilador compila sao da luta (Compilador::Plano); o castor da fita
+  // vem como e ou espelhado (Fita::Plano); e a repescagem roda as doze
+  // sementes numa ordem propria, sem repetir antes de rodar todas, varrendo
+  // primeiro para um lado sorteado (Parada::Plano).
   //
   // NO DIFICIL: a letra lida sai em mais tiros - o "a" num leque de 7 (e nao
   // 5), o "b" em 4 (e nao 3) e o rejeita em 6 (e nao 4), o bloco "dificil" de
   // cada ataque -; o compilador emite uma instrucao a cada 0,24 s (e nao 0,3 -
   // Compilador::Degrau), duas por vez e mais rapidas, os tokens caem mais
-  // depressa, cada reducao e um leque de 7 (e nao 3) e o STORE e um anel de
-  // 16 (e nao 10); a fita ganha
-  // uma casa a cada 0,16 s (Fita::Degrau); e o Collatz da um passo a cada 0,38
-  // s, 15% mais rapido, com a metade em 5 tiros e o 3x + 1 em 3
-  // (Parada::Degrau e o bloco "dificil"). O relogio do automato e o de sempre:
-  // com um simbolo a cada 0,9 s, tres de cinco lutas reprovavam no piloto que
-  // desvia e no que persegue - o professor voava mais de estado em estado, e
-  // quem desvia o acertava menos (72 a 100 tiros, e nao 77 a 129) sem ser
-  // muito mais atingido.
+  // depressa, cada reducao e um leque de 7 (e nao 3) e o STORE e um anel de 16
+  // (e nao 10); na fita, a marca apagada vira um "b" que persegue e a relida
+  // atira duas copias; e o Collatz da um passo a cada 0,38 s, 15% mais rapido, com a
+  // metade em 5 tiros e o 3x + 1 em 3 (Parada::Degrau e o bloco "dificil"). O
+  // relogio do automato e o de sempre: com um simbolo a cada 0,9 s, tres de
+  // cinco lutas reprovavam no piloto que desvia e no que persegue - o
+  // professor voava mais de estado em estado, e quem desvia o acertava menos
+  // (72 a 100 tiros, e nao 77 a 129) sem ser muito mais atingido.
   //
-  // Medido em cinco sementes, a batalha inteira, com o compilador na fase 2:
-  // no Normal o que persegue termina com 71,2 a 84,4 (uma luta na repescagem)
-  // e o que desvia com 93,4 a 97,5 (nenhum acerto); no Dificil, 62,3 a 74,4
-  // (uma na repescagem) e 64,9 a 80,2 (2 a 6 acertos, 4,2 em media). O parado
-  // e o que vai e vem reprovam nos dois.
+  // Medido em cinco sementes, a batalha inteira, com o compilador na fase 2 e
+  // o castor na 3: no Normal o que persegue termina com 67,1 a 77,8 e o que
+  // desvia com 97,2 a 100 (nenhum acerto); no Dificil o que persegue reprova
+  // em tres de cinco (38,7 a 68,1, com a repescagem) e o que desvia termina
+  // com 68,7 a 84,1 (2 a 6 acertos, 4,2 em media). O parado e o que vai e vem
+  // reprovam nos dois.
   //
   // OS NOMES DE FASE NAO SAO LIVRES: a maquina de estados procura por texto, e
   // so StateOne, StateTwo, StateThree e StateFinal existem. StateFinal e
@@ -213,47 +213,72 @@
     ]
   },
 
-  // FASE 3 - RECURSIVAMENTE ENUMERAVEL: A MAQUINA DE TURING   |   gesto: A FITA
+  // FASE 3 - RECURSIVAMENTE ENUMERAVEL: A MAQUINA DE TURING   |   gesto: A CABECA
   //
-  // A MAQUINA DE TURING E O UNICO NIVEL DA HIERARQUIA QUE LE E ESCREVE, e a
-  // fase faz as duas coisas com a mesma fileira de simbolos. Era a repescagem,
-  // e so quem terminava a fase 3 entre 40 e 59 a via; agora e a fase que decide
-  // a batalha, e todo mundo ve.
+  // UMA MAQUINA DE TURING DE VERDADE, e a mais famosa das pequenas: o CASTOR
+  // MAIS OCUPADO de 4 estados (Fita.h) - de todas as maquinas de 4 estados que
+  // param, a que deixa mais marcas na fita. Da fita em branco, ela da 107
+  // passos, um a cada 0,18 s, e para logo antes do fim da fase com 13 marcas:
+  // Sigma(4) = 13. Achar o castor de n estados e incomputavel - e a ponte para
+  // a repescagem.
   //
-  // ESCREVE NA IDA. A cabeca vai de ponta a ponta a 330 px/s e solta um "a" reto
-  // para baixo a cada 0,2s (o gatilho "escrever", puxado pelo Vladimir so
-  // enquanto ela anda); cada um freia em 0,79s (ver "fita" em regras.json) e
-  // fica numa fileira em y = 379, uma casa a cada 66 pixels. O que se ve e a
-  // cabeca deixando a fita escrita atras dela.
+  // A FITA SAO 14 CASAS DESENHADAS no meio do campo, e a CABECA e o quadro
+  // ambar em volta da casa que ela le. Ela anda uma casa por passo para onde a
+  // tabela manda - indo e voltando, nunca do mesmo jeito -, e cada passo vira
+  // tiro:
   //
-  // E PARA NAS PONTAS: le o branco, troca de estado - "δ(q₀, □) = (q₁, □, ←)" -
-  // e fica 1,2s parada antes de voltar (Fita.h). E a pausa que deixa o aluno
-  // acertar o professor: varrendo sem parar, como era, o piloto que persegue o
-  // acertou 12 vezes na fase inteira.
+  //   escreve no branco   a marca nova, um "a" parado na casa ("escrever")
+  //   apaga a marca       o "a" sai da casa no aluno ("apagar")
+  //   rele a marca        so no Dificil: a casa atira copias ("reler")
+  //   para                um anel do professor ("pare")
   //
-  // REESCREVE NA VOLTA. Quando a varredura traz a cabeca de novo por cima de uma
-  // casa, ela a le e a reescreve: o "a" parado vira "b" e sai atras do aluno.
-  // Medido em 17s: das 74 casas que pararam na fileira, 59 foram reescritas,
-  // com idade mediana de 3,6s e maxima de 5,9s - a cabeca leva ate uma volta
-  // inteira da varredura para voltar a cada lugar.
+  // Sao 46 marcas escritas, 33 apagadas e 28 relidas. O PLACAR E A TRANSICAO
+  // DO PASSO - "δ(q₁, a) = (q₂, □, ←)": lendo-o o aluno sabe se a casa da
+  // cabeca vai ser escrita, apagada ou relida.
   //
-  // O PLACAR E A TRANSICAO, e a seta e o sentido em que a cabeca anda agora:
-  // indo, "δ(q₀, a) = (q₀, b, →)"; voltando, "δ(q₁, a) = (q₁, b, ←)" (Fita.h).
-  // O anuncio abaixo so aparece antes de ele andar.
+  // NO NORMAL a marca apagada sai da casa como um "a" mirado no aluno, e a
+  // relida so e lida. NO DIFICIL a apagada e REESCRITA - vira um "b" que
+  // persegue (o gatilho "reescrever") - e a relida atira duas copias
+  // (Fita::Degrau). Com o "b" e as copias ja no Normal, o piloto que persegue
+  // tomava 7 acertos na fase sozinha.
   //
-  // AS CASAS DA FITA NAO TROCAM NO INTERCAMBIO: estao no posto "fita". Quem as
-  // reescreve e a cabeca.
+  // O PROFESSOR NAO FICA EM CIMA DA CABECA: fica a 70% do caminho entre o meio
+  // e ela (Fita::XDoProfessor), a 150 px/s, com uma linha ate a casa lida. Em
+  // cima dela, quem o segue ficava na mira de toda marca apagada; perto do
+  // meio, ele pairava sobre quem fica parado no centro - que o acertava a fase
+  // inteira e, entre as duas casas do meio, nunca era atingido.
+  //
+  // CADA LUTA E OUTRA: a maquina vem como e ou ESPELHADA (Fita::Plano) - a
+  // mesma, com esquerda e direita trocadas.
+  //
+  // AS MARCAS DA FITA NAO TROCAM NO INTERCAMBIO: estao no posto "fita". Quem
+  // as apaga e a maquina. O "b" apagado, ja em voo, troca como toda letra.
+  //
+  // Era uma varredura de ponta a ponta que escrevia na ida e reescrevia na
+  // volta: previsivel, e medida em cinco sementes, nenhum piloto tomava um
+  // acerto nela.
   "StateThree": {
     "duracao": 20,
     "proximo": "",
-    "anuncio": "máquina de Turing",
+    "anuncio": "castor ocupado: 4 estados",
     "intercambio": { "aCada": 8, "aviso": 1.5 },
-    "movimento": { "tipo": "Conduzido", "a": 330 },
+    "movimento": { "tipo": "Conduzido", "a": 150 },
     "ataques": [
       { "gatilho": "escrever", "estrategia": "WaveAttack", "projetil": "Simbolo",
-        "projeteis": 1, "velocidade": 300, "angulo": 0, "anguloCentral": 90,
-        "intervalo": 0,
-        "regras": "fita" }
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "fita" },
+      { "gatilho": "apagar", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 1, "velocidade": 200, "angulo": 0, "intervalo": 0,
+        "regras": "letra_a" },
+      { "gatilho": "reescrever", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 1, "velocidade": 240, "angulo": 0, "intervalo": 0,
+        "regras": "letra_b" },
+      { "gatilho": "reler", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 2, "velocidade": 230, "angulo": 24, "intervalo": 0,
+        "regras": "letra_a" },
+      { "gatilho": "pare", "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
+        "projeteis": 14, "velocidade": 200,
+        "regras": "letra_a" }
     ]
   },
 

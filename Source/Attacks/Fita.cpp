@@ -1,57 +1,117 @@
 //
-// A fita da maquina de Turing do Vladimir - a regra de quando uma casa e
-// reescrita, sem nada do motor.
+// A fita da maquina de Turing do Vladimir: o castor mais ocupado de quatro
+// estados, rodando de verdade.
 //
 
 #include "Fita.h"
 
-#include <cmath>
-
 namespace Fita {
 
-bool CabecaSobreACasa(const float xDaCabeca, const float xDaCasa, const float raio) {
-    return std::fabs(xDaCabeca - xDaCasa) <= raio;
-}
-
-bool DeveReescrever(const float idade, const float idadeMinima,
-                    const std::vector<float>& xDasCabecas, const float xDaCasa, const float raio) {
-
-    if (idade < idadeMinima) return false;
-
-    for (const float x : xDasCabecas) {
-        if (CabecaSobreACasa(x, xDaCasa, raio)) return true;
-    }
-    return false;
-}
-
-
-    std::string Transicao(const bool paraDireita) {
-        // q0 ou q1 em subscrito, o delta, a seta: UTF-8 por escape.
-        const std::string q = paraDireita ? "q\xE2\x82\x80" : "q\xE2\x82\x81";
-        const std::string seta = paraDireita ? "\xE2\x86\x92" : "\xE2\x86\x90";
-        return "\xCE\xB4(" + q + ", a) = (" + q + ", b, " + seta + ")";
+    const Tabela& Castor() {
+        // A (q0), B (q1), C (q2), D (q3): {escreve, sentido, proximo} lendo
+        // branco e lendo a marca.
+        static const Tabela tabela = {{
+            {{ {1, +1, 1}, {1, -1, 1} }},          // A: 1RB  1LB
+            {{ {1, -1, 0}, {0, -1, 2} }},          // B: 1LA  0LC
+            {{ {1, +1, kParada}, {1, -1, 3} }},    // C: 1RH  1LD
+            {{ {1, +1, 3}, {0, +1, 0} }},          // D: 1RD  0RA
+        }};
+        return tabela;
     }
 
-    std::string Branco(const bool chegouADireita) {
-        // O branco e o quadrado vazio (E2 96 A1); o estado de antes e o de quem
-        // chegou, e o de depois e o do sentido de volta.
-        const std::string branco = "\xE2\x96\xA1";
-        const std::string de = chegouADireita ? "q\xE2\x82\x80" : "q\xE2\x82\x81";
-        const std::string para = chegouADireita ? "q\xE2\x82\x81" : "q\xE2\x82\x80";
-        const std::string seta = chegouADireita ? "\xE2\x86\x90" : "\xE2\x86\x92";
-        return "\xCE\xB4(" + de + ", " + branco + ") = (" + para + ", " + branco + ", " + seta + ")";
+    float XDaCasa(const int casa, const float largura) {
+        return largura / 2.0f + (static_cast<float>(casa) - static_cast<float>(kCasas - 1) / 2.0f) * kEntreCasas;
     }
+
+    float XDoProfessor(const float xDaCabeca, const float largura) {
+        return largura / 2.0f + kInclinacao * (xDaCabeca - largura / 2.0f);
+    }
+
+    Estado Inicio(const bool espelho) {
+
+        Estado e;
+        e.cabeca = espelho ? kCasas - 1 - kOrigem : kOrigem;
+        return e;
+    }
+
+    Passo Avancar(Estado& e, const bool espelho) {
+        Passo p;
+        p.casa = e.cabeca;
+        p.de = e.q;
+        if (e.parou || e.cabeca < 0 || e.cabeca >= kCasas) {
+            e.parou = true;
+            p.para = kParada;
+            return p;
+        }
+        const auto casa = static_cast<size_t>(e.cabeca);
+        p.leu = e.fita[casa];
+        const Regra& r = Castor()[static_cast<size_t>(e.q)][static_cast<size_t>(p.leu)];
+        p.escreveu = r.escreve;
+        p.para = r.proximo;
+        p.sentido = espelho ? -r.sentido : r.sentido;
+        e.fita[casa] = r.escreve;
+        e.cabeca += p.sentido;
+        e.q = r.proximo;
+        ++e.passos;
+        if (r.proximo == kParada) e.parou = true;
+        return p;
+    }
+
+    int Marcas(const Estado& e) {
+        int n = 0;
+        for (const int s : e.fita) n += s;
+        return n;
+    }
+
+    namespace {
+        // Os subscritos de 0 a 3 sao E2 82 80..83. Quem para vai para "pare":
+        // a Carlito nao tem o h subscrito do q-halt.
+        std::string Q(const int q) {
+            if (q == kParada) return "pare";
+            return std::string("q\xE2\x82") + static_cast<char>(0x80 + q);
+        }
+        std::string Simbolo(const int s) { return s ? "a" : "\xE2\x96\xA1"; }   // o branco e o quadrado vazio
+    }
+
+    std::string Transicao(const Passo& p) {
+        const std::string seta = p.sentido > 0 ? "\xE2\x86\x92" : "\xE2\x86\x90";
+        return "\xCE\xB4(" + Q(p.de) + ", " + Simbolo(p.leu) + ") = (" + Q(p.para) + ", " +
+               Simbolo(p.escreveu) + ", " + seta + ")";
+    }
+
+    std::string Placar(const Estado& e, const Passo& p) {
+        if (e.parou) {
+            // \xce\xa3 e o sigma maiusculo.
+            return Transicao(p) + "\nparou: " + std::to_string(e.passos) + " passos, \xCE\xA3(4) = " +
+                   std::to_string(Marcas(e));
+        }
+        return Transicao(p) + "\npasso " + std::to_string(e.passos) + " \xC2\xB7 " + std::to_string(Marcas(e)) +
+               " marcas";
+    }
+
+    std::string Legenda(const bool parou, const Degrau& d) {
+        if (parou) {
+            return "Parou! Nenhuma m\xC3\xA1quina de 4 estados deixa mais marcas antes de parar - "
+                   "e n\xC3\xA3o existe algoritmo que ache o castor de n estados.";
+        }
+        const std::string comeco = "O castor mais ocupado: a m\xC3\xA1quina de 4 estados que mais escreve antes de parar. ";
+        if (d.apagadaPersegue) return comeco + "Marca apagada vira um b que persegue; relida atira c\xC3\xB3pias.";
+        return comeco + "Cada marca que ela apaga sai da fita em voc\xC3\xAA.";
+    }
+
 
     Plano Sortear(Variacao::Sorteio& s) {
         Plano p;
-        p.pausaNaPonta = s.Real(1.0f, 1.4f);
-        p.primeiraEscrita = s.Real(0.0f, kEscrita);
+        p.espelho = s.Chance(0.5f);
         return p;
     }
 
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
-        d.escrita = Dificuldade::Escolher(n, kEscrita, 0.16f);
+        d.apagadaPersegue = Dificuldade::Escolher(n, false, true);
+        d.relerAtira = Dificuldade::Escolher(n, false, true);
+
         return d;
     }
+
 }

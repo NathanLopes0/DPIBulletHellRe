@@ -66,12 +66,7 @@ struct DescricaoDeBehavior {
     float fator = 1.0f;             ///< Accelerate, SlowDown
     Vector2 velocidadeInicial;      ///< Activate
 
-    /// Reescrever: a que distancia, no x, a cabeca le a casa. Ver Fita.h.
-    float raio = 0.0f;
-
-    /// Reescrever: a animacao que a casa passa a ter - a letra que a maquina
-    /// ESCREVE. Obrigatoria: reescrever sem trocar de letra seria uma casa que
-    /// muda de comportamento com a mesma cor, e a cor e o que se le de longe.
+    /// Amarrar e Promessa: a animacao que o projetil passa a ter.
     std::string escreve;
 
     /// Promessa: a parte das promessas que resolvem, de 0 a 1. Ver Promessa.h.
@@ -179,7 +174,7 @@ struct RegrasLidas {
 bool EhMotion(const std::string& tipo);
 
 /// @brief O tipo nomeado e um Modifier? (Accelerate, SlowDown, Activate,
-/// Deactivate, PulsoDeVelocidade, Reescrever, Promessa)
+/// Deactivate, PulsoDeVelocidade, Promessa)
 bool EhModifier(const std::string& tipo);
 
 /// @brief O posto nomeado existe? Um posto e um lugar de onde uma PontosAttack

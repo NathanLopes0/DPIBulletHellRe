@@ -21,6 +21,21 @@
 #include "../../../Scenes/Battle/ProjectileManager.h"
 #include "BossesProjectiles/BossProjectile.h"
 
+namespace {
+    /// As arestas da arvore: o azul do diagrama do automato, esmaecido.
+    constexpr SDL_Color kAresta{150, 170, 230, 150};
+    constexpr int kOrdemDasLinhas = 84;   // embaixo dos nos e das marcas (ordemDeDesenho 88 e 90)
+
+    /// A fita: as casas esmaecidas, e a cabeca no ambar do "a".
+    constexpr SDL_Color kCasaDaFita{110, 120, 150, 110};
+    constexpr SDL_Color kCabecaDaFita{236, 196, 110, 230};
+
+    /// O que a legenda diz antes da primeira linha.
+    const char* const kAberturaDoCompilador =
+        "Constru\xc3\xa7\xc3\xa3o de Compiladores: tr\xc3\xaas linhas de c\xc3\xb3" "digo, "
+        "e cada uma passa pelo l\xc3\xa9xico, pelo sint\xc3\xa1tico e pela gera\xc3\xa7\xc3\xa3o de c\xc3\xb3" "digo.";
+}
+
 Vladimir::Vladimir(Scene* scene) : Boss(scene) {
 }
 
@@ -49,16 +64,22 @@ void Vladimir::OnUpdate(const float deltaTime) {
     Boss::OnUpdate(deltaTime);
     AtualizarAutomato();
     AtualizarCompilador(deltaTime);
-    AtualizarFita(deltaTime);
+    AtualizarFita();
     AtualizarParada(deltaTime);
 }
 
-void Vladimir::AtualizarFita(const float deltaTime) {
+void Vladimir::AtualizarFita() {
     const auto* fsm = GetComponent<FSMComponent>();
     const bool naFita = fsm && fsm->GetStateName() == Fita::kFaseDaFita && !EhClone();
     if (!naFita) {
+        // A FASE ACABOU: as marcas que sobraram na fileira saem, a cabeca
+        // some, e o placar e a legenda voltam ao que eram.
         if (mNaFita) {
+            for (BossProjectile* marca : NoPosto(Fita::kPostoDaFita)) marca->Kill();
+            mMarcas.fill(nullptr);
+            if (mLinhas) mLinhas->Limpar();
             if (!mAnuncioDaFita.empty()) RegistrarAnuncio(Fita::kFaseDaFita, mAnuncioDaFita);
+            RegistrarLegenda(Fita::kFaseDaFita, "");
             mAlvo.reset();
         }
         mNaFita = false;
@@ -66,47 +87,86 @@ void Vladimir::AtualizarFita(const float deltaTime) {
     }
     if (!mScene || !mScene->GetGame()) return;
     const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
-    const auto ponta = [&](const int sentido) {
-        return Vector2(sentido > 0 ? largura - Fita::kMargem : Fita::kMargem, Fita::kAlturaDaCabeca);
-    };
+    const auto casa = [&](const int k) { return Vector2(Fita::XDaCasa(k, largura), Fita::kYDaFita); };
 
     if (!mNaFita) {
-        // A CABECA COMECA INDO PARA A DIREITA, em q0, escrevendo desde ja.
+        // A FITA EM BRANCO, a cabeca na origem, em q0.
         mNaFita = true;
-        mSentidoDaFita = 1;
-        mPausaNaPonta = 0.0f;
-        mProximaEscrita = mPlanoDaFita.primeiraEscrita;
+        mFita = Fita::Inicio(mPlanoDaFita.espelho);
+        mProximoPassoDaFita = Fita::kPrimeiroPasso;
+        mMarcas.fill(nullptr);
         if (mAnuncioDaFita.empty()) mAnuncioDaFita = AnuncioDaFase(Fita::kFaseDaFita);
-        mAlvo = ponta(mSentidoDaFita);
-        RegistrarAnuncio(Fita::kFaseDaFita, Fita::Transicao(true));
+        RegistrarAnuncio(Fita::kFaseDaFita, mAnuncioDaFita);
+        RegistrarLegenda(Fita::kFaseDaFita, Fita::Legenda(false, mDegrauDaFita));
+        CriarLinhas();
     }
 
-    // NA PONTA: parada, sem escrever, ate a pausa acabar - e entao volta.
-    if (mPausaNaPonta > 0.0f) {
-        mPausaNaPonta -= deltaTime;
-        if (mPausaNaPonta <= 0.0f) {
-            mSentidoDaFita = -mSentidoDaFita;
-            mAlvo = ponta(mSentidoDaFita);
-            mProximaEscrita = mPlanoDaFita.primeiraEscrita;
-            RegistrarAnuncio(Fita::kFaseDaFita, Fita::Transicao(mSentidoDaFita > 0));
+    // A MARCA QUE NAO ESTA MAIS NA FILEIRA sai da conta (o pool pode te-la
+    // dado a outro tiro).
+    for (BossProjectile*& marca : mMarcas) {
+        if (marca && (marca->GetState() != ActorState::Active || marca->Posto() != Fita::kPostoDaFita)) marca = nullptr;
+    }
+
+    const float agora = fsm->GetStateTime();
+    while (!mFita.parou && agora >= mProximoPassoDaFita) {
+        mProximoPassoDaFita += Fita::kPasso;
+        const Fita::Passo p = Fita::Avancar(mFita, mPlanoDaFita.espelho);
+        const Vector2 onde = casa(p.casa);
+        BossProjectile*& marca = mMarcas[static_cast<size_t>(p.casa)];
+
+        if (!p.leu && p.escreveu) {
+            // ESCREVE: a marca nova fica na casa.
+            const auto nascidas = DispararDe(Fita::kGatilhoDaEscrita, onde, 90.0f, "");
+            if (!nascidas.empty()) marca = nascidas.front();
+        } else if (p.leu && !p.escreveu) {
+            // APAGA: a marca sai da fita no aluno - um "a", reto, ou, no
+            // Dificil, reescrita como um "b" que persegue.
+            if (marca) { marca->Kill(); marca = nullptr; }
+            DispararDe(mDegrauDaFita.apagadaPersegue ? Fita::kGatilhoDaReescrita : Fita::kGatilhoDoApagar,
+                       onde, std::nullopt, "");
+
+
+        } else if (p.leu && p.escreveu && mDegrauDaFita.relerAtira) {
+            // RELE, NO DIFICIL: a marca fica, e atira uma copia de si no aluno.
+            DispararDe(Fita::kGatilhoDoReler, onde, std::nullopt, "");
         }
-        return;
+
+        RegistrarAnuncio(Fita::kFaseDaFita, Fita::Placar(mFita, p));
+        if (mFita.parou) {
+            // PAROU: o anel, e a legenda diz o que isso quer dizer.
+            DispararDe(Fita::kGatilhoDaParada, GetPosition(), 90.0f, "");
+            RegistrarLegenda(Fita::kFaseDaFita, Fita::Legenda(true, mDegrauDaFita));
+        }
     }
 
-    // CHEGOU A PONTA: le o branco e troca de estado.
-    if ((GetPosition() - ponta(mSentidoDaFita)).LengthSq() <= 1.0f) {
-        mPausaNaPonta = mPlanoDaFita.pausaNaPonta;
-        RegistrarAnuncio(Fita::kFaseDaFita, Fita::Branco(mSentidoDaFita > 0));
-        return;
-    }
+    // O PROFESSOR RODA A MAQUINA DO MEIO, inclinado para o lado da cabeca e
+    // ligado a ela pela linha (Fita::XDoProfessor).
+    const int naCabeca = std::clamp(mFita.cabeca, 0, Fita::kCasas - 1);
+    mAlvo = Vector2(Fita::XDoProfessor(casa(naCabeca).x, largura), Fita::kAlturaDaCabeca);
 
-    // ANDANDO, ESCREVE: uma casa a cada escrita do degrau (Fita::kEscrita no
-    // Normal).
-    mProximaEscrita -= deltaTime;
-    if (mProximaEscrita <= 0.0f) {
-        Disparar(Fita::kGatilhoDaEscrita);
-        mProximaEscrita += mDegrauDaFita.escrita;
-    }
+    DesenharCabeca();
+}
+
+void Vladimir::DesenharCabeca() {
+    if (!mLinhas || !mScene || !mScene->GetGame()) return;
+    mLinhas->Limpar();
+    const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
+
+    // A FITA: a fileira de casas, apagada; e a CABECA, o quadro aceso em volta
+    // da casa que ela le - parada, ele fica em cima da ultima.
+    const float meia = Fita::kEntreCasas / 2.0f - 3.0f;
+    const auto quadro = [&](const float x, const SDL_Color cor) {
+        const Vector2 a(x - meia, Fita::kYDaFita - meia), b(x + meia, Fita::kYDaFita - meia);
+        const Vector2 c(x + meia, Fita::kYDaFita + meia), d(x - meia, Fita::kYDaFita + meia);
+        mLinhas->Acrescentar(a, b, cor);
+        mLinhas->Acrescentar(b, c, cor);
+        mLinhas->Acrescentar(c, d, cor);
+        mLinhas->Acrescentar(d, a, cor);
+    };
+    for (int k = 0; k < Fita::kCasas; ++k) quadro(Fita::XDaCasa(k, largura), kCasaDaFita);
+    const float x = Fita::XDaCasa(std::clamp(mFita.cabeca, 0, Fita::kCasas - 1), largura);
+    quadro(x, kCabecaDaFita);
+    mLinhas->Acrescentar(GetPosition(), Vector2(x, Fita::kYDaFita - meia), kCabecaDaFita);
 }
 
 void Vladimir::AtualizarParada(const float deltaTime) {
@@ -304,17 +364,6 @@ void Vladimir::AtualizarAutomato() {
     }
 }
 
-namespace {
-    /// As arestas da arvore: o azul do diagrama do automato, esmaecido.
-    constexpr SDL_Color kAresta{150, 170, 230, 150};
-    constexpr int kOrdemDasArestas = 84;   // embaixo dos nos (ordemDeDesenho 88)
-
-    /// O que a legenda diz antes da primeira linha.
-    const char* const kAberturaDoCompilador =
-        "Constru\xc3\xa7\xc3\xa3o de Compiladores: tr\xc3\xaas linhas de c\xc3\xb3" "digo, "
-        "e cada uma passa pelo l\xc3\xa9xico, pelo sint\xc3\xa1tico e pela gera\xc3\xa7\xc3\xa3o de c\xc3\xb3" "digo.";
-}
-
 Vector2 Vladimir::PosicaoDoAluno() const {
     if (const auto* battle = dynamic_cast<Battle*>(mScene); battle && battle->Alvo()) {
         return battle->Alvo()->GetPosition();
@@ -322,21 +371,28 @@ Vector2 Vladimir::PosicaoDoAluno() const {
     return GetPosition() + GetDirectionToPlayer() * GetDistanceToPlayer();
 }
 
-std::vector<BossProjectile*> Vladimir::Compilar(const char* gatilho, const Vector2 onde,
-                                                const std::optional<float> rumo, const std::string& cara) {
-    mCompilando = true;
-    mOndeCompilar = onde;
+std::vector<BossProjectile*> Vladimir::DispararDe(const char* gatilho, const Vector2 onde,
+                                                  const std::optional<float> rumo, const std::string& cara) {
+    mDisparandoDe = true;
+    mOndeDisparar = onde;
     if (rumo) {
-        mRumoDoCompilado = *rumo;
+        mRumoDoDisparo = *rumo;
     } else {
         const Vector2 d = PosicaoDoAluno() - onde;
-        mRumoDoCompilado = Math::ToDegrees(Math::Atan2(d.y, d.x));
+        mRumoDoDisparo = Math::ToDegrees(Math::Atan2(d.y, d.x));
     }
-    mCaraDoCompilado = cara;
-    mCompilados.clear();
+    mCaraDoDisparo = cara;
+    mDisparados.clear();
     Disparar(gatilho);
-    mCompilando = false;
-    return mCompilados;
+    mDisparandoDe = false;
+    return mDisparados;
+}
+
+void Vladimir::CriarLinhas() {
+    if (mLinhas || !mScene) return;
+    auto ator = std::make_unique<Actor>(mScene);
+    mLinhas = ator->AddComponent<DrawLinhasComponent>(kOrdemDasLinhas);
+    mScene->AddActor(std::move(ator));
 }
 
 void Vladimir::ComecarRodada(const int rodada, const float inicio) {
@@ -375,7 +431,7 @@ void Vladimir::AtualizarCompilador(const float deltaTime) {
             for (BossProjectile* no : NoPosto(kPostoDaArvore)) no->Kill();
             mNos.clear();
             mLexemas.clear();
-            if (mArestas) mArestas->Limpar();
+            if (mLinhas) mLinhas->Limpar();
             if (!mAnuncioDoCompilador.empty()) RegistrarAnuncio(kFaseDoCompilador, mAnuncioDoCompilador);
             RegistrarLegenda(kFaseDoCompilador, "");
             mNoCompilador = false;
@@ -391,11 +447,7 @@ void Vladimir::AtualizarCompilador(const float deltaTime) {
         if (mAnuncioDoCompilador.empty()) mAnuncioDoCompilador = AnuncioDaFase(kFaseDoCompilador);
         RegistrarAnuncio(kFaseDoCompilador, mAnuncioDoCompilador);
         RegistrarLegenda(kFaseDoCompilador, kAberturaDoCompilador);
-        if (!mArestas && mScene) {
-            auto ator = std::make_unique<Actor>(mScene);
-            mArestas = ator->AddComponent<DrawLinhasComponent>(kOrdemDasArestas);
-            mScene->AddActor(std::move(ator));
-        }
+        CriarLinhas();
         const auto largura = static_cast<float>(mScene && mScene->GetGame() ? mScene->GetGame()->GetWindowWidth() : 1200);
         mAlvo = Vector2(largura / 2.0f, kYDaLinha);
     }
@@ -428,10 +480,10 @@ void Vladimir::AtualizarCompilador(const float deltaTime) {
     while (mLidos < static_cast<int>(mTokens.size()) && t >= static_cast<float>(mLidos) * kPorToken) {
         const Token& tk = mTokens[static_cast<size_t>(mLidos)];
         const Vector2 onde(mNaLinha[static_cast<size_t>(mLidos)].x, mNaLinha[static_cast<size_t>(mLidos)].y);
-        if (tk.texto == "a") Compilar(kGatilhoDoA, onde, 90.0f, "");
-        else if (tk.texto == "b") Compilar(kGatilhoDoB, onde, 90.0f, "");
+        if (tk.texto == "a") DispararDe(kGatilhoDoA, onde, 90.0f, "");
+        else if (tk.texto == "b") DispararDe(kGatilhoDoB, onde, 90.0f, "");
         else {
-            const auto nascidos = Compilar(kGatilhoDoLexema, onde, 90.0f, CaraDoLexema(tk.texto));
+            const auto nascidos = DispararDe(kGatilhoDoLexema, onde, 90.0f, CaraDoLexema(tk.texto));
             if (!nascidos.empty()) mLexemas[static_cast<size_t>(mLidos)] = nascidos.front();
         }
         ++mLidos;
@@ -465,11 +517,11 @@ void Vladimir::AtualizarCompilador(const float deltaTime) {
             ficha = nullptr;
         } else {
             // O a E O b seguiram caindo como letras: o no deles nasce na linha.
-            const auto nascidos = Compilar(kGatilhoDoNo, Vector2(mNaLinha[k].x, mNaLinha[k].y), 90.0f, CaraDoNo(mArvore, n));
+            const auto nascidos = DispararDe(kGatilhoDoNo, Vector2(mNaLinha[k].x, mNaLinha[k].y), 90.0f, CaraDoNo(mArvore, n));
             mNos[static_cast<size_t>(n)] = nascidos.empty() ? nullptr : nascidos.front();
         }
 
-        if (no.tipo == Tipo::Op) Compilar(kGatilhoDaReducao, lugar(n), std::nullopt, CaraDoLexema(no.texto));
+        if (no.tipo == Tipo::Op) DispararDe(kGatilhoDaReducao, lugar(n), std::nullopt, CaraDoLexema(no.texto));
     }
 
     // A GERACAO DE CODIGO: a arvore percorrida de novo, e cada no some virando
@@ -484,7 +536,7 @@ void Vladimir::AtualizarCompilador(const float deltaTime) {
             if (k < 0) continue;
             if (BossProjectile*& p = mNos[static_cast<size_t>(k)]) { p->Kill(); p = nullptr; }
         }
-        Compilar(n == mArvore.raiz ? kGatilhoDoStore : kGatilhoDaInstrucao, onde, std::nullopt, CaraDaInstrucao(instrucao));
+        DispararDe(n == mArvore.raiz ? kGatilhoDoStore : kGatilhoDaInstrucao, onde, std::nullopt, CaraDaInstrucao(instrucao));
         RegistrarAnuncio(kFaseDoCompilador, Placar(mLinha, Etapa::Codigo, instrucao));
     }
 
@@ -521,14 +573,14 @@ void Vladimir::AtualizarCompilador(const float deltaTime) {
 }
 
 void Vladimir::DesenharArestas() {
-    if (!mArestas) return;
-    mArestas->Limpar();
+    if (!mLinhas) return;
+    mLinhas->Limpar();
     for (size_t n = 0; n < mNos.size() && n < mArvore.nos.size(); ++n) {
         if (!mNos[n]) continue;
         const Compilador::No& no = mArvore.nos[n];
         for (const int f : {no.esq, no.dir}) {
             if (f < 0 || !mNos[static_cast<size_t>(f)]) continue;
-            mArestas->Acrescentar(mNos[n]->GetPosition(), mNos[static_cast<size_t>(f)]->GetPosition(), kAresta);
+            mLinhas->Acrescentar(mNos[n]->GetPosition(), mNos[static_cast<size_t>(f)]->GetPosition(), kAresta);
         }
     }
 }
@@ -537,17 +589,21 @@ void Vladimir::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& pr
                                     const std::string& stateName) {
     Boss::OnProjectilesCreated(projectiles, stateName);
 
-    // O QUE O COMPILADOR SOLTOU: a cara de cada um, e quem nasceu. O no da
-    // arvore e o mapa, como os estados da fase 1: ninguem se machuca nele.
-    if (mCompilando) {
+    // O QUE O COMPILADOR OU A FITA SOLTOU: a cara de cada um, e quem nasceu. O
+    // no da arvore e o mapa, como os estados da fase 1: ninguem se machuca
+    // nele.
+    if (mDisparandoDe) {
         for (auto& p : projectiles) {
             auto* nascido = dynamic_cast<BossProjectile*>(p.get());
             if (!nascido) continue;
-            if (nascido->Posto() == Compilador::kPostoDaArvore) nascido->DefinirEnfeite(true);
-            if (auto* anim = nascido->GetComponent<DrawAnimatedComponent>(); anim && !mCaraDoCompilado.empty()) {
-                anim->SetAnimation(mCaraDoCompilado);
+            if (nascido->Posto() == Compilador::kPostoDaArvore && stateName == Compilador::kFaseDoCompilador &&
+                mFilaParada) {
+                nascido->DefinirEnfeite(true);
             }
-            mCompilados.push_back(nascido);
+            if (auto* anim = nascido->GetComponent<DrawAnimatedComponent>(); anim && !mCaraDoDisparo.empty()) {
+                anim->SetAnimation(mCaraDoDisparo);
+            }
+            mDisparados.push_back(nascido);
         }
         return;
     }
@@ -568,12 +624,12 @@ void Vladimir::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& pr
 void Vladimir::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
     Boss::CustomizeAttackParams(params, stateName);
 
-    // NO COMPILADOR, tudo sai de onde o compilador manda, no rumo dele - com
-    // um tiro no meio do leque, como a letra lida abaixo.
-    if (stateName == Compilador::kFaseDoCompilador && mCompilando) {
+    // O QUE SAI DE UM LUGAR (o compilador, a fita) sai de onde ele manda, no
+    // rumo dele - com um tiro no meio do leque, como a letra lida abaixo.
+    if (mDisparandoDe) {
         const bool par = params.numProjectiles > 1 && params.numProjectiles % 2 == 0;
-        params.firePosition = mOndeCompilar;
-        params.centralAngle = mRumoDoCompilado + (par ? 0.5f * params.angle / static_cast<float>(params.numProjectiles - 1) : 0.0f);
+        params.firePosition = mOndeDisparar;
+        params.centralAngle = mRumoDoDisparo + (par ? 0.5f * params.angle / static_cast<float>(params.numProjectiles - 1) : 0.0f);
         return;
     }
 

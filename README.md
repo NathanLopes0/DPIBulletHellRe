@@ -205,7 +205,8 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   e atira cada letra lida, um compilador (ele também dá Construção de
   Compiladores) que quebra uma linha de código em tokens, monta a árvore
   sintática no campo e a transforma em instruções mirando em você, uma máquina de
-  Turing cuja cabeça escreve a fita em cima de você e, no exame, o problema da
+  Turing de verdade — o castor mais ocupado de 4 estados, que escreve, apaga e
+  relê a fita por 107 passos até parar com 13 marcas — e, no exame, o problema da
   parada com o 3x + 1. O "a" vai reto e o "b" persegue, até o Programa de
   Intercâmbio trocar os dois — e ele vale a luta inteira.
 - **Luizinho — INF 340.** Linguagens de Programação, um assunto da ementa por

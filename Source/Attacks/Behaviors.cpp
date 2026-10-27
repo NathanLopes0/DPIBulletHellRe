@@ -9,7 +9,6 @@
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Scenes/Battle/Battle.h"
 #include "../Actors/Teachers/Boss.h"
-#include "Fita.h"
 #include "Flex.h"
 #include "Promessa.h"
 #include "Amarra.h"
@@ -361,36 +360,6 @@ void PulsoDeVelocidadeBehavior::update(Projectile* p, float deltaTime) {
     }
 
     rb->SetVelocity(AjustarModulo(rb->GetVelocity(), fase.modulo));
-}
-
-void ReescreverBehavior::update(Projectile* p, const float deltaTime) {
-
-    // So projetil de chefe tem alvo para perseguir depois de reescrito.
-    auto* casa = dynamic_cast<BossProjectile*>(p);
-    if (!casa) { reescrita = true; return; }
-
-    idade += deltaTime;
-
-    const auto* batalha = dynamic_cast<Battle*>(p->GetScene());
-    if (!batalha) return;
-
-    std::vector<float> cabecas;
-    for (const Boss* corpo : batalha->Corpos()) {
-        if (corpo) cabecas.push_back(corpo->GetPosition().x);
-    }
-    if (!Fita::DeveReescrever(idade, idadeMinima, cabecas, p->GetPosition().x, raio)) return;
-
-    auto* rb = p->GetComponent<RigidBodyComponent>();
-    if (!rb) { reescrita = true; return; }
-
-    // A CASA SAI JA APONTADA PARA O ALVO, com o modulo do arquivo. Parada, ela
-    // nao tem direcao nenhuma, e o Tracking so corrige direcao que ja existe.
-    rb->SetVelocity(casa->GetPlayerDirection() * velocidade);
-    p->insertMotion<TrackingBehavior>(0.0f, forca, duracao);
-
-    if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(escreve);
-
-    reescrita = true;
 }
 
 void DeslocarBehavior::update(Projectile* p, const float deltaTime) {

@@ -473,57 +473,6 @@ TEST_CASE("Regras: o padrao de RegraSeAplica e \"ninguem preso\"") {
 }
 
 // ---------------------------------------------------------------------------
-// Reescrever: a casa da fita de Turing
-// ---------------------------------------------------------------------------
-
-TEST_CASE("Regras: le o Reescrever com os campos dele") {
-    const auto r = LerRegras(R"({ "fita": [ { "animacao": "A", "modifiers": [
-        {"tipo":"SlowDown","atraso":0.7,"fator":0.08},
-        {"tipo":"Reescrever","atraso":0.9,"raio":24,"escreve":"B",
-         "velocidade":260,"forca":1.6,"duracao":2.2} ] } ] })");
-
-    CHECK(r.problemas.empty());
-    REQUIRE(r.conjuntos.count("fita") == 1);
-    const auto& regra = r.conjuntos.at("fita").at(0);
-    REQUIRE(regra.modifiers.size() == 2);
-
-    const auto& d = regra.modifiers[1];
-    CHECK(d.tipo == "Reescrever");
-    CHECK(d.atraso     == doctest::Approx(0.9f));
-    CHECK(d.raio       == doctest::Approx(24.0f));
-    CHECK(d.escreve    == "B");
-    CHECK(d.velocidade == doctest::Approx(260.0f));
-    CHECK(d.forca      == doctest::Approx(1.6f));
-    CHECK(d.duracao    == doctest::Approx(2.2f));
-}
-
-TEST_CASE("Regras: um Reescrever que nao faria nada e recusado dizendo o que falta") {
-
-    // Cada um destes sai CALADO em tela: a cabeca nunca acha a casa, o "b" nasce
-    // parado e o Tracking nao tem o que girar, a casa muda de comportamento com
-    // a cor de antes. Recusar na leitura e o que faz o erro aparecer.
-    struct Caso { const char* json; const char* campo; };
-    const Caso casos[] = {
-        { R"({"x":[{"modifiers":[{"tipo":"Reescrever","raio":0,"escreve":"B","velocidade":260}]}]})", "raio" },
-        { R"({"x":[{"modifiers":[{"tipo":"Reescrever","raio":24,"escreve":"B"}]}]})",                 "velocidade" },
-        { R"({"x":[{"modifiers":[{"tipo":"Reescrever","raio":24,"velocidade":260}]}]})",              "escreve" },
-    };
-    for (const auto& c : casos) {
-        CAPTURE(c.campo);
-        const auto r = LerRegras(c.json);
-        REQUIRE(r.problemas.size() == 1);
-        CHECK(r.problemas[0].find(c.campo) != std::string::npos);
-        CHECK(r.conjuntos.at("x").empty());
-    }
-}
-
-TEST_CASE("Regras: Reescrever e um Modifier, e nao pode ir em \"motion\"") {
-    const auto r = LerRegras(R"({"x":[{"motion":{"tipo":"Reescrever","raio":24,"escreve":"B","velocidade":260}}]})");
-    REQUIRE(r.problemas.size() == 1);
-    CHECK(r.problemas[0].find("Modifier") != std::string::npos);
-}
-
-// ---------------------------------------------------------------------------
 // Promessa: a Promise do JavaScript
 // ---------------------------------------------------------------------------
 
