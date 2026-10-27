@@ -7,15 +7,16 @@
 #include <array>
 #include <optional>
 #include <string>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "../Boss.h"
 #include "../../../Attacks/Automato.h"
 #include "../../../Attacks/Fita.h"
-#include "../../../Attacks/Gramatica.h"
+#include "../../../Attacks/Compilador.h"
 #include "../../../Attacks/Parada.h"
+
+class DrawLinhasComponent;
 
 /**
  * @class Vladimir
@@ -43,9 +44,12 @@
  * estado que a tabela manda (o movimento "Conduzido", que pergunta aqui o
  * destino). Lida a palavra, aceita ou rejeita.
  *
- * A FASE 2 E UMA GRAMATICA LIVRE DE CONTEXTO (Gramatica.h), S -> aSb | e: ele
- * atira o S, e o S deriva em voo - vira um "a", um "b" e um S novo, que deriva
- * de novo, ate virar a palavra vazia. Aqui mora a derivacao de cada S em campo.
+ * A FASE 2 E UM COMPILADOR (Compilador.h) - o Vladimir tambem da Construcao de
+ * Compiladores. Tres linhas de codigo por fase, "x = a + b * 2;", e cada uma
+ * passa pelas tres etapas na tela: o lexico solta os tokens caindo, o
+ * sintatico monta a arvore no campo, e a geracao de codigo transforma cada no
+ * numa instrucao mirada no aluno. Aqui mora o relogio de cada rodada, a arvore
+ * em campo e as arestas dela.
  *
  * A FASE 3 E A MAQUINA DE TURING (Fita.h): ele escreve a fita na passagem e a
  * reescreve na volta. Aqui mora so o placar, que diz a transicao com a seta do
@@ -86,14 +90,15 @@ private:
     //
     // Antes do primeiro quadro (Variacao.h): a fita - a pausa nas pontas e onde
     // cai a primeira casa de cada varredura -, a ordem das sementes de Collatz e
-    // o lado para onde o professor comeca a varrer na repescagem, e o degrau do
-    // modo em cada fase. A palavra do automato, as derivacoes de cada S e o
-    // resto continuam sorteados na hora, como eram.
+    // o lado para onde o professor comeca a varrer na repescagem, as tres linhas
+    // que o compilador compila, e o degrau do modo em cada fase. A palavra do
+    // automato continua sorteada na hora, como era.
 
     void SortearALuta();
 
     bool mLutaSorteada = false;
-    Gramatica::Degrau mDegrauDaGramatica;
+    Compilador::Plano mPlanoDoCompilador;
+    Compilador::Degrau mDegrauDoCompilador;
     Fita::Plano mPlanoDaFita;
     Fita::Degrau mDegrauDaFita;
     Parada::Plano mPlanoDaParada;
@@ -143,40 +148,63 @@ private:
     static constexpr float kPasso = 1.1f;
     static constexpr float kVeredito = 1.3f;
 
-    // ---- A GRAMATICA DA FASE 2 ----------------------------------------------
+    // ---- O COMPILADOR DA FASE 2 ---------------------------------------------
     //
-    // Todo S em campo (o posto "derivacao") tem a idade dele e quantas vezes
-    // ainda deriva. O S que o professor atira pelo relogio nasce com um sorteio
-    // (Gramatica::SortearDerivacoes); o que nasce de uma derivacao herda um a
-    // menos. Com a idade de derivar: se ainda deriva, sai o par - um "a" e um
-    // "b" - e um S novo no meio, e o velho some (os gatilhos "derivar" e
-    // "variavel"); se nao, vira a palavra vazia, que nao machuca e some logo.
+    // Tres rodadas, uma linha da luta em cada (Compilador::Plano), no relogio de
+    // Compilador::MarcosDa. O LEXICO solta os tokens um a um da linha, caindo
+    // em coluna (os gatilhos "lexema", "ler_a" e "ler_b"); o SINTATICO para a
+    // fila de tokens e monta a arvore com ela, em pos-ordem: cada ficha voa de
+    // onde parou ate o lugar dela na arvore (o a e o b, que seguiram caindo
+    // como letras, nascem de novo na linha - o gatilho "arvore"), e cada
+    // operador reduzido solta um leque dele mesmo (o gatilho "reduzir"); a
+    // GERACAO DE CODIGO percorre a arvore de novo, e cada no some virando a
+    // instrucao dele, mirada no aluno (o gatilho "emitir") - o = por ultimo, no
+    // anel do STORE (o gatilho "store"). O professor varre a linha no lexico e
+    // depois fica em cima da raiz.
 
-    void AtualizarGramatica(float deltaTime);
 
-    struct Variavel {
-        float idade = 0.0f;
-        int restantes = 0;
-        int cadeia = 0;   ///< de qual S do professor ele descende - o placar segue o ultimo
-    };
-    std::unordered_map<const BossProjectile*, Variavel> mVariaveis;
+    void AtualizarCompilador(float deltaTime);
+    void ComecarRodada(int rodada, float inicio);
+    void DesenharArestas();
 
-    /// A forma sentencial de cada cadeia, e qual e a do placar.
-    std::unordered_map<int, std::string> mFormas;
-    int mCadeiaDoPlacar = 0;
-    int mProximaCadeia = 1;
+    /// Dispara 'gatilho' de 'onde', no rumo 'rumo' - ou mirado no aluno, sem
+    /// rumo -, com a cara 'cara' no que nascer. Devolve o que nasceu.
+    std::vector<BossProjectile*> Compilar(const char* gatilho, Vector2 onde, std::optional<float> rumo,
+                                          const std::string& cara);
 
-    /// As palavras vazias na tela, e quanto falta para cada uma sumir.
-    std::vector<std::pair<BossProjectile*, float>> mVazias;
+    [[nodiscard]] Vector2 PosicaoDoAluno() const;
 
-    bool mNaGramatica = false;
-    std::string mAnuncioDaGramatica;
+    bool mNoCompilador = false;
+    std::string mAnuncioDoCompilador;
+    int mRodada = -1;                    ///< -1 antes da primeira
+    float mInicioDaRodada = 0.0f;        ///< no relogio da fase
+    std::string mLinha;
+    std::vector<Compilador::Token> mTokens;
+    Compilador::Arvore mArvore;
+    std::vector<int> mOrdem;             ///< a pos-ordem: a montagem e a geracao
+    std::vector<Compilador::Ponto> mNaLinha;
+    std::vector<Compilador::Ponto> mNaArvore;
+    Compilador::Marcos mMarcos;
+    Compilador::Etapa mEtapa = Compilador::Etapa::Pronto;
+    int mLidos = 0;
+    int mMontados = 0;
+    int mEmitidos = 0;
+    std::vector<BossProjectile*> mNos;   ///< o projetil de cada no em campo, por indice
+    std::vector<BossProjectile*> mLexemas;   ///< a ficha de cada token caindo, por indice
+    bool mFilaParada = false;            ///< os tokens ja pararam para o parser
 
-    /// Derivando: de onde e para onde sai o que nasce, e o S que nasceu.
-    bool mDerivando = false;
-    Vector2 mDisparoDaDerivacao;
-    float mRumoDaDerivacao = 90.0f;
-    BossProjectile* mNascida = nullptr;
+    DrawLinhasComponent* mArestas = nullptr;
+
+    /// Compilando: de onde e para onde sai o que nasce, com que cara, e quem
+    /// nasceu.
+    bool mCompilando = false;
+    Vector2 mOndeCompilar;
+    float mRumoDoCompilado = 90.0f;
+    std::string mCaraDoCompilado;
+    std::vector<BossProjectile*> mCompilados;
+
+    /// Quao depressa um no chega ao lugar dele na arvore (Ancora::Aproximar).
+    static constexpr float kRapidezDoNo = 9.0f;
 
     // ---- A FITA DA FASE 3 ---------------------------------------------------
     //

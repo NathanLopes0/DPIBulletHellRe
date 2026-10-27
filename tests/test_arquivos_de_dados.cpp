@@ -59,7 +59,7 @@
 #include "../Source/Attacks/Blink.h"
 #include "../Source/Attacks/Alfabeto.h"
 #include "../Source/Attacks/Automato.h"
-#include "../Source/Attacks/Gramatica.h"
+#include "../Source/Attacks/Compilador.h"
 #include "../Source/Attacks/Parada.h"
 #include "../Source/Attacks/Fita.h"
 #include "../Source/Attacks/Capivara.h"
@@ -1452,40 +1452,55 @@ TEST_CASE("Dados: o automato do Vladimir - gatilhos, posto e caras sao nomes que
     }
 }
 
-TEST_CASE("Dados: a gramatica do Vladimir - gatilhos, posto e caras sao nomes que os dados tem") {
-    CHECK(GatilhoExiste(Gramatica::kGatilhoDoPar));
-    CHECK(GatilhoExiste(Gramatica::kGatilhoDaVariavel));
-    CHECK(PostoExiste(Gramatica::kPostoDaDerivacao));
-
-    // O S E DERRUBAVEL, e as letras nao: e o que deixa o aluno interromper a
-    // derivacao. E o S tem as duas caras que o Vladimir lhe da.
-    const auto& tipos = ProjeteisDoChefe("vladimir").projeteis;
-    REQUIRE(tipos.count("Variavel") == 1);
-    CHECK(tipos.at("Variavel").derrubavel);
-    CHECK_FALSE(tipos.at("Simbolo").derrubavel);
-    std::set<std::string> caras;
-    for (const auto& a : tipos.at("Variavel").animacoes) caras.insert(a.nome);
-    CHECK(caras.count(Gramatica::kCaraDaVariavel) == 1);
-    CHECK(caras.count(Gramatica::kCaraDaVazia) == 1);
-
-    // A FASE TEM O S DO RELOGIO E OS DOIS GATILHOS DA DERIVACAO, e todo S dela
-    // nasce no posto em que o Vladimir o procura.
-    const auto regras = RegrasDoChefe("vladimir");
-    std::set<std::string> gatilhos;
-    int sDoRelogio = 0;
+TEST_CASE("Dados: o compilador do Vladimir - gatilhos, posto e caras sao nomes que os dados tem") {
+    // TODO GATILHO DO COMPILADOR ESTA NA FASE DELE: um que faltasse deixaria
+    // uma etapa sem atirar, ou a arvore sem nos.
+    std::set<std::string> naFase;
+    std::string projetilDoNo;
     for (const auto& f : FasesDoChefe("vladimir").fases) {
-        if (f.nome != Gramatica::kFaseDaGramatica) continue;
+        if (f.nome != Compilador::kFaseDoCompilador) continue;
         for (const auto& a : f.ataques) {
-            gatilhos.insert(a.gatilho);
-            if (a.projetil != "Variavel") continue;
-            if (a.gatilho.empty()) ++sDoRelogio;
-            REQUIRE(regras.conjuntos.count(a.regrasNome) == 1);
-            for (const auto& r : regras.conjuntos.at(a.regrasNome)) CHECK(r.posto == Gramatica::kPostoDaDerivacao);
+            naFase.insert(a.gatilho);
+            if (a.gatilho == Compilador::kGatilhoDoNo) projetilDoNo = a.projetil;
         }
     }
-    CHECK(sDoRelogio == 1);
-    CHECK(gatilhos.count(Gramatica::kGatilhoDoPar) == 1);
-    CHECK(gatilhos.count(Gramatica::kGatilhoDaVariavel) == 1);
+    for (const char* g : {Compilador::kGatilhoDoLexema, Compilador::kGatilhoDoA, Compilador::kGatilhoDoB,
+                          Compilador::kGatilhoDoNo, Compilador::kGatilhoDaReducao, Compilador::kGatilhoDaInstrucao,
+                          Compilador::kGatilhoDoStore}) {
+        CAPTURE(g);
+        CHECK(naFase.count(g) == 1);
+    }
+    CHECK(PostoExiste(Compilador::kPostoDaArvore));
+
+    // AS CARAS QUE O VLADIMIR DA - a de cada token, de cada no e de cada
+    // instrucao - sao animacoes do projetil em que caem. Uma que faltasse
+    // deixaria a ficha com a cara errada, sem aviso.
+    const auto& tipos = ProjeteisDoChefe("vladimir").projeteis;
+    const auto carasDe = [&](const std::string& tipo) {
+        std::set<std::string> caras;
+        if (tipos.count(tipo) == 0) return caras;
+        for (const auto& a : tipos.at(tipo).animacoes) caras.insert(a.nome);
+        return caras;
+    };
+    const auto lexemas = carasDe("Lexema");
+    const auto doNo = carasDe(projetilDoNo);
+    for (const char* texto : {"x", "=", "+", "-", "*", ";", "1", "5", "9"}) {
+        CAPTURE(texto);
+        CHECK(lexemas.count(Compilador::CaraDoLexema(texto)) == 1);
+    }
+    const Compilador::Arvore a = Compilador::Sintatico(Compilador::Lexico("x = a - b * 7;"));
+    for (int n = 0; n < static_cast<int>(a.nos.size()); ++n) CHECK(doNo.count(Compilador::CaraDoNo(a, n)) == 1);
+    const auto instrucoes = carasDe("Instrucao");
+    for (const auto& i : Compilador::Codigo(Compilador::Sintatico(Compilador::Lexico("x = a + b - 2 * a;")))) {
+        CAPTURE(i);
+        CHECK(instrucoes.count(Compilador::CaraDaInstrucao(i)) == 1);
+    }
+    // E NENHUMA FICHA SE CHAMA "A" OU "B": o intercambio troca as animacoes com
+    // esses nomes, e uma ficha nao e letra.
+    for (const auto& caras : {lexemas, instrucoes}) {
+        CHECK(caras.count("A") == 0);
+        CHECK(caras.count("B") == 0);
+    }
 }
 
 TEST_CASE("Dados: a fita e o problema da parada do Vladimir estao nas fases que o C++ le") {

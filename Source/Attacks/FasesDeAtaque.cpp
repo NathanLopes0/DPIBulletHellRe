@@ -50,7 +50,7 @@ namespace {
     const std::vector<std::string> kGatilhos = {"notificacao", "consulta", "agir", "nuvens", "portas",
                                                 "contador", "estagios", "buscar", "lw", "sw", "add", "addi",
                                                 "acender", "estados", "diagrama", "ler_a", "ler_b",
-                                                "aceita", "rejeita", "derivar", "variavel", "metade", "triplo",
+                                                "aceita", "rejeita", "metade", "triplo",
                                                 "parou", "escrever", "capivara", "push", "estourar", "baldes",
                                                 "chave", "percorrer", "nulo", "no", "visitar", "folha_nula",
                                                 "achado", "aresta", "elemento", "trocar", "assentar",
@@ -64,7 +64,8 @@ namespace {
                                                 "celula", "pendente", "estouro", "excecao", "destroco", "finally",
                                                 "instrucao", "segmento", "encaminhar", "descarte",
                                                 "garfo", "garfada", "espera", "envelope", "processar", "encontro",
-                                                "token", "bala", "estilhaco"};
+                                                "token", "bala", "estilhaco",
+                                                "lexema", "arvore", "reduzir", "emitir", "store"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"

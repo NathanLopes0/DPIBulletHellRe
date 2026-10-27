@@ -21,8 +21,8 @@
   //     "b"  PERSEGUE.    Corrige a rota com forca que decai ate zero.
   //
   // E com isso ler a letra passa a dizer algo, nas quatro fases: o automato
-  // atira a letra que leu, e o placar diz qual e a proxima; a derivacao abre um
-  // "a" de um lado e um "b" do outro; a fita escreve "a" e a cabeca o reescreve
+  // atira a letra que leu, e o placar diz qual e a proxima; o compilador solta
+  // cada a e b da linha de codigo; a fita escreve "a" e a cabeca o reescreve
   // em "b"; o programa da metade solta "a" e o do 3x + 1 solta "b". E o
   // intercambio TROCA as duas (Alfabeto.h): o "a" em voo passa a perseguir.
   //
@@ -65,25 +65,12 @@
       "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 2.4 } }
   ],
 
-  // A GRAMATICA DA FASE 2: S -> aSb | e.
-  //
-  // O S fica no posto "derivacao", e e por la que o Vladimir o acha para
-  // derivar (Vladimir::AtualizarGramatica).
-  "variavel": [
-    { "posto": "derivacao", "animacao": "S" }
-  ],
-
-  // O PAR QUE A DERIVACAO SOLTA: o "a" de um lado e o "b" do outro, abertos em
-  // volta do rumo do S. Com o S descendo, o indice 0 sai a direita e o 1 a
-  // esquerda (a WaveAttack abre do angulo menor para o maior) - por isso o 0 e
-  // o "b": a derivacao fica escrita na tela como se le, "a S b".
-  //
-  // O "b" persegue com a forca e a duracao do "b" do automato: e o que o aluno
-  // aprendeu na fase 1.
-  "par": [
-    { "indices": [0], "animacao": "B",
-      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 2.4 } },
-    { "indices": [1], "animacao": "A" }
+  // O COMPILADOR DA FASE 2: os nos da arvore sintatica ficam no posto
+  // "arvore", e e por la que o Vladimir os acha para desfazer no fim da fase.
+  // O resto do compilador veste "letra_a" e "letra_b" (o a e o b que caem no
+  // lexico) ou nada (as fichas, que vao retas).
+  "arvore": [
+    { "posto": "arvore" }
   ],
 
   // A FITA DA MAQUINA DE TURING.

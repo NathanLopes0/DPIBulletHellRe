@@ -173,6 +173,7 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Temperatura.cpp
         Source/Attacks/Geracao.cpp
         Source/Attacks/BalaDePrata.cpp
+        Source/Attacks/Compilador.cpp
         Source/Attacks/Temperatura.h
         Source/Attacks/ReAct.cpp
         Source/Attacks/ReAct.h
@@ -198,8 +199,6 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Alfabeto.h
         Source/Attacks/Automato.cpp
         Source/Attacks/Automato.h
-        Source/Attacks/Gramatica.cpp
-        Source/Attacks/Gramatica.h
         Source/Attacks/Parada.cpp
         Source/Attacks/Parada.h
         Source/Attacks/Capivara.cpp
@@ -374,6 +373,7 @@ add_executable(dpi_tests
         tests/test_temperatura.cpp
         tests/test_geracao.cpp
         tests/test_bala_de_prata.cpp
+        tests/test_compilador.cpp
         tests/test_react.cpp
         tests/test_nuvem.cpp
         tests/test_semaforo.cpp
@@ -386,7 +386,6 @@ add_executable(dpi_tests
         tests/test_blink.cpp
         tests/test_alfabeto.cpp
         tests/test_automato.cpp
-        tests/test_gramatica.cpp
         tests/test_parada.cpp
         tests/test_capivara.cpp
         tests/test_pilha.cpp
@@ -502,6 +501,7 @@ add_executable(dpi_tests
         Source/Attacks/Temperatura.cpp
         Source/Attacks/Geracao.cpp
         Source/Attacks/BalaDePrata.cpp
+        Source/Attacks/Compilador.cpp
         Source/Attacks/Temperatura.h
         Source/Attacks/ReAct.cpp
         Source/Attacks/ReAct.h
@@ -527,8 +527,6 @@ add_executable(dpi_tests
         Source/Attacks/Alfabeto.h
         Source/Attacks/Automato.cpp
         Source/Attacks/Automato.h
-        Source/Attacks/Gramatica.cpp
-        Source/Attacks/Gramatica.h
         Source/Attacks/Parada.cpp
         Source/Attacks/Parada.h
         Source/Attacks/Capivara.cpp

@@ -302,6 +302,51 @@ def diagrama():
     return im.resize((DIAGRAMA_W, DIAGRAMA_H), Image.LANCZOS)
 
 
+# ---- O COMPILADOR (a fase 2, Compilador.h) ----------------------------------
+#
+# DUAS FAMILIAS DE FICHA, porque sao duas coisas: o LEXEMA - o pedaco do codigo
+# fonte, num cartao claro como papel - e a INSTRUCAO que o gerador de codigo
+# emite, num terminal escuro de letra verde. Os identificadores a e b nao tem
+# ficha: sao as proprias letras do Vladimir (alfabeto()), que caem e trocam no
+# Intercambio como toda letra.
+
+LEXEMAS = [("X", "x"), ("Igual", "="), ("Mais", "+"), ("Menos", "-"), ("Vezes", "*"),
+           ("Fim", ";")] + [(f"N{d}", str(d)) for d in range(1, 10)]
+INSTRUCOES = ["LOAD", "PUSH", "ADD", "SUB", "MUL", "STORE"]
+LADO_DA_FICHA = 48
+
+
+def ficha(texto, terminal, borda=None):
+    """Uma ficha de 44 x 26 num quadro de 48: o lexema no cartao claro, ou a
+    instrucao no terminal escuro. A borda colorida e a das folhas a e b da
+    arvore, na cor da letra."""
+    s = 4
+    L = LADO_DA_FICHA
+    im = Image.new("RGBA", (L * s, L * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    fundo = (24, 32, 30, 255) if terminal else (232, 236, 244, 255)
+    borda = borda or ((110, 220, 140, 255) if terminal else (90, 110, 150, 255))
+    tinta = (140, 240, 160, 255) if terminal else (34, 44, 64, 255)
+    d.rounded_rectangle([2 * s, 11 * s, (L - 3) * s, (L - 12) * s], radius=4 * s,
+                        fill=fundo, outline=borda, width=2 * s)
+    tamanho = 15 if terminal else 19
+    d.text((L * s // 2, L * s // 2), texto, fill=tinta,
+           font=ImageFont.truetype(CARLITO, tamanho * s), anchor="mm")
+    return im.resize((L, L), Image.LANCZOS)
+
+
+def fichas():
+    """Os lexemas, depois as instrucoes e as folhas a e b, quatro por linha."""
+    todas = ([ficha(t, False) for _, t in LEXEMAS] + [ficha(i, True) for i in INSTRUCOES]
+             + [ficha("a", False, COR_A), ficha("b", False, COR_B)])
+    L = LADO_DA_FICHA
+    linhas = (len(todas) + 3) // 4
+    f = Image.new("RGBA", (4 * L, linhas * L), (0, 0, 0, 0))
+    for k, im in enumerate(todas):
+        f.alpha_composite(im, ((k % 4) * L, (k // 4) * L))
+    return f, len(todas)
+
+
 if __name__ == "__main__":
     grava(vladimir(), "DPIBHVladimir", "Assets/Teachers")
     grava(alfabeto(), "DPIBHVladimirSimbolo", "Assets/Teachers/Projectiles",
@@ -309,3 +354,6 @@ if __name__ == "__main__":
     grava(estados(), "DPIBHVladimirEstado", "Assets/Teachers/Projectiles",
           quadros=6, lado=LADO_DO_ESTADO)
     grava(diagrama(), "DPIBHVladimirDiagrama", "Assets/Teachers/Projectiles")
+    folha, n = fichas()
+    grava(folha, "DPIBHVladimirFicha", "Assets/Teachers/Projectiles", quadros=n, lado=LADO_DA_FICHA)
+

@@ -17,7 +17,7 @@ namespace {
 
     const std::vector<std::string> kPostos = {"quadro", "observadores", "agentes", "nuvens",
                                               "palavra", "portas", "registradores", "estagios", "pipeline",
-                                              "placas", "acesas", "fita", "estados", "derivacao", "pilha",
+                                              "placas", "acesas", "fita", "estados", "pilha",
                                               "baldes", "chaves", "arvore", "vetor",
                                               "tabela", "aviso"};
 

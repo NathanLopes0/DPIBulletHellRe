@@ -7,15 +7,15 @@
   // fase e o objeto daquele nivel funcionando na tela.
   //
   //   StateOne    Regular                 o automato finito, desenhado no campo
-  //   StateTwo    Livre de contexto       a gramatica S -> aSb | e, derivando em voo
+  //   StateTwo    Livre de contexto       o compilador: a gramatica da expressao montando a arvore
   //   StateThree  Recursivamente enum.    a maquina de Turing, lendo e reescrevendo a fita
   //   StateFinal  Indecidivel             o problema da parada: o programa de Collatz
   //
   // O MOVIMENTO DO CHEFE E A IDEIA DA FASE:
   //
-  //   Conduzido  ele vai aonde a fase manda: o estado da transicao, a ponta da
-  //              fita, a altura do valor de x (Boss::AlvoDoMovimento)
-  //   Varredura  o alto da tela, de onde o S e atirado
+  //   Conduzido  ele vai aonde a fase manda: o estado da transicao, o token ou
+  //              o no que o compilador le, a ponta da fita, a altura do valor
+  //              de x (Boss::AlvoDoMovimento)
   //
   // Um chefe parado deixa a tela vazia dos lados, e um que anda sem parar nao
   // leva tiro (o tiro do aluno leva quase 1s ate ele): o automato pousa em cada
@@ -23,8 +23,8 @@
   //
   // E O PLACAR E A REGRA. O "anuncio" de cada fase abre no quadro do canto de
   // cima, e dali em diante o Vladimir o reescreve com o que a maquina esta
-  // fazendo: a configuracao do automato, (q1, bab); o ultimo passo da
-  // derivacao, aSb → aaSbb; a transicao da cabeca, δ(q0, a) = (q0, b, →); o
+  // fazendo: a configuracao do automato, (q1, bab); a linha que o compilador
+  // compila e a etapa dela, ou a instrucao que acabou de sair; a transicao da cabeca, δ(q0, a) = (q0, b, →); o
   // passo do programa, x = 41: 3x + 1. Lendo o placar o aluno sabe o que vem.
   //
   // O TEXTO E UTF-8 E SAI NA CARLITO, e nao na Zelda das outras telas: a Zelda
@@ -51,8 +51,8 @@
   // parece: das tres fases, so a 2 perdeu um acerto com ela.
   //
   // CADA LUTA E OUTRA (Variacao.h; Vladimir::SortearALuta). A palavra do
-  // automato, as derivacoes de cada S e a semente de Collatz ja eram
-  // sorteadas na hora; agora a fita tambem e da luta - a cabeca fica de 1,0 a
+  // automato e a semente de Collatz ja eram sorteadas na hora; as tres linhas
+  // que o compilador compila sao da luta (Compilador::Plano); a fita tambem - a cabeca fica de 1,0 a
   // 1,4 s parada em cada ponta, e a primeira casa de cada varredura cai num
   // lugar sorteado (Fita::Plano) -, e a repescagem roda as doze sementes numa
   // ordem propria, sem repetir antes de rodar todas, varrendo primeiro para um
@@ -60,19 +60,23 @@
   //
   // NO DIFICIL: a letra lida sai em mais tiros - o "a" num leque de 7 (e nao
   // 5), o "b" em 4 (e nao 3) e o rejeita em 6 (e nao 4), o bloco "dificil" de
-  // cada ataque -; o S deriva a cada 0,45 s (Gramatica::Degrau); a fita ganha
+  // cada ataque -; o compilador emite uma instrucao a cada 0,24 s (e nao 0,3 -
+  // Compilador::Degrau), duas por vez e mais rapidas, os tokens caem mais
+  // depressa, cada reducao e um leque de 7 (e nao 3) e o STORE e um anel de
+  // 16 (e nao 10); a fita ganha
   // uma casa a cada 0,16 s (Fita::Degrau); e o Collatz da um passo a cada 0,38
   // s, 15% mais rapido, com a metade em 5 tiros e o 3x + 1 em 3
-  // (Parada::Degrau e o bloco "dificil"). O relogio do automato e o do par de S
-  // sao os de sempre: com um simbolo a cada 0,9 s e um par de S a cada 1,6 s,
-  // tres de cinco lutas reprovavam no piloto que desvia e no que persegue - o
-  // professor voava mais de estado em estado, e quem desvia o acertava menos
-  // (72 a 100 tiros, e nao 77 a 129) sem ser muito mais atingido.
+  // (Parada::Degrau e o bloco "dificil"). O relogio do automato e o de sempre:
+  // com um simbolo a cada 0,9 s, tres de cinco lutas reprovavam no piloto que
+  // desvia e no que persegue - o professor voava mais de estado em estado, e
+  // quem desvia o acertava menos (72 a 100 tiros, e nao 77 a 129) sem ser
+  // muito mais atingido.
   //
-  // Medido em cinco sementes, a batalha inteira: no Normal o que persegue
-  // termina com 75,8 a 83,5 e o que desvia com 71,3 a 86,1 (1 a 3 acertos, 1,8
-  // em media); no Dificil, 61,9 a 74,4 e 65,4 a 86,7 (1 a 5, 3,0 em media). O
-  // parado e o que vai e vem reprovam nos dois.
+  // Medido em cinco sementes, a batalha inteira, com o compilador na fase 2:
+  // no Normal o que persegue termina com 71,2 a 84,4 (uma luta na repescagem)
+  // e o que desvia com 93,4 a 97,5 (nenhum acerto); no Dificil, 62,3 a 74,4
+  // (uma na repescagem) e 64,9 a 80,2 (2 a 6 acertos, 4,2 em media). O parado
+  // e o que vai e vem reprovam nos dois.
   //
   // OS NOMES DE FASE NAO SAO LIVRES: a maquina de estados procura por texto, e
   // so StateOne, StateTwo, StateThree e StateFinal existem. StateFinal e
@@ -133,49 +137,79 @@
     ]
   },
 
-  // FASE 2 - LIVRE DE CONTEXTO: A GRAMATICA   |   gesto: A VARREDURA
+  // FASE 2 - LIVRE DE CONTEXTO: O COMPILADOR   |   gesto: A ARVORE
   //
-  // S -> aSb | e, a gramatica classica de aⁿbⁿ (Gramatica.h). O professor
-  // varre o alto da tela e atira o S - a VARIAVEL, quadrada e roxa, que ainda
-  // nao e letra -, dois de cada vez, abertos em volta do aluno. O S DERIVA EM
-  // VOO: a cada 0,55s ele vira um
-  // "a" de um lado, um "b" do outro e um S novo no meio, que segue e deriva de
-  // novo; na ultima vez vira a palavra vazia e some. Cada S deriva de duas a
-  // quatro vezes, e deixa aⁿbⁿ escrito no campo na ordem da derivacao.
+  // O VLADIMIR TAMBEM DA CONSTRUCAO DE COMPILADORES, e a gramatica livre de
+  // contexto e o que o parser de um compilador usa. A fase compila TRES LINHAS
+  // DE CODIGO sorteadas para a luta (Compilador.h), "x = a + b * 2;", uma a
+  // cada 6,5 s, e cada uma passa pelas tres etapas na tela:
   //
-  // O ALUNO PODE INTERROMPER A DERIVACAO: o S e derrubavel (dois tiros). O que
-  // ele ja soltou fica.
+  //   LEXICO      o professor varre a linha, e cada token reconhecido cai em
+  //               coluna do lugar dele (o gatilho "lexema"). O a e o b caem
+  //               como as letras caem - o "a" reto, o "b" persegue ("ler_a" e
+  //               "ler_b") -, e o intercambio os troca em voo.
+  //   SINTATICO   a arvore sintatica se monta no campo de baixo para cima, em
+  //               pos-ordem: cada token voa ate o lugar do seu no (o a e o b
+  //               nascem de novo na linha - o gatilho "arvore"), e cada
+  //               operador, reduzido, solta um leque
+  //               de si mesmo no aluno ("reduzir") - o * antes do +, pela
+  //               precedencia da gramatica.
+  //   CODIGO      a arvore e percorrida de novo, e cada no some virando a
+  //               instrucao dele numa maquina de pilha - LOAD a, PUSH 2, MUL,
+  //               ADD -, mirada no aluno ("emitir"). O = sai por ultimo, no
+  //               anel do STORE ("store").
   //
-  // E POR ISSO O S NAO VEM EM CIMA DO ALUNO. Com um S so, mirado nele, o S descia
-  // pela coluna dos tiros do proprio aluno e morria antes de derivar uma vez:
-  // medido, a fase sozinha deu ZERO acerto nos tres pilotos. Com dois S abertos
-  // 32 graus para cada lado, ele cruza a coluna de tiro so de passagem: 2
-  // acertos no que persegue, 7 no parado e 5 no que vai e vem.
+  // NO NORMAL o token cai a 170 px/s, a reducao e um leque de 3 e a instrucao
+  // sai uma por vez a 220 px/s; o Dificil esta no cabecalho.
   //
-  // O PLACAR E O ULTIMO PASSO DA DERIVACAO do ultimo S atirado: "aSb → aaSbb".
+  // A ARVORE E O MAPA: os nos sao enfeite, como os estados da fase 1 - nao
+  // machucam, e o tiro do aluno passa por eles. Mas mostram de onde vem o
+  // proximo tiro: o no mais fundo vira codigo primeiro.
   //
-  // O INTERCAMBIO NASCEU NESTA FASE, aos 8s e aos 16s, quando era so dela. A
-  // medida de entao continua valendo para a troca de lugar: com e sem ela, na
-  // batalha inteira, o piloto que persegue ficou em 74,5 contra 73,6, e nenhum
-  // piloto foi atingido no segundo seguinte a uma troca. O ALUNO PARADO NO MEIO
-  // NAO SAI DO LUGAR: o espelho de x = 600 e 600.
+  // O PLACAR E A LINHA, e embaixo a etapa - ou a instrucao que acabou de sair.
+  // A LEGENDA, embaixo do placar, explica a etapa em portugues.
+  //
+  // OS TOKENS VIRAM A ARVORE. Quando o parser comeca, a fila de tokens que
+  // caiu para onde esta, e cada no da arvore e a ficha do seu token voando ate
+  // o lugar dele; o ; so termina a linha, e some. Caindo ate o aluno, como era,
+  // o x e o = da linha anterior choviam na coluna em que a raiz se monta, e o
+  // piloto que persegue tomava ali metade dos acertos da fase.
+  //
+  // O PROFESSOR VARRE A LINHA no lexico, em cima do token que le, e depois
+  // fica em cima do meio da arvore (o movimento "Conduzido"). Pulando de no
+  // em no a 450 px/s, como era, o tiro do aluno nao o achava: o piloto que
+  // persegue terminava a fase com nota menor do que comecou.
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
-    "anuncio": "S → aSb | ε",
+    "anuncio": "compilador",
     "intercambio": { "aCada": 8, "aviso": 1.5 },
-    "movimento": { "tipo": "Varredura", "a": 150, "b": 160 },
+    "movimento": { "tipo": "Conduzido", "a": 450 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Variavel",
-        "projeteis": 2, "velocidade": 190, "angulo": 64, "intervalo": 0,
-        "cooldown": 2.0,
-        "regras": "variavel" },
-      { "gatilho": "variavel", "estrategia": "WaveAttack", "projetil": "Variavel",
-        "projeteis": 1, "velocidade": 190, "angulo": 0, "intervalo": 0,
-        "regras": "variavel" },
-      { "gatilho": "derivar", "estrategia": "WaveAttack", "projetil": "Simbolo",
-        "projeteis": 2, "velocidade": 230, "angulo": 70, "intervalo": 0,
-        "regras": "par" }
+      { "gatilho": "lexema", "estrategia": "WaveAttack", "projetil": "Lexema",
+        "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0,
+        "dificil": { "velocidade": 210 },
+        "regras": "arvore" },
+      { "gatilho": "ler_a", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 3, "velocidade": 230, "angulo": 30, "intervalo": 0.05,
+        "dificil": { "projeteis": 5 },
+        "regras": "letra_a" },
+      { "gatilho": "ler_b", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 2, "velocidade": 210, "angulo": 24, "intervalo": 0.08,
+        "dificil": { "projeteis": 3 },
+        "regras": "letra_b" },
+      { "gatilho": "arvore", "estrategia": "WaveAttack", "projetil": "Lexema",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "arvore" },
+      { "gatilho": "reduzir", "estrategia": "WaveAttack", "projetil": "Lexema",
+        "projeteis": 3, "velocidade": 220, "angulo": 40, "intervalo": 0,
+        "dificil": { "projeteis": 7 } },
+      { "gatilho": "emitir", "estrategia": "WaveAttack", "projetil": "Instrucao",
+        "projeteis": 1, "velocidade": 220, "angulo": 16, "intervalo": 0,
+        "dificil": { "projeteis": 2, "velocidade": 280 } },
+      { "gatilho": "store", "estrategia": "CircleSpreadAttack", "projetil": "Instrucao",
+        "projeteis": 10, "velocidade": 190,
+        "dificil": { "projeteis": 16 } }
     ]
   },
 

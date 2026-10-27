@@ -28,26 +28,42 @@
     "ordemDeDesenho": 90
   },
 
-  // A VARIAVEL S DA GRAMATICA DA FASE 2, e a palavra vazia em que ela termina.
-  // Mesma folha das letras, nas duas linhas de baixo - mas um TIPO a parte,
-  // porque o S e derrubavel e as letras nao: o aluno pode interromper a
-  // derivacao, e derrubar um "a" nao quer dizer nada. Dois tiros derrubam: o S
-  // vem descendo, e um tiro so o derrubaria antes de ele derivar uma vez.
+  // AS FICHAS DO COMPILADOR DA FASE 2: um cartao claro por lexema - o x, o =,
+  // os operadores, o ; e os algarismos -, e o a e o b com a borda na cor da
+  // letra, para as folhas da arvore sintatica. O token a ou b que CAI no
+  // lexico nao e ficha: e a letra mesmo ("Simbolo"), que persegue e troca no
+  // intercambio. A ficha da arvore e o mapa (Vladimir::OnProjectilesCreated).
   //
-  // Um pouco maior que as letras, e quadrado: nao e letra do alfabeto - e o que
-  // ainda vai virar letras.
-  "Variavel": {
-    "sprite": "Teachers/Projectiles/DPIBHVladimirSimbolo.png",
-    "dados":  "Teachers/Projectiles/DPIBHVladimirSimbolo.json",
+  // NENHUMA ANIMACAO SE CHAMA "A" OU "B": sao os nomes que o intercambio troca
+  // (Alfabeto.h), e uma ficha nao e letra - por isso "IdA" e "IdB".
+  //
+  // A ficha e 44 x 26 num quadro de 48: o divisor 4 da um colisor de raio 12,
+  // a meia altura do cartao.
+  "Lexema": {
+    "sprite": "Teachers/Projectiles/DPIBHVladimirFicha.png",
+    "dados":  "Teachers/Projectiles/DPIBHVladimirFicha.json",
     "animacoes": {
-      "S": [8, 9, 10, 11],
-      "Vazia": [12, 13, 14, 15]
+      "X": [0], "Igual": [1], "Mais": [2], "Menos": [3], "Vezes": [4], "Fim": [5],
+      "N1": [6], "N2": [7], "N3": [8], "N4": [9], "N5": [10],
+      "N6": [11], "N7": [12], "N8": [13], "N9": [14],
+      "IdA": [21], "IdB": [22]
     },
-    "animacaoInicial": "S",
-    "escala": 1.4,
-    "ordemDeDesenho": 91,
-    "derrubavel": true,
-    "resistencia": 2
+    "animacaoInicial": "X",
+    "colisorDivisor": 4,
+    "ordemDeDesenho": 88
+  },
+
+  // AS INSTRUCOES DA MAQUINA DE PILHA, no terminal escuro: o que cada no da
+  // arvore vira na geracao de codigo, mirado no aluno.
+  "Instrucao": {
+    "sprite": "Teachers/Projectiles/DPIBHVladimirFicha.png",
+    "dados":  "Teachers/Projectiles/DPIBHVladimirFicha.json",
+    "animacoes": {
+      "LOAD": [15], "PUSH": [16], "ADD": [17], "SUB": [18], "MUL": [19], "STORE": [20]
+    },
+    "animacaoInicial": "LOAD",
+    "colisorDivisor": 4,
+    "ordemDeDesenho": 89
   },
 
   // OS ESTADOS DO AUTOMATO DA FASE 1: q0, q1 e q2, e cada um aceso - o estado

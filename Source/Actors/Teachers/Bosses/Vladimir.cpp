@@ -9,11 +9,14 @@
 
 #include "../../../Random.h"
 #include "../../../Attacks/Alfabeto.h"
+#include "../../../Attacks/Ancora.h"
 #include "../../../Attacks/Behaviors.h"
 #include "../../../Attacks/Fita.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "../../../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../../../Components/RigidBodyComponent.h"
+#include "../../Player/Player.h"
 #include "../../../Scenes/Battle/Battle.h"
 #include "../../../Scenes/Battle/ProjectileManager.h"
 #include "BossesProjectiles/BossProjectile.h"
@@ -24,7 +27,7 @@ Vladimir::Vladimir(Scene* scene) : Boss(scene) {
 void Vladimir::SortearALuta() {
     mLutaSorteada = true;
     const Dificuldade::Nivel nivel = NivelDeDificuldade();
-    mDegrauDaGramatica = Gramatica::DegrauDo(nivel);
+    mDegrauDoCompilador = Compilador::DegrauDo(nivel);
     mDegrauDaFita = Fita::DegrauDo(nivel);
     mDegrauDaParada = Parada::DegrauDo(nivel);
     {
@@ -35,13 +38,17 @@ void Vladimir::SortearALuta() {
         Variacao::Sorteio sorteio = SorteioDaFase(Parada::kFaseDaParada);
         mPlanoDaParada = Parada::Sortear(sorteio);
     }
+    {
+        Variacao::Sorteio sorteio = SorteioDaFase(Compilador::kFaseDoCompilador);
+        mPlanoDoCompilador = Compilador::Sortear(sorteio);
+    }
 }
 
 void Vladimir::OnUpdate(const float deltaTime) {
     if (!mLutaSorteada && !EhClone()) SortearALuta();
     Boss::OnUpdate(deltaTime);
     AtualizarAutomato();
-    AtualizarGramatica(deltaTime);
+    AtualizarCompilador(deltaTime);
     AtualizarFita(deltaTime);
     AtualizarParada(deltaTime);
 }
@@ -297,95 +304,231 @@ void Vladimir::AtualizarAutomato() {
     }
 }
 
-void Vladimir::AtualizarGramatica(const float deltaTime) {
-    const auto* fsm = GetComponent<FSMComponent>();
-    const bool naGramatica = fsm && fsm->GetStateName() == Gramatica::kFaseDaGramatica && !EhClone();
+namespace {
+    /// As arestas da arvore: o azul do diagrama do automato, esmaecido.
+    constexpr SDL_Color kAresta{150, 170, 230, 150};
+    constexpr int kOrdemDasArestas = 84;   // embaixo dos nos (ordemDeDesenho 88)
 
-    // AS PALAVRAS VAZIAS SOMEM no tempo delas, dentro ou fora da fase.
-    for (auto& [vazia, falta] : mVazias) {
-        falta -= deltaTime;
-        if (falta <= 0.0f && vazia->GetState() == ActorState::Active) vazia->Kill();
+    /// O que a legenda diz antes da primeira linha.
+    const char* const kAberturaDoCompilador =
+        "Constru\xc3\xa7\xc3\xa3o de Compiladores: tr\xc3\xaas linhas de c\xc3\xb3" "digo, "
+        "e cada uma passa pelo l\xc3\xa9xico, pelo sint\xc3\xa1tico e pela gera\xc3\xa7\xc3\xa3o de c\xc3\xb3" "digo.";
+}
+
+Vector2 Vladimir::PosicaoDoAluno() const {
+    if (const auto* battle = dynamic_cast<Battle*>(mScene); battle && battle->Alvo()) {
+        return battle->Alvo()->GetPosition();
     }
-    mVazias.erase(std::remove_if(mVazias.begin(), mVazias.end(),
-                                 [](const auto& v) { return v.second <= 0.0f || v.first->GetState() != ActorState::Active; }),
-                  mVazias.end());
+    return GetPosition() + GetDirectionToPlayer() * GetDistanceToPlayer();
+}
 
-    if (!naGramatica) {
-        // A FASE ACABOU: o S que ainda voa segue reto, sem derivar mais, e o
-        // placar volta ao que o arquivo diz.
-        if (mNaGramatica) {
-            mVariaveis.clear();
-            mFormas.clear();
-            if (!mAnuncioDaGramatica.empty()) RegistrarAnuncio(Gramatica::kFaseDaGramatica, mAnuncioDaGramatica);
-            mNaGramatica = false;
+std::vector<BossProjectile*> Vladimir::Compilar(const char* gatilho, const Vector2 onde,
+                                                const std::optional<float> rumo, const std::string& cara) {
+    mCompilando = true;
+    mOndeCompilar = onde;
+    if (rumo) {
+        mRumoDoCompilado = *rumo;
+    } else {
+        const Vector2 d = PosicaoDoAluno() - onde;
+        mRumoDoCompilado = Math::ToDegrees(Math::Atan2(d.y, d.x));
+    }
+    mCaraDoCompilado = cara;
+    mCompilados.clear();
+    Disparar(gatilho);
+    mCompilando = false;
+    return mCompilados;
+}
+
+void Vladimir::ComecarRodada(const int rodada, const float inicio) {
+    // O QUE SOBROU DA LINHA ANTERIOR SAI: a rodada so termina quando o STORE
+    // sai, mas um no que o relogio nao alcancou nao fica no campo.
+    for (BossProjectile* no : NoPosto(Compilador::kPostoDaArvore)) no->Kill();
+    mRodada = rodada;
+    mInicioDaRodada = inicio;
+    mLinha = mPlanoDoCompilador.linhas[static_cast<size_t>(rodada)];
+    mTokens = Compilador::Lexico(mLinha);
+    mArvore = Compilador::Sintatico(mTokens);
+    mOrdem = Compilador::PosOrdem(mArvore);
+    const auto largura = static_cast<float>(mScene && mScene->GetGame() ? mScene->GetGame()->GetWindowWidth() : 1200);
+    mNaLinha = Compilador::PosicoesDaLinha(mTokens, largura);
+    mNaArvore = Compilador::PosicoesDaArvore(mArvore, largura);
+    mMarcos = Compilador::MarcosDa(static_cast<int>(mTokens.size()), static_cast<int>(mArvore.nos.size()),
+                                   mDegrauDoCompilador.porInstrucao);
+    mLidos = mMontados = mEmitidos = 0;
+    mNos.assign(mArvore.nos.size(), nullptr);
+    mLexemas.assign(mTokens.size(), nullptr);
+    mFilaParada = false;
+    mEtapa = Compilador::Etapa::Lexico;
+    RegistrarAnuncio(Compilador::kFaseDoCompilador, Compilador::Placar(mLinha, mEtapa));
+    RegistrarLegenda(Compilador::kFaseDoCompilador, Compilador::Legenda(mEtapa));
+}
+
+void Vladimir::AtualizarCompilador(const float deltaTime) {
+    using namespace Compilador;
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool noCompilador = fsm && fsm->GetStateName() == kFaseDoCompilador && !EhClone();
+
+    if (!noCompilador) {
+        // A FASE ACABOU: a arvore se desfaz, e o placar e a legenda voltam ao
+        // que eram.
+        if (mNoCompilador) {
+            for (BossProjectile* no : NoPosto(kPostoDaArvore)) no->Kill();
+            mNos.clear();
+            mLexemas.clear();
+            if (mArestas) mArestas->Limpar();
+            if (!mAnuncioDoCompilador.empty()) RegistrarAnuncio(kFaseDoCompilador, mAnuncioDoCompilador);
+            RegistrarLegenda(kFaseDoCompilador, "");
+            mNoCompilador = false;
+            mAlvo.reset();
         }
         return;
     }
-    if (!mNaGramatica) {
-        mNaGramatica = true;
-        if (mAnuncioDaGramatica.empty()) mAnuncioDaGramatica = AnuncioDaFase(Gramatica::kFaseDaGramatica);
-    }
-
-    // QUEM NAO ESTA MAIS EM CAMPO SAI DA CONTA: o S derrubado pelo aluno, o que
-    // saiu da tela. E o S que o professor acabou de atirar entra, com o sorteio.
-    const auto emCampo = NoPosto(Gramatica::kPostoDaDerivacao);
-    for (auto it = mVariaveis.begin(); it != mVariaveis.end();) {
-        const bool esta = std::find(emCampo.begin(), emCampo.end(), it->first) != emCampo.end();
-        it = esta ? std::next(it) : mVariaveis.erase(it);
-    }
-    for (BossProjectile* s : emCampo) {
-        if (mVariaveis.count(s)) continue;
-        const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
-        const int cadeia = mProximaCadeia++;
-        mVariaveis[s] = Variavel{0.0f, Gramatica::SortearDerivacoes(sorteio), cadeia};
-        mFormas[cadeia] = Gramatica::kCaraDaVariavel;
-        mCadeiaDoPlacar = cadeia;
-        RegistrarAnuncio(Gramatica::kFaseDaGramatica, mAnuncioDaGramatica);
-    }
-
-    // OS QUE CHEGARAM A IDADE DE DERIVAR, separados antes: derivar mexe na conta.
-    std::vector<BossProjectile*> derivam;
-    for (auto& [s, v] : mVariaveis) {
-        v.idade += deltaTime;
-        if (v.idade >= mDegrauDaGramatica.derivar) derivam.push_back(const_cast<BossProjectile*>(s));
-    }
-
-    for (BossProjectile* s : derivam) {
-        const Variavel v = mVariaveis[s];
-        mVariaveis.erase(s);
-        std::string& forma = mFormas[v.cadeia];
-        const std::string antes = forma;
-
-        Vector2 rumo(0.0f, 1.0f);
-        if (const auto* rb = s->GetComponent<RigidBodyComponent>(); rb && rb->GetVelocity().LengthSq() > 0.0f) {
-            rumo = rb->GetVelocity();
-            rumo.Normalize();
+    if (!mNoCompilador) {
+        mNoCompilador = true;
+        mRodada = -1;
+        mNos.clear();
+        mLexemas.clear();
+        if (mAnuncioDoCompilador.empty()) mAnuncioDoCompilador = AnuncioDaFase(kFaseDoCompilador);
+        RegistrarAnuncio(kFaseDoCompilador, mAnuncioDoCompilador);
+        RegistrarLegenda(kFaseDoCompilador, kAberturaDoCompilador);
+        if (!mArestas && mScene) {
+            auto ator = std::make_unique<Actor>(mScene);
+            mArestas = ator->AddComponent<DrawLinhasComponent>(kOrdemDasArestas);
+            mScene->AddActor(std::move(ator));
         }
+        const auto largura = static_cast<float>(mScene && mScene->GetGame() ? mScene->GetGame()->GetWindowWidth() : 1200);
+        mAlvo = Vector2(largura / 2.0f, kYDaLinha);
+    }
 
-        if (v.restantes > 0) {
-            // S -> aSb: o par sai aberto em volta do rumo, e o S novo segue nele.
-            mDerivando = true;
-            mDisparoDaDerivacao = s->GetPosition();
-            mRumoDaDerivacao = Math::ToDegrees(Math::Atan2(rumo.y, rumo.x));
-            Disparar(Gramatica::kGatilhoDoPar);
-            mNascida = nullptr;
-            Disparar(Gramatica::kGatilhoDaVariavel);
-            if (mNascida) mVariaveis[mNascida] = Variavel{0.0f, v.restantes - 1, v.cadeia};
-            mDerivando = false;
-            s->Kill();
-            forma = Gramatica::Derivar(forma);
+    // UMA RODADA NOVA a cada kRodada, e nao mais que kRodadas.
+    const float agora = fsm->GetStateTime();
+    if (agora >= kPrimeira) {
+        const int rodada = std::min(kRodadas - 1, static_cast<int>((agora - kPrimeira) / kRodada));
+        if (rodada > mRodada) ComecarRodada(rodada, kPrimeira + static_cast<float>(rodada) * kRodada);
+    }
+    if (mRodada < 0) return;
+    const float t = agora - mInicioDaRodada;
+
+    // A FICHA OU O NO QUE NAO ESTA MAIS EM CAMPO sai da conta (o pool pode
+    // te-lo dado a outro tiro).
+    for (auto* lista : {&mNos, &mLexemas}) {
+        for (BossProjectile*& p : *lista) {
+            if (p && (p->GetState() != ActorState::Active || p->Posto() != kPostoDaArvore)) p = nullptr;
+        }
+    }
+    const auto lugar = [&](const int n) {
+        const Ponto& p = mNaArvore[static_cast<size_t>(n)];
+        return Vector2(p.x, p.y);
+    };
+    const auto nos = static_cast<int>(mOrdem.size());
+
+    // O LEXICO: cada token reconhecido cai em coluna, do lugar dele na linha. O
+    // a e o b caem como as letras caem - o "b" persegue, e o intercambio os
+    // troca em voo.
+    while (mLidos < static_cast<int>(mTokens.size()) && t >= static_cast<float>(mLidos) * kPorToken) {
+        const Token& tk = mTokens[static_cast<size_t>(mLidos)];
+        const Vector2 onde(mNaLinha[static_cast<size_t>(mLidos)].x, mNaLinha[static_cast<size_t>(mLidos)].y);
+        if (tk.texto == "a") Compilar(kGatilhoDoA, onde, 90.0f, "");
+        else if (tk.texto == "b") Compilar(kGatilhoDoB, onde, 90.0f, "");
+        else {
+            const auto nascidos = Compilar(kGatilhoDoLexema, onde, 90.0f, CaraDoLexema(tk.texto));
+            if (!nascidos.empty()) mLexemas[static_cast<size_t>(mLidos)] = nascidos.front();
+        }
+        ++mLidos;
+    }
+
+    // O PARSER COMECA: a fila de tokens para onde esta, para ele a pegar - e o
+    // ; , que so termina a linha, sai.
+    if (!mFilaParada && t >= mMarcos.sintatico) {
+        mFilaParada = true;
+        for (size_t k = 0; k < mLexemas.size(); ++k) {
+            BossProjectile* p = mLexemas[k];
+            if (!p) continue;
+            if (mTokens[k].tipo == Tipo::Fim) { p->Kill(); mLexemas[k] = nullptr; continue; }
+            if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+        }
+    }
+
+    // O SINTATICO: os nos em pos-ordem, cada um voando de onde o token dele
+    // parou ate o lugar dele na arvore; o operador, reduzido, solta um leque de
+    // si mesmo no aluno.
+    while (mMontados < nos && t >= mMarcos.sintatico + static_cast<float>(mMontados) * kPorNo) {
+        const int n = mOrdem[static_cast<size_t>(mMontados++)];
+        const No& no = mArvore.nos[static_cast<size_t>(n)];
+        const auto k = static_cast<size_t>(no.token);
+        BossProjectile*& ficha = mLexemas[k];
+        if (ficha) {
+            // A FICHA DO TOKEN VIRA O NO: e o mapa agora, e nao tiro.
+            ficha->DefinirEnfeite(true);
+            if (auto* anim = ficha->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(CaraDoNo(mArvore, n));
+            mNos[static_cast<size_t>(n)] = ficha;
+            ficha = nullptr;
         } else {
-            // S -> e: o S vira a palavra vazia, que nao machuca e some logo.
-            s->DefinirPosto("");
-            s->DefinirEnfeite(true);
-            if (auto* anim = s->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(Gramatica::kCaraDaVazia);
-            if (auto* rb = s->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
-            s->DescartarComportamentos();
-            mVazias.emplace_back(s, Gramatica::kVaziaNaTela);
-            forma = Gramatica::Esvaziar(forma);
+            // O a E O b seguiram caindo como letras: o no deles nasce na linha.
+            const auto nascidos = Compilar(kGatilhoDoNo, Vector2(mNaLinha[k].x, mNaLinha[k].y), 90.0f, CaraDoNo(mArvore, n));
+            mNos[static_cast<size_t>(n)] = nascidos.empty() ? nullptr : nascidos.front();
         }
-        if (v.cadeia == mCadeiaDoPlacar) {
-            RegistrarAnuncio(Gramatica::kFaseDaGramatica, Gramatica::Passo(antes, forma));
+
+        if (no.tipo == Tipo::Op) Compilar(kGatilhoDaReducao, lugar(n), std::nullopt, CaraDoLexema(no.texto));
+    }
+
+    // A GERACAO DE CODIGO: a arvore percorrida de novo, e cada no some virando
+    // a instrucao dele, mirada no aluno. O alvo do = nao gera nada e espera o
+    // =; o = sai no anel do STORE.
+    while (mEmitidos < nos && t >= mMarcos.codigo + static_cast<float>(mEmitidos) * mDegrauDoCompilador.porInstrucao) {
+        const int n = mOrdem[static_cast<size_t>(mEmitidos++)];
+        const std::string instrucao = Instrucao(mArvore, n);
+        if (instrucao.empty()) continue;
+        const Vector2 onde = mNos[static_cast<size_t>(n)] ? mNos[static_cast<size_t>(n)]->GetPosition() : lugar(n);
+        for (const int k : {n, n == mArvore.raiz ? mArvore.nos[static_cast<size_t>(n)].esq : -1}) {
+            if (k < 0) continue;
+            if (BossProjectile*& p = mNos[static_cast<size_t>(k)]) { p->Kill(); p = nullptr; }
+        }
+        Compilar(n == mArvore.raiz ? kGatilhoDoStore : kGatilhoDaInstrucao, onde, std::nullopt, CaraDaInstrucao(instrucao));
+        RegistrarAnuncio(kFaseDoCompilador, Placar(mLinha, Etapa::Codigo, instrucao));
+    }
+
+    // A ETAPA MUDOU: a legenda diz qual e, e o placar tambem (na geracao de
+    // codigo, o placar e a instrucao que acabou de sair).
+    const Etapa etapa = EtapaEm(t, mMarcos);
+    if (etapa != mEtapa) {
+        mEtapa = etapa;
+        if (etapa != Etapa::Codigo) RegistrarAnuncio(kFaseDoCompilador, Placar(mLinha, etapa));
+        RegistrarLegenda(kFaseDoCompilador, Legenda(etapa));
+    }
+
+    // O PROFESSOR VARRE A LINHA no lexico, em cima do token que le, e depois
+    // fica em cima do meio da arvore que monta - a arvore e centrada, e a raiz
+    // fica sempre a esquerda, embaixo da legenda. Pulando de no em no, como
+    // era, ele andava a 450 px/s a rodada inteira, e o tiro do aluno - que leva
+    // quase 1 s ate ele - nao o achava mais: o piloto que persegue terminava a
+    // fase com a nota menor do que comecou.
+    float x = mScene && mScene->GetGame() ? static_cast<float>(mScene->GetGame()->GetWindowWidth()) / 2.0f
+                                          : GetPosition().x;
+
+    if (mLidos < static_cast<int>(mTokens.size())) x = mNaLinha[static_cast<size_t>(mLidos)].x;
+    mAlvo = Vector2(x, kYDaLinha);
+
+
+    // CADA NO ANDA ATE O LUGAR DELE, e as arestas o seguem.
+    for (int n = 0; n < static_cast<int>(mNos.size()); ++n) {
+        BossProjectile* no = mNos[static_cast<size_t>(n)];
+        if (!no) continue;
+        no->SetPosition(Ancora::Aproximar(no->GetPosition(), lugar(n), kRapidezDoNo, deltaTime));
+        if (auto* rb = no->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+    }
+    DesenharArestas();
+}
+
+void Vladimir::DesenharArestas() {
+    if (!mArestas) return;
+    mArestas->Limpar();
+    for (size_t n = 0; n < mNos.size() && n < mArvore.nos.size(); ++n) {
+        if (!mNos[n]) continue;
+        const Compilador::No& no = mArvore.nos[n];
+        for (const int f : {no.esq, no.dir}) {
+            if (f < 0 || !mNos[static_cast<size_t>(f)]) continue;
+            mArestas->Acrescentar(mNos[n]->GetPosition(), mNos[static_cast<size_t>(f)]->GetPosition(), kAresta);
         }
     }
 }
@@ -394,15 +537,17 @@ void Vladimir::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& pr
                                     const std::string& stateName) {
     Boss::OnProjectilesCreated(projectiles, stateName);
 
-    // O S QUE NASCEU DE UMA DERIVACAO: e ele que herda a conta do pai. E todo
-    // S que nasce sai da conta antiga: o objeto do pool pode ter sido um S que
-    // o aluno derrubou neste mesmo quadro, e herdaria a idade dele.
-    if (stateName == Gramatica::kFaseDaGramatica) {
+    // O QUE O COMPILADOR SOLTOU: a cara de cada um, e quem nasceu. O no da
+    // arvore e o mapa, como os estados da fase 1: ninguem se machuca nele.
+    if (mCompilando) {
         for (auto& p : projectiles) {
-            auto* s = dynamic_cast<BossProjectile*>(p.get());
-            if (!s || s->Posto() != Gramatica::kPostoDaDerivacao) continue;
-            mVariaveis.erase(s);
-            if (mDerivando) mNascida = s;
+            auto* nascido = dynamic_cast<BossProjectile*>(p.get());
+            if (!nascido) continue;
+            if (nascido->Posto() == Compilador::kPostoDaArvore) nascido->DefinirEnfeite(true);
+            if (auto* anim = nascido->GetComponent<DrawAnimatedComponent>(); anim && !mCaraDoCompilado.empty()) {
+                anim->SetAnimation(mCaraDoCompilado);
+            }
+            mCompilados.push_back(nascido);
         }
         return;
     }
@@ -423,17 +568,12 @@ void Vladimir::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& pr
 void Vladimir::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
     Boss::CustomizeAttackParams(params, stateName);
 
-    // NA GRAMATICA, o que nasce de uma derivacao sai do S, no rumo dele; e o
-    // par de S que o professor atira sai aberto em volta do aluno - o meio do
-    // leque e ele, e os dois S passam um de cada lado (ver fases.json).
-    if (stateName == Gramatica::kFaseDaGramatica) {
-        if (mDerivando) {
-            params.firePosition = mDisparoDaDerivacao;
-            params.centralAngle = mRumoDaDerivacao;
-            return;
-        }
-        const Vector2 d = GetDirectionToPlayer();
-        params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x));
+    // NO COMPILADOR, tudo sai de onde o compilador manda, no rumo dele - com
+    // um tiro no meio do leque, como a letra lida abaixo.
+    if (stateName == Compilador::kFaseDoCompilador && mCompilando) {
+        const bool par = params.numProjectiles > 1 && params.numProjectiles % 2 == 0;
+        params.firePosition = mOndeCompilar;
+        params.centralAngle = mRumoDoCompilado + (par ? 0.5f * params.angle / static_cast<float>(params.numProjectiles - 1) : 0.0f);
         return;
     }
 
