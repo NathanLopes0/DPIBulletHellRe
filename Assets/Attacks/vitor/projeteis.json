@@ -5,8 +5,9 @@
   // CADA TIPO FAZ UMA COISA, e e por isso que sao tipos e nao cores: a licao
   // que o Vladimir custou tres versoes a aprender - dois projeteis que
   // diferem so na cor sao pintura, e o jogador nao tem por que olhar para a
-  // diferenca. A instrucao para na porta, a tarefa atravessa, a corrente
-  // prende, o segmento se perde no roteador, o garfo anda de mao em mao.
+  // diferenca. A instrucao para na porta, a corrente prende, o segmento se
+  // perde no roteador, o envelope corre pelo canal, o garfo anda de mao em
+  // mao.
   //
   // Arte PROVISORIA de Ferramentas/gerar_vitor.py.
   // ==========================================================================
@@ -29,16 +30,6 @@
     "ordemDeDesenho": 90
   },
 
-  "Tarefa": {
-    "sprite": "Teachers/Projectiles/DPIBHVitorTarefa.png",
-    "dados":  "Teachers/Projectiles/DPIBHVitorTarefa.json",
-    "animacoes": {
-      "Correndo": [0, 1, 2, 3]
-    },
-    "animacaoInicial": "Correndo",
-    "ordemDeDesenho": 90
-  },
-
   // A PIADA DE "CONCORRENTES": programacao CONCORRENTE, e o chefe atira
   // CORRENTES. E a unica piada do jogo que tambem e uma mecanica.
   //
@@ -52,8 +43,8 @@
   // a nota cheia e para a fase limpa. Ser acorrentado nao e de graca; e so
   // barato em nota.
   //
-  // A ARTE NAO E UMA COR VIVA. As cores vivas do Vitor falam de nota - a
-  // tarefa, as threads; a corrente e FERRO, e fala de peso. O aluno
+  // A ARTE NAO E UMA COR VIVA. As cores vivas do Vitor falam de nota - as
+  // threads, os segmentos; a corrente e FERRO, e fala de peso. O aluno
   // preso ganha um tom da mesma familia (ver Player::UpdateCorrente), entao a
   // causa e o efeito se parecem.
   "Corrente": {
@@ -143,5 +134,30 @@
     },
     "animacaoInicial": "Ampulheta",
     "ordemDeDesenho": 90
+  },
+
+  // AS MENSAGENS DA FASE 3. O ENVELOPE corre pelo canal entre o pai e o
+  // filho - quem o move e o Vitor, pelo arco -, e fica vermelho parado na
+  // porta de quem nao recebe (o impasse). O DADO e a mensagem processada: o
+  // tiro do receive(), o anel do rendezvous e o leque do resultado da rpc.
+  "Envelope": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorMensagens.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorMensagens.json",
+    "animacoes": {
+      "Voando": [0, 1, 2, 3],
+      "Esperando": [4, 5, 6, 7]
+    },
+    "animacaoInicial": "Voando",
+    "ordemDeDesenho": 90
+  },
+
+  "Dado": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorMensagens.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorMensagens.json",
+    "animacoes": {
+      "Pulsando": [8, 9, 10, 11]
+    },
+    "animacaoInicial": "Pulsando",
+    "ordemDeDesenho": 91
   }
 }

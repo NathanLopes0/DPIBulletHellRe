@@ -86,6 +86,11 @@ namespace {
     constexpr SDL_Color kDeFora{120, 126, 140, 160};
     constexpr SDL_Color kLinhaDaEspera{235, 96, 96, 230};
 
+    // A fase 3: o canal e os nomes dos dois processos.
+    constexpr SDL_Color kCorDoCanal{120, 200, 230, 110};
+    constexpr SDL_Color kMolduraDoProcesso{110, 230, 200, 230};
+    constexpr SDL_Color kTintaDoProcesso{200, 255, 240, 255};
+
     /// O nome da coluna e o codigo da faixa: a mesma conta de largura do
     /// canto do Luizinho (9,5 px por letra mais a folga).
     int LarguraDoTexto(const std::string& texto) {
@@ -111,6 +116,7 @@ void Vitor::AoTerminarABatalha() {
     if (mQuadroDoGrafico) mQuadroDoGrafico->Mostrar(false);
     if (mNomeDoGrafico) mNomeDoGrafico->Mostrar(false);
     for (EtiquetaDeCodigo* nome : mNomesDosFilosofos) if (nome) nome->Mostrar(false);
+    for (EtiquetaDeCodigo* nome : mNomesDosProcessos) if (nome) nome->Mostrar(false);
     if (mLinhas) mLinhas->Limpar();
 }
 
@@ -494,6 +500,7 @@ void Vitor::OnUpdate(const float deltaTime) {
     if (!EhClone()) AcompanharOAluno(deltaTime);
     AtualizarNuvens(deltaTime);
     AtualizarSemaforos();
+    AtualizarMensagens();
     AtualizarJantar(deltaTime);
 }
 
@@ -529,6 +536,9 @@ void Vitor::ComecarOFork() {
     // SairDaNuvem, e nao a queda.
     mEscalaDaNuvem = nuvens.front()->GetScale();
     for (BossProjectile* nuvem : nuvens) {
+        // ELAS VIVEM A FASE 2 INTEIRA, e o fork e na 3: sem renovar, a rede
+        // de seguranca de 20 s as mataria no meio dele (Projectile.h).
+        nuvem->RenovarTempoDeVida();
         nuvem->insertMotion<AncorarBehavior>(Vector2::Zero, kFork.sai + 0.5f, 200.0f);
     }
 
@@ -580,6 +590,13 @@ void Vitor::DispararNuvem(const char* gatilho) {
 float Vitor::Angulo(const Vector2 de, const Vector2 para) {
     const Vector2 d = para - de;
     return Math::ToDegrees(Math::Atan2(d.y, d.x));
+}
+
+float Vitor::AnguloAdiante(const Vector2 de, const float rapidez, const float quanto) const {
+    const Vector2 aluno = PosicaoDoAluno();
+    const Tcp::Ponto alvo = Tcp::Mira({de.x, de.y}, {aluno.x, aluno.y},
+                                      {mVelocidadeDoAluno.x, mVelocidadeDoAluno.y}, rapidez, quanto);
+    return Angulo(de, Vector2(alvo.x, alvo.y));
 }
 
 Vector2 Vitor::PosicaoDoRoteador() const {
@@ -933,6 +950,9 @@ void Vitor::ComecarRodadaDoJantar(const int k) {
     mCercoAberto = false;
     mMesa = Filosofos::MesaPosta();
     mProximaGarfada.fill(0.0f);
+    // OS GARFOS SAO DA FASE INTEIRA: a rede de seguranca de 20 s nao os leva
+    // nos ultimos quadros dela (Projectile::RenovarTempoDeVida).
+    for (BossProjectile* garfo : mGarfos) if (Vivo(garfo)) garfo->RenovarTempoDeVida();
 
     mRodadaDoJantar = k;
     mInicioDoJantar = Filosofos::kPrimeiro + static_cast<float>(k) * Filosofos::kPorRodada;
@@ -1107,4 +1127,227 @@ void Vitor::AtualizarJantar(const float deltaTime) {
 
     PintarFilosofos();
     Anunciar(Filosofos::kFaseDoJantar, Filosofos::Placar(rodada, mMesa));
+}
+
+// ---------------------------------------------------------------------------
+// A fase 3: a troca de mensagens
+// ---------------------------------------------------------------------------
+
+Vitor* Vitor::Filho() const {
+    const auto* batalha = dynamic_cast<Battle*>(mScene);
+    if (!batalha) return nullptr;
+    for (Boss* corpo : batalha->Corpos()) {
+        if (corpo && corpo != this && corpo->EhClone()) return dynamic_cast<Vitor*>(corpo);
+    }
+    return nullptr;
+}
+
+Vector2 Vitor::PosicaoDe(const int processo) const {
+    if (processo == Mensagens::kPai) return GetPosition();
+    if (const Vitor* filho = Filho()) return filho->GetPosition();
+    // SEM FILHO (quem comeca direto nesta fase e se divide no primeiro
+    // quadro, ou um corpo que a batalha ja levou), o espelho do pai.
+    return Vector2(Campo().x + Campo().w - (GetPosition().x - Campo().x), GetPosition().y);
+}
+
+void Vitor::MontarMensagens() {
+    mNasMensagens = true;
+    mRodadaDasMensagens = -1;
+    for (int processo = 0; processo < 2; ++processo) {
+        const std::string nome = Mensagens::Nome(processo);
+        auto etiqueta = std::make_unique<EtiquetaDeCodigo>(mScene, nome, LarguraDoTexto(nome), kAlturaDoNome,
+                                                           kOrdemDosFilosofos);
+        etiqueta->SetPosition(PosicaoDe(processo) + Vector2(0.0f, kAbaixoDoProcesso));
+        etiqueta->Pintar(kMolduraDoProcesso, kFundoDoNome, kTintaDoProcesso);
+        mNomesDosProcessos[static_cast<size_t>(processo)] = etiqueta.get();
+        mScene->AddActor(std::move(etiqueta));
+    }
+}
+
+void Vitor::DesmontarMensagens() {
+    for (EtiquetaDeCodigo*& nome : mNomesDosProcessos) {
+        if (nome) nome->SetState(ActorState::Destroy);
+        nome = nullptr;
+    }
+    for (const Envelope& e : mEnvelopes) if (Vivo(e.p)) e.p->Kill();
+    mEnvelopes.clear();
+    Restaurar(Mensagens::kFaseDasMensagens);
+    mNasMensagens = false;
+    mRodadaDasMensagens = -1;
+    mAlvo.reset();
+    if (Vitor* filho = Filho()) filho->mAlvo.reset();
+}
+
+void Vitor::ComecarRodadaDasMensagens(const int k) {
+    // O QUE AINDA CORRIA NO CANAL some: os dois mudam de lugar, e o canal
+    // e outro.
+    for (const Envelope& e : mEnvelopes) if (Vivo(e.p)) e.p->Kill();
+    mEnvelopes.clear();
+    mRodadaDasMensagens = k;
+    mInicioDasMensagens = Mensagens::kComeca + static_cast<float>(k) * Mensagens::kPorRodada;
+    mRoteiroDasMensagens = Mensagens::Roteiro(Mensagens::RodadaDaVez(k));
+    mProximaMensagem = 0;
+    mChamadaDaRpc = 0;
+    mRecebidas = 0;
+    mEsperandoRpc = false;
+    mEstourou = false;
+
+    // OS DOIS VAO PARA O LUGAR DA RODADA: o original conduz os dois corpos.
+    const SDL_FRect campo = Campo();
+    const Mensagens::Ponto pai = Mensagens::Lugar(Mensagens::kPai, k, campo.w);
+    const Mensagens::Ponto filho = Mensagens::Lugar(Mensagens::kFilho, k, campo.w);
+    mAlvo = Vector2(campo.x + pai.x, campo.y + pai.y);
+    if (Vitor* outro = Filho()) outro->mAlvo = Vector2(campo.x + filho.x, campo.y + filho.y);
+}
+
+void Vitor::ExecutarMensagem(const Mensagens::Evento& e) {
+    const Vector2 aluno = PosicaoDoAluno();
+    const Mensagens::Rodada rodada = Mensagens::RodadaDaVez(mRodadaDasMensagens);
+    auto anel = [this, aluno](const Vector2 de) {
+        const int n = Mensagens::kAnelDoEncontro;
+        DispararEm(Mensagens::kGatilhoDoEncontro, de, n, Coercao::CentroDoAnel(n, Angulo(de, aluno)),
+                   Coercao::AberturaDoAnel(n));
+    };
+    switch (e.o) {
+        case Mensagens::Acontece::Envia:
+        case Mensagens::Acontece::Responde: {
+            // O ENVELOPE SAI e corre pelo canal; quem o move e MoverEnvelopes.
+            const auto criados = DispararEm(Mensagens::kGatilhoDoEnvelope, PosicaoDe(e.de), 1);
+            for (BossProjectile* p : criados) {
+                Parar(p);
+                PorCara(p, Mensagens::kCaraDoEnvelope);
+                mEnvelopes.push_back({p, e.de, mRelogioDasMensagens, e.voo, e.paraNaPorta});
+            }
+            if (e.o == Mensagens::Acontece::Envia && rodada == Mensagens::Rodada::Rpc) mEsperandoRpc = true;
+            break;
+        }
+        case Mensagens::Acontece::Recebe: {
+            // RECEIVE: a mensagem processada vai para o aluno - uma onde ele
+            // esta, a seguinte onde ele estara (como o roteador da fase 2):
+            // quem fica parado leva uma, quem anda sempre igual leva a outra.
+            const Vector2 de = PosicaoDe(e.de);
+            DispararEm(Mensagens::kGatilhoDoProcessado, de, 1,
+                       AnguloAdiante(de, Mensagens::kVelocidadeDoProcessado, Tcp::Antecipacao(mRecebidas++, false)));
+            break;
+        }
+        case Mensagens::Acontece::Encontro:
+            // O RENDEZVOUS: os dois andam juntos, e atiram juntos.
+            anel(PosicaoDe(Mensagens::kPai));
+            anel(PosicaoDe(Mensagens::kFilho));
+            break;
+        case Mensagens::Acontece::Resultado: {
+            // O RETORNO DA RPC: um leque com tantos quanto a soma, o do meio no
+            // aluno (as somas sao impares).
+            const Vector2 de = PosicaoDe(Mensagens::kPai);
+            DispararEm(Mensagens::kGatilhoDoProcessado, de, e.valor,
+                       AnguloAdiante(de, Mensagens::kVelocidadeDoProcessado, 1.0f),
+                       kAberturaPorDado * static_cast<float>(e.valor - 1));
+            mEsperandoRpc = false;
+            break;
+        }
+        case Mensagens::Acontece::Estoura:
+            // O TIMEOUT: os envelopes parados na porta estouram.
+            for (const Envelope& env : mEnvelopes) {
+                if (!env.paraNaPorta || !Vivo(env.p)) continue;
+                anel(env.p->GetPosition());
+                env.p->Kill();
+            }
+            mEstourou = true;
+            break;
+    }
+}
+
+void Vitor::MoverEnvelopes(const float u) {
+    const float fundo = Campo().y + Mensagens::Fundo(Mensagens::RodadaDaVez(mRodadaDasMensagens));
+    for (auto it = mEnvelopes.begin(); it != mEnvelopes.end();) {
+        if (!Vivo(it->p)) { it = mEnvelopes.erase(it); continue; }
+        float s = it->voo > 0.0f ? (u - it->saiu) / it->voo : 1.0f;
+        if (it->paraNaPorta && s >= Mensagens::kNaPorta) {
+            s = Mensagens::kNaPorta;
+            PorCara(it->p, Mensagens::kCaraDoEsperando);
+        }
+        const Vector2 de = PosicaoDe(it->de);
+        const Vector2 para = PosicaoDe(it->de == Mensagens::kPai ? Mensagens::kFilho : Mensagens::kPai);
+        // CHEGOU: entra na caixa postal de quem recebe - o roteiro conta.
+        if (s >= 1.0f) {
+            it->p->Kill();
+            it = mEnvelopes.erase(it);
+            continue;
+        }
+        const Mensagens::Ponto q = Mensagens::NoArco({de.x, de.y}, {para.x, para.y}, s, fundo);
+        it->p->SetPosition(Vector2(q.x, q.y));
+        Parar(it->p);
+        ++it;
+    }
+}
+
+void Vitor::DesenharCanal() {
+    if (!mLinhas) return;
+    const float fundo = Campo().y + Mensagens::Fundo(Mensagens::RodadaDaVez(mRodadaDasMensagens));
+    const Vector2 de = PosicaoDe(Mensagens::kPai);
+    const Vector2 para = PosicaoDe(Mensagens::kFilho);
+    constexpr int kPedacos = 24;
+    for (int i = 0; i < kPedacos; ++i) {
+        const Mensagens::Ponto a = Mensagens::NoArco({de.x, de.y}, {para.x, para.y},
+                                                     static_cast<float>(i) / kPedacos, fundo);
+        const Mensagens::Ponto b = Mensagens::NoArco({de.x, de.y}, {para.x, para.y},
+                                                     static_cast<float>(i + 1) / kPedacos, fundo);
+        if (i % 2 == 0) mLinhas->Acrescentar(Vector2(a.x, a.y), Vector2(b.x, b.y), kCorDoCanal);
+    }
+}
+
+void Vitor::AtualizarMensagens() {
+    mEnvelopes.erase(std::remove_if(mEnvelopes.begin(), mEnvelopes.end(),
+                                    [](const Envelope& e) { return !Vivo(e.p); }), mEnvelopes.end());
+
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool aqui = fsm && fsm->GetStateName() == Mensagens::kFaseDasMensagens && !EhClone();
+    if (!aqui) {
+        if (mNasMensagens) DesmontarMensagens();
+        return;
+    }
+    // NO FORK AINDA NAO HA DOIS: os nomes e o canal so aparecem quando a nuvem
+    // se desfaz. (O fork comeca neste mesmo quadro, em AtualizarNuvens.)
+    if (mTempoNoFork >= 0.0f) return;
+    if (!mNasMensagens) MontarMensagens();
+
+    for (int processo = 0; processo < 2; ++processo) {
+        if (EtiquetaDeCodigo* nome = mNomesDosProcessos[static_cast<size_t>(processo)]) {
+            nome->SetPosition(PosicaoDe(processo) + Vector2(0.0f, kAbaixoDoProcesso));
+        }
+    }
+
+    const float t = fsm->GetStateTime();
+    if (t < Mensagens::kComeca) return;
+    const int k = std::min(Mensagens::kRodadas - 1,
+                           static_cast<int>((t - Mensagens::kComeca) / Mensagens::kPorRodada));
+    if (k != mRodadaDasMensagens) ComecarRodadaDasMensagens(k);
+    const float u = t - mInicioDasMensagens;
+    mRelogioDasMensagens = u;
+
+    while (mProximaMensagem < mRoteiroDasMensagens.size() && u >= mRoteiroDasMensagens[mProximaMensagem].quando) {
+        const Mensagens::Evento& e = mRoteiroDasMensagens[mProximaMensagem++];
+        if (e.o == Mensagens::Acontece::Envia && Mensagens::RodadaDaVez(k) == Mensagens::Rodada::Rpc) {
+            mChamadaDaRpc = 0;
+            for (size_t i = 0; i + 1 < mProximaMensagem; ++i) {
+                if (mRoteiroDasMensagens[i].o == Mensagens::Acontece::Envia) ++mChamadaDaRpc;
+            }
+        }
+        ExecutarMensagem(e);
+    }
+    MoverEnvelopes(u);
+    DesenharCanal();
+
+    // O PLACAR: a caixa do pai na assincrona; o pai bloqueado enquanto o
+    // envelope dele corre, na sincrona; a chamada da rpc; o impasse.
+    const Mensagens::Rodada rodada = Mensagens::RodadaDaVez(k);
+    bool bloqueado = false;
+    if (rodada == Mensagens::Rodada::Sincrona) {
+        for (const Envelope& e : mEnvelopes) bloqueado = bloqueado || e.de == Mensagens::kPai;
+    } else if (rodada == Mensagens::Rodada::Rpc) {
+        bloqueado = mEsperandoRpc;
+    }
+    Anunciar(Mensagens::kFaseDasMensagens,
+             Mensagens::Placar(rodada, Mensagens::NaCaixa(mRoteiroDasMensagens, Mensagens::kPai, u),
+                               mChamadaDaRpc, bloqueado, mEstourou));
 }

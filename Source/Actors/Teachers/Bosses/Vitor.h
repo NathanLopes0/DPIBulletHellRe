@@ -17,6 +17,7 @@
 #include "../../../Attacks/Semaforo.h"
 #include "../../../Attacks/Tcp.h"
 #include "../../../Attacks/Filosofos.h"
+#include "../../../Attacks/Mensagens.h"
 
 class BossProjectile;
 class DrawLinhasComponent;
@@ -38,7 +39,7 @@ class Player;
  *
  *   fase 1  SEMAFOROS           - as threads, a secao critica e a fila do P(s)
  *   fase 2  TCP                 - as nuvens, o roteador e o dente de serra
- *   fase 3  FORK                - dois corpos, um fazendo cada uma das duas
+ *   fase 3  FORK                - dois processos trocando mensagens
  *   final   DEADLOCK            - o jantar dos filosofos
  *
  * A FASE 1 E A SINCRONIZACAO (Semaforo.h): cada thread e uma coluna de
@@ -56,6 +57,13 @@ class Player;
  * no canto. O Ponto Extra derruba as nuvens, e elas voltam num timeout, com
  * cwnd = 1. E e pela nuvem que ele se divide na fase 3: as duas se juntam em
  * cima dele, ele entra, e saem dois (ComecarOFork).
+ *
+ * A FASE 3 E A TROCA DE MENSAGENS (Mensagens.h): saem dois da nuvem, o pai e
+ * o filho, e entre eles corre um canal em arco pelo campo. O original conduz
+ * os dois corpos - o clone empresta uma fase so de gatilho, e nao anda nem
+ * atira sozinho - e cada envelope corre pelo arco: a caixa postal do pai que
+ * enche, o rendezvous do envio sincrono, a rpc que devolve um leque, e o
+ * impasse dos dois enviando ao mesmo tempo.
  *
  * A FINAL E O DEADLOCK, no jantar dos filosofos (Filosofos.h): cinco em volta
  * da mesa, um garfo entre cada dois, e o professor no meio, de monitor. Os
@@ -192,6 +200,49 @@ private:
 
     static constexpr int kOrdemDaSecao = 52;
     static constexpr int kOrdemDosNomes = 57;
+    // ---- A FASE 3: A TROCA DE MENSAGENS ---------------------------------------
+
+    void AtualizarMensagens();
+    void MontarMensagens();
+    void DesmontarMensagens();
+    void ComecarRodadaDasMensagens(int k);
+    void ExecutarMensagem(const Mensagens::Evento& e);
+    void MoverEnvelopes(float u);
+    void DesenharCanal();
+
+    /// O outro corpo do fork, o filho - o clone em campo, ou nulo.
+    [[nodiscard]] Vitor* Filho() const;
+
+    /// Onde esta o processo agora: o pai e este corpo; o filho, o clone.
+    [[nodiscard]] Vector2 PosicaoDe(int processo) const;
+
+    bool mNasMensagens = false;
+    int mRodadaDasMensagens = -1;
+    float mInicioDasMensagens = 0.0f;
+    std::vector<Mensagens::Evento> mRoteiroDasMensagens;
+    size_t mProximaMensagem = 0;
+    float mRelogioDasMensagens = 0.0f;
+    int mChamadaDaRpc = 0;
+    int mRecebidas = 0;
+    bool mEsperandoRpc = false;
+    bool mEstourou = false;
+
+    /// Um envelope no canal: de quem saiu, quando, quanto leva, e se para na
+    /// porta (o impasse).
+    struct Envelope {
+        BossProjectile* p = nullptr;
+        int de = Mensagens::kPai;
+        float saiu = 0.0f;
+        float voo = 1.0f;
+        bool paraNaPorta = false;
+    };
+    std::vector<Envelope> mEnvelopes;
+
+    /// "pai" e "filho", embaixo de cada corpo.
+    std::array<EtiquetaDeCodigo*, 2> mNomesDosProcessos{};
+    static constexpr float kAbaixoDoProcesso = 78.0f;
+    static constexpr float kAberturaPorDado = 9.0f;
+
     // ---- A FINAL: O JANTAR DOS FILOSOFOS --------------------------------------
 
     void AtualizarJantar(float deltaTime);
@@ -274,6 +325,11 @@ private:
 
     /// O angulo, em graus, de 'de' ate 'para'.
     static float Angulo(Vector2 de, Vector2 para);
+
+    /// @brief O angulo de 'de' ate onde o aluno estara quando um projetil a
+    /// 'rapidez' px/s chegar la, antecipando 'quanto' do caminho que ele anda
+    /// (Tcp::Mira, com mVelocidadeDoAluno). 0 e onde ele esta.
+    [[nodiscard]] float AnguloAdiante(Vector2 de, float rapidez, float quanto) const;
 
     [[nodiscard]] Vector2 PosicaoDoRoteador() const;
 

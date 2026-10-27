@@ -52,6 +52,7 @@
 #include "../Source/Attacks/Semaforo.h"
 #include "../Source/Attacks/Tcp.h"
 #include "../Source/Attacks/Filosofos.h"
+#include "../Source/Attacks/Mensagens.h"
 #include "../Source/Attacks/Logica.h"
 #include "../Source/Attacks/Relogio.h"
 #include "../Source/Attacks/Pipeline.h"
@@ -3133,4 +3134,49 @@ TEST_CASE("Dados: o jantar dos filosofos do Vitor - gatilhos e velocidades sao o
     for (const auto& f : lidas.fases) {
         if (f.clone.existe) CHECK(f.clone.ataquesDe == Filosofos::kFaseDoJantar);
     }
+}
+
+TEST_CASE("Dados: a troca de mensagens do Vitor - gatilhos, velocidades e caras sao os de Mensagens.h") {
+
+    // A FASE DAS MENSAGENS E A DO FORK: os dois processos sao os dois corpos.
+    CHECK(std::string(Mensagens::kFaseDasMensagens) == Nuvem::kFaseDoFork);
+    const auto lidas = FasesDoChefe("vitor");
+    const DescricaoDeFase* fase = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Mensagens::kFaseDasMensagens) fase = &f;
+    REQUIRE(fase != nullptr);
+    CHECK(fase->movimento.tipo == "Conduzido");
+    CHECK(fase->clone.existe);
+
+    const std::map<std::string, float> velocidades = {
+        {Mensagens::kGatilhoDoEnvelope, 0.0f},
+        {Mensagens::kGatilhoDoProcessado, Mensagens::kVelocidadeDoProcessado},
+        {Mensagens::kGatilhoDoEncontro, Mensagens::kVelocidadeDoEncontro},
+    };
+    std::map<std::string, std::string> projetilDe;
+    for (const auto& [g, v] : velocidades) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+        int quantos = 0;
+        for (const auto& a : fase->ataques) {
+            if (a.gatilho != g) continue;
+            ++quantos;
+            projetilDe[g] = a.projetil;
+            REQUIRE(a.velocidade.has_value());
+            CHECK(*a.velocidade == doctest::Approx(v));
+            if (g == Mensagens::kGatilhoDoEncontro) CHECK(a.projeteis.value_or(0) == Mensagens::kAnelDoEncontro);
+        }
+        CHECK(quantos == 1);
+    }
+    for (const auto& a : fase->ataques) CHECK(!a.gatilho.empty());
+
+    const auto& tipos = ProjeteisDoChefe("vitor").projeteis;
+    const std::string envelope = projetilDe[Mensagens::kGatilhoDoEnvelope];
+    REQUIRE(tipos.count(envelope) == 1);
+    std::set<std::string> caras;
+    for (const auto& a : tipos.at(envelope).animacoes) caras.insert(a.nome);
+    CHECK(caras.count(Mensagens::kCaraDoEnvelope) == 1);
+    CHECK(caras.count(Mensagens::kCaraDoEsperando) == 1);
+
+    // O RESULTADO DA RPC E UM LEQUE com o do meio no aluno: as somas sao impares.
+    for (int i = 0; i < Mensagens::kChamadas; ++i) CHECK(Mensagens::Soma(Mensagens::ChamadaDaVez(i)) % 2 == 1);
 }

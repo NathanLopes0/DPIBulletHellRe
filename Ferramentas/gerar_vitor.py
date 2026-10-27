@@ -28,6 +28,14 @@ AS INSTRUCOES DA FASE 1 (DPIBHVitorThreads), uma cor por thread:
               coluna de instrucoes descendo ate a secao critica, e quem le o
               placar ("fila: T3 T1 T5") precisa achar a coluna pela cor.
 
+AS MENSAGENS DA FASE 3 (DPIBHVitorMensagens):
+
+    Envelope  a mensagem que corre pelo canal entre o pai e o filho, com a
+              aba batendo; ESPERANDO, o mesmo envelope em vermelho - parado na
+              porta de quem nao recebe (o impasse).
+    Dado      a mensagem processada: o que o receive() atira no aluno, o anel
+              do rendezvous e o leque do resultado da rpc.
+
 O JANTAR DA FINAL (DPIBHVitorFilosofos):
 
     Garfo     o garfo de prata entre dois filosofos, que anda ate a mao de
@@ -86,6 +94,12 @@ COR_MACARRAO = (246, 214, 120, 255)
 COR_MACARRAO_ESCURO = (206, 160, 70, 255)
 COR_MOLHO = (210, 70, 50, 255)
 COR_ESPERA = (220, 70, 80, 255)
+
+COR_PAPEL = (240, 236, 222, 255)
+COR_PAPEL_ESCURO = (190, 182, 160, 255)
+COR_SELO = (90, 140, 220, 255)
+COR_PAPEL_ESPERA = (240, 150, 150, 255)
+COR_DADO = (110, 230, 200, 255)
 
 COR_NUVEM  = (214, 226, 242, 255)
 COR_NUVEM_SOMBRA = (150, 166, 192, 255)
@@ -271,6 +285,39 @@ def espera(fase):
     return im
 
 
+def envelope(fase, esperando=False):
+    """O ENVELOPE: o papel, a aba em V e o selo. A aba bate - a mensagem anda."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    papel = COR_PAPEL_ESPERA if esperando else COR_PAPEL
+    d.rectangle([5, 9, 26, 23], fill=papel, outline=TRACO, width=2)
+    fundo = (16, 18, 17, 17)[fase]
+    d.line([6, 10, 16, fundo, 25, 10], fill=COR_PAPEL_ESCURO if not esperando else (190, 90, 90, 255), width=2)
+    d.rectangle([20, 18, 23, 21], fill=COR_SELO if not esperando else (160, 40, 50, 255))
+    return im
+
+
+def dado(fase):
+    """O DADO: a mensagem processada, um chip que pulsa."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    r = (6, 7, 8, 7)[fase]
+    d.ellipse([16 - r, 16 - r, 16 + r, 16 + r], fill=COR_DADO, outline=TRACO, width=2)
+    d.line([13, 16, 19, 16], fill=TRACO, width=1)
+    d.line([16, 13, 16, 19], fill=TRACO, width=1)
+    return im
+
+
+def folha_das_mensagens():
+    """O envelope, o envelope esperando e o dado: quatro quadros de cada."""
+    f = Image.new("RGBA", (128, 96), (0, 0, 0, 0))
+    for i in range(4):
+        f.alpha_composite(envelope(i), (i * 32, 0))
+        f.alpha_composite(envelope(i, True), (i * 32, 32))
+        f.alpha_composite(dado(i), (i * 32, 64))
+    return f
+
+
 def folha_dos_filosofos():
     """O garfo, a garfada e a espera: quatro quadros de cada, um por linha."""
     f = Image.new("RGBA", (128, 96), (0, 0, 0, 0))
@@ -361,3 +408,4 @@ if __name__ == "__main__":
     grava(folha(), "DPIBHVitorTarefa", "Assets/Teachers/Projectiles", quadros=32, lado=32)
     grava(folha_das_threads(), "DPIBHVitorThreads", "Assets/Teachers/Projectiles", quadros=20, lado=32)
     grava(folha_dos_filosofos(), "DPIBHVitorFilosofos", "Assets/Teachers/Projectiles", quadros=12, lado=32)
+    grava(folha_das_mensagens(), "DPIBHVitorMensagens", "Assets/Teachers/Projectiles", quadros=12, lado=32)

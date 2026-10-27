@@ -7,7 +7,7 @@
   //
   //   StateOne    SEMAFOROS            as threads, a secao critica e o P(s)
   //   StateTwo    TCP                  as nuvens, o roteador e o dente de serra
-  //   StateThree  FORK                 o chefe se divide; um corpo faz cada uma
+  //   StateThree  FORK                 dois processos trocando mensagens
   //   StateFinal  DEADLOCK             o jantar dos filosofos
   //
   // O MOVIMENTO E O ATAQUE, como no Vladimir - ver MovementStrategies.h.
@@ -124,49 +124,49 @@
     ]
   },
 
-  // FASE 3 - FORK   |   gesto: A VARREDURA, EM DOIS CORPOS
+  // FASE 3 - FORK E TROCA DE MENSAGENS   |   gesto: OS DOIS NO ALTO
   //
-  // O CHEFE SE DIVIDE EM DOIS. Um corpo faz as tarefas em paralelo e o outro
-  // o anel da fase 2, ao mesmo tempo - que e o que a materia trata, e o que
-  // uma batalha que faz uma coisa de cada vez nao consegue dizer.
+  // A FASE QUE DECIDE ("proximo" vazio). O CHEFE SE DIVIDE PELA NUVEM: as
+  // duas nuvens da fase 2 se juntam numa so em cima dele, ele entra, ela
+  // processa o fork (o placar diz "fork()") e, ao abrir, saem dois - 1,6 s ao
+  // todo (Nuvem::Fork). Nesse tempo nenhum dos dois ataca nem anda sozinho,
+  // mas os dois continuam levando tiro: o fork nao e um intervalo. QUALQUER UM
+  // DOS DOIS TOMA DANO (Battle::Corpos).
   //
-  // QUALQUER UM DOS DOIS TOMA DANO. As regras de colisao percorrem
-  // Battle::Corpos(), e acertar um ou outro paga a mesma barra. Nao ha "o
-  // verdadeiro" e "a copia" - fork nao faz copia, faz dois.
+  // E SAO DOIS PROCESSOS, o pai e o filho, e processos conversam TROCANDO
+  // MENSAGENS (Mensagens.h). Entre os dois corre o CANAL, um arco tracejado
+  // que desce pelo campo, e cada mensagem e um envelope correndo por ele -
+  // nas rodadas de muitos envelopes, ate o chao. Os tiros dos processos se
+  // alternam entre onde o aluno esta e onde ele estara.
+  // Quatro rodadas de 4,6 s, cada uma com os dois num par de lugares:
   //
-  // O CLONE EMPRESTA A FINAL ("ataquesDe"): o movimento dela e conduzido, e
-  // todo ataque dela e de gatilho - entao o clone nao anda nem atira sozinho,
-  // e quem o conduz e o original. O original tem a lista dele: as tarefas
-  // eram a fase 1, que virou os semaforos.
+  //   assincrona   o filho manda sem esperar, mais depressa do que o pai
+  //                recebe: a caixa postal do pai enche (o placar conta), e
+  //                cada receive() vira um tiro no aluno
+  //   sincrona     o pai manda e fica bloqueado ate o filho receber: no
+  //                rendezvous os dois atiram um anel juntos
+  //   rpc          r = soma(2, 3) no filho: o pedido vai, a resposta volta, e
+  //                o resultado e um leque de 5 no aluno; depois soma(3, 4)
+  //   impasse      os dois fazem send() ao mesmo tempo e ninguem recebe: os
+  //                envelopes param vermelhos na porta, ate o timeout os
+  //                estourar; dali os dois mandam sem esperar
   //
-  // O SEGUNDO CORPO NASCE ESPELHADO em relacao ao original (Battle::DividirChefe):
-  // dois corpos no mesmo pixel seriam um so para quem olha.
-  //
-  // E ELE SE DIVIDE PELA NUVEM. As duas nuvens da fase 2 se juntam numa so em
-  // cima dele, ele entra nela, ela processa o fork (o placar diz "fork()") e,
-  // ao abrir, saem dois: o original fica onde estava e o outro anda ate o
-  // espelho - 1,6 s ao todo (Nuvem::Fork). Nesse tempo nenhum dos dois ataca
-  // nem anda sozinho, mas os dois continuam levando tiro: o fork nao e um
-  // intervalo. Quem comeca direto nesta fase, sem nuvem, se divide como antes.
+  // O CLONE EMPRESTA A FINAL ("ataquesDe"): o movimento dela e conduzido e
+  // todo ataque dela e de gatilho, entao o clone nao anda nem atira sozinho -
+  // quem o leva de lugar e o original, e quem atira do lugar dele tambem.
+  // Quem comeca direto nesta fase, sem nuvem, se divide como antes.
   "StateThree": {
     "duracao": 20,
     "proximo": "",
     "anuncio": "fork · dois processos",
-    "movimento": { "tipo": "Varredura", "a": 190, "b": 150 },
-
-    // AS TAREFAS EM PARALELO, que eram a fase 1, com os numeros de la: uma
-    // fila curta de tarefas a cada 0,8 s com o chefe varrendo, e o que se ve
-    // sao varias FAIXAS descendo ao mesmo tempo. O intervalo de 0,13 deixa as
-    // tarefas a 39 px uma da outra - unidades contaveis, e nao uma barra.
+    "movimento": { "tipo": "Conduzido", "a": 420 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Tarefa",
-        "projeteis": 6, "velocidade": 300, "angulo": 0, "intervalo": 0.13,
-        "cooldown": 0.8,
-        "regras": "paralelo" },
-      { "estrategia": "WaveAttack", "projetil": "Corrente",
-        "projeteis": 2, "velocidade": 260, "angulo": 20, "intervalo": 0.18,
-        "cooldown": 4.4,
-        "regras": "correntes" }
+      { "gatilho": "envelope", "estrategia": "WaveAttack", "projetil": "Envelope",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "processar", "estrategia": "WaveAttack", "projetil": "Dado",
+        "projeteis": 1, "velocidade": 320, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "encontro", "estrategia": "WaveAttack", "projetil": "Dado",
+        "projeteis": 8, "velocidade": 220, "angulo": 315, "intervalo": 0 }
     ],
     "clone": { "ataquesDe": "StateFinal" }
   },

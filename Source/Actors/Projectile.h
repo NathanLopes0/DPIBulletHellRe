@@ -107,6 +107,17 @@ public:
      * Exclusivo por construcao - chamar duas vezes SUBSTITUI a anterior, em vez
      * de empilhar dois escritores brigando frame a frame.
      */
+    /**
+     * @brief Zera o relogio do tempo maximo de vida (kTempoDeVidaMaximo).
+     *
+     * Para a estrutura que o chefe mantem em campo de uma fase para a outra,
+     * e nao para ataque nenhum: as nuvens do Vitor nascem no comeco da fase 2,
+     * de 20 s, e viram a nuvem do fork no comeco da 3 - com 19,4 s de vida, a
+     * rede de seguranca as matava no meio do fork, e os dois corpos saiam do
+     * nada.
+     */
+    void RenovarTempoDeVida() { mTempoDeVida = 0.0f; }
+
     template <typename M, typename... Args>
     void insertMotion(Args&&... args) {
         static_assert(std::is_base_of_v<ProjectileMotion, M>,

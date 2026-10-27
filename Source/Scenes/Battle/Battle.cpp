@@ -41,7 +41,7 @@
 // O pool CRESCE sozinho quando falta
 // (Acquire cria um novo se estiver vazio), entao este numero e so uma
 // otimizacao de partida, nunca um limite de projeteis simultaneos. 
-static constexpr int kProjectilePrewarmCountPerType = 300;
+static constexpr int kProjectilePrewarmCountPerType = 200;
 
 namespace {
 
