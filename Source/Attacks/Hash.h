@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "../Dificuldade.h"
+#include "../Variacao.h"
+
 #include <array>
 #include <cstdint>
 #include <string>
@@ -106,4 +109,24 @@ namespace Hash {
     /// @brief As caras: a chave k e "K23", o balde i e "B2".
     std::string CaraDaChave(int chave);
     std::string CaraDoBalde(int balde);
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA, E O DEGRAU -------------------
+
+    /// A tabela desta luta: com quantos baldes ela abre (7 ou 11 - o rehash
+    /// segue a lista de kTamanhos dali) e a chance de uma insercao (de 0,45 a
+    /// 0,65: com menos, ha mais busca; com mais, o rehash chega antes).
+    struct Plano {
+        int tamanhoInicial = kTamanhos[0];
+        float chanceDeInserir = kChanceDeInserir;
+    };
+    Plano Sortear(Variacao::Sorteio& s);
+    Operacao Proxima(const std::vector<int>& naTabela, std::uint32_t sorteio, const Plano& p);
+
+    /// O que o Dificil muda: uma operacao a cada 0,55 s, e o leque do
+    /// percurso e o NULL andam 25% mais depressa.
+    struct Degrau {
+        float passo = kPasso;
+        float rapidez = 1.0f;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

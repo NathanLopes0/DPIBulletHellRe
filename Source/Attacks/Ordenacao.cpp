@@ -124,4 +124,57 @@ namespace Ordenacao {
     std::string CaraDoElemento(const int valor) {
         return "K" + std::to_string(std::clamp(valor, 0, kMaiorValor));
     }
+
+    std::vector<int> Sortear(const std::uint32_t sorteio, const int n, const Entrada e) {
+        std::vector<int> v = Sortear(sorteio, n);
+        if (e == Entrada::Aleatoria || v.size() < 2) return v;
+        std::sort(v.begin(), v.end());
+        if (e == Entrada::Invertida) {
+            std::reverse(v.begin(), v.end());
+            return v;
+        }
+        // QUASE ORDENADO: dois pares vizinhos trocados, longe um do outro.
+        const std::size_t m = v.size();
+        const std::size_t a = static_cast<std::size_t>((sorteio >> 3) % static_cast<std::uint32_t>(m / 2));
+        std::swap(v[a], v[a + 1]);
+        const std::size_t b = std::min(m - 2, a + 2 + static_cast<std::size_t>((sorteio >> 9) % 3u));
+        if (b > a + 1) std::swap(v[b], v[b + 1]);
+        return v;
+    }
+
+    std::string PlacarDoComeco(const int n, const Entrada e) {
+        switch (e) {
+            case Entrada::QuaseOrdenada: return PlacarDoComeco(n) + " \xc2\xb7 quase ordenado";
+            case Entrada::Invertida:     return PlacarDoComeco(n) + " \xc2\xb7 invertido: o pior caso";
+            default:                     return PlacarDoComeco(n);
+        }
+    }
+
+    Plano PlanoDeSempre() {
+        Plano p;
+        p.entradas = {Entrada::Aleatoria, Entrada::Aleatoria, Entrada::Aleatoria};
+        return p;
+    }
+
+    Plano Sortear(Variacao::Sorteio& s) {
+        Plano p;
+        std::vector<Entrada> e = {Entrada::Aleatoria, Entrada::QuaseOrdenada, Entrada::Invertida};
+        s.Embaralhar(e);
+        for (std::size_t k = 0; k < e.size(); ++k) p.entradas[k] = e[k];
+        p.tamanho = s.Inteiro(7, 8);
+        return p;
+    }
+
+    Entrada EntradaDaVez(const Plano& p, const int k) {
+        const int n = static_cast<int>(p.entradas.size());
+        return p.entradas[static_cast<std::size_t>(((k % n) + n) % n)];
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.passo = Dificuldade::Escolher(n, kPasso, 0.27f);
+        d.rapidez = Dificuldade::Escolher(n, 1.0f, 1.25f);
+        d.anelDoLugar = Dificuldade::Escolher(n, 8, 10);
+        return d;
+    }
 }

@@ -4,6 +4,9 @@
 
 #include "doctest.h"
 
+#include <set>
+#include "../Source/Attacks/Fase.h"
+
 #include <algorithm>
 #include <random>
 #include <vector>
@@ -214,4 +217,73 @@ TEST_CASE("Ordenacao: os placares escrevem a comparacao e o veredito") {
     CHECK(Ordenacao::Placar(P{T::Ordenado, 0, 0, 0, true}) == "nenhuma troca: ordenado!");
     CHECK(Ordenacao::CaraDoElemento(42) == "K42");
     CHECK(Ordenacao::CaraDoElemento(150) == "K99");
+}
+
+TEST_CASE("Ordenacao: o vetor chega de tres jeitos - em qualquer ordem, quase ordenado ou invertido") {
+    for (std::uint32_t s = 1; s < 300; ++s) {
+        CAPTURE(s);
+        for (const int n : {7, 8}) {
+            const auto quase = Ordenacao::Sortear(s * 2654435761u, n, Ordenacao::Entrada::QuaseOrdenada);
+            const auto inv = Ordenacao::Sortear(s * 2654435761u, n, Ordenacao::Entrada::Invertida);
+            REQUIRE(static_cast<int>(quase.size()) == n);
+            CHECK_FALSE(std::is_sorted(quase.begin(), quase.end()));
+            CHECK(std::is_sorted(inv.rbegin(), inv.rend()));
+            // QUASE ORDENADO: duas inversoes, e o bubble sort acaba cedo, na
+            // passada sem troca. INVERTIDO: o pior caso, toda comparacao troca.
+            int inversoes = 0;
+            for (int i = 0; i < n; ++i) for (int j = i + 1; j < n; ++j) inversoes += quase[i] > quase[j] ? 1 : 0;
+            CHECK(inversoes == 2);
+            auto bolha = Ordenacao::Comecar(quase);
+            int passos = 0, trocasQ = 0;
+            bool semTroca = false;
+            while (passos++ < 200) {
+                const auto p = Ordenacao::Avancar(bolha);
+                if (p.tipo == Ordenacao::Tipo::Troca) ++trocasQ;
+                if (p.tipo == Ordenacao::Tipo::Ordenado) { semTroca = p.semTroca; break; }
+            }
+            CHECK(trocasQ == 2);
+            CHECK(semTroca);
+            auto pior = Ordenacao::Comecar(inv);
+            int trocas = 0;
+            for (int k = 0; k < 200; ++k) {
+                const auto p = Ordenacao::Avancar(pior);
+                if (p.tipo == Ordenacao::Tipo::Troca) ++trocas;
+                if (p.tipo == Ordenacao::Tipo::Ordenado) break;
+            }
+            CHECK(trocas == n * (n - 1) / 2);
+        }
+    }
+    CHECK(Ordenacao::PlacarDoComeco(8, Ordenacao::Entrada::Aleatoria) == "bubble sort, n = 8");
+    CHECK(Ordenacao::PlacarDoComeco(7, Ordenacao::Entrada::Invertida) == "bubble sort, n = 7 \xc2\xb7 invertido: o pior caso");
+}
+
+TEST_CASE("Ordenacao: a repescagem sorteada passa pelos tres jeitos, e o pior caso cabe na fase") {
+    std::set<std::vector<int>> ordens;
+    for (std::uint32_t semente = 0; semente < 200; ++semente) {
+        Variacao::Sorteio s(semente);
+        const Ordenacao::Plano p = Ordenacao::Sortear(s);
+        CHECK(p.tamanho >= 7);
+        CHECK(p.tamanho <= Ordenacao::kTamanho);
+        std::vector<int> e;
+        for (int k = 0; k < 3; ++k) e.push_back(static_cast<int>(Ordenacao::EntradaDaVez(p, k)));
+        CHECK(std::set<int>(e.begin(), e.end()).size() == 3u);
+        CHECK(Ordenacao::EntradaDaVez(p, 3) == Ordenacao::EntradaDaVez(p, 0));
+        ordens.insert(e);
+    }
+    CHECK(ordens.size() == 6u);
+    // O PIOR CASO DE 8, nos dois modos: cada comparacao e uma troca, e cada
+    // passada termina com um elemento assentando. Tem de caber na fase.
+    for (const Dificuldade::Nivel nivel : Dificuldade::kNiveis) {
+        const Ordenacao::Degrau d = Ordenacao::DegrauDo(nivel);
+        const int n = Ordenacao::kTamanho;
+        const float pior = Ordenacao::kPrimeiro + Ordenacao::kAteComparar +
+                           static_cast<float>(n * (n - 1) / 2 + n) * d.passo + static_cast<float>(n) * Ordenacao::kNoLugar;
+        CHECK(pior < Fase::kDuracao);
+    }
+    const Ordenacao::Degrau n = Ordenacao::DegrauDo(Dificuldade::Nivel::Normal);
+    const Ordenacao::Degrau d = Ordenacao::DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(n.passo == doctest::Approx(Ordenacao::kPasso));
+    CHECK(n.rapidez == doctest::Approx(1.0f));
+    CHECK(d.passo < n.passo);
+    CHECK(d.anelDoLugar > n.anelDoLugar);
 }

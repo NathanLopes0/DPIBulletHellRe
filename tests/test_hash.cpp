@@ -4,6 +4,9 @@
 
 #include "doctest.h"
 
+#include <set>
+#include "../Source/Attacks/Fase.h"
+
 #include <algorithm>
 #include <random>
 #include <vector>
@@ -58,4 +61,32 @@ TEST_CASE("Hash: a tabela vazia insere, a chave inserida e nova, e a busca acha 
     CHECK(static_cast<float>(achadas) / static_cast<float>(buscas) == doctest::Approx(Hash::kChanceDeAchar).epsilon(0.1));
     CHECK(Hash::CaraDaChave(23) == "K23");
     CHECK(Hash::CaraDoBalde(4) == "B4");
+}
+
+TEST_CASE("Hash: a tabela sorteada abre com 7 ou 11 baldes, e o rehash segue a lista dali") {
+    std::set<int> tamanhos;
+    for (std::uint32_t semente = 0; semente < 200; ++semente) {
+        Variacao::Sorteio s(semente);
+        const Hash::Plano p = Hash::Sortear(s);
+        tamanhos.insert(p.tamanhoInicial);
+        CHECK(p.chanceDeInserir >= 0.45f);
+        CHECK(p.chanceDeInserir < 0.65f);
+        CHECK(Hash::ProximoTamanho(p.tamanhoInicial) > p.tamanhoInicial);
+        // TODA CHAVE INSERIDA E NOVA, com qualquer plano.
+        std::vector<int> naTabela;
+        std::mt19937 g(semente);
+        for (int i = 0; i < 40; ++i) {
+            const auto op = Hash::Proxima(naTabela, static_cast<std::uint32_t>(g()), p);
+            if (op.tipo != Hash::Tipo::Inserir) continue;
+            CHECK(std::find(naTabela.begin(), naTabela.end(), op.chave) == naTabela.end());
+            naTabela.push_back(op.chave);
+        }
+    }
+    CHECK(tamanhos == std::set<int>{Hash::kTamanhos[0], Hash::kTamanhos[1]});
+    const Hash::Degrau n = Hash::DegrauDo(Dificuldade::Nivel::Normal);
+    const Hash::Degrau d = Hash::DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(n.passo == doctest::Approx(Hash::kPasso));
+    CHECK(n.rapidez == doctest::Approx(1.0f));
+    CHECK(d.passo < n.passo);
+    CHECK(d.rapidez > n.rapidez);
 }

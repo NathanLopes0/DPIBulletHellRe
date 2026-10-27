@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "../Dificuldade.h"
+#include "../Variacao.h"
+
 #include <cstdint>
 #include <string>
 
@@ -82,4 +85,28 @@ namespace Pilha {
 
     /// @brief A animacao do bloco de valor v: "N0" a "N9".
     std::string CaraDoBloco(int valor);
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA, E O DEGRAU -------------------
+
+    /// A pilha desta luta: quantos blocos cabem (4 a 6) e a chance do push (de
+    /// 0,55 a 0,65 na de quatro, 0,05 a mais por bloco - o overflow continua
+    /// vindo em quase toda fase). A regra e a mesma: cheia, o push derruba.
+    struct Plano {
+        int capacidade = kCapacidade;
+        float chanceDePush = kChanceDePush;
+    };
+    Plano Sortear(Variacao::Sorteio& s);
+    constexpr int kMenorCapacidade = 4;
+    constexpr int kMaiorCapacidade = 6;
+    Operacao Proxima(int altura, std::uint32_t sorteio, const Plano& p);
+
+    /// O que o Dificil muda: uma operacao a cada 0,66 s, e nao 0,7, e o pop,
+    /// as lascas e a pilha derrubada andam 10% mais depressa. E POUCO DE
+    /// PROPOSITO: com 0,62 s e 15%, o piloto que desvia saia da fase 1 com 17
+    /// a 45 (no Normal, 61 a 66); com uma lasca a mais por pop, igual.
+    struct Degrau {
+        float passo = kPasso;
+        float rapidez = 1.0f;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

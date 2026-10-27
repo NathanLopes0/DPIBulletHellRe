@@ -4,7 +4,11 @@
 
 #include "doctest.h"
 
+#include <algorithm>
+#include "../Source/Attacks/Fase.h"
+
 #include <random>
+#include <set>
 #include <vector>
 
 #include "../Source/Attacks/Pilha.h"
@@ -56,4 +60,54 @@ TEST_CASE("Pilha: o lugar de cada bloco, e o placar de cada operacao") {
     CHECK(Pilha::Placar({Pilha::Tipo::Overflow, 0}, 0) == "stack overflow!");
     CHECK(Pilha::CaraDoBloco(3) == "N3");
     CHECK(Pilha::CaraDoBloco(12) == "N0");
+}
+
+TEST_CASE("Pilha: a pilha sorteada - de 4 a 6 blocos, e o overflow chega em quase toda fase") {
+    std::set<int> capacidades;
+    for (std::uint32_t semente = 0; semente < 300; ++semente) {
+        Variacao::Sorteio s(semente);
+        const Pilha::Plano p = Pilha::Sortear(s);
+        CAPTURE(p.capacidade);
+        CAPTURE(p.chanceDePush);
+        CHECK(p.capacidade >= Pilha::kMenorCapacidade);
+        CHECK(p.capacidade <= Pilha::kMaiorCapacidade);
+        capacidades.insert(p.capacidade);
+        CHECK(Pilha::Proxima(p.capacidade, semente * 2654435761u, p).tipo == Pilha::Tipo::Overflow);
+        CHECK(Pilha::Proxima(p.capacidade - 1, semente * 2654435761u, p).tipo != Pilha::Tipo::Overflow);
+    }
+    CHECK(capacidades == std::set<int>{4, 5, 6});
+    // A PIOR COMBINACAO de cada capacidade (a menor chance) ainda transborda em
+    // 20 operacoes - menos que uma fase - quase sempre.
+    for (int capacidade = Pilha::kMenorCapacidade; capacidade <= Pilha::kMaiorCapacidade; ++capacidade) {
+        CAPTURE(capacidade);
+        const Pilha::Plano p{capacidade, 0.55f + 0.05f * static_cast<float>(capacidade - Pilha::kMenorCapacidade)};
+        int comOverflow = 0;
+        for (std::uint32_t semente = 1; semente <= 200; ++semente) {
+            int altura = 0;
+            bool transbordou = false;
+            std::mt19937 gerador(semente);
+            for (int i = 0; i < 20; ++i) {
+                const auto op = Pilha::Proxima(altura, static_cast<std::uint32_t>(gerador()), p);
+                if (op.tipo == Pilha::Tipo::Push) ++altura;
+                else if (op.tipo == Pilha::Tipo::Pop) --altura;
+                else { altura = 0; transbordou = true; }
+                REQUIRE(altura >= 0);
+                REQUIRE(altura <= capacidade);
+            }
+            if (transbordou) ++comOverflow;
+        }
+        CHECK(comOverflow > 130);
+    }
+    // A MAIOR PILHA ainda fica acima do aluno.
+    CHECK(Pilha::AbaixoDoProfessor(Pilha::kMaiorCapacidade - 1) < 400.0f);
+}
+
+TEST_CASE("Pilha: o degrau - o Normal e o de sempre, o Dificil opera mais e mais depressa") {
+    const Pilha::Degrau n = Pilha::DegrauDo(Dificuldade::Nivel::Normal);
+    CHECK(n.passo == doctest::Approx(Pilha::kPasso));
+    CHECK(n.rapidez == doctest::Approx(1.0f));
+    const Pilha::Degrau d = Pilha::DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.passo < n.passo);
+    CHECK(d.rapidez > n.rapidez);
+    CHECK(Pilha::kEstouraEm < d.passo);   // o pop estoura antes da operacao seguinte
 }

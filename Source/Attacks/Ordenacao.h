@@ -4,7 +4,11 @@
 
 #pragma once
 
+#include "../Dificuldade.h"
+#include "../Variacao.h"
+
 #include <cstdint>
+#include <array>
 #include <string>
 #include <vector>
 
@@ -129,4 +133,33 @@ namespace Ordenacao {
 
     /// @brief A cara do elemento de valor v: a chave "K42" da folha da hash.
     std::string CaraDoElemento(int valor);
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA, E O DEGRAU -------------------
+
+    /// COMO O VETOR CHEGA: em qualquer ordem, QUASE ORDENADO (dois pares
+    /// trocados - o bubble sort acaba cedo, na passada sem troca) ou INVERTIDO
+    /// (o pior caso: toda comparacao e uma troca). O placar diz qual.
+    enum class Entrada { Aleatoria, QuaseOrdenada, Invertida };
+    std::vector<int> Sortear(std::uint32_t sorteio, int n, Entrada e);
+    std::string PlacarDoComeco(int n, Entrada e);
+
+    /// A repescagem desta luta: os vetores chegam um de cada jeito, numa
+    /// ordem sorteada (e depois a ordem recomeca), com 7 ou 8 elementos.
+    struct Plano {
+        std::array<Entrada, 3> entradas{Entrada::Aleatoria, Entrada::QuaseOrdenada, Entrada::Invertida};
+        int tamanho = kTamanho;
+    };
+    Plano PlanoDeSempre();
+    Plano Sortear(Variacao::Sorteio& s);
+    /// A entrada do vetor de numero k da fase.
+    Entrada EntradaDaVez(const Plano& p, int k);
+
+    /// O que o Dificil muda: uma comparacao a cada 0,27 s, as capivaras da
+    /// troca 25% mais rapidas, e quem assenta solta um anel de dez.
+    struct Degrau {
+        float passo = kPasso;
+        float rapidez = 1.0f;
+        int anelDoLugar = 8;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

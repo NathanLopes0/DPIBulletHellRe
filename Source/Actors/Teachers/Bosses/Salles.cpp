@@ -34,12 +34,15 @@ void Salles::OnUpdate(float deltaTime) {
     AtualizarOrdenacao(deltaTime);
 }
 
-void Salles::DispararDaOrdenacao(const char* gatilho, const Vector2 onde, const bool mirar) {
+void Salles::DispararDaOrdenacao(const char* gatilho, const Vector2 onde, const bool mirar, const float rapidez,
+                                 const int quantos) {
     mDisparandoDaOrdenacao = true;
     mMirandoDaOrdenacao = mirar;
     mDisparoDaOrdenacao = onde;
     mCriadaNaOrdenacao = nullptr;
-    Disparar(gatilho);
+    mQuantosNoDisparo = quantos;
+    Disparar(gatilho, -1, rapidez);
+    mQuantosNoDisparo = 0;
     mDisparandoDaOrdenacao = false;
     mMirandoDaOrdenacao = false;
 }
@@ -83,6 +86,10 @@ void Salles::AtualizarOrdenacao(const float deltaTime) {
         mComparando = -1;
         mSobe = mDesce = nullptr;
         mProximoVetor = Ordenacao::kPrimeiro;
+        mVetoresDaFase = 0;
+        Variacao::Sorteio sorteio = SorteioDaFase(Ordenacao::kFaseDaOrdenacao);
+        mPlanoDaOrdenacao = Ordenacao::Sortear(sorteio);
+        mDegrauDaOrdenacao = Ordenacao::DegrauDo(NivelDeDificuldade());
         if (mAnuncioDaOrdenacao.empty()) mAnuncioDaOrdenacao = AnuncioDaFase(Ordenacao::kFaseDaOrdenacao);
     }
     const float agora = fsm->GetStateTime();
@@ -104,7 +111,8 @@ void Salles::AtualizarOrdenacao(const float deltaTime) {
     if (!mVetorEmCampo && agora >= mProximoVetor) {
         const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
         std::vector<int> valores;
-        for (const int v : Ordenacao::Sortear(sorteio, Ordenacao::kTamanho)) {
+        const Ordenacao::Entrada entrada = Ordenacao::EntradaDaVez(mPlanoDaOrdenacao, mVetoresDaFase++);
+        for (const int v : Ordenacao::Sortear(sorteio, mPlanoDaOrdenacao.tamanho, entrada)) {
             DispararDaOrdenacao(Ordenacao::kGatilhoDoElemento, GetPosition(), false);
             if (!mCriadaNaOrdenacao) continue;
             if (auto* anim = mCriadaNaOrdenacao->GetComponent<DrawAnimatedComponent>()) {
@@ -117,13 +125,13 @@ void Salles::AtualizarOrdenacao(const float deltaTime) {
         mLugares = static_cast<int>(mVetor.size());
         mVetorEmCampo = !mVetor.empty();
         mProximoPasso = agora + Ordenacao::kAteComparar;
-        RegistrarAnuncio(Ordenacao::kFaseDaOrdenacao, Ordenacao::PlacarDoComeco(static_cast<int>(mVetor.size())));
+        RegistrarAnuncio(Ordenacao::kFaseDaOrdenacao, Ordenacao::PlacarDoComeco(static_cast<int>(mVetor.size()), entrada));
     }
 
     // O PASSO DO ALGORITMO.
     if (mVetorEmCampo && agora >= mProximoPasso) {
         const Ordenacao::Passo p = Ordenacao::Avancar(mBolha);
-        mProximoPasso = agora + Ordenacao::kPasso;
+        mProximoPasso = agora + mDegrauDaOrdenacao.passo;
         switch (p.tipo) {
             case Ordenacao::Tipo::Fica:
                 mComparando = p.i;
@@ -137,14 +145,15 @@ void Salles::AtualizarOrdenacao(const float deltaTime) {
                 mSobe = direita;     // o maior, que foi para a direita
                 mDesce = esquerda;
                 mFimDoArco = agora + Ordenacao::kDuracaoDoArco;
-                DispararDaOrdenacao(Ordenacao::kGatilhoDaTroca, esquerda->GetPosition(), true);
-                DispararDaOrdenacao(Ordenacao::kGatilhoDaTroca, direita->GetPosition(), true);
+                DispararDaOrdenacao(Ordenacao::kGatilhoDaTroca, esquerda->GetPosition(), true, mDegrauDaOrdenacao.rapidez);
+                DispararDaOrdenacao(Ordenacao::kGatilhoDaTroca, direita->GetPosition(), true, mDegrauDaOrdenacao.rapidez);
                 break;
             }
             case Ordenacao::Tipo::NoLugar:
                 // A BOLHA CHEGOU: quem assentou solta a lista circular.
                 mComparando = -1;
-                DispararDaOrdenacao(Ordenacao::kGatilhoDoLugar, mVetor[static_cast<size_t>(p.i)]->GetPosition(), false);
+                DispararDaOrdenacao(Ordenacao::kGatilhoDoLugar, mVetor[static_cast<size_t>(p.i)]->GetPosition(), false,
+                                    mDegrauDaOrdenacao.rapidez, mDegrauDaOrdenacao.anelDoLugar);
                 mProximoPasso += Ordenacao::kNoLugar;
                 break;
             case Ordenacao::Tipo::Ordenado:
@@ -158,7 +167,7 @@ void Salles::AtualizarOrdenacao(const float deltaTime) {
 
     // O PROFESSOR NA FRONTEIRA, no vao entre o que falta e o que ja esta no
     // lugar. Sem vetor, ele espera onde o proximo comeca.
-    const int n = mVetorEmCampo ? mLugares : Ordenacao::kTamanho;
+    const int n = mVetorEmCampo ? mLugares : mPlanoDaOrdenacao.tamanho;
     const float fronteira = mVetorEmCampo ? static_cast<float>(mBolha.fim) + 0.5f : static_cast<float>(n) - 0.5f;
     mAlvo = Vector2(Ordenacao::X(fronteira, n, largura), Ordenacao::kYDoProfessor);
 
@@ -180,12 +189,15 @@ void Salles::AtualizarOrdenacao(const float deltaTime) {
     }
 }
 
-void Salles::DispararDaArvore(const char* gatilho, const Vector2 onde, const bool mirar) {
+void Salles::DispararDaArvore(const char* gatilho, const Vector2 onde, const bool mirar, const float rapidez,
+                              const int quantos) {
     mDisparandoDaArvore = true;
     mMirandoDaArvore = mirar;
     mDisparoDaArvore = onde;
     mCriadaNaArvore = nullptr;
-    Disparar(gatilho);
+    mQuantosNoDisparo = quantos;
+    Disparar(gatilho, -1, rapidez);
+    mQuantosNoDisparo = 0;
     mDisparandoDaArvore = false;
     mMirandoDaArvore = false;
 }
@@ -258,6 +270,9 @@ void Salles::AtualizarArvore(const float deltaTime) {
         mProjeteisDaArvore.clear();
         mDescida = Descida{};
         mProximaOperacaoDaArvore = Arvore::kPrimeira;
+        Variacao::Sorteio sorteio = SorteioDaFase(Arvore::kFaseDaArvore);
+        mPlanoDaArvore = Arvore::Sortear(sorteio);
+        mDegrauDaArvore = Arvore::DegrauDo(NivelDeDificuldade());
         if (mAnuncioDaArvore.empty()) mAnuncioDaArvore = AnuncioDaFase(Arvore::kFaseDaArvore);
     }
     const float agora = fsm->GetStateTime();
@@ -277,14 +292,14 @@ void Salles::AtualizarArvore(const float deltaTime) {
         mProximaOperacaoDaArvore = agora + Arvore::kEntreOperacoes;
     }
     if (mDescida.ativa && agora >= mDescida.proximo) {
-        mDescida.proximo += Arvore::kEmCadaNo;
+        mDescida.proximo += mDegrauDaArvore.emCadaNo;
         const int k = mDescida.op.chave;
         if (mDescida.passo + 1 < mDescida.caminho.size()) {
             const int i = mDescida.caminho[mDescida.passo++];
             // O no do caminho pode ter caido no meio da descida, a tiro: ai nao
             // ha quem atire nem com quem comparar.
             if (const auto no = mNosDaArvore.find(i); no != mNosDaArvore.end()) {
-                DispararDaArvore(Arvore::kGatilhoDaVisita, Vector2(Arvore::X(i), Arvore::Y(i)), true);
+                DispararDaArvore(Arvore::kGatilhoDaVisita, Vector2(Arvore::X(i), Arvore::Y(i)), true, mDegrauDaArvore.rapidez);
                 RegistrarAnuncio(Arvore::kFaseDaArvore, Arvore::PlacarDaComparacao(k, no->second));
             }
         } else {
@@ -312,8 +327,12 @@ void Salles::AtualizarArvore(const float deltaTime) {
             } else {
                 // A BUSCA: achou, o no achado estoura; nao achou, o NULL cai do
                 // lugar vazio. A chave que buscava some.
-                if (achou) DispararDaArvore(Arvore::kGatilhoDoAchado, Vector2(Arvore::X(fim), Arvore::Y(fim)), false);
-                else DispararDaArvore(Arvore::kGatilhoDoNulo, chave->GetPosition(), true);
+                if (achou) {
+                    DispararDaArvore(Arvore::kGatilhoDoAchado, Vector2(Arvore::X(fim), Arvore::Y(fim)), false,
+                                     mDegrauDaArvore.rapidez, mDegrauDaArvore.anelDoAchado);
+                } else {
+                    DispararDaArvore(Arvore::kGatilhoDoNulo, chave->GetPosition(), true, mDegrauDaArvore.rapidez);
+                }
                 chave->Kill();
             }
             RegistrarAnuncio(Arvore::kFaseDaArvore, Arvore::PlacarDoFim(mDescida.op, achou, cabe));
@@ -325,7 +344,7 @@ void Salles::AtualizarArvore(const float deltaTime) {
     // UMA OPERACAO NOVA: a chave sai do professor e comeca a descer.
     if (!mDescida.ativa && agora >= mProximaOperacaoDaArvore) {
         const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
-        const Arvore::Operacao op = Arvore::Proxima(mNosDaArvore, sorteio);
+        const Arvore::Operacao op = Arvore::Proxima(mNosDaArvore, sorteio, mPlanoDaArvore);
         DispararDaArvore(Arvore::kGatilhoDaChave, GetPosition(), false);
         if (mCriadaNaArvore) {
             if (auto* anim = mCriadaNaArvore->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(Hash::CaraDaChave(op.chave));
@@ -335,7 +354,7 @@ void Salles::AtualizarArvore(const float deltaTime) {
             mDescida.ativa = true;
             mDescida.op = op;
             mDescida.caminho = Arvore::Caminho(mNosDaArvore, op.chave);
-            mDescida.proximo = agora + Arvore::kEmCadaNo;
+            mDescida.proximo = agora + mDegrauDaArvore.emCadaNo;
             mDescida.chave = mCriadaNaArvore;
             RegistrarAnuncio(Arvore::kFaseDaArvore, Arvore::PlacarDaOperacao(op));
         }
@@ -357,12 +376,12 @@ void Salles::AtualizarArvore(const float deltaTime) {
     }
 }
 
-void Salles::DispararDoHash(const char* gatilho, const Vector2 onde, const bool mirar) {
+void Salles::DispararDoHash(const char* gatilho, const Vector2 onde, const bool mirar, const float rapidez) {
     mDisparandoDoHash = true;
     mMirandoDoHash = mirar;
     mDisparoDoHash = onde;
     mCriadaNoHash = nullptr;
-    Disparar(gatilho);
+    Disparar(gatilho, -1, rapidez);
     mDisparandoDoHash = false;
     mMirandoDoHash = false;
 }
@@ -418,7 +437,10 @@ void Salles::AtualizarHash(const float deltaTime) {
         mChaves.clear();
         mBaldes.clear();
         mBusca = Busca{};
-        mTamanho = Hash::kTamanhos[0];
+        Variacao::Sorteio sorteio = SorteioDaFase(Hash::kFaseDoHash);
+        mPlanoDoHash = Hash::Sortear(sorteio);
+        mDegrauDoHash = Hash::DegrauDo(NivelDeDificuldade());
+        mTamanho = mPlanoDoHash.tamanhoInicial;
         mRehashPendente = false;
         mProximaOperacaoDoHash = Hash::kPrimeira;
         if (mAnuncioDoHash.empty()) mAnuncioDoHash = AnuncioDaFase(Hash::kFaseDoHash);
@@ -441,7 +463,9 @@ void Salles::AtualizarHash(const float deltaTime) {
         mBusca.proximo += Hash::kEntreNos;
         if (mBusca.lidos < mBusca.nos.size()) {
             BossProjectile* no = mBusca.nos[mBusca.lidos++];
-            if (no->GetState() == ActorState::Active) DispararDoHash(Hash::kGatilhoDoPercurso, no->GetPosition(), true);
+            if (no->GetState() == ActorState::Active) {
+                DispararDoHash(Hash::kGatilhoDoPercurso, no->GetPosition(), true, mDegrauDoHash.rapidez);
+            }
         } else {
             if (mBusca.achou && !mBusca.nos.empty() && mBusca.nos.back()->GetState() == ActorState::Active) {
                 BossProjectile* achado = mBusca.nos.back();
@@ -453,7 +477,7 @@ void Salles::AtualizarHash(const float deltaTime) {
                 }
                 if (auto* rb = achado->GetComponent<RigidBodyComponent>()) rb->SetVelocity(d * kVelocidadeDoAchado);
             } else if (!mBusca.achou) {
-                DispararDoHash(Hash::kGatilhoDoNulo, mBusca.fim);
+                DispararDoHash(Hash::kGatilhoDoNulo, mBusca.fim, false, mDegrauDoHash.rapidez);
             }
             mBusca.ativa = false;
         }
@@ -461,7 +485,7 @@ void Salles::AtualizarHash(const float deltaTime) {
 
     // A OPERACAO - menos durante uma busca, que le a lista ate o fim.
     if (agora >= mProximaOperacaoDoHash && !mBusca.ativa) {
-        mProximaOperacaoDoHash += Hash::kPasso;
+        mProximaOperacaoDoHash += mDegrauDoHash.passo;
 
         if (mRehashPendente) {
             // O REHASH: a tabela cresce, e toda chave muda de balde.
@@ -476,7 +500,7 @@ void Salles::AtualizarHash(const float deltaTime) {
             std::vector<int> naTabela;
             for (const Chave& c : mChaves) naTabela.push_back(c.valor);
             const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
-            const Hash::Operacao op = Hash::Proxima(naTabela, sorteio);
+            const Hash::Operacao op = Hash::Proxima(naTabela, sorteio, mPlanoDoHash);
             const int balde = Hash::Balde(op.chave, mTamanho);
             mAlvo = Vector2(Hash::CentroDoBalde(balde, mTamanho, largura), kAlturaNoHash);
 
@@ -543,7 +567,9 @@ void Salles::DerrubarPilha() {
         b->DefinirPosto("");
         const float abertura = n > 1 ? (static_cast<float>(k) / static_cast<float>(n - 1) - 0.5f) * 50.0f : 0.0f;
         const float a = Math::ToRadians(90.0f + abertura);
-        if (auto* rb = b->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2(Math::Cos(a), Math::Sin(a)) * 260.0f);
+        if (auto* rb = b->GetComponent<RigidBodyComponent>()) {
+            rb->SetVelocity(Vector2(Math::Cos(a), Math::Sin(a)) * (260.0f * mDegrauDaPilha.rapidez));
+        }
     }
     mPilha.clear();
     mValores.clear();
@@ -563,7 +589,7 @@ void Salles::AtualizarPilha(const float deltaTime) {
             mEstourando = true;
             mDisparoDoEstouro = p.bloco->GetPosition();
             mLascas = p.valor;
-            Disparar(Pilha::kGatilhoDoEstouro);
+            Disparar(Pilha::kGatilhoDoEstouro, -1, mDegrauDaPilha.rapidez);
             mEstourando = false;
         }
         p.bloco->Kill();
@@ -587,6 +613,9 @@ void Salles::AtualizarPilha(const float deltaTime) {
         mPilha.clear();
         mValores.clear();
         mProximaOperacao = Pilha::kPrimeira;
+        Variacao::Sorteio sorteio = SorteioDaFase(Pilha::kFaseDaPilha);
+        mPlanoDaPilha = Pilha::Sortear(sorteio);
+        mDegrauDaPilha = Pilha::DegrauDo(NivelDeDificuldade());
         mProximaMudanca = kParadoNaColuna;
         mColuna = 1;
         mAlvo = Vector2(kColunasDaPilha[1], kAlturaDaPilha);
@@ -615,9 +644,9 @@ void Salles::AtualizarPilha(const float deltaTime) {
 
     // A OPERACAO DO PROGRAMA.
     if (agora >= mProximaOperacao) {
-        mProximaOperacao += Pilha::kPasso;
+        mProximaOperacao += mDegrauDaPilha.passo;
         const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
-        const Pilha::Operacao op = Pilha::Proxima(static_cast<int>(mPilha.size()), sorteio);
+        const Pilha::Operacao op = Pilha::Proxima(static_cast<int>(mPilha.size()), sorteio, mPlanoDaPilha);
         const int topo = mValores.empty() ? 0 : mValores.back();
 
         if (op.tipo == Pilha::Tipo::Push) {
@@ -639,7 +668,7 @@ void Salles::AtualizarPilha(const float deltaTime) {
                 d = batalha->Alvo()->GetPosition() - b->GetPosition();
                 if (d.LengthSq() > 0.0f) d.Normalize();
             }
-            if (auto* rb = b->GetComponent<RigidBodyComponent>()) rb->SetVelocity(d * Pilha::kVelocidadeDoPop);
+            if (auto* rb = b->GetComponent<RigidBodyComponent>()) rb->SetVelocity(d * (Pilha::kVelocidadeDoPop * mDegrauDaPilha.rapidez));
             mPopados.push_back(Popado{b, 0.0f, mValores.back()});
             mPilha.pop_back();
             mValores.pop_back();
@@ -767,6 +796,7 @@ void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stat
     if (stateName == Arvore::kFaseDaArvore) {
         if (!mDisparandoDaArvore) return;
         params.firePosition = mDisparoDaArvore;
+        if (mQuantosNoDisparo > 0) params.numProjectiles = mQuantosNoDisparo;
         if (mMirandoDaArvore) {
             Vector2 d(0.0f, 1.0f);
             if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
@@ -805,6 +835,7 @@ void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stat
     if (stateName == Ordenacao::kFaseDaOrdenacao) {
         if (!mDisparandoDaOrdenacao) return;
         params.firePosition = mDisparoDaOrdenacao;
+        if (mQuantosNoDisparo > 0) params.numProjectiles = mQuantosNoDisparo;
         if (mMirandoDaOrdenacao) {
             Vector2 d(0.0f, 1.0f);
             if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {

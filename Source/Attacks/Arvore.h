@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "../Dificuldade.h"
+#include "../Variacao.h"
+
 #include <cstdint>
 #include <map>
 #include <string>
@@ -108,4 +111,24 @@ namespace Arvore {
     std::string PlacarDaOperacao(const Operacao& op);
     std::string PlacarDaComparacao(int chave, int doNo);
     std::string PlacarDoFim(const Operacao& op, bool achou, bool cabe);
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA, E O DEGRAU -------------------
+
+    /// A arvore desta luta: a chance de uma insercao (de 0,55 a 0,75 - com
+    /// menos, a arvore fica baixa e ha mais busca; com mais, ela cresce ate a
+    /// altura demais).
+    struct Plano {
+        float chanceDeInserir = kChanceDeInserir;
+    };
+    Plano Sortear(Variacao::Sorteio& s);
+    Operacao Proxima(const Nos& nos, std::uint32_t sorteio, const Plano& p);
+
+    /// O que o Dificil muda: a chave desce mais depressa pelos nos, cada no
+    /// lido atira 25% mais rapido, e o anel do achado tem doze.
+    struct Degrau {
+        float emCadaNo = kEmCadaNo;
+        float rapidez = 1.0f;
+        int anelDoAchado = 10;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

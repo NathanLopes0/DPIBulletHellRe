@@ -34,11 +34,15 @@ namespace Hash {
     }
 
     Operacao Proxima(const std::vector<int>& naTabela, const std::uint32_t sorteio) {
+        return Proxima(naTabela, sorteio, Plano{});
+    }
+
+    Operacao Proxima(const std::vector<int>& naTabela, const std::uint32_t sorteio, const Plano& p) {
         Operacao op;
         const float tipo = static_cast<float>(sorteio & 1023u) / 1024.0f;
         const float achar = static_cast<float>((sorteio >> 10) & 1023u) / 1024.0f;
         const auto escolha = sorteio >> 20;
-        op.tipo = (naTabela.empty() || tipo < kChanceDeInserir) ? Tipo::Inserir : Tipo::Buscar;
+        op.tipo = (naTabela.empty() || tipo < p.chanceDeInserir) ? Tipo::Inserir : Tipo::Buscar;
 
         const auto esta = [&](const int k) { return std::find(naTabela.begin(), naTabela.end(), k) != naTabela.end(); };
         if (op.tipo == Tipo::Buscar && achar < kChanceDeAchar) {
@@ -71,5 +75,19 @@ namespace Hash {
 
     std::string CaraDoBalde(const int balde) {
         return "B" + std::to_string(balde < 0 ? 0 : balde);
+    }
+
+    Plano Sortear(Variacao::Sorteio& s) {
+        Plano p;
+        p.tamanhoInicial = kTamanhos[static_cast<size_t>(s.Inteiro(0, 1))];
+        p.chanceDeInserir = s.Real(0.45f, 0.65f);
+        return p;
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.passo = Dificuldade::Escolher(n, kPasso, 0.55f);
+        d.rapidez = Dificuldade::Escolher(n, 1.0f, 1.25f);
+        return d;
     }
 }

@@ -121,6 +121,10 @@ private:
     Vector2 mDisparoDoEstouro;
     int mLascas = 0;
 
+    /// A pilha desta luta (a capacidade, a chance do push) e o degrau do modo.
+    Pilha::Plano mPlanoDaPilha;
+    Pilha::Degrau mDegrauDaPilha;
+
     /// Para onde o professor vai: uma das colunas, e quando ele muda.
     std::optional<Vector2> mAlvo;
     float mProximaMudanca = 0.0f;
@@ -149,7 +153,9 @@ private:
     void RefazerListas();
 
     /// Dispara 'gatilho' de 'onde'. 'mirar': o leque sai mirado no aluno.
-    void DispararDoHash(const char* gatilho, Vector2 onde, bool mirar = false);
+    void DispararDoHash(const char* gatilho, Vector2 onde, bool mirar = false, float rapidez = 1.0f);
+    Hash::Plano mPlanoDoHash;
+    Hash::Degrau mDegrauDoHash;
 
     struct Chave {
         BossProjectile* p = nullptr;
@@ -198,7 +204,13 @@ private:
     void DerrubarSubarvore(int indice);
 
     /// Dispara 'gatilho' de 'onde'. 'mirar': o leque sai mirado no aluno.
-    void DispararDaArvore(const char* gatilho, Vector2 onde, bool mirar);
+    void DispararDaArvore(const char* gatilho, Vector2 onde, bool mirar, float rapidez = 1.0f, int quantos = 0);
+    Arvore::Plano mPlanoDaArvore;
+    Arvore::Degrau mDegrauDaArvore;
+
+    /// Quantos projeteis o proximo disparo da arvore ou da ordenacao tem, se
+    /// > 0 (o anel do Dificil); o arquivo diz quantos quando e 0.
+    int mQuantosNoDisparo = 0;
 
     Arvore::Nos mNosDaArvore;
     std::map<int, BossProjectile*> mProjeteisDaArvore;
@@ -244,7 +256,10 @@ private:
     void SoltarVetor(bool entregue);
 
     /// Dispara 'gatilho' de 'onde'. 'mirar': o tiro sai mirado no aluno.
-    void DispararDaOrdenacao(const char* gatilho, Vector2 onde, bool mirar);
+    void DispararDaOrdenacao(const char* gatilho, Vector2 onde, bool mirar, float rapidez = 1.0f, int quantos = 0);
+    Ordenacao::Plano mPlanoDaOrdenacao = Ordenacao::PlanoDeSempre();
+    Ordenacao::Degrau mDegrauDaOrdenacao;
+    int mVetoresDaFase = 0;
 
     std::vector<BossProjectile*> mVetor;
     Ordenacao::Bolha mBolha;

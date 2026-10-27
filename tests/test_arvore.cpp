@@ -4,6 +4,10 @@
 
 #include "doctest.h"
 
+#include <algorithm>
+#include <set>
+#include "../Source/Attacks/Fase.h"
+
 #include <random>
 #include <vector>
 
@@ -99,4 +103,29 @@ TEST_CASE("Arvore: a proxima operacao, e os placares") {
     CHECK(Arvore::PlacarDoFim({Arvore::Tipo::Inserir, 42}, false, false) == "42: altura demais!");
     CHECK(Arvore::PlacarDoFim({Arvore::Tipo::Buscar, 42}, true, true) == "42: achou");
     CHECK(Arvore::PlacarDoFim({Arvore::Tipo::Buscar, 42}, false, true) == "42: NULL");
+}
+
+TEST_CASE("Arvore: a arvore sorteada muda a chance de inserir, e a chave nova e sempre nova") {
+    for (std::uint32_t semente = 0; semente < 200; ++semente) {
+        Variacao::Sorteio s(semente);
+        const Arvore::Plano p = Arvore::Sortear(s);
+        CHECK(p.chanceDeInserir >= 0.55f);
+        CHECK(p.chanceDeInserir < 0.75f);
+        Arvore::Nos nos;
+        std::mt19937 g(semente);
+        for (int i = 0; i < 30; ++i) {
+            const auto op = Arvore::Proxima(nos, static_cast<std::uint32_t>(g()), p);
+            if (op.tipo != Arvore::Tipo::Inserir) continue;
+            for (const auto& [indice, chave] : nos) CHECK(chave != op.chave);
+            const auto caminho = Arvore::Caminho(nos, op.chave);
+            if (Arvore::Cabe(caminho.back())) nos[caminho.back()] = op.chave;
+        }
+    }
+    const Arvore::Degrau n = Arvore::DegrauDo(Dificuldade::Nivel::Normal);
+    const Arvore::Degrau d = Arvore::DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(n.emCadaNo == doctest::Approx(Arvore::kEmCadaNo));
+    CHECK(n.rapidez == doctest::Approx(1.0f));
+    CHECK(d.emCadaNo < n.emCadaNo);
+    CHECK(d.rapidez > n.rapidez);
+    CHECK(d.anelDoAchado > n.anelDoAchado);
 }

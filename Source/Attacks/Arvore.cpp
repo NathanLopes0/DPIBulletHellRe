@@ -61,11 +61,15 @@ namespace Arvore {
     }
 
     Operacao Proxima(const Nos& nos, const std::uint32_t sorteio) {
+        return Proxima(nos, sorteio, Plano{});
+    }
+
+    Operacao Proxima(const Nos& nos, const std::uint32_t sorteio, const Plano& p) {
         Operacao op;
         const float tipo = static_cast<float>(sorteio & 1023u) / 1024.0f;
         const float achar = static_cast<float>((sorteio >> 10) & 1023u) / 1024.0f;
         const auto escolha = sorteio >> 20;
-        op.tipo = (nos.empty() || tipo < kChanceDeInserir) ? Tipo::Inserir : Tipo::Buscar;
+        op.tipo = (nos.empty() || tipo < p.chanceDeInserir) ? Tipo::Inserir : Tipo::Buscar;
 
         const auto esta = [&](const int k) {
             return std::any_of(nos.begin(), nos.end(), [k](const auto& n) { return n.second == k; });
@@ -96,5 +100,19 @@ namespace Arvore {
         const std::string k = std::to_string(op.chave);
         if (op.tipo == Tipo::Inserir) return cabe ? k + " entra" : k + ": altura demais!";
         return achou ? k + ": achou" : k + ": NULL";
+    }
+
+    Plano Sortear(Variacao::Sorteio& s) {
+        Plano p;
+        p.chanceDeInserir = s.Real(0.55f, 0.75f);
+        return p;
+    }
+
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.emCadaNo = Dificuldade::Escolher(n, kEmCadaNo, 0.16f);
+        d.rapidez = Dificuldade::Escolher(n, 1.0f, 1.25f);
+        d.anelDoAchado = Dificuldade::Escolher(n, 10, 12);
+        return d;
     }
 }
