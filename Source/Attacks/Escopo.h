@@ -207,4 +207,8 @@ namespace Escopo {
         float queda = kQueda;
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
+    /// @brief A LEGENDA do comando, em portugues: que regra de escopo vale,
+    /// onde o nome foi achado e o que a chuva quer dizer. O placar mostra o
+    /// codigo; isto o explica.
+    std::string Legenda(Forma f);
 }

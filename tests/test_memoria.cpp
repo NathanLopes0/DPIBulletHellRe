@@ -293,3 +293,12 @@ TEST_CASE("Memoria: no Dificil os lacos alocam mais depressa, o while (1) vai ma
     CHECK(cpp.size() > static_cast<size_t>(kNoLacoCpp));
     for (const float q : cpp) CHECK(q < kEstouro);
 }
+
+TEST_CASE("Memoria: todo passo tem legenda, e a do delete fala do ponteiro pendente") {
+    for (int k = 0; k < Memoria::kPassos; ++k) {
+        CHECK_FALSE(Memoria::Legenda(static_cast<Memoria::Passo>(k)).empty());
+    }
+    CHECK(Memoria::Legenda(Memoria::Passo::Libera).find("pendente") != std::string::npos);
+    CHECK(Memoria::Legenda(Memoria::Passo::Coleta).find("coletor") != std::string::npos);
+    CHECK(Memoria::Legenda(Memoria::Passo::LacoCpp).find("bad_alloc") != std::string::npos);
+}

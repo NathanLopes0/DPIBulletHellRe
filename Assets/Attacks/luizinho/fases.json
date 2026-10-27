@@ -15,6 +15,14 @@
   // coercao (Coercao.h), o heap (Memoria.h) e a pilha de chamadas da final
   // (Excecao.h).
   //
+  // E A LEGENDA EXPLICA (Boss::RegistrarLegenda): abaixo do placar, uma
+  // frase em portugues diz o assunto quando a fase abre e, a cada comando, o
+  // que ele faz e o que o ataque quer dizer - "escopo estatico: y++ procura de
+  // dentro para fora e acha o y global. A chuva cai onde esse y e visivel." O
+  // latim sozinho, e o codigo sozinho, nao diziam o que cada fase era (a
+  // legenda de cada modulo: Escopo, Coercao, Memoria e Excecao::Legenda). A
+  // pilha de chamadas da final desceu para comecar abaixo dela.
+  //
   // A MEMORIA E A FASE 3, a que DECIDE a batalha ("proximo" vazio): a final
   // so e vista por quem termina entre 40 e 59, ou com 100.
   //
@@ -69,7 +77,7 @@
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
-    "anuncio": "ligāre · atar",
+    "anuncio": "Amarrações · ligāre, atar",
     "movimento": { "tipo": "Conduzido", "a": 900 },
     "ataques": [
       { "gatilho": "gota", "estrategia": "WaveAttack", "projetil": "Gota",
@@ -101,7 +109,7 @@
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
-    "anuncio": "coercēre · forçar",
+    "anuncio": "Tipos · coercēre, forçar",
     "movimento": { "tipo": "Conduzido", "a": 600 },
     "ataques": [
       { "gatilho": "operador", "estrategia": "WaveAttack", "projetil": "Operador",
@@ -140,7 +148,7 @@
   "StateThree": {
     "duracao": 20,
     "proximo": "",
-    "anuncio": "memento mori",
+    "anuncio": "Memória · memento mori",
     "movimento": { "tipo": "Conduzido", "a": 600 },
     "ataques": [
       { "gatilho": "celula", "estrategia": "WaveAttack", "projetil": "Celula",
@@ -174,7 +182,7 @@
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
-    "anuncio": "excipere · tirar de fora",
+    "anuncio": "Exceções · excipere, tirar de fora",
     "movimento": { "tipo": "Conduzido", "a": 900 },
     "ataques": [
       { "gatilho": "excecao", "estrategia": "WaveAttack", "projetil": "Excecao",

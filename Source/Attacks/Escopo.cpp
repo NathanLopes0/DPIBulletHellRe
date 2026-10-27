@@ -291,4 +291,33 @@ namespace Escopo {
         d.queda = Dificuldade::Escolher(n, kQueda, 150.0f);
         return d;
     }
+    std::string Legenda(const Forma f) {
+        // \xc3\xa1 a agudo, \xc3\xa2 a circunflexo, \xc3\xa9 e agudo, \xc3\xad i agudo.
+        auto doBloco = [](const Bloco b, const char nome) {
+            const std::string n(1, nome);
+            switch (b) {
+                case Bloco::Global:  return "o " + n + " global";
+                case Bloco::F:       return "o " + n + " de f()";
+                case Bloco::G:       return "o " + n + " de g()";
+                case Bloco::Interno: return "o " + n + " do bloco interno de g()";
+                case Bloco::H:       return "o " + n + " de h()";
+            }
+            return n;
+        };
+        const char nome = Nome(f);
+        const std::string n(1, nome);
+        const std::string achou = doBloco(Dono(f), nome);
+        const std::string chuva = " A chuva cai onde esse " + n + " \xc3\xa9 vis\xc3\xadvel.";
+        if (RegraDe(f) == Regra::Dinamico) {
+            return "Escopo din\xc3\xa2mico: f() procura o " + n + " em quem a chamou, h(), e usa " +
+                   achou + "." + chuva;
+        }
+        if (QuemChamou(f)) {
+            return "Escopo est\xc3\xa1tico: f() procura o " + n + " no texto, fora dela, e usa " + achou +
+                   " - mesmo chamada de h()." + chuva;
+        }
+        return "Escopo est\xc3\xa1tico: " + n + "++ procura de dentro para fora e acha " + achou + "." +
+               chuva;
+
+    }
 }

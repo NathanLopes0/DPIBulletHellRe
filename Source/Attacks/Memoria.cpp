@@ -314,4 +314,34 @@ namespace Memoria {
         d.rapidez = Dificuldade::Escolher(n, 1.0f, 1.2f);
         return d;
     }
+    std::string Legenda(const Passo p) {
+        // \xc3\xa1 a agudo, \xc3\xa3 a til, \xc3\xa9 e agudo, \xc3\xad i agudo,
+        // \xc3\xb3 o agudo, \xc3\xa7 c cedilha, \xc3\xaa e circunflexo.
+        switch (p) {
+            case Passo::NovosAeB:
+                return "new reserva um bloco no heap. a aponta para o primeiro n\xc3\xb3, e o prox dele "
+                       "para o segundo.";
+            case Passo::NovoC:
+                return "a passa a apontar para um n\xc3\xb3 novo: os dois de antes ficam sem ningu\xc3\xa9m "
+                       "que os alcance - viram lixo.";
+            case Passo::LacoJava:
+                return "Cada new sem vari\xc3\xa1vel j\xc3\xa1 nasce lixo: ningu\xc3\xa9m guarda o "
+                       "endere\xc3\xa7o dele.";
+            case Passo::Coleta:
+                return "O coletor de lixo para o programa, marca o que ainda \xc3\xa9 alcan\xc3\xa7"
+                       "ado e varre o resto - e o lixo cai.";
+            case Passo::NovoP:
+                return "C++ n\xc3\xa3o tem coletor: quem aloca com new tem de liberar com delete.";
+            case Passo::Libera:
+                return "delete libera o bloco, mas p ainda guarda o endere\xc3\xa7o: \xc3\xa9 um "
+                       "ponteiro pendente.";
+            case Passo::Escreve:
+                return "Escrever por um ponteiro pendente \xc3\xa9 comportamento indefinido: o bloco "
+                       "estoura.";
+            case Passo::LacoCpp:
+                return "Alocar sem nunca liberar vaza mem\xc3\xb3ria, at\xc3\xa9 o new falhar com "
+                       "bad_alloc.";
+        }
+        return "";
+    }
 }

@@ -388,6 +388,16 @@ void Boss::RegistrarAnuncio(const std::string& fase, const std::string& texto) {
     mAnuncioPorFase[fase] = texto;
 }
 
+void Boss::RegistrarLegenda(const std::string& fase, const std::string& texto) {
+    mLegendaPorFase[fase] = texto;
+}
+
+std::string Boss::LegendaDaFase(const std::string& fase) const {
+    const auto it = mLegendaPorFase.find(fase);
+    return it == mLegendaPorFase.end() ? std::string() : it->second;
+}
+
+
 std::string Boss::AnuncioDaFase(const std::string& fase) const {
     if (fase == mLastStateName) {
         if (const auto* fsm = GetComponent<FSMComponent>()) return AnuncioDaFaseEm(fase, fsm->GetStateTime());

@@ -294,3 +294,20 @@ TEST_CASE("Escopo: o degrau do Normal e o de sempre, e o do Dificil acende antes
     // o do aluno, mais a folga) a 300 px/s leva bem menos que ele.
     CHECK((kRaioDaGota + kRaioDoAluno + kFolga) * 2.0f / 300.0f < d.aviso);
 }
+
+TEST_CASE("Escopo: a legenda diz a regra, onde o nome foi achado e o que a chuva quer dizer") {
+    using F = Escopo::Forma;
+    for (int k = 0; k < Escopo::kFormas; ++k) {
+        const auto f = static_cast<F>(k);
+        const std::string l = Escopo::Legenda(f);
+        CAPTURE(l);
+        CHECK(l.find("chuva") != std::string::npos);
+        CHECK(l.find(std::string(1, Escopo::Nome(f))) != std::string::npos);
+    }
+    CHECK(Escopo::Legenda(F::XNoInterno).find("bloco interno de g()") != std::string::npos);
+    CHECK(Escopo::Legenda(F::XEmG).find("global") != std::string::npos);
+    // A PEGADINHA: a mesma chamada, duas regras, dois donos.
+    CHECK(Escopo::Legenda(F::FDinamico).find("din\xc3\xa2mico") != std::string::npos);
+    CHECK(Escopo::Legenda(F::FDinamico).find("de h()") != std::string::npos);
+    CHECK(Escopo::Legenda(F::FEstatico).find("global") != std::string::npos);
+}

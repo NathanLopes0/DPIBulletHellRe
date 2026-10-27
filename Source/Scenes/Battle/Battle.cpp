@@ -437,6 +437,37 @@ void Battle::LoadPlacar() {
 
     mPlacarActor = placar.get();
     this->AddActor(std::move(placar));
+
+    // A LEGENDA, logo abaixo, no mesmo canto e no mesmo giz: o placar mostra o
+    // codigo, ela diz em portugues o que ele quer dizer. Nasce apagada, e so
+    // acende quando o professor escreve uma.
+    auto legenda = std::make_unique<Actor>(this);
+    auto caixa = legenda->AddComponent<DrawCaixaComponent>(
+        kLegendaLargura, kLegendaAltura, SDL_Color{205, 210, 200, 120},
+        SDL_Color{10, 24, 18, 175}, 1, kOrdemDoPlacar);
+    caixa->SetIsVisible(false);
+    auto linhas = legenda->AddComponent<DrawTextComponent>(
+        " ", mFonteDoPlacar.get(), kLegendaLargura - 20, kLegendaAltura - 6,
+        kTamanhoDaLegenda, kOrdemDoPlacar + 1);
+    linhas->SetLarguraDeQuebra(static_cast<unsigned>(kLegendaLargura - 20));
+    linhas->SetAjustarAoTexto(true);
+    linhas->SetIsVisible(false);
+    legenda->SetPosition(Vector2(static_cast<float>(kPlacarMargem + kLegendaLargura / 2),
+                                 static_cast<float>(kPlacarMargem + kPlacarAltura + 6 + kLegendaAltura / 2)));
+    mLegendaActor = legenda.get();
+    this->AddActor(std::move(legenda));
+}
+
+void Battle::AtualizarLegenda() {
+    if (!mLegendaActor || !mBoss) return;
+    const std::string legenda = mBoss->LegendaDaFase(mBoss->FaseAtual());
+    if (legenda == mTextoDaLegenda) return;
+    mTextoDaLegenda = legenda;
+    const bool acesa = !legenda.empty();
+    auto* texto = mLegendaActor->GetComponent<DrawTextComponent>();
+    if (acesa) texto->SetText(legenda);
+    texto->SetIsVisible(acesa);
+    mLegendaActor->GetComponent<DrawCaixaComponent>()->SetIsVisible(acesa);
 }
 
 void Battle::AtualizarPlacar() {
@@ -698,6 +729,8 @@ void Battle::OnUpdate(float deltaTime) {
     // neste quadro, e o placar so le a resposta.
     AtualizarIntercambio(deltaTime);
     AtualizarPlacar();
+    AtualizarLegenda();
+
 
     // Purga os ponteiros observadores de pontos extras. Precisa rodar DEPOIS de
     // CheckCollisions (que e quem marca um item coletado como Destroy) e ANTES

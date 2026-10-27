@@ -232,6 +232,9 @@ private:
     void LoadPlacar();
     void AtualizarPlacar();
 
+    /// A legenda do professor, abaixo do placar (Boss::RegistrarLegenda).
+    void AtualizarLegenda();
+
     // ---- O INTERCAMBIO: os alunos trocam de lugar ("intercambio" em fases.json) ----
     void LoadIntercambio();
     void AtualizarIntercambio(float deltaTime);
@@ -382,6 +385,8 @@ private:
     /// texto que nao mudou. E o TEXTO, e nao a fase, que se compara: dentro de
     /// uma fase com Intercambio o placar troca de texto durante o aviso.
     std::string mTextoDoPlacar;
+    Actor* mLegendaActor = nullptr;
+    std::string mTextoDaLegenda;
 
     /// O relogio do Intercambio da fase atual. Sem Intercambio ele fica
     /// invalido, e um relogio invalido nunca avisa nem troca (Intercambio.h).
@@ -407,6 +412,14 @@ private:
     static constexpr int kPlacarAltura  = 46;
     static constexpr int kPlacarMargem  = 16;
     static constexpr int kTamanhoDoPlacar = 30;
+
+    /// A LEGENDA, logo abaixo do placar e mais larga que ele: ate tres linhas.
+    /// O que passa disso encolhe, entao a legenda e curta de proposito.
+    static constexpr int kLegendaLargura = 470;
+    static constexpr int kLegendaAltura  = 64;
+    static constexpr int kTamanhoDaLegenda = 18;
+
+
 
     /// ATRAS DOS PROJETEIS (88 a 92) e do aluno (100), e de proposito. O aluno
     /// alcanca o campo inteiro, cantos de cima inclusive, e um placar por cima

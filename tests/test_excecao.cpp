@@ -92,8 +92,9 @@ TEST_CASE("Excecao: as faixas da pilha ficam no alto, uma embaixo da outra, long
         const Retangulo f = Faixa(k, 1200.0f);
         CHECK(f.x == doctest::Approx(kMargem));
         CHECK(f.x + f.w == doctest::Approx(1200.0f - kMargem));
-        // Abaixo do placar (Battle: 12 + 46).
-        CHECK(f.y >= 60.0f);
+        // Abaixo do placar e da legenda (Battle: 16 + 46 + 6 + 64).
+        CHECK(f.y >= 132.0f);
+
         if (k > 0) {
             const Retangulo cima = Faixa(k - 1, 1200.0f);
             CHECK(f.y >= cima.y + cima.h);
@@ -178,4 +179,18 @@ TEST_CASE("Excecao: a cortina do Dificil e mais fechada, e ainda tem um destroco
         CHECK(std::any_of(xs.begin(), xs.end(), [meio](const float c) { return std::fabs(c - meio) < 0.01f; }));
         for (size_t k = 1; k < xs.size(); ++k) CHECK(xs[k] - xs[k - 1] == doctest::Approx(d.entreDestrocos));
     }
+}
+
+TEST_CASE("Excecao: a legenda diz o que a excecao faz, e depois quem a tratou") {
+    using T = Excecao::Tipo;
+    // f trata IOException: a capturada e a propria.
+    const Excecao::Rodada r0 = Excecao::RodadaDaVez(0);
+    REQUIRE(r0.lancada == T::IOException);
+    CHECK(Excecao::Legenda(r0, false).find("sobe a pilha") != std::string::npos);
+    CHECK(Excecao::Legenda(r0, true).find("Capturada em f()") != std::string::npos);
+    // A HIERARQUIA: o catch de RuntimeException pega a NullPointerException.
+    const Excecao::Rodada r2 = Excecao::RodadaDaVez(2);
+    CHECK(Excecao::Legenda(r2, true).find("\xc3\xa9 um RuntimeException") != std::string::npos);
+    // NINGUEM TRATA.
+    CHECK(Excecao::Legenda(Excecao::RodadaDaVez(3), true).find("escapou do main()") != std::string::npos);
 }

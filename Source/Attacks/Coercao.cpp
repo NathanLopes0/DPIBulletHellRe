@@ -263,4 +263,31 @@ namespace Coercao {
         d.rapidez = Dificuldade::Escolher(n, 1.0f, 1.2f);
         return d;
     }
+    std::string Legenda(const Comando& c) {
+        // \xc3\xa1 a agudo, \xc3\xa3 a til, \xc3\xa9 e agudo, \xc3\xba u agudo,
+        // \xc3\xa7 c cedilha, \xc3\xb5 o til.
+        const std::string l = Nome(LinguagemDe(c.forma));
+        const Resultado r = Avaliar(c);
+        switch (r.desfecho) {
+            case Desfecho::ErroDeCompilacao:
+                return l + " tem tipagem est\xc3\xa1tica: n\xc3\xbamero com texto nem compila - "
+                           "o erro estoura no professor, antes de rodar.";
+            case Desfecho::ErroDeExecucao:
+                return l + " tem tipagem forte: n\xc3\xa3o converte sozinho, e a conta d\xc3\xa1 "
+                           "TypeError ao rodar.";
+            case Desfecho::Valor: break;
+        }
+        std::string convertidos;
+        if (r.coagidoEsquerdo) convertidos = Escrito(Esquerdo(c)) + " em " + Escrito(r.esquerdoDepois);
+        if (r.coagidoDireito) {
+            if (!convertidos.empty()) convertidos += " e ";
+            convertidos += Escrito(Direito(c)) + " em " + Escrito(r.direitoDepois);
+        }
+        if (convertidos.empty()) {
+            return "Em " + l + ", texto * n\xc3\xbamero repete o texto: \xc3\xa9 uma opera\xc3\xa7\xc3\xa3o "
+                   "do pr\xc3\xb3prio texto, sem convers\xc3\xa3o.";
+        }
+        return l + " tem tipagem fraca: converte " + convertidos + " e faz a conta. "
+                   "O resultado ataca do jeito do tipo dele.";
+    }
 }

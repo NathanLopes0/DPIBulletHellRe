@@ -182,6 +182,13 @@ public:
     /// ultima etapa volta o anuncio da fase.
     [[nodiscard]] std::string AnuncioDaFase(const std::string& fase) const;
 
+    /// @brief A LEGENDA da fase: uma frase em portugues, abaixo do placar,
+    /// dizendo o que o placar e o campo querem dizer - "a chuva cai onde esse x
+    /// e visivel". O placar mostra o codigo; a legenda o explica. Vazia = sem
+    /// legenda (o padrao: so quem precisa escreve).
+    void RegistrarLegenda(const std::string& fase, const std::string& texto);
+    [[nodiscard]] std::string LegendaDaFase(const std::string& fase) const;
+
     /// @brief O anuncio que a fase tem no instante 't' dela, contando as
     /// etapas - o de agora ou o de daqui a pouco. Com 't' negativo, o da fase.
     ///
@@ -381,6 +388,10 @@ private:
 
     /// Por fase, o texto do placar. Ver RegistrarAnuncio.
     std::map<std::string, std::string> mAnuncioPorFase;
+
+    /// Por fase, a legenda. Ver RegistrarLegenda.
+    std::map<std::string, std::string> mLegendaPorFase;
+
 
     /// Por fase, as etapas: onde cada uma acaba e o texto dela. Ver RegistrarEtapas.
     std::map<std::string, std::vector<std::pair<float, std::string>>> mEtapasPorFase;

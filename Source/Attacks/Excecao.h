@@ -122,9 +122,12 @@ namespace Excecao {
     /// 'largura': de borda a borda (menos kMargem), uma embaixo da outra a
     /// partir de kTopoDaPilha.
     Retangulo Faixa(int k, float largura);
-    constexpr float kTopoDaPilha = 64.0f;
-    constexpr float kAlturaDaFaixa = 70.0f;
-    constexpr float kEntreFaixas = 6.0f;
+    /// ABAIXO DO PLACAR E DA LEGENDA, que ficam no canto de cima a esquerda:
+    /// em 64, logo abaixo do placar, a legenda cobria a faixa do main().
+    constexpr float kTopoDaPilha = 140.0f;
+
+    constexpr float kAlturaDaFaixa = 60.0f;
+    constexpr float kEntreFaixas = 4.0f;
     constexpr float kMargem = 20.0f;
     constexpr int kMaiorPilha = 4;
 
@@ -181,4 +184,7 @@ namespace Excecao {
         float rapidez = 1.0f;
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
+    /// @brief A LEGENDA da rodada, em portugues: antes, o que a excecao vai
+    /// fazer; 'depois', quem a tratou e por que - ou que ninguem tratou.
+    std::string Legenda(const Rodada& r, bool depois);
 }

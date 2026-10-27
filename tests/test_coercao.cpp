@@ -221,3 +221,17 @@ TEST_CASE("Coercao: o degrau do Normal e o de sempre, e o do Dificil voa mais cu
     // A troca de chip ainda acontece NO VOO: kCoercao e uma fracao dele.
     CHECK(kCoercao < 1.0f);
 }
+
+TEST_CASE("Coercao: a legenda diz o que a linguagem converteu, ou por que recusou") {
+    using F = Coercao::Forma;
+    const std::string js = Coercao::Legenda(Coercao::Comando{F::JsSoma, 3, 4});
+    CHECK(js.find("fraca") != std::string::npos);
+    CHECK(js.find("3 em \"3\"") != std::string::npos);
+    const std::string php = Coercao::Legenda(Coercao::Comando{F::PhpSoma, 3, 4});
+    CHECK(php.find("\"4\" em 4") != std::string::npos);
+    CHECK(Coercao::Legenda(Coercao::Comando{F::PythonSoma, 3, 4}).find("TypeError") != std::string::npos);
+    CHECK(Coercao::Legenda(Coercao::Comando{F::HaskellSoma, 3, 4}).find("compila") != std::string::npos);
+    CHECK(Coercao::Legenda(Coercao::Comando{F::PythonRepete, 3, 4}).find("repete") != std::string::npos);
+    const std::string produto = Coercao::Legenda(Coercao::Comando{F::JsProduto, 3, 4});
+    CHECK(produto.find("\"3\" em 3 e \"4\" em 4") != std::string::npos);
+}
