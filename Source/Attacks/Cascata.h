@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "../Math.h"
+#include "../Variacao.h"
 #include "Fase.h"
 
 /**
@@ -100,6 +101,24 @@ namespace Cascata {
 
     /// Uma classe por vez compila, a cada kEntreCompilacoes.
     constexpr float kEntreCompilacoes = 0.28f;
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA -------------------------------
+
+    /// @brief A cascata desta luta: em que ordem as classes do diagrama soltam
+    /// as mensagens e compilam. Antes era sempre da primeira a ultima, da
+    /// esquerda para a direita - e de onde viria o proximo tiro se decorava.
+    /// A ordem e das kMaxClasses vagas; as que o aluno cortou no backlog nao
+    /// existem, e a vez pula para a seguinte (DaVez).
+    struct Plano {
+        std::vector<int> ordem;
+    };
+    Plano Sortear(Variacao::Sorteio& s);
+
+    /// @brief Qual das 'prontas' classes tem a vez 'vez': a vez-esima da
+    /// ordem do plano entre as que existem, e a volta seguinte repete a ordem.
+    /// Sem ordem, a de sempre (vez % prontas).
+    int DaVez(const Plano& p, int vez, int prontas);
+
 
     // ---- MANUTENCAO --------------------------------------------------------
 

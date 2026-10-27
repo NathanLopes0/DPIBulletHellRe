@@ -4,9 +4,12 @@
 
 #pragma once
 
+#include <array>
+#include <string>
 #include <vector>
 
 #include "../Math.h"
+#include "../Variacao.h"
 
 /**
  * CAMADA PURA.
@@ -112,4 +115,25 @@ namespace Sprint {
     /// O que o cursor esta fazendo: a cara dele e quando ele some.
     enum class Gesto { Arrastando, Soltando, Esperando, Clicando, Acabou };
     Gesto GestoDoCursor(const Plano& p, float t);
+
+    // ---- O PLANNING POKER DE CADA LUTA --------------------------------------
+
+    /// @brief Quantas historias cada sprint tem: as cartas do baralho, uma por
+    /// sprint. A de sempre e a sequencia em ordem - 1, 2, 3, 5 e 8 -, a dos
+    /// "projeteis" de marialucia/fases.json.
+    constexpr int kSprints = 5;
+    using Poker = std::array<int, kSprints>;
+    constexpr Poker kBaralho = {1, 2, 3, 5, 8};
+
+    /// @brief O poker desta luta: as quatro primeiras cartas em qualquer
+    /// ordem, e o 8 sempre na ultima sprint - o compromisso grande demais, que
+    /// nao cabe no tempo de ninguem, fecha a fase. O total de historias e o de
+    /// sempre.
+    Poker Sortear(Variacao::Sorteio& s);
+
+    /// @brief O placar da sprint 'sprint' (1 a 5) de 'pontos' pontos:
+    /// "Sprint 2 · 3 pontos", e "1 ponto" no singular (o ponto do meio em
+    /// UTF-8, como em marialucia/fases.json).
+    std::string Anuncio(int sprint, int pontos);
 }
+

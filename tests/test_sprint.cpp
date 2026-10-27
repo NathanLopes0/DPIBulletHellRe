@@ -5,7 +5,12 @@
 
 #include "doctest.h"
 
+#include <algorithm>
 #include <cmath>
+#include <cstdint>
+#include <set>
+#include <vector>
+
 
 #include "../Source/Attacks/Sprint.h"
 
@@ -162,4 +167,29 @@ TEST_CASE("Sprint: a ponta da seta e o pixel (6, 4) do desenho") {
     const Vector2 c2 = Sprint::CentroDoCursor(Vector2(100.0f, 200.0f), 1.5f);
     CHECK(c2.x == doctest::Approx(115.0f));
     CHECK(c2.y == doctest::Approx(218.0f));
+}
+
+TEST_CASE("Sprint: o planning poker de cada luta embaralha as quatro primeiras cartas, e o 8 fecha a fase") {
+    std::set<std::vector<int>> vistas;
+    for (std::uint32_t semente = 0; semente < 300; ++semente) {
+        Variacao::Sorteio s = Variacao::SorteioDa(semente, "StateTwo");
+        const Sprint::Poker p = Sprint::Sortear(s);
+        CHECK(p.back() == 8);
+        std::vector<int> cartas(p.begin(), p.end());
+        std::sort(cartas.begin(), cartas.end());
+        CHECK(cartas == std::vector<int>(Sprint::kBaralho.begin(), Sprint::kBaralho.end()));
+        vistas.insert(std::vector<int>(p.begin(), p.end() - 1));
+    }
+    // AS 24 ORDENS das quatro primeiras aparecem.
+    CHECK(vistas.size() == 24u);
+}
+
+TEST_CASE("Sprint: o placar da sprint diz os pontos, e o do baralho em ordem e o do arquivo") {
+    // OS TEXTOS DE marialucia/fases.json, que o placar mostrava antes do sorteio.
+    CHECK(Sprint::Anuncio(1, Sprint::kBaralho[0]) == "Sprint 1 \xc2\xb7 1 ponto");
+    CHECK(Sprint::Anuncio(2, Sprint::kBaralho[1]) == "Sprint 2 \xc2\xb7 2 pontos");
+    CHECK(Sprint::Anuncio(3, Sprint::kBaralho[2]) == "Sprint 3 \xc2\xb7 3 pontos");
+    CHECK(Sprint::Anuncio(4, Sprint::kBaralho[3]) == "Sprint 4 \xc2\xb7 5 pontos");
+    CHECK(Sprint::Anuncio(5, Sprint::kBaralho[4]) == "Sprint 5 \xc2\xb7 8 pontos");
+    CHECK(Sprint::Anuncio(3, 1) == "Sprint 3 \xc2\xb7 1 ponto");
 }

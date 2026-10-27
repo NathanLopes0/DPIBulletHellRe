@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include "../../../Attacks/Ancora.h"
+#include "../../../Attacks/AttackParameters/SprintAttackParams.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Components/DrawComponents/DrawLinhasComponent.h"
@@ -28,7 +29,41 @@ namespace {
 MariaLucia::MariaLucia(Scene* scene) : Boss(scene) {
 }
 
+void MariaLucia::SortearALuta() {
+    mLutaSorteada = true;
+
+    Variacao::Sorteio cascata = SorteioDaFase(Cascata::kFaseDaCascata);
+    mPlanoDaCascata = Cascata::Sortear(cascata);
+
+    // O PLANNING POKER: cada sprint com a carta dela, e o placar dizendo os
+    // pontos - o placar e o compromisso. A primeira etapa e o backlog.
+    Variacao::Sorteio metodos = SorteioDaFase(kFaseDosMetodos);
+    mPoker = Sprint::Sortear(metodos);
+    auto etapas = EtapasDa(kFaseDosMetodos);
+    if (etapas.size() > static_cast<size_t>(Sprint::kSprints)) {
+        for (int k = 0; k < Sprint::kSprints; ++k) {
+            etapas[static_cast<size_t>(k) + 1].second = Sprint::Anuncio(k + 1, mPoker[static_cast<size_t>(k)]);
+        }
+        RegistrarEtapas(kFaseDosMetodos, etapas);
+    }
+
+    Variacao::Sorteio observer = SorteioDaFase(kFaseDoObserver);
+    mSujeitoDaLuta = Observer::Sortear(observer, Observer::DegrauDo(NivelDeDificuldade()));
+}
+
+int MariaLucia::SprintDaVez() const {
+    const auto* fsm = GetComponent<FSMComponent>();
+    const float t = fsm ? fsm->GetStateTime() : 0.0f;
+    const auto etapas = EtapasDa(kFaseDosMetodos);
+    int k = static_cast<int>(etapas.size());
+    for (size_t i = 0; i < etapas.size(); ++i) {
+        if (t < etapas[i].first) { k = static_cast<int>(i); break; }
+    }
+    return std::clamp(k - 1, 0, Sprint::kSprints - 1);
+}
+
 void MariaLucia::OnUpdate(const float deltaTime) {
+    if (!mLutaSorteada && !EhClone()) SortearALuta();
     Boss::OnUpdate(deltaTime);
     AtualizarCascata(deltaTime);
     AtualizarDividas(deltaTime);
@@ -244,10 +279,12 @@ void MariaLucia::AtualizarCascata(const float deltaTime) {
     if (!prontas.empty()) {
         if (etapa == 1 && agora >= mProximaMensagem) {
             mProximaMensagem = agora + Cascata::kEntreMensagens;
-            DispararEm(Cascata::kGatilhoDaMensagem, prontas[mClasseDaVez++ % prontas.size()]->p->GetPosition());
+            const int vez = Cascata::DaVez(mPlanoDaCascata, static_cast<int>(mClasseDaVez++), static_cast<int>(prontas.size()));
+            DispararEm(Cascata::kGatilhoDaMensagem, prontas[static_cast<size_t>(vez)]->p->GetPosition());
         } else if (etapa == 2 && agora >= mProximaCompilacao) {
             mProximaCompilacao = agora + Cascata::kEntreCompilacoes;
-            DispararEm(Cascata::kGatilhoDoCodigo, prontas[mClasseDaVez++ % prontas.size()]->p->GetPosition(), true);
+            const int vez = Cascata::DaVez(mPlanoDaCascata, static_cast<int>(mClasseDaVez++), static_cast<int>(prontas.size()));
+            DispararEm(Cascata::kGatilhoDoCodigo, prontas[static_cast<size_t>(vez)]->p->GetPosition(), true);
         }
     }
 }
@@ -263,6 +300,13 @@ void MariaLucia::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& 
 
 void MariaLucia::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
     Boss::CustomizeAttackParams(params, stateName);
+
+    // A CARTA DA SPRINT DESTA LUTA: o arquivo escreve o baralho em ordem, e o
+    // poker sorteado diz quantas historias o cursor arrasta.
+    if (stateName == kFaseDosMetodos && dynamic_cast<SprintAttackParams*>(&params)) {
+        params.numProjectiles = mPoker[static_cast<size_t>(SprintDaVez())];
+    }
+
     if (!mDisparandoEm) return;
     params.firePosition = mOndeDisparar;
     if (mMirandoEm) {
@@ -314,13 +358,14 @@ void MariaLucia::AtualizarObserver(const float deltaTime) {
 
     if (!mNoObserver) {
         mNoObserver = true;
-        mSujeitos.assign(batalha->Jogadores().size(), Observer::Sujeito{});
+        mSujeitos.assign(batalha->Jogadores().size(), mSujeitoDaLuta);
         mPiscando = 0.0f;
         mNoPlacar = 0.0f;
         if (mNomeDoPadrao.empty()) mNomeDoPadrao = AnuncioDaFase(kFaseDoObserver);
     }
     if (mSujeitos.size() != batalha->Jogadores().size()) {
-        mSujeitos.resize(batalha->Jogadores().size());
+        mSujeitos.resize(batalha->Jogadores().size(), mSujeitoDaLuta);
+
     }
 
     if (!mAssinaturas) {

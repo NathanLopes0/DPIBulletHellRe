@@ -5,7 +5,11 @@
 
 #include "doctest.h"
 
+#include <algorithm>
+#include <cstdint>
+
 #include "../Source/Attacks/Observer.h"
+
 
 namespace {
     const Vector2 kDireita(300.0f, 0.0f);
@@ -119,4 +123,45 @@ TEST_CASE("Observer: o olho olha para o lado em que o aluno esta, com zona morta
     CHECK(Observer::Olhar(olho, Vector2(700.0f, 650.0f)) == 1);
     CHECK(Observer::Olhar(olho, Vector2(300.0f, 650.0f)) == -1);
     CHECK(Observer::Olhar(olho, Vector2(520.0f, 650.0f)) == 0);
+}
+
+TEST_CASE("Observer: o degrau do Normal e o sujeito de sempre, e o do Dificil avisa mais depressa") {
+    const Observer::Sujeito sempre;
+    const Observer::Degrau n = Observer::DegrauDo(Dificuldade::Nivel::Normal);
+    CHECK(n.intervaloMinimo == sempre.intervaloMinimo);
+    CHECK(n.consulta == sempre.consulta);
+    const Observer::Degrau d = Observer::DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.intervaloMinimo < n.intervaloMinimo);
+    CHECK(d.consulta < n.consulta);
+    // O POLLING CONTINUA MAIS LENTO QUE A NOTIFICACAO, mesmo no mais curto.
+    CHECK(0.85f * d.consulta > 3.0f * d.intervaloMinimo);
+}
+
+TEST_CASE("Observer: o polling de cada luta e sorteado em volta do do degrau") {
+    for (const auto nivel : {Dificuldade::Nivel::Normal, Dificuldade::Nivel::Dificil}) {
+        const Observer::Degrau d = Observer::DegrauDo(nivel);
+        float menor = 9.0f, maior = 0.0f;
+        for (std::uint32_t semente = 0; semente < 500; ++semente) {
+            Variacao::Sorteio s = Variacao::SorteioDa(semente, "StateThree");
+            const Observer::Sujeito sujeito = Observer::Sortear(s, d);
+            CHECK(sujeito.intervaloMinimo == d.intervaloMinimo);
+            REQUIRE(sujeito.consulta >= 0.85f * d.consulta);
+            REQUIRE(sujeito.consulta < 1.15f * d.consulta);
+            menor = std::min(menor, sujeito.consulta);
+            maior = std::max(maior, sujeito.consulta);
+        }
+        CHECK(menor < 0.87f * d.consulta);
+        CHECK(maior > 1.13f * d.consulta);
+
+        // O SUJEITO SORTEADO CONSULTA NO TEMPO DELE: parado, um aviso a cada
+        // 'consulta' segundos - cada um no primeiro quadro depois do prazo, e
+        // o relogio volta a zero ali, entao cada volta atrasa ate um quadro.
+        Variacao::Sorteio s = Variacao::SorteioDa(7u, "StateThree");
+        Observer::Sujeito sujeito = Observer::Sortear(s, d);
+        int notificou = 0, consultou = 0;
+        Anda(sujeito, kParado, 10.0f * (sujeito.consulta + kQuadro) + kQuadro, notificou, consultou);
+
+        CHECK(notificou == 0);
+        CHECK(consultou == 10);
+    }
 }

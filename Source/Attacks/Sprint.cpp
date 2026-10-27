@@ -9,6 +9,22 @@
 
 namespace Sprint {
 
+    Poker Sortear(Variacao::Sorteio& s) {
+        const std::vector<int> ordem = Variacao::Ordem(s, kSprints - 1, 0);
+        Poker p = kBaralho;
+        for (int k = 0; k < kSprints - 1; ++k) {
+            p[static_cast<size_t>(k)] = kBaralho[static_cast<size_t>(ordem[static_cast<size_t>(k)])];
+        }
+        return p;
+    }
+
+    std::string Anuncio(const int sprint, const int pontos) {
+        // \xc2\xb7 e o ponto do meio: o MSVC nao le acento em literal.
+        return "Sprint " + std::to_string(sprint) + " \xc2\xb7 " + std::to_string(pontos) +
+               (pontos == 1 ? " ponto" : " pontos");
+    }
+
+
     float TempoDeFitts(const float distancia, const float largura, const Fitts& f) {
         const float l = std::max(largura, 1.0f);
         const float d = std::max(distancia, 0.0f);

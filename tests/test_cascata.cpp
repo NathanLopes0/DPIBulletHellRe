@@ -4,7 +4,9 @@
 
 #include "doctest.h"
 
+#include <cstdint>
 #include <set>
+
 
 #include "../Source/Attacks/Cascata.h"
 
@@ -76,4 +78,37 @@ TEST_CASE("Cascata: as classes ficam numa grade, e as setas ligam vizinhas") {
     // Com cinco, a quinta fica embaixo da primeira e so liga a ela.
     const auto cinco = Cascata::Associacoes(5);
     CHECK(cinco.size() == 4);
+}
+
+TEST_CASE("Cascata: a ordem das classes e sorteada por luta, e cada classe que existe tem a vez uma vez por volta") {
+    std::set<int> primeiras;
+    for (std::uint32_t semente = 0; semente < 200; ++semente) {
+        Variacao::Sorteio s = Variacao::SorteioDa(semente, Cascata::kFaseDaCascata);
+        const Cascata::Plano p = Cascata::Sortear(s);
+        REQUIRE(p.ordem.size() == static_cast<size_t>(Cascata::kMaxClasses));
+        CHECK(std::set<int>(p.ordem.begin(), p.ordem.end()).size() == static_cast<size_t>(Cascata::kMaxClasses));
+        primeiras.insert(Cascata::DaVez(p, 0, Cascata::kMaxClasses));
+
+        // O ALUNO CORTOU ESCOPO: com 1 a 8 classes, uma volta passa por todas,
+        // sem repetir, e a volta seguinte repete a ordem.
+        for (int prontas = 1; prontas <= Cascata::kMaxClasses; ++prontas) {
+            std::set<int> vistas;
+            for (int vez = 0; vez < prontas; ++vez) {
+                const int k = Cascata::DaVez(p, vez, prontas);
+                REQUIRE(k >= 0);
+                REQUIRE(k < prontas);
+                vistas.insert(k);
+                CHECK(Cascata::DaVez(p, vez + prontas, prontas) == k);
+            }
+            CHECK(vistas.size() == static_cast<size_t>(prontas));
+        }
+    }
+    // A PRIMEIRA A FALAR NAO E SEMPRE A DA ESQUERDA.
+    CHECK(primeiras.size() == static_cast<size_t>(Cascata::kMaxClasses));
+}
+
+TEST_CASE("Cascata: sem plano, a vez e a de sempre, da esquerda para a direita") {
+    const Cascata::Plano vazio;
+    for (int vez = 0; vez < 20; ++vez) CHECK(Cascata::DaVez(vazio, vez, 5) == vez % 5);
+    CHECK(Cascata::DaVez(vazio, 3, 0) == 0);
 }

@@ -45,4 +45,20 @@ namespace Cascata {
         }
         return setas;
     }
+
+    Plano Sortear(Variacao::Sorteio& s) {
+        return Plano{Variacao::Ordem(s, kMaxClasses, 0)};
+    }
+
+    int DaVez(const Plano& p, const int vez, const int prontas) {
+        if (prontas <= 0) return 0;
+        const int v = std::max(vez, 0) % prontas;
+        int achadas = 0;
+        for (const int k : p.ordem) {
+            if (k >= prontas) continue;
+            if (achadas++ == v) return k;
+        }
+        return v;
+    }
+
 }

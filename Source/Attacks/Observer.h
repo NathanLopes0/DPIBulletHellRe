@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include "../Dificuldade.h"
 #include "../Math.h"
+#include "../Variacao.h"
 
 /**
  * CAMADA PURA.
@@ -83,4 +85,20 @@ namespace Observer {
     /// Para onde o olho olha: -1 para a esquerda, 0 para a frente, 1 para a
     /// direita - e o rastreamento do olhar, a tecnica de IHC.
     int Olhar(Vector2 olho, Vector2 aluno, float zonaMorta = 40.0f);
+
+    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA, E O DEGRAU -------------------
+
+    /// @brief O que o Dificil muda: o sujeito notifica com 0,35 s entre dois
+    /// avisos (e nao 0,5) - quem vira e volta depressa ja nao escapa do aviso
+    /// -, e sem aviso ela consulta aos 1,7 s (e nao 2,0).
+    struct Degrau {
+        float intervaloMinimo = Sujeito{}.intervaloMinimo;
+        float consulta = Sujeito{}.consulta;
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
+
+    /// @brief O sujeito desta luta: o do degrau, com o polling sorteado de 85%
+    /// a 115% do dele - de quanto em quanto tempo ela pergunta nao se decora.
+    Sujeito Sortear(Variacao::Sorteio& s, const Degrau& d);
 }
+

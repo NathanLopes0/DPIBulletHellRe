@@ -28,11 +28,33 @@
   // da cascata, e a varredura e o que espalha os olhos do Observer pela
   // largura inteira.
   //
-  // A BATALHA DELA E DETERMINISTICA: nenhuma regra usa "chance" e nenhum angulo
-  // e sorteado. Medido - quatro sementes diferentes deram resultado IDENTICO
-  // ate o centesimo. E bom para o TCC, porque toda medicao e reproduzivel, e e
-  // um risco de projeto que fica registrado aqui: padrao fixo e padrao
-  // decoravel.
+  // A BATALHA DELA ERA DETERMINISTICA: nenhuma regra usa "chance" e nenhum
+  // angulo e sorteado, e quatro sementes deram resultado IDENTICO ate o
+  // centesimo. O risco ficou registrado aqui - padrao fixo e padrao decoravel -
+  // e agora CADA LUTA E OUTRA (Variacao.h; MariaLucia::SortearALuta), sem
+  // perder a reproducao: a luta e funcao da semente.
+  //
+  //   Cascata   as classes do diagrama mandam as mensagens e compilam numa
+  //             ordem sorteada (Cascata::Plano), e nao mais da esquerda para
+  //             a direita - de onde vem o proximo tiro nao se decora
+  //   Ageis     o planning poker da luta: as cartas 1, 2, 3 e 5 em qualquer
+  //             ordem, e o 8 sempre na ultima sprint (Sprint::Sortear), com
+  //             o placar dizendo os pontos de cada uma. Os "projeteis" e os
+  //             "anuncio" das sprints abaixo sao o baralho em ordem, o de
+  //             antes do sorteio
+  //   Observer  o polling sai de 85% a 115% dos 2 s (Observer::Sortear)
+  //
+  // NO DIFICIL o sujeito notifica com 0,35 s entre dois avisos (e nao 0,5) e
+  // consulta aos 1,7 s (Observer::Degrau), e o aviso da notificacao sai em par,
+  // num leque de 16 graus; a Implementacao compila tres tiros (e nao dois). Com
+  // leque de tres nos avisos e nas historias, o piloto que persegue reprovava
+  // com 57 a 64, e o que desvia caia a 25 a 62.
+  //
+  // Medido na batalha inteira: no Normal, em cinco sementes, o que persegue
+  // termina com 66,2 a 73,7 (62,2 cravados antes do sorteio) e o que desvia
+  // com 90,1 a 97,9 (0 ou 1 acerto); no Dificil, 61,1 a 75,5 e 80,1 a 91,9 (1
+  // a 5 acertos, 3,2 em media). O parado e o que vai e vem reprovam nos dois.
+
   // ==========================================================================
 
   // FASE 1 - O MODELO CASCATA   |   gesto: A ESCADA
@@ -97,6 +119,7 @@
         "regras": "diagrama" },
       { "etapa": "Implementacao", "gatilho": "compilar", "estrategia": "WaveAttack", "projetil": "Requisito",
         "projeteis": 2, "velocidade": 330, "angulo": 18, "intervalo": 0,
+        "dificil": { "projeteis": 3 },
         "regras": "codigo" },
       { "etapa": "Testes", "gatilho": "bug", "estrategia": "WaveAttack", "projetil": "Bug",
         "projeteis": 1, "velocidade": 70, "angulo": 0, "anguloCentral": 90, "intervalo": 0,
@@ -219,7 +242,8 @@
         "cooldown": 2.4,
         "regras": "inscrever" },
       { "gatilho": "notificacao", "estrategia": "PontosAttack", "projetil": "Aviso",
-        "projeteis": 1, "velocidade": 260,
+        "projeteis": 1, "velocidade": 260, "angulo": 16,
+        "dificil": { "projeteis": 2 },
         "pontos": { "posto": "observadores", "mirar": true, "prever": true } },
       { "gatilho": "consulta", "estrategia": "PontosAttack", "projetil": "Aviso",
         "projeteis": 1, "velocidade": 260,

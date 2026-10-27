@@ -11,6 +11,7 @@
 #include "../Boss.h"
 #include "../../../Attacks/Cascata.h"
 #include "../../../Attacks/Observer.h"
+#include "../../../Attacks/Sprint.h"
 
 class DrawLinhasComponent;
 
@@ -57,7 +58,27 @@ protected:
                               const std::string& stateName) override;
 
 private:
+    // ---- A LUTA SORTEADA ----------------------------------------------------
+    //
+    // Antes do primeiro quadro (Variacao.h): a ordem em que as classes da
+    // cascata falam, o planning poker das sprints - escrito no placar de cada
+    // uma -, e o relogio do sujeito do Observer, com o degrau do modo.
+
+    void SortearALuta();
+
+    /// A sprint em que a fase 2 esta agora (0 a 4), pelo relogio da fase e
+    /// pelos fins registrados das etapas.
+    [[nodiscard]] int SprintDaVez() const;
+
+    bool mLutaSorteada = false;
+    Cascata::Plano mPlanoDaCascata;
+    Sprint::Poker mPoker = Sprint::kBaralho;
+    Observer::Sujeito mSujeitoDaLuta;
+
+    static constexpr const char* kFaseDosMetodos = "StateTwo";
+
     // ---- A CASCATA (fase 1) -------------------------------------------------
+
 
     void AtualizarCascata(float deltaTime);
 

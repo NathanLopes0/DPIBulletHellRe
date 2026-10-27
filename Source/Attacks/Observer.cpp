@@ -6,6 +6,21 @@
 
 namespace Observer {
 
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        d.intervaloMinimo = Dificuldade::Escolher(n, d.intervaloMinimo, 0.35f);
+        d.consulta = Dificuldade::Escolher(n, d.consulta, 1.7f);
+        return d;
+    }
+
+    Sujeito Sortear(Variacao::Sorteio& s, const Degrau& d) {
+        Sujeito sujeito;
+        sujeito.intervaloMinimo = d.intervaloMinimo;
+        sujeito.consulta = s.Real(0.85f * d.consulta, 1.15f * d.consulta);
+        return sujeito;
+    }
+
+
     int Rumo(const float velocidade, const float zonaMorta) {
         if (velocidade > zonaMorta) return 1;
         if (velocidade < -zonaMorta) return -1;
