@@ -17,7 +17,6 @@
 #include "../../Variacao.h"
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
 
-#define GRADE_CHANGE_UP 0.56f
 #define GRADE_CHANGE_DOWN 6.f
 
 
@@ -308,7 +307,8 @@ private:
     /// da barra, ela escurece a faixa onde o numero esta e a barra continua
     /// sendo uma coisa so.
     /// O ganho bruto de gastar um Ponto Extra. Era um 10.f solto dentro de
-    /// OnPlayerUsedExtraPoint, ao lado de GRADE_CHANGE_UP e GRADE_CHANGE_DOWN
+    /// OnPlayerUsedExtraPoint, ao lado de Nota::kGanhoPorAcerto e GRADE_CHANGE_DOWN
+
     /// que ja moravam em constantes - e agora ele e repartido como os outros,
     /// entao vale ter nome.
     static constexpr float kGanhoDoPontoExtra = 10.0f;

@@ -458,3 +458,25 @@ TEST_CASE("Nota: a dupla ainda paga pelo erro - o alivio nao e imunidade") {
         CHECK(emDupla < bruto * 0.5f);      // e e menos que a divisao pura
     }
 }
+
+TEST_CASE("Nota: o ganho por acerto acompanha a duracao da fase, e a nota sobe por segundo o que subia") {
+    // O GANHO DE UMA FASE INTEIRA DE TIRO PERFEITO e o mesmo das fases de
+    // 17 s: o tiro sai no mesmo ritmo, e com mais tempo cada acerto vale menos.
+    CHECK(Nota::kGanhoPorAcerto * Fase::kDuracao ==
+          doctest::Approx(Nota::kGanhoPorAcertoEm17s * Nota::kDuracaoDaFaseMedida));
+
+    CHECK(Nota::kGanhoPorAcerto < Nota::kGanhoPorAcertoEm17s);
+
+    // A NOTA CHEIA CUSTA MAIS ACERTOS, na mesma proporcao do tempo, e cabe
+    // nos 500 tiros de uma batalha de 60 s (um a cada 0,12 s).
+    int acertos = 0;
+    float n = 40.0f;
+    while (n < Nota::kNotaMaxima && acertos < 10000) {
+        n = Nota::Somar(n, Nota::kGanhoPorAcerto, 0);
+        ++acertos;
+    }
+    CAPTURE(acertos);
+    CHECK(acertos > 256);
+    CHECK(acertos == doctest::Approx(256.0f * Fase::kDuracao / Nota::kDuracaoDaFaseMedida).epsilon(0.02));
+    CHECK(static_cast<float>(acertos) < 3.0f * Fase::kDuracao / 0.12f);
+}

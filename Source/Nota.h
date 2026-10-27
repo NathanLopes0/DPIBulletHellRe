@@ -6,6 +6,8 @@
 
 #include <cstddef>
 
+#include "Attacks/Fase.h"
+
 /**
  * CAMADA PURA. So aritmetica de nota; nao conhece batalha, chefe, SDL nem disco.
  *
@@ -54,6 +56,31 @@ namespace Nota {
     /// dele subiu 3,7 pontos em media - em oito chefes, de 1 a 13; na Maria
     /// Lucia e no Lucas, que ganharam mais ataque que tempo, caiu.
     inline constexpr float kExpoente = 1.5f;
+
+    /// A duracao de fase em que o ganho por acerto foi medido (ate o commit
+    /// 159), e o ganho de entao.
+    inline constexpr float kDuracaoDaFaseMedida = 17.0f;
+    inline constexpr float kGanhoPorAcertoEm17s = 0.56f;
+
+    /**
+     * @brief O ganho bruto de cada tiro que chega no chefe.
+     *
+     * PROPORCIONAL AO TEMPO DA FASE. O 0,56 foi medido com fases de 17 s - a
+     * nota cheia custando 256 acertos numa batalha de 51 s. Quando as fases
+     * passaram a 20 s (commit 159) o ganho ficou, e a nota subia o mesmo por
+     * acerto num tempo 18% maior: o piloto que persegue o professor ganhou 3,7
+     * pontos em media sem jogar melhor. Agora o ganho e o de 17 s escalado pela
+     * fase de verdade (0,476 com 20 s): a nota sobe por SEGUNDO o que subia, e
+     * a nota cheia custa 301 acertos numa batalha que entrega ate 500 tiros.
+     *
+     * MEDIDO nos dez chefes antes do TCC, tres sementes: no Normal todos ainda
+     * aprovam quem persegue e quem desvia, uns 4 pontos abaixo; no Dificil,
+     * quem so persegue o professor, sem desviar, passa a reprovar em parte das
+     * lutas do Thiago, do Vladimir e do Julio - e e para isso que o Dificil
+     * existe.
+     */
+    inline constexpr float kGanhoPorAcerto = kGanhoPorAcertoEm17s * kDuracaoDaFaseMedida / Fase::kDuracao;
+
 
     /// O maximo de quem levou dano demais. NAO e 100, e esse e o ponto: a nota
     /// cheia fica reservada a quem quase nao foi atingido.

@@ -1188,7 +1188,8 @@ void Battle::CheckCollisions() {
                 playerProj->OnCollision(corpo);
 
                 // Acerto de UM jogador: repartido (requisitos-coop, 2.1).
-                GradeUp(PorJogador(GRADE_CHANGE_UP));
+                GradeUp(PorJogador(Nota::kGanhoPorAcerto));
+
 
                 // UM TIRO ACERTA UM CORPO SO. Sem este corte, um projetil que
                 // passasse na sobreposicao dos dois pagaria a barra duas vezes.

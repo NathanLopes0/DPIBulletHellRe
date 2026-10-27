@@ -58,8 +58,11 @@ nota anterior continua guardada na ficha como informação, mas não é o ponto
 de partida.
 
 Subir até **60** é fácil e custa poucos acertos. Acima disso cada
-ponto custa mais que o anterior: a nota cheia sai por **256 acertos**, e uma
-batalha de 51 segundos entrega entre 268 e 382. Apesar de ser possível, ainda estou achando
+ponto custa mais que o anterior: a nota cheia sai por **301 acertos**, e uma
+batalha de 60 segundos tem tempo para até 500 tiros. O ganho de cada acerto
+acompanha a duração das fases: a nota sobe por segundo o mesmo que subia quando
+as fases tinham 17 segundos. Apesar de ser possível, ainda estou achando
+
 difícil, porque é necessário seguir o Boss que em alguns movimentos são mais rápidos. Talvez eu diminua
 esse número depois de receber feedback externo.
 
@@ -220,7 +223,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 997 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 998 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha — e também **leem os arquivos de
 `Assets/` de verdade**, quebrando ao primeiro erro de digitação num JSON. Um
