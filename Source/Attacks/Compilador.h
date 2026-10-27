@@ -158,14 +158,12 @@ namespace Compilador {
     Marcos MarcosDa(int tokens, int nos, float porInstrucao = kPorInstrucao);
     Etapa EtapaEm(float t, const Marcos& m);
 
-    // ---- O PLACAR E A LEGENDA ---------------------------------------------------
+    // ---- O PLACAR -------------------------------------------------------------------
 
     /// @brief O placar: a linha, e embaixo a etapa - "l\xc3\xa9xico", "sint\xc3\xa1tico" ou a
     /// instrucao que acabou de sair.
     std::string Placar(const std::string& linha, Etapa e, const std::string& instrucao = "");
 
-    /// @brief A legenda da etapa, em portugues.
-    std::string Legenda(Etapa e);
 
     // ---- A LUTA SORTEADA -----------------------------------------------------------
 

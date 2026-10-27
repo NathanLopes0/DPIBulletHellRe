@@ -258,9 +258,6 @@ namespace Memoria {
     /// @brief Os eventos do passo com o degrau do modo (o do Normal da os de
     /// sempre).
     std::vector<Evento> Eventos(Passo p, const Degrau& d);
-    /// @brief A LEGENDA do passo, em portugues: o que o codigo do placar faz
-    /// com o heap, e o que isso vira no campo.
-    std::string Legenda(Passo p);
     // ---- OS NUMEROS DE CADA LUTA --------------------------------------------
 
     /**

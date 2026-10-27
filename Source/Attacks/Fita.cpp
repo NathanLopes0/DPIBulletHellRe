@@ -89,16 +89,6 @@ namespace Fita {
                " marcas";
     }
 
-    std::string Legenda(const bool parou, const Degrau& d) {
-        if (parou) {
-            return "Parou! Nenhuma m\xC3\xA1quina de 4 estados deixa mais marcas antes de parar - "
-                   "e n\xC3\xA3o existe algoritmo que ache o castor de n estados.";
-        }
-        const std::string comeco = "O castor mais ocupado: a m\xC3\xA1quina de 4 estados que mais escreve antes de parar. ";
-        if (d.apagadaPersegue) return comeco + "Marca apagada vira um b que persegue; relida atira c\xC3\xB3pias.";
-        return comeco + "Cada marca que ela apaga sai da fita em voc\xC3\xAA.";
-    }
-
 
     Plano Sortear(Variacao::Sorteio& s) {
         Plano p;

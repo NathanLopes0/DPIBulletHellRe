@@ -15,14 +15,6 @@
   // coercao (Coercao.h), o heap (Memoria.h) e a pilha de chamadas da final
   // (Excecao.h).
   //
-  // E A LEGENDA EXPLICA (Boss::RegistrarLegenda): abaixo do placar, uma
-  // frase em portugues diz o assunto quando a fase abre e, a cada comando, o
-  // que ele faz e o que o ataque quer dizer - "escopo estatico: y++ procura de
-  // dentro para fora e acha o y global. A chuva cai onde esse y e visivel." O
-  // latim sozinho, e o codigo sozinho, nao diziam o que cada fase era (a
-  // legenda de cada modulo: Escopo, Coercao, Memoria e Excecao::Legenda). A
-  // pilha de chamadas da final desceu para comecar abaixo dela.
-  //
   // A MEMORIA E A FASE 3, a que DECIDE a batalha ("proximo" vazio): a final
   // so e vista por quem termina entre 40 e 59, ou com 100.
   //
@@ -69,7 +61,7 @@
   // por sorteio; g declara x, y, os dois ou nenhum; o bloco interno, x, y ou
   // os dois. Se so o global declarasse y, h declara: sem nenhum buraco, o y
   // global choveria no campo inteiro, 358 gotas, mais que as 300 do pool. Os
-  // cantos dos paineis, o placar e a legenda escrevem o programa da luta. Ate
+  // cantos dos paineis, e o placar escrevem o programa da luta. Ate
   // o 191 o programa era sempre o mesmo, e os comandos, seis fixos.
   //
   // Seis comandos, um a cada 3,25 s, e o placar diz cada um: quatro buscas no
@@ -190,8 +182,8 @@
   // cada uma acima de quem lanca tem, por sorteio, um catch de um tipo
   // qualquer da hierarquia e um finally, e a excecao lancada e IOException,
   // RuntimeException ou NullPointerException. Onde ela para - no tipo exato,
-  // pela hierarquia, ou em lugar nenhum - sai da propagacao, e a legenda diz
-  // por que. Antes eram cinco rodadas escritas a mao, so embaralhadas: em
+  // pela hierarquia, ou em lugar nenhum - sai da propagacao, e o placar diz
+  // como terminou. Antes eram cinco rodadas escritas a mao, so embaralhadas: em
   // tres lutas o aluno ja as conhecia. A ultima de cada volta continua sendo
   // a do proprio programa: catch (Reprovado e) { repescagem(); }.
   //

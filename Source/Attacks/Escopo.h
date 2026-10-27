@@ -201,10 +201,6 @@ namespace Escopo {
         float queda = kQueda;
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
-    /// @brief A LEGENDA do comando, em portugues: que regra de escopo vale,
-    /// onde o nome foi achado e o que a chuva quer dizer. O placar mostra o
-    /// codigo; isto o explica.
-    std::string Legenda(Forma f);
     // ---- O PROGRAMA E OS COMANDOS DE CADA LUTA ------------------------------
     //
     // Ate o 191 o programa era um so - o global com x e y, g com y, o bloco
@@ -242,7 +238,6 @@ namespace Escopo {
     bool Visivel(const Programa& p, const Comando& c, float px, float py,
                  float largura = kLargura, float altura = kAltura);
     std::string Placar(const Programa& p, const Comando& c);
-    std::string Legenda(const Programa& p, const Comando& c);
     Ponto OndeFicaOProfessor(const Comando& c, float largura = kLargura, float altura = kAltura);
     Ponto Canto(const Programa& p, Bloco b, float largura = kLargura, float altura = kAltura);
     std::vector<Gota> Gotas(const Programa& p, const Comando& c,

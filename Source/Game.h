@@ -48,6 +48,15 @@ public:
     class SDL_Texture* LoadTexture(const std::string& texturePath);
 
     /**
+     * @brief A SILHUETA da imagem: o mesmo desenho, todo branco e opaco onde
+     * ha pixel, transparente onde nao ha (Destrutivel::AlfaDaSilhueta). Tingida
+     * com SDL_SetTextureColorMod, vira o contorno dos projeteis que o tiro do
+     * aluno destroi. Guardada como as outras texturas, uma por imagem; nullptr
+     * se a imagem nao abrir.
+     */
+    class SDL_Texture* LoadSilhueta(const std::string& texturePath);
+
+    /**
      * @brief A textura guardada sob esta chave, ou nullptr.
      *
      * Para texturas que NAO vem de arquivo - a personagem composta e a primeira

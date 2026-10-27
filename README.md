@@ -46,6 +46,11 @@ porquê de cada uma, estão em `Documentacao/requisitos-coop.md`.
 
 O que cada botão faz **na tela em que você está** fica escrito no rodapé dela.
 
+Alguns projéteis o seu tiro **destrói** — os processos do Elixir, os agentes do
+Júlio, os blocos da pilha do Salles, a bala de prata da Maria Lúcia... Todos têm
+o mesmo sinal: um **contorno vermelho** em volta do desenho. Sem contorno, o tiro
+passa direto ou some nele.
+
 Na tela de **Opções**, do menu principal, ficam:
 
 - a **dificuldade**: **Normal**, as fases como foram medidas, ou **Difícil**, um
@@ -211,8 +216,7 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   Intercâmbio trocar os dois — e ele vale a luta inteira.
 - **Luizinho — INF 340.** Linguagens de Programação, um assunto da ementa por
   fase: cada uma abre com a palavra latina por trás dele, e depois o placar
-  mostra o código — e uma legenda embaixo dele diz, em português, o que cada
-  comando faz e o que o ataque quer dizer. O programa da primeira fase e as
+  mostra o código que ele está rodando. O programa da primeira fase e as
   exceções do exame são gerados a cada luta.
 
  Na primeira o campo é o texto do programa, um painel por

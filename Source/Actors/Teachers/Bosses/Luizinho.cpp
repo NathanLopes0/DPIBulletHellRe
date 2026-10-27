@@ -179,24 +179,6 @@ std::vector<BossProjectile*> Luizinho::DispararEm(const char* gatilho, const Vec
     return mCriados;
 }
 
-namespace {
-    // AS LEGENDAS DE ABERTURA: o assunto da fase, em portugues, enquanto o
-    // placar diz a palavra latina. \xc3\xa7 c cedilha, \xc3\xa3 a til, \xc3\xa1
-    // a agudo, \xc3\xa9 e agudo, \xc3\xb3 o agudo, \xc3\xaa e circunflexo.
-    const char* const kAberturaDoEscopo =
-        "Amarra\xc3\xa7\xc3\xb5" "es: ligar cada nome \xc3\xa0 declara\xc3\xa7\xc3\xa3o dele. Cada comando "
-        "procura um nome nos blocos do programa.";
-    const char* const kAberturaDosTipos =
-        "Sistemas de tipos: quando os tipos n\xc3\xa3o batem, cada linguagem decide se converte, se "
-        "recusa ao rodar ou se nem compila.";
-    const char* const kAberturaDaMemoria =
-        "Ger\xc3\xaa" "ncia de mem\xc3\xb3ria: quem libera o que n\xc3\xa3o se usa mais - o coletor "
-        "de lixo, no Java, ou o programador, no C++.";
-    const char* const kAberturaDasExcecoes =
-        "Exce\xc3\xa7\xc3\xb5" "es: o erro sai de onde aconteceu e sobe a pilha de chamadas at\xc3\xa9 "
-        "quem saiba trat\xc3\xa1-lo.";
-}
-
 Vector2 Luizinho::PosicaoDoAluno() const {
 
     if (const auto* battle = dynamic_cast<Battle*>(mScene); battle && battle->Alvo()) {
@@ -219,7 +201,6 @@ void Luizinho::Anunciar(const std::string& fase, const std::string& texto) {
 void Luizinho::Restaurar(const std::string& fase) {
     const auto it = mAnunciosDoArquivo.find(fase);
     if (it != mAnunciosDoArquivo.end()) RegistrarAnuncio(fase, it->second);
-    RegistrarLegenda(fase, "");
 }
 
 // ---------------------------------------------------------------------------
@@ -290,7 +271,6 @@ void Luizinho::ComecarComando(const int k) {
     mInicioDoComando = Escopo::kPrimeiro + static_cast<float>(k) * Escopo::kPorComando;
     mChuva = Chuva::Esperando;
     Anunciar(Escopo::kFaseDoEscopo, Escopo::Placar(mPlanoDoEscopo.programa, mComando));
-    RegistrarLegenda(Escopo::kFaseDoEscopo, Escopo::Legenda(mPlanoDoEscopo.programa, mComando));
 
     const SDL_FRect campo = Campo();
     const Escopo::Ponto onde = Escopo::OndeFicaOProfessor(mComando, campo.w, campo.h);
@@ -346,7 +326,6 @@ void Luizinho::AtualizarEscopo() {
     if (!mNoEscopo) {
         MontarEscopo();
         mNoEscopo = true;
-        RegistrarLegenda(Escopo::kFaseDoEscopo, kAberturaDoEscopo);
         mComandoDoEscopo = -1;
         // O professor ja vai para o primeiro comando enquanto o placar diz o latim.
         const SDL_FRect campo = Campo();
@@ -462,7 +441,6 @@ void Luizinho::ComecarConta(const int k) {
     mInicioDaConta = Coercao::kPrimeiro + static_cast<float>(k) * Coercao::kPorComando;
     mEtapa = EtapaDaConta::Esperando;
     Anunciar(Coercao::kFaseDosTipos, Coercao::Placar(mConta));
-    RegistrarLegenda(Coercao::kFaseDosTipos, Coercao::Legenda(mConta));
 
     // O PROFESSOR MUDA DE LUGAR a cada conta, no alto - e balanca em volta
     // dele (AtualizarTipos).
@@ -578,7 +556,6 @@ void Luizinho::AtualizarTipos() {
     }
     if (!mNosTipos) {
         mNosTipos = true;
-        RegistrarLegenda(Coercao::kFaseDosTipos, kAberturaDosTipos);
         mContaDaVez = -1;
         const SDL_FRect campo = Campo();
         mBaseDoProfessor = Vector2(campo.x + campo.w / 2.0f, campo.y + Coercao::kYDoProfessor);
@@ -704,7 +681,6 @@ void Luizinho::ComecarPasso(const int i) {
     mEventos = Memoria::Eventos(passo, mDegrauDaMemoria, mNumerosDaMemoria);
     mProximoEvento = 0;
     Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(passo, false, mNumerosDaMemoria));
-    RegistrarLegenda(Memoria::kFaseDaMemoria, Memoria::Legenda(passo));
 
     // O PRIMEIRO PROGRAMA ACABOU: o sistema devolve a memoria dele, e o
     // segundo comeca com o heap vazio.
@@ -956,7 +932,6 @@ void Luizinho::AtualizarMemoria() {
     }
     if (!mNaMemoria) {
         mNaMemoria = true;
-        RegistrarLegenda(Memoria::kFaseDaMemoria, kAberturaDaMemoria);
         mPassoDaVez = -1;
         const SDL_FRect campo = Campo();
         mBaseDaMemoria = Vector2(campo.x + campo.w / 2.0f, campo.y + Memoria::kYDoProfessor);
@@ -1087,7 +1062,6 @@ void Luizinho::ComecarRodada(const int k) {
     const float fracao = static_cast<float>(Sorteio() % 1001u) / 1000.0f;
     mXDaRodada = Campo().x + Excecao::kXMinimo + fracao * (Excecao::kXMaximo - Excecao::kXMinimo);
     Anunciar(Excecao::kFaseDasExcecoes, Excecao::PlacarDasChamadas(mRodada));
-    RegistrarLegenda(Excecao::kFaseDasExcecoes, Excecao::Legenda(mRodada, false));
 }
 
 void Luizinho::ExecutarPasso(const Excecao::Passo& p) {
@@ -1115,14 +1089,12 @@ void Luizinho::ExecutarPasso(const Excecao::Passo& p) {
             mExcecao = nullptr;
             mAlvo = Vector2(mXDaRodada, MeioDaFaixa(p.quadro).y);
             Anunciar(Excecao::kFaseDasExcecoes, Excecao::PlacarDoDesfecho(mRodada));
-            RegistrarLegenda(Excecao::kFaseDasExcecoes, Excecao::Legenda(mRodada, true));
             break;
         case Excecao::Acontece::Escapa:
             // NINGUEM TRATOU: o programa capota.
             if (Vivo(mExcecao)) mExcecao->Kill();
             mExcecao = nullptr;
             Anunciar(Excecao::kFaseDasExcecoes, Excecao::PlacarDoDesfecho(mRodada));
-            RegistrarLegenda(Excecao::kFaseDasExcecoes, Excecao::Legenda(mRodada, true));
             break;
     }
 }
@@ -1138,7 +1110,6 @@ void Luizinho::AtualizarExcecoes() {
     }
     if (!mNasExcecoes) {
         mNasExcecoes = true;
-        RegistrarLegenda(Excecao::kFaseDasExcecoes, kAberturaDasExcecoes);
         mRodadaDaVez = -1;
         mAlvo = Vector2(Campo().x + Campo().w / 2.0f, MeioDaFaixa(0).y);
     }

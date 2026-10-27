@@ -10,6 +10,7 @@
 #include "../../../../Scenes/Battle/Battle.h"
 #include "../../../Player/Player.h"
 #include "../../../../Components/RigidBodyComponent.h"
+#include "../../../../Destrutivel.h"
 
 
 // 1. O construtor passa o 'owner' para o construtor da classe base 'Projectile'.
@@ -55,6 +56,16 @@ void BossProjectile::OnUpdate(float deltaTime)
 {
     // 1. Executa a lógica base (verificar se saiu da tela, update nos Behaviors).
     Projectile::OnUpdate(deltaTime);
+
+    // O CONTORNO DE QUEM O TIRO DO ALUNO DESTROI (Destrutivel.h). A cada
+    // quadro, e nao so ao nascer: enfeite e blindagem mudam no meio do voo - a
+    // ficha do compilador do Vladimir vira no da arvore, a historia da Maria
+    // Lucia e solta pelo cursor.
+    if (auto* anim = GetComponent<DrawAnimatedComponent>()) {
+        anim->DefinirContorno(Destrutivel::Pode(mDerrubavel, mBlindado, mAbrigo, mEnfeite),
+                              SDL_Color{Destrutivel::kVermelho, Destrutivel::kVerde, Destrutivel::kAzul,
+                                        Destrutivel::kOpacidade});
+    }
 
     // 2. Gira o sprite para acompanhar o movimento, quando a arte pede isso.
     //

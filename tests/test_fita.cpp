@@ -91,14 +91,6 @@ TEST_CASE("Fita: o placar e a transicao, com o branco, o h de quem para e a seta
     CHECK(Placar(e, primeiro) == Transicao(primeiro) + "\npasso 1 \xC2\xB7 1 marcas");
     const Corrida c = Rodar(false);
     CHECK(Placar(c.fim, primeiro).find("\xCE\xA3(4) = 13") != std::string::npos);
-    // A LEGENDA DIZ O QUE A MARCA APAGADA FAZ NO MODO DA LUTA: o "b" que
-    // persegue so existe no Dificil.
-    const Degrau normal = DegrauDo(Dificuldade::Nivel::Normal);
-    const Degrau dificil = DegrauDo(Dificuldade::Nivel::Dificil);
-    CHECK(Legenda(false, normal).find("persegue") == std::string::npos);
-    CHECK(Legenda(false, dificil).find("persegue") != std::string::npos);
-    CHECK(Legenda(true, normal) == Legenda(true, dificil));
-    CHECK(Legenda(true, normal) != Legenda(false, normal));
 }
 
 TEST_CASE("Fita: cada luta sorteia a maquina como ela e ou espelhada, as duas acontecem") {

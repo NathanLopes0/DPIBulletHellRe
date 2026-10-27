@@ -224,7 +224,4 @@ namespace Coercao {
         float rapidez = 1.0f;
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
-    /// @brief A LEGENDA da conta, em portugues: se a linguagem converteu
-    /// (e o que virou o que), se recusou ao rodar ou se nem compilou.
-    std::string Legenda(const Comando& c);
 }

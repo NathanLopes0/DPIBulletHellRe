@@ -29,11 +29,6 @@ namespace {
     /// A fita: as casas esmaecidas, e a cabeca no ambar do "a".
     constexpr SDL_Color kCasaDaFita{110, 120, 150, 110};
     constexpr SDL_Color kCabecaDaFita{236, 196, 110, 230};
-
-    /// O que a legenda diz antes da primeira linha.
-    const char* const kAberturaDoCompilador =
-        "Constru\xc3\xa7\xc3\xa3o de Compiladores: tr\xc3\xaas linhas de c\xc3\xb3" "digo, "
-        "e cada uma passa pelo l\xc3\xa9xico, pelo sint\xc3\xa1tico e pela gera\xc3\xa7\xc3\xa3o de c\xc3\xb3" "digo.";
 }
 
 Vladimir::Vladimir(Scene* scene) : Boss(scene) {
@@ -73,13 +68,12 @@ void Vladimir::AtualizarFita() {
     const bool naFita = fsm && fsm->GetStateName() == Fita::kFaseDaFita && !EhClone();
     if (!naFita) {
         // A FASE ACABOU: as marcas que sobraram na fileira saem, a cabeca
-        // some, e o placar e a legenda voltam ao que eram.
+        // some, e o placar volta ao que era.
         if (mNaFita) {
             for (BossProjectile* marca : NoPosto(Fita::kPostoDaFita)) marca->Kill();
             mMarcas.fill(nullptr);
             if (mLinhas) mLinhas->Limpar();
             if (!mAnuncioDaFita.empty()) RegistrarAnuncio(Fita::kFaseDaFita, mAnuncioDaFita);
-            RegistrarLegenda(Fita::kFaseDaFita, "");
             mAlvo.reset();
         }
         mNaFita = false;
@@ -97,7 +91,6 @@ void Vladimir::AtualizarFita() {
         mMarcas.fill(nullptr);
         if (mAnuncioDaFita.empty()) mAnuncioDaFita = AnuncioDaFase(Fita::kFaseDaFita);
         RegistrarAnuncio(Fita::kFaseDaFita, mAnuncioDaFita);
-        RegistrarLegenda(Fita::kFaseDaFita, Fita::Legenda(false, mDegrauDaFita));
         CriarLinhas();
     }
 
@@ -133,9 +126,8 @@ void Vladimir::AtualizarFita() {
 
         RegistrarAnuncio(Fita::kFaseDaFita, Fita::Placar(mFita, p));
         if (mFita.parou) {
-            // PAROU: o anel, e a legenda diz o que isso quer dizer.
+            // PAROU: o anel.
             DispararDe(Fita::kGatilhoDaParada, GetPosition(), 90.0f, "");
-            RegistrarLegenda(Fita::kFaseDaFita, Fita::Legenda(true, mDegrauDaFita));
         }
     }
 
@@ -416,7 +408,6 @@ void Vladimir::ComecarRodada(const int rodada, const float inicio) {
     mFilaParada = false;
     mEtapa = Compilador::Etapa::Lexico;
     RegistrarAnuncio(Compilador::kFaseDoCompilador, Compilador::Placar(mLinha, mEtapa));
-    RegistrarLegenda(Compilador::kFaseDoCompilador, Compilador::Legenda(mEtapa));
 }
 
 void Vladimir::AtualizarCompilador(const float deltaTime) {
@@ -425,15 +416,13 @@ void Vladimir::AtualizarCompilador(const float deltaTime) {
     const bool noCompilador = fsm && fsm->GetStateName() == kFaseDoCompilador && !EhClone();
 
     if (!noCompilador) {
-        // A FASE ACABOU: a arvore se desfaz, e o placar e a legenda voltam ao
-        // que eram.
+        // A FASE ACABOU: a arvore se desfaz, e o placar volta ao que era.
         if (mNoCompilador) {
             for (BossProjectile* no : NoPosto(kPostoDaArvore)) no->Kill();
             mNos.clear();
             mLexemas.clear();
             if (mLinhas) mLinhas->Limpar();
             if (!mAnuncioDoCompilador.empty()) RegistrarAnuncio(kFaseDoCompilador, mAnuncioDoCompilador);
-            RegistrarLegenda(kFaseDoCompilador, "");
             mNoCompilador = false;
             mAlvo.reset();
         }
@@ -446,7 +435,6 @@ void Vladimir::AtualizarCompilador(const float deltaTime) {
         mLexemas.clear();
         if (mAnuncioDoCompilador.empty()) mAnuncioDoCompilador = AnuncioDaFase(kFaseDoCompilador);
         RegistrarAnuncio(kFaseDoCompilador, mAnuncioDoCompilador);
-        RegistrarLegenda(kFaseDoCompilador, kAberturaDoCompilador);
         CriarLinhas();
         const auto largura = static_cast<float>(mScene && mScene->GetGame() ? mScene->GetGame()->GetWindowWidth() : 1200);
         mAlvo = Vector2(largura / 2.0f, kYDaLinha);
@@ -540,18 +528,17 @@ void Vladimir::AtualizarCompilador(const float deltaTime) {
         RegistrarAnuncio(kFaseDoCompilador, Placar(mLinha, Etapa::Codigo, instrucao));
     }
 
-    // A ETAPA MUDOU: a legenda diz qual e, e o placar tambem (na geracao de
-    // codigo, o placar e a instrucao que acabou de sair).
+    // A ETAPA MUDOU: o placar diz qual e (na geracao de codigo, e a
+    // instrucao que acabou de sair).
     const Etapa etapa = EtapaEm(t, mMarcos);
     if (etapa != mEtapa) {
         mEtapa = etapa;
         if (etapa != Etapa::Codigo) RegistrarAnuncio(kFaseDoCompilador, Placar(mLinha, etapa));
-        RegistrarLegenda(kFaseDoCompilador, Legenda(etapa));
     }
 
     // O PROFESSOR VARRE A LINHA no lexico, em cima do token que le, e depois
     // fica em cima do meio da arvore que monta - a arvore e centrada, e a raiz
-    // fica sempre a esquerda, embaixo da legenda. Pulando de no em no, como
+    // fica sempre a esquerda, embaixo do placar. Pulando de no em no, como
     // era, ele andava a 450 px/s a rodada inteira, e o tiro do aluno - que leva
     // quase 1 s ate ele - nao o achava mais: o piloto que persegue terminava a
     // fase com a nota menor do que comecou.

@@ -672,7 +672,7 @@ entrada é como `fases.json` vai pedi-lo.
 | `posicionarNoDono` | se nasce em cima do professor |
 | `margemEmSprites` / `margemDivisorDeTela` | quão longe da tela ele morre |
 | `rotacionarComAVelocidade` | se o sprite gira para acompanhar o voo (uma regra pode desligar por rajada — ver `rotacionar`) |
-| `derrubavel` | `true` se o tiro do aluno derruba este projétil. Os dois somem, o tiro não chega ao professor, e o professor é avisado (`Boss::OnProjetilDerrubado`). Padrão `false`; usam os processos do Lucas e os bugs, as histórias e as janelas da Maria Lúcia |
+| `derrubavel` | `true` se o tiro do aluno derruba este projétil. Os dois somem, o tiro não chega ao professor, e o professor é avisado (`Boss::OnProjetilDerrubado`). Todo projétil que o tiro derruba ganha um **contorno vermelho** na forma do sprite, o mesmo para todo professor (`Destrutivel.h`) — menos quando está blindado, é abrigo ou é enfeite, os casos em que o tiro não o destrói. Padrão `false`; usam os processos do Lucas e os bugs, as histórias e as janelas da Maria Lúcia |
 | `resistencia` | quantos tiros derrubam um projétil `derrubavel`; os anteriores **somem nele**, sem derrubá-lo e sem chegar ao professor. Padrão 1. Num projétil que não é `derrubavel`, a leitura avisa e ignora |
 | `acorrenta` | o que acontece com o aluno ao ser acertado: `segundos`, `fatorDeVelocidade`, `multiplicadorDaPerda` |
 | `abrigo` | `true` se este projétil **abriga** o aluno: todo projétil solto do professor que encosta nele some (um que está num `posto` é parte de uma estrutura e fica), ele não machuca ninguém, e o tiro do aluno some nele também. Padrão `false`. É a capivara que atravessa o campo do Salles (`Capivara.h`) |

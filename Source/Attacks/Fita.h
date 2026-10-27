@@ -160,8 +160,5 @@ namespace Fita {
 
     Degrau DegrauDo(Dificuldade::Nivel n);
 
-    /// @brief A legenda da fase, em portugues: o que a maquina e e o que cada
-    /// marca faz no modo da luta - ou, parada, o que isso quer dizer.
-    std::string Legenda(bool parou, const Degrau& d);
 }
 

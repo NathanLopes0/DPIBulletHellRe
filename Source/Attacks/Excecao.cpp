@@ -149,29 +149,6 @@ namespace Excecao {
         d.rapidez = Dificuldade::Escolher(n, 1.0f, 1.2f);
         return d;
     }
-    std::string Legenda(const Rodada& r, const bool depois) {
-        // \xc3\xa1 a agudo, \xc3\xa3 a til, \xc3\xa9 e agudo, \xc3\xba u agudo,
-        // \xc3\xa7 c cedilha, \xc3\xaa e circunflexo.
-        const std::string x = Nome(r.lancada);
-        const std::string quem = r.pilha.empty() ? std::string("main") : r.pilha.back().funcao;
-        if (!depois) {
-            return x + " lan\xc3\xa7" "ada em " + quem + "(): sobe a pilha, e cada fun\xc3\xa7\xc3\xa3o sem "
-                   "catch para ela \xc3\xa9 desempilhada e cai em voc\xc3\xaa.";
-
-        }
-        const int k = QuemCaptura(r);
-        if (k < 0) {
-            return "Ningu\xc3\xa9m tratou " + x + ": ela escapou do main(), e o programa terminou.";
-        }
-        const Quadro& q = r.pilha[static_cast<size_t>(k)];
-        if (r.lancada == Tipo::Reprovado) {
-            return "A repescagem \xc3\xa9 um catch: o erro foi tratado em main(), e o programa segue.";
-        }
-        const std::string tratado = q.captura ? Nome(*q.captura) : x;
-        if (tratado == x) return "Capturada em " + q.funcao + "(): o catch dela trata exatamente " + x + ".";
-        return "Capturada em " + q.funcao + "(): " + x + " \xc3\xa9 um " + tratado +
-               ", o tipo que o catch dela trata.";
-    }
     Rodada Gerar(Variacao::Sorteio& s) {
         static const char* const kFuncoes[] = {"main", "f", "g", "h"};
         static const std::vector<Tipo> kLancaveis = {Tipo::IOException, Tipo::RuntimeException,

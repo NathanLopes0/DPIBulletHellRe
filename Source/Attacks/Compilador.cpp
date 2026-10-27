@@ -236,23 +236,6 @@ const std::vector<Token>& tokens, const float largura) {
         return linha;
     }
 
-    std::string Legenda(const Etapa e) {
-        switch (e) {
-            case Etapa::Lexico:
-                return "An\xc3\xa1lise l\xc3\xa9xica: o scanner - um aut\xc3\xb4mato, como o da fase 1 - "
-                       "quebra a linha em tokens, e cada um cai.";
-            case Etapa::Sintatico:
-                return "An\xc3\xa1lise sint\xc3\xa1tica: o parser monta a \xc3\xa1rvore pela gram\xc3\xa1tica - "
-                       "o * antes do + -, e cada redu\xc3\xa7\xc3\xa3o solta um leque.";
-            case Etapa::Codigo:
-                return "Gera\xc3\xa7\xc3\xa3o de c\xc3\xb3" "digo: a \xc3\xa1rvore \xc3\xa9 percorrida de baixo para "
-                       "cima, e cada n\xc3\xb3 vira uma instru\xc3\xa7\xc3\xa3o da m\xc3\xa1quina de pilha.";
-            case Etapa::Pronto:
-                return "Compilado: o STORE guarda o resultado em x.";
-        }
-        return "";
-    }
-
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
         d.porInstrucao = Dificuldade::Escolher(n, kPorInstrucao, 0.24f);

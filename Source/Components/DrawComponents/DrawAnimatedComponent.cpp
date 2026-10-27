@@ -7,6 +7,7 @@
 #include "../../Game.h"
 #include "../../Json.h"
 #include "../../Actors/Actor.h"
+#include "../../Destrutivel.h"
 #include "DrawAnimatedComponent.h"
 #include <stdexcept>
 #include <set>
@@ -36,6 +37,9 @@ void DrawAnimatedComponent::LoadSpriteSheet(const std::string& texturePath, cons
 {
     // Load sprite sheet texture
     mSpriteSheetSurface = mOwner->GetScene()->GetGame()->LoadTexture(texturePath);
+    mCaminhoDaFolha = texturePath;
+    mSilhueta = nullptr;
+    mSilhuetaTentada = false;
 
     // ESVAZIA ANTES DE LER. Sem isto, chamar LoadSpriteSheet uma segunda vez
     // ACRESCENTA os quadros novos aos antigos em vez de substitui-los.
@@ -155,6 +159,10 @@ void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
 
         SDL_RendererFlip flip = SDL_FLIP_NONE;
 
+        if (mContorno) {
+            DesenharContorno(renderer, clipRect, renderQuad, -Math::ToDegrees(mOwner->GetRotation()), flip);
+        }
+
         ApplyColorMod();
 
         // mRotation e guardado em radianos (ver Actor.h); SDL_RenderCopyEx
@@ -171,6 +179,36 @@ void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
     }
 }
 
+
+void DrawAnimatedComponent::DefinirContorno(const bool ligado, const SDL_Color cor) {
+    mContorno = ligado;
+    mCorDoContorno = cor;
+}
+
+void DrawAnimatedComponent::DesenharContorno(SDL_Renderer* renderer, const SDL_Rect& quadro,
+                                             const SDL_Rect& destino, const double angulo,
+                                             const SDL_RendererFlip flip) {
+    // A SILHUETA SO E CARREGADA quando o contorno liga pela primeira vez: a
+    // maioria das folhas nunca precisa dela.
+    if (!mSilhuetaTentada) {
+        mSilhuetaTentada = true;
+        mSilhueta = mOwner->GetScene()->GetGame()->LoadSilhueta(mCaminhoDaFolha);
+    }
+    if (!mSilhueta) return;
+
+    SDL_SetTextureColorMod(mSilhueta, mCorDoContorno.r, mCorDoContorno.g, mCorDoContorno.b);
+    SDL_SetTextureAlphaMod(mSilhueta, mCorDoContorno.a);
+    const int e = Destrutivel::kEspessura;
+    for (int dy = -e; dy <= e; dy += e) {
+        for (int dx = -e; dx <= e; dx += e) {
+            if (dx == 0 && dy == 0) continue;
+            SDL_Rect deslocado = destino;
+            deslocado.x += dx;
+            deslocado.y += dy;
+            SDL_RenderCopyEx(renderer, mSilhueta, &quadro, &deslocado, angulo, nullptr, flip);
+        }
+    }
+}
 
 void DrawAnimatedComponent::Update(float deltaTime)
 {

@@ -5,6 +5,7 @@
 #include <SDL_ttf.h>
 #include "SDL_image.h"
 #include "Random.h"
+#include "Destrutivel.h"
 #include "AudioSystem.h"
 #include "Font.h"
 #include "Components/DrawComponents/DrawComponent.h"
@@ -421,6 +422,36 @@ SDL_Texture* Game::LoadTexture(const std::string& texturePath) {
     mTextureCache.emplace(texturePath, textureFromSur);
 
     return textureFromSur;
+}
+
+SDL_Texture* Game::LoadSilhueta(const std::string& texturePath) {
+    const std::string chave = texturePath + "#silhueta";
+    if (SDL_Texture* pronta = TexturaGuardada(chave)) return pronta;
+
+    SDL_Surface* lida = IMG_Load(texturePath.c_str());
+    if (!lida) return nullptr;
+    // RGBA32 e R, G, B, A nessa ordem na memoria, em qualquer maquina.
+    SDL_Surface* rgba = SDL_ConvertSurfaceFormat(lida, SDL_PIXELFORMAT_RGBA32, 0);
+    SDL_FreeSurface(lida);
+    if (!rgba) return nullptr;
+
+    if (SDL_LockSurface(rgba) == 0) {
+        for (int y = 0; y < rgba->h; ++y) {
+            auto* linha = static_cast<Uint8*>(rgba->pixels) + y * rgba->pitch;
+            for (int x = 0; x < rgba->w; ++x) {
+                Uint8* p = linha + 4 * x;
+                p[0] = p[1] = p[2] = 255;
+                p[3] = Destrutivel::AlfaDaSilhueta(p[3]);
+            }
+        }
+        SDL_UnlockSurface(rgba);
+    }
+    SDL_Texture* silhueta = SDL_CreateTextureFromSurface(mRenderer, rgba);
+    SDL_FreeSurface(rgba);
+    if (!silhueta) return nullptr;
+    SDL_SetTextureBlendMode(silhueta, SDL_BLENDMODE_BLEND);
+    GuardarTextura(chave, silhueta);
+    return silhueta;
 }
 
 void Game::Shutdown()
