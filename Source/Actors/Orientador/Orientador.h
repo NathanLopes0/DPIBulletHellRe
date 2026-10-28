@@ -65,10 +65,6 @@ private:
     /// O primeiro golpe espera um pouco: a batalha acabou de comecar.
     static constexpr float kPrimeiroGolpe = 1.0f;
 
-    /// O ponteiro so procura o chefe ate aqui: um tiro que curvasse para
-    /// sempre podia ficar girando em volta dele sem acertar.
-    static constexpr float kCurvaAte = 1.2f;
-
     [[nodiscard]] Battle* Batalha();
     [[nodiscard]] Vector2 PostoAgora();
 
@@ -81,12 +77,7 @@ private:
 
     struct Guiado {
         std::uint64_t id = 0;
-        Golpe::Tiro tiro;
-        float idade = 0.0f;
-        bool partiu = false;
-        bool remirou = false;
-        float deslocado = 0.0f;   ///< a parte da onda ja aplicada
-        Vector2 deLado;           ///< para onde a onda empurra
+        Golpe::Voo voo;
     };
 
     std::string mProfessor;

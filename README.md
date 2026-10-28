@@ -105,10 +105,10 @@ foi aprovado:
 | 3 | INF 420 — Inteligência Artificial *(Júlio)*, INF 221 — Engenharia de Software *(Maria Lúcia)*, INF 321 — Programação Web *(Lucas)*, INF 310 — Programação Concorrente e Distribuída *(Vitor)* | 2 aprovações na coluna 2 |
 | 4 | TCC — Trabalho de Conclusão de Curso *(Hugo)* | 2 aprovações na coluna 3 |
 
-Toda matéria tem professor; **dez têm batalha** (André, Salles, Ricardo,
-Thiago, Júlio, Vladimir, Vitor, Maria Lúcia, Lucas e Luizinho) e a outra, o TCC,
-aparece na grade esperando uma. Ter professor e ter batalha são coisas separadas de
-propósito, e cada professor aparece uma vez só na grade.
+Toda matéria tem professor e batalha — as dez do curso e o TCC, do Hugo, que é
+a última e a mais difícil. Ter professor e ter batalha são coisas separadas de
+propósito (uma matéria pode existir na grade antes de ter luta), e cada
+professor aparece uma vez só na grade.
 
 Quem decide tudo isso é `Assets/materias.json` — a ordem, as colunas, as regras
 de desbloqueio, o professor e qual chefe atende cada matéria. Não há lista de
@@ -263,15 +263,22 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   as promessas da fila de microtarefas rodam antes do `setTimeout(cb, 0)` —
   cada callback que sai de uma fila ataca.
 
-O **TCC** *(Hugo)* aparece na grade esperando uma batalha própria. Antes dele
-você escolhe um **orientador** entre os professores em que tirou as maiores
-notas, e ele luta do seu lado com a matéria dele: o André atira num `for`, o
-Salles empilha e desempilha (LIFO), o Ricardo acende os bits de um barramento,
-o Thiago segura a transação até o `COMMIT`, o ponteiro do Luizinho curva até o
-chefe, a gramática do Vladimir divide um tiro em quatro, o gradiente do Júlio
-oscila e converge, o Observer da Maria Lúcia reage aos seus tiros, o `fetch` do
-Lucas vai ao servidor e volta, e a janela do TCP do Vitor cresce e cai como um
-dente de serra.
+- **Hugo — TCC.** A última matéria e a batalha mais difícil do jogo. Antes
+  dela você escolhe um **orientador** entre os professores em que tirou as
+  maiores notas, e ele luta do seu lado com a matéria dele: o André atira num
+  `for`, o Salles empilha e desempilha (LIFO), o Ricardo acende os bits de um
+  barramento, o Thiago segura a transação até o `COMMIT`, o ponteiro do
+  Luizinho curva até o chefe, a gramática do Vladimir divide um tiro em
+  quatro, o gradiente do Júlio oscila e converge, o Observer da Maria Lúcia
+  reage aos seus tiros, o `fetch` do Lucas vai ao servidor e volta, e a
+  janela do TCP do Vitor cresce e cai como um dente de serra. E **o TCC é na
+  área do orientador**: as fases são as etapas de um TCC, e a proposta é um
+  cronograma de Gantt cujas barras caem quando o prazo vence; no
+  desenvolvimento, cada capítulo é um padrão da matéria do orientador, com os
+  projéteis dela, e o rascunho escorre embaixo do Hugo; na defesa, a banca
+  são dois outros professores, sentados nos cantos, e cada pergunta
+  ("Funciona no Safari?", "E se der deadlock?") vem com o ataque da matéria
+  de quem pergunta; nas correções, tudo volta.
 
 ## Como compilar
 

@@ -36,5 +36,22 @@
     "animacaoInicial": "Balao",
     "escala": 1.6,
     "ordemDeDesenho": 92
+  },
+
+  // A MATERIA: o projetil de cada professor, copiado da folha dele
+  // (Ferramentas/gerar_hugo.py) - o tema do orientador e as perguntas da
+  // banca. O Hugo poe a animacao da materia em cada tiro (Tcc::Animacao);
+  // "Folha" e a dele, sem orientador.
+  "Materia": {
+    "sprite": "Teachers/Projectiles/DPIBHHugoTcc.png",
+    "dados":  "Teachers/Projectiles/DPIBHHugoTcc.json",
+    "animacoes": {
+      "Folha": [0],
+      "Andre": [3], "Salles": [4], "Ricardo": [5], "Thiago": [6], "Luizinho": [7],
+      "Vladimir": [8], "Julio": [9], "MariaLucia": [10], "Lucas": [11], "Vitor": [12]
+    },
+    "animacaoInicial": "Folha",
+    "escala": 1.3,
+    "ordemDeDesenho": 93
   }
 }

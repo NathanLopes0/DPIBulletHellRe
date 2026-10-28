@@ -192,12 +192,107 @@ namespace Golpe {
         return 3 + (k - 5) % 4;   // a perda: metade, e o dente recomeca
     }
 
-    std::array<bool, 8> Byte(Variacao::Sorteio& s) {
+    std::array<bool, 8> Byte(Variacao::Sorteio& s, const int uns) {
         std::vector<int> fios(8);
         std::iota(fios.begin(), fios.end(), 0);
         s.Embaralhar(fios);
         std::array<bool, 8> bits{};
-        for (int i = 0; i < kBitsUm; ++i) bits[static_cast<size_t>(fios[static_cast<size_t>(i)])] = true;
+        for (int i = 0; i < std::clamp(uns, 0, 8); ++i) bits[static_cast<size_t>(fios[static_cast<size_t>(i)])] = true;
         return bits;
+    }
+
+    namespace {
+        Vector2 Girar(const Vector2& d, const float graus) {
+            const float a = Math::ToRadians(graus);
+            const float c = Math::Cos(a), sn = Math::Sin(a);
+            return Vector2(d.x * c - d.y * sn, d.x * sn + d.y * c);
+        }
+    }
+
+    Saida Sair(const Tiro& t, const Vector2& fonte, const Vector2& alvo) {
+        Saida s;
+        if (t.paralelo) {
+            s.direcao = Rumo(fonte, alvo, t.desvio);
+            s.de = fonte + Vector2(-s.direcao.y, s.direcao.x) * t.dx + Vector2(0.0f, t.dy);
+        } else {
+            s.de = fonte + Vector2(t.dx, t.dy);
+            s.direcao = Rumo(s.de, alvo, t.desvio);
+        }
+        return s;
+    }
+
+    Voo Comecar(const Tiro& tiro, const Vector2& direcao) {
+        Voo v;
+        v.tiro = tiro;
+        v.partiu = tiro.espera <= 0.0f;
+        v.deLado = Vector2(-direcao.y, direcao.x);
+        return v;
+    }
+
+    Passo Avancar(Voo& v, const Vector2& posicao, const Vector2& velocidade,
+                  const Vector2& ancora, const Vector2& alvo, const float dt) {
+        Passo p;
+        p.posicao = posicao;
+        p.velocidade = velocidade;
+        v.idade += dt;
+        const Tiro& t = v.tiro;
+
+        // A ESPERA: parado junto de quem atirou - na pilha, na linha da
+        // transacao -, e depois parte mirado no alvo.
+        if (!v.partiu) {
+            if (v.idade < t.espera) {
+                p.posicao = ancora + Vector2(t.dx, t.dy);
+                p.velocidade = Vector2::Zero;
+                return p;
+            }
+            v.partiu = true;
+            // O PARALELO PARTE NO RUMO DE QUEM ATIROU: a linha inteira anda junta.
+            const Vector2 direcao = Rumo(t.paralelo ? ancora : posicao, alvo, t.desvio);
+            p.velocidade = direcao * t.velocidade;
+            v.deLado = Vector2(-direcao.y, direcao.x);
+        }
+        const float voo = v.idade - std::max(0.0f, t.espera);
+
+        // O PONTEIRO: curva na direcao do alvo.
+        if (t.curva > 0.0f && voo < t.curvaAte) {
+            p.velocidade = Curvar(p.velocidade, alvo - posicao, t.curva, dt);
+        }
+        // O FETCH: a resposta volta, e aponta para o alvo de uma vez.
+        if (t.reMira > 0.0f && !v.remirou && voo >= t.reMira) {
+            v.remirou = true;
+            p.velocidade = Rumo(posicao, alvo, 0.0f) * p.velocidade.Length();
+        }
+        // O GRADIENTE: o desvio de lado, que se apaga.
+        if (t.onda != 0.0f) {
+            const float agora = Oscilacao(voo, t.onda);
+            p.posicao = p.posicao + v.deLado * (agora - v.deslocado);
+            v.deslocado = agora;
+        }
+        // A GRAMATICA: S -> S S.
+        if (t.divide > 0.0f && voo >= t.divide) p.divide = true;
+        return p;
+    }
+
+    std::array<Filho, 2> Filhos(const Voo& v, const Vector2& posicao, const Vector2& velocidade,
+                                const Vector2& alvo) {
+        const Tiro& t = v.tiro;
+        Vector2 base = Rumo(posicao, alvo, 0.0f);
+        if (t.herdaRumo && velocidade.Length() > 1e-3f) {
+            base = velocidade;
+            base.Normalize();
+        }
+        std::array<Filho, 2> filhos;
+        for (int i = 0; i < 2; ++i) {
+            Tiro f;
+            f.velocidade = t.velocidade;
+            f.abertura = t.abertura;
+            f.herdaRumo = t.herdaRumo;
+            if (t.geracoes > 0) {
+                f.divide = t.divide;
+                f.geracoes = t.geracoes - 1;
+            }
+            filhos[static_cast<size_t>(i)] = {f, Girar(base, (i == 0 ? -0.5f : 0.5f) * t.abertura)};
+        }
+        return filhos;
     }
 }

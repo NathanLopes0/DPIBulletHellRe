@@ -108,9 +108,8 @@ void Orientador::Golpear(Battle& batalha, const float deltaTime) {
     }
     while (mProximoTiro < mDaVez.tiros.size() && mNaRodada >= mDaVez.tiros[mProximoTiro].quando) {
         const Golpe::Tiro& tiro = mDaVez.tiros[mProximoTiro++];
-        const Vector2 de = GetPosition() + Vector2(tiro.dx, tiro.dy);
-        const Vector2 direcao = Golpe::Rumo(tiro.paralelo ? GetPosition() : de, alvo, tiro.desvio);
-        Disparar(batalha, tiro, de, direcao);
+        const Golpe::Saida saida = Golpe::Sair(tiro, GetPosition(), alvo);
+        Disparar(batalha, tiro, saida.de, saida.direcao);
     }
 }
 
@@ -125,14 +124,7 @@ void Orientador::Disparar(Battle& batalha, const Golpe::Tiro& tiro, const Vector
     if (auto* rb = p->GetComponent<RigidBodyComponent>()) {
         rb->SetVelocity(tiro.espera > 0.0f ? Vector2::Zero : direcao * tiro.velocidade);
     }
-    if (tiro.Guiado()) {
-        Guiado g;
-        g.id = p->Id();
-        g.tiro = tiro;
-        g.partiu = tiro.espera <= 0.0f;
-        g.deLado = Vector2(-direcao.y, direcao.x);
-        mGuiados.push_back(g);
-    }
+    if (tiro.Guiado()) mGuiados.push_back({p->Id(), Golpe::Comecar(tiro, direcao)});
     tiros->AddPlayerProjectile(std::move(p));
     ++mDisparos;
 }
@@ -164,58 +156,21 @@ void Orientador::Guiar(Battle& batalha, const float deltaTime) {
 
     for (auto it = mGuiados.begin(); it != mGuiados.end();) {
         const auto achado = meus.find(it->id);
-        if (achado == meus.end()) {
+        auto* rb = achado == meus.end() ? nullptr : achado->second->GetComponent<RigidBodyComponent>();
+        if (!rb) {
             it = mGuiados.erase(it);
             continue;
         }
         PlayerProjectile* p = achado->second;
-        auto* rb = p->GetComponent<RigidBodyComponent>();
-        Guiado& g = *it;
-        const Golpe::Tiro& t = g.tiro;
-        g.idade += deltaTime;
+        const Golpe::Passo passo = Golpe::Avancar(it->voo, p->GetPosition(), rb->GetVelocity(),
+                                                  GetPosition(), alvo, deltaTime);
+        p->SetPosition(passo.posicao);
+        rb->SetVelocity(passo.velocidade);
 
-        // A ESPERA: parado junto do orientador - na pilha, na linha da
-        // transacao -, e depois parte mirado no chefe.
-        if (!g.partiu) {
-            if (g.idade < t.espera) {
-                p->SetPosition(GetPosition() + Vector2(t.dx, t.dy));
-                if (rb) rb->SetVelocity(Vector2::Zero);
-                ++it;
-                continue;
-            }
-            g.partiu = true;
-            const Vector2 direcao = Golpe::Rumo(p->GetPosition(), alvo, 0.0f);
-            if (rb) rb->SetVelocity(direcao * t.velocidade);
-            g.deLado = Vector2(-direcao.y, direcao.x);
-        }
-        const float voo = g.idade - std::max(0.0f, t.espera);
-
-        // O PONTEIRO: curva na direcao do chefe.
-        if (t.curva > 0.0f && voo < kCurvaAte && rb) {
-            rb->SetVelocity(Golpe::Curvar(rb->GetVelocity(), alvo - p->GetPosition(), t.curva, deltaTime));
-        }
-        // O FETCH: a resposta volta, e aponta para o chefe de uma vez.
-        if (t.reMira > 0.0f && !g.remirou && voo >= t.reMira && rb) {
-            g.remirou = true;
-            rb->SetVelocity(Golpe::Rumo(p->GetPosition(), alvo, 0.0f) * rb->GetVelocity().Length());
-        }
-        // O GRADIENTE: o desvio de lado, que se apaga.
-        if (t.onda != 0.0f) {
-            const float agora = Golpe::Oscilacao(voo, t.onda);
-            p->SetPosition(p->GetPosition() + g.deLado * (agora - g.deslocado));
-            g.deslocado = agora;
-        }
         // A GRAMATICA: S -> S S. O tiro some e nascem dois, abrindo.
-        if (t.divide > 0.0f && voo >= t.divide) {
-            for (const float lado : {-0.5f, 0.5f}) {
-                Golpe::Tiro filho;
-                filho.velocidade = t.velocidade;
-                if (t.geracoes > 0) {
-                    filho.divide = t.divide;
-                    filho.geracoes = t.geracoes - 1;
-                }
-                filhos.push_back({filho, p->GetPosition(),
-                                  Golpe::Rumo(p->GetPosition(), alvo, lado * Golpe::kAberturaDosFilhos)});
+        if (passo.divide) {
+            for (const Golpe::Filho& f : Golpe::Filhos(it->voo, passo.posicao, passo.velocidade, alvo)) {
+                filhos.push_back({f.tiro, passo.posicao, f.direcao});
             }
             p->DeactivateProjectile();
             it = mGuiados.erase(it);

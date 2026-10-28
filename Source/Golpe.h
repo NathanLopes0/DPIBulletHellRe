@@ -68,6 +68,10 @@ namespace Golpe {
         float onda = 0.0f;          ///< amplitude da oscilacao de lado, que se apaga
         float divide = -1.0f;       ///< nesse instante do voo, vira dois
         int geracoes = 0;           ///< quantas vezes os filhos ainda se dividem
+        float abertura = 9.0f;      ///< quanto os dois filhos abrem um do outro, em graus
+        bool herdaRumo = false;     ///< os filhos abrem do rumo do pai (uma arvore), e nao miram de novo
+        float curvaAte = 1.2f;      ///< a curva so vale ate aqui: um tiro que curvasse para
+                                    ///< sempre podia ficar girando em volta do alvo
 
         /// O orientador precisa acompanhar o tiro depois de solta-lo.
         [[nodiscard]] bool Guiado() const {
@@ -111,10 +115,58 @@ namespace Golpe {
     /// um em um ate 6; a perda corta pela metade (3) e o dente recomeca.
     int Janela(int k);
 
-    /// @brief Os bits do byte do barramento: oito, com exatamente kBitsUm em 1.
-    std::array<bool, 8> Byte(Variacao::Sorteio& s);
+    /// @brief Os bits do byte do barramento: oito, com exatamente 'uns' em 1.
+    std::array<bool, 8> Byte(Variacao::Sorteio& s, int uns = 3);
     constexpr int kBitsUm = 3;
 
-    /// Na gramatica, quanto os dois filhos abrem um do outro.
-    constexpr float kAberturaDosFilhos = 9.0f;
+    /// De onde o tiro sai e para onde, com quem atira em 'fonte' mirando em
+    /// 'alvo'. O tiro paralelo (o barramento) tem o deslocamento de lado
+    /// MEDIDO NA PERPENDICULAR do rumo: os fios ficam lado a lado em qualquer
+    /// direcao, e nao so atirando para cima.
+    struct Saida {
+        Vector2 de;
+        Vector2 direcao;
+    };
+    Saida Sair(const Tiro& t, const Vector2& fonte, const Vector2& alvo);
+
+    // ---- O VOO DE UM TIRO GUIADO ---------------------------------------------
+    //
+    // O mesmo para o orientador, que atira no chefe, e para o Hugo, que atira
+    // as materias no aluno: quem atira guarda um Voo por tiro e, a cada quadro,
+    // pergunta a Avancar onde o tiro fica e com que velocidade.
+
+    struct Voo {
+        Tiro tiro;
+        float idade = 0.0f;
+        bool partiu = false;
+        bool remirou = false;
+        float deslocado = 0.0f;   ///< a parte da onda ja aplicada
+        Vector2 deLado;           ///< para onde a onda empurra
+    };
+
+    /// @brief Comeca o voo de 'tiro', solto no rumo 'direcao'.
+    Voo Comecar(const Tiro& tiro, const Vector2& direcao);
+
+    struct Passo {
+        Vector2 posicao;
+        Vector2 velocidade;
+        bool divide = false;      ///< virou dois: quem atira o apaga e solta os Filhos
+    };
+
+    /// @brief Um quadro de 'dt' do voo 'v'. O tiro esta em 'posicao' com
+    /// 'velocidade'; 'ancora' e onde quem atirou esta agora (o tiro que espera
+    /// fica junto dele) e 'alvo', para onde ele mira.
+    Passo Avancar(Voo& v, const Vector2& posicao, const Vector2& velocidade,
+                  const Vector2& ancora, const Vector2& alvo, float dt);
+
+    struct Filho {
+        Tiro tiro;
+        Vector2 direcao;
+    };
+
+    /// @brief Os dois tiros em que 'v' se divide, em 'posicao' com 'velocidade':
+    /// abrindo 'abertura' graus do rumo do pai (herdaRumo) ou da direcao do
+    /// alvo. Eles herdam a divisao enquanto houver geracoes.
+    std::array<Filho, 2> Filhos(const Voo& v, const Vector2& posicao, const Vector2& velocidade,
+                                const Vector2& alvo);
 }

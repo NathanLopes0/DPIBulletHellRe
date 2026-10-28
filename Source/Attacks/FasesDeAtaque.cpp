@@ -50,7 +50,7 @@ namespace {
                                                 "contador", "estagios", "buscar", "lw", "sw", "add", "addi",
                                                 "acender", "estados", "diagrama", "ler_a", "ler_b",
                                                 "aceita", "rejeita", "metade", "triplo",
-                                                "parou", "escrever", "apagar", "reescrever", "reler", "pare", "cursor", "clique", "spinner", "carregar", "marquee", "navegar", "digitar", "repintar", "escorrer", "worker", "cast", "handle_cast", "crash", "pipe", "ficha", "log", "then", "fetch", "timeout", "capivara", "push", "estourar", "baldes",
+                                                "parou", "escrever", "apagar", "reescrever", "reler", "pare", "cursor", "clique", "spinner", "carregar", "marquee", "navegar", "digitar", "repintar", "escorrer", "worker", "cast", "handle_cast", "crash", "pipe", "ficha", "log", "then", "fetch", "timeout", "tarefa", "questao", "rascunho", "capivara", "push", "estourar", "baldes",
                                                 "chave", "percorrer", "nulo", "no", "visitar", "folha_nula",
                                                 "achado", "aresta", "elemento", "trocar", "assentar",
                                                 "cabecalho", "registro", "marcar", "selecionar",

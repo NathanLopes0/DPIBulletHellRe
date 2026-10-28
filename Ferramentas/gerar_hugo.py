@@ -10,6 +10,10 @@ basta - os json de quadro continuam valendo.
     Pagina      uma folha A4 com as linhas do texto - o que sai da monografia.
     Monografia  o volume encadernado, de capa azul e lombada com "TCC".
     Pergunta    o balao da pergunta de banca, com o ponto de interrogacao.
+    Materias    um ladrilho de cada professor, COPIADO da folha de projeteis
+                dele (MATERIAS, abaixo): no TCC o Hugo atira a materia do
+                orientador e as da banca, e cada uma tem de ser reconhecida
+                pelo projetil que o aluno ja enfrentou.
 """
 from PIL import Image, ImageDraw
 import json, os
@@ -110,12 +114,44 @@ def pergunta():
     return im
 
 
+# De onde vem o ladrilho de cada professor: a folha e o quadro dela. Na ordem
+# de Golpe::Materia (sem o Generico), que e a ordem dos quadros 3 a 12.
+MATERIAS = [
+    ("Andre",      "DPIBHAndreBaloes",         0),   # o balao do BOCA
+    ("Salles",     "DPIBHSallesPilha",         0),   # um bloco da pilha
+    ("Ricardo",    "DPIBHRicardoLogica",       1),   # o bit 1
+    ("Thiago",     "DPIBHThiagoDados",         0),   # uma casa da tabela
+    ("Luizinho",   "DPIBHLuizinhoMemoria",     1),   # a celula viva do heap
+    ("Vladimir",   "DPIBHVladimirSimbolo",     0),   # o simbolo a
+    ("Julio",      "DPIBHJulioToken",          8),   # o agente
+    ("MariaLucia", "DPIBHMariaLuciaRequisito", 12),  # o bug
+    ("Lucas",      "DPIBHLucasCodigo",         8),   # a promessa
+    ("Vitor",      "DPIBHVitorTarefa",         20),  # o pacote
+]
+
+
+def ladrilho(folha, quadro):
+    """O quadro 'quadro' da folha de outro professor, cabendo em 32 px."""
+    pasta = os.path.join(RAIZ, "Assets", "Teachers", "Projectiles")
+    im = Image.open(os.path.join(pasta, folha + ".png")).convert("RGBA")
+    with open(os.path.join(pasta, folha + ".json"), encoding="utf-8") as f:
+        r = json.load(f)["frames"][quadro]["frame"]
+    recorte = im.crop((r["x"], r["y"], r["x"] + r["w"], r["y"] + r["h"]))
+    recorte = recorte.crop(recorte.getbbox() or (0, 0, r["w"], r["h"]))
+    escala = 30.0 / max(recorte.width, recorte.height)
+    recorte = recorte.resize((max(1, round(recorte.width * escala)), max(1, round(recorte.height * escala))),
+                             Image.NEAREST)
+    saida = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    saida.alpha_composite(recorte, ((32 - recorte.width) // 2, (32 - recorte.height) // 2))
+    return saida
+
+
 def folha():
     """Quatro quadros por linha, de 32 px. As linhas novas vao sempre no FIM.
 
-        0 Pagina   1 Monografia   2 Pergunta
+        0 Pagina   1 Monografia   2 Pergunta   3 a 12 as materias (MATERIAS)
     """
-    desenhos = [pagina(), monografia(), pergunta()]
+    desenhos = [pagina(), monografia(), pergunta()] + [ladrilho(f, q) for _, f, q in MATERIAS]
     f = Image.new("RGBA", (128, 32 * ((len(desenhos) + 3) // 4)), (0, 0, 0, 0))
     for i, im in enumerate(desenhos):
         f.alpha_composite(im, ((i % 4) * 32, (i // 4) * 32))

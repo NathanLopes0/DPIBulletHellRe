@@ -191,6 +191,10 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Estilo.h
         Source/Attacks/EventLoop.cpp
         Source/Attacks/EventLoop.h
+        Source/Attacks/Tcc.cpp
+        Source/Attacks/Tcc.h
+        Source/Attacks/Cronograma.cpp
+        Source/Attacks/Cronograma.h
         Source/Attacks/Nuvem.cpp
         Source/Attacks/Nuvem.h
         Source/Attacks/Semaforo.cpp
@@ -444,6 +448,8 @@ add_executable(dpi_tests
         tests/test_orientacao.cpp
         tests/test_escolta.cpp
         tests/test_golpe.cpp
+        tests/test_tcc.cpp
+        tests/test_cronograma.cpp
         tests/test_personagens.cpp
         tests/test_exportacao.cpp
         Source/Progresso.cpp
@@ -537,6 +543,10 @@ add_executable(dpi_tests
         Source/Attacks/Estilo.h
         Source/Attacks/EventLoop.cpp
         Source/Attacks/EventLoop.h
+        Source/Attacks/Tcc.cpp
+        Source/Attacks/Tcc.h
+        Source/Attacks/Cronograma.cpp
+        Source/Attacks/Cronograma.h
         Source/Attacks/Nuvem.cpp
         Source/Attacks/Nuvem.h
         Source/Attacks/Semaforo.cpp

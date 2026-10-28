@@ -19,7 +19,7 @@ namespace {
                                               "palavra", "portas", "registradores", "estagios", "pipeline",
                                               "placas", "acesas", "fita", "estados", "pilha",
                                               "baldes", "chaves", "arvore", "vetor",
-                                              "tabela", "aviso", "pagina", "grade", "supervisao", "eventloop"};
+                                              "tabela", "aviso", "pagina", "grade", "supervisao", "eventloop", "cronograma"};
 
     bool Contem(const std::vector<std::string>& lista, const std::string& v) {
         for (const auto& x : lista) if (x == v) return true;
