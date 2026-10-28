@@ -103,8 +103,9 @@ private:
     /// A rodada do golpe: solta os tiros cuja hora chegou.
     void Golpear(Battle& batalha, float deltaTime);
     /// Solta um tiro com a cara da materia; com 'quadro' >= 0, a de outra
-    /// folha (o poder) - 'folha' e 'escala' valem entao.
-    void Disparar(Battle& batalha, const Golpe::Tiro& tiro, const Vector2& de, const Vector2& direcao,
+    /// folha (o poder) - 'folha' e 'escala' valem entao. Devolve o tiro (ja
+    /// entregue ao manager), para quem precisa marca-lo.
+    class PlayerProjectile* Disparar(Battle& batalha, const Golpe::Tiro& tiro, const Vector2& de, const Vector2& direcao,
                   const std::string& folha = "", int quadro = -1, float escala = 0.0f);
     /// Os tiros que ainda dependem dele: a espera, a curva, a volta, a onda, a
     /// divisao.

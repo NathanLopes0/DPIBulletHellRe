@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_set>
 
 #include <SDL_pixels.h>
 
@@ -32,6 +33,12 @@ public:
     PlayerProjectile(class Scene* scene, class Actor* owner, const std::string& folha, int quadro,
                      float escala, SDL_Color contorno);
 
+    /// A promessa: abaixo desta altura (px) ela volta; a esta distancia de quem
+    /// a lancou, chegou; e volta pelo menos a esta rapidez (px/s).
+    static constexpr float kAltoDaVolta = 24.0f;
+    static constexpr float kChegou = 28.0f;
+    static constexpr float kRapidezMinimaDaVolta = 520.0f;
+
     /// O raio do tiro de sempre: metade dos 24 px do sprite dele.
     static constexpr float kRaioDoTiro = 12.0f;
     void OnUpdate(float deltaTime) override;
@@ -52,6 +59,23 @@ public:
     void Murchar();
     [[nodiscard]] bool Murchando() const { return mMurcha >= 0.0f; }
 
+    // ---- A PROMESSA (o Promise.all() do Lucas, no TCC) ------------------------
+    //
+    // UMA PROMESSA E UM BUMERANGUE: vai ate o Hugo, "resolve" ali e VOLTA para
+    // quem a lancou - dourada, porque ja tem valor. Na ida e na volta ela desfaz
+    // os tiros do Hugo que encosta (Battle::CheckCollisions, regra 1b), e nao se
+    // gasta com isso.
+
+    void FazerPromessa() { mPromessa = true; }
+    [[nodiscard]] bool Promessa() const { return mPromessa; }
+    [[nodiscard]] bool Voltando() const { return mVoltando; }
+    /// @brief A promessa resolveu (acertou o Hugo, ou chegou ao alto do campo):
+    /// daqui ate sumir, ela persegue quem a lancou.
+    void Voltar();
+    /// @brief Se esta promessa ainda nao desfez 'tiro' - e anota que desfez.
+    /// Um tiro resistente leva UM golpe por promessa, e nao um por quadro.
+    bool DesfazPelaPrimeiraVez(const void* tiro) { return mDesfeitos.insert(tiro).second; }
+
 
 private:
 
@@ -59,6 +83,10 @@ private:
     std::uint64_t mId;
     float mMurcha = -1.0f;        ///< segundos murchando; negativo = inteiro
     float mEscalaInteira = 1.0f;
+    bool mPromessa = false;
+    bool mVoltando = false;
+    float mRapidezDaVolta = 0.0f;
+    std::unordered_set<const void*> mDesfeitos;
 
     void ActivateProjectile();
     void DeactivateProjectile();

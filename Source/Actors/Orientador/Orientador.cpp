@@ -178,11 +178,12 @@ void Orientador::Golpear(Battle& batalha, const float deltaTime) {
     }
 }
 
-void Orientador::Disparar(Battle& batalha, const Golpe::Tiro& tiro, const Vector2& de, const Vector2& direcao,
-                          const std::string& folha, const int quadro, const float escala) {
+PlayerProjectile* Orientador::Disparar(Battle& batalha, const Golpe::Tiro& tiro, const Vector2& de,
+                                      const Vector2& direcao, const std::string& folha, const int quadro,
+                                      const float escala) {
 
     ProjectileManager* tiros = batalha.GetProjectileManager();
-    if (!tiros) return;
+    if (!tiros) return nullptr;
 
     // A CARA: a da materia dele, ou a do poder; sem materia, o tiro de sempre.
     const int daMateria = Poder::QuadroDaMateria(mMateria);
@@ -201,8 +202,10 @@ void Orientador::Disparar(Battle& batalha, const Golpe::Tiro& tiro, const Vector
         rb->SetVelocity(tiro.espera > 0.0f ? Vector2::Zero : direcao * tiro.velocidade);
     }
     if (tiro.Guiado()) mGuiados.push_back({p->Id(), Golpe::Comecar(tiro, direcao), folha, quadro, escala});
+    PlayerProjectile* bruto = p.get();
     tiros->AddPlayerProjectile(std::move(p));
     ++mDisparos;
+    return bruto;
 }
 
 void Orientador::Guiar(Battle& batalha, const float deltaTime) {
@@ -241,6 +244,11 @@ void Orientador::Guiar(Battle& batalha, const float deltaTime) {
             continue;
         }
         PlayerProjectile* p = achado->second;
+        // A PROMESSA QUE VOLTA nao e mais guiada: quem a leva e ela mesma.
+        if (p->Voltando()) {
+            it = mGuiados.erase(it);
+            continue;
+        }
         const Golpe::Passo passo = Golpe::Avancar(it->voo, p->GetPosition(), rb->GetVelocity(),
                                                   GetPosition(), alvo, deltaTime);
         p->SetPosition(passo.posicao);
@@ -399,7 +407,10 @@ bool Orientador::SoltarPoder() {
         }
 
         case Poder::Tipo::PromiseAll: {
-            // DOZE PROMESSAS em volta dele, pendentes, que resolvem juntas.
+            // DOZE PROMESSAS em volta dele, pendentes, que resolvem juntas - e
+            // VOLTAM (PlayerProjectile::FazerPromessa): o valor de uma
+            // promessa e o que ela devolve. Na ida e na volta desfazem os
+            // tiros do Hugo que encostam.
             const int quadroDele = Poder::QuadroDaMateria(Golpe::Materia::Lucas);
             for (int k = 0; k < mPoder.tiros; ++k) {
                 const float a = 2.0f * Math::Pi * static_cast<float>(k) / static_cast<float>(mPoder.tiros);
@@ -407,8 +418,11 @@ bool Orientador::SoltarPoder() {
                 t.dx = Math::Cos(a) * mPoder.raio;
                 t.dy = Math::Sin(a) * mPoder.raio;
                 t.espera = mPoder.duracao;
-                Disparar(*batalha, t, GetPosition() + Vector2(t.dx, t.dy), Vector2(0.0f, -1.0f),
-                         Poder::kFolhaDasMaterias, quadroDele, 1.0f);
+                if (PlayerProjectile* p = Disparar(*batalha, t, GetPosition() + Vector2(t.dx, t.dy),
+                                                   Vector2(0.0f, -1.0f), Poder::kFolhaDasMaterias,
+                                                   quadroDele, 1.0f)) {
+                    p->FazerPromessa();
+                }
             }
             break;
         }

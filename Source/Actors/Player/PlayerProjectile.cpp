@@ -2,6 +2,7 @@
 // Created by nslop on 19/11/2024.
 //
 
+#include <algorithm>
 #include "Player.h"
 #include "../../Game.h"
 #include "PlayerProjectile.h"
@@ -94,6 +95,21 @@ bool PlayerProjectile::IsOffScreen() const
 void PlayerProjectile::OnUpdate(float deltaTime) {
     Projectile::OnUpdate(deltaTime);
 
+    // A PROMESSA QUE NAO ACERTOU NADA volta do alto do campo, em vez de sumir.
+    if (mPromessa && !mVoltando && GetPosition().y < kAltoDaVolta) Voltar();
+
+    // NA VOLTA ela persegue quem a lancou, e some ao chegar.
+    if (mVoltando && mOwner) {
+        const Vector2 falta = mOwner->GetPosition() - GetPosition();
+        if (falta.Length() < kChegou) {
+            DeactivateProjectile();
+            return;
+        }
+        if (auto* rb = GetComponent<RigidBodyComponent>()) {
+            rb->SetVelocity(falta * (mRapidezDaVolta / falta.Length()));
+        }
+    }
+
     if (Murchando()) {
         mMurcha += deltaTime;
         if (mMurcha >= Hud::kMurcha) {
@@ -119,6 +135,20 @@ void PlayerProjectile::ActivateProjectile() {
     }
 
     SetPosition(mOwner->GetPosition());
+}
+
+void PlayerProjectile::Voltar() {
+    if (mVoltando) return;
+    mVoltando = true;
+    if (auto* rb = GetComponent<RigidBodyComponent>()) {
+        mRapidezDaVolta = std::max(kRapidezMinimaDaVolta, rb->GetVelocity().Length());
+    } else {
+        mRapidezDaVolta = kRapidezMinimaDaVolta;
+    }
+    // RESOLVIDA: o contorno passa do azul dos aliados ao dourado do Ponto
+    // Extra, e ela cresce um pouco - agora ela tem valor, e se ve que volta.
+    if (auto* d = GetComponent<DrawAnimatedComponent>()) d->DefinirContorno(true, SDL_Color{255, 215, 80, 255});
+    SetScale(GetScale() * 1.25f);
 }
 
 void PlayerProjectile::Murchar() {

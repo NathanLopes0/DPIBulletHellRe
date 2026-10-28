@@ -343,7 +343,9 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   autômato do Vladimir que converte os tiros em volta, os agentes do Júlio que
   fazem os seus tiros e os do orientador caçarem o alvo destrutível do
   objetivo (ou o Hugo), a bala de prata da Maria Lúcia que quebra o escudo, o
-  `Promise.all()` do Lucas e o `socket()` do Vitor, que abre uma rede entre as
+  `Promise.all()` do Lucas — doze promessas que vão até o Hugo e **voltam**
+  douradas para o orientador, desfazendo os tiros do Hugo que tocam na ida e
+  na volta — e o `socket()` do Vitor, que abre uma rede entre as
   paredes dos lados: quem sai por uma entra pela outra. Escolher o orientador
   é escolher o jeito de jogar.
 

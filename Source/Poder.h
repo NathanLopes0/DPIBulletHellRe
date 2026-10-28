@@ -30,7 +30,8 @@
  *   Vladimir    o automato        os tiros em volta viram seus, no Hugo
  *   Julio       agentes           os tiros viram agentes e cacam o alvo
  *   Maria Lucia a bala de prata   quebra o escudo do Hugo na hora
- *   Lucas       Promise.all()     doze promessas resolvem juntas no Hugo
+ *   Lucas       Promise.all()     doze promessas resolvem juntas no Hugo e VOLTAM,
+ *                                 desfazendo os tiros dele na ida e na volta
  *   Vitor       socket()          as paredes viram rede: sai de um lado, entra no outro
  *
  * O que nao e professor de materia nao tem poder (Tipo::Nenhum).

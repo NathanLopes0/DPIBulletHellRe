@@ -1251,6 +1251,36 @@ void Battle::CheckCollisions() {
         const auto *tiro = playerProj->GetComponent<CircleColliderComponent>();
         if (!tiro) continue;
 
+        // A PROMESSA DO LUCAS (Promise.all, no TCC) DESFAZ e segue: na ida e
+        // na volta, todo tiro do Hugo que ela encosta. O que e derrubavel cai
+        // pelo caminho de sempre - o objetivo do Hugo conta -, o resto se
+        // desfaz em brilho. Nao toca no que nao e tiro: o enfeite, o abrigo, o
+        // que o Hugo guarda num posto, e o blindado.
+        if (playerProj->Promessa()) {
+            for (const auto &bossProj: bossProjectiles) {
+                if (bossProj->GetState() != ActorState::Active) continue;
+                if (bossProj->Enfeite() || bossProj->Abrigo() || bossProj->Blindado() || !bossProj->Posto().empty()) continue;
+                const auto *alvo = bossProj->GetComponent<CircleColliderComponent>();
+                if (!alvo || !alvo->Intersect(*tiro)) continue;
+                if (!playerProj->DesfazPelaPrimeiraVez(bossProj.get())) continue;
+
+                if (bossProj->Derrubavel()) {
+                    if (bossProj->Golpear()) {
+                        Faiscar(bossProj->GetPosition(), Hud::Faisca::Derrubada);
+                        bossProj->OnCollision(playerProj.get());
+                        if (mBoss) {
+                            mBoss->OnProjetilDerrubado();
+                            mBoss->OnDerrubou(bossProj.get());
+                        }
+                    }
+                } else {
+                    Faiscar(bossProj->GetPosition(), Hud::Faisca::Dissolvido);
+                    bossProj->Kill();
+                }
+            }
+            continue;
+        }
+
         for (const auto &bossProj: bossProjectiles) {
             if (bossProj->GetState() != ActorState::Active) continue;
             // O ABRIGO TAMBEM COME O TIRO: quem se esconde embaixo da capivara
@@ -1309,11 +1339,16 @@ void Battle::CheckCollisions() {
             if (!colisorDoCorpo) continue;
 
             if (colisorDoCorpo->Intersect(*playerProjCollider)) {
+                // A PROMESSA QUE JA VOLTA passa pelo Hugo: ela ja resolveu.
+                if (playerProj->Promessa() && playerProj->Voltando()) continue;
+
                 corpo->OnCollision(playerProj.get());
                 // O CHEFE BLINDADO NAO OUVE A PERGUNTA: o balao murcha e fica
-                // cinza na frente dele, em vez de sumir como um acerto.
+                // cinza na frente dele, em vez de sumir como um acerto. A
+                // PROMESSA nao murcha nem some: resolve, e volta.
                 const bool ouviu = corpo->AceitaDano();
-                if (ouviu) playerProj->OnCollision(corpo);
+                if (playerProj->Promessa()) playerProj->Voltar();
+                else if (ouviu) playerProj->OnCollision(corpo);
                 else playerProj->Murchar();
 
                 // Acerto de UM jogador: repartido (requisitos-coop, 2.1). O
