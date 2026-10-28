@@ -87,6 +87,10 @@ public:
     /// reuniao, o livro mais perto, a versao final ou a secretaria. Vazio na
     /// arguicao (ali o caminho sao os tiros) e nos objetivos de derrubar.
     [[nodiscard]] std::optional<Vector2> LugarDeIr() const;
+
+    /// Os alvos do objetivo que o tiro derruba e que contam (os certos), para
+    /// os agentes do Julio: so com o escudo de pe.
+    [[nodiscard]] std::vector<Vector2> AlvosDestrutiveis() const override;
     [[nodiscard]] Objetivo::Tipo TipoDoObjetivo() const { return mTipo; }
 
     /// O TIRO NO ESCUDO risca uma faisca onde bateu: e o que diz, sem texto,
@@ -216,6 +220,9 @@ private:
     // ---- O ESCUDO E O OBJETIVO DA ETAPA ------------------------------------------
 
     void AtualizarObjetivo(float deltaTime);
+    /// CONGELADO (o HLT do Ricardo): o relogio do Hugo continua - e o que diz
+    /// a idade de cada tiro dele -, mas tudo o que tem hora marcada espera.
+    void Adiar(float deltaTime);
     void NovoObjetivo();
     void AbrirJanela();
     void MatarAlvos();

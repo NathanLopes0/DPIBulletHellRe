@@ -24,21 +24,21 @@
  *
  *   Andre       for (;;)          uma rajada sem fim no Hugo
  *   Salles      a capivara        anda embaixo de voce e come os tiros
- *   Ricardo     HLT               o clock para: todo tiro do Hugo congela
+ *   Ricardo     HLT               o clock para: o Hugo e os tiros dele congelam
  *   Thiago      ROLLBACK          todo tiro do Hugo volta por onde veio
  *   Luizinho    free()            o coletor de lixo apaga os tiros em volta
  *   Vladimir    o automato        os tiros em volta viram seus, no Hugo
- *   Julio       agentes           tres robos voam com voce e atiram no Hugo
+ *   Julio       agentes           os tiros viram agentes e cacam o alvo
  *   Maria Lucia a bala de prata   quebra o escudo do Hugo na hora
  *   Lucas       Promise.all()     doze promessas resolvem juntas no Hugo
- *   Vitor       fork()            um processo filho atira do outro lado
+ *   Vitor       socket()          as paredes viram rede: sai de um lado, entra no outro
  *
  * O que nao e professor de materia nao tem poder (Tipo::Nenhum).
  */
 namespace Poder {
 
     enum class Tipo {
-        Nenhum, Rajada, Capivara, Congelar, Rollback, Liberar, Converter, Agentes, BalaDePrata, PromiseAll, Fork
+        Nenhum, Rajada, Capivara, Congelar, Rollback, Liberar, Converter, Agentes, BalaDePrata, PromiseAll, Rede
     };
 
     struct Descricao {
@@ -67,9 +67,17 @@ namespace Poder {
     /// segundos depois de solto: um anel de 'raio' que gira.
     Vector2 Agente(const Vector2& centro, int k, int n, float t, float raio);
 
-    /// @brief O processo filho do fork(): o espelho de 'x' no campo de
-    /// 'esquerda' a 'direita', na mesma altura.
-    float Espelho(float x, float esquerda, float direita);
+    /// @brief A REDE DO VITOR: com as paredes abertas, quem passa de 'esquerda'
+    /// sai em 'direita' (e vice-versa), com a sobra do passo. Dentro do campo,
+    /// 'x' fica como esta.
+    float Atravessar(float x, float esquerda, float direita);
+
+    /// @brief OS AGENTES DO JULIO: a velocidade 'velocidade' de um tiro em 'de'
+    /// virada no maximo 'giro' radianos por segundo, durante 'dt', na direcao
+    /// de 'alvo' - a rapidez nao muda. Curva, e nao teleporta: o tiro que
+    /// passou do alvo da a volta.
+    Vector2 Guiar(const Vector2& velocidade, const Vector2& de, const Vector2& alvo, float giro, float dt);
+    constexpr float kGiroDosAgentes = 9.0f;   ///< rad/s
 
     /// @brief O tiro do Hugo em 'tiro' esta no alcance de quem esta em
     /// 'centro', com 'raio'?

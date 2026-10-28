@@ -766,7 +766,8 @@ void Battle::OnUpdate(float deltaTime) {
     AtualizarMoldura();
     AtualizarEfeitos(deltaTime);
 
-    if (mHUD) mHUD->OnUpdate(deltaTime);
+    if (mHUD) mHUD->OnUpdate(deltaTime, mBoss && mBoss->Congelado());
+    if (mRede > 0.0f) mRede = std::max(0.0f, mRede - deltaTime);
 
     TimeBarUpdate();
     GradeBarUpdate();
@@ -1754,6 +1755,13 @@ void Battle::AtualizarMoldura() {
         if (aceso) mRotulosDoProfessor[i]->SetPosition(Vector2(xs[i], mAreaDoAluno.baixo + 13.0f));
     }
     mMoldura->SetProfessores(std::move(xs));
+    mMoldura->SetRede(mRede);
+}
+
+void Battle::Atravessou(const Vector2& de, const Vector2& para) {
+    Faiscar(de, Hud::Faisca::Coleta);
+    Faiscar(para, Hud::Faisca::Coleta);
+    if (mMoldura) mMoldura->Acender(SDL_Color{110, 210, 255, 255}, 0.25f);
 }
 
 void Battle::Faiscar(const Vector2& onde, const Hud::Faisca tipo) {

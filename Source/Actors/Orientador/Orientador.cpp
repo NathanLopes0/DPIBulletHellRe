@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <unordered_map>
 
 #include "../../CaminhosArquivo.h"
@@ -342,6 +343,12 @@ bool Orientador::SoltarPoder() {
         case Poder::Tipo::Congelar:
             mCongelados.clear();
             mJaCongelados.clear();
+            // O CHEFE PARA JUNTO (Boss::Congelar): sem isso ele seguia atirando
+            // parado, e o que nascia congelava em cima dele - e caia tudo de
+            // uma vez quando o clock voltava.
+            for (Boss* corpo : batalha->Corpos()) {
+                if (corpo) corpo->Congelar(mPoder.duracao);
+            }
             break;
 
         case Poder::Tipo::Rollback:
@@ -374,8 +381,9 @@ bool Orientador::SoltarPoder() {
         }
 
         case Poder::Tipo::Agentes:
+            // OS AGENTES voam em volta do aluno enquanto o poder dura - e o
+            // que mostra que os tiros estao cacando (AtualizarPoder).
             for (int k = 0; k < mPoder.tiros; ++k) Figura(kFolhaDosAgentes, {8, 9, 10, 11}, 1.3f);
-            mProximoDaRajada = mTempo;
             break;
 
         case Poder::Tipo::BalaDePrata: {
@@ -405,16 +413,10 @@ bool Orientador::SoltarPoder() {
             break;
         }
 
-        case Poder::Tipo::Fork: {
-            // fork(): o processo filho, do outro lado, com o mesmo retrato.
-            auto filho = std::make_unique<Actor>(GetScene());
-            filho->SetScale(kEscala);
-            filho->AddComponent<DrawSpriteComponent>(mRetrato, kOrdemDeDesenho);
-            filho->SetPosition(GetPosition());
-            mFiguras.push_back(GetScene()->AddActor(std::move(filho)));
-            mProximoDaRajada = mTempo;
+        case Poder::Tipo::Rede:
+            // socket(): as paredes dos lados viram rede (Battle::AbrirRede).
+            batalha->AbrirRede(mPoder.duracao);
             break;
-        }
 
         default:
             break;
@@ -427,7 +429,6 @@ void Orientador::AtualizarPoder(Battle& batalha, const float deltaTime) {
     const bool ativo = mTempo < mPoderAte;
     const float t = mTempo - mInicioDoPoder;
     const Vector2 aluno = PosicaoDoAluno();
-    const SDL_FRect campo = batalha.GetPlayfieldBounds();
 
     // FIM DO EFEITO: as figuras saem, e o que congelou volta a andar.
     if (!ativo && !mFiguras.empty()) {
@@ -518,39 +519,41 @@ void Orientador::AtualizarPoder(Battle& batalha, const float deltaTime) {
             break;
 
         case Poder::Tipo::Agentes: {
-            // OS AGENTES voam em volta do aluno e atiram, um de cada vez.
+            // OS AGENTES voam em volta do aluno...
             const int n = static_cast<int>(mFiguras.size());
             for (int k = 0; k < n; ++k) {
                 if (mFiguras[static_cast<size_t>(k)]) {
                     mFiguras[static_cast<size_t>(k)]->SetPosition(Poder::Agente(aluno, k, n, t, mPoder.raio));
                 }
             }
-            int vez = 0;
-            const int quadroDele = Poder::QuadroDaMateria(Golpe::Materia::Julio);
-            while (n > 0 && mTempo >= mProximoDaRajada) {
-                mProximoDaRajada += mPoder.intervalo / static_cast<float>(n);
-                Actor* agente = mFiguras[static_cast<size_t>(vez++ % n)];
-                if (!agente) continue;
-                Golpe::Tiro tiro;
-                Disparar(batalha, tiro, agente->GetPosition(), Golpe::Rumo(agente->GetPosition(), alvo, 0.0f),
-                         Poder::kFolhaDasMaterias, quadroDele, 0.8f);
-            }
-            break;
-        }
-
-        case Poder::Tipo::Fork:
-            // O FILHO atira do espelho dele, no ritmo do tiro do aluno.
-            if (!mFiguras.empty() && mFiguras.front()) {
-                Actor* filho = mFiguras.front();
-                const Vector2 onde(Poder::Espelho(GetPosition().x, campo.x, campo.x + campo.w), GetPosition().y);
-                filho->SetPosition(onde);
-                while (mTempo >= mProximoDaRajada) {
-                    mProximoDaRajada += 0.15f;
-                    Golpe::Tiro tiro;
-                    Disparar(batalha, tiro, onde, Golpe::Rumo(onde, alvo, 0.0f));
+            // ...e todo tiro do aluno e do orientador CACA UM ALVO: com o Hugo
+            // blindado, o alvo do objetivo mais perto; sem alvo, o chefe. O
+            // tiro curva (Poder::Guiar), e nao teleporta.
+            const std::vector<Vector2> destrutiveis = chefe->AlvosDestrutiveis();
+            if (const ProjectileManager* tiros = batalha.GetProjectileManager()) {
+                for (const auto& p : const_cast<ProjectileManager*>(tiros)->GetPlayerProjectiles()) {
+                    if (!p || p->GetState() != ActorState::Active || p->Id() == mBala) continue;
+                    auto* rb = p->GetComponent<RigidBodyComponent>();
+                    if (!rb) continue;
+                    const Vector2 de = p->GetPosition();
+                    Vector2 caca = alvo;
+                    float perto = (alvo - de).LengthSq();
+                    if (!destrutiveis.empty()) perto = std::numeric_limits<float>::max();
+                    for (const Vector2& d : destrutiveis) {
+                        if ((d - de).LengthSq() < perto) { perto = (d - de).LengthSq(); caca = d; }
+                    }
+                    for (Boss* corpo : batalha.Corpos()) {
+                        if (!destrutiveis.empty() || !corpo) continue;
+                        if ((corpo->GetPosition() - de).LengthSq() < perto) {
+                            perto = (corpo->GetPosition() - de).LengthSq();
+                            caca = corpo->GetPosition();
+                        }
+                    }
+                    rb->SetVelocity(Poder::Guiar(rb->GetVelocity(), de, caca, Poder::kGiroDosAgentes, deltaTime));
                 }
             }
             break;
+        }
 
         default:
             break;

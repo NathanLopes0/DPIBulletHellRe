@@ -190,6 +190,17 @@ public:
     /// como orientadora. Devolve se havia escudo para quebrar. O padrao nao tem.
     virtual bool QuebrarEscudo() { return false; }
 
+    /// @brief O HLT (o poder do Ricardo, como orientador): o chefe PARA por
+    /// 'segundos' - nem anda, nem a fase corre, nem ataca. Congelar so os tiros
+    /// deixava o chefe atirando parado, e os tiros novos se acumulavam em cima
+    /// dele para cair todos juntos quando o clock voltasse.
+    void Congelar(float segundos);
+    [[nodiscard]] bool Congelado() const { return mCongelado > 0.0f; }
+
+    /// @brief Os alvos destrutiveis que contam agora (os agentes do Julio os
+    /// cacam): os do objetivo do Hugo. O padrao nao tem.
+    [[nodiscard]] virtual std::vector<Vector2> AlvosDestrutiveis() const { return {}; }
+
     // ---- O PLACAR ---------------------------------------------------------
 
     /// @brief Anota o que o placar mostra enquanto esta fase dura ("anuncio" em
@@ -411,6 +422,7 @@ private:
     std::map<std::string, std::pair<float, float>> mIntercambioPorFase;
 
     bool mEhClone = false;
+    float mCongelado = 0.0f;   ///< os segundos de HLT que faltam
 
     // Mapeia: Nome do projétil -> Fábrica dele (Populado na Fábrica)
     std::unordered_map<std::string, std::unique_ptr<ProjectileFactory>> mProjectileFactories;

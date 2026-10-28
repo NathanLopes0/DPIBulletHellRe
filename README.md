@@ -311,11 +311,14 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   `fetch` do Lucas, a janela do TCP do Vitor), e cada um traz um **poder**,
   que carrega a cada acerto no Hugo e sai no **botão 3**: o laço sem fim do
   André, a capivara do Salles que come os tiros, o `HLT` do Ricardo que
-  congela tudo, o `ROLLBACK` do Thiago que manda os tiros de volta, o `free()`
-  do Luizinho, o autômato do Vladimir que converte os tiros em volta, os
-  agentes do Júlio, a bala de prata da Maria Lúcia que quebra o escudo, o
-  `Promise.all()` do Lucas e o `fork()` do Vitor. Escolher o orientador é
-  escolher o jeito de jogar.
+  congela o Hugo e os tiros dele (a fase e o relógio param junto), o
+  `ROLLBACK` do Thiago que manda os tiros de volta, o `free()` do Luizinho, o
+  autômato do Vladimir que converte os tiros em volta, os agentes do Júlio que
+  fazem os seus tiros e os do orientador caçarem o alvo destrutível do
+  objetivo (ou o Hugo), a bala de prata da Maria Lúcia que quebra o escudo, o
+  `Promise.all()` do Lucas e o `socket()` do Vitor, que abre uma rede entre as
+  paredes dos lados: quem sai por uma entra pela outra. Escolher o orientador
+  é escolher o jeito de jogar.
 
   **O Hugo é blindado** — o TCC ainda não está pronto — e cada etapa tem
   objetivos que abrem uma janela em que ele toma dano. São duas maneiras por

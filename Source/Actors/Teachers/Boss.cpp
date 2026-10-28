@@ -3,6 +3,9 @@
 //
 
 #include "Boss.h"
+
+#include <algorithm>
+
 #include "../../Scenes/Battle/Battle.h"
 #include "../../Actors/Projectile.h"
 #include "../ProjectileFactory.h"
@@ -47,8 +50,27 @@ void Boss::Start() {
     }
 }
 
+void Boss::Congelar(const float segundos) {
+    mCongelado = std::max(mCongelado, segundos);
+    // A FASE PARA: a maquina de estados e quem conta o tempo dela e solta os
+    // ataques. Volta a correr quando o HLT acaba (OnUpdate).
+    if (auto* fsm = GetComponent<FSMComponent>()) fsm->SetEnabled(false);
+    if (auto* rb = GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+}
+
 void Boss::OnUpdate(float deltaTime) {
     Actor::OnUpdate(deltaTime);
+
+    // CONGELADO (o HLT): nada anda e nada sai.
+    if (mCongelado > 0.0f) {
+        mCongelado -= deltaTime;
+        if (auto* rb = GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+        if (mCongelado <= 0.0f) {
+            mCongelado = 0.0f;
+            if (auto* fsm = GetComponent<FSMComponent>()) fsm->SetEnabled(true);
+        }
+        return;
+    }
 
     auto fsm = GetComponent<FSMComponent>();
     if (!fsm) return;

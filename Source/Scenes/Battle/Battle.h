@@ -5,6 +5,7 @@
 #ifndef DPIBULLETHELLRE_BATTLE_H
 #define DPIBULLETHELLRE_BATTLE_H
 
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <vector>
@@ -351,6 +352,18 @@ private:
     Hud::Caixa mAreaDoAluno;
     void LoadMoldura();
     void AtualizarMoldura();
+
+public:
+    /// O SOCKET DO VITOR (o poder dele, como orientador): por 'segundos', as
+    /// paredes dos lados viram rede - quem sai por uma entra pela outra
+    /// (Player::BorderLimitCheck, Poder::Atravessar).
+    void AbrirRede(float segundos) { mRede = std::max(mRede, segundos); }
+    [[nodiscard]] bool RedeAberta() const { return mRede > 0.0f; }
+    /// O aluno passou pela rede: o clarao dos dois lados.
+    void Atravessou(const Vector2& de, const Vector2& para);
+
+private:
+    float mRede = 0.0f;
     /// O "prof" escrito embaixo do brilho de cada corpo do professor.
     std::vector<Actor*> mRotulosDoProfessor;
 

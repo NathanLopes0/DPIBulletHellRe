@@ -27,6 +27,11 @@ namespace {
     /// Quantos pixels a luz do encosto entra no campo.
     constexpr int kEspessuraDoEncosto = 6;
 
+    /// A rede do Vitor nos trilhos: o cabo e os pacotes.
+    constexpr SDL_Color kRede{110, 210, 255, 255};
+    constexpr float kRapidezDosPacotes = 260.0f;
+    constexpr float kEntrePacotes = 46.0f;
+
     /// O brilho do professor na borda de baixo: meia largura e altura.
     constexpr SDL_Color kProfessor{255, 70, 60, 255};
     constexpr float kMeioDoProfessor = 60.0f;
@@ -159,6 +164,43 @@ void DrawMolduraDoCampoComponent::DesenharProfessores(SDL_Renderer* r) const {
     }
 }
 
+void DrawMolduraDoCampoComponent::DesenharRede(SDL_Renderer* r) const {
+    if (mRede <= 0.0f) return;
+    // ACENDE E APAGA: entra num instante, e pisca no ultimo segundo, antes de
+    // as paredes fecharem.
+    float forca = std::min(1.0f, mRede / 0.3f);
+    if (mRede < 1.0f && std::fmod(mRede, 0.2f) < 0.1f) forca *= 0.35f;
+    const int topo = 0, baixo = static_cast<int>(mArea.baixo);
+    for (const bool esquerdo : {true, false}) {
+        const int x0 = esquerdo ? 0 : static_cast<int>(mArea.direita) + 1;
+        const int x1 = esquerdo ? static_cast<int>(mArea.esquerda) : static_cast<int>(mLargura);
+        const int borda = esquerdo ? x1 - 1 : x0;
+        // O CABO: a borda de dentro, azul e grossa.
+        for (int k = 0; k < 3; ++k) {
+            Cor(r, kRede, forca * (1.0f - 0.25f * static_cast<float>(k)));
+            const int x = esquerdo ? borda - k : borda + k;
+            SDL_RenderDrawLine(r, x, topo, x, baixo);
+        }
+        // OS PACOTES correndo pelo cabo - descendo de um lado, subindo do
+        // outro: a rede liga os dois.
+        const float fase = std::fmod(mTempo * kRapidezDosPacotes, kEntrePacotes);
+        for (float y = (esquerdo ? fase : kEntrePacotes - fase) - kEntrePacotes; y < static_cast<float>(baixo);
+             y += kEntrePacotes) {
+            if (y < 0.0f) continue;
+            const int cx = (x0 + x1) / 2;
+            Cor(r, Clarear(kRede, 0.5f), forca);
+            SDL_Rect pacote{cx - 3, static_cast<int>(y), 6, 10};
+            SDL_RenderFillRect(r, &pacote);
+        }
+        // A LUZ que vaza para o campo: a parede esta aberta.
+        for (int k = 1; k <= 10; ++k) {
+            Cor(r, kRede, forca * 0.30f * (1.0f - static_cast<float>(k) / 10.0f));
+            const int x = esquerdo ? x1 + k : x0 - k;
+            SDL_RenderDrawLine(r, x, topo, x, baixo);
+        }
+    }
+}
+
 void DrawMolduraDoCampoComponent::DesenharClarao(SDL_Renderer* r) const {
     const float c = Hud::Clarao(mIdadeDoClarao, mDuracaoDoClarao);
     if (c <= 0.0f) return;
@@ -204,5 +246,6 @@ void DrawMolduraDoCampoComponent::Draw(SDL_Renderer* renderer) {
     }
 
     DesenharProfessores(renderer);
+    DesenharRede(renderer);
     DesenharEncostos(renderer);
 }

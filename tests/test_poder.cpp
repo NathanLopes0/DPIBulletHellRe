@@ -4,6 +4,7 @@
 
 #include "doctest.h"
 
+#include <cmath>
 #include <set>
 #include <string>
 
@@ -50,10 +51,26 @@ TEST_CASE("Poder: a carga enche acertando, e as contas dos efeitos") {
     CHECK(Fracao(kCarga) == doctest::Approx(1.0f));
     CHECK(Fracao(kCarga * 3) == doctest::Approx(1.0f));
 
-    // O fork(): o filho fica no espelho, dentro do campo.
-    CHECK(Espelho(100.0f, 0.0f, 1200.0f) == doctest::Approx(1100.0f));
-    CHECK(Espelho(600.0f, 0.0f, 1200.0f) == doctest::Approx(600.0f));
-    CHECK(Espelho(-50.0f, 0.0f, 1200.0f) == doctest::Approx(1200.0f));
+    // O socket(): quem passa de uma parede sai na outra, com a sobra do passo.
+    CHECK(Atravessar(600.0f, 30.0f, 1170.0f) == doctest::Approx(600.0f));
+    CHECK(Atravessar(25.0f, 30.0f, 1170.0f) == doctest::Approx(1165.0f));
+    CHECK(Atravessar(1174.0f, 30.0f, 1170.0f) == doctest::Approx(34.0f));
+    CHECK(Atravessar(-5000.0f, 30.0f, 1170.0f) == doctest::Approx(30.0f));   // nunca fora do campo
+
+    // Os agentes do Julio: o tiro curva para o alvo, sem mudar a rapidez, e
+    // no maximo o giro por quadro.
+    const Vector2 v(0.0f, -900.0f);
+    const Vector2 virado = Guiar(v, Vector2(0.0f, 0.0f), Vector2(500.0f, 0.0f), kGiroDosAgentes, 0.016f);
+    CHECK(virado.Length() == doctest::Approx(900.0f));
+    CHECK(virado.x > 0.0f);
+    const float angulo = std::acos((virado.x * v.x + virado.y * v.y) / (900.0f * 900.0f));
+    CHECK(angulo == doctest::Approx(kGiroDosAgentes * 0.016f).epsilon(0.01));
+    // Com tempo, ele aponta para o alvo.
+    Vector2 w = v;
+    for (int i = 0; i < 60; ++i) w = Guiar(w, Vector2(0.0f, 0.0f), Vector2(500.0f, 0.0f), kGiroDosAgentes, 0.016f);
+    CHECK(w.x == doctest::Approx(900.0f).epsilon(0.01));
+    // Em cima do alvo, nao gira.
+    CHECK(Guiar(v, Vector2(5.0f, 5.0f), Vector2(5.0f, 5.0f), kGiroDosAgentes, 0.016f).y == doctest::Approx(-900.0f));
 
     // Os agentes: no anel, e girando.
     const Vector2 c(500.0f, 500.0f);

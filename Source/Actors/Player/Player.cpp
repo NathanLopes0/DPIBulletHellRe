@@ -6,6 +6,7 @@
 
 #include "Player.h"
 #include "../../Painel.h"
+#include "../../Poder.h"
 
 #include "PlayerProjectile.h"
 #include "../../Scenes/Battle/Battle.h"
@@ -258,7 +259,20 @@ void Player::BorderLimitCheck() {
     auto pWidth = GetComponent<DrawAnimatedComponent>()->GetSpriteWidth();
     auto pHeight = GetComponent<DrawAnimatedComponent>()->GetSpriteHeight();
 
-    SetPosition(Vector2(Math::Clamp(GetPosition().x, bounds.x + pWidth, bounds.x + bounds.w - pWidth),
+    const float esquerda = bounds.x + static_cast<float>(pWidth);
+    const float direita = bounds.x + bounds.w - static_cast<float>(pWidth);
+    float x = GetPosition().x;
+
+    // A REDE DO VITOR (o socket(), como orientador): com as paredes abertas,
+    // quem passa de um lado entra pelo outro, com a sobra do passo.
+    if (auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->RedeAberta() &&
+        (x < esquerda || x > direita)) {
+        const Vector2 de(x < esquerda ? esquerda : direita, GetPosition().y);
+        x = Poder::Atravessar(x, esquerda, direita);
+        batalha->Atravessou(de, Vector2(x, GetPosition().y));
+    }
+
+    SetPosition(Vector2(Math::Clamp(x, esquerda, direita),
             Math::Clamp(GetPosition().y, bounds.y + pHeight, bounds.y + bounds.h - pHeight)));
 }
 

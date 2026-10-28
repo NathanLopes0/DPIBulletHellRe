@@ -47,6 +47,10 @@ public:
     /// proprio pe sabe em que coluna ele esta sem levantar o olho.
     void SetProfessores(std::vector<float> xs) { mProfessores = std::move(xs); }
 
+    /// @brief A REDE DO VITOR: os segundos que faltam com as paredes abertas
+    /// (zero: fechadas). Abertas, os trilhos viram cabos com pacotes correndo.
+    void SetRede(const float segundos) { mRede = segundos; }
+
     /// @brief Um clarao de 'cor' nas bordas do campo, que some em 'duracao'.
     void Acender(SDL_Color cor, float duracao);
 
@@ -56,6 +60,7 @@ private:
     Hud::Caixa mArea;
     std::vector<std::pair<Vector2, Vector2>> mAlunos;
     std::vector<float> mProfessores;
+    float mRede = 0.0f;
     float mTempo = 0.0f;
 
     SDL_Color mCorDoClarao{255, 255, 255, 255};
@@ -66,5 +71,6 @@ private:
     void DesenharPainel(SDL_Renderer* r) const;
     void DesenharEncostos(SDL_Renderer* r) const;
     void DesenharProfessores(SDL_Renderer* r) const;
+    void DesenharRede(SDL_Renderer* r) const;
     void DesenharClarao(SDL_Renderer* r) const;
 };

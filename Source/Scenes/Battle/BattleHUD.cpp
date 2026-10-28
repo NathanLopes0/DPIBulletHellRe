@@ -60,8 +60,10 @@ BattleHUD::BattleHUD(Scene *scene)
     }
 }
 
-void BattleHUD::OnUpdate(const float deltaTime) {
-    mCurrentStateTime += deltaTime;
+void BattleHUD::OnUpdate(const float deltaTime, const bool relogioParado) {
+    // NO HLT A FASE PARA: a capsula do tempo para junto com a maquina de
+    // estados do chefe, ou chegaria a zero antes da fase acabar.
+    if (!relogioParado) mCurrentStateTime += deltaTime;
 
     if (mTimeBarComp != nullptr) {
         mTimeBarComp->SetTempo(mTotalStateTime - mCurrentStateTime, mTotalStateTime);

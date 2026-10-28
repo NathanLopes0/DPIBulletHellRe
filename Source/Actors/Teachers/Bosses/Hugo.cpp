@@ -112,6 +112,14 @@ void Hugo::OnUpdate(const float deltaTime) {
     if (fase != mFase) TrocarDeFase(fase);
     const float agora = fsm->GetStateTime();
 
+    // NO HLT, o que tem hora espera, e so o objetivo continua - o aluno ainda
+    // pode cumpri-lo, e o escudo e a janela estao parados com o resto.
+    if (Congelado()) {
+        Adiar(deltaTime);
+        AtualizarObjetivo(deltaTime);
+        return;
+    }
+
     if (fase == Cronograma::kFaseDaProposta) AtualizarCronograma();
     else if (fase == Tcc::kFaseDoTema) {
         if (agora - mUltimoTema >= kEscrevendo) mTempoVarrendo += deltaTime;
@@ -755,6 +763,23 @@ void Hugo::AtualizarObjetivo(const float deltaTime) {
     }
     RefazerPlacar();
     DesenharEscudo();
+}
+
+void Hugo::Adiar(const float deltaTime) {
+    mJanelaAte += deltaTime;
+    mProximaPaginaSolta += deltaTime;
+    mProximoObjetivo += deltaTime;
+    mInicioDoCronograma += deltaTime;
+    for (Execucao& e : mExecucoes) e.inicio += deltaTime;
+}
+
+std::vector<Vector2> Hugo::AlvosDestrutiveis() const {
+    std::vector<Vector2> alvos;
+    if (!mEscudo || mTipo != Objetivo::Tipo::Derrubar) return alvos;
+    for (const AlvoEmCampo& a : mAlvos) {
+        if (!a.caiu && a.alvo.certo && Vivo(a.p, mRelogio - a.nasceu)) alvos.push_back(a.p->GetPosition());
+    }
+    return alvos;
 }
 
 std::optional<Vector2> Hugo::ObjetivoAtual() const {
