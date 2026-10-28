@@ -4,9 +4,13 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
+#include <vector>
 
 #include "../Actor.h"
+#include "../../Golpe.h"
+#include "../../Variacao.h"
 
 class Battle;
 
@@ -23,11 +27,14 @@ class Battle;
  * batalha nao precisa de uma regra nova para ele, e o que ele conquista e da
  * dupla como tudo o mais (requisitos-coop, D2).
  *
- * ONDE ELE FICA E PARA ONDE ATIRA sao contas puras, em Escolta.
+ * ONDE ELE FICA e conta pura, em Escolta.
  *
- * O GOLPE, POR ENQUANTO, E O MESMO PARA TODOS: um leque curto de kTiros mirado
- * no chefe a cada kIntervalo segundos. O de cada professor - o da materia que
- * ele da - vem nos proximos passos.
+ * O GOLPE E O DA MATERIA DELE (Golpe.h): o laco do Andre, a pilha do Salles, o
+ * barramento do Ricardo, a transacao do Thiago, o ponteiro do Luizinho, a
+ * gramatica do Vladimir, o gradiente do Julio, o Observer da Maria Lucia, o
+ * fetch do Lucas e a janela do TCP do Vitor. Todos com o mesmo peso. Aqui mora
+ * o que a conta pura nao faz: soltar cada tiro na hora e acompanhar os que
+ * esperam, curvam, voltam, oscilam ou se dividem.
  */
 class Orientador : public Actor {
 public:
@@ -36,18 +43,13 @@ public:
     void OnUpdate(float deltaTime) override;
 
     [[nodiscard]] const std::string& Professor() const { return mProfessor; }
+    [[nodiscard]] Golpe::Materia Materia() const { return mMateria; }
 
     /// Quantos tiros ele ja deu. Para quem mede a batalha.
     [[nodiscard]] int Disparos() const { return mDisparos; }
 
     /// Poe o orientador direto no posto, sem o voo de chegada: e onde ele nasce.
     void Pousar();
-
-    // ---- O golpe de todos, por enquanto -----------------------------------
-    static constexpr float kIntervalo = 1.5f;
-    static constexpr int kTiros = 3;
-    static constexpr float kAbertura = 14.0f;
-    static constexpr float kVelocidadeDoTiro = 800.0f;
 
 private:
     /// O retrato e o cartao de chefe dele (128 px), em tamanho de ajudante.
@@ -63,14 +65,44 @@ private:
     /// O primeiro golpe espera um pouco: a batalha acabou de comecar.
     static constexpr float kPrimeiroGolpe = 1.0f;
 
+    /// O ponteiro so procura o chefe ate aqui: um tiro que curvasse para
+    /// sempre podia ficar girando em volta dele sem acertar.
+    static constexpr float kCurvaAte = 1.2f;
+
     [[nodiscard]] Battle* Batalha();
     [[nodiscard]] Vector2 PostoAgora();
-    void Atirar(Battle& batalha);
+
+    /// A rodada do golpe: solta os tiros cuja hora chegou.
+    void Golpear(Battle& batalha, float deltaTime);
+    void Disparar(Battle& batalha, const Golpe::Tiro& tiro, const Vector2& de, const Vector2& direcao);
+    /// Os tiros que ainda dependem dele: a espera, a curva, a volta, a onda, a
+    /// divisao.
+    void Guiar(Battle& batalha, float deltaTime);
+
+    struct Guiado {
+        std::uint64_t id = 0;
+        Golpe::Tiro tiro;
+        float idade = 0.0f;
+        bool partiu = false;
+        bool remirou = false;
+        float deslocado = 0.0f;   ///< a parte da onda ja aplicada
+        Vector2 deLado;           ///< para onde a onda empurra
+    };
 
     std::string mProfessor;
+    Golpe::Materia mMateria = Golpe::Materia::Generico;
     int mLado = -1;
     Vector2 mPouso;            ///< onde ele esta, sem o balanco
-    float mRecarga = kPrimeiroGolpe;
     float mTempo = 0.0f;
     int mDisparos = 0;
+
+    bool mSorteado = false;
+    Variacao::Sorteio mSorteio{0u};
+    float mEspera = kPrimeiroGolpe;
+    int mRodada = -1;
+    Golpe::Rodada mDaVez;
+    float mNaRodada = 0.0f;
+    size_t mProximoTiro = 0;
+    int mNotificacoes = 0;
+    std::vector<Guiado> mGuiados;
 };

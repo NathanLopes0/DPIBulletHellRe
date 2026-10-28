@@ -22,6 +22,8 @@ PlayerProjectile::PlayerProjectile(Scene *scene, Actor *owner) :
 {
 
     mOwner = owner;
+    static std::uint64_t proximo = 0;
+    mId = ++proximo;
 
     std::string spritePath = Caminhos::Asset("Player/PlayerProjectile1.png");
     std::string dataPath = Caminhos::Asset("Player/PlayerProjectile1.json");

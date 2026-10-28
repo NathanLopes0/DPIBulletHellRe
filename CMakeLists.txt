@@ -85,6 +85,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Orientacao.h
         Source/Escolta.cpp
         Source/Escolta.h
+        Source/Golpe.cpp
+        Source/Golpe.h
         Source/Personagens.cpp
         Source/Personagens.h
         Source/PersonagensArquivo.cpp
@@ -441,6 +443,7 @@ add_executable(dpi_tests
         tests/test_materias.cpp
         tests/test_orientacao.cpp
         tests/test_escolta.cpp
+        tests/test_golpe.cpp
         tests/test_personagens.cpp
         tests/test_exportacao.cpp
         Source/Progresso.cpp
@@ -480,6 +483,8 @@ add_executable(dpi_tests
         Source/Orientacao.h
         Source/Escolta.cpp
         Source/Escolta.h
+        Source/Golpe.cpp
+        Source/Golpe.h
         Source/Personagens.cpp
         Source/Personagens.h
         Source/Relogio.cpp

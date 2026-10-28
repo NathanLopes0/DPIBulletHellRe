@@ -1,5 +1,5 @@
 //
-// O orientador em campo: onde ele fica, e para onde atira.
+// O orientador em campo: onde ele fica.
 //
 
 #pragma once
@@ -12,7 +12,7 @@
  * CAMADA PURA.
  *
  * O orientador do TCC voa junto do aluno, e nao no lugar dele: e invulneravel,
- * nao tem colisor, e o que ele faz e atirar. Aqui ficam as tres contas que o
+ * nao tem colisor, e o que ele faz e atirar. Aqui ficam as contas que o
  * ator (Orientador) faz todo quadro, para poderem ser testadas sem cena.
  *
  * ONDE ELE FICA. Sozinho, ao lado do aluno e um pouco acima - de um lado so, e
@@ -24,8 +24,7 @@
  * o orientador tremer junto com cada correcao do manche, e chegar devagar e o
  * que o faz parecer alguem, e nao um adesivo.
  *
- * PARA ONDE ATIRA. Um leque mirado no chefe (Leque), o tiro do meio no centro
- * dele - o leque par deixaria o alvo parado no vao entre dois tiros.
+ * PARA ONDE ATIRA e o golpe da materia dele, em Golpe.h.
  */
 namespace Escolta {
 
@@ -52,9 +51,4 @@ namespace Escolta {
 
     /// @brief Um passo de 'dt' segundos de 'atual' na direcao de 'alvo'.
     Vector2 Seguir(const Vector2& atual, const Vector2& alvo, float dt);
-
-    /// @brief 'n' direcoes (de comprimento 1) espalhadas por 'aberturaGraus',
-    /// centradas na direcao de 'de' para 'alvo'. Com o alvo em cima do atirador,
-    /// a direcao e para cima. Com n impar, uma delas e a direcao do alvo.
-    std::vector<Vector2> Leque(const Vector2& de, const Vector2& alvo, int n, float aberturaGraus);
 }

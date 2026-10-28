@@ -40,21 +40,4 @@ namespace Escolta {
         const float fracao = 1.0f - std::exp(-kRapidez * dt);
         return atual + (alvo - atual) * fracao;
     }
-
-    std::vector<Vector2> Leque(const Vector2& de, const Vector2& alvo, const int n, const float aberturaGraus) {
-        std::vector<Vector2> direcoes;
-        if (n <= 0) return direcoes;
-
-        const Vector2 d = alvo - de;
-        const float base = (d.LengthSq() < 1.0f) ? -Math::PiOver2 : std::atan2(d.y, d.x);
-        const float abertura = Math::ToRadians(aberturaGraus);
-
-        direcoes.reserve(static_cast<size_t>(n));
-        for (int i = 0; i < n; ++i) {
-            const float t = (n == 1) ? 0.0f : static_cast<float>(i) / static_cast<float>(n - 1) - 0.5f;
-            const float a = base + abertura * t;
-            direcoes.emplace_back(std::cos(a), std::sin(a));
-        }
-        return direcoes;
-    }
 }

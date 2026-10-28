@@ -263,7 +263,15 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   as promessas da fila de microtarefas rodam antes do `setTimeout(cb, 0)` —
   cada callback que sai de uma fila ataca.
 
-O **TCC** *(Hugo)* aparece na grade esperando uma batalha própria.
+O **TCC** *(Hugo)* aparece na grade esperando uma batalha própria. Antes dele
+você escolhe um **orientador** entre os professores em que tirou as maiores
+notas, e ele luta do seu lado com a matéria dele: o André atira num `for`, o
+Salles empilha e desempilha (LIFO), o Ricardo acende os bits de um barramento,
+o Thiago segura a transação até o `COMMIT`, o ponteiro do Luizinho curva até o
+chefe, a gramática do Vladimir divide um tiro em quatro, o gradiente do Júlio
+oscila e converge, o Observer da Maria Lúcia reage aos seus tiros, o `fetch` do
+Lucas vai ao servidor e volta, e a janela do TCP do Vitor cresce e cai como um
+dente de serra.
 
 ## Como compilar
 

@@ -102,6 +102,10 @@ public:
     static constexpr float OVERLOAD_DURATION = 3.f;
 
     [[nodiscard]] int GetExtraPoints() const { return mExtraPoints;}
+
+    /// Quantos tiros ele ja deu na batalha. O Observer da Maria Lucia, como
+    /// orientadora do TCC, atira a cada tantos (Golpe::Notificacoes).
+    [[nodiscard]] int Disparos() const { return mDisparos; }
     void AddExtraPoint();
 
 
@@ -130,6 +134,7 @@ private:
     }
 
     int mExtraPoints = 1;
+    int mDisparos = 0;
     float mOverloadTimer = 0.0f;
     float mPulseTimer = 0.0f;
 

@@ -234,6 +234,7 @@ void Player::Shoot() {
 
     // Entrega ownership ao manager
     projManager->AddPlayerProjectile(std::move(projectile));
+    ++mDisparos;
 
     // Toca audio
     const auto audioHandler = mScene->GetGame()->GetAudio()->PlaySound("plst00.wav", false);

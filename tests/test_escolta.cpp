@@ -61,21 +61,3 @@ TEST_CASE("Escolta: ele chega ao posto com atraso, sem passar do ponto") {
     CHECK(p.x <= 100.0f);                     // nao passa do ponto
     CHECK(p.y == doctest::Approx(-50.0f).epsilon(0.01));
 }
-
-TEST_CASE("Escolta: o leque e mirado no chefe, com o tiro do meio no centro dele") {
-    const Vector2 de(600.0f, 600.0f), chefe(700.0f, 133.0f);
-    const auto um = Escolta::Leque(de, chefe, 1, 14.0f);
-    REQUIRE(um.size() == 1);
-    CHECK(Angulo(um[0]) == doctest::Approx(Angulo(chefe - de)));
-
-    const auto tres = Escolta::Leque(de, chefe, 3, 14.0f);
-    REQUIRE(tres.size() == 3);
-    CHECK(Angulo(tres[1]) == doctest::Approx(Angulo(chefe - de)));
-    CHECK(Angulo(tres[2]) - Angulo(tres[0]) == doctest::Approx(14.0f));
-    for (const auto& d : tres) CHECK(d.Length() == doctest::Approx(1.0f));
-
-    // O chefe em cima do atirador nao vira divisao por zero: atira para cima.
-    const auto emCima = Escolta::Leque(de, de, 1, 14.0f);
-    CHECK(emCima[0].y == doctest::Approx(-1.0f));
-    CHECK(Escolta::Leque(de, chefe, 0, 14.0f).empty());
-}

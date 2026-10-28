@@ -5,6 +5,8 @@
 #ifndef DPIBULLETHELLRE_PLAYERPROJECTILE_H
 #define DPIBULLETHELLRE_PLAYERPROJECTILE_H
 
+#include <cstdint>
+
 #include "../Projectile.h"
 
 class PlayerProjectile : public Projectile {
@@ -20,10 +22,16 @@ public:
     [[nodiscard]] bool IsOffScreen() const override;
     void OnCollision(Actor* other) override;
 
+    /// Um numero que nenhum outro tiro da partida tem. O manager apaga o tiro
+    /// que morre, entao quem acompanha um tiro (o golpe do orientador) guarda
+    /// isto, e nao o ponteiro, e o procura a cada quadro.
+    [[nodiscard]] std::uint64_t Id() const { return mId; }
+
 
 private:
 
     Actor* mOwner;
+    std::uint64_t mId;
 
     void ActivateProjectile();
     void DeactivateProjectile();
