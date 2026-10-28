@@ -149,6 +149,11 @@ E para começar numa fase específica do professor, na fábrica dele:
 boss->SetInitialState(std::getenv("DPI_ESTADO") ? std::getenv("DPI_ESTADO") : "StateOne");
 ```
 
+`Ferramentas/medir-dificuldade.sh` põe este gancho nas onze fábricas, então
+`DPI_ESTADO=StateTwo` mede a fase 2 de qualquer professor sozinha. Lembre que a
+batalha começa com a nota inicial (40) em qualquer fase, e que a `StateThree`
+a decide: a fase 1 ou 2 sozinha leva à 3, e não ao fim.
+
 ### Passo de tempo fixo
 
 O laço principal espera 16 ms por quadro. Para uma batalha de 51 s rodar em

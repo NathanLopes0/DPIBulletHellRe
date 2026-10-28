@@ -1,0 +1,140 @@
+{
+  // ==========================================================================
+  // AS REGRAS DE PROJETIL DA MARIA LUCIA
+  //
+  // Cada conjunto veste um momento do projeto. Os tipos de projetil existem
+  // para as regras terem o que diferenciar - ver a nota em projeteis.json.
+  //
+  // AS SPRINTS DA FASE 2 NAO TEM REGRA, de proposito: quem move a historia e o
+  // cursor sao as duas Motions que a SprintAttack poe neles, e uma "motion"
+  // aqui as SUBSTITUIRIA - a regra roda depois da estrategia.
+  //
+  // UM SO MOTION POR PROJETIL, e Path, Tracking e Wobble brigam entre si
+  // (Behaviors.h avisa: cada um escreve a velocidade todo quadro e desfaz o que
+  // o outro fez). Por isso nenhuma regra daqui poe dois.
+  //
+  // Os campos estao documentados em Documentacao/arquivos-de-dados.md.
+  // ==========================================================================
+
+  // CASCATA, ETAPA 1 - OS REQUISITOS.
+  //
+  // Sem motion nenhum: requisito e pedido que chega, e pedido que chega vem
+  // reto.
+  "escopo": [
+    { "animacao": "Novo" }
+  ],
+
+  // CASCATA, ETAPA 3 - A IMPLEMENTACAO. O cartao de terminal, reto e rapido: e
+  // a etapa em que mais coisa sai, e sai sem desvio.
+  //
+  // E O MESMO CARTAO NAS SPRINTS (fase 2): e o codigo que cada historia em
+  // andamento solta no aluno, do posto do quadro.
+  "codigo": [
+    { "animacao": "Codigo" }
+  ],
+
+  // CASCATA, ETAPA 4 - OS TESTES. Os bugs andam tortos (Wobble), e o tiro do
+  // aluno os derruba - testar e achar bug. Mas o tiro que acha um bug nao chega
+  // nela.
+  //
+  // O "atraso" do Wobble nao pode ser zero: ele captura a direcao no instante
+  // em que ativa, e a leva nasce inteira ("intervalo" 0) justamente para todos
+  // ja estarem andando quando ele pega.
+  "bugs": [
+    { "motion": { "tipo": "Wobble", "atraso": 0.15, "amplitude": 40,
+                  "frequencia": 2.2, "duracao": 4.0 } }
+  ],
+
+  // CASCATA, ETAPA 2 - O PROJETO: as MENSAGENS
+  // que saem de uma classe do diagrama.
+  //
+  // Cada seta pega um caminho da familia "RotasDeDiagrama" (Assets/Paths/
+  // formas.json): anda, vira 90 graus, anda. O angulo reto e a coisa toda -
+  // e o roteamento de todo editor de UML. Sem animacao: e a ponta de seta do
+  // tipo "Seta", e nao mais um post-it - um post-it virando em angulo reto,
+  // saindo da professora, ninguem lia como seta de diagrama.
+  //
+  // E A ETAPA QUE SE APRENDE, e nao a que se sofre. Uma seta ortogonal e dificil
+  // de ler no primeiro segundo e FACIL no terceiro, porque depois da virada ela
+  // nao surpreende mais - que e precisamente o que um bom projeto faz com o
+  // comportamento de um sistema. A dificuldade dela e curta de proposito.
+  //
+  // O "atraso" DE 0,50 NAO E ESTETICA, E O MINIMO QUE O CAMINHO ACEITA.
+  //
+  // Eu tinha escrito 0,25, com a justificativa de "deixar o leque abrir antes
+  // de as setas virarem". O teste "num WaveAttack, o atraso do caminho supera
+  // o despertar do ultimo no" derrubou na hora: com oito projeteis a 0,05s de
+  // intervalo, o ULTIMO so acorda aos 0,35s, e um Path que ativa antes disso
+  // captura a direcao de um projetil PARADO - ou seja, direcao zero, e a
+  // rotacao do caminho inteiro sai de uma divisao por nada.
+  //
+  // Nao da para ver isso jogando: a seta simplesmente vai para o lugar errado
+  // e parece uma forma mal desenhada. E a mesma familia de armadilha do
+  // Wobble, que em vez de errar a direcao se declara terminado e some.
+  //
+  // Com 0,50 o efeito que eu queria acontece de graca, e ate melhor: cada no
+  // ja andou uma distancia DIFERENTE quando o caminho pega (o primeiro 125px,
+  // o ultimo 37px), entao as oito viradas se escalonam em vez de acontecerem
+  // no mesmo quadro.
+  "diagrama": [
+    { "motion": { "tipo": "Path", "formaPorIndice": "RotasDeDiagrama",
+                  "atraso": 0.50, "velocidade": 250 } }
+  ],
+
+  // A DIVIDA QUE FICA - a Manutencao da cascata, e a fase final.
+  //
+  // O debito voa 460px, CONGELA por 8,5s - visivel e com colisor ligado - e so
+  // entao segue para fora - e atravessa a troca de fase: a divida da
+  // Manutencao, a ultima etapa da cascata, ainda esta parada no campo quando
+  // as sprints comecam. O que nao se resolveu no fim de um processo e o
+  // comeco do seguinte.
+  //
+  // (Ate o 121 ela era a fase 3 inteira: uma leva a cada 2,5 s, tres ou quatro
+  // paradas ao mesmo tempo, e o campo encolhendo - medido, 2,7 blocos em tela
+  // no quadro 2150 e 8,2 no 2750. O padrao Observer tomou o lugar dela.)
+  //
+  // O "atraso" DE 0,08 E A MESMA ARMADILHA DO DIAGRAMA, e por isso a leva nasce
+  // inteira ("intervalo": 0 em fases.json): um Path que ativa num projetil
+  // ainda dormindo captura direcao zero. Com a leva inteira acordada no
+  // primeiro quadro, basta um atraso simbolico para o caminho pegar num
+  // projetil que ja tem direcao.
+  //
+  // E NASCER INTEIRA TAMBEM E O DESENHO CERTO: divida nao chega pingando,
+  // chega em LEVA - os blocos aterrissam juntos, como uma entrega que fechou
+  // com pressa.
+  //
+  // 8,5s E NAO "PARA SEMPRE". Um debito eterno encheria a tela ate nao haver
+  // jogada possivel, e ai a fase deixaria de ser dificil e viraria injusta;
+  // alem disso um projetil que nunca sai nunca volta para o pool. A divida
+  // sai de cena, mas sai TARDE - tarde o bastante para ter atrapalhado.
+  "divida": [
+    { "animacao": "Acumulado",
+      "motion": { "tipo": "Path", "forma": "ParaEFica", "atraso": 0.08,
+                  "velocidade": 320, "pararNoPonto": 0, "pararPor": 8.5 } }
+  ],
+
+  // FASE 3 - O PADRAO OBSERVER: O OLHO QUE ASSINA.
+  //
+  // Nasce ja no posto dos observadores - assinando o aluno, de onde os avisos
+  // saem (Observer::kPostoDosObservadores) -, voa 230px e PARA, olhando, por
+  // "pararPor" segundos; depois segue em frente, para fora da tela. O mesmo
+  // "atraso" simbolico da divida, pelo mesmo motivo: o Path tem de pegar num
+  // projetil ja acordado, e a leva nasce inteira ("intervalo" 0).
+  "inscrever": [
+    { "posto": "observadores",
+      "motion": { "tipo": "Path", "forma": "Inscrito", "atraso": 0.08,
+                  "velocidade": 260, "pararNoPonto": 0, "pararPor": 7.0 } }
+  ],
+
+  // FASE FINAL - AS JANELAS MODAIS.
+  //
+  // Tres janelas por leva, cada uma num lugar em relacao a professora - dos
+  // dois lados e embaixo dela -, presas a ela enquanto ela anda, como dialogos
+  // centrados na janela que os abriu. Ficam 5,5 s e soltam, caindo reto: a
+  // janela que ninguem fechou trava e cai em cima de quem esta embaixo.
+  "modal": [
+    { "indices": [0], "motion": { "tipo": "Ancorar", "dx": -100, "dy": 100, "duracao": 5.5, "velocidade": 220 } },
+    { "indices": [1], "motion": { "tipo": "Ancorar", "dx": 0,    "dy": 125, "duracao": 5.5, "velocidade": 220 } },
+    { "indices": [2], "motion": { "tipo": "Ancorar", "dx": 100,  "dy": 100, "duracao": 5.5, "velocidade": 220 } }
+  ]
+}

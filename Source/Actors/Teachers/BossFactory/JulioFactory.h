@@ -23,6 +23,10 @@ class JulioFactory : public IBossFactory {
 public:
     explicit JulioFactory(Game* game);
 
+    /// O cartao do professor, sem a extensao: o mesmo que ConfigureComponents
+    /// desenha, e o que a escolha do orientador mostra.
+    [[nodiscard]] std::string Retrato() const override { return "Teachers/DPIBHJulio"; }
+
 protected:
     std::unique_ptr<Boss> InstantiateBoss(Scene* scene) override;
     void ConfigureComponents(Boss* boss) override;

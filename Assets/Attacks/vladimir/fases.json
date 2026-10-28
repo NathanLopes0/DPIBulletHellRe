@@ -1,0 +1,322 @@
+{
+  // ==========================================================================
+  // AS FASES DO VLADIMIR (INF 331 - Linguagens Formais e Automatos)
+  //
+  // AS QUATRO FASES SOBEM A HIERARQUIA DE CHOMSKY, um nivel por fase, e a
+  // repescagem passa do topo. Nao e tema: e a estrutura da disciplina, e cada
+  // fase e o objeto daquele nivel funcionando na tela.
+  //
+  //   StateOne    Regular                 o automato finito, desenhado no campo
+  //   StateTwo    Livre de contexto       o compilador: a gramatica da expressao montando a arvore
+  //   StateThree  Recursivamente enum.    o castor mais ocupado: uma maquina de Turing de verdade
+  //   StateFinal  Indecidivel             o problema da parada: o programa de Collatz
+  //
+  // O MOVIMENTO DO CHEFE E A IDEIA DA FASE:
+  //
+  //   Conduzido  ele vai aonde a fase manda: o estado da transicao, o token ou
+  //              o meio da arvore, a cabeca da fita, a altura do valor
+  //              de x (Boss::AlvoDoMovimento)
+  //
+  // Um chefe parado deixa a tela vazia dos lados, e um que anda sem parar nao
+  // leva tiro (o tiro do aluno leva quase 1s ate ele): o automato pousa em cada
+  // estado, o compilador para em cima da arvore, e o professor segue a cabeca
+  // da fita mais devagar que ela.
+  //
+  // E O PLACAR E A REGRA. O "anuncio" de cada fase abre no quadro do canto de
+  // cima, e dali em diante o Vladimir o reescreve com o que a maquina esta
+  // fazendo: a configuracao do automato, (q1, bab); a linha que o compilador
+  // compila e a etapa dela, ou a instrucao que acabou de sair; a transicao da cabeca, δ(q0, a) = (q0, b, →); o
+  // passo do programa, x = 41: 3x + 1. Lendo o placar o aluno sabe o que vem.
+  //
+  // O TEXTO E UTF-8 E SAI NA CARLITO, e nao na Zelda das outras telas: a Zelda
+  // nao tem "*" nem "^". Por isso o arquivo pode escrever "aⁿbⁿ" com os
+  // sobrescritos de verdade.
+  //
+  // O PROGRAMA DE INTERCAMBIO VALE A LUTA INTEIRA. O Vladimir e o professor de
+  // linguagens nos dois sentidos - as formais e as estrangeiras da diretoria de
+  // Relacoes Internacionais -, e o segundo sentido e a mecanica que atravessa
+  // as quatro fases: a cada "aCada" segundos os alunos trocam de lugar (sozinho,
+  // o aluno vai para o espelho), com o placar avisando "aviso" segundos antes.
+  //
+  // E A TROCA E TAMBEM DAS LETRAS. No quadro em que os alunos trocam, toda
+  // letra em voo troca de letra e de comportamento: o "a" que vinha reto passa
+  // a perseguir, e o "b" que perseguia segue reto (Alfabeto.h). E o
+  // homomorfismo h(a) = b, h(b) = a, e o placar avisa assim:
+  // "Intercâmbio: a ↔ b". As marcas da fita de Turing ficam como estao - estao no
+  // posto "fita", e quem as apaga e a maquina.
+  //
+  // A CADA 8s EM TODA FASE, aos 8 e aos 16. Medido na batalha inteira, com o
+  // piloto que persegue: so na fase 2, como era, 74,5 e 11 acertos sofridos;
+  // nas quatro a cada 8s, 68,1 e 14; nas quatro a cada 7s, 34,9 e 20 - ele caia
+  // na repescagem e reprovava nela. A troca das letras pesa menos do que
+  // parece: das tres fases, so a 2 perdeu um acerto com ela.
+  //
+  // CADA LUTA E OUTRA (Variacao.h; Vladimir::SortearALuta). A palavra do
+  // automato e a semente de Collatz ja eram sorteadas na hora; as tres linhas
+  // que o compilador compila sao da luta (Compilador::Plano); o castor da fita
+  // vem como e ou espelhado (Fita::Plano); e a repescagem roda as doze
+  // sementes numa ordem propria, sem repetir antes de rodar todas, varrendo
+  // primeiro para um lado sorteado (Parada::Plano).
+  //
+  // NO DIFICIL: a letra lida sai em mais tiros - o "a" num leque de 7 (e nao
+  // 5), o "b" em 4 (e nao 3) e o rejeita em 6 (e nao 4), o bloco "dificil" de
+  // cada ataque -; o compilador emite uma instrucao a cada 0,24 s (e nao 0,3 -
+  // Compilador::Degrau), duas por vez e mais rapidas, os tokens caem mais
+  // depressa, cada reducao e um leque de 7 (e nao 3) e o STORE e um anel de 16
+  // (e nao 10); na fita, a marca apagada vira um "b" que persegue e a relida
+  // atira duas copias; e o Collatz da um passo a cada 0,38 s, 15% mais rapido, com a
+  // metade em 5 tiros e o 3x + 1 em 3 (Parada::Degrau e o bloco "dificil"). O
+  // relogio do automato e o de sempre: com um simbolo a cada 0,9 s, tres de
+  // cinco lutas reprovavam no piloto que desvia e no que persegue - o
+  // professor voava mais de estado em estado, e quem desvia o acertava menos
+  // (72 a 100 tiros, e nao 77 a 129) sem ser muito mais atingido.
+  //
+  // Medido em cinco sementes, a batalha inteira, com o compilador na fase 2 e
+  // o castor na 3: no Normal o que persegue termina com 67,1 a 77,8 e o que
+  // desvia com 97,2 a 100 (nenhum acerto); no Dificil o que persegue reprova
+  // em tres de cinco (38,7 a 68,1, com a repescagem) e o que desvia termina
+  // com 68,7 a 84,1 (2 a 6 acertos, 4,2 em media). O parado e o que vai e vem
+  // reprovam nos dois.
+  //
+  // OS NOMES DE FASE NAO SAO LIVRES: a maquina de estados procura por texto, e
+  // so StateOne, StateTwo, StateThree e StateFinal existem. StateFinal e
+  // OBRIGATORIO, mesmo num chefe de tres fases - sem ele, uma nota entre 40 e
+  // 59 ao fim da terceira manda a FSM para um estado que nao existe e o chefe
+  // CONGELA, sem travar o jogo e sem avisar em tela.
+  // ==========================================================================
+
+  // FASE 1 - REGULAR: O AUTOMATO FINITO   |   gesto: A TRANSICAO
+  //
+  // O AUTOMATO ESTA DESENHADO NO CAMPO: o diagrama das transicoes e os tres
+  // estados, q0 (o inicial, com a seta de entrada), q1 e q2 (o de aceitacao, com
+  // o circulo duplo). A linguagem e "termina em ab" (Automato.h), e o placar
+  // comeca dizendo isso.
+  //
+  // O PROFESSOR E A CABECA DO AUTOMATO. A cada 1,1s ele le um simbolo da
+  // palavra, atira do estado em que esta a letra que leu e VOA para o estado
+  // que a tabela manda - o movimento "Conduzido", que vai aonde ele diz. O
+  // estado em que ele esta fica aceso. Lida a palavra, o veredito: ACEITA, e o
+  // q2 estoura num anel; ou REJEITA, e saem perseguidores de onde ele parou.
+  // Depois ele volta ao q0 e le outra.
+  //
+  // O PLACAR E A CONFIGURACAO: (q1, bab) - o estado e o que falta ler. Com o
+  // placar e o diagrama o aluno PREVE: sabe para onde o professor vai, e se vem
+  // um "a" reto ou um "b" que persegue. E a troca do intercambio muda o que
+  // falta ler (Automato::Trocar): o placar muda, e o caminho tambem.
+  //
+  // A LETRA SAI MIRADA NO ALUNO (Vladimir::CustomizeAttackParams), com um tiro
+  // no meio do leque.
+  "StateOne": {
+    "duracao": 20,
+    "proximo": "StateTwo",
+    "anuncio": "L: termina em ab",
+    "intercambio": { "aCada": 8, "aviso": 1.5 },
+    "movimento": { "tipo": "Conduzido", "a": 900 },
+    "ataques": [
+      { "gatilho": "diagrama", "estrategia": "WaveAttack", "projetil": "Diagrama",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "estados" },
+      { "gatilho": "estados", "estrategia": "WaveAttack", "projetil": "Estado",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "estados" },
+      { "gatilho": "ler_a", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 5, "velocidade": 250, "angulo": 44, "intervalo": 0.05,
+        "dificil": { "projeteis": 7 },
+        "regras": "letra_a" },
+      { "gatilho": "ler_b", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 3, "velocidade": 220, "angulo": 30, "intervalo": 0.08,
+        "dificil": { "projeteis": 4 },
+        "regras": "letra_b" },
+      { "gatilho": "aceita", "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
+        "projeteis": 14, "velocidade": 200,
+        "regras": "letra_a" },
+      { "gatilho": "rejeita", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 4, "velocidade": 220, "angulo": 60, "intervalo": 0,
+        "dificil": { "projeteis": 6 },
+        "regras": "letra_b" }
+    ]
+  },
+
+  // FASE 2 - LIVRE DE CONTEXTO: O COMPILADOR   |   gesto: A ARVORE
+  //
+  // O VLADIMIR TAMBEM DA CONSTRUCAO DE COMPILADORES, e a gramatica livre de
+  // contexto e o que o parser de um compilador usa. A fase compila TRES LINHAS
+  // DE CODIGO sorteadas para a luta (Compilador.h), "x = a + b * 2;", uma a
+  // cada 6,5 s, e cada uma passa pelas tres etapas na tela:
+  //
+  //   LEXICO      o professor varre a linha, e cada token reconhecido cai em
+  //               coluna do lugar dele (o gatilho "lexema"). O a e o b caem
+  //               como as letras caem - o "a" reto, o "b" persegue ("ler_a" e
+  //               "ler_b") -, e o intercambio os troca em voo.
+  //   SINTATICO   a arvore sintatica se monta no campo de baixo para cima, em
+  //               pos-ordem: cada token voa ate o lugar do seu no (o a e o b
+  //               nascem de novo na linha - o gatilho "arvore"), e cada
+  //               operador, reduzido, solta um leque
+  //               de si mesmo no aluno ("reduzir") - o * antes do +, pela
+  //               precedencia da gramatica.
+  //   CODIGO      a arvore e percorrida de novo, e cada no some virando a
+  //               instrucao dele numa maquina de pilha - LOAD a, PUSH 2, MUL,
+  //               ADD -, mirada no aluno ("emitir"). O = sai por ultimo, no
+  //               anel do STORE ("store").
+  //
+  // NO NORMAL o token cai a 170 px/s, a reducao e um leque de 3 e a instrucao
+  // sai uma por vez a 220 px/s; o Dificil esta no cabecalho.
+  //
+  // A ARVORE E O MAPA: os nos sao enfeite, como os estados da fase 1 - nao
+  // machucam, e o tiro do aluno passa por eles. Mas mostram de onde vem o
+  // proximo tiro: o no mais fundo vira codigo primeiro.
+  //
+  // O PLACAR E A LINHA, e embaixo a etapa - ou a instrucao que acabou de sair.
+  // A LEGENDA, embaixo do placar, explica a etapa em portugues.
+  //
+  // OS TOKENS VIRAM A ARVORE. Quando o parser comeca, a fila de tokens que
+  // caiu para onde esta, e cada no da arvore e a ficha do seu token voando ate
+  // o lugar dele; o ; so termina a linha, e some. Caindo ate o aluno, como era,
+  // o x e o = da linha anterior choviam na coluna em que a raiz se monta, e o
+  // piloto que persegue tomava ali metade dos acertos da fase.
+  //
+  // O PROFESSOR VARRE A LINHA no lexico, em cima do token que le, e depois
+  // fica em cima do meio da arvore (o movimento "Conduzido"). Pulando de no
+  // em no a 450 px/s, como era, o tiro do aluno nao o achava: o piloto que
+  // persegue terminava a fase com nota menor do que comecou.
+  "StateTwo": {
+    "duracao": 20,
+    "proximo": "StateThree",
+    "anuncio": "compilador",
+    "intercambio": { "aCada": 8, "aviso": 1.5 },
+    "movimento": { "tipo": "Conduzido", "a": 450 },
+    "ataques": [
+      { "gatilho": "lexema", "estrategia": "WaveAttack", "projetil": "Lexema",
+        "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0,
+        "dificil": { "velocidade": 210 },
+        "regras": "arvore" },
+      { "gatilho": "ler_a", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 3, "velocidade": 230, "angulo": 30, "intervalo": 0.05,
+        "dificil": { "projeteis": 5 },
+        "regras": "letra_a" },
+      { "gatilho": "ler_b", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 2, "velocidade": 210, "angulo": 24, "intervalo": 0.08,
+        "dificil": { "projeteis": 3 },
+        "regras": "letra_b" },
+      { "gatilho": "arvore", "estrategia": "WaveAttack", "projetil": "Lexema",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "arvore" },
+      { "gatilho": "reduzir", "estrategia": "WaveAttack", "projetil": "Lexema",
+        "projeteis": 3, "velocidade": 220, "angulo": 40, "intervalo": 0,
+        "dificil": { "projeteis": 7 } },
+      { "gatilho": "emitir", "estrategia": "WaveAttack", "projetil": "Instrucao",
+        "projeteis": 1, "velocidade": 220, "angulo": 16, "intervalo": 0,
+        "dificil": { "projeteis": 2, "velocidade": 280 } },
+      { "gatilho": "store", "estrategia": "CircleSpreadAttack", "projetil": "Instrucao",
+        "projeteis": 10, "velocidade": 190,
+        "dificil": { "projeteis": 16 } }
+    ]
+  },
+
+  // FASE 3 - RECURSIVAMENTE ENUMERAVEL: A MAQUINA DE TURING   |   gesto: A CABECA
+  //
+  // UMA MAQUINA DE TURING DE VERDADE, e a mais famosa das pequenas: o CASTOR
+  // MAIS OCUPADO de 4 estados (Fita.h) - de todas as maquinas de 4 estados que
+  // param, a que deixa mais marcas na fita. Da fita em branco, ela da 107
+  // passos, um a cada 0,18 s, e para logo antes do fim da fase com 13 marcas:
+  // Sigma(4) = 13. Achar o castor de n estados e incomputavel - e a ponte para
+  // a repescagem.
+  //
+  // A FITA SAO 14 CASAS DESENHADAS no meio do campo, e a CABECA e o quadro
+  // ambar em volta da casa que ela le. Ela anda uma casa por passo para onde a
+  // tabela manda - indo e voltando, nunca do mesmo jeito -, e cada passo vira
+  // tiro:
+  //
+  //   escreve no branco   a marca nova, um "a" parado na casa ("escrever")
+  //   apaga a marca       o "a" sai da casa no aluno ("apagar")
+  //   rele a marca        so no Dificil: a casa atira copias ("reler")
+  //   para                um anel do professor ("pare")
+  //
+  // Sao 46 marcas escritas, 33 apagadas e 28 relidas. O PLACAR E A TRANSICAO
+  // DO PASSO - "δ(q₁, a) = (q₂, □, ←)": lendo-o o aluno sabe se a casa da
+  // cabeca vai ser escrita, apagada ou relida.
+  //
+  // NO NORMAL a marca apagada sai da casa como um "a" mirado no aluno, e a
+  // relida so e lida. NO DIFICIL a apagada e REESCRITA - vira um "b" que
+  // persegue (o gatilho "reescrever") - e a relida atira duas copias
+  // (Fita::Degrau). Com o "b" e as copias ja no Normal, o piloto que persegue
+  // tomava 7 acertos na fase sozinha.
+  //
+  // O PROFESSOR NAO FICA EM CIMA DA CABECA: fica a 70% do caminho entre o meio
+  // e ela (Fita::XDoProfessor), a 150 px/s, com uma linha ate a casa lida. Em
+  // cima dela, quem o segue ficava na mira de toda marca apagada; perto do
+  // meio, ele pairava sobre quem fica parado no centro - que o acertava a fase
+  // inteira e, entre as duas casas do meio, nunca era atingido.
+  //
+  // CADA LUTA E OUTRA: a maquina vem como e ou ESPELHADA (Fita::Plano) - a
+  // mesma, com esquerda e direita trocadas.
+  //
+  // AS MARCAS DA FITA NAO TROCAM NO INTERCAMBIO: estao no posto "fita". Quem
+  // as apaga e a maquina. O "b" apagado, ja em voo, troca como toda letra.
+  //
+  // Era uma varredura de ponta a ponta que escrevia na ida e reescrevia na
+  // volta: previsivel, e medida em cinco sementes, nenhum piloto tomava um
+  // acerto nela.
+  "StateThree": {
+    "duracao": 20,
+    "proximo": "",
+    "anuncio": "castor ocupado: 4 estados",
+    "intercambio": { "aCada": 8, "aviso": 1.5 },
+    "movimento": { "tipo": "Conduzido", "a": 150 },
+    "ataques": [
+      { "gatilho": "escrever", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "fita" },
+      { "gatilho": "apagar", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 1, "velocidade": 200, "angulo": 0, "intervalo": 0,
+        "regras": "letra_a" },
+      { "gatilho": "reescrever", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 1, "velocidade": 240, "angulo": 0, "intervalo": 0,
+        "regras": "letra_b" },
+      { "gatilho": "reler", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 2, "velocidade": 230, "angulo": 24, "intervalo": 0,
+        "regras": "letra_a" },
+      { "gatilho": "pare", "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
+        "projeteis": 14, "velocidade": 200,
+        "regras": "letra_a" }
+    ]
+  },
+
+  // FASE FINAL - INDECIDIVEL: O PROBLEMA DA PARADA   |   gesto: O GRANIZO
+  //
+  // ACIMA DA MAQUINA DE TURING SO HA O QUE NENHUMA MAQUINA DECIDE, e o exemplo
+  // mais simples de programa que ninguem sabe dizer se sempre para e o de
+  // Collatz (Parada.h): while (x ≠ 1) x = x par ? x/2 : 3x + 1.
+  //
+  // O PROFESSOR RODA O PROGRAMA, um passo a cada 0,45s, de uma semente
+  // sorteada. A cada passo atira conforme a paridade: x par, um leque de tres
+  // "a" retos (a metade); x impar, dois "b" que perseguem (o 3x + 1). E a altura
+  // dele e o tamanho de x: sobe quando x cresce e cai quando diminui - os
+  // "numeros granizo" -, chegando ao 1 la embaixo, mais perto do aluno. No 1 o
+  // programa PAROU, e estoura num anel; depois de 1,3s roda outra semente.
+  //
+  // O PLACAR E O PASSO DE AGORA: "x = 41: 3x + 1". Com ele o aluno sabe o que
+  // vem.
+  //
+  // Repescagem: so vista por quem termina a fase 3 entre 40 e 59.
+  "StateFinal": {
+    "duracao": 20,
+    "proximo": "StateOne",
+    "anuncio": "while (x ≠ 1) … para?",
+    "intercambio": { "aCada": 8, "aviso": 1.5 },
+    "movimento": { "tipo": "Conduzido", "a": 260 },
+    "ataques": [
+      { "gatilho": "metade", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 3, "velocidade": 240, "angulo": 30, "intervalo": 0,
+        "dificil": { "projeteis": 5 },
+        "regras": "letra_a" },
+      { "gatilho": "triplo", "estrategia": "WaveAttack", "projetil": "Simbolo",
+        "projeteis": 2, "velocidade": 210, "angulo": 40, "intervalo": 0,
+        "dificil": { "projeteis": 3 },
+        "regras": "letra_b" },
+      { "gatilho": "parou", "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
+        "projeteis": 16, "velocidade": 190,
+        "regras": "letra_a" }
+    ]
+  }
+}

@@ -99,10 +99,10 @@ exatos:
 
 ```json
 {
-  "StateOne":   { "duracao": 17, "proximo": "StateTwo",   "movimento": {...}, "ataques": [...] },
-  "StateTwo":   { "duracao": 17, "proximo": "StateThree", "movimento": {...}, "ataques": [...] },
-  "StateThree": { "duracao": 17, "proximo": "",           "movimento": {...}, "ataques": [...] },
-  "StateFinal": { "duracao": 17, "proximo": "StateOne",   "movimento": {...}, "ataques": [...] }
+  "StateOne":   { "duracao": 20, "proximo": "StateTwo",   "movimento": {...}, "ataques": [...] },
+  "StateTwo":   { "duracao": 20, "proximo": "StateThree", "movimento": {...}, "ataques": [...] },
+  "StateThree": { "duracao": 20, "proximo": "",           "movimento": {...}, "ataques": [...] },
+  "StateFinal": { "duracao": 20, "proximo": "StateOne",   "movimento": {...}, "ataques": [...] }
 }
 ```
 

@@ -6,8 +6,12 @@
 
 #include "../Math.h"
 #include "PathAim.h"
+#include "Amarra.h"
+#include "Sprint.h"
+#include "Ancora.h"
 #include <vector>
 #include <memory>
+#include <string>
 #include <utility>
 
 class Projectile;
@@ -32,7 +36,8 @@ public:
  * ultimo a rodar venceria, o que produz movimento aleatorio e dificil de
  * depurar. Projectile::insertMotion garante a exclusividade.
  *
- * Sao Motion: Tracking, Wobble e Path. (O antigo HomingBehavior foi removido
+ * Sao Motion: Tracking, Wobble, Path, MiraPeriodica, Amarrar, Ancorar e as
+ * duas da sprint. (O antigo HomingBehavior foi removido
  * na fase 3: um homing e um PathBehavior com PathShapes::Reta() e
  * Mira(MirarNoJogador).)
  */
@@ -43,7 +48,8 @@ class ProjectileMotion : public ProjectileBehavior {
  * @brief Behavior que MODIFICA a velocidade ja existente, ou agenda quando ela
  * comeca a valer. Varios podem coexistir no mesmo projetil.
  *
- * Sao Modifier: Accelerate, SlowDown, Activate e Deactivate.
+ * Sao Modifier: Accelerate, SlowDown, Activate, Deactivate, PulsoDeVelocidade
+ * e Promessa.
  *
  * O QUE ESTA SEPARACAO GARANTE, E O QUE NAO GARANTE
  *
@@ -386,4 +392,137 @@ struct DeactivateBehavior : public ProjectileModifier {
 
     void update(Projectile* p, float deltaTime) override;
     bool isFinished() const override { return deactivated; }
+};
+
+/**
+ * @brief A PROMISE: o projetil espera pendente e, aos 'atraso' segundos, se
+ * resolve ou e rejeitado.
+ *
+ * Resolvida, ela sai a 'velocidade' ja apontada para o alvo e troca para a
+ * animacao 'escreve' (se houver). Rejeitada, ela some - vai para o pool, como
+ * um projetil que saiu da tela. 'fracao' e a parte das promessas que resolvem;
+ * a decisao e pura e esta em Promessa.h.
+ *
+ * Ela nao espera parada sozinha: quem a para e um SlowDown antes dela, na mesma
+ * regra. Assim a promessa pode tambem resolver no meio do voo, se a regra
+ * quiser.
+ *
+ * NAO INSERE MODIFIER NENHUM: roda dentro do laco de modifiers, e inserir um
+ * realocaria o vetor no meio do laco. Matar o proprio projetil daqui e seguro - Kill() so marca
+ * o estado, e quem limpa os behaviors e o pool, depois.
+ */
+struct PromessaBehavior : public ProjectileModifier {
+
+    PromessaBehavior(float atraso, float fracao, float velocidade, std::string escreve)
+        : atraso(atraso), fracao(fracao), velocidade(velocidade), escreve(std::move(escreve)) {}
+
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return assentou; }
+
+    float atraso, fracao, velocidade;
+    std::string escreve;
+    float t = 0.0f;
+    bool assentou = false;
+};
+
+/**
+ * @brief A LETRA AMARRADA (ligare, "atar"): presa ao professor por uma corda que
+ * nao se ve, ela gira em volta dele enquanto a amarracao dura, e depois sai
+ * pela tangente, como a pedra de uma funda.
+ *
+ * E a amarracao DINAMICA da fase 1 do Luizinho: o no da corda e procurado a
+ * cada quadro, entao a letra vai junto para onde o professor for. A conta do
+ * quadro e pura e esta em Amarra.h, coberta por test_amarra.cpp.
+ *
+ * O NO E O CORPO DO CHEFE MAIS PERTO DA LETRA (Battle::Corpos), procurado a
+ * cada quadro, e nao o dono guardado num ponteiro: um clone que deixasse de
+ * existir deixaria a corda presa a memoria solta. Com um corpo so, e ele.
+ *
+ * E UMA MOTION, e cumpre o contrato: decide a direcao e preserva o modulo. Ela
+ * tambem poe a letra de volta na circunferencia a cada quadro (o RigidBody,
+ * que roda antes, a leva pela tangente, um pouco para fora).
+ *
+ * 'escreve', se houver, e a animacao que a letra passa a ter quando a corda
+ * estica - a amarracao acontecendo na frente do aluno.
+ */
+struct AmarrarBehavior : public ProjectileMotion {
+    AmarrarBehavior(const Amarra::Corda& corda, std::string escreve)
+        : corda(corda), escreve(std::move(escreve)) {}
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return corda.cortada; }
+    Amarra::Corda corda;
+    std::string escreve;
+};
+
+/**
+ * @brief UMA HISTORIA DA SPRINT: vai na pilha que o cursor arrasta, se espalha
+ * para a vaga dela no quadro e espera a revisao - quando cai em cima do aluno,
+ * a 'queda' pixels por segundo.
+ *
+ * MEXE NA POSICAO, e nao na velocidade: ate a revisao quem diz onde ela
+ * esta e o plano (Sprint::PosicaoDaHistoria), e a velocidade fica em zero -
+ * parada no quadro, ela e um alvo. Na revisao ela mira o aluno uma vez, e dali
+ * quem a move e o RigidBody.
+ *
+ * O aluno a ENTREGA derrubando-a a tiro: quem a tira do campo e o tipo do
+ * projetil ("derrubavel"), e nao este behavior. Enquanto o cursor a arrasta
+ * ela e BLINDADA - o tiro some na pilha -, e parada na vaga ela esta no
+ * posto do quadro (Sprint::kPostoDoQuadro), de onde a PontosAttack atira.
+ */
+struct HistoriaDaSprintBehavior : public ProjectileMotion {
+    HistoriaDaSprintBehavior(std::shared_ptr<const Sprint::Plano> plano, int indice, float queda)
+        : plano(std::move(plano)), indice(indice), queda(queda) {}
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return caiu; }
+    std::shared_ptr<const Sprint::Plano> plano;
+    int indice;
+    float queda;
+    float t = 0.0f;
+    bool solta = false;
+    bool noQuadro = false;
+    bool caiu = false;
+};
+
+/**
+ * @brief O CURSOR DA SPRINT: a mao do professor. Arrasta a pilha ate o quadro,
+ * clica ao soltar, espera, e clica de novo um pouco antes da revisao - o aviso
+ * de que o que sobrou vai cair. Na revisao ele some.
+ *
+ * 'seta' e 'clique' sao as duas caras dele. Quem o faz inofensivo e a
+ * SprintAttack (BossProjectile::DefinirEnfeite), e nao este behavior.
+ */
+struct CursorDaSprintBehavior : public ProjectileMotion {
+    CursorDaSprintBehavior(std::shared_ptr<const Sprint::Plano> plano, std::string seta, std::string clique)
+        : plano(std::move(plano)), seta(std::move(seta)), clique(std::move(clique)) {}
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return acabou; }
+    std::shared_ptr<const Sprint::Plano> plano;
+    std::string seta, clique;
+    float t = 0.0f;
+    bool clicando = false;
+    bool acabou = false;
+};
+
+/**
+ * @brief A JANELA ANCORADA: vai para o lugar dela em relacao ao professor
+ * ('offset') e o acompanha por 'duracao' segundos, como um dialogo modal fica
+ * centrado na janela que o abriu. Depois SOLTA e cai reto, a 'queda' px/s -
+ * a janela que ninguem fechou.
+ *
+ * O PROFESSOR E O CORPO MAIS PERTO, procurado a cada quadro, como no Amarrar:
+ * um clone que deixasse de existir nao pode deixar a janela presa a memoria
+ * solta. Sem professor, a janela solta na hora.
+ *
+ * MEXE NA POSICAO (Ancora::Aproximar), e a velocidade fica em zero enquanto
+ * ancorada: e um anteparo, e nao um tiro.
+ */
+struct AncorarBehavior : public ProjectileMotion {
+    AncorarBehavior(Vector2 offset, float duracao, float queda)
+        : offset(offset), duracao(duracao), queda(queda) {}
+    void update(Projectile* p, float deltaTime) override;
+    bool isFinished() const override { return soltou; }
+    Vector2 offset;
+    float duracao, queda;
+    float t = 0.0f;
+    bool soltou = false;
 };

@@ -354,3 +354,241 @@ TEST_CASE("Regras: \"pausa\" do PulsoDeVelocidade nao e a parada do caminho") {
     CHECK(mod.pararPor == doctest::Approx(0.0f));
     CHECK(mod.pararNoPonto == -1);
 }
+
+// ---------------------------------------------------------------------------
+// "rotacionar": girar e da RAJADA, e nao do tipo de projetil
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Regras: \"rotacionar\" e lido como true e como false") {
+
+    // AUSENTE E DIFERENTE DE FALSE, e e o ponto do campo ser optional: "false"
+    // e uma ordem ("nao gire") e ausente e silencio ("deixe como a fabrica
+    // pediu"). Se fosse um bool simples, toda regra sem o campo desligaria o
+    // giro de todo mundo - inclusive o da lista do Salles, que depende dele.
+    const auto r = LerRegras(R"({
+      "gira":     [ { "animacao": "A", "rotacionar": true  } ],
+      "nao_gira": [ { "animacao": "A", "rotacionar": false } ],
+      "calado":   [ { "animacao": "A" } ]
+    })");
+
+    CHECK(r.problemas.empty());
+    REQUIRE(r.conjuntos.count("gira") == 1);
+    REQUIRE(r.conjuntos.count("nao_gira") == 1);
+    REQUIRE(r.conjuntos.count("calado") == 1);
+
+    REQUIRE(r.conjuntos.at("gira")[0].rotacionar.has_value());
+    CHECK(*r.conjuntos.at("gira")[0].rotacionar == true);
+
+    REQUIRE(r.conjuntos.at("nao_gira")[0].rotacionar.has_value());
+    CHECK(*r.conjuntos.at("nao_gira")[0].rotacionar == false);
+
+    CHECK_FALSE(r.conjuntos.at("calado")[0].rotacionar.has_value());
+}
+
+TEST_CASE("Regras: \"rotacionar\" que nao e booleano derruba a regra") {
+
+    // Nao aceitar 0/1 nem "true" de proposito: um arquivo que escreve 1 aqui
+    // provavelmente quis dizer outra coisa, e aceitar calado esconderia isso.
+    const auto r = LerRegras(R"({ "x": [ { "animacao": "A", "rotacionar": 1 } ] })");
+
+    CHECK(r.conjuntos.at("x").empty());
+    REQUIRE(r.problemas.size() == 1);
+    CHECK(r.problemas[0].find("rotacionar") != std::string::npos);
+}
+
+TEST_CASE("Regras: uma regra SO com \"rotacionar\" ja faz alguma coisa") {
+
+    // Antes deste campo, "nao faz nada" era motion, modifiers, animacao ou
+    // escala. Uma regra que so desliga o giro e legitima - o projetil ja tem
+    // animacao e escala de fabrica - e precisava entrar naquela lista, senao
+    // seria descartada com uma mensagem que nao faz sentido.
+    const auto r = LerRegras(R"({ "x": [ { "rotacionar": false } ] })");
+
+    CHECK(r.problemas.empty());
+    REQUIRE(r.conjuntos.at("x").size() == 1);
+    CHECK_FALSE(*r.conjuntos.at("x")[0].rotacionar);
+}
+
+// ---------------------------------------------------------------------------
+// "alvoAcorrentado": a unica condicao que olha para o mundo, e nao para a rajada
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Regras: \"alvoAcorrentado\" e lido como condicao") {
+
+    const auto r = LerRegras(R"({
+      "paralelo": [
+        { "animacao": "Correndo" },
+        { "quando": "alvoAcorrentado",
+          "motion": { "tipo": "Tracking", "atraso": 0.25, "forca": 0.9, "duracao": 3.0 } }
+      ]
+    })");
+
+    CHECK(r.problemas.empty());
+    REQUIRE(r.conjuntos.at("paralelo").size() == 2);
+    CHECK(r.conjuntos.at("paralelo")[0].condicao == Regra::Sempre);
+    CHECK(r.conjuntos.at("paralelo")[1].condicao == Regra::AlvoAcorrentado);
+}
+
+TEST_CASE("Regras: \"alvoAcorrentado\" so se aplica quando o alvo esta preso") {
+
+    // O ESTADO ENTRA COMO PARAMETRO, e e isso que mantem esta camada pura: ela
+    // nao conhece Player nem Scene e nao vai passar a conhecer. Quem pergunta
+    // ao mundo e o configurator em RegrasDeAtaqueArquivo.cpp.
+    Regra r;
+    r.condicao = Regra::AlvoAcorrentado;
+
+    CHECK(RegraSeAplica(r, 0, 0.5f, /*alvoAcorrentado=*/true));
+    CHECK(RegraSeAplica(r, 7, 0.1f, true));
+    CHECK_FALSE(RegraSeAplica(r, 0, 0.5f, /*alvoAcorrentado=*/false));
+    CHECK_FALSE(RegraSeAplica(r, 7, 0.9f, false));
+}
+
+TEST_CASE("Regras: o alvo preso nao muda as outras condicoes") {
+
+    // Era o risco obvio de acrescentar um parametro a um switch: alguem o usa
+    // num ramo errado e "pares" passa a depender do estado do jogo. As outras
+    // quatro condicoes tem de dar o MESMO resultado com o alvo preso e solto.
+    Regra pares;   pares.condicao = Regra::Pares;
+    Regra impares; impares.condicao = Regra::Impares;
+    Regra sempre;  sempre.condicao = Regra::Sempre;
+    Regra chance;  chance.condicao = Regra::Chance; chance.chance = 0.5f;
+
+    for (int i = 0; i < 6; ++i) {
+        CAPTURE(i);
+        CHECK(RegraSeAplica(pares,   i, 0.3f, true) == RegraSeAplica(pares,   i, 0.3f, false));
+        CHECK(RegraSeAplica(impares, i, 0.3f, true) == RegraSeAplica(impares, i, 0.3f, false));
+        CHECK(RegraSeAplica(sempre,  i, 0.3f, true) == RegraSeAplica(sempre,  i, 0.3f, false));
+        CHECK(RegraSeAplica(chance,  i, 0.3f, true) == RegraSeAplica(chance,  i, 0.3f, false));
+    }
+}
+
+TEST_CASE("Regras: o padrao de RegraSeAplica e \"ninguem preso\"") {
+
+    // Toda chamada que existia antes deste parametro continua valendo, e o que
+    // ela quer dizer e "o alvo nao esta acorrentado". Se o padrao fosse true,
+    // uma regra de alvo preso valeria sempre em qualquer chamador antigo.
+    Regra r;
+    r.condicao = Regra::AlvoAcorrentado;
+    CHECK_FALSE(RegraSeAplica(r, 0, 0.5f));
+}
+
+// ---------------------------------------------------------------------------
+// Promessa: a Promise do JavaScript
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Regras: le a Promessa com os campos dela") {
+    const auto r = LerRegras(R"({ "p": [ { "animacao": "Promessa", "modifiers": [
+        {"tipo":"SlowDown","atraso":0.8,"fator":0.0},
+        {"tipo":"Promessa","atraso":1.6,"resolve":0.6,"velocidade":280,"escreve":"Tag"} ] } ] })");
+
+    CHECK(r.problemas.empty());
+    const auto& d = r.conjuntos.at("p").at(0).modifiers.at(1);
+    CHECK(d.tipo == "Promessa");
+    CHECK(d.atraso     == doctest::Approx(1.6f));
+    CHECK(d.resolve    == doctest::Approx(0.6f));
+    CHECK(d.velocidade == doctest::Approx(280.0f));
+    CHECK(d.escreve    == "Tag");
+}
+
+TEST_CASE("Regras: uma Promessa parada, ou com uma fracao fora de 0 a 1, e recusada") {
+    struct Caso { const char* json; const char* campo; };
+    const Caso casos[] = {
+        { R"({"x":[{"modifiers":[{"tipo":"Promessa","atraso":1,"resolve":0.5}]}]})",                  "velocidade" },
+        { R"({"x":[{"modifiers":[{"tipo":"Promessa","atraso":1,"resolve":1.5,"velocidade":280}]}]})", "resolve" },
+        { R"({"x":[{"modifiers":[{"tipo":"Promessa","atraso":1,"resolve":-0.1,"velocidade":280}]}]})","resolve" },
+    };
+    for (const auto& c : casos) {
+        CAPTURE(c.campo);
+        const auto r = LerRegras(c.json);
+        REQUIRE(r.problemas.size() == 1);
+        CHECK(r.problemas[0].find(c.campo) != std::string::npos);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Amarrar: ligare, "atar"
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Regras: le o Amarrar com os campos dele") {
+    const auto r = LerRegras(R"({ "a": [ { "animacao": "Livre", "motion":
+        {"tipo":"Amarrar","comprimento":140,"duracao":2.4,"sentido":"antihorario","escreve":"Ligada"} } ] })");
+
+    CHECK(r.problemas.empty());
+    CHECK(r.conjuntos.at("a").at(0).temMotion);
+    const auto& d = r.conjuntos.at("a").at(0).motion;
+    CHECK(d.tipo == "Amarrar");
+    CHECK(d.comprimento == doctest::Approx(140.0f));
+    CHECK(d.duracao     == doctest::Approx(2.4f));
+    CHECK(d.sentido     == "antihorario");
+    CHECK(d.escreve     == "Ligada");
+}
+
+TEST_CASE("Regras: sem sentido, a corda gira no horario") {
+    const auto r = LerRegras(R"({"a":[{"motion":{"tipo":"Amarrar","comprimento":140,"duracao":2}}]})");
+    CHECK(r.problemas.empty());
+    CHECK(r.conjuntos.at("a").at(0).motion.sentido == "horario");
+}
+
+TEST_CASE("Regras: uma corda sem comprimento, sem duracao ou com sentido errado e recusada") {
+    struct Caso { const char* json; const char* campo; };
+    const Caso casos[] = {
+        { R"({"x":[{"motion":{"tipo":"Amarrar","duracao":2}}]})",                                      "comprimento" },
+        { R"({"x":[{"motion":{"tipo":"Amarrar","comprimento":0,"duracao":2}}]})",                      "comprimento" },
+        { R"({"x":[{"motion":{"tipo":"Amarrar","comprimento":140}}]})",                                "duracao" },
+        { R"({"x":[{"motion":{"tipo":"Amarrar","comprimento":140,"duracao":2,"sentido":"Horario"}}]})", "sentido" },
+    };
+    for (const auto& c : casos) {
+        CAPTURE(c.campo);
+        const auto r = LerRegras(c.json);
+        REQUIRE(r.problemas.size() == 1);
+        CHECK(r.problemas[0].find(c.campo) != std::string::npos);
+    }
+}
+
+TEST_CASE("Regras: Amarrar e uma Motion, e nao pode ir em \"modifiers\"") {
+    const auto r = LerRegras(R"({"x":[{"modifiers":[{"tipo":"Amarrar","comprimento":140,"duracao":2}]}]})");
+    REQUIRE(r.problemas.size() == 1);
+    CHECK(r.problemas[0].find("Motion") != std::string::npos);
+}
+
+TEST_CASE("Regras: uma regra pode por o projetil num posto, e so num posto que existe") {
+    // O posto sozinho ja e uma regra que faz alguma coisa: o olho do Observer
+    // nasce assinando o aluno, e e so isso que a regra diz.
+    const auto ok = LerRegras(R"({"olho":[{"posto":"observadores"}]})");
+    CHECK(ok.problemas.empty());
+    REQUIRE(ok.conjuntos.count("olho") == 1);
+    REQUIRE(ok.conjuntos.at("olho").size() == 1);
+    CHECK(ok.conjuntos.at("olho")[0].posto == "observadores");
+
+    for (const char* json : { R"({"x":[{"posto":"nuvem"}]})", R"({"x":[{"posto":3}]})" }) {
+        CAPTURE(json);
+        const auto r = LerRegras(json);
+        REQUIRE(r.problemas.size() == 1);
+        CHECK(r.problemas[0].find("posto") != std::string::npos);
+    }
+    CHECK(PostoExiste("quadro"));
+    CHECK(PostoExiste("observadores"));
+    CHECK_FALSE(PostoExiste(""));
+}
+
+TEST_CASE("Regras: Ancorar e uma Motion com lugar, duracao e queda") {
+    const auto ok = LerRegras(R"({"m":[{"motion":{"tipo":"Ancorar","dx":-100,"dy":120,"duracao":5.5,"velocidade":220}}]})");
+    CHECK(ok.problemas.empty());
+    REQUIRE(ok.conjuntos.at("m").size() == 1);
+    const auto& d = ok.conjuntos.at("m")[0].motion;
+    CHECK(d.tipo == "Ancorar");
+    CHECK(d.dx == doctest::Approx(-100.0f));
+    CHECK(d.dy == doctest::Approx(120.0f));
+    CHECK(d.duracao == doctest::Approx(5.5f));
+    CHECK(d.velocidade == doctest::Approx(220.0f));
+    CHECK(EhMotion("Ancorar"));
+
+    // Sem duracao ela solta ao chegar; sem velocidade, solta, nunca sai da tela.
+    for (const char* json : { R"({"x":[{"motion":{"tipo":"Ancorar","dy":100,"velocidade":220}}]})",
+                              R"({"x":[{"motion":{"tipo":"Ancorar","dy":100,"duracao":5}}]})" }) {
+        CAPTURE(json);
+        const auto r = LerRegras(json);
+        REQUIRE(r.problemas.size() == 1);
+        CHECK(r.problemas[0].find("Ancorar") != std::string::npos);
+    }
+}

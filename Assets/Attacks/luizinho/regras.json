@@ -1,0 +1,15 @@
+{
+  // ==========================================================================
+  // AS REGRAS DE PROJETIL DO LUIZINHO
+  //
+  // Um conjunto por assunto da ementa. Os campos estao documentados em
+  // Documentacao/arquivos-de-dados.md.
+  // ==========================================================================
+
+  // COMPORTAMENTO INDEFINIDO: o caco que estoura do ponteiro pendente nao anda
+  // reto - ninguem sabe o que uma escrita em memoria liberada vai fazer. O
+  // anel sai na direcao certa e cada caco ziguezagueia em volta dela.
+  "indefinido": [
+    { "motion": { "tipo": "Wobble", "amplitude": 35, "frequencia": 2.5, "duracao": 3.0 } }
+  ]
+}

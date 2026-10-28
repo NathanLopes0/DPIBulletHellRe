@@ -1,0 +1,147 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHAndreBytes 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 16
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBytes 1.placeholder",
+   "frame": {
+    "x": 22,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 16
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBytes 2.placeholder",
+   "frame": {
+    "x": 44,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 16
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBytes 3.placeholder",
+   "frame": {
+    "x": 66,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 16
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBytes 4.placeholder",
+   "frame": {
+    "x": 88,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 16
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHAndreBytes 5.placeholder",
+   "frame": {
+    "x": 110,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 16
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 16
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_andre.py",
+  "version": "1.0",
+  "image": "DPIBHAndreBytes.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 132,
+   "h": 16
+  },
+  "scale": "1"
+ }
+}

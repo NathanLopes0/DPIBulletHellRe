@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(DPIBulletHellRe Source/main.cpp
         Source/Game.cpp
         Source/Game.h
-        Source/CSV.h
         Source/Json.h
         Source/JsonDeDados.h
         Source/Scenes/Scene.cpp
@@ -25,6 +24,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Components/DrawComponents/DrawTextComponent.cpp
         Source/Components/DrawComponents/DrawCaixaComponent.cpp
         Source/Components/DrawComponents/DrawCaixaComponent.h
+        Source/Components/DrawComponents/DrawLinhasComponent.cpp
+        Source/Components/DrawComponents/DrawLinhasComponent.h
         Source/Components/DrawComponents/DrawTextComponent.h
         Source/Components/ColliderComponents/CircleColliderComponent.cpp
         Source/Components/ColliderComponents/CircleColliderComponent.h
@@ -50,6 +51,10 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Progresso.cpp
         Source/Nota.cpp
         Source/Nota.h
+        Source/PontoExtra.cpp
+        Source/PontoExtra.h
+        Source/Destrutivel.cpp
+        Source/Destrutivel.h
         Source/Navegacao.cpp
         Source/Navegacao.h
         Source/Tabela.cpp
@@ -58,14 +63,32 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Teclado.h
         Source/Gabinete.cpp
         Source/Gabinete.h
+        Source/Pausa.cpp
+        Source/Pausa.h
+        Source/Dificuldade.cpp
+        Source/Dificuldade.h
+        Source/Variacao.cpp
+        Source/Variacao.h
+        Source/Configuracao.cpp
+        Source/Configuracao.h
         Source/Painel.cpp
         Source/Painel.h
+        Source/Sessao.cpp
+        Source/Sessao.h
         Source/Ranking.cpp
         Source/Ranking.h
         Source/Matricula.cpp
         Source/Matricula.h
         Source/Materias.cpp
         Source/Materias.h
+        Source/Orientacao.cpp
+        Source/Orientacao.h
+        Source/Escolta.cpp
+        Source/Escolta.h
+        Source/Golpe.cpp
+        Source/Golpe.h
+        Source/Poder.cpp
+        Source/Poder.h
         Source/Personagens.cpp
         Source/Personagens.h
         Source/PersonagensArquivo.cpp
@@ -84,12 +107,18 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Ficha.h
         Source/FichaArquivo.cpp
         Source/FichaArquivo.h
+        Source/ConfiguracaoArquivo.cpp
+        Source/ConfiguracaoArquivo.h
         Source/Progresso.h
         Source/Caminhos.cpp
         Source/Caminhos.h
         Source/CaminhosArquivo.cpp
         Source/CaminhosArquivo.h
         Source/Scenes/StageSelect.cpp
+        Source/Scenes/EscolhaDoOrientador.cpp
+        Source/Actors/Orientador/Orientador.cpp
+        Source/Actors/Orientador/Orientador.h
+        Source/Scenes/EscolhaDoOrientador.h
         Source/Actors/Buttons/Button.cpp
         Source/Actors/Buttons/Button.h
         Source/Actors/Buttons/StageSelectButton.cpp
@@ -129,8 +158,108 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/RegrasDeAtaque.h
         Source/Attacks/RegrasDeAtaqueArquivo.cpp
         Source/Attacks/RegrasDeAtaqueArquivo.h
+        Source/Attacks/Fita.cpp
+        Source/Attacks/Fita.h
+        Source/Attacks/Caixa.cpp
+        Source/Attacks/Caixa.h
+        Source/Attacks/Flex.cpp
+        Source/Attacks/Flex.h
+        Source/Attacks/Promessa.cpp
+        Source/Attacks/Promessa.h
+        Source/Attacks/Amarra.cpp
+        Source/Attacks/Amarra.h
+        Source/Movements/Escada.cpp
+        Source/Movements/Escada.h
+        Source/Attacks/Sprint.cpp
+        Source/Attacks/Sprint.h
+        Source/Attacks/Observer.cpp
+        Source/Attacks/Observer.h
+        Source/Attacks/Ancora.cpp
+        Source/Attacks/Ancora.h
+        Source/Attacks/Temperatura.cpp
+        Source/Attacks/Geracao.cpp
+        Source/Attacks/BalaDePrata.cpp
+        Source/Attacks/Compilador.cpp
+        Source/Attacks/Temperatura.h
+        Source/Attacks/ReAct.cpp
+        Source/Attacks/ReAct.h
+        Source/Attacks/Guardrail.cpp
+        Source/Attacks/Guardrail.h
+        Source/Attacks/Elixir.cpp
+        Source/Attacks/Elixir.h
+        Source/Attacks/Pagina.cpp
+        Source/Attacks/Pagina.h
+        Source/Attacks/Estilo.cpp
+        Source/Attacks/Estilo.h
+        Source/Attacks/EventLoop.cpp
+        Source/Attacks/EventLoop.h
+        Source/Attacks/Tcc.cpp
+        Source/Attacks/Tcc.h
+        Source/Attacks/Cronograma.cpp
+        Source/Attacks/Cronograma.h
+        Source/Attacks/Objetivo.cpp
+        Source/Attacks/Objetivo.h
+        Source/Attacks/Nuvem.cpp
+        Source/Attacks/Nuvem.h
+        Source/Attacks/Semaforo.cpp
+        Source/Attacks/Semaforo.h
+        Source/Attacks/Tcp.cpp
+        Source/Attacks/Tcp.h
+        Source/Attacks/Filosofos.cpp
+        Source/Attacks/Filosofos.h
+        Source/Attacks/Mensagens.cpp
+        Source/Attacks/Mensagens.h
+        Source/Attacks/Logica.cpp
+        Source/Attacks/Logica.h
+        Source/Attacks/Relogio.cpp
+        Source/Attacks/Relogio.h
+        Source/Attacks/Pipeline.cpp
+        Source/Attacks/Pipeline.h
+        Source/Attacks/Blink.cpp
+        Source/Attacks/Blink.h
+        Source/Attacks/Alfabeto.cpp
+        Source/Attacks/Alfabeto.h
+        Source/Attacks/Automato.cpp
+        Source/Attacks/Automato.h
+        Source/Attacks/Parada.cpp
+        Source/Attacks/Parada.h
+        Source/Attacks/Capivara.cpp
+        Source/Attacks/Capivara.h
+        Source/Attacks/Pilha.cpp
+        Source/Attacks/Pilha.h
+        Source/Attacks/Hash.cpp
+        Source/Attacks/Hash.h
+        Source/Attacks/Arvore.cpp
+        Source/Attacks/Arvore.h
+        Source/Attacks/Ordenacao.cpp
+        Source/Attacks/Ordenacao.h
+        Source/Attacks/Banco.cpp
+        Source/Attacks/Banco.h
+        Source/Attacks/Transacao.cpp
+        Source/Attacks/Transacao.h
+        Source/Attacks/Cascata.cpp
+        Source/Attacks/Cascata.h
+        Source/Attacks/Condicional.cpp
+        Source/Attacks/Condicional.h
+        Source/Attacks/Laco.cpp
+        Source/Attacks/Laco.h
+        Source/Attacks/Funcao.cpp
+        Source/Attacks/Funcao.h
+        Source/Attacks/Prova.cpp
+        Source/Attacks/Prova.h
+        Source/Attacks/Escopo.cpp
+        Source/Attacks/Escopo.h
+        Source/Attacks/Coercao.cpp
+        Source/Attacks/Coercao.h
+        Source/Attacks/Memoria.cpp
+        Source/Attacks/Memoria.h
+        Source/Attacks/Excecao.cpp
+        Source/Attacks/Excecao.h
+        Source/Intercambio.cpp
+        Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
         Source/Attacks/FasesDeAtaque.h
+        Source/Attacks/Fase.h
         Source/Attacks/FasesDeAtaqueArquivo.cpp
         Source/Attacks/FasesDeAtaqueArquivo.h
         Source/Attacks/ProjeteisDeChefe.cpp
@@ -173,6 +302,32 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Actors/Teachers/Bosses/Julio.h
         Source/Actors/Teachers/BossFactory/JulioFactory.cpp
         Source/Actors/Teachers/BossFactory/ThiagoFactory.cpp
+        Source/Actors/Teachers/Bosses/Vladimir.cpp
+        Source/Actors/Teachers/Bosses/Vladimir.h
+        Source/Actors/Teachers/BossFactory/VladimirFactory.cpp
+        Source/Actors/Teachers/BossFactory/VladimirFactory.h
+        Source/Actors/Teachers/Bosses/Lucas.cpp
+        Source/Actors/Teachers/Bosses/Lucas.h
+        Source/Actors/Teachers/BossFactory/LucasFactory.cpp
+        Source/Actors/Teachers/BossFactory/LucasFactory.h
+        Source/Actors/Teachers/Bosses/Luizinho.cpp
+        Source/Actors/Teachers/Bosses/Luizinho.h
+        Source/Actors/Teachers/Bosses/PainelDeCodigo.cpp
+        Source/Actors/Teachers/Bosses/PainelDeCodigo.h
+        Source/Actors/Teachers/BossFactory/LuizinhoFactory.cpp
+        Source/Actors/Teachers/BossFactory/LuizinhoFactory.h
+        Source/Actors/Teachers/Bosses/Vitor.cpp
+        Source/Actors/Teachers/Bosses/Vitor.h
+        Source/Actors/Teachers/BossFactory/VitorFactory.cpp
+        Source/Actors/Teachers/BossFactory/VitorFactory.h
+        Source/Actors/Teachers/Bosses/Hugo.cpp
+        Source/Actors/Teachers/Bosses/Hugo.h
+        Source/Actors/Teachers/BossFactory/HugoFactory.cpp
+        Source/Actors/Teachers/BossFactory/HugoFactory.h
+        Source/Actors/Teachers/Bosses/MariaLucia.cpp
+        Source/Actors/Teachers/Bosses/MariaLucia.h
+        Source/Actors/Teachers/BossFactory/MariaLuciaFactory.cpp
+        Source/Actors/Teachers/BossFactory/MariaLuciaFactory.h
         Source/Actors/Teachers/BossFactory/JulioFactory.h
         Source/Actors/Teachers/BossFactory/AndreFactory.h
         Source/Attacks/BaseStrategies/BaloonAttack.cpp
@@ -180,6 +335,21 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/AttackParameters/BaloonAttackParams.h
         Source/Attacks/BaseStrategies/LaserAttack.cpp
         Source/Attacks/BaseStrategies/ConsultaAttack.cpp
+        Source/Attacks/BaseStrategies/CaixaAttack.cpp
+        Source/Attacks/BaseStrategies/CaixaAttack.h
+        Source/Attacks/AttackParameters/CaixaAttackParams.h
+        Source/Attacks/BaseStrategies/SprintAttack.cpp
+        Source/Attacks/BaseStrategies/SprintAttack.h
+        Source/Attacks/AttackParameters/SprintAttackParams.h
+        Source/Attacks/BaseStrategies/PontosAttack.cpp
+        Source/Attacks/BaseStrategies/PontosAttack.h
+        Source/Attacks/AttackParameters/PontosAttackParams.h
+        Source/Attacks/BaseStrategies/TokenAttack.cpp
+        Source/Attacks/BaseStrategies/TokenAttack.h
+        Source/Attacks/AttackParameters/TokenAttackParams.h
+        Source/Attacks/BaseStrategies/PalavraAttack.cpp
+        Source/Attacks/BaseStrategies/PalavraAttack.h
+        Source/Attacks/AttackParameters/PalavraAttackParams.h
         Source/Attacks/BaseStrategies/LaserAttack.h
         Source/Actors/ProjectilePool.h
 )
@@ -209,6 +379,54 @@ add_executable(dpi_tests
         tests/test_investida.cpp
         tests/test_formas.cpp
         tests/test_regras.cpp
+        tests/test_fita.cpp
+        tests/test_intercambio.cpp
+        tests/test_caixa.cpp
+        tests/test_flex.cpp
+        tests/test_promessa.cpp
+        tests/test_amarra.cpp
+        tests/test_escada.cpp
+        tests/test_sprint.cpp
+        tests/test_observer.cpp
+        tests/test_ancora.cpp
+        tests/test_temperatura.cpp
+        tests/test_geracao.cpp
+        tests/test_bala_de_prata.cpp
+        tests/test_compilador.cpp
+        tests/test_react.cpp
+        tests/test_guardrail.cpp
+        tests/test_elixir.cpp
+        tests/test_pagina.cpp
+        tests/test_estilo.cpp
+        tests/test_event_loop.cpp
+        tests/test_nuvem.cpp
+        tests/test_semaforo.cpp
+        tests/test_tcp.cpp
+        tests/test_filosofos.cpp
+        tests/test_mensagens.cpp
+        tests/test_logica.cpp
+        tests/test_relogio.cpp
+        tests/test_pipeline.cpp
+        tests/test_blink.cpp
+        tests/test_alfabeto.cpp
+        tests/test_automato.cpp
+        tests/test_parada.cpp
+        tests/test_capivara.cpp
+        tests/test_pilha.cpp
+        tests/test_hash.cpp
+        tests/test_arvore.cpp
+        tests/test_ordenacao.cpp
+        tests/test_banco.cpp
+        tests/test_transacao.cpp
+        tests/test_cascata.cpp
+        tests/test_condicional.cpp
+        tests/test_laco.cpp
+        tests/test_funcao.cpp
+        tests/test_prova.cpp
+        tests/test_escopo.cpp
+        tests/test_coercao.cpp
+        tests/test_memoria.cpp
+        tests/test_excecao.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
         tests/test_pasta_do_chefe.cpp
@@ -216,20 +434,37 @@ add_executable(dpi_tests
         tests/test_caminhos.cpp
         tests/test_progresso.cpp
         tests/test_nota.cpp
+        tests/test_ponto_extra.cpp
+        tests/test_destrutivel.cpp
         tests/test_navegacao.cpp
         tests/test_tabela.cpp
         tests/test_teclado.cpp
         tests/test_gabinete.cpp
         tests/test_painel.cpp
+        tests/test_pausa.cpp
+        tests/test_dificuldade.cpp
+        tests/test_variacao.cpp
+        tests/test_sessao.cpp
         tests/test_ranking.cpp
         tests/test_matricula.cpp
         tests/test_ficha.cpp
         tests/test_materias.cpp
+        tests/test_orientacao.cpp
+        tests/test_escolta.cpp
+        tests/test_golpe.cpp
+        tests/test_tcc.cpp
+        tests/test_cronograma.cpp
+        tests/test_poder.cpp
+        tests/test_objetivo.cpp
         tests/test_personagens.cpp
         tests/test_exportacao.cpp
         Source/Progresso.cpp
         Source/Nota.cpp
         Source/Nota.h
+        Source/PontoExtra.cpp
+        Source/PontoExtra.h
+        Source/Destrutivel.cpp
+        Source/Destrutivel.h
         Source/Navegacao.cpp
         Source/Navegacao.h
         Source/Tabela.cpp
@@ -238,14 +473,32 @@ add_executable(dpi_tests
         Source/Teclado.h
         Source/Gabinete.cpp
         Source/Gabinete.h
+        Source/Pausa.cpp
+        Source/Pausa.h
+        Source/Dificuldade.cpp
+        Source/Dificuldade.h
+        Source/Variacao.cpp
+        Source/Variacao.h
+        Source/Configuracao.cpp
+        Source/Configuracao.h
         Source/Painel.cpp
         Source/Painel.h
+        Source/Sessao.cpp
+        Source/Sessao.h
         Source/Ranking.cpp
         Source/Ranking.h
         Source/Matricula.cpp
         Source/Matricula.h
         Source/Materias.cpp
         Source/Materias.h
+        Source/Orientacao.cpp
+        Source/Orientacao.h
+        Source/Escolta.cpp
+        Source/Escolta.h
+        Source/Golpe.cpp
+        Source/Golpe.h
+        Source/Poder.cpp
+        Source/Poder.h
         Source/Personagens.cpp
         Source/Personagens.h
         Source/Relogio.cpp
@@ -263,8 +516,108 @@ add_executable(dpi_tests
         Source/Attacks/PathShapes.h
         Source/Attacks/RegrasDeAtaque.cpp
         Source/Attacks/RegrasDeAtaque.h
+        Source/Attacks/Fita.cpp
+        Source/Attacks/Fita.h
+        Source/Attacks/Caixa.cpp
+        Source/Attacks/Caixa.h
+        Source/Attacks/Flex.cpp
+        Source/Attacks/Flex.h
+        Source/Attacks/Promessa.cpp
+        Source/Attacks/Promessa.h
+        Source/Attacks/Amarra.cpp
+        Source/Attacks/Amarra.h
+        Source/Movements/Escada.cpp
+        Source/Movements/Escada.h
+        Source/Attacks/Sprint.cpp
+        Source/Attacks/Sprint.h
+        Source/Attacks/Observer.cpp
+        Source/Attacks/Observer.h
+        Source/Attacks/Ancora.cpp
+        Source/Attacks/Ancora.h
+        Source/Attacks/Temperatura.cpp
+        Source/Attacks/Geracao.cpp
+        Source/Attacks/BalaDePrata.cpp
+        Source/Attacks/Compilador.cpp
+        Source/Attacks/Temperatura.h
+        Source/Attacks/ReAct.cpp
+        Source/Attacks/ReAct.h
+        Source/Attacks/Guardrail.cpp
+        Source/Attacks/Guardrail.h
+        Source/Attacks/Elixir.cpp
+        Source/Attacks/Elixir.h
+        Source/Attacks/Pagina.cpp
+        Source/Attacks/Pagina.h
+        Source/Attacks/Estilo.cpp
+        Source/Attacks/Estilo.h
+        Source/Attacks/EventLoop.cpp
+        Source/Attacks/EventLoop.h
+        Source/Attacks/Tcc.cpp
+        Source/Attacks/Tcc.h
+        Source/Attacks/Cronograma.cpp
+        Source/Attacks/Cronograma.h
+        Source/Attacks/Objetivo.cpp
+        Source/Attacks/Objetivo.h
+        Source/Attacks/Nuvem.cpp
+        Source/Attacks/Nuvem.h
+        Source/Attacks/Semaforo.cpp
+        Source/Attacks/Semaforo.h
+        Source/Attacks/Tcp.cpp
+        Source/Attacks/Tcp.h
+        Source/Attacks/Filosofos.cpp
+        Source/Attacks/Filosofos.h
+        Source/Attacks/Mensagens.cpp
+        Source/Attacks/Mensagens.h
+        Source/Attacks/Logica.cpp
+        Source/Attacks/Logica.h
+        Source/Attacks/Relogio.cpp
+        Source/Attacks/Relogio.h
+        Source/Attacks/Pipeline.cpp
+        Source/Attacks/Pipeline.h
+        Source/Attacks/Blink.cpp
+        Source/Attacks/Blink.h
+        Source/Attacks/Alfabeto.cpp
+        Source/Attacks/Alfabeto.h
+        Source/Attacks/Automato.cpp
+        Source/Attacks/Automato.h
+        Source/Attacks/Parada.cpp
+        Source/Attacks/Parada.h
+        Source/Attacks/Capivara.cpp
+        Source/Attacks/Capivara.h
+        Source/Attacks/Pilha.cpp
+        Source/Attacks/Pilha.h
+        Source/Attacks/Hash.cpp
+        Source/Attacks/Hash.h
+        Source/Attacks/Arvore.cpp
+        Source/Attacks/Arvore.h
+        Source/Attacks/Ordenacao.cpp
+        Source/Attacks/Ordenacao.h
+        Source/Attacks/Banco.cpp
+        Source/Attacks/Banco.h
+        Source/Attacks/Transacao.cpp
+        Source/Attacks/Transacao.h
+        Source/Attacks/Cascata.cpp
+        Source/Attacks/Cascata.h
+        Source/Attacks/Condicional.cpp
+        Source/Attacks/Condicional.h
+        Source/Attacks/Laco.cpp
+        Source/Attacks/Laco.h
+        Source/Attacks/Funcao.cpp
+        Source/Attacks/Funcao.h
+        Source/Attacks/Prova.cpp
+        Source/Attacks/Prova.h
+        Source/Attacks/Escopo.cpp
+        Source/Attacks/Escopo.h
+        Source/Attacks/Coercao.cpp
+        Source/Attacks/Coercao.h
+        Source/Attacks/Memoria.cpp
+        Source/Attacks/Memoria.h
+        Source/Attacks/Excecao.cpp
+        Source/Attacks/Excecao.h
+        Source/Intercambio.cpp
+        Source/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
         Source/Attacks/FasesDeAtaque.h
+        Source/Attacks/Fase.h
         Source/Attacks/ProjeteisDeChefe.cpp
         Source/Attacks/PastaDoChefe.cpp
         Source/Attacks/PastaDoChefe.h

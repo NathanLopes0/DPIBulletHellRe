@@ -1,7 +1,9 @@
 //
 // Created by nslop on 03/10/2024.
 //
+#include <algorithm>
 #include <vector>
+
 #include "Player.h"
 #include "../../Painel.h"
 
@@ -24,14 +26,17 @@
 #define BASE_SHOOT_FORWARD_SPEED 800.0f
 #define BLINK_INVINCIBLE_FREQUENCY 0.1f
 
-Player::Player(Scene* scene) :
+Player::Player(Scene* scene, const size_t quem) :
+    // NA ORDEM EM QUE OS MEMBROS SAO DECLARADOS - mQuem e declarado depois de
+    // mMoving, e e nessa ordem que o compilador inicializa de qualquer jeito.
     Actor(scene),
     playerSpeed(PLAYER_SPEED_START),
     atkTimer(ATK_TIMER_START_FULL),
     invincibleTimer(0.0f),
     isInvincible(false),
     mBlinkTimer(BLINK_INVINCIBLE_FREQUENCY),
-    mMoving(false)
+    mMoving(false),
+    mQuem(quem)
 
 {
 
@@ -44,7 +49,9 @@ Player::Player(Scene* scene) :
 
     Game* game = GetScene()->GetGame();
     const Personagens::Composta composta =
-        Personagens::Compor(game, Personagens::Carregado(), game->AparenciaAtual());
+        // A APARENCIA DA SESSAO DESTE ALUNO. Cada jogador entra com a
+        // personagem do proprio perfil (requisitos-coop, D6).
+        Personagens::Compor(game, Personagens::Carregado(), game->AparenciaDe(mQuem));
 
     if (composta.ok) {
         spritePath = composta.chaveDaTextura;   // ja esta no cache de texturas
@@ -90,7 +97,21 @@ void Player::OnUpdate(float deltaTime) {
     HandleAnimation();
     DecreaseAtkTimer(deltaTime);
     BorderLimitCheck();
+    // CADA UM SO ANDA O RELOGIO DELE; QUEM PINTA E UM SO.
+    //
+    // Antes cada um destes tres chamava SetColor, e a ultima chamada do quadro
+    // ganhava. Isso escondeu um bug por um commit inteiro: UpdateOverload
+    // pintava de BRANCO no ramo "else", ou seja em todo quadro em que o aluno
+    // nao estava sobrecarregado - e como ele rodava depois de UpdateCorrente,
+    // apagava a cor da corrente antes de alguem ver. O efeito existia, mexia na
+    // velocidade, e era invisivel.
+    //
+    // Com um pintor so a prioridade vira uma coisa escrita, e nao uma
+    // consequencia da ordem das chamadas.
+    UpdateCorrente(deltaTime);
     UpdateOverload(deltaTime);
+    UpdateImunidade(deltaTime);
+    AtualizarCorDoEstado();
 
 }
 
@@ -129,25 +150,27 @@ void Player::MoveInput(const Uint8 *keyState) {
     float newXSpeed = 0;
     float newYSpeed = 0;
 
-    // O MANCHE DA POSICAO 1. Era W A S D ou as setas, as duas coisas movendo
-    // este mesmo jogador - e por isso a posicao 2 do gabinete ficava sem manche.
+    // O MANCHE DESTE ALUNO. Era W A S D ou as setas, as duas coisas movendo o
+    // mesmo jogador - e por isso a posicao 2 do gabinete ficava sem manche.
     // As setas sao do jogador 1, o W A S D e do jogador 2; ver Painel.h.
-    //
-    // A posicao esta escrita aqui porque so ha um jogador. Quando o segundo
-    // entrar em campo, ela vira membro do Player (requisitos-coop, incremento 4).
-    constexpr Painel::Jogador kQuem = Painel::Jogador::Um;
+    const Painel::Jogador kQuem = MeuPainel();
+
+    // A VELOCIDADE E LIDA COM O FATOR, e playerSpeed fica intacto. Ver
+    // mCorrenteTimer em Player.h: guardar a velocidade antiga para devolver
+    // depois seria um estado a mais para errar.
+    const float velocidade = VelocidadeDeAndar();
 
     // ------ verificação de movimento CIMA/BAIXO ------
     if(Painel::Apertado(keyState, kQuem, Painel::Direcao::Cima))
-        newYSpeed -= playerSpeed;
+        newYSpeed -= velocidade;
     else if(Painel::Apertado(keyState, kQuem, Painel::Direcao::Baixo))
-        newYSpeed += playerSpeed;
+        newYSpeed += velocidade;
 
     // ------ verificação de movimento ESQUERDA/DIREITA ------
     if(Painel::Apertado(keyState, kQuem, Painel::Direcao::Esquerda))
-        newXSpeed -= playerSpeed;
+        newXSpeed -= velocidade;
     else if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Direita))
-        newXSpeed += playerSpeed;
+        newXSpeed += velocidade;
 
     //vendo se está movendo ou não para mudar a variável mMoving (pra mudar a animação de acordo)
     if(newXSpeed == 0 && newYSpeed == 0) mMoving = false;
@@ -157,21 +180,23 @@ void Player::MoveInput(const Uint8 *keyState) {
 }
 void Player::ShootInput(const Uint8 *keyState) {
 
-    // BOTAO 1 do painel. Ver Painel.h: a tecla mora num lugar so.
-    if(Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Um) && mOverloadTimer <= 0.0f) {
+    // BOTAO 1 do painel DESTE ALUNO. Ver Painel.h: a tecla mora num lugar so.
+    if(Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Um) && mOverloadTimer <= 0.0f) {
         Shoot();
     }
 
 }
 void Player::SpecialInput(const Uint8 *keyState) {
 
-    // BOTAO 2 do painel.
-    if(Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois) && mExtraPoints > 0 && mOverloadTimer <= 0.0f) {
+    // BOTAO 2 do painel DESTE ALUNO.
+    if(Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Dois) && mExtraPoints > 0 && mEsperaDoPontoExtra <= 0.0f) {
         mExtraPoints--;
-        mOverloadTimer = OVERLOAD_DURATION;
-        if (const auto battle = dynamic_cast<Battle*>(GetScene())) {
-            battle->OnPlayerUsedExtraPoint();
-        }
+        mEsperaDoPontoExtra = OVERLOAD_DURATION;
+        const auto battle = dynamic_cast<Battle*>(GetScene());
+        // SO O SOLO SOBRECARREGA. Em dupla o presente vai para o outro, e quem
+        // gastou continua atirando (ver OVERLOAD_DURATION).
+        if (!battle || !battle->OutroJogador(this)) mOverloadTimer = OVERLOAD_DURATION;
+        if (battle) battle->OnPlayerUsedExtraPoint(this);
     }
 
 }
@@ -209,6 +234,7 @@ void Player::Shoot() {
 
     // Entrega ownership ao manager
     projManager->AddPlayerProjectile(std::move(projectile));
+    ++mDisparos;
 
     // Toca audio
     const auto audioHandler = mScene->GetGame()->GetAudio()->PlaySound("plst00.wav", false);
@@ -234,43 +260,126 @@ void Player::BorderLimitCheck() {
 
 void Player::UpdateOverload(float deltaTime) {
 
-    auto dc = GetComponent<DrawAnimatedComponent>();
+    // SO O RELOGIO E O PULSO. Quem pinta e AtualizarCorDoEstado.
+    mEsperaDoPontoExtra = std::max(0.0f, mEsperaDoPontoExtra - deltaTime);
+
+    if (mOverloadTimer <= 0.0f) {
+        mPulseTimer = 0.0f;
+        return;
+    }
+
+
+    mOverloadTimer -= deltaTime;
+
+    // Quanto MENOR o timer (mais perto de acabar), MAIOR a frequencia: comeca
+    // em 5 e sobe 15 por segundo passado.
+    const float freq = 5.0f + (OVERLOAD_DURATION - mOverloadTimer) * 15.0f;
+    mPulseTimer += freq * deltaTime;
+}
+
+void Player::Proteger(const float segundos) {
+
+    // O MAIOR DOS DOIS, e nao a soma. Ver o cabecalho: renova, nao acumula.
+    // Usar o maior tambem impede que um presente curto ENCURTE uma protecao
+    // mais longa que ja estivesse valendo.
+    if (segundos > mImunidadeTimer) mImunidadeTimer = segundos;
+}
+
+void Player::Acorrentar(const float segundos, const float fatorDeVelocidade) {
+
+    // O MAIOR DOS DOIS, como em Proteger: renova, nao acumula, e uma corrente
+    // curta nao encurta uma longa que ja estava valendo.
+    if (segundos > mCorrenteTimer) {
+        mCorrenteTimer = segundos;
+
+        // O FATOR ACOMPANHA O TIMER VENCEDOR. Se o que vale e o da corrente
+        // nova, o quanto ela pesa tambem e dela - guardar o fator antigo faria
+        // uma corrente leve e longa anular uma pesada e curta pela metade.
+        mFatorDaCorrente = fatorDeVelocidade;
+    }
+}
+
+void Player::UpdateCorrente(const float deltaTime) {
+
+    if (mCorrenteTimer <= 0.0f) return;
+
+    mCorrenteTimer -= deltaTime;
+
+    if (mCorrenteTimer <= 0.0f) {
+        mCorrenteTimer = 0.0f;
+        mFatorDaCorrente = 1.0f;
+        mPulsoDaCorrente = 0.0f;
+        return;
+    }
+
+    // FEEDBACK FORTE, E A PRIMEIRA VERSAO ERROU A MAO. Ela escurecia de 120 a
+    // 155 com um azul de leve, "porque peso se le apagado, nao agitado". Na
+    // foto o aluno preso ficava praticamente igual ao normal - e um efeito que
+    // muda a velocidade PRECISA se anunciar, senao o jogador culpa o controle.
+    //
+    // Agora sao tres coisas ao mesmo tempo, e so as tres juntas se leem de
+    // longe no meio de uma tela cheia:
+    //
+    //   ESCURECE DE VERDADE   o corpo cai para perto de 40% do brilho
+    //   PUXA PARA O FERRO     o azul fica bem acima do vermelho e do verde
+    //   PULSA RAPIDO NO FIM   a frequencia sobe conforme a corrente acaba, e e
+    //                         o aviso de "ja vai soltar" - mesma ideia da
+    //                         imunidade, que acelera quando esta para expirar
+    const float fracaoRestante = mCorrenteTimer / kDuracaoTipicaDaCorrente;
+    mPulsoDaCorrente += (4.0f + (1.0f - fracaoRestante) * 14.0f) * deltaTime;
+
+    // Quem pinta e AtualizarCorDoEstado; aqui so anda o pulso.
+}
+
+void Player::UpdateImunidade(const float deltaTime) {
+
+    // SO O RELOGIO E O PULSO. Quem pinta e AtualizarCorDoEstado.
+    if (mImunidadeTimer <= 0.0f) return;
+
+    mImunidadeTimer -= deltaTime;
+    if (mImunidadeTimer <= 0.0f) {
+        mImunidadeTimer = 0.0f;
+        mPulsoDaImunidade = 0.0f;
+        return;
+    }
+
+    // O MESMO PULSO DO OVERLOAD, e as duas se distinguem pela COR e nao pelo
+    // ritmo - que e o que da para ler no meio de uma tela cheia de bala.
+    const float freq = 5.0f + (OVERLOAD_DURATION - mImunidadeTimer) * 15.0f;
+    mPulsoDaImunidade += freq * deltaTime;
+}
+
+void Player::AtualizarCorDoEstado() {
+
+    const auto dc = GetComponent<DrawAnimatedComponent>();
     if (!dc) return;
 
-    if (mOverloadTimer > 0.0f) {
-        mOverloadTimer -= deltaTime;
+    // A ORDEM DOS IFS E A PRIORIDADE, e esta escrita de proposito - ver o
+    // cabecalho. O primeiro que casar pinta e sai.
 
-        // --- LÓGICA DO PISCAR VERMELHO ---
-
-        // 1. Calcula a velocidade do piscar (Frequência)
-        // Quanto MENOR o timer (mais perto de acabar), MAIOR a frequência.
-        // Começa com 5.0f e aumenta + 15.0f para cada segundo que passou.
-        float freq = 5.0f + (OVERLOAD_DURATION - mOverloadTimer) * 15.0f;
-
-        mPulseTimer += freq * deltaTime;
-        // 2. Oscilador (Seno)
-        // Gera um número entre -1 e 1
-        float osc = Math::Sin(mPulseTimer);
-
-        // 3. Define a cor
-        // Quando oscilador for 1 -> Branco (255, 255, 255)
-        // Quando oscilador for -1 -> Vermelho (255, 0, 0)
-
-        // Mapeia [-1, 1] para [0, 255] nos canais Verde e Azul
-        Uint8 gb = static_cast<Uint8>((osc + 1.0f) * 127.5f);
-
-        // Vermelho sempre 255. Verde e Azul oscilam.
-        // Se GB for 255 -> Branco. Se GB for 0 -> Vermelho Puro.
-        dc->SetColor(255, gb, gb);
-
-
-    } else {
-        // --- ESTADO NORMAL ---
-        // Garante que o player volte a ser branco quando o tempo acabar
-
-        dc->SetColor(255, 255, 255);
-        mPulseTimer = 0.0f;
+    if (mImunidadeTimer > 0.0f) {
+        const auto rg = static_cast<Uint8>((Math::Sin(mPulsoDaImunidade) + 1.0f) * 127.5f);
+        dc->SetColor(rg, rg, 255);
+        return;
     }
+
+    if (mOverloadTimer > 0.0f) {
+        const auto gb = static_cast<Uint8>((Math::Sin(mPulseTimer) + 1.0f) * 127.5f);
+        dc->SetColor(255, gb, gb);
+        return;
+    }
+
+    if (mCorrenteTimer > 0.0f) {
+        // FERRO, ESCURO E PULSANDO. Ver UpdateCorrente para o porque dos tres
+        // efeitos juntos.
+        const float osc = (Math::Sin(mPulsoDaCorrente) + 1.0f) * 0.5f;
+        const auto escuro = static_cast<Uint8>(70.0f + osc * 45.0f);
+        const auto azul   = static_cast<Uint8>(150.0f + osc * 60.0f);
+        dc->SetColor(escuro, escuro, azul);
+        return;
+    }
+
+    dc->SetColor(255, 255, 255);
 }
 
 void Player::AddExtraPoint() {

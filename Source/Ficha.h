@@ -37,7 +37,12 @@ namespace Ficha {
     /// materia. O campo e opcional, entao um save da 2 abre sem conversao nenhuma.
     /// A 4 acrescenta "aparencia": as escolhas de pele, cabelo, camisa e calca.
     /// Tambem opcional - um save da 3 abre e cai na aparencia padrao.
-    inline constexpr int kVersaoAtual = 4;
+    /// A 5 acrescenta o registro das batalhas EM DUPLA: "recordeDupla", com
+    /// quem ("parceiro") e quando ("quandoDupla"). Os tres so aparecem no
+    /// arquivo se existir recorde de dupla, entao um save da 4 abre sem
+    /// conversao nenhuma - e sem registro de co-op, que e a verdade sobre um
+    /// aluno que nunca jogou acompanhado.
+    inline constexpr int kVersaoAtual = 5;
 
     struct Dados {
         std::string matricula;   ///< a forma CANONICA, ver Matricula.h

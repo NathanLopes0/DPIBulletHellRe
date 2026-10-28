@@ -26,6 +26,17 @@ void BossAttackState::HandleStateTransition(float stateTime)
         return;
     }
 
+    // O SEGUNDO CORPO NAO TRANSICIONA, E NAO DECIDE A BATALHA.
+    //
+    // Ele roda a mesma maquina de estados do original, montada pela mesma
+    // fabrica, e e isso que o deixa barato de criar - mas tem de ficar PRESO na
+    // fase que lhe coube. Sem esta guarda ele avancaria sozinho e, ao chegar na
+    // fase que se divide, criaria um clone do clone; e pior, ao fim da terceira
+    // chamaria FinishBattle por conta propria e encerraria a luta no tempo dele.
+    if (const auto corpo = dynamic_cast<Boss*>(mFSM->GetOwner()); corpo && corpo->EhClone()) {
+        return;
+    }
+
     // Adicionar aqui lógicas personalizadas de mudança de estado
     if (mName == "StateThree") {
         const auto scene = mFSM->GetOwner()->GetScene();

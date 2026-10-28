@@ -1,0 +1,210 @@
+{
+  // ==========================================================================
+  // AS FASES DO LUIZINHO (INF 340 - Linguagens de Programacao)
+  //
+  // CADA FASE E UM ASSUNTO DA EMENTA, e abre com a palavra latina por tras
+  // dele - o Luizinho e o professor que conta de onde vem cada palavra:
+  //
+  //   StateOne    Amarracoes          ligare, "atar"
+  //   StateTwo    Sistemas de tipos   coercere, "forcar"
+  //   StateThree  Gerencia de memoria memento mori, "lembra-te de que morreras"
+  //   StateFinal  Sequenciadores      excipere, "tirar de fora"
+  //
+  // DEPOIS DO LATIM, O CODIGO, como nas fases do Andre: o placar mostra o que
+  // o professor roda, e o campo e a execucao: o escopo (Escopo.h), a
+  // coercao (Coercao.h), o heap (Memoria.h) e a pilha de chamadas da final
+  // (Excecao.h).
+  //
+  // A MEMORIA E A FASE 3, a que DECIDE a batalha ("proximo" vazio): a final
+  // so e vista por quem termina entre 40 e 59, ou com 100.
+  //
+  // O MOVIMENTO E O ATAQUE, como no Vladimir, no Vitor e no Lucas - nenhuma
+  // fase usa GoToCenter, que deixa o chefe na coluna de quem atira para cima.
+  //
+  // CADA LUTA E OUTRA (Variacao.h; Luizinho::SortearALuta), e o que define
+  // cada fase fica no lugar: no escopo, O PROGRAMA E SORTEADO - o que g, o
+  // bloco interno e h declaram - e as quatro buscas do estatico sao geradas
+  // para ele, e a pegadinha - f no estatico e logo depois no dinamico - fecha; nos tipos, a soma do JavaScript abre, o Haskell fecha e as seis do
+  // meio se embaralham; na memoria, metade das lutas roda o programa em C++
+  // antes do de Java, cada um inteiro, e OS NUMEROS DO PROGRAMA sao da luta
+  // (Memoria::SortearNumeros) - o tamanho de cada new, as voltas do for do
+  // Java (de 4 a 7) e o p[i] = v do ponteiro pendente; e na final cada rodada E GERADA - a
+  // pilha, os catch e os finally de cada chamada e a excecao lancada -, com o
+  // catch (Reprovado e) por ultimo.
+  //
+  // NO DIFICIL (o Degrau de cada modulo; os numeros daqui sao os do Normal):
+  // as gotas acendem 0,72 s depois de nascer e caem a 150 px/s; os operandos
+  // voam em 0,5 s e o resultado sai 20% mais rapido; o bloco acende 0,55 s
+  // depois de alocado, os lacos alocam a cada 0,24 s e o while (1) chega a
+  // nove blocos antes do bad_alloc (o for do Java fica nos seis do placar), o
+  // pendente estoura em 20 e os estilhacos saem 20% mais rapido; e a cortina
+  // da final tem um destroco a cada 52 px, 20% mais rapidos, como o anel do
+  // finally.
+  //
+  // Medido em cinco sementes, a batalha inteira: no Normal o que persegue
+  // termina com 65,1 a 74,6 e o que desvia com 70,5 a 87,0 (2 a 5 acertos,
+  // 3,8 em media); no Dificil, 61,6 a 75,2 e 71,1 a 80,8 (4 a 7, 5,2 em
+  // media). O parado e o que vai e vem reprovam nos dois. A memoria sozinha,
+  // que decide, deixa o que desvia com 3 a 4 acertos no Dificil (2 a 3 no
+  // Normal).
+  // ==========================================================================
+
+  // FASE 1 - AMARRACOES: O ESCOPO   |   gesto: O PROFESSOR E O COMANDO
+  //
+  // O campo e o texto do programa (Escopo.h): o global e o campo inteiro, com
+  // "int x, y;" no canto de cima; g e o painel da esquerda, com o bloco
+  // interno dentro; h o da direita; f um cartao no alto. Cada painel tem as
+  // declaracoes dele no canto.
+  //
+  // O PROGRAMA E DA LUTA (Escopo::Sortear): o global declara x e y, sempre;
+  // h declara x, sempre - e o que faz a pegadinha do dinamico existir - e y
+  // por sorteio; g declara x, y, os dois ou nenhum; o bloco interno, x, y ou
+  // os dois. Se so o global declarasse y, h declara: sem nenhum buraco, o y
+  // global choveria no campo inteiro, 358 gotas, mais que as 300 do pool. Os
+  // cantos dos paineis, e o placar escrevem o programa da luta. Ate
+  // o 191 o programa era sempre o mesmo, e os comandos, seis fixos.
+  //
+  // Seis comandos, um a cada 3,25 s, e o placar diz cada um: quatro buscas no
+  // estatico, geradas entre g, o bloco interno e h com x ou y, e a pegadinha. O professor vai
+  // ate o bloco em que o comando esta (Conduzido), a busca do nome sobe de
+  // bloco em bloco - uma linha do professor ao canto de cada um -, e a
+  // variavel achada CHOVE na regiao em que ela e visivel: o painel dela, menos
+  // os de dentro que tem outra com o mesmo nome (esses acendem de verde). As
+  // gotas nascem apagadas, acendem 0,9 s depois e caem 0,7 s, ate a borda de
+  // baixo ou o buraco embaixo delas. O ultimo comando e a pegadinha: a mesma
+  // chamada de f de dentro de h, no escopo DINAMICO - o x de f passa a ser o
+  // de h, e so o painel de h chove.
+  //
+  // O ATAQUE E DE GATILHO: a chuva sai quando o professor chama "gota", com
+  // tantas gotas quantas a regiao pede (ate 292, no global menos os dois
+  // buracos), e cada uma vai para o seu lugar.
+  "StateOne": {
+    "duracao": 20,
+    "proximo": "StateTwo",
+    "anuncio": "Amarrações · ligāre, atar",
+    "movimento": { "tipo": "Conduzido", "a": 900 },
+    "ataques": [
+      { "gatilho": "gota", "estrategia": "WaveAttack", "projetil": "Gota",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
+    ]
+  },
+
+  // FASE 2 - SISTEMAS DE TIPOS: A COERCAO   |   gesto: A CONTA EM CIMA DO ALUNO
+  //
+  // A mesma conta em linguagens diferentes (Coercao.h). O placar diz a
+  // linguagem e como ela tipa, e embaixo a expressao; o operador aparece em
+  // cima do aluno - e o aviso de onde a conta vai rodar -, e os dois operandos
+  // voam do professor ate ele, o numero num chip azul e o texto num verde, com
+  // aspas. NO MEIO DO VOO, O CONVERTIDO TROCA DE CHIP: a coercao se ve.
+  //
+  //   JavaScript   3 + "4"    o 3 vira texto: a palavra "34" voa para o aluno
+  //   PHP          3 + "4"    o "4" vira numero: um anel de 7
+  //   Python       3 + "4"    TypeError: um anel de estilhacos no operador,
+  //                           onde a conta rodou
+  //   JavaScript   "6" * "2"  os dois viram numero: um anel de 12
+  //   Python       "3" * 4    repetir o texto, sem converter: "3333"
+  //   Haskell      3 + "4"    recusado na COMPILACAO: os operandos estouram no
+  //                           professor, devagar e longe do aluno
+  //
+  // AS VELOCIDADES SAO AS DE Coercao.h (um teste confere): o projetil da
+  // WaveAttack nasce na velocidade do arquivo, e o professor so escolhe onde
+  // ele nasce, quantos sao e para onde vao. O operando e o operador tem
+  // velocidade zero - quem os move e o professor.
+  "StateTwo": {
+    "duracao": 20,
+    "proximo": "StateThree",
+    "anuncio": "Tipos · coercēre, forçar",
+    "movimento": { "tipo": "Conduzido", "a": 600 },
+    "ataques": [
+      { "gatilho": "operador", "estrategia": "WaveAttack", "projetil": "Operador",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "operando", "estrategia": "WaveAttack", "projetil": "Valor",
+        "projeteis": 2, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "anel", "estrategia": "WaveAttack", "projetil": "Valor",
+        "projeteis": 7, "velocidade": 240, "angulo": 308, "intervalo": 0 },
+      { "gatilho": "texto", "estrategia": "WaveAttack", "projetil": "Valor",
+        "projeteis": 4, "velocidade": 420, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "erro", "estrategia": "WaveAttack", "projetil": "Erro",
+        "projeteis": 20, "velocidade": 260, "angulo": 342, "intervalo": 0 },
+      { "gatilho": "compilacao", "estrategia": "WaveAttack", "projetil": "Erro",
+        "projeteis": 10, "velocidade": 150, "angulo": 324, "intervalo": 0 }
+    ]
+  },
+
+  // FASE 3 - GERENCIA DE MEMORIA   |   gesto: O ALOCADOR ESCOLHE O ALUNO
+  //
+  // O campo e o heap (Memoria.h). Cada new poe o bloco - uma fileira de
+  // celulas, uma por int - no lugar livre mais perto do aluno: nasce apagado,
+  // e 0,8 s depois (0,55 no Dificil) e memoria e acerta. As variaveis sao do
+  // professor: uma etiqueta embaixo dele e uma linha ate o bloco de cada uma.
+  //
+  // Metade em Java, metade em C++. No Java o bloco que ninguem alcanca fica
+  // cinza - lixo, mas ainda no campo -, e o System.gc() PARA O MUNDO, marca o
+  // que as raizes alcancam e derruba o resto. No C++ o delete tira o bloco e
+  // deixa p apontando para o lugar dele (o ponteiro pendente, em vermelho);
+  // escrever ali estoura, e o while (1) new int[4] enche o campo de blocos
+  // que vazam ate o std::bad_alloc, em que todos estouram de uma vez.
+  //
+  // A MEMORIA E A FASE QUE DECIDE ("proximo" vazio). O ataque e todo de
+  // gatilho: o professor diz onde cada celula nasce, quantos cacos saem e
+  // para onde; as velocidades dos cacos sao as de Memoria.h (um teste
+  // confere), e a celula nasce parada.
+  "StateThree": {
+    "duracao": 20,
+    "proximo": "",
+    "anuncio": "Memória · memento mori",
+    "movimento": { "tipo": "Conduzido", "a": 600 },
+    "ataques": [
+      { "gatilho": "celula", "estrategia": "WaveAttack", "projetil": "Celula",
+        "projeteis": 4, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "pendente", "estrategia": "WaveAttack", "projetil": "Estilhaco",
+        "projeteis": 16, "velocidade": 240, "angulo": 337.5, "intervalo": 0,
+        "regras": "indefinido" },
+      { "gatilho": "estouro", "estrategia": "WaveAttack", "projetil": "Estilhaco",
+        "projeteis": 4, "velocidade": 280, "angulo": 270, "intervalo": 0 }
+    ]
+  },
+
+  // FASE FINAL - SEQUENCIADORES: AS EXCECOES   |   gesto: O PONTO DE EXECUCAO
+  //
+  // So e vista por quem termina a terceira entre 40 e 59, ou com 100 - e a
+  // repescagem e, ela mesma, um catch.
+  //
+  // O campo e a pilha de chamadas (Excecao.h): cada chamada empilha uma faixa
+  // no alto, com o que ela faz com uma excecao no canto. O professor desce ate
+  // a mais funda e lanca; a excecao SOBE uma faixa a cada 0,4 s, o finally
+  // roda no caminho (um anel), e cada faixa que nao a trata e desempilhada e
+  // cai numa cortina de destrocos sobre o aluno, com um em cima dele. Ela para
+  // no primeiro catch do tipo dela ou de um tipo acima na hierarquia; se nem o
+  // main trata, a pilha inteira cai.
+  //
+  // CADA RODADA E GERADA (Excecao::Gerar): a pilha tem de 3 a 4 chamadas,
+  // cada uma acima de quem lanca tem, por sorteio, um catch de um tipo
+  // qualquer da hierarquia e um finally, e a excecao lancada e IOException,
+  // RuntimeException ou NullPointerException. Onde ela para - no tipo exato,
+  // pela hierarquia, ou em lugar nenhum - sai da propagacao, e o placar diz
+  // como terminou. Antes eram cinco rodadas escritas a mao, so embaralhadas: em
+  // tres lutas o aluno ja as conhecia. A ultima de cada volta continua sendo
+  // a do proprio programa: catch (Reprovado e) { repescagem(); }.
+  //
+  // Medido partindo de 40, em cinco lutas: quem persegue sai com 53 a 69
+  // (59 sempre, com as rodadas fixas), quem desvia com 81 a 87, e o parado e
+  // o que vai e vem reprovam.
+  //
+  // A velocidade dos destrocos e a do anel sao as de Excecao.h (um teste
+  // confere); a excecao e enfeite e quem a move e o professor.
+  "StateFinal": {
+    "duracao": 20,
+    "proximo": "StateOne",
+    "anuncio": "Exceções · excipere, tirar de fora",
+    "movimento": { "tipo": "Conduzido", "a": 900 },
+    "ataques": [
+      { "gatilho": "excecao", "estrategia": "WaveAttack", "projetil": "Excecao",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "destroco", "estrategia": "WaveAttack", "projetil": "Destroco",
+        "projeteis": 17, "velocidade": 280, "angulo": 0, "anguloCentral": 90, "intervalo": 0 },
+      { "gatilho": "finally", "estrategia": "WaveAttack", "projetil": "Destroco",
+        "projeteis": 12, "velocidade": 220, "angulo": 330, "intervalo": 0 }
+    ]
+  }
+}

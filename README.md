@@ -27,16 +27,46 @@ escritos na tela.
 |---|---|---|---|
 | **Manche** | **setas** | **W A S D** | mover o aluno, escolher na tela |
 | **Botão 1** | **Espaço** | **F** | lançar Dúvidas; confirmar; digitar |
-| **Botão 2** | **B** | **G** | voltar e apagar; na batalha, gastar um Ponto Extra: limpa a tela e soma nota, mas sobrecarrega e impede de atirar por alguns segundos |
-| **Botão 3** | **N** | **H** | o ranking da matéria, na seleção |
+| **Botão 2** | **B** | **G** | voltar e apagar; na batalha, gastar um Ponto Extra: soma nota e, sozinho, limpa a tela, mas sobrecarrega e impede de atirar por alguns segundos; em dupla, dá ao parceiro um escudo que destrói os projéteis do chefe, e quem gastou segue atirando |
+| **Botão 3** | **N** | **H** | o ranking da matéria, na seleção; na batalha do TCC, soltar o poder do orientador quando o anel dele enche |
+| — | **Esc** | — | na batalha, **só no computador**: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota |
 | — | **Enter**, **Esc**, **0–9**, **Backspace** | — | atalhos de teclado para quem desenvolve |
 
-> As setas **deixaram de ser atalho do W A S D**: elas são o manche do jogador
-> 1, e o W A S D é o do jogador 2. Por enquanto só o jogador 1 joga — a segunda
-> posição já tem teclas, mas ainda não tem jogador. Ver
-> `Documentacao/requisitos-coop.md`.
+> As setas **não são atalho do W A S D**: elas são o manche do jogador 1, e o
+> W A S D é o do jogador 2.
+
+O menu principal tem **Modo Solo** e **Modo Dupla**. Em dupla, cada aluno se
+identifica, os dois jogam a mesma batalha e a **nota é uma só, da dupla**: o
+que um jogador causa sozinho — o acerto no professor, o acerto sofrido, o Ponto
+Extra — é dividido entre os dois, e o que a dupla conquista junta, como o bônus
+de fase limpa, vale inteiro. O **Ponto Extra em dupla é do outro**: em vez de
+limpar a tela, um feixe sai de quem o gastou e dá ao parceiro um escudo que
+destrói os projéteis do chefe por três segundos. As decisões do modo, e o
+porquê de cada uma, estão em `Documentacao/requisitos-coop.md`.
 
 O que cada botão faz **na tela em que você está** fica escrito no rodapé dela.
+
+Alguns projéteis o seu tiro **destrói** — os workers do Elixir, os agentes do
+Júlio, os blocos da pilha do Salles, a bala de prata da Maria Lúcia, os alvos
+do objetivo do TCC... Todos têm
+o mesmo sinal: um **contorno vermelho** em volta do desenho. Sem contorno, o tiro
+passa direto ou some nele.
+
+Na tela de **Opções**, do menu principal, ficam:
+
+- a **dificuldade**: **Normal**, as fases como foram medidas, ou **Difícil**, um
+  degrau acima para quem já tira 100 — mais coisa para desviar. A nota vale o
+  mesmo nos dois, e a batalha no Difícil mostra o selo **DIFÍCIL** na ponta da
+  faixa da nota;
+- o volume da **música** e o dos **efeitos**, de mudo a 10;
+- a **tela cheia** (no gabinete o jogo é sempre em tela cheia);
+- a **hitbox**: mostra na batalha o círculo onde um tiro acerta o aluno de
+  verdade, bem menor que o desenho dele.
+
+O manche para cima e para baixo escolhe a opção, e para os lados (ou o botão 1)
+troca. As opções são da máquina, e não do aluno: ficam em `Saves/opcoes.cfg` e
+valem para todos que jogarem ali até alguém trocar.
+
 
 Uma partida começa pela matrícula. **Novo Jogo** registra uma matrícula que
 ainda não existe e leva à criação de personagem; **Carregar Perfil** abre uma que
@@ -50,8 +80,11 @@ nota anterior continua guardada na ficha como informação, mas não é o ponto
 de partida.
 
 Subir até **60** é fácil e custa poucos acertos. Acima disso cada
-ponto custa mais que o anterior: a nota cheia sai por **256 acertos**, e uma
-batalha de 51 segundos entrega entre 268 e 382. Apesar de ser possível, ainda estou achando
+ponto custa mais que o anterior: a nota cheia sai por **301 acertos**, e uma
+batalha de 60 segundos tem tempo para até 500 tiros (a do TCC é mais longa,
+mas o Hugo blindado só toma dano nas janelas). O ganho de cada acerto
+acompanha a duração das fases: a nota sobe por segundo o mesmo que subia quando
+as fases tinham 17 segundos. Apesar de ser possível, ainda estou achando
 difícil, porque é necessário seguir o Boss que em alguns movimentos são mais rápidos. Talvez eu diminua
 esse número depois de receber feedback externo.
 
@@ -70,14 +103,14 @@ foi aprovado:
 |---|---|---|
 | 0 | INF 110 — Programação 1 *(André)* | sempre |
 | 1 | INF 213 — Estruturas de Dados *(Salles)* | INF 110 aprovada |
-| 2 | INF 250 — Organização de Computadores *(Ricardo)*, INF 220 — Banco de Dados *(Thiago)*, INF 330 — Teoria e Modelos de Grafos *(Salles)*, INF 331 — Linguagens Formais e Autômatos *(Vladimir)* | INF 213 aprovada |
-| 3 | INF 420 — Inteligência Artificial *(Júlio)*, INF 221 — Engenharia de Software *(Maria Lúcia)*, INF 321 — Programação Web *(Lucas)*, INF 452 — Redes de Computadores *(Vitor)* | 2 aprovações na coluna 2 |
+| 2 | INF 250 — Organização de Computadores *(Ricardo)*, INF 220 — Banco de Dados *(Thiago)*, INF 340 — Linguagens de Programação *(Luizinho)*, INF 331 — Linguagens Formais e Autômatos *(Vladimir)* | INF 213 aprovada |
+| 3 | INF 420 — Inteligência Artificial *(Júlio)*, INF 221 — Engenharia de Software *(Maria Lúcia)*, INF 321 — Programação Web *(Lucas)*, INF 310 — Programação Concorrente e Distribuída *(Vitor)* | 2 aprovações na coluna 2 |
 | 4 | TCC — Trabalho de Conclusão de Curso *(Hugo)* | 2 aprovações na coluna 3 |
 
-Toda matéria tem professor; **cinco têm batalha** (André, Salles, Ricardo,
-Thiago e Júlio) e as outras seis aparecem na grade esperando uma. São coisas
-separadas de propósito: a INF 330 é do Salles, que já é o chefe da INF 213 —
-reaproveitar o chefe faria duas matérias idênticas de jogar.
+Toda matéria tem professor e batalha — as dez do curso e o TCC, do Hugo, que é
+a última e a mais difícil. Ter professor e ter batalha são coisas separadas de
+propósito (uma matéria pode existir na grade antes de ter luta), e cada
+professor aparece uma vez só na grade.
 
 Quem decide tudo isso é `Assets/materias.json` — a ordem, as colunas, as regras
 de desbloqueio, o professor e qual chefe atende cada matéria. Não há lista de
@@ -90,6 +123,9 @@ Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
 - **`<matrícula>.json`** — uma ficha por aluno: aparência do personagem, recorde
   e última nota de cada matéria, com data. A nota vai para o disco **uma vez, no
   fim da batalha**, e não durante.
+- **`opcoes.cfg`** — as opções da máquina (a dificuldade, os volumes, a tela
+  cheia e a hitbox), em `chave=valor`. A tela de Opções o escreve na hora em
+  que algo muda.
 - **`notas.csv`** — a planilha do professor, com uma linha por aluno-matéria.
   É regravada a cada batalha, então está sempre em dia e ninguém precisa lembrar
   de exportar. Ela é **derivada** das fichas: apagá-la não perde nada.
@@ -99,21 +135,159 @@ no JSON não reatribui a nota de ninguém.
 
 ## Os professores
 
-Cada chefe tem três fases mais uma fase final, e uma identidade de ataque
-própria. A fase final acontece quando a nota termina entre 40 e 59 — é o exame.
+Cada chefe tem três fases mais uma fase final, de 20 segundos cada (as etapas
+do TCC duram 30), e uma identidade de ataque própria. A fase final acontece
+quando a nota termina entre 40 e 59 — é o exame.
 
-- **André — INF 110.** A primeira matéria do curso: balões que sobem e descem
-  pelas bordas da tela.
-- **Salles — INF 213.** Estruturas de dados: listas encadeadas que avançam em
-  fila, listas duplamente encadeadas que avançam e voltam, e uma capivara no
-  exame.
-- **Ricardo — INF 250.** Anéis de Arduinos que se abrem a partir dele.
-- **Júlio — INF 420.** Inteligência artificial, e as fases contam isso: na
-  primeira ele atira a esmo, na segunda mira onde você está, na terceira mira
-  onde você **vai estar**.
-- **Thiago — INF 220.** Banco de dados. O campo vira uma tabela e cada ataque é
-  uma consulta que varre uma linha ou uma coluna inteira. Aqui ao invés de desviar de
-  projétil, a estratégia é sair da faixa anunciada (representando uma "Busca" em um BD).
+**Cada luta é outra.** Toda batalha sorteia uma semente, e cada professor tira
+dela o que varia **dentro do conceito de cada fase**: a ordem das portas
+lógicas do Ricardo, a temperatura de cada etapa do Júlio (escrita no placar),
+o *planning poker* das sprints da Maria Lúcia, a página que o Lucas
+renderiza, a fita da máquina de Turing do Vladimir. O conceito é o mesmo
+em toda luta; o que muda é o exemplo — como uma lista de exercícios em que cada
+aluno pega outros números. Decorar o padrão não serve, e o placar continua
+sendo a regra: ele diz o que vai acontecer.
+
+**No Difícil**, cada professor sobe um degrau dentro da mesma ideia — mais
+tokens, leques mais largos, relógios mais curtos —, medido para cobrar de quem
+**só persegue o professor sem desviar**: esse reprova em parte das lutas, e
+quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
+
+- **André — INF 110.** Programação 1, um conceito por fase, com o placar
+  mostrando o código que ele está rodando — e os balões do BOCA. Na primeira,
+  o fluxograma do `if`: balões numerados descem até o losango e seguem pelo
+  ramo que a condição escolhe, e o confete cai na faixa daquele ramo; depois
+  vêm o `else if`, o `switch` sem `break` caindo de case em case e a pegadinha
+  `if (n = 0)`. Na segunda, o chão vira o vetor `v[0..11]` e de cada casa por
+  onde o `i` do laço passa sobe um cacho de balões — o `i <= 12` estoura em
+  *segmentation fault* e o `while (1)` só para no *Time limit exceeded*. Na
+  terceira, funções: os argumentos voam até o cartão da função e o retorno
+  volta, a passagem por valor ataca onde você estava e `segue(&aluno)` vai
+  atrás de você. O exame é a prova no BOCA: um problema de cada fase, o balão
+  do problema sobe no YES — e o último capota em *Runtime error*.
+- **Salles — INF 213.** Estruturas de dados, uma por fase, com o placar
+  escrevendo cada operação: uma pilha pendurada nele (push, pop e stack
+  overflow), uma tabela hash que encadeia, busca e faz rehash na sua frente, e
+  uma árvore binária de busca em que a chave desce comparando — e o seu tiro
+  também é uma operação: tira o topo, derruba o nó e a subárvore junto. O
+  exame é um bubble sort: os pares trocam na sua frente, e o vetor ordenado
+  cai em rampa. Em qualquer fase pode atravessar uma capivara: embaixo dela os
+  tiros soltos não te alcançam, e o seu não alcança o professor.
+- **Ricardo — INF 250.** Uma matéria de hardware por fase, e o placar é a
+  regra: palavras de bits atravessando portas lógicas (Sistemas Lógicos), o
+  clock e os registradores que andam nele (Organização), o pipeline com a
+  instrução no estágio de execução (Arquitetura) e, no exame, quatro Arduinos
+  rodando o Blink.
+- **Júlio — INF 420.** Inteligência artificial, e a batalha é um modelo de
+  linguagem. Na primeira fase ele gera a frase "o mo de lo te pre diz" token a
+  token, cada um nascendo na ponta da frase com um leque que mostra as chances
+  do próximo: fria, a frase é uma curva lisa que vem na sua direção; quente,
+  ela ziguezagueia e alucina, passando do fim. Na segunda
+  convoca agentes que trabalham no ciclo ReAct — pensam,
+  agem mandando a ferramenta em você e observam. Na terceira ganha guardrails
+  que comem o seu tiro, e o modelo te prediz de verdade: mira onde você **vai
+  estar**. No exame, o modelo degenerou em repetição e só gera "e".
+
+- **Thiago — INF 220.** Banco de dados. A tabela `alunos` está escrita no
+  campo e cada ataque é uma consulta sobre ela, com o SQL no placar: o `WHERE`
+  varre as linhas que satisfazem a condição, a projeção varre a coluna e o
+  `ORDER BY` troca as linhas de lugar. Em vez de desviar de projétil, você lê
+  a consulta e sai da faixa que ela vai buscar. Depois a tabela muda na sua
+  frente (`INSERT`, `UPDATE`, `DELETE`), e na terceira fase várias transações
+  disputam as linhas, com lock, `COMMIT`, `ROLLBACK` e deadlock. O exame é o
+  produto cartesiano, casa por casa.
+- **Maria Lúcia — INF 221.** Engenharia de Software, um processo ou padrão por
+  fase. A cascata é uma linha de produção: os pedidos do cliente viram
+  post-its no backlog, os post-its viram classes ligadas por setas, as classes
+  compilam código, cada uma solta o seu bug, e o bug que sobra vira dívida
+  parada no campo — e o post-it que você derruba é escopo cortado. Depois vêm
+  cinco sprints de métodos ágeis, com o cursor arrastando as histórias, o
+  padrão Observer (olhos que te assinam e avisam quando você vira) e, no exame,
+  a frase dela: **não há bala de prata**. Cada bala de prata tem o nome de uma
+  promessa (IA, UML, low-code...) e se desfaz em bugs quando chega perto — a
+  menos que você a teste antes, com um tiro: é o teste com usuário, da IHC e
+  da experiência do usuário que ela pesquisa.
+
+- **Vladimir — INF 331.** Teoria da computação: um autômato que lê a palavra
+  e atira cada letra lida, um compilador (ele também dá Construção de
+  Compiladores) que quebra uma linha de código em tokens, monta a árvore
+  sintática no campo e a transforma em instruções mirando em você, uma máquina de
+  Turing de verdade — o castor mais ocupado de 4 estados, que escreve, apaga e
+  relê a fita por 107 passos até parar com 13 marcas — e, no exame, o problema da
+  parada com o 3x + 1. O "a" vai reto e o "b" persegue, até o Programa de
+  Intercâmbio trocar os dois — e ele vale a luta inteira.
+- **Luizinho — INF 340.** Linguagens de Programação, um assunto da ementa por
+  fase: cada uma abre com a palavra latina por trás dele, e depois o placar
+  mostra o código que ele está rodando. O programa da primeira fase e as
+  exceções do exame são gerados a cada luta.
+
+  Na primeira o campo é o texto do programa, um painel por
+  bloco com as declarações no canto, e a variável que a busca acha chove onde
+  ela é visível — menos nos blocos que têm outra com o mesmo nome; no fim, a
+  mesma chamada em escopo estático e em escopo dinâmico. Na segunda, a mesma
+  conta em JavaScript, PHP, Python e Haskell: os operandos voam até em cima de
+  você, o convertido troca de cor no meio do voo, e o resultado ataca do jeito
+  do tipo dele — o número é um anel, o texto é a palavra, o `TypeError` estoura
+  onde a conta roda e o erro de compilação, no professor. Na terceira o campo é
+  o heap e o alocador te escolhe: no Java o coletor para o mundo e derruba o
+  lixo, no C++ o ponteiro pendente estoura e o laço que só aloca vaza até o
+  `bad_alloc`. O exame é uma exceção subindo pela pilha de chamadas: cada
+  faixa que não a trata cai em cima de você — e a repescagem é um `catch`.
+- **Vitor — INF 310.** Programação Concorrente e Distribuída — e Redes, que
+  ele também dá. Na primeira, semáforos: cada thread é uma coluna de
+  instruções descendo até a seção crítica, quem não tem o semáforo se empilha
+  na porta (a fila do `P(s)`, que o placar mostra) e o `V(s)` solta a pilha
+  seguinte em leque, com mutex, semáforo de 2, espera ocupada e uma condição
+  de corrida em que o saldo dá errado. As correntes prendem: preso, você fica
+  lento, e a coluna em cima de você fura a fila. Na segunda, as nuvens mandam
+  janelas TCP ao roteador do meio do campo, que só dá conta de 10 por RTT e
+  descarta o resto em cacos; a janela segue o dente de serra do controle de
+  congestionamento, desenhado num gráfico, e o Ponto Extra vira um timeout. Na
+  terceira ele se divide pela nuvem em pai e filho, que trocam mensagens por
+  um canal em arco: a caixa postal que enche, o rendezvous, a RPC que devolve
+  um leque e o impasse dos dois mandando ao mesmo tempo. O exame é o jantar
+  dos filósofos — os garfos andam de mão em mão, e o deadlock vira um cerco
+  até o `kill -9`.
+- **Lucas — INF 321.** Programação Web, na ordem da matéria. No HTML ele
+  renderiza uma página gerada a cada luta, com o layout desenhado no campo, e
+  cada elemento ataca do seu jeito: o cursor voa até o `<button>` e clica, a
+  `<img>` gira o spinner e estoura, o `<marquee>` atravessa a tela, a
+  `<table>` cai linha a linha, o `<a href>` o leva à âncora e o `<input>`
+  digita letra por letra. No CSS ele abre o DevTools: uma grade de cartões que
+  cada regra do placar transforma inteira — `gap`, `rotate`, `scale`,
+  `display: none`, `animation`, `position: fixed`, `:hover` —, e enquanto ele
+  digita a regra, as letras escorrem embaixo dele (a cascata). O Elixir é uma
+  árvore de supervisão: casts correm pelas linhas até a caixa de cada worker,
+  a caixa cheia vira um leque, e o worker derrubado é reiniciado pela
+  estratégia da rodada (`:one_for_one`, `:one_for_all`, `:rest_for_one`);
+  parado, o supervisor manda as dúvidas pelo `|>`. O exame é o event loop do
+  JavaScript: cada script passa pela pilha, os timers correm nas Web APIs, e
+  as promessas da fila de microtarefas rodam antes do `setTimeout(cb, 0)` —
+  cada callback que sai de uma fila ataca.
+
+- **Hugo — TCC.** A última matéria e a batalha mais difícil do jogo — e a
+  maior: quatro etapas de 30 s. Antes dela você escolhe um **orientador**
+  entre os professores em que tirou as maiores notas, e ele luta do seu lado:
+  o tiro dele tem a cara da matéria (o `for` do André, a pilha do Salles, o
+  barramento do Ricardo, a transação do Thiago, o ponteiro do Luizinho, a
+  gramática do Vladimir, o gradiente do Júlio, o Observer da Maria Lúcia, o
+  `fetch` do Lucas, a janela do TCP do Vitor), e cada um traz um **poder**,
+  que carrega a cada acerto no Hugo e sai no **botão 3**: o laço sem fim do
+  André, a capivara do Salles que come os tiros, o `HLT` do Ricardo que
+  congela tudo, o `ROLLBACK` do Thiago que manda os tiros de volta, o `free()`
+  do Luizinho, o autômato do Vladimir que converte os tiros em volta, os
+  agentes do Júlio, a bala de prata da Maria Lúcia que quebra o escudo, o
+  `Promise.all()` do Lucas e o `fork()` do Vitor. Escolher o orientador é
+  escolher o jeito de jogar.
+
+  **O Hugo é blindado** — o TCC ainda não está pronto — e cada etapa tem um
+  objetivo que abre uma janela em que ele toma dano: na proposta, acerte as
+  assinaturas enquanto as barras do cronograma de Gantt caem no prazo; no
+  desenvolvimento (o tema é a área do orientador, com os ataques da matéria
+  dele), derrube os bugs; na defesa, a banca são dois outros professores, e
+  você acerta a resposta certa (A, B ou C) da pergunta deles — "E se der
+  deadlock?" —; nas correções, as marcas em vermelho. Aberto, o Hugo perde as
+  páginas da monografia embaixo dele.
 
 ## Como compilar
 
@@ -147,9 +321,10 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 385 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 1053 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
-a montagem dos personagens, a planilha — e também **leem os arquivos de
+a montagem dos personagens, a planilha, o objetivo e o poder do orientador no
+TCC — e também **leem os arquivos de
 `Assets/` de verdade**, quebrando ao primeiro erro de digitação num JSON. Um
 chefe citado em `materias.json` sem fábrica registrada, um nome de fase que a
 máquina de estados não conhece ou um projétil inexistente derrubam a suíte em vez
@@ -162,9 +337,10 @@ Os testes foram na sua grande maioria gerados pelo Claude por enquanto, mas to c
 ```
 Source/          o jogo
   *.h / *.cpp      camada pura: nota, matrícula, progresso, matérias,
-                   personagens, navegação, tabela. Nada de SDL nem de disco.
+                   personagens, navegação, tabela, orientação, golpe e
+                   poder do orientador. Nada de SDL nem de disco.
   *Arquivo.cpp     as pontes: é só aqui que se lê arquivo e se fala com SDL.
-  Actors/          jogador, professores, projéteis
+  Actors/          jogador, professores, orientador, projéteis
   Attacks/         as estratégias de ataque e os comportamentos de projétil
   Scenes/          menu, identificação, criação de personagem, seleção, batalha
   Components/      desenho, colisão, física, máquina de estados
@@ -174,7 +350,9 @@ Assets/          sprites, fontes, sons e os JSON que descrevem o jogo
   materias.json    o curso inteiro
   personagens.json o catálogo de peças do personagem
 Documentacao/    receitas para quem for mexer no código
-Ferramentas/     geradores de arte provisória
+Ferramentas/     geradores de arte provisória e os arneses de medição
+                 (medir-dificuldade.sh, parado-reprova.sh)
+
 tests/           a suíte
 ```
 

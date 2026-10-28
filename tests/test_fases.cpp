@@ -2,6 +2,9 @@
 // transicoes. Camada pura: nao abre arquivo, nao escreve log, nao sobe SDL.
 
 #include "doctest.h"
+
+#include <stdexcept>
+#include <string>
 #include "../Source/Attacks/FasesDeAtaque.h"
 #include "../Source/Tabela.h"
 
@@ -508,4 +511,663 @@ TEST_CASE("Consulta: aviso negativo e recusado") {
     // atingido por um ataque que nunca teve como ler.
     CHECK_FALSE(LerFases(ComConsulta(R"({ "eixo": "Linha", "aviso": -0.5 })")).problemas.empty());
     CHECK(LerFases(ComConsulta(R"({ "eixo": "Linha", "aviso": 0 })")).problemas.empty());
+}
+
+// --------------------------------- a fase que se divide em dois corpos
+
+namespace {
+
+    /// Um conjunto minimo valido, com a fase 3 declarando um clone.
+    std::string ComClone(const std::string& extraNaTres = "") {
+        return R"({
+          "StateOne":   { "duracao": 10, "proximo": "StateTwo",
+                          "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] },
+          "StateTwo":   { "duracao": 10, "proximo": "StateThree",
+                          "ataques": [ { "estrategia": "CircleSpreadAttack", "projetil": "P" } ] },
+          "StateThree": { "duracao": 10, "proximo": "",
+                          "ataquesDe": "StateOne",
+                          "clone": { "ataquesDe": "StateTwo" })" + extraNaTres + R"( },
+          "StateFinal": { "duracao": 10, "proximo": "StateOne",
+                          "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+        })";
+    }
+}
+
+TEST_CASE("Fases: uma fase pode usar os ataques de outra, e declarar um clone") {
+
+    // POR QUE ISTO EXISTE: na fase que se divide, o corpo original repete o
+    // ataque de uma fase anterior. Escrever a lista de novo seria a mesma coisa
+    // dita duas vezes, e duas copias divergem no dia em que alguem ajusta uma.
+    const auto lidas = LerFases(ComClone());
+
+    CHECK(lidas.problemas.empty());
+    REQUIRE(lidas.fases.size() == 4);
+
+    const DescricaoDeFase* tres = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == "StateThree") tres = &f;
+    REQUIRE(tres != nullptr);
+
+    CHECK(tres->ataquesDe == "StateOne");
+    CHECK(tres->clone.existe);
+    CHECK(tres->clone.ataquesDe == "StateTwo");
+
+    // A fase que empresta NAO ganha a lista aqui: quem resolve e a ponte, e
+    // deixar a lista vazia na camada pura e o que mantem UMA fonte de verdade.
+    CHECK(tres->ataques.empty());
+}
+
+TEST_CASE("Fases: uma fase sem clone nao inventa um") {
+
+    const auto lidas = LerFases(R"({
+      "StateOne":   { "proximo": "StateFinal",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] },
+      "StateFinal": { "proximo": "", 
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+    })");
+
+    REQUIRE(lidas.fases.size() == 2);
+    for (const auto& f : lidas.fases) {
+        CAPTURE(f.nome);
+        CHECK_FALSE(f.clone.existe);
+        CHECK(f.ataquesDe.empty());
+    }
+}
+
+TEST_CASE("Fases: \"ataques\" E \"ataquesDe\" juntos sao recusados") {
+
+    // Seriam duas respostas para "o que ele dispara aqui", e o leitor teria de
+    // escolher uma em silencio - que e o tipo de erro que so aparece jogando.
+    const auto lidas = LerFases(R"({
+      "StateOne":   { "proximo": "StateFinal",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] },
+      "StateFinal": { "proximo": "", "ataquesDe": "StateOne",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+    })");
+
+    bool reclamou = false;
+    for (const auto& p : lidas.problemas) {
+        if (p.find("ataquesDe") != std::string::npos) reclamou = true;
+    }
+    CHECK(reclamou);
+}
+
+TEST_CASE("Fases: um clone sem \"ataquesDe\" e recusado") {
+
+    const auto lidas = LerFases(R"({
+      "StateOne":   { "proximo": "StateFinal",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ],
+                      "clone": { } },
+      "StateFinal": { "proximo": "",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+    })");
+
+    CHECK_FALSE(lidas.problemas.empty());
+}
+
+TEST_CASE("Fases: apontar para uma fase que nao existe e denunciado") {
+
+    // Um nome errado aqui falharia EM SILENCIO: a fase carregaria sem ataque
+    // nenhum e o chefe ficaria parado. Mesma razao da checagem de "proximo".
+    const auto lidas = LerFases(ComClone());
+    auto fases = lidas.fases;
+    for (auto& f : fases) {
+        if (f.nome == "StateThree") { f.clone.ataquesDe = "StateQuinta"; }
+    }
+
+    const auto problemas = ValidarTransicoes(fases, "teste");
+
+    bool citou = false;
+    for (const auto& p : problemas) {
+        if (p.find("StateQuinta") != std::string::npos) citou = true;
+    }
+    CHECK(citou);
+}
+
+TEST_CASE("Fases: uma fase que empresta de si mesma e recusada") {
+
+    // Seria uma fase sem ataques: a resolucao nao tem de onde copiar.
+    auto fases = LerFases(ComClone()).fases;
+    for (auto& f : fases) if (f.nome == "StateThree") f.ataquesDe = "StateThree";
+
+    const auto problemas = ValidarTransicoes(fases, "teste");
+
+    bool citou = false;
+    for (const auto& p : problemas) {
+        if (p.find("ela mesma") != std::string::npos) citou = true;
+    }
+    CHECK(citou);
+}
+
+TEST_CASE("Fases: corrente de \"ataquesDe\" e recusada") {
+
+    // Permitir A -> B -> C exigiria detectar ciclo, e o ganho seria nenhum:
+    // "use os ataques de quem usa os de outro" nao diz nada que apontar direto
+    // para a origem nao diga melhor.
+    auto fases = LerFases(ComClone()).fases;
+    for (auto& f : fases) {
+        if (f.nome == "StateThree") f.ataquesDe = "StateFinal";
+        if (f.nome == "StateFinal") f.ataquesDe = "StateOne";
+    }
+
+    const auto problemas = ValidarTransicoes(fases, "teste");
+
+    bool citou = false;
+    for (const auto& p : problemas) {
+        if (p.find("por sua vez") != std::string::npos) citou = true;
+    }
+    CHECK(citou);
+}
+
+// ---------------------------------------------------------------------------
+// O anuncio do placar
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Fases: o anuncio da fase e lido como texto, e sem ele a fase nao anuncia") {
+
+    // UTF-8 inteiro, porque e o que o placar desenha: "aⁿbⁿ" com o sobrescrito
+    // de verdade. A leitura nao pode tocar nos bytes.
+    //
+    // OS BYTES VAO ESCRITOS UM A UM, e nao como "ⁿ" nem "\u207f": as duas formas
+    // dependem do conjunto de caracteres que o compilador assume, e o CMake nao
+    // fixa nenhum. Em \x o teste e o mesmo em qualquer compilador.
+    const std::string aNbN = "a\xE2\x81\xBF" "b\xE2\x81\xBF";
+    const auto lidas = LerFases(R"({
+      "StateOne":   { "proximo": "StateFinal", "anuncio": ")" + aNbN + R"(",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] },
+      "StateFinal": { "proximo": "",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+    })");
+
+    CHECK(lidas.problemas.empty());
+    REQUIRE(lidas.fases.size() == 2);
+    for (const auto& f : lidas.fases) {
+        CAPTURE(f.nome);
+        if (f.nome == "StateOne")   CHECK(f.anuncio == aNbN);
+        if (f.nome == "StateFinal") CHECK(f.anuncio.empty());
+    }
+}
+
+TEST_CASE("Fases: um anuncio que nao e texto e recusado, e nao lido como vazio") {
+
+    // Lido como vazio, ele viraria um placar que apaga sem aviso - e quem
+    // escreveu um numero ali nunca saberia que o quadro nao acende.
+    const auto lidas = LerFases(R"({
+      "StateOne":   { "proximo": "StateFinal", "anuncio": 42,
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] },
+      "StateFinal": { "proximo": "",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+    })");
+
+    bool reclamou = false;
+    for (const auto& p : lidas.problemas) {
+        if (p.find("anuncio") != std::string::npos) reclamou = true;
+    }
+    CHECK(reclamou);
+}
+
+// ---------------------------------------------------------------------------
+// O Programa de Intercambio
+// ---------------------------------------------------------------------------
+
+namespace {
+    /// Duas fases que fecham, com o "intercambio" que o caso pedir na primeira.
+    std::string ComIntercambio(const std::string& intercambio) {
+        return R"({
+          "StateOne":   { "proximo": "StateFinal", "intercambio": )" + intercambio + R"(,
+                          "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] },
+          "StateFinal": { "proximo": "",
+                          "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+        })";
+    }
+}
+
+TEST_CASE("Fases: o intercambio e lido, e sem ele a fase nao troca ninguem") {
+    const auto lidas = LerFases(ComIntercambio(R"({ "aCada": 8, "aviso": 1.5 })"));
+
+    CHECK(lidas.problemas.empty());
+    REQUIRE(lidas.fases.size() == 2);
+    for (const auto& f : lidas.fases) {
+        CAPTURE(f.nome);
+        if (f.nome == "StateOne") {
+            REQUIRE(f.intercambio.has_value());
+            CHECK(f.intercambio->aCada == doctest::Approx(8.0f));
+            CHECK(f.intercambio->aviso == doctest::Approx(1.5f));
+        }
+        if (f.nome == "StateFinal") CHECK_FALSE(f.intercambio.has_value());
+    }
+}
+
+TEST_CASE("Fases: um intercambio que nao trocaria ninguem e recusado") {
+
+    // Cada um destes passaria calado em jogo: sem periodo a troca nunca vem, um
+    // aviso do tamanho do periodo fica aceso para sempre, e um campo que falta
+    // viraria zero sem ninguem ver.
+    for (const char* ruim : { R"({ "aCada": 0, "aviso": 0 })",
+                              R"({ "aCada": 8, "aviso": 8 })",
+                              R"({ "aCada": 8, "aviso": -1 })",
+                              R"({ "aCada": 8 })",
+                              R"(8)" }) {
+        CAPTURE(ruim);
+        const auto lidas = LerFases(ComIntercambio(ruim));
+        bool reclamou = false;
+        for (const auto& p : lidas.problemas) {
+            if (p.find("intercambio") != std::string::npos) reclamou = true;
+        }
+        CHECK(reclamou);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// A caixa do HTML
+// ---------------------------------------------------------------------------
+
+namespace {
+    std::string ComAtaque(const std::string& ataque) {
+        return R"({
+          "StateOne":   { "proximo": "StateFinal", "ataques": [ )" + ataque + R"( ] },
+          "StateFinal": { "proximo": "",
+                          "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+        })";
+    }
+}
+
+TEST_CASE("Fases: a CaixaAttack existe e o bloco dela e opcional") {
+
+    // SEM BLOCO e valido: os dois campos tem padrao (CaixaAttackParams), e a
+    // ponte constroi a struct para todo ataque CaixaAttack.
+    const auto sem = LerFases(ComAtaque(R"({ "estrategia": "CaixaAttack", "projetil": "P" })"));
+    CHECK(sem.problemas.empty());
+
+    const auto com = LerFases(ComAtaque(R"({ "estrategia": "CaixaAttack", "projetil": "P",
+                                             "caixa": { "proporcao": 2, "meiaAlturaInicial": 80 } })"));
+    CHECK(com.problemas.empty());
+    for (const auto& f : com.fases) {
+        if (f.nome != "StateOne") continue;
+        REQUIRE(f.ataques.size() == 1);
+        REQUIRE(f.ataques[0].caixa.has_value());
+        CHECK(*f.ataques[0].caixa->proporcao == doctest::Approx(2.0f));
+        CHECK(*f.ataques[0].caixa->meiaAlturaInicial == doctest::Approx(80.0f));
+    }
+}
+
+TEST_CASE("Fases: uma caixa de lado zero e recusada, e o bloco em outra estrategia e avisado") {
+
+    // Zero nao e uma caixa estranha, e caixa nenhuma: o ataque nao dispararia.
+    const auto zero = LerFases(ComAtaque(R"({ "estrategia": "CaixaAttack", "projetil": "P",
+                                              "caixa": { "proporcao": 0 } })"));
+    bool reclamou = false;
+    for (const auto& p : zero.problemas) if (p.find("caixa") != std::string::npos) reclamou = true;
+    CHECK(reclamou);
+
+    // Num WaveAttack o bloco nao seria lido por ninguem - avisar evita uma
+    // tarde ajustando um numero que nao muda nada.
+    const auto fora = LerFases(ComAtaque(R"({ "estrategia": "WaveAttack", "projetil": "P",
+                                              "caixa": { "proporcao": 2 } })"));
+    bool avisou = false;
+    for (const auto& p : fora.problemas) if (p.find("so a CaixaAttack") != std::string::npos) avisou = true;
+    CHECK(avisou);
+}
+
+// ---------------------------------------------------------------------------
+// O flexbox do CSS
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Fases: a FlexAttack saiu, e um arquivo que ainda a pede e avisado") {
+    // A fase 2 do Lucas virou o DevTools (Estilo.h), que move a grade pelo
+    // codigo: a estrategia que soltava fileiras rearranjaveis nao tem mais
+    // quem a use, e um nome que nao existe tem de ser recusado na leitura.
+    const auto lidas = LerFases(ComAtaque(R"({ "estrategia": "FlexAttack", "projetil": "P" })"));
+    CHECK_FALSE(lidas.problemas.empty());
+}
+
+// ---------------------------------------------------------------------------
+// A sprint dos metodos ageis
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Fases: a SprintAttack existe e o bloco dela e opcional") {
+    const auto sem = LerFases(ComAtaque(R"({ "estrategia": "SprintAttack", "projetil": "P" })"));
+    CHECK(sem.problemas.empty());
+
+    const auto com = LerFases(ComAtaque(R"({ "estrategia": "SprintAttack", "projetil": "P",
+        "sprint": { "revisao": 2.6, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } })"));
+    CHECK(com.problemas.empty());
+    bool viu = false;
+    for (const auto& f : com.fases) {
+        if (f.nome != "StateOne") continue;
+        REQUIRE(f.ataques.size() == 1);
+        REQUIRE(f.ataques[0].sprint.has_value());
+        const auto& s = *f.ataques[0].sprint;
+        CHECK(*s.revisao == doctest::Approx(2.6f));
+        CHECK(s.historia == "Historia");
+        CHECK(s.cursor == "Cursor");
+        CHECK(s.clique == "Clique");
+        viu = true;
+    }
+    CHECK(viu);
+}
+
+TEST_CASE("Fases: uma sprint com revisao em zero ou antes e recusada, e o bloco so vale na SprintAttack") {
+    for (const char* bloco : { R"("sprint": { "revisao": 0 })", R"("sprint": { "revisao": -1 })",
+                               R"("sprint": 3)" }) {
+        CAPTURE(bloco);
+        const auto r = LerFases(ComAtaque(std::string(R"({ "estrategia": "SprintAttack", "projetil": "P", )")
+                                          + bloco + " }"));
+        bool reclamou = false;
+        for (const auto& p : r.problemas) if (p.find("sprint") != std::string::npos) reclamou = true;
+        CHECK(reclamou);
+        for (const auto& f : r.fases) if (f.nome == "StateOne") CHECK(f.ataques.empty());
+    }
+
+    const auto fora = LerFases(ComAtaque(R"({ "estrategia": "WaveAttack", "projetil": "P",
+                                              "sprint": { "revisao": 2 } })"));
+    bool avisou = false;
+    for (const auto& p : fora.problemas) if (p.find("so a SprintAttack") != std::string::npos) avisou = true;
+    CHECK(avisou);
+}
+
+TEST_CASE("Fases: o primeiro disparo de uma janela - 1 s na que abre a fase, 0,25 s depois nas outras") {
+    // E A CONTA QUE O BOSS FAZ QUADRO A QUADRO: o relogio de cada ataque
+    // comeca em kPrimeiroDisparoDaFase, e enquanto a janela dele esta fechada
+    // fica em no maximo kPrimeiroDisparoDaJanela. As sprints da Maria Lucia
+    // dependem dela para disparar todas no mesmo ponto da sprint.
+    CHECK(PrimeiroDisparoNaJanela(0.0f) == doctest::Approx(kPrimeiroDisparoDaFase));
+    CHECK(PrimeiroDisparoNaJanela(0.75f) == doctest::Approx(0.75f + kPrimeiroDisparoDaJanela));
+    CHECK(PrimeiroDisparoNaJanela(3.75f) == doctest::Approx(3.75f + kPrimeiroDisparoDaJanela));
+    CHECK(kPrimeiroDisparoDaFase == doctest::Approx(1.0f));
+    CHECK(kPrimeiroDisparoDaJanela == doctest::Approx(0.25f));
+}
+
+TEST_CASE("Fases: um ataque pode ter gatilho, e so um gatilho que algum chefe puxa") {
+    const auto ok = LerFases(ComAtaque(R"({ "gatilho": "notificacao", "estrategia": "WaveAttack", "projetil": "P" })"));
+    CHECK(ok.problemas.empty());
+    bool viu = false;
+    for (const auto& f : ok.fases) {
+        if (f.nome != "StateOne") continue;
+        REQUIRE(f.ataques.size() == 1);
+        CHECK(f.ataques[0].gatilho == "notificacao");
+        viu = true;
+    }
+    CHECK(viu);
+
+    // Sem gatilho, o relogio.
+    const auto sem = LerFases(ComAtaque(R"({ "estrategia": "WaveAttack", "projetil": "P" })"));
+    for (const auto& f : sem.fases) if (f.nome == "StateOne") CHECK(f.ataques[0].gatilho.empty());
+
+    // Um gatilho que ninguem puxa e um ataque que nunca aparece: recusado.
+    for (const char* g : { R"("gatilho": "trovao")", R"("gatilho": 2)" }) {
+        CAPTURE(g);
+        const auto r = LerFases(ComAtaque(std::string("{ ") + g + R"(, "estrategia": "WaveAttack", "projetil": "P" })"));
+        bool reclamou = false;
+        for (const auto& p : r.problemas) if (p.find("gatilho") != std::string::npos) reclamou = true;
+        CHECK(reclamou);
+        for (const auto& f : r.fases) if (f.nome == "StateOne") CHECK(f.ataques.empty());
+    }
+}
+
+TEST_CASE("Fases: a TokenAttack existe e o bloco dela e opcional") {
+    const auto sem = LerFases(ComAtaque(R"({ "estrategia": "TokenAttack", "projetil": "P" })"));
+    CHECK(sem.problemas.empty());
+
+    const auto com = LerFases(ComAtaque(R"({ "estrategia": "TokenAttack", "projetil": "P",
+        "tokens": { "temperatura": 0.8, "candidatos": 9, "abertura": 120, "frase": ["o", "mo"] } })"));
+    CHECK(com.problemas.empty());
+    bool viu = false;
+    for (const auto& f : com.fases) {
+        if (f.nome != "StateOne") continue;
+        REQUIRE(f.ataques.size() == 1);
+        REQUIRE(f.ataques[0].tokens.has_value());
+        const auto& t = *f.ataques[0].tokens;
+        CHECK(*t.temperatura == doctest::Approx(0.8f));
+        CHECK(*t.candidatos == 9);
+        CHECK(*t.abertura == doctest::Approx(120.0f));
+        REQUIRE(t.frase.size() == 2);
+        CHECK(t.frase[1] == "mo");
+        viu = true;
+    }
+    CHECK(viu);
+}
+
+TEST_CASE("Fases: tokens com temperatura ou abertura negativas, candidatos que nao sao inteiros ou frase quebrada sao recusados") {
+    for (const char* bloco : { R"("tokens": { "temperatura": -0.1 })", R"("tokens": { "abertura": -10 })",
+                               R"("tokens": { "candidatos": 0 })", R"("tokens": { "candidatos": 2.5 })",
+                               R"("tokens": { "frase": "o mo" })", R"("tokens": { "frase": ["o", 3] })" }) {
+        CAPTURE(bloco);
+        const auto r = LerFases(ComAtaque(std::string(R"({ "estrategia": "TokenAttack", "projetil": "P", )")
+                                          + bloco + " }"));
+        bool reclamou = false;
+        for (const auto& p : r.problemas) if (p.find("tokens") != std::string::npos) reclamou = true;
+        CHECK(reclamou);
+        for (const auto& f : r.fases) if (f.nome == "StateOne") CHECK(f.ataques.empty());
+    }
+    // Temperatura zero vale: e a escolha gulosa.
+    const auto gulosa = LerFases(ComAtaque(R"({ "estrategia": "TokenAttack", "projetil": "P", "tokens": { "temperatura": 0 } })"));
+    CHECK(gulosa.problemas.empty());
+}
+
+TEST_CASE("Fases: a PalavraAttack existe, e o bloco dela e opcional") {
+    const auto sem = LerFases(ComAtaque(R"({ "estrategia": "PalavraAttack", "projetil": "P", "projeteis": 16 })"));
+    CHECK(sem.problemas.empty());
+
+    const auto com = LerFases(ComAtaque(R"({ "estrategia": "PalavraAttack", "projetil": "P", "projeteis": 8,
+        "palavra": { "altura": 390, "zero": "Z", "um": "U", "atravessa": "todos", "valor": "1011 0010" } })"));
+    CHECK(com.problemas.empty());
+    bool viu = false;
+    for (const auto& f : com.fases) {
+        if (f.nome != "StateOne") continue;
+        REQUIRE(f.ataques.size() == 1);
+        REQUIRE(f.ataques[0].palavra.has_value());
+        const auto& p = *f.ataques[0].palavra;
+        CHECK(*p.altura == doctest::Approx(390.0f));
+        CHECK(p.zero == "Z");
+        CHECK(p.um == "U");
+        CHECK(p.todosAtravessam);
+        REQUIRE(p.valor);
+        CHECK(*p.valor == 0xB2u);   // escrito como se le: o primeiro digito e o bit mais alto
+        viu = true;
+    }
+    CHECK(viu);
+}
+
+TEST_CASE("Fases: uma palavra com valor do tamanho errado, digito que nao e bit ou travessia inventada e recusada") {
+    for (const char* bloco : { R"("palavra": { "valor": "1011 001" })",      // um digito a menos
+                               R"("palavra": { "valor": "1011 00101" })",    // um a mais
+                               R"("palavra": { "valor": "1021 0010" })",
+                               R"("palavra": { "valor": 178 })",
+                               R"("palavra": { "atravessa": "uns" })" }) {
+        CAPTURE(bloco);
+        const auto r = LerFases(ComAtaque(std::string(R"({ "estrategia": "PalavraAttack", "projetil": "P", "projeteis": 8, )")
+                                          + bloco + " }"));
+        bool reclamou = false;
+        for (const auto& p : r.problemas) if (p.find("palavra") != std::string::npos) reclamou = true;
+        CHECK(reclamou);
+        for (const auto& f : r.fases) if (f.nome == "StateOne") CHECK(f.ataques.empty());
+    }
+}
+
+TEST_CASE("Fases: a PontosAttack precisa de um posto que existe") {
+    const auto ok = LerFases(ComAtaque(R"({ "estrategia": "PontosAttack", "projetil": "P",
+        "pontos": { "posto": "quadro", "mirar": true } })"));
+    CHECK(ok.problemas.empty());
+    bool viu = false;
+    for (const auto& f : ok.fases) {
+        if (f.nome != "StateOne") continue;
+        REQUIRE(f.ataques.size() == 1);
+        REQUIRE(f.ataques[0].pontos.has_value());
+        CHECK(f.ataques[0].pontos->posto == "quadro");
+        CHECK(f.ataques[0].pontos->mirar);
+        viu = true;
+    }
+    CHECK(viu);
+
+    // Sem bloco, com bloco que nao e objeto, ou com um posto que ninguem ocupa:
+    // o ataque nunca dispararia, e calado. Recusado.
+    for (const char* resto : { "", R"(, "pontos": 3)", R"(, "pontos": { "posto": "nuvem" })",
+                               R"(, "pontos": { "mirar": true })" }) {
+        CAPTURE(resto);
+        const auto r = LerFases(ComAtaque(std::string(R"({ "estrategia": "PontosAttack", "projetil": "P")")
+                                          + resto + " }"));
+        bool reclamou = false;
+        for (const auto& p : r.problemas) if (p.find("pontos") != std::string::npos
+                                              || p.find("PontosAttack") != std::string::npos) reclamou = true;
+        CHECK(reclamou);
+        for (const auto& f : r.fases) if (f.nome == "StateOne") CHECK(f.ataques.empty());
+    }
+
+    const auto fora = LerFases(ComAtaque(R"({ "estrategia": "WaveAttack", "projetil": "P",
+                                              "pontos": { "posto": "quadro" } })"));
+    bool avisou = false;
+    for (const auto& p : fora.problemas) if (p.find("so a PontosAttack") != std::string::npos) avisou = true;
+    CHECK(avisou);
+}
+
+// ---------------------------------------------------------------------------
+// As etapas de uma fase (a cascata)
+// ---------------------------------------------------------------------------
+
+namespace {
+    std::string FaseComEtapas(const std::string& etapas, const std::string& ataques) {
+        return R"({
+          "StateOne":   { "duracao": 10, "proximo": "StateFinal", "etapas": )" + etapas +
+               R"(, "ataques": [ )" + ataques + R"( ] },
+          "StateFinal": { "proximo": "", "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+        })";
+    }
+}
+
+TEST_CASE("Fases: as etapas sao lidas em ordem, e cada ataque diz a sua") {
+    const auto r = LerFases(FaseComEtapas(
+        R"([ { "nome": "Requisitos", "duracao": 3 }, { "nome": "Projeto", "duracao": 4, "anuncio": "2 - Projeto" } ])",
+        R"({ "estrategia": "WaveAttack", "projetil": "P", "etapa": "Projeto" },
+           { "estrategia": "WaveAttack", "projetil": "P" })"));
+    CHECK(r.problemas.empty());
+    for (const auto& f : r.fases) {
+        if (f.nome != "StateOne") continue;
+        REQUIRE(f.etapas.size() == 2);
+        CHECK(f.etapas[0].nome == "Requisitos");
+        CHECK(f.etapas[0].anuncio.empty());
+        CHECK(f.etapas[1].anuncio == "2 - Projeto");
+        REQUIRE(f.ataques.size() == 2);
+        CHECK(f.ataques[0].etapa == "Projeto");
+        CHECK(f.ataques[1].etapa.empty());     // sem etapa: a fase inteira
+
+        float de = -1.0f, ate = -1.0f;
+        REQUIRE(JanelaDaEtapa(f.etapas, "Projeto", de, ate));
+        CHECK(de == doctest::Approx(3.0f));
+        CHECK(ate == doctest::Approx(7.0f));
+        CHECK_FALSE(JanelaDaEtapa(f.etapas, "Testes", de, ate));
+    }
+}
+
+TEST_CASE("Fases: a etapa de cada instante, e nenhuma depois da ultima") {
+    std::vector<DescricaoDeEtapa> e(3);
+    e[0].nome = "a"; e[0].duracao = 2.0f;
+    e[1].nome = "b"; e[1].duracao = 2.0f;
+    e[2].nome = "c"; e[2].duracao = 1.0f;
+    CHECK(EtapaNoTempo(e, -1.0f) == 0);
+    CHECK(EtapaNoTempo(e, 0.0f) == 0);
+    CHECK(EtapaNoTempo(e, 1.99f) == 0);
+    CHECK(EtapaNoTempo(e, 2.0f) == 1);     // a fronteira ja e da seguinte
+    CHECK(EtapaNoTempo(e, 4.5f) == 2);
+    CHECK(EtapaNoTempo(e, 5.0f) == -1);
+    CHECK(EtapaNoTempo({}, 1.0f) == -1);
+}
+
+TEST_CASE("Fases: etapas mal escritas, ou que nao cabem na fase, sao recusadas") {
+    const char* ruins[] = {
+        R"([ { "nome": "a", "duracao": 0 } ])",
+        R"([ { "nome": "a", "duracao": 3 }, { "nome": "a", "duracao": 3 } ])",
+        R"([ { "duracao": 3 } ])",
+        R"([ { "nome": "a", "duracao": 6 }, { "nome": "b", "duracao": 6 } ])",   // 12 s numa fase de 10
+        R"([])",
+        R"("a")"
+    };
+    for (const char* etapas : ruins) {
+        CAPTURE(etapas);
+        const auto r = LerFases(FaseComEtapas(etapas, R"({ "estrategia": "WaveAttack", "projetil": "P" })"));
+        bool reclamou = false;
+        for (const auto& p : r.problemas) if (p.find("etapas") != std::string::npos) reclamou = true;
+        CHECK(reclamou);
+    }
+}
+
+TEST_CASE("Fases: um ataque que pede uma etapa que a fase nao tem e descartado") {
+    const auto r = LerFases(FaseComEtapas(
+        R"([ { "nome": "Requisitos", "duracao": 3 } ])",
+        R"({ "estrategia": "WaveAttack", "projetil": "P", "etapa": "Testes" },
+           { "estrategia": "WaveAttack", "projetil": "P", "etapa": "Requisitos" })"));
+    bool reclamou = false;
+    for (const auto& p : r.problemas) if (p.find("Testes") != std::string::npos) reclamou = true;
+    CHECK(reclamou);
+    for (const auto& f : r.fases) {
+        if (f.nome == "StateOne") CHECK(f.ataques.size() == 1);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// O degrau do Dificil, por ataque
+// ---------------------------------------------------------------------------
+
+namespace {
+    std::string ComDificil(const std::string& bloco) {
+        return std::string(R"({
+  "StateOne": {
+    "duracao": 17, "proximo": "StateFinal",
+    "movimento": { "tipo": "RandomWander", "a": 4, "b": 100 },
+    "ataques": [
+      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
+        "projeteis": 36, "velocidade": 180, "cooldown": 2.4)") + bloco + R"( }
+    ]
+  },
+  "StateFinal": {
+    "duracao": 17, "proximo": "StateOne",
+    "movimento": { "tipo": "GoToCenter" },
+    "ataques": [
+      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
+        "projeteis": 18, "velocidade": 120, "cooldown": 1.4 }
+    ]
+  }
+})";
+    }
+
+    const DescricaoDeAtaque& PrimeiroDe(const FasesLidas& r, const char* fase) {
+        for (const auto& f : r.fases) if (f.nome == fase) return f.ataques.at(0);
+        throw std::runtime_error("sem fase");
+    }
+}
+
+TEST_CASE("Fases: o bloco dificil troca so o que escreve, e so no Dificil") {
+    const auto r = LerFases(ComDificil(R"(, "dificil": { "cooldown": 1.8, "velocidade": 230 })"));
+    CHECK(r.problemas.empty());
+    const DescricaoDeAtaque& a = PrimeiroDe(r, "StateOne");
+    REQUIRE(a.dificil.has_value());
+
+    const DescricaoDeAtaque normal = NoNivel(a, Dificuldade::Nivel::Normal);
+    CHECK(normal.cooldown == doctest::Approx(2.4f));
+    CHECK(*normal.velocidade == doctest::Approx(180.0f));
+    CHECK(*normal.projeteis == 36);
+
+    const DescricaoDeAtaque dificil = NoNivel(a, Dificuldade::Nivel::Dificil);
+    CHECK(dificil.cooldown == doctest::Approx(1.8f));
+    CHECK(*dificil.velocidade == doctest::Approx(230.0f));
+    CHECK(*dificil.projeteis == 36);          // nao escrito: o do Normal
+
+    // SEM BLOCO, o Dificil e o Normal.
+    const DescricaoDeAtaque& sem = PrimeiroDe(r, "StateFinal");
+    CHECK_FALSE(sem.dificil.has_value());
+    CHECK(NoNivel(sem, Dificuldade::Nivel::Dificil).cooldown == doctest::Approx(1.4f));
+}
+
+TEST_CASE("Fases: o bloco dificil recusa o que ninguem le") {
+    for (const char* ruim : {R"(, "dificil": { "cooldwn": 1.8 })",
+                             R"(, "dificil": { "projeteis": 0 })",
+                             R"(, "dificil": { "projeteis": 2.5 })",
+                             R"(, "dificil": { "velocidade": -3 })",
+                             R"(, "dificil": 3)"}) {
+        CAPTURE(ruim);
+        const auto r = LerFases(ComDificil(ruim));
+        CHECK_FALSE(r.problemas.empty());
+    }
+    const auto ok = LerFases(ComDificil(R"(, "dificil": { "projeteis": 40 })"));
+    CHECK(ok.problemas.empty());
+    CHECK(*NoNivel(PrimeiroDe(ok, "StateOne"), Dificuldade::Nivel::Dificil).projeteis == 40);
 }

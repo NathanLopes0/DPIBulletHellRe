@@ -129,3 +129,10 @@ FaseDoPulso CalcularFaseDoPulso(const float tempoDecorrido, const RitmoDeCiclos&
     fase.modulo = investindo ? moduloInvestida : moduloPausa;
     return fase;
 }
+
+Vector2 RumoPrevendo(const Vector2& de, const Vector2& alvo, const Vector2& velocidadeDoAlvo, const float rapidez) {
+    const float voo = (rapidez > 0.0f) ? (alvo - de).Length() / rapidez : 0.0f;
+    const Vector2 ate = alvo + velocidadeDoAlvo * voo - de;
+    if (Math::NearZero(ate.Length())) return Vector2(0.0f, 1.0f);
+    return Vector2::Normalize(ate);
+}

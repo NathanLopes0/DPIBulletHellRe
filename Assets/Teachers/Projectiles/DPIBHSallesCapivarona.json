@@ -1,0 +1,191 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHSallesCapivarona 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 64
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSallesCapivarona 1.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 64
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSallesCapivarona 2.placeholder",
+   "frame": {
+    "x": 192,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 64
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSallesCapivarona 3.placeholder",
+   "frame": {
+    "x": 288,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 64
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSallesCapivarona 4.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 64,
+    "w": 96,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 64
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSallesCapivarona 5.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 64,
+    "w": 96,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 64
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSallesCapivarona 6.placeholder",
+   "frame": {
+    "x": 192,
+    "y": 64,
+    "w": 96,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 64
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSallesCapivarona 7.placeholder",
+   "frame": {
+    "x": 288,
+    "y": 64,
+    "w": 96,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 64
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_salles.py",
+  "version": "1.0",
+  "image": "DPIBHSallesCapivarona.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 384,
+   "h": 128
+  },
+  "scale": "1"
+ }
+}

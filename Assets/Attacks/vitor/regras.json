@@ -1,0 +1,61 @@
+{
+  // ==========================================================================
+  // AS REGRAS DE PROJETIL DO VITOR
+  //
+  // Cada conjunto veste uma ideia da materia. A maior parte do Vitor nao
+  // precisa de regra - a instrucao, o segmento e o garfo sao movidos por ele
+  // (Vitor.cpp) -, e o que sobrou aqui e o que o motor de regras faz bem:
+  // perseguir, prender e ancorar.
+  // ==========================================================================
+
+  // AS CORRENTES - fase 1.
+  //
+  // Na fase 1 a corrente tambem e o P(s): o aluno preso esta bloqueado, e a
+  // coluna em cima dele fura a fila (Semaforo::Furar). Essa parte nao e regra
+  // de projetil, e do Vitor.
+  //
+  // PERSEGUEM COM MAIS FORCA E POR MAIS TEMPO que todo outro Tracking do jogo:
+  // os outros corrigem a rota e desistem (forca 1,4 a 1,6 por uns dois
+  // segundos), porque la o perseguidor e tempero. Aqui ele e o ataque.
+  //
+  // FORCA 6 POR 4,4s, NO LIMITE QUE Behaviors.h DESCREVE COMO "GRUDA NO
+  // JOGADOR" - e gruda: com 1,9 por 2,6s o piloto que persegue nao tomava
+  // nenhuma corrente na fase 1, e com estes numeros toma 3. O que segura a
+  // fase e o resto da troca: cada corrente cobra 15% de um acerto, e o par sai
+  // a cada 4,4s em vez de 3,2 - a perseguicao de um par acaba mais ou menos
+  // quando o seguinte sai.
+  //
+  // O CIRCULO VICIOSO CONTINUA LA, e foi ele que derrubou a primeira versao
+  // (2,6 por 3,2s: 24 acertos, nota 16,6): a corrente acerta, o
+  // aluno fica a 45% da velocidade, e a proxima acha um alvo que mal se mexe.
+  //
+  // MEDIDO SO COM A MUDANCA DAS CORRENTES, na batalha de antes dos
+  // semaforos: o piloto que persegue passava com 70,8 e 12 acertos - e o
+  // PARADO TAMBEM PASSAVA, com 68,2. As correntes sozinhas nao reprovam
+  // ninguem; quem reprova o parado e a fase em volta delas, e mexer nela pede
+  // rodar parado-reprova.sh.
+  //
+  // O "atraso" de 0,2 deixa a corrente SAIR antes de comecar a virar. Sem ele
+  // ela curva colada no chefe, e o jogador perde a informacao mais util que
+  // tem: de que lado ela vem.
+  "correntes": [
+    { "animacao": "Arrastando",
+      "motion": { "tipo": "Tracking", "atraso": 0.2, "forca": 6.0, "duracao": 4.4 } }
+  ],
+
+  // AS NUVENS DA FASE 2: nascem ja no posto das nuvens - e por ele que o Vitor
+  // as acha, para mandar a janela delas - e ficam presas ao professor, uma de
+  // cada lado e um pouco acima dele, pela fase inteira. Quem as desfaz no fim e o Vitor - ou, na passagem
+  // para o fork, as junta em cima dele (Vitor::ComecarOFork).
+  //
+  // 19,6 S, A FASE INTEIRA DE VERDADE: elas nascem a 0,6 s de uma fase de
+  // 20. Eram 17 - da fase de 17 s -, e quando as fases passaram a durar 20
+  // as nuvens se soltavam aos 17,6 e caiam pelo campo nos ultimos dois
+  // segundos e meio. Um teste confere agora que a ancora cobre a fase.
+  "nuvens": [
+    { "indices": [0], "posto": "nuvens",
+      "motion": { "tipo": "Ancorar", "dx": -125, "dy": -55, "duracao": 19.6, "velocidade": 200 } },
+    { "indices": [1], "posto": "nuvens",
+      "motion": { "tipo": "Ancorar", "dx": 125,  "dy": -55, "duracao": 19.6, "velocidade": 200 } }
+  ]
+}

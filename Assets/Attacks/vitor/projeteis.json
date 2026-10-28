@@ -1,0 +1,163 @@
+{
+  // ==========================================================================
+  // OS PROJETEIS DO VITOR (INF 310 - Programacao Concorrente e Distribuida)
+  //
+  // CADA TIPO FAZ UMA COISA, e e por isso que sao tipos e nao cores: a licao
+  // que o Vladimir custou tres versoes a aprender - dois projeteis que
+  // diferem so na cor sao pintura, e o jogador nao tem por que olhar para a
+  // diferenca. A instrucao para na porta, a corrente prende, o segmento se
+  // perde no roteador, o envelope corre pelo canal, o garfo anda de mao em
+  // mao.
+  //
+  // Arte PROVISORIA de Ferramentas/gerar_vitor.py.
+  // ==========================================================================
+
+  // A INSTRUCAO DA FASE 1: um chip na cor da thread, com o numero dela - uma
+  // animacao por thread, e quem escolhe qual e o Vitor ao mandar (o nome da
+  // coluna, Semaforo::Nome). Desce reta ate a secao critica; quem nao tem o
+  // semaforo para na borda e se empilha.
+  "Instrucao": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorThreads.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorThreads.json",
+    "animacoes": {
+      "T1": [0, 1, 2, 3],
+      "T2": [4, 5, 6, 7],
+      "T3": [8, 9, 10, 11],
+      "T4": [12, 13, 14, 15],
+      "T5": [16, 17, 18, 19]
+    },
+    "animacaoInicial": "T1",
+    "ordemDeDesenho": 90
+  },
+
+  // A PIADA DE "CONCORRENTES": programacao CONCORRENTE, e o chefe atira
+  // CORRENTES. E a unica piada do jogo que tambem e uma mecanica.
+  //
+  // E O PRIMEIRO PROJETIL DO JOGO QUE NAO COBRA NOTA PARA VALER. Ele cobra
+  // 15% da perda normal - uns 0,9 ponto - e em troca PRENDE: 3,5 segundos a
+  // 45% da velocidade. A troca e o ponto: se a corrente custasse os 6 pontos
+  // de um tiro qualquer, seria um tiro qualquer que por acaso tambem prende, e
+  // o jogador leria "tomei dano" em vez de "fiquei preso".
+  //
+  // ELA CONTA COMO ACERTO SOFRIDO, mesmo cobrando pouco - vale para o direito
+  // a nota cheia e para a fase limpa. Ser acorrentado nao e de graca; e so
+  // barato em nota.
+  //
+  // A ARTE NAO E UMA COR VIVA. As cores vivas do Vitor falam de nota - as
+  // threads, os segmentos; a corrente e FERRO, e fala de peso. O aluno
+  // preso ganha um tom da mesma familia (ver Player::UpdateCorrente), entao a
+  // causa e o efeito se parecem.
+  "Corrente": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorTarefa.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorTarefa.json",
+    "animacoes": {
+      "Arrastando": [8, 9, 10, 11]
+    },
+    "animacaoInicial": "Arrastando",
+    "ordemDeDesenho": 92,
+
+    "acorrenta": {
+      "segundos": 3.5,
+      "fatorDeVelocidade": 0.45,
+      "multiplicadorDaPerda": 0.15
+    }
+  },
+
+  // AS NUVENS DA FASE 2: a computacao em nuvem, em cima do professor. Ociosa
+  // ela balanca; processando, as luzinhas acendem em fila (quem troca a cara e
+  // Vitor::AtualizarNuvens). Ficam acima dele, fora do caminho do tiro.
+  //
+  // DESENHADAS POR CIMA DELE - o chefe desenha em 100 -, e as unicas: na fase
+  // 2 elas ficam do lado dele e isso nao muda nada, mas na passagem para a 3
+  // as duas se juntam numa nuvem so, ele entra nela, e dela saem dois
+  // (Vitor::ComecarOFork). A nuvem tem de cobri-lo. Os pacotes (91) saem de
+  // dentro dela.
+  "Nuvem": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorTarefa.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorTarefa.json",
+    "animacoes": {
+      "Ociosa":      [12, 13, 14, 15],
+      "Processando": [16, 17, 18, 19]
+    },
+    "animacaoInicial": "Ociosa",
+    "ordemDeDesenho": 101,
+    "escala": 2.2
+  },
+
+  // O PACOTE: o segmento TCP da fase 2 - o que a nuvem manda ao roteador e o
+  // que o roteador encaminha ao aluno. RETRANSMITIDO, o cabecalho e laranja;
+  // DESCARTADO no roteador, ele vira os cacos do anel (Tcp.h tem os nomes).
+  // O corpo do pacote tem 16px num quadro de 32, e o colisor e o dele.
+  "Pacote": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorTarefa.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorTarefa.json",
+    "animacoes": {
+      "Piscando": [20, 21, 22, 23],
+      "Retransmitido": [24, 25, 26, 27],
+      "Descartado": [28, 29, 30, 31]
+    },
+    "animacaoInicial": "Piscando",
+    "ordemDeDesenho": 91,
+    "escala": 1.2,
+    "colisorDivisor": 4
+  },
+
+  // O JANTAR DA FINAL. O GARFO e enfeite - nao machuca, o Ponto Extra nao o
+  // leva - e quem o move e o Vitor, da mesa a mao de quem o pega. A GARFADA e
+  // o que quem come atira. A ESPERA e o cerco do deadlock: nasce parada nas
+  // arestas do pentagono e o Vitor a solta para fora no kill -9.
+  "Garfo": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorFilosofos.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorFilosofos.json",
+    "animacoes": {
+      "Brilhando": [0, 1, 2, 3]
+    },
+    "animacaoInicial": "Brilhando",
+    "ordemDeDesenho": 89
+  },
+
+  "Garfada": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorFilosofos.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorFilosofos.json",
+    "animacoes": {
+      "Girando": [4, 5, 6, 7]
+    },
+    "animacaoInicial": "Girando",
+    "ordemDeDesenho": 91
+  },
+
+  "Espera": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorFilosofos.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorFilosofos.json",
+    "animacoes": {
+      "Ampulheta": [8, 9, 10, 11]
+    },
+    "animacaoInicial": "Ampulheta",
+    "ordemDeDesenho": 90
+  },
+
+  // AS MENSAGENS DA FASE 3. O ENVELOPE corre pelo canal entre o pai e o
+  // filho - quem o move e o Vitor, pelo arco -, e fica vermelho parado na
+  // porta de quem nao recebe (o impasse). O DADO e a mensagem processada: o
+  // tiro do receive(), o anel do rendezvous e o leque do resultado da rpc.
+  "Envelope": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorMensagens.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorMensagens.json",
+    "animacoes": {
+      "Voando": [0, 1, 2, 3],
+      "Esperando": [4, 5, 6, 7]
+    },
+    "animacaoInicial": "Voando",
+    "ordemDeDesenho": 90
+  },
+
+  "Dado": {
+    "sprite": "Teachers/Projectiles/DPIBHVitorMensagens.png",
+    "dados":  "Teachers/Projectiles/DPIBHVitorMensagens.json",
+    "animacoes": {
+      "Pulsando": [8, 9, 10, 11]
+    },
+    "animacaoInicial": "Pulsando",
+    "ordemDeDesenho": 91
+  }
+}

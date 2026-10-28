@@ -1,0 +1,28 @@
+{
+  // ==========================================================================
+  // AS REGRAS DE PROJETIL DO HUGO
+  //
+  // UMA PASTA POR CHEFE: cada chave e um conjunto de regras, e e por esse nome
+  // que um ataque do fases.json ao lado o pede ("regras": "perguntas"). Os
+  // campos estao em Documentacao/arquivos-de-dados.md.
+  // ==========================================================================
+
+  // AS PERGUNTAS DO HUGO PERSEGUEM o aluno por um tempo - a pergunta que ele
+  // nao responde nao vai embora sozinha. As da banca sao os padroes das
+  // materias (Tcc::Padrao), e nao isto.
+  "perguntas": [
+    { "motion": { "tipo": "Tracking", "atraso": 0.4, "forca": 1.2, "duracao": 1.8 } }
+  ],
+
+  // AS PAGINAS DO CRONOGRAMA ficam no posto "cronograma" ate o prazo da barra
+  // vencer - e por la que o Hugo as acha para apagar (Hugo::NovoCronograma).
+  "cronograma": [
+    { "posto": "cronograma" }
+  ],
+
+  // OS ALVOS DO OBJETIVO ficam no posto "objetivo": o Hugo os move, e os
+  // poderes do orientador nao os apagam.
+  "objetivo": [
+    { "posto": "objetivo" }
+  ]
+}

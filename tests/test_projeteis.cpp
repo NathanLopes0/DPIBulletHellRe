@@ -361,3 +361,160 @@ TEST_CASE("Projeteis: rotacionarComAVelocidade pode ser ligado") {
     CHECK(r.projeteis.at("P").rotacionarComAVelocidade);
     CHECK(r.problemas.empty());
 }
+
+// ---------------------------------------------------------------------------
+// "acorrenta": o acerto que quase nao cobra nota e em troca prende
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Projeteis: \"acorrenta\" e lido inteiro") {
+
+    const auto p = LerProjeteis(R"({
+      "Corrente": {
+        "sprite": "s.png", "dados": "s.json",
+        "animacoes": { "A": [0] },
+        "acorrenta": { "segundos": 3.5, "fatorDeVelocidade": 0.45,
+                       "multiplicadorDaPerda": 0.15 }
+      }
+    })");
+
+    CHECK(p.problemas.empty());
+    REQUIRE(p.projeteis.count("Corrente") == 1);
+    const auto& a = p.projeteis.at("Corrente").acorrenta;
+    CHECK(a.segundos == doctest::Approx(3.5f));
+    CHECK(a.fatorDeVelocidade == doctest::Approx(0.45f));
+    CHECK(a.multiplicadorDaPerda == doctest::Approx(0.15f));
+}
+
+TEST_CASE("Projeteis: sem \"acorrenta\", o projetil nao prende ninguem") {
+
+    // O PADRAO TEM DE SER INOFENSIVO. Todo projetil do jogo menos um nao tem
+    // este campo, e um default errado aqui prenderia o aluno em TODA batalha.
+    const auto p = LerProjeteis(R"({
+      "Normal": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] } }
+    })");
+
+    REQUIRE(p.projeteis.count("Normal") == 1);
+    const auto& a = p.projeteis.at("Normal").acorrenta;
+    CHECK(a.segundos == doctest::Approx(0.0f));
+    CHECK(a.fatorDeVelocidade == doctest::Approx(1.0f));
+    CHECK(a.multiplicadorDaPerda == doctest::Approx(1.0f));
+}
+
+TEST_CASE("Projeteis: um fator de velocidade fora de (0,1] derruba o efeito") {
+
+    // FATOR MAIOR QUE 1 FARIA O ALUNO ACELERAR AO SER ACERTADO, e fator zero ou
+    // negativo o deixaria parado ou andando para tras. Os tres sao engano de
+    // digitacao, e nenhum deles e coisa que alguem procuraria no arquivo depois
+    // - por isso o efeito inteiro e descartado e o problema e dito em voz alta.
+    for (const char* ruim : {"1.4", "0", "-0.5"}) {
+        CAPTURE(ruim);
+        const auto texto = std::string(R"({ "C": { "sprite": "s.png", "dados": "s.json",
+            "animacoes": { "A": [0] },
+            "acorrenta": { "segundos": 3, "fatorDeVelocidade": )") + ruim + " } } }";
+
+        const auto p = LerProjeteis(texto);
+        REQUIRE(p.projeteis.count("C") == 1);
+        CHECK(p.projeteis.at("C").acorrenta.segundos == doctest::Approx(0.0f));
+        REQUIRE(p.problemas.size() == 1);
+        CHECK(p.problemas[0].find("fatorDeVelocidade") != std::string::npos);
+    }
+}
+
+TEST_CASE("Projeteis: \"acorrenta\" sem segundos nao prende, e reclama") {
+
+    // Um objeto "acorrenta" vazio e alguem que comecou a escrever o efeito e
+    // parou no meio. Aceitar calado daria um projetil que diz prender e nao
+    // prende - pior do que nao ter o campo.
+    const auto p = LerProjeteis(R"({
+      "C": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] },
+             "acorrenta": { "fatorDeVelocidade": 0.5 } }
+    })");
+
+    CHECK(p.projeteis.at("C").acorrenta.segundos == doctest::Approx(0.0f));
+    REQUIRE(p.problemas.size() == 1);
+    CHECK(p.problemas[0].find("segundos") != std::string::npos);
+}
+
+// ---------------------------------------------------------------------------
+// O projetil que o aluno derruba (os processos do Lucas)
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Projeteis: \"derrubavel\" e falso por padrao, e pode ser ligado") {
+
+    // O PADRAO TEM DE SER FALSO: verdadeiro em todo projetil faria cada tiro do
+    // aluno parar no primeiro projetil do caminho, em toda batalha.
+    const auto p = LerProjeteis(R"({
+      "Normal":   { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] } },
+      "Processo": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] },
+                    "derrubavel": true }
+    })");
+
+    CHECK(p.problemas.empty());
+    REQUIRE(p.projeteis.count("Normal") == 1);
+    REQUIRE(p.projeteis.count("Processo") == 1);
+    CHECK_FALSE(p.projeteis.at("Normal").derrubavel);
+    CHECK(p.projeteis.at("Processo").derrubavel);
+}
+
+TEST_CASE("Projeteis: \"abrigo\" e falso por padrao, liga com true, e reclama do que nao e booleano") {
+
+    // O PADRAO TEM DE SER FALSO: um abrigo come os projeteis do chefe, e um
+    // padrao errado faria todo projetil comer os vizinhos.
+    const auto p = LerProjeteis(R"({
+      "Normal":   { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] } },
+      "Capivara": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] },
+                    "abrigo": true },
+      "Errada":   { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] },
+                    "abrigo": "sim" }
+    })");
+    REQUIRE(p.projeteis.count("Normal") == 1);
+    REQUIRE(p.projeteis.count("Capivara") == 1);
+    REQUIRE(p.projeteis.count("Errada") == 1);
+    CHECK_FALSE(p.projeteis.at("Normal").abrigo);
+    CHECK(p.projeteis.at("Capivara").abrigo);
+    CHECK_FALSE(p.projeteis.at("Errada").abrigo);
+    REQUIRE(p.problemas.size() == 1);
+    CHECK(p.problemas[0].find("abrigo") != std::string::npos);
+}
+
+TEST_CASE("Projeteis: \"derrubavel\" que nao e booleano reclama e fica falso") {
+
+    // "sim" ou 1 seriam lidos como falso sem aviso, e o processo ficaria
+    // imortal - o aluno atiraria nele a fase inteira sem saber por que nao cai.
+    for (const char* ruim : {"\"sim\"", "1"}) {
+        CAPTURE(ruim);
+        const auto texto = std::string(R"({ "P": { "sprite": "s.png", "dados": "s.json",
+            "animacoes": { "A": [0] }, "derrubavel": )") + ruim + " } }";
+        const auto p = LerProjeteis(texto);
+        REQUIRE(p.projeteis.count("P") == 1);
+        CHECK_FALSE(p.projeteis.at("P").derrubavel);
+        REQUIRE(p.problemas.size() == 1);
+        CHECK(p.problemas[0].find("derrubavel") != std::string::npos);
+    }
+}
+
+TEST_CASE("Projeteis: a resistencia e 1 por padrao, e so vale num derrubavel") {
+    const auto p = LerProjeteis(R"({
+      "Processo": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] },
+                    "derrubavel": true },
+      "Janela":   { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] },
+                    "derrubavel": true, "resistencia": 3 }
+    })");
+    CHECK(p.problemas.empty());
+    CHECK(p.projeteis.at("Processo").resistencia == 1);
+    CHECK(p.projeteis.at("Janela").resistencia == 3);
+
+    // Zero, negativa, quebrada, ou num projetil que o tiro nao derruba: reclama
+    // e fica 1. A ultima e quase sempre um "derrubavel" esquecido.
+    for (const char* resto : { R"("derrubavel": true, "resistencia": 0)",
+                               R"("derrubavel": true, "resistencia": 2.5)",
+                               R"("resistencia": 3)" }) {
+        CAPTURE(resto);
+        const auto r = LerProjeteis(std::string(R"({ "P": { "sprite": "s.png", "dados": "s.json",
+            "animacoes": { "A": [0] }, )") + resto + " } }");
+        REQUIRE(r.projeteis.count("P") == 1);
+        CHECK(r.projeteis.at("P").resistencia == 1);
+        REQUIRE(r.problemas.size() == 1);
+        CHECK(r.problemas[0].find("resistencia") != std::string::npos);
+    }
+}

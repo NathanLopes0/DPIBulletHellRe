@@ -1,0 +1,59 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHThiagoAviso 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 46
+   },
+   "duration": 220
+  },
+  {
+   "filename": "DPIBHThiagoAviso 1.placeholder",
+   "frame": {
+    "x": 60,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 46
+   },
+   "duration": 220
+  }
+ ],
+ "meta": {
+  "app": "gerar_thiago.py",
+  "version": "1.0",
+  "image": "DPIBHThiagoAviso.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 120,
+   "h": 46
+  },
+  "scale": "1"
+ }
+}

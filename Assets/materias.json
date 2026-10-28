@@ -27,13 +27,17 @@
   //   nome          o que aparece no losango. Pode mudar a vontade.
   //   nomeCompleto  o nome da disciplina. Opcional; vazio e so nao mostrar.
   //   professor     quem da a materia. Opcional, e INDEPENDENTE de "chefe":
-  //                 a INF 330 e do Salles e ainda nao tem batalha, e o Salles
-  //                 ja e o chefe da INF 213 - sao coisas diferentes.
+  //                 o TCC e do Hugo e ainda nao tem batalha - ter professor nao
+  //                 e ter luta.
   //   coluna        0 a 4, a posicao na grade da selecao de fase. A coluna
   //                 tambem e o que as regras de desbloqueio usam, entao ela e
   //                 declarada UMA vez e nao duas.
   //   chefe         qual chefe esta materia usa. Vazio ou ausente = batalha
   //                 ainda nao feita: o losango aparece e nao da para jogar.
+  //   orientacao    true se a batalha pede um ORIENTADOR antes de comecar - o
+  //                 TCC. Opcional, falso por padrao. Quem pode orientar sao os
+  //                 professores das materias em que o aluno foi melhor (ver
+  //                 Source/Orientacao.h).
   //   desbloqueio   quando a materia abre. Ver abaixo.
   //
   // REGRAS DE DESBLOQUEIO
@@ -49,8 +53,8 @@
 
     // ----- Coluna 0: a porta de entrada do curso -----
     //
-    // O Andre mudou de materia: ele era o chefe de INF 330 e passou a ser o da
-    // INF 110, que e por onde o aluno comeca. Como o save grava o CODIGO da
+    // O Andre mudou de materia: ele era o chefe da antiga INF 330 (hoje INF 340)
+    // e passou a ser o da INF 110, que e por onde o aluno comeca. Como o save grava o CODIGO da
     // materia, mover um chefe de uma para outra nao mexe em nota de ninguem.
     {
       "codigo": "INF110",
@@ -86,19 +90,27 @@
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
     {
-      // Mesmo professor da INF 213, e ainda assim sem batalha: o chefe do
-      // Salles e a luta da INF 213. Por isso "professor" e "chefe" sao campos
-      // diferentes - reaproveitar o chefe faria duas materias identicas.
-      "codigo": "INF330", "nome": "INF 330",
-      "nomeCompleto": "Teoria e Modelos de Grafos", "professor": "Salles",
-      "coluna": 2,
+      // ERA A INF 330 - TEORIA E MODELOS DE GRAFOS, DO SALLES, e virou a INF
+      // 340, do Luizinho: o Salles ja e o chefe da INF 213, e um professor so
+      // aparece uma vez na grade.
+      //
+      // TROCAR O CODIGO APOSENTOU A MATERIA ANTIGA, e aqui isso e seguro: desde
+      // que o Andre saiu dela para a INF 110 (06/10) a INF 330 nao tinha
+      // batalha, entao nao havia como ganhar nota nela. Um save de teste da
+      // semana em que o Andre era o chefe dela guarda uma nota com o codigo
+      // velho, e essa nota fica orfa - a ficha so conta codigos que existem.
+      //
+      // A POSICAO NA LISTA NAO MUDOU, como na troca da INF 452 pela INF 310: a
+      // navegacao da grade usa o indice.
+      "codigo": "INF340", "nome": "INF 340",
+      "nomeCompleto": "Linguagens de Programação", "professor": "Luizinho",
+      "coluna": 2, "chefe": "luizinho",
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
     {
       "codigo": "INF331", "nome": "INF 331",
       "nomeCompleto": "Linguagens Formais e Autômatos", "professor": "Vladimir",
-      "coluna": 2,
-      "chefe": "vladimir",
+      "coluna": 2, "chefe": "vladimir",
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
 
@@ -112,19 +124,28 @@
     {
       "codigo": "INF221", "nome": "INF 221",
       "nomeCompleto": "Engenharia de Software", "professor": "Maria Lúcia",
-      "coluna": 3,
+      "coluna": 3, "chefe": "marialucia",
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
     {
       "codigo": "INF321", "nome": "INF 321",
       "nomeCompleto": "Programação Web", "professor": "Lucas",
-      "coluna": 3,
+      "coluna": 3, "chefe": "lucas",
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
     {
-      "codigo": "INF452", "nome": "INF 452",
-      "nomeCompleto": "Redes de Computadores", "professor": "Vitor",
-      "coluna": 3,
+      // TROCAR O "codigo" APOSENTA A MATERIA ANTIGA E CRIA OUTRA, e aqui isso
+      // foi feito de propósito: a INF 452 (Redes) virou a INF 310. Nenhuma nota
+      // se perdeu porque nenhuma existia - a INF 452 nunca teve chefe, entao
+      // nunca houve como jogá-la. Se ela tivesse batalha, a troca teria de vir
+      // com conversao de save.
+      //
+      // A POSICAO NA LISTA NAO MUDOU (continua a decima entrada). A navegacao da
+      // grade e os testes dela usam o indice, e mover a entrada teria mexido na
+      // grade inteira por uma troca que e so de nome.
+      "codigo": "INF310", "nome": "INF 310",
+      "nomeCompleto": "Programação Concorrente e Distribuída", "professor": "Vitor",
+      "coluna": 3, "chefe": "vitor",
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
 
@@ -132,7 +153,7 @@
     {
       "codigo": "TCC", "nome": "TCC",
       "nomeCompleto": "Trabalho de Conclusão de Curso", "professor": "Hugo",
-      "coluna": 4,
+      "coluna": 4, "chefe": "hugo", "orientacao": true,
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 3 }
     }
   ]

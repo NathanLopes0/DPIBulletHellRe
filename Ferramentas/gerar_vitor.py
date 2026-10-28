@@ -1,0 +1,411 @@
+#!/usr/bin/env python3
+"""Arte PROVISORIA do Vitor (INF 310) e dos projeteis dele.
+
+Mesmo estilo de cartao do Julio, do Thiago e do Vladimir: e deliberadamente um
+placeholder, para nao se passar por arte final. Trocar o PNG basta - o json de
+quadro continua valendo.
+
+O MOTIVO DO CARTAO E UM FORK/JOIN: um fluxo que se abre em dois e volta a se
+juntar. E para programacao concorrente o que o automato de dois estados e para
+linguagens formais - qualquer pessoa que cursou a materia reconhece de longe, e
+ele ja anuncia a fase 3, em que o chefe se divide de verdade.
+
+OS PROJETEIS SAO AS DUAS COISAS QUE A MATERIA TRATA, e eles se comportam
+diferente (a licao que o Vladimir custou a aprender - dois simbolos que diferem
+so na cor sao pintura):
+
+    Tarefa    o quadrado que ATRAVESSA. E trabalho correndo: rapido e reto.
+    Trava     o losango que FICA. E um recurso retido: freia e ocupa espaco,
+              e o jogador tem de contornar em vez de esperar passar.
+    Corrente  os elos que PERSEGUEM. Sao a piada de "concorrentes": quem leva
+              uma quase nao perde nota e fica PRESO - andando a menos da
+              metade da velocidade por alguns segundos.
+
+AS INSTRUCOES DA FASE 1 (DPIBHVitorThreads), uma cor por thread:
+
+    Instrucao T1..T5  o chip de uma instrucao, na cor da thread dela e com o
+              numero dela. A fase 1 e a sincronizacao: cada thread e uma
+              coluna de instrucoes descendo ate a secao critica, e quem le o
+              placar ("fila: T3 T1 T5") precisa achar a coluna pela cor.
+
+AS MENSAGENS DA FASE 3 (DPIBHVitorMensagens):
+
+    Envelope  a mensagem que corre pelo canal entre o pai e o filho, com a
+              aba batendo; ESPERANDO, o mesmo envelope em vermelho - parado na
+              porta de quem nao recebe (o impasse).
+    Dado      a mensagem processada: o que o receive() atira no aluno, o anel
+              do rendezvous e o leque do resultado da rpc.
+
+O JANTAR DA FINAL (DPIBHVitorFilosofos):
+
+    Garfo     o garfo de prata entre dois filosofos, que anda ate a mao de
+              quem o pega.
+    Garfada   o novelo de macarrao que quem come atira, girando.
+    Espera    o chip vermelho com a ampulheta: a espera de um filosofo por
+              outro, que vira o cerco do deadlock.
+
+AS LINHAS SEGUINTES SAO AS REDES, a outra materia que ele da (do 127 em diante):
+
+    Nuvem     a nuvem da computacao em nuvem, em cima dele na fase 2: ociosa
+              ela so balanca; PROCESSANDO, as luzinhas dela acendem em fila.
+    Pacote    o segmento TCP que a nuvem manda: o cabecalho colorido e o
+              corpo, piscando. RETRANSMITIDO, o cabecalho e laranja e o corpo
+              ganha a seta de volta; DESCARTADO no roteador, e um caco do
+              pacote partido (as duas linhas do fim da folha, do 167 em diante).
+"""
+from PIL import Image, ImageDraw, ImageFont
+import json, os
+
+RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CARLITO = os.path.join(RAIZ, "Assets", "Fonts", "Carlito-Regular.ttf")
+
+CARTAO = (74, 94, 128, 255)
+BORDA  = (150, 180, 220, 255)
+TINTA  = (228, 238, 250, 255)
+TRACO  = (40, 52, 70, 255)
+
+# Uma cor por papel, como no Vladimir: a cor carrega de longe e a forma
+# confirma de perto. Aqui a FORMA tambem difere (quadrado contra losango),
+# porque as duas se comportam diferente e a silhueta avisa antes da cor.
+COR_TAREFA = (126, 206, 160, 255)   # verde: trabalho andando
+COR_TRAVA  = (224, 122, 122, 255)   # vermelho: recurso retido
+
+# A corrente e FERRO, e de proposito nao e uma terceira cor viva: ela nao
+# avisa "perigo de nota", avisa "peso". Cinza claro com um toque de azul, que e
+# a mesma familia da cor que o aluno ganha enquanto esta preso.
+COR_ELO    = (186, 192, 208, 255)
+COR_ELO_ESCURO = (120, 128, 148, 255)
+
+# AS CINCO THREADS DA FASE 1. Cinco matizes bem separados - laranja, ciano,
+# rosa, lima e violeta -, e nenhum deles e o vermelho de "perigo" nem o cinza
+# da corrente. O NUMERO no chip confirma de perto o que a cor diz de longe.
+# O Vitor pinta o nome de cada coluna com estas mesmas cores (Vitor.cpp).
+CORES_DAS_THREADS = [
+    (240, 160, 60, 255),
+    (90, 200, 235, 255),
+    (235, 110, 190, 255),
+    (160, 220, 90, 255),
+    (170, 140, 245, 255),
+]
+
+COR_PRATA = (214, 220, 232, 255)
+COR_PRATA_ESCURA = (132, 140, 160, 255)
+COR_MACARRAO = (246, 214, 120, 255)
+COR_MACARRAO_ESCURO = (206, 160, 70, 255)
+COR_MOLHO = (210, 70, 50, 255)
+COR_ESPERA = (220, 70, 80, 255)
+
+COR_PAPEL = (240, 236, 222, 255)
+COR_PAPEL_ESCURO = (190, 182, 160, 255)
+COR_SELO = (90, 140, 220, 255)
+COR_PAPEL_ESPERA = (240, 150, 150, 255)
+COR_DADO = (110, 230, 200, 255)
+
+COR_NUVEM  = (214, 226, 242, 255)
+COR_NUVEM_SOMBRA = (150, 166, 192, 255)
+COR_LUZ    = (120, 230, 255, 255)   # as luzinhas do processamento
+COR_CABECALHO = (250, 190, 70, 255)
+COR_CORPO  = (90, 140, 220, 255)
+COR_RETRANSMISSAO = (255, 128, 48, 255)
+COR_DESCARTE = (230, 92, 92, 255)       # o caco: o pacote que o roteador jogou fora
+
+
+def quadro_json(nome, w, h, quadros=1, lado=None):
+    lado = lado or w
+    frames = []
+    for i in range(quadros):
+        x, y = (i % 4) * lado, (i // 4) * lado
+        frames.append({
+            "filename": f"{nome} {i}.placeholder",
+            "frame": {"x": x, "y": y, "w": lado, "h": lado},
+            "rotated": False, "trimmed": False,
+            "spriteSourceSize": {"x": 0, "y": 0, "w": lado, "h": lado},
+            "sourceSize": {"w": lado, "h": lado},
+            "duration": 120,
+        })
+    return {
+        "frames": frames,
+        "meta": {"app": "gerar_vitor.py", "version": "1.0",
+                 "image": f"{nome}.png", "format": "RGBA8888",
+                 "size": {"w": w, "h": h}, "scale": "1"},
+    }
+
+
+def vitor():
+    """O cartao do professor: um fork/join."""
+    im = Image.new("RGBA", (128, 128), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([4, 4, 123, 123], radius=10, fill=CARTAO, outline=BORDA, width=2)
+
+    # O tronco de entrada.
+    d.line([16, 56, 40, 56], fill=TINTA, width=3)
+
+    # A barra de FORK: onde um fluxo vira dois.
+    d.rectangle([40, 30, 46, 82], fill=COR_TAREFA, outline=TRACO)
+
+    # Os dois ramos, correndo em paralelo.
+    d.line([46, 40, 82, 40], fill=TINTA, width=3)
+    d.line([46, 72, 82, 72], fill=TINTA, width=3)
+
+    # A barra de JOIN: onde os dois voltam a ser um.
+    d.rectangle([82, 30, 88, 82], fill=COR_TAREFA, outline=TRACO)
+
+    # O tronco de saida.
+    d.line([88, 56, 112, 56], fill=TINTA, width=3)
+    d.polygon([(106, 50), (114, 56), (106, 62)], fill=TINTA)
+
+    d.text((42, 96), "VITOR", fill=TINTA)
+    return im
+
+
+def tarefa():
+    """A TAREFA: um quadrado. Atravessa a tela - trabalho correndo."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([5, 5, 26, 26], fill=COR_TAREFA, outline=TRACO, width=2)
+    # Duas listras que lembram uma barra de progresso.
+    d.line([9, 12, 22, 12], fill=(255, 255, 255, 120), width=2)
+    d.line([9, 18, 18, 18], fill=(255, 255, 255, 90), width=2)
+    return im
+
+
+def trava():
+    """A TRAVA: um losango. Freia e fica - recurso retido."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.polygon([(16, 3), (29, 16), (16, 29), (3, 16)], fill=COR_TRAVA, outline=TRACO)
+    # O furo do cadeado, para a silhueta nao ser so "losango".
+    d.ellipse([12, 12, 20, 20], fill=TRACO)
+    return im
+
+
+def corrente():
+    """A CORRENTE: dois elos entrelacados. Persegue, prende e quase nao machuca.
+
+    DOIS ELOS, e nao um: um elo sozinho e um anel, e anel ja e a silhueta da
+    Trava. Sao os dois entrelacados que se leem como corrente de longe, que e a
+    distancia em que o jogador precisa reconhecer o que vem vindo.
+    """
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    # elo de tras, mais escuro, deslocado para baixo e para a direita
+    d.ellipse([11, 12, 27, 28], outline=COR_ELO_ESCURO, width=4)
+    # elo da frente
+    d.ellipse([4, 3, 20, 19], outline=COR_ELO, width=4)
+    d.ellipse([4, 3, 20, 19], outline=TRACO, width=1)
+    return im
+
+
+def nuvem(fase, processando):
+    """A NUVEM: tres bolhas e uma base. Processando, as luzinhas acendem."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    dy = (0, 1, 0, -1)[fase] if not processando else 0
+    for caixa in ([3, 12, 15, 24], [9, 6, 23, 20], [17, 10, 29, 22]):
+        d.ellipse([caixa[0], caixa[1] + dy, caixa[2], caixa[3] + dy], fill=COR_NUVEM, outline=TRACO)
+    d.rectangle([7, 16 + dy, 25, 23 + dy], fill=COR_NUVEM)
+    d.line([6, 24 + dy, 26, 24 + dy], fill=COR_NUVEM_SOMBRA, width=2)
+    if processando:
+        for k in range(4):
+            cor = COR_LUZ if k <= fase else COR_NUVEM_SOMBRA
+            d.rectangle([9 + 4 * k, 18, 11 + 4 * k, 20], fill=cor)
+    return im
+
+
+def pacote(fase):
+    """O PACOTE: um cabecalho e um corpo, piscando."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([8, 9, 23, 23], fill=COR_CORPO, outline=TRACO, width=2)
+    d.rectangle([9, 10, 22, 13], fill=COR_CABECALHO if fase % 2 == 0 else (255, 230, 150, 255))
+    d.line([11, 17, 20, 17], fill=(255, 255, 255, 140), width=1)
+    d.line([11, 20, 17, 20], fill=(255, 255, 255, 110), width=1)
+    return im
+
+
+def instrucao(t, fase):
+    """A INSTRUCAO da thread t: um chip na cor dela, com o numero. Pisca o
+    cantinho de cima, como o cursor de quem esta executando."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    cor = CORES_DAS_THREADS[t]
+    d.rounded_rectangle([5, 5, 26, 26], radius=5, fill=cor, outline=TRACO, width=2)
+    fonte = ImageFont.truetype(CARLITO, 17)
+    texto = str(t + 1)
+    caixa = d.textbbox((0, 0), texto, font=fonte)
+    w, h = caixa[2] - caixa[0], caixa[3] - caixa[1]
+    d.text((16 - w / 2 - caixa[0], 16 - h / 2 - caixa[1]), texto, fill=TRACO, font=fonte,
+           stroke_width=1, stroke_fill=TRACO)
+    if fase % 2 == 0:
+        d.rectangle([20, 8, 23, 10], fill=(255, 255, 255, 200))
+    return im
+
+
+def garfo(fase):
+    """O GARFO: o cabo e quatro dentes, de prata. Brilha de leve."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([14, 15, 17, 28], fill=COR_PRATA, outline=TRACO)        # o cabo
+    d.rectangle([9, 11, 22, 15], fill=COR_PRATA, outline=TRACO)         # a base dos dentes
+    for k in range(4):
+        x = 9 + 4 * k
+        d.rectangle([x, 3, x + 1, 11], fill=COR_PRATA, outline=TRACO)
+    if fase % 2 == 0:
+        d.point([(15, 20), (15, 21)], fill=(255, 255, 255, 230))
+    else:
+        d.point([(16, 24), (16, 25)], fill=(255, 255, 255, 230))
+    return im
+
+
+def garfada(fase):
+    """A GARFADA: um novelo de macarrao com molho, girando."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.ellipse([7, 7, 25, 25], fill=COR_MACARRAO, outline=TRACO)
+    for k in range(3):
+        a0 = fase * 90 + k * 120
+        d.arc([10, 10, 22, 22], start=a0, end=a0 + 80, fill=COR_MACARRAO_ESCURO, width=2)
+    d.ellipse([13, 12, 19, 18], fill=COR_MOLHO)
+    return im
+
+
+def espera(fase):
+    """A ESPERA: o chip vermelho com a ampulheta - a areia desce a cada quadro."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([6, 6, 25, 25], radius=4, fill=COR_ESPERA, outline=TRACO, width=2)
+    d.polygon([(11, 10), (21, 10), (16, 16)], outline=TRACO, fill=(255, 236, 200, 255))
+    d.polygon([(11, 22), (21, 22), (16, 16)], outline=TRACO, fill=(255, 236, 200, 255))
+    areia = (230, 180, 90, 255)
+    cima = 4 - fase
+    if cima > 0:
+        d.polygon([(16 - cima, 15 - cima), (16 + cima, 15 - cima), (16, 15)], fill=areia)
+    if fase > 0:
+        d.polygon([(16 - fase, 21), (16 + fase, 21), (16, 21 - fase)], fill=areia)
+    return im
+
+
+def envelope(fase, esperando=False):
+    """O ENVELOPE: o papel, a aba em V e o selo. A aba bate - a mensagem anda."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    papel = COR_PAPEL_ESPERA if esperando else COR_PAPEL
+    d.rectangle([5, 9, 26, 23], fill=papel, outline=TRACO, width=2)
+    fundo = (16, 18, 17, 17)[fase]
+    d.line([6, 10, 16, fundo, 25, 10], fill=COR_PAPEL_ESCURO if not esperando else (190, 90, 90, 255), width=2)
+    d.rectangle([20, 18, 23, 21], fill=COR_SELO if not esperando else (160, 40, 50, 255))
+    return im
+
+
+def dado(fase):
+    """O DADO: a mensagem processada, um chip que pulsa."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    r = (6, 7, 8, 7)[fase]
+    d.ellipse([16 - r, 16 - r, 16 + r, 16 + r], fill=COR_DADO, outline=TRACO, width=2)
+    d.line([13, 16, 19, 16], fill=TRACO, width=1)
+    d.line([16, 13, 16, 19], fill=TRACO, width=1)
+    return im
+
+
+def folha_das_mensagens():
+    """O envelope, o envelope esperando e o dado: quatro quadros de cada."""
+    f = Image.new("RGBA", (128, 96), (0, 0, 0, 0))
+    for i in range(4):
+        f.alpha_composite(envelope(i), (i * 32, 0))
+        f.alpha_composite(envelope(i, True), (i * 32, 32))
+        f.alpha_composite(dado(i), (i * 32, 64))
+    return f
+
+
+def folha_dos_filosofos():
+    """O garfo, a garfada e a espera: quatro quadros de cada, um por linha."""
+    f = Image.new("RGBA", (128, 96), (0, 0, 0, 0))
+    for i in range(4):
+        f.alpha_composite(garfo(i), (i * 32, 0))
+        f.alpha_composite(garfada(i), (i * 32, 32))
+        f.alpha_composite(espera(i), (i * 32, 64))
+    return f
+
+
+def folha_das_threads():
+    """Quatro quadros por thread, uma thread por linha."""
+    f = Image.new("RGBA", (128, 160), (0, 0, 0, 0))
+    for t in range(5):
+        for i in range(4):
+            f.alpha_composite(instrucao(t, i), (i * 32, t * 32))
+    return f
+
+
+def retransmitido(fase):
+    """O SEGMENTO RETRANSMITIDO: o mesmo pacote, com o cabecalho laranja e a
+    seta de quem volta - o que se perdeu e vai de novo."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([8, 9, 23, 23], fill=COR_CORPO, outline=TRACO, width=2)
+    d.rectangle([9, 10, 22, 13], fill=COR_RETRANSMISSAO if fase % 2 == 0 else (255, 196, 140, 255))
+    # a seta circular, de "de novo"
+    d.arc([11, 15, 20, 22], start=200, end=500, fill=(255, 255, 255, 220), width=2)
+    d.polygon([(18, 14), (21, 17), (17, 18)], fill=(255, 255, 255, 220))
+    return im
+
+
+def descartado(fase):
+    """O CACO do segmento descartado no roteador: um pedaco do pacote, girando."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    pontas = [(10, 10), (22, 12), (19, 22), (11, 20)]
+    giro = fase * 1.5708
+    import math
+    centro = (16, 16)
+    rot = [(centro[0] + (x - 16) * math.cos(giro) - (y - 16) * math.sin(giro),
+            centro[1] + (x - 16) * math.sin(giro) + (y - 16) * math.cos(giro)) for x, y in pontas]
+    d.polygon(rot, fill=COR_DESCARTE, outline=TRACO)
+    return im
+
+
+def folha():
+    """Quatro quadros de cada, uma coisa por linha - o mesmo arranjo dos
+    outros chefes.
+
+    QUATRO, e nao um, porque o leitor de animacao recebe uma LISTA de quadros
+    por animacao. Com um quadro so a animacao existe e nao anima; com quatro da
+    para pulsar depois sem mexer em arquivo nenhum.
+
+    As linhas novas vao sempre no FIM: os quadros de antes ficam onde estavam.
+    """
+    f = Image.new("RGBA", (128, 256), (0, 0, 0, 0))
+    for i in range(4):
+        f.alpha_composite(tarefa(), (i * 32, 0))
+    for i in range(4):
+        f.alpha_composite(trava(), (i * 32, 32))
+    for i in range(4):
+        f.alpha_composite(corrente(), (i * 32, 64))
+    for i in range(4):
+        f.alpha_composite(nuvem(i, False), (i * 32, 96))
+    for i in range(4):
+        f.alpha_composite(nuvem(i, True), (i * 32, 128))
+    for i in range(4):
+        f.alpha_composite(pacote(i), (i * 32, 160))
+    for i in range(4):
+        f.alpha_composite(retransmitido(i), (i * 32, 192))
+    for i in range(4):
+        f.alpha_composite(descartado(i), (i * 32, 224))
+    return f
+
+
+def grava(im, nome, pasta, quadros=1, lado=None):
+    destino = os.path.join(RAIZ, pasta)
+    os.makedirs(destino, exist_ok=True)
+    im.save(os.path.join(destino, nome + ".png"))
+    with open(os.path.join(destino, nome + ".json"), "w", encoding="utf-8") as f:
+        json.dump(quadro_json(nome, im.width, im.height, quadros, lado), f, indent=1)
+    print(f"  {pasta}/{nome}.png  {im.width}x{im.height}  ({quadros} quadro(s))")
+
+
+if __name__ == "__main__":
+    grava(vitor(), "DPIBHVitor", "Assets/Teachers")
+    grava(folha(), "DPIBHVitorTarefa", "Assets/Teachers/Projectiles", quadros=32, lado=32)
+    grava(folha_das_threads(), "DPIBHVitorThreads", "Assets/Teachers/Projectiles", quadros=20, lado=32)
+    grava(folha_dos_filosofos(), "DPIBHVitorFilosofos", "Assets/Teachers/Projectiles", quadros=12, lado=32)
+    grava(folha_das_mensagens(), "DPIBHVitorMensagens", "Assets/Teachers/Projectiles", quadros=12, lado=32)

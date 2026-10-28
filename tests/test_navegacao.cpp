@@ -19,14 +19,14 @@ namespace {
     //   col 0        col 1        col 2        col 3        col 4
     //   INF110 (0)   INF213 (1)   INF250 (2)   INF420 (6)   TCC (10)
     //                             INF220 (3)   INF221 (7)
-    //                             INF330 (4)   INF321 (8)
-    //                             INF331 (5)   INF452 (9)
+    //                             INF340 (4)   INF321 (8)
+    //                             INF331 (5)   INF310 (9)
     Navegacao::Grade GradeDeHoje() {
         return { {0}, {1}, {2,3,4,5}, {6,7,8,9}, {10} };
     }
 
     constexpr size_t INF110 = 0, INF213 = 1, INF250 = 2, INF220 = 3,
-                     INF330 = 4, INF331 = 5, INF420 = 6, INF452 = 9, TCC = 10;
+                     INF340 = 4, INF331 = 5, INF420 = 6, INF310 = 9, TCC = 10;
 }
 
 // ------------------------------------------------- os dois casos relatados
@@ -51,7 +51,7 @@ TEST_CASE("Navegacao: descer no INF 250 percorre a coluna dele, sem passar pelo 
 
     size_t onde = INF250;
     onde = Navegacao::Baixo(grade, onde);   CHECK(onde == INF220);
-    onde = Navegacao::Baixo(grade, onde);   CHECK(onde == INF330);
+    onde = Navegacao::Baixo(grade, onde);   CHECK(onde == INF340);
     onde = Navegacao::Baixo(grade, onde);   CHECK(onde == INF331);
     onde = Navegacao::Baixo(grade, onde);   CHECK(onde == INF250);   // deu a volta na coluna
 
@@ -105,9 +105,9 @@ TEST_CASE("Navegacao: a linha e mantida ao andar de lado") {
     const auto grade = GradeDeHoje();
     CHECK(Navegacao::Direita(grade, INF250)  == 6);   // linha 0 -> linha 0
     CHECK(Navegacao::Direita(grade, INF220)  == 7);
-    CHECK(Navegacao::Direita(grade, INF330)  == 8);
+    CHECK(Navegacao::Direita(grade, INF340)  == 8);
     CHECK(Navegacao::Direita(grade, INF331)  == 9);
-    CHECK(Navegacao::Esquerda(grade, INF452) == INF331);
+    CHECK(Navegacao::Esquerda(grade, INF310) == INF331);
 }
 
 TEST_CASE("Navegacao: indo para uma coluna menor, a linha e limitada") {
@@ -115,7 +115,7 @@ TEST_CASE("Navegacao: indo para uma coluna menor, a linha e limitada") {
     // Da linha 3 para uma coluna de um item so: vai para o unico que existe, em
     // vez de para uma linha que nao ha.
     const auto grade = GradeDeHoje();
-    CHECK(Navegacao::Direita(grade, INF452) == TCC);
+    CHECK(Navegacao::Direita(grade, INF310) == TCC);
     CHECK(Navegacao::Esquerda(grade, INF331) == INF213);
     CHECK(Navegacao::Esquerda(grade, INF250) == INF213);
 

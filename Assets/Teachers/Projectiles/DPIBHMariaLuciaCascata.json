@@ -1,0 +1,235 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHMariaLuciaCascata 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 150,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 150,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 150,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaCascata 1.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 30,
+    "w": 150,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 150,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 150,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaCascata 2.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 60,
+    "w": 150,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 150,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 150,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaCascata 3.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 90,
+    "w": 150,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 150,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 150,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaCascata 4.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 120,
+    "w": 150,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 150,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 150,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaCascata 5.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 150,
+    "w": 150,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 150,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 150,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaCascata 6.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 180,
+    "w": 150,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 150,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 150,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaCascata 7.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 210,
+    "w": 150,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 150,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 150,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaCascata 8.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 240,
+    "w": 150,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 150,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 150,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMariaLuciaCascata 9.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 270,
+    "w": 150,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 150,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 150,
+    "h": 30
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_maria_lucia.py",
+  "version": "1.0",
+  "image": "DPIBHMariaLuciaCascata.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 150,
+   "h": 300
+  },
+  "scale": "1"
+ }
+}

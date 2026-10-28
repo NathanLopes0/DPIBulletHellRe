@@ -10,4 +10,10 @@
 #include "AndreFactory.h"
 #include "JulioFactory.h"
 #include "ThiagoFactory.h"
+#include "VladimirFactory.h"
+#include "VitorFactory.h"
+#include "MariaLuciaFactory.h"
+#include "LucasFactory.h"
+#include "LuizinhoFactory.h"
+#include "HugoFactory.h"
 

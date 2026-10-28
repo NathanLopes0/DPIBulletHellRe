@@ -1,0 +1,99 @@
+{
+  // ==========================================================================
+  // OS PROJETEIS DO VLADIMIR (INF 331 - Linguagens Formais e Automatos)
+  //
+  // UM SO TIPO, COM DUAS ANIMACOES: "A" e "B". Nao sao dois projeteis, e isso
+  // importa - sao os dois SIMBOLOS DO MESMO ALFABETO. Uma rajada do Vladimir e
+  // uma palavra, e cada tiro e uma letra dela; separar em dois tipos faria o
+  // arquivo dizer que sao coisas diferentes quando sao a mesma coisa com outro
+  // rotulo, que e exatamente o que um alfabeto NAO e.
+  //
+  // Qual letra cada tiro recebe e decidido em regras.json, por "quando":
+  // "pares"/"impares" ou por "indices" - que e como "(ab)*" vira tela.
+  //
+  // A COR CARREGA DE LONGE E A LETRA CONFIRMA DE PERTO. No meio de uma tela de
+  // bala ninguem le um "a" de 32 pixels; o ambar contra o azul, sim. A letra
+  // existe para o jogador conferir quando o padrao desacelera.
+  //
+  // Arte PROVISORIA de Ferramentas/gerar_vladimir.py.
+  // ==========================================================================
+  "Simbolo": {
+    "sprite": "Teachers/Projectiles/DPIBHVladimirSimbolo.png",
+    "dados":  "Teachers/Projectiles/DPIBHVladimirSimbolo.json",
+    "animacoes": {
+      "A": [0, 1, 2, 3],
+      "B": [4, 5, 6, 7]
+    },
+    "animacaoInicial": "A",
+    "ordemDeDesenho": 90
+  },
+
+  // AS FICHAS DO COMPILADOR DA FASE 2: um cartao claro por lexema - o x, o =,
+  // os operadores, o ; e os algarismos -, e o a e o b com a borda na cor da
+  // letra, para as folhas da arvore sintatica. O token a ou b que CAI no
+  // lexico nao e ficha: e a letra mesmo ("Simbolo"), que persegue e troca no
+  // intercambio. A ficha da arvore e o mapa (Vladimir::OnProjectilesCreated).
+  //
+  // NENHUMA ANIMACAO SE CHAMA "A" OU "B": sao os nomes que o intercambio troca
+  // (Alfabeto.h), e uma ficha nao e letra - por isso "IdA" e "IdB".
+  //
+  // A ficha e 44 x 26 num quadro de 48: o divisor 4 da um colisor de raio 12,
+  // a meia altura do cartao.
+  "Lexema": {
+    "sprite": "Teachers/Projectiles/DPIBHVladimirFicha.png",
+    "dados":  "Teachers/Projectiles/DPIBHVladimirFicha.json",
+    "animacoes": {
+      "X": [0], "Igual": [1], "Mais": [2], "Menos": [3], "Vezes": [4], "Fim": [5],
+      "N1": [6], "N2": [7], "N3": [8], "N4": [9], "N5": [10],
+      "N6": [11], "N7": [12], "N8": [13], "N9": [14],
+      "IdA": [21], "IdB": [22]
+    },
+    "animacaoInicial": "X",
+    "colisorDivisor": 4,
+    "ordemDeDesenho": 88
+  },
+
+  // AS INSTRUCOES DA MAQUINA DE PILHA, no terminal escuro: o que cada no da
+  // arvore vira na geracao de codigo, mirado no aluno.
+  "Instrucao": {
+    "sprite": "Teachers/Projectiles/DPIBHVladimirFicha.png",
+    "dados":  "Teachers/Projectiles/DPIBHVladimirFicha.json",
+    "animacoes": {
+      "LOAD": [15], "PUSH": [16], "ADD": [17], "SUB": [18], "MUL": [19], "STORE": [20]
+    },
+    "animacaoInicial": "LOAD",
+    "colisorDivisor": 4,
+    "ordemDeDesenho": 89
+  },
+
+  // OS ESTADOS DO AUTOMATO DA FASE 1: q0, q1 e q2, e cada um aceso - o estado
+  // em que o professor esta. Aneis maiores que o cartao dele (192 contra 128):
+  // ele pousa DENTRO do estado, e o anel continua aparecendo em volta. O q2 tem
+  // o circulo duplo do estado de aceitacao.
+  //
+  // Sao enfeite (Vladimir::OnProjectilesCreated): o mapa nao machuca, e o tiro
+  // do aluno passa por ele. Quem acende e apaga e o Vladimir, pelos nomes de
+  // Vladimir::CaraDoEstado.
+  "Estado": {
+    "sprite": "Teachers/Projectiles/DPIBHVladimirEstado.png",
+    "dados":  "Teachers/Projectiles/DPIBHVladimirEstado.json",
+    "animacoes": {
+      "Q0": [0], "Q1": [1], "Q2": [2],
+      "Q0Aceso": [3], "Q1Aceso": [4], "Q2Aceso": [5]
+    },
+    "animacaoInicial": "Q0",
+    "ordemDeDesenho": 86
+  },
+
+  // AS TRANSICOES DO AUTOMATO, numa figura so: os estados tem lugar fixo no
+  // campo, entao as setas tambem tem. Esmaecida - e o mapa, e nao um tiro.
+  "Diagrama": {
+    "sprite": "Teachers/Projectiles/DPIBHVladimirDiagrama.png",
+    "dados":  "Teachers/Projectiles/DPIBHVladimirDiagrama.json",
+    "animacoes": {
+      "Diagrama": [0]
+    },
+    "animacaoInicial": "Diagrama",
+    "ordemDeDesenho": 85
+  }
+}

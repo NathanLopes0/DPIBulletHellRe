@@ -98,6 +98,13 @@ monta o texto a partir do próprio botão que a cena escuta, então as duas cois
 não têm como divergir. `ENTER` e `ESC` continuam valendo para quem desenvolve,
 mas **não aparecem escritos em lugar nenhum**.
 
+**A exceção é a pausa da batalha**, e ela confirma a regra: o `ESC` abre um menu
+(continuar, recomeçar a fase, sair dela) que **só existe no computador**, e o
+rodapé desse menu escreve "ESC continuar". No gabinete a pausa não abre
+(`Pausa::PodePausar`) — o painel não tem `ESC`, e uma batalha congelada no
+corredor seria uma tela morta para quem chega depois. O `Ctrl + Esc` de quem
+mantém a máquina continua sendo o de sempre.
+
 Cada tela dá o significado dos botões no rodapé. O Botão 2 é quase sempre
 "voltar" — na seleção de fases, voltar é trocar de aluno, e o rodapé diz isso
 com todas as letras, porque a sessão do aluno acaba ali.
@@ -126,8 +133,9 @@ derruba o jogo no meio do corredor.
 
 ## O que ainda falta
 
-Está em `a-fazer.md`, na seção *Gabinete*: a recuperação se o jogo cair. É
-script de sistema, não código — um laço que reabre.
+A recuperação se o jogo cair. Nada desta página adianta se um `crash` deixa a
+área de trabalho à vista até alguém passar no corredor. É script de sistema, não
+código — um laço que reabre.
 
 ---
 

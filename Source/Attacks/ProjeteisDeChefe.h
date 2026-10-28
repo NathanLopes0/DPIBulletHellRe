@@ -97,6 +97,71 @@ struct DescricaoDeProjetil {
      * angulo do jogo (ver Actor::GetForward).
      */
     bool rotacionarComAVelocidade = false;
+
+    /**
+     * O QUE ACONTECE COM O ALUNO QUANDO ESTE PROJETIL ACERTA.
+     *
+     * Nasceu para as CORRENTES do Vitor - a piada de "concorrentes" - e e um
+     * tipo de ataque que o jogo nao tinha: um que quase nao cobra nota e em
+     * troca ATRAPALHA. Acertado por uma corrente, o aluno fica preso: anda a
+     * uma fracao da velocidade por alguns segundos.
+     *
+     * POR QUE A PERDA TAMBEM MORA AQUI. Se a corrente custasse os mesmos 6
+     * pontos de um tiro normal, ela seria um tiro normal que por acaso tambem
+     * prende - e o jogador leria "tomei dano", nao "fiquei preso". O que
+     * distingue um efeito de estado de um dano e justamente a troca: quase
+     * nenhuma nota por bastante estorvo.
+     *
+     * Zero em "segundosDeCorrente" quer dizer que este projetil nao prende
+     * ninguem, que e o caso de todos os outros projeteis do jogo.
+     */
+    struct Acorrentamento {
+        float segundos = 0.0f;              ///< 0 = nao acorrenta
+        float fatorDeVelocidade = 1.0f;     ///< multiplica a velocidade do aluno
+        float multiplicadorDaPerda = 1.0f;  ///< 1 = a perda de nota de sempre
+    };
+
+    Acorrentamento acorrenta;
+
+    /**
+     * @brief O tiro do aluno pode derrubar este projetil?
+     *
+     * O cursor e os workers do Lucas, e os bugs, as historias e as janelas
+     * da Maria Lucia. Um projetil derrubavel some quando um tiro do aluno o
+     * acerta - e o tiro some junto, sem chegar ao chefe. Quem decide o que
+     * acontece depois e o chefe dono dele (Boss::OnProjetilDerrubado, ou o
+     * proprio chefe olhando o que sumiu): no Lucas, o supervisor reinicia o
+     * worker. Um projetil BLINDADO naquele disparo nao cai: a historia que o
+     * cursor ainda arrasta so come o tiro.
+     *
+     * Falso por padrao: um padrao errado aqui faria os tiros do aluno pararem
+     * em todo projetil de todo chefe.
+     */
+    bool derrubavel = false;
+
+    /**
+     * @brief Quantos tiros derrubam este projetil, se ele for derrubavel.
+     *
+     * Os tiros antes do ultimo SOMEM nele, sem chegar ao chefe e sem derruba-lo:
+     * e a janela modal da Maria Lucia, que pede mais de um clique para fechar
+     * ("Tem certeza?"). 1 por padrao - o derrubavel de sempre, que cai no
+     * primeiro tiro. Sem "derrubavel", nao vale nada, e a leitura avisa.
+     */
+    int resistencia = 1;
+
+    /**
+     * @brief Este projetil e um ABRIGO: os projeteis do chefe que encostam
+     * nele somem, ele nao machuca o aluno, e o tiro do aluno some nele.
+     *
+     * E a capivara que atravessa o campo do Salles: todo bicho se da bem com
+     * a capivara, e o aluno que anda embaixo dela fica protegido - mas os tiros
+     * dele ficam nela tambem. So come o que esta solto: um projetil num posto
+     * (a pilha do professor, uma chave na tabela) e parte de uma estrutura, e
+     * fica.
+     *
+     * Falso por padrao, e propriedade do TIPO, como o derrubavel.
+     */
+    bool abrigo = false;
 };
 
 /**

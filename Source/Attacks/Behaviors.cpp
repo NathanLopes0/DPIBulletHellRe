@@ -7,6 +7,11 @@
 #include "../Components/RigidBodyComponent.h"
 #include "../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "../Scenes/Battle/Battle.h"
+#include "../Actors/Teachers/Boss.h"
+#include "Promessa.h"
+#include "Amarra.h"
+#include "../Random.h"
 
 void AccelerateBehavior::update(Projectile* p, float deltaTime) {
     if (auto bossProj = dynamic_cast<BossProjectile*>(p)) {
@@ -354,4 +359,143 @@ void PulsoDeVelocidadeBehavior::update(Projectile* p, float deltaTime) {
     }
 
     rb->SetVelocity(AjustarModulo(rb->GetVelocity(), fase.modulo));
+}
+
+void PromessaBehavior::update(Projectile* p, const float deltaTime) {
+
+    t += deltaTime;
+    if (t < atraso) return;
+    assentou = true;
+
+    if (!Promessa::Resolve(Random::GetFloatRange(0.0f, 1.0f), fracao)) {
+        p->Kill();   // rejeitada
+        return;
+    }
+
+    // RESOLVIDA: sai apontada para o alvo, com o modulo do arquivo. Parada, ela
+    // nao tem direcao nenhuma, entao a direcao vem do alvo, e nao da velocidade.
+    auto* promessa = dynamic_cast<BossProjectile*>(p);
+    auto* rb = p->GetComponent<RigidBodyComponent>();
+    if (promessa && rb) rb->SetVelocity(promessa->GetPlayerDirection() * velocidade);
+
+    if (!escreve.empty()) {
+        if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(escreve);
+    }
+}
+
+void AmarrarBehavior::update(Projectile* p, const float deltaTime) {
+
+    auto* rb = p->GetComponent<RigidBodyComponent>();
+    const auto* batalha = dynamic_cast<Battle*>(p->GetScene());
+    if (!rb || !batalha) { corda.cortada = true; return; }
+
+    const Vector2 letra = p->GetPosition();
+    const Boss* no = nullptr;
+    float maisPerto = 0.0f;
+    for (const Boss* corpo : batalha->Corpos()) {
+        if (!corpo) continue;
+        const float d = (corpo->GetPosition() - letra).LengthSq();
+        if (!no || d < maisPerto) { no = corpo; maisPerto = d; }
+    }
+    if (!no) { corda.cortada = true; return; }   // sem professor, a corda cai
+
+    const auto lance = Amarra::Passo(corda, letra, rb->GetVelocity(), no->GetPosition(), deltaTime);
+    p->SetPosition(lance.posicao);
+    rb->SetVelocity(lance.velocidade);
+
+    if (lance.evento == Amarra::Evento::Amarrou && !escreve.empty()) {
+        if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(escreve);
+    }
+}
+
+void HistoriaDaSprintBehavior::update(Projectile* p, const float deltaTime) {
+    auto* rb = p->GetComponent<RigidBodyComponent>();
+    if (!rb || !plano) { caiu = true; return; }
+
+    auto* historia = dynamic_cast<BossProjectile*>(p);
+
+    t += deltaTime;
+    if (t < plano->revisao) {
+        p->SetPosition(Sprint::PosicaoDaHistoria(*plano, indice, t));
+        rb->SetVelocity(Vector2::Zero);
+
+        // SOLTA, ela deixa de ser blindada: na mao do cursor o tiro so some.
+        if (!solta && t >= plano->arraste) {
+            solta = true;
+            if (historia) historia->DefinirBlindado(false);
+        }
+        // PARADA NA VAGA, ela entra no posto do quadro: esta em andamento, e
+        // a PontosAttack atira dela.
+        if (!noQuadro && t >= plano->arraste + plano->espalha) {
+            noQuadro = true;
+            if (historia) historia->DefinirPosto(Sprint::kPostoDoQuadro);
+        }
+        return;
+    }
+
+    // A REVISAO: o que nao foi entregue sai do quadro e cai em cima do aluno.
+    // Mira UMA vez, onde ele vai estar (RumoPrevendo, PathAim.h); sem aluno,
+    // cai reto.
+    Vector2 rumo(0.0f, 1.0f);
+    if (historia) {
+        historia->DefinirBlindado(false);
+        historia->DefinirPosto("");
+        if (historia->HasPlayer()) {
+            rumo = RumoPrevendo(p->GetPosition(), historia->GetPlayerPosition(),
+                                historia->GetPlayerVelocity(), queda);
+        }
+    }
+    rb->SetVelocity(rumo * queda);
+    caiu = true;
+}
+
+void CursorDaSprintBehavior::update(Projectile* p, const float deltaTime) {
+    t += deltaTime;
+    if (!plano) { acabou = true; p->Kill(); return; }
+
+    const auto gesto = Sprint::GestoDoCursor(*plano, t);
+    if (gesto == Sprint::Gesto::Acabou) {
+        // Kill() so marca o estado: quem limpa os behaviors e o pool, depois.
+        acabou = true;
+        p->Kill();
+        return;
+    }
+
+    p->SetPosition(Sprint::CentroDoCursor(Sprint::PontaDoCursor(*plano, t), p->GetScale()));
+    if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+
+    const bool clica = (gesto == Sprint::Gesto::Soltando || gesto == Sprint::Gesto::Clicando);
+    if (clica != clicando) {
+        clicando = clica;
+        const std::string& cara = clica ? clique : seta;
+        if (!cara.empty()) {
+            if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(cara);
+        }
+    }
+}
+
+void AncorarBehavior::update(Projectile* p, const float deltaTime) {
+    auto* rb = p->GetComponent<RigidBodyComponent>();
+    if (!rb) { soltou = true; return; }
+
+    t += deltaTime;
+    const Boss* mae = nullptr;
+    if (const auto* batalha = dynamic_cast<Battle*>(p->GetScene()); batalha && t < duracao) {
+        float maisPerto = 0.0f;
+        for (const Boss* corpo : batalha->Corpos()) {
+            if (!corpo) continue;
+            const float d = (corpo->GetPosition() - p->GetPosition()).LengthSq();
+            if (!mae || d < maisPerto) { mae = corpo; maisPerto = d; }
+        }
+    }
+
+    // O TEMPO ACABOU, ou nao ha professor: a janela solta e cai.
+    if (!mae) {
+        rb->SetVelocity(Vector2(0.0f, queda));
+        soltou = true;
+        return;
+    }
+
+    p->SetPosition(Ancora::Aproximar(p->GetPosition(), mae->GetPosition() + offset, Ancora::kTaxa, deltaTime));
+    rb->SetVelocity(Vector2::Zero);
 }

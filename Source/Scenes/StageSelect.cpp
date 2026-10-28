@@ -48,22 +48,33 @@ void StageSelect::CriarIdentificacaoNaTela() {
 
     // Quem esta jogando, no canto de cima. Numa maquina compartilhada isto nao e
     // enfeite: e como o aluno confere que nao esta jogando na ficha do colega que
-    // usou antes dele.
-    auto aluno = std::make_unique<Actor>(this);
-    aluno->SetPosition(Vector2(230.f, 52.f));
-    const bool identificado = mGame->ProgressoEGravado();
-    const std::string rotulo = identificado
-        ? ("Matricula: " + Matricula::ParaExibir(mGame->MatriculaAtual()))
-        : std::string("Visitante - nao salva");
-    // AJUSTADO AO TEXTO, como o titulo e a maior nota. Sem isso o rotulo era
-    // ESTICADO ate preencher a caixa, entao a letra mudava de tamanho conforme
-    // o texto: "Visitante - nao salva" saia espremido e a matricula, gigante.
-    const auto rotuloDc = aluno->AddComponent<DrawTextComponent>(
-        rotulo, mStageSelectFont.get(), 400, 44, 30, 255);
-    rotuloDc->SetLarguraDeQuebra(400);
-    rotuloDc->SetAjustarAoTexto(true);
-    mAlunoAtor = aluno.get();
-    AddActor(std::move(aluno));
+    // usou antes dele - e, na dupla, que o parceiro entrou com a ficha certa.
+    //
+    // UMA LINHA POR POSICAO, montada do mesmo jeito: a segunda nasce do mesmo
+    // laco que a primeira, e nao de uma copia da receita logo abaixo.
+    const size_t quantos = mGame->QuantosJogadores();
+
+    for (size_t quem = 0; quem < quantos; ++quem) {
+
+        auto aluno = std::make_unique<Actor>(this);
+        aluno->SetPosition(Vector2(230.f, 52.f + static_cast<float>(quem) * kEntreOsAlunos));
+
+        const std::string quemE = quantos > 1 ? ("J" + std::to_string(quem + 1) + "  ") : "";
+        const std::string rotulo = mGame->ProgressoEGravado(quem)
+            ? (quemE + "Matricula: " + Matricula::ParaExibir(mGame->MatriculaDe(quem)))
+            : (quemE + "Visitante - nao salva");
+        // AJUSTADO AO TEXTO, como o titulo e a maior nota. Sem isso o rotulo era
+        // ESTICADO ate preencher a caixa, entao a letra mudava de tamanho conforme
+        // o texto: "Visitante - nao salva" saia espremido e a matricula, gigante.
+        const auto rotuloDc = aluno->AddComponent<DrawTextComponent>(
+            rotulo, mStageSelectFont.get(), 400, 44, 30, 255);
+        rotuloDc->SetLarguraDeQuebra(400);
+        rotuloDc->SetAjustarAoTexto(true);
+
+        // O observador guarda a PRIMEIRA linha, que e a unica que alguem reescreve.
+        if (quem == 0) mAlunoAtor = aluno.get();
+        AddActor(std::move(aluno));
+    }
 
     auto trocar = std::make_unique<Actor>(this);
     trocar->SetPosition(Vector2(largura / 2.0f, static_cast<float>(mGame->GetWindowHeight()) - 40.f));
@@ -394,7 +405,14 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
     if (entrar && !mEntrarAnterior && mGame->IsStageUnlocked(mSelectedSubject)) {
         mEntrarAnterior = true;
         mGame->SetSelectedStage(mSelectedSubject);
-        mGame->RequestSceneChange(SceneType::Battle);
+
+        // A MATERIA QUE PEDE ORIENTACAO PASSA PELA ESCOLHA ANTES DA BATALHA - o
+        // TCC (materias.json, "orientacao"). O orientador e zerado em toda
+        // entrada: o escolhido num TCC nao pode aparecer na batalha seguinte,
+        // de outra materia, so porque ficou guardado.
+        mGame->DefinirOrientador(-1);
+        const Materias::Materia* m = Materias::Carregadas().Por(mSelectedSubject);
+        mGame->RequestSceneChange((m && m->orientacao) ? SceneType::EscolhaDoOrientador : SceneType::Battle);
         return;
     }
     mEntrarAnterior = entrar;
@@ -473,8 +491,8 @@ void StageSelect::UpdateStageInfo() const {
         // aluno ve a tela piscar sem entender o que fez de errado.
         //
         // "Batalha", e nao "professor": desde que materias.json passou a trazer
-        // o professor, a INF 330 TEM professor (o Salles) e mesmo assim nao tem
-        // luta - sao duas coisas diferentes.
+        // o professor, o TCC TEM professor (o Hugo) e mesmo assim nao tem luta -
+        // sao duas coisas diferentes.
         frase = "Batalha ainda nao pronta";
         cor = Color::LightBlue;
 

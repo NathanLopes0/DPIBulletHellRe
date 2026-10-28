@@ -163,6 +163,72 @@ namespace {
         saida.posicionarNoDono = Booleano(j, "posicionarNoDono", true);
         saida.rotacionarComAVelocidade = Booleano(j, "rotacionarComAVelocidade", false);
 
+        // "derrubavel" so aceita true ou false. Um texto ou um numero ali seria
+        // lido como falso e o processo ficaria imortal, calado - e o aluno
+        // passaria a fase atirando num projetil que nao cai.
+        if (j.contains("derrubavel") && !j["derrubavel"].is_boolean()) {
+            problemas.emplace_back(onde + "\"derrubavel\" precisa ser true ou false; usando false");
+        }
+        saida.derrubavel = Booleano(j, "derrubavel", false);
+
+        // O ABRIGO, pela mesma razao: um texto ali seria lido como falso, e a
+        // capivara passaria pelo campo sem proteger ninguem.
+        if (j.contains("abrigo") && !j["abrigo"].is_boolean()) {
+            problemas.emplace_back(onde + "\"abrigo\" precisa ser true ou false; usando false");
+        }
+        saida.abrigo = Booleano(j, "abrigo", false);
+
+        // A RESISTENCIA E UM INTEIRO DE 1 PARA CIMA, e so num derrubavel: num
+        // projetil que o tiro nao derruba ela nao teria o que contar, e quem a
+        // escreveu provavelmente esqueceu o "derrubavel".
+        if (j.contains("resistencia")) {
+            if (!j["resistencia"].is_number_integer() || j["resistencia"].get<int>() < 1) {
+                problemas.emplace_back(onde + "\"resistencia\" precisa ser um inteiro de 1 para cima; usando 1");
+            } else if (!saida.derrubavel) {
+                problemas.emplace_back(onde + "\"resistencia\" so vale num projetil \"derrubavel\"; ignorada");
+            } else {
+                saida.resistencia = j["resistencia"].get<int>();
+            }
+        }
+
+        // ----- O efeito de acorrentar -----
+        //
+        // RECUSA CHAPADO em vez de corrigir calado: um "segundos" negativo ou
+        // um fator fora de (0, 1] quase sempre e engano de digitacao, e aceitar
+        // produziria um aluno que anda para tras ou que fica MAIS rapido ao ser
+        // acertado - coisas que ninguem ia procurar no arquivo.
+        if (j.contains("acorrenta")) {
+            const auto& a = j["acorrenta"];
+            if (!a.is_object()) {
+                problemas.emplace_back(onde + "\"acorrenta\" deveria ser um objeto com "
+                                              "\"segundos\", \"fatorDeVelocidade\" e "
+                                              "\"multiplicadorDaPerda\"");
+            }
+            else {
+                saida.acorrenta.segundos = Numero(a, "segundos", 0.0f);
+                saida.acorrenta.fatorDeVelocidade = Numero(a, "fatorDeVelocidade", 1.0f);
+                saida.acorrenta.multiplicadorDaPerda = Numero(a, "multiplicadorDaPerda", 1.0f);
+
+                if (saida.acorrenta.segundos <= 0.0f) {
+                    problemas.emplace_back(onde + "\"acorrenta.segundos\" precisa ser maior "
+                                                  "que zero; o efeito foi ignorado");
+                    saida.acorrenta = DescricaoDeProjetil::Acorrentamento{};
+                }
+                else if (saida.acorrenta.fatorDeVelocidade <= 0.0f
+                         || saida.acorrenta.fatorDeVelocidade > 1.0f) {
+                    problemas.emplace_back(onde + "\"acorrenta.fatorDeVelocidade\" precisa "
+                                                  "estar entre 0 (exclusivo) e 1; o efeito foi "
+                                                  "ignorado");
+                    saida.acorrenta = DescricaoDeProjetil::Acorrentamento{};
+                }
+                else if (saida.acorrenta.multiplicadorDaPerda < 0.0f) {
+                    problemas.emplace_back(onde + "\"acorrenta.multiplicadorDaPerda\" nao pode "
+                                                  "ser negativo; o efeito foi ignorado");
+                    saida.acorrenta = DescricaoDeProjetil::Acorrentamento{};
+                }
+            }
+        }
+
         saida.margemEmSprites = Numero(j, "margemEmSprites", 1.0f);
         if (saida.margemEmSprites < 0.0f) {
             problemas.emplace_back(onde + "\"margemEmSprites\" nao pode ser negativa; usando 1");

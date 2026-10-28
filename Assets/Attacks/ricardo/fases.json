@@ -31,74 +31,235 @@
   //   vive em C++. Onde isso acontece esta anotado na fase.
   // ==========================================================================
 // ==========================================================================
-// RICARDO - INF 250 (fabrica de projeteis: "Arduino")
+// RICARDO - INF 250, Organizacao de Computadores
 //
-// O chefe do anel. As tres fases sao o MESMO anel de CircleSpreadAttack com
-// densidade e comportamento crescentes, e a diferenca entre elas esta toda nas
-// regras dos projeteis.
+// Ele tambem da Sistemas Logicos e Arquitetura, e pesquisa hardware - a
+// camiseta dele diz 10110. A batalha e UMA MATERIA POR FASE (do 129 ao 132;
+// antes eram tres aneis de Arduinos com regras diferentes):
 //
-// Ricardo NAO sobrescreve nada em CustomizeAttackParams, entao todo o
-// balanceamento dele esta neste arquivo. CircleSpreadAttack tambem ignora
-// angulo, anguloCentral e intervalo - o anel e sempre 360 graus dividido pela
-// quantidade - por isso nenhum dos tres aparece aqui.
+//   fase 1  SISTEMAS LOGICOS - palavras de bits que atravessam portas logicas
+//   fase 2  ORGANIZACAO DE COMPUTADORES - o clock, e os tiros que andam nele
+//   fase 3  ARQUITETURA DE COMPUTADORES - o pipeline
+//   final   HARDWARE - quatro Arduinos rodando o Blink
+//
+// O que dados nao sabem fazer mora em Ricardo.cpp - as portas e a travessia,
+// o relogio dos registradores, o pipeline, o LED das placas -, e a logica de
+// cada materia em um modulo puro com testes: Logica.h, Relogio.h, Pipeline.h
+// e Blink.h. E O PLACAR E A REGRA: a porta, o clock e o delay do sketch sao
+// lidos do que o placar anuncia - e no pipeline ele diz a instrucao no EX.
+//
+// CADA LUTA E OUTRA (Variacao.h). No primeiro quadro o Ricardo sorteia e
+// REESCREVE AS ETAPAS daqui (Ricardo::SortearALuta) - o placar continua sendo
+// a regra: as quatro portas da fase 1 em ordem sorteada, cada uma com outro B
+// (Logica::Plano); o tempo de cada clock da fase 2, em segundos inteiros de 4
+// a 6, e o estado de que o contador Johnson parte; as voltas do laco da fase
+// 3 (2, 3 ou 4 - o vetor tem tantos elementos); e o delay de partida do Blink
+// (800, 1000 ou 1200 ms). Os textos das etapas abaixo sao os do Normal sem
+// sorteio, e e deles que o Ricardo tira os fins.
+//
+// NO DIFICIL (Dificuldade.h): a palavra sai a cada 1,25 s e a 160 px/s (o
+// bloco "dificil" do ataque dela), o registrador anda 84 px por borda, o
+// pipeline cicla a cada 0,62 s e ataca 20% mais rapido, e o sketch roda com
+// 80% do delay (escrito no placar) e o LED 20% mais rapido. Medido em cinco
+// sementes, a batalha inteira: no Normal o que persegue termina com 82,0 a
+// 86,9 e o que desvia com 73,4 a 85,0 (5 a 14 acertos); no Dificil, 72,4 a
+// 82,8 e 64,0 a 79,4 (10 a 14, 12 em media, contra 9,8). O parado e o que vai
+// e vem reprovam nos dois.
 // ==========================================================================
 
-  // Anel denso e SEM regra nenhuma: 36 projeteis retos. E a fase que ensina o
-  // jogador a ler espacamento, antes de qualquer bala comecar a corrigir rota.
+  // FASE 1 - SISTEMAS LOGICOS   |   gesto: LER A PORTA E IR PARA ONDE VAI ABRIR
+  //
+  // A cada 1,5 s ele solta uma PALAVRA DE 16 BITS que desce como uma parede,
+  // um bit por coluna (PalavraAttack). O UM e nivel alto: aceso, machuca. O
+  // ZERO e nivel baixo: apagado, se atravessa.
+  //
+  // NO MEIO DO CAMINHO HA UMA FILEIRA DE PORTAS LOGICAS, uma por coluna, com a
+  // entrada B escrita em cada uma (gatilho "portas", aos 0,2 s). Todo bit sai
+  // da porta da coluna dele transformado (Ricardo::AtualizarPortas): o aluno
+  // ve a palavra chegando, le a porta, e tem de ir para onde a parede VAI
+  // abrir.
+  //
+  // O PLACAR E A PORTA. O anuncio de cada etapa e a operacao, e e esse texto
+  // que o Ricardo le (Logica::LerPorta): o que o aluno le e o que o codigo faz.
+  // A ordem ensina e aperta:
+  //   AND  B nas pontas e 0: as pontas sempre abrem - "AND com 0 zera"
+  //   OR   B nas pontas e 1: as pontas sempre fecham - quem aprendeu a se
+  //        esconder nelas tem de sair
+  //   NOT  tudo vira: o buraco vira parede e a parede vira buraco
+  //   XOR  a metade da esquerda vira, a da direita passa como esta
+  //
+  // A PALAVRA E SORTEADA PARA A PORTA QUE VAI ATRAVESSAR, e e justa (Logica::
+  // Justa): antes e depois da porta ha ao menos 3 buracos e 5 bits acesos, e
+  // a porta muda alguma coisa nela.
+  //
+  // 75 PX POR COLUNA, E O BIT TEM 70: entre dois uns vizinhos sobram 5 px, e o
+  // aluno precisa de 13 - a parede e parede. O buraco de um zero entre dois
+  // uns tem 80.
+  //
+  // O MOVIMENTO E O DESLOCADOR: ele anda uma coluna de cada vez, como um bit
+  // num registrador de deslocamento, e PARA 2 S EM CADA UMA. O tiro do aluno
+  // leva quase 1 s ate ele: andando a cada 0,6 s, o piloto que persegue
+  // acertou o professor 8 vezes na fase inteira e saiu dela com 14,5; a cada
+  // 1,5 s, com 49,9; a cada 2 s, com 61,8.
   "StateOne": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateTwo",
-    "movimento": { "tipo": "RandomWander", "a": 4.0, "b": 100 },
+    "anuncio": "Sistemas Lógicos",
+    "etapas": [
+      { "nome": "E",  "duracao": 5.0, "anuncio": "AND 0000 1111 1111 0000" },
+      { "nome": "Ou", "duracao": 5.0, "anuncio": "OR 1100 0000 0000 0011" },
+      { "nome": "Nao", "duracao": 5.0, "anuncio": "NOT" },
+      { "nome": "Xou", "duracao": 5.0, "anuncio": "XOR 1111 1111 0000 0000" }
+    ],
+    "movimento": { "tipo": "Deslocamento", "a": 2.0, "b": 16 },
     "ataques": [
-      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
-        "projeteis": 36, "velocidade": 180,
-        "cooldown": 2.4 }
+      { "gatilho": "portas", "estrategia": "PalavraAttack", "projetil": "Porta",
+        "projeteis": 16, "velocidade": 0,
+        "palavra": { "altura": 390, "atravessa": "todos" },
+        "regras": "portas" },
+      { "estrategia": "PalavraAttack", "projetil": "Bit",
+        "projeteis": 16, "velocidade": 140,
+        "cooldown": 1.5,
+        "dificil": { "cooldown": 1.25, "velocidade": 160 },
+        "regras": "palavra" }
     ]
   },
 
-  // Mesmo anel, agora teleguiado: desacelera e depois vira no jogador.
+  // FASE 2 - ORGANIZACAO DE COMPUTADORES   |   gesto: O TIRO ANDA NO CLOCK
+  //
+  // OS TIROS SAO REGISTRADORES. Ficam parados entre uma borda e outra do
+  // clock, e a cada borda de subida dao um passo de 72 px - um bit e um pouco
+  // (Relogio::kPasso; Ricardo::AtualizarRelogio). Parado, da para ler o campo
+  // inteiro e planejar; o perigo e a proxima borda.
+  //
+  // O PLACAR E O CLOCK: cada etapa anuncia a frequencia, e e dali que o
+  // professor e os tiros a leem (Relogio::LerFrequencia). Ela DOBRA de etapa
+  // em etapa - 1, 2, 4 Hz - ate o overclock de 8 Hz, em que o passo vira
+  // quase um escorrer e o mesmo tiro anda a 576 px/s. As etapas trocam em
+  // segundos inteiros e as frequencias sao inteiras: toda troca cai numa
+  // borda, e todo segundo e borda de qualquer clock.
+  //
+  // A CADA SEGUNDO SAI UM LEQUE DE 8 BITS, mirado no aluno (gatilho
+  // "contador"): o valor de um CONTADOR JOHNSON - o registrador de
+  // deslocamento com a saida invertida de volta na entrada -, que enche de
+  // uns pela esquerda e esvazia pela esquerda. O 1 machuca e o 0 e a fresta,
+  // e de um leque ao seguinte muda um bit so: a fresta anda. A "velocidade"
+  // do leque so da a direcao: no primeiro quadro em que o bit anda, o Ricardo
+  // a anota e o para - quem o faz andar e a borda.
+  //
+  // O MOVIMENTO E A ONDA QUADRADA: em cima no nivel alto, embaixo no baixo,
+  // saltando nas bordas do mesmo clock do placar - e no overclock ele treme.
   "StateTwo": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateThree",
-    "movimento": { "tipo": "RandomWander", "a": 3.0, "b": 160 },
+    "anuncio": "Organização de Computadores",
+    "etapas": [
+      { "nome": "Hz1", "duracao": 5, "anuncio": "clock 1 Hz" },
+      { "nome": "Hz2", "duracao": 5, "anuncio": "clock 2 Hz" },
+      { "nome": "Hz4", "duracao": 5, "anuncio": "clock 4 Hz" },
+      { "nome": "Hz8", "duracao": 5, "anuncio": "overclock 8 Hz" }
+    ],
+    "movimento": { "tipo": "OndaQuadrada", "a": 60, "b": 50 },
     "ataques": [
-      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
-        "projeteis": 36, "velocidade": 180,
-        "cooldown": 2.4,
-        "regras": "fase2" }
+      { "gatilho": "contador", "estrategia": "WaveAttack", "projetil": "Bit",
+        "projeteis": 8, "velocidade": 72, "angulo": 90, "intervalo": 0,
+        "regras": "registradores" }
     ]
   },
 
-  // Anel de 18 - METADE da fase 2 - mas so os pares viram. Menos balas e mais
-  // decisao: o jogador escolhe por onde passar.
+  // FASE 3 - ARQUITETURA DE COMPUTADORES   |   gesto: O PIPELINE
+  //
+  // CINCO ESTAGIOS ATRAVESSADOS NO ALTO DA TELA - IF, ID, EX, MEM, WB (gatilho
+  // "estagios"), e as instrucoes de um laco em assembly MIPS andando neles, um
+  // estagio a cada 0,9 s, uma entrando no IF a cada ciclo (gatilho "buscar";
+  // Pipeline.h). O programa soma os elementos de um vetor: lw, add, addi, bne,
+  // e no fim sw e j.
+  //
+  // CADA INSTRUCAO ATACA NO SEU ESTAGIO, e o ataque sai DALI, e nao do
+  // professor: a soma no EX (add, um leque de 5 mirado no aluno; addi, um
+  // tiro), o load e o store no MEM (lw traz da memoria uma palavra de 16 bits,
+  // a parede da fase 1; sw grava uma coluna de bits reta para baixo). O
+  // placar diz o que esta no EX.
+  //
+  // O BNE E PREVISTO TOMADO, e acerta em todas as voltas do laco menos na
+  // ultima: ai as duas instrucoes buscadas pelo caminho errado viram BOLHA -
+  // o flush - e o pipeline da um respiro.
+  //
+  // E O ALUNO TAMBEM FAZ BOLHA: a instrucao e derrubavel, com dois tiros, e a
+  // derrubada vira bolha e nao ataca. O tiro gasto nela nao chega ao
+  // professor, que fica atras do pipeline.
   "StateThree": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "",
-    "movimento": { "tipo": "RandomWander", "a": 2.0, "b": 180 },
+    "anuncio": "Arquitetura de Computadores",
+    "movimento": { "tipo": "Varredura", "a": 70, "b": 220 },
     "ataques": [
-      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
-        "projeteis": 18, "velocidade": 180,
-        "cooldown": 2.4,
-        "regras": "fase3" }
+      { "gatilho": "estagios", "estrategia": "PalavraAttack", "projetil": "Estagio",
+        "projeteis": 5, "velocidade": 0,
+        "palavra": { "altura": 280, "atravessa": "todos" },
+        "regras": "estagios" },
+      { "gatilho": "buscar", "estrategia": "WaveAttack", "projetil": "Instrucao",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "pipeline" },
+      { "gatilho": "add", "estrategia": "WaveAttack", "projetil": "Bit",
+        "projeteis": 5, "velocidade": 230, "angulo": 50, "intervalo": 0,
+        "regras": "resultado" },
+      { "gatilho": "addi", "estrategia": "WaveAttack", "projetil": "Bit",
+        "projeteis": 1, "velocidade": 320, "angulo": 0, "intervalo": 0,
+        "regras": "resultado" },
+      { "gatilho": "lw", "estrategia": "PalavraAttack", "projetil": "Bit",
+        "projeteis": 16, "velocidade": 150,
+        "palavra": { "altura": 330 } },
+      { "gatilho": "sw", "estrategia": "WaveAttack", "projetil": "Bit",
+        "projeteis": 3, "velocidade": 260, "angulo": 0, "anguloCentral": 90, "intervalo": 0.12,
+        "regras": "resultado" }
     ]
   },
 
-  // Repescagem: um anel lento e denso sem regra, mais um anel esparso e rapido
-  // que persegue. Os cooldowns diferentes (1.4 e 2.8) fazem os dois aneis
-  // desencontrarem em vez de sairem sempre juntos.
+  // FASE FINAL - HARDWARE   |   gesto: O PISCA-PISCA
+  //
+  // A repescagem e o primeiro programa de quem pega um Arduino, o BLINK:
+  // acende o LED, espera, apaga, espera. QUATRO PLACAS - o Arduino da arte
+  // original, com o LED do pino 13 - ficam presas ao professor, duas de cada
+  // lado (a cada 8 s ele pluga quatro novas; as de antes se soltam e caem), e
+  // piscam em dupla: enquanto um lado esta aceso o outro esta apagado. A placa
+  // que ACENDE atira um leque de LEDs mirado no aluno (gatilho "acender",
+  // posto "acesas"); a apagada nao (Ricardo::AtualizarBlink; Blink.h).
+  //
+  // O PLACAR E O SKETCH: cada etapa anuncia o delay, e e dali que as placas o
+  // leem (Blink::LerDelay). Ele cai pela metade - 1000, 500, 250 ms -, e o
+  // pisca-pisca acelera: o lado que atira troca cada vez mais depressa.
+  //
+  // A PLACA E DERRUBAVEL, com quatro tiros: desplugada, ela para de piscar - e
+  // o tiro gasto nela nao chega ao professor.
+  //
+  // O LED A 210 PX/S, E A VELOCIDADE PESA: o leque e mirado, e o piloto que
+  // persegue anda devagar com o professor. Comecando com 40, ele levou 2
+  // acertos com o LED a 190 px/s e saiu com 83,3; 6 a 210, saindo com 68,1;
+  // 11 a 250, reprovado com 42,9. A batalha nao sorteia nada aqui: as
+  // sementes 7, 1234, 99 e 2026 deram o mesmo resultado.
+  //
+  // Antes era um anel lento e denso mais um esparso que perseguia, com o
+  // professor parado no centro: comecando com 40, todo piloto reprovava - o
+  // que persegue e o parado com 39,7 e 12 acertos.
   "StateFinal": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateOne",
-    "movimento": { "tipo": "GoToCenter" },
+    "anuncio": "void loop()",
+    "etapas": [
+      { "nome": "Lento",  "duracao": 6, "anuncio": "digitalWrite(13, HIGH); delay(1000);" },
+      { "nome": "Medio",  "duracao": 7, "anuncio": "digitalWrite(13, HIGH); delay(500);" },
+      { "nome": "Rapido", "duracao": 7, "anuncio": "digitalWrite(13, HIGH); delay(250);" }
+    ],
+    "movimento": { "tipo": "Varredura", "a": 60, "b": 260 },
     "ataques": [
-      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
-        "projeteis": 18, "velocidade": 120,
-        "cooldown": 1.4 },
-
-      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
-        "projeteis": 9, "velocidade": 240,
-        "cooldown": 1.8,
-        "regras": "final_teleguiado" }
+      { "estrategia": "WaveAttack", "projetil": "Placa",
+        "projeteis": 4, "velocidade": 150, "angulo": 120, "anguloCentral": 90, "intervalo": 0,
+        "cooldown": 8,
+        "regras": "placas" },
+      { "gatilho": "acender", "estrategia": "PontosAttack", "projetil": "Led",
+        "projeteis": 3, "velocidade": 210, "angulo": 24,
+        "pontos": { "posto": "acesas", "mirar": true } }
     ]
   }
 }

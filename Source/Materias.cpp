@@ -282,11 +282,22 @@ Lista LerMaterias(const std::string& textoJson) {
 
         // Os dois campos de apresentacao. Ausentes viram vazio de proposito, e
         // nao o codigo: quem desenha decide se mostra ou nao, e um
-        // "nomeCompleto" que fosse "INF330" apareceria duas vezes na tela.
+        // "nomeCompleto" que fosse "INF340" apareceria duas vezes na tela.
         m.nomeCompleto = Texto(j, "nomeCompleto");
         m.professor = Texto(j, "professor");
 
         m.chefe = Texto(j, "chefe");
+
+        // "orientacao": a batalha pede um orientador antes de comecar. Um valor
+        // que nao e booleano e um erro de digitacao, e nao "sim": avisa e fica
+        // sem orientador.
+        if (j.contains("orientacao")) {
+            if (j["orientacao"].is_boolean()) {
+                m.orientacao = j["orientacao"].get<bool>();
+            } else {
+                lista.problemas.emplace_back(onde + "\"orientacao\" e true ou false; ficou sem orientador");
+            }
+        }
 
         m.coluna = Inteiro(j, "coluna", -1);
         if (m.coluna < 0) {

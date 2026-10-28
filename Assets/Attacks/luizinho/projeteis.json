@@ -1,0 +1,138 @@
+{
+  // ==========================================================================
+  // OS PROJETEIS DO LUIZINHO (INF 340 - Linguagens de Programacao)
+  //
+  // UM TIPO PARA CADA COISA QUE TEM DE SER RECONHECIDA PELO TIPO, e nao pela
+  // aparencia:
+  //
+  //   Gota      a variavel da fase 1 (o escopo), que chove na regiao em que e
+  //             visivel.
+  //   Valor     o numero e o texto da fase 2 (os sistemas de tipos): o
+  //             operando, o anel do resultado numero e as letras da palavra do
+  //             resultado texto.
+  //   Operador  onde a conta da fase 2 roda.
+  //   Erro      o TypeError e o erro de compilacao da fase 2.
+  //   Celula    um int de um bloco de memoria da fase 3.
+  //   Estilhaco a memoria corrompida que estoura na fase 3.
+  //   Excecao   a excecao da final, que sobe pela pilha de chamadas.
+  //   Destroco  o que cai da pilha: a faixa desempilhada e o finally.
+  //
+  // Cada tipo registrado custa 300 instancias no pre-aquecimento; as animacoes
+  // do mesmo tipo custam uma vez so.
+  //
+  // Arte PROVISORIA de Ferramentas/gerar_luizinho.py.
+  // ==========================================================================
+
+  // A VARIAVEL DA FASE 1 (Escopo.h): o nome dela num chip de editor, x em
+  // ambar e y em ciano. "AvisoX" e o chip apagado - onde a chuva vai cair -,
+  // e "X" o aceso, que acerta. O colisor e metade da largura do quadro: 14 px,
+  // o Escopo::kRaioDaGota com que a regiao e coberta (um teste confere).
+  "Gota": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoGotas.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoGotas.json",
+    "animacoes": {
+      "AvisoX": [0],
+      "X":      [1],
+      "AvisoY": [2],
+      "Y":      [3]
+    },
+    "animacaoInicial": "AvisoX",
+    "ordemDeDesenho": 88
+  },
+
+  // OS VALORES DA FASE 2 (Coercao.h): o numero num chip azul, o texto num
+  // verde. "Numero0" a "Numero20" sao o operando e o chip do anel do resultado
+  // (o n escrito nele); "Texto0" a "Texto9" o operando texto, com as aspas;
+  // "Letra0" a "Letra9" e "Aspas" as letras da palavra do resultado.
+  "Valor": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoValores.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoValores.json",
+    "animacoes": {
+      "Numero0": [0], "Numero1": [1], "Numero2": [2], "Numero3": [3], "Numero4": [4], "Numero5": [5],
+      "Numero6": [6], "Numero7": [7], "Numero8": [8], "Numero9": [9], "Numero10": [10], "Numero11": [11],
+      "Numero12": [12], "Numero13": [13], "Numero14": [14], "Numero15": [15], "Numero16": [16], "Numero17": [17],
+      "Numero18": [18], "Numero19": [19], "Numero20": [20], "Texto0": [21], "Texto1": [22], "Texto2": [23],
+      "Texto3": [24], "Texto4": [25], "Texto5": [26], "Texto6": [27], "Texto7": [28], "Texto8": [29],
+      "Texto9": [30], "Letra0": [31], "Letra1": [32], "Letra2": [33], "Letra3": [34], "Letra4": [35],
+      "Letra5": [36], "Letra6": [37], "Letra7": [38], "Letra8": [39], "Letra9": [40], "Aspas": [41]
+    },
+    "animacaoInicial": "Numero0",
+    "ordemDeDesenho": 90
+  },
+
+  // O OPERADOR: onde a conta roda, em cima do aluno - o aviso de onde o
+  // resultado vai estourar. "MaisErro" e "VezesErro" quando ela da erro.
+  "Operador": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoOperadores.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoOperadores.json",
+    "animacoes": {
+      "Mais": [0], "Vezes": [1], "MaisErro": [2], "VezesErro": [3]
+    },
+    "animacaoInicial": "Mais",
+    "ordemDeDesenho": 87
+  },
+
+  // OS ERROS: o "TypeError" estoura onde a conta rodou, e o "erro de tipo" da
+  // compilacao no professor. O chip e largo para o texto se ler, e o colisor e
+  // a ALTURA: so o meio dele acerta.
+  "Erro": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoErros.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoErros.json",
+    "animacoes": {
+      "TypeError": [0], "Compilacao": [1]
+    },
+    "animacaoInicial": "TypeError",
+    "colisorDimensao": "altura",
+    "ordemDeDesenho": 91
+  },
+
+  // A MEMORIA DA FASE 3 (Memoria.h): uma celula por int do bloco. "Aviso" e o
+  // contorno de onde o bloco vai nascer; "Viva" tem o 0 com que o Java inicia
+  // todo int, e "Crua" o "?" do C++, que nao inicia; "Prox" e o campo prox de
+  // um no; "Lixo" e o bloco que ninguem alcanca, "Marcada" o mesmo marcado
+  // pelo coletor, e "Vazou" o que o C++ nunca vai liberar. O colisor e metade
+  // da largura: 15 px, o Memoria::kLadoDaCelula (um teste confere).
+  "Celula": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoMemoria.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoMemoria.json",
+    "animacoes": {
+      "Aviso": [0], "Viva": [1], "Crua": [2], "Prox": [3],
+      "Lixo": [4], "Marcada": [5], "Vazou": [6]
+    },
+    "animacaoInicial": "Aviso",
+    "ordemDeDesenho": 89
+  },
+
+  // O CACO DE MEMORIA CORROMPIDA: o que estoura do ponteiro pendente e do
+  // bad_alloc.
+  "Estilhaco": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoEstilhacos.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoEstilhacos.json",
+    "animacoes": { "Corrompido": [0] },
+    "animacaoInicial": "Corrompido",
+    "ordemDeDesenho": 91
+  },
+
+  // A EXCECAO DA FINAL (Excecao.h): o nome do tipo num chip vermelho, que sobe
+  // pela pilha. E enfeite: o que acerta sao os destrocos.
+  "Excecao": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoExcecoes.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoExcecoes.json",
+    "animacoes": {
+      "Exception": [0], "IOException": [1], "RuntimeException": [2],
+      "NullPointerException": [3], "Reprovado": [4]
+    },
+    "animacaoInicial": "Exception",
+    "ordemDeDesenho": 92
+  },
+
+  // O QUE CAI DA PILHA: o "Destroco" de cada faixa desempilhada, e o anel do
+  // "Finally", que roda de qualquer jeito.
+  "Destroco": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoPilha.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoPilha.json",
+    "animacoes": { "Destroco": [0], "Finally": [1] },
+    "animacaoInicial": "Destroco",
+    "ordemDeDesenho": 90
+  }
+}

@@ -10,6 +10,10 @@ public:
     explicit AndreFactory(Game* game);
     ~AndreFactory() override = default;
 
+    /// O cartao do professor, sem a extensao: o mesmo que ConfigureComponents
+    /// desenha, e o que a escolha do orientador mostra.
+    [[nodiscard]] std::string Retrato() const override { return "Teachers/DPIBHAndre"; }
+
 private:
 
     // Os 3 passos da função principal CreateBoss da classe base

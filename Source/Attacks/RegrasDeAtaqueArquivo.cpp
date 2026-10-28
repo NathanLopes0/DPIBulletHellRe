@@ -17,6 +17,9 @@
 #include "PathShapes.h"
 #include "../Random.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"
+#include "../Actors/Player/Player.h"
+#include "../Scenes/Battle/Battle.h"
 
 #include "../CaminhosArquivo.h"
 
@@ -93,6 +96,15 @@ namespace {
             p->insertMotion<WobbleBehavior>(d.atraso, d.amplitude, d.frequencia, d.duracao);
         else if (d.tipo == "MiraPeriodica")
             p->insertMotion<MiraPeriodicaBehavior>(d.ritmo);
+        else if (d.tipo == "Amarrar") {
+            Amarra::Corda corda;
+            corda.comprimento = d.comprimento;
+            corda.duracao = d.duracao;
+            Amarra::SentidoPeloNome(d.sentido, corda.sentido);   // a leitura ja o validou
+            p->insertMotion<AmarrarBehavior>(corda, d.escreve);
+        }
+        else if (d.tipo == "Ancorar")
+            p->insertMotion<AncorarBehavior>(Vector2(d.dx, d.dy), d.duracao, d.velocidade);
         else if (d.tipo == "Accelerate")
             p->insertModifier<AccelerateBehavior>(d.atraso, d.fator);
         else if (d.tipo == "SlowDown")
@@ -103,6 +115,8 @@ namespace {
             p->insertModifier<DeactivateBehavior>(d.atraso);
         else if (d.tipo == "PulsoDeVelocidade")
             p->insertModifier<PulsoDeVelocidadeBehavior>(d.ritmo, d.moduloInvestida, d.moduloPausa);
+        else if (d.tipo == "Promessa")
+            p->insertModifier<PromessaBehavior>(d.atraso, d.resolve, d.velocidade, d.escreve);
     }
 
 }
@@ -123,6 +137,26 @@ std::function<void(Projectile*, int)> ConfiguratorDeArquivo(const std::string& c
     return ConfiguratorDeRegras(it->second);
 }
 
+namespace {
+
+    /// @brief Algum aluno em campo esta preso por uma corrente?
+    ///
+    /// Vai pelo projetil ate a cena porque o configurator e criado na MONTAGEM
+    /// do chefe, quando os jogadores ainda nem existem - guardar um ponteiro
+    /// para o Player ali seria guardar um ponteiro para o nada.
+    bool AlgumJogadorAcorrentado(Projectile* p) {
+        if (!p) return false;
+        const auto batalha = dynamic_cast<Battle*>(p->GetScene());
+        if (!batalha) return false;
+
+        for (const Player* jogador : batalha->Jogadores()) {
+            if (jogador && jogador->EstaAcorrentado()) return true;
+        }
+        return false;
+    }
+
+}
+
 std::function<void(Projectile*, int)> ConfiguratorDeRegras(const std::vector<Regra>& regrasLidas) {
 
     // As regras sao copiadas para um shared_ptr e capturadas por valor: o
@@ -132,9 +166,20 @@ std::function<void(Projectile*, int)> ConfiguratorDeRegras(const std::vector<Reg
 
     return [regras](Projectile* p, const int indice) {
         if (!p) return;
+
+        // QUEM PERGUNTA AO MUNDO E ESTA CAMADA, e nao RegrasDeAtaque.cpp. A
+        // condicao "alvoAcorrentado" e a unica que depende do estado do jogo em
+        // vez da posicao na rajada; manter a consulta aqui e o que deixa a
+        // regra pura continuar pura e testavel com um bool.
+        //
+        // QUALQUER UM DOS DOIS SERVE, em dupla: se um esta preso, a regra vale. E a mesma escolha da nota compartilhada - o que acontece
+        // com um acontece para a dupla -, e evita o absurdo de metade da rajada
+        // perseguir um e metade o outro dentro do mesmo disparo.
+        const bool alvoAcorrentado = AlgumJogadorAcorrentado(p);
+
         for (const Regra& r : *regras) {
             const float sorteio = Random::GetFloatRange(0.0f, 1.0f);
-            if (!RegraSeAplica(r, indice, sorteio)) continue;
+            if (!RegraSeAplica(r, indice, sorteio, alvoAcorrentado)) continue;
 
             // A escala vem primeiro, na mesma ordem em que os configurators
             // escritos a mao faziam: SetScale antes dos behaviors. As duas coisas
@@ -142,6 +187,26 @@ std::function<void(Projectile*, int)> ConfiguratorDeRegras(const std::vector<Reg
             // velocidade), mas manter a ordem deixa o comportamento identico ao
             // do codigo que este arquivo substitui, inclusive sob comparacao.
             if (r.escala) p->SetScale(*r.escala);
+
+            // A ROTACAO E DA RAJADA, E NAO DO TIPO. Ver o campo em
+            // RegrasDeAtaque.h: a mesma folha pode ser seta numa rajada (gira)
+            // e um no simetrico na outra (nao gira).
+            //
+            // O dynamic_cast e porque so projetil de chefe gira - o do jogador
+            // nao tem o conceito. Uma regra com "rotacionar" num projetil que
+            // nao e de chefe simplesmente nao faz nada, que e melhor do que
+            // falhar: a regra pode estar certa para os outros projeteis dela.
+            if (r.rotacionar) {
+                if (const auto b = dynamic_cast<BossProjectile*>(p)) {
+                    b->DefinirRotacaoPelaVelocidade(*r.rotacionar);
+                }
+            }
+
+            // O POSTO TAMBEM E DO DISPARO: o projetil volta do pool sem posto
+            // (BossProjectile::Reset), e a regra o poe de novo a cada rajada.
+            if (!r.posto.empty()) {
+                if (const auto b = dynamic_cast<BossProjectile*>(p)) b->DefinirPosto(r.posto);
+            }
 
             if (r.temMotion) Inserir(p, r.motion, indice);
             for (const auto& m : r.modifiers) Inserir(p, m, indice);

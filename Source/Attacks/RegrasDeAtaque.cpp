@@ -5,12 +5,21 @@
 #include "RegrasDeAtaque.h"
 
 #include "../JsonDeDados.h"
+#include "Amarra.h"
 
 namespace {
 
-    const std::vector<std::string> kMotions   = {"Path", "Tracking", "Wobble", "MiraPeriodica"};
+    const std::vector<std::string> kMotions   = {"Path", "Tracking", "Wobble", "MiraPeriodica",
+                                                 "Amarrar", "Ancorar"};
     const std::vector<std::string> kModifiers = {"Accelerate", "SlowDown", "Activate",
-                                                 "Deactivate", "PulsoDeVelocidade"};
+                                                 "Deactivate", "PulsoDeVelocidade",
+                                                 "Promessa"};
+
+    const std::vector<std::string> kPostos = {"quadro", "observadores", "agentes", "nuvens",
+                                              "palavra", "portas", "registradores", "estagios", "pipeline",
+                                              "placas", "acesas", "fita", "estados", "pilha",
+                                              "baldes", "chaves", "arvore", "vetor",
+                                              "tabela", "aviso", "pagina", "grade", "supervisao", "eventloop", "cronograma", "objetivo"};
 
     bool Contem(const std::vector<std::string>& lista, const std::string& v) {
         for (const auto& x : lista) if (x == v) return true;
@@ -75,6 +84,64 @@ namespace {
                                           j["velocidadeInicial"][1].get<float>());
         }
         if (j.contains("ritmo")) d.ritmo = LerRitmo(j["ritmo"]);
+
+        d.escreve = (j.contains("escreve") && j["escreve"].is_string())
+                        ? j["escreve"].get<std::string>() : "";
+
+        d.resolve = Campo(j, "resolve", 0.5f);
+
+        d.dx = Campo(j, "dx", 0.0f);
+        d.dy = Campo(j, "dy", 0.0f);
+
+        // A JANELA QUE NAO FICARIA E RECUSADA: sem duracao ela solta no quadro em
+        // que chega, e sem velocidade, solta, fica parada para sempre - nunca
+        // sai da tela nem volta ao pool.
+        if (d.tipo == "Ancorar") {
+            if (d.duracao <= 0.0f)
+                erro = "\"Ancorar\" precisa de \"duracao\" maior que zero: e quanto tempo a "
+                       "janela fica presa ao chefe";
+            else if (d.velocidade <= 0.0f)
+                erro = "\"Ancorar\" precisa de \"velocidade\" maior que zero: e a da queda, "
+                       "quando a janela solta";
+            return d;
+        }
+
+        d.comprimento = Campo(j, "comprimento", 0.0f);
+        if (j.contains("sentido") && j["sentido"].is_string()) d.sentido = j["sentido"].get<std::string>();
+
+        // A CORDA QUE NAO AMARRARIA NADA E RECUSADA. Comprimento zero e uma letra
+        // amarrada no instante em que nasce, girando em cima do professor; sem
+        // duracao, a corda e cortada no quadro em que estica e a letra so faz uma
+        // curva de noventa graus. E um sentido escrito errado nao vira o padrao
+        // calado: o lado do giro e o que o aluno le para desviar da letra solta.
+        if (d.tipo == "Amarrar") {
+            Amarra::Sentido s;
+            if (d.comprimento <= 0.0f)
+                erro = "\"Amarrar\" precisa de \"comprimento\" maior que zero: e a distancia "
+                       "em que a corda estica";
+            else if (d.duracao <= 0.0f)
+                erro = "\"Amarrar\" precisa de \"duracao\" maior que zero: e quanto tempo a "
+                       "letra fica amarrada";
+            else if (!Amarra::SentidoPeloNome(d.sentido, s))
+                erro = "\"sentido\" do \"Amarrar\" e \"horario\" ou \"antihorario\", e nao \""
+                       + d.sentido + "\"";
+            return d;
+        }
+
+        // A PROMESSA PARADA, OU COM UMA FRACAO QUE NAO E FRACAO, e recusada.
+        // Velocidade zero e uma promessa resolvida que nao sai do lugar - e,
+        // parada, nunca deixa a tela nem volta ao pool. Fracao fora de [0, 1]
+        // nao e "muitas" nem "poucas": e um numero que alguem digitou errado.
+        if (d.tipo == "Promessa") {
+            if (d.velocidade <= 0.0f)
+                erro = "\"Promessa\" precisa de \"velocidade\" maior que zero: e com ela que "
+                       "a promessa resolvida sai";
+            else if (d.resolve < 0.0f || d.resolve > 1.0f)
+                erro = "\"resolve\" da \"Promessa\" precisa estar entre 0 e 1: e a parte das "
+                       "promessas que resolvem";
+            return d;
+        }
+
         return d;
     }
 
@@ -117,8 +184,10 @@ namespace {
                 if (q == "pares")        r.condicao = Regra::Pares;
                 else if (q == "impares") r.condicao = Regra::Impares;
                 else if (q == "sempre")  r.condicao = Regra::Sempre;
+                else if (q == "alvoAcorrentado") r.condicao = Regra::AlvoAcorrentado;
                 else {
-                    problemas.emplace_back(onde + "\"quando\" so aceita sempre, pares ou impares");
+                    problemas.emplace_back(onde + "\"quando\" so aceita sempre, pares, impares "
+                                                  "ou alvoAcorrentado");
                     continue;
                 }
             }
@@ -270,9 +339,28 @@ namespace {
                 r.escala = j["escala"].get<float>();
             }
 
-            if (!r.temMotion && r.modifiers.empty() && r.animacao.empty() && !r.escala) {
+            if (j.contains("rotacionar")) {
+                if (!j["rotacionar"].is_boolean()) {
+                    problemas.emplace_back(onde + "\"rotacionar\" precisa ser true ou false");
+                    continue;
+                }
+                r.rotacionar = j["rotacionar"].get<bool>();
+            }
+
+            if (j.contains("posto")) {
+                // UM POSTO QUE NINGUEM LE e um projetil que ninguem usa como
+                // ponto de tiro, calado. Recusado na leitura.
+                if (!j["posto"].is_string() || !PostoExiste(j["posto"].get<std::string>())) {
+                    problemas.emplace_back(onde + "\"posto\" precisa ser o nome de um posto que existe");
+                    continue;
+                }
+                r.posto = j["posto"].get<std::string>();
+            }
+
+            if (!r.temMotion && r.modifiers.empty() && r.animacao.empty()
+                && !r.escala && !r.rotacionar && r.posto.empty()) {
                 problemas.emplace_back(onde + "nao faz nada: precisa de motion, modifiers, "
-                                              "animacao, escala ou investidaRepetida");
+                                              "animacao, escala, rotacionar, posto ou investidaRepetida");
                 continue;
             }
 
@@ -286,10 +374,14 @@ namespace {
 
 bool EhMotion(const std::string& tipo)   { return Contem(kMotions, tipo); }
 bool EhModifier(const std::string& tipo) { return Contem(kModifiers, tipo); }
+bool PostoExiste(const std::string& nome) { return Contem(kPostos, nome); }
+const std::vector<std::string>& NomesDosPostos() { return kPostos; }
 
-bool RegraSeAplica(const Regra& regra, const int indice, const float sorteio) {
+bool RegraSeAplica(const Regra& regra, const int indice, const float sorteio,
+                   const bool alvoAcorrentado) {
     switch (regra.condicao) {
         case Regra::Sempre:  return true;
+        case Regra::AlvoAcorrentado: return alvoAcorrentado;
         case Regra::Chance:  return sorteio < regra.chance;
         case Regra::Pares:   return indice % 2 == 0;
         case Regra::Impares: return indice % 2 != 0;

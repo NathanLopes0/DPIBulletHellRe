@@ -1,0 +1,68 @@
+{
+  // ==========================================================================
+  // OS PROJETEIS DO LUCAS (INF 321 - Programacao Web)
+  //
+  // UM TIPO PARA O QUE SO VOA, E UM PARA CADA COISA QUE O ALUNO DERRUBA.
+  //
+  //   Codigo    "Tag" (HTML, laranja), "Regra" (CSS, azul), "Promessa"
+  //             (JavaScript, amarelo), "Mensagem" (o envelope do Elixir),
+  //             "Pipe" (o |> que escorre do supervisor) e as quatro "Ficha"
+  //             do event loop - quadros OCOS, porque a ficha nao machuca e
+  //             nao pode se confundir com um tiro. Mudam de comportamento pela
+  //             regra da rajada, nao pelo tipo.
+  //   Cursor    o mouse da pagina da fase 1, derrubavel.
+  //   Processo  o worker da arvore de supervisao (Elixir, roxo), derrubavel.
+  //
+  // Cada tipo registrado custa 300 instancias no pre-aquecimento; varias
+  // animacoes do mesmo tipo custam uma vez so.
+  //
+  // Arte PROVISORIA de Ferramentas/gerar_lucas.py.
+  // ==========================================================================
+  "Codigo": {
+    "sprite": "Teachers/Projectiles/DPIBHLucasCodigo.png",
+    "dados":  "Teachers/Projectiles/DPIBHLucasCodigo.json",
+    "animacoes": {
+      "Tag":      [0, 1, 2, 3],
+      "Regra":    [4, 5, 6, 7],
+      "Promessa": [8, 9, 10, 11],
+      "Mensagem": [16, 17, 18, 19],
+      "FichaLog":     [24],
+      "FichaTimeout": [25],
+      "FichaThen":    [26],
+      "FichaFetch":   [27],
+      "Pipe":         [28, 29, 30, 31]
+    },
+    "animacaoInicial": "Tag",
+    "ordemDeDesenho": 90
+  },
+
+  // O CURSOR DO MOUSE da pagina da fase 1: voa do professor ate o <button> e
+  // clica. Derrubavel - um tiro e o clique nao acontece (event.preventDefault()).
+  "Cursor": {
+    "sprite": "Teachers/Projectiles/DPIBHLucasCodigo.png",
+    "dados":  "Teachers/Projectiles/DPIBHLucasCodigo.json",
+    "animacoes": {
+      "Voando": [20, 21, 22],
+      "Clique": [23]
+    },
+    "animacaoInicial": "Voando",
+    "ordemDeDesenho": 92,
+    "derrubavel": true
+  },
+
+  // O WORKER DA FASE 3. Uma Duvida que o acerta some junto com ele, e nao
+  // chega ao chefe - limpar o caminho custa nota. Derrubado, e um crash: o
+  // supervisor o reinicia pela estrategia da rodada (Lucas::
+  // AtualizarSupervisao), "let it crash". Aguenta tres tiros.
+  "Processo": {
+    "sprite": "Teachers/Projectiles/DPIBHLucasCodigo.png",
+    "dados":  "Teachers/Projectiles/DPIBHLucasCodigo.json",
+    "animacoes": {
+      "Rodando": [12, 13, 14, 15]
+    },
+    "animacaoInicial": "Rodando",
+    "ordemDeDesenho": 91,
+    "derrubavel": true,
+    "resistencia": 3
+  }
+}

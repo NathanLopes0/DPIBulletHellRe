@@ -48,6 +48,18 @@ std::unique_ptr<Projectile> FabricaDeProjetil::createProjectile(Scene* scene, Ac
     // as listas do Salles, cuja seta precisa apontar para o proximo no.
     projectile->DefinirRotacaoPelaVelocidade(mDescricao.rotacionarComAVelocidade);
 
+    // O efeito de acerto, se este tipo tiver um. Ver BossProjectile.
+    projectile->DefinirAcorrentamento(mDescricao.acorrenta.segundos,
+                                      mDescricao.acorrenta.fatorDeVelocidade,
+                                      mDescricao.acorrenta.multiplicadorDaPerda);
+
+    // Se o tiro do aluno o derruba, e com quantos tiros.
+    projectile->DefinirDerrubavel(mDescricao.derrubavel);
+    projectile->DefinirResistencia(mDescricao.resistencia);
+
+    // Se ele abriga o aluno: come os projeteis do chefe e os tiros do aluno.
+    projectile->DefinirAbrigo(mDescricao.abrigo);
+
     // A escala vem ANTES do colisor: CircleColliderComponent multiplica o raio
     // por GetScale(), entao escalar depois mudaria a hitbox sem mudar o numero
     // que passamos adiante.

@@ -16,12 +16,14 @@
 
 
 
-PlayerProjectile::PlayerProjectile(Scene *scene, Player *owner) :
+PlayerProjectile::PlayerProjectile(Scene *scene, Actor *owner) :
         Projectile(scene, owner)
 
 {
 
     mOwner = owner;
+    static std::uint64_t proximo = 0;
+    mId = ++proximo;
 
     std::string spritePath = Caminhos::Asset("Player/PlayerProjectile1.png");
     std::string dataPath = Caminhos::Asset("Player/PlayerProjectile1.json");
@@ -39,6 +41,32 @@ PlayerProjectile::PlayerProjectile(Scene *scene, Player *owner) :
     collider->SetEnabled(false);
     collider->SetTag(ColliderTag::PlayerProjectile);
 
+}
+
+PlayerProjectile::PlayerProjectile(Scene *scene, Actor *owner, const std::string& folha, const int quadro,
+                                   const float escala, const SDL_Color contorno) :
+        Projectile(scene, owner)
+{
+    mOwner = owner;
+    static std::uint64_t proximo = 1ull << 40;   // longe dos do outro construtor
+    mId = ++proximo;
+
+    // O TIRO DO ORIENTADOR TEM A CARA DA MATERIA DELE, e um contorno da cor
+    // dos aliados - o mesmo projetil, do outro lado, e do Hugo.
+    auto drawComp = AddComponent<DrawAnimatedComponent>(Caminhos::Asset(folha + ".png"),
+                                                        Caminhos::Asset(folha + ".json"), 51);
+    drawComp->AddAnimation("Active", {quadro});
+    drawComp->SetAnimation("Active");
+    drawComp->DefinirContorno(true, contorno);
+    drawComp->SetIsVisible(false);
+    SetScale(escala);
+
+    AddComponent<RigidBodyComponent>();
+
+    // O ALCANCE E O DO TIRO DE SEMPRE: a cara muda, o acerto nao.
+    auto collider = AddComponent<CircleColliderComponent>(kRaioDoTiro);
+    collider->SetEnabled(false);
+    collider->SetTag(ColliderTag::PlayerProjectile);
 }
 
 bool PlayerProjectile::IsOffScreen() const
@@ -87,7 +115,11 @@ void PlayerProjectile::OnCollision(Actor *other) {
     auto otherCollider = other->GetComponent<CircleColliderComponent>();
     if (!otherCollider) return;
 
-    if (otherCollider->GetColliderTag() == ColliderTag::Boss) {
+    // O CHEFE, OU UM PROJETIL DELE QUE O TIRO DERRUBOU. Battle so chama isto com
+    // um projetil de chefe quando ele e derrubavel (os processos do Lucas): o
+    // tiro gasta-se nele e nao segue ate o chefe.
+    if (otherCollider->GetColliderTag() == ColliderTag::Boss
+        || otherCollider->GetColliderTag() == ColliderTag::BossProjectile) {
         DeactivateProjectile();
     }
 }

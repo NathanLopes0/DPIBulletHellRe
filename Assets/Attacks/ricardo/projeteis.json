@@ -17,14 +17,105 @@
   // que nao existe ou se uma animacao citar um quadro que a folha nao tem.
   // ==========================================================================
 
-  // Sprite de 16x16 desenhada em 32x32, dai a escala 2.
-  "Arduino": {
-    "sprite": "Teachers/Projectiles/DPIBHRicardoProjectile.png",
-    "dados":  "Teachers/Projectiles/DPIBHRicardoProjectile.json",
+  // O ARDUINO DE ANTES SAIU NO 132: nenhuma fase o atira mais. A arte dele
+  // (DPIBHRicardoProjectile.png, a original do repositorio) continua em
+  // Assets/Teachers/Projectiles, e e dela que gerar_ricardo.py desenha a Placa
+  // da fase final.
+
+  // O BIT DA FASE 1: um bit de uma palavra de 16, do verde da camiseta dele.
+  // O UM e a celula acesa, que pulsa; o ZERO e so o contorno apagado - e a
+  // PalavraAttack o faz enfeite, que se atravessa. A cara troca na porta
+  // (Ricardo::AtualizarPortas), pelos nomes de Logica.h.
+  //
+  // ESCALA 2,2: 70 px numa coluna de 75. Entre dois uns sobram 5 px, menos que
+  // os 13 do aluno - e a hitbox acompanha a escala. Arte PROVISORIA de
+  // Ferramentas/gerar_ricardo.py.
+  "Bit": {
+    "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
+    "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",
     "animacoes": {
-      "Normal": [0]
+      "Zero": [0],
+      "Um":   [1, 2]
     },
-    "escala": 2,
+    "animacaoInicial": "Zero",
+    "escala": 2.2,
     "ordemDeDesenho": 90
+  },
+
+  // A PORTA LOGICA DA FASE 1: apontada para baixo - o dado entra por cima e
+  // sai por baixo -, com a entrada B escrita nela. Uma animacao por operacao
+  // e valor de B, com os nomes que Logica::AnimacaoDaPorta monta. Fica atras
+  // dos bits, que passam por cima dela.
+  "Porta": {
+    "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
+    "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",
+    "animacoes": {
+      "AND0": [3], "AND1": [4],
+      "OR0":  [5], "OR1":  [6],
+      "XOR0": [7], "XOR1": [8],
+      "NOT":  [9]
+    },
+    "animacaoInicial": "NOT",
+    "escala": 2.0,
+    "ordemDeDesenho": 88
+  },
+
+  // O ESTAGIO DO PIPELINE DA FASE 3: a moldura tracejada, com o nome em cima.
+  // A fileira de cinco e uma PalavraAttack toda de enfeite, e quem poe o nome
+  // de cada uma e o Ricardo, pela ordem - os nomes de Pipeline::NomeDoEstagio.
+  "Estagio": {
+    "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
+    "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",
+    "animacoes": {
+      "IF": [10], "ID": [11], "EX": [12], "MEM": [13], "WB": [14]
+    },
+    "animacaoInicial": "IF",
+    "escala": 3.0,
+    "ordemDeDesenho": 86
+  },
+
+  // A INSTRUCAO: o chip com a instrucao de assembly que anda pelo pipeline, e
+  // a BOLHA. Derrubavel com DOIS tiros: a derrubada vira bolha e nao ataca -
+  // e o tiro gasto nela nao chega ao professor, que fica atras do pipeline.
+  "Instrucao": {
+    "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
+    "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",
+    "animacoes": {
+      "lw": [15], "sw": [16], "add": [17], "addi": [18], "bne": [19], "j": [20],
+      "bolha": [21]
+    },
+    "animacaoInicial": "bolha",
+    "escala": 2.5,
+    "ordemDeDesenho": 89,
+    "derrubavel": true,
+    "resistencia": 2
+  },
+
+  // A PLACA DA FASE FINAL: o Arduino da arte original, ampliado, apagada ou
+  // com o LED do pino 13 aceso (as caras de Blink.h). Derrubavel com QUATRO
+  // tiros: desplugada, para de piscar.
+  "Placa": {
+    "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
+    "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",
+    "animacoes": {
+      "Apagada": [22], "Acesa": [23]
+    },
+    "animacaoInicial": "Apagada",
+    "escala": 2.5,
+    "ordemDeDesenho": 89,
+    "derrubavel": true,
+    "resistencia": 4
+  },
+
+  // O LED: o tiro da placa que acende.
+  "Led": {
+    "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
+    "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",
+    "animacoes": {
+      "Aceso": [24]
+    },
+    "animacaoInicial": "Aceso",
+    "escala": 1.2,
+    "ordemDeDesenho": 91
   }
 }

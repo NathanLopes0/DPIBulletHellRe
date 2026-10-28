@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
@@ -46,6 +47,13 @@ public:
      * @return Um unique_ptr para o Boss 100% montado e pronto.
      */
     std::unique_ptr<Boss> CreateBoss(Scene* scene);
+
+    /**
+     * @brief O cartao do professor, sem a extensao: "Teachers/DPIBH<Nome>", com
+     * o .png e o .json do DrawAnimatedComponent ao lado. Quem so quer mostrar o
+     * rosto - a escolha do orientador, no TCC - le daqui sem montar o chefe.
+     */
+    [[nodiscard]] virtual std::string Retrato() const = 0;
 
 protected:
 

@@ -140,7 +140,7 @@ Vector2 BaloonAttack::CalculateSpawnPosition( const BaloonAttackParams& params, 
         float variableCoord;
 
         if (params.centerOnPlayer) {
-            const Vector2 playerPos = battle->GetPlayer()->GetPosition();
+            const Vector2 playerPos = battle->Alvo()->GetPosition();
             variableCoord = Random::GetFloatRange(
                 -params.centerOnPlayerOffset,
                 params.centerOnPlayerOffset

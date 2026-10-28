@@ -23,8 +23,8 @@ std::unique_ptr<Boss> SallesFactory::InstantiateBoss(Scene* scene) {
 void SallesFactory::ConfigureComponents(Boss* boss) {
 
     // ----- DRAW COMPONENT ----- //
-    auto drawComp = boss->AddComponent<DrawAnimatedComponent>(Caminhos::Asset("Teachers/DPIBHSalles.png"),
-                                                                                Caminhos::Asset("Teachers/DPIBHSalles.json"));
+    auto drawComp = boss->AddComponent<DrawAnimatedComponent>(Caminhos::Asset(Retrato() + ".png"),
+                                                                                Caminhos::Asset(Retrato() + ".json"));
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 

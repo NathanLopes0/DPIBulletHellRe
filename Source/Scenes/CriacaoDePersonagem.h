@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Scene.h"
+#include "../Painel.h"
 #include "../Personagens.h"
 
 class Font;
@@ -62,6 +63,19 @@ private:
     void Redesenhar() const;
 
     std::unique_ptr<Font> mFonte;
+
+    /// QUAL POSICAO esta montando a personagem. Cada jogador monta a sua
+    /// (requisitos-coop, D6), e esta tela roda uma vez por jogador novo.
+    /// Posta no Load, a partir do Game.
+    size_t mQuem = 0;
+
+    /// O painel DA VEZ. Existe como funcao porque a conversao estava escrita
+    /// DUAS vezes - uma no rodape e outra na leitura - e duas copias da mesma
+    /// conversao e como a tela de matricula acabou lendo o botao do jogador 1
+    /// enquanto o rodape anunciava o do jogador 2.
+    [[nodiscard]] Painel::Jogador PainelDaVez() const {
+        return mQuem == 1 ? Painel::Jogador::Dois : Painel::Jogador::Um;
+    }
 
     std::vector<Linha> mLinhas;
     std::vector<Actor*> mLinhaAtores;

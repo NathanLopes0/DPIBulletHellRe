@@ -55,7 +55,7 @@ const Posto& Posicao(const Painel::Jogador quem) {
     static const Posto kDois{
         "WASD",
         {SDL_SCANCODE_W, SDL_SCANCODE_S, SDL_SCANCODE_A, SDL_SCANCODE_D},
-        {{SDL_SCANCODE_F, "F"}, {SDL_SCANCODE_G, "G"}, {SDL_SCANCODE_H, "H"}}};
+        {{SDL_SCANCODE_F, "F"}, {SDL_SCANCODE_E, "E"}, {SDL_SCANCODE_H, "H"}}};
 
     switch (quem) {
         case Painel::Jogador::Um:   return kUm;

@@ -1,0 +1,939 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHLuizinhoValores 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 1.placeholder",
+   "frame": {
+    "x": 28,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 2.placeholder",
+   "frame": {
+    "x": 56,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 3.placeholder",
+   "frame": {
+    "x": 84,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 4.placeholder",
+   "frame": {
+    "x": 112,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 5.placeholder",
+   "frame": {
+    "x": 140,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 6.placeholder",
+   "frame": {
+    "x": 168,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 7.placeholder",
+   "frame": {
+    "x": 196,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 8.placeholder",
+   "frame": {
+    "x": 224,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 9.placeholder",
+   "frame": {
+    "x": 252,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 10.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 28,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 11.placeholder",
+   "frame": {
+    "x": 28,
+    "y": 28,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 12.placeholder",
+   "frame": {
+    "x": 56,
+    "y": 28,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 13.placeholder",
+   "frame": {
+    "x": 84,
+    "y": 28,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 14.placeholder",
+   "frame": {
+    "x": 112,
+    "y": 28,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 15.placeholder",
+   "frame": {
+    "x": 140,
+    "y": 28,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 16.placeholder",
+   "frame": {
+    "x": 168,
+    "y": 28,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 17.placeholder",
+   "frame": {
+    "x": 196,
+    "y": 28,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 18.placeholder",
+   "frame": {
+    "x": 224,
+    "y": 28,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 19.placeholder",
+   "frame": {
+    "x": 252,
+    "y": 28,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 20.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 56,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 21.placeholder",
+   "frame": {
+    "x": 28,
+    "y": 56,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 22.placeholder",
+   "frame": {
+    "x": 56,
+    "y": 56,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 23.placeholder",
+   "frame": {
+    "x": 84,
+    "y": 56,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 24.placeholder",
+   "frame": {
+    "x": 112,
+    "y": 56,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 25.placeholder",
+   "frame": {
+    "x": 140,
+    "y": 56,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 26.placeholder",
+   "frame": {
+    "x": 168,
+    "y": 56,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 27.placeholder",
+   "frame": {
+    "x": 196,
+    "y": 56,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 28.placeholder",
+   "frame": {
+    "x": 224,
+    "y": 56,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 29.placeholder",
+   "frame": {
+    "x": 252,
+    "y": 56,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 30.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 84,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 31.placeholder",
+   "frame": {
+    "x": 28,
+    "y": 84,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 32.placeholder",
+   "frame": {
+    "x": 56,
+    "y": 84,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 33.placeholder",
+   "frame": {
+    "x": 84,
+    "y": 84,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 34.placeholder",
+   "frame": {
+    "x": 112,
+    "y": 84,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 35.placeholder",
+   "frame": {
+    "x": 140,
+    "y": 84,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 36.placeholder",
+   "frame": {
+    "x": 168,
+    "y": 84,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 37.placeholder",
+   "frame": {
+    "x": 196,
+    "y": 84,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 38.placeholder",
+   "frame": {
+    "x": 224,
+    "y": 84,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 39.placeholder",
+   "frame": {
+    "x": 252,
+    "y": 84,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 40.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 112,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHLuizinhoValores 41.placeholder",
+   "frame": {
+    "x": 28,
+    "y": 112,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_luizinho.py",
+  "version": "1.0",
+  "image": "DPIBHLuizinhoValores.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 280,
+   "h": 140
+  },
+  "scale": "1"
+ }
+}

@@ -10,6 +10,38 @@
 
 namespace {
 
+    /**
+     * @brief Le uma lista de pares [x, y] para dentro de 'saidaPontos'.
+     *
+     * UMA SO, e e por isso que ela existe: "pontos" e cada entrada de
+     * "caminhos" aceitam exatamente o mesmo formato. A validacao escrita duas
+     * vezes seria duas chances de uma aceitar o que a outra recusa - e o erro
+     * so apareceria no dia em que alguem escrevesse um caminho torto.
+     *
+     * @param onde como chamar esta lista na mensagem de erro, ja montado pelo
+     *        chamador ("forma \"Pilha\", caminho 3").
+     * @return false se a lista nao for uma lista NAO VAZIA de pares de numeros.
+     *         A frase do problema ja foi acrescentada quando devolve false.
+     */
+    bool LerListaDePontos(const nlohmann::json& lista, const std::string& onde,
+                          std::vector<Vector2>& saidaPontos,
+                          std::vector<std::string>& problemas) {
+
+        if (!lista.is_array() || lista.empty()) {
+            problemas.emplace_back(onde + ": deveria ser uma lista nao vazia de pontos");
+            return false;
+        }
+
+        for (const auto& par : lista) {
+            if (!par.is_array() || par.size() != 2 || !par[0].is_number() || !par[1].is_number()) {
+                problemas.emplace_back(onde + ": cada ponto deveria ser um par [x, y] de numeros");
+                return false;
+            }
+            saidaPontos.emplace_back(par[0].get<float>(), par[1].get<float>());
+        }
+        return true;
+    }
+
     // Chave do cache de formas. Duas chamadas com os mesmos parametros
     // descrevem a mesma geometria, entao devolvem o mesmo objeto.
     struct ChaveForma {
@@ -233,21 +265,10 @@ FormasLidas LerFormas(const std::string& textoJson) {
         std::vector<Vector2> pontos;
 
         if (corpo.contains("pontos")) {
-            const auto& lista = corpo["pontos"];
-            if (!lista.is_array() || lista.empty()) {
-                saida.problemas.emplace_back("forma \"" + nome + "\": \"pontos\" deveria ser uma lista nao vazia");
+            if (!LerListaDePontos(corpo["pontos"], "forma \"" + nome + "\"",
+                                  pontos, saida.problemas)) {
                 continue;
             }
-            bool ok = true;
-            for (const auto& par : lista) {
-                if (!par.is_array() || par.size() != 2 || !par[0].is_number() || !par[1].is_number()) {
-                    saida.problemas.emplace_back("forma \"" + nome + "\": cada ponto deveria ser um par [x, y] de numeros");
-                    ok = false;
-                    break;
-                }
-                pontos.emplace_back(par[0].get<float>(), par[1].get<float>());
-            }
-            if (!ok) continue;
         }
         else if (corpo.contains("gerador")) {
             const auto& g = corpo["gerador"];
@@ -304,8 +325,54 @@ FormasLidas LerFormas(const std::string& textoJson) {
             saida.familias.emplace(nome, std::move(familia));
             continue;   // familia nao entra no mapa de formas simples
         }
+        else if (corpo.contains("caminhos")) {
+
+            // UMA FAMILIA ESCRITA A MAO: uma lista de listas de pontos, e o
+            // projetil numero i recebe o caminho numero i.
+            //
+            // POR QUE ELA PRECISOU EXISTIR. "arvore" ja fazia familias, mas so
+            // arvores binarias - qualquer outro conjunto de caminhos que so
+            // facam sentido JUNTOS tinha de virar N formas simples mais N
+            // regras por indice, que e exatamente o par de listas que tem de
+            // bater e que a familia foi inventada para evitar.
+            //
+            // O PRIMEIRO USO E A FASE 2 DA MARIA LUCIA: oito setas que andam,
+            // viram 90 graus e andam de novo, cada uma virando numa altura e
+            // para um lado. Nenhum gerador desenha um angulo reto, e as oito so
+            // fazem sentido juntas - que e exatamente o caso que a familia por
+            // caminhos existe para cobrir. Geometria pura, sem C++ nenhum.
+            //
+            // (Este comentario prometia a pilha do Vladimir, que no fim saiu por
+            // SlowDown e nao por caminho. A familia ficou escrita e testada sem
+            // usuario nenhum por dois commits.)
+            const auto& lista = corpo["caminhos"];
+            if (!lista.is_array() || lista.empty()) {
+                saida.problemas.emplace_back("forma \"" + nome + "\": \"caminhos\" deveria ser"
+                                             " uma lista nao vazia de caminhos");
+                continue;
+            }
+
+            std::vector<std::vector<Vector2>> familia;
+            familia.reserve(lista.size());
+
+            bool ok = true;
+            for (size_t i = 0; i < lista.size(); ++i) {
+                std::vector<Vector2> caminho;
+                const std::string onde = "forma \"" + nome + "\", caminho " + std::to_string(i);
+                if (!LerListaDePontos(lista[i], onde, caminho, saida.problemas)) {
+                    ok = false;
+                    break;
+                }
+                familia.push_back(std::move(caminho));
+            }
+            if (!ok) continue;
+
+            saida.familias.emplace(nome, std::move(familia));
+            continue;   // familia nao entra no mapa de formas simples
+        }
         else {
-            saida.problemas.emplace_back("forma \"" + nome + "\": precisa de \"pontos\", \"gerador\" ou \"arvore\"");
+            saida.problemas.emplace_back("forma \"" + nome + "\": precisa de \"pontos\","
+                                         " \"gerador\", \"arvore\" ou \"caminhos\"");
             continue;
         }
 

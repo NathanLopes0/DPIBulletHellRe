@@ -1,0 +1,85 @@
+{
+  // ==========================================================================
+  // OS PROJETEIS DO HUGO
+  //
+  // UMA PASTA POR CHEFE: Assets/Attacks/hugo/. A raiz e o mapa de projeteis, e
+  // o nome de cada um e como fases.json o pede. Os campos estao em
+  // Documentacao/arquivos-de-dados.md. Arte PROVISORIA de
+  // Ferramentas/gerar_hugo.py.
+  // ==========================================================================
+
+  // A PAGINA: uma folha do texto, o grosso do que o TCC atira.
+  "Pagina": {
+    "sprite": "Teachers/Projectiles/DPIBHHugoTcc.png",
+    "dados":  "Teachers/Projectiles/DPIBHHugoTcc.json",
+    "animacoes": { "Folha": [0] },
+    "animacaoInicial": "Folha",
+    "escala": 1.6,
+    "ordemDeDesenho": 90
+  },
+
+  // A MONOGRAFIA: o volume encadernado - maior e mais lento que a pagina.
+  "Monografia": {
+    "sprite": "Teachers/Projectiles/DPIBHHugoTcc.png",
+    "dados":  "Teachers/Projectiles/DPIBHHugoTcc.json",
+    "animacoes": { "Volume": [1] },
+    "animacaoInicial": "Volume",
+    "escala": 2.4,
+    "ordemDeDesenho": 91
+  },
+
+  // A PERGUNTA DE BANCA: o balao com a interrogacao, que persegue o aluno.
+  "Pergunta": {
+    "sprite": "Teachers/Projectiles/DPIBHHugoTcc.png",
+    "dados":  "Teachers/Projectiles/DPIBHHugoTcc.json",
+    "animacoes": { "Balao": [2] },
+    "animacaoInicial": "Balao",
+    "escala": 1.6,
+    "ordemDeDesenho": 92
+  },
+
+  // A MATERIA: o projetil de cada professor, copiado da folha dele
+  // (Ferramentas/gerar_hugo.py) - o tema do orientador e as perguntas da
+  // banca. O Hugo poe a animacao da materia em cada tiro (Tcc::Animacao);
+  // "Folha" e a dele, sem orientador.
+  "Materia": {
+    "sprite": "Teachers/Projectiles/DPIBHHugoTcc.png",
+    "dados":  "Teachers/Projectiles/DPIBHHugoTcc.json",
+    "animacoes": {
+      "Folha": [0],
+      "Andre": [3], "Salles": [4], "Ricardo": [5], "Thiago": [6], "Luizinho": [7],
+      "Vladimir": [8], "Julio": [9], "MariaLucia": [10], "Lucas": [11], "Vitor": [12]
+    },
+    "animacaoInicial": "Folha",
+    "escala": 1.3,
+    "ordemDeDesenho": 93
+  },
+
+  // O ALVO DO OBJETIVO (Objetivo.h): o que o aluno derruba para abrir o
+  // escudo do Hugo - a assinatura da proposta, a resposta A, B ou C da defesa,
+  // a correcao em vermelho. Derrubavel: ganha o contorno vermelho de quem cai
+  // com um tiro.
+  "Alvo": {
+    "sprite": "Teachers/Projectiles/DPIBHHugoTcc.png",
+    "dados":  "Teachers/Projectiles/DPIBHHugoTcc.json",
+    "animacoes": {
+      "Assinatura": [13], "A": [14], "B": [15], "C": [16], "Correcao": [17]
+    },
+    "animacaoInicial": "Assinatura",
+    "escala": 1.6,
+    "ordemDeDesenho": 94,
+    "derrubavel": true
+  },
+
+  // O BUG DOS EXPERIMENTOS, que anda e aguenta dois tiros.
+  "Bug": {
+    "sprite": "Teachers/Projectiles/DPIBHHugoTcc.png",
+    "dados":  "Teachers/Projectiles/DPIBHHugoTcc.json",
+    "animacoes": { "Bug": [18] },
+    "animacaoInicial": "Bug",
+    "escala": 1.6,
+    "ordemDeDesenho": 94,
+    "derrubavel": true,
+    "resistencia": 2
+  }
+}

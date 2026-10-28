@@ -1,0 +1,37 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHVladimirDiagrama 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 1000,
+    "h": 400
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 1000,
+    "h": 400
+   },
+   "sourceSize": {
+    "w": 1000,
+    "h": 400
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_vladimir.py",
+  "version": "1.0",
+  "image": "DPIBHVladimirDiagrama.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1000,
+   "h": 400
+  },
+  "scale": "1"
+ }
+}

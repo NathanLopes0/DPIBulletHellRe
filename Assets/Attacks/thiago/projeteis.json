@@ -37,5 +37,82 @@
     "escala": 2,
     "ordemDeDesenho": 90,
     "posicionarNoDono": false
+  },
+
+  // A TABELA ESCRITA NO CAMPO (Banco.h). O VALOR de cada casa - um numero, um
+  // nome ou um curso, e em vermelho ("S42") o que uma transacao escreveu e
+  // ainda nao confirmou - e o CABECALHO de cada coluna, do mesmo jeito que uma
+  // planilha. Sao enfeite (Thiago::CriarTabela): o que machuca e a consulta, e
+  // nao o que ela le. Quem escolhe a cara e o Thiago (Banco::Cara).
+  //
+  // Arte PROVISORIA de Ferramentas/gerar_thiago.py.
+  "Dado": {
+    "sprite": "Teachers/Projectiles/DPIBHThiagoDados.png",
+    "dados":  "Teachers/Projectiles/DPIBHThiagoDados.json",
+    "animacoes": {
+      "V0": [0], "V1": [1], "V2": [2], "V3": [3], "V4": [4], "V5": [5], "V6": [6], "V7": [7], "V8": [8], "V9": [9],
+      "V10": [10], "V11": [11], "V12": [12], "V13": [13], "V14": [14], "V15": [15], "V16": [16], "V17": [17], "V18": [18], "V19": [19],
+      "V20": [20], "V21": [21], "V22": [22], "V23": [23], "V24": [24], "V25": [25], "V26": [26], "V27": [27], "V28": [28], "V29": [29],
+      "V30": [30], "V31": [31], "V32": [32], "V33": [33], "V34": [34], "V35": [35], "V36": [36], "V37": [37], "V38": [38], "V39": [39],
+      "V40": [40], "V41": [41], "V42": [42], "V43": [43], "V44": [44], "V45": [45], "V46": [46], "V47": [47], "V48": [48], "V49": [49],
+      "V50": [50], "V51": [51], "V52": [52], "V53": [53], "V54": [54], "V55": [55], "V56": [56], "V57": [57], "V58": [58], "V59": [59],
+      "V60": [60], "V61": [61], "V62": [62], "V63": [63], "V64": [64], "V65": [65], "V66": [66], "V67": [67], "V68": [68], "V69": [69],
+      "V70": [70], "V71": [71], "V72": [72], "V73": [73], "V74": [74], "V75": [75], "V76": [76], "V77": [77], "V78": [78], "V79": [79],
+      "V80": [80], "V81": [81], "V82": [82], "V83": [83], "V84": [84], "V85": [85], "V86": [86], "V87": [87], "V88": [88], "V89": [89],
+      "V90": [90], "V91": [91], "V92": [92], "V93": [93], "V94": [94], "V95": [95], "V96": [96], "V97": [97], "V98": [98], "V99": [99],
+      "Ana": [100], "Bia": [101], "Caio": [102], "Davi": [103], "Eva": [104], "Gil": [105], "Iara": [106], "Lia": [107],
+      "FIS": [108], "INF": [109], "MAT": [110],
+      "S0": [116], "S1": [117], "S2": [118], "S3": [119], "S4": [120], "S5": [121], "S6": [122], "S7": [123], "S8": [124], "S9": [125],
+      "S10": [126], "S11": [127], "S12": [128], "S13": [129], "S14": [130], "S15": [131], "S16": [132], "S17": [133], "S18": [134], "S19": [135],
+      "S20": [136], "S21": [137], "S22": [138], "S23": [139], "S24": [140], "S25": [141], "S26": [142], "S27": [143], "S28": [144], "S29": [145],
+      "S30": [146], "S31": [147], "S32": [148], "S33": [149], "S34": [150], "S35": [151], "S36": [152], "S37": [153], "S38": [154], "S39": [155],
+      "S40": [156], "S41": [157], "S42": [158], "S43": [159], "S44": [160], "S45": [161], "S46": [162], "S47": [163], "S48": [164], "S49": [165],
+      "S50": [166], "S51": [167], "S52": [168], "S53": [169], "S54": [170], "S55": [171], "S56": [172], "S57": [173], "S58": [174], "S59": [175],
+      "S60": [176], "S61": [177], "S62": [178], "S63": [179], "S64": [180], "S65": [181], "S66": [182], "S67": [183], "S68": [184], "S69": [185],
+      "S70": [186], "S71": [187], "S72": [188], "S73": [189], "S74": [190], "S75": [191], "S76": [192], "S77": [193], "S78": [194], "S79": [195],
+      "S80": [196], "S81": [197], "S82": [198], "S83": [199], "S84": [200], "S85": [201], "S86": [202], "S87": [203], "S88": [204], "S89": [205],
+      "S90": [206], "S91": [207], "S92": [208], "S93": [209], "S94": [210], "S95": [211], "S96": [212], "S97": [213], "S98": [214], "S99": [215]
+    },
+    "animacaoInicial": "V0",
+    "escala": 1.25,
+    "ordemDeDesenho": 84,
+    "posicionarNoDono": false
+  },
+  "Cabecalho": {
+    "sprite": "Teachers/Projectiles/DPIBHThiagoDados.png",
+    "dados":  "Teachers/Projectiles/DPIBHThiagoDados.json",
+    "animacoes": { "Cmat": [111], "Cnome": [112], "Ccurso": [113], "Cnota": [114], "Cano": [115] },
+    "animacaoInicial": "Cmat",
+    "escala": 1.5,
+    "ordemDeDesenho": 84,
+    "posicionarNoDono": false
+  },
+
+  // A ESCRITA DE UMA TRANSACAO (Transacao.h): o lapis do UPDATE, que sai do
+  // professor, para na casa e fica la - a linha travada - ate o COMMIT (some)
+  // ou o ROLLBACK (volta pelo mesmo caminho). Machuca nos tres momentos.
+  //
+  // Arte PROVISORIA de Ferramentas/gerar_thiago.py.
+  "Escrita": {
+    "sprite": "Teachers/Projectiles/DPIBHThiagoEscrita.png",
+    "dados":  "Teachers/Projectiles/DPIBHThiagoEscrita.json",
+    "animacoes": { "Lapis": [0] },
+    "animacaoInicial": "Lapis",
+    "escala": 1.6,
+    "ordemDeDesenho": 91,
+    "posicionarNoDono": false
+  },
+
+  // A CASA QUE VAI SER LIDA: o marcador do tamanho dela (60x46 na escala 4 e
+  // 240x184, a casa de uma tabela de 5x4 num campo de 1200x746), pulsando. E o
+  // aviso do ataque, e por isso fica no posto "aviso". Enfeite.
+  "Aviso": {
+    "sprite": "Teachers/Projectiles/DPIBHThiagoAviso.png",
+    "dados":  "Teachers/Projectiles/DPIBHThiagoAviso.json",
+    "animacoes": { "Pulsa": [0, 1] },
+    "animacaoInicial": "Pulsa",
+    "escala": 4,
+    "ordemDeDesenho": 80,
+    "posicionarNoDono": false
   }
 }

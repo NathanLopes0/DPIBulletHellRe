@@ -32,10 +32,13 @@ Actor* Scene::AddActor(std::unique_ptr<Actor> actor) {
 }
 
 void Scene::ProcessInput(const Uint8* keyState) {
-    // Delega o input para todos os atores da cena
-    for (const auto& actor : mActors) {
-        if (actor->GetState() == ActorState::Active) {
-            actor->ProcessInput(keyState);
+    // Delega o input para todos os atores da cena - menos com ela congelada,
+    // em que o aluno nao atira nem anda (Scene.h).
+    if (!mAtoresCongelados) {
+        for (const auto& actor : mActors) {
+            if (actor->GetState() == ActorState::Active) {
+                actor->ProcessInput(keyState);
+            }
         }
     }
 
@@ -44,10 +47,12 @@ void Scene::ProcessInput(const Uint8* keyState) {
 
 void Scene::Update(float deltaTime) {
 
-    // Atualiza todos os atores da cena
+    // Atualiza todos os atores da cena - menos com ela congelada (Scene.h).
     mIsUpdatingActors = true;
-    for (const auto& actor : mActors) {
-        actor->Update(deltaTime);
+    if (!mAtoresCongelados) {
+        for (const auto& actor : mActors) {
+            actor->Update(deltaTime);
+        }
     }
     mIsUpdatingActors = false;
 
@@ -92,8 +97,21 @@ void Scene::RemoveCollider(ColliderComponent* collider) {
 void Scene::AddDrawable(DrawComponent* drawable)
 {
     mDrawables.emplace_back(drawable);
-    // Opcional, mas recomendado: manter a lista ordenada por draw order
-    std::sort(mDrawables.begin(), mDrawables.end(), [](DrawComponent* a, DrawComponent* b) {
+
+    // ESTAVEL, E NAO std::sort. Entre componentes de MESMA ordem de desenho, o
+    // sort comum escolhe uma permutacao qualquer - e escolhe outra a cada vez
+    // que a lista muda de tamanho. O estavel mantem a ordem de ENTRADA, que e
+    // uma regra que da para explicar: entre iguais, quem chegou antes fica por
+    // baixo.
+    //
+    // ISTO NAO E ARRUMACAO: era um defeito, e ele aparecia. Dois projeteis do
+    // chefe que se cruzam tem a mesma ordem, e qual fica por cima decidia o
+    // desenho. Acrescentar TRES componentes na faixa da nota - que desenha
+    // depois dos projeteis e nao encosta neles - trocou de lugar dois cartoes
+    // de uma rajada a 600 px dali. Medido: a mesma batalha, quadro a quadro,
+    // com e sem as tres placas, dava 591 pixels diferentes fora da faixa; com
+    // o estavel, da zero.
+    std::stable_sort(mDrawables.begin(), mDrawables.end(), [](DrawComponent* a, DrawComponent* b) {
         return a->GetDrawOrder() < b->GetDrawOrder();
     });
 }

@@ -1,0 +1,314 @@
+{
+  // ==========================================================================
+  // AS FASES DA MARIA LUCIA (INF 221 - Engenharia de Software)
+  //
+  // CADA FASE E UM PROCESSO OU UM PADRAO DE SOFTWARE:
+  //
+  //   StateOne    CASCATA      cinco etapas em ordem, e ela descendo a escada
+  //   StateTwo    AGEIS        cinco sprints, e o cursor que arrasta as historias
+  //   StateThree  OBSERVER     os olhos que assinam o aluno, e o aviso quando ele vira
+  //   StateFinal  BALA DE PRATA nao ha bala de prata: as promessas que se desfazem em bugs
+  //
+  // O QUE DISTINGUE ESTA CHEFE DAS OUTRAS: O TEMPO E PARTE DO PROBLEMA.
+  // Estruturas de Dados e um objeto, Linguagens Formais e um objeto,
+  // Concorrencia e um objeto; Engenharia de Software e um PROCESSO. A cascata
+  // e o tempo em ordem (uma etapa so comeca quando a anterior acaba), o agil e
+  // o tempo em ciclos (o timebox, e o que nao coube cai na revisao), e o
+  // Observer e o tempo dos eventos (o aviso sai quando o aluno muda, e nao
+  // quando um relogio manda). As tres usam pecas do motor que existem por
+  // causa dela: as etapas, as sprints e os gatilhos.
+  //
+  // A IHC - a outra materia que ela da - entra pelo cursor da fase 2 (o
+  // arrastar-e-soltar, a lei de Fitts), pelos olhos e pelo selo de
+  // notificacao da fase 3 (o rastreamento do olhar), e pelas janelas modais
+  // e pelo teste com usuario da final.
+  //
+  // O MOVIMENTO E O ATAQUE, como nos outros - ver MovementStrategies.h. Aqui,
+  // em duas das quatro fases, ele e a propria mecanica: a escada e o diagrama
+  // da cascata, e a varredura e o que espalha os olhos do Observer pela
+  // largura inteira.
+  //
+  // A BATALHA DELA ERA DETERMINISTICA: nenhuma regra usa "chance" e nenhum
+  // angulo e sorteado, e quatro sementes deram resultado IDENTICO ate o
+  // centesimo. O risco ficou registrado aqui - padrao fixo e padrao decoravel -
+  // e agora CADA LUTA E OUTRA (Variacao.h; MariaLucia::SortearALuta), sem
+  // perder a reproducao: a luta e funcao da semente.
+  //
+  //   Cascata   as classes do diagrama mandam as mensagens e compilam numa
+  //             ordem sorteada (Cascata::Plano), e nao mais da esquerda para
+  //             a direita - de onde vem o proximo tiro nao se decora
+  //   Ageis     o planning poker da luta: as cartas 1, 2, 3 e 5 em qualquer
+  //             ordem, e o 8 sempre na ultima sprint (Sprint::Sortear), com
+  //             o placar dizendo os pontos de cada uma. Os "projeteis" e os
+  //             "anuncio" das sprints abaixo sao o baralho em ordem, o de
+  //             antes do sorteio
+  //   Observer  o polling sai de 85% a 115% dos 2 s (Observer::Sortear)
+  //
+  // NO DIFICIL o sujeito notifica com 0,35 s entre dois avisos (e nao 0,5) e
+  // consulta aos 1,7 s (Observer::Degrau), e o aviso da notificacao sai em par,
+  // num leque de 16 graus; a Implementacao compila tres tiros (e nao dois). Com
+  // leque de tres nos avisos e nas historias, o piloto que persegue reprovava
+  // com 57 a 64, e o que desvia caia a 25 a 62.
+  //
+  // Medido na batalha inteira: no Normal, em cinco sementes, o que persegue
+  // termina com 66,2 a 73,7 (62,2 cravados antes do sorteio) e o que desvia
+  // com 90,1 a 97,9 (0 ou 1 acerto); no Dificil, 61,1 a 75,5 e 80,1 a 91,9 (1
+  // a 5 acertos, 3,2 em media). O parado e o que vai e vem reprovam nos dois.
+
+  // ==========================================================================
+
+  // FASE 1 - O MODELO CASCATA   |   gesto: A ESCADA
+  //
+  // A FASE E UM PROCESSO EM CASCATA, e numa cascata O QUE UMA ETAPA ENTREGA E O
+  // QUE A SEGUINTE RECEBE (Cascata.h). Cinco etapas de 4 s ("etapas"), em
+  // ordem, cada uma numa caixa acesa debaixo do degrau dela, e o que sai de uma
+  // se ve passando para a outra:
+  //
+  //   1 Requisitos     o cliente pede: um post-it a cada 0,3s chega por um dos
+  //                    lados do campo e cola no quadro do backlog, ao lado da
+  //                    professora - ate dez
+  //   2 Projeto        o backlog vira o DIAGRAMA: cada post-it voa para o meio
+  //                    do campo e vira uma CLASSE (a caixa de UML), as classes
+  //                    se ligam por setas, e uma de cada vez solta as MENSAGENS,
+  //                    pontas de seta que viram em angulo reto
+  //   3 Implementacao  uma classe de cada vez compila: o codigo sai mirado
+  //   4 Testes         cada classe solta o bug dela, que desce devagar, torto,
+  //                    para o lado do aluno (70px/s: na Manutencao ele ainda
+  //                    esta no campo - a 150, todos ja tinham saido por baixo e
+  //                    nenhum virava divida)
+  //   5 Manutencao     o sistema e entregue - as classes somem -, e cada bug
+  //                    que o teste nao achou vira DIVIDA, parada onde estava, e
+  //                    fica 8,5s - atravessa a troca de fase
+  //
+  // O TIRO DO ALUNO E UMA DECISAO DE PROCESSO: o post-it derrubado no caminho e
+  // escopo cortado - uma classe a menos, menos codigo, um bug a menos -, a
+  // classe derrubada (quatro tiros) tambem, e o bug derrubado nos Testes nao
+  // vira divida. Uma etapa so comeca quando a anterior acaba, e o que acabou
+  // nao volta.
+  //
+  // (Ate o 152 o Projeto eram post-its saindo da professora e virando em angulo
+  // reto - sem caixa, sem seta, sem nada que dissesse "diagrama" -, e cada
+  // etapa atirava o seu tipo sem relacao com a anterior.)
+  //
+  // O MOVIMENTO E O DIAGRAMA: ela desce uma escada, um degrau por etapa, da
+  // esquerda para a direita - a forma em que o modelo cascata e desenhado. Os
+  // 4 s por degrau e os 5 degraus do "movimento" sao os das etapas, e o
+  // canario de tests/test_arquivos_de_dados.cpp segura os dois juntos.
+  "StateOne": {
+    "duracao": 20,
+    "proximo": "StateTwo",
+    "anuncio": "Cascata",
+    "etapas": [
+      { "nome": "Requisitos",    "duracao": 4.0, "anuncio": "1 · Requisitos" },
+      { "nome": "Projeto",       "duracao": 4.0, "anuncio": "2 · Projeto" },
+      { "nome": "Implementacao", "duracao": 4.0, "anuncio": "3 · Implementação" },
+      { "nome": "Testes",        "duracao": 4.0, "anuncio": "4 · Testes" },
+      { "nome": "Manutencao",    "duracao": 4.0, "anuncio": "5 · Manutenção" }
+    ],
+    "movimento": { "tipo": "Escada", "a": 4.0, "b": 5 },
+    "ataques": [
+      { "gatilho": "placa", "estrategia": "WaveAttack", "projetil": "Placa",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "etapa": "Requisitos", "gatilho": "pedido", "estrategia": "WaveAttack", "projetil": "Pedido",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "escopo" },
+      { "etapa": "Projeto", "gatilho": "classe", "estrategia": "WaveAttack", "projetil": "Classe",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "etapa": "Projeto", "gatilho": "mensagem", "estrategia": "WaveAttack", "projetil": "Seta",
+        "projeteis": 8, "velocidade": 250, "angulo": 0, "anguloCentral": 90, "intervalo": 0.05,
+        "regras": "diagrama" },
+      { "etapa": "Implementacao", "gatilho": "compilar", "estrategia": "WaveAttack", "projetil": "Requisito",
+        "projeteis": 2, "velocidade": 330, "angulo": 18, "intervalo": 0,
+        "dificil": { "projeteis": 3 },
+        "regras": "codigo" },
+      { "etapa": "Testes", "gatilho": "bug", "estrategia": "WaveAttack", "projetil": "Bug",
+        "projeteis": 1, "velocidade": 70, "angulo": 0, "anguloCentral": 90, "intervalo": 0,
+        "regras": "bugs" },
+      { "etapa": "Manutencao", "gatilho": "debito", "estrategia": "WaveAttack", "projetil": "Debito",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
+    ]
+  },
+
+  // FASE 2 - OS METODOS AGEIS   |   gesto: A ORBITA, o ciclo iterativo
+  //
+  // A MESMA FASE DA CASCATA, CORTADA EM CICLOS CURTOS. Depois de um instante
+  // de backlog, cinco SPRINTS de 3,6 s cada ("etapas"), de tempo fixo - o
+  // timebox -, e no fim a retrospectiva. Em cada sprint, um ataque so
+  // (SprintAttack, ver Sprint.h):
+  //
+  //   - um CURSOR de mouse - a IHC, a outra materia dela - pega a pilha de
+  //     historias da professora e a ARRASTA ate o quadro. Quanto ele leva e a
+  //     lei de Fitts, com o quadro inteiro de alvo: a sprint cheia, de quadro
+  //     largo, e arrastada mais depressa. Na mao dele a pilha e blindada, e o
+  //     tiro some nela;
+  //   - ao soltar, as historias se espalham pelas vagas e ficam EM ANDAMENTO:
+  //     cada uma solta o codigo dela no aluno, mirando onde ele vai estar (a
+  //     PontosAttack, do posto "quadro"). O aluno ENTREGA uma historia
+  //     derrubando-a a tiro - e o tiro que entrega nao chega na professora;
+  //   - o cursor clica de novo 0,4 s antes da REVISAO, o aviso, e na revisao o
+  //     que nao foi entregue CAI EM CIMA DO ALUNO, mirado onde ele vai estar.
+  //
+  // QUANTAS HISTORIAS E O PLANNING POKER: 1, 2, 3, 5 e 8, a sequencia do
+  // baralho, uma sprint para cada carta, e o placar diz quantos pontos sao. A
+  // ultima nao cabe no tempo de ninguem - e o compromisso grande demais.
+  //
+  // A PROFESSORA NAO ATIRA NESTA FASE, de proposito: quem entrega e o time, e
+  // ela e quem traz as historias. Uma versao com post-its caindo dela a cada
+  // 1,4 s fazia deles 6 dos 7 acertos do piloto que persegue - a fase virava a
+  // dos post-its, e as historias, enfeite.
+  //
+  // AS SPRINTS COMECAM DEPOIS DO ZERO, de proposito: o ataque cuja etapa abre a
+  // fase so dispara aos kPrimeiroDisparoDaFase (1 s, FasesDeAtaque.h), e os
+  // outros 0,25 s depois de a etapa abrir. Com o backlog de 0,75 s as cinco
+  // disparam no mesmo ponto da sprint, a revisao de 3,1 s cai 0,25 s antes do
+  // fim de cada uma, e a retrospectiva deixa a ultima revisao cair dentro da
+  // fase. O canario de tests/test_arquivos_de_dados.cpp segura as contas.
+  "StateTwo": {
+    "duracao": 20,
+    "proximo": "StateThree",
+    "anuncio": "Métodos Ágeis",
+    "etapas": [
+      { "nome": "Backlog", "duracao": 0.75, "anuncio": "Product Backlog" },
+      { "nome": "Sprint1", "duracao": 3.6, "anuncio": "Sprint 1 · 1 ponto" },
+      { "nome": "Sprint2", "duracao": 3.6, "anuncio": "Sprint 2 · 2 pontos" },
+      { "nome": "Sprint3", "duracao": 3.6, "anuncio": "Sprint 3 · 3 pontos" },
+      { "nome": "Sprint4", "duracao": 3.6, "anuncio": "Sprint 4 · 5 pontos" },
+      { "nome": "Sprint5", "duracao": 3.6, "anuncio": "Sprint 5 · 8 pontos" },
+      { "nome": "Retrospectiva", "duracao": 1.25, "anuncio": "Retrospectiva" }
+    ],
+    "movimento": { "tipo": "Orbitar", "a": 120, "b": 0.10 },
+    "ataques": [
+      { "etapa": "Sprint1", "estrategia": "SprintAttack", "projetil": "Historia",
+        "projeteis": 1, "velocidade": 300, "cooldown": 3.6,
+        "sprint": { "revisao": 3.1, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
+      { "etapa": "Sprint2", "estrategia": "SprintAttack", "projetil": "Historia",
+        "projeteis": 2, "velocidade": 300, "cooldown": 3.6,
+        "sprint": { "revisao": 3.1, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
+      { "etapa": "Sprint3", "estrategia": "SprintAttack", "projetil": "Historia",
+        "projeteis": 3, "velocidade": 300, "cooldown": 3.6,
+        "sprint": { "revisao": 3.1, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
+      { "etapa": "Sprint4", "estrategia": "SprintAttack", "projetil": "Historia",
+        "projeteis": 5, "velocidade": 300, "cooldown": 3.6,
+        "sprint": { "revisao": 3.1, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
+      { "etapa": "Sprint5", "estrategia": "SprintAttack", "projetil": "Historia",
+        "projeteis": 8, "velocidade": 300, "cooldown": 3.6,
+        "sprint": { "revisao": 3.1, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
+      { "estrategia": "PontosAttack", "projetil": "Requisito",
+        "projeteis": 1, "velocidade": 260, "cooldown": 1.0,
+        "pontos": { "posto": "quadro", "mirar": true, "prever": true },
+        "regras": "codigo" }
+    ]
+  },
+
+  // FASE 3 - O PADRAO OBSERVER   |   gesto: A VARREDURA
+  //
+  // O ALUNO E O SUJEITO, e a professora prende nele OBSERVADORES: a cada 2,4 s
+  // ela solta tres post-its com um olho (regra "inscrever"), que param a 230px
+  // dela e ficam 7 s olhando o aluno, cada um ligado a ele por uma linha - a
+  // assinatura. O olho OLHA para o lado em que ele esta: e o rastreamento do
+  // olhar, da IHC. A varredura e o que espalha os olhos pela largura inteira.
+  //
+  // QUANDO O ESTADO DO ALUNO MUDA, ELE NOTIFICA (MariaLucia, Observer.h): os
+  // olhos piscam, as linhas acendem, e cada olho manda um aviso - o selo
+  // vermelho de notificacao - para onde ele vai estar. O estado e para onde
+  // ele esta INDO: parar nao notifica, virar sim, e quem vira e volta antes de
+  // 0,5 s nao notifica nada.
+  //
+  // E QUANDO NADA MUDA, ELA PERGUNTA: sem aviso por 2 s, ela consulta o estado
+  // - o polling, a alternativa que o padrao existe para evitar - e manda o
+  // aviso mirado onde ele esta. Quem fica parado so leva o do polling.
+  //
+  // OS AVISOS TEM "gatilho" EM VEZ DE COOLDOWN: nao disparam pelo relogio,
+  // disparam quando ela puxa (Boss::Disparar).
+  //
+  // MEDIDO, a fase castiga QUEM VIRA E SEGUE, e nao quem vira: um piloto que
+  // ziguezagueia virando a cada 0,6, 1,0 e 1,5 s notificou 27, 16 e 11 vezes
+  // na fase e levou 6, 2 e 6 acertos - o aviso vai para onde ele ia, e ele ja
+  // voltou. Na batalha inteira o piloto que persegue a professora entra com
+  // 79,2 e sai aprovado com 65,1 (3 acertos, com 4 notificacoes e 6
+  // consultas), o mesmo que a fase da divida que esta substituiu lhe dava; o
+  // parado so leva polling e termina com zero.
+  //
+  // ESTA E A FASE QUE DECIDE A BATALHA. StateThree tem "proximo" vazio: quem
+  // chega ao fim dela aprovado termina aprovado e nunca ve a manutencao.
+  "StateThree": {
+    "duracao": 20,
+    "proximo": "",
+    "anuncio": "Observer",
+    "movimento": { "tipo": "Varredura", "a": 160, "b": 150 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Observador",
+        "projeteis": 3, "velocidade": 260, "angulo": 120, "intervalo": 0,
+        "cooldown": 2.4,
+        "regras": "inscrever" },
+      { "gatilho": "notificacao", "estrategia": "PontosAttack", "projetil": "Aviso",
+        "projeteis": 1, "velocidade": 260, "angulo": 16,
+        "dificil": { "projeteis": 2 },
+        "pontos": { "posto": "observadores", "mirar": true, "prever": true } },
+      { "gatilho": "consulta", "estrategia": "PontosAttack", "projetil": "Aviso",
+        "projeteis": 1, "velocidade": 260,
+        "pontos": { "posto": "observadores", "mirar": true } }
+    ]
+  },
+
+  // FASE FINAL - NAO HA BALA DE PRATA   |   gesto: A ORBITA LENTA
+  //
+  // So e vista por quem termina a terceira entre 40 e 59, ou com 100.
+  //
+  // "NAO HA BALA DE PRATA", a frase que a professora repete - do ensaio de
+  // Fred Brooks (No Silver Bullet, 1986): nenhuma tecnica, sozinha, resolve a
+  // complexidade ESSENCIAL de construir software. A cada 1,7 s (1,4 no
+  // Dificil) ela dispara uma BALA DE PRATA mirada no aluno, e o placar diz a
+  // promessa dela - IA, UML, orientacao a objetos, metodos ageis, nuvem,
+  // low-code, microsservicos, ferramenta CASE, numa ordem sorteada por luta
+  // (BalaDePrata.h). Quando a bala chega perto dele, ELA SE DESFAZ num leque de
+  // bugs, e o placar responde: "IA? Nao ha bala de prata." A complexidade
+  // continua la.
+  //
+  // O TIRO DO ALUNO E UM TESTE COM USUARIO - a pesquisa dela, IHC e
+  // experiencia do usuario: a bala atingida antes de se desfazer cai sem
+  // soltar nada, e o placar diz que o teste a reprovou. Testar cedo e mais
+  // barato. Ela cai com UM tiro: com dois, mirada na coluna em que o aluno
+  // atira, ela comia os tiros que iam para a professora, e o piloto que
+  // desvia, partindo de 40, saia reprovado sem tomar acerto nenhum.
+  //
+  // A BALA SE DESFAZ PERTO DO ALUNO, e nao depois de um tempo fixo: a
+  // professora anda na orbita junto com a bala, e com o tempo fixo os bugs
+  // nasciam perto dela, longe de quem tinham de cobrar.
+  //
+  // CONTINUAM AS JANELAS MODAIS ("Tem certeza?") - a IHC, tres por leva,
+  // presas a ela como dialogos centrados na janela que os abriu (regra
+  // "modal", Ancora.h). Uma janela e um ANTEPARO - o tiro que a acerta nao
+  // chega na professora -, fecha-la custa tres tiros, e a que ninguem fecha em
+  // 5,5 s solta e cai em cima de quem esta embaixo. E a divida, que para e
+  // fica. A bala de prata ocupa o lugar dos pedidos de manutencao que
+  // perseguiam.
+  //
+  // A ORBITA E PARA O EXAME TER COMO PASSAR, a licao da final do Luizinho.
+  // Medido partindo de 40: o piloto que persegue sai com 64,5 (63,5 no
+  // Dificil) e o que desvia com 62,7 (56,7); o parado e o que vai e vem
+  // reprovam com 39 e 18. Na batalha inteira, quem cai na repescagem com 49 a
+  // 55 sai dela aprovado com 66 a 74.
+  "StateFinal": {
+    "duracao": 20,
+    "proximo": "StateOne",
+    "anuncio": "Não há bala de prata",
+    "movimento": { "tipo": "Orbitar", "a": 180, "b": 0.12 },
+    "ataques": [
+      { "estrategia": "WaveAttack", "projetil": "Dialogo",
+        "projeteis": 3, "velocidade": 200, "angulo": 60, "intervalo": 0,
+        "cooldown": 6.0,
+        "regras": "modal" },
+      { "gatilho": "bala", "estrategia": "WaveAttack", "projetil": "BalaDePrata",
+        "projeteis": 1, "velocidade": 230, "angulo": 0, "intervalo": 0,
+        "dificil": { "velocidade": 260 } },
+      { "gatilho": "estilhaco", "estrategia": "WaveAttack", "projetil": "Bug",
+        "projeteis": 5, "velocidade": 210, "angulo": 70, "intervalo": 0,
+        "dificil": { "projeteis": 7 } },
+      { "estrategia": "WaveAttack", "projetil": "Debito",
+        "projeteis": 3, "velocidade": 320, "angulo": 40, "intervalo": 0,
+        "cooldown": 3.1,
+        "regras": "divida" }
+    ]
+  }
+}

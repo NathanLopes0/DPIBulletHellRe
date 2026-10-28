@@ -20,26 +20,18 @@
   // JULIO - INF 420
   // --------------------------------------------------------------------------
 
-  // Fase 2: forca diferente entre par e impar. O jogador ve dois comportamentos
-  // no mesmo anel e aprende a distinguir qual bala corrige mais.
-  "fase2": [
-    { "quando": "pares",
-      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 3.2, "duracao": 2.4 } },
-    { "quando": "impares",
-      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 2.4 } }
+  // Fase 2: o agente convocado nasce no posto dos agentes - de onde as
+  // ferramentas saem no Age -, e quem o move e o Julio (MoverAgentes): a cada
+  // volta do ReAct ele replaneja e voa para um lugar novo perto do aluno,
+  // sempre dentro do campo, e depois de 10 s vai embora por cima.
+  "convocar": [
+    { "posto": "agentes" }
   ],
 
-  // Fase 3, primeiro ataque: voa reto 0.8s (o jogador VE que o tiro foi
-  // adiantado) e depois da UMA correcao curta de 0.7s.
-  //
-  // A correcao e deliberadamente fraca e limitada. Se fosse uma perseguicao de
-  // verdade, ela desfaria o contrajogo da previsao: a licao da fase e "seja
-  // imprevisivel", e uma bala que corrige de qualquer jeito faz ser imprevisivel
-  // deixar de ajudar. Fraca assim, o jogador ganha DOIS tempos de desvio, e a
-  // leitura fica "ele errou a previsao e tentou consertar na marra".
-  "fase3_previsao": [
-    { "escala": 2,
-      "motion": { "tipo": "Tracking", "atraso": 0.8, "forca": 1.6, "duracao": 0.7 } }
+  // Fase 3: os guardrails, amarrados ao professor. A corda estica a 95px e
+  // o anel gira em volta dele por 5,5 s; cortada, cada um sai pela tangente.
+  "guardrails": [
+    { "motion": { "tipo": "Amarrar", "comprimento": 95, "duracao": 5.5, "sentido": "horario" } }
   ],
 
   // Fase final: um anel de 6, cada um dando uma volta antes de seguir em frente.
@@ -47,6 +39,7 @@
   // a MESMA forma sai girada de um jeito diferente para cada ponto do anel: seis
   // lacos apontando para fora, sem escrever seis caminhos.
   "final_laco": [
-    { "motion": { "tipo": "Path", "forma": "LacoApertado", "velocidade": 650 } }
+    { "animacao": "e",
+      "motion": { "tipo": "Path", "forma": "LacoApertado", "velocidade": 650 } }
   ]
 }

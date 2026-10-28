@@ -297,3 +297,186 @@ TEST_CASE("Nota: o bonus tambem respeita o teto de quem levou dano") {
     CHECK(Nota::Somar(99.9f, Nota::kBonusDeFaseLimpa, Nota::kAcertosQuePerdemACheia)
           == doctest::Approx(Nota::kTetoComDano));
 }
+
+// ---------------------------------------------------------------------------
+// A REGRA DA NOTA COMPARTILHADA (requisitos-coop, 2.1)
+//
+// A dupla tem UMA nota. Sem repartir o que cada um causa, ela seria outra coisa
+// em cada direcao: dois atiradores enchem a mesma barra no dobro da velocidade,
+// e dois alvos em campo a drenam no dobro. Repartido, o co-op sobe e desce no
+// ritmo de um solo - e o que sobra a favor dele e so os ataques mirados se
+// dividirem entre os dois.
+//
+// O QUE ESTES TESTES PROTEGEM DE VERDADE e o caso de UM jogador. Dividir por um
+// nao pode mudar numero nenhum: e a linha que, errada, estragaria em silencio
+// todas as notas de solo ja gravadas.
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Nota: com um jogador, repartir nao muda nada") {
+
+    // O SOLO E O CASO NORMAL (requisitos-coop, RNF4). Esta verificacao vale
+    // mais que todas as de co-op juntas: o jogo inteiro passa por aqui.
+    for (const float bruto : {0.0f, 0.56f, 6.0f, 10.0f, 12.0f, 99.5f}) {
+        CHECK(Nota::PorJogador(bruto, 1) == doctest::Approx(bruto));
+    }
+}
+
+TEST_CASE("Nota: com dois jogadores, cada um causa metade") {
+
+    CHECK(Nota::PorJogador(0.56f, 2) == doctest::Approx(0.28f));
+    CHECK(Nota::PorJogador(6.0f,  2) == doctest::Approx(3.0f));
+    CHECK(Nota::PorJogador(10.0f, 2) == doctest::Approx(5.0f));
+}
+
+TEST_CASE("Nota: a dupla precisa do mesmo tanto de acertos que um solo") {
+
+    // ESTE E O TESTE DA REGRA. Um solo chega aos 100 com 256 acertos; a dupla
+    // soma o dobro no mesmo tempo, com cada acerto valendo metade. As duas
+    // notas tem de dar praticamente a mesma coisa.
+    //
+    // "Praticamente" porque a curva le a nota a cada passo, e 512 passos de
+    // meio ganho nao sao identicos a 256 de ganho inteiro.
+    //
+    // MEDIDO, e nao suposto: eu tinha escrito aqui que a dupla sairia um pouco
+    // ACIMA do solo, por cada passo ver uma nota menor. Rodando, ela sai um
+    // pouco ABAIXO - o acumulo de arredondamento em 512 somas pesa mais que
+    // isso. A diferenca maxima na faixa inteira e de 0,05 ponto, em 83:
+    //
+    //   acertos    25     50    100    150    200    256
+    //   solo    54,00  67,18  83,07  91,50  96,51  100,00
+    //   dupla   54,00  67,16  83,02  91,46  96,48  100,00
+    //
+    // O que o teste protege e o TAMANHO dessa diferenca. Se ela crescer, a
+    // regra deixou de valer e o co-op virou outro jogo.
+    constexpr float kGanhoBruto = 0.56f;   // GRADE_CHANGE_UP
+
+    float solo = Nota::kNotaDeExame;
+    for (int i = 0; i < 256; ++i) solo = Nota::Somar(solo, kGanhoBruto, 0);
+
+    float dupla = Nota::kNotaDeExame;
+    const float metade = Nota::PorJogador(kGanhoBruto, 2);
+    for (int i = 0; i < 512; ++i) dupla = Nota::Somar(dupla, metade, 0);
+
+    CAPTURE(solo);
+    CAPTURE(dupla);
+    CHECK(dupla == doctest::Approx(solo).epsilon(0.01));
+}
+
+TEST_CASE("Nota: a dupla tambem perde no ritmo de um solo") {
+
+    // Dois alvos em campo apanham mais vezes que um. Com a perda repartida, o
+    // mesmo numero de acertos SOMADOS custa o mesmo que custaria a um solo.
+    constexpr float kPerdaBruta = 6.0f;   // GRADE_CHANGE_DOWN
+
+    float solo = 100.0f;
+    for (int i = 0; i < 5; ++i) solo = Nota::Subtrair(solo, kPerdaBruta);
+
+    float dupla = 100.0f;
+    const float metade = Nota::PorJogador(kPerdaBruta, 2);
+    for (int i = 0; i < 10; ++i) dupla = Nota::Subtrair(dupla, metade);
+
+    CHECK(dupla == doctest::Approx(solo));
+}
+
+TEST_CASE("Nota: nenhum jogador em campo devolve o bruto") {
+
+    // Nao deveria acontecer, e se acontecer dividir por zero daria infinito -
+    // trocar um caso impossivel por um estrago real. Devolver o bruto deixa a
+    // batalha seguir com o numero de sempre.
+    CHECK(Nota::PorJogador(6.0f, 0) == doctest::Approx(6.0f));
+}
+
+TEST_CASE("Nota: repartir e proporcional, e nunca inverte o sinal do efeito") {
+
+    // Tres jogadores nao existem no gabinete, mas a regra nao pode depender
+    // disso: ela diz "pelo numero de jogadores", e e isso que ela faz.
+    CHECK(Nota::PorJogador(12.0f, 3) == doctest::Approx(4.0f));
+    CHECK(Nota::PorJogador(12.0f, 4) == doctest::Approx(3.0f));
+
+    // E repartir sempre encolhe, nunca cresce nem vira negativo.
+    for (size_t quantos = 1; quantos <= 4; ++quantos) {
+        const float r = Nota::PorJogador(6.0f, quantos);
+        CHECK(r > 0.0f);
+        CHECK(r <= 6.0f);
+    }
+}
+
+// ------------------------------------ o alivio da perda em grupo
+
+TEST_CASE("Nota: apanhar em dupla custa 2,4, e nao 3,0") {
+
+    // A DIVISAO SOZINHA DAVA 3,0 (metade de 6,0), e o total ja era favoravel a
+    // dupla: medido, ela apanhava 57% mais vezes e pagava 21% menos no fim
+    // (requisitos-coop, secao 8). O que o alivio trata nao e o total, e a
+    // FREQUENCIA: a barra caia quase no dobro das vezes, e e a frequencia que o
+    // jogador sente.
+    CHECK(Nota::PerdaPorJogador(6.0f, 2) == doctest::Approx(2.4f));
+    CHECK(Nota::PerdaPorJogador(6.0f, 2) < Nota::PorJogador(6.0f, 2));
+}
+
+TEST_CASE("Nota: o solo nao ganha alivio nenhum") {
+
+    // O CASO NORMAL NAO MUDA POR CAUSA DE UMA REGRA DO CO-OP (RNF4). Se o solo
+    // passasse a pagar menos, a curva inteira da nota - que foi calibrada nele -
+    // mudaria de sentido sem ninguem pedir.
+    CHECK(Nota::PerdaPorJogador(6.0f, 1) == doctest::Approx(6.0f));
+    CHECK(Nota::PerdaPorJogador(6.0f, 1) == doctest::Approx(Nota::PorJogador(6.0f, 1)));
+
+    // Nem o caso impossivel: zero jogadores devolve o bruto, como PorJogador.
+    CHECK(Nota::PerdaPorJogador(6.0f, 0) == doctest::Approx(6.0f));
+}
+
+TEST_CASE("Nota: o alivio e SO da perda, e o ganho continua inteiro na divisao") {
+
+    // ESTE E O CASO QUE PROTEGE A REGRA 2.1. O ganho e dividido justamente para
+    // a barra subir no ritmo de um solo; aliviar o ganho junto faria a dupla
+    // subir mais devagar que o solo, que e o contrario do que a regra quer.
+    CHECK(Nota::PorJogador(0.56f, 2) == doctest::Approx(0.28f));   // metade exata
+    CHECK(Nota::PorJogador(10.0f, 2) == doctest::Approx(5.0f));    // o Ponto Extra tambem
+}
+
+TEST_CASE("Nota: os dois atingidos no mesmo quadro custam menos que um acerto de solo") {
+
+    // ERA O PIOR CASO, E ERA EXATAMENTE UM ACERTO DE SOLO: 3,0 + 3,0 = 6,0.
+    // Com o alivio sao 4,8 - a dupla desatenta ainda paga caro, so que nao o
+    // preco cheio de um erro que um jogador sozinho nao teria como cometer.
+    const float osDoisDeUmaVez = 2.0f * Nota::PerdaPorJogador(6.0f, 2);
+
+    CHECK(osDoisDeUmaVez == doctest::Approx(4.8f));
+    CHECK(osDoisDeUmaVez < 6.0f);
+}
+
+TEST_CASE("Nota: a dupla ainda paga pelo erro - o alivio nao e imunidade") {
+
+    // Um alivio grande demais tiraria o peso do erro e o co-op viraria o modo
+    // facil, que e o que a secao 8 descartou. Metade do dano e o piso.
+    for (const float bruto : {6.0f, 3.0f, 12.0f}) {
+        CAPTURE(bruto);
+        const float emDupla = Nota::PerdaPorJogador(bruto, 2);
+        CHECK(emDupla > 0.0f);
+        CHECK(emDupla > bruto * 0.25f);     // continua doendo
+        CHECK(emDupla < bruto * 0.5f);      // e e menos que a divisao pura
+    }
+}
+
+TEST_CASE("Nota: o ganho por acerto acompanha a duracao da fase, e a nota sobe por segundo o que subia") {
+    // O GANHO DE UMA FASE INTEIRA DE TIRO PERFEITO e o mesmo das fases de
+    // 17 s: o tiro sai no mesmo ritmo, e com mais tempo cada acerto vale menos.
+    CHECK(Nota::kGanhoPorAcerto * Fase::kDuracao ==
+          doctest::Approx(Nota::kGanhoPorAcertoEm17s * Nota::kDuracaoDaFaseMedida));
+
+    CHECK(Nota::kGanhoPorAcerto < Nota::kGanhoPorAcertoEm17s);
+
+    // A NOTA CHEIA CUSTA MAIS ACERTOS, na mesma proporcao do tempo, e cabe
+    // nos 500 tiros de uma batalha de 60 s (um a cada 0,12 s).
+    int acertos = 0;
+    float n = 40.0f;
+    while (n < Nota::kNotaMaxima && acertos < 10000) {
+        n = Nota::Somar(n, Nota::kGanhoPorAcerto, 0);
+        ++acertos;
+    }
+    CAPTURE(acertos);
+    CHECK(acertos > 256);
+    CHECK(acertos == doctest::Approx(256.0f * Fase::kDuracao / Nota::kDuracaoDaFaseMedida).epsilon(0.02));
+    CHECK(static_cast<float>(acertos) < 3.0f * Fase::kDuracao / 0.12f);
+}

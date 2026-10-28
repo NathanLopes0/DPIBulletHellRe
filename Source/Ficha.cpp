@@ -78,6 +78,23 @@ std::string Serializar(const Dados& dados, const Materias::Lista& materias) {
           << "\", \"recorde\": "  << Numero(e.recorde)
           << ", \"retomada\": " << Numero(e.retomada);
 
+        // O REGISTRO DE DUPLA SO APARECE SE EXISTIR. Mesma regra da aparencia:
+        // um aluno que nunca jogou acompanhado nao ganha tres campos zerados no
+        // arquivo, e um save da versao 4 continua abrindo sem conversao nenhuma.
+        if (e.recordeDeDupla > 0.0f) {
+            s << ", \"recordeDupla\": " << Numero(e.recordeDeDupla);
+
+            // O parceiro pode faltar mesmo havendo recorde: visitante nao tem
+            // matricula. A nota vale para o progresso; a dupla e que fica de
+            // fora do ranking (requisitos-coop, RF6).
+            if (!e.parceiroDoRecorde.empty()) {
+                s << ", \"parceiro\": \"" << e.parceiroDoRecorde << "\"";
+            }
+            if (!e.quandoDaDupla.empty()) {
+                s << ", \"quandoDupla\": \"" << e.quandoDaDupla << "\"";
+            }
+        }
+
         // So escreve a data quando ha uma: um campo vazio no arquivo nao diria
         // nada que a ausencia dele ja nao diga.
         if (!e.quando.empty()) s << ", \"quando\": \"" << e.quando << "\"";
@@ -248,20 +265,33 @@ Lida Desserializar(const std::string& texto, const Materias::Lista& materias) {
             continue;
         }
 
-        if (retomada > recorde) {
+        // ---- O registro de dupla, opcional (versao 5) --------------------
+        //
+        // Saves ate a versao 4 nao tem nenhum destes campos, e isso NAO e erro:
+        // e a verdade sobre aquele aluno, que nunca jogou acompanhado.
+        float recordeDeDupla = 0.0f;
+        if (m.contains("recordeDupla") && m["recordeDupla"].is_number()) {
+            recordeDeDupla = m["recordeDupla"].get<float>();
+
+            if (!NotaServe(recordeDeDupla)) {
+                saida.problemas.emplace_back(onde + "a nota de dupla esta fora de 0 a 100;"
+                                                    " o registro de dupla foi descartado");
+                recordeDeDupla = 0.0f;
+            }
+        }
+
+        // A RETOMADA E COMPARADA COM A MAIOR DAS DUAS.
+        //
+        // Era comparada so com o recorde de solo, como estado impossivel - e
+        // deixou de ser impossivel com o co-op: um aluno com recorde 50 sozinho
+        // que faz 80 em dupla fica com retomada 80 e recorde de solo 50. Essa
+        // ficha e legitima, e a regra antiga a descartaria inteira.
+        if (retomada > std::max(recorde, recordeDeDupla)) {
             // Estado impossivel: o recorde e o maximo de todas as notas. Se
             // passasse, "melhor nota" deixaria de ser a melhor e as regras de
             // aprovacao ficariam erradas.
-            saida.problemas.emplace_back(onde + "a retomada e maior que o recorde, o que nao"
-                                                " pode acontecer jogando; descartada");
-            continue;
-        }
-
-        if (!vistas.insert(materia).second) {
-            saida.problemas.emplace_back(onde + "aparece repetida; fica valendo a ultima");
-            for (auto& e : entradas) {
-                if (e.materia == materia) { e.recorde = recorde; e.retomada = retomada; break; }
-            }
+            saida.problemas.emplace_back(onde + "a retomada e maior que os dois recordes, o que"
+                                                " nao pode acontecer jogando; descartada");
             continue;
         }
 
@@ -269,11 +299,34 @@ Lida Desserializar(const std::string& texto, const Materias::Lista& materias) {
         e.materia = materia;
         e.recorde = recorde;
         e.retomada = retomada;
+        e.recordeDeDupla = recordeDeDupla;
 
         // Opcional: saves anteriores a este campo simplesmente nao tem data, e
         // isso nao e erro.
         if (m.contains("quando") && m["quando"].is_string()) {
             e.quando = m["quando"].get<std::string>();
+        }
+
+        // O parceiro e a data da dupla so fazem sentido havendo recorde de
+        // dupla: sem ele, seriam o nome de alguem com quem nunca se jogou.
+        if (recordeDeDupla > 0.0f) {
+            if (m.contains("parceiro") && m["parceiro"].is_string()) {
+                e.parceiroDoRecorde = m["parceiro"].get<std::string>();
+            }
+            if (m.contains("quandoDupla") && m["quandoDupla"].is_string()) {
+                e.quandoDaDupla = m["quandoDupla"].get<std::string>();
+            }
+        }
+
+        // REPETIDA: fica valendo a ultima, INTEIRA. Antes so o recorde e a
+        // retomada eram trocados, entao a data da primeira ficava pendurada na
+        // nota da segunda - e agora seriam tres campos a esquecer em vez de um.
+        if (!vistas.insert(materia).second) {
+            saida.problemas.emplace_back(onde + "aparece repetida; fica valendo a ultima");
+            for (auto& anterior : entradas) {
+                if (anterior.materia == materia) { anterior = e; break; }
+            }
+            continue;
         }
 
         entradas.push_back(e);

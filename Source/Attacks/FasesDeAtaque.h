@@ -4,11 +4,15 @@
 
 #pragma once
 
+#include "../Dificuldade.h"
+
+#include <cstdint>
 #include <map>
 #include <optional>
 #include <string>
 #include <vector>
 
+#include "Fase.h"
 #include "RegrasDeAtaque.h"
 
 /**
@@ -75,6 +79,62 @@ struct DescricaoDeConsulta {
 };
 
 /**
+ * @brief Os campos que SO a CaixaAttack usa.
+ *
+ * Diferente dos blocos de balao e de consulta, este e OPCIONAL: os dois campos
+ * tem um padrao razoavel (CaixaAttackParams), e uma caixa sem bloco e uma caixa
+ * na proporcao de uma janela deitada.
+ */
+struct DescricaoDeCaixa {
+    std::optional<float> proporcao;           ///< largura / altura
+    std::optional<float> meiaAlturaInicial;   ///< em pixels
+};
+
+/**
+ * @brief Os campos que SO a SprintAttack usa. Opcional: todo campo tem padrao
+ * em SprintAttackParams.
+ */
+struct DescricaoDeSprint {
+    std::optional<float> revisao;   ///< segundos do disparo ate o que sobrou cair
+    std::string historia;           ///< a animacao das historias
+    std::string cursor;             ///< a do cursor apontando
+    std::string clique;             ///< a do cursor clicando
+};
+
+/**
+ * @brief Os campos que SO a TokenAttack usa. Opcional: todo campo tem padrao
+ * em TokenAttackParams.
+ */
+struct DescricaoDeTokens {
+    std::optional<float> temperatura;   ///< a do sorteio; zero = sempre o mais provavel
+    std::optional<int> candidatos;      ///< quantos angulos candidatos
+    std::optional<float> abertura;      ///< o leque deles, em graus
+    std::vector<std::string> frase;     ///< as animacoes dos tokens, em ordem
+};
+
+/**
+ * @brief Os campos que SO a PalavraAttack usa. Opcional: todo campo tem padrao
+ * em PalavraAttackParams.
+ */
+struct DescricaoDePalavra {
+    std::optional<std::uint32_t> valor;   ///< os bits, escritos com 0 e 1
+    std::optional<float> altura;          ///< o y da fileira; ausente = o do professor
+    std::string zero;                     ///< a animacao do zero
+    std::string um;                       ///< a do um
+    bool todosAtravessam = false;         ///< o um tambem e enfeite (as portas)
+};
+
+/**
+ * @brief Os campos que SO a PontosAttack usa. OBRIGATORIO nela: sem posto, ela
+ * nao teria de onde atirar.
+ */
+struct DescricaoDePontos {
+    std::string posto;      ///< de onde se atira (PostoExiste)
+    bool mirar = false;     ///< cada ponto mira o aluno
+    bool prever = false;    ///< ...onde ele vai estar (so vale mirando)
+};
+
+/**
  * @brief Um ataque: a geometria do disparo e as regras de cada projetil.
  *
  * OS CAMPOS NUMERICOS SAO OPCIONAIS DE PROPOSITO.
@@ -89,6 +149,25 @@ struct DescricaoDeConsulta {
  * O campo ausente nao e "zero" nem "um palpite", e o padrao do proprio motor,
  * qualquer que ele seja hoje ou depois.
  */
+/**
+ * O DEGRAU DO DIFICIL de um ataque (Dificuldade.h), quando o arquivo o
+ * escreve:
+ *
+ *     "dificil": { "cooldown": 3.6, "velocidade": 300, "projeteis": 3 }
+ *
+ * Cada campo e opcional, e o ausente fica como no Normal. E aplicado ao
+ * MONTAR o ataque (NoNivel), e nao a cada disparo: o AttackParams ja nasce com
+ * os numeros do modo, e todo C++ que os le - a palavra do Ricardo calcula com
+ * a velocidade quando ela chega na porta - ve o numero certo. E so para os
+ * ataques que o C++ do chefe nao conduz; o de gatilho o chefe acelera na hora
+ * (Boss::Disparar). Uma chave desconhecida aqui e recusada na leitura.
+ */
+struct DescricaoDoDificil {
+    std::optional<int>   projeteis;
+    std::optional<float> velocidade;
+    std::optional<float> cooldown;
+};
+
 struct DescricaoDeAtaque {
     std::string estrategia;
 
@@ -136,13 +215,54 @@ struct DescricaoDeAtaque {
 
     /// Presente somente nos ataques ConsultaAttack.
     std::optional<DescricaoDeConsulta> consulta;
+
+    /// Presente so nos ataques CaixaAttack que escreveram o bloco.
+    std::optional<DescricaoDeCaixa> caixa;
+
+    /// Presente so nos ataques SprintAttack que escreveram o bloco.
+    std::optional<DescricaoDeSprint> sprint;
+
+    /// Presente em todo ataque PontosAttack, e so neles.
+    std::optional<DescricaoDePontos> pontos;
+
+    /// Presente so nos ataques TokenAttack que escreveram o bloco.
+    std::optional<DescricaoDeTokens> tokens;
+
+    /// Presente so nos ataques PalavraAttack que escreveram o bloco.
+    std::optional<DescricaoDePalavra> palavra;
+
+    /// Em qual etapa da fase este ataque dispara. Vazio = a fase inteira. Fora
+    /// da etapa ele nao conta o cooldown nem dispara.
+    std::string etapa;
+
+    /// O gatilho que o dispara (GatilhoExiste). Vazio = o relogio, pelo
+    /// cooldown. Com gatilho, o cooldown e ignorado.
+    std::string gatilho;
+
+    /// O degrau do Dificil, se o arquivo escreveu um. Ver DescricaoDoDificil.
+    std::optional<DescricaoDoDificil> dificil;
 };
+
+/// @brief O ataque no modo: no Dificil, com o que o bloco "dificil" troca; no
+/// Normal (ou sem bloco), igual.
+DescricaoDeAtaque NoNivel(const DescricaoDeAtaque& a, Dificuldade::Nivel n);
 
 /// @brief O lado nomeado existe? (Down, Left, Right, Up - nunca None)
 bool LadoDeBalaoExiste(const std::string& nome);
 
 /// @brief O eixo nomeado existe? (Linha ou Coluna)
 bool EixoDeConsultaExiste(const std::string& nome);
+
+/// @brief O gatilho nomeado existe? Um ataque com "gatilho" nao dispara pelo
+/// relogio: dispara quando o chefe puxa o gatilho (Boss::Disparar). So existe
+/// o gatilho que algum chefe puxa, e cada um mora no modulo puro de quem o
+/// puxa ("notificacao" em Observer.h, "capivara" em Capivara.h, ...).
+bool GatilhoExiste(const std::string& nome);
+
+/// @brief Todos os gatilhos, na ordem em que entraram. A lista com o que cada
+/// um faz e a tabela de Documentacao/arquivos-de-dados.md, e um teste confere
+/// que ela nao esquece nenhum.
+const std::vector<std::string>& NomesDosGatilhos();
 
 /**
  * @brief Como o chefe se move durante a fase.
@@ -165,12 +285,109 @@ struct DescricaoDeMovimento {
  * (StateOne, StateTwo, StateThree, StateFinal). 'proximo' vazio significa que a
  * batalha e decidida ao fim desta fase.
  */
+/**
+ * @brief O CORPO EXTRA de uma fase: o chefe se divide em dois.
+ *
+ * Existe para a fase 3 do Vitor, em que a materia e "varias coisas ao mesmo
+ * tempo" e seria estranho a batalha fazer uma de cada vez. Enquanto a fase
+ * dura, ha DOIS corpos em campo: o original e este. Os dois disparam, e
+ * qualquer um dos dois toma dano.
+ *
+ * 'ataquesDe' nomeia de qual fase o clone tira os ataques e o movimento - e
+ * nao uma lista propria. Escrever a lista aqui faria a fase 3 repetir, palavra
+ * por palavra, o que a fase 2 ja diz, e duas copias divergem no dia em que
+ * alguem ajusta uma.
+ */
+struct DescricaoDeClone {
+    bool existe = false;
+    std::string ataquesDe;
+};
+
+/**
+ * @brief O Programa de Intercambio da fase: os alunos trocam de lugar.
+ *
+ * A cada 'aCada' segundos, com o aviso aceso 'aviso' segundos antes. Ver
+ * Intercambio.h para o que "trocar de lugar" quer dizer em dupla e sozinho.
+ */
+struct DescricaoDeIntercambio {
+    float aCada = 0.0f;
+    float aviso = 0.0f;
+};
+
+/**
+ * @brief Uma fase: quanto dura, o que vem depois, como o chefe anda e o que ele
+ * dispara.
+ *
+ * 'nome' precisa ser um dos nomes que a maquina de estados reconhece
+ * (StateOne, StateTwo, StateThree, StateFinal). 'proximo' vazio significa que a
+ * batalha e decidida ao fim desta fase.
+ *
+ * 'ataquesDe', quando preenchido, diz que esta fase usa os ataques de OUTRA em
+ * vez de declarar os seus - ver DescricaoDeClone. Uma fase nao pode ter os
+ * dois: 'ataques' e 'ataquesDe' juntos seriam duas respostas para "o que ele
+ * dispara aqui".
+ */
+/**
+ * @brief UMA ETAPA de uma fase: um trecho do tempo dela, com nome.
+ *
+ * Existe para a fase que e um PROCESSO em ordem - a cascata da Maria Lucia, em
+ * que Requisitos acaba antes de Projeto comecar. As etapas se seguem na ordem do
+ * arquivo, cada uma 'duracao' segundos; cada ataque diz em qual etapa dispara
+ * ("etapa" no ataque), e o placar mostra o 'anuncio' da etapa corrente.
+ */
+struct DescricaoDeEtapa {
+    std::string nome;
+    float duracao = 0.0f;
+    std::string anuncio;   ///< o texto do placar; vazio = o proprio nome
+};
+
+/// @brief O trecho [de, ate) da fase em que a etapa nomeada acontece, contado
+/// do comeco da fase. Devolve false se nao houver etapa com esse nome.
+bool JanelaDaEtapa(const std::vector<DescricaoDeEtapa>& etapas, const std::string& nome,
+                   float& de, float& ate);
+
+/// @brief A etapa que vale no instante 't' da fase: o indice, ou -1 depois da
+/// ultima (ou sem etapas). Antes de zero vale a primeira.
+int EtapaNoTempo(const std::vector<DescricaoDeEtapa>& etapas, float t);
+
+/// Quanto o primeiro disparo de um ataque espera depois que a janela dele
+/// abre. Pouco, mas nao zero: a etapa anterior acabou de parar, e os dois
+/// ataques nascendo no mesmo quadro se leriam como um so.
+constexpr float kPrimeiroDisparoDaJanela = 0.25f;
+
+/// Quanto o primeiro disparo de cada ataque espera na primeira vez que a FASE
+/// dele roda. E maior que o da janela, e vale tambem para o ataque cuja etapa
+/// abre a fase: uma etapa que comeca no zero dispara aos 1 s, e as outras
+/// 0,25 s depois de abrir.
+constexpr float kPrimeiroDisparoDaFase = 1.0f;
+
+/// @brief Quando sai o primeiro disparo de um ataque cuja janela abre 'de'
+/// segundos depois do comeco da fase, na primeira vez que ela roda. E a conta
+/// que o Boss faz quadro a quadro (Boss::OnUpdate), escrita uma vez para os
+/// dados poderem confere-la: quem precisa que todas as etapas disparem no
+/// mesmo ponto - as sprints da Maria Lucia - comeca a primeira depois do zero.
+float PrimeiroDisparoNaJanela(float de);
+
 struct DescricaoDeFase {
     std::string nome;
-    float duracao = 17.0f;
+    float duracao = Fase::kDuracao;
     std::string proximo;
+
+    /// As etapas da fase, em ordem. Vazio = a fase e um trecho so, como sempre.
+    std::vector<DescricaoDeEtapa> etapas;
+
+    /// O que o PLACAR da batalha mostra enquanto esta fase dura - a linguagem
+    /// de que cada rajada e uma palavra, no caso do Vladimir. Vazio = a fase nao
+    /// anuncia nada e o placar fica apagado. Quem desenha e Battle::AtualizarPlacar.
+    std::string anuncio;
+
     DescricaoDeMovimento movimento;
     std::vector<DescricaoDeAtaque> ataques;
+    std::string ataquesDe;
+    DescricaoDeClone clone;
+
+    /// Presente so nas fases com Intercambio.
+    std::optional<DescricaoDeIntercambio> intercambio;
 };
 
 /**
@@ -204,7 +421,7 @@ bool NomeDeFaseExiste(const std::string& nome);
  * Formato (o arquivo de UM chefe - a pasta diz qual):
  * {
  *   "StateOne": {
- *     "duracao": 17, "proximo": "StateTwo",
+ *     "duracao": 20, "proximo": "StateTwo",
  *     "movimento": { "tipo": "RandomWander", "a": 4, "b": 100 },
  *     "ataques": [
  *       { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",

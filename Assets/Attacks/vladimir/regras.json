@@ -1,0 +1,84 @@
+{
+  // ==========================================================================
+  // AS REGRAS DE PROJETIL DO VLADIMIR
+  //
+  // Cada conjunto aqui e uma LINGUAGEM, e a rajada que ele veste e uma palavra
+  // dela. E por isso que os nomes sao os da disciplina e nao "fase1", "fase2":
+  // o que define o padrao e a linguagem, e a fase so escolhe qual usar.
+  //
+  // ------------------------------------------------------------------------
+  // "a" E "b" FAZEM COISAS DIFERENTES, E ISSO E O PONTO DO CHEFE.
+  //
+  // Por tres versoes seguidas eles diferiam SO NA ANIMACAO - ambar e azul, e
+  // nada mais. O chefe "anunciava" numa notacao que nao previa nada, e ler a
+  // palavra nao servia para coisa nenhuma: as letras eram pintura.
+  //
+  // A correcao sai da propria disciplina. Num automato, a funcao de transicao
+  // trata os dois simbolos de formas diferentes - d(q,a) e d(q,b) nao sao a
+  // mesma coisa, e e exatamente isso que faz um alfabeto ser um alfabeto. Aqui:
+  //
+  //     "a"  vai RETO.    Rapido de ler, rapido de desviar.
+  //     "b"  PERSEGUE.    Corrige a rota com forca que decai ate zero.
+  //
+  // E com isso ler a letra passa a dizer algo, nas quatro fases: o automato
+  // atira a letra que leu, e o placar diz qual e a proxima; o compilador solta
+  // cada a e b da linha de codigo; a fita escreve "a" e, apagado, ele sai como
+  // "b"; o programa da metade solta "a" e o do 3x + 1 solta "b". E o
+  // intercambio TROCA as duas (Alfabeto.h): o "a" em voo passa a perseguir.
+  //
+  // O TrackingBehavior decai: "fugir cedo nao resolve, fugir tarde sim". E uma
+  // habilidade diferente de desviar de um tiro reto, e e dela que vem a tensao
+  // de uma palavra misturada.
+  // ------------------------------------------------------------------------
+  //
+  // UM SO PROJETIL PODE TER UM SO MOTION, e Wobble, Tracking, Accelerate e
+  // SlowDown brigam entre si (Behaviors.h avisa: o Wobble reescreve a
+  // velocidade todo quadro e desfaz o que os outros fizeram). Por isso nenhuma
+  // regra daqui poe dois deles no mesmo simbolo - quando o "a" leva um
+  // modifier, o "b" leva um motion, e nunca os dois na mesma letra.
+  //
+  // O "atraso" DO TRACKING NAO E CONTRA A ARMADILHA DO WOBBLE. O Tracking
+  // sobrevive a um projetil dormindo: ele faz "return" quando a velocidade e
+  // zero, em vez de se declarar terminado. Mas a DURACAO corre enquanto ele
+  // dorme, entao numa WaveAttack - que acorda um simbolo por vez - a janela
+  // pode expirar antes de o ultimo acordar. Por isso as duracoes aqui sao
+  // folgadas: 2,4s cobrem o despertar inteiro mais a perseguicao.
+  //
+  // Os campos estao documentados em Documentacao/arquivos-de-dados.md.
+  // ==========================================================================
+
+  // O AUTOMATO DA FASE 1: o mapa e as duas letras que ele le.
+  //
+  // O mapa (o diagrama e os tres estados) fica no posto "estados", e e por la
+  // que o Vladimir o acende e o desfaz no fim da fase.
+  "estados": [
+    { "posto": "estados" }
+  ],
+
+  // A letra lida. As duas fazem o que fazem a luta inteira: o "a" vai reto, o
+  // "b" persegue, com a forca e a duracao do "b" do (ab)*.
+  "letra_a": [
+    { "animacao": "A" }
+  ],
+  "letra_b": [
+    { "animacao": "B",
+      "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 1.4, "duracao": 2.4 } }
+  ],
+
+  // O COMPILADOR DA FASE 2: os nos da arvore sintatica ficam no posto
+  // "arvore", e e por la que o Vladimir os acha para desfazer no fim da fase.
+  // O resto do compilador veste "letra_a" e "letra_b" (o a e o b que caem no
+  // lexico) ou nada (as fichas, que vao retas).
+  "arvore": [
+    { "posto": "arvore" }
+  ],
+
+  // A FITA DA MAQUINA DE TURING: a marca que o castor escreve, um "a" parado
+  // na casa. Fica no posto "fita", e e por la que o Vladimir a acha para
+  // apagar - e e isso que a deixa fora do intercambio: a troca a <-> b e das
+  // letras em voo (Alfabeto.h), e a marca parada e da maquina. Apagada, ela
+  // sai como um "b" do "letra_b" (Vladimir::AtualizarFita).
+  "fita": [
+    { "animacao": "A", "posto": "fita" }
+  ]
+}

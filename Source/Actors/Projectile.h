@@ -73,6 +73,20 @@ public:
     // complementar com o que for específico delas (ex: reiniciar animação).
     virtual void Reset();
 
+    /// @brief Joga fora a Motion e os Modifiers, sem mexer em mais nada.
+    ///
+    /// Para quem muda o destino de um projetil por fora, no meio da vida dele:
+    /// o S da gramatica do Vladimir que vira a palavra vazia e para, e um
+    /// behavior que ainda nao tivesse disparado o poria para andar de novo.
+    /// NAO chame de dentro de um behavior - o laco dos Modifiers esta rodando.
+    void DescartarComportamentos() { mMotion.reset(); mModifiers.clear(); }
+
+    /// @brief Joga fora so a Motion: o projetil segue reto, no rumo e no modulo
+    /// em que estava, e os Modifiers continuam. E o "b" que o intercambio do
+    /// Vladimir troca por "a" - ele para de perseguir. Mesma regra de
+    /// DescartarComportamentos: nao chame de dentro de um behavior.
+    void DescartarMotion() { mMotion.reset(); }
+
     /**
      * @brief Registra a aparencia com que a fabrica construiu este projetil,
      * para que Reset() possa devolve-la.
@@ -85,7 +99,7 @@ public:
      * seu (a do Julio constroi com escala 2 e animacao "Coleta", a do Ricardo
      * com "Normal"). Por isso o padrao e capturado em vez de ser uma constante.
      */
-    void MarcarPadraoDeFabrica();
+    virtual void MarcarPadraoDeFabrica();
 
     /**
      * @brief Define a Motion do projetil: quem ESCREVE a velocidade.
@@ -93,6 +107,22 @@ public:
      * Exclusivo por construcao - chamar duas vezes SUBSTITUI a anterior, em vez
      * de empilhar dois escritores brigando frame a frame.
      */
+    /**
+     * @brief Zera o relogio do tempo maximo de vida (kTempoDeVidaMaximo).
+     *
+     * Para a estrutura que o chefe mantem em campo de uma fase para a outra,
+     * e nao para ataque nenhum: as nuvens do Vitor nascem no comeco da fase 2,
+     * de 20 s, e viram a nuvem do fork no comeco da 3 - com 19,4 s de vida, a
+     * rede de seguranca as matava no meio do fork, e os dois corpos saiam do
+     * nada.
+     */
+    void RenovarTempoDeVida() { mTempoDeVida = 0.0f; }
+
+    /// @brief Ha quanto tempo o projetil saiu do pool. Serve para quem guarda um
+    /// ponteiro conferir que ele ainda e o mesmo tiro: reciclado, ele volta com
+    /// o relogio zerado (Lucas::AtualizarDom).
+    [[nodiscard]] float TempoDeVida() const { return mTempoDeVida; }
+
     template <typename M, typename... Args>
     void insertMotion(Args&&... args) {
         static_assert(std::is_base_of_v<ProjectileMotion, M>,

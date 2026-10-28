@@ -29,116 +29,232 @@
   //   anguloCentral pode ser SOBRESCRITO pelo chefe em tempo de execucao, no
   //   CustomizeAttackParams dele - e o unico pedaco do balanceamento que ainda
   //   vive em C++. Onde isso acontece esta anotado na fase.
+  //
+  // UMA ESTRUTURA DE DADOS POR FASE, e o placar e a regra: ele escreve cada
+  // operacao da estrutura, e e lendo a operacao que o aluno sabe o que vem.
+  //
+  //   StateOne    a pilha            push e pop, pendurada no professor
+  //   StateTwo    a tabela hash      h(k) = k mod m, encadeamento, rehash
+  //   StateThree  a arvore de busca  a chave desce comparando ate virar folha
+  //   StateFinal  a ordenacao        o bubble sort, e o vetor entregue (a repescagem)
+  //
+  // E EM TODA ESTRUTURA O TIRO DO ALUNO E UMA OPERACAO TAMBEM: tira o topo da
+  // pilha, remove a chave do fim da lista, derruba o no - e a subarvore junto.
+  //
+  // CADA LUTA E OUTRA (Variacao.h): as operacoes ja eram sorteadas; agora a
+  // estrutura tambem e. A pilha cabe 4, 5 ou 6 blocos (a chance do push anda
+  // com ela, e o overflow continua vindo); a tabela abre com 7 ou 11 baldes;
+  // a arvore e a tabela inserem mais ou menos (de 0,55 a 0,75 e de 0,45 a
+  // 0,65); e na repescagem os vetores chegam em qualquer ordem, quase
+  // ordenados (o bubble sort acaba na passada sem troca) e invertidos (o pior
+  // caso: toda comparacao troca), cada um numa vez, com 7 ou 8 elementos - o
+  // placar diz qual.
+  //
+  // NO DIFICIL (Dificuldade.h): a pilha opera a cada 0,66 s e atira 10% mais
+  // rapido (mais que isso derrubava o piloto que desvia na fase 1: ver
+  // Pilha.h); a tabela opera a cada 0,55 s, a arvore desce mais depressa e o
+  // achado estoura em doze, a ordenacao compara a cada 0,27 s e assenta em
+  // dez - e o que eles atiram anda 25% mais depressa. Medido em cinco
+  // sementes, a batalha inteira: no Normal o que persegue termina com 66,9 a
+  // 80,1 e o que desvia com 69,1 a 91,7 (0 a 3 acertos); no Dificil, 66,9 a
+  // 80,1 e 60,6 a 76,5 (3 a 7, 5,2 em media). O parado e o que vai e vem
+  // reprovam nos dois.
+  //
+  // O JOGADOR PARADO REPROVA. Era a pendencia deste chefe: com o GoToCenter das
+  // fases antigas, parado no meio ele ficava na coluna de quem atira para cima
+  // e aprovava com 80,70. Medido na batalha inteira, com a semente de sempre:
+  // o piloto parado termina com 0 e 13 acertos sofridos, e o que persegue com
+  // 63,9 (de 64,9 a 84,0 em seis sementes, todas aprovadas).
+  //
+  // A CAPIVARA APARECE EM QUALQUER FASE (Capivara.h). O Salles poe capivara em
+  // todo exercicio, e em seis de cada dez fases ela atravessa o campo, uma vez,
+  // num instante sorteado entre 4 e 10 segundos, andando de uma borda a outra a
+  // 170 px/s. Ela e um ABRIGO: come os projeteis dele e os tiros do aluno. Por
+  // isso toda fase tem o ataque de gatilho "capivara" - quem o puxa e o Salles,
+  // e o placar avisa "uma capivara apareceu!".
+  //
+  // ANTES DE MEXER: a rede de regressao quadro a quadro (provaigual.sh, fora
+  // do repositorio) roda a BATALHA 0, QUE E A DO ANDRE - nao a do Salles, por
+  // mais que comentarios antigos digam o contrario. O Salles nao tem rede:
+  // grave uma referencia da batalha 1 antes de mexer no balanceamento dele.
   // ==========================================================================
 
-  // FASE 1 - LISTA ENCADEADA SIMPLES, e ela vai rapido.
+  // FASE 1 - A PILHA   |   gesto: DE COLUNA EM COLUNA
   //
-  // WaveAttack com "angulo": 0. O angulo zero e o que torna isto uma lista: sem
-  // leque, os dez nos saem na MESMA direcao, e como a WaveAttack acorda um a cada
-  // 0.11s eles ficam em fila indiana com 430 x 0.11 = 47px entre vizinhos.
+  // A PILHA ESTA PENDURADA NO PROFESSOR (Pilha.h). A cada 0,7s o programa da
+  // a operacao, e o placar a escreve: push(7) poe um bloco numerado na ponta de
+  // baixo - o TOPO -, e pop() -> 7 tira o topo e o atira no aluno, e o bloco
+  // estoura no caminho num leque de tantas lascas quanto o numero dele, mirado
+  // no aluno: o placar diz o tamanho do leque que vem. LIFO: o ultimo
+  // que entra e o primeiro que sai, e o topo e sempre o bloco de baixo.
   //
-  // A fila inteira cabe na tela: o ultimo no desperta em 0.99s e o primeiro gasta
-  // 1.55s para atravessar os 667px ate a borda de baixo, entao ha um instante em
-  // que os dez estao visiveis ao mesmo tempo. E o que faz a lista ser lida como
-  // uma lista e nao como dez tiros.
+  // O ALUNO TAMBEM DA POP, A TIRO: o tiro dele acerta primeiro o bloco de baixo,
+  // e tres tiros o derrubam. So da para tirar o topo - a pilha pela geometria -,
+  // e enquanto ela esta pendurada, e a armadura do professor.
   //
-  // GoToCenter: o chefe fica parado para a fila ter uma origem clara. Com ele
-  // vagando, cada no sairia de um lugar diferente e nao haveria fila.
+  // STACK OVERFLOW: com cinco blocos, o push seguinte derruba a pilha inteira,
+  // aberta em leque, em cima de quem estiver embaixo.
+  //
+  // ELE VAI DE COLUNA EM COLUNA e para 2,6s em cada uma (o movimento
+  // "Conduzido"): parado, ele leva tiro; e andando, a pilha pendurada varre o
+  // campo.
   "StateOne": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateTwo",
-    "movimento": { "tipo": "GoToCenter" },
+    "anuncio": "pilha: LIFO",
+    "movimento": { "tipo": "Conduzido", "a": 300 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Estruturas",
-        "projeteis": 10, "velocidade": 430, "angulo": 0, "intervalo": 0.11,
-        "cooldown": 1.7,
-        "regras": "lista_simples" }
+      { "gatilho": "capivara", "estrategia": "WaveAttack", "projetil": "Capivarona",
+        "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "push", "estrategia": "WaveAttack", "projetil": "Bloco",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "pilha" },
+      { "gatilho": "estourar", "estrategia": "WaveAttack", "projetil": "Lasca",
+        "projeteis": 5, "velocidade": 240, "angulo": 80, "intervalo": 0 }
     ]
   },
 
-  // FASE 2 - LISTA DUPLAMENTE ENCADEADA: vai ate o fim, PARA, e volta por onde veio.
+  // FASE 2 - A TABELA HASH   |   gesto: O PROFESSOR VAI AO BALDE
   //
-  // A fila se forma como na fase 1. Em 0,85s o caminho assume, leva todos ate o
-  // fim da tela, SEGURA A FILA PARADA POR 0,8s e entao manda a fila inteira de
-  // volta exatamente pelo caminho que fez.
+  // A TABELA ESTA NO ALTO DO CAMPO (Hash.h): m baldes lado a lado, e de cada um
+  // pende a lista das chaves que cairam nele - encadeamento. A cada 0,75s, uma
+  // operacao, e o placar a escreve por extenso:
   //
-  // A parada e o que faz a fase. Sem ela, a volta parecia so mais uma curva; com
-  // ela o jogador ve a fila CHEGAR AO FIM, decidir, e refazer o percurso - que e
-  // o que uma lista duplamente encadeada permite e uma simples nao. E durante os
-  // 0,8s parados os nos continuam visiveis e com colisor: viram uma parede.
+  //   INSERIR    h(23) = 23 mod 7 = 2: a chave sai do professor e vai para o
+  //              fim da lista do balde 2. Duas no mesmo balde sao uma colisao,
+  //              e a lista cresce para baixo.
+  //   BUSCAR     busca(23): o professor percorre a lista do balde, no por no, e
+  //              cada no lido atira um leque de tres no aluno - uma lista de
+  //              muitas colisoes e uma rajada longa.
+  //              Achando, a chave sai atirada no aluno; nao achando, o NULL do
+  //              fim da lista cai pela coluna inteira. E quem limpou a propria
+  //              coluna a tiro acha o NULL em cima dele: lista vazia, busca
+  //              sem achar.
+  //   REHASH     com mais chaves que baldes, a tabela cresce para o proximo primo
+  //              (7, 11, 13, 17), e toda chave muda de balde na frente do aluno.
   //
-  // OS NUMEROS ANDAM JUNTOS: 8 projeteis x 0,10 de intervalo = 0,70s ate o
-  // ultimo no despertar, e o "atraso": 0,85 do caminho tem de passar disso.
-  // Mexer em um exige revisar o outro - a explicacao esta em "lista_dupla".
+  // O ALUNO REMOVE A TIRO: a chave e derrubavel com dois tiros, e o tiro que
+  // sobe acerta primeiro o fim da lista.
   //
-  // O cooldown 3,6 cobre o ciclo inteiro (0,85 ate o caminho + 0,75 de ida + 0,8
-  // parado + a volta). Mais curto que isso e uma fila nova sai enquanto a
-  // anterior ainda esta voltando, e as duas se cruzam em sentidos opostos.
+  // O PROFESSOR VAI AO BALDE DA OPERACAO (o movimento "Conduzido").
   "StateTwo": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateThree",
-    "movimento": { "tipo": "RandomWander", "a": 2.0, "b": 500 },
+    "anuncio": "h(k) = k mod m",
+    "movimento": { "tipo": "Conduzido", "a": 700 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Duplamente",
-        "projeteis": 8, "velocidade": 400, "angulo": 0, "intervalo": 0.10,
-        "cooldown": 1.2,
-        "regras": "lista_dupla" }
+      { "gatilho": "capivara", "estrategia": "WaveAttack", "projetil": "Capivarona",
+        "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "baldes", "estrategia": "WaveAttack", "projetil": "Balde",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "baldes" },
+      { "gatilho": "chave", "estrategia": "WaveAttack", "projetil": "Chave",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "chaves" },
+      { "gatilho": "percorrer", "estrategia": "WaveAttack", "projetil": "Percurso",
+        "projeteis": 3, "velocidade": 280, "angulo": 30, "intervalo": 0 },
+      { "gatilho": "nulo", "estrategia": "WaveAttack", "projetil": "Nulo",
+        "projeteis": 1, "velocidade": 420, "angulo": 0, "anguloCentral": 90, "intervalo": 0 }
     ]
   },
 
-  // FASE 3 - ARVORE BINARIA: uma busca descendo da raiz.
+  // FASE 3 - A ARVORE BINARIA DE BUSCA   |   gesto: A VARREDURA LENTA
   //
-  // AngledAttack com "angulo": 0, projeteis que saem sobrepostos
+  // A ARVORE ESTA PLANTADA EMBAIXO DO PROFESSOR (Arvore.h): a raiz no alto e,
+  // a cada nivel, o dobro de lugares com metade do espaco - o lugar de cada no
+  // e o indice dele num heap. Uma operacao por vez, e o placar acompanha:
   //
-  // GoToCenter e obrigatorio aqui. Com o chefe vagando, cada disparo plantaria a
-  // raiz num lugar diferente e as arvores nao se acumulariam na mesma regiao - e
-  // e o acumulo, disparo sobre disparo, que faz a tela parecer uma arvore e nao
-  // quatro tiros tortos.
+  //   INSERIR   inserir(42): a chave sai do professor, entra pela raiz e DESCE
+  //             COMPARANDO, um no a cada 0,2s - "42 < 50: esquerda" -, ate um
+  //             lugar vazio, onde vira folha. Cada no por onde ela passa atira
+  //             no aluno. Passou do quarto nivel: a chave cai da
+  //             arvore, em cima do aluno ("42: altura demais!").
+  //   BUSCAR    busca(42): o mesmo caminho, com uma chave que nao machuca.
+  //             Achou, o no achado estoura num anel; nao achou, o NULL cai do
+  //             lugar vazio, mirado no aluno.
   //
-  // "projeteis": 16 TEM de bater com as 16 folhas de "divisoes": 4 na familia
-  // ArvoreDeBusca, em formas.json. E o unico numero que precisa andar junto, e um
-  // teste confere: a mais, o projetil extra repete um ramo; a menos, metade da
-  // arvore nao aparece.
-
+  // O ALUNO DERRUBA NOS A TIRO (quatro tiros), e cada no leva a SUBARVORE junto:
+  // tudo o que pendia dele cai. A raiz fica em cima de quem esta no meio - e
+  // derruba-la derruba a arvore inteira.
+  //
+  // ELE VARRE DEVAGAR, de 380 a 820: a raiz fica no lugar, e o tiro do aluno
+  // chega a ele.
+  //
+  // UM TIRO POR NO VISITADO, e nao um leque: com tres, o piloto que persegue o
+  // professor tomava 9 acertos na fase sozinha e a batalha caia na repescagem
+  // (59,5 no fim); com um, 3 acertos e 75,1.
   "StateThree": {
-    "duracao": 17,
+    "duracao": 20,
     // Vazio de proposito: e aqui que a batalha e decidida.
     "proximo": "",
-    "movimento": { "tipo": "GoToCenter" },
+    "anuncio": "árvore binária de busca",
+    "movimento": { "tipo": "Varredura", "a": 60, "b": 380 },
     "ataques": [
-      { "estrategia": "AngledAttack", "projetil": "Estruturas",
-        "projeteis": 16, "velocidade": 210, "angulo": 0,
-        "cooldown": 2.1,
-        "regras": "arvore" }
+      { "gatilho": "capivara", "estrategia": "WaveAttack", "projetil": "Capivarona",
+        "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "no", "estrategia": "WaveAttack", "projetil": "No",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "arvore" },
+      { "gatilho": "visitar", "estrategia": "WaveAttack", "projetil": "Percurso",
+        "projeteis": 1, "velocidade": 260, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "aresta", "estrategia": "WaveAttack", "projetil": "Elo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "folha_nula", "estrategia": "WaveAttack", "projetil": "Nulo",
+        "projeteis": 1, "velocidade": 400, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "achado", "estrategia": "CircleSpreadAttack", "projetil": "Percurso",
+        "projeteis": 10, "velocidade": 220 }
     ]
   },
 
-  // FASE FINAL - LISTA CIRCULAR, com as capivaras.
+  // FASE FINAL - A ORDENACAO   |   gesto: A FRONTEIRA QUE ANDA
   //
-  // Repescagem (nota entre 40 e 59 ao fim da fase 3). O professor coloca capivara
-  // em todo exercicio da disciplina, entao a ultima fase e o anel de capivaras em
-  // que cada uma fecha um laco e volta ao inicio: a lista circular.
+  // A REPESCAGEM E ORDENAR UM VETOR (Ordenacao.h): oito elementos numerados no
+  // alto, e o professor rodando o BUBBLE SORT neles, um passo a cada 0,32s. O
+  // par comparado sobe, e o placar diz o veredito:
   //
-  // Dois ataques ao mesmo tempo, como no desenho anterior: o anel de lacos lentos
-  // e um anel reto e rapido. O segundo existe para o jogador nao poder ficar
-  // parado esperando os lacos passarem.
+  //   "57 > 42: troca"   os dois pulam um por cima do outro, e cada um atira
+  //                      uma capivara no aluno
+  //   "42 < 57: fica"    nada sai
+  //   "87 no lugar"      a bolha chegou a fronteira: o maior desce para a
+  //                      prateleira dos ordenados e solta a lista circular -
+  //                      o anel de capivaras que fecham um laco, que era a fase
+  //                      final inteira antes
+  //   "ordenado!"        o vetor e ENTREGUE: cada elemento cai tanto mais
+  //                      depressa quanto maior, e a queda desenha uma rampa.
+  //                      Depois, um vetor novo.
   //
-  // CircleSpreadAttack ignora angulo, anguloCentral e intervalo - o anel e sempre
-  // 360 graus divididos pela quantidade -, por isso nenhum dos tres aparece aqui.
+  // O PROFESSOR FICA PARADO NA FRONTEIRA entre o que falta ordenar e o que ja
+  // esta no lugar, no vao entre dois elementos, e da um passo para a esquerda a
+  // cada passada. Parado ali, o tiro do aluno passa pelo vao e chega a ele; o
+  // elemento e derrubavel com tres tiros, e tirar um do meio da passada a
+  // recomeca.
+  //
+  // A CAPIVARA DO SALLES CONTINUA NO EXAME: e ela que voa na troca e no anel.
+  //
+  // O ANEL E DE OITO, e nao dos doze da lista circular antiga. Ele nasce em
+  // quem assenta, colado na fronteira - em cima de quem esta embaixo do
+  // professor. Medido com a fase sozinha (comecando com 40) em sete sementes, o
+  // piloto que persegue reprovava em tres com doze (de 51,7 a 77,1, ate 3
+  // acertos), em uma com dez (56,5), e com oito passa nas sete, de 62,5 a 77,1
+  // e com no maximo 1 acerto. O parado sai com 7,5 e 7 acertos - as capivaras
+  // da troca vem miradas -, e o que vai e vem com 49,5 e nenhum: sem mira, ele
+  // nao sobe a nota.
   "StateFinal": {
-    "duracao": 17,
+    "duracao": 20,
     "proximo": "StateOne",
-    "movimento": { "tipo": "GoToCenter" },
+    "anuncio": "bubble sort",
+    "movimento": { "tipo": "Conduzido", "a": 500 },
     "ataques": [
-      { "estrategia": "CircleSpreadAttack", "projetil": "Capivara",
-        "projeteis": 12, "velocidade": 200,
-        "cooldown": 1.8,
-        "regras": "lista_circular" },
-
-      { "estrategia": "CircleSpreadAttack", "projetil": "Capivara",
-        "projeteis": 8, "velocidade": 330,
-        "cooldown": 2.4,
-        "regras": "anel_reto" }
+      { "gatilho": "capivara", "estrategia": "WaveAttack", "projetil": "Capivarona",
+        "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "elemento", "estrategia": "WaveAttack", "projetil": "Elemento",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "vetor" },
+      { "gatilho": "trocar", "estrategia": "WaveAttack", "projetil": "Capivara",
+        "projeteis": 1, "velocidade": 260, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "assentar", "estrategia": "CircleSpreadAttack", "projetil": "Capivara",
+        "projeteis": 8, "velocidade": 200,
+        "regras": "lista_circular" }
     ]
   }
 }

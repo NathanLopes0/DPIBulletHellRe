@@ -9,6 +9,7 @@
 #include <memory>
 #include "../../Math.h"
 
+class Actor;
 class Scene;
 class PlayerProjectile;
 class BossProjectile;
@@ -35,6 +36,42 @@ public:
     [[nodiscard]] const std::vector<std::unique_ptr<BossProjectile>>& GetBossProjectiles() { return mBossProjectiles; }
 
     void ClearBossProjectiles() const;
+
+    /**
+     * @brief O Ponto Extra do solo: limpa o que machuca e deixa o CENARIO.
+     *
+     * Enfeite nao colide com ninguem (BossProjectile::Enfeite) - a tabela
+     * escrita no campo do Thiago, os baldes da hash do Salles, as molduras do
+     * pipeline e as portas do Ricardo, o diagrama do automato do Vladimir, as
+     * caixas da cascata da Maria Lucia, o vetor do chao do Andre. Limpar isso
+     * nao livrava o aluno de nada, e o chefe que monta a estrutura uma vez so
+     * ficava sem ela ate o fim: a fase inteira do Thiago e ler a tabela.
+     * O fim da batalha continua limpando tudo (ClearBossProjectiles).
+     */
+    void ClearAtaquesDoChefe() const;
+
+    /**
+     * @brief Tira de cena os projeteis de um corpo que vai ser destruido.
+     *
+     * EXISTE POR CAUSA DE UM CRASH, e o crash vale contado. Cada Boss e DONO
+     * das fabricas de projetil dele (Boss::mProjectileFactories), e todo
+     * projetil guarda um ponteiro cru para a fabrica que o criou, para poder
+     * voltar ao pool dela quando sai da tela. Enquanto so existia um chefe por
+     * batalha isso nunca doia: o chefe so morria junto com a cena inteira.
+     *
+     * Com a fase que divide o chefe em dois passou a doer. Ao juntar os
+     * corpos, o segundo e destruido COM AS FABRICAS DELE, e os projeteis que
+     * ele ja tinha disparado continuam vivos apontando para memoria liberada -
+     * o primeiro deles que sai da tela chama Release() num pool que nao existe
+     * mais. Na pratica: o jogo fechava ao passar da fase 3 do Vitor para o
+     * exame, que e a unica saida em que a batalha CONTINUA depois da divisao.
+     *
+     * A cura usa o que Projectile::MarkDead() ja fazia: sem fabrica de origem,
+     * um projetil morre de verdade em vez de tentar voltar ao pool. Entao aqui
+     * a fabrica e desligada ANTES de matar, e o projetil sai pelo caminho do
+     * Destroy, que nao passa por Release() nenhum.
+     */
+    void DescartarProjeteisDe(const Actor* dono) const;
 
     // Executa uma passada de limpeza fora do Update(). Necessario para a tela
     // de fim de fase, onde Battle::OnUpdate retorna cedo e o Update() deste

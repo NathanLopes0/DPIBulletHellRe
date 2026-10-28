@@ -85,4 +85,76 @@ namespace Ranking {
      */
     int PosicaoDe(const std::vector<Exportacao::FichaDeAluno>& fichas,
                   int materia, const std::string& matricula);
+
+    // ---- O ranking de DUPLAS (requisitos-coop, D9) -------------------------
+
+    /**
+     * @brief Uma linha do ranking de duplas.
+     *
+     * Duas matriculas, e nao uma: a nota do co-op e da dupla (D2), e duas
+     * listas dos mesmos alunos com numeros parecidos seriam a mesma competicao
+     * duas vezes. Sendo da dupla, nao ha como emprestar nota para ninguem -
+     * carregar um parceiro fraco aparece como o que e.
+     *
+     * As duas matriculas vem SEMPRE na mesma ordem (a menor primeiro), para que
+     * a mesma dupla seja sempre a mesma linha, jogue quem jogar na posicao 1.
+     */
+    struct LinhaDeDupla {
+        int posicao = 1;        ///< 1 para a primeira. Empate repete a posicao.
+        std::string um;         ///< a matricula que vem antes
+        std::string dois;       ///< a outra
+        float nota = 0.0f;
+
+        /// Quantas materias esta dupla jogou junta. So tem sentido no geral,
+        /// pelo mesmo motivo de Linha::materiasJogadas.
+        int materiasJogadas = 1;
+    };
+
+    /**
+     * @brief As melhores notas de DUPLA numa materia, da maior para a menor.
+     *
+     * SAI DAS MESMAS FICHAS. Cada aluno guarda o proprio recorde de dupla e com
+     * quem o fez, entao a mesma dupla costuma aparecer nas duas fichas - esta
+     * funcao junta as duas numa linha so, pela chave ordenada.
+     *
+     * COSTUMA, e nao sempre: se um dos dois depois fizer melhor com outra
+     * pessoa, o recorde dele passa a nomear a outra dupla, e a primeira fica
+     * registrada so de um lado. Ela continua valendo - os dois fizeram aquela
+     * nota juntos -, e por isso basta UM lado para a dupla entrar na lista.
+     *
+     * DUPLA COM VISITANTE NAO ENTRA: visitante nao tem ficha nem matricula, e
+     * uma linha "89384 + " nao diz quem jogou. A nota continua valendo para o
+     * progresso de quem se identificou (RF6).
+     */
+    std::vector<LinhaDeDupla> DuplasDaMateria(const std::vector<Exportacao::FichaDeAluno>& fichas,
+                                              int materia, size_t quantas = 0);
+
+    /**
+     * @brief A media das duplas sobre o CURSO INTEIRO.
+     *
+     * Mesma conta de Geral, e pelo mesmo motivo: divide pelo numero total de
+     * materias do curso, e nao pelas que a dupla jogou junta. Subir exige jogar
+     * mais materias COM A MESMA PESSOA e ir bem nelas - que e o que uma lista
+     * de duplas deveria premiar.
+     */
+    std::vector<LinhaDeDupla> DuplasGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
+                                          int quantasMaterias, size_t quantas = 0);
+
+    /**
+     * @brief Em que posicao esta UMA DUPLA, na lista completa da materia.
+     *
+     * Devolve 0 quando os dois nunca jogaram esta materia juntos. Mesma razao
+     * de PosicaoDe: sem isto a lista so conversa com quem ja esta no topo, que
+     * e quem menos precisa de incentivo.
+     *
+     * A ORDEM DOS DOIS ARGUMENTOS NAO IMPORTA. Quem pergunta e a tela, que tem
+     * o jogador 1 e o jogador 2 em maos; qual deles e "o primeiro" na lista e
+     * assunto do ranking, e nao de quem pergunta.
+     */
+    int PosicaoDaDupla(const std::vector<Exportacao::FichaDeAluno>& fichas, int materia,
+                       const std::string& um, const std::string& dois);
+
+    /// @brief A posicao de uma dupla no geral. Zero se eles nunca jogaram juntos.
+    int PosicaoDaDuplaNoGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
+                              int quantasMaterias, const std::string& um, const std::string& dois);
 }

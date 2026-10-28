@@ -1,0 +1,252 @@
+{
+  // ==========================================================================
+  // AS FASES DO VITOR (INF 310 - Programacao Concorrente e Distribuida)
+  //
+  // A MATERIA E "VARIAS COISAS AO MESMO TEMPO", e a batalha e construida para
+  // chegar nisso - em dois corpos, na fase 3:
+  //
+  //   StateOne    SEMAFOROS            as threads, a secao critica e o P(s)
+  //   StateTwo    TCP                  as nuvens, o roteador e o dente de serra
+  //   StateThree  FORK                 dois processos trocando mensagens
+  //   StateFinal  DEADLOCK             o jantar dos filosofos
+  //
+  // O MOVIMENTO E O ATAQUE, como no Vladimir - ver MovementStrategies.h.
+  //
+  // CADA LUTA E OUTRA (Variacao.h): ao montar cada fase o Vitor tira da
+  // semente da batalha a ordem das rodadas e os numeros delas, sempre dentro
+  // do conceito - o Plano de Semaforo.h, Tcp.h, Mensagens.h e Filosofos.h. A
+  // rodada que define o conceito abre a fase; o resto muda de lugar.
+  //
+  // NO DIFICIL (Dificuldade.h) cada fase sobe um degrau no proprio modulo (o
+  // Degrau dele): mais coisa no campo, mais depressa. As velocidades daqui sao
+  // as do Normal; a do Dificil e a deste arquivo vezes a rapidez do degrau,
+  // so naquele disparo (Boss::Disparar). Medido em cinco sementes, a batalha
+  // inteira: no Normal o que persegue termina com 75,1 a 82,1 e o que desvia
+  // com 82,9 a 96,6 (3 a 6 acertos); no Dificil, 72,0 a 81,6 e 68,8 a 92,4
+  // (2 a 9 acertos, 5,6 em media). O parado e o que vai e vem reprovam nos
+  // dois. A final sozinha, comecando com 40, deixa o que desvia com 54 a 68
+  // no Normal e 39 a 64 no Dificil.
+  // ==========================================================================
+
+  // FASE 1 - OS SEMAFOROS   |   gesto: AO LADO DA PORTA
+  //
+  // A sincronizacao, o comeco da ementa (Semaforo.h). Cada THREAD e uma
+  // coluna - o nome dela no alto, na cor dela - e as instrucoes descem ate a
+  // SECAO CRITICA, a faixa dourada no meio do campo, com o codigo dela no
+  // canto. Antes de entrar toda thread faz P(s): sem permissao ela BLOQUEIA,
+  // e as instrucoes param na borda e se empilham - a fila do P(s), ate seis;
+  // cheia, a thread para de mandar. O V(s) de quem sai acorda a primeira da
+  // fila, e a pilha dela desce de uma vez, em leque.
+  //
+  // O PLACAR DIZ s E A FILA ("s = 0 · fila: T4 T1 T5"): quem le a fila sabe
+  // de que coluna vem a proxima rajada. As colunas nascem com uma EM CIMA DO
+  // ALUNO, e ela chega entre as tres primeiras da fila - parado, ele nao fica
+  // entre duas colunas nem espera a rodada inteira. Quatro rodadas de 4,9 s;
+  // o mutex abre, e as outras tres vem em qualquer ordem:
+  //
+  //   mutex            s = 1, uma de cada vez, 0,65 s cada, na ordem
+  //   semaforo         s = 2 ou s = 3, de duas ou tres de cada vez, 1 s cada
+  //   espera ocupada   as bloqueadas GIRAM na porta - o while gastando
+  //                    processador -, entra quem ganhar o test-and-set (nao
+  //                    a primeira), e o giro estoura num anel ao entrar
+  //   corrida          sem trava: todas entram juntas, cada instrucao sai da
+  //                    faixa torta (elas se intercalam), e o placar mostra o
+  //                    saldo errado - 1 em vez de 5, a atualizacao perdida
+  //
+  // O PROFESSOR fica AO LADO da coluna que ele vai acordar (Conduzido), entre
+  // ela e a vizinha: embaixo dele nao desce coluna nenhuma, mas quando ele
+  // acorda a do lado o leque abre para cima de quem o seguia.
+  //
+  // As colunas ficam a 200 a 250 px umas das outras, sorteado por luta. No
+  // Dificil as threads mandam 11 instrucoes, uma a cada 0,22 s (e nao 8 a cada
+  // 0,3), e tudo anda 25% mais depressa, com a rajada aberta a 10 graus.
+  //
+  // AS CORRENTES CONTINUAM, as mesmas de antes (duas a cada 4,4 s, regra
+  // "correntes"): o aluno preso anda a 45% e, pior, esta bloqueado em P(s) -
+  // a coluna em cima dele FURA A FILA e e a proxima a entrar, e a rajada que
+  // sai com ele preso persegue (Vitor.h, kForcaDaPerseguicao).
+  //
+  // A INSTRUCAO E DE GATILHO: o professor diz onde ela nasce e com a cara de
+  // qual thread; a velocidade e a de Semaforo.h (um teste confere), e quem
+  // para, empilha e solta e ele.
+  "StateOne": {
+    "duracao": 20,
+    "proximo": "StateTwo",
+    "anuncio": "semáforos",
+    "movimento": { "tipo": "Conduzido", "a": 520 },
+    "ataques": [
+      { "gatilho": "instrucao", "estrategia": "WaveAttack", "projetil": "Instrucao",
+        "projeteis": 1, "velocidade": 200, "angulo": 0, "anguloCentral": 90, "intervalo": 0 },
+
+      // AS CORRENTES: duas a cada 4,4s.
+      //
+      // RARAS DE PROPOSITO: com forca 6 a corrente quase nao erra (ver
+      // regras.json), entao vindo junto com toda rajada o aluno nunca estaria
+      // solto. Vindo de vez em quando, cada uma e um EVENTO: da para ver
+      // chegando, decidir para que lado correr, e errar.
+      //
+      // O leque de 20 graus so separa as duas na saida; quem decide para onde
+      // elas vao e o Tracking, nao o angulo.
+      { "estrategia": "WaveAttack", "projetil": "Corrente",
+        "projeteis": 2, "velocidade": 260, "angulo": 20, "intervalo": 0.18,
+        "cooldown": 4.4,
+        "regras": "correntes" }
+    ]
+  },
+
+  // FASE 2 - O TCP NAS NUVENS   |   gesto: A ORBITA LENTA
+  //
+  // Redes, a camada de transporte (Tcp.h). Aos 0,6 s o professor forma as
+  // duas NUVENS (gatilho "nuvens", regra "nuvens"), presas a ele uma de cada
+  // lado - o servidor -, e elas trabalham num RTT de 1,75 s: PROCESSAM 1 s
+  // (as luzinhas acendem; e o aviso) e mandam uma JANELA de segmentos, um a
+  // cada 0,05 s, alternando as duas. Os segmentos voam ate o ROTEADOR, no
+  // meio do campo, que os encaminha ao aluno um a cada 0,06 s, mirados nele.
+  //
+  // O ROTEADOR DA CONTA DE 8, 10 OU 12 POR RTT (sorteado por luta, e escrito
+  // nele). O que passa disso e descartado ali mesmo, e estoura num anel de oito
+  // cacos com um deles no aluno. E a janela segue o controle de
+  // congestionamento: dobra no slow start ate o ssthresh (8, 12 ou 16, tambem
+  // sorteado), passa a crescer de um na evitacao, e na perda - os ACKs
+  // duplicados - cai a metade, com o que se perdeu retransmitido primeiro (o
+  // cabecalho laranja). Com 10 e 16, as onze janelas da fase sao 1, 2, 4, 8,
+  // 16, 8, 9, 10, 11, 5 e 6, o dente de serra que o grafico no canto de cima
+  // vai desenhando, com a linha vermelha da capacidade. O placar diz o cwnd e
+  // o estado. O roteador fica de 40% a 60% da largura. No Dificil ele da
+  // conta de dois a menos, encaminha um a cada 0,045 s, e os segmentos dele e
+  // os dez cacos do descarte andam 25% mais depressa.
+  //
+  // O PONTO EXTRA DERRUBA AS NUVENS (e o que estava na rede com elas), e
+  // elas voltam 3 s depois num TIMEOUT: cwnd = 1, do slow start. Gastar o B
+  // com a janela grande e aliviar a fase; com ela pequena, e jogar fora.
+  //
+  // O PROFESSOR VARRE O ALTO com as nuvens, devagar (90 px/s) e no meio
+  // (para a 380 px das bordas, e o grafico fica a direita: Tcp.h), e os
+  // segmentos descem ate o roteador de onde elas estiverem. Era a orbita do
+  // anel de antes, em volta do meio da tela - e o aluno parado no meio
+  // passava a fase inteira embaixo dele, atirando de graca. A 170 px/s o tiro
+  // do aluno, que sobe reto, chegava ao alto depois de o professor ter saido
+  // dali, e quem o seguia quase nao acertava.
+  //
+  // TODO ATAQUE E DE GATILHO: quem diz de onde e para onde cada segmento sai
+  // e o Vitor; as velocidades sao as de Tcp.h (um teste confere).
+  "StateTwo": {
+    "duracao": 20,
+    "proximo": "StateThree",
+    "anuncio": "TCP · congestionamento",
+    "movimento": { "tipo": "Varredura", "a": 90, "b": 380 },
+    "ataques": [
+      { "gatilho": "nuvens", "estrategia": "WaveAttack", "projetil": "Nuvem",
+        "projeteis": 2, "velocidade": 150, "angulo": 90, "intervalo": 0,
+        "regras": "nuvens" },
+      { "gatilho": "segmento", "estrategia": "WaveAttack", "projetil": "Pacote",
+        "projeteis": 1, "velocidade": 320, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "encaminhar", "estrategia": "WaveAttack", "projetil": "Pacote",
+        "projeteis": 1, "velocidade": 340, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "descarte", "estrategia": "WaveAttack", "projetil": "Pacote",
+        "projeteis": 8, "velocidade": 220, "angulo": 315, "intervalo": 0 }
+    ]
+  },
+
+  // FASE 3 - FORK E TROCA DE MENSAGENS   |   gesto: OS DOIS NO ALTO
+  //
+  // A FASE QUE DECIDE ("proximo" vazio). O CHEFE SE DIVIDE PELA NUVEM: as
+  // duas nuvens da fase 2 se juntam numa so em cima dele, ele entra, ela
+  // processa o fork (o placar diz "fork()") e, ao abrir, saem dois - 1,6 s ao
+  // todo (Nuvem::Fork). Nesse tempo nenhum dos dois ataca nem anda sozinho,
+  // mas os dois continuam levando tiro: o fork nao e um intervalo. QUALQUER UM
+  // DOS DOIS TOMA DANO (Battle::Corpos).
+  //
+  // E SAO DOIS PROCESSOS, o pai e o filho, e processos conversam TROCANDO
+  // MENSAGENS (Mensagens.h). Entre os dois corre o CANAL, um arco tracejado
+  // que desce pelo campo, e cada mensagem e um envelope correndo por ele -
+  // nas rodadas de muitos envelopes, ate o chao. Os tiros dos processos se
+  // alternam entre onde o aluno esta e onde ele estara.
+  // Quatro rodadas de 4,6 s, cada uma com os dois num par de lugares (que
+  // mudam um pouco a cada luta); a assincrona abre, e as outras vem em
+  // qualquer ordem:
+  //
+  //   assincrona   o filho manda sem esperar, mais depressa do que o pai
+  //                recebe: a caixa postal do pai enche (o placar conta), e
+  //                cada receive() vira um tiro no aluno
+  //   sincrona     o pai manda e fica bloqueado ate o filho receber: no
+  //                rendezvous os dois atiram um anel juntos
+  //   rpc          r = soma(2, 3) no filho: o pedido vai, a resposta volta, e
+  //                o resultado e um leque de 5 no aluno; depois soma(3, 4).
+  //                As contas sao sorteadas, com somas 5, 7 ou 9
+  //   impasse      os dois fazem send() ao mesmo tempo e ninguem recebe: os
+  //                envelopes param vermelhos na porta, ate o timeout os
+  //                estourar; dali os dois mandam sem esperar
+  //
+  // O CLONE EMPRESTA A FINAL ("ataquesDe"): o movimento dela e conduzido e
+  // todo ataque dela e de gatilho, entao o clone nao anda nem atira sozinho -
+  // quem o leva de lugar e o original, e quem atira do lugar dele tambem.
+  // Quem comeca direto nesta fase, sem nuvem, se divide como antes.
+  //
+  // NO DIFICIL a assincrona manda 15 envelopes e cada receive() e um leque de
+  // tres, a sincrona tem quatro rendezvous, os aneis tem dez, e tudo anda 25%
+  // mais depressa.
+  "StateThree": {
+    "duracao": 20,
+    "proximo": "",
+    "anuncio": "fork · dois processos",
+    "movimento": { "tipo": "Conduzido", "a": 420 },
+    "ataques": [
+      { "gatilho": "envelope", "estrategia": "WaveAttack", "projetil": "Envelope",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "processar", "estrategia": "WaveAttack", "projetil": "Dado",
+        "projeteis": 1, "velocidade": 320, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "encontro", "estrategia": "WaveAttack", "projetil": "Dado",
+        "projeteis": 8, "velocidade": 220, "angulo": 315, "intervalo": 0 }
+    ],
+    "clone": { "ataquesDe": "StateFinal" }
+  },
+
+  // FASE FINAL - O JANTAR DOS FILOSOFOS   |   gesto: O MONITOR NA MESA
+  //
+  // So e vista por quem termina a terceira entre 40 e 59, ou com 100 - StateThree
+  // tem "proximo" vazio, e decide a batalha.
+  //
+  // O deadlock, no problema que todo curso de concorrencia conta (Filosofos.h):
+  // cinco filosofos em volta da mesa, um garfo entre cada dois, e para comer
+  // cada um precisa dos dois do lado dele. O professor e o monitor: vai ate
+  // quem come, ou ate quem ele escolheu (Vitor.h). Os garfos ANDAM ate a mao de
+  // quem os pega; quem come da garfadas num leque estreito de tres, a do meio
+  // no aluno, a cada 0,4 s; quem espera um garfo
+  // tem uma seta vermelha ate quem esta com ele. Quatro rodadas de 4,9 s; o
+  // jantar e o deadlock abrem, e as duas solucoes vem em qualquer ordem. Quem
+  // se senta a mesa e outro a cada luta (cinco de dez pensadores), e o jantar
+  // e a ordem comecam de outro lugar dela. No Dificil a garfada sai a cada
+  // 0,33 s e 15% mais depressa, e o cerco tem seis por aresta:
+  //
+  //   jantar           dois comem de cada vez, sem vizinhos: ninguem espera
+  //   deadlock         todos pegam o garfo da ESQUERDA, e todos esperam o da
+  //                    direita - a espera circular. O pentagono das esperas
+  //                    vira um CERCO de projeteis, aresta por aresta, e o
+  //                    professor vai ate o filosofo mais perto do aluno: kill
+  //                    -9. O cerco estoura para fora, e quem esperava o garfo
+  //                    da vitima come
+  //   ordem            o garfo de MENOR numero primeiro: o ultimo disputa o
+  //                    garfo 0 com o primeiro, e a espera vira uma fila que
+  //                    termina em quem come
+  //   garcom           um semaforo de quatro lugares: o professor tira da mesa
+  //                    quem esta mais perto do aluno, e com quatro nao ha ciclo
+  //
+  // TODO ATAQUE E DE GATILHO: o garfo e um enfeite que o professor move, a
+  // espera nasce parada e e ele quem a solta no estouro; a velocidade da
+  // garfada e a de Filosofos.h (um teste confere).
+  "StateFinal": {
+    "duracao": 20,
+    "proximo": "StateOne",
+    "anuncio": "jantar dos filósofos",
+    "movimento": { "tipo": "Conduzido", "a": 400 },
+    "ataques": [
+      { "gatilho": "garfo", "estrategia": "WaveAttack", "projetil": "Garfo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "garfada", "estrategia": "WaveAttack", "projetil": "Garfada",
+        "projeteis": 3, "velocidade": 210, "angulo": 16, "intervalo": 0 },
+      { "gatilho": "espera", "estrategia": "WaveAttack", "projetil": "Espera",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
+    ]
+  }
+}

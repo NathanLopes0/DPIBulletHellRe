@@ -10,6 +10,7 @@
 #include "../../../../Scenes/Battle/Battle.h"
 #include "../../../Player/Player.h"
 #include "../../../../Components/RigidBodyComponent.h"
+#include "../../../../Destrutivel.h"
 
 
 // 1. O construtor passa o 'owner' para o construtor da classe base 'Projectile'.
@@ -21,10 +22,50 @@ BossProjectile::BossProjectile(Scene* scene, Boss* owner)
 
 
 
+void BossProjectile::MarcarPadraoDeFabrica() {
+    Projectile::MarcarPadraoDeFabrica();
+    mRotacaoPadrao = mRotacionarComAVelocidade;
+}
+
+void BossProjectile::Reset() {
+    Projectile::Reset();
+
+    // A ROTACAO E APARENCIA, e aparencia volta ao padrao de fabrica no pool -
+    // mesma razao da escala e da animacao. Uma regra que desliga o giro vale
+    // para aquele disparo, e nao para sempre.
+    mRotacionarComAVelocidade = mRotacaoPadrao;
+
+    // A BLINDAGEM TAMBEM E DO DISPARO: quem a poe e a SprintAttack, e quem a
+    // tira e o cursor soltando a historia. A que morreu na mao dele voltaria
+    // blindada.
+    mBlindado = false;
+
+    // O ENFEITE TAMBEM: um cursor que voltasse do pool como enfeite faria a
+    // historia do disparo seguinte passar pelo aluno sem acerta-lo.
+    mEnfeite = false;
+
+    // E O POSTO: uma historia entregue no quadro voltaria do pool atirando.
+    mPosto.clear();
+
+    // E OS GOLPES: uma janela que levou dois tiros e saiu da tela voltaria do
+    // pool fechando no primeiro.
+    mGolpes = 0;
+}
+
 void BossProjectile::OnUpdate(float deltaTime)
 {
     // 1. Executa a lógica base (verificar se saiu da tela, update nos Behaviors).
     Projectile::OnUpdate(deltaTime);
+
+    // O CONTORNO DE QUEM O TIRO DO ALUNO DESTROI (Destrutivel.h). A cada
+    // quadro, e nao so ao nascer: enfeite e blindagem mudam no meio do voo - a
+    // ficha do compilador do Vladimir vira no da arvore, a historia da Maria
+    // Lucia e solta pelo cursor.
+    if (auto* anim = GetComponent<DrawAnimatedComponent>()) {
+        anim->DefinirContorno(Destrutivel::Pode(mDerrubavel, mBlindado, mAbrigo, mEnfeite),
+                              SDL_Color{Destrutivel::kVermelho, Destrutivel::kVerde, Destrutivel::kAzul,
+                                        Destrutivel::kOpacidade});
+    }
 
     // 2. Gira o sprite para acompanhar o movimento, quando a arte pede isso.
     //
@@ -97,7 +138,10 @@ Boss* BossProjectile::GetBossOwner() const
 
 Vector2 BossProjectile::GetPlayerPosition() const {
     if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
-        if (auto player = battleScene->GetPlayer()) {
+        // O ALVO DESTE PROJETIL, e nao de quem e a vez agora. Ver DefinirAlvo:
+        // esta funcao e lida a cada quadro, e perguntar a vez faria o projetil
+        // mudar de rumo no meio do voo.
+        if (auto player = battleScene->JogadorEm(mAlvo)) {
             return player->GetPosition();
         }
         SDL_Log("Erro em BossProjectile.cpp - GetPlayerPosition: nao foi possivel encontrar o Player"
@@ -112,7 +156,7 @@ Vector2 BossProjectile::GetPlayerPosition() const {
 
 Vector2 BossProjectile::GetPlayerVelocity() const {
     if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
-        if (auto player = battleScene->GetPlayer()) {
+        if (auto player = battleScene->JogadorEm(mAlvo)) {
             if (auto rb = player->GetComponent<RigidBodyComponent>()) {
                 return rb->GetVelocity();
             }
@@ -126,7 +170,7 @@ Vector2 BossProjectile::GetPlayerVelocity() const {
 
 bool BossProjectile::HasPlayer() const {
     if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
-        return battleScene->GetPlayer() != nullptr;
+        return battleScene->JogadorEm(mAlvo) != nullptr;
     }
     return false;
 }

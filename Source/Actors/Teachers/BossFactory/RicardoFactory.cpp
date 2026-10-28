@@ -24,8 +24,8 @@ std::unique_ptr<Boss> RicardoFactory::InstantiateBoss(Scene *scene) {
 void RicardoFactory::ConfigureComponents(Boss *boss) {
 
     // ----- DRAW COMPONENT ----- //
-    auto drawComp = boss->AddComponent<DrawAnimatedComponent>(Caminhos::Asset("Teachers/DPIBHRicardo.png"),
-        Caminhos::Asset("Teachers/DPIBHRicardo.json"));
+    auto drawComp = boss->AddComponent<DrawAnimatedComponent>(Caminhos::Asset(Retrato() + ".png"),
+        Caminhos::Asset(Retrato() + ".json"));
     drawComp->AddAnimation("Idle", {0});
     drawComp->SetAnimation("Idle");
 
@@ -34,7 +34,7 @@ void RicardoFactory::ConfigureComponents(Boss *boss) {
     const auto collider = boss->AddComponent<CircleColliderComponent>(colliderRadius);
     collider->SetTag(ColliderTag::Boss);
 
-    // Os projeteis vem de Assets/Attacks/projeteis.json, conjunto "ricardo".
+    // Os projeteis vem de Assets/Attacks/ricardo/projeteis.json.
     // Acrescentar um tipo novo a este chefe e uma entrada naquele arquivo - nao
     // ha mais uma classe de fabrica por projetil.
     if (!RegistrarProjeteisDeArquivo(boss, "ricardo")) {
@@ -51,11 +51,10 @@ void RicardoFactory::ConfigureAttacksAndFSM(Boss *boss) {
     }
 
 
-    // As fases deste chefe vivem em Assets/Attacks/fases.json, no conjunto
-    // "ricardo", e as regras dos projeteis em Assets/Attacks/regras.json.
-    //
-    // Ricardo nao sobrescreve nada em CustomizeAttackParams, entao TODO o
-    // balanceamento dele esta naqueles dois arquivos.
+    // As fases deste chefe vivem em Assets/Attacks/ricardo/fases.json, e as
+    // regras dos projeteis no regras.json ao lado. O CustomizeAttackParams
+    // dele so sorteia a palavra de bits da fase 1 (Ricardo.cpp): os numeros
+    // estao todos nos arquivos.
     //
     // NAO HA MAIS CONFIGURACAO DE RESERVA EM C++. Se o arquivo faltar, estiver
     // malformado ou tiver uma transicao quebrada, ConfigurarFasesDeArquivo

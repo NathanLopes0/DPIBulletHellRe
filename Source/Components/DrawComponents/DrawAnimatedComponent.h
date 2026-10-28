@@ -50,7 +50,24 @@ public:
      */
     void LoadSpriteSheet(const std::string& texturePath, const std::string& dataPath);
 
+    /**
+     * @brief Liga ou desliga o CONTORNO: a silhueta do quadro, tingida de
+     * 'cor', desenhada Destrutivel::kEspessura pixels deslocada nas oito
+     * direcoes, por baixo do sprite. E o padrao de todo projetil que o tiro do
+     * aluno destroi (Destrutivel.h); quem liga e BossProjectile::OnUpdate.
+     */
+    void DefinirContorno(bool ligado, SDL_Color cor);
+
 private:
+    void DesenharContorno(SDL_Renderer* renderer, const SDL_Rect& quadro, const SDL_Rect& destino,
+                          double angulo, SDL_RendererFlip flip);
+
+    /// A folha, para a silhueta ser carregada so quando o contorno liga.
+    std::string mCaminhoDaFolha;
+    bool mContorno = false;
+    SDL_Color mCorDoContorno{255, 255, 255, 255};
+    SDL_Texture* mSilhueta = nullptr;
+    bool mSilhuetaTentada = false;
 
     //vector of sprites
     std::vector<SDL_Rect> mSpriteSheetData;

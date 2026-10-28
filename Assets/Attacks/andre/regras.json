@@ -4,11 +4,7 @@
   //
   // UMA PASTA POR CHEFE: Assets/Attacks/andre/. Cada chave e um conjunto de
   // regras, e e por esse nome que um ataque do fases.json ao lado o pede:
-  //     "regras": "tres"
-  //
-  // OS NOMES PERDERAM O PREFIXO DO PROFESSOR. Eram "tres" porque
-  // um arquivo so com todos os conjuntos precisava evitar colisao; com uma pasta
-  // por chefe, o prefixo passou a repetir o nome da pasta.
+  //     "regras": "confete"
   //
   // UMA REGRA = uma motion (como o projetil se move), modifiers (o que muda nele
   // com o tempo), uma animacao e uma chance. Tudo opcional: regra so com
@@ -16,10 +12,9 @@
   //
   // OS CAMPOS estao documentados em Documentacao/arquivos-de-dados.md.
   // ==========================================================================
-  "tres": [
-    {
-      "chance": 0.2,
-      "motion": {"tipo": "Tracking", "atraso":  2.0, "forca": 2, "duracao":  2}
-    }
+  // O CONFETE nao cai reto: balanca de um lado para o outro, como papel. A
+  // faixa continua a do ramo - o balanco e de poucos graus.
+  "confete": [
+    { "motion": { "tipo": "Wobble", "amplitude": 18, "frequencia": 2.2, "duracao": 3.0 } }
   ]
 }

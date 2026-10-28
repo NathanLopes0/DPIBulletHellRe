@@ -34,14 +34,14 @@ std::vector<std::unique_ptr<Projectile> > LaserAttack::Execute(const AttackParam
     // Object Pooling, mantê-la faria essa strategy "vazar" um objeto do pool
     // a cada Execute(), então foi removida.
 
-    // Validado UMA vez, antes do loop: antes 'battle' e 'GetPlayer()' eram
+    // Validado UMA vez, antes do loop: antes 'battle' e 'Alvo()' eram
     // dereferenciados sem checagem alguma dentro do loop.
     const auto battle = dynamic_cast<Battle*>(mOwner->GetScene());
-    if (!battle || !battle->GetPlayer()) {
+    if (!battle || !battle->Alvo()) {
         SDL_Log("LaserAttack::Execute: sem cena Battle ou sem Player. Ataque cancelado.");
         return projectiles;
     }
-    const Vector2 playerPos = battle->GetPlayer()->GetPosition();
+    const Vector2 playerPos = battle->Alvo()->GetPosition();
 
     for (int i = 0; i < numProjectiles; i++) {
 

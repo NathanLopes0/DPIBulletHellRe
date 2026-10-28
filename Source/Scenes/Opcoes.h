@@ -1,5 +1,5 @@
 //
-// A tela de opcoes. Vazia por enquanto, de proposito.
+// A tela de opcoes.
 //
 
 #pragma once
@@ -11,18 +11,20 @@
 
 class Font;
 class Actor;
+class DrawTextComponent;
 
 /**
  * @class Opcoes
- * @brief Onde as configuracoes do jogo vao morar.
+ * @brief Onde as configuracoes da maquina moram (Configuracao.h).
  *
- * ESTA TELA NAO FAZ NADA AINDA, e isso e intencional: ela existe para que a
- * terceira opcao do menu ja tenha destino proprio desde o inicio. Quando houver
- * o que configurar - volume, teclas, tela cheia - o lugar ja esta aqui, e o
- * menu nao precisa mudar.
+ * CINCO LINHAS: a dificuldade (Dificuldade.h), o volume da musica e o dos
+ * efeitos, a tela cheia e a hitbox do aluno visivel. O manche para cima e para
+ * baixo escolhe a linha; para os lados, ou o botao 1, troca o valor - e a
+ * troca vale e vai para o disco na hora, sem um "salvar" que alguem esqueca de
+ * apertar. O botao 2 (ou o ESC) volta ao menu.
  *
- * Deixar a opcao sem destino ate la seria pior: ou ela nao responderia (e
- * pareceria defeito), ou alguem a esconderia e teria que reacrescenta-la depois.
+ * O botao 1 num volume SOBE e da a volta no maximo, para quem so tem o botao
+ * conseguir chegar a qualquer valor; o manche para por la, nos dois extremos.
  */
 class Opcoes : public Scene {
 public:
@@ -35,13 +37,36 @@ public:
 
 private:
 
-    /// Cria um ator de texto centrado horizontalmente, no tamanho natural dele.
-    Actor* Texto(const std::string& conteudo, float y, int tamanho, int larguraMaxima);
+    enum class Item { Dificuldade, Musica, Efeitos, TelaCheia, Hitbox };
+    static constexpr int kItens = 5;
+
+    /// Cria um ator de texto no x pedido, no tamanho natural dele.
+    Actor* Texto(const std::string& conteudo, float x, float y, int tamanho, int larguraMaxima);
+
+    /// Anda o valor da linha escolhida 'passo' casas. 'peloBotao': o botao 1,
+    /// que num volume da a volta.
+    void Trocar(int passo, bool peloBotao);
+
+    /// Reescreve o valor de cada linha, destaca a escolhida e escreve o que ela faz.
+    void Mostrar();
 
     std::unique_ptr<Font> mFonte;
 
-    /// Borda do ESC, para uma acao por toque. Comeca em TRUE pela mesma regra
-    /// das outras cenas: nada hoje entra aqui com ESC apertado, mas a guarda
-    /// custa um bool e ja nos custou um bug quando faltou.
+    struct Linha {
+        class DrawCaixaComponent* caixa = nullptr;
+        DrawTextComponent* valor = nullptr;
+    };
+    Linha mLinhas[kItens];
+    DrawTextComponent* mDescricao = nullptr;
+    int mEscolhida = 0;
+
+    /// As bordas, para uma acao por toque. Comecam em TRUE pela mesma regra
+    /// das outras cenas: quem entra aqui segurando o botao 1 do menu nao
+    /// troca a dificuldade sem querer.
     bool mVoltarAnterior = true;
+    bool mTrocarAnterior = true;
+    bool mEsquerdaAnterior = true;
+    bool mDireitaAnterior = true;
+    bool mCimaAnterior = true;
+    bool mBaixoAnterior = true;
 };

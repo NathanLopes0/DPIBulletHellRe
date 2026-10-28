@@ -17,19 +17,69 @@
   // que nao existe ou se uma animacao citar um quadro que a folha nao tem.
   // ==========================================================================
 
-  // Uma animacao por fase da luta, e quem escolhe qual usar e
-  // Julio::OnProjectilesCreated conforme o estado da FSM que disparou.
-  // Sprite de 16x16 desenhada em 32x32.
-  "Dados": {
-    "sprite": "Teachers/Projectiles/DPIBHJulioDado.png",
-    "dados":  "Teachers/Projectiles/DPIBHJulioDado.json",
+  // OS DADOS DE ANTES SAIRAM NO 126: nenhuma fase do Julio os usa mais. A arte
+  // deles (DPIBHJulioDado.png, a original do repositorio) fica guardada em
+  // Assets/Teachers/Projectiles.
+
+  // OS TOKENS DA FASE 1: pedacos de palavra num chip, como um modelo de
+  // linguagem quebra o texto. Uma animacao por token, com o nome do proprio
+  // token - e por esse nome que a "frase" da TokenAttack os pede, em ordem.
+  // Arte PROVISORIA de Ferramentas/gerar_julio.py.
+  "Token": {
+    "sprite": "Teachers/Projectiles/DPIBHJulioToken.png",
+    "dados":  "Teachers/Projectiles/DPIBHJulioToken.json",
     "animacoes": {
-      "Coleta":      [0, 1, 2, 3],
-      "Perseguicao": [4, 5, 6, 7],
-      "Previsao":    [8, 9, 10, 11]
+      "o": [0], "mo": [1], "de": [2], "lo": [3],
+      "te": [4], "pre": [5], "diz": [6], "e": [7]
     },
-    "animacaoInicial": "Coleta",
-    "escala": 2,
+    "animacaoInicial": "o",
+    "escala": 1.3,
     "ordemDeDesenho": 90
+  },
+
+  // O AGENTE DA FASE 2: o robo que o professor convoca, e que age por ele no
+  // ciclo do placar. E derrubavel e aguenta QUATRO tiros: tem de ser vencido,
+  // e quem gasta os tiros nele nao os gasta no professor.
+  "Agente": {
+    "sprite": "Teachers/Projectiles/DPIBHJulioToken.png",
+    "dados":  "Teachers/Projectiles/DPIBHJulioToken.json",
+    "animacoes": {
+      "Varrendo": [8, 9, 10, 11]
+    },
+    "animacaoInicial": "Varrendo",
+    "escala": 1.5,
+    "ordemDeDesenho": 89,
+    "derrubavel": true,
+    "resistencia": 4
+  },
+
+  // A FERRAMENTA: a engrenagem que cada agente manda no Age - a chamada de
+  // ferramenta de um agente de IA.
+  "Ferramenta": {
+    "sprite": "Teachers/Projectiles/DPIBHJulioToken.png",
+    "dados":  "Teachers/Projectiles/DPIBHJulioToken.json",
+    "animacoes": {
+      "Girando": [12, 13, 14, 15]
+    },
+    "animacaoInicial": "Girando",
+    "escala": 1.1,
+    "ordemDeDesenho": 91,
+    "colisorDivisor": 2.6
+  },
+
+  // O GUARDRAIL DA FASE 3: o robo-escudo que gira em volta do professor e
+  // barra o tiro do aluno. Derrubavel, com TRES tiros: tem de ser vencido para
+  // o tiro chegar ao professor.
+  "Guardrail": {
+    "sprite": "Teachers/Projectiles/DPIBHJulioToken.png",
+    "dados":  "Teachers/Projectiles/DPIBHJulioToken.json",
+    "animacoes": {
+      "Guardando": [16, 17, 18, 19]
+    },
+    "animacaoInicial": "Guardando",
+    "escala": 1.3,
+    "ordemDeDesenho": 89,
+    "derrubavel": true,
+    "resistencia": 3
   }
 }
