@@ -166,6 +166,12 @@ Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
 - **`notas.csv`** — a planilha do professor, com uma linha por aluno-matéria.
   É regravada a cada batalha, então está sempre em dia e ninguém precisa lembrar
   de exportar. Ela é **derivada** das fichas: apagá-la não perde nada.
+- **`tentativas.csv`**, **`tentativas_fases.csv`** e **`tentativas_resumo.csv`** —
+  os dados para pesquisa: uma linha a cada tentativa de batalha (quem jogou, em
+  que dia, qual vez era, como terminou, tiros, acertos, Pontos Extras), uma a
+  cada fase jogada, e o resumo de quantas vezes cada aluno jogou, passou e
+  reprovou em cada matéria. As colunas, como analisar e o cuidado com a
+  privacidade estão em `Documentacao/dados-das-tentativas.md`.
 
 As chaves dos arquivos são sempre códigos, nunca posições. Reordenar as matérias
 no JSON não reatribui a nota de ninguém.

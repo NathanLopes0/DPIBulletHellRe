@@ -97,6 +97,10 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Hud.h
         Source/Acerto.cpp
         Source/Acerto.h
+        Source/Tentativas.cpp
+        Source/Tentativas.h
+        Source/TentativasArquivo.cpp
+        Source/TentativasArquivo.h
         Source/Personagens.cpp
         Source/Personagens.h
         Source/PersonagensArquivo.cpp
@@ -377,6 +381,18 @@ find_package(SDL2_mixer REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 
 include_directories(${SDL2_INCLUDE_DIRS})
+# A VERSAO DO JOGO em cada linha de tentativas.csv (Tentativas.h): o commit de
+# onde o executavel saiu, para a analise separar as tentativas de antes e de
+# depois de uma mudanca de balanceamento. Sem git (um zip do codigo), "dev".
+execute_process(COMMAND git rev-parse --short HEAD
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        OUTPUT_VARIABLE DPI_VERSAO OUTPUT_STRIP_TRAILING_WHITESPACE
+        RESULT_VARIABLE DPI_VERSAO_ERRO ERROR_QUIET)
+if(NOT DPI_VERSAO_ERRO EQUAL 0 OR DPI_VERSAO STREQUAL "")
+    set(DPI_VERSAO "dev")
+endif()
+target_compile_definitions(${PROJECT_NAME} PRIVATE DPI_VERSAO="${DPI_VERSAO}")
+
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} SDL2_image::SDL2_image SDL2_mixer::SDL2_mixer SDL2_ttf::SDL2_ttf)
 # =============================================================================
 # TESTES UNITARIOS (doctest)
@@ -473,6 +489,7 @@ add_executable(dpi_tests
         tests/test_cronograma.cpp
         tests/test_poder.cpp
         tests/test_objetivo.cpp
+        tests/test_tentativas.cpp
         tests/test_barra_da_nota.cpp
         tests/test_hud.cpp
         tests/test_personagens.cpp
@@ -526,6 +543,8 @@ add_executable(dpi_tests
         Source/Hud.h
         Source/Acerto.cpp
         Source/Acerto.h
+        Source/Tentativas.cpp
+        Source/Tentativas.h
         Source/Personagens.cpp
         Source/Personagens.h
         Source/Relogio.cpp

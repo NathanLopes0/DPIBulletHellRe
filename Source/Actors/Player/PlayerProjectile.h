@@ -39,6 +39,10 @@ public:
     /// isto, e nao o ponteiro, e o procura a cada quadro.
     [[nodiscard]] std::uint64_t Id() const { return mId; }
 
+    /// Quem atirou: um Player, ou o Orientador. O registro da tentativa
+    /// (Tentativas.h) separa os acertos de cada um por aqui.
+    [[nodiscard]] Actor* Dono() const { return mOwner; }
+
 
 private:
 

@@ -18,6 +18,7 @@
 #include "../../Dificuldade.h"
 #include "../../Hud.h"
 #include "../../Variacao.h"
+#include "../../Tentativas.h"
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
 
 #define GRADE_CHANGE_DOWN 6.f
@@ -276,6 +277,34 @@ private:
 
     /// Ver SementeDaBatalha.
     std::uint32_t mSemente = 0;
+
+    // ---- O REGISTRO DA TENTATIVA (Tentativas.h) -------------------------------------
+    //
+    // TUDO O QUE A ANALISE DO TCC PRECISA SAI DAQUI, e e anotado no instante em
+    // que acontece - o acerto, a fase, o Ponto Extra -, nunca reconstruido no
+    // fim. A gravacao (TentativasArquivo) le so mTentativa e a nota: ela roda
+    // tambem no destrutor, quando a janela fecha no meio da luta, e ai os
+    // atores podem nao existir mais.
+
+    Tentativas::Tentativa mTentativa;
+    /// O registro so comeca quando a luta comeca (FinishLoadingProjectilePools):
+    /// quem desiste na tela de carregamento nao jogou.
+    bool mRegistrando = false;
+    bool mTentativaGravada = false;
+    /// Segundos de luta, sem carregamento e sem pausa; e os de pausa.
+    float mRelogio = 0.0f;
+    float mRelogioDaPausa = 0.0f;
+
+    void ComecarRegistro();
+    /// A cada quadro: a nota minima e maxima, os tiros e os poderes.
+    void AnotarNoRegistro();
+    /// Fecha a fase em curso no registro (se houver) e abre a de agora.
+    void AbrirFaseNoRegistro();
+    /// O registro do jogador 'quem', ou nulo (o orientador, um ator qualquer).
+    Tentativas::Jogador* RegistroDe(const Actor* quem);
+    /// @brief Grava a tentativa, uma vez so. 'ultimaCompleta': a ultima fase
+    /// acabou pelo relogio (e nao pela nota a zero ou por desistencia).
+    void GravarTentativa(Tentativas::Resultado resultado, bool ultimaCompleta);
 
     /// O selo DIFICIL, na ponta direita da faixa da nota. So existe no Dificil:
     /// quem ve uma luta no corredor sabe que ela nao e a de sempre, e quem joga

@@ -32,7 +32,11 @@ Boss::~Boss() = default;
 void Boss::Start() {
     CalculateNextDropThreshold();
     if (auto fsm = GetComponent<FSMComponent>()) {
-        if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
+        // O CLONE NAO AVISA A BATALHA: a fase e a do original. O clone entra
+        // na fase dele ao nascer (DividirChefe), e o aviso fechava de novo a
+        // fase que tinha acabado de abrir - pagando o bonus de fase limpa uma
+        // segunda vez, e registrando uma fase que nao existiu.
+        if (auto battleScene = dynamic_cast<Battle*>(mScene); battleScene && !mEhClone) {
             fsm->SetOnStateChanged([battleScene](float newDuration) {
                 battleScene->OnFaseTrocada(newDuration);
             });

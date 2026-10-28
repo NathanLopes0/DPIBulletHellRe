@@ -42,6 +42,10 @@
 #include "../../Painel.h"
 
 #include "../../CaminhosArquivo.h"
+#include "../../Relogio.h"
+#include "../../Matricula.h"
+#include "../../TentativasArquivo.h"
+#include "../../Components/AIComponents/FSMComponent.h"
 
 // Quantas instâncias de CADA tipo de projétil são pré-aquecidas no pool
 // antes da batalha começar (ver Battle::LoadBoss / PrewarmProjectilePools).
@@ -73,7 +77,11 @@ Battle::Battle(Game* game, const int selectedStage)
     //SDL_Log(" BATTLE - Construtor");
 }
 
-Battle::~Battle() = default;
+Battle::~Battle() {
+    // A JANELA FECHOU NO MEIO DA LUTA: e uma desistencia, e entra nos dados.
+    // GravarTentativa nao toca em ator nenhum - eles podem ja ter ido embora.
+    if (mRegistrando && !mTentativaGravada) GravarTentativa(Tentativas::Resultado::Abandonou, false);
+}
 
 //region LoadFunctions
 void Battle::Load() {
@@ -711,6 +719,10 @@ void Battle::FinishLoadingProjectilePools() {
         if (jogador) jogador->SetState(ActorState::Active);
     }
 
+    // O REGISTRO COMECA ANTES DO CHEFE: o Start dele abre a primeira fase
+    // (OnFaseTrocada), e ela ja tem de entrar no registro.
+    ComecarRegistro();
+
     // Só agora, com os pools já aquecidos, a lógica de ataque do Boss
     // começa de fato (ver comentário em Load()).
     if (mBoss) {
@@ -735,7 +747,10 @@ void Battle::OnUpdate(float deltaTime) {
     // -- A PAUSA: a cena ja nao atualizou os atores (Scene::mAtoresCongelados),
     // e aqui param os projeteis, as colisoes e os relogios da batalha. Nada
     // anda, e nada conta tempo.
-    if (mPausa.aberto) return;
+    if (mPausa.aberto) {
+        mRelogioDaPausa += deltaTime;
+        return;
+    }
 
     // -- Lógica de Fim de Jogo
     if (mIsEnding) {
@@ -756,6 +771,7 @@ void Battle::OnUpdate(float deltaTime) {
 
     // A cena base já atualiza todos os atores.
     // Aqui podemos adicionar lógica específica da batalha.
+    mRelogio += deltaTime;
 
     // Atualiza os sistemas principais apenas da Battle (os atores são atualizados pela Scene)
     if (mProjectileManager) mProjectileManager->Update(deltaTime);
@@ -790,6 +806,7 @@ void Battle::OnUpdate(float deltaTime) {
         }), mExtraPoints.end());
 
     if (mAvisoDeFaseLimpa > 0.0f) mAvisoDeFaseLimpa -= deltaTime;
+    AnotarNoRegistro();
 
     // Se a nota cair a 0, termina a fase
     if (mGrade <= 0) {
@@ -1101,6 +1118,9 @@ void Battle::EscolherNaPausa() {
 }
 
 void Battle::SairDaBatalha(const SceneType destino) {
+    // QUEM SAI PELA PAUSA DESISTIU - inclusive no Recomecar: a tentativa que
+    // ele larga e uma, e a que comeca e outra.
+    if (mRegistrando) GravarTentativa(Tentativas::Resultado::Abandonou, false);
     if (mProjectileManager) {
         mProjectileManager->ClearBossProjectiles();
         mProjectileManager->Cleanup();
@@ -1204,6 +1224,7 @@ void Battle::CheckCollisions() {
                                             bossProj->FatorDaCorrente());
                     }
                     GradeDown(bossProj->MultiplicadorDaPerda());
+                    if (auto* r = RegistroDe(jogador)) ++r->acertosSofridos;
 
                     // O ACERTO SOFRIDO SE VE: o anel vermelho no aluno e o
                     // campo piscando em vermelho pelas bordas.
@@ -1288,6 +1309,11 @@ void Battle::CheckCollisions() {
 
                 // Acerto de UM jogador: repartido (requisitos-coop, 2.1). O
                 // CHEFE BLINDADO come o tiro sem pagar a nota (Boss::AceitaDano).
+                // O REGISTRO SABE DE QUEM E: o tiro guarda o dono, e e isso que
+                // da a precisao de cada aluno (e os acertos do orientador).
+                if (auto* r = RegistroDe(playerProj->Dono())) ++r->acertosNoProfessor;
+                else if (mOrientador && playerProj->Dono() == mOrientador) ++mTentativa.acertosDoOrientador;
+
                 if (corpo->AceitaDano()) {
                     GradeUp(PorJogador(Nota::kGanhoPorAcerto));
                     Faiscar(playerProj->GetPosition(), Hud::Faisca::Acerto);
@@ -1325,6 +1351,7 @@ void Battle::CheckCollisions() {
                 jogador->OnCollision(corpo);
                 corpo->OnCollision(jogador);
                 GradeDown();
+                if (auto* r = RegistroDe(jogador)) ++r->acertosSofridos;
             }
         }
     }
@@ -1349,6 +1376,7 @@ void Battle::CheckCollisions() {
 
                 // 1. Efeito da Coleta
                 jogador->AddExtraPoint();
+                if (auto* r = RegistroDe(jogador)) ++r->pontosExtrasPegos;
                 Faiscar(playerCollider->GetCenter(), Hud::Faisca::Coleta);
                 if (mMoldura) mMoldura->Acender(SDL_Color{255, 215, 80, 255}, 0.3f);
 
@@ -1420,6 +1448,7 @@ void Battle::GradeDown(const float multiplicadorDaPerda) {
     // 2.1, o segundo dos tres desafios a mais).
     ++mAcertosSofridos;
     ++mAcertosNaFase;
+    if (!mTentativa.fases.empty()) ++mTentativa.fases.back().acertosSofridos;
     // PerdaPorJogador, e nao PorJogador: alem da divisao, a perda em grupo leva
     // um alivio (Nota::kAlivioDaPerdaEmGrupo). Em dupla um acerto custa 2,4
     // brutos contra os 6,0 do solo. O motivo esta no cabecalho da funcao, e sai
@@ -1451,6 +1480,7 @@ void Battle::OnFaseTrocada(const float novaDuracao) {
     // agora. Invertido, o contador zeraria antes de ser lido e o bonus sairia
     // sempre - inclusive para quem levou dano a fase inteira.
     EncerrarFase();
+    if (!mIsEnding) AbrirFaseNoRegistro();
 
     if (mHUD) {
         mHUD->ResetTimeBar(novaDuracao);
@@ -1482,6 +1512,8 @@ void Battle::EncerrarFase() {
         // dificil no co-op, porque mAcertosNaFase conta os dois - a fase so e
         // limpa se NENHUM dos dois foi atingido.
         GradeUp(Nota::kBonusDeFaseLimpa);
+        ++mTentativa.fasesLimpas;
+        if (!mTentativa.fases.empty()) mTentativa.fases.back().limpa = true;
 
         // O aviso existe para a nota nao subir por motivo invisivel. Um salto sem
         // explicacao e lido como defeito, e o jogador nunca descobre que desviar
@@ -1490,6 +1522,111 @@ void Battle::EncerrarFase() {
     }
 
     mAcertosNaFase = 0;
+}
+
+// A VERSAO vem do CMake (o commit de onde o executavel saiu); compilado de
+// outro jeito, "dev".
+#ifndef DPI_VERSAO
+#define DPI_VERSAO "dev"
+#endif
+
+void Battle::ComecarRegistro() {
+    Tentativas::Tentativa& t = mTentativa;
+    t.inicio = Relogio::Agora();
+    t.id = Tentativas::NovoId(t.inicio, mSemente);
+    t.versaoDoJogo = DPI_VERSAO;
+    if (const Materias::Materia* m = Materias::Carregadas().Por(mStage)) {
+        t.materia = m->codigo;
+        t.nomeDaMateria = m->nomeCompleto.empty() ? m->nome : m->nomeCompleto;
+        t.professor = m->professor;
+    }
+    t.dificuldade = Dificuldade::Chave(mNivel);
+    t.modo = mJogadores.size() > 1 ? "dupla" : "solo";
+    t.notaMaxima = t.notaMinima = mGrade;
+    t.semente = mSemente;
+    if (mOrientador) t.orientador = mOrientador->Professor();
+
+    // O JOGADOR i E A SESSAO i: e assim que LoadPlayer os cria.
+    const auto& sessoes = mGame->Sessoes();
+    for (size_t i = 0; i < mJogadores.size(); ++i) {
+        Tentativas::Jogador j;
+        j.posicao = static_cast<int>(i) + 1;
+        j.matricula = i < sessoes.size() ? sessoes[i].matricula : "";
+        if (j.matricula.empty()) j.matricula = Matricula::kVisitante;
+        j.visitante = j.matricula == Matricula::kVisitante;
+        t.jogadores.push_back(j);
+    }
+    if (t.jogadores.size() == 2) {
+        t.jogadores[0].parceiro = t.jogadores[1].matricula;
+        t.jogadores[1].parceiro = t.jogadores[0].matricula;
+    }
+    mRegistrando = true;
+}
+
+void Battle::AnotarNoRegistro() {
+    if (!mRegistrando || mTentativaGravada) return;
+    Tentativas::Tentativa& t = mTentativa;
+    t.notaMaxima = std::max(t.notaMaxima, mGrade);
+    t.notaMinima = std::min(t.notaMinima, mGrade);
+    if (Nota::ECheia(mGrade)) t.notaCheia = true;
+    for (size_t i = 0; i < mJogadores.size() && i < t.jogadores.size(); ++i) {
+        if (mJogadores[i]) t.jogadores[i].tiros = mJogadores[i]->Disparos();
+    }
+    if (mOrientador) t.poderesUsados = mOrientador->Poderes();
+}
+
+void Battle::AbrirFaseNoRegistro() {
+    if (!mRegistrando || mTentativaGravada || !mBoss) return;
+
+    // A FASE QUE ACABA acabou pelo relogio: e so assim que se troca de fase.
+    if (!mTentativa.fases.empty()) {
+        Tentativas::Fase& anterior = mTentativa.fases.back();
+        anterior.fim = mRelogio;
+        anterior.notaNoFim = mGrade;   // ja com o bonus de fase limpa, se houve
+        anterior.completa = true;
+    }
+
+    // O FSM JA ESTA NA FASE NOVA quando avisa (FSMComponent::SetState).
+    const auto* fsm = mBoss->GetComponent<FSMComponent>();
+    Tentativas::Fase f;
+    f.ordem = static_cast<int>(mTentativa.fases.size()) + 1;
+    f.nome = fsm ? fsm->GetStateName() : "";
+    f.anuncio = mBoss->AnuncioDaFase(f.nome);
+    f.inicio = mRelogio;
+    f.notaNoInicio = mGrade;
+    if (f.nome == "StateFinal") mTentativa.fezExame = true;
+    mTentativa.fases.push_back(std::move(f));
+}
+
+Tentativas::Jogador* Battle::RegistroDe(const Actor* quem) {
+    if (!quem) return nullptr;
+    for (size_t i = 0; i < mJogadores.size() && i < mTentativa.jogadores.size(); ++i) {
+        if (mJogadores[i] == quem) return &mTentativa.jogadores[i];
+    }
+    return nullptr;
+}
+
+void Battle::GravarTentativa(const Tentativas::Resultado resultado, const bool ultimaCompleta) {
+    if (mTentativaGravada) return;
+    mTentativaGravada = true;
+
+    Tentativas::Tentativa& t = mTentativa;
+    t.fim = Relogio::Agora();
+    t.duracao = mRelogio;
+    t.tempoEmPausa = mRelogioDaPausa;
+    t.resultado = resultado;
+    t.notaFinal = mGrade;
+    t.notaMaxima = std::max(t.notaMaxima, mGrade);
+    t.notaMinima = std::min(t.notaMinima, mGrade);
+    if (Nota::ECheia(mGrade)) t.notaCheia = true;
+    t.acertosSofridos = mAcertosSofridos;
+    if (!t.fases.empty()) {
+        Tentativas::Fase& ultima = t.fases.back();
+        ultima.fim = mRelogio;
+        ultima.notaNoFim = mGrade;
+        ultima.completa = ultimaCompleta;
+    }
+    TentativasArquivo::Gravar(t);
 }
 
 SDL_FRect Battle::GetPlayfieldBounds() const
@@ -1586,6 +1723,7 @@ Player* Battle::OutroJogador(const Player* quem) const {
 }
 
 void Battle::OnPlayerUsedExtraPoint(Player* quemGastou) {
+    if (auto* r = RegistroDe(quemGastou)) ++r->pontosExtrasUsados;
 
     // O GANHO E O DE ACERTAR TODOS OS TIROS DA SOBRECARGA (PontoExtra.h): os
     // doze que o aluno daria em 1,5 s, cada um pela curva da nota de agora -
@@ -1926,6 +2064,13 @@ void Battle::FinishBattle(bool approved) {
     // instante era perdido.
     if (mGame) {
         mGame->RegistrarNota(mStage, mGrade);
+    }
+    // E A TENTATIVA, com o resultado. A ultima fase acabou pelo relogio, a
+    // menos que tenha sido a nota a zero que encerrou a luta.
+    if (mRegistrando) {
+        AnotarNoRegistro();
+        GravarTentativa(approved ? Tentativas::Resultado::Aprovado : Tentativas::Resultado::Reprovado,
+                        mGrade > 0.0f);
     }
     for (auto& actor : mActors) {
         actor->SetState(ActorState::Paused);
