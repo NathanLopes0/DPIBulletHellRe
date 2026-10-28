@@ -71,6 +71,8 @@ Battle* Orientador::Batalha() {
 Vector2 Orientador::PostoAgora() {
     Battle* batalha = Batalha();
     if (!batalha) return GetPosition();
+    // NA REUNIAO ELE ESPERA o aluno no lugar marcado, um pouco acima do centro.
+    if (mReuniao) return *mReuniao + Vector2(0.0f, -24.0f);
 
     std::vector<Vector2> alunos;
     for (const Player* p : batalha->Jogadores()) {

@@ -68,10 +68,13 @@ troca. As opções são da máquina, e não do aluno: ficam em `Saves/opcoes.cfg
 valem para todos que jogarem ali até alguém trocar.
 
 
-Uma partida começa pela matrícula. **Novo Jogo** registra uma matrícula que
-ainda não existe e leva à criação de personagem; **Carregar Perfil** abre uma que
-já existe e traz de volta a aparência escolhida. Dá para jogar sem se
-identificar, e nesse caso nada é gravado.
+Uma partida começa pela matrícula. Depois de escolher **Modo Solo** ou **Modo
+Dupla**, cada aluno digita a sua no teclado da tela — o manche escolhe a tecla, o
+botão 1 digita e o botão 2 apaga — e confirma em **ENTRAR**. Não é preciso dizer
+se a conta é nova: se já existe um perfil com aquela matrícula, ele abre e traz
+de volta a aparência escolhida; se não existe, o aluno passa pela criação de
+personagem, e o perfil só é gravado quando ela é confirmada. A tecla
+**VISITANTE** entra sem se identificar, e nesse caso nada é gravado.
 
 ## A nota
 
@@ -280,14 +283,29 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   `Promise.all()` do Lucas e o `fork()` do Vitor. Escolher o orientador é
   escolher o jeito de jogar.
 
-  **O Hugo é blindado** — o TCC ainda não está pronto — e cada etapa tem um
-  objetivo que abre uma janela em que ele toma dano: na proposta, acerte as
-  assinaturas enquanto as barras do cronograma de Gantt caem no prazo; no
-  desenvolvimento (o tema é a área do orientador, com os ataques da matéria
-  dele), derrube os bugs; na defesa, a banca são dois outros professores, e
-  você acerta a resposta certa (A, B ou C) da pergunta deles — "E se der
-  deadlock?" —; nas correções, as marcas em vermelho. Aberto, o Hugo perde as
-  páginas da monografia embaixo dele.
+  **O Hugo é blindado** — o TCC ainda não está pronto — e cada etapa tem
+  objetivos que abrem uma janela em que ele toma dano. São duas maneiras por
+  etapa, alternando, e a primeira é sorteada a cada luta. Uma é derrubar a
+  tiro: na proposta, as assinaturas, enquanto as barras do cronograma de Gantt
+  caem no prazo; no desenvolvimento (o tema é a área do orientador, com os
+  ataques da matéria dele), os bugs; na defesa, a banca são dois outros
+  professores, e você acerta a resposta certa (A, B ou C) da pergunta deles —
+  "E se der deadlock?" —; nas correções, as marcas em vermelho. A outra é
+  **andar**, no meio dos tiros: na proposta, a **reunião de orientação** — o
+  orientador voa até um lugar marcado no chão, e o anel enche enquanto você
+  fica com ele; no desenvolvimento, as **referências**, livros espalhados para
+  pegar; na defesa, a **arguição**, em que cada pergunta que você **raspa** sem
+  ser acertado conta uma; nas correções, a **entrega** da versão final, que
+  você pega e leva até a secretaria — e deixa cair onde for acertado.
+
+  **Dá para ler o escudo sem o placar.** Blindado, o Hugo fica escuro, com um
+  cadeado no peito e um escudo de **placas**, uma por coisa a fazer, que caem
+  à medida que você avança; um fio tracejado sai do escudo até cada coisa que
+  ainda o segura, e o tiro que bate nele solta uma faísca. O que se pega fica
+  num anel verde. Aberto, as placas estouram, ele volta às cores dele, e uma
+  mira dourada o cerca com o arco do tempo que falta, que pisca no fim; cada
+  acerto dá um clarão. Aberto, ele também perde as páginas da monografia
+  embaixo dele.
 
 ## Como compilar
 
@@ -321,7 +339,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 1053 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 1058 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha, o objetivo e o poder do orientador no
 TCC — e também **leem os arquivos de

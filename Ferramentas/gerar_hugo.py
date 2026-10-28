@@ -207,14 +207,53 @@ def bug():
     return im
 
 
+# ---- OS OBJETIVOS DE ANDAR (Objetivo::Tipo): o que o aluno PEGA, e nao
+# derruba. O verde e o mesmo do selo da assinatura: e o que se quer. Nenhum
+# tem contorno vermelho - sao enfeites, e o tiro os atravessa.
+def referencia():
+    """A REFERENCIA: um livro verde de lado, com o marcador dourado."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([6, 5, 25, 27], fill=VERDE, outline=PRETO, width=2)
+    d.rectangle([6, 5, 9, 27], fill=(50, 140, 80, 255), outline=PRETO)
+    d.rectangle([12, 9, 22, 13], fill=PAPEL)
+    d.polygon([(19, 3), (23, 3), (23, 12), (21, 10), (19, 12)], fill=DOURADO, outline=PRETO)
+    return im
+
+
+def versao():
+    """A VERSAO FINAL: a monografia encadernada com a fita dourada e o visto."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rectangle([5, 4, 26, 28], fill=CAPA, outline=PRETO, width=2)
+    d.rectangle([5, 4, 9, 28], fill=CAPA_CLARA, outline=PRETO)
+    d.line([18, 4, 18, 28], fill=DOURADO, width=3)
+    d.line([(11, 16), (15, 21), (24, 10)], fill=VERDE, width=3)
+    return im
+
+
+def caixa():
+    """A SECRETARIA: a bandeja de protocolo, onde a versao final e entregue."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.polygon([(3, 14), (29, 14), (26, 27), (6, 27)], fill=(150, 110, 70, 255), outline=PRETO)
+    d.rectangle([8, 6, 24, 15], fill=PAPEL, outline=PRETO)
+    d.line([11, 9, 21, 9], fill=LINHA)
+    d.line([11, 12, 19, 12], fill=LINHA)
+    d.ellipse([22, 2, 30, 10], fill=VERDE, outline=PRETO)
+    return im
+
+
 def folha():
     """Quatro quadros por linha, de 32 px. As linhas novas vao sempre no FIM.
 
         0 Pagina   1 Monografia   2 Pergunta   3 a 12 as materias (MATERIAS)
         13 Assinatura   14 A   15 B   16 C   17 Correcao   18 Bug
+        19 Referencia   20 Versao   21 Caixa
     """
     desenhos = ([pagina(), monografia(), pergunta()] + [ladrilho(f, q) for _, f, q in MATERIAS] +
-                [assinatura(), resposta("A"), resposta("B"), resposta("C"), correcao(), bug()])
+                [assinatura(), resposta("A"), resposta("B"), resposta("C"), correcao(), bug()] +
+                [referencia(), versao(), caixa()])
     f = Image.new("RGBA", (128, 32 * ((len(desenhos) + 3) // 4)), (0, 0, 0, 0))
     for i, im in enumerate(desenhos):
         f.alpha_composite(im, ((i % 4) * 32, (i // 4) * 32))

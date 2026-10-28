@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -62,6 +63,11 @@ public:
     /// Poe o orientador direto no posto, sem o voo de chegada: e onde ele nasce.
     void Pousar();
 
+    /// A REUNIAO DE ORIENTACAO do TCC (Objetivo::Tipo::Reuniao): o Hugo marca
+    /// o lugar, e ele larga o aluno e voa ate la, esperando; vazio, volta a
+    /// escoltar.
+    void MarcarReuniao(const std::optional<Vector2>& onde) { mReuniao = onde; }
+
     // ---- O PODER -------------------------------------------------------------
 
     /// Um tiro acertou o chefe: o poder carrega um acerto (Battle, regra 2).
@@ -116,6 +122,7 @@ private:
     std::string mRetrato;
     Golpe::Materia mMateria = Golpe::Materia::Generico;
     int mLado = -1;
+    std::optional<Vector2> mReuniao;
     Vector2 mPouso;            ///< onde ele esta, sem o balanco
     float mTempo = 0.0f;
     int mDisparos = 0;

@@ -19,6 +19,7 @@
 class BossProjectile;
 class DrawLinhasComponent;
 class Font;
+class Player;
 
 /**
  * @class Hugo
@@ -43,10 +44,16 @@ class Font;
  *   final   as correcoes      o tema e as perguntas da banca voltam
  *
  * E ELE E BLINDADO (Objetivo.h): o TCC ainda nao esta pronto. Em cada etapa o
- * aluno derruba os alvos do objetivo - as assinaturas, os bugs, a resposta
- * certa da banca, as correcoes - e abre uma janela em que o Hugo toma dano;
- * aberto, as paginas da monografia escorrem embaixo dele. As etapas duram 30
- * s (Fase::kDuracaoDoTcc): a batalha maior do jogo.
+ * aluno cumpre objetivos que abrem uma janela em que o Hugo toma dano, de duas
+ * maneiras que se alternam: DERRUBAR os alvos - as assinaturas, os bugs, a
+ * resposta certa da banca, as correcoes - ou ANDAR - a reuniao com o
+ * orientador, as referencias, a arguicao (raspar nas perguntas), a entrega da
+ * versao final. Aberto, as paginas da monografia escorrem embaixo dele. As
+ * etapas duram 30 s (Fase::kDuracaoDoTcc): a batalha maior do jogo.
+ *
+ * O ESCUDO SE LE SEM O PLACAR (DesenharEscudo): blindado, ele fica frio e
+ * escuro, com o cadeado e as placas, e um fio ate cada coisa que falta;
+ * aberto, a mira dourada e o arco do tempo.
  *
  * O BALANCEAMENTO DO QUE VAI POR TEMPO VIVE EM DADOS (Assets/Attacks/hugo/);
  * aqui mora o cronograma, os padroes, a banca e o escudo.
@@ -75,6 +82,16 @@ public:
     /// com a janela aberta ou sem alvo em campo. Serve a quem quer mostrar o
     /// caminho (e ao piloto que mede a batalha).
     [[nodiscard]] std::optional<Vector2> ObjetivoAtual() const;
+
+    /// Onde o aluno tem de IR, num objetivo de andar (Objetivo::Tipo): a
+    /// reuniao, o livro mais perto, a versao final ou a secretaria. Vazio na
+    /// arguicao (ali o caminho sao os tiros) e nos objetivos de derrubar.
+    [[nodiscard]] std::optional<Vector2> LugarDeIr() const;
+    [[nodiscard]] Objetivo::Tipo TipoDoObjetivo() const { return mTipo; }
+
+    /// O TIRO NO ESCUDO risca uma faisca onde bateu: e o que diz, sem texto,
+    /// que ele nao entrou.
+    void OnCollision(Actor* other) override;
 
 protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
@@ -228,6 +245,52 @@ private:
     std::string mPrincipal;
     std::string mPlacarFeito;
     DrawLinhasComponent* mEscudoLinhas = nullptr;
+    DrawLinhasComponent* mCadeado = nullptr;
+
+    // ---- AS OUTRAS MANEIRAS DE ABRIR (Objetivo::Tipo) -----------------------------
+
+    Objetivo::Tipo mTipo = Objetivo::Tipo::Derrubar;
+    int mVezDoObjetivo = 0;      ///< quantos objetivos ja houve nesta etapa
+    int mPrimeiraManeira = 0;    ///< sorteada a cada etapa
+    int mPlacas = 1;             ///< as placas do escudo deste objetivo
+    bool mObjetivoEmCurso = false;   ///< ha um objetivo de pe (a reuniao nao tem alvo)
+    float mProgresso = 0.0f;     ///< 0 a 1: quantas placas ja cairam
+
+    /// Os alunos em campo: os objetivos de andar valem para qualquer um.
+    [[nodiscard]] std::vector<Player*> Alunos() const;
+    void AtualizarAndar(float deltaTime);
+    void EncerrarAndar();
+    void Pagar(float bruto);
+
+    Vector2 mReuniao;            ///< o centro da reuniao
+    float mNaReuniao = 0.0f;     ///< os segundos ja passados dentro dela
+    bool mAlguemNaReuniao = false;
+
+    struct Raspado {
+        BossProjectile* p = nullptr;
+        float nasceu = 0.0f;
+    };
+    std::vector<Raspado> mRaspados;   ///< os tiros que ja contaram
+    int mRaspou = 0;
+
+    Vector2 mSecretaria;
+    Player* mCarregando = nullptr;    ///< quem esta com a versao final
+
+    // ---- O DESENHO DO ESCUDO, SEM TEXTO ------------------------------------------
+
+    struct Faisca {
+        Vector2 onde;
+        float quando = 0.0f;
+        bool dourada = false;    ///< a raspada, e nao o tiro no escudo
+    };
+    std::vector<Faisca> mFaiscas;
+    float mAbriuEm = -10.0f;      ///< para o estouro das placas
+    float mFechouEm = -10.0f;     ///< para o escudo se refazendo
+    float mApanhouEm = -10.0f;    ///< o clarao do acerto, aberto
+    int mPlacasAoAbrir = 1;
+    void Tingir();
+    void DesenharFios();
+    void DesenharAndar();
 
     /// A RESPOSTA ESCRITA embaixo de cada balao da defesa: no placar nao cabem
     /// tres respostas e a pergunta.

@@ -160,4 +160,94 @@ namespace Objetivo {
                 return "";
         }
     }
+
+    // ---- AS OUTRAS MANEIRAS DE ABRIR -----------------------------------------------
+
+    Tipo DeAndar(const Etapa etapa) {
+        switch (etapa) {
+            case Etapa::Proposta:        return Tipo::Reuniao;
+            case Etapa::Desenvolvimento: return Tipo::Referencias;
+            case Etapa::Defesa:          return Tipo::Arguicao;
+            case Etapa::Correcoes:       return Tipo::Entrega;
+            default:                     return Tipo::Derrubar;
+        }
+    }
+
+    Tipo DaVez(const Etapa etapa, const int vez, const int primeira) {
+        return (vez + primeira) % 2 == 0 ? Tipo::Derrubar : DeAndar(etapa);
+    }
+
+    float TempoDeReuniao(const Dificuldade::Nivel n) { return Dificuldade::Escolher(n, 2.5f, 3.0f); }
+
+    Vector2 LugarDaReuniao(Variacao::Sorteio& s, const float largura, const float xDoAluno) {
+        // A METADE OPOSTA a do aluno: a reuniao e sempre uma travessia.
+        const float meio = largura / 2.0f;
+        const float borda = kMargem + kRaioDaReuniao;
+        const float x = xDoAluno < meio ? s.Real(meio + 60.0f, largura - borda) : s.Real(borda, meio - 60.0f);
+        return Vector2(x, s.Real(kChaoDeCima + 20.0f, kChaoDeBaixo - 20.0f));
+    }
+
+    std::vector<Vector2> Referencias(Variacao::Sorteio& s, const float largura, const Dificuldade::Nivel n) {
+        std::vector<Vector2> livros;
+        for (const float x : Espalhar(s, Dificuldade::Escolher(n, 3, 4), largura)) {
+            livros.emplace_back(x, s.Real(kChaoDeCima, kChaoDeBaixo));
+        }
+        return livros;
+    }
+
+    int Raspadas(const Dificuldade::Nivel n) { return Dificuldade::Escolher(n, 6, 8); }
+
+    bool Raspou(const float distancia, const float raios) {
+        return distancia > raios && distancia <= raios + kFolgaDaRaspada;
+    }
+
+    Entrega Entregar(Variacao::Sorteio& s, const float largura) {
+        const bool daEsquerda = s.Chance(0.5f);
+        const float canto = kMargem * 0.75f;
+        Entrega e;
+        e.secretaria = Vector2(daEsquerda ? largura - canto : canto, kChaoDeBaixo - 10.0f);
+        const float x = daEsquerda ? s.Real(kMargem, largura * 0.35f) : s.Real(largura * 0.65f, largura - kMargem);
+        e.versao = Vector2(x, s.Real(kChaoDeCima - 60.0f, kChaoDeCima + 40.0f));
+        return e;
+    }
+
+    int Placas(const Tipo tipo, const Dificuldade::Nivel n, const int alvosCertos) {
+        switch (tipo) {
+            case Tipo::Reuniao:     return 5;
+            case Tipo::Referencias: return Dificuldade::Escolher(n, 3, 4);
+            case Tipo::Arguicao:    return Raspadas(n);
+            case Tipo::Entrega:     return 2;
+            default:                return std::max(1, alvosCertos);
+        }
+    }
+
+    int PlacasDePe(const int placas, const float progresso) {
+        const float falta = 1.0f - std::clamp(progresso, 0.0f, 1.0f);
+        // O EPSILON: 1/3 de 3 placas nao pode deixar 2,0000001 de pe.
+        return std::clamp(static_cast<int>(std::ceil(static_cast<float>(placas) * falta - 1e-4f)), 0, placas);
+    }
+
+    float PorPasso(const Tipo tipo, const Dificuldade::Nivel n) {
+        switch (tipo) {
+            case Tipo::Arguicao: return PorAlvo(n) * 0.5f;
+            case Tipo::Reuniao:  return PorAlvo(n) * 2.0f;
+            default:             return PorAlvo(n);
+        }
+    }
+
+    std::string Pede(const Tipo tipo, const int faltam) {
+        const std::string n = std::to_string(faltam);
+        switch (tipo) {
+            case Tipo::Reuniao:
+                return "reunião: fique com o orientador";
+            case Tipo::Referencias:
+                return faltam == 1 ? "falta 1 referência" : "faltam " + n + " referências";
+            case Tipo::Arguicao:
+                return faltam == 1 ? "raspe em mais 1 pergunta" : "raspe em mais " + n + " perguntas";
+            case Tipo::Entrega:
+                return faltam > 0 ? "pegue a versão final" : "leve-a à secretaria";
+            default:
+                return "";
+        }
+    }
 }

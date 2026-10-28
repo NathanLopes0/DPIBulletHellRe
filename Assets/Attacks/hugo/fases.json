@@ -29,22 +29,25 @@
   // longe e de lado, adianta so metade; o que curva procura onde ele esta.
   //
   // O HUGO E BLINDADO (Objetivo.h, Hugo::AceitaDano): o TCC ainda nao esta
-  // pronto. Em cada etapa o aluno derruba os alvos do objetivo ("alvo" e
-  // "bug", o posto "objetivo") - as assinaturas, os bugs, a resposta certa da
-  // banca, as correcoes -, e o escudo abre por uns 8 s (6 no Dificil). Cada
-  // alvo e cada janela pagam um pouco de nota (Battle::Conquistar); aberto,
-  // as paginas da monografia escorrem embaixo dele ("rascunho"). E as etapas
-  // duram 30 s (Fase::kDuracaoDoTcc): a batalha maior do jogo.
+  // pronto. Em cada etapa o aluno cumpre objetivos, de duas maneiras que se
+  // alternam: derrubar os alvos ("alvo" e "bug", o posto "objetivo") - as
+  // assinaturas, os bugs, a resposta certa da banca, as correcoes - ou andar
+  // - a reuniao com o orientador, as referencias (pegas pelo "alvo", como
+  // enfeite), a arguicao, a entrega da versao final. O escudo abre por uns 8
+  // s (6 no Dificil). Cada passo e cada janela pagam um pouco de nota
+  // (Battle::Conquistar); aberto, as paginas da monografia escorrem embaixo
+  // dele ("rascunho"). E as etapas duram 30 s (Fase::kDuracaoDoTcc): a
+  // batalha maior do jogo.
   //
   // O PODER DO ORIENTADOR (Poder.h) carrega acertando o Hugo, blindado ou
   // nao, e sai no botao 3.
   //
   // E A BATALHA MAIS DIFICIL. Medido com os dez orientadores, duas sementes
-  // cada, a batalha inteira, com o piloto indo atras do objetivo e soltando o
-  // poder: no Normal o que desvia passa em 19 de 20 (media 69,4, uns 13
-  // acertos) e o que so persegue em 6 de 20; no Dificil, 13 de 20 (media
-  // 59,8, uns 15 acertos) e 3 de 20. O parado reprova sempre; o que vai e vem,
-  // em 15 de 16.
+  // cada, a batalha inteira, com o piloto indo atras do objetivo - e andando
+  // ate ele, nos de andar - e soltando o poder: no Normal o que desvia passa
+  // em 18 de 20 (media 73,6, uns 11 acertos) e o que so persegue em 4 de 20;
+  // no Dificil, 14 de 20 (media 53,3, uns 16 acertos) e 4 de 20. O parado e
+  // o que vai e vem reprovam sempre.
   //
   // Os campos estao em Documentacao/arquivos-de-dados.md; os nomes de fase nao
   // sao livres, e StateFinal e obrigatorio.

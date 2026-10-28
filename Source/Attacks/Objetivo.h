@@ -32,6 +32,13 @@
  *
  * Os alvos sao projeteis do Hugo, DERRUBAVEIS, no posto "objetivo" - os poderes
  * do orientador nao os apagam (Orientador::TirosSoltos), e o Hugo os move.
+ *
+ * DERRUBAR E UMA DAS DUAS MANEIRAS de cada etapa; a outra e de ANDAR (Tipo,
+ * mais abaixo), e as duas se alternam.
+ *
+ * O ESCUDO SE LE SEM TEXTO: e feito de PLACAS (Placas, PlacasDePe), uma por
+ * coisa a fazer, que caem com o progresso - o Hugo as desenha, com um fio ate
+ * cada coisa que ainda o segura.
  */
 namespace Objetivo {
 
@@ -101,4 +108,86 @@ namespace Objetivo {
 
     /// @brief O que o placar diz do objetivo, faltando 'faltam' alvos.
     std::string Falta(Etapa etapa, int faltam);
+
+    // ---- AS OUTRAS MANEIRAS DE ABRIR -----------------------------------------------
+    //
+    // DERRUBAR NAO E O UNICO JEITO. Cada etapa tem duas maneiras de abrir o
+    // escudo, e os objetivos dela se alternam - a primeira e sorteada pela
+    // luta. A outra maneira e de ANDAR, e nao de atirar: o aluno vai ate algum
+    // lugar, no meio dos tiros, e o que ele pega e enfeite (o tiro atravessa).
+    //
+    //   a proposta        a REUNIAO DE ORIENTACAO: o orientador marca um
+    //                     lugar no chao, voa ate la, e o aluno fica com ele o
+    //                     tempo da reuniao - o anel enche enquanto ele esta
+    //                     dentro, e nao esvazia quando ele sai
+    //   o desenvolvimento as REFERENCIAS: livros espalhados embaixo, e o aluno
+    //                     passa por cima de cada um
+    //   a defesa          a ARGUICAO: sustentar as perguntas - cada tiro em que
+    //                     o aluno RASPA, sem ser acertado, conta uma
+    //   as correcoes      a ENTREGA: pegar a versao final e levar ate a
+    //                     secretaria; acertado no caminho, ele a deixa cair ali
+
+    enum class Tipo { Derrubar, Reuniao, Referencias, Arguicao, Entrega };
+
+    /// @brief A maneira de andar da 'etapa'.
+    Tipo DeAndar(Etapa etapa);
+
+    /// @brief A maneira do objetivo numero 'vez' da etapa: alternam, a partir
+    /// de 'primeira' (0 derruba primeiro, 1 anda primeiro).
+    Tipo DaVez(Etapa etapa, int vez, int primeira);
+
+    /// O CHAO DO ALUNO, onde ficam os objetivos de andar: abaixo da faixa dos
+    /// alvos, mas acima do pe dele - ninguem vai buscar nada no rodape.
+    constexpr float kChaoDeCima = 500.0f;
+    constexpr float kChaoDeBaixo = 640.0f;
+
+    // -- a reuniao
+    constexpr float kRaioDaReuniao = 80.0f;
+    /// @brief Quantos segundos dentro do anel a reuniao pede.
+    float TempoDeReuniao(Dificuldade::Nivel n);
+    /// @brief Onde a reuniao e marcada: no chao, LONGE de onde o aluno esta
+    /// ('xDoAluno') - quem ja estava la nao ganharia nada de graca.
+    Vector2 LugarDaReuniao(Variacao::Sorteio& s, float largura, float xDoAluno);
+
+    // -- as referencias
+    constexpr float kRaioDaColeta = 42.0f;
+    /// @brief Os livros, espalhados pelo chao.
+    std::vector<Vector2> Referencias(Variacao::Sorteio& s, float largura, Dificuldade::Nivel n);
+
+    // -- a arguicao
+    /// QUANTO E RASPAR: passar a menos disto da borda de um tiro sem encostar.
+    constexpr float kFolgaDaRaspada = 34.0f;
+    /// @brief Quantas raspadas a arguicao pede.
+    int Raspadas(Dificuldade::Nivel n);
+    /// @brief Se o tiro a 'distancia' do aluno (de centro a centro) o raspou,
+    /// sendo 'raios' a soma dos dois raios.
+    bool Raspou(float distancia, float raios);
+
+    // -- a entrega
+    constexpr float kRaioDaSecretaria = 70.0f;
+    struct Entrega {
+        Vector2 versao;       ///< onde a versao final aparece
+        Vector2 secretaria;   ///< onde ela e entregue: um canto do chao
+    };
+    /// @brief A versao final aparece de um lado, e a secretaria fica no canto
+    /// do OUTRO: a entrega atravessa o campo.
+    Entrega Entregar(Variacao::Sorteio& s, float largura);
+
+    /// @brief Quantas PLACAS o escudo tem para cada objetivo - uma por coisa a
+    /// fazer: os alvos certos, os livros, as raspadas; a reuniao tem cinco
+    /// (um quinto do tempo cada) e a entrega duas (pegar e entregar).
+    int Placas(Tipo tipo, Dificuldade::Nivel n, int alvosCertos);
+
+    /// @brief Quantas placas continuam de pe com o objetivo 'progresso' (0 a 1)
+    /// feito. Nenhuma so com ele inteiro.
+    int PlacasDePe(int placas, float progresso);
+
+    /// @brief O que cada passo do objetivo paga, em nota bruta: um alvo, um
+    /// livro, uma raspada (meio alvo: sao mais), pegar ou entregar a versao. A
+    /// reuniao paga dois de uma vez, no fim.
+    float PorPasso(Tipo tipo, Dificuldade::Nivel n);
+
+    /// @brief O que o placar diz de um objetivo de andar ('faltam' livros ou
+    /// raspadas; na entrega, 1 antes de pegar e 0 com ela na mao).
+    std::string Pede(Tipo tipo, int faltam);
 }

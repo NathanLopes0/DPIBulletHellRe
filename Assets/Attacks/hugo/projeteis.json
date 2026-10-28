@@ -58,12 +58,16 @@
   // O ALVO DO OBJETIVO (Objetivo.h): o que o aluno derruba para abrir o
   // escudo do Hugo - a assinatura da proposta, a resposta A, B ou C da defesa,
   // a correcao em vermelho. Derrubavel: ganha o contorno vermelho de quem cai
-  // com um tiro.
+  // com um tiro. O MESMO TIPO serve aos objetivos de andar (Objetivo::Tipo) -
+  // a referencia, a versao final, a caixa da secretaria -, mas esses o Hugo
+  // marca como enfeite: o tiro os atravessa, o aluno nao se machuca neles, e o
+  // contorno some.
   "Alvo": {
     "sprite": "Teachers/Projectiles/DPIBHHugoTcc.png",
     "dados":  "Teachers/Projectiles/DPIBHHugoTcc.json",
     "animacoes": {
-      "Assinatura": [13], "A": [14], "B": [15], "C": [16], "Correcao": [17]
+      "Assinatura": [13], "A": [14], "B": [15], "C": [16], "Correcao": [17],
+      "Referencia": [19], "Versao": [20], "Caixa": [21]
     },
     "animacaoInicial": "Assinatura",
     "escala": 1.6,
