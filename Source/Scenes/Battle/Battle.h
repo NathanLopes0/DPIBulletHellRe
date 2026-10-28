@@ -15,6 +15,7 @@
 #include "../../Pausa.h"
 #include "../../Carregamento.h"
 #include "../../Dificuldade.h"
+#include "../../Hud.h"
 #include "../../Variacao.h"
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
 
@@ -338,6 +339,32 @@ private:
     /// Anda os feixes e redesenha o que fica por cima dos alunos: os feixes,
     /// os escudos e, se a opcao estiver ligada, a hitbox de cada um.
     void AtualizarDesenhoSobreOsAlunos(float deltaTime);
+
+    // ---- A MOLDURA DO CAMPO E OS EFEITOS (Hud.h) -------------------------------
+    //
+    // A moldura mostra onde o aluno para - os trilhos dos lados, o painel da
+    // faixa da nota, a linha de cima - e responde: a parede acende quando ele
+    // encosta, e o campo pisca na cor de cada acontecimento. As faiscas sao o
+    // retorno de cada tiro: o acerto no professor, o projetil derrubado, o
+    // acerto sofrido, o Ponto Extra apanhado.
+    class DrawMolduraDoCampoComponent* mMoldura = nullptr;
+    Hud::Caixa mAreaDoAluno;
+    void LoadMoldura();
+    void AtualizarMoldura();
+
+    struct FaiscaEmCampo {
+        Vector2 onde;
+        Hud::Faisca tipo = Hud::Faisca::Acerto;
+        float idade = 0.0f;
+    };
+    std::vector<FaiscaEmCampo> mFaiscas;
+    class DrawLinhasComponent* mEfeitos = nullptr;
+    /// Um efeito em 'onde'. Com muitos ao mesmo tempo, os mais velhos saem.
+    void Faiscar(const Vector2& onde, Hud::Faisca tipo);
+    void AtualizarEfeitos(float deltaTime);
+    static constexpr int kOrdemDosEfeitos = 104;
+    static constexpr size_t kMaximoDeFaiscas = 64;
+    static constexpr int kOrdemDaMoldura = 150;
 
 
 

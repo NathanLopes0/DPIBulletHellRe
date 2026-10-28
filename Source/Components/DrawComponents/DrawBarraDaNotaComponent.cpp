@@ -8,6 +8,7 @@
 #include <cmath>
 
 #include "../../Actors/Actor.h"
+#include "Pincel.h"
 
 namespace {
     /// O raio das pontas, em pixels. Nunca mais que meia altura.
@@ -23,41 +24,10 @@ namespace {
     constexpr SDL_Color kVerdeDaAprovacao{120, 235, 150, 255};
     constexpr SDL_Color kVermelhoDoPerigo{255, 60, 60, 255};
     constexpr SDL_Color kOuro{255, 215, 80, 255};
-
-    SDL_Color Misturar(const SDL_Color a, const SDL_Color b, const float t) {
-        const float u = std::clamp(t, 0.0f, 1.0f);
-        const auto m = [u](const Uint8 x, const Uint8 y) {
-            return static_cast<Uint8>(static_cast<float>(x) + (static_cast<float>(y) - static_cast<float>(x)) * u);
-        };
-        return {m(a.r, b.r), m(a.g, b.g), m(a.b, b.b), m(a.a, b.a)};
-    }
-    SDL_Color Clarear(const SDL_Color c, const float t) { return Misturar(c, {255, 255, 255, c.a}, t); }
-    SDL_Color Escurecer(const SDL_Color c, const float t) { return Misturar(c, {0, 0, 0, c.a}, t); }
-
-    void Cor(SDL_Renderer* r, const SDL_Color c, const float alfa = 1.0f) {
-        SDL_SetRenderDrawColor(r, c.r, c.g, c.b, static_cast<Uint8>(std::clamp(static_cast<float>(c.a) * alfa, 0.0f, 255.0f)));
-    }
-
-    /// Quanto a linha 'i' de uma caixa de 'altura' recua das pontas, com raio 'raio'.
-    int Recuo(const int i, const int altura, const int raio) {
-        const int r = std::min(raio, altura / 2);
-        const int d = i < r ? r - i : (i >= altura - r ? i - (altura - r - 1) : 0);
-        if (d <= 0) return 0;
-        const float dy = static_cast<float>(d) - 0.5f;
-        return static_cast<int>(std::lround(static_cast<float>(r) - std::sqrt(std::max(0.0f, static_cast<float>(r * r) - dy * dy))));
-    }
-
-    /// Uma caixa de pontas redondas, com a cor de cada linha dada por 'tom' (0 em cima, 1 embaixo).
-    template <typename Tom>
-    void Caixa(SDL_Renderer* r, const int x, const int y, const int w, const int h, const int raio, Tom tom) {
-        for (int i = 0; i < h; ++i) {
-            const int recuo = Recuo(i, h, raio);
-            if (w - 2 * recuo <= 0) continue;
-            Cor(r, tom(static_cast<float>(i) / static_cast<float>(std::max(1, h - 1))));
-            SDL_RenderDrawLine(r, x + recuo, y + i, x + w - 1 - recuo, y + i);
-        }
-    }
 }
+
+// AS PRIMITIVAS sao as da HUD inteira (Pincel.h).
+using namespace Pincel;
 
 DrawBarraDaNotaComponent::DrawBarraDaNotaComponent(Actor* owner, const int largura, const int altura, const int drawOrder)
     : DrawComponent(owner, drawOrder), mLargura(largura), mAltura(altura) {
@@ -83,9 +53,7 @@ void DrawBarraDaNotaComponent::Update(const float deltaTime) {
 void DrawBarraDaNotaComponent::Draw(SDL_Renderer* renderer) {
     if (!mIsVisible) return;
 
-    SDL_BlendMode anterior;
-    SDL_GetRenderDrawBlendMode(renderer, &anterior);
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    const Misturando misturando(renderer);
 
     // O SACOLEJO do acerto: dois pixels, e so na vertical - a barra nao pode
     // fugir do lugar.
@@ -187,6 +155,4 @@ void DrawBarraDaNotaComponent::Draw(SDL_Renderer* renderer) {
     };
     marca(BarraDaNota::kMarcaDoExame, kAmbar);
     marca(BarraDaNota::kMarcaDaAprovacao, kVerdeDaAprovacao);
-
-    SDL_SetRenderDrawBlendMode(renderer, anterior);
 }

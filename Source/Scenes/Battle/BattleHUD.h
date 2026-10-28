@@ -9,7 +9,7 @@
 
 class Actor;
 class Scene;
-class ProgressBarComponent;
+class DrawRelogioDaFaseComponent;
 
 class BattleHUD {
 
@@ -17,7 +17,10 @@ public:
     BattleHUD(Scene* scene);
 
     void OnUpdate(float deltaTime);
-    void SetTimeBar(Actor* barActor, ProgressBarComponent* barComp);
+    void SetTimeBar(Actor* barActor, DrawRelogioDaFaseComponent* barComp);
+
+    /// Os segundos que faltam para a fase acabar.
+    [[nodiscard]] float Restante() const { return mTotalStateTime - mCurrentStateTime; }
 
     void ResetTimeBar(float newTotalTime);
 
@@ -25,7 +28,7 @@ private:
 
     Scene* mOwner;
     Actor* mTimeBarActor = nullptr;
-    ProgressBarComponent* mTimeBarComp = nullptr;
+    DrawRelogioDaFaseComponent* mTimeBarComp = nullptr;
 
     float mCurrentStateTime;
     float mTotalStateTime;

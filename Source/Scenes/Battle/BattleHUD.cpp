@@ -9,7 +9,7 @@
 #include "../Scene.h"
 #include "../../Actors/Actor.h"
 #include "../../Actors/Player/Player.h"
-#include "../../Components/DrawComponents/ProgressBarComponent.h"
+#include "../../Components/DrawComponents/DrawRelogioDaFaseComponent.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 
 #include "../../CaminhosArquivo.h"
@@ -62,10 +62,9 @@ BattleHUD::BattleHUD(Scene *scene)
 
 void BattleHUD::OnUpdate(const float deltaTime) {
     mCurrentStateTime += deltaTime;
-    const float progress = 1.0f - (mCurrentStateTime / mTotalStateTime);
 
     if (mTimeBarComp != nullptr) {
-        mTimeBarComp->SetFillPercent(progress);
+        mTimeBarComp->SetTempo(mTotalStateTime - mCurrentStateTime, mTotalStateTime);
     }
 
     UpdateVisualOrbs(deltaTime);
@@ -139,7 +138,7 @@ void BattleHUD::UpdateVisualOrbs(float deltaTime) {
 
 
 // ----- Metodo de injeção para Battle chamar ----- //
-void BattleHUD::SetTimeBar(Actor *barActor, ProgressBarComponent *barComp) {
+void BattleHUD::SetTimeBar(Actor *barActor, DrawRelogioDaFaseComponent *barComp) {
     mTimeBarActor = barActor;
     mTimeBarComp = barComp;
 }
@@ -155,9 +154,10 @@ void BattleHUD::ResetTimeBar(const float newTotalTime) {
     }
 
 
-    if (mTimeBarActor) {
-        // Enche a barra novamente
-        mTimeBarActor->GetComponent<ProgressBarComponent>()->SetFillPercent(1.0f);
+    // A CAPSULA SE ENCHE DE VOLTA, num clarao (DrawRelogioDaFaseComponent).
+    if (mTimeBarComp) {
+        mTimeBarComp->SetTempo(mTotalStateTime, mTotalStateTime);
+        mTimeBarComp->Recomecar();
     }
 }
 

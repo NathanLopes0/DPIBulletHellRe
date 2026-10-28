@@ -30,6 +30,9 @@
 #include "../../Components/DrawComponents/DrawTextComponent.h"
 #include "../../Components/DrawComponents/ProgressBarComponent.h"
 #include "../../Components/DrawComponents/DrawBarraDaNotaComponent.h"
+#include "../../Components/DrawComponents/DrawMolduraDoCampoComponent.h"
+#include "../../Components/DrawComponents/DrawQuadroComponent.h"
+#include "../../Components/DrawComponents/DrawRelogioDaFaseComponent.h"
 #include "../../Actors/Teachers/ExtraPointItem.h"
 #include "../../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../../PontoExtra.h"
@@ -190,6 +193,7 @@ void Battle::LoadHUD() {
 
     //Cria a HUD para segurar todas as infos
     mHUD = std::make_unique<BattleHUD>(this);
+    LoadMoldura();
     LoadTimeBar();
     LoadGradeBar();
     LoadPlacar();
@@ -243,12 +247,11 @@ void Battle::LoadTimeBar() {
     auto bossSprite = mBoss->GetComponent<DrawAnimatedComponent>();
     auto bossHeight = bossSprite->GetSpriteHeight();
 
-    auto barCompPtr = barActor->AddComponent<ProgressBarComponent>();
-
-    // Configura a barra que acabamos de colocar no boss
-    barCompPtr->SetOrientation(ProgressBarComponent::Orientation::Vertical);
-    barCompPtr->SetSize(10, static_cast<int>(static_cast<float>(bossHeight) / 1.4f));
-    barCompPtr->SetColors({40, 40, 40, 255}, {255, 191, 0, 255});
+    // A CAPSULA DO RELOGIO DA FASE (DrawRelogioDaFaseComponent): pequena e
+    // colada no chefe como antes, agora com moldura, cor que anda do verde ao
+    // vermelho, um dente a cada 5 s e o pulso dos ultimos segundos.
+    auto barCompPtr = barActor->AddComponent<DrawRelogioDaFaseComponent>(
+        12, static_cast<int>(static_cast<float>(bossHeight) / 1.4f), 200);
 
     Actor* barActorPtr = barActor.get();
 
@@ -423,9 +426,9 @@ void Battle::LoadPlacar() {
 
     // Verde de quadro-negro e moldura de giz. Translucido como as placas da
     // faixa, para o campo continuar aparecendo atras.
-    auto quadro = placar->AddComponent<DrawCaixaComponent>(
-        kPlacarLargura, kPlacarAltura, SDL_Color{205, 210, 200, 170},
-        SDL_Color{18, 42, 30, 150}, 2, kOrdemDoPlacar);
+    // UM QUADRO DE VERDADE (DrawQuadroComponent): moldura de madeira, lousa,
+    // canaleta com giz, e o apagador que passa quando o texto troca.
+    auto quadro = placar->AddComponent<DrawQuadroComponent>(kPlacarLargura, kPlacarAltura, kOrdemDoPlacar);
     quadro->SetIsVisible(false);
 
     // A caixa do texto e MENOR que o quadro, e o ajuste ao texto so encolhe:
@@ -436,7 +439,9 @@ void Battle::LoadPlacar() {
     texto->SetAjustarAoTexto(true);
     texto->SetIsVisible(false);
 
-    placar->SetPosition(Vector2(static_cast<float>(kPlacarMargem + kPlacarLargura / 2),
+    // DEPOIS DO TRILHO da esquerda, e nao colado na borda da tela: o trilho e
+    // da moldura, e a madeira do quadro ficaria por baixo dele.
+    placar->SetPosition(Vector2(mAreaDoAluno.esquerda + static_cast<float>(kPlacarMargem + kPlacarLargura / 2) - 4.0f,
                                 static_cast<float>(kPlacarMargem + kPlacarAltura / 2)));
 
     mPlacarActor = placar.get();
@@ -465,7 +470,9 @@ void Battle::AtualizarPlacar() {
     auto* texto = mPlacarActor->GetComponent<DrawTextComponent>();
     if (aceso) texto->SetText(anuncio);
     texto->SetIsVisible(aceso);
-    mPlacarActor->GetComponent<DrawCaixaComponent>()->SetIsVisible(aceso);
+    auto* quadro = mPlacarActor->GetComponent<DrawQuadroComponent>();
+    quadro->SetIsVisible(aceso);
+    if (aceso) quadro->Apagar();
 }
 
 void Battle::LoadIntercambio() {
@@ -756,6 +763,8 @@ void Battle::OnUpdate(float deltaTime) {
     // Orquestra a checagem de colisões
     CheckCollisions();
     AtualizarDesenhoSobreOsAlunos(deltaTime);
+    AtualizarMoldura();
+    AtualizarEfeitos(deltaTime);
 
     if (mHUD) mHUD->OnUpdate(deltaTime);
 
@@ -801,7 +810,15 @@ void Battle::TimeBarUpdate() const {
     mHUDTimeBarActor->SetPosition(Vector2(bossPos.x + offSetX,
                                     bossPos.y - offSetY));
 
-    mHUDClockActor->SetPosition(mHUDTimeBarActor->GetPosition() + Vector2(5, static_cast<float>(bossHeight) / 1.4f));
+    mHUDClockActor->SetPosition(mHUDTimeBarActor->GetPosition() + Vector2(6, static_cast<float>(bossHeight) / 1.4f + 4.0f));
+
+    // O RELOGIO FICA VERMELHO junto com a capsula, nos ultimos segundos.
+    if (auto* relogio = mHUDClockActor->GetComponent<DrawAnimatedComponent>(); relogio && mHUD) {
+        const bool urgente = Hud::Urgente(mHUD->Restante());
+        const bool aceso = urgente && std::fmod(mHUD->Restante(), 0.5f) > 0.25f;
+        if (aceso) relogio->SetColor(255, 110, 100);
+        else relogio->SetColor(255, 255, 255);
+    }
 }
 void Battle::GradeBarUpdate() {
     auto gradeComp = mGradeBarActor->GetComponent<DrawBarraDaNotaComponent>();
@@ -1180,6 +1197,11 @@ void Battle::CheckCollisions() {
                                             bossProj->FatorDaCorrente());
                     }
                     GradeDown(bossProj->MultiplicadorDaPerda());
+
+                    // O ACERTO SOFRIDO SE VE: o anel vermelho no aluno e o
+                    // campo piscando em vermelho pelas bordas.
+                    Faiscar(playerCollider->GetCenter(), Hud::Faisca::Dano);
+                    if (mMoldura) mMoldura->Acender(SDL_Color{255, 60, 50, 255}, 0.5f);
                 }
             }
         }
@@ -1217,12 +1239,14 @@ void Battle::CheckCollisions() {
                 // A RESISTENCIA: so o ultimo golpe derruba. Os outros so comem o
                 // tiro - a janela modal que pede mais de um clique.
                 if (bossProj->Golpear()) {
+                    Faiscar(bossProj->GetPosition(), Hud::Faisca::Derrubada);
                     bossProj->OnCollision(playerProj.get());
                     if (mBoss) {
                         mBoss->OnProjetilDerrubado();
                         mBoss->OnDerrubou(bossProj.get());
                     }
                 } else if (mBoss) {
+                    Faiscar(playerProj->GetPosition(), Hud::Faisca::Acerto);
                     mBoss->OnProjetilBarrado();
                 }
             }
@@ -1257,7 +1281,10 @@ void Battle::CheckCollisions() {
 
                 // Acerto de UM jogador: repartido (requisitos-coop, 2.1). O
                 // CHEFE BLINDADO come o tiro sem pagar a nota (Boss::AceitaDano).
-                if (corpo->AceitaDano()) GradeUp(PorJogador(Nota::kGanhoPorAcerto));
+                if (corpo->AceitaDano()) {
+                    GradeUp(PorJogador(Nota::kGanhoPorAcerto));
+                    Faiscar(playerProj->GetPosition(), Hud::Faisca::Acerto);
+                }
 
                 // TODO ACERTO CARREGA O PODER DO ORIENTADOR, blindado ou nao:
                 // e a recompensa de quem continua atacando.
@@ -1313,6 +1340,8 @@ void Battle::CheckCollisions() {
 
                 // 1. Efeito da Coleta
                 jogador->AddExtraPoint();
+                Faiscar(playerCollider->GetCenter(), Hud::Faisca::Coleta);
+                if (mMoldura) mMoldura->Acender(SDL_Color{255, 215, 80, 255}, 0.3f);
 
                 // 2. Toca o som
                 if (!playedPowerUpSound) {
@@ -1417,6 +1446,8 @@ void Battle::OnFaseTrocada(const float novaDuracao) {
     if (mHUD) {
         mHUD->ResetTimeBar(novaDuracao);
     }
+    // A FASE NOVA passa pelas bordas do campo, em lilas.
+    if (mMoldura) mMoldura->Acender(SDL_Color{196, 170, 230, 255}, 0.45f);
 }
 
 void Battle::EncerrarFase() {
@@ -1551,6 +1582,7 @@ void Battle::OnPlayerUsedExtraPoint(Player* quemGastou) {
     // jogador, e sao dois estoques: sem repartir, a dupla poria 20 brutos na
     // mesma barra.
     GradeUp(PorJogador(kGanhoDoPontoExtra));
+    if (mMoldura) mMoldura->Acender(SDL_Color{255, 215, 80, 255}, 0.7f);
 
     Player* oOutro = OutroJogador(quemGastou);
 
@@ -1651,6 +1683,102 @@ void Battle::AtualizarDesenhoSobreOsAlunos(const float deltaTime) {
     }
 }
 
+
+// ---------------------------------------------------------------------------
+// A MOLDURA DO CAMPO E OS EFEITOS
+// ---------------------------------------------------------------------------
+
+void Battle::LoadMoldura() {
+    // A AREA DO ALUNO sai do MESMO tamanho que o Player::BorderLimitCheck usa
+    // - o do desenho dele -, e nao de um numero copiado: a moldura fica onde
+    // ele para, e mudar o sprite muda os dois juntos.
+    const SDL_FRect campo = GetPlayfieldBounds();
+    float largura = 32.0f, altura = 48.0f;
+    if (!mJogadores.empty() && mJogadores.front()) {
+        if (const auto* sprite = mJogadores.front()->GetComponent<DrawAnimatedComponent>()) {
+            largura = static_cast<float>(sprite->GetSpriteWidth());
+            altura = static_cast<float>(sprite->GetSpriteHeight());
+        }
+    }
+    mAreaDoAluno = Hud::AreaDoAluno({campo.x, campo.y, campo.x + campo.w, campo.y + campo.h}, largura, altura);
+
+    auto moldura = std::make_unique<Actor>(this);
+    mMoldura = moldura->AddComponent<DrawMolduraDoCampoComponent>(kOrdemDaMoldura);
+    mMoldura->Definir(static_cast<float>(mGame->GetWindowWidth()), static_cast<float>(mGame->GetWindowHeight()),
+                      mAreaDoAluno);
+    AddActor(std::move(moldura));
+
+    auto efeitos = std::make_unique<Actor>(this);
+    mEfeitos = efeitos->AddComponent<DrawLinhasComponent>(kOrdemDosEfeitos);
+    AddActor(std::move(efeitos));
+}
+
+void Battle::AtualizarMoldura() {
+    if (!mMoldura) return;
+    std::vector<std::pair<Vector2, Vector2>> alunos;
+    for (const Player* p : mJogadores) {
+        if (!p) continue;
+        const auto* sprite = p->GetComponent<DrawAnimatedComponent>();
+        if (!sprite) continue;
+        alunos.emplace_back(p->GetPosition(), Vector2(static_cast<float>(sprite->GetSpriteWidth()) / 2.0f,
+                                                      static_cast<float>(sprite->GetSpriteHeight()) / 2.0f));
+    }
+    mMoldura->SetAlunos(std::move(alunos));
+}
+
+void Battle::Faiscar(const Vector2& onde, const Hud::Faisca tipo) {
+    if (mFaiscas.size() >= kMaximoDeFaiscas) mFaiscas.erase(mFaiscas.begin());
+    mFaiscas.push_back({onde, tipo, 0.0f});
+}
+
+void Battle::AtualizarEfeitos(const float deltaTime) {
+    if (!mEfeitos) return;
+    mEfeitos->Limpar();
+    for (FaiscaEmCampo& f : mFaiscas) f.idade += deltaTime;
+    mFaiscas.erase(std::remove_if(mFaiscas.begin(), mFaiscas.end(),
+                                  [](const FaiscaEmCampo& f) { return f.idade >= Hud::Vida(f.tipo); }),
+                   mFaiscas.end());
+
+    const auto alfa = [](const float a) { return static_cast<Uint8>(std::clamp(a, 0.0f, 1.0f) * 255.0f); };
+    const auto raios = [this](const Vector2& c, const float de, const float ate, const int n, const float giro,
+                              const SDL_Color cor) {
+        for (int k = 0; k < n; ++k) {
+            const float a = giro + 2.0f * Math::Pi * static_cast<float>(k) / static_cast<float>(n);
+            const Vector2 u(Math::Cos(a), Math::Sin(a));
+            mEfeitos->Acrescentar(c + u * de, c + u * ate, cor);
+        }
+    };
+    const auto anel = [this](const Vector2& c, const float r, const SDL_Color cor) {
+        for (const auto& [a, b] : PontoExtra::Anel(c, r, 24)) mEfeitos->Acrescentar(a, b, cor);
+    };
+
+    for (const FaiscaEmCampo& f : mFaiscas) {
+        const float r = Hud::Raio(f.tipo, f.idade);
+        const float b = Hud::Brilho(f.tipo, f.idade);
+        // O GIRO DE CADA UMA sai de onde ela nasceu: duas lado a lado nao sao
+        // a mesma estrela repetida.
+        const float giro = f.onde.x * 0.37f + f.onde.y * 0.11f;
+        switch (f.tipo) {
+            case Hud::Faisca::Acerto:
+                // MIUDA E BRANCA: sao dez por segundo, e nao podem cobrir o chefe.
+                raios(f.onde, r * 0.45f, r, 5, giro, SDL_Color{255, 250, 220, alfa(0.9f * b)});
+                break;
+            case Hud::Faisca::Derrubada:
+                raios(f.onde, r * 0.35f, r, 8, giro, SDL_Color{255, 160, 60, alfa(b)});
+                anel(f.onde, r * 0.7f, SDL_Color{255, 210, 120, alfa(0.6f * b)});
+                break;
+            case Hud::Faisca::Dano:
+                anel(f.onde, r, SDL_Color{255, 70, 60, alfa(b)});
+                anel(f.onde, r - 3.0f, SDL_Color{255, 70, 60, alfa(0.5f * b)});
+                raios(f.onde, r * 0.25f, r * 0.6f, 8, giro, SDL_Color{255, 120, 100, alfa(0.8f * b)});
+                break;
+            case Hud::Faisca::Coleta:
+                anel(f.onde, r, SDL_Color{255, 215, 80, alfa(b)});
+                raios(f.onde, r * 0.8f, r * 1.15f, 4, giro + f.idade * 6.0f, SDL_Color{255, 240, 160, alfa(b)});
+                break;
+        }
+    }
+}
 
 void Battle::SpawnExtraPoint(Vector2 position) {
     auto item = std::make_unique<ExtraPointItem>(this);

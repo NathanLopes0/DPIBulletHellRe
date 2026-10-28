@@ -93,6 +93,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/BarraDaNota.h
         Source/Carregamento.cpp
         Source/Carregamento.h
+        Source/Hud.cpp
+        Source/Hud.h
         Source/Personagens.cpp
         Source/Personagens.h
         Source/PersonagensArquivo.cpp
@@ -290,6 +292,13 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Components/DrawComponents/ProgressBarComponent.h
         Source/Components/DrawComponents/DrawBarraDaNotaComponent.cpp
         Source/Components/DrawComponents/DrawBarraDaNotaComponent.h
+        Source/Components/DrawComponents/DrawMolduraDoCampoComponent.cpp
+        Source/Components/DrawComponents/DrawMolduraDoCampoComponent.h
+        Source/Components/DrawComponents/DrawRelogioDaFaseComponent.cpp
+        Source/Components/DrawComponents/DrawRelogioDaFaseComponent.h
+        Source/Components/DrawComponents/DrawQuadroComponent.cpp
+        Source/Components/DrawComponents/DrawQuadroComponent.h
+        Source/Components/DrawComponents/Pincel.h
         Source/Attacks/BaseStrategies/WaveAttack.cpp
         Source/Movements/MovementStrategies.h
         Source/Movements/MovementStrategies.cpp
@@ -463,6 +472,7 @@ add_executable(dpi_tests
         tests/test_poder.cpp
         tests/test_objetivo.cpp
         tests/test_barra_da_nota.cpp
+        tests/test_hud.cpp
         tests/test_personagens.cpp
         tests/test_exportacao.cpp
         Source/Progresso.cpp
@@ -510,6 +520,8 @@ add_executable(dpi_tests
         Source/BarraDaNota.h
         Source/Carregamento.cpp
         Source/Carregamento.h
+        Source/Hud.cpp
+        Source/Hud.h
         Source/Personagens.cpp
         Source/Personagens.h
         Source/Relogio.cpp

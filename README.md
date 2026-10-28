@@ -80,6 +80,23 @@ Antes de cada batalha, uma **tela de carregamento** escura cobre o campo: o
 código e o nome da matéria, o professor e uma barra enchendo. A batalha só
 aparece pronta — o véu some, e só então o professor ataca e a música começa.
 
+**A HUD da batalha conta o que acontece sem texto:**
+
+- **as bordas do campo** são onde você para: dois trilhos dos lados e o painel
+  da faixa da nota embaixo, exatamente onde o desenho do aluno encosta (em
+  cima, uma linha tracejada discreta, porque ali é o lugar do professor). A
+  parede **acende** quando você chega perto dela;
+- **o campo pisca pelas bordas** a cada acontecimento: vermelho no acerto
+  sofrido, ouro no Ponto Extra, lilás na troca de fase;
+- **o tempo da fase** é a cápsula pequena colada no professor: anda do verde ao
+  âmbar e ao vermelho, tem um dente a cada 5 segundos, pulsa nos últimos 3 (com
+  o relógio piscando em vermelho) e se enche de volta na fase seguinte;
+- **o quadro** no canto é de giz: o professor escreve nele o que está fazendo, e
+  o apagador passa quando o texto troca;
+- **cada tiro responde**: uma faísca miúda no acerto no professor, uma explosão
+  laranja no projétil derrubado, um anel vermelho em volta de quem é acertado e
+  um dourado em quem pega um Ponto Extra.
+
 ## A nota
 
 Toda prova começa em **40**, inclusive para quem já foi bem naquela matéria — a
@@ -350,7 +367,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 1063 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 1067 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha, o objetivo e o poder do orientador no
 TCC — e também **leem os arquivos de
