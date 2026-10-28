@@ -220,7 +220,7 @@ void Orientador::Guiar(Battle& batalha, const float deltaTime) {
     // cada quadro, e o que nao esta mais la sai da lista.
     std::unordered_map<std::uint64_t, PlayerProjectile*> meus;
     for (const auto& p : tiros->GetPlayerProjectiles()) {
-        if (p && p->mOwner == this && p->GetState() == ActorState::Active) meus[p->Id()] = p.get();
+        if (p && p->mOwner == this && p->GetState() == ActorState::Active && !p->Murchando()) meus[p->Id()] = p.get();
     }
 
     struct Filho {
@@ -454,7 +454,8 @@ void Orientador::AtualizarPoder(Battle& batalha, const float deltaTime) {
         bool achou = false;
         if (const ProjectileManager* tiros = batalha.GetProjectileManager()) {
             for (const auto& p : const_cast<ProjectileManager*>(tiros)->GetPlayerProjectiles()) {
-                if (!p || p->Id() != mBala || p->GetState() != ActorState::Active) continue;
+                // A BALA BARRADA PELO ESCUDO murcha (PlayerProjectile::Murchar): ja acertou.
+                if (!p || p->Id() != mBala || p->GetState() != ActorState::Active || p->Murchando()) continue;
                 achou = true;
                 if ((p->GetPosition() - chefe->GetPosition()).Length() < 90.0f) {
                     chefe->QuebrarEscudo();
@@ -532,7 +533,7 @@ void Orientador::AtualizarPoder(Battle& batalha, const float deltaTime) {
             const std::vector<Vector2> destrutiveis = chefe->AlvosDestrutiveis();
             if (const ProjectileManager* tiros = batalha.GetProjectileManager()) {
                 for (const auto& p : const_cast<ProjectileManager*>(tiros)->GetPlayerProjectiles()) {
-                    if (!p || p->GetState() != ActorState::Active || p->Id() == mBala) continue;
+                    if (!p || p->GetState() != ActorState::Active || p->Id() == mBala || p->Murchando()) continue;
                     auto* rb = p->GetComponent<RigidBodyComponent>();
                     if (!rb) continue;
                     const Vector2 de = p->GetPosition();

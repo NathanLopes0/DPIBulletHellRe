@@ -61,7 +61,8 @@ TEST_CASE("Hud: o relogio vai do verde ao vermelho, pulsa no fim e tem um dente 
 }
 
 TEST_CASE("Hud: as faiscas crescem, apagam e cada uma tem o seu tamanho") {
-    for (const Faisca f : {Faisca::Acerto, Faisca::Derrubada, Faisca::Dano, Faisca::Coleta, Faisca::Dissolvido}) {
+    for (const Faisca f : {Faisca::Acerto, Faisca::Derrubada, Faisca::Dano, Faisca::Coleta, Faisca::Dissolvido,
+                          Faisca::Resposta}) {
         CHECK(Brilho(f, 0.0f) == doctest::Approx(1.0f));
         CHECK(Brilho(f, Vida(f)) == 0.0f);
         CHECK(Raio(f, Vida(f)) > Raio(f, 0.0f));
@@ -70,4 +71,17 @@ TEST_CASE("Hud: as faiscas crescem, apagam e cada uma tem o seu tamanho") {
     // O DANO SE VE MAIS que o acerto: e o que o aluno nao pode deixar de notar.
     CHECK(Raio(Faisca::Dano, Vida(Faisca::Dano)) > Raio(Faisca::Acerto, Vida(Faisca::Acerto)));
     CHECK(Vida(Faisca::Acerto) < Vida(Faisca::Dano));
+}
+
+TEST_CASE("Hud: cada aluno tem a sua cor, e o balao barrado murcha ate um terco") {
+    const Rgb um = CorDoAluno(0), dois = CorDoAluno(1), fora = CorDoAluno(7);
+    CHECK(um.b > um.r);      // azul
+    CHECK(dois.r > dois.b);  // laranja
+    CHECK(fora.r == 255);
+    CHECK(fora.g == 255);
+    CHECK(Murcho(0.0f) == doctest::Approx(1.0f));
+    CHECK(Murcho(kMurcha) == doctest::Approx(0.3f));
+    CHECK(Murcho(kMurcha * 0.5f) < 1.0f);
+    CHECK(Murcho(kMurcha * 0.5f) > 0.3f);
+    CHECK(Murcho(10.0f) == doctest::Approx(0.3f));
 }

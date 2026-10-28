@@ -65,6 +65,7 @@ namespace Hud {
             case Faisca::Dano:      return 0.45f;
             case Faisca::Coleta:    return 0.5f;
             case Faisca::Dissolvido: return 0.35f;
+            case Faisca::Resposta:  return 0.45f;
         }
         return 0.2f;
     }
@@ -78,6 +79,7 @@ namespace Hud {
             case Faisca::Dano:      return 14.0f + 46.0f * abre;
             case Faisca::Coleta:    return 10.0f + 40.0f * abre;
             case Faisca::Dissolvido: return 3.0f + 13.0f * abre;
+            case Faisca::Resposta:  return 2.0f + 16.0f * abre;   // o quanto o "!" ja subiu
         }
         return 10.0f;
     }
@@ -85,5 +87,16 @@ namespace Hud {
     float Brilho(const Faisca f, const float idade) {
         if (idade < 0.0f || idade >= Vida(f)) return 0.0f;
         return 1.0f - idade / Vida(f);
+    }
+
+    Rgb CorDoAluno(const std::size_t quem) {
+        if (quem == 0) return {110, 190, 255};
+        if (quem == 1) return {255, 160, 80};
+        return {255, 255, 255};
+    }
+
+    float Murcho(const float idade) {
+        const float u = std::clamp(idade / kMurcha, 0.0f, 1.0f);
+        return 1.0f - 0.7f * (1.0f - (1.0f - u) * (1.0f - u));
     }
 }

@@ -22,6 +22,10 @@ public:
     /// TCC. O tiro nasce onde o dono esta, e paga a nota do mesmo jeito.
     PlayerProjectile(class Scene* scene, class Actor* owner);
 
+    /// A DUVIDA DE UM ALUNO: o balao com o "?" na cor dele (0 o primeiro, 1 o
+    /// segundo - Ferramentas/gerar_duvida.py).
+    PlayerProjectile(class Scene* scene, class Actor* owner, size_t quem);
+
     /// O tiro com outra cara: o quadro 'quadro' da folha 'folha' (caminho em
     /// Assets, sem extensao), na 'escala', com o contorno 'contorno'. O
     /// alcance continua o do tiro de sempre (kRaioDoTiro).
@@ -43,11 +47,18 @@ public:
     /// (Tentativas.h) separa os acertos de cada um por aqui.
     [[nodiscard]] Actor* Dono() const { return mOwner; }
 
+    /// @brief O ESCUDO BARROU A PERGUNTA: o balao para, fica cinza, murcha em
+    /// Hud::kMurcha e some. Enquanto isso nao acerta mais nada.
+    void Murchar();
+    [[nodiscard]] bool Murchando() const { return mMurcha >= 0.0f; }
+
 
 private:
 
     Actor* mOwner;
     std::uint64_t mId;
+    float mMurcha = -1.0f;        ///< segundos murchando; negativo = inteiro
+    float mEscalaInteira = 1.0f;
 
     void ActivateProjectile();
     void DeactivateProjectile();

@@ -1260,10 +1260,15 @@ void Battle::CheckCollisions() {
             const auto *alvo = bossProj->GetComponent<CircleColliderComponent>();
             if (!alvo || !alvo->Intersect(*tiro)) continue;
 
-            playerProj->OnCollision(bossProj.get());
             // A BLINDAGEM VENCE: uma historia que o cursor ainda arrasta e
-            // derrubavel (e do tipo), mas na mao dele o tiro so some.
-            if (Destrutivel::Pode(bossProj->Derrubavel(), bossProj->Blindado(), bossProj->Abrigo(), bossProj->Enfeite())) {
+            // derrubavel (e do tipo), mas na mao dele a pergunta nao passa - o
+            // balao murcha ali mesmo, como no escudo do chefe.
+            if (!Destrutivel::Pode(bossProj->Derrubavel(), bossProj->Blindado(), bossProj->Abrigo(), bossProj->Enfeite())) {
+                playerProj->Murchar();
+                break;
+            }
+            playerProj->OnCollision(bossProj.get());
+            {
                 // A RESISTENCIA: so o ultimo golpe derruba. Os outros so comem o
                 // tiro - a janela modal que pede mais de um clique.
                 if (bossProj->Golpear()) {
@@ -1305,7 +1310,11 @@ void Battle::CheckCollisions() {
 
             if (colisorDoCorpo->Intersect(*playerProjCollider)) {
                 corpo->OnCollision(playerProj.get());
-                playerProj->OnCollision(corpo);
+                // O CHEFE BLINDADO NAO OUVE A PERGUNTA: o balao murcha e fica
+                // cinza na frente dele, em vez de sumir como um acerto.
+                const bool ouviu = corpo->AceitaDano();
+                if (ouviu) playerProj->OnCollision(corpo);
+                else playerProj->Murchar();
 
                 // Acerto de UM jogador: repartido (requisitos-coop, 2.1). O
                 // CHEFE BLINDADO come o tiro sem pagar a nota (Boss::AceitaDano).
@@ -1314,9 +1323,11 @@ void Battle::CheckCollisions() {
                 if (auto* r = RegistroDe(playerProj->Dono())) ++r->acertosNoProfessor;
                 else if (mOrientador && playerProj->Dono() == mOrientador) ++mTentativa.acertosDoOrientador;
 
-                if (corpo->AceitaDano()) {
+                if (ouviu) {
                     GradeUp(PorJogador(Nota::kGanhoPorAcerto));
-                    Faiscar(playerProj->GetPosition(), Hud::Faisca::Acerto);
+                    // A DUVIDA RESPONDIDA: o "?" vira um "!" na cor de quem perguntou.
+                    Faiscar(playerProj->GetPosition(), Hud::Faisca::Resposta,
+                            PosicaoDoAluno(playerProj->Dono()));
                 }
 
                 // TODO ACERTO CARREGA O PODER DO ORIENTADOR, blindado ou nao:
@@ -1941,9 +1952,16 @@ void Battle::AtualizarOndas(const float deltaTime) {
                   mMoedas.end());
 }
 
-void Battle::Faiscar(const Vector2& onde, const Hud::Faisca tipo) {
+void Battle::Faiscar(const Vector2& onde, const Hud::Faisca tipo, const int quem) {
     if (mFaiscas.size() >= kMaximoDeFaiscas) mFaiscas.erase(mFaiscas.begin());
-    mFaiscas.push_back({onde, tipo, 0.0f});
+    mFaiscas.push_back({onde, tipo, 0.0f, quem});
+}
+
+int Battle::PosicaoDoAluno(const Actor* ator) const {
+    for (size_t i = 0; i < mJogadores.size(); ++i) {
+        if (ator && mJogadores[i] == ator) return static_cast<int>(i);
+    }
+    return -1;
 }
 
 void Battle::AtualizarEfeitos(const float deltaTime) {
@@ -1996,6 +2014,27 @@ void Battle::AtualizarEfeitos(const float deltaTime) {
                 raios(f.onde, 0.0f, r, 4, giro, SDL_Color{255, 225, 120, alfa(b)});
                 raios(f.onde, 0.0f, r * 0.55f, 4, giro + Math::Pi / 4.0f, SDL_Color{255, 250, 210, alfa(b)});
                 break;
+            case Hud::Faisca::Resposta: {
+                // O "!" SOBE E SOME, na cor do aluno, com o miolo claro e um
+                // contorno escuro: ele nasce em cima do chefe, e tem de ler em
+                // cima de qualquer roupa. 'r' e o quanto ja subiu.
+                const Hud::Rgb c = Hud::CorDoAluno(f.quem < 0 ? 9 : static_cast<size_t>(f.quem));
+                const SDL_Color cor{c.r, c.g, c.b, alfa(b)};
+                const SDL_Color miolo{255, 255, 240, alfa(b)};
+                const SDL_Color contorno{20, 22, 34, alfa(0.85f * b)};
+                const Vector2 p = f.onde + Vector2(0.0f, -10.0f - r);
+                const auto exclamacao = [&](const int largura, const float folga, const SDL_Color cor) {
+                    for (int dx = -largura; dx <= largura; ++dx) {
+                        const auto x = static_cast<float>(dx);
+                        mEfeitos->Acrescentar(p + Vector2(x, -16.0f - folga), p + Vector2(x, -4.0f + folga), cor);
+                        mEfeitos->Acrescentar(p + Vector2(x, -1.0f - folga), p + Vector2(x, 2.0f + folga), cor);
+                    }
+                };
+                exclamacao(3, 1.0f, contorno);
+                exclamacao(2, 0.0f, cor);
+                exclamacao(0, -1.0f, miolo);
+                break;
+            }
         }
     }
 

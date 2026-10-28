@@ -17,6 +17,7 @@
 #include "Painel.h"
 #include "Sessao.h"
 #include "Configuracao.h"
+#include "Dificuldade.h"
 
 class IBossFactory;
 class Actor;
@@ -121,6 +122,13 @@ public:
     [[nodiscard]] int GetSelectedStage() const { return mSelectedStage; }
     void SetSelectedStage(const int subject) { mSelectedStage = subject; }
 
+    /// @brief A MATERIA EM FOCO na selecao de fases: a ultima que o cursor
+    /// tocou nesta partida, ou -1. Quem sai de uma batalha (ou do ranking, ou da
+    /// escolha do orientador) volta com o cursor nela, e nao no INF 110. Uma
+    /// partida nova (DefinirModoDeJogo) volta para o comeco da grade.
+    [[nodiscard]] int MateriaEmFoco() const { return mMateriaEmFoco; }
+    void FocarMateria(const int materia) { mMateriaEmFoco = materia; }
+
     /**
      * @brief O orientador da proxima batalha: o indice da materia de que ele e
      * professor, ou -1 para batalha sem orientador.
@@ -170,21 +178,21 @@ public:
     /**
      * @brief O modo de dificuldade das batalhas (Dificuldade.h).
      *
-     * E DA MAQUINA, e nao do aluno: vem de Saves/opcoes.cfg ao abrir o jogo, e
-     * a tela de Opcoes e quem o troca. A batalha o le ao carregar
+     * E DA PARTIDA, e nao da maquina: quem joga escolhe na tela de
+     * dificuldade (EscolhaDaDificuldade), depois de se identificar e antes da
+     * selecao de fases. Nao vai para o disco - o aluno seguinte nao herda o
+     * Dificil de quem jogou antes -, e toda partida nova comeca no Normal
+     * (DefinirModoDeJogo). A batalha o le ao carregar
      * (Battle::NivelDeDificuldade), e cada chefe escreve o proprio degrau com
      * Boss::NoNivel.
      */
-    [[nodiscard]] Dificuldade::Nivel NivelDeDificuldade() const { return mConfiguracao.dificuldade; }
+    [[nodiscard]] Dificuldade::Nivel NivelDeDificuldade() const { return mDificuldade; }
+    void DefinirDificuldade(Dificuldade::Nivel nivel) { mDificuldade = nivel; }
 
-    /// @brief Troca o modo e grava o arquivo de opcoes na hora. Se a gravacao
-    /// falhar, o modo vale ate o jogo fechar (o motivo vai para o log).
-    void DefinirDificuldade(Dificuldade::Nivel nivel);
-
-    // ---- AS OUTRAS OPCOES DA MAQUINA (Configuracao.h) ----------------------
+    // ---- AS OPCOES DA MAQUINA (Configuracao.h) -----------------------------
     //
-    // Cada Definir aplica na hora - o som, a janela - e grava o arquivo, como
-    // a dificuldade: sem um "salvar" que alguem esqueca de apertar.
+    // Cada Definir aplica na hora - o som, a janela - e grava o arquivo: sem
+    // um "salvar" que alguem esqueca de apertar.
 
     [[nodiscard]] int VolumeDaMusica() const { return mConfiguracao.volumeMusica; }
     [[nodiscard]] int VolumeDosEfeitos() const { return mConfiguracao.volumeEfeitos; }
@@ -384,6 +392,7 @@ private:
 
     /// Quantos jogam esta partida. Posto pelo menu e so por ele.
     Sessao::Modo mModoDeJogo = Sessao::Modo::Um;
+    Dificuldade::Nivel mDificuldade = Dificuldade::Nivel::Normal;
 
     /// Qual posicao esta passando pela matricula/criacao AGORA. Ver
     /// AvancarEntrada - e so durante a entrada que este numero quer dizer algo.
@@ -393,6 +402,7 @@ private:
 
     //Selected Stage, used by Battle on ChangeScene()
     int mSelectedStage{};
+    int mMateriaEmFoco = -1;
 
     /// Ver DefinirOrientador.
     int mOrientador = -1;

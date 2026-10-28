@@ -128,6 +128,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/CaminhosArquivo.h
         Source/Scenes/StageSelect.cpp
         Source/Scenes/EscolhaDoOrientador.cpp
+        Source/Scenes/EscolhaDaDificuldade.cpp
+        Source/Scenes/EscolhaDaDificuldade.h
         Source/Actors/Orientador/Orientador.cpp
         Source/Actors/Orientador/Orientador.h
         Source/Scenes/EscolhaDoOrientador.h

@@ -86,7 +86,7 @@ public:
      * @brief O modo desta batalha (Dificuldade.h).
      *
      * Lido do Game no comeco do Load, antes de o chefe nascer, e o mesmo do
-     * comeco ao fim: a tela de Opcoes nao abre no meio de uma luta. E daqui que
+     * comeco ao fim: a dificuldade so se escolhe fora da luta. E daqui que
      * cada chefe le o proprio degrau (Boss::NoNivel).
      */
     [[nodiscard]] Dificuldade::Nivel NivelDeDificuldade() const { return mNivel; }
@@ -308,7 +308,7 @@ private:
 
     /// O selo DIFICIL, na ponta direita da faixa da nota. So existe no Dificil:
     /// quem ve uma luta no corredor sabe que ela nao e a de sempre, e quem joga
-    /// sabe que a opcao ficou ligada por quem jogou antes.
+    /// ve, durante a luta toda, o que escolheu antes das fases.
     Actor* mSeloDoNivel = nullptr;
 
     /// Quantos projeteis do chefe acertaram o jogador NESTA batalha. Zera a cada
@@ -396,11 +396,14 @@ private:
         Vector2 onde;
         Hud::Faisca tipo = Hud::Faisca::Acerto;
         float idade = 0.0f;
+        int quem = -1;   ///< o aluno (a cor do "!" da Resposta); -1 = ninguem
     };
     std::vector<FaiscaEmCampo> mFaiscas;
     class DrawLinhasComponent* mEfeitos = nullptr;
     /// Um efeito em 'onde'. Com muitos ao mesmo tempo, os mais velhos saem.
-    void Faiscar(const Vector2& onde, Hud::Faisca tipo);
+    void Faiscar(const Vector2& onde, Hud::Faisca tipo, int quem = -1);
+    /// A posicao (0 ou 1) do aluno 'ator', ou -1 se ele nao e um aluno.
+    [[nodiscard]] int PosicaoDoAluno(const Actor* ator) const;
     void AtualizarEfeitos(float deltaTime);
 
     // ---- O PONTO EXTRA DE SOLO: a onda e as moedas -----------------------------

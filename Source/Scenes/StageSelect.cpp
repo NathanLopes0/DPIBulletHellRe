@@ -85,7 +85,7 @@ void StageSelect::CriarIdentificacaoNaTela() {
     // de uma - ficava "trocar usuario" solto embaixo e um "T" perdido na ponta.
     const auto rodape = trocar->AddComponent<DrawTextComponent>(
         Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um,   "jogar"},
-                        {Painel::Jogador::Um, Painel::Botao::Dois, "trocar aluno"},
+                        {Painel::Jogador::Um, Painel::Botao::Dois, "dificuldade"},
                         {Painel::Jogador::Um, Painel::Botao::Tres, "ranking"}},
                        mGame->JeitoDoRodape()),
         mStageSelectFont.get(), 1100, 34, 22, 255);
@@ -248,11 +248,23 @@ void StageSelect::CreateStageButtons() {
     }
 
     // 5. Inicialização da Seleção
+    //
+    // O CURSOR VOLTA PARA A MATERIA EM FOCO (Game::MateriaEmFoco): quem acabou
+    // de jogar o INF 213 sai da batalha em cima dele, e nao no INF 110. Sem
+    // foco (partida nova), ou com uma materia que nao tem botao, o primeiro.
     if (!mButtonObservers.empty()) {
+        mSelectedIndex = 0;
+        for (size_t i = 0; i < mButtonObservers.size(); ++i) {
+            if (mButtonObservers[i] && mButtonObservers[i]->GetSubject() == mGame->MateriaEmFoco()) {
+                mSelectedIndex = i;
+                break;
+            }
+        }
         // Validação de segurança: sempre cheque ponteiros brutos em vetores
-        if (mButtonObservers[0]) {
-            mButtonObservers[0]->ChangeSelected();
-            mSelectedSubject = mButtonObservers[0]->GetSubject();
+        if (mButtonObservers[mSelectedIndex]) {
+            mButtonObservers[mSelectedIndex]->ChangeSelected();
+            mSelectedSubject = mButtonObservers[mSelectedIndex]->GetSubject();
+            mGame->FocarMateria(mSelectedSubject);
         }
     }
 }
@@ -353,7 +365,8 @@ void StageSelect::CreateStaticUI() {
 }
 void StageSelect::OnProcessInput(const Uint8 *keyState) {
 
-    // Trocar de usuario volta para a identificacao. Nao grava nada aqui: a ficha
+    // VOLTAR E VOLTAR UM PASSO: a escolha da dificuldade, e de la a troca de
+    // aluno (a identificacao). Nao grava nada aqui: a ficha
     // do aluno que esta saindo ja foi para o disco ao fim de cada batalha, entao
     // nao ha o que perder - e sair sem ter jogado nao deveria criar arquivo.
     // O ESC continua valendo para quem desenvolve, mas nao aparece escrito:
@@ -362,7 +375,7 @@ void StageSelect::OnProcessInput(const Uint8 *keyState) {
                      || keyState[SDL_SCANCODE_ESCAPE];
     if (trocar && !mTrocarAnterior) {
         mTrocarAnterior = true;
-        mGame->RequestSceneChange(SceneType::Identificacao);
+        mGame->RequestSceneChange(SceneType::EscolhaDaDificuldade);
         return;
     }
     mTrocarAnterior = trocar;
@@ -383,6 +396,7 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
 
         mSelectedIndex = currSelected; // ATUALIZA O ESTADO REAL
         mSelectedSubject = mButtonObservers[mSelectedIndex]->GetSubject();
+        mGame->FocarMateria(mSelectedSubject);
         mInputTimer = 0.0f;
         UpdateStageInfo();
     }

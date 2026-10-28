@@ -11,7 +11,6 @@
 #include "../Game.h"
 #include "../Font.h"
 #include "../Configuracao.h"
-#include "../Dificuldade.h"
 #include "../CaminhosArquivo.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
@@ -31,9 +30,8 @@ namespace {
     const SDL_Color kMoldura{235, 235, 235, 110};
     const SDL_Color kFundo{34, 38, 48, 150};
 
-    // \xc3\xba, \xc3\xa3 e \xc3\xad sao u agudo, a til e i agudo: o MSVC nao le acento
-    // em literal.
-    const char* const kNomes[] = {"Dificuldade", "M\xc3\xbasica", "Efeitos", "Tela cheia", "Hitbox"};
+    // \xc3\xba e \xc3\xa3 sao u agudo e a til: o MSVC nao le acento em literal.
+    const char* const kNomes[] = {"M\xc3\xbasica", "Efeitos", "Tela cheia", "Hitbox"};
 
     std::string Volume(const int v) {
         return v == 0 ? std::string("< mudo >") : "< " + std::to_string(v) + " >";
@@ -98,8 +96,6 @@ Actor* Opcoes::Texto(const std::string& conteudo, const float x, const float y, 
 }
 
 void Opcoes::Mostrar() {
-    const Dificuldade::Nivel n = mGame->NivelDeDificuldade();
-
     for (int k = 0; k < kItens; ++k) {
         if (mLinhas[k].caixa) {
             mLinhas[k].caixa->SetMoldura(k == mEscolhida ? kMolduraEscolhida : kMoldura);
@@ -109,12 +105,6 @@ void Opcoes::Mostrar() {
         if (!valor) continue;
         valor->SetColor(Vector3(1.0f, 1.0f, 1.0f));
         switch (static_cast<Item>(k)) {
-            case Item::Dificuldade: {
-                valor->SetText(std::string("< ") + Dificuldade::Nome(n) + " >");
-                const float* c = Dificuldade::kCorDoDificil;
-                if (n == Dificuldade::Nivel::Dificil) valor->SetColor(Vector3(c[0], c[1], c[2]));
-                break;
-            }
             case Item::Musica:    valor->SetText(Volume(mGame->VolumeDaMusica())); break;
             case Item::Efeitos:   valor->SetText(Volume(mGame->VolumeDosEfeitos())); break;
             case Item::TelaCheia: valor->SetText(SimOuNao(mGame->TelaCheia())); break;
@@ -124,7 +114,6 @@ void Opcoes::Mostrar() {
 
     if (!mDescricao) return;
     switch (static_cast<Item>(mEscolhida)) {
-        case Item::Dificuldade: mDescricao->SetText(Dificuldade::Descricao(n)); break;
         case Item::Musica:
             mDescricao->SetText("O volume da m\xc3\xbasica da batalha, de mudo a 10.");
             break;
@@ -143,9 +132,6 @@ void Opcoes::Mostrar() {
 
 void Opcoes::Trocar(const int passo, const bool peloBotao) {
     switch (static_cast<Item>(mEscolhida)) {
-        case Item::Dificuldade:
-            mGame->DefinirDificuldade(Dificuldade::Mover(mGame->NivelDeDificuldade(), passo));
-            break;
         case Item::Musica:
         case Item::Efeitos: {
             const bool musica = static_cast<Item>(mEscolhida) == Item::Musica;

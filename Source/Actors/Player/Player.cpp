@@ -227,7 +227,7 @@ void Player::Shoot() {
     if (!projManager) return;
 
     // TODO - MATANDO o Object Pooling - mudar pra chamada de função em ProjectileManager
-    auto projectile = std::make_unique<PlayerProjectile>(GetScene(), this);
+    auto projectile = std::make_unique<PlayerProjectile>(GetScene(), this, mQuem);
 
     // Posiciona o projétil na frente do jogador
     projectile->SetPosition(GetPosition());

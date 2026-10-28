@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <vector>
 
 #include "Math.h"
@@ -76,6 +77,7 @@ namespace Hud {
         Dano,        ///< o aluno foi acertado: o anel vermelho que abre
         Coleta,      ///< o aluno pegou um Ponto Extra: o anel dourado
         Dissolvido,  ///< o tiro que a onda do Ponto Extra desfez: o brilho dourado
+        Resposta,    ///< a Duvida acertou o professor: o "?" vira um "!" que sobe e some
     };
 
     /// Quanto cada uma dura.
@@ -86,4 +88,19 @@ namespace Hud {
 
     /// @brief Quao acesa ela esta (0 a 1): some no fim da vida.
     float Brilho(Faisca f, float idade);
+
+    // ---- A DUVIDA (o tiro do aluno) ------------------------------------------------
+
+    /// @brief A COR DO ALUNO 'quem' (0 ou 1): azul o primeiro, laranja o
+    /// segundo. E a cor do "?" da Duvida dele, do "!" quando ela acerta e do
+    /// cursor dele na escolha do orientador. Fora disso, branco.
+    Rgb CorDoAluno(std::size_t quem);
+
+    /// O BALAO QUE O ESCUDO BARRA murcha e fica cinza, em vez de sumir: a
+    /// pergunta que nao foi ouvida. Dura isto.
+    constexpr float kMurcha = 0.3f;
+
+    /// @brief O tamanho do balao 'idade' segundos depois de murchar: de 1 ate
+    /// 0,3, devagar no fim.
+    float Murcho(float idade);
 }

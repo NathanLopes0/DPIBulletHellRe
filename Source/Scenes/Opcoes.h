@@ -17,8 +17,9 @@ class DrawTextComponent;
  * @class Opcoes
  * @brief Onde as configuracoes da maquina moram (Configuracao.h).
  *
- * CINCO LINHAS: a dificuldade (Dificuldade.h), o volume da musica e o dos
- * efeitos, a tela cheia e a hitbox do aluno visivel. O manche para cima e para
+ * QUATRO LINHAS: o volume da musica e o dos efeitos, a tela cheia e a hitbox
+ * do aluno visivel. A dificuldade nao mora aqui: e de quem joga, e escolhida
+ * a cada partida (EscolhaDaDificuldade). O manche para cima e para
  * baixo escolhe a linha; para os lados, ou o botao 1, troca o valor - e a
  * troca vale e vai para o disco na hora, sem um "salvar" que alguem esqueca de
  * apertar. O botao 2 (ou o ESC) volta ao menu.
@@ -37,8 +38,8 @@ public:
 
 private:
 
-    enum class Item { Dificuldade, Musica, Efeitos, TelaCheia, Hitbox };
-    static constexpr int kItens = 5;
+    enum class Item { Musica, Efeitos, TelaCheia, Hitbox };
+    static constexpr int kItens = 4;
 
     /// Cria um ator de texto no x pedido, no tamanho natural dele.
     Actor* Texto(const std::string& conteudo, float x, float y, int tamanho, int larguraMaxima);
@@ -62,7 +63,7 @@ private:
 
     /// As bordas, para uma acao por toque. Comecam em TRUE pela mesma regra
     /// das outras cenas: quem entra aqui segurando o botao 1 do menu nao
-    /// troca a dificuldade sem querer.
+    /// troca uma opcao sem querer.
     bool mVoltarAnterior = true;
     bool mTrocarAnterior = true;
     bool mEsquerdaAnterior = true;

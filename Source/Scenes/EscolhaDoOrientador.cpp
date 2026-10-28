@@ -13,6 +13,7 @@
 #include "../Game.h"
 #include "../Font.h"
 #include "../Nota.h"
+#include "../Hud.h"
 #include "../MateriasArquivo.h"
 #include "../CaminhosArquivo.h"
 #include "../Actors/Actor.h"
@@ -39,7 +40,8 @@ Vector3 EscolhaDoOrientador::ParaVector3(const SDL_Color& cor) {
 
 SDL_Color EscolhaDoOrientador::CorDoAluno(const int aluno) const {
     if (!EmDupla()) return kCorSozinho;
-    return kCorDoAluno[static_cast<size_t>(aluno == 1 ? 1 : 0)];
+    const Hud::Rgb c = Hud::CorDoAluno(aluno == 1 ? 1 : 0);
+    return SDL_Color{c.r, c.g, c.b, 255};
 }
 
 void EscolhaDoOrientador::Load() {

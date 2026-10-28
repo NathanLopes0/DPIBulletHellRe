@@ -7,8 +7,6 @@
 #include <string>
 #include <vector>
 
-#include "Dificuldade.h"
-
 /**
  * CAMADA PURA: so texto. Quem abre o arquivo e ConfiguracaoArquivo.cpp.
  * Coberto por test_configuracao.cpp.
@@ -28,9 +26,10 @@ namespace Configuracao {
     /// O volume vai de 0 (mudo) a kVolumeMaximo, que e o volume de sempre.
     constexpr int kVolumeMaximo = 10;
 
+    /// A DIFICULDADE NAO MORA MAIS AQUI: e da partida, escolhida por quem
+    /// joga antes da selecao de fases (Game::NivelDeDificuldade). Um arquivo
+    /// antigo com "dificuldade=" continua sendo lido - a linha so e ignorada.
     struct Dados {
-        Dificuldade::Nivel dificuldade = Dificuldade::Nivel::Normal;
-
         /// A musica (o som em laco, o da batalha) e os efeitos (o tiro, o
         /// Ponto Extra, os ataques), cada um de 0 a kVolumeMaximo.
         int volumeMusica = kVolumeMaximo;
@@ -67,7 +66,7 @@ namespace Configuracao {
      * no padrao e vai para `problemas`.
      *
      * Um arquivo de opcoes estragado nao pode impedir ninguem de jogar, pela
-     * mesma regra da ficha: no pior caso o jogo abre no Normal.
+     * mesma regra da ficha: no pior caso o jogo abre com as opcoes padrao.
      *
      * Aceita espaco em volta da chave e do valor, linha em branco, comentario e
      * fim de linha do Windows. Chave desconhecida e problema, e nao erro: e o

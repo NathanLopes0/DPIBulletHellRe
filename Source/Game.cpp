@@ -22,6 +22,7 @@
 #include "Scenes/CriacaoDePersonagem.h"
 #include "Scenes/StageSelect.h"
 #include "Scenes/EscolhaDoOrientador.h"
+#include "Scenes/EscolhaDaDificuldade.h"
 #include "Scenes/Battle/Battle.h"
 #include "Actors/Teachers/BossFactory/AllFactories.h"
 
@@ -525,6 +526,9 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
         case Scene::SceneType::EscolhaDoOrientador:
             mScene = std::make_unique<EscolhaDoOrientador>(this);
             break;
+        case Scene::SceneType::EscolhaDaDificuldade:
+            mScene = std::make_unique<EscolhaDaDificuldade>(this);
+            break;
         case Scene::SceneType::Battle:
             mScene = std::make_unique<Battle>(this, mSelectedStage);
             break;
@@ -635,12 +639,6 @@ const Personagens::Aparencia& Game::AparenciaDe(const size_t posicao) const {
     return posicao < mSessoes.size() ? mSessoes[posicao].aparencia : mSessoes.front().aparencia;
 }
 
-void Game::DefinirDificuldade(const Dificuldade::Nivel nivel) {
-    if (mConfiguracao.dificuldade == nivel) return;
-    mConfiguracao.dificuldade = nivel;
-    ConfiguracaoArquivo::Gravar(mConfiguracao);
-}
-
 void Game::AplicarVolumes() {
     if (mAudio) mAudio->DefinirVolumes(Configuracao::FatorDoVolume(mConfiguracao.volumeMusica),
                                        Configuracao::FatorDoVolume(mConfiguracao.volumeEfeitos));
@@ -687,6 +685,10 @@ void Game::DefinirModoDeJogo(const Sessao::Modo modo) {
 
     mModoDeJogo = modo;
     mPosicaoEntrando = 0;
+    // PARTIDA NOVA, NORMAL DE NOVO: o cursor da tela de dificuldade comeca
+    // nele, e quem quer o Dificil tem de escolher.
+    mDificuldade = Dificuldade::Nivel::Normal;
+    mMateriaEmFoco = -1;
 
     // AS SESSOES SAO REFEITAS, e nao ajustadas. Encolher de dois para um
     // deixaria o jogador 2 pendurado; crescer de um para dois manteria o aluno
@@ -703,7 +705,8 @@ void Game::AvancarEntrada() {
         return;
     }
 
-    RequestSceneChange(Scene::SceneType::StageSelect);
+    // DEPOIS DE TODOS ENTRAREM, A DIFICULDADE - e so entao as fases.
+    RequestSceneChange(Scene::SceneType::EscolhaDaDificuldade);
 }
 
 void Game::CancelarEntrada() {

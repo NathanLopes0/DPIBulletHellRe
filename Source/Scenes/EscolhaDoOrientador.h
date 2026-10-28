@@ -82,12 +82,9 @@ private:
     static inline const SDL_Color kFundoDoCartao{10, 14, 30, 215};
     static inline const SDL_Color kSemFundo{0, 0, 0, 0};
 
-    /// A cor de cada aluno. Sozinho, o cursor e dourado: nao ha de quem ser.
+    /// A cor de cada aluno e Hud::CorDoAluno - a mesma do "?" da Duvida dele.
+    /// Sozinho, o cursor e dourado: nao ha de quem ser.
     static inline const SDL_Color kCorSozinho{255, 214, 0, 255};
-    static inline const std::array<SDL_Color, kMaxAlunos> kCorDoAluno{{
-        {110, 190, 255, 255},
-        {255, 160, 80, 255},
-    }};
 
     /// O retrato de quem nao foi escolhido escurece enquanto o anuncio dura.
     static constexpr Uint8 kRetratoApagado = 90;

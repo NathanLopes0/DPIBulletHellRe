@@ -13,10 +13,16 @@
 #include "../../Scenes/Battle/Battle.h"
 
 #include "../../CaminhosArquivo.h"
+#include "../../Hud.h"
 
 
 
 PlayerProjectile::PlayerProjectile(Scene *scene, Actor *owner) :
+        PlayerProjectile(scene, owner, 0)
+{
+}
+
+PlayerProjectile::PlayerProjectile(Scene *scene, Actor *owner, const size_t quem) :
         Projectile(scene, owner)
 
 {
@@ -25,8 +31,10 @@ PlayerProjectile::PlayerProjectile(Scene *scene, Actor *owner) :
     static std::uint64_t proximo = 0;
     mId = ++proximo;
 
-    std::string spritePath = Caminhos::Asset("Player/PlayerProjectile1.png");
-    std::string dataPath = Caminhos::Asset("Player/PlayerProjectile1.json");
+    // A FOLHA DO ALUNO: PlayerProjectile1 o primeiro, PlayerProjectile2 o segundo.
+    const std::string folha = quem == 1 ? "Player/PlayerProjectile2" : "Player/PlayerProjectile1";
+    std::string spritePath = Caminhos::Asset(folha + ".png");
+    std::string dataPath = Caminhos::Asset(folha + ".json");
 
     auto drawComp = AddComponent<DrawAnimatedComponent>(spritePath, dataPath, 50);
 
@@ -86,6 +94,15 @@ bool PlayerProjectile::IsOffScreen() const
 void PlayerProjectile::OnUpdate(float deltaTime) {
     Projectile::OnUpdate(deltaTime);
 
+    if (Murchando()) {
+        mMurcha += deltaTime;
+        if (mMurcha >= Hud::kMurcha) {
+            DeactivateProjectile();
+            return;
+        }
+        SetScale(mEscalaInteira * Hud::Murcho(mMurcha));
+    }
+
     //----- ULTIMA COISA DO UPDATE: Ver colisão. Pois com colisão o objeto pode ser destruído.
 }
 
@@ -102,6 +119,20 @@ void PlayerProjectile::ActivateProjectile() {
     }
 
     SetPosition(mOwner->GetPosition());
+}
+
+void PlayerProjectile::Murchar() {
+    if (Murchando()) return;
+    mMurcha = 0.0f;
+    mEscalaInteira = GetScale();
+
+    // CAI DEVAGAR, em vez de seguir subindo: a pergunta perdeu o folego.
+    if (auto* rb = GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2(0.0f, 110.0f));
+    if (auto* c = GetComponent<CircleColliderComponent>()) c->SetEnabled(false);
+    if (auto* d = GetComponent<DrawAnimatedComponent>()) {
+        d->SetColor(150, 150, 160);
+        d->SetIsPaused(true);
+    }
 }
 
 void PlayerProjectile::DeactivateProjectile() {

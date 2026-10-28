@@ -26,7 +26,7 @@ escritos na tela.
 | Painel | Jogador 1 | Jogador 2 | O que faz |
 |---|---|---|---|
 | **Manche** | **setas** | **W A S D** | mover o aluno, escolher na tela |
-| **Botão 1** | **Espaço** | **F** | lançar Dúvidas; confirmar; digitar |
+| **Botão 1** | **Espaço** | **F** | lançar Dúvidas (os balões com **?**); confirmar; digitar |
 | **Botão 2** | **B** | **G** | voltar e apagar; na batalha, gastar um Ponto Extra: sozinho, uma onda dourada sai de você e desfaz os tiros do professor por onde passa, e você fica 1,5 s sem atirar — em troca, ganha a nota que ganharia acertando todos os tiros desse tempo; em dupla, dá ao parceiro um escudo que destrói os projéteis do chefe, e quem gastou segue atirando |
 | **Botão 3** | **N** | **H** | o ranking da matéria, na seleção; na batalha do TCC, soltar o poder do orientador quando o anel dele enche |
 | — | **Esc** | — | na batalha, **só no computador**: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota |
@@ -46,21 +46,42 @@ porquê de cada uma, estão em `Documentacao/requisitos-coop.md`.
 
 O que cada botão faz **na tela em que você está** fica escrito no rodapé dela.
 
+O tiro do aluno é uma **Dúvida**: um balão de fala com um **?**, azul no
+jogador 1 e laranja no jogador 2 — em dupla, dá para ver de quem é cada
+pergunta. Quando ela acerta o professor, o **?** vira um **!** na mesma cor, que
+sobe e some: a dúvida foi respondida. Quando o professor está **blindado** (o
+escudo do Hugo, a história que o cursor da Maria Lúcia arrasta), o balão
+**murcha e fica cinza**: a pergunta não foi ouvida, e não vale nota.
+
 Alguns projéteis o seu tiro **destrói** — os workers do Elixir, os agentes do
 Júlio, os blocos da pilha do Salles, a bala de prata da Maria Lúcia, os alvos
 do objetivo do TCC... Todos têm
 o mesmo sinal: um **contorno vermelho** em volta do desenho. Sem contorno, o tiro
 passa direto ou some nele.
 
+Depois da identificação, **quem vai jogar escolhe a dificuldade**, numa tela
+com dois cartões — o manche troca, o botão 1 confirma e leva à seleção de
+fases, e o botão 2 volta para trocar de aluno (da seleção de fases, o botão 2
+volta para esta tela):
+
+- **Normal**: as fases como foram medidas;
+- **Difícil**: um degrau acima para quem já tira 100 — mais coisa para desviar,
+  e **quase sem respiro depois de um acerto**: no Normal o aluno pisca 1,2 s sem
+  levar outro tiro; no Difícil, 0,4 s, e o tiro que vinha atrás do primeiro
+  também acerta (o mesmo tiro, ou o corpo do professor, ainda espera 1,2 s para
+  acertar de novo — ficar preso não é o que se cobra).
+
+A nota vale o mesmo nos dois, e a batalha no Difícil mostra o selo **DIFÍCIL**
+na ponta da faixa da nota. A escolha é **da partida**: não fica gravada, e toda
+partida nova começa com o cursor no Normal — quem chega ao gabinete não herda o
+Difícil de quem jogou antes.
+
+Ao sair de uma batalha (ou do ranking), a seleção de fases volta com o cursor
+na **última matéria escolhida**, e não no INF 110. Uma partida nova começa do
+começo da grade.
+
 Na tela de **Opções**, do menu principal, ficam:
 
-- a **dificuldade**: **Normal**, as fases como foram medidas, ou **Difícil**, um
-  degrau acima para quem já tira 100 — mais coisa para desviar, e **quase sem
-  respiro depois de um acerto**: no Normal o aluno pisca 1,2 s sem levar outro
-  tiro; no Difícil, 0,4 s, e o tiro que vinha atrás do primeiro também acerta
-  (o mesmo tiro, ou o corpo do professor, ainda espera 1,2 s para acertar de
-  novo — ficar preso não é o que se cobra). A nota vale o mesmo nos dois, e a
-  batalha no Difícil mostra o selo **DIFÍCIL** na ponta da faixa da nota;
 - o volume da **música** e o dos **efeitos**, de mudo a 10;
 - a **tela cheia** (no gabinete o jogo é sempre em tela cheia);
 - a **hitbox**: mostra na batalha o círculo onde um tiro acerta o aluno de
@@ -160,7 +181,7 @@ Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
 - **`<matrícula>.json`** — uma ficha por aluno: aparência do personagem, recorde
   e última nota de cada matéria, com data. A nota vai para o disco **uma vez, no
   fim da batalha**, e não durante.
-- **`opcoes.cfg`** — as opções da máquina (a dificuldade, os volumes, a tela
+- **`opcoes.cfg`** — as opções da máquina (os volumes, a tela
   cheia e a hitbox), em `chave=valor`. A tela de Opções o escreve na hora em
   que algo muda.
 - **`notas.csv`** — a planilha do professor, com uma linha por aluno-matéria.

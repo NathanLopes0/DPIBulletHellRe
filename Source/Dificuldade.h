@@ -11,8 +11,8 @@
  *
  * O NORMAL E O JOGO COMO ELE FOI MEDIDO: cada fase foi afinada para que o
  * piloto que persegue passe com folga e o parado reprove (Ferramentas/), e
- * nada aqui mexe nisso. O DIFICIL e um degrau acima, escolhido na tela de
- * Opcoes, para quem ja tira 100 no Normal: mais coisa para desviar - mais
+ * nada aqui mexe nisso. O DIFICIL e um degrau acima, escolhido por quem joga
+ * antes das fases (EscolhaDaDificuldade), para quem ja tira 100 no Normal: mais coisa para desviar - mais
  * tiros, mais depressa, menos tempo entre eles.
  *
  * O DEGRAU NAO E UM MULTIPLICADOR UNICO. Quase todo ataque de hoje e conduzido
@@ -29,7 +29,7 @@ namespace Dificuldade {
 
     enum class Nivel { Normal, Dificil };
 
-    /// Os niveis, na ordem em que a tela de Opcoes os percorre.
+    /// Os niveis, na ordem dos cartoes da tela de dificuldade.
     constexpr Nivel kNiveis[] = {Nivel::Normal, Nivel::Dificil};
     constexpr int kQuantos = static_cast<int>(sizeof(kNiveis) / sizeof(kNiveis[0]));
 
@@ -38,12 +38,12 @@ namespace Dificuldade {
     const char* Nome(Nivel n);
 
     /// A COR DO DIFICIL na tela (r, g, b de 0 a 1): o selo da batalha e o valor
-    /// na tela de Opcoes sao a mesma coisa, e tem de se reconhecer. Um vermelho
+    /// na tela de dificuldade sao a mesma coisa, e tem de se reconhecer. Um vermelho
     /// claro, que le como aviso e nao se confunde com o dourado do TESTE FINAL
     /// nem com o verde da FASE LIMPA.
     constexpr float kCorDoDificil[3] = {1.0f, 0.42f, 0.36f};
 
-    /// Uma linha que diz o que o nivel muda, para a tela de Opcoes.
+    /// Uma linha que diz o que o nivel muda, para a tela de dificuldade.
     const char* Descricao(Nivel n);
 
     /// Como o nivel e escrito no arquivo de opcoes: "normal", "dificil". Sem

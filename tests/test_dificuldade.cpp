@@ -57,15 +57,14 @@ TEST_CASE("Dificuldade: Escolher devolve o valor do nivel") {
     CHECK(Dificuldade::Escolher(Nivel::Dificil, 0.4f, 0.3f) == doctest::Approx(0.3f));
 }
 
-TEST_CASE("Configuracao: o padrao e o Normal, e o arquivo vai e volta") {
-    CHECK(Configuracao::Dados{}.dificuldade == Nivel::Normal);
-    for (const Nivel n : Dificuldade::kNiveis) {
-        Configuracao::Dados d;
-        d.dificuldade = n;
-        const auto lida = Configuracao::Ler(Configuracao::Serializar(d));
-        CHECK(lida.problemas.empty());
-        CHECK(lida.dados.dificuldade == n);
-    }
+TEST_CASE("Configuracao: a dificuldade nao e mais opcao da maquina, e o arquivo antigo continua lido") {
+    // O ARQUIVO DE HOJE NAO A ESCREVE...
+    CHECK(Configuracao::Serializar(Configuracao::Dados{}).find("dificuldade") == std::string::npos);
+    // ...E O DE ANTES, com ela, e lido sem problema nenhum: a linha so nao vale.
+    const auto antigo = Configuracao::Ler("# x\r\n  dificuldade =  dificil  \r\nhitbox=sim\n");
+    CHECK(antigo.problemas.empty());
+    CHECK(antigo.dados.mostrarHitbox);
+    CHECK(Configuracao::Ler("dificuldade=impossivel\n").problemas.empty());
 }
 
 TEST_CASE("Configuracao: arquivo vazio, comentario e linha em branco dao o padrao, sem problema") {
@@ -73,38 +72,32 @@ TEST_CASE("Configuracao: arquivo vazio, comentario e linha em branco dao o padra
         CAPTURE(texto);
         const auto lida = Configuracao::Ler(texto);
         CHECK(lida.problemas.empty());
-        CHECK(lida.dados.dificuldade == Nivel::Normal);
+        CHECK(lida.dados.volumeMusica == Configuracao::kVolumeMaximo);
     }
 }
 
 TEST_CASE("Configuracao: aceita espaco em volta e fim de linha do Windows") {
-    const auto lida = Configuracao::Ler("# x\r\n  dificuldade =  dificil  \r\n");
+    const auto lida = Configuracao::Ler("# x\r\n  volume_musica =  3  \r\n");
     CHECK(lida.problemas.empty());
-    CHECK(lida.dados.dificuldade == Nivel::Dificil);
+    CHECK(lida.dados.volumeMusica == 3);
 }
 
 TEST_CASE("Configuracao: o que nao se entende vira problema, e o resto vale") {
-    SUBCASE("valor desconhecido fica no padrao") {
-        const auto lida = Configuracao::Ler("dificuldade=impossivel\n");
-        REQUIRE(lida.problemas.size() == 1);
-        CHECK(lida.problemas[0].find("linha 1") != std::string::npos);
-        CHECK(lida.dados.dificuldade == Nivel::Normal);
-    }
     SUBCASE("chave desconhecida nao derruba a conhecida") {
-        const auto lida = Configuracao::Ler("volume=7\ndificuldade=dificil\n");
+        const auto lida = Configuracao::Ler("volume=7\nvolume_efeitos=4\n");
         REQUIRE(lida.problemas.size() == 1);
         CHECK(lida.problemas[0].find("volume") != std::string::npos);
-        CHECK(lida.dados.dificuldade == Nivel::Dificil);
+        CHECK(lida.problemas[0].find("linha 1") != std::string::npos);
+        CHECK(lida.dados.volumeEfeitos == 4);
     }
     SUBCASE("linha sem igual") {
         const auto lida = Configuracao::Ler("dificil\n");
         REQUIRE(lida.problemas.size() == 1);
-        CHECK(lida.dados.dificuldade == Nivel::Normal);
     }
     SUBCASE("a ultima linha de uma chave repetida vale") {
-        const auto lida = Configuracao::Ler("dificuldade=dificil\ndificuldade=normal\n");
+        const auto lida = Configuracao::Ler("volume_musica=2\nvolume_musica=5\n");
         CHECK(lida.problemas.empty());
-        CHECK(lida.dados.dificuldade == Nivel::Normal);
+        CHECK(lida.dados.volumeMusica == 5);
     }
 }
 
@@ -116,14 +109,12 @@ TEST_CASE("Configuracao: o volume, a tela cheia e a hitbox vao e voltam, e o pad
     CHECK_FALSE(padrao.mostrarHitbox);
 
     Configuracao::Dados d;
-    d.dificuldade = Nivel::Dificil;
     d.volumeMusica = 0;
     d.volumeEfeitos = 7;
     d.telaCheia = true;
     d.mostrarHitbox = true;
     const auto lida = Configuracao::Ler(Configuracao::Serializar(d));
     CHECK(lida.problemas.empty());
-    CHECK(lida.dados.dificuldade == Nivel::Dificil);
     CHECK(lida.dados.volumeMusica == 0);
     CHECK(lida.dados.volumeEfeitos == 7);
     CHECK(lida.dados.telaCheia);

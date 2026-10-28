@@ -25,6 +25,7 @@ public:
         Opcoes,
         Ranking,
         Atracao,
+        EscolhaDaDificuldade,
         StageSelect,
         EscolhaDoOrientador,
         Battle
