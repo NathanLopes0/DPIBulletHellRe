@@ -1,5 +1,5 @@
 //
-// O flexbox do CSS: as posicoes de cada justify-content e a curva da transicao.
+// O flexbox do CSS: as posicoes de cada justify-content e a varredura.
 //
 
 #include "doctest.h"
@@ -13,11 +13,9 @@
 #include <vector>
 
 
-// A PARTE QUE DA PARA TESTAR DE UMA ESTRATEGIA QUE CRIA PROJETEIS.
-//
-// FlexAttack pede projeteis ao pool e nao entra na suite. O que entra e a conta
-// de onde cada item fica - que tem de bater com o CSS de verdade, porque o
-// placar escreve o nome do valor e quem estudou a materia vai conferir.
+// A CONTA DE ONDE CADA ITEM FICA tem de bater com o CSS de verdade: o placar do
+// DevTools (Estilo.h) escreve o nome do valor, e quem estudou a materia vai
+// conferir.
 
 TEST_CASE("Flex: os cinco valores de justify-content, numa linha de 0 a 600 com 4 itens de 50") {
     using Flex::Justificar;
@@ -62,20 +60,6 @@ TEST_CASE("Flex: os nomes do CSS vao e voltam, e um nome inventado e recusado") 
     CHECK_FALSE(Flex::PeloNome("centro", j));
 }
 
-TEST_CASE("Flex: a transicao comeca e termina devagar, e fica parada fora da janela") {
-    CHECK(Flex::Progresso(0.3f, 0.6f, 0.5f) == doctest::Approx(0.0f));
-    CHECK(Flex::Progresso(0.85f, 0.6f, 0.5f) == doctest::Approx(0.5f));
-    CHECK(Flex::Progresso(1.2f, 0.6f, 0.5f) == doctest::Approx(1.0f));
-
-    // EASE-IN-OUT: no primeiro decimo da janela andou menos que um decimo do
-    // caminho, e no ultimo decimo andou menos que um decimo tambem.
-    CHECK(Flex::Progresso(0.65f, 0.6f, 0.5f) < 0.1f);
-    CHECK(Flex::Progresso(1.05f, 0.6f, 0.5f) > 0.9f);
-
-    // Duracao zero: um degrau.
-    CHECK(Flex::Progresso(0.6001f, 0.6f, 0.0f) == doctest::Approx(1.0f));
-}
-
 TEST_CASE("Flex: a regra de cada fileira e sorteada, sempre de junta para espalhada e de volta") {
     using J = Flex::Justificar;
     CHECK(Flex::Junto(J::Inicio));
@@ -109,26 +93,6 @@ TEST_CASE("Flex: a regra de cada fileira e sorteada, sempre de junta para espalh
         db = Flex::Proxima(b, db);
         CHECK(da == db);
     }
-}
-
-TEST_CASE("Flex: uma coluna a cada tantos disparos, e a coluna entra pelos dois lados") {
-    Variacao::Sorteio s = Variacao::SorteioDa(7u, "StateTwo");
-    int daEsquerda = 0, daDireita = 0;
-    for (int k = 0; k < 200; ++k) {
-        const Flex::Direcao d = Flex::DirecaoDoDisparo(s, k);
-        CHECK(d.coluna == (k % Flex::kCadaQuantasColunas == Flex::kCadaQuantasColunas - 1));
-        if (!d.coluna) { CHECK(d.sentido == 1.0f); continue; }
-        if (d.sentido > 0.0f) ++daEsquerda; else ++daDireita;
-    }
-    CHECK(daEsquerda > 20);
-    CHECK(daDireita > 20);
-    // NO DIFICIL, uma coluna a cada dois.
-    for (int k = 0; k < 10; ++k) CHECK(Flex::DirecaoDoDisparo(s, k, Flex::kCadaQuantasColunasNoDificil).coluna == (k % 2 == 1));
-    CHECK(Flex::NomeDaDirecao(true) == "column");
-    CHECK(Flex::NomeDaDirecao(false) == "row");
-    // A COLUNA CABE NA TELA, na altura do aluno.
-    CHECK(Flex::kYDaColuna - Flex::kAlturaDaColuna / 2.0f > 150.0f);
-    CHECK(Flex::kYDaColuna + Flex::kAlturaDaColuna / 2.0f < 800.0f);
 }
 
 TEST_CASE("Flex: a varredura vai e volta entre as margens, na velocidade pedida") {

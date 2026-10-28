@@ -9,7 +9,6 @@
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Scenes/Battle/Battle.h"
 #include "../Actors/Teachers/Boss.h"
-#include "Flex.h"
 #include "Promessa.h"
 #include "Amarra.h"
 #include "../Random.h"
@@ -360,16 +359,6 @@ void PulsoDeVelocidadeBehavior::update(Projectile* p, float deltaTime) {
     }
 
     rb->SetVelocity(AjustarModulo(rb->GetVelocity(), fase.modulo));
-}
-
-void DeslocarBehavior::update(Projectile* p, const float deltaTime) {
-    t += deltaTime;
-
-    const float alvo = Flex::Progresso(t, atraso, duracao);
-    p->SetPosition(p->GetPosition() + delta * (alvo - jaDeslocado));
-    jaDeslocado = alvo;
-
-    if (t >= atraso + duracao) terminou = true;
 }
 
 void PromessaBehavior::update(Projectile* p, const float deltaTime) {

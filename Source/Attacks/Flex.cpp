@@ -1,6 +1,6 @@
 //
-// O flexbox do CSS - onde cada item de uma fileira fica, para cada valor de
-// justify-content, e a curva da transicao entre dois arranjos.
+// O flexbox do CSS - onde cada item de uma linha fica, para cada valor de
+// justify-content.
 //
 
 #include "Flex.h"
@@ -69,13 +69,6 @@ std::vector<float> Posicoes(const Justificar j, const int n, const float item,
     return x;
 }
 
-float Progresso(const float t, const float atraso, const float duracao) {
-    if (t <= atraso) return 0.0f;
-    if (duracao <= 0.0f || t >= atraso + duracao) return 1.0f;
-    const float u = (t - atraso) / duracao;
-    return u * u * (3.0f - 2.0f * u);
-}
-
 bool Junto(const Justificar j) {
     return j == Justificar::Inicio || j == Justificar::Fim || j == Justificar::Centro;
 }
@@ -84,19 +77,6 @@ Justificar Proxima(Variacao::Sorteio& s, const Justificar de) {
     if (Junto(de)) return s.Chance(0.5f) ? Justificar::EspacoEntre : Justificar::EspacoEmVolta;
     const Justificar juntos[] = {Justificar::Inicio, Justificar::Fim, Justificar::Centro};
     return juntos[s.Inteiro(0, 2)];
-}
-
-Direcao DirecaoDoDisparo(Variacao::Sorteio& s, const int k, const int cada) {
-    Direcao d;
-    const int n = cada < 1 ? 1 : cada;
-    d.coluna = (k % n) == n - 1;
-
-    if (d.coluna) d.sentido = s.Chance(0.5f) ? 1.0f : -1.0f;
-    return d;
-}
-
-std::string NomeDaDirecao(const bool coluna) {
-    return coluna ? "column" : "row";
 }
 
 float XDaVarredura(const float t, const float x0, const float velocidade, const float largura) {

@@ -18,12 +18,13 @@
     { "animacao": "Regra" }
   ],
 
-  // JAVASCRIPT: A PROMESSA. Sai no leque, para pendente aos 0,7s (SlowDown com
-  // fator zero) e assenta aos 1,5s: a parte que resolve e 0,6, e as resolvidas
-  // saem contra o aluno a 280 px/s, ja como TAG - o fetch voltou com HTML -;
-  // as outras sao rejeitadas e somem (Promessa, ver Promessa.h). Numa final
-  // medida, 37 das 70 promessas resolveram. Parada, uma promessa nunca sairia da
-  // tela; e o assentar, resolvendo ou rejeitando, que a tira de la.
+  // JAVASCRIPT: A PROMESSA - o leque do .then e o anel da resposta do fetch,
+  // no event loop da final. Sai, para pendente aos 0,7s (SlowDown com fator
+  // zero) e assenta aos 1,5s: a parte que resolve e 0,6, e as resolvidas saem
+  // contra o aluno a 280 px/s, ja como TAG - o fetch voltou com HTML -; as
+  // outras sao rejeitadas e somem (Promessa, ver Promessa.h). Parada, uma
+  // promessa nunca sairia da tela; e o assentar, resolvendo ou rejeitando, que
+  // a tira de la.
   "promessas": [
     { "animacao": "Promessa",
       "modifiers": [
@@ -31,15 +32,47 @@
         { "tipo": "Promessa", "atraso": 1.5, "resolve": 0.6, "velocidade": 280, "escreve": "Tag" } ] }
   ],
 
-  // ELIXIR: o processo vai atras do aluno, devagar e por bastante tempo. Um
-  // processo e leve e insistente: nao corre, mas nao desiste cedo.
-  // A MENSAGEM de um processo para o aluno - o send do Elixir. Sai reta,
-  // mirada nele, do processo da vez (Lucas::AtualizarElixir).
+  // A PAGINA DA FASE 1: o cursor e o spinner ficam no posto "pagina" - e por
+  // la que o F5 os acha para apagar -, e o Lucas os move (Lucas::RenderizarPagina).
+  "pagina": [
+    { "posto": "pagina" }
+  ],
+  "spinner": [
+    { "posto": "pagina", "animacao": "Promessa" }
+  ],
+
+  // O DEVTOOLS DA FASE 2: os cartoes da grade ficam no posto "grade", e o
+  // Lucas os move para onde o CSS de agora manda (Lucas::AtualizarEstilo).
+  "grade": [
+    { "posto": "grade", "animacao": "Regra" }
+  ],
+
+  // O HANDLE_CAST DA FASE 3: o leque de envelopes do worker que processou a
+  // caixa cheia.
   "mensagem": [
     { "animacao": "Mensagem" }
   ],
 
-  "processos": [
-    { "motion": { "tipo": "Tracking", "atraso": 0.4, "forca": 2.2, "duracao": 3.6 } }
+  // O PIPE DA FASE 3: cada etapa do |> que escorre embaixo do supervisor
+  // parado. Ladrilho cheio, e nao envelope: o envelope que corre pela linha
+  // da arvore e o cast, que nao machuca.
+  "pipe": [
+    { "animacao": "Pipe" }
+  ],
+
+  // A ARVORE DE SUPERVISAO DA FASE 3: os workers e as mensagens que correm ate
+  // eles ficam no posto "supervisao", e o Lucas os move (Lucas::AtualizarSupervisao).
+  "worker": [
+    { "posto": "supervisao" }
+  ],
+  "cast": [
+    { "posto": "supervisao", "animacao": "Mensagem" }
+  ],
+
+  // O EVENT LOOP DA FINAL: a ficha de cada linha do script fica no posto
+  // "eventloop", e o Lucas a leva da pilha as Web APIs e as filas
+  // (Lucas::AtualizarEventLoop). A animacao e a do tipo da linha, posta por ele.
+  "ficha": [
+    { "posto": "eventloop" }
   ]
 }

@@ -135,22 +135,6 @@ struct DescricaoDePontos {
 };
 
 /**
- * @brief Os campos que SO a FlexAttack usa.
- *
- * "de" e "para" sao OBRIGATORIOS e tem de ser nomes de justify-content do CSS
- * de verdade (Flex::PeloNome): quem estudou a materia vai ler o placar, e um
- * nome inventado ensinaria CSS errado. O resto tem padrao em FlexAttackParams.
- */
-struct DescricaoDeFlex {
-    std::string de;
-    std::string para;
-    std::optional<float> aos;
-    std::optional<float> em;
-    std::optional<float> item;
-    std::optional<float> largura;
-};
-
-/**
  * @brief Um ataque: a geometria do disparo e as regras de cada projetil.
  *
  * OS CAMPOS NUMERICOS SAO OPCIONAIS DE PROPOSITO.
@@ -234,9 +218,6 @@ struct DescricaoDeAtaque {
 
     /// Presente so nos ataques CaixaAttack que escreveram o bloco.
     std::optional<DescricaoDeCaixa> caixa;
-
-    /// Presente somente nos ataques FlexAttack.
-    std::optional<DescricaoDeFlex> flex;
 
     /// Presente so nos ataques SprintAttack que escreveram o bloco.
     std::optional<DescricaoDeSprint> sprint;

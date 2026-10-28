@@ -48,8 +48,8 @@ class ProjectileMotion : public ProjectileBehavior {
  * @brief Behavior que MODIFICA a velocidade ja existente, ou agenda quando ela
  * comeca a valer. Varios podem coexistir no mesmo projetil.
  *
- * Sao Modifier: Accelerate, SlowDown, Activate, Deactivate, PulsoDeVelocidade,
- * Deslocar e Promessa.
+ * Sao Modifier: Accelerate, SlowDown, Activate, Deactivate, PulsoDeVelocidade
+ * e Promessa.
  *
  * O QUE ESTA SEPARACAO GARANTE, E O QUE NAO GARANTE
  *
@@ -395,35 +395,6 @@ struct DeactivateBehavior : public ProjectileModifier {
 };
 
 /**
- * @brief Desloca o projetil 'delta' pixels, comecando em 'atraso' e levando
- * 'duracao' segundos, pela curva suave de uma transition do CSS.
- *
- * E a transicao de justify-content da FlexAttack: cada item da fileira escorrega
- * de onde o primeiro arranjo o pos ate onde o segundo o poe - na horizontal
- * numa fileira (flex-direction: row), na vertical numa coluna.
- *
- * MEXE NA POSICAO, E NAO NA VELOCIDADE. Somar uma velocidade horizontal por
- * 'duracao' segundos erraria o destino em ate um quadro de cada lado - a
- * fileira chegaria torta, e um arranjo torto nao se le como arranjo. Aqui cada
- * quadro aplica so o que falta para a posicao da curva (Flex::Progresso), entao
- * o total e exatamente 'delta', e o voo - que e da velocidade - segue intacto.
- */
-struct DeslocarBehavior : public ProjectileModifier {
-
-    DeslocarBehavior(float atraso, float duracao, const Vector2& delta)
-        : atraso(atraso), duracao(duracao), delta(delta) {}
-
-    void update(Projectile* p, float deltaTime) override;
-    bool isFinished() const override { return terminou; }
-
-    float atraso, duracao;
-    Vector2 delta;
-    float t = 0.0f;
-    float jaDeslocado = 0.0f;   ///< a fracao de 'delta' ja aplicada
-    bool terminou = false;
-};
-
-/**
  * @brief A PROMISE: o projetil espera pendente e, aos 'atraso' segundos, se
  * resolve ou e rejeitado.
  *
@@ -469,8 +440,7 @@ struct PromessaBehavior : public ProjectileModifier {
  *
  * E UMA MOTION, e cumpre o contrato: decide a direcao e preserva o modulo. Ela
  * tambem poe a letra de volta na circunferencia a cada quadro (o RigidBody,
- * que roda antes, a leva pela tangente, um pouco para fora), como o Deslocar
- * mexe na posicao.
+ * que roda antes, a leva pela tangente, um pouco para fora).
  *
  * 'escreve', se houver, e a animacao que a letra passa a ter quando a corda
  * estica - a amarracao acontecendo na frente do aluno.

@@ -20,6 +20,12 @@ OS PROJETEIS, um por assunto, e cada um com a cor de uma camada da web:
     Promessa  amarelo, "...": o que ainda nao chegou (JavaScript).
     Processo  roxo, um circulo com "|>": o que roda no servidor (Elixir).
     Mensagem  lilas, um envelope: o send de um processo (Elixir).
+    Cursor    a seta do mouse, que clica no <button> da pagina (HTML).
+    Pipe      lilas, um ladrilho com "|>": cada etapa do pipe que escorre
+              embaixo do supervisor parado (Elixir).
+    Ficha     a linha do script no event loop da final: um quadro OCO, com a
+              cor do tipo da linha na borda - oco para nao se confundir com os
+              projeteis cheios, que machucam; a ficha nao machuca.
 
 O Processo e um TIPO separado em projeteis.json, e nao so uma animacao, porque
 ele vai ganhar regras de tipo (ser derrubavel) que os outros nao tem.
@@ -147,10 +153,50 @@ def mensagem(fase):
     return im
 
 
+def cursor(fase):
+    """O CURSOR do mouse, que voa ate o <button> da pagina e clica: a seta
+    branca de sempre, com o contorno escuro. No clique (o ultimo quadro) ela
+    afunda um pixel."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    a = 1 if fase == 3 else 0
+    seta = [(9, 5 + a), (9, 25 + a), (14, 20 + a), (18, 28 + a), (21, 26 + a), (17, 19 + a), (24, 19 + a)]
+    d.polygon(seta, fill=TINTA, outline=TRACO)
+    d.line(seta + [seta[0]], fill=TRACO, width=2)
+    return im
+
+
+def pipe(fase):
+    """O PIPE: um ladrilho lilas, cheio como os outros tiros, com o "|>" do
+    Elixir. O envelope fica para a mensagem; isto e o dado escorrendo pelo
+    pipe."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    m = 4 + (fase % 2)
+    d.rounded_rectangle([m, m, 31 - m, 31 - m], radius=5, fill=COR_PROCESSO, outline=TRACO, width=2)
+    d.line([(11, 10), (11, 22)], fill=TINTA, width=2)
+    d.line([(15, 10), (22, 16), (15, 22)], fill=TINTA, width=2)
+    return im
+
+
+def ficha(tipo):
+    """A FICHA de uma linha do script no event loop: um quadro oco, como um
+    frame da pilha, com duas linhas de codigo dentro. Um quadro por tipo de
+    linha: console.log (laranja), setTimeout (azul), .then (amarelo) e fetch
+    (lilas)."""
+    cor = (COR_TAG, COR_REGRA, COR_PROMESSA, COR_MENSAGEM)[tipo]
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([3, 7, 28, 24], radius=3, fill=TELA, outline=cor, width=2)
+    d.line([(8, 13), (20, 13)], fill=cor, width=2)
+    d.line([(8, 18), (16, 18)], fill=TINTA, width=2)
+    return im
+
+
 def folha():
-    """Quatro quadros de cada, um assunto por linha, numa folha 4x5."""
-    f = Image.new("RGBA", (128, 160), (0, 0, 0, 0))
-    for linha, desenho in enumerate((tag, regra, promessa, processo, mensagem)):
+    """Quatro quadros de cada, um assunto por linha, numa folha 4x8."""
+    f = Image.new("RGBA", (128, 256), (0, 0, 0, 0))
+    for linha, desenho in enumerate((tag, regra, promessa, processo, mensagem, cursor, ficha, pipe)):
         for i in range(4):
             f.alpha_composite(desenho(i), (i * 32, linha * 32))
     return f
@@ -167,4 +213,4 @@ def grava(im, nome, pasta, quadros=1, lado=None):
 
 if __name__ == "__main__":
     grava(lucas(), "DPIBHLucas", "Assets/Teachers")
-    grava(folha(), "DPIBHLucasCodigo", "Assets/Teachers/Projectiles", quadros=20, lado=32)
+    grava(folha(), "DPIBHLucasCodigo", "Assets/Teachers/Projectiles", quadros=32, lado=32)

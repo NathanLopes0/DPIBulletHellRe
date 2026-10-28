@@ -4,234 +4,244 @@
   //
   // A ORDEM DA MATERIA, e a batalha sobe por ela:
   //
-  //   StateOne    HTML        um documento escrito tag por tag: caixas aninhadas
-  //   StateTwo    CSS         o flexbox: fileiras e colunas que se redistribuem
-  //   StateThree  Elixir      o servidor: processos que mandam mensagens e voltam
-  //   StateFinal  JavaScript  promessas que resolvem ou sao rejeitadas
+  //   StateOne    HTML        uma pagina renderizada no navegador (Pagina.h)
+  //   StateTwo    CSS         o DevTools: uma grade que cada regra transforma (Estilo.h)
+  //   StateThree  Elixir      a arvore de supervisao (Elixir.h)
+  //   StateFinal  JavaScript  o event loop (EventLoop.h)
   //
   // O ELIXIR E A FASE 3, E NAO A FINAL, de proposito. E o que o Lucas mais
   // gosta, e a fase 3 e a que DECIDE a batalha ("proximo" vazio): a final so e
   // vista por quem termina entre 40 e 59, ou com 100. Deixar o Elixir la seria
   // esconder justamente a parte que da identidade ao chefe.
   //
-  // ESTE E O ESQUELETO: as quatro fases ja tem o gesto e o anuncio que vao
-  // manter, mas os ATAQUES SAO PROVISORIOS, montados com as estrategias que ja
-  // existiam. Cada fase ganha a mecanica dela num commit proprio.
+  // CADA FASE E UMA ESTRUTURA DESENHADA NO CAMPO, como as do Ricardo e do
+  // Vladimir: o layout da pagina, a grade do DevTools, a arvore de supervisao e
+  // as caixas do event loop. Os tiros saem DELA, e nao so do professor - e o
+  // placar escreve o codigo de cada coisa que ataca. O que dados nao sabem
+  // fazer (mover a estrutura, decidir quem ataca) mora em Lucas.cpp; os
+  // ataques e os numeros moram aqui, puxados por gatilho.
   //
-  // O MOVIMENTO E O ATAQUE, como no Vladimir e no Vitor - nenhuma fase usa
-  // GoToCenter, que deixa o chefe na coluna de quem atira para cima.
+  // CADA LUTA E OUTRA (Variacao.h; Lucas::SortearALuta): as paginas da fase 1,
+  // as regras CSS da fase 2, as estrategias de supervisao da fase 3 e os
+  // scripts da final sao sorteados.
   //
-  // O NORMAL FOI REBALANCEADO junto com a variacao. Medido na batalha
-  // inteira, o piloto que persegue REPROVAVA em toda semente, com 41,5: a fase
-  // 2 o derrubava a uns 50 - ele anda para dentro da fileira que cai sobre o
-  // chefe -, ele caia na repescagem, e a repescagem varria a 300 px/s e lhe
-  // dava 16,7 partindo de 40 - a licao da final do Luizinho, que as outras
-  // finais ja tinham aprendido. Agora a repescagem e uma orbita, e o Normal
-  // solta uma caixa a cada 1,6 s na fase 1 (e nao 1,4). O Dificil e o Lucas
-  // de antes nas fases 1 e 2, com as caixas a cada 1,2 s.
-  //
-  // CADA LUTA E OUTRA (Variacao.h; Lucas::SortearALuta): os documentos HTML da
-  // fase 1 sao gerados (Dom::Gerar), e na fase 2 a regra de cada fileira e o
-  // lado de cada coluna sao sorteados.
-  //
-  // MAIS RAPIDO E MAIS DINAMICO, como os outros: o documento da fase 1, a
-  // coluna da fase 2 e as mensagens da fase 3 entraram juntos. Antes ele era o
-  // mais parado da grade - uma caixa a cada 1,6 s, a mesma em toda luta.
+  // FICAR EMBAIXO DO PROFESSOR PARADO CUSTA, nas fases 2 e 3: e quando ele
+  // para - para digitar a regra, ou o supervisor entre duas varreduras - que
+  // ele e facil de acertar, e e entao que a cascata do CSS e o pipe do Elixir
+  // escorrem pela coluna dele. Sem isso, o piloto que so o persegue ganhava 30
+  // pontos na fase 2 tomando 4 acertos.
   //
   // Medido em cinco sementes, a batalha inteira: no Normal o que persegue
-  // termina com 72,0 a 79,8 e o que desvia com 69,3 a 86,5 (2 a 6 acertos);
-  // no Dificil o que persegue reprova nas cinco (49,7 a 56,9, depois da
-  // repescagem) e o que desvia termina com 69,2 a 82,5 (3 ou 4 acertos). O
+  // termina com 62,9 a 69,5 e o que desvia com 81,5 a 100 (0 a 2 acertos); no
+  // Dificil o que persegue reprova nas cinco (0 a 56,2, a melhor depois da
+  // repescagem) e o que desvia termina com 75,4 a 86,0 (3 a 5 acertos). O
   // parado e o que vai e vem reprovam nos dois.
   // ==========================================================================
 
-  // FASE 1 - HTML: O DOCUMENTO   |   gesto: O PROFESSOR VAI A CADA ELEMENTO
+  // FASE 1 - HTML: A PAGINA   |   gesto: O PROFESSOR NO HEADER
   //
-  // O LUCAS ESCREVE UM DOCUMENTO HTML, tag por tag, e o documento e gerado a
-  // cada vez (Dom.h): um <main> com uma lista, um paragrafo com link, uma
-  // div com imagem... Uma tag a cada 0,4 s (0,32 no Dificil), e o placar a
-  // escreve com o caminho dela no DOM - "<li>" e embaixo "main > ul > li".
+  // O CAMPO E A JANELA DO NAVEGADOR (Pagina.h): o layout fica desenhado a fase
+  // inteira - o header, e embaixo o nav, o main e o aside -, e o Lucas
+  // renderiza uma pagina gerada a cada vez, um elemento a cada 1,2 s (0,95 no
+  // Dificil), no fluxo do documento. O placar escreve o elemento e o caminho
+  // dele: "<img src="gato.png">" e embaixo "body > main". CADA ELEMENTO ATACA
+  // DO SEU JEITO, e o tipo e o aviso:
   //
-  //   <ul>    ABRE: a caixa de tags do elemento nasce no lugar dele e cresce
-  //           (CaixaAttack, o gatilho "abrir"). O filho nasce embaixo do pai,
-  //           e a caixa dele e 30% menor a cada geracao - o box model
-  //           desenhado.
-  //   </ul>   FECHA: a caixa daquele elemento vira do avesso - as tags que
-  //           ainda estao no campo voltam, passam pelo centro e saem do outro
-  //           lado, 30% mais rapido. Lendo o placar, o aluno sabe qual caixa
-  //           vai voltar: a do ultimo elemento aberto.
-  //   <img>   o elemento VAZIO abre e fecha de uma vez: um anel ("vazio").
+  //   <button>   "cursor" voa do professor ate o botao e "clique" solta um
+  //              leque. O cursor e derrubavel: derrubado, event.preventDefault()
+  //   <img>      "spinner" gira enquanto carrega; carregada, "carregar" e um anel
+  //   <marquee>  "marquee": uma linha de tags atravessa a tela, descendo
+  //   <table>    "celula": as linhas acendem uma a uma, e cada uma cai
+  //   <a href>   o professor navega ate a ancora e chega num anel ("navegar")
+  //   <input>    "digitar": cada letra sai mirada no aluno
   //
-  // O PROFESSOR VAI ATE CADA ELEMENTO para abri-lo (o movimento "Conduzido"),
-  // e entre um documento e o seguinte respira 0,9 s.
+  // Renderizada a pagina inteira, o F5: os elementos somem e vem outra.
   //
-  // Era uma caixa a cada 1,6 s, sempre igual, com o professor orbitando
-  // devagar: a fase mais parada da batalha, e a mesma em toda luta.
+  // O PROFESSOR FICA NO HEADER, em cima da regiao que esta renderizando (o
+  // movimento "Conduzido"). Em cima de cada elemento, como era, ele trocava de
+  // lugar a cada 1,2 s e o tiro do aluno nao o achava.
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
     "anuncio": "<!DOCTYPE html>",
-    "movimento": { "tipo": "Conduzido", "a": 300 },
+    "movimento": { "tipo": "Conduzido", "a": 380 },
     "ataques": [
-      { "gatilho": "abrir", "estrategia": "CaixaAttack", "projetil": "Codigo",
-        "projeteis": 28, "velocidade": 130,
-        "dificil": { "velocidade": 150 },
+      { "gatilho": "cursor", "estrategia": "WaveAttack", "projetil": "Cursor",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "pagina" },
+      { "gatilho": "clique", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 5, "velocidade": 240, "angulo": 50, "intervalo": 0,
+        "dificil": { "projeteis": 7 },
         "regras": "html" },
-      { "gatilho": "vazio", "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
-        "projeteis": 10, "velocidade": 190,
+      { "gatilho": "spinner", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "spinner" },
+      { "gatilho": "carregar", "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
+        "projeteis": 12, "velocidade": 190,
+        "dificil": { "projeteis": 16 },
+        "regras": "html" },
+      { "gatilho": "marquee", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 1, "velocidade": 227, "angulo": 0, "intervalo": 0,
+        "regras": "html" },
+      { "gatilho": "celula", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 1, "velocidade": 250, "angulo": 0, "intervalo": 0,
+        "regras": "html" },
+      { "gatilho": "navegar", "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
+        "projeteis": 10, "velocidade": 200,
         "dificil": { "projeteis": 14 },
-        "regras": "html" }
-    ]
-  },
-
-  // FASE 2 - CSS: O FLEXBOX   |   gesto: A VARREDURA
-  //
-  // flex-direction TAMBEM: a cada tres disparos (dois no Dificil) sai uma
-  // COLUNA em vez de uma fileira - 5 regras em 520 px de altura, na altura do
-  // aluno -, que entra por um lado sorteado e atravessa a tela, rearranjando-
-  // se na VERTICAL (Flex::DirecaoDoDisparo). O placar diz as duas regras:
-  // "flex-direction: column" e embaixo o justify-content. Com os 8 itens da
-  // fileira, o "center" de uma coluna era uma parede de 352 px na altura do
-  // aluno, e quem desviava tomava 3,7 acertos na fase sozinha.
-  //
-  // O PROFESSOR VARRE O ALTO A 90 px/s (120 no Dificil; Flex::XDaVarredura,
-  // pelo movimento "Conduzido"). A 170 px/s, como era, o tiro do aluno nao o
-  // achava: ate quem o seguia perdia nota na fase.
-  //
-  // O CSS nao cria nada, ele REARRANJA. Cada disparo e uma fileira de 8 regras
-  // que nasce arrumada de um jeito e cai reta; aos 0,7s de queda, em 0,5s, cada
-  // uma escorrega ate onde o outro justify-content a poria (FlexAttack). A
-  // primeira fileira sai junta no meio ("center", o "de" daqui), e cada uma
-  // das seguintes nasce onde a anterior terminou e vai para uma regra
-  // SORTEADA (Flex::Proxima): da junta - flex-start, flex-end ou center -
-  // para uma espalhada - space-between ou space-around -, e da espalhada
-  // para uma junta. Quem escolhe e Lucas::CustomizeAttackParams, porque
-  // depende da fileira anterior; o "para" daqui e o de antes do sorteio, em
-  // que as fileiras so alternavam center e space-between.
-  //
-  // SEMPRE DE JUNTA PARA ESPALHADA E DE VOLTA, e nao qualquer regra: sorteando
-  // entre todas, o piloto que desvia tomava 2 a 5 acertos nesta fase (e nao 1)
-  // e o que persegue reprovava em duas de cinco lutas. E no Dificil, deixar a
-  // espalhada ir para a outra espalhada - o vao andando no meio da queda -
-  // reprovava o que persegue em quatro de cinco e nao pegava o que desvia.
-  //
-  // O LUGAR SEGURO TROCA NO MEIO DA QUEDA: com a fileira junta, as laterais
-  // estao livres; depois que ela se abre, o livre e o vao entre duas regras. E
-  // O PLACAR ESCREVE A REGRA DE CADA FILEIRA ("justify-content: center") no
-  // instante em que ela sai - os 0,7s antes do rearranjo sao o tempo de ler.
-  //
-  // O CONTEINER E A DIV DELE, 760px centrados no chefe: e por isso que a
-  // varredura importa - cada fileira cai num lugar diferente da largura.
-  //
-  // 8 REGRAS A 220 px/s, A CADA 1,1s, foi a que manteve a fase no peso do
-  // esqueleto. Medido nesta fase (persegue / parado / vai e vem): o leque
-  // provisorio dava 3 / 5 / 5, e esta da 2 / 5 / 4. Com 10 regras foi a 4 / 6 / 5;
-  // mais rapida (260 px/s a cada 0,9s), a 6 / 4 / 4.
-  "StateTwo": {
-    "duracao": 20,
-    "proximo": "StateThree",
-    "anuncio": "display: flex",
-    "movimento": { "tipo": "Conduzido", "a": 400 },
-    "ataques": [
-      { "estrategia": "FlexAttack", "projetil": "Codigo",
-        "projeteis": 8, "velocidade": 220,
-        "flex": { "de": "center", "para": "space-between", "aos": 0.7, "em": 0.5 },
-        "cooldown": 1.1,
-        "dificil": { "cooldown": 0.9 },
+        "regras": "html" },
+      { "gatilho": "digitar", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 1, "velocidade": 300, "angulo": 0, "intervalo": 0,
+        "dificil": { "velocidade": 340 },
         "regras": "css" }
     ]
   },
 
-  // FASE 3 - ELIXIR: LET IT CRASH   |   gesto: A ORBITA
+  // FASE 2 - CSS: O DEVTOOLS   |   gesto: A VARREDURA
   //
-  // E OS PROCESSOS CONVERSAM: no Elixir processo so fala por mensagem, e a
-  // cada 0,6 s (0,35 no Dificil) um processo vivo - um de cada vez, da
-  // esquerda para a direita - manda uma ao aluno, um envelope reto mirado
-  // nele (o gatilho "send", Elixir.h). O placar escreve o send. Derrubar um
-  // processo tambem cala as mensagens dele. No Dificil a rodada tem 6
-  // processos, e nao 4.
+  // F12: uma grade de 18 cartoes (o posto "grade", gatilho "cartao") que cada
+  // regra CSS do placar transforma INTEIRA (Estilo.h) - gap, justify-content,
+  // flex-direction, rotate, scale, display: none, animation, position: fixed
+  // e :hover. Uma regra a cada 2,0 s (1,6 no Dificil), e nenhuma se repete.
   //
-  // O servidor da voltas e solta processos - leves, lentos e insistentes. O
-  // aluno PODE DERRUBA-LOS ("derrubavel" em projeteis.json): a Duvida some junto
-  // com o processo e nao chega ao chefe. E o supervisor poe de volta, na rodada
-  // seguinte, cada processo que caiu (Lucas::OnProjetilDerrubado, no maximo 4
-  // por rodada). Derrubar abre o caminho por um instante, e nao para sempre.
+  //   o repaint     ("repintar") a transicao acabou e cada cartao atira reto
+  //                 para baixo, de onde esta; no Dificil, um leque de 3
+  //   fixed         a grade se espalha de borda a borda e cai; outra nasce
+  //   :hover        o cartao em cima do aluno desce ate ele
+  //   a cascata     ("escorrer") enquanto ele digita a regra, cada letra
+  //                 escorre reta embaixo dele - o C do CSS
   //
-  // O SUPERVISOR E O QUE FAZ A FASE. Medido com ele desligado: o piloto que
-  // persegue derruba 43 processos, nao toma acerto nenhum nesta fase e termina
-  // com 84,4 - atirar resolvia tudo. Com ele, derruba 64 e toma 3.
+  // O PROFESSOR VARRE O ALTO A 90 px/s (120 no Dificil) e PARA para digitar
+  // cada regra (Estilo::kDigitando): varrendo sem parar, quem desviava nao o
+  // acertava. E a grade fica no ESPELHO dele, para a coluna de baixo dele ser
+  // o lugar de atirar - e a cascata, o preco de ficar la.
   //
-  // A TROCA E A FASE: limpar o caminho custa os acertos que iriam para a nota.
-  // Medido na batalha inteira, contra os processos imortais do esqueleto: o
-  // piloto que persegue derruba 64 processos, toma 3 acertos nesta fase em vez
-  // de 4, e termina com 64,5 em vez de 69,6, porque acertou o chefe 190 vezes
-  // em vez de 227.
-  //
-  // 4 POR RODADA A CADA 0,8s, e nao 5 a cada 1,0. Com 5 o piloto que persegue
-  // se protegia tao bem que terminava com 78,6 e 8 acertos - o Elixir, que e a
-  // fase que decide a batalha, virava a mais facil. Com rodadas menores e mais
-  // frequentes ele toma 3 acertos ali em vez de 1.
-  "StateThree": {
+  // A CASCATA E RAPIDA DE PROPOSITO. A 320 px/s ela chegava depois de o
+  // professor voltar a andar, e o piloto que persegue terminava a fase sozinha
+  // com 75,6 tomando 3,6 acertos; a 480 caia a 53,8 com 10, e o que desvia
+  // ficava com 74,4. Na batalha inteira o Normal ficou com 400 e o Dificil
+  // com 500.
+  "StateTwo": {
     "duracao": 20,
-    "proximo": "",
-    "anuncio": "let it crash",
-    "movimento": { "tipo": "Orbitar", "a": 230, "b": 0.12 },
+    "proximo": "StateThree",
+    "anuncio": "F12 - DevTools",
+    "movimento": { "tipo": "Conduzido", "a": 400 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Processo",
-        "projeteis": 4, "velocidade": 170, "angulo": 120, "intervalo": 0.08,
-        "cooldown": 0.8,
-        "dificil": { "projeteis": 6 },
-        "regras": "processos" },
-      { "gatilho": "send", "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 1, "velocidade": 240, "angulo": 0, "intervalo": 0,
-        "dificil": { "velocidade": 280 },
-        "regras": "mensagem" }
+      { "gatilho": "cartao", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "grade" },
+      { "gatilho": "repintar", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 1, "velocidade": 230, "angulo": 30, "intervalo": 0,
+        "dificil": { "projeteis": 3, "velocidade": 270 },
+        "regras": "css" },
+      { "gatilho": "escorrer", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 1, "velocidade": 400, "angulo": 0, "intervalo": 0,
+        "dificil": { "velocidade": 500 },
+        "regras": "css" }
     ]
   },
 
-  // FASE FINAL - JAVASCRIPT: AS PROMESSAS   |   gesto: A ORBITA
+  // FASE 3 - ELIXIR: A ARVORE DE SUPERVISAO   |   gesto: A VARREDURA COM PARADAS
+  //
+  // O PROFESSOR E O SUPERVISOR, e embaixo dele, ligados por linhas, quatro
+  // workers ("worker", o posto "supervisao") que o aluno pode derrubar
+  // (Elixir.h). A cada 0,45 s (0,35 no Dificil) um GenServer.cast ("cast",
+  // enfeite) corre pela linha ate a caixa de um worker; com tres mensagens na
+  // caixa, o worker as processa: "handle_cast", um leque mirado.
+  //
+  // DERRUBAR UM WORKER E UM CRASH, e o supervisor reinicia pela estrategia da
+  // rodada, que o placar diz (tres rodadas, as tres estrategias sorteadas):
+  // :one_for_one so o que caiu; :one_for_all todos - cada outro estoura num
+  // anel ("crash"); :rest_for_one o que caiu e os de depois dele. Derrubar
+  // abre o caminho por um segundo, e no :one_for_all custa caro.
+  //
+  // O SUPERVISOR ANDA UM SEGUNDO E PARA UM: parado, ele e o alvo facil, e
+  // manda as duvidas pelo pipe - "pipe", cinco etapas (seis no Dificil) que
+  // escorrem retas embaixo dele. Medido nesta fase sozinha, com o pipe: o
+  // piloto que persegue termina com 48,9 (9 acertos) e o que desvia com 72,2
+  // (nenhum); sem ele, 78,6 e 75,7.
+  "StateThree": {
+    "duracao": 20,
+    "proximo": "",
+    "anuncio": "Supervisor.start_link",
+    "movimento": { "tipo": "Conduzido", "a": 300 },
+    "ataques": [
+      { "gatilho": "worker", "estrategia": "WaveAttack", "projetil": "Processo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "worker" },
+      { "gatilho": "cast", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "cast" },
+      { "gatilho": "handle_cast", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 3, "velocidade": 240, "angulo": 30, "intervalo": 0,
+        "dificil": { "projeteis": 5, "velocidade": 270 },
+        "regras": "mensagem" },
+      { "gatilho": "crash", "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
+        "projeteis": 8, "velocidade": 190,
+        "dificil": { "projeteis": 12 },
+        "regras": "html" },
+      { "gatilho": "pipe", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 1, "velocidade": 400, "angulo": 0, "intervalo": 0,
+        "dificil": { "velocidade": 500 },
+        "regras": "pipe" }
+    ]
+  },
+
+  // FASE FINAL - JAVASCRIPT: O EVENT LOOP   |   gesto: A ORBITA
   //
   // O JavaScript entra aqui, e nao numa fase sua, porque a fase 3 e do Elixir:
   // a final e o front inteiro de novo, agora assincrono. So e vista por quem
   // termina a terceira entre 40 e 59, ou com 100.
   //
-  // CADA RAJADA E UM LEQUE DE 7 PROMESSAS que param pendentes (os tres pontos)
-  // e, 1,5s depois de sair, se resolvem ou sao rejeitadas ("promessas" em
-  // regras.json). As resolvidas saem contra o aluno e voltam como TAG - o fetch
-  // trouxe HTML do servidor; as rejeitadas somem. Ninguem sabe quais vao
-  // resolver ate elas resolverem, e e isso que um await espera.
+  // O EVENT LOOP DESENHADO (EventLoop.h): a pilha de chamadas no meio, as Web
+  // APIs no alto a esquerda, a fila de microtarefas embaixo a esquerda e a de
+  // tarefas embaixo a direita. O PROFESSOR E O LOOP, orbitando em volta da
+  // pilha - a orbita de 200 px e o anel desenhado, e por isso o raio daqui e
+  // o EventLoop::kRaioDoLoop.
   //
-  // AS CAIXAS DO HTML CONTINUAM, mais ralas (24 tags a cada 2,4s): a pagina
-  // continua de pe enquanto o JavaScript espera.
+  // Cada rodada e um script gerado - console.log, setTimeout, .then, fetch - e
+  // cada linha e uma ficha ("ficha", enfeite) que anda para onde o loop de
+  // verdade a poria. O que roda na pilha ataca de la:
   //
-  // A PROMESSA RESOLVIDA MIRA ONDE O ALUNO ESTA, entao ela castiga quem fica
-  // parado. Medido nesta fase (persegue / parado / vai e vem): a final
-  // provisoria dava 2 / 3 / 3, e esta da 4 / 8 / 3. So as promessas, sem as
-  // caixas, davam 4 / 8 / 0 - quem andava nunca era pego, e as caixas sao o
-  // que cobra dele.
+  //   console.log       "log": tres tags miradas no aluno, na hora
+  //   .then(p1)         "then": um leque de promessas, quando o loop busca o
+  //                     p1 na fila de microtarefas
+  //   fetch().then(r1)  "fetch": a resposta e uma promessa - um anel delas
+  //   setTimeout(cb1)   "timeout": o callback renderiza uma caixa que cresce
   //
-  // A ORBITA E PARA O EXAME TER COMO PASSAR. Varrendo a 300 px/s, o piloto
-  // que persegue, partindo de 40, saia com 16,7; o parado com 0 e o que vai e
-  // vem com 28,7. Na orbita de 200 px a 0,14 ele sai com 64,4, o que desvia
-  // com 64,9 a 67,6, e o parado e o que vai e vem ficam em 0 e 32,2. Na
-  // orbita de 180 a 0,12, a das outras finais, ele saia com 78 - generosa
-  // demais para quem chega reprovando.
+  // E TODO SCRIPT TEM A PEGADINHA: um setTimeout(cb, 0) escrito antes de um
+  // .then. Quem sabe o event loop sabe que o leque vem antes da caixa.
+  //
+  // A ORBITA E PARA O EXAME TER COMO PASSAR. Varrendo a 300 px/s, como era, o
+  // piloto que persegue, partindo de 40, saia com 16,7; na orbita de 200 px a
+  // 0,14 ele sai com 64,4. Na orbita de 180 a 0,12, a das outras finais, ele
+  // saia com 78 - generosa demais para quem chega reprovando.
 
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
-    "anuncio": "await fetch(…)",
+    "anuncio": "while (queue.waitForMessage())",
     "movimento": { "tipo": "Orbitar", "a": 200, "b": 0.14 },
     "ataques": [
-      { "estrategia": "CaixaAttack", "projetil": "Codigo",
-        "projeteis": 24, "velocidade": 120,
-        "cooldown": 2.4,
+      { "gatilho": "ficha", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
+        "regras": "ficha" },
+      { "gatilho": "log", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 3, "velocidade": 280, "angulo": 24, "intervalo": 0,
+        "dificil": { "projeteis": 5 },
         "regras": "html" },
-      { "estrategia": "WaveAttack", "projetil": "Codigo",
-        "projeteis": 7, "velocidade": 300, "angulo": 150, "anguloCentral": 90,
-        "intervalo": 0,
-        "cooldown": 1.6,
-        "regras": "promessas" }
+      { "gatilho": "then", "estrategia": "WaveAttack", "projetil": "Codigo",
+        "projeteis": 7, "velocidade": 300, "angulo": 150, "intervalo": 0,
+        "dificil": { "projeteis": 9 },
+        "regras": "promessas" },
+      { "gatilho": "fetch", "estrategia": "CircleSpreadAttack", "projetil": "Codigo",
+        "projeteis": 12, "velocidade": 220,
+        "dificil": { "projeteis": 16 },
+        "regras": "promessas" },
+      { "gatilho": "timeout", "estrategia": "CaixaAttack", "projetil": "Codigo",
+        "projeteis": 24, "velocidade": 120,
+        "dificil": { "projeteis": 28 },
+        "regras": "html" }
     ]
   }
 }

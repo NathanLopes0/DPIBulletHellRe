@@ -247,14 +247,21 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   dos filósofos — os garfos andam de mão em mão, e o deadlock vira um cerco
   até o `kill -9`.
 - **Lucas — INF 321.** Programação Web, na ordem da matéria. No HTML ele
-  escreve um documento gerado a cada luta, tag por tag: cada elemento aberto é
-  uma caixa de tags que cresce dentro da do pai, e cada tag fechada vira a
-  caixa do avesso. No CSS, fileiras que caem e colunas que atravessam a tela
-  se rearranjam no meio do caminho conforme o `flex-direction` e o
-  `justify-content` que o placar escreve. O Elixir solta processos que te
-  perseguem e te mandam mensagens (`send`) — e que você pode derrubar, mas o
-  supervisor os põe de volta, *let it crash*. O exame é JavaScript: promessas pendentes
-  que, ao resolver, voltam contra você como tag.
+  renderiza uma página gerada a cada luta, com o layout desenhado no campo, e
+  cada elemento ataca do seu jeito: o cursor voa até o `<button>` e clica, a
+  `<img>` gira o spinner e estoura, o `<marquee>` atravessa a tela, a
+  `<table>` cai linha a linha, o `<a href>` o leva à âncora e o `<input>`
+  digita letra por letra. No CSS ele abre o DevTools: uma grade de cartões que
+  cada regra do placar transforma inteira — `gap`, `rotate`, `scale`,
+  `display: none`, `animation`, `position: fixed`, `:hover` —, e enquanto ele
+  digita a regra, as letras escorrem embaixo dele (a cascata). O Elixir é uma
+  árvore de supervisão: casts correm pelas linhas até a caixa de cada worker,
+  a caixa cheia vira um leque, e o worker derrubado é reiniciado pela
+  estratégia da rodada (`:one_for_one`, `:one_for_all`, `:rest_for_one`);
+  parado, o supervisor manda as dúvidas pelo `|>`. O exame é o event loop do
+  JavaScript: cada script passa pela pilha, os timers correm nas Web APIs, e
+  as promessas da fila de microtarefas rodam antes do `setTimeout(cb, 0)` —
+  cada callback que sai de uma fila ataca.
 
 O **TCC** *(Hugo)* aparece na grade esperando uma batalha própria.
 

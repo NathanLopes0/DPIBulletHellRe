@@ -4,16 +4,20 @@
 
 #pragma once
 
+#include <array>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include "../Boss.h"
-#include "../../../Attacks/Dom.h"
+#include "../../../Attacks/Pagina.h"
 #include "../../../Attacks/Elixir.h"
+#include "../../../Attacks/Estilo.h"
+#include "../../../Attacks/EventLoop.h"
 #include "../../../Attacks/Flex.h"
 
 class BossProjectile;
+class DrawLinhasComponent;
 
 /**
  * @class Lucas
@@ -24,19 +28,22 @@ class BossProjectile;
  * batalha conta a mesma historia. As duas primeiras fases sao o front; a
  * terceira, a que decide, e o Elixir; a final volta ao front, agora assincrono.
  *
- *   fase 1  HTML        um documento escrito tag por tag: cada elemento aberto
- *                       e uma caixa, os filhos dentro do pai, e cada tag
- *                       fechada vira a caixa do avesso (Dom.h)
- *   fase 2  CSS         o flexbox: fileiras que caem e colunas que atravessam
- *                       de lado, cada uma se rearranjando no justify-content
- *                       do placar (Flex.h)
- *   fase 3  Elixir      processos que perseguem e mandam mensagens, e que o
- *                       supervisor reinicia (Elixir.h)
- *   final   JavaScript  promessas que resolvem ou sao rejeitadas
+ *   fase 1  HTML        uma pagina renderizada no navegador: o layout fica
+ *                       desenhado, e cada elemento - button, img, marquee,
+ *                       table, a, input - ataca do seu jeito (Pagina.h)
+ *   fase 2  CSS         o DevTools: uma grade de cartoes que cada regra CSS do
+ *                       placar transforma inteira - gap, rotate, scale,
+ *                       display: none, animation, position: fixed (Estilo.h)
+ *   fase 3  Elixir      a arvore de supervisao: workers que recebem casts,
+ *                       processam e atiram, e que o supervisor reinicia pela
+ *                       estrategia da rodada (Elixir.h)
+ *   final   JavaScript  o event loop: scripts que passam pela pilha, timers
+ *                       nas Web APIs, as filas de microtarefas e de tarefas -
+ *                       e cada callback que sai de uma fila ataca (EventLoop.h)
  *
  * O BALANCEAMENTO VIVE EM DADOS, como o dos outros: Assets/Attacks/lucas/. O
- * que mora aqui e o que dados nao sabem fazer: o relogio do documento, a
- * direcao de cada disparo do flexbox, o rodizio das mensagens e o supervisor.
+ * que mora aqui e o que dados nao sabem fazer: a pagina que renderiza, a
+ * grade do DevTools, a arvore de supervisao e o event loop.
  */
 class Lucas : public Boss {
 public:
@@ -44,16 +51,6 @@ public:
     ~Lucas() override = default;
 
     void OnUpdate(float deltaTime) override;
-
-    /**
-     * @brief O SUPERVISOR: um processo caiu, e ele vai voltar.
-     *
-     * "Let it crash" e a filosofia do Elixir: deixar um processo falhar e
-     * barato, porque um supervisor o reinicia. Aqui, cada processo que o aluno
-     * derruba entra na proxima rodada da fase 3 - o tiro abriu caminho por um
-     * instante, e nao para sempre.
-     */
-    void OnProjetilDerrubado() override;
 
     [[nodiscard]] std::optional<Vector2> AlvoDoMovimento() const override { return mAlvo; }
 
@@ -65,102 +62,158 @@ protected:
 private:
     // ---- A LUTA SORTEADA ----------------------------------------------------
     //
-    // Antes do primeiro quadro (Variacao.h): de onde saem os documentos da fase
-    // 1 e a sequencia da fase 2 - a regra de cada fileira (Flex::Proxima) e o
-    // lado de cada coluna (Flex::DirecaoDoDisparo) -, e o degrau do modo.
+    // Antes do primeiro quadro (Variacao.h): de onde saem as paginas da fase 1
+    // e as regras CSS da fase 2 (Estilo::Proxima), e o degrau do modo.
 
     void SortearALuta();
 
     bool mLutaSorteada = false;
-    Variacao::Sorteio mSorteioDoDom{0u};
-    Variacao::Sorteio mSorteioDoFlex{0u};
-    Dom::Degrau mDegrauDoDom;
+    Variacao::Sorteio mSorteioDaPagina{0u};
+    Variacao::Sorteio mSorteioDoEstilo{0u};
+    Estilo::Degrau mDegrauDoEstilo;
+    Pagina::Degrau mDegrauDaPagina;
     Elixir::Degrau mDegrauDoElixir;
 
     std::optional<Vector2> mAlvo;
 
     /// Dispara 'gatilho' de 'onde', no rumo 'rumo' - ou mirado no aluno, sem
-    /// rumo. Devolve o que nasceu. 'escala' encolhe a caixa da CaixaAttack.
+    /// rumo. Devolve o que nasceu; com 'enfeite', o que nasce nao machuca.
     std::vector<BossProjectile*> DispararDe(const char* gatilho, Vector2 onde, std::optional<float> rumo,
-                                            float escala = 1.0f);
+                                            bool enfeite = false);
     [[nodiscard]] Vector2 PosicaoDoAluno() const;
 
     bool mDisparandoDe = false;
     Vector2 mOndeDisparar;
     float mRumoDoDisparo = 90.0f;
-    float mEscalaDoDisparo = 1.0f;
+    bool mEnfeiteAoNascer = false;
     std::vector<BossProjectile*> mDisparados;
 
-    /// A caixa da CaixaAttack como o arquivo a escreve, guardada no primeiro
-    /// disparo: params e o mesmo objeto a cada disparo (Boss.h), e encolher
-    /// sobre o anterior encolheria para sempre.
-    float mMeiaAlturaDoArquivo = -1.0f;
-    int mTagsDoArquivo = -1;
+    /// O tiro guardado ainda e o mesmo se a idade dele bate com a esperada: o
+    /// pool o devolve com o relogio zerado.
+    [[nodiscard]] static bool Vivo(const BossProjectile* p, float idade);
 
-    // ---- O DOCUMENTO DA FASE 1 ------------------------------------------------
+    /// O desenho da fase em curso: o layout da pagina, a arvore de supervisao...
+    DrawLinhasComponent* mLinhas = nullptr;
+    void CriarLinhas();
+
+    // ---- A PAGINA DA FASE 1 -----------------------------------------------------
     //
-    // Uma tag a cada Dom::Degrau::porEvento. Abrir dispara a caixa do elemento
-    // do lugar dele (o gatilho "abrir"), menor a cada geracao; fechar vira do
-    // avesso a caixa que ele abriu - as tags que ainda estao em campo voltam,
-    // passam pelo centro e saem do outro lado; o vazio e um anel ("vazio"). O
-    // professor vai ate o proximo elemento.
+    // Um elemento a cada Pagina::Degrau::porElemento, na ordem da pagina; cada
+    // um vive o tempo do ataque dele (Renderizado) - o cursor que voa ate o
+    // botao, o spinner que gira, as linhas da tabela, as letras do input. O
+    // professor fica no header, em cima do elemento que renderiza. Acabada a
+    // pagina, o F5 apaga os elementos e vem outra.
 
-    void AtualizarDom();
+    void AtualizarPagina(float deltaTime);
+    void RenderizarPagina(float deltaTime);
+    void DesenharPagina();
+    void RecarregarPagina();
 
-    struct Caixa {
-        std::vector<BossProjectile*> tags;
-        float aberta = 0.0f;   ///< no relogio da fase
+    struct Renderizado {
+        Pagina::Elemento e;
+        float idade = 0.0f;
+        int passos = 0;                       ///< linhas da tabela, letras do input
+        bool feito = false;
+        bool cancelado = false;               ///< o cursor derrubado: o clique nao veio
+        BossProjectile* cursor = nullptr;
+        std::vector<BossProjectile*> spinner;
     };
 
-    bool mNoDom = false;
-    std::string mAnuncioDoDom;
-    Dom::Documento mDocumento;
-    std::vector<Dom::Evento> mEventos;
-    size_t mProximo = 0;
-    float mProximoEvento = 0.0f;
-    std::vector<Caixa> mCaixas;   ///< por elemento do documento
+    bool mNaPagina = false;
+    std::string mAnuncioDaPagina;
+    std::vector<Pagina::Elemento> mPagina;
+    std::vector<Renderizado> mRenderizados;
+    size_t mProximoElemento = 0;
+    float mProximoRender = 0.0f;
+    bool mRecarregando = false;
+    float mXDoProfessor = 0.0f;
 
-    // ---- O FLEXBOX DA FASE 2 ----------------------------------------------------
+    // ---- O DEVTOOLS DA FASE 2 ----------------------------------------------------
+    //
+    // A grade de cartoes fica no posto "grade", e o Lucas os move: a cada
+    // quadro cada cartao vai ate o lugar que o CSS de agora lhe da
+    // (Estilo::Posicoes), centrado embaixo do professor, que varre o alto. A
+    // cada Estilo::Degrau::porRegra, uma regra nova. O cartao que falta - o da
+    // linha que voltou do display: none, ou a grade que caiu no position:
+    // fixed - nasce do professor e voa ate o lugar.
 
-    static constexpr const char* kFaseDoFlex = "StateTwo";
+    void AtualizarEstilo(float deltaTime);
+    void RepovoarGrade(float agora);
 
-    /**
-     * Para onde a ultima fileira do flexbox se rearranjou: a seguinte sai dali.
-     * A primeira sai do "de" do arquivo, guardado no primeiro disparo -
-     * GUARDADO, e nao relido: o params e o mesmo objeto a cada disparo, e
-     * depois da primeira troca ele ja nao diz o que o arquivo disse (Boss.h).
-     */
-    bool mGuardouOFlex = false;
-    Flex::Justificar mUltimoArranjo = Flex::Justificar::Centro;
-    void AtualizarFlex();
-    bool mNoFlex = false;
+    bool mNoEstilo = false;
+    std::string mAnuncioDoEstilo;
+    Estilo::Css mCss;
+    Estilo::Regra mRegra;
+    float mProximaRegra = 0.0f;
+    float mInicioDaRegra = 0.0f;
+    std::array<BossProjectile*, Estilo::kCartoes> mCartoes{};
+    std::array<float, Estilo::kCartoes> mNascimentoDosCartoes{};
+    bool mCaindo = false;                  ///< o position: fixed em curso
+    bool mRepintou = false;                ///< o repaint desta regra ja saiu
+    int mLetrasEscorridas = 0;             ///< a cascata desta regra
     float mXDoComecoDaVarredura = 0.0f;
-    float mLarguraDaFileira = 0.0f;
+    float mTempoVarrendo = 0.0f;           ///< o relogio da varredura, que para enquanto ele digita
 
-    int mItensDaFileira = 8;
+    // ---- A ARVORE DE SUPERVISAO DA FASE 3 -----------------------------------------
+    //
+    // Os workers ficam no posto "supervisao", embaixo do professor, e o Lucas
+    // os move. A cada Elixir::Degrau::entreMensagens um cast corre pela linha
+    // ate um worker; a caixa cheia vira um handle_cast, o leque. O worker que
+    // cai e um crash: termina quem a estrategia da rodada manda (Elixir::
+    // Reiniciam), cada outro num anel, e todos voltam depois de kReinicio.
 
-    int mDisparosDoFlex = 0;
+    void AtualizarSupervisao(float deltaTime);
+    void IniciarWorker(int k, float agora);
+    void DesenharSupervisao();
 
-    // ---- O ELIXIR DA FASE 3 -------------------------------------------------------
-
-    void AtualizarElixir();
+    struct Worker {
+        BossProjectile* p = nullptr;
+        float nasceu = 0.0f;
+        int caixa = 0;
+        float reinicio = -1.0f;   ///< quando volta; negativo = nao esta caido
+    };
+    struct Cast {
+        BossProjectile* p = nullptr;
+        float nasceu = 0.0f;
+        int para = 0;
+    };
 
     bool mNoElixir = false;
     std::string mAnuncioDoElixir;
-    float mProximaMensagem = 0.0f;
-    int mMensagens = 0;
+    Variacao::Sorteio mSorteioDoElixir{0u};
+    std::array<Elixir::Estrategia, 3> mEstrategias{};
+    int mRodadaDoElixir = -1;
+    std::array<Worker, Elixir::kWorkers> mWorkers{};
+    std::vector<Cast> mCasts;
+    float mProximoCast = 0.0f;
+    int mUltimoCast = -1;
+    float mTempoVarrendoNoElixir = 0.0f;
+    int mParadaDoSupervisor = -1;          ///< a parada em curso, a cada 2 s
+    int mEtapasNoPipe = 0;
 
-    /// Quantos processos cairam desde a ultima rodada da fase 3. Ver
-    /// OnProjetilDerrubado.
-    int mParaReiniciar = 0;
+    // ---- O EVENT LOOP DA FINAL ---------------------------------------------------------
+    //
+    // Cada linha do script vira uma ficha no posto "eventloop", e o Lucas a
+    // leva para onde o loop a poe naquele instante (EventLoop::Onde): a pilha,
+    // as Web APIs, uma das filas, a pilha de novo. O que roda na pilha ataca
+    // de la (EventLoop::Agenda); o professor e o loop, orbitando em volta.
 
-    /// Quantos processos a rodada da fase 3 tem pelo ARQUIVO, guardado no
-    /// primeiro disparo pelo mesmo motivo do flexbox: depois do primeiro
-    /// reinicio, params ja nao diz o que o arquivo disse.
-    int mProcessosDoArquivo = -1;
+    void AtualizarEventLoop(float deltaTime);
+    void NovoScript(float agora);
+    void DesenharEventLoop(float t);
 
-    /// O MAXIMO QUE O SUPERVISOR DEVOLVE NUMA RODADA. Sem teto, um aluno que
-    /// derrubasse doze processos num segundo receberia doze de uma vez - o
-    /// supervisor viraria castigo, e o Elixir nao castiga: ele so insiste.
-    static constexpr int kReiniciosPorRodada = 4;
+    struct Ficha {
+        BossProjectile* p = nullptr;
+        float nasceu = 0.0f;
+    };
+
+    bool mNoLoop = false;
+    std::string mAnuncioDoLoop;
+    Variacao::Sorteio mSorteioDoLoop{0u};
+    EventLoop::Degrau mDegrauDoLoop;
+    std::vector<EventLoop::Linha> mScript;
+    EventLoop::Agenda mAgenda;
+    float mInicioDoScript = 0.0f;
+    size_t mProximaExecucao = 0;
+    std::vector<Ficha> mFichas;
 };

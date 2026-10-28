@@ -181,10 +181,14 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/ReAct.h
         Source/Attacks/Guardrail.cpp
         Source/Attacks/Guardrail.h
-        Source/Attacks/Dom.cpp
-        Source/Attacks/Dom.h
         Source/Attacks/Elixir.cpp
         Source/Attacks/Elixir.h
+        Source/Attacks/Pagina.cpp
+        Source/Attacks/Pagina.h
+        Source/Attacks/Estilo.cpp
+        Source/Attacks/Estilo.h
+        Source/Attacks/EventLoop.cpp
+        Source/Attacks/EventLoop.h
         Source/Attacks/Nuvem.cpp
         Source/Attacks/Nuvem.h
         Source/Attacks/Semaforo.cpp
@@ -324,9 +328,6 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/BaseStrategies/CaixaAttack.cpp
         Source/Attacks/BaseStrategies/CaixaAttack.h
         Source/Attacks/AttackParameters/CaixaAttackParams.h
-        Source/Attacks/BaseStrategies/FlexAttack.cpp
-        Source/Attacks/BaseStrategies/FlexAttack.h
-        Source/Attacks/AttackParameters/FlexAttackParams.h
         Source/Attacks/BaseStrategies/SprintAttack.cpp
         Source/Attacks/BaseStrategies/SprintAttack.h
         Source/Attacks/AttackParameters/SprintAttackParams.h
@@ -384,8 +385,10 @@ add_executable(dpi_tests
         tests/test_compilador.cpp
         tests/test_react.cpp
         tests/test_guardrail.cpp
-        tests/test_dom.cpp
         tests/test_elixir.cpp
+        tests/test_pagina.cpp
+        tests/test_estilo.cpp
+        tests/test_event_loop.cpp
         tests/test_nuvem.cpp
         tests/test_semaforo.cpp
         tests/test_tcp.cpp
@@ -521,10 +524,14 @@ add_executable(dpi_tests
         Source/Attacks/ReAct.h
         Source/Attacks/Guardrail.cpp
         Source/Attacks/Guardrail.h
-        Source/Attacks/Dom.cpp
-        Source/Attacks/Dom.h
         Source/Attacks/Elixir.cpp
         Source/Attacks/Elixir.h
+        Source/Attacks/Pagina.cpp
+        Source/Attacks/Pagina.h
+        Source/Attacks/Estilo.cpp
+        Source/Attacks/Estilo.h
+        Source/Attacks/EventLoop.cpp
+        Source/Attacks/EventLoop.h
         Source/Attacks/Nuvem.cpp
         Source/Attacks/Nuvem.h
         Source/Attacks/Semaforo.cpp
