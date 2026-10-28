@@ -89,6 +89,10 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Golpe.h
         Source/Poder.cpp
         Source/Poder.h
+        Source/BarraDaNota.cpp
+        Source/BarraDaNota.h
+        Source/Carregamento.cpp
+        Source/Carregamento.h
         Source/Personagens.cpp
         Source/Personagens.h
         Source/PersonagensArquivo.cpp
@@ -284,6 +288,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Scenes/Battle/BattleHUD.h
         Source/Components/DrawComponents/ProgressBarComponent.cpp
         Source/Components/DrawComponents/ProgressBarComponent.h
+        Source/Components/DrawComponents/DrawBarraDaNotaComponent.cpp
+        Source/Components/DrawComponents/DrawBarraDaNotaComponent.h
         Source/Attacks/BaseStrategies/WaveAttack.cpp
         Source/Movements/MovementStrategies.h
         Source/Movements/MovementStrategies.cpp
@@ -456,6 +462,7 @@ add_executable(dpi_tests
         tests/test_cronograma.cpp
         tests/test_poder.cpp
         tests/test_objetivo.cpp
+        tests/test_barra_da_nota.cpp
         tests/test_personagens.cpp
         tests/test_exportacao.cpp
         Source/Progresso.cpp
@@ -499,6 +506,10 @@ add_executable(dpi_tests
         Source/Golpe.h
         Source/Poder.cpp
         Source/Poder.h
+        Source/BarraDaNota.cpp
+        Source/BarraDaNota.h
+        Source/Carregamento.cpp
+        Source/Carregamento.h
         Source/Personagens.cpp
         Source/Personagens.h
         Source/Relogio.cpp

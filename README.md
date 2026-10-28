@@ -76,11 +76,22 @@ de volta a aparência escolhida; se não existe, o aluno passa pela criação de
 personagem, e o perfil só é gravado quando ela é confirmada. A tecla
 **VISITANTE** entra sem se identificar, e nesse caso nada é gravado.
 
+Antes de cada batalha, uma **tela de carregamento** escura cobre o campo: o
+código e o nome da matéria, o professor e uma barra enchendo. A batalha só
+aparece pronta — o véu some, e só então o professor ataca e a música começa.
+
 ## A nota
 
 Toda prova começa em **40**, inclusive para quem já foi bem naquela matéria — a
 nota anterior continua guardada na ficha como informação, mas não é o ponto
 de partida.
+
+A **barra da nota**, na base da tela, tem duas marcas: a âmbar no **40**
+(terminar entre ela e a verde leva ao exame) e a verde no **60** (a
+aprovação). Ela corre atrás da nota em vez de saltar: um acerto sofrido deixa um
+**rastro vermelho** do que foi perdido, que encolhe em seguida, e a barra
+sacode; a nota que sobe dá um clarão. Abaixo do 40 a moldura pulsa em vermelho,
+e no 100 ela brilha em ouro.
 
 Subir até **60** é fácil e custa poucos acertos. Acima disso cada
 ponto custa mais que o anterior: a nota cheia sai por **301 acertos**, e uma
@@ -339,7 +350,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 1058 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 1063 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha, o objetivo e o poder do orientador no
 TCC — e também **leem os arquivos de

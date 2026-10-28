@@ -29,6 +29,7 @@
 #include "../../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../../Components/DrawComponents/DrawTextComponent.h"
 #include "../../Components/DrawComponents/ProgressBarComponent.h"
+#include "../../Components/DrawComponents/DrawBarraDaNotaComponent.h"
 #include "../../Actors/Teachers/ExtraPointItem.h"
 #include "../../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../../PontoExtra.h"
@@ -113,10 +114,9 @@ void Battle::Load() {
     LoadEndScreen();
     LoadPausa();
 
-    if (mGame->GetAudio()) {
-        mMusicHandle = mGame->GetAudio()->PlaySound("backgroundmusic.ogg", true);
-        mGame->GetAudio()->SetSoundVolume(mMusicHandle, 32);
-    }
+    // A MUSICA NAO COMECA AQUI: so quando a batalha estiver carregada e o veu
+    // da tela de carregamento tiver sumido (FinishLoadingProjectilePools).
+    // Tocando desde o Load, ela comecava por cima de uma tela parada.
 
     // 3. Pré-aquecer os pools de projétil ANTES de iniciar a lógica de
     // ataque do Boss. mBoss->Start() (que dispara a FSM e os primeiros
@@ -298,12 +298,11 @@ void Battle::LoadGradeBar() {
 
     gradeBarActor->SetPosition(Vector2(static_cast<float>(barraX), static_cast<float>(barraY)));
 
-    auto gradeBarComp = gradeBarActor->AddComponent<ProgressBarComponent>();
-    gradeBarComp->SetOrientation(ProgressBarComponent::Orientation::Horizontal);
-    gradeBarComp->SetSize(barraLargura, kBarraAltura);
-
-    // O acabamento e desta barra, e nao da de tempo: ver SetAcabamento.
-    gradeBarComp->SetAcabamento(true);
+    // A BARRA DESENHADA POR CONTA PROPRIA (DrawBarraDaNotaComponent): volume,
+    // as marcas do 40 e do 60, o rastro do acerto e o clarao do ganho. A
+    // ProgressBarComponent continua sendo a do relogio do chefe.
+    auto gradeBarComp = gradeBarActor->AddComponent<DrawBarraDaNotaComponent>(barraLargura, kBarraAltura, 200);
+    gradeBarComp->Comecar(mGrade);
 
     mGradeBarActor = gradeBarActor.get();
     this->AddActor(std::move(gradeBarActor));
@@ -330,10 +329,14 @@ void Battle::LoadGradeBar() {
     // maior, entao ela fica atras do numero. Sem ela o branco do numero cai em
     // cima do laranja do preenchimento e some.
     gradeBarTextActor->AddComponent<DrawCaixaComponent>(
-        kPlacaLargura, kPlacaAltura, kSemMoldura, kFundoDaPlaca, 0, kOrdemDaPlaca);
+        kPlacaLargura, kPlacaAltura - 4, kMolduraDaPlacaDaNota, kFundoDaPlacaDaNota, 1, kOrdemDaPlaca);
 
+    // A NOTA DE PARTIDA desde o primeiro quadro. Era "omg", um texto de teste
+    // que ficava na faixa ate a primeira atualizacao da barra.
+    std::stringstream inicial;
+    inicial << std::fixed << std::setprecision(2) << mGrade;
     auto gradeText = gradeBarTextActor->AddComponent<DrawTextComponent>(
-        "omg", mGradeBarFont.get(), 200, tamanhoDaNota + 8, tamanhoDaNota, 304);
+        inicial.str(), mGradeBarFont.get(), 200, tamanhoDaNota + 8, tamanhoDaNota, 304);
     gradeText->SetAjustarAoTexto(true);
 
     // NO MEIO DA BARRA, e nao numa conta solta: o texto seguia a altura antiga
@@ -564,14 +567,10 @@ void Battle::StartLoadingProjectilePools() {
 
     mLoadingTotalTypes = static_cast<int>(mLoadingPendingFactoryNames.size());
 
-    if (mLoadingTotalTypes == 0) {
-        // Nenhuma factory para aquecer (não deveria acontecer com um Boss
-        // válido, mas por segurança pulamos direto para o gameplay).
-        FinishLoadingProjectilePools();
-        return;
-    }
-
+    // SEM NADA PARA AQUECER (nao deveria acontecer com um chefe valido), a
+    // tela passa do mesmo jeito: a barra ja nasce com tudo feito.
     mIsLoading = true;
+    mCarregamento = Carregamento::Estado{};
 
     // Pausa o Player durante o carregamento: Actor::Update() e
     // Scene::ProcessInput() já respeitam ActorState::Active/Inactive, então
@@ -581,55 +580,123 @@ void Battle::StartLoadingProjectilePools() {
         if (jogador) jogador->SetState(ActorState::Paused);
     }
 
-    // Cria o texto de progresso (mesmo padrão de LoadEndScreen).
-    auto textActor = std::make_unique<Actor>(this);
-    float w = mGame->GetWindowWidth();
-    float h = mGame->GetWindowHeight();
-    textActor->SetPosition(Vector2(w / 2.0f, h / 2.0f));
-    auto dc = textActor->AddComponent<DrawTextComponent>("Carregando...", mGradeBarFont.get(), 400, 100, 48, 300);
-    dc->SetIsVisible(true);
-    mLoadingTextActor = textActor.get();
-    AddActor(std::move(textActor));
+    CriarTelaDeCarregamento();
 }
 
-void Battle::UpdateLoadingStep() {
+void Battle::CriarTelaDeCarregamento() {
+    const auto w = static_cast<float>(mGame->GetWindowWidth());
+    const auto h = static_cast<float>(mGame->GetWindowHeight());
 
-    if (mLoadingPendingFactoryNames.empty()) {
-        FinishLoadingProjectilePools();
-        return;
+    // ACIMA DE TUDO, ate da pausa (900): enquanto ela esta na tela, a batalha
+    // nao existe para quem olha.
+    constexpr int kOrdemDoVeu = 1000;
+    constexpr SDL_Color kFundo{5, 6, 11, 255};
+
+    auto veu = std::make_unique<Actor>(this);
+    veu->SetPosition(Vector2(w / 2.0f, h / 2.0f));
+    veu->AddComponent<DrawCaixaComponent>(static_cast<int>(w) + 4, static_cast<int>(h) + 4,
+                                          kSemMoldura, kFundo, 0, kOrdemDoVeu);
+    mVeuDoCarregamento = AddActor(std::move(veu));
+
+    // O QUE VEM AI: o codigo da materia, o nome dela e o professor.
+    const Materias::Materia* materia = Materias::Carregadas().Por(mStage);
+    const auto texto = [&](const std::string& t, Font* fonte, const float y, const int tamanho, const Vector3& cor) {
+        if (t.empty() || !fonte) return;
+        auto ator = std::make_unique<Actor>(this);
+        ator->SetPosition(Vector2(w / 2.0f, y));
+        auto* dc = ator->AddComponent<DrawTextComponent>(t, fonte, 1000, tamanho + 10, tamanho, kOrdemDoVeu + 2);
+        dc->SetAjustarAoTexto(true);
+        dc->SetColor(cor);
+        mTextosDoCarregamento.push_back(AddActor(std::move(ator)));
+    };
+    if (materia) {
+        texto(materia->nome, mGradeBarFont.get(), h * 0.36f, 52, Color::White);
+        texto(materia->nomeCompleto, mFonteDoPlacar.get(), h * 0.44f, 28, Vector3(0.75f, 0.78f, 0.9f));
+        if (!materia->professor.empty()) {
+            texto("Prof. " + materia->professor, mFonteDoPlacar.get(), h * 0.50f, 22, Vector3(0.55f, 0.58f, 0.7f));
+        }
     }
+    if (mNivel == Dificuldade::Nivel::Dificil) {
+        texto(Dificuldade::Nome(mNivel), mGradeBarFont.get(), h * 0.57f, 24,
+              Vector3(Dificuldade::kCorDoDificil[0], Dificuldade::kCorDoDificil[1], Dificuldade::kCorDoDificil[2]));
+    }
+    texto("preparando a prova", mFonteDoPlacar.get(), h * 0.66f, 20, Vector3(0.45f, 0.48f, 0.6f));
+
+    // A BARRA, com o acabamento da barra de relogio do chefe: a cor anda do
+    // azul ao verde conforme enche.
+    constexpr int kLargura = 520, kAltura = 14;
+    auto barra = std::make_unique<Actor>(this);
+    barra->SetPosition(Vector2((w - static_cast<float>(kLargura)) / 2.0f, h * 0.70f));
+    auto* pb = barra->AddComponent<ProgressBarComponent>(kOrdemDoVeu + 1);
+    pb->SetOrientation(ProgressBarComponent::Orientation::Horizontal);
+    pb->SetSize(kLargura, kAltura);
+    pb->SetAcabamento(true);
+    pb->SetGradientColors(SDL_Color{22, 24, 36, 255}, SDL_Color{80, 120, 230, 255}, SDL_Color{110, 230, 150, 255});
+    pb->SetFillPercent(0.0f);
+    mBarraDoCarregamento = AddActor(std::move(barra));
+}
+
+void Battle::UpdateLoadingStep(const float deltaTime) {
 
     // Processa UM tipo de projétil inteiro nesta chamada (ver justificativa
     // em Battle.h, próximo a mIsLoading).
-    const std::string nextName = mLoadingPendingFactoryNames.back();
-    mLoadingPendingFactoryNames.pop_back();
-
-    if (ProjectileFactory* factory = mBoss ? mBoss->GetProjectileFactory(nextName) : nullptr) {
-        factory->Prewarm(this, mBoss, kProjectilePrewarmCountPerType);
+    if (!mLoadingPendingFactoryNames.empty()) {
+        const std::string nextName = mLoadingPendingFactoryNames.back();
+        mLoadingPendingFactoryNames.pop_back();
+        if (ProjectileFactory* factory = mBoss ? mBoss->GetProjectileFactory(nextName) : nullptr) {
+            factory->Prewarm(this, mBoss, kProjectilePrewarmCountPerType);
+        }
     }
 
-    // Atualiza o texto de progresso.
-    const int done = mLoadingTotalTypes - static_cast<int>(mLoadingPendingFactoryNames.size());
-    if (mLoadingTextActor) {
-        std::ostringstream ss;
-        ss << "Carregando... " << done << " de " << mLoadingTotalTypes;
-        mLoadingTextActor->GetComponent<DrawTextComponent>()->SetText(ss.str());
+    // A BARRA ANDA NO RITMO DELA atras do que ja foi feito (Carregamento.h).
+    // O primeiro quadro carrega o Load inteiro no deltaTime; limitado, ele nao
+    // enche a barra de uma vez.
+    const float feito = mLoadingTotalTypes > 0
+        ? static_cast<float>(mLoadingTotalTypes - static_cast<int>(mLoadingPendingFactoryNames.size())) /
+          static_cast<float>(mLoadingTotalTypes)
+        : 1.0f;
+    Carregamento::Avancar(mCarregamento, feito, std::min(deltaTime, 0.05f));
+    if (mBarraDoCarregamento) {
+        if (auto* pb = mBarraDoCarregamento->GetComponent<ProgressBarComponent>()) {
+            pb->SetFillPercent(mCarregamento.mostrado);
+            pb->SetColorPercent(mCarregamento.mostrado);
+        }
     }
 
-    if (mLoadingPendingFactoryNames.empty()) {
-        FinishLoadingProjectilePools();
+    // PRONTA, a tela some: primeiro o texto e a barra, depois o veu esmaece
+    // sobre a batalha parada.
+    if (Carregamento::Pronto(mCarregamento)) {
+        for (Actor* t : mTextosDoCarregamento) {
+            if (auto* dc = t->GetComponent<DrawTextComponent>()) dc->SetIsVisible(false);
+        }
+        if (mBarraDoCarregamento) {
+            if (auto* pb = mBarraDoCarregamento->GetComponent<ProgressBarComponent>()) pb->SetIsVisible(false);
+        }
+        if (mVeuDoCarregamento) {
+            if (auto* veu = mVeuDoCarregamento->GetComponent<DrawCaixaComponent>()) {
+                veu->SetFundo(SDL_Color{5, 6, 11, static_cast<Uint8>(255.0f * Carregamento::Opacidade(mCarregamento))});
+            }
+        }
     }
+
+    if (Carregamento::Acabou(mCarregamento)) FinishLoadingProjectilePools();
 }
 
 void Battle::FinishLoadingProjectilePools() {
 
     mIsLoading = false;
 
-    if (mLoadingTextActor) {
-        if (auto dc = mLoadingTextActor->GetComponent<DrawTextComponent>()) {
-            dc->SetIsVisible(false);
-        }
-        mLoadingTextActor = nullptr; // O Actor continua vivo em mActors; só paramos de referenciá-lo aqui.
+    // A TELA DE CARREGAMENTO SAI DE CENA de vez.
+    for (Actor* t : mTextosDoCarregamento) t->SetState(ActorState::Destroy);
+    mTextosDoCarregamento.clear();
+    if (mVeuDoCarregamento) mVeuDoCarregamento->SetState(ActorState::Destroy);
+    if (mBarraDoCarregamento) mBarraDoCarregamento->SetState(ActorState::Destroy);
+    mVeuDoCarregamento = mBarraDoCarregamento = nullptr;
+
+    // E SO AGORA A MUSICA: a batalha esta carregada e a vista.
+    if (mGame->GetAudio() && !mMusicHandle.IsValid()) {
+        mMusicHandle = mGame->GetAudio()->PlaySound("backgroundmusic.ogg", true);
+        mGame->GetAudio()->SetSoundVolume(mMusicHandle, 32);
     }
 
     // Reativa o Player, pausado em StartLoadingProjectilePools().
@@ -654,7 +721,7 @@ void Battle::OnUpdate(float deltaTime) {
     // chamado em FinishLoadingProjectilePools()). Processa 1 tipo de
     // projétil por frame.
     if (mIsLoading) {
-        UpdateLoadingStep();
+        UpdateLoadingStep(deltaTime);
         return;
     }
 
@@ -737,23 +804,16 @@ void Battle::TimeBarUpdate() const {
     mHUDClockActor->SetPosition(mHUDTimeBarActor->GetPosition() + Vector2(5, static_cast<float>(bossHeight) / 1.4f));
 }
 void Battle::GradeBarUpdate() {
-    auto gradeComp = mGradeBarActor->GetComponent<ProgressBarComponent>();
+    auto gradeComp = mGradeBarActor->GetComponent<DrawBarraDaNotaComponent>();
     if (!gradeComp) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "GradeBarActor not found");
         return;
     }
 
-    const float fillPercent = mGrade / 100.f;
-    gradeComp->SetFillPercent(fillPercent);
-
     // -- DEFINIÇÃO DA PALETA DE CORES -- //
 
-    // O SULCO, e dele que saem a moldura e a sombra (ver SetAcabamento). Era
-    // {20,20,20}, quase preto: sobre o preto da tela a barra nao tinha contorno
-    // nenhum, e clarear a moldura a partir de um quase-preto nao chega a lugar
-    // nenhum. Puxado para o azul pelo mesmo motivo do fundo das telas de menu -
-    // um cinza neutro deixa a faixa amarelada ao lado do laranja da nota.
-    static const SDL_Color BG_COLOR = {26,28,38,255};
+    // O SULCO E A MOLDURA sao da barra (DrawBarraDaNotaComponent); aqui so a
+    // cor do preenchimento, que muda com a faixa da nota.
 
     // STATE1 - REPROVADE
     static const SDL_Color FAIL_START = {100, 0, 0, 255};
@@ -771,21 +831,24 @@ void Battle::GradeBarUpdate() {
 
     float colorPercent = 0.0f;
 
+    SDL_Color de = PASS_START, ate = PASS_END;
     if (mGrade < 40.f) {
         colorPercent = mGrade / 40.f;
-        gradeComp->SetGradientColors(BG_COLOR, FAIL_START, FAIL_END);
-        gradeComp->SetEffect(ProgressBarComponent::VisualEffect::Pulsing);
+        de = FAIL_START; ate = FAIL_END;
     } else if (mGrade < 60.f) {
         colorPercent = (mGrade - 40.f) / 20.f;
-        gradeComp->SetGradientColors(BG_COLOR, SECRET_START, SECRET_END);
-        gradeComp->SetEffect(ProgressBarComponent::VisualEffect::None);
+        de = SECRET_START; ate = SECRET_END;
     } else {
         colorPercent = (mGrade - 60.f) / 40.f;
-        gradeComp->SetGradientColors(BG_COLOR, PASS_START, PASS_END);
-        gradeComp->SetEffect(ProgressBarComponent::VisualEffect::None);
     }
+    const auto lerp = [colorPercent](const Uint8 a, const Uint8 b) {
+        return static_cast<Uint8>(static_cast<float>(a) + (static_cast<float>(b) - static_cast<float>(a)) * colorPercent);
+    };
+    const SDL_Color cor{lerp(de.r, ate.r), lerp(de.g, ate.g), lerp(de.b, ate.b), 255};
 
-    gradeComp->SetColorPercent(colorPercent);
+    // ABAIXO DO EXAME A MOLDURA PULSA em vermelho (era o preenchimento que
+    // piscava, e piscando ele sumia metade do tempo); na nota cheia, ouro.
+    gradeComp->SetNota(mGrade, cor, mGrade < 40.f, Nota::ECheia(mGrade));
     GradeTextUpdate();
 
 }

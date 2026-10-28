@@ -13,6 +13,7 @@
 #include "../../Game.h"
 #include "../../AudioSystem.h"
 #include "../../Pausa.h"
+#include "../../Carregamento.h"
 #include "../../Dificuldade.h"
 #include "../../Variacao.h"
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
@@ -352,6 +353,11 @@ private:
     static constexpr int kOrdemDaPlaca = 303;   ///< o texto da faixa usa 304
     static inline const SDL_Color kSemMoldura{0, 0, 0, 0};
     static inline const SDL_Color kFundoDaPlaca{6, 8, 16, 135};
+    /// A PLACA DO NUMERO DA NOTA, mais fechada que a dos avisos e com um fio de
+    /// moldura: ela fica em cima do preenchimento com volume, e a 135 o reflexo
+    /// que passa na barra atravessava o numero.
+    static inline const SDL_Color kFundoDaPlacaDaNota{6, 8, 16, 200};
+    static inline const SDL_Color kMolduraDaPlacaDaNota{255, 255, 255, 55};
 
     // --- Ponteiros observadores do Boss e do Player, que vão estar dentro
     // do vetor mActors da própria cena Battle. Ideal para, mesmo num vetor de Actors,
@@ -487,10 +493,19 @@ private:
     bool mIsLoading = false;
     std::vector<std::string> mLoadingPendingFactoryNames; // nomes ainda não pré-aquecidos
     int mLoadingTotalTypes = 0;   // quantos tipos existem no total (para a barra de progresso)
-    Actor* mLoadingTextActor = nullptr;
+
+    // A TELA DE CARREGAMENTO cobre a batalha inteira - um veu escuro com o nome
+    // da materia e uma barra enchendo - ate os pools estarem prontos e a barra
+    // ter mostrado isso (Carregamento.h). So quando o veu some a luta comeca:
+    // o chefe ataca, os alunos andam e a musica toca.
+    Carregamento::Estado mCarregamento;
+    Actor* mVeuDoCarregamento = nullptr;
+    Actor* mBarraDoCarregamento = nullptr;
+    std::vector<Actor*> mTextosDoCarregamento;
+    void CriarTelaDeCarregamento();
 
     void StartLoadingProjectilePools();
-    void UpdateLoadingStep(); // processa 1 tipo de projétil por chamada
+    void UpdateLoadingStep(float deltaTime); // processa 1 tipo de projétil por chamada
     void FinishLoadingProjectilePools();
 
     // ---- A PAUSA, so no computador (Pausa.h) --------------------------------
