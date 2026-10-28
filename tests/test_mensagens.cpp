@@ -29,18 +29,18 @@ TEST_CASE("Mensagens: as rodadas cabem na fase, e comecam depois do fork") {
     }
 }
 
-TEST_CASE("Mensagens: na assincrona a caixa do pai enche e esvazia, e ele nunca recebe do vazio") {
+TEST_CASE("Mensagens: na assincrona a caixa do cliente enche e esvazia, e ele nunca recebe do vazio") {
     const auto r = Roteiro(Rodada::Assincrona);
     int maior = 0;
     for (const Evento& e : r) {
         if (e.o != Acontece::Recebe) continue;
         // Antes de receber ha pelo menos um na caixa.
-        CHECK(NaCaixa(r, kPai, e.quando - 0.001f) >= 1);
-        maior = std::max(maior, NaCaixa(r, kPai, e.quando - 0.001f));
+        CHECK(NaCaixa(r, kCliente, e.quando - 0.001f) >= 1);
+        maior = std::max(maior, NaCaixa(r, kCliente, e.quando - 0.001f));
     }
-    CHECK(maior >= 3);                                 // ela enche: o filho nao espera
-    CHECK(NaCaixa(r, kPai, kPorRodada) == 0);          // e esvazia
-    CHECK(Placar(Rodada::Assincrona, 3, 0, false, false) == "send sem esperar \xc2\xb7 caixa do pai: 3");
+    CHECK(maior >= 3);                                 // ela enche: o servidor nao espera
+    CHECK(NaCaixa(r, kCliente, kPorRodada) == 0);          // e esvazia
+    CHECK(Placar(Rodada::Assincrona, 3, 0, false, false) == "send sem esperar \xc2\xb7 caixa do cliente: 3");
 }
 
 TEST_CASE("Mensagens: na sincrona cada envio tem o seu rendezvous, quando o envelope chega") {
@@ -59,7 +59,7 @@ TEST_CASE("Mensagens: na sincrona cada envio tem o seu rendezvous, quando o enve
     }
     CHECK(envios == 3);
     CHECK(encontros == 3);
-    CHECK(Placar(Rodada::Sincrona, 0, 0, true, false) == "send s\xc3\xadncrono \xc2\xb7 pai bloqueado");
+    CHECK(Placar(Rodada::Sincrona, 0, 0, true, false) == "send s\xc3\xadncrono \xc2\xb7 cliente bloqueado");
 }
 
 TEST_CASE("Mensagens: na rpc o pedido vai, a resposta volta, e o resultado e a soma") {
@@ -68,10 +68,10 @@ TEST_CASE("Mensagens: na rpc o pedido vai, a resposta volta, e o resultado e a s
     float ultimoResultado = -1.0f;
     for (const Evento& e : r) {
         if (e.o == Acontece::Envia) {
-            CHECK(e.de == kPai);
+            CHECK(e.de == kCliente);
             CHECK(e.quando > ultimoResultado);   // a rpc bloqueia: so chama de novo depois do resultado
         }
-        if (e.o == Acontece::Responde) CHECK(e.de == kFilho);
+        if (e.o == Acontece::Responde) CHECK(e.de == kServidor);
         if (e.o == Acontece::Resultado) {
             CHECK(e.valor == Soma(ChamadaDaVez(chamadas)));
             ++chamadas;
@@ -80,7 +80,7 @@ TEST_CASE("Mensagens: na rpc o pedido vai, a resposta volta, e o resultado e a s
     }
     CHECK(chamadas == kChamadas);
     CHECK(Soma(ChamadaDaVez(0)) == 5);
-    CHECK(Placar(Rodada::Rpc, 0, 0, true, false) == "r = soma(2, 3) \xc2\xb7 rpc no filho");
+    CHECK(Placar(Rodada::Rpc, 0, 0, true, false) == "r = soma(2, 3) \xc2\xb7 rpc no servidor");
     CHECK(Placar(Rodada::Rpc, 0, 1, false, false) == "return 7");
 }
 
@@ -103,35 +103,35 @@ TEST_CASE("Mensagens: no impasse os dois mandam e ninguem recebe, ate o timeout"
     CHECK(Placar(Rodada::Impasse, 0, 0, false, true) == "timeout \xc2\xb7 send sem esperar");
 }
 
-TEST_CASE("Mensagens: os dois processos no alto, o pai a esquerda, e o arco desce ate o fundo") {
+TEST_CASE("Mensagens: os dois processos no alto, o cliente a esquerda, e o arco desce ate o fundo") {
     for (int k = 0; k < kRodadas; ++k) {
         CAPTURE(k);
-        const Ponto pai = Lugar(kPai, k, 1200.0f);
-        const Ponto filho = Lugar(kFilho, k, 1200.0f);
-        CHECK(pai.x < filho.x);
-        for (const Ponto& p : {pai, filho}) {
+        const Ponto cliente = Lugar(kCliente, k, 1200.0f);
+        const Ponto servidor = Lugar(kServidor, k, 1200.0f);
+        CHECK(cliente.x < servidor.x);
+        for (const Ponto& p : {cliente, servidor}) {
             CHECK(p.y >= 120.0f - 0.01f);   // abaixo do placar, com o cartao de 128
             CHECK(p.y < 260.0f);
             CHECK(p.x > 64.0f);
             CHECK(p.x < 1200.0f - 64.0f);
         }
         const float fundo = Fundo(RodadaDaVez(k));
-        const Ponto meio = NoArco(pai, filho, 0.5f, fundo);
+        const Ponto meio = NoArco(cliente, servidor, 0.5f, fundo);
         CHECK(meio.y == doctest::Approx(fundo));
         // NAS RODADAS DE MUITOS ENVELOPES o canal vai ate o chao; nas outras o
         // aluno embaixo passa por baixo dele.
         const Rodada r = RodadaDaVez(k);
         if (r == Rodada::Assincrona || r == Rodada::Impasse) CHECK(fundo >= 698.0f);
         else CHECK(fundo < 680.0f);
-        const Ponto a = NoArco(pai, filho, 0.0f, fundo);
-        const Ponto b = NoArco(pai, filho, 1.0f, fundo);
-        CHECK(a.x == doctest::Approx(pai.x));
-        CHECK(a.y == doctest::Approx(pai.y));
-        CHECK(b.x == doctest::Approx(filho.x));
-        CHECK(b.y == doctest::Approx(filho.y));
+        const Ponto a = NoArco(cliente, servidor, 0.0f, fundo);
+        const Ponto b = NoArco(cliente, servidor, 1.0f, fundo);
+        CHECK(a.x == doctest::Approx(cliente.x));
+        CHECK(a.y == doctest::Approx(cliente.y));
+        CHECK(b.x == doctest::Approx(servidor.x));
+        CHECK(b.y == doctest::Approx(servidor.y));
     }
-    CHECK(Nome(kPai) == "pai");
-    CHECK(Nome(kFilho) == "filho");
+    CHECK(Nome(kCliente) == "cliente");
+    CHECK(Nome(kServidor) == "servidor");
 }
 
 // ---- A VARIACAO E O DEGRAU ---------------------------------------------------
@@ -161,13 +161,13 @@ namespace {
                 ++resultados;
             }
         }
-        // QUEM RECEBE COM receive() esvazia a caixa: o pai na assincrona, os
+        // QUEM RECEBE COM receive() esvazia a caixa: o cliente na assincrona, os
         // dois depois do timeout. (Na sincrona e na rpc o recebimento e o
         // rendezvous e a resposta, e nao a caixa.)
-        if (r == Rodada::Assincrona) CHECK(NaCaixa(roteiro, kPai, kPorRodada) == 0);
+        if (r == Rodada::Assincrona) CHECK(NaCaixa(roteiro, kCliente, kPorRodada) == 0);
         if (r == Rodada::Impasse) {
-            CHECK(NaCaixa(roteiro, kPai, kPorRodada) == 0);
-            CHECK(NaCaixa(roteiro, kFilho, kPorRodada) == 0);
+            CHECK(NaCaixa(roteiro, kCliente, kPorRodada) == 0);
+            CHECK(NaCaixa(roteiro, kServidor, kPorRodada) == 0);
         }
         if (r == Rodada::Assincrona) CHECK(maior >= 3);
         if (r == Rodada::Rpc) CHECK(resultados == kChamadas);
@@ -206,7 +206,7 @@ TEST_CASE("Mensagens: o plano de sempre e o roteiro de sempre") {
             CHECK(velho[i].quando == doctest::Approx(novo[i].quando));
             CHECK(velho[i].o == novo[i].o);
         }
-        for (const int q : {kPai, kFilho}) {
+        for (const int q : {kCliente, kServidor}) {
             CHECK(Lugar(q, k, 1200.0f, p).x == doctest::Approx(Lugar(q, k, 1200.0f).x));
             CHECK(Lugar(q, k, 1200.0f, p).y == doctest::Approx(Lugar(q, k, 1200.0f).y));
         }
@@ -238,10 +238,10 @@ TEST_CASE("Mensagens: em toda luta a assincrona abre, as contas sao outras, e as
         }
 
         for (int k = 0; k < kRodadas; ++k) {
-            const Ponto pai = Lugar(kPai, k, 1200.0f, p);
-            const Ponto filho = Lugar(kFilho, k, 1200.0f, p);
-            CHECK(pai.x < filho.x);
-            for (const Ponto& q : {pai, filho}) {
+            const Ponto cliente = Lugar(kCliente, k, 1200.0f, p);
+            const Ponto servidor = Lugar(kServidor, k, 1200.0f, p);
+            CHECK(cliente.x < servidor.x);
+            for (const Ponto& q : {cliente, servidor}) {
                 CHECK(q.y >= 120.0f - 0.01f);
                 CHECK(q.y < 260.0f);
                 CHECK(q.x > 64.0f);
@@ -257,7 +257,7 @@ TEST_CASE("Mensagens: em toda luta a assincrona abre, as contas sao outras, e as
     // O placar da rpc fala a conta desta luta.
     Plano p = PlanoDeSempre();
     p.chamadas = {Chamada{4, 5}, Chamada{1, 6}};
-    CHECK(Placar(Rodada::Rpc, 0, 0, true, false, p) == "r = soma(4, 5) \xc2\xb7 rpc no filho");
+    CHECK(Placar(Rodada::Rpc, 0, 0, true, false, p) == "r = soma(4, 5) \xc2\xb7 rpc no servidor");
     CHECK(Placar(Rodada::Rpc, 0, 1, false, false, p) == "return 7");
 }
 
@@ -272,11 +272,11 @@ TEST_CASE("Mensagens: o degrau - o Dificil enche mais a caixa e atira mais") {
     CHECK(d.depoisDoTimeout > n.depoisDoTimeout);
     CHECK(d.anelDoEncontro > n.anelDoEncontro);
     CHECK(d.rapidez > n.rapidez);
-    // A CAIXA DO PAI ENCHE MAIS no Dificil.
+    // A CAIXA DO CLIENTE ENCHE MAIS no Dificil.
     auto maiorCaixa = [](const Degrau& g) {
         const auto r = Roteiro(Rodada::Assincrona, PlanoDeSempre(), g);
         int maior = 0;
-        for (float u = 0.0f; u < kPorRodada; u += 0.01f) maior = std::max(maior, NaCaixa(r, kPai, u));
+        for (float u = 0.0f; u < kPorRodada; u += 0.01f) maior = std::max(maior, NaCaixa(r, kCliente, u));
         return maior;
     };
     CHECK(maiorCaixa(d) > maiorCaixa(n));

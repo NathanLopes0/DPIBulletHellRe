@@ -157,7 +157,7 @@
   // mas os dois continuam levando tiro: o fork nao e um intervalo. QUALQUER UM
   // DOS DOIS TOMA DANO (Battle::Corpos).
   //
-  // E SAO DOIS PROCESSOS, o pai e o filho, e processos conversam TROCANDO
+  // E SAO DOIS PROCESSOS, o cliente e o servidor, e processos conversam TROCANDO
   // MENSAGENS (Mensagens.h). Entre os dois corre o CANAL, um arco tracejado
   // que desce pelo campo, e cada mensagem e um envelope correndo por ele -
   // nas rodadas de muitos envelopes, ate o chao. Os tiros dos processos se
@@ -166,12 +166,12 @@
   // mudam um pouco a cada luta); a assincrona abre, e as outras vem em
   // qualquer ordem:
   //
-  //   assincrona   o filho manda sem esperar, mais depressa do que o pai
-  //                recebe: a caixa postal do pai enche (o placar conta), e
+  //   assincrona   o servidor manda sem esperar, mais depressa do que o cliente
+  //                recebe: a caixa postal do cliente enche (o placar conta), e
   //                cada receive() vira um tiro no aluno
-  //   sincrona     o pai manda e fica bloqueado ate o filho receber: no
+  //   sincrona     o cliente manda e fica bloqueado ate o servidor receber: no
   //                rendezvous os dois atiram um anel juntos
-  //   rpc          r = soma(2, 3) no filho: o pedido vai, a resposta volta, e
+  //   rpc          r = soma(2, 3) no servidor: o pedido vai, a resposta volta, e
   //                o resultado e um leque de 5 no aluno; depois soma(3, 4).
   //                As contas sao sorteadas, com somas 5, 7 ou 9
   //   impasse      os dois fazem send() ao mesmo tempo e ninguem recebe: os

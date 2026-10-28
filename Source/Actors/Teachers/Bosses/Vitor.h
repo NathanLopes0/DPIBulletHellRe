@@ -58,10 +58,10 @@ class Player;
  * cwnd = 1. E e pela nuvem que ele se divide na fase 3: as duas se juntam em
  * cima dele, ele entra, e saem dois (ComecarOFork).
  *
- * A FASE 3 E A TROCA DE MENSAGENS (Mensagens.h): saem dois da nuvem, o pai e
- * o filho, e entre eles corre um canal em arco pelo campo. O original conduz
+ * A FASE 3 E A TROCA DE MENSAGENS (Mensagens.h): saem dois da nuvem, o cliente e
+ * o servidor, e entre eles corre um canal em arco pelo campo. O original conduz
  * os dois corpos - o clone empresta uma fase so de gatilho, e nao anda nem
- * atira sozinho - e cada envelope corre pelo arco: a caixa postal do pai que
+ * atira sozinho - e cada envelope corre pelo arco: a caixa postal do cliente que
  * enche, o rendezvous do envio sincrono, a rpc que devolve um leque, e o
  * impasse dos dois enviando ao mesmo tempo.
  *
@@ -219,10 +219,10 @@ private:
     void MoverEnvelopes(float u);
     void DesenharCanal();
 
-    /// O outro corpo do fork, o filho - o clone em campo, ou nulo.
-    [[nodiscard]] Vitor* Filho() const;
+    /// O outro corpo do fork, o servidor - o clone em campo, ou nulo.
+    [[nodiscard]] Vitor* Servidor() const;
 
-    /// Onde esta o processo agora: o pai e este corpo; o filho, o clone.
+    /// Onde esta o processo agora: o cliente e este corpo; o servidor, o clone.
     [[nodiscard]] Vector2 PosicaoDe(int processo) const;
 
     bool mNasMensagens = false;
@@ -246,14 +246,14 @@ private:
     /// porta (o impasse).
     struct Envelope {
         BossProjectile* p = nullptr;
-        int de = Mensagens::kPai;
+        int de = Mensagens::kCliente;
         float saiu = 0.0f;
         float voo = 1.0f;
         bool paraNaPorta = false;
     };
     std::vector<Envelope> mEnvelopes;
 
-    /// "pai" e "filho", embaixo de cada corpo.
+    /// "cliente" e "servidor", embaixo de cada corpo.
     std::array<EtiquetaDeCodigo*, 2> mNomesDosProcessos{};
     static constexpr float kAbaixoDoProcesso = 78.0f;
     static constexpr float kAberturaPorDado = 9.0f;

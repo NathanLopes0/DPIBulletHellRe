@@ -13,11 +13,11 @@ namespace Mensagens {
         // MSVC nao le acento nem simbolo em literal.
         const char* const kPonto = " \xc2\xb7 ";
 
-        int Outro(const int processo) { return processo == kPai ? kFilho : kPai; }
+        int Outro(const int processo) { return processo == kCliente ? kServidor : kCliente; }
     }
 
     std::string Nome(const int processo) {
-        return processo == kPai ? "pai" : "filho";
+        return processo == kCliente ? "cliente" : "servidor";
     }
 
     Rodada RodadaDaVez(const int k) {
@@ -43,51 +43,51 @@ namespace Mensagens {
         std::vector<Evento> e;
         switch (r) {
             case Rodada::Assincrona:
-                // O FILHO MANDA SEM ESPERAR, mais depressa do que o pai recebe:
+                // O SERVIDOR MANDA SEM ESPERAR, mais depressa do que o cliente recebe:
                 // a caixa postal enche, e depois esvazia.
                 for (int i = 0; i < d.assincronos; ++i) {
-                    e.push_back({0.3f + d.entreEnvios * static_cast<float>(i), Acontece::Envia, kFilho, 0, 1.3f, false});
+                    e.push_back({0.3f + d.entreEnvios * static_cast<float>(i), Acontece::Envia, kServidor, 0, 1.3f, false});
                 }
                 for (int j = 0; j < d.assincronos; ++j) {
-                    e.push_back({1.7f + d.entreRecebidos * static_cast<float>(j), Acontece::Recebe, kPai});
+                    e.push_back({1.7f + d.entreRecebidos * static_cast<float>(j), Acontece::Recebe, kCliente});
                 }
                 break;
             case Rodada::Sincrona:
-                // O PAI MANDA E ESPERA: quando o envelope chega, o rendezvous.
+                // O CLIENTE MANDA E ESPERA: quando o envelope chega, o rendezvous.
                 for (int i = 0; i < d.sincronos; ++i) {
                     const float t = 0.3f + d.entreSincronos * static_cast<float>(i);
-                    e.push_back({t, Acontece::Envia, kPai, 0, d.vooSincrono, false});
-                    e.push_back({t + d.vooSincrono, Acontece::Encontro, kPai});
+                    e.push_back({t, Acontece::Envia, kCliente, 0, d.vooSincrono, false});
+                    e.push_back({t + d.vooSincrono, Acontece::Encontro, kCliente});
                 }
                 break;
             case Rodada::Rpc: {
-                // A CHAMADA REMOTA: o pedido vai, o filho calcula, a resposta
-                // volta - e o pai so segue quando ela chega.
+                // A CHAMADA REMOTA: o pedido vai, o servidor calcula, a resposta
+                // volta - e o cliente so segue quando ela chega.
                 float t = 0.3f;
                 for (int i = 0; i < kChamadas; ++i) {
                     const int valor = Soma(plano.chamadas[static_cast<size_t>(i)]);
-                    e.push_back({t, Acontece::Envia, kPai, valor, 0.85f, false});
-                    e.push_back({t + 1.15f, Acontece::Responde, kFilho, valor, 0.85f, false});
-                    e.push_back({t + 2.0f, Acontece::Resultado, kPai, valor});
+                    e.push_back({t, Acontece::Envia, kCliente, valor, 0.85f, false});
+                    e.push_back({t + 1.15f, Acontece::Responde, kServidor, valor, 0.85f, false});
+                    e.push_back({t + 2.0f, Acontece::Resultado, kCliente, valor});
                     t += 2.1f;
                 }
                 break;
             }
             case Rodada::Impasse:
                 // OS DOIS MANDAM E OS DOIS ESPERAM: ninguem recebe.
-                e.push_back({0.3f, Acontece::Envia, kPai, 0, 1.1f, true});
-                e.push_back({0.3f, Acontece::Envia, kFilho, 0, 1.1f, true});
-                e.push_back({2.3f, Acontece::Estoura, kPai});
+                e.push_back({0.3f, Acontece::Envia, kCliente, 0, 1.1f, true});
+                e.push_back({0.3f, Acontece::Envia, kServidor, 0, 1.1f, true});
+                e.push_back({2.3f, Acontece::Estoura, kCliente});
                 // E DEPOIS DO TIMEOUT, os dois mandam sem esperar.
                 for (int i = 0; i < d.depoisDoTimeout; ++i) {
                     const float t = 2.6f + d.entreDepoisDoTimeout * static_cast<float>(i);
-                    e.push_back({t, Acontece::Envia, kPai, 0, 1.0f, false});
-                    e.push_back({t, Acontece::Envia, kFilho, 0, 1.0f, false});
+                    e.push_back({t, Acontece::Envia, kCliente, 0, 1.0f, false});
+                    e.push_back({t, Acontece::Envia, kServidor, 0, 1.0f, false});
                 }
                 for (int j = 0; j < d.depoisDoTimeout; ++j) {
                     const float t = 3.7f + d.entreDepoisDoTimeout * static_cast<float>(j);
-                    e.push_back({t, Acontece::Recebe, kPai});
-                    e.push_back({t, Acontece::Recebe, kFilho});
+                    e.push_back({t, Acontece::Recebe, kCliente});
+                    e.push_back({t, Acontece::Recebe, kServidor});
                 }
                 break;
         }
@@ -118,7 +118,7 @@ namespace Mensagens {
 
     Ponto Lugar(const int processo, const int k, const float largura, const Plano& plano) {
         const int r = ((k % kRodadas) + kRodadas) % kRodadas;
-        const int p = processo == kPai ? 0 : 1;
+        const int p = processo == kCliente ? 0 : 1;
         const Ponto l = plano.lugares[static_cast<size_t>(r)][static_cast<size_t>(p)];
         return {l.x * largura, l.y};
     }
@@ -212,13 +212,13 @@ namespace Mensagens {
                        const Plano& plano) {
         switch (r) {
             case Rodada::Assincrona:
-                return "send sem esperar" + std::string(kPonto) + "caixa do pai: " + std::to_string(naCaixa);
+                return "send sem esperar" + std::string(kPonto) + "caixa do cliente: " + std::to_string(naCaixa);
             case Rodada::Sincrona:
-                return bloqueado ? "send s\xc3\xadncrono" + std::string(kPonto) + "pai bloqueado" : std::string("rendezvous");
+                return bloqueado ? "send s\xc3\xadncrono" + std::string(kPonto) + "cliente bloqueado" : std::string("rendezvous");
             case Rodada::Rpc: {
                 const Chamada c = plano.chamadas[static_cast<size_t>(((chamada % kChamadas) + kChamadas) % kChamadas)];
                 if (bloqueado) {
-                    return "r = soma(" + std::to_string(c.a) + ", " + std::to_string(c.b) + ")" + kPonto + "rpc no filho";
+                    return "r = soma(" + std::to_string(c.a) + ", " + std::to_string(c.b) + ")" + kPonto + "rpc no servidor";
                 }
                 return "return " + std::to_string(Soma(c));
             }

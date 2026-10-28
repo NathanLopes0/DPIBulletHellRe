@@ -1166,7 +1166,7 @@ void Vitor::AtualizarJantar(const float deltaTime) {
 // A fase 3: a troca de mensagens
 // ---------------------------------------------------------------------------
 
-Vitor* Vitor::Filho() const {
+Vitor* Vitor::Servidor() const {
     const auto* batalha = dynamic_cast<Battle*>(mScene);
     if (!batalha) return nullptr;
     for (Boss* corpo : batalha->Corpos()) {
@@ -1176,10 +1176,10 @@ Vitor* Vitor::Filho() const {
 }
 
 Vector2 Vitor::PosicaoDe(const int processo) const {
-    if (processo == Mensagens::kPai) return GetPosition();
-    if (const Vitor* filho = Filho()) return filho->GetPosition();
-    // SEM FILHO (quem comeca direto nesta fase e se divide no primeiro
-    // quadro, ou um corpo que a batalha ja levou), o espelho do pai.
+    if (processo == Mensagens::kCliente) return GetPosition();
+    if (const Vitor* servidor = Servidor()) return servidor->GetPosition();
+    // SEM SERVIDOR (quem comeca direto nesta fase e se divide no primeiro
+    // quadro, ou um corpo que a batalha ja levou), o espelho do cliente.
     return Vector2(Campo().x + Campo().w - (GetPosition().x - Campo().x), GetPosition().y);
 }
 
@@ -1218,7 +1218,7 @@ void Vitor::DesmontarMensagens() {
     mNasMensagens = false;
     mRodadaDasMensagens = -1;
     mAlvo.reset();
-    if (Vitor* filho = Filho()) filho->mAlvo.reset();
+    if (Vitor* servidor = Servidor()) servidor->mAlvo.reset();
 }
 
 void Vitor::ComecarRodadaDasMensagens(const int k) {
@@ -1237,10 +1237,10 @@ void Vitor::ComecarRodadaDasMensagens(const int k) {
 
     // OS DOIS VAO PARA O LUGAR DA RODADA: o original conduz os dois corpos.
     const SDL_FRect campo = Campo();
-    const Mensagens::Ponto pai = Mensagens::Lugar(Mensagens::kPai, k, campo.w, mPlanoDasMensagens);
-    const Mensagens::Ponto filho = Mensagens::Lugar(Mensagens::kFilho, k, campo.w, mPlanoDasMensagens);
-    mAlvo = Vector2(campo.x + pai.x, campo.y + pai.y);
-    if (Vitor* outro = Filho()) outro->mAlvo = Vector2(campo.x + filho.x, campo.y + filho.y);
+    const Mensagens::Ponto cliente = Mensagens::Lugar(Mensagens::kCliente, k, campo.w, mPlanoDasMensagens);
+    const Mensagens::Ponto servidor = Mensagens::Lugar(Mensagens::kServidor, k, campo.w, mPlanoDasMensagens);
+    mAlvo = Vector2(campo.x + cliente.x, campo.y + cliente.y);
+    if (Vitor* outro = Servidor()) outro->mAlvo = Vector2(campo.x + servidor.x, campo.y + servidor.y);
 }
 
 void Vitor::ExecutarMensagem(const Mensagens::Evento& e) {
@@ -1279,13 +1279,13 @@ void Vitor::ExecutarMensagem(const Mensagens::Evento& e) {
         }
         case Mensagens::Acontece::Encontro:
             // O RENDEZVOUS: os dois andam juntos, e atiram juntos.
-            anel(PosicaoDe(Mensagens::kPai));
-            anel(PosicaoDe(Mensagens::kFilho));
+            anel(PosicaoDe(Mensagens::kCliente));
+            anel(PosicaoDe(Mensagens::kServidor));
             break;
         case Mensagens::Acontece::Resultado: {
             // O RETORNO DA RPC: um leque com tantos quanto a soma, o do meio no
             // aluno (as somas sao impares).
-            const Vector2 de = PosicaoDe(Mensagens::kPai);
+            const Vector2 de = PosicaoDe(Mensagens::kCliente);
             DispararEm(Mensagens::kGatilhoDoProcessado, de, e.valor,
                        AnguloAdiante(de, processado, 1.0f),
                        kAberturaPorDado * static_cast<float>(e.valor - 1), rapidez);
@@ -1314,7 +1314,7 @@ void Vitor::MoverEnvelopes(const float u) {
             PorCara(it->p, Mensagens::kCaraDoEsperando);
         }
         const Vector2 de = PosicaoDe(it->de);
-        const Vector2 para = PosicaoDe(it->de == Mensagens::kPai ? Mensagens::kFilho : Mensagens::kPai);
+        const Vector2 para = PosicaoDe(it->de == Mensagens::kCliente ? Mensagens::kServidor : Mensagens::kCliente);
         // CHEGOU: entra na caixa postal de quem recebe - o roteiro conta.
         if (s >= 1.0f) {
             it->p->Kill();
@@ -1331,8 +1331,8 @@ void Vitor::MoverEnvelopes(const float u) {
 void Vitor::DesenharCanal() {
     if (!mLinhas) return;
     const float fundo = Campo().y + Mensagens::Fundo(RodadaDasMensagens(mRodadaDasMensagens));
-    const Vector2 de = PosicaoDe(Mensagens::kPai);
-    const Vector2 para = PosicaoDe(Mensagens::kFilho);
+    const Vector2 de = PosicaoDe(Mensagens::kCliente);
+    const Vector2 para = PosicaoDe(Mensagens::kServidor);
     constexpr int kPedacos = 24;
     for (int i = 0; i < kPedacos; ++i) {
         const Mensagens::Ponto a = Mensagens::NoArco({de.x, de.y}, {para.x, para.y},
@@ -1385,16 +1385,16 @@ void Vitor::AtualizarMensagens() {
     MoverEnvelopes(u);
     DesenharCanal();
 
-    // O PLACAR: a caixa do pai na assincrona; o pai bloqueado enquanto o
+    // O PLACAR: a caixa do cliente na assincrona; o cliente bloqueado enquanto o
     // envelope dele corre, na sincrona; a chamada da rpc; o impasse.
     const Mensagens::Rodada rodada = RodadaDasMensagens(k);
     bool bloqueado = false;
     if (rodada == Mensagens::Rodada::Sincrona) {
-        for (const Envelope& e : mEnvelopes) bloqueado = bloqueado || e.de == Mensagens::kPai;
+        for (const Envelope& e : mEnvelopes) bloqueado = bloqueado || e.de == Mensagens::kCliente;
     } else if (rodada == Mensagens::Rodada::Rpc) {
         bloqueado = mEsperandoRpc;
     }
     Anunciar(Mensagens::kFaseDasMensagens,
-             Mensagens::Placar(rodada, Mensagens::NaCaixa(mRoteiroDasMensagens, Mensagens::kPai, u),
+             Mensagens::Placar(rodada, Mensagens::NaCaixa(mRoteiroDasMensagens, Mensagens::kCliente, u),
                                mChamadaDaRpc, bloqueado, mEstourou, mPlanoDasMensagens));
 }

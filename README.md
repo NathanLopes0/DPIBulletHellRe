@@ -246,7 +246,7 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   janelas TCP ao roteador do meio do campo, que só dá conta de 10 por RTT e
   descarta o resto em cacos; a janela segue o dente de serra do controle de
   congestionamento, desenhado num gráfico, e o Ponto Extra vira um timeout. Na
-  terceira ele se divide pela nuvem em pai e filho, que trocam mensagens por
+  terceira ele se divide pela nuvem em cliente e servidor, que trocam mensagens por
   um canal em arco: a caixa postal que enche, o rendezvous, a RPC que devolve
   um leque e o impasse dos dois mandando ao mesmo tempo. O exame é o jantar
   dos filósofos — os garfos andam de mão em mão, e o deadlock vira um cerco

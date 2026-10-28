@@ -16,21 +16,21 @@
  * CAMADA PURA.
  *
  * A FASE 3 DO VITOR E A PROGRAMACAO DISTRIBUIDA. Ele se divide pela nuvem
- * (Nuvem.h) e saem DOIS PROCESSOS - o pai e o filho do fork() -, um de cada
+ * (Nuvem.h) e saem DOIS PROCESSOS do fork() - o cliente e o servidor -, um de cada
  * lado do alto do campo. Processos nao dividem memoria: conversam TROCANDO
  * MENSAGENS. Entre os dois fica o CANAL, um arco que desce pelo campo, e cada
  * mensagem e um envelope que corre por ele.
  *
  * Quatro rodadas, o resto da ementa da INF 310:
  *
- *   assincrona   o filho manda e NAO ESPERA: os envelopes enchem a caixa
- *                postal do pai, e o pai faz receive() um a um - cada
+ *   assincrona   o servidor manda e NAO ESPERA: os envelopes enchem a caixa
+ *                postal do cliente, e o cliente faz receive() um a um - cada
  *                mensagem recebida e processada vira um tiro no aluno
- *   sincrona     o pai manda e BLOQUEIA ate o filho receber: o rendezvous.
+ *   sincrona     o cliente manda e BLOQUEIA ate o servidor receber: o rendezvous.
  *                Quando o envelope chega, os dois andam juntos - e os dois
  *                atiram juntos, um anel cada
- *   rpc          a chamada de procedimento remoto: o pai chama soma(2, 3) no
- *                filho, o pedido vai, o filho calcula, a resposta volta - e
+ *   rpc          a chamada de procedimento remoto: o cliente chama soma(2, 3) no
+ *                servidor, o pedido vai, o servidor calcula, a resposta volta - e
  *                o resultado e um leque de 5 no aluno. Depois soma(3, 4)
  *   impasse      os dois fazem send() sincrono AO MESMO TEMPO, e ninguem
  *                recebe: os envelopes param na porta, os dois esperam - o
@@ -54,8 +54,8 @@ namespace Mensagens {
     constexpr const char* kCaraDoEnvelope = "Voando";
     constexpr const char* kCaraDoEsperando = "Esperando";
 
-    constexpr int kPai = 0;
-    constexpr int kFilho = 1;
+    constexpr int kCliente = 0;
+    constexpr int kServidor = 1;
     std::string Nome(int processo);
 
     // ---- AS RODADAS ---------------------------------------------------------
@@ -68,15 +68,15 @@ namespace Mensagens {
         Envia,      ///< um envelope sai de 'de' para o outro
         Recebe,     ///< 'de' tira um envelope da caixa postal e o processa: um tiro
         Encontro,   ///< o rendezvous: os dois atiram um anel
-        Responde,   ///< o retorno da rpc sai de 'de' (o filho)
-        Resultado,  ///< o pai recebe o retorno: um leque de 'valor' no aluno
+        Responde,   ///< o retorno da rpc sai de 'de' (o servidor)
+        Resultado,  ///< o cliente recebe o retorno: um leque de 'valor' no aluno
         Estoura     ///< o timeout do impasse: os envelopes parados estouram
     };
 
     struct Evento {
         float quando = 0.0f;         ///< segundos desde o comeco da rodada
         Acontece o = Acontece::Envia;
-        int de = kPai;
+        int de = kCliente;
         int valor = 0;               ///< o resultado da rpc
         float voo = 0.0f;            ///< Envia e Responde: quanto o envelope leva
         bool paraNaPorta = false;    ///< Envia do impasse: ninguem recebe
@@ -101,7 +101,7 @@ namespace Mensagens {
      * esperar os dois ao mesmo tempo. Essas vem em qualquer ordem. As duas
      * chamadas da rpc sao outras contas, com somas IMPARES (o leque do retorno
      * tem um tiro no meio, mirado no aluno), e os dois processos ficam em
-     * outros lugares a cada rodada (Lugar), sempre no alto, o pai a esquerda.
+     * outros lugares a cada rodada (Lugar), sempre no alto, o cliente a esquerda.
      */
     struct Plano {
         std::array<Rodada, kRodadas> rodadas{};
@@ -115,7 +115,7 @@ namespace Mensagens {
     // ---- O DEGRAU (Dificuldade.h) -----------------------------------------------
 
     /// O que o Dificil muda: a caixa postal da assincrona enche com mais
-    /// envelopes (o filho manda mais depressa, e o pai recebe mais depressa) e
+    /// envelopes (o servidor manda mais depressa, e o cliente recebe mais depressa) e
     /// cada receive() atira um leque de tres; a sincrona tem um rendezvous a
     /// mais (o envelope corre mais depressa); os aneis tem mais tiros, depois
     /// do timeout os dois mandam mais, e o que eles atiram anda mais depressa.
@@ -152,7 +152,7 @@ namespace Mensagens {
 
     // ---- O CAMPO ------------------------------------------------------------
 
-    /// Onde fica cada processo na rodada k: o pai a esquerda, o filho a
+    /// Onde fica cada processo na rodada k: o cliente a esquerda, o servidor a
     /// direita, no alto, cada rodada num par de alturas - os de sempre, ou os
     /// desta luta.
     Ponto Lugar(int processo, int k, float largura);

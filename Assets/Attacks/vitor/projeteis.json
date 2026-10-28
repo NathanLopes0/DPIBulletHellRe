@@ -136,8 +136,8 @@
     "ordemDeDesenho": 90
   },
 
-  // AS MENSAGENS DA FASE 3. O ENVELOPE corre pelo canal entre o pai e o
-  // filho - quem o move e o Vitor, pelo arco -, e fica vermelho parado na
+  // AS MENSAGENS DA FASE 3. O ENVELOPE corre pelo canal entre o cliente e o
+  // servidor - quem o move e o Vitor, pelo arco -, e fica vermelho parado na
   // porta de quem nao recebe (o impasse). O DADO e a mensagem processada: o
   // tiro do receive(), o anel do rendezvous e o leque do resultado da rpc.
   "Envelope": {
