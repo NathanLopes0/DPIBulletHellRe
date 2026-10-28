@@ -28,7 +28,7 @@ escritos na tela.
 | **Manche** | **setas** | **W A S D** | mover o aluno, escolher na tela |
 | **Botão 1** | **Espaço** | **F** | lançar Dúvidas; confirmar; digitar |
 | **Botão 2** | **B** | **G** | voltar e apagar; na batalha, gastar um Ponto Extra: soma nota e, sozinho, limpa a tela, mas sobrecarrega e impede de atirar por alguns segundos; em dupla, dá ao parceiro um escudo que destrói os projéteis do chefe, e quem gastou segue atirando |
-| **Botão 3** | **N** | **H** | o ranking da matéria, na seleção |
+| **Botão 3** | **N** | **H** | o ranking da matéria, na seleção; na batalha do TCC, soltar o poder do orientador quando o anel dele enche |
 | — | **Esc** | — | na batalha, **só no computador**: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota |
 | — | **Enter**, **Esc**, **0–9**, **Backspace** | — | atalhos de teclado para quem desenvolve |
 
@@ -46,8 +46,9 @@ porquê de cada uma, estão em `Documentacao/requisitos-coop.md`.
 
 O que cada botão faz **na tela em que você está** fica escrito no rodapé dela.
 
-Alguns projéteis o seu tiro **destrói** — os processos do Elixir, os agentes do
-Júlio, os blocos da pilha do Salles, a bala de prata da Maria Lúcia... Todos têm
+Alguns projéteis o seu tiro **destrói** — os workers do Elixir, os agentes do
+Júlio, os blocos da pilha do Salles, a bala de prata da Maria Lúcia, os alvos
+do objetivo do TCC... Todos têm
 o mesmo sinal: um **contorno vermelho** em volta do desenho. Sem contorno, o tiro
 passa direto ou some nele.
 
@@ -80,7 +81,8 @@ de partida.
 
 Subir até **60** é fácil e custa poucos acertos. Acima disso cada
 ponto custa mais que o anterior: a nota cheia sai por **301 acertos**, e uma
-batalha de 60 segundos tem tempo para até 500 tiros. O ganho de cada acerto
+batalha de 60 segundos tem tempo para até 500 tiros (a do TCC é mais longa,
+mas o Hugo blindado só toma dano nas janelas). O ganho de cada acerto
 acompanha a duração das fases: a nota sobe por segundo o mesmo que subia quando
 as fases tinham 17 segundos. Apesar de ser possível, ainda estou achando
 difícil, porque é necessário seguir o Boss que em alguns movimentos são mais rápidos. Talvez eu diminua
@@ -133,15 +135,15 @@ no JSON não reatribui a nota de ninguém.
 
 ## Os professores
 
-Cada chefe tem três fases mais uma fase final, de 20 segundos cada, e uma
-identidade de ataque própria. A fase final acontece quando a nota termina entre
-40 e 59 — é o exame.
+Cada chefe tem três fases mais uma fase final, de 20 segundos cada (as etapas
+do TCC duram 30), e uma identidade de ataque própria. A fase final acontece
+quando a nota termina entre 40 e 59 — é o exame.
 
 **Cada luta é outra.** Toda batalha sorteia uma semente, e cada professor tira
 dela o que varia **dentro do conceito de cada fase**: a ordem das portas
 lógicas do Ricardo, a temperatura de cada etapa do Júlio (escrita no placar),
-o *planning poker* das sprints da Maria Lúcia, a regra de cada fileira do
-flexbox do Lucas, a fita da máquina de Turing do Vladimir. O conceito é o mesmo
+o *planning poker* das sprints da Maria Lúcia, a página que o Lucas
+renderiza, a fita da máquina de Turing do Vladimir. O conceito é o mesmo
 em toda luta; o que muda é o exemplo — como uma lista de exercícios em que cada
 aluno pega outros números. Decorar o padrão não serve, e o placar continua
 sendo a regra: ele diz o que vai acontecer.
@@ -181,7 +183,7 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   token, cada um nascendo na ponta da frase com um leque que mostra as chances
   do próximo: fria, a frase é uma curva lisa que vem na sua direção; quente,
   ela ziguezagueia e alucina, passando do fim. Na segunda
- convoca agentes que trabalham no ciclo ReAct — pensam,
+  convoca agentes que trabalham no ciclo ReAct — pensam,
   agem mandando a ferramenta em você e observam. Na terceira ganha guardrails
   que comem o seu tiro, e o modelo te prediz de verdade: mira onde você **vai
   estar**. No exame, o modelo degenerou em repetição e só gera "e".
@@ -219,7 +221,7 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   mostra o código que ele está rodando. O programa da primeira fase e as
   exceções do exame são gerados a cada luta.
 
- Na primeira o campo é o texto do programa, um painel por
+  Na primeira o campo é o texto do programa, um painel por
   bloco com as declarações no canto, e a variável que a busca acha chove onde
   ela é visível — menos nos blocos que têm outra com o mesmo nome; no fim, a
   mesma chamada em escopo estático e em escopo dinâmico. Na segunda, a mesma
@@ -319,9 +321,10 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 1018 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 1053 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
-a montagem dos personagens, a planilha — e também **leem os arquivos de
+a montagem dos personagens, a planilha, o objetivo e o poder do orientador no
+TCC — e também **leem os arquivos de
 `Assets/` de verdade**, quebrando ao primeiro erro de digitação num JSON. Um
 chefe citado em `materias.json` sem fábrica registrada, um nome de fase que a
 máquina de estados não conhece ou um projétil inexistente derrubam a suíte em vez
@@ -334,9 +337,10 @@ Os testes foram na sua grande maioria gerados pelo Claude por enquanto, mas to c
 ```
 Source/          o jogo
   *.h / *.cpp      camada pura: nota, matrícula, progresso, matérias,
-                   personagens, navegação, tabela. Nada de SDL nem de disco.
+                   personagens, navegação, tabela, orientação, golpe e
+                   poder do orientador. Nada de SDL nem de disco.
   *Arquivo.cpp     as pontes: é só aqui que se lê arquivo e se fala com SDL.
-  Actors/          jogador, professores, projéteis
+  Actors/          jogador, professores, orientador, projéteis
   Attacks/         as estratégias de ataque e os comportamentos de projétil
   Scenes/          menu, identificação, criação de personagem, seleção, batalha
   Components/      desenho, colisão, física, máquina de estados
