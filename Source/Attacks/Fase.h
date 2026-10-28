@@ -21,4 +21,10 @@
  */
 namespace Fase {
     constexpr float kDuracao = 20.0f;
+
+    /// A EXCECAO: o TCC do Hugo e uma batalha maior. Cada etapa tem um escudo
+    /// a abrir (Objetivo.h) antes de o Hugo tomar dano, e 20 s davam uma
+    /// janela so. Nenhum modulo do Hugo corta a fase em pedacos, e o relogio do
+    /// HUD le a duracao de cada fase (Battle::OnFaseTrocada).
+    constexpr float kDuracaoDoTcc = 30.0f;
 }

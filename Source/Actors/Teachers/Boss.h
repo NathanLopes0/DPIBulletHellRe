@@ -169,6 +169,27 @@ public:
      */
     virtual void OnProjetilBarrado() {}
 
+    /// @brief O MESMO aviso de OnProjetilDerrubado, dizendo QUAL projetil caiu
+    /// - para o chefe que poe alvos diferentes em campo e precisa saber qual
+    /// deles o aluno acertou (a resposta certa da banca do Hugo). Chamado logo
+    /// depois de OnProjetilDerrubado; o padrao nao faz nada.
+    virtual void OnDerrubou(BossProjectile* /*qual*/) {}
+
+    // ---- O ESCUDO -----------------------------------------------------------
+
+    /**
+     * @brief Se o tiro que acerta este corpo AGORA paga nota. O padrao e sim.
+     *
+     * Falso e o chefe blindado: o tiro some no corpo dele, como sempre, mas a
+     * nota nao sobe - o Hugo, enquanto o aluno nao cumpre o objetivo da etapa.
+     * O acerto ainda conta para o poder do orientador (Battle, regra 2).
+     */
+    [[nodiscard]] virtual bool AceitaDano() const { return true; }
+
+    /// @brief Alguem de fora quebrou o escudo - a bala de prata da Maria Lucia,
+    /// como orientadora. Devolve se havia escudo para quebrar. O padrao nao tem.
+    virtual bool QuebrarEscudo() { return false; }
+
     // ---- O PLACAR ---------------------------------------------------------
 
     /// @brief Anota o que o placar mostra enquanto esta fase dura ("anuncio" em

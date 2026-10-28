@@ -6,16 +6,19 @@
 
 #include <array>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include "../Boss.h"
 #include "../../../Attacks/Cronograma.h"
+#include "../../../Attacks/Objetivo.h"
 #include "../../../Attacks/Tcc.h"
 
 class BossProjectile;
 class DrawLinhasComponent;
+class Font;
 
 /**
  * @class Hugo
@@ -39,17 +42,39 @@ class DrawLinhasComponent;
  *                             cantos - pergunta, cada um com a materia dele
  *   final   as correcoes      o tema e as perguntas da banca voltam
  *
+ * E ELE E BLINDADO (Objetivo.h): o TCC ainda nao esta pronto. Em cada etapa o
+ * aluno derruba os alvos do objetivo - as assinaturas, os bugs, a resposta
+ * certa da banca, as correcoes - e abre uma janela em que o Hugo toma dano;
+ * aberto, as paginas da monografia escorrem embaixo dele. As etapas duram 30
+ * s (Fase::kDuracaoDoTcc): a batalha maior do jogo.
+ *
  * O BALANCEAMENTO DO QUE VAI POR TEMPO VIVE EM DADOS (Assets/Attacks/hugo/);
- * aqui mora o cronograma, os padroes e a banca.
+ * aqui mora o cronograma, os padroes, a banca e o escudo.
  */
 class Hugo : public Boss {
 public:
     explicit Hugo(Scene* scene);
-    ~Hugo() override = default;
+    ~Hugo() override;
 
     void OnUpdate(float deltaTime) override;
 
     [[nodiscard]] std::optional<Vector2> AlvoDoMovimento() const override { return mAlvo; }
+
+    // ---- O ESCUDO (Objetivo.h) ----------------------------------------------
+
+    /// Blindado, o tiro so carrega o poder do orientador: a nota so sobe com a
+    /// janela aberta.
+    [[nodiscard]] bool AceitaDano() const override { return !mEscudo; }
+    bool QuebrarEscudo() override;
+    void OnDerrubou(BossProjectile* qual) override;
+    void AoTerminarABatalha() override;
+
+    [[nodiscard]] bool Blindado() const { return mEscudo; }
+
+    /// Onde esta o alvo que falta derrubar - na defesa, a resposta certa. Vazio
+    /// com a janela aberta ou sem alvo em campo. Serve a quem quer mostrar o
+    /// caminho (e ao piloto que mede a batalha).
+    [[nodiscard]] std::optional<Vector2> ObjetivoAtual() const;
 
 protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
@@ -170,6 +195,46 @@ private:
     /// As anotacoes que escorrem dele na defesa e nas correcoes.
     void Anotar(float agora);
     float mProximaAnotacao = 0.0f;
+
+    // ---- O ESCUDO E O OBJETIVO DA ETAPA ------------------------------------------
+
+    void AtualizarObjetivo(float deltaTime);
+    void NovoObjetivo();
+    void AbrirJanela();
+    void MatarAlvos();
+    void DesenharEscudo();
+    /// O placar: o texto da vez (mPrincipal) e, embaixo, o objetivo; na defesa,
+    /// a pergunta com as respostas.
+    void RefazerPlacar();
+
+    struct AlvoEmCampo {
+        BossProjectile* p = nullptr;
+        float nasceu = 0.0f;
+        Objetivo::Alvo alvo;
+        Vector2 paragem;          ///< o bug anda ate aqui
+        int k = 0;
+        bool caiu = false;
+    };
+    Objetivo::Etapa mEtapa = Objetivo::Etapa::Nenhuma;
+    bool mEscudo = false;
+    float mJanelaAte = 0.0f;
+    float mProximaPaginaSolta = 0.0f;
+    float mProximoObjetivo = 0.0f;
+    std::vector<AlvoEmCampo> mAlvos;
+    Variacao::Sorteio mSorteioDoObjetivo{0u};
+    Objetivo::Questao mQuestao;
+    Golpe::Materia mQuemPergunta = Golpe::Materia::Generico;
+    int mQuestoes = 0;
+    std::string mPrincipal;
+    std::string mPlacarFeito;
+    DrawLinhasComponent* mEscudoLinhas = nullptr;
+
+    /// A RESPOSTA ESCRITA embaixo de cada balao da defesa: no placar nao cabem
+    /// tres respostas e a pergunta.
+    std::unique_ptr<Font> mFonte;
+    std::array<Actor*, 3> mRotulos{};
+    void Rotular();
+    void ApagarRotulos();
 
     // ---- FINAL: AS CORRECOES -------------------------------------------------------
 

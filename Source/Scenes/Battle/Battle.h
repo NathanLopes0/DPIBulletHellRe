@@ -53,6 +53,13 @@ public:
     /// O orientador do TCC, quando ha um em campo. Ver LoadOrientador.
     [[nodiscard]] Orientador* GetOrientador() const { return mOrientador; }
 
+    /**
+     * @brief Paga uma CONQUISTA DA DUPLA: um ganho bruto, inteiro (nao passa por
+     * Nota::PorJogador - ver GradeUp). E o que o chefe usa para pagar o que o
+     * aluno faz alem de acertar o corpo dele: o objetivo cumprido do TCC.
+     */
+    void Conquistar(const float bruto) { if (EmCombate()) GradeUp(bruto); }
+
     /// Se a luta esta valendo: nem carregando os projeteis, nem na tela de fim.
     /// Quem age por conta propria (o orientador) so age enquanto isto vale.
     [[nodiscard]] bool EmCombate() const { return !mIsLoading && !mIsEnding; }

@@ -87,6 +87,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Escolta.h
         Source/Golpe.cpp
         Source/Golpe.h
+        Source/Poder.cpp
+        Source/Poder.h
         Source/Personagens.cpp
         Source/Personagens.h
         Source/PersonagensArquivo.cpp
@@ -195,6 +197,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Tcc.h
         Source/Attacks/Cronograma.cpp
         Source/Attacks/Cronograma.h
+        Source/Attacks/Objetivo.cpp
+        Source/Attacks/Objetivo.h
         Source/Attacks/Nuvem.cpp
         Source/Attacks/Nuvem.h
         Source/Attacks/Semaforo.cpp
@@ -450,6 +454,8 @@ add_executable(dpi_tests
         tests/test_golpe.cpp
         tests/test_tcc.cpp
         tests/test_cronograma.cpp
+        tests/test_poder.cpp
+        tests/test_objetivo.cpp
         tests/test_personagens.cpp
         tests/test_exportacao.cpp
         Source/Progresso.cpp
@@ -491,6 +497,8 @@ add_executable(dpi_tests
         Source/Escolta.h
         Source/Golpe.cpp
         Source/Golpe.h
+        Source/Poder.cpp
+        Source/Poder.h
         Source/Personagens.cpp
         Source/Personagens.h
         Source/Relogio.cpp
@@ -547,6 +555,8 @@ add_executable(dpi_tests
         Source/Attacks/Tcc.h
         Source/Attacks/Cronograma.cpp
         Source/Attacks/Cronograma.h
+        Source/Attacks/Objetivo.cpp
+        Source/Attacks/Objetivo.h
         Source/Attacks/Nuvem.cpp
         Source/Attacks/Nuvem.h
         Source/Attacks/Semaforo.cpp

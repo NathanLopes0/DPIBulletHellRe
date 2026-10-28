@@ -293,11 +293,11 @@ namespace Tcc {
 
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
-        d.entreTemas = Dificuldade::Escolher(n, 1.5f, 1.35f);
-        d.entrePerguntas = Dificuldade::Escolher(n, 1.15f, 1.05f);
+        d.entreTemas = Dificuldade::Escolher(n, 1.8f, 1.5f);
+        d.entrePerguntas = Dificuldade::Escolher(n, 1.4f, 1.2f);
         d.rascunhos = Dificuldade::Escolher(n, 5, 5);
         d.entreAnotacoes = Dificuldade::Escolher(n, 0.6f, 0.45f);
-        d.entreCorrecoes = Dificuldade::Escolher(n, 2.2f, 1.95f);
+        d.entreCorrecoes = Dificuldade::Escolher(n, 2.4f, 2.1f);
         return d;
     }
 }

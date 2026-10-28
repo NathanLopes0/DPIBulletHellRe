@@ -53,5 +53,33 @@
     "animacaoInicial": "Folha",
     "escala": 1.3,
     "ordemDeDesenho": 93
+  },
+
+  // O ALVO DO OBJETIVO (Objetivo.h): o que o aluno derruba para abrir o
+  // escudo do Hugo - a assinatura da proposta, a resposta A, B ou C da defesa,
+  // a correcao em vermelho. Derrubavel: ganha o contorno vermelho de quem cai
+  // com um tiro.
+  "Alvo": {
+    "sprite": "Teachers/Projectiles/DPIBHHugoTcc.png",
+    "dados":  "Teachers/Projectiles/DPIBHHugoTcc.json",
+    "animacoes": {
+      "Assinatura": [13], "A": [14], "B": [15], "C": [16], "Correcao": [17]
+    },
+    "animacaoInicial": "Assinatura",
+    "escala": 1.6,
+    "ordemDeDesenho": 94,
+    "derrubavel": true
+  },
+
+  // O BUG DOS EXPERIMENTOS, que anda e aguenta dois tiros.
+  "Bug": {
+    "sprite": "Teachers/Projectiles/DPIBHHugoTcc.png",
+    "dados":  "Teachers/Projectiles/DPIBHHugoTcc.json",
+    "animacoes": { "Bug": [18] },
+    "animacaoInicial": "Bug",
+    "escala": 1.6,
+    "ordemDeDesenho": 94,
+    "derrubavel": true,
+    "resistencia": 2
   }
 }

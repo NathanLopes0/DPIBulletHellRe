@@ -263,22 +263,29 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   as promessas da fila de microtarefas rodam antes do `setTimeout(cb, 0)` —
   cada callback que sai de uma fila ataca.
 
-- **Hugo — TCC.** A última matéria e a batalha mais difícil do jogo. Antes
-  dela você escolhe um **orientador** entre os professores em que tirou as
-  maiores notas, e ele luta do seu lado com a matéria dele: o André atira num
-  `for`, o Salles empilha e desempilha (LIFO), o Ricardo acende os bits de um
-  barramento, o Thiago segura a transação até o `COMMIT`, o ponteiro do
-  Luizinho curva até o chefe, a gramática do Vladimir divide um tiro em
-  quatro, o gradiente do Júlio oscila e converge, o Observer da Maria Lúcia
-  reage aos seus tiros, o `fetch` do Lucas vai ao servidor e volta, e a
-  janela do TCP do Vitor cresce e cai como um dente de serra. E **o TCC é na
-  área do orientador**: as fases são as etapas de um TCC, e a proposta é um
-  cronograma de Gantt cujas barras caem quando o prazo vence; no
-  desenvolvimento, cada capítulo é um padrão da matéria do orientador, com os
-  projéteis dela, e o rascunho escorre embaixo do Hugo; na defesa, a banca
-  são dois outros professores, sentados nos cantos, e cada pergunta
-  ("Funciona no Safari?", "E se der deadlock?") vem com o ataque da matéria
-  de quem pergunta; nas correções, tudo volta.
+- **Hugo — TCC.** A última matéria e a batalha mais difícil do jogo — e a
+  maior: quatro etapas de 30 s. Antes dela você escolhe um **orientador**
+  entre os professores em que tirou as maiores notas, e ele luta do seu lado:
+  o tiro dele tem a cara da matéria (o `for` do André, a pilha do Salles, o
+  barramento do Ricardo, a transação do Thiago, o ponteiro do Luizinho, a
+  gramática do Vladimir, o gradiente do Júlio, o Observer da Maria Lúcia, o
+  `fetch` do Lucas, a janela do TCP do Vitor), e cada um traz um **poder**,
+  que carrega a cada acerto no Hugo e sai no **botão 3**: o laço sem fim do
+  André, a capivara do Salles que come os tiros, o `HLT` do Ricardo que
+  congela tudo, o `ROLLBACK` do Thiago que manda os tiros de volta, o `free()`
+  do Luizinho, o autômato do Vladimir que converte os tiros em volta, os
+  agentes do Júlio, a bala de prata da Maria Lúcia que quebra o escudo, o
+  `Promise.all()` do Lucas e o `fork()` do Vitor. Escolher o orientador é
+  escolher o jeito de jogar.
+
+  **O Hugo é blindado** — o TCC ainda não está pronto — e cada etapa tem um
+  objetivo que abre uma janela em que ele toma dano: na proposta, acerte as
+  assinaturas enquanto as barras do cronograma de Gantt caem no prazo; no
+  desenvolvimento (o tema é a área do orientador, com os ataques da matéria
+  dele), derrube os bugs; na defesa, a banca são dois outros professores, e
+  você acerta a resposta certa (A, B ou C) da pergunta deles — "E se der
+  deadlock?" —; nas correções, as marcas em vermelho. Aberto, o Hugo perde as
+  páginas da monografia embaixo dele.
 
 ## Como compilar
 

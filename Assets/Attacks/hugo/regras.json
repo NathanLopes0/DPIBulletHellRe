@@ -18,5 +18,11 @@
   // vencer - e por la que o Hugo as acha para apagar (Hugo::NovoCronograma).
   "cronograma": [
     { "posto": "cronograma" }
+  ],
+
+  // OS ALVOS DO OBJETIVO ficam no posto "objetivo": o Hugo os move, e os
+  // poderes do orientador nao os apagam.
+  "objetivo": [
+    { "posto": "objetivo" }
   ]
 }

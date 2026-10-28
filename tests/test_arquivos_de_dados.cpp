@@ -1903,7 +1903,7 @@ TEST_CASE("Dados: nenhuma regra de uma SprintAttack tem motion") {
     }
 }
 
-TEST_CASE("Dados: toda fase de todo chefe dura Fase::kDuracao, e as etapas cobrem a fase inteira") {
+TEST_CASE("Dados: toda fase de todo chefe dura Fase::kDuracao (o TCC, kDuracaoDoTcc), e as etapas cobrem a fase inteira") {
 
     // A DURACAO MORA EM DOIS LUGARES: em cada fases.json e em Fase.h, de onde
     // os modulos que cortam a fase em pedacos a tiram (os comandos do Andre, as
@@ -1918,7 +1918,8 @@ TEST_CASE("Dados: toda fase de todo chefe dura Fase::kDuracao, e as etapas cobre
         for (const auto& f : FasesDoChefe(chefe).fases) {
             CAPTURE(chefe);
             CAPTURE(f.nome);
-            CHECK(f.duracao == doctest::Approx(Fase::kDuracao));
+            // O TCC E A EXCECAO DECLARADA (Fase::kDuracaoDoTcc): a batalha maior.
+            CHECK(f.duracao == doctest::Approx(chefe == "hugo" ? Fase::kDuracaoDoTcc : Fase::kDuracao));
             if (f.etapas.empty()) continue;
             float soma = 0.0f;
             for (const auto& e : f.etapas) soma += e.duracao;

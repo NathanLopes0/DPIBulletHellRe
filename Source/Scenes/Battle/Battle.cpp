@@ -1155,7 +1155,10 @@ void Battle::CheckCollisions() {
                 // tiro - a janela modal que pede mais de um clique.
                 if (bossProj->Golpear()) {
                     bossProj->OnCollision(playerProj.get());
-                    if (mBoss) mBoss->OnProjetilDerrubado();
+                    if (mBoss) {
+                        mBoss->OnProjetilDerrubado();
+                        mBoss->OnDerrubou(bossProj.get());
+                    }
                 } else if (mBoss) {
                     mBoss->OnProjetilBarrado();
                 }
@@ -1189,8 +1192,13 @@ void Battle::CheckCollisions() {
                 corpo->OnCollision(playerProj.get());
                 playerProj->OnCollision(corpo);
 
-                // Acerto de UM jogador: repartido (requisitos-coop, 2.1).
-                GradeUp(PorJogador(Nota::kGanhoPorAcerto));
+                // Acerto de UM jogador: repartido (requisitos-coop, 2.1). O
+                // CHEFE BLINDADO come o tiro sem pagar a nota (Boss::AceitaDano).
+                if (corpo->AceitaDano()) GradeUp(PorJogador(Nota::kGanhoPorAcerto));
+
+                // TODO ACERTO CARREGA O PODER DO ORIENTADOR, blindado ou nao:
+                // e a recompensa de quem continua atacando.
+                if (mOrientador) mOrientador->Carregar();
 
 
                 // UM TIRO ACERTA UM CORPO SO. Sem este corte, um projetil que
