@@ -24,6 +24,10 @@
  *   esconderia os tiros que nascem dele);
  *   nos cantos, os ENCAIXES dos trilhos.
  *
+ * E FUNDO: desenhada atras de tudo (Battle::kOrdemDaMoldura), o que mora nas
+ * bordas - o vetor do Andre embaixo, o que encosta nas paredes - aparece por
+ * cima dela.
+ *
  * E A MOLDURA RESPONDE: a parede acende perto do aluno quando ele encosta
  * (Hud::Encostado), e o campo inteiro pisca na cor de um acontecimento -
  * vermelho no acerto sofrido, ouro no Ponto Extra, lilas na troca de fase

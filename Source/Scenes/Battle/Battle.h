@@ -379,7 +379,11 @@ private:
     void AtualizarEfeitos(float deltaTime);
     static constexpr int kOrdemDosEfeitos = 104;
     static constexpr size_t kMaximoDeFaiscas = 64;
-    static constexpr int kOrdemDaMoldura = 150;
+    /// A MOLDURA E FUNDO, atras de tudo - ate do quadro (60). Por cima dos
+    /// projeteis, o painel de baixo cobria o que mora na faixa entre o chao do
+    /// aluno e a barra da nota: o vetor v[i] do Andre, com os indices, vive
+    /// ali. Ela marca onde o aluno para; nao esconde nada do jogo.
+    static constexpr int kOrdemDaMoldura = 40;
 
 
 
