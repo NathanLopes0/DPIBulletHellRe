@@ -316,12 +316,8 @@ private:
     /// preenchimento, cortando a barra em duas. Translucida e da altura exata
     /// da barra, ela escurece a faixa onde o numero esta e a barra continua
     /// sendo uma coisa so.
-    /// O ganho bruto de gastar um Ponto Extra. Era um 10.f solto dentro de
-    /// OnPlayerUsedExtraPoint, ao lado de Nota::kGanhoPorAcerto e GRADE_CHANGE_DOWN
-
-    /// que ja moravam em constantes - e agora ele e repartido como os outros,
-    /// entao vale ter nome.
-    static constexpr float kGanhoDoPontoExtra = 10.0f;
+    /// O GANHO DO PONTO EXTRA nao e mais um numero fixo (eram 10 brutos): e o
+    /// de acertar todos os tiros da sobrecarga (PontoExtra::NotaDepois).
 
     // --- O PONTO EXTRA DO CO-OP, A VISTA (PontoExtra.h): o feixe de quem gastou
     // ate o parceiro, e o anel do escudo em volta de quem esta protegido.
@@ -377,6 +373,26 @@ private:
     /// Um efeito em 'onde'. Com muitos ao mesmo tempo, os mais velhos saem.
     void Faiscar(const Vector2& onde, Hud::Faisca tipo);
     void AtualizarEfeitos(float deltaTime);
+
+    // ---- O PONTO EXTRA DE SOLO: a onda e as moedas -----------------------------
+    //
+    // A ONDA sai do aluno e desfaz os tiros do professor A MEDIDA QUE PASSA por
+    // eles (PontoExtra::RaioDaOnda) - cada um vira um brilho dourado, e uma
+    // moeda dele voa ate a ponta da barra da nota: e dali que vem o ganho.
+    struct Onda {
+        Vector2 centro;
+        float t = 0.0f;
+    };
+    std::vector<Onda> mOndas;
+    struct Moeda {
+        Vector2 de;
+        float t = 0.0f;
+    };
+    std::vector<Moeda> mMoedas;
+    void AtualizarOndas(float deltaTime);
+    [[nodiscard]] Vector2 PontaDaBarra() const;
+    static constexpr size_t kMaximoDeMoedas = 40;
+    static constexpr float kVooDaMoeda = 0.55f;
     static constexpr int kOrdemDosEfeitos = 104;
     static constexpr size_t kMaximoDeFaiscas = 64;
     /// A MOLDURA E FUNDO, atras de tudo - ate do quadro (60). Por cima dos

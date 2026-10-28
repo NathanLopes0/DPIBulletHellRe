@@ -10,6 +10,7 @@
 #include "../Actor.h"
 #include "../../Painel.h"
 #include "../../Acerto.h"
+#include "../../PontoExtra.h"
 
 class PlayerProjectile;
 class PlayerOrb;
@@ -105,7 +106,11 @@ public:
      * co-op passou a ser o estoque: o Ponto Extra vai inteiro para o outro.
      */
 
-    static constexpr float OVERLOAD_DURATION = 3.f;
+    /// DOIS NUMEROS AGORA, e nao um (PontoExtra.h): a sobrecarga do solo caiu
+    /// para 1,5 s, e o presente do co-op continuou com os 3 s de imunidade -
+    /// encurtar um nao tinha motivo para encurtar o outro.
+    static constexpr float OVERLOAD_DURATION = PontoExtra::kSobrecarga;
+    static constexpr float IMUNIDADE_DO_PRESENTE = PontoExtra::kImunidadeDoPresente;
 
     [[nodiscard]] int GetExtraPoints() const { return mExtraPoints;}
 

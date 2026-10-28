@@ -61,7 +61,7 @@ TEST_CASE("Hud: o relogio vai do verde ao vermelho, pulsa no fim e tem um dente 
 }
 
 TEST_CASE("Hud: as faiscas crescem, apagam e cada uma tem o seu tamanho") {
-    for (const Faisca f : {Faisca::Acerto, Faisca::Derrubada, Faisca::Dano, Faisca::Coleta}) {
+    for (const Faisca f : {Faisca::Acerto, Faisca::Derrubada, Faisca::Dano, Faisca::Coleta, Faisca::Dissolvido}) {
         CHECK(Brilho(f, 0.0f) == doctest::Approx(1.0f));
         CHECK(Brilho(f, Vida(f)) == 0.0f);
         CHECK(Raio(f, Vida(f)) > Raio(f, 0.0f));

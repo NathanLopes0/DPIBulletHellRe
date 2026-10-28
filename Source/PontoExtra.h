@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "Math.h"
+#include "Nota.h"
 
 /**
  * CAMADA PURA. Coberto por test_ponto_extra.cpp.
@@ -56,4 +57,35 @@ namespace PontoExtra {
 
     /// @brief Se o feixe ainda desenha alguma coisa no instante 't'.
     bool FeixeAceso(float t);
+
+    // ---- O PONTO EXTRA DE SOLO -----------------------------------------------------
+    //
+    // SOZINHO, O ALUNO TROCA TIRO POR NOTA: gastar um Ponto Extra o deixa
+    // kSobrecarga segundos sem atirar e, em troca, paga a nota que ele teria
+    // ganhado ACERTANDO TODOS os tiros desse tempo - pela curva da nota de
+    // agora (Nota::Somar), entao vale menos acima de 60, como o tiro vale. E
+    // a ONDA (kRapidezDaOnda) sai dele e desfaz os tiros do professor a
+    // medida que passa por eles.
+
+    /// Quanto o aluno fica sem atirar depois de um Ponto Extra de solo. Era 3 s.
+    constexpr float kSobrecarga = 1.5f;
+
+    /// No co-op, quanto o parceiro fica imune e com o escudo - e quanto quem
+    /// gastou espera para gastar outro. Nao mudou com a sobrecarga do solo.
+    constexpr float kImunidadeDoPresente = 3.0f;
+
+    /// O intervalo entre dois tiros do aluno (Player::Shoot).
+    constexpr float kEntreTiros = 0.12f;
+
+    /// @brief Quantos tiros o aluno daria em 'sobrecarga' segundos.
+    int TirosNaSobrecarga(float sobrecarga = kSobrecarga, float entreTiros = kEntreTiros);
+
+    /// @brief A nota depois de 'tiros' acertos de 'porAcerto' bruto cada,
+    /// partindo de 'nota', com 'acertosSofridos' (o teto por dano vale).
+    float NotaDepois(float nota, int acertosSofridos, float porAcerto, int tiros);
+
+    /// A onda do Ponto Extra: a rapidez com que o raio cresce, e ate onde.
+    constexpr float kRapidezDaOnda = 1500.0f;
+    constexpr float kDuracaoDaOnda = 1.0f;
+    [[nodiscard]] inline float RaioDaOnda(const float t) { return t * kRapidezDaOnda; }
 }

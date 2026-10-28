@@ -64,6 +64,7 @@ namespace Hud {
             case Faisca::Derrubada: return 0.28f;
             case Faisca::Dano:      return 0.45f;
             case Faisca::Coleta:    return 0.5f;
+            case Faisca::Dissolvido: return 0.35f;
         }
         return 0.2f;
     }
@@ -76,6 +77,7 @@ namespace Hud {
             case Faisca::Derrubada: return 6.0f + 20.0f * abre;
             case Faisca::Dano:      return 14.0f + 46.0f * abre;
             case Faisca::Coleta:    return 10.0f + 40.0f * abre;
+            case Faisca::Dissolvido: return 3.0f + 13.0f * abre;
         }
         return 10.0f;
     }

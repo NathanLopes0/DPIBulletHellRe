@@ -75,6 +75,7 @@ namespace Hud {
         Derrubada,   ///< o tiro do aluno derrubou um projetil: laranja, maior
         Dano,        ///< o aluno foi acertado: o anel vermelho que abre
         Coleta,      ///< o aluno pegou um Ponto Extra: o anel dourado
+        Dissolvido,  ///< o tiro que a onda do Ponto Extra desfez: o brilho dourado
     };
 
     /// Quanto cada uma dura.

@@ -764,6 +764,7 @@ void Battle::OnUpdate(float deltaTime) {
     CheckCollisions();
     AtualizarDesenhoSobreOsAlunos(deltaTime);
     AtualizarMoldura();
+    AtualizarOndas(deltaTime);
     AtualizarEfeitos(deltaTime);
 
     if (mHUD) mHUD->OnUpdate(deltaTime, mBoss && mBoss->Congelado());
@@ -1586,10 +1587,12 @@ Player* Battle::OutroJogador(const Player* quem) const {
 
 void Battle::OnPlayerUsedExtraPoint(Player* quemGastou) {
 
-    // O GANHO E O MESMO NOS DOIS MODOS. Gastar um Ponto Extra e acao de UM
-    // jogador, e sao dois estoques: sem repartir, a dupla poria 20 brutos na
-    // mesma barra.
-    GradeUp(PorJogador(kGanhoDoPontoExtra));
+    // O GANHO E O DE ACERTAR TODOS OS TIROS DA SOBRECARGA (PontoExtra.h): os
+    // doze que o aluno daria em 1,5 s, cada um pela curva da nota de agora -
+    // valendo menos acima de 60, como o tiro vale. Era um bonus fixo de 10
+    // brutos. O MESMO NOS DOIS MODOS, e repartido: e acao de UM jogador.
+    mGrade = PontoExtra::NotaDepois(mGrade, mAcertosSofridos, PorJogador(Nota::kGanhoPorAcerto),
+                                    PontoExtra::TirosNaSobrecarga());
     if (mMoldura) mMoldura->Acender(SDL_Color{255, 215, 80, 255}, 0.7f);
 
     Player* oOutro = OutroJogador(quemGastou);
@@ -1599,27 +1602,30 @@ void Battle::OnPlayerUsedExtraPoint(Player* quemGastou) {
         // a quem dar imunidade, e trocar a limpeza por "proteja a si mesmo"
         // deixaria o solo com um efeito mais fraco do que ele tem hoje - por
         // causa de uma regra que so existe para o modo que ele nao esta jogando.
-        // O CENARIO FICA (ClearAtaquesDoChefe): a tabela do Thiago, o vetor do
+        // A LIMPEZA E UMA ONDA (AtualizarOndas), e nao um sumico: ela sai do
+        // aluno e desfaz cada tiro quando passa por ele. O CENARIO FICA, como
+        // no ClearAtaquesDoChefe de antes: a tabela do Thiago, o vetor do
         // Andre, as caixas da cascata. So o que machuca sai.
-        if (mProjectileManager) mProjectileManager->ClearAtaquesDoChefe();
-        // TODO - Audio - efeito sonoro de limpeza de campo
+        const auto* colisor = ColisorDe(quemGastou);
+        mOndas.push_back(Onda{colisor ? colisor->GetCenter() : quemGastou->GetPosition(), 0.0f});
+        Faiscar(colisor ? colisor->GetCenter() : quemGastou->GetPosition(), Hud::Faisca::Coleta);
         return;
     }
 
     // EM DUPLA, O PONTO EXTRA E DO OUTRO, e nao limpa a tela.
     //
-    // O PARCEIRO PASSA OVERLOAD_DURATION IMUNE E COM O ESCUDO, que come os
+    // O PARCEIRO PASSA IMUNIDADE_DO_PRESENTE IMUNE E COM O ESCUDO, que come os
     // projeteis do chefe que encostam nele (a regra 0,5 de CheckCollisions).
     // Quem gastou CONTINUA ATIRANDO: a sobrecarga deixava a dupla com um
     // atirador so justamente quando o outro podia avancar. Um numero so
-    // (Player::OVERLOAD_DURATION) para o escudo e para a espera de quem gastou.
+    // (Player::IMUNIDADE_DO_PRESENTE) para o escudo e para a espera de quem gastou.
     //
     // E NAO LIMPA A TELA. Limpar a tela E proteger daria, por metade do
     // estoque da dupla, o dobro do efeito de um Ponto Extra de solo - e o
     // escudo ja limpa o que chega perto de quem mais precisa.
     //
     // E SE VE: o feixe corre de quem gastou ate o parceiro (PontoExtra.h).
-    oOutro->Proteger(Player::OVERLOAD_DURATION);
+    oOutro->Proteger(Player::IMUNIDADE_DO_PRESENTE);
     mFeixes.push_back(FeixeDoPontoExtra{quemGastou, oOutro, 0.0f});
 }
 
@@ -1764,6 +1770,39 @@ void Battle::Atravessou(const Vector2& de, const Vector2& para) {
     if (mMoldura) mMoldura->Acender(SDL_Color{110, 210, 255, 255}, 0.25f);
 }
 
+Vector2 Battle::PontaDaBarra() const {
+    const float largura = static_cast<float>(mGame->GetWindowWidth() - 2 * kBarraMargemLateral);
+    return Vector2(static_cast<float>(kBarraMargemLateral) + largura * std::clamp(mGrade, 0.0f, 100.0f) / 100.0f,
+                   static_cast<float>(mGame->GetWindowHeight() - kBarraDoFundo + kBarraAltura / 2));
+}
+
+void Battle::AtualizarOndas(const float deltaTime) {
+    for (Onda& o : mOndas) {
+        o.t += deltaTime;
+        const float raio = PontoExtra::RaioDaOnda(o.t);
+        if (!mProjectileManager) continue;
+        // O MESMO FILTRO do ClearAtaquesDoChefe: o que nao e enfeite, ativo ou
+        // parado (o que o System.gc() do Luizinho congelou).
+        for (const auto& p : mProjectileManager->GetBossProjectiles()) {
+            if (!p || p->Enfeite()) continue;
+            const auto estado = p->GetState();
+            if (estado != ActorState::Active && estado != ActorState::Paused) continue;
+            if ((p->GetPosition() - o.centro).Length() > raio) continue;
+            const Vector2 onde = p->GetPosition();
+            p->Kill();
+            Faiscar(onde, Hud::Faisca::Dissolvido);
+            if (mMoedas.size() < kMaximoDeMoedas) mMoedas.push_back(Moeda{onde, 0.0f});
+        }
+    }
+    mOndas.erase(std::remove_if(mOndas.begin(), mOndas.end(),
+                                [](const Onda& o) { return o.t >= PontoExtra::kDuracaoDaOnda; }),
+                 mOndas.end());
+    for (Moeda& m : mMoedas) m.t += deltaTime;
+    mMoedas.erase(std::remove_if(mMoedas.begin(), mMoedas.end(),
+                                 [](const Moeda& m) { return m.t >= kVooDaMoeda; }),
+                  mMoedas.end());
+}
+
 void Battle::Faiscar(const Vector2& onde, const Hud::Faisca tipo) {
     if (mFaiscas.size() >= kMaximoDeFaiscas) mFaiscas.erase(mFaiscas.begin());
     mFaiscas.push_back({onde, tipo, 0.0f});
@@ -1814,7 +1853,42 @@ void Battle::AtualizarEfeitos(const float deltaTime) {
                 anel(f.onde, r, SDL_Color{255, 215, 80, alfa(b)});
                 raios(f.onde, r * 0.8f, r * 1.15f, 4, giro + f.idade * 6.0f, SDL_Color{255, 240, 160, alfa(b)});
                 break;
+            case Hud::Faisca::Dissolvido:
+                // O TIRO VIRA BRILHO: uma estrela dourada de quatro pontas.
+                raios(f.onde, 0.0f, r, 4, giro, SDL_Color{255, 225, 120, alfa(b)});
+                raios(f.onde, 0.0f, r * 0.55f, 4, giro + Math::Pi / 4.0f, SDL_Color{255, 250, 210, alfa(b)});
+                break;
         }
+    }
+
+    // A ONDA DO PONTO EXTRA: tres aneis dourados, o da frente mais forte, que
+    // se apagam conforme ela cresce.
+    for (const Onda& o : mOndas) {
+        const float raio = PontoExtra::RaioDaOnda(o.t);
+        const float some = 1.0f - o.t / PontoExtra::kDuracaoDaOnda;
+        const int lados = std::clamp(static_cast<int>(raio / 6.0f), 24, 160);
+        for (int k = 0; k < 3; ++k) {
+            const float rk = raio - static_cast<float>(k) * 7.0f;
+            if (rk <= 0.0f) continue;
+            const SDL_Color cor{255, static_cast<Uint8>(225 - 25 * k), static_cast<Uint8>(120 - 30 * k),
+                                alfa(some * (1.0f - 0.3f * static_cast<float>(k)))};
+            for (const auto& [a, b] : PontoExtra::Anel(o.centro, rk, lados)) mEfeitos->Acrescentar(a, b, cor);
+        }
+    }
+
+    // AS MOEDAS voam ate a ponta da barra da nota, num arco: o ganho tem de
+    // onde vir.
+    const Vector2 ponta = PontaDaBarra();
+    for (const Moeda& m : mMoedas) {
+        const float u = std::clamp(m.t / kVooDaMoeda, 0.0f, 1.0f);
+        const float e = u * u;                                  // devagar, depois depressa
+        const Vector2 meio = (m.de + ponta) * 0.5f + Vector2(0.0f, -140.0f);
+        const Vector2 p = m.de * ((1.0f - e) * (1.0f - e)) + meio * (2.0f * e * (1.0f - e)) + ponta * (e * e);
+        const SDL_Color ouro{255, 215, 80, alfa(1.0f - 0.3f * u)};
+        mEfeitos->Acrescentar(p + Vector2(-4.0f, 0.0f), p + Vector2(0.0f, -4.0f), ouro);
+        mEfeitos->Acrescentar(p + Vector2(0.0f, -4.0f), p + Vector2(4.0f, 0.0f), ouro);
+        mEfeitos->Acrescentar(p + Vector2(4.0f, 0.0f), p + Vector2(0.0f, 4.0f), ouro);
+        mEfeitos->Acrescentar(p + Vector2(0.0f, 4.0f), p + Vector2(-4.0f, 0.0f), ouro);
     }
 }
 

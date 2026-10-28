@@ -21,7 +21,7 @@
 #include "../../PersonagensArquivo.h"
 
 #define NUM_PROJECTILES_VECTOR 500
-#define ATK_TIMER_START_FULL 0.12f
+#define ATK_TIMER_START_FULL PontoExtra::kEntreTiros   // o Ponto Extra paga por eles
 #define PLAYER_SPEED_START 300.0f
 #define BASE_SHOOT_FORWARD_SPEED 800.0f
 #define BLINK_INVINCIBLE_FREQUENCY 0.1f
@@ -196,11 +196,12 @@ void Player::SpecialInput(const Uint8 *keyState) {
     // BOTAO 2 do painel DESTE ALUNO.
     if(Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Dois) && mExtraPoints > 0 && mEsperaDoPontoExtra <= 0.0f) {
         mExtraPoints--;
-        mEsperaDoPontoExtra = OVERLOAD_DURATION;
         const auto battle = dynamic_cast<Battle*>(GetScene());
         // SO O SOLO SOBRECARREGA. Em dupla o presente vai para o outro, e quem
-        // gastou continua atirando (ver OVERLOAD_DURATION).
-        if (!battle || !battle->OutroJogador(this)) mOverloadTimer = OVERLOAD_DURATION;
+        // gastou continua atirando - e espera o escudo do outro acabar.
+        const bool sozinho = !battle || !battle->OutroJogador(this);
+        mEsperaDoPontoExtra = sozinho ? OVERLOAD_DURATION : IMUNIDADE_DO_PRESENTE;
+        if (sozinho) mOverloadTimer = OVERLOAD_DURATION;
         if (battle) battle->OnPlayerUsedExtraPoint(this);
     }
 
@@ -363,7 +364,7 @@ void Player::UpdateImunidade(const float deltaTime) {
 
     // O MESMO PULSO DO OVERLOAD, e as duas se distinguem pela COR e nao pelo
     // ritmo - que e o que da para ler no meio de uma tela cheia de bala.
-    const float freq = 5.0f + (OVERLOAD_DURATION - mImunidadeTimer) * 15.0f;
+    const float freq = 5.0f + (IMUNIDADE_DO_PRESENTE - mImunidadeTimer) * 15.0f;
     mPulsoDaImunidade += freq * deltaTime;
 }
 
