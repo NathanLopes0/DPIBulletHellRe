@@ -26,6 +26,11 @@ namespace {
     constexpr int kFundoDoClarao = 14;
     /// Quantos pixels a luz do encosto entra no campo.
     constexpr int kEspessuraDoEncosto = 6;
+
+    /// O brilho do professor na borda de baixo: meia largura e altura.
+    constexpr SDL_Color kProfessor{255, 70, 60, 255};
+    constexpr float kMeioDoProfessor = 60.0f;
+    constexpr int kAlturaDoProfessor = 7;
 }
 
 DrawMolduraDoCampoComponent::DrawMolduraDoCampoComponent(Actor* owner, const int drawOrder)
@@ -128,6 +133,32 @@ void DrawMolduraDoCampoComponent::DesenharEncostos(SDL_Renderer* r) const {
     }
 }
 
+void DrawMolduraDoCampoComponent::DesenharProfessores(SDL_Renderer* r) const {
+    // LEVE: e uma indicacao, e nao um aviso. Pulsa devagar, e a luz entra
+    // poucos pixels no campo, acima do painel.
+    const float pulso = 0.8f + 0.2f * std::sin(mTempo * 2.5f);
+    const int y = static_cast<int>(mArea.baixo);
+    for (const float x : mProfessores) {
+        const float cx = std::clamp(x, mArea.esquerda, mArea.direita);
+        for (float s = -kMeioDoProfessor; s <= kMeioDoProfessor; s += 1.0f) {
+            const float px = cx + s;
+            if (px < mArea.esquerda || px > mArea.direita) continue;
+            const float queda = 1.0f - std::fabs(s) / kMeioDoProfessor;
+            const float a = pulso * queda * queda;
+            for (int k = 0; k < kAlturaDoProfessor; ++k) {
+                Cor(r, k == 0 ? Clarear(kProfessor, 0.4f) : kProfessor,
+                    0.55f * a * (1.0f - static_cast<float>(k) / kAlturaDoProfessor));
+                SDL_RenderDrawPoint(r, static_cast<int>(px), y - 1 - k);
+            }
+        }
+        // O DENTE na borda, apontando para cima: para onde olhar.
+        Cor(r, kProfessor, 0.85f * pulso);
+        for (int k = 0; k < 4; ++k) {
+            SDL_RenderDrawLine(r, static_cast<int>(cx) - k, y + 1 + k, static_cast<int>(cx) + k, y + 1 + k);
+        }
+    }
+}
+
 void DrawMolduraDoCampoComponent::DesenharClarao(SDL_Renderer* r) const {
     const float c = Hud::Clarao(mIdadeDoClarao, mDuracaoDoClarao);
     if (c <= 0.0f) return;
@@ -172,5 +203,6 @@ void DrawMolduraDoCampoComponent::Draw(SDL_Renderer* renderer) {
         SDL_RenderDrawPoint(renderer, cx, cy);
     }
 
+    DesenharProfessores(renderer);
     DesenharEncostos(renderer);
 }

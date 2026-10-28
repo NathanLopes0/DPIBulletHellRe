@@ -1731,6 +1731,29 @@ void Battle::AtualizarMoldura() {
                                                       static_cast<float>(sprite->GetSpriteHeight()) / 2.0f));
     }
     mMoldura->SetAlunos(std::move(alunos));
+
+    // O PROFESSOR NA BORDA DE BAIXO: o brilho na coluna de cada corpo, e o
+    // "prof" escrito pequeno no painel, logo embaixo.
+    std::vector<float> xs;
+    for (const Boss* corpo : mCorpos) {
+        if (corpo && corpo->GetState() == ActorState::Active) {
+            xs.push_back(std::clamp(corpo->GetPosition().x, mAreaDoAluno.esquerda, mAreaDoAluno.direita));
+        }
+    }
+    while (mRotulosDoProfessor.size() < xs.size() && mFonteDoPlacar) {
+        auto ator = std::make_unique<Actor>(this);
+        auto* texto = ator->AddComponent<DrawTextComponent>("prof", mFonteDoPlacar.get(), 60, 18, 14, kOrdemDaMoldura + 2);
+        texto->SetAjustarAoTexto(true);
+        texto->SetColor(Vector3(1.0f, 0.45f, 0.4f));
+        mRotulosDoProfessor.push_back(AddActor(std::move(ator)));
+    }
+    for (size_t i = 0; i < mRotulosDoProfessor.size(); ++i) {
+        auto* texto = mRotulosDoProfessor[i]->GetComponent<DrawTextComponent>();
+        const bool aceso = i < xs.size();
+        if (texto) texto->SetIsVisible(aceso);
+        if (aceso) mRotulosDoProfessor[i]->SetPosition(Vector2(xs[i], mAreaDoAluno.baixo + 13.0f));
+    }
+    mMoldura->SetProfessores(std::move(xs));
 }
 
 void Battle::Faiscar(const Vector2& onde, const Hud::Faisca tipo) {

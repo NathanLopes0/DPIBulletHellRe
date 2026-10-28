@@ -42,6 +42,11 @@ public:
     /// @brief Os alunos deste quadro: o centro e o meio tamanho do desenho.
     void SetAlunos(std::vector<std::pair<Vector2, Vector2>> alunos) { mAlunos = std::move(alunos); }
 
+    /// @brief ONDE O PROFESSOR ESTA, na horizontal: um brilho vermelho leve na
+    /// borda de baixo, embaixo de cada corpo dele - quem esta olhando para o
+    /// proprio pe sabe em que coluna ele esta sem levantar o olho.
+    void SetProfessores(std::vector<float> xs) { mProfessores = std::move(xs); }
+
     /// @brief Um clarao de 'cor' nas bordas do campo, que some em 'duracao'.
     void Acender(SDL_Color cor, float duracao);
 
@@ -50,6 +55,7 @@ private:
     float mAltura = 0.0f;
     Hud::Caixa mArea;
     std::vector<std::pair<Vector2, Vector2>> mAlunos;
+    std::vector<float> mProfessores;
     float mTempo = 0.0f;
 
     SDL_Color mCorDoClarao{255, 255, 255, 255};
@@ -59,5 +65,6 @@ private:
     void DesenharTrilho(SDL_Renderer* r, int x0, int x1, int y0, int y1, bool esquerdo) const;
     void DesenharPainel(SDL_Renderer* r) const;
     void DesenharEncostos(SDL_Renderer* r) const;
+    void DesenharProfessores(SDL_Renderer* r) const;
     void DesenharClarao(SDL_Renderer* r) const;
 };

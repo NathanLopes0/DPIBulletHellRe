@@ -89,6 +89,9 @@ aparece pronta — o véu some, e só então o professor ataca e a música come�
   da faixa da nota embaixo, exatamente onde o desenho do aluno encosta (em
   cima, uma linha tracejada discreta, porque ali é o lugar do professor). A
   parede **acende** quando você chega perto dela;
+- **onde está o professor**, na horizontal: um brilho vermelho leve na borda de
+  baixo, com um "prof" pequeno no painel, embaixo de cada corpo dele — dá para
+  saber em que coluna ele está sem tirar o olho do próprio pé;
 - **o campo pisca pelas bordas** a cada acontecimento: vermelho no acerto
   sofrido, ouro no Ponto Extra, lilás na troca de fase;
 - **o tempo da fase** é a cápsula pequena colada no professor: anda do verde ao

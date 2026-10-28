@@ -351,6 +351,8 @@ private:
     Hud::Caixa mAreaDoAluno;
     void LoadMoldura();
     void AtualizarMoldura();
+    /// O "prof" escrito embaixo do brilho de cada corpo do professor.
+    std::vector<Actor*> mRotulosDoProfessor;
 
     struct FaiscaEmCampo {
         Vector2 onde;
