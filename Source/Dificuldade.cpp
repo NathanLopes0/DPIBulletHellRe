@@ -18,7 +18,7 @@ namespace Dificuldade {
     const char* Descricao(const Nivel n) {
         switch (n) {
             case Nivel::Normal:  return "As fases como foram pensadas.";
-            case Nivel::Dificil: return "Mais tiros, mais r\xc3\xa1pidos e com menos tempo entre eles. "
+            case Nivel::Dificil: return "Mais tiros e mais r\xc3\xa1pidos, e um acerto mal protege do pr\xc3\xb3ximo. "
                                         "A nota vale o mesmo.";
         }
         return "";

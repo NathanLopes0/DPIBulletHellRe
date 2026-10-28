@@ -93,7 +93,7 @@ namespace Objetivo {
     /// O QUE O OBJETIVO PAGA, em nota bruta (Battle::Conquistar): cada alvo
     /// derrubado, e o escudo aberto. Sem isso, blindado, o Hugo so tirava nota
     /// - e o aluno que tomava uns acertos antes da primeira janela zerava.
-    /// No Dificil, um pouco menos.
+    /// O mesmo nos dois modos: o Dificil ja cobra pelo acerto sofrido.
     float PorAlvo(Dificuldade::Nivel n);
     float PorJanela(Dificuldade::Nivel n);
 

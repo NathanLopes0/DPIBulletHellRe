@@ -50,6 +50,11 @@ void BossProjectile::Reset() {
     // E OS GOLPES: uma janela que levou dois tiros e saiu da tela voltaria do
     // pool fechando no primeiro.
     mGolpes = 0;
+
+    // E A TINTA: a linha que o DELETE do Thiago apaga cai VERMELHA (e um tiro,
+    // e nao mais um dado da tabela); de volta ao pool, o valor seguinte
+    // nasceria vermelho na tabela.
+    if (auto* anim = GetComponent<DrawAnimatedComponent>()) anim->SetColor(255, 255, 255);
 }
 
 void BossProjectile::OnUpdate(float deltaTime)

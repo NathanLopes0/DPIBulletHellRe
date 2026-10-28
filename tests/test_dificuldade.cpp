@@ -154,3 +154,40 @@ TEST_CASE("Configuracao: o volume anda preso entre mudo e o maximo, e o fator va
     CHECK(Configuracao::FatorDoVolume(Configuracao::kVolumeMaximo) == 1.0f);
     CHECK(Configuracao::FatorDoVolume(5) == doctest::Approx(0.5f));
 }
+
+TEST_CASE("Dificuldade: no Dificil a invencibilidade depois de um acerto e bem mais curta") {
+    using Dificuldade::Nivel;
+    CHECK(Dificuldade::Invencibilidade(Nivel::Normal) == doctest::Approx(1.2f));
+    CHECK(Dificuldade::Invencibilidade(Nivel::Dificil) <= Dificuldade::Invencibilidade(Nivel::Normal) / 2.0f);
+    // AINDA PISCA: abaixo de um piscar (0,1 s) o aluno nem veria que foi acertado.
+    CHECK(Dificuldade::Invencibilidade(Nivel::Dificil) >= 0.3f);
+}
+
+#include "../Source/Acerto.h"
+
+TEST_CASE("Acerto: o mesmo causador nao acerta de novo antes de 1,2 s, mas outro acerta") {
+    Acerto::Memoria m;
+    int tiroA = 0, tiroB = 0;
+    m.Lembrar(&tiroA, 0.5f);
+    CHECK(m.Lembra(&tiroA, 0.6f));
+    CHECK_FALSE(m.Lembra(&tiroB, 0.6f));   // outro tiro acerta no ritmo do modo
+    m.Avancar(0.6f);
+    CHECK(m.Lembra(&tiroA, 1.1f));         // a parede que continua em cima dele
+    m.Avancar(Acerto::kMesmoCausador);
+    CHECK_FALSE(m.Lembra(&tiroA, 3.0f));   // passado o tempo, acerta de novo
+    CHECK(m.Quantos() == 0u);
+}
+
+TEST_CASE("Acerto: o pool recicla o endereco, e o tiro novo nao herda a memoria do velho") {
+    Acerto::Memoria m;
+    int tiro = 0;
+    m.Lembrar(&tiro, 2.0f);
+    m.Avancar(0.2f);
+    // O MESMO ENDERECO, mas com 0,1 s de vida: morreu e voltou como outro tiro.
+    CHECK_FALSE(m.Lembra(&tiro, 0.1f));
+    // O CORPO DO CHEFE nao envelhece: idade 0 sempre.
+    int corpo = 0;
+    m.Lembrar(&corpo, 0.0f);
+    CHECK(m.Lembra(&corpo, 0.0f));
+    CHECK_FALSE(m.Lembra(nullptr, 0.0f));
+}

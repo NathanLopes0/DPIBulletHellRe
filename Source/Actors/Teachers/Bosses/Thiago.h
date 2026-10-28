@@ -58,6 +58,7 @@ public:
 
     void OnUpdate(float deltaTime) override;
     [[nodiscard]] std::optional<Vector2> AlvoDoMovimento() const override;
+    void AoTerminarABatalha() override;
 
 protected:
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
@@ -102,6 +103,13 @@ private:
     std::vector<std::array<BossProjectile*, Banco::kColunas>> mCasas;   ///< por linha
     std::array<BossProjectile*, Banco::kColunas> mCabecalhos{};
     bool mTabelaCriada = false;
+
+    /// A GRADE DA TABELA, desenhada no campo: as linhas e as colunas. Sem ela,
+    /// os valores ficavam soltos no meio da tela - e um registro novo que o
+    /// INSERT punha numa linha vazia parecia um resto esquecido ali, e nao uma
+    /// casa da tabela.
+    class DrawLinhasComponent* mGrade = nullptr;
+    void DesenharGrade();
 
     // ---- O DISPARO NUM LUGAR ------------------------------------------------
     //
@@ -239,4 +247,9 @@ private:
     /// Quao depressa uma casa chega ao lugar dela (Ancora::Aproximar): devagar,
     /// para o ORDER BY ser visto.
     static constexpr float kRapidezDaCasa = 5.0f;
+    /// A grade da tabela: atras do quadro (60) e de tudo o mais, e apagada -
+    /// e chao, e nao aviso.
+    static constexpr int kOrdemDaGrade = 50;
+    static inline const SDL_Color kCorDaGrade{110, 130, 190, 38};
+    static inline const SDL_Color kCorDoCabecalho{150, 170, 230, 80};
 };

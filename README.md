@@ -55,9 +55,12 @@ passa direto ou some nele.
 Na tela de **Opções**, do menu principal, ficam:
 
 - a **dificuldade**: **Normal**, as fases como foram medidas, ou **Difícil**, um
-  degrau acima para quem já tira 100 — mais coisa para desviar. A nota vale o
-  mesmo nos dois, e a batalha no Difícil mostra o selo **DIFÍCIL** na ponta da
-  faixa da nota;
+  degrau acima para quem já tira 100 — mais coisa para desviar, e **quase sem
+  respiro depois de um acerto**: no Normal o aluno pisca 1,2 s sem levar outro
+  tiro; no Difícil, 0,4 s, e o tiro que vinha atrás do primeiro também acerta
+  (o mesmo tiro, ou o corpo do professor, ainda espera 1,2 s para acertar de
+  novo — ficar preso não é o que se cobra). A nota vale o mesmo nos dois, e a
+  batalha no Difícil mostra o selo **DIFÍCIL** na ponta da faixa da nota;
 - o volume da **música** e o dos **efeitos**, de mudo a 10;
 - a **tela cheia** (no gabinete o jogo é sempre em tela cheia);
 - a **hitbox**: mostra na batalha o círculo onde um tiro acerta o aluno de
@@ -367,7 +370,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 1067 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 1070 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha, o objetivo e o poder do orientador no
 TCC — e também **leem os arquivos de

@@ -136,13 +136,17 @@ namespace Objetivo {
         return Dificuldade::Escolher(n, 0.24f, 0.24f);
     }
 
-    float PorAlvo(const Dificuldade::Nivel n) { return Dificuldade::Escolher(n, 1.5f, 1.25f); }
-    float PorJanela(const Dificuldade::Nivel n) { return Dificuldade::Escolher(n, 3.0f, 2.5f); }
+    // NO DIFICIL PAGA O MESMO que no Normal. Pagava menos (1,25 e 2,5) quando
+    // o aluno ainda tinha 1,2 s de invencibilidade la; com 0,4 s
+    // (Dificuldade::Invencibilidade), o que cobra mais e o acerto sofrido, e o
+    // objetivo cortado pela metade deixava o TCC so para quem nunca e acertado.
+    float PorAlvo(const Dificuldade::Nivel n) { (void)n; return 1.5f; }
+    float PorJanela(const Dificuldade::Nivel n) { (void)n; return 3.0f; }
 
     float Janela(const Etapa etapa, const Dificuldade::Nivel n) {
         // AS CORRECOES SAO A REPESCAGEM: a janela e mais longa.
         const float base = etapa == Etapa::Correcoes ? 9.0f : 8.0f;
-        return Dificuldade::Escolher(n, base, base - 2.0f);
+        return Dificuldade::Escolher(n, base, base - 1.5f);
     }
 
     std::string Falta(const Etapa etapa, const int faltam) {

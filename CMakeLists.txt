@@ -95,6 +95,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Carregamento.h
         Source/Hud.cpp
         Source/Hud.h
+        Source/Acerto.cpp
+        Source/Acerto.h
         Source/Personagens.cpp
         Source/Personagens.h
         Source/PersonagensArquivo.cpp
@@ -522,6 +524,8 @@ add_executable(dpi_tests
         Source/Carregamento.h
         Source/Hud.cpp
         Source/Hud.h
+        Source/Acerto.cpp
+        Source/Acerto.h
         Source/Personagens.cpp
         Source/Personagens.h
         Source/Relogio.cpp

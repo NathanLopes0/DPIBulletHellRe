@@ -65,4 +65,21 @@ namespace Dificuldade {
     T Escolher(const Nivel n, const T normal, const T dificil) {
         return n == Nivel::Dificil ? dificil : normal;
     }
+
+    /**
+     * @brief A INVENCIBILIDADE DEPOIS DE UM ACERTO, em segundos: o tempo em que
+     * o aluno pisca e nada mais o acerta.
+     *
+     * NO NORMAL e 1,2 s, como sempre foi: tomar um tiro tira o aluno do
+     * aperto. NO DIFICIL e um terco disso. Com 1,2 s, quem nao sabia desviar
+     * atravessava a rajada piscando, tomava UM acerto onde merecia tres, e
+     * passava assim mesmo; com 0,4 s, o tiro de tras do primeiro tambem
+     * acerta. E O UNICO DEGRAU QUE NAO E DE UM CHEFE: vale para todos, e e o
+     * que faz o Dificil cobrar desviar, e nao so aguentar.
+     */
+    constexpr float kInvencibilidadeNormal = 1.2f;
+    constexpr float kInvencibilidadeDificil = 0.4f;
+    inline float Invencibilidade(const Nivel n) {
+        return Escolher(n, kInvencibilidadeNormal, kInvencibilidadeDificil);
+    }
 }

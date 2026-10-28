@@ -9,6 +9,7 @@
 
 #include "../Actor.h"
 #include "../../Painel.h"
+#include "../../Acerto.h"
 
 class PlayerProjectile;
 class PlayerOrb;
@@ -40,6 +41,11 @@ public:
     /// tiro encosta neste aluno agora?" - e juntando-as aqui a Battle nao
     /// precisou de linha nenhuma: a regra 1 e a regra 3 ja perguntavam isto.
     [[nodiscard]] bool GetIsInvincible() const { return isInvincible || mImunidadeTimer > 0.0f; }
+
+    /// O MESMO CAUSADOR nao acerta duas vezes seguidas (Acerto.h): 'quem' e o
+    /// projetil ou o corpo do chefe, e 'idade' a vida dele (0 para o corpo).
+    [[nodiscard]] bool JaFoiAcertadoPor(const void* quem, const float idade) const { return mAcertos.Lembra(quem, idade); }
+    void FoiAcertadoPor(const void* quem, const float idade) { mAcertos.Lembrar(quem, idade); }
 
     /**
      * @brief Protege este aluno por um tempo, as custas do Ponto Extra do parceiro.
@@ -184,6 +190,7 @@ private:
 
     //OnUpdate Sub-functions
     void InvincibleUpdate(float deltaTime);
+    Acerto::Memoria mAcertos;
     void UpdateImunidade(float deltaTime);
     void UpdateCorrente(float deltaTime);
 

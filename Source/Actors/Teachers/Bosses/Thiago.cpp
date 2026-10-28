@@ -11,6 +11,7 @@
 #include "../../../Attacks/AttackParameters/ConsultaAttackParams.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
+#include "../../../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../../../Components/RigidBodyComponent.h"
 #include "../../../Random.h"
 #include "../../../Scenes/Battle/Battle.h"
@@ -117,6 +118,36 @@ void Thiago::CriarTabela() {
     }
     mCasas.assign(mRegistros.size(), {});
     for (size_t l = 0; l < mRegistros.size(); ++l) EscreverRegistro(l, Vector2::Zero);
+    DesenharGrade();
+}
+
+void Thiago::DesenharGrade() {
+    if (!mScene || EhClone()) return;
+    if (!mGrade) {
+        // ATRAS DE TUDO, ate do quadro (60): e a tabela riscada no chao da sala.
+        auto ator = std::make_unique<Actor>(mScene);
+        mGrade = ator->AddComponent<DrawLinhasComponent>(kOrdemDaGrade);
+        mScene->AddActor(std::move(ator));
+    }
+    mGrade->Limpar();
+    const SDL_FRect campo = Campo();
+    // AS DIVISAS DAS LINHAS e das colunas: a mesma conta das casas (Tabela.h),
+    // entao o que acende e o que e varrido cai sempre dentro de um quadrado.
+    for (int l = 1; l < Banco::kLinhas; ++l) {
+        const float y = Tabela::Inicio(campo.y, campo.h, Banco::kLinhas, l);
+        mGrade->Acrescentar(Vector2(campo.x, y), Vector2(campo.x + campo.w, y), kCorDaGrade);
+    }
+    for (int c = 1; c < Banco::kColunas; ++c) {
+        const float x = Tabela::Inicio(campo.x, campo.w, Banco::kColunas, c);
+        mGrade->Acrescentar(Vector2(x, campo.y + Banco::kYDoCabecalho - 14.0f), Vector2(x, campo.y + campo.h), kCorDaGrade);
+    }
+    // O CABECALHO SUBLINHADO: e o que separa o nome da coluna dos valores.
+    const float yDoTraco = campo.y + Banco::kYDoCabecalho + 16.0f;
+    mGrade->Acrescentar(Vector2(campo.x, yDoTraco), Vector2(campo.x + campo.w, yDoTraco), kCorDoCabecalho);
+}
+
+void Thiago::AoTerminarABatalha() {
+    if (mGrade) mGrade->Limpar();
 }
 
 void Thiago::EscreverRegistro(const size_t linha, const Vector2 de) {
@@ -313,6 +344,10 @@ void Thiago::Apagar(const int linha) {
         p->DefinirEnfeite(false);
         p->DefinirPosto("");
         if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2(0.0f, mDegrau.velocidadeDoApagado));
+        // A LINHA APAGADA CAI VERMELHA. Com a cara de sempre, ela parecia um
+        // dado fora do lugar - uma linha da tabela parada entre duas outras -,
+        // e nao o tiro que ela passou a ser.
+        if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetColor(255, 105, 95);
     }
     mCasas.erase(mCasas.begin() + linha);
 }

@@ -21,7 +21,6 @@
 
 #define NUM_PROJECTILES_VECTOR 500
 #define ATK_TIMER_START_FULL 0.12f
-#define INVINCIBILITY_TIMER 1.2f
 #define PLAYER_SPEED_START 300.0f
 #define BASE_SHOOT_FORWARD_SPEED 800.0f
 #define BLINK_INVINCIBLE_FREQUENCY 0.1f
@@ -94,6 +93,7 @@ void Player::OnProcessInput(const Uint8 *keyState) {
 void Player::OnUpdate(float deltaTime) {
 
     InvincibleUpdate(deltaTime);
+    mAcertos.Avancar(deltaTime);
     HandleAnimation();
     DecreaseAtkTimer(deltaTime);
     BorderLimitCheck();
@@ -123,7 +123,11 @@ void Player::InvincibleUpdate(float deltaTime) {
     }
 
     invincibleTimer += deltaTime;
-    if (invincibleTimer >= INVINCIBILITY_TIMER) {
+    // O TEMPO DEPENDE DO MODO (Dificuldade::Invencibilidade): no Dificil e bem
+    // mais curto, e a rajada que vem atras do primeiro tiro tambem acerta.
+    const Dificuldade::Nivel nivel = (mScene && mScene->GetGame()) ? mScene->GetGame()->NivelDeDificuldade()
+                                                                   : Dificuldade::Nivel::Normal;
+    if (invincibleTimer >= Dificuldade::Invencibilidade(nivel)) {
         isInvincible = false;
         invincibleTimer = 0.0f;
         GetComponent<DrawAnimatedComponent>()->SetIsVisible(true);

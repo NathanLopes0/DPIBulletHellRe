@@ -1182,8 +1182,13 @@ void Battle::CheckCollisions() {
             if (bossProj->Enfeite()) continue;   // o cursor da sprint e a mao, nao um tiro
             if (bossProj->Abrigo()) continue;    // a capivara nao machuca ninguem
             if (const auto *bossProjCollider = bossProj->GetComponent<CircleColliderComponent>()) {
-                if (playerCollider->Intersect(*bossProjCollider) && !jogador->GetIsInvincible()) {
+                // O MESMO TIRO NAO ACERTA DUAS VEZES SEGUIDAS (Acerto.h): no
+                // Dificil a invencibilidade e curta, e a parede que continua em
+                // cima do aluno cobraria a cada 0,4 s.
+                if (playerCollider->Intersect(*bossProjCollider) && !jogador->GetIsInvincible() &&
+                    !jogador->JaFoiAcertadoPor(bossProj.get(), bossProj->TempoDeVida())) {
                     jogador->SetIsInvincible(true);
+                    jogador->FoiAcertadoPor(bossProj.get(), bossProj->TempoDeVida());
                     jogador->OnCollision(bossProj.get());
                     bossProj->OnCollision(jogador);
 
@@ -1311,8 +1316,10 @@ void Battle::CheckCollisions() {
                                                : nullptr;
             if (!colisorDoCorpo) continue;
 
-            if (playerCollider->Intersect(*colisorDoCorpo) && !jogador->GetIsInvincible()) {
+            if (playerCollider->Intersect(*colisorDoCorpo) && !jogador->GetIsInvincible() &&
+                !jogador->JaFoiAcertadoPor(corpo, 0.0f)) {
                 jogador->SetIsInvincible(true);
+                jogador->FoiAcertadoPor(corpo, 0.0f);
                 jogador->OnCollision(corpo);
                 corpo->OnCollision(jogador);
                 GradeDown();
