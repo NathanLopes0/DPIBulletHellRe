@@ -124,7 +124,7 @@ MATERIAS = [
     ("Luizinho",   "DPIBHLuizinhoMemoria",     1),   # a celula viva do heap
     ("Vladimir",   "DPIBHVladimirSimbolo",     0),   # o simbolo a
     ("Julio",      "DPIBHJulioToken",          8),   # o agente
-    ("MariaLucia", "DPIBHMariaLuciaRequisito", 12),  # o bug
+    ("MariaLucia", "DPIBHMariaLuciaRequisito", 0),   # o post-it (o bug era menos a cara dela)
     ("Lucas",      "DPIBHLucasCodigo",         8),   # a promessa
     ("Vitor",      "DPIBHVitorTarefa",         20),  # o pacote
 ]
