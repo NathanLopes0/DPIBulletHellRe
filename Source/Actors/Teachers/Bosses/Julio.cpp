@@ -19,7 +19,7 @@
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Components/DrawComponents/DrawLinhasComponent.h"
-#include "../../../Random.h"
+#include "../../../Core/Random.h"
 #include "../../../Scenes/Scene.h"
 
 #include "BossesProjectiles/BossProjectile.h"

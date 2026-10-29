@@ -18,8 +18,8 @@
 #include "../../Attacks/IAttackStrategy.h"
 #include "../../Attacks/AttackParameters/AttackParams.h"
 #include "Bosses/BossesProjectiles/BossProjectile.h"
-#include "../../Dificuldade.h"
-#include "../../Variacao.h"
+#include "../../Gameplay/Dificuldade.h"
+#include "../../Gameplay/Variacao.h"
 
 class IMovementStrategy;
 class FSMComponent;

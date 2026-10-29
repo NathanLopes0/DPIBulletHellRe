@@ -20,7 +20,7 @@
  *
  * A REGRA de composicao vive aqui e e testavel sem subir uma janela: quais
  * camadas entram, em que ordem e com que cor. Quem desenha os pixels e a ponte
- * (Source/PersonagensArquivo), que fica de fora dos testes.
+ * (Source/Student/PersonagensArquivo), que fica de fora dos testes.
  */
 namespace Personagens {
 

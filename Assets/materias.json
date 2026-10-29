@@ -37,7 +37,7 @@
   //   orientacao    true se a batalha pede um ORIENTADOR antes de comecar - o
   //                 TCC. Opcional, falso por padrao. Quem pode orientar sao os
   //                 professores das materias em que o aluno foi melhor (ver
-  //                 Source/Orientacao.h).
+  //                 Source/Gameplay/Orientador/Orientacao.h).
   //   desbloqueio   quando a materia abre. Ver abaixo.
   //
   // REGRAS DE DESBLOQUEIO

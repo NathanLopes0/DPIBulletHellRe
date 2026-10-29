@@ -16,7 +16,7 @@
 #include "../../../Attacks/Coercao.h"
 #include "../../../Attacks/Behaviors.h"
 #include "../../../Components/RigidBodyComponent.h"
-#include "../../../Random.h"
+#include "../../../Core/Random.h"
 
 #include <algorithm>
 #include <cmath>

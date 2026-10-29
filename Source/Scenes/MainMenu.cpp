@@ -3,15 +3,15 @@
 //
 
 #include "MainMenu.h"
-#include "../Painel.h"
+#include "../Input/Painel.h"
 #include "../Game.h"
 #include "../Actors/Actor.h"
-#include "../Font.h"
+#include "../Core/Font.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
 #include "../Components/DrawComponents/DrawSpriteComponent.h"
 
-#include "../CaminhosArquivo.h"
+#include "../Core/CaminhosArquivo.h"
 
 namespace {
 

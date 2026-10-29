@@ -19,7 +19,7 @@
 #include "../Actors/Teachers/Boss.h"
 #include "../Actors/Teachers/BossFactory/BossProjectileFactory/FabricaDeProjetil.h"
 
-#include "../CaminhosArquivo.h"
+#include "../Core/CaminhosArquivo.h"
 
 namespace {
 

@@ -11,7 +11,7 @@
 class Game;
 
 /**
- * A ponte entre a REGRA de composicao - que vive em Source/Personagens, e puro,
+ * A ponte entre a REGRA de composicao - que vive em Source/Student/Personagens, e puro,
  * e testado - e os pixels. Aqui se abre PNG, se multiplica canal e se cria
  * textura; por isso este arquivo fica de fora do alvo de testes.
  *

@@ -6,9 +6,9 @@
 
 #include <algorithm>
 
-#include "../Tabela.h"
+#include "../Gameplay/Tabela.h"
 
-#include "../JsonDeDados.h"
+#include "../Data/JsonDeDados.h"
 
 namespace {
 

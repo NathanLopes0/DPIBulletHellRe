@@ -12,7 +12,7 @@
 #include "../../Components/DrawComponents/DrawRelogioDaFaseComponent.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 
-#include "../../CaminhosArquivo.h"
+#include "../../Core/CaminhosArquivo.h"
 
 
 

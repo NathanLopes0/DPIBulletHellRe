@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "Nota.h"
+#include "../Gameplay/Nota.h"
 
 /**
  * CAMADA PURA (mesma disciplina de PathAim, RegrasDeAtaque e FasesDeAtaque)

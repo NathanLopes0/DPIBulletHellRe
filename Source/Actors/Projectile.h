@@ -10,7 +10,7 @@
 #include <string>
 #include <memory>
 #include <type_traits>
-#include "../Math.h"
+#include "../Core/Math.h"
 
 // Incluido, e nao apenas declarado: os static_assert de insertMotion e
 // insertModifier usam std::is_base_of, que exige TIPO COMPLETO. Nao ha ciclo

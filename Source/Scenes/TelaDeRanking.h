@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "Scene.h"
-#include "../Exportacao.h"
+#include "../Data/Exportacao.h"
 #include "../Game.h"
 
 class Font;
@@ -25,7 +25,7 @@ class Actor;
  * gabinete nunca via onde estava.
  *
  * ESTA CENA NAO ORDENA NADA. A ordem, os empates e o corte do topo vivem em
- * Source/Ranking.h, que e puro e testado. Aqui so ha leitura de manche e
+ * Source/Student/Ranking.h, que e puro e testado. Aqui so ha leitura de manche e
  * desenho - a mesma divisao da tela de matricula.
  *
  * AS FICHAS SAO LIDAS UMA VEZ, no Load. Reler a cada quadro custaria um passeio

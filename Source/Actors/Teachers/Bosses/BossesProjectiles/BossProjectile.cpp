@@ -10,7 +10,7 @@
 #include "../../../../Scenes/Battle/Battle.h"
 #include "../../../Player/Player.h"
 #include "../../../../Components/RigidBodyComponent.h"
-#include "../../../../Destrutivel.h"
+#include "../../../../Gameplay/Destrutivel.h"
 
 
 // 1. O construtor passa o 'owner' para o construtor da classe base 'Projectile'.

@@ -11,7 +11,7 @@
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Attacks/Behaviors.h"
 #include "../../Projectile.h"
-#include "../../../Random.h"
+#include "../../../Core/Random.h"
 #include "../BossAttackState.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"

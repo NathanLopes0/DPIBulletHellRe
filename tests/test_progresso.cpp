@@ -2,7 +2,7 @@
 // Camada pura: sem Game, sem SDL.
 
 #include "doctest.h"
-#include "../Source/Progresso.h"
+#include "../Source/Student/Progresso.h"
 #include "Ajudantes.h"
 
 // ---------------------------------------------------------------------------

@@ -3,15 +3,15 @@
 //
 
 #include "Opcoes.h"
-#include "../Painel.h"
+#include "../Input/Painel.h"
 #include "FundoDeCena.h"
 
 #include <SDL_scancode.h>
 
 #include "../Game.h"
-#include "../Font.h"
-#include "../Configuracao.h"
-#include "../CaminhosArquivo.h"
+#include "../Core/Font.h"
+#include "../Data/Configuracao.h"
+#include "../Core/CaminhosArquivo.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"

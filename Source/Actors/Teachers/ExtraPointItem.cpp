@@ -8,7 +8,7 @@
 #include "../../Components/RigidBodyComponent.h"
 #include "../../Game.h"
 
-#include "../../CaminhosArquivo.h"
+#include "../../Core/CaminhosArquivo.h"
 
 ExtraPointItem::ExtraPointItem(Scene* scene) : Actor(scene) {
 

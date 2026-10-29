@@ -6,7 +6,7 @@
 
 #include "../../../Attacks/FasesDeAtaqueArquivo.h"
 #include "../../../Attacks/ProjeteisDeChefeArquivo.h"
-#include "../../../CaminhosArquivo.h"
+#include "../../../Core/CaminhosArquivo.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"

@@ -8,7 +8,7 @@
 #include <SDL_pixels.h>
 
 #include "DrawComponent.h"
-#include "../../Math.h"
+#include "../../Core/Math.h"
 
 /**
  * @class DrawLinhasComponent

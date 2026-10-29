@@ -6,7 +6,7 @@
 
 #include "DrawComponent.h"
 #include <string>
-#include "../../Math.h"
+#include "../../Core/Math.h"
 
 class DrawTextComponent : public DrawComponent {
 

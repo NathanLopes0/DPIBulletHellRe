@@ -7,7 +7,7 @@
 #include <cmath>
 #include <vector>
 
-#include "../Source/Escolta.h"
+#include "../Source/Gameplay/Orientador/Escolta.h"
 
 namespace {
     constexpr float kEsquerda = 20.0f;

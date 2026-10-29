@@ -7,7 +7,7 @@
 #include <SDL_pixels.h>
 
 #include "DrawComponent.h"
-#include "../../BarraDaNota.h"
+#include "../../UI/BarraDaNota.h"
 
 /**
  * @class DrawBarraDaNotaComponent

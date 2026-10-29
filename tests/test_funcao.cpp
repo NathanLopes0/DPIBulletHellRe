@@ -8,7 +8,7 @@
 #include <set>
 #include <string>
 
-#include "../Source/Variacao.h"
+#include "../Source/Gameplay/Variacao.h"
 
 #include <set>
 

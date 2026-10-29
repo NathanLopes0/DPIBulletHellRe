@@ -15,13 +15,13 @@
 #include "Behaviors.h"
 #include "PastaDoChefe.h"
 #include "PathShapes.h"
-#include "../Random.h"
+#include "../Core/Random.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"
 #include "../Actors/Player/Player.h"
 #include "../Scenes/Battle/Battle.h"
 
-#include "../CaminhosArquivo.h"
+#include "../Core/CaminhosArquivo.h"
 
 namespace {
 

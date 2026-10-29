@@ -3,22 +3,22 @@
 //
 
 #include "StageSelect.h"
-#include "../Painel.h"
+#include "../Input/Painel.h"
 #include "FundoDeCena.h"
 
-#include "../Matricula.h"
-#include "../MateriasArquivo.h"
-#include "../Nota.h"
-#include "../Navegacao.h"
+#include "../Student/Matricula.h"
+#include "../Data/MateriasArquivo.h"
+#include "../Gameplay/Nota.h"
+#include "../Input/Navegacao.h"
 #include <sstream>
 #include <iomanip>
-#include "../Math.h"
+#include "../Core/Math.h"
 #include "../Actors/Buttons/StageSelectButton.h"
-#include "../Font.h"
+#include "../Core/Font.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 
-#include "../CaminhosArquivo.h"
+#include "../Core/CaminhosArquivo.h"
 
 StageSelect::StageSelect(Game *game) : Scene(game, SceneType::StageSelect)
                                        , mStageSelectFont(std::make_unique<Font>())

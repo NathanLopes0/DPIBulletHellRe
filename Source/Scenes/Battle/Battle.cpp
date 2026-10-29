@@ -4,8 +4,8 @@
 
 #include "Battle.h"
 
-#include "../../Progresso.h"
-#include "../../Nota.h"
+#include "../../Student/Progresso.h"
+#include "../../Gameplay/Nota.h"
 
 #include <random>
 #include <sstream>
@@ -13,8 +13,8 @@
 
 #include "BattleHUD.h"
 #include "ProjectileManager.h"
-#include "../../AudioSystem.h"
-#include "../../Font.h"
+#include "../../Core/AudioSystem.h"
+#include "../../Core/Font.h"
 #include "../../Actors/Player/Player.h"
 #include "../../Actors/Player/PlayerProjectile.h"
 #include "../../Actors/Teachers/Boss.h"
@@ -32,13 +32,13 @@
 #include "../../Components/DrawComponents/DrawRelogioDaFaseComponent.h"
 #include "../../Actors/Teachers/ExtraPointItem.h"
 #include "../../Components/DrawComponents/DrawLinhasComponent.h"
-#include "../../PontoExtra.h"
-#include "../../Destrutivel.h"
+#include "../../Gameplay/PontoExtra.h"
+#include "../../Gameplay/Destrutivel.h"
 #include "../../Actors/Orientador/Orientador.h"
-#include "../../MateriasArquivo.h"
-#include "../../Painel.h"
+#include "../../Data/MateriasArquivo.h"
+#include "../../Input/Painel.h"
 
-#include "../../CaminhosArquivo.h"
+#include "../../Core/CaminhosArquivo.h"
 #include "RegistroDaTentativa.h"
 #include "ClaroesDaMoldura.h"
 #include "../../Components/AIComponents/FSMComponent.h"

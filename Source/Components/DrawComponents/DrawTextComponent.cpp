@@ -5,7 +5,7 @@
 #include "DrawTextComponent.h"
 
 #include <algorithm>
-#include "../../Font.h"
+#include "../../Core/Font.h"
 #include "../../Actors/Actor.h"
 #include "../../Game.h"
 #include "../../Scenes/Scene.h"

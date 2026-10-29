@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "../Dificuldade.h"
-#include "../Math.h"
-#include "../Variacao.h"
+#include "../Gameplay/Dificuldade.h"
+#include "../Core/Math.h"
+#include "../Gameplay/Variacao.h"
 
 /**
  * CAMADA PURA.

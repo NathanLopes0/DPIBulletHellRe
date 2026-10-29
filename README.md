@@ -420,10 +420,24 @@ Os testes foram na sua grande maioria gerados pelo Claude por enquanto, mas to c
 
 ```
 Source/          o jogo
-  *.h / *.cpp      camada pura: nota, matrícula, progresso, matérias,
-                   personagens, navegação, tabela, orientação, golpe e
-                   poder do orientador. Nada de SDL nem de disco.
-  *Arquivo.cpp     as pontes: é só aqui que se lê arquivo e se fala com SDL.
+  main.cpp         a entrada
+  Game.cpp / .h    o laço do jogo e a troca de cenas
+  Gameplay/        as regras da batalha: nota, acerto, ponto extra,
+                   dificuldade, variação, tabela e intercâmbio
+    Orientador/      o orientador do TCC: quem orienta, onde fica, golpe, poder
+  Student/         o aluno: matrícula, ficha, progresso, sessão, ranking e
+                   personagem
+  Data/            os dados que o jogo lê e grava: matérias, opções,
+                   tentativas e exportação das notas
+  Input/           o painel (manche e botões), a navegação da seleção e o
+                   teclado digital
+  UI/              as contas da HUD, a barra da nota, o carregamento e a pausa
+  Core/            áudio, fonte, matemática, sorteio, relógio, caminhos de
+                   arquivo e o modo gabinete
+  ThirdParty/      o nlohmann/json
+                   Em Gameplay/, Student/, Data/, Input/ e UI/, o X.cpp é a
+                   camada pura (nada de SDL nem de disco) e o XArquivo.cpp é a
+                   ponte: é só nele que se lê arquivo e se fala com SDL.
   Actors/          jogador, professores, orientador, projéteis
   Attacks/         as estratégias de ataque e os comportamentos de projétil
   Scenes/          menu, identificação, criação de personagem, seleção, batalha

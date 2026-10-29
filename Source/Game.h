@@ -9,15 +9,15 @@
 #include <memory>
 #include <vector>
 #include <SDL.h>
-#include "Math.h"
+#include "Core/Math.h"
 #include "Scenes/Scene.h"
-#include "Personagens.h"
-#include "Progresso.h"
-#include "Gabinete.h"
-#include "Painel.h"
-#include "Sessao.h"
-#include "Configuracao.h"
-#include "Dificuldade.h"
+#include "Student/Personagens.h"
+#include "Student/Progresso.h"
+#include "Core/Gabinete.h"
+#include "Input/Painel.h"
+#include "Student/Sessao.h"
+#include "Data/Configuracao.h"
+#include "Gameplay/Dificuldade.h"
 
 class IBossFactory;
 class Actor;

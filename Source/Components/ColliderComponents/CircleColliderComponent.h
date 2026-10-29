@@ -7,7 +7,7 @@
 
 #include "ColliderComponent.h"
 #include "../Component.h"
-#include "../../Math.h"
+#include "../../Core/Math.h"
 
 
 class CircleColliderComponent : public ColliderComponent {

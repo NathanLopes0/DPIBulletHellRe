@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../Math.h"
+#include "../Core/Math.h"
 #include "../Components/RigidBodyComponent.h"
 #include "../Actors/Teachers/Boss.h"
-#include "../Random.h"
+#include "../Core/Random.h"
 
 // --- INTERFACE ---
 class IMovementStrategy {

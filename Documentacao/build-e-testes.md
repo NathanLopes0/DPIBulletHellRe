@@ -34,7 +34,7 @@ cobre o caminho.
 em **dois** lugares: no alvo do jogo e no alvo dos testes.
 
 ```bash
-grep -c "Source/Nota.cpp" CMakeLists.txt     # tem de dar 2
+grep -c "Source/Gameplay/Nota.cpp" CMakeLists.txt     # tem de dar 2
 ```
 
 Esquecer o segundo dá erro de link só no `dpi_tests`, com uma mensagem que não
@@ -94,11 +94,11 @@ mensagem**. Ela nomeia o problema de verdade? Então desfaça e siga.
 
 ```bash
 # exemplo real: baixar o expoente da curva da nota
-sed -i 's/kExpoente = 1.5f/kExpoente = 1.0f/' Source/Nota.h
+sed -i 's/kExpoente = 1.5f/kExpoente = 1.0f/' Source/Gameplay/Nota.h
 cmake --build build -j8 && ./build/dpi_tests -tc="*Nota*"
 #   ERROR: CHECK( em99 < em90 / 2.0f ) is NOT correct!
 #     values: CHECK( 0.22 <  0.2 )
-sed -i 's/kExpoente = 1.0f/kExpoente = 1.5f/' Source/Nota.h
+sed -i 's/kExpoente = 1.0f/kExpoente = 1.5f/' Source/Gameplay/Nota.h
 ```
 
 A mensagem acima é útil: diz qual propriedade se perdeu e com que números. Uma

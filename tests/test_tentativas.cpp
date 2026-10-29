@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "../Source/Tentativas.h"
+#include "../Source/Data/Tentativas.h"
 
 using namespace Tentativas;
 

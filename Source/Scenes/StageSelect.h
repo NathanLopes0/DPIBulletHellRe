@@ -7,7 +7,7 @@
 #include "../Scenes/Scene.h"
 #include "../Game.h" // Incluir para o enum int
 #include <vector>
-#include "../Navegacao.h"
+#include "../Input/Navegacao.h"
 #include <SDL_pixels.h>
 #include <memory>
 

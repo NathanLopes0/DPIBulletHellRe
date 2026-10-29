@@ -9,7 +9,7 @@
 #include "../../../Attacks/FasesDeAtaqueArquivo.h"
 #include "../../../Attacks/ProjeteisDeChefeArquivo.h"
 
-#include "../../../CaminhosArquivo.h"
+#include "../../../Core/CaminhosArquivo.h"
 
 AndreFactory::AndreFactory(Game *game)
     : IBossFactory(game)

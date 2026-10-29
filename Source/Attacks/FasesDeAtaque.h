@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../Dificuldade.h"
+#include "../Gameplay/Dificuldade.h"
 
 #include <cstdint>
 #include <map>

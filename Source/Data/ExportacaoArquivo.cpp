@@ -10,8 +10,8 @@
 #include <SDL_log.h>
 
 #include "Exportacao.h"
-#include "FichaArquivo.h"
-#include "CaminhosArquivo.h"
+#include "../Student/FichaArquivo.h"
+#include "../Core/CaminhosArquivo.h"
 
 namespace Exportacao {
 

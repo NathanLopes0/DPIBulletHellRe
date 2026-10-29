@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 
-#include "../Math.h"
-#include "../Variacao.h"
+#include "../Core/Math.h"
+#include "../Gameplay/Variacao.h"
 
 /**
  * CAMADA PURA.

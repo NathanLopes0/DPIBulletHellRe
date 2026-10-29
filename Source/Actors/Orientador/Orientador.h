@@ -11,9 +11,9 @@
 #include <vector>
 
 #include "../Actor.h"
-#include "../../Golpe.h"
-#include "../../Poder.h"
-#include "../../Variacao.h"
+#include "../../Gameplay/Orientador/Golpe.h"
+#include "../../Gameplay/Orientador/Poder.h"
+#include "../../Gameplay/Variacao.h"
 
 class Battle;
 class Boss;

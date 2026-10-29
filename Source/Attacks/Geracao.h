@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include "../Dificuldade.h"
+#include "../Gameplay/Dificuldade.h"
 #include "Temperatura.h"
 
 /**

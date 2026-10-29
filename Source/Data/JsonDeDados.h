@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "Json.h"
+#include "../ThirdParty/Json.h"
 
 /**
  * @brief Interpreta o texto de um arquivo de dados do jogo.

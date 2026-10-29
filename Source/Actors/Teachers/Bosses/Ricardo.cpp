@@ -8,7 +8,7 @@
 #include <limits>
 
 #include "../../../Game.h"
-#include "../../../Random.h"
+#include "../../../Core/Random.h"
 #include "../../../Attacks/AttackParameters/PalavraAttackParams.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/RigidBodyComponent.h"

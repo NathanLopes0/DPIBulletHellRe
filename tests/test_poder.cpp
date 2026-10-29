@@ -8,7 +8,7 @@
 #include <set>
 #include <string>
 
-#include "../Source/Poder.h"
+#include "../Source/Gameplay/Orientador/Poder.h"
 
 using namespace Poder;
 

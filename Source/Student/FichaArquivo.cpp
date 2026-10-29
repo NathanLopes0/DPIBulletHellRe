@@ -13,7 +13,7 @@
 
 #include "Ficha.h"
 #include "Matricula.h"
-#include "CaminhosArquivo.h"
+#include "../Core/CaminhosArquivo.h"
 
 namespace {
 

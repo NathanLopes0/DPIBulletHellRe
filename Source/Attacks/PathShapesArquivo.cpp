@@ -14,7 +14,7 @@
 #include <vector>
 #include <SDL_log.h>
 
-#include "../CaminhosArquivo.h"
+#include "../Core/CaminhosArquivo.h"
 
 namespace {
     /// Formas lidas de arquivo, por nome. Separado do cache por parametros

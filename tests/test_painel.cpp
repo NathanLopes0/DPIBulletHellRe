@@ -16,7 +16,7 @@
 
 #include "doctest.h"
 
-#include "../Source/Painel.h"
+#include "../Source/Input/Painel.h"
 
 #include <string>
 #include <vector>

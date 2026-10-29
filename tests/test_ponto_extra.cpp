@@ -6,7 +6,7 @@
 
 #include <cmath>
 
-#include "../Source/PontoExtra.h"
+#include "../Source/Gameplay/PontoExtra.h"
 
 TEST_CASE("PontoExtra: o escudo pega o projetil que encosta no anel, e nao o de fora") {
     const Vector2 aluno(400.0f, 600.0f);

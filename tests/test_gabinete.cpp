@@ -14,7 +14,7 @@
 
 #include "doctest.h"
 
-#include "../Source/Gabinete.h"
+#include "../Source/Core/Gabinete.h"
 
 // ---------------------------------------------------------------------------
 // A linha de comando

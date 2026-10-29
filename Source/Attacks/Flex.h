@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "../Variacao.h"
+#include "../Gameplay/Variacao.h"
 
 /**
  * CAMADA PURA (mesma disciplina de Caixa, Fita e Tabela).

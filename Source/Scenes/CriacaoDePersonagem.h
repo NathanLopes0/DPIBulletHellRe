@@ -9,8 +9,8 @@
 #include <vector>
 
 #include "Scene.h"
-#include "../Painel.h"
-#include "../Personagens.h"
+#include "../Input/Painel.h"
+#include "../Student/Personagens.h"
 
 class Font;
 class Actor;
@@ -21,8 +21,8 @@ class DrawCaixaComponent;
  * @brief Monta a aparencia que vai ficar gravada no perfil da matricula.
  *
  * ESTA TELA NAO SABE COMPOR NADA. Quais camadas existem, em que ordem e com que
- * cor e assunto de Source/Personagens (puro, testado) e de
- * Source/ComporPersonagem (a ponte). Aqui so ha navegacao e desenho.
+ * cor e assunto de Source/Student/Personagens (puro, testado) e de
+ * Source/Student/ComporPersonagem (a ponte). Aqui so ha navegacao e desenho.
  *
  * AS LINHAS SAO GERADAS DO CATALOGO, e nao escritas a mao: cada categoria rende
  * uma linha de tipo (quando ha mais de uma peca) e uma de cor (quando ha mais de

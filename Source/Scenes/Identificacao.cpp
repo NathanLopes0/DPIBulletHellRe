@@ -3,16 +3,16 @@
 //
 
 #include "Identificacao.h"
-#include "../Painel.h"
+#include "../Input/Painel.h"
 #include "FundoDeCena.h"
 
 #include <SDL_scancode.h>
 
 #include "../Game.h"
-#include "../Font.h"
-#include "../Matricula.h"
-#include "../FichaArquivo.h"
-#include "../CaminhosArquivo.h"
+#include "../Core/Font.h"
+#include "../Student/Matricula.h"
+#include "../Student/FichaArquivo.h"
+#include "../Core/CaminhosArquivo.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"

@@ -6,7 +6,7 @@
 
 #include <array>
 
-#include "../Variacao.h"
+#include "../Gameplay/Variacao.h"
 
 #include <cstdint>
 #include <optional>

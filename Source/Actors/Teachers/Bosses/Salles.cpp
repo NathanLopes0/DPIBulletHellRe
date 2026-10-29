@@ -8,7 +8,7 @@
 #include <limits>
 
 #include "../../../Game.h"
-#include "../../../Random.h"
+#include "../../../Core/Random.h"
 #include "../../../Attacks/Ancora.h"
 #include "../../../Actors/Player/Player.h"
 #include "../../../Components/AIComponents/FSMComponent.h"

@@ -11,7 +11,7 @@
 #include "../Actors/Teachers/Boss.h"
 #include "Promessa.h"
 #include "Amarra.h"
-#include "../Random.h"
+#include "../Core/Random.h"
 
 void AccelerateBehavior::update(Projectile* p, float deltaTime) {
     if (auto bossProj = dynamic_cast<BossProjectile*>(p)) {

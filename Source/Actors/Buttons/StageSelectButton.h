@@ -9,7 +9,7 @@
 #include <string>
 #include "Button.h"
 #include "../../Game.h"
-#include "../../Math.h"
+#include "../../Core/Math.h"
 
 class Font;
 class StageSelectButton : public Button {

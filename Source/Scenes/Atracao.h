@@ -9,8 +9,8 @@
 #include <vector>
 
 #include "Scene.h"
-#include "../Gabinete.h"
-#include "../Math.h"
+#include "../Core/Gabinete.h"
+#include "../Core/Math.h"
 
 class DrawComponent;
 class Font;

@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "../Math.h"
+#include "../Core/Math.h"
 
 /**
  * CAMADA PURA.

@@ -3,16 +3,16 @@
 //
 
 #include "CriacaoDePersonagem.h"
-#include "../Painel.h"
+#include "../Input/Painel.h"
 #include "FundoDeCena.h"
 
 #include <SDL_scancode.h>
 
 #include "../Game.h"
-#include "../Font.h"
-#include "../CaminhosArquivo.h"
-#include "../ComporPersonagem.h"
-#include "../PersonagensArquivo.h"
+#include "../Core/Font.h"
+#include "../Core/CaminhosArquivo.h"
+#include "../Student/ComporPersonagem.h"
+#include "../Student/PersonagensArquivo.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"

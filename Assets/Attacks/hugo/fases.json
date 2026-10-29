@@ -4,8 +4,8 @@
   //
   // A ultima materia do curso, a batalha mais dificil do jogo, e a unica que o
   // aluno nao luta sozinho: antes dela ele escolhe um ORIENTADOR
-  // (Source/Orientacao.h), que luta do lado dele com o golpe da materia
-  // (Source/Golpe.h).
+  // (Source/Gameplay/Orientador/Orientacao.h), que luta do lado dele com o golpe da materia
+  // (Source/Gameplay/Orientador/Golpe.h).
   //
   // O TCC E NA AREA DO ORIENTADOR, e por isso cada luta e um pouco outra
   // (Source/Attacks/Tcc.h): no desenvolvimento, o Hugo atira a materia DELE -

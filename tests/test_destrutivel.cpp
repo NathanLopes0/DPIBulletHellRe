@@ -4,7 +4,7 @@
 
 #include "doctest.h"
 
-#include "../Source/Destrutivel.h"
+#include "../Source/Gameplay/Destrutivel.h"
 
 using namespace Destrutivel;
 

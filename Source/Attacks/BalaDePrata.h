@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 
-#include "../Dificuldade.h"
-#include "../Variacao.h"
+#include "../Gameplay/Dificuldade.h"
+#include "../Gameplay/Variacao.h"
 
 /**
  * CAMADA PURA. Coberto por test_bala_de_prata.cpp.

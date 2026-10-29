@@ -10,9 +10,9 @@
 
 #include "FundoDeCena.h"
 #include "../Game.h"
-#include "../Font.h"
-#include "../Painel.h"
-#include "../CaminhosArquivo.h"
+#include "../Core/Font.h"
+#include "../Input/Painel.h"
+#include "../Core/CaminhosArquivo.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"

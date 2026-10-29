@@ -11,7 +11,7 @@
 #include "../../Attacks/AttackParameters/ConsultaAttackParams.h"
 #include "../../Components/RigidBodyComponent.h"
 #include "../../Scenes/Battle/Battle.h"
-#include "../../Tabela.h"
+#include "../../Gameplay/Tabela.h"
 
 ConsultaAttack::ConsultaAttack(ProjectileFactory* spawner, Actor* owner)
     : IAttackStrategy(spawner, owner)

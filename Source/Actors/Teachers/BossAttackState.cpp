@@ -7,7 +7,7 @@
 #include "../Actor.h"
 #include "../../Components/AIComponents/FSMComponent.h"
 #include "../../Scenes/Battle/Battle.h"
-#include "../../Nota.h"
+#include "../../Gameplay/Nota.h"
 
 BossAttackState::BossAttackState(FSMComponent* fsm,
                                  const std::string& name,

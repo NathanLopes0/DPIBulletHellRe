@@ -9,7 +9,7 @@
 #include <SDL_pixels.h>
 
 #include "DrawComponent.h"
-#include "../../Hud.h"
+#include "../../UI/Hud.h"
 
 /**
  * @class DrawMolduraDoCampoComponent

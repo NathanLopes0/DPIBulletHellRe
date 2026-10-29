@@ -9,8 +9,8 @@
 #include <utility>
 #include <vector>
 
-#include "../Math.h"
-#include "../Variacao.h"
+#include "../Core/Math.h"
+#include "../Gameplay/Variacao.h"
 #include "Fase.h"
 
 /**

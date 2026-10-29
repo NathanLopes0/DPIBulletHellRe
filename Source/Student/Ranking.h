@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "Exportacao.h"
+#include "../Data/Exportacao.h"
 
 /**
  * CAMADA PURA. So a ordenacao; nao conhece disco, tela nem SDL.

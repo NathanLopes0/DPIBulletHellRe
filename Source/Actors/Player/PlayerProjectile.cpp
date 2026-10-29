@@ -12,8 +12,8 @@
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Teachers/Boss.h"
 
-#include "../../CaminhosArquivo.h"
-#include "../../Hud.h"
+#include "../../Core/CaminhosArquivo.h"
+#include "../../UI/Hud.h"
 
 
 

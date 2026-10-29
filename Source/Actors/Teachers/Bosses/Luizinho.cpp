@@ -8,7 +8,7 @@
 #include <cmath>
 #include <limits>
 
-#include "../../../Random.h"
+#include "../../../Core/Random.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Components/DrawComponents/DrawLinhasComponent.h"

@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "Ficha.h"
-#include "Materias.h"
+#include "../Data/Materias.h"
 #include "Progresso.h"
 
 /**

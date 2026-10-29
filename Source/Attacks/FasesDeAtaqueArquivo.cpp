@@ -40,7 +40,7 @@
 #include "../Components/AIComponents/FSMComponent.h"
 #include "../Movements/MovementStrategies.h"
 
-#include "../CaminhosArquivo.h"
+#include "../Core/CaminhosArquivo.h"
 
 namespace {
 

@@ -4,7 +4,7 @@
 
 #include "RegrasDeAtaque.h"
 
-#include "../JsonDeDados.h"
+#include "../Data/JsonDeDados.h"
 #include "Amarra.h"
 
 namespace {

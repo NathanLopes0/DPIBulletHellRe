@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 
-#include "../Source/Exportacao.h"
-#include "../Source/Materias.h"
-#include "../Source/Nota.h"
+#include "../Source/Data/Exportacao.h"
+#include "../Source/Data/Materias.h"
+#include "../Source/Gameplay/Nota.h"
 
 namespace {
 

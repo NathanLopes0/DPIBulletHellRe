@@ -4,8 +4,8 @@
 
 #include "doctest.h"
 
-#include "../Source/BarraDaNota.h"
-#include "../Source/Carregamento.h"
+#include "../Source/UI/BarraDaNota.h"
+#include "../Source/UI/Carregamento.h"
 
 TEST_CASE("BarraDaNota: o preenchimento corre atras da nota e chega nela") {
     BarraDaNota::Estado e = BarraDaNota::Comecar(40.0f);

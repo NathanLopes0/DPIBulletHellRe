@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <vector>
 
-#include "Math.h"
+#include "../Core/Math.h"
 
 /**
  * CAMADA PURA. Coberto por test_hud.cpp.

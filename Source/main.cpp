@@ -1,5 +1,5 @@
 #include "Game.h"
-#include "Gabinete.h"
+#include "Core/Gabinete.h"
 
 #include <string>
 #include <vector>

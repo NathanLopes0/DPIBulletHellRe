@@ -5,7 +5,7 @@
 #pragma once
 
 #include "AttackParams.h"
-#include "../../Tabela.h"
+#include "../../Gameplay/Tabela.h"
 
 /**
  * @brief Uma consulta: qual faixa da tabela varrer, e por qual eixo.

@@ -6,7 +6,7 @@
 
 #include <cstdint>
 #include "Fase.h"
-#include "../Dificuldade.h"
+#include "../Gameplay/Dificuldade.h"
 #include <string>
 #include <vector>
 

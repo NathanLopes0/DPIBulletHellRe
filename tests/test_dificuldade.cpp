@@ -7,8 +7,8 @@
 #include <set>
 #include <string>
 
-#include "../Source/Dificuldade.h"
-#include "../Source/Configuracao.h"
+#include "../Source/Gameplay/Dificuldade.h"
+#include "../Source/Data/Configuracao.h"
 
 using Dificuldade::Nivel;
 
@@ -136,7 +136,7 @@ TEST_CASE("Dificuldade: no Dificil a invencibilidade depois de um acerto e bem m
     CHECK(Dificuldade::Invencibilidade(Nivel::Dificil) >= 0.3f);
 }
 
-#include "../Source/Acerto.h"
+#include "../Source/Gameplay/Acerto.h"
 
 TEST_CASE("Acerto: o mesmo causador nao acerta de novo antes de 1,2 s, mas outro acerta") {
     Acerto::Memoria m;

@@ -4,7 +4,7 @@
 #include "../../../Attacks/FasesDeAtaqueArquivo.h"
 #include "../../../Attacks/ProjeteisDeChefeArquivo.h"
 
-#include "../../../CaminhosArquivo.h"
+#include "../../../Core/CaminhosArquivo.h"
 
 // Este arquivo so monta os componentes do chefe. As fases dele estao em
 // Assets/Attacks/fases.json sob "salles", e os tipos de projetil em

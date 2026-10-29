@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 
-#include "Math.h"
-#include "Variacao.h"
+#include "../../Core/Math.h"
+#include "../Variacao.h"
 
 /**
  * CAMADA PURA. Coberto por test_golpe.cpp.

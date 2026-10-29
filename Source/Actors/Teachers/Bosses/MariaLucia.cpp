@@ -14,7 +14,7 @@
 #include "../../../Components/RigidBodyComponent.h"
 #include "../../../Scenes/Battle/Battle.h"
 #include "../../../Movements/Escada.h"
-#include "../../../Random.h"
+#include "../../../Core/Random.h"
 #include "../../../Scenes/Battle/ProjectileManager.h"
 #include "../../Player/Player.h"
 #include "BossesProjectiles/BossProjectile.h"

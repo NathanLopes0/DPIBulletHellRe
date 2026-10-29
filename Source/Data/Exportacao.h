@@ -8,11 +8,11 @@
 #include <vector>
 
 #include "Materias.h"
-#include "Progresso.h"
+#include "../Student/Progresso.h"
 
 /**
  * CAMADA PURA: monta o texto a partir das fichas que recebe. Nao abre arquivo e
- * nao sabe onde os saves moram - quem junta tudo e Source/ExportacaoArquivo.
+ * nao sabe onde os saves moram - quem junta tudo e Source/Data/ExportacaoArquivo.
  *
  * UMA LINHA POR ALUNO-MATERIA, e nao uma por aluno com uma coluna por materia.
  * A escolha foi pensando no ranking em tela que vem depois: ordenar e filtrar

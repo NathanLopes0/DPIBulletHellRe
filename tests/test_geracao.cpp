@@ -9,7 +9,7 @@
 #include <set>
 
 #include "../Source/Attacks/Geracao.h"
-#include "../Source/Variacao.h"
+#include "../Source/Gameplay/Variacao.h"
 
 TEST_CASE("Geracao: a diferenca de rumo vai pelo menor arco") {
     CHECK(Geracao::Diferenca(10.0f, 30.0f) == doctest::Approx(20.0f));

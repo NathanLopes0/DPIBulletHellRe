@@ -6,8 +6,8 @@
 
 #include "doctest.h"
 
-#include "../Source/Nota.h"
-#include "../Source/Progresso.h"
+#include "../Source/Gameplay/Nota.h"
+#include "../Source/Student/Progresso.h"
 
 // ---------------------------------------------------------------- a curva
 

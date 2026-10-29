@@ -10,7 +10,7 @@
 #include <memory>
 #include <SDL_stdinc.h>
 
-#include "../Math.h"
+#include "../Core/Math.h"
 #include "../Components/Component.h"
 
 enum class ActorState

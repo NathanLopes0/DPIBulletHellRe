@@ -7,7 +7,7 @@
 
 #include "doctest.h"
 
-#include "../Source/Tabela.h"
+#include "../Source/Gameplay/Tabela.h"
 
 TEST_CASE("Tabela: as faixas dividem o intervalo em partes iguais") {
 

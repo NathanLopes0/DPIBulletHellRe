@@ -9,7 +9,7 @@
 #include "../Behaviors.h"
 #include "../Temperatura.h"
 #include "../AttackParameters/TokenAttackParams.h"
-#include "../../Random.h"
+#include "../../Core/Random.h"
 #include "../../Actors/Projectile.h"
 #include "../../Actors/ProjectileFactory.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"

@@ -7,7 +7,7 @@
 #include <set>
 #include <string>
 
-#include "../Source/Caminhos.h"
+#include "../Source/Core/Caminhos.h"
 
 using Caminhos::Juntar;
 using Caminhos::DiretorioPai;

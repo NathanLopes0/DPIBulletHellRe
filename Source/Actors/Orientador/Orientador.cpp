@@ -9,10 +9,10 @@
 #include <cmath>
 #include <unordered_map>
 
-#include "../../CaminhosArquivo.h"
-#include "../../Escolta.h"
-#include "../../Math.h"
-#include "../../Painel.h"
+#include "../../Core/CaminhosArquivo.h"
+#include "../../Gameplay/Orientador/Escolta.h"
+#include "../../Core/Math.h"
+#include "../../Input/Painel.h"
 #include "../../Actors/Player/Player.h"
 #include "../../Actors/Player/PlayerProjectile.h"
 #include "../../Actors/Teachers/Boss.h"

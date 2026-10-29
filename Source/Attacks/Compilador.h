@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 
-#include "../Dificuldade.h"
-#include "../Variacao.h"
+#include "../Gameplay/Dificuldade.h"
+#include "../Gameplay/Variacao.h"
 #include "Fase.h"
 
 /**

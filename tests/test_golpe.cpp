@@ -10,7 +10,7 @@
 #include <set>
 #include <string>
 
-#include "../Source/Golpe.h"
+#include "../Source/Gameplay/Orientador/Golpe.h"
 
 using namespace Golpe;
 

@@ -8,7 +8,7 @@
 #include <cmath>
 
 #include "../../Actors/Actor.h"
-#include "../../Hud.h"
+#include "../../UI/Hud.h"
 #include "Pincel.h"
 
 using namespace Pincel;

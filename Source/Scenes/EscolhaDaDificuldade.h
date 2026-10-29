@@ -9,7 +9,7 @@
 #include <string>
 
 #include "Scene.h"
-#include "../Dificuldade.h"
+#include "../Gameplay/Dificuldade.h"
 
 class Font;
 class Actor;

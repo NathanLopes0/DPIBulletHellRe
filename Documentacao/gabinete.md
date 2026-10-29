@@ -84,7 +84,7 @@ sete**, e nenhuma repetida entre as duas posições. Uma tecla repetida faria os
 dois manches moverem o mesmo aluno, que era o estado do código antes de a
 segunda posição existir: o `W A S D` era atalho das setas.
 
-As teclas moram numa tabela só, em `Source/Painel.cpp`. É ela que muda no dia
+As teclas moram numa tabela só, em `Source/Input/Painel.cpp`. É ela que muda no dia
 em que o encoder chegar e mandar outra coisa; nenhuma cena e nenhum jogador
 guarda tecla própria.
 
@@ -141,7 +141,7 @@ código — um laço que reabre.
 
 ## Onde isso está no código
 
-`Source/Gabinete.h` tem a camada pura: a leitura da linha de comando e a
+`Source/Core/Gabinete.h` tem a camada pura: a leitura da linha de comando e a
 contagem de tempo. As duas esperas do gabinete — "ninguém mexeu" e "o operador
 está segurando" — são a **mesma** classe com a condição trocada, e um limite
 zero desliga a contagem. É por isso que não há `if (arcade)` espalhado:
@@ -155,7 +155,7 @@ leva em cada tela está numa tabela só, em `ParaOndeAOciosidadeLeva`.
 **mesmo** `Gabinete::Contagem` das duas esperas — terceiro uso da classe, com a
 condição sempre verdadeira.
 
-`Source/Painel.h` tem os botões: a tecla de cada um, o nome com que cada um
+`Source/Input/Painel.h` tem os botões: a tecla de cada um, o nome com que cada um
 aparece escrito, e o montador de rodapé. Nenhuma cena escreve `SDL_SCANCODE_`
 para os botões do painel.
 

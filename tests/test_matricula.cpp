@@ -9,7 +9,7 @@
 
 #include <string>
 
-#include "../Source/Matricula.h"
+#include "../Source/Student/Matricula.h"
 
 using Matricula::Validar;
 using Matricula::Digitar;

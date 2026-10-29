@@ -8,11 +8,11 @@
 
 #include "Battle.h"
 #include "../../Game.h"
-#include "../../MateriasArquivo.h"
-#include "../../Matricula.h"
-#include "../../Nota.h"
-#include "../../Relogio.h"
-#include "../../TentativasArquivo.h"
+#include "../../Data/MateriasArquivo.h"
+#include "../../Student/Matricula.h"
+#include "../../Gameplay/Nota.h"
+#include "../../Core/Relogio.h"
+#include "../../Data/TentativasArquivo.h"
 #include "../../Actors/Orientador/Orientador.h"
 #include "../../Actors/Player/Player.h"
 

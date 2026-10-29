@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "../Math.h"
+#include "../Core/Math.h"
 
 /**
  * CAMADA PURA (mesma disciplina de Fita, Tabela e PathAim).

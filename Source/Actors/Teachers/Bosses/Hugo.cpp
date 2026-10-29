@@ -7,13 +7,13 @@
 #include <algorithm>
 #include <cmath>
 
-#include "../../../CaminhosArquivo.h"
+#include "../../../Core/CaminhosArquivo.h"
 #include "../../../Game.h"
-#include "../../../MateriasArquivo.h"
+#include "../../../Data/MateriasArquivo.h"
 #include "../../../Attacks/Flex.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
-#include "../../../Font.h"
+#include "../../../Core/Font.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../../../Components/DrawComponents/DrawTextComponent.h"

@@ -14,8 +14,8 @@
 
 #include "doctest.h"
 
-#include "../Source/Sessao.h"
-#include "../Source/Matricula.h"
+#include "../Source/Student/Sessao.h"
+#include "../Source/Student/Matricula.h"
 
 #include <string>
 #include <vector>

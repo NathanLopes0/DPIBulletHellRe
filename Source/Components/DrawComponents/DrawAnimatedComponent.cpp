@@ -5,9 +5,9 @@
 
 #include <fstream>
 #include "../../Game.h"
-#include "../../Json.h"
+#include "../../ThirdParty/Json.h"
 #include "../../Actors/Actor.h"
-#include "../../Destrutivel.h"
+#include "../../Gameplay/Destrutivel.h"
 #include "DrawAnimatedComponent.h"
 #include <stdexcept>
 #include <set>

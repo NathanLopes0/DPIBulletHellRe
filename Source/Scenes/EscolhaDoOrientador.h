@@ -12,9 +12,9 @@
 #include <SDL_pixels.h>
 
 #include "Scene.h"
-#include "../Math.h"
-#include "../Orientacao.h"
-#include "../Painel.h"
+#include "../Core/Math.h"
+#include "../Gameplay/Orientador/Orientacao.h"
+#include "../Input/Painel.h"
 
 class Actor;
 class Font;

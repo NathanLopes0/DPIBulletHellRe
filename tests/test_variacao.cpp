@@ -11,7 +11,7 @@
 #include <set>
 #include <vector>
 
-#include "../Source/Variacao.h"
+#include "../Source/Gameplay/Variacao.h"
 
 using namespace Variacao;
 

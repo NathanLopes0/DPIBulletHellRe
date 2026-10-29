@@ -9,8 +9,8 @@
 
 #include <string>
 
-#include "../Source/Materias.h"
-#include "../Source/Progresso.h"
+#include "../Source/Data/Materias.h"
+#include "../Source/Student/Progresso.h"
 
 namespace {
 

@@ -7,7 +7,7 @@
 #include <string>
 
 #include "Golpe.h"
-#include "Math.h"
+#include "../../Core/Math.h"
 
 /**
  * CAMADA PURA. Coberto por test_poder.cpp.

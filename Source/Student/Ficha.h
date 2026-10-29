@@ -7,13 +7,13 @@
 #include <string>
 #include <vector>
 
-#include "Materias.h"
+#include "../Data/Materias.h"
 #include "Personagens.h"
 #include "Progresso.h"
 
 /**
  * CAMADA PURA. Transforma ficha em texto e texto em ficha; nao abre arquivo, nao
- * sabe onde os saves moram e nao conhece SDL. Quem grava e Source/FichaArquivo.
+ * sabe onde os saves moram e nao conhece SDL. Quem grava e Source/Student/FichaArquivo.
  *
  * UM ARQUIVO POR ALUNO, e nao um arquivo com todos. Dois motivos:
  *   - um save corrompido perde UM aluno, nao a turma inteira;

@@ -3,12 +3,12 @@
 //
 
 #include "StageSelectButton.h"
-#include "../../Font.h"
+#include "../../Core/Font.h"
 #include "../../Scenes/Scene.h"
 #include "../../Components/DrawComponents/DrawTextComponent.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 
-#include "../../CaminhosArquivo.h"
+#include "../../Core/CaminhosArquivo.h"
 
 StageSelectButton::StageSelectButton(Scene* scene, const std::string& buttonText,
                                      const int subject, const std::string& fontPath,

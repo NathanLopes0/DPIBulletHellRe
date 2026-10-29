@@ -4,17 +4,17 @@
 #include "Game.h"
 #include <SDL_ttf.h>
 #include "SDL_image.h"
-#include "Random.h"
-#include "Destrutivel.h"
-#include "AudioSystem.h"
-#include "Font.h"
+#include "Core/Random.h"
+#include "Gameplay/Destrutivel.h"
+#include "Core/AudioSystem.h"
+#include "Core/Font.h"
 #include "Components/DrawComponents/DrawComponent.h"
 #include "Scenes/MainMenu.h"
-#include "FichaArquivo.h"
-#include "MateriasArquivo.h"
-#include "ExportacaoArquivo.h"
-#include "Relogio.h"
-#include "Matricula.h"
+#include "Student/FichaArquivo.h"
+#include "Data/MateriasArquivo.h"
+#include "Data/ExportacaoArquivo.h"
+#include "Core/Relogio.h"
+#include "Student/Matricula.h"
 #include "Scenes/Identificacao.h"
 #include "Scenes/Opcoes.h"
 #include "Scenes/TelaDeRanking.h"
@@ -26,8 +26,8 @@
 #include "Scenes/Battle/Battle.h"
 #include "Actors/Teachers/BossFactory/AllFactories.h"
 
-#include "CaminhosArquivo.h"
-#include "ConfiguracaoArquivo.h"
+#include "Core/CaminhosArquivo.h"
+#include "Data/ConfiguracaoArquivo.h"
 
 
 Game::Game(int windowWidth, int windowHeight, const Gabinete::Configuracao& gabinete)

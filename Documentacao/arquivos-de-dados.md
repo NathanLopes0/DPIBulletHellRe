@@ -73,7 +73,7 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 > **A coluna 0 não precisa ter uma matéria só.** A grade se monta a partir desta
 > lista; se uma coluna ficar vazia, as setas a pulam em vez de parar nela.
 
-> **Quem pode orientar** (`Source/Orientacao.h`): o professor de uma matéria em
+> **Quem pode orientar** (`Source/Gameplay/Orientador/Orientacao.h`): o professor de uma matéria em
 > que o aluno foi **aprovado** e que tem `chefe`, menos as que pedem orientação.
 > Entram os três de nota mais alta, a maior primeiro; no empate, a que vem antes
 > nesta lista; um professor aparece uma vez só. Em dupla, a nota de cada matéria

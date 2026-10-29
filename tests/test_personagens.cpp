@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include "../Source/Personagens.h"
+#include "../Source/Student/Personagens.h"
 #include "Ajudantes.h"
 
 using namespace Personagens;
