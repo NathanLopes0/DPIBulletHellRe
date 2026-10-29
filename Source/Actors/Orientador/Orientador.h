@@ -5,9 +5,9 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <optional>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 #include "../Actor.h"
@@ -19,6 +19,8 @@ class Battle;
 class Boss;
 class BossProjectile;
 class DrawLinhasComponent;
+class PlayerProjectile;
+class PoderEmCampo;
 
 /**
  * @class Orientador
@@ -44,12 +46,13 @@ class DrawLinhasComponent;
  * E O PODER TAMBEM (Poder.h): cada acerto no chefe carrega o especial dele
  * (Carregar, chamado pela batalha), o anel em volta dele mostra a carga, e o
  * aluno solta no BOTAO 3 - a capivara do Salles, o ROLLBACK do Thiago, a bala
- * de prata da Maria Lucia... Aqui mora o que a conta pura nao faz: soltar cada
- * tiro na hora, acompanhar os guiados e fazer o efeito de cada poder.
+ * de prata da Maria Lucia... Aqui mora a carga, o anel e o anuncio, que sao
+ * iguais para todos; o efeito de cada um e um PoderEmCampo (padrao Strategy).
  */
 class Orientador : public Actor {
 public:
     Orientador(Scene* scene, std::string professor, const std::string& retrato);
+    ~Orientador() override;
 
     void OnUpdate(float deltaTime) override;
     void OnProcessInput(const Uint8* keyState) override;
@@ -81,6 +84,30 @@ public:
     /// Quantas vezes o poder ja foi solto. Para quem mede a batalha.
     [[nodiscard]] int Poderes() const { return mPoderes; }
 
+    // ---- O QUE OS PODERES USAM (PoderEmCampo) ----------------------------------
+
+    [[nodiscard]] const Poder::Descricao& Descricao() const { return mPoder; }
+    /// Segundos desde que ele entrou em campo: o relogio dos poderes.
+    [[nodiscard]] float Tempo() const { return mTempo; }
+    [[nodiscard]] Vector2 PosicaoDoAluno();
+
+    /// Solta um tiro com a cara da materia; com 'quadro' >= 0, a de outra
+    /// folha (o poder) - 'folha' e 'escala' valem entao. Devolve o tiro (ja
+    /// entregue ao manager), para quem precisa marca-lo.
+    PlayerProjectile* Disparar(Battle& batalha, const Golpe::Tiro& tiro, const Vector2& de, const Vector2& direcao,
+                               const std::string& folha = "", int quadro = -1, float escala = 0.0f);
+
+    /// Uma figura do poder em campo (a capivara, um agente), onde ele esta. Quem
+    /// a pediu e quem a tira (SetState(Destroy)) quando o poder acaba.
+    Actor* Figura(const std::string& folha, const std::vector<int>& quadros, float escala);
+
+    /// Os tiros do chefe que um poder alcanca: os soltos - nada que o chefe
+    /// guarda num posto (um alvo, uma estrutura), nem enfeite, nem abrigo.
+    [[nodiscard]] std::vector<BossProjectile*> TirosSoltos(Battle& batalha) const;
+
+    /// A onda do free() e do automato: um anel que se abre do aluno.
+    void AbrirAnel() { mAnelDoPoder = 0.0f; }
+
 private:
     /// O retrato e o cartao de chefe dele (128 px), em tamanho de ajudante.
     static constexpr float kEscala = 0.45f;
@@ -97,15 +124,9 @@ private:
 
     [[nodiscard]] Battle* Batalha();
     [[nodiscard]] Vector2 PostoAgora();
-    [[nodiscard]] Vector2 PosicaoDoAluno();
 
     /// A rodada do golpe: solta os tiros cuja hora chegou.
     void Golpear(Battle& batalha, float deltaTime);
-    /// Solta um tiro com a cara da materia; com 'quadro' >= 0, a de outra
-    /// folha (o poder) - 'folha' e 'escala' valem entao. Devolve o tiro (ja
-    /// entregue ao manager), para quem precisa marca-lo.
-    class PlayerProjectile* Disparar(Battle& batalha, const Golpe::Tiro& tiro, const Vector2& de, const Vector2& direcao,
-                  const std::string& folha = "", int quadro = -1, float escala = 0.0f);
     /// Os tiros que ainda dependem dele: a espera, a curva, a volta, a onda, a
     /// divisao.
     void Guiar(Battle& batalha, float deltaTime);
@@ -141,36 +162,15 @@ private:
 
     void AtualizarPoder(Battle& batalha, float deltaTime);
     void DesenharAnel();
-    /// Os tiros do chefe que um poder alcanca: os soltos - nada que o chefe
-    /// guarda num posto (um alvo, uma estrutura), nem enfeite, nem abrigo.
-    [[nodiscard]] std::vector<BossProjectile*> TirosSoltos(Battle& batalha) const;
     void Anunciar(const std::string& texto);
-    Actor* Figura(const std::string& folha, const std::vector<int>& quadros, float escala);
 
     Poder::Descricao mPoder;
+    std::unique_ptr<PoderEmCampo> mEmCampo;   ///< o efeito do poder (nulo: sem poder)
     int mCarga = 0;
     int mPoderes = 0;
     bool mAvisouPronto = false;
     bool mBotaoAntes = false;
     float mPoderAte = -1.0f;        ///< o efeito dura ate aqui (mTempo)
-    float mInicioDoPoder = 0.0f;
-    int mRajadaFalta = 0;
-    float mProximoDaRajada = 0.0f;
-
-    /// HLT: o que congelou, e como estava.
-    struct Congelado {
-        BossProjectile* p = nullptr;
-        Vector2 posicao;
-        Vector2 velocidade;
-        float idade = 0.0f;
-        float desde = 0.0f;
-    };
-    std::vector<Congelado> mCongelados;
-    std::unordered_set<const BossProjectile*> mJaCongelados;
-
-    /// O que o poder poe em campo e tira no fim: a capivara, os agentes, o filho.
-    std::vector<Actor*> mFiguras;
-    std::uint64_t mBala = 0;        ///< a bala de prata, ate quebrar o escudo
     float mAnelDoPoder = -1.0f;     ///< o raio do anel que se abre no free() e no automato
 
     DrawLinhasComponent* mLinhas = nullptr;

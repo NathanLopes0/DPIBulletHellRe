@@ -131,6 +131,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Scenes/EscolhaDaDificuldade.cpp
         Source/Scenes/EscolhaDaDificuldade.h
         Source/Actors/Orientador/Orientador.cpp
+        Source/Actors/Orientador/PoderEmCampo.cpp
+        Source/Actors/Orientador/PoderEmCampo.h
         Source/Actors/Orientador/Orientador.h
         Source/Scenes/EscolhaDoOrientador.h
         Source/Actors/Buttons/Button.cpp
@@ -140,6 +142,11 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Components/DrawComponents/DrawAnimatedComponent.cpp
         Source/Components/DrawComponents/DrawAnimatedComponent.h
         Source/Scenes/Battle/Battle.cpp
+        Source/Scenes/Battle/OuvinteDaBatalha.h
+        Source/Scenes/Battle/RegistroDaTentativa.cpp
+        Source/Scenes/Battle/RegistroDaTentativa.h
+        Source/Scenes/Battle/ClaroesDaMoldura.cpp
+        Source/Scenes/Battle/ClaroesDaMoldura.h
         Source/Scenes/Battle/Battle.h
         Source/Actors/Teachers/BossFactory/SallesFactory.cpp
         Source/Actors/Teachers/BossFactory/SallesFactory.h

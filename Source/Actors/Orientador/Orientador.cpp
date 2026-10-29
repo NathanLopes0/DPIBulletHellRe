@@ -3,10 +3,10 @@
 //
 
 #include "Orientador.h"
+#include "PoderEmCampo.h"
 
 #include <algorithm>
 #include <cmath>
-#include <limits>
 #include <unordered_map>
 
 #include "../../CaminhosArquivo.h"
@@ -38,15 +38,6 @@ namespace {
     constexpr SDL_Color kPronto{250, 210, 80, 240};
     constexpr SDL_Color kOnda{120, 230, 255, 200};
     constexpr int kOrdemDoAnel = 95;
-
-    /// As folhas das figuras dos poderes, cada uma da batalha do professor.
-    constexpr const char* kFolhaDaCapivara = "Teachers/Projectiles/DPIBHSallesCapivarona";
-    constexpr const char* kFolhaDosAgentes = "Teachers/Projectiles/DPIBHJulioToken";
-    constexpr const char* kFolhaDaBala = "Teachers/Projectiles/DPIBHMariaLuciaRequisito";
-    constexpr int kQuadroDaBala = 44;
-
-    /// O tiro do HLT e da volta: o tiro guardado ainda e o mesmo se a idade bate.
-    constexpr float kFolgaDaIdade = 0.15f;
 }
 
 Orientador::Orientador(Scene* scene, std::string professor, const std::string& retrato)
@@ -58,12 +49,16 @@ Orientador::Orientador(Scene* scene, std::string professor, const std::string& r
     SetScale(kEscala);
     AddComponent<DrawSpriteComponent>(retrato, kOrdemDeDesenho);
     mPoder = Poder::Da(mMateria);
+    mEmCampo = PoderEmCampo::Do(mPoder.tipo);
 
     // O ANEL DO PODER e desenhado por um ator a parte, em coordenadas de tela.
     auto anel = std::make_unique<Actor>(scene);
     mLinhas = anel->AddComponent<DrawLinhasComponent>(kOrdemDoAnel);
     scene->AddActor(std::move(anel));
 }
+
+// AQUI, e nao no cabecalho: e onde PoderEmCampo esta completo.
+Orientador::~Orientador() = default;
 
 Battle* Orientador::Batalha() {
     return dynamic_cast<Battle*>(GetScene());
@@ -302,9 +297,7 @@ Actor* Orientador::Figura(const std::string& folha, const std::vector<int>& quad
     anim->AddAnimation("Anda", quadros);
     anim->SetAnimation("Anda");
     figura->SetPosition(GetPosition());
-    Actor* a = GetScene()->AddActor(std::move(figura));
-    mFiguras.push_back(a);
-    return a;
+    return GetScene()->AddActor(std::move(figura));
 }
 
 std::vector<BossProjectile*> Orientador::TirosSoltos(Battle& batalha) const {
@@ -328,251 +321,19 @@ bool Orientador::SoltarPoder() {
     mCarga = 0;
     mAvisouPronto = false;
     ++mPoderes;
-    mInicioDoPoder = mTempo;
     mPoderAte = mTempo + mPoder.duracao;
     Anunciar(mPoder.nome + "\n" + mPoder.efeito);
 
-    const Vector2 aluno = PosicaoDoAluno();
-    const Vector2 alvo = chefe->GetPosition();
-    switch (mPoder.tipo) {
-        case Poder::Tipo::Rajada:
-            // for (;;): a rajada sai pelo AtualizarPoder, um tiro por intervalo.
-            mRajadaFalta = mPoder.tiros;
-            mProximoDaRajada = mTempo;
-            break;
-
-        case Poder::Tipo::Capivara: {
-            auto* capivara = Figura(kFolhaDaCapivara, {0, 1, 2, 3}, 1.2f);
-            if (auto* anim = capivara->GetComponent<DrawAnimatedComponent>()) anim->AddAnimation("Volta", {4, 5, 6, 7});
-            capivara->SetPosition(Vector2(aluno.x, aluno.y + 10.0f));
-            break;
-        }
-
-        case Poder::Tipo::Congelar:
-            mCongelados.clear();
-            mJaCongelados.clear();
-            // O CHEFE PARA JUNTO (Boss::Congelar): sem isso ele seguia atirando
-            // parado, e o que nascia congelava em cima dele - e caia tudo de
-            // uma vez quando o clock voltava.
-            for (Boss* corpo : batalha->Corpos()) {
-                if (corpo) corpo->Congelar(mPoder.duracao);
-            }
-            break;
-
-        case Poder::Tipo::Rollback:
-            // TODO TIRO DO HUGO VOLTA por onde veio.
-            for (BossProjectile* p : TirosSoltos(*batalha)) {
-                if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(rb->GetVelocity() * -1.0f);
-            }
-            break;
-
-        case Poder::Tipo::Liberar:
-            // free(): o que esta perto do aluno some.
-            for (BossProjectile* p : TirosSoltos(*batalha)) {
-                if (Poder::NoAlcance(aluno, p->GetPosition(), mPoder.raio)) p->Kill();
-            }
-            mAnelDoPoder = 0.0f;
-            break;
-
-        case Poder::Tipo::Converter: {
-            // O AUTOMATO REJEITA o que esta perto, e cada um volta como tiro nosso.
-            const int quadroDele = Poder::QuadroDaMateria(Golpe::Materia::Vladimir);
-            for (BossProjectile* p : TirosSoltos(*batalha)) {
-                if (!Poder::NoAlcance(aluno, p->GetPosition(), mPoder.raio)) continue;
-                const Vector2 de = p->GetPosition();
-                p->Kill();
-                Golpe::Tiro t;
-                Disparar(*batalha, t, de, Golpe::Rumo(de, alvo, 0.0f), Poder::kFolhaDasMaterias, quadroDele, 1.0f);
-            }
-            mAnelDoPoder = 0.0f;
-            break;
-        }
-
-        case Poder::Tipo::Agentes:
-            // OS AGENTES voam em volta do aluno enquanto o poder dura - e o
-            // que mostra que os tiros estao cacando (AtualizarPoder).
-            for (int k = 0; k < mPoder.tiros; ++k) Figura(kFolhaDosAgentes, {8, 9, 10, 11}, 1.3f);
-            break;
-
-        case Poder::Tipo::BalaDePrata: {
-            // A BALA DE PRATA curva ate o chefe e, chegando, quebra o escudo.
-            Golpe::Tiro t;
-            t.velocidade = 650.0f;
-            t.curva = 400.0f;
-            t.curvaAte = 3.0f;
-            Disparar(*batalha, t, GetPosition(), Golpe::Rumo(GetPosition(), alvo, 0.0f),
-                     kFolhaDaBala, kQuadroDaBala, 2.2f);
-            mBala = mGuiados.empty() ? 0 : mGuiados.back().id;
-            break;
-        }
-
-        case Poder::Tipo::PromiseAll: {
-            // DOZE PROMESSAS em volta dele, pendentes, que resolvem juntas - e
-            // VOLTAM (PlayerProjectile::FazerPromessa): o valor de uma
-            // promessa e o que ela devolve. Na ida e na volta desfazem os
-            // tiros do Hugo que encostam.
-            const int quadroDele = Poder::QuadroDaMateria(Golpe::Materia::Lucas);
-            for (int k = 0; k < mPoder.tiros; ++k) {
-                const float a = 2.0f * Math::Pi * static_cast<float>(k) / static_cast<float>(mPoder.tiros);
-                Golpe::Tiro t;
-                t.dx = Math::Cos(a) * mPoder.raio;
-                t.dy = Math::Sin(a) * mPoder.raio;
-                t.espera = mPoder.duracao;
-                if (PlayerProjectile* p = Disparar(*batalha, t, GetPosition() + Vector2(t.dx, t.dy),
-                                                   Vector2(0.0f, -1.0f), Poder::kFolhaDasMaterias,
-                                                   quadroDele, 1.0f)) {
-                    p->FazerPromessa();
-                }
-            }
-            break;
-        }
-
-        case Poder::Tipo::Rede:
-            // socket(): as paredes dos lados viram rede (Battle::AbrirRede).
-            batalha->AbrirRede(mPoder.duracao);
-            break;
-
-        default:
-            break;
-    }
+    if (mEmCampo) mEmCampo->Soltar(*this, *batalha, PosicaoDoAluno(), chefe->GetPosition());
     return true;
 }
 
 void Orientador::AtualizarPoder(Battle& batalha, const float deltaTime) {
-    Boss* chefe = batalha.GetBoss();
-    const bool ativo = mTempo < mPoderAte;
-    const float t = mTempo - mInicioDoPoder;
-    const Vector2 aluno = PosicaoDoAluno();
-
-    // FIM DO EFEITO: as figuras saem, e o que congelou volta a andar.
-    if (!ativo && !mFiguras.empty()) {
-        for (Actor* f : mFiguras) if (f) f->SetState(ActorState::Destroy);
-        mFiguras.clear();
-    }
-    if (!ativo && !mCongelados.empty()) {
-        for (const Congelado& c : mCongelados) {
-            if (!c.p || c.p->GetState() != ActorState::Active) continue;
-            if (std::fabs(c.p->TempoDeVida() - (c.idade + (mTempo - c.desde))) > kFolgaDaIdade) continue;
-            if (auto* rb = c.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(c.velocidade);
-        }
-        mCongelados.clear();
-        mJaCongelados.clear();
-    }
     if (mAnelDoPoder >= 0.0f) {
         mAnelDoPoder += deltaTime * 900.0f;
         if (mAnelDoPoder > mPoder.raio) mAnelDoPoder = -1.0f;
     }
-
-    // A BALA DE PRATA: perto do chefe, o escudo quebra - uma vez.
-    if (mBala != 0 && chefe) {
-        bool achou = false;
-        if (const ProjectileManager* tiros = batalha.GetProjectileManager()) {
-            for (const auto& p : const_cast<ProjectileManager*>(tiros)->GetPlayerProjectiles()) {
-                // A BALA BARRADA PELO ESCUDO murcha (PlayerProjectile::Murchar): ja acertou.
-                if (!p || p->Id() != mBala || p->GetState() != ActorState::Active || p->Murchando()) continue;
-                achou = true;
-                if ((p->GetPosition() - chefe->GetPosition()).Length() < 90.0f) {
-                    chefe->QuebrarEscudo();
-                    mBala = 0;
-                }
-            }
-        }
-        // ACERTOU ANTES DE CHEGAR PERTO (o colisor do chefe e grande): quebra.
-        if (!achou && mBala != 0) {
-            chefe->QuebrarEscudo();
-            mBala = 0;
-        }
-    }
-
-    if (!ativo || !chefe) return;
-    const Vector2 alvo = chefe->GetPosition();
-
-    switch (mPoder.tipo) {
-        case Poder::Tipo::Rajada:
-            while (mRajadaFalta > 0 && mTempo >= mProximoDaRajada) {
-                --mRajadaFalta;
-                mProximoDaRajada += mPoder.intervalo;
-                const float varre = 10.0f * std::sin(static_cast<float>(mRajadaFalta) * 0.7f);
-                Golpe::Tiro tiro;
-                Disparar(batalha, tiro, GetPosition(), Golpe::Rumo(GetPosition(), alvo, varre));
-            }
-            break;
-
-        case Poder::Tipo::Capivara:
-            // A CAPIVARA ANDA EMBAIXO DO ALUNO e come o que encosta nela.
-            if (!mFiguras.empty() && mFiguras.front()) {
-                Actor* c = mFiguras.front();
-                const float dx = aluno.x - c->GetPosition().x;
-                const float passo = std::clamp(dx, -Poder::kRapidezDaCapivara * deltaTime,
-                                               Poder::kRapidezDaCapivara * deltaTime);
-                c->SetPosition(Vector2(c->GetPosition().x + passo, aluno.y + 10.0f));
-                if (auto* anim = c->GetComponent<DrawAnimatedComponent>()) {
-                    const char* rumo = dx < -2.0f ? "Volta" : "Anda";
-                    if (anim->GetAnimation() != rumo) anim->SetAnimation(rumo);
-                }
-                for (BossProjectile* p : TirosSoltos(batalha)) {
-                    if (Poder::NoAlcance(c->GetPosition(), p->GetPosition(), mPoder.raio)) p->Kill();
-                }
-            }
-            break;
-
-        case Poder::Tipo::Congelar:
-            // HLT: todo tiro solto para onde esta - os que nascem tambem.
-            for (BossProjectile* p : TirosSoltos(batalha)) {
-                if (mJaCongelados.insert(p).second) {
-                    auto* rb = p->GetComponent<RigidBodyComponent>();
-                    mCongelados.push_back({p, p->GetPosition(), rb ? rb->GetVelocity() : Vector2::Zero,
-                                           p->TempoDeVida(), mTempo});
-                }
-            }
-            for (const Congelado& c : mCongelados) {
-                if (!c.p || c.p->GetState() != ActorState::Active) continue;
-                if (std::fabs(c.p->TempoDeVida() - (c.idade + (mTempo - c.desde))) > kFolgaDaIdade) continue;
-                c.p->SetPosition(c.posicao);
-                if (auto* rb = c.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
-            }
-            break;
-
-        case Poder::Tipo::Agentes: {
-            // OS AGENTES voam em volta do aluno...
-            const int n = static_cast<int>(mFiguras.size());
-            for (int k = 0; k < n; ++k) {
-                if (mFiguras[static_cast<size_t>(k)]) {
-                    mFiguras[static_cast<size_t>(k)]->SetPosition(Poder::Agente(aluno, k, n, t, mPoder.raio));
-                }
-            }
-            // ...e todo tiro do aluno e do orientador CACA UM ALVO: com o Hugo
-            // blindado, o alvo do objetivo mais perto; sem alvo, o chefe. O
-            // tiro curva (Poder::Guiar), e nao teleporta.
-            const std::vector<Vector2> destrutiveis = chefe->AlvosDestrutiveis();
-            if (const ProjectileManager* tiros = batalha.GetProjectileManager()) {
-                for (const auto& p : const_cast<ProjectileManager*>(tiros)->GetPlayerProjectiles()) {
-                    if (!p || p->GetState() != ActorState::Active || p->Id() == mBala || p->Murchando()) continue;
-                    auto* rb = p->GetComponent<RigidBodyComponent>();
-                    if (!rb) continue;
-                    const Vector2 de = p->GetPosition();
-                    Vector2 caca = alvo;
-                    float perto = (alvo - de).LengthSq();
-                    if (!destrutiveis.empty()) perto = std::numeric_limits<float>::max();
-                    for (const Vector2& d : destrutiveis) {
-                        if ((d - de).LengthSq() < perto) { perto = (d - de).LengthSq(); caca = d; }
-                    }
-                    for (Boss* corpo : batalha.Corpos()) {
-                        if (!destrutiveis.empty() || !corpo) continue;
-                        if ((corpo->GetPosition() - de).LengthSq() < perto) {
-                            perto = (corpo->GetPosition() - de).LengthSq();
-                            caca = corpo->GetPosition();
-                        }
-                    }
-                    rb->SetVelocity(Poder::Guiar(rb->GetVelocity(), de, caca, Poder::kGiroDosAgentes, deltaTime));
-                }
-            }
-            break;
-        }
-
-        default:
-            break;
-    }
+    if (mEmCampo) mEmCampo->Atualizar(*this, batalha, deltaTime, mTempo < mPoderAte);
 }
 
 void Orientador::DesenharAnel() {

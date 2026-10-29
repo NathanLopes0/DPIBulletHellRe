@@ -443,6 +443,18 @@ tests/           a suíte
 A separação entre o par `X.cpp` / `XArquivo.cpp` é o que torna a suíte possível:
 a metade pura entra nos testes, a metade que toca disco e SDL fica de fora.
 
+### Padrões de projeto
+
+| Padrão | Onde | O que resolve |
+|---|---|---|
+| **Component** | `Actor` + `Components/` | um ator é a soma do que ele tem (desenho, colisor, corpo, máquina de estados), e não uma hierarquia de tipos |
+| **State** | `FSMComponent` / `FSMState` | as fases de cada professor: cada uma é um estado com a sua duração e os seus ataques |
+| **Strategy** | `IAttackStrategy`, `IMovementStrategy` | o ataque e o movimento do professor são trocáveis por fase, e vêm do JSON |
+| **Strategy** | `PoderEmCampo` | o poder do orientador do TCC: um objeto por poder, com o seu estado, criado por uma fábrica |
+| **Factory Method + Template Method** | `IBossFactory::CreateBoss` | a montagem de todo professor tem os mesmos passos; cada fábrica preenche os seus |
+| **Object Pool** | `ProjectilePool` | os projéteis são reaproveitados, e não alocados no meio da luta |
+| **Observer** | `OuvinteDaBatalha` | a batalha anuncia o que acontece; o registro da tentativa e os clarões da moldura ouvem |
+
 ## Os dados
 
 Quase tudo que define uma batalha está em JSON, não em C++: as fases de cada
