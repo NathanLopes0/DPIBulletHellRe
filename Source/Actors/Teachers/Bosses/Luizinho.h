@@ -14,10 +14,10 @@
 #include <SDL_rect.h>
 
 #include "../Boss.h"
-#include "../../../Attacks/Coercao.h"
-#include "../../../Attacks/Escopo.h"
-#include "../../../Attacks/Excecao.h"
-#include "../../../Attacks/Memoria.h"
+#include "../../../Attacks/Shared/Coercao.h"
+#include "../../../Attacks/Luizinho/Escopo.h"
+#include "../../../Attacks/Luizinho/Excecao.h"
+#include "../../../Attacks/Luizinho/Memoria.h"
 
 class BossProjectile;
 class DrawLinhasComponent;

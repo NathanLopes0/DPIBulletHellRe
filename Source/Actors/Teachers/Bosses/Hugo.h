@@ -12,9 +12,9 @@
 #include <vector>
 
 #include "../Boss.h"
-#include "../../../Attacks/Cronograma.h"
-#include "../../../Attacks/Objetivo.h"
-#include "../../../Attacks/Tcc.h"
+#include "../../../Attacks/Hugo/Cronograma.h"
+#include "../../../Attacks/Hugo/Objetivo.h"
+#include "../../../Attacks/Hugo/Tcc.h"
 
 class BossProjectile;
 class DrawLinhasComponent;

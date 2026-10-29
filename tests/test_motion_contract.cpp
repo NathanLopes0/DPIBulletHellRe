@@ -2,7 +2,7 @@
 // preservado. Simula a trajetoria na mesma ordem do motor, sem SDL.
 
 #include "doctest.h"
-#include "../Source/Attacks/PathAim.h"
+#include "../Source/Attacks/Engine/PathAim.h"
 
 #include <functional>
 

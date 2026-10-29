@@ -4,7 +4,7 @@
 
 #include "doctest.h"
 
-#include "../Source/Attacks/Ancora.h"
+#include "../Source/Attacks/Shared/Ancora.h"
 
 TEST_CASE("Ancora: a janela se aproxima do lugar dela sem passar, e chega") {
     Vector2 p(0.0f, 0.0f);

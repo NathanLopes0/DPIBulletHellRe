@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <set>
 
-#include "../Source/Attacks/Geracao.h"
+#include "../Source/Attacks/Julio/Geracao.h"
 #include "../Source/Gameplay/Variacao.h"
 
 TEST_CASE("Geracao: a diferenca de rumo vai pelo menor arco") {

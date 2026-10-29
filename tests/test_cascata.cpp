@@ -8,7 +8,7 @@
 #include <set>
 
 
-#include "../Source/Attacks/Cascata.h"
+#include "../Source/Attacks/MariaLucia/Cascata.h"
 
 TEST_CASE("Cascata: as etapas vem em ordem, uma a cada 4 s, e cabem na fase") {
     CHECK(Cascata::kDuracaoDaEtapa == doctest::Approx(4.0f));

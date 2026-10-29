@@ -15,7 +15,7 @@
 #include <utility>
 
 #include "../ProjectileFactory.h"
-#include "../../Attacks/IAttackStrategy.h"
+#include "../../Attacks/Engine/IAttackStrategy.h"
 #include "../../Attacks/AttackParameters/AttackParams.h"
 #include "Bosses/BossesProjectiles/BossProjectile.h"
 #include "../../Gameplay/Dificuldade.h"

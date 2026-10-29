@@ -5,13 +5,13 @@
 #include "doctest.h"
 
 #include <set>
-#include "../Source/Attacks/Fase.h"
+#include "../Source/Attacks/Engine/Fase.h"
 
 #include <algorithm>
 #include <random>
 #include <vector>
 
-#include "../Source/Attacks/Ordenacao.h"
+#include "../Source/Attacks/Salles/Ordenacao.h"
 
 namespace {
     /// Roda o bubble sort ate o fim e devolve os passos.

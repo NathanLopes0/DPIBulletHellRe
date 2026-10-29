@@ -1,8 +1,8 @@
 
 #include "SallesFactory.h"
 #include "../../Teachers/Bosses/Salles.h"
-#include "../../../Attacks/FasesDeAtaqueArquivo.h"
-#include "../../../Attacks/ProjeteisDeChefeArquivo.h"
+#include "../../../Attacks/Engine/FasesDeAtaqueArquivo.h"
+#include "../../../Attacks/Engine/ProjeteisDeChefeArquivo.h"
 
 #include "../../../Core/CaminhosArquivo.h"
 

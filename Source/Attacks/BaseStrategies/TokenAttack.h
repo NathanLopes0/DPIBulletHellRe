@@ -6,7 +6,7 @@
 
 #include <cstddef>
 
-#include "../IAttackStrategy.h"
+#include "../Engine/IAttackStrategy.h"
 
 /**
  * @class TokenAttack

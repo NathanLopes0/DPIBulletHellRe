@@ -4,8 +4,8 @@
 
 #include "ThiagoFactory.h"
 
-#include "../../../Attacks/FasesDeAtaqueArquivo.h"
-#include "../../../Attacks/ProjeteisDeChefeArquivo.h"
+#include "../../../Attacks/Engine/FasesDeAtaqueArquivo.h"
+#include "../../../Attacks/Engine/ProjeteisDeChefeArquivo.h"
 #include "../../../Core/CaminhosArquivo.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"

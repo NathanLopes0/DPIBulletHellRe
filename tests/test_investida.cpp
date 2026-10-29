@@ -2,7 +2,7 @@
 // re-aponta em instantes discretos. So a camada pura, sem SDL.
 
 #include "doctest.h"
-#include "../Source/Attacks/PathAim.h"
+#include "../Source/Attacks/Engine/PathAim.h"
 
 namespace {
     constexpr float DT = 1.0f / 60.0f;

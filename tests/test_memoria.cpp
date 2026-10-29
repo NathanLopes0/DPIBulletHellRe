@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <cstdint>
 
-#include "../Source/Attacks/Memoria.h"
+#include "../Source/Attacks/Luizinho/Memoria.h"
 
 using namespace Memoria;
 

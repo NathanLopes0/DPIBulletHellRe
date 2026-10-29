@@ -4,7 +4,7 @@
 
 #include "doctest.h"
 
-#include "../Source/Attacks/Alfabeto.h"
+#include "../Source/Attacks/Vladimir/Alfabeto.h"
 
 TEST_CASE("Alfabeto: a troca do intercambio e o homomorfismo h(a) = b, h(b) = a") {
     CHECK(Alfabeto::Trocar(Alfabeto::kA) == Alfabeto::kB);

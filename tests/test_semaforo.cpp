@@ -8,7 +8,7 @@
 #include <cmath>
 #include <set>
 
-#include "../Source/Attacks/Semaforo.h"
+#include "../Source/Attacks/Vitor/Semaforo.h"
 
 using namespace Semaforo;
 

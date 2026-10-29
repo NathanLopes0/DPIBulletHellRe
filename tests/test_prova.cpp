@@ -14,11 +14,11 @@
 #include <cmath>
 #include <set>
 
-#include "../Source/Attacks/Condicional.h"
-#include "../Source/Attacks/Fase.h"
-#include "../Source/Attacks/Funcao.h"
-#include "../Source/Attacks/Laco.h"
-#include "../Source/Attacks/Prova.h"
+#include "../Source/Attacks/Andre/Condicional.h"
+#include "../Source/Attacks/Engine/Fase.h"
+#include "../Source/Attacks/Andre/Funcao.h"
+#include "../Source/Attacks/Andre/Laco.h"
+#include "../Source/Attacks/Andre/Prova.h"
 
 using namespace Prova;
 

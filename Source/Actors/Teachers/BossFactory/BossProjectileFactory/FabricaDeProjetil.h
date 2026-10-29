@@ -9,7 +9,7 @@
 #include "../../../ProjectileFactory.h"
 #include "../../../ProjectilePool.h"
 #include "../../Bosses/BossesProjectiles/ProjetilDeChefe.h"
-#include "../../../../Attacks/ProjeteisDeChefe.h"
+#include "../../../../Attacks/Engine/ProjeteisDeChefe.h"
 
 /**
  * @class FabricaDeProjetil

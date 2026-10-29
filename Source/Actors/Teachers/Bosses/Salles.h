@@ -11,11 +11,11 @@
 #include <vector>
 
 #include "../Boss.h"
-#include "../../../Attacks/Capivara.h"
-#include "../../../Attacks/Pilha.h"
-#include "../../../Attacks/Hash.h"
-#include "../../../Attacks/Arvore.h"
-#include "../../../Attacks/Ordenacao.h"
+#include "../../../Attacks/Salles/Capivara.h"
+#include "../../../Attacks/Salles/Pilha.h"
+#include "../../../Attacks/Salles/Hash.h"
+#include "../../../Attacks/Salles/Arvore.h"
+#include "../../../Attacks/Salles/Ordenacao.h"
 
 /**
  * @class Salles

@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <set>
 
-#include "../Source/Attacks/Transacao.h"
+#include "../Source/Attacks/Thiago/Transacao.h"
 
 TEST_CASE("Transacao: o dono de uma linha e quem a trava") {
     const Transacao::Txs txs = {{1, {0, 2}, -1}, {2, {3}, -1}};

@@ -12,7 +12,7 @@
 #include "../../../Attacks/AttackParameters/PalavraAttackParams.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/RigidBodyComponent.h"
-#include "../../../Attacks/Ancora.h"
+#include "../../../Attacks/Shared/Ancora.h"
 #include "../../../Actors/Player/Player.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Scenes/Battle/Battle.h"

@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <limits>
 
-#include "../../../Attacks/Ancora.h"
+#include "../../../Attacks/Shared/Ancora.h"
 #include "../../../Attacks/AttackParameters/ConsultaAttackParams.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"

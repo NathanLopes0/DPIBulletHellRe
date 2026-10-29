@@ -5,13 +5,13 @@
 #include "doctest.h"
 
 #include <set>
-#include "../Source/Attacks/Fase.h"
+#include "../Source/Attacks/Engine/Fase.h"
 
 #include <algorithm>
 #include <random>
 #include <vector>
 
-#include "../Source/Attacks/Hash.h"
+#include "../Source/Attacks/Salles/Hash.h"
 
 TEST_CASE("Hash: h(k) = k mod m, e o placar o escreve por extenso") {
     CHECK(Hash::Balde(23, 7) == 2);

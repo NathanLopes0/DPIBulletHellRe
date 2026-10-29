@@ -7,7 +7,7 @@
 
 #include <SDL_log.h>
 
-#include "../Attacks/Behaviors.h"
+#include "../Attacks/Engine/Behaviors.h"
 #include "../Components/RigidBodyComponent.h"
 #include "../Components/DrawComponents/DrawComponent.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"

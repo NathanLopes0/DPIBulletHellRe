@@ -14,7 +14,7 @@
 #include <cmath>
 #include <set>
 
-#include "../Source/Attacks/Condicional.h"
+#include "../Source/Attacks/Andre/Condicional.h"
 
 using namespace Condicional;
 

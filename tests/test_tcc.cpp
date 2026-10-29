@@ -11,7 +11,7 @@
 #include <set>
 #include <string>
 
-#include "../Source/Attacks/Tcc.h"
+#include "../Source/Attacks/Hugo/Tcc.h"
 
 using namespace Tcc;
 using Dificuldade::Nivel;

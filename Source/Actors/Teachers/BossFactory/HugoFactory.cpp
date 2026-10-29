@@ -6,8 +6,8 @@
 
 #include <SDL_log.h>
 
-#include "../../../Attacks/FasesDeAtaqueArquivo.h"
-#include "../../../Attacks/ProjeteisDeChefeArquivo.h"
+#include "../../../Attacks/Engine/FasesDeAtaqueArquivo.h"
+#include "../../../Attacks/Engine/ProjeteisDeChefeArquivo.h"
 #include "../../../Core/CaminhosArquivo.h"
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"

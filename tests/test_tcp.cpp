@@ -10,8 +10,8 @@
 #include <set>
 #include <vector>
 
-#include "../Source/Attacks/Tcp.h"
-#include "../Source/Attacks/Fase.h"
+#include "../Source/Attacks/Vitor/Tcp.h"
+#include "../Source/Attacks/Engine/Fase.h"
 
 using namespace Tcp;
 

@@ -12,8 +12,8 @@
 #include <SDL_rect.h>
 
 #include "../Boss.h"
-#include "../../../Attacks/Banco.h"
-#include "../../../Attacks/Transacao.h"
+#include "../../../Attacks/Thiago/Banco.h"
+#include "../../../Attacks/Thiago/Transacao.h"
 
 class BossProjectile;
 

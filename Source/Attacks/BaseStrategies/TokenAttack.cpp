@@ -6,8 +6,8 @@
 
 #include <SDL_log.h>
 
-#include "../Behaviors.h"
-#include "../Temperatura.h"
+#include "../Engine/Behaviors.h"
+#include "../Shared/Temperatura.h"
 #include "../AttackParameters/TokenAttackParams.h"
 #include "../../Core/Random.h"
 #include "../../Actors/Projectile.h"

@@ -8,7 +8,7 @@
 #include <set>
 #include <string>
 
-#include "../Source/Attacks/Pagina.h"
+#include "../Source/Attacks/Lucas/Pagina.h"
 
 using namespace Pagina;
 

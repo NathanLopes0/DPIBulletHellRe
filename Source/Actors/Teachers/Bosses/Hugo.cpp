@@ -10,7 +10,7 @@
 #include "../../../Core/CaminhosArquivo.h"
 #include "../../../Game.h"
 #include "../../../Data/MateriasArquivo.h"
-#include "../../../Attacks/Flex.h"
+#include "../../../Attacks/Shared/Flex.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../../Core/Font.h"

@@ -8,9 +8,9 @@
 #include <unordered_map>
 
 #include "../Boss.h"
-#include "../../../Attacks/Geracao.h"
-#include "../../../Attacks/ReAct.h"
-#include "../../../Attacks/Temperatura.h"
+#include "../../../Attacks/Julio/Geracao.h"
+#include "../../../Attacks/Julio/ReAct.h"
+#include "../../../Attacks/Shared/Temperatura.h"
 
 /**
  * @class Julio

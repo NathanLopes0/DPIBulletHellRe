@@ -4,7 +4,7 @@
 
 #include "doctest.h"
 
-#include "../Source/Attacks/Caixa.h"
+#include "../Source/Attacks/Shared/Caixa.h"
 
 #include <cmath>
 #include <vector>

@@ -7,7 +7,7 @@
 #include <cmath>
 #include <vector>
 
-#include "../Source/Attacks/Amarra.h"
+#include "../Source/Attacks/Shared/Amarra.h"
 
 namespace {
 

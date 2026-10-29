@@ -9,7 +9,7 @@
 
 #include <string>
 
-#include "../Source/Attacks/ProjeteisDeChefe.h"
+#include "../Source/Attacks/Engine/ProjeteisDeChefe.h"
 
 // Uma entrada minima e valida, para os casos mexerem em uma coisa de cada vez.
 static const char* kValido = R"({

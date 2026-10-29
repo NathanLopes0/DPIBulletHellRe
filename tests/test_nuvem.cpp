@@ -4,7 +4,7 @@
 
 #include "doctest.h"
 
-#include "../Source/Attacks/Nuvem.h"
+#include "../Source/Attacks/Vitor/Nuvem.h"
 
 TEST_CASE("Nuvem: processa, chove no fim do processamento, descansa e volta") {
     Nuvem::Ciclo c;   // 2,4 + 0,8

@@ -9,7 +9,7 @@
 #include <set>
 #include <string>
 
-#include "../Source/Attacks/Cronograma.h"
+#include "../Source/Attacks/Hugo/Cronograma.h"
 
 using namespace Cronograma;
 

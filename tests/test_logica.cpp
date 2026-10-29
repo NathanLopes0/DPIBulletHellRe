@@ -8,9 +8,9 @@
 #include <cstdint>
 #include <set>
 #include <vector>
-#include "../Source/Attacks/Fase.h"
+#include "../Source/Attacks/Engine/Fase.h"
 
-#include "../Source/Attacks/Logica.h"
+#include "../Source/Attacks/Shared/Logica.h"
 
 using Logica::Operacao;
 

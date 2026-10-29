@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <cstdlib>
 
-#include "../Source/Attacks/ReAct.h"
+#include "../Source/Attacks/Julio/ReAct.h"
 
 TEST_CASE("ReAct: o ciclo passa por pensa, age e observa, e volta") {
     ReAct::Ciclo c;   // 1,0 + 0,5 + 0,6

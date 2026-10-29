@@ -8,10 +8,10 @@
 #include <limits>
 
 #include "../../../Core/Random.h"
-#include "../../../Attacks/Alfabeto.h"
-#include "../../../Attacks/Ancora.h"
-#include "../../../Attacks/Behaviors.h"
-#include "../../../Attacks/Fita.h"
+#include "../../../Attacks/Vladimir/Alfabeto.h"
+#include "../../../Attacks/Shared/Ancora.h"
+#include "../../../Attacks/Engine/Behaviors.h"
+#include "../../../Attacks/Vladimir/Fita.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Components/DrawComponents/DrawLinhasComponent.h"

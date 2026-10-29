@@ -8,9 +8,9 @@
 #include <cstdint>
 #include <set>
 #include <vector>
-#include "../Source/Attacks/Fase.h"
+#include "../Source/Attacks/Engine/Fase.h"
 
-#include "../Source/Attacks/Blink.h"
+#include "../Source/Attacks/Ricardo/Blink.h"
 
 TEST_CASE("Blink: o placar e o sketch - le o delay em milissegundos") {
     CHECK(*Blink::LerDelay("delay(1000);") == doctest::Approx(1.0f));

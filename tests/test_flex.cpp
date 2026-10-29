@@ -4,7 +4,7 @@
 
 #include "doctest.h"
 
-#include "../Source/Attacks/Flex.h"
+#include "../Source/Attacks/Shared/Flex.h"
 
 #include <algorithm>
 #include <cmath>

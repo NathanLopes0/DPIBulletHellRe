@@ -6,7 +6,7 @@
 #include <SDL_log.h>
 #include "../AttackParameters/AttackParams.h"
 #include "../../Actors/Projectile.h"  // Para insertBehavior
-#include "../Behaviors.h"     // Para pegar o ActivateBehavior
+#include "../Engine/Behaviors.h"     // Para pegar o ActivateBehavior
 #include "../../Actors/ProjectileFactory.h"
 #include <memory>
 

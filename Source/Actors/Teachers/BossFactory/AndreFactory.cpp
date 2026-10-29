@@ -6,8 +6,8 @@
 
 
 #include "../../Teachers/Bosses/Andre.h"
-#include "../../../Attacks/FasesDeAtaqueArquivo.h"
-#include "../../../Attacks/ProjeteisDeChefeArquivo.h"
+#include "../../../Attacks/Engine/FasesDeAtaqueArquivo.h"
+#include "../../../Attacks/Engine/ProjeteisDeChefeArquivo.h"
 
 #include "../../../Core/CaminhosArquivo.h"
 

@@ -15,7 +15,7 @@
 #include "../../Movements/MovementStrategies.h"
 #include "../../Components/RigidBodyComponent.h"
 #include "../../Components/AIComponents/FSMComponent.h"
-#include "../../Attacks/FasesDeAtaque.h"
+#include "../../Attacks/Engine/FasesDeAtaque.h"
 #include "../../Attacks/AttackParameters/PontosAttackParams.h"
 #include "SDL_log.h"
 #include "../Player/PlayerProjectile.h"

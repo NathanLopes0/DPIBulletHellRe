@@ -10,7 +10,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "../Source/Attacks/Coercao.h"
+#include "../Source/Attacks/Shared/Coercao.h"
 
 using namespace Coercao;
 

@@ -4,8 +4,8 @@
 
 #include "MovementStrategies.h"
 #include "Escada.h"
-#include "../Attacks/Logica.h"
-#include "../Attacks/Relogio.h"
+#include "../Attacks/Shared/Logica.h"
+#include "../Attacks/Shared/Relogio.h"
 #include "../Components/AIComponents/FSMComponent.h"
 #include "../Scenes/Battle/Battle.h"
 #include "../Actors/Player/Player.h"

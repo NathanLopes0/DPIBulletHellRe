@@ -9,10 +9,10 @@
 #include <vector>
 
 #include "../Boss.h"
-#include "../../../Attacks/BalaDePrata.h"
-#include "../../../Attacks/Cascata.h"
-#include "../../../Attacks/Observer.h"
-#include "../../../Attacks/Sprint.h"
+#include "../../../Attacks/MariaLucia/BalaDePrata.h"
+#include "../../../Attacks/MariaLucia/Cascata.h"
+#include "../../../Attacks/MariaLucia/Observer.h"
+#include "../../../Attacks/Shared/Sprint.h"
 
 class DrawLinhasComponent;
 

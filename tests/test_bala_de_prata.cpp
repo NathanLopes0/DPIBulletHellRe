@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <set>
 
-#include "../Source/Attacks/BalaDePrata.h"
+#include "../Source/Attacks/MariaLucia/BalaDePrata.h"
 
 TEST_CASE("BalaDePrata: cada luta embaralha as promessas, todas, sem repetir") {
     const size_t n = BalaDePrata::Promessas().size();

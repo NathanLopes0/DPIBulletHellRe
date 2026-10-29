@@ -2,7 +2,7 @@
 // cada regra se aplica. Camada pura: sem arquivo, sem log, sem SDL.
 
 #include "doctest.h"
-#include "../Source/Attacks/RegrasDeAtaque.h"
+#include "../Source/Attacks/Engine/RegrasDeAtaque.h"
 
 TEST_CASE("Regras: le uma regra por indice com uma Motion") {
     const auto r = LerRegras(R"({

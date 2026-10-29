@@ -440,6 +440,14 @@ Source/          o jogo
                    ponte: é só nele que se lê arquivo e se fala com SDL.
   Actors/          jogador, professores, orientador, projéteis
   Attacks/         as estratégias de ataque e os comportamentos de projétil
+    Engine/          o motor: a interface IAttackStrategy, as fases, as
+                     regras, as trajetórias e o catálogo de projéteis
+    BaseStrategies/  os padrões genéricos (balão, laser, onda, círculo...)
+    AttackParameters/ os parâmetros de cada padrão
+    Shared/          o que mais de um professor usa
+    <Professor>/     os ataques de cada chefe, uma pasta por professor:
+                     Andre, Hugo, Julio, Lucas, Luizinho, MariaLucia,
+                     Ricardo, Salles, Thiago, Vitor e Vladimir
   Scenes/          menu, identificação, criação de personagem, seleção, batalha
   Components/      desenho, colisão, física, máquina de estados
 Assets/          sprites, fontes, sons e os JSON que descrevem o jogo

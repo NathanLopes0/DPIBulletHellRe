@@ -5,7 +5,7 @@
 
 #include <stdexcept>
 #include <string>
-#include "../Source/Attacks/FasesDeAtaque.h"
+#include "../Source/Attacks/Engine/FasesDeAtaque.h"
 #include "../Source/Gameplay/Tabela.h"
 
 // Um conjunto minimo que FECHA, para servir de base aos casos que mexem em uma

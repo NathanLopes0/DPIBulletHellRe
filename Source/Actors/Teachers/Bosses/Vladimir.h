@@ -11,10 +11,10 @@
 #include <vector>
 
 #include "../Boss.h"
-#include "../../../Attacks/Automato.h"
-#include "../../../Attacks/Fita.h"
-#include "../../../Attacks/Compilador.h"
-#include "../../../Attacks/Parada.h"
+#include "../../../Attacks/Vladimir/Automato.h"
+#include "../../../Attacks/Vladimir/Fita.h"
+#include "../../../Attacks/Vladimir/Compilador.h"
+#include "../../../Attacks/Vladimir/Parada.h"
 
 class DrawLinhasComponent;
 

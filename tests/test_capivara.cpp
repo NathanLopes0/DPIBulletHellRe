@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-#include "../Source/Attacks/Capivara.h"
+#include "../Source/Attacks/Salles/Capivara.h"
 
 TEST_CASE("Capivara: ela vem em mais ou menos seis de cada dez fases, entre kDe e kAte segundos, dos dois lados") {
     int vieram = 0, daEsquerda = 0;

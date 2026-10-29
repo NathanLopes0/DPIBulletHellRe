@@ -13,8 +13,8 @@
 #include "../../Player/Player.h"
 #include "BossesProjectiles/BossProjectile.h"
 #include "PainelDeCodigo.h"
-#include "../../../Attacks/Coercao.h"
-#include "../../../Attacks/Behaviors.h"
+#include "../../../Attacks/Shared/Coercao.h"
+#include "../../../Attacks/Engine/Behaviors.h"
 #include "../../../Components/RigidBodyComponent.h"
 #include "../../../Core/Random.h"
 

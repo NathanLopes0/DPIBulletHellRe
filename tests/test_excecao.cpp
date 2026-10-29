@@ -10,7 +10,7 @@
 #include <set>
 #include <vector>
 
-#include "../Source/Attacks/Excecao.h"
+#include "../Source/Attacks/Luizinho/Excecao.h"
 
 using namespace Excecao;
 

@@ -4,7 +4,7 @@
 
 #include "doctest.h"
 
-#include "../Source/Attacks/Fita.h"
+#include "../Source/Attacks/Vladimir/Fita.h"
 
 #include <algorithm>
 #include <cstdint>

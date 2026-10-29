@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "../IAttackStrategy.h"
+#include "../Engine/IAttackStrategy.h"
 
 /**
  * @class CaixaAttack

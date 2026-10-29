@@ -9,7 +9,7 @@
 
 #include "../../../Game.h"
 #include "../../../Core/Random.h"
-#include "../../../Attacks/Ancora.h"
+#include "../../../Attacks/Shared/Ancora.h"
 #include "../../../Actors/Player/Player.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"

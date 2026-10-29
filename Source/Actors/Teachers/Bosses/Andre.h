@@ -12,10 +12,10 @@
 #include <SDL_rect.h>
 
 #include "../Boss.h"
-#include "../../../Attacks/Condicional.h"
-#include "../../../Attacks/Funcao.h"
-#include "../../../Attacks/Laco.h"
-#include "../../../Attacks/Prova.h"
+#include "../../../Attacks/Andre/Condicional.h"
+#include "../../../Attacks/Andre/Funcao.h"
+#include "../../../Attacks/Andre/Laco.h"
+#include "../../../Attacks/Andre/Prova.h"
 
 class BossProjectile;
 class DrawLinhasComponent;

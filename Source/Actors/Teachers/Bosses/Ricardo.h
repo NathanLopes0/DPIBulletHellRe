@@ -10,10 +10,10 @@
 #include <vector>
 
 #include "../Boss.h"
-#include "../../../Attacks/Logica.h"
-#include "../../../Attacks/Relogio.h"
-#include "../../../Attacks/Pipeline.h"
-#include "../../../Attacks/Blink.h"
+#include "../../../Attacks/Shared/Logica.h"
+#include "../../../Attacks/Shared/Relogio.h"
+#include "../../../Attacks/Ricardo/Pipeline.h"
+#include "../../../Attacks/Ricardo/Blink.h"
 
 /**
  * @class Ricardo

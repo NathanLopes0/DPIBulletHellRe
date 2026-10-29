@@ -13,11 +13,11 @@
 #include <SDL_rect.h>
 
 #include "../Boss.h"
-#include "../../../Attacks/Nuvem.h"
-#include "../../../Attacks/Semaforo.h"
-#include "../../../Attacks/Tcp.h"
-#include "../../../Attacks/Filosofos.h"
-#include "../../../Attacks/Mensagens.h"
+#include "../../../Attacks/Vitor/Nuvem.h"
+#include "../../../Attacks/Vitor/Semaforo.h"
+#include "../../../Attacks/Vitor/Tcp.h"
+#include "../../../Attacks/Vitor/Filosofos.h"
+#include "../../../Attacks/Vitor/Mensagens.h"
 
 class BossProjectile;
 class DrawLinhasComponent;

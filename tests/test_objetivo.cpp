@@ -9,8 +9,8 @@
 #include <set>
 #include <string>
 
-#include "../Source/Attacks/Objetivo.h"
-#include "../Source/Attacks/Tcc.h"
+#include "../Source/Attacks/Hugo/Objetivo.h"
+#include "../Source/Attacks/Hugo/Tcc.h"
 
 using namespace Objetivo;
 

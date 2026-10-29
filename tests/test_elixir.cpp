@@ -7,7 +7,7 @@
 #include <cstdint>
 #include <set>
 
-#include "../Source/Attacks/Elixir.h"
+#include "../Source/Attacks/Lucas/Elixir.h"
 
 using namespace Elixir;
 

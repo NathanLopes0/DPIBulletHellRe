@@ -6,7 +6,7 @@
 
 #include <cmath>
 
-#include "../Source/Attacks/PathAim.h"
+#include "../Source/Attacks/Engine/PathAim.h"
 
 namespace {
     /// Angulo do referencial, em graus, para assercoes legiveis.

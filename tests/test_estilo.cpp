@@ -7,7 +7,7 @@
 #include <cmath>
 #include <set>
 
-#include "../Source/Attacks/Estilo.h"
+#include "../Source/Attacks/Lucas/Estilo.h"
 
 using namespace Estilo;
 

@@ -8,9 +8,9 @@
 #include <cstdint>
 #include <set>
 #include <vector>
-#include "../Source/Attacks/Fase.h"
+#include "../Source/Attacks/Engine/Fase.h"
 
-#include "../Source/Attacks/Relogio.h"
+#include "../Source/Attacks/Shared/Relogio.h"
 
 TEST_CASE("Relogio: o placar e o clock - le o numero antes de Hz") {
     CHECK(*Relogio::LerFrequencia("clock 1 Hz") == doctest::Approx(1.0f));

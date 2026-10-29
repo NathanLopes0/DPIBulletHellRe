@@ -7,7 +7,7 @@
 
 #include <SDL_log.h>
 
-#include "../Caixa.h"
+#include "../Shared/Caixa.h"
 #include "../AttackParameters/CaixaAttackParams.h"
 #include "../../Actors/Projectile.h"
 #include "../../Actors/ProjectileFactory.h"

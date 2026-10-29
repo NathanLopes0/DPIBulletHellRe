@@ -6,7 +6,7 @@
 
 #include <SDL_log.h>
 
-#include "../Logica.h"
+#include "../Shared/Logica.h"
 #include "../AttackParameters/PalavraAttackParams.h"
 #include "../../Game.h"
 #include "../../Actors/Projectile.h"

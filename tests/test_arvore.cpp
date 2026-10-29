@@ -6,12 +6,12 @@
 
 #include <algorithm>
 #include <set>
-#include "../Source/Attacks/Fase.h"
+#include "../Source/Attacks/Engine/Fase.h"
 
 #include <random>
 #include <vector>
 
-#include "../Source/Attacks/Arvore.h"
+#include "../Source/Attacks/Salles/Arvore.h"
 
 namespace {
     /// Insere como o Salles insere: pelo caminho, no lugar vazio do fim, se couber.

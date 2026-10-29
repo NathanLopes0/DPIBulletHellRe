@@ -12,7 +12,7 @@
 #include <vector>
 
 
-#include "../Source/Attacks/Sprint.h"
+#include "../Source/Attacks/Shared/Sprint.h"
 
 namespace {
     float Dist(const Vector2 a, const Vector2 b) { return (a - b).Length(); }

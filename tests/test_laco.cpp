@@ -13,8 +13,8 @@
 #include <algorithm>
 #include <set>
 
-#include "../Source/Attacks/Fase.h"
-#include "../Source/Attacks/Laco.h"
+#include "../Source/Attacks/Engine/Fase.h"
+#include "../Source/Attacks/Andre/Laco.h"
 
 using namespace Laco;
 

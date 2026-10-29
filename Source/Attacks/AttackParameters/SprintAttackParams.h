@@ -7,7 +7,7 @@
 #include <string>
 
 #include "AttackParams.h"
-#include "../Sprint.h"
+#include "../Shared/Sprint.h"
 
 /**
  * @brief Uma sprint: quando e a revisao, e as caras da historia e do cursor.

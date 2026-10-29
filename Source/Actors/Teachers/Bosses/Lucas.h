@@ -10,11 +10,11 @@
 #include <vector>
 
 #include "../Boss.h"
-#include "../../../Attacks/Pagina.h"
-#include "../../../Attacks/Elixir.h"
-#include "../../../Attacks/Estilo.h"
-#include "../../../Attacks/EventLoop.h"
-#include "../../../Attacks/Flex.h"
+#include "../../../Attacks/Lucas/Pagina.h"
+#include "../../../Attacks/Lucas/Elixir.h"
+#include "../../../Attacks/Lucas/Estilo.h"
+#include "../../../Attacks/Lucas/EventLoop.h"
+#include "../../../Attacks/Shared/Flex.h"
 
 class BossProjectile;
 class DrawLinhasComponent;

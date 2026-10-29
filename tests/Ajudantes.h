@@ -9,7 +9,7 @@
 
 #include "../Source/Student/Personagens.h"
 #include "../Source/Student/Progresso.h"
-#include "../Source/Attacks/Compilador.h"
+#include "../Source/Attacks/Vladimir/Compilador.h"
 
 /**
  * O JOGO NAO PRECISA DESTES, e por isso eles nao moram em Source/. Cada um e

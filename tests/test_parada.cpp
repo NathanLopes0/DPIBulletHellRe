@@ -9,8 +9,8 @@
 #include <cstdint>
 #include <vector>
 
-#include "../Source/Attacks/Parada.h"
-#include "../Source/Attacks/Fase.h"
+#include "../Source/Attacks/Vladimir/Parada.h"
+#include "../Source/Attacks/Engine/Fase.h"
 
 namespace {
     /// Quantos passos ate parar, contando no maximo 'limite'.

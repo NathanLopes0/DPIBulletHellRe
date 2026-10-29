@@ -113,7 +113,7 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 
 | Campo | |
 |---|---|
-| `duracao` | segundos. **Toda fase dura 20** (`Fase::kDuracao`, em `Source/Attacks/Fase.h`), e um teste confere — há módulos que cortam a fase em pedaços contando com isso |
+| `duracao` | segundos. **Toda fase dura 20** (`Fase::kDuracao`, em `Source/Attacks/Engine/Fase.h`), e um teste confere — há módulos que cortam a fase em pedaços contando com isso |
 | `proximo` | a próxima fase. **Vazio significa "a batalha é decidida aqui"**, não "fim do arquivo". |
 | `anuncio` | opcional. O texto do **placar**, o quadro no canto de cima, enquanto a fase dura. Sem ele o placar fica apagado |
 | `intercambio` | opcional. `{ "aCada": 8, "aviso": 1.5 }`: os alunos **trocam de lugar** a cada `aCada` segundos da fase, com aviso `aviso` segundos antes |

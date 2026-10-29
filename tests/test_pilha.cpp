@@ -5,13 +5,13 @@
 #include "doctest.h"
 
 #include <algorithm>
-#include "../Source/Attacks/Fase.h"
+#include "../Source/Attacks/Engine/Fase.h"
 
 #include <random>
 #include <set>
 #include <vector>
 
-#include "../Source/Attacks/Pilha.h"
+#include "../Source/Attacks/Salles/Pilha.h"
 
 TEST_CASE("Pilha: vazia so empilha, cheia derruba, e no meio ha os dois") {
     for (std::uint32_t s = 0; s < 2000; s += 13) {

@@ -8,7 +8,7 @@
   // (Source/Gameplay/Orientador/Golpe.h).
   //
   // O TCC E NA AREA DO ORIENTADOR, e por isso cada luta e um pouco outra
-  // (Source/Attacks/Tcc.h): no desenvolvimento, o Hugo atira a materia DELE -
+  // (Source/Attacks/Hugo/Tcc.h): no desenvolvimento, o Hugo atira a materia DELE -
   // a pilha do Salles, o barramento do Ricardo, o fetch do Lucas -, e a banca
   // da defesa sao dois OUTROS professores, cada um perguntando com a sua.
   //

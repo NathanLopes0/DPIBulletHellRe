@@ -10,7 +10,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "../Source/Attacks/Escopo.h"
+#include "../Source/Attacks/Luizinho/Escopo.h"
 
 using namespace Escopo;
 

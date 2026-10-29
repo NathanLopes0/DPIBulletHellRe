@@ -12,8 +12,8 @@
 
 #include <set>
 
-#include "../Source/Attacks/Funcao.h"
-#include "../Source/Attacks/Laco.h"
+#include "../Source/Attacks/Andre/Funcao.h"
+#include "../Source/Attacks/Andre/Laco.h"
 
 using namespace Funcao;
 

@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-#include "../../../Attacks/Ancora.h"
+#include "../../../Attacks/Shared/Ancora.h"
 #include "../../../Attacks/AttackParameters/SprintAttackParams.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"

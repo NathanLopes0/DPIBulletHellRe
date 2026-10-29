@@ -8,7 +8,7 @@
 #include <cstdlib>
 #include <set>
 
-#include "../Source/Attacks/Banco.h"
+#include "../Source/Attacks/Thiago/Banco.h"
 #include "../Source/Gameplay/Variacao.h"
 #include "../Source/Gameplay/Dificuldade.h"
 

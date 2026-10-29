@@ -8,7 +8,7 @@
 #include <map>
 #include <set>
 
-#include "../Source/Attacks/EventLoop.h"
+#include "../Source/Attacks/Lucas/EventLoop.h"
 
 using namespace EventLoop;
 

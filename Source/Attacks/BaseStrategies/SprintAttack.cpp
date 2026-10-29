@@ -6,8 +6,8 @@
 
 #include <SDL_log.h>
 
-#include "../Behaviors.h"
-#include "../Sprint.h"
+#include "../Engine/Behaviors.h"
+#include "../Shared/Sprint.h"
 #include "../AttackParameters/SprintAttackParams.h"
 #include "../../Actors/Projectile.h"
 #include "../../Actors/ProjectileFactory.h"

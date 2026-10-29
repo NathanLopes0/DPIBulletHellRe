@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "../../../Attacks/Ancora.h"
+#include "../../../Attacks/Shared/Ancora.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Components/DrawComponents/DrawLinhasComponent.h"

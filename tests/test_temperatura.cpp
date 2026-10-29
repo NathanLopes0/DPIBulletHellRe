@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <set>
 
-#include "../Source/Attacks/Temperatura.h"
+#include "../Source/Attacks/Shared/Temperatura.h"
 
 TEST_CASE("Temperatura: as probabilidades somam um, e o mais provavel e o de maior logit") {
     const std::vector<float> logits = {0.0f, -1.0f, -2.0f};

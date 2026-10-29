@@ -2,7 +2,7 @@
 // Camada pura: nao abre arquivo, nao escreve log, nao sobe SDL.
 
 #include "doctest.h"
-#include "../Source/Attacks/PathShapes.h"
+#include "../Source/Attacks/Engine/PathShapes.h"
 
 using PathShapes::LerFormas;
 

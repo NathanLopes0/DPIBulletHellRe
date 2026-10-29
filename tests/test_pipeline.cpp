@@ -8,9 +8,9 @@
 #include <cstdint>
 #include <set>
 #include <vector>
-#include "../Source/Attacks/Fase.h"
+#include "../Source/Attacks/Engine/Fase.h"
 
-#include "../Source/Attacks/Pipeline.h"
+#include "../Source/Attacks/Ricardo/Pipeline.h"
 
 using Pipeline::Tipo;
 

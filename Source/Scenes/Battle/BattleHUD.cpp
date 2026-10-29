@@ -5,7 +5,7 @@
 #include "BattleHUD.h"
 
 #include "Battle.h"
-#include "../../Attacks/Fase.h"
+#include "../../Attacks/Engine/Fase.h"
 #include "../Scene.h"
 #include "../../Actors/Actor.h"
 #include "../../Actors/Player/Player.h"

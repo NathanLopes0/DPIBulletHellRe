@@ -4,11 +4,11 @@
 
 #include "JulioFactory.h"
 
-#include "../../../Attacks/FasesDeAtaqueArquivo.h"
+#include "../../../Attacks/Engine/FasesDeAtaqueArquivo.h"
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Bosses/Julio.h"
-#include "../../../Attacks/ProjeteisDeChefeArquivo.h"
+#include "../../../Attacks/Engine/ProjeteisDeChefeArquivo.h"
 
 #include "../../../Core/CaminhosArquivo.h"
 

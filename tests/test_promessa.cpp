@@ -4,7 +4,7 @@
 
 #include "doctest.h"
 
-#include "../Source/Attacks/Promessa.h"
+#include "../Source/Attacks/Shared/Promessa.h"
 
 TEST_CASE("Promessa: resolve quando o sorteio fica abaixo da fracao") {
     CHECK(Promessa::Resolve(0.1f, 0.6f));

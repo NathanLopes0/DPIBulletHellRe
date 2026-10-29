@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cstdint>
 
-#include "../Source/Attacks/Observer.h"
+#include "../Source/Attacks/MariaLucia/Observer.h"
 
 
 namespace {

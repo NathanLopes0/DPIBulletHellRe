@@ -6,7 +6,7 @@
 
 #include <cstddef>
 
-#include "../Attacks/Fase.h"
+#include "../Attacks/Engine/Fase.h"
 
 /**
  * CAMADA PURA. So aritmetica de nota; nao conhece batalha, chefe, SDL nem disco.

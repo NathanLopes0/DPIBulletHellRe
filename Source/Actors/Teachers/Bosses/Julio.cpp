@@ -7,10 +7,10 @@
 #include <algorithm>
 
 
-#include "../../../Attacks/Amarra.h"
-#include "../../../Attacks/Ancora.h"
-#include "../../../Attacks/Behaviors.h"
-#include "../../../Attacks/Guardrail.h"
+#include "../../../Attacks/Shared/Amarra.h"
+#include "../../../Attacks/Shared/Ancora.h"
+#include "../../../Attacks/Engine/Behaviors.h"
+#include "../../../Attacks/Julio/Guardrail.h"
 #include "../../../Attacks/AttackParameters/TokenAttackParams.h"
 #include "../../../Components/RigidBodyComponent.h"
 #include "../../../Scenes/Battle/Battle.h"

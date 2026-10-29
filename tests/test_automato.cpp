@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "../Source/Attacks/Automato.h"
+#include "../Source/Attacks/Vladimir/Automato.h"
 
 namespace {
     bool TerminaEmAb(const std::string& w) {

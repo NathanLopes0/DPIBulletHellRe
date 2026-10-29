@@ -9,7 +9,7 @@
 
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
-#include "../../../Attacks/Behaviors.h"
+#include "../../../Attacks/Engine/Behaviors.h"
 #include "../../Projectile.h"
 #include "../../../Core/Random.h"
 #include "../BossAttackState.h"
