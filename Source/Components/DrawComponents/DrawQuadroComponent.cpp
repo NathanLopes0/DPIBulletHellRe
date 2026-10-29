@@ -4,7 +4,6 @@
 
 #include "DrawQuadroComponent.h"
 
-#include <algorithm>
 #include <cmath>
 
 #include "../../Actors/Actor.h"

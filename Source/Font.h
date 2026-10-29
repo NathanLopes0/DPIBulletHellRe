@@ -13,9 +13,8 @@ public:
 	Font();
 	~Font();
 
-	// Load/unload from a file
+	// Carrega a fonte em todos os tamanhos; o destrutor as fecha.
 	bool Load(const std::string& fileName);
-	void Unload();
 
 	// Given string and this font, draw to a texture
 	class SDL_Texture* RenderText(SDL_Renderer* renderer, const std::string& text, const Vector3& color = Color::White,

@@ -9,6 +9,7 @@
 #include <string>
 
 #include "../Source/Attacks/Compilador.h"
+#include "Ajudantes.h"
 
 using namespace Compilador;
 
@@ -27,15 +28,14 @@ TEST_CASE("Compilador: o parser respeita a precedencia, e o codigo sai em pos-or
     // O * ANTES DO +: a + b * 2 e a + (b * 2).
     const Arvore a = Sintatico(Lexico("x = a + b * 2;"));
     REQUIRE(a.raiz >= 0);
-    const auto codigo = Codigo(a);
+    const auto codigo = Ajudantes::Codigo(a);
     CHECK(codigo == std::vector<std::string>{"LOAD a", "LOAD b", "PUSH 2", "MUL", "ADD", "STORE x"});
-    CHECK(Avaliar(a, 3, 4) == 11);
     // DA ESQUERDA PARA A DIREITA entre iguais: a - b - 1 e (a - b) - 1.
     const Arvore s = Sintatico(Lexico("x = a - b - 1;"));
-    CHECK(Avaliar(s, 10, 3) == 6);
-    CHECK(Codigo(s) == std::vector<std::string>{"LOAD a", "LOAD b", "SUB", "PUSH 1", "SUB", "STORE x"});
+    CHECK(Ajudantes::Codigo(s) == std::vector<std::string>{"LOAD a", "LOAD b", "SUB", "PUSH 1", "SUB", "STORE x"});
     // O * DO COMECO TAMBEM: a * b + 3.
-    CHECK(Avaliar(Sintatico(Lexico("x = a * b + 3;")), 2, 5) == 13);
+    CHECK(Ajudantes::Codigo(Sintatico(Lexico("x = a * b + 3;"))) ==
+          std::vector<std::string>{"LOAD a", "LOAD b", "MUL", "PUSH 3", "ADD", "STORE x"});
 }
 
 TEST_CASE("Compilador: a pos-ordem poe as folhas antes de quem as junta, e o = por ultimo") {
@@ -75,7 +75,7 @@ TEST_CASE("Compilador: cada rodada gera outra linha, com a e b e de 2 a 3 operad
         // A LINHA COMPILA: uma instrucao por no, menos o alvo.
         const Arvore a = Sintatico(t);
         REQUIRE(a.raiz >= 0);
-        CHECK(Codigo(a).size() == a.nos.size() - 1u);
+        CHECK(Ajudantes::Codigo(a).size() == a.nos.size() - 1u);
         // E A RODADA CABE NO RELOGIO, mesmo a maior, mesmo no Normal.
         CHECK(MarcosDa(static_cast<int>(t.size()), static_cast<int>(a.nos.size())).pronto < kRodada);
         linhas.insert(linha);

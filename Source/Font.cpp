@@ -1,15 +1,20 @@
 #include "Font.h"
 #include <cstdlib>
 #include <vector>
-#include <SDL_image.h>
-#include "Game.h"
 
 Font::Font()
 {
 }
 
+// AS FONTES SE FECHAM COM O DONO. Havia um Unload que ninguem chamava, e cada
+// cena que carregava a fonte deixava os 29 tamanhos abertos ao ser trocada. A
+// cena morre antes do TTF_Quit (Game::Shutdown), entao fechar aqui e seguro.
 Font::~Font()
 {
+	for (auto& font : mFontData)
+	{
+		TTF_CloseFont(font.second);
+	}
 }
 
 bool Font::Load(const std::string& fileName)
@@ -29,14 +34,6 @@ bool Font::Load(const std::string& fileName)
 		mFontData.emplace(size, font);
 	}
 	return true;
-}
-
-void Font::Unload()
-{
-	for (auto& font : mFontData)
-	{
-		TTF_CloseFont(font.second);
-	}
 }
 
 SDL_Texture* Font::RenderText(SDL_Renderer* renderer, const std::string& text, const Vector3& color /*= Color::White*/,

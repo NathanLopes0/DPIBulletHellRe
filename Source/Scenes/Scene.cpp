@@ -83,17 +83,6 @@ void Scene::RemoveDeadActors() {
     mActors.erase(it, mActors.end());
 }
 
-void Scene::AddCollider(ColliderComponent* collider) {
-    mColliders.emplace_back(collider);
-}
-
-void Scene::RemoveCollider(ColliderComponent* collider) {
-    auto iter = std::find(mColliders.begin(), mColliders.end(), collider);
-    if (iter != mColliders.end()) {
-        mColliders.erase(iter);
-    }
-}
-
 void Scene::AddDrawable(DrawComponent* drawable)
 {
     mDrawables.emplace_back(drawable);

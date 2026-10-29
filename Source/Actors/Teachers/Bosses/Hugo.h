@@ -80,7 +80,8 @@ public:
 
     /// Onde esta o alvo que falta derrubar - na defesa, a resposta certa. Vazio
     /// com a janela aberta ou sem alvo em campo. Serve a quem quer mostrar o
-    /// caminho (e ao piloto que mede a batalha).
+    /// caminho - hoje, o piloto do arnes de medicao (Ferramentas/
+    /// medir-dificuldade.sh), assim como LugarDeIr.
     [[nodiscard]] std::optional<Vector2> ObjetivoAtual() const;
 
     /// Onde o aluno tem de IR, num objetivo de andar (Objetivo::Tipo): a
@@ -91,7 +92,6 @@ public:
     /// Os alvos do objetivo que o tiro derruba e que contam (os certos), para
     /// os agentes do Julio: so com o escudo de pe.
     [[nodiscard]] std::vector<Vector2> AlvosDestrutiveis() const override;
-    [[nodiscard]] Objetivo::Tipo TipoDoObjetivo() const { return mTipo; }
 
     /// O TIRO NO ESCUDO risca uma faisca onde bateu: e o que diz, sem texto,
     /// que ele nao entrou.

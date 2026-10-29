@@ -127,10 +127,6 @@ namespace Excecao {
                 largura - 2.0f * kMargem, kAlturaDaFaixa};
     }
 
-    std::vector<float> Cortina(const float xDoAluno, const float largura) {
-        return Cortina(xDoAluno, largura, kEntreDestrocos);
-    }
-
     std::vector<float> Cortina(const float xDoAluno, const float largura, const float entre) {
         const float passo = std::max(1.0f, entre);
         const float de = kMargem;

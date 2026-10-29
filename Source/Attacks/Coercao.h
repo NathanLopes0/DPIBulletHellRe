@@ -68,7 +68,6 @@ namespace Coercao {
     };
     Valor Numero(int n);
     Valor Texto(const std::string& s);
-    bool operator==(const Valor& a, const Valor& b);
 
     /// @brief Como o valor se escreve no codigo: 7, "34".
     std::string Escrito(const Valor& v);

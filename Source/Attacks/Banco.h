@@ -125,12 +125,9 @@ namespace Banco {
     /// @brief A consulta numero 'vez' da fase 1. Num ciclo de seis: selecao,
     /// projecao, as duas, selecao, projecao e ORDER BY. A selecao sempre pega
     /// de uma linha a todas menos uma - sempre ha uma linha que sobra -, e as
-    /// duas pegam de uma a duas casas.
-    Consulta Proxima(const Registros& regs, std::uint32_t sorteio, int vez);
-
-    /// @brief A mesma, com a selecao pegando pelo menos 'linhasDaSelecao'
-    /// linhas (o degrau do Dificil) - e ainda nunca todas.
-    Consulta Proxima(const Registros& regs, std::uint32_t sorteio, int vez, int linhasDaSelecao);
+    /// duas pegam de uma a duas casas - ou, com 'linhasDaSelecao' (o degrau do
+    /// Dificil), a selecao pega pelo menos essas, e ainda nunca todas.
+    Consulta Proxima(const Registros& regs, std::uint32_t sorteio, int vez, int linhasDaSelecao = 1);
 
     /// @brief "SELECT * WHERE nota < 50", "SELECT nota", "SELECT nome WHERE
     /// ano = 2", "ORDER BY nota".

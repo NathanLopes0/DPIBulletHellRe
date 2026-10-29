@@ -116,7 +116,6 @@ bool Game::Initialize() {
     //start counter for deltaTime
     mTicksCount = SDL_GetTicks();
 
-    // Put all Grades to 40;
     LoadInitialScene();
 
     return true;
@@ -139,6 +138,10 @@ void Game::LoadInitialScene()
     AplicarVolumes();
     AplicarTelaCheia();
 
+    // OS SONS SAO CARREGADOS AQUI, de uma vez, e nao no primeiro PlaySound de
+    // cada um - o tiro, o Ponto Extra: carregar no meio da batalha engasga.
+    // Depois da base, porque a pasta de sons e relativa a ela.
+    mAudio->CacheAllSounds();
 
     InitializeBossFactory();
     ChangeScene(Scene::SceneType::MainMenu);
@@ -209,7 +212,9 @@ void Game::UpdateGame()
     if (mScene) {
         mScene->Update(deltaTime);
     }
-    UpdateCamera();
+    // OS CANAIS DE SOM QUE TERMINARAM voltam a ficar livres. Sem isto, a partir
+    // do oitavo som todo som novo roubava o canal do mais antigo (PlaySound).
+    if (mAudio) mAudio->Update();
     AtualizarGabinete(deltaTime);
 
     if (mPendingSceneChange)
@@ -283,10 +288,6 @@ void Game::AtualizarGabinete(const float deltaTime)
     }
 }
 
-void Game::UpdateCamera()
-{
-
-}
 void Game::GenerateOutput()
 {
     // Set draw color to black
@@ -624,10 +625,6 @@ Sessao::Dados& Game::SessaoEntrando() {
     // A posicao 0 existe desde o construtor; um indice fora da lista so pode vir
     // de um caminho que esqueceu de criar a sessao, e cair no jogador 1 e melhor
     // que ler fora do vetor.
-    return mPosicaoEntrando < mSessoes.size() ? mSessoes[mPosicaoEntrando] : mSessoes.front();
-}
-
-const Sessao::Dados& Game::SessaoEntrando() const {
     return mPosicaoEntrando < mSessoes.size() ? mSessoes[mPosicaoEntrando] : mSessoes.front();
 }
 

@@ -193,7 +193,3 @@ void Opcoes::OnProcessInput(const Uint8* keyState) {
 
     if (passo != 0) Trocar(passo, peloBotao);
 }
-
-void Opcoes::OnUpdate(const float deltaTime) {
-
-}

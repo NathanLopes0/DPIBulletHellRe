@@ -43,23 +43,11 @@ namespace Escopo {
         constexpr Bloco kTodos[kBlocos] = {Bloco::Global, Bloco::F, Bloco::G, Bloco::Interno, Bloco::H};
     }
 
-    bool Retangulo::Contem(const float px, const float py) const {
-        return px >= x && px <= Direita() && py >= y && py <= Baixo();
-    }
-
     Bloco Pai(const Bloco b) {
         switch (b) {
             case Bloco::Interno: return Bloco::G;
             default: return Bloco::Global;
         }
-    }
-
-    bool Declara(const Bloco b, const char nome) {
-        return Programa::DeSempre().Declara(b, nome);
-    }
-
-    std::string Declaracoes(const Bloco b) {
-        return Declaracoes(Programa::DeSempre(), b);
     }
 
     Retangulo Area(const Bloco b, const float largura, const float altura) {
@@ -94,45 +82,13 @@ namespace Escopo {
         return f == Forma::FDinamico ? Regra::Dinamico : Regra::Estatico;
     }
 
-    std::vector<Bloco> Busca(const Forma f) {
-        return Busca(Programa::DeSempre(), DaForma(f));
-    }
-
-    Bloco Dono(const Forma f) {
-        return Dono(Programa::DeSempre(), DaForma(f));
-    }
-
-    std::vector<Bloco> Ocultam(const Bloco dono, const char nome) {
-        return Ocultam(Programa::DeSempre(), dono, nome);
-    }
-
-    bool Visivel(const Forma f, const float px, const float py, const float largura, const float altura) {
-        return Visivel(Programa::DeSempre(), DaForma(f), px, py, largura, altura);
-    }
-
     Forma Proxima(const int vez) {
         const int k = ((vez % kFormas) + kFormas) % kFormas;
         return static_cast<Forma>(k);
     }
 
-    std::string Placar(const Forma f) {
-        return Placar(Programa::DeSempre(), DaForma(f));
-    }
-
-    Ponto OndeFicaOProfessor(const Forma f, const float largura, const float altura) {
-        return OndeFicaOProfessor(DaForma(f), largura, altura);
-    }
-
     float LarguraDoCanto(const std::string& texto) {
         return static_cast<float>(texto.size()) * kPorLetra + kMargemDoCanto;
-    }
-
-    Ponto Canto(const Bloco b, const float largura, const float altura) {
-        return Canto(Programa::DeSempre(), b, largura, altura);
-    }
-
-    std::vector<Gota> Gotas(const Forma f, const float largura, const float altura) {
-        return Gotas(Programa::DeSempre(), DaForma(f), largura, altura);
     }
 
     std::string CaraDoAviso(const char nome) {
@@ -234,16 +190,6 @@ namespace Escopo {
             if (porFora) buracos.push_back(b);
         }
         return buracos;
-    }
-
-    bool Visivel(const Programa& p, const Comando& c, const float px, const float py,
-                 const float largura, const float altura) {
-        const Bloco dono = Dono(p, c);
-        if (!Area(dono, largura, altura).Contem(px, py)) return false;
-        for (const Bloco b : Ocultam(p, dono, c.nome)) {
-            if (Area(b, largura, altura).Contem(px, py)) return false;
-        }
-        return true;
     }
 
     std::string Placar(const Programa& p, const Comando& c) {

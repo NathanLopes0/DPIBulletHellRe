@@ -184,6 +184,5 @@ TEST_CASE("Orientacao: sem candidato nao ha em quem votar, e aluno fora da conta
     CHECK_FALSE(v.Desfazer(-1));
     CHECK(v.Cursor(7) == 0);
     CHECK(v.Votos().size() == 1);
-    CHECK(v.QuantosCandidatos() == 2);
     CHECK(v.Alunos() == 1);
 }

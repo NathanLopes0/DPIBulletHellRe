@@ -95,17 +95,6 @@ public:
     /// recorde de dupla, ou quando o parceiro era visitante.
     [[nodiscard]] const std::string& ParceiroDoRecorde(int materia) const;
 
-    /**
-     * @brief A ULTIMA nota que o jogador tirou nesta materia, ou zero.
-     *
-     * Chamava-se NotaDeRetomada e tinha piso de kNotaInicial, porque a batalha
-     * comecava daqui. Nao comeca mais: toda fase parte de kNotaInicial. O numero
-     * continua guardado porque e informacao util para o professor (a planilha
-     * exporta como "retomada"), mas o nome nao podia continuar prometendo o que
-     * ele nao faz mais.
-     */
-    [[nodiscard]] float UltimaNota(int materia) const;
-
     /// @brief O jogador passou nesta materia? Olha o RECORDE, nao a ultima nota.
     [[nodiscard]] bool Aprovado(int materia) const;
 

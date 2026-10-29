@@ -42,10 +42,6 @@ public:
     // mas o parâmetro owner pode variar entre chamadas de Acquire()).
     void SetOwner(Actor* owner) { mOwner = owner; }
 
-    // 6. Getters/Setters para propriedades de gameplay.
-    void SetForwardSpeed(float newSpeed);
-    [[nodiscard]] float GetForwardSpeed() const;
-
     // --- Object Pooling ---
     // A ProjectileFactory que originalmente construiu este objeto (via createProjectile).
     // Setado uma única vez, no Acquire(), e usado pelo ProjectileManager para saber
@@ -146,7 +142,6 @@ public:
 protected:
 
     Actor* mOwner;
-    float mForwardSpeed;
 
     //Behavior structures and methods
     // A Motion e unica; os Modifiers se acumulam. Separar os dois torna a

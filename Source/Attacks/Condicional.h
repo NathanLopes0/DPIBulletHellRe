@@ -95,9 +95,6 @@ namespace Condicional {
     /// comando nao tem nada a explicar com esse n.
     std::string Explicacao(const Comando& c, int n);
 
-    /// @brief O cabecalho do ramo: "if (n > 5)", "else if (n < 7)", "case 2:".
-    std::string Rotulo(const Comando& c, int ramo);
-
     /// @brief A animacao do cabecalho do ramo, e a dele aceso (quando o
     /// confete cai na faixa).
     std::string CaraDoRotulo(const Comando& c, int ramo);

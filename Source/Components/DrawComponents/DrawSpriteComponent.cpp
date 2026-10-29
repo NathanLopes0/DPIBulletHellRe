@@ -42,8 +42,8 @@ void DrawSpriteComponent::Draw(SDL_Renderer *renderer)
 
 
     SDL_Rect srcrect = {0,0,mWidth, mHeight};
-    int posx = static_cast<int>(GetOwner()->GetPosition().x - GetOwner()->GetScene()->GetGame()->GetCameraPos().x - scaledWidth / 2.0f);
-    int posy = static_cast<int>(GetOwner()->GetPosition().y - GetOwner()->GetScene()->GetGame()->GetCameraPos().y - scaledHeight / 2.0f);
+    int posx = static_cast<int>(GetOwner()->GetPosition().x - scaledWidth / 2.0f);
+    int posy = static_cast<int>(GetOwner()->GetPosition().y - scaledHeight / 2.0f);
 
     SDL_Rect dstrect = {posx, posy, scaledWidth, scaledHeight};
 

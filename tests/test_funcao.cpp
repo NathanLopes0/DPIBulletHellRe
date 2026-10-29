@@ -63,7 +63,6 @@ TEST_CASE("Funcao: por valor a funcao recebe a casa do aluno na hora da chamada;
     CHECK(Externa(referencia) == Nome::Segue);
     CHECK(ArgumentosDaExterna(referencia, 6).empty());
     CHECK(Placar(referencia).find("&aluno") != std::string::npos);
-    CHECK(Assinatura(Nome::Segue).find("*") != std::string::npos);
 }
 
 TEST_CASE("Funcao: o baloes de tras para a frente nao roda") {
@@ -108,15 +107,13 @@ TEST_CASE("Funcao: todo comando sorteado deixa casa livre, e todo valor que voa 
     CHECK(Proximo(kFormas - 1, 1u).forma == Forma::PorReferencia);
 }
 
-TEST_CASE("Funcao: cada funcao tem a sua assinatura e as suas caras, e cada valor a dele") {
-    std::set<std::string> assinaturas, caras;
+TEST_CASE("Funcao: cada funcao tem as suas caras, e cada valor a dele") {
+    std::set<std::string> caras;
     for (int f = 0; f < kFuncoes; ++f) {
         const auto nome = static_cast<Nome>(f);
-        assinaturas.insert(Assinatura(nome));
         caras.insert(CaraDoCartao(nome));
         caras.insert(CaraDoCartaoAceso(nome));
     }
-    CHECK(static_cast<int>(assinaturas.size()) == kFuncoes);
     CHECK(static_cast<int>(caras.size()) == 2 * kFuncoes);
     std::set<std::string> valores;
     for (int v = kMenorValor; v <= kMaiorValor; ++v) valores.insert(CaraDoValor(v));

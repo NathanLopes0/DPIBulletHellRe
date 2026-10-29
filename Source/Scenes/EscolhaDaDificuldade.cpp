@@ -89,9 +89,7 @@ void EscolhaDaDificuldade::Load() {
 
     // O CURSOR COMECA ONDE A PARTIDA ESTA: no Normal numa partida nova, e no
     // que foi escolhido quando se volta da selecao de fases.
-    for (int k = 0; k < Dificuldade::kQuantos; ++k) {
-        if (Dificuldade::kNiveis[k] == mGame->NivelDeDificuldade()) mEscolhido = k;
-    }
+    mEscolhido = mGame->NivelDeDificuldade();
     Mostrar();
 }
 
@@ -114,8 +112,9 @@ void EscolhaDaDificuldade::Mostrar() {
     for (int k = 0; k < Dificuldade::kQuantos; ++k) {
         DrawCaixaComponent* c = mCartoes[static_cast<size_t>(k)];
         if (!c) continue;
-        c->SetMoldura(k == mEscolhido ? kMolduraEscolhida : kMoldura);
-        c->SetFundo(k == mEscolhido ? kFundoEscolhido : kFundo);
+        const bool escolhido = Dificuldade::kNiveis[k] == mEscolhido;
+        c->SetMoldura(escolhido ? kMolduraEscolhida : kMoldura);
+        c->SetFundo(escolhido ? kFundoEscolhido : kFundo);
     }
 }
 
@@ -147,19 +146,15 @@ void EscolhaDaDificuldade::OnProcessInput(const Uint8* keyState) {
     mEsquerdaAnterior = esquerda;
     mDireitaAnterior = direita;
     if (passo != 0) {
-        mEscolhido = (mEscolhido + passo + Dificuldade::kQuantos) % Dificuldade::kQuantos;
+        mEscolhido = Dificuldade::Mover(mEscolhido, passo);
         Mostrar();
     }
 
     if (confirmar && !mConfirmarAnterior) {
         mConfirmarAnterior = true;
-        mGame->DefinirDificuldade(Dificuldade::kNiveis[mEscolhido]);
+        mGame->DefinirDificuldade(mEscolhido);
         mGame->RequestSceneChange(SceneType::StageSelect);
         return;
     }
     mConfirmarAnterior = confirmar;
-}
-
-void EscolhaDaDificuldade::OnUpdate(const float deltaTime) {
-
 }

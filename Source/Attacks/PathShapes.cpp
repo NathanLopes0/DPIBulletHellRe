@@ -158,10 +158,6 @@ Path Zigzag(const float step, const float amplitude, int legs) {
     return forma;
 }
 
-size_t CachedShapeCount() {
-    return gCacheDeFormas.size();
-}
-
 }
 
 // ===========================================================================

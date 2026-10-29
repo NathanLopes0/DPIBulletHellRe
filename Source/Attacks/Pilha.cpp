@@ -6,10 +6,6 @@
 
 namespace Pilha {
 
-    Operacao Proxima(const int altura, const std::uint32_t sorteio) {
-        return Proxima(altura, sorteio, Plano{});
-    }
-
     Operacao Proxima(const int altura, const std::uint32_t sorteio, const Plano& p) {
         Operacao op;
         op.valor = static_cast<int>((sorteio >> 12) % 10u);

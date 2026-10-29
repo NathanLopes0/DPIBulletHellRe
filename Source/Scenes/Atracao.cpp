@@ -20,7 +20,6 @@
 #include "FundoDeCena.h"
 #include "../Ranking.h"
 #include "../Actors/Actor.h"
-#include "../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../Components/DrawComponents/DrawSpriteComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
 

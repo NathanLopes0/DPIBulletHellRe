@@ -46,14 +46,10 @@ namespace Dificuldade {
     /// Uma linha que diz o que o nivel muda, para a tela de dificuldade.
     const char* Descricao(Nivel n);
 
-    /// Como o nivel e escrito no arquivo de opcoes: "normal", "dificil". Sem
-    /// acento de proposito - o arquivo pode ser editado a mao em qualquer
-    /// editor, e a chave nao pode depender da codificacao dele.
+    /// Como o nivel e escrito nos dados (tentativas.csv) e no log: "normal",
+    /// "dificil". Sem acento de proposito - um CSV com acento depende da
+    /// codificacao de quem abre.
     const char* Chave(Nivel n);
-
-    /// O nivel de uma chave do arquivo. Devolve false (e nao mexe em `saida`)
-    /// quando a chave nao e de nenhum nivel.
-    bool DeChave(const std::string& chave, Nivel& saida);
 
     /// Anda `passo` niveis, dando a volta nas pontas - com dois niveis, para
     /// qualquer lado e trocar.

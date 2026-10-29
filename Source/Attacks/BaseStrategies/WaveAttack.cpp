@@ -8,8 +8,6 @@
 #include "../../Actors/Projectile.h"  // Para insertBehavior
 #include "../Behaviors.h"     // Para pegar o ActivateBehavior
 #include "../../Actors/ProjectileFactory.h"
-#include "../../Components/RigidBodyComponent.h"
-#include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include <memory>
 
 WaveAttack::WaveAttack(ProjectileFactory* spawner, Actor* owner)

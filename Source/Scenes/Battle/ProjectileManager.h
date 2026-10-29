@@ -26,7 +26,6 @@ public:
 
     // --- Receber Projéteis criados por Bosses e Players
     void AddPlayerProjectile(std::unique_ptr<PlayerProjectile> projectile);
-    void AddBossProjectile(std::unique_ptr<BossProjectile> projectile);
 
     // --- Função de conveniência (receber vários projectiles de uma vez só)
     void AddBossProjectiles(std::vector<std::unique_ptr<BossProjectile>> projectiles);
@@ -36,19 +35,6 @@ public:
     [[nodiscard]] const std::vector<std::unique_ptr<BossProjectile>>& GetBossProjectiles() { return mBossProjectiles; }
 
     void ClearBossProjectiles() const;
-
-    /**
-     * @brief O Ponto Extra do solo: limpa o que machuca e deixa o CENARIO.
-     *
-     * Enfeite nao colide com ninguem (BossProjectile::Enfeite) - a tabela
-     * escrita no campo do Thiago, os baldes da hash do Salles, as molduras do
-     * pipeline e as portas do Ricardo, o diagrama do automato do Vladimir, as
-     * caixas da cascata da Maria Lucia, o vetor do chao do Andre. Limpar isso
-     * nao livrava o aluno de nada, e o chefe que monta a estrutura uma vez so
-     * ficava sem ela ate o fim: a fase inteira do Thiago e ler a tabela.
-     * O fim da batalha continua limpando tudo (ClearBossProjectiles).
-     */
-    void ClearAtaquesDoChefe() const;
 
     /**
      * @brief Tira de cena os projeteis de um corpo que vai ser destruido.

@@ -38,7 +38,6 @@ public:
 
     void Load() override;
     void OnProcessInput(const Uint8* keyState) override;
-    void OnUpdate(float deltaTime) override;
 
 private:
 

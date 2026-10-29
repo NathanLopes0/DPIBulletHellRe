@@ -7,12 +7,10 @@
 #include "../../Actors/Player/PlayerProjectile.h"
 #include "../../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"
 #include "../../Actors/ProjectileFactory.h" // Necessário para chamar factory->Release(...)
-#include "../../Components/RigidBodyComponent.h"
 #include "../../Actors/Actor.h" // Necessário para Actor::State
 #include <algorithm>          // Necessário para std::remove_if e std::move
 #include <SDL_log.h>
 
-#include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 
 ProjectileManager::ProjectileManager(Scene *owner)
     : mOwnerScene(owner)
@@ -41,11 +39,6 @@ void ProjectileManager::Update(float deltaTime)
 void ProjectileManager::AddPlayerProjectile(std::unique_ptr<PlayerProjectile> projectile)
 {
     mPlayerProjectiles.emplace_back(std::move(projectile));
-}
-
-void ProjectileManager::AddBossProjectile(std::unique_ptr<BossProjectile> projectile)
-{
-    mBossProjectiles.emplace_back(std::move(projectile));
 }
 
 void ProjectileManager::AddBossProjectiles(std::vector<std::unique_ptr<BossProjectile>> projectiles)
@@ -91,16 +84,6 @@ void ProjectileManager::ClearBossProjectiles() const {
     // nota.
     for (auto& proj : mBossProjectiles) {
         if (!proj) continue;
-        const auto estado = proj->GetState();
-        if (estado == ActorState::Active || estado == ActorState::Paused) {
-            proj->Kill();
-        }
-    }
-}
-
-void ProjectileManager::ClearAtaquesDoChefe() const {
-    for (auto& proj : mBossProjectiles) {
-        if (!proj || proj->Enfeite()) continue;
         const auto estado = proj->GetState();
         if (estado == ActorState::Active || estado == ActorState::Paused) {
             proj->Kill();

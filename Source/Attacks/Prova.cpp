@@ -8,12 +8,6 @@
 
 namespace Prova {
 
-    int ProblemaEm(const float t) { return ProblemaEm(t, kProva); }
-    bool Aceito(const int k) { return Aceito(k, kProva); }
-    std::string Veredito(const int k) { return Veredito(k, kProva); }
-    std::string Abertura(const int k) { return Abertura(k, kProva); }
-    std::string CaraDoTrofeu(const int k) { return CaraDoTrofeu(k, kProva); }
-
     int ProblemaEm(const float t, const Lista& prova) {
         for (int k = 0; k < kProblemas; ++k) {
             const auto& p = prova[static_cast<std::size_t>(k)];

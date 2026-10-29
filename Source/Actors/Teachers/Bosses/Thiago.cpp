@@ -16,7 +16,6 @@
 #include "../../../Random.h"
 #include "../../../Scenes/Battle/Battle.h"
 #include "../../../Tabela.h"
-#include "../../Player/Player.h"
 #include "BossesProjectiles/BossProjectile.h"
 
 Thiago::Thiago(Scene* scene) : Boss(scene)

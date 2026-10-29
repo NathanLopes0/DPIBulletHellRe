@@ -92,12 +92,6 @@ namespace Compilador {
     /// "ADD", "SUB", "MUL", "STORE x". O alvo do = nao gera nada sozinho.
     std::string Instrucao(const Arvore& a, int no);
 
-    /// @brief O codigo da linha: a instrucao de cada no em pos-ordem.
-    std::vector<std::string> Codigo(const Arvore& a);
-
-    /// @brief O valor da expressao com a e b dados - o que o STORE guarda.
-    int Avaliar(const Arvore& a, int a_, int b_);
-
     // ---- A LINHA DE CADA RODADA ----------------------------------------------
 
     /// @brief Uma linha "x = ...;" com 2 ou 3 operadores sorteados entre + - *, e

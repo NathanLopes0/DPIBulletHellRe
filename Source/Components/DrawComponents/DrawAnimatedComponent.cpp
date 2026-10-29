@@ -141,7 +141,6 @@ void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
     if (spriteIdx >= 0 && static_cast<size_t>(spriteIdx) < mSpriteSheetData.size())
     {
         Vector2 pos = mOwner->GetPosition();
-        Vector2 cameraPos = mOwner->GetScene()->GetGame()->GetCameraPos();
 
         float scale = mOwner->GetScale();
 
@@ -151,8 +150,8 @@ void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
         int scaledHeight = static_cast<int>(clipRect.h * scale);
 
         SDL_Rect renderQuad = {
-            static_cast<int>(pos.x - scaledWidth/2.0f - cameraPos.x),
-            static_cast<int>(pos.y - scaledHeight/2.0f - cameraPos.y),
+            static_cast<int>(pos.x - scaledWidth/2.0f),
+            static_cast<int>(pos.y - scaledHeight/2.0f),
             scaledWidth,  // Largura Final
             scaledHeight  // Altura Final
         };

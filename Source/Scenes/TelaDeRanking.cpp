@@ -312,6 +312,3 @@ void TelaDeRanking::OnProcessInput(const Uint8* keyState) {
     }
     mAlternarAnterior = alternar;
 }
-
-void TelaDeRanking::OnUpdate(const float deltaTime) {
-}

@@ -15,7 +15,6 @@ class CircleColliderComponent : public ColliderComponent {
 public:
     CircleColliderComponent(Actor* owner, float radius, int updateOrder = 10);
 
-    void SetRadius(const float radius) { mRadius = radius; }
     [[nodiscard]] float GetRadius() const;
 
     [[nodiscard]] const Vector2& GetCenter() const;

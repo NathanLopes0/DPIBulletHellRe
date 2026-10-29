@@ -4,7 +4,6 @@
 
 #include "ComporPersonagem.h"
 
-#include <SDL.h>
 #include <SDL_image.h>
 
 #include "CaminhosArquivo.h"

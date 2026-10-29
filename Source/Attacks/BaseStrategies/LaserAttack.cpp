@@ -10,7 +10,6 @@
 #include "../../Scenes/Battle/Battle.h"
 #include "../../Actors/ProjectileFactory.h"
 #include "../../Actors/Player/Player.h"
-#include "../../Components/RigidBodyComponent.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 
 

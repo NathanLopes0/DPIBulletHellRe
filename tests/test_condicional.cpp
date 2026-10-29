@@ -129,16 +129,13 @@ TEST_CASE("Condicional: todo comando sorteavel esta em Todos, e todo valor cai e
             }
         }
         if (c.forma != Forma::Atribuicao) CHECK(static_cast<int>(alcancados.size()) == Ramos(c));
-        // OS CABECALHOS SAO DIFERENTES entre si, e as caras tambem.
-        std::set<std::string> rotulos, caras;
+        // OS CABECALHOS SAO DIFERENTES entre si: cada ramo tem a sua cara.
+        std::set<std::string> caras;
         for (int r = 0; r < Ramos(c); ++r) {
-            rotulos.insert(Rotulo(c, r));
             caras.insert(CaraDoRotulo(c, r));
             CHECK(CaraDoRotuloAceso(c, r) != CaraDoRotulo(c, r));
         }
-        CHECK(static_cast<int>(rotulos.size()) == Ramos(c));
         CHECK(static_cast<int>(caras.size()) == Ramos(c));
-        CHECK(Rotulo(c, Ramos(c) - 1) == (c.forma == Forma::Escolha ? "case 3:" : "else"));
     }
 }
 

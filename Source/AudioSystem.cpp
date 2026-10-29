@@ -29,7 +29,7 @@ AudioSystem::~AudioSystem()
 }
 
 // Updates the status of all the active sounds every frame
-void AudioSystem::Update(float deltaTime)
+void AudioSystem::Update()
 {
     for(int i = 0; i < mChannels.size(); i++)
     {
@@ -100,8 +100,6 @@ SoundHandle AudioSystem::PlaySound(const std::string& soundName, bool looping)
             // Remove do mapa de controle
             mHandleMap.erase(oldestHandle);
 
-            // Log de Debug (Opcional)
-            // SDL_Log("Canais cheios! Sacrifiquei o som ID %s para tocar %s", oldestHandle.GetDebugStr(), soundName.c_str());
         }
     }
 
@@ -124,20 +122,6 @@ SoundHandle AudioSystem::PlaySound(const std::string& soundName, bool looping)
     Mix_PlayChannel(availableChannel, sound, looping ? -1 : 0);
 
     return mLastHandle;
-}
-
-// Stops the sound if it is currently playing
-void AudioSystem::StopSound(SoundHandle sound)
-{
-    if(mHandleMap.find(sound) == mHandleMap.end())
-    {
-        SDL_Log("[AudioSystem] StopSound couldn't find handle %s", sound.GetDebugStr());
-        return;
-    }
-
-    Mix_HaltChannel(mHandleMap[sound].mChannel);
-    mHandleMap.erase(sound);
-    mChannels[mHandleMap[sound].mChannel].Reset();
 }
 
 // Pauses the sound if it is currently playing
@@ -170,22 +154,6 @@ void AudioSystem::ResumeSound(SoundHandle sound)
         Mix_Resume(mHandleMap[sound].mChannel);
         mHandleMap[sound].mIsPaused = false;
     }
-}
-
-// Returns the current state of the sound
-SoundState AudioSystem::GetSoundState(SoundHandle sound)
-{
-    if(mHandleMap.find(sound) == mHandleMap.end())
-    {
-        return SoundState::Stopped;
-    }
-
-    if(mHandleMap[sound].mIsPaused)
-    {
-        return SoundState::Paused;
-    }
-
-    return SoundState::Playing;
 }
 
 // Stops all sounds on all channels
@@ -263,37 +231,6 @@ Mix_Chunk* AudioSystem::GetSound(const std::string& soundName)
         mSounds.emplace(fileName, SoundPtr(chunk));
         return chunk;
     }
-}
-
-// Input for debugging purposes
-void AudioSystem::ProcessInput(const Uint8* keyState)
-{
-    // Debugging code that outputs all active sounds on leading edge of period key
-    if (keyState[SDL_SCANCODE_PERIOD] && !mLastDebugKey)
-    {
-        SDL_Log("[AudioSystem] Active Sounds:");
-        for (size_t i = 0; i < mChannels.size(); i++)
-        {
-            if (mChannels[i].IsValid())
-            {
-                auto iter = mHandleMap.find(mChannels[i]);
-                if (iter != mHandleMap.end())
-                {
-                    HandleInfo& hi = iter->second;
-                    SDL_Log("Channel %d: %s, %s, looping = %d, paused = %d",
-                            static_cast<unsigned>(i), mChannels[i].GetDebugStr(),
-                            hi.mSoundName.c_str(), hi.mIsLooping, hi.mIsPaused);
-                }
-                else
-                {
-                    SDL_Log("Channel %d: %s INVALID", static_cast<unsigned>(i),
-                            mChannels[i].GetDebugStr());
-                }
-            }
-        }
-    }
-
-    mLastDebugKey = keyState[SDL_SCANCODE_PERIOD];
 }
 
 void AudioSystem::SetSoundVolume(const SoundHandle soundHandler, int volume)

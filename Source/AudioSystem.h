@@ -64,14 +64,6 @@ struct Mix_Chunk_Deleter {
     }
 };
 
-// Used to get information about state of sound
-enum class SoundState
-{
-    Stopped,
-    Playing,
-    Paused
-};
-
 // Manages playing audio through SDL_mixer
 class AudioSystem
 {
@@ -83,9 +75,7 @@ public:
     ~AudioSystem();
 
     // Updates the status of all the active sounds every frame
-    void Update(float deltaTime);
-    // Input for debugging purposes
-    void ProcessInput(const Uint8* keyState);
+    void Update();
 
     // Plays the sound with the specified name and loops if looping is true
     // Returns the SoundHandle which is used to perform any other actions on the
@@ -95,17 +85,11 @@ public:
     //       "Assets/Sounds/ChompLoop.wav".
     SoundHandle PlaySound(const std::string& soundName, bool looping = false);
 
-    // Stops the sound if it is currently playing
-    void StopSound(SoundHandle sound);
-
     // Pauses the sound if it is currently playing
     void PauseSound(SoundHandle sound);
 
     // Resumes the sound if it is currently paused
     void ResumeSound(SoundHandle sound);
-
-    // Returns the current state of the sound
-    SoundState GetSoundState(SoundHandle sound);
 
     // Stops all sounds on all channels
     void StopAllSounds();
@@ -175,7 +159,4 @@ private:
     // Used to track the last audio handle value used
     // Will increment prior to playing a new sound
     SoundHandle mLastHandle;
-
-    // Used for debug input in ProcessInput
-    bool mLastDebugKey = false;
 };

@@ -100,17 +100,6 @@ const Categoria* Catalogo::Por(const std::string& id) const {
     return nullptr;
 }
 
-Aparencia Catalogo::Padrao() const {
-
-    Aparencia a;
-    for (const auto& c : categorias) {
-        // LerCatalogo descarta categoria sem peca ou sem cor, entao aqui as duas
-        // listas tem pelo menos um item.
-        a.Definir(c.id, Escolha{c.pecas.front().id, c.cores.front().id});
-    }
-    return a;
-}
-
 Aparencia Catalogo::Resolver(const Aparencia& pedida, std::vector<std::string>* trocas) const {
 
     Aparencia saida;

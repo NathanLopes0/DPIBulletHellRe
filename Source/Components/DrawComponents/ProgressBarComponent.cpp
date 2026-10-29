@@ -4,7 +4,6 @@
 
 #include "ProgressBarComponent.h"
 #include "../../Actors/Actor.h"
-#include "SDL.h"
 
 ProgressBarComponent::ProgressBarComponent(Actor* owner, int drawOrder)
     // NA ORDEM EM QUE OS MEMBROS SAO DECLARADOS. O compilador inicializa nessa
@@ -129,12 +128,6 @@ void ProgressBarComponent::SetFillPercent(const float percent) {
 
 void ProgressBarComponent::SetColorPercent(const float percent) {
     mColorPercent = Math::Max(0.0f, Math::Min(percent, 1.0f));
-}
-
-void ProgressBarComponent::SetColors(SDL_Color background, SDL_Color foreground) {
-    mBackgroundColor = background;
-    mStartColor = foreground;
-    mUseGradient = false;
 }
 
 void ProgressBarComponent::SetGradientColors(SDL_Color background, SDL_Color start, SDL_Color end) {

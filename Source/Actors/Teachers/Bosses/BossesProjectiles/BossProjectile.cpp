@@ -133,14 +133,6 @@ bool BossProjectile::IsOffScreen() const
     return false;
 }
 
-// 4. Implementação Getter
-Boss* BossProjectile::GetBossOwner() const
-{
-    // dynamic_cast para converter o Actor* da classe base
-    // para o Boss* que sabemos que ele é. Retorna nullptr se o cast falhar.
-    return dynamic_cast<Boss*>(mOwner);
-}
-
 Vector2 BossProjectile::GetPlayerPosition() const {
     if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
         // O ALVO DESTE PROJETIL, e nao de quem e a vez agora. Ver DefinirAlvo:

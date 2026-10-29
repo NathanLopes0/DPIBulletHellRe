@@ -9,7 +9,6 @@
 
 const float MAX_SPEED_X = 1000.0f;
 const float MAX_SPEED_Y = 1000.0f;
-const float GRAVITY = 2000.0f;
 
 RigidBodyComponent::RigidBodyComponent(class Actor* owner, float mass, float friction, int updateOrder)
         :Component(owner, updateOrder)
@@ -19,10 +18,6 @@ RigidBodyComponent::RigidBodyComponent(class Actor* owner, float mass, float fri
         ,mAcceleration(Vector2::Zero)
 {
 
-}
-
-void RigidBodyComponent::ApplyForce(const Vector2 &force) {
-    mAcceleration += force * (1.f/mMass);
 }
 
 void RigidBodyComponent::Update(float deltaTime)

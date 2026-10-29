@@ -33,10 +33,6 @@ namespace Hash {
         return kYDosBaldes + kPrimeiraChave + static_cast<float>(p < 0 ? 0 : p) * kEntreChaves;
     }
 
-    Operacao Proxima(const std::vector<int>& naTabela, const std::uint32_t sorteio) {
-        return Proxima(naTabela, sorteio, Plano{});
-    }
-
     Operacao Proxima(const std::vector<int>& naTabela, const std::uint32_t sorteio, const Plano& p) {
         Operacao op;
         const float tipo = static_cast<float>(sorteio & 1023u) / 1024.0f;

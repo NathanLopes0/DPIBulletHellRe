@@ -18,9 +18,7 @@ public:
     const Vector2& GetVelocity() const { return mVelocity; }
     void SetVelocity(const Vector2& velocity) { mVelocity = velocity; }
 
-    const Vector2& GetAcceleration() const { return mAcceleration; }
     void SetAcceleration(const Vector2& acceleration) { mAcceleration = acceleration; }
-    void ApplyForce(const Vector2 &force);
 
 private:
     // Physical properties

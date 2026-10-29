@@ -18,9 +18,9 @@
 # DPI_ORIENTADOR o codigo da materia do orientador do TCC (INF213, ...): a
 #                batalha que pede orientacao nasce com ele, como se tivesse
 #                sido escolhido na tela de escolha
+# DPI_PODER      no TCC, o orientador solta o poder sozinho quando ele enche
 # DPI_DIFICIL    a batalha no modo Dificil (Dificuldade.h). Sem ela, Normal -
-#                SEMPRE: o Saves/opcoes.cfg da maquina nao decide o modo de
-#                uma medida
+#                SEMPRE (a tela de dificuldade nao aparece numa medida)
 # DPI_VARIACAO   a semente da batalha (Battle::SementeDaBatalha), de onde cada
 #                fase tira o que varia de uma luta para a outra. Sem ela, e a
 #                DPI_SEMENTE: uma corrida continua sendo uma funcao de um numero
@@ -80,10 +80,10 @@ edit("Source/Game.cpp", "    ChangeScene(Scene::SceneType::MainMenu);",
         if (const char* o = std::getenv("DPI_ORIENTADOR")) {
             DefinirOrientador(Materias::Carregadas().IndiceDe(o));
         }
-        // O MODO E SEMPRE ESCRITO, e no membro (DefinirDificuldade gravaria o
-        // arquivo de opcoes da copia).
-        mConfiguracao.dificuldade = std::getenv("DPI_DIFICIL") ? Dificuldade::Nivel::Dificil
-                                                               : Dificuldade::Nivel::Normal;
+        // O MODO E SEMPRE ESCRITO: a batalha medida nao passa pela tela de
+        // dificuldade, e sem isto valeria o Normal de toda partida nova.
+        DefinirDificuldade(std::getenv("DPI_DIFICIL") ? Dificuldade::Nivel::Dificil
+                                                       : Dificuldade::Nivel::Normal);
         ChangeScene(Scene::SceneType::Battle);
     } else
     ChangeScene(Scene::SceneType::MainMenu);""")
@@ -154,19 +154,43 @@ edit("Source/Actors/Player/Player.cpp", "void Player::MoveInput(const Uint8 *key
         return;
     }
     if (std::getenv("DPI_SEGUE")) {
-        float alvo = GetPosition().x;
+        // NO TCC, O OBJETIVO ANTES DO CHEFE: com o Hugo blindado, persegue o
+        // alvo do objetivo (Hugo::ObjetivoAtual), e vai ate onde a etapa pede
+        // que ele ande (Hugo::LugarDeIr) - em x e em y.
+        static float casa = -1.0f;
+        if (casa < 0.0f) casa = GetPosition().y;
+        float alvo = GetPosition().x, alvoY = casa;
         if (const auto b = dynamic_cast<Battle*>(GetScene())) {
             if (const auto chefe = b->GetBoss()) alvo = chefe->GetPosition().x;
+            if (auto* hugo = dynamic_cast<Hugo*>(b->GetBoss())) {
+                if (auto o = hugo->ObjetivoAtual()) alvo = o->x;
+                if (auto o = hugo->LugarDeIr()) { alvo = o->x; alvoY = o->y; }
+            }
         }
-        const float d = alvo - GetPosition().x;
+        const float d = alvo - GetPosition().x, dy = alvoY - GetPosition().y;
         const float v = (d > 2.0f) ? VelocidadeDeAndar() : (d < -2.0f) ? -VelocidadeDeAndar() : 0.0f;
-        GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(v, 0));
+        const float vy = (dy > 2.0f) ? VelocidadeDeAndar() : (dy < -2.0f) ? -VelocidadeDeAndar() : 0.0f;
+        GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(v, vy));
         mMoving = v != 0.0f;
         return;
     }
     if (std::getenv("DPI_PARADO")) { GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(0,0)); mMoving = false; return; }""")
 edit("Source/Actors/Player/Player.cpp", '#include "../../Scenes/Battle/Battle.h"',
-     '#include "../../Scenes/Battle/Battle.h"\n#include "../Teachers/Boss.h"')
+     '#include "../../Scenes/Battle/Battle.h"\n#include "../Teachers/Boss.h"\n#include "../Teachers/Bosses/Hugo.h"')
+
+# ---- DPI_PODER: o orientador solta o poder sozinho, assim que ele enche. Os
+# ---- que atacam (Poder::Ataca) esperam o escudo do Hugo abrir; a bala de prata,
+# ---- ao contrario, e para quando ele esta fechado.
+edit("Source/Actors/Orientador/Orientador.cpp", "    Guiar(*batalha, deltaTime);\n",
+"""    Guiar(*batalha, deltaTime);
+    if (std::getenv("DPI_PODER") && PoderPronto() && batalha->GetBoss()) {
+        const bool aberto = batalha->GetBoss()->AceitaDano();
+        const bool bala = mPoder.tipo == Poder::Tipo::BalaDePrata;
+        if (bala ? !aberto : (!Poder::Ataca(mPoder.tipo) || aberto)) SoltarPoder();
+    }
+""")
+edit("Source/Actors/Orientador/Orientador.cpp", "#include <unordered_map>",
+     "#include <unordered_map>\n#include <cstdlib>")
 edit("Source/Actors/Player/Player.cpp", "#include <vector>",
      "#include <vector>\n#include <cstdlib>")
 # O GANCHO E A ASSINATURA DA FUNCAO, e nao a condicao do if: a condicao ja

@@ -131,14 +131,11 @@ namespace Excecao {
     constexpr float kMargem = 20.0f;
     constexpr int kMaiorPilha = 4;
 
-    /// @brief A CORTINA de uma faixa que cai: um destroco a cada
-    /// kEntreDestrocos ao longo da faixa, um deles em cima do aluno - parado,
-    /// ele nao fica numa fresta.
-    std::vector<float> Cortina(float xDoAluno, float largura);
+    /// @brief A CORTINA de uma faixa que cai: um destroco a cada 'entre' (o
+    /// degrau do Dificil encurta) ao longo da faixa, um deles em cima do aluno -
+    /// parado, ele nao fica numa fresta.
     constexpr float kEntreDestrocos = 60.0f;
-
-    /// @brief A mesma, com um destroco a cada 'entre' (o degrau do Dificil).
-    std::vector<float> Cortina(float xDoAluno, float largura, float entre);
+    std::vector<float> Cortina(float xDoAluno, float largura, float entre = kEntreDestrocos);
 
     /// Onde o professor fica na faixa: no meio da altura dela, num x sorteado
     /// a cada rodada entre kXMinimo e kXMaximo (o canto da esquerda e do

@@ -18,19 +18,6 @@ namespace Parada {
         return x <= 1u;
     }
 
-    int PassosAteParar(std::uint32_t x, const int limite) {
-        int passos = 0;
-        while (!Parou(x) && passos < limite) {
-            x = Proximo(x);
-            ++passos;
-        }
-        return passos;
-    }
-
-    std::uint32_t Sortear(const std::uint32_t sorteio) {
-        return kSementes[sorteio % kSementes.size()];
-    }
-
     float Altura(const std::uint32_t x) {
         const float bits = std::log2(static_cast<float>(std::max<std::uint32_t>(x, 1u)));
         const float fracao = std::clamp(bits / kBitsDoTeto, 0.0f, 1.0f);

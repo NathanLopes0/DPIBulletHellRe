@@ -64,9 +64,6 @@ namespace Cronograma {
     /// @brief Onde o hoje esta 't' segundos depois de comecar a varrer.
     float XDoHoje(float t, float largura, const Degrau& d);
 
-    /// @brief Quando o hoje passa por 'x' - quando vence o prazo que acaba la.
-    float Quando(float x, float largura, const Degrau& d);
-
     /// @brief O x de cada pagina da barra.
     std::vector<float> Paginas(const Tarefa& t, const Degrau& d);
 

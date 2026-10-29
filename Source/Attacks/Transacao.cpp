@@ -68,8 +68,6 @@ namespace Transacao {
         return delas[g() % delas.size()];
     }
 
-    bool Desfaz(const std::uint32_t sorteio) { return Desfaz(sorteio, kChanceDeRollback); }
-
     bool Desfaz(const std::uint32_t sorteio, const float chance) {
         std::mt19937 g(sorteio);
         return static_cast<float>(g() % 1000u) / 1000.0f < chance;

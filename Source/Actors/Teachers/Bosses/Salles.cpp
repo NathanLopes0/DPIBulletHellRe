@@ -12,7 +12,6 @@
 #include "../../../Attacks/Ancora.h"
 #include "../../../Actors/Player/Player.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
-#include "../../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Components/RigidBodyComponent.h"
 #include "../../../Scenes/Battle/Battle.h"
@@ -546,16 +545,6 @@ void Salles::AtualizarHash(const float deltaTime) {
 
 std::optional<Vector2> Salles::AlvoDoMovimento() const {
     return mAlvo;
-}
-
-std::vector<BossProjectile*> Salles::NoPosto(const char* posto) const {
-    std::vector<BossProjectile*> achados;
-    const auto* batalha = dynamic_cast<Battle*>(mScene);
-    if (!batalha || !batalha->GetProjectileManager()) return achados;
-    for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
-        if (p && p->GetState() == ActorState::Active && p->Posto() == posto) achados.push_back(p.get());
-    }
-    return achados;
 }
 
 void Salles::DerrubarPilha() {

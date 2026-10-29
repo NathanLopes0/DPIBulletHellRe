@@ -33,6 +33,8 @@
 
 #include "doctest.h"
 
+#include "Ajudantes.h"
+
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
@@ -1070,7 +1072,7 @@ TEST_CASE("Dados: personagens.json e lido sem nenhum problema") {
     const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
 
     CHECK_MESSAGE(c.problemas.empty(), "problemas em personagens.json:" << Juntar(c.problemas));
-    CHECK_FALSE(c.Vazio());
+    CHECK_FALSE(c.categorias.empty());
 }
 
 TEST_CASE("Dados: as categorias que a tela de criacao precisa existem") {
@@ -1161,7 +1163,7 @@ TEST_CASE("Dados: a aparencia padrao do catalogo real compoe todas as camadas") 
 
     const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
 
-    const std::vector<Personagens::Camada> camadas = c.Camadas(c.Padrao());
+    const std::vector<Personagens::Camada> camadas = c.Camadas(Ajudantes::Padrao(c));
 
     // Uma por categoria, mais as fixas.
     CHECK(camadas.size() == c.categorias.size() + c.fixas.size());
@@ -1491,7 +1493,7 @@ TEST_CASE("Dados: o compilador do Vladimir - gatilhos, posto e caras sao nomes q
     const Compilador::Arvore a = Compilador::Sintatico(Compilador::Lexico("x = a - b * 7;"));
     for (int n = 0; n < static_cast<int>(a.nos.size()); ++n) CHECK(doNo.count(Compilador::CaraDoNo(a, n)) == 1);
     const auto instrucoes = carasDe("Instrucao");
-    for (const auto& i : Compilador::Codigo(Compilador::Sintatico(Compilador::Lexico("x = a + b - 2 * a;")))) {
+    for (const auto& i : Ajudantes::Codigo(Compilador::Sintatico(Compilador::Lexico("x = a + b - 2 * a;")))) {
         CAPTURE(i);
         CHECK(instrucoes.count(Compilador::CaraDaInstrucao(i)) == 1);
     }
@@ -2052,7 +2054,7 @@ TEST_CASE("Dados: o fluxograma do Andre - gatilhos, velocidade do confete e cara
     const auto rotulos = caras(projetilDe[Condicional::kGatilhoDoRotulo]);
     for (const auto& c : Condicional::Todos()) {
         for (int r = 0; r < Condicional::Ramos(c); ++r) {
-            CAPTURE(Condicional::Rotulo(c, r));
+            CAPTURE(r);
             CHECK(rotulos.count(Condicional::CaraDoRotulo(c, r)) == 1);
             CHECK(rotulos.count(Condicional::CaraDoRotuloAceso(c, r)) == 1);
         }
@@ -2176,7 +2178,7 @@ TEST_CASE("Dados: as funcoes do Andre - gatilhos, leque e caras sao nomes que os
     const auto cartoes = caras(projetilDe[Funcao::kGatilhoDoCartao]);
     for (int f = 0; f < Funcao::kFuncoes; ++f) {
         const auto nome = static_cast<Funcao::Nome>(f);
-        CAPTURE(Funcao::Assinatura(nome));
+        CAPTURE(f);
         CHECK(cartoes.count(Funcao::CaraDoCartao(nome)) == 1);
         CHECK(cartoes.count(Funcao::CaraDoCartaoAceso(nome)) == 1);
     }

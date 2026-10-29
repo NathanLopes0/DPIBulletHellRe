@@ -67,12 +67,6 @@ namespace Parada {
     /// @brief O programa parou?
     bool Parou(std::uint32_t x);
 
-    /// @brief Quantos passos ate parar, contando no maximo 'limite'.
-    int PassosAteParar(std::uint32_t x, int limite = 1000);
-
-    /// @brief A semente do proximo programa, tirada do 'sorteio'.
-    std::uint32_t Sortear(std::uint32_t sorteio);
-
     /// @brief A altura do professor com o programa valendo x: quanto maior x,
     /// mais alto - de kBaixo no 1 a kAlto no teto, em escala de log2.
     float Altura(std::uint32_t x);

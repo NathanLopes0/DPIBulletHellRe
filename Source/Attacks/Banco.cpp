@@ -158,10 +158,6 @@ namespace Banco {
         return casas;
     }
 
-    Consulta Proxima(const Registros& regs, const std::uint32_t sorteio, const int vez) {
-        return Proxima(regs, sorteio, vez, 1);
-    }
-
     Consulta Proxima(const Registros& regs, const std::uint32_t sorteio, const int vez, const int linhasDaSelecao) {
         static constexpr std::array<Tipo, 6> kCiclo = {Tipo::Selecao, Tipo::Projecao, Tipo::Ambas,
                                                        Tipo::Selecao, Tipo::Projecao, Tipo::Ordenacao};

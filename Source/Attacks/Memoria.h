@@ -129,7 +129,6 @@ namespace Memoria {
         bool noProx = false;       ///< Alocar: vai para raiz->prox, e nao para a raiz
         int indice = 0;            ///< Escrever: raiz[indice]
     };
-    std::vector<Evento> Eventos(Passo p);
 
     /// Os lacos: um bloco a cada kEntreAlocacoes, o primeiro kPrimeiraAlocacao
     /// depois de o passo abrir. O do Java aloca kNoLacoJava - e o placar diz
@@ -140,14 +139,10 @@ namespace Memoria {
     constexpr int kNoLacoCpp = 7;
     constexpr float kEstouro = 2.95f;   ///< o bad_alloc, no passo do while (1)
 
-    /// @brief Quanto dura cada passo, e quando ele comeca (desde o comeco da
-    /// fase). Antes de kPrimeiro o placar diz o latim.
+    /// @brief Quanto dura cada passo. O primeiro comeca em kPrimeiro: antes
+    /// disso o placar diz o latim.
     float Duracao(Passo p);
-    float Inicio(Passo p);
     constexpr float kPrimeiro = 0.5f;
-
-    /// @brief O passo em curso no instante t da fase; -1 antes do primeiro.
-    int PassoEm(float t);
 
     /// @brief A ORDEM DOS PASSOS: as duas metades, cada uma com o seu programa.
     /// A de sempre e o Java primeiro; a da luta pode por o C++ primeiro
@@ -157,17 +152,14 @@ namespace Memoria {
     Roteiro RoteiroDeSempre();
     Roteiro Sortear(Variacao::Sorteio& s);
 
-    /// @brief Inicio e PassoEm para um roteiro: o passo da vez 'i' e
-    /// roteiro[i], e PassoEm devolve esse i.
+    /// @brief Quando o passo da vez 'i' (roteiro[i]) comeca, desde o comeco da
+    /// fase; e o i do passo em curso no instante t, ou -1 antes do primeiro.
     float InicioDaVez(int i, const Roteiro& roteiro);
-    int PassoEm(float t, const Roteiro& roteiro);
+    int PassoEm(float t, const Roteiro& roteiro = RoteiroDeSempre());
 
     /// @brief O passo da vez 'i' abre um programa novo (o heap comeca vazio)?
     bool TrocaDeLinguagem(int i, const Roteiro& roteiro);
 
-    /// @brief O placar: a linguagem e como ela gerencia a memoria, e embaixo o
-    /// codigo; 'depois' acrescenta o que aconteceu, quando ha o que dizer.
-    std::string Placar(Passo p, bool depois);
 
     // ---- A GEOMETRIA --------------------------------------------------------
 
@@ -255,9 +247,6 @@ namespace Memoria {
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 
-    /// @brief Os eventos do passo com o degrau do modo (o do Normal da os de
-    /// sempre).
-    std::vector<Evento> Eventos(Passo p, const Degrau& d);
     // ---- OS NUMEROS DE CADA LUTA --------------------------------------------
 
     /**
@@ -278,6 +267,11 @@ namespace Memoria {
     Numeros NumerosDeSempre();
     Numeros SortearNumeros(Variacao::Sorteio& s);
 
-    std::vector<Evento> Eventos(Passo p, const Degrau& d, const Numeros& n);
-    std::string Placar(Passo p, bool depois, const Numeros& n);
+    /// @brief Os eventos do passo, com o degrau do modo e os numeros da luta
+    /// (o Normal e os de sempre dao a fase de antes).
+    std::vector<Evento> Eventos(Passo p, const Degrau& d = Degrau{}, const Numeros& n = NumerosDeSempre());
+
+    /// @brief O placar: a linguagem e como ela gerencia a memoria, e embaixo o
+    /// codigo; 'depois' acrescenta o que aconteceu, quando ha o que dizer.
+    std::string Placar(Passo p, bool depois, const Numeros& n = NumerosDeSempre());
 }

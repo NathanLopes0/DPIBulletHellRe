@@ -104,7 +104,6 @@ namespace Funcao {
     std::string PlacarComValores(const Comando& c, int casaDoAluno);
 
     /// @brief A assinatura no cartao da funcao, e as animacoes dele.
-    std::string Assinatura(Nome f);
     std::string CaraDoCartao(Nome f);
     std::string CaraDoCartaoAceso(Nome f);
 

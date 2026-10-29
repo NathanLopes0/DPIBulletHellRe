@@ -12,6 +12,18 @@
 #include "../Source/Attacks/Parada.h"
 #include "../Source/Attacks/Fase.h"
 
+namespace {
+    /// Quantos passos ate parar, contando no maximo 'limite'.
+    int PassosAteParar(std::uint32_t x, const int limite = 1000) {
+        int passos = 0;
+        while (!Parada::Parou(x) && passos < limite) {
+            x = Parada::Proximo(x);
+            ++passos;
+        }
+        return passos;
+    }
+}
+
 TEST_CASE("Parada: um passo do programa de Collatz, e o 1 fica") {
     CHECK(Parada::Proximo(6) == 3);
     CHECK(Parada::Proximo(3) == 10);
@@ -20,24 +32,20 @@ TEST_CASE("Parada: um passo do programa de Collatz, e o 1 fica") {
     CHECK(Parada::Parou(1));
     CHECK_FALSE(Parada::Parou(2));
     // 7 -> 22 -> 11 -> 34 -> 17 -> 52 -> 26 -> 13 -> 40 -> 20 -> 10 -> 5 -> 16 -> 8 -> 4 -> 2 -> 1
-    CHECK(Parada::PassosAteParar(7) == 16);
-    CHECK(Parada::PassosAteParar(27, 50) == 50);   // o limite segura
+    CHECK(PassosAteParar(7) == 16);
+    CHECK(PassosAteParar(27, 50) == 50);   // o limite segura
 }
 
 TEST_CASE("Parada: toda semente para em 14 a 29 passos, sem passar de 400 no caminho") {
     for (const auto s : Parada::kSementes) {
         CAPTURE(s);
-        const int passos = Parada::PassosAteParar(s);
+        const int passos = PassosAteParar(s);
         CHECK(passos >= 14);
         CHECK(passos <= 29);
         std::uint32_t x = s, maior = s;
         while (!Parada::Parou(x)) { x = Parada::Proximo(x); maior = std::max(maior, x); }
         CHECK(maior <= 400u);
     }
-    // O sorteio so devolve sementes da lista, e chega a todas.
-    std::set<std::uint32_t> vistas;
-    for (std::uint32_t i = 0; i < 200; ++i) vistas.insert(Parada::Sortear(i * 2654435761u));
-    CHECK(vistas.size() == Parada::kSementes.size());
 }
 
 TEST_CASE("Parada: a altura sobe com x, do 1 embaixo ao teto em cima") {
@@ -85,7 +93,7 @@ TEST_CASE("Parada: o degrau do Dificil anda mais depressa, e todo programa ainda
     for (const std::uint32_t x : Parada::kSementes) {
         CAPTURE(x);
         for (const float passo : {n.passo, d.passo}) {
-            CHECK(Parada::kPrimeiro + static_cast<float>(Parada::PassosAteParar(x) + 1) * passo < Fase::kDuracao);
+            CHECK(Parada::kPrimeiro + static_cast<float>(PassosAteParar(x) + 1) * passo < Fase::kDuracao);
         }
     }
 }

@@ -172,13 +172,6 @@ namespace Filosofos {
     constexpr int kGarfadasPorLeque = 3;
     constexpr float kVelocidadeDoEstouro = 230.0f;
 
-    // ---- OS TEXTOS ----------------------------------------------------------
-
-    /// O placar: o nome da rodada e quem come ("jantar · comendo: Kant, Hume"),
-    /// a espera circular no deadlock ("deadlock · espera circular"), e o
-    /// kill -9 da vitima.
-    std::string Placar(Rodada r, const Mesa& m);
-
     // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA (Variacao.h) ---------------------
 
     /**
@@ -208,8 +201,10 @@ namespace Filosofos {
     /// os garfos junto): o mesmo jantar, comecando de outro lugar.
     std::vector<Passo> Rodar(std::vector<Passo> passos, int giro);
 
-    /// O placar com os nomes desta luta.
-    std::string Placar(Rodada r, const Mesa& m, const Plano& p);
+    /// O placar: o nome da rodada e quem come ("jantar · comendo: Kant, Hume"),
+    /// a espera circular no deadlock ("deadlock · espera circular"), e o
+    /// kill -9 da vitima - com os nomes desta luta.
+    std::string Placar(Rodada r, const Mesa& m, const Plano& p = PlanoDeSempre());
 
     // ---- O DEGRAU (Dificuldade.h) -----------------------------------------------
 

@@ -73,9 +73,6 @@ namespace Transacao {
     /// @brief Uma linha travada por OUTRA transacao que nao 'id'. -1 se nao ha.
     int LinhaDeOutra(const Txs& txs, int id, std::uint32_t sorteio);
 
-    /// @brief A transacao termina desfazendo? Com chance kChanceDeRollback.
-    bool Desfaz(std::uint32_t sorteio);
-
     /// @brief "T3: UPDATE SET nota=12 WHERE mat=42", "T3: COMMIT",
     /// "T3: ROLLBACK", "T3 espera T2", "deadlock! T3: ROLLBACK".
     std::string PlacarDoUpdate(int id, int nota, int mat);
@@ -112,7 +109,9 @@ namespace Transacao {
         float chanceDeRollback = kChanceDeRollback;
     };
     Plano Sortear(Variacao::Sorteio& s);
-    bool Desfaz(std::uint32_t sorteio, float chance);
+
+    /// @brief A transacao termina desfazendo? Com a chance do plano.
+    bool Desfaz(std::uint32_t sorteio, float chance = kChanceDeRollback);
 
     /// O que o Dificil muda: uma transacao nova a cada 1,2 s, ate quatro de
     /// uma vez (e nao tres), as escritas indo e voltando a 600 px/s, e doze

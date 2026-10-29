@@ -76,10 +76,6 @@ bool Inicializar() {
     return false;
 }
 
-const std::string& Base() {
-    return gBase;
-}
-
 std::string Asset(const std::string& relativo) {
     if (!gInicializado) {
         // Nao e fatal, mas e sinal de ordem de inicializacao errada: alguem pediu

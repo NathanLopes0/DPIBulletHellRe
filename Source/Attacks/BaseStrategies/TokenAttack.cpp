@@ -13,7 +13,6 @@
 #include "../../Actors/Projectile.h"
 #include "../../Actors/ProjectileFactory.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
-#include "../../Components/RigidBodyComponent.h"
 
 TokenAttack::TokenAttack(ProjectileFactory* spawner, Actor* owner)
     : IAttackStrategy(spawner, owner)

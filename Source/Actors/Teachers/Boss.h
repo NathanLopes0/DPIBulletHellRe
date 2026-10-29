@@ -93,18 +93,6 @@ public:
      */
     [[nodiscard]] std::vector<std::string> GetProjectileFactoryNames() const;
 
-    /**
-     * @brief Pré-aquece TODAS as ProjectileFactory registradas por este Boss,
-     * criando 'countPerType' instâncias de cada tipo e devolvendo-as aos
-     * respectivos pools. Pensado para ser chamado numa tela de carregamento,
-     * ANTES da batalha começar — depois disso, os primeiros disparos de cada
-     * tipo já encontram objetos prontos no pool, sem custo de alocação nem
-     * de carregar textura/JSON durante o gameplay real.
-     * @param countPerType Quantas instâncias criar para CADA tipo de projétil
-     * registrado (não é um total agregado — é por tipo).
-     */
-    void PrewarmProjectilePools(int countPerType);
-
     [[nodiscard]] Vector2 GetDirectionToPlayer() const;
 
     /**

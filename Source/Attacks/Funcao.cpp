@@ -134,17 +134,6 @@ namespace Funcao {
         }
     }
 
-    std::string Assinatura(const Nome f) {
-        switch (f) {
-            case Nome::Baloes: return "void baloes(int de, int ate)";
-            case Nome::Leque: return "void leque(int n)";
-            case Nome::Dobro: return "int dobro(int x)";
-            case Nome::Meio: return "int meio(int a, int b)";
-            case Nome::Segue: return "void segue(int *p)";
-        }
-        return {};
-    }
-
     std::string CaraDoCartao(const Nome f) {
         switch (f) {
             case Nome::Baloes: return "Baloes";

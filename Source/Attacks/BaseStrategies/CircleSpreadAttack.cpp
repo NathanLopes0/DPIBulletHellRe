@@ -5,7 +5,6 @@
 #include <memory>
 #include "CircleSpreadAttack.h"
 
-#include <complex>
 #include <SDL_log.h>
 
 #include "../../Actors/Projectile.h"

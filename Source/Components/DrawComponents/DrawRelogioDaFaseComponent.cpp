@@ -30,8 +30,6 @@ void DrawRelogioDaFaseComponent::SetTempo(const float restante, const float tota
 
 void DrawRelogioDaFaseComponent::Recomecar() { mDesdeORecomeco = 0.0f; }
 
-bool DrawRelogioDaFaseComponent::Urgente() const { return Hud::Urgente(mRestante); }
-
 void DrawRelogioDaFaseComponent::Update(const float deltaTime) {
     mTempo += deltaTime;
     mDesdeORecomeco += deltaTime;

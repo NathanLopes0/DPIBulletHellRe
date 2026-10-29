@@ -11,7 +11,6 @@
 #include "../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Teachers/Boss.h"
-#include "../../Scenes/Battle/Battle.h"
 
 #include "../../CaminhosArquivo.h"
 #include "../../Hud.h"

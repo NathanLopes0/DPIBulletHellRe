@@ -125,22 +125,6 @@ namespace Condicional {
         return "sem break: do case " + N(n) + " cai at\xC3\xA9 o case " + N(kCases - 1);
     }
 
-    std::string Rotulo(const Comando& c, const int ramo) {
-        const int ultimo = Ramos(c) - 1;
-        if (c.forma == Forma::Escolha) return "case " + N(ramo) + ":";
-        if (ramo == ultimo) return "else";
-        switch (c.forma) {
-            case Forma::Maior: return "if (n > " + N(c.a) + ")";
-            case Forma::Intervalo: return "if (n > " + N(c.a) + " && n < " + N(c.b) + ")";
-            case Forma::Par: return "if (n % 2 == 0)";
-            case Forma::Impar: return "if (n % 2 == 1)";
-            case Forma::SenaoSe: return ramo == 0 ? "if (n < " + N(c.a) + ")" : "else if (n < " + N(c.b) + ")";
-            case Forma::Atribuicao: return "if (n = " + N(c.a) + ")";
-            case Forma::Escolha: break;
-        }
-        return {};
-    }
-
     std::string CaraDoRotulo(const Comando& c, const int ramo) {
         const int ultimo = Ramos(c) - 1;
         if (c.forma == Forma::Escolha) return "Caso" + N(ramo);

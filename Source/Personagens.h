@@ -105,16 +105,7 @@ namespace Personagens {
         /// Frases prontas dizendo o que estava errado no arquivo.
         std::vector<std::string> problemas;
 
-        [[nodiscard]] bool Vazio() const { return categorias.empty(); }
         [[nodiscard]] const Categoria* Por(const std::string& id) const;
-
-        /**
-         * @brief A aparencia padrao: a primeira peca e a primeira cor de cada
-         *        categoria.
-         *
-         * E o que o visitante usa, e para onde cai quem tem save sem aparencia.
-         */
-        [[nodiscard]] Aparencia Padrao() const;
 
         /**
          * @brief Conserta uma aparencia vinda de um save.

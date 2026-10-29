@@ -228,7 +228,4 @@ namespace PathShapes {
      * estraga menos a leitura do que um tiro reto atravessando a arvore.
      */
     Path DaFamilia(const std::string& nome, int indice);
-
-    /** @brief Quantas formas distintas estao no cache. So para diagnostico. */
-    size_t CachedShapeCount();
 }

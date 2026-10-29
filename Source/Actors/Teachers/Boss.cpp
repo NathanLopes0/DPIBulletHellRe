@@ -383,14 +383,6 @@ std::vector<std::string> Boss::GetProjectileFactoryNames() const {
     return names;
 }
 
-void Boss::PrewarmProjectilePools(int countPerType) {
-    for (auto& [name, factory] : mProjectileFactories) {
-        if (!factory) continue;
-        SDL_Log("Prewarm: criando %d instancias de '%s'...", countPerType, name.c_str());
-        factory->Prewarm(GetScene(), this, countPerType);
-    }
-}
-
 // Implementacao padrao: nao faz nada. A maioria dos bosses nao precisa mexer
 // nos projeteis depois de criados, entao herda este corpo vazio.
 void Boss::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,

@@ -34,9 +34,6 @@ namespace Caminhos {
      */
     bool Inicializar();
 
-    /// @brief A pasta base descoberta. Vazia antes de Inicializar().
-    const std::string& Base();
-
     /**
      * @brief O caminho completo de um arquivo de Assets.
      *

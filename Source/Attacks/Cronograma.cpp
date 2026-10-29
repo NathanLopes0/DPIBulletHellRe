@@ -88,11 +88,6 @@ namespace Cronograma {
         return inicio + (fim - inicio) * std::clamp(t / d.varredura, 0.0f, 1.0f);
     }
 
-    float Quando(const float x, const float largura, const Degrau& d) {
-        const float inicio = kMargem, fim = largura - kMargem;
-        return d.varredura * std::clamp((x - inicio) / (fim - inicio), 0.0f, 1.0f);
-    }
-
     std::vector<float> Paginas(const Tarefa& t, const Degrau& d) {
         std::vector<float> xs;
         const int n = std::max(2, static_cast<int>(std::ceil((t.ate - t.de) / d.entrePaginas)) + 1);

@@ -115,10 +115,6 @@ namespace Memoria {
         }
     }
 
-    std::vector<Evento> Eventos(const Passo p) { return Eventos(p, Degrau{}); }
-
-    std::vector<Evento> Eventos(const Passo p, const Degrau& d) { return Eventos(p, d, NumerosDeSempre()); }
-
     std::vector<Evento> Eventos(const Passo p, const Degrau& d, const Numeros& n) {
         std::vector<Evento> e;
         auto alocar = [&e](const float quando, const int celulas, const std::string& raiz, const bool noProx) {
@@ -188,17 +184,6 @@ namespace Memoria {
         return 0.0f;
     }
 
-    float Inicio(const Passo p) {
-        float t = kPrimeiro;
-        for (const Passo q : kRoteiro) {
-            if (q == p) return t;
-            t += Duracao(q);
-        }
-        return t;
-    }
-
-    int PassoEm(const float t) { return PassoEm(t, kRoteiro); }
-
     Roteiro RoteiroDeSempre() { return kRoteiro; }
 
     Roteiro Sortear(Variacao::Sorteio& s) {
@@ -230,8 +215,6 @@ namespace Memoria {
         if (i <= 0 || i >= kPassos) return false;
         return LinguagemDe(roteiro[static_cast<size_t>(i)]) != LinguagemDe(roteiro[static_cast<size_t>(i - 1)]);
     }
-
-    std::string Placar(const Passo p, const bool depois) { return Placar(p, depois, NumerosDeSempre()); }
 
     std::string Placar(const Passo p, const bool depois, const Numeros& n) {
         // \xc2\xb7 e o ponto do meio, \xc3\xaa o e circunflexo, \xc3\xa1 o a

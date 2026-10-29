@@ -83,9 +83,6 @@ public:
         mAvailable.push_back(std::move(projectile));
     }
 
-    // Quantos objetos estão disponíveis para reuso imediato (não em uso na tela).
-    [[nodiscard]] size_t GetAvailableCount() const { return mAvailable.size(); }
-
 private:
 
     std::vector<std::unique_ptr<T>> mAvailable;

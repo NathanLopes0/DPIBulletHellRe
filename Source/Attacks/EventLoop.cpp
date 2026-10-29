@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <deque>
 #include <limits>
 
 namespace EventLoop {

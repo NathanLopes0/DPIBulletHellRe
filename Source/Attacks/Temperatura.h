@@ -52,13 +52,12 @@ namespace Temperatura {
     constexpr int kEtapas = 3;
     using Temperaturas = std::array<float, kEtapas>;
     constexpr Temperaturas kDeSempre = {0.2f, 0.8f, 1.6f};
-    Temperaturas Sortear(Variacao::Sorteio& s);
 
     /// @brief No Dificil o modelo roda mais quente - o degrau da fase 1: fria
     /// de 0,3 a 0,5, morna de 0,9 a 1,3 e quente de 1,8 a 2,2. Os nomes das
     /// etapas sao os mesmos, e o placar diz o numero. No Normal, as faixas de
     /// cima.
-    Temperaturas Sortear(Variacao::Sorteio& s, Dificuldade::Nivel n);
+    Temperaturas Sortear(Variacao::Sorteio& s, Dificuldade::Nivel n = Dificuldade::Nivel::Normal);
 
     /// A temperatura das frases de "e" da repescagem: 0,3 no arquivo, 0,7 no
     /// Dificil. E a dos tokens da previsao da fase 3: zero no arquivo - o

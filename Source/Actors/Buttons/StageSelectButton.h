@@ -34,7 +34,6 @@ public:
     void SetRotuloFechado(Actor* rotulo) { mRotuloFechado = rotulo; }
 
     [[nodiscard]] int GetSubject() const { return mSubject; }
-    [[nodiscard]] bool IsLocked() const { return mIsLocked; }
 
 private:
 

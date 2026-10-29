@@ -224,10 +224,6 @@ void MainMenu::OnProcessInput(const Uint8 *keyState) {
     mConfirmarAnterior = confirmar;
 }
 
-void MainMenu::OnUpdate(float deltaTime) {
-
-}
-
 void MainMenu::LoadBackground() {
     auto background = std::make_unique<Actor>(this);
     background->SetPosition(Vector2(mGame->GetWindowWidth() / 2.0f, mGame->GetWindowHeight() / 2.0f));

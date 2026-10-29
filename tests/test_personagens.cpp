@@ -8,6 +8,7 @@
 #include <string>
 
 #include "../Source/Personagens.h"
+#include "Ajudantes.h"
 
 using namespace Personagens;
 
@@ -61,7 +62,7 @@ TEST_CASE("Personagens: um catalogo valido entra inteiro") {
 TEST_CASE("Personagens: a aparencia padrao e a primeira peca e a primeira cor") {
 
     const Catalogo c = LerCatalogo(CatalogoBasico());
-    const Aparencia a = c.Padrao();
+    const Aparencia a = Ajudantes::Padrao(c);
 
     REQUIRE(a.Por("pele") != nullptr);
     CHECK(a.Por("pele")->peca == "corpo");
@@ -257,7 +258,7 @@ TEST_CASE("Personagens: escolha de categoria que nao existe mais e descartada") 
 
     const Catalogo c = LerCatalogo(CatalogoBasico());
 
-    Aparencia pedida = c.Padrao();
+    Aparencia pedida = Ajudantes::Padrao(c);
     pedida.Definir("chapeu", Escolha{"cartola", "preto"});   // categoria aposentada
 
     std::vector<std::string> trocas;
@@ -273,7 +274,7 @@ TEST_CASE("Personagens: Resolver de uma aparencia vazia da a padrao") {
     const Catalogo c = LerCatalogo(CatalogoBasico());
 
     const Aparencia r = c.Resolver(Aparencia{});
-    const Aparencia padrao = c.Padrao();
+    const Aparencia padrao = Ajudantes::Padrao(c);
 
     REQUIRE(r.escolhas.size() == padrao.escolhas.size());
     for (const auto& par : padrao.escolhas) {
@@ -310,7 +311,7 @@ TEST_CASE("Personagens: as camadas saem em ordem de desenho, com as fixas no mei
 TEST_CASE("Personagens: a camada fixa nao e tingida, e as outras sao") {
 
     const Catalogo c = LerCatalogo(CatalogoBasico());
-    const std::vector<Camada> camadas = c.Camadas(c.Padrao());
+    const std::vector<Camada> camadas = c.Camadas(Ajudantes::Padrao(c));
 
     REQUIRE(camadas.size() == 3);
     CHECK(camadas[0].tingida);
@@ -378,7 +379,7 @@ TEST_CASE("Personagens: texto que nao e JSON nao derruba nada") {
 
     const Catalogo c = LerCatalogo("isto nao e json {{{");
 
-    CHECK(c.Vazio());
+    CHECK(c.categorias.empty());
     CHECK_FALSE(c.problemas.empty());
 }
 
@@ -386,7 +387,7 @@ TEST_CASE("Personagens: catalogo sem categorias e relatado") {
 
     const Catalogo c = LerCatalogo(R"({ "fixas": [] })");
 
-    CHECK(c.Vazio());
+    CHECK(c.categorias.empty());
     CHECK(Menciona(c.problemas, "categorias"));
 }
 
@@ -405,7 +406,7 @@ TEST_CASE("Personagens: identificador so aceita letra, numero, hifen e sublinhad
 TEST_CASE("Personagens: Padrao de um catalogo vazio nao quebra") {
 
     const Catalogo c;
-    const Aparencia a = c.Padrao();
+    const Aparencia a = Ajudantes::Padrao(c);
     CHECK(a.Vazia());
     CHECK(c.Camadas(a).empty());
 }
@@ -467,8 +468,8 @@ TEST_CASE("Personagens: aparencias diferentes dao chaves diferentes") {
 
     const Catalogo c = LerCatalogo(CatalogoBasico());
 
-    Aparencia a = c.Padrao();
-    Aparencia b = c.Padrao();
+    Aparencia a = Ajudantes::Padrao(c);
+    Aparencia b = Ajudantes::Padrao(c);
     b.Definir("cabelo", Escolha{"longo", "loiro"});
 
     CHECK(ChaveDaAparencia(a) != ChaveDaAparencia(b));
@@ -477,7 +478,7 @@ TEST_CASE("Personagens: aparencias diferentes dao chaves diferentes") {
 TEST_CASE("Personagens: a chave nao se confunde com um caminho de arquivo") {
 
     const Catalogo c = LerCatalogo(CatalogoBasico());
-    const std::string chave = ChaveDaAparencia(c.Padrao());
+    const std::string chave = ChaveDaAparencia(Ajudantes::Padrao(c));
 
     // Ela entra no mesmo cache das texturas de arquivo, entao nao pode parecer
     // um caminho - senao uma aparencia poderia roubar a textura de um PNG.

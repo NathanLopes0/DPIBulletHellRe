@@ -13,11 +13,9 @@
 #include <sstream>
 #include <iomanip>
 #include "../Math.h"
-#include "../Random.h"
 #include "../Actors/Buttons/StageSelectButton.h"
 #include "../Font.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
-#include "../Components/DrawComponents/DrawSpriteComponent.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 
 #include "../CaminhosArquivo.h"

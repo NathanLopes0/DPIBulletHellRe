@@ -123,8 +123,8 @@ TEST_CASE("Memoria: o relogio do roteiro") {
     CHECK(PassoEm(0.0f) == -1);
     for (int i = 0; i < kPassos; ++i) {
         const Passo p = kTodos[i];
-        CHECK(PassoEm(Inicio(p) + 0.01f) == i);
-        CHECK(PassoEm(Inicio(p) + Duracao(p) - 0.01f) == i);
+        CHECK(PassoEm(InicioDaVez(i, RoteiroDeSempre()) + 0.01f) == i);
+        CHECK(PassoEm(InicioDaVez(i, RoteiroDeSempre()) + Duracao(p) - 0.01f) == i);
         for (const Evento& e : Eventos(p)) {
             CHECK(e.quando >= 0.0f);
             CHECK(e.quando < Duracao(p));
@@ -236,9 +236,6 @@ TEST_CASE("Memoria: o roteiro da luta pode por o C++ primeiro, com cada metade i
     }
     CHECK(cppPrimeiro > 150);
     CHECK(cppPrimeiro < 250);
-    // O DE SEMPRE e o de antes, instante por instante.
-    for (float t = 0.0f; t < 21.0f; t += 0.05f) CHECK(PassoEm(t, sempre) == PassoEm(t));
-    for (int i = 0; i < kPassos; ++i) CHECK(InicioDaVez(i, sempre) == doctest::Approx(Inicio(sempre[static_cast<size_t>(i)])));
 }
 
 TEST_CASE("Memoria: o degrau do Normal e o de sempre, e o do Dificil acende antes e estoura mais") {

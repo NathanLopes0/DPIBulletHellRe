@@ -24,8 +24,6 @@ public:
 
     void OnUpdate(float deltaTime) override;
 
-    [[nodiscard]] Boss* GetBossOwner() const;
-
     /**
      * @brief De quem este projetil e. Posto UMA vez, ao ser disparado.
      *

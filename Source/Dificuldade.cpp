@@ -32,16 +32,6 @@ namespace Dificuldade {
         return "";
     }
 
-    bool DeChave(const std::string& chave, Nivel& saida) {
-        for (const Nivel n : kNiveis) {
-            if (chave == Chave(n)) {
-                saida = n;
-                return true;
-            }
-        }
-        return false;
-    }
-
     Nivel Mover(const Nivel n, const int passo) {
         int i = 0;
         while (i < kQuantos && kNiveis[i] != n) ++i;

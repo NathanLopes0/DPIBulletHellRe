@@ -77,10 +77,6 @@ const std::string& Progresso::ParceiroDoRecorde(const int materia) const {
     return Ver(materia).parceiroDoRecorde;
 }
 
-float Progresso::UltimaNota(const int materia) const {
-    return Ver(materia).retomada;
-}
-
 bool Progresso::Aprovado(const int materia) const {
     return MelhorNota(materia) >= kNotaDeAprovacao;
 }

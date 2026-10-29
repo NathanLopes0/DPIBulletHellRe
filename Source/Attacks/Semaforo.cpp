@@ -167,7 +167,6 @@ namespace Semaforo {
         return std::max(0, e.rodada.permissoes - static_cast<int>(e.dentro.size()));
     }
 
-    bool Esperando(const Escalonador& e, const int t) { return Tem(e.fila, t); }
     bool Dentro(const Escalonador& e, const int t) { return Tem(e.dentro, t); }
     bool Passou(const Escalonador& e, const int t) { return Tem(e.passaram, t); }
 

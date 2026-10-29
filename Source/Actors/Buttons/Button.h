@@ -16,7 +16,6 @@ public:
     virtual void OnClick();
 
     void ChangeSelected() { mIsSelected = !mIsSelected; }
-    [[nodiscard]] bool IsSelected() const { return mIsSelected; }
 
 private:
 

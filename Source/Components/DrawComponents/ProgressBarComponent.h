@@ -46,7 +46,6 @@ public:
     void SetOrientation(Orientation orientation) { mOrientation = orientation;}
     void SetFillPercent(float percent);
     void SetColorPercent(float percent);
-    void SetColors(SDL_Color background, SDL_Color foreground);
     void SetGradientColors(SDL_Color background, SDL_Color start, SDL_Color end);
     void SetSize(int width, int height);
 

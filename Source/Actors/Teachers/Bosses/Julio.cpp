@@ -6,7 +6,6 @@
 
 #include <algorithm>
 
-#include <SDL_log.h>
 
 #include "../../../Attacks/Amarra.h"
 #include "../../../Attacks/Ancora.h"

@@ -26,9 +26,6 @@ namespace Configuracao {
     /// O volume vai de 0 (mudo) a kVolumeMaximo, que e o volume de sempre.
     constexpr int kVolumeMaximo = 10;
 
-    /// A DIFICULDADE NAO MORA MAIS AQUI: e da partida, escolhida por quem
-    /// joga antes da selecao de fases (Game::NivelDeDificuldade). Um arquivo
-    /// antigo com "dificuldade=" continua sendo lido - a linha so e ignorada.
     struct Dados {
         /// A musica (o som em laco, o da batalha) e os efeitos (o tiro, o
         /// Ponto Extra, os ataques), cada um de 0 a kVolumeMaximo.

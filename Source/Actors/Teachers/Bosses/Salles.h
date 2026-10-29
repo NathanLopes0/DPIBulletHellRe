@@ -96,8 +96,6 @@ private:
     /// da fase.
     void DerrubarPilha();
 
-    [[nodiscard]] std::vector<BossProjectile*> NoPosto(const char* posto) const;
-
     std::vector<BossProjectile*> mPilha;
     std::vector<int> mValores;
 

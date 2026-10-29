@@ -104,33 +104,6 @@ namespace Compilador {
         return "";
     }
 
-    std::vector<std::string> Codigo(const Arvore& a) {
-        std::vector<std::string> codigo;
-        for (const int n : PosOrdem(a)) {
-            const std::string i = Instrucao(a, n);
-            if (!i.empty()) codigo.push_back(i);
-        }
-        return codigo;
-    }
-
-    int Avaliar(const Arvore& a, const int a_, const int b_) {
-        std::function<int(int)> valor = [&](const int n) -> int {
-            const No& no = a.nos[static_cast<size_t>(n)];
-            switch (no.tipo) {
-                case Tipo::Num: return no.texto[0] - '0';
-                case Tipo::Id:  return no.texto == "a" ? a_ : (no.texto == "b" ? b_ : 0);
-                case Tipo::Op: {
-                    const int e = valor(no.esq), d = valor(no.dir);
-                    return no.texto == "+" ? e + d : (no.texto == "-" ? e - d : e * d);
-                }
-                case Tipo::Igual: return valor(no.dir);
-                case Tipo::Fim: break;
-            }
-            return 0;
-        };
-        return a.raiz < 0 ? 0 : valor(a.raiz);
-    }
-
     std::string Gerar(Variacao::Sorteio& s) {
         const int ops = s.Inteiro(2, 3);
         std::vector<std::string> folhas;

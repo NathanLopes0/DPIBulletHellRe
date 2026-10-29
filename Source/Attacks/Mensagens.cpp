@@ -35,10 +35,6 @@ namespace Mensagens {
 
     int Soma(const Chamada& c) { return c.a + c.b; }
 
-    std::vector<Evento> Roteiro(const Rodada r) {
-        return Roteiro(r, PlanoDeSempre(), Degrau{});
-    }
-
     std::vector<Evento> Roteiro(const Rodada r, const Plano& plano, const Degrau& d) {
         std::vector<Evento> e;
         switch (r) {
@@ -110,10 +106,6 @@ namespace Mensagens {
         constexpr float kFolgaEmY = 30.0f;
         constexpr float kMaisAlto = 120.0f;     ///< abaixo do placar, com o cartao do professor
         constexpr float kMaisBaixo = 250.0f;
-    }
-
-    Ponto Lugar(const int processo, const int k, const float largura) {
-        return Lugar(processo, k, largura, PlanoDeSempre());
     }
 
     Ponto Lugar(const int processo, const int k, const float largura, const Plano& plano) {
@@ -202,10 +194,6 @@ namespace Mensagens {
             if (e.o == Acontece::Recebe && e.de == processo && e.quando <= u) --n;
         }
         return std::max(0, n);
-    }
-
-    std::string Placar(const Rodada r, const int naCaixa, const int chamada, const bool bloqueado, const bool estourou) {
-        return Placar(r, naCaixa, chamada, bloqueado, estourou, PlanoDeSempre());
     }
 
     std::string Placar(const Rodada r, const int naCaixa, const int chamada, const bool bloqueado, const bool estourou,

@@ -22,20 +22,4 @@ float Centro(const float origem, const float tamanho, const int quantas, const i
     return Inicio(origem, tamanho, quantas, indice) + Espessura(tamanho, quantas) / 2.0f;
 }
 
-int FaixaDe(const float origem, const float tamanho, const int quantas, const float posicao) {
-
-    if (quantas <= 0) return 0;
-
-    const float espessura = Espessura(tamanho, quantas);
-    if (espessura <= 0.0f) return 0;
-
-    const auto crua = static_cast<int>((posicao - origem) / espessura);
-
-    // Ver o comentario de FaixaDe no cabecalho: fora da tabela pertence a borda
-    // mais proxima, nunca a "nenhuma faixa".
-    if (crua < 0) return 0;
-    if (crua >= quantas) return quantas - 1;
-    return crua;
-}
-
 }

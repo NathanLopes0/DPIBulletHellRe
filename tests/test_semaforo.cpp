@@ -126,7 +126,7 @@ TEST_CASE("Semaforo: o aluno acorrentado faz a thread em cima dele furar a fila"
     Avancar(e, kAbre);
     REQUIRE(e.fila.size() == 4u);
     const int ultima = e.fila.back();
-    CHECK(Esperando(e, ultima));
+    CHECK(std::find(e.fila.begin(), e.fila.end(), ultima) != e.fila.end());   // esperando
     CHECK(Furar(e, ultima));
     CHECK(e.fila.front() == ultima);
     CHECK(Proxima(e) == ultima);

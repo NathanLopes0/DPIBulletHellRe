@@ -49,11 +49,6 @@ namespace Coercao {
     Valor Numero(const int n) { return Valor{Tipo::Numero, n, ""}; }
     Valor Texto(const std::string& s) { return Valor{Tipo::Texto, 0, s}; }
 
-    bool operator==(const Valor& a, const Valor& b) {
-        if (a.tipo != b.tipo) return false;
-        return a.tipo == Tipo::Numero ? a.numero == b.numero : a.texto == b.texto;
-    }
-
     std::string Escrito(const Valor& v) {
         return v.tipo == Tipo::Numero ? std::to_string(v.numero) : "\"" + v.texto + "\"";
     }

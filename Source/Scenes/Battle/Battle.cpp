@@ -2,13 +2,11 @@
 // Created by nslop on 16/09/2024.
 //
 
-#include "SDL.h"
 #include "Battle.h"
 
 #include "../../Progresso.h"
 #include "../../Nota.h"
 
-#include <locale>
 #include <random>
 #include <sstream>
 #include <iomanip>
@@ -16,7 +14,6 @@
 #include "BattleHUD.h"
 #include "ProjectileManager.h"
 #include "../../AudioSystem.h"
-#include "../../Json.h"
 #include "../../Font.h"
 #include "../../Actors/Player/Player.h"
 #include "../../Actors/Player/PlayerProjectile.h"
@@ -74,7 +71,6 @@ Battle::Battle(Game* game, const int selectedStage)
     , mGrade(40.0f)
     , mStage(selectedStage)
 {
-    //SDL_Log(" BATTLE - Construtor");
 }
 
 Battle::~Battle() {
@@ -86,7 +82,6 @@ Battle::~Battle() {
 //region LoadFunctions
 void Battle::Load() {
 
-    //SDL_Log(" BATTLE - LOAD - Iniciando");
     // 1. Criar os sistemas primeiro
     mProjectileManager = std::make_unique<ProjectileManager>(this);
 
@@ -1509,10 +1504,6 @@ void Battle::GradeDown(const float multiplicadorDaPerda) {
 
 float Battle::PerdaPorJogador(const float bruto) const {
     return Nota::PerdaPorJogador(bruto, mJogadores.size());
-}
-
-bool Battle::PerdeuACheia() const {
-    return Nota::PerdeuACheia(mAcertosSofridos);
 }
 
 /// Segundos que o aviso de fase limpa fica na tela. Curto: ele informa, nao

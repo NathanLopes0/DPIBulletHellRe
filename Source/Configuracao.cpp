@@ -80,11 +80,6 @@ Lida Ler(const std::string& texto) {
         const std::string chave = Aparado(limpa.substr(0, igual));
         const std::string valor = Aparado(limpa.substr(igual + 1));
 
-        // A DIFICULDADE DE ANTES: era opcao da maquina, hoje e escolhida a
-        // cada partida. A linha de um arquivo antigo nao e problema - so nao
-        // vale mais nada.
-        if (chave == "dificuldade") continue;
-
         if (chave == "volume_musica" || chave == "volume_efeitos") {
             int& destino = (chave == "volume_musica") ? lida.dados.volumeMusica : lida.dados.volumeEfeitos;
             if (!DeVolume(valor, destino)) {

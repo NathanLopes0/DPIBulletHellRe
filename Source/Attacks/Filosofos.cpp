@@ -257,10 +257,6 @@ namespace Filosofos {
         return pontos;
     }
 
-    std::string Placar(const Rodada r, const Mesa& m) {
-        return Placar(r, m, PlanoDeSempre());
-    }
-
     std::string Pensador(const int i) {
         switch (((i % kPensadores) + kPensadores) % kPensadores) {
             case 0:  return "S\xc3\xb3" "crates";

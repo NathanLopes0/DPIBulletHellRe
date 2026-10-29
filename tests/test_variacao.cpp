@@ -133,13 +133,6 @@ TEST_CASE("Variacao: cada fase tem a propria sequencia, e o filho nao gasta o pa
     }
     CHECK(iguaisAB == 0);
     CHECK(iguaisAC == 0);
-
-    Sorteio p(5u), q(5u);
-    Sorteio f = p.Filho(1);
-    Sorteio g = p.Filho(1);
-    CHECK(f.Bruto() == g.Bruto());     // o mesmo filho
-    CHECK(p.Filho(2).Bruto() != p.Filho(1).Bruto());
-    CHECK(p.Bruto() == q.Bruto());     // pedir filhos nao mexeu no pai
 }
 
 TEST_CASE("Variacao: a ordem das formas - as fixas no lugar, o resto embaralhado, e a volta seguinte") {

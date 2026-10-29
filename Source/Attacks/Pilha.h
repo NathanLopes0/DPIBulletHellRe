@@ -72,11 +72,6 @@ namespace Pilha {
         int valor = 0;   ///< o numero do bloco que entra (push)
     };
 
-    /// @brief A proxima operacao, com a pilha de 'altura' blocos. Vazia, push;
-    /// cheia, o push que derruba; no meio, push com chance kChanceDePush. O
-    /// valor do push e um digito, de 0 a 9.
-    Operacao Proxima(int altura, std::uint32_t sorteio);
-
     /// @brief Onde fica o bloco k em relacao ao professor (so o y; o x e o dele).
     float AbaixoDoProfessor(int k);
 
@@ -98,7 +93,11 @@ namespace Pilha {
     Plano Sortear(Variacao::Sorteio& s);
     constexpr int kMenorCapacidade = 4;
     constexpr int kMaiorCapacidade = 6;
-    Operacao Proxima(int altura, std::uint32_t sorteio, const Plano& p);
+
+    /// @brief A proxima operacao, com a pilha de 'altura' blocos. Vazia, push;
+    /// cheia, o push que derruba; no meio, push com a chance do plano. O valor
+    /// do push e um digito, de 0 a 9.
+    Operacao Proxima(int altura, std::uint32_t sorteio, const Plano& p = Plano{});
 
     /// O que o Dificil muda: uma operacao a cada 0,66 s, e nao 0,7, e o pop,
     /// as lascas e a pilha derrubada andam 10% mais depressa. E POUCO DE

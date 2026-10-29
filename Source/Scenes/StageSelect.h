@@ -27,9 +27,6 @@ public:
 
     void OnUpdate(float deltaTime) override;
 
-    // Getter para a matéria selecionada
-    [[nodiscard]] int GetSelectedSubject() const { return mSelectedSubject; }
-
 private:
 
     // --- Funções Privadas para Organização Lógica ---

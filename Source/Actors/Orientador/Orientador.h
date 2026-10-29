@@ -74,7 +74,6 @@ public:
     void Carregar();
 
     [[nodiscard]] bool PoderPronto() const;
-    [[nodiscard]] int Carga() const { return mCarga; }
 
     /// Solta o poder, se estiver pronto. O BOTAO 3 de qualquer aluno chama.
     bool SoltarPoder();

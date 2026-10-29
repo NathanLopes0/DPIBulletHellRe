@@ -53,8 +53,6 @@ namespace Temperatura {
         return c;
     }
 
-    Temperaturas Sortear(Variacao::Sorteio& s) { return Sortear(s, Dificuldade::Nivel::Normal); }
-
     Temperaturas Sortear(Variacao::Sorteio& s, const Dificuldade::Nivel n) {
         const bool dificil = n == Dificuldade::Nivel::Dificil;
         return {static_cast<float>(dificil ? s.Inteiro(3, 5) : s.Inteiro(1, 3)) / 10.0f,

@@ -37,7 +37,6 @@ public:
 
     void Load() override;
     void OnProcessInput(const Uint8* keyState) override;
-    void OnUpdate(float deltaTime) override;
 
 private:
     /// Um texto centrado em (x, y). 'linhas': quantas linhas ele pode ocupar
@@ -50,7 +49,7 @@ private:
 
     std::unique_ptr<Font> mFonte;
     std::array<DrawCaixaComponent*, Dificuldade::kQuantos> mCartoes{};
-    int mEscolhido = 0;
+    Dificuldade::Nivel mEscolhido = Dificuldade::Nivel::Normal;
 
     /// As bordas, para uma acao por toque. Comecam em TRUE: o botao 1 que
     /// confirmou a matricula nao confirma a dificuldade junto.

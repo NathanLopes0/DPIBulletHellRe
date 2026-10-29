@@ -12,7 +12,7 @@
 
 using Dificuldade::Nivel;
 
-TEST_CASE("Dificuldade: cada nivel tem nome, descricao e uma chave que volta a ele") {
+TEST_CASE("Dificuldade: cada nivel tem nome, descricao e uma chave so dele") {
     std::set<std::string> chaves, nomes;
     for (const Nivel n : Dificuldade::kNiveis) {
         CAPTURE(static_cast<int>(n));
@@ -21,24 +21,12 @@ TEST_CASE("Dificuldade: cada nivel tem nome, descricao e uma chave que volta a e
         chaves.insert(Dificuldade::Chave(n));
         nomes.insert(Dificuldade::Nome(n));
 
-        Nivel lido = (n == Nivel::Normal) ? Nivel::Dificil : Nivel::Normal;
-        REQUIRE(Dificuldade::DeChave(Dificuldade::Chave(n), lido));
-        CHECK(lido == n);
-
-        // A CHAVE E ASCII: o arquivo pode ser editado em qualquer editor.
+        // A CHAVE E ASCII: o CSV abre igual em qualquer editor.
         for (const char c : std::string(Dificuldade::Chave(n))) CHECK(static_cast<unsigned char>(c) < 128);
     }
     CHECK(chaves.size() == static_cast<size_t>(Dificuldade::kQuantos));
     CHECK(nomes.size() == static_cast<size_t>(Dificuldade::kQuantos));
     CHECK(std::string(Dificuldade::Nome(Nivel::Dificil)) == "DIF\xc3\x8d" "CIL");
-}
-
-TEST_CASE("Dificuldade: chave desconhecida nao mexe no nivel") {
-    Nivel n = Nivel::Dificil;
-    CHECK_FALSE(Dificuldade::DeChave("dif\xc3\xad" "cil", n));   // com acento nao e a chave
-    CHECK_FALSE(Dificuldade::DeChave("DIFICIL", n));
-    CHECK_FALSE(Dificuldade::DeChave("", n));
-    CHECK(n == Nivel::Dificil);
 }
 
 TEST_CASE("Dificuldade: andar para qualquer lado troca, e da a volta") {
@@ -57,14 +45,14 @@ TEST_CASE("Dificuldade: Escolher devolve o valor do nivel") {
     CHECK(Dificuldade::Escolher(Nivel::Dificil, 0.4f, 0.3f) == doctest::Approx(0.3f));
 }
 
-TEST_CASE("Configuracao: a dificuldade nao e mais opcao da maquina, e o arquivo antigo continua lido") {
-    // O ARQUIVO DE HOJE NAO A ESCREVE...
+TEST_CASE("Configuracao: a dificuldade nao e opcao da maquina") {
+    // ELA E DA PARTIDA (Game::NivelDeDificuldade): o arquivo nao a escreve, e a
+    // linha de um arquivo antigo e uma opcao desconhecida como outra qualquer -
+    // vira aviso no log, e o resto do arquivo vale.
     CHECK(Configuracao::Serializar(Configuracao::Dados{}).find("dificuldade") == std::string::npos);
-    // ...E O DE ANTES, com ela, e lido sem problema nenhum: a linha so nao vale.
-    const auto antigo = Configuracao::Ler("# x\r\n  dificuldade =  dificil  \r\nhitbox=sim\n");
-    CHECK(antigo.problemas.empty());
+    const auto antigo = Configuracao::Ler("dificuldade=dificil\nhitbox=sim\n");
+    CHECK(antigo.problemas.size() == 1u);
     CHECK(antigo.dados.mostrarHitbox);
-    CHECK(Configuracao::Ler("dificuldade=impossivel\n").problemas.empty());
 }
 
 TEST_CASE("Configuracao: arquivo vazio, comentario e linha em branco dao o padrao, sem problema") {
@@ -120,12 +108,6 @@ TEST_CASE("Configuracao: o volume, a tela cheia e a hitbox vao e voltam, e o pad
     CHECK(lida.dados.telaCheia);
     CHECK(lida.dados.mostrarHitbox);
 
-    // O ARQUIVO DE ANTES, so com a dificuldade, continua valendo: o resto
-    // fica no padrao, sem problema.
-    const auto antigo = Configuracao::Ler("dificuldade=dificil\n");
-    CHECK(antigo.problemas.empty());
-    CHECK(antigo.dados.volumeMusica == Configuracao::kVolumeMaximo);
-    CHECK_FALSE(antigo.dados.telaCheia);
 }
 
 TEST_CASE("Configuracao: volume fora da faixa e sim/nao estranho viram problema e ficam no padrao") {

@@ -44,9 +44,6 @@ public:
     /** @brief Retorna o nome do estado ativo atual. */
     [[nodiscard]] const std::string& GetStateName() const { return mCurrentState; }
 
-    /** @brief Checa se a FSM está no estado X. */
-    [[nodiscard]] bool IsInState(const std::string &stateName) const { return mCurrentState == stateName; }
-
     /** @brief Retorna o tempo (em seg) decorrido no estado atual. */
     [[nodiscard]] float GetStateTime() const { return mStateTime; }
 

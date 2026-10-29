@@ -56,9 +56,6 @@ TEST_CASE("Cronograma: o hoje anda pelo grafico, e cada barra cai quando ele pas
     CHECK(XDoHoje(0.0f, largura, d) == doctest::Approx(kMargem));
     CHECK(XDoHoje(d.varredura, largura, d) == doctest::Approx(largura - kMargem));
     CHECK(XDoHoje(99.0f, largura, d) == doctest::Approx(largura - kMargem));
-    for (float x = kMargem; x <= largura - kMargem; x += 37.0f) {
-        CHECK(XDoHoje(Quando(x, largura, d), largura, d) == doctest::Approx(x));
-    }
     CHECK(DegrauDo(Dificuldade::Nivel::Dificil).varredura < d.varredura);
 
     Tarefa t;

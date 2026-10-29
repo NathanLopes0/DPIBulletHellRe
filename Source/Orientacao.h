@@ -71,7 +71,6 @@ namespace Orientacao {
         Votacao(int candidatos, int alunos);
 
         [[nodiscard]] int Alunos() const { return static_cast<int>(mCursor.size()); }
-        [[nodiscard]] int QuantosCandidatos() const { return mCandidatos; }
 
         /// Em que candidato o cursor do aluno esta. Comeca no primeiro, o de
         /// nota mais alta.

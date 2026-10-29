@@ -14,6 +14,14 @@
 
 using namespace Coercao;
 
+// A IGUALDADE DE VALORES e so do teste: o jogo nunca compara dois.
+namespace Coercao {
+    bool operator==(const Valor& a, const Valor& b) {
+        if (a.tipo != b.tipo) return false;
+        return a.tipo == Tipo::Numero ? a.numero == b.numero : a.texto == b.texto;
+    }
+}
+
 namespace {
     constexpr Forma kTodas[kFormas] = {Forma::JsSoma, Forma::PhpSoma, Forma::PythonSoma,
                                        Forma::JsProduto, Forma::PythonRepete, Forma::HaskellSoma};

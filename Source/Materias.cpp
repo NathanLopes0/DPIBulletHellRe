@@ -166,12 +166,7 @@ bool Lista::Desbloqueada(const int indice, const Progresso& progresso) const {
         }
 
         case TipoDeDesbloqueio::AprovadasNaColuna: {
-            const auto daColuna = DaColuna(m->desbloqueio.coluna);
-            int aprovadas = 0;
-            for (const int i : daColuna) {
-                if (progresso.Aprovado(i)) ++aprovadas;
-            }
-            return aprovadas >= m->desbloqueio.quantas;
+            return progresso.QuantasAprovadas(DaColuna(m->desbloqueio.coluna)) >= m->desbloqueio.quantas;
         }
     }
 

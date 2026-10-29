@@ -68,18 +68,11 @@ namespace Escopo {
         float h = 0.0f;
         [[nodiscard]] float Direita() const { return x + w; }
         [[nodiscard]] float Baixo() const { return y + h; }
-        [[nodiscard]] bool Contem(float px, float py) const;
     };
 
     /// @brief O bloco que envolve 'b' no texto - o pai lexico. O global e pai
     /// de si mesmo.
     Bloco Pai(Bloco b);
-
-    /// @brief Se o bloco declara o nome ('x' ou 'y').
-    bool Declara(Bloco b, char nome);
-
-    /// @brief O que o canto do painel diz: "int x, y;", "void g() { int y;".
-    std::string Declaracoes(Bloco b);
 
     /// @brief O painel do bloco, num campo de 'largura' x 'altura'.
     Retangulo Area(Bloco b, float largura = kLargura, float altura = kAltura);
@@ -97,40 +90,11 @@ namespace Escopo {
     char Nome(Forma f);
     Regra RegraDe(Forma f);
 
-    /// @brief A busca do nome: os blocos olhados, em ordem, do de dentro para
-    /// fora - pelo texto no escopo estatico, por quem chamou no dinamico. O
-    /// ultimo e o que declara.
-    std::vector<Bloco> Busca(Forma f);
-    Bloco Dono(Forma f);
-
-    /// @brief Os blocos de dentro de 'dono' que declaram outro 'nome' - os
-    /// buracos da regiao. So os de fora: um bloco dentro de um buraco ja esta
-    /// no buraco.
-    std::vector<Bloco> Ocultam(Bloco dono, char nome);
-
-    /// @brief Se (px, py) esta na regiao em que a variavel do comando e
-    /// visivel: no painel do dono e em nenhum buraco.
-    bool Visivel(Forma f, float px, float py, float largura = kLargura, float altura = kAltura);
-
     /// @brief A ordem da fase: a busca simples primeiro, a pegadinha no fim.
     Forma Proxima(int vez);
 
-    /// @brief O placar: "{ int x;  x++; }", e nas chamadas a regra numa linha
-    /// e o codigo de h na outra.
-    std::string Placar(Forma f);
-
-    /// @brief Onde o professor fica para rodar o comando: dentro do bloco
-    /// dele, abaixo do canto (nas chamadas, embaixo do cartao de f) - o
-    /// cartao do professor, de kMeiaAlturaDoProfessor para cada lado, nao
-    /// cobre a declaracao.
     struct Ponto { float x = 0.0f; float y = 0.0f; };
-    Ponto OndeFicaOProfessor(Forma f, float largura = kLargura, float altura = kAltura);
     constexpr float kMeiaAlturaDoProfessor = 64.0f;
-
-    /// @brief O canto do painel, onde a declaracao esta escrita - o meio da
-    /// caixa dela: e para la que vai a linha da busca. O do global fica no
-    /// alto a direita (o da esquerda e do placar), e o de f e o cartao inteiro.
-    Ponto Canto(Bloco b, float largura = kLargura, float altura = kAltura);
 
     /// @brief A largura da caixa do canto: um tanto por letra, mais a margem.
     /// O Luizinho desenha a caixa com esta conta, e o texto encolhe se nao
@@ -146,7 +110,6 @@ namespace Escopo {
     /// borda e a cada buraco. 'fim' e a altura em que a gota morre: a borda de
     /// baixo do painel, ou o buraco embaixo dela.
     struct Gota { float x = 0.0f; float y = 0.0f; float fim = 0.0f; };
-    std::vector<Gota> Gotas(Forma f, float largura = kLargura, float altura = kAltura);
 
     /// @brief A animacao da gota do nome, apagada (o aviso) e acesa.
     std::string CaraDoAviso(char nome);
@@ -207,8 +170,8 @@ namespace Escopo {
     // interno com x, h com x - e os comandos eram as seis Formas de cima, so
     // em ordem sorteada: em poucas lutas o aluno decorava onde a chuva caia.
     // Agora cada luta SORTEIA O PROGRAMA (o que g, o bloco interno e h
-    // declaram) e GERA OS COMANDOS; as funcoes por Forma continuam, valendo
-    // para o programa de sempre, e as de baixo recebem o programa e o comando.
+    // declaram) e GERA OS COMANDOS, e as funcoes recebem o programa e o
+    // comando. A Forma so da nome aos seis comandos de sempre (DaForma).
 
     /// O que cada bloco declara: x, y, os dois ou nenhum.
     struct Programa {
@@ -229,17 +192,38 @@ namespace Escopo {
     };
     Comando DaForma(Forma f);
 
-    /// O que o bloco declara, como o codigo escreve: "int x, y;", "int y;", "".
+    /// @brief O que o bloco declara, como o codigo escreve: "int x, y;",
+    /// "int y;", "" - e o que o canto do painel diz ("void g() { int y;").
     std::string DeclaracaoDe(const Programa& p, Bloco b);
     std::string Declaracoes(const Programa& p, Bloco b);
+
+    /// @brief A busca do nome: os blocos olhados, em ordem, do de dentro para
+    /// fora - pelo texto no escopo estatico, por quem chamou no dinamico. O
+    /// ultimo e o que declara (o Dono).
     std::vector<Bloco> Busca(const Programa& p, const Comando& c);
     Bloco Dono(const Programa& p, const Comando& c);
+
+    /// @brief Os blocos de dentro de 'dono' que declaram outro 'nome' - os
+    /// buracos da regiao. So os de fora: um bloco dentro de um buraco ja esta
+    /// no buraco.
     std::vector<Bloco> Ocultam(const Programa& p, Bloco dono, char nome);
-    bool Visivel(const Programa& p, const Comando& c, float px, float py,
-                 float largura = kLargura, float altura = kAltura);
+
+    /// @brief O placar: "{ int x;  x++; }", e nas chamadas a regra numa linha
+    /// e o codigo de h na outra.
     std::string Placar(const Programa& p, const Comando& c);
+
+    /// @brief Onde o professor fica para rodar o comando: dentro do bloco
+    /// dele, abaixo do canto (nas chamadas, embaixo do cartao de f) - o
+    /// cartao do professor, de kMeiaAlturaDoProfessor para cada lado, nao
+    /// cobre a declaracao.
     Ponto OndeFicaOProfessor(const Comando& c, float largura = kLargura, float altura = kAltura);
+
+    /// @brief O canto do painel, onde a declaracao esta escrita - o meio da
+    /// caixa dela: e para la que vai a linha da busca. O do global fica no
+    /// alto a direita (o da esquerda e do placar), e o de f e o cartao inteiro.
     Ponto Canto(const Programa& p, Bloco b, float largura = kLargura, float altura = kAltura);
+
+    /// @brief As gotas da variavel achada (ver A CHUVA, acima).
     std::vector<Gota> Gotas(const Programa& p, const Comando& c,
                             float largura = kLargura, float altura = kAltura);
 

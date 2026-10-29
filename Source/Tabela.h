@@ -43,13 +43,4 @@ namespace Tabela {
     /// @brief O meio da faixa - onde a varredura e centrada.
     float Centro(float origem, float tamanho, int quantas, int indice);
 
-    /**
-     * @brief Em que faixa cai uma posicao.
-     *
-     * LIMITADO AOS EXTREMOS de proposito. Um jogador exatamente na borda, ou
-     * meio pixel fora dela por causa do colisor, tem de continuar pertencendo a
-     * alguma linha: devolver -1 ali faria o chefe varrer uma linha inexistente e
-     * o ataque sumir, o que o jogador leria como "o chefe travou".
-     */
-    int FaixaDe(float origem, float tamanho, int quantas, float posicao);
 }

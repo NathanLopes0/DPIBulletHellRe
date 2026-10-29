@@ -308,7 +308,3 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
     }
     mVoltarAnterior = voltar;
 }
-
-void CriacaoDePersonagem::OnUpdate(const float deltaTime) {
-
-}

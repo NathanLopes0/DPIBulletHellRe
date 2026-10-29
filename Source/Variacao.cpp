@@ -27,12 +27,6 @@ std::uint32_t Rotulo(const std::string& nome) {
     return h;
 }
 
-Sorteio Sorteio::Filho(const std::uint32_t rotulo) const {
-    // UMA COPIA do gerador da o proximo numero sem gasta-lo aqui.
-    std::mt19937 copia = mGerador;
-    return Sorteio(Misturar(static_cast<std::uint32_t>(copia()), rotulo));
-}
-
 int Sorteio::Inteiro(const int de, const int ate) {
     if (ate <= de) return de;
     const std::uint64_t n = static_cast<std::uint64_t>(static_cast<std::int64_t>(ate) - de) + 1u;

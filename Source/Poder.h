@@ -62,6 +62,8 @@ namespace Poder {
     float Fracao(int carga);
 
     /// @brief Se ele ataca (e entao so paga nota com o escudo do Hugo aberto).
+    /// Quem pergunta e o piloto do arnes de medicao (Ferramentas/
+    /// medir-dificuldade.sh, DPI_PODER), que espera o escudo abrir para solta-lo.
     bool Ataca(Tipo t);
 
     /// @brief A posicao do agente 'k' de 'n', voando em volta de 'centro', 't'

@@ -9,7 +9,6 @@
 FSMComponent::FSMComponent(Actor *owner, int updateOrder)
     : Component(owner, updateOrder),
       mIsRunning(false),
-      mCurrentState(std::string()), // Começa sem estado
       mStateTime(0.0f)
 {
     // A Factory será responsável por registrar os estados.

@@ -37,8 +37,6 @@ public:
     /// A fase trocou: a capsula se enche de volta, com um clarao.
     void Recomecar();
 
-    [[nodiscard]] bool Urgente() const;
-
 private:
     int mLargura;
     int mAltura;

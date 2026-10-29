@@ -3,6 +3,7 @@
 
 #include "doctest.h"
 #include "../Source/Progresso.h"
+#include "Ajudantes.h"
 
 // ---------------------------------------------------------------------------
 // Materia nunca jogada
@@ -22,7 +23,7 @@ TEST_CASE("Progresso: consultar NAO cria registro") {
     for (int m = 0; m < 50; ++m) {
         (void)p.MelhorNota(m);
         (void)p.Aprovado(m);
-        (void)p.UltimaNota(m);
+        (void)Ajudantes::UltimaNota(p, m);
     }
     CHECK(p.QuantasRegistradas() == 0);
 }
@@ -32,7 +33,7 @@ TEST_CASE("Progresso: materia nunca jogada nao tem ultima nota") {
     // nao o ponto de partida da proxima batalha. Toda fase comeca em kNotaInicial,
     // e isso agora e decisao de Battle::Load, nao daqui.
     const Progresso p;
-    CHECK(p.UltimaNota(1) == doctest::Approx(0.0f));
+    CHECK(Ajudantes::UltimaNota(p, 1) == doctest::Approx(0.0f));
 }
 
 // ---------------------------------------------------------------------------
@@ -73,7 +74,7 @@ TEST_CASE("Progresso: a retomada acompanha a ULTIMA nota, nao o recorde") {
     p.RegistrarNota(1, 85.f);
     p.RegistrarNota(1, 50.f);
     CHECK(p.MelhorNota(1) == doctest::Approx(85.f));
-    CHECK(p.UltimaNota(1) == doctest::Approx(50.f));
+    CHECK(Ajudantes::UltimaNota(p, 1) == doctest::Approx(50.f));
 }
 
 TEST_CASE("Progresso: a ultima nota e a ultima mesmo, sem piso") {
@@ -82,7 +83,7 @@ TEST_CASE("Progresso: a ultima nota e a ultima mesmo, sem piso") {
     // a planilha do professor exporta este numero.
     Progresso p;
     p.RegistrarNota(1, 10.f);
-    CHECK(p.UltimaNota(1) == doctest::Approx(10.f));
+    CHECK(Ajudantes::UltimaNota(p, 1) == doctest::Approx(10.f));
     CHECK(p.MelhorNota(1) == doctest::Approx(10.f));
 }
 
@@ -207,7 +208,7 @@ TEST_CASE("Progresso: a retomada e a data sao da MATERIA, nao do modo") {
     p.RegistrarNota(3, 70.0f, "2026-10-01 10:00:00");
     p.RegistrarNotaDeDupla(3, 20.0f, "90112", "2026-10-14 15:00:00");
 
-    CHECK(p.UltimaNota(3) == doctest::Approx(20.0f));
+    CHECK(Ajudantes::UltimaNota(p, 3) == doctest::Approx(20.0f));
 
     const auto entradas = p.Entradas();
     REQUIRE(entradas.size() == 1);
@@ -256,7 +257,7 @@ TEST_CASE("Progresso: guardar e repor conserva os seis campos") {
     CHECK(depois.MelhorNotaSolo(3) == doctest::Approx(55.0f));
     CHECK(depois.MelhorNotaDeDupla(3) == doctest::Approx(88.0f));
     CHECK(depois.ParceiroDoRecorde(3) == "90112");
-    CHECK(depois.UltimaNota(3) == doctest::Approx(88.0f));
+    CHECK(Ajudantes::UltimaNota(depois, 3) == doctest::Approx(88.0f));
 
     const auto e = depois.Entradas();
     REQUIRE(e.size() == 1);

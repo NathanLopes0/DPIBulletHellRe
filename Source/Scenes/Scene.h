@@ -46,10 +46,6 @@ public:
 
     Actor* AddActor(std::unique_ptr<Actor> actor);
 
-    void AddCollider(ColliderComponent* collider);
-    void RemoveCollider(ColliderComponent* collider);
-    std::vector<ColliderComponent*>& GetColliders() { return mColliders; }
-
     void AddDrawable(DrawComponent* drawable);
     void RemoveDrawable(DrawComponent* drawable);
 
@@ -97,9 +93,6 @@ protected:
 
     // Lista de observadores para desenho.
     std::vector<DrawComponent*> mDrawables;
-
-    //Lista de observadores para colisores
-    std::vector<ColliderComponent*> mColliders;
 
     // A cena é DONA de todos os atores que vivem nela
     std::vector<std::unique_ptr<Actor>> mActors;

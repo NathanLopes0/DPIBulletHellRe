@@ -58,7 +58,11 @@ namespace Prova {
     constexpr float kAbertura = 0.6f;
 
     constexpr int kProblemas = 5;
-    constexpr std::array<Problema, kProblemas> kProva = {{
+
+    /// Uma prova: os cinco problemas, na ordem em que caem. A de sempre e
+    /// kProva; a de cada luta, Embaralhada.
+    using Lista = std::array<Problema, kProblemas>;
+    constexpr Lista kProva = {{
         {'A', Tema::Condicional, 0, 1, 0.0f, 4.0f, "if / else", kAceito},
         {'B', Tema::Laco, 4, 1, 4.0f, 8.2f, "for aninhado", kAceito},
         {'C', Tema::Funcao, 2, 1, 8.2f, 12.1f, "funcoes", kAceito},
@@ -67,31 +71,28 @@ namespace Prova {
     }};
 
     /// @brief O juiz aceitou o problema k? So o aceito ganha balao.
-    bool Aceito(int k);
+    bool Aceito(int k, const Lista& prova = kProva);
 
     /// @brief O problema em curso no instante 't' da repescagem, ou -1 depois
     /// do ultimo - o resto da repescagem e do veredito dele.
-    int ProblemaEm(float t);
+    int ProblemaEm(float t, const Lista& prova = kProva);
 
     /// @brief O placar da abertura do problema k: o veredito do anterior, se ha
     /// um, e o nome deste - "A: YES!  Problema B: for aninhado".
-    std::string Abertura(int k);
+    std::string Abertura(int k, const Lista& prova = kProva);
 
     /// @brief O veredito do problema k, quando ele fecha: "Problema A: YES",
     /// "Problema E: NO - Runtime error".
-    std::string Veredito(int k);
+    std::string Veredito(int k, const Lista& prova = kProva);
 
     /// @brief A animacao do balao do problema k: a letra dele, na cor dele.
     /// Vazio para o que nao foi aceito - ele nao ganha balao.
-    std::string CaraDoTrofeu(int k);
+    std::string CaraDoTrofeu(int k, const Lista& prova = kProva);
 
     /// O balao do problema sobe devagar, do professor ate sair por cima.
     constexpr float kVelocidadeDoTrofeu = 90.0f;
 
     // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA -------------------------------
-
-    /// Uma prova: os cinco problemas, na ordem em que caem.
-    using Lista = std::array<Problema, kProblemas>;
 
     /**
      * @brief A prova desta luta: os quatro primeiros problemas em outra ordem,
@@ -102,11 +103,4 @@ namespace Prova {
      * lugares sao refeitos um depois do outro a partir do zero.
      */
     Lista Embaralhada(Variacao::Sorteio& s);
-
-    /// As funcoes de cima, numa prova qualquer.
-    int ProblemaEm(float t, const Lista& prova);
-    bool Aceito(int k, const Lista& prova);
-    std::string Abertura(int k, const Lista& prova);
-    std::string Veredito(int k, const Lista& prova);
-    std::string CaraDoTrofeu(int k, const Lista& prova);
 }

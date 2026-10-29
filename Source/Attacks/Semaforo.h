@@ -141,7 +141,6 @@ namespace Semaforo {
     /// @brief Quanto vale s agora: as permissoes menos quem esta dentro.
     int Valor(const Escalonador& e);
 
-    bool Esperando(const Escalonador& e, int t);
     bool Dentro(const Escalonador& e, int t);
     bool Passou(const Escalonador& e, int t);
 

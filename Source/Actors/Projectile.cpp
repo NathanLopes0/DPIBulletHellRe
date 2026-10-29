@@ -15,10 +15,8 @@
 
 Projectile::Projectile(Scene *scene, Actor *owner)
     : Actor(scene),
-    mOwner(owner),
-    mForwardSpeed(0.0f)
+    mOwner(owner)
 {
-
 }
 
 Projectile::~Projectile() = default;
@@ -90,8 +88,6 @@ void Projectile::Reset() {
     mMotion.reset();
     mModifiers.clear();
     mTempoDeVida = 0.0f;
-
-    mForwardSpeed = 0.0f;
 
     if (auto rb = GetComponent<RigidBodyComponent>()) {
         rb->SetVelocity(Vector2::Zero);
@@ -184,28 +180,6 @@ void Projectile::MarkDead() {
         // remover da lista de mDrawables da Scene.
         SetState(ActorState::Destroy);
     }
-}
-
-float Projectile::GetForwardSpeed() const {
-    if (auto rb = GetComponent<RigidBodyComponent>()) {
-        return rb->GetVelocity().Length();
-    }
-
-    SDL_Log("Erro em Projectile.cpp na função GetForwardSpeed: Projetil sem RigidBodyComponent."
-            "Retornando 0.0f em GetForwardSpeed...");
-    return 0.0f;
-}
-
-void Projectile::SetForwardSpeed(const float newSpeed) {
-    mForwardSpeed = newSpeed;
-    if (auto rb = GetComponent<RigidBodyComponent>()) {
-        Vector2 vel = rb->GetVelocity();
-        vel.Normalize();
-        rb->SetVelocity(vel * mForwardSpeed);
-        return;
-    }
-
-    SDL_Log("Erro em Projectile.cpp na função SetForwardSpeed: Projetil sem RigidBodyComponent.");
 }
 
 

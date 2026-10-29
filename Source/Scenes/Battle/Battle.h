@@ -208,9 +208,6 @@ public:
      */
     [[nodiscard]] float GetNotaAtual() const { return mGrade; }
 
-    /// @brief Se esta batalha ja perdeu o direito a nota cheia por dano sofrido.
-    [[nodiscard]] bool PerdeuACheia() const;
-
 
 protected:
     void TimeBarUpdate() const;

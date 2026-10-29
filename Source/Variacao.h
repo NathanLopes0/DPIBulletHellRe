@@ -51,10 +51,6 @@ namespace Variacao {
     public:
         explicit Sorteio(std::uint32_t semente) : mGerador(semente) {}
 
-        /// A sequencia de um pedaco (uma rodada, um filosofo), tirada desta
-        /// sem gastar dela: pedir o filho nao muda o que esta sorteia depois.
-        [[nodiscard]] Sorteio Filho(std::uint32_t rotulo) const;
-
         /// Os 32 bits crus do mt19937.
         std::uint32_t Bruto() { return static_cast<std::uint32_t>(mGerador()); }
 

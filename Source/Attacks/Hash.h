@@ -95,11 +95,6 @@ namespace Hash {
         int chave = 0;
     };
 
-    /// @brief A proxima operacao. Com a tabela vazia, insere. Numa busca, com
-    /// chance kChanceDeAchar a chave buscada e uma de 'naTabela'; senao, uma que
-    /// nao esta. Toda chave inserida e nova: nao ha duas iguais na tabela.
-    Operacao Proxima(const std::vector<int>& naTabela, std::uint32_t sorteio);
-
     /// @brief Os placares: "h(23) = 23 mod 7 = 2", "busca(23): achou",
     /// "busca(41): NULL", "rehash: m = 7 → 11".
     std::string PlacarDaInsercao(int chave, int m);
@@ -120,7 +115,11 @@ namespace Hash {
         float chanceDeInserir = kChanceDeInserir;
     };
     Plano Sortear(Variacao::Sorteio& s);
-    Operacao Proxima(const std::vector<int>& naTabela, std::uint32_t sorteio, const Plano& p);
+
+    /// @brief A proxima operacao. Com a tabela vazia, insere. Numa busca, com
+    /// chance kChanceDeAchar a chave buscada e uma de 'naTabela'; senao, uma que
+    /// nao esta. Toda chave inserida e nova: nao ha duas iguais na tabela.
+    Operacao Proxima(const std::vector<int>& naTabela, std::uint32_t sorteio, const Plano& p = Plano{});
 
     /// O que o Dificil muda: uma operacao a cada 0,55 s, e o leque do
     /// percurso e o NULL andam 25% mais depressa.

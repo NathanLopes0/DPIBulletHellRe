@@ -347,7 +347,9 @@ bool JanelaDaEtapa(const std::vector<DescricaoDeEtapa>& etapas, const std::strin
                    float& de, float& ate);
 
 /// @brief A etapa que vale no instante 't' da fase: o indice, ou -1 depois da
-/// ultima (ou sem etapas). Antes de zero vale a primeira.
+/// ultima (ou sem etapas). Antes de zero vale a primeira. O Boss faz a conta
+/// quadro a quadro com JanelaDaEtapa; esta existe para os testes conferirem
+/// as etapas dos dados.
 int EtapaNoTempo(const std::vector<DescricaoDeEtapa>& etapas, float t);
 
 /// Quanto o primeiro disparo de um ataque espera depois que a janela dele

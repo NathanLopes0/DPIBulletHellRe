@@ -136,8 +136,7 @@ namespace Mensagens {
     Degrau DegrauDo(Dificuldade::Nivel n);
 
     /// O roteiro da rodada, em ordem de tempo - o de sempre, ou o desta luta.
-    std::vector<Evento> Roteiro(Rodada r);
-    std::vector<Evento> Roteiro(Rodada r, const Plano& p, const Degrau& d);
+    std::vector<Evento> Roteiro(Rodada r, const Plano& p = PlanoDeSempre(), const Degrau& d = Degrau{});
 
     /// @brief Quanto tempo depois de sair um envelope chega - e, no impasse,
     /// quando ele para na porta (kNaPorta do caminho).
@@ -155,8 +154,7 @@ namespace Mensagens {
     /// Onde fica cada processo na rodada k: o cliente a esquerda, o servidor a
     /// direita, no alto, cada rodada num par de alturas - os de sempre, ou os
     /// desta luta.
-    Ponto Lugar(int processo, int k, float largura);
-    Ponto Lugar(int processo, int k, float largura, const Plano& p);
+    Ponto Lugar(int processo, int k, float largura, const Plano& p = PlanoDeSempre());
 
     /// @brief O ARCO DO CANAL: de 'de' a 'para', descendo ate 'fundo' no meio.
     /// s vai de 0 (em 'de') a 1 (em 'para').
@@ -187,6 +185,6 @@ namespace Mensagens {
 
     // ---- OS TEXTOS ----------------------------------------------------------
 
-    std::string Placar(Rodada r, int naCaixa, int chamada, bool bloqueado, bool estourou);
-    std::string Placar(Rodada r, int naCaixa, int chamada, bool bloqueado, bool estourou, const Plano& p);
+    std::string Placar(Rodada r, int naCaixa, int chamada, bool bloqueado, bool estourou,
+                       const Plano& p = PlanoDeSempre());
 }

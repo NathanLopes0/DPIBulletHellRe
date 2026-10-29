@@ -96,9 +96,6 @@ public:
      */
     SDL_Texture* GetPlaceholderTexture();
 
-    //Camera functions
-    Vector2& GetCameraPos() { return mCameraPos; }
-    void SetCameraPos(const Vector2& position) { mCameraPos = position; };
     class SDL_Renderer* GetRenderer() { return mRenderer; }
 
     // Window functions
@@ -211,12 +208,6 @@ public:
         return ProgressoDoMapa().Aprovado(materia);
     }
 
-    /// @brief A ultima nota que o jogador tirou nesta materia. NAO e por onde a
-    /// batalha comeca - toda fase parte de Progresso::kNotaInicial.
-    [[nodiscard]] float GetUltimaNota(const int materia) const {
-        return ProgressoDoMapa().UltimaNota(materia);
-    }
-
     /// @brief Registra o resultado de uma batalha: a retomada passa a ser esta
     /// nota, e o recorde so sobe. Chamado UMA vez, ao fim da batalha.
     ///
@@ -249,7 +240,6 @@ public:
 
     /// @brief Quantos jogam esta partida. So o menu principal decide.
     void DefinirModoDeJogo(Sessao::Modo modo);
-    [[nodiscard]] Sessao::Modo ModoDeJogo() const { return mModoDeJogo; }
     [[nodiscard]] size_t QuantosJogadores() const { return mSessoes.size(); }
 
     /// @brief Qual posicao esta na tela de matricula ou de personagem agora.
@@ -334,11 +324,9 @@ private:
 
     /// A sessao da posicao que esta na tela de matricula ou de personagem.
     [[nodiscard]] Sessao::Dados& SessaoEntrando();
-    [[nodiscard]] const Sessao::Dados& SessaoEntrando() const;
 
     void ProcessInput();
     void UpdateGame();
-    void UpdateCamera();
     void GenerateOutput();
 
     // SDL stuff
@@ -365,9 +353,6 @@ private:
 
     // Track if game is running
     bool mIsGameRunning;
-
-    // Camera X and Y position
-    Vector2 mCameraPos;
 
     //Active scenes
     std::unique_ptr<Scene> mScene;
