@@ -56,7 +56,7 @@ void LucasFactory::ConfigureAttacksAndFSM(Boss* boss) {
 
     // As fases vivem em Assets/Attacks/lucas/fases.json. Sem configuracao de
     // reserva em C++, como nos outros: quem impede um arquivo quebrado de
-    // chegar ao jogo e tests/test_arquivos_de_dados.cpp.
+    // chegar ao jogo e tests/Data/test_arquivos_de_dados.cpp.
     if (!ConfigurarFasesDeArquivo(boss, fsm, "lucas")) {
         SDL_Log("ERRO CRITICO: o chefe \"lucas\" nao pode ser montado a partir de "
                 "Assets/Attacks/lucas/fases.json e ficara sem ataque. As linhas "

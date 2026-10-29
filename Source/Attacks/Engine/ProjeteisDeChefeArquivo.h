@@ -30,7 +30,7 @@ class Boss;
  * utilizavel. Um chefe sem projetil ainda monta e ainda anda, mas os ataques dele
  * nao encontram a fabrica que pedem e cada disparo vira uma linha de log - ou
  * seja, o chefe fica inofensivo. Quem impede isso de chegar ao jogo e
- * tests/test_arquivos_de_dados.cpp, que le este arquivo junto com fases.json e
+ * tests/Data/test_arquivos_de_dados.cpp, que le este arquivo junto com fases.json e
  * com os atlas de verdade e quebra a suite se um ataque pedir um projetil que nao
  * existe, ou se uma animacao citar um quadro que a folha nao tem.
  *

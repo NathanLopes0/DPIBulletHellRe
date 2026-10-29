@@ -36,7 +36,7 @@ class FSMComponent;
  * parece bug de jogo e nao erro de arquivo.
  *
  * FALSE AGORA SIGNIFICA UM CHEFE SEM ATAQUE, e nao mais "cai para o C++". Quem
- * impede isso de acontecer em jogo e tests/test_arquivos_de_dados.cpp, que le os
+ * impede isso de acontecer em jogo e tests/Data/test_arquivos_de_dados.cpp, que le os
  * Assets de verdade e quebra a suite ao primeiro erro de digitacao: nome de
  * conjunto de regras que nao existe, nome de forma que nao existe, transicao
  * quebrada, fase sem ataque. E uma protecao melhor que a reserva, porque pega

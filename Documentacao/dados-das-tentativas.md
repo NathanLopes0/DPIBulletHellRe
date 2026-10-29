@@ -6,7 +6,7 @@ precisa. Para estudar *como* os alunos jogam, o jogo também guarda a
 quanto durou, como terminou e o que o aluno fez nela.
 
 O código está em `Source/Data/Tentativas.h` (o formato, testado em
-`tests/test_tentativas.cpp`), em `Source/Data/TentativasArquivo.cpp` (o disco) e em
+`tests/Data/test_tentativas.cpp`), em `Source/Data/TentativasArquivo.cpp` (o disco) e em
 `Source/Scenes/Battle/RegistroDaTentativa.cpp`, que ouve a batalha
 (`OuvinteDaBatalha`) e anota tudo no instante em que acontece.
 

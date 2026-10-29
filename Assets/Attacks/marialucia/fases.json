@@ -93,7 +93,7 @@
   // O MOVIMENTO E O DIAGRAMA: ela desce uma escada, um degrau por etapa, da
   // esquerda para a direita - a forma em que o modelo cascata e desenhado. Os
   // 4 s por degrau e os 5 degraus do "movimento" sao os das etapas, e o
-  // canario de tests/test_arquivos_de_dados.cpp segura os dois juntos.
+  // canario de tests/Data/test_arquivos_de_dados.cpp segura os dois juntos.
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
@@ -162,7 +162,7 @@
   // outros 0,25 s depois de a etapa abrir. Com o backlog de 0,75 s as cinco
   // disparam no mesmo ponto da sprint, a revisao de 3,1 s cai 0,25 s antes do
   // fim de cada uma, e a retrospectiva deixa a ultima revisao cair dentro da
-  // fase. O canario de tests/test_arquivos_de_dados.cpp segura as contas.
+  // fase. O canario de tests/Data/test_arquivos_de_dados.cpp segura as contas.
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",

@@ -58,7 +58,7 @@ void VladimirFactory::ConfigureAttacksAndFSM(Boss* boss) {
     // projeteis no regras.json ao lado. Como no Ricardo, NAO HA CONFIGURACAO DE
     // RESERVA EM C++: se o arquivo faltar ou tiver uma transicao quebrada, este
     // chefe fica SEM ATAQUE NENHUM, e quem impede isso de chegar ao jogo e
-    // tests/test_arquivos_de_dados.cpp, que le os Assets de verdade.
+    // tests/Data/test_arquivos_de_dados.cpp, que le os Assets de verdade.
     if (!ConfigurarFasesDeArquivo(boss, fsm, "vladimir")) {
         SDL_Log("ERRO CRITICO: o chefe \"vladimir\" nao pode ser montado a partir de "
                 "Assets/Attacks/vladimir/fases.json e ficara sem ataque. As linhas "

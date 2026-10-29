@@ -459,7 +459,9 @@ Documentacao/    receitas para quem for mexer no código
 Ferramentas/     geradores de arte provisória e os arneses de medição
                  (medir-dificuldade.sh, parado-reprova.sh)
 
-tests/           a suíte
+tests/           a suíte, com o desenho de Source/: o teste de
+                 Source/Gameplay/Nota.cpp mora em tests/Gameplay/test_nota.cpp.
+                 Só test_main.cpp, Ajudantes.h e doctest.h ficam na raiz.
 ```
 
 A separação entre o par `X.cpp` / `XArquivo.cpp` é o que torna a suíte possível:

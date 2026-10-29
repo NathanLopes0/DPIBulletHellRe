@@ -97,7 +97,7 @@ std::string Digitar(const std::string& atual, const char tecla) {
     // O limite e sobre o que esta na tela. Quem digita nao tem como escrever zeros
     // a esquerda alem do sexto caractere, entao a digitacao e um pouco mais
     // restrita que a validacao - e tudo bem: todo texto digitavel e valido, que e
-    // a propriedade conferida em tests/test_matricula.cpp.
+    // a propriedade conferida em tests/Student/test_matricula.cpp.
     if (atual.size() >= static_cast<size_t>(kMaximoDeDigitos)) return atual;
 
     return atual + tecla;

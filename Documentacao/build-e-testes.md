@@ -40,6 +40,10 @@ grep -c "Source/Gameplay/Nota.cpp" CMakeLists.txt     # tem de dar 2
 Esquecer o segundo dá erro de link só no `dpi_tests`, com uma mensagem que não
 menciona o CMake.
 
+Um teste novo vai em `tests/` no **mesmo caminho** do que ele testa: o teste de
+`Source/Gameplay/Nota.cpp` é `tests/Gameplay/test_nota.cpp`, e o de
+`Source/Attacks/Thiago/Banco.cpp` é `tests/Attacks/Thiago/test_banco.cpp`.
+
 ---
 
 ## Rodar os testes

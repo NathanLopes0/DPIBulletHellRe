@@ -58,7 +58,7 @@ void MariaLuciaFactory::ConfigureAttacksAndFSM(Boss* boss) {
     // projeteis no regras.json ao lado. Como no Ricardo, NAO HA CONFIGURACAO DE
     // RESERVA EM C++: se o arquivo faltar ou tiver uma transicao quebrada, esta
     // chefe fica SEM ATAQUE NENHUM, e quem impede isso de chegar ao jogo e
-    // tests/test_arquivos_de_dados.cpp, que le os Assets de verdade.
+    // tests/Data/test_arquivos_de_dados.cpp, que le os Assets de verdade.
     if (!ConfigurarFasesDeArquivo(boss, fsm, "marialucia")) {
         SDL_Log("ERRO CRITICO: a chefe \"marialucia\" nao pode ser montada a partir de "
                 "Assets/Attacks/marialucia/fases.json e ficara sem ataque. As linhas "

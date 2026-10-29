@@ -56,7 +56,7 @@ void LuizinhoFactory::ConfigureAttacksAndFSM(Boss* boss) {
 
     // As fases vivem em Assets/Attacks/luizinho/fases.json. Sem configuracao
     // de reserva em C++, como nos outros: quem impede um arquivo quebrado de
-    // chegar ao jogo e tests/test_arquivos_de_dados.cpp.
+    // chegar ao jogo e tests/Data/test_arquivos_de_dados.cpp.
     if (!ConfigurarFasesDeArquivo(boss, fsm, "luizinho")) {
         SDL_Log("ERRO CRITICO: o chefe \"luizinho\" nao pode ser montado a partir de "
                 "Assets/Attacks/luizinho/fases.json e ficara sem ataque. As linhas "

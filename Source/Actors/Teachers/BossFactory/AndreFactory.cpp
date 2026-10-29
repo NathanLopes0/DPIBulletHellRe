@@ -59,7 +59,7 @@ void AndreFactory::ConfigureAttacksAndFSM(Boss *boss) {
     // malformado ou tiver uma transicao quebrada, ConfigurarFasesDeArquivo
     // devolve false depois de explicar o motivo no log, e este chefe fica SEM
     // ATAQUE NENHUM. Quem impede isso de chegar ao jogo e
-    // tests/test_arquivos_de_dados.cpp, que le os Assets de verdade e quebra a
+    // tests/Data/test_arquivos_de_dados.cpp, que le os Assets de verdade e quebra a
     // suite ao primeiro erro de digitacao.
     if (!ConfigurarFasesDeArquivo(boss, fsm, "andre")) {
         SDL_Log("ERRO CRITICO: o chefe \"andre\" nao pode ser montado a partir de "

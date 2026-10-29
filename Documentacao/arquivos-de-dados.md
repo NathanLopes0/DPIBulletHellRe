@@ -7,7 +7,7 @@ Todos aceitam **comentários `//`**, que são removidos antes da leitura. Use-os
 onde mora a razão de cada número.
 
 Nenhum erro aqui é silencioso. A leitura junta os problemas numa lista, cada um
-com o conjunto, a fase e o ataque em que aconteceu, e `tests/test_arquivos_de_dados.cpp`
+com o conjunto, a fase e o ataque em que aconteceu, e `tests/Data/test_arquivos_de_dados.cpp`
 lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 
 | Arquivo | O que descreve |

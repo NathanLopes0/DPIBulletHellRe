@@ -204,7 +204,7 @@ Uma matéria sem `chefe` é válida: aparece na grade e espera um.
 
 ## 9. Avisar os testes
 
-Dois guardas em `tests/test_arquivos_de_dados.cpp` espelham o C++ e **vão
+Dois guardas em `tests/Data/test_arquivos_de_dados.cpp` espelham o C++ e **vão
 falhar** até serem atualizados — de propósito, para que ninguém acrescente um
 professor pela metade:
 

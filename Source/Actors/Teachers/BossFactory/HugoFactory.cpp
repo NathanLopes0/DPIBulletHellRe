@@ -57,7 +57,7 @@ void HugoFactory::ConfigureAttacksAndFSM(Boss* boss) {
     // As fases vivem em Assets/Attacks/hugo/fases.json e as regras dos
     // projeteis no regras.json ao lado. NAO HA CONFIGURACAO DE RESERVA EM C++:
     // quem impede um arquivo quebrado de chegar ao jogo e
-    // tests/test_arquivos_de_dados.cpp, que le os Assets de verdade.
+    // tests/Data/test_arquivos_de_dados.cpp, que le os Assets de verdade.
     if (!ConfigurarFasesDeArquivo(boss, fsm, "hugo")) {
         SDL_Log("ERRO CRITICO: o chefe \"hugo\" nao pode ser montado a partir de "
                 "Assets/Attacks/hugo/fases.json e ficara sem ataque. As linhas "

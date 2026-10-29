@@ -159,4 +159,4 @@ condição sempre verdadeira.
 aparece escrito, e o montador de rodapé. Nenhuma cena escreve `SDL_SCANCODE_`
 para os botões do painel.
 
-Os testes estão em `tests/test_gabinete.cpp` e `tests/test_painel.cpp`.
+Os testes estão em `tests/Core/test_gabinete.cpp` e `tests/Input/test_painel.cpp`.

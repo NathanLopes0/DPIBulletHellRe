@@ -355,7 +355,7 @@ struct MiraPeriodicaBehavior : public ProjectileMotion {
  * ciclos exigiria fatores reciprocos exatos, o que erra por arredondamento.
  *
  * Toda a aritmetica de tempo esta em CalcularFaseDoPulso (PathAim.h), que e
- * pura e coberta por tests/test_investida.cpp.
+ * pura e coberta por tests/Attacks/Engine/test_investida.cpp.
  */
 struct PulsoDeVelocidadeBehavior : public ProjectileModifier {
 
