@@ -4,6 +4,8 @@
 
 #include "FasesDeAtaque.h"
 
+#include <optional>
+
 #include <algorithm>
 
 #include "../Regras/Tabela.h"
@@ -283,14 +285,9 @@ namespace {
         return true;
     }
 
-    /// Le um ataque. Devolve false quando a descricao e inaproveitavel.
-    bool LerAtaque(const nlohmann::json& j, const std::string& onde,
-                   std::vector<std::string>& problemas, DescricaoDeAtaque& saida) {
-
-        if (!j.is_object()) {
-            problemas.emplace_back(onde + "deveria ser um objeto");
-            return false;
-        }
+    /// A estrategia, o projetil, o gatilho e as regras de um ataque.
+    bool LerIdentidadeDoAtaque(const nlohmann::json& j, const std::string& onde,
+                               std::vector<std::string>& problemas, DescricaoDeAtaque& saida) {
 
         saida.estrategia = Texto(j, "estrategia");
         if (saida.estrategia.empty()) {
@@ -358,10 +355,12 @@ namespace {
                 return false;
             }
         }
+        return true;
+    }
 
-        if (!LerCooldown(j, onde, saida, problemas)) return false;
-
-        // ---- O degrau do Dificil ----
+    /// O degrau do Dificil: projeteis, velocidade e cooldown proprios.
+    bool LerDificilDoAtaque(const nlohmann::json& j, const std::string& onde,
+                            std::vector<std::string>& problemas, DescricaoDeAtaque& saida) {
         if (j.contains("dificil")) {
             const auto& d = j["dificil"];
             if (!d.is_object()) {
@@ -392,8 +391,12 @@ namespace {
             }
             saida.dificil = dif;
         }
+        return true;
+    }
 
-        // ---- Bloco de balao ----
+    /// O bloco "balao", obrigatorio na BaloonAttack.
+    bool LerBlocoDeBalao(const nlohmann::json& j, const std::string& onde,
+                         std::vector<std::string>& problemas, DescricaoDeAtaque& saida) {
         const bool ehBalao = (saida.estrategia == "BaloonAttack");
         if (j.contains("balao")) {
             if (!ehBalao) {
@@ -411,8 +414,12 @@ namespace {
                                           "ele a estrategia recusa os parametros e nao dispara nada");
             return false;
         }
+        return true;
+    }
 
-        // ---- Bloco de consulta ----
+    /// O bloco "consulta", obrigatorio na ConsultaAttack.
+    bool LerBlocoDeConsulta(const nlohmann::json& j, const std::string& onde,
+                            std::vector<std::string>& problemas, DescricaoDeAtaque& saida) {
         const bool ehConsulta = (saida.estrategia == "ConsultaAttack");
         if (j.contains("consulta")) {
             if (!ehConsulta) {
@@ -430,8 +437,12 @@ namespace {
                                           "dispara nada");
             return false;
         }
+        return true;
+    }
 
-        // ---- Bloco de caixa (opcional) ----
+    /// O bloco "caixa" da CaixaAttack.
+    bool LerBlocoDeCaixa(const nlohmann::json& j, const std::string& onde,
+                         std::vector<std::string>& problemas, DescricaoDeAtaque& saida) {
         if (j.contains("caixa")) {
             if (saida.estrategia != "CaixaAttack") {
                 problemas.emplace_back(onde + "so a CaixaAttack usa \"caixa\"; o bloco foi ignorado");
@@ -455,8 +466,12 @@ namespace {
                 saida.caixa = c;
             }
         }
+        return true;
+    }
 
-        // ---- Bloco de sprint (opcional) ----
+    /// O bloco "sprint" da SprintAttack.
+    bool LerBlocoDeSprint(const nlohmann::json& j, const std::string& onde,
+                          std::vector<std::string>& problemas, DescricaoDeAtaque& saida) {
         if (j.contains("sprint")) {
             if (saida.estrategia != "SprintAttack") {
                 problemas.emplace_back(onde + "so a SprintAttack usa \"sprint\"; o bloco foi ignorado");
@@ -479,8 +494,12 @@ namespace {
                 saida.sprint = sp;
             }
         }
+        return true;
+    }
 
-        // ---- Bloco de tokens (opcional) ----
+    /// O bloco "tokens" da TokenAttack.
+    bool LerBlocoDeTokens(const nlohmann::json& j, const std::string& onde,
+                          std::vector<std::string>& problemas, DescricaoDeAtaque& saida) {
         if (j.contains("tokens")) {
             if (saida.estrategia != "TokenAttack") {
                 problemas.emplace_back(onde + "so a TokenAttack usa \"tokens\"; o bloco foi ignorado");
@@ -526,8 +545,12 @@ namespace {
                 saida.tokens = tk;
             }
         }
+        return true;
+    }
 
-        // ---- Bloco de palavra (opcional) ----
+    /// O bloco "palavra" da PalavraAttack.
+    bool LerBlocoDePalavra(const nlohmann::json& j, const std::string& onde,
+                           std::vector<std::string>& problemas, DescricaoDeAtaque& saida) {
         if (j.contains("palavra")) {
             if (saida.estrategia != "PalavraAttack") {
                 problemas.emplace_back(onde + "so a PalavraAttack usa \"palavra\"; o bloco foi ignorado");
@@ -578,8 +601,12 @@ namespace {
                 saida.palavra = pl;
             }
         }
+        return true;
+    }
 
-        // ---- Bloco de pontos (obrigatorio na PontosAttack) ----
+    /// O bloco "pontos", obrigatorio na PontosAttack.
+    bool LerBlocoDePontos(const nlohmann::json& j, const std::string& onde,
+                          std::vector<std::string>& problemas, DescricaoDeAtaque& saida) {
         const bool ehPontos = (saida.estrategia == "PontosAttack");
         if (j.contains("pontos") && !ehPontos) {
             problemas.emplace_back(onde + "so a PontosAttack usa \"pontos\"; o bloco foi ignorado");
@@ -602,8 +629,26 @@ namespace {
             }
             saida.pontos = pt;
         }
-
         return true;
+    }
+
+    /// Le um ataque. Devolve false quando a descricao e inaproveitavel.
+    bool LerAtaque(const nlohmann::json& j, const std::string& onde,
+                   std::vector<std::string>& problemas, DescricaoDeAtaque& saida) {
+        if (!j.is_object()) {
+            problemas.emplace_back(onde + "deveria ser um objeto");
+            return false;
+        }
+        return LerIdentidadeDoAtaque(j, onde, problemas, saida)
+            && LerCooldown(j, onde, saida, problemas)
+            && LerDificilDoAtaque(j, onde, problemas, saida)
+            && LerBlocoDeBalao(j, onde, problemas, saida)
+            && LerBlocoDeConsulta(j, onde, problemas, saida)
+            && LerBlocoDeCaixa(j, onde, problemas, saida)
+            && LerBlocoDeSprint(j, onde, problemas, saida)
+            && LerBlocoDeTokens(j, onde, problemas, saida)
+            && LerBlocoDePalavra(j, onde, problemas, saida)
+            && LerBlocoDePontos(j, onde, problemas, saida);
     }
 
 }
@@ -615,6 +660,204 @@ bool LadoDeBalaoExiste(const std::string& nome)  { return Contem(kLadosDeBalao, 
 bool EixoDeConsultaExiste(const std::string& nome) { return Contem(kEixosDeConsulta, nome); }
 bool GatilhoExiste(const std::string& nome)        { return Contem(kGatilhos, nome); }
 const std::vector<std::string>& NomesDosGatilhos() { return kGatilhos; }
+
+namespace {
+
+    /// O "intercambio": de quanto em quanto tempo os alunos trocam de lugar.
+    bool LerIntercambioDaFase(const nlohmann::json& corpoFase, const std::string& onde,
+                              std::vector<std::string>& problemas, DescricaoDeFase& f) {
+        // "intercambio": os alunos trocam de lugar a cada "aCada" segundos.
+        if (corpoFase.contains("intercambio")) {
+            const auto& ic = corpoFase["intercambio"];
+            if (!ic.is_object() || !ic.contains("aCada") || !ic["aCada"].is_number() || !ic.contains("aviso") ||
+                !ic["aviso"].is_number()) {
+                problemas.emplace_back(onde + "\"intercambio\" precisa ser um objeto "
+                                              "com \"aCada\" e \"aviso\", em segundos");
+                return false;
+            }
+            DescricaoDeIntercambio d;
+            d.aCada = ic["aCada"].get<float>();
+            d.aviso = ic["aviso"].get<float>();
+            if (d.aCada <= 0.0f || d.aviso < 0.0f || d.aviso >= d.aCada) {
+                problemas.emplace_back(onde + "\"intercambio\" precisa de \"aCada\" "
+                                              "maior que zero e \"aviso\" entre zero e "
+                                              "\"aCada\" - um aviso do tamanho do periodo "
+                                              "ficaria aceso para sempre");
+                return false;
+            }
+            f.intercambio = d;
+        }
+        return true;
+    }
+
+    /// As "etapas": a fase em trechos com nome, que somados cabem nela.
+    bool LerEtapasDaFase(const nlohmann::json& corpoFase, const std::string& onde, std::vector<std::string>& problemas,
+                         DescricaoDeFase& f) {
+        // "etapas": a fase em trechos com nome, em ordem.
+        if (corpoFase.contains("etapas")) {
+            const auto& lista = corpoFase["etapas"];
+            bool boas = lista.is_array() && !lista.empty();
+            float soma = 0.0f;
+            for (size_t k = 0; boas && k < lista.size(); ++k) {
+                const auto& e = lista[k];
+                if (!e.is_object() || !e.contains("nome") || !e["nome"].is_string() || !e.contains("duracao") ||
+                    !e["duracao"].is_number() || (e.contains("anuncio") && !e["anuncio"].is_string())) {
+                    boas = false;
+                    break;
+                }
+                DescricaoDeEtapa etapa;
+                etapa.nome = e["nome"].get<std::string>();
+                etapa.duracao = e["duracao"].get<float>();
+                etapa.anuncio = Texto(e, "anuncio");
+                if (etapa.nome.empty() || etapa.duracao <= 0.0f) {
+                    boas = false;
+                    break;
+                }
+                for (const auto& outra : f.etapas)
+                    if (outra.nome == etapa.nome) boas = false;
+                soma += etapa.duracao;
+                f.etapas.push_back(std::move(etapa));
+            }
+            if (!boas) {
+                problemas.emplace_back(onde + "\"etapas\" precisa ser uma lista de objetos "
+                                              "com \"nome\" (sem repetir) e \"duracao\" maior "
+                                              "que zero");
+                return false;
+            }
+            // A ultima etapa tem de caber na fase.
+            if (soma > f.duracao + 0.001f) {
+                problemas.emplace_back(onde + "as \"etapas\" somam mais que a \"duracao\" "
+                                              "da fase");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// O "clone": de qual fase o segundo corpo tira os ataques.
+    bool LerCloneDaFase(const nlohmann::json& corpoFase, const std::string& onde, std::vector<std::string>& problemas,
+                        DescricaoDeFase& f) {
+        if (corpoFase.contains("clone")) {
+            const auto& c = corpoFase["clone"];
+            if (!c.is_object()) {
+                problemas.emplace_back(onde + "\"clone\" deveria ser um objeto");
+                return false;
+            }
+            f.clone.ataquesDe = Texto(c, "ataquesDe");
+            if (f.clone.ataquesDe.empty()) {
+                problemas.emplace_back(onde + "\"clone\" precisa de \"ataquesDe\" "
+                                              "dizendo de qual fase o segundo corpo tira os "
+                                              "ataques");
+                return false;
+            }
+            f.clone.existe = true;
+        }
+        return true;
+    }
+
+    /// A lista de "ataques"; os que pedem uma etapa que nao existe saem.
+    bool LerAtaquesDaFase(const nlohmann::json& corpoFase, const std::string& onde, std::vector<std::string>& problemas,
+                          DescricaoDeFase& f) {
+        const auto& lista = corpoFase["ataques"];
+        for (size_t k = 0; k < lista.size(); ++k) {
+            DescricaoDeAtaque a;
+            const std::string ondeAtaque = onde + "ataque " + std::to_string(k + 1) + ": ";
+            if (LerAtaque(lista[k], ondeAtaque, problemas, a)) {
+                f.ataques.push_back(std::move(a));
+            }
+        }
+
+        if (f.ataques.empty()) {
+            // Uma fase sem ataque nenhum e um chefe parado a fase inteira.
+            problemas.emplace_back(onde + "nenhum ataque valido, a fase foi descartada");
+            return false;
+        }
+
+        // Um ataque que pede uma etapa que a fase nao tem nunca dispararia.
+        for (auto it = f.ataques.begin(); it != f.ataques.end();) {
+            float de = 0.0f, ate = 0.0f;
+            if (!it->etapa.empty() && !JanelaDaEtapa(f.etapas, it->etapa, de, ate)) {
+                problemas.emplace_back(onde + "um ataque pede a etapa \"" + it->etapa + "\", que a fase nao tem");
+                it = f.ataques.erase(it);
+            }
+            else {
+                ++it;
+            }
+        }
+        if (f.ataques.empty()) {
+            problemas.emplace_back(onde + "nenhum ataque valido, a fase foi descartada");
+            return false;
+        }
+        return true;
+    }
+
+    /// Uma fase inteira; vazio quando ela foi descartada.
+    std::optional<DescricaoDeFase> LerFase(const std::string& nomeFase, const nlohmann::json& corpoFase,
+                                           std::vector<std::string>& problemas) {
+        const std::string onde = "fase \"" + nomeFase + "\": ";
+
+        if (!corpoFase.is_object()) {
+            problemas.emplace_back(onde + "deveria ser um objeto");
+            return std::nullopt;
+        }
+        if (!NomeDeFaseExiste(nomeFase)) {
+            problemas.emplace_back(onde + "nome de fase invalido. Use StateOne, "
+                                          "StateTwo, StateThree ou StateFinal");
+            return std::nullopt;
+        }
+
+        DescricaoDeFase f;
+        f.nome = nomeFase;
+        f.duracao = Campo(corpoFase, "duracao", Fase::kDuracao);
+        f.proximo = Texto(corpoFase, "proximo");
+
+        if (f.duracao <= 0.0f) {
+            problemas.emplace_back(onde + "\"duracao\" precisa ser maior que zero");
+            return std::nullopt;
+        }
+
+        // "anuncio": o texto do placar nesta fase.
+        if (corpoFase.contains("anuncio") && !corpoFase["anuncio"].is_string()) {
+            problemas.emplace_back(onde + "\"anuncio\" deveria ser um texto");
+            return std::nullopt;
+        }
+        f.anuncio = Texto(corpoFase, "anuncio");
+
+        if (!LerIntercambioDaFase(corpoFase, onde, problemas, f)) return std::nullopt;
+
+        if (!LerEtapasDaFase(corpoFase, onde, problemas, f)) return std::nullopt;
+
+        if (corpoFase.contains("movimento")) {
+            f.movimento = LerMovimento(corpoFase["movimento"], onde, problemas);
+        }
+
+        // "ataquesDe": esta fase usa os ataques de outra.
+        f.ataquesDe = Texto(corpoFase, "ataquesDe");
+
+        if (!LerCloneDaFase(corpoFase, onde, problemas, f)) return std::nullopt;
+
+        // Uma fase nao pode ter as duas coisas.
+        const bool temLista = corpoFase.contains("ataques") && corpoFase["ataques"].is_array();
+
+        if (temLista && !f.ataquesDe.empty()) {
+            problemas.emplace_back(onde + "tem \"ataques\" E \"ataquesDe\". Escolha "
+                                          "um: ou a fase declara os ataques dela, ou usa os "
+                                          "de outra");
+            return std::nullopt;
+        }
+
+        // Com "ataquesDe", a lista vem depois, quando todas as fases estiverem lidas.
+        if (!f.ataquesDe.empty()) return f;
+
+        if (!temLista) {
+            problemas.emplace_back(onde + "falta \"ataques\", que deveria ser uma lista");
+            return std::nullopt;
+        }
+
+        if (!LerAtaquesDaFase(corpoFase, onde, problemas, f)) return std::nullopt;
+        return f;
+    }
+} // namespace
 
 FasesLidas LerFases(const std::string& textoJson) {
 
@@ -633,172 +876,8 @@ FasesLidas LerFases(const std::string& textoJson) {
         return saida;
     }
 
-    {
-        for (auto itFase = raiz.begin(); itFase != raiz.end(); ++itFase) {
-
-            const std::string& nomeFase = itFase.key();
-            const auto& corpoFase = itFase.value();
-            const std::string onde = "fase \"" + nomeFase + "\": ";
-
-            if (!corpoFase.is_object()) {
-                saida.problemas.emplace_back(onde + "deveria ser um objeto");
-                continue;
-            }
-            if (!NomeDeFaseExiste(nomeFase)) {
-                saida.problemas.emplace_back(onde + "nome de fase invalido. Use StateOne, "
-                                             "StateTwo, StateThree ou StateFinal");
-                continue;
-            }
-
-            DescricaoDeFase f;
-            f.nome = nomeFase;
-            f.duracao = Campo(corpoFase, "duracao", Fase::kDuracao);
-            f.proximo = Texto(corpoFase, "proximo");
-
-            if (f.duracao <= 0.0f) {
-                saida.problemas.emplace_back(onde + "\"duracao\" precisa ser maior que zero");
-                continue;
-            }
-
-            // "anuncio": o texto do placar nesta fase.
-            if (corpoFase.contains("anuncio") && !corpoFase["anuncio"].is_string()) {
-                saida.problemas.emplace_back(onde + "\"anuncio\" deveria ser um texto");
-                continue;
-            }
-            f.anuncio = Texto(corpoFase, "anuncio");
-
-            // "intercambio": os alunos trocam de lugar a cada "aCada" segundos.
-            if (corpoFase.contains("intercambio")) {
-                const auto& ic = corpoFase["intercambio"];
-                if (!ic.is_object() || !ic.contains("aCada") || !ic["aCada"].is_number()
-                    || !ic.contains("aviso") || !ic["aviso"].is_number()) {
-                    saida.problemas.emplace_back(onde + "\"intercambio\" precisa ser um objeto "
-                                                 "com \"aCada\" e \"aviso\", em segundos");
-                    continue;
-                }
-                DescricaoDeIntercambio d;
-                d.aCada = ic["aCada"].get<float>();
-                d.aviso = ic["aviso"].get<float>();
-                if (d.aCada <= 0.0f || d.aviso < 0.0f || d.aviso >= d.aCada) {
-                    saida.problemas.emplace_back(onde + "\"intercambio\" precisa de \"aCada\" "
-                                                 "maior que zero e \"aviso\" entre zero e "
-                                                 "\"aCada\" - um aviso do tamanho do periodo "
-                                                 "ficaria aceso para sempre");
-                    continue;
-                }
-                f.intercambio = d;
-            }
-
-            // "etapas": a fase em trechos com nome, em ordem.
-            if (corpoFase.contains("etapas")) {
-                const auto& lista = corpoFase["etapas"];
-                bool boas = lista.is_array() && !lista.empty();
-                float soma = 0.0f;
-                for (size_t k = 0; boas && k < lista.size(); ++k) {
-                    const auto& e = lista[k];
-                    if (!e.is_object() || !e.contains("nome") || !e["nome"].is_string()
-                        || !e.contains("duracao") || !e["duracao"].is_number()
-                        || (e.contains("anuncio") && !e["anuncio"].is_string())) { boas = false; break; }
-                    DescricaoDeEtapa etapa;
-                    etapa.nome = e["nome"].get<std::string>();
-                    etapa.duracao = e["duracao"].get<float>();
-                    etapa.anuncio = Texto(e, "anuncio");
-                    if (etapa.nome.empty() || etapa.duracao <= 0.0f) { boas = false; break; }
-                    for (const auto& outra : f.etapas) if (outra.nome == etapa.nome) boas = false;
-                    soma += etapa.duracao;
-                    f.etapas.push_back(std::move(etapa));
-                }
-                if (!boas) {
-                    saida.problemas.emplace_back(onde + "\"etapas\" precisa ser uma lista de objetos "
-                                                 "com \"nome\" (sem repetir) e \"duracao\" maior "
-                                                 "que zero");
-                    continue;
-                }
-                // A ultima etapa tem de caber na fase.
-                if (soma > f.duracao + 0.001f) {
-                    saida.problemas.emplace_back(onde + "as \"etapas\" somam mais que a \"duracao\" "
-                                                 "da fase");
-                    continue;
-                }
-            }
-
-            if (corpoFase.contains("movimento")) {
-                f.movimento = LerMovimento(corpoFase["movimento"], onde, saida.problemas);
-            }
-
-            // "ataquesDe": esta fase usa os ataques de outra.
-            f.ataquesDe = Texto(corpoFase, "ataquesDe");
-
-            if (corpoFase.contains("clone")) {
-                const auto& c = corpoFase["clone"];
-                if (!c.is_object()) {
-                    saida.problemas.emplace_back(onde + "\"clone\" deveria ser um objeto");
-                    continue;
-                }
-                f.clone.ataquesDe = Texto(c, "ataquesDe");
-                if (f.clone.ataquesDe.empty()) {
-                    saida.problemas.emplace_back(onde + "\"clone\" precisa de \"ataquesDe\" "
-                                                 "dizendo de qual fase o segundo corpo tira os "
-                                                 "ataques");
-                    continue;
-                }
-                f.clone.existe = true;
-            }
-
-            // Uma fase nao pode ter as duas coisas.
-            const bool temLista = corpoFase.contains("ataques") && corpoFase["ataques"].is_array();
-
-            if (temLista && !f.ataquesDe.empty()) {
-                saida.problemas.emplace_back(onde + "tem \"ataques\" E \"ataquesDe\". Escolha "
-                                             "um: ou a fase declara os ataques dela, ou usa os "
-                                             "de outra");
-                continue;
-            }
-
-            if (!f.ataquesDe.empty()) {
-                // A lista vem depois, quando todas as fases estiverem lidas.
-                saida.fases.push_back(std::move(f));
-                continue;
-            }
-
-            if (!temLista) {
-                saida.problemas.emplace_back(onde + "falta \"ataques\", que deveria ser uma lista");
-                continue;
-            }
-
-            const auto& lista = corpoFase["ataques"];
-            for (size_t k = 0; k < lista.size(); ++k) {
-                DescricaoDeAtaque a;
-                const std::string ondeAtaque = onde + "ataque " + std::to_string(k + 1) + ": ";
-                if (LerAtaque(lista[k], ondeAtaque, saida.problemas, a)) {
-                    f.ataques.push_back(std::move(a));
-                }
-            }
-
-            if (f.ataques.empty()) {
-                // Uma fase sem ataque nenhum e um chefe parado a fase inteira.
-                saida.problemas.emplace_back(onde + "nenhum ataque valido, a fase foi descartada");
-                continue;
-            }
-
-            // Um ataque que pede uma etapa que a fase nao tem nunca dispararia.
-            for (auto it = f.ataques.begin(); it != f.ataques.end();) {
-                float de = 0.0f, ate = 0.0f;
-                if (!it->etapa.empty() && !JanelaDaEtapa(f.etapas, it->etapa, de, ate)) {
-                    saida.problemas.emplace_back(onde + "um ataque pede a etapa \"" + it->etapa +
-                                                 "\", que a fase nao tem");
-                    it = f.ataques.erase(it);
-                } else {
-                    ++it;
-                }
-            }
-            if (f.ataques.empty()) {
-                saida.problemas.emplace_back(onde + "nenhum ataque valido, a fase foi descartada");
-                continue;
-            }
-
-            saida.fases.push_back(std::move(f));
-        }
+    for (auto itFase = raiz.begin(); itFase != raiz.end(); ++itFase) {
+        if (auto fase = LerFase(itFase.key(), itFase.value(), saida.problemas)) saida.fases.push_back(std::move(*fase));
     }
 
     return saida;

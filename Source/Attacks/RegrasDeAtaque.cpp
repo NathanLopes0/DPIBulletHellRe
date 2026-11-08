@@ -132,8 +132,202 @@ namespace {
         return d;
     }
 
-    /// O laco por-regra, um lugar so. LerRegras roda isto uma vez por conjunto;
-    /// LerListaDeRegras roda para um array que ja veio de outro arquivo.
+    /// A condicao: chance, indices ou "quando".
+    bool LerCondicaoDaRegra(const nlohmann::json& j, const std::string& onde,
+                            std::vector<std::string>& problemas, Regra& r) {
+        if (j.contains("chance") && j["chance"].is_number()) {
+            r.condicao = Regra::Chance;
+            r.chance = j["chance"].get<float>();
+        }
+        else if (j.contains("indices") && j["indices"].is_array()) {
+            r.condicao = Regra::Indices;
+            for (const auto& i : j["indices"]) {
+                if (i.is_number_integer()) r.indices.push_back(i.get<int>());
+            }
+            if (r.indices.empty()) {
+                problemas.emplace_back(onde + "\"indices\" esta vazio ou nao tem inteiros");
+                return false;
+            }
+        }
+        else if (j.contains("quando") && j["quando"].is_string()) {
+            const std::string q = j["quando"].get<std::string>();
+            if (q == "pares")        r.condicao = Regra::Pares;
+            else if (q == "impares") r.condicao = Regra::Impares;
+            else if (q == "sempre")  r.condicao = Regra::Sempre;
+            else if (q == "alvoAcorrentado") r.condicao = Regra::AlvoAcorrentado;
+            else {
+                problemas.emplace_back(onde + "\"quando\" so aceita sempre, pares, impares "
+                                              "ou alvoAcorrentado");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// A motion da regra, conferida contra os campos que so valem em "Path".
+    bool LerMotionDaRegra(const nlohmann::json& j, const std::string& onde,
+                          std::vector<std::string>& problemas, Regra& r) {
+        if (j.contains("motion")) {
+            std::string erro;
+            const DescricaoDeBehavior d = LerDescricao(j["motion"], erro);
+            if (!erro.empty()) {
+                problemas.emplace_back(onde + "motion " + erro);
+                return false;
+            }
+            else if (!EhMotion(d.tipo)) {
+                // O equivalente em tempo de leitura do static_assert da fase 1.
+                problemas.emplace_back(onde + "\"" + d.tipo + "\" e um Modifier, nao pode ir em \"motion\"");
+                return false;
+            }
+            else {
+                // A parada so existe em caminho, e os dois campos so fazem sentido juntos.
+                if (!d.forma.empty() && !d.formaPorIndice.empty()) {
+                    problemas.emplace_back(onde + "\"forma\" e \"formaPorIndice\" juntas: a motion"
+                                                  " usa uma forma so, ou uma familia, nunca as duas");
+                    return false;
+                }
+                else if (!d.formaPorIndice.empty() && d.tipo != "Path") {
+                    problemas.emplace_back(onde + "\"formaPorIndice\" so existe em \"Path\", e esta"
+                                                  " motion e \"" + d.tipo + "\"");
+                    return false;
+                }
+                else if (d.pararPor > 0.0f && d.pararNoPonto < 0) {
+                    problemas.emplace_back(onde + "\"pararPor\" sem \"pararNoPonto\": falta dizer"
+                                                  " em qual ponto do caminho parar");
+                    return false;
+                }
+                else if (d.pararNoPonto >= 0 && d.pararPor <= 0.0f) {
+                    problemas.emplace_back(onde + "\"pararNoPonto\" sem \"pararPor\" maior que zero:"
+                                                  " falta dizer por quanto tempo parar");
+                    return false;
+                }
+                else if (d.pararPor > 0.0f && d.tipo != "Path") {
+                    problemas.emplace_back(onde + "parada so existe em \"Path\", e esta motion e \"" +
+                                           d.tipo + "\"");
+                    return false;
+                }
+                else {
+                    r.temMotion = true;
+                    r.motion = d;
+                }
+            }
+        }
+        return true;
+    }
+
+    /// Os modifiers da regra.
+    bool LerModifiersDaRegra(const nlohmann::json& j, const std::string& onde,
+                             std::vector<std::string>& problemas, Regra& r) {
+        if (j.contains("modifiers")) {
+            if (!j["modifiers"].is_array()) {
+                problemas.emplace_back(onde + "\"modifiers\" deveria ser uma lista");
+                return false;
+            }
+            else {
+                for (const auto& m : j["modifiers"]) {
+                    std::string erro;
+                    const DescricaoDeBehavior d = LerDescricao(m, erro);
+                    if (!erro.empty()) {
+                        problemas.emplace_back(onde + "modifier " + erro);
+                        return false;
+                    }
+                    if (!EhModifier(d.tipo)) {
+                        problemas.emplace_back(onde + "\"" + d.tipo + "\" e uma Motion, nao pode ir em \"modifiers\"");
+                        return false;
+                    }
+                    r.modifiers.push_back(d);
+                }
+            }
+        }
+        return true;
+    }
+
+    /// A "investidaRepetida": vira uma MiraPeriodica e um PulsoDeVelocidade com o mesmo ritmo.
+    bool LerInvestidaRepetida(const nlohmann::json& j, const std::string& onde,
+                              std::vector<std::string>& problemas, Regra& r) {
+        if (j.contains("investidaRepetida")) {
+            const auto& inv = j["investidaRepetida"];
+            if (!inv.is_object()) {
+                problemas.emplace_back(onde + "\"investidaRepetida\" deveria ser um objeto");
+                return false;
+            }
+            if (r.temMotion) {
+                problemas.emplace_back(onde + "\"investidaRepetida\" JA define a motion do "
+                                              "projetil, entao nao pode vir junto de \"motion\"");
+                return false;
+            }
+            if (!inv.contains("ritmo")) {
+                problemas.emplace_back(onde + "\"investidaRepetida\" precisa de \"ritmo\"");
+                return false;
+            }
+
+            const RitmoDeCiclos ritmo = LerRitmo(inv["ritmo"]);
+            if (ritmo.repeticoes < 1) {
+                problemas.emplace_back(onde + "\"repeticoes\" do ritmo precisa ser 1 ou mais");
+                return false;
+            }
+
+            const float naPausa = Campo(inv, "velocidadeNaPausa", 15.0f);
+            if (naPausa <= 0.0f) {
+                // A direcao mora dentro do vetor velocidade.
+                problemas.emplace_back(onde + "\"velocidadeNaPausa\" nao pode ser zero: a "
+                                              "direcao mora no vetor velocidade, e com modulo "
+                                              "zero a mirada seguinte nao tem o que girar");
+                return false;
+            }
+
+            DescricaoDeBehavior mira;
+            mira.tipo = "MiraPeriodica";
+            mira.ritmo = ritmo;
+            r.temMotion = true;
+            r.motion = mira;
+
+            DescricaoDeBehavior pulso;
+            pulso.tipo = "PulsoDeVelocidade";
+            pulso.ritmo = ritmo;   // O mesmo ritmo, por construcao.
+            pulso.moduloInvestida = Campo(inv, "velocidadeNaInvestida", 0.0f);
+            pulso.moduloPausa = naPausa;
+            r.modifiers.push_back(pulso);
+        }
+        return true;
+    }
+
+    /// A animacao, a escala, a rotacao e o posto.
+    bool LerAparenciaDaRegra(const nlohmann::json& j, const std::string& onde,
+                             std::vector<std::string>& problemas, Regra& r) {
+        if (j.contains("animacao") && j["animacao"].is_string()) {
+            r.animacao = j["animacao"].get<std::string>();
+        }
+
+        if (j.contains("escala")) {
+            if (!j["escala"].is_number() || j["escala"].get<float>() <= 0.0f) {
+                problemas.emplace_back(onde + "\"escala\" precisa ser um numero maior que zero");
+                return false;
+            }
+            r.escala = j["escala"].get<float>();
+        }
+
+        if (j.contains("rotacionar")) {
+            if (!j["rotacionar"].is_boolean()) {
+                problemas.emplace_back(onde + "\"rotacionar\" precisa ser true ou false");
+                return false;
+            }
+            r.rotacionar = j["rotacionar"].get<bool>();
+        }
+
+        if (j.contains("posto")) {
+            // Um posto que ninguem le e um projetil que ninguem usa como ponto de tiro, calado.
+            if (!j["posto"].is_string() || !PostoExiste(j["posto"].get<std::string>())) {
+                problemas.emplace_back(onde + "\"posto\" precisa ser o nome de um posto que existe");
+                return false;
+            }
+            r.posto = j["posto"].get<std::string>();
+        }
+        return true;
+    }
+
+    /// O laco por-regra, um lugar so: LerRegras roda isto por conjunto, e LerListaDeRegras para uma
+    /// lista em linha.
     std::vector<Regra> LerLista(const nlohmann::json& lista, const std::string& prefixo,
                                std::vector<std::string>& problemas) {
 
@@ -150,182 +344,10 @@ namespace {
             }
 
             Regra r;
-
-            // ---- Condicao ----
-            if (j.contains("chance") && j["chance"].is_number()) {
-                r.condicao = Regra::Chance;
-                r.chance = j["chance"].get<float>();
-            }
-            else if (j.contains("indices") && j["indices"].is_array()) {
-                r.condicao = Regra::Indices;
-                for (const auto& i : j["indices"]) {
-                    if (i.is_number_integer()) r.indices.push_back(i.get<int>());
-                }
-                if (r.indices.empty()) {
-                    problemas.emplace_back(onde + "\"indices\" esta vazio ou nao tem inteiros");
-                    continue;
-                }
-            }
-            else if (j.contains("quando") && j["quando"].is_string()) {
-                const std::string q = j["quando"].get<std::string>();
-                if (q == "pares")        r.condicao = Regra::Pares;
-                else if (q == "impares") r.condicao = Regra::Impares;
-                else if (q == "sempre")  r.condicao = Regra::Sempre;
-                else if (q == "alvoAcorrentado") r.condicao = Regra::AlvoAcorrentado;
-                else {
-                    problemas.emplace_back(onde + "\"quando\" so aceita sempre, pares, impares "
-                                                  "ou alvoAcorrentado");
-                    continue;
-                }
-            }
-
-            // ---- Motion ----
-            bool falhou = false;
-            if (j.contains("motion")) {
-                std::string erro;
-                const DescricaoDeBehavior d = LerDescricao(j["motion"], erro);
-                if (!erro.empty()) {
-                    problemas.emplace_back(onde + "motion " + erro);
-                    falhou = true;
-                }
-                else if (!EhMotion(d.tipo)) {
-                    // O equivalente em tempo de leitura do static_assert da fase 1.
-                    problemas.emplace_back(onde + "\"" + d.tipo + "\" e um Modifier, nao pode ir em \"motion\"");
-                    falhou = true;
-                }
-                else {
-                    // A parada so existe em caminho, e os dois campos so fazem sentido juntos.
-                    if (!d.forma.empty() && !d.formaPorIndice.empty()) {
-                        problemas.emplace_back(onde + "\"forma\" e \"formaPorIndice\" juntas: a motion"
-                                                      " usa uma forma so, ou uma familia, nunca as duas");
-                        falhou = true;
-                    }
-                    else if (!d.formaPorIndice.empty() && d.tipo != "Path") {
-                        problemas.emplace_back(onde + "\"formaPorIndice\" so existe em \"Path\", e esta"
-                                                      " motion e \"" + d.tipo + "\"");
-                        falhou = true;
-                    }
-                    else if (d.pararPor > 0.0f && d.pararNoPonto < 0) {
-                        problemas.emplace_back(onde + "\"pararPor\" sem \"pararNoPonto\": falta dizer"
-                                                      " em qual ponto do caminho parar");
-                        falhou = true;
-                    }
-                    else if (d.pararNoPonto >= 0 && d.pararPor <= 0.0f) {
-                        problemas.emplace_back(onde + "\"pararNoPonto\" sem \"pararPor\" maior que zero:"
-                                                      " falta dizer por quanto tempo parar");
-                        falhou = true;
-                    }
-                    else if (d.pararPor > 0.0f && d.tipo != "Path") {
-                        problemas.emplace_back(onde + "parada so existe em \"Path\", e esta motion e \"" +
-                                               d.tipo + "\"");
-                        falhou = true;
-                    }
-                    else {
-                        r.temMotion = true;
-                        r.motion = d;
-                    }
-                }
-            }
-
-            // ---- Modifiers ----
-            if (!falhou && j.contains("modifiers")) {
-                if (!j["modifiers"].is_array()) {
-                    problemas.emplace_back(onde + "\"modifiers\" deveria ser uma lista");
-                    falhou = true;
-                }
-                else {
-                    for (const auto& m : j["modifiers"]) {
-                        std::string erro;
-                        const DescricaoDeBehavior d = LerDescricao(m, erro);
-                        if (!erro.empty()) {
-                            problemas.emplace_back(onde + "modifier " + erro);
-                            falhou = true;
-                            break;
-                        }
-                        if (!EhModifier(d.tipo)) {
-                            problemas.emplace_back(onde + "\"" + d.tipo + "\" e uma Motion, nao pode ir em \"modifiers\"");
-                            falhou = true;
-                            break;
-                        }
-                        r.modifiers.push_back(d);
-                    }
-                }
-            }
-            if (falhou) continue;
-
-            // ---- InvestidaRepetida: acucar que vira as duas pecas ----
-            if (j.contains("investidaRepetida")) {
-                const auto& inv = j["investidaRepetida"];
-                if (!inv.is_object()) {
-                    problemas.emplace_back(onde + "\"investidaRepetida\" deveria ser um objeto");
-                    continue;
-                }
-                if (r.temMotion) {
-                    problemas.emplace_back(onde + "\"investidaRepetida\" JA define a motion do "
-                                                  "projetil, entao nao pode vir junto de \"motion\"");
-                    continue;
-                }
-                if (!inv.contains("ritmo")) {
-                    problemas.emplace_back(onde + "\"investidaRepetida\" precisa de \"ritmo\"");
-                    continue;
-                }
-
-                const RitmoDeCiclos ritmo = LerRitmo(inv["ritmo"]);
-                if (ritmo.repeticoes < 1) {
-                    problemas.emplace_back(onde + "\"repeticoes\" do ritmo precisa ser 1 ou mais");
-                    continue;
-                }
-
-                const float naPausa = Campo(inv, "velocidadeNaPausa", 15.0f);
-                if (naPausa <= 0.0f) {
-                    // A direcao mora dentro do vetor velocidade.
-                    problemas.emplace_back(onde + "\"velocidadeNaPausa\" nao pode ser zero: a "
-                                                  "direcao mora no vetor velocidade, e com modulo "
-                                                  "zero a mirada seguinte nao tem o que girar");
-                    continue;
-                }
-
-                DescricaoDeBehavior mira;
-                mira.tipo = "MiraPeriodica";
-                mira.ritmo = ritmo;
-                r.temMotion = true;
-                r.motion = mira;
-
-                DescricaoDeBehavior pulso;
-                pulso.tipo = "PulsoDeVelocidade";
-                pulso.ritmo = ritmo;   // O mesmo ritmo, por construcao.
-                pulso.moduloInvestida = Campo(inv, "velocidadeNaInvestida", 0.0f);
-                pulso.moduloPausa = naPausa;
-                r.modifiers.push_back(pulso);
-            }
-
-            if (j.contains("animacao") && j["animacao"].is_string()) {
-                r.animacao = j["animacao"].get<std::string>();
-            }
-
-            if (j.contains("escala")) {
-                if (!j["escala"].is_number() || j["escala"].get<float>() <= 0.0f) {
-                    problemas.emplace_back(onde + "\"escala\" precisa ser um numero maior que zero");
-                    continue;
-                }
-                r.escala = j["escala"].get<float>();
-            }
-
-            if (j.contains("rotacionar")) {
-                if (!j["rotacionar"].is_boolean()) {
-                    problemas.emplace_back(onde + "\"rotacionar\" precisa ser true ou false");
-                    continue;
-                }
-                r.rotacionar = j["rotacionar"].get<bool>();
-            }
-
-            if (j.contains("posto")) {
-                // Um posto que ninguem le e um projetil que ninguem usa como ponto de tiro, calado.
-                if (!j["posto"].is_string() || !PostoExiste(j["posto"].get<std::string>())) {
-                    problemas.emplace_back(onde + "\"posto\" precisa ser o nome de um posto que existe");
-                    continue;
-                }
-                r.posto = j["posto"].get<std::string>();
+            if (!LerCondicaoDaRegra(j, onde, problemas, r) || !LerMotionDaRegra(j, onde, problemas, r)
+                || !LerModifiersDaRegra(j, onde, problemas, r) || !LerInvestidaRepetida(j, onde, problemas, r)
+                || !LerAparenciaDaRegra(j, onde, problemas, r)) {
+                continue;
             }
 
             if (!r.temMotion && r.modifiers.empty() && r.animacao.empty()
