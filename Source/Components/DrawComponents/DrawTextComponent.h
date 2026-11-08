@@ -58,6 +58,9 @@ public:
     void Draw(SDL_Renderer* renderer) override;
 
 protected:
+    /// Rasteriza mTexto de novo, com a cor e a quebra de agora.
+    void Redesenhar();
+
     SDL_Texture* mTextSurface;
     class Font* mFont;
 
@@ -74,7 +77,7 @@ protected:
     /// Ver SetColor. Branco era o valor fixo de antes.
     Vector3 mCor = Color::White;
 
-    /// O texto em exibicao, guardado so para poder redesenhar sem que quem chama
-    /// precise repeti-lo.
+    /// O texto em exibicao: e com ele que SetText sabe que nada mudou, e que a
+    /// cor e a quebra redesenham sem que quem chama precise repeti-lo.
     std::string mTexto;
 };

@@ -3,14 +3,10 @@
 //
 
 
-#include <fstream>
 #include "../../Motor/Game.h"
-#include "../../Motor/Json.h"
 #include "../../Actors/Actor.h"
 #include "../../Regras/Destrutivel.h"
 #include "DrawAnimatedComponent.h"
-#include <stdexcept>
-#include <set>
 
 DrawAnimatedComponent::DrawAnimatedComponent(class Actor* owner, const std::string &spriteSheetPath, const std::string &spriteSheetData, int drawOrder)
         :DrawSpriteComponent(owner, spriteSheetPath, 0, 0, drawOrder)
@@ -57,40 +53,9 @@ void DrawAnimatedComponent::LoadSpriteSheet(const std::string& texturePath, cons
     mSpriteSheetData.clear();
     mUsingFallbackSheet = false;
 
-    // Load sprite sheet data
-    // O parse fica dentro de try/catch porque nlohmann::json LANCA excecao
-    // quando o arquivo nao existe ou esta malformado. Sem isso, um .json com
-    // nome errado derrubava o jogo inteiro com std::terminate, em vez de
-    // mostrar um sprite obviamente quebrado.
-    try {
-        std::ifstream spriteSheetFile(dataPath);
-        if (!spriteSheetFile.is_open()) {
-            throw std::runtime_error("arquivo nao encontrado");
-        }
-
-        nlohmann::json spriteSheetData = nlohmann::json::parse(spriteSheetFile);
-
-        for(const auto& frame : spriteSheetData["frames"]) {
-
-            int x = frame["frame"]["x"].get<int>();
-            int y = frame["frame"]["y"].get<int>();
-            int w = frame["frame"]["w"].get<int>();
-            int h = frame["frame"]["h"].get<int>();
-
-            mSpriteSheetData.push_back({x, y, w, h});
-        }
-    }
-    catch (const std::exception& e) {
-        // Avisa UMA vez por caminho. Sem isto, um sprite sheet quebrado em um
-        // projetil gera uma linha por instancia - 300 linhas so no
-        // pre-aquecimento, o que afogaria qualquer outro erro no log.
-        static std::set<std::string> jaAvisados;
-        if (jaAvisados.insert(dataPath).second) {
-            SDL_Log("SPRITE SHEET INVALIDA: %s (%s) -- usando frame unico de fallback",
-                    dataPath.c_str(), e.what());
-        }
-        mSpriteSheetData.clear();
-    }
+    // OS QUADROS VEM DO CACHE DO GAME (Game::QuadrosDaFolha): o JSON da folha
+    // e lido uma vez por caminho, e nao uma vez por projetil.
+    mSpriteSheetData = mOwner->GetScene()->GetGame()->QuadrosDaFolha(dataPath);
 
     if (mSpriteSheetData.empty()) {
         // Fallback: um unico frame cobrindo a textura inteira, seja ela a

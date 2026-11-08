@@ -2,6 +2,9 @@
 // Created by Nathan on 03/04/2024.
 //
 #include "Game.h"
+#include <fstream>
+#include <stdexcept>
+#include "Json.h"
 #include <SDL_ttf.h>
 #include "SDL_image.h"
 #include "Random.h"
@@ -383,6 +386,31 @@ void Game::EsquecerTextura(const std::string& chave) {
         SDL_DestroyTexture(it->second);
     }
     mTextureCache.erase(it);
+}
+
+const std::vector<SDL_Rect>& Game::QuadrosDaFolha(const std::string& dataPath) {
+    if (const auto it = mQuadrosCache.find(dataPath); it != mQuadrosCache.end()) return it->second;
+
+    std::vector<SDL_Rect> quadros;
+    // O parse fica dentro de try/catch porque nlohmann::json LANCA excecao
+    // quando o arquivo nao existe ou esta malformado. Sem isso, um .json com
+    // nome errado derrubava o jogo inteiro com std::terminate, em vez de
+    // mostrar um sprite obviamente quebrado.
+    try {
+        std::ifstream arquivo(dataPath);
+        if (!arquivo.is_open()) throw std::runtime_error("arquivo nao encontrado");
+        const nlohmann::json folha = nlohmann::json::parse(arquivo);
+        for (const auto& frame : folha["frames"]) {
+            quadros.push_back({frame["frame"]["x"].get<int>(), frame["frame"]["y"].get<int>(),
+                               frame["frame"]["w"].get<int>(), frame["frame"]["h"].get<int>()});
+        }
+    } catch (const std::exception& e) {
+        // UMA vez por caminho, porque o vazio tambem fica guardado.
+        SDL_Log("SPRITE SHEET INVALIDA: %s (%s) -- usando frame unico de fallback",
+                dataPath.c_str(), e.what());
+        quadros.clear();
+    }
+    return mQuadrosCache.emplace(dataPath, std::move(quadros)).first->second;
 }
 
 SDL_Texture* Game::LoadTexture(const std::string& texturePath) {

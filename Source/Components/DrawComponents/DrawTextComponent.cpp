@@ -29,9 +29,18 @@ DrawTextComponent::~DrawTextComponent()
 
 void DrawTextComponent::SetText(const std::string &text)
 {
+    // O TEXTO IGUAL NAO E REDESENHADO (padrao Dirty Flag). Rasterizar a fonte
+    // e criar uma textura e caro, e ha quem chame isto todo quadro com o mesmo
+    // texto - a nota da batalha, o placar: eram 60 texturas por segundo cada.
+    if (text == mTexto) return;
     mTexto = text;
+    Redesenhar();
+}
+
+void DrawTextComponent::Redesenhar()
+{
     SDL_DestroyTexture(mTextSurface);
-    mTextSurface = mFont->RenderText(mOwner->GetScene()->GetGame()->GetRenderer(), text,
+    mTextSurface = mFont->RenderText(mOwner->GetScene()->GetGame()->GetRenderer(), mTexto,
                                      mCor, mSize, mLarguraDeQuebra);
 }
 
@@ -39,7 +48,7 @@ void DrawTextComponent::SetLarguraDeQuebra(const unsigned largura)
 {
     if (largura == mLarguraDeQuebra) return;
     mLarguraDeQuebra = largura;
-    SetText(mTexto);
+    Redesenhar();
 }
 
 void DrawTextComponent::SetColor(const Vector3& cor)
@@ -51,7 +60,7 @@ void DrawTextComponent::SetColor(const Vector3& cor)
     if (cor.x == mCor.x && cor.y == mCor.y && cor.z == mCor.z) return;
 
     mCor = cor;
-    SetText(mTexto);
+    Redesenhar();
 }
 
 void DrawTextComponent::Draw(SDL_Renderer *renderer)

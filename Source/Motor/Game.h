@@ -49,6 +49,20 @@ public:
     class SDL_Texture* LoadTexture(const std::string& texturePath);
 
     /**
+     * @brief Os quadros de uma folha de sprites (o JSON ao lado do PNG), lidos
+     * UMA vez por caminho e compartilhados (padrao Flyweight, como as texturas).
+     *
+     * Cada DrawAnimatedComponent lia e interpretava o JSON da folha ao nascer.
+     * No pre-aquecimento sao 300 projeteis por tipo: o Salles tem sete tipos
+     * na mesma folha de 120 quadros, e o carregamento dele interpretava o
+     * mesmo arquivo 2100 vezes - 6,5 s de tela de carregamento.
+     *
+     * Vazio quando o arquivo nao existe ou nao se le: o aviso sai uma vez, e
+     * quem pediu cai no quadro unico de fallback.
+     */
+    const std::vector<SDL_Rect>& QuadrosDaFolha(const std::string& dataPath);
+
+    /**
      * @brief A SILHUETA da imagem: o mesmo desenho, todo branco e opaco onde
      * ha pixel, transparente onde nao ha (Destrutivel::AlfaDaSilhueta). Tingida
      * com SDL_SetTextureColorMod, vira o contorno dos projeteis que o tiro do
@@ -343,6 +357,9 @@ private:
     // O Game e o DONO de todas elas e as destroi em Shutdown(). Nenhum
     // DrawComponent deve chamar SDL_DestroyTexture na textura que recebeu.
     std::map<std::string, SDL_Texture*> mTextureCache;
+
+    // Cache dos quadros de cada folha: caminho do JSON -> retangulos.
+    std::map<std::string, std::vector<SDL_Rect>> mQuadrosCache;
 
     // Window properties
     int mWindowWidth;
