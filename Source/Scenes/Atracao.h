@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Scene.h"
+#include "../Entrada/Borda.h"
 #include "../Motor/Gabinete.h"
 #include "../Motor/Math.h"
 
@@ -55,5 +56,5 @@ private:
     Gabinete::Contagem mTrocaDeCartaz{kSegundosPorCartaz};
 
     /// A borda de "alguma tecla apertada".
-    bool mAlgumaAnterior = true;
+    Borda mBordaAlguma{true};
 };

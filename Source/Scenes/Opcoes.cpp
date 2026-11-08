@@ -141,11 +141,10 @@ void Opcoes::OnProcessInput(const Uint8* keyState) {
 
     const bool voltar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois)
                      || keyState[SDL_SCANCODE_ESCAPE];
-    if (voltar && !mVoltarAnterior) {
+    if (mBordaVoltar.Bateu(voltar)) {
         mGame->RequestSceneChange(SceneType::MainMenu);
         return;
     }
-    mVoltarAnterior = voltar;
 
     // Qualquer um dos dois troca, como na pausa: a opcao e da maquina, e nao de um jogador.
     bool esquerda = false, direita = false, cima = false, baixo = false, trocar = false;
@@ -160,24 +159,19 @@ void Opcoes::OnProcessInput(const Uint8* keyState) {
 
     // Escolher: para cima e para baixo, dando a volta, como no menu.
     int linha = 0;
-    if (cima && !mCimaAnterior) linha -= 1;
-    if (baixo && !mBaixoAnterior) linha += 1;
-    mCimaAnterior = cima;
-    mBaixoAnterior = baixo;
+    if (mBordaCima.Bateu(cima)) linha -= 1;
+    if (mBordaBaixo.Bateu(baixo)) linha += 1;
     if (linha != 0) {
         mEscolhida = (mEscolhida + linha + kItens) % kItens;
         Mostrar();
     }
 
     // Trocar o valor da linha escolhida.
-    const bool peloBotao = trocar && !mTrocarAnterior;
+    const bool peloBotao = mBordaTrocar.Bateu(trocar);
     int passo = 0;
-    if (esquerda && !mEsquerdaAnterior) passo -= 1;
-    if (direita && !mDireitaAnterior) passo += 1;
+    if (mBordaEsquerda.Bateu(esquerda)) passo -= 1;
+    if (mBordaDireita.Bateu(direita)) passo += 1;
     if (peloBotao) passo += 1;
-    mEsquerdaAnterior = esquerda;
-    mDireitaAnterior = direita;
-    mTrocarAnterior = trocar;
 
     if (passo != 0) Trocar(passo, peloBotao);
 }

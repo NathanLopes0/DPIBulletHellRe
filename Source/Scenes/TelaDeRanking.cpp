@@ -279,12 +279,11 @@ void TelaDeRanking::OnProcessInput(const Uint8* keyState) {
 
     const bool voltar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois)
                      || keyState[SDL_SCANCODE_ESCAPE];
-    if (voltar && !mVoltarAnterior) {
+    if (mBordaVoltar.Bateu(voltar)) {
         // Volta para onde veio, e nao sempre para o menu.
         mGame->RequestSceneChange(mPedido.voltarPara);
         return;
     }
-    mVoltarAnterior = voltar;
 
     // O manche para os lados troca de lista, dando a volta; o botao 3 anda para a seguinte.
     const bool esquerda = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Direcao::Esquerda);
@@ -292,11 +291,11 @@ void TelaDeRanking::OnProcessInput(const Uint8* keyState) {
     const bool alternar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Tres);
 
     int passo = 0;
-    if (esquerda && !mEsquerdaAnterior) passo -= 1;
-    if ((direita && !mDireitaAnterior) || (alternar && !mAlternarAnterior)) passo += 1;
-    mEsquerdaAnterior = esquerda;
-    mDireitaAnterior = direita;
-    mAlternarAnterior = alternar;
+    if (mBordaEsquerda.Bateu(esquerda)) passo -= 1;
+    // As duas bordas sao lidas sempre: um || pularia a segunda.
+    const bool paraDireita = mBordaDireita.Bateu(direita);
+    const bool alternou = mBordaAlternar.Bateu(alternar);
+    if (paraDireita || alternou) passo += 1;
 
     if (passo != 0) {
         mLista = Ranking::MoverLista(mLista, passo);

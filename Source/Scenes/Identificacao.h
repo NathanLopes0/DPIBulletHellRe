@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Scene.h"
+#include "../Entrada/Borda.h"
 #include "../Motor/Game.h"
 #include "../Entrada/Navegacao.h"
 #include "../Entrada/Painel.h"
@@ -85,14 +86,14 @@ private:
     std::string mErro;
 
     /// Estado do teclado no quadro anterior, para detectar borda.
-    bool mDigitoAnterior[10]{};
+    Borda mBordaDigito[10]{};
 
     /// Em false, o primeiro quadro validaria a matricula vazia e a tela ja abriria com a frase de
     /// erro. E o mesmo vazamento que a selecao de fase teve.
-    bool mEnterAnterior = true;
-    bool mApagarAnterior{};
-    bool mVisitanteAnterior{};
-    bool mVoltarAnterior = true;
+    Borda mBordaEnter{true};
+    Borda mBordaApagar;
+    Borda mBordaVisitante;
+    Borda mBordaVoltar{true};
 
     // ---- O teclado digital ----
     Navegacao::Grade mGradeDoTeclado;
@@ -103,7 +104,7 @@ private:
     /// recurso da selecao de fases, pelo mesmo motivo.
     float mPassoTimer = kPassoDoManche;
 
-    bool mAcionarAnterior = true;
+    Borda mBordaAcionar{true};
 
     Actor* mTituloAtor{};
     Actor* mCampoAtor{};

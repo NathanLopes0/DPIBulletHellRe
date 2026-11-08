@@ -303,12 +303,10 @@ void StageSelect::OnProcessInput(const Uint8 *keyState) {
     // Voltar e voltar um passo: a escolha da dificuldade, e de la a troca de aluno (a identificacao).
     const bool trocar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois)
                      || keyState[SDL_SCANCODE_ESCAPE];
-    if (trocar && !mTrocarAnterior) {
-        mTrocarAnterior = true;
+    if (mBordaTrocar.Bateu(trocar)) {
         mGame->RequestSceneChange(SceneType::EscolhaDaDificuldade);
         return;
     }
-    mTrocarAnterior = trocar;
 
     HandleSelectionInput(keyState);
 }
@@ -333,20 +331,17 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
 
     // O ranking da materia em foco.
     const bool verRanking = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Tres);
-    if (verRanking && !mRankingAnterior) {
-        mRankingAnterior = true;
+    if (mBordaRanking.Bateu(verRanking)) {
         mGame->PedirRanking(Game::PedidoDeRanking{false, mSelectedSubject,
                                                   SceneType::StageSelect});
         mGame->RequestSceneChange(SceneType::Ranking);
         return;
     }
-    mRankingAnterior = verRanking;
 
-    // Precisa ser uma batida nova, e nao o estado: ver mEntrarAnterior.
+    // Precisa ser uma batida nova, e nao o estado.
     const bool entrar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Um)
                      || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
-    if (entrar && !mEntrarAnterior && mGame->IsStageUnlocked(mSelectedSubject)) {
-        mEntrarAnterior = true;
+    if (mBordaEntrar.Bateu(entrar) && mGame->IsStageUnlocked(mSelectedSubject)) {
         mGame->SetSelectedStage(mSelectedSubject);
 
         // A materia que pede orientacao passa pela escolha antes da batalha.
@@ -355,7 +350,6 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
         mGame->RequestSceneChange((m && m->orientacao) ? SceneType::EscolhaDoOrientador : SceneType::Battle);
         return;
     }
-    mEntrarAnterior = entrar;
 }
 
 // Navegacao. A regra mora em Navegacao, E a forma da grade vem de quem desenhou os botoes.

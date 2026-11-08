@@ -14,8 +14,8 @@
 #include "../../Motor/Game.h"
 #include "../../Motor/AudioSystem.h"
 #include "../../Interface/Pausa.h"
+#include "../../Entrada/Borda.h"
 #include "../../Interface/Resultado.h"
-#include "../../Interface/Carregamento.h"
 #include "../../Regras/Dificuldade.h"
 #include "../../Interface/Hud.h"
 #include "../../Regras/Variacao.h"
@@ -29,6 +29,8 @@ class BattleHUD;
 class ExtraPointItem;
 class Orientador;
 class PainelDeMenu;
+class BossProjectile;
+class PlayerProjectile;
 
 class Battle : public Scene {
 
@@ -129,6 +131,22 @@ protected:
     void OnProcessInput(const Uint8 *keyState) override;
 
 private:
+    // ---- As regras de colisao, na ordem em que CheckCollisions as aplica ----
+    /// O abrigo come os projeteis do chefe.
+    void ColisoesDoAbrigo(const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles);
+    /// O escudo do Ponto Extra come os projeteis do chefe.
+    void ColisoesDoEscudo(const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles);
+    /// Os projeteis do chefe acertam os alunos.
+    void ColisoesTiroDoChefeNoAluno(const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles);
+    /// O tiro do aluno derruba (ou murcha em) projeteis do chefe.
+    void ColisoesTiroDoAlunoNosProjeteis(const std::vector<std::unique_ptr<PlayerProjectile>>& playerProjectiles, const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles);
+    /// O tiro do aluno acerta o chefe.
+    void ColisoesTiroDoAlunoNoChefe(const std::vector<std::unique_ptr<PlayerProjectile>>& playerProjectiles);
+    /// O aluno encosta no chefe.
+    void ColisoesDeContato();
+    /// O aluno pega um Ponto Extra.
+    void ColisoesComPontoExtra();
+
     // ---- Funções Auxiliares de Lógica Interna ----
     void LoadHUD();
     void LoadPlayer();
@@ -397,11 +415,7 @@ private:
 
     // A tela de carregamento cobre a batalha inteira - um veu escuro com o nome da materia e uma
     // barra enchendo.
-    Carregamento::Estado mCarregamento;
-    Actor* mVeuDoCarregamento = nullptr;
-    Actor* mBarraDoCarregamento = nullptr;
-    std::vector<Actor*> mTextosDoCarregamento;
-    void CriarTelaDeCarregamento();
+    std::unique_ptr<class TelaDeCarregamento> mTelaDeCarregamento;
 
     void StartLoadingProjectilePools();
     void UpdateLoadingStep(float deltaTime); // processa 1 tipo de projétil por chamada
@@ -438,12 +452,12 @@ private:
         bool confirmar = false;
     };
     BatidasDoMenu LerMenu(const Uint8* keyState);
-    void SegurarMenu() { mCimaNoMenu = mBaixoNoMenu = mConfirmarNoMenu = true; }
+    void SegurarMenu() { mBordaCima.Segurar(); mBordaBaixo.Segurar(); mBordaConfirmar.Segurar(); }
 
-    bool mEscAnterior = true;
-    bool mCimaNoMenu = true;
-    bool mBaixoNoMenu = true;
-    bool mConfirmarNoMenu = true;
+    Borda mBordaEsc{true};
+    Borda mBordaCima{true};
+    Borda mBordaBaixo{true};
+    Borda mBordaConfirmar{true};
 
     /// Por cima de tudo: a faixa da nota vai ate 304.
     static constexpr int kOrdemDosMenus = 900;

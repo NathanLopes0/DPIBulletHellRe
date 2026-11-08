@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Scene.h"
+#include "../Entrada/Borda.h"
 #include "../Motor/Game.h" // Incluir para o enum int
 #include <vector>
 #include "../Entrada/Navegacao.h"
@@ -79,7 +80,7 @@ private:
     int mSelectedSubject{};
     float mInputTimer{}; // Timer pra mudar de botão selecionado
 
-    bool mRankingAnterior = true;
+    Borda mBordaRanking{true};
 
     // Vetor de ponteiros observadores para fácil acesso aos botões. A memória real é gerenciada
     // pelo vetor mActors.
@@ -125,9 +126,9 @@ private:
 
     /// Com a borda em false, voltar do ranking com o botao ainda apertado jogava o aluno direto
     /// para a tela de matricula.
-    bool mTrocarAnterior = true;
+    Borda mBordaTrocar{true};
 
     /// Borda do enter, e comeca em true. A cena anterior (identificacao) termina com o enter
     /// apertado - e ele que manda para ca.
-    bool mEntrarAnterior = true;
+    Borda mBordaEntrar{true};
 };

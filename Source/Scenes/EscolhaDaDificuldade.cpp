@@ -113,11 +113,10 @@ void EscolhaDaDificuldade::OnProcessInput(const Uint8* keyState) {
 
     const bool voltar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois)
                      || keyState[SDL_SCANCODE_ESCAPE];
-    if (voltar && !mVoltarAnterior) {
+    if (mBordaVoltar.Bateu(voltar)) {
         mGame->RequestSceneChange(SceneType::Identificacao);
         return;
     }
-    mVoltarAnterior = voltar;
 
     // Qualquer um dos dois escolhe: os dois jogam no mesmo nivel.
     bool esquerda = false, direita = false, confirmar = false;
@@ -131,20 +130,16 @@ void EscolhaDaDificuldade::OnProcessInput(const Uint8* keyState) {
     confirmar = confirmar || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
 
     int passo = 0;
-    if (esquerda && !mEsquerdaAnterior) passo -= 1;
-    if (direita && !mDireitaAnterior) passo += 1;
-    mEsquerdaAnterior = esquerda;
-    mDireitaAnterior = direita;
+    if (mBordaEsquerda.Bateu(esquerda)) passo -= 1;
+    if (mBordaDireita.Bateu(direita)) passo += 1;
     if (passo != 0) {
         mEscolhido = Dificuldade::Mover(mEscolhido, passo);
         Mostrar();
     }
 
-    if (confirmar && !mConfirmarAnterior) {
-        mConfirmarAnterior = true;
+    if (mBordaConfirmar.Bateu(confirmar)) {
         mGame->DefinirDificuldade(mEscolhido);
         mGame->RequestSceneChange(SceneType::StageSelect);
         return;
     }
-    mConfirmarAnterior = confirmar;
 }

@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Scene.h"
+#include "../Entrada/Borda.h"
 #include "../Aluno/Exportacao.h"
 #include "../Aluno/Ranking.h"
 #include "../Motor/Game.h"
@@ -69,8 +70,8 @@ private:
 
     Actor* mRodapeAtor{};
 
-    bool mVoltarAnterior = true;
-    bool mAlternarAnterior = true;
-    bool mEsquerdaAnterior = true;
-    bool mDireitaAnterior = true;
+    Borda mBordaVoltar{true};
+    Borda mBordaAlternar{true};
+    Borda mBordaEsquerda{true};
+    Borda mBordaDireita{true};
 };

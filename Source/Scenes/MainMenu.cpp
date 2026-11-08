@@ -123,26 +123,23 @@ void MainMenu::OnProcessInput(const Uint8 *keyState) {
     const bool cima  = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Direcao::Cima);
     const bool baixo = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Direcao::Baixo);
 
-    if (cima && !mCimaAnterior) {
+    if (mBordaCima.Bateu(cima)) {
         // Soma kQuantasOpcoes antes do resto.
         mSelecionada = (mSelecionada - 1 + kQuantasOpcoes) % kQuantasOpcoes;
         PosicionarSelecao();
     }
-    mCimaAnterior = cima;
 
-    if (baixo && !mBaixoAnterior) {
+    if (mBordaBaixo.Bateu(baixo)) {
         mSelecionada = (mSelecionada + 1) % kQuantasOpcoes;
         PosicionarSelecao();
     }
-    mBaixoAnterior = baixo;
 
     // O botao 1 do painel e o espaco, entao quem ja conhece o jogo nao perde nada.
     const bool confirmar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Um)
                         || keyState[SDL_SCANCODE_RETURN]
                         || keyState[SDL_SCANCODE_KP_ENTER];
 
-    if (confirmar && !mConfirmarAnterior) {
-        mConfirmarAnterior = true;
+    if (mBordaConfirmar.Bateu(confirmar)) {
 
         // So quem comeca uma partida mexe nas sessoes.
         if (kOpcoes[mSelecionada].destino == Scene::SceneType::Identificacao) {
@@ -157,7 +154,6 @@ void MainMenu::OnProcessInput(const Uint8 *keyState) {
         mGame->RequestSceneChange(kOpcoes[mSelecionada].destino);
         return;
     }
-    mConfirmarAnterior = confirmar;
 }
 
 void MainMenu::LoadBackground() {

@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Scene.h"
+#include "../Entrada/Borda.h"
 #include "../Entrada/Painel.h"
 #include "../Personagem/Personagens.h"
 
@@ -74,13 +75,13 @@ private:
 
     int mLinhaEmFoco = 0;
 
-    bool mCimaAnterior{};
-    bool mBaixoAnterior{};
-    bool mEsquerdaAnterior{};
-    bool mDireitaAnterior{};
+    Borda mBordaCima;
+    Borda mBordaBaixo;
+    Borda mBordaEsquerda;
+    Borda mBordaDireita;
 
     /// Comeca em true: chega-se aqui apertando enter na tela de matricula, e sem a guarda a
     /// aparencia inicial seria confirmada sozinha no mesmo toque.
-    bool mConfirmarAnterior = true;
-    bool mVoltarAnterior = true;
+    Borda mBordaConfirmar{true};
+    Borda mBordaVoltar{true};
 };

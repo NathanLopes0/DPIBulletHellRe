@@ -8,6 +8,7 @@
 #include <string>
 
 #include "Scene.h"
+#include "../Entrada/Borda.h"
 
 class Font;
 class Actor;
@@ -49,10 +50,10 @@ private:
     int mEscolhida = 0;
 
     /// As bordas, para uma acao por toque.
-    bool mVoltarAnterior = true;
-    bool mTrocarAnterior = true;
-    bool mEsquerdaAnterior = true;
-    bool mDireitaAnterior = true;
-    bool mCimaAnterior = true;
-    bool mBaixoAnterior = true;
+    Borda mBordaVoltar{true};
+    Borda mBordaTrocar{true};
+    Borda mBordaEsquerda{true};
+    Borda mBordaDireita{true};
+    Borda mBordaCima{true};
+    Borda mBordaBaixo{true};
 };

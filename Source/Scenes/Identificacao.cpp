@@ -289,58 +289,52 @@ void Identificacao::LerManche(const Uint8* keyState, const float deltaTime) {
 
     // Botao 1 - digita a tecla acesa.
     const bool acionar = Painel::Apertado(keyState, PainelDaVez(), Painel::Botao::Um);
-    if (acionar && !mAcionarAnterior) {
+    if (mBordaAcionar.Bateu(acionar)) {
         const auto& teclas = Teclado::Teclas();
         if (mTeclaSelecionada < teclas.size()) Acionar(teclas[mTeclaSelecionada]);
     }
-    mAcionarAnterior = acionar;
 }
 
 void Identificacao::LerTeclado(const Uint8* keyState) {
 
     for (int d = 0; d < 10; ++d) {
         const bool agora = keyState[kDigitos[d]] || keyState[kDigitosNumerico[d]];
-        if (agora && !mDigitoAnterior[d]) {
+        if (mBordaDigito[d].Bateu(agora)) {
             const std::string antes = mDigitado;
             mDigitado = Matricula::Digitar(mDigitado, static_cast<char>('0' + d));
 
             // Limpar o erro ao digitar evita a frase velha contradizendo o campo.
             if (mDigitado != antes) mErro.clear();
         }
-        mDigitoAnterior[d] = agora;
     }
 
     // Botao 2 do gabinete, junto com o backspace.
     const bool apagar = Painel::Apertado(keyState, PainelDaVez(), Painel::Botao::Dois)
                         || keyState[SDL_SCANCODE_BACKSPACE] || keyState[SDL_SCANCODE_DELETE];
-    if (apagar && !mApagarAnterior) {
+    if (mBordaApagar.Bateu(apagar)) {
         mDigitado = Matricula::Apagar(mDigitado);
         mErro.clear();
     }
-    mApagarAnterior = apagar;
 
     const bool entrar = keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
-    if (entrar && !mEnterAnterior) {
+    if (mBordaEnter.Bateu(entrar)) {
         const auto r = Matricula::Validar(mDigitado);
         if (r.valida) Confirmar(r.canonica);
         else          mErro = Matricula::MensagemDeErro(r.erro);
     }
-    mEnterAnterior = entrar;
 
     const bool voltar = keyState[SDL_SCANCODE_ESCAPE];
-    if (voltar && !mVoltarAnterior) {
+    if (mBordaVoltar.Bateu(voltar)) {
         mGame->CancelarEntrada();
         mGame->RequestSceneChange(SceneType::MainMenu);
         return;
     }
-    mVoltarAnterior = voltar;
 
     const bool visitante = keyState[SDL_SCANCODE_TAB];
-    if (visitante && !mVisitanteAnterior) {
+    if (mBordaVisitante.Bateu(visitante)) {
         mGame->JogarComoVisitante();
         mGame->AvancarEntrada();
     }
-    mVisitanteAnterior = visitante;
 }
 
 void Identificacao::OnProcessInput(const Uint8* keyState) {

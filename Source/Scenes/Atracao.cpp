@@ -164,9 +164,8 @@ void Atracao::OnProcessInput(const Uint8* keyState) {
         if (keyState[i]) { alguma = true; break; }
     }
 
-    if (alguma && !mAlgumaAnterior) {
+    if (mBordaAlguma.Bateu(alguma)) {
         mGame->RequestSceneChange(SceneType::MainMenu);
         return;
     }
-    mAlgumaAnterior = alguma;
 }

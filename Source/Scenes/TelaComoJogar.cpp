@@ -131,11 +131,10 @@ void TelaComoJogar::OnProcessInput(const Uint8* keyState) {
 
     const bool voltar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois)
                      || keyState[SDL_SCANCODE_ESCAPE];
-    if (voltar && !mVoltarAnterior) {
+    if (mBordaVoltar.Bateu(voltar)) {
         mGame->RequestSceneChange(SceneType::MainMenu);
         return;
     }
-    mVoltarAnterior = voltar;
 
     // Qualquer um dos dois vira a pagina: a dupla le junta.
     bool esquerda = false, direita = false, avancar = false;
@@ -148,12 +147,9 @@ void TelaComoJogar::OnProcessInput(const Uint8* keyState) {
 
     const int quantas = static_cast<int>(Manual::Carregado().paginas.size());
     int passo = 0;
-    if (esquerda && !mEsquerdaAnterior) passo -= 1;
-    if (direita && !mDireitaAnterior) passo += 1;
-    const bool avancou = avancar && !mAvancarAnterior;
-    mEsquerdaAnterior = esquerda;
-    mDireitaAnterior = direita;
-    mAvancarAnterior = avancar;
+    if (mBordaEsquerda.Bateu(esquerda)) passo -= 1;
+    if (mBordaDireita.Bateu(direita)) passo += 1;
+    const bool avancou = mBordaAvancar.Bateu(avancar);
 
     if (avancou) {
         // Na ultima (ou sem manual), o botao 1 termina: o leitor chegou ao fim.

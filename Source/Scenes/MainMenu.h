@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Scene.h"
+#include "../Entrada/Borda.h"
 #include <memory> // Necessário para std::unique_ptr
 #include <string>
 #include <vector>
@@ -55,10 +56,10 @@ private:
 
     /// Bordas das teclas de navegacao. Menu anda de um em um: com leitura por estado, segurar a
     /// seta desceria a lista inteira num piscar.
-    bool mCimaAnterior{};
-    bool mBaixoAnterior{};
+    Borda mBordaCima;
+    Borda mBordaBaixo;
 
     /// Comeca em true: quem volta ao menu pode chegar com enter ainda apertado da tela anterior, e
     /// sem isto a opcao em foco seria escolhida sozinha.
-    bool mConfirmarAnterior = true;
+    Borda mBordaConfirmar{true};
 };

@@ -237,41 +237,39 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
     const bool esquerda = Painel::Apertado(keyState, kQuem, Painel::Direcao::Esquerda);
     const bool direita  = Painel::Apertado(keyState, kQuem, Painel::Direcao::Direita);
 
+    // As bordas andam sempre, mesmo sem linha a escolher.
+    const bool subiu = mBordaCima.Bateu(cima);
+    const bool desceu = mBordaBaixo.Bateu(baixo);
+    const bool paraEsquerda = mBordaEsquerda.Bateu(esquerda);
+    const bool paraDireita = mBordaDireita.Bateu(direita);
     if (quantas > 0) {
-        if (cima && !mCimaAnterior) {
+        if (subiu) {
             mLinhaEmFoco = (mLinhaEmFoco - 1 + quantas) % quantas;
             Redesenhar();
         }
-        if (baixo && !mBaixoAnterior) {
+        if (desceu) {
             mLinhaEmFoco = (mLinhaEmFoco + 1) % quantas;
             Redesenhar();
         }
-        if (esquerda && !mEsquerdaAnterior) Trocar(-1);
-        if (direita && !mDireitaAnterior) Trocar(+1);
+        if (paraEsquerda) Trocar(-1);
+        if (paraDireita) Trocar(+1);
     }
-    mCimaAnterior = cima;
-    mBaixoAnterior = baixo;
-    mEsquerdaAnterior = esquerda;
-    mDireitaAnterior = direita;
 
     const bool confirmar = Painel::Apertado(keyState, kQuem, Painel::Botao::Um)
                         || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
-    if (confirmar && !mConfirmarAnterior) {
-        mConfirmarAnterior = true;
+    if (mBordaConfirmar.Bateu(confirmar)) {
         mGame->DefinirAparencia(mAparencia);
 
         // Nao vai direto para a selecao.
         mGame->AvancarEntrada();
         return;
     }
-    mConfirmarAnterior = confirmar;
 
     const bool voltar = Painel::Apertado(keyState, kQuem, Painel::Botao::Dois)
                      || keyState[SDL_SCANCODE_ESCAPE];
-    if (voltar && !mVoltarAnterior) {
+    if (mBordaVoltar.Bateu(voltar)) {
         // Volta para a matricula.
         mGame->RequestSceneChange(SceneType::Identificacao);
         return;
     }
-    mVoltarAnterior = voltar;
 }

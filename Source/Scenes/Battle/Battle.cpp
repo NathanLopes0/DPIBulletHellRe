@@ -41,6 +41,7 @@
 #include "../../Motor/CaminhosArquivo.h"
 #include "RegistroDaTentativa.h"
 #include "ClaroesDaMoldura.h"
+#include "TelaDeCarregamento.h"
 #include "../PainelDeMenu.h"
 #include "../../Components/AIComponents/FSMComponent.h"
 
@@ -470,63 +471,14 @@ void Battle::StartLoadingProjectilePools() {
     mLoadingTotalTypes = static_cast<int>(mLoadingPendingFactoryNames.size());
 
     mIsLoading = true;
-    mCarregamento = Carregamento::Estado{};
 
     // Pausa o Player durante o carregamento.
     for (Player* jogador : mJogadores) {
         if (jogador) jogador->SetState(ActorState::Paused);
     }
 
-    CriarTelaDeCarregamento();
-}
-
-void Battle::CriarTelaDeCarregamento() {
-    const auto w = static_cast<float>(mGame->GetWindowWidth());
-    const auto h = static_cast<float>(mGame->GetWindowHeight());
-
-    // Acima de tudo, ate da pausa (900).
-    constexpr int kOrdemDoVeu = 1000;
-    constexpr SDL_Color kFundo{5, 6, 11, 255};
-
-    auto veu = std::make_unique<Actor>(this);
-    veu->SetPosition(Vector2(w / 2.0f, h / 2.0f));
-    veu->AddComponent<DrawCaixaComponent>(static_cast<int>(w) + 4, static_cast<int>(h) + 4,
-                                          kSemMoldura, kFundo, 0, kOrdemDoVeu);
-    mVeuDoCarregamento = AddActor(std::move(veu));
-
-    // O que vem ai: o codigo da materia, o nome dela e o professor.
-    const Materias::Materia* materia = Materias::Carregadas().Por(mStage);
-    const auto texto = [&](const std::string& t, Font* fonte, const float y, const int tamanho, const Vector3& cor) {
-        if (t.empty() || !fonte) return;
-        auto ator = std::make_unique<Actor>(this);
-        ator->SetPosition(Vector2(w / 2.0f, y));
-        auto* dc = ator->AddComponent<DrawTextComponent>(t, fonte, 1000, tamanho + 10, tamanho, kOrdemDoVeu + 2);
-        dc->SetAjustarAoTexto(true);
-        dc->SetColor(cor);
-        mTextosDoCarregamento.push_back(AddActor(std::move(ator)));
-    };
-    if (materia) {
-        texto(materia->nome, mGradeBarFont.get(), h * 0.36f, 52, Color::White);
-        texto(materia->nomeCompleto, mFonteDoPlacar.get(), h * 0.44f, 28, Vector3(0.75f, 0.78f, 0.9f));
-        if (!materia->professor.empty()) {
-            texto("Prof. " + materia->professor, mFonteDoPlacar.get(), h * 0.50f, 22, Vector3(0.55f, 0.58f, 0.7f));
-        }
-    }
-    if (mNivel == Dificuldade::Nivel::Dificil) {
-        texto(Dificuldade::Nome(mNivel), mGradeBarFont.get(), h * 0.57f, 24,
-              Vector3(Dificuldade::kCorDoDificil[0], Dificuldade::kCorDoDificil[1], Dificuldade::kCorDoDificil[2]));
-    }
-    texto("preparando a prova", mFonteDoPlacar.get(), h * 0.66f, 20, Vector3(0.45f, 0.48f, 0.6f));
-
-    // A barra, com o acabamento da barra de relogio do chefe.
-    constexpr int kLargura = 520, kAltura = 14;
-    auto barra = std::make_unique<Actor>(this);
-    barra->SetPosition(Vector2((w - static_cast<float>(kLargura)) / 2.0f, h * 0.70f));
-    auto* pb = barra->AddComponent<ProgressBarComponent>(kOrdemDoVeu + 1);
-    pb->SetSize(kLargura, kAltura);
-    pb->SetGradientColors(SDL_Color{22, 24, 36, 255}, SDL_Color{80, 120, 230, 255}, SDL_Color{110, 230, 150, 255});
-    pb->SetFillPercent(0.0f);
-    mBarraDoCarregamento = AddActor(std::move(barra));
+    mTelaDeCarregamento = std::make_unique<TelaDeCarregamento>(*this, Materias::Carregadas().Por(mStage), mNivel,
+                                                               mGradeBarFont.get(), mFonteDoPlacar.get());
 }
 
 void Battle::UpdateLoadingStep(const float deltaTime) {
@@ -545,42 +497,16 @@ void Battle::UpdateLoadingStep(const float deltaTime) {
         ? static_cast<float>(mLoadingTotalTypes - static_cast<int>(mLoadingPendingFactoryNames.size())) /
           static_cast<float>(mLoadingTotalTypes)
         : 1.0f;
-    Carregamento::Avancar(mCarregamento, feito, std::min(deltaTime, 0.05f));
-    if (mBarraDoCarregamento) {
-        if (auto* pb = mBarraDoCarregamento->GetComponent<ProgressBarComponent>()) {
-            pb->SetFillPercent(mCarregamento.mostrado);
-            pb->SetColorPercent(mCarregamento.mostrado);
-        }
-    }
-
-    // Pronta, a tela some: primeiro o texto e a barra, depois o veu esmaece sobre a batalha parada.
-    if (Carregamento::Pronto(mCarregamento)) {
-        for (Actor* t : mTextosDoCarregamento) {
-            if (auto* dc = t->GetComponent<DrawTextComponent>()) dc->SetIsVisible(false);
-        }
-        if (mBarraDoCarregamento) {
-            if (auto* pb = mBarraDoCarregamento->GetComponent<ProgressBarComponent>()) pb->SetIsVisible(false);
-        }
-        if (mVeuDoCarregamento) {
-            if (auto* veu = mVeuDoCarregamento->GetComponent<DrawCaixaComponent>()) {
-                veu->SetFundo(SDL_Color{5, 6, 11, static_cast<Uint8>(255.0f * Carregamento::Opacidade(mCarregamento))});
-            }
-        }
-    }
-
-    if (Carregamento::Acabou(mCarregamento)) FinishLoadingProjectilePools();
+    mTelaDeCarregamento->Avancar(feito, std::min(deltaTime, 0.05f));
+    if (mTelaDeCarregamento->Acabou()) FinishLoadingProjectilePools();
 }
 
 void Battle::FinishLoadingProjectilePools() {
 
     mIsLoading = false;
 
-    // A tela de carregamento sai de cena de vez.
-    for (Actor* t : mTextosDoCarregamento) t->SetState(ActorState::Destroy);
-    mTextosDoCarregamento.clear();
-    if (mVeuDoCarregamento) mVeuDoCarregamento->SetState(ActorState::Destroy);
-    if (mBarraDoCarregamento) mBarraDoCarregamento->SetState(ActorState::Destroy);
-    mVeuDoCarregamento = mBarraDoCarregamento = nullptr;
+    mTelaDeCarregamento->Remover();
+    mTelaDeCarregamento.reset();
 
     if (mGame->GetAudio() && !mMusicHandle.IsValid()) {
         mMusicHandle = mGame->GetAudio()->PlaySound("backgroundmusic.ogg", true);
@@ -781,8 +707,7 @@ void Battle::OnProcessInput(const Uint8* keyState) {
 
     // O ESC e borda, e nao estado: segurado, ele abriria e fecharia a pausa a cada quadro.
     const bool esc = keyState[SDL_SCANCODE_ESCAPE] != 0;
-    const bool escNovo = esc && !mEscAnterior;
-    mEscAnterior = esc;
+    const bool escNovo = mBordaEsc.Bateu(esc);
 
     if (mIsEnding) {
         ProcessarResultado(keyState);
@@ -811,12 +736,9 @@ Battle::BatidasDoMenu Battle::LerMenu(const Uint8* keyState) {
     confirmar = confirmar || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
 
     BatidasDoMenu b;
-    b.cima = cima && !mCimaNoMenu;
-    b.baixo = baixo && !mBaixoNoMenu;
-    b.confirmar = confirmar && !mConfirmarNoMenu;
-    mCimaNoMenu = cima;
-    mBaixoNoMenu = baixo;
-    mConfirmarNoMenu = confirmar;
+    b.cima = mBordaCima.Bateu(cima);
+    b.baixo = mBordaBaixo.Bateu(baixo);
+    b.confirmar = mBordaConfirmar.Bateu(confirmar);
     return b;
 }
 
@@ -971,9 +893,17 @@ void Battle::CheckCollisions() {
     const auto &bossProjectiles = mProjectileManager->GetBossProjectiles();
     const auto &playerProjectiles = mProjectileManager->GetPlayerProjectiles();
 
-    // As quatro regras continuam nesta ordem, e por isso sao quatro lacos em vez de um.
+    // A ordem das regras importa: cada uma ve o que a anterior ja derrubou.
+    ColisoesDoAbrigo(bossProjectiles);
+    ColisoesDoEscudo(bossProjectiles);
+    ColisoesTiroDoChefeNoAluno(bossProjectiles);
+    ColisoesTiroDoAlunoNosProjeteis(playerProjectiles, bossProjectiles);
+    ColisoesTiroDoAlunoNoChefe(playerProjectiles);
+    ColisoesDeContato();
+    ColisoesComPontoExtra();
+}
 
-    // ---- Regra 0 - o abrigo come os projeteis do chefe ----
+void Battle::ColisoesDoAbrigo(const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles) {
     for (const auto &abrigo : bossProjectiles) {
         if (abrigo->GetState() != ActorState::Active || !abrigo->Abrigo()) continue;
         const auto *colisorDoAbrigo = abrigo->GetComponent<CircleColliderComponent>();
@@ -985,8 +915,9 @@ void Battle::CheckCollisions() {
             if (outro && colisorDoAbrigo->Intersect(*outro)) bossProj->Kill();
         }
     }
+}
 
-    // ---- Regra 0,5 - o escudo do Ponto Extra come os projeteis do chefe ----
+void Battle::ColisoesDoEscudo(const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles) {
     for (Player* jogador : mJogadores) {
         if (!jogador || jogador->TempoDeImunidade() <= 0.0f) continue;
         const auto* colisor = ColisorDe(jogador);
@@ -998,8 +929,9 @@ void Battle::CheckCollisions() {
             if (outro && PontoExtra::NoEscudo(centro, outro->GetCenter(), outro->GetRadius())) bossProj->Kill();
         }
     }
+}
 
-    // ---- Regra 1 - Projéteis do Boss vs Player --- // ----
+void Battle::ColisoesTiroDoChefeNoAluno(const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles) {
     for (Player* jogador : mJogadores) {
         const auto *playerCollider = ColisorDe(jogador);
         if (!playerCollider) continue;
@@ -1030,8 +962,9 @@ void Battle::CheckCollisions() {
             }
         }
     }
+}
 
-    // ---- Regra 1b - Projéteis do Player vs Projéteis derrubaveis do Boss ----
+void Battle::ColisoesTiroDoAlunoNosProjeteis(const std::vector<std::unique_ptr<PlayerProjectile>>& playerProjectiles, const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles) {
     for (const auto &playerProj: playerProjectiles) {
         if (playerProj->GetState() != ActorState::Active) continue;
         const auto *tiro = playerProj->GetComponent<CircleColliderComponent>();
@@ -1092,8 +1025,9 @@ void Battle::CheckCollisions() {
             break;   // um tiro derruba um processo so, ou some numa historia so
         }
     }
+}
 
-    // ---- Regra 2 - Projéteis do Player vs Boss ----
+void Battle::ColisoesTiroDoAlunoNoChefe(const std::vector<std::unique_ptr<PlayerProjectile>>& playerProjectiles) {
     for (const auto &playerProj: playerProjectiles) {
         if (playerProj->GetState() != ActorState::Active) continue;
 
@@ -1134,8 +1068,9 @@ void Battle::CheckCollisions() {
             }
         }
     }
+}
 
-    // ---- Regra 3 - Player vs Boss  (Contato Direto) ----
+void Battle::ColisoesDeContato() {
     for (Player* jogador : mJogadores) {
         const auto *playerCollider = ColisorDe(jogador);
         if (!playerCollider) continue;
@@ -1156,8 +1091,9 @@ void Battle::CheckCollisions() {
             }
         }
     }
+}
 
-    // ---- Regra 4 - Player vs ExtraPoints ----
+void Battle::ColisoesComPontoExtra() {
     bool playedPowerUpSound = false;
 
     for (Player* jogador : mJogadores) {
@@ -1188,7 +1124,6 @@ void Battle::CheckCollisions() {
     }
 
     // A nota nao e mais escrita aqui.
-
 }
 
 Player* Battle::JogadorEm(const size_t posicao) const {

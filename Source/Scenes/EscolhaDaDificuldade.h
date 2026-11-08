@@ -9,6 +9,7 @@
 #include <string>
 
 #include "Scene.h"
+#include "../Entrada/Borda.h"
 #include "../Regras/Dificuldade.h"
 
 class Font;
@@ -40,8 +41,8 @@ private:
 
     /// As bordas, para uma acao por toque. Comecam em true: o botao 1 que confirmou a matricula nao
     /// confirma a dificuldade junto.
-    bool mConfirmarAnterior = true;
-    bool mVoltarAnterior = true;
-    bool mEsquerdaAnterior = true;
-    bool mDireitaAnterior = true;
+    Borda mBordaConfirmar{true};
+    Borda mBordaVoltar{true};
+    Borda mBordaEsquerda{true};
+    Borda mBordaDireita{true};
 };

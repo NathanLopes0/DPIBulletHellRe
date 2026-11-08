@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Scene.h"
+#include "../Entrada/Borda.h"
 
 class Font;
 class Actor;
@@ -43,8 +44,8 @@ private:
     DrawTextComponent* mRodape = nullptr;
 
     /// As bordas, para uma acao por toque.
-    bool mVoltarAnterior = true;
-    bool mAvancarAnterior = true;
-    bool mEsquerdaAnterior = true;
-    bool mDireitaAnterior = true;
+    Borda mBordaVoltar{true};
+    Borda mBordaAvancar{true};
+    Borda mBordaEsquerda{true};
+    Borda mBordaDireita{true};
 };

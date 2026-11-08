@@ -85,6 +85,7 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Motor/Configuracao.h
         Source/Entrada/Painel.cpp
         Source/Entrada/Painel.h
+        Source/Entrada/Borda.h
         Source/Aluno/Sessao.cpp
         Source/Aluno/Sessao.h
         Source/Aluno/Ranking.cpp
@@ -156,6 +157,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Scenes/Battle/Battle.cpp
         Source/Scenes/Battle/OuvinteDaBatalha.h
         Source/Scenes/Battle/RegistroDaTentativa.cpp
+        Source/Scenes/Battle/TelaDeCarregamento.cpp
+        Source/Scenes/Battle/TelaDeCarregamento.h
         Source/Scenes/Battle/RegistroDaTentativa.h
         Source/Scenes/Battle/ClaroesDaMoldura.cpp
         Source/Scenes/Battle/ClaroesDaMoldura.h
@@ -494,6 +497,7 @@ add_executable(dpi_tests
         tests/test_tentativas.cpp
         tests/test_resultado.cpp
         tests/test_manual.cpp
+        tests/test_borda.cpp
         tests/test_barra_da_nota.cpp
         tests/test_hud.cpp
         tests/test_personagens.cpp
