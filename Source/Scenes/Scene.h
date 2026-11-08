@@ -51,6 +51,10 @@ public:
 
     [[nodiscard]] virtual SDL_FRect GetPlayfieldBounds() const;
 
+    /// @brief A janela do jogo perdeu o foco (alguem foi para outra janela).
+    /// Por padrao nada acontece; a batalha pausa (Battle::AoPerderOFoco).
+    virtual void AoPerderOFoco() {}
+
 protected:
     // As classes filhas vão dar override nestas para adicionar
     // sua lógica específica. Elas têm um corpo vazio por padrão.

@@ -102,8 +102,15 @@ mas **não aparecem escritos em lugar nenhum**.
 (continuar, recomeçar a fase, sair dela) que **só existe no computador**, e o
 rodapé desse menu escreve "ESC continuar". No gabinete a pausa não abre
 (`Pausa::PodePausar`) — o painel não tem `ESC`, e uma batalha congelada no
-corredor seria uma tela morta para quem chega depois. O `Ctrl + Esc` de quem
+corredor seria uma tela morta para quem chega depois. Pela mesma razão, perder
+o foco da janela também não pausa no gabinete. O `Ctrl + Esc` de quem
 mantém a máquina continua sendo o de sempre.
+
+**A tela de resultado volta sozinha.** A ociosidade do gabinete não vale dentro
+da batalha — uma luta em andamento não pode ser interrompida —, e a tela de
+resultado é parte da batalha. Para a máquina não ficar parada no resumo de quem
+foi embora sem escolher, ela volta para as matérias depois de 20 segundos
+(`Resultado::kEsperaNoGabinete`), e dali a ociosidade de sempre assume.
 
 Cada tela dá o significado dos botões no rodapé. O Botão 2 é quase sempre
 "voltar" — na seleção de fases, voltar é trocar de aluno, e o rodapé diz isso

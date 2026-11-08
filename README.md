@@ -29,7 +29,7 @@ escritos na tela.
 | **Botão 1** | **Espaço** | **F** | lançar Dúvidas (os balões com **?**); confirmar; digitar |
 | **Botão 2** | **B** | **G** | voltar e apagar; na batalha, gastar um Ponto Extra: sozinho, uma onda dourada sai de você e desfaz os tiros do professor por onde passa, e você fica 1,5 s sem atirar — em troca, ganha a nota que ganharia acertando todos os tiros desse tempo; em dupla, dá ao parceiro um escudo que destrói os projéteis do chefe, e quem gastou segue atirando |
 | **Botão 3** | **N** | **H** | o ranking da matéria, na seleção; na batalha do TCC, soltar o poder do orientador quando o anel dele enche |
-| — | **Esc** | — | na batalha, **só no computador**: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota |
+| — | **Esc** | — | na batalha, **só no computador**: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota. A batalha também pausa sozinha quando a janela perde o foco |
 | — | **Enter**, **Esc**, **0–9**, **Backspace** | — | atalhos de teclado para quem desenvolve |
 
 > As setas **não são atalho do W A S D**: elas são o manche do jogador 1, e o
@@ -75,6 +75,17 @@ A nota vale o mesmo nos dois, e a batalha no Difícil mostra o selo **DIFÍCIL**
 na ponta da faixa da nota. A escolha é **da partida**: não fica gravada, e toda
 partida nova começa com o cursor no Normal — quem chega ao gabinete não herda o
 Difícil de quem jogou antes.
+
+**Ao continuar da pausa**, a luta não volta na hora: uma contagem **3, 2, 1**
+aparece no meio do campo, com tudo ainda parado, para dar tempo de achar o
+aluno no meio dos tiros. `Esc` durante a contagem reabre o menu.
+
+**Quando a luta acaba**, a tela de resultado mostra a nota, se ela bateu o
+recorde da matéria, as fases limpas e os acertos sofridos, e oferece **Tentar
+de novo** (a mesma matéria, do zero) ou **Voltar às matérias**. O menu só
+aceita o botão depois de um instante, para o tiro que estava apertado não
+escolher sozinho. No gabinete, se ninguém escolher em 20 segundos, ela volta
+sozinha para as matérias.
 
 Ao sair de uma batalha (ou do ranking), a seleção de fases volta com o cursor
 na **última matéria escolhida**, e não no INF 110. Uma partida nova começa do
@@ -429,7 +440,8 @@ Source/          o jogo
   Personagem/      o catálogo de peças e a montagem da personagem
   Regras/          as regras puras da batalha: nota, Ponto Extra, acertos,
                    dificuldade, variação, intercâmbio, golpe e poder
-  Interface/       as contas da HUD, da barra da nota, do carregamento e da pausa
+  Interface/       as contas da HUD, da barra da nota, do carregamento, da
+                   pausa e do resultado
   Actors/          jogador, professores, orientador, projéteis
   Attacks/         as estratégias de ataque e os comportamentos de projétil
   Scenes/          menu, identificação, criação de personagem, seleção, batalha

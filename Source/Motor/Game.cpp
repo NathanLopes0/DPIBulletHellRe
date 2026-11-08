@@ -173,6 +173,11 @@ void Game::ProcessInput()
                 // AtualizarGabinete.
                 if (!mGabinete.arcade) Quit();
                 break;
+            case SDL_WINDOWEVENT:
+                // QUEM SAI DA JANELA NO MEIO DA LUTA nao quer voltar e achar a
+                // nota no chao. A cena decide o que fazer (Scene::AoPerderOFoco).
+                if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST && mScene) mScene->AoPerderOFoco();
+                break;
             default: ;
         }
     }

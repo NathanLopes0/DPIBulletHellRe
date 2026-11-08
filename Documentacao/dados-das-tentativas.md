@@ -67,7 +67,7 @@ que começa é outra, com outra linha.
 | `data`, `hora` | As duas metades de `inicio`, separadas para filtrar por dia ou por horário. |
 | `dia_da_semana` | `domingo` a `sabado`, a partir de `data`. |
 | `duracao_s` | Segundos de **luta**: sem a tela de carregamento e sem o tempo em pausa. |
-| `pausa_s` | Segundos com a pausa aberta. |
+| `pausa_s` | Segundos com a pausa aberta, mais a contagem 3, 2, 1 da volta (a luta segue parada durante ela). |
 | `nota_final` | A nota no fim. No abandono, a nota no momento em que o aluno saiu (ela **não** vai para a ficha). |
 | `nota_maxima`, `nota_minima` | A maior e a menor nota durante a luta. |
 | `nota_cheia` | `1` se a nota chegou a 100 em algum momento. |

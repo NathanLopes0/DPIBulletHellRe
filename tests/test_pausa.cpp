@@ -52,3 +52,21 @@ TEST_CASE("Pausa: cada opcao tem um texto, e nenhum se repete") {
     CHECK(static_cast<int>(vistos.size()) == kQuantas);
     CHECK(std::string(Texto(Opcao::Recomecar)) == "Recome\xc3\xa7" "ar a fase");
 }
+
+TEST_CASE("Pausa: a volta conta 3, 2, 1 e entao a luta segue") {
+    CHECK(Contagem(kRetomada) == 3);
+    CHECK(Contagem(2.5f) == 3);
+    CHECK(Contagem(2.0f) == 2);
+    CHECK(Contagem(1.01f) == 2);
+    CHECK(Contagem(0.4f) == 1);
+    CHECK(Contagem(0.0f) == 0);
+    CHECK(Contagem(-0.1f) == 0);
+    CHECK(Contagem(9.0f) == 3);   // nunca mostra mais que o comeco
+}
+
+TEST_CASE("Pausa: perder o foco pausa nas mesmas condicoes do ESC, e so uma vez") {
+    CHECK(PausaAoPerderOFoco(false, true, false));
+    CHECK_FALSE(PausaAoPerderOFoco(true, true, false));    // no gabinete, nunca
+    CHECK_FALSE(PausaAoPerderOFoco(false, false, false));  // carregando ou no fim
+    CHECK_FALSE(PausaAoPerderOFoco(false, true, true));    // ja estava pausada
+}

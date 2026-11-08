@@ -4,6 +4,8 @@
 
 #include "Pausa.h"
 
+#include <cmath>
+
 namespace Pausa {
 
     const char* Texto(const Opcao o) {
@@ -38,5 +40,15 @@ namespace Pausa {
     Opcao Escolhida(const Menu& m) {
         if (m.selecionada < 0 || m.selecionada >= kQuantas) return Opcao::Continuar;
         return kOpcoes[m.selecionada];
+    }
+
+    int Contagem(const float restante) {
+        if (restante <= 0.0f) return 0;
+        const int n = static_cast<int>(std::ceil(restante));
+        return n > static_cast<int>(kRetomada) ? static_cast<int>(kRetomada) : n;
+    }
+
+    bool PausaAoPerderOFoco(const bool arcade, const bool emCombate, const bool jaPausada) {
+        return !jaPausada && PodePausar(arcade, emCombate);
     }
 }

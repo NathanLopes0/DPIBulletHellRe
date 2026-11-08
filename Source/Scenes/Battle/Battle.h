@@ -14,6 +14,7 @@
 #include "../../Motor/Game.h"
 #include "../../Motor/AudioSystem.h"
 #include "../../Interface/Pausa.h"
+#include "../../Interface/Resultado.h"
 #include "../../Interface/Carregamento.h"
 #include "../../Regras/Dificuldade.h"
 #include "../../Interface/Hud.h"
@@ -30,6 +31,7 @@ class ProjectileManager;
 class BattleHUD;
 class ExtraPointItem;
 class Orientador;
+class PainelDeMenu;
 
 class Battle : public Scene {
 
@@ -212,6 +214,9 @@ public:
     /// O indice da materia desta batalha (Materias::Lista).
     [[nodiscard]] int MateriaDaBatalha() const { return mStage; }
 
+    /// A janela perdeu o foco: a luta pausa sozinha (Pausa::PausaAoPerderOFoco).
+    void AoPerderOFoco() override;
+
 
 protected:
     void TimeBarUpdate() const;
@@ -267,6 +272,10 @@ private:
     /// fase, quando nao ha fase anterior. Sem isto, a batalha comecaria pagando
     /// um bonus por uma fase que ninguem jogou.
     bool mPrimeiraFase = true;
+
+    /// Quantas fases pagaram o bonus de fase limpa. Para o resumo do fim
+    /// (Resultado.h); o registro da tentativa conta as dele pelo AoLimparFase.
+    int mFasesLimpas = 0;
 
     /// Quanto tempo o aviso de fase limpa ainda fica na tela.
     float mAvisoDeFaseLimpa{};
@@ -554,14 +563,23 @@ private:
 
     std::vector<ExtraPointItem*> mExtraPoints;
 
-    void LoadEndScreen(); // Cria o texto escondido
+    // ---- O FIM DA LUTA: a tela de resultado (Resultado.h) --------------------
+    //
+    // A luta acabou e a nota ja foi para a ficha: a batalha fica congelada ao
+    // fundo e o painel mostra o resumo e pergunta o que fazer - tentar de novo
+    // ou voltar as materias.
 
-    // --- Variáveis de Final de Jogo ---
+    void LoadResultado();
+    void MostrarResultado(const Resultado::Resumo& resumo);
+    void ProcessarResultado(const Uint8* keyState);
+    void EscolherNoResultado();
+
     bool mIsEnding = false;
+    /// Segundos desde o fim da luta: a trava do menu e a volta sozinha no
+    /// gabinete contam por ele.
     float mEndTimer = 0.0f;
-    bool mIsApproved = false; // Para saber pra onde ir ou que cor usar
-
-    Actor* mEndTextActor = nullptr; // O texto gigante
+    int mResultadoSelecionado = 0;
+    std::unique_ptr<PainelDeMenu> mPainelDoResultado;
 
     SoundHandle mMusicHandle;
 
@@ -599,9 +617,10 @@ private:
 
     void LoadPausa();
     void AbrirPausa();
+    /// Fecha o menu e comeca a contagem: a luta segue congelada ate ela acabar.
     void FecharPausa();
-    void MostrarPausa(bool visivel);
-    void PosicionarSelecaoDaPausa();
+    /// A contagem acabou: os atores e a musica voltam.
+    void Retomar();
     void ProcessarPausa(const Uint8* keyState, bool escNovo);
     void EscolherNaPausa();
 
@@ -616,28 +635,36 @@ private:
     void SairDaBatalha(SceneType destino);
 
     Pausa::Menu mPausa;
+    std::unique_ptr<PainelDeMenu> mPainelDaPausa;
+
+    /// A CONTAGEM DA VOLTA (Pausa::kRetomada): segundos que faltam, e 0 fora
+    /// dela. Enquanto corre, os atores seguem congelados e o numero grande
+    /// fica no meio da tela - sem veu, para o campo ficar inteiro a vista.
+    float mRetomada = 0.0f;
+    Actor* mNumeroDaRetomada = nullptr;
+    [[nodiscard]] bool Retomando() const { return mRetomada > 0.0f; }
+
+    // ---- AS BATIDAS DOS MENUS (a pausa e o resultado) -------------------------
+
+    /// So o que acabou de ser apertado neste quadro, de qualquer um dos dois.
+    struct BatidasDoMenu {
+        bool cima = false;
+        bool baixo = false;
+        bool confirmar = false;
+    };
+    BatidasDoMenu LerMenu(const Uint8* keyState);
+    /// Faz o que ja esta apertado agora nao contar como batida nova.
+    void SegurarMenu() { mCimaNoMenu = mBaixoNoMenu = mConfirmarNoMenu = true; }
 
     /// Comecam apertadas: um ESC ou um botao que ja vinha segurado de antes nao
     /// conta como batida nova.
     bool mEscAnterior = true;
-    bool mCimaNaPausa = true;
-    bool mBaixoNaPausa = true;
-    bool mConfirmarNaPausa = true;
+    bool mCimaNoMenu = true;
+    bool mBaixoNoMenu = true;
+    bool mConfirmarNoMenu = true;
 
-    Actor* mVeuDaPausa = nullptr;
-    Actor* mPlacaDaPausa = nullptr;
-    Actor* mTituloDaPausa = nullptr;
-    Actor* mSelecaoDaPausa = nullptr;
-    Actor* mRodapeDaPausa = nullptr;
-    std::vector<Actor*> mOpcoesDaPausa;
-
-    /// POR CIMA DE TUDO: a faixa da nota vai ate 304 e o texto do fim usa 300.
-    static constexpr int kOrdemDaPausa = 900;
-    static constexpr int kLarguraDaPlacaDaPausa = 620;
-    static constexpr int kAlturaDaPlacaDaPausa = 380;
-    static constexpr int kLarguraDaSelecaoDaPausa = 440;
-    static constexpr int kAlturaDaSelecaoDaPausa = 54;
-    static constexpr float kPassoDaPausa = 66.0f;
+    /// POR CIMA DE TUDO: a faixa da nota vai ate 304.
+    static constexpr int kOrdemDosMenus = 900;
 };
 
 
