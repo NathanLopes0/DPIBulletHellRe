@@ -8,13 +8,7 @@
 #include "../../Components/AIComponents/FSMState.h"
 #include <string>
 
-/**
- * @class BossAttackState
- * @brief Um "estado" fino que só gerencia transições.
- *
- * Esta classe é um "Vigia". Seu único trabalho é
- * contar o tempo e checar condições para a transição.
- */
+/// Um "estado" fino que só gerencia transições. Esta classe é um "Vigia".
 class BossAttackState : public FSMState {
 
 public:
@@ -25,7 +19,7 @@ public:
 
     ~BossAttackState() override = default;
 
-    /** @brief Sobrescreve GetDuration para retornar a duração deste estado. */
+    /// Sobrescreve GetDuration para retornar a duração deste estado.
     [[nodiscard]] float GetDuration() const override { return mDuration; }
 
     void HandleStateTransition(float stateTime) override;
@@ -36,5 +30,4 @@ private:
 
 };
 
-
-#endif //DPIBULLETHELLRE_BOSSATTACKSTATE_H
+#endif // DPIBULLETHELLRE_BOSSATTACKSTATE_H.

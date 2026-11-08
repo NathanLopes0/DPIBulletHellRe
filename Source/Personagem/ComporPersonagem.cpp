@@ -12,10 +12,6 @@
 namespace {
 
     /// Multiplica cada pixel pela cor escolhida, preservando o alfa.
-    ///
-    /// A conta por canal vive em Personagens::Multiplicar, que e pura e testada;
-    /// aqui so ha a varredura. O alfa NAO entra na multiplicacao: tingir a
-    /// transparencia comeria as bordas da peca a cada composicao.
     void Tingir(SDL_Surface* s, const unsigned char r, const unsigned char g,
                 const unsigned char b) {
 
@@ -43,10 +39,6 @@ namespace {
     }
 
     /// Abre um PNG ja no formato em que a conta de tingir funciona.
-    ///
-    /// A conversao nao e luxo: um PNG pode vir indexado ou sem canal alfa, e a
-    /// varredura acima trata todo pixel como 32 bits. Sem converter, uma peca
-    /// salva em formato diferente das outras sairia com as cores embaralhadas.
     SDL_Surface* AbrirComo32(const std::string& caminho) {
 
         SDL_Surface* bruta = IMG_Load(caminho.c_str());
@@ -81,9 +73,6 @@ Composta Compor(Game* game, const Catalogo& catalogo, const Aparencia& aparencia
         return saida;
     }
 
-    // A chave sai da aparencia JA RESOLVIDA, e nao da pedida: duas aparencias
-    // que diferem so num cabelo que nao existe mais sao a mesma personagem na
-    // tela, e devem reaproveitar a mesma textura.
     saida.chaveDaTextura = ChaveDaAparencia(catalogo.Resolver(aparencia));
     saida.atlas = Caminhos::Asset(camadas.front().arte + ".json");
 
@@ -102,9 +91,7 @@ Composta Compor(Game* game, const Catalogo& catalogo, const Aparencia& aparencia
         if (camada.tingida) Tingir(peca, camada.r, camada.g, camada.b);
 
         if (destino == nullptr) {
-            // O tamanho vem da PRIMEIRA camada que abriu, e nao de um numero
-            // fixo aqui: assim trocar a arte por uma de outra resolucao e so
-            // trocar os arquivos.
+            // O tamanho vem da primeira camada que abriu, e nao de um numero fixo aqui.
             destino = SDL_CreateRGBSurfaceWithFormat(0, peca->w, peca->h, 32,
                                                      SDL_PIXELFORMAT_RGBA32);
             if (destino == nullptr) {
@@ -121,8 +108,6 @@ Composta Compor(Game* game, const Catalogo& catalogo, const Aparencia& aparencia
                     camada.arte.c_str(), peca->w, peca->h, destino->w, destino->h);
         }
 
-        // Mistura, e nao copia: sem isto a camada de cima apagaria o que havia
-        // atras dela, inclusive onde ela e transparente - sobraria so o cabelo.
         SDL_SetSurfaceBlendMode(peca, SDL_BLENDMODE_BLEND);
         SDL_BlitSurface(peca, nullptr, destino, nullptr);
         SDL_FreeSurface(peca);

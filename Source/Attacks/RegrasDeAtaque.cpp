@@ -63,10 +63,6 @@ namespace {
         d.atraso          = Campo(j, "atraso", 0.0f);
         d.pararPor        = Campo(j, "pararPor", 0.0f);
 
-        // Nao se chama "pausa" porque esse nome ja e do PulsoDeVelocidade, onde
-        // quer dizer MODULO DE VELOCIDADE durante a pausa - coisa diferente. Dois
-        // campos de mesmo nome e sentidos diferentes no mesmo arquivo e pedir para
-        // alguem escrever um achando que escreve o outro.
         if (j.contains("pararNoPonto") && j["pararNoPonto"].is_number_integer()) {
             d.pararNoPonto = j["pararNoPonto"].get<int>();
         }
@@ -93,9 +89,7 @@ namespace {
         d.dx = Campo(j, "dx", 0.0f);
         d.dy = Campo(j, "dy", 0.0f);
 
-        // A JANELA QUE NAO FICARIA E RECUSADA: sem duracao ela solta no quadro em
-        // que chega, e sem velocidade, solta, fica parada para sempre - nunca
-        // sai da tela nem volta ao pool.
+        // A janela que nao ficaria e recusada.
         if (d.tipo == "Ancorar") {
             if (d.duracao <= 0.0f)
                 erro = "\"Ancorar\" precisa de \"duracao\" maior que zero: e quanto tempo a "
@@ -109,11 +103,7 @@ namespace {
         d.comprimento = Campo(j, "comprimento", 0.0f);
         if (j.contains("sentido") && j["sentido"].is_string()) d.sentido = j["sentido"].get<std::string>();
 
-        // A CORDA QUE NAO AMARRARIA NADA E RECUSADA. Comprimento zero e uma letra
-        // amarrada no instante em que nasce, girando em cima do professor; sem
-        // duracao, a corda e cortada no quadro em que estica e a letra so faz uma
-        // curva de noventa graus. E um sentido escrito errado nao vira o padrao
-        // calado: o lado do giro e o que o aluno le para desviar da letra solta.
+        // A corda que nao amarraria nada e recusada.
         if (d.tipo == "Amarrar") {
             Amarra::Sentido s;
             if (d.comprimento <= 0.0f)
@@ -128,10 +118,7 @@ namespace {
             return d;
         }
 
-        // A PROMESSA PARADA, OU COM UMA FRACAO QUE NAO E FRACAO, e recusada.
-        // Velocidade zero e uma promessa resolvida que nao sai do lugar - e,
-        // parada, nunca deixa a tela nem volta ao pool. Fracao fora de [0, 1]
-        // nao e "muitas" nem "poucas": e um numero que alguem digitou errado.
+        // A promessa parada, ou com uma fracao que nao e fracao, e recusada.
         if (d.tipo == "Promessa") {
             if (d.velocidade <= 0.0f)
                 erro = "\"Promessa\" precisa de \"velocidade\" maior que zero: e com ela que "
@@ -164,7 +151,7 @@ namespace {
 
             Regra r;
 
-            // --- condicao ---
+            // ---- Condicao ----
             if (j.contains("chance") && j["chance"].is_number()) {
                 r.condicao = Regra::Chance;
                 r.chance = j["chance"].get<float>();
@@ -192,7 +179,7 @@ namespace {
                 }
             }
 
-            // --- motion ---
+            // ---- Motion ----
             bool falhou = false;
             if (j.contains("motion")) {
                 std::string erro;
@@ -207,10 +194,7 @@ namespace {
                     falhou = true;
                 }
                 else {
-                    // A parada so existe em caminho, e os dois campos so fazem
-                    // sentido juntos. Metade da configuracao nao da erro em jogo -
-                    // simplesmente nao para -, que e o tipo de silencio que faz
-                    // alguem procurar o problema no motor em vez de no arquivo.
+                    // A parada so existe em caminho, e os dois campos so fazem sentido juntos.
                     if (!d.forma.empty() && !d.formaPorIndice.empty()) {
                         problemas.emplace_back(onde + "\"forma\" e \"formaPorIndice\" juntas: a motion"
                                                       " usa uma forma so, ou uma familia, nunca as duas");
@@ -243,7 +227,7 @@ namespace {
                 }
             }
 
-            // --- modifiers ---
+            // ---- Modifiers ----
             if (!falhou && j.contains("modifiers")) {
                 if (!j["modifiers"].is_array()) {
                     problemas.emplace_back(onde + "\"modifiers\" deveria ser uma lista");
@@ -269,17 +253,7 @@ namespace {
             }
             if (falhou) continue;
 
-            // --- investidaRepetida: acucar que vira as duas pecas ---
-            //
-            // A investida precisa de uma Motion que re-aponta e um Modifier que
-            // pulsa o modulo, derivados DO MESMO ritmo. Escrever as duas a mao
-            // significa escrever o ritmo duas vezes, e mudar um e esquecer o
-            // outro faz a mirada acontecer fora do mergulho - um defeito que nao
-            // da erro nenhum, so fica esquisito.
-            //
-            // A expansao acontece AQUI, na leitura, e nao na ponte: assim o resto
-            // do sistema nunca ve um terceiro tipo de coisa, e o equivalente em
-            // dados de AplicarInvestidaRepetida fica testavel na camada pura.
+            // ---- InvestidaRepetida: acucar que vira as duas pecas ----
             if (j.contains("investidaRepetida")) {
                 const auto& inv = j["investidaRepetida"];
                 if (!inv.is_object()) {
@@ -304,9 +278,7 @@ namespace {
 
                 const float naPausa = Campo(inv, "velocidadeNaPausa", 15.0f);
                 if (naPausa <= 0.0f) {
-                    // A direcao mora dentro do vetor velocidade: com modulo zero
-                    // a mirada seguinte nao tem o que girar, e o projetil fica
-                    // parado para sempre.
+                    // A direcao mora dentro do vetor velocidade.
                     problemas.emplace_back(onde + "\"velocidadeNaPausa\" nao pode ser zero: a "
                                                   "direcao mora no vetor velocidade, e com modulo "
                                                   "zero a mirada seguinte nao tem o que girar");
@@ -321,7 +293,7 @@ namespace {
 
                 DescricaoDeBehavior pulso;
                 pulso.tipo = "PulsoDeVelocidade";
-                pulso.ritmo = ritmo;   // o MESMO ritmo, por construcao
+                pulso.ritmo = ritmo;   // O mesmo ritmo, por construcao.
                 pulso.moduloInvestida = Campo(inv, "velocidadeNaInvestida", 0.0f);
                 pulso.moduloPausa = naPausa;
                 r.modifiers.push_back(pulso);
@@ -348,8 +320,7 @@ namespace {
             }
 
             if (j.contains("posto")) {
-                // UM POSTO QUE NINGUEM LE e um projetil que ninguem usa como
-                // ponto de tiro, calado. Recusado na leitura.
+                // Um posto que ninguem le e um projetil que ninguem usa como ponto de tiro, calado.
                 if (!j["posto"].is_string() || !PostoExiste(j["posto"].get<std::string>())) {
                     problemas.emplace_back(onde + "\"posto\" precisa ser o nome de um posto que existe");
                     continue;

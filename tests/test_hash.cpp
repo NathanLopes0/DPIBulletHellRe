@@ -72,7 +72,7 @@ TEST_CASE("Hash: a tabela sorteada abre com 7 ou 11 baldes, e o rehash segue a l
         CHECK(p.chanceDeInserir >= 0.45f);
         CHECK(p.chanceDeInserir < 0.65f);
         CHECK(Hash::ProximoTamanho(p.tamanhoInicial) > p.tamanhoInicial);
-        // TODA CHAVE INSERIDA E NOVA, com qualquer plano.
+        // Toda chave inserida e nova, com qualquer plano.
         std::vector<int> naTabela;
         std::mt19937 g(semente);
         for (int i = 0; i < 40; ++i) {

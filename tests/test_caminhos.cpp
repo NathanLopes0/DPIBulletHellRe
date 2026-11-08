@@ -1,6 +1,4 @@
-// Montagem e busca de caminhos. Camada pura: nenhum diretorio e criado, nenhum
-// arquivo e aberto. A busca recebe de fora a pergunta "esta pasta serve?", e e
-// isso que a torna testavel.
+// Montagem e busca de caminhos.
 
 #include "doctest.h"
 
@@ -13,25 +11,19 @@ using Caminhos::Juntar;
 using Caminhos::DiretorioPai;
 using Caminhos::ProcurarSubindo;
 
-// ---------------------------------------------------------------------------
-// Juntar
-// ---------------------------------------------------------------------------
+// Juntar.
 
 TEST_CASE("Juntar: o caso comum") {
     CHECK(Juntar("C:/jogo", "Assets") == "C:/jogo/Assets");
 }
 
 TEST_CASE("Juntar: UMA barra, nunca duas, nunca nenhuma") {
-    // O SDL_GetBasePath devolve o caminho JA com barra no fim, entao o caso de
-    // barra sobrando e o normal, nao a excecao.
     CHECK(Juntar("C:/jogo/", "Assets") == "C:/jogo/Assets");
     CHECK(Juntar("C:/jogo", "/Assets") == "C:/jogo/Assets");
     CHECK(Juntar("C:/jogo/", "/Assets") == "C:/jogo/Assets");
 }
 
 TEST_CASE("Juntar: normaliza a barra invertida do Windows") {
-    // As duas funcionam na API do sistema, mas um caminho com as duas misturadas
-    // fica ilegivel no log - que e onde a gente olha quando um arquivo nao abre.
     CHECK(Juntar("C:\\jogo", "Assets") == "C:/jogo/Assets");
     CHECK(Juntar("C:\\jogo\\", "Teachers\\salles.png") == "C:/jogo/Teachers/salles.png");
 }
@@ -54,9 +46,7 @@ TEST_CASE("Juntar: raiz unix nao perde a barra") {
     CHECK(Juntar("/opt", "jogo") == "/opt/jogo");
 }
 
-// ---------------------------------------------------------------------------
-// DiretorioPai
-// ---------------------------------------------------------------------------
+// DiretorioPai.
 
 TEST_CASE("DiretorioPai: sobe um nivel") {
     CHECK(DiretorioPai("C:/jogo/build/Debug") == "C:/jogo/build");
@@ -64,15 +54,12 @@ TEST_CASE("DiretorioPai: sobe um nivel") {
 }
 
 TEST_CASE("DiretorioPai: barra no fim nao conta como nivel") {
-    // "C:/jogo/build/" e "C:/jogo/build" sao o mesmo diretorio, entao sobem para
-    // o mesmo lugar. Sem isto, a busca gastaria um nivel para nada.
+    // "C:/jogo/build/" e "C:/jogo/build" sao o mesmo diretorio, entao sobem para o mesmo lugar.
     CHECK(DiretorioPai("C:/jogo/build/") == "C:/jogo");
     CHECK(DiretorioPai("C:/jogo/build") == "C:/jogo");
 }
 
 TEST_CASE("DiretorioPai: a raiz nao vira string vazia") {
-    // Se a raiz virasse vazia, a subida perderia a referencia de onde estava e o
-    // laco de busca nao teria como parar com sentido.
     CHECK(DiretorioPai("/opt") == "/");
     CHECK(DiretorioPai("/") == "");
 }
@@ -82,9 +69,7 @@ TEST_CASE("DiretorioPai: sem nivel acima devolve vazio") {
     CHECK(DiretorioPai("") == "");
 }
 
-// ---------------------------------------------------------------------------
-// ProcurarSubindo
-// ---------------------------------------------------------------------------
+// ProcurarSubindo.
 
 /// Simula um disco: um conjunto de diretorios que "tem Assets dentro".
 static Caminhos::Predicado Disco(const std::set<std::string>& comAssets) {
@@ -108,15 +93,12 @@ TEST_CASE("Procurar: sobe varios niveis") {
 }
 
 TEST_CASE("Procurar: para no limite de niveis") {
-    // Sem limite, uma arvore sem Assets faria a busca ir ate a raiz do disco e
-    // potencialmente achar um "Assets" de outro projeto.
     CHECK(ProcurarSubindo("C:/a/b/c/d/e/f/g", 2, Disco({"C:/a"})).empty());
     CHECK(ProcurarSubindo("C:/a/b/c", 2, Disco({"C:/a"})) == "C:/a");
 }
 
 TEST_CASE("Procurar: devolve a PRIMEIRA que serve, de baixo para cima") {
-    // Se houver Assets em dois niveis, o mais proximo do executavel ganha - e o
-    // que um build dentro do projeto espera.
+    // Se houver Assets em dois niveis, o mais proximo do executavel ganha.
     CHECK(ProcurarSubindo("C:/jogo/build", 5, Disco({"C:/jogo", "C:/jogo/build"}))
           == "C:/jogo/build");
 }

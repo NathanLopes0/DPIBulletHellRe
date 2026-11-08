@@ -14,18 +14,8 @@ class Font;
 class Actor;
 class DrawTextComponent;
 
-/**
- * @class TelaComoJogar
- * @brief O manual, uma pagina por vez: o objetivo, os controles, a nota, o que
- * se destroi, a dupla e o curso.
- *
- * O TEXTO NAO E DAQUI: vem de Assets/como-jogar.json (Manual.h). Esta cena so
- * desenha a pagina em que o leitor esta e vira as paginas.
- *
- * O manche para os lados vira a pagina; o botao 1 vai para a seguinte e, na
- * ultima, volta ao menu; o botao 2 (ou o ESC) volta ao menu de qualquer
- * pagina. No gabinete, as linhas que falam de tecla nao aparecem.
- */
+/// O manual, uma pagina por vez: o objetivo, os controles, a nota, o que se destroi, a dupla e o
+/// curso.
 class TelaComoJogar : public Scene {
 public:
     explicit TelaComoJogar(Game* game);
@@ -52,9 +42,7 @@ private:
     DrawTextComponent* mSetaProxima = nullptr;
     DrawTextComponent* mRodape = nullptr;
 
-    /// As bordas, para uma acao por toque. Comecam em TRUE pela mesma regra
-    /// das outras cenas: quem entra aqui com o botao 1 do menu ainda apertado
-    /// nao pula a primeira pagina sem querer.
+    /// As bordas, para uma acao por toque.
     bool mVoltarAnterior = true;
     bool mAvancarAnterior = true;
     bool mEsquerdaAnterior = true;

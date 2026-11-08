@@ -24,14 +24,14 @@ TEST_CASE("BarraDaNota: a queda deixa um rastro parado, que depois encolhe ate a
     BarraDaNota::Avancar(e, 62.0f, 0.016f);
     CHECK(e.rastro == doctest::Approx(70.0f));
     CHECK(e.tremor > 0.9f);
-    // PARADO no comeco...
+    // Parado no comeco...
     for (int i = 0; i < 10; ++i) BarraDaNota::Avancar(e, 62.0f, 0.016f);
     CHECK(e.rastro == doctest::Approx(70.0f));
     // ...e depois some.
     for (int i = 0; i < 120; ++i) BarraDaNota::Avancar(e, 62.0f, 0.016f);
     CHECK(e.rastro == doctest::Approx(62.0f));
     CHECK(e.tremor == doctest::Approx(0.0f));
-    // O RASTRO NUNCA FICA ATRAS do preenchimento.
+    // O rastro nunca fica atras do preenchimento.
     BarraDaNota::Avancar(e, 80.0f, 0.016f);
     CHECK(e.rastro >= e.mostrada);
 }
@@ -51,7 +51,7 @@ TEST_CASE("BarraDaNota: duas quedas seguidas guardam o rastro da primeira, e a q
 
 TEST_CASE("Carregamento: a barra nao enche num piscar, segura cheia, e o veu some depois") {
     Carregamento::Estado e;
-    // O CARREGAMENTO DE VERDADE acaba de uma vez...
+    // O carregamento de verdade acaba de uma vez...
     Carregamento::Avancar(e, 1.0f, 0.016f);
     CHECK(e.mostrado < 0.1f);             // ...mas a barra anda no ritmo dela
     CHECK_FALSE(Carregamento::Pronto(e));

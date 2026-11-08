@@ -24,7 +24,6 @@ namespace Sprint {
                (pontos == 1 ? " ponto" : " pontos");
     }
 
-
     float TempoDeFitts(const float distancia, const float largura, const Fitts& f) {
         const float l = std::max(largura, 1.0f);
         const float d = std::max(distancia, 0.0f);
@@ -56,9 +55,7 @@ namespace Sprint {
         p.soltura = Vector2(q.centroX, q.altura);
         for (int i = 0; i < n; ++i) p.vagas.push_back(Vaga(i, n, q));
 
-        // O ALVO DO ARRASTE E O QUADRO INTEIRO, da primeira vaga a ultima: a
-        // sprint cheia tem alvo largo, e Fitts diz que alvo largo se acerta
-        // mais depressa.
+        // O alvo do arraste e o quadro inteiro, da primeira vaga a ultima.
         const float largura = static_cast<float>(std::max(n - 1, 0)) * q.espaco + q.vaga;
         p.arraste = TempoDeFitts((p.soltura - origem).Length(), largura, f);
         p.espalha = kEspalha;

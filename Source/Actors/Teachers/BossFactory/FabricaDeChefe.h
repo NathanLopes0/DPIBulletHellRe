@@ -10,20 +10,7 @@
 
 #include "IBossFactory.h"
 
-/**
- * @class FabricaDeChefe
- * @brief A fabrica de qualquer chefe: so a classe, a pasta e o retrato mudam.
- *
- * ERAM ONZE CLASSES IGUAIS. Cada professor tinha a sua fabrica, com .h e .cpp,
- * e os onze ConfigureComponents e ConfigureAttacksAndFSM eram o mesmo codigo
- * letra por letra - medido: diferiam so no nome da pasta e nas mensagens de
- * log. Vinte e dois arquivos para um dado de tres campos; um chefe novo pedia
- * copiar mais dois, e uma correcao na receita teria de ser feita onze vezes.
- *
- * A RECEITA MORA EM IBossFactory, e o que e de cada chefe e DADO (a pasta e o
- * retrato) - registrado numa linha em Chefes.cpp. O que nao da para ser dado e
- * a classe do chefe, e e ela que o parametro do molde carrega.
- */
+/// A fabrica de qualquer chefe: so a classe, a pasta e o retrato mudam.
 template <typename Chefe>
 class FabricaDeChefe final : public IBossFactory {
 public:

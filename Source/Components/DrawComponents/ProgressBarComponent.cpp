@@ -20,14 +20,13 @@ void ProgressBarComponent::Draw(SDL_Renderer* renderer) {
     const int posX = static_cast<int>(ownerPos.x);
     const int posY = static_cast<int>(ownerPos.y);
 
-    // 1. O fundo, e por cima dele a moldura e o sulco.
+    // 1.
     const SDL_Rect bgRect{posX, posY, mWidth, mHeight};
     SDL_SetRenderDrawColor(renderer, mBackgroundColor.r, mBackgroundColor.g, mBackgroundColor.b, mBackgroundColor.a);
     SDL_RenderFillRect(renderer, &bgRect);
     DesenharSulco(renderer, bgRect);
 
-    // 2. O preenchimento: UMA cor, a do ponto em que a cor esta entre o comeco
-    // e o fim (mColorPercent), num retangulo do tamanho do que encheu.
+    // 2.
     const SDL_Color cor = LerpColor(mStartColor, mEndColor, mColorPercent);
     const int cheio = static_cast<int>(static_cast<float>(mWidth) * mFillPercent);
     if (cheio <= 0) return;
@@ -36,8 +35,7 @@ void ProgressBarComponent::Draw(SDL_Renderer* renderer) {
     const SDL_Rect fgRect{posX, posY, cheio, mHeight};
     SDL_RenderFillRect(renderer, &fgRect);
 
-    // 3. O brilho vem DEPOIS do preenchimento: ele e o acabamento dele, e
-    // desenhado antes ficaria por baixo.
+    // 3.
     DesenharBrilho(renderer, fgRect, cor);
 }
 
@@ -55,7 +53,6 @@ void ProgressBarComponent::SetGradientColors(SDL_Color background, SDL_Color sta
     mEndColor = end;
 }
 
-
 void ProgressBarComponent::SetSize(const int width, const int height) {
     mWidth = width;
     mHeight = height;
@@ -69,9 +66,7 @@ SDL_Color ProgressBarComponent::Escurecer(const SDL_Color cor, const float quant
     return LerpColor(cor, {0, 0, 0, cor.a}, quanto);
 }
 
-/// Quanto do sulco e sombra, e quao acesa fica a ponta. Em UM lugar: sao tres
-/// desenhos que tem de combinar entre si, e tres numeros soltos pelo Draw
-/// acabariam ajustados um de cada vez ate deixarem de combinar.
+/// Quanto do sulco e sombra, e quao acesa fica a ponta.
 namespace {
     constexpr int kEspessuraDaMoldura = 2;
     constexpr int kAlturaDaSombra     = 2;   ///< o risco escuro no topo do sulco
@@ -82,17 +77,13 @@ namespace {
     constexpr float kClaroDaPonta   = 0.70f;
     constexpr float kEscuroDaSombra = 0.50f;
 
-    /// A moldura CLAREIA o fundo, e nao escurece. O sulco ja e quase preto, e
-    /// uma moldura mais escura que ele desapareceria no preto da tela - a barra
-    /// continuaria sem contorno, que e justamente o que a moldura veio resolver.
+    /// A moldura clareia o fundo, e nao escurece.
     constexpr float kClaroDaMoldura = 0.30f;
 }
 
 void ProgressBarComponent::DesenharSulco(SDL_Renderer* renderer, const SDL_Rect& caixa) const {
 
-    // A MOLDURA fecha a barra. Sem ela o retangulo encosta no preto da tela e
-    // nao se sabe onde a barra acaba e a tela comeca - era o que fazia a faixa
-    // parecer um risco, e nao uma peca.
+    // A moldura fecha a barra.
     const SDL_Color moldura = Clarear(mBackgroundColor, kClaroDaMoldura);
     SDL_SetRenderDrawColor(renderer, moldura.r, moldura.g, moldura.b, 255);
     for (int i = 0; i < kEspessuraDaMoldura; ++i) {
@@ -100,8 +91,7 @@ void ProgressBarComponent::DesenharSulco(SDL_Renderer* renderer, const SDL_Rect&
         SDL_RenderDrawRect(renderer, &anel);
     }
 
-    // A SOMBRA no topo de dentro: da ao vazio a leitura de buraco, e nao de
-    // outra cor chapada. E o unico motivo de a parte vazia parecer funda.
+    // A sombra no topo de dentro: da ao vazio a leitura de buraco, e nao de outra cor chapada.
     const SDL_Color sombra = Escurecer(mBackgroundColor, kEscuroDaSombra);
     SDL_SetRenderDrawColor(renderer, sombra.r, sombra.g, sombra.b, 255);
     SDL_Rect risco{caixa.x, caixa.y, caixa.w, kAlturaDaSombra};
@@ -113,15 +103,13 @@ void ProgressBarComponent::DesenharBrilho(SDL_Renderer* renderer, const SDL_Rect
 
     if (preenchido.w <= 0 || preenchido.h <= 0) return;
 
-    // O BRILHO NO TOPO do cheio, do mesmo tom em claro. Duas linhas bastam: e o
-    // que separa "retangulo pintado" de "coisa com volume".
+    // O brilho no topo do cheio, do mesmo tom em claro.
     const SDL_Color claro = Clarear(cor, kClaroDoBrilho);
     SDL_SetRenderDrawColor(renderer, claro.r, claro.g, claro.b, cor.a);
     SDL_Rect topo{preenchido.x, preenchido.y, preenchido.w, kAlturaDoBrilho};
     SDL_RenderFillRect(renderer, &topo);
 
-    // A PONTA ACESA. O corte do preenchimento era uma aresta dura; acesa, ela
-    // vira o lugar para onde o olho vai - e e exatamente onde esta a nota.
+    // A ponta acesa.
     if (preenchido.w <= kLarguraDaPonta) return;
 
     const SDL_Color ponta = Clarear(cor, kClaroDaPonta);

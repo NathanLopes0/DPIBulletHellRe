@@ -26,8 +26,7 @@ namespace Transacao {
     std::vector<int> CicloDeEspera(const Txs& txs, const int id) {
         std::vector<int> caminho;
         int atual = id;
-        // No maximo uma volta por transacao: um caminho mais longo ja repetiu
-        // alguem, e se nao voltou a 'id' o ciclo nao e dela.
+        // No maximo uma volta por transacao.
         for (size_t passo = 0; passo <= txs.size(); ++passo) {
             const Tx* t = Achar(txs, atual);
             if (!t || t->quer < 0) return {};

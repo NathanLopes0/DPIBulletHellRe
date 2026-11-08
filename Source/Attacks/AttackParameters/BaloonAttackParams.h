@@ -24,4 +24,4 @@ struct BaloonAttackParams : AttackParams {
 
 };
 
-#endif //DPIBULLETHELLRE_BALOONATTACKPARAMS_H
+#endif // DPIBULLETHELLRE_BALOONATTACKPARAMS_H.

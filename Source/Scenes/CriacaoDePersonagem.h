@@ -16,20 +16,7 @@ class Font;
 class Actor;
 class DrawCaixaComponent;
 
-/**
- * @class CriacaoDePersonagem
- * @brief Monta a aparencia que vai ficar gravada no perfil da matricula.
- *
- * ESTA TELA NAO SABE COMPOR NADA. Quais camadas existem, em que ordem e com que
- * cor e assunto de Source/Personagens (puro, testado) e de
- * Source/ComporPersonagem (a ponte). Aqui so ha navegacao e desenho.
- *
- * AS LINHAS SAO GERADAS DO CATALOGO, e nao escritas a mao: cada categoria rende
- * uma linha de tipo (quando ha mais de uma peca) e uma de cor (quando ha mais de
- * uma cor). Acrescentar uma categoria no arquivo acrescenta as linhas dela sem
- * tocar nesta classe - e e por isso que "Tom de pele" aparece so com a linha de
- * cor, sem a de tipo: o corpo e uma peca so.
- */
+/// Monta a aparencia que vai ficar gravada no perfil da matricula. Esta tela nao sabe compor nada.
 class CriacaoDePersonagem : public Scene {
 public:
     explicit CriacaoDePersonagem(Game* game);
@@ -63,15 +50,11 @@ private:
 
     std::unique_ptr<Font> mFonte;
 
-    /// QUAL POSICAO esta montando a personagem. Cada jogador monta a sua
-    /// (requisitos-coop, D6), e esta tela roda uma vez por jogador novo.
-    /// Posta no Load, a partir do Game.
+    /// Qual posicao esta montando a personagem. Cada jogador monta a sua, e esta tela roda uma vez
+    /// por jogador novo.
     size_t mQuem = 0;
 
-    /// O painel DA VEZ. Existe como funcao porque a conversao estava escrita
-    /// DUAS vezes - uma no rodape e outra na leitura - e duas copias da mesma
-    /// conversao e como a tela de matricula acabou lendo o botao do jogador 1
-    /// enquanto o rodape anunciava o do jogador 2.
+    /// O painel da vez.
     [[nodiscard]] Painel::Jogador PainelDaVez() const {
         return mQuem == 1 ? Painel::Jogador::Dois : Painel::Jogador::Um;
     }
@@ -96,8 +79,8 @@ private:
     bool mEsquerdaAnterior{};
     bool mDireitaAnterior{};
 
-    /// Comeca em TRUE: chega-se aqui apertando ENTER na tela de matricula, e sem
-    /// a guarda a aparencia inicial seria confirmada sozinha no mesmo toque.
+    /// Comeca em true: chega-se aqui apertando enter na tela de matricula, e sem a guarda a
+    /// aparencia inicial seria confirmada sozinha no mesmo toque.
     bool mConfirmarAnterior = true;
     bool mVoltarAnterior = true;
 };

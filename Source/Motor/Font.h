@@ -16,11 +16,11 @@ public:
 	// Carrega a fonte em todos os tamanhos; o destrutor as fecha.
 	bool Load(const std::string& fileName);
 
-	// Given string and this font, draw to a texture
+	// Given string and this font, draw to a texture.
 	class SDL_Texture* RenderText(SDL_Renderer* renderer, const std::string& text, const Vector3& color = Color::White,
 							         int pointSize = 30, unsigned wrapLength = 900);
 
 private:
-	// Map of point sizes to font data
+	// Map of point sizes to font data.
 	std::unordered_map<int, TTF_Font*> mFontData;
 };

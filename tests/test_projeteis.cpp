@@ -1,9 +1,4 @@
-// Leitura dos tipos de projetil a partir de texto JSON. Camada pura: nao abre
-// arquivo, nao escreve log, nao sobe SDL e nao constroi Actor nenhum.
-//
-// Estes testes cobrem o LEITOR. A conferencia de que o arquivo de verdade
-// descreve os projeteis certos, e de que os quadros existem nos atlas de
-// verdade, esta em test_arquivos_de_dados.cpp.
+// Leitura dos tipos de projetil a partir de texto JSON.
 
 #include "doctest.h"
 
@@ -36,9 +31,7 @@ static std::string Um(const std::string& corpo) {
     return "{ \"P\": " + corpo + " }";
 }
 
-// ---------------------------------------------------------------------------
-// Leitura do caso bom
-// ---------------------------------------------------------------------------
+// Leitura do caso bom.
 
 TEST_CASE("Projeteis: le uma entrada completa") {
     const auto r = LerProjeteis(kValido);
@@ -54,9 +47,7 @@ TEST_CASE("Projeteis: le uma entrada completa") {
 }
 
 TEST_CASE("Projeteis: os padroes sao os da classe, nao zeros") {
-    // Um campo omitido tem de sair com o valor que o C++ usava antes da
-    // migracao. Zero em qualquer destes seria um projetil invisivel, sem hitbox
-    // ou atras do cenario.
+    // Um campo omitido tem de sair com o valor que o C++ usava antes da migracao.
     const auto r = LerProjeteis(Um(R"({
         "sprite": "a.png", "dados": "a.json",
         "animacoes": { "Normal": [0] }
@@ -71,8 +62,7 @@ TEST_CASE("Projeteis: os padroes sao os da classe, nao zeros") {
 }
 
 TEST_CASE("Projeteis: as animacoes guardam a ordem dos quadros") {
-    // A lista e uma sequencia de tempo, nao um conjunto: inverter a ordem muda a
-    // animacao, e repetir um indice e legitimo (ida e volta).
+    // A lista e uma sequencia de tempo, nao um conjunto.
     const auto r = LerProjeteis(Um(R"({
         "sprite": "a.png", "dados": "a.json",
         "animacoes": { "Vai": [0, 1, 2, 1] }
@@ -89,10 +79,6 @@ TEST_CASE("Projeteis: as animacoes guardam a ordem dos quadros") {
 }
 
 TEST_CASE("Projeteis: a raiz e o mapa de projeteis do chefe, sem nivel a mais") {
-    // DOIS CHEFES PODEM TER UM PROJETIL "Normal" sem colidir, e quem garante
-    // isso agora e a PASTA: cada um le o proprio arquivo e nunca enxerga o do
-    // outro. Antes havia aqui dentro um nivel com o nome do chefe - a mesma
-    // informacao que a pasta, e livre para discordar dela.
     const auto r = LerProjeteis(R"({
       "Normal": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] } },
       "Outro":  { "sprite": "o.png", "dados": "o.json", "animacoes": { "A": [0] } }
@@ -112,14 +98,8 @@ TEST_CASE("Projeteis: aceita comentario, como os outros arquivos de dados") {
     CHECK(r.projeteis.count("P") == 1);
 }
 
-// ---------------------------------------------------------------------------
-// animacaoInicial: o campo que uma das fabricas antigas esquecia
-// ---------------------------------------------------------------------------
-
 TEST_CASE("Projeteis: animacaoInicial omitida vira a primeira animacao") {
-    // Este e o bug que a fabrica dos baloes tinha: registrava tres animacoes e
-    // nao escolhia nenhuma, entao quem nascia pelo Prewarm era desenhado com
-    // animacao vazia. O leitor resolve o padrao para que a ponte nao precise.
+    // O leitor resolve o padrao para que a ponte nao precise.
     const auto r = LerProjeteis(Um(R"({
         "sprite": "a.png", "dados": "a.json",
         "animacoes": { "Ba": [1], "Aa": [0] }
@@ -127,8 +107,7 @@ TEST_CASE("Projeteis: animacaoInicial omitida vira a primeira animacao") {
     REQUIRE(r.problemas.empty());
     const auto& p = r.projeteis.at("P");
     CHECK_FALSE(p.animacaoInicial.empty());
-    // "Primeira" e a primeira da lista lida, e o nlohmann ordena as chaves de um
-    // objeto por nome - "Aa" antes de "Ba".
+    // "Primeira" e a primeira da lista lida, e o nlohmann ordena as chaves de um objeto por nome.
     CHECK(p.animacaoInicial == "Aa");
     CHECK(p.animacaoInicial == p.animacoes.front().nome);
 }
@@ -140,15 +119,11 @@ TEST_CASE("Projeteis: animacaoInicial que nao existe e relatada e corrigida") {
         "animacaoInicial": "Noraml"
     })"));
     CHECK(Menciona(r.problemas, "Noraml"));
-    // Corrigida, e nao descartada: um erro de digitacao aqui nao deve apagar o
-    // projetil inteiro do chefe.
     REQUIRE(r.projeteis.count("P") == 1);
     CHECK(r.projeteis.at("P").animacaoInicial == "Normal");
 }
 
-// ---------------------------------------------------------------------------
-// Problemas GRAVES: a entrada e descartada
-// ---------------------------------------------------------------------------
+// Problemas graves: a entrada e descartada.
 
 TEST_CASE("Projeteis: sem sprite a entrada cai") {
     const auto r = LerProjeteis(Um(R"({ "dados": "a.json", "animacoes": { "A": [0] } })"));
@@ -163,8 +138,6 @@ TEST_CASE("Projeteis: sem dados a entrada cai") {
 }
 
 TEST_CASE("Projeteis: sem animacao a entrada cai") {
-    // Sem animacao nao ha o que desenhar, e um projetil invisivel que mata e
-    // pior que um projetil ausente.
     const auto r = LerProjeteis(Um(R"({ "sprite": "a.png", "dados": "a.json" })"));
     CHECK(Menciona(r.problemas, "animacoes"));
     CHECK(r.projeteis.empty());
@@ -208,9 +181,7 @@ TEST_CASE("Projeteis: uma entrada ruim nao leva as boas do mesmo chefe") {
     CHECK(r.projeteis.count("Ruim") == 0);
 }
 
-// ---------------------------------------------------------------------------
-// Problemas LEVES: relatados, campo volta ao padrao
-// ---------------------------------------------------------------------------
+// Problemas leves: relatados, campo volta ao padrao.
 
 TEST_CASE("Projeteis: escala zero ou negativa volta para 1") {
     // Escala zero e um projetil de hitbox zero: atravessa o jogador sem tocar.
@@ -242,8 +213,6 @@ TEST_CASE("Projeteis: dimensao desconhecida volta para largura") {
 }
 
 TEST_CASE("Projeteis: altura e uma dimensao valida") {
-    // O projetil de lista duplamente encadeada e mais largo que alto, e usar a
-    // largura dele daria uma hitbox bem maior que o desenho.
     const auto r = LerProjeteis(Um(R"({
         "sprite": "a.png", "dados": "a.json",
         "animacoes": { "A": [0] }, "colisorDimensao": "altura"
@@ -267,9 +236,7 @@ TEST_CASE("Projeteis: a margem de saida tem como padrao a regra geral do jogo") 
 }
 
 TEST_CASE("Projeteis: divisor de tela ZERO e valido, nao um erro") {
-    // E o que os baloes do Andre usam: a folga e so o tamanho do sprite, sem
-    // parcela proporcional a tela. Tratar zero como invalido reescreveria o
-    // comportamento deles na migracao.
+    // E o que os baloes do Andre usam.
     const auto r = LerProjeteis(Um(R"({
         "sprite": "a.png", "dados": "a.json", "animacoes": { "A": [0] },
         "margemEmSprites": 2, "margemDivisorDeTela": 0
@@ -281,8 +248,6 @@ TEST_CASE("Projeteis: divisor de tela ZERO e valido, nao um erro") {
 }
 
 TEST_CASE("Projeteis: margem negativa e recusada") {
-    // Uma folga negativa encolheria a area viva para DENTRO da tela, e o projetil
-    // morreria a vista do jogador - parece um tiro que desaparece sozinho.
     const auto r = LerProjeteis(Um(R"({
         "sprite": "a.png", "dados": "a.json", "animacoes": { "A": [0] },
         "margemEmSprites": -1, "margemDivisorDeTela": -5
@@ -303,9 +268,7 @@ TEST_CASE("Projeteis: posicionarNoDono pode ser desligado") {
     CHECK(r.projeteis.at("P").posicionarNoDono == false);
 }
 
-// ---------------------------------------------------------------------------
-// Texto que nao serve
-// ---------------------------------------------------------------------------
+// Texto que nao serve.
 
 TEST_CASE("Projeteis: texto que nao e JSON e relatado, nao lancado") {
     const auto r = LerProjeteis("{ isto nao fecha");
@@ -331,8 +294,7 @@ TEST_CASE("Projeteis: entrada que nao e objeto e relatada") {
 }
 
 TEST_CASE("Projeteis: arquivo sem nenhum projetil util sai vazio, e nao inventado") {
-    // Quem diz que um chefe sem projetil e um problema e a PONTE, que sabe de
-    // quem era o arquivo. Aqui so se exige nao sobrar lixo no mapa.
+    // Aqui so se exige nao sobrar lixo no mapa.
     const auto r = LerProjeteis(R"({ "P": { "sprite": "a.png" } })");
     CHECK_FALSE(r.problemas.empty());
     CHECK(r.projeteis.empty());
@@ -340,8 +302,7 @@ TEST_CASE("Projeteis: arquivo sem nenhum projetil util sai vazio, e nao inventad
 
 TEST_CASE("Projeteis: por padrao o sprite NAO gira com a velocidade") {
 
-    // Girar so faz sentido para arte que tem frente. A capivara do Salles e os
-    // baloes do Andre girariam a toa, entao quem nao pede fica parado.
+    // Girar so faz sentido para arte que tem frente.
     const auto r = LerProjeteis(R"({ "P": {
         "sprite": "a.png", "dados": "a.json", "animacoes": { "A": [0] }
     } })");
@@ -362,9 +323,7 @@ TEST_CASE("Projeteis: rotacionarComAVelocidade pode ser ligado") {
     CHECK(r.problemas.empty());
 }
 
-// ---------------------------------------------------------------------------
-// "acorrenta": o acerto que quase nao cobra nota e em troca prende
-// ---------------------------------------------------------------------------
+// "acorrenta": o acerto que quase nao cobra nota e em troca prende.
 
 TEST_CASE("Projeteis: \"acorrenta\" e lido inteiro") {
 
@@ -387,8 +346,7 @@ TEST_CASE("Projeteis: \"acorrenta\" e lido inteiro") {
 
 TEST_CASE("Projeteis: sem \"acorrenta\", o projetil nao prende ninguem") {
 
-    // O PADRAO TEM DE SER INOFENSIVO. Todo projetil do jogo menos um nao tem
-    // este campo, e um default errado aqui prenderia o aluno em TODA batalha.
+    // O padrao tem de ser inofensivo.
     const auto p = LerProjeteis(R"({
       "Normal": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] } }
     })");
@@ -402,10 +360,6 @@ TEST_CASE("Projeteis: sem \"acorrenta\", o projetil nao prende ninguem") {
 
 TEST_CASE("Projeteis: um fator de velocidade fora de (0,1] derruba o efeito") {
 
-    // FATOR MAIOR QUE 1 FARIA O ALUNO ACELERAR AO SER ACERTADO, e fator zero ou
-    // negativo o deixaria parado ou andando para tras. Os tres sao engano de
-    // digitacao, e nenhum deles e coisa que alguem procuraria no arquivo depois
-    // - por isso o efeito inteiro e descartado e o problema e dito em voz alta.
     for (const char* ruim : {"1.4", "0", "-0.5"}) {
         CAPTURE(ruim);
         const auto texto = std::string(R"({ "C": { "sprite": "s.png", "dados": "s.json",
@@ -422,9 +376,7 @@ TEST_CASE("Projeteis: um fator de velocidade fora de (0,1] derruba o efeito") {
 
 TEST_CASE("Projeteis: \"acorrenta\" sem segundos nao prende, e reclama") {
 
-    // Um objeto "acorrenta" vazio e alguem que comecou a escrever o efeito e
-    // parou no meio. Aceitar calado daria um projetil que diz prender e nao
-    // prende - pior do que nao ter o campo.
+    // Um objeto "acorrenta" vazio e alguem que comecou a escrever o efeito e parou no meio.
     const auto p = LerProjeteis(R"({
       "C": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] },
              "acorrenta": { "fatorDeVelocidade": 0.5 } }
@@ -435,14 +387,10 @@ TEST_CASE("Projeteis: \"acorrenta\" sem segundos nao prende, e reclama") {
     CHECK(p.problemas[0].find("segundos") != std::string::npos);
 }
 
-// ---------------------------------------------------------------------------
 // O projetil que o aluno derruba (os processos do Lucas)
-// ---------------------------------------------------------------------------
 
 TEST_CASE("Projeteis: \"derrubavel\" e falso por padrao, e pode ser ligado") {
 
-    // O PADRAO TEM DE SER FALSO: verdadeiro em todo projetil faria cada tiro do
-    // aluno parar no primeiro projetil do caminho, em toda batalha.
     const auto p = LerProjeteis(R"({
       "Normal":   { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] } },
       "Processo": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] },
@@ -458,8 +406,6 @@ TEST_CASE("Projeteis: \"derrubavel\" e falso por padrao, e pode ser ligado") {
 
 TEST_CASE("Projeteis: \"abrigo\" e falso por padrao, liga com true, e reclama do que nao e booleano") {
 
-    // O PADRAO TEM DE SER FALSO: um abrigo come os projeteis do chefe, e um
-    // padrao errado faria todo projetil comer os vizinhos.
     const auto p = LerProjeteis(R"({
       "Normal":   { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] } },
       "Capivara": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] },
@@ -479,8 +425,7 @@ TEST_CASE("Projeteis: \"abrigo\" e falso por padrao, liga com true, e reclama do
 
 TEST_CASE("Projeteis: \"derrubavel\" que nao e booleano reclama e fica falso") {
 
-    // "sim" ou 1 seriam lidos como falso sem aviso, e o processo ficaria
-    // imortal - o aluno atiraria nele a fase inteira sem saber por que nao cai.
+    // "sim" ou 1 seriam lidos como falso sem aviso, e o processo ficaria imortal.
     for (const char* ruim : {"\"sim\"", "1"}) {
         CAPTURE(ruim);
         const auto texto = std::string(R"({ "P": { "sprite": "s.png", "dados": "s.json",
@@ -504,8 +449,7 @@ TEST_CASE("Projeteis: a resistencia e 1 por padrao, e so vale num derrubavel") {
     CHECK(p.projeteis.at("Processo").resistencia == 1);
     CHECK(p.projeteis.at("Janela").resistencia == 3);
 
-    // Zero, negativa, quebrada, ou num projetil que o tiro nao derruba: reclama
-    // e fica 1. A ultima e quase sempre um "derrubavel" esquecido.
+    // Zero, negativa, quebrada, ou num projetil que o tiro nao derruba: reclama e fica 1.
     for (const char* resto : { R"("derrubavel": true, "resistencia": 0)",
                                R"("derrubavel": true, "resistencia": 2.5)",
                                R"("resistencia": 3)" }) {

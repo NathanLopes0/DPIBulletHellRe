@@ -20,10 +20,7 @@ public:
     void SetColor(Uint8 red, Uint8 green, Uint8 blue);
 
 protected:
-    // Aplica o color mod DESTE componente na textura, imediatamente antes de
-    // desenhar. Necessario porque as texturas agora vem do cache do Game e sao
-    // COMPARTILHADAS: chamar SDL_SetTextureColorMod uma vez tingiria todo mundo
-    // que usa a mesma imagem. Guardamos a cor por componente e aplicamos no Draw.
+    // Aplica o color mod deste componente na textura, imediatamente antes de desenhar.
     void ApplyColorMod() const;
 
     SDL_Texture* mSpriteSheetSurface;

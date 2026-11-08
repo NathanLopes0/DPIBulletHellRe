@@ -38,7 +38,7 @@ TEST_CASE("Funcao: o retorno da de dentro vira o argumento da de fora") {
     CHECK(Placar(dobro) == "baloes(dobro(3), 11);");
     CHECK(PlacarComValores(dobro, 0) == "baloes(6, 11);");
 
-    // A DIVISAO DE INTEIROS: meio(3, 8) e 5, nao 5,5.
+    // A divisao de inteiros: meio(3, 8) e 5, nao 5,5.
     const Comando meio{Forma::LequeDoMeio, 3, 8};
     CHECK(Retorno(meio) == 5);
     CHECK(Placar(meio) == "leque(meio(3, 8));");

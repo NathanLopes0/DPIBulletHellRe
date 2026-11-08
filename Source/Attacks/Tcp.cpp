@@ -27,8 +27,6 @@ namespace Tcp {
     }
 
     Desfecho Reconhecer(Conexao& c, const Janela& j) {
-        // ACKS DUPLICADOS: o que se perdeu volta primeiro na janela seguinte,
-        // e ela cai a metade (o Reno - sem voltar ao slow start).
         if (j.perdidos > 0) {
             c.ssthresh = std::max(kMenorSsthresh, c.cwnd / 2);
             c.cwnd = c.ssthresh;

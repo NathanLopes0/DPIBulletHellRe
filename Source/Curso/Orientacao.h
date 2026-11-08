@@ -10,26 +10,8 @@
 #include "Materias.h"
 #include "../Aluno/Progresso.h"
 
-/**
- * CAMADA PURA.
- *
- * O TCC do Hugo e a unica batalha que o aluno nao luta sozinho: antes dela ele
- * escolhe um ORIENTADOR, e o orientador luta do lado dele com um ataque da
- * materia que da. Aqui ficam as duas regras da escolha.
- *
- * QUEM PODE ORIENTAR. O professor de uma materia em que o aluno foi APROVADO e
- * que tem batalha - o chefe dela e o que o orientador sabe fazer -, menos as
- * materias que pedem orientacao. Das que sobram, as kCandidatos de nota mais
- * alta, a maior primeiro; no empate, a que vem antes no curso. Um professor
- * aparece uma vez so, pela melhor nota dele.
- *
- * EM DUPLA, A NOTA DE CADA MATERIA E A MAIOR DOS DOIS: a dupla e tao boa numa
- * materia quanto o melhor dela. E os dois VOTAM: se votam no mesmo, e esse; se
- * nao, vence o de nota mais alta, que e o que esta mais acima na lista.
- *
- * Quem desenha a tela e a cena EscolhaDoOrientador; quem guarda o escolhido e
- * o Game (Game::DefinirOrientador). Coberto por test_orientacao.cpp.
- */
+/// O TCC do Hugo e a unica batalha que o aluno nao luta sozinho. Aqui ficam as duas regras da
+/// escolha.
 namespace Orientacao {
 
     /// Quantos professores o aluno pode escolher.
@@ -43,29 +25,15 @@ namespace Orientacao {
         int deQuem = 0;          ///< qual aluno tirou essa nota; no empate, o primeiro
     };
 
-    /// @brief Os candidatos a orientador de quem esta jogando: um Progresso por
-    /// aluno (um sozinho, dois em dupla). Nulo conta como quem nunca jogou.
+    /// Os candidatos a orientador de quem esta jogando: um Progresso por aluno (um sozinho, dois em
+    /// dupla). Nulo conta como quem nunca jogou.
     std::vector<Candidato> Candidatos(const Materias::Lista& lista,
                                       const std::vector<const Progresso*>& alunos);
 
-    /// @brief A votacao: um voto por aluno, o indice do candidato em quem ele
-    /// votou. Devolve o indice do escolhido, ou -1 se alguem ainda nao votou
-    /// (voto negativo, ou fora da lista) ou nao ha voto nenhum.
+    /// A votacao: um voto por aluno, o indice do candidato em quem ele votou.
     int Resultado(const std::vector<Candidato>& candidatos, const std::vector<int>& votos);
 
-    /**
-     * @brief A votacao em curso, na tela: onde esta o cursor de cada aluno e em
-     * quem cada um ja votou.
-     *
-     * Um aluno so anda enquanto nao votou - o voto TRAVA o cursor, e e isso que
-     * a tela mostra. Desfazer destrava, e o cursor fica onde estava. Quem le o
-     * escolhido e Resultado, sobre Votos(): enquanto alguem nao votou, nao ha
-     * escolhido.
-     *
-     * Um aluno fora da conta (indice negativo, ou alem dos que jogam) e
-     * ignorado: nao anda, nao vota, e as perguntas sobre ele respondem como se
-     * ele nao tivesse votado.
-     */
+    /// A votacao em curso, na tela: onde esta o cursor de cada aluno e em quem cada um ja votou.
     class Votacao {
     public:
         Votacao(int candidatos, int alunos);

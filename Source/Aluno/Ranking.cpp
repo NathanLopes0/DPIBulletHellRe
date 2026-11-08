@@ -12,16 +12,8 @@ namespace Ranking {
 
 namespace {
 
-    /// Numera as posicoes de uma lista JA ORDENADA por nota decrescente.
-    ///
-    /// A REGRA DE EMPATE E UMA SO, E TODAS AS LISTAS PASSAM POR AQUI. Ela olha
-    /// apenas .nota e .posicao, que Linha e LinhaDeDupla tem iguais, e e por
-    /// isso que serve as duas sem saber qual e qual. Se cada lista numerasse a
-    /// sua, o mesmo empate poderia sair "2o e 2o" numa tela e "2o e 3o" na
-    /// outra - e seria a tela, e nao a nota, decidindo quem ganhou.
-    ///
-    /// A POSICAO E POR NOTA, E NAO POR INDICE: dois empatados dividem a
-    /// posicao, e a seguinte pula. E como se le um placar.
+    /// Numera as posicoes de uma lista ja ordenada por nota decrescente. A regra de empate e uma
+    /// so, e todas as listas passam por aqui.
     template <typename L>
     void Numerar(std::vector<L>& linhas) {
         for (size_t i = 0; i < linhas.size(); ++i) {
@@ -32,9 +24,6 @@ namespace {
     }
 
     /// Ordena e numera as linhas de um aluno so.
-    ///
-    /// @param notaDe como tirar a nota de uma ficha. E a unica coisa que muda
-    ///        entre o ranking de uma materia e o geral.
     template <typename NotaDe, typename JogadasDe>
     std::vector<Linha> Ordenar(const std::vector<Exportacao::FichaDeAluno>& fichas,
                                NotaDe notaDe, JogadasDe jogadasDe) {
@@ -43,15 +32,12 @@ namespace {
         linhas.reserve(fichas.size());
 
         for (const auto& f : fichas) {
-            // Nao disputou: fora. Ver o comentario de DaMateria.
+            // Nao disputou: fora.
             if (const float nota = notaDe(f); nota > 0.0f) {
                 linhas.push_back(Linha{1, f.matricula, nota, jogadasDe(f)});
             }
         }
 
-        // Nota decrescente; empate em ordem de matricula, so para a ordem ser
-        // sempre a mesma. stable_sort nao bastaria: a ordem de entrada vem da
-        // listagem de arquivos, que nao e garantida.
         std::sort(linhas.begin(), linhas.end(), [](const Linha& a, const Linha& b) {
             if (a.nota != b.nota) return a.nota > b.nota;
             return a.matricula < b.matricula;
@@ -61,12 +47,7 @@ namespace {
         return linhas;
     }
 
-    /// O RANKING DE SOLO LE O RECORDE DE SOLO DO NIVEL, e nao MelhorNota.
-    ///
-    /// MelhorNota devolve a maior de todas porque e ela que o mapa do curso
-    /// le - passar e passar (requisitos-coop, D10). Aqui seria o contrario do
-    /// que as listas existem para fazer: uma nota feita acompanhado, ou no
-    /// outro nivel, entraria na lista errada.
+    /// O ranking de solo le o recorde de solo do nivel, e nao MelhorNota.
     float NotaDeSolo(const Exportacao::FichaDeAluno& f, const int materia, const Dificuldade::Nivel nivel) {
         return f.progresso.Recorde(materia, Progresso::Modo::Solo, nivel).nota;
     }
@@ -83,7 +64,7 @@ namespace {
 
         if (quantasMaterias <= 0) return {};
 
-        // SO AS NOTAS DE SOLO, pelo mesmo motivo de Completa.
+        // So as notas de solo, pelo mesmo motivo de Completa.
         auto media = [quantasMaterias, nivel](const Exportacao::FichaDeAluno& f) {
             float soma = 0.0f;
             for (int m = 0; m < quantasMaterias; ++m) {
@@ -109,14 +90,10 @@ namespace {
         return linhas;
     }
 
-    // ---- as duplas -------------------------------------------------------
+    // ---- As duplas ----
 
-    /// A chave de uma dupla: as duas matriculas, A MENOR PRIMEIRO.
-    ///
-    /// E o que faz a dupla ser a MESMA dupla nas duas fichas. Sem ordenar, o
-    /// par (A,B) gravado na ficha de A e o par (B,A) gravado na de B virariam
-    /// duas linhas do ranking - a mesma dupla competindo contra si mesma, com a
-    /// mesma nota, ocupando duas posicoes do topo.
+    /// A chave de uma dupla: as duas matriculas, a menor primeiro. E o que faz a dupla ser a mesma
+    /// dupla nas duas fichas.
     using Chave = std::pair<std::string, std::string>;
 
     Chave ChaveDa(const std::string& a, const std::string& b) {
@@ -124,16 +101,6 @@ namespace {
     }
 
     /// As duplas que jogaram uma materia, e a nota de cada uma.
-    ///
-    /// UM LUGAR SO decide o que e "a nota de uma dupla numa materia": a lista
-    /// da materia e a geral chamam esta funcao, entao nao ha como as duas
-    /// discordarem sobre quem jogou com quem.
-    ///
-    /// A MAIOR DAS DUAS FICHAS, quando a dupla aparece nas duas. No caminho
-    /// normal os dois numeros sao iguais - e a MESMA batalha, gravada dos dois
-    /// lados. Divergem quando uma das fichas nao chegou ao disco (queda de
-    /// energia no gabinete entre uma gravacao e a outra), e ai a maior e a
-    /// certa: a dupla fez aquela nota, e o outro lado so nao registrou.
     std::map<Chave, float> DuplasDe(const std::vector<Exportacao::FichaDeAluno>& fichas,
                                     const int materia, const Dificuldade::Nivel nivel) {
 
@@ -141,22 +108,16 @@ namespace {
 
         for (const auto& f : fichas) {
 
-            // Nao jogou acompanhado nesta materia: fora, pelo mesmo motivo de
-            // Ordenar - uma linha zerada empurraria para fora quem disputou.
+            // Nao jogou acompanhado nesta materia: fora, pelo mesmo motivo de Ordenar.
             const Progresso::Marca& recorde = f.progresso.Recorde(materia, Progresso::Modo::Dupla, nivel);
             const float nota = recorde.nota;
             if (nota <= 0.0f) continue;
 
-            // VISITANTE NAO ENTRA: sem matricula nao ha linha que diga quem
-            // jogou. A nota continua valendo para o progresso de quem se
-            // identificou (RF6); e a LINHA que precisa de dois nomes.
+            // Visitante nao entra: sem matricula nao ha linha que diga quem jogou.
             const std::string& parceiro = recorde.parceiro;
             if (parceiro.empty()) continue;
 
-            // Parceiro igual ao proprio aluno so sai de ficha editada a mao:
-            // Sessao::JaEstaEmUso impede duas posicoes com a mesma matricula.
-            // Sem este corte, a pasta do professor com um erro de digitacao
-            // poria "89384 + 89384" no topo do ranking.
+            // Parceiro igual ao proprio aluno so sai de ficha editada a mao.
             if (parceiro == f.matricula) continue;
 
             const Chave chave = ChaveDa(f.matricula, parceiro);
@@ -169,10 +130,7 @@ namespace {
 
     std::vector<LinhaDeDupla> OrdenarDuplas(std::vector<LinhaDeDupla> linhas) {
 
-        // Nota decrescente; empate pelas matriculas, so para a ordem ser sempre
-        // a mesma de uma abertura para a outra. Quem REPARTE a posicao entre
-        // empatados e Numerar - este desempate e de exibicao, nao de
-        // classificacao.
+        // Quem reparte a posicao entre empatados e Numerar.
         std::sort(linhas.begin(), linhas.end(), [](const LinhaDeDupla& a, const LinhaDeDupla& b) {
             if (a.nota != b.nota) return a.nota > b.nota;
             if (a.um != b.um) return a.um < b.um;
@@ -227,8 +185,8 @@ std::vector<LinhaDeDupla> DuplasDaMateria(const std::vector<Exportacao::FichaDeA
 
 namespace {
 
-    /// Acha a dupla numa lista ja pronta. AS DUAS BUSCAS PASSAM POR AQUI, pelo
-    /// mesmo motivo de Numerar: "e esta a minha dupla?" tem uma resposta so.
+    /// Acha a dupla numa lista ja pronta. As duas buscas passam por aqui, pelo mesmo motivo de
+    /// Numerar: "e esta a minha dupla?" tem uma resposta so.
     int Onde(const std::vector<LinhaDeDupla>& linhas, const std::string& um,
              const std::string& dois) {
 
@@ -245,7 +203,7 @@ namespace {
 int PosicaoDaDupla(const std::vector<Exportacao::FichaDeAluno>& fichas, const int materia,
                    const Dificuldade::Nivel nivel, const std::string& um, const std::string& dois) {
 
-    // SEM CORTE (quantas = 0): e a lista COMPLETA que responde "onde estamos".
+    // Sem corte (quantas = 0): e a lista completa que responde "onde estamos".
     return Onde(DuplasDaMateria(fichas, materia, nivel), um, dois);
 }
 
@@ -261,11 +219,7 @@ std::vector<LinhaDeDupla> DuplasGeral(const std::vector<Exportacao::FichaDeAluno
 
     if (quantasMaterias <= 0) return {};
 
-    // Soma e conta materia por materia. A DIVISAO E PELO CURSO, e nao pelas
-    // materias que a dupla jogou junta - a mesma conta de Geral, e pelo mesmo
-    // motivo: assim subir exige jogar mais materias COM A MESMA PESSOA, que e o
-    // que uma lista de duplas deveria premiar. Dividir pelas jogadas faria uma
-    // dupla de uma materia so passar na frente de uma que jogou o curso inteiro.
+    // Soma e conta materia por materia.
     struct Acumulado { float soma = 0.0f; int jogadas = 0; };
     std::map<Chave, Acumulado> porDupla;
 
@@ -290,9 +244,7 @@ std::vector<LinhaDeDupla> DuplasGeral(const std::vector<Exportacao::FichaDeAluno
 }
 
 std::string NomeDaLista(const Lista l) {
-    // \xc3\xad e o i agudo: o MSVC nao le acento em literal. A Zelda.ttf tem.
-    // AS ASPAS NO MEIO NAO SAO ENFEITE: o escape hexadecimal do C++ come todo
-    // digito hexadecimal que vier depois, e "\xadcil" seria lido como \xadc.
+    // \xc3\xad e o i agudo: o MSVC nao le acento em literal.
     const std::string nivel = l.nivel == Dificuldade::Nivel::Dificil ? "Dif\xc3\xad" "cil" : "Normal";
     return l.modo == Progresso::Modo::Dupla ? nivel + " em dupla" : nivel;
 }

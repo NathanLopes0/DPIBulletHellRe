@@ -25,7 +25,7 @@ TEST_CASE("EventLoop: o setTimeout de 0 ms escrito antes do .then roda depois de
     CHECK(cb.fila == Fila::Tarefa);
     CHECK(p.fila == Fila::Micro);
     CHECK(p.rodou < cb.rodou);
-    // NADA RODA ANTES DE O SCRIPT ACABAR: a pilha so esvazia no fim dele.
+    // Nada roda antes de o script acabar: a pilha so esvazia no fim dele.
     CHECK(p.rodou >= 1.5f - 1e-4f);
 }
 
@@ -37,15 +37,14 @@ TEST_CASE("EventLoop: depois de cada tarefa, todas as microtarefas prontas antes
         REQUIRE(script.size() >= 5u);
         CHECK(script.size() <= 6u);
         const Agenda a = Simular(script, kPorLinha, kPorCallback);
-        // TODO ITEM RODA, uma vez, depois de entrar na fila.
+        // Todo item roda, uma vez, depois de entrar na fila.
         for (const Item& it : a.itens) {
             CHECK(it.rodou >= it.naFila - 1e-4f);
             CHECK(it.naFila >= it.registrado - 1e-4f);
         }
-        // UMA COISA POR VEZ NA PILHA.
+        // Uma coisa por vez na pilha.
         for (size_t k = 1; k < a.execucoes.size(); ++k) CHECK(a.execucoes[k].inicio >= a.execucoes[k - 1].inicio);
-        // A REGRA DO LOOP: quando uma tarefa roda, nenhuma microtarefa pronta
-        // esta esperando.
+        // A regra do loop: quando uma tarefa roda, nenhuma microtarefa pronta esta esperando.
         for (const Item& tarefa : a.itens) {
             if (tarefa.fila != Fila::Tarefa) continue;
             for (const Item& micro : a.itens) {
@@ -65,7 +64,7 @@ TEST_CASE("EventLoop: o placar e o codigo de verdade, e todo script tem a pegadi
     CHECK(Placar({Tipo::Timeout, 0.0f, "cb1"}) == "setTimeout(cb1, 0)\ntimer nas Web APIs");
     CHECK(Placar({Tipo::Then, 0.0f, "p1"}) == "Promise.resolve().then(p1)\np1 na fila de microtarefas");
     CHECK(PlacarDoCallback({Tipo::Timeout, 0.0f, "cb1"}) == "cb1()\nda fila de tarefas");
-    // A RESPOSTA DO FETCH E UMA PROMESSA: o callback dela e microtarefa.
+    // A resposta do fetch e uma promessa: o callback dela e microtarefa.
     CHECK(PlacarDoCallback({Tipo::Fetch, 0.8f, "r1"}) == "r1()\nda fila de microtarefas");
     std::set<std::string> scripts;
     for (std::uint32_t semente = 0; semente < 50; ++semente) {
@@ -112,7 +111,7 @@ TEST_CASE("EventLoop: a ficha anda pilha, Web APIs, fila e pilha, uma por vez em
                 const Estado e = Onde(script, a, i, t, kPorLinha, kPorCallback);
                 if (e.lugar == Lugar::Nenhum) continue;
                 if (e.lugar == Lugar::Pilha) { ++naPilha; continue; }
-                // DUAS FICHAS NUNCA DIVIDEM UMA VAGA.
+                // Duas fichas nunca dividem uma vaga.
                 CHECK(ocupados.insert({static_cast<int>(e.lugar), e.posicao}).second);
                 if (e.lugar == Lugar::Apis) {
                     CHECK(e.falta > 0.0f);
@@ -123,7 +122,7 @@ TEST_CASE("EventLoop: a ficha anda pilha, Web APIs, fila e pilha, uma por vez em
                 }
             }
             CHECK(naPilha <= 1);
-            // A FILA NAO TEM BURACO: as posicoes vao de 0 a n - 1.
+            // A fila nao tem buraco: as posicoes vao de 0 a n - 1.
             for (const auto& [fila, n] : naFila) {
                 for (int p = 0; p < n; ++p) CHECK(ocupados.count({fila, p}) == 1u);
             }

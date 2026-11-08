@@ -31,8 +31,7 @@ int Sorteio::Inteiro(const int de, const int ate) {
     if (ate <= de) return de;
     const std::uint64_t n = static_cast<std::uint64_t>(static_cast<std::int64_t>(ate) - de) + 1u;
     if (n > 0xffffffffull) return static_cast<int>(static_cast<std::int64_t>(de) + Bruto());   // o int inteiro
-    // O MAIOR MULTIPLO de n que cabe em 2^32: o que passa dele e sorteado de
-    // novo, senao os primeiros restos sairiam uma vez a mais.
+    // O maior multiplo de n que cabe em 2^32.
     const std::uint64_t limite = (0x100000000ull / n) * n;
     std::uint64_t x;
     do { x = Bruto(); } while (x >= limite);

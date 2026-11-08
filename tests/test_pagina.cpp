@@ -30,7 +30,7 @@ TEST_CASE("Pagina: o layout tem o header no alto e o nav, o main e o aside lado 
     CHECK(nav.x + nav.w <= main.x);
     CHECK(main.x + main.w <= aside.x);
     CHECK(main.w == doctest::Approx(2.0f * nav.w));
-    // O CORPO DEIXA O FUNDO LIVRE para o aluno.
+    // O corpo deixa o fundo livre para o aluno.
     CHECK(main.y + main.h <= 560.0f);
 }
 
@@ -51,9 +51,9 @@ TEST_CASE("Pagina: cada pagina poe os elementos no fluxo das regioes, em ordem d
             if (e.tipo == Tipo::Link) CHECK(e.ancora != e.regiao);
             if (k == 0) continue;
             const Elemento& antes = pagina[k - 1];
-            // A ORDEM DO DOCUMENTO: nav, main, aside.
+            // A ordem do documento: nav, main, aside.
             CHECK(static_cast<int>(antes.regiao) <= static_cast<int>(e.regiao));
-            // O FLUXO: na mesma regiao, um embaixo do outro, sem encostar.
+            // O fluxo: na mesma regiao, um embaixo do outro, sem encostar.
             if (antes.regiao == e.regiao) CHECK(e.caixa.y >= antes.caixa.y + antes.caixa.h);
         }
         CHECK(tipos.size() >= 3u);

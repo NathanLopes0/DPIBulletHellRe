@@ -10,7 +10,7 @@
 class RigidBodyComponent : public Component {
 
 public:
-    // Lower update order to update first
+    // Lower update order to update first.
     RigidBodyComponent(class Actor* owner, float mass = 1.0f, float friction = 0.0f, int updateOrder = 10);
 
     void Update(float deltaTime) override;
@@ -21,7 +21,7 @@ public:
     void SetAcceleration(const Vector2& acceleration) { mAcceleration = acceleration; }
 
 private:
-    // Physical properties
+    // Physical properties.
     float mFrictionCoefficient;
     float mMass;
     float m;

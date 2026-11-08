@@ -16,16 +16,12 @@
 
 namespace {
 
-    /// O nome do arquivo de um aluno. So e chamado com matricula JA validada.
+    /// O nome do arquivo de um aluno. So e chamado com matricula ja validada.
     std::string CaminhoDa(const std::string& matricula) {
         return Caminhos::Save(matricula + ".json");
     }
 
     /// Valida e devolve a forma canonica, ou vazio quando nao serve.
-    ///
-    /// Toda entrada deste modulo passa por aqui: e a unica barreira entre texto
-    /// digitado e um nome de arquivo. Sem ela, uma "matricula" com barra ou ".."
-    /// escreveria fora da pasta de saves.
     std::string Canonica(const std::string& matricula, const char* operacao) {
         const auto r = Matricula::Validar(matricula);
         if (!r.valida) {
@@ -69,15 +65,13 @@ Ficha::Dados Carregar(const std::string& matricula, const Materias::Lista& mater
     }
 
     if (lida.dados.matricula != canonica) {
-        // O arquivo diz ser de outro aluno. Acontece se alguem renomear um save.
-        // Continuo com o progresso, mas aviso: o nome do arquivo e quem manda.
+        // O arquivo diz ser de outro aluno.
         SDL_Log("FICHA %s: o arquivo %s diz ser da matricula %s. Usando mesmo assim, "
                 "mas confira se o arquivo foi renomeado.",
                 canonica.c_str(), caminho.c_str(), lida.dados.matricula.c_str());
     }
 
-    // O NOME DO ARQUIVO manda, inclusive sobre o que o arquivo diz: o aviso
-    // acima ja contou a divergencia, e quem chamou pediu esta matricula.
+    // O nome do arquivo manda, inclusive sobre o que o arquivo diz.
     Ficha::Dados saida = lida.dados;
     saida.matricula = canonica;
     return saida;
@@ -109,9 +103,7 @@ bool Gravar(const Ficha::Dados& dadosPedidos, const Materias::Lista& materias) {
         }
     }   // fecha antes de renomear
 
-    // A troca so acontece com o arquivo novo JA inteiro no disco. Se o jogo morrer
-    // antes daqui, o save antigo continua valendo; se morrer depois, o novo esta
-    // completo. O que nao pode existir e um save pela metade.
+    // A troca so acontece com o arquivo novo ja inteiro no disco.
     std::error_code ec;
     std::filesystem::rename(temporario, caminho, ec);
     if (ec) {
@@ -137,8 +129,6 @@ std::vector<std::string> ListarMatriculas() {
 
     std::vector<std::string> matriculas;
 
-    // Caminhos::Save cria a pasta, entao pedir um caminho qualquer garante que ela
-    // existe antes da varredura.
     const std::string pasta = std::filesystem::path(CaminhoDa("0")).parent_path().string();
 
     std::error_code ec;
@@ -149,8 +139,7 @@ std::vector<std::string> ListarMatriculas() {
         const auto caminho = entrada.path();
         if (caminho.extension() != ".json") continue;   // pula .tmp e o que mais houver
 
-        // O NOME DO ARQUIVO e a fonte da verdade, e ele passa pela mesma validacao:
-        // um arquivo solto na pasta nao vira aluno.
+        // O nome do arquivo e a fonte da verdade, e ele passa pela mesma validacao.
         const auto r = Matricula::Validar(caminho.stem().string());
         if (!r.valida) continue;
 
@@ -162,8 +151,7 @@ std::vector<std::string> ListarMatriculas() {
                 pasta.c_str(), ec.message().c_str());
     }
 
-    // Em ordem numerica, e nao alfabetica: "9" antes de "10". A pasta ja devolve
-    // em ordem de texto, e "10" viria antes de "9".
+    // Em ordem numerica, e nao alfabetica: "9" antes de "10".
     std::sort(matriculas.begin(), matriculas.end(),
               [](const std::string& a, const std::string& b) {
                   if (a.size() != b.size()) return a.size() < b.size();

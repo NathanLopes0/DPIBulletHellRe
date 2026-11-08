@@ -39,7 +39,7 @@ namespace Cronograma {
         s.Embaralhar(nomes);
         const int n = d.tarefas;
         for (int tentativa = 0; tentativa < 64; ++tentativa) {
-            // OS PRAZOS PRIMEIRO, com kSeparacao entre eles e a folga sorteada.
+            // Os prazos primeiro, com kSeparacao entre eles e a folga sorteada.
             const float folga = (fim - (inicio + kMenor)) - static_cast<float>(n - 1) * kSeparacao;
             std::vector<float> sobras(static_cast<size_t>(n));
             for (float& f : sobras) f = s.Real(0.0f, std::max(0.0f, folga));
@@ -50,7 +50,7 @@ namespace Cronograma {
                 Tarefa t;
                 t.ate = inicio + kMenor + sobras[static_cast<size_t>(i)] + static_cast<float>(i) * kSeparacao;
                 t.nome = nomes[static_cast<size_t>(i) % nomes.size()];
-                // DEPOIS A BARRA: o comprimento sorteado, numa linha livre.
+                // Depois a barra: o comprimento sorteado, numa linha livre.
                 std::vector<int> linhas;
                 for (int l = 0; l < kLinhas; ++l) linhas.push_back(l);
                 s.Embaralhar(linhas);
@@ -65,8 +65,7 @@ namespace Cronograma {
             }
             if (deuCerto) return feitas;
         }
-        // NAO COUBE (nao acontece com os numeros de hoje): as barras mais
-        // curtas, uma por linha, em escada.
+        // Nao coube (nao acontece com os numeros de hoje).
         std::vector<Tarefa> escada;
         for (int i = 0; i < n; ++i) {
             Tarefa t;

@@ -11,8 +11,6 @@ namespace Exportacao {
 
 std::string Campo(const std::string& valor) {
 
-    // Um nome de materia com virgula quebraria a coluna seguinte, e e exatamente o
-    // tipo de coisa que so aparece quando alguem renomeia uma materia meses depois.
     const bool precisa = valor.find(',') != std::string::npos
                       || valor.find('"') != std::string::npos
                       || valor.find('\n') != std::string::npos;
@@ -21,7 +19,7 @@ std::string Campo(const std::string& valor) {
 
     std::string saida = "\"";
     for (const char c : valor) {
-        if (c == '"') saida += "\"\"";   // a aspa duplicada e como o CSV a escapa
+        if (c == '"') saida += "\"\"";   // A aspa duplicada e como o CSV a escapa.
         else saida += c;
     }
     saida += "\"";
@@ -30,10 +28,8 @@ std::string Campo(const std::string& valor) {
 
 namespace {
 
-    /// DUAS CASAS. Com uma, o teto de 99,99 sairia "100.0" na planilha, e o
-    /// professor leria nota cheia de um aluno que nao a tirou. A distincao entre
-    /// 99,99 e 100 e justamente o que o teto existe para registrar, entao perde-la
-    /// aqui, no documento que vale, seria pior do que nao ter teto nenhum.
+    /// Duas casas. Com uma, o teto de 99,99 sairia "100.0" na planilha, e o professor leria nota
+    /// cheia de um aluno que nao a tirou.
     std::string Nota(const float v) {
         std::ostringstream s;
         s.precision(2);
@@ -46,16 +42,11 @@ std::string ParaCsv(const std::vector<FichaDeAluno>& fichas,
                     const Materias::Lista& materias) {
 
     std::ostringstream s;
-    // A PLANILHA GANHOU AS DUAS COLUNAS DO CO-OP, e nao por capricho: sem
-    // elas, "recorde" continuaria sendo so o de solo e "aprovado" diria NAO
-    // para quem passou acompanhado. A planilha e o jogo discordariam sobre quem
-    // passou - a mesma regra escrita em dois lugares, um deles desatualizado.
-    // E AS TRES DO DIFICIL, no fim (ver Exportacao.h).
+    // A planilha ganhou as duas colunas do co-op, e nao por capricho.
     s << "matricula,materia,nome,recorde,recordeDupla,parceiro,retomada,aprovado,quando,"
          "recordeDificil,recordeDuplaDificil,parceiroDificil\n";
 
-    // Ordem de matricula: numerica, nao alfabetica ("9" antes de "10"). O mesmo
-    // criterio de FichaArquivo::ListarMatriculas.
+    // Ordem de matricula: numerica, nao alfabetica ("9" antes de "10").
     std::vector<const FichaDeAluno*> ordenadas;
     ordenadas.reserve(fichas.size());
     for (const auto& f : fichas) ordenadas.push_back(&f);
@@ -73,9 +64,7 @@ std::string ParaCsv(const std::vector<FichaDeAluno>& fichas,
             const Materias::Materia* m = materias.Por(e.materia);
             if (!m) continue;   // materia que saiu do curso
 
-            // A MESMA REGRA QUE O JOGO LE, e nao uma comparacao repetida: ver
-            // Progresso::Aprovado, que olha a maior das duas notas porque
-            // passar e passar, tenha sido com quem for (requisitos-coop, D10).
+            // A mesma regra que o jogo le, e nao uma comparacao repetida.
             const bool aprovado = f->progresso.Aprovado(e.materia);
 
             using Modo = Progresso::Modo;

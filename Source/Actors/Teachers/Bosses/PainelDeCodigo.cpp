@@ -31,8 +31,7 @@ EtiquetaDeCodigo::EtiquetaDeCodigo(Scene* cena, const std::string& texto, const 
     mCaixa = AddComponent<DrawCaixaComponent>(largura, altura, SDL_Color{120, 140, 180, 230},
                                               SDL_Color{28, 32, 46, 225}, 2, ordem);
 
-    // SEM BATALHA NAO HA FONTE, e a etiqueta fica so com a caixa - nao ha
-    // outra cena que desenhe codigo no campo.
+    // Sem batalha nao ha fonte, e a etiqueta fica so com a caixa.
     const auto* batalha = dynamic_cast<Battle*>(cena);
     if (!batalha || !batalha->FonteDoPlacar()) return;
     mTexto = AddComponent<DrawTextComponent>(texto, batalha->FonteDoPlacar(), largura - 10, altura - 4,

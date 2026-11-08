@@ -35,8 +35,6 @@ namespace Acerto {
     bool Memoria::Lembra(const void* quem, const float idade) const {
         if (!quem) return false;
         for (const Item& i : mItens) {
-            // O MESMO ENDERECO E A MESMA VIDA: a idade de agora nao e menor que
-            // a do acerto (um tiro mais novo e outro tiro, que o pool reciclou).
             if (i.quem == quem && idade + kFolgaDaIdade >= i.idade && i.ha < kMesmoCausador) return true;
         }
         return false;

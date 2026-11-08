@@ -11,11 +11,7 @@
 #include "../Source/Aluno/Progresso.h"
 #include "../Source/Attacks/Compilador.h"
 
-/**
- * O JOGO NAO PRECISA DESTES, e por isso eles nao moram em Source/. Cada um e
- * uma composicao das funcoes de verdade, escrita uma vez para os testes lerem
- * como o enunciado: "a aparencia padrao", "a ultima nota", "o codigo da linha".
- */
+/// O jogo nao precisa destes, e por isso eles nao moram em Source/.
 namespace Ajudantes {
 
     /// A aparencia padrao: a primeira peca e a primeira cor de cada categoria

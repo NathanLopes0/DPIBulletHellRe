@@ -20,8 +20,8 @@
 namespace Chefes {
 
 namespace {
-    /// Uma linha por chefe: a classe, a pasta (que e tambem o nome) e o nome
-    /// do arquivo do retrato em Assets/Teachers/DPIBH<arquivo>.png.
+    /// Uma linha por chefe: a classe, a pasta (que e tambem o nome) e o nome do arquivo do retrato
+    /// em Assets/Teachers/dpibh<arquivo>.png.
     template <typename Chefe>
     void Registrar(std::map<std::string, std::unique_ptr<IBossFactory>>& fabricas, Game* game,
                    const std::string& pasta, const std::string& arquivo) {

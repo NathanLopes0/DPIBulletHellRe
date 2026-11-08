@@ -1,6 +1,4 @@
-//
-// A repescagem do Andre: a prova no BOCA.
-//
+// A repescagem do Andre: a prova no boca.
 
 #include "Prova.h"
 

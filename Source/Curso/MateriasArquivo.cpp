@@ -12,10 +12,7 @@ namespace Materias {
 
 const Lista& Carregadas() {
 
-    // Construida na PRIMEIRA chamada, e nao na inicializacao estatica: um objeto
-    // de escopo de namespace nasceria antes do main, portanto antes de
-    // Caminhos::Inicializar descobrir a pasta base - o mesmo cuidado dos outros
-    // leitores de dados.
+    // Construida na primeira chamada, e nao na inicializacao estatica.
     static const Lista lista = [] {
 
         const std::string caminho = Caminhos::Asset("materias.json");

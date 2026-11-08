@@ -6,9 +6,7 @@ Font::Font()
 {
 }
 
-// AS FONTES SE FECHAM COM O DONO. Havia um Unload que ninguem chamava, e cada
-// cena que carregava a fonte deixava os 29 tamanhos abertos ao ser trocada. A
-// cena morre antes do TTF_Quit (Game::Shutdown), entao fechar aqui e seguro.
+// As fontes se fecham com o dono.
 Font::~Font()
 {
 	for (auto& font : mFontData)
@@ -19,7 +17,7 @@ Font::~Font()
 
 bool Font::Load(const std::string& fileName)
 {
-	// We support these font sizes
+	// We support these font sizes.
 	std::vector<int> fontSizes = {8,  9,  10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32,
 								  34, 36, 38, 40, 42, 44, 46, 48, 52, 56, 60, 64, 68, 72};
 
@@ -39,31 +37,19 @@ bool Font::Load(const std::string& fileName)
 SDL_Texture* Font::RenderText(SDL_Renderer* renderer, const std::string& text, const Vector3& color /*= Color::White*/,
 						  int pointSize /*= 24*/, unsigned wrapLength /*= 900*/)
 {
-	// VERMELHO EM x, VERDE EM y, AZUL EM z. Aqui havia uma troca de vermelho por
-	// azul, explicada como "swap red and blue so we get RGBA instead of BGRA".
-	// Nao ha o que trocar: o SDL_ttf recebe um SDL_Color, que e RGBA, e o
-	// SDL_CreateTextureFromSurface cuida do formato sozinho - nao ha conversao
-	// nenhuma entre os dois pontos.
-	//
-	// A troca sobreviveu porque era INVISIVEL: DrawTextComponent e o unico lugar
-	// do jogo que chama esta funcao, e ate agora so passava branco, em que trocar
-	// vermelho por azul nao muda nada. A primeira cor de verdade a passar por
-	// aqui foi o dourado da nota cheia, que saiu ciano na tela.
+	// Vermelho em x, verde em y, azul em z.
 	SDL_Color sdlColor;
 	sdlColor.r = static_cast<Uint8>(color.x * 255);
 	sdlColor.g = static_cast<Uint8>(color.y * 255);
 	sdlColor.b = static_cast<Uint8>(color.z * 255);
 	sdlColor.a = 255;
 
-	// Find the font data for this point size
+	// Find the font data for this point size.
 	auto iter = mFontData.find(pointSize);
 
 	if (iter == mFontData.end() && !mFontData.empty())
 	{
-		// O TAMANHO PEDIDO NAO EXISTE: usa o mais proximo em vez de nao desenhar
-		// nada. Antes isto devolvia nullptr e o texto sumia da tela sem erro
-		// visivel - so uma linha de log entre centenas. Perdi um tempo procurando
-		// um titulo que nao aparecia por ter pedido 54, que nao esta na lista.
+		// O tamanho pedido nao existe: usa o mais proximo em vez de nao desenhar nada.
 		int melhor = mFontData.begin()->first;
 		for (const auto& par : mFontData)
 		{
@@ -85,7 +71,7 @@ SDL_Texture* Font::RenderText(SDL_Renderer* renderer, const std::string& text, c
             return nullptr;
 		}
 
-        // Create texture from surface
+        // Create texture from surface.
         SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surf);
         SDL_FreeSurface(surf);
         if (!texture)

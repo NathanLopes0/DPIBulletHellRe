@@ -19,11 +19,7 @@ namespace {
                                        Forma::YEmH, Forma::FEstatico, Forma::FDinamico};
     constexpr Bloco kTodos[kBlocos] = {Bloco::Global, Bloco::F, Bloco::G, Bloco::Interno, Bloco::H};
 
-    // ---- O PROGRAMA DE SEMPRE, POR FORMA -------------------------------------
-    //
-    // O jogo sorteia o programa de cada luta e so usa as funcoes que o recebem.
-    // Estes atalhos para o de sempre sao dos testes: escrevem os seis comandos
-    // classicos pelo nome, e o teste fica lendo como o enunciado da fase.
+    // ---- O programa de sempre, por forma ----
 
     bool Contem(const Retangulo& r, const float px, const float py) {
         return px >= r.x && px <= r.Direita() && py >= r.y && py <= r.Baixo();
@@ -51,9 +47,7 @@ namespace {
         return true;
     }
 
-    /// Se o aluno parado em (px, py) e alcancado por alguma gota enquanto ela
-    /// esta acesa: a gota anda da altura em que nasce ate kQueda * kVivas mais
-    /// para baixo, ou ate o fim dela.
+    /// Se o aluno parado em (px, py) e alcancado por alguma gota enquanto ela esta acesa.
     bool Alcancado(const std::vector<Gota>& gotas, const float px, const float py) {
         const float alcance = kRaioDaGota + kRaioDoAluno;
         for (const Gota& g : gotas) {
@@ -86,7 +80,7 @@ TEST_CASE("Escopo: a busca sobe pelo texto no estatico e pela pilha no dinamico"
     CHECK(Busca(Forma::FEstatico) == std::vector<Bloco>{Bloco::F, Bloco::Global});
     CHECK(Busca(Forma::FDinamico) == std::vector<Bloco>{Bloco::F, Bloco::H});
 
-    // As duas chamadas sao o MESMO codigo; so a regra muda.
+    // As duas chamadas sao o mesmo codigo; so a regra muda.
     CHECK(Placar(Forma::FEstatico).substr(Placar(Forma::FEstatico).find('\n'))
           == Placar(Forma::FDinamico).substr(Placar(Forma::FDinamico).find('\n')));
     CHECK(QuemChamou(Forma::FEstatico) == Bloco::H);
@@ -99,7 +93,6 @@ TEST_CASE("Escopo: a busca sobe pelo texto no estatico e pela pilha no dinamico"
         // Ninguem antes do dono declara o nome.
         const auto busca = Busca(f);
         for (size_t i = 0; i + 1 < busca.size(); ++i) CHECK_FALSE(Declara(busca[i], Nome(f)));
-        // A busca anda um bloco por salto, e acaba antes de a chuva nascer.
         CHECK(static_cast<float>(busca.size()) * kPorSalto <= kBusca + 1e-4f);
     }
 }
@@ -134,7 +127,7 @@ TEST_CASE("Escopo: os paineis cabem no campo, um dentro do outro como no texto")
     CHECK(f.Baixo() < g.y);
     CHECK(f.Baixo() < h.y);
 
-    // OS PAINEIS DE BAIXO VAO ATE O CHAO: o aluno pode ficar dentro deles.
+    // Os paineis de baixo vao ate o chao: o aluno pode ficar dentro deles.
     CHECK(g.Baixo() == doctest::Approx(campo.Baixo()));
     CHECK(i.Baixo() == doctest::Approx(campo.Baixo()));
     CHECK(h.Baixo() == doctest::Approx(campo.Baixo()));
@@ -183,7 +176,7 @@ TEST_CASE("Escopo: o professor fica no bloco em que o comando roda") {
             continue;
         }
         CHECK(Contem(Area(Onde(f)), p.x, p.y));
-        // O CARTAO DELE NAO COBRE A DECLARACAO do bloco, nem passa do chao.
+        // O cartao dele nao cobre a declaracao do bloco, nem passa do chao.
         CHECK(p.y - kMeiaAlturaDoProfessor > Canto(Onde(f)).y + kAlturaDoCanto / 2.0f);
         CHECK(p.y + kMeiaAlturaDoProfessor < Area(Onde(f)).Baixo());
         // No g, fora do bloco interno: o comando e de g.
@@ -192,13 +185,6 @@ TEST_CASE("Escopo: o professor fica no bloco em que o comando roda") {
 }
 
 TEST_CASE("Escopo: a chuva cobre a regiao inteira e nao toca nos buracos") {
-    // PONTO A PONTO, a cada 4 px: quem esta parado na regiao em que a variavel
-    // e visivel e alcancado por alguma gota; quem esta num buraco, ou fora do
-    // painel do dono, nunca. So a faixa rente as bordas fica de fora da
-    // conferencia da cobertura (ali a gota so alcanca de raspao). Fora do
-    // painel do dono, so o aluno com o corpo em cima da borda e alcancado (a
-    // gota encosta nela por dentro); no buraco, que tem a folga, nem ele.
-    //
     // O aluno nunca passa de y = 698 (Player: o chao menos a altura do sprite).
     constexpr float kRente = 6.0f;
     constexpr float kChao = 700.0f;
@@ -237,9 +223,6 @@ TEST_CASE("Escopo: as gotas morrem no buraco de baixo ou no fim do painel") {
         const Retangulo dono = Area(Dono(f));
         const auto gotas = Gotas(f);
         CHECK_FALSE(gotas.empty());
-        // O MAIOR DOS CASOS (o global menos dois buracos) cabe no pool sem
-        // criar projetil no meio da luta: cada tipo pre-aquece 300
-        // (Battle::kProjectilePrewarmCountPerType).
         CHECK(gotas.size() <= 300u);
         for (const Gota& g : gotas) {
             CHECK(g.x >= dono.x + kRaioDaGota - 0.01f);
@@ -267,7 +250,7 @@ TEST_CASE("Escopo: quem fica parado no meio de baixo leva chuva em metade dos co
     for (const Forma f : kTodas) if (Visivel(f, 600.0f, 682.0f)) molhado.insert(f);
     CHECK(molhado == std::set<Forma>{Forma::XEmG, Forma::YEmH, Forma::FEstatico});
 
-    // E NAO HA LUGAR SEGURO EM TODOS: cada ponto do chao e molhado por algum.
+    // E nao ha lugar seguro em todos: cada ponto do chao e molhado por algum.
     for (float x = 4.0f; x < kLargura; x += 8.0f) {
         bool algum = false;
         for (const Forma f : kTodas) algum = algum || Visivel(f, x, 682.0f);
@@ -302,10 +285,8 @@ TEST_CASE("Escopo: o degrau do Normal e o de sempre, e o do Dificil acende antes
     const Degrau d = DegrauDo(Dificuldade::Nivel::Dificil);
     CHECK(d.aviso < n.aviso);
     CHECK(d.queda > n.queda);
-    // A COLMEIA CONTINUA FECHADA: cada gota varre pelo menos o que varria.
+    // A colmeia continua fechada: cada gota varre pelo menos o que varria.
     CHECK(d.queda * d.vivas >= n.queda * n.vivas);
-    // E O AVISO AINDA DA PARA SAIR: atravessar a regiao da gota (o raio dela e
-    // o do aluno, mais a folga) a 300 px/s leva bem menos que ele.
     CHECK((kRaioDaGota + kRaioDoAluno + kFolga) * 2.0f / 300.0f < d.aviso);
 }
 
@@ -316,7 +297,7 @@ TEST_CASE("Escopo: cada luta sorteia o programa, e os comandos seguem as regras 
         Variacao::Sorteio s = Variacao::SorteioDa(semente, kFaseDoEscopo);
         const Plano plano = Sortear(s);
         const Programa& p = plano.programa;
-        // O GLOBAL TEM OS DOIS, F NENHUM, H O x, O INTERNO ALGUM.
+        // O global tem os dois, f nenhum, h o x, o interno algum.
         CHECK(p.Declara(Bloco::Global, 'x'));
         CHECK(p.Declara(Bloco::Global, 'y'));
         CHECK_FALSE(p.Declara(Bloco::F, 'x'));
@@ -337,7 +318,7 @@ TEST_CASE("Escopo: cada luta sorteia o programa, e os comandos seguem as regras 
         CHECK(buscas.size() == 4u);
         CHECK(donos.size() >= 2u);
 
-        // A PEGADINHA FECHA, e as duas regras acham donos diferentes.
+        // A pegadinha fecha, e as duas regras acham donos diferentes.
         const Comando& estatico = plano.comandos[4];
         const Comando& dinamico = plano.comandos[5];
         CHECK(estatico.regra == Regra::Estatico);
@@ -345,18 +326,15 @@ TEST_CASE("Escopo: cada luta sorteia o programa, e os comandos seguem as regras 
         CHECK(Dono(p, estatico) == Bloco::Global);
         CHECK(Dono(p, dinamico) == Bloco::H);
 
-        // TODA CHUVA DA LUTA CABE NO POOL.
+        // Toda chuva da luta cabe no pool.
         for (const Comando& c : plano.comandos) CHECK(Gotas(p, c).size() <= kMaisGotas);
-        // ALGUEM ALEM DO GLOBAL DECLARA y: o global nunca chove sem buraco.
+        // Alguem alem do global declara y: o global nunca chove sem buraco.
         CHECK((p.Declara(Bloco::G, 'y') || p.Declara(Bloco::Interno, 'y') || p.Declara(Bloco::H, 'y')));
 
         programas.insert(Declaracoes(p, Bloco::G) + "|" + Declaracoes(p, Bloco::Interno) + "|" +
                          Declaracoes(p, Bloco::H));
         primeiros.insert(Placar(p, plano.comandos[0]));
     }
-    // 4 x 3 x 2 PROGRAMAS, menos os 2 em que so o global declararia y (ali h
-    // passa a declarar, e o programa vira um dos outros) - e a primeira busca
-    // nao e sempre a mesma.
     CHECK(programas.size() == 22u);
 
     CHECK(primeiros.size() >= 10u);
@@ -371,7 +349,6 @@ TEST_CASE("Escopo: o placar e o canto escrevem o programa sorteado") {
     CHECK(Declaracoes(p, Bloco::Interno) == "{ int x, y;");
     CHECK(Placar(p, Comando{Bloco::G, 'x', Regra::Estatico, std::nullopt}) == "g() { x++; }");
     CHECK(Placar(p, Comando{Bloco::Interno, 'y', Regra::Estatico, std::nullopt}) == "g() { { int x, y;  y++; } }");
-    // E A BUSCA SEGUE O PROGRAMA: o y do interno agora e dele mesmo.
     CHECK(Dono(p, Comando{Bloco::Interno, 'y', Regra::Estatico, std::nullopt}) == Bloco::Interno);
     CHECK(Dono(Programa::DeSempre(), Comando{Bloco::Interno, 'y', Regra::Estatico, std::nullopt}) == Bloco::G);
 }

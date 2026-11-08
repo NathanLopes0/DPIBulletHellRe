@@ -181,10 +181,7 @@ namespace Condicional {
 
     std::vector<Confete> Confetes(const float inicio, const float fim) {
         std::vector<Confete> confetes;
-        // A PRIMEIRA FILEIRA VAI DE PONTA A PONTA, as duas bordas inclusive: a
-        // divisa entre duas faixas e das duas. Sem isso, a divisa era um
-        // corredor seguro - e o aluno parado no meio do campo (a divisa de
-        // duas e de quatro faixas) nao era acertado nunca.
+        // A primeira fileira vai de ponta a ponta, as duas bordas inclusive.
         for (int f = 0; f < kFileiras; ++f) {
             const float desvio = (f % 2 == 0) ? 0.0f : kEntreConfetes / 2.0f;
             const int quantos = static_cast<int>(std::floor((fim - inicio - desvio) / kEntreConfetes + 1.0e-3f));

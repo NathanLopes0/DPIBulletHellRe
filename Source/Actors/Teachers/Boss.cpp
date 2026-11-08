@@ -33,10 +33,7 @@ Boss::~Boss() = default;
 void Boss::Start() {
     CalculateNextDropThreshold();
     if (auto fsm = GetComponent<FSMComponent>()) {
-        // O CLONE NAO AVISA A BATALHA: a fase e a do original. O clone entra
-        // na fase dele ao nascer (DividirChefe), e o aviso fechava de novo a
-        // fase que tinha acabado de abrir - pagando o bonus de fase limpa uma
-        // segunda vez, e registrando uma fase que nao existiu.
+        // O clone nao avisa a batalha: a fase e a do original.
         if (auto battleScene = dynamic_cast<Battle*>(mScene); battleScene && !mEhClone) {
             fsm->SetOnStateChanged([battleScene](float newDuration) {
                 battleScene->OnFaseTrocada(newDuration);
@@ -57,8 +54,7 @@ void Boss::Start() {
 
 void Boss::Congelar(const float segundos) {
     mCongelado = std::max(mCongelado, segundos);
-    // A FASE PARA: a maquina de estados e quem conta o tempo dela e solta os
-    // ataques. Volta a correr quando o HLT acaba (OnUpdate).
+    // A fase para: a maquina de estados e quem conta o tempo dela e solta os ataques.
     if (auto* fsm = GetComponent<FSMComponent>()) fsm->SetEnabled(false);
     if (auto* rb = GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
 }
@@ -66,7 +62,7 @@ void Boss::Congelar(const float segundos) {
 void Boss::OnUpdate(float deltaTime) {
     Actor::OnUpdate(deltaTime);
 
-    // CONGELADO (o HLT): nada anda e nada sai.
+    // Congelado (o hlt): nada anda e nada sai.
     if (mCongelado > 0.0f) {
         mCongelado -= deltaTime;
         if (auto* rb = GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
@@ -83,14 +79,10 @@ void Boss::OnUpdate(float deltaTime) {
     std::string currState = fsm->GetStateName();
     if (currState.empty()) { return; }
 
-    // --- LÓGICA DE MOVIMENTO ---
-    // Verifica se mudou de estado para trocar a estratégia
+    // ---- Lógica de movimento ----
     if (currState != mLastStateName) {
 
-        // A DIVISAO ACONTECE NA TROCA DE FASE, e so no corpo original: um clone
-        // que se dividisse viraria quatro corpos, depois oito. Quem o impede de
-        // chegar aqui e BossAttackState, que nao o transiciona - esta guarda e a
-        // segunda tranca, para o dia em que alguem mexer naquela.
+        // A divisao acontece na troca de fase, e so no corpo original.
         if (!mEhClone) {
             if (const auto batalha = dynamic_cast<Battle*>(mScene)) {
                 batalha->JuntarCorpos();                       // desfaz a divisao anterior
@@ -101,7 +93,7 @@ void Boss::OnUpdate(float deltaTime) {
 
         mLastStateName = currState;
 
-        // Procura se existe estratégia para o novo estado
+        // Procura se existe estratégia para o novo estado.
         if (mMovementStrategies.find(currState) != mMovementStrategies.end()) {
             mCurrentMovementStrategy = mMovementStrategies[currState].get();
             mCurrentMovementStrategy->Initialize(this); // Reset timers/alvos
@@ -112,26 +104,24 @@ void Boss::OnUpdate(float deltaTime) {
         }
     }
 
-    // Executa a estratégia atual
+    // Executa a estratégia atual.
     if (mCurrentMovementStrategy) {
         mCurrentMovementStrategy->Update(this, deltaTime);
     }
 
-    // Verifica se existem ataques registrados pro estado atual
+    // Verifica se existem ataques registrados pro estado atual.
     if (mAttacksMap.find(currState) != mAttacksMap.end()) {
 
-        // O RELOGIO DA FASE, para as janelas das etapas.
+        // O relogio da fase, para as janelas das etapas.
         const float tempoNaFase = fsm->GetStateTime();
 
-        // Itera sobre todos os ataques configurados para esse estado
+        // Itera sobre todos os ataques configurados para esse estado.
         for (auto& attackDefinition : mAttacksMap[currState]) {
 
-            // O ATAQUE DE GATILHO NAO TEM RELOGIO: sai quando o chefe chama
-            // Disparar, e so.
+            // O ataque de gatilho nao tem relogio: sai quando o chefe chama Disparar, e so.
             if (!attackDefinition.gatilho.empty()) continue;
 
-            // FORA DA JANELA, o ataque espera sem contar. Ao abrir, o primeiro
-            // disparo sai logo - e nao depois de um cooldown inteiro.
+            // Fora da janela, o ataque espera sem contar.
             if (tempoNaFase < attackDefinition.janelaDe || tempoNaFase >= attackDefinition.janelaAte) {
                 attackDefinition.currentTimer = std::min(attackDefinition.currentTimer, kPrimeiroDisparoDaJanela);
                 continue;
@@ -175,7 +165,7 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
     // Atualiza a posição de tiro pra posição do boss.
     attackDef.params->firePosition = GetPosition();
 
-    // Chama customização do boss específico
+    // Chama customização do boss específico.
     CustomizeAttackParams(*(attackDef.params), stateName);
 
     auto battleScene = dynamic_cast<Battle*>(mScene);
@@ -184,21 +174,10 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
     auto projManager = battleScene->GetProjectileManager();
     if (!projManager) { return; }
 
-    // O REVEZAMENTO E AQUI, E SO AQUI.
-    //
-    // Este e o unico lugar por onde todo ataque de todo chefe passa, e e por
-    // isso que D3 cabe em duas linhas: ler de quem e a vez, e passa-la depois
-    // do disparo. Dentro de Execute, Alvo() devolve o mesmo aluno do comeco ao
-    // fim - o laser pergunta duas vezes e as duas dao a mesma resposta.
-    //
-    // UMA RAJADA E UM DISPARO. Os vinte projeteis de um leque miram o mesmo
-    // aluno; revezar dentro da rajada espalharia metade para cada lado e nao
-    // seria mira nenhuma.
+    // O revezamento e aqui, e so aqui.
     const size_t alvoDoDisparo = battleScene->IndiceDoAlvo();
 
-    // A PONTOS ATTACK ATIRA DE ONDE O CHEFE DISSER, e o chefe diz na hora: os
-    // pontos de um posto mudam a cada quadro (uma historia entregue sai do
-    // quadro), entao sao lidos aqui, e nao guardados.
+    // A pontos attack atira de onde o chefe disser, e o chefe diz na hora.
     if (auto* pontos = dynamic_cast<PontosAttackParams*>(attackDef.params.get())) {
         pontos->pontos = PontosDoPosto(pontos->posto);
         pontos->temAlvo = false;
@@ -210,36 +189,27 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
         }
     }
 
-    // ---------- EXECUTA O ATAQUE ---------- //
-    // A RAPIDEZ VALE SO PARA ESTE DISPARO (Disparar): a estrategia le a
-    // velocidade aqui dentro, e o objeto e o mesmo no disparo seguinte.
+    // ---- Executa o ataque ---------- // ----
     const float velocidadeDoArquivo = attackDef.params->projectileSpeed;
     attackDef.params->projectileSpeed = velocidadeDoArquivo * rapidez;
     auto projectiles = attackDef.strategy->Execute(*(attackDef.params));
     attackDef.params->projectileSpeed = velocidadeDoArquivo;
-    // ---------- ------- - ------ ---------- //
+    // ---- ------- - ------ ---------- // ----
 
-    // UM DISPARO QUE NAO SOLTOU NADA NAO E DISPARO: nao passa a vez e nao faz
-    // barulho. So a PontosAttack de um posto vazio chega aqui - a sprint que
-    // ainda nao tem historia parada no quadro.
+    // Um disparo que nao soltou nada nao e disparo: nao passa a vez e nao faz barulho.
     if (projectiles.empty()) return;
 
-    // CADA PROJETIL SAI DONO DO SEU ALVO. Sem isto, os que perseguem leriam "de
-    // quem e a vez" a cada quadro e trocariam de rumo no meio do voo, todos
-    // juntos, a cada disparo novo. Ver BossProjectile::DefinirAlvo.
+    // Cada projetil sai dono do seu alvo.
     for (const auto& projetil : projectiles) {
         if (auto* doChefe = dynamic_cast<BossProjectile*>(projetil.get())) {
             doChefe->DefinirAlvo(alvoDoDisparo);
         }
     }
 
-    // A VEZ PASSA DEPOIS DO DISPARO, e nao antes. Antes, o primeiro ataque da
-    // batalha saia mirado no jogador 2 - a vez comeca em 0 e passar a vez antes
-    // de atirar a levava para 1 sem ninguem ter sido mirado. Nao muda o
-    // equilibrio ao longo da batalha, e muda o que o jogador 1 ve no comeco.
+    // A vez passa depois do disparo, e nao antes.
     battleScene->RevezarAlvo();
 
-    // Depois de executar, aplicar a personalização lambda, se existir
+    // Depois de executar, aplicar a personalização lambda, se existir.
     if (attackDef.configurator) {
         for (int i = 0; i < projectiles.size(); ++i) {
             attackDef.configurator(projectiles[i].get(), i);
@@ -249,7 +219,7 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
     // Gancho para customizacoes do boss concreto sobre a leva inteira.
     OnProjectilesCreated(projectiles, stateName);
 
-    // Converte pra BossProjectile e envia para o Manager
+    // Converte pra BossProjectile e envia para o Manager.
     std::vector<std::unique_ptr<BossProjectile>> bossProjVector;
     bossProjVector.reserve(projectiles.size());
 
@@ -263,7 +233,7 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
         projManager->AddBossProjectiles(std::move(bossProjVector));
     }
 
-    // -- LIDANDO COM O AUDIO DO ATAQUE -- //
+    // ---- Lidando com o audio do ataque -- // ----
     std::string attackAudio;
     {
         if (auto choose = Random::GetIntRange(0,1)) attackAudio = "tan00.wav";
@@ -271,7 +241,7 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
     }
     auto handler = mScene->GetGame()->GetAudio()->PlaySound(attackAudio, false);
     mScene->GetGame()->GetAudio()->SetSoundVolume(handler, 10);
-    // ----------------------------- //
+    // ---- // ----
 
 }
 
@@ -290,9 +260,7 @@ Vector2 Boss::GetPredictedPlayerDirection(const float leadTime) const {
 
             Vector2 target = player->GetPosition();
 
-            // Extrapola pela velocidade atual. Se o jogador estiver parado, a
-            // velocidade e zero e isto vira a mira normal: ficar parado
-            // continua sendo a pior escolha possivel.
+            // Extrapola pela velocidade atual.
             if (auto rb = player->GetComponent<RigidBodyComponent>()) {
                 target += rb->GetVelocity() * leadTime;
             }
@@ -407,7 +375,6 @@ void Boss::RegistrarAnuncio(const std::string& fase, const std::string& texto) {
     mAnuncioPorFase[fase] = texto;
 }
 
-
 std::string Boss::AnuncioDaFase(const std::string& fase) const {
     if (fase == mLastStateName) {
         if (const auto* fsm = GetComponent<FSMComponent>()) return AnuncioDaFaseEm(fase, fsm->GetStateTime());
@@ -468,9 +435,4 @@ void Boss::OnCollision(Actor *other) {
         CalculateNextDropThreshold();
     }
 }
-
-
-
-
-
 

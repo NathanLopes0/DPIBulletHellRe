@@ -22,9 +22,6 @@ std::vector<std::unique_ptr<Projectile>> ConsultaAttack::Execute(const AttackPar
 
     std::vector<std::unique_ptr<Projectile>> projectiles;
 
-    // Mesmo contrato da BaloonAttack: sem os campos proprios nao ha consulta
-    // nenhuma a fazer, e disparar "alguma coisa" esconderia o erro de
-    // configuracao atras de um ataque que quase funciona.
     const auto* consulta = dynamic_cast<const ConsultaAttackParams*>(&params);
     if (!consulta) {
         SDL_Log("ConsultaAttack: recebeu AttackParams comum, sem o bloco \"consulta\". "
@@ -44,10 +41,7 @@ std::vector<std::unique_ptr<Projectile>> ConsultaAttack::Execute(const AttackPar
         return projectiles;
     }
 
-    // A TABELA E O CAMPO DE JOGO, e nao a janela: GetPlayfieldBounds ja desconta
-    // a faixa da nota no rodape. Usar a altura da janela poria a ultima linha
-    // por baixo do HUD, onde o jogador nao pode ir - uma linha que so existe
-    // para ser varrida, nunca para ser habitada.
+    // A tabela e o campo de jogo, e nao a janela.
     const SDL_FRect campo = battle->GetPlayfieldBounds();
 
     const bool porLinha = (consulta->eixo == ConsultaAttackParams::Eixo::Linha);
@@ -64,19 +58,11 @@ std::vector<std::unique_ptr<Projectile>> ConsultaAttack::Execute(const AttackPar
     const float inicioDaFaixa = Tabela::Inicio(origem, extensao, quantas, indice);
     const float espessura     = Tabela::Espessura(extensao, quantas);
 
-    // A varredura corre no eixo PERPENDICULAR a faixa: uma linha e varrida da
-    // esquerda para a direita, uma coluna de cima para baixo.
+    // A varredura corre no eixo perpendicular a faixa.
     const float comprimento = porLinha ? campo.w : campo.h;
     const float partida     = porLinha ? campo.x : campo.y;
 
-    // DENTRO DA TELA, E NAO FORA DELA. A primeira versao disto nascia 48 px fora
-    // da borda "para entrar deslizando", e com isso o telegrafo inteiro
-    // acontecia onde ninguem podia ver: os projeteis esperavam o aviso
-    // invisiveis e entravam ja disparados. O ataque ficava impossivel de ler, que
-    // e exatamente o que o aviso existe para evitar.
-    //
-    // Encostados na borda eles sao visiveis a espera toda, e continuam fora do
-    // caminho de quem joga no meio do campo.
+    // Dentro da tela, e nao fora dela.
     const float margem = 20.0f;
     const float ondeNasce = consulta->invertido ? (partida + comprimento - margem)
                                                 : (partida + margem);
@@ -87,10 +73,7 @@ std::vector<std::unique_ptr<Projectile>> ConsultaAttack::Execute(const AttackPar
     const int quantos = (params.numProjectiles > 0) ? params.numProjectiles : 1;
     projectiles.reserve(static_cast<size_t>(quantos));
 
-    // Os projeteis se espalham pela ESPESSURA da faixa, nao pelo comprimento
-    // dela: juntos, eles formam a parede que atravessa a tabela. Com um so, a
-    // faixa teria um buraco por onde passar sem se mexer, e o ataque perderia o
-    // sentido de "esta linha inteira foi lida".
+    // Os projeteis se espalham pela espessura da faixa, nao pelo comprimento dela.
     const float passo = (quantos > 1) ? espessura / static_cast<float>(quantos)
                                       : espessura / 2.0f;
 
@@ -99,15 +82,13 @@ std::vector<std::unique_ptr<Projectile>> ConsultaAttack::Execute(const AttackPar
         auto projectile = Acquire();
         if (!projectile) continue;
 
-        // Meio do i-esimo quinhao da espessura: as pontas ficam a meio passo das
-        // bordas, entao a parede cobre a faixa sem transbordar para a vizinha.
+        // Meio do i-esimo quinhao da espessura.
         const float atravessado = inicioDaFaixa + passo * (static_cast<float>(i) + 0.5f);
 
         projectile->SetPosition(porLinha ? Vector2(ondeNasce, atravessado)
                                          : Vector2(atravessado, ondeNasce));
 
-        // Nasce PARADO e VISIVEL - este e o telegrafo. Ver o comentario da classe
-        // sobre por que nao ha DeactivateBehavior aqui.
+        // Nasce parado e visivel - este e o telegrafo.
         if (const auto rb = projectile->GetComponent<RigidBodyComponent>()) {
             rb->SetVelocity(Vector2::Zero);
         }

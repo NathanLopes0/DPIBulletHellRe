@@ -17,8 +17,8 @@ namespace Logica {
             return (1u << bits) - 1u;
         }
 
-        /// UM PASSO QUE VISITA TODAS AS PALAVRAS: somar um numero impar,
-        /// modulo 2^bits, da a volta inteira antes de repetir.
+        /// Um passo que visita todas as palavras: somar um numero impar, modulo 2^bits, da a volta
+        /// inteira antes de repetir.
         constexpr std::uint32_t kPassoDaVolta = 40503u;
     }
 
@@ -45,7 +45,7 @@ namespace Logica {
     std::optional<Porta> LerPorta(const std::string& texto, const int bits) {
         if (bits <= 0 || bits > 31) return std::nullopt;
 
-        // O NOME: a primeira palavra do texto.
+        // O nome: a primeira palavra do texto.
         std::size_t i = texto.find_first_not_of(' ');
         if (i == std::string::npos) return std::nullopt;
         const std::size_t fimDoNome = texto.find(' ', i);
@@ -58,7 +58,7 @@ namespace Logica {
         else if (nome == "NOT") p.operacao = Operacao::Nao;
         else return std::nullopt;
 
-        // A ENTRADA B: so digitos e espacos, e exatamente 'bits' digitos.
+        // A entrada b: so digitos e espacos, e exatamente 'bits' digitos.
         int digitos = 0;
         std::uint32_t b = 0;
         for (std::size_t k = (fimDoNome == std::string::npos ? texto.size() : fimDoNome); k < texto.size(); ++k) {
@@ -69,7 +69,7 @@ namespace Logica {
             ++digitos;
         }
         if (p.operacao == Operacao::Nao) {
-            if (digitos != 0) return std::nullopt;   // o NOT nao tem B
+            if (digitos != 0) return std::nullopt;   // O not nao tem B.
         }
         else if (digitos != bits) {
             return std::nullopt;
@@ -150,8 +150,7 @@ namespace Logica {
         if (n <= 0) return primeira;
         if (segundosPorPasso <= 0.0f) return std::clamp(inicio, primeira, ultima);
 
-        // O VAI E VEM e uma onda triangular sobre os passos: 2n passos por
-        // volta, subindo n e descendo n. O inicio entra como passos ja dados.
+        // O vai e vem e uma onda triangular sobre os passos: 2n passos por volta, subindo n e descendo n.
         const int dados = static_cast<int>(std::floor(std::max(0.0f, t) / segundosPorPasso));
         const int ja = std::clamp(inicio, primeira, ultima) - primeira;
         const int m = (dados + ja) % (2 * n);
@@ -172,8 +171,7 @@ namespace Logica {
             Porta p;
             p.operacao = ops[k];
             if (p.operacao != Operacao::Nao) {
-                // ATE ACHAR UM B QUE ADMITA PALAVRA JUSTA - quase sempre na
-                // primeira: so os extremos (quase todo 0 num AND) nao admitem.
+                // Ate achar um b que admita palavra justa - quase sempre na primeira.
                 for (int tentativa = 0; tentativa < 64; ++tentativa) {
                     std::uint32_t b = 0;
                     for (int g = 0; g < 4; ++g) b = (b << 4) | kGrupos[s.Inteiro(0, 3)];

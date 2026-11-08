@@ -11,32 +11,7 @@
 #include "../Regras/Dificuldade.h"
 #include "../Regras/Variacao.h"
 
-/**
- * CAMADA PURA. Coberto por test_pagina.cpp.
- *
- * O CAMPO E A JANELA DO NAVEGADOR, e o Lucas renderiza uma pagina nela. O
- * layout fica desenhado a fase inteira - o header no alto, onde ele esta, e
- * embaixo o nav, o main e o aside lado a lado - e cada pagina, gerada a cada
- * vez, poe os elementos dela nas regioes, UM EMBAIXO DO OUTRO, no fluxo do
- * documento, como o navegador faz. Um elemento e renderizado a cada
- * kPorElemento, e o placar diz qual - "<img src="gato.png">" e embaixo
- * "body > main".
- *
- * CADA ELEMENTO ATACA DO SEU JEITO, e o tipo dele e o aviso:
- *
- *   <button>    o cursor voa do professor ate o botao e CLICA: sai um leque.
- *               O cursor e derrubavel - derrubado, o clique nao acontece.
- *   <img>       o spinner gira enquanto a imagem carrega; carregada, ela
- *               estoura num anel.
- *   <marquee>   uma linha de tags atravessa a tela de lado, descendo.
- *   <table>     as linhas da tabela acendem uma a uma, e cada uma cai.
- *   <a href>    o professor NAVEGA ate a ancora - a outra regiao - e chega
- *               num anel.
- *   <input>     o texto e digitado letra por letra, e cada letra sai em voce.
- *
- * Renderizada a pagina inteira, o F5: o layout fica, os elementos somem, e
- * vem outra.
- */
+/// O campo e a janela do navegador, e o Lucas renderiza uma pagina nela.
 namespace Pagina {
 
     constexpr const char* kFaseDaPagina = "StateOne";
@@ -60,7 +35,7 @@ namespace Pagina {
         [[nodiscard]] float Cy() const { return y + h / 2.0f; }
     };
 
-    // ---- O LAYOUT --------------------------------------------------------------
+    // ---- O layout ----
 
     enum class Regiao { Header, Nav, Main, Aside };
     constexpr int kRegioes = 4;
@@ -77,7 +52,7 @@ namespace Pagina {
 
     std::string NomeDaRegiao(Regiao r);
 
-    // ---- OS ELEMENTOS ----------------------------------------------------------
+    // ---- Os elementos ----
 
     enum class Tipo { Botao, Imagem, Marquee, Tabela, Link, Input };
 
@@ -93,21 +68,19 @@ namespace Pagina {
     Retangulo Tamanho(Tipo t, const Retangulo& regiao);
     constexpr float kEntreElementos = 14.0f;
 
-    /// @brief Uma pagina nova: de 6 a 8 elementos, em ordem de documento - o
-    /// nav, depois o main, depois o aside -, cada um embaixo do anterior da
-    /// mesma regiao. O que nao cabe na regiao fica de fora. Toda pagina tem
-    /// pelo menos tres tipos diferentes.
+    /// Uma pagina nova: de 6 a 8 elementos, em ordem de documento - o nav, depois o main, depois o
+    /// aside -, cada um embaixo do anterior da mesma regiao.
     std::vector<Elemento> Gerar(Variacao::Sorteio& s, float largura);
 
-    /// @brief "<img src=\"gato.png\">" e embaixo "body > main".
+    /// "<img src=\"gato.png\">" e embaixo "body > main".
     std::string Placar(const Elemento& e);
 
-    /// @brief Os centros das celulas da tabela, linha por linha.
+    /// Os centros das celulas da tabela, linha por linha.
     constexpr int kLinhasDaTabela = 3;
     constexpr int kColunasDaTabela = 4;
     std::vector<std::vector<std::array<float, 2>>> Celulas(const Retangulo& tabela);
 
-    // ---- O RELOGIO -----------------------------------------------------------------
+    // ---- O relogio ----
 
     constexpr float kPrimeiro = 0.6f;
     constexpr float kPorElemento = 1.2f;
@@ -125,8 +98,7 @@ namespace Pagina {
     constexpr int kLetras = 6;
     constexpr float kEntreLetras = 0.11f;
 
-    /// @brief O que o Dificil muda: um elemento a cada 0,95 s (e nao 1,2), e o
-    /// spinner carrega em 0,7 s.
+    /// O que o Dificil muda: um elemento a cada 0,95 s (e nao 1,2), e o spinner carrega em 0,7 s.
     struct Degrau {
         float porElemento = kPorElemento;
         float carregando = kCarregando;

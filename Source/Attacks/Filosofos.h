@@ -13,35 +13,8 @@
 #include "../Regras/Dificuldade.h"
 #include "../Regras/Variacao.h"
 
-/**
- * CAMADA PURA.
- *
- * A FINAL DO VITOR E O DEADLOCK, no problema que todo curso de concorrencia
- * conta: o JANTAR DOS FILOSOFOS. Cinco filosofos em volta da mesa, um garfo
- * entre cada dois, e para comer cada um precisa dos dois garfos do lado dele.
- * O professor e o monitor, no meio da mesa.
- *
- * Os garfos ANDAM: quem pega um o leva para perto de si, e quem solta o
- * devolve a mesa. Quem come ATACA - garfadas em leque, miradas no aluno. Quem
- * espera um garfo tem uma linha ate quem esta com ele: a espera.
- *
- * Quatro rodadas:
- *
- *   o jantar         dois comem de cada vez, sem briga
- *   o deadlock       TODOS pegam o garfo da esquerda ao mesmo tempo, e todos
- *                    esperam o da direita: a espera circular. O pentagono das
- *                    esperas vira um cerco de projeteis, ate o professor matar
- *                    um deles - kill -9 - e o cerco estourar para fora
- *   a ordem          cada um pega primeiro o garfo de MENOR numero: o ultimo
- *                    disputa o primeiro garfo com o primeiro filosofo, a
- *                    espera vira uma fila e nao um circulo
- *   o garcom         um semaforo com quatro lugares: o professor tira um da
- *                    mesa, e com quatro nao ha circulo
- *
- * Aqui ficam os filosofos, os garfos, as rodadas (um roteiro de passos), a
- * mesa e as regras dela, a geometria e os textos; quem move os garfos, desenha
- * as esperas e ataca e o Vitor. Coberto por test_filosofos.cpp.
- */
+/// A final do Vitor e o deadlock, no problema que todo curso de concorrencia conta: o jantar dos
+/// filosofos.
 namespace Filosofos {
 
     /// Os nomes que o codigo e os dados dividem. Um teste confere cada um.
@@ -61,7 +34,7 @@ namespace Filosofos {
     int GarfoDaEsquerda(int f);
     int GarfoDaDireita(int f);
 
-    // ---- AS RODADAS ---------------------------------------------------------
+    // ---- As rodadas ----
 
     enum class Rodada { Jantar, Deadlock, Ordem, Garcom };
     constexpr int kRodadas = 4;
@@ -83,15 +56,11 @@ namespace Filosofos {
         int garfo = -1;              ///< Pega e Espera
     };
 
-    /**
-     * @brief O roteiro da rodada, em ordem de tempo.
-     *
-     * 'escolhido' e quem o professor escolhe: no deadlock, a VITIMA; no
-     * garcom, quem fica DE FORA. Nas outras duas rodadas nao conta.
-     */
+    /// O roteiro da rodada, em ordem de tempo. 'escolhido' e quem o professor escolhe: no deadlock,
+    /// a vitima; no garcom, quem fica de fora.
     std::vector<Passo> Roteiro(Rodada r, int escolhido);
 
-    // ---- A MESA -------------------------------------------------------------
+    // ---- A mesa ----
 
     enum class Estado { Pensando, Esperando, Comendo, Morto, DeFora };
 
@@ -104,24 +73,18 @@ namespace Filosofos {
     /// A mesa posta: os garfos na mesa, todos pensando.
     Mesa MesaPosta();
 
-    /**
-     * @brief Aplica um passo. Devolve false - e nao mexe na mesa - se o passo
-     * fere a regra: pegar um garfo que esta com outro (ou que nao e um dos
-     * dois do lado dele), esperar um garfo livre, comer sem os dois, ou um
-     * morto agir.
-     */
+    /// Aplica um passo.
     bool Aplicar(Mesa& m, const Passo& p);
 
     /// As esperas: quem espera -> quem esta com o garfo que ele quer.
     std::vector<std::pair<int, int>> Esperas(const Mesa& m);
 
-    /// @brief A espera circular: seguindo as esperas a partir de alguem,
-    /// volta-se a ele.
+    /// A espera circular: seguindo as esperas a partir de alguem, volta-se a ele.
     bool EmDeadlock(const Mesa& m);
 
     std::vector<int> Comendo(const Mesa& m);
 
-    // ---- O RELOGIO ----------------------------------------------------------
+    // ---- O relogio ----
 
     constexpr float kPrimeiro = 0.5f;
     constexpr float kPorRodada = (Fase::kDuracao - kPrimeiro) / static_cast<float>(kRodadas);
@@ -135,7 +98,7 @@ namespace Filosofos {
     /// kEntreEsperas - enquanto ninguem cede.
     constexpr float kEntreEsperas = 0.06f;
 
-    // ---- O CAMPO ------------------------------------------------------------
+    // ---- O campo ----
 
     struct Ponto { float x = 0.0f; float y = 0.0f; };
 
@@ -161,30 +124,13 @@ namespace Filosofos {
     /// As velocidades: a da garfada e a do arquivo (um teste confere); a do
     /// estouro do cerco e a que o Vitor da a cada espera quando o ciclo quebra.
     constexpr float kVelocidadeDaGarfada = 210.0f;
-    /// IMPAR, para o leque ter uma garfada no meio - mirada no aluno. Com
-    /// quatro o meio do leque caia entre duas, e o piloto parado tomou um
-    /// acerto na final inteira.
-    ///
-    /// E ESTREITO: tres garfadas em 16 graus. Com cinco em 40, de dois
-    /// filosofos ao mesmo tempo, o leque cobria uns 300 px no chao e quem
-    /// desviava era empurrado para o canto da tela e ficava la - o piloto que
-    /// desvia terminava a final sozinha com 16 e quase sem atirar no chefe.
+    /// Impar, para o leque ter uma garfada no meio - mirada no aluno.
     constexpr int kGarfadasPorLeque = 3;
     constexpr float kVelocidadeDoEstouro = 230.0f;
 
-    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA (Variacao.h) ---------------------
+    // ---- O que muda de uma luta para a outra (Variacao.h) ----
 
-    /**
-     * @brief O jantar desta batalha.
-     *
-     * A HISTORIA TEM ORDEM: o jantar sem briga abre, o deadlock vem em
-     * seguida, e as duas solucoes - a ordem pelo menor garfo e o garcom - vem
-     * depois dele, em qualquer ordem. Quem se senta a mesa e outro a cada luta
-     * (cinco de kPensadores, em lugares sorteados), e o jantar e a ordem
-     * comecam de outro lugar da mesa (Rodar): quem come primeiro, e quem e o
-     * ultimo na ordem dos garfos. No deadlock e no garcom quem o professor
-     * escolhe ja muda sozinho - e o filosofo mais perto do aluno.
-     */
+    /// O jantar desta batalha.
     struct Plano {
         std::array<Rodada, kRodadas> rodadas{};
         std::array<std::string, kFilosofos> nomes{};
@@ -197,16 +143,14 @@ namespace Filosofos {
     constexpr int kPensadores = 10;
     std::string Pensador(int i);
 
-    /// @brief O roteiro com todos andando 'giro' lugares em volta da mesa (e
-    /// os garfos junto): o mesmo jantar, comecando de outro lugar.
+    /// O roteiro com todos andando 'giro' lugares em volta da mesa (e os garfos junto): o mesmo
+    /// jantar, comecando de outro lugar.
     std::vector<Passo> Rodar(std::vector<Passo> passos, int giro);
 
-    /// O placar: o nome da rodada e quem come ("jantar · comendo: Kant, Hume"),
-    /// a espera circular no deadlock ("deadlock · espera circular"), e o
-    /// kill -9 da vitima - com os nomes desta luta.
+    /// O placar: o nome da rodada e quem come ("jantar · comendo.
     std::string Placar(Rodada r, const Mesa& m, const Plano& p = PlanoDeSempre());
 
-    // ---- O DEGRAU (Dificuldade.h) -----------------------------------------------
+    // ---- O degrau (Dificuldade.h) ----
 
     /// O que o Dificil muda: quem come da garfadas mais seguidas e mais
     /// rapidas, e o cerco do deadlock e mais cheio e estoura mais depressa.

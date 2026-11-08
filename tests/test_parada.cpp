@@ -31,7 +31,7 @@ TEST_CASE("Parada: um passo do programa de Collatz, e o 1 fica") {
     CHECK(Parada::Proximo(0) == 0);
     CHECK(Parada::Parou(1));
     CHECK_FALSE(Parada::Parou(2));
-    // 7 -> 22 -> 11 -> 34 -> 17 -> 52 -> 26 -> 13 -> 40 -> 20 -> 10 -> 5 -> 16 -> 8 -> 4 -> 2 -> 1
+    // 7 -> 22 -> 11 -> 34 -> 17 -> 52 -> 26 -> 13 -> 40 -> 20 -> 10 -> 5 -> 16 -> 8 -> 4 -> 2 -> 1.
     CHECK(PassosAteParar(7) == 16);
     CHECK(PassosAteParar(27, 50) == 50);   // o limite segura
 }

@@ -16,8 +16,7 @@
 #include "../../Actors/Orientador/Orientador.h"
 #include "../../Actors/Player/Player.h"
 
-// A VERSAO vem do CMake (o commit de onde o executavel saiu); compilado de
-// outro jeito, "dev".
+// A versao vem do CMake; compilado de outro jeito, "dev".
 #ifndef DPI_VERSAO
 #define DPI_VERSAO "dev"
 #endif
@@ -38,7 +37,7 @@ void RegistroDaTentativa::AoComecar(Battle& b) {
     t.semente = b.SementeDaBatalha();
     if (const Orientador* o = b.GetOrientador()) t.orientador = o->Professor();
 
-    // O JOGADOR i E A SESSAO i: e assim que Battle::LoadPlayer os cria.
+    // O jogador i E a sessao i: e assim que Battle::LoadPlayer os cria.
     const auto& sessoes = b.GetGame()->Sessoes();
     for (size_t i = 0; i < b.Jogadores().size(); ++i) {
         Tentativas::Jogador j;
@@ -77,7 +76,7 @@ void RegistroDaTentativa::AoFimDoQuadro(Battle& b) {
 void RegistroDaTentativa::AoTrocarDeFase(Battle& b, const std::string& fase, const std::string& anuncio) {
     if (!Anotando()) return;
 
-    // A FASE QUE ACABA acabou pelo relogio: e so assim que se troca de fase.
+    // A fase que acaba acabou pelo relogio: e so assim que se troca de fase.
     if (!mTentativa.fases.empty()) {
         Tentativas::Fase& anterior = mTentativa.fases.back();
         anterior.fim = mRelogio;
@@ -109,8 +108,7 @@ void RegistroDaTentativa::AoSerAcertado(Battle& b, const Player& aluno, bool) {
 
 void RegistroDaTentativa::AoAcertarOProfessor(Battle& b, const Actor* quemAtirou) {
     if (!Anotando()) return;
-    // O TIRO GUARDA O DONO, e e isso que da a precisao de cada aluno (e os
-    // acertos do orientador).
+    // O tiro guarda o dono, e e isso que da a precisao de cada aluno (e os acertos do orientador).
     if (auto* r = De(b, quemAtirou)) ++r->acertosNoProfessor;
     else if (b.GetOrientador() && quemAtirou == b.GetOrientador()) ++mTentativa.acertosDoOrientador;
 }
@@ -129,7 +127,7 @@ void RegistroDaTentativa::AoTerminar(Battle& b, const Tentativas::Resultado resu
     if (!Anotando()) return;
     mGravada = true;
 
-    // NENHUM ATOR E LIDO AQUI: o fim pode vir do destrutor da batalha.
+    // Nenhum ator e lido aqui: o fim pode vir do destrutor da batalha.
     Tentativas::Tentativa& t = mTentativa;
     const float nota = b.GetNotaAtual();
     t.fim = Relogio::Agora();

@@ -35,8 +35,7 @@ void MariaLucia::SortearALuta() {
     Variacao::Sorteio cascata = SorteioDaFase(Cascata::kFaseDaCascata);
     mPlanoDaCascata = Cascata::Sortear(cascata);
 
-    // O PLANNING POKER: cada sprint com a carta dela, e o placar dizendo os
-    // pontos - o placar e o compromisso. A primeira etapa e o backlog.
+    // O planning poker: cada sprint com a carta dela, e o placar dizendo os pontos.
     Variacao::Sorteio metodos = SorteioDaFase(kFaseDosMetodos);
     mPoker = Sprint::Sortear(metodos);
     auto etapas = EtapasDa(kFaseDosMetodos);
@@ -100,7 +99,7 @@ void MariaLucia::AtualizarBalas(const float deltaTime) {
         return promessas[static_cast<size_t>(i) % promessas.size()];
     };
 
-    // UMA BALA DE PRATA, mirada no aluno, com o nome da promessa no placar.
+    // Uma bala de prata, mirada no aluno, com o nome da promessa no placar.
     mProximaBala -= deltaTime;
     if (mProximaBala <= 0.0f) {
         mProximaBala += mDegrauDaBala.entreBalas;
@@ -112,8 +111,7 @@ void MariaLucia::AtualizarBalas(const float deltaTime) {
         mTextoDaBalaPor = BalaDePrata::kNoPlacar;
     }
 
-    // A BALA QUE CHEGA PERTO DO ALUNO SE DESFAZ num leque de bugs, mirado
-    // nele; a que o aluno acertou antes - o teste com usuario - so cai.
+    // A bala que chega perto do aluno se desfaz num leque de bugs, mirado nele.
     const auto* batalha = dynamic_cast<Battle*>(mScene);
     const Player* alvo = batalha ? batalha->Alvo() : nullptr;
     for (auto it = mBalas.begin(); it != mBalas.end();) {
@@ -139,10 +137,7 @@ void MariaLucia::AtualizarBalas(const float deltaTime) {
     if (AnuncioDaFase(kFaseDaBala) != texto) RegistrarAnuncio(kFaseDaBala, texto);
 }
 
-
-// ---------------------------------------------------------------------------
-// A CASCATA
-// ---------------------------------------------------------------------------
+// A cascata.
 
 namespace {
     const SDL_Color kSeta = {120, 160, 230, 150};   // a associacao entre duas classes
@@ -208,7 +203,7 @@ void MariaLucia::AtualizarCascata(const float deltaTime) {
         mNaCascata = true;
         mEtapaDaCascata = -1;
         mProximoPedido = Cascata::kEntrePedidos;
-        // AS CAIXAS DO DIAGRAMA DA CASCATA, uma debaixo de cada degrau.
+        // As caixas do diagrama da cascata, uma debaixo de cada degrau.
         Escada::Geometria g;
         g.largura = largura;
         for (int k = 0; k < static_cast<int>(mPlacas.size()); ++k) {
@@ -224,7 +219,7 @@ void MariaLucia::AtualizarCascata(const float deltaTime) {
         }
     }
 
-    // A ETAPA NOVA: a caixa dela acende, e o que a anterior entregou passa.
+    // A etapa nova: a caixa dela acende, e o que a anterior entregou passa.
     if (etapa != mEtapaDaCascata) {
         mEtapaDaCascata = etapa;
         for (int k = 0; k < static_cast<int>(mPlacas.size()); ++k) {
@@ -235,7 +230,7 @@ void MariaLucia::AtualizarCascata(const float deltaTime) {
             }
         }
         if (etapa == 1) {
-            // PROJETO: cada post-it do backlog voa para o lugar da classe dele.
+            // Projeto: cada post-it do backlog voa para o lugar da classe dele.
             int k = 0;
             for (BossProjectile* p : mBacklog) {
                 if (p->GetState() != ActorState::Active) continue;
@@ -249,14 +244,12 @@ void MariaLucia::AtualizarCascata(const float deltaTime) {
             mProximaCompilacao = agora;
             mClasseDaVez = 0;
         } else if (etapa == 3) {
-            // TESTES: cada classe solta o bug dela.
             for (const Classe& c : mClasses) {
                 if (!c.pronta || c.p->GetState() != ActorState::Active) continue;
                 for (BossProjectile* b : DispararEm(Cascata::kGatilhoDoBug, c.p->GetPosition())) mBugs.push_back(b);
             }
         } else if (etapa == 4) {
-            // MANUTENCAO: o sistema e entregue - as classes somem -, e cada bug
-            // que o teste nao achou vira divida, parada onde estava.
+            // Manutencao: o sistema e entregue.
             for (const Classe& c : mClasses) if (c.p->GetState() == ActorState::Active) c.p->Kill();
             mClasses.clear();
             if (mDiagrama) mDiagrama->Limpar();
@@ -272,7 +265,7 @@ void MariaLucia::AtualizarCascata(const float deltaTime) {
         }
     }
 
-    // REQUISITOS: o cliente pede, de fora do campo, ate o backlog encher.
+    // Requisitos: o cliente pede, de fora do campo, ate o backlog encher.
     if (etapa == 0 && agora >= mProximoPedido) {
         mProximoPedido = agora + Cascata::kEntrePedidos;
         const int lugar = static_cast<int>(mBacklog.size() + mPedidos.size());
@@ -287,8 +280,7 @@ void MariaLucia::AtualizarCascata(const float deltaTime) {
             }
         }
     }
-    // O PEDIDO QUE CHEGA cola no quadro (e deixa de machucar); o derrubado no
-    // caminho e escopo cortado, e o lugar dele fica para o proximo.
+    // O pedido que chega cola no quadro (e deixa de machucar).
     for (auto it = mPedidos.begin(); it != mPedidos.end();) {
         BossProjectile* p = it->p;
         if (p->GetState() != ActorState::Active) { it = mPedidos.erase(it); continue; }
@@ -312,10 +304,7 @@ void MariaLucia::AtualizarCascata(const float deltaTime) {
         if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
     }
 
-    // PROJETO: o post-it que chega ao lugar dele VIRA A CLASSE - sai o post-it,
-    // entra a caixa de UML - e a classe machuca: o diagrama ocupa o meio do
-    // campo. Ela aguenta tiros (o tipo diz quantos): cortar uma classe do
-    // projeto ja nao e tao barato quanto cortar um pedido.
+    // Projeto: o post-it que chega ao lugar dele vira a classe.
     for (Classe& c : mClasses) {
         if (c.p->GetState() != ActorState::Active) continue;
         if (!c.pronta) {
@@ -342,8 +331,7 @@ void MariaLucia::AtualizarCascata(const float deltaTime) {
         }
     }
 
-    // UMA CLASSE POR VEZ: no Projeto, solta as mensagens pelas setas; na
-    // Implementacao, compila - o codigo sai mirado no aluno.
+    // Uma classe por vez: no Projeto, solta as mensagens pelas setas; na Implementacao, compila.
     std::vector<const Classe*> prontas;
     for (const Classe& c : mClasses) if (c.pronta && c.p->GetState() == ActorState::Active) prontas.push_back(&c);
     if (!prontas.empty()) {
@@ -371,8 +359,6 @@ void MariaLucia::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& 
 void MariaLucia::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
     Boss::CustomizeAttackParams(params, stateName);
 
-    // A CARTA DA SPRINT DESTA LUTA: o arquivo escreve o baralho em ordem, e o
-    // poker sorteado diz quantas historias o cursor arrasta.
     if (stateName == kFaseDosMetodos && dynamic_cast<SprintAttackParams*>(&params)) {
         params.numProjectiles = mPoker[static_cast<size_t>(SprintDaVez())];
     }
@@ -402,8 +388,7 @@ std::vector<BossProjectile*> MariaLucia::Observadores() const {
 }
 
 void MariaLucia::AnunciarOObserver() {
-    // O NOME DO PADRAO, e o que ela diz no aviso. O placar le o anuncio da
-    // fase a cada quadro e so redesenha quando o texto muda.
+    // O nome do padrao, e o que ela diz no aviso.
     std::string texto = mNomeDoPadrao;
     if (mNoPlacar > 0.0f) texto = mUltimoFoiConsulta ? kNoPlacarConsulta : kNoPlacarNotifica;
     if (AnuncioDaFase(kFaseDoObserver) != texto) RegistrarAnuncio(kFaseDoObserver, texto);
@@ -417,7 +402,7 @@ void MariaLucia::AtualizarObserver(const float deltaTime) {
 
     if (!noObserver) {
         if (mNoObserver) {
-            // A FASE ACABOU: as assinaturas somem, e o placar volta ao nome.
+            // A fase acabou: as assinaturas somem, e o placar volta ao nome.
             if (mAssinaturas) mAssinaturas->Limpar();
             mNoPlacar = 0.0f;
             AnunciarOObserver();
@@ -444,8 +429,7 @@ void MariaLucia::AtualizarObserver(const float deltaTime) {
         mScene->AddActor(std::move(ator));
     }
 
-    // O SUJEITO: cada aluno avisa quando o estado dele muda, e e a ele que os
-    // avisos vao. Sem aviso por um tempo, ela consulta - o polling.
+    // O sujeito: cada aluno avisa quando o estado dele muda, e e a ele que os avisos vao.
     mPiscando = std::max(0.0f, mPiscando - deltaTime);
     mNoPlacar = std::max(0.0f, mNoPlacar - deltaTime);
     const auto& alunos = batalha->Jogadores();
@@ -467,8 +451,6 @@ void MariaLucia::AtualizarObserver(const float deltaTime) {
     }
     AnunciarOObserver();
 
-    // OS OLHOS E AS ASSINATURAS: cada olho olha para o aluno mais perto e
-    // pisca no aviso, e uma linha liga cada olho a cada aluno.
     mAssinaturas->Limpar();
     for (BossProjectile* olho : Observadores()) {
         const Player* maisPerto = nullptr;

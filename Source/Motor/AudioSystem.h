@@ -13,17 +13,17 @@
 
 struct Mix_Chunk;
 
-// SoundHandles are used to operate on active sounds
+// SoundHandles are used to operate on active sounds.
 class SoundHandle
 {
 public:
-    // Returns true if this is an active sound handle
+    // Returns true if this is an active sound handle.
     bool IsValid() const { return mID != 0; }
 
-    // Resets to inactive sound handle
+    // Resets to inactive sound handle.
     void Reset() { mID = 0; }
 
-    // Increments for convenience
+    // Increments for convenience.
     SoundHandle& operator++()
     {
         mID++;
@@ -44,7 +44,7 @@ public:
         return tempStr.c_str();
     }
 
-    // Boolean checks
+    // Boolean checks.
     bool operator==(const SoundHandle& rhs) const { return mID == rhs.mID; }
     bool operator!=(const SoundHandle& rhs) const { return mID != rhs.mID; }
     bool operator<(const SoundHandle& rhs) const { return mID < rhs.mID; }
@@ -64,55 +64,40 @@ struct Mix_Chunk_Deleter {
     }
 };
 
-// Manages playing audio through SDL_mixer
+// Manages playing audio through SDL_mixer.
 class AudioSystem
 {
 public:
     // Create the AudioSystem with specified number of channels
     // (Defaults to 8 channels)
     AudioSystem(int numChannels = 8);
-    // Destroy the AudioSystem
+    // Destroy the AudioSystem.
     ~AudioSystem();
 
-    // Updates the status of all the active sounds every frame
+    // Updates the status of all the active sounds every frame.
     void Update();
 
-    // Plays the sound with the specified name and loops if looping is true
-    // Returns the SoundHandle which is used to perform any other actions on the
-    // sound when active
-    // NOTE: The soundName is without the "Assets/Sounds/" part of the file
-    //       For example, pass in "ChompLoop.wav" rather than
-    //       "Assets/Sounds/ChompLoop.wav".
     SoundHandle PlaySound(const std::string& soundName, bool looping = false);
 
-    // Pauses the sound if it is currently playing
+    // Pauses the sound if it is currently playing.
     void PauseSound(SoundHandle sound);
 
-    // Resumes the sound if it is currently paused
+    // Resumes the sound if it is currently paused.
     void ResumeSound(SoundHandle sound);
 
-    // Stops all sounds on all channels
+    // Stops all sounds on all channels.
     void StopAllSounds();
 
-    // Cache all sounds under Assets/Sounds
+    // Cache all sounds under Assets/Sounds.
     void CacheAllSounds();
 
-    // Used to preload the sound data of a sound
-    // NOTE: The soundName is without the "Assets/Sounds/" part of the file
-    //       For example, pass in "ChompLoop.wav" rather than
-    //       "Assets/Sounds/ChompLoop.wav".
+    // Used to preload the sound data of a sound note.
     void CacheSound(const std::string& soundName);
 
     void SetSoundVolume(SoundHandle soundHandler, int volume);
 
-    /**
-     * @brief O volume da tela de Opcoes, de 0 a 1: um para a MUSICA (o som em
-     * laco) e outro para os EFEITOS (o resto).
-     *
-     * MULTIPLICA o volume que cada som pediu (SetSoundVolume, ou 128 se nao
-     * pediu): quem chama continua pedindo o volume dele, e a opcao escala por
-     * cima. Vale tambem para o que ja esta tocando.
-     */
+    /// O volume da tela de Opcoes, de 0 a 1: um para a musica (o som em laco) e outro para os
+    /// efeitos (o resto).
     void DefinirVolumes(float musica, float efeitos);
 
 private:
@@ -122,15 +107,11 @@ private:
     float mFatorDaMusica = 1.0f;
     float mFatorDosEfeitos = 1.0f;
 
-    // If the sound is already loaded, returns Mix_Chunk from the map.
-    // Otherwise, will attempt to load the file and save it in the map.
-    // Returns nullptr if sound is not found.
-    // NOTE: The soundName is without the "Assets/Sounds/" part of the file
-    //       For example, pass in "ChompLoop.wav" rather than
-    //       "Assets/Sounds/ChompLoop.wav".
+    // If the sound is already loaded, returns Mix_Chunk from the map. Otherwise, will attempt to
+    // load the file and save it in the map.
     struct Mix_Chunk* GetSound(const std::string& soundName);
 
-    // Internal struct used to track the properties of active sound handles
+    // Internal struct used to track the properties of active sound handles.
     struct HandleInfo
     {
         std::string mSoundName;
@@ -146,17 +127,14 @@ private:
     // it's an active handle.
     std::vector<SoundHandle> mChannels;
 
-    // Maps all the active SoundHandles to their HandleInfo
+    // Maps all the active SoundHandles to their HandleInfo.
     std::map<SoundHandle, HandleInfo> mHandleMap;
 
     using SoundPtr = std::unique_ptr<Mix_Chunk, Mix_Chunk_Deleter>;
 
-    // Map to store the Mix_Chunk data for all the files
+    // Map to store the Mix_Chunk data for all the files.
     std::unordered_map<std::string, SoundPtr> mSounds;
 
-
-
-    // Used to track the last audio handle value used
-    // Will increment prior to playing a new sound
+    // Used to track the last audio handle value used Will increment prior to playing a new sound.
     SoundHandle mLastHandle;
 };

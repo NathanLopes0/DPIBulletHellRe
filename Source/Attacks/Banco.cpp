@@ -177,8 +177,7 @@ namespace Banco {
                 c.onde = Escolher(regs, g, 1, std::min(2, std::max(1, n)));
                 break;
             case Tipo::Ordenacao: {
-                // UMA ORDEM QUE MUDA ALGUMA COISA: ordenar pelo que ja esta em
-                // ordem nao mexeria em linha nenhuma.
+                // Uma ordem que muda alguma coisa.
                 const std::array<Coluna, 4> ordens = {Coluna::Nota, Coluna::Mat, Coluna::Nome, Coluna::Ano};
                 const int inicio = Ate(g, 4);
                 c.coluna = ordens[static_cast<size_t>(inicio)];

@@ -8,7 +8,6 @@
 #include "../AttackParameters/BaloonAttackParams.h"
 #include "../../Scenes/Battle/Battle.h"
 
-
 class BaloonAttack : public IAttackStrategy {
 
 public:
@@ -18,7 +17,6 @@ public:
     std::vector<std::unique_ptr<Projectile>> Execute(const AttackParams& params) override;
 
 private:
-    // mSpawner e mOwner agora vêm de IAttackStrategy (base).
 
     static bool ValidateParams(const BaloonAttackParams& params) ;
 
@@ -42,5 +40,4 @@ private:
 
 };
 
-
-#endif //DPIBULLETHELLRE_BALOONATTACK_H
+#endif // DPIBULLETHELLRE_BALOONATTACK_H.

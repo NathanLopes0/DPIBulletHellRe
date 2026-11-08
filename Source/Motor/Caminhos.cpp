@@ -44,8 +44,6 @@ std::string DiretorioPai(const std::string& caminho) {
     const auto corte = s.find_last_of('/');
     if (corte == std::string::npos) return "";   // nao ha nivel acima
 
-    // A raiz e um caso proprio: o pai de "/a" e "/", e nao a string vazia, senao
-    // a subida perderia a referencia de onde estava.
     if (corte == 0) return "/";
 
     return s.substr(0, corte);

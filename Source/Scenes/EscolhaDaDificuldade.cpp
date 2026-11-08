@@ -70,7 +70,7 @@ void EscolhaDaDificuldade::Load() {
             kLarguraDoCartao, kAlturaDoCartao, kMoldura, kFundo, 3, 100);
         AddActor(std::move(cartao));
 
-        // O NOME NA COR DO NIVEL: o vermelho do Dificil e o do selo da batalha.
+        // O nome na cor do nivel: o vermelho do Dificil e o do selo da batalha.
         auto* nome = Texto(Dificuldade::Nome(n), x, yDosCartoes - 95.0f, 44, 380)
                          ->GetComponent<DrawTextComponent>();
         if (n == Dificuldade::Nivel::Dificil) {
@@ -88,8 +88,7 @@ void EscolhaDaDificuldade::Load() {
                          mGame->JeitoDoRodape()),
           meio, altura * 0.89f, 24, 900);
 
-    // O CURSOR COMECA ONDE A PARTIDA ESTA: no Normal numa partida nova, e no
-    // que foi escolhido quando se volta da selecao de fases.
+    // O cursor comeca onde a partida esta.
     mEscolhido = mGame->NivelDeDificuldade();
     Mostrar();
 }
@@ -120,8 +119,7 @@ void EscolhaDaDificuldade::OnProcessInput(const Uint8* keyState) {
     }
     mVoltarAnterior = voltar;
 
-    // QUALQUER UM DOS DOIS escolhe: os dois jogam no mesmo nivel. Para cima e
-    // para baixo tambem trocam - com dois cartoes, todo lado e o outro.
+    // Qualquer um dos dois escolhe: os dois jogam no mesmo nivel.
     bool esquerda = false, direita = false, confirmar = false;
     for (const Painel::Jogador quem : Painel::kJogadores) {
         esquerda = esquerda || Painel::Apertado(keyState, quem, Painel::Direcao::Esquerda)

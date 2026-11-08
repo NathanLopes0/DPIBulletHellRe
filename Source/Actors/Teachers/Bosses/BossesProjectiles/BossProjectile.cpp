@@ -1,7 +1,6 @@
 //
 // Created by nslop on 21/11/2024.
 //
-// BossProjectile.cpp (VERSÃO REFATORADA E MODERNA)
 
 #include "BossProjectile.h"
 #include "../../Boss.h"
@@ -12,15 +11,12 @@
 #include "../../../../Components/RigidBodyComponent.h"
 #include "../../../../Regras/Destrutivel.h"
 
-
 // 1. O construtor passa o 'owner' para o construtor da classe base 'Projectile'.
 BossProjectile::BossProjectile(Scene* scene, Boss* owner)
     : Projectile(scene, owner) // Chama o construtor do pai com a cena E o dono
 {
 
 }
-
-
 
 void BossProjectile::MarcarPadraoDeFabrica() {
     Projectile::MarcarPadraoDeFabrica();
@@ -30,53 +26,35 @@ void BossProjectile::MarcarPadraoDeFabrica() {
 void BossProjectile::Reset() {
     Projectile::Reset();
 
-    // A ROTACAO E APARENCIA, e aparencia volta ao padrao de fabrica no pool -
-    // mesma razao da escala e da animacao. Uma regra que desliga o giro vale
-    // para aquele disparo, e nao para sempre.
+    // A rotacao e aparencia, e aparencia volta ao padrao de fabrica no pool.
     mRotacionarComAVelocidade = mRotacaoPadrao;
 
-    // A BLINDAGEM TAMBEM E DO DISPARO: quem a poe e a SprintAttack, e quem a
-    // tira e o cursor soltando a historia. A que morreu na mao dele voltaria
-    // blindada.
+    // A blindagem tambem e do disparo.
     mBlindado = false;
 
-    // O ENFEITE TAMBEM: um cursor que voltasse do pool como enfeite faria a
-    // historia do disparo seguinte passar pelo aluno sem acerta-lo.
     mEnfeite = false;
 
-    // E O POSTO: uma historia entregue no quadro voltaria do pool atirando.
+    // E o posto: uma historia entregue no quadro voltaria do pool atirando.
     mPosto.clear();
 
-    // E OS GOLPES: uma janela que levou dois tiros e saiu da tela voltaria do
-    // pool fechando no primeiro.
     mGolpes = 0;
 
-    // E A TINTA: a linha que o DELETE do Thiago apaga cai VERMELHA (e um tiro,
-    // e nao mais um dado da tabela); de volta ao pool, o valor seguinte
-    // nasceria vermelho na tabela.
     if (auto* anim = GetComponent<DrawAnimatedComponent>()) anim->SetColor(255, 255, 255);
 }
 
 void BossProjectile::OnUpdate(float deltaTime)
 {
-    // 1. Executa a lógica base (verificar se saiu da tela, update nos Behaviors).
+    // 1.
     Projectile::OnUpdate(deltaTime);
 
-    // O CONTORNO DE QUEM O TIRO DO ALUNO DESTROI (Destrutivel.h). A cada
-    // quadro, e nao so ao nascer: enfeite e blindagem mudam no meio do voo - a
-    // ficha do compilador do Vladimir vira no da arvore, a historia da Maria
-    // Lucia e solta pelo cursor.
+    // O contorno de quem o tiro do aluno destroi (Destrutivel.h).
     if (auto* anim = GetComponent<DrawAnimatedComponent>()) {
         anim->DefinirContorno(Destrutivel::Pode(mDerrubavel, mBlindado, mAbrigo, mEnfeite),
                               SDL_Color{Destrutivel::kVermelho, Destrutivel::kVerde, Destrutivel::kAzul,
                                         Destrutivel::kOpacidade});
     }
 
-    // 2. Gira o sprite para acompanhar o movimento, quando a arte pede isso.
-    //
-    // DEPOIS da base de proposito: os Behaviors mexem na velocidade neste mesmo
-    // quadro, e girar antes deixaria a seta um quadro atrasada em relacao ao
-    // caminho - visivel justamente nas curvas, que e onde isto importa.
+    // 2.
     if (!mRotacionarComAVelocidade) return;
 
     const auto rb = GetComponent<RigidBodyComponent>();
@@ -84,28 +62,20 @@ void BossProjectile::OnUpdate(float deltaTime)
 
     const Vector2 v = rb->GetVelocity();
 
-    // Parado nao tem direcao. Mantem a ultima em vez de saltar para zero: a
-    // lista duplamente encadeada PARA por 0,8 s antes de voltar, e sem isto
-    // todas as setas apontariam para a direita durante a pausa.
+    // Parado nao tem direcao.
     if (Math::NearZero(v.Length())) return;
 
-    // O sprite e desenhado apontando para +X, e o eixo Y da tela cresce para
-    // baixo - dai o sinal trocado, a mesma conta do LaserAttack.
-    //
-    // HA UM SEGUNDO SINAL, em DrawAnimatedComponent::Draw, e os dois NAO se
-    // cancelam: este traz a tela para a convencao do Actor (anti-horario, Y
-    // para cima), e aquele leva a convencao do Actor para a do SDL (horario).
-    // Sao duas fronteiras diferentes.
+    // O sprite e desenhado apontando para +X, e o eixo Y da tela cresce para baixo.
     SetRotation(Math::Atan2(-v.y, v.x));
 }
 
-// 3. Implementação obrigatória de IsOffScreen
+// 3. Implementação obrigatória de IsOffScreen.
 bool BossProjectile::IsOffScreen() const
 {
-    // Acessar os componentes de forma segura
+    // Acessar os componentes de forma segura.
     if (auto drawComp = GetComponent<DrawAnimatedComponent>())
     {
-        // 4. Acessar a Scene e o Game diretamente da classe Actor base
+        // 4.
         const auto pos = GetPosition();
         const auto game = mScene->GetGame();
         const auto windowWidth = static_cast<float>(game->GetWindowWidth());
@@ -113,31 +83,27 @@ bool BossProjectile::IsOffScreen() const
         const auto spriteWidth = static_cast<float>(drawComp->GetSpriteWidth());
         const auto spriteHeight = static_cast<float>(drawComp->GetSpriteHeight());
 
-        // "Zona de buffer". Os dois numeros vem de DefinirMargemDeSaida e tem como
-        // padrao a regra geral de sempre (1 sprite + um doze avos da tela).
+        // "Zona de buffer".
         const float hBuffer = (mMargemDivisorDeTela > 0.0f) ? windowWidth / mMargemDivisorDeTela : 0.0f;
         const float vBuffer = (mMargemDivisorDeTela > 0.0f) ? windowHeight / mMargemDivisorDeTela : 0.0f;
 
         const float hFolga = spriteWidth * mMargemEmSprites + hBuffer;
         const float vFolga = spriteHeight * mMargemEmSprites + vBuffer;
 
-        // Retorna 'true' se estiver FORA dos limites.
+        // Retorna 'true' se estiver fora dos limites.
         return pos.x < -hFolga ||
                pos.x > windowWidth + hFolga ||
                pos.y < -vFolga ||
                pos.y > windowHeight + vFolga;
     }
 
-    // Failsafe se não houver componente de desenho
+    // Failsafe se não houver componente de desenho.
     SDL_Log("Erro em BossProjectile.cpp - IsOffScreen: projetil nao tem DrawAnimatedComponent, retornando false");
     return false;
 }
 
 Vector2 BossProjectile::GetPlayerPosition() const {
     if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
-        // O ALVO DESTE PROJETIL, e nao de quem e a vez agora. Ver DefinirAlvo:
-        // esta funcao e lida a cada quadro, e perguntar a vez faria o projetil
-        // mudar de rumo no meio do voo.
         if (auto player = battleScene->JogadorEm(mAlvo)) {
             return player->GetPosition();
         }
@@ -159,8 +125,6 @@ Vector2 BossProjectile::GetPlayerVelocity() const {
             }
         }
     }
-    // Sem log aqui: HasPlayer() ja permite ao chamador saber que nao ha
-    // jogador, e este metodo e consultado por projetil na ativacao de caminho.
     // Logar seria spam.
     return Vector2::Zero;
 }
@@ -181,8 +145,6 @@ Vector2 BossProjectile::GetPlayerDirection() const {
 }
 
 void BossProjectile::DefinirMargemDeSaida(const float emSprites, const float divisorDeTela) {
-    // Nao valida: quem chama e a fabrica, e o leitor de projeteis.json ja recusou
-    // valores sem sentido antes de chegar aqui.
     mMargemEmSprites = emSprites;
     mMargemDivisorDeTela = divisorDeTela;
 }

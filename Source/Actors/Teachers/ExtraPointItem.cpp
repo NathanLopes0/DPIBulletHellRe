@@ -13,7 +13,7 @@
 ExtraPointItem::ExtraPointItem(Scene* scene) : Actor(scene) {
 
     SetScale(2.0f);
-    // Visual
+    // Visual.
     auto dc = AddComponent<DrawAnimatedComponent>(
         Caminhos::Asset("Icons/DPIBHPowerIcon.png"),
         Caminhos::Asset("Icons/DPIBHPowerIcon.json")
@@ -21,8 +21,7 @@ ExtraPointItem::ExtraPointItem(Scene* scene) : Actor(scene) {
     dc->AddAnimation("Idle", {0,1,2,3,4,5,6,7,8});
     dc->SetAnimation("Idle");
 
-
-    // Um empurrãozinho pra cima quando ele nasce, pra ficar bonitinho
+    // Um empurrãozinho pra cima quando ele nasce, pra ficar bonitinho.
     auto rb = AddComponent<RigidBodyComponent>();
     rb->SetVelocity(Vector2(0.0f, -150.0f)); // Pula pra cima inicial
 
@@ -32,10 +31,7 @@ ExtraPointItem::ExtraPointItem(Scene* scene) : Actor(scene) {
 }
 
 void ExtraPointItem::OnUpdate(float deltaTime) {
-    // Lógica de Gravidade "Artificial" simples
-    // Queremos que ele caia com velocidade constante depois do pulo inicial
-    // Ou usamos o RigidBody se ele tiver gravidade configurada.
-    // Decidi fazer manualmente
+    // Decidi fazer manualmente.
 
     auto rb = GetComponent<RigidBodyComponent>();
     Vector2 currentVel = rb->GetVelocity();

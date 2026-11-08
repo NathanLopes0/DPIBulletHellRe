@@ -42,8 +42,6 @@ namespace Pilha {
     Plano Sortear(Variacao::Sorteio& s) {
         Plano p;
         p.capacidade = s.Inteiro(kMenorCapacidade, kMaiorCapacidade);
-        // A CHANCE ANDA COM A CAPACIDADE: numa pilha maior o push e mais
-        // provavel, e o overflow continua chegando em quase toda fase.
         p.chanceDePush = s.Real(0.55f, 0.65f) + 0.05f * static_cast<float>(p.capacidade - kMenorCapacidade);
         return p;
     }

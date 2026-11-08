@@ -95,8 +95,7 @@ TEST_CASE("Relogio: o contador Johnson enche pela esquerda e esvazia pela esquer
     CHECK(Relogio::Johnson(9, 8) == 0x7Fu);
     CHECK(Relogio::Johnson(-1, 4) == 0x1u);   // a volta tambem vale para tras
 
-    // De um estado ao seguinte muda UM bit so - e o que faz do Johnson um
-    // contador sem tropeco, e da fresta do leque uma coisa que anda.
+    // De um estado ao seguinte muda um bit so.
     for (int k = 0; k < 16; ++k) {
         const std::uint32_t d = Relogio::Johnson(k, 8) ^ Relogio::Johnson(k + 1, 8);
         CHECK(d != 0u);
@@ -121,8 +120,6 @@ TEST_CASE("Relogio: o tempo de cada clock da luta - inteiros de 4 a 6 que somam 
         vistas.insert(std::vector<int>(p.duracoes.begin(), p.duracoes.end()));
     }
     CHECK(vistas.size() > 8u);
-    // TODA TROCA CAI NUMA BORDA: os fins sao segundos inteiros, e todo
-    // segundo inteiro e borda de 1, 2, 4 e 8 Hz.
     for (const float f : {1.0f, 2.0f, 4.0f, 8.0f}) {
         for (int t = 4; t <= 16; ++t) CHECK(Relogio::Subiu(static_cast<float>(t) - 0.001f, static_cast<float>(t), f));
     }

@@ -9,7 +9,6 @@
 #include "../Component.h"
 #include "../../Motor/Math.h"
 
-
 class CircleColliderComponent : public ColliderComponent {
 
 public:
@@ -24,5 +23,4 @@ private:
     float mRadius;
 };
 
-
-#endif //DPIBULLETHELLRE_CIRCLECOLLIDERCOMPONENT_H
+#endif // DPIBULLETHELLRE_CIRCLECOLLIDERCOMPONENT_H.

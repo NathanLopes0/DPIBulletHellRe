@@ -58,9 +58,6 @@ namespace Manual {
                 lido.problemas.push_back(onde + " nao tem titulo ou nao tem linhas, e ficou de fora.");
                 continue;
             }
-            // MAIS LINHAS DO QUE CABEM: as de sempre tem prioridade, e o que
-            // passa do limite e cortado com aviso - melhor que texto por cima
-            // do rodape.
             if (static_cast<int>(p.linhas.size() + p.noComputador.size()) > kLinhasNoMaximo) {
                 lido.problemas.push_back(onde + " tem mais de " + std::to_string(kLinhasNoMaximo)
                                          + " linhas; as que sobram nao aparecem.");

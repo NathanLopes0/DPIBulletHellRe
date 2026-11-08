@@ -42,11 +42,9 @@ TEST_CASE("Fita: o castor de 4 estados para em 107 passos com 13 marcas, sem sai
     CHECK(c.fim.parou);
     CHECK(c.fim.passos == kPassos);
     CHECK(Marcas(c.fim) == kMarcas);
-    // A FAIXA E A DA TELA: as 14 casas, todas usadas.
+    // A faixa e a da tela: as 14 casas, todas usadas.
     CHECK(c.menor == 0);
     CHECK(c.maior == kCasas - 1);
-    // O QUE A FASE FAZ COM ELE: 46 marcas novas, 33 apagadas (os "b" que
-    // perseguem) e 28 relidas (as copias).
     CHECK(c.escritas == 46);
     CHECK(c.apagadas == 33);
     CHECK(c.relidas == 28);

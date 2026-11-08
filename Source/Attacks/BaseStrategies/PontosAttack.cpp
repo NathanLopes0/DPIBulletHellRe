@@ -35,8 +35,6 @@ std::vector<std::unique_ptr<Projectile>> PontosAttack::Execute(const AttackParam
     projectiles.reserve(pontos->pontos.size() * static_cast<size_t>(n));
     for (const Vector2& de : pontos->pontos) {
 
-        // CADA PONTO MIRA POR SI: oito pontos mirando o mesmo aluno sao oito
-        // linhas que se fecham nele, e nao oito tiros paralelos.
         float centro = params.centralAngle;
         if (pontos->mirar && pontos->temAlvo) {
             const Vector2 v = pontos->prever ? pontos->velocidadeDoAlvo : Vector2::Zero;

@@ -20,8 +20,8 @@ namespace {
     constexpr int kOrdemDaFoto = 40;
     constexpr int kOrdemDoVeu = 45;
 
-    /// Quanto a foto e escurecida ANTES do veu. Puxada para o azul: o corredor
-    /// e de tijolo vermelho, e um cinza neutro deixava o fundo amarelado.
+    /// Quanto a foto e escurecida antes do veu. Puxada para o azul: o corredor e de tijolo
+    /// vermelho, e um cinza neutro deixava o fundo amarelado.
     constexpr Uint8 kTinturaR = 66;
     constexpr Uint8 kTinturaG = 70;
     constexpr Uint8 kTinturaB = 92;

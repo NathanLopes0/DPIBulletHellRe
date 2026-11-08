@@ -77,7 +77,7 @@ TEST_CASE("Orientacao: os tres professores das maiores notas aprovadas, a maior 
 
 TEST_CASE("Orientacao: so aprovada, so com batalha, e nunca a materia que pede orientacao") {
     const auto l = Materias::LerMaterias(kCurso);
-    // IA reprovada, SEM sem chefe, TCC pede orientacao: sobram duas.
+    // IA reprovada, sem sem chefe, TCC pede orientacao: sobram duas.
     const auto p = Notas(l, {{"P1", 80.0f}, {"IA", 59.9f}, {"SEM", 99.0f}, {"TCC", 100.0f}, {"BD", 60.0f}});
     const auto cs = Orientacao::Candidatos(l, {&p});
     CHECK(Professores(cs) == std::vector<std::string>{"Andre", "Thiago"});   // 60 e aprovacao
@@ -89,8 +89,7 @@ TEST_CASE("Orientacao: so aprovada, so com batalha, e nunca a materia que pede o
 
 TEST_CASE("Orientacao: no empate vem a que esta antes no curso, e um professor aparece uma vez so") {
     const auto l = Materias::LerMaterias(kCurso);
-    // OC2 e do Ricardo tambem, com nota maior que OC: ele aparece uma vez, pela
-    // OC2 - e a OC, que seria a segunda, da o lugar ao Andre.
+    // OC2 e do Ricardo tambem, com nota maior que oc: ele aparece uma vez, pela OC2.
     const auto p = Notas(l, {{"BD", 80.0f}, {"ED", 80.0f}, {"OC", 85.0f}, {"OC2", 95.0f}, {"P1", 80.0f}});
     const auto cs = Orientacao::Candidatos(l, {&p});
     REQUIRE(cs.size() == 3);

@@ -37,12 +37,12 @@ TEST_CASE("Objetivo: cada etapa tem os alvos dela, dentro da faixa e longe uns d
                     CHECK(a.lugar.y <= kYDeBaixo);
                     if (a.certo) ++certos;
                     for (size_t j = 0; j < i; ++j) CHECK(std::fabs(a.lugar.x - alvos[j].lugar.x) > 80.0f);
-                    // BALANCANDO, o alvo nao sai de perto do lugar dele.
+                    // Balancando, o alvo nao sai de perto do lugar dele.
                     for (float t = 0.0f; t < 10.0f; t += 0.37f) {
                         CHECK((Balanco(e, a.lugar, static_cast<int>(i), t) - a.lugar).Length() < 80.0f);
                     }
                 }
-                // NA DEFESA so uma resposta e certa - e e a do placar.
+                // Na defesa so uma resposta e certa - e e a do placar.
                 if (e == Etapa::Defesa) {
                     CHECK(certos == 1);
                     CHECK(alvos[semente % 3].certo);
@@ -68,8 +68,7 @@ TEST_CASE("Objetivo: a banca pergunta, e a resposta certa e embaralhada entre A,
             posicoesDaCerta.insert(q.certa);
             std::set<std::string> distintas(q.respostas.begin(), q.respostas.end());
             CHECK(distintas.size() == 3u);
-            // A PERGUNTA E A DA BANCA (Tcc::Pergunta), e a certa e a mesma em
-            // toda ordem.
+            // A pergunta e a da banca (Tcc::Pergunta), e a certa e a mesma em toda ordem.
             CHECK(q.pergunta == Tcc::Pergunta(m));
             Variacao::Sorteio outro = Variacao::SorteioDa(semente + 1000, "defesa");
             const Questao r = Perguntar(m, outro);
@@ -98,7 +97,7 @@ TEST_CASE("Objetivo: as etapas alternam derrubar e andar, a partir da sorteada")
         CHECK(DaVez(e, 0, 0) == Tipo::Derrubar);
         CHECK(DaVez(e, 0, 1) == DeAndar(e));
     }
-    // CADA ETAPA ANDA DO SEU JEITO.
+    // Cada etapa anda do seu jeito.
     std::set<int> jeitos;
     for (const Etapa e : {Etapa::Proposta, Etapa::Desenvolvimento, Etapa::Defesa, Etapa::Correcoes}) {
         jeitos.insert(static_cast<int>(DeAndar(e)));
@@ -158,7 +157,7 @@ TEST_CASE("Objetivo: as placas do escudo caem com o progresso, e so a ultima abr
     }
     CHECK(Placas(Tipo::Derrubar, Dificuldade::Nivel::Normal, 3) == 3);
     CHECK(Placas(Tipo::Entrega, Dificuldade::Nivel::Normal, 0) == 2);
-    // A RASPADA PAGA MENOS, e a reuniao paga de uma vez.
+    // A raspada paga menos, e a reuniao paga de uma vez.
     CHECK(PorPasso(Tipo::Arguicao, Dificuldade::Nivel::Normal) < PorPasso(Tipo::Derrubar, Dificuldade::Nivel::Normal));
     CHECK(PorPasso(Tipo::Reuniao, Dificuldade::Nivel::Normal) > PorPasso(Tipo::Derrubar, Dificuldade::Nivel::Normal));
     CHECK(Pede(Tipo::Referencias, 1) == "falta 1 referência");

@@ -82,8 +82,6 @@ namespace Semaforo {
         e.sorteio = sorteio;
         for (int i = 0; i < threads; ++i) e.fila.push_back(i);
 
-        // A ORDEM DE CHEGADA: um embaralhamento (Fisher-Yates) e, se a thread
-        // do aluno caiu depois da terceira, ela troca de lugar com uma das tres.
         for (int i = threads - 1; i > 0; --i) {
             const int j = static_cast<int>(Proximo(e.sorteio) % static_cast<std::uint32_t>(i + 1));
             std::swap(e.fila[static_cast<size_t>(i)], e.fila[static_cast<size_t>(j)]);
@@ -102,7 +100,7 @@ namespace Semaforo {
         if (u < kAbre) return eventos;
 
         if (e.rodada.tipo == Tipo::Corrida) {
-            // SEM TRAVA: todas passam a porta de uma vez, e ninguem espera.
+            // Sem trava: todas passam a porta de uma vez, e ninguem espera.
             for (const int t : e.fila) {
                 Entrar(e, t, kAbre);
                 eventos.push_back({true, t});
@@ -113,7 +111,7 @@ namespace Semaforo {
 
         const float fica = NaSecao(e.rodada);
 
-        // A PRIMEIRA VEZ: as 'permissoes' primeiras da fila entram em kAbre.
+        // A primeira vez: as 'permissoes' primeiras da fila entram em kAbre.
         if (e.dentro.empty() && e.passaram.empty()) {
             while (!e.fila.empty() && static_cast<int>(e.dentro.size()) < e.rodada.permissoes) {
                 const int t = e.fila.front();
@@ -123,8 +121,7 @@ namespace Semaforo {
             }
         }
 
-        // QUEM SAI ACORDA A SEGUINTE, no instante da saida - entao uma rodada
-        // atrasada (um quadro longo) chega ao mesmo escalonamento.
+        // Quem sai acorda a seguinte, no instante da saida.
         bool mudou = true;
         while (mudou) {
             mudou = false;
@@ -138,8 +135,6 @@ namespace Semaforo {
                 eventos.push_back({false, t});
                 if (!e.fila.empty()) {
                     size_t qual = 0;
-                    // NA ESPERA OCUPADA NAO HA FILA: entra quem ganhar o
-                    // test-and-set, e e sorteado entre as que giram.
                     if (e.rodada.tipo == Tipo::EsperaOcupada) {
                         qual = Proximo(e.sorteio) % static_cast<std::uint32_t>(e.fila.size());
                     }

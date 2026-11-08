@@ -12,28 +12,11 @@ class Actor;
 class Battle;
 class Player;
 
-/**
- * @class OuvinteDaBatalha
- * @brief O que acontece na batalha, anunciado a quem quiser ouvir (padrao
- * OBSERVER).
- *
- * POR QUE OUVINTES. A batalha e quem sabe quando um aluno foi acertado, quando
- * a fase troca, quando um Ponto Extra e pego - e varias coisas querem saber
- * disso: o registro da tentativa (os dados do TCC) e o clarao da moldura do
- * campo. Antes cada uma era escrita DENTRO das regras da batalha, linha por
- * linha (o "++acertosSofridos" do registro e o "Acender" da moldura no meio
- * do laco de colisao). Agora a regra so anuncia (Battle::Avisar), e cada
- * interessado e um ouvinte com o seu estado: dar a batalha um interessado
- * novo nao mexe em regra nenhuma.
- *
- * TODO METODO TEM CORPO VAZIO: cada ouvinte escreve so o que lhe interessa.
- * Os ouvintes sao avisados na ordem em que foram registrados.
- */
+/// O que acontece na batalha, anunciado a quem quiser ouvir (padrao observer). Por que ouvintes.
 class OuvinteDaBatalha {
 public:
     virtual ~OuvinteDaBatalha() = default;
 
-    /// A luta comecou: a tela de carregamento sumiu e o chefe vai atacar.
     virtual void AoComecar(Battle&) {}
 
     /// Passou um quadro: de luta, ou com a pausa aberta.
@@ -62,8 +45,7 @@ public:
     /// O aluno atravessou a parede pela rede do socket() (Battle::AbrirRede).
     virtual void AoAtravessarAParede(Battle&) {}
 
-    /// A tentativa acabou. 'ultimaFaseCompleta': a ultima fase acabou pelo
-    /// relogio (e nao pela nota a zero ou por desistencia). Pode vir do
-    /// destrutor da batalha: quem ouve nao deve tocar em ator nenhum aqui.
+    /// A tentativa acabou. 'ultimaFaseCompleta': a ultima fase acabou pelo relogio (e nao pela nota
+    /// a zero ou por desistencia).
     virtual void AoTerminar(Battle&, Tentativas::Resultado resultado, bool ultimaFaseCompleta) {}
 };

@@ -41,7 +41,6 @@ namespace {
     constexpr SDL_Color kBordaDaSelecao = {235, 235, 235, 255};
     constexpr SDL_Color kFundoDaSelecao = { 34,  38,  48, 170};
 
-    /// O nome de uma peca, ou vazio quando ela nao existe mais.
     std::string NomeDaPeca(const Personagens::Categoria& c, const std::string& id) {
         const Personagens::Peca* p = c.PecaPor(id);
         return p ? p->nome : std::string();
@@ -69,16 +68,12 @@ void CriacaoDePersonagem::MontarLinhas() {
 
     for (const auto& c : Personagens::Carregado().categorias) {
 
-        // Categoria de uma peca so nao rende linha de tipo: uma linha que nao
-        // muda nada seria so um lugar a mais para a seta parar.
+        // Categoria de uma peca so nao rende linha de tipo.
         if (c.pecas.size() > 1) {
             mLinhas.push_back(Linha{c.id, false, c.nome});
         }
         if (c.cores.size() > 1) {
-            // Quando a categoria tem linha de tipo, a de cor vem logo abaixo e
-            // se chama so "Cor": repetir a categoria daria "Cor: Calca: Jeans",
-            // e escrever "Cor da calca" exigiria concordancia de genero por
-            // categoria - algo que o catalogo nao tem como saber.
+            // Quando a categoria tem linha de tipo, a de cor vem logo abaixo e se chama so "Cor".
             const bool temLinhaDeTipo = c.pecas.size() > 1;
             mLinhas.push_back(Linha{c.id, true, temLinhaDeTipo ? "Cor" : c.nome});
         }
@@ -92,9 +87,7 @@ void CriacaoDePersonagem::Load() {
     const auto largura = static_cast<float>(mGame->GetWindowWidth());
     const auto altura  = static_cast<float>(mGame->GetWindowHeight());
 
-    // DE QUEM E A PERSONAGEM. Na dupla cada um monta a sua (requisitos-coop,
-    // D6), e esta tela aparece duas vezes seguidas; sem o numero, o jogador 2
-    // acha que esta mexendo na personagem que acabou de ver pronta.
+    // De quem e a personagem.
     mQuem = mGame->PosicaoEntrando();
     const bool emDupla = mGame->QuantosJogadores() > 1;
 
@@ -102,8 +95,6 @@ void CriacaoDePersonagem::Load() {
                   : std::string("SUA PERSONAGEM"),
           largura / 2.0f, altura * 0.09f, 52, 900);
 
-    // Comeca do que o perfil ja tem - vazio para quem esta criando agora, e
-    // nesse caso Resolver devolve a aparencia padrao.
     const Personagens::Catalogo& catalogo = Personagens::Carregado();
     mAparencia = catalogo.Resolver(mGame->AparenciaDe(mQuem));
 
@@ -134,11 +125,7 @@ void CriacaoDePersonagem::Load() {
               largura / 2.0f, altura * 0.80f, 24, 1000);
     }
 
-    // Uma linha so para o manche, e o rodape saindo dos botoes (ver Painel.h).
-    // Estava escrito ENTER e ESC, que o gabinete nao tem - e a linha do CIMA e
-    // BAIXO caia em 0.80, em cima do aviso de catalogo vazio.
-    // SEM PONTO E VIRGULA: a fonte de pixel nao tem o glifo e desenha um
-    // quadrado vazio no lugar. O traco existe e e usado em outras telas.
+    // Uma linha so para o manche, e o rodape saindo dos botoes.
     Texto("MANCHE  cima e baixo escolhem o que mudar - os lados trocam",
           largura / 2.0f, altura * 0.86f, 22, 900);
     Texto(Painel::Rodape({{PainelDaVez(), Painel::Botao::Um,   "confirmar"},
@@ -174,10 +161,7 @@ void CriacaoDePersonagem::Recompor() {
     }
     dc->SetAnimation("Andando");
 
-    // SO UMA TEXTURA DE PREVIA VIVA POR VEZ. Cada troca compoe uma nova, e sem
-    // jogar fora a anterior uma sessao de escolhas deixaria dezenas delas no
-    // cache ate o jogo fechar. A ultima sobrevive de proposito: e exatamente a
-    // que o Player vai pedir ao entrar na batalha.
+    // So uma textura de previa viva por vez.
     if (!mChaveEmUso.empty() && mChaveEmUso != composta.chaveDaTextura) {
         mGame->EsquecerTextura(mChaveEmUso);
     }
@@ -222,8 +206,7 @@ void CriacaoDePersonagem::Trocar(const int passo) {
 
     Personagens::Escolha e = *mAparencia.Por(linha.categoria);
 
-    // Anda na lista de ids da categoria, dando a volta nas pontas. Somar o
-    // tamanho antes do resto: em C++ o resto de um negativo e negativo.
+    // Anda na lista de ids da categoria, dando a volta nas pontas.
     if (linha.ehCor) {
         const int n = static_cast<int>(c->cores.size());
         int atual = 0;
@@ -246,8 +229,7 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
 
     const int quantas = static_cast<int>(mLinhas.size());
 
-    // O PAINEL DA VEZ: quem monta a personagem do jogador 2 e o jogador 2, no
-    // manche dele (requisitos-coop, D6).
+    // O painel da vez: quem monta a personagem do jogador 2 e o jogador 2, no manche dele.
     const Painel::Jogador kQuem = PainelDaVez();
 
     const bool cima     = Painel::Apertado(keyState, kQuem, Painel::Direcao::Cima);
@@ -276,13 +258,9 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
                         || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
     if (confirmar && !mConfirmarAnterior) {
         mConfirmarAnterior = true;
-        // Grava na hora: quem acabou de montar a personagem espera encontra-la
-        // ao carregar o perfil, mesmo fechando o jogo agora.
         mGame->DefinirAparencia(mAparencia);
 
-        // NAO VAI DIRETO PARA A SELECAO. Quem decide se falta alguem e o Game:
-        // esta tela e a de matricula terminavam as duas escrevendo StageSelect,
-        // e com dois jogadores bastaria uma esquecer para o jogador 2 sumir.
+        // Nao vai direto para a selecao.
         mGame->AvancarEntrada();
         return;
     }
@@ -291,8 +269,7 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
     const bool voltar = Painel::Apertado(keyState, kQuem, Painel::Botao::Dois)
                      || keyState[SDL_SCANCODE_ESCAPE];
     if (voltar && !mVoltarAnterior) {
-        // Volta para a matricula. Nada foi gravado ainda, entao a matricula
-        // digitada continua livre para ser usada de novo.
+        // Volta para a matricula.
         mGame->RequestSceneChange(SceneType::Identificacao);
         return;
     }

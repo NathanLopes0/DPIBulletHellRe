@@ -8,33 +8,21 @@
 #include <string>
 #include <vector>
 
-/**
- * CAMADA PURA. Transforma texto em catalogo, responde o que e uma aparencia
- * valida e diz quais camadas compoem uma personagem; nao abre arquivo, nao
- * desenha pixel nenhum e nao conhece SDL.
- *
- * POR QUE ISTO EXISTE. A personagem nao e uma sprite pronta escolhida numa
- * lista: e um corpo template com camadas por cima - tom de pele, cabelo,
- * camisa, calca - cada uma com a sua cor. O que o aluno escolhe e um conjunto
- * de escolhas, e e esse conjunto que vai para o save.
- *
- * A REGRA de composicao vive aqui e e testavel sem subir uma janela: quais
- * camadas entram, em que ordem e com que cor. Quem desenha os pixels e a ponte
- * (Source/PersonagensArquivo), que fica de fora dos testes.
- */
+/// Transforma texto em catalogo, responde o que e uma aparencia valida e diz quais camadas compoem
+/// uma personagem.
 namespace Personagens {
 
     struct Cor {
-        std::string id;      ///< a CHAVE ESTAVEL, o que vai para o save
+        std::string id;      ///< A chave estavel, o que vai para o save.
         std::string nome;    ///< o que aparece na tela
         unsigned char r = 255, g = 255, b = 255;
     };
 
     struct Peca {
-        std::string id;      ///< a CHAVE ESTAVEL
+        std::string id;      ///< A chave estavel.
         std::string nome;
-        /// Caminho a partir de Assets/, SEM extensao: quem carrega acrescenta
-        /// .png para a imagem e .json para o atlas.
+        /// Caminho a partir de Assets/, sem extensao: quem carrega acrescenta .png para a imagem e
+        /// .json para o atlas.
         std::string arte;
     };
 
@@ -64,12 +52,7 @@ namespace Personagens {
         std::string cor;
     };
 
-    /**
-     * @brief A aparencia de um aluno: uma escolha por categoria.
-     *
-     * Guardada por ID de categoria, e nunca por posicao - reordenar o catalogo
-     * nao pode trocar o cabelo de ninguem.
-     */
+    /// A aparencia de um aluno: uma escolha por categoria.
     struct Aparencia {
         std::map<std::string, Escolha> escolhas;
 
@@ -79,7 +62,6 @@ namespace Personagens {
         [[nodiscard]] bool Vazia() const { return escolhas.empty(); }
     };
 
-    /// Uma combinacao pronta, para a primeira versao da tela de criacao.
     struct Predefinida {
         std::string id;
         std::string nome;
@@ -91,8 +73,7 @@ namespace Personagens {
         std::string arte;
         int ordem = 0;
 
-        /// FALSE para as camadas fixas (olho, sapato), que saem na cor em que
-        /// foram desenhadas.
+        /// False para as camadas fixas (olho, sapato), que saem na cor em que foram desenhadas.
         bool tingida = false;
         unsigned char r = 255, g = 255, b = 255;
     };
@@ -107,67 +88,27 @@ namespace Personagens {
 
         [[nodiscard]] const Categoria* Por(const std::string& id) const;
 
-        /**
-         * @brief Conserta uma aparencia vinda de um save.
-         *
-         * CONSERTA CAMADA POR CAMADA, e nao tudo ou nada: se o tipo de cabelo
-         * sumiu do catalogo mas a cor dele continua valendo, so o tipo volta ao
-         * padrao. Perder o cabelo nao pode custar a camisa.
-         *
-         * Escolha de categoria que nao existe mais e descartada. O que foi
-         * trocado sai em `trocas`, quando ele nao e nulo.
-         */
+        /// Conserta uma aparencia vinda de um save.
         [[nodiscard]] Aparencia Resolver(const Aparencia& pedida,
                                          std::vector<std::string>* trocas = nullptr) const;
 
-        /**
-         * @brief As camadas a compor, JA EM ORDEM de desenho.
-         *
-         * Passa a aparencia por Resolver antes, entao serve direto para uma
-         * aparencia lida do disco.
-         */
+        /// As camadas a compor, ja em ordem de desenho.
         [[nodiscard]] std::vector<Camada> Camadas(const Aparencia& aparencia) const;
     };
 
-    /**
-     * @brief Interpreta o texto de personagens.json.
-     *
-     * Nunca lanca. Uma peca com problema e descartada e as outras continuam
-     * valendo; uma categoria que ficou sem peca ou sem cor e descartada inteira,
-     * porque nao haveria o que escolher nela.
-     *
-     * Confere tambem o que nenhum compilador pegaria: ordens de desenho
-     * repetidas (qual camada fica por cima viraria sorteio) e combinacoes
-     * prontas citando peca ou cor que nao existe.
-     */
+    /// Interpreta o texto de personagens.json. Nunca lanca.
     Catalogo LerCatalogo(const std::string& textoJson);
 
-    /// @brief Se o texto serve como identificador (letras, numeros, - e _).
+    /// Se o texto serve como identificador (letras, numeros, - e _).
     bool IdServe(const std::string& id);
 
-    /**
-     * @brief Um canal de cor tingido por outro.
-     *
-     * A conta inteira do tingimento: a peca e desenhada em luminancia, e a cor
-     * escolhida multiplica cada canal. Cinza 255 devolve a cor tal e qual;
-     * cinza 128 devolve metade dela, que e a sombra.
-     *
-     * Vive na camada pura, e nao solta dentro do laco de pixels, porque e a
-     * unica conta que o tingimento tem - e portanto a unica que pode estar
-     * errada sem ninguem ver.
-     */
+    /// Um canal de cor tingido por outro. A conta inteira do tingimento: a peca e desenhada em
+    /// luminancia, e a cor escolhida multiplica cada canal.
     unsigned char Multiplicar(unsigned char valor, unsigned char cor);
 
-    /**
-     * @brief Um nome unico e estavel para uma aparencia.
-     *
-     * Serve de chave do cache de texturas: a mesma aparencia da sempre a mesma
-     * chave, entao compor duas vezes reaproveita a textura em vez de montar
-     * outra igual. Comeca com um prefixo que nenhum caminho de arquivo tem,
-     * para nunca se confundir com um.
-     */
+    /// Um nome unico e estavel para uma aparencia.
     std::string ChaveDaAparencia(const Aparencia& aparencia);
 
-    /// @brief Le "rrggbb" em componentes. FALSE quando o texto nao serve.
+    /// Le "rrggbb" em componentes. False quando o texto nao serve.
     bool LerCorHex(const std::string& hex, unsigned char& r, unsigned char& g, unsigned char& b);
 }

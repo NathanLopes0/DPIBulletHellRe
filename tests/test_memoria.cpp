@@ -27,7 +27,6 @@ TEST_CASE("Memoria: o coletor alcanca pelas raizes e pelos prox, e o resto e lix
     CHECK(Alcancaveis(h) == std::set<int>{a, b});
     CHECK(Lixo(h).empty());
 
-    // a = new No(): o A sai das raizes, e o B so era alcancado por ele.
     const int c = Novo(h, 2);
     Apontar(h, "a", c);
     CHECK(Alcancaveis(h) == std::set<int>{c});
@@ -38,7 +37,7 @@ TEST_CASE("Memoria: o coletor alcanca pelas raizes e pelos prox, e o resto e lix
     for (int i = 0; i < 6; ++i) esperado.push_back(Novo(h, 3));
     CHECK(Lixo(h) == esperado);
 
-    // A VARREDURA leva o lixo inteiro e deixa o vivo.
+    // A varredura leva o lixo inteiro e deixa o vivo.
     CHECK(Varrer(h) == esperado);
     REQUIRE(h.blocos.size() == 1u);
     CHECK(h.blocos.front().id == c);
@@ -75,7 +74,7 @@ TEST_CASE("Memoria: o delete deixa o ponteiro pendente, e sem coletor o lixo vaz
     for (int i = 0; i < 7; ++i) vazados.push_back(Novo(h, 4));
     CHECK(Vazar(h) == vazados);
     for (const int id : vazados) CHECK(Achar(h, id)->estado == Estado::Vazou);
-    // VAZOU E PARA SEMPRE: nao e lixo de varredura, e vazar de novo nao repete.
+    // Vazou e para sempre: nao e lixo de varredura, e vazar de novo nao repete.
     CHECK(Lixo(h).empty());
     CHECK(Vazar(h).empty());
     CHECK(Varrer(h).empty());
@@ -83,7 +82,7 @@ TEST_CASE("Memoria: o delete deixa o ponteiro pendente, e sem coletor o lixo vaz
 }
 
 TEST_CASE("Memoria: o roteiro roda no heap e da o que a fase mostra") {
-    // O ROTEIRO INTEIRO, evento por evento, como o Luizinho o roda.
+    // O roteiro inteiro, evento por evento, como o Luizinho o roda.
     Heap h;
     std::set<int> varridos, vazados, estourados;
     bool pendenteNaEscrita = false;
@@ -109,7 +108,7 @@ TEST_CASE("Memoria: o roteiro roda no heap e da o que a fase mostra") {
             if (LinguagemDe(p) == Linguagem::Cpp) for (const int id : Vazar(h)) vazados.insert(id);
         }
     }
-    CHECK(varridos.size() == 8u);          // os dois nos de antes e os seis do laco
+    CHECK(varridos.size() == 8u);
     CHECK(pendenteNaEscrita);              // p[2] = 7 escreve num bloco liberado
     CHECK(vazados.size() == 7u);           // o while (1)
     CHECK(estourados == vazados);          // e o bad_alloc leva todos
@@ -134,8 +133,6 @@ TEST_CASE("Memoria: o relogio do roteiro") {
     }
     CHECK(PassoEm(Fase::kDuracao + 1.0f) == kPassos - 1);
 
-    // O BAD_ALLOC VEM DEPOIS DE O ULTIMO BLOCO ACENDER, e ainda tem tempo de
-    // voar antes de a fase acabar.
     float ultimo = 0.0f;
     float estouro = -1.0f;
     for (const Evento& e : Eventos(Passo::LacoCpp)) {
@@ -181,8 +178,7 @@ TEST_CASE("Memoria: o alocador poe o bloco no aluno, ou no lugar livre mais pert
     CHECK(celulas[1].x - celulas[0].x == doctest::Approx(kEntreCelulas));
     CHECK((celulas[0].x + celulas[3].x) / 2.0f == doctest::Approx(c.x));
 
-    // O ROTEIRO INTEIRO NUM ALUNO PARADO: nenhum bloco encosta no outro, todo
-    // bloco cabe no campo, e cada um fica o mais perto possivel dele.
+    // O roteiro inteiro num aluno parado.
     std::vector<Retangulo> ocupados;
     for (const Passo p : kTodos) {
         for (const Evento& e : Eventos(p)) {
@@ -220,14 +216,14 @@ TEST_CASE("Memoria: o roteiro da luta pode por o C++ primeiro, com cada metade i
         const bool trocado = r != sempre;
         cppPrimeiro += trocado ? 1 : 0;
         for (int i = 0; i < kPassos; ++i) {
-            // CADA METADE NA ORDEM DO PROGRAMA: so a metade muda de lugar.
+            // Cada metade na ordem do programa: so a metade muda de lugar.
             const int deSempre = trocado ? (i + kPassos / 2) % kPassos : i;
             CHECK(r[static_cast<size_t>(i)] == sempre[static_cast<size_t>(deSempre)]);
-            // A TROCA DE PROGRAMA so no meio, e o heap so esvazia ali.
+            // A troca de programa so no meio, e o heap so esvazia ali.
             CHECK(TrocaDeLinguagem(i, r) == (i == kPassos / 2));
         }
         CHECK(LinguagemDe(r[0]) == (trocado ? Linguagem::Cpp : Linguagem::Java));
-        // A FASE DURA O MESMO, e o relogio acha o passo de cada instante.
+        // A fase dura o mesmo, e o relogio acha o passo de cada instante.
         CHECK(InicioDaVez(kPassos, r) == doctest::Approx(InicioDaVez(kPassos, sempre)));
         for (int i = 0; i < kPassos; ++i) {
             CHECK(PassoEm(InicioDaVez(i, r) + 0.01f, r) == i);
@@ -247,8 +243,7 @@ TEST_CASE("Memoria: o degrau do Normal e o de sempre, e o do Dificil acende ante
     CHECK(d.avisoDaAlocacao < n.avisoDaAlocacao);
     CHECK(d.estilhacosDoPendente > n.estilhacosDoPendente);
     CHECK(d.rapidez > 1.0f);
-    // O ALUNO AINDA SAI DE BAIXO DO BLOCO, ate pelo lado comprido: do meio do
-    // maior bloco do roteiro ate a ponta, a 300 px/s, cabe no aviso.
+    // O aluno ainda sai de baixo do bloco, ate pelo lado comprido.
     int maior = 0;
     for (int i = 0; i < kPassos; ++i) {
         for (const Evento& e : Eventos(static_cast<Passo>(i))) maior = std::max(maior, e.celulas);
@@ -267,7 +262,7 @@ TEST_CASE("Memoria: no Dificil os lacos alocam mais depressa, o while (1) vai ma
     for (int i = 0; i < kPassos; ++i) {
         const auto p = static_cast<Passo>(i);
         CAPTURE(i);
-        // O NORMAL E O DE SEMPRE, evento por evento.
+        // O normal e o de sempre, evento por evento.
         const auto sempre = Eventos(p);
         const auto normal = Eventos(p, n);
         REQUIRE(sempre.size() == normal.size());
@@ -277,15 +272,15 @@ TEST_CASE("Memoria: no Dificil os lacos alocam mais depressa, o while (1) vai ma
             CHECK(sempre[k].celulas == normal[k].celulas);
             CHECK(sempre[k].raiz == normal[k].raiz);
         }
-        // E TUDO CABE NO PASSO, nos dois modos.
+        // E tudo cabe no passo, nos dois modos.
         for (const Evento& e : Eventos(p, d)) CHECK(e.quando + d.avisoDaAlocacao < Duracao(p));
     }
     CHECK(d.entreAlocacoes < n.entreAlocacoes);
-    // O DO JAVA ALOCA O QUE O PLACAR DIZ: "i < 6", nos dois modos.
+    // O do java aloca o que o placar diz: "i < 6", nos dois modos.
     CHECK(alocacoes(Eventos(Passo::LacoJava, n)).size() == static_cast<size_t>(kNoLacoJava));
     CHECK(alocacoes(Eventos(Passo::LacoJava, d)).size() == static_cast<size_t>(kNoLacoJava));
     CHECK(Placar(Passo::LacoJava, false).find("i < 6") != std::string::npos);
-    // O WHILE (1) VAI MAIS LONGE, e todo bloco nasce antes do bad_alloc.
+    // O while (1) vai mais longe, e todo bloco nasce antes do bad_alloc.
     const auto cpp = alocacoes(Eventos(Passo::LacoCpp, d));
     CHECK(cpp.size() > static_cast<size_t>(kNoLacoCpp));
     for (const float q : cpp) CHECK(q < kEstouro);
@@ -304,8 +299,7 @@ TEST_CASE("Memoria: os numeros do programa sao sorteados por luta, e o placar e 
         CHECK(n.valor >= 1);
         CHECK(n.valor <= 9);
 
-        // O LACO DO JAVA aloca o que o placar diz, do tamanho que ele diz - e
-        // cabe no passo, mesmo no Dificil.
+        // O laco do java aloca o que o placar diz, do tamanho que ele diz.
         for (const auto nivel : {Dificuldade::Nivel::Normal, Dificuldade::Nivel::Dificil}) {
             const auto ev = Memoria::Eventos(P::LacoJava, Memoria::DegrauDo(nivel), n);
             REQUIRE(ev.size() == static_cast<size_t>(n.noLacoJava));
@@ -321,8 +315,7 @@ TEST_CASE("Memoria: os numeros do programa sao sorteados por luta, e o placar e 
         CHECK(laco.find("new int[" + std::to_string(n.celulasDoLacoJava) + "]") != std::string::npos);
         placares.insert(Memoria::Placar(P::Escreve, false, n));
     }
-    // p[i] = v MUDA DE LUTA PARA LUTA.
+    // P[i] = v muda de luta para luta.
     CHECK(placares.size() >= 20u);
-    // E OS NUMEROS DE SEMPRE SAO OS DE ANTES.
     CHECK(Memoria::Placar(P::Escreve, false, Memoria::NumerosDeSempre()) == Memoria::Placar(P::Escreve, false));
 }

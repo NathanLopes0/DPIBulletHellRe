@@ -45,13 +45,13 @@ void DrawRelogioDaFaseComponent::Draw(SDL_Renderer* renderer) {
     const int raio = w / 2;
 
     float fracao = std::clamp(mRestante / mTotal, 0.0f, 1.0f);
-    // NA TROCA DE FASE ela sobe de vazia a cheia, em vez de saltar.
+    // Na troca de fase ela sobe de vazia a cheia, em vez de saltar.
     const float enchendo = std::clamp(mDesdeORecomeco / kEnchendo, 0.0f, 1.0f);
     fracao = std::min(fracao, enchendo);
     const Hud::Rgb rgb = Hud::CorDoRelogio(fracao);
     const SDL_Color cor{rgb.r, rgb.g, rgb.b, 255};
 
-    // 1. O HALO dos ultimos segundos.
+    // 1.
     const bool urgente = Hud::Urgente(mRestante);
     if (urgente) {
         const float pulso = 0.5f + 0.5f * std::sin(mTempo * 14.0f);
@@ -61,12 +61,12 @@ void DrawRelogioDaFaseComponent::Draw(SDL_Renderer* renderer) {
         }
     }
 
-    // 2. A MOLDURA e o SULCO.
+    // 2.
     Caixa(renderer, x - 2, y - 2, w + 4, h + 4, raio + 2,
           [](const float t) { return Misturar({110, 118, 150, 255}, {50, 54, 74, 255}, t); });
     CaixaLisa(renderer, x, y, w, h, raio, SDL_Color{8, 9, 15, 255});
 
-    // 3. O QUE FALTA, de baixo para cima, com volume da esquerda para a direita.
+    // 3.
     const int cheio = static_cast<int>(std::lround(static_cast<float>(h) * fracao));
     if (cheio > 0) {
         const SDL_Color claro = Clarear(cor, 0.45f);
@@ -79,14 +79,14 @@ void DrawRelogioDaFaseComponent::Draw(SDL_Renderer* renderer) {
                 SDL_RenderDrawPoint(renderer, x + j, y + i);
             }
         }
-        // A SUPERFICIE ACESA, onde o tempo esta.
+        // A superficie acesa, onde o tempo esta.
         const int topo = y + h - cheio;
         const int recuo = Recuo(h - cheio, h, raio);
         Cor(renderer, Clarear(cor, 0.8f));
         SDL_RenderDrawLine(renderer, x + recuo, topo, x + w - 1 - recuo, topo);
     }
 
-    // 4. OS DENTES, a cada 5 s: riscos escuros por cima.
+    // 4.
     for (const float m : Hud::Marcas(mTotal)) {
         const int my = y + h - static_cast<int>(std::lround(static_cast<float>(h) * m));
         Cor(renderer, SDL_Color{8, 9, 15, 200});
@@ -95,7 +95,7 @@ void DrawRelogioDaFaseComponent::Draw(SDL_Renderer* renderer) {
         SDL_RenderDrawLine(renderer, x - 3, my, x - 1, my);
     }
 
-    // 5. O CLARAO de quando a fase troca.
+    // 5.
     if (mDesdeORecomeco < kEnchendo + 0.25f) {
         const float a = 1.0f - mDesdeORecomeco / (kEnchendo + 0.25f);
         CaixaLisa(renderer, x - 2, y - 2, w + 4, h + 4, raio + 2, SDL_Color{255, 255, 255, static_cast<Uint8>(150.0f * a)});

@@ -45,7 +45,7 @@ namespace Hash {
             op.chave = naTabela[escolha % naTabela.size()];
             return op;
         }
-        // UMA CHAVE QUE NAO ESTA: a sorteada, ou a primeira livre depois dela.
+        // Uma chave que nao esta: a sorteada, ou a primeira livre depois dela.
         int k = static_cast<int>(escolha % static_cast<std::uint32_t>(kMaiorChave + 1));
         for (int i = 0; i <= kMaiorChave && esta(k); ++i) k = (k + 1) % (kMaiorChave + 1);
         op.chave = k;

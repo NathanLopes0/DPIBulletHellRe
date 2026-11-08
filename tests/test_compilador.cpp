@@ -25,15 +25,15 @@ TEST_CASE("Compilador: o lexico quebra a linha em tokens, e o espaco nao conta")
 }
 
 TEST_CASE("Compilador: o parser respeita a precedencia, e o codigo sai em pos-ordem") {
-    // O * ANTES DO +: a + b * 2 e a + (b * 2).
+    // O * antes do +: a + b * 2 e a + (b * 2).
     const Arvore a = Sintatico(Lexico("x = a + b * 2;"));
     REQUIRE(a.raiz >= 0);
     const auto codigo = Ajudantes::Codigo(a);
     CHECK(codigo == std::vector<std::string>{"LOAD a", "LOAD b", "PUSH 2", "MUL", "ADD", "STORE x"});
-    // DA ESQUERDA PARA A DIREITA entre iguais: a - b - 1 e (a - b) - 1.
+    // Da esquerda para a direita entre iguais: a - b - 1 e (a - b) - 1.
     const Arvore s = Sintatico(Lexico("x = a - b - 1;"));
     CHECK(Ajudantes::Codigo(s) == std::vector<std::string>{"LOAD a", "LOAD b", "SUB", "PUSH 1", "SUB", "STORE x"});
-    // O * DO COMECO TAMBEM: a * b + 3.
+    // O * do comeco tambem: a * b + 3.
     CHECK(Ajudantes::Codigo(Sintatico(Lexico("x = a * b + 3;"))) ==
           std::vector<std::string>{"LOAD a", "LOAD b", "MUL", "PUSH 3", "ADD", "STORE x"});
 }
@@ -72,11 +72,11 @@ TEST_CASE("Compilador: cada rodada gera outra linha, com a e b e de 2 a 3 operad
         CHECK(ops <= 3);
         CHECK(temA);
         CHECK(temB);
-        // A LINHA COMPILA: uma instrucao por no, menos o alvo.
+        // A linha compila: uma instrucao por no, menos o alvo.
         const Arvore a = Sintatico(t);
         REQUIRE(a.raiz >= 0);
         CHECK(Ajudantes::Codigo(a).size() == a.nos.size() - 1u);
-        // E A RODADA CABE NO RELOGIO, mesmo a maior, mesmo no Normal.
+        // E a rodada cabe no relogio, mesmo a maior, mesmo no Normal.
         CHECK(MarcosDa(static_cast<int>(t.size()), static_cast<int>(a.nos.size())).pronto < kRodada);
         linhas.insert(linha);
     }

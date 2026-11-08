@@ -1,72 +1,7 @@
 {
-  // ==========================================================================
-  // HUGO - TCC, Trabalho de Conclusao de Curso
-  //
-  // A ultima materia do curso, a batalha mais dificil do jogo, e a unica que o
-  // aluno nao luta sozinho: antes dela ele escolhe um ORIENTADOR
-  // (Source/Orientacao.h), que luta do lado dele com o golpe da materia
-  // (Source/Golpe.h).
-  //
-  // O TCC E NA AREA DO ORIENTADOR, e por isso cada luta e um pouco outra
-  // (Source/Attacks/Tcc.h): no desenvolvimento, o Hugo atira a materia DELE -
-  // a pilha do Salles, o barramento do Ricardo, o fetch do Lucas -, e a banca
-  // da defesa sao dois OUTROS professores, cada um perguntando com a sua.
-  //
-  // AS FASES SAO AS ETAPAS DE UM TCC:
-  //
-  //   StateOne    a proposta         o cronograma: as barras caem no prazo
-  //   StateTwo    o desenvolvimento  um capitulo por padrao da materia do orientador
-  //   StateThree  a defesa           a banca pergunta, cada um com a materia dele
-  //   StateFinal  as correcoes       o tema e as perguntas voltam
-  //
-  // O QUE E DO HUGO esta aqui; o que e de cada materia (os padroes, quando e
-  // de onde cada tiro sai) esta em Tcc.cpp, e o cronograma em Cronograma.cpp.
-  // Os tiros pelo relogio saem MIRADOS NO ALUNO (Hugo::CustomizeAttackParams):
-  // o anguloCentral daqui e ignorado.
-  //
-  // OS PADROES MIRAM ONDE O ALUNO VAI ESTAR (Tcc::Mira): quem anda sempre do
-  // mesmo jeito - atras do professor, por exemplo - e achado. A banca, de
-  // longe e de lado, adianta so metade; o que curva procura onde ele esta.
-  //
-  // O HUGO E BLINDADO (Objetivo.h, Hugo::AceitaDano): o TCC ainda nao esta
-  // pronto. Em cada etapa o aluno cumpre objetivos, de duas maneiras que se
-  // alternam: derrubar os alvos ("alvo" e "bug", o posto "objetivo") - as
-  // assinaturas, os bugs, a resposta certa da banca, as correcoes - ou andar
-  // - a reuniao com o orientador, as referencias (pegas pelo "alvo", como
-  // enfeite), a arguicao, a entrega da versao final. O escudo abre por uns 8
-  // s (6,5 no Dificil). Cada passo e cada janela pagam um pouco de nota
-  // (Battle::Conquistar); aberto, as paginas da monografia escorrem embaixo
-  // dele ("rascunho"). E as etapas duram 30 s (Fase::kDuracaoDoTcc): a
-  // batalha maior do jogo.
-  //
-  // O PODER DO ORIENTADOR (Poder.h) carrega acertando o Hugo, blindado ou
-  // nao, e sai no botao 3.
-  //
-  // E A BATALHA MAIS DIFICIL. Medido com os dez orientadores, duas sementes
-  // cada, a batalha inteira, com o piloto indo atras do objetivo - e andando
-  // ate ele, nos de andar - e soltando o poder: no Normal o que desvia passa
-  // em 18 de 20 (media 73,6, uns 11 acertos) e o que so persegue em 4 de 20;
-  // no Dificil, com a invencibilidade de 0,4 s (Dificuldade::Invencibilidade),
-  // 7 de 20 (media 40,6, uns 18 acertos) e nenhum. O parado e o que vai e vem
-  // reprovam sempre.
-  //
-  // Os campos estao em Documentacao/arquivos-de-dados.md; os nomes de fase nao
-  // sao livres, e StateFinal e obrigatorio.
-  // ==========================================================================
+  // Hugo - TCC, Trabalho de Conclusao de Curso.
 
-  // FASE 1 - A PROPOSTA: O CRONOGRAMA   |   gesto: EM CIMA DA BARRA DA VEZ
-  //
-  // O Hugo desenha o grafico de Gantt da proposta no alto: cada tarefa e uma
-  // barra de paginas ("tarefa", o posto "cronograma"), e o HOJE, a linha
-  // vermelha, atravessa o grafico. Quando ele passa do fim de uma barra, o
-  // prazo venceu e ela cai inteira. O professor fica em cima da barra que vai
-  // cair - quem fica embaixo dele para atirar fica embaixo dela -, e solta um
-  // leque de paginas mirado pelo relogio.
-  //
-  // E A FASE QUE MAIS COBRA de quem desvia: medida sozinha, ele termina com
-  // uns 35 partindo de 40. Cinco barras nos dois modos; no Dificil o hoje e a
-  // queda andam mais depressa (Cronograma::DegrauDo) - com seis barras e o
-  // hoje a 3,5 s, ele tomava 5 acertos so aqui.
+  // Fase 1 - a proposta: o cronograma | gesto: em cima da barra da vez.
   "StateOne": {
     "duracao": 30,
     "proximo": "StateTwo",
@@ -92,20 +27,7 @@
     ]
   },
 
-  // FASE 2 - O DESENVOLVIMENTO: O TEMA   |   gesto: A VARREDURA, PARANDO PARA ESCREVER
-  //
-  // Cada capitulo e um padrao da materia do orientador ("questao", com o
-  // projetil dela), e o placar escreve o capitulo: "Cap. 3: push, push, pop:
-  // a pilha". Um a cada 1,5 s (1,35 no Dificil). O professor varre o alto a
-  // 120 px/s e para 0,6 s para escrever cada um - o capitulo sai dele parado,
-  // e o RASCUNHO ("rascunho", cinco paginas) escorre reto embaixo dele: e
-  // quando ele e facil de acertar, e o preco de ficar embaixo. A monografia,
-  // pesada, desce mirada pelo relogio.
-  //
-  // CADA MATERIA FOI MEDIDA nesta fase sozinha, e os padroes acertados
-  // (Tcc.cpp) ate as dez ficarem perto: o pior para quem desvia (o
-  // barramento, o gradiente, os observadores, a janela) e o mais fraco
-  // contra quem persegue (o fetch, os ponteiros) eram os que destoavam.
+  // Fase 2 - o desenvolvimento: o tema | gesto: a varredura, parando para escrever.
   "StateTwo": {
     "duracao": 30,
     "proximo": "StateThree",
@@ -130,14 +52,7 @@
     ]
   },
 
-  // FASE 3 - A DEFESA: A BANCA   |   gesto: A ORBITA PEQUENA
-  //
-  // Dois professores sentados nos cantos de cima - nenhum deles o orientador
-  // - e cada pergunta e a materia de quem pergunta, saindo de onde ele esta
-  // ("questao"), uma a cada 1,15 s (1,05 no Dificil), alternando. O placar
-  // escreve quem e o que: "Vitor: E se der deadlock?". O Hugo orbita no meio,
-  // solta as perguntas dele, que perseguem, e as anotacoes escorrem dele
-  // ("rascunho", uma a cada 0,6 s; 0,45 no Dificil) - em quem vem atras.
+  // Fase 3 - a defesa: a banca | gesto: a orbita pequena.
   "StateThree": {
     "duracao": 30,
     "proximo": "",
@@ -163,11 +78,7 @@
     ]
   },
 
-  // FASE FINAL - AS CORRECOES   |   gesto: A ORBITA
-  //
-  // A versao final: o tema e as duas perguntas da banca voltam, um a cada vez,
-  // do Hugo, com o anel de paginas lento e as anotacoes escorrendo. So e
-  // vista por quem termina a defesa entre 40 e 59, ou com 100.
+  // Fase final - as correcoes | gesto: a orbita.
   "StateFinal": {
     "duracao": 30,
     "proximo": "StateOne",

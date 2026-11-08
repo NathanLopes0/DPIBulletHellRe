@@ -11,9 +11,9 @@ public:
     // Constructor
     // (the lower the update order, the earlier the component updates)
     explicit Component(class Actor* owner, int updateOrder = 100);
-    // Destructor
+    // Destructor.
     virtual ~Component();
-    // Update this component by delta time
+    // Update this component by delta time.
     virtual void Update(float deltaTime);
     // Process input for this component (if needed)
     virtual void ProcessInput(const Uint8* keyState);
@@ -26,9 +26,9 @@ public:
     [[nodiscard]] bool IsEnabled() const { return mIsEnabled; };
 
 protected:
-    // Owning actor
+    // Owning actor.
     class Actor* mOwner;
-    // Update order
+    // Update order.
     int mUpdateOrder;
 
     bool mIsEnabled;

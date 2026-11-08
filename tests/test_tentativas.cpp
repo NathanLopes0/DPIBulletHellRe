@@ -79,8 +79,7 @@ TEST_CASE("Tentativas: uma linha por aluno, com a vez de cada um e as colunas no
     REQUIRE(linhas.size() == 2u);
 
     const std::string cab = CabecalhoDasTentativas();
-    // TODA LINHA TEM AS COLUNAS DO CABECALHO, nem mais nem menos - mesmo com a
-    // virgula do nome da materia.
+    // Toda linha tem as colunas do cabecalho, nem mais nem menos.
     CHECK(Campos(linhas[0]).size() == Campos(cab).size());
     CHECK(Campos(linhas[1]).size() == Campos(cab).size());
 
@@ -101,7 +100,7 @@ TEST_CASE("Tentativas: uma linha por aluno, com a vez de cada um e as colunas no
     CHECK(Coluna(cab, linhas[0], "acertos_sofridos_dupla") == "3");
     CHECK(Coluna(cab, linhas[0], "acertos_sofridos") == "2");
     CHECK(Coluna(cab, linhas[0], "precisao") == "0.250");
-    // QUEM NAO ATIROU NAO TEM PRECISAO, e nao precisao zero: e "sem dado".
+    // Quem nao atirou nao tem precisao, e nao precisao zero: e "sem dado".
     CHECK(Coluna(cab, linhas[1], "precisao").empty());
     CHECK(Coluna(cab, linhas[0], "formato") == std::to_string(kVersaoDoFormato));
 }
@@ -193,7 +192,6 @@ TEST_CASE("Tentativas: visitante nao conta vez nem entra no resumo, e lixo nao s
 
     CHECK(Ler("").empty());
     CHECK(Ler("uma,coisa,qualquer\n1,2,3\n").empty());
-    // UMA LINHA CORTADA no fim do arquivo (o jogo fechou no meio) nao derruba
-    // a leitura: ela e pulada.
+    // Uma linha cortada no fim do arquivo (o jogo fechou no meio) nao derruba a leitura.
     CHECK(Ler(CabecalhoDasTentativas() + "\n1,abc\n").empty());
 }

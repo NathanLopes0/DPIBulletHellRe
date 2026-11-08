@@ -7,19 +7,8 @@
 #include "OuvinteDaBatalha.h"
 #include "../../Pesquisa/Tentativas.h"
 
-/**
- * @class RegistroDaTentativa
- * @brief Ouve a batalha (OuvinteDaBatalha) e monta a Tentativa (Tentativas.h),
- * que vai para os CSV no fim (TentativasArquivo).
- *
- * TUDO E ANOTADO NO INSTANTE EM QUE ACONTECE - o acerto, a fase, o Ponto
- * Extra -, nunca reconstruido no fim. So a nota minima e maxima, os tiros e os
- * poderes sao lidos a cada quadro (AoFimDoQuadro).
- *
- * O REGISTRO SO COMECA QUANDO A LUTA COMECA (AoComecar): quem desiste na tela
- * de carregamento nao jogou. E grava UMA vez: o fim da batalha, a pausa e o
- * destrutor (a janela fechada) podem anunciar o fim, e so o primeiro conta.
- */
+/// Ouve a batalha (OuvinteDaBatalha) e monta a Tentativa (Tentativas.h), que vai para os CSV no fim
+/// (TentativasArquivo).
 class RegistroDaTentativa : public OuvinteDaBatalha {
 public:
     void AoComecar(Battle& b) override;

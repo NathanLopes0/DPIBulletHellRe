@@ -15,26 +15,8 @@
 class DrawComponent;
 class Font;
 
-/**
- * @brief A TELA DE ATRACAO do gabinete.
- *
- * Um arcade parado num corredor tem um trabalho: convidar quem passa. Ate aqui
- * a maquina ociosa mostrava o menu principal parado, que nao diz o que o jogo e
- * nem que da para jogar.
- *
- * QUEM ABRE ESTA TELA E A OCIOSIDADE, e nao uma opcao de menu: passado o tempo
- * de --ociosidade no menu principal, o Game troca para ca (ver
- * Game::AtualizarGabinete). Fora do gabinete a ociosidade nasce desligada,
- * entao esta tela simplesmente nunca aparece - e e assim que se desenvolve sem
- * ela no caminho.
- *
- * QUALQUER TECLA VOLTA AO MENU. Nao ha o que escolher aqui, entao nao ha botao
- * certo: quem encostou no painel quer jogar.
- *
- * Os cartazes se alternam sozinhos. O relogio e o mesmo Gabinete::Contagem das
- * duas esperas do gabinete - terceiro uso da mesma classe, com a condicao
- * sempre verdadeira.
- */
+/// A tela de atracao do gabinete. Um arcade parado num corredor tem um trabalho: convidar quem
+/// passa.
 class Atracao : public Scene {
 public:
     explicit Atracao(Game* game);
@@ -53,9 +35,6 @@ private:
     static constexpr size_t kQuantasLinhas = 6;
 
     /// Um cartaz e so um conjunto de desenhos que aparecem juntos.
-    ///
-    /// Guarda os COMPONENTES, e nao os atores: a troca de cartaz e ligar e
-    /// desligar desenho, e o Actor nao expoe a lista de componentes dele.
     using Cartaz = std::vector<DrawComponent*>;
 
     Cartaz CriarChamada();
@@ -75,9 +54,6 @@ private:
     /// Troca de cartaz. Condicao sempre verdadeira: aqui o tempo nunca para.
     Gabinete::Contagem mTrocaDeCartaz{kSegundosPorCartaz};
 
-    /// A borda de "alguma tecla apertada". Comeca em TRUE porque se chega aqui
-    /// por ociosidade - sem ninguem apertando nada -, mas uma tecla PRESA (um
-    /// botao emperrado do painel) nao pode fazer a tela piscar entre menu e
-    /// atracao para sempre. Exigir a batida nova resolve os dois casos.
+    /// A borda de "alguma tecla apertada".
     bool mAlgumaAnterior = true;
 };

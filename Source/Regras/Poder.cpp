@@ -53,8 +53,7 @@ namespace Poder {
     }
 
     bool Ataca(const Tipo t) {
-        // OS AGENTES NAO: com o Hugo blindado, os tiros cacam os alvos do
-        // objetivo - servem as duas horas.
+        // Os agentes nao: com o Hugo blindado, os tiros cacam os alvos do objetivo.
         return t == Tipo::Rajada || t == Tipo::Converter || t == Tipo::PromiseAll || t == Tipo::BalaDePrata;
     }
 

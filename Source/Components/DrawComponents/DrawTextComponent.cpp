@@ -29,9 +29,7 @@ DrawTextComponent::~DrawTextComponent()
 
 void DrawTextComponent::SetText(const std::string &text)
 {
-    // O TEXTO IGUAL NAO E REDESENHADO (padrao Dirty Flag). Rasterizar a fonte
-    // e criar uma textura e caro, e ha quem chame isto todo quadro com o mesmo
-    // texto - a nota da batalha, o placar: eram 60 texturas por segundo cada.
+    // O texto igual nao e redesenhado (padrao Dirty Flag).
     if (text == mTexto) return;
     mTexto = text;
     Redesenhar();
@@ -53,10 +51,6 @@ void DrawTextComponent::SetLarguraDeQuebra(const unsigned largura)
 
 void DrawTextComponent::SetColor(const Vector3& cor)
 {
-    // Comparacao exata de float, e de proposito: as cores vem de constantes de
-    // Color, entao ou e literalmente a mesma constante ou e outra cor. Um
-    // operator== no Vector3 serviria aqui, mas convidaria a comparar posicoes e
-    // velocidades por igualdade exata no resto do jogo, que nao funciona.
     if (cor.x == mCor.x && cor.y == mCor.y && cor.z == mCor.z) return;
 
     mCor = cor;
@@ -80,9 +74,7 @@ void DrawTextComponent::Draw(SDL_Renderer *renderer)
             largura = natW;
             altura = natH;
 
-            // So ENCOLHE, e mantendo a proporcao: um texto que nao cabe fica menor,
-            // nunca deformado. Esticar para preencher e justamente o que esta
-            // opcao existe para evitar.
+            // So encolhe, e mantendo a proporcao: um texto que nao cabe fica menor, nunca deformado.
             const float escala = std::min(1.0f,
                                           std::min(static_cast<float>(mWidth) / static_cast<float>(natW),
                                                    static_cast<float>(mHeight) / static_cast<float>(natH)));

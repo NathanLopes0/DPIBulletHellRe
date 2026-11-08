@@ -18,7 +18,7 @@ namespace Blink {
         const std::size_t fecha = placar.find(')', inicio);
         if (fecha == std::string::npos || fecha == inicio) return std::nullopt;
 
-        // SO DIGITOS: o delay do Arduino e um inteiro de milissegundos.
+        // So digitos: o delay do Arduino e um inteiro de milissegundos.
         const std::string numero = placar.substr(inicio, fecha - inicio);
         if (!std::all_of(numero.begin(), numero.end(), [](const char c) { return std::isdigit(static_cast<unsigned char>(c)) != 0; })) {
             return std::nullopt;

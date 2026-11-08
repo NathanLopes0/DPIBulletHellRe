@@ -32,15 +32,14 @@ TEST_CASE("Estilo: a grade e 3 x 6 com o gap entre vizinhos, e o CSS a transform
     Extensao(p, w, h);
     CHECK(w > h);
 
-    // flex-direction: column DEITA a grade: a largura vira altura.
+    // Flex-direction: column deita a grade: a largura vira altura.
     css.coluna = true;
     float wc = 0, hc = 0;
     Extensao(Posicoes(css, centro), wc, hc);
     CHECK(wc == doctest::Approx(h));
     CHECK(hc == doctest::Approx(w));
 
-    // O ROTATE MANTEM CADA CARTAO A MESMA DISTANCIA DO CENTRO, e o scale a
-    // multiplica.
+    // O rotate mantem cada cartao a mesma distancia do centro, e o scale a multiplica.
     Css girada;
     girada.rotacao = 45.0f;
     Css grande;
@@ -59,7 +58,7 @@ TEST_CASE("Estilo: o justify-content redistribui cada linha no conteiner, como o
     Css css;
     css.justificar = Flex::Justificar::EspacoEntre;
     const auto p = Posicoes(css, centro);
-    // SPACE-BETWEEN: a ponta de cada linha encosta na borda do conteiner.
+    // Space-between: a ponta de cada linha encosta na borda do conteiner.
     CHECK(p[0].x == doctest::Approx(centro.x - kConteiner / 2.0f + kGapEstreito / 2.0f));
     CHECK(p[kColunas - 1].x == doctest::Approx(centro.x + kConteiner / 2.0f - kGapEstreito / 2.0f));
     css.justificar = Flex::Justificar::Inicio;
@@ -74,7 +73,7 @@ TEST_CASE("Estilo: display: none esconde uma linha flex inteira, deitada ou nao"
     int ocultos = 0;
     for (int i = 0; i < kCartoes; ++i) ocultos += Oculto(css, i) ? 1 : 0;
     CHECK(ocultos == kColunas);
-    css.coluna = true;   // deitada, a linha flex continua com 6 - agora em pe
+    css.coluna = true;
     ocultos = 0;
     for (int i = 0; i < kCartoes; ++i) ocultos += Oculto(css, i) ? 1 : 0;
     CHECK(ocultos == kColunas);

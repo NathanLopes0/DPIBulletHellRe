@@ -93,7 +93,7 @@ TEST_CASE("Temperatura: cada luta sorteia a temperatura de cada etapa na faixa d
 }
 
 TEST_CASE("Temperatura: o placar da etapa diz o numero, e o de sempre e o do arquivo") {
-    // OS TEXTOS DE julio/fases.json, que o placar mostrava antes do sorteio.
+    // Os textos de julio/fases.json, que o placar mostrava antes do sorteio.
     CHECK(Temperatura::Anuncio(Temperatura::kDeSempre[0], false) == "temperatura = 0,2");
     CHECK(Temperatura::Anuncio(Temperatura::kDeSempre[1], false) == "temperatura = 0,8");
     CHECK(Temperatura::Anuncio(Temperatura::kDeSempre[2], true) == "temperatura = 1,6 \xc2\xb7 alucinando");
@@ -114,8 +114,7 @@ TEST_CASE("Temperatura: no Dificil cada etapa roda mais quente, e o Normal e o d
         CHECK(d[1] <= 1.3f + 1e-4f);
         CHECK(d[2] >= 1.8f - 1e-4f);
         CHECK(d[2] <= 2.2f + 1e-4f);
-        // AS ETAPAS AINDA SOBEM: a fria do Dificil e mais fria que a morna, e
-        // a morna que a quente.
+        // As etapas ainda sobem: a fria do Dificil e mais fria que a morna, e a morna que a quente.
         CHECK(d[0] < d[1]);
         CHECK(d[1] < d[2]);
     }

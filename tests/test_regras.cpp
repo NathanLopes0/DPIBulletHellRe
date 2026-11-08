@@ -1,5 +1,4 @@
-// Leitura de regras de ataque a partir de texto JSON, e a decisao de a quem
-// cada regra se aplica. Camada pura: sem arquivo, sem log, sem SDL.
+// Leitura de regras de ataque a partir de texto JSON, e a decisao de a quem cada regra se aplica.
 
 #include "doctest.h"
 #include "../Source/Attacks/RegrasDeAtaque.h"
@@ -55,13 +54,8 @@ TEST_CASE("Regras: le o ritmo da investida") {
     CHECK(regra.modifiers[0].moduloInvestida == doctest::Approx(640.f));
 }
 
-// ---------------------------------------------------------------------------
-// A divisao da fase 1, agora conferida na leitura
-// ---------------------------------------------------------------------------
-
 TEST_CASE("Regras: um Modifier em \"motion\" e recusado") {
-    // Em C++ isso nem compila (static_assert da fase 1). Num arquivo de texto
-    // nao ha compilador, entao a leitura precisa fazer o mesmo papel.
+    // Em C++ isso nem compila (static_assert da fase 1).
     const auto r = LerRegras(R"({ "x": [ { "motion": {"tipo":"SlowDown","fator":0.8} } ] })");
     CHECK(r.conjuntos.at("x").empty());
     REQUIRE(r.problemas.size() == 1);
@@ -107,9 +101,7 @@ TEST_CASE("Regras: JSON invalido nao derruba nada") {
     CHECK(r.problemas.size() == 1);
 }
 
-// ---------------------------------------------------------------------------
-// A quem cada regra se aplica - sorteio injetado, entao testavel
-// ---------------------------------------------------------------------------
+// A quem cada regra se aplica - sorteio injetado, entao testavel.
 
 TEST_CASE("RegraSeAplica: sem condicao, vale para todos") {
     Regra r;
@@ -137,13 +129,9 @@ TEST_CASE("RegraSeAplica: indices, pares e impares") {
     CHECK_FALSE(RegraSeAplica(im, 4, 0.f));
 }
 
-// ---------------------------------------------------------------------------
-// Comentarios
-// ---------------------------------------------------------------------------
+// Comentarios.
 
 TEST_CASE("Regras: o arquivo aceita comentario") {
-    // Mesma razao de test_formas: o porque de cada numero precisa caber no
-    // arquivo, senao mexer nele seis meses depois e adivinhacao.
     const auto r = LerRegras(R"({
         "fase2": [
             // Forca diferente entre par e impar: o jogador ve dois
@@ -159,20 +147,16 @@ TEST_CASE("Regras: o arquivo aceita comentario") {
 }
 
 TEST_CASE("Regras: texto que nao e JSON continua sendo recusado") {
-    // Aceitar comentario NAO e aceitar qualquer coisa: o erro de digitacao
-    // precisa continuar virando uma frase de problema em vez de passar calado.
+    // Aceitar comentario nao e aceitar qualquer coisa.
     const auto r = LerRegras(R"({ "x": [ { "motion": {"tipo":"Tracking"} )");
     CHECK_FALSE(r.problemas.empty());
     CHECK(r.conjuntos.empty());
 }
 
-// ---------------------------------------------------------------------------
-// Escala
-// ---------------------------------------------------------------------------
+// Escala.
 
 TEST_CASE("Regras: escala e opcional e nao tem sentinela") {
-    // Escala zero nao quer dizer "deixa como esta", quer dizer projetil
-    // invisivel. Por isso a ausencia e representada por nullopt, e nao por zero.
+    // Escala zero nao quer dizer "deixa como esta", quer dizer projetil invisivel.
     const auto r = LerRegras(R"({ "a": [ { "escala": 3 } ],
                                   "b": [ { "animacao": "Homing" } ] })");
     CHECK(r.problemas.empty());
@@ -183,7 +167,6 @@ TEST_CASE("Regras: escala e opcional e nao tem sentinela") {
 }
 
 TEST_CASE("Regras: uma regra so de escala JA faz alguma coisa") {
-    // Antes, a checagem de "nao faz nada" exigia motion, modifiers ou animacao.
     const auto r = LerRegras(R"({ "a": [ { "escala": 2 } ] })");
     CHECK(r.problemas.empty());
     CHECK(r.conjuntos.at("a").size() == 1);
@@ -203,14 +186,10 @@ TEST_CASE("Regras: regra vazia continua sendo recusada") {
     CHECK(r.conjuntos.at("a").empty());
 }
 
-// ---------------------------------------------------------------------------
-// investidaRepetida: um ritmo, duas pecas
-// ---------------------------------------------------------------------------
+// InvestidaRepetida: um ritmo, duas pecas.
 
 TEST_CASE("Investida: expande em MiraPeriodica + PulsoDeVelocidade") {
-    // O equivalente em dados de AplicarInvestidaRepetida. O ritmo e escrito UMA
-    // vez e alimenta as duas pecas, que e a propriedade que a receita em C++
-    // existia para garantir.
+    // O equivalente em dados de AplicarInvestidaRepetida.
     const auto r = LerRegras(R"({ "fase1": [
         { "escala": 3, "animacao": "Perseguicao",
           "investidaRepetida": {
@@ -226,7 +205,7 @@ TEST_CASE("Investida: expande em MiraPeriodica + PulsoDeVelocidade") {
     REQUIRE(g.modifiers.size() == 1);
     CHECK(g.modifiers[0].tipo == "PulsoDeVelocidade");
 
-    // O MESMO ritmo nas duas, por construcao.
+    // O mesmo ritmo nas duas, por construcao.
     CHECK(g.motion.ritmo.duracaoInvestida == doctest::Approx(g.modifiers[0].ritmo.duracaoInvestida));
     CHECK(g.motion.ritmo.duracaoPausa     == doctest::Approx(g.modifiers[0].ritmo.duracaoPausa));
     CHECK(g.motion.ritmo.repeticoes       == g.modifiers[0].ritmo.repeticoes);
@@ -240,8 +219,7 @@ TEST_CASE("Investida: expande em MiraPeriodica + PulsoDeVelocidade") {
 }
 
 TEST_CASE("Investida: velocidade de pausa zero e recusada") {
-    // A direcao mora dentro do vetor velocidade: com modulo zero a mirada
-    // seguinte nao tem o que girar e o projetil fica parado para sempre.
+    // A direcao mora dentro do vetor velocidade.
     const auto r = LerRegras(R"({ "a": [ { "investidaRepetida": {
         "ritmo": { "investida": 0.6, "pausa": 1.0, "repeticoes": 5 },
         "velocidadeNaInvestida": 800, "velocidadeNaPausa": 0 } } ] })");
@@ -250,8 +228,7 @@ TEST_CASE("Investida: velocidade de pausa zero e recusada") {
 }
 
 TEST_CASE("Investida: nao pode vir junto de uma motion") {
-    // A investida JA define a motion. Aceitar as duas faria uma substituir a
-    // outra em silencio, dependendo da ordem de leitura.
+    // A investida ja define a motion.
     const auto r = LerRegras(R"({ "a": [ {
         "motion": { "tipo": "Tracking", "atraso": 0.3, "forca": 2, "duracao": 2 },
         "investidaRepetida": {
@@ -268,14 +245,8 @@ TEST_CASE("Investida: ritmo ausente e recusado") {
     CHECK(r.conjuntos.at("a").empty());
 }
 
-// ---------------------------------------------------------------------------
-// A parada num ponto do caminho
-//
-// Serve a fase 2 do Salles, em que a lista duplamente encadeada vai ate o fim,
-// PARA, e so entao volta por onde veio. Os dois campos existem porque uma pausa
-// nao da para compor com o que havia: Motion e exclusiva, entao nao ha como ter
-// um Path mais outra coisa que segure o projetil.
-// ---------------------------------------------------------------------------
+// A parada num ponto do caminho. Serve a fase 2 do Salles, em que a lista duplamente encadeada vai
+// ate o fim, para, e so entao volta por onde veio.
 
 TEST_CASE("Regras: le a parada num ponto do caminho") {
     const auto r = LerRegras(R"({
@@ -291,9 +262,6 @@ TEST_CASE("Regras: le a parada num ponto do caminho") {
 }
 
 TEST_CASE("Regras: sem parada, os campos ficam no valor que nao para") {
-    // -1 e zero sao o comportamento de TODO caminho escrito antes desta opcao
-    // existir. Se o padrao fosse 0, todo caminho antigo passaria a parar no
-    // primeiro ponto.
     const auto r = LerRegras(R"({
       "c": [ { "motion": { "tipo": "Path", "forma": "Reta", "velocidade": 200 } } ]
     })");
@@ -304,15 +272,13 @@ TEST_CASE("Regras: sem parada, os campos ficam no valor que nao para") {
 }
 
 TEST_CASE("Regras: pararPor sem pararNoPonto e recusado") {
-    // Meia configuracao nao da erro em jogo: o projetil simplesmente nao para, e
-    // quem escreveu vai procurar o defeito no motor em vez de no arquivo.
+    // Meia configuracao nao da erro em jogo.
     const auto r = LerRegras(R"({
       "c": [ { "motion": { "tipo": "Path", "forma": "Reta", "pararPor": 0.8 } } ]
     })");
     REQUIRE_FALSE(r.problemas.empty());
     CHECK(r.problemas[0].find("pararNoPonto") != std::string::npos);
-    // A regra e descartada; o conjunto continua existindo, so que vazio. E a
-    // convencao do leitor para toda regra invalida, nao uma excecao da parada.
+    // A regra e descartada; o conjunto continua existindo, so que vazio.
     CHECK(r.conjuntos.at("c").empty());
 }
 
@@ -326,8 +292,7 @@ TEST_CASE("Regras: pararNoPonto sem pararPor e recusado") {
 }
 
 TEST_CASE("Regras: parada so existe em Path") {
-    // O Tracking nao percorre waypoints, entao nao ha ponto onde parar. Aceitar
-    // em silencio daria uma regra que parece configurada e nao faz nada.
+    // O Tracking nao percorre waypoints, entao nao ha ponto onde parar.
     const auto r = LerRegras(R"({
       "c": [ { "motion": { "tipo": "Tracking", "forca": 2.0, "duracao": 2.0,
                            "pararNoPonto": 0, "pararPor": 0.8 } } ]
@@ -337,10 +302,7 @@ TEST_CASE("Regras: parada so existe em Path") {
 }
 
 TEST_CASE("Regras: \"pausa\" do PulsoDeVelocidade nao e a parada do caminho") {
-    // Os dois nomes sao parecidos e querem dizer coisas diferentes: "pausa" no
-    // PulsoDeVelocidade e um MODULO DE VELOCIDADE, nao uma duracao. Este teste
-    // existe para travar a separacao - se alguem unificar os nomes, quebra aqui.
-    // PulsoDeVelocidade e um MODIFIER (muda o modulo), nao uma Motion.
+    // Os dois nomes sao parecidos e querem dizer coisas diferentes.
     const auto r = LerRegras(R"({
       "c": [ { "modifiers": [ { "tipo": "PulsoDeVelocidade", "investida": 300, "pausa": 20,
                                 "ritmo": { "repeticoes": 3, "investida": 0.4, "pausa": 0.3 } } ] } ]
@@ -355,16 +317,11 @@ TEST_CASE("Regras: \"pausa\" do PulsoDeVelocidade nao e a parada do caminho") {
     CHECK(mod.pararNoPonto == -1);
 }
 
-// ---------------------------------------------------------------------------
-// "rotacionar": girar e da RAJADA, e nao do tipo de projetil
-// ---------------------------------------------------------------------------
+// "rotacionar": girar e da rajada, e nao do tipo de projetil.
 
 TEST_CASE("Regras: \"rotacionar\" e lido como true e como false") {
 
-    // AUSENTE E DIFERENTE DE FALSE, e e o ponto do campo ser optional: "false"
-    // e uma ordem ("nao gire") e ausente e silencio ("deixe como a fabrica
-    // pediu"). Se fosse um bool simples, toda regra sem o campo desligaria o
-    // giro de todo mundo - inclusive o da lista do Salles, que depende dele.
+    // Ausente e diferente de false, e e o ponto do campo ser optional.
     const auto r = LerRegras(R"({
       "gira":     [ { "animacao": "A", "rotacionar": true  } ],
       "nao_gira": [ { "animacao": "A", "rotacionar": false } ],
@@ -387,8 +344,6 @@ TEST_CASE("Regras: \"rotacionar\" e lido como true e como false") {
 
 TEST_CASE("Regras: \"rotacionar\" que nao e booleano derruba a regra") {
 
-    // Nao aceitar 0/1 nem "true" de proposito: um arquivo que escreve 1 aqui
-    // provavelmente quis dizer outra coisa, e aceitar calado esconderia isso.
     const auto r = LerRegras(R"({ "x": [ { "animacao": "A", "rotacionar": 1 } ] })");
 
     CHECK(r.conjuntos.at("x").empty());
@@ -398,10 +353,7 @@ TEST_CASE("Regras: \"rotacionar\" que nao e booleano derruba a regra") {
 
 TEST_CASE("Regras: uma regra SO com \"rotacionar\" ja faz alguma coisa") {
 
-    // Antes deste campo, "nao faz nada" era motion, modifiers, animacao ou
-    // escala. Uma regra que so desliga o giro e legitima - o projetil ja tem
-    // animacao e escala de fabrica - e precisava entrar naquela lista, senao
-    // seria descartada com uma mensagem que nao faz sentido.
+    // Uma regra que so desliga o giro e legitima - o projetil ja tem animacao e escala de fabrica.
     const auto r = LerRegras(R"({ "x": [ { "rotacionar": false } ] })");
 
     CHECK(r.problemas.empty());
@@ -409,9 +361,7 @@ TEST_CASE("Regras: uma regra SO com \"rotacionar\" ja faz alguma coisa") {
     CHECK_FALSE(*r.conjuntos.at("x")[0].rotacionar);
 }
 
-// ---------------------------------------------------------------------------
-// "alvoAcorrentado": a unica condicao que olha para o mundo, e nao para a rajada
-// ---------------------------------------------------------------------------
+// "alvoAcorrentado": a unica condicao que olha para o mundo, e nao para a rajada.
 
 TEST_CASE("Regras: \"alvoAcorrentado\" e lido como condicao") {
 
@@ -431,9 +381,7 @@ TEST_CASE("Regras: \"alvoAcorrentado\" e lido como condicao") {
 
 TEST_CASE("Regras: \"alvoAcorrentado\" so se aplica quando o alvo esta preso") {
 
-    // O ESTADO ENTRA COMO PARAMETRO, e e isso que mantem esta camada pura: ela
-    // nao conhece Player nem Scene e nao vai passar a conhecer. Quem pergunta
-    // ao mundo e o configurator em RegrasDeAtaqueArquivo.cpp.
+    // O estado entra como parametro, e e isso que mantem esta camada pura.
     Regra r;
     r.condicao = Regra::AlvoAcorrentado;
 
@@ -445,9 +393,7 @@ TEST_CASE("Regras: \"alvoAcorrentado\" so se aplica quando o alvo esta preso") {
 
 TEST_CASE("Regras: o alvo preso nao muda as outras condicoes") {
 
-    // Era o risco obvio de acrescentar um parametro a um switch: alguem o usa
-    // num ramo errado e "pares" passa a depender do estado do jogo. As outras
-    // quatro condicoes tem de dar o MESMO resultado com o alvo preso e solto.
+    // As outras quatro condicoes tem de dar o mesmo resultado com o alvo preso e solto.
     Regra pares;   pares.condicao = Regra::Pares;
     Regra impares; impares.condicao = Regra::Impares;
     Regra sempre;  sempre.condicao = Regra::Sempre;
@@ -464,17 +410,12 @@ TEST_CASE("Regras: o alvo preso nao muda as outras condicoes") {
 
 TEST_CASE("Regras: o padrao de RegraSeAplica e \"ninguem preso\"") {
 
-    // Toda chamada que existia antes deste parametro continua valendo, e o que
-    // ela quer dizer e "o alvo nao esta acorrentado". Se o padrao fosse true,
-    // uma regra de alvo preso valeria sempre em qualquer chamador antigo.
     Regra r;
     r.condicao = Regra::AlvoAcorrentado;
     CHECK_FALSE(RegraSeAplica(r, 0, 0.5f));
 }
 
-// ---------------------------------------------------------------------------
-// Promessa: a Promise do JavaScript
-// ---------------------------------------------------------------------------
+// Promessa: a Promise do JavaScript.
 
 TEST_CASE("Regras: le a Promessa com os campos dela") {
     const auto r = LerRegras(R"({ "p": [ { "animacao": "Promessa", "modifiers": [
@@ -505,9 +446,7 @@ TEST_CASE("Regras: uma Promessa parada, ou com uma fracao fora de 0 a 1, e recus
     }
 }
 
-// ---------------------------------------------------------------------------
 // Amarrar: ligare, "atar"
-// ---------------------------------------------------------------------------
 
 TEST_CASE("Regras: le o Amarrar com os campos dele") {
     const auto r = LerRegras(R"({ "a": [ { "animacao": "Livre", "motion":
@@ -552,8 +491,7 @@ TEST_CASE("Regras: Amarrar e uma Motion, e nao pode ir em \"modifiers\"") {
 }
 
 TEST_CASE("Regras: uma regra pode por o projetil num posto, e so num posto que existe") {
-    // O posto sozinho ja e uma regra que faz alguma coisa: o olho do Observer
-    // nasce assinando o aluno, e e so isso que a regra diz.
+    // O posto sozinho ja e uma regra que faz alguma coisa.
     const auto ok = LerRegras(R"({"olho":[{"posto":"observadores"}]})");
     CHECK(ok.problemas.empty());
     REQUIRE(ok.conjuntos.count("olho") == 1);

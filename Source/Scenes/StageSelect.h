@@ -21,7 +21,7 @@ public:
 
     ~StageSelect() override = default;
 
-    // Funções do contrato da Scene
+    // Funções do contrato da Scene.
     void Load() override;
     void OnProcessInput(const Uint8* keyState) override;
 
@@ -29,13 +29,11 @@ public:
 
 private:
 
-    // --- Funções Privadas para Organização Lógica ---
+    // ---- Funções Privadas para Organização Lógica ----
     void CreateStageButtons();
     void CreateStaticUI();
 
-    /// A ordem de desenho e crescente: o menor fica por baixo. As ligacoes
-    /// entre colunas ficam atras dos losangos (que usam a ordem padrao, 100) e
-    /// na frente do fundo (ver FundoDeCena.h).
+    /// A ordem de desenho e crescente: o menor fica por baixo.
     static constexpr int kOrdemDasLigacoes = 60;
 
     /// Do centro do losango ate a ponta. Ele tem 128 de largura.
@@ -47,8 +45,8 @@ private:
     /// podem competir com os losangos nem com o texto.
     static inline const SDL_Color kCorDaLigacao{72, 92, 140, 200};
 
-    /// O tronco entre duas colunas, com um ramo para cada materia dos dois
-    /// lados. Chamada DEPOIS de CreateStageButtons: le a posicao dos botoes.
+    /// O tronco entre duas colunas, com um ramo para cada materia dos dois lados. Chamada depois de
+    /// CreateStageButtons: le a posicao dos botoes.
     void CriarLigacoes();
 
     /// Um segmento de linha, como caixa preenchida sem moldura.
@@ -57,24 +55,16 @@ private:
     void HandleSelectionInput(const Uint8* keyState);
     size_t mSelectedIndex{};
 
-    // --- Funções Auxiliares de CreateStageButtons ---
+    // ---- Funções Auxiliares de CreateStageButtons ----
     void CreateButton(const std::string &text, int subject, const Vector2 &position);
     /// Para onde a seta leva. A regra esta em Navegacao; aqui so entra a tecla.
-    /// Deixou de ser static ao passar a consultar a grade real (mGrade).
     [[nodiscard]] size_t HandleSelectedChange(const Uint8 *keyState, size_t currSelected) const;
 
-    // --- Constantes de Design ---
-    /// So uma reserva do vetor, para evitar realocacao: o numero de materias de
-    /// verdade vem de materias.json. NAO e mais usado para navegar - era isso que
-    /// fazia a seta da esquerda cair no penultimo botao quando entrou o INF 110.
+    // ---- Constantes de Design ----
     static constexpr int RESERVA_DE_BOTOES = 16;
     static constexpr float INPUT_DELAY = 0.2f; // Exemplo de constante para o timer
 
     /// Onde a grade de materias comeca e termina, em fracao da altura.
-    ///
-    /// Ela ia de ponta a ponta da tela (margem de 1/12) e nao sobrava faixa
-    /// para o titulo em cima nem para a linha de estado embaixo: a linha caia
-    /// em cima dos losangos da ultima fileira.
     static constexpr float kTopoDaGrade = 0.19f;
     static constexpr float kFundoDaGrade = 0.78f;
 
@@ -82,38 +72,24 @@ private:
     /// O losango tem 64 de altura, entao 44 deixa o nome logo embaixo dele.
     static constexpr float kNomeAbaixoDoCadeado = 44.0f;
 
-
-    // --- Membros de Propriedade (Ownership) ---
+    // ---- Membros de Propriedade (Ownership) ----
     std::unique_ptr<Font> mStageSelectFont{};
 
-    // --- Membros de Estado e Observadores ---
+    // ---- Membros de Estado e Observadores ----
     int mSelectedSubject{};
     float mInputTimer{}; // Timer pra mudar de botão selecionado
 
-    /// Ver o BOTAO 2 em HandleSelectionInput: comeca true porque se chega aqui
-    /// vindo do ranking com o botao ainda apertado.
     bool mRankingAnterior = true;
 
-    // Vetor de ponteiros OBSERVADORES para fácil acesso aos botões.
-    // A memória real é gerenciada pelo vetor mActors.
+    // Vetor de ponteiros observadores para fácil acesso aos botões. A memória real é gerenciada
+    // pelo vetor mActors.
     std::vector<StageSelectButton*> mButtonObservers;
 
-    /// A forma da grade, montada em CreateStageButtons junto com os botoes.
-    /// mGrade[coluna][linha] = indice em mButtonObservers.
-    ///
-    /// Substitui as tres funcoes que descreviam a grade a mao (GetColumnFromIndex,
-    /// GetColumnStartIndex, GetColumnSize). Elas tinham o layout de 4 colunas
-    /// 1,4,4,1 fixo no codigo e nao acompanharam a entrada do INF 110.
+    /// A forma da grade, montada em CreateStageButtons junto com os botoes. mGrade[coluna][linha] =
+    /// indice em mButtonObservers.
     Navegacao::Grade mGrade;
 
-
-    // ---- O cartao da materia em foco ------------------------------------
-    //
-    // Codigo, nome da disciplina, professor e estado. Tudo o que se sabe da
-    // materia selecionada num lugar so, no canto que a grade deixa vazio - era
-    // texto solto espalhado pela tela, um pedaco em cada canto.
-    //
-    // O estado sai da MESMA regra que fecha a materia; ver Materias::ExigenciaDe.
+    // ---- O cartao da materia em foco ----
 
     static constexpr float kCartaoX = 268.0f;
     static constexpr float kCartaoY = 600.0f;
@@ -147,19 +123,11 @@ private:
     Actor* mAlunoAtor = nullptr;
     Actor* mTrocarAtor = nullptr;
 
-    /// Borda do botao de troca, e comeca em TRUE pelo mesmo motivo do
-    /// mEntrarAnterior: trocar de aluno passou a ser o BOTAO 2, que e o mesmo
-    /// botao com que se volta do ranking - e o ranking volta para ca. Com a
-    /// borda em false, voltar do ranking com o botao ainda apertado jogava o
-    /// aluno direto para a tela de matricula.
+    /// Com a borda em false, voltar do ranking com o botao ainda apertado jogava o aluno direto
+    /// para a tela de matricula.
     bool mTrocarAnterior = true;
 
-    /// Borda do ENTER, e comeca em TRUE de proposito.
-    ///
-    /// A cena anterior (identificacao) termina com o ENTER apertado - e ele que
-    /// manda para ca. Com a borda comecando em false, o primeiro quadro desta cena
-    /// via "ENTER apertado agora" e entrava direto na fase selecionada, sem o
-    /// jogador ter escolhido nada. Comecando em true, o ENTER so conta depois de
-    /// ser SOLTO e apertado de novo.
+    /// Borda do enter, e comeca em true. A cena anterior (identificacao) termina com o enter
+    /// apertado - e ele que manda para ca.
     bool mEntrarAnterior = true;
 };

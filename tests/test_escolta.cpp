@@ -22,8 +22,7 @@ TEST_CASE("Escolta: sozinho ele fica de um lado, e so troca quando a parede tira
     CHECK(Escolta::Lado(kEsquerda + Escolta::kMargem + Escolta::kAoLado + 1.0f, -1, kEsquerda, kDireita) == -1);
     // Encostado na parede da esquerda, vai para a direita...
     CHECK(Escolta::Lado(kEsquerda + 40.0f, -1, kEsquerda, kDireita) == 1);
-    // ...e continua la mesmo de volta ao meio: trocar a cada passo o faria
-    // atravessar o aluno o tempo todo.
+    // ...e continua la mesmo de volta ao meio.
     CHECK(Escolta::Lado(600.0f, 1, kEsquerda, kDireita) == 1);
     CHECK(Escolta::Lado(kDireita - 40.0f, 1, kEsquerda, kDireita) == -1);
 }

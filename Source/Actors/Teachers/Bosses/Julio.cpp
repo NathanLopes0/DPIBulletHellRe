@@ -6,7 +6,6 @@
 
 #include <algorithm>
 
-
 #include "../../../Attacks/Amarra.h"
 #include "../../../Attacks/Ancora.h"
 #include "../../../Attacks/Behaviors.h"
@@ -40,8 +39,7 @@ void Julio::SortearALuta() {
     mDegrauDaGeracao = Geracao::DegrauDo(NivelDeDificuldade());
     mSorteioDosAgentes = SorteioDaFase(kFaseDosAgentes);
 
-    // A FASE 1: cada etapa com a sua temperatura, e o placar dela dizendo o
-    // numero - o placar e a regra.
+    // A fase 1: cada etapa com a sua temperatura, e o placar dela dizendo o numero.
     Variacao::Sorteio sorteio = SorteioDaFase(kFaseDosTokens);
     mTemperaturas = Temperatura::Sortear(sorteio, NivelDeDificuldade());
     auto etapas = EtapasDa(kFaseDosTokens);
@@ -113,7 +111,7 @@ void Julio::AtualizarTokens(const float deltaTime) {
     auto anguloDe = [](const Vector2& dir) { return Math::ToDegrees(Math::Atan2(dir.y, dir.x)); };
     const float temperatura = mTemperaturas[static_cast<std::size_t>(EtapaDosTokens())];
 
-    // UMA FRASE NOVA a cada entreFrases, saindo do professor mirada no aluno.
+    // Uma frase nova a cada entreFrases, saindo do professor mirada no aluno.
     mProximaFrase -= deltaTime;
     if (mProximaFrase <= 0.0f) {
         mProximaFrase += mDegrauDaGeracao.entreFrases;
@@ -124,8 +122,6 @@ void Julio::AtualizarTokens(const float deltaTime) {
         mFrases.push_back(f);
     }
 
-    // CADA FRASE ANDA: a ponta segue o ultimo token, e a cada kEntreTokens
-    // nasce o proximo, sorteado em volta do rumo dele virado para o aluno.
     const Vector2 aluno = GetPosition() + GetDirectionToPlayer() * GetDistanceToPlayer();
     for (Frase& f : mFrases) {
         if (f.feitos > 0) {
@@ -141,7 +137,7 @@ void Julio::AtualizarTokens(const float deltaTime) {
             ? Geracao::Passo{{f.rumo}, {1.0f}, 0}     // o primeiro sai mirado
             : Geracao::Proximo(f.rumo, aoAlvo, temperatura, Random::GetFloatRange(0.0f, 1.0f));
 
-        // O LEQUE DA DISTRIBUICAO, saindo da ponta.
+        // O leque da distribuicao, saindo da ponta.
         float maior = 0.0f;
         for (const float p : passo.probabilidades) maior = std::max(maior, p);
         for (std::size_t k = 0; k < passo.rumos.size() && maior > 0.0f; ++k) {
@@ -149,8 +145,7 @@ void Julio::AtualizarTokens(const float deltaTime) {
                                   static_cast<int>(k) == passo.escolhido, 0.0f});
         }
 
-        // O TOKEN, A FRENTE DA PONTA, no rumo sorteado - o primeiro sai do
-        // professor. A ponta passa a ser ele.
+        // O token, a frente da ponta, no rumo sorteado - o primeiro sai do professor.
         f.rumo = passo.Rumo();
         if (f.feitos > 0) {
             const float r = Math::ToRadians(f.rumo);
@@ -164,8 +159,7 @@ void Julio::AtualizarTokens(const float deltaTime) {
         Disparar(kGatilhoDoToken);
         mGerando = false;
 
-        // A SILABA: a frase em ordem, e o que passa do fim e alucinacao - uma
-        // silaba qualquer da frase.
+        // A silaba: a frase em ordem, e o que passa do fim e alucinacao - uma silaba qualquer da frase.
         const int silaba = (f.feitos < kSilabas) ? f.feitos : Random::GetIntRange(0, kSilabas - 1);
         for (BossProjectile* p : mGerados) {
             if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(kFrase[silaba]);
@@ -175,7 +169,7 @@ void Julio::AtualizarTokens(const float deltaTime) {
     mFrases.erase(std::remove_if(mFrases.begin(), mFrases.end(),
         [](const Frase& f) { return f.feitos >= f.total; }), mFrases.end());
 
-    // OS RAIOS SE APAGAM em kVidaDoRaio.
+    // Os raios se apagam em kVidaDoRaio.
     for (Raio& r : mRaios) r.idade += deltaTime;
     mRaios.erase(std::remove_if(mRaios.begin(), mRaios.end(),
         [](const Raio& r) { return r.idade >= kVidaDoRaio; }), mRaios.end());
@@ -193,8 +187,6 @@ void Julio::AtualizarTokens(const float deltaTime) {
 }
 
 void Julio::AtualizarLoop() {
-    // A FINAL COMECA SEM REPETICAO: o placar diz o nome dela, e o primeiro
-    // disparo poe o primeiro "e".
     const auto* fsm = GetComponent<FSMComponent>();
     const bool noLoop = fsm && fsm->GetStateName() == kFaseDoLoop;
     if (noLoop && !mNoLoop) {
@@ -210,7 +202,7 @@ void Julio::AtualizarGuardrails(const float deltaTime) {
         if (mNosGuardrails && !mNomeDosGuardrails.empty()) RegistrarAnuncio(kFaseDosGuardrails, mNomeDosGuardrails);
         mNosGuardrails = false;
         mTempoDaFala = 0.0f;
-        mOndaDosGuardrails = 0;   // zerada na saida: a primeira onda pode nascer antes deste quadro
+        mOndaDosGuardrails = 0;
         return;
 
     }
@@ -219,8 +211,7 @@ void Julio::AtualizarGuardrails(const float deltaTime) {
         if (mNomeDosGuardrails.empty()) mNomeDosGuardrails = AnuncioDaFase(kFaseDosGuardrails);
     }
 
-    // A FALA DURA UM POUCO E VOLTA AO NOME DA FASE. Um tiro barrado no meio da
-    // fala a renova: enquanto o aluno insiste, o guardrail recusa.
+    // A fala dura um pouco e volta ao nome da fase.
     mTempoDaFala = std::max(0.0f, mTempoDaFala - deltaTime);
     const std::string& texto = (mTempoDaFala > 0.0f) ? mFalaDoGuardrail : mNomeDosGuardrails;
     if (AnuncioDaFase(kFaseDosGuardrails) != texto) RegistrarAnuncio(kFaseDosGuardrails, texto);
@@ -231,8 +222,7 @@ void Julio::AtualizarAgentes(const float deltaTime) {
     const bool nosAgentes = fsm && fsm->GetStateName() == kFaseDosAgentes && !EhClone();
 
     if (!nosAgentes) {
-        // A FASE ACABOU: os agentes vao embora, e o placar volta ao nome dela,
-        // para a proxima vez.
+        // A fase acabou: os agentes vao embora, e o placar volta ao nome dela, para a proxima vez.
         if (mNosAgentes && !mNomeDosAgentes.empty()) RegistrarAnuncio(kFaseDosAgentes, mNomeDosAgentes);
         if (mNosAgentes) {
             for (const Agente& a : mAgentes) SoltarAgente(a.p);
@@ -249,18 +239,16 @@ void Julio::AtualizarAgentes(const float deltaTime) {
         if (mNomeDosAgentes.empty()) mNomeDosAgentes = AnuncioDaFase(kFaseDosAgentes);
     }
 
-    // O AGE: todos os agentes em campo mandam a ferramenta ao mesmo tempo.
+    // O age: todos os agentes em campo mandam a ferramenta ao mesmo tempo.
     const float antes = mCiclo.t;
     if (ReAct::Avancar(mCiclo, deltaTime)) Disparar(ReAct::kGatilhoDeAgir);
 
-    // UMA VOLTA NOVA, um Pensa novo - nunca menor que o que a volta ja andou -
-    // e os agentes replanejam: cada um vai pensar num lugar novo.
+    // Uma volta nova, um Pensa novo - nunca menor que o que a volta ja andou.
     const bool voltaNova = mCiclo.t < antes;
     if (voltaNova) {
         mCiclo.pensa = std::max(ReAct::PensaDaVolta(mSorteioDosAgentes, mDegrauDosAgentes.pensa), mCiclo.t + 0.01f);
     }
     MoverAgentes(deltaTime, voltaNova);
-
 
     const char* texto = kPensando;
     switch (ReAct::PassoDe(mCiclo)) {
@@ -272,8 +260,7 @@ void Julio::AtualizarAgentes(const float deltaTime) {
 }
 
 void Julio::SoltarAgente(BossProjectile* agente) {
-    // SAI DO POSTO, e as ferramentas deixam de sair dele; e vai embora por
-    // cima, por onde veio o professor.
+    // Sai do posto, e as ferramentas deixam de sair dele.
     if (!agente || agente->GetState() != ActorState::Active) return;
     agente->DefinirPosto("");
     if (auto* rb = agente->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2(0.0f, -kSaidaDoAgente));
@@ -283,9 +270,7 @@ void Julio::MoverAgentes(const float deltaTime, bool replanejar) {
     const auto* batalha = dynamic_cast<Battle*>(mScene);
     if (!batalha || !batalha->GetProjectileManager() || !mScene->GetGame()) return;
 
-    // QUEM ESTA EM CAMPO: o agente derrubado sai da conta, e o recem-convocado
-    // entra - e a chegada dele replaneja o grupo, para ninguem cair em cima de
-    // ninguem.
+    // Quem esta em campo: o agente derrubado sai da conta, e o recem-convocado entra.
     std::vector<Agente> emCampo;
     for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
         if (!p || p->GetState() != ActorState::Active || p->Posto() != ReAct::kPostoDosAgentes) continue;
@@ -296,7 +281,7 @@ void Julio::MoverAgentes(const float deltaTime, bool replanejar) {
     }
     mAgentes = std::move(emCampo);
 
-    // A VIDA ACABOU: vai embora. Os outros envelhecem.
+    // A vida acabou: vai embora.
     for (auto it = mAgentes.begin(); it != mAgentes.end();) {
         it->idade += deltaTime;
         if (it->idade < ReAct::kVidaDoAgente) { ++it; continue; }
@@ -311,7 +296,7 @@ void Julio::MoverAgentes(const float deltaTime, bool replanejar) {
         for (size_t k = 0; k < mAgentes.size(); ++k) mAgentes[k].lugar = Vector2(lugares[k].x, lugares[k].y);
     }
 
-    // CADA UM VOA ATE O SEU LUGAR, e la fica, olhando o aluno.
+    // Cada um voa ate o seu lugar, e la fica, olhando o aluno.
     for (const Agente& a : mAgentes) {
         a.p->SetPosition(Ancora::Aproximar(a.p->GetPosition(), a.lugar, ReAct::kRapidezDoAgente, deltaTime));
         if (auto* rb = a.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
@@ -319,17 +304,6 @@ void Julio::MoverAgentes(const float deltaTime, bool replanejar) {
 }
 
 // Fracao do tempo de voo usada como antecipacao na fase 3.
-//
-// 1.0 seria interceptacao perfeita: quem anda em linha reta e SEMPRE atingido.
-// 0.85 deixa uma margem pequena, entao correr reto quase sempre custa caro, mas
-// nao e sentenca automatica. AJUSTE AQUI se a fase 3 ficar injusta (menor) ou
-// facil demais (maior, ate 1.0). NO DIFICIL o modelo preve melhor:
-// kLeadFractionNoDificil.
-//
-// Derivar do tempo de voo, em vez de usar um numero fixo de segundos, importa:
-// com antecipacao fixa de 0.5s e projetil a 265 px/s cruzando ~400 px, o tiro
-// antecipava 150 px enquanto o jogador andava 450 px no mesmo intervalo - ou
-// seja, correr reto era SEGURO, exatamente o oposto da intencao da fase.
 static constexpr float kLeadFraction = 0.85f;
 static constexpr float kLeadFractionNoDificil = 0.97f;
 
@@ -342,25 +316,14 @@ void Julio::CustomizeAttackParams(AttackParams& params, const std::string& state
     };
 
     if (stateName == "StateOne") {
-        // O TOKEN NASCE NA PONTA DA FRASE, no rumo que AtualizarTokens
-        // sorteou com a temperatura da etapa (Geracao.h) - e nao no professor.
         if (mGerando) {
             params.firePosition = mOndeGerar;
             params.centralAngle = mRumoAGerar;
             mVelocidadeDoToken = params.projectileSpeed;
         }
     }
-    // A FASE 2 NAO MEXE NA MIRA: os agentes saem no leque escrito em fases.json,
-    // e quem mira e cada agente, da PontosAttack.
     else if (stateName == "StateThree") {
-        // O MODELO TE PREDIZ. Mira em onde o jogador ESTARA, nao onde ele esta
-        // - e o token da fase dos guardrails.
-        //
-        // Sem ruido aleatorio de proposito: se o tiro errasse tambem por acaso,
-        // o jogador nao conseguiria distinguir "ele me previu" de "ele errou
-        // sozinho", e a fase perderia a leitura inteira. Todo erro aqui tem de
-        // ser causado pelo jogador ter mudado de direcao.
-        // Tempo que o projetil leva para chegar onde o jogador esta agora.
+        // O modelo te prediz.
         const float distancia = GetDistanceToPlayer();
         const float tempoDeVoo = (params.projectileSpeed > 1.0f)
                                      ? distancia / params.projectileSpeed
@@ -368,17 +331,12 @@ void Julio::CustomizeAttackParams(AttackParams& params, const std::string& state
 
         params.centralAngle = anguloDe(GetPredictedPlayerDirection(tempoDeVoo * NoNivel(kLeadFraction, kLeadFractionNoDificil)));
 
-        // NO DIFICIL saem dois tokens por vez (o bloco "dificil" do ataque),
-        // e o segundo nao vai exatamente no mesmo lugar: um pouco de
-        // temperatura abre o par em volta da previsao.
         if (auto* tokens = dynamic_cast<TokenAttackParams*>(&params)) {
             tokens->temperatura = NoNivel(tokens->temperatura, Temperatura::kDaPrevisaoNoDificil);
         }
     }
     else if (stateName == "StateFinal") {
-        // O LOOP: as frases de "e" saem miradas no aluno. Os aneis sao uma
-        // CircleSpreadAttack, que nem le o angulo. No Dificil o modelo em loop
-        // tambem esquenta, e as frases se abrem.
+        // O loop: as frases de "e" saem miradas no aluno.
         params.centralAngle = anguloDe(GetDirectionToPlayer());
         if (auto* tokens = dynamic_cast<TokenAttackParams*>(&params)) {
             tokens->temperatura = NoNivel(tokens->temperatura, Temperatura::kDoLoopNoDificil);
@@ -395,9 +353,7 @@ void Julio::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& proje
         }
     }
 
-    // O ANEL RETREINADO (Guardrail.h): cada onda de guardrails alterna o anel
-    // fechado e o aberto, troca o giro e gira mais depressa. O guardrail e o
-    // unico derrubavel da fase - o token nao e.
+    // O anel retreinado (Guardrail.h).
     if (stateName == kFaseDosGuardrails) {
         bool houveOnda = false;
         const Guardrail::Onda onda = Guardrail::DaVez(mOndaDosGuardrails);
@@ -415,14 +371,7 @@ void Julio::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& proje
         if (houveOnda) ++mOndaDosGuardrails;
     }
 
-
-
-    // O LOOP NO PLACAR: na final, cada disparo poe mais um "e" - o modelo
-    // repetindo a mesma palavra, ate encher o placar.
-    //
-    // (Este gancho pintava os DADOS com a cor de cada fase. Desde o 126 o
-    // Julio nao usa dado nenhum - tokens, agentes e guardrails tem a cara que
-    // a estrategia ou o tipo deles da.)
+    // O loop no placar: na final, cada disparo poe mais um "e".
     if (stateName == kFaseDoLoop) {
         if (mRepeticoes < kRepeticoesNoPlacar) ++mRepeticoes;
         std::string texto = "e";

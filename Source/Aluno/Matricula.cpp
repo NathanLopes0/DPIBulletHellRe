@@ -12,8 +12,8 @@ namespace {
         return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f';
     }
 
-    /// Tira espaco so das PONTAS. Espaco no meio continua sendo um caractere
-    /// invalido - ver o comentario em Matricula::Validar.
+    /// Tira espaco so das pontas. Espaco no meio continua sendo um caractere invalido - ver o
+    /// comentario em Matricula::Validar.
     std::string Aparar(const std::string& s) {
         size_t ini = 0;
         while (ini < s.size() && EhEspaco(s[ini])) ++ini;
@@ -24,8 +24,8 @@ namespace {
         return s.substr(ini, fim - ini);
     }
 
-    /// Remove zeros a esquerda. "000" vira vazio de proposito: quem chama usa isso
-    /// para distinguir "so zeros" de uma matricula de verdade.
+    /// Remove zeros a esquerda. "000" vira vazio: quem chama usa isso para distinguir "so zeros" de
+    /// uma matricula de verdade.
     std::string SemZerosAEsquerda(const std::string& s) {
         size_t i = 0;
         while (i < s.size() && s[i] == '0') ++i;
@@ -53,10 +53,7 @@ Resultado Validar(const std::string& digitada) {
         }
     }
 
-    // Os zeros saem ANTES da conta de tamanho, e nao depois: "0089384" tem sete
-    // caracteres e cinco digitos significativos, e e uma matricula que existe -
-    // recusar seria recusar por causa de enfeite. Ja "01234567" continua longa
-    // demais, porque sobram sete digitos de verdade.
+    // Os zeros saem antes da conta de tamanho, e nao depois.
     const std::string canonica = SemZerosAEsquerda(texto);
 
     if (canonica.empty()) {
@@ -76,15 +73,13 @@ Resultado Validar(const std::string& digitada) {
 }
 
 std::string MensagemDeErro(const Erro erro) {
-    // As frases dizem o que FAZER, e nao so o que esta errado: quem le isto esta
-    // na frente da maquina querendo jogar, nao depurando.
+    // As frases dizem o que fazer, e nao so o que esta errado.
     switch (erro) {
         case Erro::Nenhum:       return "";
         case Erro::Vazia:        return "Digite sua matricula para continuar.";
         case Erro::NaoSoNumeros: return "A matricula tem so numeros, sem letras nem espacos.";
         case Erro::LongaDemais:  return "A matricula tem no maximo seis numeros.";
-        // NAO diz "essa matricula nao existe": o jogo nao tem a lista de alunos e
-        // nao tem como saber disso. O que ele sabe e a regra de formato.
+        // Nao diz "essa matricula nao existe".
         case Erro::Zero:         return "A matricula nao pode ser so zeros.";
     }
     return "";
@@ -94,10 +89,7 @@ std::string Digitar(const std::string& atual, const char tecla) {
 
     if (!EhDigito(tecla)) return atual;
 
-    // O limite e sobre o que esta na tela. Quem digita nao tem como escrever zeros
-    // a esquerda alem do sexto caractere, entao a digitacao e um pouco mais
-    // restrita que a validacao - e tudo bem: todo texto digitavel e valido, que e
-    // a propriedade conferida em tests/test_matricula.cpp.
+    // O limite e sobre o que esta na tela.
     if (atual.size() >= static_cast<size_t>(kMaximoDeDigitos)) return atual;
 
     return atual + tecla;

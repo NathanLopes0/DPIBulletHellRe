@@ -1,6 +1,4 @@
-//
-// A pausa da batalha, no computador. Camada pura.
-//
+// A pausa da batalha, no computador.
 
 #include "doctest.h"
 
@@ -13,7 +11,7 @@ using namespace Pausa;
 
 TEST_CASE("Pausa: no gabinete nunca pausa, e no computador so com a luta valendo") {
     CHECK(PodePausar(false, true));
-    CHECK_FALSE(PodePausar(true, true));     // o painel nao tem ESC
+    CHECK_FALSE(PodePausar(true, true));     // O painel nao tem ESC.
     CHECK_FALSE(PodePausar(false, false));   // carregando, ou na tela de fim
     CHECK_FALSE(PodePausar(true, false));
 }
@@ -34,8 +32,7 @@ TEST_CASE("Pausa: o menu abre no Continuar, e da a volta nas pontas") {
     Mover(m, -1);
     CHECK(Escolhida(m) == Opcao::Sair);
 
-    // Fechar e abrir de novo volta ao Continuar: quem apertou ESC sem querer
-    // nao pode cair no Sair da vez anterior.
+    // Fechar e abrir de novo volta ao Continuar.
     Fechar(m);
     CHECK_FALSE(m.aberto);
     Abrir(m);

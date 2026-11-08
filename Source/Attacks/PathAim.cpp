@@ -1,6 +1,4 @@
-//
-// Resolucao do REFERENCIAL de um caminho: origem e orientacao.
-//
+// Resolucao do referencial de um caminho: origem e orientacao.
 
 #include "PathAim.h"
 
@@ -38,8 +36,7 @@ Referencial ResolverReferencial(const ContextoDeResolucao& contexto, const Mira&
         Vector2 alvo = contexto.posicaoJogador;
 
         if (mira.modo == Mira::MirarPrevendo) {
-            // Extrapola pela velocidade atual do jogador. Parado, a velocidade
-            // e zero e isto vira a mira normal.
+            // Extrapola pela velocidade atual do jogador.
             alvo += contexto.velocidadeJogador * mira.parametro;
         }
 
@@ -56,7 +53,7 @@ Referencial ResolverReferencial(const ContextoDeResolucao& contexto, const Mira&
         return referencial;
     }
 
-    // Fallback 2: identidade. A forma sai exatamente como foi escrita.
+    // Fallback 2: identidade.
     referencial.cos = 1.0f;
     referencial.sin = 0.0f;
     return referencial;
@@ -84,8 +81,7 @@ Vector2 AjustarModulo(const Vector2& velocidade, float novoModulo) {
 
     const float modulo = velocidade.Length();
     if (Math::NearZero(modulo)) {
-        // Sem direcao para preservar. Devolver um vetor qualquer com o modulo
-        // pedido seria escolher uma direcao no lugar de quem chamou.
+        // Sem direcao para preservar.
         return velocidade;
     }
 
@@ -116,9 +112,7 @@ FaseDoPulso CalcularFaseDoPulso(const float tempoDecorrido, const RitmoDeCiclos&
     const float dentroDoCiclo = t - static_cast<float>(fase.ciclo) * ciclo;
     const bool investindo = dentroDoCiclo < ritmo.duracaoInvestida;
 
-    // A sequencia TERMINA NUMA INVESTIDA, nao numa pausa: sao N investidas com
-    // N-1 pausas entre elas. Terminar na pausa deixava o projetil a poucos
-    // px/s, lento demais para sair da tela dentro da batalha.
+    // A sequencia termina numa investida, nao numa pausa: sao N investidas com N-1 pausas entre elas.
     if (!investindo && fase.ciclo == ritmo.repeticoes - 1) {
         fase.ciclo = ritmo.repeticoes;
         return fase;

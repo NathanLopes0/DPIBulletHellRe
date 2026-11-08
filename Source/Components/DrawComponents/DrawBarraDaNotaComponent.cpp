@@ -26,7 +26,7 @@ namespace {
     constexpr SDL_Color kOuro{255, 215, 80, 255};
 }
 
-// AS PRIMITIVAS sao as da HUD inteira (Pincel.h).
+// As primitivas sao as da HUD inteira (Pincel.h).
 using namespace Pincel;
 
 DrawBarraDaNotaComponent::DrawBarraDaNotaComponent(Actor* owner, const int largura, const int altura, const int drawOrder)
@@ -55,15 +55,14 @@ void DrawBarraDaNotaComponent::Draw(SDL_Renderer* renderer) {
 
     const Misturando misturando(renderer);
 
-    // O SACOLEJO do acerto: dois pixels, e so na vertical - a barra nao pode
-    // fugir do lugar.
+    // O sacolejo do acerto: dois pixels, e so na vertical - a barra nao pode fugir do lugar.
     const int tremor = static_cast<int>(std::lround(std::sin(mTempo * 55.0f) * 2.0f * mEstado.tremor));
     const Vector2 dono = mOwner->GetPosition();
     const int x = static_cast<int>(dono.x);
     const int y = static_cast<int>(dono.y) + tremor;
     const int w = mLargura, h = mAltura;
 
-    // 1. O HALO: vermelho pulsando no perigo, ouro na nota cheia.
+    // 1.
     if (mPerigo || mCheia) {
         const float pulso = 0.5f + 0.5f * std::sin(mTempo * (mPerigo ? 7.0f : 3.0f));
         const SDL_Color halo = mPerigo ? kVermelhoDoPerigo : kOuro;
@@ -75,21 +74,20 @@ void DrawBarraDaNotaComponent::Draw(SDL_Renderer* renderer) {
         }
     }
 
-    // 2. A MOLDURA, clara em cima e escura embaixo, e o SULCO, ao contrario:
-    // escuro em cima - a sombra de dentro - e um pouco mais claro embaixo.
+    // 2.
     Caixa(renderer, x - kMoldura, y - kMoldura, w + 2 * kMoldura, h + 2 * kMoldura, kRaio + kMoldura,
           [](const float t) { return Misturar({96, 104, 136, 255}, {40, 44, 62, 255}, t); });
     Caixa(renderer, x, y, w, h, kRaio,
           [](const float t) { return Misturar({8, 9, 15, 255}, {30, 33, 48, 255}, t); });
 
-    // 3. AS MARCAS FINAS, a cada 10: a regua.
+    // 3.
     for (const float n : BarraDaNota::kMarcasFinas) {
         const int mx = x + static_cast<int>(BarraDaNota::X(n, w));
         Cor(renderer, {255, 255, 255, 26});
         SDL_RenderDrawLine(renderer, mx, y + 4, mx, y + h - 5);
     }
 
-    // 4. O RASTRO do que acabou de ser perdido.
+    // 4.
     const int xNota = static_cast<int>(BarraDaNota::X(mEstado.mostrada, w));
     const int xRastro = static_cast<int>(BarraDaNota::X(mEstado.rastro, w));
     const float vidaDoRastro = mEstado.rastroParado > 0.0f ? 1.0f : 0.75f;
@@ -103,8 +101,7 @@ void DrawBarraDaNotaComponent::Draw(SDL_Renderer* renderer) {
         SDL_RenderDrawLine(renderer, de, y + i, ate, y + i);
     }
 
-    // 5. O PREENCHIMENTO: claro em cima, a cor no meio, escuro embaixo, e o
-    // clarao de quando a nota sobe por cima de tudo.
+    // 5.
     if (xNota > 0) {
         const SDL_Color base = Clarear(mCor, 0.45f * mEstado.brilho);
         const SDL_Color topo = Clarear(base, 0.50f);
@@ -117,7 +114,7 @@ void DrawBarraDaNotaComponent::Draw(SDL_Renderer* renderer) {
             const float t = static_cast<float>(i) / static_cast<float>(std::max(1, h - 1));
             Cor(renderer, t < 0.4f ? Misturar(topo, base, t / 0.4f) : Misturar(base, fundo, (t - 0.4f) / 0.6f));
             SDL_RenderDrawLine(renderer, de, y + i, ate, y + i);
-            // O REFLEXO que passa, de tempos em tempos.
+            // O reflexo que passa, de tempos em tempos.
             const float fase = std::fmod(mTempo, kEntreReflexos) * kRapidezDoReflexo - static_cast<float>(kLarguraDoReflexo);
             const int r0 = std::max(de, x + static_cast<int>(fase) + i / 2);
             const int r1 = std::min(ate, r0 + kLarguraDoReflexo / 2);
@@ -126,13 +123,13 @@ void DrawBarraDaNotaComponent::Draw(SDL_Renderer* renderer) {
                 SDL_RenderDrawLine(renderer, r0, y + i, r1, y + i);
             }
         }
-        // O BRILHO de cima, uma faixa so.
+        // O brilho de cima, uma faixa so.
         const int recuo = Recuo(2, h, kRaio);
         if (x + xNota - 1 > x + recuo) {
             Cor(renderer, {255, 255, 255, 255}, 0.35f);
             SDL_RenderDrawLine(renderer, x + recuo + 1, y + 2, std::min(x + xNota - 2, x + w - 2 - recuo), y + 2);
         }
-        // A PONTA ACESA, onde o olho procura a nota.
+        // A ponta acesa, onde o olho procura a nota.
         if (xNota > 3 && xNota < w - 2) {
             Cor(renderer, Clarear(base, 0.85f));
             SDL_Rect ponta{x + xNota - 2, y + 1, 2, h - 2};
@@ -140,7 +137,7 @@ void DrawBarraDaNotaComponent::Draw(SDL_Renderer* renderer) {
         }
     }
 
-    // 6. AS MARCAS DO EXAME E DA APROVACAO, por cima: a linha e os dentes.
+    // 6.
     const auto marca = [&](const float n, const SDL_Color c) {
         const int mx = x + static_cast<int>(BarraDaNota::X(n, w));
         const bool passou = mEstado.mostrada >= n;

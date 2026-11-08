@@ -21,11 +21,9 @@ Projectile::Projectile(Scene *scene, Actor *owner)
 
 Projectile::~Projectile() = default;
 
-
 void Projectile::OnUpdate(float deltaTime) {
 
-    // ORDEM IMPORTA: a Motion escreve a velocidade, os Modifiers ajustam o que
-    // ela escreveu. Invertido, uma aceleracao seria sobrescrita no mesmo frame.
+    // Ordem importa: a Motion escreve a velocidade, os Modifiers ajustam o que ela escreveu.
     if (mMotion) {
         mMotion->update(this, deltaTime);
         if (mMotion->isFinished()) {
@@ -50,8 +48,7 @@ void Projectile::OnUpdate(float deltaTime) {
         MarkDead();
     }
     else if (mTempoDeVida >= kTempoDeVidaMaximo) {
-        // Nao deveria acontecer em jogo. Se acontecer, algum ataque configurou
-        // um projetil que nao consegue sair da tela - o log diz qual.
+        // Nao deveria acontecer em jogo.
         SDL_Log("Projetil vivo ha %.0fs sem sair da tela (|v| = %.0f px/s). "
                 "Encerrado pelo tempo maximo de vida.",
                 mTempoDeVida,
@@ -62,8 +59,7 @@ void Projectile::OnUpdate(float deltaTime) {
 
 void Projectile::OnCollision(Actor *other) {
 
-    // Comportamento Padrão. Battle só chama quando CheckCollisions dá true
-    // Então sabemos que é uma colisão válida (Projetil do Jogador vs Boss, por exemplo)
+    // Comportamento Padrão.
 
     MarkDead();
 
@@ -81,10 +77,7 @@ void Projectile::MarcarPadraoDeFabrica() {
 }
 
 void Projectile::Reset() {
-    // Limpa TODOS os behaviors, inclusive os que não terminaram (ex: um
-    // PathBehavior com atraso que nunca chegou a ativar porque o projétil
-    // colidiu antes). Se não fizermos isso, um projétil reciclado herdaria
-    // comportamento "fantasma" da vida anterior dele no pool.
+    // Limpa todos os behaviors, inclusive os que não terminaram (ex.
     mMotion.reset();
     mModifiers.clear();
     mTempoDeVida = 0.0f;
@@ -94,9 +87,7 @@ void Projectile::Reset() {
         rb->SetAcceleration(Vector2::Zero);
     }
 
-    // Reexibe o sprite, que MarkDead() escondeu quando este objeto foi
-    // devolvido ao pool. Sem isso, o objeto reciclado ficaria invisível
-    // mesmo depois de voltar a ser Active.
+    // Reexibe o sprite, que MarkDead() escondeu quando este objeto foi devolvido ao pool.
     if (auto draw = GetComponent<DrawComponent>()) {
         draw->SetIsVisible(true);
     }
@@ -106,14 +97,10 @@ void Projectile::Reset() {
         collider->SetEnabled(true);
     }
 
-    // Rotacao tambem e estado da vida anterior: LaserAttack chama SetRotation e
-    // nada limpava isso, entao um projetil reciclado voltava torto.
+    // Rotacao tambem e estado da vida anterior.
     SetRotation(0.0f);
 
-    // Devolve a aparencia de fabrica. Sem isto, um projetil que um ataque
-    // aumentou ou cuja animacao um ataque trocou sairia do pool assim, e o
-    // ataque seguinte herdaria a aparencia do anterior - inclusive a hitbox,
-    // porque o colisor multiplica o raio pela escala.
+    // Devolve a aparencia de fabrica.
     if (mPadraoMarcado) {
         SetScale(mEscalaPadrao);
 
@@ -124,9 +111,7 @@ void Projectile::Reset() {
         }
     }
 
-    // NOTA: a posicao NAO e resetada aqui de proposito - ver bug 8 da analise.
-    // Toda strategy hoje chama SetPosition logo apos o Acquire, exceto quando a
-    // condicao de firePosition falha. Isso sera tratado na proxima rodada.
+    // Nota: a posicao nao e resetada aqui - ver bug 8 da analise.
 
     SetState(ActorState::Active);
 }
@@ -136,11 +121,7 @@ void Projectile::Kill() {
 }
 
 void Projectile::OnEnterPool() {
-    // Um objeto guardado no pool CONTINUA registrado em Scene::mDrawables: o
-    // DrawComponent so se desregistra no proprio destrutor, e o objeto nao e
-    // destruido. Como Game::GenerateOutput percorre mDrawables sem consultar
-    // ActorState, este mIsVisible = false e a UNICA coisa que impede um objeto
-    // guardado de continuar aparecendo na tela.
+    // Um objeto guardado no pool continua registrado em Scene::mDrawables.
     if (auto draw = GetComponent<DrawComponent>()) {
         draw->SetIsVisible(false);
     }
@@ -165,24 +146,13 @@ void Projectile::OnEnterPool() {
 
 void Projectile::MarkDead() {
     if (mOriginFactory) {
-        // Vai voltar ao pool: esconde o sprite AGORA, porque o loop de
-        // desenho (Game::GenerateOutput) itera Scene::mDrawables
-        // incondicionalmente e não sabe nada sobre ActorState. Sem isto,
-        // o objeto continuaria aparecendo, congelado, na posição onde
-        // morreu, até a próxima reciclagem.
         if (auto draw = GetComponent<DrawComponent>()) {
             draw->SetIsVisible(false);
         }
         SetState(ActorState::Inactive);
     } else {
-        // Sem factory de origem (ex: PlayerProjectile): morre de verdade,
-        // como sempre foi. O destrutor do DrawComponent já cuida de
-        // remover da lista de mDrawables da Scene.
+        // O destrutor do DrawComponent já cuida de remover da lista de mDrawables da Scene.
         SetState(ActorState::Destroy);
     }
 }
-
-
-
-
 

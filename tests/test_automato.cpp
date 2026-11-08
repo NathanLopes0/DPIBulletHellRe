@@ -15,8 +15,7 @@ namespace {
 }
 
 TEST_CASE("Automato: a tabela reconhece exatamente as palavras que terminam em ab") {
-    // TODAS as palavras de ate oito letras, e nao uns exemplos: a tabela tem
-    // seis transicoes, e um erro numa delas so aparece em algumas palavras.
+    // Todas as palavras de ate oito letras, e nao uns exemplos.
     int conferidas = 0;
     for (int tamanho = 0; tamanho <= 8; ++tamanho) {
         for (int bits = 0; bits < (1 << tamanho); ++bits) {

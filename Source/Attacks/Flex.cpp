@@ -41,8 +41,7 @@ std::vector<float> Posicoes(const Justificar j, const int n, const float item,
     const float ocupado = item * static_cast<float>(n);
     const float sobra = linha - ocupado;
 
-    // Onde fica a borda esquerda do primeiro item, e quanto de espaco vai entre
-    // dois vizinhos. O centro de cada item sai disso.
+    // Onde fica a borda esquerda do primeiro item, e quanto de espaco vai entre dois vizinhos.
     float borda = inicio;
     float vao = 0.0f;
     switch (j) {
@@ -89,8 +88,5 @@ float XDaVarredura(const float t, const float x0, const float velocidade, const 
     const float andado = std::fmod(std::max(0.0f, (std::clamp(x0, de, ate) - de) + velocidade * t), 2.0f * trecho);
     return de + (andado <= trecho ? andado : 2.0f * trecho - andado);
 }
-
-
-
 
 }

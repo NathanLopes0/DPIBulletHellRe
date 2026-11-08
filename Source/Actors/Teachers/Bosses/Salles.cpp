@@ -18,7 +18,6 @@
 #include "../../../Scenes/Battle/ProjectileManager.h"
 #include "BossesProjectiles/BossProjectile.h"
 
-
 Salles::Salles(Scene *scene) : Boss(scene)
 {
 
@@ -66,7 +65,7 @@ void Salles::AtualizarOrdenacao(const float deltaTime) {
     const bool naOrdenacao = fsm && fsm->GetStateName() == Ordenacao::kFaseDaOrdenacao && !EhClone();
 
     if (!naOrdenacao) {
-        // A FASE ACABOU: o vetor cai inteiro, e o placar volta ao do arquivo.
+        // A fase acabou: o vetor cai inteiro, e o placar volta ao do arquivo.
         if (mNaOrdenacao) {
             SoltarVetor(false);
             if (!mAnuncioDaOrdenacao.empty()) RegistrarAnuncio(Ordenacao::kFaseDaOrdenacao, mAnuncioDaOrdenacao);
@@ -93,8 +92,7 @@ void Salles::AtualizarOrdenacao(const float deltaTime) {
     }
     const float agora = fsm->GetStateTime();
 
-    // QUEM O ALUNO DERRUBOU SAI DO VETOR, e o vetor fecha o buraco. De tras
-    // para a frente, para os indices de quem falta conferir nao mudarem.
+    // Quem o aluno derrubou sai do vetor, e o vetor fecha o buraco.
     if (mVetorEmCampo) {
         for (int k = static_cast<int>(mVetor.size()) - 1; k >= 0; --k) {
             BossProjectile* p = mVetor[static_cast<size_t>(k)];
@@ -106,7 +104,7 @@ void Salles::AtualizarOrdenacao(const float deltaTime) {
         }
     }
 
-    // UM VETOR NOVO: os elementos saem do professor e vao para os lugares.
+    // Um vetor novo: os elementos saem do professor e vao para os lugares.
     if (!mVetorEmCampo && agora >= mProximoVetor) {
         const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
         std::vector<int> valores;
@@ -127,7 +125,7 @@ void Salles::AtualizarOrdenacao(const float deltaTime) {
         RegistrarAnuncio(Ordenacao::kFaseDaOrdenacao, Ordenacao::PlacarDoComeco(static_cast<int>(mVetor.size()), entrada));
     }
 
-    // O PASSO DO ALGORITMO.
+    // O passo do algoritmo.
     if (mVetorEmCampo && agora >= mProximoPasso) {
         const Ordenacao::Passo p = Ordenacao::Avancar(mBolha);
         mProximoPasso = agora + mDegrauDaOrdenacao.passo;
@@ -136,7 +134,7 @@ void Salles::AtualizarOrdenacao(const float deltaTime) {
                 mComparando = p.i;
                 break;
             case Ordenacao::Tipo::Troca: {
-                // OS DOS PULAM UM POR CIMA DO OUTRO, e cada um atira no aluno.
+                // Os dos pulam um por cima do outro, e cada um atira no aluno.
                 mComparando = p.i;
                 auto& esquerda = mVetor[static_cast<size_t>(p.i)];
                 auto& direita = mVetor[static_cast<size_t>(p.i + 1)];
@@ -149,14 +147,14 @@ void Salles::AtualizarOrdenacao(const float deltaTime) {
                 break;
             }
             case Ordenacao::Tipo::NoLugar:
-                // A BOLHA CHEGOU: quem assentou solta a lista circular.
+                // A bolha chegou: quem assentou solta a lista circular.
                 mComparando = -1;
                 DispararDaOrdenacao(Ordenacao::kGatilhoDoLugar, mVetor[static_cast<size_t>(p.i)]->GetPosition(), false,
                                     mDegrauDaOrdenacao.rapidez, mDegrauDaOrdenacao.anelDoLugar);
                 mProximoPasso += Ordenacao::kNoLugar;
                 break;
             case Ordenacao::Tipo::Ordenado:
-                // ENTREGUE: cada um cai na velocidade do valor dele - a rampa.
+                // Entregue: cada um cai na velocidade do valor dele - a rampa.
                 SoltarVetor(true);
                 mProximoVetor = agora + Ordenacao::kDepoisDeOrdenar;
                 break;
@@ -164,14 +162,11 @@ void Salles::AtualizarOrdenacao(const float deltaTime) {
         RegistrarAnuncio(Ordenacao::kFaseDaOrdenacao, Ordenacao::Placar(p));
     }
 
-    // O PROFESSOR NA FRONTEIRA, no vao entre o que falta e o que ja esta no
-    // lugar. Sem vetor, ele espera onde o proximo comeca.
+    // O professor na fronteira, no vao entre o que falta e o que ja esta no lugar.
     const int n = mVetorEmCampo ? mLugares : mPlanoDaOrdenacao.tamanho;
     const float fronteira = mVetorEmCampo ? static_cast<float>(mBolha.fim) + 0.5f : static_cast<float>(n) - 0.5f;
     mAlvo = Vector2(Ordenacao::X(fronteira, n, largura), Ordenacao::kYDoProfessor);
 
-    // CADA ELEMENTO NO LUGAR DELE: quem ja esta ordenado na prateleira, o par
-    // comparado erguido, e a troca em arco.
     for (size_t k = 0; k < mVetor.size(); ++k) {
         BossProjectile* e = mVetor[k];
         const int i = static_cast<int>(k);
@@ -202,7 +197,7 @@ void Salles::DispararDaArvore(const char* gatilho, const Vector2 onde, const boo
 }
 
 void Salles::AtualizarArestas() {
-    // A ARESTA DE QUEM SAIU SOME; a de quem entrou (e tem pai) nasce.
+    // A aresta de quem saiu some; a de quem entrou (e tem pai) nasce.
     for (auto it = mArestas.begin(); it != mArestas.end();) {
         if (mNosDaArvore.count(it->first) && mNosDaArvore.count(it->first / 2)) { ++it; continue; }
         for (BossProjectile* p : it->second) if (p->GetState() == ActorState::Active) p->Kill();
@@ -244,7 +239,7 @@ void Salles::AtualizarArvore(const float deltaTime) {
     const bool naArvore = fsm && fsm->GetStateName() == Arvore::kFaseDaArvore && !EhClone();
 
     if (!naArvore) {
-        // A FASE ACABOU: a arvore cai inteira, e a chave que descia tambem.
+        // A fase acabou: a arvore cai inteira, e a chave que descia tambem.
         if (mNaArvore) {
             DerrubarSubarvore(1);
             for (auto& [i, p] : mProjeteisDaArvore) {
@@ -276,16 +271,14 @@ void Salles::AtualizarArvore(const float deltaTime) {
     }
     const float agora = fsm->GetStateTime();
 
-    // O NO DERRUBADO A TIRO LEVA A SUBARVORE JUNTO. Visto do mais alto para o
-    // mais fundo: derrubar um pai ja derruba os filhos que estavam na fila.
+    // O no derrubado a tiro leva a subarvore junto.
     std::vector<int> derrubados;
     for (const auto& [i, p] : mProjeteisDaArvore) {
         if (p->GetState() != ActorState::Active || p->Posto() != Arvore::kPostoDaArvore) derrubados.push_back(i);
     }
     for (const int i : derrubados) if (mNosDaArvore.count(i)) DerrubarSubarvore(i);
 
-    // A DESCIDA EM CURSO: um no por vez - o no visitado atira no aluno, e o
-    // placar diz a comparacao. No fim, a chave entra como folha, ou cai.
+    // A descida em curso: um no por vez - o no visitado atira no aluno, e o placar diz a comparacao.
     if (mDescida.ativa && mDescida.chave && mDescida.chave->GetState() != ActorState::Active) {
         mDescida.ativa = false;                       // o aluno derrubou a chave que descia
         mProximaOperacaoDaArvore = agora + Arvore::kEntreOperacoes;
@@ -295,27 +288,25 @@ void Salles::AtualizarArvore(const float deltaTime) {
         const int k = mDescida.op.chave;
         if (mDescida.passo + 1 < mDescida.caminho.size()) {
             const int i = mDescida.caminho[mDescida.passo++];
-            // O no do caminho pode ter caido no meio da descida, a tiro: ai nao
-            // ha quem atire nem com quem comparar.
+            // O no do caminho pode ter caido no meio da descida, a tiro.
             if (const auto no = mNosDaArvore.find(i); no != mNosDaArvore.end()) {
                 DispararDaArvore(Arvore::kGatilhoDaVisita, Vector2(Arvore::X(i), Arvore::Y(i)), true, mDegrauDaArvore.rapidez);
                 RegistrarAnuncio(Arvore::kFaseDaArvore, Arvore::PlacarDaComparacao(k, no->second));
             }
         } else {
             const int fim = mDescida.caminho.back();
-            // CABE se esta dentro da profundidade E o pai ainda esta la: uma
-            // subarvore que caiu no meio da descida deixa o lugar sem pai.
+            // Cabe se esta dentro da profundidade E o pai ainda esta la.
             const bool cabe = Arvore::Cabe(fim) && (fim == 1 || mNosDaArvore.count(fim / 2) == 1);
             const auto achado = mNosDaArvore.find(fim);
             const bool achou = achado != mNosDaArvore.end() && achado->second == k;
             BossProjectile* chave = mDescida.chave;
             if (mDescida.op.tipo == Arvore::Tipo::Inserir && cabe && !mNosDaArvore.count(fim)) {
-                // ENTRA: a chave vira a folha daquele lugar.
+                // Entra: a chave vira a folha daquele lugar.
                 mNosDaArvore[fim] = k;
                 mProjeteisDaArvore[fim] = chave;
                 chave->DefinirPosto(Arvore::kPostoDaArvore);
             } else if (mDescida.op.tipo == Arvore::Tipo::Inserir) {
-                // ALTURA DEMAIS: a chave cai da arvore, em cima do aluno.
+                // Altura demais: a chave cai da arvore, em cima do aluno.
                 chave->DefinirPosto("");
                 Vector2 d(0.0f, 1.0f);
                 if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
@@ -324,8 +315,7 @@ void Salles::AtualizarArvore(const float deltaTime) {
                 }
                 if (auto* rb = chave->GetComponent<RigidBodyComponent>()) rb->SetVelocity(d * kVelocidadeDaQueda);
             } else {
-                // A BUSCA: achou, o no achado estoura; nao achou, o NULL cai do
-                // lugar vazio. A chave que buscava some.
+                // A busca: achou, o no achado estoura; nao achou, o NULL cai do lugar vazio.
                 if (achou) {
                     DispararDaArvore(Arvore::kGatilhoDoAchado, Vector2(Arvore::X(fim), Arvore::Y(fim)), false,
                                      mDegrauDaArvore.rapidez, mDegrauDaArvore.anelDoAchado);
@@ -340,14 +330,14 @@ void Salles::AtualizarArvore(const float deltaTime) {
         }
     }
 
-    // UMA OPERACAO NOVA: a chave sai do professor e comeca a descer.
+    // Uma operacao nova: a chave sai do professor e comeca a descer.
     if (!mDescida.ativa && agora >= mProximaOperacaoDaArvore) {
         const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
         const Arvore::Operacao op = Arvore::Proxima(mNosDaArvore, sorteio, mPlanoDaArvore);
         DispararDaArvore(Arvore::kGatilhoDaChave, GetPosition(), false);
         if (mCriadaNaArvore) {
             if (auto* anim = mCriadaNaArvore->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(Hash::CaraDaChave(op.chave));
-            // A CHAVE QUE BUSCA NAO MACHUCA: e a pergunta, e nao um tiro.
+            // A chave que busca nao machuca: e a pergunta, e nao um tiro.
             mCriadaNaArvore->DefinirEnfeite(op.tipo == Arvore::Tipo::Buscar);
             mDescida = Descida{};
             mDescida.ativa = true;
@@ -361,7 +351,7 @@ void Salles::AtualizarArvore(const float deltaTime) {
 
     AtualizarArestas();
 
-    // CADA NO NO LUGAR DELE, e a chave que desce em cima do no da vez.
+    // Cada no no lugar dele, e a chave que desce em cima do no da vez.
     for (const auto& [i, p] : mProjeteisDaArvore) {
         p->SetPosition(Ancora::Aproximar(p->GetPosition(), Vector2(Arvore::X(i), Arvore::Y(i)), kRapidezDaChave, deltaTime));
         if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
@@ -412,7 +402,7 @@ void Salles::AtualizarHash(const float deltaTime) {
     const bool noHash = fsm && fsm->GetStateName() == Hash::kFaseDoHash && !EhClone();
 
     if (!noHash) {
-        // A FASE ACABOU: a tabela cai inteira, e os baldes somem.
+        // A fase acabou: a tabela cai inteira, e os baldes somem.
         if (mNoHash) {
             for (const Chave& c : mChaves) {
                 c.p->DefinirPosto("");
@@ -448,16 +438,14 @@ void Salles::AtualizarHash(const float deltaTime) {
     }
     const float agora = fsm->GetStateTime();
 
-    // QUEM SAIU DA TABELA SAI DA CONTA - a chave que o aluno derrubou -, e as
-    // listas se refazem.
+    // Quem saiu da tabela sai da conta - a chave que o aluno derrubou -, e as listas se refazem.
     const auto antes = mChaves.size();
     mChaves.erase(std::remove_if(mChaves.begin(), mChaves.end(), [](const Chave& c) {
         return c.p->GetState() != ActorState::Active || c.p->Posto() != Hash::kPostoDasChaves;
     }), mChaves.end());
     if (mChaves.size() != antes) RefazerListas();
 
-    // A BUSCA EM CURSO: um no por vez atira para baixo; no fim, o achado sai
-    // atirado no aluno, ou o NULL cai pela coluna.
+    // A busca em curso: um no por vez atira para baixo.
     if (mBusca.ativa && agora >= mBusca.proximo) {
         mBusca.proximo += Hash::kEntreNos;
         if (mBusca.lidos < mBusca.nos.size()) {
@@ -482,12 +470,12 @@ void Salles::AtualizarHash(const float deltaTime) {
         }
     }
 
-    // A OPERACAO - menos durante uma busca, que le a lista ate o fim.
+    // A operacao - menos durante uma busca, que le a lista ate o fim.
     if (agora >= mProximaOperacaoDoHash && !mBusca.ativa) {
         mProximaOperacaoDoHash += mDegrauDoHash.passo;
 
         if (mRehashPendente) {
-            // O REHASH: a tabela cresce, e toda chave muda de balde.
+            // O rehash: a tabela cresce, e toda chave muda de balde.
             const int novo = Hash::ProximoTamanho(mTamanho);
             RegistrarAnuncio(Hash::kFaseDoHash, Hash::PlacarDoRehash(mTamanho, novo));
             mTamanho = novo;
@@ -515,7 +503,7 @@ void Salles::AtualizarHash(const float deltaTime) {
                 RegistrarAnuncio(Hash::kFaseDoHash, Hash::PlacarDaInsercao(op.chave, mTamanho));
                 mRehashPendente = Hash::PrecisaDeRehash(static_cast<int>(mChaves.size()), mTamanho);
             } else {
-                // A BUSCA LE A LISTA DO BALDE do comeco ate a chave - ou ate o fim.
+                // A busca le a lista do balde do comeco ate a chave - ou ate o fim.
                 std::vector<const Chave*> lista;
                 for (const Chave& c : mChaves) if (c.balde == balde) lista.push_back(&c);
                 std::sort(lista.begin(), lista.end(), [](const Chave* a, const Chave* b) { return a->posicao < b->posicao; });
@@ -534,8 +522,7 @@ void Salles::AtualizarHash(const float deltaTime) {
         }
     }
 
-    // CADA CHAVE NO LUGAR DELA, pendurada no balde: a que acabou de entrar sai
-    // do professor, e no rehash todas atravessam para a lista nova.
+    // Cada chave no lugar dela, pendurada no balde.
     for (const Chave& c : mChaves) {
         const Vector2 lugar(Hash::CentroDoBalde(c.balde, mTamanho, largura), Hash::AlturaNaLista(c.posicao));
         c.p->SetPosition(Ancora::Aproximar(c.p->GetPosition(), lugar, kRapidezDaChave, deltaTime));
@@ -548,8 +535,7 @@ std::optional<Vector2> Salles::AlvoDoMovimento() const {
 }
 
 void Salles::DerrubarPilha() {
-    // A PILHA CAI ABERTA EM LEQUE, cada bloco num angulo: a do topo no meio, e
-    // as outras para os lados - uma chuva, e nao uma coluna so.
+    // A pilha cai aberta em leque, cada bloco num angulo.
     const int n = static_cast<int>(mPilha.size());
     for (int k = 0; k < n; ++k) {
         BossProjectile* b = mPilha[static_cast<size_t>(k)];
@@ -568,8 +554,7 @@ void Salles::AtualizarPilha(const float deltaTime) {
     const auto* fsm = GetComponent<FSMComponent>();
     const bool naPilha = fsm && fsm->GetStateName() == Pilha::kFaseDaPilha && !EhClone();
 
-    // OS BLOCOS QUE SAIRAM NUM POP ESTOURAM na hora deles, dentro ou fora da
-    // fase: um pop do fim da fase ainda esta voando.
+    // Os blocos que sairam num pop estouram na hora deles, dentro ou fora da fase.
     for (auto& p : mPopados) {
         if (p.bloco->GetState() != ActorState::Active) { p.idade = -1.0f; continue; }
         p.idade += deltaTime;
@@ -588,7 +573,7 @@ void Salles::AtualizarPilha(const float deltaTime) {
                    mPopados.end());
 
     if (!naPilha) {
-        // A FASE ACABOU: a pilha cai, e o professor deixa de ter coluna.
+        // A fase acabou: a pilha cai, e o professor deixa de ter coluna.
         if (mNaPilha) {
             DerrubarPilha();
             if (!mAnuncioDaPilha.empty()) RegistrarAnuncio(Pilha::kFaseDaPilha, mAnuncioDaPilha);
@@ -612,7 +597,7 @@ void Salles::AtualizarPilha(const float deltaTime) {
     }
     const float agora = fsm->GetStateTime();
 
-    // QUEM SAIU DA PILHA SAI DA CONTA: o bloco que o aluno derrubou a tiro.
+    // Quem saiu da pilha sai da conta: o bloco que o aluno derrubou a tiro.
     for (size_t k = 0; k < mPilha.size();) {
         if (mPilha[k]->GetState() != ActorState::Active || mPilha[k]->Posto() != Pilha::kPostoDaPilha) {
             mPilha.erase(mPilha.begin() + static_cast<std::ptrdiff_t>(k));
@@ -622,8 +607,7 @@ void Salles::AtualizarPilha(const float deltaTime) {
         }
     }
 
-    // DE COLUNA EM COLUNA, parando em cada uma: parado, ele leva tiro; e
-    // andando, a pilha pendurada varre o campo.
+    // De coluna em coluna, parando em cada uma: parado, ele leva tiro.
     if (agora >= mProximaMudanca) {
         mProximaMudanca += kParadoNaColuna;
         const int salto = Random::GetIntRange(1, 2);
@@ -631,7 +615,7 @@ void Salles::AtualizarPilha(const float deltaTime) {
         mAlvo = Vector2(kColunasDaPilha[static_cast<size_t>(mColuna)], kAlturaDaPilha);
     }
 
-    // A OPERACAO DO PROGRAMA.
+    // A operacao do programa.
     if (agora >= mProximaOperacao) {
         mProximaOperacao += mDegrauDaPilha.passo;
         const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
@@ -649,7 +633,7 @@ void Salles::AtualizarPilha(const float deltaTime) {
                 mValores.push_back(op.valor);
             }
         } else if (op.tipo == Pilha::Tipo::Pop && !mPilha.empty()) {
-            // O TOPO SAI MIRADO NO ALUNO, e estoura no caminho.
+            // O topo sai mirado no aluno, e estoura no caminho.
             BossProjectile* b = mPilha.back();
             b->DefinirPosto("");
             Vector2 d(0.0f, 1.0f);
@@ -667,8 +651,7 @@ void Salles::AtualizarPilha(const float deltaTime) {
         RegistrarAnuncio(Pilha::kFaseDaPilha, Pilha::Placar(op, topo));
     }
 
-    // CADA BLOCO NO LUGAR DELE, embaixo do professor: o 0 colado nele, o topo
-    // la embaixo. Parados - sao armadura, e nao tiro.
+    // Cada bloco no lugar dele, embaixo do professor: o 0 colado nele, o topo la embaixo.
     for (size_t k = 0; k < mPilha.size(); ++k) {
         BossProjectile* b = mPilha[k];
         const Vector2 lugar = GetPosition() + Vector2(0.0f, Pilha::AbaixoDoProfessor(static_cast<int>(k)));
@@ -683,13 +666,13 @@ void Salles::AtualizarCapivara(const float deltaTime) {
     const std::string& fase = fsm->GetStateName();
     if (fase.empty()) return;
 
-    // O AVISO NO PLACAR SAI SOZINHO, no tempo dele - na fase em que foi dado.
+    // O aviso no placar sai sozinho, no tempo dele - na fase em que foi dado.
     if (mAvisoDaCapivara > 0.0f) {
         mAvisoDaCapivara -= deltaTime;
         if (mAvisoDaCapivara <= 0.0f) RegistrarAnuncio(mFaseDaCapivara, mAnuncioAntesDaCapivara);
     }
 
-    // UMA FASE NOVA, UM SORTEIO NOVO: se ela vem nesta, quando e de que lado.
+    // Uma fase nova, um sorteio novo: se ela vem nesta, quando e de que lado.
     if (fase != mFaseDaCapivara) {
         if (mAvisoDaCapivara > 0.0f) RegistrarAnuncio(mFaseDaCapivara, mAnuncioAntesDaCapivara);
         mAvisoDaCapivara = 0.0f;
@@ -700,7 +683,7 @@ void Salles::AtualizarCapivara(const float deltaTime) {
     }
     if (!mVisita.vem || mVeio || fsm->GetStateTime() < mVisita.quando) return;
 
-    // ELA APARECE, e o placar avisa.
+    // Ela aparece, e o placar avisa.
     mVeio = true;
     mDisparandoCapivara = true;
     Disparar(Capivara::kGatilho);
@@ -714,25 +697,25 @@ void Salles::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& proj
                                   const std::string& stateName) {
     Boss::OnProjectilesCreated(projectiles, stateName);
 
-    // O QUE A ORDENACAO CRIOU: o elemento novo do vetor.
+    // O que a ordenacao criou: o elemento novo do vetor.
     if (mDisparandoDaOrdenacao) {
         if (!projectiles.empty() && !mCriadaNaOrdenacao) mCriadaNaOrdenacao = dynamic_cast<BossProjectile*>(projectiles.front().get());
         return;
     }
 
-    // O QUE A ARVORE CRIOU: a chave que vai descer.
+    // O que a arvore criou: a chave que vai descer.
     if (mDisparandoDaArvore) {
         if (!projectiles.empty() && !mCriadaNaArvore) mCriadaNaArvore = dynamic_cast<BossProjectile*>(projectiles.front().get());
         return;
     }
 
-    // O QUE O HASH CRIOU: o balde ou a chave que o Salles acabou de pedir.
+    // O que o hash criou: o balde ou a chave que o Salles acabou de pedir.
     if (mDisparandoDoHash) {
         if (!projectiles.empty()) mCriadaNoHash = dynamic_cast<BossProjectile*>(projectiles.front().get());
         return;
     }
 
-    // O BLOCO QUE O PUSH CRIOU: e ele que entra na pilha.
+    // O bloco que o push criou: e ele que entra na pilha.
     if (mEmpurrando) {
         for (auto& p : projectiles) {
             if (auto* b = dynamic_cast<BossProjectile*>(p.get()); b && b->Posto() == Pilha::kPostoDaPilha) mEmpurrado = b;
@@ -741,7 +724,7 @@ void Salles::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& proj
     }
     if (!mDisparandoCapivara) return;
 
-    // ELA ANDA OLHANDO PARA ONDE VAI.
+    // Ela anda olhando para onde vai.
     for (auto& p : projectiles) {
         if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) {
             anim->SetAnimation(mVisita.daEsquerda ? Capivara::kAnimacaoDireita : Capivara::kAnimacaoEsquerda);
@@ -752,8 +735,7 @@ void Salles::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& proj
 void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stateName) {
     Boss::CustomizeAttackParams(params, stateName);
 
-    // A CAPIVARA ENTRA POR UMA BORDA E ATRAVESSA ATE A OUTRA, reta, na altura
-    // dela - e nao sai do professor nem no angulo da fase.
+    // A capivara entra por uma borda e atravessa ate a outra, reta, na altura dela.
     if (mDisparandoCapivara) {
         const float largura = (mScene && mScene->GetGame())
                                   ? static_cast<float>(mScene->GetGame()->GetWindowWidth()) : 1200.0f;
@@ -763,13 +745,11 @@ void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stat
         return;
     }
 
-    // NA TABELA HASH, cada coisa nasce onde o Salles diz: o balde no lugar
-    // dele, a chave no professor, o tiro do percurso no no lido, o NULL no fim
-    // da lista. Os angulos sao os do arquivo (para baixo).
+    // Na tabela hash, cada coisa nasce onde o Salles diz.
     if (stateName == Hash::kFaseDoHash) {
         if (!mDisparandoDoHash) return;
         params.firePosition = mDisparoDoHash;
-        // O NO LIDO ATIRA NO ALUNO, com um tiro no meio do leque.
+        // O no lido atira no aluno, com um tiro no meio do leque.
         if (mMirandoDoHash) {
             Vector2 d(0.0f, 1.0f);
             if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
@@ -781,7 +761,7 @@ void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stat
         return;
     }
 
-    // NA ARVORE, o que sai de um no sai dele - mirado no aluno, quando e tiro.
+    // Na arvore, o que sai de um no sai dele - mirado no aluno, quando e tiro.
     if (stateName == Arvore::kFaseDaArvore) {
         if (!mDisparandoDaArvore) return;
         params.firePosition = mDisparoDaArvore;
@@ -797,14 +777,10 @@ void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stat
         return;
     }
 
-    // O POP ESTOURA ONDE O BLOCO ESTA, em tantas lascas quanto o numero dele.
-    // O total e escrito inteiro a cada disparo (params e o mesmo objeto - ver
-    // Boss.h). E o push nasce no professor, parado: quem o leva ao lugar e a
-    // pilha.
+    // O pop estoura onde o bloco esta, em tantas lascas quanto o numero dele.
     if (stateName == Pilha::kFaseDaPilha) {
         if (mEstourando) {
-            // MIRADO NO ALUNO, com uma lasca no meio do leque quando o numero e
-            // par (ver Ricardo::CustomizeAttackParams).
+            // Mirado no aluno, com uma lasca no meio do leque quando o numero e par.
             params.firePosition = mDisparoDoEstouro;
             params.numProjectiles = mLascas;
             Vector2 d(0.0f, 1.0f);
@@ -819,8 +795,7 @@ void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stat
         return;
     }
 
-    // NA REPESCAGEM, o que sai de um elemento sai dele - mirado no aluno,
-    // quando e a capivara da troca. O anel e uma volta inteira de qualquer jeito.
+    // Na repescagem, o que sai de um elemento sai dele.
     if (stateName == Ordenacao::kFaseDaOrdenacao) {
         if (!mDisparandoDaOrdenacao) return;
         params.firePosition = mDisparoDaOrdenacao;
@@ -835,7 +810,4 @@ void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stat
         }
     }
 }
-
-
-
 

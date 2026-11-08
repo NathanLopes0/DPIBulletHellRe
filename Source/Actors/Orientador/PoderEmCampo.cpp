@@ -28,7 +28,7 @@ namespace {
     constexpr const char* kFolhaDaBala = "Teachers/Projectiles/DPIBHMariaLuciaRequisito";
     constexpr int kQuadroDaBala = 44;
 
-    /// O tiro do HLT: o tiro guardado ainda e o mesmo se a idade bate.
+    /// O tiro do hlt: o tiro guardado ainda e o mesmo se a idade bate.
     constexpr float kFolgaDaIdade = 0.15f;
 
     /// As figuras de um poder (a capivara, os agentes) saem quando ele acaba.
@@ -37,7 +37,7 @@ namespace {
         figuras.clear();
     }
 
-    // ---- ANDRE: for (;;) ------------------------------------------------------
+    // ---- Andre: for (;;) ----
 
     class Rajada final : public PoderEmCampo {
     public:
@@ -62,7 +62,7 @@ namespace {
         float mProximo = 0.0f;
     };
 
-    // ---- SALLES: a capivara ---------------------------------------------------
+    // ---- Salles: a capivara ----
 
     class Capivara final : public PoderEmCampo {
     public:
@@ -75,7 +75,7 @@ namespace {
         void Atualizar(Orientador& o, Battle& batalha, const float deltaTime, const bool ativo) override {
             if (!ativo) Desfazer(mFiguras);
             if (!ativo || !batalha.GetBoss() || mFiguras.empty() || !mFiguras.front()) return;
-            // A CAPIVARA ANDA EMBAIXO DO ALUNO e come o que encosta nela.
+            // A capivara anda embaixo do aluno e come o que encosta nela.
             const Vector2 aluno = o.PosicaoDoAluno();
             Actor* c = mFiguras.front();
             const float dx = aluno.x - c->GetPosition().x;
@@ -94,22 +94,19 @@ namespace {
         std::vector<Actor*> mFiguras;
     };
 
-    // ---- RICARDO: HLT ---------------------------------------------------------
+    // ---- Ricardo: hlt ----
 
     class Congelar final : public PoderEmCampo {
     public:
         void Soltar(Orientador& o, Battle& batalha, const Vector2&, const Vector2&) override {
             mCongelados.clear();
             mJaCongelados.clear();
-            // O CHEFE PARA JUNTO (Boss::Congelar): sem isso ele seguia atirando
-            // parado, e o que nascia congelava em cima dele - e caia tudo de
-            // uma vez quando o clock voltava.
+            // O chefe para junto (Boss::Congelar).
             for (Boss* corpo : batalha.Corpos()) {
                 if (corpo) corpo->Congelar(o.Descricao().duracao);
             }
         }
         void Atualizar(Orientador& o, Battle& batalha, float, const bool ativo) override {
-            // FIM DO EFEITO: o que congelou volta a andar, como estava.
             if (!ativo && !mCongelados.empty()) {
                 for (const Congelado& c : mCongelados) {
                     if (!Mesmo(o, c)) continue;
@@ -119,7 +116,7 @@ namespace {
                 mJaCongelados.clear();
             }
             if (!ativo || !batalha.GetBoss()) return;
-            // HLT: todo tiro solto para onde esta - os que nascem tambem.
+            // Hlt: todo tiro solto para onde esta - os que nascem tambem.
             for (BossProjectile* p : o.TirosSoltos(batalha)) {
                 if (mJaCongelados.insert(p).second) {
                     auto* rb = p->GetComponent<RigidBodyComponent>();
@@ -134,7 +131,6 @@ namespace {
             }
         }
     private:
-        /// O que congelou, e como estava.
         struct Congelado {
             BossProjectile* p = nullptr;
             Vector2 posicao;
@@ -142,8 +138,8 @@ namespace {
             float idade = 0.0f;
             float desde = 0.0f;
         };
-        /// O POOL RECICLA O PROJETIL: o ponteiro guardado so e o mesmo tiro
-        /// se ainda esta ativo e a idade dele bate com a de quando congelou.
+        /// O pool recicla o projetil: o ponteiro guardado so e o mesmo tiro se ainda esta ativo e a
+        /// idade dele bate com a de quando congelou.
         static bool Mesmo(const Orientador& o, const Congelado& c) {
             if (!c.p || c.p->GetState() != ActorState::Active) return false;
             return std::fabs(c.p->TempoDeVida() - (c.idade + (o.Tempo() - c.desde))) <= kFolgaDaIdade;
@@ -152,24 +148,24 @@ namespace {
         std::unordered_set<const BossProjectile*> mJaCongelados;
     };
 
-    // ---- THIAGO: ROLLBACK -----------------------------------------------------
+    // ---- Thiago: rollback ----
 
     class Rollback final : public PoderEmCampo {
     public:
         void Soltar(Orientador& o, Battle& batalha, const Vector2&, const Vector2&) override {
-            // TODO TIRO DO HUGO VOLTA por onde veio.
+            // Todo tiro do Hugo volta por onde veio.
             for (BossProjectile* p : o.TirosSoltos(batalha)) {
                 if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(rb->GetVelocity() * -1.0f);
             }
         }
     };
 
-    // ---- LUIZINHO: free() -----------------------------------------------------
+    // ---- Luizinho: free() ----
 
     class Liberar final : public PoderEmCampo {
     public:
         void Soltar(Orientador& o, Battle& batalha, const Vector2& aluno, const Vector2&) override {
-            // free(): o que esta perto do aluno some.
+            // Free(): o que esta perto do aluno some.
             for (BossProjectile* p : o.TirosSoltos(batalha)) {
                 if (Poder::NoAlcance(aluno, p->GetPosition(), o.Descricao().raio)) p->Kill();
             }
@@ -177,12 +173,12 @@ namespace {
         }
     };
 
-    // ---- VLADIMIR: o automato rejeita -----------------------------------------
+    // ---- Vladimir: o automato rejeita ----
 
     class Converter final : public PoderEmCampo {
     public:
         void Soltar(Orientador& o, Battle& batalha, const Vector2& aluno, const Vector2& alvo) override {
-            // O AUTOMATO REJEITA o que esta perto, e cada um volta como tiro nosso.
+            // O automato rejeita o que esta perto, e cada um volta como tiro nosso.
             const int quadroDele = Poder::QuadroDaMateria(Golpe::Materia::Vladimir);
             for (BossProjectile* p : o.TirosSoltos(batalha)) {
                 if (!Poder::NoAlcance(aluno, p->GetPosition(), o.Descricao().raio)) continue;
@@ -195,13 +191,12 @@ namespace {
         }
     };
 
-    // ---- JULIO: agentes autonomos ---------------------------------------------
+    // ---- Julio: agentes autonomos ----
 
     class Agentes final : public PoderEmCampo {
     public:
         void Soltar(Orientador& o, Battle&, const Vector2&, const Vector2&) override {
-            // OS AGENTES voam em volta do aluno enquanto o poder dura - e o que
-            // mostra que os tiros estao cacando.
+            // Os agentes voam em volta do aluno enquanto o poder dura.
             mInicio = o.Tempo();
             for (int k = 0; k < o.Descricao().tiros; ++k) {
                 mFiguras.push_back(o.Figura(kFolhaDosAgentes, {8, 9, 10, 11}, 1.3f));
@@ -220,9 +215,7 @@ namespace {
                         Poder::Agente(aluno, k, n, o.Tempo() - mInicio, o.Descricao().raio));
                 }
             }
-            // ...e todo tiro do aluno e do orientador CACA UM ALVO: com o Hugo
-            // blindado, o alvo do objetivo mais perto; sem alvo, o chefe. O
-            // tiro curva (Poder::Guiar), e nao teleporta.
+            // ...e todo tiro do aluno e do orientador caca um alvo.
             const std::vector<Vector2> destrutiveis = chefe->AlvosDestrutiveis();
             ProjectileManager* tiros = batalha.GetProjectileManager();
             if (!tiros) return;
@@ -252,12 +245,12 @@ namespace {
         std::vector<Actor*> mFiguras;
     };
 
-    // ---- MARIA LUCIA: a bala de prata -----------------------------------------
+    // ---- Maria Lucia: a bala de prata ----
 
     class BalaDePrata final : public PoderEmCampo {
     public:
         void Soltar(Orientador& o, Battle& batalha, const Vector2&, const Vector2& alvo) override {
-            // A BALA DE PRATA curva ate o chefe e, chegando, quebra o escudo.
+            // A bala de prata curva ate o chefe e, chegando, quebra o escudo.
             Golpe::Tiro t;
             t.velocidade = 650.0f;
             t.curva = 400.0f;
@@ -267,24 +260,22 @@ namespace {
             mBala = bala ? bala->Id() : 0;
         }
         void Atualizar(Orientador&, Battle& batalha, float, bool) override {
-            // A BALA NAO TEM DURACAO: ela vale ate chegar, entao a conferencia
-            // roda com o efeito ativo ou nao.
             Boss* chefe = batalha.GetBoss();
             if (mBala == 0 || !chefe) return;
             bool achou = false;
             if (ProjectileManager* tiros = batalha.GetProjectileManager()) {
                 for (const auto& p : tiros->GetPlayerProjectiles()) {
-                    // A BALA BARRADA PELO ESCUDO murcha (PlayerProjectile::Murchar): ja acertou.
+                    // A bala barrada pelo escudo murcha (PlayerProjectile::Murchar): ja acertou.
                     if (!p || p->Id() != mBala || p->GetState() != ActorState::Active || p->Murchando()) continue;
                     achou = true;
-                    // PERTO DO CHEFE, o escudo quebra - uma vez.
+                    // Perto do chefe, o escudo quebra - uma vez.
                     if ((p->GetPosition() - chefe->GetPosition()).Length() < 90.0f) {
                         chefe->QuebrarEscudo();
                         mBala = 0;
                     }
                 }
             }
-            // ACERTOU ANTES DE CHEGAR PERTO (o colisor do chefe e grande): quebra.
+            // Acertou antes de chegar perto (o colisor do chefe e grande): quebra.
             if (!achou && mBala != 0) {
                 chefe->QuebrarEscudo();
                 mBala = 0;
@@ -294,15 +285,12 @@ namespace {
         std::uint64_t mBala = 0;
     };
 
-    // ---- LUCAS: Promise.all() -------------------------------------------------
+    // ---- Lucas: Promise.all() ----
 
     class PromiseAll final : public PoderEmCampo {
     public:
         void Soltar(Orientador& o, Battle& batalha, const Vector2&, const Vector2&) override {
-            // DOZE PROMESSAS em volta dele, pendentes, que resolvem juntas - e
-            // VOLTAM (PlayerProjectile::FazerPromessa): o valor de uma promessa
-            // e o que ela devolve. Na ida e na volta desfazem os tiros do Hugo
-            // que encostam.
+            // Doze promessas em volta dele, pendentes, que resolvem juntas.
             const Poder::Descricao& d = o.Descricao();
             const int quadroDele = Poder::QuadroDaMateria(Golpe::Materia::Lucas);
             for (int k = 0; k < d.tiros; ++k) {
@@ -320,7 +308,7 @@ namespace {
         }
     };
 
-    // ---- VITOR: socket() ------------------------------------------------------
+    // ---- Vitor: socket() ----
 
     class Rede final : public PoderEmCampo {
     public:

@@ -8,11 +8,7 @@
 
 #include <vector>
 
-// A PARTE QUE DA PARA TESTAR DE UMA MECANICA QUE MEXE NOS JOGADORES.
-//
-// Battle move os alunos, desenha os marcadores e troca o placar, e nada disso
-// entra na suite. O que entra sao as duas contas: para onde cada um vai, e em
-// que quadro.
+// A parte que da para testar de uma mecanica que mexe nos jogadores.
 
 TEST_CASE("Intercambio: em dupla, um vai para o lugar do outro") {
     const auto d = Intercambio::Destinos({Vector2(300, 682), Vector2(900, 650)}, 1200.0f);
@@ -25,9 +21,7 @@ TEST_CASE("Intercambio: em dupla, um vai para o lugar do outro") {
 
 TEST_CASE("Intercambio: sozinho, o aluno vai para o espelho e fica na mesma altura") {
 
-    // O ESPELHO E DA LARGURA, e nao do centro do aluno: x vira largura - x. Um
-    // aluno no meio fica no meio - o intercambio nao o tira do lugar, e isso e
-    // o certo: o lugar "do outro aluno" e o mesmo.
+    // O espelho e da largura, e nao do centro do aluno: x vira largura - x.
     const auto d = Intercambio::Destinos({Vector2(200, 682)}, 1200.0f);
     REQUIRE(d.size() == 1);
     CHECK(d[0].x == doctest::Approx(1000.0f));
@@ -55,14 +49,11 @@ TEST_CASE("Intercambio: a troca acontece a cada periodo, e o aviso acende antes"
     CHECK_FALSE(Intercambio::Avancar(r, 0.2f));
     CHECK(Intercambio::Avisando(r));
 
-    // Aos 8s, a troca - e o aviso apaga no mesmo quadro. Este quadro passa da
-    // conta em 0,1s, de proposito.
+    // Aos 8s, a troca - e o aviso apaga no mesmo quadro.
     CHECK(Intercambio::Avancar(r, 1.5f));
     CHECK_FALSE(Intercambio::Avisando(r));
 
-    // A SEGUNDA TROCA E 8s DEPOIS DA PRIMEIRA, e nao 8s depois do quadro em que
-    // ela foi notada: os 0,1s que sobraram contam. Sem isso ela sairia aos
-    // 16,1s, e cada troca atrasaria um pouco mais que a anterior.
+    // A segunda troca e 8s depois da primeira, e nao 8s depois do quadro em que ela foi notada.
     CHECK(r.t == doctest::Approx(0.1f));
     CHECK_FALSE(Intercambio::Avancar(r, 7.85f));
     CHECK(Intercambio::Avancar(r, 0.05f));
@@ -70,8 +61,7 @@ TEST_CASE("Intercambio: a troca acontece a cada periodo, e o aviso acende antes"
 
 TEST_CASE("Intercambio: um relogio invalido nunca troca nem avisa") {
 
-    // Aviso do tamanho do periodo seria um aviso aceso para sempre; periodo zero,
-    // uma troca a cada quadro.
+    // Aviso do tamanho do periodo seria um aviso aceso para sempre.
     for (const auto& r0 : {Intercambio::Relogio{8.0f, 8.0f, 0.0f},
                            Intercambio::Relogio{0.0f, 0.0f, 0.0f},
                            Intercambio::Relogio{8.0f, -1.0f, 0.0f}}) {

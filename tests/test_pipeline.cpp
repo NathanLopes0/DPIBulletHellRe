@@ -56,8 +56,6 @@ TEST_CASE("Pipeline: na ultima volta a previsao erra - flush, duas bolhas, e a b
     CHECK(TipoNo(e, Pipeline::EX) == Tipo::Bne);
     CHECK(e.estagio[Pipeline::ID] == Pipeline::kBolha);
     CHECK(e.estagio[Pipeline::IF] == Pipeline::kBolha);
-    // tres voltas de quatro instrucoes, e o bne da terceira chega ao EX dois
-    // ciclos depois de buscado
     CHECK(flushNo == 3 * 4 - 1 + 2);
 
     Pipeline::Avancar(e);
@@ -72,13 +70,13 @@ TEST_CASE("Pipeline: o programa recomeca e erra a previsao de novo, uma vez por 
     Pipeline::Estado e;
     int flushes = 0;
     for (int k = 0; k < 60; ++k) flushes += Pipeline::Avancar(e).flush ? 1 : 0;
-    // uma execucao: 3 voltas de 4, o sw e o j, e as 2 bolhas do flush = 16 ciclos
+    // Uma execucao: 3 voltas de 4, o sw e o j, e as 2 bolhas do flush = 16 ciclos.
     CHECK(flushes == 60 / 16);
 }
 
 TEST_CASE("Pipeline: a instrucao derrubada vira bolha, e a bolha anda como as outras") {
     Pipeline::Estado e;
-    for (int k = 0; k < 3; ++k) Pipeline::Avancar(e);   // lw no EX
+    for (int k = 0; k < 3; ++k) Pipeline::Avancar(e);   // Lw no ex.
     CHECK(TipoNo(e, Pipeline::EX) == Tipo::Lw);
     Pipeline::Estourar(e, Pipeline::ID);                // o add
     CHECK(e.estagio[Pipeline::ID] == Pipeline::kBolha);
@@ -93,7 +91,7 @@ TEST_CASE("Pipeline: cada instrucao ataca no estagio dela") {
     CHECK(Pipeline::Gatilho(Tipo::Addi, Pipeline::EX) == "addi");
     CHECK(Pipeline::Gatilho(Tipo::Lw, Pipeline::MEM) == "lw");
     CHECK(Pipeline::Gatilho(Tipo::Sw, Pipeline::MEM) == "sw");
-    CHECK(Pipeline::Gatilho(Tipo::Lw, Pipeline::EX).empty());     // o load calcula o endereco no EX
+    CHECK(Pipeline::Gatilho(Tipo::Lw, Pipeline::EX).empty());     // O load calcula o endereco no ex.
     CHECK(Pipeline::Gatilho(Tipo::Add, Pipeline::MEM).empty());
     CHECK(Pipeline::Gatilho(Tipo::Bne, Pipeline::EX).empty());
     CHECK(Pipeline::Gatilho(Tipo::J, Pipeline::ID).empty());
@@ -118,11 +116,9 @@ TEST_CASE("Pipeline: com 2, 3 ou 4 voltas o flush vem depois da ultima, e o prog
         for (; ciclo < 60; ++ciclo) {
             if (Pipeline::Avancar(e).flush) { flushNo = ciclo; break; }
         }
-        // 'voltas' voltas de quatro instrucoes, e o bne da ultima chega ao EX
-        // dois ciclos depois de buscado.
         CHECK(flushNo == voltas * 4 - 1 + 2);
         CHECK(TipoNo(e, Pipeline::EX) == Tipo::Bne);
-        // UMA EXECUCAO INTEIRA cabe na fase, com o ciclo de qualquer modo.
+        // Uma execucao inteira cabe na fase, com o ciclo de qualquer modo.
         const float execucao = static_cast<float>(voltas * 4 + 2 + 2) *
                                Pipeline::DegrauDo(Dificuldade::Nivel::Normal).ciclo;
         CHECK(Pipeline::kPrimeiroCiclo + execucao < Fase::kDuracao);

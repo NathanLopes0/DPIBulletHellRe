@@ -13,9 +13,7 @@ float Ganho(const float notaAtual, const float ganhoBruto) {
     if (ganhoBruto <= 0.0f) return ganhoBruto;      // perda nao e assunto daqui
     if (notaAtual < kFaixaFacil) return ganhoBruto;
 
-    // O fator vale 1 em kFaixaFacil e mingua ate zero em kAssintota. Como a
-    // assintota esta acima de 100, em 100 ele ainda e positivo - pequeno, mas
-    // positivo, que e o que mantem a nota cheia alcancavel.
+    // O fator vale 1 em kFaixaFacil e mingua ate zero em kAssintota.
     const float faltaParaAssintota = kAssintota - notaAtual;
     if (faltaParaAssintota <= 0.0f) return 0.0f;    // so se alguem mexer nas constantes
 
@@ -28,9 +26,7 @@ bool PerdeuACheia(const int acertosSofridos) {
 }
 
 bool ECheia(const float nota) {
-    // >= e nao ==: Somar ja limita em kNotaMaxima, entao passar nao deveria
-    // acontecer - mas se um dia acontecer, o certo e acender o dourado, e nao
-    // apaga-lo justamente para quem foi melhor de todos.
+    // >= e nao ==: Somar ja limita em kNotaMaxima, entao passar nao deveria acontecer.
     return nota >= kNotaMaxima;
 }
 
@@ -40,8 +36,6 @@ float TetoCom(const int acertosSofridos) {
 
 Desfecho AposTerceiraFase(const float nota) {
 
-    // A ordem importa: a nota cheia e testada ANTES da faixa de aprovacao,
-    // senao 100 cairia em "Aprovado" e o teste final nunca aconteceria.
     if (ECheia(nota))             return Desfecho::VaiParaFinal;
     if (nota >= kNotaAprovacao)   return Desfecho::Aprovado;
     if (nota >= kNotaDeExame)     return Desfecho::VaiParaFinal;
@@ -53,9 +47,7 @@ float Somar(const float notaAtual, const float ganhoBruto, const int acertosSofr
     const float nova = notaAtual + Ganho(notaAtual, ganhoBruto);
     const float teto = TetoCom(acertosSofridos);
 
-    // O teto e aplicado DEPOIS da curva, e nao no lugar dela: quem levou dano
-    // demais continua subindo normalmente ate 99.99 e so para ali. Trocar a
-    // ordem faria o dano tambem desacelerar a subida, que e punir duas vezes.
+    // O teto e aplicado depois da curva, e nao no lugar dela.
     if (nova > teto) return teto;
     if (nova < kNotaMinima) return kNotaMinima;
     return nova;
@@ -80,8 +72,7 @@ float PerdaPorJogador(const float bruto, const size_t quantosJogadores) {
 
     const float repartido = PorJogador(bruto, quantosJogadores);
 
-    // SOZINHO NAO HA ALIVIO. Ver o cabecalho: o solo e o caso normal e o numero
-    // dele nao muda por causa de uma regra do co-op.
+    // Sozinho nao ha alivio.
     if (quantosJogadores <= 1) return repartido;
 
     return repartido * kAlivioDaPerdaEmGrupo;

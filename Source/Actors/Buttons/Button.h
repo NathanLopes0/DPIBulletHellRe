@@ -5,7 +5,6 @@
 #ifndef DPIBULLETHELLRE_BUTTON_H
 #define DPIBULLETHELLRE_BUTTON_H
 
-
 #include "../Actor.h"
 
 class Button : public Actor {
@@ -19,12 +18,10 @@ public:
 
 private:
 
-
 protected:
     int mWidth{};
     int mHeight{};
     bool mIsSelected = false;
 };
 
-
-#endif //DPIBULLETHELLRE_BUTTON_H
+#endif // DPIBULLETHELLRE_BUTTON_H.

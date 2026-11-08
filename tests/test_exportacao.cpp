@@ -1,4 +1,4 @@
-// As notas da turma em CSV. Camada pura: nao abre arquivo.
+// As notas da turma em CSV.
 
 #include "doctest.h"
 #include "../Source/Regras/Dificuldade.h"
@@ -70,8 +70,7 @@ TEST_CASE("Exportacao: o codigo E o nome saem, os dois") {
 }
 
 TEST_CASE("Exportacao: aprovado olha o RECORDE, nao a ultima nota") {
-    // Quem passou e depois jogou mal continua aprovado - a mesma regra do resto do
-    // jogo, e a que o professor espera ver.
+    // Quem passou e depois jogou mal continua aprovado.
     const std::string csv = Exportacao::ParaCsv({
         Aluno("1", {{0, 85.0f, 30.0f, ""}})
     }, Curso());
@@ -135,21 +134,18 @@ TEST_CASE("Exportacao: os recordes do Dificil vem nas ultimas colunas") {
 
     const std::string csv = Exportacao::ParaCsv({f}, Curso());
     CHECK(csv.find(",quando,recordeDificil,recordeDuplaDificil,parceiroDificil\n") != std::string::npos);
-    // recorde (Normal) 55, e no fim os do Dificil: 64.50 sozinho, 71.00 com 90112.
+    // Recorde (Normal) 55, e no fim os do Dificil: 64.50 sozinho, 71.00 com 90112.
     CHECK(csv.find("1,INF213,") != std::string::npos);
     CHECK(csv.find(",55.00,") != std::string::npos);
     CHECK(csv.find(",2026-11-03 10:00:00,64.50,71.00,90112\n") != std::string::npos);
-    // APROVADO PELO DIFICIL: passar e passar, no nivel que for.
+    // Aprovado pelo Dificil: passar e passar, no nivel que for.
     CHECK(csv.find(",sim,") != std::string::npos);
 }
 
-// ---------------------------------------------------------------------------
-// Escape de CSV
-// ---------------------------------------------------------------------------
+// Escape de CSV.
 
 TEST_CASE("Exportacao: campo com virgula ganha aspas") {
-    // Um nome de materia com virgula quebraria a coluna seguinte - e e o tipo de
-    // coisa que so aparece quando alguem renomeia uma materia meses depois.
+    // Um nome de materia com virgula quebraria a coluna seguinte.
     CHECK(Exportacao::Campo("INF 213") == "INF 213");
     CHECK(Exportacao::Campo("Estruturas, parte 1") == "\"Estruturas, parte 1\"");
 }
@@ -173,10 +169,6 @@ TEST_CASE("Exportacao: um nome com virgula nao desalinha a planilha") {
 
 TEST_CASE("Exportacao: o teto de 99,99 nao vira 100 na planilha") {
 
-    // O MOTIVO DAS DUAS CASAS. 99,99 e a nota de quem subiu a curva inteira mas
-    // foi atingido vezes demais; 100 e de quem fez a corrida limpa. Com uma casa
-    // decimal os dois sairiam "100.0" aqui, e o documento que o professor usa
-    // perderia exatamente a distincao que o teto existe para registrar.
     const std::string csv =
         Exportacao::ParaCsv({Aluno("1", {{0, Nota::kTetoComDano, Nota::kTetoComDano, ""}})}, Curso());
 
@@ -194,12 +186,7 @@ TEST_CASE("Exportacao: a nota cheia de verdade sai como 100") {
 
 TEST_CASE("Exportacao: a planilha e o jogo concordam sobre quem passou") {
 
-    // ERA A MESMA REGRA ESCRITA EM DOIS LUGARES. A planilha comparava o recorde
-    // de SOLO com 60 por conta propria; com o co-op, um aluno que passou
-    // acompanhado sairia como "nao" na planilha e como aprovado no jogo - e o
-    // professor so descobriria conferindo a mao.
-    //
-    // Agora ela chama Progresso::Aprovado, que e o que o mapa do curso le.
+    // A planilha comparava o recorde de solo com 60 por conta propria.
     Progresso p;
     p.RegistrarNotaDeDupla(0, 75.0f, Dificuldade::Nivel::Normal, "90112", "2026-10-14 15:00:00");
 

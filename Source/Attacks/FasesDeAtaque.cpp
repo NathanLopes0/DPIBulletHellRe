@@ -26,15 +26,11 @@ namespace {
         // O registrador de deslocamento e o clock do Ricardo - ver Logica.h
         // e Relogio.h.
         "Deslocamento", "OndaQuadrada",
-        // O professor que diz para onde vai (Boss::AlvoDoMovimento): o
-        // Vladimir e o Salles, que levam o corpo ate o lugar da estrutura.
+        // O professor que diz para onde vai (Boss::AlvoDoMovimento).
         "Conduzido"
     };
 
-    /// Os nomes aceitos, para a mensagem de erro. DERIVADA da lista acima, e
-    /// nao escrita a mao ao lado dela: a frase antiga citava tres movimentos
-    /// por extenso, e acrescentar um quarto sem lembrar dela faria o erro
-    /// ensinar uma lista incompleta justamente a quem acabou de errar o nome.
+    /// Os nomes aceitos, para a mensagem de erro.
     std::string MovimentosAceitos() {
         std::string s;
         for (size_t i = 0; i < kMovimentos.size(); ++i) {
@@ -43,7 +39,7 @@ namespace {
         }
         return s;
     }
-    /// "None" NAO entra: a propria BaloonAttack recusa side == None.
+    /// "None" nao entra: a propria BaloonAttack recusa side == None.
     const std::vector<std::string> kLadosDeBalao = {"Down", "Left", "Right", "Up"};
     const std::vector<std::string> kEixosDeConsulta = {"Linha", "Coluna"};
     const std::vector<std::string> kGatilhos = {"notificacao", "consulta", "agir", "nuvens", "portas",
@@ -83,8 +79,8 @@ namespace {
         return (j.contains(nome) && j[nome].is_string()) ? j[nome].get<std::string>() : padrao;
     }
 
-    /// Le um numero OPCIONAL. Ausente devolve nullopt, e nao um padrao inventado:
-    /// e o que garante que a ponte nao sobrescreva o padrao do AttackParams.
+    /// Le um numero opcional. Ausente devolve nullopt, e nao um padrao inventado: e o que garante
+    /// que a ponte nao sobrescreva o padrao do AttackParams.
     std::optional<float> Opcional(const nlohmann::json& j, const char* nome) {
         if (j.contains(nome) && j[nome].is_number()) return j[nome].get<float>();
         return std::nullopt;
@@ -141,9 +137,7 @@ namespace {
         saida.aviso     = Opcional(j, "aviso");
         saida.invertido = OpcionalBool(j, "invertido");
 
-        // Uma tabela de zero faixas nao tem onde varrer, e a estrategia recusaria
-        // em tempo de execucao escrevendo no log. Recusar aqui troca um ataque
-        // que nao dispara por uma frase que diz o arquivo e a linha.
+        // Recusar aqui troca um ataque que nao dispara por uma frase que diz o arquivo e a linha.
         if (saida.linhas && *saida.linhas <= 0) {
             problemas.emplace_back(onde + "\"linhas\" precisa ser pelo menos 1");
             return false;
@@ -153,9 +147,7 @@ namespace {
             return false;
         }
 
-        // Aviso negativo nao e so um numero estranho: e a varredura disparando
-        // antes de aparecer. O jogador seria atingido por um ataque que nunca
-        // teve como ler - ver ConsultaAttackParams::aviso.
+        // Aviso negativo nao e so um numero estranho: e a varredura disparando antes de aparecer.
         if (saida.aviso && *saida.aviso < 0.0f) {
             problemas.emplace_back(onde + "\"aviso\" nao pode ser negativo: e o tempo em que o "
                                           "jogador ve a faixa escolhida antes de ela disparar");
@@ -168,13 +160,7 @@ namespace {
             return false;
         }
 
-        // UM INDICE FORA DA TABELA E RECUSADO, E NAO LIMITADO EM SILENCIO.
-        //
-        // A ConsultaAttack limita para a ultima faixa, porque em tempo de
-        // execucao nao ha nada melhor a fazer. Mas isso ja produziu uma fase
-        // final inteira em que quatro ataques diziam varrer as faixas 0, 2, 1 e
-        // 3 de uma tabela de UMA faixa: os quatro caiam na mesma, a tela toda, e
-        // nada avisava. O arquivo descrevia uma trelica que o jogo nunca desenhou.
+        // Um indice fora da tabela e recusado, e nao limitado em silencio.
         const Tabela::Forma padrao{};
         const int quantas = (saida.eixo == "Coluna")
                                 ? saida.colunas.value_or(padrao.colunas)
@@ -225,8 +211,6 @@ namespace {
             }
         }
 
-        // O modo de posicoes exatas tem duas exigencias que a BaloonAttack
-        // confere em tempo de execucao, escrevendo no log e nao disparando nada.
         // Conferir aqui troca um ataque invisivel por uma frase no arquivo.
         const bool aleatorio = saida.spawnAleatorio.value_or(false);   // igual ao padrao do struct
         if (!aleatorio) {
@@ -236,9 +220,7 @@ namespace {
                 return false;
             }
             if (saida.centradoNoJogador.value_or(true) != false) {
-                // centerOnPlayer nasce TRUE no BaloonAttackParams, e a estrategia
-                // recusa a combinacao. Omitir o campo aqui seria aceitar um
-                // ataque que nunca dispara.
+                // CenterOnPlayer nasce true no BaloonAttackParams, e a estrategia recusa a combinacao.
                 problemas.emplace_back(onde + "com \"spawnAleatorio\" falso e preciso dizer "
                                               "\"centradoNoJogador\": false - a BaloonAttack recusa "
                                               "as duas coisas juntas");
@@ -249,15 +231,8 @@ namespace {
         return true;
     }
 
-    /**
-     * Procura, entre as regras EM LINHA de um ataque, o ritmo da investida.
-     *
-     * Devolve nullopt quando nenhuma regra tem MiraPeriodica. So olha as regras
-     * em linha de proposito: uma regra apontada por nome vive em regras.json, e
-     * derivar o cooldown de um ritmo escrito em OUTRO arquivo criaria uma
-     * dependencia invisivel entre os dois - mexer em regras.json mudaria a
-     * cadencia de um ataque sem nenhum sinal em fases.json.
-     */
+    /// Procura, entre as regras em linha de um ataque, o ritmo da investida. Devolve nullopt quando
+    /// nenhuma regra tem MiraPeriodica.
     std::optional<RitmoDeCiclos> RitmoDaInvestida(const std::vector<Regra>& regras) {
         for (const Regra& r : regras) {
             if (r.temMotion && r.motion.tipo == "MiraPeriodica") return r.motion.ritmo;
@@ -355,9 +330,7 @@ namespace {
         }
         saida.etapa = Texto(j, "etapa");
 
-        // O GATILHO: um ataque que dispara quando o chefe puxa, e nao pelo
-        // relogio. Um gatilho que nenhum chefe puxa e um ataque que nunca
-        // aparece, calado - recusado na leitura.
+        // O gatilho: um ataque que dispara quando o chefe puxa, e nao pelo relogio.
         if (j.contains("gatilho")) {
             if (!j["gatilho"].is_string() || !GatilhoExiste(j["gatilho"].get<std::string>())) {
                 problemas.emplace_back(onde + "\"gatilho\" precisa ser o nome de um gatilho que existe");
@@ -371,16 +344,12 @@ namespace {
         saida.anguloCentral = Opcional(j, "anguloCentral");
         saida.intervalo     = Opcional(j, "intervalo");
 
-        // "regras" aceita as duas formas: o nome de um conjunto de regras.json,
-        // ou a lista escrita aqui mesmo. Lido ANTES do cooldown porque um
-        // cooldown derivado precisa do ritmo que mora nas regras em linha.
         if (j.contains("regras")) {
             if (j["regras"].is_string()) {
                 saida.regrasNome = j["regras"].get<std::string>();
             }
             else if (j["regras"].is_array()) {
-                // Reaproveita o parser de regras em vez de duplica-lo: o array e
-                // reserializado e passa pelo mesmo caminho de regras.json.
+                // Reaproveita o parser de regras em vez de duplica-lo.
                 saida.regras = LerListaDeRegras(j["regras"].dump(), onde, problemas);
                 saida.temRegrasEmLinha = true;
             }
@@ -392,7 +361,7 @@ namespace {
 
         if (!LerCooldown(j, onde, saida, problemas)) return false;
 
-        // --- o degrau do Dificil ---
+        // ---- O degrau do Dificil ----
         if (j.contains("dificil")) {
             const auto& d = j["dificil"];
             if (!d.is_object()) {
@@ -415,8 +384,7 @@ namespace {
                     }
                     (chave == "velocidade" ? dif.velocidade : dif.cooldown) = it->get<float>();
                 } else {
-                    // UMA CHAVE QUE NINGUEM LE seria um degrau que nao existe,
-                    // calado - a armadilha 9 do RETOMAR.
+                    // Uma chave que ninguem le seria um degrau que nao existe, calado - a armadilha 9 do retomar.
                     problemas.emplace_back(onde + "\"dificil\" nao conhece \"" + chave +
                                            "\" (so projeteis, velocidade e cooldown)");
                     return false;
@@ -425,13 +393,11 @@ namespace {
             saida.dificil = dif;
         }
 
-        // --- bloco de balao ---
+        // ---- Bloco de balao ----
         const bool ehBalao = (saida.estrategia == "BaloonAttack");
         if (j.contains("balao")) {
             if (!ehBalao) {
                 // Nao e fatal: o bloco simplesmente nao seria lido por ninguem.
-                // Mas avisar evita alguem passar uma tarde ajustando "lado" num
-                // AngledAttack e nao ver nada mudar.
                 problemas.emplace_back(onde + "so a BaloonAttack usa \"balao\"; o bloco foi ignorado");
             }
             else {
@@ -446,7 +412,7 @@ namespace {
             return false;
         }
 
-        // --- bloco de consulta ---
+        // ---- Bloco de consulta ----
         const bool ehConsulta = (saida.estrategia == "ConsultaAttack");
         if (j.contains("consulta")) {
             if (!ehConsulta) {
@@ -465,7 +431,7 @@ namespace {
             return false;
         }
 
-        // --- bloco de caixa (opcional) ---
+        // ---- Bloco de caixa (opcional) ----
         if (j.contains("caixa")) {
             if (saida.estrategia != "CaixaAttack") {
                 problemas.emplace_back(onde + "so a CaixaAttack usa \"caixa\"; o bloco foi ignorado");
@@ -480,7 +446,6 @@ namespace {
                 c.meiaAlturaInicial = Opcional(j["caixa"], "meiaAlturaInicial");
 
                 // Zero ou negativo nao e "uma caixa estranha": e caixa nenhuma.
-                // PontosDoContorno devolve vazio e o ataque nao dispara - calado.
                 if ((c.proporcao && *c.proporcao <= 0.0f)
                     || (c.meiaAlturaInicial && *c.meiaAlturaInicial <= 0.0f)) {
                     problemas.emplace_back(onde + "\"proporcao\" e \"meiaAlturaInicial\" da "
@@ -491,7 +456,7 @@ namespace {
             }
         }
 
-        // --- bloco de sprint (opcional) ---
+        // ---- Bloco de sprint (opcional) ----
         if (j.contains("sprint")) {
             if (saida.estrategia != "SprintAttack") {
                 problemas.emplace_back(onde + "so a SprintAttack usa \"sprint\"; o bloco foi ignorado");
@@ -507,9 +472,6 @@ namespace {
                 sp.cursor   = Texto(j["sprint"], "cursor");
                 sp.clique   = Texto(j["sprint"], "clique");
 
-                // Uma revisao em zero, ou antes, derrubaria as historias em
-                // cima do aluno antes de o cursor sair do professor: nao e uma
-                // sprint curta, e um numero digitado errado.
                 if (sp.revisao && *sp.revisao <= 0.0f) {
                     problemas.emplace_back(onde + "\"sprint\": \"revisao\" precisa ser maior que zero");
                     return false;
@@ -518,7 +480,7 @@ namespace {
             }
         }
 
-        // --- bloco de tokens (opcional) ---
+        // ---- Bloco de tokens (opcional) ----
         if (j.contains("tokens")) {
             if (saida.estrategia != "TokenAttack") {
                 problemas.emplace_back(onde + "so a TokenAttack usa \"tokens\"; o bloco foi ignorado");
@@ -555,9 +517,7 @@ namespace {
                     }
                 }
 
-                // Temperatura negativa nao e "mais fria que zero": e um sinal
-                // digitado errado. E um leque negativo poe os candidatos de
-                // tras para a frente, com a mesma cara de leque.
+                // Temperatura negativa nao e "mais fria que zero": e um sinal digitado errado.
                 if ((tk.temperatura && *tk.temperatura < 0.0f) || (tk.abertura && *tk.abertura < 0.0f)) {
                     problemas.emplace_back(onde + "\"tokens\": \"temperatura\" e \"abertura\" nao podem "
                                                   "ser negativas");
@@ -567,7 +527,7 @@ namespace {
             }
         }
 
-        // --- bloco de palavra (opcional) ---
+        // ---- Bloco de palavra (opcional) ----
         if (j.contains("palavra")) {
             if (saida.estrategia != "PalavraAttack") {
                 problemas.emplace_back(onde + "so a PalavraAttack usa \"palavra\"; o bloco foi ignorado");
@@ -583,8 +543,7 @@ namespace {
                 pl.zero = Texto(pj, "zero");
                 pl.um = Texto(pj, "um");
 
-                // QUEM SE ATRAVESSA: o zero sempre; "todos" e a fileira de
-                // portas, que nao machuca ninguem.
+                // Quem se atravessa: o zero sempre; "todos" e a fileira de portas, que nao machuca ninguem.
                 const std::string atravessa = Texto(pj, "atravessa", "zeros");
                 if (atravessa != "zeros" && atravessa != "todos") {
                     problemas.emplace_back(onde + "\"palavra\": \"atravessa\" e \"zeros\" ou \"todos\"");
@@ -592,9 +551,7 @@ namespace {
                 }
                 pl.todosAtravessam = (atravessa == "todos");
 
-                // O VALOR, escrito como se le: 0 e 1, com espacos para agrupar.
-                // Tantos digitos quantos bits a fileira tem - um digito a mais
-                // ou a menos deslocaria a palavra inteira de coluna.
+                // O valor, escrito como se le: 0 e 1, com espacos para agrupar.
                 if (pj.contains("valor")) {
                     if (!pj["valor"].is_string()) {
                         problemas.emplace_back(onde + "\"palavra\": \"valor\" se escreve com 0 e 1, entre aspas");
@@ -622,7 +579,7 @@ namespace {
             }
         }
 
-        // --- bloco de pontos (obrigatorio na PontosAttack) ---
+        // ---- Bloco de pontos (obrigatorio na PontosAttack) ----
         const bool ehPontos = (saida.estrategia == "PontosAttack");
         if (j.contains("pontos") && !ehPontos) {
             problemas.emplace_back(onde + "so a PontosAttack usa \"pontos\"; o bloco foi ignorado");
@@ -638,8 +595,7 @@ namespace {
             pt.mirar = OpcionalBool(j["pontos"], "mirar").value_or(false);
             pt.prever = OpcionalBool(j["pontos"], "prever").value_or(false);
 
-            // UM POSTO QUE NINGUEM OCUPA NAO DISPARA NADA, e calado: o Boss nao
-            // acha ponto nenhum e o ataque nunca aparece. Recusado na leitura.
+            // Um posto que ninguem ocupa nao dispara nada, e calado.
             if (!PostoExiste(pt.posto)) {
                 problemas.emplace_back(onde + "\"pontos\": o posto \"" + pt.posto + "\" nao existe");
                 return false;
@@ -689,8 +645,6 @@ FasesLidas LerFases(const std::string& textoJson) {
                 continue;
             }
             if (!NomeDeFaseExiste(nomeFase)) {
-                // Nome livre nao serve: a FSM procura os estados por texto, e um
-                // nome inventado nunca seria alcancado.
                 saida.problemas.emplace_back(onde + "nome de fase invalido. Use StateOne, "
                                              "StateTwo, StateThree ou StateFinal");
                 continue;
@@ -706,9 +660,7 @@ FasesLidas LerFases(const std::string& textoJson) {
                 continue;
             }
 
-            // "anuncio": o texto do placar nesta fase. Um valor que nao e texto
-            // e RECUSADO, e nao lido como vazio: viraria um placar que some sem
-            // aviso nenhum, e o jogador nunca saberia que havia algo a ler.
+            // "anuncio": o texto do placar nesta fase.
             if (corpoFase.contains("anuncio") && !corpoFase["anuncio"].is_string()) {
                 saida.problemas.emplace_back(onde + "\"anuncio\" deveria ser um texto");
                 continue;
@@ -716,10 +668,6 @@ FasesLidas LerFases(const std::string& textoJson) {
             f.anuncio = Texto(corpoFase, "anuncio");
 
             // "intercambio": os alunos trocam de lugar a cada "aCada" segundos.
-            // Os tres jeitos de errar sao recusados aqui, porque em jogo nenhum
-            // deles da erro: sem periodo a troca nunca acontece, um aviso do
-            // tamanho do periodo fica aceso para sempre, e um numero que falta
-            // vira zero sem ninguem ver.
             if (corpoFase.contains("intercambio")) {
                 const auto& ic = corpoFase["intercambio"];
                 if (!ic.is_object() || !ic.contains("aCada") || !ic["aCada"].is_number()
@@ -741,9 +689,7 @@ FasesLidas LerFases(const std::string& textoJson) {
                 f.intercambio = d;
             }
 
-            // "etapas": a fase em trechos com nome, em ordem. Recusadas inteiras se
-            // qualquer uma estiver errada: uma etapa a menos desloca todas as
-            // seguintes, e o ataque de Testes dispararia na hora da Manutencao.
+            // "etapas": a fase em trechos com nome, em ordem.
             if (corpoFase.contains("etapas")) {
                 const auto& lista = corpoFase["etapas"];
                 bool boas = lista.is_array() && !lista.empty();
@@ -768,8 +714,7 @@ FasesLidas LerFases(const std::string& textoJson) {
                                                  "que zero");
                     continue;
                 }
-                // A ULTIMA ETAPA TEM DE CABER NA FASE: a que passasse do fim
-                // nunca terminaria, e o ataque dela simplesmente pararia antes.
+                // A ultima etapa tem de caber na fase.
                 if (soma > f.duracao + 0.001f) {
                     saida.problemas.emplace_back(onde + "as \"etapas\" somam mais que a \"duracao\" "
                                                  "da fase");
@@ -781,10 +726,7 @@ FasesLidas LerFases(const std::string& textoJson) {
                 f.movimento = LerMovimento(corpoFase["movimento"], onde, saida.problemas);
             }
 
-            // "ataquesDe": esta fase usa os ataques de OUTRA. Serve a fase que
-            // se divide, em que o corpo original repete o ataque de uma fase
-            // anterior - escrever a lista de novo seria a mesma coisa dita duas
-            // vezes, e duas copias divergem.
+            // "ataquesDe": esta fase usa os ataques de outra.
             f.ataquesDe = Texto(corpoFase, "ataquesDe");
 
             if (corpoFase.contains("clone")) {
@@ -803,9 +745,7 @@ FasesLidas LerFases(const std::string& textoJson) {
                 f.clone.existe = true;
             }
 
-            // UMA FASE NAO PODE TER AS DUAS COISAS: "ataques" e "ataquesDe"
-            // juntos seriam duas respostas para "o que ele dispara aqui", e o
-            // leitor teria de escolher uma em silencio.
+            // Uma fase nao pode ter as duas coisas.
             const bool temLista = corpoFase.contains("ataques") && corpoFase["ataques"].is_array();
 
             if (temLista && !f.ataquesDe.empty()) {
@@ -816,8 +756,7 @@ FasesLidas LerFases(const std::string& textoJson) {
             }
 
             if (!f.ataquesDe.empty()) {
-                // A lista vem depois, quando todas as fases estiverem lidas:
-                // aqui a fase de origem pode ainda nao ter sido vista.
+                // A lista vem depois, quando todas as fases estiverem lidas.
                 saida.fases.push_back(std::move(f));
                 continue;
             }
@@ -842,8 +781,7 @@ FasesLidas LerFases(const std::string& textoJson) {
                 continue;
             }
 
-            // UM ATAQUE QUE PEDE UMA ETAPA QUE A FASE NAO TEM nunca dispararia.
-            // Descartado com aviso, como um ataque mal escrito.
+            // Um ataque que pede uma etapa que a fase nao tem nunca dispararia.
             for (auto it = f.ataques.begin(); it != f.ataques.end();) {
                 float de = 0.0f, ate = 0.0f;
                 if (!it->etapa.empty() && !JanelaDaEtapa(f.etapas, it->etapa, de, ate)) {
@@ -887,18 +825,14 @@ std::vector<std::string> ValidarTransicoes(const std::vector<DescricaoDeFase>& f
         problemas.emplace_back(onde + "falta StateOne, que e por onde a luta comeca");
     }
     if (!temStateFinal) {
-        // A armadilha que ja custou depuracao: nota entre 40 e 59 ao fim da
-        // terceira fase manda a FSM para StateFinal. Sem o estado, ela apenas
-        // loga um erro e o chefe congela.
+        // A armadilha que ja custou depuracao.
         problemas.emplace_back(onde + "falta StateFinal. Ele e obrigatorio mesmo num chefe de "
                                      "tres fases: se a nota ficar entre 40 e 59 ao fim da "
                                      "terceira, a FSM vai para StateFinal e o chefe congela "
                                      "sem ele");
     }
 
-    // "ataquesDe" e o "clone" apontam para OUTRA fase, e um nome errado neles
-    // falharia em silencio: a fase carregaria sem ataque nenhum e o chefe
-    // ficaria parado. Mesma razao da checagem de "proximo" logo abaixo.
+    // "ataquesDe" e o "clone" apontam para outra fase, e um nome errado neles falharia em silencio.
     auto existe = [&fases](const std::string& nome) {
         for (const auto& f : fases) if (f.nome == nome) return true;
         return false;
@@ -910,8 +844,7 @@ std::vector<std::string> ValidarTransicoes(const std::vector<DescricaoDeFase>& f
             if (alvo.empty()) continue;
 
             if (alvo == f.nome) {
-                // Uma fase que tira os ataques de si mesma e uma fase sem
-                // ataques: a resolucao nao tem de onde copiar.
+                // Uma fase que tira os ataques de si mesma e uma fase sem ataques.
                 problemas.emplace_back(onde + "a fase \"" + f.nome + "\" usa \"" + campo +
                                        "\" apontando para ela mesma");
                 continue;
@@ -922,10 +855,7 @@ std::vector<std::string> ValidarTransicoes(const std::vector<DescricaoDeFase>& f
                 continue;
             }
 
-            // SEM CORRENTE: a fase apontada tem de declarar os ataques dela.
-            // Permitir A -> B -> C exigiria detectar ciclo, e o ganho seria
-            // nenhum - "use os ataques de quem usa os ataques de outro" nao
-            // diz nada que apontar direto para a origem nao diga melhor.
+            // Sem corrente: a fase apontada tem de declarar os ataques dela.
             for (const auto& origem : fases) {
                 if (origem.nome != alvo) continue;
                 if (!origem.ataquesDe.empty()) {
@@ -972,10 +902,7 @@ int EtapaNoTempo(const std::vector<DescricaoDeEtapa>& etapas, const float t) {
 }
 
 float PrimeiroDisparoNaJanela(const float de) {
-    // A janela que abre no zero nunca esteve fechada: o relogio do ataque
-    // comeca em kPrimeiroDisparoDaFase e conta dali. A que abre depois passou
-    // o comeco da fase fechada, e fechada o relogio fica em no maximo
-    // kPrimeiroDisparoDaJanela.
+    // A janela que abre no zero nunca esteve fechada.
     if (de <= 0.0f) return kPrimeiroDisparoDaFase;
     return de + std::min(kPrimeiroDisparoDaFase, kPrimeiroDisparoDaJanela);
 }

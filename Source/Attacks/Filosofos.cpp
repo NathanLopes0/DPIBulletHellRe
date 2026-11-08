@@ -65,7 +65,7 @@ namespace Filosofos {
         const int x = GarfoDaEsquerda(escolhido);   // so normaliza o indice
         switch (r) {
             case Rodada::Jantar: {
-                // DOIS DE CADA VEZ, sem vizinhos: ninguem disputa garfo.
+                // Dois de cada vez, sem vizinhos: ninguem disputa garfo.
                 const int pares[3][2] = {{0, 2}, {1, 3}, {4, -1}};
                 const float comeca[3] = {0.3f, 1.85f, 3.4f};
                 const float dura[3] = {1.2f, 1.2f, 1.1f};
@@ -81,10 +81,10 @@ namespace Filosofos {
                 break;
             }
             case Rodada::Deadlock: {
-                // TODOS PEGAM O DA ESQUERDA, e todos esperam o da direita.
+                // Todos pegam o da esquerda, e todos esperam o da direita.
                 for (int f = 0; f < kFilosofos; ++f) p.push_back({0.3f, f, Acao::Pega, GarfoDaEsquerda(f)});
                 for (int f = 0; f < kFilosofos; ++f) p.push_back({0.75f, f, Acao::Espera, GarfoDaDireita(f)});
-                // kill -9: a vitima solta o garfo dela, e quem o esperava come.
+                // Kill -9: a vitima solta o garfo dela, e quem o esperava come.
                 const int a = Antes(x);
                 const int b = Antes(a);
                 p.push_back({2.1f, x, Acao::Morre});
@@ -97,14 +97,13 @@ namespace Filosofos {
                 break;
             }
             case Rodada::Ordem: {
-                // O DE MENOR NUMERO PRIMEIRO: o ultimo quer o garfo 0, que o
-                // primeiro pegou - e espera sem segurar nada.
+                // O de menor numero primeiro: o ultimo quer o garfo 0, que o primeiro pegou.
                 const int ultimo = kFilosofos - 1;
                 for (int f = 0; f < ultimo; ++f) p.push_back({0.3f, f, Acao::Pega, GarfoDaEsquerda(f)});
                 p.push_back({0.3f, ultimo, Acao::Espera, GarfoDaDireita(ultimo)});
                 for (int f = 0; f < ultimo - 1; ++f) p.push_back({0.6f, f, Acao::Espera, GarfoDaDireita(f)});
                 p.push_back({0.6f, ultimo - 1, Acao::Pega, GarfoDaDireita(ultimo - 1)});
-                // e a fila anda de tras para a frente
+                // E a fila anda de tras para a frente.
                 float t = 0.75f;
                 for (int f = ultimo - 1; f >= 1; --f) {
                     if (f < ultimo - 1) {
@@ -117,7 +116,7 @@ namespace Filosofos {
                 break;
             }
             case Rodada::Garcom: {
-                // O GARCOM TIRA UM DA MESA: com quatro, sempre sobra um garfo.
+                // O garcom tira um da mesa: com quatro, sempre sobra um garfo.
                 p.push_back({0.2f, x, Acao::Levanta});
                 for (int f = 0; f < kFilosofos; ++f) {
                     if (f != x) p.push_back({0.4f, f, Acao::Pega, GarfoDaEsquerda(f)});

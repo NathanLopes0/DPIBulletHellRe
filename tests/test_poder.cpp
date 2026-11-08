@@ -36,7 +36,7 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
     CHECK(tipos.size() == 10u);    // dez orientadores, dez poderes diferentes
     CHECK(nomes.size() == 10u);
     CHECK(quadros.size() == 10u);
-    // HA DOS DOIS JEITOS: os que atacam e os que defendem.
+    // Ha dos dois jeitos: os que atacam e os que defendem.
     CHECK(atacam >= 3);
     CHECK(atacam <= 7);
     CHECK(Da(Golpe::Materia::Generico).tipo == Tipo::Nenhum);
@@ -57,8 +57,6 @@ TEST_CASE("Poder: a carga enche acertando, e as contas dos efeitos") {
     CHECK(Atravessar(1174.0f, 30.0f, 1170.0f) == doctest::Approx(34.0f));
     CHECK(Atravessar(-5000.0f, 30.0f, 1170.0f) == doctest::Approx(30.0f));   // nunca fora do campo
 
-    // Os agentes do Julio: o tiro curva para o alvo, sem mudar a rapidez, e
-    // no maximo o giro por quadro.
     const Vector2 v(0.0f, -900.0f);
     const Vector2 virado = Guiar(v, Vector2(0.0f, 0.0f), Vector2(500.0f, 0.0f), kGiroDosAgentes, 0.016f);
     CHECK(virado.Length() == doctest::Approx(900.0f));

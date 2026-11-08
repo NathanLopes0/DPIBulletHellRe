@@ -82,9 +82,7 @@ std::string Lista::ExigenciaDe(const int indice) const {
             for (size_t i = 0; i < regra.materias.size(); ++i) {
                 if (i > 0) frase += (i + 1 == regra.materias.size()) ? " e " : ", ";
 
-                // O nome em tela quando ele existe; o codigo e o ultimo
-                // recurso, para uma regra que cite materia inexistente nao
-                // virar frase vazia (a leitura ja relatou o problema).
+                // O nome em tela quando ele existe.
                 const Materia* exigida = Por(IndiceDe(regra.materias[i]));
                 frase += exigida ? exigida->nome : regra.materias[i];
             }
@@ -96,8 +94,7 @@ std::string Lista::ExigenciaDe(const int indice) const {
                                     ? "Precisa de 1 aprovacao "
                                     : "Precisa de " + std::to_string(regra.quantas) + " aprovacoes ";
 
-            // "A coluna anterior" so quando ela e MESMO a anterior. Nada no
-            // formato obriga isso, e uma frase errada seria pior que uma seca.
+            // "A coluna anterior" so quando ela e mesmo a anterior.
             frase += (regra.coluna == m->coluna - 1)
                          ? "na coluna anterior"
                          : "na coluna " + std::to_string(regra.coluna + 1);
@@ -122,8 +119,6 @@ bool Lista::ColunaDependeDaAnterior(const int coluna) const {
         switch (m->desbloqueio.tipo) {
 
             case TipoDeDesbloqueio::Sempre:
-                // Aberta sempre: nao depende de coluna nenhuma, e uma linha
-                // saindo da coluna de tras diria que depende.
                 return false;
 
             case TipoDeDesbloqueio::AprovadasNaColuna:
@@ -155,9 +150,7 @@ bool Lista::Desbloqueada(const int indice, const Progresso& progresso) const {
             return true;
 
         case TipoDeDesbloqueio::AprovadoEm: {
-            // TODAS as exigidas. Um codigo que nao existe ja foi relatado na
-            // leitura; aqui ele simplesmente nao esta aprovado, o que mantem a
-            // materia fechada em vez de abrir por engano.
+            // Todas as exigidas.
             for (const auto& exigida : m->desbloqueio.materias) {
                 const int i = IndiceDe(exigida);
                 if (i < 0 || !progresso.Aprovado(i)) return false;
@@ -275,17 +268,13 @@ Lista LerMaterias(const std::string& textoJson) {
 
         m.nome = Texto(j, "nome", m.codigo);
 
-        // Os dois campos de apresentacao. Ausentes viram vazio de proposito, e
-        // nao o codigo: quem desenha decide se mostra ou nao, e um
-        // "nomeCompleto" que fosse "INF340" apareceria duas vezes na tela.
+        // Os dois campos de apresentacao.
         m.nomeCompleto = Texto(j, "nomeCompleto");
         m.professor = Texto(j, "professor");
 
         m.chefe = Texto(j, "chefe");
 
-        // "orientacao": a batalha pede um orientador antes de comecar. Um valor
-        // que nao e booleano e um erro de digitacao, e nao "sim": avisa e fica
-        // sem orientador.
+        // "orientacao": a batalha pede um orientador antes de comecar.
         if (j.contains("orientacao")) {
             if (j["orientacao"].is_boolean()) {
                 m.orientacao = j["orientacao"].get<bool>();
@@ -318,8 +307,7 @@ Lista LerMaterias(const std::string& textoJson) {
 
     // ---- Conferencias que so dao para fazer com a lista inteira em maos ----
 
-    // 1. Todo codigo citado numa regra existe. Um codigo errado aqui nao daria
-    //    erro em jogo: a materia so ficaria fechada para sempre.
+    // 1.
     for (const auto& m : lista.materias) {
         for (const auto& exigida : m.desbloqueio.materias) {
             if (lista.IndiceDe(exigida) < 0) {
@@ -329,8 +317,7 @@ Lista LerMaterias(const std::string& textoJson) {
         }
     }
 
-    // 2. Nenhuma regra e impossivel. Pedir duas aprovacoes numa coluna de uma
-    //    materia so deixa aquela materia fechada para sempre, em silencio.
+    // 2.
     for (const auto& m : lista.materias) {
         if (m.desbloqueio.tipo != TipoDeDesbloqueio::AprovadasNaColuna) continue;
         const int disponiveis = static_cast<int>(lista.DaColuna(m.desbloqueio.coluna).size());
@@ -343,7 +330,7 @@ Lista LerMaterias(const std::string& textoJson) {
         }
     }
 
-    // 3. Alguma materia abre de inicio. Sem isto o jogo comeca com tudo trancado.
+    // 3.
     bool algumaAbre = false;
     for (const auto& m : lista.materias) {
         if (m.desbloqueio.tipo == TipoDeDesbloqueio::Sempre) { algumaAbre = true; break; }

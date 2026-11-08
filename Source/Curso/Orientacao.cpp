@@ -16,7 +16,7 @@ namespace Orientacao {
             const Materias::Materia* m = lista.Por(i);
             if (!m || m->orientacao || m->chefe.empty() || m->professor.empty()) continue;
 
-            // A NOTA DA DUPLA E A MAIOR DOS DOIS - e quem a tirou.
+            // A nota da dupla e a maior dos dois - e quem a tirou.
             Candidato c;
             c.materia = i;
             c.professor = m->professor;
@@ -33,12 +33,11 @@ namespace Orientacao {
             todos.push_back(c);
         }
 
-        // A MAIOR PRIMEIRO; no empate, a ordem do curso (a ordenacao e estavel).
+        // A maior primeiro; no empate, a ordem do curso (a ordenacao e estavel).
         std::stable_sort(todos.begin(), todos.end(),
                          [](const Candidato& a, const Candidato& b) { return a.nota > b.nota; });
 
-        // UM PROFESSOR UMA VEZ SO, pela melhor nota - que, com a lista em
-        // ordem, e a primeira em que ele aparece.
+        // Um professor uma vez so, pela melhor nota.
         std::vector<Candidato> escolhidos;
         std::set<std::string> vistos;
         for (const auto& c : todos) {
@@ -53,8 +52,7 @@ namespace Orientacao {
         if (votos.empty() || candidatos.empty()) return -1;
         const int n = static_cast<int>(candidatos.size());
 
-        // CONCORDANDO OU NAO, vence o mais acima na lista - que e o de nota
-        // mais alta. Se todos votaram no mesmo, e ele.
+        // Concordando ou nao, vence o mais acima na lista - que e o de nota mais alta.
         int vencedor = n;
         for (const int voto : votos) {
             if (voto < 0 || voto >= n) return -1;   // alguem ainda nao votou
@@ -80,7 +78,7 @@ namespace Orientacao {
     void Votacao::Mover(const int aluno, const int passo) {
         if (!Valido(aluno) || mCandidatos <= 0 || Votou(aluno)) return;
         int& c = mCursor[static_cast<size_t>(aluno)];
-        // O RESTO DE C++ E NEGATIVO para negativo: soma n antes de tirar o resto.
+        // O resto de c++ e negativo para negativo: soma n antes de tirar o resto.
         c = ((c + passo) % mCandidatos + mCandidatos) % mCandidatos;
     }
 

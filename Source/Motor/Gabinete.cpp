@@ -8,14 +8,7 @@
 
 namespace {
 
-/**
- * @brief Converte o texto INTEIRO em segundos, ou devolve false sem escrever.
- *
- * Nao usa std::stof de proposito: ela joga excecao em texto invalido, e um
- * valor errado no script que abre o gabinete tem de cair no padrao, nao
- * derrubar o jogo antes de a janela existir - numa maquina sem teclado ninguem
- * veria o erro.
- */
+/// Converte o texto inteiro em segundos, ou devolve false sem escrever.
 bool LerSegundos(const std::string& texto, float& destino) {
     if (texto.empty()) return false;
 
@@ -47,9 +40,7 @@ Configuracao Ler(const std::vector<std::string>& argumentos) {
         }
 
         if (argumento == "--ociosidade") {
-            // O valor vem no argumento SEGUINTE. Se faltar ou nao for numero, o
-            // padrao vale e o i NAO avanca - assim "--ociosidade --arcade"
-            // ainda liga o modo arcade em vez de engolir a flag como valor.
+            // O valor vem no argumento seguinte.
             if (i + 1 < argumentos.size() && LerSegundos(argumentos[i + 1], configuracao.ociosidade)) {
                 ociosidadeDita = true;
                 ++i;
@@ -57,11 +48,10 @@ Configuracao Ler(const std::vector<std::string>& argumentos) {
             continue;
         }
 
-        // Qualquer outra coisa e ignorada. Ver o comentario de Ler.
+        // Qualquer outra coisa e ignorada.
     }
 
-    // Fora do laco para a ORDEM NAO IMPORTAR: "--arcade --ociosidade 20" e
-    // "--ociosidade 20 --arcade" tem de dar o mesmo resultado.
+    // Fora do laco para a ordem nao importar.
     if (configuracao.arcade && !ociosidadeDita) {
         configuracao.ociosidade = kOciosidadePadrao;
     }

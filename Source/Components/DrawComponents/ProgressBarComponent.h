@@ -6,22 +6,8 @@
 #include "DrawComponent.h"
 #include "SDL_pixels.h"
 
-
-/**
- * @class ProgressBarComponent
- * @brief Uma barra horizontal que enche, com a cor andando de um tom a outro
- * conforme enche, e com acabamento: moldura, sulco e o brilho na ponta.
- *
- * HOJE E SO A BARRA DA TELA DE CARREGAMENTO. Ela ja foi a do tempo do chefe e
- * a da nota, e acumulou o que cada uma pedia - orientacao vertical, cor
- * solida, um efeito de pulsar, acabamento opcional. As duas ganharam
- * componentes proprios (DrawRelogioDaFaseComponent, DrawBarraDaNotaComponent),
- * e o que so elas usavam saiu daqui: codigo que ninguem chama nao e testado
- * por ninguem, e quebra calado no dia em que alguem o liga.
- *
- * As cores do acabamento SAEM DA COR DO PREENCHIMENTO, clareada e escurecida:
- * a cor anda ao longo da barra, e um conjunto fixo de tons brigaria com ela.
- */
+/// Uma barra horizontal que enche, com a cor andando de um tom a outro conforme enche, e com
+/// acabamento: moldura, sulco e o brilho na ponta.
 class ProgressBarComponent : public DrawComponent {
 public:
     explicit ProgressBarComponent(Actor* owner, int drawOrder = 200);
@@ -48,8 +34,8 @@ private:
 
     static SDL_Color LerpColor(SDL_Color colorA, SDL_Color colorB, float alpha);
 
-    /// Um tom da MESMA cor, mais claro ou mais escuro. E o que permite o
-    /// acabamento acompanhar a cor que anda sem uma paleta para cada tom.
+    /// Um tom da mesma cor, mais claro ou mais escuro. E o que permite o acabamento acompanhar a
+    /// cor que anda sem uma paleta para cada tom.
     static SDL_Color Clarear(SDL_Color cor, float quanto);
     static SDL_Color Escurecer(SDL_Color cor, float quanto);
 

@@ -7,8 +7,7 @@
 namespace BalaDePrata {
 
     const std::vector<std::string>& Promessas() {
-        // \xc3\xa7 e \xc3\xa3 sao c cedilha e a til, \xc3\xa9 e e agudo,
-        // \xc3\xa1 a agudo: o MSVC nao le acento em literal.
+        // \xc3\xa7 e \xc3\xa3 sao c cedilha e a til, \xc3\xa9 e e agudo, \xc3\xa1 a agudo.
         static const std::vector<std::string> promessas = {
             "IA", "UML", "Orienta\xc3\xa7\xc3\xa3o a objetos", "M\xc3\xa9todos \xc3\xa1geis",
             "Nuvem", "Low-code", "Microsservi\xc3\xa7os", "Ferramenta CASE"};

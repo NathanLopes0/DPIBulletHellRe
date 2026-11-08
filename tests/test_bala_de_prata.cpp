@@ -20,7 +20,7 @@ TEST_CASE("BalaDePrata: cada luta embaralha as promessas, todas, sem repetir") {
         CHECK(std::set<int>(ordem.begin(), ordem.end()).size() == n);
         primeiras.insert(ordem.front());
     }
-    // A PRIMEIRA BALA NAO E SEMPRE A MESMA.
+    // A primeira bala nao e sempre a mesma.
     CHECK(primeiras.size() == n);
 }
 

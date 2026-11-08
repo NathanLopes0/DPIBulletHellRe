@@ -90,17 +90,13 @@ void Luizinho::SortearALuta() {
         mRoteiro = Memoria::Sortear(sorteio);
         mNumerosDaMemoria = Memoria::SortearNumeros(sorteio);
     }
-    // AS RODADAS DA FINAL SAO GERADAS na hora, uma de cada vez, desta
-    // sequencia (Excecao::RodadaDaLuta).
     mSorteioDasRodadas = SorteioDaFase(Excecao::kFaseDasExcecoes);
 }
 
 void Luizinho::OnUpdate(const float deltaTime) {
     if (!mLutaSorteada && !EhClone()) SortearALuta();
 
-    // STOP THE WORLD: com o mundo parado, o professor para junto - nem anda nem
-    // dispara. A maquina de estados continua (ela e componente, e roda antes
-    // daqui), entao a pausa NAO alonga a fase.
+    // Stop the world: com o mundo parado, o professor para junto - nem anda nem dispara.
     if (mMundoParado) {
         if (auto* rb = GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
     } else {
@@ -121,8 +117,7 @@ void Luizinho::OnUpdate(const float deltaTime) {
 }
 
 void Luizinho::AoTerminarABatalha() {
-    // A TELA DA NOTA FICA LIMPA: os projeteis a batalha ja levou; o texto do
-    // programa e as linhas sao do professor.
+    // A tela da nota fica limpa: os projeteis a batalha ja levou.
     for (PainelDeCodigo* p : mPaineis) if (p) p->Mostrar(false);
     for (EtiquetaDeCodigo* c : mCantos) if (c) c->Mostrar(false);
     LimparConta();
@@ -137,8 +132,7 @@ void Luizinho::AoTerminarABatalha() {
 void Luizinho::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
     Boss::CustomizeAttackParams(params, stateName);
 
-    // O ATAQUE DE GATILHO nasce onde o professor disse, no numero que ele
-    // pediu - e so ele: os de relogio das outras fases seguem abaixo.
+    // O ataque de gatilho nasce onde o professor disse, no numero que ele pediu - e so ele.
     if (mDisparandoEm) {
         params.firePosition = mOndeDisparar;
         if (mQuantos > 0) params.numProjectiles = mQuantos;
@@ -203,9 +197,7 @@ void Luizinho::Restaurar(const std::string& fase) {
     if (it != mAnunciosDoArquivo.end()) RegistrarAnuncio(fase, it->second);
 }
 
-// ---------------------------------------------------------------------------
-// A fase 1: o escopo
-// ---------------------------------------------------------------------------
+// A fase 1: o escopo.
 
 void Luizinho::MontarEscopo() {
     const SDL_FRect campo = Campo();
@@ -213,7 +205,7 @@ void Luizinho::MontarEscopo() {
         const Escopo::Bloco b = kBlocosDoPrograma[i];
         const Escopo::Retangulo r = Escopo::Area(b, campo.w, campo.h);
 
-        // O PAINEL: o global e o campo inteiro, e o cartao de f e so o canto.
+        // O painel: o global e o campo inteiro, e o cartao de f e so o canto.
         if (b != Escopo::Bloco::Global && b != Escopo::Bloco::F) {
             const int ordem = (b == Escopo::Bloco::Interno) ? kOrdemDoInterno : kOrdemDosPaineis;
             auto painel = std::make_unique<PainelDeCodigo>(mScene, static_cast<int>(r.w), static_cast<int>(r.h), ordem);
@@ -278,9 +270,7 @@ void Luizinho::ComecarComando(const int k) {
 }
 
 void Luizinho::ChoverAvisos() {
-    // A CHUVA NASCE APAGADA, de uma vez, na regiao inteira: e o aviso de onde
-    // a variavel e visivel. Sem colisor ate acender - e sem ser enfeite: o
-    // Ponto Extra a leva junto, como leva qualquer ataque.
+    // A chuva nasce apagada, de uma vez, na regiao inteira: e o aviso de onde a variavel e visivel.
     const SDL_FRect campo = Campo();
     const auto gotas = Escopo::Gotas(mPlanoDoEscopo.programa, mComando, campo.w, campo.h);
     if (gotas.empty()) return;
@@ -311,9 +301,6 @@ void Luizinho::AcenderGotas() {
 }
 
 void Luizinho::AtualizarEscopo() {
-    // O que o campo levou (o Ponto Extra, o fim da batalha) sai da conta
-    // antes de qualquer disparo deste quadro: o projetil pode voltar do pool
-    // como outro.
     mGotas.erase(std::remove_if(mGotas.begin(), mGotas.end(),
                                 [](const GotaEmCampo& g) { return !Vivo(g.p); }), mGotas.end());
 
@@ -351,8 +338,7 @@ void Luizinho::AtualizarEscopo() {
         mChuva = Chuva::Viva;
     }
     if (mChuva == Chuva::Viva) {
-        // A GOTA MORRE NO FIM DELA - a borda de baixo do bloco, ou o buraco
-        // embaixo: la a variavel ja e outra.
+        // A gota morre no fim dela - a borda de baixo do bloco, ou o buraco embaixo.
         for (const GotaEmCampo& g : mGotas) {
             if (Vivo(g.p) && g.p->GetPosition().y >= g.fim) g.p->Kill();
         }
@@ -376,17 +362,17 @@ void Luizinho::DesenharEscopo(const float u) {
     const bool chovendo = (mChuva == Chuva::Aviso || mChuva == Chuva::Viva);
     const bool mostrar = u < Escopo::kBusca + mDegrauDoEscopo.aviso + mDegrauDoEscopo.vivas;
 
-    // TUDO VOLTA AO NORMAL, e o comando acende o que e dele.
+    // Tudo volta ao normal, e o comando acende o que e dele.
     for (PainelDeCodigo* p : mPaineis) if (p) p->Pintar(kMolduraDoPainel, kFundoDoPainel);
     for (EtiquetaDeCodigo* c : mCantos) if (c) c->Pintar(kMolduraDoCanto, kFundoDoCanto, kTintaDoCanto);
 
-    // A CHAMADA: de h ate o cartao de f, o comando inteiro.
+    // A chamada: de h ate o cartao de f, o comando inteiro.
     if (const auto quem = mComando.quemChamou) {
         mLinhas->Acrescentar(canto(*quem), canto(Escopo::Bloco::F), kLinhaDaChamada);
     }
     if (!mostrar) return;
 
-    // A BUSCA: um salto por bloco olhado, do professor ate a declaracao.
+    // A busca: um salto por bloco olhado, do professor ate a declaracao.
     const auto busca = Escopo::Busca(mPlanoDoEscopo.programa, mComando);
     Vector2 de = GetPosition();
     for (size_t i = 0; i < busca.size(); ++i) {
@@ -403,7 +389,7 @@ void Luizinho::DesenharEscopo(const float u) {
         de = ate;
     }
 
-    // OS BURACOS: os blocos que tem outra variavel com o nome. Aqui nao chove.
+    // Os buracos: os blocos que tem outra variavel com o nome.
     if (chovendo) {
         for (const Escopo::Bloco b : Escopo::Ocultam(mPlanoDoEscopo.programa, Escopo::Dono(mPlanoDoEscopo.programa, mComando), mComando.nome)) {
             if (PainelDeCodigo* p = mPaineis[indice(b)]) p->Pintar(kMolduraDoBuraco, kFundoDoBuraco);
@@ -412,9 +398,7 @@ void Luizinho::DesenharEscopo(const float u) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// A fase 2: os sistemas de tipos
-// ---------------------------------------------------------------------------
+// A fase 2: os sistemas de tipos.
 
 void Luizinho::LimparConta() {
     for (Operando& o : mOperandos) {
@@ -442,16 +426,14 @@ void Luizinho::ComecarConta(const int k) {
     mEtapa = EtapaDaConta::Esperando;
     Anunciar(Coercao::kFaseDosTipos, Coercao::Placar(mConta));
 
-    // O PROFESSOR MUDA DE LUGAR a cada conta, no alto - e balanca em volta
-    // dele (AtualizarTipos).
+    // O professor muda de lugar a cada conta, no alto - e balanca em volta dele (AtualizarTipos).
     const SDL_FRect campo = Campo();
     const float fracao = static_cast<float>(Sorteio() % 1001u) / 1000.0f;
     mBaseDoProfessor = Vector2(campo.x + Coercao::kXMinimo + fracao * (Coercao::kXMaximo - Coercao::kXMinimo),
                                campo.y + Coercao::kYDoProfessor);
     mAlvo = mBaseDoProfessor;
 
-    // O OPERADOR APARECE EM CIMA DO ALUNO, decidido agora: e o aviso de onde a
-    // conta vai rodar. Enfeite - o tiro passa por ele, e ele nao acerta.
+    // Enfeite - o tiro passa por ele, e ele nao acerta.
     const Coercao::Ponto onde = Coercao::OndeFicaOOperador(PosicaoDoAluno().x - campo.x, campo.w);
     mOndeDaConta = Vector2(campo.x + onde.x, campo.y + onde.y);
     const auto criados = DispararEm(Coercao::kGatilhoDoOperador, mOndeDaConta, 1);
@@ -486,8 +468,7 @@ void Luizinho::LancarOperandos() {
 }
 
 void Luizinho::Compilar() {
-    // O COMPILADOR RECUSA ANTES DE RODAR: os operandos estouram no professor,
-    // e a conta nunca chega ao operador.
+    // O compilador recusa antes de rodar.
     const Vector2 professor = GetPosition();
     for (Operando& o : mOperandos) {
         if (Vivo(o.p)) o.p->Kill();
@@ -504,7 +485,7 @@ void Luizinho::Compilar() {
 }
 
 void Luizinho::FazerAConta() {
-    // OS DOIS TEM DE CHEGAR: o Ponto Extra que leva um operando leva a conta.
+    // Os dois tem de chegar: o Ponto Extra que leva um operando leva a conta.
     for (const Operando& o : mOperandos) if (!Vivo(o.p)) { LimparConta(); return; }
     for (Operando& o : mOperandos) {
         o.p->Kill();
@@ -516,7 +497,7 @@ void Luizinho::FazerAConta() {
     const float alvo = AnguloAteOAluno(onde);
 
     if (r.desfecho == Coercao::Desfecho::ErroDeExecucao) {
-        // O TypeError ESTOURA ONDE A CONTA RODOU.
+        // O TypeError estoura onde a conta rodou.
         const int n = Coercao::kEstilhacosDoErro;
         const auto cacos = DispararEm(Coercao::kGatilhoDoErro, onde, n, Coercao::CentroDoAnel(n, alvo),
                                       Coercao::AberturaDoAnel(n), mDegrauDosTipos.rapidez);
@@ -524,14 +505,14 @@ void Luizinho::FazerAConta() {
         if (Vivo(mOperador)) PorCara(mOperador, Coercao::CaraDoOperador(Coercao::OperacaoDe(mConta.forma), true));
     }
     else if (r.valor.tipo == Coercao::Tipo::Numero) {
-        // UM NUMERO n E UM ANEL DE n, cada chip com o n escrito.
+        // Um numero n e um anel de n, cada chip com o n escrito.
         const int n = r.valor.numero;
         const auto chips = DispararEm(Coercao::kGatilhoDoAnel, onde, n, Coercao::CentroDoAnel(n, alvo),
                                       Coercao::AberturaDoAnel(n), mDegrauDosTipos.rapidez);
         for (BossProjectile* c : chips) PorCara(c, Coercao::CaraDoNumero(n));
     }
     else {
-        // UM TEXTO E A PALAVRA, letra por letra entre aspas, de frente para o aluno.
+        // Um texto e a palavra, letra por letra entre aspas, de frente para o aluno.
         const auto letras = Coercao::Letras(r.valor);
         const auto desvios = Coercao::DesviosDaPalavra(static_cast<int>(letras.size()), alvo);
         const auto chips = DispararEm(Coercao::kGatilhoDoTexto, onde, static_cast<int>(letras.size()), alvo, 0.0f,
@@ -580,7 +561,7 @@ void Luizinho::AtualizarTipos() {
             break;
 
         case EtapaDaConta::Checando:
-            // OS OPERANDOS ESPERAM O COMPILADOR NA MAO DO PROFESSOR.
+            // Os operandos esperam o compilador na mao do professor.
             for (Operando& o : mOperandos) {
                 if (Vivo(o.p)) o.p->SetPosition(GetPosition() + Vector2(o.lado * 20.0f, 0.0f));
             }
@@ -594,11 +575,11 @@ void Luizinho::AtualizarTipos() {
             const float s = std::clamp((u - Coercao::kSaida) / mDegrauDosTipos.voo, 0.0f, 1.0f);
             for (Operando& o : mOperandos) {
                 if (!Vivo(o.p)) continue;
-                // EM ARCO, cada um para o seu lado: os dois se leem no caminho.
+                // Em arco, cada um para o seu lado: os dois se leem no caminho.
                 const Vector2 reta = o.de + (o.para - o.de) * s;
                 const float arco = std::sin(s * Math::Pi) * kArcoDoVoo * o.lado;
                 o.p->SetPosition(reta + Vector2(arco, 0.0f));
-                // A COERCAO SE VE: no meio do voo o convertido troca de chip.
+                // A coercao se ve: no meio do voo o convertido troca de chip.
                 if (!o.trocou && !o.depois.empty() && s >= Coercao::kCoercao) {
                     PorCara(o.p, o.depois);
                     o.trocou = true;
@@ -626,9 +607,7 @@ void Luizinho::AtualizarTipos() {
     }
 }
 
-// ---------------------------------------------------------------------------
-// A fase 3: a gerencia de memoria
-// ---------------------------------------------------------------------------
+// A fase 3: a gerencia de memoria.
 
 namespace {
     // As linhas do heap: a raiz que aponta, o prox de um no, e o ponteiro
@@ -642,10 +621,7 @@ void Luizinho::PararOMundo(const bool parar) const {
     auto* batalha = dynamic_cast<Battle*>(mScene);
     if (!batalha || !batalha->GetProjectileManager()) return;
 
-    // PARADO, O PROJETIL NAO FAZ NADA: Actor::Update so roda o que esta ativo,
-    // entao o corpo, os behaviors e a animacao esperam juntos. E parado ele
-    // nao acerta ninguem (a colisao da batalha so olha o que esta ativo):
-    // durante a marcacao o aluno pode passar por entre os blocos.
+    // Parado, o projetil nao faz nada.
     for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
         if (!p) continue;
         if (parar && p->GetState() == ActorState::Active) p->SetState(ActorState::Paused);
@@ -682,8 +658,6 @@ void Luizinho::ComecarPasso(const int i) {
     mProximoEvento = 0;
     Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(passo, false, mNumerosDaMemoria));
 
-    // O PRIMEIRO PROGRAMA ACABOU: o sistema devolve a memoria dele, e o
-    // segundo comeca com o heap vazio.
     if (Memoria::TrocaDeLinguagem(i, mRoteiro)) LimparHeap();
 
     const SDL_FRect campo = Campo();
@@ -697,7 +671,7 @@ void Luizinho::Alocar(const Memoria::Evento& e) {
     const auto* fsm = GetComponent<FSMComponent>();
     const float agora = fsm ? fsm->GetStateTime() : 0.0f;
 
-    // O ALOCADOR ESCOLHE O ALUNO: o lugar livre mais perto dele.
+    // O alocador escolhe o aluno: o lugar livre mais perto dele.
     std::vector<Memoria::Retangulo> ocupados;
     for (const BlocoEmCampo& b : mBlocos) {
         ocupados.push_back(Memoria::Area({b.centro.x - campo.x, b.centro.y - campo.y}, b.celulas));
@@ -724,7 +698,7 @@ void Luizinho::Alocar(const Memoria::Evento& e) {
     bloco.no = bloco.java && e.celulas == 2;
     bloco.acendeEm = agora + mDegrauDaMemoria.avisoDaAlocacao;
 
-    // NASCE APAGADO, sem colisor: o aviso de onde o bloco vai ficar.
+    // Nasce apagado, sem colisor: o aviso de onde o bloco vai ficar.
     const auto criadas = DispararEm(Memoria::kGatilhoDaCelula, bloco.centro, e.celulas);
     const auto centros = Memoria::Celulas(onde, e.celulas);
     for (size_t k = 0; k < criadas.size() && k < centros.size(); ++k) {
@@ -740,8 +714,7 @@ void Luizinho::Alocar(const Memoria::Evento& e) {
 }
 
 void Luizinho::Coletar() {
-    // A VARREDURA: o que a marcacao nao alcancou e jogado fora - cai reto para
-    // fora da tela, e na queda ainda acerta quem estiver embaixo.
+    // A varredura: o que a marcacao nao alcancou e jogado fora.
     const auto varridos = Memoria::Varrer(mHeap);
     PararOMundo(false);
     mMundoParado = false;
@@ -766,7 +739,7 @@ void Luizinho::LiberarBloco(const std::string& raiz) {
     const SDL_FRect campo = Campo();
     for (auto it = mBlocos.begin(); it != mBlocos.end(); ++it) {
         if (it->id != id) continue;
-        // O BLOCO SAI, e o lugar dele fica marcado: e para la que p aponta.
+        // O bloco sai, e o lugar dele fica marcado: e para la que p aponta.
         mLiberado = Memoria::Area({it->centro.x - campo.x, it->centro.y - campo.y}, it->celulas);
         mCelulasDoLiberado = it->celulas;
         for (BossProjectile* c : it->p) if (Vivo(c)) c->Kill();
@@ -777,8 +750,7 @@ void Luizinho::LiberarBloco(const std::string& raiz) {
 
 void Luizinho::EscreverNoPendente(const Memoria::Evento& e) {
     if (!Memoria::Pendente(mHeap, e.raiz) || !mLiberado) return;
-    // ESCREVER ONDE O BLOCO ESTAVA E COMPORTAMENTO INDEFINIDO: aquela memoria
-    // nao e de ninguem, e o 7 estoura em cacos.
+    // Escrever onde o bloco estava e comportamento indefinido.
     const SDL_FRect campo = Campo();
     const auto centros = Memoria::Celulas(mLiberado->Centro(), mCelulasDoLiberado);
     const size_t k = std::min(static_cast<size_t>(std::max(0, e.indice)), centros.size() - 1);
@@ -792,8 +764,7 @@ void Luizinho::EscreverNoPendente(const Memoria::Evento& e) {
 }
 
 void Luizinho::EstourarOsVazados() {
-    // O std::bad_alloc: o heap encheu de blocos que ninguem libera, e todos
-    // estouram de uma vez - cada celula em quatro cacos, em X.
+    // O std::bad_alloc: o heap encheu de blocos que ninguem libera, e todos estouram de uma vez.
     for (auto it = mBlocos.begin(); it != mBlocos.end();) {
         const Memoria::Bloco* b = Memoria::Achar(mHeap, it->id);
         if (!b || b->estado != Memoria::Estado::Vazou) { ++it; continue; }
@@ -816,7 +787,7 @@ void Luizinho::Executar(const Memoria::Evento& e) {
             Alocar(e);
             break;
         case Memoria::Acao::Parar:
-            // STOP THE WORLD: o professor e os projeteis param, e o coletor marca.
+            // Stop the world: o professor e os projeteis param, e o coletor marca.
             mMundoParado = true;
             PararOMundo(true);
             Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(PassoDaVez(), true, mNumerosDaMemoria));
@@ -835,7 +806,7 @@ void Luizinho::Executar(const Memoria::Evento& e) {
             EstourarOsVazados();
             break;
     }
-    // SEM COLETOR, O LIXO VAZA na hora em que fica sem ninguem.
+    // Sem coletor, o lixo vaza na hora em que fica sem ninguem.
     if (Memoria::LinguagemDe(PassoDaVez()) == Memoria::Linguagem::Cpp) {
         Memoria::Vazar(mHeap);
     }
@@ -872,8 +843,7 @@ void Luizinho::DesenharHeap() {
     };
     const SDL_FRect campo = Campo();
 
-    // AS RAIZES: a etiqueta embaixo do professor, e a linha ate o bloco. A
-    // variavel de um programa que ja acabou (o "a" do Java, no C++) some.
+    // As raizes: a etiqueta embaixo do professor, e a linha ate o bloco.
     for (auto& [nome, etiqueta] : mRaizes) if (etiqueta) etiqueta->Mostrar(false);
     for (const auto& [nome, id] : mHeap.raizes) {
         auto it = mRaizes.find(nome);
@@ -903,7 +873,7 @@ void Luizinho::DesenharHeap() {
         }
     }
 
-    // OS PROX: do campo prox de um no ate o no para onde ele aponta.
+    // Os prox: do campo prox de um no ate o no para onde ele aponta.
     for (const BlocoEmCampo& b : mBlocos) {
         const Memoria::Bloco* h = Memoria::Achar(mHeap, b.id);
         if (!h || h->prox < 0 || b.p.empty()) continue;
@@ -916,8 +886,7 @@ void Luizinho::DesenharHeap() {
 }
 
 void Luizinho::AtualizarMemoria() {
-    // O que o campo levou (o Ponto Extra) sai das celulas antes de qualquer
-    // disparo deste quadro. Uma celula PARADA esta viva: e o mundo parado.
+    // O que o campo levou (o Ponto Extra) sai das celulas antes de qualquer disparo deste quadro.
     for (BlocoEmCampo& b : mBlocos) {
         for (BossProjectile*& c : b.p) {
             if (c && c->GetState() != ActorState::Active && c->GetState() != ActorState::Paused) c = nullptr;
@@ -948,7 +917,7 @@ void Luizinho::AtualizarMemoria() {
         Executar(mEventos[mProximoEvento++]);
     }
 
-    // O BLOCO ACENDE: ganha colisor, sai do posto de aviso, e e memoria.
+    // O bloco acende: ganha colisor, sai do posto de aviso, e e memoria.
     for (BlocoEmCampo& b : mBlocos) {
         if (b.aceso || t < b.acendeEm) continue;
         b.aceso = true;
@@ -963,9 +932,7 @@ void Luizinho::AtualizarMemoria() {
     DesenharHeap();
 }
 
-// ---------------------------------------------------------------------------
-// A final: as excecoes
-// ---------------------------------------------------------------------------
+// A final: as excecoes.
 
 namespace {
     constexpr SDL_Color kMolduraDoFinally{255, 206, 92, 255};
@@ -1016,8 +983,7 @@ void Luizinho::Desempilhar(const int i, const bool quebrando) {
     if (!f.painel && !f.canto) return;
 
     if (quebrando) {
-        // A FAIXA SE QUEBRA, e os destrocos caem numa cortina - um em cima
-        // do aluno, para quem ficar parado nao ficar na fresta.
+        // A faixa se quebra, e os destrocos caem numa cortina.
         const SDL_FRect campo = Campo();
         const auto xs = Excecao::Cortina(PosicaoDoAluno().x - campo.x, campo.w, mDegrauDasExcecoes.entreDestrocos);
         const float y = MeioDaFaixa(i).y;
@@ -1045,7 +1011,7 @@ void Luizinho::DesmontarExcecoes() {
 }
 
 void Luizinho::ComecarRodada(const int k) {
-    // O QUE SOBROU DA RODADA ANTERIOR retorna, sem quebrar.
+    // O que sobrou da rodada anterior retorna, sem quebrar.
     for (int i = 0; i < Excecao::kMaiorPilha; ++i) Desempilhar(i, false);
     if (Vivo(mExcecao)) mExcecao->Kill();
     mExcecao = nullptr;
@@ -1067,7 +1033,7 @@ void Luizinho::ComecarRodada(const int k) {
 void Luizinho::ExecutarPasso(const Excecao::Passo& p) {
     switch (p.o) {
         case Excecao::Acontece::Finally: {
-            // O FINALLY RODA DE QUALQUER JEITO: um anel de onde a excecao passa.
+            // O finally roda de qualquer jeito: um anel de onde a excecao passa.
             PintarFaixa(p.quadro, kMolduraDoFinally, kFundoDoFinally);
             const Vector2 onde(mXDaRodada - Excecao::kAEsquerda, MeioDaFaixa(p.quadro).y);
             const int n = Excecao::kAnelDoFinally;
@@ -1079,7 +1045,7 @@ void Luizinho::ExecutarPasso(const Excecao::Passo& p) {
         }
         case Excecao::Acontece::Desempilha:
             Desempilhar(p.quadro, true);
-            // O PONTO DE EXECUCAO SOBE para quem chamou.
+            // O ponto de execucao sobe para quem chamou.
             if (p.quadro > 0) mAlvo = Vector2(mXDaRodada, MeioDaFaixa(p.quadro - 1).y);
             break;
         case Excecao::Acontece::Captura:
@@ -1091,7 +1057,7 @@ void Luizinho::ExecutarPasso(const Excecao::Passo& p) {
             Anunciar(Excecao::kFaseDasExcecoes, Excecao::PlacarDoDesfecho(mRodada));
             break;
         case Excecao::Acontece::Escapa:
-            // NINGUEM TRATOU: o programa capota.
+            // Ninguem tratou: o programa capota.
             if (Vivo(mExcecao)) mExcecao->Kill();
             mExcecao = nullptr;
             Anunciar(Excecao::kFaseDasExcecoes, Excecao::PlacarDoDesfecho(mRodada));
@@ -1120,14 +1086,14 @@ void Luizinho::AtualizarExcecoes() {
     if (k != mRodadaDaVez) ComecarRodada(k);
     const float u = t - (Excecao::kPrimeiro + static_cast<float>(k) * Excecao::kPorRodada);
 
-    // AS CHAMADAS EMPILHAM, e o professor desce ate a mais funda.
+    // As chamadas empilham, e o professor desce ate a mais funda.
     while (mEmpilhados < mRodada.pilha.size() && u >= static_cast<float>(mEmpilhados) * Excecao::kEntreChamadas) {
         Empilhar(static_cast<int>(mEmpilhados));
         mAlvo = Vector2(mXDaRodada, MeioDaFaixa(static_cast<int>(mEmpilhados)).y);
         ++mEmpilhados;
     }
 
-    // O LANCAMENTO: a excecao nasce no professor, na faixa de quem lanca.
+    // O lancamento: a excecao nasce no professor, na faixa de quem lanca.
     const int ultimo = static_cast<int>(mRodada.pilha.size()) - 1;
     if (!mLancou && u >= Excecao::kLancamento) {
         mLancou = true;
@@ -1142,7 +1108,7 @@ void Luizinho::AtualizarExcecoes() {
     }
     if (!mLancou) return;
 
-    // ELA SOBE uma faixa a cada kPorQuadro.
+    // Ela sobe uma faixa a cada kPorQuadro.
     const float subindo = u - Excecao::kLancamento;
     if (Vivo(mExcecao)) {
         const float passo = Excecao::kAlturaDaFaixa + Excecao::kEntreFaixas;
@@ -1153,7 +1119,7 @@ void Luizinho::AtualizarExcecoes() {
         ExecutarPasso(mPassos[mProximoPasso++]);
     }
 
-    // QUEM SOBROU RETORNA, depois do desfecho.
+    // Quem sobrou retorna, depois do desfecho.
     if (!mRetornou && !mPassos.empty() && subindo >= mPassos.back().quando + Excecao::kRetorno) {
         mRetornou = true;
         for (int i = 0; i < Excecao::kMaiorPilha; ++i) Desempilhar(i, false);

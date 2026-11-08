@@ -15,34 +15,8 @@
 #include "../../../Attacks/Pipeline.h"
 #include "../../../Attacks/Blink.h"
 
-/**
- * @class Ricardo
- * @brief O professor de Organizacao de Computadores (INF 250). Ele tambem da
- * Sistemas Logicos e Arquitetura, e pesquisa hardware.
- *
- * O BALANCEAMENTO DELE VIVE EM DADOS, como o dos outros: as fases em
- * Assets/Attacks/ricardo/fases.json e as regras no regras.json ao lado. O que
- * mora aqui e o que dados nao sabem fazer.
- *
- * A FASE 1 E SISTEMAS LOGICOS (Logica.h): palavras de 16 bits descem como
- * paredes - o UM machuca, o ZERO se atravessa - e cruzam uma fileira de portas
- * logicas, uma por coluna, que transformam cada bit. Aqui moram as portas (a
- * cara de cada uma, conforme a etapa), a travessia, e o sorteio da palavra.
- *
- * A FASE 2 E ORGANIZACAO DE COMPUTADORES: o clock (Relogio.h). Os tiros sao
- * registradores, que so andam na borda de subida, e a cada segundo sai um
- * leque com o valor de um contador Johnson. Aqui moram o relogio dos tiros, a
- * mira do leque e os bits dele; o professor anda na onda quadrada sozinho
- * (OndaQuadradaStrategy), lendo o mesmo placar.
- *
- * A FASE 3 E ARQUITETURA: o pipeline (Pipeline.h). Cinco estagios atravessados
- * no alto da tela, e as instrucoes de um laco em assembly andando neles, uma
- * por ciclo, cada uma atacando no seu estagio. Aqui moram os chips em campo,
- * os ataques que saem de cada estagio e o placar, que diz o que esta no EX.
- *
- * A FINAL E HARDWARE: quatro Arduinos rodando o Blink (Blink.h), duas placas
- * de cada lado dele, e o lado que acende atira. Aqui mora o LED de cada placa.
- */
+/// O professor de Organizacao de Computadores (INF 250). Ele tambem da Sistemas Logicos e
+/// Arquitetura, e pesquisa hardware.
 class Ricardo : public Boss {
 public:
     explicit Ricardo(Scene* scene);
@@ -56,11 +30,8 @@ protected:
                               const std::string& stateName) override;
 
 private:
-    // ---- O QUE ESTA LUTA SORTEIA, E O DEGRAU --------------------------------
+    // ---- O que esta luta sorteia, e o degrau ----
 
-    /// No primeiro quadro da batalha: sorteia as portas da fase 1, o tempo de
-    /// cada clock da 2, as voltas do laco da 3 e o delay do Blink, e reescreve
-    /// as etapas de fases.json com eles - o placar continua sendo a regra.
     void SortearALuta();
     bool mLutaSorteada = false;
     Relogio::Plano mPlanoDoRelogio;
@@ -68,24 +39,16 @@ private:
     Pipeline::Plano mPlanoDoPipeline;
     Pipeline::Degrau mDegrauDoPipeline;
     Blink::Degrau mDegrauDoBlink;
-    // ---- AS PORTAS DA FASE 1 ------------------------------------------------
-    //
-    // Logo que a fase comeca o Ricardo forma a fileira de portas (o gatilho
-    // "portas"), e dali em diante, a cada quadro: poe em cada porta a cara da
-    // operacao da etapa, e transforma todo bit que chega na altura delas. SO O
-    // CORPO ORIGINAL - ele nao se divide, mas um clone nao teria portas suas.
+    // ---- As portas da fase 1 ----
 
     void AtualizarPortas();
 
     /// Os projeteis do chefe que estao no posto nomeado.
     [[nodiscard]] std::vector<BossProjectile*> NoPosto(const char* posto) const;
 
-    /// A PORTA ESCRITA NO PLACAR no instante 't' da fase 1 - o placar e a
-    /// porta (Logica::LerPorta). Se o placar daquele instante nao for porta, a
-    /// ultima que valeu.
+    /// A porta escrita no placar no instante 't' da fase 1 - o placar e a porta (Logica::LerPorta).
     [[nodiscard]] Logica::Porta PortaEm(float t) const;
 
-    /// O que as portas fazem agora.
     Logica::Porta mPorta;
     bool mPortasFormadas = false;
 
@@ -97,12 +60,7 @@ private:
     /// palavra, que sai a 1 s.
     static constexpr float kFormaAsPortas = 0.2f;
 
-    // ---- O CLOCK DA FASE 2 --------------------------------------------------
-    //
-    // A cada quadro: se houve borda de subida do clock do placar, todo
-    // registrador em campo da um passo; se o segundo virou, o contador anda e
-    // sai um leque (o gatilho "contador"). Quando a fase acaba, o clock para e
-    // os registradores que sobraram escorrem para fora da tela.
+    // ---- O clock da fase 2 ----
 
     void AtualizarRelogio();
 
@@ -110,11 +68,7 @@ private:
     /// dele (zero: parado).
     void MoverRegistradores(float velocidade);
 
-    /// A DIRECAO DE CADA REGISTRADOR, anotada aqui e nao no vetor velocidade:
-    /// parado, ele tem velocidade ZERO, e zero nao guarda direcao (e o
-    /// RigidBody zera o x abaixo de 1 px/s, entao nem "quase zero" guarda).
-    /// O registrador nasce andando na direcao do leque, e no primeiro quadro
-    /// em que se move ela e anotada e ele para.
+    /// A direcao de cada registrador, anotada aqui e nao no vetor velocidade.
     std::unordered_map<const BossProjectile*, Vector2> mDirecoes;
 
     /// O tempo da fase no quadro anterior (negativo: fora da fase do clock).
@@ -126,13 +80,7 @@ private:
     /// O estado do contador Johnson: o do proximo leque.
     int mContador = 1;
 
-    // ---- O PIPELINE DA FASE 3 -----------------------------------------------
-    //
-    // Logo que a fase comeca o Ricardo forma os cinco estagios (o gatilho
-    // "estagios"), e a cada ciclo: o chip derrubado vira bolha, todo mundo anda
-    // um estagio, a instrucao buscada entra no IF (o gatilho "buscar"), e quem
-    // chegou ao estagio do seu ataque o faz, de la. O flush do bne mal previsto
-    // transforma em bolha o que estava no IF e no ID.
+    // ---- O pipeline da fase 3 ----
 
     void AtualizarPipeline(float deltaTime);
 
@@ -164,12 +112,7 @@ private:
     /// Quao depressa o chip anda de um estagio ao seguinte (Ancora::Aproximar).
     static constexpr float kRapidezDoChip = 12.0f;
 
-    // ---- O BLINK DA FINAL ---------------------------------------------------
-    //
-    // A cada quadro, cada placa em campo acende ou apaga conforme o lado dela
-    // e o delay do placar - a acesa vai para o posto "acesas", de onde o leque
-    // sai -, e quando o LED troca de lado as placas que acenderam atiram (o
-    // gatilho "acender").
+    // ---- O blink da final ----
 
     void AtualizarBlink();
 

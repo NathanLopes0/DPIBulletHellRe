@@ -43,15 +43,11 @@ namespace {
     constexpr int   kLarguraDupla = 300;
     constexpr int   kTamanhoDupla = 26;
 
-    /// " e ", E NAO " + ". A Zelda.ttf nao tem o glifo "+" e desenha um quadrado
-    /// vazio no lugar - o mesmo tropeco do "_" na tela de matricula e do ";" na
-    /// criacao de personagem. Medido na foto: "89384 + 90112" saiu com um
-    /// retangulo no meio. E em portugues "89384 e 90112" e como se le uma dupla
-    /// em voz alta, entao a troca nao e so um remendo.
+    /// " e ", e nao " + ".
     const std::string kEntreOsDois = " e ";
 
-    /// AS ABAS DAS QUATRO LISTAS, logo abaixo do titulo. Em fracao da largura,
-    /// para caberem na tela do gabinete, que e mais estreita que a do computador.
+    /// As abas das quatro listas, logo abaixo do titulo. Em fracao da largura, para caberem na tela
+    /// do gabinete, que e mais estreita que a do computador.
     constexpr float kAlturaDasAbas = 0.185f;
     constexpr float kEntreAbas = 0.21f;
     constexpr float kLarguraDaAba = 0.19f;
@@ -90,8 +86,7 @@ void TelaDeRanking::Load() {
 
     const Materias::Lista& materias = Materias::Carregadas();
 
-    // AS FICHAS SAO LIDAS UMA VEZ. Ver o comentario de classe: reler a cada
-    // quadro custaria um passeio pelo disco inteiro por quadro.
+    // As fichas sao lidas uma vez.
     for (const auto& matricula : FichaArquivo::ListarMatriculas()) {
         Exportacao::FichaDeAluno f;
         f.matricula = matricula;
@@ -101,8 +96,7 @@ void TelaDeRanking::Load() {
 
     mTituloAtor    = Texto(" ", largura / 2.0f, altura * 0.11f, 44, 900);
 
-    // AS ABAS. Todas a vista, e nao so o nome da lista aberta: quem ve as
-    // quatro sabe que elas existem e quantos toques faltam ate a que quer.
+    // As abas.
     for (int i = 0; i < Ranking::kQuantasListas; ++i) {
         const float x = largura / 2.0f + (static_cast<float>(i) - (Ranking::kQuantasListas - 1) / 2.0f)
                                          * largura * kEntreAbas;
@@ -117,21 +111,18 @@ void TelaDeRanking::Load() {
                                       22, larguraDoNome)->GetComponent<DrawTextComponent>());
     }
 
-    // A EXPLICACAO DO GERAL desceu para baixo da lista: o lugar dela, embaixo
-    // do titulo, e das abas agora.
     mSubtituloAtor = Texto(" ", largura / 2.0f, altura * 0.80f, 22, 1100);
     if (const auto dc = mSubtituloAtor->GetComponent<DrawTextComponent>()) {
         dc->SetColor(Color::LightBlue);   // e uma nota de rodape, nao um titulo
     }
     mRodapeAtor = Texto(" ", largura / 2.0f, altura * 0.93f, 22, 1000);
 
-    // COMECA NA LISTA DA PARTIDA. Ver o comentario de mLista.
+    // Comeca na lista da partida.
     mLista = Ranking::IndiceDaLista(
         mGame->QuantosJogadores() > 1 ? Progresso::Modo::Dupla : Progresso::Modo::Solo,
         mGame->NivelDeDificuldade());
 
-    // As linhas sao criadas uma vez e reescritas na troca de materia. Criar e
-    // destruir ator a cada troca deixaria lixo na cena, que so some no fim dela.
+    // As linhas sao criadas uma vez e reescritas na troca de materia.
     for (size_t i = 0; i < kQuantasLinhas; ++i) {
         const float y = altura * (kPrimeiraLinha + kEspacoEntreLinhas * static_cast<float>(i));
         mPosicaoAtores.push_back  (Texto(" ", largura * kColunaPosicao,   y, 30, 120, true));
@@ -151,9 +142,7 @@ void TelaDeRanking::Load() {
 
 Actor* TelaDeRanking::Texto(const std::string& conteudo, const float x, const float y,
                             const int tamanho, const int larguraMaxima, const bool aEsquerda) {
-    // Uma coluna alinhada a esquerda e desenhada a partir do x dado, e nao
-    // centrada nele: com tudo centrado, os numeros dancam de lado conforme o
-    // tamanho muda e a coluna deixa de parecer uma coluna.
+    // Uma coluna alinhada a esquerda e desenhada a partir do x dado, e nao centrada nele.
     const Vector2 onde(aEsquerda ? x + static_cast<float>(larguraMaxima) / 2.0f : x, y);
     return CriarTexto(*this, mFonte.get(), conteudo, onde, tamanho, larguraMaxima, tamanho + 8)->GetOwner();
 }
@@ -177,9 +166,7 @@ void TelaDeRanking::Redesenhar() {
     const Ranking::Lista& lista = ListaAtual();
     const bool duplas = EmDupla();
 
-    // A ABA ABERTA ACENDE. E A UNICA PISTA DE QUAL LISTA ESTA NA TELA, entao
-    // nao e enfeite: quatro listas de numeros parecidos sem rotulo fariam o
-    // aluno comparar a propria nota do Normal com a de quem jogou no Dificil.
+    // A aba aberta acende.
     for (size_t i = 0; i < mAbas.size(); ++i) {
         const bool aberta = static_cast<int>(i) == mLista;
         mAbas[i]->SetMoldura(aberta ? kMolduraDaAba : kMolduraApagada);
@@ -187,9 +174,6 @@ void TelaDeRanking::Redesenhar() {
         mNomesDasAbas[i]->SetColor(aberta ? Color::Gold : kNomeApagado);
     }
 
-    // O GERAL E A MEDIA SOBRE O CURSO INTEIRO, e por isso o titulo diz "media
-    // do curso" em vez de "maiores notas": o numero nao e uma nota, e ler 34,55
-    // como nota faria todo mundo achar que foi mal.
     if (mPedido.geral) {
         escrever(mTituloAtor, "MEDIA DO CURSO");
         escrever(mSubtituloAtor,
@@ -202,10 +186,7 @@ void TelaDeRanking::Redesenhar() {
         escrever(mSubtituloAtor, "");
     }
 
-    // AS DUAS FORMAS DE LISTA SAO LIDAS, e a que nao esta em uso sai vazia.
-    // Montar so a de uma vez pediria dois lacos de desenho quase iguais - e
-    // dois lacos quase iguais sao duas chances de um ganhar uma correcao e o
-    // outro nao.
+    // As duas formas de lista sao lidas, e a que nao esta em uso sai vazia.
     const auto linhas = duplas
         ? std::vector<Ranking::Linha>{}
         : (mPedido.geral ? Ranking::Geral(mFichas, materias.Quantas(), lista.nivel, kQuantasLinhas)
@@ -222,8 +203,6 @@ void TelaDeRanking::Redesenhar() {
 
         const bool temLinha = i < quantasTem;
 
-        // Posicao, nota e materias jogadas saem IGUAIS das duas formas, e sao
-        // lidas aqui de uma vez para o desenho nao se repartir em dois.
         const int  posicao  = temLinha ? (duplas ? deDupla[i].posicao : linhas[i].posicao) : 0;
         const float nota    = temLinha ? (duplas ? deDupla[i].nota : linhas[i].nota) : 0.0f;
         const int  jogadas  = temLinha ? (duplas ? deDupla[i].materiasJogadas
@@ -232,7 +211,7 @@ void TelaDeRanking::Redesenhar() {
         escrever(mPosicaoAtores[i], temLinha ? std::to_string(posicao) : "");
         escrever(mNotaAtores[i],    temLinha ? ComDuasCasas(nota) : "");
 
-        // Uma das duas colunas de nome fica vazia. Ver mDuplaAtores.
+        // Uma das duas colunas de nome fica vazia.
         escrever(mMatriculaAtores[i], (temLinha && !duplas) ? linhas[i].matricula : "");
         escrever(mDuplaAtores[i],
                  (temLinha && duplas) ? deDupla[i].um + kEntreOsDois + deDupla[i].dois : "");
@@ -244,12 +223,7 @@ void TelaDeRanking::Redesenhar() {
                      ? std::to_string(jogadas) + " de " + std::to_string(materias.Quantas())
                      : "");
 
-        // O DOURADO SEGUE A MESMA REGRA DA BATALHA. 99,99 e 100 sao resultados
-        // diferentes, e e aqui que essa diferenca finalmente aparece para quem
-        // joga - era disso que a curva da nota tratava desde o comeco.
-        // O DOURADO SO VALE NO RANKING DE MATERIA. No geral o numero e uma media
-        // sobre o curso inteiro, entao 100 exigiria nota cheia em TODAS as
-        // materias - pintar por esse criterio seria uma cor que nunca acende.
+        // O dourado so vale no ranking de materia.
         const bool cheia = temLinha && !mPedido.geral && Nota::ECheia(nota);
         const Vector3 cor = cheia ? Color::Gold : Color::White;
         pintar(mPosicaoAtores[i], cor);
@@ -259,33 +233,21 @@ void TelaDeRanking::Redesenhar() {
         pintar(mJogadasAtores[i], Color::LightBlue);
     }
 
-    // A LISTA VAZIA DIZ DE QUAL LISTA FALA. "Ninguem jogou esta materia ainda"
-    // seria falso com outra lista cheia ao lado, e quem lesse acharia que a
-    // lista nao funciona.
+    // A lista vazia diz de qual lista fala.
     escrever(mVazioAtor, quantasTem > 0 ? "" : "Ninguem tem nota nesta lista ainda.");
 
-    // O MANCHE TROCA DE LISTA, dando a volta. O botao 3 tambem, sem aparecer
-    // escrito: era ele que alternava solo e dupla, e quem se acostumou continua
-    // chegando a todas as listas com ele.
+    // O manche troca de lista, dando a volta.
     escrever(mRodapeAtor, Painel::Rodape({
         Painel::Manche(Painel::Jogador::Um, "trocar de lista"),
         {Painel::Jogador::Um, Painel::Botao::Dois, "voltar"},
     }, mGame->JeitoDoRodape()));
 
-    // A POSICAO DE QUEM ESTA JOGANDO, quando ela nao cabe no topo. Sem isto o
-    // ranking so conversa com quem ja esta bem, que e quem menos precisa.
-    // CADA LISTA RESPONDE A SUA PERGUNTA. Na de solo "onde estou"; na de duplas
-    // "onde estamos", e o sujeito e a DUPLA - dizer ali a posicao de solo seria
-    // um numero que nao pertence a nada na tela.
+    // A posicao de quem esta jogando, quando ela nao cabe no topo.
     int posicao = 0;
     std::string quemEsta = "Voce esta";
 
     if (duplas) {
-        // A DUPLA E A DOS DOIS QUE ESTAO JOGANDO AGORA, e nao uma qualquer de
-        // que o jogador 1 tenha feito parte: ele pode ter varias, e nenhuma
-        // seria mais "a dele" que as outras. Jogando sozinho nao ha dupla de
-        // quem perguntar, e o rodape fica vazio - como fica para o visitante,
-        // que nao entra em dupla nenhuma.
+        // Jogando sozinho nao ha dupla de quem perguntar, e o rodape fica vazio.
         if (mGame->QuantosJogadores() > 1) {
             const std::string& um   = mGame->MatriculaDe(0);
             const std::string& dois = mGame->MatriculaDe(1);
@@ -298,7 +260,7 @@ void TelaDeRanking::Redesenhar() {
         }
     }
     else {
-        // DO JOGADOR 1: e ele quem abre esta tela, do menu ou da selecao de fases.
+        // Do jogador 1: e ele quem abre esta tela, do menu ou da selecao de fases.
         const std::string& eu = mGame->MatriculaDe(0);
         if (!eu.empty()) {
             posicao = mPedido.geral
@@ -307,8 +269,6 @@ void TelaDeRanking::Redesenhar() {
         }
     }
 
-    // SO QUANDO NAO CABE NO TOPO: quem ja esta na lista esta vendo a propria
-    // posicao, e repeti-la embaixo nao acrescenta nada.
     escrever(mSuaPosicaoAtor,
              posicao > static_cast<int>(kQuantasLinhas)
                  ? quemEsta + " em " + std::to_string(posicao) + "o"
@@ -320,15 +280,13 @@ void TelaDeRanking::OnProcessInput(const Uint8* keyState) {
     const bool voltar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois)
                      || keyState[SDL_SCANCODE_ESCAPE];
     if (voltar && !mVoltarAnterior) {
-        // VOLTA PARA ONDE VEIO, e nao sempre para o menu: aberta pela selecao de
-        // fases, cair no menu faria o aluno refazer o caminho ate a materia.
+        // Volta para onde veio, e nao sempre para o menu.
         mGame->RequestSceneChange(mPedido.voltarPara);
         return;
     }
     mVoltarAnterior = voltar;
 
-    // O MANCHE PARA OS LADOS troca de lista, dando a volta; o botao 3 anda
-    // para a seguinte (ver o rodape em Redesenhar).
+    // O manche para os lados troca de lista, dando a volta; o botao 3 anda para a seguinte.
     const bool esquerda = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Direcao::Esquerda);
     const bool direita = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Direcao::Direita);
     const bool alternar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Tres);
@@ -343,8 +301,7 @@ void TelaDeRanking::OnProcessInput(const Uint8* keyState) {
     if (passo != 0) {
         mLista = Ranking::MoverLista(mLista, passo);
 
-        // AS FICHAS NAO SAO RELIDAS: a lista muda, a turma nao. Reler aqui
-        // custaria um passeio pelo disco a cada toque.
+        // As fichas nao sao relidas: a lista muda, a turma nao.
         Redesenhar();
     }
 }

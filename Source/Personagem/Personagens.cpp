@@ -41,8 +41,7 @@ bool IdServe(const std::string& id) {
 
 bool LerCorHex(const std::string& hex, unsigned char& r, unsigned char& g, unsigned char& b) {
 
-    // Aceita com e sem o "#" na frente: quem edita o arquivo a mao vai escrever
-    // das duas formas, e recusar uma delas so geraria um bug chato de achar.
+    // Aceita com e sem o "#" na frente.
     const std::string h = (!hex.empty() && hex[0] == '#') ? hex.substr(1) : hex;
     if (h.size() != 6) return false;
 
@@ -59,16 +58,12 @@ bool LerCorHex(const std::string& hex, unsigned char& r, unsigned char& g, unsig
 }
 
 unsigned char Multiplicar(const unsigned char valor, const unsigned char cor) {
-    // Divide por 255, e nao por 256: com 256 o branco puro (255) devolveria 254
-    // em vez da cor escolhida, e toda peca sairia um tiquinho mais escura do que
-    // a cor que o aluno viu na tela de criacao.
     return static_cast<unsigned char>((static_cast<int>(valor) * static_cast<int>(cor)) / 255);
 }
 
 std::string ChaveDaAparencia(const Aparencia& aparencia) {
 
-    // O mapa percorre em ordem de chave, entao a mesma aparencia sempre produz
-    // o mesmo texto - e e isso que faz o cache acertar.
+    // O mapa percorre em ordem de chave, entao a mesma aparencia sempre produz o mesmo texto.
     std::string chave = "<personagem>";
     for (const auto& par : aparencia.escolhas) {
         chave += par.first + "=" + par.second.peca + ":" + par.second.cor + "|";
@@ -108,17 +103,13 @@ Aparencia Catalogo::Resolver(const Aparencia& pedida, std::vector<std::string>* 
 
         const Escolha* pedido = pedida.Por(c.id);
 
-        // Sem escolha nenhuma para esta categoria: e o caso de um save gravado
-        // antes de a categoria existir. Cai no padrao sem reclamar, porque nao
-        // ha nada de errado nisso.
+        // Cai no padrao sem reclamar, porque nao ha nada de errado nisso.
         if (pedido == nullptr) {
             saida.Definir(c.id, Escolha{c.pecas.front().id, c.cores.front().id});
             continue;
         }
 
-        // CADA METADE CAI SOZINHA. Se o tipo de cabelo saiu do catalogo mas a
-        // cor continua la, so o tipo volta ao padrao - a escolha de cor que o
-        // aluno fez nao tem por que ser perdida junto.
+        // Cada metade cai sozinha.
         Escolha e = *pedido;
 
         if (c.PecaPor(e.peca) == nullptr) {
@@ -183,10 +174,7 @@ std::vector<Camada> Catalogo::Camadas(const Aparencia& aparencia) const {
         camadas.push_back(camada);
     }
 
-    // Ordenacao ESTAVEL: duas camadas com a mesma ordem mantem a ordem em que
-    // entraram, em vez de trocarem de lugar entre uma execucao e outra. O
-    // arquivo nao devia ter ordens repetidas - LerCatalogo reclama quando tem -
-    // mas se tiver, o desenho ao menos nao muda sozinho.
+    // O arquivo nao devia ter ordens repetidas - LerCatalogo reclama quando tem.
     std::stable_sort(camadas.begin(), camadas.end(),
                      [](const Camada& a, const Camada& b) { return a.ordem < b.ordem; });
 
@@ -296,7 +284,7 @@ Catalogo LerCatalogo(const std::string& textoJson) {
         return cat;
     }
 
-    // ----- categorias -----
+    // ---- Categorias ----
     if (!raiz.contains("categorias") || !raiz["categorias"].is_array()) {
         cat.problemas.emplace_back("falta \"categorias\": sem elas nao ha o que escolher");
         return cat;
@@ -330,8 +318,6 @@ Catalogo LerCatalogo(const std::string& textoJson) {
         LerPecas(jc, c, onde, cat.problemas);
         LerCores(jc, c, onde, cat.problemas);
 
-        // Sem peca ou sem cor nao ha escolha possivel, e uma categoria assim na
-        // tela seria uma linha que nao responde a nada.
         if (c.pecas.empty() || c.cores.empty()) {
             cat.problemas.emplace_back(onde + "ficou sem peca ou sem cor; a categoria inteira"
                                        " foi descartada");
@@ -341,7 +327,7 @@ Catalogo LerCatalogo(const std::string& textoJson) {
         cat.categorias.push_back(c);
     }
 
-    // ----- camadas fixas -----
+    // ---- Camadas fixas ----
     if (raiz.contains("fixas") && raiz["fixas"].is_array()) {
         for (const auto& jf : raiz["fixas"]) {
             if (!jf.is_object()) continue;
@@ -356,11 +342,7 @@ Catalogo LerCatalogo(const std::string& textoJson) {
         }
     }
 
-    // ----- ordens repetidas -----
-    //
-    // Nao descarta nada: so avisa. Duas camadas na mesma ordem continuam
-    // desenhando, mas qual fica por cima deixa de ser uma decisao de quem
-    // escreveu o arquivo.
+    // ---- Ordens repetidas ----
     {
         std::map<int, std::string> porOrdem;
         for (const auto& c : cat.categorias) {
@@ -383,7 +365,7 @@ Catalogo LerCatalogo(const std::string& textoJson) {
         }
     }
 
-    // ----- combinacoes prontas -----
+    // ---- Combinacoes prontas ----
     if (raiz.contains("predefinidas") && raiz["predefinidas"].is_array()) {
 
         std::set<std::string> vistos;
@@ -414,9 +396,7 @@ Catalogo LerCatalogo(const std::string& textoJson) {
                 }
             }
 
-            // Passa pelo mesmo conserto que um save sofreria. Assim uma
-            // combinacao que cita peca inexistente vira uma combinacao valida e
-            // o problema aparece aqui, e nao so quando alguem a escolher.
+            // Passa pelo mesmo conserto que um save sofreria.
             std::vector<std::string> trocas;
             p.aparencia = cat.Resolver(p.aparencia, &trocas);
             for (const auto& t : trocas) {

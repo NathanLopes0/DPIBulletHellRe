@@ -23,13 +23,12 @@ public:
     /// TCC. O tiro nasce onde o dono esta, e paga a nota do mesmo jeito.
     PlayerProjectile(class Scene* scene, class Actor* owner);
 
-    /// A DUVIDA DE UM ALUNO: o balao com o "?" na cor dele (0 o primeiro, 1 o
-    /// segundo - Ferramentas/gerar_duvida.py).
+    /// A duvida de um aluno: o balao com o "?" na cor dele (0 o primeiro, 1 o segundo -
+    /// Ferramentas/gerar_duvida.py).
     PlayerProjectile(class Scene* scene, class Actor* owner, size_t quem);
 
-    /// O tiro com outra cara: o quadro 'quadro' da folha 'folha' (caminho em
-    /// Assets, sem extensao), na 'escala', com o contorno 'contorno'. O
-    /// alcance continua o do tiro de sempre (kRaioDoTiro).
+    /// O tiro com outra cara: o quadro 'quadro' da folha 'folha' (caminho em Assets, sem extensao),
+    /// na 'escala', com o contorno 'contorno'.
     PlayerProjectile(class Scene* scene, class Actor* owner, const std::string& folha, int quadro,
                      float escala, SDL_Color contorno);
 
@@ -45,37 +44,29 @@ public:
     [[nodiscard]] bool IsOffScreen() const override;
     void OnCollision(Actor* other) override;
 
-    /// Um numero que nenhum outro tiro da partida tem. O manager apaga o tiro
-    /// que morre, entao quem acompanha um tiro (o golpe do orientador) guarda
-    /// isto, e nao o ponteiro, e o procura a cada quadro.
+    /// Um numero que nenhum outro tiro da partida tem.
     [[nodiscard]] std::uint64_t Id() const { return mId; }
 
     /// Quem atirou: um Player, ou o Orientador. O registro da tentativa
     /// (Tentativas.h) separa os acertos de cada um por aqui.
     [[nodiscard]] Actor* Dono() const { return mOwner; }
 
-    /// @brief O ESCUDO BARROU A PERGUNTA: o balao para, fica cinza, murcha em
-    /// Hud::kMurcha e some. Enquanto isso nao acerta mais nada.
+    /// O escudo barrou a pergunta: o balao para, fica cinza, murcha em Hud::kMurcha e some.
+    /// Enquanto isso nao acerta mais nada.
     void Murchar();
     [[nodiscard]] bool Murchando() const { return mMurcha >= 0.0f; }
 
-    // ---- A PROMESSA (o Promise.all() do Lucas, no TCC) ------------------------
-    //
-    // UMA PROMESSA E UM BUMERANGUE: vai ate o Hugo, "resolve" ali e VOLTA para
-    // quem a lancou - dourada, porque ja tem valor. Na ida e na volta ela desfaz
-    // os tiros do Hugo que encosta (Battle::CheckCollisions, regra 1b), e nao se
-    // gasta com isso.
+    // ---- A promessa (o Promise.all() do Lucas, no TCC) ----
 
     void FazerPromessa() { mPromessa = true; }
     [[nodiscard]] bool Promessa() const { return mPromessa; }
     [[nodiscard]] bool Voltando() const { return mVoltando; }
-    /// @brief A promessa resolveu (acertou o Hugo, ou chegou ao alto do campo):
-    /// daqui ate sumir, ela persegue quem a lancou.
+    /// A promessa resolveu (acertou o Hugo, ou chegou ao alto do campo): daqui ate sumir, ela
+    /// persegue quem a lancou.
     void Voltar();
-    /// @brief Se esta promessa ainda nao desfez 'tiro' - e anota que desfez.
-    /// Um tiro resistente leva UM golpe por promessa, e nao um por quadro.
+    /// Se esta promessa ainda nao desfez 'tiro' - e anota que desfez. Um tiro resistente leva um
+    /// golpe por promessa, e nao um por quadro.
     bool DesfazPelaPrimeiraVez(const void* tiro) { return mDesfeitos.insert(tiro).second; }
-
 
 private:
 
@@ -93,5 +84,4 @@ private:
 
 };
 
-
-#endif //DPIBULLETHELLRE_PLAYERPROJECTILE_H
+#endif // DPIBULLETHELLRE_PLAYERPROJECTILE_H.

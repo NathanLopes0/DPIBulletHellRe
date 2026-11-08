@@ -10,41 +10,14 @@
 #include <utility>
 #include <vector>
 
-/**
- * CAMADA PURA. Coberto por test_variacao.cpp.
- *
- * TODA BATALHA TEM UMA SEMENTE (Battle::SementeDaBatalha), sorteada quando ela
- * carrega, e cada chefe tira dela o que varia DENTRO do conceito de cada fase:
- * a ordem das rodadas, os valores que o placar mostra, de onde sai cada coisa.
- * O conceito e o mesmo em toda luta; o que muda e o exemplo - como uma lista de
- * exercicios em que cada aluno pega outros numeros.
- *
- * UM SORTEADOR PROPRIO, e nao o Random do jogo, por dois motivos:
- *
- *  1. O Random e um so para tudo, e cada colisao, cada capivara e cada sorteio
- *     de ataque consome dele. Se as fases tirassem dali o roteiro, o roteiro da
- *     fase 3 dependeria de quantas vezes o aluno foi atingido na fase 1.
- *     Aqui cada fase tem a PROPRIA sequencia (SorteioDa), derivada da semente da
- *     batalha e do nome da fase: o roteiro da fase e decidido antes de ela
- *     comecar, e nada do que acontece na luta o muda.
- *
- *  2. As distribuicoes da biblioteca padrao (uniform_int_distribution,
- *     std::shuffle) sao implementadas de um jeito em cada compilador: a mesma
- *     semente daria uma luta no MSVC e outra no GCC, e um teste que conferisse
- *     o roteiro de uma semente passaria num e quebraria no outro. O mt19937 e
- *     especificado bit a bit pelo padrao; o resto - faixa, real, embaralhar -
- *     e feito aqui, com aritmetica inteira.
- */
+/// O conceito e o mesmo em toda luta; o que muda e o exemplo - como uma lista de exercicios em que
+/// cada aluno pega outros numeros.
 namespace Variacao {
 
-    /// Mistura dois numeros num terceiro bem espalhado (o finalizador do
-    /// splitmix64). E o que separa a sequencia de cada fase: sementes vizinhas
-    /// e rotulos parecidos dao sequencias que nao se parecem.
+    /// Mistura dois numeros num terceiro bem espalhado (o finalizador do splitmix64).
     std::uint32_t Misturar(std::uint32_t semente, std::uint32_t rotulo);
 
-    /// Um rotulo estavel para um nome (FNV-1a de 32 bits): o mesmo nome da o
-    /// mesmo numero em qualquer maquina, e e assim que "StateTwo" vira a
-    /// sequencia da fase 2.
+    /// Um rotulo estavel para um nome (fnv-1a de 32 bits).
     std::uint32_t Rotulo(const std::string& nome);
 
     class Sorteio {
@@ -59,9 +32,7 @@ namespace Variacao {
         /// devolve de.
         int Inteiro(int de, int ate);
 
-        /// Um real em [de, ate), com 24 bits de resolucao. Nunca devolve `ate`,
-        /// nem quando o arredondamento do float quisesse (LWG 2524 - a
-        /// armadilha 13 do RETOMAR).
+        /// Um real em [de, ate), com 24 bits de resolucao.
         float Real(float de, float ate);
 
         /// Verdadeiro com chance `p` (0 nunca, 1 sempre).
@@ -86,18 +57,12 @@ namespace Variacao {
         std::mt19937 mGerador;
     };
 
-    /**
-     * @brief UMA ORDEM PARA AS FORMAS de uma fase: 0 a n - 1 embaralhados, com
-     * as `fixas` primeiras no lugar - a que define o conceito abre a fase.
-     *
-     * E o molde dos chefes que tem um "Proximo(vez, ...)": a vez k da fase
-     * passa a ser a forma NaOrdem(ordem, k).
-     */
+    /// Uma ordem para as formas de uma fase: 0 a n - 1 embaralhados, com as `fixas` primeiras no
+    /// lugar - a que define o conceito abre a fase.
     std::vector<int> Ordem(Sorteio& s, int n, int fixas = 1);
 
-    /// A forma da vez `vez` numa ordem de n: a volta seguinte repete a ordem,
-    /// n adiante (vez n + 2 e ordem[2] + n), para quem conta voltas pela vez.
-    /// Sem ordem (vazia), a vez de sempre.
+    /// A forma da vez `vez` numa ordem de n: a volta seguinte repete a ordem, n adiante (vez n + 2
+    /// e ordem[2] + n), para quem conta voltas pela vez.
     int NaOrdem(const std::vector<int>& ordem, int vez);
 
     /// A sequencia da fase `fase` numa batalha de semente `semente`.

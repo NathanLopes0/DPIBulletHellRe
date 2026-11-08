@@ -26,8 +26,7 @@ void DrawCaixaComponent::Draw(SDL_Renderer* renderer) {
                            static_cast<int>(pos.y) - mAltura / 2,
                            mLargura, mAltura};
 
-    // A mistura precisa estar ligada para fundo com alfa funcionar; sem isso um
-    // fundo semitransparente sai solido.
+    // A mistura precisa estar ligada para fundo com alfa funcionar.
     SDL_BlendMode anterior;
     SDL_GetRenderDrawBlendMode(renderer, &anterior);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
@@ -37,8 +36,6 @@ void DrawCaixaComponent::Draw(SDL_Renderer* renderer) {
         SDL_RenderFillRect(renderer, &fora);
     }
 
-    // A moldura sao quatro retangulos cheios, e nao SDL_RenderDrawRect, porque
-    // aquele desenha sempre com um pixel de espessura.
     SDL_SetRenderDrawColor(renderer, mMoldura.r, mMoldura.g, mMoldura.b, mMoldura.a);
     const SDL_Rect lados[4] = {
         {fora.x, fora.y, fora.w, mEspessura},                          // topo

@@ -16,9 +16,7 @@ namespace Nuvem {
         const float volta = c.processa + c.descansa;
         if (volta <= 0.0f || deltaTime <= 0.0f) return false;
 
-        // CHOVE QUANDO O PROCESSAMENTO ACABA, em c.processa: chove quem cruzou
-        // esse ponto neste quadro, contando a volta inteira que o quadro possa
-        // ter dado.
+        // Chove quando o processamento acaba, em c.processa.
         const float antes = c.t;
         const float depois = antes + deltaTime;
         const bool chove = (antes < c.processa && depois >= c.processa)

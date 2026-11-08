@@ -89,19 +89,19 @@ namespace Coercao {
         r.direitoDepois = Direito(c);
         switch (c.forma) {
             case Forma::JsSoma:
-                // NO JAVASCRIPT, + COM UM TEXTO E CONCATENAR: o numero vira texto.
+                // No JavaScript, + com um texto e concatenar: o numero vira texto.
                 r.coagidoEsquerdo = true;
                 r.esquerdoDepois = Texto(Algarismo(c.a));
                 r.valor = Texto(Algarismo(c.a) + Algarismo(c.b));
                 break;
             case Forma::PhpSoma:
-                // NO PHP, + E SEMPRE SOMA: o texto vira numero.
+                // No php, + e sempre soma: o texto vira numero.
                 r.coagidoDireito = true;
                 r.direitoDepois = Numero(c.b);
                 r.valor = Numero(c.a + c.b);
                 break;
             case Forma::JsProduto:
-                // O * SO EXISTE PARA NUMERO: os dois textos viram.
+                // O * so existe para numero: os dois textos viram.
                 r.coagidoEsquerdo = true;
                 r.coagidoDireito = true;
                 r.esquerdoDepois = Numero(c.a);
@@ -109,8 +109,6 @@ namespace Coercao {
                 r.valor = Numero(c.a * c.b);
                 break;
             case Forma::PythonRepete:
-                // TEXTO VEZES NUMERO E REPETIR - a operacao existe para os dois
-                // tipos como estao, e nada e convertido.
                 r.valor = Texto(std::string(static_cast<size_t>(std::max(0, c.b)), Algarismo(c.a)[0]));
                 break;
             case Forma::PythonSoma:
@@ -136,7 +134,7 @@ namespace Coercao {
         c.forma = OrdemDaFase(vez);
         switch (c.forma) {
             case Forma::PhpSoma:
-                // A SOMA DA DE 7 A 13: o anel tem o que contar e ainda se le.
+                // A soma da de 7 A 13: o anel tem o que contar e ainda se le.
                 c.a = Entre(g, 2, 9);
                 c.b = Entre(g, std::max(1, 7 - c.a), std::min(9, 13 - c.a));
                 break;

@@ -1,15 +1,5 @@
-// O MANUAL do jogo: as paginas da tela "Como Jogar", do menu principal.
-//
-// Cada pagina tem um titulo e as linhas, de cima para baixo. As linhas de
-// "no_computador" so aparecem fora do gabinete: elas falam de teclas, e o
-// painel do gabinete nao tem teclado - la elas seriam ruido (gabinete.md).
-//
-// LINHA CURTA. A tela mostra cada linha inteira, sem quebrar: uma linha longa
-// demais encolhe a letra dela ate caber, e fica menor que as outras.
-//
-// SO O QUE A FONTE DESENHA. A Zelda.ttf nao tem # $ % & * + / ; = @ [ ] ^ _ { } ~
-// (nem o ponto e virgula): cada um vira um quadrado na tela. O teste de
-// test_arquivos_de_dados.cpp confere.
+// O manual do jogo: as paginas da tela "Como Jogar", do menu principal. Cada pagina tem um titulo e
+// as linhas, de cima para baixo.
 {
   "paginas": [
     {

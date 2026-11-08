@@ -10,19 +10,7 @@
 
 namespace {
 
-    /**
-     * @brief Le uma lista de pares [x, y] para dentro de 'saidaPontos'.
-     *
-     * UMA SO, e e por isso que ela existe: "pontos" e cada entrada de
-     * "caminhos" aceitam exatamente o mesmo formato. A validacao escrita duas
-     * vezes seria duas chances de uma aceitar o que a outra recusa - e o erro
-     * so apareceria no dia em que alguem escrevesse um caminho torto.
-     *
-     * @param onde como chamar esta lista na mensagem de erro, ja montado pelo
-     *        chamador ("forma \"Pilha\", caminho 3").
-     * @return false se a lista nao for uma lista NAO VAZIA de pares de numeros.
-     *         A frase do problema ja foi acrescentada quando devolve false.
-     */
+    /// Le uma lista de pares [x, y] para dentro de 'saidaPontos'.
     bool LerListaDePontos(const nlohmann::json& lista, const std::string& onde,
                           std::vector<Vector2>& saidaPontos,
                           std::vector<std::string>& problemas) {
@@ -58,9 +46,7 @@ namespace {
         }
     };
 
-    // As formas vivem pela duracao do processo. Sao poucas dezenas de pontos
-    // cada e ficam compartilhadas por todos os projeteis que as usam, entao o
-    // custo de memoria e irrelevante perto do que se economiza em alocacoes.
+    // As formas vivem pela duracao do processo.
     std::map<ChaveForma, PathShapes::Path> gCacheDeFormas;
 
 }
@@ -93,9 +79,6 @@ Path Arc(const float forward, const float lateral, int segments) {
     pontos.reserve(segments);
 
     // A barriga e um meio-seno: vale 0 nas duas pontas e 'lateral' no meio.
-    // Comeca em i = 1 porque o ponto 0 seria a propria posicao de disparo, e um
-    // waypoint em cima do projetil seria consumido no primeiro frame sem
-    // produzir movimento nenhum.
     for (int i = 1; i <= segments; ++i) {
         const float t = static_cast<float>(i) / static_cast<float>(segments);
         pontos.emplace_back(forward * t, lateral * Math::Sin(Math::Pi * t));
@@ -118,9 +101,7 @@ Path Loop(const float radius, const float exitDistance, int segments) {
     std::vector<Vector2> pontos;
     pontos.reserve(segments + 1);
 
-    // Circulo de raio 'radius' centrado em (0, radius): assim ele passa pela
-    // origem, que e onde o projetil esta quando o caminho comeca. O percurso
-    // sai para frente, sobe pelo lado e volta ao ponto de partida.
+    // Circulo de raio 'radius' centrado em (0, radius).
     for (int i = 1; i <= segments; ++i) {
         const float angulo = 2.0f * Math::Pi * static_cast<float>(i) / static_cast<float>(segments);
         pontos.emplace_back(radius * Math::Sin(angulo), radius * (1.0f - Math::Cos(angulo)));
@@ -160,9 +141,7 @@ Path Zigzag(const float step, const float amplitude, int legs) {
 
 }
 
-// ===========================================================================
-// Formas vindas de arquivo
-// ===========================================================================
+// Formas vindas de arquivo.
 
 namespace {
 
@@ -195,12 +174,7 @@ std::vector<Vector2> ArvoreBinaria(const int divisoes, const int folha,
         return {};   // vazio, e nao um caminho errado em silencio
     }
 
-    // y do no numero j do nivel d, contando a raiz como nivel 0.
-    //
-    // Um nivel d tem 2^d nos, e cada um fica no PONTO MEDIO das folhas que
-    // descendem dele - e isso que alinha os ramos e faz a copa parecer uma
-    // arvore. O fator 2^(divisoes-d) e justamente quantas folhas cada no daquele
-    // nivel cobre.
+    // Y do no numero j do nivel d, contando a raiz como nivel 0.
     auto yDoNo = [&](const int d, const int j) {
         const int nosNoNivel = 1 << d;
         const float meio = static_cast<float>(nosNoNivel - 1) / 2.0f;
@@ -211,14 +185,11 @@ std::vector<Vector2> ArvoreBinaria(const int divisoes, const int folha,
     std::vector<Vector2> pontos;
     pontos.reserve(static_cast<size_t>(divisoes) + 2);
 
-    // O fim do tronco: a raiz. TODAS as folhas passam por aqui, e e por isso que
-    // os projeteis saem sobrepostos.
+    // O fim do tronco: a raiz.
     pontos.emplace_back(tronco, 0.0f);
 
     for (int d = 1; d <= divisoes; ++d) {
-        // O ancestral desta folha no nivel d. Os bits de cima do indice da folha
-        // SAO o caminho na arvore: descartar os (divisoes - d) bits de baixo e
-        // subir ate aquele nivel.
+        // O ancestral desta folha no nivel d.
         const int ancestral = folha >> (divisoes - d);
         pontos.emplace_back(tronco + passo * static_cast<float>(d), yDoNo(d, ancestral));
     }
@@ -285,8 +256,7 @@ FormasLidas LerFormas(const std::string& textoJson) {
         }
         else if (corpo.contains("arvore")) {
 
-            // Uma FAMILIA: uma entrada no arquivo que vira varias formas, uma por
-            // folha. "divisoes": 3 da 1 -> 2 -> 4 -> 8.
+            // Uma familia: uma entrada no arquivo que vira varias formas, uma por folha.
             const auto& a = corpo["arvore"];
             if (!a.is_object()) {
                 saida.problemas.emplace_back("forma \"" + nome + "\": \"arvore\" deveria ser um objeto");
@@ -323,24 +293,7 @@ FormasLidas LerFormas(const std::string& textoJson) {
         }
         else if (corpo.contains("caminhos")) {
 
-            // UMA FAMILIA ESCRITA A MAO: uma lista de listas de pontos, e o
-            // projetil numero i recebe o caminho numero i.
-            //
-            // POR QUE ELA PRECISOU EXISTIR. "arvore" ja fazia familias, mas so
-            // arvores binarias - qualquer outro conjunto de caminhos que so
-            // facam sentido JUNTOS tinha de virar N formas simples mais N
-            // regras por indice, que e exatamente o par de listas que tem de
-            // bater e que a familia foi inventada para evitar.
-            //
-            // O PRIMEIRO USO E A FASE 2 DA MARIA LUCIA: oito setas que andam,
-            // viram 90 graus e andam de novo, cada uma virando numa altura e
-            // para um lado. Nenhum gerador desenha um angulo reto, e as oito so
-            // fazem sentido juntas - que e exatamente o caso que a familia por
-            // caminhos existe para cobrir. Geometria pura, sem C++ nenhum.
-            //
-            // (Este comentario prometia a pilha do Vladimir, que no fim saiu por
-            // SlowDown e nao por caminho. A familia ficou escrita e testada sem
-            // usuario nenhum por dois commits.)
+            // Por que ela precisou existir.
             const auto& lista = corpo["caminhos"];
             if (!lista.is_array() || lista.empty()) {
                 saida.problemas.emplace_back("forma \"" + nome + "\": \"caminhos\" deveria ser"

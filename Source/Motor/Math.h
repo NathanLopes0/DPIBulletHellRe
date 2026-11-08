@@ -1,10 +1,5 @@
-// ----------------------------------------------------------------
-// From Game Programming in C++ by Sanjay Madhav
-// Copyright (C) 2017 Sanjay Madhav. All rights reserved.
-// 
-// Released under the BSD License
-// See LICENSE in root directory for full details.
-// ----------------------------------------------------------------
+// From Game Programming in C++ by Sanjay Madhav Copyright (C) 2017 Sanjay Madhav. All rights
+// reserved.
 
 #pragma once
 #include <cmath>
@@ -69,7 +64,6 @@ namespace Math
 		return sinf(angle);
 	}
 
-	
 	inline float Atan2(float y, float x)
 	{
 		return atan2f(y, x);
@@ -81,7 +75,7 @@ namespace Math
 	}
 }
 
-// 2D Vector
+// 2D Vector.
 class Vector2
 {
 public:
@@ -98,7 +92,7 @@ public:
 		,y(inY)
 	{}
 
-	// Set both components in one line
+	// Set both components in one line.
 	void Set(float inX, float inY)
 	{
 		x = inX;
@@ -117,19 +111,19 @@ public:
 		return Vector2(a.x - b.x, a.y - b.y);
 	}
 
-	// Scalar multiplication
+	// Scalar multiplication.
 	friend Vector2 operator*(const Vector2& vec, float scalar)
 	{
 		return Vector2(vec.x * scalar, vec.y * scalar);
 	}
 
-	// Scalar multiplication
+	// Scalar multiplication.
 	friend Vector2 operator*(float scalar, const Vector2& vec)
 	{
 		return Vector2(vec.x * scalar, vec.y * scalar);
 	}
 
-	// Scalar *=
+	// Scalar *=.
 	Vector2& operator*=(float scalar)
 	{
 		x *= scalar;
@@ -137,7 +131,7 @@ public:
 		return *this;
 	}
 
-	// Vector +=
+	// Vector +=.
 	Vector2& operator+=(const Vector2& right)
 	{
 		x += right.x;
@@ -145,7 +139,7 @@ public:
 		return *this;
 	}
 
-	// Vector -=
+	// Vector -=.
 	Vector2& operator-=(const Vector2& right)
 	{
 		x -= right.x;
@@ -153,29 +147,24 @@ public:
 		return *this;
 	}
 
-	// Length squared of vector
+	// Length squared of vector.
 	float LengthSq() const
 	{
 		return (x*x + y*y);
 	}
 
-	// Length of vector
+	// Length of vector.
 	float Length() const
 	{
 		return (Math::Sqrt(LengthSq()));
 	}
 
-	// Normalize this vector
+	// Normalize this vector.
 	void Normalize()
 	{
 		float length = Length();
 
-		// Guarda de vetor nulo. Sem ela, normalizar (0,0) fazia 0/0 = NaN, e NaN
-		// se espalha: velocidade NaN -> posicao NaN -> e TODA comparacao com NaN
-		// e falsa, entao IsOffScreen() nunca devolvia true e o projetil virava
-		// imortal, jamais devolvido ao pool. Alcancavel sempre que boss e player
-		// ocupam a mesma posicao (GetDirectionToPlayer / GetPlayerDirection).
-		// Degradar para (0,0) e visivel e inofensivo; NaN nao e nenhum dos dois.
+		// Guarda de vetor nulo.
 		if (Math::NearZero(length))
 		{
 			x = 0.0f;
@@ -187,7 +176,7 @@ public:
 		y /= length;
 	}
 
-	// Normalize the provided vector
+	// Normalize the provided vector.
 	static Vector2 Normalize(const Vector2& vec)
 	{
 		Vector2 temp = vec;
@@ -201,7 +190,7 @@ public:
 		return (a.x * b.x + a.y * b.y);
 	}
 
-	// Lerp from A to B by f
+	// Lerp from A to B by f.
 	static Vector2 Lerp(const Vector2& a, const Vector2& b, float f)
 	{
 		return Vector2(a + f * (b - a));
@@ -210,8 +199,8 @@ public:
 	static const Vector2 Zero;
 };
 
-// UMA COR, de 0 a 1 em cada canal: e so para isso que o jogo usa um vetor de
-// tres componentes (DrawTextComponent::SetColor, Font::RenderText, Color::).
+// Uma cor, de 0 a 1 em cada canal: e so para isso que o jogo usa um vetor de tres componentes
+// (DrawTextComponent::SetColor, Font::RenderText, Color::).
 class Vector3
 {
 public:

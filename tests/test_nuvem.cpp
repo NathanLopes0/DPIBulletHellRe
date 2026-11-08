@@ -49,7 +49,7 @@ TEST_CASE("Nuvem: no fork o original some quando a nuvem chega, e os dois aparec
     CHECK(Nuvem::Visivel(f, 1.0f, false));
     CHECK(Nuvem::Visivel(f, 5.0f, false));
 
-    // o outro corpo nasce dentro da nuvem: nao aparece antes de ela abrir
+    // O outro corpo nasce dentro da nuvem: nao aparece antes de ela abrir.
     CHECK_FALSE(Nuvem::Visivel(f, 0.0f, true));
     CHECK_FALSE(Nuvem::Visivel(f, 0.39f, true));
     CHECK_FALSE(Nuvem::Visivel(f, 0.99f, true));
@@ -71,8 +71,7 @@ TEST_CASE("Nuvem: a saida do fork anda de 0 a 1 entre abrir e sair, sem solavanc
         antes = s;
     }
 
-    // devagar nas pontas: o primeiro e o ultimo centesimo andam bem menos que
-    // o centesimo do meio
+    // Devagar nas pontas: o primeiro e o ultimo centesimo andam bem menos que o centesimo do meio.
     const float meio = Nuvem::Saida(f, 1.305f) - Nuvem::Saida(f, 1.295f);
     CHECK(Nuvem::Saida(f, 1.01f) - Nuvem::Saida(f, 1.0f) < meio / 10.0f);
     CHECK(Nuvem::Saida(f, 1.6f) - Nuvem::Saida(f, 1.59f) < meio / 10.0f);

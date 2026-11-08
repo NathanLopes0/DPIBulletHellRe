@@ -17,39 +17,8 @@
 
 class BossProjectile;
 
-/**
- * @class Thiago
- * @brief O chefe que trata o campo de jogo como uma TABELA e o jogador como uma
- *        linha dela.
- *
- * A IDEIA DA BATALHA. Os outros chefes miram no jogador; o Thiago CONSULTA. Cada
- * ataque e uma leitura de uma parte da tabela, anunciada antes: as casas que vao
- * ser lidas acendem. O jogador nao desvia de projetil - ele sai das casas que a
- * consulta le. A pergunta que a batalha faz nao e "voce consegue passar entre
- * as balas?", e sim "voce consegue ler a consulta a tempo?".
- *
- * A TABELA ESTA ESCRITA NO CAMPO (Banco.h): os cabecalhos das cinco colunas no
- * alto e os quatro registros, um por linha, cada valor na sua casa. Ela nasce na
- * primeira fase e fica ate o fim da batalha. Aqui mora a tabela em campo.
- *
- * A FASE 1 E O SELECT: a selecao varre as linhas que satisfazem o WHERE, a
- * projecao varre a coluna, as duas juntas so as casas do cruzamento, e o ORDER
- * BY troca as linhas de lugar. O placar e a consulta, e o professor vai para
- * a coluna que ela le.
- *
- * A FASE 2 E A ESCRITA (INSERT, UPDATE, DELETE): a tabela muda - a linha
- * apagada cai, as de baixo sobem, o registro novo vem do professor.
- *
- * A FASE 3 SAO AS TRANSACOES (Transacao.h): o UPDATE trava a linha com as
- * escritas paradas nela, o COMMIT as apaga, o ROLLBACK as faz voltar com a
- * varredura do outro lado, e o deadlock aborta a mais nova.
- *
- * A REPESCAGEM E O PRODUTO CARTESIANO: o laco aninhado acende casa por casa, a
- * tabela inteira, num plano por volta.
- *
- * QUEM ESCOLHE A FAIXA E ESTE ARQUIVO, nao a estrategia: a ConsultaAttack so
- * varre o que ele manda (CustomizeAttackParams).
- */
+/// O chefe que trata o campo de jogo como uma tabela e o jogador como uma linha dela. A ideia da
+/// batalha.
 class Thiago : public Boss {
 
 public:
@@ -66,11 +35,7 @@ protected:
                               const std::string& stateName) override;
 
 private:
-    // ---- A LUTA SORTEADA ----------------------------------------------------
-    //
-    // Antes do primeiro quadro: a ordem do ciclo de consultas da fase 1 e a dos
-    // planos da repescagem (Variacao::Ordem, a forma que define a fase abrindo),
-    // as chances das transacoes da fase 3, e o degrau do modo.
+    // ---- A luta sorteada ----
 
     void SortearALuta();
 
@@ -81,7 +46,7 @@ private:
     Transacao::Plano mPlanoDasTransacoes;
     Transacao::Degrau mDegrauDasTransacoes;
 
-    // ---- A TABELA VISIVEL ---------------------------------------------------
+    // ---- A tabela visivel ----
 
     /// Monta os cabecalhos e as casas, uma vez: a tabela fica a batalha inteira.
     void CriarTabela();
@@ -90,8 +55,7 @@ private:
     /// nascendo em 'de' (e indo para o lugar dele).
     void EscreverRegistro(size_t linha, Vector2 de);
 
-    /// Cada casa no lugar dela - e a que trocou de linha num ORDER BY, a
-    /// caminho da nova.
+    /// Cada casa no lugar dela - e a que trocou de linha num order by, a caminho da nova.
     void AtualizarTabela(float deltaTime);
 
     /// O retangulo do campo, e o meio de uma casa e o lugar do valor dentro dela.
@@ -104,17 +68,11 @@ private:
     std::array<BossProjectile*, Banco::kColunas> mCabecalhos{};
     bool mTabelaCriada = false;
 
-    /// A GRADE DA TABELA, desenhada no campo: as linhas e as colunas. Sem ela,
-    /// os valores ficavam soltos no meio da tela - e um registro novo que o
-    /// INSERT punha numa linha vazia parecia um resto esquecido ali, e nao uma
-    /// casa da tabela.
+    /// A grade da tabela, desenhada no campo: as linhas e as colunas.
     class DrawLinhasComponent* mGrade = nullptr;
     void DesenharGrade();
 
-    // ---- O DISPARO NUM LUGAR ------------------------------------------------
-    //
-    // Todo ataque do Thiago nasce onde ele diz: o valor na casa, o marcador em
-    // cima dela, o clarao dentro dela, a varredura na faixa dela.
+    // ---- O disparo num lugar ----
 
     /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram.
     std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde);
@@ -129,7 +87,7 @@ private:
     float mVelocidadeDaConsulta = 700.0f;
     std::vector<BossProjectile*> mCriados;
 
-    // ---- A FASE 1: O SELECT -------------------------------------------------
+    // ---- A fase 1: o select ----
 
     void AtualizarSelecao(float deltaTime);
 
@@ -162,38 +120,34 @@ private:
     void AtualizarCasas(float agora);
     void ApagarCasas();
 
-    // ---- A FASE 2: O INSERT, O UPDATE E O DELETE ----------------------------
+    // ---- A fase 2: o insert, o update e o delete ----
 
     void AtualizarEscrita();
 
-    /// O DELETE apaga a linha de verdade: os valores dela deixam de ser
-    /// enfeite e caem pelo campo, e as linhas de baixo sobem.
+    /// O delete apaga a linha de verdade: os valores dela deixam de ser enfeite e caem pelo campo,
+    /// e as linhas de baixo sobem.
     void Apagar(int linha);
 
     bool mNaEscrita = false;
     float mProximaEscrita = 0.0f;
     std::string mAnuncioDaEscrita;
 
-    /// O comando que ja foi anunciado e ainda vai acontecer (o UPDATE quando a
-    /// casa acende, o DELETE quando a varredura passa).
     struct Execucao { Banco::Escrita escrita; float quando = 0.0f; };
     std::vector<Execucao> mExecucoes;
 
-    // ---- A FASE 3: AS TRANSACOES -------------------------------------------
+    // ---- A fase 3: as transacoes ----
 
     void AtualizarTransacoes();
 
-    /// O UPDATE da transacao na linha: o placar, o marcador, e o valor que vai
-    /// ser escrito quando as escritas sairem.
+    /// O update da transacao na linha: o placar, o marcador, e o valor que vai ser escrito quando
+    /// as escritas sairem.
     void Anunciar(int id, int linha, float agora);
 
     /// As escritas saem do professor para as casas da linha, e o valor da nota
     /// fica sujo.
     void Gravar(int id, int linha);
 
-    /// COMMIT (as escritas somem, o valor fica) ou ROLLBACK (as escritas voltam
-    /// pelo caminho, o valor antigo volta). Libera os locks. 'agora' e o tempo
-    /// da fase, para o aviso da varredura que desfaz.
+    /// Libera os locks.
     void Terminar(int id, bool desfaz, float agora);
 
     /// As escritas de uma transacao desfeita, esperando a varredura que desfaz
@@ -207,8 +161,8 @@ private:
         int id = 0;
         Etapa etapa = Etapa::MarcandoPrimeira;
         float proximo = 0.0f;
-        int linhaDaVez = -1;                              ///< a linha do UPDATE em curso
-        std::vector<std::pair<int, int>> antes;           ///< (linha, nota de antes)
+        int linhaDaVez = -1;                              ///< A linha do update em curso.
+        std::vector<std::pair<int, int>> antes;
         std::vector<std::pair<int, int>> novas;           ///< (linha, nota nova)
     };
 
@@ -229,7 +183,7 @@ private:
     std::vector<TxEmCampo> mEmCampo;
     std::vector<Gravacao> mGravacoes;
 
-    // ---- A REPESCAGEM: O PRODUTO CARTESIANO ---------------------------------
+    // ---- A repescagem: o produto cartesiano ----
 
     void AtualizarProduto();
 
@@ -244,8 +198,8 @@ private:
 
     std::optional<Vector2> mAlvo;
 
-    /// Quao depressa uma casa chega ao lugar dela (Ancora::Aproximar): devagar,
-    /// para o ORDER BY ser visto.
+    /// Quao depressa uma casa chega ao lugar dela (Ancora::Aproximar): devagar, para o order by ser
+    /// visto.
     static constexpr float kRapidezDaCasa = 5.0f;
     /// A grade da tabela: atras do quadro (60) e de tudo o mais, e apagada -
     /// e chao, e nao aviso.

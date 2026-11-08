@@ -47,7 +47,7 @@ namespace Objetivo {
                 }
                 break;
             case Etapa::Defesa: {
-                // AS TRES RESPOSTAS lado a lado, na ordem do placar.
+                // As tres respostas lado a lado, na ordem do placar.
                 const auto xs = Espalhar(s, 3, largura);
                 const char* letras[] = {"A", "B", "C"};
                 for (int i = 0; i < 3; ++i) {
@@ -70,7 +70,7 @@ namespace Objetivo {
         const float fase = static_cast<float>(k) * 1.7f;
         switch (etapa) {
             case Etapa::Defesa:
-                // AS RESPOSTAS vao e voltam de lado, cada uma no seu ritmo.
+                // As respostas vao e voltam de lado, cada uma no seu ritmo.
                 return lugar + Vector2(70.0f * std::sin(t * 1.3f + fase), 12.0f * std::sin(t * 2.1f + fase));
             case Etapa::Correcoes:
                 return lugar + Vector2(25.0f * std::sin(t * 0.8f + fase), 20.0f * std::sin(t * 1.1f + fase));
@@ -84,7 +84,7 @@ namespace Objetivo {
     }
 
     Questao Perguntar(const Golpe::Materia m, Variacao::Sorteio& s) {
-        // A PRIMEIRA E A CERTA; o placar as embaralha.
+        // A primeira e a certa; o placar as embaralha.
         Questao q;
         std::array<std::string, 3> r;
         switch (m) {
@@ -136,15 +136,12 @@ namespace Objetivo {
         return Dificuldade::Escolher(n, 0.24f, 0.24f);
     }
 
-    // NO DIFICIL PAGA O MESMO que no Normal. Pagava menos (1,25 e 2,5) quando
-    // o aluno ainda tinha 1,2 s de invencibilidade la; com 0,4 s
-    // (Dificuldade::Invencibilidade), o que cobra mais e o acerto sofrido, e o
-    // objetivo cortado pela metade deixava o TCC so para quem nunca e acertado.
+    // No Dificil paga o mesmo que no Normal.
     float PorAlvo(const Dificuldade::Nivel n) { (void)n; return 1.5f; }
     float PorJanela(const Dificuldade::Nivel n) { (void)n; return 3.0f; }
 
     float Janela(const Etapa etapa, const Dificuldade::Nivel n) {
-        // AS CORRECOES SAO A REPESCAGEM: a janela e mais longa.
+        // As correcoes sao a repescagem: a janela e mais longa.
         const float base = etapa == Etapa::Correcoes ? 9.0f : 8.0f;
         return Dificuldade::Escolher(n, base, base - 1.5f);
     }
@@ -165,7 +162,7 @@ namespace Objetivo {
         }
     }
 
-    // ---- AS OUTRAS MANEIRAS DE ABRIR -----------------------------------------------
+    // ---- As outras maneiras de abrir ----
 
     Tipo DeAndar(const Etapa etapa) {
         switch (etapa) {
@@ -184,7 +181,7 @@ namespace Objetivo {
     float TempoDeReuniao(const Dificuldade::Nivel n) { return Dificuldade::Escolher(n, 2.5f, 3.0f); }
 
     Vector2 LugarDaReuniao(Variacao::Sorteio& s, const float largura, const float xDoAluno) {
-        // A METADE OPOSTA a do aluno: a reuniao e sempre uma travessia.
+        // A metade oposta a do aluno: a reuniao e sempre uma travessia.
         const float meio = largura / 2.0f;
         const float borda = kMargem + kRaioDaReuniao;
         const float x = xDoAluno < meio ? s.Real(meio + 60.0f, largura - borda) : s.Real(borda, meio - 60.0f);
@@ -227,7 +224,7 @@ namespace Objetivo {
 
     int PlacasDePe(const int placas, const float progresso) {
         const float falta = 1.0f - std::clamp(progresso, 0.0f, 1.0f);
-        // O EPSILON: 1/3 de 3 placas nao pode deixar 2,0000001 de pe.
+        // O epsilon: 1/3 de 3 placas nao pode deixar 2,0000001 de pe.
         return std::clamp(static_cast<int>(std::ceil(static_cast<float>(placas) * falta - 1e-4f)), 0, placas);
     }
 

@@ -21,14 +21,14 @@ AudioSystem::AudioSystem(int numChannels)
     mChannels.resize(numChannels);
 }
 
-// Destroy the AudioSystem
+// Destroy the AudioSystem.
 AudioSystem::~AudioSystem()
 {
     Mix_CloseAudio();
     Mix_Quit();
 }
 
-// Updates the status of all the active sounds every frame
+// Updates the status of all the active sounds every frame.
 void AudioSystem::Update()
 {
     for(int i = 0; i < mChannels.size(); i++)
@@ -43,15 +43,9 @@ void AudioSystem::Update()
     }
 }
 
-// Plays the sound with the specified name and loops if looping is true
-// Returns the SoundHandle which is used to perform any other actions on the
-// sound when active
-// NOTE: The soundName is without the "Assets/Sounds/" part of the file
-//       For example, pass in "ChompLoop.wav" rather than
-//       "Assets/Sounds/ChompLoop.wav".
 SoundHandle AudioSystem::PlaySound(const std::string& soundName, bool looping)
 {
-    // Get the sound with the given name
+    // Get the sound with the given name.
     Mix_Chunk *sound = GetSound(soundName);
 
     if (sound == nullptr) {
@@ -59,7 +53,7 @@ SoundHandle AudioSystem::PlaySound(const std::string& soundName, bool looping)
         return SoundHandle::Invalid;
     }
 
-    // 1. Tenta achar canal vazio (Lógica padrão)
+    // 1.
     int availableChannel = -1;
     for(int i = 0; i < mChannels.size(); i++) {
         if(!mChannels[i].IsValid()) {
@@ -68,11 +62,9 @@ SoundHandle AudioSystem::PlaySound(const std::string& soundName, bool looping)
         }
     }
 
-    // 2. SE ESTIVER CHEIO: ROUBA O MAIS ANTIGO
+    // 2.
     if(availableChannel == -1) {
 
-        // Vamos procurar o 'SoundHandle' com o menor ID (o mais antigo)
-        // que NÃO esteja em loop (para não parar a música de fundo)
         SoundHandle oldestHandle = mLastHandle; // Começa assumindo o mais novo
         bool foundCandidate = false;
 
@@ -83,48 +75,46 @@ SoundHandle AudioSystem::PlaySound(const std::string& soundName, bool looping)
             // Proteção: Não pare sons em Loop (Música)
             if (info.mIsLooping) continue;
 
-            // Se achamos um handle menor (mais antigo) que o atual candidato
             if (handle < oldestHandle) {
                 oldestHandle = handle;
                 foundCandidate = true;
             }
         }
 
-        // Se achamos alguém pra sacrificar
+        // Se achamos alguém pra sacrificar.
         if (foundCandidate) {
             availableChannel = mHandleMap[oldestHandle].mChannel;
 
-            // Para o som antigo no Mixer
             Mix_HaltChannel(availableChannel);
 
-            // Remove do mapa de controle
+            // Remove do mapa de controle.
             mHandleMap.erase(oldestHandle);
 
         }
     }
 
-    // 3. Verificação Final (Se nem roubando deu certo - ex: tudo é música)
+    // 3.
     if (availableChannel == -1) {
         SDL_Log("ERRO CRITICO: AudioSystem lotado (so musicas tocando?). Ignorando %s", soundName.c_str());
         return SoundHandle::Invalid;
     }
 
-    // Update sound handle
+    // Update sound handle.
     mLastHandle++;
 
-    // Create handle info
+    // Create handle info.
     HandleInfo hi = {soundName, availableChannel, looping};
     mHandleMap.emplace(mLastHandle, hi);
     mChannels[availableChannel] = mLastHandle;
 
-    // Play sound on selected channel, ja no volume da opcao
+    // Play sound on selected channel, ja no volume da opcao.
     Mix_Volume(availableChannel, VolumeAplicado(hi.mVolume, looping));
     Mix_PlayChannel(availableChannel, sound, looping ? -1 : 0);
 
     return mLastHandle;
 }
 
-// Pauses the sound if it is currently playing
+// Pauses the sound if it is currently playing.
 void AudioSystem::PauseSound(SoundHandle sound)
 {
     if(mHandleMap.find(sound) == mHandleMap.end())
@@ -140,7 +130,7 @@ void AudioSystem::PauseSound(SoundHandle sound)
     }
 }
 
-// Resumes the sound if it is currently paused
+// Resumes the sound if it is currently paused.
 void AudioSystem::ResumeSound(SoundHandle sound)
 {
     if(mHandleMap.find(sound) == mHandleMap.end())
@@ -156,7 +146,7 @@ void AudioSystem::ResumeSound(SoundHandle sound)
     }
 }
 
-// Stops all sounds on all channels
+// Stops all sounds on all channels.
 void AudioSystem::StopAllSounds()
 {
     Mix_HaltChannel(-1);
@@ -169,15 +159,11 @@ void AudioSystem::StopAllSounds()
     mHandleMap.clear();
 }
 
-// Cache all sounds under Assets/Sounds
+// Cache all sounds under Assets/Sounds.
 void AudioSystem::CacheAllSounds()
 {
 #ifndef __clang_analyzer__
-    // O caminho vinha escrito "Assets/Sounds", SEM o "../" que o CacheSound logo
-    // abaixo usava. O iterador recebe um error_code, entao nao lancava excecao: a
-    // pasta simplesmente nunca era encontrada e este laco terminava sem cachear um
-    // som. Os sons continuavam tocando, carregados na primeira vez que cada um era
-    // pedido - exatamente o engasgo que o pre-carregamento existe para evitar.
+    // O caminho vinha escrito "Assets/Sounds", sem o "../" que o CacheSound logo abaixo usava.
     const std::string pastaDeSons = Caminhos::Asset("Sounds");
 
     std::error_code ec{};
@@ -199,21 +185,14 @@ void AudioSystem::CacheAllSounds()
 #endif
 }
 
-// Used to preload the sound data of a sound
-// NOTE: The soundName is without the "Assets/Sounds/" part of the file
-//       For example, pass in "ChompLoop.wav" rather than
-//       "Assets/Sounds/ChompLoop.wav".
+// Used to preload the sound data of a sound note.
 void AudioSystem::CacheSound(const std::string& soundName)
 {
     GetSound(soundName);
 }
 
-// If the sound is already loaded, returns Mix_Chunk from the map.
-// Otherwise, will attempt to load the file and save it in the map.
-// Returns nullptr if sound is not found.
-// NOTE: The soundName is without the "Assets/Sounds/" part of the file
-//       For example, pass in "ChompLoop.wav" rather than
-//       "Assets/Sounds/ChompLoop.wav".
+// If the sound is already loaded, returns Mix_Chunk from the map. Otherwise, will attempt to load
+// the file and save it in the map.
 Mix_Chunk* AudioSystem::GetSound(const std::string& soundName)
 {
     std::string fileName = Caminhos::Asset("Sounds/");
@@ -235,20 +214,20 @@ Mix_Chunk* AudioSystem::GetSound(const std::string& soundName)
 
 void AudioSystem::SetSoundVolume(const SoundHandle soundHandler, int volume)
 {
-    // Verifica se o som existe e está tocando
+    // Verifica se o som existe e está tocando.
     if(mHandleMap.find(soundHandler) == mHandleMap.end())
     {
         return;
     }
 
-    // Trava o volume entre 0 e 128 para evitar erros
+    // Trava o volume entre 0 e 128 para evitar erros.
     if (volume < 0) volume = 0;
     if (volume > 128) volume = 128;
 
     HandleInfo& hi = mHandleMap[soundHandler];
     hi.mVolume = volume;
 
-    // Mix_Volume define o volume do canal específico, escalado pela opcao
+    // Mix_Volume define o volume do canal específico, escalado pela opcao.
     Mix_Volume(hi.mChannel, VolumeAplicado(volume, hi.mIsLooping));
 }
 

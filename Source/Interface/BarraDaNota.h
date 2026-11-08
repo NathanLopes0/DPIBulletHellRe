@@ -6,22 +6,8 @@
 
 #include <array>
 
-/**
- * CAMADA PURA. Coberto por test_barra_da_nota.cpp.
- *
- * A NOTA PULA; A BARRA, NAO. Um acerto tira pontos de uma vez, e uma barra que
- * pula junto nao conta o que aconteceu - so que o numero mudou. Aqui mora o que
- * a barra mostra a cada quadro:
- *
- *   mostrada   o preenchimento, que corre atras da nota em vez de saltar
- *   rastro     o que acabou de ser PERDIDO: um pedaco claro que fica um
- *              instante onde a nota estava e depois encolhe ate ela - o
- *              acerto se le na barra, sem olhar o numero
- *   brilho     o clarao de quando a nota SOBE, que se apaga sozinho
- *   tremor     o sacolejo de quando ela cai
- *
- * Quem desenha e DrawBarraDaNotaComponent; aqui nao ha SDL.
- */
+/// A nota pula; a barra, nao. Um acerto tira pontos de uma vez, e uma barra que pula junto nao
+/// conta o que aconteceu - so que o numero mudou.
 namespace BarraDaNota {
 
     struct Estado {
@@ -46,19 +32,18 @@ namespace BarraDaNota {
     /// oscila nao deve fazer a barra tremer).
     constexpr float kQuedaQueSacode = 0.5f;
 
-    /// @brief A barra parada em 'nota': sem rastro, sem brilho.
+    /// A barra parada em 'nota': sem rastro, sem brilho.
     Estado Comecar(float nota);
 
-    /// @brief Um quadro de 'dt' segundos com a nota em 'nota'.
+    /// Um quadro de 'dt' segundos com a nota em 'nota'.
     void Avancar(Estado& e, float nota, float dt);
 
-    /// AS MARCAS DA BARRA: 40, a fase final (o exame); 60, a aprovacao.
+    /// As marcas da barra: 40, a fase final (o exame); 60, a aprovacao.
     constexpr float kMarcaDoExame = 40.0f;
     constexpr float kMarcaDaAprovacao = 60.0f;
     /// E as finas, a cada 10.
     constexpr std::array<float, 9> kMarcasFinas = {10, 20, 30, 40, 50, 60, 70, 80, 90};
 
-    /// @brief Onde, em pixels a partir do comeco da barra, cai a nota 'nota'
-    /// numa barra de 'largura'.
+    /// Onde, em pixels a partir do comeco da barra, cai a nota 'nota' numa barra de 'largura'.
     float X(float nota, int largura);
 }

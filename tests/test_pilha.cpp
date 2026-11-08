@@ -32,8 +32,7 @@ TEST_CASE("Pilha: vazia so empilha, cheia derruba, e no meio ha os dois") {
 }
 
 TEST_CASE("Pilha: o programa sempre chega ao overflow, e nunca da pop na pilha vazia") {
-    // Simulando a pilha com o proprio programa: a altura nunca fica negativa,
-    // e em 20 operacoes - uma fase - o overflow acontece quase sempre.
+    // Simulando a pilha com o proprio programa: a altura nunca fica negativa, e em 20 operacoes.
     int comOverflow = 0;
     for (std::uint32_t semente = 1; semente <= 200; ++semente) {
         int altura = 0;
@@ -76,8 +75,7 @@ TEST_CASE("Pilha: a pilha sorteada - de 4 a 6 blocos, e o overflow chega em quas
         CHECK(Pilha::Proxima(p.capacidade - 1, semente * 2654435761u, p).tipo != Pilha::Tipo::Overflow);
     }
     CHECK(capacidades == std::set<int>{4, 5, 6});
-    // A PIOR COMBINACAO de cada capacidade (a menor chance) ainda transborda em
-    // 20 operacoes - menos que uma fase - quase sempre.
+    // A pior combinacao de cada capacidade (a menor chance) ainda transborda em 20 operacoes.
     for (int capacidade = Pilha::kMenorCapacidade; capacidade <= Pilha::kMaiorCapacidade; ++capacidade) {
         CAPTURE(capacidade);
         const Pilha::Plano p{capacidade, 0.55f + 0.05f * static_cast<float>(capacidade - Pilha::kMenorCapacidade)};
@@ -98,7 +96,7 @@ TEST_CASE("Pilha: a pilha sorteada - de 4 a 6 blocos, e o overflow chega em quas
         }
         CHECK(comOverflow > 130);
     }
-    // A MAIOR PILHA ainda fica acima do aluno.
+    // A maior pilha ainda fica acima do aluno.
     CHECK(Pilha::AbaixoDoProfessor(Pilha::kMaiorCapacidade - 1) < 400.0f);
 }
 

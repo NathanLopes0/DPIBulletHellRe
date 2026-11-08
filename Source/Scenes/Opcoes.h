@@ -13,20 +13,8 @@ class Font;
 class Actor;
 class DrawTextComponent;
 
-/**
- * @class Opcoes
- * @brief Onde as configuracoes da maquina moram (Configuracao.h).
- *
- * QUATRO LINHAS: o volume da musica e o dos efeitos, a tela cheia e a hitbox
- * do aluno visivel. A dificuldade nao mora aqui: e de quem joga, e escolhida
- * a cada partida (EscolhaDaDificuldade). O manche para cima e para
- * baixo escolhe a linha; para os lados, ou o botao 1, troca o valor - e a
- * troca vale e vai para o disco na hora, sem um "salvar" que alguem esqueca de
- * apertar. O botao 2 (ou o ESC) volta ao menu.
- *
- * O botao 1 num volume SOBE e da a volta no maximo, para quem so tem o botao
- * conseguir chegar a qualquer valor; o manche para por la, nos dois extremos.
- */
+/// Onde as configuracoes da maquina moram (Configuracao.h). Quatro linhas: o volume da musica e o
+/// dos efeitos, a tela cheia e a hitbox do aluno visivel.
 class Opcoes : public Scene {
 public:
     explicit Opcoes(Game* game);
@@ -60,9 +48,7 @@ private:
     DrawTextComponent* mDescricao = nullptr;
     int mEscolhida = 0;
 
-    /// As bordas, para uma acao por toque. Comecam em TRUE pela mesma regra
-    /// das outras cenas: quem entra aqui segurando o botao 1 do menu nao
-    /// troca uma opcao sem querer.
+    /// As bordas, para uma acao por toque.
     bool mVoltarAnterior = true;
     bool mTrocarAnterior = true;
     bool mEsquerdaAnterior = true;

@@ -5,7 +5,6 @@
 #ifndef DPIBULLETHELLRE_COLLIDERCOMPONENT_H
 #define DPIBULLETHELLRE_COLLIDERCOMPONENT_H
 
-
 #include "../Component.h"
 
 enum class ColliderTag {
@@ -27,5 +26,4 @@ protected:
     ColliderTag mTag = ColliderTag::None;
 };
 
-
-#endif //DPIBULLETHELLRE_COLLIDERCOMPONENT_H
+#endif // DPIBULLETHELLRE_COLLIDERCOMPONENT_H.

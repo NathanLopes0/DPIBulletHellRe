@@ -61,7 +61,7 @@ TEST_CASE("Tcp: o timeout volta ao slow start com cwnd = 1, e o ssthresh cai a m
     CHECK(c.ssthresh == 5);
     CHECK(c.estado == Estado::SlowStart);
     CHECK(c.aRetransmitir == 0);
-    // e dobra ate o ssthresh, e dali cresce de um
+    // E dobra ate o ssthresh, e dali cresce de um.
     Reconhecer(c, Enviar(c));
     Reconhecer(c, Enviar(c));
     CHECK(c.cwnd == 4);
@@ -75,11 +75,7 @@ TEST_CASE("Tcp: o timeout volta ao slow start com cwnd = 1, e o ssthresh cai a m
 }
 
 TEST_CASE("Tcp: os RTTs cabem na fase, e a maior janela sai inteira antes do RTT seguinte") {
-    // ONZE JANELAS NA FASE: a primeira sai quando as nuvens acabam de
-    // processar pela primeira vez, e a decima primeira antes de a fase acabar.
     CHECK(kFormam + kProcessa + 10.0f * kRtt < Fase::kDuracao);
-    // A janela de 16 sai em 0,75 s; o roteador encaminha a capacidade inteira
-    // antes de a janela seguinte chegar a ele.
     CHECK(15.0f * kEntreSegmentos <= kDescansa + 0.001f);
     CHECK(static_cast<float>(kCapacidade) * kEntreEncaminhados < kRtt);
 }
@@ -87,18 +83,13 @@ TEST_CASE("Tcp: os RTTs cabem na fase, e a maior janela sai inteira antes do RTT
 TEST_CASE("Tcp: o roteador fica no meio, longe do placar e do aluno, e o grafico no canto") {
     const Ponto r = Roteador(1200.0f);
     CHECK(r.x == doctest::Approx(600.0f));
-    // ABAIXO DO PROFESSOR (a Varredura o leva a 18% da altura da tela, 144, e
-    // o cartao dele tem 64 px de meia altura), e acima do aluno.
     CHECK(r.y - kChegou > 144.0f + 64.0f);
     CHECK(r.y < 450.0f);
 
     const Retangulo g = Grafico(1200.0f);
     CHECK(g.x + g.w <= 1200.0f);
     CHECK(g.x > 336.0f + 400.0f);             // a direita do placar (Battle: 16 + 320)
-    // LONGE DO PROFESSOR E DAS NUVENS: a varredura para a kMargemDaVarredura
-    // da borda, o cartao dele tem 64 px de meia largura, e a nuvem da direita
-    // (125 px ao lado e 55 acima dele, a 144 de altura, 2,2 x 32 px) acaba
-    // em cima do grafico.
+    // Longe do professor e das nuvens.
     CHECK(1200.0f - kMargemDaVarredura + 64.0f < g.x);
     CHECK(144.0f - 55.0f + 2.2f * 16.0f < g.y);
     CHECK(g.y + g.h < kAlturaDoRoteador - 60.0f);
@@ -126,8 +117,7 @@ TEST_CASE("Tcp: o roteador mira adiante de quem anda, e em cima de quem para") {
     CHECK(adiante.x == doctest::Approx(700.0f));
     const Ponto metade = Mira(de, aluno, {100.0f, 0.0f}, 340.0f, 0.5f);
     CHECK(metade.x == doctest::Approx(650.0f));
-    // OS NOVOS SE ALTERNAM entre onde ele esta e onde estara; o retransmitido
-    // vai sempre adiante.
+    // Os novos se alternam entre onde ele esta e onde estara; o retransmitido vai sempre adiante.
     CHECK(Antecipacao(0, false) == doctest::Approx(0.0f));
     CHECK(Antecipacao(1, false) == doctest::Approx(1.0f));
     CHECK(Antecipacao(2, false) == doctest::Approx(0.0f));
@@ -146,11 +136,9 @@ TEST_CASE("Tcp: os textos") {
     CHECK(Fila(15) == "roteador \xc2\xb7 10/10");
 }
 
-// ---- A VARIACAO E O DEGRAU ---------------------------------------------------
+// ---- A variacao e o degrau ----
 
 TEST_CASE("Tcp: a rede sorteada - toda combinacao tem slow start, perda e o dente de serra") {
-    // QUANTAS JANELAS UMA FASE MANDA: a primeira quando as nuvens se formam,
-    // uma por RTT ate a fase acabar.
     const int janelas = static_cast<int>((Fase::kDuracao - kFormam) / kRtt) + 1;
     REQUIRE(janelas >= 10);
     for (const Dificuldade::Nivel nivel : Dificuldade::kNiveis)
@@ -200,7 +188,7 @@ TEST_CASE("Tcp: o sorteio cobre as capacidades, os ssthresh e a faixa do roteado
         CHECK(p.fracaoDoRoteador < kMaiorFracaoDoRoteador);
         menor = std::min(menor, p.fracaoDoRoteador);
         maior = std::max(maior, p.fracaoDoRoteador);
-        // O ROTEADOR NAO ENCOSTA NO GRAFICO, onde quer que caia.
+        // O roteador nao encosta no grafico, onde quer que caia.
         const Ponto r = Roteador(1200.0f, p.fracaoDoRoteador);
         const Retangulo g = Grafico(1200.0f);
         CHECK((r.x < g.x - 80.0f || r.y > g.y + g.h + 40.0f));
@@ -225,7 +213,7 @@ TEST_CASE("Tcp: o degrau - o Normal e o de sempre, o Dificil encaminha mais e ma
     CHECK(d.entreEncaminhados < n.entreEncaminhados);
     CHECK(d.rapidez > n.rapidez);
     CHECK(d.anelDoDescarte > n.anelDoDescarte);
-    // TRES ANEIS SEGUIDOS fecham o circulo com qualquer numero de cacos.
+    // Tres aneis seguidos fecham o circulo com qualquer numero de cacos.
     for (const int anel : {n.anelDoDescarte, d.anelDoDescarte}) {
         CHECK(GiroDoDescarte(3, anel) == doctest::Approx(0.0f));
         CHECK(GiroDoDescarte(1, anel) * 3.0f == doctest::Approx(360.0f / static_cast<float>(anel)));

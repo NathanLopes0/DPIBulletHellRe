@@ -39,8 +39,7 @@ namespace Mensagens {
         std::vector<Evento> e;
         switch (r) {
             case Rodada::Assincrona:
-                // O SERVIDOR MANDA SEM ESPERAR, mais depressa do que o cliente recebe:
-                // a caixa postal enche, e depois esvazia.
+                // O servidor manda sem esperar, mais depressa do que o cliente recebe.
                 for (int i = 0; i < d.assincronos; ++i) {
                     e.push_back({0.3f + d.entreEnvios * static_cast<float>(i), Acontece::Envia, kServidor, 0, 1.3f, false});
                 }
@@ -49,7 +48,7 @@ namespace Mensagens {
                 }
                 break;
             case Rodada::Sincrona:
-                // O CLIENTE MANDA E ESPERA: quando o envelope chega, o rendezvous.
+                // O cliente manda e espera: quando o envelope chega, o rendezvous.
                 for (int i = 0; i < d.sincronos; ++i) {
                     const float t = 0.3f + d.entreSincronos * static_cast<float>(i);
                     e.push_back({t, Acontece::Envia, kCliente, 0, d.vooSincrono, false});
@@ -57,8 +56,7 @@ namespace Mensagens {
                 }
                 break;
             case Rodada::Rpc: {
-                // A CHAMADA REMOTA: o pedido vai, o servidor calcula, a resposta
-                // volta - e o cliente so segue quando ela chega.
+                // A chamada remota: o pedido vai, o servidor calcula, a resposta volta.
                 float t = 0.3f;
                 for (int i = 0; i < kChamadas; ++i) {
                     const int valor = Soma(plano.chamadas[static_cast<size_t>(i)]);
@@ -70,11 +68,11 @@ namespace Mensagens {
                 break;
             }
             case Rodada::Impasse:
-                // OS DOIS MANDAM E OS DOIS ESPERAM: ninguem recebe.
+                // Os dois mandam e os dois esperam: ninguem recebe.
                 e.push_back({0.3f, Acontece::Envia, kCliente, 0, 1.1f, true});
                 e.push_back({0.3f, Acontece::Envia, kServidor, 0, 1.1f, true});
                 e.push_back({2.3f, Acontece::Estoura, kCliente});
-                // E DEPOIS DO TIMEOUT, os dois mandam sem esperar.
+                // E depois do timeout, os dois mandam sem esperar.
                 for (int i = 0; i < d.depoisDoTimeout; ++i) {
                     const float t = 2.6f + d.entreDepoisDoTimeout * static_cast<float>(i);
                     e.push_back({t, Acontece::Envia, kCliente, 0, 1.0f, false});
@@ -92,8 +90,8 @@ namespace Mensagens {
     }
 
     namespace {
-        // A FRACAO DA LARGURA E A ALTURA de cada um, rodada a rodada: o canal
-        // muda de inclinacao, e o fundo do arco anda pelo campo.
+        // A fracao da largura e a altura de cada um, rodada a rodada: o canal muda de inclinacao, e
+        // o fundo do arco anda pelo campo.
         constexpr float kLugares[kRodadas][2][2] = {
             {{0.19f, 150.0f}, {0.81f, 150.0f}},
             {{0.28f, 210.0f}, {0.72f, 120.0f}},
@@ -133,7 +131,7 @@ namespace Mensagens {
         s.Embaralhar(resto);
         for (size_t i = 0; i < resto.size(); ++i) p.rodadas[i + 1] = resto[i];
 
-        // DUAS SOMAS DIFERENTES, cada uma partida em dois numeros.
+        // Duas somas diferentes, cada uma partida em dois numeros.
         std::vector<int> somas(std::begin(kSomas), std::end(kSomas));
         s.Embaralhar(somas);
         for (int i = 0; i < kChamadas; ++i) {

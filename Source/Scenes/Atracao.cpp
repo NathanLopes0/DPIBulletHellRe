@@ -46,9 +46,7 @@ void Atracao::Load() {
 
     mCartazes.push_back(CriarChamada());
 
-    // O PAINEL DOS MELHORES SO EXISTE SE HOUVER QUEM MOSTRAR. Numa maquina
-    // recem-instalada nao ha ficha nenhuma, e uma tabela vazia alternando com a
-    // chamada pareceria defeito.
+    // O painel dos melhores so existe se houver quem mostrar.
     Cartaz melhores = CriarMelhores();
     if (!melhores.empty()) mCartazes.push_back(std::move(melhores));
 
@@ -62,18 +60,14 @@ Atracao::Cartaz Atracao::CriarChamada() {
 
     Cartaz cartaz;
 
-    // A MESMA ARTE DE TITULO DO MENU, e nao uma segunda: se fossem duas, a
-    // atracao continuaria anunciando o titulo antigo no dia em que ele mudasse.
-    // CENTRADA NA TELA, e nao mais em cima: a arte tem a altura da tela inteira,
-    // e subir o centro cortava o alto das letras do DPI.
+    // Centrada na tela, e nao mais em cima.
     auto titulo = std::make_unique<Actor>(this);
     titulo->SetPosition(Vector2(largura / 2.0f, altura / 2.0f));
     cartaz.push_back(titulo->AddComponent<DrawSpriteComponent>(
         Caminhos::Asset("DPIBHTitleMainMenu.png"), 75));
     AddActor(std::move(titulo));
 
-    // A arte do titulo ocupa ate y = 607 de 800, entao as duas linhas vivem na
-    // faixa de baixo - o mesmo raciocinio das opcoes do menu.
+    // A arte do titulo ocupa ate y = 607 de 800, entao as duas linhas vivem na faixa de baixo.
     cartaz.push_back(Texto("Voce e o aluno. Os professores sao os chefes.",
                            largura / 2.0f, altura * 0.86f, 28, 1000, Color::White));
 
@@ -99,13 +93,7 @@ Atracao::Cartaz Atracao::CriarMelhores() {
         fichas.push_back(f);
     }
 
-    // A MESMA CONTA DO RANKING DO MENU, e pelo mesmo caminho: soma das melhores
-    // notas dividida pelas materias DO CURSO. Repetir a conta aqui faria a
-    // atracao e o ranking discordarem no dia em que uma das duas mudasse.
-    //
-    // A LISTA DO NORMAL, sozinho: e a primeira aba do ranking, e a que todo
-    // mundo joga. O cartaz diz qual e, para ninguem procurar a propria nota do
-    // Dificil nele.
+    // A mesma conta do ranking do menu, e pelo mesmo caminho.
     const std::vector<Ranking::Linha> linhas =
         Ranking::Geral(fichas, materias.Quantas(), Dificuldade::Nivel::Normal, kQuantasLinhas);
 
@@ -131,10 +119,7 @@ Atracao::Cartaz Atracao::CriarMelhores() {
                                32, 90, Color::White));
         cartaz.push_back(Texto(Matricula::ParaExibir(l.matricula), largura * 0.47f, y,
                                32, 240, Color::White));
-        // SEM DOURADO POR NOTA CHEIA aqui, e sem verde de aprovacao: este numero
-        // NAO e uma nota, e a media de quem jogou 2 das 11 materias e baixa por
-        // definicao. O dourado marca a PRIMEIRA POSICAO, que e o que uma lista
-        // de melhores quer dizer.
+        // Sem dourado por nota cheia aqui, e sem verde de aprovacao.
         cartaz.push_back(Texto(ComDuasCasas(l.nota), largura * 0.64f, y, 32, 200,
                                l.posicao == 1 ? Color::Gold : Color::White));
     }
@@ -162,8 +147,7 @@ void Atracao::OnUpdate(const float deltaTime) {
 
     if (mCartazes.size() <= 1) return;
 
-    // A condicao e sempre verdadeira: o que a Contagem mede aqui e so a passagem
-    // do tempo. E a mesma classe das duas esperas do gabinete.
+    // A condicao e sempre verdadeira: o que a Contagem mede aqui e so a passagem do tempo.
     if (mTrocaDeCartaz.Passou(deltaTime, true)) {
         mCartazAtual = (mCartazAtual + 1) % mCartazes.size();
         MostrarSomente(mCartazAtual);
@@ -174,9 +158,7 @@ void Atracao::OnProcessInput(const Uint8* keyState) {
 
     if (!keyState) return;
 
-    // QUALQUER TECLA. Nao ha escolha nesta tela, entao nao ha botao certo - quem
-    // encostou no painel quer jogar, e mandar procurar a tecla certa seria o
-    // contrario do que uma tela de atracao faz.
+    // Qualquer tecla.
     bool alguma = false;
     for (int i = 0; i < SDL_NUM_SCANCODES; ++i) {
         if (keyState[i]) { alguma = true; break; }

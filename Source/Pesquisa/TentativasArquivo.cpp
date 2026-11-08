@@ -24,7 +24,7 @@ namespace {
         return conteudo.str();
     }
 
-    /// ACRESCENTA, e nao reescreve: o que ja esta no arquivo nunca e tocado.
+    /// Acrescenta, e nao reescreve: o que ja esta no arquivo nunca e tocado.
     bool Acrescentar(const std::string& caminho, const std::string& cabecalho,
                      const std::vector<std::string>& linhas) {
         std::error_code ec;
@@ -44,8 +44,8 @@ namespace {
         return true;
     }
 
-    /// O RESUMO E DERIVADO: refeito inteiro, com a mesma troca atomica da
-    /// planilha de notas - ninguem abre um resumo pela metade.
+    /// O resumo e derivado: refeito inteiro, com a mesma troca atomica da planilha de notas -
+    /// ninguem abre um resumo pela metade.
     bool Regravar(const std::string& caminho, const std::string& conteudo) {
         const std::string temporario = caminho + ".tmp";
         {
@@ -80,8 +80,7 @@ bool Gravar(const Tentativas::Tentativa& tentativa) {
         ok = Acrescentar(Caminhos::Save("tentativas_fases.csv"), Tentativas::CabecalhoDasFases(),
                          Tentativas::LinhasDasFases(tentativa)) && ok;
 
-        // O resumo le de volta o que acabou de ser gravado: o que esta nele e
-        // exatamente o que esta no arquivo, nunca uma conta a parte.
+        // O resumo le de volta o que acabou de ser gravado.
         linhas = Tentativas::Ler(LerTudo(caminho));
         ok = Regravar(Caminhos::Save("tentativas_resumo.csv"), Tentativas::Resumo(linhas)) && ok;
 

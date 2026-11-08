@@ -27,8 +27,8 @@ namespace Tentativas {
 
     namespace {
 
-        /// UM NUMERO COM PONTO, nunca virgula: o snprintf segue o locale do
-        /// processo, e um locale brasileiro quebraria as colunas.
+        /// Um numero com ponto, nunca virgula: o snprintf segue o locale do processo, e um locale
+        /// brasileiro quebraria as colunas.
         std::string Num(const float valor, const int casas = 2) {
             char buffer[48];
             std::snprintf(buffer, sizeof(buffer), "%.*f", casas, static_cast<double>(valor));
@@ -117,7 +117,7 @@ namespace Tentativas {
         return kNomes[dia];
     }
 
-    // ---- AS LINHAS ------------------------------------------------------------------
+    // ---- As linhas ----
 
     std::string CabecalhoDasTentativas() { return Juntar(kColunasDasTentativas); }
 
@@ -166,7 +166,7 @@ namespace Tentativas {
         return linhas;
     }
 
-    // ---- A LEITURA DE VOLTA ---------------------------------------------------------
+    // ---- A leitura de volta ----
 
     std::vector<std::string> Campos(const std::string& linha) {
         std::vector<std::string> campos;
@@ -199,8 +199,7 @@ namespace Tentativas {
         std::istringstream entrada(csv);
         std::string texto;
 
-        // O CABECALHO DIZ ONDE ESTA CADA COLUNA. Sem ele, ou sem uma das que o
-        // resumo usa, o arquivo nao e deste formato: nada se le.
+        // O cabecalho diz onde esta cada coluna.
         if (!std::getline(entrada, texto)) return linhas;
         std::map<std::string, size_t> coluna;
         const auto nomes = Campos(texto);
@@ -245,8 +244,7 @@ namespace Tentativas {
 
     std::string Resumo(const std::vector<Linha>& linhas) {
 
-        // A CHAVE: aluno, materia, dificuldade e modo. As linhas chegam na ordem
-        // do arquivo, que e a do tempo - e isso que da a "vez em que passou".
+        // A chave: aluno, materia, dificuldade e modo.
         using Chave = std::tuple<std::string, std::string, std::string, std::string>;
         struct Conta {
             std::string nomeDaMateria;

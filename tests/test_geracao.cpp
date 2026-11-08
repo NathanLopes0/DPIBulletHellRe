@@ -22,24 +22,23 @@ TEST_CASE("Geracao: o rumo mais provavel vira para o alvo, no maximo a virada") 
     CHECK(Geracao::RumoProvavel(90.0f, 95.0f) == doctest::Approx(95.0f));
     CHECK(Geracao::RumoProvavel(90.0f, 150.0f) == doctest::Approx(90.0f + Geracao::kVirada));
     CHECK(Geracao::RumoProvavel(90.0f, 20.0f) == doctest::Approx(90.0f - Geracao::kVirada));
-    // PELO MENOR ARCO: de 350 para 10 vira para cima, e nao 340 graus para baixo.
+    // Pelo menor arco: de 350 para 10 vira para cima, e nao 340 graus para baixo.
     CHECK(Geracao::RumoProvavel(350.0f, 10.0f) == doctest::Approx(350.0f + Geracao::kVirada));
 }
 
 TEST_CASE("Geracao: fria, o token sai sempre no rumo mais provavel; quente, se espalha") {
-    // FRIA: a cobra e uma curva lisa para o aluno.
+    // Fria: a cobra e uma curva lisa para o aluno.
     for (float u = 0.0f; u < 1.0f; u += 0.05f) {
         const auto p = Geracao::Proximo(90.0f, 150.0f, 0.0f, u);
         CHECK(p.Rumo() == doctest::Approx(Geracao::RumoProvavel(90.0f, 150.0f)));
     }
-    // QUENTE: os rumos sorteados cobrem os candidatos.
+    // Quente: os rumos sorteados cobrem os candidatos.
     Variacao::Sorteio s(7u);
     std::set<int> escolhidos;
     for (int i = 0; i < 500; ++i) escolhidos.insert(Geracao::Proximo(90.0f, 90.0f, 1.6f, s.Real(0.0f, 1.0f)).escolhido);
     CHECK(escolhidos.size() == static_cast<size_t>(Geracao::kCandidatos));
 
-    // A DISTRIBUICAO QUE O CAMPO DESENHA: os candidatos em volta do provavel,
-    // e a chance de cada um somando 1.
+    // A distribuicao que o campo desenha.
     const auto p = Geracao::Proximo(90.0f, 90.0f, 0.8f, 0.5f);
     REQUIRE(p.rumos.size() == static_cast<size_t>(Geracao::kCandidatos));
     float soma = 0.0f;

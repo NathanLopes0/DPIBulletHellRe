@@ -47,8 +47,8 @@ namespace {
         }
     }
 
-    // A fase 1: as cores das threads, as MESMAS de Ferramentas/gerar_vitor.py
-    // (CORES_DAS_THREADS): o nome da coluna e o chip da instrucao se casam.
+    // A fase 1: as cores das threads, as mesmas de Ferramentas/gerar_vitor.py (CORES_DAS_THREADS):
+    // o nome da coluna e o chip da instrucao se casam.
     constexpr SDL_Color kCorDaThread[Semaforo::kMaisThreads] = {
         {240, 160, 60, 255}, {90, 200, 235, 255}, {235, 110, 190, 255},
         {160, 220, 90, 255}, {170, 140, 245, 255}};
@@ -107,8 +107,7 @@ std::optional<Vector2> Vitor::AlvoDoMovimento() const {
 }
 
 void Vitor::AoTerminarABatalha() {
-    // A TELA DA NOTA FICA LIMPA: os projeteis a batalha ja levou; a faixa, os
-    // nomes das threads e as linhas sao do professor.
+    // A tela da nota fica limpa: os projeteis a batalha ja levou.
     if (mSecao) mSecao->Mostrar(false);
     if (mCodigoDaSecao) mCodigoDaSecao->Mostrar(false);
     for (const Thread& th : mThreads) if (th.nome) th.nome->Mostrar(false);
@@ -161,7 +160,7 @@ void Vitor::AcompanharOAluno(const float deltaTime) {
     if (deltaTime <= 0.0f) return;
     const Vector2 agora = PosicaoDoAluno();
     if (mViuOAluno) {
-        // A MEDIA QUE ESQUECE: cada quadro pesa deltaTime / kMemoriaDoAndar.
+        // A media que esquece: cada quadro pesa deltaTime / kMemoriaDoAndar.
         const Vector2 doQuadro = (agora - mUltimaDoAluno) * (1.0f / deltaTime);
         const float peso = std::min(1.0f, deltaTime / kMemoriaDoAndar);
         mVelocidadeDoAluno = mVelocidadeDoAluno + (doQuadro - mVelocidadeDoAluno) * peso;
@@ -186,9 +185,7 @@ void Vitor::Restaurar(const std::string& fase) {
     if (it != mAnunciosDoArquivo.end()) RegistrarAnuncio(fase, it->second);
 }
 
-// ---------------------------------------------------------------------------
-// A fase 1: os semaforos
-// ---------------------------------------------------------------------------
+// A fase 1: os semaforos.
 
 void Vitor::MontarSemaforos() {
     mNosSemaforos = true;
@@ -196,12 +193,12 @@ void Vitor::MontarSemaforos() {
     mAlunoPreso = false;
     const SDL_FRect campo = Campo();
 
-    // O QUE ESTA LUTA SORTEIA para a fase, e o degrau do modo.
+    // O que esta luta sorteia para a fase, e o degrau do modo.
     Variacao::Sorteio sorteio = SorteioDaFase(Semaforo::kFaseDosSemaforos);
     mPlanoDosSemaforos = Semaforo::Sortear(sorteio);
     mDegrauDosSemaforos = Semaforo::DegrauDo(NivelDeDificuldade());
 
-    // A SECAO CRITICA: a faixa de borda a borda, com o codigo dela no canto.
+    // A secao critica: a faixa de borda a borda, com o codigo dela no canto.
     auto secao = std::make_unique<PainelDeCodigo>(mScene, static_cast<int>(campo.w - 40.0f),
                                                   static_cast<int>(Semaforo::kAlturaDaSecao), kOrdemDaSecao);
     secao->SetPosition(Vector2(campo.x + campo.w / 2.0f,
@@ -210,7 +207,7 @@ void Vitor::MontarSemaforos() {
     mSecao = secao.get();
     mScene->AddActor(std::move(secao));
 
-    // O CANTO cabe o codigo mais comprido das quatro rodadas.
+    // O canto cabe o codigo mais comprido das quatro rodadas.
     int largura = 0;
     for (int k = 0; k < Semaforo::kRodadas; ++k) {
         largura = std::max(largura, LarguraDoTexto(Semaforo::CodigoDaSecao(Semaforo::RodadaDaVez(k).tipo)));
@@ -238,8 +235,7 @@ void Vitor::SoltarAsPilhas(const bool matando) {
 }
 
 void Vitor::DesmontarSemaforos() {
-    // A FAIXA SOME, e com ela a porta: o que estava parado nela some junto. O
-    // que ainda descia continua descendo - ja eram instrucoes no ar.
+    // A faixa some, e com ela a porta: o que estava parado nela some junto.
     SoltarAsPilhas(true);
     for (Thread& th : mThreads) {
         if (th.nome) th.nome->SetState(ActorState::Destroy);
@@ -258,8 +254,7 @@ void Vitor::DesmontarSemaforos() {
 }
 
 void Vitor::ComecarRodadaDoSemaforo(const int k) {
-    // O QUE SOBROU DA RODADA ANTERIOR passa pela porta - a faixa continua -,
-    // e as colunas sao refeitas em cima do aluno.
+    // O que sobrou da rodada anterior passa pela porta.
     SoltarAsPilhas(false);
     for (Thread& th : mThreads) {
         for (const Instrucao& in : th.descendo) mPassando.push_back(in);
@@ -303,9 +298,7 @@ void Vitor::Mandar(const int thread) {
 }
 
 void Vitor::Acordar(const int thread) {
-    // V(s) DE QUEM SAIU, P(s) DESTA: a pilha inteira desce de uma vez. No
-    // mutex e no semaforo ela abre em leque; na espera ocupada o giro estoura
-    // pelo raio, num anel.
+    // V(s) de quem saiu, p(s) desta: a pilha inteira desce de uma vez.
     Thread& th = mThreads[static_cast<size_t>(thread)];
     const bool giro = mEscalonador.rodada.tipo == Semaforo::Tipo::EsperaOcupada;
     const Player* aluno = Aluno();
@@ -323,7 +316,7 @@ void Vitor::Acordar(const int thread) {
             Lancar(p, Semaforo::AnguloNaRajada(static_cast<int>(j), mDegrauDosSemaforos.aberturaDaRajada),
                    Semaforo::kVelocidadeDaRajada * mDegrauDosSemaforos.rapidez);
         }
-        // PRESO, o aluno deixa de estar seguro ao lado da coluna.
+        // Preso, o aluno deixa de estar seguro ao lado da coluna.
         if (preso) p->insertMotion<TrackingBehavior>(kAtrasoDaPerseguicao, kForcaDaPerseguicao, kDuracaoDaPerseguicao);
     }
     th.paradas.clear();
@@ -344,8 +337,7 @@ void Vitor::MoverInstrucoes(const float t) {
             continue;
         }
 
-        // BLOQUEADA: quem chega a porta para. Na pilha, uma em cima da outra;
-        // na espera ocupada, entra no giro.
+        // Bloqueada: quem chega a porta para.
         const float x = mColunas[static_cast<size_t>(i)];
         for (auto it = th.descendo.begin(); it != th.descendo.end();) {
             BossProjectile* p = it->p;
@@ -366,9 +358,7 @@ void Vitor::MoverInstrucoes(const float t) {
         }
     }
 
-    // A CORRIDA: as instrucoes se intercalam sem trava, e cada uma sai da
-    // faixa torta, para um lado sorteado. Quem ja passou do meio da faixa sai
-    // da lista.
+    // Quem ja passou do meio da faixa sai da lista.
     const float meio = campo.y + Semaforo::kTopoDaSecao + Semaforo::kAlturaDaSecao / 2.0f;
     for (Instrucao& in : mPassando) {
         if (in.desviou || in.p->GetPosition().y < meio) continue;
@@ -409,8 +399,6 @@ void Vitor::DesenharSemaforos() {
 }
 
 void Vitor::AtualizarSemaforos() {
-    // O que o campo levou (o Ponto Extra, a borda da tela) sai das listas
-    // antes de qualquer coisa deste quadro.
     for (Thread& th : mThreads) {
         th.descendo.erase(std::remove_if(th.descendo.begin(), th.descendo.end(),
                                          [](const Instrucao& in) { return !Vivo(in.p); }), th.descendo.end());
@@ -435,8 +423,7 @@ void Vitor::AtualizarSemaforos() {
     if (k != mRodadaDoSemaforo) ComecarRodadaDoSemaforo(k);
     const float u = t - mInicioDaRodada;
 
-    // A CORRENTE: o aluno preso esta bloqueado em P(s), e a coluna em cima
-    // dele fura a fila - uma vez por corrente, na hora em que ele e pego.
+    // A corrente: o aluno preso esta bloqueado em P(s), e a coluna em cima dele fura a fila.
     const Player* aluno = Aluno();
     const bool preso = aluno && aluno->EstaAcorrentado();
     if (preso && !mAlunoPreso) {
@@ -449,8 +436,7 @@ void Vitor::AtualizarSemaforos() {
         if (ev.entra) Acordar(ev.thread);
     }
 
-    // AS THREADS MANDAM INSTRUCOES. A bloqueada com a pilha cheia nao anda: e
-    // isso que bloquear quer dizer.
+    // As threads mandam instrucoes.
     const bool corrida = mEscalonador.rodada.tipo == Semaforo::Tipo::Corrida;
     for (int i = 0; i < static_cast<int>(mThreads.size()); ++i) {
         Thread& th = mThreads[static_cast<size_t>(i)];
@@ -465,8 +451,7 @@ void Vitor::AtualizarSemaforos() {
 
     MoverInstrucoes(t);
 
-    // O PROFESSOR fica ao lado da coluna que ele vai acordar - ou da que esta
-    // dentro, quando nao se sabe quem e a proxima -, entre ela e a vizinha.
+    // O professor fica ao lado da coluna que ele vai acordar.
     const SDL_FRect campo = Campo();
     int perto = Semaforo::Proxima(mEscalonador);
     if (perto < 0 && !corrida && !mEscalonador.dentro.empty()) perto = mEscalonador.dentro.back();
@@ -485,10 +470,7 @@ void Vitor::AtualizarSemaforos() {
 
 void Vitor::OnUpdate(const float deltaTime) {
 
-    // NO FORK o corpo nao anda sozinho nem ataca: o relogio da fase corre, mas
-    // os ataques e o movimento dele esperam a nuvem se desfazer. E ele continua
-    // levando tiro - o colisor fica onde ele esta -, porque o fork nao e um
-    // intervalo da batalha.
+    // No fork o corpo nao anda sozinho nem ataca.
     if (mTempoNoFork >= 0.0f) {
         mTempoNoFork += deltaTime;
         if (auto* rb = GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
@@ -533,7 +515,7 @@ void Vitor::SairDaNuvem() {
     if (auto* d = GetComponent<DrawAnimatedComponent>()) d->SetIsVisible(true);
     if (EhClone()) return;
 
-    // A NUVEM SE DESFAZ, e o placar volta ao nome da fase: sairam dois.
+    // A nuvem se desfaz, e o placar volta ao nome da fase: sairam dois.
     for (BossProjectile* nuvem : Nuvens()) nuvem->Kill();
     if (!mNomeDaFaseDoFork.empty()) RegistrarAnuncio(kFaseDoFork, mNomeDaFaseDoFork);
 }
@@ -543,22 +525,15 @@ void Vitor::ComecarOFork() {
     const auto nuvens = Nuvens();
     if (!batalha || nuvens.empty()) return;   // sem nuvem, o fork de sempre
 
-    // AS DUAS NUVENS SE JUNTAM EM CIMA DELE (AtualizarANuvemDoFork as faz
-    // crescer e processar). A Ancorar nova toma o lugar da que as prendia dos
-    // lados, e o fim dela fica depois do fim do fork: quem as desfaz e
-    // SairDaNuvem, e nao a queda.
+    // As duas nuvens se juntam em cima dele (AtualizarANuvemDoFork as faz crescer e processar).
     mEscalaDaNuvem = nuvens.front()->GetScale();
     for (BossProjectile* nuvem : nuvens) {
-        // ELAS VIVEM A FASE 2 INTEIRA, e o fork e na 3: sem renovar, a rede
-        // de seguranca de 20 s as mataria no meio dele (Projectile.h).
+        // Elas vivem a fase 2 inteira, e o fork e na 3.
         nuvem->RenovarTempoDeVida();
         nuvem->insertMotion<AncorarBehavior>(Vector2::Zero, kFork.sai + 0.5f, 200.0f);
     }
 
-    // ELE ENTRA quando a nuvem chega, e fica onde esta. O OUTRO CORPO nasce
-    // dentro dela - os dois processos de um fork saem do mesmo lugar - e,
-    // quando ela abre, anda ate o lugar em que Battle::DividirChefe o pos, o
-    // espelho do original: dali em diante a fase e a de sempre.
+    // Ele entra quando a nuvem chega, e fica onde esta.
     const Vector2 aqui = GetPosition();
     EntrarNaNuvem(aqui, aqui, false);
     for (Boss* corpo : batalha->Corpos()) {
@@ -571,8 +546,7 @@ void Vitor::ComecarOFork() {
 }
 
 void Vitor::AtualizarANuvemDoFork() {
-    // A NUVEM CRESCE enquanto as duas se juntam, e cobre o professor quando ele
-    // entra; processa ate abrir, e abre ociosa - o fork acabou.
+    // A nuvem cresce enquanto as duas se juntam, e cobre o professor quando ele entra.
     const float u = kFork.entra > 0.0f ? std::min(1.0f, mTempoNoFork / kFork.entra) : 1.0f;
     const float escala = mEscalaDaNuvem + (kEscalaDaNuvemJunta - mEscalaDaNuvem) * u;
     const char* cara = mTempoNoFork < kFork.abre ? Nuvem::kCaraProcessando : Nuvem::kCaraOciosa;
@@ -621,7 +595,7 @@ Vector2 Vitor::PosicaoDoRoteador() const {
 void Vitor::MontarRede() {
     const SDL_FRect campo = Campo();
 
-    // O ROTEADOR: a caixa no meio do campo, com a fila dele escrita.
+    // O roteador: a caixa no meio do campo, com a fila dele escrita.
     const std::string fila = Tcp::Fila(mPlanoDaRede.capacidade, mPlanoDaRede.capacidade);
     auto roteador = std::make_unique<EtiquetaDeCodigo>(mScene, fila, LarguraDoTexto(fila), kAlturaDaCaixaDoRoteador,
                                                        kOrdemDosNomes);
@@ -631,7 +605,7 @@ void Vitor::MontarRede() {
     mFilaDoRoteador = roteador.get();
     mScene->AddActor(std::move(roteador));
 
-    // O GRAFICO DO cwnd, no canto de cima a direita.
+    // O grafico do cwnd, no canto de cima a direita.
     const Tcp::Retangulo g = Tcp::Grafico(campo.w);
     auto quadro = std::make_unique<PainelDeCodigo>(mScene, static_cast<int>(g.w), static_cast<int>(g.h), kOrdemDaSecao);
     quadro->SetPosition(Vector2(campo.x + g.x + g.w / 2.0f, campo.y + g.y + g.h / 2.0f));
@@ -663,8 +637,7 @@ void Vitor::DesmontarRede() {
 }
 
 void Vitor::MandarSegmentos(const float agora) {
-    // A JANELA SAI AOS POUCOS, um segmento a cada kEntreSegmentos, alternando
-    // as nuvens - e cada um voa reto ate o roteador.
+    // A janela sai aos poucos, um segmento a cada kEntreSegmentos, alternando as nuvens.
     const auto nuvens = Nuvens();
     if (nuvens.empty()) {
         mMandando = false;
@@ -694,8 +667,7 @@ void Vitor::ChegarNoRoteador(const float agora) {
         if (!chegou) { ++it; continue; }
 
         if (it->perdido) {
-            // O ROTEADOR ESTAVA CHEIO: o segmento e descartado ali mesmo, e
-            // estoura num anel de cacos - com um deles no aluno.
+            // O roteador estava cheio: o segmento e descartado ali mesmo, e estoura num anel de cacos.
             const int n = mDegrauDaRede.anelDoDescarte;
             const float centro = Coercao::CentroDoAnel(n, Angulo(r, PosicaoDoAluno()) + Tcp::GiroDoDescarte(mDescartes++, n));
             for (BossProjectile* caco : DispararEm(Tcp::kGatilhoDoDescarte, r, n, centro, Coercao::AberturaDoAnel(n),
@@ -713,8 +685,7 @@ void Vitor::ChegarNoRoteador(const float agora) {
 }
 
 void Vitor::Encaminhar(const float agora) {
-    // O ENLACE DE SAIDA: um a cada kEntreEncaminhados, mirado ADIANTE do aluno
-    // - para onde ele estara se continuar andando como anda (Tcp::Mira).
+    // O enlace de saida: um a cada kEntreEncaminhados, mirado adiante do aluno.
     if (mFila.empty() || agora < mProximoEncaminhado) return;
     const bool retransmitido = mFila.front();
     mFila.erase(mFila.begin());
@@ -741,11 +712,11 @@ void Vitor::DesenharGrafico() {
         const Tcp::Ponto p = Tcp::NoGrafico(rtt, cwnd, w);
         return Vector2(x0 + p.x, y0 + p.y);
     };
-    // O EIXO e a CAPACIDADE do roteador: o que passa da linha vermelha se perde.
+    // O eixo e a capacidade do roteador: o que passa da linha vermelha se perde.
     mLinhas->Acrescentar(ponto(0, 0), ponto(Tcp::kRttsNoGrafico - 1, 0), kEixoDoGrafico);
     const int capacidade = mPlanoDaRede.capacidade;
     mLinhas->Acrescentar(ponto(0, capacidade), ponto(Tcp::kRttsNoGrafico - 1, capacidade), kCorDaCapacidade);
-    // O DENTE DE SERRA: o tamanho de cada janela mandada.
+    // O dente de serra: o tamanho de cada janela mandada.
     for (size_t i = 1; i < mJanelasDoGrafico.size(); ++i) {
         mLinhas->Acrescentar(ponto(static_cast<int>(i) - 1, mJanelasDoGrafico[i - 1]),
                              ponto(static_cast<int>(i), mJanelasDoGrafico[i]), kCorDaSerra);
@@ -766,8 +737,7 @@ void Vitor::AtualizarNuvens(const float deltaTime) {
 
     if (!nasNuvens) {
         if (mNasNuvens) {
-            // A FASE ACABOU. Se a seguinte e o fork, as nuvens sao a porta dele;
-            // se nao, elas se desfazem. O placar volta ao nome.
+            // A fase acabou.
             Restaurar(kFaseDasNuvens);
             DesmontarRede();
             mNasNuvens = false;
@@ -785,7 +755,7 @@ void Vitor::AtualizarNuvens(const float deltaTime) {
         mTempoNasNuvens = 0.0f;
         mSemNuvensHa = 0.0f;
         mChuva.t = 0.0f;
-        // A REDE DESTA LUTA: sorteada aqui, antes de o roteador ser montado.
+        // A rede desta luta: sorteada aqui, antes de o roteador ser montado.
         Variacao::Sorteio sorteio = SorteioDaFase(kFaseDasNuvens);
         mDegrauDaRede = Tcp::DegrauDo(NivelDeDificuldade());
         mPlanoDaRede = Tcp::NoDegrau(Tcp::Sortear(sorteio), mDegrauDaRede);
@@ -803,7 +773,7 @@ void Vitor::AtualizarNuvens(const float deltaTime) {
     mTempoNasNuvens += deltaTime;
     const float agora = mTempoNasNuvens;
 
-    // O QUE JA ESTA NA REDE continua andando, com ou sem nuvem.
+    // O que ja esta na rede continua andando, com ou sem nuvem.
     ChegarNoRoteador(agora);
     Encaminhar(agora);
     if (mFilaDoRoteador) mFilaDoRoteador->Escrever(Tcp::Fila(mRecebidosNaJanela, mPlanoDaRede.capacidade));
@@ -817,9 +787,7 @@ void Vitor::AtualizarNuvens(const float deltaTime) {
         return;     // as nuvens recem-disparadas so entram no campo no quadro seguinte
     }
 
-    // A NUVEM FORA DO AR: o Ponto Extra levou as duas, e o que estava na rede
-    // com elas. Quando elas voltam, e um TIMEOUT: a conexao recomeca do slow
-    // start, com cwnd = 1.
+    // A nuvem fora do ar: o Ponto Extra levou as duas, e o que estava na rede com elas.
     if (Nuvens().empty()) {
         mSemNuvensHa += deltaTime;
         mMandando = false;
@@ -839,8 +807,7 @@ void Vitor::AtualizarNuvens(const float deltaTime) {
 
     if (mMandando) MandarSegmentos(agora);
 
-    // O FIM DO PROCESSAMENTO: a janela sai. Os ACKs da anterior que ainda nao
-    // tinham voltado voltam agora.
+    // O fim do processamento: a janela sai.
     if (Nuvem::Avancar(mChuva, deltaTime)) {
         if (!mJanelaReconhecida) {
             if (Tcp::Reconhecer(mConexao, mJanela) == Tcp::Desfecho::Cortou) {
@@ -855,14 +822,13 @@ void Vitor::AtualizarNuvens(const float deltaTime) {
         mMandados = 0;
         mInicioDaJanela = agora;
         mJanelaReconhecida = false;
-        // A PERDA E O TIMEOUT FICAM ESCRITOS na janela que eles cortaram.
+        // A perda e o timeout ficam escritos na janela que eles cortaram.
         if (!mAvisoPendente) mTextoDaConexao = Tcp::Placar(mConexao);
         mAvisoPendente = false;
         MandarSegmentos(agora);
     }
 
-    // OS ACKS VOLTAM quando a janela inteira saiu e chegou ao roteador - ou se
-    // perdeu nele.
+    // Os acks voltam quando a janela inteira saiu e chegou ao roteador - ou se perdeu nele.
     if (!mJanelaReconhecida && !mMandando && mEmVoo.empty()) {
         mJanelaReconhecida = true;
         if (Tcp::Reconhecer(mConexao, mJanela) == Tcp::Desfecho::Cortou) {
@@ -881,8 +847,6 @@ void Vitor::CustomizeAttackParams(AttackParams& params, const std::string& state
 
     Boss::CustomizeAttackParams(params, stateName);
 
-    // O ATAQUE DE GATILHO nasce onde o professor disse, no numero que ele
-    // pediu, para o lado que ele pediu.
     if (mDisparandoEm) {
         params.firePosition = mOndeDisparar;
         if (mQuantos > 0) params.numProjectiles = mQuantos;
@@ -891,9 +855,7 @@ void Vitor::CustomizeAttackParams(AttackParams& params, const std::string& state
     }
 }
 
-// ---------------------------------------------------------------------------
-// A final: o jantar dos filosofos
-// ---------------------------------------------------------------------------
+// A final: o jantar dos filosofos.
 
 Vector2 Vitor::NoCampo(const Filosofos::Ponto p) const {
     const SDL_FRect campo = Campo();
@@ -919,12 +881,12 @@ void Vitor::MontarJantar() {
     mMesa = Filosofos::MesaPosta();
     const float w = Campo().w;
 
-    // O QUE ESTA LUTA SORTEIA para o jantar, e o degrau do modo.
+    // O que esta luta sorteia para o jantar, e o degrau do modo.
     Variacao::Sorteio sorteio = SorteioDaFase(Filosofos::kFaseDoJantar);
     mPlanoDoJantar = Filosofos::Sortear(sorteio);
     mDegrauDoJantar = Filosofos::DegrauDo(NivelDeDificuldade());
 
-    // OS FILOSOFOS: o nome de cada um, em volta da mesa.
+    // Os filosofos: o nome de cada um, em volta da mesa.
     for (int f = 0; f < Filosofos::kFilosofos; ++f) {
         const std::string nome = mPlanoDoJantar.nomes[static_cast<size_t>(f)];
         auto etiqueta = std::make_unique<EtiquetaDeCodigo>(mScene, nome, LarguraDoTexto(nome), kAlturaDoNome,
@@ -934,8 +896,7 @@ void Vitor::MontarJantar() {
         mScene->AddActor(std::move(etiqueta));
     }
 
-    // OS GARFOS: enfeites - nao machucam, e o Ponto Extra nao os leva -, na
-    // mesa, entre cada dois.
+    // Os garfos: enfeites - nao machucam, e o Ponto Extra nao os leva -, na mesa, entre cada dois.
     for (int g = 0; g < Filosofos::kFilosofos; ++g) {
         const auto criados = DispararEm(Filosofos::kGatilhoDoGarfo, NoCampo(Filosofos::LugarDoGarfo(g, w)), 1);
         BossProjectile* garfo = criados.empty() ? nullptr : criados.front();
@@ -967,23 +928,19 @@ void Vitor::DesmontarJantar() {
 }
 
 void Vitor::ComecarRodadaDoJantar(const int k) {
-    // A MESA E POSTA DE NOVO: os garfos voltam ao lugar, e quem morreu ou
-    // saiu volta a mesa - e outra rodada, outro jantar.
+    // A mesa e posta de novo: os garfos voltam ao lugar, e quem morreu ou saiu volta a mesa.
     for (BossProjectile* p : mCerco) if (Vivo(p)) p->Kill();
     mCerco.clear();
     mPostasNoCerco = 0;
     mCercoAberto = false;
     mMesa = Filosofos::MesaPosta();
     mProximaGarfada.fill(0.0f);
-    // OS GARFOS SAO DA FASE INTEIRA: a rede de seguranca de 20 s nao os leva
-    // nos ultimos quadros dela (Projectile::RenovarTempoDeVida).
     for (BossProjectile* garfo : mGarfos) if (Vivo(garfo)) garfo->RenovarTempoDeVida();
 
     mRodadaDoJantar = k;
     mInicioDoJantar = Filosofos::kPrimeiro + static_cast<float>(k) * Filosofos::kPorRodada;
     mEscolhido = FilosofoMaisPerto();
-    // O JANTAR E A ORDEM COMECAM DE OUTRO LUGAR DA MESA a cada luta; no
-    // deadlock e no garcom quem decide e o escolhido.
+    // O jantar e a ordem comecam de outro lugar da mesa a cada luta.
     const Filosofos::Rodada rodada = mPlanoDoJantar.rodadas[static_cast<size_t>(k)];
     mPassos = Filosofos::Roteiro(rodada, mEscolhido);
     if (rodada == Filosofos::Rodada::Jantar || rodada == Filosofos::Rodada::Ordem) {
@@ -1000,7 +957,7 @@ void Vitor::ExecutarNoJantar(const Filosofos::Passo& p) {
                 mRelogioDoJantar + Filosofos::kPrimeiraGarfada;
             break;
         case Filosofos::Acao::Morre:
-            // KILL -9: o ciclo quebra, e o cerco das esperas estoura para fora.
+            // Kill -9: o ciclo quebra, e o cerco das esperas estoura para fora.
             EstourarCerco();
             break;
         default:
@@ -1023,8 +980,7 @@ void Vitor::MoverGarfos(const float deltaTime) {
 }
 
 void Vitor::FecharCerco(const float u) {
-    // O CERCO CRESCE enquanto ninguem cede: uma espera a cada kEntreEsperas,
-    // aresta por aresta do pentagono.
+    // O cerco cresce enquanto ninguem cede.
     if (mCercoAberto || !Filosofos::EmDeadlock(mMesa)) return;
     const float w = Campo().w;
     const auto esperas = Filosofos::Esperas(mMesa);
@@ -1073,7 +1029,7 @@ void Vitor::DesenharJantar() {
     const float w = Campo().w;
     const Vector2 c = NoCampo(Filosofos::Centro(w));
 
-    // A MESA: um circulo de 24 lados.
+    // A mesa: um circulo de 24 lados.
     constexpr int kLados = 24;
     for (int i = 0; i < kLados; ++i) {
         const float a0 = Math::TwoPi * static_cast<float>(i) / kLados;
@@ -1082,8 +1038,7 @@ void Vitor::DesenharJantar() {
                              c + Vector2(std::cos(a1), std::sin(a1)) * Filosofos::kRaioDaMesa, kCorDaMesa);
     }
 
-    // AS ESPERAS: de quem espera ate quem tem o garfo, com a ponta da seta -
-    // encurtadas para nao entrar nos nomes.
+    // As esperas: de quem espera ate quem tem o garfo, com a ponta da seta.
     for (const auto& [quem, de] : Filosofos::Esperas(mMesa)) {
         const Vector2 a = NoCampo(Filosofos::Lugar(quem, w));
         const Vector2 b = NoCampo(Filosofos::Lugar(de, w));
@@ -1131,7 +1086,7 @@ void Vitor::AtualizarJantar(const float deltaTime) {
     }
     FecharCerco(u);
 
-    // QUEM COME, ATACA: garfadas em leque, miradas no aluno.
+    // Quem come, ataca: garfadas em leque, miradas no aluno.
     const Vector2 aluno = PosicaoDoAluno();
     for (int f = 0; f < Filosofos::kFilosofos; ++f) {
         if (mMesa.estado[static_cast<size_t>(f)] != Filosofos::Estado::Comendo) continue;
@@ -1143,9 +1098,7 @@ void Vitor::AtualizarJantar(const float deltaTime) {
         proxima = u + mDegrauDoJantar.entreGarfadas;
     }
 
-    // O PROFESSOR E O MONITOR: no deadlock vai ate a vitima; fora dele, vai
-    // ate quem come - e quem pega os dois garfos que ele vigia -; e o garcom
-    // fica ao lado de quem ele tirou da mesa. Sem nada disso, balanca no meio.
+    // O professor e o monitor: no deadlock vai ate a vitima; fora dele, vai ate quem come.
     const Filosofos::Rodada rodada = mPlanoDoJantar.rodadas[static_cast<size_t>(k)];
     Vector2 alvo = centro + Vector2(kBalancoNaMesa * std::sin(kRitmoDoBalanco * t), 0.0f);
     int vigiado = -1;
@@ -1162,9 +1115,7 @@ void Vitor::AtualizarJantar(const float deltaTime) {
     Anunciar(Filosofos::kFaseDoJantar, Filosofos::Placar(rodada, mMesa, mPlanoDoJantar));
 }
 
-// ---------------------------------------------------------------------------
-// A fase 3: a troca de mensagens
-// ---------------------------------------------------------------------------
+// A fase 3: a troca de mensagens.
 
 Vitor* Vitor::Servidor() const {
     const auto* batalha = dynamic_cast<Battle*>(mScene);
@@ -1178,8 +1129,6 @@ Vitor* Vitor::Servidor() const {
 Vector2 Vitor::PosicaoDe(const int processo) const {
     if (processo == Mensagens::kCliente) return GetPosition();
     if (const Vitor* servidor = Servidor()) return servidor->GetPosition();
-    // SEM SERVIDOR (quem comeca direto nesta fase e se divide no primeiro
-    // quadro, ou um corpo que a batalha ja levou), o espelho do cliente.
     return Vector2(Campo().x + Campo().w - (GetPosition().x - Campo().x), GetPosition().y);
 }
 
@@ -1192,7 +1141,7 @@ void Vitor::MontarMensagens() {
     mNasMensagens = true;
     mRodadaDasMensagens = -1;
 
-    // O QUE ESTA LUTA SORTEIA para a fase, e o degrau do modo.
+    // O que esta luta sorteia para a fase, e o degrau do modo.
     Variacao::Sorteio sorteio = SorteioDaFase(Mensagens::kFaseDasMensagens);
     mPlanoDasMensagens = Mensagens::Sortear(sorteio);
     mDegrauDasMensagens = Mensagens::DegrauDo(NivelDeDificuldade());
@@ -1222,8 +1171,7 @@ void Vitor::DesmontarMensagens() {
 }
 
 void Vitor::ComecarRodadaDasMensagens(const int k) {
-    // O QUE AINDA CORRIA NO CANAL some: os dois mudam de lugar, e o canal
-    // e outro.
+    // O que ainda corria no canal some: os dois mudam de lugar, e o canal e outro.
     for (const Envelope& e : mEnvelopes) if (Vivo(e.p)) e.p->Kill();
     mEnvelopes.clear();
     mRodadaDasMensagens = k;
@@ -1235,7 +1183,7 @@ void Vitor::ComecarRodadaDasMensagens(const int k) {
     mEsperandoRpc = false;
     mEstourou = false;
 
-    // OS DOIS VAO PARA O LUGAR DA RODADA: o original conduz os dois corpos.
+    // Os dois vao para o lugar da rodada: o original conduz os dois corpos.
     const SDL_FRect campo = Campo();
     const Mensagens::Ponto cliente = Mensagens::Lugar(Mensagens::kCliente, k, campo.w, mPlanoDasMensagens);
     const Mensagens::Ponto servidor = Mensagens::Lugar(Mensagens::kServidor, k, campo.w, mPlanoDasMensagens);
@@ -1256,7 +1204,7 @@ void Vitor::ExecutarMensagem(const Mensagens::Evento& e) {
     switch (e.o) {
         case Mensagens::Acontece::Envia:
         case Mensagens::Acontece::Responde: {
-            // O ENVELOPE SAI e corre pelo canal; quem o move e MoverEnvelopes.
+            // O envelope sai e corre pelo canal; quem o move e MoverEnvelopes.
             const auto criados = DispararEm(Mensagens::kGatilhoDoEnvelope, PosicaoDe(e.de), 1);
             for (BossProjectile* p : criados) {
                 Parar(p);
@@ -1267,9 +1215,7 @@ void Vitor::ExecutarMensagem(const Mensagens::Evento& e) {
             break;
         }
         case Mensagens::Acontece::Recebe: {
-            // RECEIVE: a mensagem processada vai para o aluno - uma onde ele
-            // esta, a seguinte onde ele estara (como o roteador da fase 2):
-            // quem fica parado leva uma, quem anda sempre igual leva a outra.
+            // Receive: a mensagem processada vai para o aluno.
             const Vector2 de = PosicaoDe(e.de);
             const int leque = mDegrauDasMensagens.lequeDoRecebido;
             DispararEm(Mensagens::kGatilhoDoProcessado, de, leque,
@@ -1278,13 +1224,12 @@ void Vitor::ExecutarMensagem(const Mensagens::Evento& e) {
             break;
         }
         case Mensagens::Acontece::Encontro:
-            // O RENDEZVOUS: os dois andam juntos, e atiram juntos.
+            // O rendezvous: os dois andam juntos, e atiram juntos.
             anel(PosicaoDe(Mensagens::kCliente));
             anel(PosicaoDe(Mensagens::kServidor));
             break;
         case Mensagens::Acontece::Resultado: {
-            // O RETORNO DA RPC: um leque com tantos quanto a soma, o do meio no
-            // aluno (as somas sao impares).
+            // O retorno da rpc: um leque com tantos quanto a soma, o do meio no aluno (as somas sao impares).
             const Vector2 de = PosicaoDe(Mensagens::kCliente);
             DispararEm(Mensagens::kGatilhoDoProcessado, de, e.valor,
                        AnguloAdiante(de, processado, 1.0f),
@@ -1293,7 +1238,7 @@ void Vitor::ExecutarMensagem(const Mensagens::Evento& e) {
             break;
         }
         case Mensagens::Acontece::Estoura:
-            // O TIMEOUT: os envelopes parados na porta estouram.
+            // O timeout: os envelopes parados na porta estouram.
             for (const Envelope& env : mEnvelopes) {
                 if (!env.paraNaPorta || !Vivo(env.p)) continue;
                 anel(env.p->GetPosition());
@@ -1315,7 +1260,7 @@ void Vitor::MoverEnvelopes(const float u) {
         }
         const Vector2 de = PosicaoDe(it->de);
         const Vector2 para = PosicaoDe(it->de == Mensagens::kCliente ? Mensagens::kServidor : Mensagens::kCliente);
-        // CHEGOU: entra na caixa postal de quem recebe - o roteiro conta.
+        // Chegou: entra na caixa postal de quem recebe - o roteiro conta.
         if (s >= 1.0f) {
             it->p->Kill();
             it = mEnvelopes.erase(it);
@@ -1353,8 +1298,7 @@ void Vitor::AtualizarMensagens() {
         if (mNasMensagens) DesmontarMensagens();
         return;
     }
-    // NO FORK AINDA NAO HA DOIS: os nomes e o canal so aparecem quando a nuvem
-    // se desfaz. (O fork comeca neste mesmo quadro, em AtualizarNuvens.)
+    // No fork ainda nao ha dois: os nomes e o canal so aparecem quando a nuvem se desfaz.
     if (mTempoNoFork >= 0.0f) return;
     if (!mNasMensagens) MontarMensagens();
 
@@ -1385,8 +1329,7 @@ void Vitor::AtualizarMensagens() {
     MoverEnvelopes(u);
     DesenharCanal();
 
-    // O PLACAR: a caixa do cliente na assincrona; o cliente bloqueado enquanto o
-    // envelope dele corre, na sincrona; a chamada da rpc; o impasse.
+    // O placar: a caixa do cliente na assincrona.
     const Mensagens::Rodada rodada = RodadaDasMensagens(k);
     bool bloqueado = false;
     if (rodada == Mensagens::Rodada::Sincrona) {

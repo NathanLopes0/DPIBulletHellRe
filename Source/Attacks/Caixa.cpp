@@ -19,8 +19,7 @@ std::vector<Vector2> PontosDoContorno(const int n, const float meiaLargura, cons
     pontos.reserve(static_cast<size_t>(n));
     for (int i = 0; i < n; ++i) {
 
-        // Quanto ja se andou pelo contorno, a partir do canto de cima a
-        // esquerda e em sentido horario: topo, lado direito, base, lado esquerdo.
+        // Quanto ja se andou pelo contorno, a partir do canto de cima a esquerda e em sentido horario.
         float s = passo * static_cast<float>(i);
 
         if (s < largura) {

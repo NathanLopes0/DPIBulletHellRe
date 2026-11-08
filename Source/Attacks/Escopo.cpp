@@ -10,9 +10,7 @@
 namespace Escopo {
 
     namespace {
-        /// Os paineis no campo de referencia (1200 x 746). O global e o campo;
-        /// os de g, do bloco interno e de h descem ate o chao, para o aluno
-        /// poder ficar dentro deles.
+        /// Os paineis no campo de referencia (1200 x 746).
         Retangulo Referencia(const Bloco b) {
             switch (b) {
                 case Bloco::Global:  return {0.0f, 0.0f, kLargura, kAltura};
@@ -99,14 +97,13 @@ namespace Escopo {
         return nome == 'y' ? "Y" : "X";
     }
 
-
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
         d.aviso = Dificuldade::Escolher(n, kAviso, 0.72f);
         d.queda = Dificuldade::Escolher(n, kQueda, 150.0f);
         return d;
     }
-    // ---- O PROGRAMA E OS COMANDOS DE CADA LUTA ------------------------------
+    // ---- O programa e os comandos de cada luta ----
 
     bool Programa::Declara(const Bloco b, const char nome) const {
         const auto i = static_cast<size_t>(b);
@@ -152,8 +149,7 @@ namespace Escopo {
     std::vector<Bloco> Busca(const Programa& p, const Comando& c) {
         std::vector<Bloco> olhados;
         if (c.regra == Regra::Dinamico) {
-            // NO DINAMICO A BUSCA SEGUE A PILHA: o bloco que roda, quem o
-            // chamou, e por fim o global (quem chamou h).
+            // No dinamico a busca segue a pilha.
             std::vector<Bloco> pilha = {c.onde};
             if (c.quemChamou) pilha.push_back(*c.quemChamou);
             pilha.push_back(Bloco::Global);
@@ -163,7 +159,7 @@ namespace Escopo {
             }
             return olhados;
         }
-        // NO ESTATICO, O TEXTO: de dentro para fora, ate o global.
+        // No estatico, o texto: de dentro para fora, ate o global.
         Bloco b = c.onde;
         while (true) {
             olhados.push_back(b);
@@ -181,8 +177,7 @@ namespace Escopo {
         std::vector<Bloco> buracos;
         for (const Bloco b : kTodos) {
             if (b == dono || !Dentro(b, dono) || !p.Declara(b, nome)) continue;
-            // SO OS DE FORA: se um bloco entre ele e o dono ja declara o nome,
-            // ele esta dentro desse buraco.
+            // So os de fora: se um bloco entre ele e o dono ja declara o nome, ele esta dentro desse buraco.
             bool porFora = true;
             for (Bloco meio = Pai(b); meio != dono && meio != Bloco::Global; meio = Pai(meio)) {
                 if (p.Declara(meio, nome)) { porFora = false; break; }
@@ -235,8 +230,7 @@ namespace Escopo {
         const float w = LarguraDoCanto(Declaracoes(p, b));
         if (b == Bloco::F) return {r.x + r.w / 2.0f, r.y + r.h / 2.0f};
         if (b == Bloco::Global) {
-            // O GLOBAL ESCREVE NO CANTO DE CIMA A DIREITA: o da esquerda e do
-            // placar.
+            // O global escreve no canto de cima a direita: o da esquerda e do placar.
             return {largura - kRecuoDoCanto - w / 2.0f, kRecuoDoCanto + kAlturaDoCanto / 2.0f};
         }
         return {r.x + kRecuoDoCanto + w / 2.0f, r.y + kRecuoDoCanto + kAlturaDoCanto / 2.0f};
@@ -248,8 +242,7 @@ namespace Escopo {
         const float r = kRaioDaGota;
         const float folga = kRaioDaGota + kFolga;
 
-        // OS BURACOS CRESCEM uma gota e a folga: nenhuma gota nasce, nem cai,
-        // perto o bastante para alcancar quem esta la dentro.
+        // Os buracos crescem uma gota e a folga.
         std::vector<Retangulo> buracos;
         for (const Bloco b : Ocultam(p, dono, c.nome)) {
             const Retangulo h = Area(b, largura, altura);
@@ -260,9 +253,7 @@ namespace Escopo {
         const float direita = area.Direita() - r;
         const float baixo = area.Baixo() - r;
 
-        // AS COLUNAS RENTES: a cada borda da regiao e a cada lado de buraco.
-        // Sem elas, a colmeia deixaria uma faixa sem chuva ao lado de cada
-        // borda, da largura de ate meio passo.
+        // As colunas rentes: a cada borda da regiao e a cada lado de buraco.
         std::vector<float> rentes = {esquerda, direita};
         for (const Retangulo& b : buracos) {
             if (b.x >= esquerda && b.x <= direita) rentes.push_back(b.x);
@@ -273,9 +264,7 @@ namespace Escopo {
         int fileira = 0;
         for (float y = area.y + r; y <= baixo + 0.01f; y += kEntreFileiras, ++fileira) {
             std::vector<float> xs;
-            // A PRIMEIRA FILEIRA E CHEIA, com as colunas das duas: a gota so
-            // varre para baixo, e a coluna da fileira impar deixaria seca a
-            // faixa de cima ate a primeira gota dela.
+            // A primeira fileira e cheia, com as colunas das duas.
             const float passo = (fileira == 0) ? kEntreGotas / 2.0f : kEntreGotas;
             const float inicio = esquerda + ((fileira % 2 == 1) ? kEntreGotas / 2.0f : 0.0f);
             for (float x = inicio; x <= direita + 0.01f; x += passo) xs.push_back(x);
@@ -315,8 +304,7 @@ namespace Escopo {
         p.y[i(Bloco::Interno)] = (interno & 2) != 0;
         if (!p.y[i(Bloco::G)] && !p.y[i(Bloco::Interno)] && !p.y[i(Bloco::H)]) p.y[i(Bloco::H)] = true;
 
-        // AS QUATRO BUSCAS, sem repetir. Dois donos, pelo menos, sempre ha: no
-        // maximo tres das seis buscas acabam no global.
+        // As quatro buscas, sem repetir.
         std::vector<Comando> candidatos;
         for (const Bloco onde : {Bloco::G, Bloco::Interno, Bloco::H}) {
             for (const char nome : {'x', 'y'}) {
@@ -329,8 +317,7 @@ namespace Escopo {
 
         plano.comandos.assign(candidatos.begin(), candidatos.begin() + std::min<std::ptrdiff_t>(4, static_cast<std::ptrdiff_t>(candidatos.size())));
 
-
-        // A PEGADINHA FECHA: f chamada de h, no estatico e logo depois no dinamico.
+        // A pegadinha fecha: f chamada de h, no estatico e logo depois no dinamico.
         plano.comandos.push_back(DaForma(Forma::FEstatico));
         plano.comandos.push_back(DaForma(Forma::FDinamico));
         return plano;

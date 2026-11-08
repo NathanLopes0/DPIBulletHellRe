@@ -15,15 +15,12 @@ TEST_CASE("Promessa: resolve quando o sorteio fica abaixo da fracao") {
 
 TEST_CASE("Promessa: fracao zero nunca resolve, fracao um sempre resolve") {
 
-    // AS DUAS PONTAS PRECISAM SER EXATAS. Com "todas resolvem" o designer
-    // espera todas - inclusive a do sorteio mais alto que o gerador da.
+    // As duas pontas precisam ser exatas.
     CHECK_FALSE(Promessa::Resolve(0.0f, 0.0f));
     CHECK_FALSE(Promessa::Resolve(0.5f, 0.0f));
     CHECK(Promessa::Resolve(0.0f, 1.0f));
     CHECK(Promessa::Resolve(0.9999f, 1.0f));
 
-    // E O SORTEIO 1,0 TAMBEM. O jogo sorteia com uniform_real_distribution<float>,
-    // que no papel nunca devolve o limite de cima - mas com float o arredondamento
-    // pode devolve-lo (LWG 2524). Sem a guarda, "todas resolvem" falharia ai.
+    // E o sorteio 1,0 tambem.
     CHECK(Promessa::Resolve(1.0f, 1.0f));
 }

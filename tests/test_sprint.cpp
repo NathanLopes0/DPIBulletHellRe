@@ -11,7 +11,6 @@
 #include <set>
 #include <vector>
 
-
 #include "../Source/Attacks/Sprint.h"
 
 namespace {
@@ -41,8 +40,6 @@ TEST_CASE("Sprint: o minimo solavanco sai parado, passa no meio na metade e cheg
     CHECK(Sprint::SemSolavanco(-2.0f) == doctest::Approx(0.0f));
     CHECK(Sprint::SemSolavanco(3.0f) == doctest::Approx(1.0f));
 
-    // Sai e chega DEVAGAR: no primeiro e no ultimo decimo anda menos que um
-    // centesimo do caminho, e no decimo do meio anda mais de um oitavo.
     CHECK(Sprint::SemSolavanco(0.1f) < 0.01f);
     CHECK(1.0f - Sprint::SemSolavanco(0.9f) < 0.01f);
     CHECK(Sprint::SemSolavanco(0.55f) - Sprint::SemSolavanco(0.45f) > 0.125f);
@@ -121,9 +118,7 @@ TEST_CASE("Sprint: a historia vai na pilha, se espalha, e espera na vaga ate a r
 TEST_CASE("Sprint: a historia nao salta - nem ao soltar, nem ao chegar na vaga") {
     const auto p = Sprint::Planejar(Vector2(900.0f, 120.0f), 5, 2.7f);
 
-    // O maior passo em 1/60 s, do disparo a revisao. O cursor mais rapido do
-    // minimo solavanco anda 1,875 vezes a media; 40 px num quadro ja seria um
-    // salto que o olho ve.
+    // O maior passo em 1/60 s, do disparo a revisao.
     for (int i = 0; i < 5; ++i) {
         float maior = 0.0f;
         Vector2 antes = Sprint::PosicaoDaHistoria(p, i, 0.0f);
@@ -159,8 +154,7 @@ TEST_CASE("Sprint: o cursor arrasta, clica ao soltar, espera, clica antes da rev
 }
 
 TEST_CASE("Sprint: a ponta da seta e o pixel (6, 4) do desenho") {
-    // O desenho tem 32 px e o centro dele e o (16, 16): a ponta fica 10 px a
-    // esquerda e 12 acima do centro, na escala do projetil.
+    // O desenho tem 32 px e o centro dele e o (16, 16).
     const Vector2 c = Sprint::CentroDoCursor(Vector2(100.0f, 200.0f), 1.0f);
     CHECK(c.x == doctest::Approx(110.0f));
     CHECK(c.y == doctest::Approx(212.0f));
@@ -180,12 +174,12 @@ TEST_CASE("Sprint: o planning poker de cada luta embaralha as quatro primeiras c
         CHECK(cartas == std::vector<int>(Sprint::kBaralho.begin(), Sprint::kBaralho.end()));
         vistas.insert(std::vector<int>(p.begin(), p.end() - 1));
     }
-    // AS 24 ORDENS das quatro primeiras aparecem.
+    // As 24 ordens das quatro primeiras aparecem.
     CHECK(vistas.size() == 24u);
 }
 
 TEST_CASE("Sprint: o placar da sprint diz os pontos, e o do baralho em ordem e o do arquivo") {
-    // OS TEXTOS DE marialucia/fases.json, que o placar mostrava antes do sorteio.
+    // Os textos de marialucia/fases.json, que o placar mostrava antes do sorteio.
     CHECK(Sprint::Anuncio(1, Sprint::kBaralho[0]) == "Sprint 1 \xc2\xb7 1 ponto");
     CHECK(Sprint::Anuncio(2, Sprint::kBaralho[1]) == "Sprint 2 \xc2\xb7 2 pontos");
     CHECK(Sprint::Anuncio(3, Sprint::kBaralho[2]) == "Sprint 3 \xc2\xb7 3 pontos");

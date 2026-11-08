@@ -21,11 +21,10 @@ namespace Memoria {
             Passo::NovosAeB, Passo::NovoC, Passo::LacoJava, Passo::Coleta,
             Passo::NovoP, Passo::Libera, Passo::Escreve, Passo::LacoCpp};
 
-
         constexpr float kPi = 3.14159265358979f;
     }
 
-    // ---- O HEAP -------------------------------------------------------------
+    // ---- O heap ----
 
     int Novo(Heap& h, const int celulas) {
         Bloco b;
@@ -69,8 +68,6 @@ namespace Memoria {
             const int id = fila.front();
             fila.pop_front();
             const Bloco* b = Achar(h, id);
-            // O LIBERADO NAO E SEGUIDO: o que o delete levou nao e memoria de
-            // ninguem, mesmo com um ponteiro pendente ainda nele.
             if (!b || b->estado == Estado::Liberado || marcados.count(id)) continue;
             marcados.insert(id);
             if (b->prox >= 0) fila.push_back(b->prox);
@@ -101,7 +98,7 @@ namespace Memoria {
         return lixo;
     }
 
-    // ---- O ROTEIRO ----------------------------------------------------------
+    // ---- O roteiro ----
 
     Linguagem LinguagemDe(const Passo p) {
         switch (p) {
@@ -188,7 +185,7 @@ namespace Memoria {
 
     Roteiro Sortear(Variacao::Sorteio& s) {
         if (!s.Chance(0.5f)) return kRoteiro;
-        // O C++ PRIMEIRO: as duas metades trocam de lugar, cada uma inteira.
+        // O c++ primeiro: as duas metades trocam de lugar, cada uma inteira.
         constexpr int kMetade = kPassos / 2;
         Roteiro r{};
         for (int i = 0; i < kPassos; ++i) r[static_cast<size_t>(i)] = kRoteiro[static_cast<size_t>((i + kMetade) % kPassos)];
@@ -217,8 +214,6 @@ namespace Memoria {
     }
 
     std::string Placar(const Passo p, const bool depois, const Numeros& n) {
-        // \xc2\xb7 e o ponto do meio, \xc3\xaa o e circunflexo, \xc3\xa1 o a
-        // agudo e \xe2\x86\x92 a seta: o MSVC nao le acento em literal.
         const std::string cabecalho = LinguagemDe(p) == Linguagem::Java
             ? "Java \xc2\xb7 coletor de lixo"
             : "C++ \xc2\xb7 ger\xc3\xaa" "ncia manual";
@@ -244,7 +239,7 @@ namespace Memoria {
         return cabecalho + "\n" + codigo + (depois ? fim : "");
     }
 
-    // ---- A GEOMETRIA --------------------------------------------------------
+    // ---- A geometria ----
 
     bool Retangulo::Cruza(const Retangulo& o) const {
         return x < o.x + o.w && o.x < x + w && y < o.y + o.h && o.y < y + h;
@@ -282,8 +277,6 @@ namespace Memoria {
             return Ponto{std::clamp(c.x, xMin, xMax), std::clamp(c.y, yMin, yMax)};
         };
 
-        // AS DIRECOES, de lado primeiro: o bloco vizinho fica na mesma altura,
-        // e o aluno que anda de lado continua tendo para onde ir.
         constexpr std::array<float, 12> kAngulos = {0.0f, 180.0f, 30.0f, 150.0f, 330.0f, 210.0f,
                                                     60.0f, 120.0f, 300.0f, 240.0f, 90.0f, 270.0f};
         const Ponto meio = dentro(aluno);

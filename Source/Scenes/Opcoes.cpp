@@ -18,8 +18,8 @@
 #include "../Components/DrawComponents/DrawTextComponent.h"
 
 namespace {
-    // A LINHA DA OPCAO: uma moldura com o nome a esquerda e o valor a direita,
-    // como as linhas do menu principal.
+    // A linha da opcao: uma moldura com o nome a esquerda e o valor a direita, como as linhas do
+    // menu principal.
     constexpr int kLarguraDaLinha = 640;
     constexpr int kAlturaDaLinha = 56;
     constexpr float kRecuoDoTexto = 150.0f;   ///< do meio da linha ao meio de cada texto
@@ -72,8 +72,7 @@ void Opcoes::Load() {
     mDescricao = Texto("", meio, altura * 0.76f, 22, 760)->GetComponent<DrawTextComponent>();
     Mostrar();
 
-    // O BOTAO 1 TAMBEM TROCA, sem aparecer escrito - como o ENTER: duas
-    // entradas com o mesmo "trocar" no rodape pareciam duas acoes diferentes.
+    // O botao 1 tambem troca, sem aparecer escrito - como o enter.
     Texto(Painel::Rodape({Painel::Manche(Painel::Jogador::Um, "escolher e trocar"),
                           {Painel::Jogador::Um, Painel::Botao::Dois, "voltar"}},
                          mGame->JeitoDoRodape()),
@@ -148,8 +147,7 @@ void Opcoes::OnProcessInput(const Uint8* keyState) {
     }
     mVoltarAnterior = voltar;
 
-    // QUALQUER UM DOS DOIS troca, como na pausa: a opcao e da maquina, e nao
-    // de um jogador.
+    // Qualquer um dos dois troca, como na pausa: a opcao e da maquina, e nao de um jogador.
     bool esquerda = false, direita = false, cima = false, baixo = false, trocar = false;
     for (const Painel::Jogador quem : Painel::kJogadores) {
         esquerda = esquerda || Painel::Apertado(keyState, quem, Painel::Direcao::Esquerda);
@@ -160,7 +158,7 @@ void Opcoes::OnProcessInput(const Uint8* keyState) {
     }
     trocar = trocar || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
 
-    // ESCOLHER: para cima e para baixo, dando a volta, como no menu.
+    // Escolher: para cima e para baixo, dando a volta, como no menu.
     int linha = 0;
     if (cima && !mCimaAnterior) linha -= 1;
     if (baixo && !mBaixoAnterior) linha += 1;
@@ -171,7 +169,7 @@ void Opcoes::OnProcessInput(const Uint8* keyState) {
         Mostrar();
     }
 
-    // TROCAR o valor da linha escolhida.
+    // Trocar o valor da linha escolhida.
     const bool peloBotao = trocar && !mTrocarAnterior;
     int passo = 0;
     if (esquerda && !mEsquerdaAnterior) passo -= 1;

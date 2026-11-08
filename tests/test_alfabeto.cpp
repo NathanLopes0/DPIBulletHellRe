@@ -9,7 +9,6 @@
 TEST_CASE("Alfabeto: a troca do intercambio e o homomorfismo h(a) = b, h(b) = a") {
     CHECK(Alfabeto::Trocar(Alfabeto::kA) == Alfabeto::kB);
     CHECK(Alfabeto::Trocar(Alfabeto::kB) == Alfabeto::kA);
-    // Aplicada duas vezes, volta ao que era: e uma troca, e nao uma rotacao.
     CHECK(Alfabeto::Trocar(Alfabeto::Trocar(Alfabeto::kA)) == Alfabeto::kA);
     // Quem nao e letra fica: o S da gramatica, o estado do automato.
     CHECK(Alfabeto::Trocar("S") == "S");

@@ -1,9 +1,4 @@
-// A matricula do aluno. Camada pura: nao abre arquivo, nao sobe SDL, so texto.
-//
-// Escrito ANTES da implementacao, de proposito: um teste escrito depois tende a
-// descrever o que o codigo faz, e nao o que ele deveria fazer. Os casos abaixo
-// sairam da conversa sobre o formato ("so numeros, ate 6, podem ter menos") e das
-// duas matriculas reais que me deram de exemplo.
+// A matricula do aluno.
 
 #include "doctest.h"
 
@@ -16,13 +11,10 @@ using Matricula::Digitar;
 using Matricula::Apagar;
 using Matricula::Erro;
 
-// ---------------------------------------------------------------------------
-// O que e uma matricula valida
-// ---------------------------------------------------------------------------
+// O que e uma matricula valida.
 
 TEST_CASE("Matricula: as duas matriculas reais do enunciado passam") {
-    // 89384 tem cinco digitos, 115849 tem seis. Sao as que me deram como exemplo,
-    // e estao aqui para que nenhuma regra futura as recuse por acidente.
+    // 89384 tem cinco digitos, 115849 tem seis.
     const auto a = Validar("89384");
     CHECK(a.valida);
     CHECK(a.canonica == "89384");
@@ -51,8 +43,6 @@ TEST_CASE("Matricula: vazia nao") {
 }
 
 TEST_CASE("Matricula: so espacos conta como vazia, nao como caractere invalido") {
-    // A mensagem importa: quem apertou espaco sem querer precisa ler "digite sua
-    // matricula", e nao "so numeros".
     const auto r = Validar("   ");
     CHECK_FALSE(r.valida);
     CHECK(r.erro == Erro::Vazia);
@@ -68,8 +58,7 @@ TEST_CASE("Matricula: letra, pontuacao e sinal nao") {
 }
 
 TEST_CASE("Matricula: espaco NO MEIO nao") {
-    // Do ponto de vista de quem digitou, um espaco no meio e o mesmo caso de uma
-    // letra: tem coisa que nao e numero ali.
+    // Do ponto de vista de quem digitou, um espaco no meio e o mesmo caso de uma letra.
     const auto r = Validar("89 384");
     CHECK_FALSE(r.valida);
     CHECK(r.erro == Erro::NaoSoNumeros);
@@ -82,13 +71,10 @@ TEST_CASE("Matricula: espaco antes e depois e aparado") {
     CHECK(Validar("\t89384\n").canonica == "89384");
 }
 
-// ---------------------------------------------------------------------------
-// Forma canonica: o mesmo aluno tem de cair sempre na mesma ficha
-// ---------------------------------------------------------------------------
+// Forma canonica: o mesmo aluno tem de cair sempre na mesma ficha.
 
 TEST_CASE("Matricula: zeros a esquerda nao criam um aluno novo") {
-    // E a razao de existir uma forma canonica. Sem isto, o aluno que um dia digita
-    // 089384 e no outro 89384 teria duas fichas e perderia o progresso.
+    // E a razao de existir uma forma canonica.
     CHECK(Validar("089384").canonica == "89384");
     CHECK(Validar("0089384").canonica == "89384");
     CHECK(Validar("89384").canonica == "89384");
@@ -96,8 +82,7 @@ TEST_CASE("Matricula: zeros a esquerda nao criam um aluno novo") {
 }
 
 TEST_CASE("Matricula: zeros a esquerda contam para o limite de seis digitos") {
-    // "0089384" tem sete caracteres mas cinco digitos significativos. Aceito:
-    // quem digitou escreveu uma matricula que existe, so com enfeite na frente.
+    // "0089384" tem sete caracteres mas cinco digitos significativos.
     const auto r = Validar("0089384");
     CHECK(r.valida);
     CHECK(r.canonica == "89384");
@@ -111,10 +96,7 @@ TEST_CASE("Matricula: sete digitos significativos continuam longos demais") {
 }
 
 TEST_CASE("Matricula: so zeros e recusada") {
-    // DECISAO MINHA, nao regra da UFV: a canonica de "000" seria "0", e matricula
-    // zero nao identifica ninguem. Aceitar faria "apertei zero sem querer" virar
-    // uma ficha indistinguivel de uma real. Se existir matricula 0, este e o unico
-    // teste a tirar.
+    // Decisao minha, nao regra da UFV.
     for (const char* z : {"0", "00", "000000"}) {
         CAPTURE(z);
         const auto r = Validar(z);
@@ -134,9 +116,7 @@ TEST_CASE("Matricula: o visitante nunca e uma matricula valida") {
     CHECK_FALSE(Validar(Matricula::kVisitante).valida);
 }
 
-// ---------------------------------------------------------------------------
-// Mensagens
-// ---------------------------------------------------------------------------
+// Mensagens.
 
 TEST_CASE("Matricula: cada erro tem uma frase propria, e o acerto nao tem frase") {
     CHECK(Matricula::MensagemDeErro(Erro::Nenhum).empty());
@@ -147,15 +127,12 @@ TEST_CASE("Matricula: cada erro tem uma frase propria, e o acerto nao tem frase"
         CHECK_FALSE(Matricula::MensagemDeErro(e).empty());
     }
 
-    // E as frases sao DIFERENTES entre si: quatro erros com a mesma frase nao
-    // ajudam mais que um bool.
+    // E as frases sao diferentes entre si.
     CHECK(Matricula::MensagemDeErro(Erro::Vazia) != Matricula::MensagemDeErro(Erro::NaoSoNumeros));
     CHECK(Matricula::MensagemDeErro(Erro::LongaDemais) != Matricula::MensagemDeErro(Erro::Zero));
 }
 
-// ---------------------------------------------------------------------------
-// Digitacao: a regra vive aqui, e nao na tela
-// ---------------------------------------------------------------------------
+// Digitacao: a regra vive aqui, e nao na tela.
 
 TEST_CASE("Matricula: digitar um numero acrescenta") {
     CHECK(Digitar("", '8') == "8");
@@ -163,8 +140,7 @@ TEST_CASE("Matricula: digitar um numero acrescenta") {
 }
 
 TEST_CASE("Matricula: tecla que nao e numero nao muda nada") {
-    // Devolve o texto igual em vez de um bool: assim a tela so escreve o que
-    // recebeu, sem decidir nada.
+    // Devolve o texto igual em vez de um bool.
     CHECK(Digitar("893", 'a') == "893");
     CHECK(Digitar("893", ' ') == "893");
     CHECK(Digitar("893", '.') == "893");
@@ -184,10 +160,7 @@ TEST_CASE("Matricula: apagar tira o ultimo, e vazio continua vazio") {
 }
 
 TEST_CASE("Matricula: o que da para digitar e sempre aceito pela validacao") {
-    // A propriedade que liga as duas metades deste arquivo: se a digitacao so
-    // deixa entrar o que vale, nao existe texto alcancavel pelo teclado que a
-    // validacao recuse por formato. Sobram so os dois casos que o teclado nao
-    // evita - nao digitar nada, e digitar so zeros.
+    // A propriedade que liga as duas metades deste arquivo.
     std::string texto;
     const char* sequencia = "a8 9.3b8\n4!";   // mistura de boas e ruins
     for (const char* c = sequencia; *c; ++c) {
@@ -207,9 +180,7 @@ TEST_CASE("Matricula: digitar seis digitos quaisquer sempre da matricula valida"
     CHECK(Validar(texto).valida);
 }
 
-// ---------------------------------------------------------------------------
-// Exibicao
-// ---------------------------------------------------------------------------
+// Exibicao.
 
 TEST_CASE("Matricula: ParaExibir devolve a canonica") {
     CHECK(Matricula::ParaExibir("89384") == "89384");

@@ -10,15 +10,7 @@
 #include "../Curso/Materias.h"
 #include "Progresso.h"
 
-/**
- * CAMADA PURA: monta o texto a partir das fichas que recebe. Nao abre arquivo e
- * nao sabe onde os saves moram - quem junta tudo e Source/ExportacaoArquivo.
- *
- * UMA LINHA POR ALUNO-MATERIA, e nao uma por aluno com uma coluna por materia.
- * A escolha foi pensando no ranking em tela que vem depois: ordenar e filtrar
- * linhas nao exige remontar nada, enquanto uma tabela larga exigiria uma coluna
- * nova a cada materia que o curso ganhar.
- */
+/// Nao abre arquivo e nao sabe onde os saves moram - quem junta tudo e Source/ExportacaoArquivo.
 namespace Exportacao {
 
     /// O que se sabe de um aluno: a matricula e o progresso dele.
@@ -27,27 +19,10 @@ namespace Exportacao {
         Progresso progresso;
     };
 
-    /**
-     * @brief As notas da turma em CSV, com cabecalho.
-     *
-     * Colunas: matricula, materia (o codigo estavel), nome, recorde,
-     * recordeDupla, parceiro, retomada, aprovado, quando, recordeDificil,
-     * recordeDuplaDificil, parceiroDificil. Os recordes sem "Dificil" no nome
-     * sao os do Normal.
-     *
-     * AS DO DIFICIL VEM NO FIM, e nao ao lado das do Normal: quem ja le a
-     * planilha pela posicao das colunas continua lendo as mesmas.
-     *
-     * O CODIGO e o NOME saem os dois de proposito: o codigo e o que nao muda e
-     * serve para cruzar dados, o nome e o que o professor le. Materia que o aluno
-     * nunca jogou NAO vira linha - linha vazia poluiria o ranking.
-     *
-     * As linhas saem em ordem de matricula e, dentro dela, na ordem das materias,
-     * para que duas exportacoes do mesmo estado sejam o mesmo arquivo.
-     */
+    /// As notas da turma em CSV, com cabecalho.
     std::string ParaCsv(const std::vector<FichaDeAluno>& fichas,
                         const Materias::Lista& materias);
 
-    /// @brief Um campo CSV, com aspas se precisar. Exposto para teste.
+    /// Um campo CSV, com aspas se precisar. Exposto para teste.
     std::string Campo(const std::string& valor);
 }

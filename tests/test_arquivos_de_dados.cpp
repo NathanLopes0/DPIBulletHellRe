@@ -1,35 +1,5 @@
-// Os arquivos de dados DE VERDADE, os que o jogo carrega.
-//
-// ESTE ARQUIVO E DIFERENTE DOS OUTROS DA SUITE, DE PROPOSITO.
-//
-// Os demais testes sao puros: montam um JSON pequeno em memoria e conferem que o
-// leitor entende. Eles respondem "o leitor esta certo?".
-//
-// Este aqui abre Assets/ e le o que vai junto com o jogo. Ele responde uma
-// pergunta diferente: "os DADOS estao certos?". Sao coisas independentes - um
-// leitor impecavel le um arquivo com erro de digitacao sem reclamar nada.
-//
-// POR QUE ISSO EXISTE
-//
-// Tres erros de digitacao nestes arquivos NAO quebram o jogo; eles o deixam
-// silenciosamente errado:
-//
-//   1. "regras": "salles_fase1x" em fases.json - as fases carregam, o ataque
-//      dispara, e os projeteis saem SEM COMPORTAMENTO NENHUM. Nenhum erro em
-//      tela, so uma linha no log que ninguem le durante o jogo.
-//   2. "forma": "LacoRapidoo" em regras.json - o projetil voa RETO em vez de
-//      fazer o laco. A fase inteira perde o carater e continua jogavel.
-//   3. "proximo": "StateTow" em fases.json - o conjunto e recusado e o chefe
-//      fica parado.
-//
-// A configuracao de reserva em C++ nunca protegeu contra os dois primeiros,
-// porque neles as fases carregam sem problema. Este teste protege, e e ele que
-// torna seguro apagar a reserva: um erro nos dados passa a QUEBRAR A SUITE, que
-// e onde da para ver, em vez de aparecer como uma fase estranha meia hora depois.
-//
-// O caminho de Assets/ vem do CMake (DPI_ASSETS_DIR), e nao de um caminho
-// relativo, porque o diretorio de trabalho do executavel de teste depende de
-// quem o chama - o CLion, o ctest e o terminal usam diretorios diferentes.
+// Os arquivos de dados de verdade, os que o jogo carrega. Este arquivo e diferente dos outros da
+// suite.
 
 #include "doctest.h"
 #include "../Source/Regras/Dificuldade.h"
@@ -106,8 +76,8 @@ namespace {
         return conteudo.str();
     }
 
-    /// Junta as frases de problema numa mensagem so, para a falha do teste dizer
-    /// O QUE esta errado em vez de so "esperava lista vazia".
+    /// Junta as frases de problema numa mensagem so, para a falha do teste dizer. O que esta errado
+    /// em vez de so "esperava lista vazia".
     std::string Juntar(const std::vector<std::string>& problemas) {
         std::string s;
         for (const auto& p : problemas) s += "\n    - " + p;
@@ -118,17 +88,7 @@ namespace {
     /// arquivo. Espelha FormaPeloNome em RegrasDeAtaqueArquivo.cpp.
     const std::set<std::string> kFormasEmCodigo = {"Reta", ""};
 
-    /**
-     * OS CHEFES SAO OS QUE materias.json DIZ, e nao uma lista escrita aqui.
-     *
-     * Era uma lista a mao - e ela ficou para tras. O Thiago entrou no curso e
-     * NUNCA foi conferido por nenhum dos sete testes que a usavam: transicoes,
-     * quatro fases, conjunto de projeteis, animacoes. Trinta e duas verificacoes
-     * deixavam de rodar, e nada dizia nada.
-     *
-     * Tirar o nome do chefe de dentro dos arquivos de ataque deixou materias.json
-     * como a unica fonte de quem existe - entao e dali que a lista vem.
-     */
+    /// Os chefes sao os que materias.json diz, e nao uma lista escrita aqui.
     const std::vector<std::string>& Chefes() {
         static const std::vector<std::string> chefes = [] {
             std::set<std::string> nomes;
@@ -157,17 +117,14 @@ namespace {
 
 }
 
-// ---------------------------------------------------------------------------
-// Cada arquivo, por si
-// ---------------------------------------------------------------------------
+// Cada arquivo, por si.
 
 TEST_CASE("Dados: Assets/como-jogar.json nao tem problema nenhum") {
     const auto r = Manual::LerManual(LerArquivo("como-jogar.json"));
     CHECK_MESSAGE(r.problemas.empty(), "problemas em como-jogar.json:" << Juntar(r.problemas));
     CHECK(r.paginas.size() > 0);
 
-    // O GABINETE TAMBEM TEM O QUE LER: uma pagina so de teclas ficaria vazia
-    // la (Manual::Linhas). E as linhas de tecla nao vao no texto de todos.
+    // O gabinete tambem tem o que ler: uma pagina so de teclas ficaria vazia la (Manual::Linhas).
     for (const auto& p : r.paginas) {
         CAPTURE(p.titulo);
         CHECK_FALSE(Manual::Linhas(p, true).empty());
@@ -178,9 +135,7 @@ TEST_CASE("Dados: Assets/como-jogar.json nao tem problema nenhum") {
             }
         }
 
-        // SO O QUE A FONTE DESENHA. Medido no cmap da Zelda.ttf: estes sao os
-        // caracteres ASCII visiveis que ela nao tem, e cada um sai como um
-        // quadrado na tela - o ";" e a "/" ja tinham saido no primeiro texto.
+        // So o que a fonte desenha.
         std::vector<std::string> todas = Manual::Linhas(p, false);
         todas.push_back(p.titulo);
         for (const auto& linha : todas) {
@@ -215,9 +170,7 @@ TEST_CASE("Dados: o fases.json de cada chefe nao tem problema nenhum") {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Os chefes
-// ---------------------------------------------------------------------------
+// Os chefes.
 
 TEST_CASE("Dados: todo chefe tem fases e as transicoes delas fecham") {
     // Sem a reserva em C++, um conjunto recusado aqui e um chefe parado em tela.
@@ -232,9 +185,7 @@ TEST_CASE("Dados: todo chefe tem fases e as transicoes delas fecham") {
 }
 
 TEST_CASE("Dados: todo chefe tem as quatro fases") {
-    // Nao e exigencia do formato - um chefe pode ter tres. E exigencia DESTE
-    // jogo: os cinco chefes atuais tem StateOne, Two, Three e Final, e perder
-    // uma delas por um recorte errado seria dificil de notar jogando.
+    // Nao e exigencia do formato - um chefe pode ter tres.
     for (const auto& chefe : Chefes()) {
         CAPTURE(chefe);
         std::set<std::string> nomes;
@@ -247,16 +198,7 @@ TEST_CASE("Dados: todo chefe tem as quatro fases") {
 }
 
 TEST_CASE("Dados: toda fase tem de onde tirar pelo menos um ataque") {
-    // LerFases ja descarta fase sem ataque, entao isto pega o descarte: a fase
-    // some do conjunto e o chefe fica parado 17 segundos naquele trecho.
-    //
-    // "OU EMPRESTA DE OUTRA" entrou quando a fase que se divide passou a usar
-    // "ataquesDe" - ela nao declara ataques de proposito, e a lista dela fica
-    // vazia na camada pura (quem resolve e a ponte). O que o caso protege
-    // continua sendo o mesmo: nenhuma fase deixa o chefe parado.
-    //
-    // Que o nome apontado EXISTE e assunto de ValidarTransicoes, e ha caso
-    // proprio para ele em test_fases.cpp.
+    // LerFases ja descarta fase sem ataque, entao isto pega o descarte.
     for (const auto& chefe : Chefes()) {
         const auto& fases = FasesDoChefe(chefe).fases;
         for (const auto& f : fases) {
@@ -268,15 +210,9 @@ TEST_CASE("Dados: toda fase tem de onde tirar pelo menos um ataque") {
     }
 }
 
-// ---------------------------------------------------------------------------
-// As referencias entre os arquivos
-//
-// E aqui que moram os erros que o jogo NAO denuncia em tela.
-// ---------------------------------------------------------------------------
+// As referencias entre os arquivos. E aqui que moram os erros que o jogo nao denuncia em tela.
 
 TEST_CASE("Dados: todo conjunto de regras citado em fases.json existe em regras.json") {
-    // O erro silencioso numero 1: o nome nao bate, o ataque dispara normalmente e
-    // os projeteis saem sem comportamento nenhum.
     for (const auto& chefe : Chefes()) {
         const auto regras = RegrasDoChefe(chefe);
         const auto& lista = FasesDoChefe(chefe).fases;
@@ -296,8 +232,6 @@ TEST_CASE("Dados: todo conjunto de regras citado em fases.json existe em regras.
 }
 
 TEST_CASE("Dados: toda forma citada em regras.json existe em formas.json") {
-    // O erro silencioso numero 2: o nome nao bate, PathShapes::DoArquivo devolve
-    // uma reta, e o projetil voa reto em vez de fazer a curva.
     const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
 
     auto conferir = [&](const std::string& conjunto, const DescricaoDeBehavior& d) {
@@ -322,8 +256,7 @@ TEST_CASE("Dados: toda forma citada em regras.json existe em formas.json") {
 }
 
 TEST_CASE("Dados: as formas citadas nas regras EM LINHA de fases.json tambem existem") {
-    // Um ataque pode trazer as regras escritas nele mesmo, e elas citam formas do
-    // mesmo jeito. O caminho e outro, o erro de digitacao e o mesmo.
+    // Um ataque pode trazer as regras escritas nele mesmo, e elas citam formas do mesmo jeito.
     const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
 
     for (const auto& chefe : Chefes()) {
@@ -343,23 +276,17 @@ TEST_CASE("Dados: as formas citadas nas regras EM LINHA de fases.json tambem exi
     }
 }
 
-// ---------------------------------------------------------------------------
-// Coerencia interna dos ataques
-// ---------------------------------------------------------------------------
+// Coerencia interna dos ataques.
 
 TEST_CASE("Dados: uma regra por indice nao aponta para fora da rajada") {
-    // O caso concreto: salles_final_variado tem regras para os indices 0, 1 e 2,
-    // e o ataque dispara 3 projeteis. Se alguem aumentar para 4 em fases.json e
-    // esquecer das regras, o quarto projetil sai sem caminho nenhum e voa reto,
-    // sem nenhum aviso. Se DIMINUIR para 2, a regra do indice 2 nunca se aplica.
+    // Se diminuir para 2, a regra do indice 2 nunca se aplica.
     for (const auto& chefe : Chefes()) {
         const auto regras = RegrasDoChefe(chefe);
         const auto& lista = FasesDoChefe(chefe).fases;
         for (const auto& f : lista) {
             for (const auto& a : f.ataques) {
 
-                // Quantos projeteis o ataque dispara. Ausente = o padrao do
-                // AttackParams, que e 10.
+                // Quantos projeteis o ataque dispara.
                 const int n = a.projeteis.value_or(10);
 
                 std::vector<Regra> aplicaveis = a.regras;
@@ -368,8 +295,6 @@ TEST_CASE("Dados: uma regra por indice nao aponta para fora da rajada") {
                     aplicaveis.insert(aplicaveis.end(), r.begin(), r.end());
                 }
 
-                // Todo indice entre 0 e n-1 precisa ser coberto por alguma regra
-                // com condicao Indices, se o conjunto usar esse estilo.
                 bool usaIndices = false;
                 int maiorIndice = -1;
                 for (const auto& r : aplicaveis) {
@@ -395,9 +320,7 @@ TEST_CASE("Dados: uma regra por indice nao aponta para fora da rajada") {
 }
 
 TEST_CASE("Dados: um cooldown derivado do ritmo tem mesmo um ritmo para derivar") {
-    // LerFases ja recusa isso, entao este teste confere que nenhum ataque REAL
-    // caiu na armadilha - o ataque inteiro sumiria do conjunto, e o chefe
-    // atacaria de menos sem nenhum sinal em tela.
+    // LerFases ja recusa isso, entao este teste confere que nenhum ataque real caiu na armadilha.
     for (const auto& chefe : Chefes()) {
         const auto& lista = FasesDoChefe(chefe).fases;
         for (const auto& f : lista) {
@@ -410,15 +333,8 @@ TEST_CASE("Dados: um cooldown derivado do ritmo tem mesmo um ritmo para derivar"
     }
 }
 
-// ---------------------------------------------------------------------------
-// Os tipos de projetil
-//
-// Um erro aqui e da mesma familia dos tres que abrem este arquivo: nao quebra o
-// jogo, deixa-o silenciosamente errado. Um "projetil" citado numa fase com nome
-// que nao existe faz cada disparo daquele ataque virar uma linha de log e nenhum
-// tiro em tela - o chefe parece estar com defeito. Uma animacao que cita um
-// quadro que a folha nao tem desenha o quadro errado, ou nada.
-// ---------------------------------------------------------------------------
+// Os tipos de projetil. Um erro aqui e da mesma familia dos tres que abrem este arquivo: nao quebra
+// o jogo, deixa-o silenciosamente errado.
 
 TEST_CASE("Dados: o projeteis.json de cada chefe nao tem problema nenhum") {
     for (const auto& chefe : Chefes()) {
@@ -430,8 +346,7 @@ TEST_CASE("Dados: o projeteis.json de cada chefe nao tem problema nenhum") {
 }
 
 TEST_CASE("Dados: todo chefe tem projeteis na pasta dele") {
-    // Sem projetil, o chefe monta e anda, mas nenhum ataque encontra a fabrica
-    // que pede: ele fica inofensivo, o que em jogo parece bug e nao erro de dados.
+    // Sem projetil, o chefe monta e anda, mas nenhum ataque encontra a fabrica que pede.
     for (const auto& chefe : Chefes()) {
         CAPTURE(chefe);
         CHECK_FALSE(ProjeteisDoChefe(chefe).projeteis.empty());
@@ -454,9 +369,7 @@ TEST_CASE("Dados: todo projetil citado nas fases existe na pasta do chefe") {
 }
 
 TEST_CASE("Dados: o sprite e o atlas de todo projetil existem no disco") {
-    // Este teste pega o erro que passou anos escondido na fabrica da capivara:
-    // ela declarava "Capivara.json", arquivo que nunca existiu. Ninguem notou
-    // porque o codigo repetia o caminho certo na mao e nunca lia o campo errado.
+    // Este teste pega o erro que passou anos escondido na fabrica da capivara.
     for (const auto& chefe : Chefes()) {
         for (const auto& entrada : ProjeteisDoChefe(chefe).projeteis) {
             const std::string onde = chefe + "/" + entrada.first;
@@ -474,9 +387,7 @@ TEST_CASE("Dados: o sprite e o atlas de todo projetil existem no disco") {
 }
 
 TEST_CASE("Dados: nenhuma animacao cita um quadro que a folha nao tem") {
-    // O DrawAnimatedComponent nao reclama de indice fora da lista de quadros; ele
-    // desenha o que achar. Entao um 12 numa folha de 12 quadros (indices 0 a 11) e
-    // exatamente o tipo de erro que so aparece em jogo, e so as vezes.
+    // O DrawAnimatedComponent nao reclama de indice fora da lista de quadros.
     for (const auto& chefe : Chefes()) {
         for (const auto& entrada : ProjeteisDoChefe(chefe).projeteis) {
 
@@ -486,8 +397,6 @@ TEST_CASE("Dados: nenhuma animacao cita um quadro que a folha nao tem") {
             const auto atlas = LerJsonDeDados(LerArquivo(entrada.second.dados));
             REQUIRE(atlas.contains("frames"));
 
-            // O Aseprite exporta "frames" como lista ou como objeto, conforme a
-            // opcao de exportacao, e o jogo tem exemplos dos dois.
             const size_t total = atlas["frames"].size();
             CHECK(total > 0);
 
@@ -503,9 +412,8 @@ TEST_CASE("Dados: nenhuma animacao cita um quadro que a folha nao tem") {
 }
 
 namespace {
-    /// A largura e a altura de um PNG, lidas do cabecalho (IHDR): os quatro
-    /// bytes de cada uma comecam no byte 16 e vem do mais alto para o mais
-    /// baixo. Zero se o arquivo nao abrir ou nao for PNG.
+    /// A largura e a altura de um PNG, lidas do cabecalho (ihdr): os quatro bytes de cada uma
+    /// comecam no byte 16 e vem do mais alto para o mais baixo.
     std::pair<int, int> TamanhoDoPng(const std::string& caminhoRelativo) {
         std::ifstream f(std::string(DPI_ASSETS_DIR) + "/" + caminhoRelativo, std::ios::binary);
         unsigned char b[24] = {};
@@ -517,10 +425,6 @@ namespace {
 }
 
 TEST_CASE("Dados: todo quadro de toda folha de projetil cabe na imagem") {
-    // O DrawAnimatedComponent desenha o retangulo do quadro no tamanho que o
-    // .json diz, e um quadro maior que a folha nao da erro: sai ESTICADO. Foi
-    // assim que o diagrama do automato do Vladimir (1000 x 400) saiu com quadro
-    // de 1000 x 1000 e apareceu duas vezes e meia mais alto, sem nada reclamar.
     for (const auto& chefe : Chefes()) {
         for (const auto& entrada : ProjeteisDoChefe(chefe).projeteis) {
             const std::string onde = chefe + "/" + entrada.first;
@@ -546,17 +450,8 @@ TEST_CASE("Dados: todo quadro de toda folha de projetil cabe na imagem") {
     }
 }
 
-// ---------------------------------------------------------------------------
-// A tranca da migracao
-//
-// Os valores abaixo foram lidos das SEIS fabricas em C++ antes de elas serem
-// apagadas. Este teste existe para que a migracao de C++ para dados possa ser
-// chamada de equivalente com alguma base, e nao so porque o jogo abriu.
-//
-// Ele e deliberadamente rigido: mexer de proposito no balanceamento de um
-// projetil QUEBRA este teste. Isso e o comportamento desejado - a falha obriga a
-// mudar o numero aqui tambem, e o diff do commit passa a mostrar a intencao.
-// ---------------------------------------------------------------------------
+// A tranca da migracao. Os valores abaixo foram lidos das seis fabricas em C++ antes de elas serem
+// apagadas.
 
 TEST_CASE("Dados: os projeteis mantem exatamente o que as fabricas em C++ tinham") {
 
@@ -578,15 +473,6 @@ TEST_CASE("Dados: os projeteis mantem exatamente o que as fabricas em C++ tinham
     const std::vector<Esperado> esperados = {
         {"salles",  "Capivara", "Teachers/Projectiles/DPIBHSallesCapivara.png",
          1.0f, 90, "Normal", "largura", 2.0f, true,  1.0f, 12.0f, 2},
-        // (Os "Dados" do Julio sairam no 126, quando a ultima fase dele que os
-        // usava virou o modelo em loop, o "Arduino" do Ricardo no 132, quando
-        // a fase final virou o Blink - a arte dele virou a da Placa -, e a
-        // "Estruturas" e a "Duplamente" do Salles no 146, depois que as listas
-        // das fases dele viraram a pilha, a tabela hash e a arvore de busca.)
-        // Os baloes sao o unico que difere em tres campos de uma vez, e os tres
-        // eram de proposito: hitbox menor que o desenho (divisor 4), nao nascer na
-        // posicao do chefe (a BaloonAttack escolhe o lado da tela) e morrer com
-        // folga de dois sprites sem parcela de tela.
         {"andre",   "Baloes",   "Teachers/Projectiles/DPIBHAndreBaloon.png",
          2.0f, 90, "Red",    "largura", 4.0f, false, 2.0f,  0.0f, 3},
     };
@@ -613,8 +499,6 @@ TEST_CASE("Dados: os projeteis mantem exatamente o que as fabricas em C++ tinham
 }
 
 TEST_CASE("Dados: as animacoes dos projeteis mantem os quadros exatos") {
-    // Separado do caso acima porque a comparacao e de listas e a mensagem de falha
-    // precisa dizer QUAL quadro mudou.
     struct AnimEsperada {
         const char* conjunto;
         const char* projetil;
@@ -625,8 +509,6 @@ TEST_CASE("Dados: as animacoes dos projeteis mantem os quadros exatos") {
     const std::vector<AnimEsperada> esperadas = {
         {"salles",  "Capivara", "Normal",      {0}},
         {"salles",  "Capivara", "Homing",      {1}},
-        // A folha dos baloes tem 24 quadros e as animacoes comecam no 6: os seis
-        // primeiros sao de uma versao antiga e nenhuma animacao os usa.
         {"andre",   "Baloes",   "Red",         {6, 7, 8, 9, 10, 11}},
         {"andre",   "Baloes",   "Blue",        {12, 13, 14, 15, 16, 17}},
         {"andre",   "Baloes",   "Yellow",      {18, 19, 20, 21, 22, 23}},
@@ -651,25 +533,8 @@ TEST_CASE("Dados: as animacoes dos projeteis mantem os quadros exatos") {
     }
 }
 
-// ---------------------------------------------------------------------------
-// O acoplamento entre a onda e o caminho
-//
-// Quando um ataque e WaveAttack e as regras dele tem um Path com atraso, os dois
-// numeros NAO sao independentes. A WaveAttack da a cada projetil um
-// DeactivateBehavior(0) e um ActivateBehavior(i * intervalo): o no i fica parado,
-// com velocidade ZERO, ate o instante de despertar.
-//
-// O PathBehavior captura a direcao do caminho no instante em que ativa, a partir
-// da velocidade do projetil. Se ele ativar num no que ainda dorme, nao ha direcao
-// para capturar, ele cai na rotacao identidade e o no sai voando para a direita em
-// vez de seguir a fila.
-//
-// Ou seja: o atraso do caminho tem de ser maior que o despertar do ULTIMO no, que
-// e (projeteis - 1) * intervalo. Isto nao aparece em nenhuma API - nada no C++
-// impede a combinacao errada, e em jogo ela nao parece bug de dados, parece bug de
-// motor: um tiro da fila sai torto de vez em quando. Por isso o acoplamento e
-// conferido aqui.
-// ---------------------------------------------------------------------------
+// O acoplamento entre a onda e o caminho. Quando um ataque e WaveAttack e as regras dele tem um
+// Path com atraso, os dois numeros nao sao independentes.
 
 TEST_CASE("Dados: num WaveAttack, o atraso do caminho supera o despertar do ultimo no") {
 
@@ -713,24 +578,13 @@ TEST_CASE("Dados: num WaveAttack, o atraso do caminho supera o despertar do ulti
         }
     }
 
-    // Hoje so uma combinacao destas existe: o diagrama da fase 1 da Maria
-    // Lucia (oito pecas, 0,05s entre elas, o caminho com 0,5s). A que o criou
-    // - a lista duplamente encadeada do Salles - saiu quando a fase 2 dele
-    // virou a tabela hash. Se este numero cair a zero, o teste passou a nao
-    // conferir nada - foi assim que eu quase deixei passar uma medicao
-    // invalida antes.
+    // Hoje so uma combinacao destas existe.
     CHECK(combinacoesConferidas >= 1);
 }
 
 TEST_CASE("Dados: todo projetil e todo conjunto de regras de um chefe e usado por alguma fase dele") {
 
-    // O ORFAO NAO DA ERRO NENHUM: um tipo de projeteis.json que nenhuma fase
-    // pede so ocupa a pasta, e quem le o arquivo acredita que ele esta em jogo.
-    // Foi assim que a "Estruturas" e a "Duplamente" do Salles ficaram na pasta
-    // depois que as fases que as disparavam viraram a hash e a arvore - e com
-    // elas um teste que trancava o giro de uma seta que ninguem mais via. Quem
-    // tira a ultima fase que usa um tipo, tira o tipo junto (ou o teste diz
-    // qual sobrou).
+    // Quem tira a ultima fase que usa um tipo, tira o tipo junto (ou o teste diz qual sobrou).
     for (const auto& chefe : Chefes()) {
         std::set<std::string> projeteis, conjuntos;
         for (const auto& f : FasesDoChefe(chefe).fases) {
@@ -755,15 +609,6 @@ TEST_CASE("Dados: todo projetil e todo conjunto de regras de um chefe e usado po
 TEST_CASE("Dados: toda animacao pedida por uma regra existe no projetil que o ataque dispara") {
 
     // O quarto erro silencioso desta familia, e o unico que ainda nao tinha rede.
-    // DrawAnimatedComponent::SetAnimation com um nome que nao existe nao quebra
-    // nada: o projetil simplesmente CONTINUA na animacao anterior. Entao uma regra
-    // pedindo "Arvore" num projetil que so tem "ListaSimples" produz uma fase
-    // inteira com a arte errada, sem um erro em tela e sem uma linha no log.
-    //
-    // O cruzamento so e possivel aqui porque este teste ve os tres arquivos ao
-    // mesmo tempo: fases.json diz qual projetil e qual conjunto de regras um ataque
-    // usa, regras.json diz qual animacao cada regra pede, e projeteis.json diz
-    // quais animacoes aquele projetil tem. Nenhum dos tres sabe disso sozinho.
 
     int pedidosConferidos = 0;
 
@@ -805,19 +650,12 @@ TEST_CASE("Dados: toda animacao pedida por uma regra existe no projetil que o at
         }
     }
 
-    // Se cair a zero, o teste deixou de conferir qualquer coisa.
     CHECK(pedidosConferidos >= 1);
 }
 
 TEST_CASE("Dados: uma parada de caminho aponta para um ponto que a forma tem") {
 
-    // A parada ("pararNoPonto") e o indice de um waypoint. Se ele for maior que o
-    // numero de pontos da forma, o projetil NUNCA chega nele e simplesmente nao
-    // para - sem erro em tela, sem linha no log, e a fase perde o que a define.
-    //
-    // E o mesmo tipo de erro das regras por indice que apontam para fora da
-    // rajada, e merece a mesma rede: um numero que nao bate com um tamanho que
-    // mora em outro arquivo.
+    // A parada ("pararNoPonto") e o indice de um waypoint.
 
     const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
 
@@ -833,20 +671,14 @@ TEST_CASE("Dados: uma parada de caminho aponta para um ponto que a forma tem") {
             CAPTURE(onde);
             CAPTURE(r.motion.pararNoPonto);
 
-            // Uma forma que vem do codigo (Reta) nao esta no arquivo; a conferencia
-            // de nome ja e feita por outro teste, entao aqui so pulo.
+            // Uma forma que vem do codigo (Reta) nao esta no arquivo.
             const auto forma = formas.formas.find(r.motion.forma);
             if (forma == formas.formas.end()) continue;
 
             const int pontos = static_cast<int>(forma->second.size());
             CAPTURE(pontos);
 
-            // A exigencia e pararNoPonto < pontos - 1, nao < pontos: PARAR NO
-            // ULTIMO PONTO NAO SERVE PARA NADA. O caminho termina logo depois e o
-            // projetil segue reto com a velocidade que tinha, entao a parada vira
-            // um soluco antes de sumir, e nunca a espera ANTES de alguma coisa.
-            // Descobri isto sabotando a forma da fase 2 para um unico ponto: o
-            // teste passava e a fase perdia a volta em silencio.
+            // A exigencia e pararNoPonto < pontos - 1, nao < pontos: parar no.
             CHECK_MESSAGE(r.motion.pararNoPonto < pontos - 1,
                 "a parada aponta para o ponto " << r.motion.pararNoPonto
                 << " de uma forma com " << pontos << " pontos: ou o projetil nunca"
@@ -857,24 +689,12 @@ TEST_CASE("Dados: uma parada de caminho aponta para um ponto que a forma tem") {
         }
     }
 
-    // A fase 2 do Salles tem exatamente uma. Zero aqui quer dizer que o teste
-    // parou de conferir qualquer coisa.
+    // A fase 2 do Salles tem exatamente uma.
     CHECK(paradasConferidas >= 1);
 }
 
-// ---------------------------------------------------------------------------
-// Familias de forma
-//
-// Uma familia e uma entrada de formas.json que vale por varias formas, uma por
-// projetil - "divisoes": 3 numa arvore vira oito folhas. Isso troca o acoplamento
-// antigo (N formas escritas a mao + N regras por indice) por um so: a quantidade
-// de projeteis do ataque tem de bater com o tamanho da familia.
-//
-// E esse unico acoplamento que os dois testes abaixo guardam. Sem eles, mudar
-// "divisoes" sem mudar "projeteis" nao da erro nenhum: com projeteis de menos,
-// metade da arvore simplesmente nao aparece; com projeteis de mais, os extras
-// repetem ramos. Nos dois casos a fase fica errada em silencio.
-// ---------------------------------------------------------------------------
+// Familias de forma. Uma familia e uma entrada de formas.json que vale por varias formas, uma por
+// projetil - "divisoes": 3 numa arvore vira oito folhas.
 
 TEST_CASE("Dados: toda familia citada por formaPorIndice existe em formas.json") {
 
@@ -895,8 +715,6 @@ TEST_CASE("Dados: toda familia citada por formaPorIndice existe em formas.json")
                 "a regra pede a familia \"" << r.motion.formaPorIndice
                 << "\", que nao existe em formas.json");
 
-            // O engano mais provavel agora que ha os dois: pedir por indice uma
-            // forma que e simples, ou pedir direto uma que e familia.
             CHECK_MESSAGE(formas.formas.count(r.motion.formaPorIndice) == 0,
                 "\"" << r.motion.formaPorIndice << "\" e uma forma simples, nao uma familia"
                 << " - a regra deveria usar \"forma\"");
@@ -909,10 +727,6 @@ TEST_CASE("Dados: toda familia citada por formaPorIndice existe em formas.json")
 }
 
 TEST_CASE("Dados: um ataque que usa familia dispara exatamente o tamanho dela") {
-
-    // O UNICO numero que precisa andar junto depois que a arvore virou familia.
-    // Antes eram tres lugares (formas, regras por indice e projeteis); agora e
-    // "divisoes" de um lado e "projeteis" do outro, e este teste liga os dois.
 
     const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
 
@@ -953,8 +767,7 @@ TEST_CASE("Dados: um ataque que usa familia dispara exatamente o tamanho dela") 
 }
 
 TEST_CASE("Dados: toda familia tem pelo menos duas formas") {
-    // Uma familia de uma forma so e uma forma simples escrita de um jeito
-    // complicado - provavelmente "divisoes": 0 por engano.
+    // Uma familia de uma forma so e uma forma simples escrita de um jeito complicado.
     const auto formas = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));
     for (const auto& fam : formas.familias) {
         CAPTURE(fam.first);
@@ -962,14 +775,7 @@ TEST_CASE("Dados: toda familia tem pelo menos duas formas") {
     }
 }
 
-// ---------------------------------------------------------------------------
-// As materias, e a prova de que o arquivo reproduz o C++ que ele substitui
-//
-// A migracao das materias para dados so pode ser chamada de equivalente se as
-// regras de desbloqueio lidas do arquivo derem a MESMA resposta que o
-// Game::IsStageUnlocked de hoje, para qualquer progresso. O ultimo teste deste
-// bloco faz essa comparacao exaustivamente.
-// ---------------------------------------------------------------------------
+// As materias, e a prova de que o arquivo reproduz o C++ que ele substitui.
 
 TEST_CASE("Dados: Assets/materias.json nao tem problema nenhum") {
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
@@ -979,11 +785,7 @@ TEST_CASE("Dados: Assets/materias.json nao tem problema nenhum") {
 
 TEST_CASE("Dados: as materias do curso estao la, com os codigos esperados") {
 
-    // ESTA LISTA NAO E A ORDEM, e sim o CONJUNTO. Ate a versao 1 do save a
-    // posicao aqui era a chave gravada em disco, e esta lista travava a ordem
-    // por isso; desde a versao 2 o save guarda o codigo, e reordenar passou a
-    // ser seguro. O que ainda importa travar e que nenhuma materia suma por
-    // descuido de edicao.
+    // Esta lista nao e a ordem, e sim o conjunto.
     const std::set<std::string> esperadas = {
         "INF110", "INF213", "INF250", "INF220", "INF340", "INF331",
         "INF420", "INF221", "INF321", "INF310", "TCC"
@@ -998,8 +800,7 @@ TEST_CASE("Dados: as materias do curso estao la, com os codigos esperados") {
 }
 
 TEST_CASE("Dados: toda materia com chefe aponta para uma pasta de chefe que existe") {
-    // O campo "chefe" e o NOME DA PASTA em Assets/Attacks/. E ele que liga a
-    // materia aos tres arquivos de ataque dela.
+    // O campo "chefe" e o nome da pasta em Assets/Attacks/.
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
 
     int comChefe = 0;
@@ -1010,18 +811,12 @@ TEST_CASE("Dados: toda materia com chefe aponta para uma pasta de chefe que exis
         CHECK_FALSE(FasesDoChefe(m.chefe).fases.empty());
         ++comChefe;
     }
-    CHECK(comChefe == 11);  // hoje sao todas as onze: o Hugo, no TCC, foi o ultimo
+    CHECK(comChefe == 11);  // Hoje sao todas as onze: o Hugo, no TCC, foi o ultimo.
 }
 
 TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
 
-    // Game::GetFactory procura a fabrica PELO NOME que esta no arquivo. Um nome
-    // escrito errado aqui nao da erro de compilacao: a materia abre, nao acha
-    // chefe nenhum e a fase volta sozinha para a selecao. Este teste transforma
-    // isso numa falha de suite, que e onde da para ver.
-    //
-    // A lista espelha Game::InitializeBossFactory, como kFormasEmCodigo espelha
-    // FormaPeloNome. Registrar um chefe novo la pede acrescenta-lo aqui.
+    // Game::GetFactory procura a fabrica pelo nome que esta no arquivo.
     const std::set<std::string> kFabricasRegistradas = {"salles", "ricardo", "andre", "julio",
                                                         "thiago", "vladimir", "vitor",
                                                         "marialucia", "lucas", "luizinho", "hugo"};
@@ -1038,15 +833,7 @@ TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
 
 TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
 
-    // Este teste nasceu comparando materias.json com a regra que vivia em
-    // Game::IsStageUnlocked. Aquela regra ja saiu do C++ - foi ele que tornou a
-    // saida segura -, entao agora ele descreve a progressao PRETENDIDA:
-    //
-    //   INF110 sempre aberta (a porta de entrada do curso);
-    //   INF213 abre ao passar em INF110;
-    //   coluna 2 (INF250, INF220, INF340, INF331) abre ao passar em INF213;
-    //   coluna 3 (INF420, INF221, INF321, INF310) abre com 2 aprovacoes na 2;
-    //   TCC abre com 2 aprovacoes na coluna 3.
+    // Este teste nasceu comparando materias.json com a regra que vivia em Game::IsStageUnlocked.
     const std::vector<std::string> col2 = {"INF250", "INF220", "INF340", "INF331"};
     const std::vector<std::string> col3 = {"INF420", "INF221", "INF321", "INF310"};
 
@@ -1068,9 +855,7 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
         return false;
     };
 
-    // Varre TODAS as combinacoes de aprovacao das onze materias: 2048 estados.
-    // Cobrir o espaco inteiro, em vez de casos escolhidos a dedo, e onde uma
-    // diferenca de regra costuma aparecer.
+    // Varre todas as combinacoes de aprovacao das onze materias: 2048 estados.
     int comparacoes = 0;
     for (int mascara = 0; mascara < (1 << 11); ++mascara) {
 
@@ -1108,14 +893,8 @@ TEST_CASE("Dados: personagens.json e lido sem nenhum problema") {
 
 TEST_CASE("Dados: as categorias que a tela de criacao precisa existem") {
 
-    // Travar os nomes aqui parece burocracia, mas e o que transforma "renomeei
-    // uma categoria no arquivo" num teste vermelho em vez de numa personagem
-    // que perde o cabelo em silencio no proximo carregamento.
     const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
 
-    // std::string, e nao const char*: com ponteiro de char a mensagem do doctest
-    // saia como "falta a categoria "1"" - o ponteiro ia para o stream como
-    // booleano, e a falha nao dizia QUAL categoria sumiu.
     for (const std::string& id : {"pele", "cabelo", "camisa", "calca"}) {
         CHECK_MESSAGE(c.Por(id) != nullptr, "falta a categoria \"" << id << "\"");
     }
@@ -1134,7 +913,7 @@ TEST_CASE("Dados: toda arte citada no catalogo existe em disco") {
     REQUIRE_FALSE(artes.empty());
 
     for (const auto& arte : artes) {
-        // O catalogo guarda o caminho SEM extensao; quem carrega acrescenta.
+        // O catalogo guarda o caminho sem extensao; quem carrega acrescenta.
         for (const char* ext : {".png", ".json"}) {
             const std::string caminho = std::string(DPI_ASSETS_DIR) + "/" + arte + ext;
             std::ifstream a(caminho, std::ios::binary);
@@ -1145,11 +924,7 @@ TEST_CASE("Dados: toda arte citada no catalogo existe em disco") {
 
 TEST_CASE("Dados: toda peca tem quatro quadros de 64x64") {
 
-    // NAO E DETALHE DE ARTE. O raio do colisor do jogador sai da largura da
-    // sprite (CircleColliderComponent(GetSpriteWidth() / 10.f) em Player.cpp),
-    // entao uma peca com quadro maior daria hitbox maior a quem a escolhesse -
-    // e a escolha de aparencia, que deve ser so estetica, viraria vantagem de
-    // jogo. Ver RNF1 em Documentacao/requisitos-perfil-e-personagem.md.
+    // Nao e detalhe de arte.
     const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
 
     std::vector<std::string> artes;
@@ -1207,12 +982,7 @@ TEST_CASE("Dados: a aparencia padrao do catalogo real compoe todas as camadas") 
 
 TEST_CASE("Dados: nenhum projetil do Salles gira com a direcao do movimento") {
 
-    // Era o contrario: as listas encadeadas antigas eram uma caixa com SETA, e
-    // precisavam girar para a corrente se ler como lista. Hoje todo projetil
-    // dele se LE em pe - a chave, o bloco e o no levam o numero escrito, e a
-    // capivara anda de lado, com um passo para cada direcao. Girado, o 42 de
-    // uma chave que desce viraria um rabisco, e a capivara que volta andaria
-    // de cabeca para baixo.
+    // Hoje todo projetil dele se le em pe.
     const auto r = ProjeteisDoChefe("salles");
     REQUIRE(!r.projeteis.empty());
     for (const auto& [nome, p] : r.projeteis) {
@@ -1221,18 +991,8 @@ TEST_CASE("Dados: nenhum projetil do Salles gira com a direcao do movimento") {
     }
 }
 
-// ---------------------------------------------------------------------------
-// A NAVEGACAO CONTRA O materias.json DE VERDADE
-//
-// Os testes de test_navegacao.cpp provam a REGRA contra uma grade escrita a mao.
-// Isso nao bastaria aqui: foi justamente uma grade escrita a mao, dentro da
-// StageSelect, que discordou da tela e fez a seta pular o INF 213. Entao estes
-// testes montam a grade do MESMO jeito que a StageSelect monta - percorrendo as
-// colunas de materias.json - e perguntam para onde as setas levam.
-//
-// Se alguem reordenar materias.json, sao estes testes que dizem o que acontece
-// com as setas.
-// ---------------------------------------------------------------------------
+// A navegacao contra o materias.json de verdade. Os testes de test_navegacao.cpp provam a regra
+// contra uma grade escrita a mao.
 
 namespace {
 
@@ -1264,8 +1024,7 @@ namespace {
 
 TEST_CASE("Navegacao no materias.json: a seta da direita no INF 110 leva ao INF 213") {
 
-    // O DEFEITO RELATADO. O INF 213 e a unica materia que o INF 110 abre, e a
-    // seta pulava direto para o INF 250, do outro lado da tela.
+    // O defeito relatado.
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
     const auto grade = GradeDe(l);
     const auto codigos = CodigosNaOrdemDosBotoes(l);
@@ -1280,8 +1039,6 @@ TEST_CASE("Navegacao no materias.json: a seta da direita no INF 110 leva ao INF 
 
 TEST_CASE("Navegacao no materias.json: descer no INF 250 nao passa pelo INF 213") {
 
-    // O OUTRO DEFEITO RELATADO: a descida entrava num ciclo de quatro que
-    // misturava duas colunas da tela.
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
     const auto grade = GradeDe(l);
     const auto codigos = CodigosNaOrdemDosBotoes(l);
@@ -1301,10 +1058,7 @@ TEST_CASE("Navegacao no materias.json: descer no INF 250 nao passa pelo INF 213"
 
 TEST_CASE("Navegacao no materias.json: toda materia e alcancavel pelas setas") {
 
-    // O DEFEITO QUE NINGUEM TINHA VISTO AINDA. Com a grade antiga, tres botoes
-    // diferentes levavam todos ao VISCCP e NADA levava ao TCC - a ultima materia
-    // do curso era inalcancavel. So nao apareceu porque o TCC exige duas
-    // aprovacoes na coluna 3 para ser jogavel, e ninguem tinha chegado la.
+    // O defeito que ninguem tinha visto ainda.
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
     const auto grade = GradeDe(l);
     const auto codigos = CodigosNaOrdemDosBotoes(l);
@@ -1347,9 +1101,6 @@ TEST_CASE("Navegacao no materias.json: nenhuma seta sai da grade") {
 
 TEST_CASE("Dados: toda materia do curso tem nome de disciplina e professor") {
 
-    // Sao opcionais no formato, para nao quebrar arquivo antigo - mas no curso
-    // de verdade nenhuma pode ficar sem, senao a tela de selecao mostra uma
-    // materia muda no meio das outras.
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
     REQUIRE(l.Quantas() > 0);
 
@@ -1358,8 +1109,7 @@ TEST_CASE("Dados: toda materia do curso tem nome de disciplina e professor") {
         CHECK_FALSE(m.nomeCompleto.empty());
         CHECK_FALSE(m.professor.empty());
 
-        // O nome da disciplina nao pode ser o codigo repetido: a tela mostra
-        // os dois, um ao lado do outro.
+        // O nome da disciplina nao pode ser o codigo repetido.
         CHECK(m.nomeCompleto != m.codigo);
         CHECK(m.nomeCompleto != m.nome);
     }
@@ -1367,11 +1117,7 @@ TEST_CASE("Dados: toda materia do curso tem nome de disciplina e professor") {
 
 TEST_CASE("Dados: toda materia com professor ja tem batalha - o TCC foi a ultima") {
 
-    // ERA A MATERIA COM PROFESSOR E SEM BATALHA, e o teste existia para provar
-    // que as duas coisas sao independentes: o TCC era do Hugo e nao tinha luta.
-    // Desde o 134 ele tem. A independencia continua coberta, com um curso
-    // escrito no proprio teste, em test_materias.cpp ("professor" e "chefe"
-    // sao coisas diferentes); aqui fica o retrato do curso de hoje.
+    // Desde o 134 ele tem.
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
 
     int comProfessorSemChefe = 0;
@@ -1384,9 +1130,6 @@ TEST_CASE("Dados: toda materia com professor ja tem batalha - o TCC foi a ultima
 TEST_CASE("Dados: toda coluna do curso depende da anterior, entao a grade pode ser ligada") {
 
     // E o que autoriza a tela de selecao a desenhar o tronco entre as colunas.
-    // Se alguem criar uma materia que exige algo de duas colunas atras, este
-    // teste cai e a linha daquela coluna some sozinha - e e assim que tem de
-    // ser, porque desenhar uma ligacao que nao existe e pior que nao desenhar.
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
     REQUIRE(l.QuantasColunas() == 5);
 
@@ -1399,13 +1142,7 @@ TEST_CASE("Dados: toda coluna do curso depende da anterior, entao a grade pode s
 
 TEST_CASE("Dados: as quatro fases do Vladimir anunciam alguma coisa no placar") {
 
-    // CANARIO, e espelha os dados de proposito. O anuncio e a identidade do
-    // chefe ("os outros surpreendem, e ele ANUNCIA"), e o jeito mais facil de
-    // perde-lo e escrever a chave em portugues de verdade - "anuncio" com
-    // acento - num arquivo que aceita campo desconhecido calado. O placar
-    // apagaria naquela fase e nada mais quebraria.
-    //
-    // Se uma fase do Vladimir deixar de anunciar DE PROPOSITO, tire-a daqui.
+    // Canario, e espelha os dados.
     const auto fases = FasesDoChefe("vladimir").fases;
     REQUIRE(fases.size() == 4);
     for (const auto& f : fases) {
@@ -1416,10 +1153,7 @@ TEST_CASE("Dados: as quatro fases do Vladimir anunciam alguma coisa no placar") 
 
 TEST_CASE("Dados: o Programa de Intercambio do Vladimir vale nas quatro fases") {
 
-    // CANARIO, e espelha os dados de proposito: o intercambio e a mecanica que
-    // atravessa a luta dele inteira, e uma fase nova escrita sem o bloco
-    // "intercambio" ficaria sem troca nenhuma, calada. Se uma fase deixar de
-    // trocar DE PROPOSITO, tire-a daqui.
+    // Se uma fase deixar de trocar, tire-a daqui.
     const auto fases = FasesDoChefe("vladimir").fases;
     REQUIRE(fases.size() == 4);
     for (const auto& f : fases) {
@@ -1431,8 +1165,6 @@ TEST_CASE("Dados: o Programa de Intercambio do Vladimir vale nas quatro fases") 
 TEST_CASE("Dados: o intercambio do Vladimir troca as letras que o Simbolo tem, e deixa a fita no posto dela") {
     CHECK(PostoExiste(Alfabeto::kPostoDaFita));
 
-    // AS DUAS LETRAS SAO ANIMACOES DO SIMBOLO: a troca muda a cara pelo nome, e
-    // uma cara que o tipo nao tem deixaria a letra trocada com a cara antiga.
     const auto& tipos = ProjeteisDoChefe("vladimir").projeteis;
     REQUIRE(tipos.count("Simbolo") == 1);
     std::set<std::string> caras;
@@ -1440,8 +1172,7 @@ TEST_CASE("Dados: o intercambio do Vladimir troca as letras que o Simbolo tem, e
     CHECK(caras.count(Alfabeto::kA) == 1);
     CHECK(caras.count(Alfabeto::kB) == 1);
 
-    // A CASA DA FITA NAO E LETRA EM VOO: toda regra da fita a poe no posto
-    // dela, e o intercambio deixa a casa como esta (Alfabeto::Troca).
+    // A casa da fita nao e letra em voo.
     const auto regras = RegrasDoChefe("vladimir");
     REQUIRE(regras.conjuntos.count("fita") == 1);
     for (const auto& r : regras.conjuntos.at("fita")) CHECK(r.posto == Alfabeto::kPostoDaFita);
@@ -1455,9 +1186,7 @@ TEST_CASE("Dados: o automato do Vladimir - gatilhos, posto e caras sao nomes que
     }
     CHECK(PostoExiste(Automato::kPostoDosEstados));
 
-    // AS CARAS DOS ESTADOS: o Vladimir as monta como "Q" + estado + "Aceso"
-    // (Vladimir::CaraDoEstado). Espelhado aqui, porque o Vladimir nao entra nos
-    // testes.
+    // As caras dos estados: o Vladimir as monta como "Q" + estado + "Aceso" (Vladimir::CaraDoEstado).
     const auto& tipos = ProjeteisDoChefe("vladimir").projeteis;
     REQUIRE(tipos.count("Estado") == 1);
     REQUIRE(tipos.count("Diagrama") == 1);
@@ -1471,8 +1200,7 @@ TEST_CASE("Dados: o automato do Vladimir - gatilhos, posto e caras sao nomes que
     for (const auto& a : tipos.at("Diagrama").animacoes) temDiagrama = temDiagrama || a.nome == Automato::kCaraDoDiagrama;
     CHECK(temDiagrama);
 
-    // TODO GATILHO DO AUTOMATO ESTA NA FASE DELE: um que faltasse deixaria o
-    // professor lendo sem atirar, ou o mapa sem desenhar.
+    // Todo gatilho do automato esta na fase dele.
     std::set<std::string> naFase;
     for (const auto& f : FasesDoChefe("vladimir").fases) {
         if (f.nome != Automato::kFaseDoAutomato) continue;
@@ -1486,8 +1214,7 @@ TEST_CASE("Dados: o automato do Vladimir - gatilhos, posto e caras sao nomes que
 }
 
 TEST_CASE("Dados: o compilador do Vladimir - gatilhos, posto e caras sao nomes que os dados tem") {
-    // TODO GATILHO DO COMPILADOR ESTA NA FASE DELE: um que faltasse deixaria
-    // uma etapa sem atirar, ou a arvore sem nos.
+    // Todo gatilho do compilador esta na fase dele.
     std::set<std::string> naFase;
     std::string projetilDoNo;
     for (const auto& f : FasesDoChefe("vladimir").fases) {
@@ -1505,9 +1232,7 @@ TEST_CASE("Dados: o compilador do Vladimir - gatilhos, posto e caras sao nomes q
     }
     CHECK(PostoExiste(Compilador::kPostoDaArvore));
 
-    // AS CARAS QUE O VLADIMIR DA - a de cada token, de cada no e de cada
-    // instrucao - sao animacoes do projetil em que caem. Uma que faltasse
-    // deixaria a ficha com a cara errada, sem aviso.
+    // As caras que o Vladimir da - a de cada token, de cada no e de cada instrucao.
     const auto& tipos = ProjeteisDoChefe("vladimir").projeteis;
     const auto carasDe = [&](const std::string& tipo) {
         std::set<std::string> caras;
@@ -1528,8 +1253,7 @@ TEST_CASE("Dados: o compilador do Vladimir - gatilhos, posto e caras sao nomes q
         CAPTURE(i);
         CHECK(instrucoes.count(Compilador::CaraDaInstrucao(i)) == 1);
     }
-    // E NENHUMA FICHA SE CHAMA "A" OU "B": o intercambio troca as animacoes com
-    // esses nomes, e uma ficha nao e letra.
+    // E nenhuma ficha se chama "A" ou "B".
     for (const auto& caras : {lexemas, instrucoes}) {
         CHECK(caras.count("A") == 0);
         CHECK(caras.count("B") == 0);
@@ -1537,10 +1261,6 @@ TEST_CASE("Dados: o compilador do Vladimir - gatilhos, posto e caras sao nomes q
 }
 
 TEST_CASE("Dados: a fita e o problema da parada do Vladimir estao nas fases que o C++ le") {
-    // A FITA: a fase em que o Vladimir roda o castor tem os quatro gatilhos de
-    // um passo, e a marca escrita nasce no posto em que ele a procura para
-    // apagar - senao a marca apagada ficaria na fileira, e o "b" sairia de
-    // uma casa que continua escrita.
     bool achouAFita = false;
     std::set<std::string> gatilhosDaFita;
     std::set<std::string> gatilhosDaParada;
@@ -1564,7 +1284,7 @@ TEST_CASE("Dados: a fita e o problema da parada do Vladimir estao nas fases que 
         CHECK(gatilhosDaFita.count(g) == 1);
     }
 
-    // A PARADA: os tres gatilhos que o programa puxa, todos na fase dele.
+    // A parada: os tres gatilhos que o programa puxa, todos na fase dele.
     for (const char* g : {Parada::kGatilhoDaMetade, Parada::kGatilhoDoTriplo, Parada::kGatilhoDeParar}) {
         CAPTURE(g);
         CHECK(GatilhoExiste(g));
@@ -1575,8 +1295,6 @@ TEST_CASE("Dados: a fita e o problema da parada do Vladimir estao nas fases que 
 TEST_CASE("Dados: a capivara do Salles pode aparecer em toda fase dele, e e um abrigo que anda para os dois lados") {
     CHECK(GatilhoExiste(Capivara::kGatilho));
 
-    // EM TODA FASE: o Salles sorteia a visita em qualquer uma, e uma fase sem o
-    // ataque de gatilho faria o sorteio dar "vem" e nada aparecer.
     const auto& tipos = ProjeteisDoChefe("salles").projeteis;
     const auto fases = FasesDoChefe("salles").fases;
     REQUIRE(fases.size() == 4);
@@ -1594,8 +1312,7 @@ TEST_CASE("Dados: a capivara do Salles pode aparecer em toda fase dele, e e um a
             for (const auto& anim : tipo.animacoes) caras.insert(anim.nome);
             CHECK(caras.count(Capivara::kAnimacaoDireita) == 1);
             CHECK(caras.count(Capivara::kAnimacaoEsquerda) == 1);
-            // A TRAVESSIA ACABA DENTRO DA FASE: a que sai no ultimo instante
-            // da janela atravessa o campo e as duas folgas antes do fim.
+            // A travessia acaba dentro da fase.
             REQUIRE(a.velocidade.has_value());
             const float travessia = (1200.0f + 2.0f * Capivara::kForaDaTela) / *a.velocidade;
             CHECK(Capivara::kAte + travessia <= f.duracao);
@@ -1609,8 +1326,7 @@ TEST_CASE("Dados: a pilha do Salles - gatilhos, posto e caras sao nomes que os d
     CHECK(GatilhoExiste(Pilha::kGatilhoDoEstouro));
     CHECK(PostoExiste(Pilha::kPostoDaPilha));
 
-    // O BLOCO E DERRUBAVEL - e o pop do aluno, a tiro - e tem a cara de cada
-    // digito que o programa empurra (Pilha::CaraDoBloco).
+    // O bloco e derrubavel - e o pop do aluno, a tiro.
     const auto& tipos = ProjeteisDoChefe("salles").projeteis;
     const auto regras = RegrasDoChefe("salles");
     std::set<std::string> gatilhos;
@@ -1642,8 +1358,7 @@ TEST_CASE("Dados: a tabela hash do Salles - gatilhos, postos e caras sao nomes q
     CHECK(PostoExiste(Hash::kPostoDosBaldes));
     CHECK(PostoExiste(Hash::kPostoDasChaves));
 
-    // TODA CHAVE QUE O PROGRAMA PODE SORTEAR TEM CARA, e todo balde do maior
-    // tamanho tambem: uma cara que faltasse deixaria a chave com o numero errado.
+    // Toda chave que o programa pode sortear tem cara, e todo balde do maior tamanho tambem.
     const auto& tipos = ProjeteisDoChefe("salles").projeteis;
     const auto regras = RegrasDoChefe("salles");
     std::map<std::string, std::string> projetilDoGatilho, regraDoGatilho;
@@ -1686,8 +1401,6 @@ TEST_CASE("Dados: a arvore do Salles - gatilhos, posto e caras sao nomes que os 
     }
     CHECK(PostoExiste(Arvore::kPostoDaArvore));
 
-    // O NO E DERRUBAVEL, tem a cara de toda chave que a arvore sorteia (as da
-    // tabela hash, Hash::CaraDaChave), e nasce no posto da arvore.
     const auto& tipos = ProjeteisDoChefe("salles").projeteis;
     const auto regras = RegrasDoChefe("salles");
     std::set<std::string> gatilhos;
@@ -1721,8 +1434,6 @@ TEST_CASE("Dados: o bubble sort do Salles - gatilhos, posto e caras sao nomes qu
     }
     CHECK(PostoExiste(Ordenacao::kPostoDoVetor));
 
-    // O ELEMENTO E DERRUBAVEL, tem a cara de todo valor que o vetor sorteia, e
-    // nasce no posto do vetor - e parado: quem o leva ao lugar e o Salles.
     const auto& tipos = ProjeteisDoChefe("salles").projeteis;
     const auto regras = RegrasDoChefe("salles");
     std::set<std::string> gatilhos;
@@ -1775,8 +1486,7 @@ TEST_CASE("Dados: a tabela do Thiago - toda fase a monta, e o SELECT e o produto
         for (const auto& a : f.ataques) {
             gatilhos.insert(a.gatilho);
             if (a.gatilho == Banco::kGatilhoDoCabecalho || a.gatilho == Banco::kGatilhoDoDado) {
-                // A TABELA NASCE PARADA, no posto dela, com a cara de tudo que
-                // pode estar escrito numa casa.
+                // A tabela nasce parada, no posto dela, com a cara de tudo que pode estar escrito numa casa.
                 REQUIRE(a.velocidade.has_value());
                 CHECK(*a.velocidade == doctest::Approx(0.0f));
                 CHECK(postoDe(a.regrasNome) == Banco::kPostoDaTabela);
@@ -1801,14 +1511,11 @@ TEST_CASE("Dados: a tabela do Thiago - toda fase a monta, e o SELECT e o produto
                 }
             }
         }
-        // A FASE EM QUE A BATALHA COMECA E A QUE MONTA A TABELA: toda fase tem
-        // os dois gatilhos.
+        // A fase em que a batalha comeca e a que monta a tabela: toda fase tem os dois gatilhos.
         CHECK(gatilhos.count(Banco::kGatilhoDoCabecalho) == 1);
         CHECK(gatilhos.count(Banco::kGatilhoDoDado) == 1);
 
-        // O MARCADOR E A CASA QUE ACENDE servem ao SELECT e ao produto
-        // cartesiano: em qualquer fase, o marcador no posto do aviso, e a casa
-        // com o numero de pedacos que o Thiago espalha nela.
+        // O marcador e a casa que acende servem ao select e ao produto cartesiano.
         for (const auto& a : f.ataques) {
             if (a.gatilho == Banco::kGatilhoDoAviso) CHECK(postoDe(a.regrasNome) == Banco::kPostoDoAviso);
             if (a.gatilho == Banco::kGatilhoDaCasa) {
@@ -1821,8 +1528,7 @@ TEST_CASE("Dados: a tabela do Thiago - toda fase a monta, e o SELECT e o produto
             CHECK(gatilhos.count(Banco::kGatilhoDaCasa) == 1);
         }
         if (f.nome == Transacao::kFaseDaTransacao) {
-            // O UPDATE VARRE A LINHA, as escritas a travam, e o ROLLBACK a varre
-            // do outro lado.
+            // O update varre a linha, as escritas a travam, e o rollback a varre do outro lado.
             for (const char* g : {Banco::kGatilhoDaSelecao, Transacao::kGatilhoDaEscrita,
                                   Transacao::kGatilhoDoDesfazer}) {
                 CAPTURE(g);
@@ -1844,13 +1550,13 @@ TEST_CASE("Dados: a tabela do Thiago - toda fase a monta, e o SELECT e o produto
             }
         }
         if (f.nome == Banco::kFaseDaEscrita) {
-            // O INSERT E O DELETE VARREM A LINHA, e o UPDATE acende a casa.
+            // O insert e o delete varrem a linha, e o update acende a casa.
             for (const char* g : {Banco::kGatilhoDoAviso, Banco::kGatilhoDaSelecao, Banco::kGatilhoDaCasa}) {
                 CAPTURE(g);
                 CHECK(gatilhos.count(g) == 1);
             }
         }
-        // A VARREDURA DA LINHA E A MESMA EM QUALQUER FASE que a use.
+        // A varredura da linha e a mesma em qualquer fase que a use.
         for (const auto& a : f.ataques) {
             if (a.gatilho != Banco::kGatilhoDaSelecao) continue;
             REQUIRE(a.consulta.has_value());
@@ -1870,9 +1576,7 @@ TEST_CASE("Dados: a tabela do Thiago - toda fase a monta, e o SELECT e o produto
             CHECK(gatilhos.count(g) == 1);
         }
         for (const auto& a : f.ataques) {
-            // A VARREDURA E A DA TABELA DE Banco.h: a mesma forma, e o aviso e a
-            // velocidade que o Thiago escreve ao disparar - os daqui nao podem
-            // dizer outra coisa.
+            // A varredura e a da tabela de Banco.h.
             const bool linha = a.gatilho == Banco::kGatilhoDaSelecao;
             const bool coluna = a.gatilho == Banco::kGatilhoDaProjecao;
             if (!linha && !coluna) continue;
@@ -1889,9 +1593,7 @@ TEST_CASE("Dados: a tabela do Thiago - toda fase a monta, e o SELECT e o produto
 }
 
 TEST_CASE("Dados: o diagrama do automato do Vladimir foi desenhado para os estados onde ele os poe") {
-    // O DIAGRAMA E UMA FIGURA SO, gerada por Ferramentas/gerar_vladimir.py com os
-    // centros dos estados escritos la. Se o C++ mudar um estado de lugar e o
-    // gerador nao, as setas apontam para o vazio - e nada reclama.
+    // Se o C++ mudar um estado de lugar e o gerador nao, as setas apontam para o vazio.
     std::ifstream f(std::string(DPI_ASSETS_DIR) + "/../Ferramentas/gerar_vladimir.py");
     REQUIRE(f.is_open());
     std::ostringstream texto;
@@ -1914,10 +1616,7 @@ TEST_CASE("Dados: o diagrama do automato do Vladimir foi desenhado para os estad
 
 TEST_CASE("Dados: nenhuma regra de uma SprintAttack tem motion") {
 
-    // A SPRINT E AS SUAS DUAS MOTIONS: as regras rodam DEPOIS da estrategia, e
-    // uma "motion" numa regra substituiria a dela. A historia que perdesse a
-    // motion nunca chegaria ao quadro, e o cursor - que nao acerta ninguem -
-    // sairia voando pela tela. (A serpente do Luizinho antigo era o outro caso.)
+    // A sprint e as suas duas motions.
     for (const auto& chefe : Chefes()) {
         const auto regras = RegrasDoChefe(chefe);
         for (const auto& f : FasesDoChefe(chefe).fases) {
@@ -1938,20 +1637,12 @@ TEST_CASE("Dados: nenhuma regra de uma SprintAttack tem motion") {
 
 TEST_CASE("Dados: toda fase de todo chefe dura Fase::kDuracao (o TCC, kDuracaoDoTcc), e as etapas cobrem a fase inteira") {
 
-    // A DURACAO MORA EM DOIS LUGARES: em cada fases.json e em Fase.h, de onde
-    // os modulos que cortam a fase em pedacos a tiram (os comandos do Andre, as
-    // etapas da cascata, os problemas da prova). Uma fase de outro tamanho
-    // faria um deles acabar antes - ou depois - dela.
-    //
-    // E AS ETAPAS SOMAM A FASE: a leitura so recusa etapas que PASSAM da
-    // fase. Quando as fases foram de 17 para 20 s, as etapas de 17 teriam
-    // deixado 3 s no fim sem etapa nenhuma - sem placar da etapa e sem os
-    // ataques dela.
+    // Uma fase de outro tamanho faria um deles acabar antes - ou depois - dela.
     for (const auto& chefe : Chefes()) {
         for (const auto& f : FasesDoChefe(chefe).fases) {
             CAPTURE(chefe);
             CAPTURE(f.nome);
-            // O TCC E A EXCECAO DECLARADA (Fase::kDuracaoDoTcc): a batalha maior.
+            // O TCC E a excecao declarada (Fase::kDuracaoDoTcc): a batalha maior.
             CHECK(f.duracao == doctest::Approx(chefe == "hugo" ? Fase::kDuracaoDoTcc : Fase::kDuracao));
             if (f.etapas.empty()) continue;
             float soma = 0.0f;
@@ -1963,11 +1654,7 @@ TEST_CASE("Dados: toda fase de todo chefe dura Fase::kDuracao (o TCC, kDuracaoDo
 
 TEST_CASE("Dados: a escada tem um degrau por etapa, do tamanho da etapa") {
 
-    // A ESCADA E O DIAGRAMA DA CASCATA: um degrau por etapa. O movimento
-    // conta os degraus pelo relogio ("a" segundos cada, "b" degraus), e as
-    // etapas contam pelo delas - sao dois relogios dizendo a mesma coisa, e
-    // so batem se os numeros baterem. Com um degrau mais curto que a etapa, a
-    // professora chegaria na Manutencao enquanto o placar ainda diz Testes.
+    // A escada e o diagrama da cascata: um degrau por etapa.
     for (const auto& chefe : Chefes()) {
         for (const auto& f : FasesDoChefe(chefe).fases) {
             if (f.movimento.tipo != "Escada") continue;
@@ -1985,12 +1672,7 @@ TEST_CASE("Dados: a escada tem um degrau por etapa, do tamanho da etapa") {
 
 TEST_CASE("Dados: a cascata da Maria Lucia - etapas, gatilhos e caras sao nomes que os dados tem") {
 
-    // A PROFESSORA CONTA AS ETAPAS PELO RELOGIO DELA (Cascata::EtapaNoTempo) e
-    // dispara o gatilho de cada uma quando a etapa abre; quem deixa o disparo
-    // passar e a janela da "etapa" do ataque, contada pelo relogio de
-    // fases.json. Sao dois relogios dizendo a mesma coisa: com uma etapa de
-    // outro nome ou de outra duracao, ou um gatilho na etapa errada, o disparo
-    // cai fora da janela e nada nasce - os bugs nao viram divida, calados.
+    // Sao dois relogios dizendo a mesma coisa.
     const char* gatilhos[] = {Cascata::kGatilhoDaPlaca, Cascata::kGatilhoDoPedido, Cascata::kGatilhoDaClasse,
                               Cascata::kGatilhoDaMensagem, Cascata::kGatilhoDoCodigo, Cascata::kGatilhoDoBug,
                               Cascata::kGatilhoDaDivida};
@@ -2025,8 +1707,6 @@ TEST_CASE("Dados: a cascata da Maria Lucia - etapas, gatilhos e caras sao nomes 
         CHECK(quantos == 1);
     }
 
-    // A CAIXA DE CADA ETAPA tem a cara apagada (P) e a acesa (A) que a
-    // professora poe nela quando a etapa abre.
     const auto& tipos = ProjeteisDoChefe("marialucia").projeteis;
     std::string placa;
     for (const auto& a : cascata->ataques) if (a.gatilho == Cascata::kGatilhoDaPlaca) placa = a.projetil;
@@ -2041,10 +1721,7 @@ TEST_CASE("Dados: a cascata da Maria Lucia - etapas, gatilhos e caras sao nomes 
 
 TEST_CASE("Dados: o fluxograma do Andre - gatilhos, velocidade do confete e caras sao nomes que os dados tem") {
 
-    // O ANDRE PUXA OS GATILHOS e pinta os projeteis pelos nomes de
-    // Condicional.h. Um cabecalho sem a cara do ramo ficaria com a do ramo
-    // anterior - o aluno leria "if (n > 5)" num switch -, e um balao sem a do
-    // numero mostraria o numero errado: a fase inteira e ler o numero.
+    // O Andre puxa os gatilhos e pinta os projeteis pelos nomes de Condicional.h.
     const char* gatilhos[] = {Condicional::kGatilhoDoRotulo, Condicional::kGatilhoDoBalao, Condicional::kGatilhoDoConfete};
     for (const char* g : gatilhos) {
         CAPTURE(g);
@@ -2072,8 +1749,7 @@ TEST_CASE("Dados: o fluxograma do Andre - gatilhos, velocidade do confete e cara
             if (a.gatilho != g) continue;
             ++quantos;
             projetilDe[g] = a.projetil;
-            // O CONFETE NASCE NA VELOCIDADE do Andre: ele o reposiciona pela
-            // faixa e escreve a mesma velocidade de novo.
+            // O confete nasce na velocidade do Andre.
             if (a.gatilho == Condicional::kGatilhoDoConfete) {
                 REQUIRE(a.velocidade.has_value());
                 CHECK(*a.velocidade == doctest::Approx(Condicional::kVelocidadeDoConfete));
@@ -2103,10 +1779,7 @@ TEST_CASE("Dados: o fluxograma do Andre - gatilhos, velocidade do confete e cara
 
 TEST_CASE("Dados: o vetor do chao do Andre - gatilhos, velocidade do cacho e caras sao nomes que os dados tem") {
 
-    // O ANDRE ACENDE O INDICE da casa por onde o i passa e solta o cacho dela
-    // pelos nomes de Laco.h. Um indice sem a cara acesa deixaria o aluno sem
-    // o aviso; um cacho em outra velocidade chegaria ao chao antes do aviso
-    // acabar - ou depois de o aluno ja ter voltado para a casa.
+    // O Andre acende o indice da casa por onde o i passa e solta o cacho dela pelos nomes de Laco.h.
     const char* gatilhos[] = {Laco::kGatilhoDoIndice, Laco::kGatilhoDoCacho, Laco::kGatilhoDoDespejo};
     for (const char* g : gatilhos) {
         CAPTURE(g);
@@ -2160,10 +1833,7 @@ TEST_CASE("Dados: o vetor do chao do Andre - gatilhos, velocidade do cacho e car
 
 TEST_CASE("Dados: as funcoes do Andre - gatilhos, leque e caras sao nomes que os dados tem") {
 
-    // O ANDRE POE O CARTAO DE CADA FUNCAO e o valor que voa pelos nomes de
-    // Funcao.h. Um cartao sem a cara da funcao mostraria a assinatura de
-    // outra; um valor sem a cara do numero, o numero errado - e a fase inteira
-    // e ler o que vai e o que volta.
+    // O Andre poe o cartao de cada funcao e o valor que voa pelos nomes de Funcao.h.
     const char* gatilhos[] = {Laco::kGatilhoDoIndice, Laco::kGatilhoDoCacho, Funcao::kGatilhoDoCartao,
                               Funcao::kGatilhoDoValor, Funcao::kGatilhoDoLeque};
     for (const char* g : gatilhos) {
@@ -2192,8 +1862,7 @@ TEST_CASE("Dados: as funcoes do Andre - gatilhos, leque e caras sao nomes que os
             if (a.gatilho != g) continue;
             ++quantos;
             projetilDe[g] = a.projetil;
-            // O CACHO E O DA FASE 2, com a velocidade dela; o leque abre o que
-            // Funcao.h diz.
+            // O cacho e o da fase 2, com a velocidade dela; o leque abre o que Funcao.h diz.
             if (a.gatilho == Laco::kGatilhoDoCacho) {
                 REQUIRE(a.velocidade.has_value());
                 CHECK(*a.velocidade == doctest::Approx(Laco::kVelocidadeDoCacho));
@@ -2222,10 +1891,7 @@ TEST_CASE("Dados: as funcoes do Andre - gatilhos, leque e caras sao nomes que os
 
 TEST_CASE("Dados: a prova do Andre roda cada problema com os mesmos ataques da fase de onde ele vem") {
 
-    // A REPESCAGEM REUSA AS TRES MECANICAS: o Andre puxa nela os mesmos
-    // gatilhos, e cada um tem de ser o MESMO ataque da fase de origem - outro
-    // numero aqui (um confete mais rapido, um cacho de dois baloes) faria o
-    // problema ser outra coisa que a fase que ele cobra.
+    // A repescagem reusa as tres mecanicas.
     CHECK(GatilhoExiste(Prova::kGatilhoDoTrofeu));
     const auto lidas = FasesDoChefe("andre");
     auto achar = [&lidas](const std::string& nome) -> const DescricaoDeFase* {
@@ -2264,8 +1930,7 @@ TEST_CASE("Dados: a prova do Andre roda cada problema com os mesmos ataques da f
         }
     }
 
-    // O BALAO DO YES: a letra de cada problema, subindo na velocidade de
-    // Prova.h.
+    // O balao do yes: a letra de cada problema, subindo na velocidade de Prova.h.
     std::string projetil;
     for (const auto& b : prova->ataques) {
         if (b.gatilho != Prova::kGatilhoDoTrofeu) continue;
@@ -2285,17 +1950,7 @@ TEST_CASE("Dados: a prova do Andre roda cada problema com os mesmos ataques da f
 
 TEST_CASE("Dados: toda sprint dispara uma vez na etapa dela, e a revisao cai antes de a etapa acabar") {
 
-    // O TIMEBOX E A ETAPA. A sprint dispara quando a etapa abre
-    // (PrimeiroDisparoNaJanela - que NAO e o mesmo ponto para a etapa que abre
-    // a fase), e a revisao vem "revisao" segundos depois. Se a revisao caisse
-    // fora da etapa, o placar ja diria "Sprint 3" enquanto o que sobrou da 2
-    // ainda esperava no quadro; e se o cooldown fosse menor que a etapa, uma
-    // segunda leva de historias saia por cima da primeira.
-    //
-    // E A REVISAO DA ULTIMA SPRINT CAI DENTRO DA FASE: a primeira versao
-    // revisava a sprint de oito historias aos 16,7 s, e o que sobrava dela
-    // so chegava no aluno ja na fase seguinte. Pelo menos um segundo de fase
-    // depois de cada revisao.
+    // O timebox e a etapa.
     bool achou = false;
     for (const auto& chefe : Chefes()) {
         for (const auto& f : FasesDoChefe(chefe).fases) {
@@ -2322,9 +1977,7 @@ TEST_CASE("Dados: toda sprint dispara uma vez na etapa dela, e a revisao cai ant
 
 TEST_CASE("Dados: o placar de cada sprint diz quantas historias ela tem") {
 
-    // O PLANNING POKER ESTA ESCRITO DUAS VEZES: no anuncio da etapa ("Sprint 4
-    // · 5 pontos") e nos "projeteis" do ataque dela. Mudar um sem o outro faria
-    // o placar prometer cinco historias e o cursor arrastar tres.
+    // O planning poker esta escrito duas vezes.
     bool achou = false;
     for (const auto& chefe : Chefes()) {
         for (const auto& f : FasesDoChefe(chefe).fases) {
@@ -2332,7 +1985,7 @@ TEST_CASE("Dados: o placar de cada sprint diz quantas historias ela tem") {
                 if (a.estrategia != "SprintAttack" || a.etapa.empty()) continue;
                 for (const auto& e : f.etapas) {
                     if (e.nome != a.etapa) continue;
-                    const auto ponto = e.anuncio.find("\xC2\xB7");   // o ponto do meio, em UTF-8
+                    const auto ponto = e.anuncio.find("\xC2\xB7");   // O ponto do meio, em UTF-8.
                     if (ponto == std::string::npos) continue;
                     CAPTURE(chefe);
                     CAPTURE(e.anuncio);
@@ -2349,18 +2002,13 @@ TEST_CASE("Dados: o placar de cada sprint diz quantas historias ela tem") {
 
 TEST_CASE("Dados: o posto do quadro da sprint e um posto que a leitura aceita") {
 
-    // O NOME ESTA EM DOIS LUGARES: o behavior da historia poe o projetil no
-    // posto Sprint::kPostoDoQuadro, e a leitura de fases.json so aceita os
-    // postos de PostoExiste. Trocar um sem o outro faria a leitura recusar a
-    // PontosAttack da Maria Lucia - ou aceitar um nome que ninguem ocupa.
+    // Trocar um sem o outro faria a leitura recusar a PontosAttack da Maria Lucia.
     CHECK(PostoExiste(Sprint::kPostoDoQuadro));
 }
 
 TEST_CASE("Dados: os gatilhos e o posto do Observer sao nomes que a leitura aceita") {
 
-    // A MARIA LUCIA PUXA OS GATILHOS PELOS NOMES DE Observer.h, e os olhos
-    // entram no posto pela regra "inscrever". Trocar um nome so de um lado faria
-    // a leitura recusar o ataque - ou aceitar um gatilho que ninguem puxa.
+    // Trocar um nome so de um lado faria a leitura recusar o ataque.
     CHECK(GatilhoExiste(Observer::kGatilhoDaNotificacao));
     CHECK(GatilhoExiste(Observer::kGatilhoDaConsulta));
     CHECK(PostoExiste(Observer::kPostoDosObservadores));
@@ -2368,9 +2016,7 @@ TEST_CASE("Dados: os gatilhos e o posto do Observer sao nomes que a leitura acei
 
 TEST_CASE("Dados: o olho do Observer tem as caras que a professora poe nele") {
 
-    // QUEM ANIMA O OLHO E A PROFESSORA, a cada quadro, pelos nomes de
-    // Observer.h. Uma cara que o tipo nao tem e um SetAnimation que nao acha
-    // nada - o olho para de olhar para o aluno, calado.
+    // Quem anima o olho e a professora, a cada quadro, pelos nomes de Observer.h.
     const auto& tipos = ProjeteisDoChefe("marialucia").projeteis;
     REQUIRE(tipos.count("Observador") == 1);
     const auto& olho = tipos.at("Observador");
@@ -2384,9 +2030,7 @@ TEST_CASE("Dados: o olho do Observer tem as caras que a professora poe nele") {
 
 TEST_CASE("Dados: toda fase com ataque de notificacao tem o de consulta, e cada gatilho sai do posto de quem o puxa") {
 
-    // O OBSERVER E O POLLING SAO A MESMA FASE: quem nao muda de estado tambem
-    // leva aviso, so que mais devagar. Uma fase so com notificacao deixaria o
-    // aluno parado sem aviso nenhum - a fase inteira resolvida ficando quieto.
+    // O observer e o polling sao a mesma fase.
     bool achou = false;
     for (const auto& chefe : Chefes()) {
         for (const auto& f : FasesDoChefe(chefe).fases) {
@@ -2394,9 +2038,7 @@ TEST_CASE("Dados: toda fase com ataque de notificacao tem o de consulta, e cada 
             for (const auto& a : f.ataques) {
                 if (a.gatilho == Observer::kGatilhoDaNotificacao) notifica = true;
                 if (a.gatilho == Observer::kGatilhoDaConsulta) consulta = true;
-                // OS AVISOS SAEM DOS OLHOS, E AS FERRAMENTAS DOS AGENTES: quem
-                // puxa cada gatilho e quem ocupa o posto dele. Um aviso do posto
-                // errado sairia de ninguem, calado.
+                // Os avisos saem dos olhos, e as ferramentas dos agentes.
                 if (!a.gatilho.empty() && a.estrategia == "PontosAttack") {
                     CAPTURE(chefe);
                     CAPTURE(f.nome);
@@ -2419,9 +2061,7 @@ TEST_CASE("Dados: toda fase com ataque de notificacao tem o de consulta, e cada 
 
 TEST_CASE("Dados: toda palavra da frase de uma TokenAttack e uma animacao do token") {
 
-    // A FRASE E UMA LISTA DE NOMES DE ANIMACAO, e a TokenAttack os pede um por
-    // token. Uma palavra que o tipo nao tem e um SetAnimation que nao acha
-    // nada: o token sai com a cara do anterior, e a frase muda calada.
+    // A frase e uma lista de nomes de animacao, e a TokenAttack os pede um por token.
     bool achou = false;
     for (const auto& chefe : Chefes()) {
         const auto tipos = ProjeteisDoChefe(chefe).projeteis;
@@ -2454,8 +2094,7 @@ TEST_CASE("Dados: as nuvens do Vitor - gatilhos, posto e caras sao nomes que os 
     CHECK(GatilhoExiste(Nuvem::kGatilhoDasNuvens));
     CHECK(PostoExiste(Nuvem::kPostoDasNuvens));
 
-    // QUEM TROCA A CARA DA NUVEM E O VITOR, pelos nomes de Nuvem.h. Uma cara
-    // que o tipo nao tem e uma nuvem que para de avisar que a janela vai sair.
+    // Quem troca a cara da nuvem e o Vitor, pelos nomes de Nuvem.h.
     const auto& tipos = ProjeteisDoChefe("vitor").projeteis;
     REQUIRE(tipos.count("Nuvem") == 1);
     for (const char* cara : { Nuvem::kCaraOciosa, Nuvem::kCaraProcessando }) {
@@ -2468,10 +2107,6 @@ TEST_CASE("Dados: as nuvens do Vitor - gatilhos, posto e caras sao nomes que os 
 
 TEST_CASE("Dados: a nuvem que o Ponto Extra derruba volta a tempo de mandar janela na fase dela") {
 
-    // A NUVEM FORA DO AR volta kVoltaDasNuvens depois, e chove um ciclo de
-    // processamento depois disso. Se as duas coisas juntas passassem da
-    // metade da fase, um Ponto Extra no meio dela a deixaria sem chuva ate o
-    // fim - o defeito que existia antes de a nuvem voltar.
     const auto lidas = FasesDoChefe("vitor");
     const DescricaoDeFase* fase = nullptr;
     for (const auto& f : lidas.fases) if (f.nome == Nuvem::kFaseDasNuvens) fase = &f;
@@ -2481,9 +2116,7 @@ TEST_CASE("Dados: a nuvem que o Ponto Extra derruba volta a tempo de mandar jane
 
 TEST_CASE("Dados: as nuvens do Vitor ficam presas a ele a fase inteira") {
 
-    // A ANCORA DAS NUVENS COBRE A FASE: elas nascem em Tcp::kFormam e, solta
-    // antes do fim, a nuvem cai pelo campo. Foi o que aconteceu quando as
-    // fases passaram de 17 para 20 s e a ancora ficou nos 17.
+    // A ancora das nuvens cobre a fase.
     const auto lidas = FasesDoChefe("vitor");
     const DescricaoDeFase* fase = nullptr;
     for (const auto& f : lidas.fases) if (f.nome == Nuvem::kFaseDasNuvens) fase = &f;
@@ -2503,8 +2136,7 @@ TEST_CASE("Dados: as nuvens do Vitor ficam presas a ele a fase inteira") {
 }
 
 TEST_CASE("Dados: o fork do Vitor e pela nuvem - a fase do fork vem logo depois da das nuvens, e se divide") {
-    // O VITOR SO JUNTA AS NUVENS se a fase delas acaba NA do fork; em qualquer
-    // outra ele as desfaz, e o fork volta a ser o de sempre sem ninguem notar.
+    // O Vitor so junta as nuvens se a fase delas acaba na do fork.
     const auto lidas = FasesDoChefe("vitor");
     const DescricaoDeFase* nuvens = nullptr;
     const DescricaoDeFase* fork = nullptr;
@@ -2527,9 +2159,7 @@ TEST_CASE("Dados: as portas do Ricardo - gatilho, postos e caras sao nomes que o
     CHECK(PostoExiste(Logica::kPostoDaPalavra));
     CHECK(PostoExiste(Logica::kPostoDasPortas));
 
-    // QUEM TROCA A CARA DO BIT E DA PORTA E O RICARDO, pelos nomes de
-    // Logica.h. Uma cara que o tipo nao tem e um bit que atravessa a porta e
-    // continua mostrando o valor de antes.
+    // Quem troca a cara do bit e da porta e o Ricardo, pelos nomes de Logica.h.
     const auto& tipos = ProjeteisDoChefe("ricardo").projeteis;
     const auto tem = [&](const char* tipo, const std::string& cara) {
         if (tipos.count(tipo) == 0) return false;
@@ -2555,23 +2185,17 @@ TEST_CASE("Dados: a fase das portas do Ricardo - todo placar de etapa e uma port
     REQUIRE(fase);
     REQUIRE_FALSE(fase->etapas.empty());
 
-    // O PLACAR E A PORTA: um anuncio que nao se le como porta deixaria as
-    // portas fazendo a operacao da etapa anterior, com o placar dizendo outra.
     for (const auto& etapa : fase->etapas) {
         CAPTURE(etapa.anuncio);
         const auto porta = Logica::LerPorta(etapa.anuncio, Logica::kBits);
         REQUIRE(porta);
 
-        // E UMA PORTA SEM PALAVRA JUSTA faria o sorteio devolver qualquer
-        // coisa - um muro inteiro, ou nada.
+        // E uma porta sem palavra justa faria o sorteio devolver qualquer coisa.
         bool admite = false;
         for (std::uint32_t a = 0; a < (1u << Logica::kBits) && !admite; ++a) admite = Logica::Justa(*porta, a, Logica::kBits);
         CHECK(admite);
     }
 
-    // A PALAVRA E A FILEIRA DE PORTAS TEM UM BIT POR COLUNA, as kBits colunas
-    // em que o Ricardo divide a tela: com outro numero, o bit da coluna 3 da
-    // palavra passaria pela porta da coluna 2.
     int palavras = 0, fileiras = 0;
     for (const auto& a : fase->ataques) {
         if (a.estrategia != "PalavraAttack") continue;
@@ -2603,10 +2227,7 @@ TEST_CASE("Dados: o clock do Ricardo - o placar de cada etapa e uma frequencia i
     REQUIRE(fase);
     REQUIRE_FALSE(fase->etapas.empty());
 
-    // O PLACAR E O CLOCK. E as contas do Ricardo - o leque a cada segundo
-    // inteiro, que tem de ser borda de subida; a troca de frequencia, que tem
-    // de cair numa borda - so fecham com frequencias inteiras trocadas em
-    // segundos inteiros.
+    // O placar e o clock.
     float inicio = 0.0f;
     for (const auto& etapa : fase->etapas) {
         CAPTURE(etapa.anuncio);
@@ -2618,9 +2239,7 @@ TEST_CASE("Dados: o clock do Ricardo - o placar de cada etapa e uma frequencia i
         inicio += etapa.duracao;
     }
 
-    // O LEQUE DO CONTADOR: uma WaveAttack de gatilho, cujos bits nascem no posto
-    // dos registradores - e com velocidade acima de 1 px/s: e dela que o
-    // Ricardo tira a direcao de cada bit, e o RigidBody zera o x abaixo disso.
+    // O leque do contador: uma WaveAttack de gatilho, cujos bits nascem no posto dos registradores.
     const auto regras = RegrasDoChefe("ricardo");
     int leques = 0;
     for (const auto& a : fase->ataques) {
@@ -2652,8 +2271,7 @@ TEST_CASE("Dados: o pipeline do Ricardo - toda instrucao que ataca tem o ataque 
         return false;
     };
 
-    // UMA INSTRUCAO CUJO GATILHO A FASE NAO TEM chega ao estagio dela e nao
-    // faz nada - calada, porque Disparar de um gatilho sem ataque e permitido.
+    // Uma instrucao cujo gatilho a fase nao tem chega ao estagio dela e nao faz nada.
     for (const auto& instrucao : Pipeline::Programa()) {
         for (int s = 0; s < Pipeline::kEstagios; ++s) {
             const std::string g = Pipeline::Gatilho(instrucao.tipo, s);
@@ -2664,8 +2282,7 @@ TEST_CASE("Dados: o pipeline do Ricardo - toda instrucao que ataca tem o ataque 
         }
     }
 
-    // A FILEIRA DE ESTAGIOS tem um por estagio, parada e toda enfeite; e cada
-    // um, molduras e chips, nasce no posto em que o Ricardo o procura.
+    // A fileira de estagios tem um por estagio, parada e toda enfeite.
     const auto regras = RegrasDoChefe("ricardo");
     const auto poe = [&](const DescricaoDeAtaque& a, const char* posto) {
         if (!regras.conjuntos.count(a.regrasNome)) return false;
@@ -2686,14 +2303,14 @@ TEST_CASE("Dados: o pipeline do Ricardo - toda instrucao que ataca tem o ataque 
         if (a.gatilho == Pipeline::kGatilhoDaBusca) {
             ++buscas;
             REQUIRE(a.projeteis);
-            CHECK(*a.projeteis == 1);   // a busca traz UMA instrucao
+            CHECK(*a.projeteis == 1);   // A busca traz uma instrucao.
             CHECK(poe(a, Pipeline::kPostoDoPipeline));
         }
     }
     CHECK(fileiras == 1);
     CHECK(buscas == 1);
 
-    // AS CARAS: o nome de cada estagio, cada instrucao do programa e a bolha.
+    // As caras: o nome de cada estagio, cada instrucao do programa e a bolha.
     const auto& tipos = ProjeteisDoChefe("ricardo").projeteis;
     const auto tem = [&](const char* tipo, const std::string& cara) {
         if (tipos.count(tipo) == 0) return false;
@@ -2704,7 +2321,7 @@ TEST_CASE("Dados: o pipeline do Ricardo - toda instrucao que ataca tem o ataque 
     for (const auto& instrucao : Pipeline::Programa()) CHECK(tem("Instrucao", Pipeline::Animacao(instrucao.tipo)));
     CHECK(tem("Instrucao", Pipeline::kAnimacaoDaBolha));
 
-    // E O ALUNO FAZ BOLHA: a instrucao tem de ser derrubavel.
+    // E o aluno faz bolha: a instrucao tem de ser derrubavel.
     REQUIRE(tipos.count("Instrucao") == 1);
     CHECK(tipos.at("Instrucao").derrubavel);
 }
@@ -2720,15 +2337,12 @@ TEST_CASE("Dados: o Blink do Ricardo - o placar de cada etapa e um delay, e as p
     REQUIRE(fase);
     REQUIRE_FALSE(fase->etapas.empty());
 
-    // O PLACAR E O SKETCH: um anuncio sem delay deixaria as placas piscando no
-    // de reserva, com o placar dizendo outro.
     for (const auto& etapa : fase->etapas) {
         CAPTURE(etapa.anuncio);
         CHECK(Blink::LerDelay(etapa.anuncio));
     }
 
-    // AS PLACAS NASCEM NO POSTO "placas" - e dali que o Ricardo as acende -, e
-    // o LED sai das acesas.
+    // As placas nascem no posto "placas" - e dali que o Ricardo as acende -, e o led sai das acesas.
     const auto regras = RegrasDoChefe("ricardo");
     int placas = 0, leds = 0;
     for (const auto& a : fase->ataques) {
@@ -2765,15 +2379,7 @@ TEST_CASE("Dados: so o TCC pede orientacao, e quem abre o TCC sempre tem tres or
     const int tcc = pedem.front();
     CHECK(l.CodigoDe(tcc) == "TCC");
 
-    // TODA COMBINACAO DE APROVACOES nas outras materias, com a nota minima de
-    // aprovacao: a que abre o TCC tem de deixar kCandidatos para escolher. Se o
-    // curso mudar e der para chegar ao TCC com menos, a tela da escolha
-    // mostraria uma lista curta - ou vazia.
-    //
-    // SO AS QUE DA PARA ALCANCAR JOGANDO: toda materia aprovada no conjunto
-    // estava aberta por ele. Desbloqueada nao recorre (Materias.h), entao duas
-    // aprovacoes soltas na coluna 3 abririam o TCC no papel - um progresso que
-    // ninguem tem, porque a coluna 3 so abre depois da 2.
+    // Toda combinacao de aprovacoes nas outras materias, com a nota minima de aprovacao.
     std::vector<int> outras;
     for (int i = 0; i < l.Quantas(); ++i) if (i != tcc) outras.push_back(i);
     REQUIRE(outras.size() < 20);
@@ -2795,14 +2401,8 @@ TEST_CASE("Dados: so o TCC pede orientacao, e quem abre o TCC sempre tem tres or
     CHECK(abriram > 0);
 }
 
-// ---------------------------------------------------------------------------
-// A DOCUMENTACAO NAO ESQUECE NOME NENHUM
-//
-// Os gatilhos e os postos sao listas fechadas: o leitor recusa um nome que nao
-// conhece. Quem escreve dados novos aprende os nomes na tabela de
-// Documentacao/arquivos-de-dados.md - e ela ficou parada nos do Ricardo
-// enquanto o Vladimir e o Salles ganhavam trinta nomes. Este teste e o que faltava: cada nome que o motor aceita tem de
-// aparecer, entre crases, na linha da tabela que fala dele.
+// A documentacao nao esquece nome nenhum. Os gatilhos e os postos sao listas fechadas: o leitor
+// recusa um nome que nao conhece.
 
 namespace {
     std::vector<std::string> LinhasDaTabela(const std::string& campo) {
@@ -2827,8 +2427,6 @@ TEST_CASE("Documentacao: a tabela de arquivos-de-dados.md cita todo gatilho que 
 }
 
 TEST_CASE("Documentacao: as duas linhas de posto em arquivos-de-dados.md citam todo posto que o motor aceita") {
-    // Uma e a do ataque (de onde a PontosAttack atira), a outra a da regra (em
-    // que posto o projetil entra ao nascer).
     const auto linhas = LinhasDaTabela("posto");
     REQUIRE(linhas.size() == 2);
     for (const std::string& linha : linhas) {
@@ -2841,11 +2439,7 @@ TEST_CASE("Documentacao: as duas linhas de posto em arquivos-de-dados.md citam t
 
 TEST_CASE("Dados: a chuva do escopo do Luizinho - gatilho, gota parada, raio e caras sao os de Escopo.h") {
 
-    // O LUIZINHO PUXA O GATILHO e cobre a regiao com gotas pelas contas de
-    // Escopo.h: a grade e feita para o raio kRaioDaGota, e uma gota maior
-    // acertaria quem esta no buraco (a outra variavel), uma menor deixaria
-    // fresta na regiao. A gota nasce PARADA - e o aviso - e quem a faz cair e
-    // o professor, quando ela acende; uma velocidade aqui faria o aviso andar.
+    // O Luizinho puxa o gatilho e cobre a regiao com gotas pelas contas de Escopo.h.
     CHECK(GatilhoExiste(Escopo::kGatilhoDaGota));
 
     const auto lidas = FasesDoChefe("luizinho");
@@ -2857,7 +2451,7 @@ TEST_CASE("Dados: a chuva do escopo do Luizinho - gatilho, gota parada, raio e c
     std::string tipo;
     int quantos = 0;
     for (const auto& a : fase->ataques) {
-        // A FASE E TODA DE GATILHO: um ataque de relogio choveria fora da busca.
+        // A fase e toda de gatilho: um ataque de relogio choveria fora da busca.
         CHECK(!a.gatilho.empty());
         if (a.gatilho != Escopo::kGatilhoDaGota) continue;
         ++quantos;
@@ -2877,7 +2471,7 @@ TEST_CASE("Dados: a chuva do escopo do Luizinho - gatilho, gota parada, raio e c
         CHECK(caras.count(Escopo::CaraDaGota(nome)) == 1);
     }
 
-    // O COLISOR E O QUADRO DIVIDIDO PELO DIVISOR, vezes a escala.
+    // O colisor e o quadro dividido pelo divisor, vezes a escala.
     CHECK(gota.escala == doctest::Approx(1.0f));
     const auto atlas = LerJsonDeDados(LerArquivo(gota.dados));
     REQUIRE(atlas.contains("frames"));
@@ -2890,10 +2484,7 @@ TEST_CASE("Dados: a chuva do escopo do Luizinho - gatilho, gota parada, raio e c
 
 TEST_CASE("Dados: a coercao do Luizinho - gatilhos, velocidades e caras sao os de Coercao.h") {
 
-    // O LUIZINHO PUXA OS GATILHOS e pinta cada chip pelo nome de Coercao.h.
-    // Um chip sem a cara do numero mostraria o anel errado - a fase inteira e
-    // ler a conta -, e a velocidade do arquivo e a do projetil: o da WaveAttack
-    // nasce nela, e o professor so diz onde, quantos e para onde.
+    // O Luizinho puxa os gatilhos e pinta cada chip pelo nome de Coercao.h.
     const auto lidas = FasesDoChefe("luizinho");
     const DescricaoDeFase* fase = nullptr;
     for (const auto& f : lidas.fases) if (f.nome == Coercao::kFaseDosTipos) fase = &f;
@@ -2963,10 +2554,7 @@ TEST_CASE("Dados: a coercao do Luizinho - gatilhos, velocidades e caras sao os d
 
 TEST_CASE("Dados: o heap do Luizinho - gatilhos, velocidades, raio e caras sao os de Memoria.h") {
 
-    // O LUIZINHO PUXA OS GATILHOS e pinta cada celula pelo estado do heap: uma
-    // celula sem a cara de lixo deixaria o aluno sem saber o que o coletor vai
-    // derrubar. A celula nasce PARADA - e o aviso - e o professor a deixa ali;
-    // os cacos nascem na velocidade do arquivo, que e a de Memoria.h.
+    // O Luizinho puxa os gatilhos e pinta cada celula pelo estado do heap.
     const auto lidas = FasesDoChefe("luizinho");
     const DescricaoDeFase* fase = nullptr;
     for (const auto& f : lidas.fases) if (f.nome == Memoria::kFaseDaMemoria) fase = &f;
@@ -3012,7 +2600,7 @@ TEST_CASE("Dados: o heap do Luizinho - gatilhos, velocidades, raio e caras sao o
         CHECK(tem);
     }
 
-    // O COLISOR DA CELULA E A METADE DO LADO com que o alocador a encaixa.
+    // O colisor da celula e a metade do lado com que o alocador a encaixa.
     CHECK(celula.escala == doctest::Approx(1.0f));
     const auto atlas = LerJsonDeDados(LerArquivo(celula.dados));
     REQUIRE(atlas.contains("frames"));
@@ -3025,9 +2613,7 @@ TEST_CASE("Dados: o heap do Luizinho - gatilhos, velocidades, raio e caras sao o
 
 TEST_CASE("Dados: a pilha de chamadas do Luizinho - gatilhos, velocidades e caras sao os de Excecao.h") {
 
-    // O LUIZINHO PUXA OS GATILHOS e pinta a excecao com o nome do tipo: um
-    // chip sem a cara do tipo diria IOException onde voa uma
-    // NullPointerException, e a rodada inteira e ler o tipo contra os catch.
+    // O Luizinho puxa os gatilhos e pinta a excecao com o nome do tipo.
     const auto lidas = FasesDoChefe("luizinho");
     const DescricaoDeFase* fase = nullptr;
     for (const auto& f : lidas.fases) if (f.nome == Excecao::kFaseDasExcecoes) fase = &f;
@@ -3072,9 +2658,7 @@ TEST_CASE("Dados: a pilha de chamadas do Luizinho - gatilhos, velocidades e cara
 
 TEST_CASE("Dados: os semaforos do Vitor - o gatilho, a velocidade e a cara de cada thread sao os de Semaforo.h") {
 
-    // O VITOR PUXA O GATILHO e pinta cada instrucao com o nome da coluna: uma
-    // thread sem a cara dela no tipo sairia com a cor de outra, e o placar
-    // ("fila: T3 T1") deixaria de apontar para uma coluna.
+    // O Vitor puxa o gatilho e pinta cada instrucao com o nome da coluna.
     const auto lidas = FasesDoChefe("vitor");
     const DescricaoDeFase* fase = nullptr;
     for (const auto& f : lidas.fases) if (f.nome == Semaforo::kFaseDosSemaforos) fase = &f;
@@ -3088,8 +2672,7 @@ TEST_CASE("Dados: os semaforos do Vitor - o gatilho, a velocidade e a cara de ca
         if (a.gatilho != Semaforo::kGatilhoDaInstrucao) continue;
         ++quantos;
         tipo = a.projetil;
-        // A WaveAttack escreve a velocidade do arquivo no primeiro quadro: e a
-        // que a pilha conta para chegar a porta.
+        // A WaveAttack escreve a velocidade do arquivo no primeiro quadro.
         REQUIRE(a.velocidade.has_value());
         CHECK(*a.velocidade == doctest::Approx(Semaforo::kVelocidadeDaInstrucao));
         CHECK(a.projeteis.value_or(0) == 1);
@@ -3102,8 +2685,7 @@ TEST_CASE("Dados: os semaforos do Vitor - o gatilho, a velocidade e a cara de ca
     for (const auto& a : tipos.at(tipo).animacoes) caras.insert(a.nome);
     for (int i = 0; i < Semaforo::kMaisThreads; ++i) CHECK(caras.count(Semaforo::Nome(i)) == 1);
 
-    // AS CORRENTES CONTINUAM NA FASE: um ataque de relogio de um projetil que
-    // acorrenta.
+    // As correntes continuam na fase: um ataque de relogio de um projetil que acorrenta.
     bool corrente = false;
     for (const auto& a : fase->ataques) {
         if (!a.gatilho.empty() || tipos.count(a.projetil) == 0) continue;
@@ -3114,15 +2696,13 @@ TEST_CASE("Dados: os semaforos do Vitor - o gatilho, a velocidade e a cara de ca
 
 TEST_CASE("Dados: o TCP do Vitor - gatilhos, velocidades e caras sao os de Tcp.h") {
 
-    // A FASE DO TCP E A DAS NUVENS: sao elas que mandam a janela.
+    // A fase do TCP E a das nuvens: sao elas que mandam a janela.
     CHECK(std::string(Tcp::kFaseDoTcp) == Nuvem::kFaseDasNuvens);
     const auto lidas = FasesDoChefe("vitor");
     const DescricaoDeFase* fase = nullptr;
     for (const auto& f : lidas.fases) if (f.nome == Tcp::kFaseDoTcp) fase = &f;
     REQUIRE(fase != nullptr);
 
-    // A WaveAttack escreve a velocidade do arquivo no primeiro quadro, e o
-    // Vitor so escolhe de onde e para onde: a velocidade e a de Tcp.h.
     const std::map<std::string, float> velocidades = {
         {Tcp::kGatilhoDoSegmento, Tcp::kVelocidadeDoSegmento},
         {Tcp::kGatilhoDoEncaminhado, Tcp::kVelocidadeDoEncaminhado},
@@ -3143,7 +2723,7 @@ TEST_CASE("Dados: o TCP do Vitor - gatilhos, velocidades e caras sao os de Tcp.h
         }
         CHECK(quantos == 1);
     }
-    // TODO ATAQUE DA FASE E DE GATILHO: o relogio dela e o RTT.
+    // Todo ataque da fase e de gatilho: o relogio dela e o RTT.
     for (const auto& a : fase->ataques) CHECK(!a.gatilho.empty());
 
     const auto& tipos = ProjeteisDoChefe("vitor").projeteis;
@@ -3168,8 +2748,7 @@ TEST_CASE("Dados: o jantar dos filosofos do Vitor - gatilhos e velocidades sao o
     REQUIRE(fase != nullptr);
     CHECK(fase->movimento.tipo == "Conduzido");
 
-    // A garfada sai na velocidade do arquivo; o garfo e a espera nascem
-    // parados, e quem os move e o Vitor.
+    // A garfada sai na velocidade do arquivo.
     const std::map<std::string, float> velocidades = {
         {Filosofos::kGatilhoDoGarfo, 0.0f},
         {Filosofos::kGatilhoDaGarfada, Filosofos::kVelocidadeDaGarfada},
@@ -3188,8 +2767,7 @@ TEST_CASE("Dados: o jantar dos filosofos do Vitor - gatilhos e velocidades sao o
         }
         CHECK(quantos == 1);
     }
-    // TODO ATAQUE E DE GATILHO - e e por isso que o clone da fase 3 pode
-    // emprestar esta fase: ele nao atira sozinho.
+    // Todo ataque e de gatilho - e e por isso que o clone da fase 3 pode emprestar esta fase.
     for (const auto& a : fase->ataques) CHECK(!a.gatilho.empty());
     for (const auto& f : lidas.fases) {
         if (f.clone.existe) CHECK(f.clone.ataquesDe == Filosofos::kFaseDoJantar);
@@ -3198,7 +2776,7 @@ TEST_CASE("Dados: o jantar dos filosofos do Vitor - gatilhos e velocidades sao o
 
 TEST_CASE("Dados: a troca de mensagens do Vitor - gatilhos, velocidades e caras sao os de Mensagens.h") {
 
-    // A FASE DAS MENSAGENS E A DO FORK: os dois processos sao os dois corpos.
+    // A fase das mensagens e a do fork: os dois processos sao os dois corpos.
     CHECK(std::string(Mensagens::kFaseDasMensagens) == Nuvem::kFaseDoFork);
     const auto lidas = FasesDoChefe("vitor");
     const DescricaoDeFase* fase = nullptr;
@@ -3237,6 +2815,6 @@ TEST_CASE("Dados: a troca de mensagens do Vitor - gatilhos, velocidades e caras 
     CHECK(caras.count(Mensagens::kCaraDoEnvelope) == 1);
     CHECK(caras.count(Mensagens::kCaraDoEsperando) == 1);
 
-    // O RESULTADO DA RPC E UM LEQUE com o do meio no aluno: as somas sao impares.
+    // O resultado da rpc e um leque com o do meio no aluno: as somas sao impares.
     for (int i = 0; i < Mensagens::kChamadas; ++i) CHECK(Mensagens::Soma(Mensagens::ChamadaDaVez(i)) % 2 == 1);
 }

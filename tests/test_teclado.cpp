@@ -1,11 +1,4 @@
-// O teclado digital da tela de matricula. Camada pura.
-//
-// O gabinete nao tem teclado, entao TODA a matricula passa por estas teclas. Se
-// uma delas ficar inalcancavel pelas setas, o aluno simplesmente nao consegue
-// digitar - e nao ha como contornar com outra tecla, porque nao ha outra tecla.
-//
-// E exatamente o defeito que a selecao de fases teve: duas descricoes do mesmo
-// layout, uma delas desatualizada, e o TCC virou inalcancavel sem ninguem notar.
+// O teclado digital da tela de matricula.
 
 #include "doctest.h"
 
@@ -48,10 +41,7 @@ TEST_CASE("Teclado: tem os dez digitos e as quatro acoes") {
     CHECK(entrar == 1);
     CHECK(voltar == 1);
 
-    // O MODO VISITANTE TEM DE CONTINUAR EXISTINDO. Ele era a tecla TAB, que o
-    // gabinete nao tem; se nao houvesse tecla para ele aqui, entrar sem se
-    // identificar deixaria de ser possivel no arcade - e o login existe para o
-    // professor saber quem jogou, nao para barrar ninguem.
+    // O modo visitante tem de continuar existindo.
     CHECK(visitante == 1);
 }
 
@@ -81,7 +71,7 @@ TEST_CASE("Teclado: a grade cobre todas as teclas, e so elas") {
 
 TEST_CASE("Teclado: dentro de uma coluna, a grade vai de cima para baixo") {
 
-    // A seta para baixo anda por esta ordem. Fora de ordem, descer subiria.
+    // A seta para baixo anda por esta ordem.
     const auto grade = Teclado::Grade();
     const auto& teclas = Teclado::Teclas();
 
@@ -95,8 +85,7 @@ TEST_CASE("Teclado: dentro de uma coluna, a grade vai de cima para baixo") {
 
 TEST_CASE("Teclado: toda tecla e alcancavel pelas setas") {
 
-    // SEM TECLADO FISICO, uma tecla inalcancavel e uma funcao que o aluno nao tem
-    // como usar. Busca em largura a partir da tecla inicial, pelas quatro setas.
+    // Sem teclado fisico, uma tecla inalcancavel e uma funcao que o aluno nao tem como usar.
     const auto grade = Teclado::Grade();
     const auto& teclas = Teclado::Teclas();
 
@@ -135,8 +124,7 @@ TEST_CASE("Teclado: nenhuma seta sai da grade") {
 
 TEST_CASE("Teclado: a tecla inicial existe e e um digito") {
 
-    // Abrir a tela com a selecao numa acao seria ruim: o primeiro toque de quem
-    // nao leu nada cairia em VOLTAR ou VISITANTE em vez de digitar.
+    // Abrir a tela com a selecao numa acao seria ruim.
     const auto& teclas = Teclado::Teclas();
     REQUIRE(Teclado::Inicial() < teclas.size());
     CHECK(teclas[Teclado::Inicial()].acao == Teclado::Acao::Digito);
@@ -144,15 +132,13 @@ TEST_CASE("Teclado: a tecla inicial existe e e um digito") {
 
 TEST_CASE("Teclado: dá para digitar uma matricula inteira so com as setas") {
 
-    // A TRAVESSIA COMPLETA, que e o que o aluno faz de verdade: anda ate cada
-    // digito de 89384 e aperta. Se alguma tecla fosse inalcancavel ou a
-    // navegacao discordasse do desenho, esta matricula nao sairia.
+    // A travessia completa, que e o que o aluno faz de verdade.
     const auto grade = Teclado::Grade();
     const auto& teclas = Teclado::Teclas();
 
     std::string digitado;
     for (const char alvo : std::string("89384")) {
-        // caminha ate a tecla do digito alvo
+        // Caminha ate a tecla do digito alvo.
         size_t onde = Teclado::Inicial();
         std::set<size_t> vistos{onde};
         std::vector<size_t> fila{onde};

@@ -21,25 +21,8 @@ class Font;
 class DrawSpriteComponent;
 class DrawCaixaComponent;
 
-/**
- * @class EscolhaDoOrientador
- * @brief A tela entre a selecao de fases e o TCC: o aluno escolhe, entre os
- * professores das suas maiores notas, quem vai lutar do lado dele na banca.
- *
- * QUEM APARECE E QUEM VENCE E DE Orientacao, que e pura e testada: esta cena so
- * desenha os cartoes e passa o manche e os botoes para uma Orientacao::Votacao.
- * Em dupla cada aluno tem o seu cursor, da cor dele, e os dois votam; o
- * escolhido so existe quando os dois votaram.
- *
- * O ESCOLHIDO FICA ANUNCIADO por kAnuncio segundos antes de a batalha comecar,
- * e nesse tempo ainda da para desfazer o voto - o botao que confirma e o mesmo
- * que atira, e quem aperta duas vezes sem querer nao pode perder a escolha. So
- * depois o orientador vai para o Game (Game::DefinirOrientador), de onde a
- * batalha o le.
- *
- * O botao 2 desfaz o voto; sem voto para desfazer, o do jogador 1 volta para a
- * selecao de fases.
- */
+/// A tela entre a selecao de fases e o TCC: o aluno escolhe, entre os professores das suas maiores
+/// notas, quem vai lutar do lado dele na banca.
 class EscolhaDoOrientador : public Scene {
 public:
     explicit EscolhaDoOrientador(Game* game);
@@ -55,10 +38,9 @@ private:
     /// Quantos alunos o painel tem.
     static constexpr int kMaxAlunos = 2;
 
-    /// Quanto o escolhido fica na tela antes de a batalha comecar.
     static constexpr float kAnuncio = 1.8f;
 
-    // ---- O cartao de cada professor ---------------------------------------
+    // ---- O cartao de cada professor ----
     static constexpr float kCartaoLargura = 290.0f;
     static constexpr float kCartaoAltura = 400.0f;
     static constexpr float kEntreCartoes = 370.0f;
@@ -126,9 +108,7 @@ private:
     bool mMudou = true;
     bool mSaindo = false;
 
-    /// A borda de cada entrada, por aluno. Comecam em TRUE pelo motivo de
-    /// StageSelect::mEntrarAnterior: chega-se aqui com o botao 1 apertado, e
-    /// ele nao pode virar um voto que ninguem deu.
+    /// A borda de cada entrada, por aluno.
     struct Bordas {
         bool esquerda = true;
         bool direita = true;

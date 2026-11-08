@@ -1,6 +1,4 @@
-//
-// O sorteio de cada batalha. Camada pura.
-//
+// O sorteio de cada batalha.
 
 #include "doctest.h"
 
@@ -16,22 +14,18 @@
 using namespace Variacao;
 
 TEST_CASE("Variacao: o motor e o mt19937 do padrao, e o rotulo e o FNV-1a") {
-    // O 10000o numero do mt19937 com a semente padrao (5489) e fixado pelo
-    // proprio padrao do C++ - qualquer biblioteca que der outro nao e mt19937.
+    // O 10000o numero do mt19937 com a semente padrao (5489) e fixado pelo proprio padrao do C++.
     std::mt19937 padrao;
     padrao.discard(9999);
     CHECK(padrao() == 4123659995u);
 
-    CHECK(Rotulo("") == 2166136261u);    // a base do FNV-1a de 32 bits
+    CHECK(Rotulo("") == 2166136261u);    // A base do fnv-1a de 32 bits.
     CHECK(Rotulo("a") == 3826002220u);   // 0xe40c292c, o valor publicado
     CHECK(Rotulo("StateOne") != Rotulo("StateTwo"));
 }
 
 TEST_CASE("Variacao: A MESMA SEMENTE DA A MESMA LUTA, em qualquer compilador") {
-    // Os numeros abaixo sairam desta implementacao. Eles so dependem do
-    // mt19937 e de aritmetica inteira, entao o MSVC tem de dar os mesmos: se um
-    // dia este teste quebrar so num deles, alguem trocou o mapeamento por uma
-    // distribuicao da biblioteca.
+    // Os numeros abaixo sairam desta implementacao.
     CHECK(Misturar(0, 0) == 2570937750u);
     CHECK(Misturar(1, 0) == 1739479842u);
     CHECK(Misturar(0, 1) == 403206445u);
@@ -116,8 +110,6 @@ TEST_CASE("Variacao: embaralhar da uma permutacao, e sementes diferentes dao ord
         CHECK(ordenado == std::vector<int>{0, 1, 2, 3, 4});
         ordens.insert(v);
     }
-    // 120 ordens possiveis; em 1000 sementes a chance de faltar alguma e de
-    // 120 * (119/120)^1000, menos de 3 em 1000.
     CHECK(ordens.size() == 120u);
 }
 

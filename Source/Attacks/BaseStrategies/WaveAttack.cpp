@@ -20,7 +20,7 @@ std::vector<std::unique_ptr<Projectile>> WaveAttack::Execute(const AttackParams&
 
     std::vector<std::unique_ptr<Projectile>> projectiles;
 
-    // Lemos a configuração que precisamos do params
+    // Lemos a configuração que precisamos do params.
     const int numProjectiles = params.numProjectiles;
     const float projectileSpeed = params.projectileSpeed;
     const float totalAngle = params.angle;
@@ -37,7 +37,7 @@ std::vector<std::unique_ptr<Projectile>> WaveAttack::Execute(const AttackParams&
     }
     projectiles.reserve(numProjectiles);
 
-    // Mesma matemática de "leque" do AngledAttack
+    // Mesma matemática de "leque" do AngledAttack.
     const float angleStart = centralAngle - totalAngle / 2.0f;
 
     float angleStep = 0.0f;
@@ -45,7 +45,7 @@ std::vector<std::unique_ptr<Projectile>> WaveAttack::Execute(const AttackParams&
         angleStep = totalAngle / (static_cast<float>(numProjectiles) - 1.0f);
     }
 
-    // O Loop de N Projéteis
+    // O Loop de N Projéteis.
     for (int i = 0; i < numProjectiles; i++) {
         auto projectile = Acquire();
         if (!projectile) {
@@ -54,27 +54,24 @@ std::vector<std::unique_ptr<Projectile>> WaveAttack::Execute(const AttackParams&
 
         projectile->SetPosition(params.firePosition);
 
-        // Calcula o ângulo e a direção
+        // Calcula o ângulo e a direção.
         float currentAngle = angleStart + (static_cast<float>(i) * angleStep);
         float xCoordRad = Math::Cos(currentAngle * Math::Pi / 180);
         float yCoordRad = Math::Sin(currentAngle * Math::Pi / 180);
         Vector2 directionVector = Vector2(xCoordRad, yCoordRad);
         directionVector.Normalize();
 
-        //  ------ A LÓGICA DE "WAVE" ------ //
-
+        // ---- A lógica de "WAVE" ------ // ----
 
         // Começa desativado (invisivel, velocidade 0)
         // TODO - testar colisão?
 
         projectile->insertModifier<DeactivateBehavior>(0.f);
 
-        // Insere o "despertador" (ActivateBehavior)
-        // O projétil 'i' vai acordar após (i * creationSpeed) segundos.
         Vector2 finalVelocity = directionVector * projectileSpeed;
         projectile->insertModifier<ActivateBehavior>(i * creationSpeed, finalVelocity);
 
-        // Transfere a posse do projétil para o vetor
+        // Transfere a posse do projétil para o vetor.
         projectiles.push_back(std::move(projectile));
     }
 

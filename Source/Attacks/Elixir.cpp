@@ -9,8 +9,7 @@
 namespace Elixir {
 
     std::array<float, 2> Lugar(const int k, const float x, const float y, const float largura) {
-        // A ARVORE INTEIRA CABE NA JANELA: o meio dela e empurrado para dentro
-        // quando o supervisor esta perto da borda.
+        // A arvore inteira cabe na janela.
         const float meiaArvore = kEntreWorkers * static_cast<float>(kWorkers - 1) / 2.0f;
         const float meio = std::clamp(x, meiaArvore + 60.0f, largura - meiaArvore - 60.0f);
         return {meio + (static_cast<float>(k) - static_cast<float>(kWorkers - 1) / 2.0f) * kEntreWorkers, y + kAbaixo};

@@ -1,10 +1,4 @@
-//
 // A ponte entre as fases lidas de arquivo e o motor.
-//
-// Separado de FasesDeAtaque.cpp pelo mesmo motivo de PathShapesArquivo.cpp e
-// RegrasDeAtaqueArquivo.cpp: aquele e puro e entra no alvo de testes; este abre
-// arquivo, escreve log e conhece Boss, entao fica de fora.
-//
 
 #include "FasesDeAtaqueArquivo.h"
 
@@ -43,18 +37,13 @@
 
 namespace {
 
-    /// O caminho e montado na HORA, e nao guardado num const de namespace: um
-    /// const std::string em escopo de namespace e construido ANTES do main,
-    /// portanto antes de Caminhos::Inicializar() descobrir a pasta base, e
-    /// capturaria o palpite de reserva ("..") - o arquivo passaria a ser
-    /// procurado relativo ao diretorio de onde o jogo foi lancado, que e
-    /// exatamente o problema que a resolucao de caminhos veio resolver.
+    /// O caminho e montado na hora, e nao guardado num const de namespace.
     std::string Caminho(const std::string& chefe) {
         return Caminhos::Asset(PastaDoChefe::Arquivo(chefe, PastaDoChefe::kFases));
     }
 
-    /// UM CHEFE DE CADA VEZ, lido na primeira vez que alguem o pede. Montar o
-    /// Thiago nao abre mais os arquivos dos outros quatro.
+    /// Um chefe de cada vez, lido na primeira vez que alguem o pede. Montar o Thiago nao abre mais
+    /// os arquivos dos outros quatro.
     std::map<std::string, FasesLidas> gPorChefe;
 
     const FasesLidas& Lidas(const std::string& chefe) {
@@ -101,20 +90,7 @@ namespace {
         return nullptr;
     }
 
-    /**
-     * Instancia o movimento do chefe. 'a' e 'b' da descricao entram na ordem em
-     * que cada construtor os recebe:
-     *   RandomWander     a = intervalo entre destinos (s), b = velocidade (px/s)
-     *   HoverAbovePlayer a = velocidade (px/s),          b = altura acima do jogador
-     *   GoToCenter       nao usa nenhum dos dois
-     *   Orbitar          a = raio (px),                  b = voltas por segundo
-     *   Varredura        a = velocidade (px/s),          b = margem das bordas (px)
-     *   Mergulho         a = velocidade (px/s),          b = profundidade (px)
-     *   Escada           a = segundos por degrau,         b = quantos degraus
-     *   Deslocamento     a = segundos por passo,          b = quantas colunas
-     *   OndaQuadrada     a = amplitude (px),              b = velocidade lateral (px/s)
-     *   Conduzido        a = velocidade (px/s),          b nao usa
-     */
+    /// Instancia o movimento do chefe.
     std::unique_ptr<IMovementStrategy> CriarMovimento(const DescricaoDeMovimento& m) {
         if (m.tipo == "RandomWander")     return std::make_unique<RandomWanderStrategy>(m.a, m.b);
         if (m.tipo == "HoverAbovePlayer") return std::make_unique<HoverAbovePlayerStrategy>(m.a, m.b);
@@ -128,19 +104,7 @@ namespace {
         return std::make_unique<GoToCenterStrategy>();
     }
 
-    /**
-     * Monta o AttackParams.
-     *
-     * SO ESCREVE O QUE O ARQUIVO DISSE. Um campo ausente na descricao fica com o
-     * padrao que AttackParams ja tem - e por isso que os campos de
-     * DescricaoDeAtaque sao optional em vez de trazerem copias desses padroes.
-     * Um ataque migrado que omite "angulo" se comporta exatamente como o codigo
-     * C++ que tambem nao mexia em params->angle.
-     */
-    // O 'enum' na frente do tipo NAO e enfeite: BaloonAttackParams tem um MEMBRO
-    // chamado 'side' com o mesmo nome do enum, e o membro ganha na busca de nome.
-    // Sem o especificador elaborado, o compilador diz que "'side' nao nomeia um tipo".
-    // E o mesmo motivo da assinatura estranha em BaloonAttack::GetDirectionFromSide.
+    /// Monta o AttackParams. So escreve o que o arquivo disse.
     enum BaloonAttackParams::side LadoPeloNome(const std::string& nome) {
         if (nome == "Down")  return BaloonAttackParams::Down;
         if (nome == "Left")  return BaloonAttackParams::Left;
@@ -151,9 +115,7 @@ namespace {
 
     std::unique_ptr<AttackParams> CriarParams(const DescricaoDeAtaque& a) {
 
-        // A BaloonAttack faz dynamic_cast para o struct derivado e nao dispara
-        // nada se ele nao vier. E a unica estrategia que exige isso, e o bloco
-        // "balao" e o que diz a esta funcao qual dos dois construir.
+        // A BaloonAttack faz dynamic_cast para o struct derivado e nao dispara nada se ele nao vier.
         std::unique_ptr<AttackParams> params;
         if (a.balao) {
             auto balao = std::make_unique<BaloonAttackParams>();
@@ -177,8 +139,7 @@ namespace {
             params = std::move(consulta);
         }
         else if (a.estrategia == "CaixaAttack") {
-            // PARA TODO ataque CaixaAttack, com bloco ou sem: a estrategia faz
-            // dynamic_cast e nao dispara sem esta struct, e o bloco e opcional.
+            // Para todo ataque CaixaAttack, com bloco ou sem.
             auto caixa = std::make_unique<CaixaAttackParams>();
             if (a.caixa && a.caixa->proporcao)         caixa->proporcao         = *a.caixa->proporcao;
             if (a.caixa && a.caixa->meiaAlturaInicial) caixa->meiaAlturaInicial = *a.caixa->meiaAlturaInicial;
@@ -250,9 +211,7 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
         return false;
     }
 
-    // As transicoes sao conferidas ANTES de registrar qualquer coisa: um
-    // conjunto pela metade e pior que nenhum, porque deixa o chefe atacando
-    // numa fase e congelado na seguinte.
+    // As transicoes sao conferidas antes de registrar qualquer coisa.
     const auto problemas = ValidarTransicoes(lidas.fases, nomeDoConjunto);
     if (!problemas.empty()) {
         for (const auto& p : problemas) {
@@ -263,18 +222,13 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
         return false;
     }
 
-    // "ataquesDe" e resolvido AQUI, e nao na camada pura: la a fase que
-    // empresta fica com a lista vazia de proposito, para haver UMA fonte de
-    // verdade. Quem monta precisa da lista de verdade, e e aqui que ela e
-    // procurada - uma vez por fase, e so no momento de registrar.
+    // "ataquesDe" e resolvido aqui, e nao na camada pura.
     auto ataquesDaFase = [&lidas](const DescricaoDeFase& f) -> const std::vector<DescricaoDeAtaque>& {
         if (f.ataquesDe.empty()) return f.ataques;
         for (const auto& origem : lidas.fases) {
             if (origem.nome == f.ataquesDe) return origem.ataques;
         }
-        // ValidarTransicoes ja recusou o conjunto se o nome nao existisse, entao
-        // chegar aqui seria bug de codigo e nao de arquivo. A lista vazia deixa
-        // a fase sem ataque em vez de dereferenciar nada.
+        // A lista vazia deixa a fase sem ataque em vez de dereferenciar nada.
         return f.ataques;
     };
 
@@ -282,8 +236,7 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
 
         for (const DescricaoDeAtaque& doArquivo : ataquesDaFase(fase)) {
 
-            // O MODO DA BATALHA decide os numeros: o bloco "dificil" do ataque,
-            // no Dificil (FasesDeAtaque.h, NoNivel).
+            // O modo da batalha decide os numeros.
             const DescricaoDeAtaque a = NoNivel(doArquivo, boss->NivelDeDificuldade());
 
             ProjectileFactory* spawner = boss->GetProjectileFactory(a.projetil);
@@ -296,18 +249,14 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
 
             auto estrategia = CriarEstrategia(a.estrategia, spawner, boss);
             if (!estrategia) {
-                // Nao deveria acontecer: LerFases ja recusou estrategia
-                // desconhecida. Fica como rede para o caso de alguem acrescentar
-                // um nome na lista da camada pura e esquecer esta funcao.
+                // Nao deveria acontecer: LerFases ja recusou estrategia desconhecida.
                 SDL_Log("FASES: a estrategia \"%s\" da fase \"%s\" nao tem construtor em "
                         "CriarEstrategia. O ataque foi ignorado.",
                         a.estrategia.c_str(), fase.nome.c_str());
                 continue;
             }
 
-            // As regras vem por nome (de regras.json) ou escritas em linha. Sem
-            // regras, o projetil sai sem behavior e voa reto - e legitimo, e o
-            // caso da fase 1 do Ricardo.
+            // As regras vem por nome (de regras.json) ou escritas em linha.
             ProjectileConfigurator configurator = nullptr;
             if (a.temRegrasEmLinha) {
                 configurator = ConfiguratorDeRegras(a.regras);
@@ -316,9 +265,7 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
                 configurator = ConfiguratorDeArquivo(nomeDoConjunto, a.regrasNome);
             }
 
-            // A JANELA DA ETAPA, se o ataque pediu uma. LerFases ja recusou a
-            // etapa que a fase nao tem; um ataque emprestado ("ataquesDe") que
-            // pedisse a etapa de outra fase cai aqui na fase inteira.
+            // A janela da etapa, se o ataque pediu uma.
             float janelaDe = 0.0f, janelaAte = 1.0e9f;
             if (!a.etapa.empty() && !JanelaDaEtapa(fase.etapas, a.etapa, janelaDe, janelaAte)) {
                 SDL_Log("FASES: a fase \"%s\" usa um ataque da etapa \"%s\", que ela nao tem. "
@@ -335,21 +282,17 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
 
         boss->RegisterMovementStrategy(fase.nome, CriarMovimento(fase.movimento));
 
-        // O CLONE E SO UMA ANOTACAO AQUI. Quem o cria e a batalha, no momento em
-        // que a fase comeca - antes disso nao ha onde pôr um segundo corpo, e
-        // criar um que fica escondido por duas fases seria pagar por ele a luta
-        // inteira.
+        // O clone e so uma anotacao aqui.
         if (fase.clone.existe) {
             boss->RegistrarClone(fase.nome, fase.clone.ataquesDe);
         }
 
-        // O ANUNCIO TAMBEM. Quem o mostra e a batalha, que pergunta ao chefe em
-        // que fase ele esta - ver Battle::AtualizarPlacar.
+        // O anuncio tambem.
         if (!fase.anuncio.empty()) {
             boss->RegistrarAnuncio(fase.nome, fase.anuncio);
         }
 
-        // E AS ETAPAS: onde cada uma acaba, e o que o placar diz durante ela.
+        // E as etapas: onde cada uma acaba, e o que o placar diz durante ela.
         if (!fase.etapas.empty()) {
             std::vector<std::pair<float, std::string>> fimETexto;
             float fim = 0.0f;
@@ -360,7 +303,7 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
             boss->RegistrarEtapas(fase.nome, std::move(fimETexto));
         }
 
-        // E O INTERCAMBIO, pelo mesmo caminho: quem move os alunos e a batalha.
+        // E o intercambio, pelo mesmo caminho: quem move os alunos e a batalha.
         if (fase.intercambio) {
             boss->RegistrarIntercambio(fase.nome, fase.intercambio->aCada,
                                        fase.intercambio->aviso);

@@ -15,8 +15,6 @@
 #include "../../Motor/CaminhosArquivo.h"
 #include "../../Interface/Hud.h"
 
-
-
 PlayerProjectile::PlayerProjectile(Scene *scene, Actor *owner) :
         PlayerProjectile(scene, owner, 0)
 {
@@ -31,7 +29,7 @@ PlayerProjectile::PlayerProjectile(Scene *scene, Actor *owner, const size_t quem
     static std::uint64_t proximo = 0;
     mId = ++proximo;
 
-    // A FOLHA DO ALUNO: PlayerProjectile1 o primeiro, PlayerProjectile2 o segundo.
+    // A folha do aluno: PlayerProjectile1 o primeiro, PlayerProjectile2 o segundo.
     const std::string folha = quem == 1 ? "Player/PlayerProjectile2" : "Player/PlayerProjectile1";
     std::string spritePath = Caminhos::Asset(folha + ".png");
     std::string dataPath = Caminhos::Asset(folha + ".json");
@@ -41,7 +39,7 @@ PlayerProjectile::PlayerProjectile(Scene *scene, Actor *owner, const size_t quem
     drawComp->AddAnimation("Active", {0,1,2,3,4,5,6});
     drawComp->SetAnimation("Active");
 
-    // TODO 100.0 - Modo dificil o projétil só vai pra cima, Modo normal ela segue o Boss
+    // Todo 100.0 - Modo dificil o projétil só vai pra cima, Modo normal ela segue o Boss.
     auto rigidComp = AddComponent<RigidBodyComponent>();
     drawComp->SetIsVisible(false);
 
@@ -59,8 +57,7 @@ PlayerProjectile::PlayerProjectile(Scene *scene, Actor *owner, const std::string
     static std::uint64_t proximo = 1ull << 40;   // longe dos do outro construtor
     mId = ++proximo;
 
-    // O TIRO DO ORIENTADOR TEM A CARA DA MATERIA DELE, e um contorno da cor
-    // dos aliados - o mesmo projetil, do outro lado, e do Hugo.
+    // O tiro do orientador tem a cara da materia dele, e um contorno da cor dos aliados.
     auto drawComp = AddComponent<DrawAnimatedComponent>(Caminhos::Asset(folha + ".png"),
                                                         Caminhos::Asset(folha + ".json"), 51);
     drawComp->AddAnimation("Active", {quadro});
@@ -71,7 +68,7 @@ PlayerProjectile::PlayerProjectile(Scene *scene, Actor *owner, const std::string
 
     AddComponent<RigidBodyComponent>();
 
-    // O ALCANCE E O DO TIRO DE SEMPRE: a cara muda, o acerto nao.
+    // O alcance e o do tiro de sempre: a cara muda, o acerto nao.
     auto collider = AddComponent<CircleColliderComponent>(kRaioDoTiro);
     collider->SetEnabled(false);
     collider->SetTag(ColliderTag::PlayerProjectile);
@@ -90,14 +87,13 @@ bool PlayerProjectile::IsOffScreen() const
     return false;
 }
 
-
 void PlayerProjectile::OnUpdate(float deltaTime) {
     Projectile::OnUpdate(deltaTime);
 
-    // A PROMESSA QUE NAO ACERTOU NADA volta do alto do campo, em vez de sumir.
+    // A promessa que nao acertou nada volta do alto do campo, em vez de sumir.
     if (mPromessa && !mVoltando && GetPosition().y < kAltoDaVolta) Voltar();
 
-    // NA VOLTA ela persegue quem a lancou, e some ao chegar.
+    // Na volta ela persegue quem a lancou, e some ao chegar.
     if (mVoltando && mOwner) {
         const Vector2 falta = mOwner->GetPosition() - GetPosition();
         if (falta.Length() < kChegou) {
@@ -118,13 +114,13 @@ void PlayerProjectile::OnUpdate(float deltaTime) {
         SetScale(mEscalaInteira * Hud::Murcho(mMurcha));
     }
 
-    //----- ULTIMA COISA DO UPDATE: Ver colisão. Pois com colisão o objeto pode ser destruído.
+    // ---- Ultima coisa do update: Ver colisão. Pois com colisão o objeto pode ser destruído ----
 }
 
 void PlayerProjectile::ActivateProjectile() {
     SetState(ActorState::Active);
 
-    // Liga os componentes
+    // Liga os componentes.
     if (auto comp = GetComponent<DrawAnimatedComponent>()) {
         comp->SetIsVisible(true);
         comp->SetEnabled(true);
@@ -144,8 +140,6 @@ void PlayerProjectile::Voltar() {
     } else {
         mRapidezDaVolta = kRapidezMinimaDaVolta;
     }
-    // RESOLVIDA: o contorno passa do azul dos aliados ao dourado do Ponto
-    // Extra, e ela cresce um pouco - agora ela tem valor, e se ve que volta.
     if (auto* d = GetComponent<DrawAnimatedComponent>()) d->DefinirContorno(true, SDL_Color{255, 215, 80, 255});
     SetScale(GetScale() * 1.25f);
 }
@@ -155,7 +149,7 @@ void PlayerProjectile::Murchar() {
     mMurcha = 0.0f;
     mEscalaInteira = GetScale();
 
-    // CAI DEVAGAR, em vez de seguir subindo: a pergunta perdeu o folego.
+    // Cai devagar, em vez de seguir subindo: a pergunta perdeu o folego.
     if (auto* rb = GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2(0.0f, 110.0f));
     if (auto* c = GetComponent<CircleColliderComponent>()) c->SetEnabled(false);
     if (auto* d = GetComponent<DrawAnimatedComponent>()) {
@@ -175,9 +169,7 @@ void PlayerProjectile::OnCollision(Actor *other) {
     auto otherCollider = other->GetComponent<CircleColliderComponent>();
     if (!otherCollider) return;
 
-    // O CHEFE, OU UM PROJETIL DELE QUE O TIRO DERRUBOU. Battle so chama isto com
-    // um projetil de chefe quando ele e derrubavel (os processos do Lucas): o
-    // tiro gasta-se nele e nao segue ate o chefe.
+    // O chefe, ou um projetil dele que o tiro derrubou.
     if (otherCollider->GetColliderTag() == ColliderTag::Boss
         || otherCollider->GetColliderTag() == ColliderTag::BossProjectile) {
         DeactivateProjectile();

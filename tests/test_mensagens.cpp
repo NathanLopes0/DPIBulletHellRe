@@ -23,7 +23,6 @@ TEST_CASE("Mensagens: as rodadas cabem na fase, e comecam depois do fork") {
         CAPTURE(k);
         for (const Evento& e : Roteiro(RodadaDaVez(k))) {
             CHECK(e.quando < kPorRodada);
-            // TODO ENVELOPE CHEGA ANTES DE A RODADA ACABAR.
             if (e.o == Acontece::Envia || e.o == Acontece::Responde) CHECK(e.quando + e.voo < kPorRodada);
         }
     }
@@ -118,8 +117,7 @@ TEST_CASE("Mensagens: os dois processos no alto, o cliente a esquerda, e o arco 
         const float fundo = Fundo(RodadaDaVez(k));
         const Ponto meio = NoArco(cliente, servidor, 0.5f, fundo);
         CHECK(meio.y == doctest::Approx(fundo));
-        // NAS RODADAS DE MUITOS ENVELOPES o canal vai ate o chao; nas outras o
-        // aluno embaixo passa por baixo dele.
+        // Nas rodadas de muitos envelopes o canal vai ate o chao.
         const Rodada r = RodadaDaVez(k);
         if (r == Rodada::Assincrona || r == Rodada::Impasse) CHECK(fundo >= 698.0f);
         else CHECK(fundo < 680.0f);
@@ -134,13 +132,10 @@ TEST_CASE("Mensagens: os dois processos no alto, o cliente a esquerda, e o arco 
     CHECK(Nome(kServidor) == "servidor");
 }
 
-// ---- A VARIACAO E O DEGRAU ---------------------------------------------------
+// ---- A variacao e o degrau ----
 
 namespace {
-    /// Confere num roteiro as regras de todas as rodadas: tudo cabe na rodada,
-    /// ninguem recebe da caixa vazia, a assincrona enche e esvazia, cada envio
-    /// da sincrona tem o seu rendezvous, a rpc devolve a soma das chamadas do
-    /// plano, e no impasse ninguem recebe antes do timeout.
+    /// Confere num roteiro as regras de todas as rodadas.
     void ConferirRodada(const Rodada r, const Plano& p, const Degrau& d) {
         CAPTURE(static_cast<int>(r));
         const auto roteiro = Roteiro(r, p, d);
@@ -161,9 +156,7 @@ namespace {
                 ++resultados;
             }
         }
-        // QUEM RECEBE COM receive() esvazia a caixa: o cliente na assincrona, os
-        // dois depois do timeout. (Na sincrona e na rpc o recebimento e o
-        // rendezvous e a resposta, e nao a caixa.)
+        // Quem recebe com receive() esvazia a caixa: o cliente na assincrona, os dois depois do timeout.
         if (r == Rodada::Assincrona) CHECK(NaCaixa(roteiro, kCliente, kPorRodada) == 0);
         if (r == Rodada::Impasse) {
             CHECK(NaCaixa(roteiro, kCliente, kPorRodada) == 0);
@@ -172,7 +165,7 @@ namespace {
         if (r == Rodada::Assincrona) CHECK(maior >= 3);
         if (r == Rodada::Rpc) CHECK(resultados == kChamadas);
         if (r == Rodada::Sincrona) {
-            // CADA ENVIO TEM O SEU RENDEZVOUS, quando o envelope chega.
+            // Cada envio tem o seu rendezvous, quando o envelope chega.
             int envios = 0, encontros = 0;
             for (const Evento& e : roteiro) {
                 if (e.o == Acontece::Encontro) ++encontros;
@@ -272,7 +265,7 @@ TEST_CASE("Mensagens: o degrau - o Dificil enche mais a caixa e atira mais") {
     CHECK(d.depoisDoTimeout > n.depoisDoTimeout);
     CHECK(d.anelDoEncontro > n.anelDoEncontro);
     CHECK(d.rapidez > n.rapidez);
-    // A CAIXA DO CLIENTE ENCHE MAIS no Dificil.
+    // A caixa do cliente enche mais no Dificil.
     auto maiorCaixa = [](const Degrau& g) {
         const auto r = Roteiro(Rodada::Assincrona, PlanoDeSempre(), g);
         int maior = 0;

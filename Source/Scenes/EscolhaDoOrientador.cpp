@@ -49,9 +49,7 @@ void EscolhaDoOrientador::Load() {
 
     CriarFundoDoCorredor(*this);
 
-    // UM PROGRESSO POR ALUNO: em dupla a nota de cada materia e a maior dos
-    // dois (Orientacao::Candidatos). O mapa do curso e do jogador 1 (RF3), mas
-    // aqui o que se mede e quem a dupla conhece melhor.
+    // O mapa do curso e do jogador 1, mas aqui o que se mede e quem a dupla conhece melhor.
     std::vector<const Progresso*> alunos;
     for (const auto& sessao : mGame->Sessoes()) alunos.push_back(&sessao.progresso);
 
@@ -59,9 +57,7 @@ void EscolhaDoOrientador::Load() {
     const int quantos = std::min(static_cast<int>(alunos.size()), kMaxAlunos);
     mVotacao = Orientacao::Votacao(static_cast<int>(mCandidatos.size()), std::max(1, quantos));
 
-    // OS CARTOES CENTRADOS, quantos forem. Quem abre o TCC tem sempre tres (o
-    // teste de dados garante), mas a tela nao pode depender disso para nao
-    // desenhar um buraco.
+    // Os cartoes centrados, quantos forem.
     const float meio = static_cast<float>(mGame->GetWindowWidth()) / 2.0f;
     const float primeiro = mCandidatos.empty() ? 0.0f : -0.5f * static_cast<float>(mCandidatos.size() - 1);
     for (size_t i = 0; i < mCandidatos.size(); ++i) {
@@ -98,8 +94,7 @@ void EscolhaDoOrientador::CriarCabecalho() {
     const float meio = static_cast<float>(mGame->GetWindowWidth()) / 2.0f;
     Texto("ESCOLHA O ORIENTADOR", Vector2(meio, 58.0f), 34, 700, Color::White);
 
-    // QUEM COBRA E O PROFESSOR DA MATERIA, e nao um nome escrito aqui: a
-    // materia que pede orientacao e a que foi selecionada.
+    // Quem cobra e o professor da materia, e nao um nome escrito aqui.
     const Materias::Materia* m = Materias::Carregadas().Por(mGame->GetSelectedStage());
     const std::string banca = (m && !m->professor.empty())
         ? ("O Prof. " + m->professor + " cobra monografias e perguntas de banca.")
@@ -124,8 +119,6 @@ void EscolhaDoOrientador::CriarCartao(const int indice) {
         kMolduraDoCartao, kFundoDoCartao, 2, kOrdemDoCartao);
     AddActor(std::move(cartao));
 
-    // O RETRATO E O CARTAO DE CHEFE DELE, lido da fabrica (IBossFactory::Retrato):
-    // o rosto que o aluno enfrentou na materia e o que agora luta do lado dele.
     DrawSpriteComponent* retrato = nullptr;
     if (IBossFactory* fabrica = mGame->GetFactory(static_cast<size_t>(c.materia))) {
         auto rosto = std::make_unique<Actor>(this);
@@ -143,7 +136,6 @@ void EscolhaDoOrientador::CriarCartao(const int indice) {
     Texto(m ? m->nomeCompleto : std::string(), centro + Vector2(0.0f, 98.0f), 18, largura,
           Color::LightBlue, 2);
 
-    // A NOTA QUE TROUXE O PROFESSOR ATE AQUI - e, na dupla, de quem ela e.
     std::stringstream nota;
     nota << "Nota " << std::fixed << std::setprecision(2) << c.nota;
     const Vector3 corDaNota = Nota::ECheia(c.nota) ? Color::Gold : Color::LightGreen;
@@ -188,8 +180,7 @@ void EscolhaDoOrientador::CriarRodape() {
         return;
     }
 
-    // UMA LINHA POR ALUNO, da cor dele: as teclas de cada um sao outras, e no
-    // gabinete e o lado do painel que diz de quem e o manche.
+    // Uma linha por aluno, da cor dele.
     for (int a = 0; a < mVotacao.Alunos(); ++a) {
         const Painel::Jogador quem = DoAluno(a);
         const std::string linha = "J" + std::to_string(a + 1) + "   " + Painel::Rodape(
@@ -215,7 +206,7 @@ void EscolhaDoOrientador::OnProcessInput(const Uint8* keyState) {
         bool votar    = Painel::Apertado(keyState, quem, Painel::Botao::Um);
         bool desfazer = Painel::Apertado(keyState, quem, Painel::Botao::Dois);
         if (a == 0) {
-            // O ENTER e o ESC de quem desenvolve, como na selecao de fases.
+            // O enter e o ESC de quem desenvolve, como na selecao de fases.
             votar = votar || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
             desfazer = desfazer || keyState[SDL_SCANCODE_ESCAPE];
         }
@@ -227,8 +218,7 @@ void EscolhaDoOrientador::OnProcessInput(const Uint8* keyState) {
             if (mVotacao.Desfazer(a)) {
                 mMudou = true;
             } else if (a == 0) {
-                // SEM VOTO PARA DESFAZER, O J1 DESISTE DO TCC: volta para a
-                // selecao, sem orientador nenhum guardado.
+                // Sem voto para desfazer, o J1 desiste do TCC.
                 mSaindo = true;
                 mGame->DefinirOrientador(-1);
                 mGame->RequestSceneChange(SceneType::StageSelect);
@@ -254,8 +244,7 @@ void EscolhaDoOrientador::OnUpdate(const float deltaTime) {
         mMudou = false;
     }
 
-    // SEM CANDIDATO A BATALHA SEGUE SOZINHA, depois do mesmo anuncio: e melhor
-    // que prender o aluno numa tela sem nada para escolher.
+    // Sem candidato a batalha segue sozinha, depois do mesmo anuncio.
     const bool decidido = mCandidatos.empty() || escolhido >= 0;
     if (!decidido) return;
 
@@ -303,8 +292,6 @@ void EscolhaDoOrientador::Atualizar() {
         const Vector2 centro = temCartao ? mCentros[static_cast<size_t>(mVotacao.Cursor(a))] : Vector2::Zero;
         const bool votou = mVotacao.Votou(a);
 
-        // O CURSOR ACENDE QUANDO TRAVA: andando ele e meio apagado, votado e
-        // a cor cheia, com o selo em cima do cartao.
         cursor->SetPosition(centro);
         if (auto* caixa = cursor->GetComponent<DrawCaixaComponent>()) {
             SDL_Color cor = CorDoAluno(a);
@@ -319,7 +306,7 @@ void EscolhaDoOrientador::Atualizar() {
         if (auto* dc = selo->GetComponent<DrawTextComponent>()) dc->SetIsVisible(temCartao && votou);
     }
 
-    // ENQUANTO O ESCOLHIDO E ANUNCIADO, OS OUTROS ESCURECEM.
+    // Enquanto o escolhido e anunciado, os outros escurecem.
     for (size_t i = 0; i < mRetratos.size(); ++i) {
         if (!mRetratos[i]) continue;
         const Uint8 luz = (mEscolhido < 0 || static_cast<int>(i) == mEscolhido) ? 255 : kRetratoApagado;

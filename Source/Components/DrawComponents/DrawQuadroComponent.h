@@ -6,18 +6,7 @@
 
 #include "DrawComponent.h"
 
-/**
- * @class DrawQuadroComponent
- * @brief O QUADRO-NEGRO do canto da batalha, onde o professor escreve o que
- * esta fazendo.
- *
- * Era uma caixa verde com um fio cinza. Agora e um quadro: a moldura de
- * madeira, a lousa verde com o po de giz, a canaleta embaixo com um toco de
- * giz - e, quando o texto troca, o APAGADOR passa (Apagar): o aluno ve que ha
- * coisa nova escrita, sem precisar comparar com o que estava ali.
- *
- * A posicao do dono e o CENTRO do quadro, como na DrawCaixaComponent.
- */
+/// O quadro-negro do canto da batalha, onde o professor escreve o que esta fazendo.
 class DrawQuadroComponent : public DrawComponent {
 public:
     DrawQuadroComponent(class Actor* owner, int largura, int altura, int drawOrder);

@@ -35,7 +35,7 @@ TEST_CASE("Cronograma: as barras cabem no grafico, nao se encostam na linha, e o
                 CHECK(t.linha < kLinhas);
                 nomes.insert(t.nome);
                 assinatura += std::to_string(t.linha) + ":" + std::to_string(static_cast<int>(t.de)) + " ";
-                // EM ORDEM DE PRAZO, e cada queda com o seu tempo.
+                // Em ordem de prazo, e cada queda com o seu tempo.
                 if (i > 0) CHECK(t.ate - tarefas[i - 1].ate >= kSeparacao - 1e-3f);
                 for (size_t j = 0; j < i; ++j) {
                     const Tarefa& u = tarefas[j];

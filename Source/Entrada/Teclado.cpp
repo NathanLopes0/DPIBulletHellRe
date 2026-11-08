@@ -43,9 +43,7 @@ Navegacao::Grade Grade() {
 
     Navegacao::Grade grade(static_cast<size_t>(maiorColuna) + 1);
 
-    // Em ordem de LINHA dentro de cada coluna, e nao na ordem em que as teclas
-    // aparecem na lista: a navegacao vertical anda por esta ordem, e se ela nao
-    // fosse a de cima para baixo, a seta para baixo subiria.
+    // Em ordem de linha dentro de cada coluna, e nao na ordem em que as teclas aparecem na lista.
     for (int linha = 0; ; ++linha) {
         bool achouAlguma = false;
         for (size_t i = 0; i < teclas.size(); ++i) {

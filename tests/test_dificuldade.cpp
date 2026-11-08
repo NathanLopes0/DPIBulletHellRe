@@ -21,7 +21,7 @@ TEST_CASE("Dificuldade: cada nivel tem nome, descricao e uma chave so dele") {
         chaves.insert(Dificuldade::Chave(n));
         nomes.insert(Dificuldade::Nome(n));
 
-        // A CHAVE E ASCII: o CSV abre igual em qualquer editor.
+        // A chave e ASCII: o CSV abre igual em qualquer editor.
         for (const char c : std::string(Dificuldade::Chave(n))) CHECK(static_cast<unsigned char>(c) < 128);
     }
     CHECK(chaves.size() == static_cast<size_t>(Dificuldade::kQuantos));
@@ -46,9 +46,6 @@ TEST_CASE("Dificuldade: Escolher devolve o valor do nivel") {
 }
 
 TEST_CASE("Configuracao: a dificuldade nao e opcao da maquina") {
-    // ELA E DA PARTIDA (Game::NivelDeDificuldade): o arquivo nao a escreve, e a
-    // linha de um arquivo antigo e uma opcao desconhecida como outra qualquer -
-    // vira aviso no log, e o resto do arquivo vale.
     CHECK(Configuracao::Serializar(Configuracao::Dados{}).find("dificuldade") == std::string::npos);
     const auto antigo = Configuracao::Ler("dificuldade=dificil\nhitbox=sim\n");
     CHECK(antigo.problemas.size() == 1u);
@@ -132,7 +129,7 @@ TEST_CASE("Dificuldade: no Dificil a invencibilidade depois de um acerto e bem m
     using Dificuldade::Nivel;
     CHECK(Dificuldade::Invencibilidade(Nivel::Normal) == doctest::Approx(1.2f));
     CHECK(Dificuldade::Invencibilidade(Nivel::Dificil) <= Dificuldade::Invencibilidade(Nivel::Normal) / 2.0f);
-    // AINDA PISCA: abaixo de um piscar (0,1 s) o aluno nem veria que foi acertado.
+    // Ainda pisca: abaixo de um piscar (0,1 s) o aluno nem veria que foi acertado.
     CHECK(Dificuldade::Invencibilidade(Nivel::Dificil) >= 0.3f);
 }
 
@@ -156,9 +153,9 @@ TEST_CASE("Acerto: o pool recicla o endereco, e o tiro novo nao herda a memoria 
     int tiro = 0;
     m.Lembrar(&tiro, 2.0f);
     m.Avancar(0.2f);
-    // O MESMO ENDERECO, mas com 0,1 s de vida: morreu e voltou como outro tiro.
+    // O mesmo endereco, mas com 0,1 s de vida: morreu e voltou como outro tiro.
     CHECK_FALSE(m.Lembra(&tiro, 0.1f));
-    // O CORPO DO CHEFE nao envelhece: idade 0 sempre.
+    // O corpo do chefe nao envelhece: idade 0 sempre.
     int corpo = 0;
     m.Lembrar(&corpo, 0.0f);
     CHECK(m.Lembra(&corpo, 0.0f));

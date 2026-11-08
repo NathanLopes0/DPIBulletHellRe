@@ -24,16 +24,12 @@ Lance Passo(Corda& corda, const Vector2 posicao, const Vector2 velocidade,
     if (modulo <= 0.0f) return lance;
 
     if (corda.solta < 0.0f) {
-        // A CORDA NASCE NO NO, com a direcao do voo. Nem a distancia nem a
-        // direcao da posicao servem: no primeiro quadro o professor ja andou um
-        // pouco, e cada letra da roda estaria a uma distancia diferente dele -
-        // as letras esticariam em quadros diferentes e a roda sairia torta.
+        // A corda nasce no no, com a direcao do voo.
         corda.angulo = std::atan2(velocidade.y, velocidade.x);
         corda.solta = 0.0f;
     }
 
-    // O giro no sentido HORARIO DA TELA aumenta o angulo: com o y para baixo,
-    // ir de +x para +y e girar no sentido do relogio.
+    // O giro no sentido horario da tela aumenta o angulo.
     const float sinal = (corda.sentido == Sentido::Horario) ? 1.0f : -1.0f;
 
     if (corda.amarrada < 0.0f) {

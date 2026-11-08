@@ -16,9 +16,9 @@ namespace BarraDaNota {
     }
 
     void Avancar(Estado& e, const float nota, const float dt) {
-        // SUBIU: o clarao, e o rastro vai junto (nao ha o que mostrar perdido).
+        // Subiu: o clarao, e o rastro vai junto (nao ha o que mostrar perdido).
         if (nota > e.nota + 1e-4f) e.brilho = 1.0f;
-        // CAIU: o rastro fica onde a nota estava, e a barra sacode.
+        // Caiu: o rastro fica onde a nota estava, e a barra sacode.
         if (nota < e.nota - 1e-4f) {
             e.rastro = std::max(e.rastro, e.nota);
             e.rastroParado = kRastroParado;
@@ -26,12 +26,12 @@ namespace BarraDaNota {
         }
         e.nota = nota;
 
-        // O PREENCHIMENTO CORRE ATRAS da nota: rapido, mas nao de uma vez.
+        // O preenchimento corre atras da nota: rapido, mas nao de uma vez.
         const float passo = std::min(1.0f, kPerseguicao * dt);
         e.mostrada += (nota - e.mostrada) * passo;
         if (std::fabs(nota - e.mostrada) < 0.01f) e.mostrada = nota;
 
-        // O RASTRO: parado um instante, depois encolhe ate o preenchimento.
+        // O rastro: parado um instante, depois encolhe ate o preenchimento.
         if (e.rastro <= e.mostrada) {
             e.rastro = e.mostrada;
         } else if (e.rastroParado > 0.0f) {

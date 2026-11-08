@@ -28,7 +28,7 @@ namespace Golpe {
         Rodada r;
         switch (m) {
             case Materia::Andre:
-                // for (i = 0; i < 4; i++) - um tiro por volta do laco.
+                // For (i = 0; i < 4; i++) - um tiro por volta do laco.
                 r.duracao = 2.0f;
                 for (int i = 0; i < 4; ++i) {
                     Tiro t;
@@ -38,8 +38,7 @@ namespace Golpe {
                 break;
 
             case Materia::Salles:
-                // PUSH, PUSH, PUSH, PUSH - cada um em cima do outro -, e o POP
-                // comeca pelo de cima: o ultimo empilhado sai primeiro.
+                // Push, push, push, push - cada um em cima do outro -, e o pop comeca pelo de cima.
                 r.duracao = 2.0f;
                 for (int i = 0; i < 4; ++i) {
                     Tiro t;
@@ -52,7 +51,7 @@ namespace Golpe {
                 break;
 
             case Materia::Ricardo: {
-                // O BARRAMENTO: oito fios, e so os bits 1 do byte atiram.
+                // O barramento: oito fios, e so os bits 1 do byte atiram.
                 r.duracao = 1.5f;
                 const auto bits = Byte(s);
                 for (int b = 0; b < 8; ++b) {
@@ -66,7 +65,7 @@ namespace Golpe {
             }
 
             case Materia::Thiago:
-                // CADA ESCRITA FICA NA LINHA, esperando o COMMIT.
+                // Cada escrita fica na linha, esperando o commit.
                 r.duracao = 3.0f;
                 for (int i = 0; i < 6; ++i) {
                     Tiro t;
@@ -79,7 +78,7 @@ namespace Golpe {
                 break;
 
             case Materia::Luizinho:
-                // DOIS PONTEIROS, um de cada lado, apontando para o chefe.
+                // Dois ponteiros, um de cada lado, apontando para o chefe.
                 r.duracao = 1.0f;
                 for (const float lado : {-60.0f, 60.0f}) {
                     Tiro t;
@@ -101,7 +100,7 @@ namespace Golpe {
             }
 
             case Materia::Julio:
-                // O GRADIENTE: cada passo erra para um lado, e erra menos.
+                // O gradiente: cada passo erra para um lado, e erra menos.
                 r.duracao = 1.5f;
                 for (int i = 0; i < 3; ++i) {
                     Tiro t;
@@ -112,12 +111,12 @@ namespace Golpe {
                 break;
 
             case Materia::MariaLucia:
-                // O OBSERVER nao tem relogio: quem dispara e o aluno.
+                // O observer nao tem relogio: quem dispara e o aluno.
                 r.duracao = 1.0f;
                 break;
 
             case Materia::Lucas:
-                // O FETCH vai ao servidor, de lado, e a resposta volta no chefe.
+                // O fetch vai ao servidor, de lado, e a resposta volta no chefe.
                 r.duracao = 1.5f;
                 for (int i = 0; i < 3; ++i) {
                     Tiro t;
@@ -129,7 +128,7 @@ namespace Golpe {
                 break;
 
             case Materia::Vitor: {
-                // A JANELA: uma rajada do tamanho dela.
+                // A janela: uma rajada do tamanho dela.
                 r.duracao = 2.2f;
                 const int n = Janela(k);
                 for (int i = 0; i < n; ++i) {
@@ -237,8 +236,7 @@ namespace Golpe {
         v.idade += dt;
         const Tiro& t = v.tiro;
 
-        // A ESPERA: parado junto de quem atirou - na pilha, na linha da
-        // transacao -, e depois parte mirado no alvo.
+        // A espera: parado junto de quem atirou.
         if (!v.partiu) {
             if (v.idade < t.espera) {
                 p.posicao = ancora + Vector2(t.dx, t.dy);
@@ -246,29 +244,29 @@ namespace Golpe {
                 return p;
             }
             v.partiu = true;
-            // O PARALELO PARTE NO RUMO DE QUEM ATIROU: a linha inteira anda junta.
+            // O paralelo parte no rumo de quem atirou: a linha inteira anda junta.
             const Vector2 direcao = Rumo(t.paralelo ? ancora : posicao, alvo, t.desvio);
             p.velocidade = direcao * t.velocidade;
             v.deLado = Vector2(-direcao.y, direcao.x);
         }
         const float voo = v.idade - std::max(0.0f, t.espera);
 
-        // O PONTEIRO: curva na direcao do alvo.
+        // O ponteiro: curva na direcao do alvo.
         if (t.curva > 0.0f && voo < t.curvaAte) {
             p.velocidade = Curvar(p.velocidade, alvo - posicao, t.curva, dt);
         }
-        // O FETCH: a resposta volta, e aponta para o alvo de uma vez.
+        // O fetch: a resposta volta, e aponta para o alvo de uma vez.
         if (t.reMira > 0.0f && !v.remirou && voo >= t.reMira) {
             v.remirou = true;
             p.velocidade = Rumo(posicao, alvo, 0.0f) * p.velocidade.Length();
         }
-        // O GRADIENTE: o desvio de lado, que se apaga.
+        // O gradiente: o desvio de lado, que se apaga.
         if (t.onda != 0.0f) {
             const float agora = Oscilacao(voo, t.onda);
             p.posicao = p.posicao + v.deLado * (agora - v.deslocado);
             v.deslocado = agora;
         }
-        // A GRAMATICA: S -> S S.
+        // A gramatica: s -> s s.
         if (t.divide > 0.0f && voo >= t.divide) p.divide = true;
         return p;
     }

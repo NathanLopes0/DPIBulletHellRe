@@ -8,12 +8,8 @@
 
 class DrawMolduraDoCampoComponent;
 
-/**
- * @class ClaroesDaMoldura
- * @brief Ouve a batalha (OuvinteDaBatalha) e acende a moldura do campo: vermelho
- * no tiro sofrido, ouro no Ponto Extra, lilas na troca de fase, azul na
- * travessia da rede. Cada clarao some sozinho (DrawMolduraDoCampoComponent).
- */
+/// Ouve a batalha (OuvinteDaBatalha) e acende a moldura do campo. Cada clarao some sozinho
+/// (DrawMolduraDoCampoComponent).
 class ClaroesDaMoldura : public OuvinteDaBatalha {
 public:
     explicit ClaroesDaMoldura(DrawMolduraDoCampoComponent& moldura) : mMoldura(moldura) {}

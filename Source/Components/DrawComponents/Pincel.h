@@ -9,15 +9,7 @@
 #include <cmath>
 #include <SDL.h>
 
-/**
- * UM LUGAR SO para as primitivas da HUD: misturar cores, clarear, escurecer, e
- * a caixa de pontas redondas pintada linha a linha (com a cor de cada linha
- * dada por quem chama - e assim que sai o volume, claro em cima e escuro
- * embaixo). Antes, cada desenho da HUD tinha a sua copia, e copias assim
- * acabam ajustadas uma de cada vez ate deixarem de combinar.
- *
- * Quem chama poe o renderer em SDL_BLENDMODE_BLEND antes (e devolve depois).
- */
+/// Um lugar so para as primitivas da HUD.
 namespace Pincel {
 
     inline SDL_Color Misturar(const SDL_Color a, const SDL_Color b, const float t) {

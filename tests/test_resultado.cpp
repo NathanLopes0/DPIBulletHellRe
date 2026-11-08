@@ -64,7 +64,6 @@ TEST_CASE("Resultado: so o gabinete volta sozinho, e so depois da espera") {
     CHECK_FALSE(VoltaSozinha(true, kEsperaNoGabinete - 0.1f));
     CHECK(VoltaSozinha(true, kEsperaNoGabinete));
     CHECK_FALSE(VoltaSozinha(false, 10.0f * kEsperaNoGabinete));   // no computador, nunca
-    // A espera tem de passar da trava do menu: senao o gabinete sairia antes
-    // de alguem poder escolher.
+    // A espera tem de passar da trava do menu.
     CHECK(kEsperaNoGabinete > kTravaDoMenu);
 }

@@ -125,7 +125,7 @@ namespace Funcao {
 
     std::string PlacarComValores(const Comando& c, const int casaDoAluno) {
         const auto args = ArgumentosDaExterna(c, casaDoAluno);
-        // A COPIA diz de onde veio: a casa do aluno no instante da chamada.
+        // A copia diz de onde veio: a casa do aluno no instante da chamada.
         const std::string copia = c.forma == Forma::PorValor ? "aluno = " + N(casaDoAluno) + ": " : "";
         switch (Externa(c)) {
             case Nome::Baloes: return copia + "baloes(" + N(args[0]) + ", " + N(args[1]) + ");";

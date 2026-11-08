@@ -9,25 +9,13 @@
 
 #include "../Aluno/Progresso.h"
 
-/**
- * CAMADA PURA. Transforma texto em lista de materias e responde perguntas sobre
- * ela; nao abre arquivo, nao conhece Game nem SDL.
- *
- * POR QUE ISTO EXISTE. A lista de materias era um enum em Game.h e mais cinco
- * lugares em C++ que repetiam pedacos dela - o mapa de chefes, os nomes em tela,
- * as colunas (duplicadas, com nomes trocados entre os dois arquivos), a
- * quantidade e o tamanho de cada coluna. Mudar uma materia exigia acertar os
- * seis, e esquecer um nao dava erro de compilacao.
- *
- * E, pior: a POSICAO no enum era a chave gravada no save do aluno. Reordenar a
- * lista reinterpretava todos os saves em silencio. Aqui a chave e o CODIGO, um
- * texto que nao muda quando a ordem muda.
- */
+/// Transforma texto em lista de materias e responde perguntas sobre ela; nao abre arquivo, nao
+/// conhece Game nem SDL.
 namespace Materias {
 
     enum class TipoDeDesbloqueio {
         Sempre,              ///< a porta de entrada do curso
-        AprovadoEm,          ///< aprovacao em TODAS as materias listadas
+        AprovadoEm,          ///< Aprovacao em todas as materias listadas.
         AprovadasNaColuna    ///< N aprovacoes entre as materias de uma coluna
     };
 
@@ -40,119 +28,69 @@ namespace Materias {
     };
 
     struct Materia {
-        /// A CHAVE ESTAVEL. Vai para o save do aluno e para a exportacao do
-        /// professor. Reordenar a lista nao mexe nela; trocar o codigo e, para o
-        /// jogo, aposentar a materia e criar outra.
+        /// A chave estavel. Vai para o save do aluno e para a exportacao do professor.
         std::string codigo;
 
         /// O que aparece no botao. Pode mudar sem efeito nenhum sobre os saves.
         std::string nome;
 
-        /// O nome da disciplina: "Banco de Dados". Pode faltar - e so nao
-        /// mostrar. Nunca vai para o disco nem entra em regra nenhuma.
+        /// O nome da disciplina: "Banco de Dados". Pode faltar - e so nao mostrar.
         std::string nomeCompleto;
 
-        /// Quem da a materia. INDEPENDENTE de 'chefe': o TCC e do Hugo e nao tem
-        /// batalha. Ter professor nao e ter luta, e a tela nao pode ler um pelo
-        /// outro.
+        /// Quem da a materia. Independente de 'chefe': o TCC e do Hugo e nao tem batalha.
         std::string professor;
 
-        /// A posicao na grade da selecao de fase, a partir de 0. A coluna tambem e
-        /// o que as regras de desbloqueio usam, entao ela e declarada UMA vez.
+        /// A posicao na grade da selecao de fase, a partir de 0. A coluna tambem e o que as regras
+        /// de desbloqueio usam, entao ela e declarada uma vez.
         int coluna = 0;
 
-        /// Qual chefe esta materia usa. Vazio = batalha ainda nao feita, que e
-        /// o caso de seis das onze hoje. NAO e "sem professor": ver acima.
+        /// Qual chefe esta materia usa. Vazio = batalha ainda nao feita, que e o caso de seis das
+        /// onze hoje.
         std::string chefe;
-        /// Se a batalha desta materia pede um ORIENTADOR antes de comecar - o
-        /// TCC. Quem pode orientar e quem decide entre eles e Orientacao.h.
+        /// Se a batalha desta materia pede um orientador antes de comecar - o TCC. Quem pode
+        /// orientar e quem decide entre eles e Orientacao.h.
         bool orientacao = false;
 
         Desbloqueio desbloqueio;
     };
 
-    /**
-     * @brief A lista lida, mais as consultas que o jogo faz sobre ela.
-     *
-     * As consultas moram aqui, e nao espalhadas por quem usa, porque e assim que
-     * "quais materias tem a coluna 1" deixa de existir em duas versoes.
-     */
+    /// A lista lida, mais as consultas que o jogo faz sobre ela.
     struct Lista {
         std::vector<Materia> materias;
         std::vector<std::string> problemas;
 
         [[nodiscard]] int Quantas() const { return static_cast<int>(materias.size()); }
 
-        /// @brief O indice de um codigo, ou -1 se nao existe.
-        ///
-        /// O INDICE E DE USO INTERNO E NAO DURAVEL: ele muda quando a lista muda, e
-        /// e exatamente por isso que o que vai para o disco e o codigo.
+        /// O indice de um codigo, ou -1 se nao existe.
         [[nodiscard]] int IndiceDe(const std::string& codigo) const;
 
-        /// @brief A materia nesse indice, ou nullptr se estiver fora da lista.
+        /// A materia nesse indice, ou nullptr se estiver fora da lista.
         [[nodiscard]] const Materia* Por(int indice) const;
 
-        /// @brief O codigo nesse indice, ou vazio.
+        /// O codigo nesse indice, ou vazio.
         [[nodiscard]] std::string CodigoDe(int indice) const;
 
-        /// @brief Os indices das materias de uma coluna, na ordem da lista.
+        /// Os indices das materias de uma coluna, na ordem da lista.
         [[nodiscard]] std::vector<int> DaColuna(int coluna) const;
 
-        /// @brief Quantas colunas a grade tem (a maior coluna usada, mais um).
+        /// Quantas colunas a grade tem (a maior coluna usada, mais um).
         [[nodiscard]] int QuantasColunas() const;
 
-        /**
-         * @brief Esta materia esta liberada para este progresso?
-         *
-         * Nao recorre: "aprovado em X" olha a NOTA de X, e nao se X esta
-         * desbloqueada. Entao duas materias que se exigem mutuamente nao causam
-         * laco - elas so ficam ambas fechadas, que e o resultado correto.
-         */
+        /// Esta materia esta liberada para este progresso? Nao recorre: "aprovado em X" olha a nota
+        /// de X, e nao se X esta desbloqueada.
         [[nodiscard]] bool Desbloqueada(int indice, const Progresso& progresso) const;
 
-        /**
-         * @brief O que falta para esta materia abrir, numa frase para o aluno.
-         *
-         * Vazio quando a materia abre sempre - nao ha o que explicar.
-         *
-         * NAO olha o progresso: isto e a REGRA, e nao o estado. Quem chama ja
-         * sabe que a materia esta fechada (foi por isso que perguntou), e uma
-         * frase que mudasse conforme o que o aluno ja fez precisaria repetir a
-         * conta que Desbloqueada ja faz.
-         *
-         * Usa o NOME de cada materia exigida, e nao o codigo: e "INF 213" que o
-         * aluno ve no botao ao lado, enquanto o que vai para o disco e
-         * "INF213". A coluna aparece contada a partir de 1, que e como se conta
-         * coluna olhando para a tela.
-         */
+        /// O que falta para esta materia abrir, numa frase para o aluno. Vazio quando a materia
+        /// abre sempre - nao ha o que explicar.
         [[nodiscard]] std::string ExigenciaDe(int indice) const;
 
-        /**
-         * @brief Se TODA materia desta coluna depende APENAS da coluna de tras.
-         *
-         * A tela de selecao desenha um tronco ligando duas colunas vizinhas, e
-         * esse desenho so diz a verdade quando isto vale. Nada no formato
-         * obriga: uma materia pode exigir outra de tres colunas atras, e ai a
-         * linha estaria mentindo sobre o curso.
-         *
-         * Coluna 0 responde falso: ela nao tem anterior.
-         */
+        /// Se toda materia desta coluna depende apenas da coluna de tras.
         [[nodiscard]] bool ColunaDependeDaAnterior(int coluna) const;
     };
 
-    /**
-     * @brief Interpreta o texto de materias.json.
-     *
-     * Nunca lanca. Uma materia com problema grave e descartada e as outras
-     * continuam valendo; um problema leve vira aviso e o campo volta ao padrao.
-     *
-     * Confere tambem duas coisas que nenhum compilador pegaria: que todo codigo
-     * citado numa regra de desbloqueio existe, e que nenhuma regra e IMPOSSIVEL -
-     * pedir duas aprovacoes numa coluna de uma materia so deixaria aquela materia
-     * fechada para sempre, sem erro nenhum em jogo.
-     */
+    /// Interpreta o texto de materias.json. Nunca lanca.
     Lista LerMaterias(const std::string& textoJson);
 
-    /// @brief Se o texto serve como codigo de materia (letras e numeros, sem espaco).
+    /// Se o texto serve como codigo de materia (letras e numeros, sem espaco).
     bool CodigoServe(const std::string& codigo);
 }

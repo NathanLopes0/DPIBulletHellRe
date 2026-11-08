@@ -11,7 +11,7 @@
 class DrawComponent : public Component {
 public:
     
-    // Lower drawOrder corresponds with further back
+    // Lower drawOrder corresponds with further back.
     explicit DrawComponent(class Actor* owner, int drawOrder = 100);
     ~DrawComponent() override;
 

@@ -14,11 +14,11 @@
 
 namespace {
     Banco::Registros Exemplo() {
-        //            mat  nome curso nota ano
-        return { {12, 0, 1, 72, 1},     // Ana  INF 72 1
-                 {45, 3, 2, 38, 2},     // Davi MAT 38 2
-                 {30, 1, 1, 55, 2},     // Bia  INF 55 2
-                 {81, 6, 0, 91, 4} };   // Iara FIS 91 4
+        // Mat nome curso nota ano.
+        return { {12, 0, 1, 72, 1},     // Ana INF 72 1.
+                 {45, 3, 2, 38, 2},     // Davi mat 38 2.
+                 {30, 1, 1, 55, 2},     // Bia INF 55 2.
+                 {81, 6, 0, 91, 4} };   // Iara fis 91 4.
     }
 }
 
@@ -122,7 +122,7 @@ TEST_CASE("Banco: as consultas da fase 1 seguem o ciclo, e sempre sobra onde fic
             CHECK(c.tipo == ciclo[static_cast<size_t>(vez % 6)]);
             const auto linhas = Banco::Linhas(regs, c.onde);
             if (c.tipo == T::Selecao) {
-                // UMA LINHA PELO MENOS, e nunca todas: sempre ha onde ficar.
+                // Uma linha pelo menos, e nunca todas: sempre ha onde ficar.
                 CHECK(!linhas.empty());
                 CHECK(linhas.size() < regs.size());
             }
@@ -150,7 +150,7 @@ TEST_CASE("Banco: o ORDER BY ordena, e diz de onde veio cada registro") {
     CHECK(regs[0].nota == 38);
     CHECK(regs[3].nota == 91);
 
-    // ESTAVEL: dois do mesmo ano ficam na ordem em que estavam.
+    // Estavel: dois do mesmo ano ficam na ordem em que estavam.
     auto outros = Exemplo();
     Banco::Ordenar(outros, Banco::Coluna::Ano);
     CHECK(outros[1].mat == 45);
@@ -186,8 +186,7 @@ TEST_CASE("Banco: todo plano do produto cartesiano passa por toda casa, uma vez"
             vistas.insert({c.linha, c.coluna});
         }
         CHECK(static_cast<int>(vistas.size()) == Banco::kLinhas * Banco::kColunas);
-        // O LACO ANDA DE VIZINHA EM VIZINHA, menos na virada do laco de fora:
-        // e o que deixa o plano ser seguido com os olhos.
+        // O laco anda de vizinha em vizinha, menos na virada do laco de fora.
         int saltos = 0;
         for (size_t i = 1; i < casas.size(); ++i) {
             const int d = std::abs(casas[i].linha - casas[i - 1].linha) + std::abs(casas[i].coluna - casas[i - 1].coluna);
@@ -235,7 +234,7 @@ TEST_CASE("Banco: os comandos da fase 2 nunca esvaziam nem estouram a tabela") {
                 CHECK(linhas.size() <= 2);
             }
             if (e.comando == C::Insert) {
-                // O REGISTRO NOVO NAO REPETE NINGUEM.
+                // O registro novo nao repete ninguem.
                 for (const auto& r : regs) {
                     CHECK(r.mat != e.novo.mat);
                     CHECK(r.nome != e.novo.nome);
@@ -305,14 +304,14 @@ TEST_CASE("Banco: o ciclo de consultas muda de ordem a cada luta, com as mesmas 
             for (int k = 0; k < Banco::kConsultasNoCiclo; ++k) {
                 const int vez = volta * Banco::kConsultasNoCiclo + k;
                 const auto c = Banco::Proxima(regs, semente + static_cast<std::uint32_t>(vez), Variacao::NaOrdem(ordem, vez));
-                if (k == 0) CHECK(c.tipo == T::Selecao);   // o SELECT ... WHERE abre cada volta
+                if (k == 0) CHECK(c.tipo == T::Selecao);   // O select ...
                 selecoes += c.tipo == T::Selecao;
                 projecoes += c.tipo == T::Projecao;
                 ambas += c.tipo == T::Ambas;
                 ordenacoes += c.tipo == T::Ordenacao;
                 if (volta == 0) estaLuta.push_back(static_cast<int>(c.tipo));
             }
-            // AS MESMAS SEIS de sempre, em outra ordem.
+            // As mesmas seis de sempre, em outra ordem.
             CHECK(selecoes == 2);
             CHECK(projecoes == 2);
             CHECK(ambas == 1);
@@ -320,9 +319,7 @@ TEST_CASE("Banco: o ciclo de consultas muda de ordem a cada luta, com as mesmas 
         }
         tipos.insert(estaLuta);
     }
-    // DEPOIS DA SELECAO QUE ABRE vem uma selecao, duas projecoes, as duas e o
-    // ORDER BY: 5! / 2! = 60 sequencias, e em 1000 sementes a chance de faltar
-    // alguma e de 60 * (59/60)^1000, menos de uma em cem mil.
+    // Depois da selecao que abre: 5! / 2! = 60 sequencias possiveis.
     CHECK(tipos.size() == 60u);
 }
 
@@ -355,7 +352,6 @@ TEST_CASE("Banco: no Dificil o WHERE da selecao pega pelo menos duas linhas, e a
             CAPTURE(s);
             CAPTURE(vez);
             const std::uint32_t sorteio = s * 31u + static_cast<std::uint32_t>(vez);
-            // O NORMAL E O DE SEMPRE: o minimo de uma linha e a consulta antiga.
             const auto sempre = Banco::Proxima(regs, sorteio, vez);
             const auto normal = Banco::Proxima(regs, sorteio, vez, 1);
             CHECK(Banco::Sql(normal) == Banco::Sql(sempre));
@@ -371,8 +367,7 @@ TEST_CASE("Banco: no Dificil o WHERE da selecao pega pelo menos duas linhas, e a
     }
     CHECK(duas > 0);
     CHECK(tres > 0);
-    // COM POUCAS LINHAS o minimo cede: nunca pede todas. (As duas notas abaixo
-    // de 50: a condicao de reserva, "nota < 50", pegaria as duas.)
+    // Com poucas linhas o minimo cede: nunca pede todas.
     const Banco::Registros duasLinhas = {{12, 0, 1, 30, 1}, {45, 3, 2, 38, 2}};
     for (std::uint32_t s = 0; s < 50; ++s) {
         const auto c = Banco::Proxima(duasLinhas, s, 0, 2);
@@ -406,14 +401,10 @@ TEST_CASE("Banco: o degrau do Normal e o de sempre, e o do Dificil aperta cada r
     CHECK(d.avisoDoProduto < n.avisoDoProduto);
     CHECK(d.passoDoProduto < 1.0f);
     CHECK(d.linhasDaSelecao == 2);
-    // O AVISO AINDA VEM ANTES DA PROXIMA CONSULTA: as casas de uma apagam
-    // antes de a seguinte acender - a mesma leitura, so que mais depressa.
     CHECK(d.avisoDaLinha < d.passo);
     CHECK(d.avisoDaColuna < d.passo);
     CHECK(d.avisoDaCasa < d.passo);
-    // E NENHUMA FAIXA FICA INESCAPAVEL (o cabecalho de thiago/fases.json): no
-    // campo de 1200 x 746 e a 300 px/s, atravessar uma linha inteira custa
-    // 0,62 s e uma coluna 0,8 s - o aviso do Dificil ainda e maior que isso.
+    // E nenhuma faixa fica inescapavel (o cabecalho de thiago/fases.json).
     constexpr float kAndar = 300.0f;
     CHECK(d.avisoDaLinha > 746.0f / Banco::kLinhas / kAndar);
     CHECK(d.avisoDaColuna > 1200.0f / Banco::kColunas / kAndar);

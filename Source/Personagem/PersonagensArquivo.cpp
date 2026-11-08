@@ -12,10 +12,7 @@ namespace Personagens {
 
 const Catalogo& Carregado() {
 
-    // Construido na PRIMEIRA chamada, e nao na inicializacao estatica: um objeto
-    // de escopo de namespace nasceria antes do main, portanto antes de
-    // Caminhos::Inicializar descobrir a pasta base - o mesmo cuidado dos outros
-    // leitores de dados.
+    // Construido na primeira chamada, e nao na inicializacao estatica.
     static const Catalogo catalogo = [] {
 
         const std::string caminho = Caminhos::Asset("personagens.json");

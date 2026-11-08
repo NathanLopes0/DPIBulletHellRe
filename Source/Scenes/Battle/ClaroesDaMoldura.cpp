@@ -7,13 +7,12 @@
 #include "../../Components/DrawComponents/DrawMolduraDoCampoComponent.h"
 
 void ClaroesDaMoldura::AoTrocarDeFase(Battle&, const std::string&, const std::string&) {
-    // A FASE NOVA passa pelas bordas do campo, em lilas.
+    // A fase nova passa pelas bordas do campo, em lilas.
     mMoldura.Acender(SDL_Color{196, 170, 230, 255}, 0.45f);
 }
 
 void ClaroesDaMoldura::AoSerAcertado(Battle&, const Player&, const bool porUmTiro) {
-    // O ACERTO SOFRIDO SE VE: o campo pisca em vermelho pelas bordas. So o do
-    // tiro - encostar no chefe ja tem o empurrao e o piscar do aluno.
+    // O acerto sofrido se ve: o campo pisca em vermelho pelas bordas.
     if (porUmTiro) mMoldura.Acender(SDL_Color{255, 60, 50, 255}, 0.5f);
 }
 

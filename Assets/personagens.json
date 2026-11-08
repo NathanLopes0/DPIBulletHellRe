@@ -1,43 +1,14 @@
-// =============================================================================
-// O CATALOGO DE PECAS DA PERSONAGEM
-//
-// A personagem de cada aluno nao e uma sprite pronta: e um corpo template com
-// camadas escolhidas por cima. Este arquivo diz quais camadas existem, quais
-// pecas cada uma oferece e em que cores.
-//
-// ACRESCENTAR UM TIPO DE CABELO e: por o PNG e o JSON em Assets/Player/Camadas
-// e acrescentar uma entrada em "pecas". Nenhum codigo muda.
-//
-// O QUE VAI PARA O SAVE sao os IDS daqui - "curto", "castanho" - e nunca a
-// posicao na lista. Reordenar este arquivo nao pode mudar a aparencia de quem
-// ja jogou. Ver Documentacao/requisitos-perfil-e-personagem.md, RNF2.
-//
-// "arte" e o caminho a partir de Assets/, SEM extensao: o jogo acrescenta .png
-// para a imagem e .json para o atlas.
-//
-// "ordem" e a ordem de desenho, do fundo para a frente. Nao pode repetir, senao
-// qual camada fica por cima vira sorteio.
-// =============================================================================
+// O catalogo de pecas da personagem. A personagem de cada aluno nao e uma sprite pronta: e um corpo
+// template com camadas escolhidas por cima.
 {
-  // ----- Camadas que todo mundo tem e ninguem escolhe -----
-  //
-  // Sai em cor final, e nao tingida, justamente por NAO acompanhar o tom de
-  // pele: sapato nao clareia quando a pele clareia.
-  //
-  // NAO HA CAMADA DE ROSTO. O personagem e visto de costas - ele olha para cima,
-  // para o professor -, entao o que aparece e a nuca. A camada de olhos existiu
-  // enquanto o template estava de frente e foi apagada junto com o rosto.
+  // ---- Camadas que todo mundo tem e ninguem escolhe ----
   "fixas": [
     { "arte": "Player/Camadas/sapato", "ordem": 30 }
   ],
 
   "categorias": [
 
-    // ----- Pele -----
-    //
-    // Uma peca so (o proprio corpo) e varias cores. E uma categoria como as
-    // outras de proposito: assim o tom de pele entra no save, na tela de
-    // criacao e na composicao pelo mesmo caminho que o resto.
+    // ---- Pele ----
     {
       "id": "pele", "nome": "Tom de pele", "ordem": 10,
       "pecas": [
@@ -53,11 +24,7 @@
       ]
     },
 
-
-    // ----- Cabelo -----
-    //
-    // Fica por ultimo na ordem de desenho porque cobre a testa, e as mechas do
-    // cabelo longo caem por cima do ombro da camisa.
+    // ---- Cabelo ----
     {
       "id": "cabelo", "nome": "Cabelo", "ordem": 60,
       "pecas": [
@@ -76,7 +43,7 @@
         { "id": "colorido", "nome": "Colorido", "rgb": "4fa8c8" }
       ]
     },
-    // ----- Camisa -----
+    // ---- Camisa ----
     {
       "id": "camisa", "nome": "Camisa", "ordem": 50,
       "pecas": [
@@ -96,8 +63,7 @@
       ]
     },
 
-
-    // ----- Calca -----
+    // ---- Calca ----
     {
       "id": "calca", "nome": "Calca", "ordem": 40,
       "pecas": [
@@ -118,11 +84,7 @@
     }
   ],
 
-  // ----- Combinacoes prontas -----
-  //
-  // A primeira versao da tela de criacao deixa escolher entre estas, em vez de
-  // camada por camada. Elas sao combinacoes das MESMAS escolhas, entao quando a
-  // tela passar a oferecer cada camada o formato do save nao muda.
+  // ---- Combinacoes prontas ----
   "predefinidas": [
     {
       "id": "a", "nome": "Aluno 1",

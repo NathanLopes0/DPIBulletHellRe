@@ -12,7 +12,7 @@
 using namespace Pincel;
 
 namespace {
-    // O METAL ESCURO da HUD: o mesmo azul-noite das placas da faixa da nota.
+    // O metal escuro da HUD: o mesmo azul-noite das placas da faixa da nota.
     constexpr SDL_Color kFora{5, 6, 11, 255};
     constexpr SDL_Color kDentro{22, 24, 38, 255};
     constexpr SDL_Color kTrilho{74, 80, 110, 255};
@@ -49,8 +49,6 @@ void DrawMolduraDoCampoComponent::Definir(const float largura, const float altur
 }
 
 void DrawMolduraDoCampoComponent::Acender(const SDL_Color cor, const float duracao) {
-    // O MAIS FORTE GANHA: um Ponto Extra no meio de um acerto nao apaga o
-    // vermelho que acabou de acender.
     if (Hud::Clarao(mIdadeDoClarao, mDuracaoDoClarao) > 0.6f && duracao < mDuracaoDoClarao) return;
     mCorDoClarao = cor;
     mIdadeDoClarao = 0.0f;
@@ -65,13 +63,13 @@ void DrawMolduraDoCampoComponent::Update(const float deltaTime) {
 void DrawMolduraDoCampoComponent::DesenharTrilho(SDL_Renderer* r, const int x0, const int x1, const int y0, const int y1,
                                                  const bool esquerdo) const {
     if (x1 <= x0) return;
-    // ESCURO POR FORA, um pouco mais claro por dentro: o trilho tem fundo.
+    // Escuro por fora, um pouco mais claro por dentro: o trilho tem fundo.
     for (int x = x0; x < x1; ++x) {
         const float t = static_cast<float>(x - x0) / static_cast<float>(std::max(1, x1 - x0 - 1));
         Cor(r, Misturar(kFora, kDentro, esquerdo ? t : 1.0f - t));
         SDL_RenderDrawLine(r, x, y0, x, y1);
     }
-    // A BORDA DE DENTRO: o trilho claro e o fio de luz.
+    // A borda de dentro: o trilho claro e o fio de luz.
     const int borda = esquerdo ? x1 - 1 : x0;
     const int fio = esquerdo ? x1 - 3 : x0 + 2;
     Cor(r, kTrilho);
@@ -80,7 +78,7 @@ void DrawMolduraDoCampoComponent::DesenharTrilho(SDL_Renderer* r, const int x0, 
     SDL_RenderDrawLine(r, esquerdo ? borda - 1 : borda + 1, y0, esquerdo ? borda - 1 : borda + 1, y1);
     Cor(r, kFio, 0.35f);
     SDL_RenderDrawLine(r, fio, y0, fio, y1);
-    // OS REBITES, a cada 64 px: o trilho e uma peca, e nao uma faixa pintada.
+    // Os rebites, a cada 64 px: o trilho e uma peca, e nao uma faixa pintada.
     for (int y = y0 + 40; y < y1 - 20; y += 64) {
         const int cx = (x0 + x1) / 2 - (esquerdo ? 1 : -1);
         Cor(r, kTrilho, 0.9f);
@@ -93,13 +91,13 @@ void DrawMolduraDoCampoComponent::DesenharPainel(SDL_Renderer* r) const {
     const int topo = static_cast<int>(mArea.baixo);
     const int w = static_cast<int>(mLargura);
     const int h = static_cast<int>(mAltura);
-    // O PAINEL: claro em cima, escuro embaixo.
+    // O painel: claro em cima, escuro embaixo.
     for (int y = topo; y < h; ++y) {
         const float t = static_cast<float>(y - topo) / static_cast<float>(std::max(1, h - topo - 1));
         Cor(r, Misturar(kDentro, kFora, t));
         SDL_RenderDrawLine(r, 0, y, w - 1, y);
     }
-    // A BORDA DE CIMA, a mesma dos trilhos, com o fio de luz por baixo.
+    // A borda de cima, a mesma dos trilhos, com o fio de luz por baixo.
     Cor(r, kTrilho);
     SDL_RenderDrawLine(r, 0, topo, w - 1, topo);
     Cor(r, kTrilho, 0.7f);
@@ -112,8 +110,7 @@ void DrawMolduraDoCampoComponent::DesenharEncostos(SDL_Renderer* r) const {
     const auto acender = [&](const float forca, const bool vertical, const float fixo, const float ao, const float de,
                              const float ate, const int paraDentro) {
         if (forca <= 0.0f) return;
-        // UM TRECHO DA PAREDE, mais forte no ponto mais perto do aluno, e com
-        // espessura: a luz entra alguns pixels no campo.
+        // Um trecho da parede, mais forte no ponto mais perto do aluno, e com espessura.
         const float meio = kTrechoDoEncosto / 2.0f;
         for (float s = -meio; s <= meio; s += 1.0f) {
             const float p = ao + s;
@@ -139,8 +136,7 @@ void DrawMolduraDoCampoComponent::DesenharEncostos(SDL_Renderer* r) const {
 }
 
 void DrawMolduraDoCampoComponent::DesenharProfessores(SDL_Renderer* r) const {
-    // LEVE: e uma indicacao, e nao um aviso. Pulsa devagar, e a luz entra
-    // poucos pixels no campo, acima do painel.
+    // Leve: e uma indicacao, e nao um aviso.
     const float pulso = 0.8f + 0.2f * std::sin(mTempo * 2.5f);
     const int y = static_cast<int>(mArea.baixo);
     for (const float x : mProfessores) {
@@ -156,7 +152,7 @@ void DrawMolduraDoCampoComponent::DesenharProfessores(SDL_Renderer* r) const {
                 SDL_RenderDrawPoint(r, static_cast<int>(px), y - 1 - k);
             }
         }
-        // O DENTE na borda, apontando para cima: para onde olhar.
+        // O dente na borda, apontando para cima: para onde olhar.
         Cor(r, kProfessor, 0.85f * pulso);
         for (int k = 0; k < 4; ++k) {
             SDL_RenderDrawLine(r, static_cast<int>(cx) - k, y + 1 + k, static_cast<int>(cx) + k, y + 1 + k);
@@ -166,8 +162,7 @@ void DrawMolduraDoCampoComponent::DesenharProfessores(SDL_Renderer* r) const {
 
 void DrawMolduraDoCampoComponent::DesenharRede(SDL_Renderer* r) const {
     if (mRede <= 0.0f) return;
-    // ACENDE E APAGA: entra num instante, e pisca no ultimo segundo, antes de
-    // as paredes fecharem.
+    // Acende e apaga: entra num instante, e pisca no ultimo segundo, antes de as paredes fecharem.
     float forca = std::min(1.0f, mRede / 0.3f);
     if (mRede < 1.0f && std::fmod(mRede, 0.2f) < 0.1f) forca *= 0.35f;
     const int topo = 0, baixo = static_cast<int>(mArea.baixo);
@@ -175,14 +170,13 @@ void DrawMolduraDoCampoComponent::DesenharRede(SDL_Renderer* r) const {
         const int x0 = esquerdo ? 0 : static_cast<int>(mArea.direita) + 1;
         const int x1 = esquerdo ? static_cast<int>(mArea.esquerda) : static_cast<int>(mLargura);
         const int borda = esquerdo ? x1 - 1 : x0;
-        // O CABO: a borda de dentro, azul e grossa.
+        // O cabo: a borda de dentro, azul e grossa.
         for (int k = 0; k < 3; ++k) {
             Cor(r, kRede, forca * (1.0f - 0.25f * static_cast<float>(k)));
             const int x = esquerdo ? borda - k : borda + k;
             SDL_RenderDrawLine(r, x, topo, x, baixo);
         }
-        // OS PACOTES correndo pelo cabo - descendo de um lado, subindo do
-        // outro: a rede liga os dois.
+        // Os pacotes correndo pelo cabo - descendo de um lado, subindo do outro: a rede liga os dois.
         const float fase = std::fmod(mTempo * kRapidezDosPacotes, kEntrePacotes);
         for (float y = (esquerdo ? fase : kEntrePacotes - fase) - kEntrePacotes; y < static_cast<float>(baixo);
              y += kEntrePacotes) {
@@ -192,7 +186,7 @@ void DrawMolduraDoCampoComponent::DesenharRede(SDL_Renderer* r) const {
             SDL_Rect pacote{cx - 3, static_cast<int>(y), 6, 10};
             SDL_RenderFillRect(r, &pacote);
         }
-        // A LUZ que vaza para o campo: a parede esta aberta.
+        // A luz que vaza para o campo: a parede esta aberta.
         for (int k = 1; k <= 10; ++k) {
             Cor(r, kRede, forca * 0.30f * (1.0f - static_cast<float>(k) / 10.0f));
             const int x = esquerdo ? x1 + k : x0 - k;
@@ -204,7 +198,7 @@ void DrawMolduraDoCampoComponent::DesenharRede(SDL_Renderer* r) const {
 void DrawMolduraDoCampoComponent::DesenharClarao(SDL_Renderer* r) const {
     const float c = Hud::Clarao(mIdadeDoClarao, mDuracaoDoClarao);
     if (c <= 0.0f) return;
-    // O CLARAO ENTRA PELAS BORDAS do campo e some para o meio.
+    // O clarao entra pelas bordas do campo e some para o meio.
     const int e = static_cast<int>(mArea.esquerda), d = static_cast<int>(mArea.direita);
     const int b = static_cast<int>(mArea.baixo), t = 0;
     for (int k = 0; k < kFundoDoClarao; ++k) {
@@ -226,14 +220,13 @@ void DrawMolduraDoCampoComponent::Draw(SDL_Renderer* renderer) {
     DesenharTrilho(renderer, static_cast<int>(mArea.direita) + 1, static_cast<int>(mLargura), 0, topoDoPainel, false);
     DesenharPainel(renderer);
 
-    // EM CIMA, SO UMA LINHA tracejada, e bem apagada: e o limite do aluno,
-    // mas e o lugar do professor.
+    // Em cima, so uma linha tracejada, e bem apagada.
     Cor(renderer, kFio, 0.16f);
     for (int x = static_cast<int>(mArea.esquerda) + 6; x < static_cast<int>(mArea.direita) - 6; x += 14) {
         SDL_RenderDrawLine(renderer, x, static_cast<int>(mArea.topo), x + 6, static_cast<int>(mArea.topo));
     }
 
-    // OS ENCAIXES, onde os trilhos encontram o painel: um losango lilas.
+    // Os encaixes, onde os trilhos encontram o painel: um losango lilas.
     for (const float x : {mArea.esquerda, mArea.direita}) {
         const int cx = static_cast<int>(x), cy = topoDoPainel;
         for (int k = 0; k <= 5; ++k) {

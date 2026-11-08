@@ -99,7 +99,7 @@ TEST_CASE("Transacao: as chances de cada luta ficam em volta das de sempre") {
     CHECK(maiorDisputa > 0.63f);
     CHECK(menorRollback < 0.27f);
     CHECK(maiorRollback > 0.53f);
-    // O DE SEMPRE e o meio das duas faixas.
+    // O de sempre e o meio das duas faixas.
     const Transacao::Plano sempre;
     CHECK(sempre.chanceDeDisputa == doctest::Approx(0.5f));
     CHECK(sempre.chanceDeRollback == doctest::Approx(0.4f));

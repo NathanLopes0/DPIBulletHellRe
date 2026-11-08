@@ -18,8 +18,8 @@
 #include "../Components/DrawComponents/DrawTextComponent.h"
 
 namespace {
-    /// A PLACA atras do texto: a foto do corredor e clara e cheia de detalhe,
-    /// e texto branco solto sobre ela some (FundoDeCena.h).
+    /// A placa atras do texto: a foto do corredor e clara e cheia de detalhe, e texto branco solto
+    /// sobre ela some (FundoDeCena.h).
     constexpr int kLarguraDaPlaca = 1000;
     constexpr int kAlturaDaPlaca = 560;
 
@@ -52,7 +52,7 @@ TelaComoJogar::TelaComoJogar(Game* game)
 DrawTextComponent* TelaComoJogar::Texto(const std::string& conteudo, const float x, const float y,
                                         const int tamanho, const int larguraMaxima) {
     auto* dc = CriarTexto(*this, mFonte.get(), conteudo, Vector2(x, y), tamanho, larguraMaxima, tamanho + 8);
-    // SEM QUEBRA: a linha que nao cabe encolhe, em vez de virar duas.
+    // Sem quebra: a linha que nao cabe encolhe, em vez de virar duas.
     dc->SetLarguraDeQuebra(kSemQuebra);
     return dc;
 }
@@ -97,7 +97,7 @@ void TelaComoJogar::Mostrar() {
 
     std::vector<std::string> linhas;
     if (quantas == 0) {
-        // SEM O ARQUIVO, a tela diz o que houve em vez de ficar em branco.
+        // Sem o arquivo, a tela diz o que houve em vez de ficar em branco.
         mTitulo->SetText("Manual indispon\xc3\xadvel");
         linhas = {"O arquivo Assets/como-jogar.json n\xc3\xa3o foi encontrado."};
         mIndicador->SetIsVisible(false);
@@ -120,7 +120,6 @@ void TelaComoJogar::Mostrar() {
     mSetaProxima->SetIsVisible(temProxima);
 
     // \xc3\xa1 e \xc3\xb3 sao o a e o o agudos: o MSVC nao le acento em literal.
-    // NA ULTIMA PAGINA o botao 1 termina a leitura, e o rodape diz isso.
     mRodape->SetText(Painel::Rodape({Painel::Manche(Painel::Jogador::Um, "p\xc3\xa1ginas"),
                                      {Painel::Jogador::Um, Painel::Botao::Um,
                                       temProxima ? "pr\xc3\xb3xima" : "terminar"},
@@ -138,7 +137,7 @@ void TelaComoJogar::OnProcessInput(const Uint8* keyState) {
     }
     mVoltarAnterior = voltar;
 
-    // QUALQUER UM DOS DOIS vira a pagina: a dupla le junta.
+    // Qualquer um dos dois vira a pagina: a dupla le junta.
     bool esquerda = false, direita = false, avancar = false;
     for (const Painel::Jogador quem : Painel::kJogadores) {
         esquerda = esquerda || Painel::Apertado(keyState, quem, Painel::Direcao::Esquerda);
@@ -157,7 +156,7 @@ void TelaComoJogar::OnProcessInput(const Uint8* keyState) {
     mAvancarAnterior = avancar;
 
     if (avancou) {
-        // NA ULTIMA (ou sem manual), o botao 1 termina: o leitor chegou ao fim.
+        // Na ultima (ou sem manual), o botao 1 termina: o leitor chegou ao fim.
         if (mPagina + 1 >= quantas) {
             mGame->RequestSceneChange(SceneType::MainMenu);
             return;

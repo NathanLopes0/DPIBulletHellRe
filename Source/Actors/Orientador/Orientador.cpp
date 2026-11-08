@@ -51,13 +51,13 @@ Orientador::Orientador(Scene* scene, std::string professor, const std::string& r
     mPoder = Poder::Da(mMateria);
     mEmCampo = PoderEmCampo::Do(mPoder.tipo);
 
-    // O ANEL DO PODER e desenhado por um ator a parte, em coordenadas de tela.
+    // O anel do poder e desenhado por um ator a parte, em coordenadas de tela.
     auto anel = std::make_unique<Actor>(scene);
     mLinhas = anel->AddComponent<DrawLinhasComponent>(kOrdemDoAnel);
     scene->AddActor(std::move(anel));
 }
 
-// AQUI, e nao no cabecalho: e onde PoderEmCampo esta completo.
+// Aqui, e nao no cabecalho: e onde PoderEmCampo esta completo.
 Orientador::~Orientador() = default;
 
 Battle* Orientador::Batalha() {
@@ -67,7 +67,7 @@ Battle* Orientador::Batalha() {
 Vector2 Orientador::PostoAgora() {
     Battle* batalha = Batalha();
     if (!batalha) return GetPosition();
-    // NA REUNIAO ELE ESPERA o aluno no lugar marcado, um pouco acima do centro.
+    // Na reuniao ele espera o aluno no lugar marcado, um pouco acima do centro.
     if (mReuniao) return *mReuniao + Vector2(0.0f, -24.0f);
 
     std::vector<Vector2> alunos;
@@ -97,8 +97,6 @@ void Orientador::OnUpdate(const float deltaTime) {
     Battle* batalha = Batalha();
     if (!batalha) return;
 
-    // ELE VOA SEMPRE, MAS SO ATIRA NA LUTA: na tela de carregamento o chefe
-    // ainda nao comecou, e na de fim a nota ja foi fechada.
     mTempo += deltaTime;
     mPouso = Escolta::Seguir(mPouso, PostoAgora(), deltaTime);
     const float balanco = kBalanco * std::sin(mTempo * kBalancoPorSegundo * 2.0f * Math::Pi);
@@ -112,8 +110,7 @@ void Orientador::OnUpdate(const float deltaTime) {
 }
 
 void Orientador::OnProcessInput(const Uint8* keyState) {
-    // O BOTAO 3 DE QUALQUER ALUNO: o orientador e da dupla. So a borda do
-    // aperto conta - segurar o botao nao solta o poder de novo quando enche.
+    // O botao 3 de qualquer aluno: o orientador e da dupla.
     bool apertado = false;
     if (const Battle* batalha = dynamic_cast<Battle*>(GetScene())) {
         for (size_t i = 0; i < batalha->Jogadores().size(); ++i) {
@@ -125,9 +122,7 @@ void Orientador::OnProcessInput(const Uint8* keyState) {
     mBotaoAntes = apertado;
 }
 
-// ---------------------------------------------------------------------------
-// O GOLPE
-// ---------------------------------------------------------------------------
+// O golpe.
 
 void Orientador::Golpear(Battle& batalha, const float deltaTime) {
 
@@ -143,7 +138,7 @@ void Orientador::Golpear(Battle& batalha, const float deltaTime) {
     }
     const Vector2 alvo = chefe->GetPosition();
 
-    // O OBSERVER: um tiro a cada kNotificacoes do aluno - da media, em dupla.
+    // O observer: um tiro a cada kNotificacoes do aluno - da media, em dupla.
     if (mMateria == Golpe::Materia::MariaLucia) {
         int doAluno = 0, alunos = 0;
         for (const Player* p : batalha.Jogadores()) {
@@ -159,7 +154,7 @@ void Orientador::Golpear(Battle& batalha, const float deltaTime) {
         return;
     }
 
-    // A RODADA: quando acaba, vem a proxima, e cada tiro sai na hora dele.
+    // A rodada: quando acaba, vem a proxima, e cada tiro sai na hora dele.
     mNaRodada += deltaTime;
     if (mRodada < 0 || mNaRodada >= mDaVez.duracao) {
         if (mRodada >= 0) mNaRodada -= mDaVez.duracao;
@@ -180,7 +175,7 @@ PlayerProjectile* Orientador::Disparar(Battle& batalha, const Golpe::Tiro& tiro,
     ProjectileManager* tiros = batalha.GetProjectileManager();
     if (!tiros) return nullptr;
 
-    // A CARA: a da materia dele, ou a do poder; sem materia, o tiro de sempre.
+    // A cara: a da materia dele, ou a do poder; sem materia, o tiro de sempre.
     const int daMateria = Poder::QuadroDaMateria(mMateria);
     std::unique_ptr<PlayerProjectile> p;
     if (quadro >= 0) {
@@ -214,8 +209,7 @@ void Orientador::Guiar(Battle& batalha, const float deltaTime) {
     }
     const Vector2 alvo = chefe->GetPosition();
 
-    // O MANAGER APAGA O TIRO QUE MORRE: cada um e procurado pelo numero, a
-    // cada quadro, e o que nao esta mais la sai da lista.
+    // O manager apaga o tiro que morre.
     std::unordered_map<std::uint64_t, PlayerProjectile*> meus;
     for (const auto& p : tiros->GetPlayerProjectiles()) {
         if (p && p->mOwner == this && p->GetState() == ActorState::Active && !p->Murchando()) meus[p->Id()] = p.get();
@@ -239,7 +233,7 @@ void Orientador::Guiar(Battle& batalha, const float deltaTime) {
             continue;
         }
         PlayerProjectile* p = achado->second;
-        // A PROMESSA QUE VOLTA nao e mais guiada: quem a leva e ela mesma.
+        // A promessa que volta nao e mais guiada: quem a leva e ela mesma.
         if (p->Voltando()) {
             it = mGuiados.erase(it);
             continue;
@@ -249,7 +243,7 @@ void Orientador::Guiar(Battle& batalha, const float deltaTime) {
         p->SetPosition(passo.posicao);
         rb->SetVelocity(passo.velocidade);
 
-        // A GRAMATICA: S -> S S. O tiro some e nascem dois, abrindo.
+        // A gramatica: s -> s s.
         if (passo.divide) {
             for (const Golpe::Filho& f : Golpe::Filhos(it->voo, passo.posicao, passo.velocidade, alvo)) {
                 filhos.push_back({f.tiro, passo.posicao, f.direcao, it->folha, it->quadro, it->escala});
@@ -261,13 +255,10 @@ void Orientador::Guiar(Battle& batalha, const float deltaTime) {
         ++it;
     }
 
-    // DEPOIS DO LACO: nascer agora mexeria no vetor do manager e na lista.
     for (const Filho& f : filhos) Disparar(batalha, f.tiro, f.de, f.direcao, f.folha, f.quadro, f.escala);
 }
 
-// ---------------------------------------------------------------------------
-// O PODER
-// ---------------------------------------------------------------------------
+// O poder.
 
 void Orientador::Carregar() {
     if (mPoder.tipo == Poder::Tipo::Nenhum) return;
@@ -343,7 +334,7 @@ void Orientador::DesenharAnel() {
     const Vector2 c = GetPosition();
     const float fracao = Poder::Fracao(mCarga);
     const bool pronto = PoderPronto();
-    // PRONTO, O ANEL PULSA dourado; carregando, enche no sentido do relogio.
+    // Pronto, o anel pulsa dourado; carregando, enche no sentido do relogio.
     SDL_Color dourado = kPronto;
     dourado.a = static_cast<Uint8>(150.0f + 100.0f * std::fabs(std::sin(mTempo * 5.0f)));
     for (int k = 0; k < kSegmentos; ++k) {
@@ -353,7 +344,7 @@ void Orientador::DesenharAnel() {
         mLinhas->Acrescentar(c + Vector2(Math::Cos(a0), Math::Sin(a0)) * kRaioDoAnel,
                              c + Vector2(Math::Cos(a1), Math::Sin(a1)) * kRaioDoAnel, cor);
     }
-    // A ONDA do free() e do automato, abrindo do aluno.
+    // A onda do free() e do automato, abrindo do aluno.
     if (mAnelDoPoder > 0.0f) {
         const Vector2 aluno = PosicaoDoAluno();
         for (int k = 0; k < kSegmentos; ++k) {

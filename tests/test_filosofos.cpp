@@ -13,9 +13,7 @@
 using namespace Filosofos;
 
 namespace {
-    /// Roda o roteiro inteiro numa mesa posta, conferindo cada passo. Devolve
-    /// a mesa do fim, se ela passou por um deadlock no caminho e quantas
-    /// refeicoes houve.
+    /// Roda o roteiro inteiro numa mesa posta, conferindo cada passo.
     struct Visto { Mesa mesa; bool deadlock = false; int comeram = 0; };
     Visto Rodar(const Rodada r, const int escolhido) {
         Visto v;
@@ -27,7 +25,7 @@ namespace {
             REQUIRE(Aplicar(v.mesa, p));
             CHECK(p.quando < kPorRodada);
             if (p.acao == Acao::Come) ++v.comeram;
-            // UM GARFO, UM DONO: nenhum filosofo come sem os dois.
+            // Um garfo, um dono: nenhum filosofo come sem os dois.
             for (int f = 0; f < kFilosofos; ++f) {
                 if (v.mesa.estado[static_cast<size_t>(f)] != Estado::Comendo) continue;
                 CHECK(v.mesa.dono[static_cast<size_t>(GarfoDaEsquerda(f))] == f);
@@ -111,8 +109,7 @@ TEST_CASE("Filosofos: a ordem e o garcom - a espera vira fila, e nunca circulo")
         CHECK(garcom.mesa.estado[static_cast<size_t>(fora)] == Estado::DeFora);
     }
 
-    // NA ORDEM, quando o penultimo come, os outros quatro estao numa fila que
-    // termina nele: o ultimo espera o primeiro, que espera o segundo...
+    // Na ordem, quando o penultimo come, os outros quatro estao numa fila que termina nele.
     Mesa m = MesaPosta();
     for (const Passo& p : Roteiro(Rodada::Ordem, 0)) {
         REQUIRE(Aplicar(m, p));
@@ -178,7 +175,7 @@ TEST_CASE("Filosofos: os textos") {
     CHECK(Placar(Rodada::Deadlock, morta) == "kill -9 Kant");
 }
 
-// ---- A VARIACAO E O DEGRAU ---------------------------------------------------
+// ---- A variacao e o degrau ----
 
 TEST_CASE("Filosofos: o plano de sempre e o jantar de sempre") {
     const Plano p = PlanoDeSempre();
@@ -209,7 +206,7 @@ TEST_CASE("Filosofos: a historia tem ordem - o jantar, o deadlock, e as duas sol
                      : (p.rodadas[2] == Rodada::Garcom && p.rodadas[3] == Rodada::Ordem)));
         ordemPrimeiro += ordem ? 1 : 0;
 
-        // CINCO PENSADORES DIFERENTES, da lista.
+        // Cinco pensadores diferentes, da lista.
         std::set<std::string> mesa(p.nomes.begin(), p.nomes.end());
         CHECK(mesa.size() == static_cast<size_t>(kFilosofos));
         for (const std::string& n : p.nomes) {
@@ -247,7 +244,7 @@ TEST_CASE("Filosofos: o jantar e a ordem girados continuam o mesmo jantar") {
             }
             CHECK_FALSE(deadlock);
             CHECK(comeram == (r == Rodada::Jantar ? 5 : 3));
-            // GIRAR E OUTRA GENTE COMENDO: na ordem, quem nao come muda com o giro.
+            // Girar e outra gente comendo: na ordem, quem nao come muda com o giro.
             if (r == Rodada::Ordem) CHECK(quemComeu.count((0 + giro) % kFilosofos) == 0);
         }
     }
@@ -278,7 +275,7 @@ TEST_CASE("Filosofos: o degrau - o Normal e o de sempre, o Dificil e mais cheio"
     CHECK(d.rapidez > n.rapidez);
     CHECK(d.porAresta > n.porAresta);
     CHECK(d.velocidadeDoEstouro > n.velocidadeDoEstouro);
-    // O CERCO MAIS CHEIO continua entre os dois filosofos, sem tocar neles.
+    // O cerco mais cheio continua entre os dois filosofos, sem tocar neles.
     const auto cerco = Cerco(0, 1, 1200.0f, d.porAresta);
     CHECK(static_cast<int>(cerco.size()) == d.porAresta);
 }

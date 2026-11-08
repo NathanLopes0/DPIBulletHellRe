@@ -1,8 +1,4 @@
-// A ficha do aluno em texto. Camada pura: nao abre arquivo nem sobe SDL.
-//
-// O teste que mais importa aqui e o de IDA E VOLTA: gravar e ler de volta tem de
-// devolver exatamente o mesmo estado. Um save que perde metade do progresso nao
-// da erro nenhum - o aluno so descobre que voltou para o comeco.
+// A ficha do aluno em texto.
 
 #include "doctest.h"
 #include "../Source/Regras/Dificuldade.h"
@@ -53,9 +49,7 @@ namespace {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Ida e volta
-// ---------------------------------------------------------------------------
+// Ida e volta.
 
 TEST_CASE("Ficha: gravar e ler de volta devolve o mesmo estado") {
     const auto original = FichaDeExemplo();
@@ -77,8 +71,7 @@ TEST_CASE("Ficha: gravar e ler de volta devolve o mesmo estado") {
 }
 
 TEST_CASE("Ficha: a ida e volta preserva recorde DIFERENTE da retomada") {
-    // O caso que um save ingenuo perde. Guardar so o recorde faria o aluno voltar
-    // a comecar do 40; guardar so a retomada o faria perder a aprovacao.
+    // O caso que um save ingenuo perde.
     const auto lida = Ficha::Desserializar(Ficha::Serializar(FichaDeExemplo(), Curso()), Curso());
     REQUIRE(lida.ok);
     CHECK(lida.dados.progresso.MelhorNota(0) == doctest::Approx(85.0f));
@@ -106,9 +99,7 @@ TEST_CASE("Ficha: o texto gravado traz a versao do formato") {
     CHECK(texto.find("\"matricula\"") != std::string::npos);
 }
 
-// ---------------------------------------------------------------------------
-// Texto que nao serve
-// ---------------------------------------------------------------------------
+// Texto que nao serve.
 
 TEST_CASE("Ficha: texto que nao e JSON e relatado, nao lancado") {
     const auto r = Ficha::Desserializar("{ isto nao fecha", Curso());
@@ -136,16 +127,13 @@ TEST_CASE("Ficha: sem versao a ficha nao serve") {
 }
 
 TEST_CASE("Ficha: versao do futuro e recusada com uma frase que explica") {
-    // Melhor recusar do que ler errado: um formato mais novo pode ter mudado o
-    // sentido de um campo que esta leitura ainda entende.
+    // Melhor recusar do que ler errado.
     const auto r = Ficha::Desserializar(R"({ "versao": 99, "matricula": "1", "materias": [] })", Curso());
     CHECK_FALSE(r.ok);
     CHECK(Menciona(r.problemas, "versao"));
 }
 
-// ---------------------------------------------------------------------------
-// Materias com problema: descartadas uma a uma
-// ---------------------------------------------------------------------------
+// Materias com problema: descartadas uma a uma.
 
 TEST_CASE("Ficha: uma materia estragada nao leva as outras") {
     const auto r = Ficha::Desserializar(R"({
@@ -164,9 +152,6 @@ TEST_CASE("Ficha: uma materia estragada nao leva as outras") {
 }
 
 TEST_CASE("Ficha: nota fora de 0 a 100 e recusada") {
-    // A batalha trava a nota nessa faixa (Math::Clamp em Battle.cpp), entao um
-    // valor fora dela so pode vir de arquivo editado a mao ou corrompido - e
-    // aceitar um recorde de 1e30 deixaria o aluno aprovado para sempre.
     const auto r = Ficha::Desserializar(R"({
       "versao": 2, "matricula": "89384",
       "materias": [
@@ -194,9 +179,6 @@ TEST_CASE("Ficha: zero e cem sao notas validas, nao extremos recusados") {
 }
 
 TEST_CASE("Ficha: retomada acima do recorde e recusada") {
-    // Estado impossivel: o recorde e o maximo de todas as notas, entao nenhuma
-    // retomada pode passar dele. Se passasse, "melhor nota" deixaria de ser a
-    // melhor nota e as regras de aprovacao ficariam erradas.
     const auto r = Ficha::Desserializar(R"({
       "versao": 2, "matricula": "89384",
       "materias": [ { "materia": "AAA", "recorde": 50, "retomada": 80 } ]
@@ -243,14 +225,8 @@ TEST_CASE("Ficha: a matricula gravada e lida de volta igual") {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Migracao da versao 1 para a 2
-//
-// A versao 1 gravava a POSICAO da materia na lista; a 2 grava o CODIGO. Converter
-// e procurar o codigo que estava naquela posicao. Enquanto houver save da versao 1
-// no mundo, a ORDEM de materias.json nao pode mudar - ha um teste em
-// test_arquivos_de_dados.cpp que trava isso e diz por que.
-// ---------------------------------------------------------------------------
+// Migracao da versao 1 para a 2. A versao 1 gravava a posicao da materia na lista; a 2 grava o
+// codigo.
 
 TEST_CASE("Ficha: save da versao 1 e lido, convertendo posicao em codigo") {
     const auto r = Ficha::Desserializar(R"({
@@ -262,7 +238,6 @@ TEST_CASE("Ficha: save da versao 1 e lido, convertendo posicao em codigo") {
     })", Curso());
 
     REQUIRE(r.ok);
-    // posicao 0 era "AAA" e posicao 2 era "CCC" no curso de teste
     CHECK(r.dados.progresso.MelhorNota(Curso().IndiceDe("AAA")) == doctest::Approx(85.0f));
     CHECK(Ajudantes::UltimaNota(r.dados.progresso, Curso().IndiceDe("AAA")) == doctest::Approx(45.0f));
     CHECK(r.dados.progresso.MelhorNota(Curso().IndiceDe("CCC")) == doctest::Approx(100.0f));
@@ -276,9 +251,7 @@ TEST_CASE("Ficha: regravar um save antigo o deixa na versao atual") {
     REQUIRE(lido.ok);
 
     const std::string regravado = Ficha::Serializar(lido.dados, Curso());
-    // Compara com kVersaoAtual, e nao com um numero escrito aqui: o formato vai
-    // mudar de novo, e um literal faria este teste quebrar por isso em vez de por
-    // um defeito de verdade.
+    // Compara com kVersaoAtual, e nao com um numero escrito aqui.
     CHECK(regravado.find("\"versao\": " + std::to_string(Ficha::kVersaoAtual)) != std::string::npos);
     CHECK(regravado.find("\"materia\": \"BBB\"") != std::string::npos);
     CHECK(regravado.find("\"materia\": 1") == std::string::npos);
@@ -298,8 +271,6 @@ TEST_CASE("Ficha: posicao que nao existe mais num save antigo e descartada") {
 }
 
 TEST_CASE("Ficha: na versao 2, materia que saiu do curso perde a nota") {
-    // E o correto: guardar nota de materia que nao existe mais nao serve a
-    // ninguem, e seria lixo que o ranking do professor teria de filtrar depois.
     const auto r = Ficha::Desserializar(R"({
       "versao": 2, "matricula": "89384",
       "materias": [
@@ -313,9 +284,7 @@ TEST_CASE("Ficha: na versao 2, materia que saiu do curso perde a nota") {
 }
 
 TEST_CASE("Ficha: a NOTA sobrevive a uma reordenacao das materias") {
-    // A propriedade que motivou esta versao inteira. Grava com uma ordem, le com
-    // outra, e a nota continua na materia certa - que era exatamente o que o
-    // formato antigo nao fazia.
+    // A propriedade que motivou esta versao inteira.
     const auto antes = Materias::LerMaterias(R"({
       "materias": [
         { "codigo": "AAA", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
@@ -341,9 +310,7 @@ TEST_CASE("Ficha: a NOTA sobrevive a uma reordenacao das materias") {
     CHECK(r.dados.progresso.MelhorNota(depois.IndiceDe("BBB")) == doctest::Approx(0.0f));
 }
 
-// ---------------------------------------------------------------------------
-// A data da ultima partida
-// ---------------------------------------------------------------------------
+// A data da ultima partida.
 
 TEST_CASE("Ficha: a data da ultima partida sobrevive a ida e volta") {
     Ficha::Dados d;
@@ -357,8 +324,7 @@ TEST_CASE("Ficha: a data da ultima partida sobrevive a ida e volta") {
 }
 
 TEST_CASE("Ficha: a data e a da ULTIMA partida, nao a do recorde") {
-    // E a pergunta que ela responde: "quem jogou esta semana". Jogar mal depois de
-    // bem atualiza a data e nao o recorde.
+    // E a pergunta que ela responde: "quem jogou esta semana".
     Progresso p;
     p.RegistrarNota(0, 90.0f, Dificuldade::Nivel::Normal, "2026-01-01 10:00:00");
     p.RegistrarNota(0, 40.0f, Dificuldade::Nivel::Normal, "2026-10-02 14:30:00");
@@ -369,7 +335,6 @@ TEST_CASE("Ficha: a data e a da ULTIMA partida, nao a do recorde") {
 }
 
 TEST_CASE("Ficha: save sem data abre normal, e nao inventa uma") {
-    // Todo save gravado antes deste campo existir.
     const auto r = Ficha::Desserializar(R"({
       "versao": 2, "matricula": "89384",
       "materias": [ { "materia": "AAA", "recorde": 70, "retomada": 70 } ]
@@ -405,7 +370,7 @@ TEST_CASE("Relogio: o formato ordena alfabeticamente na ordem cronologica") {
 
 TEST_CASE("Relogio: o formato tem o tamanho e os separadores esperados") {
     const std::string s = Relogio::Formatar(1790000000);
-    REQUIRE(s.size() == 19);          // AAAA-MM-DD HH:MM:SS
+    REQUIRE(s.size() == 19);          // Aaaa-mm-dd hh:mm:ss.
     CHECK(s[4] == '-');
     CHECK(s[7] == '-');
     CHECK(s[10] == ' ');
@@ -418,9 +383,7 @@ TEST_CASE("Relogio: Agora devolve algo no mesmo formato") {
     CHECK(s.size() == 19);
 }
 
-// ---------------------------------------------------------------------------
 // Aparencia (versao 4 do formato)
-// ---------------------------------------------------------------------------
 
 namespace {
 
@@ -451,15 +414,7 @@ TEST_CASE("Ficha: a aparencia sobrevive a ida e volta") {
 
 TEST_CASE("Ficha: a ficha gravada hoje carrega a versao ATUAL") {
 
-    // O NUMERO SAI DE Ficha::kVersaoAtual, e nao escrito a mao aqui.
-    //
-    // Estava escrito: "versao": 4. Ao subir para a 5 este teste quebrou - o que
-    // foi sorte, porque ele quebrou pelo motivo ERRADO. Ele nao protegia nada:
-    // era so uma segunda copia do numero, e a unica coisa que ele podia pegar
-    // era a propria copia envelhecendo.
-    //
-    // Derivado, ele volta a ter um trabalho: garantir que o numero declarado no
-    // cabecalho chega mesmo ao arquivo gravado.
+    // O numero sai de Ficha::kVersaoAtual, e nao escrito a mao aqui.
     Ficha::Dados d = FichaDeExemplo();
     d.aparencia = AparenciaDeExemplo();
 
@@ -469,9 +424,7 @@ TEST_CASE("Ficha: a ficha gravada hoje carrega a versao ATUAL") {
 
 TEST_CASE("Ficha: um save da versao 3 abre sem aparencia, e isso nao e erro") {
 
-    // A MIGRACAO. Os saves que o jogo ja gravou durante o desenvolvimento sao
-    // todos da versao 3; eles tem de continuar abrindo, com a aparencia vazia -
-    // que quem compoe le como "use a padrao".
+    // A migracao.
     const auto r = Ficha::Desserializar(R"({
       "versao": 3,
       "matricula": "89384",
@@ -486,8 +439,6 @@ TEST_CASE("Ficha: um save da versao 3 abre sem aparencia, e isso nao e erro") {
 
 TEST_CASE("Ficha: aparencia vazia nao escreve o campo no arquivo") {
 
-    // Um objeto vazio no arquivo nao diria nada que a ausencia ja nao diga, e
-    // ainda faria todo save de visitante parecer diferente de um da versao 3.
     const Ficha::Dados d = FichaDeExemplo();   // sem aparencia
 
     CHECK(Ficha::Serializar(d, Curso()).find("aparencia") == std::string::npos);
@@ -495,15 +446,13 @@ TEST_CASE("Ficha: aparencia vazia nao escreve o campo no arquivo") {
 
 TEST_CASE("Ficha: a aparencia sai sempre na mesma ordem") {
 
-    // Duas fichas iguais tem de dar o MESMO texto, senao dois saves do mesmo
-    // estado nao dao para comparar num diff.
     Ficha::Dados a = FichaDeExemplo();
     Ficha::Dados b = FichaDeExemplo();
 
     a.aparencia.Definir("pele",   Personagens::Escolha{"corpo", "tom1"});
     a.aparencia.Definir("cabelo", Personagens::Escolha{"curto", "preto"});
 
-    // A MESMA aparencia, inserida na ordem inversa.
+    // A mesma aparencia, inserida na ordem inversa.
     b.aparencia.Definir("cabelo", Personagens::Escolha{"curto", "preto"});
     b.aparencia.Definir("pele",   Personagens::Escolha{"corpo", "tom1"});
 
@@ -549,10 +498,7 @@ TEST_CASE("Ficha: \"aparencia\" que nao e objeto e ignorada, e o resto vale") {
 
 TEST_CASE("Ficha: a aparencia NAO e conferida contra catalogo nenhum") {
 
-    // Esta camada transforma texto em dado e nada mais. Uma peca que saiu do
-    // catalogo entra aqui como esta e e consertada por Personagens::Resolver na
-    // hora de compor - que e onde o catalogo existe. Sem isso, trocar o catalogo
-    // invalidaria saves.
+    // Esta camada transforma texto em dado e nada mais.
     const auto r = Ficha::Desserializar(R"({
       "versao": 4,
       "matricula": "89384",
@@ -565,9 +511,7 @@ TEST_CASE("Ficha: a aparencia NAO e conferida contra catalogo nenhum") {
     CHECK(r.dados.aparencia.Por("cabelo")->peca == "moicano-que-nunca-existiu");
 }
 
-// ---------------------------------------------------------------------------
-// A VERSAO 5: o registro das batalhas em dupla
-// ---------------------------------------------------------------------------
+// A versao 5: o registro das batalhas em dupla.
 
 TEST_CASE("Ficha: o registro de dupla vai e volta do arquivo") {
 
@@ -594,9 +538,6 @@ TEST_CASE("Ficha: o registro de dupla vai e volta do arquivo") {
 
 TEST_CASE("Ficha: quem nunca jogou em dupla nao ganha campos de dupla no arquivo") {
 
-    // Mesma regra da aparencia: tres campos zerados num arquivo que ninguem vai
-    // ler sao tres coisas para manter em dia por nada - e e o que faz um save
-    // da versao 4 continuar abrindo sem conversao.
     Ficha::Dados d;
     d.matricula = "89384";
 
@@ -615,9 +556,7 @@ TEST_CASE("Ficha: quem nunca jogou em dupla nao ganha campos de dupla no arquivo
 
 TEST_CASE("Ficha: um save da versao 4 abre sem registro de dupla, e isso nao e erro") {
 
-    // A MIGRACAO. Todo save ja gravado por este jogo e da versao 4 ou anterior,
-    // e todos tem de continuar abrindo - sem registro de co-op, que e a verdade
-    // sobre um aluno que nunca jogou acompanhado.
+    // A migracao.
     const std::string daVersao4 = R"({
         "versao": 4,
         "matricula": "89384",
@@ -635,11 +574,6 @@ TEST_CASE("Ficha: um save da versao 4 abre sem registro de dupla, e isso nao e e
 
 TEST_CASE("Ficha: retomada acima do recorde de SOLO deixou de ser impossivel") {
 
-    // ESTE E O CASO QUE O CO-OP CRIOU, e que a regra antiga descartaria.
-    //
-    // A ficha recusava retomada > recorde como "estado impossivel jogando", e
-    // era mesmo - com um modo so. Um aluno que tem 50 sozinho e faz 80 em dupla
-    // fica com retomada 80 e recorde de solo 50, e a ficha dele e legitima.
     const std::string comDupla = R"({
         "versao": 5,
         "matricula": "89384",
@@ -657,9 +591,6 @@ TEST_CASE("Ficha: retomada acima do recorde de SOLO deixou de ser impossivel") {
 
 TEST_CASE("Ficha: retomada acima dos DOIS recordes continua sendo descartada") {
 
-    // A regra nao sumiu, so passou a olhar os dois numeros. Uma retomada acima
-    // de ambos continua impossivel jogando, e deixar passar faria "melhor nota"
-    // mentir.
     const std::string impossivel = R"({
         "versao": 5,
         "matricula": "89384",
@@ -676,8 +607,7 @@ TEST_CASE("Ficha: retomada acima dos DOIS recordes continua sendo descartada") {
 
 TEST_CASE("Ficha: nota de dupla fora da faixa derruba so o registro de dupla") {
 
-    // A materia inteira nao se perde por causa de um campo opcional estragado:
-    // o recorde de solo e a retomada sao bons e continuam valendo.
+    // A materia inteira nao se perde por causa de um campo opcional estragado.
     const std::string estragado = R"({
         "versao": 5,
         "matricula": "89384",
@@ -709,9 +639,7 @@ TEST_CASE("Ficha: parceiro sem recorde de dupla e ignorado") {
     CHECK(lida.dados.progresso.Recorde(0, Progresso::Modo::Dupla, Dificuldade::Nivel::Normal).parceiro.empty());
 }
 
-// ---------------------------------------------------------------------------
-// Versao 6: os recordes do Dificil
-// ---------------------------------------------------------------------------
+// Versao 6: os recordes do Dificil.
 
 TEST_CASE("Ficha: os quatro recordes vao e voltam do arquivo") {
     using Dificuldade::Nivel;
@@ -739,7 +667,7 @@ TEST_CASE("Ficha: os quatro recordes vao e voltam do arquivo") {
     CHECK(p.Recorde(0, Modo::Dupla, Nivel::Dificil).parceiro == "22222");
     CHECK(p.Recorde(0, Modo::Dupla, Nivel::Dificil).quando == "2026-11-02 10:00:00");
 
-    // E O MESMO TEXTO DE NOVO: gravar o que foi lido nao muda nada.
+    // E o mesmo texto de novo: gravar o que foi lido nao muda nada.
     CHECK(Ficha::Serializar(lida.dados, Curso()) == texto);
 }
 
@@ -754,8 +682,6 @@ TEST_CASE("Ficha: um save da versao 5 abre com tudo no Normal") {
     using Dificuldade::Nivel;
     using Modo = Progresso::Modo;
 
-    // O ARQUIVO NAO DIZ EM QUE NIVEL CADA NOTA FOI FEITA, e o Normal e onde as
-    // fases foram medidas: e la que as notas de antes da separacao ficam.
     const Ficha::Lida lida = Ficha::Desserializar(R"({
         "versao": 5,
         "matricula": "89384",
@@ -775,8 +701,6 @@ TEST_CASE("Ficha: um save da versao 5 abre com tudo no Normal") {
 }
 
 TEST_CASE("Ficha: retomada abaixo so do recorde do Dificil e legitima") {
-    // Quem so jogou no Dificil tem o recorde do Normal em zero; a regra antiga
-    // (retomada acima dos recordes de Normal = impossivel) descartaria a nota.
     const Ficha::Lida lida = Ficha::Desserializar(R"({
         "versao": 6, "matricula": "89384",
         "materias": [ { "materia": "AAA", "recorde": 0, "retomada": 58, "recordeDificil": 58 } ]

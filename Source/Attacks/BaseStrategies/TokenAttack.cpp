@@ -39,8 +39,6 @@ std::vector<std::unique_ptr<Projectile>> TokenAttack::Execute(const AttackParams
         auto token = Acquire();
         if (!token) continue;
 
-        // O SORTEIO DO PROXIMO TOKEN: o angulo e um dos candidatos, com a
-        // probabilidade que a temperatura deu a ele.
         float desvio = 0.0f;
         if (!candidatos.desvios.empty()) {
             const int k = Temperatura::Amostrar(probabilidades, Random::GetFloatRange(0.0f, 1.0f));
@@ -48,8 +46,7 @@ std::vector<std::unique_ptr<Projectile>> TokenAttack::Execute(const AttackParams
         }
         const float a = (params.centralAngle + desvio) * grau;
 
-        // O TOKEN i SAI DEPOIS DOS i ANTERIORES: escondido e parado ate
-        // acordar, como na WaveAttack.
+        // O token i sai depois dos i anteriores: escondido e parado ate acordar, como na WaveAttack.
         token->SetPosition(params.firePosition);
         token->insertModifier<DeactivateBehavior>(0.0f);
         token->insertModifier<ActivateBehavior>(static_cast<float>(i) * params.creationSpeed,

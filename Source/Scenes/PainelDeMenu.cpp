@@ -40,8 +40,6 @@ PainelDeMenu::PainelDeMenu(Scene& cena, Font* fonte, const std::string& titulo,
     const float baixo = mMeio.y + static_cast<float>(medidas.alturaDaPlaca) / 2.0f;
     const int o = medidas.ordem;
 
-    // O VEU escurece a cena inteira: ela continua a vista, para quem volta
-    // saber onde estava cada tiro.
     auto veu = std::make_unique<Actor>(&cena);
     veu->SetPosition(mMeio);
     veu->AddComponent<DrawCaixaComponent>(static_cast<int>(w), static_cast<int>(h), SDL_Color{0, 0, 0, 0},
@@ -63,8 +61,7 @@ PainelDeMenu::PainelDeMenu(Scene& cena, Font* fonte, const std::string& titulo,
                                 medidas.larguraDaPlaca - 60, 34, 26, o + 3));
     }
 
-    // A moldura da opcao em foco entra antes dos textos e com ordem menor, para
-    // ficar atras deles - como no menu principal.
+    // A moldura da opcao em foco entra antes dos textos e com ordem menor, para ficar atras deles.
     auto selecao = std::make_unique<Actor>(&cena);
     selecao->SetPosition(mMeio);
     selecao->AddComponent<DrawCaixaComponent>(kLarguraDaSelecao, kAlturaDaSelecao,
@@ -72,8 +69,7 @@ PainelDeMenu::PainelDeMenu(Scene& cena, Font* fonte, const std::string& titulo,
                                               3, o + 2);
     mSelecao = cena.AddActor(std::move(selecao));
 
-    // Criadas todas antes de posicionar: o lugar de cada uma depende de quantas
-    // vem depois dela (YDaOpcao).
+    // Criadas todas antes de posicionar.
     for (const std::string& texto : opcoes) {
         mOpcoes.push_back(Texto(cena, fonte, texto, mMeio, kLarguraDaSelecao - 40, 42, 34, o + 3));
     }
@@ -89,8 +85,6 @@ PainelDeMenu::PainelDeMenu(Scene& cena, Font* fonte, const std::string& titulo,
 }
 
 float PainelDeMenu::YDaOpcao(const int indice) const {
-    // DE BAIXO PARA CIMA: a ultima opcao fica a 98 do pe da placa, e cada uma
-    // antes dela sobe um passo.
     const float baixo = mMeio.y + static_cast<float>(mMedidas.alturaDaPlaca) / 2.0f;
     const int depois = static_cast<int>(mOpcoes.size()) - 1 - indice;
     return baixo - 98.0f - static_cast<float>(depois) * kPassoDasOpcoes;

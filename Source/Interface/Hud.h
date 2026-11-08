@@ -9,31 +9,17 @@
 
 #include "../Motor/Math.h"
 
-/**
- * CAMADA PURA. Coberto por test_hud.cpp.
- *
- * AS CONTAS DA HUD, sem SDL: onde fica a borda que o aluno nao atravessa,
- * quanto ele esta encostado nela, de que cor esta o relogio da fase, e quanto
- * dura cada faisca. Quem desenha sao DrawMolduraDoCampoComponent,
- * DrawRelogioDaFaseComponent e a Battle.
- */
+/// Quem desenha sao DrawMolduraDoCampoComponent, DrawRelogioDaFaseComponent e a Battle.
 namespace Hud {
 
-    // ---- A MOLDURA DO CAMPO --------------------------------------------------------
+    // ---- A moldura do campo ----
 
     /// Um retangulo em pixels de tela.
     struct Caixa {
         float esquerda = 0.0f, topo = 0.0f, direita = 0.0f, baixo = 0.0f;
     };
 
-    /**
-     * @brief ATE ONDE O DESENHO DO ALUNO CHEGA, e nao o centro dele.
-     *
-     * Player::BorderLimitCheck prende o CENTRO a uma largura (e uma altura) de
-     * sprite da borda do campo; o desenho, centrado, chega entao a MEIA
-     * largura dela. A moldura e desenhada exatamente ali: o aluno encosta
-     * nela, e nunca passa por cima.
-     */
+    /// Ate onde o desenho do aluno chega, e nao o centro dele.
     Caixa AreaDoAluno(const Caixa& campo, float larguraDoSprite, float alturaDoSprite);
 
     /// O quanto o aluno esta encostado em cada parede, de 0 (longe) a 1 (colado).
@@ -45,14 +31,13 @@ namespace Hud {
     /// parede comeca a acender.
     constexpr float kAvisoDaParede = 48.0f;
 
-    /// @brief O encosto do aluno de centro 'centro' e meio tamanho 'meio'.
+    /// O encosto do aluno de centro 'centro' e meio tamanho 'meio'.
     Encosto Encostado(const Caixa& area, const Vector2& centro, const Vector2& meio);
 
-    /// UM CLARAO da moldura: a cor dele some em 'duracao' segundos.
-    /// @return a intensidade agora, 'idade' segundos depois de aceso (0 a 1).
+    /// Um clarao da moldura: a cor dele some em 'duracao' segundos.
     float Clarao(float idade, float duracao);
 
-    // ---- O RELOGIO DA FASE ---------------------------------------------------------
+    // ---- O relogio da fase ----
 
     /// A cor do relogio com 'fracao' (0 a 1) do tempo ainda por vir: verde no
     /// comeco, ambar no meio, vermelho no fim.
@@ -61,7 +46,7 @@ namespace Hud {
     };
     Rgb CorDoRelogio(float fracao);
 
-    /// OS ULTIMOS SEGUNDOS da fase: o relogio pulsa.
+    /// Os ultimos segundos da fase: o relogio pulsa.
     constexpr float kUrgente = 3.0f;
     bool Urgente(float restante);
 
@@ -69,7 +54,7 @@ namespace Hud {
     constexpr float kEntreMarcas = 5.0f;
     std::vector<float> Marcas(float duracao);   ///< fracoes de 0 a 1, de baixo para cima
 
-    // ---- AS FAISCAS ----------------------------------------------------------------
+    // ---- As faiscas ----
 
     enum class Faisca {
         Acerto,      ///< o tiro do aluno no professor: miuda, branca
@@ -83,24 +68,21 @@ namespace Hud {
     /// Quanto cada uma dura.
     float Vida(Faisca f);
 
-    /// @brief O raio de uma faisca com 'idade' segundos: cresce e para.
+    /// O raio de uma faisca com 'idade' segundos: cresce e para.
     float Raio(Faisca f, float idade);
 
-    /// @brief Quao acesa ela esta (0 a 1): some no fim da vida.
+    /// Quao acesa ela esta (0 a 1): some no fim da vida.
     float Brilho(Faisca f, float idade);
 
-    // ---- A DUVIDA (o tiro do aluno) ------------------------------------------------
+    // ---- A duvida (o tiro do aluno) ----
 
-    /// @brief A COR DO ALUNO 'quem' (0 ou 1): azul o primeiro, laranja o
-    /// segundo. E a cor do "?" da Duvida dele, do "!" quando ela acerta e do
-    /// cursor dele na escolha do orientador. Fora disso, branco.
+    /// A cor do aluno 'quem' (0 ou 1): azul o primeiro, laranja o segundo.
     Rgb CorDoAluno(std::size_t quem);
 
-    /// O BALAO QUE O ESCUDO BARRA murcha e fica cinza, em vez de sumir: a
-    /// pergunta que nao foi ouvida. Dura isto.
+    /// O balao que o escudo barra murcha e fica cinza, em vez de sumir: a pergunta que nao foi
+    /// ouvida. Dura isto.
     constexpr float kMurcha = 0.3f;
 
-    /// @brief O tamanho do balao 'idade' segundos depois de murchar: de 1 ate
-    /// 0,3, devagar no fim.
+    /// O tamanho do balao 'idade' segundos depois de murchar: de 1 ate 0,3, devagar no fim.
     float Murcho(float idade);
 }

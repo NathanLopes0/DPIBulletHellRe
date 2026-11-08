@@ -5,7 +5,6 @@
 #ifndef DPIBULLETHELLRE_STAGESELECTBUTTON_H
 #define DPIBULLETHELLRE_STAGESELECTBUTTON_H
 
-
 #include <string>
 #include "Button.h"
 #include "../../Motor/Game.h"
@@ -22,15 +21,11 @@ public:
     void OnUpdate(float deltaTime) override;
     void SetText(const std::string& newText);
 
-    /// @brief Pinta o botao de verde: a materia ja foi aprovada.
     /// Quem sabe disso e a cena, que tem o progresso do aluno.
     void SetAprovado(const bool aprovado) { mAprovado = aprovado; }
 
-    /// @brief O rotulo desenhado EMBAIXO de uma materia fechada.
-    ///
-    /// E so um observador: o ator pertence a cena, como todos os outros. O
-    /// botao guarda o ponteiro para poder acender o nome quando ganha o foco -
-    /// dentro do losango fechado nao cabe texto, porque o cadeado ocupa o meio.
+    /// O rotulo desenhado embaixo de uma materia fechada. E so um observador: o ator pertence a
+    /// cena, como todos os outros.
     void SetRotuloFechado(Actor* rotulo) { mRotuloFechado = rotulo; }
 
     [[nodiscard]] int GetSubject() const { return mSubject; }
@@ -46,12 +41,10 @@ private:
     std::unique_ptr<Font> mFont;
     bool mIsLocked;
 
-    /// Ver SetAprovado.
     bool mAprovado = false;
 
-    /// Ver SetRotuloFechado. OBSERVADOR: quem e dono e a cena.
+    /// Observador: quem e dono e a cena.
     Actor* mRotuloFechado = nullptr;
 };
 
-
-#endif //DPIBULLETHELLRE_STAGESELECTBUTTON_H
+#endif // DPIBULLETHELLRE_STAGESELECTBUTTON_H.

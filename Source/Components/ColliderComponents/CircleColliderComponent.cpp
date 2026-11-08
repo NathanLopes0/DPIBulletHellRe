@@ -21,10 +21,7 @@ float CircleColliderComponent::GetRadius() const {
 
 bool CircleColliderComponent::Intersect(const CircleColliderComponent &b) const {
 
-    // Checa os DOIS colisores. Antes so o 'this' era verificado, entao desligar
-    // o colisor de um projetil nao surtia efeito nenhum quando a chamada partia
-    // do outro lado - que e exatamente como Battle::CheckCollisions faz
-    // (playerCollider->Intersect(*bossProjCollider)).
+    // Checa os dois colisores.
     if (!mIsEnabled || !b.mIsEnabled) return false;
 
     Vector2 diff = GetCenter() - b.GetCenter();

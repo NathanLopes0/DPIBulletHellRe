@@ -2,7 +2,6 @@
 // Created by nslop on 05/04/2024.
 //
 
-
 #include "../Actors/Actor.h"
 
 #include "RigidBodyComponent.h"
@@ -23,10 +22,9 @@ RigidBodyComponent::RigidBodyComponent(class Actor* owner, float mass, float fri
 void RigidBodyComponent::Update(float deltaTime)
 {
 
-    //-------MODIfICADO PARA O MOVIMENTO DO JOGO SER COMO DESEJADO-------//
+    // ---- MODIfICADO para o movimento do jogo ser como desejado-------// ----
 
-
-    // Euler Integration
+    // Euler Integration.
     mVelocity += mAcceleration * deltaTime;
 
     mVelocity.x = Math::Clamp<float>(mVelocity.x, -MAX_SPEED_X, MAX_SPEED_X);
@@ -43,4 +41,4 @@ void RigidBodyComponent::Update(float deltaTime)
 
 }
 
-// timeToHeight = Height/GetVelocity()
+// TimeToHeight = Height/GetVelocity()

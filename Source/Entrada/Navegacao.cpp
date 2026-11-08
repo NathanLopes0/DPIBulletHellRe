@@ -26,10 +26,7 @@ namespace {
 
         if (tamanhoDestino <= 1) return 0;
 
-        // Saindo de uma coluna de um item so, a linha atual e sempre 0 e nao
-        // significa nada - aquele botao fica centrado na tela, nao no topo.
-        // Mandar para a linha 0 jogaria a selecao la para cima, longe de onde o
-        // olho estava. O meio e o que fica perto.
+        // Saindo de uma coluna de um item so, a linha atual e sempre 0 e nao significa nada.
         if (tamanhoAtual <= 1) return (tamanhoDestino - 1) / 2;
 
         // Mesma linha quando ela existe do outro lado; a ultima quando nao.
@@ -44,9 +41,7 @@ namespace {
         const std::vector<size_t> comBotao = ColunasComBotao(grade);
         if (comBotao.size() <= 1) return atual;
 
-        // Onde a coluna atual esta na lista das que tem botao. Andar por esta
-        // lista, e nao pelos indices de coluna, e o que faz a seta pular uma
-        // coluna vazia em vez de travar nela.
+        // Onde a coluna atual esta na lista das que tem botao.
         const auto aqui = std::find(comBotao.begin(), comBotao.end(), coluna);
         if (aqui == comBotao.end()) return atual;
 

@@ -12,23 +12,7 @@
 #include "../../../Attacks/ReAct.h"
 #include "../../../Attacks/Temperatura.h"
 
-/**
- * @class Julio
- * @brief Boss da matéria INF 420.
- *
- * Tema: um MODELO DE LINGUAGEM, a área do professor. A fase 1 é a geração de
- * tokens com temperatura (Geracao.h): cada frase se escreve um token de cada
- * vez, cada um nascendo na ponta dela, no rumo sorteado. A fase 2 são os
-
- * AGENTES: robôs que ele convoca e que agem por ele no ciclo ReAct (ReAct.h) —
- * o relógio do ciclo e o placar moram aqui. A fase 3 são os GUARDRAILS: o
- * anel de robôs-escudo que barra o tiro, e o placar que recusa ("desculpe, não
- * posso ajudar com isso") e comemora o jailbreak. A final é o modelo que
- * degenerou em repetição: só gera "e", e o placar repete junto.
- *
- * Toda a customização passa pelos dois ganchos do Boss; ExecuteAttack não é
- * sobrescrito.
- */
+/// Boss da matéria INF 420. Tema: um modelo de linguagem, a área do professor.
 class Julio : public Boss {
 public:
     explicit Julio(Scene* scene);
@@ -46,19 +30,11 @@ public:
     static constexpr const char* kFaseDoLoop = "StateFinal";
 
 protected:
-    /**
-     * @brief Gancho 1 — ajusta os parâmetros ANTES do disparo.
-     *
-     * Fase 1 espalha a mira aleatoriamente (exploração), fase 2 aponta
-     * exatamente para o jogador (convergência) e fase 3 aponta para o jogador
-     * com um leque largo (variância alta).
-     */
+    /// Gancho 1 — ajusta os parâmetros antes do disparo.
     void CustomizeAttackParams(AttackParams& params, const std::string& stateName) override;
 
-    /**
-     * @brief Gancho 2 — roda DEPOIS de a rajada ser criada: na final, poe mais
-     * um "e" no placar a cada disparo.
-     */
+    /// Gancho 2 — roda depois de a rajada ser criada: na final, poe mais um "e" no placar a cada
+    /// disparo.
     void OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& projectiles,
                               const std::string& stateName) override;
 
@@ -69,16 +45,10 @@ protected:
     void OnProjetilDerrubado() override;
 
 private:
-    // ---- A LUTA SORTEADA ----------------------------------------------------
-    //
-    // Antes do primeiro quadro (Variacao.h): a temperatura de cada etapa da
-    // fase 1, escrita no placar dela, e o degrau do modo. Na fase 2 o Pensa de
-    // cada volta do ReAct e sorteado na hora, da sequencia da fase.
+    // ---- A luta sorteada ----
 
     void SortearALuta();
 
-    /// A etapa da fase 1 em que o professor esta agora (0 fria, 1 morna, 2
-    /// quente), pelo relogio da fase e pelos fins registrados.
     [[nodiscard]] int EtapaDosTokens() const;
 
     bool mLutaSorteada = false;
@@ -88,12 +58,7 @@ private:
 
     static constexpr const char* kFaseDosTokens = "StateOne";
 
-    // ---- A GERACAO DA FASE 1 (Geracao.h) -------------------------------------
-    //
-    // Cada frase e gerada um token de cada vez, e cada token nasce na PONTA da
-    // frase, no rumo sorteado com a temperatura da etapa. Da ponta sai, a cada
-    // token, o leque da distribuicao: um raio por candidato, mais aceso quanto
-    // mais provavel - a temperatura desenhada.
+    // ---- A geracao da fase 1 (Geracao.h) ----
 
     void AtualizarTokens(float deltaTime);
 
@@ -119,7 +84,7 @@ private:
     std::vector<Raio> mRaios;
     class DrawLinhasComponent* mDistribuicao = nullptr;
 
-    /// O disparo de UM token, na ponta: CustomizeAttackParams le daqui.
+    /// O disparo de um token, na ponta: CustomizeAttackParams le daqui.
     bool mGerando = false;
     Vector2 mOndeGerar;
     float mRumoAGerar = 90.0f;
@@ -130,7 +95,6 @@ private:
     static constexpr float kPrimeiraFrase = 1.0f;
     static constexpr float kVidaDoRaio = 0.35f;
     static constexpr float kTamanhoDoRaio = 70.0f;
-
 
     /// O ciclo dos agentes num quadro: o relogio, o gatilho do Age e o placar.
     void AtualizarAgentes(float deltaTime);
@@ -146,17 +110,12 @@ private:
         float idade = 0.0f;
         Vector2 lugar;
     };
-    /// NA ORDEM DO MANAGER, e nao num mapa por ponteiro: os destinos sorteados
-    /// sao entregues nesta ordem, e a ordem de um unordered_map de ponteiros
-    /// depende de onde o malloc pos cada projetil - a mesma semente dava
-    /// lutas diferentes conforme a maquina (ou so o caminho da pasta).
+    /// Na ordem do manager, e nao num mapa por ponteiro.
     std::vector<Agente> mAgentes;
     static constexpr float kSaidaDoAgente = 320.0f;
 
-
     ReAct::Ciclo mCiclo;
     bool mNosAgentes = false;
-
 
     /// O anuncio da fase 2 em fases.json, guardado na primeira vez: volta ao
     /// placar quando a fase acaba.

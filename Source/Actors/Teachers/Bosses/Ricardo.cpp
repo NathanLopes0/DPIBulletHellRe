@@ -27,7 +27,7 @@ void Ricardo::SortearALuta() {
     mLutaSorteada = true;
     const Dificuldade::Nivel nivel = NivelDeDificuldade();
 
-    // FASE 1: as portas, uma por etapa, nos fins que o arquivo deu.
+    // Fase 1: as portas, uma por etapa, nos fins que o arquivo deu.
     {
         Variacao::Sorteio sorteio = SorteioDaFase(Logica::kFaseDasPortas);
         const Logica::Plano plano = Logica::Sortear(sorteio);
@@ -37,7 +37,7 @@ void Ricardo::SortearALuta() {
         }
         if (!etapas.empty()) RegistrarEtapas(Logica::kFaseDasPortas, etapas);
     }
-    // FASE 2: as mesmas frequencias, com o tempo de cada uma sorteado.
+    // Fase 2: as mesmas frequencias, com o tempo de cada uma sorteado.
     {
         Variacao::Sorteio sorteio = SorteioDaFase(Relogio::kFaseDoRelogio);
         mPlanoDoRelogio = Relogio::Sortear(sorteio);
@@ -50,13 +50,13 @@ void Ricardo::SortearALuta() {
         }
         if (!etapas.empty()) RegistrarEtapas(Relogio::kFaseDoRelogio, etapas);
     }
-    // FASE 3: as voltas do laco.
+    // Fase 3: as voltas do laco.
     {
         Variacao::Sorteio sorteio = SorteioDaFase(Pipeline::kFaseDoPipeline);
         mPlanoDoPipeline = Pipeline::Sortear(sorteio);
         mDegrauDoPipeline = Pipeline::DegrauDo(nivel);
     }
-    // A REPESCAGEM: o delay do sketch, pela metade a cada etapa.
+    // A repescagem: o delay do sketch, pela metade a cada etapa.
     {
         Variacao::Sorteio sorteio = SorteioDaFase(Blink::kFaseDoBlink);
         const Blink::Plano plano = Blink::Sortear(sorteio);
@@ -70,8 +70,7 @@ void Ricardo::SortearALuta() {
 }
 
 void Ricardo::OnUpdate(const float deltaTime) {
-    // ANTES DE QUALQUER ATAQUE: a primeira palavra ja e sorteada para a porta
-    // da luta.
+    // Antes de qualquer ataque: a primeira palavra ja e sorteada para a porta da luta.
     if (!mLutaSorteada && !EhClone()) SortearALuta();
     Boss::OnUpdate(deltaTime);
     AtualizarPortas();
@@ -93,17 +92,11 @@ void Ricardo::AtualizarBlink() {
     const float delay = Blink::LerDelay(AnuncioDaFase(Blink::kFaseDoBlink)).value_or(1.0f);
     const bool esquerda = Blink::EsquerdaAcesa(agora, delay);
 
-    // O LED DE CADA PLACA: aceso no lado da vez. O lado e o da placa em relacao
-    // ao professor - as duas da esquerda piscam juntas, e as da direita ao
-    // contrario.
+    // O led de cada placa: aceso no lado da vez.
     std::vector<BossProjectile*> placas = NoPosto(Blink::kPostoDasPlacas);
     for (BossProjectile* acesa : NoPosto(Blink::kPostoDasAcesas)) placas.push_back(acesa);
     for (BossProjectile* placa : placas) {
-        // A PLACA QUE SE SOLTOU ESTA DESPLUGADA: cai apagada, e nao atira
-        // mais - caindo, ela passaria do aluno e atiraria nele de baixo. A
-        // soltura se ve pela altura: presa, nenhuma fica mais que 100 px abaixo
-        // do professor (regras.json). (Pela velocidade nao da: a WaveAttack
-        // que a solta tambem a faz nascer andando para baixo.)
+        // A placa que se soltou esta desplugada: cai apagada, e nao atira mais.
         if (placa->GetPosition().y > GetPosition().y + kSoltaAbaixo) {
             placa->DefinirPosto("");
             if (auto* anim = placa->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(Blink::kAnimacaoApagada);
@@ -118,7 +111,7 @@ void Ricardo::AtualizarBlink() {
         }
     }
 
-    // ACENDEU: o lado da vez atira.
+    // Acendeu: o lado da vez atira.
     if (Blink::Trocou(mAntesNoBlink, agora, delay)) Disparar(Blink::kGatilhoDoLed, -1, mDegrauDoBlink.rapidez);
     mAntesNoBlink = agora;
 }
@@ -147,7 +140,7 @@ void Ricardo::AtualizarPipeline(const float deltaTime) {
     const bool noPipeline = fsm && fsm->GetStateName() == Pipeline::kFaseDoPipeline && !EhClone();
 
     if (!noPipeline) {
-        // A FASE ACABOU: o pipeline se desfaz, e o placar volta ao nome dela.
+        // A fase acabou: o pipeline se desfaz, e o placar volta ao nome dela.
         if (mNoPipeline) {
             for (BossProjectile* chip : NoPosto(Pipeline::kPostoDoPipeline)) chip->Kill();
             for (BossProjectile* moldura : NoPosto(Pipeline::kPostoDosEstagios)) moldura->Kill();
@@ -178,7 +171,7 @@ void Ricardo::AtualizarPipeline(const float deltaTime) {
     const auto centros = CentrosDosEstagios();
     if (centros.empty()) return;
 
-    // O NOME DE CADA ESTAGIO, pela ordem da esquerda para a direita.
+    // O nome de cada estagio, pela ordem da esquerda para a direita.
     if (mScene && mScene->GetGame()) {
         const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
         for (BossProjectile* moldura : NoPosto(Pipeline::kPostoDosEstagios)) {
@@ -189,9 +182,7 @@ void Ricardo::AtualizarPipeline(const float deltaTime) {
         }
     }
 
-    // O CHIP DERRUBADO A TIRO VIRA BOLHA no estagio em que estava, e nao faz o
-    // ataque dele. (Visto antes da busca deste quadro: o objeto que o pool
-    // devolver para ela ainda nao foi buscado.)
+    // O chip derrubado a tiro vira bolha no estagio em que estava, e nao faz o ataque dele.
     for (int s = 0; s < Pipeline::kEstagios; ++s) {
         BossProjectile*& chip = mChips[static_cast<size_t>(s)];
         if (chip && (chip->GetState() != ActorState::Active || chip->Posto() != Pipeline::kPostoDoPipeline)) {
@@ -203,14 +194,14 @@ void Ricardo::AtualizarPipeline(const float deltaTime) {
     if (mTempoNoPipeline >= mProximoCiclo) {
         mProximoCiclo += mDegrauDoPipeline.ciclo;
 
-        // O QUE ESTAVA NO WB SAI, e todo mundo anda um estagio.
+        // O que estava no wb sai, e todo mundo anda um estagio.
         if (BossProjectile* saindo = mChips[Pipeline::WB]) saindo->Kill();
         for (int s = Pipeline::WB; s > Pipeline::IF; --s) mChips[static_cast<size_t>(s)] = mChips[static_cast<size_t>(s - 1)];
         mChips[Pipeline::IF] = nullptr;
         const auto ciclo = Pipeline::Avancar(mPipeline);
         const auto& programa = Pipeline::Programa();
 
-        // A BUSCA: o chip da instrucao nasce no IF.
+        // A busca: o chip da instrucao nasce no if.
         if (mPipeline.estagio[Pipeline::IF] != Pipeline::kBolha) {
             mBuscada = nullptr;
             DispararDoEstagio(Pipeline::kGatilhoDaBusca, Pipeline::IF, false);
@@ -221,10 +212,7 @@ void Ricardo::AtualizarPipeline(const float deltaTime) {
             }
         }
 
-        // O FLUSH: o que foi buscado pelo caminho errado vira bolha - e anda
-        // vazia ate o fim, por onde o aluno passa o tiro. A do IF acabou de ser
-        // buscada (Pipeline::Avancar busca e so depois resolve o desvio): o
-        // chip dela nasce ja bolha.
+        // O flush: o que foi buscado pelo caminho errado vira bolha.
         if (ciclo.flush) {
             mBuscada = nullptr;
             DispararDoEstagio(Pipeline::kGatilhoDaBusca, Pipeline::IF, false);
@@ -237,7 +225,7 @@ void Ricardo::AtualizarPipeline(const float deltaTime) {
             }
         }
 
-        // OS ATAQUES: quem chegou ao estagio do seu ataque o faz, de la.
+        // Os ataques: quem chegou ao estagio do seu ataque o faz, de la.
         for (const int s : {Pipeline::EX, Pipeline::MEM}) {
             const int i = mPipeline.estagio[static_cast<size_t>(s)];
             if (i == Pipeline::kBolha) continue;
@@ -245,15 +233,15 @@ void Ricardo::AtualizarPipeline(const float deltaTime) {
             DispararDoEstagio(Pipeline::Gatilho(tipo, s), s, tipo == Pipeline::Tipo::Add || tipo == Pipeline::Tipo::Addi);
         }
 
-        // O PLACAR DIZ O QUE ESTA NO EX - ou o flush.
+        // O placar diz o que esta no ex - ou o flush.
         const int noEX = mPipeline.estagio[Pipeline::EX];
         std::string placar = "EX: " + (noEX == Pipeline::kBolha ? std::string("bolha")
                                                                 : programa[static_cast<size_t>(noEX)].texto);
-        if (ciclo.flush) placar += " \xC2\xB7 flush";   // o ponto do meio, em UTF-8
+        if (ciclo.flush) placar += " \xC2\xB7 flush";   // O ponto do meio, em UTF-8.
         RegistrarAnuncio(Pipeline::kFaseDoPipeline, placar);
     }
 
-    // CADA CHIP ANDA ATE O SEU ESTAGIO.
+    // Cada chip anda ate o seu estagio.
     for (int s = 0; s < Pipeline::kEstagios; ++s) {
         BossProjectile* chip = mChips[static_cast<size_t>(s)];
         if (!chip) continue;
@@ -295,7 +283,7 @@ void Ricardo::AtualizarPortas() {
         }
     }
 
-    // A CARA DE CADA PORTA: a operacao da etapa e o B da coluna dela.
+    // A cara de cada porta: a operacao da etapa e o B da coluna dela.
     const auto portas = NoPosto(Logica::kPostoDasPortas);
     for (BossProjectile* porta : portas) {
         const int coluna = Logica::Coluna(porta->GetPosition().x, largura, Logica::kBits);
@@ -305,10 +293,7 @@ void Ricardo::AtualizarPortas() {
         }
     }
 
-    // A TRAVESSIA. Todo bit que chegou a altura das portas sai pela porta da
-    // coluna dele: o valor que entra e o dele (o UM e o bit que nao e enfeite),
-    // o B e o da porta, e o que sai e a tabela-verdade. Depois ele deixa o
-    // posto: ja passou, e nao passa de novo.
+    // A travessia.
     if (!portas.empty()) {
         const float altura = portas.front()->GetPosition().y;
         for (BossProjectile* bit : NoPosto(Logica::kPostoDaPalavra)) {
@@ -323,8 +308,7 @@ void Ricardo::AtualizarPortas() {
         }
     }
 
-    // FORA DA FASE as portas ficam ate a ultima palavra passar por elas - a
-    // que saiu no fim da fase ainda esta a caminho - e entao se desfazem.
+    // Fora da fase as portas ficam ate a ultima palavra passar por elas.
     if (!nasPortas && mPortasFormadas && NoPosto(Logica::kPostoDaPalavra).empty()) {
         for (BossProjectile* porta : portas) porta->Kill();
         mPortasFormadas = false;
@@ -344,9 +328,6 @@ void Ricardo::AtualizarRelogio() {
     const bool noRelogio = fsm && fsm->GetStateName() == Relogio::kFaseDoRelogio && !EhClone();
 
     if (!noRelogio) {
-        // O CLOCK PAROU: sem borda, o registrador vira fio, e o que estava
-        // parado escorre na velocidade do ultimo clock - e sai da tela, em vez
-        // de ficar congelado no meio da fase seguinte.
         if (mAntesNoRelogio >= 0.0f) {
             MoverRegistradores(mDegrauDoRelogio.passo * mFrequencia);
             for (BossProjectile* r : NoPosto(Relogio::kPostoDosRegistradores)) r->DefinirPosto("");
@@ -364,9 +345,7 @@ void Ricardo::AtualizarRelogio() {
     const float agora = fsm->GetStateTime();
     mFrequencia = Relogio::LerFrequencia(AnuncioDaFase(Relogio::kFaseDoRelogio)).value_or(1.0f);
 
-    // O REGISTRADOR QUE ACABOU DE ACORDAR anda na direcao do leque: ela e
-    // anotada, e ele para ate a proxima borda. E o que ja nao esta em campo
-    // sai da lista.
+    // O registrador que acabou de acordar anda na direcao do leque.
     for (auto it = mDirecoes.begin(); it != mDirecoes.end();) {
         if (it->first->GetState() != ActorState::Active || it->first->Posto() != Relogio::kPostoDosRegistradores) {
             it = mDirecoes.erase(it);
@@ -384,10 +363,9 @@ void Ricardo::AtualizarRelogio() {
         rb->SetVelocity(Vector2::Zero);
     }
 
-    // O SEGUNDO VIROU: o contador sai num leque, mirado no aluno.
     if (Relogio::Subiu(mAntesNoRelogio, agora, 1.0f)) Disparar(Relogio::kGatilhoDoContador);
 
-    // A BORDA DE SUBIDA: todo registrador da um passo de kPasso pixels...
+    // A borda de subida: todo registrador da um passo de kPasso pixels...
     if (Relogio::Subiu(mAntesNoRelogio, agora, mFrequencia)) {
         const float duracao = Relogio::DuracaoDoPasso(mFrequencia);
         MoverRegistradores(mDegrauDoRelogio.passo / duracao);
@@ -405,7 +383,7 @@ void Ricardo::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& pro
                                    const std::string& stateName) {
     Boss::OnProjectilesCreated(projectiles, stateName);
 
-    // A BUSCA DO PIPELINE: o chip que nasceu e o da instrucao buscada.
+    // A busca do pipeline: o chip que nasceu e o da instrucao buscada.
     if (stateName == Pipeline::kFaseDoPipeline && mDisparandoDoEstagio && !projectiles.empty()) {
         if (auto* chip = dynamic_cast<BossProjectile*>(projectiles.front().get());
             chip && chip->Posto() == Pipeline::kPostoDoPipeline) {
@@ -415,16 +393,13 @@ void Ricardo::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& pro
     }
     if (stateName != Relogio::kFaseDoRelogio) return;
 
-    // O LEQUE E O VALOR DO CONTADOR: um bit por tiro, o mais alto a esquerda de
-    // quem o recebe. A WaveAttack abre o leque do angulo menor para o maior, e
-    // com o leque descendo o angulo menor e a direita - por isso o tiro i leva
-    // o bit da coluna n-1-i.
+    // O leque e o valor do contador: um bit por tiro, o mais alto a esquerda de quem o recebe.
     const int n = static_cast<int>(projectiles.size());
     const std::uint32_t valor = Relogio::Johnson(mContador, n);
     for (int i = 0; i < n; ++i) {
         auto* bit = dynamic_cast<BossProjectile*>(projectiles[static_cast<size_t>(i)].get());
         if (!bit) continue;
-        mDirecoes.erase(bit);   // um objeto do pool que ja foi registrador e outro agora
+        mDirecoes.erase(bit);
         const bool um = Logica::Bit(valor, n - 1 - i, n);
         if (auto* anim = bit->GetComponent<DrawAnimatedComponent>()) {
             anim->SetAnimation(um ? Logica::kAnimacaoDoUm : Logica::kAnimacaoDoZero);
@@ -437,9 +412,7 @@ void Ricardo::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& pro
 void Ricardo::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
     Boss::CustomizeAttackParams(params, stateName);
 
-    // NO PIPELINE o ataque sai do estagio, e nao do professor: a soma mira o
-    // aluno (com um tiro no meio do leque, como o contador), e a palavra que o
-    // load traz da memoria e uma parede com porta.
+    // No pipeline o ataque sai do estagio, e nao do professor.
     if (stateName == Pipeline::kFaseDoPipeline) {
         if (mFormandoEstagios || !mDisparandoDoEstagio) return;
         params.firePosition = mDisparoDoEstagio;
@@ -460,11 +433,7 @@ void Ricardo::CustomizeAttackParams(AttackParams& params, const std::string& sta
         return;
     }
 
-    // O LEQUE DO CONTADOR SAI MIRADO NO ALUNO, com UM BIT apontado para ele:
-    // num leque de 8 o meio cai entre dois bits, e quem fica parado ficava
-    // sempre na fresta - o piloto parado levou zero acertos na fase. Meio
-    // passo de giro poe nele o bit da coluna 4. centralAngle e escrito inteiro
-    // a cada disparo (params e o mesmo objeto toda vez - ver Boss.h).
+    // O leque do contador sai mirado no aluno, com um bit apontado para ele.
     if (stateName == Relogio::kFaseDoRelogio) {
         const Vector2 d = GetDirectionToPlayer();
         const float meioPasso = params.numProjectiles > 1
@@ -474,16 +443,13 @@ void Ricardo::CustomizeAttackParams(AttackParams& params, const std::string& sta
         return;
     }
 
-    // A FILEIRA DE PORTAS nao e palavra: quem lhe da a cara e AtualizarPortas.
+    // A fileira de portas nao e palavra: quem lhe da a cara e AtualizarPortas.
     if (mDisparandoPortas) return;
     if (stateName != Logica::kFaseDasPortas) return;
     auto* palavra = dynamic_cast<PalavraAttackParams*>(&params);
     if (!palavra) return;
 
-    // A PALAVRA E SORTEADA PARA A PORTA QUE ELA VAI ATRAVESSAR - a da etapa em
-    // que ela chega as portas, e nao a de agora: uma palavra que sai no fim de
-    // uma etapa cruza a porta da seguinte. Justa (Logica::Justa): parede com
-    // porta antes e depois, e a porta muda alguma coisa.
+    // Justa (Logica::Justa): parede com porta antes e depois, e a porta muda alguma coisa.
     const auto* fsm = GetComponent<FSMComponent>();
     float chegada = fsm ? fsm->GetStateTime() : 0.0f;
     const auto portas = NoPosto(Logica::kPostoDasPortas);

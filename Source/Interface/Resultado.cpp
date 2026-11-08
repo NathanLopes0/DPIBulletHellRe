@@ -53,7 +53,7 @@ namespace Resultado {
     }
 
     int LinhaEmDestaque(const Resumo& r) {
-        // A SEGUNDA, logo abaixo da nota que bateu o recorde (Linhas).
+        // A segunda, logo abaixo da nota que bateu o recorde (Linhas).
         return NovoRecorde(r) ? 1 : -1;
     }
 
