@@ -21,7 +21,7 @@
 #include "SDL_log.h"
 #include "../Player/PlayerProjectile.h"
 
-Boss::Boss(Scene* scene) : Actor(scene) {
+Boss::Boss(Scene* scene) : Actor(scene), mBatalha(dynamic_cast<Battle*>(scene)) {
 
     AddComponent<RigidBodyComponent>();
     AddComponent<FSMComponent>();
@@ -34,7 +34,7 @@ void Boss::Start() {
     CalculateNextDropThreshold();
     if (auto fsm = GetComponent<FSMComponent>()) {
         // O clone nao avisa a batalha: a fase e a do original.
-        if (auto battleScene = dynamic_cast<Battle*>(mScene); battleScene && !mEhClone) {
+        if (auto battleScene = Batalha(); battleScene && !mEhClone) {
             fsm->SetOnStateChanged([battleScene](float newDuration) {
                 battleScene->OnFaseTrocada(newDuration);
             });
@@ -84,7 +84,7 @@ void Boss::OnUpdate(float deltaTime) {
 
         // A divisao acontece na troca de fase, e so no corpo original.
         if (!mEhClone) {
-            if (const auto batalha = dynamic_cast<Battle*>(mScene)) {
+            if (const auto batalha = Batalha()) {
                 batalha->JuntarCorpos();                       // desfaz a divisao anterior
                 const std::string doClone = CloneDaFase(currState);
                 if (!doClone.empty()) batalha->DividirChefe(doClone);
@@ -168,7 +168,7 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
     // Chama customização do boss específico.
     CustomizeAttackParams(*(attackDef.params), stateName);
 
-    auto battleScene = dynamic_cast<Battle*>(mScene);
+    auto battleScene = Batalha();
     if (!battleScene) { return; }
 
     auto projManager = battleScene->GetProjectileManager();
@@ -246,7 +246,7 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
 }
 
 float Boss::GetDistanceToPlayer() const {
-    if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
+    if (auto battleScene = Batalha()) {
         if (auto player = battleScene->Alvo()) {
             return (player->GetPosition() - GetPosition()).Length();
         }
@@ -255,7 +255,7 @@ float Boss::GetDistanceToPlayer() const {
 }
 
 Vector2 Boss::GetPredictedPlayerDirection(const float leadTime) const {
-    if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
+    if (auto battleScene = Batalha()) {
         if (auto player = battleScene->Alvo()) {
 
             Vector2 target = player->GetPosition();
@@ -298,7 +298,7 @@ void Boss::Disparar(const std::string& gatilho, const int alvo, const float rapi
         if (ataque.gatilho != gatilho) continue;
         if (tempoNaFase < ataque.janelaDe || tempoNaFase >= ataque.janelaAte) continue;
         if (alvo >= 0) {
-            if (auto* batalha = dynamic_cast<Battle*>(mScene)) batalha->DarAVez(static_cast<size_t>(alvo));
+            if (auto* batalha = Batalha()) batalha->DarAVez(static_cast<size_t>(alvo));
         }
         ExecuteAttack(ataque, estado, rapidez);
     }
@@ -306,7 +306,7 @@ void Boss::Disparar(const std::string& gatilho, const int alvo, const float rapi
 
 std::vector<Vector2> Boss::PontosDoPosto(const std::string& posto) const {
     std::vector<Vector2> pontos;
-    const auto* batalha = dynamic_cast<Battle*>(mScene);
+    const auto* batalha = Batalha();
     if (posto.empty() || !batalha || !batalha->GetProjectileManager()) return pontos;
 
     for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
@@ -317,7 +317,7 @@ std::vector<Vector2> Boss::PontosDoPosto(const std::string& posto) const {
 }
 
 Vector2 Boss::GetDirectionToPlayer() const {
-    if (auto battleScene = dynamic_cast<Battle*>(mScene)) {
+    if (auto battleScene = Batalha()) {
         if (auto player = battleScene->Alvo()) {
             Vector2 direction = player->GetPosition() - GetPosition();
             direction.Normalize();
@@ -426,7 +426,7 @@ void Boss::OnCollision(Actor *other) {
 
     mHitCounter++;
     if (mHitCounter == mNextDropThreshold) {
-        if (auto battle = dynamic_cast<Battle*>(GetScene())) {
+        if (auto battle = Batalha()) {
             battle->SpawnExtraPoint(GetPosition());
         }
 
@@ -436,3 +436,34 @@ void Boss::OnCollision(Actor *other) {
     }
 }
 
+SDL_FRect Boss::Campo() const {
+    if (mBatalha) return mBatalha->GetPlayfieldBounds();
+    return SDL_FRect{0.0f, 0.0f, 1200.0f, 746.0f};
+}
+
+Player* Boss::Aluno() const {
+    return mBatalha ? mBatalha->Alvo() : nullptr;
+}
+
+Vector2 Boss::PosicaoDoAluno() const {
+    if (const Player* aluno = Aluno()) return aluno->GetPosition();
+    const SDL_FRect campo = Campo();
+    return Vector2(campo.x + campo.w / 2.0f, campo.y + campo.h - 60.0f);
+}
+
+void Boss::ApontarParaOAluno(const Vector2& de, Vector2& d) const {
+    if (const Player* aluno = Aluno()) {
+        d = aluno->GetPosition() - de;
+        if (d.LengthSq() > 0.0f) d.Normalize();
+    }
+}
+
+void Boss::TrocarAnuncio(const std::string& fase, const std::string& texto) {
+    if (mAnunciosDoArquivo.count(fase) == 0) mAnunciosDoArquivo[fase] = AnuncioDaFase(fase);
+    if (AnuncioDaFase(fase) != texto) RegistrarAnuncio(fase, texto);
+}
+
+void Boss::RestaurarAnuncio(const std::string& fase) {
+    const auto it = mAnunciosDoArquivo.find(fase);
+    if (it != mAnunciosDoArquivo.end()) RegistrarAnuncio(fase, it->second);
+}

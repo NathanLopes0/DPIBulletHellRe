@@ -162,19 +162,6 @@ Andre::Sessao Andre::SessaoAtual() {
     return s;
 }
 
-SDL_FRect Andre::Campo() const {
-    if (const auto* battle = dynamic_cast<Battle*>(mScene)) return battle->GetPlayfieldBounds();
-    return SDL_FRect{0.0f, 0.0f, 1200.0f, 746.0f};
-}
-
-Vector2 Andre::PosicaoDoAluno() const {
-    if (const auto* battle = dynamic_cast<Battle*>(mScene); battle && battle->Alvo()) {
-        return battle->Alvo()->GetPosition();
-    }
-    const SDL_FRect campo = Campo();
-    return Vector2(campo.x + campo.w / 2.0f, campo.y + campo.h - 60.0f);
-}
-
 int Andre::CasaDoAluno() const {
     const SDL_FRect campo = Campo();
     return Funcao::CasaDoX(PosicaoDoAluno().x - campo.x, campo.w);
@@ -198,16 +185,6 @@ void Andre::MudarDeLugar(const float de, const float ate, const float y) {
     const SDL_FRect campo = Campo();
     const float fracao = static_cast<float>(Sorteio() % 1001u) / 1000.0f;
     mAlvo = Vector2(campo.x + de + fracao * (ate - de), campo.y + y);
-}
-
-void Andre::Anunciar(const std::string& fase, const std::string& texto) {
-    if (mAnunciosDoArquivo.count(fase) == 0) mAnunciosDoArquivo[fase] = AnuncioDaFase(fase);
-    RegistrarAnuncio(fase, texto);
-}
-
-void Andre::Restaurar(const std::string& fase) {
-    const auto it = mAnunciosDoArquivo.find(fase);
-    if (it != mAnunciosDoArquivo.end()) RegistrarAnuncio(fase, it->second);
 }
 
 // O vetor do chao.
@@ -333,7 +310,7 @@ void Andre::AtualizarCondicional(const float deltaTime, const Sessao& s) {
         // A sessao fechou: o fluxograma sai, e o placar volta ao do arquivo.
         if (mSessaoDoSe >= 0) {
             DesmontarCondicional();
-            Restaurar(mFaseDoSe);
+            RestaurarAnuncio(mFaseDoSe);
             mSessaoDoSe = -1;
         }
         if (!ativo) return;
@@ -396,7 +373,7 @@ void Andre::NovoComando(const float agora) {
     mProximoComando = static_cast<float>(mFeitosDoSe) * Condicional::kPorComando;
     mBaloesDoComando = 0;
     mProximoBalao = agora + Condicional::kPrimeiroBalao;
-    Anunciar(mFaseDoSe, Condicional::Placar(mComando));
+    TrocarAnuncio(mFaseDoSe, Condicional::Placar(mComando));
 
     // O professor muda de lugar a cada comando.
     MudarDeLugar(Condicional::kXMinimo, Condicional::kXMaximo, Condicional::kYDoProfessor);
@@ -461,7 +438,7 @@ void Andre::AtualizarBaloes(const float deltaTime, const float agora) {
                 // O placar explica a regra que este balao mostrou.
                 if (b.c == mComando) {
                     const std::string porque = Condicional::Explicacao(b.c, b.n);
-                    Anunciar(mFaseDoSe, porque.empty() ? Condicional::Placar(b.c) : porque);
+                    TrocarAnuncio(mFaseDoSe, porque.empty() ? Condicional::Placar(b.c) : porque);
                 }
                 break;
             }
@@ -581,7 +558,7 @@ void Andre::AtualizarLaco(const Sessao& s) {
         if (mSessaoDoLaco >= 0) {
             mRodando = false;
             mDonoQueOJuizMata = -1;
-            Restaurar(mFaseDoLaco);
+            RestaurarAnuncio(mFaseDoLaco);
             mSessaoDoLaco = -1;
         }
         if (!ativo) return;
@@ -611,7 +588,7 @@ void Andre::AtualizarLaco(const Sessao& s) {
     // O juiz do boca mata o while (1).
     if (mPrograma.forma == Laco::Forma::Infinito && !mTempoEsgotado && t >= Laco::kLimiteDeTempo) {
         mTempoEsgotado = true;
-        Anunciar(mFaseDoLaco, Laco::kTempoEsgotado);
+        TrocarAnuncio(mFaseDoLaco, Laco::kTempoEsgotado);
         for (const Subindo& b : mSubindo) if (b.dono == mDonoDoLaco && Vivo(b.p)) b.p->Kill();
         mSubindo.erase(std::remove_if(mSubindo.begin(), mSubindo.end(),
                                       [this](const Subindo& b) { return b.dono == mDonoDoLaco; }), mSubindo.end());
@@ -637,7 +614,7 @@ void Andre::NovoLaco(const float agora) {
     mRodando = true;
     mTempoEsgotado = false;
     mDonoQueOJuizMata = mPrograma.forma == Laco::Forma::Infinito ? mDonoDoLaco : -1;
-    Anunciar(mFaseDoLaco, Laco::Placar(mPrograma));
+    TrocarAnuncio(mFaseDoLaco, Laco::Placar(mPrograma));
     MudarDeLugar(Laco::kXMinimo, Laco::kXMaximo, Laco::kYDoProfessor);
 }
 
@@ -653,7 +630,7 @@ void Andre::Visitar(const Laco::Visita& v) {
             }
             break;
         case Laco::Tipo::Fora: {
-            Anunciar(mFaseDoLaco, Laco::kSegfault);
+            TrocarAnuncio(mFaseDoLaco, Laco::kSegfault);
             mErroAte = mRelogio + Laco::kCapotando;
             const bool direita = v.i >= Laco::kCasas;
             const Vector2 borda(direita ? campo.x + campo.w : campo.x, campo.y + campo.h - Laco::kAcimaDoChao);
@@ -727,7 +704,7 @@ void Andre::AtualizarFuncao(const float deltaTime, const Sessao& s) {
     if (!ativo || s.numero != mSessaoDaFuncao) {
         if (mSessaoDaFuncao >= 0) {
             DesmontarFuncao();
-            Restaurar(mFaseDaFuncao);
+            RestaurarAnuncio(mFaseDaFuncao);
             mSessaoDaFuncao = -1;
         }
         if (!ativo) return;
@@ -772,7 +749,7 @@ void Andre::AtualizarFuncao(const float deltaTime, const Sessao& s) {
         case Passo::Volta:
             if (chegaram) {
                 // E o placar troca a chamada pelo valor dela.
-                Anunciar(mFaseDaFuncao, Funcao::PlacarComValores(mChamada, 0));
+                TrocarAnuncio(mFaseDaFuncao, Funcao::PlacarComValores(mChamada, 0));
                 mArgumentos = Funcao::ArgumentosDaExterna(mChamada, 0);
                 Levar(mArgumentos, GetPosition(), mOndeDeFora);
                 mPasso = Passo::IdaDeFora;
@@ -823,7 +800,7 @@ void Andre::AtualizarFuncao(const float deltaTime, const Sessao& s) {
 void Andre::NovaChamada(const float agora) {
     mChamada = Funcao::Proximo(Variacao::NaOrdem(mOrdemDaFuncao, mVezDaFuncao++), Sorteio());
     ++mFeitasDaFuncao;
-    Anunciar(mFaseDaFuncao, Funcao::Placar(mChamada));
+    TrocarAnuncio(mFaseDaFuncao, Funcao::Placar(mChamada));
     MudarDeLugar(Funcao::kXMinimo, Funcao::kXMaximo, Funcao::kYDoProfessor);
 
     // Os cartoes desta chamada: o da funcao de fora no meio, o da de dentro de um lado.
@@ -843,7 +820,7 @@ void Andre::NovaChamada(const float agora) {
     switch (mChamada.forma) {
         case Funcao::Forma::PorValor: {
             const int casa = CasaDoAluno();
-            Anunciar(mFaseDaFuncao, Funcao::PlacarComValores(mChamada, casa));
+            TrocarAnuncio(mFaseDaFuncao, Funcao::PlacarComValores(mChamada, casa));
             mArgumentos = Funcao::ArgumentosDaExterna(mChamada, casa);
             Levar(mArgumentos, PosicaoDoAluno(), mOndeDeFora);
             mPasso = Passo::IdaDeFora;
@@ -912,7 +889,7 @@ void Andre::DesmontarFuncao() {
 void Andre::AtualizarProva() {
     const auto* fsm = GetComponent<FSMComponent>();
     if (!fsm || fsm->GetStateName() != Prova::kFaseDaProva) {
-        if (mProblema != -2) Restaurar(Prova::kFaseDaProva);
+        if (mProblema != -2) RestaurarAnuncio(Prova::kFaseDaProva);
         mProblema = -2;
         mProvaSorteada = false;
         return;
@@ -927,7 +904,7 @@ void Andre::AtualizarProva() {
             PorCara(p, Prova::CaraDoTrofeu(mProblema, mProva));
         }
     }
-    Anunciar(Prova::kFaseDaProva, k >= 0 ? Prova::Abertura(k, mProva) : Prova::Veredito(mProblema, mProva));
+    TrocarAnuncio(Prova::kFaseDaProva, k >= 0 ? Prova::Abertura(k, mProva) : Prova::Veredito(mProblema, mProva));
     mProblema = k;
 }
 

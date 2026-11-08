@@ -47,7 +47,6 @@ protected:
 private:
     // ---- O que as fases dividem ----
 
-    [[nodiscard]] SDL_FRect Campo() const;
 
     /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram (o mesmo do Luizinho).
     std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
@@ -62,8 +61,6 @@ private:
     std::optional<float> mAberturaEm;
     std::vector<BossProjectile*> mCriados;
 
-    [[nodiscard]] Player* Aluno() const;
-    [[nodiscard]] Vector2 PosicaoDoAluno() const;
 
     /// Como o aluno anda: a velocidade media dos ultimos instantes, e nao a do quadro.
     void AcompanharOAluno(float deltaTime);
@@ -72,11 +69,6 @@ private:
     bool mViuOAluno = false;
     static constexpr float kMemoriaDoAndar = 0.25f;
 
-    /// O placar: o que a fase diz no arquivo e guardado na primeira vez, e
-    /// volta quando a fase acaba.
-    void Anunciar(const std::string& fase, const std::string& texto);
-    void Restaurar(const std::string& fase);
-    std::map<std::string, std::string> mAnunciosDoArquivo;
 
     /// Para onde o movimento "Conduzido" leva o professor.
     std::optional<Vector2> mAlvo;

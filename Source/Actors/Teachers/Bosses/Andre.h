@@ -57,9 +57,7 @@ private:
     std::string mChaveDaSessao;
     int mNumeroDaSessao = 0;
 
-    [[nodiscard]] SDL_FRect Campo() const;
     [[nodiscard]] int CasaDoAluno() const;
-    [[nodiscard]] Vector2 PosicaoDoAluno() const;
 
     /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram.
     std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
@@ -77,11 +75,6 @@ private:
     /// O professor vai para um x sorteado entre 'de' e 'ate', na altura 'y'.
     void MudarDeLugar(float de, float ate, float y);
 
-    /// O placar: o que a fase diz no arquivo e guardado na primeira vez, e
-    /// volta quando a sessao fecha.
-    void Anunciar(const std::string& fase, const std::string& texto);
-    void Restaurar(const std::string& fase);
-    std::map<std::string, std::string> mAnunciosDoArquivo;
 
     /// O relogio da batalha inteira - nao volta a zero na troca de fase. E nele
     /// que o vetor do chao conta os avisos e os cachos.

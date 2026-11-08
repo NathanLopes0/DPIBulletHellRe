@@ -107,7 +107,6 @@ private:
     std::vector<BossProjectile*> DispararDe(const char* gatilho, Vector2 onde, std::optional<float> rumo,
                                             const std::string& cara);
 
-    [[nodiscard]] Vector2 PosicaoDoAluno() const;
 
     bool mNoCompilador = false;
     std::string mAnuncioDoCompilador;

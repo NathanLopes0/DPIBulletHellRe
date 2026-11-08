@@ -60,7 +60,6 @@ private:
 
     // ---- O que as fases dividem ----
 
-    [[nodiscard]] SDL_FRect Campo() const;
 
     /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram.
     std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
@@ -75,7 +74,6 @@ private:
     std::optional<float> mAberturaEm;
     std::vector<BossProjectile*> mCriados;
 
-    [[nodiscard]] Vector2 PosicaoDoAluno() const;
 
     /// O angulo, em graus, de 'de' ate o aluno.
     [[nodiscard]] float AnguloAteOAluno(Vector2 de) const;
@@ -83,11 +81,6 @@ private:
     /// Para onde o movimento "Conduzido" leva o professor.
     std::optional<Vector2> mAlvo;
 
-    /// O placar: o que a fase diz no arquivo (o latim) e guardado na primeira
-    /// vez, e volta quando a fase acaba.
-    void Anunciar(const std::string& fase, const std::string& texto);
-    void Restaurar(const std::string& fase);
-    std::map<std::string, std::string> mAnunciosDoArquivo;
 
     /// As linhas do campo - a busca do nome, a chamada -, limpas a cada quadro
     /// e redesenhadas por quem estiver rodando.

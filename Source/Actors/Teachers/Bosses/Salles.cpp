@@ -309,10 +309,7 @@ void Salles::AtualizarArvore(const float deltaTime) {
                 // Altura demais: a chave cai da arvore, em cima do aluno.
                 chave->DefinirPosto("");
                 Vector2 d(0.0f, 1.0f);
-                if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
-                    d = batalha->Alvo()->GetPosition() - chave->GetPosition();
-                    if (d.LengthSq() > 0.0f) d.Normalize();
-                }
+                ApontarParaOAluno(chave->GetPosition(), d);
                 if (auto* rb = chave->GetComponent<RigidBodyComponent>()) rb->SetVelocity(d * kVelocidadeDaQueda);
             } else {
                 // A busca: achou, o no achado estoura; nao achou, o NULL cai do lugar vazio.
@@ -458,10 +455,7 @@ void Salles::AtualizarHash(const float deltaTime) {
                 BossProjectile* achado = mBusca.nos.back();
                 achado->DefinirPosto("");
                 Vector2 d(0.0f, 1.0f);
-                if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
-                    d = batalha->Alvo()->GetPosition() - achado->GetPosition();
-                    if (d.LengthSq() > 0.0f) d.Normalize();
-                }
+                ApontarParaOAluno(achado->GetPosition(), d);
                 if (auto* rb = achado->GetComponent<RigidBodyComponent>()) rb->SetVelocity(d * kVelocidadeDoAchado);
             } else if (!mBusca.achou) {
                 DispararDoHash(Hash::kGatilhoDoNulo, mBusca.fim, false, mDegrauDoHash.rapidez);
@@ -637,10 +631,7 @@ void Salles::AtualizarPilha(const float deltaTime) {
             BossProjectile* b = mPilha.back();
             b->DefinirPosto("");
             Vector2 d(0.0f, 1.0f);
-            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
-                d = batalha->Alvo()->GetPosition() - b->GetPosition();
-                if (d.LengthSq() > 0.0f) d.Normalize();
-            }
+            ApontarParaOAluno(b->GetPosition(), d);
             if (auto* rb = b->GetComponent<RigidBodyComponent>()) rb->SetVelocity(d * (Pilha::kVelocidadeDoPop * mDegrauDaPilha.rapidez));
             mPopados.push_back(Popado{b, 0.0f, mValores.back()});
             mPilha.pop_back();
@@ -752,10 +743,7 @@ void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stat
         // O no lido atira no aluno, com um tiro no meio do leque.
         if (mMirandoDoHash) {
             Vector2 d(0.0f, 1.0f);
-            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
-                d = batalha->Alvo()->GetPosition() - mDisparoDoHash;
-                if (d.LengthSq() > 0.0f) d.Normalize();
-            }
+            ApontarParaOAluno(mDisparoDoHash, d);
             params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x));
         }
         return;
@@ -768,10 +756,7 @@ void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stat
         if (mQuantosNoDisparo > 0) params.numProjectiles = mQuantosNoDisparo;
         if (mMirandoDaArvore) {
             Vector2 d(0.0f, 1.0f);
-            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
-                d = batalha->Alvo()->GetPosition() - mDisparoDaArvore;
-                if (d.LengthSq() > 0.0f) d.Normalize();
-            }
+            ApontarParaOAluno(mDisparoDaArvore, d);
             params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x));
         }
         return;
@@ -784,10 +769,7 @@ void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stat
             params.firePosition = mDisparoDoEstouro;
             params.numProjectiles = mLascas;
             Vector2 d(0.0f, 1.0f);
-            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
-                d = batalha->Alvo()->GetPosition() - mDisparoDoEstouro;
-                if (d.LengthSq() > 0.0f) d.Normalize();
-            }
+            ApontarParaOAluno(mDisparoDoEstouro, d);
             const bool par = mLascas > 1 && mLascas % 2 == 0;
             const float meioPasso = par ? 0.5f * params.angle / static_cast<float>(mLascas - 1) : 0.0f;
             params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x)) + meioPasso;
@@ -802,10 +784,7 @@ void Salles::CustomizeAttackParams(AttackParams &params, const std::string &stat
         if (mQuantosNoDisparo > 0) params.numProjectiles = mQuantosNoDisparo;
         if (mMirandoDaOrdenacao) {
             Vector2 d(0.0f, 1.0f);
-            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
-                d = batalha->Alvo()->GetPosition() - mDisparoDaOrdenacao;
-                if (d.LengthSq() > 0.0f) d.Normalize();
-            }
+            ApontarParaOAluno(mDisparoDaOrdenacao, d);
             params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x));
         }
     }

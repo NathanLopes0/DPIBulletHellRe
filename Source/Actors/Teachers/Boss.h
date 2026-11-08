@@ -5,6 +5,7 @@
 #pragma once
 
 #include <functional>
+#include <SDL_rect.h>
 
 #include "../Actor.h"
 #include <string>
@@ -21,6 +22,7 @@
 #include "../../Regras/Dificuldade.h"
 #include "../../Regras/Variacao.h"
 
+class Battle;
 class IMovementStrategy;
 class FSMComponent;
 class ProjectileManager;
@@ -200,6 +202,32 @@ public:
     void MarcarComoClone() { mEhClone = true; }
 
 protected:
+    // ---- O que todo chefe usa da batalha (Subclass Sandbox) ----
+
+    /// A batalha em que este chefe luta.
+    [[nodiscard]] Battle* Batalha() const { return mBatalha; }
+
+    /// O campo de jogo, onde os alunos andam.
+    [[nodiscard]] SDL_FRect Campo() const;
+
+    /// O aluno que o chefe mira agora (Battle::Alvo).
+    [[nodiscard]] Player* Aluno() const;
+
+    /// Onde esta o aluno mirado; sem aluno, o meio do pe do campo.
+    [[nodiscard]] Vector2 PosicaoDoAluno() const;
+
+    /// Aponta 'd' de 'de' para o aluno, normalizado; sem aluno, deixa 'd' como esta.
+    void ApontarParaOAluno(const Vector2& de, Vector2& d) const;
+
+    /// Troca o texto do placar de uma fase, guardando o do arquivo para RestaurarAnuncio.
+    void TrocarAnuncio(const std::string& fase, const std::string& texto);
+
+    /// Volta o placar da fase ao texto do arquivo.
+    void RestaurarAnuncio(const std::string& fase);
+
+    /// Por fase, o anuncio escrito em fases.json, antes de qualquer troca.
+    std::map<std::string, std::string> mAnunciosDoArquivo;
+
     /// Gancho para o que depende do disparo anterior - o unico pedaco do balanceamento que nao cabe
     /// em fases.json, porque um arquivo nao tem memoria.
     virtual void CustomizeAttackParams(AttackParams& params, const std::string& stateName);
@@ -217,6 +245,8 @@ protected:
     void Disparar(const std::string& gatilho, int alvo = -1, float rapidez = 1.0f);
 
 private:
+    Battle* mBatalha = nullptr;
+
     // Função interna para executar um ataque específico.
     void ExecuteAttack(const AttackDefinition& attackDef, const std::string& stateName, float rapidez = 1.0f);
 

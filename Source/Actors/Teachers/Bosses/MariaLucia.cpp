@@ -112,7 +112,7 @@ void MariaLucia::AtualizarBalas(const float deltaTime) {
     }
 
     // A bala que chega perto do aluno se desfaz num leque de bugs, mirado nele.
-    const auto* batalha = dynamic_cast<Battle*>(mScene);
+    const auto* batalha = Batalha();
     const Player* alvo = batalha ? batalha->Alvo() : nullptr;
     for (auto it = mBalas.begin(); it != mBalas.end();) {
         if (it->p->GetState() != ActorState::Active) {
@@ -194,7 +194,7 @@ void MariaLucia::AtualizarCascata(const float deltaTime) {
     }
     if (!mScene || !mScene->GetGame()) return;
     const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
-    const auto* batalha = dynamic_cast<Battle*>(mScene);
+    const auto* batalha = Batalha();
     const float altura = batalha ? batalha->GetPlayfieldBounds().h : 746.0f;
     const float agora = fsm->GetStateTime();
     const int etapa = Cascata::EtapaNoTempo(agora);
@@ -367,17 +367,14 @@ void MariaLucia::CustomizeAttackParams(AttackParams& params, const std::string& 
     params.firePosition = mOndeDisparar;
     if (mMirandoEm) {
         Vector2 d(0.0f, 1.0f);
-        if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
-            d = batalha->Alvo()->GetPosition() - mOndeDisparar;
-            if (d.LengthSq() > 0.0f) d.Normalize();
-        }
+        ApontarParaOAluno(mOndeDisparar, d);
         params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x));
     }
 }
 
 std::vector<BossProjectile*> MariaLucia::Observadores() const {
     std::vector<BossProjectile*> olhos;
-    const auto* batalha = dynamic_cast<Battle*>(mScene);
+    const auto* batalha = Batalha();
     if (!batalha || !batalha->GetProjectileManager()) return olhos;
     for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
         if (p && p->GetState() == ActorState::Active && p->Posto() == Observer::kPostoDosObservadores) {
@@ -397,7 +394,7 @@ void MariaLucia::AnunciarOObserver() {
 void MariaLucia::AtualizarObserver(const float deltaTime) {
 
     const auto* fsm = GetComponent<FSMComponent>();
-    auto* batalha = dynamic_cast<Battle*>(mScene);
+    auto* batalha = Batalha();
     const bool noObserver = fsm && batalha && fsm->GetStateName() == kFaseDoObserver;
 
     if (!noObserver) {

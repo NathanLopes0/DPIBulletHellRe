@@ -63,14 +63,6 @@ void Lucas::OnUpdate(const float deltaTime) {
     AtualizarEventLoop(deltaTime);
 }
 
-Vector2 Lucas::PosicaoDoAluno() const {
-
-    if (const auto* battle = dynamic_cast<Battle*>(mScene); battle && battle->Alvo()) {
-        return battle->Alvo()->GetPosition();
-    }
-    return GetPosition() + GetDirectionToPlayer() * GetDistanceToPlayer();
-}
-
 bool Lucas::Vivo(const BossProjectile* p, const float idade) {
     return p && p->GetState() == ActorState::Active && std::fabs(p->TempoDeVida() - idade) <= kFolgaDaIdade;
 }
@@ -104,7 +96,7 @@ std::vector<BossProjectile*> Lucas::DispararDe(const char* gatilho, const Vector
 
 void Lucas::RecarregarPagina() {
     // O F5: os elementos da pagina velha somem.
-    if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->GetProjectileManager()) {
+    if (const auto* batalha = Batalha(); batalha && batalha->GetProjectileManager()) {
         for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
             if (p && p->GetState() == ActorState::Active && p->Posto() == Pagina::kPostoDaPagina) p->Kill();
         }
@@ -123,7 +115,7 @@ void Lucas::AtualizarPagina(const float deltaTime) {
     if (!naPagina) {
         if (mNaPagina) {
             // A fase acabou: a pagina fecha, e o placar volta ao nome dela.
-            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->GetProjectileManager()) {
+            if (const auto* batalha = Batalha(); batalha && batalha->GetProjectileManager()) {
                 for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
                     if (p && p->GetState() == ActorState::Active && p->Posto() == Pagina::kPostoDaPagina) p->Kill();
                 }
@@ -365,7 +357,7 @@ void Lucas::AtualizarEstilo(const float deltaTime) {
     if (!noEstilo) {
         if (mNoEstilo) {
             // A fase acabou: a grade some, e o placar volta ao nome dela.
-            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->GetProjectileManager()) {
+            if (const auto* batalha = Batalha(); batalha && batalha->GetProjectileManager()) {
                 for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
                     if (p && p->GetState() == ActorState::Active && p->Posto() == Estilo::kPostoDaGrade) p->Kill();
                 }
@@ -497,7 +489,7 @@ void Lucas::AtualizarSupervisao(const float deltaTime) {
     if (!noElixir) {
         if (mNoElixir) {
             // A fase acabou: a arvore cai inteira, e o placar volta ao nome dela.
-            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->GetProjectileManager()) {
+            if (const auto* batalha = Batalha(); batalha && batalha->GetProjectileManager()) {
                 for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
                     if (p && p->GetState() == ActorState::Active && p->Posto() == Elixir::kPostoDosWorkers) p->Kill();
                 }
@@ -669,7 +661,7 @@ void Lucas::AtualizarEventLoop(const float deltaTime) {
     if (!noLoop) {
         if (mNoLoop) {
             // A fase acabou: as filas esvaziam, e o placar volta ao nome dela.
-            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->GetProjectileManager()) {
+            if (const auto* batalha = Batalha(); batalha && batalha->GetProjectileManager()) {
                 for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
                     if (p && p->GetState() == ActorState::Active && p->Posto() == EventLoop::kPostoDoLoop) p->Kill();
                 }

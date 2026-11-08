@@ -68,7 +68,7 @@ Hugo::~Hugo() = default;
 void Hugo::SortearALuta() {
     mLutaSorteada = true;
     // O tema e a materia do orientador.
-    if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->GetOrientador()) {
+    if (const auto* batalha = Batalha(); batalha && batalha->GetOrientador()) {
         mTema = batalha->GetOrientador()->Materia();
         mOrientador = batalha->GetOrientador()->Professor();
     }
@@ -170,14 +170,14 @@ void Hugo::TrocarDeFase(const std::string& nova) {
         mUltimoTema = -10.0f;
         mRascunhos = 1000;   // nenhum capitulo ainda
         mXDoComeco = GetPosition().x;
-        Anunciar(nova, mTema == Golpe::Materia::Generico
+        EscreverNoPlacar(nova, mTema == Golpe::Materia::Generico
                        ? std::string("TCC: tema livre\nsem orientador")
                        : "TCC em " + Tcc::Area(mTema) + "\norientador: " + mOrientador);
     } else if (nova == Tcc::kFaseDaDefesa) {
         ChamarABanca();
         mProximaPergunta = Tcc::kPrimeiro;
         mPerguntas = 0;
-        Anunciar(nova, "Defesa\nbanca: " + Tcc::Professor(mBanca[0]) + " e " + Tcc::Professor(mBanca[1]));
+        EscreverNoPlacar(nova, "Defesa\nbanca: " + Tcc::Professor(mBanca[0]) + " e " + Tcc::Professor(mBanca[1]));
     } else if (nova == Tcc::kFaseDasCorrecoes) {
         mProximaCorrecao = Tcc::kPrimeiro;
         mCorrecoes = 0;
@@ -185,13 +185,6 @@ void Hugo::TrocarDeFase(const std::string& nova) {
 }
 
 // ---------------------------------------------------------------------------
-
-Vector2 Hugo::PosicaoDoAluno() const {
-    if (const auto* battle = dynamic_cast<Battle*>(mScene); battle && battle->Alvo()) {
-        return battle->Alvo()->GetPosition();
-    }
-    return GetPosition() + GetDirectionToPlayer() * GetDistanceToPlayer();
-}
 
 Vector2 Hugo::MiraDe(const Vector2& de, const float velocidade, const float adiantamento) const {
     return Tcc::Mira(de, velocidade, PosicaoDoAluno(), mAndando, adiantamento);
@@ -206,14 +199,14 @@ bool Hugo::Vivo(const BossProjectile* p, const float idade) {
 }
 
 void Hugo::MatarPosto(const std::string& posto) {
-    if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->GetProjectileManager()) {
+    if (const auto* batalha = Batalha(); batalha && batalha->GetProjectileManager()) {
         for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
             if (p && p->GetState() == ActorState::Active && p->Posto() == posto) p->Kill();
         }
     }
 }
 
-void Hugo::Anunciar(const std::string& fase, const std::string& texto) {
+void Hugo::EscreverNoPlacar(const std::string& fase, const std::string& texto) {
     (void)fase;
     mPrincipal = texto;
     RefazerPlacar();
@@ -376,7 +369,7 @@ void Hugo::AtualizarCronograma() {
             p->DefinirPosto("");
             if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2(0.0f, mDegrauDoCronograma.queda));
         }
-        Anunciar(Cronograma::kFaseDaProposta, Cronograma::Placar(b.tarefa, largura));
+        EscreverNoPlacar(Cronograma::kFaseDaProposta, Cronograma::Placar(b.tarefa, largura));
     }
 
     // O grafico acabou: outro.
@@ -444,7 +437,7 @@ void Hugo::AtualizarTema(const float agora) {
     mRascunhos = 0;
     ++mCapitulo;
     Lancar(mTema, Fonte::Hugo);
-    Anunciar(Tcc::kFaseDoTema, "Cap. " + std::to_string(mCapitulo) + ": " + Tcc::Capitulo(mTema));
+    EscreverNoPlacar(Tcc::kFaseDoTema, "Cap. " + std::to_string(mCapitulo) + ": " + Tcc::Capitulo(mTema));
 }
 
 // Fase 3 - a defesa.
@@ -501,7 +494,7 @@ void Hugo::AtualizarCorrecoes(const float agora) {
     const Golpe::Materia vez[] = {mTema, mBanca[0], mBanca[1]};
     const Golpe::Materia m = vez[mCorrecoes++ % 3];
     Lancar(m, Fonte::Hugo);
-    Anunciar(Tcc::kFaseDasCorrecoes,
+    EscreverNoPlacar(Tcc::kFaseDasCorrecoes,
              "Correção:\n" + (m == mTema ? Tcc::Capitulo(m) : Tcc::Pergunta(m)));
 }
 
@@ -532,7 +525,7 @@ void Hugo::NovoObjetivo() {
         case Objetivo::Tipo::Reuniao:
             mReuniao = Objetivo::LugarDaReuniao(mSorteioDoObjetivo, Largura(), PosicaoDoAluno().x);
             mNaReuniao = 0.0f;
-            if (auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->GetOrientador()) {
+            if (auto* batalha = Batalha(); batalha && batalha->GetOrientador()) {
                 batalha->GetOrientador()->MarcarReuniao(mReuniao);
             }
             break;
@@ -628,7 +621,7 @@ void Hugo::MatarAlvos() {
 
 void Hugo::AbrirJanela() {
     MatarAlvos();
-    if (auto* batalha = dynamic_cast<Battle*>(mScene)) batalha->Conquistar(Objetivo::PorJanela(NivelDeDificuldade()));
+    if (auto* batalha = Batalha()) batalha->Conquistar(Objetivo::PorJanela(NivelDeDificuldade()));
     mEscudo = false;
     mAbriuEm = mRelogio;
     mJanelaAte = mRelogio + Objetivo::Janela(mEtapa, NivelDeDificuldade());
@@ -664,7 +657,7 @@ void Hugo::OnDerrubou(BossProjectile* qual) {
         if (a.p != qual || a.caiu) continue;
         a.caiu = true;
         if (a.alvo.certo) {
-            if (auto* batalha = dynamic_cast<Battle*>(mScene)) batalha->Conquistar(Objetivo::PorAlvo(NivelDeDificuldade()));
+            if (auto* batalha = Batalha()) batalha->Conquistar(Objetivo::PorAlvo(NivelDeDificuldade()));
         }
         if (!a.alvo.certo) {
             // A resposta errada: quem perguntou insiste, e a pergunta continua.
@@ -810,7 +803,7 @@ void Hugo::RefazerPlacar() {
 
 std::vector<Player*> Hugo::Alunos() const {
     std::vector<Player*> alunos;
-    if (const auto* batalha = dynamic_cast<Battle*>(mScene)) {
+    if (const auto* batalha = Batalha()) {
         for (Player* p : batalha->Jogadores()) {
             if (p && p->GetState() == ActorState::Active) alunos.push_back(p);
         }
@@ -834,11 +827,11 @@ namespace {
 }
 
 void Hugo::Pagar(const float bruto) {
-    if (auto* batalha = dynamic_cast<Battle*>(mScene)) batalha->Conquistar(bruto);
+    if (auto* batalha = Batalha()) batalha->Conquistar(bruto);
 }
 
 void Hugo::EncerrarAndar() {
-    if (auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->GetOrientador()) {
+    if (auto* batalha = Batalha(); batalha && batalha->GetOrientador()) {
         batalha->GetOrientador()->MarcarReuniao(std::nullopt);
     }
     mCarregando = nullptr;
@@ -889,7 +882,7 @@ void Hugo::AtualizarAndar(const float deltaTime) {
             return;
         }
         case Objetivo::Tipo::Arguicao: {
-            const auto* batalha = dynamic_cast<Battle*>(mScene);
+            const auto* batalha = Batalha();
             if (!batalha || !batalha->GetProjectileManager()) return;
             mRaspados.erase(std::remove_if(mRaspados.begin(), mRaspados.end(),
                                            [this](const Raspado& r) { return !Vivo(r.p, mRelogio - r.nasceu); }),

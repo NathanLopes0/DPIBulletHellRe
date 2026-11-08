@@ -86,11 +86,10 @@ private:
 
     /// Dispara 'gatilho' de 'onde', no rumo 'rumo' (graus). Devolve o que nasceu.
     std::vector<BossProjectile*> DispararDe(const char* gatilho, Vector2 onde, float rumo);
-    [[nodiscard]] Vector2 PosicaoDoAluno() const;
     [[nodiscard]] float Largura() const;
     [[nodiscard]] static bool Vivo(const BossProjectile* p, float idade);
     void MatarPosto(const std::string& posto);
-    void Anunciar(const std::string& fase, const std::string& texto);
+    void EscreverNoPlacar(const std::string& fase, const std::string& texto);
 
     bool mDisparandoDe = false;
     Vector2 mOndeDisparar;
@@ -102,9 +101,6 @@ private:
 
     std::string mFase;
     void TrocarDeFase(const std::string& nova);
-    /// O anuncio de cada fase como o arquivo o escreveu: o placar volta a ele
-    /// quando a fase acaba.
-    std::map<std::string, std::string> mAnunciosDoArquivo;
 
     // ---- Os padroes das materias ----
 

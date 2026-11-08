@@ -58,8 +58,6 @@ private:
     /// Cada casa no lugar dela - e a que trocou de linha num order by, a caminho da nova.
     void AtualizarTabela(float deltaTime);
 
-    /// O retangulo do campo, e o meio de uma casa e o lugar do valor dentro dela.
-    [[nodiscard]] SDL_FRect Campo() const;
     [[nodiscard]] Vector2 CentroDaCasa(int linha, int coluna) const;
     [[nodiscard]] Vector2 LugarDoDado(int linha, int coluna) const;
 

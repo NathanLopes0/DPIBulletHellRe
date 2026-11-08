@@ -119,11 +119,6 @@ void Vitor::AoTerminarABatalha() {
     if (mLinhas) mLinhas->Limpar();
 }
 
-SDL_FRect Vitor::Campo() const {
-    if (const auto* battle = dynamic_cast<Battle*>(mScene)) return battle->GetPlayfieldBounds();
-    return SDL_FRect{0.0f, 0.0f, 1200.0f, 746.0f};
-}
-
 std::vector<BossProjectile*> Vitor::DispararEm(const char* gatilho, const Vector2 onde, const int quantos,
                                               const std::optional<float> centro,
                                               const std::optional<float> abertura,
@@ -151,11 +146,6 @@ void Vitor::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& proje
     }
 }
 
-Player* Vitor::Aluno() const {
-    if (const auto* battle = dynamic_cast<Battle*>(mScene)) return battle->Alvo();
-    return nullptr;
-}
-
 void Vitor::AcompanharOAluno(const float deltaTime) {
     if (deltaTime <= 0.0f) return;
     const Vector2 agora = PosicaoDoAluno();
@@ -167,22 +157,6 @@ void Vitor::AcompanharOAluno(const float deltaTime) {
     }
     mUltimaDoAluno = agora;
     mViuOAluno = true;
-}
-
-Vector2 Vitor::PosicaoDoAluno() const {
-    if (const Player* aluno = Aluno()) return aluno->GetPosition();
-    const SDL_FRect campo = Campo();
-    return Vector2(campo.x + campo.w / 2.0f, campo.y + campo.h - 60.0f);
-}
-
-void Vitor::Anunciar(const std::string& fase, const std::string& texto) {
-    if (mAnunciosDoArquivo.count(fase) == 0) mAnunciosDoArquivo[fase] = AnuncioDaFase(fase);
-    if (AnuncioDaFase(fase) != texto) RegistrarAnuncio(fase, texto);
-}
-
-void Vitor::Restaurar(const std::string& fase) {
-    const auto it = mAnunciosDoArquivo.find(fase);
-    if (it != mAnunciosDoArquivo.end()) RegistrarAnuncio(fase, it->second);
 }
 
 // A fase 1: os semaforos.
@@ -247,7 +221,7 @@ void Vitor::DesmontarSemaforos() {
     if (mCodigoDaSecao) mCodigoDaSecao->SetState(ActorState::Destroy);
     mSecao = nullptr;
     mCodigoDaSecao = nullptr;
-    Restaurar(Semaforo::kFaseDosSemaforos);
+    RestaurarAnuncio(Semaforo::kFaseDosSemaforos);
     mNosSemaforos = false;
     mRodadaDoSemaforo = -1;
     mAlvo.reset();
@@ -465,7 +439,7 @@ void Vitor::AtualizarSemaforos() {
 
     PintarThreads();
     DesenharSemaforos();
-    Anunciar(Semaforo::kFaseDosSemaforos, Semaforo::Placar(mEscalonador, preso));
+    TrocarAnuncio(Semaforo::kFaseDosSemaforos, Semaforo::Placar(mEscalonador, preso));
 }
 
 void Vitor::OnUpdate(const float deltaTime) {
@@ -521,7 +495,7 @@ void Vitor::SairDaNuvem() {
 }
 
 void Vitor::ComecarOFork() {
-    auto* batalha = dynamic_cast<Battle*>(mScene);
+    auto* batalha = Batalha();
     const auto nuvens = Nuvens();
     if (!batalha || nuvens.empty()) return;   // sem nuvem, o fork de sempre
 
@@ -560,7 +534,7 @@ void Vitor::AtualizarANuvemDoFork() {
 
 std::vector<BossProjectile*> Vitor::Nuvens() const {
     std::vector<BossProjectile*> nuvens;
-    const auto* batalha = dynamic_cast<Battle*>(mScene);
+    const auto* batalha = Batalha();
     if (!batalha || !batalha->GetProjectileManager()) return nuvens;
     for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
         if (p && p->GetState() == ActorState::Active && p->Posto() == Nuvem::kPostoDasNuvens) {
@@ -738,7 +712,7 @@ void Vitor::AtualizarNuvens(const float deltaTime) {
     if (!nasNuvens) {
         if (mNasNuvens) {
             // A fase acabou.
-            Restaurar(kFaseDasNuvens);
+            RestaurarAnuncio(kFaseDasNuvens);
             DesmontarRede();
             mNasNuvens = false;
             if (fsm && fsm->GetStateName() == kFaseDoFork && !EhClone()) {
@@ -792,7 +766,7 @@ void Vitor::AtualizarNuvens(const float deltaTime) {
         mSemNuvensHa += deltaTime;
         mMandando = false;
         mFila.clear();
-        Anunciar(kFaseDasNuvens, kForaDoAr);
+        TrocarAnuncio(kFaseDasNuvens, kForaDoAr);
         if (mSemNuvensHa < Nuvem::kVoltaDasNuvens) return;
         Tcp::Timeout(mConexao);
         mJanelaReconhecida = true;
@@ -837,7 +811,7 @@ void Vitor::AtualizarNuvens(const float deltaTime) {
         }
     }
 
-    Anunciar(kFaseDasNuvens, mTextoDaConexao);
+    TrocarAnuncio(kFaseDasNuvens, mTextoDaConexao);
 
     const char* cara = Nuvem::Processando(mChuva) ? Nuvem::kCaraProcessando : Nuvem::kCaraOciosa;
     for (BossProjectile* nuvem : Nuvens()) PorCara(nuvem, cara);
@@ -920,7 +894,7 @@ void Vitor::DesmontarJantar() {
     }
     for (BossProjectile* p : mCerco) if (Vivo(p)) p->Kill();
     mCerco.clear();
-    Restaurar(Filosofos::kFaseDoJantar);
+    RestaurarAnuncio(Filosofos::kFaseDoJantar);
     mNoJantar = false;
     mRodadaDoJantar = -1;
     mPassos.clear();
@@ -1112,13 +1086,13 @@ void Vitor::AtualizarJantar(const float deltaTime) {
     mAlvo = alvo;
 
     PintarFilosofos();
-    Anunciar(Filosofos::kFaseDoJantar, Filosofos::Placar(rodada, mMesa, mPlanoDoJantar));
+    TrocarAnuncio(Filosofos::kFaseDoJantar, Filosofos::Placar(rodada, mMesa, mPlanoDoJantar));
 }
 
 // A fase 3: a troca de mensagens.
 
 Vitor* Vitor::Servidor() const {
-    const auto* batalha = dynamic_cast<Battle*>(mScene);
+    const auto* batalha = Batalha();
     if (!batalha) return nullptr;
     for (Boss* corpo : batalha->Corpos()) {
         if (corpo && corpo != this && corpo->EhClone()) return dynamic_cast<Vitor*>(corpo);
@@ -1163,7 +1137,7 @@ void Vitor::DesmontarMensagens() {
     }
     for (const Envelope& e : mEnvelopes) if (Vivo(e.p)) e.p->Kill();
     mEnvelopes.clear();
-    Restaurar(Mensagens::kFaseDasMensagens);
+    RestaurarAnuncio(Mensagens::kFaseDasMensagens);
     mNasMensagens = false;
     mRodadaDasMensagens = -1;
     mAlvo.reset();
@@ -1337,7 +1311,7 @@ void Vitor::AtualizarMensagens() {
     } else if (rodada == Mensagens::Rodada::Rpc) {
         bloqueado = mEsperandoRpc;
     }
-    Anunciar(Mensagens::kFaseDasMensagens,
+    TrocarAnuncio(Mensagens::kFaseDasMensagens,
              Mensagens::Placar(rodada, Mensagens::NaCaixa(mRoteiroDasMensagens, Mensagens::kCliente, u),
                                mChamadaDaRpc, bloqueado, mEstourou, mPlanoDasMensagens));
 }

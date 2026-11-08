@@ -226,7 +226,7 @@ Vector2 Vladimir::CentroDoEstado(const int q) {
 
 std::vector<BossProjectile*> Vladimir::NoPosto(const char* posto) const {
     std::vector<BossProjectile*> achados;
-    const auto* batalha = dynamic_cast<Battle*>(mScene);
+    const auto* batalha = Batalha();
     if (!batalha || !batalha->GetProjectileManager()) return achados;
     for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
         if (p && p->GetState() == ActorState::Active && p->Posto() == posto) achados.push_back(p.get());
@@ -235,7 +235,7 @@ std::vector<BossProjectile*> Vladimir::NoPosto(const char* posto) const {
 }
 
 void Vladimir::OnIntercambio() {
-    const auto* batalha = dynamic_cast<Battle*>(mScene);
+    const auto* batalha = Batalha();
     if (!batalha || !batalha->GetProjectileManager()) return;
 
     // O "a" ganha o Tracking do "b", e o "b" perde o dele e segue reto no rumo em que estava.
@@ -337,13 +337,6 @@ void Vladimir::AtualizarAutomato() {
             if (anim->GetAnimation() != cara) anim->SetAnimation(cara);
         }
     }
-}
-
-Vector2 Vladimir::PosicaoDoAluno() const {
-    if (const auto* battle = dynamic_cast<Battle*>(mScene); battle && battle->Alvo()) {
-        return battle->Alvo()->GetPosition();
-    }
-    return GetPosition() + GetDirectionToPlayer() * GetDistanceToPlayer();
 }
 
 std::vector<BossProjectile*> Vladimir::DispararDe(const char* gatilho, const Vector2 onde,

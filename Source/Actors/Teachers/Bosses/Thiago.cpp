@@ -61,11 +61,6 @@ std::optional<Vector2> Thiago::AlvoDoMovimento() const {
 
 // A tabela visivel.
 
-SDL_FRect Thiago::Campo() const {
-    if (const auto* battle = dynamic_cast<Battle*>(mScene)) return battle->GetPlayfieldBounds();
-    return SDL_FRect{0.0f, 0.0f, 1200.0f, 746.0f};
-}
-
 Vector2 Thiago::CentroDaCasa(const int linha, const int coluna) const {
     // A mesma conta da ConsultaAttack (Tabela.h).
     const SDL_FRect campo = Campo();

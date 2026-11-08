@@ -252,7 +252,7 @@ void Ricardo::AtualizarPipeline(const float deltaTime) {
 
 std::vector<BossProjectile*> Ricardo::NoPosto(const char* posto) const {
     std::vector<BossProjectile*> achados;
-    const auto* batalha = dynamic_cast<Battle*>(mScene);
+    const auto* batalha = Batalha();
     if (!batalha || !batalha->GetProjectileManager()) return achados;
     for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
         if (p && p->GetState() == ActorState::Active && p->Posto() == posto) achados.push_back(p.get());
@@ -418,10 +418,7 @@ void Ricardo::CustomizeAttackParams(AttackParams& params, const std::string& sta
         params.firePosition = mDisparoDoEstagio;
         if (mMirandoDoEstagio) {
             Vector2 d(0.0f, 1.0f);
-            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->Alvo()) {
-                d = batalha->Alvo()->GetPosition() - mDisparoDoEstagio;
-                if (d.LengthSq() > 0.0f) d.Normalize();
-            }
+            ApontarParaOAluno(mDisparoDoEstagio, d);
             const bool par = params.numProjectiles > 1 && params.numProjectiles % 2 == 0;
             const float meioPasso = par ? 0.5f * params.angle / static_cast<float>(params.numProjectiles - 1) : 0.0f;
             params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x)) + meioPasso;

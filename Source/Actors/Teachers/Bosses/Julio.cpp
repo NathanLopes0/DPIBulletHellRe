@@ -267,7 +267,7 @@ void Julio::SoltarAgente(BossProjectile* agente) {
 }
 
 void Julio::MoverAgentes(const float deltaTime, bool replanejar) {
-    const auto* batalha = dynamic_cast<Battle*>(mScene);
+    const auto* batalha = Batalha();
     if (!batalha || !batalha->GetProjectileManager() || !mScene->GetGame()) return;
 
     // Quem esta em campo: o agente derrubado sai da conta, e o recem-convocado entra.

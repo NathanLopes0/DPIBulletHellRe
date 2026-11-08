@@ -52,7 +52,6 @@ private:
     /// rumo. Devolve o que nasceu; com 'enfeite', o que nasce nao machuca.
     std::vector<BossProjectile*> DispararDe(const char* gatilho, Vector2 onde, std::optional<float> rumo,
                                             bool enfeite = false);
-    [[nodiscard]] Vector2 PosicaoDoAluno() const;
 
     bool mDisparandoDe = false;
     Vector2 mOndeDisparar;

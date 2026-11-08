@@ -150,11 +150,6 @@ void Luizinho::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& pr
     }
 }
 
-SDL_FRect Luizinho::Campo() const {
-    if (const auto* battle = dynamic_cast<Battle*>(mScene)) return battle->GetPlayfieldBounds();
-    return SDL_FRect{0.0f, 0.0f, Escopo::kLargura, Escopo::kAltura};
-}
-
 std::vector<BossProjectile*> Luizinho::DispararEm(const char* gatilho, const Vector2 onde, const int quantos,
                                                  const std::optional<float> centro,
                                                  const std::optional<float> abertura,
@@ -173,28 +168,9 @@ std::vector<BossProjectile*> Luizinho::DispararEm(const char* gatilho, const Vec
     return mCriados;
 }
 
-Vector2 Luizinho::PosicaoDoAluno() const {
-
-    if (const auto* battle = dynamic_cast<Battle*>(mScene); battle && battle->Alvo()) {
-        return battle->Alvo()->GetPosition();
-    }
-    const SDL_FRect campo = Campo();
-    return Vector2(campo.x + campo.w / 2.0f, campo.y + campo.h - 60.0f);
-}
-
 float Luizinho::AnguloAteOAluno(const Vector2 de) const {
     const Vector2 d = PosicaoDoAluno() - de;
     return Math::ToDegrees(Math::Atan2(d.y, d.x));
-}
-
-void Luizinho::Anunciar(const std::string& fase, const std::string& texto) {
-    if (mAnunciosDoArquivo.count(fase) == 0) mAnunciosDoArquivo[fase] = AnuncioDaFase(fase);
-    if (AnuncioDaFase(fase) != texto) RegistrarAnuncio(fase, texto);
-}
-
-void Luizinho::Restaurar(const std::string& fase) {
-    const auto it = mAnunciosDoArquivo.find(fase);
-    if (it != mAnunciosDoArquivo.end()) RegistrarAnuncio(fase, it->second);
 }
 
 // A fase 1: o escopo.
@@ -238,7 +214,7 @@ void Luizinho::DesmontarEscopo() {
         if (c) c->SetState(ActorState::Destroy);
         c = nullptr;
     }
-    Restaurar(Escopo::kFaseDoEscopo);
+    RestaurarAnuncio(Escopo::kFaseDoEscopo);
     mNoEscopo = false;
     mComandoDoEscopo = -1;
     mChuva = Chuva::Esperando;
@@ -262,7 +238,7 @@ void Luizinho::ComecarComando(const int k) {
     mComando = ComandoDoEscopo(k);
     mInicioDoComando = Escopo::kPrimeiro + static_cast<float>(k) * Escopo::kPorComando;
     mChuva = Chuva::Esperando;
-    Anunciar(Escopo::kFaseDoEscopo, Escopo::Placar(mPlanoDoEscopo.programa, mComando));
+    TrocarAnuncio(Escopo::kFaseDoEscopo, Escopo::Placar(mPlanoDoEscopo.programa, mComando));
 
     const SDL_FRect campo = Campo();
     const Escopo::Ponto onde = Escopo::OndeFicaOProfessor(mComando, campo.w, campo.h);
@@ -411,7 +387,7 @@ void Luizinho::LimparConta() {
 
 void Luizinho::DesmontarTipos() {
     LimparConta();
-    Restaurar(Coercao::kFaseDosTipos);
+    RestaurarAnuncio(Coercao::kFaseDosTipos);
     mNosTipos = false;
     mContaDaVez = -1;
     mEtapa = EtapaDaConta::Esperando;
@@ -424,7 +400,7 @@ void Luizinho::ComecarConta(const int k) {
     mConta = Coercao::Proximo(Variacao::NaOrdem(mOrdemDosTipos, k), Sorteio());
     mInicioDaConta = Coercao::kPrimeiro + static_cast<float>(k) * Coercao::kPorComando;
     mEtapa = EtapaDaConta::Esperando;
-    Anunciar(Coercao::kFaseDosTipos, Coercao::Placar(mConta));
+    TrocarAnuncio(Coercao::kFaseDosTipos, Coercao::Placar(mConta));
 
     // O professor muda de lugar a cada conta, no alto - e balanca em volta dele (AtualizarTipos).
     const SDL_FRect campo = Campo();
@@ -481,7 +457,7 @@ void Luizinho::Compilar() {
     const auto cacos = DispararEm(Coercao::kGatilhoDaCompilacao, professor, n,
                                   Coercao::CentroDoAnel(n, AnguloAteOAluno(professor)), Coercao::AberturaDoAnel(n));
     for (BossProjectile* c : cacos) PorCara(c, Coercao::kCaraDaCompilacao);
-    Anunciar(Coercao::kFaseDosTipos, Coercao::PlacarComResultado(mConta));
+    TrocarAnuncio(Coercao::kFaseDosTipos, Coercao::PlacarComResultado(mConta));
 }
 
 void Luizinho::FazerAConta() {
@@ -522,7 +498,7 @@ void Luizinho::FazerAConta() {
             PorCara(chips[i], Coercao::CaraDaLetra(letras[i]));
         }
     }
-    Anunciar(Coercao::kFaseDosTipos, Coercao::PlacarComResultado(mConta));
+    TrocarAnuncio(Coercao::kFaseDosTipos, Coercao::PlacarComResultado(mConta));
 }
 
 void Luizinho::AtualizarTipos() {
@@ -618,7 +594,7 @@ namespace {
 }
 
 void Luizinho::PararOMundo(const bool parar) const {
-    auto* batalha = dynamic_cast<Battle*>(mScene);
+    auto* batalha = Batalha();
     if (!batalha || !batalha->GetProjectileManager()) return;
 
     // Parado, o projetil nao faz nada.
@@ -643,7 +619,7 @@ void Luizinho::DesmontarMemoria() {
     LimparHeap();
     for (auto& [nome, etiqueta] : mRaizes) if (etiqueta) etiqueta->SetState(ActorState::Destroy);
     mRaizes.clear();
-    Restaurar(Memoria::kFaseDaMemoria);
+    RestaurarAnuncio(Memoria::kFaseDaMemoria);
     mNaMemoria = false;
     mPassoDaVez = -1;
     mEventos.clear();
@@ -656,7 +632,7 @@ void Luizinho::ComecarPasso(const int i) {
     const Memoria::Passo passo = PassoDaVez();
     mEventos = Memoria::Eventos(passo, mDegrauDaMemoria, mNumerosDaMemoria);
     mProximoEvento = 0;
-    Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(passo, false, mNumerosDaMemoria));
+    TrocarAnuncio(Memoria::kFaseDaMemoria, Memoria::Placar(passo, false, mNumerosDaMemoria));
 
     if (Memoria::TrocaDeLinguagem(i, mRoteiro)) LimparHeap();
 
@@ -760,7 +736,7 @@ void Luizinho::EscreverNoPendente(const Memoria::Evento& e) {
                                   Coercao::CentroDoAnel(n, AnguloAteOAluno(onde)), Coercao::AberturaDoAnel(n),
                                   mDegrauDaMemoria.rapidez);
     for (BossProjectile* c : cacos) PorCara(c, Memoria::kCaraDoEstilhaco);
-    Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(PassoDaVez(), true, mNumerosDaMemoria));
+    TrocarAnuncio(Memoria::kFaseDaMemoria, Memoria::Placar(PassoDaVez(), true, mNumerosDaMemoria));
 }
 
 void Luizinho::EstourarOsVazados() {
@@ -778,7 +754,7 @@ void Luizinho::EstourarOsVazados() {
         }
         it = mBlocos.erase(it);
     }
-    Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(PassoDaVez(), true, mNumerosDaMemoria));
+    TrocarAnuncio(Memoria::kFaseDaMemoria, Memoria::Placar(PassoDaVez(), true, mNumerosDaMemoria));
 }
 
 void Luizinho::Executar(const Memoria::Evento& e) {
@@ -790,14 +766,14 @@ void Luizinho::Executar(const Memoria::Evento& e) {
             // Stop the world: o professor e os projeteis param, e o coletor marca.
             mMundoParado = true;
             PararOMundo(true);
-            Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(PassoDaVez(), true, mNumerosDaMemoria));
+            TrocarAnuncio(Memoria::kFaseDaMemoria, Memoria::Placar(PassoDaVez(), true, mNumerosDaMemoria));
             break;
         case Memoria::Acao::Varrer:
             Coletar();
             break;
         case Memoria::Acao::Liberar:
             LiberarBloco(e.raiz);
-            Anunciar(Memoria::kFaseDaMemoria, Memoria::Placar(PassoDaVez(), true, mNumerosDaMemoria));
+            TrocarAnuncio(Memoria::kFaseDaMemoria, Memoria::Placar(PassoDaVez(), true, mNumerosDaMemoria));
             break;
         case Memoria::Acao::Escrever:
             EscreverNoPendente(e);
@@ -1003,7 +979,7 @@ void Luizinho::DesmontarExcecoes() {
     for (int i = 0; i < Excecao::kMaiorPilha; ++i) Desempilhar(i, false);
     if (Vivo(mExcecao)) mExcecao->Kill();
     mExcecao = nullptr;
-    Restaurar(Excecao::kFaseDasExcecoes);
+    RestaurarAnuncio(Excecao::kFaseDasExcecoes);
     mNasExcecoes = false;
     mRodadaDaVez = -1;
     mPassos.clear();
@@ -1027,7 +1003,7 @@ void Luizinho::ComecarRodada(const int k) {
     mCapturouEm = -1;
     const float fracao = static_cast<float>(Sorteio() % 1001u) / 1000.0f;
     mXDaRodada = Campo().x + Excecao::kXMinimo + fracao * (Excecao::kXMaximo - Excecao::kXMinimo);
-    Anunciar(Excecao::kFaseDasExcecoes, Excecao::PlacarDasChamadas(mRodada));
+    TrocarAnuncio(Excecao::kFaseDasExcecoes, Excecao::PlacarDasChamadas(mRodada));
 }
 
 void Luizinho::ExecutarPasso(const Excecao::Passo& p) {
@@ -1054,13 +1030,13 @@ void Luizinho::ExecutarPasso(const Excecao::Passo& p) {
             if (Vivo(mExcecao)) mExcecao->Kill();
             mExcecao = nullptr;
             mAlvo = Vector2(mXDaRodada, MeioDaFaixa(p.quadro).y);
-            Anunciar(Excecao::kFaseDasExcecoes, Excecao::PlacarDoDesfecho(mRodada));
+            TrocarAnuncio(Excecao::kFaseDasExcecoes, Excecao::PlacarDoDesfecho(mRodada));
             break;
         case Excecao::Acontece::Escapa:
             // Ninguem tratou: o programa capota.
             if (Vivo(mExcecao)) mExcecao->Kill();
             mExcecao = nullptr;
-            Anunciar(Excecao::kFaseDasExcecoes, Excecao::PlacarDoDesfecho(mRodada));
+            TrocarAnuncio(Excecao::kFaseDasExcecoes, Excecao::PlacarDoDesfecho(mRodada));
             break;
     }
 }
@@ -1097,7 +1073,7 @@ void Luizinho::AtualizarExcecoes() {
     const int ultimo = static_cast<int>(mRodada.pilha.size()) - 1;
     if (!mLancou && u >= Excecao::kLancamento) {
         mLancou = true;
-        Anunciar(Excecao::kFaseDasExcecoes, Excecao::PlacarDoLancamento(mRodada));
+        TrocarAnuncio(Excecao::kFaseDasExcecoes, Excecao::PlacarDoLancamento(mRodada));
         const auto criada = DispararEm(Excecao::kGatilhoDaExcecao,
                                        Vector2(mXDaRodada - Excecao::kAEsquerda, MeioDaFaixa(ultimo).y), 1);
         if (!criada.empty()) {
