@@ -82,12 +82,12 @@
 #include "../Source/Attacks/Excecao.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
-#include "../Source/Materias.h"
-#include "../Source/Orientacao.h"
-#include "../Source/Navegacao.h"
-#include "../Source/Personagens.h"
-#include "../Source/Progresso.h"
-#include "../Source/JsonDeDados.h"
+#include "../Source/Curso/Materias.h"
+#include "../Source/Curso/Orientacao.h"
+#include "../Source/Entrada/Navegacao.h"
+#include "../Source/Personagem/Personagens.h"
+#include "../Source/Aluno/Progresso.h"
+#include "../Source/Motor/JsonDeDados.h"
 
 #ifndef DPI_ASSETS_DIR
 #error "DPI_ASSETS_DIR nao foi definido. Veja target_compile_definitions(dpi_tests ...) no CMakeLists."

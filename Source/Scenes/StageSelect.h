@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "../Scenes/Scene.h"
-#include "../Game.h" // Incluir para o enum int
+#include "Scene.h"
+#include "../Motor/Game.h" // Incluir para o enum int
 #include <vector>
-#include "../Navegacao.h"
+#include "../Entrada/Navegacao.h"
 #include <SDL_pixels.h>
 #include <memory>
 

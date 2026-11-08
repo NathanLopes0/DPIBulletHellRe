@@ -7,7 +7,7 @@
 
 #include "doctest.h"
 
-#include "../Source/Navegacao.h"
+#include "../Source/Entrada/Navegacao.h"
 
 #include <algorithm>
 #include <vector>

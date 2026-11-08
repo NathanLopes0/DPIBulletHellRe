@@ -11,7 +11,7 @@
 
 #include "Exportacao.h"
 #include "FichaArquivo.h"
-#include "CaminhosArquivo.h"
+#include "../Motor/CaminhosArquivo.h"
 
 namespace Exportacao {
 

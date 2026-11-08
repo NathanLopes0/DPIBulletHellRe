@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 
-#include "../Dificuldade.h"
-#include "../Variacao.h"
+#include "../Regras/Dificuldade.h"
+#include "../Regras/Variacao.h"
 
 /**
  * CAMADA PURA. Coberto por test_elixir.cpp.

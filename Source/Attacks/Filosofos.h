@@ -10,8 +10,8 @@
 #include <vector>
 
 #include "Fase.h"
-#include "../Dificuldade.h"
-#include "../Variacao.h"
+#include "../Regras/Dificuldade.h"
+#include "../Regras/Variacao.h"
 
 /**
  * CAMADA PURA.

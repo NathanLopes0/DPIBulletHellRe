@@ -4,7 +4,7 @@
 // AttackParams.h
 #pragma once
 
-#include "../../Math.h" // Para Vector2
+#include "../../Motor/Math.h" // Para Vector2
 
 class ProjectileFactory;
 class Actor;

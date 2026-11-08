@@ -8,8 +8,8 @@
 
 #include <string>
 #include "Button.h"
-#include "../../Game.h"
-#include "../../Math.h"
+#include "../../Motor/Game.h"
+#include "../../Motor/Math.h"
 
 class Font;
 class StageSelectButton : public Button {

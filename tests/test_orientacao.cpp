@@ -6,9 +6,9 @@
 
 #include <string>
 
-#include "../Source/Materias.h"
-#include "../Source/Orientacao.h"
-#include "../Source/Progresso.h"
+#include "../Source/Curso/Materias.h"
+#include "../Source/Curso/Orientacao.h"
+#include "../Source/Aluno/Progresso.h"
 
 namespace {
 

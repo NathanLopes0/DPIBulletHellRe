@@ -57,17 +57,17 @@ def edit(arq, de, para, vezes=1):
     if crlf: t = t.replace('\n', '\r\n')
     io.open(arq, 'w', encoding='utf-8', newline='', errors='surrogateescape').write(t)
 
-edit("Source/Game.cpp", '#include "Game.h"',
+edit("Source/Motor/Game.cpp", '#include "Game.h"',
      '#include "Game.h"\n#include <cstdio>\n#include <cstdlib>')
 
 # ---- SEMENTE FIXA. Sem isto cada corrida sorteia outros ataques e a
 # ---- comparacao entre duas versoes nao quer dizer nada.
-edit("Source/Game.cpp", "    Random::Init();",
+edit("Source/Motor/Game.cpp", "    Random::Init();",
 """    Random::Seed(std::getenv("DPI_SEMENTE")
                 ? static_cast<unsigned>(std::atoi(std::getenv("DPI_SEMENTE"))) : 20261014u);""")
 
 # ---- entra direto na batalha
-edit("Source/Game.cpp", "    ChangeScene(Scene::SceneType::MainMenu);",
+edit("Source/Motor/Game.cpp", "    ChangeScene(Scene::SceneType::MainMenu);",
 """    if (std::getenv("DPI_BATALHA")) {
         mSelectedStage = std::atoi(std::getenv("DPI_BATALHA"));
 
@@ -106,9 +106,9 @@ edit("Source/Scenes/Battle/Battle.cpp", "    mSemente = static_cast<std::uint32_
       : std::getenv("DPI_SEMENTE") ? std::getenv("DPI_SEMENTE") : "20261014", nullptr, 10));""")
 
 # ---- passo de tempo fixo
-edit("Source/Game.cpp", "        while(!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16)) {}",
+edit("Source/Motor/Game.cpp", "        while(!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16)) {}",
      '        if (!std::getenv("DPI_PASSO")) while(!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16)) {}')
-edit("Source/Game.cpp", "        mTicksCount = SDL_GetTicks();",
+edit("Source/Motor/Game.cpp", "        mTicksCount = SDL_GetTicks();",
 """        mTicksCount = SDL_GetTicks();
         if (const char* p = std::getenv("DPI_PASSO")) deltaTime = static_cast<float>(std::atof(p));""")
 

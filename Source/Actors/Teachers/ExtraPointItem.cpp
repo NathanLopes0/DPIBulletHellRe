@@ -6,9 +6,9 @@
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../Components/RigidBodyComponent.h"
-#include "../../Game.h"
+#include "../../Motor/Game.h"
 
-#include "../../CaminhosArquivo.h"
+#include "../../Motor/CaminhosArquivo.h"
 
 ExtraPointItem::ExtraPointItem(Scene* scene) : Actor(scene) {
 

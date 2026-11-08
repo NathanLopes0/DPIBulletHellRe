@@ -6,8 +6,8 @@
 
 #include <string>
 
-#include "../Dificuldade.h"
-#include "../Variacao.h"
+#include "../Regras/Dificuldade.h"
+#include "../Regras/Variacao.h"
 
 #include <optional>
 #include <string>

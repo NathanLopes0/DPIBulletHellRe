@@ -5,7 +5,7 @@
 #include "DrawSpriteComponent.h"
 #include "../../Scenes/Scene.h"
 #include "../../Actors/Actor.h"
-#include "../../Game.h"
+#include "../../Motor/Game.h"
 
 // Construtor quando você quer especificar o tamanho da imagem
 DrawSpriteComponent::DrawSpriteComponent(class Actor *owner, const std::string &texturePath, const int width, const int height, const int drawOrder)

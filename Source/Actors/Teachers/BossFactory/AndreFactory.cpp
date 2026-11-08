@@ -5,11 +5,11 @@
 #include "AndreFactory.h"
 
 
-#include "../../Teachers/Bosses/Andre.h"
+#include "../Bosses/Andre.h"
 #include "../../../Attacks/FasesDeAtaqueArquivo.h"
 #include "../../../Attacks/ProjeteisDeChefeArquivo.h"
 
-#include "../../../CaminhosArquivo.h"
+#include "../../../Motor/CaminhosArquivo.h"
 
 AndreFactory::AndreFactory(Game *game)
     : IBossFactory(game)

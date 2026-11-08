@@ -10,7 +10,7 @@
 #include "../Bosses/Ricardo.h"
 #include "../../../Attacks/ProjeteisDeChefeArquivo.h"
 
-#include "../../../CaminhosArquivo.h"
+#include "../../../Motor/CaminhosArquivo.h"
 
 RicardoFactory::RicardoFactory(Game *game)
     : IBossFactory(game)

@@ -4,7 +4,7 @@
 
 #include "doctest.h"
 
-#include "../Source/Intercambio.h"
+#include "../Source/Regras/Intercambio.h"
 
 #include <vector>
 

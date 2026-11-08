@@ -420,14 +420,21 @@ Os testes foram na sua grande maioria gerados pelo Claude por enquanto, mas to c
 
 ```
 Source/          o jogo
-  *.h / *.cpp      camada pura: nota, matrícula, progresso, matérias,
-                   personagens, navegação, tabela, orientação, golpe e
-                   poder do orientador. Nada de SDL nem de disco.
-  *Arquivo.cpp     as pontes: é só aqui que se lê arquivo e se fala com SDL.
+  Motor/           o laço do jogo (Game), a matemática, o sorteio, a fonte,
+                   o som, o JSON, os caminhos, as opções e o modo gabinete
+  Entrada/         o painel do gabinete, o teclado da matrícula, a navegação
+  Aluno/           matrícula, sessão, progresso, ficha, ranking e a planilha
+  Pesquisa/        o registro das tentativas (os dados do TCC)
+  Curso/           as matérias e quem pode orientar o TCC
+  Personagem/      o catálogo de peças e a montagem da personagem
+  Regras/          as regras puras da batalha: nota, Ponto Extra, acertos,
+                   dificuldade, variação, intercâmbio, golpe e poder
+  Interface/       as contas da HUD, da barra da nota, do carregamento e da pausa
   Actors/          jogador, professores, orientador, projéteis
   Attacks/         as estratégias de ataque e os comportamentos de projétil
   Scenes/          menu, identificação, criação de personagem, seleção, batalha
   Components/      desenho, colisão, física, máquina de estados
+  Movements/       o movimento dos professores
 Assets/          sprites, fontes, sons e os JSON que descrevem o jogo
   Attacks/         regras.json e uma pasta por professor com as fases e
                    os projeteis dele
@@ -440,7 +447,9 @@ Ferramentas/     geradores de arte provisória e os arneses de medição
 tests/           a suíte
 ```
 
-A separação entre o par `X.cpp` / `XArquivo.cpp` é o que torna a suíte possível:
+Dentro de cada pasta, o par `X.cpp` / `XArquivo.cpp` separa a camada pura (sem
+SDL nem disco) da ponte que lê arquivo e fala com SDL. Essa separação é o que
+torna a suíte possível:
 a metade pura entra nos testes, a metade que toca disco e SDL fica de fora.
 
 ### Padrões de projeto

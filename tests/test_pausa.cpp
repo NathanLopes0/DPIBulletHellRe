@@ -7,7 +7,7 @@
 #include <set>
 #include <string>
 
-#include "../Source/Pausa.h"
+#include "../Source/Interface/Pausa.h"
 
 using namespace Pausa;
 

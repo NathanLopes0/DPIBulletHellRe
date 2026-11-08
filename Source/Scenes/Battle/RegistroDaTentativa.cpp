@@ -7,12 +7,12 @@
 #include <algorithm>
 
 #include "Battle.h"
-#include "../../Game.h"
-#include "../../MateriasArquivo.h"
-#include "../../Matricula.h"
-#include "../../Nota.h"
-#include "../../Relogio.h"
-#include "../../TentativasArquivo.h"
+#include "../../Motor/Game.h"
+#include "../../Curso/MateriasArquivo.h"
+#include "../../Aluno/Matricula.h"
+#include "../../Regras/Nota.h"
+#include "../../Motor/Relogio.h"
+#include "../../Pesquisa/TentativasArquivo.h"
 #include "../../Actors/Orientador/Orientador.h"
 #include "../../Actors/Player/Player.h"
 

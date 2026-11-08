@@ -8,7 +8,7 @@
 #include <set>
 #include <string>
 
-#include "../Source/Variacao.h"
+#include "../Source/Regras/Variacao.h"
 
 #include <algorithm>
 #include <set>

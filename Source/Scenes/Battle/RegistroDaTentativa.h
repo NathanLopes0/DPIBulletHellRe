@@ -5,7 +5,7 @@
 #pragma once
 
 #include "OuvinteDaBatalha.h"
-#include "../../Tentativas.h"
+#include "../../Pesquisa/Tentativas.h"
 
 /**
  * @class RegistroDaTentativa

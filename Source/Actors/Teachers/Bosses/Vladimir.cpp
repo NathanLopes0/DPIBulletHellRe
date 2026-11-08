@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <limits>
 
-#include "../../../Random.h"
+#include "../../../Motor/Random.h"
 #include "../../../Attacks/Alfabeto.h"
 #include "../../../Attacks/Ancora.h"
 #include "../../../Attacks/Behaviors.h"

@@ -8,7 +8,7 @@
 
 #include "../../../Attacks/FasesDeAtaqueArquivo.h"
 #include "../../../Attacks/ProjeteisDeChefeArquivo.h"
-#include "../../../CaminhosArquivo.h"
+#include "../../../Motor/CaminhosArquivo.h"
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Bosses/MariaLucia.h"

@@ -11,7 +11,7 @@
 #include "../../Actors/Actor.h"
 #include "../../Actors/ProjectileFactory.h"
 #include "../../Components/RigidBodyComponent.h"
-#include "../../Attacks/AttackParameters/AttackParams.h"
+#include "../AttackParameters/AttackParams.h"
 
 
 CircleSpreadAttack::CircleSpreadAttack(ProjectileFactory* spawner, Actor* owner)

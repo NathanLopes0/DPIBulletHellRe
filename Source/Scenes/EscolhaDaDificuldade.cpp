@@ -9,10 +9,10 @@
 #include <SDL_scancode.h>
 
 #include "FundoDeCena.h"
-#include "../Game.h"
-#include "../Font.h"
-#include "../Painel.h"
-#include "../CaminhosArquivo.h"
+#include "../Motor/Game.h"
+#include "../Motor/Font.h"
+#include "../Entrada/Painel.h"
+#include "../Motor/CaminhosArquivo.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"

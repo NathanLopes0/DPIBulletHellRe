@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "Player.h"
-#include "../../Painel.h"
-#include "../../Poder.h"
+#include "../../Entrada/Painel.h"
+#include "../../Regras/Poder.h"
 
 #include "PlayerProjectile.h"
 #include "../../Scenes/Battle/Battle.h"
@@ -15,10 +15,10 @@
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../Components/ColliderComponents/CircleColliderComponent.h"
 
-#include "../../CaminhosArquivo.h"
-#include "../../ComporPersonagem.h"
-#include "../../Game.h"
-#include "../../PersonagensArquivo.h"
+#include "../../Motor/CaminhosArquivo.h"
+#include "../../Personagem/ComporPersonagem.h"
+#include "../../Motor/Game.h"
+#include "../../Personagem/PersonagensArquivo.h"
 
 #define NUM_PROJECTILES_VECTOR 500
 #define ATK_TIMER_START_FULL PontoExtra::kEntreTiros   // o Ponto Extra paga por eles
@@ -43,7 +43,7 @@ Player::Player(Scene* scene, const size_t quem) :
     // A APARENCIA VEM DO PERFIL, e nao de um caminho fixo. A personagem e
     // montada das camadas escolhidas (ou da padrao, para quem nao escolheu) e
     // vira UMA textura, que daqui para baixo e uma sprite animada como outra
-    // qualquer - ver Source/ComporPersonagem.h.
+    // qualquer - ver Source/Personagem/ComporPersonagem.h.
     std::string spritePath = Caminhos::Asset("Player/DPIBHPlayer.png");
     std::string dataPath   = Caminhos::Asset("Player/DPIBHPlayer.json");
 

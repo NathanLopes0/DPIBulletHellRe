@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 
-#include "../Source/Personagens.h"
-#include "../Source/Progresso.h"
+#include "../Source/Personagem/Personagens.h"
+#include "../Source/Aluno/Progresso.h"
 #include "../Source/Attacks/Compilador.h"
 
 /**

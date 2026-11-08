@@ -10,7 +10,7 @@
 #include <system_error>
 #include <SDL_log.h>
 
-#include "CaminhosArquivo.h"
+#include "../Motor/CaminhosArquivo.h"
 
 namespace TentativasArquivo {
 

@@ -10,7 +10,7 @@
 #include "../Bosses/Julio.h"
 #include "../../../Attacks/ProjeteisDeChefeArquivo.h"
 
-#include "../../../CaminhosArquivo.h"
+#include "../../../Motor/CaminhosArquivo.h"
 
 JulioFactory::JulioFactory(Game* game)
     : IBossFactory(game)

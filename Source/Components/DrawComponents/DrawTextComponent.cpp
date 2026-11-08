@@ -5,9 +5,9 @@
 #include "DrawTextComponent.h"
 
 #include <algorithm>
-#include "../../Font.h"
+#include "../../Motor/Font.h"
 #include "../../Actors/Actor.h"
-#include "../../Game.h"
+#include "../../Motor/Game.h"
 #include "../../Scenes/Scene.h"
 
 DrawTextComponent::DrawTextComponent(Actor *owner, const std::string &text, Font *font, int width, int height, int fontSize, int drawOrder)

@@ -8,7 +8,7 @@
 #include <sstream>
 #include <SDL_log.h>
 
-#include "CaminhosArquivo.h"
+#include "../Motor/CaminhosArquivo.h"
 
 namespace Personagens {
 

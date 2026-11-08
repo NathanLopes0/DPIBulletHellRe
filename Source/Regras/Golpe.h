@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "Math.h"
+#include "../Motor/Math.h"
 #include "Variacao.h"
 
 /**

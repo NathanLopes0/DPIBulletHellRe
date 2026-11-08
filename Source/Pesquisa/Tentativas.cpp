@@ -12,7 +12,7 @@
 #include <sstream>
 #include <tuple>
 
-#include "Exportacao.h"
+#include "../Aluno/Exportacao.h"
 
 namespace Tentativas {
 

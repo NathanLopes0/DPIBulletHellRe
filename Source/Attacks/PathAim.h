@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../Math.h"
+#include "../Motor/Math.h"
 
 /**
  * CAMADA PURA (Humble Object)

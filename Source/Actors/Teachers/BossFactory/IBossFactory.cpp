@@ -6,7 +6,7 @@
 
 #include <SDL_log.h>
 
-#include "../../Teachers/Boss.h"
+#include "../Boss.h"
 
 IBossFactory::IBossFactory(Game* game) : mGame(game) {
 }

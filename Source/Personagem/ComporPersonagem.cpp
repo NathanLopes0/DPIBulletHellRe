@@ -6,8 +6,8 @@
 
 #include <SDL_image.h>
 
-#include "CaminhosArquivo.h"
-#include "Game.h"
+#include "../Motor/CaminhosArquivo.h"
+#include "../Motor/Game.h"
 
 namespace {
 

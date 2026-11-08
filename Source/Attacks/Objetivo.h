@@ -8,10 +8,10 @@
 #include <string>
 #include <vector>
 
-#include "../Dificuldade.h"
-#include "../Golpe.h"
-#include "../Math.h"
-#include "../Variacao.h"
+#include "../Regras/Dificuldade.h"
+#include "../Regras/Golpe.h"
+#include "../Motor/Math.h"
+#include "../Regras/Variacao.h"
 
 /**
  * CAMADA PURA. Coberto por test_objetivo.cpp.

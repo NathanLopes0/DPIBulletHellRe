@@ -8,7 +8,7 @@
 
 #include "../Logica.h"
 #include "../AttackParameters/PalavraAttackParams.h"
-#include "../../Game.h"
+#include "../../Motor/Game.h"
 #include "../../Actors/Projectile.h"
 #include "../../Actors/ProjectileFactory.h"
 #include "../../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"

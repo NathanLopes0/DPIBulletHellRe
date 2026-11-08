@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "../Dificuldade.h"
-#include "../Variacao.h"
+#include "../Regras/Dificuldade.h"
+#include "../Regras/Variacao.h"
 
 #include <array>
 #include <cstdint>

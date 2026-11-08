@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../Math.h"
+#include "../Motor/Math.h"
 #include "PathAim.h"
 #include "Amarra.h"
 #include "Sprint.h"

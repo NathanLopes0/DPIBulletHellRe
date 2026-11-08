@@ -5,9 +5,9 @@
 #include <string>
 #include <vector>
 
-#include "../Source/Exportacao.h"
-#include "../Source/Materias.h"
-#include "../Source/Nota.h"
+#include "../Source/Aluno/Exportacao.h"
+#include "../Source/Curso/Materias.h"
+#include "../Source/Regras/Nota.h"
 
 namespace {
 

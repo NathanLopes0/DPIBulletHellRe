@@ -7,9 +7,9 @@
 #include <array>
 #include <string>
 
-#include "../Dificuldade.h"
-#include "../Golpe.h"
-#include "../Variacao.h"
+#include "../Regras/Dificuldade.h"
+#include "../Regras/Golpe.h"
+#include "../Regras/Variacao.h"
 
 /**
  * CAMADA PURA. Coberto por test_tcc.cpp.

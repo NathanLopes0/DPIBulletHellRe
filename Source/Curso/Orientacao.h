@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "Materias.h"
-#include "Progresso.h"
+#include "../Aluno/Progresso.h"
 
 /**
  * CAMADA PURA.

@@ -10,14 +10,14 @@
 #include <string>
 #include <vector>
 #include "../Scene.h"
-#include "../../Intercambio.h"
-#include "../../Game.h"
-#include "../../AudioSystem.h"
-#include "../../Pausa.h"
-#include "../../Carregamento.h"
-#include "../../Dificuldade.h"
-#include "../../Hud.h"
-#include "../../Variacao.h"
+#include "../../Regras/Intercambio.h"
+#include "../../Motor/Game.h"
+#include "../../Motor/AudioSystem.h"
+#include "../../Interface/Pausa.h"
+#include "../../Interface/Carregamento.h"
+#include "../../Regras/Dificuldade.h"
+#include "../../Interface/Hud.h"
+#include "../../Regras/Variacao.h"
 #include "OuvinteDaBatalha.h"
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
 

@@ -9,14 +9,14 @@
 #include <cmath>
 #include <unordered_map>
 
-#include "../../CaminhosArquivo.h"
-#include "../../Escolta.h"
-#include "../../Math.h"
-#include "../../Painel.h"
-#include "../../Actors/Player/Player.h"
-#include "../../Actors/Player/PlayerProjectile.h"
-#include "../../Actors/Teachers/Boss.h"
-#include "../../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"
+#include "../../Motor/CaminhosArquivo.h"
+#include "../../Regras/Escolta.h"
+#include "../../Motor/Math.h"
+#include "../../Entrada/Painel.h"
+#include "../Player/Player.h"
+#include "../Player/PlayerProjectile.h"
+#include "../Teachers/Boss.h"
+#include "../Teachers/Bosses/BossesProjectiles/BossProjectile.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../../Components/DrawComponents/DrawSpriteComponent.h"

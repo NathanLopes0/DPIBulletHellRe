@@ -7,11 +7,11 @@
 #include <algorithm>
 
 #include "../../Scenes/Battle/Battle.h"
-#include "../../Actors/Projectile.h"
+#include "../Projectile.h"
 #include "../ProjectileFactory.h"
 #include "../../Scenes/Battle/ProjectileManager.h"
 #include "../Player/Player.h"
-#include "../../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"
+#include "Bosses/BossesProjectiles/BossProjectile.h"
 #include "../../Movements/MovementStrategies.h"
 #include "../../Components/RigidBodyComponent.h"
 #include "../../Components/AIComponents/FSMComponent.h"

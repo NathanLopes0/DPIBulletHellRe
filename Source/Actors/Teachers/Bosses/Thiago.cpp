@@ -13,9 +13,9 @@
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../../../Components/RigidBodyComponent.h"
-#include "../../../Random.h"
+#include "../../../Motor/Random.h"
 #include "../../../Scenes/Battle/Battle.h"
-#include "../../../Tabela.h"
+#include "../../../Regras/Tabela.h"
 #include "BossesProjectiles/BossProjectile.h"
 
 Thiago::Thiago(Scene* scene) : Boss(scene)

@@ -13,9 +13,9 @@
 #include <set>
 #include <string>
 
-#include "../Source/Navegacao.h"
-#include "../Source/Matricula.h"
-#include "../Source/Teclado.h"
+#include "../Source/Entrada/Navegacao.h"
+#include "../Source/Aluno/Matricula.h"
+#include "../Source/Entrada/Teclado.h"
 
 namespace {
     size_t IndiceDe(const std::string& rotulo) {

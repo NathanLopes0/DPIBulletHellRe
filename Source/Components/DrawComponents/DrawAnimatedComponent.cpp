@@ -4,10 +4,10 @@
 
 
 #include <fstream>
-#include "../../Game.h"
-#include "../../Json.h"
+#include "../../Motor/Game.h"
+#include "../../Motor/Json.h"
 #include "../../Actors/Actor.h"
-#include "../../Destrutivel.h"
+#include "../../Regras/Destrutivel.h"
 #include "DrawAnimatedComponent.h"
 #include <stdexcept>
 #include <set>

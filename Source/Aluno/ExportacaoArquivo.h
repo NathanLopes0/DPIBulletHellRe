@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "Materias.h"
+#include "../Curso/Materias.h"
 
 namespace Exportacao {
 

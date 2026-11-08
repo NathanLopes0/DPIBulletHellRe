@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../Variacao.h"
+#include "../Regras/Variacao.h"
 
 #include <array>
 #include <string>

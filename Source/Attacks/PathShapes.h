@@ -8,7 +8,7 @@
 #include <memory>
 #include <map>
 #include <string>
-#include "../Math.h"
+#include "../Motor/Math.h"
 
 /**
  * @namespace PathShapes

@@ -6,7 +6,7 @@
 #include <utility>
 #include <algorithm>
 #include "Scene.h"
-#include "../Game.h"
+#include "../Motor/Game.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawComponent.h"
 

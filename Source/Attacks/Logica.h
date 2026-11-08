@@ -6,7 +6,7 @@
 
 #include <array>
 
-#include "../Variacao.h"
+#include "../Regras/Variacao.h"
 
 #include <cstdint>
 #include <optional>

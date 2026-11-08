@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../Dificuldade.h"
+#include "../Regras/Dificuldade.h"
 
 #include <array>
 #include <cstdint>

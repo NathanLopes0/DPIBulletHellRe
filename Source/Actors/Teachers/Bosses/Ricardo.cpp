@@ -7,13 +7,13 @@
 #include <algorithm>
 #include <limits>
 
-#include "../../../Game.h"
-#include "../../../Random.h"
+#include "../../../Motor/Game.h"
+#include "../../../Motor/Random.h"
 #include "../../../Attacks/AttackParameters/PalavraAttackParams.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/RigidBodyComponent.h"
 #include "../../../Attacks/Ancora.h"
-#include "../../../Actors/Player/Player.h"
+#include "../../Player/Player.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Scenes/Battle/Battle.h"
 #include "../../../Scenes/Battle/ProjectileManager.h"

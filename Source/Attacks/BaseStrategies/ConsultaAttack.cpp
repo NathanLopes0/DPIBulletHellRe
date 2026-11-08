@@ -8,10 +8,10 @@
 
 #include "../../Actors/Projectile.h"
 #include "../../Actors/ProjectileFactory.h"
-#include "../../Attacks/AttackParameters/ConsultaAttackParams.h"
+#include "../AttackParameters/ConsultaAttackParams.h"
 #include "../../Components/RigidBodyComponent.h"
 #include "../../Scenes/Battle/Battle.h"
-#include "../../Tabela.h"
+#include "../../Regras/Tabela.h"
 
 ConsultaAttack::ConsultaAttack(ProjectileFactory* spawner, Actor* owner)
     : IAttackStrategy(spawner, owner)

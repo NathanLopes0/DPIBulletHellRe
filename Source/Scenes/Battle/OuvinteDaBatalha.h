@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "../../Tentativas.h"
+#include "../../Pesquisa/Tentativas.h"
 
 class Actor;
 class Battle;

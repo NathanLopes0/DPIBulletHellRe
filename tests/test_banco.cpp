@@ -9,8 +9,8 @@
 #include <set>
 
 #include "../Source/Attacks/Banco.h"
-#include "../Source/Variacao.h"
-#include "../Source/Dificuldade.h"
+#include "../Source/Regras/Variacao.h"
+#include "../Source/Regras/Dificuldade.h"
 
 namespace {
     Banco::Registros Exemplo() {

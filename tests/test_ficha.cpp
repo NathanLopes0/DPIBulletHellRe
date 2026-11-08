@@ -8,10 +8,10 @@
 
 #include <string>
 
-#include "../Source/Ficha.h"
-#include "../Source/Materias.h"
-#include "../Source/Relogio.h"
-#include "../Source/Progresso.h"
+#include "../Source/Aluno/Ficha.h"
+#include "../Source/Curso/Materias.h"
+#include "../Source/Motor/Relogio.h"
+#include "../Source/Aluno/Progresso.h"
 #include "Ajudantes.h"
 
 namespace {

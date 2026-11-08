@@ -9,8 +9,8 @@
 #include <utility>
 #include <vector>
 
-#include "../Math.h"
-#include "../Variacao.h"
+#include "../Motor/Math.h"
+#include "../Regras/Variacao.h"
 #include "Fase.h"
 
 /**

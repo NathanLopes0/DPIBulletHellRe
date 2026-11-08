@@ -10,12 +10,12 @@
 #include <SDL_scancode.h>
 
 #include "FundoDeCena.h"
-#include "../Game.h"
-#include "../Font.h"
-#include "../Nota.h"
-#include "../Hud.h"
-#include "../MateriasArquivo.h"
-#include "../CaminhosArquivo.h"
+#include "../Motor/Game.h"
+#include "../Motor/Font.h"
+#include "../Regras/Nota.h"
+#include "../Interface/Hud.h"
+#include "../Curso/MateriasArquivo.h"
+#include "../Motor/CaminhosArquivo.h"
 #include "../Actors/Actor.h"
 #include "../Actors/Teachers/BossFactory/IBossFactory.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"

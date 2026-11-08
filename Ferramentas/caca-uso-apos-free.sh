@@ -63,18 +63,18 @@ def edit(arq, de, para):
         t = t.replace('\n', '\r\n')
     io.open(arq, 'w', encoding='utf-8', newline='', errors='surrogateescape').write(t)
 
-edit("Source/Game.cpp", '#include "Game.h"',
+edit("Source/Motor/Game.cpp", '#include "Game.h"',
      '#include "Game.h"\n#include <cstdio>\n#include <cstdlib>')
-edit("Source/Game.cpp", "    Random::Init();", "    Random::Seed(20261014u);")
-edit("Source/Game.cpp", "    ChangeScene(Scene::SceneType::MainMenu);",
+edit("Source/Motor/Game.cpp", "    Random::Init();", "    Random::Seed(20261014u);")
+edit("Source/Motor/Game.cpp", "    ChangeScene(Scene::SceneType::MainMenu);",
 """    if (std::getenv("DPI_BATALHA")) {
         mSelectedStage = std::atoi(std::getenv("DPI_BATALHA"));
         ChangeScene(Scene::SceneType::Battle);
     } else
     ChangeScene(Scene::SceneType::MainMenu);""")
-edit("Source/Game.cpp", "        while(!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16)) {}",
+edit("Source/Motor/Game.cpp", "        while(!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16)) {}",
      '        if (!std::getenv("DPI_PASSO")) while(!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16)) {}')
-edit("Source/Game.cpp", "        mTicksCount = SDL_GetTicks();",
+edit("Source/Motor/Game.cpp", "        mTicksCount = SDL_GetTicks();",
 """        mTicksCount = SDL_GetTicks();
         if (const char* p = std::getenv("DPI_PASSO")) deltaTime = static_cast<float>(std::atof(p));
         if (const char* n = std::getenv("DPI_QUADROS")) {

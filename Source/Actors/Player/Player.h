@@ -8,9 +8,9 @@
 #include <cstddef>
 
 #include "../Actor.h"
-#include "../../Painel.h"
-#include "../../Acerto.h"
-#include "../../PontoExtra.h"
+#include "../../Entrada/Painel.h"
+#include "../../Regras/Acerto.h"
+#include "../../Regras/PontoExtra.h"
 
 class PlayerProjectile;
 class PlayerOrb;

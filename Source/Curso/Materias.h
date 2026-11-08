@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "Progresso.h"
+#include "../Aluno/Progresso.h"
 
 /**
  * CAMADA PURA. Transforma texto em lista de materias e responde perguntas sobre

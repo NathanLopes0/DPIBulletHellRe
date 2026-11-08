@@ -3,20 +3,20 @@
 //
 
 #include "TelaDeRanking.h"
-#include "../Painel.h"
+#include "../Entrada/Painel.h"
 #include "FundoDeCena.h"
 
 #include <SDL_scancode.h>
 #include <iomanip>
 #include <sstream>
 
-#include "../CaminhosArquivo.h"
-#include "../FichaArquivo.h"
-#include "../Font.h"
-#include "../Game.h"
-#include "../MateriasArquivo.h"
-#include "../Nota.h"
-#include "../Ranking.h"
+#include "../Motor/CaminhosArquivo.h"
+#include "../Aluno/FichaArquivo.h"
+#include "../Motor/Font.h"
+#include "../Motor/Game.h"
+#include "../Curso/MateriasArquivo.h"
+#include "../Regras/Nota.h"
+#include "../Aluno/Ranking.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
 

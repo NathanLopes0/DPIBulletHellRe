@@ -5,12 +5,12 @@
 
 #include "BossProjectile.h"
 #include "../../Boss.h"
-#include "../../../../Game.h"         // Para GetWindowWidth/Height
+#include "../../../../Motor/Game.h"         // Para GetWindowWidth/Height
 #include "../../../../Components/DrawComponents/DrawAnimatedComponent.h" // Para GetComponent<>()
 #include "../../../../Scenes/Battle/Battle.h"
 #include "../../../Player/Player.h"
 #include "../../../../Components/RigidBodyComponent.h"
-#include "../../../../Destrutivel.h"
+#include "../../../../Regras/Destrutivel.h"
 
 
 // 1. O construtor passa o 'owner' para o construtor da classe base 'Projectile'.

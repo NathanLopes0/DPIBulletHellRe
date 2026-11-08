@@ -10,10 +10,10 @@
 #include <vector>
 
 #include "Scene.h"
-#include "../Game.h"
-#include "../Navegacao.h"
-#include "../Painel.h"
-#include "../Teclado.h"
+#include "../Motor/Game.h"
+#include "../Entrada/Navegacao.h"
+#include "../Entrada/Painel.h"
+#include "../Entrada/Teclado.h"
 
 class Font;
 class Actor;
@@ -25,7 +25,7 @@ class DrawCaixaComponent;
  *
  * ESTA CENA NAO DECIDE NADA SOBRE MATRICULA. Toda a regra - o que e um digito
  * valido, quantos cabem, o que e uma matricula aceitavel, qual frase mostrar para
- * cada erro - vive em Source/Matricula.h, que e puro e coberto por testes. Aqui
+ * cada erro - vive em Source/Aluno/Matricula.h, que e puro e coberto por testes. Aqui
  * so ha leitura de teclado e desenho.
  *
  * E a mesma divisao que separa os leitores de dados das pontes, e o motivo e o

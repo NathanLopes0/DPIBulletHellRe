@@ -4,7 +4,7 @@
 
 #include <algorithm>
 #include "Player.h"
-#include "../../Game.h"
+#include "../../Motor/Game.h"
 #include "PlayerProjectile.h"
 
 #include "../../Components/RigidBodyComponent.h"
@@ -12,8 +12,8 @@
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Teachers/Boss.h"
 
-#include "../../CaminhosArquivo.h"
-#include "../../Hud.h"
+#include "../../Motor/CaminhosArquivo.h"
+#include "../../Interface/Hud.h"
 
 
 

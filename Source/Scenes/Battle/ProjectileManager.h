@@ -7,7 +7,7 @@
 
 #include <vector>
 #include <memory>
-#include "../../Math.h"
+#include "../../Motor/Math.h"
 
 class Actor;
 class Scene;

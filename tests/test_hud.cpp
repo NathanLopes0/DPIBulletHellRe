@@ -4,7 +4,7 @@
 
 #include "doctest.h"
 
-#include "../Source/Hud.h"
+#include "../Source/Interface/Hud.h"
 
 using namespace Hud;
 

@@ -183,7 +183,7 @@ Duas linhas. Em `Source/Actors/Teachers/BossFactory/AllFactories.h`:
 #include "ThiagoFactory.h"
 ```
 
-E em `Game::InitializeBossFactory`, em `Source/Game.cpp`:
+E em `Game::InitializeBossFactory`, em `Source/Motor/Game.cpp`:
 
 ```cpp
 mBossFactory["thiago"] = std::make_unique<ThiagoFactory>(this);

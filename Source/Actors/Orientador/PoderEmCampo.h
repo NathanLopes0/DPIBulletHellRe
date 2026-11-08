@@ -6,8 +6,8 @@
 
 #include <memory>
 
-#include "../../Math.h"
-#include "../../Poder.h"
+#include "../../Motor/Math.h"
+#include "../../Regras/Poder.h"
 
 class Battle;
 class Orientador;

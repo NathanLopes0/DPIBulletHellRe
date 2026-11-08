@@ -7,10 +7,10 @@
 #include <algorithm>
 #include <limits>
 
-#include "../../../Game.h"
-#include "../../../Random.h"
+#include "../../../Motor/Game.h"
+#include "../../../Motor/Random.h"
 #include "../../../Attacks/Ancora.h"
-#include "../../../Actors/Player/Player.h"
+#include "../../Player/Player.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Components/RigidBodyComponent.h"

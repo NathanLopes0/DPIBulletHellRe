@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 
-#include "Materias.h"
-#include "Personagens.h"
+#include "../Curso/Materias.h"
+#include "../Personagem/Personagens.h"
 #include "Progresso.h"
 
 /**

@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include "../Source/Ranking.h"
+#include "../Source/Aluno/Ranking.h"
 
 namespace {
 

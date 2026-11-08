@@ -7,8 +7,8 @@
 #include <memory>
 
 #include "Scene.h"
-#include "../CaminhosArquivo.h"
-#include "../Game.h"
+#include "../Motor/CaminhosArquivo.h"
+#include "../Motor/Game.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../Components/DrawComponents/DrawSpriteComponent.h"

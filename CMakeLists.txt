@@ -3,11 +3,11 @@ project(DPIBulletHellRe)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(DPIBulletHellRe Source/main.cpp
-        Source/Game.cpp
-        Source/Game.h
-        Source/Json.h
-        Source/JsonDeDados.h
+add_executable(DPIBulletHellRe Source/Motor/main.cpp
+        Source/Motor/Game.cpp
+        Source/Motor/Game.h
+        Source/Motor/Json.h
+        Source/Motor/JsonDeDados.h
         Source/Scenes/Scene.cpp
         Source/Scenes/Scene.h
         Source/Scenes/Scene.h
@@ -42,90 +42,90 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Scenes/CriacaoDePersonagem.cpp
         Source/Scenes/CriacaoDePersonagem.h
         Source/Scenes/MainMenu.h
-        Source/Font.cpp
-        Source/Font.h
-        Source/AudioSystem.cpp
-        Source/AudioSystem.h
-        Source/Random.cpp
-        Source/Math.cpp
-        Source/Progresso.cpp
-        Source/Nota.cpp
-        Source/Nota.h
-        Source/PontoExtra.cpp
-        Source/PontoExtra.h
-        Source/Destrutivel.cpp
-        Source/Destrutivel.h
-        Source/Navegacao.cpp
-        Source/Navegacao.h
-        Source/Tabela.cpp
-        Source/Tabela.h
-        Source/Teclado.cpp
-        Source/Teclado.h
-        Source/Gabinete.cpp
-        Source/Gabinete.h
-        Source/Pausa.cpp
-        Source/Pausa.h
-        Source/Dificuldade.cpp
-        Source/Dificuldade.h
-        Source/Variacao.cpp
-        Source/Variacao.h
-        Source/Configuracao.cpp
-        Source/Configuracao.h
-        Source/Painel.cpp
-        Source/Painel.h
-        Source/Sessao.cpp
-        Source/Sessao.h
-        Source/Ranking.cpp
-        Source/Ranking.h
-        Source/Matricula.cpp
-        Source/Matricula.h
-        Source/Materias.cpp
-        Source/Materias.h
-        Source/Orientacao.cpp
-        Source/Orientacao.h
-        Source/Escolta.cpp
-        Source/Escolta.h
-        Source/Golpe.cpp
-        Source/Golpe.h
-        Source/Poder.cpp
-        Source/Poder.h
-        Source/BarraDaNota.cpp
-        Source/BarraDaNota.h
-        Source/Carregamento.cpp
-        Source/Carregamento.h
-        Source/Hud.cpp
-        Source/Hud.h
-        Source/Acerto.cpp
-        Source/Acerto.h
-        Source/Tentativas.cpp
-        Source/Tentativas.h
-        Source/TentativasArquivo.cpp
-        Source/TentativasArquivo.h
-        Source/Personagens.cpp
-        Source/Personagens.h
-        Source/PersonagensArquivo.cpp
-        Source/PersonagensArquivo.h
-        Source/ComporPersonagem.cpp
-        Source/ComporPersonagem.h
-        Source/Relogio.cpp
-        Source/Relogio.h
-        Source/Exportacao.cpp
-        Source/Exportacao.h
-        Source/ExportacaoArquivo.cpp
-        Source/ExportacaoArquivo.h
-        Source/MateriasArquivo.cpp
-        Source/MateriasArquivo.h
-        Source/Ficha.cpp
-        Source/Ficha.h
-        Source/FichaArquivo.cpp
-        Source/FichaArquivo.h
-        Source/ConfiguracaoArquivo.cpp
-        Source/ConfiguracaoArquivo.h
-        Source/Progresso.h
-        Source/Caminhos.cpp
-        Source/Caminhos.h
-        Source/CaminhosArquivo.cpp
-        Source/CaminhosArquivo.h
+        Source/Motor/Font.cpp
+        Source/Motor/Font.h
+        Source/Motor/AudioSystem.cpp
+        Source/Motor/AudioSystem.h
+        Source/Motor/Random.cpp
+        Source/Motor/Math.cpp
+        Source/Aluno/Progresso.cpp
+        Source/Regras/Nota.cpp
+        Source/Regras/Nota.h
+        Source/Regras/PontoExtra.cpp
+        Source/Regras/PontoExtra.h
+        Source/Regras/Destrutivel.cpp
+        Source/Regras/Destrutivel.h
+        Source/Entrada/Navegacao.cpp
+        Source/Entrada/Navegacao.h
+        Source/Regras/Tabela.cpp
+        Source/Regras/Tabela.h
+        Source/Entrada/Teclado.cpp
+        Source/Entrada/Teclado.h
+        Source/Motor/Gabinete.cpp
+        Source/Motor/Gabinete.h
+        Source/Interface/Pausa.cpp
+        Source/Interface/Pausa.h
+        Source/Regras/Dificuldade.cpp
+        Source/Regras/Dificuldade.h
+        Source/Regras/Variacao.cpp
+        Source/Regras/Variacao.h
+        Source/Motor/Configuracao.cpp
+        Source/Motor/Configuracao.h
+        Source/Entrada/Painel.cpp
+        Source/Entrada/Painel.h
+        Source/Aluno/Sessao.cpp
+        Source/Aluno/Sessao.h
+        Source/Aluno/Ranking.cpp
+        Source/Aluno/Ranking.h
+        Source/Aluno/Matricula.cpp
+        Source/Aluno/Matricula.h
+        Source/Curso/Materias.cpp
+        Source/Curso/Materias.h
+        Source/Curso/Orientacao.cpp
+        Source/Curso/Orientacao.h
+        Source/Regras/Escolta.cpp
+        Source/Regras/Escolta.h
+        Source/Regras/Golpe.cpp
+        Source/Regras/Golpe.h
+        Source/Regras/Poder.cpp
+        Source/Regras/Poder.h
+        Source/Interface/BarraDaNota.cpp
+        Source/Interface/BarraDaNota.h
+        Source/Interface/Carregamento.cpp
+        Source/Interface/Carregamento.h
+        Source/Interface/Hud.cpp
+        Source/Interface/Hud.h
+        Source/Regras/Acerto.cpp
+        Source/Regras/Acerto.h
+        Source/Pesquisa/Tentativas.cpp
+        Source/Pesquisa/Tentativas.h
+        Source/Pesquisa/TentativasArquivo.cpp
+        Source/Pesquisa/TentativasArquivo.h
+        Source/Personagem/Personagens.cpp
+        Source/Personagem/Personagens.h
+        Source/Personagem/PersonagensArquivo.cpp
+        Source/Personagem/PersonagensArquivo.h
+        Source/Personagem/ComporPersonagem.cpp
+        Source/Personagem/ComporPersonagem.h
+        Source/Motor/Relogio.cpp
+        Source/Motor/Relogio.h
+        Source/Aluno/Exportacao.cpp
+        Source/Aluno/Exportacao.h
+        Source/Aluno/ExportacaoArquivo.cpp
+        Source/Aluno/ExportacaoArquivo.h
+        Source/Curso/MateriasArquivo.cpp
+        Source/Curso/MateriasArquivo.h
+        Source/Aluno/Ficha.cpp
+        Source/Aluno/Ficha.h
+        Source/Aluno/FichaArquivo.cpp
+        Source/Aluno/FichaArquivo.h
+        Source/Motor/ConfiguracaoArquivo.cpp
+        Source/Motor/ConfiguracaoArquivo.h
+        Source/Aluno/Progresso.h
+        Source/Motor/Caminhos.cpp
+        Source/Motor/Caminhos.h
+        Source/Motor/CaminhosArquivo.cpp
+        Source/Motor/CaminhosArquivo.h
         Source/Scenes/StageSelect.cpp
         Source/Scenes/EscolhaDoOrientador.cpp
         Source/Scenes/EscolhaDaDificuldade.cpp
@@ -276,8 +276,8 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Memoria.h
         Source/Attacks/Excecao.cpp
         Source/Attacks/Excecao.h
-        Source/Intercambio.cpp
-        Source/Intercambio.h
+        Source/Regras/Intercambio.cpp
+        Source/Regras/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
         Source/Attacks/FasesDeAtaque.h
         Source/Attacks/Fase.h
@@ -503,68 +503,68 @@ add_executable(dpi_tests
         tests/test_hud.cpp
         tests/test_personagens.cpp
         tests/test_exportacao.cpp
-        Source/Progresso.cpp
-        Source/Nota.cpp
-        Source/Nota.h
-        Source/PontoExtra.cpp
-        Source/PontoExtra.h
-        Source/Destrutivel.cpp
-        Source/Destrutivel.h
-        Source/Navegacao.cpp
-        Source/Navegacao.h
-        Source/Tabela.cpp
-        Source/Tabela.h
-        Source/Teclado.cpp
-        Source/Teclado.h
-        Source/Gabinete.cpp
-        Source/Gabinete.h
-        Source/Pausa.cpp
-        Source/Pausa.h
-        Source/Dificuldade.cpp
-        Source/Dificuldade.h
-        Source/Variacao.cpp
-        Source/Variacao.h
-        Source/Configuracao.cpp
-        Source/Configuracao.h
-        Source/Painel.cpp
-        Source/Painel.h
-        Source/Sessao.cpp
-        Source/Sessao.h
-        Source/Ranking.cpp
-        Source/Ranking.h
-        Source/Matricula.cpp
-        Source/Matricula.h
-        Source/Materias.cpp
-        Source/Materias.h
-        Source/Orientacao.cpp
-        Source/Orientacao.h
-        Source/Escolta.cpp
-        Source/Escolta.h
-        Source/Golpe.cpp
-        Source/Golpe.h
-        Source/Poder.cpp
-        Source/Poder.h
-        Source/BarraDaNota.cpp
-        Source/BarraDaNota.h
-        Source/Carregamento.cpp
-        Source/Carregamento.h
-        Source/Hud.cpp
-        Source/Hud.h
-        Source/Acerto.cpp
-        Source/Acerto.h
-        Source/Tentativas.cpp
-        Source/Tentativas.h
-        Source/Personagens.cpp
-        Source/Personagens.h
-        Source/Relogio.cpp
-        Source/Relogio.h
-        Source/Exportacao.cpp
-        Source/Exportacao.h
-        Source/Ficha.cpp
-        Source/Ficha.h
-        Source/Progresso.h
-        Source/Caminhos.cpp
-        Source/Caminhos.h
+        Source/Aluno/Progresso.cpp
+        Source/Regras/Nota.cpp
+        Source/Regras/Nota.h
+        Source/Regras/PontoExtra.cpp
+        Source/Regras/PontoExtra.h
+        Source/Regras/Destrutivel.cpp
+        Source/Regras/Destrutivel.h
+        Source/Entrada/Navegacao.cpp
+        Source/Entrada/Navegacao.h
+        Source/Regras/Tabela.cpp
+        Source/Regras/Tabela.h
+        Source/Entrada/Teclado.cpp
+        Source/Entrada/Teclado.h
+        Source/Motor/Gabinete.cpp
+        Source/Motor/Gabinete.h
+        Source/Interface/Pausa.cpp
+        Source/Interface/Pausa.h
+        Source/Regras/Dificuldade.cpp
+        Source/Regras/Dificuldade.h
+        Source/Regras/Variacao.cpp
+        Source/Regras/Variacao.h
+        Source/Motor/Configuracao.cpp
+        Source/Motor/Configuracao.h
+        Source/Entrada/Painel.cpp
+        Source/Entrada/Painel.h
+        Source/Aluno/Sessao.cpp
+        Source/Aluno/Sessao.h
+        Source/Aluno/Ranking.cpp
+        Source/Aluno/Ranking.h
+        Source/Aluno/Matricula.cpp
+        Source/Aluno/Matricula.h
+        Source/Curso/Materias.cpp
+        Source/Curso/Materias.h
+        Source/Curso/Orientacao.cpp
+        Source/Curso/Orientacao.h
+        Source/Regras/Escolta.cpp
+        Source/Regras/Escolta.h
+        Source/Regras/Golpe.cpp
+        Source/Regras/Golpe.h
+        Source/Regras/Poder.cpp
+        Source/Regras/Poder.h
+        Source/Interface/BarraDaNota.cpp
+        Source/Interface/BarraDaNota.h
+        Source/Interface/Carregamento.cpp
+        Source/Interface/Carregamento.h
+        Source/Interface/Hud.cpp
+        Source/Interface/Hud.h
+        Source/Regras/Acerto.cpp
+        Source/Regras/Acerto.h
+        Source/Pesquisa/Tentativas.cpp
+        Source/Pesquisa/Tentativas.h
+        Source/Personagem/Personagens.cpp
+        Source/Personagem/Personagens.h
+        Source/Motor/Relogio.cpp
+        Source/Motor/Relogio.h
+        Source/Aluno/Exportacao.cpp
+        Source/Aluno/Exportacao.h
+        Source/Aluno/Ficha.cpp
+        Source/Aluno/Ficha.h
+        Source/Aluno/Progresso.h
+        Source/Motor/Caminhos.cpp
+        Source/Motor/Caminhos.h
         Source/Attacks/PathAim.cpp
         Source/Attacks/PathAim.h
         Source/Attacks/PathShapes.cpp
@@ -668,8 +668,8 @@ add_executable(dpi_tests
         Source/Attacks/Memoria.h
         Source/Attacks/Excecao.cpp
         Source/Attacks/Excecao.h
-        Source/Intercambio.cpp
-        Source/Intercambio.h
+        Source/Regras/Intercambio.cpp
+        Source/Regras/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
         Source/Attacks/FasesDeAtaque.h
         Source/Attacks/Fase.h
@@ -677,13 +677,13 @@ add_executable(dpi_tests
         Source/Attacks/PastaDoChefe.cpp
         Source/Attacks/PastaDoChefe.h
         Source/Attacks/ProjeteisDeChefe.h
-        Source/Math.cpp
-        Source/Math.h
+        Source/Motor/Math.cpp
+        Source/Motor/Math.h
 )
 # NAO adicione Source ao include path deste alvo (nem de nenhum outro).
-# O projeto tem Source/Math.h, e no Windows (e no macOS) o sistema de
+# O projeto tem Source/Motor/Math.h, e no Windows (e no macOS) o sistema de
 # arquivos nao diferencia maiusculas: com Source no include path, o
-# #include <math.h> da PROPRIA biblioteca padrao encontra Source/Math.h em
+# #include <math.h> da PROPRIA biblioteca padrao encontra Source/Motor/Math.h em
 # vez do cabecalho C, e sinf/fabs/sqrtf deixam de existir - centenas de
 # erros em cmath e cstdlib. Os arquivos deste alvo ja usam includes
 # relativos, entao nao precisam do caminho.

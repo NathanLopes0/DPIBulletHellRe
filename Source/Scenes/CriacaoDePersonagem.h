@@ -9,8 +9,8 @@
 #include <vector>
 
 #include "Scene.h"
-#include "../Painel.h"
-#include "../Personagens.h"
+#include "../Entrada/Painel.h"
+#include "../Personagem/Personagens.h"
 
 class Font;
 class Actor;
