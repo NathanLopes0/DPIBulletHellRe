@@ -61,37 +61,40 @@ namespace {
         return linhas;
     }
 
-    /// O RANKING DE SOLO LE O RECORDE DE SOLO, e nao MelhorNota.
+    /// O RANKING DE SOLO LE O RECORDE DE SOLO DO NIVEL, e nao MelhorNota.
     ///
-    /// MelhorNota devolve a maior das duas notas porque e ela que o mapa do
-    /// curso le - passar e passar (requisitos-coop, D10). Aqui seria o
-    /// contrario do que os dois rankings existem para fazer: uma nota feita
-    /// acompanhado entraria na lista de quem jogou sozinho.
+    /// MelhorNota devolve a maior de todas porque e ela que o mapa do curso
+    /// le - passar e passar (requisitos-coop, D10). Aqui seria o contrario do
+    /// que as listas existem para fazer: uma nota feita acompanhado, ou no
+    /// outro nivel, entraria na lista errada.
+    float NotaDeSolo(const Exportacao::FichaDeAluno& f, const int materia, const Dificuldade::Nivel nivel) {
+        return f.progresso.Recorde(materia, Progresso::Modo::Solo, nivel).nota;
+    }
+
     std::vector<Linha> Completa(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                                const int materia) {
+                                const int materia, const Dificuldade::Nivel nivel) {
         return Ordenar(fichas,
-            [materia](const Exportacao::FichaDeAluno& f) { return f.progresso.MelhorNotaSolo(materia); },
+            [materia, nivel](const Exportacao::FichaDeAluno& f) { return NotaDeSolo(f, materia, nivel); },
             [](const Exportacao::FichaDeAluno&) { return 1; });
     }
 
     std::vector<Linha> CompletaGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                                     const int quantasMaterias) {
+                                     const int quantasMaterias, const Dificuldade::Nivel nivel) {
 
         if (quantasMaterias <= 0) return {};
 
         // SO AS NOTAS DE SOLO, pelo mesmo motivo de Completa.
-        auto media = [quantasMaterias](const Exportacao::FichaDeAluno& f) {
+        auto media = [quantasMaterias, nivel](const Exportacao::FichaDeAluno& f) {
             float soma = 0.0f;
             for (int m = 0; m < quantasMaterias; ++m) {
-                const float nota = f.progresso.MelhorNotaSolo(m);
-                if (nota > 0.0f) soma += nota;    // materia nao jogada vale zero
+                soma += NotaDeSolo(f, m, nivel);    // materia nao jogada vale zero
             }
             return soma / static_cast<float>(quantasMaterias);
         };
 
-        auto jogadas = [quantasMaterias](const Exportacao::FichaDeAluno& f) {
+        auto jogadas = [quantasMaterias, nivel](const Exportacao::FichaDeAluno& f) {
             int n = 0;
-            for (int m = 0; m < quantasMaterias; ++m) if (f.progresso.MelhorNotaSolo(m) > 0.0f) ++n;
+            for (int m = 0; m < quantasMaterias; ++m) if (NotaDeSolo(f, m, nivel) > 0.0f) ++n;
             return n;
         };
 
@@ -132,7 +135,7 @@ namespace {
     /// energia no gabinete entre uma gravacao e a outra), e ai a maior e a
     /// certa: a dupla fez aquela nota, e o outro lado so nao registrou.
     std::map<Chave, float> DuplasDe(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                                    const int materia) {
+                                    const int materia, const Dificuldade::Nivel nivel) {
 
         std::map<Chave, float> porDupla;
 
@@ -140,13 +143,14 @@ namespace {
 
             // Nao jogou acompanhado nesta materia: fora, pelo mesmo motivo de
             // Ordenar - uma linha zerada empurraria para fora quem disputou.
-            const float nota = f.progresso.MelhorNotaDeDupla(materia);
+            const Progresso::Marca& recorde = f.progresso.Recorde(materia, Progresso::Modo::Dupla, nivel);
+            const float nota = recorde.nota;
             if (nota <= 0.0f) continue;
 
             // VISITANTE NAO ENTRA: sem matricula nao ha linha que diga quem
             // jogou. A nota continua valendo para o progresso de quem se
             // identificou (RF6); e a LINHA que precisa de dois nomes.
-            const std::string& parceiro = f.progresso.ParceiroDoRecorde(materia);
+            const std::string& parceiro = recorde.parceiro;
             if (parceiro.empty()) continue;
 
             // Parceiro igual ao proprio aluno so sai de ficha editada a mao:
@@ -181,39 +185,40 @@ namespace {
 }
 
 std::vector<Linha> DaMateria(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                             const int materia, const size_t quantas) {
-    return Cortar(Completa(fichas, materia), quantas);
+                             const int materia, const Dificuldade::Nivel nivel, const size_t quantas) {
+    return Cortar(Completa(fichas, materia, nivel), quantas);
 }
 
 std::vector<Linha> Geral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                         const int quantasMaterias, const size_t quantas) {
-    return Cortar(CompletaGeral(fichas, quantasMaterias), quantas);
+                         const int quantasMaterias, const Dificuldade::Nivel nivel, const size_t quantas) {
+    return Cortar(CompletaGeral(fichas, quantasMaterias, nivel), quantas);
 }
 
 int PosicaoDe(const std::vector<Exportacao::FichaDeAluno>& fichas,
-              const int materia, const std::string& matricula) {
+              const int materia, const Dificuldade::Nivel nivel, const std::string& matricula) {
 
-    for (const auto& l : Completa(fichas, materia)) {
+    for (const auto& l : Completa(fichas, materia, nivel)) {
         if (l.matricula == matricula) return l.posicao;
     }
     return 0;
 }
 
 int PosicaoNoGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                   const int quantasMaterias, const std::string& matricula) {
+                   const int quantasMaterias, const Dificuldade::Nivel nivel, const std::string& matricula) {
 
-    for (const auto& l : CompletaGeral(fichas, quantasMaterias)) {
+    for (const auto& l : CompletaGeral(fichas, quantasMaterias, nivel)) {
         if (l.matricula == matricula) return l.posicao;
     }
     return 0;
 }
 
 std::vector<LinhaDeDupla> DuplasDaMateria(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                                          const int materia, const size_t quantas) {
+                                          const int materia, const Dificuldade::Nivel nivel,
+                                          const size_t quantas) {
 
     std::vector<LinhaDeDupla> linhas;
 
-    for (const auto& [chave, nota] : DuplasDe(fichas, materia)) {
+    for (const auto& [chave, nota] : DuplasDe(fichas, materia, nivel)) {
         linhas.push_back(LinhaDeDupla{1, chave.first, chave.second, nota, 1});
     }
 
@@ -238,20 +243,21 @@ namespace {
 }
 
 int PosicaoDaDupla(const std::vector<Exportacao::FichaDeAluno>& fichas, const int materia,
-                   const std::string& um, const std::string& dois) {
+                   const Dificuldade::Nivel nivel, const std::string& um, const std::string& dois) {
 
     // SEM CORTE (quantas = 0): e a lista COMPLETA que responde "onde estamos".
-    return Onde(DuplasDaMateria(fichas, materia), um, dois);
+    return Onde(DuplasDaMateria(fichas, materia, nivel), um, dois);
 }
 
 int PosicaoDaDuplaNoGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                          const int quantasMaterias, const std::string& um,
-                          const std::string& dois) {
-    return Onde(DuplasGeral(fichas, quantasMaterias), um, dois);
+                          const int quantasMaterias, const Dificuldade::Nivel nivel,
+                          const std::string& um, const std::string& dois) {
+    return Onde(DuplasGeral(fichas, quantasMaterias, nivel), um, dois);
 }
 
 std::vector<LinhaDeDupla> DuplasGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                                      const int quantasMaterias, const size_t quantas) {
+                                      const int quantasMaterias, const Dificuldade::Nivel nivel,
+                                      const size_t quantas) {
 
     if (quantasMaterias <= 0) return {};
 
@@ -264,7 +270,7 @@ std::vector<LinhaDeDupla> DuplasGeral(const std::vector<Exportacao::FichaDeAluno
     std::map<Chave, Acumulado> porDupla;
 
     for (int m = 0; m < quantasMaterias; ++m) {
-        for (const auto& [chave, nota] : DuplasDe(fichas, m)) {
+        for (const auto& [chave, nota] : DuplasDe(fichas, m, nivel)) {
             Acumulado& a = porDupla[chave];
             a.soma += nota;
             ++a.jogadas;
@@ -281,6 +287,26 @@ std::vector<LinhaDeDupla> DuplasGeral(const std::vector<Exportacao::FichaDeAluno
     }
 
     return Cortar(OrdenarDuplas(std::move(linhas)), quantas);
+}
+
+std::string NomeDaLista(const Lista l) {
+    // \xc3\xad e o i agudo: o MSVC nao le acento em literal. A Zelda.ttf tem.
+    // AS ASPAS NO MEIO NAO SAO ENFEITE: o escape hexadecimal do C++ come todo
+    // digito hexadecimal que vier depois, e "\xadcil" seria lido como \xadc.
+    const std::string nivel = l.nivel == Dificuldade::Nivel::Dificil ? "Dif\xc3\xad" "cil" : "Normal";
+    return l.modo == Progresso::Modo::Dupla ? nivel + " em dupla" : nivel;
+}
+
+int IndiceDaLista(const Progresso::Modo modo, const Dificuldade::Nivel nivel) {
+    for (int i = 0; i < kQuantasListas; ++i) {
+        if (kListas[i].modo == modo && kListas[i].nivel == nivel) return i;
+    }
+    return 0;
+}
+
+int MoverLista(const int atual, const int passo) {
+    const int r = (atual + passo) % kQuantasListas;
+    return r < 0 ? r + kQuantasListas : r;
 }
 
 }

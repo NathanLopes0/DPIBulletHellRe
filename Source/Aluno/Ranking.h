@@ -8,6 +8,8 @@
 #include <vector>
 
 #include "Exportacao.h"
+#include "Progresso.h"
+#include "../Regras/Dificuldade.h"
 
 /**
  * CAMADA PURA. So a ordenacao; nao conhece disco, tela nem SDL.
@@ -49,7 +51,7 @@ namespace Ranking {
      * @param quantas Quantas linhas no maximo. Zero devolve todas.
      */
     std::vector<Linha> DaMateria(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                                 int materia, size_t quantas = 0);
+                                 int materia, Dificuldade::Nivel nivel, size_t quantas = 0);
 
     /**
      * @brief A media do aluno sobre o CURSO INTEIRO, da maior para a menor.
@@ -70,11 +72,11 @@ namespace Ranking {
      * Quem nao jogou nada nao entra, pela mesma razao de DaMateria.
      */
     std::vector<Linha> Geral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                             int quantasMaterias, size_t quantas = 0);
+                             int quantasMaterias, Dificuldade::Nivel nivel, size_t quantas = 0);
 
     /// @brief A posicao de uma matricula no ranking geral. Zero se ela nao jogou nada.
     int PosicaoNoGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                       int quantasMaterias, const std::string& matricula);
+                       int quantasMaterias, Dificuldade::Nivel nivel, const std::string& matricula);
 
     /**
      * @brief Em que posicao esta uma matricula, na lista COMPLETA da materia.
@@ -84,7 +86,7 @@ namespace Ranking {
      * bem, que e justamente quem menos precisa de incentivo.
      */
     int PosicaoDe(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                  int materia, const std::string& matricula);
+                  int materia, Dificuldade::Nivel nivel, const std::string& matricula);
 
     // ---- O ranking de DUPLAS (requisitos-coop, D9) -------------------------
 
@@ -127,7 +129,7 @@ namespace Ranking {
      * progresso de quem se identificou (RF6).
      */
     std::vector<LinhaDeDupla> DuplasDaMateria(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                                              int materia, size_t quantas = 0);
+                                              int materia, Dificuldade::Nivel nivel, size_t quantas = 0);
 
     /**
      * @brief A media das duplas sobre o CURSO INTEIRO.
@@ -138,7 +140,7 @@ namespace Ranking {
      * de duplas deveria premiar.
      */
     std::vector<LinhaDeDupla> DuplasGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                                          int quantasMaterias, size_t quantas = 0);
+                                          int quantasMaterias, Dificuldade::Nivel nivel, size_t quantas = 0);
 
     /**
      * @brief Em que posicao esta UMA DUPLA, na lista completa da materia.
@@ -152,9 +154,47 @@ namespace Ranking {
      * assunto do ranking, e nao de quem pergunta.
      */
     int PosicaoDaDupla(const std::vector<Exportacao::FichaDeAluno>& fichas, int materia,
-                       const std::string& um, const std::string& dois);
+                       Dificuldade::Nivel nivel, const std::string& um, const std::string& dois);
 
     /// @brief A posicao de uma dupla no geral. Zero se eles nunca jogaram juntos.
     int PosicaoDaDuplaNoGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                              int quantasMaterias, const std::string& um, const std::string& dois);
+                              int quantasMaterias, Dificuldade::Nivel nivel,
+                              const std::string& um, const std::string& dois);
+
+    // ---- AS QUATRO LISTAS ----------------------------------------------------
+
+    /**
+     * @brief Uma das quatro listas: o modo e o nivel em que as notas foram
+     * feitas.
+     *
+     * QUATRO, e nao duas. O Dificil e um degrau acima para quem ja tira 100
+     * no Normal; misturar os dois na mesma lista faria quem joga no Normal
+     * disputar com quem escolheu o mais dificil - e quem tira 100 no Normal
+     * nao teria por que subir de degrau. Cada nivel tem o seu topo, como cada
+     * modo ja tinha (requisitos-coop, D9).
+     */
+    struct Lista {
+        Progresso::Modo modo;
+        Dificuldade::Nivel nivel;
+    };
+
+    /// As listas, na ordem das abas da tela: primeiro os dois niveis do solo,
+    /// depois os da dupla.
+    constexpr Lista kListas[] = {
+        {Progresso::Modo::Solo,  Dificuldade::Nivel::Normal},
+        {Progresso::Modo::Solo,  Dificuldade::Nivel::Dificil},
+        {Progresso::Modo::Dupla, Dificuldade::Nivel::Normal},
+        {Progresso::Modo::Dupla, Dificuldade::Nivel::Dificil},
+    };
+    constexpr int kQuantasListas = static_cast<int>(sizeof(kListas) / sizeof(kListas[0]));
+
+    /// "Normal", "Dificil", "Normal em dupla", "Dificil em dupla" - com o i
+    /// agudo, em UTF-8.
+    std::string NomeDaLista(Lista l);
+
+    /// A posicao da lista de um modo e nivel em kListas.
+    int IndiceDaLista(Progresso::Modo modo, Dificuldade::Nivel nivel);
+
+    /// A lista 'passo' abas depois da 'atual', dando a volta nas pontas.
+    int MoverLista(int atual, int passo);
 }

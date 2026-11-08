@@ -747,6 +747,11 @@ void Game::CancelarEntrada() {
     DefinirModoDeJogo(Sessao::Modo::Um);
 }
 
+float Game::RecordeDaPartida(const int materia) const {
+    const auto modo = QuantosJogadores() > 1 ? Progresso::Modo::Dupla : Progresso::Modo::Solo;
+    return ProgressoDoMapa().Recorde(materia, modo, NivelDeDificuldade()).nota;
+}
+
 void Game::RegistrarNota(const int subject, const float nota) {
 
     // A MESMA NOTA NA FICHA DE CADA UM. A nota do co-op e da dupla
@@ -770,12 +775,14 @@ void Game::RegistrarNota(const int subject, const float nota) {
 
     for (size_t quem = 0; quem < mSessoes.size(); ++quem) {
 
+        // E O NIVEL DA PARTIDA: o Dificil tem o proprio recorde e a propria
+        // lista no ranking (Ranking::Lista).
         if (emDupla) {
             mSessoes[quem].progresso.RegistrarNotaDeDupla(
-                subject, nota, Sessao::ParceiroDe(mSessoes, quem), quando);
+                subject, nota, NivelDeDificuldade(), Sessao::ParceiroDe(mSessoes, quem), quando);
         }
         else {
-            mSessoes[quem].progresso.RegistrarNota(subject, nota, quando);
+            mSessoes[quem].progresso.RegistrarNota(subject, nota, NivelDeDificuldade(), quando);
         }
 
         // A ficha vai para o disco AQUI, e nao em quem chama: assim nenhum

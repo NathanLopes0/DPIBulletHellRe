@@ -29,6 +29,35 @@ namespace {
         s << std::noshowpoint << v;
         return s.str();
     }
+
+    using Modo = Progresso::Modo;
+    using Dificuldade::Nivel;
+
+    /**
+     * O RECORDE DE SOLO NO NORMAL E OBRIGATORIO no arquivo, ao lado da
+     * retomada: as versoes ate a 5 sempre o escreveram com esse nome
+     * ("recorde"), e e isso que faz um save delas abrir sem conversao.
+     */
+    constexpr const char* kRecorde = "recorde";
+
+    /**
+     * OS OUTROS TRES, numa tabela so: gravar e ler percorrem a mesma lista,
+     * entao nao ha como um recorde ser gravado e esquecido na leitura. Cada um
+     * so aparece no arquivo se existir. O do Normal em dupla guarda os nomes
+     * da versao 5.
+     */
+    struct Campos {
+        Modo modo;
+        Nivel nivel;
+        const char* nota;
+        const char* parceiro;   ///< nullptr no solo
+        const char* quando;     ///< nullptr no solo
+    };
+    constexpr Campos kOpcionais[] = {
+        {Modo::Dupla, Nivel::Normal,  "recordeDupla",        "parceiro",        "quandoDupla"},
+        {Modo::Solo,  Nivel::Dificil, "recordeDificil",      nullptr,           nullptr},
+        {Modo::Dupla, Nivel::Dificil, "recordeDuplaDificil", "parceiroDificil", "quandoDuplaDificil"},
+    };
 }
 
 namespace Ficha {
@@ -75,24 +104,22 @@ std::string Serializar(const Dados& dados, const Materias::Lista& materias) {
         s << (primeira ? "\n" : ",\n");
         primeira = false;
         s << "    { \"materia\": \"" << codigo
-          << "\", \"recorde\": "  << Numero(e.recorde)
+          << "\", \"" << kRecorde << "\": " << Numero(e.De(Modo::Solo, Nivel::Normal).nota)
           << ", \"retomada\": " << Numero(e.retomada);
 
-        // O REGISTRO DE DUPLA SO APARECE SE EXISTIR. Mesma regra da aparencia:
-        // um aluno que nunca jogou acompanhado nao ganha tres campos zerados no
-        // arquivo, e um save da versao 4 continua abrindo sem conversao nenhuma.
-        if (e.recordeDeDupla > 0.0f) {
-            s << ", \"recordeDupla\": " << Numero(e.recordeDeDupla);
+        // UM RECORDE OPCIONAL SO APARECE SE EXISTIR. Mesma regra da aparencia:
+        // um aluno que nunca jogou acompanhado, ou nunca no Dificil, nao ganha
+        // campos zerados no arquivo.
+        for (const Campos& c : kOpcionais) {
+            const Progresso::Marca& m = e.De(c.modo, c.nivel);
+            if (m.nota <= 0.0f) continue;
+            s << ", \"" << c.nota << "\": " << Numero(m.nota);
 
             // O parceiro pode faltar mesmo havendo recorde: visitante nao tem
             // matricula. A nota vale para o progresso; a dupla e que fica de
             // fora do ranking (requisitos-coop, RF6).
-            if (!e.parceiroDoRecorde.empty()) {
-                s << ", \"parceiro\": \"" << e.parceiroDoRecorde << "\"";
-            }
-            if (!e.quandoDaDupla.empty()) {
-                s << ", \"quandoDupla\": \"" << e.quandoDaDupla << "\"";
-            }
+            if (c.parceiro && !m.parceiro.empty()) s << ", \"" << c.parceiro << "\": \"" << m.parceiro << "\"";
+            if (c.quando && !m.quando.empty()) s << ", \"" << c.quando << "\": \"" << m.quando << "\"";
         }
 
         // So escreve a data quando ha uma: um campo vazio no arquivo nao diria
@@ -250,13 +277,13 @@ Lida Desserializar(const std::string& texto, const Materias::Lista& materias) {
 
         const std::string onde = "materia " + codigo + ": ";
 
-        if (!m.contains("recorde") || !m["recorde"].is_number()
+        if (!m.contains(kRecorde) || !m[kRecorde].is_number()
             || !m.contains("retomada") || !m["retomada"].is_number()) {
             saida.problemas.emplace_back(onde + "falta \"recorde\" ou \"retomada\"; descartada");
             continue;
         }
 
-        const float recorde  = m["recorde"].get<float>();
+        const float recorde  = m[kRecorde].get<float>();
         const float retomada = m["retomada"].get<float>();
 
         if (!NotaServe(recorde) || !NotaServe(retomada)) {
@@ -265,41 +292,52 @@ Lida Desserializar(const std::string& texto, const Materias::Lista& materias) {
             continue;
         }
 
-        // ---- O registro de dupla, opcional (versao 5) --------------------
-        //
-        // Saves ate a versao 4 nao tem nenhum destes campos, e isso NAO e erro:
-        // e a verdade sobre aquele aluno, que nunca jogou acompanhado.
-        float recordeDeDupla = 0.0f;
-        if (m.contains("recordeDupla") && m["recordeDupla"].is_number()) {
-            recordeDeDupla = m["recordeDupla"].get<float>();
+        Progresso::Entrada e;
+        e.materia = materia;
+        e.retomada = retomada;
+        e.De(Modo::Solo, Nivel::Normal).nota = recorde;
 
-            if (!NotaServe(recordeDeDupla)) {
-                saida.problemas.emplace_back(onde + "a nota de dupla esta fora de 0 a 100;"
-                                                    " o registro de dupla foi descartado");
-                recordeDeDupla = 0.0f;
+        // ---- Os outros recordes, opcionais (dupla: versao 5; Dificil: 6) ----
+        //
+        // Um save sem eles NAO esta errado: e a verdade sobre aquele aluno, que
+        // nunca jogou acompanhado, ou nunca no Dificil.
+        for (const Campos& c : kOpcionais) {
+            if (!m.contains(c.nota) || !m[c.nota].is_number()) continue;
+
+            const float nota = m[c.nota].get<float>();
+            if (!NotaServe(nota)) {
+                saida.problemas.emplace_back(onde + "\"" + c.nota + "\" esta fora de 0 a 100;"
+                                                    " esse recorde foi descartado");
+                continue;
+            }
+            Progresso::Marca& marca = e.De(c.modo, c.nivel);
+            marca.nota = nota;
+
+            // O parceiro e a data so fazem sentido havendo recorde: sem ele,
+            // seriam o nome de alguem com quem nunca se jogou.
+            if (nota <= 0.0f) continue;
+            if (c.parceiro && m.contains(c.parceiro) && m[c.parceiro].is_string()) {
+                marca.parceiro = m[c.parceiro].get<std::string>();
+            }
+            if (c.quando && m.contains(c.quando) && m[c.quando].is_string()) {
+                marca.quando = m[c.quando].get<std::string>();
             }
         }
 
-        // A RETOMADA E COMPARADA COM A MAIOR DAS DUAS.
+        // A RETOMADA E COMPARADA COM O MAIOR DOS RECORDES.
         //
         // Era comparada so com o recorde de solo, como estado impossivel - e
-        // deixou de ser impossivel com o co-op: um aluno com recorde 50 sozinho
-        // que faz 80 em dupla fica com retomada 80 e recorde de solo 50. Essa
-        // ficha e legitima, e a regra antiga a descartaria inteira.
-        if (retomada > std::max(recorde, recordeDeDupla)) {
+        // deixou de ser impossivel com o co-op e com o Dificil: um aluno com
+        // recorde 50 sozinho que faz 80 em dupla fica com retomada 80 e recorde
+        // de solo 50. Essa ficha e legitima, e a regra antiga a descartaria.
+        if (retomada > e.MaiorRecorde()) {
             // Estado impossivel: o recorde e o maximo de todas as notas. Se
             // passasse, "melhor nota" deixaria de ser a melhor e as regras de
             // aprovacao ficariam erradas.
-            saida.problemas.emplace_back(onde + "a retomada e maior que os dois recordes, o que"
+            saida.problemas.emplace_back(onde + "a retomada e maior que todos os recordes, o que"
                                                 " nao pode acontecer jogando; descartada");
             continue;
         }
-
-        Progresso::Entrada e;
-        e.materia = materia;
-        e.recorde = recorde;
-        e.retomada = retomada;
-        e.recordeDeDupla = recordeDeDupla;
 
         // Opcional: saves anteriores a este campo simplesmente nao tem data, e
         // isso nao e erro.
@@ -307,20 +345,9 @@ Lida Desserializar(const std::string& texto, const Materias::Lista& materias) {
             e.quando = m["quando"].get<std::string>();
         }
 
-        // O parceiro e a data da dupla so fazem sentido havendo recorde de
-        // dupla: sem ele, seriam o nome de alguem com quem nunca se jogou.
-        if (recordeDeDupla > 0.0f) {
-            if (m.contains("parceiro") && m["parceiro"].is_string()) {
-                e.parceiroDoRecorde = m["parceiro"].get<std::string>();
-            }
-            if (m.contains("quandoDupla") && m["quandoDupla"].is_string()) {
-                e.quandoDaDupla = m["quandoDupla"].get<std::string>();
-            }
-        }
-
         // REPETIDA: fica valendo a ultima, INTEIRA. Antes so o recorde e a
         // retomada eram trocados, entao a data da primeira ficava pendurada na
-        // nota da segunda - e agora seriam tres campos a esquecer em vez de um.
+        // nota da segunda.
         if (!vistas.insert(materia).second) {
             saida.problemas.emplace_back(onde + "aparece repetida; fica valendo a ultima");
             for (auto& anterior : entradas) {

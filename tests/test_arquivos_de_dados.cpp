@@ -32,6 +32,7 @@
 // quem o chama - o CLion, o ctest e o terminal usam diretorios diferentes.
 
 #include "doctest.h"
+#include "../Source/Regras/Dificuldade.h"
 
 #include "Ajudantes.h"
 
@@ -1075,7 +1076,7 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
 
         Progresso p;
         for (int bit = 0; bit < 11; ++bit) {
-            if (mascara & (1 << bit)) p.RegistrarNota(bit, 80.0f);
+            if (mascara & (1 << bit)) p.RegistrarNota(bit, 80.0f, Dificuldade::Nivel::Normal);
         }
 
         for (int i = 0; i < l.Quantas(); ++i) {
@@ -2780,7 +2781,7 @@ TEST_CASE("Dados: so o TCC pede orientacao, e quem abre o TCC sempre tem tres or
     for (unsigned conjunto = 0; conjunto < (1u << outras.size()); ++conjunto) {
         Progresso p;
         for (size_t k = 0; k < outras.size(); ++k) {
-            if (conjunto & (1u << k)) p.RegistrarNota(outras[k], Progresso::kNotaDeAprovacao);
+            if (conjunto & (1u << k)) p.RegistrarNota(outras[k], Progresso::kNotaDeAprovacao, Dificuldade::Nivel::Normal);
         }
         bool alcancavel = true;
         for (size_t k = 0; k < outras.size(); ++k) {

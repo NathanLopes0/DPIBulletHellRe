@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <array>
 #include <map>
 #include <string>
 #include <vector>
 
+#include "../Regras/Dificuldade.h"
 #include "../Regras/Nota.h"
 
 /**
@@ -37,63 +39,74 @@ public:
     /// deixaria o outro para tras sem nenhum aviso.
     static constexpr float kNotaDeAprovacao = Nota::kNotaAprovacao;
 
+    /// SOZINHO OU EM DUPLA: cada modo tem o proprio recorde, e o proprio
+    /// ranking (requisitos-coop, D9).
+    enum class Modo { Solo, Dupla };
+
     /**
-     * @brief Registra o resultado de uma batalha.
+     * @brief Um recorde: a nota, e - na dupla - com quem e quando foi feito.
+     *
+     * O PARCEIRO VAI JUNTO porque a nota da dupla e da DUPLA, e o ranking de
+     * duplas precisa saber com quem: guarda o parceiro DO RECORDE - se o aluno
+     * fizer melhor com outra pessoa, o nome muda junto com a nota. No solo os
+     * dois ficam vazios.
+     */
+    struct Marca {
+        float nota = 0.0f;
+        std::string parceiro;
+        /// Quando a DUPLA fez o recorde: e ele que data a linha do ranking de
+        /// duplas. No solo fica vazio - "quando jogou" e Entrada::quando.
+        std::string quando;
+    };
+
+    /**
+     * @brief Registra o resultado de uma batalha jogada SOZINHO.
      *
      * Faz duas coisas distintas, que antes eram a mesma:
      *   - o PONTO DE RETOMADA passa a ser esta nota, sempre;
-     *   - o RECORDE passa a ser esta nota apenas se for maior.
+     *   - o RECORDE do nivel passa a ser esta nota apenas se for maior.
      *
      * A diferenca importa: antes, jogar mal apagava o recorde e podia
      * RE-TRANCAR uma materia que o jogador ja tinha passado.
+     *
+     * O NIVEL NAO TEM VALOR PADRAO, de proposito: esquecer de passa-lo poria
+     * uma nota do Dificil no ranking do Normal, e o compilador e quem lembra.
+     *
+     * @param quando o instante, como texto (ver Relogio.h). Vazio = nao sabemos,
+     *        que e o caso dos saves gravados antes de a data existir.
      */
-    /// @param quando o instante, como texto (ver Relogio.h). Vazio = nao sabemos,
-    ///        que e o caso dos saves gravados antes de a data existir.
-    void RegistrarNota(int materia, float nota, const std::string& quando = "");
+    void RegistrarNota(int materia, float nota, Dificuldade::Nivel nivel, const std::string& quando = "");
 
     /**
      * @brief Registra o resultado de uma batalha jogada EM DUPLA.
      *
-     * Funcao propria, e nao um booleano em RegistrarNota, porque as duas
-     * escrevem em lugares diferentes e esquecer o booleano poria uma nota de
-     * co-op no recorde de solo - exatamente o que os dois rankings existem
-     * para separar (requisitos-coop, D9).
-     *
-     * O PARCEIRO VAI JUNTO porque a nota e da DUPLA, e o ranking de co-op e de
-     * duplas: sem saber com quem, um recorde nao tem como entrar nele. Guarda
-     * o parceiro DO RECORDE - se o aluno fizer melhor com outra pessoa, o nome
-     * muda junto com a nota.
+     * Funcao propria, e nao um booleano em RegistrarNota, porque esquecer o
+     * booleano poria uma nota de co-op no recorde de solo - exatamente o que
+     * os rankings existem para separar (requisitos-coop, D9).
      *
      * Visitante nao tem matricula, entao um parceiro vazio e normal: o recorde
      * vale para o progresso e para o desbloqueio, e fica de fora do ranking de
      * duplas (RF6).
      */
-    void RegistrarNotaDeDupla(int materia, float nota, const std::string& parceiro,
-                              const std::string& quando = "");
+    void RegistrarNotaDeDupla(int materia, float nota, Dificuldade::Nivel nivel,
+                              const std::string& parceiro, const std::string& quando = "");
 
     /**
-     * @brief A maior nota que o jogador ja tirou nesta materia, SOZINHO OU EM
-     * DUPLA.
+     * @brief A maior nota que o jogador ja tirou nesta materia, EM QUALQUER
+     * MODO E NIVEL.
      *
      * Zero quando nunca jogou. E const e usa busca, nao operator[]: o getter
      * antigo INSERIA uma entrada zero no mapa a cada leitura, o que e mutacao
      * dentro de uma consulta e fazia o mapa crescer com materias nunca jogadas.
      *
-     * A MAIOR DAS DUAS, e e disso que o mapa do curso precisa: passar e passar,
-     * tenha sido com quem for (requisitos-coop, D10). Quem precisa separa-las e
-     * o ranking, e para isso ha MelhorNotaSolo e MelhorNotaDeDupla.
+     * A MAIOR DE TODAS, e e disso que o mapa do curso precisa: passar e passar,
+     * tenha sido com quem for e no nivel que for (requisitos-coop, D10). Quem
+     * precisa separa-las e o ranking, e para isso ha Recorde.
      */
     [[nodiscard]] float MelhorNota(int materia) const;
 
-    /// @brief So o recorde de SOLO. Zero quando nunca jogou sozinho.
-    [[nodiscard]] float MelhorNotaSolo(int materia) const;
-
-    /// @brief So o recorde de DUPLA. Zero quando nunca jogou acompanhado.
-    [[nodiscard]] float MelhorNotaDeDupla(int materia) const;
-
-    /// @brief Com quem o recorde de dupla foi feito. Vazio quando nao ha
-    /// recorde de dupla, ou quando o parceiro era visitante.
-    [[nodiscard]] const std::string& ParceiroDoRecorde(int materia) const;
+    /// @brief O recorde de um modo e nivel. Nota zero quando nunca jogou assim.
+    [[nodiscard]] const Marca& Recorde(int materia, Modo modo, Dificuldade::Nivel nivel) const;
 
     /// @brief O jogador passou nesta materia? Olha o RECORDE, nao a ultima nota.
     [[nodiscard]] bool Aprovado(int materia) const;
@@ -105,15 +118,24 @@ public:
     [[nodiscard]] size_t QuantasRegistradas() const { return mPorMateria.size(); }
 
     /**
-     * @brief Uma materia e os dois numeros dela, para gravar e ler de volta.
+     * @brief TUDO O QUE SE SABE DE UMA MATERIA, numa linha so: o que se grava
+     * e o que se le de volta.
      *
-     * A ficha do aluno precisa guardar os DOIS: so o recorde perderia o ponto de
-     * retomada (o aluno voltaria a comecar do 40 em vez de onde parou), e so a
-     * retomada perderia a aprovacao.
+     * A ficha do aluno precisa guardar a retomada E os recordes: so os
+     * recordes perderiam o ponto de retomada, e so a retomada perderia a
+     * aprovacao.
+     *
+     * OS QUATRO RECORDES NUM ARRANJO, e nao em doze campos soltos. Eram seis
+     * (recorde, recordeDeDupla, parceiroDoRecorde, quandoDaDupla...), e a
+     * dificuldade dobraria isso: doze campos copiados um a um entre o registro,
+     * a ficha e a planilha sao doze chances de um caminho esquecer um.
      */
     struct Entrada {
         int materia = 0;
-        float recorde = 0.0f;
+
+        /// A nota da ultima tentativa, em qualquer modo e nivel. NAO HA UMA
+        /// POR MODO: a retomada e informacao para o professor sobre a ultima
+        /// tentativa, e toda batalha comeca em kNotaInicial de qualquer jeito.
         float retomada = 0.0f;
 
         /// Quando o aluno jogou esta materia pela ULTIMA vez. Vazio quando o save
@@ -123,29 +145,22 @@ public:
         /// responde e "quem jogou esta semana", nao "quando cada um foi melhor".
         std::string quando;
 
-        // ---- O que veio das batalhas em dupla -----------------------------
-        //
-        // NAO HA "retomadaCoop". A retomada e informacao para o professor sobre
-        // a ultima tentativa, e toda batalha comeca em kNotaInicial de qualquer
-        // jeito; dois campos onde um basta seria mais uma coisa para manter em
-        // dia sem ninguem ler.
+        std::array<Marca, 4> recordes{};
 
-        float recordeDeDupla = 0.0f;
+        [[nodiscard]] Marca& De(Modo modo, Dificuldade::Nivel nivel) { return recordes[Indice(modo, nivel)]; }
+        [[nodiscard]] const Marca& De(Modo modo, Dificuldade::Nivel nivel) const {
+            return recordes[Indice(modo, nivel)];
+        }
 
-        /// A matricula do parceiro QUANDO o recorde de dupla foi feito.
-        std::string parceiroDoRecorde;
-
-        /// Quando a dupla fez esse recorde. Aqui e quando o RECORDE foi feito,
-        /// e nao a ultima vez - e ele que data a linha do ranking de duplas.
-        std::string quandoDaDupla;
+        /// O maior dos quatro recordes.
+        [[nodiscard]] float MaiorRecorde() const;
     };
 
     /**
      * @brief Tudo que esta guardado, em ordem de materia.
      *
-     * Existe para a persistencia. Nao devolve os mapas: quem grava nao precisa
-     * saber que sao dois, e trocar a estrutura interna nao deve quebrar o
-     * arquivo de save.
+     * Existe para a persistencia e para a planilha. Uma copia: quem grava nao
+     * mexe no progresso.
      */
     [[nodiscard]] std::vector<Entrada> Entradas() const;
 
@@ -160,29 +175,25 @@ public:
     void Restaurar(const std::vector<Entrada>& entradas);
 
 private:
+    /// A posicao de um modo e nivel em Entrada::recordes.
+    static constexpr size_t Indice(const Modo modo, const Dificuldade::Nivel nivel) {
+        return (modo == Modo::Dupla ? 2u : 0u) + (nivel == Dificuldade::Nivel::Dificil ? 1u : 0u);
+    }
+
+    /// O que as duas formas de registrar tem em comum.
+    void Registrar(int materia, float nota, Modo modo, Dificuldade::Nivel nivel,
+                   const std::string& parceiro, const std::string& quando);
+
     /**
-     * @brief TUDO O QUE SE SABE DE UMA MATERIA, numa linha so.
-     *
-     * Eram TRES mapas paralelos - recorde, retomada e data -, e o co-op pediria
-     * mais tres. Seis mapas paralelos sao seis chances de um caminho escrever
-     * em cinco e esquecer o sexto, e Entradas() ja precisava percorrer a UNIAO
-     * das chaves para nao perder uma materia que estivesse num e nao no outro.
-     *
-     * Com um registro so, ou a materia existe inteira ou nao existe.
+     * UM REGISTRO POR MATERIA, e nao mapas paralelos. Eram tres mapas -
+     * recorde, retomada e data -, e o co-op pediria mais tres: seis chances de
+     * um caminho escrever em cinco e esquecer o sexto. Com um registro so, ou a
+     * materia existe inteira ou nao existe. E o registro e a propria Entrada:
+     * gravar e ler nao precisam copiar campo a campo.
      */
-    struct Registro {
-        float recorde = 0.0f;
-        float retomada = 0.0f;
-        std::string quando;
-
-        float recordeDeDupla = 0.0f;
-        std::string parceiroDoRecorde;
-        std::string quandoDaDupla;
-    };
-
-    std::map<int, Registro> mPorMateria;
+    std::map<int, Entrada> mPorMateria;
 
     /// O registro de uma materia, ou um vazio. Nao insere - o getter antigo
     /// usava operator[] e fazia o mapa crescer a cada leitura.
-    [[nodiscard]] const Registro& Ver(int materia) const;
+    [[nodiscard]] const Entrada& Ver(int materia) const;
 };

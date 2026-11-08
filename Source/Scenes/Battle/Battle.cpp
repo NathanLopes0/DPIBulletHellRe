@@ -2048,12 +2048,13 @@ void Battle::FinishBattle(bool approved) {
     mIsEnding = true;
 
     // O RESUMO DA TELA DE RESULTADO. O recorde e lido ANTES de a nota ir para
-    // a ficha: depois, ele ja seria esta nota, e nunca haveria recorde novo.
+    // a ficha: depois, ele ja seria esta nota, e nunca haveria recorde novo. E
+    // o do modo e nivel desta luta - o da lista em que a nota vai entrar.
     Resultado::Resumo resumo;
     resumo.nota = mGrade;
     resumo.aprovado = approved;
     resumo.temFicha = mGame->ProgressoEGravado(0);
-    resumo.recordeAntes = mGame->GetMelhorNota(mStage);
+    resumo.recordeAntes = mGame->RecordeDaPartida(mStage);
     resumo.fasesLimpas = mFasesLimpas;
     resumo.acertosSofridos = mAcertosSofridos;
 

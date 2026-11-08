@@ -42,7 +42,12 @@ namespace Ficha {
     /// arquivo se existir recorde de dupla, entao um save da 4 abre sem
     /// conversao nenhuma - e sem registro de co-op, que e a verdade sobre um
     /// aluno que nunca jogou acompanhado.
-    inline constexpr int kVersaoAtual = 5;
+    /// A 6 separa os recordes por DIFICULDADE: "recordeDificil" e
+    /// "recordeDuplaDificil" (com "parceiroDificil" e "quandoDuplaDificil") ao
+    /// lado dos de sempre, que passam a ser os do Normal. Um save da 5 abre sem
+    /// conversao, com tudo no Normal - o arquivo nao diz em que nivel cada nota
+    /// foi feita, e o Normal e onde as fases foram medidas.
+    inline constexpr int kVersaoAtual = 6;
 
     struct Dados {
         std::string matricula;   ///< a forma CANONICA, ver Matricula.h
@@ -72,10 +77,11 @@ namespace Ficha {
      * Formato estavel, para que um arquivo gravado hoje abra depois da defesa:
      *
      *     {
-     *       "versao": 1,
+     *       "versao": 6,
      *       "matricula": "89384",
      *       "materias": [
-     *         { "materia": "INF213", "recorde": 72.5, "retomada": 68 }
+     *         { "materia": "INF213", "recorde": 72.5, "retomada": 68,
+     *           "recordeDificil": 61, "quando": "2026-10-28 14:03:22" }
      *       ]
      *     }
      *

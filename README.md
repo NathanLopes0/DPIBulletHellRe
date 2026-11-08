@@ -90,6 +90,14 @@ aceita o botão depois de um instante, para o tiro que estava apertado não
 escolher sozinho. No gabinete, se ninguém escolher em 20 segundos, ela volta
 sozinha para as matérias.
 
+O **Ranking** — do menu, a média do curso; da seleção de fases, com o Botão 3,
+a matéria em foco — tem **quatro listas**: **Normal**, **Difícil**, **Normal em
+dupla** e **Difícil em dupla**, trocadas com o manche para os lados. Cada nível
+tem o seu topo: quem joga no Normal não disputa com quem escolheu o Difícil.
+A tela abre na lista da partida, e a tela de resultado diz "NOVO RECORDE!"
+pelo recorde **dessa** lista. Para o mapa do curso, passar é passar: a matéria
+abre com 60 em qualquer uma das quatro.
+
 Ao sair de uma batalha (ou do ranking), a seleção de fases volta com o cursor
 na **última matéria escolhida**, e não no INF 110. Uma partida nova começa do
 começo da grade.
@@ -192,13 +200,15 @@ matérias no C++.
 
 Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
 
-- **`<matrícula>.json`** — uma ficha por aluno: aparência do personagem, recorde
-  e última nota de cada matéria, com data. A nota vai para o disco **uma vez, no
+- **`<matrícula>.json`** — uma ficha por aluno: aparência do personagem, os
+  recordes de cada matéria (sozinho e em dupla, no Normal e no Difícil) e a
+  última nota, com data. A nota vai para o disco **uma vez, no
   fim da batalha**, e não durante.
 - **`opcoes.cfg`** — as opções da máquina (os volumes, a tela
   cheia e a hitbox), em `chave=valor`. A tela de Opções o escreve na hora em
   que algo muda.
-- **`notas.csv`** — a planilha do professor, com uma linha por aluno-matéria.
+- **`notas.csv`** — a planilha do professor, com uma linha por aluno-matéria e
+  os quatro recordes (as colunas do Difícil vêm por último).
   É regravada a cada batalha, então está sempre em dia e ninguém precisa lembrar
   de exportar. Ela é **derivada** das fichas: apagá-la não perde nada.
 - **`tentativas.csv`**, **`tentativas_fases.csv`** e **`tentativas_resumo.csv`** —

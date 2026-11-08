@@ -101,8 +101,12 @@ Atracao::Cartaz Atracao::CriarMelhores() {
     // A MESMA CONTA DO RANKING DO MENU, e pelo mesmo caminho: soma das melhores
     // notas dividida pelas materias DO CURSO. Repetir a conta aqui faria a
     // atracao e o ranking discordarem no dia em que uma das duas mudasse.
+    //
+    // A LISTA DO NORMAL, sozinho: e a primeira aba do ranking, e a que todo
+    // mundo joga. O cartaz diz qual e, para ninguem procurar a propria nota do
+    // Dificil nele.
     const std::vector<Ranking::Linha> linhas =
-        Ranking::Geral(fichas, materias.Quantas(), kQuantasLinhas);
+        Ranking::Geral(fichas, materias.Quantas(), Dificuldade::Nivel::Normal, kQuantasLinhas);
 
     if (linhas.empty()) return {};
 
@@ -110,7 +114,7 @@ Atracao::Cartaz Atracao::CriarMelhores() {
 
     cartaz.push_back(Texto("MELHORES DO CURSO", largura / 2.0f, altura * 0.14f,
                            44, 900, Color::White));
-    cartaz.push_back(Texto("media das melhores notas, sobre as "
+    cartaz.push_back(Texto("media das melhores notas no Normal, sobre as "
                            + std::to_string(materias.Quantas()) + " materias",
                            largura / 2.0f, altura * 0.21f, 22, 1100, Color::LightBlue));
 

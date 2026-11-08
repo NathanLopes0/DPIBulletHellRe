@@ -5,6 +5,7 @@
 // da erro nenhum - o aluno so descobre que voltou para o comeco.
 
 #include "doctest.h"
+#include "../Source/Regras/Dificuldade.h"
 
 #include <string>
 
@@ -44,10 +45,10 @@ namespace {
     Ficha::Dados FichaDeExemplo() {
         Ficha::Dados d;
         d.matricula = "89384";
-        d.progresso.RegistrarNota(0, 85.0f);   // depois cai
-        d.progresso.RegistrarNota(0, 45.0f);   // recorde 85, retomada 45
-        d.progresso.RegistrarNota(2, 100.0f);
-        d.progresso.RegistrarNota(5, 40.0f);
+        d.progresso.RegistrarNota(0, 85.0f, Dificuldade::Nivel::Normal);   // depois cai
+        d.progresso.RegistrarNota(0, 45.0f, Dificuldade::Nivel::Normal);   // recorde 85, retomada 45
+        d.progresso.RegistrarNota(2, 100.0f, Dificuldade::Nivel::Normal);
+        d.progresso.RegistrarNota(5, 40.0f, Dificuldade::Nivel::Normal);
         return d;
     }
 }
@@ -70,7 +71,7 @@ TEST_CASE("Ficha: gravar e ler de volta devolve o mesmo estado") {
     for (size_t i = 0; i < a.size(); ++i) {
         CAPTURE(i);
         CHECK(a[i].materia == b[i].materia);
-        CHECK(a[i].recorde == doctest::Approx(b[i].recorde));
+        CHECK(a[i].De(Progresso::Modo::Solo, Dificuldade::Nivel::Normal).nota == doctest::Approx(b[i].De(Progresso::Modo::Solo, Dificuldade::Nivel::Normal).nota));
         CHECK(a[i].retomada == doctest::Approx(b[i].retomada));
     }
 }
@@ -331,7 +332,7 @@ TEST_CASE("Ficha: a NOTA sobrevive a uma reordenacao das materias") {
 
     Ficha::Dados d;
     d.matricula = "89384";
-    d.progresso.RegistrarNota(antes.IndiceDe("AAA"), 85.0f);
+    d.progresso.RegistrarNota(antes.IndiceDe("AAA"), 85.0f, Dificuldade::Nivel::Normal);
 
     const auto r = Ficha::Desserializar(Ficha::Serializar(d, antes), depois);
     REQUIRE(r.ok);
@@ -347,7 +348,7 @@ TEST_CASE("Ficha: a NOTA sobrevive a uma reordenacao das materias") {
 TEST_CASE("Ficha: a data da ultima partida sobrevive a ida e volta") {
     Ficha::Dados d;
     d.matricula = "89384";
-    d.progresso.RegistrarNota(0, 70.0f, "2026-10-02 14:30:00");
+    d.progresso.RegistrarNota(0, 70.0f, Dificuldade::Nivel::Normal, "2026-10-02 14:30:00");
 
     const auto r = Ficha::Desserializar(Ficha::Serializar(d, Curso()), Curso());
     REQUIRE(r.ok);
@@ -359,11 +360,11 @@ TEST_CASE("Ficha: a data e a da ULTIMA partida, nao a do recorde") {
     // E a pergunta que ela responde: "quem jogou esta semana". Jogar mal depois de
     // bem atualiza a data e nao o recorde.
     Progresso p;
-    p.RegistrarNota(0, 90.0f, "2026-01-01 10:00:00");
-    p.RegistrarNota(0, 40.0f, "2026-10-02 14:30:00");
+    p.RegistrarNota(0, 90.0f, Dificuldade::Nivel::Normal, "2026-01-01 10:00:00");
+    p.RegistrarNota(0, 40.0f, Dificuldade::Nivel::Normal, "2026-10-02 14:30:00");
 
     REQUIRE(p.Entradas().size() == 1);
-    CHECK(p.Entradas()[0].recorde == doctest::Approx(90.0f));
+    CHECK(p.Entradas()[0].De(Progresso::Modo::Solo, Dificuldade::Nivel::Normal).nota == doctest::Approx(90.0f));
     CHECK(p.Entradas()[0].quando == "2026-10-02 14:30:00");
 }
 
@@ -381,15 +382,15 @@ TEST_CASE("Ficha: save sem data abre normal, e nao inventa uma") {
 
 TEST_CASE("Ficha: uma nota sem data nao APAGA a data que ja havia") {
     Progresso p;
-    p.RegistrarNota(0, 70.0f, "2026-10-02 14:30:00");
-    p.RegistrarNota(0, 80.0f, "");
+    p.RegistrarNota(0, 70.0f, Dificuldade::Nivel::Normal, "2026-10-02 14:30:00");
+    p.RegistrarNota(0, 80.0f, Dificuldade::Nivel::Normal, "");
     CHECK(p.Entradas()[0].quando == "2026-10-02 14:30:00");
 }
 
 TEST_CASE("Ficha: entrada sem data nao escreve o campo vazio no arquivo") {
     Ficha::Dados d;
     d.matricula = "89384";
-    d.progresso.RegistrarNota(0, 70.0f);
+    d.progresso.RegistrarNota(0, 70.0f, Dificuldade::Nivel::Normal);
     CHECK(Ficha::Serializar(d, Curso()).find("quando") == std::string::npos);
 }
 
@@ -575,20 +576,20 @@ TEST_CASE("Ficha: o registro de dupla vai e volta do arquivo") {
 
     std::vector<Progresso::Entrada> entradas(1);
     entradas[0].materia = 0;
-    entradas[0].recorde = 55.0f;
+    entradas[0].De(Progresso::Modo::Solo, Dificuldade::Nivel::Normal).nota = 55.0f;
     entradas[0].retomada = 88.0f;
     entradas[0].quando = "2026-10-14 15:00:00";
-    entradas[0].recordeDeDupla = 88.0f;
-    entradas[0].parceiroDoRecorde = "90112";
-    entradas[0].quandoDaDupla = "2026-10-14 15:00:00";
+    entradas[0].De(Progresso::Modo::Dupla, Dificuldade::Nivel::Normal).nota = 88.0f;
+    entradas[0].De(Progresso::Modo::Dupla, Dificuldade::Nivel::Normal).parceiro = "90112";
+    entradas[0].De(Progresso::Modo::Dupla, Dificuldade::Nivel::Normal).quando = "2026-10-14 15:00:00";
     d.progresso.Restaurar(entradas);
 
     const Ficha::Lida lida = Ficha::Desserializar(Ficha::Serializar(d, Curso()), Curso());
 
     REQUIRE(lida.ok);
-    CHECK(lida.dados.progresso.MelhorNotaSolo(0) == doctest::Approx(55.0f));
-    CHECK(lida.dados.progresso.MelhorNotaDeDupla(0) == doctest::Approx(88.0f));
-    CHECK(lida.dados.progresso.ParceiroDoRecorde(0) == "90112");
+    CHECK(lida.dados.progresso.Recorde(0, Progresso::Modo::Solo, Dificuldade::Nivel::Normal).nota == doctest::Approx(55.0f));
+    CHECK(lida.dados.progresso.Recorde(0, Progresso::Modo::Dupla, Dificuldade::Nivel::Normal).nota == doctest::Approx(88.0f));
+    CHECK(lida.dados.progresso.Recorde(0, Progresso::Modo::Dupla, Dificuldade::Nivel::Normal).parceiro == "90112");
 }
 
 TEST_CASE("Ficha: quem nunca jogou em dupla nao ganha campos de dupla no arquivo") {
@@ -601,7 +602,7 @@ TEST_CASE("Ficha: quem nunca jogou em dupla nao ganha campos de dupla no arquivo
 
     std::vector<Progresso::Entrada> entradas(1);
     entradas[0].materia = 0;
-    entradas[0].recorde = 70.0f;
+    entradas[0].De(Progresso::Modo::Solo, Dificuldade::Nivel::Normal).nota = 70.0f;
     entradas[0].retomada = 70.0f;
     d.progresso.Restaurar(entradas);
 
@@ -627,9 +628,9 @@ TEST_CASE("Ficha: um save da versao 4 abre sem registro de dupla, e isso nao e e
 
     REQUIRE(lida.ok);
     CHECK(lida.problemas.empty());
-    CHECK(lida.dados.progresso.MelhorNotaSolo(0) == doctest::Approx(72.5f));
-    CHECK(lida.dados.progresso.MelhorNotaDeDupla(0) == doctest::Approx(0.0f));
-    CHECK(lida.dados.progresso.ParceiroDoRecorde(0).empty());
+    CHECK(lida.dados.progresso.Recorde(0, Progresso::Modo::Solo, Dificuldade::Nivel::Normal).nota == doctest::Approx(72.5f));
+    CHECK(lida.dados.progresso.Recorde(0, Progresso::Modo::Dupla, Dificuldade::Nivel::Normal).nota == doctest::Approx(0.0f));
+    CHECK(lida.dados.progresso.Recorde(0, Progresso::Modo::Dupla, Dificuldade::Nivel::Normal).parceiro.empty());
 }
 
 TEST_CASE("Ficha: retomada acima do recorde de SOLO deixou de ser impossivel") {
@@ -651,7 +652,7 @@ TEST_CASE("Ficha: retomada acima do recorde de SOLO deixou de ser impossivel") {
     REQUIRE(lida.ok);
     CHECK(lida.problemas.empty());
     CHECK(Ajudantes::UltimaNota(lida.dados.progresso, 0) == doctest::Approx(80.0f));
-    CHECK(lida.dados.progresso.MelhorNotaSolo(0) == doctest::Approx(50.0f));
+    CHECK(lida.dados.progresso.Recorde(0, Progresso::Modo::Solo, Dificuldade::Nivel::Normal).nota == doctest::Approx(50.0f));
 }
 
 TEST_CASE("Ficha: retomada acima dos DOIS recordes continua sendo descartada") {
@@ -688,8 +689,8 @@ TEST_CASE("Ficha: nota de dupla fora da faixa derruba so o registro de dupla") {
 
     REQUIRE(lida.ok);
     CHECK_FALSE(lida.problemas.empty());
-    CHECK(lida.dados.progresso.MelhorNotaSolo(0) == doctest::Approx(70.0f));
-    CHECK(lida.dados.progresso.MelhorNotaDeDupla(0) == doctest::Approx(0.0f));
+    CHECK(lida.dados.progresso.Recorde(0, Progresso::Modo::Solo, Dificuldade::Nivel::Normal).nota == doctest::Approx(70.0f));
+    CHECK(lida.dados.progresso.Recorde(0, Progresso::Modo::Dupla, Dificuldade::Nivel::Normal).nota == doctest::Approx(0.0f));
 }
 
 TEST_CASE("Ficha: parceiro sem recorde de dupla e ignorado") {
@@ -705,5 +706,94 @@ TEST_CASE("Ficha: parceiro sem recorde de dupla e ignorado") {
     const Ficha::Lida lida = Ficha::Desserializar(solto, Curso());
 
     REQUIRE(lida.ok);
-    CHECK(lida.dados.progresso.ParceiroDoRecorde(0).empty());
+    CHECK(lida.dados.progresso.Recorde(0, Progresso::Modo::Dupla, Dificuldade::Nivel::Normal).parceiro.empty());
+}
+
+// ---------------------------------------------------------------------------
+// Versao 6: os recordes do Dificil
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Ficha: os quatro recordes vao e voltam do arquivo") {
+    using Dificuldade::Nivel;
+    using Modo = Progresso::Modo;
+
+    Ficha::Dados d;
+    d.matricula = "89384";
+    d.progresso.RegistrarNota(0, 61.0f, Nivel::Normal);
+    d.progresso.RegistrarNota(0, 47.5f, Nivel::Dificil);
+    d.progresso.RegistrarNotaDeDupla(0, 70.0f, Nivel::Normal, "11111", "2026-11-01 10:00:00");
+    d.progresso.RegistrarNotaDeDupla(0, 66.0f, Nivel::Dificil, "22222", "2026-11-02 10:00:00");
+
+    const std::string texto = Ficha::Serializar(d, Curso());
+    CHECK(texto.find("\"recordeDificil\": 47.5") != std::string::npos);
+    CHECK(texto.find("\"parceiroDificil\": \"22222\"") != std::string::npos);
+
+    const Ficha::Lida lida = Ficha::Desserializar(texto, Curso());
+    REQUIRE(lida.ok);
+    CHECK(lida.problemas.empty());
+    const Progresso& p = lida.dados.progresso;
+    CHECK(p.Recorde(0, Modo::Solo, Nivel::Normal).nota == doctest::Approx(61.0f));
+    CHECK(p.Recorde(0, Modo::Solo, Nivel::Dificil).nota == doctest::Approx(47.5f));
+    CHECK(p.Recorde(0, Modo::Dupla, Nivel::Normal).parceiro == "11111");
+    CHECK(p.Recorde(0, Modo::Dupla, Nivel::Dificil).nota == doctest::Approx(66.0f));
+    CHECK(p.Recorde(0, Modo::Dupla, Nivel::Dificil).parceiro == "22222");
+    CHECK(p.Recorde(0, Modo::Dupla, Nivel::Dificil).quando == "2026-11-02 10:00:00");
+
+    // E O MESMO TEXTO DE NOVO: gravar o que foi lido nao muda nada.
+    CHECK(Ficha::Serializar(lida.dados, Curso()) == texto);
+}
+
+TEST_CASE("Ficha: quem nunca jogou no Dificil nao ganha campos do Dificil no arquivo") {
+    Ficha::Dados d;
+    d.matricula = "89384";
+    d.progresso.RegistrarNota(0, 61.0f, Dificuldade::Nivel::Normal);
+    CHECK(Ficha::Serializar(d, Curso()).find("Dificil") == std::string::npos);
+}
+
+TEST_CASE("Ficha: um save da versao 5 abre com tudo no Normal") {
+    using Dificuldade::Nivel;
+    using Modo = Progresso::Modo;
+
+    // O ARQUIVO NAO DIZ EM QUE NIVEL CADA NOTA FOI FEITA, e o Normal e onde as
+    // fases foram medidas: e la que as notas de antes da separacao ficam.
+    const Ficha::Lida lida = Ficha::Desserializar(R"({
+        "versao": 5,
+        "matricula": "89384",
+        "materias": [
+          { "materia": "AAA", "recorde": 72, "retomada": 72,
+            "recordeDupla": 80, "parceiro": "90112", "quandoDupla": "2026-10-14 15:00:00" }
+        ]
+    })", Curso());
+
+    REQUIRE(lida.ok);
+    CHECK(lida.problemas.empty());
+    const Progresso& p = lida.dados.progresso;
+    CHECK(p.Recorde(0, Modo::Solo, Nivel::Normal).nota == doctest::Approx(72.0f));
+    CHECK(p.Recorde(0, Modo::Dupla, Nivel::Normal).parceiro == "90112");
+    CHECK(p.Recorde(0, Modo::Solo, Nivel::Dificil).nota == 0.0f);
+    CHECK(p.Recorde(0, Modo::Dupla, Nivel::Dificil).nota == 0.0f);
+}
+
+TEST_CASE("Ficha: retomada abaixo so do recorde do Dificil e legitima") {
+    // Quem so jogou no Dificil tem o recorde do Normal em zero; a regra antiga
+    // (retomada acima dos recordes de Normal = impossivel) descartaria a nota.
+    const Ficha::Lida lida = Ficha::Desserializar(R"({
+        "versao": 6, "matricula": "89384",
+        "materias": [ { "materia": "AAA", "recorde": 0, "retomada": 58, "recordeDificil": 58 } ]
+    })", Curso());
+    REQUIRE(lida.ok);
+    CHECK(lida.problemas.empty());
+    CHECK(lida.dados.progresso.MelhorNota(0) == doctest::Approx(58.0f));
+}
+
+TEST_CASE("Ficha: recorde do Dificil fora da faixa derruba so ele") {
+    const Ficha::Lida lida = Ficha::Desserializar(R"({
+        "versao": 6, "matricula": "89384",
+        "materias": [ { "materia": "AAA", "recorde": 70, "retomada": 70, "recordeDificil": 140 } ]
+    })", Curso());
+    REQUIRE(lida.ok);
+    CHECK(Menciona(lida.problemas, "recordeDificil"));
+    CHECK(lida.dados.progresso.Recorde(0, Progresso::Modo::Solo, Dificuldade::Nivel::Normal).nota
+          == doctest::Approx(70.0f));
+    CHECK(lida.dados.progresso.Recorde(0, Progresso::Modo::Solo, Dificuldade::Nivel::Dificil).nota == 0.0f);
 }

@@ -10,6 +10,7 @@
 
 #include "Scene.h"
 #include "../Aluno/Exportacao.h"
+#include "../Aluno/Ranking.h"
 #include "../Motor/Game.h"
 
 class Font;
@@ -17,7 +18,8 @@ class Actor;
 
 /**
  * @class TelaDeRanking
- * @brief As maiores notas, uma materia por vez.
+ * @brief As maiores notas, uma materia por vez, em quatro listas: Normal,
+ * Dificil, Normal em dupla e Dificil em dupla (Ranking::kListas).
  *
  * POR QUE ELA EXISTE. A curva da nota foi feita inteira para que a nota
  * ordenasse um ranking de verdade - era o argumento contra todo mundo tirar 100.
@@ -45,8 +47,12 @@ private:
     Actor* Texto(const std::string& conteudo, float x, float y, int tamanho,
                  int larguraMaxima, bool aEsquerda = false);
 
-    /// Reescreve as linhas a partir da materia selecionada e do modo.
+    /// Reescreve as linhas a partir da materia selecionada e da lista.
     void Redesenhar();
+
+    /// A lista em exibicao (Ranking::kListas).
+    [[nodiscard]] const Ranking::Lista& ListaAtual() const { return Ranking::kListas[mLista]; }
+    [[nodiscard]] bool EmDupla() const { return ListaAtual().modo == Progresso::Modo::Dupla; }
 
     std::unique_ptr<Font> mFonte;
 
@@ -58,17 +64,22 @@ private:
     Game::PedidoDeRanking mPedido{};
 
     /**
-     * Mostrando o ranking de DUPLAS, e nao o de solo.
+     * QUAL DAS QUATRO LISTAS esta aberta: o indice em Ranking::kListas.
      *
-     * E ESTADO DA TELA, e nao do pedido: o modo nao e algo que a selecao de
-     * fases ou o menu pedem, e quem alterna e o jogador olhando a lista. Pondo
-     * em PedidoDeRanking, os dois lugares que montam o pedido teriam de saber
-     * de um campo que nao lhes diz respeito.
+     * E ESTADO DA TELA, e nao do pedido: a lista nao e algo que a selecao de
+     * fases ou o menu pedem, e quem troca e o jogador olhando. Pondo em
+     * PedidoDeRanking, os dois lugares que montam o pedido teriam de saber de
+     * um campo que nao lhes diz respeito.
      *
-     * COMECA NO MODO EM QUE SE ESTA JOGANDO: quem acabou de jogar em dupla quer
-     * ver a lista de duplas. Nao e um campo novo - sai de QuantosJogadores().
+     * COMECA NA LISTA DA PARTIDA: quem acabou de jogar em dupla no Dificil quer
+     * ver a lista da dupla no Dificil. Nao e um campo novo - sai de
+     * QuantosJogadores() e de NivelDeDificuldade().
      */
-    bool mDuplas = false;
+    int mLista = 0;
+
+    /// As quatro abas, na ordem de kListas: a moldura e o nome de cada uma.
+    std::vector<class DrawCaixaComponent*> mAbas;
+    std::vector<class DrawTextComponent*> mNomesDasAbas;
 
     Actor* mTituloAtor{};
     Actor* mSubtituloAtor{};
@@ -88,10 +99,10 @@ private:
     std::vector<Actor*> mJogadasAtores;
     std::vector<Actor*> mNotaAtores;
 
-    /// O rodape e reescrito na troca de lista: ele anuncia PARA ONDE o BOTAO 3
-    /// leva, e nao onde se esta.
     Actor* mRodapeAtor{};
 
     bool mVoltarAnterior = true;
     bool mAlternarAnterior = true;
+    bool mEsquerdaAnterior = true;
+    bool mDireitaAnterior = true;
 };

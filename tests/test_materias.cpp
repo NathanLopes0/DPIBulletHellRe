@@ -6,6 +6,7 @@
 // coluna e declarada uma vez e a regra deriva dela.
 
 #include "doctest.h"
+#include "../Source/Regras/Dificuldade.h"
 
 #include <string>
 
@@ -37,7 +38,7 @@ namespace {
 
     Progresso ComAprovacoes(const Materias::Lista& l, const std::vector<std::string>& codigos) {
         Progresso p;
-        for (const auto& c : codigos) p.RegistrarNota(l.IndiceDe(c), 80.0f);
+        for (const auto& c : codigos) p.RegistrarNota(l.IndiceDe(c), 80.0f, Dificuldade::Nivel::Normal);
         return p;
     }
 }
@@ -102,7 +103,7 @@ TEST_CASE("Materias: 'aprovadoEm' exige a nota, nao a tentativa") {
     const auto l = Materias::LerMaterias(kCurso);
 
     Progresso reprovado;
-    reprovado.RegistrarNota(l.IndiceDe("A"), 55.0f);   // jogou e nao passou
+    reprovado.RegistrarNota(l.IndiceDe("A"), 55.0f, Dificuldade::Nivel::Normal);   // jogou e nao passou
     CHECK_FALSE(l.Desbloqueada(l.IndiceDe("B"), reprovado));
 
     const auto aprovado = ComAprovacoes(l, {"A"});
@@ -123,8 +124,8 @@ TEST_CASE("Materias: uma reprovacao depois de aprovar nao re-tranca") {
     // neste jogo antes de Progresso separar as duas coisas.
     const auto l = Materias::LerMaterias(kCurso);
     Progresso p;
-    p.RegistrarNota(l.IndiceDe("A"), 80.0f);
-    p.RegistrarNota(l.IndiceDe("A"), 30.0f);
+    p.RegistrarNota(l.IndiceDe("A"), 80.0f, Dificuldade::Nivel::Normal);
+    p.RegistrarNota(l.IndiceDe("A"), 30.0f, Dificuldade::Nivel::Normal);
     CHECK(l.Desbloqueada(l.IndiceDe("B"), p));
 }
 
@@ -379,7 +380,7 @@ TEST_CASE("Materias: a exigencia concorda com a regra que fecha a materia") {
     CHECK(frase.find(l.Por(l.IndiceDe("INF110"))->nome) != std::string::npos);
 
     Progresso passou;
-    passou.RegistrarNota(l.IndiceDe("INF110"), 70.0f);
+    passou.RegistrarNota(l.IndiceDe("INF110"), 70.0f, Dificuldade::Nivel::Normal);
     CHECK(l.Desbloqueada(fechada, passou));
 }
 

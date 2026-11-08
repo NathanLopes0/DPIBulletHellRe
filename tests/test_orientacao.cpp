@@ -3,6 +3,7 @@
 //
 
 #include "doctest.h"
+#include "../Source/Regras/Dificuldade.h"
 
 #include <string>
 
@@ -37,7 +38,7 @@ namespace {
 
     Progresso Notas(const Materias::Lista& l, const std::vector<std::pair<const char*, float>>& notas) {
         Progresso p;
-        for (const auto& [codigo, nota] : notas) p.RegistrarNota(l.IndiceDe(codigo), nota);
+        for (const auto& [codigo, nota] : notas) p.RegistrarNota(l.IndiceDe(codigo), nota, Dificuldade::Nivel::Normal);
         return p;
     }
 

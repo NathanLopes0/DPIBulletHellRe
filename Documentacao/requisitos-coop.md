@@ -271,6 +271,11 @@ nomeando o parceiro.
 A tela de ranking mostra **Solo** ou **Co-op**, alternados por um botão. O Solo
 é o de hoje, de alunos. O Co-op é de duplas, e sai das mesmas fichas.
 
+> **Depois:** com o modo Difícil, as listas viraram **quatro** — Normal,
+> Difícil, Normal em dupla e Difícil em dupla —, trocadas com o manche. Cada
+> nível tem o próprio recorde na ficha (versão 6) e o próprio topo; o
+> desbloqueio (D10) continua olhando a maior nota de todas.
+
 **Uma dupla com visitante não entra no ranking**, porque visitante não tem
 ficha. O aluno identificado guarda a nota (e com ela o desbloqueio de D10), com
 o campo do parceiro vazio; o ranking de duplas ignora registro sem parceiro.

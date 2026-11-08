@@ -30,8 +30,13 @@ namespace Exportacao {
     /**
      * @brief As notas da turma em CSV, com cabecalho.
      *
-     * Colunas: matricula, materia (o codigo estavel), nome, recorde, retomada,
-     * aprovado, quando.
+     * Colunas: matricula, materia (o codigo estavel), nome, recorde,
+     * recordeDupla, parceiro, retomada, aprovado, quando, recordeDificil,
+     * recordeDuplaDificil, parceiroDificil. Os recordes sem "Dificil" no nome
+     * sao os do Normal.
+     *
+     * AS DO DIFICIL VEM NO FIM, e nao ao lado das do Normal: quem ja le a
+     * planilha pela posicao das colunas continua lendo as mesmas.
      *
      * O CODIGO e o NOME saem os dois de proposito: o codigo e o que nao muda e
      * serve para cruzar dados, o nome e o que o professor le. Materia que o aluno

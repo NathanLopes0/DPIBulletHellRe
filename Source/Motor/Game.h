@@ -170,6 +170,12 @@ public:
         return ProgressoDoMapa().MelhorNota(materia);
     }
 
+    /// @brief O recorde do jogador 1 NO MODO E NO NIVEL DESTA PARTIDA: o que
+    /// a tela de resultado compara para dizer "NOVO RECORDE!". E o da lista do
+    /// ranking em que a nota vai entrar - comparar com a maior de todas faria
+    /// um recorde no Dificil nunca aparecer para quem ja foi bem no Normal.
+    [[nodiscard]] float RecordeDaPartida(int materia) const;
+
     /**
      * @brief Como os rodapes nomeiam os botoes nesta sessao.
      *

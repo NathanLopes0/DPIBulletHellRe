@@ -1,6 +1,7 @@
 // As notas da turma em CSV. Camada pura: nao abre arquivo.
 
 #include "doctest.h"
+#include "../Source/Regras/Dificuldade.h"
 
 #include <string>
 #include <vector>
@@ -31,7 +32,7 @@ namespace {
         for (const auto& n : notas) {
             Progresso::Entrada e;
             e.materia = std::get<0>(n);
-            e.recorde = std::get<1>(n);
+            e.De(Progresso::Modo::Solo, Dificuldade::Nivel::Normal).nota = std::get<1>(n);
             e.retomada = std::get<2>(n);
             e.quando = std::get<3>(n);
             entradas.push_back(e);
@@ -121,7 +122,25 @@ TEST_CASE("Exportacao: turma vazia produz so o cabecalho") {
 TEST_CASE("Exportacao: sem data o campo fica vazio, nao ausente") {
     // A coluna tem de existir em toda linha, senao a planilha desalinha.
     const std::string csv = Exportacao::ParaCsv({Aluno("1", {{0, 70.0f, 70.0f, ""}})}, Curso());
-    CHECK(csv.find("70.00,sim,\n") != std::string::npos);
+    // As tres do Dificil vem depois, vazias de recorde (0.00) e de parceiro.
+    CHECK(csv.find("70.00,sim,,0.00,0.00,\n") != std::string::npos);
+}
+
+TEST_CASE("Exportacao: os recordes do Dificil vem nas ultimas colunas") {
+    Exportacao::FichaDeAluno f;
+    f.matricula = "1";
+    f.progresso.RegistrarNota(0, 55.0f, Dificuldade::Nivel::Normal, "2026-11-01 10:00:00");
+    f.progresso.RegistrarNota(0, 64.5f, Dificuldade::Nivel::Dificil, "2026-11-02 10:00:00");
+    f.progresso.RegistrarNotaDeDupla(0, 71.0f, Dificuldade::Nivel::Dificil, "90112", "2026-11-03 10:00:00");
+
+    const std::string csv = Exportacao::ParaCsv({f}, Curso());
+    CHECK(csv.find(",quando,recordeDificil,recordeDuplaDificil,parceiroDificil\n") != std::string::npos);
+    // recorde (Normal) 55, e no fim os do Dificil: 64.50 sozinho, 71.00 com 90112.
+    CHECK(csv.find("1,INF213,") != std::string::npos);
+    CHECK(csv.find(",55.00,") != std::string::npos);
+    CHECK(csv.find(",2026-11-03 10:00:00,64.50,71.00,90112\n") != std::string::npos);
+    // APROVADO PELO DIFICIL: passar e passar, no nivel que for.
+    CHECK(csv.find(",sim,") != std::string::npos);
 }
 
 // ---------------------------------------------------------------------------
@@ -182,7 +201,7 @@ TEST_CASE("Exportacao: a planilha e o jogo concordam sobre quem passou") {
     //
     // Agora ela chama Progresso::Aprovado, que e o que o mapa do curso le.
     Progresso p;
-    p.RegistrarNotaDeDupla(0, 75.0f, "90112", "2026-10-14 15:00:00");
+    p.RegistrarNotaDeDupla(0, 75.0f, Dificuldade::Nivel::Normal, "90112", "2026-10-14 15:00:00");
 
     REQUIRE(p.Aprovado(0));   // o jogo diz que passou
 

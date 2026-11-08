@@ -50,7 +50,9 @@ std::string ParaCsv(const std::vector<FichaDeAluno>& fichas,
     // elas, "recorde" continuaria sendo so o de solo e "aprovado" diria NAO
     // para quem passou acompanhado. A planilha e o jogo discordariam sobre quem
     // passou - a mesma regra escrita em dois lugares, um deles desatualizado.
-    s << "matricula,materia,nome,recorde,recordeDupla,parceiro,retomada,aprovado,quando\n";
+    // E AS TRES DO DIFICIL, no fim (ver Exportacao.h).
+    s << "matricula,materia,nome,recorde,recordeDupla,parceiro,retomada,aprovado,quando,"
+         "recordeDificil,recordeDuplaDificil,parceiroDificil\n";
 
     // Ordem de matricula: numerica, nao alfabetica ("9" antes de "10"). O mesmo
     // criterio de FichaArquivo::ListarMatriculas.
@@ -76,15 +78,23 @@ std::string ParaCsv(const std::vector<FichaDeAluno>& fichas,
             // passar e passar, tenha sido com quem for (requisitos-coop, D10).
             const bool aprovado = f->progresso.Aprovado(e.materia);
 
+            using Modo = Progresso::Modo;
+            using Dificuldade::Nivel;
+            const Progresso::Marca& duplaNormal = e.De(Modo::Dupla, Nivel::Normal);
+            const Progresso::Marca& duplaDificil = e.De(Modo::Dupla, Nivel::Dificil);
+
             s << Campo(f->matricula) << ','
               << Campo(m->codigo) << ','
               << Campo(m->nome) << ','
-              << Nota(e.recorde) << ','
-              << Nota(e.recordeDeDupla) << ','
-              << Campo(e.parceiroDoRecorde) << ','
+              << Nota(e.De(Modo::Solo, Nivel::Normal).nota) << ','
+              << Nota(duplaNormal.nota) << ','
+              << Campo(duplaNormal.parceiro) << ','
               << Nota(e.retomada) << ','
               << (aprovado ? "sim" : "nao") << ','
-              << Campo(e.quando) << '\n';
+              << Campo(e.quando) << ','
+              << Nota(e.De(Modo::Solo, Nivel::Dificil).nota) << ','
+              << Nota(duplaDificil.nota) << ','
+              << Campo(duplaDificil.parceiro) << '\n';
         }
     }
 
