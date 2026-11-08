@@ -34,6 +34,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Scenes/Identificacao.h
         Source/Scenes/Opcoes.cpp
         Source/Scenes/TelaDeRanking.cpp
+        Source/Scenes/TelaComoJogar.cpp
+        Source/Scenes/TelaComoJogar.h
         Source/Scenes/Atracao.cpp
         Source/Scenes/Atracao.h
         Source/Scenes/FundoDeCena.cpp
@@ -68,6 +70,10 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Interface/Pausa.cpp
         Source/Interface/Resultado.cpp
         Source/Interface/Resultado.h
+        Source/Interface/Manual.cpp
+        Source/Interface/Manual.h
+        Source/Interface/ManualArquivo.cpp
+        Source/Interface/ManualArquivo.h
         Source/Interface/Pausa.h
         Source/Regras/Dificuldade.cpp
         Source/Regras/Dificuldade.h
@@ -504,6 +510,7 @@ add_executable(dpi_tests
         tests/test_objetivo.cpp
         tests/test_tentativas.cpp
         tests/test_resultado.cpp
+        tests/test_manual.cpp
         tests/test_barra_da_nota.cpp
         tests/test_hud.cpp
         tests/test_personagens.cpp
@@ -526,6 +533,8 @@ add_executable(dpi_tests
         Source/Interface/Pausa.cpp
         Source/Interface/Resultado.cpp
         Source/Interface/Resultado.h
+        Source/Interface/Manual.cpp
+        Source/Interface/Manual.h
         Source/Interface/Pausa.h
         Source/Regras/Dificuldade.cpp
         Source/Regras/Dificuldade.h

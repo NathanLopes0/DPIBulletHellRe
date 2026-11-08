@@ -46,6 +46,7 @@ namespace {
     const Opcao kOpcoes[] = {
         {"Modo Solo",   Scene::SceneType::Identificacao, Sessao::Modo::Um},
         {"Modo Dupla",  Scene::SceneType::Identificacao, Sessao::Modo::Dois},
+        {"Como Jogar",  Scene::SceneType::ComoJogar,     Sessao::Modo::Um},
         {"Ranking",     Scene::SceneType::Ranking,       Sessao::Modo::Um},
         {"Opcoes",      Scene::SceneType::Opcoes,        Sessao::Modo::Um},
     };

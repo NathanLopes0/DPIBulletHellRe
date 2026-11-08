@@ -88,6 +88,7 @@
 #include "../Source/Personagem/Personagens.h"
 #include "../Source/Aluno/Progresso.h"
 #include "../Source/Motor/JsonDeDados.h"
+#include "../Source/Interface/Manual.h"
 
 #ifndef DPI_ASSETS_DIR
 #error "DPI_ASSETS_DIR nao foi definido. Veja target_compile_definitions(dpi_tests ...) no CMakeLists."
@@ -158,6 +159,35 @@ namespace {
 // ---------------------------------------------------------------------------
 // Cada arquivo, por si
 // ---------------------------------------------------------------------------
+
+TEST_CASE("Dados: Assets/como-jogar.json nao tem problema nenhum") {
+    const auto r = Manual::LerManual(LerArquivo("como-jogar.json"));
+    CHECK_MESSAGE(r.problemas.empty(), "problemas em como-jogar.json:" << Juntar(r.problemas));
+    CHECK(r.paginas.size() > 0);
+
+    // O GABINETE TAMBEM TEM O QUE LER: uma pagina so de teclas ficaria vazia
+    // la (Manual::Linhas). E as linhas de tecla nao vao no texto de todos.
+    for (const auto& p : r.paginas) {
+        CAPTURE(p.titulo);
+        CHECK_FALSE(Manual::Linhas(p, true).empty());
+        for (const auto& linha : p.linhas) {
+            CAPTURE(linha);
+            for (const char* tecla : {"Esc ", "Espa\xc3\xa7o", "W A S D", "setas"}) {
+                CHECK(linha.find(tecla) == std::string::npos);
+            }
+        }
+
+        // SO O QUE A FONTE DESENHA. Medido no cmap da Zelda.ttf: estes sao os
+        // caracteres ASCII visiveis que ela nao tem, e cada um sai como um
+        // quadrado na tela - o ";" e a "/" ja tinham saido no primeiro texto.
+        std::vector<std::string> todas = Manual::Linhas(p, false);
+        todas.push_back(p.titulo);
+        for (const auto& linha : todas) {
+            CAPTURE(linha);
+            CHECK(linha.find_first_of("#$%&*+/;=@[\\]^_`{}~") == std::string::npos);
+        }
+    }
+}
 
 TEST_CASE("Dados: Assets/Paths/formas.json nao tem problema nenhum") {
     const auto r = PathShapes::LerFormas(LerArquivo("Paths/formas.json"));

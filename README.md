@@ -35,7 +35,10 @@ escritos na tela.
 > As setas **não são atalho do W A S D**: elas são o manche do jogador 1, e o
 > W A S D é o do jogador 2.
 
-O menu principal tem **Modo Solo** e **Modo Dupla**. Em dupla, cada aluno se
+O menu principal tem **Modo Solo**, **Modo Dupla** e **Como Jogar** — o manual,
+uma página por vez (o manche vira a página), com o objetivo, os controles, a
+nota, o que se destrói, a dupla e o curso. O texto mora em
+`Assets/como-jogar.json`: dá para revisar uma frase sem recompilar. Em dupla, cada aluno se
 identifica, os dois jogam a mesma batalha e a **nota é uma só, da dupla**: o
 que um jogador causa sozinho — o acerto no professor, o acerto sofrido, o Ponto
 Extra — é dividido entre os dois, e o que a dupla conquista junta, como o bônus
@@ -441,7 +444,7 @@ Source/          o jogo
   Regras/          as regras puras da batalha: nota, Ponto Extra, acertos,
                    dificuldade, variação, intercâmbio, golpe e poder
   Interface/       as contas da HUD, da barra da nota, do carregamento, da
-                   pausa e do resultado
+                   pausa e do resultado, e o manual da tela Como Jogar
   Actors/          jogador, professores, orientador, projéteis
   Attacks/         as estratégias de ataque e os comportamentos de projétil
   Scenes/          menu, identificação, criação de personagem, seleção, batalha
@@ -451,6 +454,7 @@ Assets/          sprites, fontes, sons e os JSON que descrevem o jogo
   Attacks/         regras.json e uma pasta por professor com as fases e
                    os projeteis dele
   materias.json    o curso inteiro
+  como-jogar.json  o texto da tela Como Jogar, uma página por vez
   personagens.json o catálogo de peças do personagem
 Documentacao/    receitas para quem for mexer no código
 Ferramentas/     geradores de arte provisória e os arneses de medição

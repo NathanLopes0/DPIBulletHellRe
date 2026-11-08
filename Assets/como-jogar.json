@@ -1,0 +1,80 @@
+// O MANUAL do jogo: as paginas da tela "Como Jogar", do menu principal.
+//
+// Cada pagina tem um titulo e as linhas, de cima para baixo. As linhas de
+// "no_computador" so aparecem fora do gabinete: elas falam de teclas, e o
+// painel do gabinete nao tem teclado - la elas seriam ruido (gabinete.md).
+//
+// LINHA CURTA. A tela mostra cada linha inteira, sem quebrar: uma linha longa
+// demais encolhe a letra dela ate caber, e fica menor que as outras.
+//
+// SO O QUE A FONTE DESENHA. A Zelda.ttf nao tem # $ % & * + / ; = @ [ ] ^ _ { } ~
+// (nem o ponto e virgula): cada um vira um quadrado na tela. O teste de
+// test_arquivos_de_dados.cpp confere.
+{
+  "paginas": [
+    {
+      "titulo": "O objetivo",
+      "linhas": [
+        "Cada professor do DPI é uma prova, e você é o aluno.",
+        "No lugar de vidas há uma Nota: toda prova começa em 40.",
+        "Lance Dúvidas no professor: cada uma que acerta sobe a nota.",
+        "Os projéteis dele derrubam a nota quando te acertam.",
+        "Termine o tempo da prova com 60 ou mais para ser aprovado."
+      ]
+    },
+    {
+      "titulo": "Os controles",
+      "linhas": [
+        "Manche: mover o aluno, e escolher nas telas.",
+        "Botão 1: lançar Dúvidas, e confirmar.",
+        "Botão 2: gastar um Ponto Extra, e voltar nas telas.",
+        "Botão 3: no TCC, o poder do orientador, quando o anel enche.",
+        "O rodapé de cada tela diz o que os botões fazem ali."
+      ],
+      "no_computador": [
+        "Jogador 1: setas, Espaço, B e N.   Jogador 2: W A S D, F, G e H.",
+        "Esc pausa a batalha."
+      ]
+    },
+    {
+      "titulo": "A nota",
+      "linhas": [
+        "A barra da nota fica embaixo: a marca âmbar é o 40, a verde é o 60.",
+        "Terminar entre 40 e 59 leva ao exame, uma fase a mais.",
+        "Até 60 é rápido. Acima disso, cada ponto custa mais acertos.",
+        "Uma fase inteira sem ser atingido paga um bônus: a fase limpa.",
+        "Quem é atingido três vezes para em 99,99 naquela prova."
+      ]
+    },
+    {
+      "titulo": "Desviar, destruir, Ponto Extra",
+      "linhas": [
+        "Projétil com contorno vermelho: a sua Dúvida o destrói.",
+        "Sem contorno, a Dúvida passa direto: desvie.",
+        "Professor blindado não ouve: a Dúvida murcha cinza e não vale nota.",
+        "De tantos em tantos acertos, ele deixa cair um Ponto Extra.",
+        "Sozinho, gastá-lo solta uma onda que desfaz os tiros por onde passa."
+      ]
+    },
+    {
+      "titulo": "Em dupla",
+      "linhas": [
+        "Os dois fazem a mesma prova, e a nota é uma só: a da dupla.",
+        "O professor mira um de cada vez, revezando entre os dois.",
+        "O que cada um faz sozinho vale metade. A fase limpa vale inteira.",
+        "Em dupla, o Ponto Extra é do parceiro: um escudo de três segundos",
+        "que destrói os projéteis do professor."
+      ]
+    },
+    {
+      "titulo": "O curso",
+      "linhas": [
+        "As matérias abrem conforme você passa nas anteriores.",
+        "INF 110 está sempre aberta, e o TCC, do Hugo, é a última.",
+        "Antes do mapa, escolha a dificuldade: Normal ou Difícil.",
+        "Entre com a matrícula para guardar os seus recordes.",
+        "Como visitante, você joga tudo, mas nada fica salvo."
+      ]
+    }
+  ]
+}

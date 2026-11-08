@@ -24,6 +24,7 @@ public:
         CriacaoDePersonagem,
         Opcoes,
         Ranking,
+        ComoJogar,
         Atracao,
         EscolhaDaDificuldade,
         StageSelect,

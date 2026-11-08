@@ -18,7 +18,7 @@ class DrawCaixaComponent;
  * @class MainMenu
  * @brief O menu de entrada: por onde o aluno escolhe como comeca.
  *
- * As tres opcoes vivem numa tabela, e nao espalhadas em ifs: acrescentar uma e
+ * As opcoes vivem numa tabela, e nao espalhadas em ifs: acrescentar uma e
  * acrescentar uma linha, e a navegacao nao precisa saber quantas sao. Ver
  * kOpcoes em MainMenu.cpp.
  *
