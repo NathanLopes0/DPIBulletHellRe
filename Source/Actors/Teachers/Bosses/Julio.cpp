@@ -235,7 +235,7 @@ void Julio::AtualizarAgentes(const float deltaTime) {
         // para a proxima vez.
         if (mNosAgentes && !mNomeDosAgentes.empty()) RegistrarAnuncio(kFaseDosAgentes, mNomeDosAgentes);
         if (mNosAgentes) {
-            for (auto& [agente, dados] : mAgentes) SoltarAgente(agente);
+            for (const Agente& a : mAgentes) SoltarAgente(a.p);
             mAgentes.clear();
         }
         mNosAgentes = false;
@@ -286,20 +286,21 @@ void Julio::MoverAgentes(const float deltaTime, bool replanejar) {
     // QUEM ESTA EM CAMPO: o agente derrubado sai da conta, e o recem-convocado
     // entra - e a chegada dele replaneja o grupo, para ninguem cair em cima de
     // ninguem.
-    std::unordered_map<BossProjectile*, Agente> emCampo;
+    std::vector<Agente> emCampo;
     for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
         if (!p || p->GetState() != ActorState::Active || p->Posto() != ReAct::kPostoDosAgentes) continue;
-        const auto it = mAgentes.find(p.get());
+        const auto it = std::find_if(mAgentes.begin(), mAgentes.end(),
+                                     [&p](const Agente& a) { return a.p == p.get(); });
         if (it == mAgentes.end()) replanejar = true;
-        emCampo[p.get()] = it == mAgentes.end() ? Agente{0.0f, p->GetPosition()} : it->second;
+        emCampo.push_back(it == mAgentes.end() ? Agente{p.get(), 0.0f, p->GetPosition()} : *it);
     }
     mAgentes = std::move(emCampo);
 
     // A VIDA ACABOU: vai embora. Os outros envelhecem.
     for (auto it = mAgentes.begin(); it != mAgentes.end();) {
-        it->second.idade += deltaTime;
-        if (it->second.idade < ReAct::kVidaDoAgente) { ++it; continue; }
-        SoltarAgente(it->first);
+        it->idade += deltaTime;
+        if (it->idade < ReAct::kVidaDoAgente) { ++it; continue; }
+        SoltarAgente(it->p);
         it = mAgentes.erase(it);
     }
 
@@ -307,17 +308,13 @@ void Julio::MoverAgentes(const float deltaTime, bool replanejar) {
         const float xDoAluno = batalha->Alvo() ? batalha->Alvo()->GetPosition().x : GetPosition().x;
         const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
         const auto lugares = ReAct::Destinos(mSorteioDosAgentes, xDoAluno, static_cast<int>(mAgentes.size()), largura);
-        size_t k = 0;
-        for (auto& [agente, dados] : mAgentes) {
-            dados.lugar = Vector2(lugares[k].x, lugares[k].y);
-            ++k;
-        }
+        for (size_t k = 0; k < mAgentes.size(); ++k) mAgentes[k].lugar = Vector2(lugares[k].x, lugares[k].y);
     }
 
     // CADA UM VOA ATE O SEU LUGAR, e la fica, olhando o aluno.
-    for (auto& [agente, dados] : mAgentes) {
-        agente->SetPosition(Ancora::Aproximar(agente->GetPosition(), dados.lugar, ReAct::kRapidezDoAgente, deltaTime));
-        if (auto* rb = agente->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+    for (const Agente& a : mAgentes) {
+        a.p->SetPosition(Ancora::Aproximar(a.p->GetPosition(), a.lugar, ReAct::kRapidezDoAgente, deltaTime));
+        if (auto* rb = a.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
     }
 }
 

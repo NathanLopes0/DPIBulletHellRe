@@ -5,7 +5,7 @@
 #pragma once
 
 #include <string>
-#include <unordered_map>
+#include <vector>
 
 #include "../Boss.h"
 #include "../../../Attacks/Geracao.h"
@@ -142,10 +142,15 @@ private:
     void SoltarAgente(class BossProjectile* agente);
 
     struct Agente {
+        class BossProjectile* p = nullptr;
         float idade = 0.0f;
         Vector2 lugar;
     };
-    std::unordered_map<class BossProjectile*, Agente> mAgentes;
+    /// NA ORDEM DO MANAGER, e nao num mapa por ponteiro: os destinos sorteados
+    /// sao entregues nesta ordem, e a ordem de um unordered_map de ponteiros
+    /// depende de onde o malloc pos cada projetil - a mesma semente dava
+    /// lutas diferentes conforme a maquina (ou so o caminho da pasta).
+    std::vector<Agente> mAgentes;
     static constexpr float kSaidaDoAgente = 320.0f;
 
 
