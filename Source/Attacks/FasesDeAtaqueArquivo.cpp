@@ -8,7 +8,6 @@
 
 #include "FasesDeAtaqueArquivo.h"
 
-#include <fstream>
 #include <map>
 #include <memory>
 #include <SDL_log.h>
@@ -66,17 +65,15 @@ namespace {
         FasesLidas lidas;
         const std::string caminho = Caminho(chefe);
 
-        std::ifstream arquivo(caminho);
-        if (!arquivo.is_open()) {
+        const std::optional<std::string> texto = Caminhos::LerTexto(caminho);
+        if (!texto) {
             SDL_Log("FASES: nao foi possivel abrir %s. O chefe \"%s\" nao tera ataque "
                     "nenhum: as fases dele vivem nesse arquivo, e nao ha mais configuracao "
                     "de reserva em C++. Confira se a pasta Assets foi copiada junto com o "
                     "executavel, e se o jogo esta rodando de um diretorio abaixo da raiz "
                     "do projeto.", caminho.c_str(), chefe.c_str());
         } else {
-            const std::string texto((std::istreambuf_iterator<char>(arquivo)),
-                                     std::istreambuf_iterator<char>());
-            lidas = LerFases(texto);
+            lidas = LerFases(*texto);
 
             for (const auto& p : lidas.problemas) {
                 SDL_Log("FASES em %s: %s", caminho.c_str(), p.c_str());

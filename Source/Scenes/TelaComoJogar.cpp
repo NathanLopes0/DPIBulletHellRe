@@ -3,6 +3,7 @@
 //
 
 #include "TelaComoJogar.h"
+#include "TextoDeCena.h"
 
 #include <SDL_scancode.h>
 
@@ -50,14 +51,9 @@ TelaComoJogar::TelaComoJogar(Game* game)
 
 DrawTextComponent* TelaComoJogar::Texto(const std::string& conteudo, const float x, const float y,
                                         const int tamanho, const int larguraMaxima) {
-    auto ator = std::make_unique<Actor>(this);
-    ator->SetPosition(Vector2(x, y));
-    // O texto vazio nao rasteriza: o que ainda nao tem conteudo nasce com um espaco.
-    auto* dc = ator->AddComponent<DrawTextComponent>(conteudo.empty() ? " " : conteudo, mFonte.get(),
-                                                     larguraMaxima, tamanho + 8, tamanho, 255);
+    auto* dc = CriarTexto(*this, mFonte.get(), conteudo, Vector2(x, y), tamanho, larguraMaxima, tamanho + 8);
+    // SEM QUEBRA: a linha que nao cabe encolhe, em vez de virar duas.
     dc->SetLarguraDeQuebra(kSemQuebra);
-    dc->SetAjustarAoTexto(true);
-    AddActor(std::move(ator));
     return dc;
 }
 

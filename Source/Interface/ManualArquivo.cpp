@@ -4,8 +4,6 @@
 
 #include "ManualArquivo.h"
 
-#include <fstream>
-#include <sstream>
 #include <SDL_log.h>
 
 #include "../Motor/CaminhosArquivo.h"
@@ -22,16 +20,14 @@ const Lido& Carregado() {
 
         const std::string caminho = Caminhos::Asset("como-jogar.json");
 
-        std::ifstream arquivo(caminho);
-        if (!arquivo.is_open()) {
+        const std::optional<std::string> texto = Caminhos::LerTexto(caminho);
+        if (!texto) {
             SDL_Log("MANUAL: nao consegui abrir %s. A tela Como Jogar vai ficar vazia. "
                     "Confira se a pasta Assets foi copiada junto.", caminho.c_str());
             return Lido{};
         }
 
-        std::ostringstream buffer;
-        buffer << arquivo.rdbuf();
-        Lido lido = LerManual(buffer.str());
+        Lido lido = LerManual(*texto);
 
         for (const auto& p : lido.problemas) {
             SDL_Log("MANUAL: %s", p.c_str());

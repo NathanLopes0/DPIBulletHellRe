@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 
 /**
@@ -41,6 +42,21 @@ namespace Caminhos {
      *     Caminhos::Asset("Teachers/DPIBHSalles.png")
      */
     std::string Asset(const std::string& relativo);
+
+    /**
+     * @brief O conteudo inteiro de um arquivo de texto, ou vazio (nullopt) se
+     * ele nao abriu.
+     *
+     * ERAM DEZ COPIAS de "abre, testa, despeja num ostringstream" - uma em cada
+     * ponte de dados (materias, fichas, opcoes, fases, regras...). Cada uma
+     * escolhia o proprio jeito de ler (rdbuf, istreambuf_iterator), e as dez
+     * tinham de concordar em tratar o arquivo que falta. Aqui fica a leitura;
+     * la fica so o que e de cada uma: a frase que explica o que falta ao jogo
+     * sem aquele arquivo.
+     *
+     * O caminho ja vem pronto (Asset, Save): esta funcao nao resolve nada.
+     */
+    std::optional<std::string> LerTexto(const std::string& caminho);
 
     /**
      * @brief O caminho completo de um arquivo de save, em <base>/Saves.

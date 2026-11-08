@@ -486,7 +486,7 @@ a metade pura entra nos testes, a metade que toca disco e SDL fica de fora.
 | **State** | `FSMComponent` / `FSMState` | as fases de cada professor: cada uma é um estado com a sua duração e os seus ataques |
 | **Strategy** | `IAttackStrategy`, `IMovementStrategy` | o ataque e o movimento do professor são trocáveis por fase, e vêm do JSON |
 | **Strategy** | `PoderEmCampo` | o poder do orientador do TCC: um objeto por poder, com o seu estado, criado por uma fábrica |
-| **Factory Method + Template Method** | `IBossFactory::CreateBoss` | a montagem de todo professor tem os mesmos passos; cada fábrica preenche os seus |
+| **Factory Method + Template Method** | `IBossFactory::CreateBoss`, `FabricaDeChefe<T>` | a montagem de todo professor tem os mesmos passos, escritos uma vez; o que é de cada chefe — a classe, a pasta, o retrato — é uma linha em `Chefes.cpp` |
 | **Object Pool** | `ProjectilePool` | os projéteis são reaproveitados, e não alocados no meio da luta |
 | **Observer** | `OuvinteDaBatalha` | a batalha anuncia o que acontece; o registro da tentativa e os clarões da moldura ouvem |
 

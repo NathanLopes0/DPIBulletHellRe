@@ -4,8 +4,6 @@
 
 #include "MateriasArquivo.h"
 
-#include <fstream>
-#include <sstream>
 #include <SDL_log.h>
 
 #include "../Motor/CaminhosArquivo.h"
@@ -22,16 +20,14 @@ const Lista& Carregadas() {
 
         const std::string caminho = Caminhos::Asset("materias.json");
 
-        std::ifstream arquivo(caminho);
-        if (!arquivo.is_open()) {
+        const std::optional<std::string> texto = Caminhos::LerTexto(caminho);
+        if (!texto) {
             SDL_Log("MATERIAS: nao consegui abrir %s. O jogo ficara sem materias para "
                     "mostrar. Confira se a pasta Assets foi copiada junto.", caminho.c_str());
             return Lista{};
         }
 
-        std::ostringstream buffer;
-        buffer << arquivo.rdbuf();
-        Lista lida = LerMaterias(buffer.str());
+        Lista lida = LerMaterias(*texto);
 
         for (const auto& p : lida.problemas) {
             SDL_Log("MATERIAS: %s", p.c_str());

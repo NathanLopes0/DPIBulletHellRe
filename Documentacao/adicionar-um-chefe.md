@@ -3,8 +3,8 @@
 A receita completa, na ordem em que funciona. O exemplo é o Thiago, de INF 220,
 que foi feito exatamente assim.
 
-A maior parte do trabalho é em JSON. O C++ entra em três lugares só: a classe do
-professor, a fábrica dele e uma linha de registro.
+A maior parte do trabalho é em JSON. O C++ entra em dois lugares só: a classe do
+professor e uma linha de registro.
 
 ---
 
@@ -141,59 +141,35 @@ ela tem de existir, porque a fábrica instancia um tipo concreto.
 > sem memória de propósito: duas fases podem usar a mesma ao mesmo tempo, e um
 > contador dentro dela seria compartilhado entre as duas.
 
-## 6. A fábrica
+## 6. Registrar o chefe
 
-`Source/Actors/Teachers/BossFactory/<Nome>Factory.h` e `.cpp`. São três métodos,
-e dá para copiar a `ThiagoFactory` inteira trocando os nomes:
-
-```cpp
-std::unique_ptr<Boss> ThiagoFactory::InstantiateBoss(Scene* scene) {
-    return std::make_unique<Thiago>(scene);
-}
-
-void ThiagoFactory::ConfigureComponents(Boss* boss) {
-    auto drawComp = boss->AddComponent<DrawAnimatedComponent>(
-        Caminhos::Asset("Teachers/DPIBHThiago.png"),
-        Caminhos::Asset("Teachers/DPIBHThiago.json"));
-    drawComp->AddAnimation("Idle", {0});
-    drawComp->SetAnimation("Idle");
-
-    const float raio = static_cast<float>(drawComp->GetSpriteWidth()) / 2.2f;
-    boss->AddComponent<CircleColliderComponent>(raio)->SetTag(ColliderTag::Boss);
-
-    RegistrarProjeteisDeArquivo(boss, "thiago");     // o conjunto do passo 2
-}
-
-void ThiagoFactory::ConfigureAttacksAndFSM(Boss* boss) {
-    auto fsm = boss->GetComponent<FSMComponent>();
-    ConfigurarFasesDeArquivo(boss, fsm, "thiago");   // o conjunto do passo 4
-    boss->SetInitialState("StateOne");
-}
-```
-
-Os caminhos passam sempre por `Caminhos::Asset`, que resolve a pasta `Assets/`
-subindo os diretórios. Caminho relativo escrito à mão quebra conforme de onde o
-jogo é executado.
-
-## 7. Registrar a fábrica
-
-Duas linhas. Em `Source/Actors/Teachers/BossFactory/AllFactories.h`:
+**Não há fábrica para escrever.** A montagem é a mesma para todo professor — o
+desenho e o colisor a partir do retrato, os projéteis de
+`Assets/Attacks/<pasta>/projeteis.json` e as fases de `fases.json` — e mora em
+`IBossFactory` (`Source/Actors/Teachers/BossFactory/IBossFactory.cpp`). O que é
+de cada chefe são dados, e eles cabem numa linha em
+`Source/Actors/Teachers/BossFactory/Chefes.cpp`:
 
 ```cpp
-#include "ThiagoFactory.h"
+#include "../Bosses/Thiago.h"
+// ...
+Registrar<Thiago>(f, game, "thiago", "Thiago");
 ```
 
-E em `Game::InitializeBossFactory`, em `Source/Motor/Game.cpp`:
+São a classe do passo 5, a **pasta** em `Assets/Attacks/` (que é também o nome
+do chefe) e o nome do **retrato** em `Assets/Teachers/DPIBH<nome>.png`, com o
+`.json` de quadros ao lado. O jogo começa o chefe na `StateOne`.
 
-```cpp
-mBossFactory["thiago"] = std::make_unique<ThiagoFactory>(this);
-```
+> Eram onze fábricas, uma por professor, com o mesmo código letra por letra:
+> mudavam só o nome da pasta e as mensagens de log. Um chefe que um dia precise
+> de uma montagem diferente herda de `IBossFactory` e sobrescreve só o passo
+> que muda (`ConfigureComponents` ou `ConfigureAttacksAndFSM`).
 
-A chave é o nome que `materias.json` vai citar. **Ela é procurada por texto**, e
-um nome escrito errado não dá erro de compilação: a matéria abre, não acha chefe
-e volta sozinha para a seleção.
+O nome é o que `materias.json` vai citar. **Ele é procurado por texto**, e um
+nome escrito errado não dá erro de compilação: a matéria abre, não acha chefe e
+volta sozinha para a seleção.
 
-## 8. Ligar à matéria, em `Assets/materias.json`
+## 7. Ligar à matéria, em `Assets/materias.json`
 
 ```json
 { "codigo": "INF220", "nome": "INF 220", "coluna": 2, "chefe": "thiago",
@@ -202,7 +178,7 @@ e volta sozinha para a seleção.
 
 Uma matéria sem `chefe` é válida: aparece na grade e espera um.
 
-## 9. Avisar os testes
+## 8. Avisar os testes
 
 Dois guardas em `tests/test_arquivos_de_dados.cpp` espelham o C++ e **vão
 falhar** até serem atualizados — de propósito, para que ninguém acrescente um
@@ -213,10 +189,10 @@ CHECK(comChefe == 5);   // quantas matérias têm professor
 const std::set<std::string> kFabricasRegistradas = {"salles", "ricardo", "andre", "julio", "thiago"};
 ```
 
-Se você esqueceu o passo 7, o segundo guarda falha dizendo o nome que ficou sem
+Se você esqueceu o passo 6, o segundo guarda falha dizendo o nome que ficou sem
 fábrica. É esse o trabalho dele.
 
-## 10. Conferir
+## 9. Conferir
 
 ```bash
 cmake --build build && ./build/dpi_tests
@@ -236,7 +212,7 @@ que entram direto numa fase e fotografam.
 
 | Sintoma | Causa provável |
 |---|---|
-| A matéria abre e volta sozinha para a seleção | o nome em `materias.json` não bate com a chave de `Game::InitializeBossFactory` |
+| A matéria abre e volta sozinha para a seleção | o nome em `materias.json` não bate com o registrado em `Chefes.cpp` |
 | O professor aparece e não ataca | `ConfigurarFasesDeArquivo` devolveu falso; o log começa com `FASES:` e diz por quê |
 | O professor congela no fim da terceira fase | falta `StateFinal` no conjunto |
 | Os projéteis nascem todos em cima do professor | `posicionarNoDono` verdadeiro num ataque que nasce em outro lugar |

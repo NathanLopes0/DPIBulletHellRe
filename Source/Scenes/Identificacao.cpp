@@ -3,6 +3,7 @@
 //
 
 #include "Identificacao.h"
+#include "TextoDeCena.h"
 #include "../Entrada/Painel.h"
 #include "FundoDeCena.h"
 
@@ -94,26 +95,10 @@ void Identificacao::Load() {
 
 Actor* Identificacao::Texto(const std::string& inicial, const float y, const int tamanho,
                             const int larguraMaxima, const int alturaMaxima) {
-
-    auto ator = std::make_unique<Actor>(this);
-    ator->SetPosition(Vector2(static_cast<float>(mGame->GetWindowWidth()) / 2.0f, y));
-
-    auto dc = ator->AddComponent<DrawTextComponent>(inicial, mFonte.get(),
-                                                    larguraMaxima, alturaMaxima, tamanho, 255);
-
-    // A quebra acompanha a largura pedida: com os 500 fixos de antes, a linha de
-    // ajuda quebrava no meio e as duas metades se sobrepunham.
-    dc->SetLarguraDeQuebra(static_cast<unsigned>(larguraMaxima));
-
-    // SEM ESTICAR. Era o que deixava a matricula deformada: com um digito so, a
-    // textura de um caractere era esticada para a caixa inteira e saia borrada,
-    // "espichando" na horizontal ate a matricula ficar completa. Agora a caixa e
-    // so um limite, e o texto e desenhado no tamanho dele.
-    dc->SetAjustarAoTexto(true);
-
-    Actor* bruto = ator.get();
-    AddActor(std::move(ator));
-    return bruto;
+    // CENTRADO NA LARGURA: todo texto desta tela fica no eixo do meio.
+    return CriarTexto(*this, mFonte.get(), inicial,
+                      Vector2(static_cast<float>(mGame->GetWindowWidth()) / 2.0f, y),
+                      tamanho, larguraMaxima, alturaMaxima)->GetOwner();
 }
 
 void Identificacao::CriarTextos() {

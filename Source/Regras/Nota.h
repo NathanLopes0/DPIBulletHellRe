@@ -114,6 +114,15 @@ namespace Nota {
      */
     inline constexpr float kBonusDeFaseLimpa = 12.0f;
 
+    /// @brief Quanto um acerto sofrido custa, em bruto, antes da divisao entre
+    /// os jogadores (PerdaPorJogador). Sozinho, um acerto tira 6 pontos.
+    ///
+    /// Era o #define GRADE_CHANGE_DOWN no cabecalho da Battle: o unico numero
+    /// da nota que nao morava aqui, ao lado do ganho e do bonus com que ele se
+    /// equilibra - e um macro, sem tipo e sem escopo, visivel em todo arquivo
+    /// que incluisse a Battle.
+    inline constexpr float kPerdaPorAcerto = 6.0f;
+
     /// O piso da faixa de exame: daqui ate a aprovacao, a batalha segue para a
     /// fase final em vez de terminar.
     ///

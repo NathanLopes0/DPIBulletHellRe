@@ -3,6 +3,7 @@
 //
 
 #include "EscolhaDoOrientador.h"
+#include "TextoDeCena.h"
 
 #include <iomanip>
 #include <sstream>
@@ -77,18 +78,10 @@ void EscolhaDoOrientador::Load() {
 
 Actor* EscolhaDoOrientador::Texto(const std::string& conteudo, const Vector2& onde, const int tamanho,
                                   const int largura, const Vector3& cor, const int linhas) {
-    auto ator = std::make_unique<Actor>(this);
-    ator->SetPosition(onde);
-    const auto dc = ator->AddComponent<DrawTextComponent>(
-        conteudo.empty() ? std::string(" ") : conteudo, mFonte.get(), largura,
-        (tamanho + 8) * linhas, tamanho, kOrdemDoCursor - 10);
-    dc->SetLarguraDeQuebra(static_cast<unsigned>(largura));
-    dc->SetAjustarAoTexto(true);
+    auto* dc = CriarTexto(*this, mFonte.get(), conteudo, onde, tamanho, largura,
+                          (tamanho + 8) * linhas, kOrdemDoCursor - 10);
     dc->SetColor(cor);
-
-    Actor* observador = ator.get();
-    AddActor(std::move(ator));
-    return observador;
+    return dc->GetOwner();
 }
 
 void EscolhaDoOrientador::Escrever(Actor* ator, const std::string& texto, const Vector3& cor) {

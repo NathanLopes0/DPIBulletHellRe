@@ -5,6 +5,8 @@
 #include "CaminhosArquivo.h"
 
 #include <filesystem>
+#include <fstream>
+#include <sstream>
 #include <SDL.h>
 #include <SDL_log.h>
 
@@ -105,6 +107,14 @@ std::string Save(const std::string& relativo) {
                 pasta.c_str(), ec.message().c_str());
     }
     return Juntar(pasta, relativo);
+}
+
+std::optional<std::string> LerTexto(const std::string& caminho) {
+    std::ifstream arquivo(caminho);
+    if (!arquivo.is_open()) return std::nullopt;
+    std::ostringstream conteudo;
+    conteudo << arquivo.rdbuf();
+    return conteudo.str();
 }
 
 }

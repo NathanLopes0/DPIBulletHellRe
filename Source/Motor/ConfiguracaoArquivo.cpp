@@ -6,7 +6,6 @@
 
 #include <filesystem>
 #include <fstream>
-#include <sstream>
 #include <system_error>
 #include <SDL_log.h>
 
@@ -21,16 +20,13 @@ namespace ConfiguracaoArquivo {
 Configuracao::Dados Carregar() {
     const std::string caminho = Caminho();
 
-    std::ifstream arquivo(caminho);
-    if (!arquivo.is_open()) {
+    const std::optional<std::string> texto = Caminhos::LerTexto(caminho);
+    if (!texto) {
         // Nao e erro: e a primeira vez que o jogo abre nesta maquina.
         return {};
     }
 
-    std::ostringstream buffer;
-    buffer << arquivo.rdbuf();
-
-    const Configuracao::Lida lida = Configuracao::Ler(buffer.str());
+    const Configuracao::Lida lida = Configuracao::Ler(*texto);
     for (const auto& p : lida.problemas) {
         SDL_Log("OPCOES: %s: %s", caminho.c_str(), p.c_str());
     }

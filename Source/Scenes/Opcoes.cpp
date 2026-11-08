@@ -3,6 +3,7 @@
 //
 
 #include "Opcoes.h"
+#include "TextoDeCena.h"
 #include "../Entrada/Painel.h"
 #include "FundoDeCena.h"
 
@@ -81,18 +82,7 @@ void Opcoes::Load() {
 
 Actor* Opcoes::Texto(const std::string& conteudo, const float x, const float y, const int tamanho,
                      const int larguraMaxima) {
-
-    auto ator = std::make_unique<Actor>(this);
-    ator->SetPosition(Vector2(x, y));
-
-    auto dc = ator->AddComponent<DrawTextComponent>(conteudo, mFonte.get(),
-                                                    larguraMaxima, tamanho + 8, tamanho, 255);
-    dc->SetLarguraDeQuebra(static_cast<unsigned>(larguraMaxima));
-    dc->SetAjustarAoTexto(true);
-
-    Actor* bruto = ator.get();
-    AddActor(std::move(ator));
-    return bruto;
+    return CriarTexto(*this, mFonte.get(), conteudo, Vector2(x, y), tamanho, larguraMaxima, tamanho + 8)->GetOwner();
 }
 
 void Opcoes::Mostrar() {

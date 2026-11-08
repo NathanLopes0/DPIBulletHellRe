@@ -67,6 +67,12 @@ namespace PontoExtra {
     // a ONDA (kRapidezDaOnda) sai dele e desfaz os tiros do professor a
     // medida que passa por eles.
 
+    /// A CADA QUANTOS ACERTOS no professor ele deixa cair um Ponto Extra: 80,
+    /// com uma folga sorteada de 8 para cima ou para baixo - para a queda nao
+    /// ser contada de cabeca. Eram dois numeros soltos dentro do Boss.
+    constexpr int kAcertosParaCair = 80;
+    constexpr int kFolgaDaQueda = 8;
+
     /// Quanto o aluno fica sem atirar depois de um Ponto Extra de solo. Era 3 s.
     constexpr float kSobrecarga = 1.5f;
 

@@ -22,8 +22,6 @@
 #include "OuvinteDaBatalha.h"
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
 
-#define GRADE_CHANGE_DOWN 6.f
-
 
 class Font;
 class Player;

@@ -8,10 +8,8 @@
 
 #include "ProjeteisDeChefeArquivo.h"
 
-#include <fstream>
 #include <map>
 #include <memory>
-#include <sstream>
 #include <SDL_log.h>
 
 #include "ProjeteisDeChefe.h"
@@ -47,16 +45,14 @@ namespace {
         ProjeteisLidos lidos;
         const std::string caminho = Caminho(chefe);
 
-        std::ifstream arquivo(caminho);
-        if (!arquivo.is_open()) {
+        const std::optional<std::string> texto = Caminhos::LerTexto(caminho);
+        if (!texto) {
             SDL_Log("PROJETEIS: nao foi possivel abrir %s. O chefe \"%s\" ficara sem "
                     "projetil: os tipos dele vivem nesse arquivo, e nao ha mais fabrica "
                     "em C++. Confira se a pasta Assets foi copiada junto com o executavel.",
                     caminho.c_str(), chefe.c_str());
         } else {
-            std::ostringstream buffer;
-            buffer << arquivo.rdbuf();
-            lidos = LerProjeteis(buffer.str());
+            lidos = LerProjeteis(*texto);
 
             for (const auto& p : lidos.problemas) {
                 SDL_Log("PROJETEIS em %s: %s", caminho.c_str(), p.c_str());

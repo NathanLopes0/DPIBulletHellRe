@@ -63,17 +63,6 @@ namespace Pincel {
         Caixa(r, x, y, w, h, raio, [cor](float) { return cor; });
     }
 
-    /// A mesma caixa, deitada: 'tom(t)' da a cor da COLUNA (t de 0 a esquerda a 1 a direita).
-    template <typename Tom>
-    void CaixaDeitada(SDL_Renderer* r, const int x, const int y, const int w, const int h, const int raio, Tom tom) {
-        for (int j = 0; j < w; ++j) {
-            const int recuo = Recuo(j, w, raio);
-            if (h - 2 * recuo <= 0) continue;
-            Cor(r, tom(static_cast<float>(j) / static_cast<float>(std::max(1, w - 1))));
-            SDL_RenderDrawLine(r, x + j, y + recuo, x + j, y + h - 1 - recuo);
-        }
-    }
-
     /// Guarda e devolve o modo de mistura: quem desenha com transparencia usa
     /// isto no comeco do Draw.
     class Misturando {

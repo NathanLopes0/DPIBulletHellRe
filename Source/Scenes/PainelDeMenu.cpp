@@ -8,24 +8,17 @@
 #include <memory>
 
 #include "Scene.h"
+#include "TextoDeCena.h"
 #include "../Actors/Actor.h"
 #include "../Motor/Game.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
 
 namespace {
-    /// Um texto que encolhe para caber, em vez de esticar (SetAjustarAoTexto).
+    /// Um texto que encolhe para caber, em vez de esticar (TextoDeCena.h).
     Actor* Texto(Scene& cena, Font* fonte, const std::string& texto, const Vector2& onde,
                  const int largura, const int altura, const int tamanho, const int ordem) {
-        auto ator = std::make_unique<Actor>(&cena);
-        ator->SetPosition(onde);
-        // O TEXTO VAZIO NAO RASTERIZA (a fonte devolve textura nula): as linhas
-        // ainda sem conteudo nascem com um espaco.
-        auto* dc = ator->AddComponent<DrawTextComponent>(texto.empty() ? " " : texto, fonte,
-                                                         largura, altura, tamanho, ordem);
-        dc->SetLarguraDeQuebra(static_cast<unsigned>(largura));
-        dc->SetAjustarAoTexto(true);
-        return cena.AddActor(std::move(ator));
+        return CriarTexto(cena, fonte, texto, onde, tamanho, largura, altura, ordem)->GetOwner();
     }
 
     void Visivel(Actor* a, const bool visivel) {

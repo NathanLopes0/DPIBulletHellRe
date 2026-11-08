@@ -3,6 +3,7 @@
 //
 
 #include "StageSelect.h"
+#include "TextoDeCena.h"
 #include "../Entrada/Painel.h"
 #include "FundoDeCena.h"
 
@@ -298,19 +299,10 @@ void StageSelect::CreateButton(const std::string& text, int subject, const Vecto
 }
 
 Actor* StageSelect::TextoDoCartao(const float y, const int tamanho, const Vector3& cor) {
-
-    auto ator = std::make_unique<Actor>(this);
-    ator->SetPosition(Vector2(kCartaoX, y));
-    const auto dc = ator->AddComponent<DrawTextComponent>(
-        " ", mStageSelectFont.get(), static_cast<int>(kCartaoLargura) - 40,
-        tamanho + 8, tamanho, 255);
-    dc->SetLarguraDeQuebra(static_cast<unsigned>(kCartaoLargura) - 40);
-    dc->SetAjustarAoTexto(true);
+    const int largura = static_cast<int>(kCartaoLargura) - 40;
+    auto* dc = CriarTexto(*this, mStageSelectFont.get(), " ", Vector2(kCartaoX, y), tamanho, largura, tamanho + 8);
     dc->SetColor(cor);
-
-    Actor* observador = ator.get();
-    AddActor(std::move(ator));
-    return observador;
+    return dc->GetOwner();
 }
 
 void StageSelect::CreateStaticUI() {

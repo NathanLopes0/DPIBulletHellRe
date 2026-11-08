@@ -28,7 +28,8 @@
 #include "../Scenes/EscolhaDoOrientador.h"
 #include "../Scenes/EscolhaDaDificuldade.h"
 #include "../Scenes/Battle/Battle.h"
-#include "../Actors/Teachers/BossFactory/AllFactories.h"
+#include "../Actors/Teachers/BossFactory/Chefes.h"
+#include "../Actors/Actor.h"
 
 #include "CaminhosArquivo.h"
 #include "ConfiguracaoArquivo.h"
@@ -587,17 +588,7 @@ void Game::InitializeBossFactory() {
     // listas dizendo a mesma coisa: esta e a do arquivo. Mudar a ordem das
     // materias no arquivo bastava para a fase abrir com o chefe errado, sem erro
     // de compilacao e sem aviso em jogo.
-    mBossFactory["salles"]  = std::make_unique<SallesFactory>(this);
-    mBossFactory["ricardo"] = std::make_unique<RicardoFactory>(this);
-    mBossFactory["andre"]   = std::make_unique<AndreFactory>(this);
-    mBossFactory["julio"]   = std::make_unique<JulioFactory>(this);
-    mBossFactory["thiago"]  = std::make_unique<ThiagoFactory>(this);
-    mBossFactory["vladimir"]= std::make_unique<VladimirFactory>(this);
-    mBossFactory["vitor"]   = std::make_unique<VitorFactory>(this);
-    mBossFactory["marialucia"] = std::make_unique<MariaLuciaFactory>(this);
-    mBossFactory["lucas"]   = std::make_unique<LucasFactory>(this);
-    mBossFactory["luizinho"] = std::make_unique<LuizinhoFactory>(this);
-    mBossFactory["hugo"]    = std::make_unique<HugoFactory>(this);
+    mBossFactory = Chefes::Fabricas(this);
 }
 
 IBossFactory *Game::GetFactory(const size_t n) {

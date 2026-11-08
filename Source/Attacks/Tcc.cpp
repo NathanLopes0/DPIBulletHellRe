@@ -197,85 +197,59 @@ namespace Tcc {
         return r;
     }
 
-    std::string Professor(const Materia m) {
-        switch (m) {
-            case Materia::Andre:      return "André";
-            case Materia::Salles:     return "Salles";
-            case Materia::Ricardo:    return "Ricardo";
-            case Materia::Thiago:     return "Thiago";
-            case Materia::Luizinho:   return "Luizinho";
-            case Materia::Vladimir:   return "Vladimir";
-            case Materia::Julio:      return "Júlio";
-            case Materia::MariaLucia: return "Maria Lúcia";
-            case Materia::Lucas:      return "Lucas";
-            case Materia::Vitor:      return "Vitor";
-            default:                  return "Hugo";
+    namespace {
+        /// UMA LINHA POR MATERIA: o professor, a area do TCC, o capitulo, a
+        /// pergunta da banca e a animacao do projetil.
+        ///
+        /// ERAM CINCO switch PARALELOS sobre a mesma enumeracao, um por
+        /// coluna desta tabela: uma materia nova pedia cinco edicoes em cinco
+        /// lugares, e esquecer uma caia calada no default do Hugo. Aqui a
+        /// materia ou tem a linha inteira, ou nao tem.
+        struct Ficha {
+            Materia materia;
+            const char* professor;
+            const char* area;
+            const char* capitulo;
+            const char* pergunta;
+            const char* animacao;
+        };
+        const Ficha kFichas[] = {
+            {Materia::Andre,      "André",       "Programação",
+             "for (i = 0; i < n; i++)",  "Cadê o fluxograma?",                "Andre"},
+            {Materia::Salles,     "Salles",      "Estruturas de Dados",
+             "push, push, pop: a pilha", "E se a pilha estourar?",            "Salles"},
+            {Materia::Ricardo,    "Ricardo",     "Organização de Computadores",
+             "o barramento de 8 bits",   "Quantos ciclos de clock isso leva?", "Ricardo"},
+            {Materia::Thiago,     "Thiago",      "Banco de Dados",
+             "BEGIN ... COMMIT",         "Essa tabela está normalizada?",     "Thiago"},
+            {Materia::Luizinho,   "Luizinho",    "Linguagens de Programação",
+             "int *p = &voce;",          "Onde esse ponteiro é liberado?",    "Luizinho"},
+            {Materia::Vladimir,   "Vladimir",    "Linguagens Formais e Autômatos",
+             "S -> S S",                 "Isso é decidível?",                 "Vladimir"},
+            {Materia::Julio,      "Júlio",       "Inteligência Artificial",
+             "a descida do gradiente",   "Por que não usou um LLM?",          "Julio"},
+            {Materia::MariaLucia, "Maria Lúcia", "Engenharia de Software",
+             "notifyAll()",              "Cadê a documentação?",              "MariaLucia"},
+            {Materia::Lucas,      "Lucas",       "Programação Web",
+             "await fetch(\"/api\")",    "Funciona no Safari?",               "Lucas"},
+            {Materia::Vitor,      "Vitor",       "Programação Concorrente e Distribuída",
+             "a janela do TCP",          "E se der deadlock?",                "Vitor"},
+        };
+
+        /// SEM ORIENTADOR (o Generico), o proprio Hugo: tema livre.
+        const Ficha kDoHugo{Materia::Generico, "Hugo", "tema livre", "mais uma página", "Pode repetir?", "Folha"};
+
+        const Ficha& FichaDe(const Materia m) {
+            for (const Ficha& f : kFichas) if (f.materia == m) return f;
+            return kDoHugo;
         }
     }
 
-    std::string Area(const Materia m) {
-        switch (m) {
-            case Materia::Andre:      return "Programação";
-            case Materia::Salles:     return "Estruturas de Dados";
-            case Materia::Ricardo:    return "Organização de Computadores";
-            case Materia::Thiago:     return "Banco de Dados";
-            case Materia::Luizinho:   return "Linguagens de Programação";
-            case Materia::Vladimir:   return "Linguagens Formais e Autômatos";
-            case Materia::Julio:      return "Inteligência Artificial";
-            case Materia::MariaLucia: return "Engenharia de Software";
-            case Materia::Lucas:      return "Programação Web";
-            case Materia::Vitor:      return "Programação Concorrente e Distribuída";
-            default:                  return "tema livre";
-        }
-    }
-
-    std::string Capitulo(const Materia m) {
-        switch (m) {
-            case Materia::Andre:      return "for (i = 0; i < n; i++)";
-            case Materia::Salles:     return "push, push, pop: a pilha";
-            case Materia::Ricardo:    return "o barramento de 8 bits";
-            case Materia::Thiago:     return "BEGIN ... COMMIT";
-            case Materia::Luizinho:   return "int *p = &voce;";
-            case Materia::Vladimir:   return "S -> S S";
-            case Materia::Julio:      return "a descida do gradiente";
-            case Materia::MariaLucia: return "notifyAll()";
-            case Materia::Lucas:      return "await fetch(\"/api\")";
-            case Materia::Vitor:      return "a janela do TCP";
-            default:                  return "mais uma página";
-        }
-    }
-
-    std::string Pergunta(const Materia m) {
-        switch (m) {
-            case Materia::Andre:      return "Cadê o fluxograma?";
-            case Materia::Salles:     return "E se a pilha estourar?";
-            case Materia::Ricardo:    return "Quantos ciclos de clock isso leva?";
-            case Materia::Thiago:     return "Essa tabela está normalizada?";
-            case Materia::Luizinho:   return "Onde esse ponteiro é liberado?";
-            case Materia::Vladimir:   return "Isso é decidível?";
-            case Materia::Julio:      return "Por que não usou um LLM?";
-            case Materia::MariaLucia: return "Cadê a documentação?";
-            case Materia::Lucas:      return "Funciona no Safari?";
-            case Materia::Vitor:      return "E se der deadlock?";
-            default:                  return "Pode repetir?";
-        }
-    }
-
-    std::string Animacao(const Materia m) {
-        switch (m) {
-            case Materia::Andre:      return "Andre";
-            case Materia::Salles:     return "Salles";
-            case Materia::Ricardo:    return "Ricardo";
-            case Materia::Thiago:     return "Thiago";
-            case Materia::Luizinho:   return "Luizinho";
-            case Materia::Vladimir:   return "Vladimir";
-            case Materia::Julio:      return "Julio";
-            case Materia::MariaLucia: return "MariaLucia";
-            case Materia::Lucas:      return "Lucas";
-            case Materia::Vitor:      return "Vitor";
-            default:                  return "Folha";
-        }
-    }
+    std::string Professor(const Materia m) { return FichaDe(m).professor; }
+    std::string Area(const Materia m) { return FichaDe(m).area; }
+    std::string Capitulo(const Materia m) { return FichaDe(m).capitulo; }
+    std::string Pergunta(const Materia m) { return FichaDe(m).pergunta; }
+    std::string Animacao(const Materia m) { return FichaDe(m).animacao; }
 
     std::array<Materia, 2> Banca(const Materia orientador, Variacao::Sorteio& s) {
         std::vector<Materia> candidatos;

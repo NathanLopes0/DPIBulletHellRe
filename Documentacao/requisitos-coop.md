@@ -85,7 +85,7 @@ Dividido (ações de um jogador):
   jogador precisa acertar o mesmo tanto que um solo precisaria**. A dupla soma o
   dobro de acertos no mesmo tempo, e cada um vale metade, então a barra sobe no
   ritmo de antes;
-- a **perda por dano sofrido** (`GRADE_CHANGE_DOWN`, 6,0 brutos) — pelo mesmo
+- a **perda por dano sofrido** (`Nota::kPerdaPorAcerto`, 6,0 brutos) — pelo mesmo
   motivo, e é isto que impede o co-op de virar mais difícil. São dois alvos em
   campo; sem dividir a perda, seis brutos por acerto drenariam a barra no dobro
   da velocidade e a dupla zeraria antes do fim da primeira fase.

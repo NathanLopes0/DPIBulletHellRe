@@ -4,8 +4,6 @@
 
 #include "PersonagensArquivo.h"
 
-#include <fstream>
-#include <sstream>
 #include <SDL_log.h>
 
 #include "../Motor/CaminhosArquivo.h"
@@ -22,16 +20,14 @@ const Catalogo& Carregado() {
 
         const std::string caminho = Caminhos::Asset("personagens.json");
 
-        std::ifstream arquivo(caminho);
-        if (!arquivo.is_open()) {
+        const std::optional<std::string> texto = Caminhos::LerTexto(caminho);
+        if (!texto) {
             SDL_Log("PERSONAGENS: nao consegui abrir %s. Ninguem vai conseguir montar uma "
                     "personagem. Confira se a pasta Assets foi copiada junto.", caminho.c_str());
             return Catalogo{};
         }
 
-        std::ostringstream buffer;
-        buffer << arquivo.rdbuf();
-        Catalogo lido = LerCatalogo(buffer.str());
+        Catalogo lido = LerCatalogo(*texto);
 
         for (const auto& p : lido.problemas) {
             SDL_Log("PERSONAGENS: %s", p.c_str());

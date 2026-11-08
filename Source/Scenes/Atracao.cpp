@@ -3,6 +3,7 @@
 //
 
 #include "Atracao.h"
+#include "TextoDeCena.h"
 
 #include <SDL_scancode.h>
 #include <iomanip>
@@ -143,20 +144,8 @@ Atracao::Cartaz Atracao::CriarMelhores() {
 
 DrawComponent* Atracao::Texto(const std::string& conteudo, const float x, const float y,
                               const int tamanho, const int larguraMaxima, const Vector3& cor) {
-
-    auto ator = std::make_unique<Actor>(this);
-    ator->SetPosition(Vector2(x, y));
-
-    const auto dc = ator->AddComponent<DrawTextComponent>(
-        conteudo, mFonte.get(), larguraMaxima, tamanho + 8, tamanho, 255);
-
-    // A QUEBRA ACOMPANHA A LARGURA DECLARADA: o padrao do componente e 500 px,
-    // e qualquer caixa mais larga que isso quebraria no meio sem pedir.
-    dc->SetLarguraDeQuebra(static_cast<unsigned>(larguraMaxima));
-    dc->SetAjustarAoTexto(true);
+    auto* dc = CriarTexto(*this, mFonte.get(), conteudo, Vector2(x, y), tamanho, larguraMaxima, tamanho + 8);
     dc->SetColor(cor);
-
-    AddActor(std::move(ator));
     return dc;
 }
 

@@ -3,6 +3,7 @@
 //
 
 #include "BossAttackState.h"
+#include "Boss.h"
 
 #include "../Actor.h"
 #include "../../Components/AIComponents/FSMComponent.h"

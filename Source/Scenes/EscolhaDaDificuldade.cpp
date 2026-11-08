@@ -3,6 +3,7 @@
 //
 
 #include "EscolhaDaDificuldade.h"
+#include "TextoDeCena.h"
 
 #include <cstdio>
 
@@ -95,17 +96,8 @@ void EscolhaDaDificuldade::Load() {
 
 Actor* EscolhaDaDificuldade::Texto(const std::string& conteudo, const float x, const float y,
                                    const int tamanho, const int larguraMaxima, const int linhas) {
-    auto ator = std::make_unique<Actor>(this);
-    ator->SetPosition(Vector2(x, y));
-
-    auto dc = ator->AddComponent<DrawTextComponent>(conteudo, mFonte.get(),
-                                                    larguraMaxima, (tamanho + 8) * linhas, tamanho, 255);
-    dc->SetLarguraDeQuebra(static_cast<unsigned>(larguraMaxima));
-    dc->SetAjustarAoTexto(true);
-
-    Actor* bruto = ator.get();
-    AddActor(std::move(ator));
-    return bruto;
+    return CriarTexto(*this, mFonte.get(), conteudo, Vector2(x, y), tamanho, larguraMaxima,
+                      (tamanho + 8) * linhas)->GetOwner();
 }
 
 void EscolhaDaDificuldade::Mostrar() {

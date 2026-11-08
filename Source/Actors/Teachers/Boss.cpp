@@ -16,6 +16,7 @@
 #include "../../Components/RigidBodyComponent.h"
 #include "../../Components/AIComponents/FSMComponent.h"
 #include "../../Attacks/FasesDeAtaque.h"
+#include "../../Regras/PontoExtra.h"
 #include "../../Attacks/AttackParameters/PontosAttackParams.h"
 #include "SDL_log.h"
 #include "../Player/PlayerProjectile.h"
@@ -449,11 +450,8 @@ void Boss::SetInitialState(const std::string &stateName) {
 }
 
 void Boss::CalculateNextDropThreshold() {
-    int baseHits = 80;
-    int variance = 8;
-
-    mNextDropThreshold = baseHits + Random::GetIntRange(-variance, variance);
-
+    mNextDropThreshold = PontoExtra::kAcertosParaCair
+                       + Random::GetIntRange(-PontoExtra::kFolgaDaQueda, PontoExtra::kFolgaDaQueda);
 }
 
 void Boss::OnCollision(Actor *other) {

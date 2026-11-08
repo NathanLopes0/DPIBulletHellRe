@@ -644,9 +644,7 @@ void Battle::CriarTelaDeCarregamento() {
     auto barra = std::make_unique<Actor>(this);
     barra->SetPosition(Vector2((w - static_cast<float>(kLargura)) / 2.0f, h * 0.70f));
     auto* pb = barra->AddComponent<ProgressBarComponent>(kOrdemDoVeu + 1);
-    pb->SetOrientation(ProgressBarComponent::Orientation::Horizontal);
     pb->SetSize(kLargura, kAltura);
-    pb->SetAcabamento(true);
     pb->SetGradientColors(SDL_Color{22, 24, 36, 255}, SDL_Color{80, 120, 230, 255}, SDL_Color{110, 230, 150, 255});
     pb->SetFillPercent(0.0f);
     mBarraDoCarregamento = AddActor(std::move(barra));
@@ -1526,7 +1524,7 @@ void Battle::GradeDown(const float multiplicadorDaPerda) {
     // aqui embaixo e nao nos dois ++ acima. Uma corrente E um acerto sofrido:
     // ela conta para o direito a nota cheia e para a fase limpa, porque o
     // jogador de fato foi acertado. O que ela nao faz e custar os 6 pontos.
-    mGrade = Nota::Subtrair(mGrade, PerdaPorJogador(GRADE_CHANGE_DOWN) * multiplicadorDaPerda);
+    mGrade = Nota::Subtrair(mGrade, PerdaPorJogador(Nota::kPerdaPorAcerto) * multiplicadorDaPerda);
 }
 
 float Battle::PerdaPorJogador(const float bruto) const {

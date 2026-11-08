@@ -8,7 +8,6 @@
 
 #include "RegrasDeAtaqueArquivo.h"
 
-#include <fstream>
 #include <memory>
 #include <SDL_log.h>
 
@@ -44,15 +43,13 @@ namespace {
         RegrasLidas lidas;
         const std::string caminho = Caminho(chefe);
 
-        std::ifstream arquivo(caminho);
-        if (!arquivo.is_open()) {
+        const std::optional<std::string> texto = Caminhos::LerTexto(caminho);
+        if (!texto) {
             SDL_Log("REGRAS: nao foi possivel abrir %s. Os ataques do chefe \"%s\" que "
                     "dependem dele ficarao sem configuracao de projetil.",
                     caminho.c_str(), chefe.c_str());
         } else {
-            const std::string texto((std::istreambuf_iterator<char>(arquivo)),
-                                     std::istreambuf_iterator<char>());
-            lidas = LerRegras(texto);
+            lidas = LerRegras(*texto);
 
             for (const auto& p : lidas.problemas) {
                 SDL_Log("REGRAS em %s: %s", caminho.c_str(), p.c_str());

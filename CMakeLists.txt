@@ -42,6 +42,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Scenes/FundoDeCena.h
         Source/Scenes/PainelDeMenu.cpp
         Source/Scenes/PainelDeMenu.h
+        Source/Scenes/TextoDeCena.cpp
+        Source/Scenes/TextoDeCena.h
         Source/Scenes/Opcoes.h
         Source/Scenes/CriacaoDePersonagem.cpp
         Source/Scenes/CriacaoDePersonagem.h
@@ -158,8 +160,6 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Scenes/Battle/ClaroesDaMoldura.cpp
         Source/Scenes/Battle/ClaroesDaMoldura.h
         Source/Scenes/Battle/Battle.h
-        Source/Actors/Teachers/BossFactory/SallesFactory.cpp
-        Source/Actors/Teachers/BossFactory/SallesFactory.h
         Source/Actors/Teachers/Boss.cpp
         Source/Actors/Teachers/Boss.h
         Source/Actors/Teachers/Bosses/Salles.cpp
@@ -181,6 +181,9 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Scenes/Battle/ProjectileManager.h
         Source/Actors/Teachers/BossFactory/IBossFactory.h
         Source/Actors/Teachers/BossFactory/IBossFactory.cpp
+        Source/Actors/Teachers/BossFactory/FabricaDeChefe.h
+        Source/Actors/Teachers/BossFactory/Chefes.cpp
+        Source/Actors/Teachers/BossFactory/Chefes.h
         Source/Attacks/IAttackStrategy.h
         Source/Attacks/Behaviors.cpp
         Source/Attacks/PathShapes.cpp
@@ -329,47 +332,27 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Movements/MovementStrategies.cpp
         Source/Actors/Teachers/ExtraPointItem.cpp
         Source/Actors/Teachers/ExtraPointItem.h
-        Source/Actors/Teachers/BossFactory/AllFactories.h
-        Source/Actors/Teachers/BossFactory/RicardoFactory.cpp
-        Source/Actors/Teachers/BossFactory/RicardoFactory.h
         Source/Actors/Teachers/Bosses/Ricardo.cpp
         Source/Actors/Teachers/Bosses/Ricardo.h
         Source/Actors/Teachers/Bosses/Andre.cpp
         Source/Actors/Teachers/Bosses/Andre.h
-        Source/Actors/Teachers/BossFactory/AndreFactory.cpp
         Source/Actors/Teachers/Bosses/Julio.cpp
         Source/Actors/Teachers/Bosses/Thiago.cpp
         Source/Actors/Teachers/Bosses/Julio.h
-        Source/Actors/Teachers/BossFactory/JulioFactory.cpp
-        Source/Actors/Teachers/BossFactory/ThiagoFactory.cpp
         Source/Actors/Teachers/Bosses/Vladimir.cpp
         Source/Actors/Teachers/Bosses/Vladimir.h
-        Source/Actors/Teachers/BossFactory/VladimirFactory.cpp
-        Source/Actors/Teachers/BossFactory/VladimirFactory.h
         Source/Actors/Teachers/Bosses/Lucas.cpp
         Source/Actors/Teachers/Bosses/Lucas.h
-        Source/Actors/Teachers/BossFactory/LucasFactory.cpp
-        Source/Actors/Teachers/BossFactory/LucasFactory.h
         Source/Actors/Teachers/Bosses/Luizinho.cpp
         Source/Actors/Teachers/Bosses/Luizinho.h
         Source/Actors/Teachers/Bosses/PainelDeCodigo.cpp
         Source/Actors/Teachers/Bosses/PainelDeCodigo.h
-        Source/Actors/Teachers/BossFactory/LuizinhoFactory.cpp
-        Source/Actors/Teachers/BossFactory/LuizinhoFactory.h
         Source/Actors/Teachers/Bosses/Vitor.cpp
         Source/Actors/Teachers/Bosses/Vitor.h
-        Source/Actors/Teachers/BossFactory/VitorFactory.cpp
-        Source/Actors/Teachers/BossFactory/VitorFactory.h
         Source/Actors/Teachers/Bosses/Hugo.cpp
         Source/Actors/Teachers/Bosses/Hugo.h
-        Source/Actors/Teachers/BossFactory/HugoFactory.cpp
-        Source/Actors/Teachers/BossFactory/HugoFactory.h
         Source/Actors/Teachers/Bosses/MariaLucia.cpp
         Source/Actors/Teachers/Bosses/MariaLucia.h
-        Source/Actors/Teachers/BossFactory/MariaLuciaFactory.cpp
-        Source/Actors/Teachers/BossFactory/MariaLuciaFactory.h
-        Source/Actors/Teachers/BossFactory/JulioFactory.h
-        Source/Actors/Teachers/BossFactory/AndreFactory.h
         Source/Attacks/BaseStrategies/BaloonAttack.cpp
         Source/Attacks/BaseStrategies/BaloonAttack.h
         Source/Attacks/AttackParameters/BaloonAttackParams.h

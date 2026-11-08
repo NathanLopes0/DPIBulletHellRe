@@ -5,32 +5,10 @@
 #include "ProgressBarComponent.h"
 #include "../../Actors/Actor.h"
 
-ProgressBarComponent::ProgressBarComponent(Actor* owner, int drawOrder)
-    // NA ORDEM EM QUE OS MEMBROS SAO DECLARADOS. O compilador inicializa nessa
-    // ordem de qualquer jeito, e a lista fora de ordem so dava um aviso
-    // (-Wreorder-ctor) que escondia os avisos de verdade neste arquivo.
+ProgressBarComponent::ProgressBarComponent(Actor* owner, const int drawOrder)
     : DrawComponent(owner, drawOrder)
-    , mFillPercent(0.0f)
-    , mColorPercent(0.0f)
-    , mWidth(200)
-    , mHeight(200)
-    , mBackgroundColor({50,50,50, 255})
-    , mStartColor({255, 100, 150, 255})
-    , mEndColor({0,0,0,0})
-    , mUseGradient(false)
-    , mEffect(VisualEffect::None)
-    , mEffectTimer(0.0f)
-    , mOrientation(Orientation::Horizontal)
 {
-
 }
-
-void ProgressBarComponent::Update(float deltaTime) {
-    if (mEffect == VisualEffect::Pulsing) {
-        mEffectTimer += deltaTime;
-    }
-}
-
 
 void ProgressBarComponent::Draw(SDL_Renderer* renderer) {
 
@@ -38,88 +16,29 @@ void ProgressBarComponent::Draw(SDL_Renderer* renderer) {
         return;
     }
 
-    Vector2 ownerPos = mOwner->GetPosition();
+    const Vector2 ownerPos = mOwner->GetPosition();
     const int posX = static_cast<int>(ownerPos.x);
     const int posY = static_cast<int>(ownerPos.y);
 
-    // 1. Desenha o Fundo (sempre igual)
-    SDL_Rect bgRect;
-    bgRect.x = posX;
-    bgRect.y = posY;
-    bgRect.w = mWidth;
-    bgRect.h = mHeight;
+    // 1. O fundo, e por cima dele a moldura e o sulco.
+    const SDL_Rect bgRect{posX, posY, mWidth, mHeight};
     SDL_SetRenderDrawColor(renderer, mBackgroundColor.r, mBackgroundColor.g, mBackgroundColor.b, mBackgroundColor.a);
     SDL_RenderFillRect(renderer, &bgRect);
+    DesenharSulco(renderer, bgRect);
 
-    // 1b. A moldura e o sulco, se esta barra pediu acabamento.
-    if (mAcabamento) DesenharSulco(renderer, bgRect);
+    // 2. O preenchimento: UMA cor, a do ponto em que a cor esta entre o comeco
+    // e o fim (mColorPercent), num retangulo do tamanho do que encheu.
+    const SDL_Color cor = LerpColor(mStartColor, mEndColor, mColorPercent);
+    const int cheio = static_cast<int>(static_cast<float>(mWidth) * mFillPercent);
+    if (cheio <= 0) return;
 
-    // 2. Desenha o Preenchimento
-    if (mUseGradient) {
-        // --- LÓGICA DE COR SÓLIDA INTERPOLADA ---
+    SDL_SetRenderDrawColor(renderer, cor.r, cor.g, cor.b, cor.a);
+    const SDL_Rect fgRect{posX, posY, cheio, mHeight};
+    SDL_RenderFillRect(renderer, &fgRect);
 
-        // 1. Calcular a cor-alvo ÚNICA baseada no *percentual de cor*
-        SDL_Color targetColor = LerpColor(mStartColor, mEndColor, mColorPercent);
-
-        // 2. Aplicar efeitos visuais
-        if (mEffect == VisualEffect::Pulsing) {
-            float pulse = (sinf(mEffectTimer * 8.0f) + 1.0f) / 2.0f;
-            float alphaMod = pulse;
-            targetColor.a = static_cast<Uint8>(static_cast<float>(targetColor.a) * alphaMod);
-        }
-
-        // 3. Definir a cor de desenho para essa cor calculada.
-        SDL_SetRenderDrawColor(renderer, targetColor.r, targetColor.g, targetColor.b, targetColor.a);
-
-        // 4. Desenhar um ÚNICO retângulo de preenchimento (baseado no *percentual de preenchimento*)
-        SDL_Rect fgRect;
-        fgRect.x = posX;
-        fgRect.y = posY;
-
-        if (mOrientation == Orientation::Horizontal) {
-            if (const int fgWidth = static_cast<int>(static_cast<float>(mWidth) * mFillPercent); fgWidth > 0) {
-                fgRect.w = fgWidth;
-                fgRect.h = mHeight;
-                SDL_RenderFillRect(renderer, &fgRect);
-
-                // 3. O brilho vem DEPOIS do preenchimento: ele e o acabamento
-                // dele, e desenhado antes ficaria por baixo.
-                if (mAcabamento) DesenharBrilho(renderer, fgRect, targetColor);
-            }
-        } else { // Vertical
-            if (const int fgHeight = static_cast<int>(static_cast<float>(mHeight) * mFillPercent); fgHeight > 0) {
-                const int emptyHeight = mHeight - fgHeight;
-                fgRect.w = mWidth;
-                fgRect.h = fgHeight;
-                fgRect.y = posY + emptyHeight;
-                SDL_RenderFillRect(renderer, &fgRect);
-            }
-        }
-
-    } else {
-        // --- COR SÓLIDA ---
-        SDL_SetRenderDrawColor(renderer, mStartColor.r, mStartColor.g, mStartColor.b, mStartColor.a);
-
-        SDL_Rect fgRect;
-        fgRect.x = posX;
-        fgRect.y = posY;
-
-        if (mOrientation == Orientation::Horizontal) {
-            if (const int fgWidth = static_cast<int>(static_cast<float>(mWidth) * mFillPercent); fgWidth > 0) {
-                fgRect.w = fgWidth;
-                fgRect.h = mHeight;
-                SDL_RenderFillRect(renderer, &fgRect);
-            }
-        } else { // Vertical
-            if (const int fgHeight = static_cast<int>(static_cast<float>(mHeight) * mFillPercent); fgHeight > 0) {
-                const int emptyHeight = mHeight - fgHeight;
-                fgRect.w = mWidth;
-                fgRect.h = fgHeight;
-                fgRect.y = posY + emptyHeight;
-                SDL_RenderFillRect(renderer, &fgRect);
-            }
-        }
-    }
+    // 3. O brilho vem DEPOIS do preenchimento: ele e o acabamento dele, e
+    // desenhado antes ficaria por baixo.
+    DesenharBrilho(renderer, fgRect, cor);
 }
 
 void ProgressBarComponent::SetFillPercent(const float percent) {
@@ -134,7 +53,6 @@ void ProgressBarComponent::SetGradientColors(SDL_Color background, SDL_Color sta
     mBackgroundColor = background;
     mStartColor = start;
     mEndColor = end;
-    mUseGradient = true;
 }
 
 

@@ -3,6 +3,7 @@
 //
 
 #include "TelaDeRanking.h"
+#include "TextoDeCena.h"
 #include "../Entrada/Painel.h"
 #include "FundoDeCena.h"
 
@@ -150,26 +151,11 @@ void TelaDeRanking::Load() {
 
 Actor* TelaDeRanking::Texto(const std::string& conteudo, const float x, const float y,
                             const int tamanho, const int larguraMaxima, const bool aEsquerda) {
-
-    auto ator = std::make_unique<Actor>(this);
-
     // Uma coluna alinhada a esquerda e desenhada a partir do x dado, e nao
     // centrada nele: com tudo centrado, os numeros dancam de lado conforme o
     // tamanho muda e a coluna deixa de parecer uma coluna.
-    ator->SetPosition(Vector2(aEsquerda ? x + static_cast<float>(larguraMaxima) / 2.0f : x, y));
-
-    auto dc = ator->AddComponent<DrawTextComponent>(conteudo, mFonte.get(),
-                                                    larguraMaxima, tamanho + 8, tamanho, 255);
-
-    // A QUEBRA ACOMPANHA A LARGURA DECLARADA. O padrao de 500 px quebrava a
-    // frase explicativa em duas linhas, e com o ajuste ao texto ligado as duas
-    // ainda eram encolhidas para caber na altura de uma - saia ilegivel.
-    dc->SetLarguraDeQuebra(static_cast<unsigned>(larguraMaxima));
-    dc->SetAjustarAoTexto(true);
-
-    Actor* bruto = ator.get();
-    AddActor(std::move(ator));
-    return bruto;
+    const Vector2 onde(aEsquerda ? x + static_cast<float>(larguraMaxima) / 2.0f : x, y);
+    return CriarTexto(*this, mFonte.get(), conteudo, onde, tamanho, larguraMaxima, tamanho + 8)->GetOwner();
 }
 
 void TelaDeRanking::Redesenhar() {

@@ -69,18 +69,10 @@ public:
     // complementar com o que for específico delas (ex: reiniciar animação).
     virtual void Reset();
 
-    /// @brief Joga fora a Motion e os Modifiers, sem mexer em mais nada.
-    ///
-    /// Para quem muda o destino de um projetil por fora, no meio da vida dele:
-    /// o S da gramatica do Vladimir que vira a palavra vazia e para, e um
-    /// behavior que ainda nao tivesse disparado o poria para andar de novo.
-    /// NAO chame de dentro de um behavior - o laco dos Modifiers esta rodando.
-    void DescartarComportamentos() { mMotion.reset(); mModifiers.clear(); }
-
     /// @brief Joga fora so a Motion: o projetil segue reto, no rumo e no modulo
     /// em que estava, e os Modifiers continuam. E o "b" que o intercambio do
-    /// Vladimir troca por "a" - ele para de perseguir. Mesma regra de
-    /// DescartarComportamentos: nao chame de dentro de um behavior.
+    /// Vladimir troca por "a" - ele para de perseguir. NAO chame de dentro de
+    /// um behavior: o laco dos Modifiers esta rodando.
     void DescartarMotion() { mMotion.reset(); }
 
     /**

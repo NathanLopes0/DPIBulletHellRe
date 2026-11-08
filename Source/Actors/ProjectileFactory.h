@@ -41,14 +41,6 @@ public:
      */
     virtual std::unique_ptr<Projectile> createProjectile(Scene *scene, Actor *owner) = 0;
 
-    // Estavam DECLARADOS e nunca definidos: qualquer chamada era erro de link.
-    // Agora sao definidos aqui mesmo, e como todas as fabricas leem estes
-    // membros, trocar o caminho passa a ter efeito de verdade.
-    void SetDataPath(std::string path) { mDataPath = std::move(path); }
-    void SetSpritePath(std::string path) { mSpritePath = std::move(path); }
-
-    [[nodiscard]] const std::string& GetSpritePath() const { return mSpritePath; }
-    [[nodiscard]] const std::string& GetDataPath() const { return mDataPath; }
 
     /**
      * @brief Pede um Projétil pronto para uso, SEM parâmetros de posição/cena/owner

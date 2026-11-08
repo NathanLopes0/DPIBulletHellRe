@@ -3,6 +3,7 @@
 //
 
 #include "BaloonAttack.h"
+#include "../../Motor/Random.h"
 
 #include <SDL_log.h>
 

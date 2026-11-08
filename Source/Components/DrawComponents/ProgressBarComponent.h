@@ -7,72 +7,49 @@
 #include "SDL_pixels.h"
 
 
+/**
+ * @class ProgressBarComponent
+ * @brief Uma barra horizontal que enche, com a cor andando de um tom a outro
+ * conforme enche, e com acabamento: moldura, sulco e o brilho na ponta.
+ *
+ * HOJE E SO A BARRA DA TELA DE CARREGAMENTO. Ela ja foi a do tempo do chefe e
+ * a da nota, e acumulou o que cada uma pedia - orientacao vertical, cor
+ * solida, um efeito de pulsar, acabamento opcional. As duas ganharam
+ * componentes proprios (DrawRelogioDaFaseComponent, DrawBarraDaNotaComponent),
+ * e o que so elas usavam saiu daqui: codigo que ninguem chama nao e testado
+ * por ninguem, e quebra calado no dia em que alguem o liga.
+ *
+ * As cores do acabamento SAEM DA COR DO PREENCHIMENTO, clareada e escurecida:
+ * a cor anda ao longo da barra, e um conjunto fixo de tons brigaria com ela.
+ */
 class ProgressBarComponent : public DrawComponent {
-
-
 public:
-
-    enum class Orientation {
-        Horizontal,
-        Vertical
-    };
-
-    enum class VisualEffect {
-        None,
-        Pulsing
-    };
-
-    /**
-     * @brief O ACABAMENTO: moldura, sulco e o brilho na ponta do preenchimento.
-     *
-     * NAO e o padrao, e e de proposito. As duas barras do jogo pedem coisas
-     * opostas: a do TEMPO e uma lasca vertical de 10 px colada no chefe, e
-     * moldura nela so atrapalharia - ela tem de sumir no cenario. A da NOTA
-     * fica sozinha numa faixa larga na base da tela, e sem acabamento le-se
-     * como um retangulo cru riscado na tela.
-     *
-     * As cores do acabamento SAEM DA COR DO PREENCHIMENTO, clareada e
-     * escurecida. Nao ha paleta nova aqui: a nota muda de vermelho para laranja
-     * e para verde ao longo da batalha, e um conjunto fixo de tons brigaria com
-     * duas das tres faixas.
-     */
-    void SetAcabamento(const bool ligado) { mAcabamento = ligado; }
-
     explicit ProgressBarComponent(Actor* owner, int drawOrder = 200);
 
     void Draw(SDL_Renderer *renderer) override;
-    void Update(float deltaTime) override;
 
-    void SetOrientation(Orientation orientation) { mOrientation = orientation;}
     void SetFillPercent(float percent);
     void SetColorPercent(float percent);
+
+    /// O fundo (o sulco vazio) e as cores de comeco e de fim do preenchimento.
     void SetGradientColors(SDL_Color background, SDL_Color start, SDL_Color end);
     void SetSize(int width, int height);
 
-    void SetEffect(const VisualEffect effect) { mEffect = effect; }
-
 private:
-    float mFillPercent;
-    float mColorPercent{};
+    float mFillPercent = 0.0f;
+    float mColorPercent = 0.0f;
 
-    int mWidth;
-    int mHeight;
+    int mWidth = 200;
+    int mHeight = 200;
 
-    SDL_Color mBackgroundColor;
-    SDL_Color mStartColor;
-    SDL_Color mEndColor{};
-
-    bool mUseGradient;
-
-    VisualEffect mEffect;
-    float mEffectTimer{};
-
-    bool mAcabamento = false;
+    SDL_Color mBackgroundColor{50, 50, 50, 255};
+    SDL_Color mStartColor{255, 100, 150, 255};
+    SDL_Color mEndColor{0, 0, 0, 0};
 
     static SDL_Color LerpColor(SDL_Color colorA, SDL_Color colorB, float alpha);
 
     /// Um tom da MESMA cor, mais claro ou mais escuro. E o que permite o
-    /// acabamento acompanhar o vermelho, o laranja e o verde sem tres paletas.
+    /// acabamento acompanhar a cor que anda sem uma paleta para cada tom.
     static SDL_Color Clarear(SDL_Color cor, float quanto);
     static SDL_Color Escurecer(SDL_Color cor, float quanto);
 
@@ -82,7 +59,4 @@ private:
     /// Desenha o brilho do topo e a ponta acesa, por cima do preenchimento.
     void DesenharBrilho(SDL_Renderer* renderer, const SDL_Rect& preenchido,
                         SDL_Color cor) const;
-
-    Orientation mOrientation;
-
 };

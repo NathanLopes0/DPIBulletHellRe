@@ -7,8 +7,6 @@
 
 #include "PathShapes.h"
 
-#include <fstream>
-#include <iterator>
 #include <map>
 #include <string>
 #include <vector>
@@ -40,16 +38,14 @@ namespace {
         if (gArquivoLido) return;
         gArquivoLido = true;   // uma tentativa so, mesmo que falhe
 
-        std::ifstream arquivo(Caminho());
-        if (!arquivo.is_open()) {
+        const std::optional<std::string> texto = Caminhos::LerTexto(Caminho());
+        if (!texto) {
             SDL_Log("FORMAS: nao foi possivel abrir %s. As formas de arquivo virarao retas.",
                     Caminho().c_str());
             return;
         }
 
-        const std::string texto((std::istreambuf_iterator<char>(arquivo)),
-                                 std::istreambuf_iterator<char>());
-        PathShapes::FormasLidas lidas = PathShapes::LerFormas(texto);
+        PathShapes::FormasLidas lidas = PathShapes::LerFormas(*texto);
 
         for (const auto& p : lidas.problemas) {
             SDL_Log("FORMAS em %s: %s", Caminho().c_str(), p.c_str());

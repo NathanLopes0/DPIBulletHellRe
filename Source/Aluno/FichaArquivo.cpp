@@ -6,7 +6,6 @@
 
 #include <filesystem>
 #include <fstream>
-#include <sstream>
 #include <algorithm>
 #include <system_error>
 #include <SDL_log.h>
@@ -50,16 +49,13 @@ Ficha::Dados Carregar(const std::string& matricula, const Materias::Lista& mater
 
     const std::string caminho = CaminhoDa(canonica);
 
-    std::ifstream arquivo(caminho);
-    if (!arquivo.is_open()) {
+    const std::optional<std::string> texto = Caminhos::LerTexto(caminho);
+    if (!texto) {
         // Nao e erro: e o caso normal de aluno jogando pela primeira vez.
         return vazio;
     }
 
-    std::ostringstream buffer;
-    buffer << arquivo.rdbuf();
-
-    const Ficha::Lida lida = Ficha::Desserializar(buffer.str(), materias);
+    const Ficha::Lida lida = Ficha::Desserializar(*texto, materias);
 
     for (const auto& p : lida.problemas) {
         SDL_Log("FICHA %s: %s", canonica.c_str(), p.c_str());

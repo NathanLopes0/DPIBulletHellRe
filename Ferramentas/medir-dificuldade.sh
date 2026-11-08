@@ -88,16 +88,12 @@ edit("Source/Motor/Game.cpp", "    ChangeScene(Scene::SceneType::MainMenu);",
     } else
     ChangeScene(Scene::SceneType::MainMenu);""")
 
-# ---- DPI_ESTADO: o chefe comeca na fase pedida. A ancora e a mesma linha nas
-# ---- onze fabricas; uma fabrica nova que a escreva de outro jeito derruba o
-# ---- arnes aqui, em vez de comecar calada na fase 1.
-import glob, os
-for arq in sorted(glob.glob("Source/Actors/Teachers/BossFactory/*Factory.cpp")):
-    fab = os.path.basename(arq)[:-4]
-    if fab == "IBossFactory": continue
-    edit(arq, 'boss->SetInitialState("StateOne");',
-         'boss->SetInitialState(std::getenv("DPI_ESTADO") ? std::getenv("DPI_ESTADO") : "StateOne");')
-    edit(arq, '#include "' + fab + '.h"', '#include "' + fab + '.h"\n#include <cstdlib>')
+# ---- DPI_ESTADO: o chefe comeca na fase pedida. A receita de montagem e uma
+# ---- so para os onze chefes (IBossFactory), entao a ancora tambem e uma so.
+edit("Source/Actors/Teachers/BossFactory/IBossFactory.cpp", 'boss->SetInitialState("StateOne");',
+     'boss->SetInitialState(std::getenv("DPI_ESTADO") ? std::getenv("DPI_ESTADO") : "StateOne");')
+edit("Source/Actors/Teachers/BossFactory/IBossFactory.cpp", '#include "IBossFactory.h"',
+     '#include "IBossFactory.h"\n#include <cstdlib>')
 
 # ---- A SEMENTE DA BATALHA, presa: no jogo ela vem do random_device.
 edit("Source/Scenes/Battle/Battle.cpp", "    mSemente = static_cast<std::uint32_t>(std::random_device{}());",
