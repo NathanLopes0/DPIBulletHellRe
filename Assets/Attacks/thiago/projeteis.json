@@ -42,7 +42,8 @@
     "animacaoInicial": "V0",
     "escala": 1.25,
     "ordemDeDesenho": 84,
-    "posicionarNoDono": false
+    "posicionarNoDono": false,
+    "colisorDimensao": "altura"
   },
   "Cabecalho": {
     "sprite": "Teachers/Projectiles/DPIBHThiagoDados.png",
@@ -54,15 +55,47 @@
     "posicionarNoDono": false
   },
 
-  // A escrita de uma transacao (Transacao.h): o lapis do update, que sai do professor, para na casa
-  // e fica la - a linha travada.
-  "Escrita": {
-    "sprite": "Teachers/Projectiles/DPIBHThiagoEscrita.png",
-    "dados":  "Teachers/Projectiles/DPIBHThiagoEscrita.json",
-    "animacoes": { "Lapis": [0] },
-    "animacaoInicial": "Lapis",
+  // O rascunho de uma operacao preparada por uma transacao (Transacao.h), na cor dela, e o risco da
+  // linha que o DELETE da fase 2 vai apagar (Dml.h): um quadro do tamanho da casa, como o Aviso.
+  "Rascunho": {
+    "sprite": "Teachers/Projectiles/DPIBHThiagoRascunho.png",
+    "dados":  "Teachers/Projectiles/DPIBHThiagoRascunho.json",
+    "animacoes": { "Riscado": [0, 1], "Ciano": [2, 3], "CianoRiscado": [4, 5], "Magenta": [6, 7], "MagentaRiscado": [8, 9] },
+    "animacaoInicial": "Ciano",
+    "escala": 4,
+    "ordemDeDesenho": 82,
+    "posicionarNoDono": false
+  },
+
+  // O selo de uma transacao aberta (Transacao.h): quem o derruba antes do COMMIT provoca o ROLLBACK.
+  "Selo": {
+    "sprite": "Teachers/Projectiles/DPIBHThiagoSelo.png",
+    "dados":  "Teachers/Projectiles/DPIBHThiagoSelo.json",
+    "animacoes": {
+      "Ciano1": [0], "CianoPressa1": [0, 1], "Ciano2": [2], "CianoPressa2": [2, 3], "Ciano3": [4], "CianoPressa3": [4, 5],
+      "Ciano4": [6], "CianoPressa4": [6, 7], "Ciano5": [8], "CianoPressa5": [8, 9], "Ciano6": [10], "CianoPressa6": [10, 11],
+      "Ciano7": [12], "CianoPressa7": [12, 13], "Ciano8": [14], "CianoPressa8": [14, 15], "Ciano9": [16], "CianoPressa9": [16, 17],
+      "Magenta1": [18], "MagentaPressa1": [18, 19], "Magenta2": [20], "MagentaPressa2": [20, 21], "Magenta3": [22], "MagentaPressa3": [22, 23],
+      "Magenta4": [24], "MagentaPressa4": [24, 25], "Magenta5": [26], "MagentaPressa5": [26, 27], "Magenta6": [28], "MagentaPressa6": [28, 29],
+      "Magenta7": [30], "MagentaPressa7": [30, 31], "Magenta8": [32], "MagentaPressa8": [32, 33], "Magenta9": [34], "MagentaPressa9": [34, 35]
+    },
+    "animacaoInicial": "Ciano1",
+    "escala": 1.5,
+    "ordemDeDesenho": 92,
+    "posicionarNoDono": false,
+    "derrubavel": true,
+    "resistencia": 6,
+    "dificil": { "resistencia": 9 }
+  },
+
+  // O caco de um valor que caiu e se espatifou no chao (Dml.h).
+  "Caco": {
+    "sprite": "Teachers/Projectiles/DPIBHThiagoCaco.png",
+    "dados":  "Teachers/Projectiles/DPIBHThiagoCaco.json",
+    "animacoes": { "Caco": [0, 1] },
+    "animacaoInicial": "Caco",
     "escala": 1.6,
-    "ordemDeDesenho": 91,
+    "ordemDeDesenho": 90,
     "posicionarNoDono": false
   },
 

@@ -52,7 +52,7 @@ namespace {
                                                 "chave", "percorrer", "nulo", "no", "visitar", "folha_nula",
                                                 "achado", "aresta", "elemento", "trocar", "assentar",
                                                 "cabecalho", "registro", "marcar", "selecionar",
-                                                "projetar", "celula", "gravar", "desfazer",
+                                                "projetar", "celula", "selo", "caco",
                                                 "placa", "pedido", "classe", "mensagem", "compilar",
                                                 "bug", "debito", "rotulo", "balao", "confete",
                                                 "indice", "subir", "core", "cartao", "valor", "leque",

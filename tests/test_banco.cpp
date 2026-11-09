@@ -384,7 +384,6 @@ TEST_CASE("Banco: o degrau do Normal e o de sempre, e o do Dificil aperta cada r
     CHECK(n.velocidadeDaLinha == Banco::kVelocidadeDaLinha);
     CHECK(n.velocidadeDaColuna == Banco::kVelocidadeDaColuna);
     CHECK(n.passoDaEscrita == Banco::kPassoDaEscrita);
-    CHECK(n.velocidadeDoApagado == Banco::kVelocidadeDoApagado);
     CHECK(n.avisoDoProduto == Banco::kAvisoDoProduto);
     CHECK(n.passoDoProduto == 1.0f);
     CHECK(n.linhasDaSelecao == 1);
@@ -397,7 +396,6 @@ TEST_CASE("Banco: o degrau do Normal e o de sempre, e o do Dificil aperta cada r
     CHECK(d.velocidadeDaLinha > n.velocidadeDaLinha);
     CHECK(d.velocidadeDaColuna > n.velocidadeDaColuna);
     CHECK(d.passoDaEscrita < n.passoDaEscrita);
-    CHECK(d.velocidadeDoApagado > n.velocidadeDoApagado);
     CHECK(d.avisoDoProduto < n.avisoDoProduto);
     CHECK(d.passoDoProduto < 1.0f);
     CHECK(d.linhasDaSelecao == 2);

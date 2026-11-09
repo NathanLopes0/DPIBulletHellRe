@@ -280,10 +280,15 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   campo e cada ataque é uma consulta sobre ela, com o SQL no placar: o `WHERE`
   varre as linhas que satisfazem a condição, a projeção varre a coluna e o
   `ORDER BY` troca as linhas de lugar. Em vez de desviar de projétil, você lê
-  a consulta e sai da faixa que ela vai buscar. Depois a tabela muda na sua
-  frente (`INSERT`, `UPDATE`, `DELETE`), e na terceira fase várias transações
-  disputam as linhas, com lock, `COMMIT`, `ROLLBACK` e deadlock. O exame é o
-  produto cartesiano, casa por casa.
+  a consulta e sai da faixa que ela vai buscar. Na segunda fase a tabela muda
+  na sua frente, e cada comando tem o seu gesto: o `INSERT` arremessa o
+  registro novo em arco até a linha vazia, o `DELETE` risca a linha, que
+  despenca e se espatifa no chão, e o `UPDATE` chuta o valor velho em você
+  enquanto o novo voa até a casa. Na terceira, as transações: cada uma abre
+  com um selo (T1, T2…) e prepara comandos das duas fases anteriores, que
+  ficam na tabela como rascunho na cor dela — e no `COMMIT` tudo acontece de
+  uma vez. Derrube o selo antes disso e é `ROLLBACK`: nada do que ela
+  preparou acontece. O exame é o produto cartesiano, casa por casa.
 - **Maria Lúcia — INF 221.** Engenharia de Software, um processo ou padrão por
   fase. A cascata é uma linha de produção: os pedidos do cliente viram
   post-its no backlog, os post-its viram classes ligadas por setas, as classes

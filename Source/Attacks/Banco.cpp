@@ -353,7 +353,6 @@ namespace Banco {
         d.velocidadeDaLinha = 800.0f;
         d.velocidadeDaColuna = 730.0f;
         d.passoDaEscrita = 1.45f;
-        d.velocidadeDoApagado = 310.0f;
         d.avisoDoProduto = 0.6f;
         d.passoDoProduto = 0.87f;
         return d;

@@ -167,11 +167,10 @@ namespace Banco {
     /// Executa o comando.
     std::vector<int> Executar(Registros& regs, const Escrita& e);
 
-    /// O relogio da fase 2, o aviso do update (o do delete e do insert e o da linha), e a
-    /// velocidade com que o que foi apagado cai.
+    /// O relogio da fase 2: o primeiro comando, e um a cada kPassoDaEscrita. Como cada um voa esta
+    /// em Dml.h.
     constexpr float kPrimeiraEscrita = 1.2f;
     constexpr float kPassoDaEscrita = 1.7f;
-    constexpr float kVelocidadeDoApagado = 260.0f;
 
     // ---- A repescagem: o produto cartesiano ----
 
@@ -216,7 +215,6 @@ namespace Banco {
         float velocidadeDaLinha = kVelocidadeDaLinha;
         float velocidadeDaColuna = kVelocidadeDaColuna;
         float passoDaEscrita = kPassoDaEscrita;
-        float velocidadeDoApagado = kVelocidadeDoApagado;
         float avisoDoProduto = kAvisoDoProduto;
         float passoDoProduto = 1.0f;     ///< multiplica PassoDoProduto
     };

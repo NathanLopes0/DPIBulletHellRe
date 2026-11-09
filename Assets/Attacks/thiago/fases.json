@@ -27,8 +27,9 @@
     ]
   },
 
-  // Fase 2 - insert, update, delete | gesto: a tabela que muda. A tabela deixa de ser so lida e
-  // passa a ser escrita (Banco.h).
+  // Fase 2 - insert, update, delete | gesto: os registros voam. Nenhum comando varre linha - isso e o
+  // SELECT: o INSERT arremessa o registro em arco ate a linha vazia, o DELETE risca a linha e a
+  // derruba, e o UPDATE chuta o valor velho no aluno enquanto o novo voa ate a casa (Dml.h).
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
@@ -41,19 +42,20 @@
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
       { "gatilho": "marcar", "estrategia": "WaveAttack", "projetil": "Aviso",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "aviso" },
-      { "gatilho": "selecionar", "estrategia": "ConsultaAttack", "projetil": "Celula",
-        "projeteis": 7, "velocidade": 700,
-        "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 1.0 },
-        "regras": "varredura" },
-      { "gatilho": "celula", "estrategia": "WaveAttack", "projetil": "Celula",
-        "projeteis": 12, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "clarao" }
+      { "gatilho": "rascunho", "estrategia": "WaveAttack", "projetil": "Rascunho",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "aviso" },
+      { "gatilho": "caco", "estrategia": "WaveAttack", "projetil": "Caco",
+        "projeteis": 3, "velocidade": 330, "angulo": 80, "anguloCentral": 270, "intervalo": 0,
+        "dificil": { "projeteis": 5, "velocidade": 380 } }
     ]
   },
 
-  // Fase 3 - as transacoes | gesto: o log, que vai e volta. Varias transacoes ao mesmo tempo
-  // (Transacao.h), uma nova a cada 1,8s, ate tres.
+  // Fase 3 - as transacoes | gesto: tudo ou nada. Cada transacao prepara comandos das fases 1 e 2,
+  // que ficam na tabela como rascunho na cor dela, e no COMMIT tudo acontece junto. Derrubar o selo
+  // da transacao antes disso e o ROLLBACK: nada do que ela preparou acontece (Transacao.h).
   "StateThree": {
     "duracao": 20,
+    // Vazio: e aqui que a batalha e decidida.
     "proximo": "",
     "anuncio": "BEGIN TRANSACTION",
     "movimento": { "tipo": "Conduzido", "a": 600 },
@@ -62,18 +64,21 @@
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
       { "gatilho": "registro", "estrategia": "WaveAttack", "projetil": "Dado",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
-      { "gatilho": "marcar", "estrategia": "WaveAttack", "projetil": "Aviso",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "aviso" },
       { "gatilho": "selecionar", "estrategia": "ConsultaAttack", "projetil": "Celula",
         "projeteis": 7, "velocidade": 700,
         "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 1.0 },
         "regras": "varredura" },
-      { "gatilho": "desfazer", "estrategia": "ConsultaAttack", "projetil": "Celula",
-        "projeteis": 7, "velocidade": 700,
-        "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 1.0, "invertido": true },
+      { "gatilho": "projetar", "estrategia": "ConsultaAttack", "projetil": "Celula",
+        "projeteis": 8, "velocidade": 640,
+        "consulta": { "eixo": "Coluna", "colunas": 5, "aviso": 1.2 },
         "regras": "varredura" },
-      { "gatilho": "gravar", "estrategia": "WaveAttack", "projetil": "Escrita",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
+      { "gatilho": "rascunho", "estrategia": "WaveAttack", "projetil": "Rascunho",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "aviso" },
+      { "gatilho": "selo", "estrategia": "WaveAttack", "projetil": "Selo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "caco", "estrategia": "WaveAttack", "projetil": "Caco",
+        "projeteis": 3, "velocidade": 330, "angulo": 80, "anguloCentral": 270, "intervalo": 0,
+        "dificil": { "projeteis": 5, "velocidade": 380 } }
     ]
   },
 

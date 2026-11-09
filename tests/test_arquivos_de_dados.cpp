@@ -42,6 +42,7 @@
 #include "../Source/Attacks/Ordenacao.h"
 #include "../Source/Attacks/Banco.h"
 #include "../Source/Attacks/Transacao.h"
+#include "../Source/Attacks/Dml.h"
 #include "../Source/Attacks/Cascata.h"
 #include "../Source/Attacks/Condicional.h"
 #include "../Source/Attacks/Laco.h"
@@ -1546,33 +1547,78 @@ TEST_CASE("Dados: a tabela do Thiago - toda fase a monta, e o SELECT e o produto
             CHECK(gatilhos.count(Banco::kGatilhoDoAviso) == 1);
             CHECK(gatilhos.count(Banco::kGatilhoDaCasa) == 1);
         }
-        if (f.nome == Transacao::kFaseDaTransacao) {
-            // O update varre a linha, as escritas a travam, e o rollback a varre do outro lado.
-            for (const char* g : {Banco::kGatilhoDaSelecao, Transacao::kGatilhoDaEscrita,
-                                  Transacao::kGatilhoDoDesfazer}) {
+        auto carasDe = [&tipos](const std::string& projetil) {
+            REQUIRE(tipos.count(projetil) == 1);
+            std::set<std::string> caras;
+            for (const auto& anim : tipos.at(projetil).animacoes) caras.insert(anim.nome);
+            return caras;
+        };
+        if (f.nome == Banco::kFaseDaEscrita) {
+            // A fase 2 nao varre: o INSERT arremessa, o DELETE risca e derruba, o UPDATE marca e chuta.
+            for (const char* g : {Banco::kGatilhoDoAviso, Transacao::kGatilhoDoRascunho, Dml::kGatilhoDoCaco}) {
                 CAPTURE(g);
                 CHECK(GatilhoExiste(g));
                 CHECK(gatilhos.count(g) == 1);
             }
             for (const auto& a : f.ataques) {
-                if (a.gatilho != Transacao::kGatilhoDoDesfazer) continue;
-                REQUIRE(a.consulta.has_value());
-                CHECK(a.consulta->eixo == "Linha");
-                REQUIRE(a.consulta->invertido.has_value());
-                CHECK(*a.consulta->invertido);
-                REQUIRE(a.consulta->linhas.has_value());
-                CHECK(*a.consulta->linhas == Banco::kLinhas);
-                REQUIRE(a.consulta->aviso.has_value());
-                CHECK(*a.consulta->aviso == doctest::Approx(Banco::kAvisoDaLinha));
-                REQUIRE(a.velocidade.has_value());
-                CHECK(*a.velocidade == doctest::Approx(Banco::kVelocidadeDaLinha));
+                CAPTURE(a.gatilho);
+                CHECK(a.estrategia != "ConsultaAttack");
+                if (a.gatilho == Transacao::kGatilhoDoRascunho) CHECK(carasDe(a.projetil).count(Dml::kCaraDoRisco) == 1);
             }
         }
-        if (f.nome == Banco::kFaseDaEscrita) {
-            // O insert e o delete varrem a linha, e o update acende a casa.
-            for (const char* g : {Banco::kGatilhoDoAviso, Banco::kGatilhoDaSelecao, Banco::kGatilhoDaCasa}) {
+        for (const auto& a : f.ataques) {
+            if (a.gatilho != Dml::kGatilhoDoCaco) continue;
+            // Os cacos sobem em leque, mais no Dificil; sobem o bastante para cobrir o chao, e quem
+            // sai dele - meio aluno acima - escapa.
+            for (const auto nivel : {Dificuldade::Nivel::Normal, Dificuldade::Nivel::Dificil}) {
+                const DescricaoDeAtaque n = NoNivel(a, nivel);
+                REQUIRE(n.projeteis.has_value());
+                REQUIRE(n.velocidade.has_value());
+                CHECK(*n.projeteis >= 3);
+                REQUIRE(n.anguloCentral.has_value());
+                CHECK(*n.anguloCentral == doctest::Approx(270.0f));
+                const float subida = Dml::Subida(*n.velocidade, Dml::DegrauDo(nivel).gravidade);
+                CHECK(subida > 30.0f);
+                CHECK(subida < 120.0f);
+            }
+            CHECK(*NoNivel(a, Dificuldade::Nivel::Dificil).projeteis > *NoNivel(a, Dificuldade::Nivel::Normal).projeteis);
+        }
+        if (f.nome == Transacao::kFaseDaTransacao) {
+            // O COMMIT varre linha e coluna, risca, derruba e chuta; o selo e o que o aluno derruba.
+            for (const char* g : {Banco::kGatilhoDaSelecao, Banco::kGatilhoDaProjecao, Transacao::kGatilhoDoRascunho,
+                                  Transacao::kGatilhoDoSelo, Dml::kGatilhoDoCaco}) {
                 CAPTURE(g);
+                CHECK(GatilhoExiste(g));
                 CHECK(gatilhos.count(g) == 1);
+            }
+            for (const auto& a : f.ataques) {
+                if (a.gatilho == Transacao::kGatilhoDoRascunho) {
+                    const auto caras = carasDe(a.projetil);
+                    for (int g = 0; g < Transacao::kMaximo; ++g) {
+                        CHECK(caras.count(Transacao::CaraDoRascunho(g, false)) == 1);
+                        CHECK(caras.count(Transacao::CaraDoRascunho(g, true)) == 1);
+                    }
+                }
+                if (a.gatilho == Transacao::kGatilhoDoSelo) {
+                    const auto caras = carasDe(a.projetil);
+                    for (int g = 0; g < Transacao::kMaximo; ++g) {
+                        for (int id = 1; id <= Transacao::kIds; ++id) {
+                            CHECK(caras.count(Transacao::CaraDoSelo(g, id, false)) == 1);
+                            CHECK(caras.count(Transacao::CaraDoSelo(g, id, true)) == 1);
+                        }
+                    }
+                    // O selo cai a tiro, e no Dificil aguenta mais.
+                    const auto& selo = tipos.at(a.projetil);
+                    CHECK(selo.derrubavel);
+                    REQUIRE(selo.resistenciaNoDificil.has_value());
+                    CHECK(selo.resistencia > 1);
+                    CHECK(*selo.resistenciaNoDificil > selo.resistencia);
+                }
+                if (a.gatilho == Banco::kGatilhoDoDado) {
+                    // O valor sujo do UPDATE preparado.
+                    const auto caras = carasDe(a.projetil);
+                    for (int v = 0; v <= 99; ++v) CHECK(caras.count(Banco::CaraSuja(v)) == 1);
+                }
             }
         }
         // A varredura da linha e a mesma em qualquer fase que a use.

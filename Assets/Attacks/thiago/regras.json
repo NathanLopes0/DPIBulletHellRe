@@ -1,8 +1,8 @@
 {
   // As regras de projetil do Thiago. Uma pasta por chefe: Assets/Attacks/thiago/.
 
-  // A varredura de uma linha ou de uma coluna: a selecao e a projecao do select, e o delete e o
-  // insert da fase 2.
+  // A varredura de uma linha ou de uma coluna: a selecao e a projecao do SELECT, na fase 1 e no
+  // COMMIT da fase 3.
   "varredura": [
     { "animacao": "Linha", "escala": 2 }
   ],

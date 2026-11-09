@@ -276,7 +276,9 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/Banco.cpp
         Source/Attacks/Banco.h
         Source/Attacks/Transacao.cpp
+        Source/Attacks/Dml.cpp
         Source/Attacks/Transacao.h
+        Source/Attacks/Dml.h
         Source/Attacks/Cascata.cpp
         Source/Attacks/Cascata.h
         Source/Attacks/Condicional.cpp
@@ -461,6 +463,7 @@ add_executable(dpi_tests
         tests/test_ordenacao.cpp
         tests/test_banco.cpp
         tests/test_transacao.cpp
+        tests/test_dml.cpp
         tests/test_cascata.cpp
         tests/test_condicional.cpp
         tests/test_laco.cpp
@@ -659,7 +662,9 @@ add_executable(dpi_tests
         Source/Attacks/Banco.cpp
         Source/Attacks/Banco.h
         Source/Attacks/Transacao.cpp
+        Source/Attacks/Dml.cpp
         Source/Attacks/Transacao.h
+        Source/Attacks/Dml.h
         Source/Attacks/Cascata.cpp
         Source/Attacks/Cascata.h
         Source/Attacks/Condicional.cpp
