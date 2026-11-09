@@ -144,6 +144,13 @@ namespace Coercao {
     constexpr float kPrimeiro = 0.5f;
     constexpr float kPorComando = (Fase::kDuracao - kPrimeiro) / static_cast<float>(kComandos);
 
+    /// Quando cada conta comeca: a primeira em kPrimeiro, e cada outra ate kFolgaDoHorario antes ou
+    /// depois do ritmo de kPorComando - sorteado, para a fase nao ter compasso -, nunca menos de
+    /// kMenorIntervalo depois da anterior.
+    std::vector<float> Horarios(std::uint32_t sorteio);
+    constexpr float kFolgaDoHorario = 0.6f;
+    constexpr float kMenorIntervalo = 1.7f;
+
     /// Os operandos saem do professor kSaida depois de o comando abrir, voam kVoo ate o operador, e
     /// o convertido troca de chip a kCoercao do voo.
     constexpr float kSaida = 0.3f;

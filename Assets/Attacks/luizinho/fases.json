@@ -1,14 +1,15 @@
 {
   // As fases do Luizinho (INF 340 - Linguagens de Programacao)
 
-  // Fase 1 - amarracoes: o escopo | gesto: o professor e o comando.
+  // Fase 1 - o polimorfismo | gesto: o professor vai ate o objeto que chama. A mesma chamada,
+  // f.desenhar(), e cada objeto desenha a forma da classe dele (Polimorfismo.h).
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
-    "anuncio": "Amarrações · ligāre, atar",
-    "movimento": { "tipo": "Conduzido", "a": 900 },
+    "anuncio": "Polimorfismo · polýmorphos, muitas formas",
+    "movimento": { "tipo": "Conduzido", "a": 700 },
     "ataques": [
-      { "gatilho": "gota", "estrategia": "WaveAttack", "projetil": "Gota",
+      { "gatilho": "traco", "estrategia": "WaveAttack", "projetil": "Traco",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
     ]
   },
@@ -36,20 +37,19 @@
     ]
   },
 
-  // Fase 3 - gerencia de memoria | gesto: o alocador escolhe o aluno. O campo e o heap (Memoria.h).
+  // Fase 3 - a complexidade, da Teoria da Computacao | gesto: o professor e o processador. O vetor
+  // de entrada e um leque de casas embaixo dele, e cada operacao do algoritmo e um tiro
+  // (Complexidade.h).
   "StateThree": {
     "duracao": 20,
     "proximo": "",
-    "anuncio": "Memória · memento mori",
+    "anuncio": "Complexidade · complexus, entrelaçado",
     "movimento": { "tipo": "Conduzido", "a": 600 },
     "ataques": [
-      { "gatilho": "celula", "estrategia": "WaveAttack", "projetil": "Celula",
-        "projeteis": 4, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "pendente", "estrategia": "WaveAttack", "projetil": "Estilhaco",
-        "projeteis": 16, "velocidade": 240, "angulo": 337.5, "intervalo": 0,
-        "regras": "indefinido" },
-      { "gatilho": "estouro", "estrategia": "WaveAttack", "projetil": "Estilhaco",
-        "projeteis": 4, "velocidade": 280, "angulo": 270, "intervalo": 0 }
+      { "gatilho": "operacao", "estrategia": "WaveAttack", "projetil": "Operacao",
+        "projeteis": 1, "velocidade": 300, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "acesso", "estrategia": "WaveAttack", "projetil": "Operacao",
+        "projeteis": 1, "velocidade": 240, "angulo": 0, "intervalo": 0, "regras": "acesso" }
     ]
   },
 

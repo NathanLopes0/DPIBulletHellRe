@@ -48,9 +48,9 @@
 #include "../Source/Attacks/Laco.h"
 #include "../Source/Attacks/Funcao.h"
 #include "../Source/Attacks/Prova.h"
-#include "../Source/Attacks/Escopo.h"
+#include "../Source/Attacks/Polimorfismo.h"
+#include "../Source/Attacks/Complexidade.h"
 #include "../Source/Attacks/Coercao.h"
-#include "../Source/Attacks/Memoria.h"
 #include "../Source/Attacks/Excecao.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
@@ -2502,49 +2502,32 @@ TEST_CASE("Documentacao: as duas linhas de posto em arquivos-de-dados.md citam t
     }
 }
 
-TEST_CASE("Dados: a chuva do escopo do Luizinho - gatilho, gota parada, raio e caras sao os de Escopo.h") {
-
-    // O Luizinho puxa o gatilho e cobre a regiao com gotas pelas contas de Escopo.h.
-    CHECK(GatilhoExiste(Escopo::kGatilhoDaGota));
+TEST_CASE("Dados: o polimorfismo do Luizinho - o gatilho do traco e uma cara por classe, de Polimorfismo.h") {
+    CHECK(GatilhoExiste(Polimorfismo::kGatilhoDoTraco));
 
     const auto lidas = FasesDoChefe("luizinho");
     const DescricaoDeFase* fase = nullptr;
-    for (const auto& f : lidas.fases) if (f.nome == Escopo::kFaseDoEscopo) fase = &f;
+    for (const auto& f : lidas.fases) if (f.nome == Polimorfismo::kFaseDasFormas) fase = &f;
     REQUIRE(fase != nullptr);
     CHECK(fase->movimento.tipo == "Conduzido");
 
     std::string tipo;
-    int quantos = 0;
     for (const auto& a : fase->ataques) {
-        // A fase e toda de gatilho: um ataque de relogio choveria fora da busca.
+        // A fase e toda de gatilho: o contorno nasce onde o objeto o desenha.
         CHECK(!a.gatilho.empty());
-        if (a.gatilho != Escopo::kGatilhoDaGota) continue;
-        ++quantos;
+        if (a.gatilho != Polimorfismo::kGatilhoDoTraco) continue;
         tipo = a.projetil;
+        // Parado ao nascer: a forma so parte quando o contorno termina.
         REQUIRE(a.velocidade.has_value());
         CHECK(*a.velocidade == doctest::Approx(0.0f));
+        REQUIRE(a.projeteis.has_value());
+        CHECK(*a.projeteis == 1);
     }
-    CHECK(quantos == 1);
-
     const auto& tipos = ProjeteisDoChefe("luizinho").projeteis;
     REQUIRE(tipos.count(tipo) == 1);
-    const auto& gota = tipos.at(tipo);
     std::set<std::string> caras;
-    for (const auto& a : gota.animacoes) caras.insert(a.nome);
-    for (const char nome : {'x', 'y'}) {
-        CHECK(caras.count(Escopo::CaraDoAviso(nome)) == 1);
-        CHECK(caras.count(Escopo::CaraDaGota(nome)) == 1);
-    }
-
-    // O colisor e o quadro dividido pelo divisor, vezes a escala.
-    CHECK(gota.escala == doctest::Approx(1.0f));
-    const auto atlas = LerJsonDeDados(LerArquivo(gota.dados));
-    REQUIRE(atlas.contains("frames"));
-    for (const auto& item : atlas["frames"]) {
-        const auto& quadro = item.contains("frame") ? item["frame"] : item;
-        const float lado = (gota.colisorDimensao == "altura") ? quadro["h"].get<float>() : quadro["w"].get<float>();
-        CHECK(lado / gota.colisorDivisor == doctest::Approx(Escopo::kRaioDaGota));
-    }
+    for (const auto& a : tipos.at(tipo).animacoes) caras.insert(a.nome);
+    for (int c = 0; c < Polimorfismo::kClasses; ++c) CHECK(caras.count(Polimorfismo::Nome(static_cast<Polimorfismo::Classe>(c))) == 1);
 }
 
 TEST_CASE("Dados: a coercao do Luizinho - gatilhos, velocidades e caras sao os de Coercao.h") {
@@ -2617,63 +2600,38 @@ TEST_CASE("Dados: a coercao do Luizinho - gatilhos, velocidades e caras sao os d
     CHECK(caras(projetilDe[Coercao::kGatilhoDaCompilacao]).count(Coercao::kCaraDaCompilacao) == 1);
 }
 
-TEST_CASE("Dados: o heap do Luizinho - gatilhos, velocidades, raio e caras sao os de Memoria.h") {
+TEST_CASE("Dados: a complexidade do Luizinho - o gatilho da operacao, a velocidade e uma cara por custo") {
+    CHECK(GatilhoExiste(Complexidade::kGatilhoDaOperacao));
 
-    // O Luizinho puxa os gatilhos e pinta cada celula pelo estado do heap.
     const auto lidas = FasesDoChefe("luizinho");
     const DescricaoDeFase* fase = nullptr;
-    for (const auto& f : lidas.fases) if (f.nome == Memoria::kFaseDaMemoria) fase = &f;
+    for (const auto& f : lidas.fases) if (f.nome == Complexidade::kFaseDaComplexidade) fase = &f;
     REQUIRE(fase != nullptr);
-    CHECK(fase->movimento.tipo == "Conduzido");
-    CHECK(fase->proximo.empty());   // a memoria decide a batalha
 
-    const std::map<std::string, float> velocidades = {
-        {Memoria::kGatilhoDaCelula, 0.0f},
-        {Memoria::kGatilhoDoPendente, Memoria::kVelocidadeDoPendente},
-        {Memoria::kGatilhoDoEstouro, Memoria::kVelocidadeDoEstouro},
-    };
-    std::map<std::string, std::string> projetilDe;
-    for (const auto& a : fase->ataques) CHECK(!a.gatilho.empty());
-    for (const auto& [g, v] : velocidades) {
-        CAPTURE(g);
-        CHECK(GatilhoExiste(g));
-        int quantos = 0;
-        for (const auto& a : fase->ataques) {
-            if (a.gatilho != g) continue;
-            ++quantos;
-            projetilDe[g] = a.projetil;
+    CHECK(GatilhoExiste(Complexidade::kGatilhoDoAcesso));
+    std::string tipo;
+    bool acesso = false;
+    for (const auto& a : fase->ataques) {
+        CHECK(!a.gatilho.empty());
+        if (a.gatilho == Complexidade::kGatilhoDoAcesso) {
+            // O O(1): maior, pela regra, e mais lento.
+            acesso = true;
             REQUIRE(a.velocidade.has_value());
-            CHECK(*a.velocidade == doctest::Approx(v));
+            CHECK(*a.velocidade == doctest::Approx(Complexidade::kVelocidadeDoAcesso));
+            CHECK(a.regrasNome == "acesso");
         }
-        CHECK(quantos == 1);
+        if (a.gatilho != Complexidade::kGatilhoDaOperacao) continue;
+        tipo = a.projetil;
+        // A velocidade do arquivo e a que a camada pura usa.
+        REQUIRE(a.velocidade.has_value());
+        CHECK(*a.velocidade == doctest::Approx(Complexidade::kVelocidade));
     }
-
+    CHECK(acesso);
     const auto& tipos = ProjeteisDoChefe("luizinho").projeteis;
-    REQUIRE(tipos.count(projetilDe[Memoria::kGatilhoDaCelula]) == 1);
-    const auto& celula = tipos.at(projetilDe[Memoria::kGatilhoDaCelula]);
+    REQUIRE(tipos.count(tipo) == 1);
     std::set<std::string> caras;
-    for (const auto& a : celula.animacoes) caras.insert(a.nome);
-    for (const char* c : {Memoria::kCaraDoAviso, Memoria::kCaraViva, Memoria::kCaraCrua, Memoria::kCaraDoProx,
-                          Memoria::kCaraDoLixo, Memoria::kCaraMarcada, Memoria::kCaraQueVazou}) {
-        CAPTURE(c);
-        CHECK(caras.count(c) == 1);
-    }
-    for (const char* g : {Memoria::kGatilhoDoPendente, Memoria::kGatilhoDoEstouro}) {
-        REQUIRE(tipos.count(projetilDe[g]) == 1);
-        bool tem = false;
-        for (const auto& a : tipos.at(projetilDe[g]).animacoes) tem = tem || a.nome == Memoria::kCaraDoEstilhaco;
-        CHECK(tem);
-    }
-
-    // O colisor da celula e a metade do lado com que o alocador a encaixa.
-    CHECK(celula.escala == doctest::Approx(1.0f));
-    const auto atlas = LerJsonDeDados(LerArquivo(celula.dados));
-    REQUIRE(atlas.contains("frames"));
-    for (const auto& item : atlas["frames"]) {
-        const auto& quadro = item.contains("frame") ? item["frame"] : item;
-        const float lado = (celula.colisorDimensao == "altura") ? quadro["h"].get<float>() : quadro["w"].get<float>();
-        CHECK(lado / celula.colisorDivisor == doctest::Approx(Memoria::kLadoDaCelula / 2.0f));
-    }
+    for (const auto& a : tipos.at(tipo).animacoes) caras.insert(a.nome);
+    for (int o = 0; o < Complexidade::kOrdens; ++o) CHECK(caras.count(Complexidade::CaraDaOperacao(static_cast<Complexidade::Ordem>(o))) == 1);
 }
 
 TEST_CASE("Dados: a pilha de chamadas do Luizinho - gatilhos, velocidades e caras sao os de Excecao.h") {

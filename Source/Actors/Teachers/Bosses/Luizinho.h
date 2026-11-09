@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <array>
-#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -15,9 +14,9 @@
 
 #include "../Boss.h"
 #include "../../../Attacks/Coercao.h"
-#include "../../../Attacks/Escopo.h"
+#include "../../../Attacks/Complexidade.h"
 #include "../../../Attacks/Excecao.h"
-#include "../../../Attacks/Memoria.h"
+#include "../../../Attacks/Polimorfismo.h"
 
 class BossProjectile;
 class DrawLinhasComponent;
@@ -46,20 +45,18 @@ private:
     void SortearALuta();
 
     bool mLutaSorteada = false;
-    Escopo::Plano mPlanoDoEscopo;
+    Polimorfismo::Plano mPlanoDasFormas;
     std::vector<int> mOrdemDosTipos;
-    Memoria::Roteiro mRoteiro = Memoria::RoteiroDeSempre();
-    Memoria::Numeros mNumerosDaMemoria = Memoria::NumerosDeSempre();
+    Complexidade::Plano mPlanoDaComplexidade;
     Variacao::Sorteio mSorteioDasRodadas{0u};
 
     /// O degrau do modo, fase por fase (o do Normal e o de sempre).
-    Escopo::Degrau mDegrauDoEscopo;
+    Polimorfismo::Degrau mDegrauDasFormas;
     Coercao::Degrau mDegrauDosTipos;
-    Memoria::Degrau mDegrauDaMemoria;
+    Complexidade::Degrau mDegrauDaComplexidade;
     Excecao::Degrau mDegrauDasExcecoes;
 
     // ---- O que as fases dividem ----
-
 
     /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram.
     std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
@@ -74,56 +71,62 @@ private:
     std::optional<float> mAberturaEm;
     std::vector<BossProjectile*> mCriados;
 
-
     /// O angulo, em graus, de 'de' ate o aluno.
     [[nodiscard]] float AnguloAteOAluno(Vector2 de) const;
 
     /// Para onde o movimento "Conduzido" leva o professor.
     std::optional<Vector2> mAlvo;
 
-
-    /// As linhas do campo - a busca do nome, a chamada -, limpas a cada quadro
-    /// e redesenhadas por quem estiver rodando.
+    /// As linhas do campo - a referencia da chamada, o leque, o grafico, a conta -, limpas a cada
+    /// quadro e redesenhadas por quem estiver rodando.
     DrawLinhasComponent* mLinhas = nullptr;
     static constexpr int kOrdemDasLinhas = 80;
 
-    // ---- A fase 1: o escopo ----
+    // ---- A fase 1: o polimorfismo ----
 
-    void AtualizarEscopo();
-    void MontarEscopo();
-    void DesmontarEscopo();
-    void ComecarComando(int k);
-    void ChoverAvisos();
-    void AcenderGotas();
-    void SecarGotas();
-    void DesenharEscopo(float u);
+    void AtualizarFormas();
+    void DesmontarFormas();
+    /// Os pontos que ja partiram: cada um some no fim da vida dele ou da fase, e no Dificil gira em
+    /// volta do objeto que o desenhou.
+    void AtualizarTracos();
+    struct TracoNoAr {
+        BossProjectile* p = nullptr;
+        Vector2 centro;
+        float vidaAoPartir = 0.0f;
+        float giro = 0.0f;   ///< graus por segundo; zero no Normal
+    };
+    std::vector<TracoNoAr> mTracosNoAr;
+    void ComecarChamada(float agora);
+    void DesenharFormas(float agora);
 
-    bool mNoEscopo = false;
-    int mComandoDoEscopo = -1;
-    float mInicioDoComando = 0.0f;
-    Escopo::Comando mComando;
+    bool mNasFormas = false;
+    float mProximaChamada = 0.0f;
+    float mInicioDaChamada = 0.0f;
+    bool mChamadaEmCurso = false;
+    Polimorfismo::Chamada mChamada;
 
-    /// O comando k da fase 1 nesta luta (Escopo::Sortear).
-    [[nodiscard]] Escopo::Comando ComandoDoEscopo(int k) const;
+    /// Um objeto da chamada em campo: o rotulo, o lugar, e o contorno que ele desenha.
+    struct Objeto {
+        EtiquetaDeCodigo* rotulo = nullptr;
+        Polimorfismo::Classe classe = Polimorfismo::Classe::Circulo;
+        Vector2 lugar;
+        float invoca = 0.0f;       ///< f.desenhar(): a referencia aponta para ele
+        float traca = 0.0f;        ///< o contorno comeca a ser desenhado
+        bool revelado = false;
+        bool partiu = false;
+        float partiuEm = 0.0f;
+        float giro = 0.0f;
+        int tracados = 0;
+        std::vector<Vector2> contorno;
+        std::vector<BossProjectile*> pontos;
+    };
+    std::vector<Objeto> mObjetos;
 
-    /// A chuva de um comando: espera a busca, nasce apagada (o aviso), acende
-    /// e cai, e seca.
-    enum class Chuva { Esperando, Aviso, Viva, Seca };
-    Chuva mChuva = Chuva::Esperando;
-
-    struct GotaEmCampo { BossProjectile* p = nullptr; float fim = 0.0f; };
-    std::vector<GotaEmCampo> mGotas;
-
-    /// Um painel e um canto por bloco (o global nao tem painel - e o campo -, e o cartao de f e so
-    /// o canto).
-    std::array<PainelDeCodigo*, Escopo::kBlocos> mPaineis{};
-    std::array<EtiquetaDeCodigo*, Escopo::kBlocos> mCantos{};
-
-    /// Os paineis atras do placar (60) e dos projeteis; o de dentro na frente
-    /// do de fora.
-    static constexpr int kOrdemDosPaineis = 52;
-    static constexpr int kOrdemDoInterno = 54;
-    static constexpr int kOrdemDosCantos = 57;
+    /// Os rotulos dos objetos, criados uma vez e reaproveitados.
+    std::vector<EtiquetaDeCodigo*> mRotulos;
+    static constexpr int kLarguraDoRotulo = 210;
+    static constexpr int kOrdemDosRotulos = 57;
+    static constexpr float kYDoProfessorNasFormas = 120.0f;
 
     // ---- A fase 2: os sistemas de tipos ----
 
@@ -137,6 +140,7 @@ private:
 
     bool mNosTipos = false;
     int mContaDaVez = -1;
+    std::vector<float> mHorariosDosTipos;   ///< quando cada conta comeca (Coercao::Horarios)
     float mInicioDaConta = 0.0f;
     Coercao::Comando mConta;
     Vector2 mOndeDaConta;
@@ -161,62 +165,51 @@ private:
     /// O arco do voo dos operandos, para os dois nao andarem na mesma linha.
     static constexpr float kArcoDoVoo = 46.0f;
 
-    // ---- A fase 3: a gerencia de memoria ----
+    // ---- A fase 3: a complexidade ----
 
-    void AtualizarMemoria();
-    void DesmontarMemoria();
-    void ComecarPasso(int i);
-    void Executar(const Memoria::Evento& e);
-    void Alocar(const Memoria::Evento& e);
-    void Coletar();
-    void LiberarBloco(const std::string& raiz);
-    void EscreverNoPendente(const Memoria::Evento& e);
-    void EstourarOsVazados();
-    void LimparHeap();
-    void PintarHeap();
-    void DesenharHeap();
+    void AtualizarComplexidade();
+    void DesmontarComplexidade();
+    void ComecarRodadaDaComplexidade(float agora);
+    /// Uma operacao na casa do leque; a que 'acha' o aluno mira nele, pelo gatilho do acesso.
+    void Operar(int casa, bool acha);
+    /// A cara do custo da ordem, e o tamanho do degrau.
+    void VestirOperacao(BossProjectile* p) const;
+    void Dobrar();
+    void DesenharLeque(float agora);
+    void DesenharGrafico();
 
-    /// Congela (ou descongela) todos os projeteis do professor - stop the world.
-    void PararOMundo(bool parar) const;
+    bool mNaComplexidade = false;
+    int mVezDaComplexidade = 0;
+    int mOrdemAnterior = -1;
+    float mProximaRodadaDaComplexidade = 0.0f;
+    bool mRodadaEmCurso = false;
+    Complexidade::Rodada mRodadaDaComplexidade;
 
-    bool mNaMemoria = false;
-    int mPassoDaVez = -1;           ///< o indice no roteiro da luta
+    /// As leituras de uma passada pelo leque: quando, e qual casa.
+    struct Leitura { float quando = 0.0f; int casa = 0; };
+    std::vector<Leitura> mLeituras;
+    size_t mProximaLeitura = 0;
 
-    /// O passo em curso, no roteiro da luta.
-    [[nodiscard]] Memoria::Passo PassoDaVez() const {
-        return mRoteiro[static_cast<size_t>(std::clamp(mPassoDaVez, 0, Memoria::kPassos - 1))];
-    }
-    std::vector<Memoria::Evento> mEventos;
-    size_t mProximoEvento = 0;
-    Vector2 mBaseDaMemoria;
+    /// A busca binaria: o intervalo que sobra, e quando le o proximo meio.
+    Complexidade::Intervalo mBusca;
+    float mProximoMeio = 0.0f;
+    int mMeiosLidos = 0;
 
-    /// O heap de verdade (Memoria.h) e o que esta em campo: um bloco por alocacao, com as celulas
-    /// dele.
-    Memoria::Heap mHeap;
-    struct BlocoEmCampo {
-        int id = 0;
-        Vector2 centro;
-        int celulas = 0;
-        bool java = false;
-        bool no = false;              ///< um No do Java: a segunda celula e o prox
-        float acendeEm = 0.0f;        ///< no relogio da fase
-        bool aceso = false;
-        std::vector<BossProjectile*> p;
-    };
-    std::vector<BlocoEmCampo> mBlocos;
+    /// Os subconjuntos: cada galho e um tiro que, a cada dobra, vira dois.
+    struct Galho { BossProjectile* p = nullptr; float angulo = 90.0f; };
+    std::vector<Galho> mGalhos;
+    int mDobras = 0;
+    float mProximaDobra = 0.0f;
 
-    /// O mundo parado do System.gc(): o professor e os projeteis esperam.
-    bool mMundoParado = false;
+    /// Quando cada casa do leque foi lida pela ultima vez: ela acende por um instante.
+    std::vector<float> mLidaEm;
 
-    /// Onde estava o bloco que o delete levou - para onde o ponteiro pendente
-    /// continua apontando.
-    std::optional<Memoria::Retangulo> mLiberado;
-    int mCelulasDoLiberado = 0;
-
-    /// As raizes: a etiqueta de cada variavel do professor ("a" no Java, "p"
-    /// no C++), embaixo dele.
-    std::map<std::string, EtiquetaDeCodigo*> mRaizes;
-    static constexpr float kAbaixoDoProfessor = 74.0f;
+    /// O grafico das ordens, no canto de cima a direita.
+    PainelDeCodigo* mQuadroDoGrafico = nullptr;
+    EtiquetaDeCodigo* mNomeDoGrafico = nullptr;
+    static constexpr float kYDoProfessorNaComplexidade = 160.0f;
+    /// O leque das casas do vetor: abaixo do cartao do professor, e de onde sai cada operacao.
+    static constexpr float kRaioDoLeque = 92.0f;
 
     // ---- A final: as excecoes ----
 

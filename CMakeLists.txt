@@ -289,12 +289,12 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/Funcao.h
         Source/Attacks/Prova.cpp
         Source/Attacks/Prova.h
-        Source/Attacks/Escopo.cpp
-        Source/Attacks/Escopo.h
+        Source/Attacks/Polimorfismo.cpp
+        Source/Attacks/Polimorfismo.h
         Source/Attacks/Coercao.cpp
         Source/Attacks/Coercao.h
-        Source/Attacks/Memoria.cpp
-        Source/Attacks/Memoria.h
+        Source/Attacks/Complexidade.cpp
+        Source/Attacks/Complexidade.h
         Source/Attacks/Excecao.cpp
         Source/Attacks/Excecao.h
         Source/Regras/Intercambio.cpp
@@ -469,9 +469,9 @@ add_executable(dpi_tests
         tests/test_laco.cpp
         tests/test_funcao.cpp
         tests/test_prova.cpp
-        tests/test_escopo.cpp
+        tests/test_polimorfismo.cpp
         tests/test_coercao.cpp
-        tests/test_memoria.cpp
+        tests/test_complexidade.cpp
         tests/test_excecao.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
@@ -675,12 +675,12 @@ add_executable(dpi_tests
         Source/Attacks/Funcao.h
         Source/Attacks/Prova.cpp
         Source/Attacks/Prova.h
-        Source/Attacks/Escopo.cpp
-        Source/Attacks/Escopo.h
+        Source/Attacks/Polimorfismo.cpp
+        Source/Attacks/Polimorfismo.h
         Source/Attacks/Coercao.cpp
         Source/Attacks/Coercao.h
-        Source/Attacks/Memoria.cpp
-        Source/Attacks/Memoria.h
+        Source/Attacks/Complexidade.cpp
+        Source/Attacks/Complexidade.h
         Source/Attacks/Excecao.cpp
         Source/Attacks/Excecao.h
         Source/Regras/Intercambio.cpp

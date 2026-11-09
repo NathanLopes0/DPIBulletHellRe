@@ -12,10 +12,10 @@ pergaminho dizem "latim" sem escrever uma palavra.
 
 OS PROJETEIS, um par de animacoes por assunto:
 
-    Gota      X, Y      a variavel do escopo da fase 1: o nome dela num chip de
-                        editor, x em ambar e y em ciano (DPIBHLuizinhoGotas).
-              AvisoX,   o mesmo chip apagado: onde a chuva vai cair.
-              AvisoY
+    Traco     Circulo   um ponto do contorno que o objeto desenha na fase 1, o
+              Quadrado  polimorfismo: na cor da classe, e com a forma dela
+              Triangulo (DPIBHLuizinhoTracos).
+              Estrela
     Valor     Numero0   o numero num chip azul (o operando, e o anel do
               ...20     resultado com o n escrito), o texto num verde com as
               Texto0    aspas (o operando), e as letras da palavra do
@@ -26,15 +26,10 @@ OS PROJETEIS, um par de animacoes por assunto:
               Vezes     quando ela da erro (DPIBHLuizinhoOperadores).
     Erro      TypeError o estilhaco do erro de execucao, e o "erro de tipo"
               Compilacao da compilacao (DPIBHLuizinhoErros).
-    Celula    Aviso     um int de um bloco do heap da fase 3: o contorno de
-              Viva      onde ele vai nascer, o 0 do Java, o "?" do C++ (que
-              Crua      nao inicia), o campo prox de um no, o lixo, o lixo
-              Prox      marcado pelo coletor e o que vazou
-              Lixo      (DPIBHLuizinhoMemoria).
-              Marcada
-              Vazou
-    Estilhaco Corrompido o caco do ponteiro pendente e do bad_alloc
-                        (DPIBHLuizinhoEstilhacos).
+    Operacao  Barata    uma operacao do algoritmo da fase 3, a complexidade: a
+              Media     cor e o custo da ordem - verde O(1) e O(log n), ambar
+              Cara      O(n) e O(n log n), vermelho O(n²) e O(2ⁿ)
+                        (DPIBHLuizinhoOperacoes).
     Excecao   o nome do tipo num chip vermelho: a excecao da final, que sobe
               pela pilha (DPIBHLuizinhoExcecoes).
     Destroco  Destroco  o pedaco da faixa desempilhada, e o anel do finally
@@ -104,44 +99,6 @@ def luizinho():
 
     d.text((40, 98), "LUIZINHO", fill=TINTA)
     return im
-
-
-# ---- A FASE 1: O ESCOPO ----------------------------------------------------
-
-# As cores das duas variaveis do programa (Escopo.h): x ambar, y ciano.
-CORES_DAS_VARIAVEIS = {"X": (255, 196, 72), "Y": (96, 204, 240)}
-GW = 28   # o quadro da gota: o colisor e metade disto (Escopo::kRaioDaGota)
-
-
-def gota(nome, acesa):
-    """UMA GOTA DA VARIAVEL: o nome dela num chip de editor. Apagada (o aviso
-    de onde vai chover), so o contorno e a letra fraca; acesa, cheia."""
-    s = 4
-    r, g, b = CORES_DAS_VARIAVEIS[nome]
-    im = Image.new("RGBA", (GW * s, GW * s), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    if acesa:
-        d.rounded_rectangle([2 * s, 2 * s, (GW - 3) * s, (GW - 3) * s], radius=6 * s,
-                            fill=(34, 30, 24, 235), outline=(r, g, b, 255), width=2 * s)
-        tinta = (r, g, b, 255)
-    else:
-        d.rounded_rectangle([3 * s, 3 * s, (GW - 4) * s, (GW - 4) * s], radius=6 * s,
-                            fill=(r, g, b, 34), outline=(r, g, b, 120), width=1 * s)
-        tinta = (r, g, b, 120)
-    d.text((GW * s // 2, GW * s // 2 - 2 * s), nome.lower(), fill=tinta,
-           font=ImageFont.truetype(CARLITO, 22 * s), anchor="mm")
-    return im.resize((GW, GW), Image.LANCZOS)
-
-
-# A ordem dos quadros, a das animacoes de projeteis.json.
-GOTAS = [("AvisoX", "X", False), ("X", "X", True), ("AvisoY", "Y", False), ("Y", "Y", True)]
-
-
-def gotas():
-    f = Image.new("RGBA", (GW * len(GOTAS), GW), (0, 0, 0, 0))
-    for i, (_, nome, acesa) in enumerate(GOTAS):
-        f.alpha_composite(gota(nome, acesa), (i * GW, 0))
-    return f
 
 
 # ---- A FASE 2: OS SISTEMAS DE TIPOS -----------------------------------------
@@ -225,50 +182,58 @@ ERROS = [("TypeError", "TypeError", ((150, 24, 30, 240), (255, 110, 90, 255), (2
          ("Compilacao", "erro de tipo", ((70, 20, 60, 235), (220, 120, 230, 255), (250, 226, 255, 255)))]
 
 
-# ---- A FASE 3: A GERENCIA DE MEMORIA ----------------------------------------
+# ---- AS FASES 1 E 3: O POLIMORFISMO E A COMPLEXIDADE --------------------------
 
-CW = 30   # a celula do heap: o colisor e metade disto (Memoria::kLadoDaCelula)
+# A fase 1, o polimorfismo: as cores das classes (Luizinho.cpp, CorDaClasse).
+CLASSES = [("Circulo", (96, 210, 255)), ("Quadrado", (255, 214, 72)),
+           ("Triangulo", (110, 230, 130)), ("Estrela", (240, 120, 230))]
+TW = 16   # o ponto do traco: o colisor e metade disto
 
 
-def celula(texto, fundo, borda, tinta, x_vermelho=False, apagada=False):
-    """Uma celula do heap: um int (ou o campo prox de um no) num chip."""
+def traco(nome, cor):
+    """Um ponto do contorno: a forma da classe em miniatura, na cor dela, com o
+    miolo claro - o quadrado solta quadradinhos, a estrela estrelinhas."""
+    import math
     s = 4
-    im = Image.new("RGBA", (CW * s, CW * s), (0, 0, 0, 0))
+    im = Image.new("RGBA", (TW * s, TW * s), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    d.rectangle([2 * s, 2 * s, (CW - 3) * s, (CW - 3) * s], fill=fundo, outline=borda,
-                width=(1 if apagada else 2) * s)
-    if texto:
-        d.text((CW * s // 2, CW * s // 2), texto, fill=tinta,
-               font=ImageFont.truetype(CARLITO, 18 * s), anchor="mm")
-    if x_vermelho:
-        d.line([(6 * s, 6 * s), ((CW - 7) * s, (CW - 7) * s)], fill=(220, 40, 40, 255), width=3 * s)
-        d.line([((CW - 7) * s, 6 * s), (6 * s, (CW - 7) * s)], fill=(220, 40, 40, 255), width=3 * s)
-    return im.resize((CW, CW), Image.LANCZOS)
+    c = TW * s / 2
+    r = 6.5 * s
+    if nome == "Circulo":
+        pontos = None
+    elif nome == "Quadrado":
+        pontos = [(c - r * 0.8, c - r * 0.8), (c + r * 0.8, c - r * 0.8), (c + r * 0.8, c + r * 0.8), (c - r * 0.8, c + r * 0.8)]
+    elif nome == "Triangulo":
+        pontos = [(c + r * math.cos(math.radians(-90 + 120 * k)), c + 1.5 * s + r * math.sin(math.radians(-90 + 120 * k))) for k in range(3)]
+    else:
+        pontos = [(c + (r if k % 2 == 0 else r * 0.45) * math.cos(math.radians(-90 + 36 * k)),
+                   c + (r if k % 2 == 0 else r * 0.45) * math.sin(math.radians(-90 + 36 * k))) for k in range(10)]
+    escura = tuple(int(v * 0.45) for v in cor) + (255,)
+    if pontos is None:
+        d.ellipse([c - r, c - r, c + r, c + r], fill=cor + (255,), outline=escura, width=s)
+        d.ellipse([c - r * 0.4, c - r * 0.4, c + r * 0.4, c + r * 0.4], fill=(255, 255, 255, 235))
+    else:
+        d.polygon(pontos, fill=cor + (255,), outline=escura)
+        d.ellipse([c - r * 0.28, c - r * 0.28, c + r * 0.28, c + r * 0.28], fill=(255, 255, 255, 235))
+    return im.resize((TW, TW), Image.LANCZOS)
 
 
-# A ordem dos quadros, a das animacoes de projeteis.json.
-CELULAS = [
-    ("Aviso",   lambda: celula("", (200, 210, 230, 60), (225, 232, 255, 210), None, apagada=True)),
-    ("Viva",    lambda: celula("0", (40, 70, 110, 240), (120, 170, 230, 255), (220, 232, 255, 255))),
-    ("Crua",    lambda: celula("?", (40, 70, 110, 240), (120, 170, 230, 255), (255, 214, 150, 255))),
-    ("Prox",    lambda: celula("\u2192", (40, 70, 110, 240), (120, 170, 230, 255), (150, 230, 255, 255))),
-    ("Lixo",    lambda: celula("", (90, 90, 96, 220), (150, 150, 158, 230), None)),
-    ("Marcada", lambda: celula("", (90, 90, 96, 220), (150, 150, 158, 230), None, x_vermelho=True)),
-    ("Vazou",   lambda: celula("?", (110, 62, 26, 240), (236, 150, 64, 255), (255, 214, 160, 255))),
-]
+# A fase 3, a complexidade: o custo da ordem (Complexidade::CaraDaOperacao).
+CUSTOS = [("Barata", (110, 230, 130)), ("Media", (255, 214, 72)), ("Cara", (255, 110, 90))]
+QW = 16   # a operacao: o colisor e metade disto
 
 
-def estilhaco_de_memoria():
-    """O que estoura do ponteiro pendente e do bad_alloc: um caco de memoria
-    corrompida."""
+def operacao(cor):
+    """Uma operacao do algoritmo: um losango na cor do custo, com o miolo claro."""
     s = 4
-    im = Image.new("RGBA", (16 * s, 16 * s), (0, 0, 0, 0))
+    im = Image.new("RGBA", (QW * s, QW * s), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    d.polygon([(8 * s, 1 * s), (15 * s, 8 * s), (8 * s, 15 * s), (1 * s, 8 * s)],
-              fill=(170, 30, 90, 240), outline=(255, 120, 180, 255))
-    d.text((8 * s, 8 * s), "?", fill=(255, 230, 240, 255),
-           font=ImageFont.truetype(CARLITO, 11 * s), anchor="mm")
-    return im.resize((16, 16), Image.LANCZOS)
+    c = QW * s / 2
+    r = 7 * s
+    escura = tuple(int(v * 0.45) for v in cor) + (255,)
+    d.polygon([(c, c - r), (c + r, c), (c, c + r), (c - r, c)], fill=cor + (255,), outline=escura)
+    d.polygon([(c, c - r * 0.4), (c + r * 0.4, c), (c, c + r * 0.4), (c - r * 0.4, c)], fill=(255, 255, 255, 230))
+    return im.resize((QW, QW), Image.LANCZOS)
 
 
 # ---- A FINAL: AS EXCECOES ---------------------------------------------------
@@ -363,7 +328,8 @@ def animacoes():
         "Valor": {nome: [i] for i, (nome, _) in enumerate(valores_quadros())},
         "Operador": {nome: [i] for i, (nome, _, _) in enumerate(OPERADORES)},
         "Erro": {nome: [i] for i, (nome, _, _) in enumerate(ERROS)},
-        "Celula": {nome: [i] for i, (nome, _) in enumerate(CELULAS)},
+        "Traco": {nome: [i] for i, (nome, _) in enumerate(CLASSES)},
+        "Operacao": {nome: [i] for i, (nome, _) in enumerate(CUSTOS)},
         "Excecao": {nome: [i] for i, nome in enumerate(EXCECOES)},
         "Destroco": {nome: [i] for i, (nome, _) in enumerate(PILHA)},
     }
@@ -384,11 +350,10 @@ if __name__ == "__main__":
         print(json.dumps(animacoes(), ensure_ascii=False))
         sys.exit(0)
     grava(luizinho(), "DPIBHLuizinho", "Assets/Teachers")
-    grava(gotas(), "DPIBHLuizinhoGotas", "Assets/Teachers/Projectiles", quadros=len(GOTAS), lado=GW)
+    grava_tira([traco(n, c) for n, c in CLASSES], "DPIBHLuizinhoTracos", TW, TW, len(CLASSES))
     grava_tira([im for _, im in valores_quadros()], "DPIBHLuizinhoValores", VW, VW, 10)
     grava_tira([operador(sim, erro) for _, sim, erro in OPERADORES], "DPIBHLuizinhoOperadores", OW, OW, 4)
     grava_tira([estilhaco(t, c) for _, t, c in ERROS], "DPIBHLuizinhoErros", EW, EH, 2)
-    grava_tira([f() for _, f in CELULAS], "DPIBHLuizinhoMemoria", CW, CW, len(CELULAS))
-    grava_tira([estilhaco_de_memoria()], "DPIBHLuizinhoEstilhacos", 16, 16, 1)
+    grava_tira([operacao(c) for _, c in CUSTOS], "DPIBHLuizinhoOperacoes", QW, QW, len(CUSTOS))
     grava_tira([excecao(n) for n in EXCECOES], "DPIBHLuizinhoExcecoes", XW, XH, 1)
     grava_tira([f() for _, f in PILHA], "DPIBHLuizinhoPilha", PW, PW, len(PILHA))

@@ -244,6 +244,21 @@ namespace Coercao {
         return {std::clamp(xDoAluno, kMargemDoOperador, largura - kMargemDoOperador), kYDoOperador};
     }
 
+    std::vector<float> Horarios(const std::uint32_t sorteio) {
+        std::mt19937 g(sorteio);
+        std::vector<float> horarios;
+        for (int k = 0; k < kComandos; ++k) {
+            float h = kPrimeiro + kPorComando * static_cast<float>(k);
+            if (k > 0) {
+                const float u = static_cast<float>(g() % 10001u) / 10000.0f;
+                h += (u * 2.0f - 1.0f) * kFolgaDoHorario;
+                h = std::max(h, horarios.back() + kMenorIntervalo);
+            }
+            horarios.push_back(h);
+        }
+        return horarios;
+    }
+
     std::vector<int> OrdemDosComandos(Variacao::Sorteio& s) {
         std::vector<int> ordem = Variacao::Ordem(s, kComandos - 1, 1);
         ordem.push_back(kComandos - 1);

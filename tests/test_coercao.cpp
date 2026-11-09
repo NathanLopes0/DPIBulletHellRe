@@ -230,3 +230,19 @@ TEST_CASE("Coercao: o degrau do Normal e o de sempre, e o do Dificil voa mais cu
     CHECK(kCoercao < 1.0f);
 }
 
+TEST_CASE("Coercao: as contas comecam em horarios sorteados, sem compasso, e cabem na fase") {
+    std::set<int> segundos;
+    for (std::uint32_t s = 0; s < 200; ++s) {
+        const auto h = Coercao::Horarios(s);
+        REQUIRE(static_cast<int>(h.size()) == Coercao::kComandos);
+        CHECK(h.front() == doctest::Approx(Coercao::kPrimeiro));
+        for (size_t k = 1; k < h.size(); ++k) {
+            CHECK(h[k] - h[k - 1] >= Coercao::kMenorIntervalo - 0.001f);
+            CHECK(std::fabs(h[k] - (Coercao::kPrimeiro + Coercao::kPorComando * static_cast<float>(k))) <= Coercao::kFolgaDoHorario + 0.001f);
+        }
+        CHECK(h.back() + Coercao::kMenorIntervalo <= Fase::kDuracao + 0.01f);
+        segundos.insert(static_cast<int>(h[3] * 10.0f));
+    }
+    // A mesma conta, em lutas diferentes, cai em horarios diferentes.
+    CHECK(segundos.size() > 5);
+}

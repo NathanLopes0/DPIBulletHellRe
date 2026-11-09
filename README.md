@@ -309,23 +309,30 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   relê a fita por 107 passos até parar com 13 marcas — e, no exame, o problema da
   parada com o 3x + 1. O "a" vai reto e o "b" persegue, até o Programa de
   Intercâmbio trocar os dois — e ele vale a luta inteira.
-- **Luizinho — INF 340.** Linguagens de Programação, um assunto da ementa por
-  fase: cada uma abre com a palavra latina por trás dele, e depois o placar
-  mostra o código que ele está rodando. O programa da primeira fase e as
-  exceções do exame são gerados a cada luta.
+- **Luizinho — INF 340.** Linguagens de Programação — e Teoria da Computação,
+  que ele também dá —, um assunto por fase: cada uma abre com a palavra latina
+  (ou grega) por trás dele, e depois o placar mostra o código que ele está
+  rodando. Pouco se repete de uma luta para a outra: os objetos, os algoritmos,
+  os horários das contas e as exceções são sorteados.
 
-  Na primeira o campo é o texto do programa, um painel por
-  bloco com as declarações no canto, e a variável que a busca acha chove onde
-  ela é visível — menos nos blocos que têm outra com o mesmo nome; no fim, a
-  mesma chamada em escopo estático e em escopo dinâmico. Na segunda, a mesma
-  conta em JavaScript, PHP, Python e Haskell: os operandos voam até em cima de
-  você, o convertido troca de cor no meio do voo, e o resultado ataca do jeito
-  do tipo dele — o número é um anel, o texto é a palavra, o `TypeError` estoura
-  onde a conta roda e o erro de compilação, no professor. Na terceira o campo é
-  o heap e o alocador te escolhe: no Java o coletor para o mundo e derruba o
-  lixo, no C++ o ponteiro pendente estoura e o laço que só aloca vaza até o
-  `bad_alloc`. O exame é uma exceção subindo pela pilha de chamadas: cada
-  faixa que não a trata cai em cima de você — e a repescagem é um `catch`.
+  Na primeira, o polimorfismo: objetos `Circulo`, `Quadrado`, `Triangulo` e
+  `Estrela` aparecem no campo, e a mesma chamada, `f.desenhar()`, faz cada um
+  desenhar a sua forma em tiros, que cresce sem deixar de ser ela (no Difícil,
+  girando). Num `for (Forma f : formas)` o professor vai de objeto em objeto, e
+  em `Forma f = sortear()` o rótulo fica `Forma f = ?` até a chamada revelar a
+  classe — o tipo dinâmico. Na segunda, a mesma conta em JavaScript, PHP, Python
+  e Haskell: os operandos voam até em cima de você, o convertido troca de cor no
+  meio do voo, e o resultado ataca do jeito do tipo dele — o número é um anel, o
+  texto é a palavra, o `TypeError` estoura onde a conta roda e o erro de
+  compilação, no professor. Na terceira, a complexidade dos algoritmos: o vetor
+  de entrada é um leque de n casas embaixo do professor, e cada operação é um
+  tiro. O acesso `v[i]` é um tiro só, grande e em você; a busca binária te acha
+  em log n leituras, e a que acha é esse mesmo tiro; a busca linear varre o
+  leque, o merge sort o varre log n vezes, os dois laços n vezes, e os
+  subconjuntos dobram a cada passo; um gráfico no canto mostra a curva de cada
+  ordem e onde a rodada cai. O exame é uma exceção subindo pela pilha de
+  chamadas: cada faixa que não a trata cai em cima de você — e a repescagem é um
+  `catch`.
 - **Vitor — INF 310.** Programação Concorrente e Distribuída — e Redes, que
   ele também dá. Na primeira, semáforos: cada thread é uma coluna de
   instruções descendo até a seção crítica, quem não tem o semáforo se empilha

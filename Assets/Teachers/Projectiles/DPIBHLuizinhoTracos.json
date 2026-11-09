@@ -1,90 +1,90 @@
 {
  "frames": [
   {
-   "filename": "DPIBHLuizinhoGotas 0.placeholder",
+   "filename": "DPIBHLuizinhoTracos 0.placeholder",
    "frame": {
     "x": 0,
     "y": 0,
-    "w": 28,
-    "h": 28
+    "w": 16,
+    "h": 16
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 28,
-    "h": 28
+    "w": 16,
+    "h": 16
    },
    "sourceSize": {
-    "w": 28,
-    "h": 28
+    "w": 16,
+    "h": 16
    },
    "duration": 120
   },
   {
-   "filename": "DPIBHLuizinhoGotas 1.placeholder",
+   "filename": "DPIBHLuizinhoTracos 1.placeholder",
    "frame": {
-    "x": 28,
+    "x": 16,
     "y": 0,
-    "w": 28,
-    "h": 28
+    "w": 16,
+    "h": 16
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 28,
-    "h": 28
+    "w": 16,
+    "h": 16
    },
    "sourceSize": {
-    "w": 28,
-    "h": 28
+    "w": 16,
+    "h": 16
    },
    "duration": 120
   },
   {
-   "filename": "DPIBHLuizinhoGotas 2.placeholder",
+   "filename": "DPIBHLuizinhoTracos 2.placeholder",
    "frame": {
-    "x": 56,
+    "x": 32,
     "y": 0,
-    "w": 28,
-    "h": 28
+    "w": 16,
+    "h": 16
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 28,
-    "h": 28
+    "w": 16,
+    "h": 16
    },
    "sourceSize": {
-    "w": 28,
-    "h": 28
+    "w": 16,
+    "h": 16
    },
    "duration": 120
   },
   {
-   "filename": "DPIBHLuizinhoGotas 3.placeholder",
+   "filename": "DPIBHLuizinhoTracos 3.placeholder",
    "frame": {
-    "x": 84,
+    "x": 48,
     "y": 0,
-    "w": 28,
-    "h": 28
+    "w": 16,
+    "h": 16
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 28,
-    "h": 28
+    "w": 16,
+    "h": 16
    },
    "sourceSize": {
-    "w": 28,
-    "h": 28
+    "w": 16,
+    "h": 16
    },
    "duration": 120
   }
@@ -92,11 +92,11 @@
  "meta": {
   "app": "gerar_luizinho.py",
   "version": "1.0",
-  "image": "DPIBHLuizinhoGotas.png",
+  "image": "DPIBHLuizinhoTracos.png",
   "format": "RGBA8888",
   "size": {
-   "w": 112,
-   "h": 28
+   "w": 64,
+   "h": 16
   },
   "scale": "1"
  }
