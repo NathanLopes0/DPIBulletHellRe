@@ -1358,14 +1358,14 @@ TEST_CASE("Dados: o Salles do Normal e mais leve que o do Dificil na pilha e no 
     CHECK(NoNivel(bloco, Dificuldade::Nivel::Normal).resistencia == 2);
     CHECK(NoNivel(bloco, Dificuldade::Nivel::Dificil).resistencia == 3);
 
-    // E no hash ele vai aos baldes mais devagar no Normal.
+    // E no hash ele vai aos baldes mais devagar que o aluno anda (300), nos dois modos.
     bool achou = false;
     for (const auto& f : FasesDoChefe("salles").fases) {
         if (f.nome != Hash::kFaseDoHash) continue;
         achou = true;
         CHECK(f.movimento.tipo == "Conduzido");
-        CHECK(NoNivel(f.movimento, Dificuldade::Nivel::Normal).a == doctest::Approx(400.0f));
-        CHECK(NoNivel(f.movimento, Dificuldade::Nivel::Dificil).a == doctest::Approx(700.0f));
+        CHECK(NoNivel(f.movimento, Dificuldade::Nivel::Normal).a == doctest::Approx(220.0f));
+        CHECK(NoNivel(f.movimento, Dificuldade::Nivel::Dificil).a == doctest::Approx(280.0f));
     }
     CHECK(achou);
 }

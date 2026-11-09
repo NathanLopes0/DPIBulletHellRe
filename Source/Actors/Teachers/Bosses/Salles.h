@@ -84,6 +84,7 @@ private:
     std::optional<Vector2> mAlvo;
     float mProximaMudanca = 0.0f;
     int mColuna = 1;
+    int mLadoDaPilha = 1;   ///< de que lado do professor a pilha pende (Pilha::LadoDaPilha)
     static constexpr std::array<float, 3> kColunasDaPilha = {260.0f, 600.0f, 940.0f};
     static constexpr float kAlturaDaPilha = 133.0f;
     static constexpr float kParadoNaColuna = 2.6f;

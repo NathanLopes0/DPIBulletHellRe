@@ -516,8 +516,10 @@ void Salles::AtualizarHash(const float deltaTime) {
         }
     }
 
-    // Cada chave no lugar dela, pendurada no balde.
+    // Cada chave no lugar dela, pendurada no balde - menos a que a busca acabou de achar e jogar no
+    // aluno: parada aqui, ela ficaria no campo fora da tabela, por cima de quem tomasse o lugar dela.
     for (const Chave& c : mChaves) {
+        if (c.p->GetState() != ActorState::Active || c.p->Posto() != Hash::kPostoDasChaves) continue;
         const Vector2 lugar(Hash::CentroDoBalde(c.balde, mTamanho, largura), Hash::AlturaNaLista(c.posicao));
         c.p->SetPosition(Ancora::Aproximar(c.p->GetPosition(), lugar, kRapidezDaChave, deltaTime));
         if (auto* rb = c.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
@@ -586,6 +588,8 @@ void Salles::AtualizarPilha(const float deltaTime) {
         mDegrauDaPilha = Pilha::DegrauDo(NivelDeDificuldade());
         mProximaMudanca = kParadoNaColuna;
         mColuna = 1;
+        mLadoDaPilha = Pilha::LadoDaPilha(mColuna, static_cast<int>(kColunasDaPilha.size()),
+                                          static_cast<std::uint32_t>(Random::GetIntRange(0, 1)));
         mAlvo = Vector2(kColunasDaPilha[1], kAlturaDaPilha);
         if (mAnuncioDaPilha.empty()) mAnuncioDaPilha = AnuncioDaFase(Pilha::kFaseDaPilha);
     }
@@ -606,6 +610,8 @@ void Salles::AtualizarPilha(const float deltaTime) {
         mProximaMudanca += kParadoNaColuna;
         const int salto = Random::GetIntRange(1, 2);
         mColuna = (mColuna + salto) % static_cast<int>(kColunasDaPilha.size());
+        mLadoDaPilha = Pilha::LadoDaPilha(mColuna, static_cast<int>(kColunasDaPilha.size()),
+                                          static_cast<std::uint32_t>(Random::GetIntRange(0, 1)));
         mAlvo = Vector2(kColunasDaPilha[static_cast<size_t>(mColuna)], kAlturaDaPilha);
     }
 
@@ -642,10 +648,11 @@ void Salles::AtualizarPilha(const float deltaTime) {
         RegistrarAnuncio(Pilha::kFaseDaPilha, Pilha::Placar(op, topo));
     }
 
-    // Cada bloco no lugar dele, embaixo do professor: o 0 colado nele, o topo la embaixo.
+    // Cada bloco no lugar dele, pendurado ao lado do professor: o 0 colado nele, o topo la embaixo.
     for (size_t k = 0; k < mPilha.size(); ++k) {
         BossProjectile* b = mPilha[k];
-        const Vector2 lugar = GetPosition() + Vector2(0.0f, Pilha::AbaixoDoProfessor(static_cast<int>(k)));
+        const Vector2 lugar = GetPosition() + Vector2(static_cast<float>(mLadoDaPilha) * Pilha::kAoLado,
+                                                      Pilha::AbaixoDoProfessor(static_cast<int>(k)));
         b->SetPosition(Ancora::Aproximar(b->GetPosition(), lugar, kRapidezDoBloco, deltaTime));
         if (auto* rb = b->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
     }

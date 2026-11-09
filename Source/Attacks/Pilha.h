@@ -45,8 +45,17 @@ namespace Pilha {
         int valor = 0;   ///< o numero do bloco que entra (push)
     };
 
-    /// Onde fica o bloco k em relacao ao professor (so o y; o x e o dele).
+    /// Onde fica o bloco k em relacao ao professor, no y.
     float AbaixoDoProfessor(int k);
+
+    /// A pilha fica pendurada ao lado do professor, e nao embaixo dele: kAoLado para o lado que da
+    /// para o meio do campo. Assim ela nao o cobre por baixo - quem vai atras dele acerta -, e
+    /// continua sendo alvo e arma.
+    constexpr float kAoLado = 78.0f;
+
+    /// O lado da pilha (+1 a direita, -1 a esquerda) com o professor na coluna 'coluna' de
+    /// 'colunas': a da esquerda pendura a direita, a da direita a esquerda, e as do meio sorteiam.
+    int LadoDaPilha(int coluna, int colunas, std::uint32_t sorteio);
 
     /// O placar da operacao. 'topo' e o valor que sai num pop.
     std::string Placar(const Operacao& op, int topo);

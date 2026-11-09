@@ -18,13 +18,13 @@
     ]
   },
 
-  // Fase 2 - a tabela hash | gesto: o professor vai ao balde. No Normal ele vai mais devagar, e o
-  // aluno consegue acompanhar.
+  // Fase 2 - a tabela hash | gesto: o professor vai ao balde, mais devagar que o aluno: quem vai
+  // atras dele acerta. A chave voa dele ate o balde certo.
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
     "anuncio": "h(k) = k mod m",
-    "movimento": { "tipo": "Conduzido", "a": 400, "dificil": { "a": 700 } },
+    "movimento": { "tipo": "Conduzido", "a": 220, "dificil": { "a": 280 } },
     "ataques": [
       { "gatilho": "capivara", "estrategia": "WaveAttack", "projetil": "Capivarona",
         "projeteis": 1, "velocidade": 170, "angulo": 0, "intervalo": 0 },

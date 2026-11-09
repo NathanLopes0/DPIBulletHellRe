@@ -53,6 +53,16 @@ TEST_CASE("Pilha: o programa sempre chega ao overflow, e nunca da pop na pilha v
 
 TEST_CASE("Pilha: o lugar de cada bloco, e o placar de cada operacao") {
     CHECK(Pilha::AbaixoDoProfessor(0) == doctest::Approx(Pilha::kPrimeiroBloco));
+    // Pendurada ao lado: a da coluna da esquerda pende para o meio (direita), a da direita para o
+    // meio (esquerda), e a do meio para qualquer um dos dois.
+    CHECK(Pilha::LadoDaPilha(0, 3, 0u) == 1);
+    CHECK(Pilha::LadoDaPilha(0, 3, 1u) == 1);
+    CHECK(Pilha::LadoDaPilha(2, 3, 0u) == -1);
+    CHECK(Pilha::LadoDaPilha(2, 3, 1u) == -1);
+    CHECK(Pilha::LadoDaPilha(1, 3, 0u) != Pilha::LadoDaPilha(1, 3, 1u));
+    // E longe o bastante para o tiro que sobe pelo meio do professor nao bater nela: o bloco tem
+    // raio de 22 (40 px a 1,1) e o tiro, de 12.
+    CHECK(Pilha::kAoLado - 22.0f - 12.0f > 30.0f);
     CHECK(Pilha::AbaixoDoProfessor(2) == doctest::Approx(Pilha::kPrimeiroBloco + 2.0f * Pilha::kEntreBlocos));
     CHECK(Pilha::Placar({Pilha::Tipo::Push, 7}, 0) == "push(7)");
     CHECK(Pilha::Placar({Pilha::Tipo::Pop, 0}, 4) == "pop() \xE2\x86\x92 4");

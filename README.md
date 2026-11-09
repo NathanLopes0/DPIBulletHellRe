@@ -254,7 +254,7 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   atrás de você. O exame é a prova no BOCA: um problema de cada fase, o balão
   do problema sobe no YES — e o último capota em *Runtime error*.
 - **Salles — INF 213.** Estruturas de dados, uma por fase, com o placar
-  escrevendo cada operação: uma pilha pendurada nele (push, pop e stack
+  escrevendo cada operação: uma pilha pendurada ao lado dele (push, pop e stack
   overflow), uma tabela hash que encadeia, busca e faz rehash na sua frente, e
   uma árvore binária de busca em que a chave desce comparando — e o seu tiro
   também é uma operação: tira o topo, derruba o nó e a subárvore junto. O

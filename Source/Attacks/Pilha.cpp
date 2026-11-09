@@ -26,6 +26,12 @@ namespace Pilha {
         return kPrimeiroBloco + static_cast<float>(k < 0 ? 0 : k) * kEntreBlocos;
     }
 
+    int LadoDaPilha(const int coluna, const int colunas, const std::uint32_t sorteio) {
+        if (coluna <= 0) return 1;
+        if (coluna >= colunas - 1) return -1;
+        return (sorteio & 1u) == 0u ? 1 : -1;
+    }
+
     std::string Placar(const Operacao& op, const int topo) {
         switch (op.tipo) {
             case Tipo::Push:     return "push(" + std::to_string(op.valor) + ")";

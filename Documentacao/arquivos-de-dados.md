@@ -118,7 +118,7 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 | `anuncio` | opcional. O texto do **placar**, o quadro no canto de cima, enquanto a fase dura. Sem ele o placar fica apagado |
 | `intercambio` | opcional. `{ "aCada": 8, "aviso": 1.5 }`: os alunos **trocam de lugar** a cada `aCada` segundos da fase, com aviso `aviso` segundos antes |
 | `etapas` | opcional. A fase em **trechos com nome**, em ordem: `[ { "nome": "Requisitos", "duracao": 4.0, "anuncio": "1 · Requisitos" }, ... ]`. Cada ataque que diz `"etapa"` só dispara na sua, e o placar mostra o `anuncio` da etapa corrente (sem ele, o `nome`). A leitura recusa etapas que passam da fase, e um teste cobra que elas a **cubram inteira** |
-| `movimento` | como o professor anda. Um bloco `"dificil": { "a": 700 }` dentro dele troca o `a` e/ou o `b` no modo Difícil (o Salles vai aos baldes a 400 no Normal e a 700 no Difícil); chave que não é `a` nem `b` é avisada e ignorada |
+| `movimento` | como o professor anda. Um bloco `"dificil": { "a": 280 }` dentro dele troca o `a` e/ou o `b` no modo Difícil (o Salles vai aos baldes a 220 no Normal e a 280 no Difícil); chave que não é `a` nem `b` é avisada e ignorada |
 | `ataques` | lista; todos disparam na mesma fase, cada um no seu cooldown |
 
 > **O placar escreve na Carlito, e não na fonte do jogo.** A Saira não tem `ⁿ` nem `δ`,
