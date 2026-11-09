@@ -59,6 +59,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Regras/Nota.h
         Source/Regras/PontoExtra.cpp
         Source/Regras/PontoExtra.h
+        Source/Regras/Raspao.cpp
+        Source/Regras/Raspao.h
         Source/Regras/Destrutivel.cpp
         Source/Regras/Destrutivel.h
         Source/Entrada/Navegacao.cpp
@@ -481,6 +483,7 @@ add_executable(dpi_tests
         tests/test_progresso.cpp
         tests/test_nota.cpp
         tests/test_ponto_extra.cpp
+        tests/test_raspao.cpp
         tests/test_destrutivel.cpp
         tests/test_navegacao.cpp
         tests/test_tabela.cpp
@@ -516,6 +519,8 @@ add_executable(dpi_tests
         Source/Regras/Nota.h
         Source/Regras/PontoExtra.cpp
         Source/Regras/PontoExtra.h
+        Source/Regras/Raspao.cpp
+        Source/Regras/Raspao.h
         Source/Regras/Destrutivel.cpp
         Source/Regras/Destrutivel.h
         Source/Entrada/Navegacao.cpp

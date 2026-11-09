@@ -80,6 +80,7 @@ void Player::OnUpdate(float deltaTime) {
 
     AtualizarInvencibilidade(deltaTime);
     mAcertos.Avancar(deltaTime);
+    mRaspoes.Avancar(deltaTime);
     AtualizarAnimacao();
     DescontarRecarga(deltaTime);
     PrenderNoCampo();

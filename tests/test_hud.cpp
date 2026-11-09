@@ -59,7 +59,7 @@ TEST_CASE("Hud: o relogio vai do verde ao vermelho, pulsa no fim e tem um dente 
 
 TEST_CASE("Hud: as faiscas crescem, apagam e cada uma tem o seu tamanho") {
     for (const Faisca f : {Faisca::Acerto, Faisca::Derrubada, Faisca::Dano, Faisca::Coleta, Faisca::Dissolvido,
-                          Faisca::Resposta}) {
+                          Faisca::Resposta, Faisca::RespostaDePerto, Faisca::Raspao}) {
         CHECK(Brilho(f, 0.0f) == doctest::Approx(1.0f));
         CHECK(Brilho(f, Vida(f)) == 0.0f);
         CHECK(Raio(f, Vida(f)) > Raio(f, 0.0f));
@@ -68,6 +68,11 @@ TEST_CASE("Hud: as faiscas crescem, apagam e cada uma tem o seu tamanho") {
     // O dano se ve mais que o acerto: e o que o aluno nao pode deixar de notar.
     CHECK(Raio(Faisca::Dano, Vida(Faisca::Dano)) > Raio(Faisca::Acerto, Vida(Faisca::Acerto)));
     CHECK(Vida(Faisca::Acerto) < Vida(Faisca::Dano));
+    // O raspao e um aviso miudo, na borda do aluno: menor e mais curto que o dano.
+    CHECK(Raio(Faisca::Raspao, Vida(Faisca::Raspao)) < Raio(Faisca::Dano, Vida(Faisca::Dano)));
+    CHECK(Vida(Faisca::Raspao) < Vida(Faisca::Dano));
+    // E o "!!" anda como o "!": so o desenho muda.
+    CHECK(Vida(Faisca::RespostaDePerto) == doctest::Approx(Vida(Faisca::Resposta)));
 }
 
 TEST_CASE("Hud: cada aluno tem a sua cor, e o balao barrado murcha ate um terco") {

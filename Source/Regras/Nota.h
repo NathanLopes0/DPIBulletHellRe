@@ -89,4 +89,21 @@ namespace Nota {
 
     /// O que um acerto sofrido custa, com a divisao e o alivio.
     float PerdaPorJogador(float bruto, size_t quantosJogadores);
+
+    // ---- A duvida perguntada de perto ----
+
+    /// Quem pergunta de perto arrisca mais - menos tempo para desviar, e o professor ao alcance de
+    /// um esbarrao -, e a resposta vale mais: o ganho do acerto cresce de 1, de kLonge para la, ate
+    /// kFatorDePerto, de kPerto para ca, em linha reta no meio. A distancia vai do centro de quem
+    /// perguntou ao do professor, quando a resposta chega. Do fundo do campo o fator e 1, como antes.
+    inline constexpr float kPerto = 170.0f;
+    inline constexpr float kLonge = 470.0f;
+    inline constexpr float kFatorDePerto = 1.5f;
+
+    /// Quanto o ganho de um acerto se multiplica, com quem perguntou a 'distancia' do professor.
+    float FatorDePerto(float distancia);
+
+    /// A partir deste fator a resposta sai com dois pontos de exclamacao: a faixa de perto, que o
+    /// aluno ve sem ler numero nenhum.
+    inline constexpr float kFatorDaRespostaDupla = 1.35f;
 }

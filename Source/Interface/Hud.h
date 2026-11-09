@@ -63,6 +63,8 @@ namespace Hud {
         Coleta,      ///< o aluno pegou um Ponto Extra: o anel dourado
         Dissolvido,  ///< o tiro que a onda do Ponto Extra desfez: o brilho dourado
         Resposta,    ///< a Duvida acertou o professor: o "?" vira um "!" que sobe e some
+        RespostaDePerto,  ///< a Duvida perguntada de perto (Nota::FatorDePerto): "!!"
+        Raspao,      ///< um projetil passou rente ao aluno sem acerta-lo (Raspao.h): o risco azul
     };
 
     /// Quanto cada uma dura.

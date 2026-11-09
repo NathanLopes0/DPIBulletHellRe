@@ -46,7 +46,9 @@ arvore="${1:-$S}"; fase="${2:-0}"
 alvo="${TMPDIR:-/tmp}/dpi-medir"
 rm -rf "$alvo" && cp -r "$arvore" "$alvo" && cd "$alvo"
 
-python3 -I - <<'PY'
+# Um gancho que nao pega derruba o arnes inteiro: medir com metade dos remendos
+# daria numeros que parecem certos e nao sao.
+python3 -I - <<'PY' || { echo "!!! um gancho nao pegou (acima): o arnes nao foi montado"; exit 1; }
 import io, sys
 def edit(arq, de, para, vezes=1):
     cru = io.open(arq, encoding='utf-8', newline='', errors='surrogateescape').read()
@@ -212,10 +214,12 @@ edit("Source/Scenes/Battle/Battle.cpp", '#include "Battle.h"',
 # ---- QUANTOS TIROS CHEGARAM NO CHEFE. E o numero que explica tudo o mais:
 # ---- o ganho e dividido pelo numero de jogadores, entao a dupla so empata com
 # ---- o solo se acertar o DOBRO - e acertar o dobro depende de os dois
-# ---- conseguirem mirar, que e o que a posicao decide.
+# ---- conseguirem mirar, que e o que a posicao decide. O gancho e o "ouviu"
+# ---- (o chefe aceitou a pergunta), e nao a conta do ganho: a conta ja mudou
+# ---- (a duvida de perto) e derrubou o contador.
 edit("Source/Scenes/Battle/Battle.cpp",
-     "                SubirNota(PorJogador(Nota::kGanhoPorAcerto));",
-     "                ++gAcertosDados;\n                SubirNota(PorJogador(Nota::kGanhoPorAcerto));")
+     "                if (ouviu) {",
+     "                if (ouviu) {\n                    ++gAcertosDados;")
 edit("Source/Scenes/Battle/Battle.cpp", "void Battle::VerificarColisoes() {",
 """void Battle::VerificarColisoes() {
     static int quadro = 0;

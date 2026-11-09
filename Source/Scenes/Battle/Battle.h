@@ -276,6 +276,10 @@ private:
     class DrawLinhasComponent* mEfeitos = nullptr;
     /// Um efeito em 'onde'. Com muitos ao mesmo tempo, os mais velhos saem.
     void Faiscar(const Vector2& onde, Hud::Faisca tipo, int quem = -1);
+
+    /// O projetil passou rente ao aluno sem acerta-lo (Raspao.h): paga o raspao, uma vez por projetil.
+    void Raspar(Player& jogador, const class CircleColliderComponent& colisor, class BossProjectile& projetil,
+                const class CircleColliderComponent& colisorDoProjetil);
     /// A posicao (0 ou 1) do aluno 'ator', ou -1 se ele nao e um aluno.
     [[nodiscard]] int PosicaoDoAluno(const Actor* ator) const;
     void AtualizarEfeitos(float deltaTime);

@@ -143,8 +143,9 @@ aparece pronta — o véu some, e só então o professor ataca e a música come�
 - **o quadro** no canto é de giz: o professor escreve nele o que está fazendo, e
   o apagador passa quando o texto troca;
 - **cada tiro responde**: uma faísca miúda no acerto no professor, uma explosão
-  laranja no projétil derrubado, um anel vermelho em volta de quem é acertado e
-  um dourado em quem pega um Ponto Extra.
+  laranja no projétil derrubado, um anel vermelho em volta de quem é acertado,
+  um dourado em quem pega um Ponto Extra e três riscos azuis na sua borda
+  quando um projétil passa raspando.
 
 ## A nota
 
@@ -167,6 +168,16 @@ acompanha a duração das fases: a nota sobe por segundo o mesmo que subia quand
 as fases tinham 17 segundos. Apesar de ser possível, ainda estou achando
 difícil, porque é necessário seguir o Boss que em alguns movimentos são mais rápidos. Talvez eu diminua
 esse número depois de receber feedback externo.
+
+**Arriscar compensa.** A Dúvida lançada perto do professor vale mais: o ganho
+do acerto cresce de 1 vez, a 470 px dele ou mais, até **1,5 vez**, a 170 px ou
+menos — e, a partir de 1,35, a resposta sobe com dois pontos de exclamação
+(**!!**) em vez de um. Do fundo do campo, onde você nasce, vale o de sempre; e
+encostar no professor continua derrubando a nota. O projétil que passa
+**raspando** em você sem acertar — entre o seu colisor e a borda do desenho —
+paga um terço de um acerto, com três riscos azuis na sua borda. Cada projétil
+vale um raspão só; o que está parado não conta, nem o de quem ainda pisca
+depois de ser atingido. Em dupla, os dois se repartem como os acertos.
 
 Há um segundo freio, independente da curva: **quem é atingido três vezes para em
 99,99** naquela tentativa, por mais tempo que fique em tela. É isso que faz o 100

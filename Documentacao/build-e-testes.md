@@ -154,6 +154,13 @@ boss->SetInitialState(std::getenv("DPI_ESTADO") ? std::getenv("DPI_ESTADO") : "S
 batalha começa com a nota inicial (40) em qualquer fase, e que a `StateThree`
 a decide: a fase 1 ou 2 sozinha leva à 3, e não ao fim.
 
+Cada remendo do script procura um trecho exato do código. Se um não pega —
+o trecho mudou —, o script para com `!!! um gancho nao pegou` e não monta nada:
+um arnes com metade dos remendos mede errado sem avisar (foi o que aconteceu
+quando a conta do ganho por acerto mudou e o contador de acertos zerou). Ache o
+trecho novo e troque o gancho por algo que mude menos: o do contador é o
+`if (ouviu) {`, e não a conta do ganho.
+
 ### Passo de tempo fixo
 
 O laço principal espera 16 ms por quadro. Para uma batalha de 51 s rodar em

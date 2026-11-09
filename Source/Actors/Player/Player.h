@@ -11,6 +11,7 @@
 #include "../../Entrada/Painel.h"
 #include "../../Regras/Acerto.h"
 #include "../../Regras/PontoExtra.h"
+#include "../../Regras/Raspao.h"
 
 class PlayerProjectile;
 class PlayerOrb;
@@ -37,6 +38,11 @@ public:
     /// do chefe, e 'idade' a vida dele (0 para o corpo).
     [[nodiscard]] bool JaFoiAcertadoPor(const void* quem, const float idade) const { return mAcertos.Lembra(quem, idade); }
     void FoiAcertadoPor(const void* quem, const float idade) { mAcertos.Lembrar(quem, idade); }
+
+    /// Um projetil raspa o aluno uma vez so (Raspao.h): a mesma memoria dos acertos, com o prazo da
+    /// vida de um projetil.
+    [[nodiscard]] bool JaRaspou(const void* quem, const float idade) const { return mRaspoes.Lembra(quem, idade); }
+    void Raspou(const void* quem, const float idade) { mRaspoes.Lembrar(quem, idade); }
 
     /// Protege este aluno por um tempo, as custas do Ponto Extra do parceiro. Renova, nao acumula.
     void Proteger(float segundos);
@@ -111,6 +117,7 @@ private:
     // OnUpdate Sub-functions.
     void AtualizarInvencibilidade(float deltaTime);
     Acerto::Memoria mAcertos;
+    Acerto::Memoria mRaspoes{Raspao::kMemoria};
     void UpdateImunidade(float deltaTime);
     void UpdateCorrente(float deltaTime);
 

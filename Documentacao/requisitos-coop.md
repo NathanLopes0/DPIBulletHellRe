@@ -104,6 +104,10 @@ Dividido (ações de um jogador):
   dividir seriam 20 na mesma barra. **O efeito dele muda no co-op**: em vez de
   limpar a tela, ele deixa o *outro* aluno imune pelos mesmos três segundos que
   o doador passa sem atirar — ver 2.5.
+- o **raspão** (`Raspao::kGanho`, um terço de um acerto): o projétil que passa
+  rente a um aluno sem acertá-lo é do risco daquele aluno. E o fator da
+  **dúvida perguntada de perto** (`Nota::FatorDePerto`, até 1,5) multiplica o
+  acerto de quem perguntou antes da divisão: cada um arrisca a sua distância.
 
 Pago inteiro (resultado da dupla):
 

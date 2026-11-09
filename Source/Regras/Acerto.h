@@ -22,6 +22,10 @@ namespace Acerto {
 
     class Memoria {
     public:
+        /// Lembra de cada causador por 'duracao' segundos: kMesmoCausador, para os acertos; a vida
+        /// de um projetil, para os raspoes (Raspao::kMemoria).
+        explicit Memoria(const float duracao = kMesmoCausador) : mDuracao(duracao) {}
+
         /// Os segundos passam; o que ficou velho e esquecido.
         void Avancar(float deltaTime);
 
@@ -39,5 +43,6 @@ namespace Acerto {
             float ha = 0.0f;      ///< ha quanto tempo foi
         };
         std::vector<Item> mItens;
+        float mDuracao = kMesmoCausador;
     };
 }

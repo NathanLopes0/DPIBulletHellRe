@@ -78,4 +78,11 @@ float PerdaPorJogador(const float bruto, const size_t quantosJogadores) {
     return repartido * kAlivioDaPerdaEmGrupo;
 }
 
+float FatorDePerto(const float distancia) {
+    if (distancia <= kPerto) return kFatorDePerto;
+    if (distancia >= kLonge) return 1.0f;
+    const float u = (kLonge - distancia) / (kLonge - kPerto);
+    return 1.0f + (kFatorDePerto - 1.0f) * u;
+}
+
 }

@@ -34,6 +34,7 @@
 #include "../../Actors/Teachers/ExtraPointItem.h"
 #include "../../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../../Regras/PontoExtra.h"
+#include "../../Regras/Raspao.h"
 #include "../../Regras/Destrutivel.h"
 #include "../../Actors/Orientador/Orientador.h"
 #include "../../Curso/MateriasArquivo.h"
@@ -961,10 +962,29 @@ void Battle::ColisoesTiroDoChefeNoAluno(const std::vector<std::unique_ptr<BossPr
 
                     Faiscar(playerCollider->GetCenter(), Hud::Faisca::Dano);
                     Avisar([&](OuvinteDaBatalha& o) { o.AoSerAcertado(*this, *jogador, true); });
+                } else {
+                    Raspar(*jogador, *playerCollider, *bossProj, *bossProjCollider);
                 }
             }
         }
     }
+}
+
+void Battle::Raspar(Player& jogador, const CircleColliderComponent& colisor, BossProjectile& projetil,
+                    const CircleColliderComponent& colisorDoProjetil) {
+    // O que esta parado num posto (a pilha, a tabela) e o que nem anda nao e um desvio; e quem esta
+    // invencivel nao arrisca nada.
+    if (jogador.EstaInvencivel() || !projetil.Posto().empty()) return;
+    // A conta da faixa antes de procurar o corpo rigido: quase todo projetil passa longe.
+    if (!Raspao::NaFaixa(colisor.GetCenter(), colisor.GetRadius(), colisorDoProjetil.GetCenter(),
+                         colisorDoProjetil.GetRadius())) return;
+    const auto* rb = projetil.GetComponent<RigidBodyComponent>();
+    if (!rb || rb->GetVelocity().Length() < Raspao::kRapidezMinima) return;
+    if (jogador.JaRaspou(&projetil, projetil.TempoDeVida())) return;
+
+    jogador.Raspou(&projetil, projetil.TempoDeVida());
+    SubirNota(PorJogador(Raspao::kGanho));
+    Faiscar(Raspao::OndeFaisca(colisor.GetCenter(), colisorDoProjetil.GetCenter()), Hud::Faisca::Raspao);
 }
 
 void Battle::ColisoesTiroDoAlunoNosProjeteis(const std::vector<std::unique_ptr<PlayerProjectile>>& playerProjectiles, const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles) {
@@ -1057,10 +1077,17 @@ void Battle::ColisoesTiroDoAlunoNoChefe(const std::vector<std::unique_ptr<Player
                 Avisar([&](OuvinteDaBatalha& o) { o.AoAcertarOProfessor(*this, playerProj->Dono()); });
 
                 if (ouviu) {
-                    SubirNota(PorJogador(Nota::kGanhoPorAcerto));
-                    // A duvida respondida: o "?" vira um "!" na cor de quem perguntou.
-                    Faiscar(playerProj->GetPosition(), Hud::Faisca::Resposta,
-                            PosicaoDoAluno(playerProj->Dono()));
+                    // A duvida perguntada de perto vale mais (Nota::FatorDePerto) - a do aluno; a do
+                    // orientador, nao.
+                    const int quem = PosicaoDoAluno(playerProj->Dono());
+                    const float fator = quem >= 0 ? Nota::FatorDePerto((playerProj->Dono()->GetPosition() -
+                                                                        colisorDoCorpo->GetCenter()).Length())
+                                                  : 1.0f;
+                    SubirNota(PorJogador(Nota::kGanhoPorAcerto * fator));
+                    // A duvida respondida: o "?" vira um "!" na cor de quem perguntou - "!!" de perto.
+                    Faiscar(playerProj->GetPosition(),
+                            fator >= Nota::kFatorDaRespostaDupla ? Hud::Faisca::RespostaDePerto : Hud::Faisca::Resposta,
+                            quem);
                 }
 
                 // Todo acerto carrega o poder do orientador, blindado ou nao.
@@ -1540,25 +1567,39 @@ void Battle::AtualizarEfeitos(const float deltaTime) {
                 raios(f.onde, 0.0f, r, 4, giro, SDL_Color{255, 225, 120, alfa(b)});
                 raios(f.onde, 0.0f, r * 0.55f, 4, giro + Math::Pi / 4.0f, SDL_Color{255, 250, 210, alfa(b)});
                 break;
-            case Hud::Faisca::Resposta: {
-                // O "!" sobe e some, na cor do aluno, com o miolo claro e um contorno escuro.
+            case Hud::Faisca::Resposta:
+            case Hud::Faisca::RespostaDePerto: {
+                // O "!" sobe e some, na cor do aluno, com o miolo claro e um contorno escuro. De perto
+                // sao dois: "!!".
                 const Hud::Rgb c = Hud::CorDoAluno(f.quem < 0 ? 9 : static_cast<size_t>(f.quem));
                 const SDL_Color cor{c.r, c.g, c.b, alfa(b)};
                 const SDL_Color miolo{255, 255, 240, alfa(b)};
                 const SDL_Color contorno{20, 22, 34, alfa(0.85f * b)};
                 const Vector2 p = f.onde + Vector2(0.0f, -10.0f - r);
-                const auto exclamacao = [&](const int largura, const float folga, const SDL_Color cor) {
+                const auto exclamacao = [&](const float x0, const int largura, const float folga, const SDL_Color cor) {
                     for (int dx = -largura; dx <= largura; ++dx) {
-                        const auto x = static_cast<float>(dx);
+                        const float x = x0 + static_cast<float>(dx);
                         mEfeitos->Acrescentar(p + Vector2(x, -16.0f - folga), p + Vector2(x, -4.0f + folga), cor);
                         mEfeitos->Acrescentar(p + Vector2(x, -1.0f - folga), p + Vector2(x, 2.0f + folga), cor);
                     }
                 };
-                exclamacao(3, 1.0f, contorno);
-                exclamacao(2, 0.0f, cor);
-                exclamacao(0, -1.0f, miolo);
+                const bool dois = f.tipo == Hud::Faisca::RespostaDePerto;
+                constexpr float kLados[] = {-5.0f, 5.0f};
+                for (int i = 0; i < (dois ? 2 : 1); ++i) {
+                    const float x0 = dois ? kLados[i] : 0.0f;
+                    exclamacao(x0, 3, 1.0f, contorno);
+                    exclamacao(x0, 2, 0.0f, cor);
+                    exclamacao(x0, 0, -1.0f, miolo);
+                }
                 break;
             }
+            case Hud::Faisca::Raspao:
+                // Tres riscos azul-claros, na borda do aluno, com um contorno escuro que os separa do
+                // desenho dele: passou perto.
+                raios(f.onde, r * 0.25f, r, 3, giro, SDL_Color{20, 22, 34, alfa(0.6f * b)});
+                raios(f.onde + Vector2(1.0f, 0.0f), r * 0.25f, r, 3, giro, SDL_Color{20, 22, 34, alfa(0.6f * b)});
+                raios(f.onde + Vector2(0.0f, -1.0f), r * 0.3f, r, 3, giro, SDL_Color{170, 225, 255, alfa(b)});
+                break;
         }
     }
 

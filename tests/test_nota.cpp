@@ -387,3 +387,38 @@ TEST_CASE("Nota: o ganho por acerto acompanha a duracao da fase, e a nota sobe p
     CHECK(acertos == doctest::Approx(256.0f * Fase::kDuracao / Nota::kDuracaoDaFaseMedida).epsilon(0.02));
     CHECK(static_cast<float>(acertos) < 3.0f * Fase::kDuracao / 0.12f);
 }
+
+// ---- A duvida perguntada de perto ----
+
+TEST_CASE("Nota: a duvida perguntada de perto vale ate 1,5 vez, e do fundo do campo vale o de sempre") {
+    // Colado no professor, o fator cheio; de longe, 1.
+    CHECK(Nota::FatorDePerto(0.0f) == doctest::Approx(Nota::kFatorDePerto));
+    CHECK(Nota::FatorDePerto(Nota::kPerto) == doctest::Approx(Nota::kFatorDePerto));
+    CHECK(Nota::FatorDePerto(Nota::kLonge) == doctest::Approx(1.0f));
+    CHECK(Nota::FatorDePerto(2000.0f) == doctest::Approx(1.0f));
+    CHECK(Nota::kFatorDePerto == doctest::Approx(1.5f));
+
+    // No meio, o meio: a reta, sem degrau.
+    const float meio = (Nota::kPerto + Nota::kLonge) / 2.0f;
+    CHECK(Nota::FatorDePerto(meio) == doctest::Approx(1.25f));
+
+    // Quanto mais perto, mais vale - nunca menos.
+    float anterior = Nota::FatorDePerto(0.0f);
+    for (float d = 10.0f; d <= 700.0f; d += 10.0f) {
+        const float f = Nota::FatorDePerto(d);
+        CHECK(f <= anterior + 1e-6f);
+        CHECK(f >= 1.0f);
+        anterior = f;
+    }
+
+    // Quem fica embaixo, onde o aluno nasce (uns 550 px abaixo do professor), pergunta como antes.
+    CHECK(Nota::FatorDePerto(550.0f) == doctest::Approx(1.0f));
+}
+
+TEST_CASE("Nota: o \"!!\" marca a faixa de perto, que comeca entre o meio e o colado") {
+    CHECK(Nota::kFatorDaRespostaDupla > 1.25f);
+    CHECK(Nota::kFatorDaRespostaDupla < Nota::kFatorDePerto);
+    // Colado no professor sai sempre "!!"; de longe, "!".
+    CHECK(Nota::FatorDePerto(Nota::kPerto) >= Nota::kFatorDaRespostaDupla);
+    CHECK(Nota::FatorDePerto(Nota::kLonge) < Nota::kFatorDaRespostaDupla);
+}

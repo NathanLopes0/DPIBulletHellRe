@@ -26,7 +26,7 @@ namespace Acerto {
     void Memoria::Avancar(const float deltaTime) {
         for (Item& i : mItens) i.ha += deltaTime;
         mItens.erase(std::remove_if(mItens.begin(), mItens.end(),
-                                    [](const Item& i) { return i.ha >= kMesmoCausador; }),
+                                    [this](const Item& i) { return i.ha >= mDuracao; }),
                      mItens.end());
     }
 
@@ -44,7 +44,7 @@ namespace Acerto {
     bool Memoria::Lembra(const void* quem, const float idade) const {
         if (!quem) return false;
         for (const Item& i : mItens) {
-            if (i.quem == quem && idade + kFolgaDaIdade >= i.idade && i.ha < kMesmoCausador) return true;
+            if (i.quem == quem && idade + kFolgaDaIdade >= i.idade && i.ha < mDuracao) return true;
         }
         return false;
     }
