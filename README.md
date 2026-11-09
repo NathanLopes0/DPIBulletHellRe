@@ -90,7 +90,12 @@ aluno no meio dos tiros. `Esc` durante a contagem reabre o menu.
 
 **Quando a luta acaba**, a tela de resultado mostra a nota, se ela bateu o
 recorde da matéria, as fases limpas e os acertos sofridos, e oferece **Tentar
-de novo** (a mesma matéria, do zero) ou **Voltar às matérias**. O menu só
+de novo** (a mesma matéria, do zero) ou **Voltar às matérias**. Quem reprovou
+vê também a **devolutiva**, como numa prova corrigida: a fase em que a nota
+mais caiu, com quanto ela custou, e o desenho do que mais te acertou, com
+quantas vezes. Na dupla, uma linha por aluno, na cor dele, diz a parte de
+cada um — acertos no professor, coberturas e acertos sofridos —: quem cobriu o
+parceiro vê que contou. O menu só
 aceita o botão depois de um instante, para o tiro que estava apertado não
 escolher sozinho. No gabinete, se ninguém escolher em 20 segundos, ela volta
 sozinha para as matérias.

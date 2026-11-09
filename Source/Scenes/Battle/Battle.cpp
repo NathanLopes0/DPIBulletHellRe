@@ -36,6 +36,9 @@
 #include "../../Regras/PontoExtra.h"
 #include "../../Regras/Raspao.h"
 #include "../../Regras/Cobertura.h"
+#include "../TextoDeCena.h"
+#include "../../Aluno/Matricula.h"
+#include "../../Actors/Teachers/BossFactory/BossProjectileFactory/FabricaDeProjetil.h"
 #include "../../Regras/Destrutivel.h"
 #include "../../Actors/Orientador/Orientador.h"
 #include "../../Curso/MateriasArquivo.h"
@@ -102,8 +105,8 @@ void Battle::Load() {
     CriarChefe();
     CriarOrientador();
     CriarHUD();
-    CriarResultado();
     CriarPausa();
+    mPartes.assign(mJogadores.size(), Devolutiva::Parte{});
 
     // Tocando desde o Load, ela comecava por cima de uma tela parada.
 
@@ -447,7 +450,7 @@ void Battle::AtualizarIntercambio(const float deltaTime) {
     }
 }
 
-void Battle::CriarResultado() {
+void Battle::CriarResultado(const int linhas) {
     std::vector<std::string> opcoes;
     for (const Resultado::Opcao o : Resultado::kOpcoes) opcoes.emplace_back(Resultado::Texto(o));
 
@@ -458,10 +461,11 @@ void Battle::CriarResultado() {
 
     // Mais alta que a da pausa: cabem as linhas do resumo entre o titulo e as opcoes.
     PainelDeMenu::Medidas medidas;
-    medidas.alturaDaPlaca = 480;
+    medidas.larguraDaPlaca = kLarguraDoResultado;
+    medidas.alturaDaPlaca = PainelDeMenu::AlturaPara(linhas);
     medidas.ordem = kOrdemDosMenus;
     mPainelDoResultado = std::make_unique<PainelDeMenu>(*this, mFonteDaNota.get(), " ", opcoes, rodape,
-                                                        Resultado::kLinhasNoMaximo, medidas);
+                                                        linhas, medidas);
 }
 
 void Battle::ComecarCarregamento() {
@@ -860,11 +864,57 @@ void Battle::MostrarResultado(const Resultado::Resumo& resumo) {
     mResultadoSelecionado = 0;
     // O tiro que estava apertado quando a luta acabou nao escolhe nada.
     SegurarMenu();
+    const std::vector<std::string> linhas = Resultado::Linhas(resumo);
+    CriarResultado(static_cast<int>(linhas.size()));
     mPainelDoResultado->SetTitulo(Resultado::Titulo(resumo.aprovado),
                                   resumo.aprovado ? Color::LightGreen : Color::LightPink);
-    mPainelDoResultado->SetLinhas(Resultado::Linhas(resumo), Resultado::LinhaEmDestaque(resumo));
+    mPainelDoResultado->SetLinhas(linhas, Resultado::LinhaEmDestaque(resumo));
+    // A justica: cada aluno na cor dele.
+    for (size_t i = 0; i < resumo.partes.size(); ++i) {
+        const Hud::Rgb c = Hud::CorDoAluno(i);
+        mPainelDoResultado->ColorirLinha(Resultado::LinhaDaParte(resumo, i),
+                                         Vector3(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f));
+    }
     mPainelDoResultado->Selecionar(mResultadoSelecionado);
     mPainelDoResultado->Mostrar(true);
+    // A devolutiva: o desenho do que mais acertou, na linha dela.
+    const int linhaDasCausas = Resultado::LinhaDasCausas(resumo);
+    if (linhaDasCausas >= 0) MostrarCausas(resumo.causas, mPainelDoResultado->OndeDaLinha(linhaDasCausas));
+}
+
+void Battle::MostrarCausas(const std::vector<Devolutiva::Causa>& causas, const Vector2& onde) {
+    // "Mais te acertou:" a esquerda; depois, cada causa: o desenho do projetil e quantas vezes.
+    const int ordem = kOrdemDosMenus + 4;
+    CriarTexto(*this, mFonteDaNota.get(), "Mais te acertou:", onde + Vector2(-150.0f, 0.0f), 26, 230, 34, ordem);
+    float x = onde.x - 10.0f;
+    for (const Devolutiva::Causa& c : causas) {
+        const std::string vezes = "\xc3\x97" + std::to_string(c.acertos);
+        const auto* fabrica = mChefe ? dynamic_cast<FabricaDeProjetil*>(mChefe->GetProjectileFactory(c.causa)) : nullptr;
+        if (c.causa == Devolutiva::kEsbarrao || !fabrica) {
+            // O esbarrao nao tem desenho de projetil: o nome dele.
+            CriarTexto(*this, mFonteDaNota.get(), "encostar " + vezes, Vector2(x + 50.0f, onde.y), 26, 150, 34, ordem);
+            x += 170.0f;
+            continue;
+        }
+        auto icone = std::make_unique<Actor>(this);
+        icone->SetPosition(Vector2(x, onde.y));
+        auto* desenho = icone->AddComponent<DrawAnimatedComponent>(fabrica->CaminhoDoSprite(), fabrica->CaminhoDosDados(), ordem);
+        for (const auto& anim : fabrica->Descricao().animacoes) desenho->AddAnimation(anim.nome, anim.quadros);
+        desenho->SetAnimation(fabrica->Descricao().animacaoInicial);
+        // Do tamanho de uma linha, por maior que seja o projetil.
+        const float lado = static_cast<float>(std::max(desenho->GetSpriteWidth(), desenho->GetSpriteHeight()));
+        // Pixel art cresce bem: o projetil miudo vai ate quatro vezes, o grande encolhe.
+        icone->SetScale(lado > 0.0f ? std::min(4.0f, kLadoDoIcone / lado) : 1.0f);
+        AddActor(std::move(icone));
+        CriarTexto(*this, mFonteDaNota.get(), vezes, Vector2(x + 48.0f, onde.y), 26, 80, 34, ordem);
+        x += 120.0f;
+    }
+}
+
+void Battle::AnotarPerda(const Player& jogador, const std::string& causa, const float perda) {
+    mCaderno.Perder(causa, perda);
+    const int quem = PosicaoDoAluno(&jogador);
+    if (quem >= 0 && static_cast<size_t>(quem) < mPartes.size()) ++mPartes[static_cast<size_t>(quem)].sofridos;
 }
 
 void Battle::ProcessarResultado(const Uint8* keyState) {
@@ -872,6 +922,7 @@ void Battle::ProcessarResultado(const Uint8* keyState) {
     const BatidasDoMenu b = LerMenu(keyState);
     if (mTempoNoFim < Resultado::kTravaDoMenu) return;
 
+    if (!mPainelDoResultado) return;
     if (b.cima) mResultadoSelecionado = Resultado::Mover(mResultadoSelecionado, -1);
     if (b.baixo) mResultadoSelecionado = Resultado::Mover(mResultadoSelecionado, 1);
     mPainelDoResultado->Selecionar(mResultadoSelecionado);
@@ -960,7 +1011,9 @@ void Battle::ColisoesTiroDoChefeNoAluno(const std::vector<std::unique_ptr<BossPr
                         jogador->Acorrentar(bossProj->SegundosDeCorrente(),
                                             bossProj->FatorDaCorrente());
                     }
+                    const float antes = mNota;
                     DescerNota(bossProj->MultiplicadorDaPerda());
+                    AnotarPerda(*jogador, bossProj->Tipo(), antes - mNota);
 
                     Faiscar(playerCollider->GetCenter(), Hud::Faisca::Dano);
                     Avisar([&](OuvinteDaBatalha& o) { o.AoSerAcertado(*this, *jogador, true); });
@@ -990,6 +1043,7 @@ bool Battle::Cobrir(const PlayerProjectile& tiro, const BossProjectile& projetil
 
     // E da dupla: pago inteiro, sem a divisao.
     SubirNota(Cobertura::kGanho);
+    if (static_cast<size_t>(quem) < mPartes.size()) ++mPartes[static_cast<size_t>(quem)].coberturas;
     Faiscar(colisorDoProjetil->GetCenter(), Hud::Faisca::Cobertura, quem);
     Avisar([&](OuvinteDaBatalha& o) { o.AoCobrir(*this, *mJogadores[static_cast<size_t>(quem)], *parceiro); });
     return true;
@@ -1107,6 +1161,7 @@ void Battle::ColisoesTiroDoAlunoNoChefe(const std::vector<std::unique_ptr<Player
                     const int quem = PosicaoDoAluno(playerProj->Dono());
                     // Quem pergunta incomoda, e chama a mira (Papeis.h).
                     if (quem >= 0) mIncomodo.Acertou(static_cast<size_t>(quem));
+                    if (quem >= 0 && static_cast<size_t>(quem) < mPartes.size()) ++mPartes[static_cast<size_t>(quem)].acertos;
                     const float fator = quem >= 0 ? Nota::FatorDePerto((playerProj->Dono()->GetPosition() -
                                                                         colisorDoCorpo->GetCenter()).Length())
                                                   : 1.0f;
@@ -1143,7 +1198,9 @@ void Battle::ColisoesDeContato() {
                 jogador->FoiAcertadoPor(corpo, 0.0f);
                 jogador->OnCollision(corpo);
                 corpo->OnCollision(jogador);
+                const float antes = mNota;
                 DescerNota();
+                AnotarPerda(*jogador, Devolutiva::kEsbarrao, antes - mNota);
                 Avisar([&](OuvinteDaBatalha& o) { o.AoSerAcertado(*this, *jogador, false); });
             }
         }
@@ -1252,6 +1309,7 @@ void Battle::AoMudarDeFase(const float novaDuracao) {
     const auto* fsm = mChefe ? mChefe->GetComponent<FSMComponent>() : nullptr;
     const std::string fase = fsm ? fsm->GetStateName() : "";
     const std::string anuncio = mChefe ? mChefe->AnuncioDaFase(fase) : "";
+    mCaderno.ComecarFase(anuncio, fase == "StateFinal");
     Avisar([&](OuvinteDaBatalha& o) { o.AoTrocarDeFase(*this, fase, anuncio); });
 }
 
@@ -1714,6 +1772,23 @@ void Battle::EncerrarBatalha(bool aprovado) {
     resumo.recordeAntes = mGame->RecordeDaPartida(mMateria);
     resumo.fasesLimpas = mFasesLimpas;
     resumo.acertosSofridos = mAcertosSofridos;
+    // A devolutiva, para quem reprovou: onde a nota mais caiu e o que mais acertou.
+    if (!aprovado) {
+        resumo.piorFase = mCaderno.PiorFase();
+        resumo.causas = mCaderno.Causas();
+        if (resumo.causas.size() > static_cast<size_t>(Devolutiva::kCausasNaTela)) {
+            resumo.causas.resize(static_cast<size_t>(Devolutiva::kCausasNaTela));
+        }
+    }
+    // A justica, na dupla: a parte de cada um, com a matricula dele.
+    if (mPartes.size() >= 2) {
+        resumo.partes = mPartes;
+        for (size_t i = 0; i < resumo.partes.size(); ++i) {
+            // A matricula; quem nao tem uma (o visitante) e o aluno da posicao dele - a cor diz qual.
+            const std::string& m = mGame->MatriculaDe(i);
+            resumo.partes[i].quem = (m.empty() || m == Matricula::kVisitante) ? "Aluno " + std::to_string(i + 1) : m;
+        }
+    }
 
     // O unico ponto em que a nota vai para o armazenamento persistente.
     mGame->RegistrarNota(mMateria, mNota);

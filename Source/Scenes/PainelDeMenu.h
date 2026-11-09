@@ -39,6 +39,15 @@ public:
     /// pintada de dourado (-1: nenhuma).
     void SetLinhas(const std::vector<std::string>& linhas, int destaque = -1);
 
+    /// Pinta a linha 'indice' de 'cor' (a do aluno, na justica da dupla).
+    void ColorirLinha(int indice, const Vector3& cor);
+
+    /// O centro da linha 'indice', para desenhar ao lado dela (os projeteis da devolutiva).
+    [[nodiscard]] Vector2 OndeDaLinha(int indice) const;
+
+    /// A altura da placa para 'linhas' linhas de resumo, com as opcoes e o rodape de sempre.
+    [[nodiscard]] static int AlturaPara(int linhas);
+
 private:
     [[nodiscard]] float YDaOpcao(int indice) const;
 

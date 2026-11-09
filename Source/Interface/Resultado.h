@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "Devolutiva.h"
+
 /// A luta acabou: em vez de mostrar aprovade por quatro segundos e voltar sozinha para as materias,
 /// a batalha mostra o resumo dela.
 namespace Resultado {
@@ -30,6 +32,14 @@ namespace Resultado {
         float recordeAntes = 0.0f;
         int fasesLimpas = 0;
         int acertosSofridos = 0;
+
+        /// A devolutiva (Devolutiva.h), que so quem reprovou ve: a fase em que a nota mais caiu...
+        std::optional<Devolutiva::Fase> piorFase;
+        /// ...e o que mais acertou, da causa que mais custou (ate Devolutiva::kCausasNaTela).
+        std::vector<Devolutiva::Causa> causas;
+
+        /// Na dupla, a parte de cada aluno, na ordem do painel (a justica).
+        std::vector<Devolutiva::Parte> partes;
     };
 
     /// O titulo: "APROVADE!" ou "REPROVADE".
@@ -40,11 +50,20 @@ namespace Resultado {
     bool NovoRecorde(const Resumo& r);
 
     /// As linhas do resumo, de cima para baixo: a nota, o recorde (ou o aviso de recorde novo), as
-    /// fases limpas e os acertos sofridos.
+    /// fases limpas e os acertos sofridos. Quem reprovou ve a devolutiva: a fase em que a nota mais
+    /// caiu e, numa linha so dos desenhos (LinhaDasCausas), o que mais o acertou. Na dupla, uma
+    /// linha por aluno com a parte dele (LinhaDaParte).
     std::vector<std::string> Linhas(const Resumo& r);
 
-    /// Quantas Linhas um resumo tem no maximo: e quantas o painel reserva.
-    constexpr int kLinhasNoMaximo = 4;
+    /// Quantas Linhas um resumo tem no maximo: as quatro de sempre, as duas da devolutiva e as duas
+    /// da dupla.
+    constexpr int kLinhasNoMaximo = 8;
+
+    /// A linha (vazia) em que a batalha desenha o que mais acertou o aluno; -1 quando nao ha.
+    int LinhaDasCausas(const Resumo& r);
+
+    /// A linha da parte do aluno 'quem' na dupla, que vai na cor dele; -1 quando nao ha.
+    int LinhaDaParte(const Resumo& r, size_t quem);
 
     /// Qual das Linhas vai em destaque (dourada): a do recorde novo, ou -1 quando nao ha nenhuma.
     int LinhaEmDestaque(const Resumo& r);

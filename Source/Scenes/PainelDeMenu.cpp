@@ -109,6 +109,21 @@ void PainelDeMenu::SetTitulo(const std::string& texto, const Vector3& cor) {
     t->SetColor(cor);
 }
 
+void PainelDeMenu::ColorirLinha(const int indice, const Vector3& cor) {
+    if (indice < 0 || static_cast<size_t>(indice) >= mLinhas.size()) return;
+    mLinhas[static_cast<size_t>(indice)]->GetComponent<DrawTextComponent>()->SetColor(cor);
+}
+
+Vector2 PainelDeMenu::OndeDaLinha(const int indice) const {
+    const float topo = mMeio.y - static_cast<float>(mMedidas.alturaDaPlaca) / 2.0f;
+    return Vector2(mMeio.x, topo + 128.0f + static_cast<float>(indice) * kPassoDasLinhas);
+}
+
+int PainelDeMenu::AlturaPara(const int linhas) {
+    // As quatro linhas de sempre cabiam em 480; cada uma a mais pede um passo.
+    return 480 + static_cast<int>(kPassoDasLinhas) * std::max(0, linhas - 4);
+}
+
 void PainelDeMenu::SetLinhas(const std::vector<std::string>& linhas, const int destaque) {
     mLinhasEmUso = std::min(linhas.size(), mLinhas.size());
     for (size_t i = 0; i < mLinhasEmUso; ++i) {

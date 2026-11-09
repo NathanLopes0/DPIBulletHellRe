@@ -77,6 +77,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Motor/Gabinete.h
         Source/Interface/Pausa.cpp
         Source/Interface/Resultado.cpp
+        Source/Interface/Devolutiva.cpp
+        Source/Interface/Devolutiva.h
         Source/Interface/Resultado.h
         Source/Interface/Manual.cpp
         Source/Interface/Manual.h
@@ -512,6 +514,7 @@ add_executable(dpi_tests
         tests/test_objetivo.cpp
         tests/test_tentativas.cpp
         tests/test_resultado.cpp
+        tests/test_devolutiva.cpp
         tests/test_manual.cpp
         tests/test_borda.cpp
         tests/test_barra_da_nota.cpp
@@ -542,6 +545,8 @@ add_executable(dpi_tests
         Source/Motor/Gabinete.h
         Source/Interface/Pausa.cpp
         Source/Interface/Resultado.cpp
+        Source/Interface/Devolutiva.cpp
+        Source/Interface/Devolutiva.h
         Source/Interface/Resultado.h
         Source/Interface/Manual.cpp
         Source/Interface/Manual.h

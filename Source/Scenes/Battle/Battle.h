@@ -17,6 +17,7 @@
 #include "../../Interface/Pausa.h"
 #include "../../Entrada/Borda.h"
 #include "../../Interface/Resultado.h"
+#include "../../Interface/Devolutiva.h"
 #include "../../Regras/Dificuldade.h"
 #include "../../Interface/Hud.h"
 #include "../../Regras/Variacao.h"
@@ -418,8 +419,14 @@ private:
 
     // ---- O fim da luta: a tela de resultado (Resultado.h) ----
 
-    void CriarResultado();
+    /// O painel do resultado, do tamanho do resumo: criado no fim, quando se sabe quantas linhas ele tem.
+    void CriarResultado(int linhas);
     void MostrarResultado(const Resultado::Resumo& resumo);
+    /// O que mais acertou o aluno, na linha da devolutiva: o desenho de cada projetil e quantas vezes.
+    void MostrarCausas(const std::vector<Devolutiva::Causa>& causas, const Vector2& onde);
+    /// Um acerto sofrido por 'jogador', que levou 'perda' de nota, por 'causa' (o tipo do projetil, ou
+    /// o esbarrao): para a devolutiva e a justica.
+    void AnotarPerda(const Player& jogador, const std::string& causa, float perda);
     void ProcessarResultado(const Uint8* keyState);
     void EscolherNoResultado();
 
@@ -429,6 +436,11 @@ private:
     float mTempoNoFim = 0.0f;
     int mResultadoSelecionado = 0;
     std::unique_ptr<PainelDeMenu> mPainelDoResultado;
+
+    /// A devolutiva: onde a nota caiu e por que (Devolutiva.h).
+    Devolutiva::Caderno mCaderno;
+    /// A justica, na dupla: o que cada aluno fez.
+    std::vector<Devolutiva::Parte> mPartes;
 
     SoundHandle mMusica;
 
@@ -485,6 +497,10 @@ private:
 
     /// Por cima de tudo: a faixa da nota vai ate 304.
     static constexpr int kOrdemDosMenus = 900;
+    /// O lado do desenho de cada projetil na devolutiva: o de uma linha do resultado.
+    static constexpr float kLadoDoIcone = 34.0f;
+    /// O resultado e mais largo que a pausa: a linha da devolutiva traz o nome da fase.
+    static constexpr int kLarguraDoResultado = 760;
 };
 
 #endif // DPIBULLETHELLRE_BATTLE_H.

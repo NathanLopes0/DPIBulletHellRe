@@ -279,6 +279,11 @@ Juntas, as duas regras fazem os papéis aparecerem sem botão nem escolha de
 classe: quem ataca chama a mira e desvia dela; quem cobre ataca menos, fica livre
 dos mirados e ganha nota protegendo. Trocar de papel é só mudar o que se faz.
 
+**E o resultado mostra a parte de cada um** (`Interface/Devolutiva.h`): uma linha
+por aluno, na cor dele, com os acertos no professor, as coberturas e os acertos
+sofridos. Com a nota sendo uma só, sem isso quem cobriu não teria como saber que
+o trabalho dele contou — nem o parceiro.
+
 ## 3. Requisitos funcionais
 
 ### RF1 — Menu

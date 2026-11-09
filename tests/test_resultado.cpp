@@ -40,7 +40,7 @@ TEST_CASE("Resultado: as linhas dizem a nota, o recorde, as fases limpas e os ac
     r.fasesLimpas = 2;
     r.acertosSofridos = 7;
     const auto l = Linhas(r);
-    REQUIRE(l.size() == static_cast<size_t>(kLinhasNoMaximo));   // com ficha, todas
+    REQUIRE(l.size() == 4u);   // com ficha, as quatro de sempre
     CHECK(l[0] == "Nota final: 63.26");
     CHECK(l[1] == "Recorde: 80.00");
     CHECK(l[2] == "Fases limpas: 2");
@@ -57,6 +57,70 @@ TEST_CASE("Resultado: as linhas dizem a nota, o recorde, as fases limpas e os ac
     CHECK(LinhaEmDestaque(r) == -1);
     CHECK(std::string(Titulo(true)) == "APROVADE!");
     CHECK(std::string(Titulo(false)) == "REPROVADE");
+}
+
+TEST_CASE("Resultado: quem reprovou ve a devolutiva - a fase e, numa linha so dela, o que mais acertou") {
+    Resumo r;
+    r.nota = 31.0f;
+    r.aprovado = false;
+    r.temFicha = true;
+    r.recordeAntes = 50.0f;
+    Devolutiva::Fase f;
+    f.ordem = 2;
+    f.anuncio = "h(k) = k mod m";
+    f.perdido = 18.0f;
+    f.acertos = 3;
+    r.piorFase = f;
+    r.causas = {{"Chave", 12.0f, 2}, {"Bloco", 6.0f, 1}};
+    const auto l = Linhas(r);
+    REQUIRE(l.size() == 6u);
+    CHECK(l[4] == "Onde a nota mais caiu: fase 2, h(k) = k mod m (-18.00)");
+    CHECK(l[5].empty());               // a linha dos desenhos
+    CHECK(LinhaDasCausas(r) == 5);
+    CHECK(LinhaDaParte(r, 0) == -1);   // sozinho, nao ha justica
+
+    // Quem passou nao ve a devolutiva, mesmo que a nota tenha caido em alguma fase.
+    r.aprovado = true;
+    r.nota = 70.0f;
+    CHECK(Linhas(r).size() == 4u);
+    CHECK(LinhaDasCausas(r) == -1);
+
+    // Sem ficha, a linha do recorde nao existe, e as outras sobem.
+    r.aprovado = false;
+    r.temFicha = false;
+    CHECK(Linhas(r)[3] == "Onde a nota mais caiu: fase 2, h(k) = k mod m (-18.00)");
+    CHECK(LinhaDasCausas(r) == 4);
+}
+
+TEST_CASE("Resultado: na dupla, uma linha por aluno com a parte dele - depois da devolutiva") {
+    Resumo r;
+    r.nota = 75.0f;
+    r.aprovado = true;
+    r.temFicha = true;
+    r.recordeAntes = 80.0f;
+    r.partes = {{"89384", 120, 8, 3}, {"Visitante", 95, 2, 5}};
+    auto l = Linhas(r);
+    REQUIRE(l.size() == 6u);
+    CHECK(l[4] == "89384: 120 acertos, 8 coberturas, 3 sofridos");
+    CHECK(l[5] == "Visitante: 95 acertos, 2 coberturas, 5 sofridos");
+    CHECK(LinhaDaParte(r, 0) == 4);
+    CHECK(LinhaDaParte(r, 1) == 5);
+    CHECK(LinhaDaParte(r, 2) == -1);
+
+    // A dupla que reprova ve tudo: e o maior resumo que ha.
+    r.aprovado = false;
+    r.nota = 30.0f;
+    Devolutiva::Fase f;
+    f.ordem = 1;
+    f.perdido = 6.0f;
+    f.acertos = 1;
+    r.piorFase = f;
+    r.causas = {{"Bloco", 6.0f, 1}};
+    l = Linhas(r);
+    CHECK(l.size() == static_cast<size_t>(kLinhasNoMaximo));
+    CHECK(LinhaDasCausas(r) == 5);
+    CHECK(LinhaDaParte(r, 0) == 6);
+    CHECK(LinhaDaParte(r, 1) == 7);
 }
 
 TEST_CASE("Resultado: so o gabinete volta sozinho, e so depois da espera") {

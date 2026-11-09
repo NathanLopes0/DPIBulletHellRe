@@ -35,6 +35,10 @@ public:
 
     virtual void Prewarm(Scene* scene, Actor* owner, int count) = 0;
 
+    /// O desenho deste tipo (a devolutiva o mostra no resultado).
+    [[nodiscard]] const std::string& CaminhoDoSprite() const { return mSpritePath; }
+    [[nodiscard]] const std::string& CaminhoDosDados() const { return mDataPath; }
+
 protected:
     std::string mSpritePath;
     std::string mDataPath;

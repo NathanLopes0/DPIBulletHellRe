@@ -24,6 +24,11 @@ public:
     /// De quem este projetil e. Posto uma vez, ao ser disparado.
     void DefinirAlvo(const size_t posicao) { mAlvo = posicao; }
 
+    /// O tipo dele: o nome em projeteis.json ("Bloco", "Chave"). Da fabrica, e nao do disparo: nao
+    /// volta no Reset. A devolutiva conta por ele o que acertou o aluno.
+    void DefinirTipo(std::string tipo) { mTipo = std::move(tipo); }
+    [[nodiscard]] const std::string& Tipo() const { return mTipo; }
+
     Vector2 GetPlayerPosition() const;
 
     /// Velocidade atual do jogador; (0,0) se nao houver jogador ou cena Battle.
@@ -121,6 +126,9 @@ protected:
 
     /// Do disparo: volta a vazio no Reset.
     std::string mPosto;
+
+    /// Da fabrica: fica.
+    std::string mTipo;
 
     /// O valor com que a fabrica construiu este projetil.
     bool mRotacaoPadrao = false;

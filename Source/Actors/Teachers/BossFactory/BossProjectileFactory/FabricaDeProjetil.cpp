@@ -32,6 +32,9 @@ std::unique_ptr<Projectile> FabricaDeProjetil::createProjectile(Scene* scene, Ac
 
     auto projectile = std::make_unique<ProjetilDeChefe>(scene, bossOwner);
 
+    // O tipo: o nome dele em projeteis.json.
+    projectile->DefinirTipo(mNome);
+
     // Quando este projetil morre por sair da tela.
     projectile->DefinirMargemDeSaida(mDescricao.margemEmSprites, mDescricao.margemDivisorDeTela);
 
