@@ -20,6 +20,11 @@ public:
 
     void SetAcceleration(const Vector2& acceleration) { mAcceleration = acceleration; }
 
+    /// O teto da velocidade, em cada eixo. O padrao vale para todo mundo; o tiro do aluno, mais
+    /// rapido que isso, pede o dele.
+    static constexpr float kVelocidadeMaximaPadrao = 1000.0f;
+    void DefinirVelocidadeMaxima(const float porEixo) { mVelocidadeMaxima = porEixo; }
+
 private:
     // Physical properties.
     float mFrictionCoefficient;
@@ -28,4 +33,5 @@ private:
 
     Vector2 mVelocity;
     Vector2 mAcceleration;
+    float mVelocidadeMaxima = kVelocidadeMaximaPadrao;
 };

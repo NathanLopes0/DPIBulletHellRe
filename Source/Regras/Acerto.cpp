@@ -14,6 +14,15 @@ namespace Acerto {
         constexpr float kFolgaDaIdade = 0.05f;
     }
 
+    bool NoCaminho(const Vector2& de, const Vector2& ate, const Vector2& centro, const float raio) {
+        const Vector2 trecho = ate - de;
+        const float comprimento = trecho.LengthSq();
+        // O ponto do trecho mais perto do centro.
+        const float u = comprimento > 0.0f ? std::clamp(Vector2::Dot(centro - de, trecho) / comprimento, 0.0f, 1.0f) : 0.0f;
+        const Vector2 maisPerto = de + trecho * u;
+        return (centro - maisPerto).LengthSq() <= raio * raio;
+    }
+
     void Memoria::Avancar(const float deltaTime) {
         for (Item& i : mItens) i.ha += deltaTime;
         mItens.erase(std::remove_if(mItens.begin(), mItens.end(),

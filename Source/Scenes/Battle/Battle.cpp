@@ -979,7 +979,7 @@ void Battle::ColisoesTiroDoAlunoNosProjeteis(const std::vector<std::unique_ptr<P
                 if (bossProj->GetState() != ActorState::Active) continue;
                 if (bossProj->Enfeite() || bossProj->Abrigo() || bossProj->Blindado() || !bossProj->Posto().empty()) continue;
                 const auto *alvo = bossProj->GetComponent<CircleColliderComponent>();
-                if (!alvo || !alvo->Intersect(*tiro)) continue;
+                if (!alvo || !playerProj->Alcanca(*alvo)) continue;
                 if (!playerProj->DesfazPelaPrimeiraVez(bossProj.get())) continue;
 
                 if (bossProj->Derrubavel()) {
@@ -1004,7 +1004,7 @@ void Battle::ColisoesTiroDoAlunoNosProjeteis(const std::vector<std::unique_ptr<P
             if (!bossProj->Derrubavel() && !bossProj->Blindado() && !bossProj->Abrigo()) continue;
             if (bossProj->Enfeite()) continue;   // o tiro passa pelo cursor
             const auto *alvo = bossProj->GetComponent<CircleColliderComponent>();
-            if (!alvo || !alvo->Intersect(*tiro)) continue;
+            if (!alvo || !playerProj->Alcanca(*alvo)) continue;
 
             if (!Destrutivel::Pode(bossProj->Derrubavel(), bossProj->Blindado(), bossProj->Abrigo(), bossProj->Enfeite())) {
                 playerProj->Murchar();
@@ -1042,7 +1042,7 @@ void Battle::ColisoesTiroDoAlunoNoChefe(const std::vector<std::unique_ptr<Player
                                                : nullptr;
             if (!colisorDoCorpo) continue;
 
-            if (colisorDoCorpo->Intersect(*playerProjCollider)) {
+            if (playerProj->Alcanca(*colisorDoCorpo)) {
                 // A promessa que ja volta passa pelo Hugo: ela ja resolveu.
                 if (playerProj->Promessa() && playerProj->Voltando()) continue;
 

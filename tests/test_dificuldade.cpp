@@ -148,6 +148,26 @@ TEST_CASE("Acerto: o mesmo causador nao acerta de novo antes de 1,2 s, mas outro
     CHECK(m.Quantos() == 0u);
 }
 
+TEST_CASE("Acerto: o tiro rapido acerta o que atravessou entre um quadro e o outro") {
+    // A 1600 px/s, num quadro de 0,05 s (o maior que o jogo deixa passar), o tiro anda 80 px: o
+    // alvo de raio 20 no meio do caminho nao aparece em nenhuma das duas pontas, e e acertado.
+    const Vector2 de(100.0f, 400.0f);
+    const Vector2 ate(100.0f, 320.0f);
+    const Vector2 alvo(104.0f, 360.0f);
+    CHECK(Acerto::NoCaminho(de, ate, alvo, 20.0f));
+    CHECK((alvo - de).Length() > 20.0f);
+    CHECK((alvo - ate).Length() > 20.0f);
+    // De lado, longe do caminho, nao.
+    CHECK_FALSE(Acerto::NoCaminho(de, ate, Vector2(140.0f, 360.0f), 20.0f));
+    // Nem o que ficou atras de onde o tiro saiu, nem o que esta adiante de onde ele parou.
+    CHECK_FALSE(Acerto::NoCaminho(de, ate, Vector2(100.0f, 440.0f), 20.0f));
+    CHECK_FALSE(Acerto::NoCaminho(de, ate, Vector2(100.0f, 280.0f), 20.0f));
+    // Na borda conta; parado, e o teste de sempre, o do ponto.
+    CHECK(Acerto::NoCaminho(de, ate, Vector2(120.0f, 360.0f), 20.0f));
+    CHECK(Acerto::NoCaminho(de, de, Vector2(110.0f, 400.0f), 20.0f));
+    CHECK_FALSE(Acerto::NoCaminho(de, de, Vector2(130.0f, 400.0f), 20.0f));
+}
+
 TEST_CASE("Acerto: o pool recicla o endereco, e o tiro novo nao herda a memoria do velho") {
     Acerto::Memoria m;
     int tiro = 0;

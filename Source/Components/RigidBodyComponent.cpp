@@ -6,9 +6,6 @@
 
 #include "RigidBodyComponent.h"
 
-const float MAX_SPEED_X = 1000.0f;
-const float MAX_SPEED_Y = 1000.0f;
-
 RigidBodyComponent::RigidBodyComponent(class Actor* owner, float mass, float friction, int updateOrder)
         :Component(owner, updateOrder)
         ,mMass(mass)
@@ -27,8 +24,8 @@ void RigidBodyComponent::Update(float deltaTime)
     // Euler Integration.
     mVelocity += mAcceleration * deltaTime;
 
-    mVelocity.x = Math::Clamp<float>(mVelocity.x, -MAX_SPEED_X, MAX_SPEED_X);
-    mVelocity.y = Math::Clamp<float>(mVelocity.y, -MAX_SPEED_Y, MAX_SPEED_Y);
+    mVelocity.x = Math::Clamp<float>(mVelocity.x, -mVelocidadeMaxima, mVelocidadeMaxima);
+    mVelocity.y = Math::Clamp<float>(mVelocity.y, -mVelocidadeMaxima, mVelocidadeMaxima);
 
     if(Math::NearZero(mVelocity.x, 1.0f)) {
         mVelocity.x = 0.f;

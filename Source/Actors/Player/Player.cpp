@@ -23,7 +23,6 @@
 #define NUM_PROJECTILES_VECTOR 500
 #define ATK_TIMER_START_FULL PontoExtra::kEntreTiros   // o Ponto Extra paga por eles
 #define PLAYER_SPEED_START 300.0f
-#define BASE_SHOOT_FORWARD_SPEED 800.0f
 #define BLINK_INVINCIBLE_FREQUENCY 0.1f
 
 Player::Player(Scene* scene, const size_t quem) :
@@ -197,7 +196,7 @@ void Player::Atirar() {
     projectile->SetPosition(GetPosition());
 
     // Define velocidade inicial (sobe)
-    projectile->GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(0.0f, -BASE_SHOOT_FORWARD_SPEED));
+    projectile->GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(0.0f, -PlayerProjectile::kVelocidade));
 
     // Ativa e torna visível.
     projectile->ActivateProjectile();

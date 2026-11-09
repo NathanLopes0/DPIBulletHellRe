@@ -14,6 +14,7 @@
 
 #include "../../Motor/CaminhosArquivo.h"
 #include "../../Interface/Hud.h"
+#include "../../Regras/Acerto.h"
 
 PlayerProjectile::PlayerProjectile(Scene *scene, Actor *owner) :
         PlayerProjectile(scene, owner, 0)
@@ -41,6 +42,7 @@ PlayerProjectile::PlayerProjectile(Scene *scene, Actor *owner, const size_t quem
 
     // Todo 100.0 - Modo dificil o projétil só vai pra cima, Modo normal ela segue o Boss.
     auto rigidComp = AddComponent<RigidBodyComponent>();
+    rigidComp->DefinirVelocidadeMaxima(kVelocidade);
     drawComp->SetIsVisible(false);
 
     auto collider = AddComponent<CircleColliderComponent>(static_cast<float>(drawComp->GetSpriteWidth()) / 2.f);
@@ -90,6 +92,11 @@ bool PlayerProjectile::IsOffScreen() const
 void PlayerProjectile::OnUpdate(float deltaTime) {
     Projectile::OnUpdate(deltaTime);
 
+    // O corpo rigido ja andou neste quadro: o caminho vai do fim do anterior ate aqui.
+    mDe = mTemCaminho ? mFimDoQuadro : GetPosition();
+    mFimDoQuadro = GetPosition();
+    mTemCaminho = true;
+
     // A promessa que nao acertou nada volta do alto do campo, em vez de sumir.
     if (mPromessa && !mVoltando && GetPosition().y < kAltoDaVolta) Voltar();
 
@@ -117,8 +124,16 @@ void PlayerProjectile::OnUpdate(float deltaTime) {
     // ---- Ultima coisa do update: Ver colisão. Pois com colisão o objeto pode ser destruído ----
 }
 
+bool PlayerProjectile::Alcanca(const CircleColliderComponent& alvo) const {
+    const auto* tiro = GetComponent<CircleColliderComponent>();
+    if (!tiro || !tiro->IsEnabled() || !alvo.IsEnabled()) return false;
+    return Acerto::NoCaminho(mTemCaminho ? mDe : GetPosition(), GetPosition(), alvo.GetCenter(),
+                             tiro->GetRadius() + alvo.GetRadius());
+}
+
 void PlayerProjectile::ActivateProjectile() {
     SetState(ActorState::Active);
+    mTemCaminho = false;
 
     // Liga os componentes.
     if (auto comp = GetComponent<DrawAnimatedComponent>()) {

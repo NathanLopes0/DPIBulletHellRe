@@ -13,6 +13,8 @@
 
 #include "../Projectile.h"
 
+class CircleColliderComponent;
+
 class PlayerProjectile : public Projectile {
 
     friend class Player;
@@ -40,6 +42,13 @@ public:
 
     /// O raio do tiro de sempre: metade dos 24 px do sprite dele.
     static constexpr float kRaioDoTiro = 12.0f;
+
+    /// A velocidade da duvida do aluno, para cima: acima do teto padrao do corpo rigido, que ela
+    /// troca pelo dela.
+    static constexpr float kVelocidade = 1600.0f;
+
+    /// Se o tiro acertou 'alvo' em algum ponto do caminho deste quadro, e nao so onde parou.
+    [[nodiscard]] bool Alcanca(const CircleColliderComponent& alvo) const;
     void OnUpdate(float deltaTime) override;
     [[nodiscard]] bool IsOffScreen() const override;
     void OnCollision(Actor* other) override;
@@ -77,6 +86,12 @@ private:
     bool mPromessa = false;
     bool mVoltando = false;
     float mRapidezDaVolta = 0.0f;
+
+    /// O caminho deste quadro: de onde o tiro estava no fim do anterior ate agora. Antes do
+    /// primeiro quadro nao ha caminho - o orientador posiciona o tiro depois de ativa-lo.
+    Vector2 mDe;
+    Vector2 mFimDoQuadro;
+    bool mTemCaminho = false;
     std::unordered_set<const void*> mDesfeitos;
 
     void ActivateProjectile();
