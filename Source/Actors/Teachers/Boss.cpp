@@ -375,16 +375,6 @@ void Boss::RegistrarAnuncio(const std::string& fase, const std::string& texto) {
     mAnuncioPorFase[fase] = texto;
 }
 
-void Boss::RegistrarFalas(const std::string& fase, std::vector<std::string> falas) {
-    mFalasPorFase[fase] = std::move(falas);
-}
-
-const std::vector<std::string>& Boss::FalasDaFase(const std::string& fase) const {
-    static const std::vector<std::string> kNenhuma;
-    const auto it = mFalasPorFase.find(fase);
-    return it == mFalasPorFase.end() ? kNenhuma : it->second;
-}
-
 std::string Boss::AnuncioDaFase(const std::string& fase) const {
     if (fase == mLastStateName) {
         if (const auto* fsm = GetComponent<FSMComponent>()) return AnuncioDaFaseEm(fase, fsm->GetStateTime());

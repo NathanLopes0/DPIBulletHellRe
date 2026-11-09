@@ -77,25 +77,10 @@ private:
     /// Para onde o movimento "Conduzido" leva o professor.
     std::optional<Vector2> mAlvo;
 
-    /// As linhas do campo - a busca do nome, a chamada, a conta, o rabo do balao -, limpas a cada
-    /// quadro e redesenhadas por quem estiver rodando.
+    /// As linhas do campo - a busca do nome, a chamada de f, a conta -, limpas a cada quadro e
+    /// redesenhadas por quem estiver rodando.
     DrawLinhasComponent* mLinhas = nullptr;
     static constexpr int kOrdemDasLinhas = 80;
-
-    // ---- As falas ----
-
-    /// A fala 'i' da fase (as "falas" de fases.json), uma vez por passagem pela fase: num balao de
-    /// pergaminho ao lado do professor, por um tempo que cresce com o texto.
-    void Falar(const std::string& fase, int i);
-    void AtualizarBalao(float deltaTime);
-    EtiquetaDeCodigo* mBalao = nullptr;
-    float mLarguraDoBalao = 0.0f;
-    float mAlturaDoBalao = 0.0f;
-    float mFalaAte = 0.0f;
-    float mRelogio = 0.0f;
-    std::string mFaseDasFalas;
-    std::vector<bool> mFalasDitas;
-    static constexpr int kOrdemDoBalao = 96;
 
     // ---- A fase 1: as amarracoes ----
 

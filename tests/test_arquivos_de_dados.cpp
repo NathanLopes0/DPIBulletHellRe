@@ -2624,23 +2624,6 @@ TEST_CASE("Dados: o Termina do Luizinho - os gatilhos da volta e da contradicao,
     }
 }
 
-TEST_CASE("Dados: as falas do Luizinho - cada fase tem as que ele usa, e nenhuma vazia") {
-    const auto lidas = FasesDoChefe("luizinho");
-    // Quantas o Luizinho.cpp mostra em cada fase: o comentario de cada fase no arquivo diz quando.
-    const std::map<std::string, size_t> usadas = {
-        {Amarracao::kFaseDasAmarracoes, 2}, {Coercao::kFaseDosTipos, 2},
-        {Termina::kFaseDoTermina, 3}, {Excecao::kFaseDasExcecoes, 1},
-    };
-    for (const auto& [nome, quantas] : usadas) {
-        CAPTURE(nome);
-        const DescricaoDeFase* fase = nullptr;
-        for (const auto& f : lidas.fases) if (f.nome == nome) fase = &f;
-        REQUIRE(fase != nullptr);
-        CHECK(fase->falas.size() == quantas);
-        for (const auto& fala : fase->falas) CHECK(!fala.empty());
-    }
-}
-
 TEST_CASE("Dados: a pilha de chamadas do Luizinho - gatilhos, velocidades e caras sao os de Excecao.h") {
 
     // O Luizinho puxa os gatilhos e pinta a excecao com o nome do tipo.

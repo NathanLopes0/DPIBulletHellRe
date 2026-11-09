@@ -86,7 +86,6 @@ void Luizinho::OnUpdate(const float deltaTime) {
     if (!mLutaSorteada && !EhClone()) SortearALuta();
 
     Boss::OnUpdate(deltaTime);
-    mRelogio += deltaTime;
 
     if (!mLinhas && mScene) {
         auto ator = std::make_unique<Actor>(mScene);
@@ -99,7 +98,6 @@ void Luizinho::OnUpdate(const float deltaTime) {
     AtualizarTipos();
     AtualizarTermina();
     AtualizarExcecoes();
-    AtualizarBalao(deltaTime);
 }
 
 void Luizinho::AoTerminarABatalha() {
@@ -110,10 +108,6 @@ void Luizinho::AoTerminarABatalha() {
     if (mLinhas) mLinhas->Limpar();
     if (mCaixaDoTermina) mCaixaDoTermina->Mostrar(false);
     for (EtiquetaDeCodigo* e : {mPerguntaDoTermina, mRespostaDoTermina, mContador}) if (e) e->Mostrar(false);
-    if (mBalao) {
-        mBalao->SetState(ActorState::Destroy);
-        mBalao = nullptr;
-    }
     for (const FaixaEmCampo& f : mFaixas) {
         if (f.painel) f.painel->Mostrar(false);
         if (f.canto) f.canto->Mostrar(false);
@@ -162,108 +156,6 @@ std::vector<BossProjectile*> Luizinho::DispararEm(const char* gatilho, const Vec
 float Luizinho::AnguloAteOAluno(const Vector2 de) const {
     const Vector2 d = PosicaoDoAluno() - de;
     return Math::ToDegrees(Math::Atan2(d.y, d.x));
-}
-
-// As falas.
-
-namespace {
-    /// O balao e um pergaminho, com a borda do cartao dele.
-    constexpr SDL_Color kMolduraDoBalao{206, 176, 112, 255};
-    constexpr SDL_Color kFundoDoBalao{242, 234, 214, 240};
-    constexpr SDL_Color kTintaDoBalao{52, 40, 30, 255};
-    constexpr float kAlturaDaLinhaDoBalao = 24.0f;
-    constexpr float kLarguraDaLetraDoBalao = 9.5f;
-
-    /// Uma fala comprida vai em duas linhas, quebrada no espaco mais perto do meio.
-    constexpr size_t kLetrasNumaLinha = 38;
-
-    std::string QuebrarFala(const std::string& fala) {
-        if (fala.size() <= kLetrasNumaLinha) return fala;
-        const size_t meio = fala.size() / 2;
-        size_t melhor = std::string::npos;
-        size_t distancia = std::string::npos;
-        for (size_t i = 0; i < fala.size(); ++i) {
-            if (fala[i] != ' ') continue;
-            const size_t d = i > meio ? i - meio : meio - i;
-            if (d < distancia) {
-                distancia = d;
-                melhor = i;
-            }
-        }
-        if (melhor == std::string::npos) return fala;
-        return fala.substr(0, melhor) + "\n" + fala.substr(melhor + 1);
-    }
-
-    /// Quantas letras tem a linha mais comprida (as letras, e nao os bytes do UTF-8).
-    size_t LetrasDaMaiorLinha(const std::string& texto) {
-        size_t maior = 0;
-        size_t atual = 0;
-        for (const char ch : texto) {
-            if (ch == '\n') {
-                maior = std::max(maior, atual);
-                atual = 0;
-            } else if ((static_cast<unsigned char>(ch) & 0xC0u) != 0x80u) {
-                ++atual;
-            }
-        }
-        return std::max(maior, atual);
-    }
-}
-
-void Luizinho::Falar(const std::string& fase, const int i) {
-    const auto& falas = FalasDaFase(fase);
-    if (i < 0 || static_cast<size_t>(i) >= falas.size() || !mScene) return;
-    if (mFaseDasFalas != fase) {
-        mFaseDasFalas = fase;
-        mFalasDitas.assign(falas.size(), false);
-    }
-    if (mFalasDitas.size() < falas.size()) mFalasDitas.resize(falas.size(), false);
-    if (mFalasDitas[static_cast<size_t>(i)]) return;
-    mFalasDitas[static_cast<size_t>(i)] = true;
-
-    const std::string& fala = falas[static_cast<size_t>(i)];
-    const std::string texto = "\xE2\x80\x9C" + QuebrarFala(fala) + "\xE2\x80\x9D";
-    const bool duasLinhas = texto.find('\n') != std::string::npos;
-    mLarguraDoBalao = static_cast<float>(LetrasDaMaiorLinha(texto)) * kLarguraDaLetraDoBalao + 24.0f;
-    mAlturaDoBalao = kAlturaDaLinhaDoBalao * (duasLinhas ? 2.0f : 1.0f) + 10.0f;
-
-    if (mBalao) mBalao->SetState(ActorState::Destroy);
-    auto balao = std::make_unique<EtiquetaDeCodigo>(mScene, texto, static_cast<int>(mLarguraDoBalao),
-                                                    static_cast<int>(mAlturaDoBalao), kOrdemDoBalao);
-    balao->Pintar(kMolduraDoBalao, kFundoDoBalao, kTintaDoBalao);
-    balao->QuebrarEm(static_cast<int>(mLarguraDoBalao) - 10);
-    mBalao = balao.get();
-    mScene->AddActor(std::move(balao));
-    mFalaAte = mRelogio + 2.6f + 0.045f * static_cast<float>(fala.size());
-    AtualizarBalao(0.0f);
-}
-
-void Luizinho::AtualizarBalao(float /*deltaTime*/) {
-    if (!mBalao) return;
-    const auto* fsm = GetComponent<FSMComponent>();
-    if (mRelogio >= mFalaAte || !fsm || fsm->GetStateName() != mFaseDasFalas) {
-        mBalao->SetState(ActorState::Destroy);
-        mBalao = nullptr;
-        return;
-    }
-    // Ao lado do cartao, do lado que couber, e com um rabo ate ele.
-    const SDL_FRect campo = Campo();
-    const Vector2 p = GetPosition();
-    const float w = mLarguraDoBalao;
-    const float h = mAlturaDoBalao;
-    constexpr float kAfastado = 80.0f;
-    float x = p.x + kAfastado + w / 2.0f;
-    if (x + w / 2.0f > campo.x + campo.w - 8.0f) x = p.x - kAfastado - w / 2.0f;
-    x = std::clamp(x, campo.x + w / 2.0f + 8.0f, campo.x + campo.w - w / 2.0f - 8.0f);
-    const float y = std::clamp(p.y + 10.0f, campo.y + h / 2.0f + 6.0f, campo.y + campo.h - h / 2.0f - 6.0f);
-    mBalao->SetPosition(Vector2(x, y));
-    if (mLinhas) {
-        const float lado = x > p.x ? -1.0f : 1.0f;
-        const Vector2 borda(x + lado * w / 2.0f, y + h / 2.0f - 6.0f);
-        const Vector2 ponta(p.x - lado * 46.0f, p.y - 12.0f);
-        mLinhas->Acrescentar(borda, ponta, kMolduraDoBalao);
-        mLinhas->Acrescentar(borda + Vector2(0.0f, -10.0f), ponta, kMolduraDoBalao);
-    }
 }
 
 // A fase 1: as amarracoes.
@@ -340,7 +232,6 @@ void Luizinho::ComecarComando(const float agora) {
     if (mChamadas < 2 && agora >= Amarracao::kInicioDaChamada) {
         mComando = Amarracao::Chamada(mChamadas == 0 ? Amarracao::Regra::Estatico : Amarracao::Regra::Dinamico);
         ++mChamadas;
-        if (mComando.regra == Amarracao::Regra::Dinamico) Falar(Amarracao::kFaseDasAmarracoes, 1);
     } else {
         mComando = Amarracao::Proximo(Sorteio(), mBlocoAnterior);
     }
@@ -405,7 +296,6 @@ void Luizinho::AtualizarAmarracoes() {
         mAlvo = Vector2(campo.x + campo.w / 2.0f, campo.y + kYDoProfessorNoGlobal);
     }
     const float agora = fsm->GetStateTime();
-    if (agora >= 1.2f) Falar(Amarracao::kFaseDasAmarracoes, 0);
     if (!mComandoEmCurso && agora >= mProximoComando) ComecarComando(agora);
 
     if (mComandoEmCurso) {
@@ -582,15 +472,11 @@ void Luizinho::AtualizarTipos() {
     }
 
     const float t = fsm->GetStateTime();
-    if (t >= 1.5f) Falar(Coercao::kFaseDosTipos, 0);
     if (t < Coercao::kPrimeiro) return;
     // A conta da vez: a ultima cujo horario ja chegou.
     int k = 0;
     while (k + 1 < static_cast<int>(mHorariosDosTipos.size()) && t >= mHorariosDosTipos[static_cast<size_t>(k + 1)]) ++k;
-    if (k != mContaDaVez) {
-        ComecarConta(k);
-        if (k == 3) Falar(Coercao::kFaseDosTipos, 1);
-    }
+    if (k != mContaDaVez) ComecarConta(k);
     mAlvo = mBaseDoProfessor + Vector2(Coercao::kBalanco * std::sin(2.0f * Math::Pi * t / Coercao::kPeriodoDoBalanco), 0.0f);
     const float u = t - mInicioDaConta;
     const bool estatica = Coercao::TipagemDe(Coercao::LinguagemDe(mConta.forma)) == Coercao::Tipagem::ForteEstatica;
@@ -757,7 +643,6 @@ void Luizinho::ComecarParadoxo(const float agora) {
     if (mPerguntaDoTermina) mPerguntaDoTermina->Escrever("Termina(Paradoxo)");
     TrocarAnuncio(Termina::kFaseDoTermina, Termina::PlacarDoParadoxo(std::nullopt, false));
     EscreverContador("Paradoxo()", kMolduraDoCanto);
-    Falar(Termina::kFaseDoTermina, 1);
     const SDL_FRect campo = Campo();
     mAlvo = Vector2(campo.x + campo.w / 2.0f, campo.y + kYDoProfessorNoTermina);
 }
@@ -781,7 +666,6 @@ void Luizinho::EstourarOTermina() {
     if (mRespostaDoTermina) mRespostaDoTermina->Mostrar(false);
     TrocarAnuncio(Termina::kFaseDoTermina, Termina::PlacarDoParadoxo(std::nullopt, true));
     EscreverContador("repete", kRespostaNao);
-    Falar(Termina::kFaseDoTermina, 2);
 }
 
 void Luizinho::AtualizarTermina() {
@@ -804,7 +688,6 @@ void Luizinho::AtualizarTermina() {
         mAlvo = Vector2(campo.x + campo.w / 2.0f, campo.y + kYDoProfessorNoTermina);
     }
     const float agora = fsm->GetStateTime();
-    if (agora >= 0.9f) Falar(Termina::kFaseDoTermina, 0);
     if (!mRodadaDoTerminaEmCurso && !mNoParadoxo && agora >= mProximaRodadaDoTermina) {
         if (!mParadoxoFeito && agora >= Termina::kInicioDoParadoxo) ComecarParadoxo(agora);
         else ComecarRodadaDoTermina(agora);
@@ -1022,7 +905,6 @@ void Luizinho::AtualizarExcecoes() {
     }
 
     const float t = fsm->GetStateTime();
-    if (t >= 1.2f) Falar(Excecao::kFaseDasExcecoes, 0);
     if (t < Excecao::kPrimeiro) return;
     const int k = std::min(Excecao::kRodadas - 1, static_cast<int>((t - Excecao::kPrimeiro) / Excecao::kPorRodada));
     if (k != mRodadaDaVez) ComecarRodada(k);

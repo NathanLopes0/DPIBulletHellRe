@@ -311,10 +311,9 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   Intercâmbio trocar os dois — e ele vale a luta inteira.
 - **Luizinho — INF 340.** Linguagens de Programação — e Teoria da Computação,
   que ele também dá —, um assunto da ementa por fase: cada uma abre com a
-  palavra latina por trás dele, o placar mostra o código que ele está rodando, e
-  no balão de fala ele comenta o assunto como em aula, quase sempre lembrando o
-  Fortran ou o LISP. Pouco se repete de uma luta para a outra: o programa da
-  primeira fase, os laços da terceira, os horários das contas e as exceções são
+  palavra latina por trás dele, e depois o placar mostra o código que ele está
+  rodando. Pouco se repete de uma luta para a outra: o programa da primeira
+  fase, os laços da terceira, os horários das contas e as exceções são
   sorteados.
 
   Na primeira, as amarrações: o campo é um programa — o global, a função `f` com

@@ -234,10 +234,6 @@ struct DescricaoDeFase {
     /// uma palavra, no caso do Vladimir.
     std::string anuncio;
 
-    /// O que o professor diz no balao de fala, na ordem; quando cada uma aparece e o chefe que
-    /// decide. Vazio = ele nao fala nesta fase.
-    std::vector<std::string> falas;
-
     DescricaoDeMovimento movimento;
     std::vector<DescricaoDeAtaque> ataques;
     std::string ataquesDe;

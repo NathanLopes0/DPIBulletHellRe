@@ -841,22 +841,6 @@ namespace {
         }
         f.anuncio = Texto(corpoFase, "anuncio");
 
-        // "falas": o que o professor diz no balao, uma frase por texto.
-        if (corpoFase.contains("falas")) {
-            const auto& falas = corpoFase["falas"];
-            if (!falas.is_array()) {
-                problemas.emplace_back(onde + "\"falas\" deveria ser uma lista de textos");
-            } else {
-                for (const auto& fala : falas) {
-                    if (!fala.is_string() || fala.get<std::string>().empty()) {
-                        problemas.emplace_back(onde + "cada fala de \"falas\" deveria ser um texto nao vazio; ignorada");
-                        continue;
-                    }
-                    f.falas.push_back(fala.get<std::string>());
-                }
-            }
-        }
-
         if (!LerIntercambioDaFase(corpoFase, onde, problemas, f)) return std::nullopt;
 
         if (!LerEtapasDaFase(corpoFase, onde, problemas, f)) return std::nullopt;

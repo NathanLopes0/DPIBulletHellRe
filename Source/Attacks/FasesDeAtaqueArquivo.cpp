@@ -287,12 +287,9 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
             boss->RegistrarClone(fase.nome, fase.clone.ataquesDe);
         }
 
-        // O anuncio tambem, e as falas.
+        // O anuncio tambem.
         if (!fase.anuncio.empty()) {
             boss->RegistrarAnuncio(fase.nome, fase.anuncio);
-        }
-        if (!fase.falas.empty()) {
-            boss->RegistrarFalas(fase.nome, fase.falas);
         }
 
         // E as etapas: onde cada uma acaba, e o que o placar diz durante ela.

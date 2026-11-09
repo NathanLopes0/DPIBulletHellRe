@@ -141,10 +141,6 @@ public:
     /// O anuncio desta fase. Vazio = a fase nao anuncia nada.
     [[nodiscard]] std::string AnuncioDaFase(const std::string& fase) const;
 
-    /// O que o professor diz nesta fase ("falas" em fases.json), na ordem. Quem mostra e o chefe.
-    void RegistrarFalas(const std::string& fase, std::vector<std::string> falas);
-    [[nodiscard]] const std::vector<std::string>& FalasDaFase(const std::string& fase) const;
-
     /// Com 't' negativo, o da fase.
     [[nodiscard]] std::string AnuncioDaFaseEm(const std::string& fase, float t) const;
 
@@ -265,7 +261,6 @@ private:
 
     /// Por fase, o texto do placar.
     std::map<std::string, std::string> mAnuncioPorFase;
-    std::map<std::string, std::vector<std::string>> mFalasPorFase;
 
     /// Por fase, as etapas: onde cada uma acaba e o texto dela.
     std::map<std::string, std::vector<std::pair<float, std::string>>> mEtapasPorFase;
