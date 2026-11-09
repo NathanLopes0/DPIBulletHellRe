@@ -4,6 +4,8 @@
 
 #include "PainelDeCodigo.h"
 
+#include <algorithm>
+
 #include "../../../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../../../Components/DrawComponents/DrawTextComponent.h"
 #include "../../../Scenes/Battle/Battle.h"
@@ -51,6 +53,10 @@ void EtiquetaDeCodigo::Pintar(const SDL_Color moldura, const SDL_Color fundo, co
 
 void EtiquetaDeCodigo::Escrever(const std::string& texto) {
     if (mTexto) mTexto->SetText(texto);
+}
+
+void EtiquetaDeCodigo::QuebrarEm(const int largura) {
+    if (mTexto) mTexto->SetLarguraDeQuebra(static_cast<unsigned>(std::max(1, largura)));
 }
 
 void EtiquetaDeCodigo::Mostrar(const bool mostrar) {

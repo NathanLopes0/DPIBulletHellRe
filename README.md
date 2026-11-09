@@ -310,29 +310,32 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   parada com o 3x + 1. O "a" vai reto e o "b" persegue, até o Programa de
   Intercâmbio trocar os dois — e ele vale a luta inteira.
 - **Luizinho — INF 340.** Linguagens de Programação — e Teoria da Computação,
-  que ele também dá —, um assunto por fase: cada uma abre com a palavra latina
-  (ou grega) por trás dele, e depois o placar mostra o código que ele está
-  rodando. Pouco se repete de uma luta para a outra: os objetos, os algoritmos,
-  os horários das contas e as exceções são sorteados.
+  que ele também dá —, um assunto da ementa por fase: cada uma abre com a
+  palavra latina por trás dele, o placar mostra o código que ele está rodando, e
+  no balão de fala ele comenta o assunto como em aula, quase sempre lembrando o
+  Fortran ou o LISP. Pouco se repete de uma luta para a outra: o programa da
+  primeira fase, os laços da terceira, os horários das contas e as exceções são
+  sorteados.
 
-  Na primeira, o polimorfismo: objetos `Circulo`, `Quadrado`, `Triangulo` e
-  `Estrela` aparecem no campo, e a mesma chamada, `f.desenhar()`, faz cada um
-  desenhar a sua forma em tiros, que cresce sem deixar de ser ela (no Difícil,
-  girando). Num `for (Forma f : formas)` o professor vai de objeto em objeto, e
-  em `Forma f = sortear()` o rótulo fica `Forma f = ?` até a chamada revelar a
-  classe — o tipo dinâmico. Na segunda, a mesma conta em JavaScript, PHP, Python
-  e Haskell: os operandos voam até em cima de você, o convertido troca de cor no
-  meio do voo, e o resultado ataca do jeito do tipo dele — o número é um anel, o
-  texto é a palavra, o `TypeError` estoura onde a conta roda e o erro de
-  compilação, no professor. Na terceira, a complexidade dos algoritmos: o vetor
-  de entrada é um leque de n casas embaixo do professor, e cada operação é um
-  tiro. O acesso `v[i]` é um tiro só, grande e em você; a busca binária te acha
-  em log n leituras, e a que acha é esse mesmo tiro; a busca linear varre o
-  leque, o merge sort o varre log n vezes, os dois laços n vezes, e os
-  subconjuntos dobram a cada passo; um gráfico no canto mostra a curva de cada
-  ordem e onde a rodada cai. O exame é uma exceção subindo pela pilha de
-  chamadas: cada faixa que não a trata cai em cima de você — e a repescagem é um
-  `catch`.
+  Na primeira, as amarrações: o campo é um programa — o global, a função `f` com
+  um bloco dentro e a função `g`, cada bloco com a sua declaração de `x` no
+  canto. O professor roda `atira(x)` num bloco, e a busca do nome anda de canto
+  em canto, do bloco de dentro para fora, até achar quem declara o `x` — e esse
+  bloco responde com um leque de tantos tiros quanto o valor. No fim, `g()`
+  chama `f()`: no escopo estático o `x` é o do global, onde `f` foi escrita; no
+  dinâmico, o do LISP antigo, é o de `g`, quem chamou. Na segunda, a mesma conta
+  em JavaScript, PHP, Python e Haskell: os operandos voam até em cima de você, o
+  convertido troca de cor no meio do voo, e o resultado ataca do jeito do tipo
+  dele — o número é um anel, o texto é a palavra, o `TypeError` estoura onde a
+  conta roda e o erro de compilação, no professor. Na terceira, o programa
+  Termina: o professor mostra um laço e a entrada dele, o Termina responde se
+  ele para, e o laço roda — cada volta é um anel de tiros, e o laço que gira
+  desenha uma espiral; o que não para só acaba no Ctrl+C. No fim vem o Paradoxo,
+  que pergunta ao Termina sobre ele mesmo e faz o contrário da resposta: o
+  Termina muda de ideia cada vez mais depressa, até se contradizer e estourar —
+  não tem como fazer um programa que sabe se outro programa termina. O exame é
+  uma exceção subindo pela pilha de chamadas: cada faixa que não a trata cai em
+  cima de você — e a repescagem é um `catch`.
 - **Vitor — INF 310.** Programação Concorrente e Distribuída — e Redes, que
   ele também dá. Na primeira, semáforos: cada thread é uma coluna de
   instruções descendo até a seção crítica, quem não tem o semáforo se empilha

@@ -66,21 +66,18 @@ std::optional<Vector2> Luizinho::AlvoDoMovimento() const {
 void Luizinho::SortearALuta() {
     mLutaSorteada = true;
     const Dificuldade::Nivel nivel = NivelDeDificuldade();
-    mDegrauDasFormas = Polimorfismo::DegrauDo(nivel);
+    mDegrauDasAmarracoes = Amarracao::DegrauDo(nivel);
     mDegrauDosTipos = Coercao::DegrauDo(nivel);
-    mDegrauDaComplexidade = Complexidade::DegrauDo(nivel);
+    mDegrauDoTermina = Termina::DegrauDo(nivel);
     mDegrauDasExcecoes = Excecao::DegrauDo(nivel);
     {
-        Variacao::Sorteio sorteio = SorteioDaFase(Polimorfismo::kFaseDasFormas);
-        mPlanoDasFormas = Polimorfismo::Sortear(sorteio);
+        Variacao::Sorteio sorteio = SorteioDaFase(Amarracao::kFaseDasAmarracoes);
+        mPrograma = Amarracao::SortearPrograma(sorteio);
+        mFAEsquerda = sorteio.Chance(0.5f);
     }
     {
         Variacao::Sorteio sorteio = SorteioDaFase(Coercao::kFaseDosTipos);
         mOrdemDosTipos = Coercao::OrdemDosComandos(sorteio);
-    }
-    {
-        Variacao::Sorteio sorteio = SorteioDaFase(Complexidade::kFaseDaComplexidade);
-        mPlanoDaComplexidade = Complexidade::Sortear(sorteio);
     }
     mSorteioDasRodadas = SorteioDaFase(Excecao::kFaseDasExcecoes);
 }
@@ -89,6 +86,7 @@ void Luizinho::OnUpdate(const float deltaTime) {
     if (!mLutaSorteada && !EhClone()) SortearALuta();
 
     Boss::OnUpdate(deltaTime);
+    mRelogio += deltaTime;
 
     if (!mLinhas && mScene) {
         auto ator = std::make_unique<Actor>(mScene);
@@ -97,20 +95,25 @@ void Luizinho::OnUpdate(const float deltaTime) {
     }
     if (mLinhas) mLinhas->Limpar();
 
-    AtualizarFormas();
-    AtualizarTracos();
+    AtualizarAmarracoes();
     AtualizarTipos();
-    AtualizarComplexidade();
+    AtualizarTermina();
     AtualizarExcecoes();
+    AtualizarBalao(deltaTime);
 }
 
 void Luizinho::AoTerminarABatalha() {
     // A tela da nota fica limpa: os projeteis a batalha ja levou.
-    for (EtiquetaDeCodigo* r : mRotulos) if (r) r->Mostrar(false);
+    for (PainelDeCodigo* p : mPaineis) if (p) p->Mostrar(false);
+    for (EtiquetaDeCodigo* c : mCantos) if (c) c->Mostrar(false);
     LimparConta();
     if (mLinhas) mLinhas->Limpar();
-    if (mQuadroDoGrafico) mQuadroDoGrafico->Mostrar(false);
-    if (mNomeDoGrafico) mNomeDoGrafico->Mostrar(false);
+    if (mCaixaDoTermina) mCaixaDoTermina->Mostrar(false);
+    for (EtiquetaDeCodigo* e : {mPerguntaDoTermina, mRespostaDoTermina, mContador}) if (e) e->Mostrar(false);
+    if (mBalao) {
+        mBalao->SetState(ActorState::Destroy);
+        mBalao = nullptr;
+    }
     for (const FaixaEmCampo& f : mFaixas) {
         if (f.painel) f.painel->Mostrar(false);
         if (f.canto) f.canto->Mostrar(false);
@@ -161,197 +164,275 @@ float Luizinho::AnguloAteOAluno(const Vector2 de) const {
     return Math::ToDegrees(Math::Atan2(d.y, d.x));
 }
 
-// A fase 1: o polimorfismo.
+// As falas.
 
 namespace {
-    /// A cor de cada classe: a do traco, a da moldura do rotulo e a do desenho em cima dele.
-    SDL_Color CorDaClasse(const Polimorfismo::Classe c) {
-        switch (c) {
-            case Polimorfismo::Classe::Circulo: return {96, 210, 255, 255};
-            case Polimorfismo::Classe::Quadrado: return {255, 214, 72, 255};
-            case Polimorfismo::Classe::Triangulo: return {110, 230, 130, 255};
-            case Polimorfismo::Classe::Estrela: return {240, 120, 230, 255};
+    /// O balao e um pergaminho, com a borda do cartao dele.
+    constexpr SDL_Color kMolduraDoBalao{206, 176, 112, 255};
+    constexpr SDL_Color kFundoDoBalao{242, 234, 214, 240};
+    constexpr SDL_Color kTintaDoBalao{52, 40, 30, 255};
+    constexpr float kAlturaDaLinhaDoBalao = 24.0f;
+    constexpr float kLarguraDaLetraDoBalao = 9.5f;
+
+    /// Uma fala comprida vai em duas linhas, quebrada no espaco mais perto do meio.
+    constexpr size_t kLetrasNumaLinha = 38;
+
+    std::string QuebrarFala(const std::string& fala) {
+        if (fala.size() <= kLetrasNumaLinha) return fala;
+        const size_t meio = fala.size() / 2;
+        size_t melhor = std::string::npos;
+        size_t distancia = std::string::npos;
+        for (size_t i = 0; i < fala.size(); ++i) {
+            if (fala[i] != ' ') continue;
+            const size_t d = i > meio ? i - meio : meio - i;
+            if (d < distancia) {
+                distancia = d;
+                melhor = i;
+            }
         }
-        return {220, 220, 230, 255};
+        if (melhor == std::string::npos) return fala;
+        return fala.substr(0, melhor) + "\n" + fala.substr(melhor + 1);
     }
-    constexpr SDL_Color kMolduraDaForma{150, 150, 170, 230};     // "Forma f = ?": o tipo ainda nao se sabe
-    constexpr SDL_Color kFundoDoRotulo{24, 28, 42, 230};
-    constexpr SDL_Color kTintaDoRotulo{226, 232, 250, 255};
-    constexpr SDL_Color kLinhaDaReferencia{150, 200, 255, 200};
 
-    float Suave(const float u) { return u * u * (3.0f - 2.0f * u); }
-}
-
-void Luizinho::AtualizarTracos() {
-    for (TracoNoAr& t : mTracosNoAr) {
-        if (!Vivo(t.p)) { t.p = nullptr; continue; }
-        if (t.p->TempoDeVida() >= Polimorfismo::kVidaDoTraco) {
-            t.p->Kill();
-            t.p = nullptr;
-            continue;
+    /// Quantas letras tem a linha mais comprida (as letras, e nao os bytes do UTF-8).
+    size_t LetrasDaMaiorLinha(const std::string& texto) {
+        size_t maior = 0;
+        size_t atual = 0;
+        for (const char ch : texto) {
+            if (ch == '\n') {
+                maior = std::max(maior, atual);
+                atual = 0;
+            } else if ((static_cast<unsigned char>(ch) & 0xC0u) != 0x80u) {
+                ++atual;
+            }
         }
-        auto* rb = t.giro != 0.0f ? t.p->GetComponent<RigidBodyComponent>() : nullptr;
-        if (!rb) continue;
-        // A forma cresce na mesma escala e gira: cada ponto se afasta do centro e anda de lado.
-        const Vector2 d = t.p->GetPosition() - t.centro;
-        const float escala = Polimorfismo::kRaio + mDegrauDasFormas.velocidade * (t.p->TempoDeVida() - t.vidaAoPartir);
-        rb->SetVelocity(d * (mDegrauDasFormas.velocidade / escala) + Vector2(-d.y, d.x) * Math::ToRadians(t.giro));
-    }
-    mTracosNoAr.erase(std::remove_if(mTracosNoAr.begin(), mTracosNoAr.end(), [](const TracoNoAr& t) { return !t.p; }),
-                      mTracosNoAr.end());
-}
-
-void Luizinho::DesmontarFormas() {
-    // O programa acabou: os objetos saem de escopo, e o que eles desenharam some junto.
-    for (Objeto& o : mObjetos) {
-        if (o.rotulo) o.rotulo->Mostrar(false);
-        for (BossProjectile* p : o.pontos) if (Vivo(p)) p->Kill();
-    }
-    mObjetos.clear();
-    for (const TracoNoAr& t : mTracosNoAr) if (Vivo(t.p)) t.p->Kill();
-    mTracosNoAr.clear();
-    mChamadaEmCurso = false;
-    RestaurarAnuncio(Polimorfismo::kFaseDasFormas);
-    mAlvo.reset();
-    mNasFormas = false;
-}
-
-void Luizinho::ComecarChamada(const float agora) {
-    mChamada = Polimorfismo::Proxima(Sorteio(), mDegrauDasFormas.noLaco, mPlanoDasFormas);
-    mInicioDaChamada = agora;
-    mChamadaEmCurso = true;
-    TrocarAnuncio(Polimorfismo::kFaseDasFormas, Polimorfismo::Placar(mChamada, false));
-
-    const SDL_FRect campo = Campo();
-    const auto lugares = Polimorfismo::Lugares(static_cast<int>(mChamada.objetos.size()), Sorteio(), campo.w,
-                                               campo.y + Polimorfismo::kTopoDaFaixa, campo.y + Polimorfismo::kFundoDaFaixa);
-    // Os rotulos sao criados na primeira vez e reaproveitados nas outras.
-    while (mRotulos.size() < mChamada.objetos.size() && mScene) {
-        auto r = std::make_unique<EtiquetaDeCodigo>(mScene, " ", kLarguraDoRotulo, static_cast<int>(kAlturaDoCanto),
-                                                    kOrdemDosRotulos);
-        mRotulos.push_back(r.get());
-        mScene->AddActor(std::move(r));
-    }
-
-    const bool dinamico = mChamada.comando == Polimorfismo::Comando::TipoDinamico;
-    mObjetos.clear();
-    for (size_t k = 0; k < mChamada.objetos.size(); ++k) {
-        Objeto o;
-        o.rotulo = k < mRotulos.size() ? mRotulos[k] : nullptr;
-        o.classe = mChamada.objetos[k];
-        o.lugar = Vector2(campo.x + lugares[k].x, lugares[k].y);
-        o.invoca = agora + Polimorfismo::kVooDoNew + Polimorfismo::kAntesDaChamada +
-                   mDegrauDasFormas.entreChamadas * static_cast<float>(k);
-        o.traca = o.invoca + (dinamico ? Polimorfismo::kRevelacao : 0.0f);
-        o.contorno = Polimorfismo::Contorno(o.classe, mDegrauDasFormas.pontos);
-        o.giro = Sorteio() % 2u == 0u ? mDegrauDasFormas.giro : -mDegrauDasFormas.giro;
-        o.revelado = !dinamico;
-        if (o.rotulo) {
-            o.rotulo->Escrever(Polimorfismo::Rotulo(mChamada, static_cast<int>(k), o.revelado));
-            o.rotulo->Pintar(o.revelado ? CorDaClasse(o.classe) : kMolduraDaForma, kFundoDoRotulo, kTintaDoRotulo);
-            o.rotulo->SetPosition(GetPosition());
-            o.rotulo->Mostrar(true);
-        }
-        mObjetos.push_back(std::move(o));
+        return std::max(maior, atual);
     }
 }
 
-void Luizinho::DesenharFormas(const float agora) {
-    if (!mLinhas) return;
-    for (const Objeto& o : mObjetos) {
-        if (!o.rotulo || (o.partiu && agora > o.partiuEm + 0.25f)) continue;
-        const Vector2 em = o.rotulo->GetPosition();
-        // f -> objeto: a referencia da chamada, do professor ate quem responde a ela.
-        if (agora >= o.invoca && !o.partiu) mLinhas->Acrescentar(GetPosition(), em, kLinhaDaReferencia);
-        if (!o.revelado) continue;
-        // A forma da classe, desenhada em cima do rotulo.
-        const SDL_Color cor = CorDaClasse(o.classe);
-        const Vector2 centro = em + Vector2(0.0f, -32.0f);
-        constexpr float kIcone = 14.0f;
-        auto v = Polimorfismo::Vertices(o.classe);
-        if (v.empty()) v = Polimorfismo::Contorno(o.classe, 12);
-        for (size_t i = 0; i < v.size(); ++i) {
-            mLinhas->Acrescentar(centro + v[i] * kIcone, centro + v[(i + 1) % v.size()] * kIcone, cor);
-        }
+void Luizinho::Falar(const std::string& fase, const int i) {
+    const auto& falas = FalasDaFase(fase);
+    if (i < 0 || static_cast<size_t>(i) >= falas.size() || !mScene) return;
+    if (mFaseDasFalas != fase) {
+        mFaseDasFalas = fase;
+        mFalasDitas.assign(falas.size(), false);
     }
+    if (mFalasDitas.size() < falas.size()) mFalasDitas.resize(falas.size(), false);
+    if (mFalasDitas[static_cast<size_t>(i)]) return;
+    mFalasDitas[static_cast<size_t>(i)] = true;
+
+    const std::string& fala = falas[static_cast<size_t>(i)];
+    const std::string texto = "\xE2\x80\x9C" + QuebrarFala(fala) + "\xE2\x80\x9D";
+    const bool duasLinhas = texto.find('\n') != std::string::npos;
+    mLarguraDoBalao = static_cast<float>(LetrasDaMaiorLinha(texto)) * kLarguraDaLetraDoBalao + 24.0f;
+    mAlturaDoBalao = kAlturaDaLinhaDoBalao * (duasLinhas ? 2.0f : 1.0f) + 10.0f;
+
+    if (mBalao) mBalao->SetState(ActorState::Destroy);
+    auto balao = std::make_unique<EtiquetaDeCodigo>(mScene, texto, static_cast<int>(mLarguraDoBalao),
+                                                    static_cast<int>(mAlturaDoBalao), kOrdemDoBalao);
+    balao->Pintar(kMolduraDoBalao, kFundoDoBalao, kTintaDoBalao);
+    balao->QuebrarEm(static_cast<int>(mLarguraDoBalao) - 10);
+    mBalao = balao.get();
+    mScene->AddActor(std::move(balao));
+    mFalaAte = mRelogio + 2.6f + 0.045f * static_cast<float>(fala.size());
+    AtualizarBalao(0.0f);
 }
 
-void Luizinho::AtualizarFormas() {
+void Luizinho::AtualizarBalao(float /*deltaTime*/) {
+    if (!mBalao) return;
     const auto* fsm = GetComponent<FSMComponent>();
-    const bool aqui = fsm && fsm->GetStateName() == Polimorfismo::kFaseDasFormas && !EhClone();
-    if (!aqui) {
-        if (mNasFormas) DesmontarFormas();
+    if (mRelogio >= mFalaAte || !fsm || fsm->GetStateName() != mFaseDasFalas) {
+        mBalao->SetState(ActorState::Destroy);
+        mBalao = nullptr;
         return;
     }
+    // Ao lado do cartao, do lado que couber, e com um rabo ate ele.
     const SDL_FRect campo = Campo();
-    if (!mNasFormas) {
-        mNasFormas = true;
-        mChamadaEmCurso = false;
-        mProximaChamada = Polimorfismo::kPrimeiro;
-        mAlvo = Vector2(campo.x + campo.w / 2.0f, campo.y + kYDoProfessorNasFormas);
+    const Vector2 p = GetPosition();
+    const float w = mLarguraDoBalao;
+    const float h = mAlturaDoBalao;
+    constexpr float kAfastado = 80.0f;
+    float x = p.x + kAfastado + w / 2.0f;
+    if (x + w / 2.0f > campo.x + campo.w - 8.0f) x = p.x - kAfastado - w / 2.0f;
+    x = std::clamp(x, campo.x + w / 2.0f + 8.0f, campo.x + campo.w - w / 2.0f - 8.0f);
+    const float y = std::clamp(p.y + 10.0f, campo.y + h / 2.0f + 6.0f, campo.y + campo.h - h / 2.0f - 6.0f);
+    mBalao->SetPosition(Vector2(x, y));
+    if (mLinhas) {
+        const float lado = x > p.x ? -1.0f : 1.0f;
+        const Vector2 borda(x + lado * w / 2.0f, y + h / 2.0f - 6.0f);
+        const Vector2 ponta(p.x - lado * 46.0f, p.y - 12.0f);
+        mLinhas->Acrescentar(borda, ponta, kMolduraDoBalao);
+        mLinhas->Acrescentar(borda + Vector2(0.0f, -10.0f), ponta, kMolduraDoBalao);
+    }
+}
+
+// A fase 1: as amarracoes.
+
+namespace {
+    constexpr SDL_Color kMolduraDoInterno{120, 140, 190, 200};
+    constexpr SDL_Color kFundoDoInterno{30, 38, 62, 120};
+    constexpr SDL_Color kCantoOlhado{96, 100, 116, 230};     // a busca passou e nao achou x
+    constexpr SDL_Color kCantoDoDono{255, 206, 92, 255};     // quem declara o x achado
+    constexpr SDL_Color kLinhaDaBusca{150, 200, 255, 220};
+    constexpr SDL_Color kLinhaDaChamadaDeF{220, 140, 255, 220};   // g chama f
+    constexpr float kYDoProfessorNoGlobal = 95.0f;
+
+    size_t IndiceDoBloco(const Amarracao::Bloco b) { return static_cast<size_t>(b); }
+}
+
+Vector2 Luizinho::OndeFicaOCanto(const Amarracao::Bloco b) const {
+    const SDL_FRect campo = Campo();
+    const auto c = Amarracao::OndeFicaOCanto(b, mFAEsquerda, campo.w, campo.h, mLarguraDosCantos[IndiceDoBloco(b)]);
+    return Vector2(campo.x + c.x, campo.y + c.y);
+}
+
+void Luizinho::PintarCanto(const Amarracao::Bloco b, const SDL_Color moldura) {
+    if (EtiquetaDeCodigo* c = mCantos[IndiceDoBloco(b)]) c->Pintar(moldura, kFundoDoCanto, kTintaDoCanto);
+}
+
+void Luizinho::MontarAmarracoes() {
+    const SDL_FRect campo = Campo();
+    for (int i = 0; i < Amarracao::kBlocos; ++i) {
+        const auto b = static_cast<Amarracao::Bloco>(i);
+        const size_t k = IndiceDoBloco(b);
+        const auto r = Amarracao::Area(b, mFAEsquerda, campo.w, campo.h);
+        const bool interno = b == Amarracao::Bloco::Interno;
+        // O global e o campo: nao tem painel, so o canto.
+        if (b != Amarracao::Bloco::Global && !mPaineis[k] && mScene) {
+            auto painel = std::make_unique<PainelDeCodigo>(mScene, static_cast<int>(r.w), static_cast<int>(r.h),
+                                                           interno ? kOrdemDoInterno : kOrdemDosPaineis);
+            mPaineis[k] = painel.get();
+            mScene->AddActor(std::move(painel));
+        }
+        if (!mCantos[k] && mScene) {
+            const std::string texto = Amarracao::Declaracao(mPrograma, b);
+            mLarguraDosCantos[k] = LarguraDoCanto(texto);
+            auto canto = std::make_unique<EtiquetaDeCodigo>(mScene, texto, static_cast<int>(mLarguraDosCantos[k]),
+                                                            static_cast<int>(kAlturaDoCanto), kOrdemDosCantos);
+            mCantos[k] = canto.get();
+            mScene->AddActor(std::move(canto));
+        }
+        if (mPaineis[k]) {
+            mPaineis[k]->SetPosition(Vector2(campo.x + r.x + r.w / 2.0f, campo.y + r.y + r.h / 2.0f));
+            mPaineis[k]->Pintar(interno ? kMolduraDoInterno : kMolduraDoPainel, interno ? kFundoDoInterno : kFundoDoPainel);
+            mPaineis[k]->Mostrar(true);
+        }
+        if (mCantos[k]) {
+            mCantos[k]->SetPosition(OndeFicaOCanto(b));
+            PintarCanto(b, kMolduraDoCanto);
+            mCantos[k]->Mostrar(true);
+        }
+    }
+}
+
+void Luizinho::DesmontarAmarracoes() {
+    for (PainelDeCodigo* p : mPaineis) if (p) p->Mostrar(false);
+    for (EtiquetaDeCodigo* c : mCantos) if (c) c->Mostrar(false);
+    mComandoEmCurso = false;
+    mBuscaDoComando.clear();
+    RestaurarAnuncio(Amarracao::kFaseDasAmarracoes);
+    mAlvo.reset();
+    mNasAmarracoes = false;
+}
+
+void Luizinho::ComecarComando(const float agora) {
+    // Do meio da fase em diante, a pegadinha: g() chama f(), no escopo estatico e depois no dinamico.
+    if (mChamadas < 2 && agora >= Amarracao::kInicioDaChamada) {
+        mComando = Amarracao::Chamada(mChamadas == 0 ? Amarracao::Regra::Estatico : Amarracao::Regra::Dinamico);
+        ++mChamadas;
+        if (mComando.regra == Amarracao::Regra::Dinamico) Falar(Amarracao::kFaseDasAmarracoes, 1);
+    } else {
+        mComando = Amarracao::Proximo(Sorteio(), mBlocoAnterior);
+    }
+    mBlocoAnterior = mComando.onde;
+    mBuscaDoComando = Amarracao::Busca(mPrograma, mComando);
+    mSaltos = 0;
+    mRajadas = 0;
+    mInicioDoComando = agora;
+    mComandoEmCurso = true;
+    for (int i = 0; i < Amarracao::kBlocos; ++i) PintarCanto(static_cast<Amarracao::Bloco>(i), kMolduraDoCanto);
+    TrocarAnuncio(Amarracao::kFaseDasAmarracoes, Amarracao::Placar(mPrograma, mComando, false));
+
+    const SDL_FRect campo = Campo();
+    const auto onde = Amarracao::OndeFicaOProfessor(mComando.onde, mFAEsquerda, campo.w, campo.h);
+    mAlvo = Vector2(campo.x + onde.x, campo.y + onde.y);
+}
+
+void Luizinho::Responder() {
+    if (mBuscaDoComando.empty()) return;
+    const Amarracao::Bloco dono = mBuscaDoComando.back();
+    const int valor = mPrograma.Valor(dono);
+    if (valor <= 0) return;
+    const Vector2 de = OndeFicaOCanto(dono);
+    const float rapidez = mDegrauDasAmarracoes.velocidade / Amarracao::kVelocidade;
+    const float desvio = Amarracao::DesvioDaRajada(Random::GetFloatRange(0.0f, 1.0f));
+    for (BossProjectile* p : DispararEm(Amarracao::kGatilhoDaResposta, de, valor, AnguloAteOAluno(de) + desvio,
+                                        Amarracao::AberturaDoLeque(valor), rapidez)) {
+        PorCara(p, "X" + std::to_string(valor));
+    }
+}
+
+void Luizinho::DesenharBusca() {
+    if (!mLinhas || mBuscaDoComando.empty()) return;
+    // A chamada: g chama f, e o atira(x) roda em f.
+    if (mComando.chamada) {
+        mLinhas->Acrescentar(OndeFicaOCanto(Amarracao::Bloco::G), OndeFicaOCanto(Amarracao::Bloco::F), kLinhaDaChamadaDeF);
+    }
+    // A busca, do professor de canto em canto ate o dono.
+    Vector2 de = GetPosition();
+    for (size_t i = 0; i < mSaltos && i < mBuscaDoComando.size(); ++i) {
+        const Vector2 ate = OndeFicaOCanto(mBuscaDoComando[i]);
+        mLinhas->Acrescentar(de, ate, kLinhaDaBusca);
+        de = ate;
+    }
+}
+
+void Luizinho::AtualizarAmarracoes() {
+    const auto* fsm = GetComponent<FSMComponent>();
+    const bool aqui = fsm && fsm->GetStateName() == Amarracao::kFaseDasAmarracoes && !EhClone();
+    if (!aqui) {
+        if (mNasAmarracoes) DesmontarAmarracoes();
+        return;
+    }
+    if (!mNasAmarracoes) {
+        mNasAmarracoes = true;
+        mComandoEmCurso = false;
+        mProximoComando = Amarracao::kPrimeiro;
+        mChamadas = 0;
+        mBlocoAnterior = Amarracao::Bloco::F;
+        MontarAmarracoes();
+        const SDL_FRect campo = Campo();
+        mAlvo = Vector2(campo.x + campo.w / 2.0f, campo.y + kYDoProfessorNoGlobal);
     }
     const float agora = fsm->GetStateTime();
-    if (!mChamadaEmCurso && agora >= mProximaChamada) ComecarChamada(agora);
-    if (!mChamadaEmCurso) return;
+    if (agora >= 1.2f) Falar(Amarracao::kFaseDasAmarracoes, 0);
+    if (!mComandoEmCurso && agora >= mProximoComando) ComecarComando(agora);
 
-    bool acabou = true;
-    const float voo = Suave(std::clamp((agora - mInicioDaChamada) / Polimorfismo::kVooDoNew, 0.0f, 1.0f));
-    for (size_t k = 0; k < mObjetos.size(); ++k) {
-        Objeto& o = mObjetos[k];
-        // O new: o objeto sai do professor e vai ao lugar dele.
-        if (o.rotulo && !o.partiu) o.rotulo->SetPosition(GetPosition() + (o.lugar - GetPosition()) * voo);
-
-        // f.desenhar(): o professor vai ate o objeto chamado.
-        if (agora >= o.invoca && !o.partiu) mAlvo = Vector2(o.lugar.x, campo.y + kYDoProfessorNasFormas);
-
-        // O tipo dinamico so se sabe na chamada.
-        if (!o.revelado && agora >= o.traca) {
-            o.revelado = true;
-            if (o.rotulo) {
-                o.rotulo->Escrever(Polimorfismo::Rotulo(mChamada, static_cast<int>(k), true));
-                o.rotulo->Pintar(CorDaClasse(o.classe), kFundoDoRotulo, kTintaDoRotulo);
-            }
-            TrocarAnuncio(Polimorfismo::kFaseDasFormas, Polimorfismo::Placar(mChamada, true));
+    if (mComandoEmCurso) {
+        const float u = agora - mInicioDoComando;
+        const float porSalto = mDegrauDasAmarracoes.porSalto;
+        // A busca olha um bloco por vez: quem nao tem x apaga, e o dono acende.
+        while (mSaltos < mBuscaDoComando.size() &&
+               u >= Amarracao::kAntesDaBusca + porSalto * static_cast<float>(mSaltos + 1)) {
+            const Amarracao::Bloco b = mBuscaDoComando[mSaltos];
+            ++mSaltos;
+            const bool dono = mSaltos == mBuscaDoComando.size();
+            PintarCanto(b, dono ? kCantoDoDono : kCantoOlhado);
+            if (dono) TrocarAnuncio(Amarracao::kFaseDasAmarracoes, Amarracao::Placar(mPrograma, mComando, true));
         }
-
-        // O contorno, ponto a ponto - e a forma parte, crescendo sem deixar de ser ela.
-        if (agora >= o.traca && !o.partiu) {
-            const float u = std::clamp((agora - o.traca) / Polimorfismo::kTraco, 0.0f, 1.0f);
-            const int devem = std::min(static_cast<int>(o.contorno.size()),
-                                       static_cast<int>(std::ceil(u * static_cast<float>(o.contorno.size()))));
-            while (o.tracados < devem) {
-                const Vector2 onde = o.lugar + o.contorno[static_cast<size_t>(o.tracados)] * Polimorfismo::kRaio;
-                for (BossProjectile* p : DispararEm(Polimorfismo::kGatilhoDoTraco, onde, 1)) {
-                    PorCara(p, Polimorfismo::Nome(o.classe));
-                    o.pontos.push_back(p);
-                }
-                ++o.tracados;
-            }
-            if (agora >= o.traca + Polimorfismo::kTraco + 0.06f) {
-                for (size_t i = 0; i < o.pontos.size() && i < o.contorno.size(); ++i) {
-                    if (!Vivo(o.pontos[i])) continue;
-                    if (auto* rb = o.pontos[i]->GetComponent<RigidBodyComponent>()) {
-                        rb->SetVelocity(o.contorno[i] * mDegrauDasFormas.velocidade);
-                    }
-                }
-                o.partiu = true;
-                o.partiuEm = agora;
-                for (BossProjectile* p : o.pontos) {
-                    if (Vivo(p)) mTracosNoAr.push_back(TracoNoAr{p, o.lugar, p->TempoDeVida(), o.giro});
-                }
-            }
+        const float resposta = Amarracao::kAntesDaBusca + porSalto * static_cast<float>(mBuscaDoComando.size()) +
+                               Amarracao::kAntesDaResposta;
+        while (mSaltos == mBuscaDoComando.size() && mRajadas < mDegrauDasAmarracoes.rajadas &&
+               u >= resposta + Amarracao::kEntreRajadas * static_cast<float>(mRajadas)) {
+            Responder();
+            ++mRajadas;
         }
-        if (o.partiu && agora > o.partiuEm + 0.25f && o.rotulo) o.rotulo->Mostrar(false);
-        if (!o.partiu || agora <= o.partiuEm + 0.25f) acabou = false;
+        if (mRajadas >= mDegrauDasAmarracoes.rajadas) {
+            mComandoEmCurso = false;
+            mProximoComando = agora + Random::GetFloatRange(Amarracao::kMenorPausa, Amarracao::kMaiorPausa);
+        }
     }
-    DesenharFormas(agora);
-
-    if (acabou) {
-        mChamadaEmCurso = false;
-        mObjetos.clear();
-        const float passo = Random::GetFloatRange(mDegrauDasFormas.menorPasso, mDegrauDasFormas.maiorPasso);
-        mProximaChamada = std::max(mInicioDaChamada + passo, agora + 0.2f);
-    }
+    DesenharBusca();
 }
 
 // A fase 2: os sistemas de tipos.
@@ -501,11 +582,15 @@ void Luizinho::AtualizarTipos() {
     }
 
     const float t = fsm->GetStateTime();
+    if (t >= 1.5f) Falar(Coercao::kFaseDosTipos, 0);
     if (t < Coercao::kPrimeiro) return;
     // A conta da vez: a ultima cujo horario ja chegou.
     int k = 0;
     while (k + 1 < static_cast<int>(mHorariosDosTipos.size()) && t >= mHorariosDosTipos[static_cast<size_t>(k + 1)]) ++k;
-    if (k != mContaDaVez) ComecarConta(k);
+    if (k != mContaDaVez) {
+        ComecarConta(k);
+        if (k == 3) Falar(Coercao::kFaseDosTipos, 1);
+    }
     mAlvo = mBaseDoProfessor + Vector2(Coercao::kBalanco * std::sin(2.0f * Math::Pi * t / Coercao::kPeriodoDoBalanco), 0.0f);
     const float u = t - mInicioDaConta;
     const bool estatica = Coercao::TipagemDe(Coercao::LinguagemDe(mConta.forma)) == Coercao::Tipagem::ForteEstatica;
@@ -565,283 +650,227 @@ void Luizinho::AtualizarTipos() {
     }
 }
 
-// A fase 3: a complexidade.
+// A fase 3: o programa Termina.
 
 namespace {
-    /// A cor de cada ordem, pelo custo: verde as baratas, amarelo as medias, vermelho as caras.
-    SDL_Color CorDaOrdem(const Complexidade::Ordem o, const Uint8 alfa = 255) {
-        switch (o) {
-            case Complexidade::Ordem::Constante:
-            case Complexidade::Ordem::Logaritmica: return {110, 230, 130, alfa};
-            case Complexidade::Ordem::Linear:
-            case Complexidade::Ordem::Linearitmica: return {255, 214, 72, alfa};
-            case Complexidade::Ordem::Quadratica:
-            case Complexidade::Ordem::Exponencial: return {255, 110, 90, alfa};
-        }
-        return {220, 220, 230, alfa};
-    }
-    constexpr SDL_Color kCasaApagada{120, 130, 160, 120};
-    constexpr SDL_Color kCasaNaBusca{200, 210, 235, 220};
-    constexpr SDL_Color kEixoDoGrafico{160, 170, 200, 210};
-    constexpr SDL_Color kMolduraDoGrafico{100, 120, 165, 190};
-    constexpr SDL_Color kFundoDoGrafico{20, 26, 42, 200};
-
-    /// O grafico: o quadro no canto de cima a direita, e a area das curvas dentro dele.
-    constexpr float kLarguraDoQuadro = 300.0f;
-    constexpr float kAlturaDoQuadro = 180.0f;
-    constexpr float kLarguraDasCurvas = 250.0f;
-    constexpr float kAlturaDasCurvas = 120.0f;
-    constexpr float kMargemDoQuadro = 18.0f;
+    constexpr SDL_Color kMolduraDoTermina{150, 170, 220, 230};
+    constexpr SDL_Color kFundoDoTermina{20, 26, 42, 220};
+    constexpr SDL_Color kRespostaPensando{150, 156, 176, 255};
+    constexpr SDL_Color kRespostaSim{110, 230, 130, 255};
+    constexpr SDL_Color kRespostaNao{255, 110, 90, 255};
+    constexpr float kLarguraDaCaixa = 280.0f;
+    constexpr float kAlturaDaCaixa = 96.0f;
+    constexpr float kMenorXNoTermina = 360.0f;
+    constexpr float kMaiorXNoTermina = 840.0f;
 }
 
-void Luizinho::DesmontarComplexidade() {
-    for (Galho& g : mGalhos) g.p = nullptr;
-    mGalhos.clear();
-    mLeituras.clear();
-    mRodadaEmCurso = false;
-    if (mQuadroDoGrafico) mQuadroDoGrafico->Mostrar(false);
-    if (mNomeDoGrafico) mNomeDoGrafico->Mostrar(false);
-    RestaurarAnuncio(Complexidade::kFaseDaComplexidade);
-    mAlvo.reset();
-    mNaComplexidade = false;
-}
-
-void Luizinho::ComecarRodadaDaComplexidade(const float agora) {
-    mRodadaDaComplexidade = Complexidade::Proxima(mVezDaComplexidade++, Sorteio(), mPlanoDaComplexidade, mOrdemAnterior,
-                                                  mDegrauDaComplexidade.nAMais);
-    const Complexidade::Rodada& r = mRodadaDaComplexidade;
-    mOrdemAnterior = static_cast<int>(r.ordem);
-    TrocarAnuncio(Complexidade::kFaseDaComplexidade, Complexidade::Placar(r));
-    // O processador muda de lugar a cada rodada: o leque sai de outro ponto.
+void Luizinho::MontarTermina() {
     const SDL_FRect campo = Campo();
-    mAlvo = Vector2(campo.x + Random::GetFloatRange(Complexidade::kMenorX, Complexidade::kMaiorX),
-                    campo.y + kYDoProfessorNaComplexidade);
-    if (mNomeDoGrafico) mNomeDoGrafico->Escrever(Complexidade::Notacao(r.ordem) + ", n = " + std::to_string(r.n));
-
-    mLidaEm.assign(static_cast<size_t>(std::max(1, r.n)), -10.0f);
-    mLeituras.clear();
-    mProximaLeitura = 0;
-    mGalhos.clear();
-    mDobras = 0;
-    mMeiosLidos = 0;
-    mBusca = Complexidade::Intervalo{0, r.n - 1};
-    const float t0 = agora + Complexidade::kAntes;
-    mProximoMeio = t0;
-    mProximaDobra = t0;
-
-    switch (r.ordem) {
-        case Complexidade::Ordem::Constante:
-            // v[i]: uma leitura, na casa em que o aluno estiver.
-            mLeituras.push_back(Leitura{t0, -1});
-            break;
-        case Complexidade::Ordem::Linear:
-        case Complexidade::Ordem::Linearitmica:
-        case Complexidade::Ordem::Quadratica: {
-            // As passadas pelo leque, cada uma no sentido contrario da anterior.
-            const bool lacos = r.ordem == Complexidade::Ordem::Quadratica;
-            const float ritmo = mDegrauDaComplexidade.ritmo;
-            const float naPassada = (lacos ? Complexidade::kNaPassadaDosLacos : Complexidade::kNaPassada) * ritmo;
-            const float entre = (lacos ? Complexidade::kEntrePassadas * 0.6f : Complexidade::kEntrePassadas) * ritmo;
-            const int passadas = Complexidade::Passadas(r.ordem, r.n);
-            const bool primeiraDaEsquerda = Sorteio() % 2u == 0u;
-            float quando = t0;
-            for (int p = 0; p < passadas; ++p) {
-                const bool daEsquerda = (p % 2 == 0) == primeiraDaEsquerda;
-                for (int j = 0; j < r.n; ++j) {
-                    mLeituras.push_back(Leitura{quando, daEsquerda ? j : r.n - 1 - j});
-                    quando += naPassada;
-                }
-                quando += entre - naPassada;
-            }
-            break;
-        }
-        case Complexidade::Ordem::Logaritmica:
-        case Complexidade::Ordem::Exponencial:
-            break;
+    const Vector2 caixa(campo.x + campo.w - kLarguraDaCaixa / 2.0f - 16.0f, campo.y + kAlturaDaCaixa / 2.0f + 40.0f);
+    if (!mCaixaDoTermina && mScene) {
+        auto painel = std::make_unique<PainelDeCodigo>(mScene, static_cast<int>(kLarguraDaCaixa),
+                                                       static_cast<int>(kAlturaDaCaixa), kOrdemDosPaineis);
+        mCaixaDoTermina = painel.get();
+        mScene->AddActor(std::move(painel));
+        auto pergunta = std::make_unique<EtiquetaDeCodigo>(mScene, " ", 230, static_cast<int>(kAlturaDoCanto), kOrdemDosCantos);
+        mPerguntaDoTermina = pergunta.get();
+        mScene->AddActor(std::move(pergunta));
+        auto resposta = std::make_unique<EtiquetaDeCodigo>(mScene, " ", 96, 32, kOrdemDosCantos);
+        mRespostaDoTermina = resposta.get();
+        mScene->AddActor(std::move(resposta));
+        auto contador = std::make_unique<EtiquetaDeCodigo>(mScene, " ", 120, static_cast<int>(kAlturaDoCanto), kOrdemDosCantos);
+        mContador = contador.get();
+        mScene->AddActor(std::move(contador));
     }
-    mRodadaEmCurso = true;
+    if (mCaixaDoTermina) {
+        mCaixaDoTermina->SetPosition(caixa);
+        mCaixaDoTermina->Pintar(kMolduraDoTermina, kFundoDoTermina);
+        mCaixaDoTermina->Mostrar(true);
+    }
+    if (mPerguntaDoTermina) {
+        mPerguntaDoTermina->SetPosition(caixa + Vector2(0.0f, -20.0f));
+        mPerguntaDoTermina->Pintar(kMolduraDoCanto, kFundoDoCanto, kTintaDoCanto);
+        mPerguntaDoTermina->Escrever("Termina(P, n)");
+        mPerguntaDoTermina->Mostrar(true);
+    }
+    if (mRespostaDoTermina) {
+        mRespostaDoTermina->SetPosition(caixa + Vector2(0.0f, 20.0f));
+        mRespostaDoTermina->Mostrar(true);
+    }
+    MostrarVeredito(std::nullopt);
+    if (mContador) mContador->Mostrar(false);
 }
 
-void Luizinho::VestirOperacao(BossProjectile* p) const {
-    PorCara(p, Complexidade::CaraDaOperacao(mRodadaDaComplexidade.ordem));
-    if (mDegrauDaComplexidade.tamanho != 1.0f) p->SetScale(p->GetScale() * mDegrauDaComplexidade.tamanho);
+void Luizinho::DesmontarTermina() {
+    if (mCaixaDoTermina) mCaixaDoTermina->Mostrar(false);
+    for (EtiquetaDeCodigo* e : {mPerguntaDoTermina, mRespostaDoTermina, mContador}) if (e) e->Mostrar(false);
+    RestaurarAnuncio(Termina::kFaseDoTermina);
+    mAlvo.reset();
+    mNoTermina = false;
+    mRodadaDoTerminaEmCurso = false;
+    mNoParadoxo = false;
 }
 
-void Luizinho::Operar(const int casa, const bool acha) {
-    const Complexidade::Rodada& r = mRodadaDaComplexidade;
-    // A leitura que acha o aluno mira nele e sai grande; as outras caem em qualquer ponto da casa.
-    const float angulo = acha ? Complexidade::PresoNaCasa(AnguloAteOAluno(GetPosition()), casa, r.n)
-                              : Complexidade::AnguloNaCasa(casa, r.n, Random::GetFloatRange(0.0f, 1.0f));
-    const float rad = Math::ToRadians(angulo);
-    const Vector2 de = GetPosition() + Vector2(Math::Cos(rad), Math::Sin(rad)) * kRaioDoLeque;
-    const char* gatilho = acha ? Complexidade::kGatilhoDoAcesso : Complexidade::kGatilhoDaOperacao;
-    for (BossProjectile* p : DispararEm(gatilho, de, 1, angulo, 0.0f, mDegrauDaComplexidade.rapidez)) {
-        VestirOperacao(p);
-    }
-    if (const auto* fsm = GetComponent<FSMComponent>(); fsm && casa >= 0 && static_cast<size_t>(casa) < mLidaEm.size()) {
-        mLidaEm[static_cast<size_t>(casa)] = fsm->GetStateTime();
-    }
+void Luizinho::MostrarVeredito(const std::optional<bool> veredito) {
+    mVeredito = veredito;
+    if (!mRespostaDoTermina) return;
+    const SDL_Color cor = !veredito ? kRespostaPensando : *veredito ? kRespostaSim : kRespostaNao;
+    mRespostaDoTermina->Escrever(Termina::Resposta(veredito));
+    mRespostaDoTermina->Pintar(cor, kFundoDoCanto, cor);
 }
 
-void Luizinho::Dobrar() {
-    // Cada galho vira dois, um para cada lado: 2, 4, 8... - o exponencial.
-    std::vector<Galho> novos;
-    for (const Galho& g : mGalhos) {
-        if (!Vivo(g.p)) continue;
-        const auto filhos = DispararEm(Complexidade::kGatilhoDaOperacao, g.p->GetPosition(), 2, g.angulo,
-                                       2.0f * Complexidade::kDesvioDaDobra, mDegrauDaComplexidade.rapidez);
-        for (size_t k = 0; k < filhos.size(); ++k) {
-            VestirOperacao(filhos[k]);
-            novos.push_back(Galho{filhos[k], g.angulo + (k == 0 ? -1.0f : 1.0f) * Complexidade::kDesvioDaDobra});
-        }
-        g.p->Kill();
-    }
-    mGalhos = std::move(novos);
+void Luizinho::EscreverContador(const std::string& texto, const SDL_Color moldura) {
+    if (!mContador) return;
+    mContador->Escrever(texto);
+    mContador->Pintar(moldura, kFundoDoCanto, kTintaDoCanto);
+    mContador->Mostrar(true);
 }
 
-void Luizinho::DesenharLeque(const float agora) {
-    if (!mLinhas) return;
-    const Complexidade::Rodada& r = mRodadaDaComplexidade;
-    const bool busca = mRodadaEmCurso && r.ordem == Complexidade::Ordem::Logaritmica;
-    for (int i = 0; i < r.n; ++i) {
-        const float rad = Math::ToRadians(Complexidade::AnguloDaCasa(i, r.n));
-        const Vector2 d(Math::Cos(rad), Math::Sin(rad));
-        const bool acesa = static_cast<size_t>(i) < mLidaEm.size() && agora - mLidaEm[static_cast<size_t>(i)] < 0.3f;
-        const bool naBusca = busca && !mBusca.Vazio() && i >= mBusca.lo && i <= mBusca.hi;
-        const SDL_Color cor = acesa ? CorDaOrdem(r.ordem) : naBusca ? kCasaNaBusca : kCasaApagada;
-        mLinhas->Acrescentar(GetPosition() + d * (kRaioDoLeque - 14.0f), GetPosition() + d * (kRaioDoLeque + 4.0f), cor);
-    }
+void Luizinho::ComecarRodadaDoTermina(const float agora) {
+    mRodadaDoTermina = Termina::Proxima(Sorteio(), mProgramaAnterior);
+    const Termina::Rodada& r = mRodadaDoTermina;
+    mProgramaAnterior = static_cast<int>(r.programa);
+    mValoresDoLaco = Termina::Valores(r.programa, r.n, Termina::kMaisVoltas);
+    mVoltasDadas = 0;
+    mCtrlC = Random::GetFloatRange(Termina::kMenorCtrlC, Termina::kMaiorCtrlC);
+    mFimDaRodadaDoTermina = -1.0f;
+    mInicioDaRodadaDoTermina = agora;
+    mRodadaDoTerminaEmCurso = true;
+    MostrarVeredito(std::nullopt);
+    if (mPerguntaDoTermina) mPerguntaDoTermina->Escrever(Termina::Pergunta(r));
+    TrocarAnuncio(Termina::kFaseDoTermina, Termina::Placar(r, std::nullopt));
+    EscreverContador("n = " + std::to_string(r.n), kMolduraDoCanto);
+
+    // O professor muda de lugar a cada rodada: a espiral sai de outro ponto.
+    const SDL_FRect campo = Campo();
+    mAlvo = Vector2(campo.x + Random::GetFloatRange(kMenorXNoTermina, kMaiorXNoTermina), campo.y + kYDoProfessorNoTermina);
 }
 
-void Luizinho::DesenharGrafico() {
-    if (!mLinhas || !mQuadroDoGrafico) return;
-    const Vector2 quadro = mQuadroDoGrafico->GetPosition();
-    const Vector2 origem = quadro + Vector2(-kLarguraDoQuadro / 2.0f + kMargemDoQuadro + 10.0f, kAlturaDoQuadro / 2.0f - kMargemDoQuadro);
-    auto ponto = [&origem](const float n, const float y) {
-        return Vector2(origem.x + (n - 1.0f) / (Complexidade::kNoGrafico - 1.0f) * kLarguraDasCurvas,
-                       origem.y - y / Complexidade::kTetoDoGrafico * kAlturaDasCurvas);
-    };
-    mLinhas->Acrescentar(ponto(1.0f, 0.0f), ponto(Complexidade::kNoGrafico, 0.0f), kEixoDoGrafico);
-    mLinhas->Acrescentar(ponto(1.0f, 0.0f), ponto(1.0f, Complexidade::kTetoDoGrafico), kEixoDoGrafico);
-    const auto atual = mRodadaDaComplexidade.ordem;
-    for (int k = 0; k < Complexidade::kOrdens; ++k) {
-        const auto o = static_cast<Complexidade::Ordem>(k);
-        const bool esta = o == atual;
-        const SDL_Color cor = CorDaOrdem(o, esta ? 255 : 90);
-        for (float n = 1.0f; n < Complexidade::kNoGrafico; n += 0.25f) {
-            const Vector2 a = ponto(n, Complexidade::NaCurva(o, n));
-            const Vector2 b = ponto(n + 0.25f, Complexidade::NaCurva(o, n + 0.25f));
-            mLinhas->Acrescentar(a, b, cor);
-            if (esta) mLinhas->Acrescentar(a + Vector2(0.0f, -1.0f), b + Vector2(0.0f, -1.0f), cor);
-        }
-    }
-    // Onde a rodada cai na curva: o n dela (no canto, quando passa do grafico).
-    const float n = std::min(static_cast<float>(mRodadaDaComplexidade.n), Complexidade::kNoGrafico);
-    const Vector2 x = ponto(n, Complexidade::NaCurva(atual, n));
-    const SDL_Color branco{255, 255, 255, 255};
-    mLinhas->Acrescentar(x + Vector2(-5.0f, -5.0f), x + Vector2(5.0f, 5.0f), branco);
-    mLinhas->Acrescentar(x + Vector2(-5.0f, 5.0f), x + Vector2(5.0f, -5.0f), branco);
+void Luizinho::ComecarParadoxo(const float agora) {
+    mParadoxoFeito = true;
+    mNoParadoxo = true;
+    mVirada = -1;
+    mEstourou = false;
+    mInicioDaRodadaDoTermina = agora;
+    mProximaVolta = agora;
+    MostrarVeredito(std::nullopt);
+    if (mPerguntaDoTermina) mPerguntaDoTermina->Escrever("Termina(Paradoxo)");
+    TrocarAnuncio(Termina::kFaseDoTermina, Termina::PlacarDoParadoxo(std::nullopt, false));
+    EscreverContador("Paradoxo()", kMolduraDoCanto);
+    Falar(Termina::kFaseDoTermina, 1);
+    const SDL_FRect campo = Campo();
+    mAlvo = Vector2(campo.x + campo.w / 2.0f, campo.y + kYDoProfessorNoTermina);
 }
 
-void Luizinho::AtualizarComplexidade() {
-    for (Galho& g : mGalhos) if (!Vivo(g.p)) g.p = nullptr;
-    mGalhos.erase(std::remove_if(mGalhos.begin(), mGalhos.end(), [](const Galho& g) { return !g.p; }), mGalhos.end());
+void Luizinho::DarVolta() {
+    const int n = mDegrauDoTermina.bracos;
+    const float rapidez = mDegrauDoTermina.velocidade / Termina::kVelocidade;
+    DispararEm(Termina::kGatilhoDaVolta, GetPosition(), n, mGiroDaEspiral, Coercao::AberturaDoAnel(n), rapidez);
+    mGiroDaEspiral += Termina::kGiroPorVolta;
+}
 
+void Luizinho::EstourarOTermina() {
+    mEstourou = true;
+    // O Termina se contradiz e estoura: um anel de cacos, de onde ele estava.
+    const Vector2 de = mCaixaDoTermina ? mCaixaDoTermina->GetPosition() : GetPosition();
+    const int n = Termina::kCacosDaContradicao;
+    DispararEm(Termina::kGatilhoDaContradicao, de, n, Coercao::CentroDoAnel(n, AnguloAteOAluno(de)),
+               Coercao::AberturaDoAnel(n), mDegrauDoTermina.velocidade / Termina::kVelocidade);
+    if (mCaixaDoTermina) mCaixaDoTermina->Mostrar(false);
+    if (mPerguntaDoTermina) mPerguntaDoTermina->Mostrar(false);
+    if (mRespostaDoTermina) mRespostaDoTermina->Mostrar(false);
+    TrocarAnuncio(Termina::kFaseDoTermina, Termina::PlacarDoParadoxo(std::nullopt, true));
+    EscreverContador("repete", kRespostaNao);
+    Falar(Termina::kFaseDoTermina, 2);
+}
+
+void Luizinho::AtualizarTermina() {
     const auto* fsm = GetComponent<FSMComponent>();
-    const bool aqui = fsm && fsm->GetStateName() == Complexidade::kFaseDaComplexidade && !EhClone();
+    const bool aqui = fsm && fsm->GetStateName() == Termina::kFaseDoTermina && !EhClone();
     if (!aqui) {
-        if (mNaComplexidade) DesmontarComplexidade();
+        if (mNoTermina) DesmontarTermina();
         return;
     }
     const SDL_FRect campo = Campo();
-    if (!mNaComplexidade) {
-        mNaComplexidade = true;
-        mVezDaComplexidade = 0;
-        mOrdemAnterior = -1;
-        mRodadaEmCurso = false;
-        mProximaRodadaDaComplexidade = Complexidade::kPrimeira;
-        mRodadaDaComplexidade = Complexidade::Rodada{};
-        mAlvo = Vector2(campo.x + campo.w / 2.0f, campo.y + kYDoProfessorNaComplexidade);
-        // O grafico, no canto de cima a direita: criado uma vez.
-        const Vector2 quadro(campo.x + campo.w - kLarguraDoQuadro / 2.0f - 14.0f, campo.y + kAlturaDoQuadro / 2.0f + 40.0f);
-        if (!mQuadroDoGrafico && mScene) {
-            auto q = std::make_unique<PainelDeCodigo>(mScene, static_cast<int>(kLarguraDoQuadro), static_cast<int>(kAlturaDoQuadro), 52);
-            mQuadroDoGrafico = q.get();
-            mScene->AddActor(std::move(q));
-            auto nome = std::make_unique<EtiquetaDeCodigo>(mScene, " ", 200, static_cast<int>(kAlturaDoCanto), kOrdemDosCantos);
-            mNomeDoGrafico = nome.get();
-            mScene->AddActor(std::move(nome));
-        }
-        if (mQuadroDoGrafico) {
-            mQuadroDoGrafico->SetPosition(quadro);
-            mQuadroDoGrafico->Pintar(kMolduraDoGrafico, kFundoDoGrafico);
-            mQuadroDoGrafico->Mostrar(true);
-        }
-        if (mNomeDoGrafico) {
-            mNomeDoGrafico->SetPosition(quadro + Vector2(0.0f, -kAlturaDoQuadro / 2.0f + 14.0f));
-            mNomeDoGrafico->Pintar(kMolduraDoCanto, kFundoDoCanto, kTintaDoCanto);
-            mNomeDoGrafico->Escrever(" ");
-            mNomeDoGrafico->Mostrar(true);
-        }
+    if (!mNoTermina) {
+        mNoTermina = true;
+        mRodadaDoTerminaEmCurso = false;
+        mProximaRodadaDoTermina = Termina::kPrimeira;
+        mProgramaAnterior = -1;
+        mParadoxoFeito = false;
+        mNoParadoxo = false;
+        mGiroDaEspiral = 90.0f;
+        MontarTermina();
+        mAlvo = Vector2(campo.x + campo.w / 2.0f, campo.y + kYDoProfessorNoTermina);
     }
     const float agora = fsm->GetStateTime();
-    if (!mRodadaEmCurso && agora >= mProximaRodadaDaComplexidade) ComecarRodadaDaComplexidade(agora);
+    if (agora >= 0.9f) Falar(Termina::kFaseDoTermina, 0);
+    if (!mRodadaDoTerminaEmCurso && !mNoParadoxo && agora >= mProximaRodadaDoTermina) {
+        if (!mParadoxoFeito && agora >= Termina::kInicioDoParadoxo) ComecarParadoxo(agora);
+        else ComecarRodadaDoTermina(agora);
+    }
 
-    if (mRodadaEmCurso) {
-        const Complexidade::Rodada& r = mRodadaDaComplexidade;
-        bool acabou = false;
-        switch (r.ordem) {
-            case Complexidade::Ordem::Logaritmica:
-                // A busca binaria: le o meio, descarta a metade em que o aluno nao esta.
-                if (!mBusca.Vazio() && agora >= mProximoMeio) {
-                    const int alvo = Complexidade::CasaDoAngulo(AnguloAteOAluno(GetPosition()), r.n);
-                    const int meio = Complexidade::Meio(mBusca);
-                    Operar(meio, meio == alvo);
-                    mBusca = Complexidade::Descartar(mBusca, alvo);
-                    ++mMeiosLidos;
-                    mProximoMeio = agora + Complexidade::kEntreLeituras * mDegrauDaComplexidade.ritmo;
+    if (mNoParadoxo) {
+        // O Termina responde, o Paradoxo faz o contrario, e ele muda de ideia - ate estourar.
+        const float u = agora - mInicioDaRodadaDoTermina;
+        if (!mEstourou) {
+            int k = -1;
+            float t = Termina::kPensando;
+            if (u >= t) {
+                k = 0;
+                while (k < Termina::kViradas && u >= t + Termina::DuracaoDaVirada(k)) t += Termina::DuracaoDaVirada(k++);
+            }
+            if (k != mVirada) {
+                mVirada = k;
+                if (k >= Termina::kViradas) {
+                    EstourarOTermina();
+                } else if (k >= 0) {
+                    const bool v = Termina::VereditoDaVirada(k);
+                    MostrarVeredito(v);
+                    TrocarAnuncio(Termina::kFaseDoTermina, Termina::PlacarDoParadoxo(v, false));
+                    EscreverContador(v ? "repete" : "para", v ? kRespostaNao : kRespostaSim);
                 }
-                acabou = mBusca.Vazio() && agora >= mProximoMeio;
-                break;
-            case Complexidade::Ordem::Exponencial:
-                if (agora >= mProximaDobra) {
-                    if (mDobras == 0) {
-                        // A raiz: um tiro no aluno, que vai dobrar n vezes.
-                        const float angulo = AnguloAteOAluno(GetPosition());
-                        const float rad = Math::ToRadians(angulo);
-                        const Vector2 de = GetPosition() + Vector2(Math::Cos(rad), Math::Sin(rad)) * kRaioDoLeque;
-                        for (BossProjectile* p : DispararEm(Complexidade::kGatilhoDaOperacao, de, 1, angulo, 0.0f, mDegrauDaComplexidade.rapidez)) {
-                            VestirOperacao(p);
-                            mGalhos.push_back(Galho{p, angulo});
-                        }
-                    } else {
-                        Dobrar();
-                    }
-                    ++mDobras;
-                    mProximaDobra = agora + Complexidade::kEntreDobras * mDegrauDaComplexidade.ritmo;
-                }
-                acabou = mDobras > r.n;
-                break;
-            default:
-                while (mProximaLeitura < mLeituras.size() && agora >= mLeituras[mProximaLeitura].quando) {
-                    // A leitura sem casa marcada e o v[i]: a casa em que o aluno estiver.
-                    const int marcada = mLeituras[mProximaLeitura].casa;
-                    const int casa = marcada >= 0 ? marcada : Complexidade::CasaDoAngulo(AnguloAteOAluno(GetPosition()), r.n);
-                    Operar(casa, marcada < 0);
-                    ++mProximaLeitura;
-                }
-                acabou = mProximaLeitura >= mLeituras.size();
-                break;
+            }
         }
-        if (acabou) {
-            mRodadaEmCurso = false;
-            mProximaRodadaDaComplexidade = agora + mDegrauDaComplexidade.depois + Random::GetFloatRange(0.0f, 0.4f);
+        // Disse que para, e ele repete; depois do estouro, repete ate a fase acabar.
+        const bool repete = mEstourou || (mVirada >= 0 && mVeredito && *mVeredito);
+        if (repete && agora >= mProximaVolta) {
+            DarVolta();
+            mProximaVolta = agora + mDegrauDoTermina.porVolta;
+        }
+        if (!repete) mProximaVolta = agora;
+    } else if (mRodadaDoTerminaEmCurso) {
+        const Termina::Rodada& r = mRodadaDoTermina;
+        const float u = agora - mInicioDaRodadaDoTermina;
+        if (!mVeredito && u >= Termina::kPensando) {
+            MostrarVeredito(Termina::Para(r.programa, r.n));
+            TrocarAnuncio(Termina::kFaseDoTermina, Termina::Placar(r, mVeredito));
+        }
+        if (mVeredito && mFimDaRodadaDoTermina < 0.0f) {
+            // O laco roda: uma volta a cada porVolta, o contador mostra o n.
+            const float rodando = u - Termina::kPensando - 0.15f;
+            const bool para = *mVeredito;
+            while (rodando >= mDegrauDoTermina.porVolta * static_cast<float>(mVoltasDadas) &&
+                   mVoltasDadas + 1 < static_cast<int>(mValoresDoLaco.size()) && (para || rodando < mCtrlC)) {
+                ++mVoltasDadas;
+                DarVolta();
+                EscreverContador("n = " + std::to_string(mValoresDoLaco[static_cast<size_t>(mVoltasDadas)]), kMolduraDoCanto);
+            }
+            if (para && mVoltasDadas + 1 >= static_cast<int>(mValoresDoLaco.size())) {
+                EscreverContador("fim", kRespostaSim);
+                mFimDaRodadaDoTermina = agora;
+            } else if (!para && rodando >= mCtrlC) {
+                EscreverContador("^C", kRespostaNao);
+                mFimDaRodadaDoTermina = agora;
+            }
+        }
+        if (mFimDaRodadaDoTermina >= 0.0f && agora >= mFimDaRodadaDoTermina + Termina::kDepois) {
+            mRodadaDoTerminaEmCurso = false;
+            mProximaRodadaDoTermina = agora;
         }
     }
-    if (mVezDaComplexidade > 0) {
-        DesenharLeque(agora);
-        DesenharGrafico();
-    }
+    // O contador acompanha o professor, embaixo do cartao.
+    if (mContador) mContador->SetPosition(GetPosition() + Vector2(0.0f, 72.0f));
 }
 
 // A final: as excecoes.
@@ -993,6 +1022,7 @@ void Luizinho::AtualizarExcecoes() {
     }
 
     const float t = fsm->GetStateTime();
+    if (t >= 1.2f) Falar(Excecao::kFaseDasExcecoes, 0);
     if (t < Excecao::kPrimeiro) return;
     const int k = std::min(Excecao::kRodadas - 1, static_cast<int>((t - Excecao::kPrimeiro) / Excecao::kPorRodada));
     if (k != mRodadaDaVez) ComecarRodada(k);

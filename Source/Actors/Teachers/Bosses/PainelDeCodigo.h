@@ -35,6 +35,10 @@ public:
     void Escrever(const std::string& texto);
     void Mostrar(bool mostrar);
 
+    /// Onde o texto quebra de linha, em pixels. O padrao e uma linha so: uma etiqueta de duas
+    /// linhas precisa quebrar na largura dela, ou o texto encolhe para caber.
+    void QuebrarEm(int largura);
+
     static constexpr int kTamanhoDaLetra = 20;
 
 private:

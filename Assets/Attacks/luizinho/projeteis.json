@@ -1,14 +1,14 @@
 {
   // Os projeteis do Luizinho (INF 340 - Linguagens de Programacao)
 
-  // Um ponto do contorno que o objeto desenha na fase 1 (Polimorfismo.h): na cor da classe, e com
-  // a forma dela.
-  "Traco": {
-    "sprite": "Teachers/Projectiles/DPIBHLuizinhoTracos.png",
-    "dados":  "Teachers/Projectiles/DPIBHLuizinhoTracos.json",
-    "animacoes": { "Circulo": [0], "Quadrado": [1], "Triangulo": [2], "Estrela": [3] },
-    "animacaoInicial": "Circulo",
-    "escala": 1.3,
+  // O valor de x que o bloco dono atira na fase 1 (Amarracao.h): o algarismo num hexagono ambar.
+  "Resposta": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoRespostas.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoRespostas.json",
+    "animacoes": {
+      "X1": [0], "X2": [1], "X3": [2], "X4": [3], "X5": [4], "X6": [5], "X7": [6], "X8": [7], "X9": [8]
+    },
+    "animacaoInicial": "X3",
     "ordemDeDesenho": 88,
     "posicionarNoDono": false
   },
@@ -55,14 +55,25 @@
     "ordemDeDesenho": 91
   },
 
-  // Uma operacao do algoritmo da fase 3 (Complexidade.h), na cor do custo da ordem.
-  "Operacao": {
-    "sprite": "Teachers/Projectiles/DPIBHLuizinhoOperacoes.png",
-    "dados":  "Teachers/Projectiles/DPIBHLuizinhoOperacoes.json",
-    "animacoes": { "Barata": [0], "Media": [1], "Cara": [2] },
-    "animacaoInicial": "Media",
-    "escala": 1.6,
+  // Uma volta do laco da fase 3 (Termina.h): cada volta e um anel deles, e o laco que roda, uma
+  // espiral.
+  "Volta": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoVoltas.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoVoltas.json",
+    "animacoes": { "Volta": [0] },
+    "animacaoInicial": "Volta",
+    "escala": 1.5,
     "ordemDeDesenho": 89,
+    "posicionarNoDono": false
+  },
+
+  // O caco do Termina, que se contradiz e estoura no fim do Paradoxo.
+  "Contradicao": {
+    "sprite": "Teachers/Projectiles/DPIBHLuizinhoContradicao.png",
+    "dados":  "Teachers/Projectiles/DPIBHLuizinhoContradicao.json",
+    "animacoes": { "Contradicao": [0] },
+    "animacaoInicial": "Contradicao",
+    "ordemDeDesenho": 90,
     "posicionarNoDono": false
   },
 

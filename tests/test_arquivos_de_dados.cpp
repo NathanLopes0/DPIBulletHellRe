@@ -48,8 +48,8 @@
 #include "../Source/Attacks/Laco.h"
 #include "../Source/Attacks/Funcao.h"
 #include "../Source/Attacks/Prova.h"
-#include "../Source/Attacks/Polimorfismo.h"
-#include "../Source/Attacks/Complexidade.h"
+#include "../Source/Attacks/Amarracao.h"
+#include "../Source/Attacks/Termina.h"
 #include "../Source/Attacks/Coercao.h"
 #include "../Source/Attacks/Excecao.h"
 #include <regex>
@@ -2502,32 +2502,29 @@ TEST_CASE("Documentacao: as duas linhas de posto em arquivos-de-dados.md citam t
     }
 }
 
-TEST_CASE("Dados: o polimorfismo do Luizinho - o gatilho do traco e uma cara por classe, de Polimorfismo.h") {
-    CHECK(GatilhoExiste(Polimorfismo::kGatilhoDoTraco));
+TEST_CASE("Dados: as amarracoes do Luizinho - o gatilho da resposta, a velocidade e uma cara por valor de x") {
+    CHECK(GatilhoExiste(Amarracao::kGatilhoDaResposta));
 
     const auto lidas = FasesDoChefe("luizinho");
     const DescricaoDeFase* fase = nullptr;
-    for (const auto& f : lidas.fases) if (f.nome == Polimorfismo::kFaseDasFormas) fase = &f;
+    for (const auto& f : lidas.fases) if (f.nome == Amarracao::kFaseDasAmarracoes) fase = &f;
     REQUIRE(fase != nullptr);
     CHECK(fase->movimento.tipo == "Conduzido");
 
     std::string tipo;
     for (const auto& a : fase->ataques) {
-        // A fase e toda de gatilho: o contorno nasce onde o objeto o desenha.
+        // A fase e toda de gatilho: quem responde e o bloco que a busca achou.
         CHECK(!a.gatilho.empty());
-        if (a.gatilho != Polimorfismo::kGatilhoDoTraco) continue;
+        if (a.gatilho != Amarracao::kGatilhoDaResposta) continue;
         tipo = a.projetil;
-        // Parado ao nascer: a forma so parte quando o contorno termina.
         REQUIRE(a.velocidade.has_value());
-        CHECK(*a.velocidade == doctest::Approx(0.0f));
-        REQUIRE(a.projeteis.has_value());
-        CHECK(*a.projeteis == 1);
+        CHECK(*a.velocidade == doctest::Approx(Amarracao::kVelocidade));
     }
     const auto& tipos = ProjeteisDoChefe("luizinho").projeteis;
     REQUIRE(tipos.count(tipo) == 1);
     std::set<std::string> caras;
     for (const auto& a : tipos.at(tipo).animacoes) caras.insert(a.nome);
-    for (int c = 0; c < Polimorfismo::kClasses; ++c) CHECK(caras.count(Polimorfismo::Nome(static_cast<Polimorfismo::Classe>(c))) == 1);
+    for (int v = Amarracao::kMenorValor; v <= Amarracao::kMaiorValor; ++v) CHECK(caras.count("X" + std::to_string(v)) == 1);
 }
 
 TEST_CASE("Dados: a coercao do Luizinho - gatilhos, velocidades e caras sao os de Coercao.h") {
@@ -2600,38 +2597,48 @@ TEST_CASE("Dados: a coercao do Luizinho - gatilhos, velocidades e caras sao os d
     CHECK(caras(projetilDe[Coercao::kGatilhoDaCompilacao]).count(Coercao::kCaraDaCompilacao) == 1);
 }
 
-TEST_CASE("Dados: a complexidade do Luizinho - o gatilho da operacao, a velocidade e uma cara por custo") {
-    CHECK(GatilhoExiste(Complexidade::kGatilhoDaOperacao));
-
+TEST_CASE("Dados: o Termina do Luizinho - os gatilhos da volta e da contradicao, e a velocidade da espiral") {
     const auto lidas = FasesDoChefe("luizinho");
     const DescricaoDeFase* fase = nullptr;
-    for (const auto& f : lidas.fases) if (f.nome == Complexidade::kFaseDaComplexidade) fase = &f;
+    for (const auto& f : lidas.fases) if (f.nome == Termina::kFaseDoTermina) fase = &f;
     REQUIRE(fase != nullptr);
 
-    CHECK(GatilhoExiste(Complexidade::kGatilhoDoAcesso));
-    std::string tipo;
-    bool acesso = false;
+    std::map<std::string, std::string> projetilDe;
     for (const auto& a : fase->ataques) {
         CHECK(!a.gatilho.empty());
-        if (a.gatilho == Complexidade::kGatilhoDoAcesso) {
-            // O O(1): maior, pela regra, e mais lento.
-            acesso = true;
+        projetilDe[a.gatilho] = a.projetil;
+        if (a.gatilho == Termina::kGatilhoDaVolta) {
+            // A velocidade do arquivo e a que a camada pura usa.
             REQUIRE(a.velocidade.has_value());
-            CHECK(*a.velocidade == doctest::Approx(Complexidade::kVelocidadeDoAcesso));
-            CHECK(a.regrasNome == "acesso");
+            CHECK(*a.velocidade == doctest::Approx(Termina::kVelocidade));
         }
-        if (a.gatilho != Complexidade::kGatilhoDaOperacao) continue;
-        tipo = a.projetil;
-        // A velocidade do arquivo e a que a camada pura usa.
-        REQUIRE(a.velocidade.has_value());
-        CHECK(*a.velocidade == doctest::Approx(Complexidade::kVelocidade));
+        // Os cacos apontam para onde voam, pela regra.
+        if (a.gatilho == Termina::kGatilhoDaContradicao) CHECK(a.regrasNome == "contradicao");
     }
-    CHECK(acesso);
     const auto& tipos = ProjeteisDoChefe("luizinho").projeteis;
-    REQUIRE(tipos.count(tipo) == 1);
-    std::set<std::string> caras;
-    for (const auto& a : tipos.at(tipo).animacoes) caras.insert(a.nome);
-    for (int o = 0; o < Complexidade::kOrdens; ++o) CHECK(caras.count(Complexidade::CaraDaOperacao(static_cast<Complexidade::Ordem>(o))) == 1);
+    for (const char* g : {Termina::kGatilhoDaVolta, Termina::kGatilhoDaContradicao}) {
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+        REQUIRE(projetilDe.count(g) == 1);
+        CHECK(tipos.count(projetilDe[g]) == 1);
+    }
+}
+
+TEST_CASE("Dados: as falas do Luizinho - cada fase tem as que ele usa, e nenhuma vazia") {
+    const auto lidas = FasesDoChefe("luizinho");
+    // Quantas o Luizinho.cpp mostra em cada fase: o comentario de cada fase no arquivo diz quando.
+    const std::map<std::string, size_t> usadas = {
+        {Amarracao::kFaseDasAmarracoes, 2}, {Coercao::kFaseDosTipos, 2},
+        {Termina::kFaseDoTermina, 3}, {Excecao::kFaseDasExcecoes, 1},
+    };
+    for (const auto& [nome, quantas] : usadas) {
+        CAPTURE(nome);
+        const DescricaoDeFase* fase = nullptr;
+        for (const auto& f : lidas.fases) if (f.nome == nome) fase = &f;
+        REQUIRE(fase != nullptr);
+        CHECK(fase->falas.size() == quantas);
+        for (const auto& fala : fase->falas) CHECK(!fala.empty());
+    }
 }
 
 TEST_CASE("Dados: a pilha de chamadas do Luizinho - gatilhos, velocidades e caras sao os de Excecao.h") {

@@ -1,9 +1,8 @@
 {
   // As regras de projetil do Luizinho.
 
-  // A leitura que acha o aluno na fase 3 - o v[i] do O(1) e o fim da busca binaria: grande e
-  // mirada nele (Complexidade.h).
-  "acesso": [
-    { "escala": 2.2 }
+  // Os cacos do Termina que estoura no fim do Paradoxo (Termina.h): cada um aponta para onde voa.
+  "contradicao": [
+    { "rotacionar": true }
   ]
 }

@@ -12,10 +12,9 @@ pergaminho dizem "latim" sem escrever uma palavra.
 
 OS PROJETEIS, um par de animacoes por assunto:
 
-    Traco     Circulo   um ponto do contorno que o objeto desenha na fase 1, o
-              Quadrado  polimorfismo: na cor da classe, e com a forma dela
-              Triangulo (DPIBHLuizinhoTracos).
-              Estrela
+    Resposta  X1..X9    o valor de x que o bloco dono atira na fase 1, as
+                        amarracoes: o algarismo num hexagono ambar
+                        (DPIBHLuizinhoRespostas).
     Valor     Numero0   o numero num chip azul (o operando, e o anel do
               ...20     resultado com o n escrito), o texto num verde com as
               Texto0    aspas (o operando), e as letras da palavra do
@@ -26,10 +25,10 @@ OS PROJETEIS, um par de animacoes por assunto:
               Vezes     quando ela da erro (DPIBHLuizinhoOperadores).
     Erro      TypeError o estilhaco do erro de execucao, e o "erro de tipo"
               Compilacao da compilacao (DPIBHLuizinhoErros).
-    Operacao  Barata    uma operacao do algoritmo da fase 3, a complexidade: a
-              Media     cor e o custo da ordem - verde O(1) e O(log n), ambar
-              Cara      O(n) e O(n log n), vermelho O(n²) e O(2ⁿ)
-                        (DPIBHLuizinhoOperacoes).
+    Volta     uma volta do laco da fase 3, o programa Termina: um anel com
+              a ponta de seta (DPIBHLuizinhoVoltas).
+    Contradicao  o caco do Termina que se contradiz e estoura: o simbolo da
+              contradicao num chip vermelho (DPIBHLuizinhoContradicao).
     Excecao   o nome do tipo num chip vermelho: a excecao da final, que sobe
               pela pilha (DPIBHLuizinhoExcecoes).
     Destroco  Destroco  o pedaco da faixa desempilhada, e o anel do finally
@@ -182,58 +181,73 @@ ERROS = [("TypeError", "TypeError", ((150, 24, 30, 240), (255, 110, 90, 255), (2
          ("Compilacao", "erro de tipo", ((70, 20, 60, 235), (220, 120, 230, 255), (250, 226, 255, 255)))]
 
 
-# ---- AS FASES 1 E 3: O POLIMORFISMO E A COMPLEXIDADE --------------------------
+# ---- AS FASES 1 E 3: AS AMARRACOES E O PROGRAMA TERMINA ----------------------
 
-# A fase 1, o polimorfismo: as cores das classes (Luizinho.cpp, CorDaClasse).
-CLASSES = [("Circulo", (96, 210, 255)), ("Quadrado", (255, 214, 72)),
-           ("Triangulo", (110, 230, 130)), ("Estrela", (240, 120, 230))]
-TW = 16   # o ponto do traco: o colisor e metade disto
+# A fase 1: o ambar do canto do bloco dono (Luizinho.cpp, kCantoDoDono).
+AW = 24   # o valor atirado: o colisor e metade disto
+AMARRA = ((96, 64, 12, 240), (255, 206, 92, 255), (255, 244, 214, 255))   # fundo, borda, tinta
+VALORES_DE_X = range(1, 10)
 
 
-def traco(nome, cor):
-    """Um ponto do contorno: a forma da classe em miniatura, na cor dela, com o
-    miolo claro - o quadrado solta quadradinhos, a estrela estrelinhas."""
+def resposta(valor):
+    """O valor de x que o bloco dono atira: o algarismo num hexagono ambar."""
     import math
     s = 4
-    im = Image.new("RGBA", (TW * s, TW * s), (0, 0, 0, 0))
+    im = Image.new("RGBA", (AW * s, AW * s), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    c = TW * s / 2
-    r = 6.5 * s
-    if nome == "Circulo":
-        pontos = None
-    elif nome == "Quadrado":
-        pontos = [(c - r * 0.8, c - r * 0.8), (c + r * 0.8, c - r * 0.8), (c + r * 0.8, c + r * 0.8), (c - r * 0.8, c + r * 0.8)]
-    elif nome == "Triangulo":
-        pontos = [(c + r * math.cos(math.radians(-90 + 120 * k)), c + 1.5 * s + r * math.sin(math.radians(-90 + 120 * k))) for k in range(3)]
-    else:
-        pontos = [(c + (r if k % 2 == 0 else r * 0.45) * math.cos(math.radians(-90 + 36 * k)),
-                   c + (r if k % 2 == 0 else r * 0.45) * math.sin(math.radians(-90 + 36 * k))) for k in range(10)]
-    escura = tuple(int(v * 0.45) for v in cor) + (255,)
-    if pontos is None:
-        d.ellipse([c - r, c - r, c + r, c + r], fill=cor + (255,), outline=escura, width=s)
-        d.ellipse([c - r * 0.4, c - r * 0.4, c + r * 0.4, c + r * 0.4], fill=(255, 255, 255, 235))
-    else:
-        d.polygon(pontos, fill=cor + (255,), outline=escura)
-        d.ellipse([c - r * 0.28, c - r * 0.28, c + r * 0.28, c + r * 0.28], fill=(255, 255, 255, 235))
-    return im.resize((TW, TW), Image.LANCZOS)
+    fundo, borda, tinta = AMARRA
+    c = AW * s / 2
+
+    def hexagono(r):
+        return [(c + r * math.cos(math.radians(30 + 60 * k)), c + r * math.sin(math.radians(30 + 60 * k))) for k in range(6)]
+
+    d.polygon(hexagono((AW / 2 - 1) * s), fill=borda)
+    d.polygon(hexagono((AW / 2 - 3) * s), fill=fundo)
+    d.text((c, c), str(valor), fill=tinta, font=ImageFont.truetype(CARLITO, 16 * s), anchor="mm")
+    return im.resize((AW, AW), Image.LANCZOS)
 
 
-# A fase 3, a complexidade: o custo da ordem (Complexidade::CaraDaOperacao).
-CUSTOS = [("Barata", (110, 230, 130)), ("Media", (255, 214, 72)), ("Cara", (255, 110, 90))]
-QW = 16   # a operacao: o colisor e metade disto
+# A fase 3: a volta do laco, e o caco da contradicao.
+LW = 16   # a volta: o colisor e metade disto
+CW = 24   # o caco da contradicao
 
 
-def operacao(cor):
-    """Uma operacao do algoritmo: um losango na cor do custo, com o miolo claro."""
+def volta():
+    """Uma volta do laco: um anel quase fechado, com a ponta de seta - o laco que gira."""
+    import math
     s = 4
-    im = Image.new("RGBA", (QW * s, QW * s), (0, 0, 0, 0))
+    im = Image.new("RGBA", (LW * s, LW * s), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    c = QW * s / 2
-    r = 7 * s
-    escura = tuple(int(v * 0.45) for v in cor) + (255,)
-    d.polygon([(c, c - r), (c + r, c), (c, c + r), (c - r, c)], fill=cor + (255,), outline=escura)
-    d.polygon([(c, c - r * 0.4), (c + r * 0.4, c), (c, c + r * 0.4), (c - r * 0.4, c)], fill=(255, 255, 255, 230))
-    return im.resize((QW, QW), Image.LANCZOS)
+    c = LW * s / 2
+    r = 5.2 * s
+    cor = (96, 210, 255, 255)
+    d.ellipse([c - r - 1.5 * s, c - r - 1.5 * s, c + r + 1.5 * s, c + r + 1.5 * s], fill=(20, 50, 80, 200))
+    d.arc([c - r, c - r, c + r, c + r], start=60, end=350, fill=cor, width=int(2.4 * s))
+    fim = math.radians(350)
+    px, py = c + r * math.cos(fim), c + r * math.sin(fim)
+    # A ponta de seta, na tangente do fim do arco (sentido horario na tela).
+    tx, ty = -math.sin(fim), math.cos(fim)
+    nx, ny = math.cos(fim), math.sin(fim)
+    d.polygon([(px + tx * 3.2 * s, py + ty * 3.2 * s),
+               (px + nx * 2.8 * s - tx * 1.2 * s, py + ny * 2.8 * s - ty * 1.2 * s),
+               (px - nx * 2.8 * s - tx * 1.2 * s, py - ny * 2.8 * s - ty * 1.2 * s)], fill=cor)
+    d.ellipse([c - 1.6 * s, c - 1.6 * s, c + 1.6 * s, c + 1.6 * s], fill=(220, 240, 255, 255))
+    return im.resize((LW, LW), Image.LANCZOS)
+
+
+def contradicao():
+    """O caco do Termina que se contradiz: o simbolo da contradicao, o falso da logica, num chip
+    vermelho."""
+    s = 4
+    im = Image.new("RGBA", (CW * s, CW * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([1 * s, 1 * s, (CW - 2) * s, (CW - 2) * s], radius=6 * s,
+                        fill=(150, 24, 30, 240), outline=(255, 120, 100, 255), width=2 * s)
+    c = CW * s / 2
+    branco = (255, 236, 228, 255)
+    d.line([(c, c - 6.5 * s), (c, c + 5 * s)], fill=branco, width=int(2.4 * s))
+    d.line([(c - 6.5 * s, c + 5.5 * s), (c + 6.5 * s, c + 5.5 * s)], fill=branco, width=int(2.4 * s))
+    return im.resize((CW, CW), Image.LANCZOS)
 
 
 # ---- A FINAL: AS EXCECOES ---------------------------------------------------
@@ -322,14 +336,15 @@ def grava_tira(quadros, nome, w, h, colunas):
 
 
 def animacoes():
-    """As animacoes de projeteis.json das folhas da fase 2, para copiar de la
-    para ca quando a folha mudar."""
+    """As animacoes de projeteis.json das folhas, para copiar de la para ca
+    quando a folha mudar."""
     return {
         "Valor": {nome: [i] for i, (nome, _) in enumerate(valores_quadros())},
         "Operador": {nome: [i] for i, (nome, _, _) in enumerate(OPERADORES)},
         "Erro": {nome: [i] for i, (nome, _, _) in enumerate(ERROS)},
-        "Traco": {nome: [i] for i, (nome, _) in enumerate(CLASSES)},
-        "Operacao": {nome: [i] for i, (nome, _) in enumerate(CUSTOS)},
+        "Resposta": {f"X{v}": [i] for i, v in enumerate(VALORES_DE_X)},
+        "Volta": {"Volta": [0]},
+        "Contradicao": {"Contradicao": [0]},
         "Excecao": {nome: [i] for i, nome in enumerate(EXCECOES)},
         "Destroco": {nome: [i] for i, (nome, _) in enumerate(PILHA)},
     }
@@ -350,10 +365,11 @@ if __name__ == "__main__":
         print(json.dumps(animacoes(), ensure_ascii=False))
         sys.exit(0)
     grava(luizinho(), "DPIBHLuizinho", "Assets/Teachers")
-    grava_tira([traco(n, c) for n, c in CLASSES], "DPIBHLuizinhoTracos", TW, TW, len(CLASSES))
+    grava_tira([resposta(v) for v in VALORES_DE_X], "DPIBHLuizinhoRespostas", AW, AW, len(VALORES_DE_X))
     grava_tira([im for _, im in valores_quadros()], "DPIBHLuizinhoValores", VW, VW, 10)
     grava_tira([operador(sim, erro) for _, sim, erro in OPERADORES], "DPIBHLuizinhoOperadores", OW, OW, 4)
     grava_tira([estilhaco(t, c) for _, t, c in ERROS], "DPIBHLuizinhoErros", EW, EH, 2)
-    grava_tira([operacao(c) for _, c in CUSTOS], "DPIBHLuizinhoOperacoes", QW, QW, len(CUSTOS))
+    grava_tira([volta()], "DPIBHLuizinhoVoltas", LW, LW, 1)
+    grava_tira([contradicao()], "DPIBHLuizinhoContradicao", CW, CW, 1)
     grava_tira([excecao(n) for n in EXCECOES], "DPIBHLuizinhoExcecoes", XW, XH, 1)
     grava_tira([f() for _, f in PILHA], "DPIBHLuizinhoPilha", PW, PW, len(PILHA))

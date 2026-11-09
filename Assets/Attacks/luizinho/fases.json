@@ -1,25 +1,37 @@
 {
   // As fases do Luizinho (INF 340 - Linguagens de Programacao)
 
-  // Fase 1 - o polimorfismo | gesto: o professor vai ate o objeto que chama. A mesma chamada,
-  // f.desenhar(), e cada objeto desenha a forma da classe dele (Polimorfismo.h).
+  // As "falas" sao o que o professor diz no balao, na ordem em que o Luizinho as usa: a de cada
+  // indice aparece num momento da fase (o comentario de cada fase diz qual).
+
+  // Fase 1 - amarracoes: o escopo | gesto: o professor roda atira(x) num bloco, e a busca anda de
+  // canto em canto ate quem declara o x - e quem responde e esse bloco (Amarracao.h). Falas: a 1a
+  // no comeco, a 2a na chamada de f por g no escopo dinamico.
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
-    "anuncio": "Polimorfismo · polýmorphos, muitas formas",
-    "movimento": { "tipo": "Conduzido", "a": 700 },
+    "anuncio": "Amarrações · ligāre, atar",
+    "falas": [
+      "No Fortran antigo não tinha bloco dentro de bloco.",
+      "O LISP original tinha escopo dinâmico: valia o x de quem chamou."
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 800 },
     "ataques": [
-      { "gatilho": "traco", "estrategia": "WaveAttack", "projetil": "Traco",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
+      { "gatilho": "resposta", "estrategia": "WaveAttack", "projetil": "Resposta",
+        "projeteis": 3, "velocidade": 225, "angulo": 18, "intervalo": 0 }
     ]
   },
 
   // Fase 2 - sistemas de tipos: a coercao | gesto: a conta em cima do aluno. A mesma conta em
-  // linguagens diferentes (Coercao.h).
+  // linguagens diferentes (Coercao.h). Falas: a 1a no comeco, a 2a na quarta conta.
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
     "anuncio": "Tipos · coercēre, forçar",
+    "falas": [
+      "No Fortran, variável que começa com I até N é inteira; o resto é real.",
+      "No LISP o tipo é do valor, não da variável."
+    ],
     "movimento": { "tipo": "Conduzido", "a": 600 },
     "ataques": [
       { "gatilho": "operador", "estrategia": "WaveAttack", "projetil": "Operador",
@@ -37,27 +49,36 @@
     ]
   },
 
-  // Fase 3 - a complexidade, da Teoria da Computacao | gesto: o professor e o processador. O vetor
-  // de entrada e um leque de casas embaixo dele, e cada operacao do algoritmo e um tiro
-  // (Complexidade.h).
+  // Fase 3 - computabilidade, da Teoria da Computacao: o programa Termina | gesto: o professor e o
+  // programa que roda. Cada volta do laco e um anel, e o Paradoxo faz o Termina se contradizer
+  // (Termina.h). Falas: a 1a no comeco, a 2a quando o Paradoxo aparece, a 3a quando o Termina
+  // estoura.
   "StateThree": {
     "duracao": 20,
     "proximo": "",
-    "anuncio": "Complexidade · complexus, entrelaçado",
+    "anuncio": "Computabilidade · computāre, calcular",
+    "falas": [
+      "Suponha que exista um programa chamado Termina.",
+      "No LISP, programa é dado: dá para passar um programa para ele mesmo.",
+      "Não tem como fazer um programa que sabe se outro programa termina."
+    ],
     "movimento": { "tipo": "Conduzido", "a": 600 },
     "ataques": [
-      { "gatilho": "operacao", "estrategia": "WaveAttack", "projetil": "Operacao",
-        "projeteis": 1, "velocidade": 300, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "acesso", "estrategia": "WaveAttack", "projetil": "Operacao",
-        "projeteis": 1, "velocidade": 240, "angulo": 0, "intervalo": 0, "regras": "acesso" }
+      { "gatilho": "volta", "estrategia": "WaveAttack", "projetil": "Volta",
+        "projeteis": 15, "velocidade": 180, "angulo": 336, "intervalo": 0 },
+      { "gatilho": "contradicao", "estrategia": "WaveAttack", "projetil": "Contradicao",
+        "projeteis": 18, "velocidade": 180, "angulo": 340, "intervalo": 0, "regras": "contradicao" }
     ]
   },
 
-  // Fase final - sequenciadores: as excecoes | gesto: o ponto de execucao.
+  // Fase final - sequenciadores: as excecoes | gesto: o ponto de execucao. Fala: no comeco.
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
     "anuncio": "Exceções · excipere, tirar de fora",
+    "falas": [
+      "No Fortran, erro se tratava com GOTO para um rótulo."
+    ],
     "movimento": { "tipo": "Conduzido", "a": 900 },
     "ataques": [
       { "gatilho": "excecao", "estrategia": "WaveAttack", "projetil": "Excecao",

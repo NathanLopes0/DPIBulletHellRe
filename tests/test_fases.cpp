@@ -644,6 +644,42 @@ TEST_CASE("Fases: um anuncio que nao e texto e recusado, e nao lido como vazio")
     CHECK(reclamou);
 }
 
+// As falas do professor.
+
+TEST_CASE("Fases: as falas sao lidas em ordem, e a que nao e texto fica de fora com aviso") {
+    const auto lidas = LerFases(R"({
+      "StateOne":   { "proximo": "StateFinal", "falas": ["No Fortran...", 42, "", "...e no LISP."],
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] },
+      "StateFinal": { "proximo": "",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+    })");
+    REQUIRE(lidas.fases.size() == 2);
+    for (const auto& f : lidas.fases) {
+        CAPTURE(f.nome);
+        if (f.nome == "StateOne")   CHECK(f.falas == std::vector<std::string>{"No Fortran...", "...e no LISP."});
+        if (f.nome == "StateFinal") CHECK(f.falas.empty());
+    }
+    int avisos = 0;
+    for (const auto& p : lidas.problemas) {
+        if (p.find("falas") != std::string::npos) ++avisos;
+    }
+    CHECK(avisos == 2);
+}
+
+TEST_CASE("Fases: falas que nao sao uma lista sao recusadas") {
+    const auto lidas = LerFases(R"({
+      "StateOne":   { "proximo": "", "falas": "uma so",
+                      "ataques": [ { "estrategia": "WaveAttack", "projetil": "P" } ] }
+    })");
+    REQUIRE(lidas.fases.size() == 1);
+    CHECK(lidas.fases.front().falas.empty());
+    bool reclamou = false;
+    for (const auto& p : lidas.problemas) {
+        if (p.find("falas") != std::string::npos) reclamou = true;
+    }
+    CHECK(reclamou);
+}
+
 // O Programa de Intercambio.
 
 namespace {
