@@ -27,15 +27,15 @@
 #define BLINK_INVINCIBLE_FREQUENCY 0.1f
 
 Player::Player(Scene* scene, const size_t quem) :
-    // Na ordem em que os membros sao declarados - mQuem e declarado depois de mMoving, e e nessa
+    // Na ordem em que os membros sao declarados - mQuem e declarado depois de mAndando, e e nessa
     // ordem que o compilador inicializa de qualquer jeito.
     Actor(scene),
-    playerSpeed(PLAYER_SPEED_START),
-    atkTimer(ATK_TIMER_START_FULL),
-    invincibleTimer(0.0f),
-    isInvincible(false),
-    mBlinkTimer(BLINK_INVINCIBLE_FREQUENCY),
-    mMoving(false),
+    mVelocidade(PLAYER_SPEED_START),
+    mRecargaDoTiro(ATK_TIMER_START_FULL),
+    mTempoInvencivel(0.0f),
+    mInvencivel(false),
+    mTempoDePiscar(BLINK_INVINCIBLE_FREQUENCY),
+    mAndando(false),
     mQuem(quem)
 
 {
@@ -71,56 +71,56 @@ Player::Player(Scene* scene, const size_t quem) :
 
 void Player::OnProcessInput(const Uint8 *keyState) {
 
-    MoveInput(keyState);
-    ShootInput(keyState);
-    SpecialInput(keyState);
+    LerManche(keyState);
+    LerBotaoDeTiro(keyState);
+    LerBotaoDoPontoExtra(keyState);
 
 }
 
 void Player::OnUpdate(float deltaTime) {
 
-    InvincibleUpdate(deltaTime);
+    AtualizarInvencibilidade(deltaTime);
     mAcertos.Avancar(deltaTime);
-    HandleAnimation();
-    DecreaseAtkTimer(deltaTime);
-    BorderLimitCheck();
+    AtualizarAnimacao();
+    DescontarRecarga(deltaTime);
+    PrenderNoCampo();
     // Cada um so anda o relogio dele; quem pinta e um so.
     UpdateCorrente(deltaTime);
-    UpdateOverload(deltaTime);
+    AtualizarSobrecarga(deltaTime);
     UpdateImunidade(deltaTime);
     AtualizarCorDoEstado();
 
 }
 
-void Player::InvincibleUpdate(float deltaTime) {
-    if (!isInvincible) return;
+void Player::AtualizarInvencibilidade(float deltaTime) {
+    if (!mInvencivel) return;
 
-    if (invincibleTimer == 0.0f) {
-        mBlinkTimer = BLINK_INVINCIBLE_FREQUENCY;
+    if (mTempoInvencivel == 0.0f) {
+        mTempoDePiscar = BLINK_INVINCIBLE_FREQUENCY;
     }
 
-    invincibleTimer += deltaTime;
+    mTempoInvencivel += deltaTime;
     // O tempo depende do modo (Dificuldade::Invencibilidade).
     const Dificuldade::Nivel nivel = (mScene && mScene->GetGame()) ? mScene->GetGame()->NivelDeDificuldade()
                                                                    : Dificuldade::Nivel::Normal;
-    if (invincibleTimer >= Dificuldade::Invencibilidade(nivel)) {
-        isInvincible = false;
-        invincibleTimer = 0.0f;
+    if (mTempoInvencivel >= Dificuldade::Invencibilidade(nivel)) {
+        mInvencivel = false;
+        mTempoInvencivel = 0.0f;
         GetComponent<DrawAnimatedComponent>()->SetIsVisible(true);
-        mBlinkTimer = BLINK_INVINCIBLE_FREQUENCY;
+        mTempoDePiscar = BLINK_INVINCIBLE_FREQUENCY;
         return;
     }
 
     auto blinking = GetComponent<DrawAnimatedComponent>()->GetIsVisible();
-    mBlinkTimer += deltaTime;
-    if (mBlinkTimer >= BLINK_INVINCIBLE_FREQUENCY) {
-        mBlinkTimer = 0.0f;
+    mTempoDePiscar += deltaTime;
+    if (mTempoDePiscar >= BLINK_INVINCIBLE_FREQUENCY) {
+        mTempoDePiscar = 0.0f;
         GetComponent<DrawAnimatedComponent>()->SetIsVisible(!blinking);
         blinking = !blinking;
     }
 
 }
-void Player::MoveInput(const Uint8 *keyState) {
+void Player::LerManche(const Uint8 *keyState) {
 
     float newXSpeed = 0;
     float newYSpeed = 0;
@@ -128,7 +128,7 @@ void Player::MoveInput(const Uint8 *keyState) {
     // O manche deste aluno.
     const Painel::Jogador kQuem = MeuPainel();
 
-    // A velocidade e lida com o fator, e playerSpeed fica intacto.
+    // A velocidade e lida com o fator, e mVelocidade fica intacto.
     const float velocidade = VelocidadeDeAndar();
 
     // ---- Verificação de movimento cima/baixo ----
@@ -143,51 +143,51 @@ void Player::MoveInput(const Uint8 *keyState) {
     else if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Direita))
         newXSpeed += velocidade;
 
-    // Vendo se está movendo ou não para mudar a variável mMoving (pra mudar a animação de acordo)
-    if(newXSpeed == 0 && newYSpeed == 0) mMoving = false;
-    else mMoving = true;
+    // Vendo se está movendo ou não para mudar a variável mAndando (pra mudar a animação de acordo)
+    if(newXSpeed == 0 && newYSpeed == 0) mAndando = false;
+    else mAndando = true;
 
     GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(newXSpeed, newYSpeed));
 }
-void Player::ShootInput(const Uint8 *keyState) {
+void Player::LerBotaoDeTiro(const Uint8 *keyState) {
 
     // Botao 1 do painel deste aluno.
-    if(Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Um) && mOverloadTimer <= 0.0f) {
-        Shoot();
+    if(Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Um) && mTempoDeSobrecarga <= 0.0f) {
+        Atirar();
     }
 
 }
-void Player::SpecialInput(const Uint8 *keyState) {
+void Player::LerBotaoDoPontoExtra(const Uint8 *keyState) {
 
     // Botao 2 do painel deste aluno.
-    if(Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Dois) && mExtraPoints > 0 && mEsperaDoPontoExtra <= 0.0f) {
-        mExtraPoints--;
+    if(Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Dois) && mPontosExtras > 0 && mEsperaDoPontoExtra <= 0.0f) {
+        mPontosExtras--;
         const auto battle = dynamic_cast<Battle*>(GetScene());
         // So o solo sobrecarrega.
         const bool sozinho = !battle || !battle->OutroJogador(this);
-        mEsperaDoPontoExtra = sozinho ? OVERLOAD_DURATION : IMUNIDADE_DO_PRESENTE;
-        if (sozinho) mOverloadTimer = OVERLOAD_DURATION;
-        if (battle) battle->OnPlayerUsedExtraPoint(this);
+        mEsperaDoPontoExtra = sozinho ? PontoExtra::kSobrecarga : PontoExtra::kImunidadeDoPresente;
+        if (sozinho) mTempoDeSobrecarga = PontoExtra::kSobrecarga;
+        if (battle) battle->AoGastarPontoExtra(this);
     }
 
 }
 
-void Player::HandleAnimation() {
+void Player::AtualizarAnimacao() {
 
-    if(mMoving) GetComponent<DrawAnimatedComponent>()->SetAnimation("Moving");
+    if(mAndando) GetComponent<DrawAnimatedComponent>()->SetAnimation("Moving");
     else GetComponent<DrawAnimatedComponent>()->SetAnimation("Idle");
 
 }
 
-// ShootInput Subfunction.
-void Player::Shoot() {
+// LerBotaoDeTiro Subfunction.
+void Player::Atirar() {
 
-    if (atkTimer > 0) return;
+    if (mRecargaDoTiro > 0) return;
 
     auto battle = dynamic_cast<Battle*>(GetScene());
     if (!battle) return;
 
-    auto projManager = battle->GetProjectileManager();
+    auto projManager = battle->GerenteDeProjeteis();
     if (!projManager) return;
 
     // TODO - MATANDO o Object Pooling - mudar pra chamada de função em ProjectileManager
@@ -210,16 +210,16 @@ void Player::Shoot() {
     const auto audioHandler = mScene->GetGame()->GetAudio()->PlaySound("plst00.wav", false);
     mScene->GetGame()->GetAudio()->SetSoundVolume(audioHandler, 10);
 
-    atkTimer = ATK_TIMER_START_FULL;
+    mRecargaDoTiro = ATK_TIMER_START_FULL;
 }
 
 // OnUpdate Subfunction.
-void Player::DecreaseAtkTimer(float deltaTime) {
-    if(atkTimer > 0)
-        atkTimer -= deltaTime;
+void Player::DescontarRecarga(float deltaTime) {
+    if(mRecargaDoTiro > 0)
+        mRecargaDoTiro -= deltaTime;
 }
 
-void Player::BorderLimitCheck() {
+void Player::PrenderNoCampo() {
     SDL_FRect bounds = mScene->GetPlayfieldBounds();
     auto pWidth = GetComponent<DrawAnimatedComponent>()->GetSpriteWidth();
     auto pHeight = GetComponent<DrawAnimatedComponent>()->GetSpriteHeight();
@@ -240,34 +240,34 @@ void Player::BorderLimitCheck() {
             Math::Clamp(GetPosition().y, bounds.y + pHeight, bounds.y + bounds.h - pHeight)));
 }
 
-void Player::UpdateOverload(float deltaTime) {
+void Player::AtualizarSobrecarga(float deltaTime) {
 
     // So o relogio e o pulso.
     mEsperaDoPontoExtra = std::max(0.0f, mEsperaDoPontoExtra - deltaTime);
 
-    if (mOverloadTimer <= 0.0f) {
-        mPulseTimer = 0.0f;
+    if (mTempoDeSobrecarga <= 0.0f) {
+        mTempoDoPulso = 0.0f;
         return;
     }
 
-    mOverloadTimer -= deltaTime;
+    mTempoDeSobrecarga -= deltaTime;
 
     // Quanto menor o timer (mais perto de acabar), maior a frequencia.
-    const float freq = 5.0f + (OVERLOAD_DURATION - mOverloadTimer) * 15.0f;
-    mPulseTimer += freq * deltaTime;
+    const float freq = 5.0f + (PontoExtra::kSobrecarga - mTempoDeSobrecarga) * 15.0f;
+    mTempoDoPulso += freq * deltaTime;
 }
 
 void Player::Proteger(const float segundos) {
 
     // O maior dos dois, e nao a soma.
-    if (segundos > mImunidadeTimer) mImunidadeTimer = segundos;
+    if (segundos > mTempoDeImunidade) mTempoDeImunidade = segundos;
 }
 
 void Player::Acorrentar(const float segundos, const float fatorDeVelocidade) {
 
     // O maior dos dois, como em Proteger.
-    if (segundos > mCorrenteTimer) {
-        mCorrenteTimer = segundos;
+    if (segundos > mTempoDeCorrente) {
+        mTempoDeCorrente = segundos;
 
         // O fator acompanha o timer vencedor.
         mFatorDaCorrente = fatorDeVelocidade;
@@ -276,19 +276,19 @@ void Player::Acorrentar(const float segundos, const float fatorDeVelocidade) {
 
 void Player::UpdateCorrente(const float deltaTime) {
 
-    if (mCorrenteTimer <= 0.0f) return;
+    if (mTempoDeCorrente <= 0.0f) return;
 
-    mCorrenteTimer -= deltaTime;
+    mTempoDeCorrente -= deltaTime;
 
-    if (mCorrenteTimer <= 0.0f) {
-        mCorrenteTimer = 0.0f;
+    if (mTempoDeCorrente <= 0.0f) {
+        mTempoDeCorrente = 0.0f;
         mFatorDaCorrente = 1.0f;
         mPulsoDaCorrente = 0.0f;
         return;
     }
 
     // Ela escurecia de 120 a 155 com um azul de leve, "porque peso se le apagado, nao agitado".
-    const float fracaoRestante = mCorrenteTimer / kDuracaoTipicaDaCorrente;
+    const float fracaoRestante = mTempoDeCorrente / kDuracaoTipicaDaCorrente;
     mPulsoDaCorrente += (4.0f + (1.0f - fracaoRestante) * 14.0f) * deltaTime;
 
     // Quem pinta e AtualizarCorDoEstado; aqui so anda o pulso.
@@ -297,17 +297,17 @@ void Player::UpdateCorrente(const float deltaTime) {
 void Player::UpdateImunidade(const float deltaTime) {
 
     // So o relogio e o pulso.
-    if (mImunidadeTimer <= 0.0f) return;
+    if (mTempoDeImunidade <= 0.0f) return;
 
-    mImunidadeTimer -= deltaTime;
-    if (mImunidadeTimer <= 0.0f) {
-        mImunidadeTimer = 0.0f;
+    mTempoDeImunidade -= deltaTime;
+    if (mTempoDeImunidade <= 0.0f) {
+        mTempoDeImunidade = 0.0f;
         mPulsoDaImunidade = 0.0f;
         return;
     }
 
     // O mesmo pulso do overload, e as duas se distinguem pela cor e nao pelo ritmo.
-    const float freq = 5.0f + (IMUNIDADE_DO_PRESENTE - mImunidadeTimer) * 15.0f;
+    const float freq = 5.0f + (PontoExtra::kImunidadeDoPresente - mTempoDeImunidade) * 15.0f;
     mPulsoDaImunidade += freq * deltaTime;
 }
 
@@ -318,19 +318,19 @@ void Player::AtualizarCorDoEstado() {
 
     // A ordem dos ifs e a prioridade, e esta escrita - ver o cabecalho.
 
-    if (mImunidadeTimer > 0.0f) {
+    if (mTempoDeImunidade > 0.0f) {
         const auto rg = static_cast<Uint8>((Math::Sin(mPulsoDaImunidade) + 1.0f) * 127.5f);
         dc->SetColor(rg, rg, 255);
         return;
     }
 
-    if (mOverloadTimer > 0.0f) {
-        const auto gb = static_cast<Uint8>((Math::Sin(mPulseTimer) + 1.0f) * 127.5f);
+    if (mTempoDeSobrecarga > 0.0f) {
+        const auto gb = static_cast<Uint8>((Math::Sin(mTempoDoPulso) + 1.0f) * 127.5f);
         dc->SetColor(255, gb, gb);
         return;
     }
 
-    if (mCorrenteTimer > 0.0f) {
+    if (mTempoDeCorrente > 0.0f) {
         // Ferro, escuro e pulsando.
         const float osc = (Math::Sin(mPulsoDaCorrente) + 1.0f) * 0.5f;
         const auto escuro = static_cast<Uint8>(70.0f + osc * 45.0f);
@@ -342,6 +342,6 @@ void Player::AtualizarCorDoEstado() {
     dc->SetColor(255, 255, 255);
 }
 
-void Player::AddExtraPoint() {
-    mExtraPoints = Math::Clamp(mExtraPoints + 1, 0, 3);
+void Player::GanharPontoExtra() {
+    mPontosExtras = Math::Clamp(mPontosExtras + 1, 0, 3);
 }

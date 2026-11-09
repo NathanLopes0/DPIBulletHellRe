@@ -595,10 +595,10 @@ namespace {
 
 void Luizinho::PararOMundo(const bool parar) const {
     auto* batalha = Batalha();
-    if (!batalha || !batalha->GetProjectileManager()) return;
+    if (!batalha || !batalha->GerenteDeProjeteis()) return;
 
     // Parado, o projetil nao faz nada.
-    for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+    for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
         if (!p) continue;
         if (parar && p->GetState() == ActorState::Active) p->SetState(ActorState::Paused);
         else if (!parar && p->GetState() == ActorState::Paused) p->SetState(ActorState::Active);

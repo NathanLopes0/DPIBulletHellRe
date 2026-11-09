@@ -213,7 +213,7 @@ recusados na leitura, com a frase dizendo qual fase errou.
 > estados do original — é a mesma fábrica que o monta, e é isso que o deixa
 > barato —, mas `BossAttackState` não o transiciona. Sem isso ele avançaria
 > sozinho e, ao chegar na fase que se divide, criaria um clone do clone; pior,
-> ao fim da terceira chamaria `FinishBattle` por conta própria e encerraria a
+> ao fim da terceira chamaria `EncerrarBatalha` por conta própria e encerraria a
 > luta no tempo dele.
 
 O segundo corpo nasce no **espelho** do original (`Battle::DividirChefe`). O

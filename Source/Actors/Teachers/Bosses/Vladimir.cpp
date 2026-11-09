@@ -227,8 +227,8 @@ Vector2 Vladimir::CentroDoEstado(const int q) {
 std::vector<BossProjectile*> Vladimir::NoPosto(const char* posto) const {
     std::vector<BossProjectile*> achados;
     const auto* batalha = Batalha();
-    if (!batalha || !batalha->GetProjectileManager()) return achados;
-    for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+    if (!batalha || !batalha->GerenteDeProjeteis()) return achados;
+    for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
         if (p && p->GetState() == ActorState::Active && p->Posto() == posto) achados.push_back(p.get());
     }
     return achados;
@@ -236,10 +236,10 @@ std::vector<BossProjectile*> Vladimir::NoPosto(const char* posto) const {
 
 void Vladimir::OnIntercambio() {
     const auto* batalha = Batalha();
-    if (!batalha || !batalha->GetProjectileManager()) return;
+    if (!batalha || !batalha->GerenteDeProjeteis()) return;
 
     // O "a" ganha o Tracking do "b", e o "b" perde o dele e segue reto no rumo em que estava.
-    for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+    for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
         if (!p || p->GetState() != ActorState::Active) continue;
         auto* anim = p->GetComponent<DrawAnimatedComponent>();
         if (!anim || !Alfabeto::Troca(anim->GetAnimation(), p->Posto(), p->Enfeite())) continue;

@@ -9,7 +9,7 @@
 #include "../Motor/Math.h"
 #include "Nota.h"
 
-/// Em dupla, o Ponto Extra e do outro (Battle::OnPlayerUsedExtraPoint).
+/// Em dupla, o Ponto Extra e do outro (Battle::AoGastarPontoExtra).
 namespace PontoExtra {
 
     /// O raio do escudo, do centro do aluno. Um pouco maior que o sprite: o projetil some antes de
@@ -59,7 +59,7 @@ namespace PontoExtra {
     /// gastar outro.
     constexpr float kImunidadeDoPresente = 3.0f;
 
-    /// O intervalo entre dois tiros do aluno (Player::Shoot).
+    /// O intervalo entre dois tiros do aluno (Player::Atirar).
     constexpr float kEntreTiros = 0.12f;
 
     /// Quantos tiros o aluno daria em 'sobrecarga' segundos.

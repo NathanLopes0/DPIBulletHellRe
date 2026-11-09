@@ -39,23 +39,23 @@ public:
     explicit Battle(Game* game, int selectedStage);
     ~Battle() override;
     void Load() override;
-    void CheckCollisions();
+    void VerificarColisoes();
     /// Uma fase do chefe acabou e outra comecou. Chamado pelo callback que o Boss registra na
     /// maquina de estados.
-    void OnFaseTrocada(float novaDuracao);
+    void AoMudarDeFase(float novaDuracao);
 
-    [[nodiscard]] Boss* GetBoss() const { return mBoss; }
+    [[nodiscard]] Boss* Chefe() const { return mChefe; }
 
     /// O orientador do TCC, quando ha um em campo.
-    [[nodiscard]] Orientador* GetOrientador() const { return mOrientador; }
+    [[nodiscard]] Orientador* OrientadorEmCampo() const { return mOrientador; }
 
     /// Paga uma conquista da dupla: um ganho bruto, inteiro (nao passa por Nota::PorJogador - ver
-    /// GradeUp).
-    void Conquistar(const float bruto) { if (EmCombate()) GradeUp(bruto); }
+    /// SubirNota).
+    void Conquistar(const float bruto) { if (EmCombate()) SubirNota(bruto); }
 
     /// Se a luta esta valendo: nem carregando os projeteis, nem na tela de fim.
     /// Quem age por conta propria (o orientador) so age enquanto isto vale.
-    [[nodiscard]] bool EmCombate() const { return !mIsLoading && !mIsEnding; }
+    [[nodiscard]] bool EmCombate() const { return !mCarregando && !mAcabando; }
 
     /// Todos os corpos do chefe em campo, e nao so o original. Normalmente e um so.
     [[nodiscard]] const std::vector<Boss*>& Corpos() const { return mCorpos; }
@@ -93,7 +93,7 @@ public:
 
     /// Da a vez a um jogador, antes de um disparo que e dele.
     void DarAVez(size_t posicao);
-    [[nodiscard]] ProjectileManager* GetProjectileManager() const { return mProjectileManager.get(); }
+    [[nodiscard]] ProjectileManager* GerenteDeProjeteis() const { return mProjeteis.get(); }
 
     /// A fonte do placar (Carlito), para quem escreve codigo no campo (EtiquetaDeCodigo). E da
     /// batalha, que vive mais que os atores dela.
@@ -102,36 +102,36 @@ public:
     SDL_FRect GetPlayfieldBounds() const override;
     /// Um aluno gastou um Ponto Extra. Recebe quem gastou porque em dupla o efeito e no outro: a
     /// tela nao e limpa, o parceiro fica imune.
-    void OnPlayerUsedExtraPoint(Player* quemGastou);
+    void AoGastarPontoExtra(Player* quemGastou);
 
     /// O outro aluno em campo, ou nullptr se este estiver sozinho.
     [[nodiscard]] Player* OutroJogador(const Player* quem) const;
-    void SpawnExtraPoint(Vector2 position);
+    void SoltarPontoExtra(Vector2 position);
 
-    void FinishBattle(bool approved);
+    void EncerrarBatalha(bool aprovado);
 
     /// A nota da batalha em curso. Quem precisa dela e a maquina de estados do chefe, para decidir
     /// entre a repescagem e o fim.
-    [[nodiscard]] float GetNotaAtual() const { return mGrade; }
+    [[nodiscard]] float NotaAtual() const { return mNota; }
     /// Quantas vezes a dupla foi acertada nesta batalha.
     [[nodiscard]] int AcertosSofridos() const { return mAcertosSofridos; }
     /// O indice da materia desta batalha (Materias::Lista).
-    [[nodiscard]] int MateriaDaBatalha() const { return mStage; }
+    [[nodiscard]] int MateriaDaBatalha() const { return mMateria; }
 
     /// A janela perdeu o foco: a luta pausa sozinha (Pausa::PausaAoPerderOFoco).
     void AoPerderOFoco() override;
 
 protected:
-    void TimeBarUpdate() const;
+    void AtualizarBarraDeTempo() const;
 
-    void GradeTextUpdate();
-    void GradeBarUpdate();
+    void AtualizarTextoDaNota();
+    void AtualizarBarraDaNota();
 
     void OnUpdate(float deltaTime) override;
     void OnProcessInput(const Uint8 *keyState) override;
 
 private:
-    // ---- As regras de colisao, na ordem em que CheckCollisions as aplica ----
+    // ---- As regras de colisao, na ordem em que VerificarColisoes as aplica ----
     /// O abrigo come os projeteis do chefe.
     void ColisoesDoAbrigo(const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles);
     /// O escudo do Ponto Extra come os projeteis do chefe.
@@ -148,30 +148,30 @@ private:
     void ColisoesComPontoExtra();
 
     // ---- Funções Auxiliares de Lógica Interna ----
-    void LoadHUD();
-    void LoadPlayer();
-    void LoadBoss();
+    void CriarHUD();
+    void CriarJogadores();
+    void CriarChefe();
 
     /// O orientador, se a materia pede um e alguem foi escolhido. Quem escolhe e a
     /// EscolhaDoOrientador, e o escolhido chega pelo Game (Game::Orientador).
-    void LoadOrientador();
+    void CriarOrientador();
 
-    void LoadTimeClock();
+    void CriarRelogioDaFase();
 
-    void LoadTimeBar();
-    void LoadGradeBar();
+    void CriarBarraDeTempo();
+    void CriarBarraDaNota();
 
     // ---- O placar: o que o chefe anuncia na fase ("anuncio" em fases.json) ----
-    void LoadPlacar();
+    void CriarPlacar();
     void AtualizarPlacar();
 
     // ---- O intercambio: os alunos trocam de lugar ("intercambio" em fases.json) ----
-    void LoadIntercambio();
+    void CriarIntercambio();
     void AtualizarIntercambio(float deltaTime);
 
     // ---- Membros de Estado da Batalha ----
-    float mGrade;
-    int mStage{};
+    float mNota;
+    int mMateria{};
 
     /// Acertos sofridos na fase atual.
     int mAcertosNaFase{};
@@ -190,7 +190,7 @@ private:
     /// Quanto tempo o aviso de fase limpa ainda fica na tela.
     float mAvisoDeFaseLimpa{};
 
-    Actor* mFaseLimpaActor = nullptr;
+    Actor* mFaseLimpaAtor = nullptr;
 
     Dificuldade::Nivel mNivel = Dificuldade::Nivel::Normal;
 
@@ -248,7 +248,7 @@ private:
     // ---- A moldura do campo e os efeitos (Hud.h) ----
     class DrawMolduraDoCampoComponent* mMoldura = nullptr;
     Hud::Caixa mAreaDoAluno;
-    void LoadMoldura();
+    void CriarMoldura();
     void AtualizarMoldura();
 
 public:
@@ -315,7 +315,7 @@ private:
     static inline const SDL_Color kMolduraDaPlacaDaNota{255, 255, 255, 55};
 
     // ---- Ponteiros observadores do Boss e do Player, que vão estar dentro ----
-    Boss* mBoss{};
+    Boss* mChefe{};
 
     /// O original mais os clones vivos.
     std::vector<Boss*> mCorpos;
@@ -330,15 +330,15 @@ private:
     size_t mVezDoAlvo = 0;
 
     // O gerente de projéteis: Um sistema especializado, possuído pela cena.
-    std::unique_ptr<ProjectileManager> mProjectileManager;
+    std::unique_ptr<ProjectileManager> mProjeteis;
 
     // O HUD.
     std::unique_ptr<BattleHUD> mHUD;
-    std::unique_ptr<Font> mGradeBarFont;
+    std::unique_ptr<Font> mFonteDaNota;
 
     /// A Carlito tem a notacao inteira, inclusive os sobrescritos e o delta.
     std::unique_ptr<Font> mFonteDoPlacar;
-    Actor* mPlacarActor = nullptr;
+    Actor* mPlacarAtor = nullptr;
 
     /// E o texto, e nao a fase, que se compara: dentro de uma fase com Intercambio o placar troca
     /// de texto durante o aviso.
@@ -369,18 +369,18 @@ private:
 
     /// Atras dos projeteis (88 a 92) e do aluno (100), e.
     static constexpr int kOrdemDoPlacar = 60;
-    Actor* mHUDTimeBarActor = nullptr;
-    Actor* mHUDClockActor = nullptr;
+    Actor* mBarraDeTempoAtor = nullptr;
+    Actor* mRelogioAtor = nullptr;
 
-    Actor* mGradeBarActor = nullptr;
-    Actor* mGradeTextActor = nullptr;
+    Actor* mBarraDaNotaAtor = nullptr;
+    Actor* mTextoDaNotaAtor = nullptr;
 
     /// O "TESTE FINAL" na faixa da nota. Escondido ate a nota chegar a 100, e a
-    /// partir dali fica - ver GradeTextUpdate.
-    Actor* mTesteFinalActor = nullptr;
+    /// partir dali fica - ver AtualizarTextoDaNota.
+    Actor* mTesteFinalAtor = nullptr;
 
     /// Soma um ganho bruto na nota da batalha. Sem valor padrao.
-    void GradeUp(float amount);
+    void SubirNota(float amount);
 
     /// Quanto vale, nesta batalha, algo que um jogador causou.
     [[nodiscard]] float PorJogador(float bruto) const;
@@ -388,42 +388,42 @@ private:
     /// O que um acerto sofrido custa: dividido E aliviado.
     [[nodiscard]] float PerdaPorJogador(float bruto) const;
     /// Cobra um acerto sofrido.
-    void GradeDown(float multiplicadorDaPerda = 1.0f);
+    void DescerNota(float multiplicadorDaPerda = 1.0f);
 
-    std::vector<ExtraPointItem*> mExtraPoints;
+    std::vector<ExtraPointItem*> mPontosExtras;
 
     // ---- O fim da luta: a tela de resultado (Resultado.h) ----
 
-    void LoadResultado();
+    void CriarResultado();
     void MostrarResultado(const Resultado::Resumo& resumo);
     void ProcessarResultado(const Uint8* keyState);
     void EscolherNoResultado();
 
-    bool mIsEnding = false;
+    bool mAcabando = false;
     /// Segundos desde o fim da luta: a trava do menu e a volta sozinha no
     /// gabinete contam por ele.
-    float mEndTimer = 0.0f;
+    float mTempoNoFim = 0.0f;
     int mResultadoSelecionado = 0;
     std::unique_ptr<PainelDeMenu> mPainelDoResultado;
 
-    SoundHandle mMusicHandle;
+    SoundHandle mMusica;
 
     // ---- Tela de Carregamento (pré-aquecimento dos pools de projétil) ----
-    bool mIsLoading = false;
-    std::vector<std::string> mLoadingPendingFactoryNames; // nomes ainda não pré-aquecidos
-    int mLoadingTotalTypes = 0;   // quantos tipos existem no total (para a barra de progresso)
+    bool mCarregando = false;
+    std::vector<std::string> mTiposACarregar; // nomes ainda não pré-aquecidos
+    int mTiposNoTotal = 0;   // quantos tipos existem no total (para a barra de progresso)
 
     // A tela de carregamento cobre a batalha inteira - um veu escuro com o nome da materia e uma
     // barra enchendo.
     std::unique_ptr<class TelaDeCarregamento> mTelaDeCarregamento;
 
-    void StartLoadingProjectilePools();
-    void UpdateLoadingStep(float deltaTime); // processa 1 tipo de projétil por chamada
-    void FinishLoadingProjectilePools();
+    void ComecarCarregamento();
+    void AvancarCarregamento(float deltaTime); // processa 1 tipo de projétil por chamada
+    void TerminarCarregamento();
 
     // ---- A pausa, so no computador (Pausa.h) ----
 
-    void LoadPausa();
+    void CriarPausa();
     void AbrirPausa();
     /// Fecha o menu e comeca a contagem: a luta segue congelada ate ela acabar.
     void FecharPausa();

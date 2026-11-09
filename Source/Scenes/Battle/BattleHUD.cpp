@@ -89,7 +89,7 @@ void BattleHUD::UpdateVisualOrbs(float deltaTime) {
         if (!player) continue;
 
         const std::vector<Actor*>& orbes = mOrbesPorJogador[quem];
-        const int numPoints = player->GetExtraPoints();
+        const int numPoints = player->PontosExtras();
         const Vector2 playerPos = player->GetPosition();
 
         for (size_t i = 0; i < orbes.size(); i++) {

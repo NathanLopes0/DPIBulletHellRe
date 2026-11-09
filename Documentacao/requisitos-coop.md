@@ -209,11 +209,11 @@ O menu ficou: **Modo Solo, Modo Dupla, Ranking, Opções**.
 ### 2.5 — O Ponto Extra em dupla é do *outro* (D11)
 
 Sozinho, gastar o Ponto Extra limpa a tela. **Em dupla, ele dá ao parceiro
-imunidade e um escudo** por três segundos (`Player::OVERLOAD_DURATION`) — e não
+imunidade e um escudo** por três segundos (`Player::PontoExtra::kSobrecarga`) — e não
 limpa a tela.
 
 **O escudo destrói os projéteis do chefe que encostam nele** (`PontoExtra.h`, a
-regra 0,5 de `Battle::CheckCollisions`, com o mesmo filtro do abrigo: enfeite e
+regra 0,5 de `Battle::VerificarColisoes`, com o mesmo filtro do abrigo: enfeite e
 o que está num posto ficam). Ele se vê: um anel azul em volta do parceiro, que
 pulsa mais depressa no fim, e um **feixe** que corre de quem gastou até ele no
 instante do Ponto Extra. Antes a única pista era o aluno piscar azul, e no meio
@@ -233,7 +233,7 @@ item deixa de ser um botão de pânico e vira uma decisão sobre o outro, que é
 que um modo cooperativo deveria cobrar.
 
 
-A imunidade entrou dentro de `Player::GetIsInvincible`, junto com os quadros de
+A imunidade entrou dentro de `Player::EstaInvencivel`, junto com os quadros de
 graça de quem apanhou: as duas respondem a mesma pergunta — "um tiro encosta
 neste aluno agora?" — e as regras 1 e 3 da batalha já perguntavam isso, então
 a colisão não ganhou linha nenhuma. **O contador, porém, é separado**: os
@@ -340,8 +340,8 @@ grep -rn "GetPlayer()" --include=*.cpp Source | grep -v Scenes/Battle/
 
 `mPlayer` vira lista. Os onze usos de `mPlayer->` passam a varrer a lista:
 pausa, retomada, as duas regras de colisão, apanhar Ponto Extra e a
-invencibilidade da tela de vitória. `GradeUp` e `GradeDown` dividem pelo
-tamanho dela (2.1). `FinishBattle` grava a MESMA nota em duas fichas, marcada
+invencibilidade da tela de vitória. `SubirNota` e `DescerNota` dividem pelo
+tamanho dela (2.1). `EncerrarBatalha` grava a MESMA nota em duas fichas, marcada
 como co-op.
 
 **`mGrade`, `mAcertosSofridos` e `mAcertosNaFase` ficam como estão.** Na
@@ -440,9 +440,9 @@ q00420   nota=48,96            nota=40,00     <- sete segundos sem ganhar nada
 
 A dupla ficava em 40,00 cravados. Não era dificuldade: **eles não estavam
 acertando o chefe uma vez sequer.** O tiro do jogador sobe reto
-(`Player::Shoot`: velocidade `(0, -800)`), o chefe nasce no meio da tela, e o
+(`Player::Atirar`: velocidade `(0, -800)`), o chefe nasce no meio da tela, e o
 jogador solo nasce no meio também — parado, ele acerta de graça. Os dois da
-dupla nascem a 1/3 e 2/3 da largura (`Battle::LoadPlayer`), e parados atiram no
+dupla nascem a 1/3 e 2/3 da largura (`Battle::CriarJogadores`), e parados atiram no
 vazio. O arnês estava medindo a **posição de nascimento**.
 
 Isso é uma informação sobre o jogo, e não só sobre a medição: **numa dupla, só

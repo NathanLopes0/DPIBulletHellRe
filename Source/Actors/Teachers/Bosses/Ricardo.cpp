@@ -253,8 +253,8 @@ void Ricardo::AtualizarPipeline(const float deltaTime) {
 std::vector<BossProjectile*> Ricardo::NoPosto(const char* posto) const {
     std::vector<BossProjectile*> achados;
     const auto* batalha = Batalha();
-    if (!batalha || !batalha->GetProjectileManager()) return achados;
-    for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+    if (!batalha || !batalha->GerenteDeProjeteis()) return achados;
+    for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
         if (p && p->GetState() == ActorState::Active && p->Posto() == posto) achados.push_back(p.get());
     }
     return achados;

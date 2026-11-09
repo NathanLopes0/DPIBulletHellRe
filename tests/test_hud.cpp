@@ -11,7 +11,7 @@ using namespace Hud;
 TEST_CASE("Hud: a moldura fica onde o desenho do aluno para, e acende quando ele encosta") {
     const Caixa campo{0.0f, 0.0f, 1200.0f, 746.0f};
     const Caixa area = AreaDoAluno(campo, 32.0f, 64.0f);
-    // O centro para a uma largura de sprite (Player::BorderLimitCheck); o desenho, a meia.
+    // O centro para a uma largura de sprite (Player::PrenderNoCampo); o desenho, a meia.
     CHECK(area.esquerda == doctest::Approx(16.0f));
     CHECK(area.direita == doctest::Approx(1184.0f));
     CHECK(area.topo == doctest::Approx(32.0f));

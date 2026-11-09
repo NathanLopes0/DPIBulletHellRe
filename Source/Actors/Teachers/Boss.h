@@ -172,7 +172,7 @@ public:
     /// Os alunos acabaram de trocar de lugar.
     virtual void OnIntercambio() {}
 
-    /// A batalha acabou: a tela da nota vai entrar. Quem chama e Battle::FinishBattle, depois de
+    /// A batalha acabou: a tela da nota vai entrar. Quem chama e Battle::EncerrarBatalha, depois de
     /// limpar os projeteis.
     virtual void AoTerminarABatalha() {}
 

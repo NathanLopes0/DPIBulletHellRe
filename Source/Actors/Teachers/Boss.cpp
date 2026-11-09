@@ -36,7 +36,7 @@ void Boss::Start() {
         // O clone nao avisa a batalha: a fase e a do original.
         if (auto battleScene = Batalha(); battleScene && !mEhClone) {
             fsm->SetOnStateChanged([battleScene](float newDuration) {
-                battleScene->OnFaseTrocada(newDuration);
+                battleScene->AoMudarDeFase(newDuration);
             });
         }
 
@@ -171,7 +171,7 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
     auto battleScene = Batalha();
     if (!battleScene) { return; }
 
-    auto projManager = battleScene->GetProjectileManager();
+    auto projManager = battleScene->GerenteDeProjeteis();
     if (!projManager) { return; }
 
     // O revezamento e aqui, e so aqui.
@@ -307,9 +307,9 @@ void Boss::Disparar(const std::string& gatilho, const int alvo, const float rapi
 std::vector<Vector2> Boss::PontosDoPosto(const std::string& posto) const {
     std::vector<Vector2> pontos;
     const auto* batalha = Batalha();
-    if (posto.empty() || !batalha || !batalha->GetProjectileManager()) return pontos;
+    if (posto.empty() || !batalha || !batalha->GerenteDeProjeteis()) return pontos;
 
-    for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+    for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
         if (!p || p->GetState() != ActorState::Active) continue;
         if (p->Posto() == posto) pontos.push_back(p->GetPosition());
     }
@@ -427,7 +427,7 @@ void Boss::OnCollision(Actor *other) {
     mHitCounter++;
     if (mHitCounter == mNextDropThreshold) {
         if (auto battle = Batalha()) {
-            battle->SpawnExtraPoint(GetPosition());
+            battle->SoltarPontoExtra(GetPosition());
         }
 
         mHitCounter = 0;

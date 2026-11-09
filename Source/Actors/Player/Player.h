@@ -23,15 +23,15 @@ public:
     // Process Input -> Update, sobrescritas de Actor para Player.
     void OnProcessInput(const Uint8* keyState) override;
 
-    void UpdateOverload(float deltaTime);
+    void AtualizarSobrecarga(float deltaTime);
 
     void OnUpdate(float deltaTime) override;
 
-    void SetIsInvincible(const bool invincible) { isInvincible = invincible; }
+    void DefinirInvencivel(const bool invincible) { mInvencivel = invincible; }
 
     /// Invencivel por qualquer motivo: os quadros de graca depois de apanhar ou a imunidade dada
     /// pelo parceiro.
-    [[nodiscard]] bool GetIsInvincible() const { return isInvincible || mImunidadeTimer > 0.0f; }
+    [[nodiscard]] bool EstaInvencivel() const { return mInvencivel || mTempoDeImunidade > 0.0f; }
 
     /// O mesmo causador nao acerta duas vezes seguidas (Acerto.h): 'quem' e o projetil ou o corpo
     /// do chefe, e 'idade' a vida dele (0 para o corpo).
@@ -46,39 +46,33 @@ public:
     void Acorrentar(float segundos, float fatorDeVelocidade);
 
     /// Battle e as regras de projetil leem isto.
-    [[nodiscard]] bool EstaAcorrentado() const { return mCorrenteTimer > 0.0f; }
+    [[nodiscard]] bool EstaAcorrentado() const { return mTempoDeCorrente > 0.0f; }
 
     /// Quao rapido o aluno anda neste instante, ja com a corrente. Fonte unica.
     [[nodiscard]] float VelocidadeDeAndar() const {
-        return playerSpeed * (mCorrenteTimer > 0.0f ? mFatorDaCorrente : 1.0f);
+        return mVelocidade * (mTempoDeCorrente > 0.0f ? mFatorDaCorrente : 1.0f);
     }
 
     /// Quanto ainda falta da imunidade do parceiro. Zero quer dizer desprotegido.
-    [[nodiscard]] float TempoDeImunidade() const { return mImunidadeTimer; }
+    [[nodiscard]] float TempoDeImunidade() const { return mTempoDeImunidade; }
 
-    /// O tempo que quem gasta um Ponto Extra sozinho passa sem atirar. Um numero so, e publico por
-    /// isso.
-
-    static constexpr float OVERLOAD_DURATION = PontoExtra::kSobrecarga;
-    static constexpr float IMUNIDADE_DO_PRESENTE = PontoExtra::kImunidadeDoPresente;
-
-    [[nodiscard]] int GetExtraPoints() const { return mExtraPoints;}
+    [[nodiscard]] int PontosExtras() const { return mPontosExtras;}
 
     /// Quantos tiros ele ja deu na batalha. O Observer da Maria Lucia, como
     /// orientadora do TCC, atira a cada tantos (Golpe::Notificacoes).
     [[nodiscard]] int Disparos() const { return mDisparos; }
-    void AddExtraPoint();
+    void GanharPontoExtra();
 
 private:
 
     // Variaveis de jogador.
-    float playerSpeed;
-    float atkTimer;
-    float invincibleTimer;
-    bool isInvincible;
+    float mVelocidade;
+    float mRecargaDoTiro;
+    float mTempoInvencivel;
+    bool mInvencivel;
     /// Tempo desde a ultima troca de visibilidade durante a invencibilidade.
-    float mBlinkTimer;
-    bool mMoving;                       //ve se o jogador está se movendo. Usada para mudar a animação
+    float mTempoDePiscar;
+    bool mAndando;                       //ve se o jogador está se movendo. Usada para mudar a animação
     /// A posicao deste aluno no painel.
     size_t mQuem = 0;
 
@@ -87,45 +81,45 @@ private:
         return mQuem == 1 ? Painel::Jogador::Dois : Painel::Jogador::Um;
     }
 
-    int mExtraPoints = 1;
+    int mPontosExtras = 1;
     int mDisparos = 0;
-    float mOverloadTimer = 0.0f;
-    float mPulseTimer = 0.0f;
+    float mTempoDeSobrecarga = 0.0f;
+    float mTempoDoPulso = 0.0f;
 
     /// Quanto falta para este aluno poder gastar outro Ponto Extra.
     float mEsperaDoPontoExtra = 0.0f;
 
     /// Quanto resta da imunidade dada pelo parceiro.
-    float mImunidadeTimer = 0.0f;
+    float mTempoDeImunidade = 0.0f;
 
     /// Quanto falta da corrente, e quanto ela corta da velocidade.
     static constexpr float kDuracaoTipicaDaCorrente = 3.5f;
 
-    float mCorrenteTimer = 0.0f;
+    float mTempoDeCorrente = 0.0f;
     float mFatorDaCorrente = 1.0f;
     float mPulsoDaCorrente = 0.0f;
 
-    /// O pulso da imunidade, separado de mPulseTimer.
+    /// O pulso da imunidade, separado de mTempoDoPulso.
     float mPulsoDaImunidade = 0.0f;
 
     // OnProcessInput Sub-functions, and its sub-functions.
-    void MoveInput(const Uint8 *state);
-    void ShootInput(const Uint8 *state);
-        void Shoot();
-    void SpecialInput(const Uint8 *state);
+    void LerManche(const Uint8 *state);
+    void LerBotaoDeTiro(const Uint8 *state);
+        void Atirar();
+    void LerBotaoDoPontoExtra(const Uint8 *state);
 
     // OnUpdate Sub-functions.
-    void InvincibleUpdate(float deltaTime);
+    void AtualizarInvencibilidade(float deltaTime);
     Acerto::Memoria mAcertos;
     void UpdateImunidade(float deltaTime);
     void UpdateCorrente(float deltaTime);
 
     /// O unico lugar que pinta o aluno.
     void AtualizarCorDoEstado();
-    void HandleAnimation();
-    void DecreaseAtkTimer(float deltaTime);
+    void AtualizarAnimacao();
+    void DescontarRecarga(float deltaTime);
 
-    void BorderLimitCheck();
+    void PrenderNoCampo();
 
 };
 

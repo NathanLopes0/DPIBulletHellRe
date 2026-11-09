@@ -31,7 +31,7 @@
 # desfecho. Fazer o piloto terminar naquela faixa por acaso mediria a pontaria
 # do piloto.
 #
-# POR QUE O TETO DE QUADROS: FinishBattle marca a batalha como encerrada, mas a
+# POR QUE O TETO DE QUADROS: EncerrarBatalha marca a batalha como encerrada, mas a
 # maquina de estados continua trocando de fase e a tela de resultado espera uma
 # tecla que nunca chega no driver offscreen. Sem o teto, o processo roda para
 # sempre. Antes da correcao isso nao aparecia - o processo morria no crash.
@@ -83,20 +83,20 @@ edit("Source/Motor/Game.cpp", "        mTicksCount = SDL_GetTicks();",
         }""")
 
 edit("Source/Actors/Player/Player.cpp", "#include <vector>", "#include <vector>\n#include <cstdlib>")
-edit("Source/Actors/Player/Player.cpp", "void Player::MoveInput(const Uint8 *keyState) {",
-     "void Player::MoveInput(const Uint8 *keyState) {\n"
-     "    if (std::getenv(\"DPI_PARADO\")) { GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(0,0)); mMoving = false; return; }")
-edit("Source/Actors/Player/Player.cpp", "void Player::ShootInput(const Uint8 *keyState) {",
-     "void Player::ShootInput(const Uint8 *keyState) {\n"
-     "    if (std::getenv(\"DPI_ATIRA\") && mOverloadTimer <= 0.0f) { Shoot(); return; }")
+edit("Source/Actors/Player/Player.cpp", "void Player::LerManche(const Uint8 *keyState) {",
+     "void Player::LerManche(const Uint8 *keyState) {\n"
+     "    if (std::getenv(\"DPI_PARADO\")) { GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(0,0)); mAndando = false; return; }")
+edit("Source/Actors/Player/Player.cpp", "void Player::LerBotaoDeTiro(const Uint8 *keyState) {",
+     "void Player::LerBotaoDeTiro(const Uint8 *keyState) {\n"
+     "    if (std::getenv(\"DPI_ATIRA\") && mTempoDeSobrecarga <= 0.0f) { Atirar(); return; }")
 
 edit("Source/Actors/Teachers/BossAttackState.cpp", '#include "BossAttackState.h"',
      '#include "BossAttackState.h"\n#include <cstdlib>')
 edit("Source/Actors/Teachers/BossAttackState.cpp",
-     "            switch (Nota::AposTerceiraFase(battle->GetNotaAtual())) {",
+     "            switch (Nota::AposTerceiraFase(battle->NotaAtual())) {",
      "            const auto desfecho = std::getenv(\"DPI_EXAME\")\n"
      "                ? Nota::Desfecho::VaiParaFinal\n"
-     "                : Nota::AposTerceiraFase(battle->GetNotaAtual());\n"
+     "                : Nota::AposTerceiraFase(battle->NotaAtual());\n"
      "            switch (desfecho) {")
 print("  patches ok")
 PY

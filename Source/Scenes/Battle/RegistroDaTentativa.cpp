@@ -33,11 +33,11 @@ void RegistroDaTentativa::AoComecar(Battle& b) {
     }
     t.dificuldade = Dificuldade::Chave(b.NivelDeDificuldade());
     t.modo = b.Jogadores().size() > 1 ? "dupla" : "solo";
-    t.notaMaxima = t.notaMinima = b.GetNotaAtual();
+    t.notaMaxima = t.notaMinima = b.NotaAtual();
     t.semente = b.SementeDaBatalha();
-    if (const Orientador* o = b.GetOrientador()) t.orientador = o->Professor();
+    if (const Orientador* o = b.OrientadorEmCampo()) t.orientador = o->Professor();
 
-    // O jogador i E a sessao i: e assim que Battle::LoadPlayer os cria.
+    // O jogador i E a sessao i: e assim que Battle::CriarJogadores os cria.
     const auto& sessoes = b.GetGame()->Sessoes();
     for (size_t i = 0; i < b.Jogadores().size(); ++i) {
         Tentativas::Jogador j;
@@ -62,7 +62,7 @@ void RegistroDaTentativa::AoPassarOTempo(Battle&, const float deltaTime, const b
 void RegistroDaTentativa::AoFimDoQuadro(Battle& b) {
     if (!Anotando()) return;
     Tentativas::Tentativa& t = mTentativa;
-    const float nota = b.GetNotaAtual();
+    const float nota = b.NotaAtual();
     t.notaMaxima = std::max(t.notaMaxima, nota);
     t.notaMinima = std::min(t.notaMinima, nota);
     if (Nota::ECheia(nota)) t.notaCheia = true;
@@ -70,7 +70,7 @@ void RegistroDaTentativa::AoFimDoQuadro(Battle& b) {
     for (size_t i = 0; i < jogadores.size() && i < t.jogadores.size(); ++i) {
         if (jogadores[i]) t.jogadores[i].tiros = jogadores[i]->Disparos();
     }
-    if (const Orientador* o = b.GetOrientador()) t.poderesUsados = o->Poderes();
+    if (const Orientador* o = b.OrientadorEmCampo()) t.poderesUsados = o->Poderes();
 }
 
 void RegistroDaTentativa::AoTrocarDeFase(Battle& b, const std::string& fase, const std::string& anuncio) {
@@ -80,7 +80,7 @@ void RegistroDaTentativa::AoTrocarDeFase(Battle& b, const std::string& fase, con
     if (!mTentativa.fases.empty()) {
         Tentativas::Fase& anterior = mTentativa.fases.back();
         anterior.fim = mRelogio;
-        anterior.notaNoFim = b.GetNotaAtual();   // ja com o bonus de fase limpa, se houve
+        anterior.notaNoFim = b.NotaAtual();   // ja com o bonus de fase limpa, se houve
         anterior.completa = true;
     }
 
@@ -89,7 +89,7 @@ void RegistroDaTentativa::AoTrocarDeFase(Battle& b, const std::string& fase, con
     f.nome = fase;
     f.anuncio = anuncio;
     f.inicio = mRelogio;
-    f.notaNoInicio = b.GetNotaAtual();
+    f.notaNoInicio = b.NotaAtual();
     if (f.nome == "StateFinal") mTentativa.fezExame = true;
     mTentativa.fases.push_back(std::move(f));
 }
@@ -110,7 +110,7 @@ void RegistroDaTentativa::AoAcertarOProfessor(Battle& b, const Actor* quemAtirou
     if (!Anotando()) return;
     // O tiro guarda o dono, e e isso que da a precisao de cada aluno (e os acertos do orientador).
     if (auto* r = De(b, quemAtirou)) ++r->acertosNoProfessor;
-    else if (b.GetOrientador() && quemAtirou == b.GetOrientador()) ++mTentativa.acertosDoOrientador;
+    else if (b.OrientadorEmCampo() && quemAtirou == b.OrientadorEmCampo()) ++mTentativa.acertosDoOrientador;
 }
 
 void RegistroDaTentativa::AoPegarPontoExtra(Battle& b, const Player& aluno) {
@@ -129,7 +129,7 @@ void RegistroDaTentativa::AoTerminar(Battle& b, const Tentativas::Resultado resu
 
     // Nenhum ator e lido aqui: o fim pode vir do destrutor da batalha.
     Tentativas::Tentativa& t = mTentativa;
-    const float nota = b.GetNotaAtual();
+    const float nota = b.NotaAtual();
     t.fim = Relogio::Agora();
     t.duracao = mRelogio;
     t.tempoEmPausa = mRelogioDaPausa;

@@ -375,8 +375,8 @@ void MariaLucia::CustomizeAttackParams(AttackParams& params, const std::string& 
 std::vector<BossProjectile*> MariaLucia::Observadores() const {
     std::vector<BossProjectile*> olhos;
     const auto* batalha = Batalha();
-    if (!batalha || !batalha->GetProjectileManager()) return olhos;
-    for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+    if (!batalha || !batalha->GerenteDeProjeteis()) return olhos;
+    for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
         if (p && p->GetState() == ActorState::Active && p->Posto() == Observer::kPostoDosObservadores) {
             olhos.push_back(p.get());
         }

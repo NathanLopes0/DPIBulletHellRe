@@ -535,8 +535,8 @@ void Vitor::AtualizarANuvemDoFork() {
 std::vector<BossProjectile*> Vitor::Nuvens() const {
     std::vector<BossProjectile*> nuvens;
     const auto* batalha = Batalha();
-    if (!batalha || !batalha->GetProjectileManager()) return nuvens;
-    for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+    if (!batalha || !batalha->GerenteDeProjeteis()) return nuvens;
+    for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
         if (p && p->GetState() == ActorState::Active && p->Posto() == Nuvem::kPostoDasNuvens) {
             nuvens.push_back(p.get());
         }

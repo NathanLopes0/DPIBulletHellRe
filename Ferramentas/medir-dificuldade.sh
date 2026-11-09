@@ -114,7 +114,7 @@ edit("Source/Motor/Game.cpp", "        mTicksCount = SDL_GetTicks();",
 # ---- O PILOTO: cada jogador persegue o X do chefe.
 #
 # PARADO NAO SERVE PARA COMPARAR OS DOIS MODOS. O tiro do jogador sobe RETO
-# (Player::Shoot: velocidade (0, -800)), o chefe nasce no meio da tela, e o
+# (Player::Atirar: velocidade (0, -800)), o chefe nasce no meio da tela, e o
 # jogador solo nasce no meio tambem - entao parado ele acerta tudo. Os dois da
 # dupla nascem a 1/3 e 2/3 da largura, e parados nao acertam NADA: medido, a
 # nota da dupla ficou em 40,00 cravados por oito segundos enquanto a do solo
@@ -138,15 +138,15 @@ edit("Source/Motor/Game.cpp", "        mTicksCount = SDL_GetTicks();",
 # mais parecido com o de gente, e ele nunca fica parado - a unica coisa que um
 # jogador de verdade com certeza nao faz. Leia dele os ACERTOS SOFRIDOS, e nao
 # a nota: sem mira, a nota dele termina em zero em qualquer chefe.
-edit("Source/Actors/Player/Player.cpp", "void Player::MoveInput(const Uint8 *keyState) {",
-"""void Player::MoveInput(const Uint8 *keyState) {
+edit("Source/Actors/Player/Player.cpp", "void Player::LerManche(const Uint8 *keyState) {",
+"""void Player::LerManche(const Uint8 *keyState) {
     if (std::getenv("DPI_VAIVEM")) {
         static float dir = 1.0f;
         const float x = GetPosition().x;
         if (x > 1060.0f) dir = -1.0f;
         if (x <  140.0f) dir =  1.0f;
         GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(dir * VelocidadeDeAndar(), 0));
-        mMoving = true;
+        mAndando = true;
         return;
     }
     if (std::getenv("DPI_SEGUE")) {
@@ -157,8 +157,8 @@ edit("Source/Actors/Player/Player.cpp", "void Player::MoveInput(const Uint8 *key
         if (casa < 0.0f) casa = GetPosition().y;
         float alvo = GetPosition().x, alvoY = casa;
         if (const auto b = dynamic_cast<Battle*>(GetScene())) {
-            if (const auto chefe = b->GetBoss()) alvo = chefe->GetPosition().x;
-            if (auto* hugo = dynamic_cast<Hugo*>(b->GetBoss())) {
+            if (const auto chefe = b->Chefe()) alvo = chefe->GetPosition().x;
+            if (auto* hugo = dynamic_cast<Hugo*>(b->Chefe())) {
                 if (auto o = hugo->ObjetivoAtual()) alvo = o->x;
                 if (auto o = hugo->LugarDeIr()) { alvo = o->x; alvoY = o->y; }
             }
@@ -167,10 +167,10 @@ edit("Source/Actors/Player/Player.cpp", "void Player::MoveInput(const Uint8 *key
         const float v = (d > 2.0f) ? VelocidadeDeAndar() : (d < -2.0f) ? -VelocidadeDeAndar() : 0.0f;
         const float vy = (dy > 2.0f) ? VelocidadeDeAndar() : (dy < -2.0f) ? -VelocidadeDeAndar() : 0.0f;
         GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(v, vy));
-        mMoving = v != 0.0f;
+        mAndando = v != 0.0f;
         return;
     }
-    if (std::getenv("DPI_PARADO")) { GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(0,0)); mMoving = false; return; }""")
+    if (std::getenv("DPI_PARADO")) { GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(0,0)); mAndando = false; return; }""")
 edit("Source/Actors/Player/Player.cpp", '#include "../../Scenes/Battle/Battle.h"',
      '#include "../../Scenes/Battle/Battle.h"\n#include "../Teachers/Boss.h"\n#include "../Teachers/Bosses/Hugo.h"')
 
@@ -179,8 +179,8 @@ edit("Source/Actors/Player/Player.cpp", '#include "../../Scenes/Battle/Battle.h"
 # ---- ao contrario, e para quando ele esta fechado.
 edit("Source/Actors/Orientador/Orientador.cpp", "    Guiar(*batalha, deltaTime);\n",
 """    Guiar(*batalha, deltaTime);
-    if (std::getenv("DPI_PODER") && PoderPronto() && batalha->GetBoss()) {
-        const bool aberto = batalha->GetBoss()->AceitaDano();
+    if (std::getenv("DPI_PODER") && PoderPronto() && batalha->Chefe()) {
+        const bool aberto = batalha->Chefe()->AceitaDano();
         const bool bala = mPoder.tipo == Poder::Tipo::BalaDePrata;
         if (bala ? !aberto : (!Poder::Ataca(mPoder.tipo) || aberto)) SoltarPoder();
     }
@@ -193,14 +193,14 @@ edit("Source/Actors/Player/Player.cpp", "#include <vector>",
 # mudou duas vezes (entrou o Painel, depois a posicao do jogador) e cada vez
 # derrubou o arnes. A assinatura e o que menos muda.
 edit("Source/Actors/Player/Player.cpp",
-     "void Player::ShootInput(const Uint8 *keyState) {",
-     "void Player::ShootInput(const Uint8 *keyState) {\n    if (std::getenv(\"DPI_ATIRA\") && mOverloadTimer <= 0.0f) { Shoot(); return; }")
+     "void Player::LerBotaoDeTiro(const Uint8 *keyState) {",
+     "void Player::LerBotaoDeTiro(const Uint8 *keyState) {\n    if (std::getenv(\"DPI_ATIRA\") && mTempoDeSobrecarga <= 0.0f) { Atirar(); return; }")
 
 # ---- o despejo: a nota a cada 60 quadros, e no fim
-edit("Source/Scenes/Battle/Battle.cpp", "void Battle::FinishBattle(bool approved) {",
-"""void Battle::FinishBattle(bool approved) {
+edit("Source/Scenes/Battle/Battle.cpp", "void Battle::EncerrarBatalha(bool aprovado) {",
+"""void Battle::EncerrarBatalha(bool aprovado) {
     std::printf("FIM nota=%.4f acertos_sofridos=%d acertos_dados=%d aprovado=%d\\n",
-                static_cast<double>(mGrade), mAcertosSofridos, gAcertosDados, approved ? 1 : 0);
+                static_cast<double>(mNota), mAcertosSofridos, gAcertosDados, aprovado ? 1 : 0);
     std::fflush(stdout);
     // SAI AQUI, antes de gravar: a medida e so da batalha, e deixar o jogo
     // seguir para a tela de resultado gastaria minutos por corrida e ainda
@@ -214,14 +214,14 @@ edit("Source/Scenes/Battle/Battle.cpp", '#include "Battle.h"',
 # ---- o solo se acertar o DOBRO - e acertar o dobro depende de os dois
 # ---- conseguirem mirar, que e o que a posicao decide.
 edit("Source/Scenes/Battle/Battle.cpp",
-     "                GradeUp(PorJogador(Nota::kGanhoPorAcerto));",
-     "                ++gAcertosDados;\n                GradeUp(PorJogador(Nota::kGanhoPorAcerto));")
-edit("Source/Scenes/Battle/Battle.cpp", "void Battle::CheckCollisions() {",
-"""void Battle::CheckCollisions() {
+     "                SubirNota(PorJogador(Nota::kGanhoPorAcerto));",
+     "                ++gAcertosDados;\n                SubirNota(PorJogador(Nota::kGanhoPorAcerto));")
+edit("Source/Scenes/Battle/Battle.cpp", "void Battle::VerificarColisoes() {",
+"""void Battle::VerificarColisoes() {
     static int quadro = 0;
     if (++quadro % 60 == 0) {
         std::printf("q%05d nota=%.4f sofridos=%d\\n", quadro,
-                    static_cast<double>(mGrade), mAcertosSofridos);
+                    static_cast<double>(mNota), mAcertosSofridos);
         std::fflush(stdout);
     }""")
 print("patches ok")

@@ -126,7 +126,7 @@ void Orientador::OnProcessInput(const Uint8* keyState) {
 
 void Orientador::Golpear(Battle& batalha, const float deltaTime) {
 
-    const Boss* chefe = batalha.GetBoss();
+    const Boss* chefe = batalha.Chefe();
     if (!chefe) return;
     if (!mSorteado) {
         mSorteado = true;
@@ -172,7 +172,7 @@ PlayerProjectile* Orientador::Disparar(Battle& batalha, const Golpe::Tiro& tiro,
                                       const Vector2& direcao, const std::string& folha, const int quadro,
                                       const float escala) {
 
-    ProjectileManager* tiros = batalha.GetProjectileManager();
+    ProjectileManager* tiros = batalha.GerenteDeProjeteis();
     if (!tiros) return nullptr;
 
     // A cara: a da materia dele, ou a do poder; sem materia, o tiro de sempre.
@@ -201,8 +201,8 @@ PlayerProjectile* Orientador::Disparar(Battle& batalha, const Golpe::Tiro& tiro,
 void Orientador::Guiar(Battle& batalha, const float deltaTime) {
 
     if (mGuiados.empty()) return;
-    ProjectileManager* tiros = batalha.GetProjectileManager();
-    const Boss* chefe = batalha.GetBoss();
+    ProjectileManager* tiros = batalha.GerenteDeProjeteis();
+    const Boss* chefe = batalha.Chefe();
     if (!tiros || !chefe) {
         mGuiados.clear();
         return;
@@ -274,8 +274,8 @@ bool Orientador::PoderPronto() const {
 }
 
 void Orientador::Anunciar(const std::string& texto) {
-    if (Battle* batalha = Batalha(); batalha && batalha->GetBoss()) {
-        Boss* chefe = batalha->GetBoss();
+    if (Battle* batalha = Batalha(); batalha && batalha->Chefe()) {
+        Boss* chefe = batalha->Chefe();
         chefe->RegistrarAnuncio(chefe->FaseAtual(), texto);
     }
 }
@@ -293,7 +293,7 @@ Actor* Orientador::Figura(const std::string& folha, const std::vector<int>& quad
 
 std::vector<BossProjectile*> Orientador::TirosSoltos(Battle& batalha) const {
     std::vector<BossProjectile*> soltos;
-    if (const ProjectileManager* tiros = batalha.GetProjectileManager()) {
+    if (const ProjectileManager* tiros = batalha.GerenteDeProjeteis()) {
         for (const auto& p : const_cast<ProjectileManager*>(tiros)->GetBossProjectiles()) {
             if (!p || p->GetState() != ActorState::Active) continue;
             if (!p->Posto().empty() || p->Enfeite() || p->Abrigo()) continue;
@@ -306,7 +306,7 @@ std::vector<BossProjectile*> Orientador::TirosSoltos(Battle& batalha) const {
 bool Orientador::SoltarPoder() {
     Battle* batalha = Batalha();
     if (!batalha || !batalha->EmCombate() || !PoderPronto()) return false;
-    Boss* chefe = batalha->GetBoss();
+    Boss* chefe = batalha->Chefe();
     if (!chefe) return false;
 
     mCarga = 0;

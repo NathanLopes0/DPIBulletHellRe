@@ -68,9 +68,9 @@ Hugo::~Hugo() = default;
 void Hugo::SortearALuta() {
     mLutaSorteada = true;
     // O tema e a materia do orientador.
-    if (const auto* batalha = Batalha(); batalha && batalha->GetOrientador()) {
-        mTema = batalha->GetOrientador()->Materia();
-        mOrientador = batalha->GetOrientador()->Professor();
+    if (const auto* batalha = Batalha(); batalha && batalha->OrientadorEmCampo()) {
+        mTema = batalha->OrientadorEmCampo()->Materia();
+        mOrientador = batalha->OrientadorEmCampo()->Professor();
     }
     Variacao::Sorteio banca = SorteioDaFase(Tcc::kFaseDaDefesa);
     mBanca = Tcc::Banca(mTema, banca);
@@ -199,8 +199,8 @@ bool Hugo::Vivo(const BossProjectile* p, const float idade) {
 }
 
 void Hugo::MatarPosto(const std::string& posto) {
-    if (const auto* batalha = Batalha(); batalha && batalha->GetProjectileManager()) {
-        for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+    if (const auto* batalha = Batalha(); batalha && batalha->GerenteDeProjeteis()) {
+        for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
             if (p && p->GetState() == ActorState::Active && p->Posto() == posto) p->Kill();
         }
     }
@@ -525,8 +525,8 @@ void Hugo::NovoObjetivo() {
         case Objetivo::Tipo::Reuniao:
             mReuniao = Objetivo::LugarDaReuniao(mSorteioDoObjetivo, Largura(), PosicaoDoAluno().x);
             mNaReuniao = 0.0f;
-            if (auto* batalha = Batalha(); batalha && batalha->GetOrientador()) {
-                batalha->GetOrientador()->MarcarReuniao(mReuniao);
+            if (auto* batalha = Batalha(); batalha && batalha->OrientadorEmCampo()) {
+                batalha->OrientadorEmCampo()->MarcarReuniao(mReuniao);
             }
             break;
         case Objetivo::Tipo::Referencias: {
@@ -831,8 +831,8 @@ void Hugo::Pagar(const float bruto) {
 }
 
 void Hugo::EncerrarAndar() {
-    if (auto* batalha = Batalha(); batalha && batalha->GetOrientador()) {
-        batalha->GetOrientador()->MarcarReuniao(std::nullopt);
+    if (auto* batalha = Batalha(); batalha && batalha->OrientadorEmCampo()) {
+        batalha->OrientadorEmCampo()->MarcarReuniao(std::nullopt);
     }
     mCarregando = nullptr;
     mRaspados.clear();
@@ -883,11 +883,11 @@ void Hugo::AtualizarAndar(const float deltaTime) {
         }
         case Objetivo::Tipo::Arguicao: {
             const auto* batalha = Batalha();
-            if (!batalha || !batalha->GetProjectileManager()) return;
+            if (!batalha || !batalha->GerenteDeProjeteis()) return;
             mRaspados.erase(std::remove_if(mRaspados.begin(), mRaspados.end(),
                                            [this](const Raspado& r) { return !Vivo(r.p, mRelogio - r.nasceu); }),
                             mRaspados.end());
-            for (const auto& bp : batalha->GetProjectileManager()->GetBossProjectiles()) {
+            for (const auto& bp : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
                 if (!bp || bp->GetState() != ActorState::Active || bp->Enfeite() || bp->Abrigo()) continue;
                 if (!bp->Posto().empty()) continue;
                 const auto* colisor = bp->GetComponent<CircleColliderComponent>();
@@ -897,7 +897,7 @@ void Hugo::AtualizarAndar(const float deltaTime) {
                 if (contou) continue;
                 for (Player* a : alunos) {
                     // Acertado nao raspa: o piscar depois do acerto nao vale.
-                    if (a->GetIsInvincible()) continue;
+                    if (a->EstaInvencivel()) continue;
                     const float d = (colisor->GetCenter() - CentroDe(a)).Length();
                     if (!Objetivo::Raspou(d, colisor->GetRadius() + RaioDe(a))) continue;
                     mRaspados.push_back({bp.get(), mRelogio - bp->TempoDeVida()});
@@ -915,7 +915,7 @@ void Hugo::AtualizarAndar(const float deltaTime) {
             if (mAlvos.empty()) return;
             AlvoEmCampo& versao = mAlvos.front();
             if (!Vivo(versao.p, mRelogio - versao.nasceu)) return;
-            if (mCarregando && mCarregando->GetIsInvincible()) {
+            if (mCarregando && mCarregando->EstaInvencivel()) {
                 // Acertado no caminho: a versao cai ali, e tem de ser pega de novo.
                 versao.alvo.lugar = versao.p->GetPosition();
                 mCarregando = nullptr;
@@ -925,7 +925,7 @@ void Hugo::AtualizarAndar(const float deltaTime) {
                 const Vector2 onde = Objetivo::Balanco(Objetivo::Etapa::Correcoes, versao.alvo.lugar, 0, mRelogio - versao.nasceu);
                 versao.p->SetPosition(onde);
                 for (Player* a : alunos) {
-                    if (a->GetIsInvincible() || (CentroDe(a) - onde).Length() > Objetivo::kRaioDaColeta) continue;
+                    if (a->EstaInvencivel() || (CentroDe(a) - onde).Length() > Objetivo::kRaioDaColeta) continue;
                     mCarregando = a;
                     // Paga so a primeira vez: derrubar e pegar de novo nao rende.
                     if (mProgresso < 0.5f) Pagar(Objetivo::PorPasso(mTipo, nivel));

@@ -39,18 +39,18 @@ void BossAttackState::HandleStateTransition(float stateTime)
         if (const auto battle = dynamic_cast<Battle*>(scene)) {
 
             // A nota vem do Battle: e a da batalha em curso, nao a gravada.
-            switch (Nota::AposTerceiraFase(battle->GetNotaAtual())) {
+            switch (Nota::AposTerceiraFase(battle->NotaAtual())) {
 
                 case Nota::Desfecho::VaiParaFinal:
                     mNextStateName = "StateFinal";
                     break;
 
                 case Nota::Desfecho::Aprovado:
-                    battle->FinishBattle(true);
+                    battle->EncerrarBatalha(true);
                     break;
 
                 case Nota::Desfecho::Reprovado:
-                    battle->FinishBattle(false);
+                    battle->EncerrarBatalha(false);
                     break;
             }
         }
@@ -61,7 +61,7 @@ void BossAttackState::HandleStateTransition(float stateTime)
 
         if (const auto battle = dynamic_cast<Battle*>(scene)) {
             // Aqui a batalha acaba de qualquer jeito.
-            battle->FinishBattle(battle->GetNotaAtual() >= Nota::kNotaAprovacao);
+            battle->EncerrarBatalha(battle->NotaAtual() >= Nota::kNotaAprovacao);
         }
     }
 

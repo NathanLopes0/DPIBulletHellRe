@@ -47,7 +47,7 @@ namespace {
             mProximo = o.Tempo();
         }
         void Atualizar(Orientador& o, Battle& batalha, float, const bool ativo) override {
-            Boss* chefe = batalha.GetBoss();
+            Boss* chefe = batalha.Chefe();
             if (!ativo || !chefe) return;
             while (mFalta > 0 && o.Tempo() >= mProximo) {
                 --mFalta;
@@ -74,7 +74,7 @@ namespace {
         }
         void Atualizar(Orientador& o, Battle& batalha, const float deltaTime, const bool ativo) override {
             if (!ativo) Desfazer(mFiguras);
-            if (!ativo || !batalha.GetBoss() || mFiguras.empty() || !mFiguras.front()) return;
+            if (!ativo || !batalha.Chefe() || mFiguras.empty() || !mFiguras.front()) return;
             // A capivara anda embaixo do aluno e come o que encosta nela.
             const Vector2 aluno = o.PosicaoDoAluno();
             Actor* c = mFiguras.front();
@@ -115,7 +115,7 @@ namespace {
                 mCongelados.clear();
                 mJaCongelados.clear();
             }
-            if (!ativo || !batalha.GetBoss()) return;
+            if (!ativo || !batalha.Chefe()) return;
             // Hlt: todo tiro solto para onde esta - os que nascem tambem.
             for (BossProjectile* p : o.TirosSoltos(batalha)) {
                 if (mJaCongelados.insert(p).second) {
@@ -204,7 +204,7 @@ namespace {
         }
         void Atualizar(Orientador& o, Battle& batalha, const float deltaTime, const bool ativo) override {
             if (!ativo) Desfazer(mFiguras);
-            Boss* chefe = batalha.GetBoss();
+            Boss* chefe = batalha.Chefe();
             if (!ativo || !chefe) return;
             const Vector2 aluno = o.PosicaoDoAluno();
             const Vector2 alvo = chefe->GetPosition();
@@ -217,7 +217,7 @@ namespace {
             }
             // ...e todo tiro do aluno e do orientador caca um alvo.
             const std::vector<Vector2> destrutiveis = chefe->AlvosDestrutiveis();
-            ProjectileManager* tiros = batalha.GetProjectileManager();
+            ProjectileManager* tiros = batalha.GerenteDeProjeteis();
             if (!tiros) return;
             for (const auto& p : tiros->GetPlayerProjectiles()) {
                 if (!p || p->GetState() != ActorState::Active || p->Murchando()) continue;
@@ -260,10 +260,10 @@ namespace {
             mBala = bala ? bala->Id() : 0;
         }
         void Atualizar(Orientador&, Battle& batalha, float, bool) override {
-            Boss* chefe = batalha.GetBoss();
+            Boss* chefe = batalha.Chefe();
             if (mBala == 0 || !chefe) return;
             bool achou = false;
-            if (ProjectileManager* tiros = batalha.GetProjectileManager()) {
+            if (ProjectileManager* tiros = batalha.GerenteDeProjeteis()) {
                 for (const auto& p : tiros->GetPlayerProjectiles()) {
                     // A bala barrada pelo escudo murcha (PlayerProjectile::Murchar): ja acertou.
                     if (!p || p->Id() != mBala || p->GetState() != ActorState::Active || p->Murchando()) continue;

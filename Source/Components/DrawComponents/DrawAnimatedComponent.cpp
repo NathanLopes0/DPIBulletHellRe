@@ -163,7 +163,7 @@ void DrawAnimatedComponent::SetAnimation(const std::string& name)
         return;
     }
 
-    // Player::HandleAnimation chama isto todo frame com o mesmo nome.
+    // Player::AtualizarAnimacao chama isto todo frame com o mesmo nome.
     if (mAnimName == name) return;
 
     mAnimName = name;
