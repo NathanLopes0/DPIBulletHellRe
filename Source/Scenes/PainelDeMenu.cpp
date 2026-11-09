@@ -53,7 +53,7 @@ PainelDeMenu::PainelDeMenu(Scene& cena, Font* fonte, const std::string& titulo,
                                             3, o + 1);
     mPlaca = cena.AddActor(std::move(placa));
 
-    mTitulo = Texto(cena, fonte, titulo, Vector2(mMeio.x, topo + 62.0f),
+    mTitulo = Texto(cena, fonte, titulo, Vector2(mMeio.x, topo + kAlturaDoTitulo),
                     medidas.larguraDaPlaca - 60, 64, 52, o + 3);
 
     for (int i = 0; i < linhas; ++i) {
@@ -117,6 +117,11 @@ void PainelDeMenu::ColorirLinha(const int indice, const Vector3& cor) {
 Vector2 PainelDeMenu::OndeDaLinha(const int indice) const {
     const float topo = mMeio.y - static_cast<float>(mMedidas.alturaDaPlaca) / 2.0f;
     return Vector2(mMeio.x, topo + 128.0f + static_cast<float>(indice) * kPassoDasLinhas);
+}
+
+Vector2 PainelDeMenu::OndeDoTitulo() const {
+    const float topo = mMeio.y - static_cast<float>(mMedidas.alturaDaPlaca) / 2.0f;
+    return Vector2(mMeio.x, topo + kAlturaDoTitulo);
 }
 
 int PainelDeMenu::AlturaPara(const int linhas) {

@@ -179,6 +179,78 @@ TEST_CASE("Personagens: ordem de desenho repetida e relatada") {
     CHECK(Menciona(c.problemas, "mesma ordem"));
 }
 
+// ---- A formatura ----
+
+namespace {
+    /// O catalogo basico com o capelo de quem passou em "TCC", por cima de tudo.
+    std::string CatalogoComFormatura(const std::string& formatura) {
+        std::string texto = CatalogoBasico();
+        texto.insert(texto.find('{') + 1, "\"formatura\": " + formatura + ",");
+        return texto;
+    }
+}
+
+TEST_CASE("Personagens: a formatura entra com a materia, a arte e a ordem") {
+
+    const Catalogo c = LerCatalogo(CatalogoComFormatura(
+        R"({ "materia": "TCC", "arte": "arte/capelo", "ordem": 70 })"));
+
+    CHECK(c.problemas.empty());
+    REQUIRE(c.formatura.Existe());
+    CHECK(c.formatura.materia == "TCC");
+    CHECK(c.formatura.arte == "arte/capelo");
+    CHECK(c.formatura.ordem == 70);
+}
+
+TEST_CASE("Personagens: formatura sem materia ou sem arte e ignorada, com aviso") {
+
+    for (const char* formatura : {R"({ "arte": "arte/capelo", "ordem": 70 })",
+                                  R"({ "materia": "TCC", "ordem": 70 })",
+                                  R"("TCC")"}) {
+        CAPTURE(formatura);
+        const Catalogo c = LerCatalogo(CatalogoComFormatura(formatura));
+        CHECK_FALSE(c.formatura.Existe());
+        CHECK(Menciona(c.problemas, "formatura"));
+        // O resto do catalogo entra.
+        CHECK(c.categorias.size() == 2);
+    }
+}
+
+TEST_CASE("Personagens: sem formatura no arquivo, ninguem ganha camada a mais") {
+
+    const Catalogo c = LerCatalogo(CatalogoBasico());
+    CHECK_FALSE(c.formatura.Existe());
+    CHECK(c.Camadas(Ajudantes::Padrao(c), true).size() == c.Camadas(Ajudantes::Padrao(c)).size());
+}
+
+TEST_CASE("Personagens: quem se formou ganha o capelo por cima de tudo, sem tinta") {
+
+    const Catalogo c = LerCatalogo(CatalogoComFormatura(
+        R"({ "materia": "TCC", "arte": "arte/capelo", "ordem": 70 })"));
+
+    const Aparencia a = Ajudantes::Padrao(c);
+    const std::vector<Camada> sem = c.Camadas(a);
+    const std::vector<Camada> com = c.Camadas(a, true);
+
+    REQUIRE(sem.size() == 3);
+    REQUIRE(com.size() == 4);
+    // As de antes, iguais e na mesma ordem; o capelo por ultimo.
+    for (size_t i = 0; i < sem.size(); ++i) CHECK(com[i].arte == sem[i].arte);
+    CHECK(com[3].arte == "arte/capelo");
+    CHECK(com[3].ordem == 70);
+    CHECK_FALSE(com[3].tingida);
+}
+
+TEST_CASE("Personagens: o capelo na ordem de outra camada e relatado") {
+
+    // O cabelo do catalogo basico e o 30.
+    const Catalogo c = LerCatalogo(CatalogoComFormatura(
+        R"({ "materia": "TCC", "arte": "arte/capelo", "ordem": 30 })"));
+
+    CHECK(c.formatura.Existe());
+    CHECK(Menciona(c.problemas, "mesma ordem"));
+}
+
 // ---- Resolver ----
 
 TEST_CASE("Personagens: uma aparencia valida passa intacta por Resolver") {
@@ -461,6 +533,16 @@ TEST_CASE("Personagens: aparencias diferentes dao chaves diferentes") {
     b.Definir("cabelo", Escolha{"longo", "loiro"});
 
     CHECK(ChaveDaAparencia(a) != ChaveDaAparencia(b));
+}
+
+TEST_CASE("Personagens: a mesma aparencia com e sem capelo da chaves diferentes") {
+
+    // Sao duas texturas no cache: a de antes da formatura nao pode ser reaproveitada depois.
+    const Catalogo c = LerCatalogo(CatalogoBasico());
+    const Aparencia a = Ajudantes::Padrao(c);
+
+    CHECK(ChaveDaAparencia(a, true) != ChaveDaAparencia(a));
+    CHECK(ChaveDaAparencia(a, false) == ChaveDaAparencia(a));
 }
 
 TEST_CASE("Personagens: a chave nao se confunde com um caminho de arquivo") {

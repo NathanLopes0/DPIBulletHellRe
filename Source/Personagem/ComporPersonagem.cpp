@@ -61,19 +61,19 @@ namespace {
 
 namespace Personagens {
 
-Composta Compor(Game* game, const Catalogo& catalogo, const Aparencia& aparencia) {
+Composta Compor(Game* game, const Catalogo& catalogo, const Aparencia& aparencia, const bool formado) {
 
     Composta saida;
 
     if (game == nullptr || game->GetRenderer() == nullptr) return saida;
 
-    const std::vector<Camada> camadas = catalogo.Camadas(aparencia);
+    const std::vector<Camada> camadas = catalogo.Camadas(aparencia, formado);
     if (camadas.empty()) {
         SDL_Log("PERSONAGEM: esta aparencia nao tem camada nenhuma; nada a compor.");
         return saida;
     }
 
-    saida.chaveDaTextura = ChaveDaAparencia(catalogo.Resolver(aparencia));
+    saida.chaveDaTextura = ChaveDaAparencia(catalogo.Resolver(aparencia), formado);
     saida.atlas = Caminhos::Asset(camadas.front().arte + ".json");
 
     if (game->TexturaGuardada(saida.chaveDaTextura) != nullptr) {

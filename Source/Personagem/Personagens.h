@@ -46,6 +46,15 @@ namespace Personagens {
         int ordem = 0;
     };
 
+    /// A camada de quem se formou: passou na materia 'materia' (o codigo em materias.json) e ganha
+    /// 'arte', em cor final, por cima de tudo - o capelo. Para sempre, porque o recorde so sobe.
+    struct Formatura {
+        std::string materia;
+        std::string arte;
+        int ordem = 0;
+        [[nodiscard]] bool Existe() const { return !materia.empty() && !arte.empty(); }
+    };
+
     /// O que o aluno escolheu numa categoria.
     struct Escolha {
         std::string peca;
@@ -81,6 +90,8 @@ namespace Personagens {
     struct Catalogo {
         std::vector<Categoria> categorias;
         std::vector<CamadaFixa> fixas;
+        /// Vazia quando o arquivo nao diz.
+        Formatura formatura;
         std::vector<Predefinida> predefinidas;
 
         /// Frases prontas dizendo o que estava errado no arquivo.
@@ -92,8 +103,8 @@ namespace Personagens {
         [[nodiscard]] Aparencia Resolver(const Aparencia& pedida,
                                          std::vector<std::string>* trocas = nullptr) const;
 
-        /// As camadas a compor, ja em ordem de desenho.
-        [[nodiscard]] std::vector<Camada> Camadas(const Aparencia& aparencia) const;
+        /// As camadas a compor, ja em ordem de desenho. Com 'formado', a camada da formatura vai junto.
+        [[nodiscard]] std::vector<Camada> Camadas(const Aparencia& aparencia, bool formado = false) const;
     };
 
     /// Interpreta o texto de personagens.json. Nunca lanca.
@@ -106,8 +117,8 @@ namespace Personagens {
     /// luminancia, e a cor escolhida multiplica cada canal.
     unsigned char Multiplicar(unsigned char valor, unsigned char cor);
 
-    /// Um nome unico e estavel para uma aparencia.
-    std::string ChaveDaAparencia(const Aparencia& aparencia);
+    /// Um nome unico e estavel para uma aparencia - com o capelo ou sem ele.
+    std::string ChaveDaAparencia(const Aparencia& aparencia, bool formado = false);
 
     /// Le "rrggbb" em componentes. False quando o texto nao serve.
     bool LerCorHex(const std::string& hex, unsigned char& r, unsigned char& g, unsigned char& b);

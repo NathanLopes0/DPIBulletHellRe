@@ -30,6 +30,10 @@ public:
 
     void DefinirInvencivel(const bool invincible) { mInvencivel = invincible; }
 
+    /// Monta a personagem de novo, da sessao: e assim que o aluno que acabou de se formar aparece
+    /// de capelo ainda na tela do resultado.
+    void RecomporPersonagem();
+
     /// Invencivel por qualquer motivo: os quadros de graca depois de apanhar ou a imunidade dada
     /// pelo parceiro.
     [[nodiscard]] bool EstaInvencivel() const { return mInvencivel || mTempoDeImunidade > 0.0f; }

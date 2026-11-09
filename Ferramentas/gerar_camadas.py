@@ -21,6 +21,10 @@ tenis grafite padrao e o sapato de antes.
 A ordem de composicao e: corpo, sapato, calca, camisa, mochila, cabelo. A mochila
 vai entre a camisa e o cabelo: o cabelo comprido cai por cima dela.
 
+Uma peca so sai em cor final: o CAPELO de quem passou no TCC (a "formatura" do
+personagens.json). Ele nao e escolhido nem tingido - e preto, com a borla
+dourada, para todo mundo - e vai por cima de tudo.
+
 O PERSONAGEM E VISTO DE COSTAS. Ele olha para cima, para o professor, que fica
 no topo da tela - e por isso o sprite original do jogo nao tem rosto: o que
 aparece e a nuca. Nao ha olho nem boca para desenhar, e o cabelo cobre a cabeca
@@ -655,6 +659,38 @@ def mochila_bolsa(quadro):
     return contornar(d, BORDA)
 
 
+# ------------------------------------------------------------------- formatura
+#
+# O capelo de quem passou no TCC. Cor final, como o sapato era: preto com a borla dourada. Vai por
+# cima de tudo, inclusive do cabelo mais alto - e o que a pessoa ganhou.
+CAPELO      = ( 34,  34,  42, 255)
+CAPELO_LUZ  = ( 74,  74,  92, 255)
+CAPELO_FUNDO= ( 20,  20,  26, 255)
+BORLA       = (232, 188,  62, 255)
+BORLA_S     = (176, 132,  40, 255)
+
+
+def capelo(quadro):
+    d = {}
+    # a copa, abracando o alto da cabeca
+    ret(d, CABECA_X0 + 1, 5, CABECA_X1 - 1, 10, CAPELO)
+    ret(d, CABECA_X0 + 1, 9, CABECA_X1 - 1, 10, CAPELO_FUNDO)
+    # a placa: um losango achatado, mais largo que a cabeca
+    for y in range(0, 8):
+        meia = 17 - abs(y - 3) * 4 if y <= 3 else 17 - (y - 3) * 4
+        if meia <= 0:
+            continue
+        ret(d, CX - meia, y, CX + meia - 1, y, CAPELO_LUZ if y < 3 else CAPELO)
+    # o botao no meio, e o cordao ate a beirada da direita
+    ret(d, CX - 1, 3, CX, 3, BORLA)
+    ret(d, CX + 1, 3, CX + 12, 3, BORLA_S)
+    # a borla, caindo do lado
+    ret(d, CX + 12, 4, CX + 12, 12, BORLA)
+    ret(d, CX + 11, 13, CX + 13, 16, BORLA)
+    ret(d, CX + 11, 16, CX + 13, 16, BORLA_S)
+    return contornar(d, CONTORNO)
+
+
 # ------------------------------------------------------------------- escrever
 PECAS = {
     'corpo':            corpo,
@@ -665,6 +701,7 @@ PECAS = {
     'mochila_nenhuma':  mochila_nenhuma,
     'mochila_mochila':  mochila_mochila,
     'mochila_bolsa':    mochila_bolsa,
+    'capelo':           capelo,
     'cabelo_curto':     lambda q: cabelo_curto(),
     'cabelo_longo':     lambda q: cabelo_longo(),
     'cabelo_coque':     lambda q: cabelo_coque(),

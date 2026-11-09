@@ -35,6 +35,15 @@ namespace Resultado {
         return aprovado ? "APROVADE!" : "REPROVADE";
     }
 
+    bool Formou(const Resumo& r) {
+        // So quem passou se forma; a batalha nem preenche a lista de quem reprovou.
+        return r.aprovado && !r.formados.empty();
+    }
+
+    const char* Titulo(const Resumo& r) {
+        return Formou(r) ? "FORMADE!" : Titulo(r.aprovado);
+    }
+
     bool NovoRecorde(const Resumo& r) {
         return r.temFicha && r.nota >= r.recordeAntes + 0.01f;
     }
@@ -49,6 +58,14 @@ namespace Resultado {
         }
         linhas.push_back("Fases limpas: " + std::to_string(r.fasesLimpas));
         linhas.push_back("Acertos sofridos: " + std::to_string(r.acertosSofridos));
+        if (Formou(r)) {
+            // No solo e "voce"; na dupla, os dois ou o nome de quem se formou agora (o outro ja tinha).
+            const std::string quem = r.partes.size() < 2 ? "Voc\xc3\xaa"
+                                   : r.formados.size() >= 2 ? "A dupla" : r.formados.front();
+            // \xc3\xaa e o e circunflexo. "Para sempre" so quando ficou na ficha.
+            linhas.push_back(quem + " ganhou o chap\xc3\xa9u de formatura" +
+                             (r.formaturaGravada ? ", para sempre." : "."));
+        }
         // A devolutiva: so de quem reprovou.
         if (!r.aprovado && r.piorFase) linhas.push_back(Devolutiva::LinhaDaFase(*r.piorFase));
         if (LinhaDasCausas(r) >= 0) linhas.emplace_back("");
@@ -66,8 +83,15 @@ namespace Resultado {
     int LinhaDaParte(const Resumo& r, const size_t quem) {
         if (quem >= r.partes.size()) return -1;
         const int causas = LinhaDasCausas(r);
-        const int antes = (r.temFicha ? 4 : 3) + (!r.aprovado && r.piorFase ? 1 : 0) + (causas >= 0 ? 1 : 0);
+        const int antes = (r.temFicha ? 4 : 3) + (!r.aprovado && r.piorFase ? 1 : 0) + (causas >= 0 ? 1 : 0) +
+                          (Formou(r) ? 1 : 0);
         return antes + static_cast<int>(quem);
+    }
+
+    int LinhaDaFormatura(const Resumo& r) {
+        // Logo depois das de sempre (tres sem ficha, quatro com): quem passou nao tem devolutiva.
+        if (!Formou(r)) return -1;
+        return r.temFicha ? 4 : 3;
     }
 
     int LinhaEmDestaque(const Resumo& r) {

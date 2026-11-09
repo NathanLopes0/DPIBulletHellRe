@@ -699,6 +699,7 @@ camada de arte, e a aparência final é a pilha dessas camadas tingidas.
 ```json
 {
   "fixas": [],
+  "formatura": { "materia": "TCC", "arte": "Player/Camadas/capelo", "ordem": 70 },
   "categorias": [
     { "id": "pele", "nome": "Tom de pele", "ordem": 10,
       "cores": [ { "id": "tom1", "nome": "Tom 1", "rgb": "f6cfa6" } ],
@@ -714,14 +715,16 @@ camada de arte, e a aparência final é a pilha dessas camadas tingidas.
 | | |
 |---|---|
 | `fixas` | camadas que todo personagem tem, sem escolha. Só `arte` e `ordem`. |
+| `formatura` | opcional. A camada de quem passou na `materia` (o código dela em `materias.json`): `arte` e `ordem`, em cor final, como as fixas. Sem `materia` ou sem `arte`, é ignorada com aviso |
 | `categorias` | o que o jogador escolhe: uma peça e uma cor por categoria |
 | `ordem` | a ordem de empilhamento; maior fica por cima |
 | `cores` | a paleta daquela categoria, com `rgb` em hexadecimal sem `#` |
 | `pecas` | as formas daquela categoria, cada uma com a sua `arte` |
 | `predefinidas` | combinações prontas, usadas como ponto de partida |
 
-As ordens hoje são pele 10, sapato 30, calça 40, camisa 50, mochila 55 e cabelo
-60 — e os buracos entre elas são de propósito, para caber camada nova no meio
+As ordens hoje são pele 10, sapato 30, calça 40, camisa 50, mochila 55, cabelo
+60 e o capelo da formatura, 70, por cima de tudo — e os buracos entre elas são
+de propósito, para caber camada nova no meio
 sem renumerar as outras (a mochila entrou assim, entre a camisa e o cabelo: o
 cabelo comprido cai por cima dela). A **ordem da lista** de categorias é outra
 coisa: é a ordem das linhas na tela de criação.
@@ -734,6 +737,12 @@ A arte das peças sai de `Ferramentas/gerar_camadas.py`.
 
 > **A ficha guarda o `id` da peça, nunca a posição dela na lista.** Acrescentar
 > uma peça no meio de uma categoria não troca o cabelo de ninguém.
+
+> **A formatura não fica na ficha.** Quem se formou é quem tem a matéria da
+> `formatura` aprovada — o recorde dela, em qualquer modo e nível, chegou a 60 —,
+> e o recorde só sobe: por isso o capelo é para sempre sem campo novo na ficha.
+> A mesma aparência com e sem capelo são duas texturas no cache
+> (`ChaveDaAparencia`).
 
 ---
 

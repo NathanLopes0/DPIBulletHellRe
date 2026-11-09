@@ -45,6 +45,9 @@ public:
     /// O centro da linha 'indice', para desenhar ao lado dela (os projeteis da devolutiva).
     [[nodiscard]] Vector2 OndeDaLinha(int indice) const;
 
+    /// O centro do titulo, para desenhar ao lado dele (quem se formou).
+    [[nodiscard]] Vector2 OndeDoTitulo() const;
+
     /// A altura da placa para 'linhas' linhas de resumo, com as opcoes e o rodape de sempre.
     [[nodiscard]] static int AlturaPara(int linhas);
 
@@ -68,4 +71,6 @@ private:
     static constexpr int kAlturaDaSelecao = 54;
     static constexpr float kPassoDasOpcoes = 66.0f;
     static constexpr float kPassoDasLinhas = 36.0f;
+    /// Do topo da placa ao meio do titulo.
+    static constexpr float kAlturaDoTitulo = 62.0f;
 };

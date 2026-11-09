@@ -40,10 +40,22 @@ namespace Resultado {
 
         /// Na dupla, a parte de cada aluno, na ordem do painel (a justica).
         std::vector<Devolutiva::Parte> partes;
+
+        /// Quem se formou nesta luta: passou agora na materia da formatura (Personagens::Formatura)
+        /// e ganhou o capelo. Na dupla, o nome de cada um, como em Devolutiva::Parte::quem.
+        std::vector<std::string> formados;
+        /// O capelo ficou gravado na ficha de todos eles (o visitante nao tem ficha).
+        bool formaturaGravada = false;
     };
 
     /// O titulo: "APROVADE!" ou "REPROVADE".
     const char* Titulo(bool aprovado);
+
+    /// O titulo deste resumo: o de cima, ou "FORMADE!" quando alguem se formou nesta luta.
+    const char* Titulo(const Resumo& r);
+
+    /// Alguem se formou nesta luta (Resumo::formados)?
+    bool Formou(const Resumo& r);
 
     /// A nota desta luta passou o recorde? So para quem tem ficha, e por mais que o arredondamento
     /// da tela (0,01).
@@ -51,13 +63,17 @@ namespace Resultado {
 
     /// As linhas do resumo, de cima para baixo: a nota, o recorde (ou o aviso de recorde novo), as
     /// fases limpas e os acertos sofridos. Quem reprovou ve a devolutiva: a fase em que a nota mais
-    /// caiu e, numa linha so dos desenhos (LinhaDasCausas), o que mais o acertou. Na dupla, uma
-    /// linha por aluno com a parte dele (LinhaDaParte).
+    /// caiu e, numa linha so dos desenhos (LinhaDasCausas), o que mais o acertou. Quem se formou ve
+    /// quem ganhou o capelo (LinhaDaFormatura). Na dupla, uma linha por aluno com a parte dele
+    /// (LinhaDaParte).
     std::vector<std::string> Linhas(const Resumo& r);
 
     /// Quantas Linhas um resumo tem no maximo: as quatro de sempre, as duas da devolutiva e as duas
-    /// da dupla.
+    /// da dupla. A da formatura nao soma: so quem passou se forma, e so quem reprovou tem devolutiva.
     constexpr int kLinhasNoMaximo = 8;
+
+    /// A linha de quem ganhou o capelo, que vai dourada; -1 quando ninguem se formou.
+    int LinhaDaFormatura(const Resumo& r);
 
     /// A linha (vazia) em que a batalha desenha o que mais acertou o aluno; -1 quando nao ha.
     int LinhaDasCausas(const Resumo& r);

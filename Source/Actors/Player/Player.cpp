@@ -46,7 +46,7 @@ Player::Player(Scene* scene, const size_t quem) :
     Game* game = GetScene()->GetGame();
     const Personagens::Composta composta =
         // A aparencia da sessao deste aluno.
-        Personagens::Compor(game, Personagens::Carregado(), game->AparenciaDe(mQuem));
+        Personagens::Compor(game, Personagens::Carregado(), game->AparenciaDe(mQuem), game->Formado(mQuem));
 
     if (composta.ok) {
         spritePath = composta.chaveDaTextura;   // ja esta no cache de texturas
@@ -66,6 +66,20 @@ Player::Player(Scene* scene, const size_t quem) :
     auto colliderComp = AddComponent<CircleColliderComponent>(static_cast<float>(drawComp->GetSpriteWidth()) / 10.f);
     colliderComp->SetTag(ColliderTag::Player);
 
+}
+
+void Player::RecomporPersonagem() {
+
+    Game* game = GetScene()->GetGame();
+    const Personagens::Composta composta =
+        Personagens::Compor(game, Personagens::Carregado(), game->AparenciaDe(mQuem), game->Formado(mQuem));
+    if (!composta.ok) return;   // fica a de antes
+
+    if (auto* dc = GetComponent<DrawAnimatedComponent>()) {
+        dc->LoadSpriteSheet(composta.chaveDaTextura, composta.atlas);
+        // Mesmo que a luta tenha acabado no meio de uma piscada.
+        dc->SetIsVisible(true);
+    }
 }
 
 void Player::OnProcessInput(const Uint8 *keyState) {

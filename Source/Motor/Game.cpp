@@ -15,6 +15,7 @@
 #include "../Scenes/MainMenu.h"
 #include "../Aluno/FichaArquivo.h"
 #include "../Curso/MateriasArquivo.h"
+#include "../Personagem/PersonagensArquivo.h"
 #include "../Aluno/ExportacaoArquivo.h"
 #include "Relogio.h"
 #include "../Aluno/Matricula.h"
@@ -640,6 +641,14 @@ void Game::AvancarEntrada() {
 void Game::CancelarEntrada() {
     mEditandoPersonagem = false;
     DefinirModoDeJogo(Sessao::Modo::Um);
+}
+
+bool Game::Formado(const size_t posicao) const {
+    if (posicao >= mSessoes.size()) return false;
+    const Personagens::Formatura& f = Personagens::Carregado().formatura;
+    if (!f.Existe()) return false;
+    const int materia = Materias::Carregadas().IndiceDe(f.materia);
+    return materia >= 0 && mSessoes[posicao].progresso.Aprovado(materia);
 }
 
 void Game::EditarPersonagem(const size_t posicao) {

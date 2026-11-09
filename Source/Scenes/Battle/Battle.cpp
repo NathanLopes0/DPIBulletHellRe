@@ -42,6 +42,8 @@
 #include "../../Regras/Destrutivel.h"
 #include "../../Actors/Orientador/Orientador.h"
 #include "../../Curso/MateriasArquivo.h"
+#include "../../Personagem/ComporPersonagem.h"
+#include "../../Personagem/PersonagensArquivo.h"
 #include "../../Entrada/Painel.h"
 
 #include "../../Motor/CaminhosArquivo.h"
@@ -866,9 +868,15 @@ void Battle::MostrarResultado(const Resultado::Resumo& resumo) {
     SegurarMenu();
     const std::vector<std::string> linhas = Resultado::Linhas(resumo);
     CriarResultado(static_cast<int>(linhas.size()));
-    mPainelDoResultado->SetTitulo(Resultado::Titulo(resumo.aprovado),
-                                  resumo.aprovado ? Color::LightGreen : Color::LightPink);
+    // A formatura e dourada, o titulo e a linha de quem ganhou o capelo.
+    const bool formou = Resultado::Formou(resumo);
+    mPainelDoResultado->SetTitulo(Resultado::Titulo(resumo),
+                                  formou ? Color::Gold : resumo.aprovado ? Color::LightGreen : Color::LightPink);
     mPainelDoResultado->SetLinhas(linhas, Resultado::LinhaEmDestaque(resumo));
+    if (formou) {
+        mPainelDoResultado->ColorirLinha(Resultado::LinhaDaFormatura(resumo), Color::Gold);
+        MostrarFormandos();
+    }
     // A justica: cada aluno na cor dele.
     for (size_t i = 0; i < resumo.partes.size(); ++i) {
         const Hud::Rgb c = Hud::CorDoAluno(i);
@@ -880,6 +888,27 @@ void Battle::MostrarResultado(const Resultado::Resumo& resumo) {
     // A devolutiva: o desenho do que mais acertou, na linha dela.
     const int linhaDasCausas = Resultado::LinhaDasCausas(resumo);
     if (linhaDasCausas >= 0) MostrarCausas(resumo.causas, mPainelDoResultado->OndeDaLinha(linhaDasCausas));
+}
+
+void Battle::MostrarFormandos() {
+    if (mJogadores.empty() || !mPainelDoResultado) return;
+    const Vector2 titulo = mPainelDoResultado->OndeDoTitulo();
+    const size_t ultimo = mJogadores.size() - 1;
+    // O primeiro aluno a esquerda, o ultimo a direita: sozinho, ele e os dois.
+    const std::pair<size_t, float> lados[] = {{0, -1.0f}, {ultimo, 1.0f}};
+    for (const auto& [quem, lado] : lados) {
+        const Personagens::Composta c = Personagens::Compor(mGame, Personagens::Carregado(),
+                                                            mGame->AparenciaDe(quem), mGame->Formado(quem));
+        if (!c.ok) continue;
+        auto formando = std::make_unique<Actor>(this);
+        formando->SetPosition(titulo + Vector2(lado * kAfastamentoDoFormando, 0.0f));
+        formando->SetScale(kEscalaDoFormando);
+        auto* desenho = formando->AddComponent<DrawAnimatedComponent>(c.chaveDaTextura, c.atlas, kOrdemDosMenus + 4);
+        desenho->AddAnimation("Andando", {0, 1, 2, 3});
+        desenho->SetAnimFPS(6.0f);
+        desenho->SetAnimation("Andando");
+        AddActor(std::move(formando));
+    }
 }
 
 void Battle::MostrarCausas(const std::vector<Devolutiva::Causa>& causas, const Vector2& onde) {
@@ -1780,18 +1809,35 @@ void Battle::EncerrarBatalha(bool aprovado) {
             resumo.causas.resize(static_cast<size_t>(Devolutiva::kCausasNaTela));
         }
     }
+    // A matricula; quem nao tem uma (o visitante) e o aluno da posicao dele - a cor diz qual.
+    const auto nomeDe = [this](const size_t i) {
+        const std::string& m = mGame->MatriculaDe(i);
+        return (m.empty() || m == Matricula::kVisitante) ? "Aluno " + std::to_string(i + 1) : m;
+    };
     // A justica, na dupla: a parte de cada um, com a matricula dele.
     if (mPartes.size() >= 2) {
         resumo.partes = mPartes;
-        for (size_t i = 0; i < resumo.partes.size(); ++i) {
-            // A matricula; quem nao tem uma (o visitante) e o aluno da posicao dele - a cor diz qual.
-            const std::string& m = mGame->MatriculaDe(i);
-            resumo.partes[i].quem = (m.empty() || m == Matricula::kVisitante) ? "Aluno " + std::to_string(i + 1) : m;
-        }
+        for (size_t i = 0; i < resumo.partes.size(); ++i) resumo.partes[i].quem = nomeDe(i);
     }
+
+    // Quem ja usava o capelo antes desta nota (Personagens::Formatura).
+    std::vector<bool> formadoAntes;
+    for (size_t i = 0; i < mJogadores.size(); ++i) formadoAntes.push_back(mGame->Formado(i));
 
     // O unico ponto em que a nota vai para o armazenamento persistente.
     mGame->RegistrarNota(mMateria, mNota);
+
+    // Quem se formou agora ganha o capelo ali mesmo, e a tela diz.
+    if (aprovado) {
+        bool todosGravados = true;
+        for (size_t i = 0; i < mJogadores.size(); ++i) {
+            if (formadoAntes[i] || !mGame->Formado(i)) continue;
+            resumo.formados.push_back(nomeDe(i));
+            todosGravados = todosGravados && mGame->ProgressoEGravado(i);
+            if (mJogadores[i]) mJogadores[i]->RecomporPersonagem();
+        }
+        resumo.formaturaGravada = !resumo.formados.empty() && todosGravados;
+    }
     // E a tentativa, com o resultado.
     Avisar([&](OuvinteDaBatalha& o) { o.AoFimDoQuadro(*this); });
     const auto resultado = aprovado ? Tentativas::Resultado::Aprovado : Tentativas::Resultado::Reprovado;

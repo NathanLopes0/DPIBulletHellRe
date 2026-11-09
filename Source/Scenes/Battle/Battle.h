@@ -424,6 +424,9 @@ private:
     void MostrarResultado(const Resultado::Resumo& resumo);
     /// O que mais acertou o aluno, na linha da devolutiva: o desenho de cada projetil e quantas vezes.
     void MostrarCausas(const std::vector<Devolutiva::Causa>& causas, const Vector2& onde);
+    /// A formatura: a personagem de capelo dos dois lados do titulo - no solo, a mesma; na dupla,
+    /// cada aluno do seu lado. Nao depende de onde o aluno estava quando a luta acabou.
+    void MostrarFormandos();
     /// Um acerto sofrido por 'jogador', que levou 'perda' de nota, por 'causa' (o tipo do projetil, ou
     /// o esbarrao): para a devolutiva e a justica.
     void AnotarPerda(const Player& jogador, const std::string& causa, float perda);
@@ -499,6 +502,9 @@ private:
     static constexpr int kOrdemDosMenus = 900;
     /// O lado do desenho de cada projetil na devolutiva: o de uma linha do resultado.
     static constexpr float kLadoDoIcone = 34.0f;
+    /// Quem se formou, dos lados do titulo: dentro da placa do resultado e acima das linhas.
+    static constexpr float kAfastamentoDoFormando = 200.0f;
+    static constexpr float kEscalaDoFormando = 1.5f;
     /// O resultado e mais largo que a pausa: a linha da devolutiva traz o nome da fase.
     static constexpr int kLarguraDoResultado = 760;
 };

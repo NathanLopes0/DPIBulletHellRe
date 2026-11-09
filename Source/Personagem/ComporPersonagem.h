@@ -25,6 +25,6 @@ namespace Personagens {
         bool ok = false;
     };
 
-    /// Compoe (ou reaproveita) a textura desta aparencia.
-    Composta Compor(Game* game, const Catalogo& catalogo, const Aparencia& aparencia);
+    /// Compoe (ou reaproveita) a textura desta aparencia - com o capelo, se o aluno ja se formou.
+    Composta Compor(Game* game, const Catalogo& catalogo, const Aparencia& aparencia, bool formado = false);
 }

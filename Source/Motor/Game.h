@@ -164,6 +164,10 @@ public:
     /// nas duas telas que terminam a entrada.
     void AvancarEntrada();
 
+    /// O aluno desta posicao ja se formou: passou na materia da formatura (Personagens::Formatura) e
+    /// usa o capelo. Vale para o visitante tambem, enquanto a sessao dura.
+    [[nodiscard]] bool Formado(size_t posicao) const;
+
     /// Abre a criacao de personagem para quem ja entrou (da dificuldade, Botao 3): e assim que um
     /// perfil que ja existia troca de personagem. A volta e para a dificuldade.
     void EditarPersonagem(size_t posicao);

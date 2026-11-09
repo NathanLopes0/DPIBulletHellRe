@@ -95,7 +95,8 @@ vê também a **devolutiva**, como numa prova corrigida: a fase em que a nota
 mais caiu, com quanto ela custou, e o desenho do que mais te acertou, com
 quantas vezes. Na dupla, uma linha por aluno, na cor dele, diz a parte de
 cada um — acertos no professor, coberturas e acertos sofridos —: quem cobriu o
-parceiro vê que contou. O menu só
+parceiro vê que contou. Quem acaba de passar no TCC vê **FORMADE!**, em dourado,
+com a personagem de capelo dos dois lados do título. O menu só
 aceita o botão depois de um instante, para o tiro que estava apertado não
 escolher sozinho. No gabinete, se ninguém escolher em 20 segundos, ela volta
 sozinha para as matérias.
@@ -145,6 +146,13 @@ sapatos e mochila ou bolsa, cada peça na cor que você quiser — o manche para
 lados percorre as opções, e a linha diz em qual delas você está ("3 de 15").
 Quem já tem perfil troca a personagem na tela de dificuldade, com o **Botão 3**
 do próprio painel.
+
+Quem passa no **TCC** se forma, e a personagem ganha o **chapéu de formatura**
+para sempre — já na tela do resultado, e depois em toda prova e na criação de
+personagem. Ele não é uma peça: não se escolhe nem se tira, e vai por cima de
+qualquer cabelo. Nem fica gravado à parte: quem se formou é quem tem o TCC
+aprovado, e o recorde só sobe. O visitante também se forma, mas só até o fim da
+sessão.
 
 Antes de cada batalha, uma **tela de carregamento** escura cobre o campo: o
 código e o nome da matéria, o professor e uma barra enchendo. A batalha só

@@ -61,13 +61,15 @@ unsigned char Multiplicar(const unsigned char valor, const unsigned char cor) {
     return static_cast<unsigned char>((static_cast<int>(valor) * static_cast<int>(cor)) / 255);
 }
 
-std::string ChaveDaAparencia(const Aparencia& aparencia) {
+std::string ChaveDaAparencia(const Aparencia& aparencia, const bool formado) {
 
     // O mapa percorre em ordem de chave, entao a mesma aparencia sempre produz o mesmo texto.
     std::string chave = "<personagem>";
     for (const auto& par : aparencia.escolhas) {
         chave += par.first + "=" + par.second.peca + ":" + par.second.cor + "|";
     }
+    // A mesma personagem com o capelo e outra textura.
+    if (formado) chave += "+formatura";
     return chave;
 }
 
@@ -142,7 +144,7 @@ Aparencia Catalogo::Resolver(const Aparencia& pedida, std::vector<std::string>* 
     return saida;
 }
 
-std::vector<Camada> Catalogo::Camadas(const Aparencia& aparencia) const {
+std::vector<Camada> Catalogo::Camadas(const Aparencia& aparencia, const bool formado) const {
 
     const Aparencia valida = Resolver(aparencia);
 
@@ -170,6 +172,15 @@ std::vector<Camada> Catalogo::Camadas(const Aparencia& aparencia) const {
         Camada camada;
         camada.arte = f.arte;
         camada.ordem = f.ordem;
+        camada.tingida = false;
+        camadas.push_back(camada);
+    }
+
+    // O capelo de quem se formou: em cor final, como as fixas.
+    if (formado && formatura.Existe()) {
+        Camada camada;
+        camada.arte = formatura.arte;
+        camada.ordem = formatura.ordem;
         camada.tingida = false;
         camadas.push_back(camada);
     }
@@ -342,6 +353,19 @@ Catalogo LerCatalogo(const std::string& textoJson) {
         }
     }
 
+    // ---- A formatura ----
+    if (raiz.contains("formatura")) {
+        const auto& jf = raiz["formatura"];
+        Formatura f;
+        if (jf.is_object()) {
+            f.materia = Texto(jf, "materia");
+            f.arte = Texto(jf, "arte");
+            f.ordem = Inteiro(jf, "ordem", 0);
+        }
+        if (f.Existe()) cat.formatura = f;
+        else cat.problemas.emplace_back("a \"formatura\" precisa de \"materia\" e de \"arte\"; ignorada");
+    }
+
     // ---- Ordens repetidas ----
     {
         std::map<int, std::string> porOrdem;
@@ -354,7 +378,9 @@ Catalogo LerCatalogo(const std::string& textoJson) {
             }
             else porOrdem[c.ordem] = c.id;
         }
-        for (const auto& f : cat.fixas) {
+        std::vector<CamadaFixa> soltas = cat.fixas;
+        if (cat.formatura.Existe()) soltas.push_back(CamadaFixa{cat.formatura.arte, cat.formatura.ordem});
+        for (const auto& f : soltas) {
             const auto achado = porOrdem.find(f.ordem);
             if (achado != porOrdem.end()) {
                 cat.problemas.emplace_back("\"" + f.arte + "\" e \"" + achado->second +

@@ -5,6 +5,11 @@
   // (O sapato era uma; virou categoria, com o tenis grafite de antes como padrao.)
   "fixas": [],
 
+  // ---- A formatura: quem passou nesta materia ganha esta camada, para sempre ----
+  // O capelo nao e escolhido nem tingido; vai por cima de tudo (ordem 70). A materia e o codigo
+  // dela em materias.json.
+  "formatura": { "materia": "TCC", "arte": "Player/Camadas/capelo", "ordem": 70 },
+
   "categorias": [
 
     // ---- Pele ----

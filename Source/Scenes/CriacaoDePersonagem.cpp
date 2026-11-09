@@ -155,7 +155,7 @@ void CriacaoDePersonagem::Recompor() {
     if (!mPersonagemAtor) return;
 
     const Personagens::Composta composta =
-        Personagens::Compor(mGame, Personagens::Carregado(), mAparencia);
+        Personagens::Compor(mGame, Personagens::Carregado(), mAparencia, mGame->Formado(mQuem));
 
     if (!composta.ok) {
         SDL_Log("CRIACAO: nao consegui compor esta aparencia; a anterior continua em tela.");

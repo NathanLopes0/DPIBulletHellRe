@@ -951,6 +951,7 @@ TEST_CASE("Dados: toda arte citada no catalogo existe em disco") {
         for (const auto& p : cat.pecas) artes.push_back(p.arte);
     }
     for (const auto& f : c.fixas) artes.push_back(f.arte);
+    if (c.formatura.Existe()) artes.push_back(c.formatura.arte);
 
     REQUIRE_FALSE(artes.empty());
 
@@ -974,6 +975,7 @@ TEST_CASE("Dados: toda peca tem quatro quadros de 64x64") {
         for (const auto& p : cat.pecas) artes.push_back(p.arte);
     }
     for (const auto& f : c.fixas) artes.push_back(f.arte);
+    if (c.formatura.Existe()) artes.push_back(c.formatura.arte);
 
     int conferidas = 0;
     for (const auto& arte : artes) {
@@ -1020,6 +1022,31 @@ TEST_CASE("Dados: a aparencia padrao do catalogo real compoe todas as camadas") 
         CHECK_MESSAGE(camadas[i - 1].ordem < camadas[i].ordem,
                       "duas camadas com a mesma ordem de desenho");
     }
+}
+
+TEST_CASE("Dados: o capelo e de quem passou no TCC, e vai por cima de tudo") {
+
+    const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
+    REQUIRE(c.formatura.Existe());
+
+    // A materia e uma que existe - o TCC, o fim do curso.
+    const auto materias = Materias::LerMaterias(LerArquivo("materias.json"));
+    CHECK(c.formatura.materia == "TCC");
+    CHECK(materias.IndiceDe(c.formatura.materia) >= 0);
+
+    // Por cima de toda categoria: o cabelo e a mochila nao cobrem o capelo.
+    for (const auto& cat : c.categorias) {
+        CAPTURE(cat.id);
+        CHECK(cat.ordem < c.formatura.ordem);
+    }
+
+    // Quem se formou tem uma camada a mais, a ultima, e ela nao e tingida.
+    const Personagens::Aparencia padrao = Ajudantes::Padrao(c);
+    const std::vector<Personagens::Camada> sem = c.Camadas(padrao);
+    const std::vector<Personagens::Camada> com = c.Camadas(padrao, true);
+    REQUIRE(com.size() == sem.size() + 1);
+    CHECK(com.back().arte == c.formatura.arte);
+    CHECK_FALSE(com.back().tingida);
 }
 
 TEST_CASE("Dados: nenhum projetil do Salles gira com a direcao do movimento") {
