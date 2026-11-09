@@ -60,8 +60,10 @@
       "titulo": "Em dupla",
       "linhas": [
         "Os dois fazem a mesma prova, e a nota é uma só: a da dupla.",
-        "O professor mira um de cada vez, revezando entre os dois.",
+        "O professor mira em quem mais o acerta. Empatados, ele reveza.",
+        "Um v vermelho em cima do aluno avisa: a mira está nele.",
         "O que cada um faz sozinho vale metade. A fase limpa vale inteira.",
+        "Derrubar o projétil que ia no parceiro vale inteiro: é a cobertura.",
         "Em dupla, o Ponto Extra é do parceiro: um escudo de três segundos",
         "que destrói os projéteis do professor."
       ]

@@ -68,6 +68,7 @@ namespace Hud {
             case Faisca::Resposta:  return 0.45f;
             case Faisca::RespostaDePerto: return 0.45f;
             case Faisca::Raspao:    return 0.25f;
+            case Faisca::Cobertura: return 0.4f;
         }
         return 0.2f;
     }
@@ -84,6 +85,7 @@ namespace Hud {
             case Faisca::Resposta:  return 2.0f + 16.0f * abre;   // o quanto o "!" ja subiu
             case Faisca::RespostaDePerto: return 2.0f + 16.0f * abre;
             case Faisca::Raspao:    return 5.0f + 11.0f * abre;
+            case Faisca::Cobertura: return 8.0f + 24.0f * abre;
         }
         return 10.0f;
     }

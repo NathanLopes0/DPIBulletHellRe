@@ -42,7 +42,12 @@ nota, o que se destrói, a dupla e o curso. O texto mora em
 identifica, os dois jogam a mesma batalha e a **nota é uma só, da dupla**: o
 que um jogador causa sozinho — o acerto no professor, o acerto sofrido, o Ponto
 Extra — é dividido entre os dois, e o que a dupla conquista junta, como o bônus
-de fase limpa, vale inteiro. O **Ponto Extra em dupla é do outro**: em vez de
+de fase limpa, vale inteiro. Os ataques mirados vão em **quem mais acerta o
+professor** — um **v** vermelho em cima do aluno avisa que a mira está nele —, e,
+quando os dois acertam parecido, ele reveza um disparo para cada: quem ataca
+chama a mira, e o outro fica livre para **cobri-lo**. Derrubar um projétil que ia
+no parceiro é uma **cobertura**, e vale inteira, como a fase limpa: é da dupla.
+O **Ponto Extra em dupla é do outro**: em vez de
 limpar a tela, um feixe sai de quem o gastou e dá ao parceiro um escudo que
 destrói os projéteis do chefe por três segundos. As decisões do modo, e o
 porquê de cada uma, estão em `Documentacao/requisitos-coop.md`.

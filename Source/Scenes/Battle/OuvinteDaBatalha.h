@@ -40,6 +40,8 @@ public:
     virtual void AoAcertarOProfessor(Battle&, const Actor* quemAtirou) {}
 
     virtual void AoPegarPontoExtra(Battle&, const Player& aluno) {}
+    /// Na dupla, o tiro de 'quemCobriu' derrubou um projetil que ia em 'parceiro' (Cobertura.h).
+    virtual void AoCobrir(Battle&, const Player& quemCobriu, const Player& parceiro) {}
     virtual void AoUsarPontoExtra(Battle&, const Player& aluno) {}
 
     /// O aluno atravessou a parede pela rede do socket() (Battle::AbrirRede).

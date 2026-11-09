@@ -11,6 +11,7 @@
 #include <vector>
 #include "../Scene.h"
 #include "../../Regras/Intercambio.h"
+#include "../../Regras/Papeis.h"
 #include "../../Motor/Game.h"
 #include "../../Motor/AudioSystem.h"
 #include "../../Interface/Pausa.h"
@@ -80,8 +81,14 @@ public:
     /// Em quem um ataque mirado mira.
     [[nodiscard]] Player* Alvo() const;
 
-    /// Em qual posicao esta a vez.
-    [[nodiscard]] size_t IndiceDoAlvo() const { return mVezDoAlvo; }
+    /// Em qual posicao esta a vez: a de quem mais incomodou o professor (Papeis.h) ou, se os dois
+    /// incomodam parecido, a do revezamento. A vez dada (DarAVez) vale para o proximo disparo.
+    [[nodiscard]] size_t IndiceDoAlvo() const {
+        return mVezDada ? mVezDoAlvo : mIncomodo.Alvo(mVezDoAlvo, mJogadores.size());
+    }
+
+    /// Em quem a mira esta presa (o marcador vermelho sobre o aluno); -1 quando os dois revezam.
+    [[nodiscard]] int FocoDaMira() const { return mIncomodo.Foco(mJogadores.size()); }
 
     /// O jogador de uma posicao, ou nullptr fora da lista. E como um projetil
     /// resolve o numero que guardou.
@@ -91,7 +98,7 @@ public:
     /// unico lugar por onde todo ataque de todo chefe passa.
     void RevezarAlvo();
 
-    /// Da a vez a um jogador, antes de um disparo que e dele.
+    /// Da a vez a um jogador, antes de um disparo que e dele - mesmo que a mira esteja no outro.
     void DarAVez(size_t posicao);
     [[nodiscard]] ProjectileManager* GerenteDeProjeteis() const { return mProjeteis.get(); }
 
@@ -277,6 +284,10 @@ private:
     /// Um efeito em 'onde'. Com muitos ao mesmo tempo, os mais velhos saem.
     void Faiscar(const Vector2& onde, Hud::Faisca tipo, int quem = -1);
 
+    /// O tiro de um aluno derrubou um projetil: se ele ia no parceiro, e uma cobertura (Cobertura.h),
+    /// paga inteira, com a faisca dela. Devolve se foi.
+    bool Cobrir(const PlayerProjectile& tiro, const BossProjectile& projetil);
+
     /// O projetil passou rente ao aluno sem acerta-lo (Raspao.h): paga o raspao, uma vez por projetil.
     void Raspar(Player& jogador, const class CircleColliderComponent& colisor, class BossProjectile& projetil,
                 const class CircleColliderComponent& colisorDoProjetil);
@@ -335,6 +346,12 @@ private:
 
     /// De quem e a vez de ser mirado.
     size_t mVezDoAlvo = 0;
+    /// A vez foi dada (DarAVez) para o proximo disparo, por cima da mira.
+    bool mVezDada = false;
+    /// O "v" da mira fica isto acima do centro do aluno: logo acima da cabeca (o desenho tem 64 px).
+    static constexpr float kAlturaDaMira = 44.0f;
+    /// O quanto cada aluno incomodou o professor: em quem os ataques mirados vao (Papeis.h).
+    Papeis::Incomodo mIncomodo;
 
     // O gerente de projéteis: Um sistema especializado, possuído pela cena.
     std::unique_ptr<ProjectileManager> mProjeteis;

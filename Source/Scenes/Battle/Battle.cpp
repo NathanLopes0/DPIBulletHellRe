@@ -35,6 +35,7 @@
 #include "../../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../../Regras/PontoExtra.h"
 #include "../../Regras/Raspao.h"
+#include "../../Regras/Cobertura.h"
 #include "../../Regras/Destrutivel.h"
 #include "../../Actors/Orientador/Orientador.h"
 #include "../../Curso/MateriasArquivo.h"
@@ -576,6 +577,7 @@ void Battle::OnUpdate(float deltaTime) {
 
     // Orquestra a checagem de colisões.
     VerificarColisoes();
+    mIncomodo.Avancar(deltaTime);
     AtualizarDesenhoSobreOsAlunos(deltaTime);
     AtualizarMoldura();
     AtualizarOndas(deltaTime);
@@ -970,6 +972,29 @@ void Battle::ColisoesTiroDoChefeNoAluno(const std::vector<std::unique_ptr<BossPr
     }
 }
 
+bool Battle::Cobrir(const PlayerProjectile& tiro, const BossProjectile& projetil) {
+    // So na dupla, e so o tiro de um aluno.
+    const int quem = PosicaoDoAluno(tiro.Dono());
+    if (quem < 0 || mJogadores.size() < 2) return false;
+    const Player* parceiro = mJogadores[quem == 0 ? 1 : 0];
+    // O parceiro que nada atinge (o escudo, a piscada) nao precisava de cobertura.
+    if (!parceiro || parceiro->EstaInvencivel()) return false;
+    const auto* colisor = ColisorDe(parceiro);
+    const auto* colisorDoProjetil = projetil.GetComponent<CircleColliderComponent>();
+    if (!colisor || !colisorDoProjetil) return false;
+    const auto* rb = projetil.GetComponent<RigidBodyComponent>();
+    const Vector2 velocidade = rb ? rb->GetVelocity() : Vector2::Zero;
+    // "Ia nele": passaria na faixa do raspao dele, ou mais perto.
+    const float raio = colisor->GetRadius() + colisorDoProjetil->GetRadius() + Raspao::kAlcance;
+    if (!Cobertura::IaPassarPerto(colisorDoProjetil->GetCenter(), velocidade, colisor->GetCenter(), raio)) return false;
+
+    // E da dupla: pago inteiro, sem a divisao.
+    SubirNota(Cobertura::kGanho);
+    Faiscar(colisorDoProjetil->GetCenter(), Hud::Faisca::Cobertura, quem);
+    Avisar([&](OuvinteDaBatalha& o) { o.AoCobrir(*this, *mJogadores[static_cast<size_t>(quem)], *parceiro); });
+    return true;
+}
+
 void Battle::Raspar(Player& jogador, const CircleColliderComponent& colisor, BossProjectile& projetil,
                     const CircleColliderComponent& colisorDoProjetil) {
     // O que esta parado num posto (a pilha, a tabela) e o que nem anda nao e um desvio; e quem esta
@@ -1004,7 +1029,7 @@ void Battle::ColisoesTiroDoAlunoNosProjeteis(const std::vector<std::unique_ptr<P
 
                 if (bossProj->Derrubavel()) {
                     if (bossProj->Golpear()) {
-                        Faiscar(bossProj->GetPosition(), Hud::Faisca::Derrubada);
+                        if (!Cobrir(*playerProj, *bossProj)) Faiscar(bossProj->GetPosition(), Hud::Faisca::Derrubada);
                         bossProj->OnCollision(playerProj.get());
                         if (mChefe) {
                             mChefe->OnProjetilDerrubado();
@@ -1034,7 +1059,7 @@ void Battle::ColisoesTiroDoAlunoNosProjeteis(const std::vector<std::unique_ptr<P
             {
                 // A resistencia: so o ultimo golpe derruba.
                 if (bossProj->Golpear()) {
-                    Faiscar(bossProj->GetPosition(), Hud::Faisca::Derrubada);
+                    if (!Cobrir(*playerProj, *bossProj)) Faiscar(bossProj->GetPosition(), Hud::Faisca::Derrubada);
                     bossProj->OnCollision(playerProj.get());
                     if (mChefe) {
                         mChefe->OnProjetilDerrubado();
@@ -1080,6 +1105,8 @@ void Battle::ColisoesTiroDoAlunoNoChefe(const std::vector<std::unique_ptr<Player
                     // A duvida perguntada de perto vale mais (Nota::FatorDePerto) - a do aluno; a do
                     // orientador, nao.
                     const int quem = PosicaoDoAluno(playerProj->Dono());
+                    // Quem pergunta incomoda, e chama a mira (Papeis.h).
+                    if (quem >= 0) mIncomodo.Acertou(static_cast<size_t>(quem));
                     const float fator = quem >= 0 ? Nota::FatorDePerto((playerProj->Dono()->GetPosition() -
                                                                         colisorDoCorpo->GetCenter()).Length())
                                                   : 1.0f;
@@ -1162,16 +1189,24 @@ Player* Battle::JogadorEm(const size_t posicao) const {
 
 Player* Battle::Alvo() const {
 
-    // Quem passa a vez e RevezarAlvo, chamado por quem sabe que um disparo comecou.
+    // Quem passa a vez e RevezarAlvo, chamado por quem sabe que um disparo comecou; quem prende a
+    // mira e o incomodo (IndiceDoAlvo).
     if (mJogadores.empty()) return nullptr;
-    return mVezDoAlvo < mJogadores.size() ? mJogadores[mVezDoAlvo] : mJogadores.front();
+    const size_t i = IndiceDoAlvo();
+    return i < mJogadores.size() ? mJogadores[i] : mJogadores.front();
 }
 
 void Battle::DarAVez(const size_t posicao) {
-    if (posicao < mJogadores.size()) mVezDoAlvo = posicao;
+    if (posicao < mJogadores.size()) {
+        mVezDoAlvo = posicao;
+        mVezDada = true;
+    }
 }
 
 void Battle::RevezarAlvo() {
+
+    // A vez dada valia para um disparo, e ele ja saiu.
+    mVezDada = false;
 
     // O "% tamanho" e o que faz isto nao dar nada com um jogador: 0 + 1 = 1, e 1 % 1 = 0.
     if (mJogadores.empty()) { mVezDoAlvo = 0; return; }
@@ -1387,6 +1422,21 @@ void Battle::AtualizarDesenhoSobreOsAlunos(const float deltaTime) {
         }
     }
 
+    // A mira presa (Papeis.h): um "v" vermelho em cima de quem o professor esta olhando. So quando ela
+    // esta presa - enquanto os dois revezam ele piscaria a cada disparo, e nao diria nada.
+    const int foco = FocoDaMira();
+    if (foco >= 0 && static_cast<size_t>(foco) < mJogadores.size() && mJogadores[static_cast<size_t>(foco)]) {
+        const Vector2 c = centroDe(mJogadores[static_cast<size_t>(foco)]) + Vector2(0.0f, -kAlturaDaMira);
+        const float pulso = 0.5f + 0.5f * Math::Sin(mPulsoDoEscudo * 6.0f);
+        const auto alfa = static_cast<Uint8>(170.0f + 85.0f * pulso);
+        const auto v = [&](const float dy, const float abre, const SDL_Color cor) {
+            mDesenhoSobreOsAlunos->Acrescentar(c + Vector2(-abre, dy - abre * 0.8f), c + Vector2(0.0f, dy), cor);
+            mDesenhoSobreOsAlunos->Acrescentar(c + Vector2(abre, dy - abre * 0.8f), c + Vector2(0.0f, dy), cor);
+        };
+        for (float dy = -1.0f; dy <= 3.0f; dy += 1.0f) v(dy, 9.0f, SDL_Color{20, 22, 34, static_cast<Uint8>(alfa * 0.7f)});
+        for (float dy = 0.0f; dy <= 2.0f; dy += 1.0f) v(dy, 7.0f, SDL_Color{255, 80, 70, alfa});
+    }
+
     // A hitbox (opcao da tela de Opcoes): o circulo de colisao de verdade, e um ponto no meio.
     if (!hitbox) return;
     for (const Player* p : mJogadores) {
@@ -1591,6 +1641,14 @@ void Battle::AtualizarEfeitos(const float deltaTime) {
                     exclamacao(x0, 2, 0.0f, cor);
                     exclamacao(x0, 0, -1.0f, miolo);
                 }
+                break;
+            }
+            case Hud::Faisca::Cobertura: {
+                // A derrubada dourada, com o anel na cor de quem cobriu: salvou o parceiro.
+                const Hud::Rgb c = Hud::CorDoAluno(f.quem < 0 ? 9 : static_cast<size_t>(f.quem));
+                raios(f.onde, r * 0.3f, r, 8, giro, SDL_Color{255, 220, 110, alfa(b)});
+                anel(f.onde, r * 0.75f, SDL_Color{c.r, c.g, c.b, alfa(0.9f * b)});
+                anel(f.onde, r * 0.75f - 2.0f, SDL_Color{255, 245, 200, alfa(0.6f * b)});
                 break;
             }
             case Hud::Faisca::Raspao:

@@ -65,6 +65,7 @@ namespace Hud {
         Resposta,    ///< a Duvida acertou o professor: o "?" vira um "!" que sobe e some
         RespostaDePerto,  ///< a Duvida perguntada de perto (Nota::FatorDePerto): "!!"
         Raspao,      ///< um projetil passou rente ao aluno sem acerta-lo (Raspao.h): o risco azul
+        Cobertura,   ///< na dupla, o tiro derrubou o projetil que ia no parceiro: a derrubada dourada
     };
 
     /// Quanto cada uma dura.

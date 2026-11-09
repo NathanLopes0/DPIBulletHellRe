@@ -55,7 +55,7 @@ silêncio. D2 e D4 mudaram de resposta, não de pergunta.
 |---|---|---|
 | D1 | Como os dois entram | Opção **"Dois jogadores"** no menu principal, e dali as duas identificações |
 | D2 | A nota | **Uma só, da dupla.** Zerou, a batalha acaba — para os dois, porque não há outra |
-| D3 | Em quem um ataque mirado mira | **Alterna**: um disparo para cada, em revezamento |
+| D3 | Em quem um ataque mirado mira | **Em quem mais incomoda** o professor; empatados, **alterna** um disparo para cada (2.6) |
 | D4 | A dificuldade do co-op | **Levemente mais fácil** que o solo, com desafios a mais (2.1) |
 | D5 | Teclas do jogador 2 | `W A S D` e os botões `F`, `G`, `H` — **feito**, incremento 1 |
 | D6 | Personagem de cada um | Cada um com a sua, do próprio perfil |
@@ -64,6 +64,7 @@ silêncio. D2 e D4 mudaram de resposta, não de pergunta.
 | D9 | O ranking | **Dois**: o Solo, de alunos, e o Co-op, **de duplas** (2.3) |
 | D10 | Passar jogando em co-op | **Destranca** a próxima matéria, igual ao solo |
 | D11 | O Ponto Extra em dupla | **Não limpa a tela: dá ao _outro_ imunidade e um escudo** por 3 s, e o doador **segue atirando** (2.5) |
+| D12 | O que paga cuidar do outro | **A cobertura**: derrubar o projétil que ia no parceiro vale inteiro (2.6) |
 
 ### 2.1 — Uma regra só para a nota compartilhada (D2, D4)
 
@@ -112,7 +113,9 @@ Dividido (ações de um jogador):
 Pago inteiro (resultado da dupla):
 
 - o **bônus de fase limpa** (12 brutos) — é da fase, não de um jogador, e já
-  ficou mais difícil: exige que **nenhum dos dois** tenha sido atingido.
+  ficou mais difícil: exige que **nenhum dos dois** tenha sido atingido;
+- a **cobertura** (`Cobertura::kGanho`, um acerto inteiro) — o tiro de um
+  protegeu o outro, e isso é da dupla (2.6).
 
 **Com um jogador só, dividir por um não muda nada.** É o que mantém o solo
 sendo o caso normal (RNF4), sem `if` de modo espalhado pela batalha.
@@ -245,6 +248,36 @@ quadros de graça duram 1,2 s e piscam, e misturar os dois faria "fui atingido" 
 "estou protegido" terem a mesma cara justamente quando o aluno precisa saber
 qual dos dois é. A imunidade pulsa em **azul**, no mesmo ritmo do vermelho da
 sobrecarga.
+
+### 2.6 — Papéis: a mira vai em quem incomoda, e cobrir o parceiro paga (D3, D12)
+
+O revezamento cego deixava os dois alunos fazendo a mesma coisa: atirar no
+professor e desviar da metade dos mirados. Nada na dupla pedia um papel.
+
+**A mira vai em quem mais incomoda** (`Regras/Papeis.h`). Cada acerto no
+professor soma um ao incômodo de quem perguntou, e o incômodo cai pela metade a
+cada 2 s (`Papeis::kMeiaVida`). Quando o de um passa 1,5 vez o do outro, mais 2
+(`kRazao`, `kMinimo`), os ataques mirados ficam nele; abaixo disso os dois
+revezam, como sempre — dois alunos que atiram no mesmo ritmo não tiram a mira um
+do outro a cada tiro. Com um aluno só, nada muda. O `IndiceDoAlvo` é o único
+lugar que pergunta, e a vez que um chefe dá de propósito (`DarAVez`, num
+`Disparar` com alvo) continua valendo para aquele disparo. Um **v** vermelho
+pulsa em cima de quem está na mira, e só enquanto ela está presa: revezando, ele
+trocaria de aluno a cada disparo e não diria nada.
+
+**Cobrir o parceiro paga** (`Regras/Cobertura.h`). O tiro de um aluno que
+derruba um projétil a caminho do outro vale um acerto **inteiro**
+(`Cobertura::kGanho`), sem a divisão — o dobro do acerto repartido —, com uma
+derrubada dourada e o anel na cor de quem cobriu. "A caminho" é pelo caminho, e
+não pelo alvo que o projétil guarda (2.1b): um anel inteiro nasce "do" aluno da
+vez, e só o pedaço que ia passar por ele era perigo. Conta o projétil que, em
+linha reta, passaria na faixa do raspão do parceiro no próximo segundo; o
+parceiro que nada atinge (o escudo do Ponto Extra, a piscada de quem apanhou)
+não precisava de cobertura.
+
+Juntas, as duas regras fazem os papéis aparecerem sem botão nem escolha de
+classe: quem ataca chama a mira e desvia dela; quem cobre ataca menos, fica livre
+dos mirados e ganha nota protegendo. Trocar de papel é só mudar o que se faz.
 
 ## 3. Requisitos funcionais
 
