@@ -28,7 +28,7 @@ escritos na tela.
 | **Manche** | **setas** | **W A S D** | mover o aluno, escolher na tela |
 | **Botão 1** | **Espaço** | **F** | lançar Dúvidas (os balões com **?**); confirmar; digitar |
 | **Botão 2** | **B** | **G** | voltar e apagar; na batalha, gastar um Ponto Extra: sozinho, uma onda dourada sai de você e desfaz os tiros do professor por onde passa, e você fica 1,5 s sem atirar — em troca, ganha a nota que ganharia acertando todos os tiros desse tempo; em dupla, dá ao parceiro um escudo que destrói os projéteis do chefe, e quem gastou segue atirando |
-| **Botão 3** | **N** | **H** | o boletim, na seleção (e dele, o ranking da matéria); na batalha do TCC, soltar o poder do orientador quando o anel dele enche |
+| **Botão 3** | **N** | **H** | na dificuldade, trocar a personagem; na seleção, o boletim (e dele, o ranking da matéria); na batalha do TCC, soltar o poder do orientador quando o anel dele enche |
 | — | **Esc** | — | na batalha, **só no computador**: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota. A batalha também pausa sozinha quando a janela perde o foco |
 | — | **Enter**, **Esc**, **0–9**, **Backspace** | — | atalhos de teclado para quem desenvolve |
 
@@ -138,6 +138,13 @@ se a conta é nova: se já existe um perfil com aquela matrícula, ele abre e tr
 de volta a aparência escolhida; se não existe, o aluno passa pela criação de
 personagem, e o perfil só é gravado quando ela é confirmada. A tecla
 **VISITANTE** entra sem se identificar, e nesse caso nada é gravado.
+
+A personagem é vista de costas, olhando para o professor, e é montada peça por
+peça: **15 cabelos** em 16 cores, 9 tons de pele, 8 camisas, 7 calças, 4
+sapatos e mochila ou bolsa, cada peça na cor que você quiser — o manche para os
+lados percorre as opções, e a linha diz em qual delas você está ("3 de 15").
+Quem já tem perfil troca a personagem na tela de dificuldade, com o **Botão 3**
+do próprio painel.
 
 Antes de cada batalha, uma **tela de carregamento** escura cobre o campo: o
 código e o nome da matéria, o professor e uma barra enchendo. A batalha só

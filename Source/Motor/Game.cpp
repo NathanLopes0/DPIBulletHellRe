@@ -638,7 +638,22 @@ void Game::AvancarEntrada() {
 }
 
 void Game::CancelarEntrada() {
+    mEditandoPersonagem = false;
     DefinirModoDeJogo(Sessao::Modo::Um);
+}
+
+void Game::EditarPersonagem(const size_t posicao) {
+    if (posicao >= mSessoes.size()) return;
+    mPosicaoAntesDaEdicao = mPosicaoEntrando;
+    mPosicaoEntrando = posicao;
+    mEditandoPersonagem = true;
+    RequestSceneChange(Scene::SceneType::CriacaoDePersonagem);
+}
+
+void Game::TerminarEdicaoDePersonagem() {
+    mPosicaoEntrando = mPosicaoAntesDaEdicao;
+    mEditandoPersonagem = false;
+    RequestSceneChange(Scene::SceneType::EscolhaDaDificuldade);
 }
 
 float Game::RecordeDaPartida(const int materia) const {

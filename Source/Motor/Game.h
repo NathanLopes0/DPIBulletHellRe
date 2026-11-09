@@ -164,6 +164,14 @@ public:
     /// nas duas telas que terminam a entrada.
     void AvancarEntrada();
 
+    /// Abre a criacao de personagem para quem ja entrou (da dificuldade, Botao 3): e assim que um
+    /// perfil que ja existia troca de personagem. A volta e para a dificuldade.
+    void EditarPersonagem(size_t posicao);
+    /// A criacao foi aberta por EditarPersonagem, e nao pela entrada de um aluno novo.
+    [[nodiscard]] bool EditandoPersonagem() const { return mEditandoPersonagem; }
+    /// Fecha a edicao: a entrada volta a posicao em que estava, e a tela volta para a dificuldade.
+    void TerminarEdicaoDePersonagem();
+
     /// Desiste da entrada em curso e volta a ser uma partida de um.
     void CancelarEntrada();
 
@@ -247,6 +255,8 @@ private:
     Dificuldade::Nivel mDificuldade = Dificuldade::Nivel::Normal;
 
     size_t mPosicaoEntrando = 0;
+    bool mEditandoPersonagem = false;
+    size_t mPosicaoAntesDaEdicao = 0;
 
     PedidoDeRanking mPedidoDeRanking{};
 

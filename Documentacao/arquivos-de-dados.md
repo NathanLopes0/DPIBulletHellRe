@@ -698,9 +698,7 @@ camada de arte, e a aparência final é a pilha dessas camadas tingidas.
 
 ```json
 {
-  "fixas": [
-    { "arte": "Player/Camadas/sapato", "ordem": 30 }
-  ],
+  "fixas": [],
   "categorias": [
     { "id": "pele", "nome": "Tom de pele", "ordem": 10,
       "cores": [ { "id": "tom1", "nome": "Tom 1", "rgb": "f6cfa6" } ],
@@ -722,9 +720,17 @@ camada de arte, e a aparência final é a pilha dessas camadas tingidas.
 | `pecas` | as formas daquela categoria, cada uma com a sua `arte` |
 | `predefinidas` | combinações prontas, usadas como ponto de partida |
 
-As ordens hoje são pele 10, sapato 30, calça 40, camisa 50 e cabelo 60 — e os
-buracos entre elas são de propósito, para caber camada nova no meio sem
-renumerar as outras.
+As ordens hoje são pele 10, sapato 30, calça 40, camisa 50, mochila 55 e cabelo
+60 — e os buracos entre elas são de propósito, para caber camada nova no meio
+sem renumerar as outras (a mochila entrou assim, entre a camisa e o cabelo: o
+cabelo comprido cai por cima dela). A **ordem da lista** de categorias é outra
+coisa: é a ordem das linhas na tela de criação.
+
+O sapato já foi uma camada fixa, em cor final; virou categoria, e o primeiro
+item de cada categoria é o padrão de quem não escolheu — o tênis grafite é o
+sapato de antes, e a primeira mochila é "nenhuma". Quem tem uma ficha de antes de
+uma categoria existir cai nesse padrão, e por isso a personagem não muda sozinha.
+A arte das peças sai de `Ferramentas/gerar_camadas.py`.
 
 > **A ficha guarda o `id` da peça, nunca a posição dela na lista.** Acrescentar
 > uma peça no meio de uma categoria não troca o cabelo de ninguém.

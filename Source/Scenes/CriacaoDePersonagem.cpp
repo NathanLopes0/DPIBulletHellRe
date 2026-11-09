@@ -31,9 +31,11 @@ namespace {
     constexpr float kPersonagemX = 0.28f;
     constexpr float kPersonagemY = 0.48f;
 
+    // Onze linhas - um tom de pele, e peca e cor de cabelo, camisa, calca, sapato e mochila - entre
+    // o titulo e o rodape.
     constexpr float kListaX = 0.66f;
-    constexpr float kPrimeiraLinha = 0.30f;
-    constexpr float kEspacoEntreLinhas = 0.062f;
+    constexpr float kPrimeiraLinha = 0.20f;
+    constexpr float kEspacoEntreLinhas = 0.054f;
 
     constexpr int kTamanhoDaLinha = 26;
     constexpr int kSelecaoLargura = 500;
@@ -50,6 +52,16 @@ namespace {
     std::string NomeDaCor(const Personagens::Categoria& c, const std::string& id) {
         const Personagens::Cor* cor = c.CorPor(id);
         return cor ? cor->nome : std::string();
+    }
+
+    /// "(3 de 15)": onde a escolha esta na lista, que da a volta - com quinze cabelos, sem isto nao
+    /// se sabe se ja passou por todos.
+    template <typename T>
+    std::string Posicao(const std::vector<T>& lista, const std::string& id) {
+        for (size_t i = 0; i < lista.size(); ++i) {
+            if (lista[i].id == id) return "(" + std::to_string(i + 1) + " de " + std::to_string(lista.size()) + ")";
+        }
+        return "";
     }
 }
 
@@ -182,9 +194,10 @@ void CriacaoDePersonagem::Redesenhar() const {
 
         const std::string valor = linha.ehCor ? NomeDaCor(*c, e->cor)
                                               : NomeDaPeca(*c, e->peca);
+        const std::string onde = linha.ehCor ? Posicao(c->cores, e->cor) : Posicao(c->pecas, e->peca);
 
         if (auto dc = mLinhaAtores[i]->GetComponent<DrawTextComponent>()) {
-            dc->SetText(linha.rotulo + ":  " + (valor.empty() ? "?" : valor));
+            dc->SetText(linha.rotulo + ":  " + (valor.empty() ? "?" : valor) + "   " + onde);
         }
     }
 
@@ -261,6 +274,12 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
     if (mBordaConfirmar.Bateu(confirmar)) {
         mGame->DefinirAparencia(mAparencia);
 
+        // Quem veio da dificuldade - um perfil que ja existia - volta para ela.
+        if (mGame->EditandoPersonagem()) {
+            mGame->TerminarEdicaoDePersonagem();
+            return;
+        }
+
         // Nao vai direto para a selecao.
         mGame->AvancarEntrada();
         return;
@@ -269,7 +288,11 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
     const bool voltar = Painel::Apertado(keyState, kQuem, Painel::Botao::Dois)
                      || keyState[SDL_SCANCODE_ESCAPE];
     if (mBordaVoltar.Bateu(voltar)) {
-        // Volta para a matricula.
+        // Na edicao, volta para a dificuldade sem gravar nada; na entrada, para a matricula.
+        if (mGame->EditandoPersonagem()) {
+            mGame->TerminarEdicaoDePersonagem();
+            return;
+        }
         mGame->RequestSceneChange(SceneType::Identificacao);
         return;
     }

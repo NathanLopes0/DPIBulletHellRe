@@ -45,4 +45,7 @@ private:
     Borda mBordaVoltar{true};
     Borda mBordaEsquerda{true};
     Borda mBordaDireita{true};
+    /// O Botao 3 de cada painel abre a personagem daquele aluno.
+    Borda mBordaPersonagemUm{true};
+    Borda mBordaPersonagemDois{true};
 };

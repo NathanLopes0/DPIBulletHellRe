@@ -40,8 +40,10 @@ e cor de cabelo, tipo e cor de camisa, tipo e cor de calça. A personagem de cad
 matrícula é montada a partir dessas escolhas.
 
 O **tom de pele** é uma escolha como as outras, e não uma cor fixa do template.
-Isso obriga os **sapatos** a saírem numa peça separada, em cor fixa: tingidos
-junto com a pele, eles clareariam com ela e deixariam de ser sapatos.
+Isso obriga os **sapatos** a saírem numa peça separada: tingidos junto com a
+pele, eles clareariam com ela e deixariam de ser sapatos. Na primeira versão a
+peça era fixa, em cor final; depois virou categoria, com peça (tênis, cano alto,
+bota, chinelo) e cor, e o padrão é o tênis grafite de antes.
 
 ### 2.1.1 — O personagem é visto de costas (D10)
 
@@ -84,9 +86,9 @@ Compondo as camadas numa textura única ao carregar, tudo depois disso continua
 vendo **uma** sprite animada, com o mesmo atlas de quatro quadros, e nenhum
 desses pontos muda. O custo acontece uma vez por perfil carregado.
 
-A ordem é **corpo, sapato, calça, camisa, cabelo**: a camisa cobre a cintura da
-calça e o cabelo cai por cima do ombro da camisa. Dessas, só o sapato não é
-tingido.
+A ordem é **corpo, sapato, calça, camisa, mochila, cabelo**: a camisa cobre a
+cintura da calça, a mochila vai nas costas por cima da camisa e o cabelo cai por
+cima do ombro da camisa e da mochila. Todas são tingidas.
 
 A **regra** de composição — quais camadas, em que ordem, com que cores — é
 pura e testável. Só o desenho dos pixels fica na ponte.

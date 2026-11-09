@@ -85,9 +85,10 @@ void EscolhaDaDificuldade::Load() {
 
     Texto(Painel::Rodape({Painel::Manche(Painel::Jogador::Um, "escolher"),
                           {Painel::Jogador::Um, Painel::Botao::Um, "confirmar"},
-                          {Painel::Jogador::Um, Painel::Botao::Dois, "trocar aluno"}},
+                          {Painel::Jogador::Um, Painel::Botao::Dois, "trocar aluno"},
+                          {Painel::Jogador::Um, Painel::Botao::Tres, "personagem"}},
                          mGame->JeitoDoRodape()),
-          meio, altura * 0.89f, 24, 900);
+          meio, altura * 0.89f, 22, static_cast<int>(largura * 0.96f));
 
     // O cursor comeca onde a partida esta.
     mEscolhido = mGame->NivelDeDificuldade();
@@ -116,6 +117,18 @@ void EscolhaDaDificuldade::OnProcessInput(const Uint8* keyState) {
                      || keyState[SDL_SCANCODE_ESCAPE];
     if (mBordaVoltar.Bateu(voltar)) {
         mGame->RequestSceneChange(SceneType::Identificacao);
+        return;
+    }
+
+    // O Botao 3 de cada painel troca a personagem daquele aluno - a de um perfil que ja existia
+    // tambem, que de outro jeito nunca veria as pecas novas.
+    if (mBordaPersonagemUm.Bateu(Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Tres))) {
+        mGame->EditarPersonagem(0);
+        return;
+    }
+    if (mBordaPersonagemDois.Bateu(Painel::Apertado(keyState, Painel::Jogador::Dois, Painel::Botao::Tres)) &&
+        mGame->QuantosJogadores() > 1) {
+        mGame->EditarPersonagem(1);
         return;
     }
 

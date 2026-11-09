@@ -896,9 +896,50 @@ TEST_CASE("Dados: as categorias que a tela de criacao precisa existem") {
 
     const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
 
-    for (const std::string& id : {"pele", "cabelo", "camisa", "calca"}) {
+    for (const std::string& id : {"pele", "cabelo", "camisa", "calca", "sapato", "mochila"}) {
         CHECK_MESSAGE(c.Por(id) != nullptr, "falta a categoria \"" << id << "\"");
     }
+}
+
+TEST_CASE("Dados: o sapato e a mochila novos nao mudam a personagem de quem ja tinha ficha") {
+
+    // Uma ficha de antes nao tem escolha de sapato nem de mochila, e cai no padrao (Resolver): o
+    // padrao tem de ser o que ela ja mostrava.
+    const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
+
+    // O sapato era uma camada fixa grafite (74, 70, 92): o padrao e o tenis nessa cor.
+    const Personagens::Categoria* sapato = c.Por("sapato");
+    REQUIRE(sapato != nullptr);
+    CHECK(sapato->pecas.front().id == "tenis");
+    CHECK(sapato->cores.front().r == 74);
+    CHECK(sapato->cores.front().g == 70);
+    CHECK(sapato->cores.front().b == 92);
+    CHECK(c.fixas.empty());
+
+    // E ninguem ganha uma mochila sem escolher.
+    const Personagens::Categoria* mochila = c.Por("mochila");
+    REQUIRE(mochila != nullptr);
+    CHECK(mochila->pecas.front().id == "nenhuma");
+
+    // O resto da ficha de antes continua o mesmo: as pecas e as cores antigas seguem no catalogo.
+    const Personagens::Aparencia antiga = c.Resolver(c.predefinidas.front().aparencia);
+    CHECK(antiga.Por("sapato")->peca == "tenis");
+    CHECK(antiga.Por("mochila")->peca == "nenhuma");
+    for (const char* cabelo : {"curto", "longo", "coque", "espetado", "raspado"}) {
+        CHECK(c.Por("cabelo")->PecaPor(cabelo) != nullptr);
+    }
+}
+
+TEST_CASE("Dados: ha o que escolher em toda categoria, e o cabelo tem mais que todas") {
+    const Personagens::Catalogo c = Personagens::LerCatalogo(LerArquivo("personagens.json"));
+    for (const auto& cat : c.categorias) {
+        CAPTURE(cat.id);
+        // A pele e uma peca so (o corpo): escolhe-se a cor.
+        CHECK((cat.pecas.size() > 1 || cat.cores.size() > 1));
+        CHECK(cat.cores.size() >= 8);
+    }
+    CHECK(c.Por("cabelo")->pecas.size() >= 15);
+    CHECK(c.Por("cabelo")->cores.size() >= 15);
 }
 
 TEST_CASE("Dados: toda arte citada no catalogo existe em disco") {
