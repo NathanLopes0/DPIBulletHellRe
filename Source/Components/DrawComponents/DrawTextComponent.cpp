@@ -95,7 +95,8 @@ void DrawTextComponent::Draw(SDL_Renderer *renderer)
 
     // O canto cai num pixel inteiro da tela: no tamanho natural, cada pixel da textura e um da tela.
     const auto noPixel = [this](const float v) { return std::round(v * mEscala) / mEscala; };
-    const SDL_FRect renderQuad = {noPixel(pos.x - largura / 2.0f), noPixel(pos.y - altura / 2.0f), largura, altura};
+    const float esquerda = mAEsquerda ? pos.x - static_cast<float>(mWidth) / 2.0f : pos.x - largura / 2.0f;
+    const SDL_FRect renderQuad = {noPixel(esquerda), noPixel(pos.y - altura / 2.0f), largura, altura};
 
     SDL_RenderCopyExF(renderer, mTextSurface, nullptr, &renderQuad, 0.0, nullptr, SDL_FLIP_NONE);
 }

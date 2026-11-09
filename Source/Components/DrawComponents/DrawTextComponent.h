@@ -22,6 +22,10 @@ public:
     /// o texto para preencher a largura e a altura declaradas.
     void SetAjustarAoTexto(const bool ajustar) { mAjustarAoTexto = ajustar; }
 
+    /// Encostar o texto no lado esquerdo da caixa, em vez de centra-lo nela: as colunas de uma tabela
+    /// comecam todas no mesmo x.
+    void SetAEsquerda(const bool aEsquerda) { mAEsquerda = aEsquerda; }
+
     /// Em que largura o texto quebra linha.
     void SetLarguraDeQuebra(unsigned largura);
 
@@ -41,6 +45,7 @@ protected:
     int mHeight;
 
     bool mAjustarAoTexto = false;
+    bool mAEsquerda = false;
 
     unsigned mLarguraDeQuebra = 500;
 

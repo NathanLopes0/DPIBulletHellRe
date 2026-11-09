@@ -273,3 +273,22 @@ TEST_CASE("Progresso: a dupla do Dificil guarda o proprio parceiro") {
     REQUIRE(entradas.size() == 1u);
     CHECK(entradas[0].retomada == doctest::Approx(65.0f));
 }
+
+TEST_CASE("Progresso: cada prova terminada conta, e a reprovacao tambem - em qualquer modo e nivel") {
+    Progresso p;
+    CHECK(p.Tentativas(0) == 0);
+    p.RegistrarNota(0, 35.0f, Dificuldade::Nivel::Normal);
+    p.RegistrarNota(0, 59.99f, Dificuldade::Nivel::Dificil);
+    p.RegistrarNotaDeDupla(0, 72.0f, Dificuldade::Nivel::Normal, "12345");
+    // Uma nota menor que o recorde tambem e uma prova feita.
+    p.RegistrarNota(0, 61.0f, Dificuldade::Nivel::Normal);
+    CHECK(p.Tentativas(0) == 4);
+    CHECK(p.Reprovacoes(0) == 2);
+    CHECK(p.Tentativas(1) == 0);
+
+    // E vai para as Entradas, que e o que se grava.
+    const auto e = p.Entradas();
+    REQUIRE(e.size() == 1u);
+    CHECK(e[0].tentativas == 4);
+    CHECK(e[0].reprovacoes == 2);
+}

@@ -24,6 +24,7 @@ public:
         CriacaoDePersonagem,
         Opcoes,
         Ranking,
+        Boletim,
         ComoJogar,
         Atracao,
         EscolhaDaDificuldade,

@@ -28,8 +28,10 @@ void Progresso::Registrar(const int materia, const float nota, const Modo modo,
     Entrada& r = mPorMateria[materia];
     r.materia = materia;
 
-    // A retomada e a data sao da materia, e nao do modo nem do nivel.
+    // A retomada, a data e a contagem sao da materia, e nao do modo nem do nivel.
     r.retomada = nota;
+    ++r.tentativas;
+    if (nota < kNotaDeAprovacao) ++r.reprovacoes;
 
     if (!quando.empty()) r.quando = quando;
 
@@ -63,6 +65,14 @@ float Progresso::MelhorNota(const int materia) const {
 const Progresso::Marca& Progresso::Recorde(const int materia, const Modo modo,
                                            const Dificuldade::Nivel nivel) const {
     return Ver(materia).De(modo, nivel);
+}
+
+int Progresso::Tentativas(const int materia) const {
+    return Ver(materia).tentativas;
+}
+
+int Progresso::Reprovacoes(const int materia) const {
+    return Ver(materia).reprovacoes;
 }
 
 bool Progresso::Aprovado(const int materia) const {

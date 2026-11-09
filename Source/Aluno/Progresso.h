@@ -51,6 +51,10 @@ public:
     /// O jogador passou nesta materia? Olha o recorde, nao a ultima nota.
     [[nodiscard]] bool Aprovado(int materia) const;
 
+    /// Quantas provas desta materia o aluno terminou, e quantas reprovou (Entrada::tentativas).
+    [[nodiscard]] int Tentativas(int materia) const;
+    [[nodiscard]] int Reprovacoes(int materia) const;
+
     /// Quantas das materias listadas estao aprovadas.
     [[nodiscard]] int QuantasAprovadas(const std::vector<int>& materias) const;
 
@@ -69,6 +73,11 @@ public:
         std::string quando;
 
         std::array<Marca, 4> recordes{};
+
+        /// As provas terminadas nesta materia, em qualquer modo e nivel, e quantas delas reprovaram
+        /// (o boletim). Zero num save de antes da contagem existir.
+        int tentativas = 0;
+        int reprovacoes = 0;
 
         [[nodiscard]] Marca& De(Modo modo, Dificuldade::Nivel nivel) { return recordes[Indice(modo, nivel)]; }
         [[nodiscard]] const Marca& De(Modo modo, Dificuldade::Nivel nivel) const {

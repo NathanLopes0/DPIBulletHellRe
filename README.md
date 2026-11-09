@@ -28,7 +28,7 @@ escritos na tela.
 | **Manche** | **setas** | **W A S D** | mover o aluno, escolher na tela |
 | **Botão 1** | **Espaço** | **F** | lançar Dúvidas (os balões com **?**); confirmar; digitar |
 | **Botão 2** | **B** | **G** | voltar e apagar; na batalha, gastar um Ponto Extra: sozinho, uma onda dourada sai de você e desfaz os tiros do professor por onde passa, e você fica 1,5 s sem atirar — em troca, ganha a nota que ganharia acertando todos os tiros desse tempo; em dupla, dá ao parceiro um escudo que destrói os projéteis do chefe, e quem gastou segue atirando |
-| **Botão 3** | **N** | **H** | o ranking da matéria, na seleção; na batalha do TCC, soltar o poder do orientador quando o anel dele enche |
+| **Botão 3** | **N** | **H** | o boletim, na seleção (e dele, o ranking da matéria); na batalha do TCC, soltar o poder do orientador quando o anel dele enche |
 | — | **Esc** | — | na batalha, **só no computador**: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota. A batalha também pausa sozinha quando a janela perde o foco |
 | — | **Enter**, **Esc**, **0–9**, **Backspace** | — | atalhos de teclado para quem desenvolve |
 
@@ -100,8 +100,15 @@ aceita o botão depois de um instante, para o tiro que estava apertado não
 escolher sozinho. No gabinete, se ninguém escolher em 20 segundos, ela volta
 sozinha para as matérias.
 
-O **Ranking** — do menu, a média do curso; da seleção de fases, com o Botão 3,
-a matéria em foco — tem **quatro listas**: **Normal**, **Difícil**, **Normal em
+Na seleção de fases, o **Botão 3** abre o **boletim do semestre**: as matérias
+período a período, com a melhor nota, a situação (aprovade, reprovade, a cursar
+ou fechada), quantas provas você terminou em cada uma, o **CR** — a média das
+melhores notas das matérias cursadas —, quantas foram aprovadas, quantas também
+no Difícil e a sua posição no curso. Em dupla, o manche troca de aluno. Do
+boletim, o Botão 3 de novo leva ao ranking da matéria em foco.
+
+O **Ranking** — do menu, a média do curso; do boletim, a matéria em foco — tem
+**quatro listas**: **Normal**, **Difícil**, **Normal em
 dupla** e **Difícil em dupla**, trocadas com o manche para os lados. Cada nível
 tem o seu topo: quem joga no Normal não disputa com quem escolheu o Difícil.
 A tela abre na lista da partida, e a tela de resultado diz "NOVO RECORDE!"
@@ -222,8 +229,10 @@ matérias no C++.
 Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
 
 - **`<matrícula>.json`** — uma ficha por aluno: aparência do personagem, os
-  recordes de cada matéria (sozinho e em dupla, no Normal e no Difícil) e a
-  última nota, com data. A nota vai para o disco **uma vez, no
+  recordes de cada matéria (sozinho e em dupla, no Normal e no Difícil), a
+  última nota, com data, e quantas provas de cada matéria você terminou e
+  quantas reprovou (o boletim; desde a versão 7 da ficha — uma ficha anterior
+  abre com a contagem em zero). A nota vai para o disco **uma vez, no
   fim da batalha**, e não durante.
 - **`opcoes.cfg`** — as opções da máquina (os volumes, a tela
   cheia e a hitbox), em `chave=valor`. A tela de Opções o escreve na hora em

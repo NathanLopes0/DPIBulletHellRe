@@ -75,7 +75,7 @@ void StageSelect::CriarIdentificacaoNaTela() {
     const auto rodape = trocar->AddComponent<DrawTextComponent>(
         Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um,   "jogar"},
                         {Painel::Jogador::Um, Painel::Botao::Dois, "dificuldade"},
-                        {Painel::Jogador::Um, Painel::Botao::Tres, "ranking"}},
+                        {Painel::Jogador::Um, Painel::Botao::Tres, "boletim"}},
                        mGame->JeitoDoRodape()),
         mStageSelectFont.get(), 1100, 34, 22, 255);
     rodape->SetLarguraDeQuebra(1100);
@@ -330,12 +330,10 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
         UpdateStageInfo();
     }
 
-    // O ranking da materia em foco.
-    const bool verRanking = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Tres);
-    if (mBordaRanking.Bateu(verRanking)) {
-        mGame->PedirRanking(Game::PedidoDeRanking{false, mSelectedSubject,
-                                                  SceneType::StageSelect});
-        mGame->RequestSceneChange(SceneType::Ranking);
+    // O boletim; dele, o Botao 3 de novo leva ao ranking da materia em foco.
+    const bool verBoletim = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Tres);
+    if (mBordaRanking.Bateu(verBoletim)) {
+        mGame->RequestSceneChange(SceneType::Boletim);
         return;
     }
 

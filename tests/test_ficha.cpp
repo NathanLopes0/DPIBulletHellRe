@@ -721,3 +721,48 @@ TEST_CASE("Ficha: recorde do Dificil fora da faixa derruba so ele") {
           == doctest::Approx(70.0f));
     CHECK(lida.dados.progresso.Recorde(0, Progresso::Modo::Solo, Dificuldade::Nivel::Dificil).nota == 0.0f);
 }
+
+TEST_CASE("Ficha: a contagem do boletim vai e volta, e o save de antes dela le zero") {
+    Ficha::Dados original;
+    original.matricula = "89384";
+    original.progresso.RegistrarNota(0, 40.0f, Dificuldade::Nivel::Normal);
+    original.progresso.RegistrarNota(0, 70.0f, Dificuldade::Nivel::Normal);
+    const std::string texto = Ficha::Serializar(original, Curso());
+    CHECK(texto.find("\"tentativas\": 2") != std::string::npos);
+    CHECK(texto.find("\"reprovacoes\": 1") != std::string::npos);
+    const auto lida = Ficha::Desserializar(texto, Curso());
+    REQUIRE(lida.ok);
+    CHECK(lida.problemas.empty());
+    CHECK(lida.dados.progresso.Tentativas(0) == 2);
+    CHECK(lida.dados.progresso.Reprovacoes(0) == 1);
+
+    // A versao 6 nao tinha a contagem: le zero, sem reclamar.
+    const auto antiga = Ficha::Desserializar(R"({
+        "versao": 6, "matricula": "89384",
+        "materias": [ { "materia": "AAA", "recorde": 70, "retomada": 70 } ]
+    })", Curso());
+    REQUIRE(antiga.ok);
+    CHECK(antiga.problemas.empty());
+    CHECK(antiga.dados.progresso.Tentativas(0) == 0);
+    CHECK(antiga.dados.progresso.MelhorNota(0) == doctest::Approx(70.0f));
+}
+
+TEST_CASE("Ficha: contagem que nao serve vira zero, e a materia fica") {
+    const auto negativa = Ficha::Desserializar(R"({
+        "versao": 7, "matricula": "89384",
+        "materias": [ { "materia": "AAA", "recorde": 70, "retomada": 70, "tentativas": -2 } ]
+    })", Curso());
+    REQUIRE(negativa.ok);
+    CHECK(Menciona(negativa.problemas, "tentativas"));
+    CHECK(negativa.dados.progresso.Tentativas(0) == 0);
+    CHECK(negativa.dados.progresso.MelhorNota(0) == doctest::Approx(70.0f));
+
+    const auto demais = Ficha::Desserializar(R"({
+        "versao": 7, "matricula": "89384",
+        "materias": [ { "materia": "AAA", "recorde": 70, "retomada": 70, "tentativas": 1, "reprovacoes": 3 } ]
+    })", Curso());
+    REQUIRE(demais.ok);
+    CHECK(Menciona(demais.problemas, "reprovacoes"));
+    CHECK(demais.dados.progresso.Tentativas(0) == 0);
+    CHECK(demais.dados.progresso.Reprovacoes(0) == 0);
+}

@@ -21,6 +21,7 @@
 #include "../Scenes/Identificacao.h"
 #include "../Scenes/Opcoes.h"
 #include "../Scenes/TelaDeRanking.h"
+#include "../Scenes/TelaDoBoletim.h"
 #include "../Scenes/TelaComoJogar.h"
 #include "../Scenes/Atracao.h"
 #include "../Scenes/CriacaoDePersonagem.h"
@@ -486,6 +487,9 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
             break;
         case Scene::SceneType::Ranking:
             mScene = std::make_unique<TelaDeRanking>(this);
+            break;
+        case Scene::SceneType::Boletim:
+            mScene = std::make_unique<TelaDoBoletim>(this);
             break;
         case Scene::SceneType::ComoJogar:
             mScene = std::make_unique<TelaComoJogar>(this);

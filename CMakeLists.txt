@@ -34,6 +34,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Scenes/Identificacao.h
         Source/Scenes/Opcoes.cpp
         Source/Scenes/TelaDeRanking.cpp
+        Source/Scenes/TelaDoBoletim.cpp
+        Source/Scenes/TelaDoBoletim.h
         Source/Scenes/TelaComoJogar.cpp
         Source/Scenes/TelaComoJogar.h
         Source/Scenes/Atracao.cpp
@@ -55,6 +57,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Motor/Random.cpp
         Source/Motor/Math.cpp
         Source/Aluno/Progresso.cpp
+        Source/Aluno/Boletim.cpp
+        Source/Aluno/Boletim.h
         Source/Regras/Nota.cpp
         Source/Regras/Nota.h
         Source/Regras/PontoExtra.cpp
@@ -487,6 +491,7 @@ add_executable(dpi_tests
         tests/test_arquivos_de_dados.cpp
         tests/test_caminhos.cpp
         tests/test_progresso.cpp
+        tests/test_boletim.cpp
         tests/test_nota.cpp
         tests/test_ponto_extra.cpp
         tests/test_raspao.cpp
@@ -523,6 +528,8 @@ add_executable(dpi_tests
         tests/test_personagens.cpp
         tests/test_exportacao.cpp
         Source/Aluno/Progresso.cpp
+        Source/Aluno/Boletim.cpp
+        Source/Aluno/Boletim.h
         Source/Regras/Nota.cpp
         Source/Regras/Nota.h
         Source/Regras/PontoExtra.cpp

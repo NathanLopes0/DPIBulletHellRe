@@ -105,6 +105,10 @@ std::string Serializar(const Dados& dados, const Materias::Lista& materias) {
         // So escreve a data quando ha uma.
         if (!e.quando.empty()) s << ", \"quando\": \"" << e.quando << "\"";
 
+        // A contagem do boletim (versao 7): so quando ha.
+        if (e.tentativas > 0) s << ", \"tentativas\": " << e.tentativas;
+        if (e.reprovacoes > 0) s << ", \"reprovacoes\": " << e.reprovacoes;
+
         s << " }";
     }
     if (!primeira) s << "\n  ";
@@ -286,6 +290,24 @@ namespace {
         // isso nao e erro.
         if (m.contains("quando") && m["quando"].is_string()) {
             e.quando = m["quando"].get<std::string>();
+        }
+
+        // A contagem do boletim (versao 7), tambem opcional. Negativa nao existe, e reprovar mais
+        // vezes do que jogou tambem nao: o que nao serve vira zero, e a materia fica.
+        const auto contagem = [&](const char* campo) {
+            if (!m.contains(campo)) return 0;
+            if (!m[campo].is_number_integer() || m[campo].get<int>() < 0) {
+                problemas.emplace_back(onde + "\"" + campo + "\" nao e um inteiro de 0 para cima; zerado");
+                return 0;
+            }
+            return m[campo].get<int>();
+        };
+        e.tentativas = contagem("tentativas");
+        e.reprovacoes = contagem("reprovacoes");
+        if (e.reprovacoes > e.tentativas) {
+            problemas.emplace_back(onde + "mais reprovacoes que tentativas; a contagem foi zerada");
+            e.tentativas = 0;
+            e.reprovacoes = 0;
         }
         return e;
     }
