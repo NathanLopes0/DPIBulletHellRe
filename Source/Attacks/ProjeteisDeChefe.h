@@ -5,8 +5,11 @@
 #pragma once
 
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
+
+#include "../Regras/Dificuldade.h"
 
 /// Uma animacao registrada no projetil: um nome e os quadros da folha.
 struct AnimacaoDeProjetil {
@@ -68,6 +71,9 @@ struct DescricaoDeProjetil {
     /// Quantos tiros derrubam este projetil, se ele for derrubavel.
     int resistencia = 1;
 
+    /// O bloco "dificil": a resistencia do modo Dificil, quando ele a troca.
+    std::optional<int> resistenciaNoDificil;
+
     /// Este projetil e um abrigo: os projeteis do chefe que encostam nele somem, ele nao machuca o
     /// aluno, e o tiro do aluno some nele.
     bool abrigo = false;
@@ -82,6 +88,10 @@ struct ProjeteisLidos {
 
 /// Interpreta o texto do projeteis.json de um chefe.
 ProjeteisLidos LerProjeteis(const std::string& textoJson);
+
+/// O projetil no modo: no Dificil, com o que o bloco "dificil" troca; no Normal (ou sem bloco),
+/// igual.
+DescricaoDeProjetil NoNivel(const DescricaoDeProjetil& p, Dificuldade::Nivel n);
 
 /// Se o nome serve para DescricaoDeProjetil::colisorDimensao.
 bool DimensaoDeColisorExiste(const std::string& nome);

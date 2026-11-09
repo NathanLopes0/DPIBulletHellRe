@@ -173,7 +173,15 @@ struct DescricaoDeMovimento {
     std::string tipo = "GoToCenter";
     float a = 0.0f;
     float b = 0.0f;
+
+    /// O bloco "dificil": o 'a' e o 'b' do modo Dificil, quando ele os troca.
+    std::optional<float> aNoDificil;
+    std::optional<float> bNoDificil;
 };
+
+/// O movimento no modo: no Dificil, com o que o bloco "dificil" troca; no Normal (ou sem bloco),
+/// igual.
+DescricaoDeMovimento NoNivel(const DescricaoDeMovimento& m, Dificuldade::Nivel n);
 
 /// Uma fase: quanto dura, o que vem depois, como o chefe anda e o que ele dispara.
 struct DescricaoDeClone {

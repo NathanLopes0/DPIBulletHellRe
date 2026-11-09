@@ -280,7 +280,7 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
         auto estado = std::make_unique<BossAttackState>(fsm, fase.nome, fase.duracao, fase.proximo);
         fsm->RegisterState(std::move(estado));
 
-        boss->RegisterMovementStrategy(fase.nome, CriarMovimento(fase.movimento));
+        boss->RegisterMovementStrategy(fase.nome, CriarMovimento(NoNivel(fase.movimento, boss->NivelDeDificuldade())));
 
         // O clone e so uma anotacao aqui.
         if (fase.clone.existe) {

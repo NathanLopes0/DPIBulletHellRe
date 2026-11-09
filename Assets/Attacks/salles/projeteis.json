@@ -29,7 +29,8 @@
     "abrigo": true
   },
 
-  // Os blocos da pilha da fase 1 (Pilha.h), numerados de 0 a 9.
+  // Os blocos da pilha da fase 1 (Pilha.h), numerados de 0 a 9. Dois tiros derrubam um no Normal,
+  // tres no Dificil.
   "Bloco": {
     "sprite": "Teachers/Projectiles/DPIBHSallesPilha.png",
     "dados":  "Teachers/Projectiles/DPIBHSallesPilha.json",
@@ -41,7 +42,8 @@
     "escala": 1.1,
     "ordemDeDesenho": 89,
     "derrubavel": true,
-    "resistencia": 3
+    "resistencia": 2,
+    "dificil": { "resistencia": 3 }
   },
 
   // As lascas de um bloco que estourou: o pop e o valor do topo, e o bloco tirado estoura em tantas

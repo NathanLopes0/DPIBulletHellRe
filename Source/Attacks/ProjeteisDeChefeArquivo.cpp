@@ -70,7 +70,7 @@ bool RegistrarProjeteisDeArquivo(Boss* boss, const std::string& nomeDoConjunto) 
     for (const auto& entrada : lidos.projeteis) {
 
         const std::string& nome = entrada.first;
-        DescricaoDeProjetil d = entrada.second;
+        DescricaoDeProjetil d = NoNivel(entrada.second, boss->NivelDeDificuldade());
 
         // Os caminhos sao resolvidos aqui, e nao no leitor: o leitor e puro e nao conhece a pasta base.
         d.sprite = Caminhos::Asset(d.sprite);

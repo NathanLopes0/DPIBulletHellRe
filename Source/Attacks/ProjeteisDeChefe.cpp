@@ -179,6 +179,20 @@ namespace {
             }
         }
 
+        // O bloco "dificil": so a resistencia, com as regras dela.
+        if (j.contains("dificil")) {
+            const auto& d = j["dificil"];
+            if (!d.is_object() || d.size() != 1 || !d.contains("resistencia")) {
+                problemas.emplace_back(onde + "\"dificil\" so aceita { \"resistencia\": n }; ignorado");
+            } else if (!d["resistencia"].is_number_integer() || d["resistencia"].get<int>() < 1) {
+                problemas.emplace_back(onde + "\"dificil.resistencia\" precisa ser um inteiro de 1 para cima; ignorada");
+            } else if (!saida.derrubavel) {
+                problemas.emplace_back(onde + "\"dificil.resistencia\" so vale num projetil \"derrubavel\"; ignorada");
+            } else {
+                saida.resistenciaNoDificil = d["resistencia"].get<int>();
+            }
+        }
+
         // ---- O efeito de acorrentar ----
         if (j.contains("acorrenta")) {
             const auto& a = j["acorrenta"];
@@ -249,6 +263,12 @@ namespace {
 
 bool DimensaoDeColisorExiste(const std::string& nome) {
     return Contem(kDimensoes, nome);
+}
+
+DescricaoDeProjetil NoNivel(const DescricaoDeProjetil& p, const Dificuldade::Nivel n) {
+    DescricaoDeProjetil saida = p;
+    if (n == Dificuldade::Nivel::Dificil && p.resistenciaNoDificil) saida.resistencia = *p.resistenciaNoDificil;
+    return saida;
 }
 
 ProjeteisLidos LerProjeteis(const std::string& textoJson) {

@@ -118,7 +118,7 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 | `anuncio` | opcional. O texto do **placar**, o quadro no canto de cima, enquanto a fase dura. Sem ele o placar fica apagado |
 | `intercambio` | opcional. `{ "aCada": 8, "aviso": 1.5 }`: os alunos **trocam de lugar** a cada `aCada` segundos da fase, com aviso `aviso` segundos antes |
 | `etapas` | opcional. A fase em **trechos com nome**, em ordem: `[ { "nome": "Requisitos", "duracao": 4.0, "anuncio": "1 · Requisitos" }, ... ]`. Cada ataque que diz `"etapa"` só dispara na sua, e o placar mostra o `anuncio` da etapa corrente (sem ele, o `nome`). A leitura recusa etapas que passam da fase, e um teste cobra que elas a **cubram inteira** |
-| `movimento` | como o professor anda |
+| `movimento` | como o professor anda. Um bloco `"dificil": { "a": 700 }` dentro dele troca o `a` e/ou o `b` no modo Difícil (o Salles vai aos baldes a 400 no Normal e a 700 no Difícil); chave que não é `a` nem `b` é avisada e ignorada |
 | `ataques` | lista; todos disparam na mesma fase, cada um no seu cooldown |
 
 > **O placar escreve na Carlito, e não na Zelda.** A Zelda não tem `*` nem `^`,
@@ -655,6 +655,7 @@ entrada é como `fases.json` vai pedi-lo.
 | `rotacionarComAVelocidade` | se o sprite gira para acompanhar o voo (uma regra pode desligar por rajada — ver `rotacionar`) |
 | `derrubavel` | `true` se o tiro do aluno derruba este projétil. Os dois somem, o tiro não chega ao professor, e o professor é avisado (`Boss::OnProjetilDerrubado`). Todo projétil que o tiro derruba ganha um **contorno vermelho** na forma do sprite, o mesmo para todo professor (`Destrutivel.h`) — menos quando está blindado, é abrigo ou é enfeite, os casos em que o tiro não o destrói. Padrão `false`; usam o cursor e os workers do Lucas e os bugs, as histórias e as janelas da Maria Lúcia |
 | `resistencia` | quantos tiros derrubam um projétil `derrubavel`; os anteriores **somem nele**, sem derrubá-lo e sem chegar ao professor. Padrão 1. Num projétil que não é `derrubavel`, a leitura avisa e ignora |
+| `dificil` | opcional. `{ "resistencia": 3 }`: a resistência no modo Difícil, e só ela. Os blocos da pilha do Salles caem com 2 tiros no Normal e 3 no Difícil. As mesmas regras da `resistencia` |
 | `acorrenta` | o que acontece com o aluno ao ser acertado: `segundos`, `fatorDeVelocidade`, `multiplicadorDaPerda` |
 | `abrigo` | `true` se este projétil **abriga** o aluno: todo projétil solto do professor que encosta nele some (um que está num `posto` é parte de uma estrutura e fica), ele não machuca ninguém, e o tiro do aluno some nele também. Padrão `false`. É a capivara que atravessa o campo do Salles (`Capivara.h`) |
 

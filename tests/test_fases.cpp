@@ -1086,3 +1086,58 @@ TEST_CASE("Fases: o bloco dificil recusa o que ninguem le") {
     CHECK(ok.problemas.empty());
     CHECK(*NoNivel(PrimeiroDe(ok, "StateOne"), Dificuldade::Nivel::Dificil).projeteis == 40);
 }
+
+// O degrau do Dificil, no movimento.
+
+namespace {
+    FasesLidas ComMovimento(const std::string& movimento) {
+        return LerFases(R"({
+  "StateOne": {
+    "duracao": 20, "proximo": "",
+    "movimento": )" + movimento + R"(,
+    "ataques": [
+      { "estrategia": "CircleSpreadAttack", "projetil": "Arduino",
+        "projeteis": 8, "velocidade": 180, "cooldown": 2.4 }
+    ]
+  }
+})");
+    }
+}
+
+TEST_CASE("Fases: o bloco dificil do movimento troca so o que escreve, e so no Dificil") {
+    const auto r = ComMovimento(R"({ "tipo": "Varredura", "a": 60, "b": 380, "dificil": { "a": 90 } })");
+    CHECK(r.problemas.empty());
+    REQUIRE(r.fases.size() == 1);
+    const DescricaoDeMovimento& m = r.fases[0].movimento;
+
+    const DescricaoDeMovimento normal = NoNivel(m, Dificuldade::Nivel::Normal);
+    CHECK(normal.a == doctest::Approx(60.0f));
+    CHECK(normal.b == doctest::Approx(380.0f));
+
+    const DescricaoDeMovimento dificil = NoNivel(m, Dificuldade::Nivel::Dificil);
+    CHECK(dificil.tipo == "Varredura");
+    CHECK(dificil.a == doctest::Approx(90.0f));
+    CHECK(dificil.b == doctest::Approx(380.0f));   // nao escrito: o do Normal
+
+    // Sem bloco, o Dificil e o Normal.
+    const auto sem = ComMovimento(R"({ "tipo": "Conduzido", "a": 500 })");
+    REQUIRE(sem.fases.size() == 1);
+    CHECK(NoNivel(sem.fases[0].movimento, Dificuldade::Nivel::Dificil).a == doctest::Approx(500.0f));
+}
+
+TEST_CASE("Fases: o bloco dificil do movimento avisa o que ninguem le, e fica com o resto") {
+    for (const char* ruim : {R"({ "tipo": "Conduzido", "a": 400, "dificil": { "velocidade": 700 } })",
+                             R"({ "tipo": "Conduzido", "a": 400, "dificil": { "a": "rapido" } })",
+                             R"({ "tipo": "Conduzido", "a": 400, "dificil": 700 })"}) {
+        CAPTURE(ruim);
+        const auto r = ComMovimento(ruim);
+        CHECK_FALSE(r.problemas.empty());
+        REQUIRE(r.fases.size() == 1);
+        CHECK(NoNivel(r.fases[0].movimento, Dificuldade::Nivel::Dificil).a == doctest::Approx(400.0f));
+    }
+    // A chave boa fica, mesmo ao lado de uma ruim.
+    const auto meio = ComMovimento(R"({ "tipo": "Conduzido", "a": 400, "dificil": { "a": 700, "c": 1 } })");
+    REQUIRE(meio.fases.size() == 1);
+    CHECK(meio.problemas.size() == 1);
+    CHECK(NoNivel(meio.fases[0].movimento, Dificuldade::Nivel::Dificil).a == doctest::Approx(700.0f));
+}

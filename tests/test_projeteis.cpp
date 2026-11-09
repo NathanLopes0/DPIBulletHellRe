@@ -462,3 +462,34 @@ TEST_CASE("Projeteis: a resistencia e 1 por padrao, e so vale num derrubavel") {
         CHECK(r.problemas[0].find("resistencia") != std::string::npos);
     }
 }
+
+TEST_CASE("Projeteis: o bloco dificil troca a resistencia, e so no Dificil") {
+    const auto p = LerProjeteis(R"({
+      "Bloco": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] },
+                 "derrubavel": true, "resistencia": 2, "dificil": { "resistencia": 3 } },
+      "Chave": { "sprite": "s.png", "dados": "s.json", "animacoes": { "A": [0] },
+                 "derrubavel": true, "resistencia": 2 }
+    })");
+    CHECK(p.problemas.empty());
+    const auto& bloco = p.projeteis.at("Bloco");
+    CHECK(NoNivel(bloco, Dificuldade::Nivel::Normal).resistencia == 2);
+    CHECK(NoNivel(bloco, Dificuldade::Nivel::Dificil).resistencia == 3);
+    // Sem bloco, o Dificil e o Normal.
+    CHECK(NoNivel(p.projeteis.at("Chave"), Dificuldade::Nivel::Dificil).resistencia == 2);
+}
+
+TEST_CASE("Projeteis: o bloco dificil recusa o que nao e uma resistencia valida") {
+    for (const char* resto : { R"("derrubavel": true, "dificil": { "resistencia": 0 })",
+                               R"("derrubavel": true, "dificil": { "resistencia": 2.5 })",
+                               R"("derrubavel": true, "dificil": { "velocidade": 3 })",
+                               R"("derrubavel": true, "dificil": 3)",
+                               R"("dificil": { "resistencia": 3 })" }) {
+        CAPTURE(resto);
+        const auto r = LerProjeteis(std::string(R"({ "P": { "sprite": "s.png", "dados": "s.json",
+            "animacoes": { "A": [0] }, )") + resto + " } }");
+        REQUIRE(r.projeteis.count("P") == 1);
+        CHECK(NoNivel(r.projeteis.at("P"), Dificuldade::Nivel::Dificil).resistencia == 1);
+        REQUIRE(r.problemas.size() == 1);
+        CHECK(r.problemas[0].find("dificil") != std::string::npos);
+    }
+}

@@ -1350,6 +1350,25 @@ TEST_CASE("Dados: a pilha do Salles - gatilhos, posto e caras sao nomes que os d
     CHECK(gatilhos.count(Pilha::kGatilhoDoEstouro) == 1);
 }
 
+TEST_CASE("Dados: o Salles do Normal e mais leve que o do Dificil na pilha e no hash") {
+    // A pilha cai com menos tiros no Normal.
+    const auto lidos = ProjeteisDoChefe("salles");
+    const auto& bloco = lidos.projeteis.at("Bloco");
+    CHECK(NoNivel(bloco, Dificuldade::Nivel::Normal).resistencia == 2);
+    CHECK(NoNivel(bloco, Dificuldade::Nivel::Dificil).resistencia == 3);
+
+    // E no hash ele vai aos baldes mais devagar no Normal.
+    bool achou = false;
+    for (const auto& f : FasesDoChefe("salles").fases) {
+        if (f.nome != Hash::kFaseDoHash) continue;
+        achou = true;
+        CHECK(f.movimento.tipo == "Conduzido");
+        CHECK(NoNivel(f.movimento, Dificuldade::Nivel::Normal).a == doctest::Approx(400.0f));
+        CHECK(NoNivel(f.movimento, Dificuldade::Nivel::Dificil).a == doctest::Approx(700.0f));
+    }
+    CHECK(achou);
+}
+
 TEST_CASE("Dados: a tabela hash do Salles - gatilhos, postos e caras sao nomes que os dados tem") {
     for (const char* g : {Hash::kGatilhoDosBaldes, Hash::kGatilhoDaChave, Hash::kGatilhoDoPercurso, Hash::kGatilhoDoNulo}) {
         CAPTURE(g);

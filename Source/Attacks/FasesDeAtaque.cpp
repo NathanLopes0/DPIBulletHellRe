@@ -103,6 +103,24 @@ namespace {
         }
         m.a = Campo(j, "a", 0.0f);
         m.b = Campo(j, "b", 0.0f);
+
+        // O bloco "dificil": so "a" e "b", numeros. O que ele tem de errado fica de fora, com aviso.
+        if (j.contains("dificil")) {
+            const auto& d = j["dificil"];
+            if (!d.is_object()) {
+                problemas.emplace_back(onde + "\"movimento.dificil\" deveria ser um objeto; ignorado");
+                return m;
+            }
+            for (auto it = d.begin(); it != d.end(); ++it) {
+                const std::string& chave = it.key();
+                if ((chave != "a" && chave != "b") || !it->is_number()) {
+                    problemas.emplace_back(onde + "\"movimento.dificil\" so aceita \"a\" e \"b\", numeros; \"" +
+                                           chave + "\" ignorado");
+                    continue;
+                }
+                (chave == "a" ? m.aNoDificil : m.bNoDificil) = it->get<float>();
+            }
+        }
         return m;
     }
 
@@ -992,5 +1010,13 @@ DescricaoDeAtaque NoNivel(const DescricaoDeAtaque& a, const Dificuldade::Nivel n
     if (a.dificil->projeteis) saida.projeteis = *a.dificil->projeteis;
     if (a.dificil->velocidade) saida.velocidade = *a.dificil->velocidade;
     if (a.dificil->cooldown) saida.cooldown = *a.dificil->cooldown;
+    return saida;
+}
+
+DescricaoDeMovimento NoNivel(const DescricaoDeMovimento& m, const Dificuldade::Nivel n) {
+    DescricaoDeMovimento saida = m;
+    if (n != Dificuldade::Nivel::Dificil) return saida;
+    if (m.aNoDificil) saida.a = *m.aNoDificil;
+    if (m.bNoDificil) saida.b = *m.bNoDificil;
     return saida;
 }
