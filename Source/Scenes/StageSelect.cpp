@@ -20,13 +20,14 @@
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 
 #include "../Motor/CaminhosArquivo.h"
+#include "../Motor/Fontes.h"
 
 StageSelect::StageSelect(Game *game) : Scene(game, SceneType::StageSelect)
                                        , mStageSelectFont(std::make_unique<Font>())
                                        , mInputTimer(INPUT_DELAY)
 {
 
-    mStageSelectFont->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
+    mStageSelectFont->Load(Caminhos::Asset(Fontes::kJogo));
     mButtonObservers.reserve(RESERVA_DE_BOTOES);
 
 }
@@ -225,7 +226,7 @@ void StageSelect::CreateStageButtons() {
 void StageSelect::CreateButton(const std::string& text, int subject, const Vector2& position) {
 
     bool unlocked = mGame->IsStageUnlocked(subject);
-    auto button = std::make_unique<StageSelectButton>(this, text, subject, Caminhos::Asset("Fonts/Zelda.ttf"), !unlocked);
+    auto button = std::make_unique<StageSelectButton>(this, text, subject, Caminhos::Asset(Fontes::kJogo), !unlocked);
     button->SetPosition(position);
     button->SetAprovado(mGame->Aprovado(subject));
 

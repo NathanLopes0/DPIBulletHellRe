@@ -17,7 +17,7 @@ namespace Dificuldade {
     constexpr int kQuantos = static_cast<int>(sizeof(kNiveis) / sizeof(kNiveis[0]));
 
     /// Como o nivel se chama na tela, em maiusculas: "NORMAL", "DIFICIL" (com
-    /// acento, em UTF-8 - a Zelda tem o I agudo).
+    /// acento, em UTF-8).
     const char* Nome(Nivel n);
 
     /// A cor do Dificil na tela (r, g, b de 0 a 1): o selo da batalha e o valor na tela de

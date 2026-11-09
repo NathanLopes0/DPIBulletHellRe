@@ -12,6 +12,7 @@
 #include "../Components/DrawComponents/DrawSpriteComponent.h"
 
 #include "../Motor/CaminhosArquivo.h"
+#include "../Motor/Fontes.h"
 
 namespace {
 
@@ -105,7 +106,7 @@ MainMenu::MainMenu(Game* game)
     : Scene(game, SceneType::MainMenu)
     , mMainMenuFont(std::make_unique<Font>())
 {
-    mMainMenuFont->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
+    mMainMenuFont->Load(Caminhos::Asset(Fontes::kJogo));
 }
 
 void MainMenu::Load() {

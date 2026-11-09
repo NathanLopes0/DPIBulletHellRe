@@ -10,6 +10,7 @@
 #include <sstream>
 
 #include "../Motor/CaminhosArquivo.h"
+#include "../Motor/Fontes.h"
 #include "../Aluno/Exportacao.h"
 #include "../Aluno/FichaArquivo.h"
 #include "../Motor/Font.h"
@@ -37,7 +38,7 @@ Atracao::Atracao(Game* game)
     : Scene(game, SceneType::Atracao)
     , mFonte(std::make_unique<Font>())
 {
-    mFonte->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
+    mFonte->Load(Caminhos::Asset(Fontes::kJogo));
 }
 
 void Atracao::Load() {

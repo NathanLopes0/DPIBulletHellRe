@@ -121,7 +121,7 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 | `movimento` | como o professor anda. Um bloco `"dificil": { "a": 700 }` dentro dele troca o `a` e/ou o `b` no modo Difícil (o Salles vai aos baldes a 400 no Normal e a 700 no Difícil); chave que não é `a` nem `b` é avisada e ignorada |
 | `ataques` | lista; todos disparam na mesma fase, cada um no seu cooldown |
 
-> **O placar escreve na Carlito, e não na Zelda.** A Zelda não tem `*` nem `^`,
+> **O placar escreve na Carlito, e não na fonte do jogo.** A Saira não tem `ⁿ` nem `δ`,
 > e o placar existe para o Vladimir escrever `(ab)*` e `aⁿbⁿ`. O texto é UTF-8:
 > sobrescrito, `δ` e `→` saem como são. Um `anuncio` que não é texto é recusado
 > na leitura em vez de virar um quadro apagado — e cuidado com a chave: escrita

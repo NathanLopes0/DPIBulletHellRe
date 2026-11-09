@@ -38,7 +38,6 @@ namespace Manual {
     /// volta da ultima para a primeira desorienta.
     int Virar(int atual, int passo, int quantas);
 
-    /// "3 de 6": onde o leitor esta. "de", e nao a barra: a Zelda.ttf nao tem o glifo "/", e
-    /// desenharia um quadrado.
+    /// "3 de 6": onde o leitor esta.
     std::string Indicador(int atual, int quantas);
 }

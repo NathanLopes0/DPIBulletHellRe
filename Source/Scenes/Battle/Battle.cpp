@@ -27,6 +27,7 @@
 #include "../../Components/DrawComponents/DrawTextComponent.h"
 #include "../../Components/DrawComponents/ProgressBarComponent.h"
 #include "../../Components/DrawComponents/DrawBarraDaNotaComponent.h"
+#include "../../Components/DrawComponents/DrawFundoDoCampoComponent.h"
 #include "../../Components/DrawComponents/DrawMolduraDoCampoComponent.h"
 #include "../../Components/DrawComponents/DrawQuadroComponent.h"
 #include "../../Components/DrawComponents/DrawRelogioDaFaseComponent.h"
@@ -39,6 +40,7 @@
 #include "../../Entrada/Painel.h"
 
 #include "../../Motor/CaminhosArquivo.h"
+#include "../../Motor/Fontes.h"
 #include "RegistroDaTentativa.h"
 #include "ClaroesDaMoldura.h"
 #include "TelaDeCarregamento.h"
@@ -156,6 +158,7 @@ void Battle::CriarHUD() {
 
     // Cria a HUD para segurar todas as infos.
     mHUD = std::make_unique<BattleHUD>(this);
+    CriarFundo();
     CriarMoldura();
     if (mMoldura) mOuvintes.push_back(std::make_unique<ClaroesDaMoldura>(*mMoldura));
     CriarBarraDeTempo();
@@ -259,7 +262,7 @@ void Battle::CriarBarraDaNota() {
 
     // Configurar Actor e fonte que vai ter a nota no meio da barra.
     mFonteDaNota = std::make_unique<Font>();
-    mFonteDaNota->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
+    mFonteDaNota->Load(Caminhos::Asset(Fontes::kJogo));
     auto gradeBarTextActor = std::make_unique<Actor>(this);
 
     // A caixa e 200x32, e nao 36x25.
@@ -337,7 +340,7 @@ void Battle::CriarPlacar() {
 
     // O quadro da sala, no canto de cima a esquerda.
     mFonteDoPlacar = std::make_unique<Font>();
-    mFonteDoPlacar->Load(Caminhos::Asset("Fonts/Carlito-Regular.ttf"));
+    mFonteDoPlacar->Load(Caminhos::Asset(Fontes::kPlacar));
 
     auto placar = std::make_unique<Actor>(this);
 
@@ -1372,6 +1375,13 @@ void Battle::AtualizarDesenhoSobreOsAlunos(const float deltaTime) {
 }
 
 // A moldura do campo e os efeitos.
+
+void Battle::CriarFundo() {
+    // O caderno quadriculado embaixo de tudo, do tamanho do campo.
+    auto fundo = std::make_unique<Actor>(this);
+    fundo->AddComponent<DrawFundoDoCampoComponent>(GetPlayfieldBounds(), kOrdemDoFundo);
+    AddActor(std::move(fundo));
+}
 
 void Battle::CriarMoldura() {
     // A area do aluno sai do mesmo tamanho que o Player::PrenderNoCampo usa.

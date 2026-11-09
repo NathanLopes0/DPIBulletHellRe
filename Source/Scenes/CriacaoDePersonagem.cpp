@@ -12,6 +12,7 @@
 #include "../Motor/Game.h"
 #include "../Motor/Font.h"
 #include "../Motor/CaminhosArquivo.h"
+#include "../Motor/Fontes.h"
 #include "../Personagem/ComporPersonagem.h"
 #include "../Personagem/PersonagensArquivo.h"
 #include "../Actors/Actor.h"
@@ -56,7 +57,7 @@ CriacaoDePersonagem::CriacaoDePersonagem(Game* game)
     : Scene(game, SceneType::CriacaoDePersonagem),
       mFonte(std::make_unique<Font>())
 {
-    mFonte->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
+    mFonte->Load(Caminhos::Asset(Fontes::kJogo));
 }
 
 Actor* CriacaoDePersonagem::Texto(const std::string& conteudo, const float x, const float y,

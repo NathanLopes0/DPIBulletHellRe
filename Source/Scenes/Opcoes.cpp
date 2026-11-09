@@ -13,6 +13,7 @@
 #include "../Motor/Font.h"
 #include "../Motor/Configuracao.h"
 #include "../Motor/CaminhosArquivo.h"
+#include "../Motor/Fontes.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
@@ -44,7 +45,7 @@ Opcoes::Opcoes(Game* game)
     : Scene(game, SceneType::Opcoes),
       mFonte(std::make_unique<Font>())
 {
-    mFonte->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
+    mFonte->Load(Caminhos::Asset(Fontes::kJogo));
 }
 
 void Opcoes::Load() {

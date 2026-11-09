@@ -14,6 +14,7 @@
 #include "../Motor/Font.h"
 #include "../Entrada/Painel.h"
 #include "../Motor/CaminhosArquivo.h"
+#include "../Motor/Fontes.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
@@ -43,7 +44,7 @@ EscolhaDaDificuldade::EscolhaDaDificuldade(Game* game)
     : Scene(game, SceneType::EscolhaDaDificuldade),
       mFonte(std::make_unique<Font>())
 {
-    mFonte->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
+    mFonte->Load(Caminhos::Asset(Fontes::kJogo));
 }
 
 void EscolhaDaDificuldade::Load() {

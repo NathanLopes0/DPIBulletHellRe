@@ -107,6 +107,7 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Interface/Carregamento.cpp
         Source/Interface/Carregamento.h
         Source/Interface/Hud.cpp
+        Source/Interface/FundoDoCampo.cpp
         Source/Interface/Hud.h
         Source/Regras/Acerto.cpp
         Source/Regras/Acerto.h
@@ -139,6 +140,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Motor/Caminhos.h
         Source/Motor/CaminhosArquivo.cpp
         Source/Motor/CaminhosArquivo.h
+        Source/Motor/Fontes.h
+        Source/Motor/EscalaDaTela.h
         Source/Scenes/StageSelect.cpp
         Source/Scenes/EscolhaDoOrientador.cpp
         Source/Scenes/EscolhaDaDificuldade.cpp
@@ -324,6 +327,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Components/DrawComponents/DrawBarraDaNotaComponent.cpp
         Source/Components/DrawComponents/DrawBarraDaNotaComponent.h
         Source/Components/DrawComponents/DrawMolduraDoCampoComponent.cpp
+        Source/Components/DrawComponents/DrawFundoDoCampoComponent.cpp
+        Source/Components/DrawComponents/DrawFundoDoCampoComponent.h
         Source/Components/DrawComponents/DrawMolduraDoCampoComponent.h
         Source/Components/DrawComponents/DrawRelogioDaFaseComponent.cpp
         Source/Components/DrawComponents/DrawRelogioDaFaseComponent.h
@@ -500,6 +505,7 @@ add_executable(dpi_tests
         tests/test_borda.cpp
         tests/test_barra_da_nota.cpp
         tests/test_hud.cpp
+        tests/test_fundo_do_campo.cpp
         tests/test_personagens.cpp
         tests/test_exportacao.cpp
         Source/Aluno/Progresso.cpp
@@ -552,6 +558,7 @@ add_executable(dpi_tests
         Source/Interface/Carregamento.cpp
         Source/Interface/Carregamento.h
         Source/Interface/Hud.cpp
+        Source/Interface/FundoDoCampo.cpp
         Source/Interface/Hud.h
         Source/Regras/Acerto.cpp
         Source/Regras/Acerto.h

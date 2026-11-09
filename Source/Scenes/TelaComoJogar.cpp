@@ -13,6 +13,7 @@
 #include "../Motor/Game.h"
 #include "../Motor/Font.h"
 #include "../Motor/CaminhosArquivo.h"
+#include "../Motor/Fontes.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
@@ -46,7 +47,7 @@ TelaComoJogar::TelaComoJogar(Game* game)
     : Scene(game, SceneType::ComoJogar),
       mFonte(std::make_unique<Font>())
 {
-    mFonte->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
+    mFonte->Load(Caminhos::Asset(Fontes::kJogo));
 }
 
 DrawTextComponent* TelaComoJogar::Texto(const std::string& conteudo, const float x, const float y,

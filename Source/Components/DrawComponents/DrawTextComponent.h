@@ -46,6 +46,10 @@ protected:
 
     Vector3 mCor = Color::White;
 
+    /// Os pixels da tela por pixel do jogo com que a textura foi desenhada (EscalaDaTela). Quando a
+    /// tela muda (janela, tela cheia), o texto e redesenhado no tamanho novo.
+    float mEscala = 1.0f;
+
     /// O texto em exibicao: e com ele que SetText sabe que nada mudou, e que a
     /// cor e a quebra redesenham sem que quem chama precise repeti-lo.
     std::string mTexto;

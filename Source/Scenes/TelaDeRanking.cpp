@@ -12,6 +12,7 @@
 #include <sstream>
 
 #include "../Motor/CaminhosArquivo.h"
+#include "../Motor/Fontes.h"
 #include "../Aluno/FichaArquivo.h"
 #include "../Motor/Font.h"
 #include "../Motor/Game.h"
@@ -72,7 +73,7 @@ TelaDeRanking::TelaDeRanking(Game* game)
     : Scene(game, SceneType::Ranking),
       mFonte(std::make_unique<Font>())
 {
-    mFonte->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
+    mFonte->Load(Caminhos::Asset(Fontes::kJogo));
 }
 
 void TelaDeRanking::Load() {

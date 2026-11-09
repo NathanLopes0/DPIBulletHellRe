@@ -17,6 +17,7 @@
 #include "../Interface/Hud.h"
 #include "../Curso/MateriasArquivo.h"
 #include "../Motor/CaminhosArquivo.h"
+#include "../Motor/Fontes.h"
 #include "../Actors/Actor.h"
 #include "../Actors/Teachers/BossFactory/IBossFactory.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
@@ -27,7 +28,7 @@ EscolhaDoOrientador::EscolhaDoOrientador(Game* game)
     : Scene(game, SceneType::EscolhaDoOrientador),
       mFonte(std::make_unique<Font>())
 {
-    mFonte->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
+    mFonte->Load(Caminhos::Asset(Fontes::kJogo));
 }
 
 Painel::Jogador EscolhaDoOrientador::DoAluno(const int aluno) {

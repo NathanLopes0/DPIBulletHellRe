@@ -8,6 +8,7 @@
 #include <cmath>
 
 #include "../../../Motor/CaminhosArquivo.h"
+#include "../../../Motor/Fontes.h"
 #include "../../../Motor/Game.h"
 #include "../../../Curso/MateriasArquivo.h"
 #include "../../../Attacks/Flex.h"
@@ -80,7 +81,7 @@ void Hugo::SortearALuta() {
     mDegrau = Tcc::DegrauDo(NivelDeDificuldade());
     mSorteioDoObjetivo = SorteioDaFase("objetivo");
     mFonte = std::make_unique<Font>();
-    mFonte->Load(Caminhos::Asset("Fonts/Carlito-Regular.ttf"));
+    mFonte->Load(Caminhos::Asset(Fontes::kPlacar));
 
     // O desenho do escudo, por um ator a parte, em coordenadas de tela.
     auto ator = std::make_unique<Actor>(mScene);

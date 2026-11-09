@@ -14,6 +14,7 @@
 #include "../Aluno/Matricula.h"
 #include "../Aluno/FichaArquivo.h"
 #include "../Motor/CaminhosArquivo.h"
+#include "../Motor/Fontes.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
@@ -68,7 +69,7 @@ Identificacao::Identificacao(Game* game)
       mQuem(game->PosicaoEntrando()),
       mEmDupla(game->QuantosJogadores() > 1)
 {
-    mFonte->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
+    mFonte->Load(Caminhos::Asset(Fontes::kJogo));
 }
 
 void Identificacao::Load() {

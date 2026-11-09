@@ -249,6 +249,8 @@ private:
     class DrawMolduraDoCampoComponent* mMoldura = nullptr;
     Hud::Caixa mAreaDoAluno;
     void CriarMoldura();
+    /// O fundo do campo (FundoDoCampo.h): nao e preto liso.
+    void CriarFundo();
     void AtualizarMoldura();
 
 public:
@@ -297,6 +299,7 @@ private:
     static constexpr size_t kMaximoDeFaiscas = 64;
     /// A moldura e fundo, atras de tudo - ate do quadro (60).
     static constexpr int kOrdemDaMoldura = 40;
+    static constexpr int kOrdemDoFundo = 10;
 
     static constexpr int kPlacaLargura = 112;
 

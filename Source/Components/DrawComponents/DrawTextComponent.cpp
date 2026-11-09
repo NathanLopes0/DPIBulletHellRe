@@ -5,6 +5,8 @@
 #include "DrawTextComponent.h"
 
 #include <algorithm>
+#include <cmath>
+#include "../../Motor/EscalaDaTela.h"
 #include "../../Motor/Font.h"
 #include "../../Actors/Actor.h"
 #include "../../Motor/Game.h"
@@ -18,8 +20,9 @@ DrawTextComponent::DrawTextComponent(Actor *owner, const std::string &text, Font
     mFont(font),
     mTexto(text)
 {
-    mTextSurface = mFont->RenderText(owner->GetScene()->GetGame()->GetRenderer(), text,
-                                     mCor, fontSize, mLarguraDeQuebra);
+    SDL_Renderer* renderer = owner->GetScene()->GetGame()->GetRenderer();
+    mEscala = EscalaDaTela(renderer);
+    mTextSurface = mFont->RenderText(renderer, text, mCor, fontSize, mLarguraDeQuebra, mEscala);
 }
 
 DrawTextComponent::~DrawTextComponent()
@@ -39,7 +42,7 @@ void DrawTextComponent::Redesenhar()
 {
     SDL_DestroyTexture(mTextSurface);
     mTextSurface = mFont->RenderText(mOwner->GetScene()->GetGame()->GetRenderer(), mTexto,
-                                     mCor, mSize, mLarguraDeQuebra);
+                                     mCor, mSize, mLarguraDeQuebra, mEscala);
 }
 
 void DrawTextComponent::SetLarguraDeQuebra(const unsigned largura)
@@ -60,10 +63,18 @@ void DrawTextComponent::SetColor(const Vector3& cor)
 void DrawTextComponent::Draw(SDL_Renderer *renderer)
 {
     if (!IsVisible()) return;
-    Vector2 pos = mOwner->GetPosition();
 
-    int largura = mWidth;
-    int altura = mHeight;
+    // A tela mudou de tamanho: o texto e desenhado de novo, nitido no tamanho novo.
+    const float escalaDaTela = EscalaDaTela(renderer);
+    if (std::fabs(escalaDaTela - mEscala) > 0.001f) {
+        mEscala = escalaDaTela;
+        Redesenhar();
+    }
+
+    const Vector2 pos = mOwner->GetPosition();
+
+    auto largura = static_cast<float>(mWidth);
+    auto altura = static_cast<float>(mHeight);
 
     if (mAjustarAoTexto && mTextSurface) {
 
@@ -71,22 +82,20 @@ void DrawTextComponent::Draw(SDL_Renderer *renderer)
         if (SDL_QueryTexture(mTextSurface, nullptr, nullptr, &natW, &natH) == 0
             && natW > 0 && natH > 0) {
 
-            largura = natW;
-            altura = natH;
+            // O tamanho natural, em pixels do jogo.
+            const float w = static_cast<float>(natW) / mEscala;
+            const float h = static_cast<float>(natH) / mEscala;
 
             // So encolhe, e mantendo a proporcao: um texto que nao cabe fica menor, nunca deformado.
-            const float escala = std::min(1.0f,
-                                          std::min(static_cast<float>(mWidth) / static_cast<float>(natW),
-                                                   static_cast<float>(mHeight) / static_cast<float>(natH)));
-            largura = static_cast<int>(static_cast<float>(natW) * escala);
-            altura  = static_cast<int>(static_cast<float>(natH) * escala);
+            const float encolhe = std::min(1.0f, std::min(largura / w, altura / h));
+            largura = w * encolhe;
+            altura  = h * encolhe;
         }
     }
 
-    SDL_Rect renderQuad = {static_cast<int>(pos.x - largura / 2.0f),
-                           static_cast<int>(pos.y - altura / 2.0f),
-                           largura,
-                           altura};
+    // O canto cai num pixel inteiro da tela: no tamanho natural, cada pixel da textura e um da tela.
+    const auto noPixel = [this](const float v) { return std::round(v * mEscala) / mEscala; };
+    const SDL_FRect renderQuad = {noPixel(pos.x - largura / 2.0f), noPixel(pos.y - altura / 2.0f), largura, altura};
 
-    SDL_RenderCopyEx(renderer, mTextSurface, nullptr, &renderQuad, .0f, nullptr, SDL_FLIP_NONE);
+    SDL_RenderCopyExF(renderer, mTextSurface, nullptr, &renderQuad, 0.0, nullptr, SDL_FLIP_NONE);
 }
