@@ -88,3 +88,69 @@ TEST_CASE("Devolutiva: as linhas, com duas casas e o plural certo") {
     p.sofridos = 0;
     CHECK(LinhaDaParte(p) == "89384: 120 acertos, 1 cobertura, 0 sofridos");
 }
+
+// ---- A justica que reconhece papeis ----
+
+TEST_CASE("Devolutiva: na dupla, cada aluno fica com o papel de que e dono, e eles nunca se repetem") {
+    // Quem ataca chama a mira e apanha mais; o outro desvia mais.
+    std::vector<Parte> partes = {{"A", 120, 0, 5}, {"B", 40, 0, 1}};
+    auto t = Titulos(partes);
+    REQUIRE(t.size() == 2u);
+    CHECK(t[0] == "quem mais perguntou");
+    CHECK(t[1] == "quem mais desviou");
+
+    // Cobrir vem primeiro: e o gesto de dupla.
+    partes = {{"A", 120, 0, 5}, {"B", 40, 3, 6}};
+    t = Titulos(partes);
+    CHECK(t[0] == "quem mais perguntou");
+    CHECK(t[1] == "quem mais cobriu");
+
+    // Quem e dono de mais de um fica com o primeiro, e o outro continua livre para o parceiro.
+    partes = {{"A", 120, 2, 1}, {"B", 40, 0, 1}};
+    t = Titulos(partes);
+    CHECK(t[0] == "quem mais cobriu");
+    CHECK(t[1] != t[0]);
+}
+
+TEST_CASE("Devolutiva: quem nao e dono de nenhum papel ganha o que fez, sem comparacao") {
+    // A e melhor em tudo: B nao fica com um titulo de "quem menos".
+    std::vector<Parte> partes = {{"A", 120, 2, 1}, {"B", 12, 0, 4}};
+    auto t = Titulos(partes);
+    CHECK(t[0] == "quem mais cobriu");
+    CHECK(t[1] == "fez 12 perguntas");
+
+    partes = {{"A", 1, 0, 0}, {"B", 1, 0, 0}};
+    t = Titulos(partes);
+    CHECK(t[0] == "fez 1 pergunta");
+    CHECK(t[1] == "fez 1 pergunta");
+
+    // Quase no empate ninguem e "quem mais": 39 a 38 e parecido demais.
+    partes = {{"A", 39, 0, 0}, {"B", 38, 0, 0}};
+    t = Titulos(partes);
+    CHECK(t[0] == "fez 39 perguntas");
+    CHECK(t[1] == "fez 38 perguntas");
+    partes = {{"A", 44, 0, 0}, {"B", 38, 0, 0}};
+    CHECK(Titulos(partes)[0] == "quem mais perguntou");
+
+    partes = {{"A", 0, 1, 2}, {"B", 0, 1, 2}};
+    t = Titulos(partes);
+    CHECK(t[0] == "cobriu 1 vez");
+
+    partes = {{"A", 0, 0, 0}, {"B", 0, 0, 0}};
+    t = Titulos(partes);
+    CHECK(t[0] == "esteve junto at\xc3\xa9 o fim");
+
+    // Fora da dupla nao ha titulo.
+    CHECK(Titulos({{"A", 10, 0, 0}}).empty());
+    CHECK(Titulos({}).empty());
+}
+
+TEST_CASE("Devolutiva: os numeros da parte, sem o nome, para ir embaixo do titulo") {
+    Parte p;
+    p.quem = "89384";
+    p.acertos = 1;
+    p.coberturas = 2;
+    p.sofridos = 1;
+    CHECK(NumerosDaParte(p) == "1 acerto, 2 coberturas, 1 sofrido");
+    CHECK(LinhaDaParte(p) == "89384: " + NumerosDaParte(p));
+}

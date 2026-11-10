@@ -69,8 +69,20 @@ namespace Resultado {
         // A devolutiva: so de quem reprovou.
         if (!r.aprovado && r.piorFase) linhas.push_back(Devolutiva::LinhaDaFase(*r.piorFase));
         if (LinhaDasCausas(r) >= 0) linhas.emplace_back("");
-        for (const Devolutiva::Parte& p : r.partes) linhas.push_back(Devolutiva::LinhaDaParte(p));
+        for (size_t i = 0; i < r.partes.size(); ++i) {
+            const Devolutiva::Parte& p = r.partes[i];
+            if (LinhasPorParte(r) == 2) {
+                linhas.push_back(p.quem + ", " + r.titulos[i]);
+                linhas.push_back(Devolutiva::NumerosDaParte(p));
+            } else {
+                linhas.push_back(Devolutiva::LinhaDaParte(p));
+            }
+        }
         return linhas;
+    }
+
+    int LinhasPorParte(const Resumo& r) {
+        return !r.partes.empty() && r.titulos.size() == r.partes.size() ? 2 : 1;
     }
 
     int LinhaDasCausas(const Resumo& r) {
@@ -85,7 +97,7 @@ namespace Resultado {
         const int causas = LinhaDasCausas(r);
         const int antes = (r.temFicha ? 4 : 3) + (!r.aprovado && r.piorFase ? 1 : 0) + (causas >= 0 ? 1 : 0) +
                           (Formou(r) ? 1 : 0);
-        return antes + static_cast<int>(quem);
+        return antes + static_cast<int>(quem) * LinhasPorParte(r);
     }
 
     int LinhaDaFormatura(const Resumo& r) {

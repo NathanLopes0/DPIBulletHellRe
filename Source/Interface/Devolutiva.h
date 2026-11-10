@@ -79,4 +79,18 @@ namespace Devolutiva {
 
     /// "89384: 120 acertos, 8 coberturas, 3 sofridos" - o singular e o plural certos.
     std::string LinhaDaParte(const Parte& p);
+
+    /// A mesma, sem o nome: "120 acertos, 8 coberturas, 3 sofridos". Vai embaixo do titulo.
+    std::string NumerosDaParte(const Parte& p);
+
+    /// O titulo de cada aluno da dupla, pelo que mais fez - e nunca uma posicao (Emmerich e Masuch: os
+    /// numeros lado a lado viram placar entre parceiros). Tres papeis, nesta ordem: "quem mais cobriu"
+    /// (coberturas), "quem mais perguntou" (acertos) e "quem mais desviou" (menos sofridos). Um papel
+    /// tem dono quando um aluno e melhor nele por uma margem (kMargemDoPapel): 39 a 38 e empate. Cada
+    /// aluno fica com o primeiro de que e dono, e os dois titulos nunca se repetem. Quem nao e dono de
+    /// nenhum ganha o que fez, sem comparacao ("fez 12 perguntas"). Vazio fora da dupla.
+    std::vector<std::string> Titulos(const std::vector<Parte>& partes);
+
+    /// Quanto um aluno precisa estar a frente, numa fracao do maior dos dois, para o papel ser dele.
+    constexpr float kMargemDoPapel = 0.1f;
 }

@@ -861,6 +861,8 @@ void Battle::EncerrarBatalha(bool aprovado) {
     if (mDevolutiva->Partes().size() >= 2) {
         resumo.partes = mDevolutiva->Partes();
         for (size_t i = 0; i < resumo.partes.size(); ++i) resumo.partes[i].quem = nomeDe(i);
+        // E o papel de cada um, pelo que mais fez (Devolutiva::Titulos).
+        if (mCondicao.Ligada(Experimento::Mecanica::Titulos)) resumo.titulos = Devolutiva::Titulos(resumo.partes);
     }
 
     // Quem ja usava o capelo antes desta nota (Personagens::Formatura).

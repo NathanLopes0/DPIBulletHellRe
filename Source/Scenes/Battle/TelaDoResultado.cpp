@@ -71,10 +71,13 @@ void TelaDoResultado::Mostrar(const Resultado::Resumo& resumo, Boss* chefe) {
     mPainel->SetLinhas(linhas, Resultado::LinhaEmDestaque(resumo));
     if (formou) mPainel->ColorirLinha(Resultado::LinhaDaFormatura(resumo), Color::Gold);
     if (formou || duplaAprovada) MostrarAlunos();
-    // A justica: cada aluno na cor dele.
+    // A justica: cada aluno na cor dele, com o titulo e os numeros.
     for (size_t i = 0; i < resumo.partes.size(); ++i) {
         const Hud::Rgb c = Hud::CorDoAluno(i);
-        mPainel->ColorirLinha(Resultado::LinhaDaParte(resumo, i), Vector3(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f));
+        for (int j = 0; j < Resultado::LinhasPorParte(resumo); ++j) {
+            mPainel->ColorirLinha(Resultado::LinhaDaParte(resumo, i) + j,
+                                  Vector3(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f));
+        }
     }
     mPainel->Selecionar(mSelecionada);
     mPainel->Mostrar(true);

@@ -74,8 +74,54 @@ namespace Devolutiva {
     }
 
     std::string LinhaDaParte(const Parte& p) {
-        return p.quem + ": " + Contagem(p.acertos, "acerto", "acertos") + ", " +
-               Contagem(p.coberturas, "cobertura", "coberturas") + ", " +
-               Contagem(p.sofridos, "sofrido", "sofridos");
+        return p.quem + ": " + NumerosDaParte(p);
+    }
+
+    std::string NumerosDaParte(const Parte& p) {
+        return Contagem(p.acertos, "acerto", "acertos") + ", " + Contagem(p.coberturas, "cobertura", "coberturas") +
+               ", " + Contagem(p.sofridos, "sofrido", "sofridos");
+    }
+
+    std::vector<std::string> Titulos(const std::vector<Parte>& partes) {
+        if (partes.size() != 2) return {};
+        const Parte& a = partes[0];
+        const Parte& b = partes[1];
+
+        // O dono de cada papel: quem esta a frente por uma margem do maior dos dois; ninguem, quase no
+        // empate - "quem mais" por um acerto e o placar entre parceiros que os titulos evitam.
+        const auto dono = [](const int doPrimeiro, const int doSegundo) {
+            const auto frente = [](const int x, const int y) {
+                return x > y && static_cast<float>(x - y) >= kMargemDoPapel * static_cast<float>(x);
+            };
+            return frente(doPrimeiro, doSegundo) ? 0 : frente(doSegundo, doPrimeiro) ? 1 : -1;
+        };
+        struct Papel {
+            int dono;
+            const char* titulo;
+        };
+        const Papel papeis[] = {
+            {dono(a.coberturas, b.coberturas), "quem mais cobriu"},
+            {dono(a.acertos, b.acertos), "quem mais perguntou"},
+            {dono(b.sofridos, a.sofridos), "quem mais desviou"},   // desviar e sofrer menos
+        };
+
+        std::vector<std::string> titulos(2);
+        for (int i = 0; i < 2; ++i) {
+            for (const Papel& p : papeis) {
+                if (p.dono == i) {
+                    titulos[static_cast<std::size_t>(i)] = p.titulo;
+                    break;
+                }
+            }
+        }
+        // Quem nao e dono de nenhum papel ganha o que fez, sem comparar com o parceiro.
+        for (std::size_t i = 0; i < 2; ++i) {
+            if (!titulos[i].empty()) continue;
+            const Parte& p = partes[i];
+            if (p.acertos > 0) titulos[i] = "fez " + Contagem(p.acertos, "pergunta", "perguntas");
+            else if (p.coberturas > 0) titulos[i] = "cobriu " + Contagem(p.coberturas, "vez", "vezes");
+            else titulos[i] = "esteve junto at\xc3\xa9 o fim";
+        }
+        return titulos;
     }
 }

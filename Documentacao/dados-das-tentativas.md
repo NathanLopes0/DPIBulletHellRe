@@ -188,6 +188,7 @@ variável do estudo —, o gabinete abre com `--condicao` (ver `gabinete.md`):
 | `sem-valeu` | Quem foi coberto não solta o coração na cor de quem cobriu. |
 | `sem-sinal` | O Botão 3 não mostra o anel nem toca o som na batalha em dupla. Os `sinais` continuam contados. |
 | `sem-toque` | No resultado da dupla aprovada, o Botão 3 dos dois não faz os avatares pularem, nem estoura, nem toca a palma, e o rodapé não ensina. Os toques continuam contados em `tentativas_toques.csv`. |
+| `sem-titulos` | No resultado da dupla, a parte de cada aluno volta a ser uma linha só, com os números lado a lado, sem o título do que cada um mais fez ("quem mais cobriu"...). Os títulos não vão para o CSV: saem das colunas de acertos, coberturas e acertos sofridos de cada aluno (`Devolutiva::Titulos`). |
 
 Sem `--condicao` (ou com `--condicao normal`), tudo funciona como sempre, e a
 coluna `condicao` diz `normal`. Um nome que o jogo não conhece é ignorado — e

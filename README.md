@@ -103,9 +103,12 @@ recorde da matéria, as fases limpas e os acertos sofridos, e oferece **Tentar
 de novo** (a mesma matéria, do zero) ou **Voltar às matérias**. Quem reprovou
 vê também a **devolutiva**, como numa prova corrigida: a fase em que a nota
 mais caiu, com quanto ela custou, e o desenho do que mais te acertou, com
-quantas vezes. Na dupla, uma linha por aluno, na cor dele, diz a parte de
-cada um — acertos no professor, coberturas e acertos sofridos —: quem cobriu o
-parceiro vê que contou. Quem acaba de passar no TCC vê **FORMADE!**, em dourado,
+quantas vezes. Na dupla, cada aluno, na cor dele, ganha um **título** pelo que
+mais fez — **quem mais cobriu**, **quem mais perguntou** ou **quem mais
+desviou** — e, embaixo, a parte dele: acertos no professor, coberturas e acertos
+sofridos. Quem cobriu o parceiro vê que contou. Os títulos nunca se repetem e
+nunca são uma posição: quem não está à frente em nada (por pelo menos 10%)
+ganha o que fez, como "fez 12 perguntas". Quem acaba de passar no TCC vê **FORMADE!**, em dourado,
 com a personagem de capelo dos dois lados do título. Na **dupla aprovada**, os
 dois avatares ficam dos lados do título, e os dois apertando o **Botão 3 juntos**
 fazem o **toca aqui**: os avatares pulam, o título estoura em dourado e se ouve

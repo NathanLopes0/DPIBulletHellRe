@@ -38,8 +38,11 @@ namespace Resultado {
         /// ...e o que mais acertou, da causa que mais custou (ate Devolutiva::kCausasNaTela).
         std::vector<Devolutiva::Causa> causas;
 
-        /// Na dupla, a parte de cada aluno, na ordem do painel (a justica).
+        /// Na dupla, a parte de cada aluno, na ordem do painel (a justica)...
         std::vector<Devolutiva::Parte> partes;
+        /// ...e o titulo de cada um (Devolutiva::Titulos). Vazio, a parte e uma linha so, como antes
+        /// dos titulos (Experimento.h, sem-titulos).
+        std::vector<std::string> titulos;
 
         /// Quem se formou nesta luta: passou agora na materia da formatura (Personagens::Formatura)
         /// e ganhou o capelo. Na dupla, o nome de cada um, como em Devolutiva::Parte::quem.
@@ -64,13 +67,17 @@ namespace Resultado {
     /// As linhas do resumo, de cima para baixo: a nota, o recorde (ou o aviso de recorde novo), as
     /// fases limpas e os acertos sofridos. Quem reprovou ve a devolutiva: a fase em que a nota mais
     /// caiu e, numa linha so dos desenhos (LinhaDasCausas), o que mais o acertou. Quem se formou ve
-    /// quem ganhou o capelo (LinhaDaFormatura). Na dupla, uma linha por aluno com a parte dele
-    /// (LinhaDaParte).
+    /// quem ganhou o capelo (LinhaDaFormatura). Na dupla, a parte de cada aluno (LinhaDaParte): com os
+    /// titulos, duas linhas - "89384, quem mais cobriu" e os numeros embaixo -; sem eles, uma.
     std::vector<std::string> Linhas(const Resumo& r);
 
-    /// Quantas Linhas um resumo tem no maximo: as quatro de sempre, as duas da devolutiva e as duas
-    /// da dupla. A da formatura nao soma: so quem passou se forma, e so quem reprovou tem devolutiva.
-    constexpr int kLinhasNoMaximo = 8;
+    /// Quantas Linhas um resumo tem no maximo: as quatro de sempre, as duas da devolutiva e as quatro
+    /// da dupla com titulos. A da formatura nao soma: so quem passou se forma, e so quem reprovou tem
+    /// devolutiva.
+    constexpr int kLinhasNoMaximo = 10;
+
+    /// Quantas linhas a parte de cada aluno ocupa: duas com o titulo, uma sem.
+    int LinhasPorParte(const Resumo& r);
 
     /// A linha de quem ganhou o capelo, que vai dourada; -1 quando ninguem se formou.
     int LinhaDaFormatura(const Resumo& r);
@@ -78,7 +85,8 @@ namespace Resultado {
     /// A linha (vazia) em que a batalha desenha o que mais acertou o aluno; -1 quando nao ha.
     int LinhaDasCausas(const Resumo& r);
 
-    /// A linha da parte do aluno 'quem' na dupla, que vai na cor dele; -1 quando nao ha.
+    /// A primeira linha da parte do aluno 'quem' na dupla, que vai na cor dele com as outras
+    /// (LinhasPorParte); -1 quando nao ha.
     int LinhaDaParte(const Resumo& r, size_t quem);
 
     /// Qual das Linhas vai em destaque (dourada): a do recorde novo, ou -1 quando nao ha nenhuma.

@@ -117,10 +117,40 @@ TEST_CASE("Resultado: na dupla, uma linha por aluno com a parte dele - depois da
     r.piorFase = f;
     r.causas = {{"Bloco", 6.0f, 1}};
     l = Linhas(r);
-    CHECK(l.size() == static_cast<size_t>(kLinhasNoMaximo));
+    CHECK(l.size() == 8u);
     CHECK(LinhaDasCausas(r) == 5);
     CHECK(LinhaDaParte(r, 0) == 6);
     CHECK(LinhaDaParte(r, 1) == 7);
+
+    // Com os titulos, e o maior resumo que ha.
+    r.titulos = {"quem mais cobriu", "quem mais desviou"};
+    l = Linhas(r);
+    CHECK(l.size() == static_cast<size_t>(kLinhasNoMaximo));
+}
+
+TEST_CASE("Resultado: com os titulos, a parte de cada aluno e o titulo e, embaixo, os numeros") {
+    Resumo r;
+    r.nota = 75.0f;
+    r.aprovado = true;
+    r.temFicha = true;
+    r.recordeAntes = 80.0f;
+    r.partes = {{"89384", 120, 8, 3}, {"Aluno 2", 95, 2, 5}};
+    r.titulos = {"quem mais cobriu", "fez 95 perguntas"};
+    const auto l = Linhas(r);
+    REQUIRE(l.size() == 8u);
+    CHECK(LinhasPorParte(r) == 2);
+    CHECK(l[4] == "89384, quem mais cobriu");
+    CHECK(l[5] == "120 acertos, 8 coberturas, 3 sofridos");
+    CHECK(l[6] == "Aluno 2, fez 95 perguntas");
+    CHECK(l[7] == "95 acertos, 2 coberturas, 5 sofridos");
+    CHECK(LinhaDaParte(r, 0) == 4);
+    CHECK(LinhaDaParte(r, 1) == 6);
+
+    // Sem eles (sem-titulos), uma linha por aluno, como antes.
+    r.titulos.clear();
+    CHECK(LinhasPorParte(r) == 1);
+    CHECK(Linhas(r).size() == 6u);
+    CHECK(LinhaDaParte(r, 1) == 5);
 }
 
 TEST_CASE("Resultado: quem se formou ve FORMADE! e que ganhou o chapeu de formatura") {
