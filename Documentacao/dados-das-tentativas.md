@@ -48,7 +48,7 @@ que começa é outra, com outra linha.
 
 | Coluna | O que é |
 |---|---|
-| `formato` | A versão do formato em que **esta linha** foi gravada (hoje `2`). Muda quando uma coluna muda; ver **Quando o formato muda**. |
+| `formato` | A versão do formato em que **esta linha** foi gravada (hoje `3`). Muda quando uma coluna muda; ver **Quando o formato muda**. |
 | `id` | O identificador da tentativa, por exemplo `20261028-140322-0f3a9c21`. O começo é a data e a hora, então ordenar por `id` é ordenar no tempo. |
 | `versao_do_jogo` | O commit de onde o executável foi compilado, ou `dev`. Serve para separar as tentativas de antes e de depois de uma mudança de balanceamento. É lido quando o CMake **configura** o projeto: depois de um `git pull`, rode o `cmake` de novo antes de compilar. |
 | `matricula` | A matrícula do aluno, ou `visitante`. |
@@ -99,6 +99,7 @@ o bônus do raspão. O que só existe na dupla fica **vazio** no solo.
 | `oportunidades_de_cobertura` | Na dupla, projéteis destrutíveis que foram no **parceiro** — os que este aluno podia cobrir. Um por projétil, brilhe ele ou não. `coberturas / oportunidades_de_cobertura` é o quanto ele cobriu do que podia. |
 | `tempo_na_mira_s` | Na dupla, segundos de luta com a mira do professor **presa** neste aluno (o "v" vermelho, `Papeis.h`). Vazio também quando a condição desliga os papéis: aí a mira nunca prende. |
 | `distancia_media_px` | Na dupla, a distância média entre os dois alunos durante a luta, em pixels do campo (1200 × 800). A mesma nas duas linhas. |
+| `sincronias` | Desde o formato 3. Na dupla, quantas vezes os dois gastaram o Ponto Extra **juntos** — com até meio segundo de diferença (`PontoExtra::kJanelaDaSincronia`). A mesma nas duas linhas. |
 
 ## `tentativas_fases.csv`
 
@@ -166,6 +167,7 @@ variável do estudo —, o gabinete abre com `--condicao` (ver `gabinete.md`):
 | `sem-raspao` | Passar rente não paga nem acende o risco azul. |
 | `sem-perto` | A dúvida de perto vale o mesmo que a de longe, e o "!!" some. |
 | `sem-devolutiva` | Quem reprova não vê onde a nota mais caiu nem o que mais o acertou. |
+| `sem-sincronia` | Os dois Pontos Extras gastos juntos dão só os dois escudos: a onda não sai. As `sincronias` continuam contadas. |
 
 Sem `--condicao` (ou com `--condicao normal`), tudo funciona como sempre, e a
 coluna `condicao` diz `normal`. Um nome que o jogo não conhece é ignorado — e
@@ -209,6 +211,7 @@ f.groupby(["materia", "fase"])[["variacao", "acertos_sofridos"]].mean()
 d = t[(t.modo == "dupla") & (t.formato >= 2)]
 d.groupby("condicao")[["coberturas", "oportunidades_de_cobertura"]].sum()  # o brilho faz cobrir mais?
 d.groupby("condicao").distancia_media_px.mean()                            # jogam mais juntos?
+d[d.formato >= 3].groupby("condicao").sincronias.mean()                    # combinam o Ponto Extra?
 ```
 
 ### Com R

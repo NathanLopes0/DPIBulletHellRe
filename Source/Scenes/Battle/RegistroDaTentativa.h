@@ -24,6 +24,7 @@ public:
     void AoIrNoAluno(Battle& b, const Player& alvo) override;
     void AoPegarPontoExtra(Battle& b, const Player& aluno) override;
     void AoUsarPontoExtra(Battle& b, const Player& aluno) override;
+    void AoSincronizar(Battle& b) override;
     void AoTerminar(Battle& b, Tentativas::Resultado resultado, bool ultimaFaseCompleta) override;
 
 private:

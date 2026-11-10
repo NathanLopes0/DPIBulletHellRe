@@ -44,6 +44,10 @@ namespace PontoExtra {
         return t < kViagemDoFeixe + kRastroDoFeixe;
     }
 
+    bool EmSincronia(const float agora, const float doParceiro) {
+        return doParceiro > kNuncaGastou && agora - doParceiro <= kJanelaDaSincronia;
+    }
+
     int TirosNaSobrecarga(const float sobrecarga, const float entreTiros) {
         if (entreTiros <= 0.0f || sobrecarga <= 0.0f) return 0;
         return static_cast<int>(sobrecarga / entreTiros + 1e-4f);

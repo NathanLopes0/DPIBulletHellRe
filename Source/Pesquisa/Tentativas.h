@@ -14,7 +14,7 @@ namespace Tentativas {
 
     /// A versao do formato, gravada em toda linha: mudar uma coluna e mudar isto. Coluna nova vai
     /// sempre no fim (TrocarCabecalho).
-    constexpr int kVersaoDoFormato = 2;
+    constexpr int kVersaoDoFormato = 3;
 
     enum class Resultado { Aprovado, Reprovado, Abandonou };
     const char* Nome(Resultado r);
@@ -85,6 +85,7 @@ namespace Tentativas {
         /// A mira podia prender num aluno: sem os papeis (Experimento.h), tempo_na_mira fica vazio.
         bool comPapeis = true;
         float distanciaMedia = 0.0f; ///< na dupla, a distancia media entre os dois alunos, em pixels
+        int sincronias = 0;          ///< na dupla, as vezes que os dois gastaram o Ponto Extra juntos (formato 3)
         std::vector<Jogador> jogadores;
         std::vector<Fase> fases;
     };

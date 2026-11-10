@@ -85,3 +85,16 @@ TEST_CASE("PontoExtra: de solo, paga o que o aluno ganharia acertando todos os t
     // A onda cresce com o tempo.
     CHECK(PontoExtra::RaioDaOnda(0.5f) > PontoExtra::RaioDaOnda(0.1f));
 }
+
+TEST_CASE("PontoExtra: os dois gastando juntos, dentro da janela, e a sincronia") {
+    // O parceiro gastou em 10 s.
+    CHECK(PontoExtra::EmSincronia(10.0f, 10.0f));                          // no mesmo quadro
+    CHECK(PontoExtra::EmSincronia(10.0f + PontoExtra::kJanelaDaSincronia, 10.0f));
+    CHECK_FALSE(PontoExtra::EmSincronia(10.0f + PontoExtra::kJanelaDaSincronia + 0.01f, 10.0f));
+    // Quem ainda nao gastou nenhum nao sincroniza com ninguem - nem no comeco da luta.
+    CHECK_FALSE(PontoExtra::EmSincronia(0.0f, PontoExtra::kNuncaGastou));
+    CHECK_FALSE(PontoExtra::EmSincronia(0.2f, PontoExtra::kNuncaGastou));
+    // A janela cabe um "Agora!" falado, e e bem menor que a espera entre dois gastos do mesmo aluno.
+    CHECK(PontoExtra::kJanelaDaSincronia >= 0.3f);
+    CHECK(PontoExtra::kJanelaDaSincronia < PontoExtra::kImunidadeDoPresente);
+}

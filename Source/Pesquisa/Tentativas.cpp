@@ -84,6 +84,8 @@ namespace Tentativas {
             // Formato 2.
             "condicao", "acertos_de_perto", "raspoes", "coberturas", "oportunidades_de_cobertura",
             "tempo_na_mira_s", "distancia_media_px",
+            // Formato 3.
+            "sincronias",
         };
 
         const std::vector<std::string> kColunasDasFases = {
@@ -154,6 +156,7 @@ namespace Tentativas {
                 t.condicao, std::to_string(j.acertosDePerto), std::to_string(j.raspoes),
                 daDupla(std::to_string(j.coberturas)), daDupla(std::to_string(j.oportunidadesDeCobertura)),
                 t.comPapeis ? daDupla(Num(j.tempoNaMira)) : "", daDupla(Num(t.distanciaMedia, 1)),
+                daDupla(std::to_string(t.sincronias)),
             }));
         }
         return linhas;

@@ -6,6 +6,7 @@
 #define DPIBULLETHELLRE_BATTLE_H
 
 #include <algorithm>
+#include <array>
 #include <memory>
 #include <string>
 #include <vector>
@@ -13,6 +14,7 @@
 #include "../../Regras/Intercambio.h"
 #include "../../Regras/Papeis.h"
 #include "../../Regras/Cobertura.h"
+#include "../../Regras/PontoExtra.h"
 #include "../../Pesquisa/Experimento.h"
 #include "../../Motor/Game.h"
 #include "../../Motor/AudioSystem.h"
@@ -308,6 +310,12 @@ private:
     /// A posicao (0 ou 1) do aluno 'ator', ou -1 se ele nao e um aluno.
     [[nodiscard]] int PosicaoDoAluno(const Actor* ator) const;
     void AtualizarEfeitos(float deltaTime);
+
+    /// Segundos de luta: sem carregamento, sem pausa e sem o resultado.
+    float mRelogioDaLuta = 0.0f;
+    /// Na dupla, quando cada aluno gastou o Ponto Extra pela ultima vez (mRelogioDaLuta): dois gastos
+    /// em PontoExtra::kJanelaDaSincronia sao a sincronia.
+    std::array<float, 2> mUltimoPontoExtra{PontoExtra::kNuncaGastou, PontoExtra::kNuncaGastou};
 
     // ---- O Ponto Extra de solo: a onda e as moedas ----
     struct Onda {

@@ -21,11 +21,13 @@ namespace Experimento {
         Raspao,      ///< passar rente paga
         Perto,       ///< a duvida de perto vale mais
         Devolutiva,  ///< quem reprova ve onde a nota caiu e o que mais o acertou
+        Sincronia,   ///< os dois Pontos Extras juntos soltam a onda
     };
 
     /// Todas, na ordem em que o nome da condicao as lista.
     constexpr Mecanica kTodas[] = {Mecanica::Brilho, Mecanica::Cobertura, Mecanica::Papeis,
-                                   Mecanica::Raspao, Mecanica::Perto, Mecanica::Devolutiva};
+                                   Mecanica::Raspao, Mecanica::Perto, Mecanica::Devolutiva,
+                                   Mecanica::Sincronia};
 
     /// O nome na linha de comando, sem o "sem-": "brilho", "cobertura"...
     const char* Nome(Mecanica m);

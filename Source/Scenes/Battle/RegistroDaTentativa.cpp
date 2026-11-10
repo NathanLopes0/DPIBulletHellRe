@@ -164,6 +164,11 @@ void RegistroDaTentativa::AoUsarPontoExtra(Battle& b, const Player& aluno) {
     if (auto* r = De(b, &aluno)) ++r->pontosExtrasUsados;
 }
 
+void RegistroDaTentativa::AoSincronizar(Battle&) {
+    if (!Anotando()) return;
+    ++mTentativa.sincronias;
+}
+
 void RegistroDaTentativa::AoTerminar(Battle& b, const Tentativas::Resultado resultado, const bool ultimaFaseCompleta) {
     if (!Anotando()) return;
     mGravada = true;

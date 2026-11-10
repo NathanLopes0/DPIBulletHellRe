@@ -56,6 +56,9 @@ public:
     /// mesmo que a condicao do experimento nao pague a cobertura.
     virtual void AoCobrir(Battle&, const Player& quemCobriu, const Player& parceiro) {}
     virtual void AoUsarPontoExtra(Battle&, const Player& aluno) {}
+    /// Na dupla, os dois gastaram o Ponto Extra juntos (PontoExtra::EmSincronia). Conta mesmo que a
+    /// condicao do experimento nao solte a onda.
+    virtual void AoSincronizar(Battle&) {}
 
     /// O aluno atravessou a parede pela rede do socket() (Battle::AbrirRede).
     virtual void AoAtravessarAParede(Battle&) {}

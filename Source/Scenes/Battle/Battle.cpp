@@ -578,6 +578,7 @@ void Battle::OnUpdate(float deltaTime) {
 
     // A cena base já atualiza todos os atores.
     Avisar([&](OuvinteDaBatalha& o) { o.AoPassarOTempo(*this, deltaTime, false); });
+    mRelogioDaLuta += deltaTime;
 
     // Atualiza os sistemas principais apenas da Battle (os atores são atualizados pela Scene)
     if (mProjeteis) mProjeteis->Update(deltaTime);
@@ -1511,6 +1512,26 @@ void Battle::AoGastarPontoExtra(Player* quemGastou) {
     // Em dupla, o Ponto Extra e do outro, e nao limpa a tela.
     oOutro->Proteger(PontoExtra::kImunidadeDoPresente);
     mFeixes.push_back(FeixeDoPontoExtra{quemGastou, oOutro, 0.0f});
+
+    // A sincronia: os dois juntos, e a onda do solo sai do meio dos dois, alem dos escudos.
+    const int quem = PosicaoDoAluno(quemGastou);
+    const int outro = PosicaoDoAluno(oOutro);
+    if (quem < 0 || outro < 0 || quem > 1 || outro > 1) return;
+    if (!PontoExtra::EmSincronia(mRelogioDaLuta, mUltimoPontoExtra[static_cast<size_t>(outro)])) {
+        mUltimoPontoExtra[static_cast<size_t>(quem)] = mRelogioDaLuta;
+        return;
+    }
+    // Cada gasto vale uma sincronia so.
+    mUltimoPontoExtra = {PontoExtra::kNuncaGastou, PontoExtra::kNuncaGastou};
+    // A medida conta sempre; o experimento sem sincronia so nao solta a onda.
+    Avisar([&](OuvinteDaBatalha& o) { o.AoSincronizar(*this); });
+    if (!mCondicao.Ligada(Experimento::Mecanica::Sincronia)) return;
+    const auto* a = ColisorDe(quemGastou);
+    const auto* b = ColisorDe(oOutro);
+    const Vector2 meio = ((a ? a->GetCenter() : quemGastou->GetPosition()) +
+                          (b ? b->GetCenter() : oOutro->GetPosition())) * 0.5f;
+    mOndas.push_back(Onda{meio, 0.0f});
+    Faiscar(meio, Hud::Faisca::Coleta);
 }
 
 void Battle::AtualizarDesenhoSobreOsAlunos(const float deltaTime) {

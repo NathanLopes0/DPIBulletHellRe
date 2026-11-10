@@ -27,7 +27,7 @@ escritos na tela.
 |---|---|---|---|
 | **Manche** | **setas** | **W A S D** | mover o aluno, escolher na tela |
 | **Botão 1** | **Espaço** | **F** | lançar Dúvidas (os balões com **?**); confirmar; digitar |
-| **Botão 2** | **B** | **G** | voltar e apagar; na batalha, gastar um Ponto Extra: sozinho, uma onda dourada sai de você e desfaz os tiros do professor por onde passa, e você fica 1,5 s sem atirar — em troca, ganha a nota que ganharia acertando todos os tiros desse tempo; em dupla, dá ao parceiro um escudo que destrói os projéteis do chefe, e quem gastou segue atirando |
+| **Botão 2** | **B** | **E** | voltar e apagar; na batalha, gastar um Ponto Extra: sozinho, uma onda dourada sai de você e desfaz os tiros do professor por onde passa, e você fica 1,5 s sem atirar — em troca, ganha a nota que ganharia acertando todos os tiros desse tempo; em dupla, dá ao parceiro um escudo que destrói os projéteis do chefe, e quem gastou segue atirando — e, se os dois gastarem juntos, a onda sai do meio deles, além dos escudos |
 | **Botão 3** | **N** | **H** | na dificuldade, trocar a personagem; na seleção, o boletim (e dele, o ranking da matéria); na batalha do TCC, soltar o poder do orientador quando o anel dele enche |
 | — | **Esc** | — | na batalha, **só no computador**: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota. A batalha também pausa sozinha quando a janela perde o foco |
 | — | **Enter**, **Esc**, **0–9**, **Backspace** | — | atalhos de teclado para quem desenvolve |
@@ -53,7 +53,9 @@ parceiro — e, para isso se ver, o projétil destrutível que vai num aluno
 aluno azul, quer dizer "derrube este".
 O **Ponto Extra em dupla é do outro**: em vez de
 limpar a tela, um feixe sai de quem o gastou e dá ao parceiro um escudo que
-destrói os projéteis do chefe por três segundos. As decisões do modo, e o
+destrói os projéteis do chefe por três segundos. **Gastos juntos** — com até
+meio segundo de diferença —, os dois Pontos Extras ainda soltam a onda dourada
+do solo, do meio dos dois: é a **sincronia**. As decisões do modo, e o
 porquê de cada uma, estão em `Documentacao/requisitos-coop.md`.
 
 O que cada botão faz **na tela em que você está** fica escrito no rodapé dela.

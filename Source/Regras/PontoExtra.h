@@ -59,6 +59,19 @@ namespace PontoExtra {
     /// gastar outro.
     constexpr float kImunidadeDoPresente = 3.0f;
 
+    // ---- A sincronia ----
+
+    /// Na dupla, os dois gastando o Ponto Extra com ate esta diferenca e a sincronia: alem dos dois
+    /// escudos, a onda do solo sai do meio dos dois (Battle::AoGastarPontoExtra). Folgada o
+    /// bastante para um "Agora!" falado em voz alta.
+    constexpr float kJanelaDaSincronia = 0.5f;
+
+    /// O instante de quem ainda nao gastou nenhum.
+    constexpr float kNuncaGastou = -1.0e9f;
+
+    /// Quem gasta em 'agora' sincroniza com o parceiro, que gastou o dele em 'doParceiro'?
+    bool EmSincronia(float agora, float doParceiro);
+
     /// O intervalo entre dois tiros do aluno (Player::Atirar).
     constexpr float kEntreTiros = 0.12f;
 

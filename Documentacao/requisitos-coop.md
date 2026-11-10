@@ -66,6 +66,7 @@ silêncio. D2 e D4 mudaram de resposta, não de pergunta.
 | D11 | O Ponto Extra em dupla | **Não limpa a tela: dá ao _outro_ imunidade e um escudo** por 3 s, e o doador **segue atirando** (2.5) |
 | D12 | O que paga cuidar do outro | **A cobertura**: derrubar o projétil que ia no parceiro vale inteiro (2.6) |
 | D13 | Como o aluno sabe o que cobrir | O projétil destrutível que vai num aluno **brilha na cor dele**, com a mesma conta da cobertura (2.6) |
+| D14 | O que paga agir junto | **A sincronia**: os dois Pontos Extras gastos com até meio segundo de diferença soltam, além dos escudos, a onda do solo, do meio dos dois (2.7) |
 
 ### 2.1 — Uma regra só para a nota compartilhada (D2, D4)
 
@@ -296,6 +297,26 @@ dos mirados e ganha nota protegendo. Trocar de papel é só mudar o que se faz.
 por aluno, na cor dele, com os acertos no professor, as coberturas e os acertos
 sofridos. Com a nota sendo uma só, sem isso quem cobriu não teria como saber que
 o trabalho dele contou — nem o parceiro.
+
+### 2.7 — Sincronia: os dois Pontos Extras juntos soltam a onda (D14)
+
+Nada na dupla pedia que os dois fizessem algo **ao mesmo tempo**: a cobertura é
+de um, o escudo é de um para o outro. A sincronia é a sinergia entre habilidades
+(Rocha et al.): **os dois gastam o Ponto Extra com até meio segundo de diferença**
+(`PontoExtra::kJanelaDaSincronia`) e, além dos dois escudos de sempre, a onda
+dourada do solo sai **do meio dos dois** e varre a tela.
+
+**Ela não desmente a 2.5.** Um Ponto Extra sozinho continua sem limpar a tela;
+a onda só vem quando a dupla gasta **o estoque inteiro do momento**, os dois
+juntos. Pelos dois, ela leva os dois escudos e uma onda — mais que a soma, e é
+isso que faz valer a pena combinar ("Agora!") em vez de cada um gastar quando
+quer. Meio segundo cabe um aviso falado em voz alta, e é bem menos que a espera
+de três segundos entre dois gastos do mesmo aluno: cada gasto vale uma
+sincronia só.
+
+A sincronia é contada no `tentativas.csv` (`sincronias`), e
+`--condicao sem-sincronia` a tira do jogo sem tirar da medida: o gasto junto
+continua contado, só a onda não sai.
 
 ## 3. Requisitos funcionais
 
