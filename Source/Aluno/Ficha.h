@@ -16,7 +16,7 @@
 namespace Ficha {
 
     /// A versao do formato, gravada em todo arquivo.
-    inline constexpr int kVersaoAtual = 7;
+    inline constexpr int kVersaoAtual = 8;
 
     struct Dados {
         std::string matricula;   ///< A forma canonica, ver Matricula.h.

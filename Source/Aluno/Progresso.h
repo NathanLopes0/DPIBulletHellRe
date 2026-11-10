@@ -51,6 +51,10 @@ public:
     /// O jogador passou nesta materia? Olha o recorde, nao a ultima nota.
     [[nodiscard]] bool Aprovado(int materia) const;
 
+    /// Quando o jogador passou nesta materia pela primeira vez ("2026-10-02 14:30:00"). Vazio se nunca
+    /// passou, ou se passou num save de antes de a data existir (versao 8 da ficha).
+    [[nodiscard]] const std::string& AprovadaEm(int materia) const;
+
     /// Quantas provas desta materia o aluno terminou, e quantas reprovou (Entrada::tentativas).
     [[nodiscard]] int Tentativas(int materia) const;
     [[nodiscard]] int Reprovacoes(int materia) const;
@@ -78,6 +82,10 @@ public:
         /// (o boletim). Zero num save de antes da contagem existir.
         int tentativas = 0;
         int reprovacoes = 0;
+
+        /// Quando a materia foi aprovada pela primeira vez: o mural dos formados mostra a do TCC.
+        /// Vazio se nunca foi, ou num save de antes deste campo (versao 8 da ficha).
+        std::string aprovadaEm;
 
         [[nodiscard]] Marca& De(Modo modo, Dificuldade::Nivel nivel) { return recordes[Indice(modo, nivel)]; }
         [[nodiscard]] const Marca& De(Modo modo, Dificuldade::Nivel nivel) const {

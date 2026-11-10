@@ -61,9 +61,11 @@ A **batalha não volta sozinha**: ficar parado é uma forma legítima de desviar
 ela já termina por tempo.
 
 **Do menu a ociosidade leva para a frente**, não de volta: passado o mesmo tempo
-parado no menu principal, entra a **tela de atração** — o título com a chamada e
-os melhores do curso, alternando a cada seis segundos. Qualquer tecla volta ao
-menu; não há o que escolher ali, então não há botão certo.
+parado no menu principal, entra a **tela de atração** — o título com a chamada,
+os melhores do curso e o mural dos formados (quem passou no TCC, de capelo, dos
+mais recentes), alternando a cada seis segundos. Um cartaz sem ninguém para
+mostrar não entra. Qualquer tecla volta ao menu; não há o que escolher ali,
+então não há botão certo.
 
 A tela de atração também não volta sozinha: ela já é a tela de quem não está
 jogando.

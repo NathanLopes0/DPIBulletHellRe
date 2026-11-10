@@ -27,6 +27,7 @@ void Progresso::Registrar(const int materia, const float nota, const Modo modo,
 
     Entrada& r = mPorMateria[materia];
     r.materia = materia;
+    const bool jaAprovada = r.MaiorRecorde() >= kNotaDeAprovacao;
 
     // A retomada, a data e a contagem sao da materia, e nao do modo nem do nivel.
     r.retomada = nota;
@@ -34,6 +35,9 @@ void Progresso::Registrar(const int materia, const float nota, const Modo modo,
     if (nota < kNotaDeAprovacao) ++r.reprovacoes;
 
     if (!quando.empty()) r.quando = quando;
+
+    // A primeira aprovacao fica datada, e nao muda mais: o recorde so sobe.
+    if (!jaAprovada && nota >= kNotaDeAprovacao && r.aprovadaEm.empty()) r.aprovadaEm = quando;
 
     // O recorde so sobe.
     Marca& recorde = r.De(modo, nivel);
@@ -77,6 +81,10 @@ int Progresso::Reprovacoes(const int materia) const {
 
 bool Progresso::Aprovado(const int materia) const {
     return MelhorNota(materia) >= kNotaDeAprovacao;
+}
+
+const std::string& Progresso::AprovadaEm(const int materia) const {
+    return Ver(materia).aprovadaEm;
 }
 
 int Progresso::QuantasAprovadas(const std::vector<int>& materias) const {

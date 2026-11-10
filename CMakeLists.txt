@@ -103,6 +103,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Aluno/Sessao.cpp
         Source/Aluno/Sessao.h
         Source/Aluno/Ranking.cpp
+        Source/Aluno/Mural.cpp
+        Source/Aluno/Mural.h
         Source/Aluno/Ranking.h
         Source/Aluno/Matricula.cpp
         Source/Aluno/Matricula.h
@@ -555,6 +557,7 @@ add_executable(dpi_tests
         tests/test_simulacao.cpp
         tests/test_conta_da_nota.cpp
         tests/test_leitor_do_menu.cpp
+        tests/test_mural.cpp
         tests/test_resultado.cpp
         tests/test_devolutiva.cpp
         tests/test_manual.cpp
@@ -609,6 +612,8 @@ add_executable(dpi_tests
         Source/Aluno/Sessao.cpp
         Source/Aluno/Sessao.h
         Source/Aluno/Ranking.cpp
+        Source/Aluno/Mural.cpp
+        Source/Aluno/Mural.h
         Source/Aluno/Ranking.h
         Source/Aluno/Matricula.cpp
         Source/Aluno/Matricula.h

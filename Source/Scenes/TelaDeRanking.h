@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -13,6 +15,7 @@
 #include "../Aluno/Exportacao.h"
 #include "../Aluno/Ranking.h"
 #include "../Motor/Game.h"
+#include "../Personagem/Personagens.h"
 
 class Font;
 class Actor;
@@ -35,6 +38,10 @@ private:
     /// Reescreve as linhas a partir da materia selecionada e da lista.
     void Redesenhar();
 
+    /// A personagem do aluno 'matricula' em 'onde' - de capelo, se ele se formou. Quem nao tem ficha
+    /// (o visitante) nao tem avatar.
+    void Avatar(const std::string& matricula, const Vector2& onde);
+
     /// A lista em exibicao (Ranking::kListas).
     [[nodiscard]] const Ranking::Lista& ListaAtual() const { return Ranking::kListas[mLista]; }
     [[nodiscard]] bool EmDupla() const { return ListaAtual().modo == Progresso::Modo::Dupla; }
@@ -43,6 +50,12 @@ private:
 
     /// A turma inteira, lida uma vez.
     std::vector<Exportacao::FichaDeAluno> mFichas;
+    /// A aparencia de cada um, e quem ja se formou (Personagens::Formatura).
+    std::map<std::string, Personagens::Aparencia> mAparencias;
+    std::set<std::string> mFormados;
+
+    /// Os avatares das linhas: refeitos a cada troca de lista, porque cada um e de um aluno.
+    std::vector<Actor*> mAvatares;
 
     /// O que mostrar e para onde voltar, posto por quem pediu a tela.
     Game::PedidoDeRanking mPedido{};

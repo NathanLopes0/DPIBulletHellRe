@@ -104,6 +104,8 @@ std::string Serializar(const Dados& dados, const Materias::Lista& materias) {
 
         // So escreve a data quando ha uma.
         if (!e.quando.empty()) s << ", \"quando\": \"" << e.quando << "\"";
+        // E a da primeira aprovacao (versao 8), tambem so quando ha.
+        if (!e.aprovadaEm.empty()) s << ", \"aprovadaEm\": \"" << e.aprovadaEm << "\"";
 
         // A contagem do boletim (versao 7): so quando ha.
         if (e.tentativas > 0) s << ", \"tentativas\": " << e.tentativas;
@@ -290,6 +292,13 @@ namespace {
         // isso nao e erro.
         if (m.contains("quando") && m["quando"].is_string()) {
             e.quando = m["quando"].get<std::string>();
+        }
+
+        // A data da primeira aprovacao (versao 8), tambem opcional. Numa materia nao aprovada ela nao
+        // pode ter acontecido.
+        if (m.contains("aprovadaEm") && m["aprovadaEm"].is_string()) {
+            if (e.MaiorRecorde() >= Progresso::kNotaDeAprovacao) e.aprovadaEm = m["aprovadaEm"].get<std::string>();
+            else problemas.emplace_back(onde + "\"aprovadaEm\" numa materia que nao foi aprovada; descartada");
         }
 
         // A contagem do boletim (versao 7), tambem opcional. Negativa nao existe, e reprovar mais

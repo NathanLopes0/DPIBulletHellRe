@@ -292,3 +292,23 @@ TEST_CASE("Progresso: cada prova terminada conta, e a reprovacao tambem - em qua
     CHECK(e[0].tentativas == 4);
     CHECK(e[0].reprovacoes == 2);
 }
+
+TEST_CASE("Progresso: a primeira aprovacao fica datada, e nao muda depois") {
+    Progresso p;
+    p.RegistrarNota(3, 45.0f, Dificuldade::Nivel::Normal, "2026-09-01 10:00:00");
+    CHECK(p.AprovadaEm(3).empty());
+
+    p.RegistrarNotaDeDupla(3, 70.0f, Dificuldade::Nivel::Normal, "123", "2026-09-02 10:00:00");
+    CHECK(p.AprovadaEm(3) == "2026-09-02 10:00:00");
+
+    // Passar de novo, com nota maior, ou reprovar depois nao muda a data.
+    p.RegistrarNota(3, 99.0f, Dificuldade::Nivel::Dificil, "2026-09-03 10:00:00");
+    p.RegistrarNota(3, 10.0f, Dificuldade::Nivel::Normal, "2026-09-04 10:00:00");
+    CHECK(p.AprovadaEm(3) == "2026-09-02 10:00:00");
+
+    // A data volta igual de um guardar e repor.
+    Progresso copia;
+    copia.Restaurar(p.Entradas());
+    CHECK(copia.AprovadaEm(3) == "2026-09-02 10:00:00");
+    CHECK(copia.AprovadaEm(4).empty());
+}

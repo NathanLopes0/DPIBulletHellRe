@@ -6,6 +6,7 @@
 #include "TextoDeCena.h"
 
 #include <SDL_scancode.h>
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
 
@@ -20,9 +21,13 @@
 #include "../Aluno/Matricula.h"
 #include "../Entrada/Painel.h"
 #include "FundoDeCena.h"
+#include "../Aluno/Mural.h"
 #include "../Aluno/Ranking.h"
 #include "../Actors/Actor.h"
+#include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Components/DrawComponents/DrawSpriteComponent.h"
+#include "../Personagem/ComporPersonagem.h"
+#include "../Personagem/PersonagensArquivo.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
 
 namespace {
@@ -45,11 +50,23 @@ void Atracao::Load() {
 
     CriarFundoDoCorredor(*this);
 
+    // As fichas sao lidas uma vez, para os dois cartazes que as usam.
+    const Materias::Lista& materias = Materias::Carregadas();
+    std::vector<Ficha::Dados> dados;
+    std::vector<Exportacao::FichaDeAluno> fichas;
+    for (const auto& matricula : FichaArquivo::ListarMatriculas()) {
+        dados.push_back(FichaArquivo::Carregar(matricula, materias));
+        dados.back().matricula = matricula;
+        fichas.push_back(Exportacao::FichaDeAluno{matricula, dados.back().progresso});
+    }
+
     mCartazes.push_back(CriarChamada());
 
-    // O painel dos melhores so existe se houver quem mostrar.
-    Cartaz melhores = CriarMelhores();
+    // O painel dos melhores e o mural so existem se houver quem mostrar.
+    Cartaz melhores = CriarMelhores(fichas);
     if (!melhores.empty()) mCartazes.push_back(std::move(melhores));
+    Cartaz mural = CriarMural(fichas, dados);
+    if (!mural.empty()) mCartazes.push_back(std::move(mural));
 
     MostrarSomente(0);
 }
@@ -79,20 +96,12 @@ Atracao::Cartaz Atracao::CriarChamada() {
     return cartaz;
 }
 
-Atracao::Cartaz Atracao::CriarMelhores() {
+Atracao::Cartaz Atracao::CriarMelhores(const std::vector<Exportacao::FichaDeAluno>& fichas) {
 
     const auto largura = static_cast<float>(mGame->GetWindowWidth());
     const auto altura = static_cast<float>(mGame->GetWindowHeight());
 
     const Materias::Lista& materias = Materias::Carregadas();
-
-    std::vector<Exportacao::FichaDeAluno> fichas;
-    for (const auto& matricula : FichaArquivo::ListarMatriculas()) {
-        Exportacao::FichaDeAluno f;
-        f.matricula = matricula;
-        f.progresso = FichaArquivo::Carregar(matricula, materias).progresso;
-        fichas.push_back(f);
-    }
 
     // A mesma conta do ranking do menu, e pelo mesmo caminho.
     const std::vector<Ranking::Linha> linhas =
@@ -123,6 +132,57 @@ Atracao::Cartaz Atracao::CriarMelhores() {
         // Sem dourado por nota cheia aqui, e sem verde de aprovacao.
         cartaz.push_back(Texto(ComDuasCasas(l.nota), largura * 0.64f, y, 32, 200,
                                l.posicao == 1 ? Color::Gold : Color::White));
+    }
+
+    return cartaz;
+}
+
+Atracao::Cartaz Atracao::CriarMural(const std::vector<Exportacao::FichaDeAluno>& fichas,
+                                    const std::vector<Ficha::Dados>& dados) {
+
+    const auto largura = static_cast<float>(mGame->GetWindowWidth());
+    const auto altura = static_cast<float>(mGame->GetWindowHeight());
+
+    const Personagens::Catalogo& catalogo = Personagens::Carregado();
+    if (!catalogo.formatura.Existe()) return {};
+    const int formatura = Materias::Carregadas().IndiceDe(catalogo.formatura.materia);
+    const std::vector<Mural::Formado> formados = Mural::Recentes(fichas, formatura, kQuantosNoMural);
+    if (formados.empty()) return {};
+
+    Cartaz cartaz;
+    cartaz.push_back(Texto("MURAL DOS FORMADOS", largura / 2.0f, altura * 0.14f, 44, 900, Color::Gold));
+    cartaz.push_back(Texto("quem passou no TCC, dos mais recentes", largura / 2.0f, altura * 0.21f,
+                           22, 1100, Color::LightBlue));
+
+    // Uma fileira so fica no meio; duas, uma em cima da outra. Cada fileira se centra.
+    const size_t fileiras = (formados.size() + kPorFileira - 1) / kPorFileira;
+    for (size_t i = 0; i < formados.size(); ++i) {
+        const size_t fileira = i / kPorFileira;
+        const size_t naFileira = std::min(kPorFileira, formados.size() - fileira * kPorFileira);
+        const float coluna = static_cast<float>(i % kPorFileira) - static_cast<float>(naFileira - 1) / 2.0f;
+        const float x = largura / 2.0f + coluna * largura * 0.2f;
+        const float y = altura * (fileiras == 1 ? 0.48f : (fileira == 0 ? 0.38f : 0.68f));
+        const Mural::Formado& f = formados[i];
+
+        // A personagem de capelo, andando.
+        for (const Ficha::Dados& d : dados) {
+            if (d.matricula != f.matricula || d.aparencia.Vazia()) continue;
+            const Personagens::Composta c = Personagens::Compor(mGame, catalogo, d.aparencia, true);
+            if (!c.ok) break;
+            auto ator = std::make_unique<Actor>(this);
+            ator->SetPosition(Vector2(x, y));
+            ator->SetScale(kEscalaNoMural);
+            auto* desenho = ator->AddComponent<DrawAnimatedComponent>(c.chaveDaTextura, c.atlas, 100);
+            desenho->AddAnimation("Andando", {0, 1, 2, 3});
+            desenho->SetAnimFPS(6.0f);
+            desenho->SetAnimation("Andando");
+            cartaz.push_back(desenho);
+            AddActor(std::move(ator));
+            break;
+        }
+        cartaz.push_back(Texto(Matricula::ParaExibir(f.matricula), x, y + 78.0f, 26, 230, Color::White));
+        const std::string data = Mural::Data(f.quando);
+        if (!data.empty()) cartaz.push_back(Texto(data, x, y + 106.0f, 20, 230, Color::LightBlue));
     }
 
     return cartaz;

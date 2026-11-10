@@ -766,3 +766,38 @@ TEST_CASE("Ficha: contagem que nao serve vira zero, e a materia fica") {
     CHECK(demais.dados.progresso.Tentativas(0) == 0);
     CHECK(demais.dados.progresso.Reprovacoes(0) == 0);
 }
+
+TEST_CASE("Ficha: a data da primeira aprovacao vai e volta, e o save de antes dela le vazio") {
+    Ficha::Dados original;
+    original.matricula = "89384";
+    original.progresso.RegistrarNota(0, 40.0f, Dificuldade::Nivel::Normal, "2026-09-01 10:00:00");
+    original.progresso.RegistrarNota(0, 75.0f, Dificuldade::Nivel::Normal, "2026-09-02 11:00:00");
+    const std::string texto = Ficha::Serializar(original, Curso());
+    CHECK(texto.find("\"aprovadaEm\": \"2026-09-02 11:00:00\"") != std::string::npos);
+    CHECK(texto.find("\"versao\": 8") != std::string::npos);
+    const auto lida = Ficha::Desserializar(texto, Curso());
+    REQUIRE(lida.ok);
+    CHECK(lida.problemas.empty());
+    CHECK(lida.dados.progresso.AprovadaEm(0) == "2026-09-02 11:00:00");
+
+    // A versao 7 nao tinha a data: a materia continua aprovada, so sem quando.
+    const auto antiga = Ficha::Desserializar(R"({
+        "versao": 7, "matricula": "89384",
+        "materias": [ { "materia": "AAA", "recorde": 70, "retomada": 70 } ]
+    })", Curso());
+    REQUIRE(antiga.ok);
+    CHECK(antiga.problemas.empty());
+    CHECK(antiga.dados.progresso.Aprovado(0));
+    CHECK(antiga.dados.progresso.AprovadaEm(0).empty());
+}
+
+TEST_CASE("Ficha: data de aprovacao numa materia nao aprovada e descartada") {
+    const auto lida = Ficha::Desserializar(R"({
+        "versao": 8, "matricula": "89384",
+        "materias": [ { "materia": "AAA", "recorde": 40, "retomada": 40, "aprovadaEm": "2026-09-02 11:00:00" } ]
+    })", Curso());
+    REQUIRE(lida.ok);
+    CHECK(Menciona(lida.problemas, "aprovadaEm"));
+    CHECK(lida.dados.progresso.AprovadaEm(0).empty());
+    CHECK(lida.dados.progresso.MelhorNota(0) == doctest::Approx(40.0f));
+}

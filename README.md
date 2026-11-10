@@ -127,7 +127,12 @@ dupla** e **Difícil em dupla**, trocadas com o manche para os lados. Cada níve
 tem o seu topo: quem joga no Normal não disputa com quem escolheu o Difícil.
 A tela abre na lista da partida, e a tela de resultado diz "NOVO RECORDE!"
 pelo recorde **dessa** lista. Para o mapa do curso, passar é passar: a matéria
-abre com 60 em qualquer uma das quatro.
+abre com 60 em qualquer uma das quatro. Cada linha traz a personagem do aluno
+(as duas, na dupla), de capelo para quem já se formou.
+
+Parado no menu, o gabinete entra na tela de atração, que reveza três cartazes:
+a chamada, os melhores do curso e o **mural dos formados** — quem passou no
+TCC, de capelo, dos mais recentes, com a data em que passou.
 
 Ao sair de uma batalha (ou do ranking), a seleção de fases volta com o cursor
 na **última matéria escolhida**, e não no INF 110. Uma partida nova começa do
@@ -260,7 +265,9 @@ Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
   recordes de cada matéria (sozinho e em dupla, no Normal e no Difícil), a
   última nota, com data, e quantas provas de cada matéria você terminou e
   quantas reprovou (o boletim; desde a versão 7 da ficha — uma ficha anterior
-  abre com a contagem em zero). A nota vai para o disco **uma vez, no
+  abre com a contagem em zero), e quando cada matéria foi aprovada pela
+  primeira vez (desde a versão 8; é a data do mural dos formados, e quem passou
+  antes dela aparece no mural sem data). A nota vai para o disco **uma vez, no
   fim da batalha**, e não durante.
 - **`opcoes.cfg`** — as opções da máquina (os volumes, a tela
   cheia e a hitbox), em `chave=valor`. A tela de Opções o escreve na hora em

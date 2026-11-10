@@ -20,8 +20,11 @@
 #include "../Regras/Nota.h"
 #include "../Aluno/Ranking.h"
 #include "../Actors/Actor.h"
+#include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
+#include "../Personagem/ComporPersonagem.h"
+#include "../Personagem/PersonagensArquivo.h"
 
 namespace {
 
@@ -37,6 +40,11 @@ namespace {
     constexpr float kColunaMatricula = 0.38f;
     constexpr float kColunaJogadas   = 0.55f;   // so no geral
     constexpr float kColunaNota      = 0.72f;
+
+    /// O avatar fica entre a posicao e o nome: um so na lista de solo, os dois juntos na de dupla.
+    constexpr float kColunaAvatar = 0.37f;
+    constexpr float kColunaAvataresDaDupla[] = {0.35f, 0.385f};
+    constexpr float kEscalaDoAvatar = 0.75f;
 
     /// A coluna da dupla ocupa o lugar da matricula, e e mais larga: cabem duas
     /// matriculas e o "+" entre elas.
@@ -87,12 +95,17 @@ void TelaDeRanking::Load() {
 
     const Materias::Lista& materias = Materias::Carregadas();
 
-    // As fichas sao lidas uma vez.
+    // As fichas sao lidas uma vez, com a aparencia de cada um e quem ja se formou.
+    const Personagens::Formatura& formatura = Personagens::Carregado().formatura;
+    const int materiaDaFormatura = formatura.Existe() ? materias.IndiceDe(formatura.materia) : -1;
     for (const auto& matricula : FichaArquivo::ListarMatriculas()) {
+        const Ficha::Dados dados = FichaArquivo::Carregar(matricula, materias);
         Exportacao::FichaDeAluno f;
         f.matricula = matricula;
-        f.progresso = FichaArquivo::Carregar(matricula, materias).progresso;
+        f.progresso = dados.progresso;
         mFichas.push_back(f);
+        if (!dados.aparencia.Vazia()) mAparencias[matricula] = dados.aparencia;
+        if (materiaDaFormatura >= 0 && dados.progresso.Aprovado(materiaDaFormatura)) mFormados.insert(matricula);
     }
 
     mTituloAtor    = Texto(" ", largura / 2.0f, altura * 0.11f, 44, 900);
@@ -200,6 +213,11 @@ void TelaDeRanking::Redesenhar() {
 
     const size_t quantasTem = duplas ? deDupla.size() : linhas.size();
 
+    // Os avatares sao de alunos, e trocam com a lista.
+    for (Actor* a : mAvatares) if (a) a->SetState(ActorState::Destroy);
+    mAvatares.clear();
+    const auto largura = static_cast<float>(mGame->GetWindowWidth());
+
     for (size_t i = 0; i < kQuantasLinhas; ++i) {
 
         const bool temLinha = i < quantasTem;
@@ -210,6 +228,15 @@ void TelaDeRanking::Redesenhar() {
                                                  : linhas[i].materiasJogadas) : 0;
 
         escrever(mPosicaoAtores[i], temLinha ? std::to_string(posicao) : "");
+        if (temLinha) {
+            const float y = mPosicaoAtores[i]->GetPosition().y;
+            if (duplas) {
+                Avatar(deDupla[i].um, Vector2(largura * kColunaAvataresDaDupla[0], y));
+                Avatar(deDupla[i].dois, Vector2(largura * kColunaAvataresDaDupla[1], y));
+            } else {
+                Avatar(linhas[i].matricula, Vector2(largura * kColunaAvatar, y));
+            }
+        }
         escrever(mNotaAtores[i],    temLinha ? ComDuasCasas(nota) : "");
 
         // Uma das duas colunas de nome fica vazia.
@@ -274,6 +301,22 @@ void TelaDeRanking::Redesenhar() {
              posicao > static_cast<int>(kQuantasLinhas)
                  ? quemEsta + " em " + std::to_string(posicao) + "o"
                  : "");
+}
+
+void TelaDeRanking::Avatar(const std::string& matricula, const Vector2& onde) {
+    const auto aparencia = mAparencias.find(matricula);
+    if (aparencia == mAparencias.end()) return;
+    const Personagens::Composta c = Personagens::Compor(mGame, Personagens::Carregado(), aparencia->second,
+                                                        mFormados.count(matricula) > 0);
+    if (!c.ok) return;
+    auto ator = std::make_unique<Actor>(this);
+    ator->SetPosition(onde);
+    ator->SetScale(kEscalaDoAvatar);
+    // Parado: numa lista de oito, oito alunos andando distraem do que ela diz.
+    auto* desenho = ator->AddComponent<DrawAnimatedComponent>(c.chaveDaTextura, c.atlas, 100);
+    desenho->AddAnimation("Parado", {0});
+    desenho->SetAnimation("Parado");
+    mAvatares.push_back(AddActor(std::move(ator)));
 }
 
 void TelaDeRanking::OnProcessInput(const Uint8* keyState) {
