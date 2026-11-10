@@ -191,6 +191,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Scenes/Battle/Colisoes.h
         Source/Scenes/Battle/DesenhoSobreOsAlunos.cpp
         Source/Scenes/Battle/DesenhoSobreOsAlunos.h
+        Source/Scenes/Battle/DevolutivaDaBatalha.cpp
+        Source/Scenes/Battle/DevolutivaDaBatalha.h
         Source/Scenes/Battle/EfeitosDaBatalha.cpp
         Source/Scenes/Battle/EfeitosDaBatalha.h
         Source/Scenes/Battle/FaixaDaNota.cpp

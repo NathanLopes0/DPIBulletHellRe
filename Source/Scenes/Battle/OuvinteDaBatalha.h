@@ -35,6 +35,10 @@ public:
     /// A fase que acabou foi limpa: o bonus foi pago.
     virtual void AoLimparFase(Battle&) {}
 
+    /// O aluno perdeu 'perda' de nota num acerto sofrido, por 'causa': o tipo do projetil (o nome em
+    /// projeteis.json), ou o esbarrao (Devolutiva::kEsbarrao). Vem logo antes do AoSerAcertado.
+    virtual void AoPerderNota(Battle&, const Player& aluno, const std::string& causa, float perda) {}
+
     /// O aluno foi acertado - por um tiro, ou encostando no chefe.
     virtual void AoSerAcertado(Battle&, const Player& aluno, bool porUmTiro) {}
 

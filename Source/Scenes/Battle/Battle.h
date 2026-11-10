@@ -43,6 +43,7 @@ class ExtraPointItem;
 class Orientador;
 class PausaDaBatalha;
 class TelaDoResultado;
+class DevolutivaDaBatalha;
 class BossProjectile;
 class PlayerProjectile;
 
@@ -317,14 +318,9 @@ private:
     /// resumo.
     std::unique_ptr<TelaDoResultado> mResultado;
 
-    /// Um acerto sofrido por 'jogador', que levou 'perda' de nota, por 'causa' (o tipo do projetil, ou
-    /// o esbarrao): para a devolutiva e a justica.
-    void AnotarPerda(const Player& jogador, const std::string& causa, float perda);
-
-    /// A devolutiva: onde a nota caiu e por que (Devolutiva.h).
-    Devolutiva::Caderno mCaderno;
-    /// A justica, na dupla: o que cada aluno fez.
-    std::vector<Devolutiva::Parte> mPartes;
+    /// A devolutiva (onde a nota caiu e por que) e a justica da dupla (o que cada aluno fez): um
+    /// ouvinte da batalha, que esta guarda em mOuvintes (DevolutivaDaBatalha.h).
+    DevolutivaDaBatalha* mDevolutiva = nullptr;
 
     SoundHandle mMusica;
 

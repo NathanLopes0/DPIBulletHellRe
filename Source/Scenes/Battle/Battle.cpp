@@ -44,6 +44,7 @@
 
 #include "../../Motor/CaminhosArquivo.h"
 #include "../../Motor/Fontes.h"
+#include "DevolutivaDaBatalha.h"
 #include "RegistroDaTentativa.h"
 #include "RelatorioDaSimulacao.h"
 #include "ClaroesDaMoldura.h"
@@ -88,6 +89,10 @@ void Battle::Load() {
     if (mGame->ConfiguracaoDaSimulacao().relatorio) {
         mOuvintes.push_back(std::make_unique<RelatorioDaSimulacao>(mGame->ConfiguracaoDaSimulacao().sairNoFim));
     }
+    // E a devolutiva, que a tela do resultado mostra no fim.
+    auto devolutiva = std::make_unique<DevolutivaDaBatalha>(mGame->QuantosJogadores(), mCondicao);
+    mDevolutiva = devolutiva.get();
+    mOuvintes.push_back(std::move(devolutiva));
 
     // Toda batalha comeca em 40, mesmo que o aluno ja tenha tirado mais nesta materia, e sem os
     // acertos de ontem: quem foi atingido ontem nao perde a nota cheia de hoje.
@@ -113,7 +118,6 @@ void Battle::Load() {
     mColisoes = std::make_unique<Colisoes>(mJogadores, mCorpos, mPontosExtras, *mEfeitos, regras);
     mDesenhoSobreOsAlunos = std::make_unique<DesenhoSobreOsAlunos>(*this);
     mPausa = std::make_unique<PausaDaBatalha>(*this, mFonteDaNota.get(), mGame->JeitoDoRodape(), GetPlayfieldBounds());
-    mPartes.assign(mJogadores.size(), Devolutiva::Parte{});
 
     // Tocando desde o Load, ela comecava por cima de uma tela parada.
 
@@ -496,12 +500,6 @@ void Battle::SairDaBatalha(const SceneType destino) {
 }
 //endregion Pausa
 
-void Battle::AnotarPerda(const Player& jogador, const std::string& causa, const float perda) {
-    mCaderno.Perder(causa, perda);
-    const int quem = PosicaoDoAluno(&jogador);
-    if (quem >= 0 && static_cast<size_t>(quem) < mPartes.size()) ++mPartes[static_cast<size_t>(quem)].sofridos;
-}
-
 void Battle::VerificarColisoes() {
     Avisar([&](OuvinteDaBatalha& o) { o.AoAntesDasColisoes(*this); });
     if (mColisoes && mProjeteis) {
@@ -510,7 +508,8 @@ void Battle::VerificarColisoes() {
 }
 
 void Battle::AlunoAcertado(Player& aluno, const std::string& causa, const float multiplicador, const bool porUmTiro) {
-    AnotarPerda(aluno, causa, mConta.Descer(multiplicador));
+    const float perda = mConta.Descer(multiplicador);
+    Avisar([&](OuvinteDaBatalha& o) { o.AoPerderNota(*this, aluno, causa, perda); });
     Avisar([&](OuvinteDaBatalha& o) { o.AoSerAcertado(*this, aluno, porUmTiro); });
 }
 
@@ -531,7 +530,6 @@ void Battle::ProfessorAcertado(const PlayerProjectile& tiro, const CircleCollide
         const int quem = PosicaoDoAluno(tiro.Dono());
         // Quem pergunta incomoda, e chama a mira (Papeis.h).
         if (quem >= 0) mMira.Acertou(static_cast<size_t>(quem));
-        if (quem >= 0 && static_cast<size_t>(quem) < mPartes.size()) ++mPartes[static_cast<size_t>(quem)].acertos;
         const float fatorDaDistancia = quem >= 0 ? Nota::FatorDePerto((tiro.Dono()->GetPosition() -
                                                                        corpo.GetCenter()).Length())
                                                  : 1.0f;
@@ -584,7 +582,6 @@ bool Battle::ProjetilDerrubado(const PlayerProjectile& tiro, const BossProjectil
 
     // E da dupla: pago inteiro, sem a divisao.
     mConta.Subir(Cobertura::kGanho);
-    if (static_cast<size_t>(quem) < mPartes.size()) ++mPartes[static_cast<size_t>(quem)].coberturas;
     mEfeitos->Faiscar(colisorDoProjetil->GetCenter(), Hud::Faisca::Cobertura, quem);
     // O valeu: sobe de quem foi coberto, na cor de quem cobriu - os dois veem que contou, na hora.
     if (mCondicao.Ligada(Experimento::Mecanica::Valeu)) {
@@ -680,7 +677,6 @@ void Battle::AoMudarDeFase(const float novaDuracao) {
     const auto* fsm = mChefe ? mChefe->GetComponent<FSMComponent>() : nullptr;
     const std::string fase = fsm ? fsm->GetStateName() : "";
     const std::string anuncio = mChefe ? mChefe->AnuncioDaFase(fase) : "";
-    mCaderno.ComecarFase(anuncio, fase == "StateFinal");
     Avisar([&](OuvinteDaBatalha& o) { o.AoTrocarDeFase(*this, fase, anuncio); });
 }
 
@@ -850,8 +846,8 @@ void Battle::EncerrarBatalha(bool aprovado) {
     resumo.acertosSofridos = mConta.AcertosSofridos();
     // A devolutiva, para quem reprovou: onde a nota mais caiu e o que mais acertou.
     if (!aprovado && mCondicao.Ligada(Experimento::Mecanica::Devolutiva)) {
-        resumo.piorFase = mCaderno.PiorFase();
-        resumo.causas = mCaderno.Causas();
+        resumo.piorFase = mDevolutiva->Caderno().PiorFase();
+        resumo.causas = mDevolutiva->Caderno().Causas();
         if (resumo.causas.size() > static_cast<size_t>(Devolutiva::kCausasNaTela)) {
             resumo.causas.resize(static_cast<size_t>(Devolutiva::kCausasNaTela));
         }
@@ -862,8 +858,8 @@ void Battle::EncerrarBatalha(bool aprovado) {
         return (m.empty() || m == Matricula::kVisitante) ? "Aluno " + std::to_string(i + 1) : m;
     };
     // A justica, na dupla: a parte de cada um, com a matricula dele.
-    if (mPartes.size() >= 2) {
-        resumo.partes = mPartes;
+    if (mDevolutiva->Partes().size() >= 2) {
+        resumo.partes = mDevolutiva->Partes();
         for (size_t i = 0; i < resumo.partes.size(); ++i) resumo.partes[i].quem = nomeDe(i);
     }
 
