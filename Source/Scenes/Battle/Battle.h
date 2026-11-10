@@ -33,6 +33,8 @@ class Player;
 class ProjectileManager;
 class BattleHUD;
 class FaixaDaNota;
+class EfeitosDaBatalha;
+class DesenhoSobreOsAlunos;
 class ExtraPointItem;
 class Orientador;
 class PausaDaBatalha;
@@ -217,41 +219,18 @@ private:
         for (const auto& o : mOuvintes) aviso(*o);
     }
 
-    // ---- O Ponto Extra do co-op, a vista (PontoExtra.h): o feixe de quem gastou ----
-    struct FeixeDoPontoExtra {
-        const Player* de = nullptr;
-        const Player* ate = nullptr;
-        float t = 0.0f;
-    };
-    std::vector<FeixeDoPontoExtra> mFeixes;
-    class DrawLinhasComponent* mDesenhoSobreOsAlunos = nullptr;
-    float mPulsoDoEscudo = 0.0f;
+    // ---- O que se desenha na luta ----
 
-    // ---- A comunicacao minima (Comunicacao.h): o sinal e o valeu ----
-    struct SinalEmCampo {
-        const Player* quem = nullptr;
-        size_t cor = 0;             ///< a posicao de quem deu o sinal: a cor do anel
-        float t = 0.0f;
-    };
-    std::vector<SinalEmCampo> mSinais;
-    /// Quando cada aluno deu o ultimo sinal (mRelogioDaLuta).
+    /// As faiscas, as ondas do Ponto Extra e as moedas (EfeitosDaBatalha.h).
+    std::unique_ptr<EfeitosDaBatalha> mEfeitos;
+    /// Por cima dos alunos: o feixe e o escudo do Ponto Extra, o sinal, o valeu, a mira presa e a
+    /// hitbox (DesenhoSobreOsAlunos.h).
+    std::unique_ptr<DesenhoSobreOsAlunos> mDesenhoSobreOsAlunos;
+
+    /// Quando cada aluno deu o ultimo sinal (mRelogioDaLuta): a espera entre um e outro.
     std::array<float, 2> mUltimoSinal{Comunicacao::kNuncaSinalizou, Comunicacao::kNuncaSinalizou};
-    struct ValeuEmCampo {
-        const Player* coberto = nullptr;
-        size_t cor = 0;             ///< a posicao de quem cobriu: a cor do coracao
-        float t = 0.0f;
-    };
-    std::vector<ValeuEmCampo> mValeus;
-    void DesenharComunicacao(float deltaTime);
 
-    /// Na frente do aluno (100): o escudo e o que se le, e nao o sprite.
-    static constexpr int kOrdemSobreOsAlunos = 102;
-
-    /// Anda os feixes e redesenha o que fica por cima dos alunos: os feixes,
-    /// os escudos e, se a opcao estiver ligada, a hitbox de cada um.
-    void AtualizarDesenhoSobreOsAlunos(float deltaTime);
-
-    // ---- A moldura do campo e os efeitos (Hud.h) ----
+    // ---- A moldura do campo (Hud.h) ----
     class DrawMolduraDoCampoComponent* mMoldura = nullptr;
     Hud::Caixa mAreaDoAluno;
     void CriarMoldura();
@@ -272,17 +251,6 @@ private:
     /// O "prof" escrito embaixo do brilho de cada corpo do professor.
     std::vector<Actor*> mRotulosDoProfessor;
 
-    struct FaiscaEmCampo {
-        Vector2 onde;
-        Hud::Faisca tipo = Hud::Faisca::Acerto;
-        float idade = 0.0f;
-        int quem = -1;   ///< o aluno (a cor do "!" da Resposta); -1 = ninguem
-    };
-    std::vector<FaiscaEmCampo> mFaiscas;
-    class DrawLinhasComponent* mEfeitos = nullptr;
-    /// Um efeito em 'onde'. Com muitos ao mesmo tempo, os mais velhos saem.
-    void Faiscar(const Vector2& onde, Hud::Faisca tipo, int quem = -1);
-
     /// O tiro de um aluno derrubou um projetil: se ele ia no parceiro, e uma cobertura (Cobertura.h),
     /// paga inteira, com a faisca dela. Devolve se foi.
     bool Cobrir(const PlayerProjectile& tiro, const BossProjectile& projetil);
@@ -299,7 +267,6 @@ private:
                 const class CircleColliderComponent& colisorDoProjetil);
     /// A posicao (0 ou 1) do aluno 'ator', ou -1 se ele nao e um aluno.
     [[nodiscard]] int PosicaoDoAluno(const Actor* ator) const;
-    void AtualizarEfeitos(float deltaTime);
 
     /// Segundos de luta: sem carregamento, sem pausa e sem o resultado.
     float mRelogioDaLuta = 0.0f;
@@ -307,22 +274,6 @@ private:
     /// em PontoExtra::kJanelaDaSincronia sao a sincronia.
     std::array<float, 2> mUltimoPontoExtra{PontoExtra::kNuncaGastou, PontoExtra::kNuncaGastou};
 
-    // ---- O Ponto Extra de solo: a onda e as moedas ----
-    struct Onda {
-        Vector2 centro;
-        float t = 0.0f;
-    };
-    std::vector<Onda> mOndas;
-    struct Moeda {
-        Vector2 de;
-        float t = 0.0f;
-    };
-    std::vector<Moeda> mMoedas;
-    void AtualizarOndas(float deltaTime);
-    static constexpr size_t kMaximoDeMoedas = 40;
-    static constexpr float kVooDaMoeda = 0.55f;
-    static constexpr int kOrdemDosEfeitos = 104;
-    static constexpr size_t kMaximoDeFaiscas = 64;
     /// A moldura e fundo, atras de tudo - ate do quadro (60).
     static constexpr int kOrdemDaMoldura = 40;
     static constexpr int kOrdemDoFundo = 10;
@@ -343,8 +294,6 @@ private:
     size_t mVezDoAlvo = 0;
     /// A vez foi dada (DarAVez) para o proximo disparo, por cima da mira.
     bool mVezDada = false;
-    /// O "v" da mira fica isto acima do centro do aluno: logo acima da cabeca (o desenho tem 64 px).
-    static constexpr float kAlturaDaMira = 44.0f;
     /// O quanto cada aluno incomodou o professor: em quem os ataques mirados vao (Papeis.h).
     Papeis::Incomodo mIncomodo;
     /// As mecanicas que esta execucao desliga (Experimento.h), lidas ao criar a batalha.

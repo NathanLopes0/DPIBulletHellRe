@@ -10,6 +10,8 @@
 #include <random>
 
 #include "BattleHUD.h"
+#include "DesenhoSobreOsAlunos.h"
+#include "EfeitosDaBatalha.h"
 #include "FaixaDaNota.h"
 #include "PausaDaBatalha.h"
 #include "ProjectileManager.h"
@@ -33,7 +35,6 @@
 #include "../../Components/DrawComponents/DrawQuadroComponent.h"
 #include "../../Components/DrawComponents/DrawRelogioDaFaseComponent.h"
 #include "../../Actors/Teachers/ExtraPointItem.h"
-#include "../../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../../Regras/PontoExtra.h"
 #include "../../Regras/Raspao.h"
 #include "../../Regras/Cobertura.h"
@@ -107,6 +108,7 @@ void Battle::Load() {
     CriarChefe();
     CriarOrientador();
     CriarHUD();
+    mDesenhoSobreOsAlunos = std::make_unique<DesenhoSobreOsAlunos>(*this);
     mPausa = std::make_unique<PausaDaBatalha>(*this, mFonteDaNota.get(), mGame->JeitoDoRodape(), GetPlayfieldBounds());
     mPartes.assign(mJogadores.size(), Devolutiva::Parte{});
 
@@ -473,11 +475,11 @@ void Battle::OnUpdate(float deltaTime) {
     // Orquestra a checagem de colisões.
     VerificarColisoes();
     mIncomodo.Avancar(deltaTime);
-    AtualizarDesenhoSobreOsAlunos(deltaTime);
+    mDesenhoSobreOsAlunos->Atualizar(deltaTime, mJogadores, FocoDaMira(), mGame && mGame->MostrarHitbox());
     MarcarOCaminhoDosAlunos();
     AtualizarMoldura();
-    AtualizarOndas(deltaTime);
-    AtualizarEfeitos(deltaTime);
+    mEfeitos->AvancarOndas(deltaTime, mProjeteis->GetBossProjectiles());
+    mEfeitos->Desenhar(deltaTime, mFaixa->Ponta(mConta.Valor()));
 
     if (mHUD) mHUD->OnUpdate(deltaTime, mChefe && mChefe->Congelado());
     if (mRede > 0.0f) mRede = std::max(0.0f, mRede - deltaTime);
@@ -673,7 +675,7 @@ void Battle::ColisoesTiroDoChefeNoAluno(const std::vector<std::unique_ptr<BossPr
                     }
                     AnotarPerda(*jogador, bossProj->Tipo(), mConta.Descer(bossProj->MultiplicadorDaPerda()));
 
-                    Faiscar(playerCollider->GetCenter(), Hud::Faisca::Dano);
+                    mEfeitos->Faiscar(playerCollider->GetCenter(), Hud::Faisca::Dano);
                     Avisar([&](OuvinteDaBatalha& o) { o.AoSerAcertado(*this, *jogador, true); });
                 } else {
                     Raspar(*jogador, *playerCollider, *bossProj, *bossProjCollider);
@@ -710,10 +712,10 @@ bool Battle::Cobrir(const PlayerProjectile& tiro, const BossProjectile& projetil
     // E da dupla: pago inteiro, sem a divisao.
     mConta.Subir(Cobertura::kGanho);
     if (static_cast<size_t>(quem) < mPartes.size()) ++mPartes[static_cast<size_t>(quem)].coberturas;
-    Faiscar(colisorDoProjetil->GetCenter(), Hud::Faisca::Cobertura, quem);
+    mEfeitos->Faiscar(colisorDoProjetil->GetCenter(), Hud::Faisca::Cobertura, quem);
     // O valeu: sobe de quem foi coberto, na cor de quem cobriu - os dois veem que contou, na hora.
     if (mCondicao.Ligada(Experimento::Mecanica::Valeu)) {
-        mValeus.push_back(ValeuEmCampo{parceiro, static_cast<size_t>(quem), 0.0f});
+        mDesenhoSobreOsAlunos->Valeu(parceiro, static_cast<size_t>(quem));
     }
     return true;
 }
@@ -728,7 +730,7 @@ void Battle::Sinalizar(const Player& quem) {
     // A medida conta sempre; o experimento sem sinal so nao mostra nem toca.
     Avisar([&](OuvinteDaBatalha& o) { o.AoSinalizar(*this, quem); });
     if (!mCondicao.Ligada(Experimento::Mecanica::Sinal)) return;
-    mSinais.push_back(SinalEmCampo{&quem, static_cast<size_t>(i), 0.0f});
+    mDesenhoSobreOsAlunos->Sinal(&quem, static_cast<size_t>(i));
     if (mGame && mGame->GetAudio()) mGame->GetAudio()->PlaySound("sinal.wav", false);
 }
 
@@ -737,7 +739,7 @@ void Battle::MarcarOCaminhoDosAlunos() {
     if (mJogadores.size() < 2 || !mProjeteis) return;
     std::vector<Cobertura::Aluno> alunos;
     for (const Player* p : mJogadores) alunos.push_back(AlunoDaCobertura(p));
-    const Uint8 alfa = Hud::AlfaDoBrilho(mPulsoDoEscudo);
+    const Uint8 alfa = Hud::AlfaDoBrilho(mDesenhoSobreOsAlunos->Pulso());
     const bool brilha = mCondicao.Ligada(Experimento::Mecanica::Brilho);
 
     for (const auto& projetil : mProjeteis->GetBossProjectiles()) {
@@ -767,54 +769,6 @@ void Battle::MarcarOCaminhoDosAlunos() {
     }
 }
 
-void Battle::DesenharComunicacao(const float deltaTime) {
-    const auto centroDe = [](const Player* p) {
-        const auto* c = ColisorDe(p);
-        return c ? c->GetCenter() : p->GetPosition();
-    };
-    const auto corDe = [](const size_t quem, const float alfa) {
-        const Hud::Rgb c = Hud::CorDoAluno(quem);
-        return SDL_Color{c.r, c.g, c.b, static_cast<Uint8>(255.0f * alfa)};
-    };
-
-    // O sinal: um anel que abre em volta de quem chamou, e um segundo, mais apagado, logo dentro.
-    for (SinalEmCampo& s : mSinais) s.t += deltaTime;
-    mSinais.erase(std::remove_if(mSinais.begin(), mSinais.end(),
-        [](const SinalEmCampo& s) { return Comunicacao::AlfaDoSinal(s.t) <= 0.0f; }), mSinais.end());
-    for (const SinalEmCampo& s : mSinais) {
-        if (!s.quem) continue;
-        const float raio = Comunicacao::RaioDoSinal(s.t);
-        const float alfa = Comunicacao::AlfaDoSinal(s.t);
-        for (const auto& [a, b] : PontoExtra::Anel(centroDe(s.quem), raio, 28)) {
-            mDesenhoSobreOsAlunos->Acrescentar(a, b, corDe(s.cor, alfa));
-        }
-        for (const auto& [a, b] : PontoExtra::Anel(centroDe(s.quem), raio - 5.0f, 28)) {
-            mDesenhoSobreOsAlunos->Acrescentar(a, b, corDe(s.cor, alfa * 0.5f));
-        }
-    }
-
-    // O valeu: o coracao sobe da cabeca de quem foi coberto, na cor de quem cobriu, e apaga.
-    for (ValeuEmCampo& v : mValeus) v.t += deltaTime;
-    mValeus.erase(std::remove_if(mValeus.begin(), mValeus.end(),
-        [](const ValeuEmCampo& v) { return Comunicacao::AlfaDoValeu(v.t) <= 0.0f; }), mValeus.end());
-    constexpr float p = static_cast<float>(Comunicacao::kPixelDoCoracao);
-    for (const ValeuEmCampo& v : mValeus) {
-        if (!v.coberto) continue;
-        const Vector2 meio = centroDe(v.coberto) -
-                             Vector2(0.0f, Comunicacao::kAlturaDoValeu + Comunicacao::SubidaDoValeu(v.t));
-        const Vector2 canto = meio - Vector2(p * Comunicacao::kLarguraDoCoracao, p * Comunicacao::kAlturaDoCoracao) * 0.5f;
-        const SDL_Color cor = corDe(v.cor, Comunicacao::AlfaDoValeu(v.t));
-        for (const Comunicacao::Faixa& f : Comunicacao::Coracao()) {
-            for (int dy = 0; dy < Comunicacao::kPixelDoCoracao; ++dy) {
-                const float y = canto.y + p * static_cast<float>(f.linha) + static_cast<float>(dy);
-                mDesenhoSobreOsAlunos->Acrescentar(Vector2(canto.x + p * static_cast<float>(f.de), y),
-                                                   Vector2(canto.x + p * static_cast<float>(f.ate + 1) - 1.0f, y),
-                                                   cor);
-            }
-        }
-    }
-}
-
 void Battle::Raspar(Player& jogador, const CircleColliderComponent& colisor, BossProjectile& projetil,
                     const CircleColliderComponent& colisorDoProjetil) {
     // O que esta parado num posto (a pilha, a tabela) e o que nem anda nao e um desvio; e quem esta
@@ -832,7 +786,7 @@ void Battle::Raspar(Player& jogador, const CircleColliderComponent& colisor, Bos
     Avisar([&](OuvinteDaBatalha& o) { o.AoRaspar(*this, jogador); });
     if (!mCondicao.Ligada(Experimento::Mecanica::Raspao)) return;
     mConta.Subir(mConta.PorJogador(Raspao::kGanho));
-    Faiscar(Raspao::OndeFaisca(colisor.GetCenter(), colisorDoProjetil.GetCenter()), Hud::Faisca::Raspao);
+    mEfeitos->Faiscar(Raspao::OndeFaisca(colisor.GetCenter(), colisorDoProjetil.GetCenter()), Hud::Faisca::Raspao);
 }
 
 void Battle::ColisoesTiroDoAlunoNosProjeteis(const std::vector<std::unique_ptr<PlayerProjectile>>& playerProjectiles, const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles) {
@@ -852,7 +806,7 @@ void Battle::ColisoesTiroDoAlunoNosProjeteis(const std::vector<std::unique_ptr<P
 
                 if (bossProj->Derrubavel()) {
                     if (bossProj->Golpear()) {
-                        if (!Cobrir(*playerProj, *bossProj)) Faiscar(bossProj->GetPosition(), Hud::Faisca::Derrubada);
+                        if (!Cobrir(*playerProj, *bossProj)) mEfeitos->Faiscar(bossProj->GetPosition(), Hud::Faisca::Derrubada);
                         bossProj->OnCollision(playerProj.get());
                         if (mChefe) {
                             mChefe->OnProjetilDerrubado();
@@ -860,7 +814,7 @@ void Battle::ColisoesTiroDoAlunoNosProjeteis(const std::vector<std::unique_ptr<P
                         }
                     }
                 } else {
-                    Faiscar(bossProj->GetPosition(), Hud::Faisca::Dissolvido);
+                    mEfeitos->Faiscar(bossProj->GetPosition(), Hud::Faisca::Dissolvido);
                     bossProj->Kill();
                 }
             }
@@ -882,14 +836,14 @@ void Battle::ColisoesTiroDoAlunoNosProjeteis(const std::vector<std::unique_ptr<P
             {
                 // A resistencia: so o ultimo golpe derruba.
                 if (bossProj->Golpear()) {
-                    if (!Cobrir(*playerProj, *bossProj)) Faiscar(bossProj->GetPosition(), Hud::Faisca::Derrubada);
+                    if (!Cobrir(*playerProj, *bossProj)) mEfeitos->Faiscar(bossProj->GetPosition(), Hud::Faisca::Derrubada);
                     bossProj->OnCollision(playerProj.get());
                     if (mChefe) {
                         mChefe->OnProjetilDerrubado();
                         mChefe->OnDerrubou(bossProj.get());
                     }
                 } else if (mChefe) {
-                    Faiscar(playerProj->GetPosition(), Hud::Faisca::Acerto);
+                    mEfeitos->Faiscar(playerProj->GetPosition(), Hud::Faisca::Acerto);
                     mChefe->OnProjetilBarrado();
                 }
             }
@@ -942,7 +896,7 @@ void Battle::ColisoesTiroDoAlunoNoChefe(const std::vector<std::unique_ptr<Player
                     const float fator = mCondicao.Ligada(Experimento::Mecanica::Perto) ? fatorDaDistancia : 1.0f;
                     mConta.Subir(mConta.PorJogador(Nota::kGanhoPorAcerto * fator));
                     // A duvida respondida: o "?" vira um "!" na cor de quem perguntou - "!!" de perto.
-                    Faiscar(playerProj->GetPosition(),
+                    mEfeitos->Faiscar(playerProj->GetPosition(),
                             fator >= Nota::kFatorDaRespostaDupla ? Hud::Faisca::RespostaDePerto : Hud::Faisca::Resposta,
                             quem);
                 }
@@ -994,7 +948,7 @@ void Battle::ColisoesComPontoExtra() {
 
                 // 1.
                 jogador->GanharPontoExtra();
-                Faiscar(playerCollider->GetCenter(), Hud::Faisca::Coleta);
+                mEfeitos->Faiscar(playerCollider->GetCenter(), Hud::Faisca::Coleta);
                 Avisar([&](OuvinteDaBatalha& o) { o.AoPegarPontoExtra(*this, *jogador); });
 
                 // 2.
@@ -1159,14 +1113,14 @@ void Battle::AoGastarPontoExtra(Player* quemGastou) {
     if (!oOutro) {
         // Sozinho, o Ponto Extra limpa a tela, como sempre fez.
         const auto* colisor = ColisorDe(quemGastou);
-        mOndas.push_back(Onda{colisor ? colisor->GetCenter() : quemGastou->GetPosition(), 0.0f});
-        Faiscar(colisor ? colisor->GetCenter() : quemGastou->GetPosition(), Hud::Faisca::Coleta);
+        mEfeitos->SoltarOnda(colisor ? colisor->GetCenter() : quemGastou->GetPosition());
+        mEfeitos->Faiscar(colisor ? colisor->GetCenter() : quemGastou->GetPosition(), Hud::Faisca::Coleta);
         return;
     }
 
     // Em dupla, o Ponto Extra e do outro, e nao limpa a tela.
     oOutro->Proteger(PontoExtra::kImunidadeDoPresente);
-    mFeixes.push_back(FeixeDoPontoExtra{quemGastou, oOutro, 0.0f});
+    mDesenhoSobreOsAlunos->Feixe(quemGastou, oOutro);
 
     // A sincronia: os dois juntos, e a onda do solo sai do meio dos dois, alem dos escudos.
     const int quem = PosicaoDoAluno(quemGastou);
@@ -1185,91 +1139,11 @@ void Battle::AoGastarPontoExtra(Player* quemGastou) {
     const auto* b = ColisorDe(oOutro);
     const Vector2 meio = ((a ? a->GetCenter() : quemGastou->GetPosition()) +
                           (b ? b->GetCenter() : oOutro->GetPosition())) * 0.5f;
-    mOndas.push_back(Onda{meio, 0.0f});
-    Faiscar(meio, Hud::Faisca::Coleta);
+    mEfeitos->SoltarOnda(meio);
+    mEfeitos->Faiscar(meio, Hud::Faisca::Coleta);
 }
 
-void Battle::AtualizarDesenhoSobreOsAlunos(const float deltaTime) {
-    const bool hitbox = mGame && mGame->MostrarHitbox();
-    if (!mDesenhoSobreOsAlunos) {
-        if (mJogadores.size() < 2 && !hitbox) return;   // so a dupla tem feixe e escudo
-        auto ator = std::make_unique<Actor>(this);
-        mDesenhoSobreOsAlunos = ator->AddComponent<DrawLinhasComponent>(kOrdemSobreOsAlunos);
-        AddActor(std::move(ator));
-    }
-    mDesenhoSobreOsAlunos->Limpar();
-
-    auto centroDe = [](const Player* p) {
-        const auto* c = ColisorDe(p);
-        return c ? c->GetCenter() : p->GetPosition();
-    };
-
-    // Os feixes: a cabeca corre ate o parceiro, e depois a linha se apaga.
-    for (FeixeDoPontoExtra& f : mFeixes) f.t += deltaTime;
-    mFeixes.erase(std::remove_if(mFeixes.begin(), mFeixes.end(),
-        [](const FeixeDoPontoExtra& f) { return !PontoExtra::FeixeAceso(f.t); }), mFeixes.end());
-    for (const FeixeDoPontoExtra& f : mFeixes) {
-        if (!f.de || !f.ate) continue;
-        const Vector2 de = centroDe(f.de), ate = centroDe(f.ate);
-        const PontoExtra::Feixe feixe = PontoExtra::FeixeEm(de, ate, f.t);
-        const auto alfa = static_cast<Uint8>(110.0f * feixe.rastro);
-        if (alfa > 0) mDesenhoSobreOsAlunos->Acrescentar(de, ate, SDL_Color{150, 210, 255, alfa});
-        if (feixe.cabeca) {
-            // A cabeca tem corpo: tres tracos lado a lado, o do meio mais claro.
-            Vector2 lado(ate.y - de.y, de.x - ate.x);
-            if (lado.LengthSq() > 0.0f) lado.Normalize();
-            mDesenhoSobreOsAlunos->Acrescentar(feixe.cabecaDe + lado * 2.0f, feixe.cabecaAte + lado * 2.0f, SDL_Color{150, 210, 255, 200});
-            mDesenhoSobreOsAlunos->Acrescentar(feixe.cabecaDe - lado * 2.0f, feixe.cabecaAte - lado * 2.0f, SDL_Color{150, 210, 255, 200});
-            mDesenhoSobreOsAlunos->Acrescentar(feixe.cabecaDe, feixe.cabecaAte, SDL_Color{235, 250, 255, 255});
-        }
-    }
-
-    mPulsoDoEscudo += deltaTime;
-    for (const Player* p : mJogadores) {
-        if (!p || p->TempoDeImunidade() <= 0.0f) continue;
-        const float pulso = 0.5f + 0.5f * Math::Sin(mPulsoDoEscudo * (p->TempoDeImunidade() < 0.8f ? 22.0f : 8.0f));
-        const auto alfa = static_cast<Uint8>(120.0f + 120.0f * pulso);
-        // Dois aneis, o de dentro mais apagado: a borda do escudo tem espessura.
-        for (const auto& [a, b] : PontoExtra::Anel(centroDe(p), PontoExtra::kRaioDoEscudo)) {
-            mDesenhoSobreOsAlunos->Acrescentar(a, b, SDL_Color{120, 190, 255, alfa});
-        }
-        for (const auto& [a, b] : PontoExtra::Anel(centroDe(p), PontoExtra::kRaioDoEscudo - 3.0f)) {
-            mDesenhoSobreOsAlunos->Acrescentar(a, b, SDL_Color{120, 190, 255, static_cast<Uint8>(alfa / 2)});
-        }
-    }
-
-    DesenharComunicacao(deltaTime);
-
-    // A mira presa (Papeis.h): um "v" vermelho em cima de quem o professor esta olhando. So quando ela
-    // esta presa - enquanto os dois revezam ele piscaria a cada disparo, e nao diria nada.
-    const int foco = FocoDaMira();
-    if (foco >= 0 && static_cast<size_t>(foco) < mJogadores.size() && mJogadores[static_cast<size_t>(foco)]) {
-        const Vector2 c = centroDe(mJogadores[static_cast<size_t>(foco)]) + Vector2(0.0f, -kAlturaDaMira);
-        const float pulso = 0.5f + 0.5f * Math::Sin(mPulsoDoEscudo * 6.0f);
-        const auto alfa = static_cast<Uint8>(170.0f + 85.0f * pulso);
-        const auto v = [&](const float dy, const float abre, const SDL_Color cor) {
-            mDesenhoSobreOsAlunos->Acrescentar(c + Vector2(-abre, dy - abre * 0.8f), c + Vector2(0.0f, dy), cor);
-            mDesenhoSobreOsAlunos->Acrescentar(c + Vector2(abre, dy - abre * 0.8f), c + Vector2(0.0f, dy), cor);
-        };
-        for (float dy = -1.0f; dy <= 3.0f; dy += 1.0f) v(dy, 9.0f, SDL_Color{20, 22, 34, static_cast<Uint8>(alfa * 0.7f)});
-        for (float dy = 0.0f; dy <= 2.0f; dy += 1.0f) v(dy, 7.0f, SDL_Color{255, 80, 70, alfa});
-    }
-
-    // A hitbox (opcao da tela de Opcoes): o circulo de colisao de verdade, e um ponto no meio.
-    if (!hitbox) return;
-    for (const Player* p : mJogadores) {
-        const auto* c = p ? ColisorDe(p) : nullptr;
-        if (!c) continue;
-        const SDL_Color vermelho{255, 70, 70, 230};
-        for (const auto& [a, b] : PontoExtra::Anel(c->GetCenter(), c->GetRadius(), 16)) {
-            mDesenhoSobreOsAlunos->Acrescentar(a, b, vermelho);
-        }
-        const Vector2 m = c->GetCenter();
-        mDesenhoSobreOsAlunos->Acrescentar(m - Vector2(2.0f, 0.0f), m + Vector2(2.0f, 0.0f), SDL_Color{255, 255, 255, 255});
-    }
-}
-
-// A moldura do campo e os efeitos.
+// A moldura do campo.
 
 void Battle::CriarFundo() {
     // O caderno quadriculado embaixo de tudo, do tamanho do campo.
@@ -1296,9 +1170,7 @@ void Battle::CriarMoldura() {
                       mAreaDoAluno);
     AddActor(std::move(moldura));
 
-    auto efeitos = std::make_unique<Actor>(this);
-    mEfeitos = efeitos->AddComponent<DrawLinhasComponent>(kOrdemDosEfeitos);
-    AddActor(std::move(efeitos));
+    mEfeitos = std::make_unique<EfeitosDaBatalha>(*this);
 }
 
 void Battle::AtualizarMoldura() {
@@ -1337,40 +1209,9 @@ void Battle::AtualizarMoldura() {
 }
 
 void Battle::Atravessou(const Vector2& de, const Vector2& para) {
-    Faiscar(de, Hud::Faisca::Coleta);
-    Faiscar(para, Hud::Faisca::Coleta);
+    mEfeitos->Faiscar(de, Hud::Faisca::Coleta);
+    mEfeitos->Faiscar(para, Hud::Faisca::Coleta);
     Avisar([&](OuvinteDaBatalha& o) { o.AoAtravessarAParede(*this); });
-}
-
-void Battle::AtualizarOndas(const float deltaTime) {
-    for (Onda& o : mOndas) {
-        o.t += deltaTime;
-        const float raio = PontoExtra::RaioDaOnda(o.t);
-        if (!mProjeteis) continue;
-        // O mesmo filtro do ClearAtaquesDoChefe.
-        for (const auto& p : mProjeteis->GetBossProjectiles()) {
-            if (!p || p->Enfeite()) continue;
-            const auto estado = p->GetState();
-            if (estado != ActorState::Active && estado != ActorState::Paused) continue;
-            if ((p->GetPosition() - o.centro).Length() > raio) continue;
-            const Vector2 onde = p->GetPosition();
-            p->Kill();
-            Faiscar(onde, Hud::Faisca::Dissolvido);
-            if (mMoedas.size() < kMaximoDeMoedas) mMoedas.push_back(Moeda{onde, 0.0f});
-        }
-    }
-    mOndas.erase(std::remove_if(mOndas.begin(), mOndas.end(),
-                                [](const Onda& o) { return o.t >= PontoExtra::kDuracaoDaOnda; }),
-                 mOndas.end());
-    for (Moeda& m : mMoedas) m.t += deltaTime;
-    mMoedas.erase(std::remove_if(mMoedas.begin(), mMoedas.end(),
-                                 [](const Moeda& m) { return m.t >= kVooDaMoeda; }),
-                  mMoedas.end());
-}
-
-void Battle::Faiscar(const Vector2& onde, const Hud::Faisca tipo, const int quem) {
-    if (mFaiscas.size() >= kMaximoDeFaiscas) mFaiscas.erase(mFaiscas.begin());
-    mFaiscas.push_back({onde, tipo, 0.0f, quem});
 }
 
 int Battle::PosicaoDoAluno(const Actor* ator) const {
@@ -1378,127 +1219,6 @@ int Battle::PosicaoDoAluno(const Actor* ator) const {
         if (ator && mJogadores[i] == ator) return static_cast<int>(i);
     }
     return -1;
-}
-
-void Battle::AtualizarEfeitos(const float deltaTime) {
-    if (!mEfeitos) return;
-    mEfeitos->Limpar();
-    for (FaiscaEmCampo& f : mFaiscas) f.idade += deltaTime;
-    mFaiscas.erase(std::remove_if(mFaiscas.begin(), mFaiscas.end(),
-                                  [](const FaiscaEmCampo& f) { return f.idade >= Hud::Vida(f.tipo); }),
-                   mFaiscas.end());
-
-    const auto alfa = [](const float a) { return static_cast<Uint8>(std::clamp(a, 0.0f, 1.0f) * 255.0f); };
-    const auto raios = [this](const Vector2& c, const float de, const float ate, const int n, const float giro,
-                              const SDL_Color cor) {
-        for (int k = 0; k < n; ++k) {
-            const float a = giro + 2.0f * Math::Pi * static_cast<float>(k) / static_cast<float>(n);
-            const Vector2 u(Math::Cos(a), Math::Sin(a));
-            mEfeitos->Acrescentar(c + u * de, c + u * ate, cor);
-        }
-    };
-    const auto anel = [this](const Vector2& c, const float r, const SDL_Color cor) {
-        for (const auto& [a, b] : PontoExtra::Anel(c, r, 24)) mEfeitos->Acrescentar(a, b, cor);
-    };
-
-    for (const FaiscaEmCampo& f : mFaiscas) {
-        const float r = Hud::Raio(f.tipo, f.idade);
-        const float b = Hud::Brilho(f.tipo, f.idade);
-        // O giro de cada uma sai de onde ela nasceu: duas lado a lado nao sao a mesma estrela repetida.
-        const float giro = f.onde.x * 0.37f + f.onde.y * 0.11f;
-        switch (f.tipo) {
-            case Hud::Faisca::Acerto:
-                // Miuda e branca: sao dez por segundo, e nao podem cobrir o chefe.
-                raios(f.onde, r * 0.45f, r, 5, giro, SDL_Color{255, 250, 220, alfa(0.9f * b)});
-                break;
-            case Hud::Faisca::Derrubada:
-                raios(f.onde, r * 0.35f, r, 8, giro, SDL_Color{255, 160, 60, alfa(b)});
-                anel(f.onde, r * 0.7f, SDL_Color{255, 210, 120, alfa(0.6f * b)});
-                break;
-            case Hud::Faisca::Dano:
-                anel(f.onde, r, SDL_Color{255, 70, 60, alfa(b)});
-                anel(f.onde, r - 3.0f, SDL_Color{255, 70, 60, alfa(0.5f * b)});
-                raios(f.onde, r * 0.25f, r * 0.6f, 8, giro, SDL_Color{255, 120, 100, alfa(0.8f * b)});
-                break;
-            case Hud::Faisca::Coleta:
-                anel(f.onde, r, SDL_Color{255, 215, 80, alfa(b)});
-                raios(f.onde, r * 0.8f, r * 1.15f, 4, giro + f.idade * 6.0f, SDL_Color{255, 240, 160, alfa(b)});
-                break;
-            case Hud::Faisca::Dissolvido:
-                // O tiro vira brilho: uma estrela dourada de quatro pontas.
-                raios(f.onde, 0.0f, r, 4, giro, SDL_Color{255, 225, 120, alfa(b)});
-                raios(f.onde, 0.0f, r * 0.55f, 4, giro + Math::Pi / 4.0f, SDL_Color{255, 250, 210, alfa(b)});
-                break;
-            case Hud::Faisca::Resposta:
-            case Hud::Faisca::RespostaDePerto: {
-                // O "!" sobe e some, na cor do aluno, com o miolo claro e um contorno escuro. De perto
-                // sao dois: "!!".
-                const Hud::Rgb c = Hud::CorDoAluno(f.quem < 0 ? 9 : static_cast<size_t>(f.quem));
-                const SDL_Color cor{c.r, c.g, c.b, alfa(b)};
-                const SDL_Color miolo{255, 255, 240, alfa(b)};
-                const SDL_Color contorno{20, 22, 34, alfa(0.85f * b)};
-                const Vector2 p = f.onde + Vector2(0.0f, -10.0f - r);
-                const auto exclamacao = [&](const float x0, const int largura, const float folga, const SDL_Color cor) {
-                    for (int dx = -largura; dx <= largura; ++dx) {
-                        const float x = x0 + static_cast<float>(dx);
-                        mEfeitos->Acrescentar(p + Vector2(x, -16.0f - folga), p + Vector2(x, -4.0f + folga), cor);
-                        mEfeitos->Acrescentar(p + Vector2(x, -1.0f - folga), p + Vector2(x, 2.0f + folga), cor);
-                    }
-                };
-                const bool dois = f.tipo == Hud::Faisca::RespostaDePerto;
-                constexpr float kLados[] = {-5.0f, 5.0f};
-                for (int i = 0; i < (dois ? 2 : 1); ++i) {
-                    const float x0 = dois ? kLados[i] : 0.0f;
-                    exclamacao(x0, 3, 1.0f, contorno);
-                    exclamacao(x0, 2, 0.0f, cor);
-                    exclamacao(x0, 0, -1.0f, miolo);
-                }
-                break;
-            }
-            case Hud::Faisca::Cobertura: {
-                // A derrubada dourada, com o anel na cor de quem cobriu: salvou o parceiro.
-                const Hud::Rgb c = Hud::CorDoAluno(f.quem < 0 ? 9 : static_cast<size_t>(f.quem));
-                raios(f.onde, r * 0.3f, r, 8, giro, SDL_Color{255, 220, 110, alfa(b)});
-                anel(f.onde, r * 0.75f, SDL_Color{c.r, c.g, c.b, alfa(0.9f * b)});
-                anel(f.onde, r * 0.75f - 2.0f, SDL_Color{255, 245, 200, alfa(0.6f * b)});
-                break;
-            }
-            case Hud::Faisca::Raspao:
-                // Tres riscos azul-claros, na borda do aluno, com um contorno escuro que os separa do
-                // desenho dele: passou perto.
-                raios(f.onde, r * 0.25f, r, 3, giro, SDL_Color{20, 22, 34, alfa(0.6f * b)});
-                raios(f.onde + Vector2(1.0f, 0.0f), r * 0.25f, r, 3, giro, SDL_Color{20, 22, 34, alfa(0.6f * b)});
-                raios(f.onde + Vector2(0.0f, -1.0f), r * 0.3f, r, 3, giro, SDL_Color{170, 225, 255, alfa(b)});
-                break;
-        }
-    }
-
-    for (const Onda& o : mOndas) {
-        const float raio = PontoExtra::RaioDaOnda(o.t);
-        const float some = 1.0f - o.t / PontoExtra::kDuracaoDaOnda;
-        const int lados = std::clamp(static_cast<int>(raio / 6.0f), 24, 160);
-        for (int k = 0; k < 3; ++k) {
-            const float rk = raio - static_cast<float>(k) * 7.0f;
-            if (rk <= 0.0f) continue;
-            const SDL_Color cor{255, static_cast<Uint8>(225 - 25 * k), static_cast<Uint8>(120 - 30 * k),
-                                alfa(some * (1.0f - 0.3f * static_cast<float>(k)))};
-            for (const auto& [a, b] : PontoExtra::Anel(o.centro, rk, lados)) mEfeitos->Acrescentar(a, b, cor);
-        }
-    }
-
-    // As moedas voam ate a ponta da barra da nota, num arco: o ganho tem de onde vir.
-    const Vector2 ponta = mFaixa->Ponta(mConta.Valor());
-    for (const Moeda& m : mMoedas) {
-        const float u = std::clamp(m.t / kVooDaMoeda, 0.0f, 1.0f);
-        const float e = u * u;                                  // devagar, depois depressa
-        const Vector2 meio = (m.de + ponta) * 0.5f + Vector2(0.0f, -140.0f);
-        const Vector2 p = m.de * ((1.0f - e) * (1.0f - e)) + meio * (2.0f * e * (1.0f - e)) + ponta * (e * e);
-        const SDL_Color ouro{255, 215, 80, alfa(1.0f - 0.3f * u)};
-        mEfeitos->Acrescentar(p + Vector2(-4.0f, 0.0f), p + Vector2(0.0f, -4.0f), ouro);
-        mEfeitos->Acrescentar(p + Vector2(0.0f, -4.0f), p + Vector2(4.0f, 0.0f), ouro);
-        mEfeitos->Acrescentar(p + Vector2(4.0f, 0.0f), p + Vector2(0.0f, 4.0f), ouro);
-        mEfeitos->Acrescentar(p + Vector2(0.0f, 4.0f), p + Vector2(-4.0f, 0.0f), ouro);
-    }
 }
 
 void Battle::SoltarPontoExtra(Vector2 position) {

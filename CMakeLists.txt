@@ -187,6 +187,10 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Scenes/Battle/RelatorioDaSimulacao.h
         Source/Scenes/Battle/ClaroesDaMoldura.cpp
         Source/Scenes/Battle/ClaroesDaMoldura.h
+        Source/Scenes/Battle/DesenhoSobreOsAlunos.cpp
+        Source/Scenes/Battle/DesenhoSobreOsAlunos.h
+        Source/Scenes/Battle/EfeitosDaBatalha.cpp
+        Source/Scenes/Battle/EfeitosDaBatalha.h
         Source/Scenes/Battle/FaixaDaNota.cpp
         Source/Scenes/Battle/FaixaDaNota.h
         Source/Scenes/Battle/LeitorDoMenu.cpp
