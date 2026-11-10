@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Scene.h"
+#include "SelosDeMencao.h"
 #include "../Entrada/Borda.h"
 #include "../Aluno/Boletim.h"
 #include "../Aluno/Exportacao.h"
@@ -17,8 +18,9 @@
 class Font;
 class Actor;
 
-/// O boletim de quem esta jogando (Boletim.h): a melhor nota, a situacao e as tentativas de cada
-/// materia, periodo a periodo, e embaixo o CR, as aprovadas e a posicao no curso. Abre da selecao
+/// O boletim de quem esta jogando (Boletim.h): a melhor nota, a situacao, as tentativas e as
+/// mencoes (Mencoes.h) de cada materia, periodo a periodo, e embaixo o CR, as aprovadas, as mencoes
+/// do curso e a posicao nele. Abre da selecao
 /// de materias (Botao 3); dali, o Botao 3 leva ao ranking da materia em foco. Na dupla, o manche
 /// troca de aluno.
 class TelaDoBoletim : public Scene {
@@ -51,6 +53,7 @@ private:
         Actor* nota = nullptr;
         Actor* situacao = nullptr;
         Actor* tentativas = nullptr;
+        std::unique_ptr<SelosDeMencao> mencoes;
     };
     std::vector<LinhaDeTela> mLinhas;
     Actor* mResumoAtor = nullptr;

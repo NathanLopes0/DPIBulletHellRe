@@ -144,6 +144,7 @@ servidor ou em paralelo.
 | `--jogadores 1\|2` | solo ou dupla; os alunos são visitantes |
 | `--orientador <código>` | o orientador do TCC, como se escolhido na tela |
 | `--candidatos <códigos>` | abre a **tela que escolhe o orientador**, como se o aluno tivesse passado nessas matérias (`INF110,INF213,INF310`; a primeira com a maior nota). Com `--fotos`, é como se confere a prévia animada dos poderes |
+| `--cena selecao\|boletim` | com `--candidatos`, abre a seleção de fases ou o boletim no lugar da tela do orientador — a primeira matéria da lista com 100, e cada uma 8 a menos |
 | `--dificil` | o modo Difícil; sem ele, Normal |
 | `--estado <fase>` | o chefe começa nesta fase (`StateTwo`, `StateFinal`...) |
 | `--semente <n>` | o sorteador global. Sem `--variacao`, é também a semente da batalha |

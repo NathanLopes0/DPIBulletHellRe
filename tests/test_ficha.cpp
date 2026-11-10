@@ -774,7 +774,7 @@ TEST_CASE("Ficha: a data da primeira aprovacao vai e volta, e o save de antes de
     original.progresso.RegistrarNota(0, 75.0f, Dificuldade::Nivel::Normal, "2026-09-02 11:00:00");
     const std::string texto = Ficha::Serializar(original, Curso());
     CHECK(texto.find("\"aprovadaEm\": \"2026-09-02 11:00:00\"") != std::string::npos);
-    CHECK(texto.find("\"versao\": 8") != std::string::npos);
+    CHECK(texto.find("\"versao\": " + std::to_string(Ficha::kVersaoAtual)) != std::string::npos);
     const auto lida = Ficha::Desserializar(texto, Curso());
     REQUIRE(lida.ok);
     CHECK(lida.problemas.empty());
@@ -800,4 +800,40 @@ TEST_CASE("Ficha: data de aprovacao numa materia nao aprovada e descartada") {
     CHECK(Menciona(lida.problemas, "aprovadaEm"));
     CHECK(lida.dados.progresso.AprovadaEm(0).empty());
     CHECK(lida.dados.progresso.MelhorNota(0) == doctest::Approx(40.0f));
+}
+
+TEST_CASE("Ficha: o curriculo de orientacoes vai e volta (versao 9), e a ficha de antes dele le zero") {
+    Ficha::Dados original;
+    original.matricula = "89384";
+    original.progresso.RegistrarNota(0, 75.0f, Dificuldade::Nivel::Normal, "2026-09-02 11:00:00");
+    original.progresso.RegistrarOrientacao(0);
+    original.progresso.RegistrarOrientacao(0);
+    const std::string texto = Ficha::Serializar(original, Curso());
+    CHECK(texto.find("\"orientacoes\": 2") != std::string::npos);
+    const auto lida = Ficha::Desserializar(texto, Curso());
+    REQUIRE(lida.ok);
+    CHECK(lida.problemas.empty());
+    CHECK(lida.dados.progresso.Orientacoes(0) == 2);
+
+    // Quem nunca foi orientado nao ganha o campo, e a versao 8 le sem ele.
+    Ficha::Dados sem;
+    sem.matricula = "89384";
+    sem.progresso.RegistrarNota(0, 75.0f, Dificuldade::Nivel::Normal);
+    CHECK(Ficha::Serializar(sem, Curso()).find("orientacoes") == std::string::npos);
+    const auto antiga = Ficha::Desserializar(R"({
+        "versao": 8, "matricula": "89384",
+        "materias": [ { "materia": "AAA", "recorde": 70, "retomada": 70 } ]
+    })", Curso());
+    REQUIRE(antiga.ok);
+    CHECK(antiga.problemas.empty());
+    CHECK(antiga.dados.progresso.Orientacoes(0) == 0);
+
+    // Orientar sem ter passado na materia nao existe: zerado, com aviso.
+    const auto errada = Ficha::Desserializar(R"({
+        "versao": 9, "matricula": "89384",
+        "materias": [ { "materia": "AAA", "recorde": 40, "retomada": 40, "orientacoes": 3 } ]
+    })", Curso());
+    REQUIRE(errada.ok);
+    CHECK(Menciona(errada.problemas, "orientacoes"));
+    CHECK(errada.dados.progresso.Orientacoes(0) == 0);
 }

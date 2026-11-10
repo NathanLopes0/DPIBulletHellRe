@@ -103,6 +103,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Aluno/Sessao.cpp
         Source/Aluno/Sessao.h
         Source/Aluno/Ranking.cpp
+        Source/Aluno/Mencoes.cpp
+        Source/Aluno/Mencoes.h
         Source/Aluno/Mural.cpp
         Source/Aluno/Mural.h
         Source/Aluno/Ranking.h
@@ -166,6 +168,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Motor/EscalaDaTela.h
         Source/Scenes/StageSelect.cpp
         Source/Scenes/EscolhaDoOrientador.cpp
+        Source/Scenes/SelosDeMencao.cpp
+        Source/Scenes/SelosDeMencao.h
         Source/Scenes/EscolhaDaDificuldade.cpp
         Source/Scenes/EscolhaDaDificuldade.h
         Source/Actors/Orientador/Orientador.cpp
@@ -557,6 +561,7 @@ add_executable(dpi_tests
         tests/test_simulacao.cpp
         tests/test_conta_da_nota.cpp
         tests/test_leitor_do_menu.cpp
+        tests/test_mencoes.cpp
         tests/test_mural.cpp
         tests/test_resultado.cpp
         tests/test_devolutiva.cpp
@@ -612,6 +617,8 @@ add_executable(dpi_tests
         Source/Aluno/Sessao.cpp
         Source/Aluno/Sessao.h
         Source/Aluno/Ranking.cpp
+        Source/Aluno/Mencoes.cpp
+        Source/Aluno/Mencoes.h
         Source/Aluno/Mural.cpp
         Source/Aluno/Mural.h
         Source/Aluno/Ranking.h

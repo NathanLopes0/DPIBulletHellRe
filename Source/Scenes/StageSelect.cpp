@@ -284,6 +284,14 @@ void StageSelect::CreateStaticUI() {
     avancoDc->SetColor(Color::LightBlue);
     AddActor(std::move(avanco));
 
+    // E as mencoes do curso, embaixo: passar abre a materia seguinte, e elas sao o que sobra em cada uma.
+    const Mencoes::Total mencoes = Mencoes::DoCurso(mGame->Sessoes().front().progresso, materias);
+    auto* mencoesDc = CriarTexto(*this, mStageSelectFont.get(),
+                                 "Men\xc3\xa7\xc3\xb5" "es: " + std::to_string(mencoes.ganhas) + " de " +
+                                     std::to_string(mencoes.possiveis),
+                                 Vector2(w - 190.f, 86.f), 20, 320, 28);
+    mencoesDc->SetColor(Color::LightYellow);
+
     // O cartao da materia em foco, no canto que a grade deixa vazio.
     auto moldura = std::make_unique<Actor>(this);
     moldura->SetPosition(Vector2(kCartaoX, kCartaoY));
@@ -292,10 +300,12 @@ void StageSelect::CreateStaticUI() {
         kCorDaMolduraDoCartao, kCorDoFundoDoCartao, 2, kOrdemDoCartao);
     AddActor(std::move(moldura));
 
-    mCodigoAtor    = TextoDoCartao(kCartaoY - 58.f, 30, Color::White);
-    mNomeAtor      = TextoDoCartao(kCartaoY - 16.f, 22, Color::LightYellow);
-    mProfessorAtor = TextoDoCartao(kCartaoY + 20.f, 20, Color::LightBlue);
-    mEstadoAtor    = TextoDoCartao(kCartaoY + 58.f, 22, Color::White);
+    mCodigoAtor    = TextoDoCartao(kCartaoY - 74.f, 30, Color::White);
+    mNomeAtor      = TextoDoCartao(kCartaoY - 34.f, 22, Color::LightYellow);
+    mProfessorAtor = TextoDoCartao(kCartaoY + 0.f, 20, Color::LightBlue);
+    mEstadoAtor    = TextoDoCartao(kCartaoY + 36.f, 22, Color::White);
+    mMencoes = std::make_unique<SelosDeMencao>(
+        *this, mStageSelectFont.get(), Vector2(kCartaoX - SelosDeMencao::kLarguraDaFileira / 2.0f, kCartaoY + 78.f));
 
     UpdateStageInfo();
 }
@@ -425,4 +435,7 @@ void StageSelect::UpdateStageInfo() const {
     }
 
     EscreverNoCartao(mEstadoAtor, frase, cor);
+
+    // A fileira so aparece na materia que tem batalha; centrada, com as mencoes que ela tem.
+    if (mMencoes) mMencoes->Mostrar(Mencoes::Da(mGame->Sessoes().front().progresso, materias, mSelectedSubject));
 }

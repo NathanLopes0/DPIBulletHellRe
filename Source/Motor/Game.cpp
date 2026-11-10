@@ -167,18 +167,23 @@ void Game::LoadInitialScene()
         }
         // O modo e sempre escrito: a batalha da simulacao nao passa pela tela de dificuldade.
         DefinirDificuldade(mSimulacao.dificil ? Dificuldade::Nivel::Dificil : Dificuldade::Nivel::Normal);
-        // --candidatos: a tela do orientador, com quem passou nessas materias (a primeira, a maior nota).
+        // --candidatos: a tela do orientador (ou a de --cena), com quem passou nessas materias - a
+        // primeira com 100, e cada uma 8 a menos que a anterior.
         if (!mSimulacao.candidatos.empty() && !mSessoes.empty()) {
-            float nota = 95.0f;
+            float nota = 100.0f;
             std::string resto = mSimulacao.candidatos;
             while (!resto.empty()) {
                 const size_t virgula = resto.find(',');
                 const int materia = Materias::Carregadas().IndiceDe(resto.substr(0, virgula));
                 if (materia >= 0) mSessoes.front().progresso.RegistrarNota(materia, nota, Dificuldade::Nivel::Normal);
-                nota -= 5.0f;
+                nota -= 8.0f;
                 resto = virgula == std::string::npos ? std::string() : resto.substr(virgula + 1);
             }
-            ChangeScene(Scene::SceneType::EscolhaDoOrientador);
+            // Com --orientador a batalha comeca direto, ja com as notas: e como se confere o resultado.
+            if (mSimulacao.cena == "selecao") ChangeScene(Scene::SceneType::StageSelect);
+            else if (mSimulacao.cena == "boletim") ChangeScene(Scene::SceneType::Boletim);
+            else if (mSimulacao.orientador.empty()) ChangeScene(Scene::SceneType::EscolhaDoOrientador);
+            else ChangeScene(Scene::SceneType::Battle);
             return;
         }
         ChangeScene(Scene::SceneType::Battle);
@@ -785,6 +790,12 @@ void Game::RegistrarNota(const int subject, const float nota) {
         }
         else {
             mSessoes[quem].progresso.RegistrarNota(subject, nota, NivelDeDificuldade(), quando);
+        }
+
+        // Aprovado na materia que pede orientador: o professor que orientou entra no curriculo.
+        const Materias::Materia* m = Materias::Carregadas().Por(subject);
+        if (m && m->orientacao && mOrientador >= 0 && nota >= Progresso::kNotaDeAprovacao) {
+            mSessoes[quem].progresso.RegistrarOrientacao(mOrientador);
         }
 
         // A ficha vai para o disco aqui, e nao em quem chama.

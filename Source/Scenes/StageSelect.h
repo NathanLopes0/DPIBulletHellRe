@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Scene.h"
+#include "SelosDeMencao.h"
 #include "../Entrada/Borda.h"
 #include "../Motor/Game.h" // Incluir para o enum int
 #include <vector>
@@ -93,9 +94,9 @@ private:
     // ---- O cartao da materia em foco ----
 
     static constexpr float kCartaoX = 268.0f;
-    static constexpr float kCartaoY = 600.0f;
+    static constexpr float kCartaoY = 610.0f;
     static constexpr float kCartaoLargura = 400.0f;
-    static constexpr float kCartaoAltura = 184.0f;
+    static constexpr float kCartaoAltura = 218.0f;
     static constexpr int kOrdemDoCartao = 70;
 
     static inline const SDL_Color kCorDaMolduraDoCartao{96, 118, 170, 220};
@@ -113,6 +114,9 @@ private:
     Actor* mNomeAtor = nullptr;
     Actor* mProfessorAtor = nullptr;
     Actor* mEstadoAtor = nullptr;
+    /// As mencoes da materia em foco (Mencoes.h), na ultima linha do cartao: o que ainda ha para
+    /// buscar nela.
+    std::unique_ptr<SelosDeMencao> mMencoes;
 
     /// Quanto uma linha de aluno fica abaixo da anterior, quando ha dois. O
     /// rotulo tem 44 de altura, entao 38 os encosta sem os sobrepor.

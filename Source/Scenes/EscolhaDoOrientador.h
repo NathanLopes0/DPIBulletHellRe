@@ -73,6 +73,14 @@ private:
     /// O selo do voto fica entre o cabecalho e o cartao.
     static constexpr float kSeloAcima = 38.0f;
 
+    /// O curriculo de orientacoes (Progresso::Orientacoes), no canto do cartao: quem ja orientou um
+    /// TCC aprovado de quem esta jogando, e quem ainda e novo - o que falta para a mencao dele.
+    static constexpr float kCurriculoLargura = 104.0f;
+    static constexpr float kCurriculoAltura = 22.0f;
+    static inline const SDL_Color kCorDeQuemOrientou{186, 158, 250, 255};
+    static inline const SDL_Color kCorDoNovo{255, 214, 72, 255};
+    void CriarCurriculo(int indice, const Vector2& topo);
+
     /// O cursor de cada aluno e uma moldura em volta do cartao. A do J2 e mais
     /// larga que a do J1, para as duas aparecerem quando estao no mesmo cartao.
     static constexpr float kFolgaDoCursor = 12.0f;

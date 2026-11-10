@@ -222,3 +222,35 @@ TEST_CASE("Resultado: so o gabinete volta sozinho, e so depois da espera") {
     // A espera tem de passar da trava do menu.
     CHECK(kEsperaNoGabinete > kTravaDoMenu);
 }
+
+TEST_CASE("Resultado: as mencoes novas ganham uma linha, depois da formatura e antes da parte de cada um") {
+    Resumo r;
+    r.nota = 85.0f;
+    r.aprovado = true;
+    r.temFicha = true;
+    r.recordeAntes = 70.0f;
+    CHECK(LinhaDasMencoes(r) == -1);
+    const size_t sem = Linhas(r).size();
+
+    r.mencoes = "Nova men\xc3\xa7\xc3\xa3o: prata";
+    auto l = Linhas(r);
+    REQUIRE(l.size() == sem + 1);
+    CHECK(LinhaDasMencoes(r) == 4);
+    CHECK(l[4] == r.mencoes);
+
+    // Com a formatura, vem logo depois dela; e a parte de cada um desce uma linha.
+    r.formados = {"89384"};
+    r.partes = {{"89384", 120, 8, 3}, {"Aluno 2", 95, 2, 5}};
+    r.titulos = {"quem mais perguntou", "quem mais cobriu"};
+    l = Linhas(r);
+    CHECK(LinhaDaFormatura(r) == 4);
+    CHECK(LinhaDasMencoes(r) == 5);
+    CHECK(l[5] == r.mencoes);
+    CHECK(LinhaDaParte(r, 0) == 6);
+    CHECK(LinhaDaParte(r, 1) == 8);
+    CHECK(l.size() == static_cast<size_t>(kLinhasNoMaximo));   // o resumo mais cheio que existe ainda cabe
+
+    // Quem reprovou nao ganha mencao, diga o campo o que disser.
+    r.aprovado = false;
+    CHECK(LinhaDasMencoes(r) == -1);
+}

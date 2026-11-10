@@ -5,6 +5,7 @@
 #include "EscolhaDoOrientador.h"
 #include "TextoDeCena.h"
 
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
 
@@ -148,7 +149,30 @@ void EscolhaDoOrientador::CriarCartao(const int indice) {
     const Vector3 corDaNota = Nota::ECheia(c.nota) ? Color::Gold : Color::LightGreen;
     Texto(nota.str(), topo + Vector2(0.0f, kNotaEm), 20, largura, corDaNota);
 
+    CriarCurriculo(indice, topo);
     CriarPrevia(indice, topo);
+}
+
+void EscolhaDoOrientador::CriarCurriculo(const int indice, const Vector2& topo) {
+
+    // Quantas vezes ele ja orientou quem esta jogando: na dupla, a de quem mais foi orientado.
+    const Orientacao::Candidato& c = mCandidatos[static_cast<size_t>(indice)];
+    int vezes = 0;
+    for (const auto& sessao : mGame->Sessoes()) vezes = std::max(vezes, sessao.progresso.Orientacoes(c.materia));
+
+    const SDL_Color cor = vezes > 0 ? kCorDeQuemOrientou : kCorDoNovo;
+    const Vector2 canto = topo + Vector2(kCartaoLargura / 2.0f - kCurriculoLargura / 2.0f - 8.0f,
+                                         kCurriculoAltura / 2.0f + 8.0f);
+    auto selo = std::make_unique<Actor>(this);
+    selo->SetPosition(canto);
+    selo->AddComponent<DrawCaixaComponent>(static_cast<int>(kCurriculoLargura), static_cast<int>(kCurriculoAltura),
+                                           cor, kFundoDaPrevia, 1, kOrdemDoRetrato + 2);
+    AddActor(std::move(selo));
+    // \xc3\xa1 e o a com acento.
+    const std::string texto = vezes > 0 ? "j\xc3\xa1 orientou " + std::to_string(vezes) + "x" : std::string("novo");
+    auto* dc = CriarTexto(*this, mFonte.get(), texto, canto, 14, static_cast<int>(kCurriculoLargura) - 6,
+                          static_cast<int>(kCurriculoAltura), kOrdemDoRetrato + 3);
+    dc->SetColor(ParaVector3(cor));
 }
 
 void EscolhaDoOrientador::CriarPrevia(const int indice, const Vector2& topo) {

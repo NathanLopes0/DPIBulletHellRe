@@ -120,9 +120,20 @@ sozinha para as matérias.
 Na seleção de fases, o **Botão 3** abre o **boletim do semestre**: as matérias
 período a período, com a melhor nota, a situação (aprovade, reprovade, a cursar
 ou fechada), quantas provas você terminou em cada uma, o **CR** — a média das
-melhores notas das matérias cursadas —, quantas foram aprovadas, quantas também
-no Difícil e a sua posição no curso. Em dupla, o manche troca de aluno. Do
-boletim, o Botão 3 de novo leva ao ranking da matéria em foco.
+melhores notas das matérias cursadas —, quantas foram aprovadas, as **menções**
+e a sua posição no curso. Em dupla, o manche troca de aluno. Do boletim, o
+Botão 3 de novo leva ao ranking da matéria em foco.
+
+Passar abre a matéria seguinte; as **menções** são o que ainda há para buscar
+em cada uma depois disso. São sete selos por matéria: **B** bronze (aprovação),
+**P** prata (nota 80), **O** ouro (nota 90), **100** nota cheia, **D** aprovado
+no Difícil, **2** aprovado em dupla e **T** — o professor daquela matéria
+orientou um TCC seu aprovado (o TCC não tem este). Aparecem no boletim, no
+cartão da matéria em foco na seleção de fases (com o total do curso no alto) e,
+quando uma luta dá uma nova, numa linha dourada do resultado. Na tela que
+escolhe o orientador, o canto de cada cartão diz quem **já orientou** você e
+quem ainda é **novo**: defender o TCC com cada professor completa o currículo
+de orientações.
 
 O **Ranking** — do menu, a média do curso; do boletim, a matéria em foco — tem
 **quatro listas**: **Normal**, **Difícil**, **Normal em
@@ -270,8 +281,10 @@ Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
   quantas reprovou (o boletim; desde a versão 7 da ficha — uma ficha anterior
   abre com a contagem em zero), e quando cada matéria foi aprovada pela
   primeira vez (desde a versão 8; é a data do mural dos formados, e quem passou
-  antes dela aparece no mural sem data). A nota vai para o disco **uma vez, no
-  fim da batalha**, e não durante.
+  antes dela aparece no mural sem data), e quantos TCCs aprovados seus o
+  professor de cada matéria orientou (desde a versão 9: o currículo de
+  orientações). A nota vai para o disco **uma vez, no fim da batalha**, e não
+  durante.
 - **`opcoes.cfg`** — as opções da máquina (os volumes, a tela
   cheia e a hitbox), em `chave=valor`. A tela de Opções o escreve na hora em
   que algo muda.

@@ -110,6 +110,8 @@ std::string Serializar(const Dados& dados, const Materias::Lista& materias) {
         // A contagem do boletim (versao 7): so quando ha.
         if (e.tentativas > 0) s << ", \"tentativas\": " << e.tentativas;
         if (e.reprovacoes > 0) s << ", \"reprovacoes\": " << e.reprovacoes;
+        // O curriculo de orientacoes (versao 9): so de quem ja orientou um TCC aprovado do aluno.
+        if (e.orientacoes > 0) s << ", \"orientacoes\": " << e.orientacoes;
 
         s << " }";
     }
@@ -317,6 +319,12 @@ namespace {
             problemas.emplace_back(onde + "mais reprovacoes que tentativas; a contagem foi zerada");
             e.tentativas = 0;
             e.reprovacoes = 0;
+        }
+        // O curriculo de orientacoes (versao 9), opcional: so orienta quem deu uma materia aprovada.
+        e.orientacoes = contagem("orientacoes");
+        if (e.orientacoes > 0 && e.MaiorRecorde() < Progresso::kNotaDeAprovacao) {
+            problemas.emplace_back(onde + "\"orientacoes\" numa materia que nao foi aprovada; zerada");
+            e.orientacoes = 0;
         }
         return e;
     }

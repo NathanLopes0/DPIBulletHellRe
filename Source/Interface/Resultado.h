@@ -49,6 +49,10 @@ namespace Resultado {
         std::vector<std::string> formados;
         /// O capelo ficou gravado na ficha de todos eles (o visitante nao tem ficha).
         bool formaturaGravada = false;
+
+        /// O que esta luta deu alem da nota (Mencoes::FraseDasNovas, e o orientador novo no
+        /// curriculo): uma linha dourada, so de quem passou. Vazia quando nao deu nada.
+        std::string mencoes;
     };
 
     /// O titulo: "APROVADE!" ou "REPROVADE".
@@ -72,8 +76,8 @@ namespace Resultado {
     std::vector<std::string> Linhas(const Resumo& r);
 
     /// Quantas Linhas um resumo tem no maximo: as quatro de sempre, as duas da devolutiva e as quatro
-    /// da dupla com titulos. A da formatura nao soma: so quem passou se forma, e so quem reprovou tem
-    /// devolutiva.
+    /// da dupla com titulos. A da formatura e a das mencoes cabem na conta: so quem passou as tem, e
+    /// so quem reprovou tem devolutiva.
     constexpr int kLinhasNoMaximo = 10;
 
     /// Quantas linhas a parte de cada aluno ocupa: duas com o titulo, uma sem.
@@ -81,6 +85,9 @@ namespace Resultado {
 
     /// A linha de quem ganhou o capelo, que vai dourada; -1 quando ninguem se formou.
     int LinhaDaFormatura(const Resumo& r);
+
+    /// A linha das mencoes novas, dourada tambem, logo depois da da formatura; -1 sem nenhuma.
+    int LinhaDasMencoes(const Resumo& r);
 
     /// A linha (vazia) em que a batalha desenha o que mais acertou o aluno; -1 quando nao ha.
     int LinhaDasCausas(const Resumo& r);

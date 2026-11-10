@@ -59,6 +59,12 @@ public:
     [[nodiscard]] int Tentativas(int materia) const;
     [[nodiscard]] int Reprovacoes(int materia) const;
 
+    /// O professor desta materia orientou um TCC em que o aluno foi aprovado: o curriculo de
+    /// orientacoes. So conta em materia aprovada - e dela que sai o candidato a orientador.
+    void RegistrarOrientacao(int materia);
+    /// Quantos TCCs aprovados do aluno o professor desta materia orientou.
+    [[nodiscard]] int Orientacoes(int materia) const;
+
     /// Quantas das materias listadas estao aprovadas.
     [[nodiscard]] int QuantasAprovadas(const std::vector<int>& materias) const;
 
@@ -86,6 +92,9 @@ public:
         /// Quando a materia foi aprovada pela primeira vez: o mural dos formados mostra a do TCC.
         /// Vazio se nunca foi, ou num save de antes deste campo (versao 8 da ficha).
         std::string aprovadaEm;
+
+        /// Quantos TCCs aprovados do aluno o professor desta materia orientou (versao 9 da ficha).
+        int orientacoes = 0;
 
         [[nodiscard]] Marca& De(Modo modo, Dificuldade::Nivel nivel) { return recordes[Indice(modo, nivel)]; }
         [[nodiscard]] const Marca& De(Modo modo, Dificuldade::Nivel nivel) const {

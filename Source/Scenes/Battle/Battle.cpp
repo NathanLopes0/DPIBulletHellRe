@@ -38,6 +38,7 @@
 #include "../../Regras/Raspao.h"
 #include "../../Regras/Cobertura.h"
 #include "../../Aluno/Matricula.h"
+#include "../../Aluno/Mencoes.h"
 #include "../../Regras/Destrutivel.h"
 #include "../../Actors/Orientador/Orientador.h"
 #include "../../Curso/MateriasArquivo.h"
@@ -881,8 +882,38 @@ void Battle::EncerrarBatalha(bool aprovado) {
     std::vector<bool> formadoAntes;
     for (size_t i = 0; i < mJogadores.size(); ++i) formadoAntes.push_back(mGame->Formado(i));
 
+    // As mencoes de antes desta nota (Mencoes.h): as da materia, e as da materia do orientador.
+    const Materias::Lista& materias = Materias::Carregadas();
+    const int orientador = mGame->Orientador();
+    std::vector<Mencoes::DaMateria> mencoesAntes, orientouAntes;
+    for (const auto& sessao : mGame->Sessoes()) {
+        mencoesAntes.push_back(Mencoes::Da(sessao.progresso, materias, mMateria));
+        orientouAntes.push_back(Mencoes::Da(sessao.progresso, materias, orientador));
+    }
+
     // O unico ponto em que a nota vai para o armazenamento persistente.
     mGame->RegistrarNota(mMateria, mConta.Valor());
+
+    // O que esta luta deu alem da nota: as mencoes novas de quem jogou (na dupla, as de qualquer um
+    // dos dois), e o orientador novo no curriculo - pelo nome da materia dele.
+    if (aprovado) {
+        std::vector<Mencoes::Mencao> novas;
+        bool orientadorNovo = false;
+        for (size_t i = 0; i < mGame->Sessoes().size() && i < mencoesAntes.size(); ++i) {
+            const Progresso& p = mGame->Sessoes()[i].progresso;
+            for (const Mencoes::Mencao m : Mencoes::Novas(mencoesAntes[i], Mencoes::Da(p, materias, mMateria))) {
+                if (std::find(novas.begin(), novas.end(), m) == novas.end()) novas.push_back(m);
+            }
+            orientadorNovo = orientadorNovo ||
+                             !Mencoes::Novas(orientouAntes[i], Mencoes::Da(p, materias, orientador)).empty();
+        }
+        resumo.mencoes = Mencoes::FraseDasNovas(novas);
+        if (const Materias::Materia* m = materias.Por(orientador); m && orientadorNovo) {
+            // \xc3\xad e o i com acento, \xc2\xb7 o ponto do meio.
+            resumo.mencoes += std::string(resumo.mencoes.empty() ? "" : "  \xc2\xb7  ") + "Curr\xc3\xad" "culo: " +
+                              m->nome + " orientou";
+        }
+    }
 
     // Quem se formou agora ganha o capelo ali mesmo, e a tela diz.
     if (aprovado) {

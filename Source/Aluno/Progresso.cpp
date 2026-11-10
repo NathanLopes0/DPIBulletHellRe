@@ -71,6 +71,16 @@ const Progresso::Marca& Progresso::Recorde(const int materia, const Modo modo,
     return Ver(materia).De(modo, nivel);
 }
 
+void Progresso::RegistrarOrientacao(const int materia) {
+    const auto it = mPorMateria.find(materia);
+    if (it == mPorMateria.end() || it->second.MaiorRecorde() < kNotaDeAprovacao) return;
+    ++it->second.orientacoes;
+}
+
+int Progresso::Orientacoes(const int materia) const {
+    return Ver(materia).orientacoes;
+}
+
 int Progresso::Tentativas(const int materia) const {
     return Ver(materia).tentativas;
 }

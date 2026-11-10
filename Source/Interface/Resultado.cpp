@@ -66,6 +66,7 @@ namespace Resultado {
             linhas.push_back(quem + " ganhou o chap\xc3\xa9u de formatura" +
                              (r.formaturaGravada ? ", para sempre." : "."));
         }
+        if (LinhaDasMencoes(r) >= 0) linhas.push_back(r.mencoes);
         // A devolutiva: so de quem reprovou.
         if (!r.aprovado && r.piorFase) linhas.push_back(Devolutiva::LinhaDaFase(*r.piorFase));
         if (LinhaDasCausas(r) >= 0) linhas.emplace_back("");
@@ -96,7 +97,7 @@ namespace Resultado {
         if (quem >= r.partes.size()) return -1;
         const int causas = LinhaDasCausas(r);
         const int antes = (r.temFicha ? 4 : 3) + (!r.aprovado && r.piorFase ? 1 : 0) + (causas >= 0 ? 1 : 0) +
-                          (Formou(r) ? 1 : 0);
+                          (Formou(r) ? 1 : 0) + (LinhaDasMencoes(r) >= 0 ? 1 : 0);
         return antes + static_cast<int>(quem) * LinhasPorParte(r);
     }
 
@@ -104,6 +105,11 @@ namespace Resultado {
         // Logo depois das de sempre (tres sem ficha, quatro com): quem passou nao tem devolutiva.
         if (!Formou(r)) return -1;
         return r.temFicha ? 4 : 3;
+    }
+
+    int LinhaDasMencoes(const Resumo& r) {
+        if (!r.aprovado || r.mencoes.empty()) return -1;
+        return (r.temFicha ? 4 : 3) + (Formou(r) ? 1 : 0);
     }
 
     int LinhaEmDestaque(const Resumo& r) {
