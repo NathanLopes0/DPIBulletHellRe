@@ -20,6 +20,11 @@ namespace Variacao {
     /// Um rotulo estavel para um nome (fnv-1a de 32 bits).
     std::uint32_t Rotulo(const std::string& nome);
 
+    /// Uma semente nova, para uma batalha que ninguem prendeu (Simulacao.h prende). O random_device
+    /// sozinho nao basta: em alguns MinGW antigos ele devolve sempre a mesma sequencia, e toda luta
+    /// sairia igual. O relogio entra junto.
+    std::uint32_t SementeNova();
+
     class Sorteio {
     public:
         explicit Sorteio(std::uint32_t semente) : mGerador(semente) {}

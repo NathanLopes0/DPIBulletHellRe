@@ -106,7 +106,7 @@ void Battle::Load() {
     const auto& sim = mGame->ConfiguracaoDaSimulacao();
     mSemente = sim.variacao ? *sim.variacao
              : sim.semente  ? *sim.semente
-                            : static_cast<std::uint32_t>(std::random_device{}());
+                            : Variacao::SementeNova();
     SDL_Log("BATALHA: semente %u, modo %s", mSemente, Dificuldade::Chave(mNivel));
 
     // 2.

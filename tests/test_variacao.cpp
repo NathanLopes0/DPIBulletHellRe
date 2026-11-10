@@ -151,3 +151,11 @@ TEST_CASE("Variacao: a ordem das formas - as fixas no lugar, o resto embaralhado
     CHECK(NaOrdem({}, 7) == 7);
     CHECK(Ordem(s, 3, 3) == std::vector<int>{0, 1, 2});
 }
+
+TEST_CASE("Variacao: duas sementes novas seguidas nao saem iguais") {
+    // O relogio e a contagem entram junto com o random_device: mesmo um random_device que se repete
+    // (MinGW antigo) nao faz duas lutas iguais.
+    const std::uint32_t a = Variacao::SementeNova();
+    const std::uint32_t b = Variacao::SementeNova();
+    CHECK(a != b);
+}

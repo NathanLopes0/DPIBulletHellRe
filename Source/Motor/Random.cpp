@@ -3,10 +3,12 @@
 
 #include "Random.h"
 
+#include "../Regras/Variacao.h"
+
 void Random::Init()
 {
-	std::random_device rd;
-	Random::Seed(rd());
+	// O random_device sozinho pode se repetir (Variacao::SementeNova).
+	Random::Seed(Variacao::SementeNova());
 }
 
 void Random::Seed(unsigned int seed)

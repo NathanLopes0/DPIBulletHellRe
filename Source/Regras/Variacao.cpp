@@ -5,6 +5,7 @@
 #include "Variacao.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 
 namespace Variacao {
@@ -25,6 +26,23 @@ std::uint32_t Rotulo(const std::string& nome) {
         h *= 16777619u;
     }
     return h;
+}
+
+std::uint32_t SementeNova() {
+    std::uint32_t doSistema = 0;
+    try {
+        std::random_device rd;
+        doSistema = static_cast<std::uint32_t>(rd());
+    } catch (...) {
+        // Sem fonte de entropia, fica o relogio.
+    }
+    const auto agora = static_cast<std::uint64_t>(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+    const auto dia = static_cast<std::uint64_t>(std::chrono::system_clock::now().time_since_epoch().count());
+    // Cada chamada tambem conta: duas no mesmo tique ainda saem diferentes.
+    static std::uint32_t chamadas = 0;
+    std::uint32_t s = Misturar(doSistema, static_cast<std::uint32_t>(agora) ^ static_cast<std::uint32_t>(agora >> 32));
+    s = Misturar(s, static_cast<std::uint32_t>(dia) ^ static_cast<std::uint32_t>(dia >> 32));
+    return Misturar(s, ++chamadas);
 }
 
 int Sorteio::Inteiro(const int de, const int ate) {
