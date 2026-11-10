@@ -1,0 +1,19 @@
+q00060 nota=42.3800 sofridos=0
+q00120 nota=45.7120 sofridos=0
+q00180 nota=43.9960 sofridos=1
+q00240 nota=34.8521 sofridos=3
+q00300 nota=31.8667 sofridos=4
+q00360 nota=29.3574 sofridos=5
+q00420 nota=27.4827 sofridos=6
+q00480 nota=21.9587 sofridos=7
+q00540 nota=25.7667 sofridos=7
+q00600 nota=23.2574 sofridos=8
+q00660 nota=19.7961 sofridos=9
+q00720 nota=22.1761 sofridos=9
+q00780 nota=20.3014 sofridos=10
+q00840 nota=12.4267 sofridos=12
+q00900 nota=10.5521 sofridos=13
+q00960 nota=13.8841 sofridos=13
+q01020 nota=6.0094 sofridos=15
+q01080 nota=2.0721 sofridos=16
+FIM nota=0.0000 acertos_sofridos=17 acertos_dados=114 aprovado=0

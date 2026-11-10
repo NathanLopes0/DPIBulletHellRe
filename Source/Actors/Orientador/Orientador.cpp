@@ -103,10 +103,20 @@ void Orientador::OnUpdate(const float deltaTime) {
     SetPosition(mPouso + Vector2(0.0f, balanco));
 
     Guiar(*batalha, deltaTime);
+    SoltarPoderSozinho(*batalha);
     AtualizarPoder(*batalha, deltaTime);
     DesenharAnel();
     if (!batalha->EmCombate()) return;
     Golpear(*batalha, deltaTime);
+}
+
+void Orientador::SoltarPoderSozinho(Battle& batalha) {
+    // So na simulacao (--poder): o poder sai assim que serve. Os que atacam (Poder::Ataca) esperam o
+    // escudo do Hugo abrir; a bala de prata, ao contrario, e para quando ele esta fechado.
+    if (!GetScene()->GetGame()->ConfiguracaoDaSimulacao().poder || !PoderPronto() || !batalha.Chefe()) return;
+    const bool aberto = batalha.Chefe()->AceitaDano();
+    const bool bala = mPoder.tipo == Poder::Tipo::BalaDePrata;
+    if (bala ? !aberto : (!Poder::Ataca(mPoder.tipo) || aberto)) SoltarPoder();
 }
 
 void Orientador::OnProcessInput(const Uint8* keyState) {

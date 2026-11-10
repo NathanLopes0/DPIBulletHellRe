@@ -114,11 +114,17 @@ que dissesse só `CHECK(false)` seria um teste pior, mesmo passando igual.
 ## Investigar o que não tem teste
 
 Desenho, movimento e dificuldade não cabem em asserção, mas também não precisam
-de chute. A técnica é sempre a mesma: **copiar o repositório, remendar a cópia
-com ganchos de variável de ambiente, e rodar sem tela**.
+de chute. O jogo tem um **modo de simulação** (`Source/Simulacao/Simulacao.h`):
+parâmetros de linha de comando que prendem a semente, fixam o passo de tempo,
+põem um piloto no lugar do aluno, entram direto numa batalha e escrevem a nota.
+Sem nenhum deles, o jogo é o de sempre — e o executável que se mede é o mesmo
+que se joga.
 
-A cópia importa — os remendos não entram no repositório, e um `git checkout`
-distraído não desfaz medição nenhuma.
+Antes isto era feito copiando o repositório e remendando a cópia com ganchos de
+variável de ambiente. Cada remendo procurava um trecho exato do código, e
+qualquer refatoração podia derrubá-lo — uma vez sem avisar, quando a conta do
+ganho mudou e o contador de acertos zerou. Morando no jogo, os ganchos passam
+pelo compilador como o resto.
 
 ### Rodar sem tela
 
@@ -130,76 +136,94 @@ export SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy
 O jogo roda inteiro, desenha e não abre janela. É o que permite medir num
 servidor ou em paralelo.
 
-### Entrar direto numa fase
+### Os parâmetros
 
-O jogo começa pelo menu. Para cair direto numa batalha, um gancho em
-`Game::Initialize`, onde está o `ChangeScene(Scene::SceneType::MainMenu)`:
+| Parâmetro | O que faz |
+|---|---|
+| `--batalha <n ou código>` | entra direto na batalha da matéria `n` de `materias.json` (`0` é INF110), ou de um código (`INF213`) |
+| `--jogadores 1\|2` | solo ou dupla; os alunos são visitantes |
+| `--orientador <código>` | o orientador do TCC, como se escolhido na tela |
+| `--dificil` | o modo Difícil; sem ele, Normal |
+| `--estado <fase>` | o chefe começa nesta fase (`StateTwo`, `StateFinal`...) |
+| `--semente <n>` | o sorteador global. Sem `--variacao`, é também a semente da batalha |
+| `--variacao <n>` | a semente da batalha (`Battle::SementeDaBatalha`), separada da do sorteio |
+| `--passo <s>` | segundos por quadro, sem esperar o relógio: `0.016` é igual a 62,5 quadros por segundo, só que na velocidade que a máquina der |
+| `--piloto segue\|parado\|vaivem` | quem joga no lugar do aluno (os vieses de cada um estão em `Ferramentas/medir-dificuldade.sh`) |
+| `--atira` | o piloto atira sempre que pode |
+| `--poder` | no TCC, o orientador solta o poder sozinho quando ele serve |
+| `--relatorio` | escreve a nota a cada 60 quadros de luta e a linha `FIM` |
+| `--sair-no-fim` | fecha o jogo assim que a luta se decide, antes de gravar ficha ou tentativa |
+| `--imortal` | a nota a zero não encerra a luta (para fotografar o fim de uma fase) |
+| `--teclas "Space@100,B@200"` | aperta teclas por roteiro: nome (do SDL) e quadro; cada uma fica apertada três quadros |
+| `--fotos 380,470` e `--fotos-em <pasta>` | fotografa a tela nesses quadros (`foto_00380.bmp`...) e sai depois da última |
+| `--janela 1920x1080` | a janela de verdade; o jogo continua posicionado em 1200×800 |
+| `--fim-em <q>`, `--fim-aprovado`, `--fim-nota <n>` | encerra a luta no quadro `q`, aprovada ou não, com aquela nota |
+| `--pausa-em <q>`, `--foco-em <q>` | abre a pausa, ou faz a janela perder o foco, no quadro `q` |
 
-```cpp
-if (std::getenv("DPI_FASE")) {
-    mSelectedStage = std::atoi(std::getenv("DPI_FASE"));
-    ChangeScene(Scene::SceneType::Battle);
-} else
-ChangeScene(Scene::SceneType::MainMenu);
+Um parâmetro de simulação que não se lê é dito no log e ignorado. Eles não vão
+no script do gabinete.
+
+### Medir
+
+```bash
+bash Ferramentas/medir-dificuldade.sh --batalha 1 --jogadores 2 --semente 10 --piloto segue
 ```
 
-E para começar numa fase específica do professor, na fábrica dele:
+O script acrescenta o que toda medida usa (`--passo 0.016 --atira --relatorio
+--sair-no-fim`, sem vídeo e sem som) e mostra o relatório:
 
-```cpp
-boss->SetInitialState(std::getenv("DPI_ESTADO") ? std::getenv("DPI_ESTADO") : "StateOne");
 ```
-
-`Ferramentas/medir-dificuldade.sh` põe este gancho nas onze fábricas, então
-`DPI_ESTADO=StateTwo` mede a fase 2 de qualquer professor sozinha. Lembre que a
-batalha começa com a nota inicial (40) em qualquer fase, e que a `StateThree`
-a decide: a fase 1 ou 2 sozinha leva à 3, e não ao fim.
-
-Cada remendo do script procura um trecho exato do código. Se um não pega —
-o trecho mudou —, o script para com `!!! um gancho nao pegou` e não monta nada:
-um arnes com metade dos remendos mede errado sem avisar (foi o que aconteceu
-quando a conta do ganho por acerto mudou e o contador de acertos zerou). Ache o
-trecho novo e troque o gancho por algo que mude menos: o do contador é o
-`if (ouviu) {`, e não a conta do ganho.
-
-### Passo de tempo fixo
-
-O laço principal espera 16 ms por quadro. Para uma batalha de 51 s rodar em
-poucos segundos — e para a medição não depender da carga da máquina:
-
-```cpp
-if (!std::getenv("DPI_PASSO"))
-    while(!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16)) {}
+q00060 nota=40.0000 sofridos=0
 ...
-if (const char* p = std::getenv("DPI_PASSO")) deltaTime = static_cast<float>(std::atof(p));
+FIM nota=91.0038 acertos_sofridos=7 acertos_dados=489 aprovado=1
 ```
 
-Com `DPI_PASSO=0.016` o resultado é igual ao de 62,5 quadros por segundo, só que
-na velocidade que a máquina der.
+`q` é o quadro de luta, `sofridos` os acertos que a dupla levou; no `FIM`,
+`acertos_dados` são os tiros que o professor ouviu. **Use várias sementes**: com
+dois jogadores há mais colisões, e cada uma consome números do mesmo sorteador
+— uma corrida mede o sorteio daquela corrida, e não a dificuldade.
+
+### A linha de base
+
+`Ferramentas/linha-de-base.sh` roda **54 batalhas** — as onze matérias, solo e
+dupla, Normal e Difícil, e o TCC com cada orientador — e compara a nota, quadro
+a quadro, com a gravada em `Ferramentas/linha-de-base/`:
+
+```bash
+bash Ferramentas/linha-de-base.sh               # identicas=54 diferentes=0
+bash Ferramentas/linha-de-base.sh --atualizar   # grava a de agora
+```
+
+**Uma refatoração tem de dar 54 idênticas, byte a byte.** Uma mudança de
+balanceamento muda algumas de propósito: confira quais mudaram, e quanto — o
+script mostra a linha `FIM` de antes e de agora —, e só então grave a nova com
+`--atualizar`, no mesmo commit. Cada batalha ocupa uns 2,5 GB; `PARALELO=3` é o
+padrão.
+
+`Ferramentas/parado-reprova.sh` é o outro portão: o piloto parado não pode
+aprovar em professor nenhum.
 
 ### Fotografar
 
-```cpp
-if (const char* arq = std::getenv("DPI_PRINT")) {
-    if (SDL_Surface* s = SDL_CreateRGBSurfaceWithFormat(0, mWindowWidth, mWindowHeight,
-                                                        32, SDL_PIXELFORMAT_ARGB8888)) {
-        SDL_RenderReadPixels(mRenderer, nullptr, SDL_PIXELFORMAT_ARGB8888, s->pixels, s->pitch);
-        SDL_SaveBMP(s, arq);
-        SDL_FreeSurface(s);
-    }
-    mIsGameRunning = false;
-}
+```bash
+./build/DPIBulletHellRe --batalha 1 --jogadores 2 --semente 11 --passo 0.016 \
+    --piloto segue --atira --teclas "N@400" --fotos 404,414 --fotos-em /tmp/fotos
 ```
 
-Antes do `SDL_RenderPresent`. **Fotografe por instante de jogo, não por número de
-quadro**: o carregamento dos pools consome quadros antes de a batalha começar,
-então quadro não é tempo.
+**Fotografe por instante de jogo, não por quadro de tela**: o carregamento dos
+pools consome quadros antes de a batalha começar, então quadro não é tempo — mas,
+com a semente e o passo presos, o mesmo quadro é sempre o mesmo instante. Para
+ver uma tela que só aparece depois de uma tela de menu, o roteiro de teclas faz o
+caminho: `--teclas "Space@100,8@200,9@215,..."` digita uma matrícula.
 
 ### Contar
 
 Um `std::printf` com `std::fflush(stdout)` num ponto de passagem responde quase
 qualquer pergunta de balanceamento. Foi assim que o expoente da curva da nota foi
 escolhido: contando quantos tiros chegam no professor numa batalha inteira, com
-o tiro preso, contra os quatro chefes.
+o tiro preso, contra os quatro chefes. O relatório da simulação
+(`Scenes/Battle/RelatorioDaSimulacao.h`) é um ouvinte da batalha: uma conta nova
+que valha guardar vira um anúncio de `OuvinteDaBatalha` e uma linha nele.
 
 > **Redirecione para arquivo, não para um `grep` numa pipe.** Se o `timeout`
 > matar o processo, o `grep` pode perder a saída inteira por causa do buffer.

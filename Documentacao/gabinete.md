@@ -32,6 +32,11 @@ Argumento que o jogo não conhece é ignorado, e os seguintes continuam valendo.
 Um erro de digitação no script não pode impedir o jogo de abrir numa máquina
 onde ninguém vê o terminal.
 
+Os parâmetros do **modo de simulação** (`--batalha`, `--piloto`, `--passo`...)
+**não vão neste script**: com eles o jogo pula o menu, joga sozinho e pode até
+fechar no fim da luta. Servem para medir o jogo sem tela, e estão em
+`build-e-testes.md`.
+
 ---
 
 ## O que `--arcade` muda

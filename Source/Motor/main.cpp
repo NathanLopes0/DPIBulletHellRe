@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "Gabinete.h"
+#include "../Simulacao/Simulacao.h"
 
 #include <string>
 #include <vector>
@@ -16,7 +17,12 @@ int main(int argc, char** argv)
         if (argv[i]) argumentos.emplace_back(argv[i]);
     }
 
-    Game game = Game(SCREEN_WIDTH, SCREEN_HEIGHT, Gabinete::Ler(argumentos));
+    // Um parametro de simulacao que nao se le e dito e ignorado: a medida roda com o resto.
+    std::vector<std::string> problemas;
+    const Simulacao::Configuracao simulacao = Simulacao::Ler(argumentos, &problemas);
+    for (const auto& p : problemas) SDL_Log("SIMULACAO: %s; ignorado.", p.c_str());
+
+    Game game = Game(SCREEN_WIDTH, SCREEN_HEIGHT, Gabinete::Ler(argumentos), simulacao);
     bool success = game.Initialize();
     if (success)
     {

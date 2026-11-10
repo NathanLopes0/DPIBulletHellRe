@@ -544,8 +544,10 @@ Assets/          sprites, fontes, sons e os JSON que descrevem o jogo
   como-jogar.json  o texto da tela Como Jogar, uma página por vez
   personagens.json o catálogo de peças do personagem
 Documentacao/    receitas para quem for mexer no código
-Ferramentas/     geradores de arte provisória e os arneses de medição
-                 (medir-dificuldade.sh, parado-reprova.sh)
+Ferramentas/     geradores de arte e de som provisórios, e as medições: o jogo
+                 rodando sozinho (medir-dificuldade.sh), o portão do aluno
+                 parado (parado-reprova.sh) e as 54 batalhas que uma
+                 refatoração não pode mudar (linha-de-base.sh)
 
 tests/           a suíte
 ```

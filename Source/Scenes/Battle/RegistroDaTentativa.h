@@ -17,7 +17,7 @@ public:
     void AoTrocarDeFase(Battle& b, const std::string& fase, const std::string& anuncio) override;
     void AoLimparFase(Battle& b) override;
     void AoSerAcertado(Battle& b, const Player& aluno, bool porUmTiro) override;
-    void AoAcertarOProfessor(Battle& b, const Actor* quemAtirou) override;
+    void AoAcertarOProfessor(Battle& b, const Actor* quemAtirou, bool ouviu) override;
     void AoAcertarDePerto(Battle& b, const Player& aluno) override;
     void AoRaspar(Battle& b, const Player& aluno) override;
     void AoCobrir(Battle& b, const Player& quemCobriu, const Player& parceiro) override;

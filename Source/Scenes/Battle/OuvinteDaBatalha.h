@@ -22,6 +22,9 @@ public:
     /// Passou um quadro: de luta, ou com a pausa aberta.
     virtual void AoPassarOTempo(Battle&, float deltaTime, bool emPausa) {}
 
+    /// O quadro de luta vai cobrar e pagar as colisoes (Battle::VerificarColisoes).
+    virtual void AoAntesDasColisoes(Battle&) {}
+
     /// O quadro de luta terminou: as colisoes ja pagaram e cobraram.
     virtual void AoFimDoQuadro(Battle&) {}
 
@@ -35,9 +38,9 @@ public:
     /// O aluno foi acertado - por um tiro, ou encostando no chefe.
     virtual void AoSerAcertado(Battle&, const Player& aluno, bool porUmTiro) {}
 
-    /// Um tiro de 'quemAtirou' (um aluno ou o orientador) acertou um corpo do
-    /// chefe - pagando a nota ou nao (o escudo).
-    virtual void AoAcertarOProfessor(Battle&, const Actor* quemAtirou) {}
+    /// Um tiro de 'quemAtirou' (um aluno ou o orientador) acertou um corpo do chefe. 'ouviu': o chefe
+    /// aceitou a pergunta, e ela pagou a nota - o escudo nao ouve.
+    virtual void AoAcertarOProfessor(Battle&, const Actor* quemAtirou, bool ouviu) {}
 
     /// O tiro do aluno acertou o professor de perto - o "!!" (Nota::kFatorDaRespostaDupla). Conta
     /// pela distancia, mesmo que a condicao do experimento nao pague o perto.
@@ -71,6 +74,10 @@ public:
 
     /// O aluno atravessou a parede pela rede do socket() (Battle::AbrirRede).
     virtual void AoAtravessarAParede(Battle&) {}
+
+    /// A luta acabou de se decidir, aprovada ou nao - antes da ultima fase pagar o bonus e de qualquer
+    /// coisa ser gravada.
+    virtual void AoDecidir(Battle&, bool aprovado) {}
 
     /// A tentativa acabou. 'ultimaFaseCompleta': a ultima fase acabou pelo relogio (e nao pela nota
     /// a zero ou por desistencia).

@@ -120,7 +120,7 @@ void RegistroDaTentativa::AoSerAcertado(Battle& b, const Player& aluno, bool) {
     if (auto* r = De(b, &aluno)) ++r->acertosSofridos;
 }
 
-void RegistroDaTentativa::AoAcertarOProfessor(Battle& b, const Actor* quemAtirou) {
+void RegistroDaTentativa::AoAcertarOProfessor(Battle& b, const Actor* quemAtirou, bool) {
     if (!Anotando()) return;
     // O tiro guarda o dono, e e isso que da a precisao de cada aluno (e os acertos do orientador).
     if (auto* r = De(b, quemAtirou)) ++r->acertosNoProfessor;

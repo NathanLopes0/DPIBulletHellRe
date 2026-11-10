@@ -13,6 +13,7 @@
 #include "../../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Motor/CaminhosArquivo.h"
+#include "../../../Motor/Game.h"
 
 IBossFactory::IBossFactory(Game* game) : mGame(game) {
 }
@@ -67,5 +68,8 @@ void IBossFactory::ConfigureAttacksAndFSM(Boss* boss) {
                 "FASES: acima dizem o motivo.", Pasta().c_str(), Pasta().c_str());
     }
 
-    boss->SetInitialState("StateOne");
+    // A simulacao pode comecar numa fase dada (--estado): mede ou fotografa uma fase sozinha.
+    const Game* game = boss->GetScene() ? boss->GetScene()->GetGame() : nullptr;
+    const std::string& estado = game ? game->ConfiguracaoDaSimulacao().estado : std::string();
+    boss->SetInitialState(estado.empty() ? "StateOne" : estado);
 }

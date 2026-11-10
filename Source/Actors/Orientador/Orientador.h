@@ -52,6 +52,9 @@ public:
 
     [[nodiscard]] bool PoderPronto() const;
 
+    /// Na simulacao (--poder, Simulacao.h), o orientador solta o poder sozinho quando ele serve.
+    void SoltarPoderSozinho(class Battle& batalha);
+
     /// Solta o poder, se estiver pronto. O botao 3 de qualquer aluno chama.
     bool SoltarPoder();
 

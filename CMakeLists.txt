@@ -129,6 +129,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Pesquisa/Tentativas.h
         Source/Pesquisa/Experimento.cpp
         Source/Pesquisa/Experimento.h
+        Source/Simulacao/Simulacao.cpp
+        Source/Simulacao/Simulacao.h
         Source/Pesquisa/TentativasArquivo.cpp
         Source/Pesquisa/TentativasArquivo.h
         Source/Personagem/Personagens.cpp
@@ -179,6 +181,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Scenes/Battle/TelaDeCarregamento.cpp
         Source/Scenes/Battle/TelaDeCarregamento.h
         Source/Scenes/Battle/RegistroDaTentativa.h
+        Source/Scenes/Battle/RelatorioDaSimulacao.cpp
+        Source/Scenes/Battle/RelatorioDaSimulacao.h
         Source/Scenes/Battle/ClaroesDaMoldura.cpp
         Source/Scenes/Battle/ClaroesDaMoldura.h
         Source/Scenes/Battle/Battle.h
@@ -524,6 +528,7 @@ add_executable(dpi_tests
         tests/test_tentativas.cpp
         tests/test_experimento.cpp
         tests/test_comunicacao.cpp
+        tests/test_simulacao.cpp
         tests/test_resultado.cpp
         tests/test_devolutiva.cpp
         tests/test_manual.cpp
@@ -603,6 +608,8 @@ add_executable(dpi_tests
         Source/Pesquisa/Tentativas.h
         Source/Pesquisa/Experimento.cpp
         Source/Pesquisa/Experimento.h
+        Source/Simulacao/Simulacao.cpp
+        Source/Simulacao/Simulacao.h
         Source/Personagem/Personagens.cpp
         Source/Personagem/Personagens.h
         Source/Motor/Relogio.cpp

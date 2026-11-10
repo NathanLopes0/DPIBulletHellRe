@@ -49,6 +49,7 @@
 #include "../../Motor/CaminhosArquivo.h"
 #include "../../Motor/Fontes.h"
 #include "RegistroDaTentativa.h"
+#include "RelatorioDaSimulacao.h"
 #include "ClaroesDaMoldura.h"
 #include "TelaDeCarregamento.h"
 #include "../PainelDeMenu.h"
@@ -87,6 +88,10 @@ void Battle::Load() {
 
     // O registro da tentativa ouve a batalha desde o comeco.
     mOuvintes.push_back(std::make_unique<RegistroDaTentativa>());
+    // E o relatorio da simulacao, quando pedido (--relatorio).
+    if (mGame->ConfiguracaoDaSimulacao().relatorio) {
+        mOuvintes.push_back(std::make_unique<RelatorioDaSimulacao>(mGame->ConfiguracaoDaSimulacao().sairNoFim));
+    }
 
     // Toda batalha comeca em 40, mesmo que o aluno ja tenha tirado mais nesta materia.
     mNota = Progresso::kNotaInicial;
@@ -100,7 +105,11 @@ void Battle::Load() {
 
     // O modo e a semente antes do chefe: a fabrica e o chefe podem perguntar pelos dois.
     mNivel = mGame->NivelDeDificuldade();
-    mSemente = static_cast<std::uint32_t>(std::random_device{}());
+    // A simulacao prende a semente da luta (--variacao, ou a --semente); o jogo, nao.
+    const auto& sim = mGame->ConfiguracaoDaSimulacao();
+    mSemente = sim.variacao ? *sim.variacao
+             : sim.semente  ? *sim.semente
+                            : static_cast<std::uint32_t>(std::random_device{}());
     SDL_Log("BATALHA: semente %u, modo %s", mSemente, Dificuldade::Chave(mNivel));
 
     // 2.
@@ -548,6 +557,18 @@ void Battle::TerminarCarregamento() {
 //region UpdateFunctions
 void Battle::OnUpdate(float deltaTime) {
 
+    // ---- A simulacao (Simulacao.h): a pausa, o foco e o fim, num quadro dado ----
+    {
+        const auto& sim = mGame->ConfiguracaoDaSimulacao();
+        const int quadro = mGame->Quadro();
+        if (quadro == sim.pausaNoQuadro) AbrirPausa();
+        if (quadro == sim.focoNoQuadro) AoPerderOFoco();
+        if (quadro == sim.fimNoQuadro) {
+            if (sim.fimComNota) mNota = *sim.fimComNota;
+            EncerrarBatalha(sim.fimAprovado);
+        }
+    }
+
     // ---- Tela de Carregamento (pré-aquecimento dos pools de projétil) ----
     if (mCarregando) {
         AvancarCarregamento(deltaTime);
@@ -620,7 +641,7 @@ void Battle::OnUpdate(float deltaTime) {
     Avisar([&](OuvinteDaBatalha& o) { o.AoFimDoQuadro(*this); });
 
     // Se a nota cair a 0, termina a fase.
-    if (mNota <= 0) {
+    if (mNota <= 0 && !mGame->ConfiguracaoDaSimulacao().imortal) {
         EncerrarBatalha(false);
     }
 
@@ -1051,6 +1072,7 @@ void Battle::EscolherNoResultado() {
 }
 //endregion Resultado
 void Battle::VerificarColisoes() {
+    Avisar([&](OuvinteDaBatalha& o) { o.AoAntesDasColisoes(*this); });
     if (mJogadores.empty() || !mChefe) return;
 
     const auto *bossCollider = mChefe->GetComponent<CircleColliderComponent>();
@@ -1373,7 +1395,7 @@ void Battle::ColisoesTiroDoAlunoNoChefe(const std::vector<std::unique_ptr<Player
                 else playerProj->Murchar();
 
                 // Acerto de um jogador: repartido.
-                Avisar([&](OuvinteDaBatalha& o) { o.AoAcertarOProfessor(*this, playerProj->Dono()); });
+                Avisar([&](OuvinteDaBatalha& o) { o.AoAcertarOProfessor(*this, playerProj->Dono(), ouviu); });
 
                 if (ouviu) {
                     // A duvida perguntada de perto vale mais (Nota::FatorDePerto) - a do aluno; a do
@@ -2006,6 +2028,7 @@ void Battle::SoltarPontoExtra(Vector2 position) {
 
 void Battle::EncerrarBatalha(bool aprovado) {
     if (mAcabando) return; // Já está acabando, ignora chamadas duplicadas
+    Avisar([&](OuvinteDaBatalha& o) { o.AoDecidir(*this, aprovado); });
 
     // A ultima fase tambem paga.
     EncerrarFase();

@@ -547,9 +547,11 @@ igual ao do solo, e que o "levemente" vem de uma coisa só — os ataques mirado
 se dividindo entre os dois. Se isso valesse muito, entraria um fator.
 
 **Como foi medido.** `Ferramentas/medir-dificuldade.sh` — rodá-lo reproduz os
-números abaixo. Ele monta uma cópia da árvore com tudo preso: a mesma batalha
-(fase 0), semente fixa, passo de tempo fixo de 0,016 s, tiro automático e um
-piloto no lugar do jogador. Seis sementes,
+números abaixo. Ele roda o jogo no modo de simulação (`build-e-testes.md`) com
+tudo preso: a mesma batalha (fase 0), semente fixa, passo de tempo fixo de
+0,016 s, tiro automático e um piloto no lugar do jogador. (Quando estes números
+foram tirados, o mesmo era feito remendando uma cópia da árvore; os ganchos
+passaram para dentro do jogo depois, com as mesmas contas.) Seis sementes,
 cada uma rodada com um e com dois jogadores. Seis, e não uma: com dois jogadores
 há mais colisões, e cada colisão consome números do mesmo sorteador global, então
 a sequência de ataques diverge da do solo depois do primeiro acerto. Uma corrida

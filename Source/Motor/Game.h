@@ -15,6 +15,7 @@
 #include "../Aluno/Progresso.h"
 #include "Gabinete.h"
 #include "../Pesquisa/Experimento.h"
+#include "../Simulacao/Simulacao.h"
 #include "../Entrada/Painel.h"
 #include "../Aluno/Sessao.h"
 #include "Configuracao.h"
@@ -29,7 +30,8 @@ public:
     // Uma materia e o indice dela em Materias::Carregadas(). Aqui havia um enum com as dez materias
     // escritas a mao.
 
-    Game(int windowWidth, int windowHeight, const Gabinete::Configuracao& gabinete = {});
+    Game(int windowWidth, int windowHeight, const Gabinete::Configuracao& gabinete = {},
+         const Simulacao::Configuracao& simulacao = {});
     ~Game();
 
     bool Initialize();
@@ -120,6 +122,13 @@ public:
     /// As mecanicas que esta execucao desliga (--condicao): a condicao do experimento, gravada em
     /// cada tentativa.
     [[nodiscard]] const Experimento::Condicao& Condicao() const { return mCondicao; }
+
+    /// O jogo rodando sozinho, para medir e fotografar (Simulacao.h): vazia, o jogo de sempre.
+    [[nodiscard]] const Simulacao::Configuracao& ConfiguracaoDaSimulacao() const { return mSimulacao; }
+
+    /// Quantos quadros ja foram desenhados. E o relogio do roteiro de teclas, das fotos e do fim
+    /// forcado da simulacao.
+    [[nodiscard]] int Quadro() const { return mQuadro; }
 
     /// O modo de dificuldade das batalhas (Dificuldade.h).
     [[nodiscard]] Dificuldade::Nivel NivelDeDificuldade() const { return mDificuldade; }
@@ -286,6 +295,18 @@ private:
 
     Gabinete::Configuracao mGabinete;
     Experimento::Condicao mCondicao;
+
+    // ---- A simulacao (Simulacao.h) ----
+    Simulacao::Configuracao mSimulacao;
+    int mQuadro = 0;
+    /// O teclado de verdade, com as teclas do roteiro apertadas por cima.
+    std::vector<Uint8> mTecladoDoRoteiro;
+    /// Os codigos das teclas do roteiro, na ordem dele; lidos no primeiro quadro, com o SDL de pe.
+    std::vector<SDL_Scancode> mCodigosDoRoteiro;
+    /// O teclado deste quadro: o de verdade, ou ele com o roteiro por cima.
+    const Uint8* TecladoDoQuadro(const Uint8* real, int quantasTeclas);
+    /// Fotografa a tela, se este quadro esta na lista; depois da ultima, sai.
+    void FotografarSePedido();
 
     /// Tempo sem ninguem mexer. Esgotando, volta ao menu.
     Gabinete::Contagem mOciosidade;

@@ -114,6 +114,11 @@ private:
 
     // OnProcessInput Sub-functions, and its sub-functions.
     void LerManche(const Uint8 *state);
+    /// O piloto da simulacao (Simulacao.h), no lugar do manche: true se ele dirigiu este quadro.
+    bool Pilotar();
+    /// O sentido do vai e vem, e a altura em que o piloto que segue mora quando nada o chama.
+    float mSentidoDoVaiVem = 1.0f;
+    float mCasaDoPiloto = -1.0f;
     void LerBotaoDeTiro(const Uint8 *state);
         void Atirar();
     void LerBotaoDoPontoExtra(const Uint8 *state);

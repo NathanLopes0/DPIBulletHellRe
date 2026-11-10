@@ -10,6 +10,8 @@
 
 #include "PlayerProjectile.h"
 #include "../../Scenes/Battle/Battle.h"
+#include "../Teachers/Boss.h"
+#include "../Teachers/Bosses/Hugo.h"
 #include "../../Components/RigidBodyComponent.h"
 #include "../../Scenes/Battle/ProjectileManager.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
@@ -135,7 +137,47 @@ void Player::AtualizarInvencibilidade(float deltaTime) {
     }
 
 }
+bool Player::Pilotar() {
+    const Simulacao::Piloto piloto = GetScene()->GetGame()->ConfiguracaoDaSimulacao().piloto;
+    if (piloto == Simulacao::Piloto::Nenhum) return false;
+    auto* corpo = GetComponent<RigidBodyComponent>();
+
+    // O vai e vem varre a largura sem mirar: a mira dele e ruim de um jeito parecido com o de gente.
+    if (piloto == Simulacao::Piloto::VaiVem) {
+        mSentidoDoVaiVem = Simulacao::SentidoDoVaiVem(GetPosition().x, mSentidoDoVaiVem);
+        corpo->SetVelocity(Vector2(mSentidoDoVaiVem * VelocidadeDeAndar(), 0));
+        mAndando = true;
+        return true;
+    }
+
+    // O que segue casa o x com o do chefe; no TCC, com o Hugo blindado, vai ao alvo do objetivo e ao
+    // lugar que a etapa pede (em x e em y).
+    if (piloto == Simulacao::Piloto::Segue) {
+        if (mCasaDoPiloto < 0.0f) mCasaDoPiloto = GetPosition().y;
+        float alvo = GetPosition().x, alvoY = mCasaDoPiloto;
+        if (const auto b = dynamic_cast<Battle*>(GetScene())) {
+            if (const auto chefe = b->Chefe()) alvo = chefe->GetPosition().x;
+            if (auto* hugo = dynamic_cast<Hugo*>(b->Chefe())) {
+                if (auto o = hugo->ObjetivoAtual()) alvo = o->x;
+                if (auto o = hugo->LugarDeIr()) { alvo = o->x; alvoY = o->y; }
+            }
+        }
+        const float v = static_cast<float>(Simulacao::Direcao(GetPosition().x, alvo)) * VelocidadeDeAndar();
+        const float vy = static_cast<float>(Simulacao::Direcao(GetPosition().y, alvoY)) * VelocidadeDeAndar();
+        corpo->SetVelocity(Vector2(v, vy));
+        mAndando = v != 0.0f;
+        return true;
+    }
+
+    // Parado.
+    corpo->SetVelocity(Vector2(0, 0));
+    mAndando = false;
+    return true;
+}
+
 void Player::LerManche(const Uint8 *keyState) {
+
+    if (Pilotar()) return;
 
     float newXSpeed = 0;
     float newYSpeed = 0;
@@ -165,6 +207,12 @@ void Player::LerManche(const Uint8 *keyState) {
     GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(newXSpeed, newYSpeed));
 }
 void Player::LerBotaoDeTiro(const Uint8 *keyState) {
+
+    // O piloto da simulacao atira sempre que pode (--atira).
+    if (GetScene()->GetGame()->ConfiguracaoDaSimulacao().atira && mTempoDeSobrecarga <= 0.0f) {
+        Atirar();
+        return;
+    }
 
     // Botao 1 do painel deste aluno.
     if(Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Um) && mTempoDeSobrecarga <= 0.0f) {

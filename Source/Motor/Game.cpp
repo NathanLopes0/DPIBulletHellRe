@@ -2,6 +2,9 @@
 // Created by Nathan on 03/04/2024.
 //
 #include "Game.h"
+#include <cstdlib>
+#include <cstdio>
+#include <algorithm>
 #include <fstream>
 #include <stdexcept>
 #include "Json.h"
@@ -36,7 +39,8 @@
 #include "CaminhosArquivo.h"
 #include "ConfiguracaoArquivo.h"
 
-Game::Game(int windowWidth, int windowHeight, const Gabinete::Configuracao& gabinete)
+Game::Game(int windowWidth, int windowHeight, const Gabinete::Configuracao& gabinete,
+           const Simulacao::Configuracao& simulacao)
     :mWindow(nullptr),
     mRenderer(nullptr),
     mWindowWidth(windowWidth),
@@ -49,6 +53,7 @@ Game::Game(int windowWidth, int windowHeight, const Gabinete::Configuracao& gabi
     mNextScene(Scene::SceneType::None),
     mGabinete(gabinete),
     mCondicao(Experimento::Ler(gabinete.condicao)),
+    mSimulacao(simulacao),
     mOciosidade(gabinete.ociosidade),
     // A saida do operador existe so no gabinete.
     mSaidaDoOperador(gabinete.arcade ? Gabinete::kSegurarParaSair : 0.0f)
@@ -67,6 +72,7 @@ bool Game::Initialize() {
         for (const auto& p : problemas) SDL_Log("EXPERIMENTO: %s; ignorada.", p.c_str());
         SDL_Log("EXPERIMENTO: condicao %s.", mCondicao.Nome().c_str());
     }
+    if (mSimulacao.Ativa()) SDL_Log("SIMULACAO: o jogo esta rodando com parametros de simulacao.");
 
     if(SDL_Init(SDL_INIT_VIDEO) != 0)
     {
@@ -76,7 +82,11 @@ bool Game::Initialize() {
 
     // Fora dele nasce do tamanho pedido, que e como se desenvolve.
     const Uint32 bandeirasDaJanela = mGabinete.arcade ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0u;
-    mWindow = SDL_CreateWindow("DPI Bullet Hell", 0, 0, mWindowWidth, mWindowHeight,
+    // A simulacao pode pedir outra janela (--janela): o jogo continua posicionado em 1200x800, e a
+    // escala logica do renderizador reconcilia, como no gabinete.
+    const int larguraDaJanela = mSimulacao.larguraDaJanela > 0 ? mSimulacao.larguraDaJanela : mWindowWidth;
+    const int alturaDaJanela = mSimulacao.alturaDaJanela > 0 ? mSimulacao.alturaDaJanela : mWindowHeight;
+    mWindow = SDL_CreateWindow("DPI Bullet Hell", 0, 0, larguraDaJanela, alturaDaJanela,
                                bandeirasDaJanela);
     if(!mWindow)
     {
@@ -113,8 +123,9 @@ bool Game::Initialize() {
 
     mAudio = std::make_unique<AudioSystem>();
 
-    // New random seed.
-    Random::Init();
+    // O sorteio: novo a cada abertura, ou preso pela simulacao (--semente).
+    if (mSimulacao.semente) Random::Seed(*mSimulacao.semente);
+    else Random::Init();
 
     // Start counter for deltaTime.
     mTicksCount = SDL_GetTicks();
@@ -143,6 +154,22 @@ void Game::LoadInitialScene()
     mAudio->CacheAllSounds();
 
     InitializeBossFactory();
+
+    // A simulacao pode entrar direto numa batalha (--batalha), pelo mesmo caminho do jogo: as sessoes
+    // refeitas por DefinirModoDeJogo, que e o que a batalha pergunta para criar os alunos.
+    if (!mSimulacao.batalha.empty()) {
+        const std::string& b = mSimulacao.batalha;
+        const bool numero = b.find_first_not_of("0123456789") == std::string::npos;
+        mSelectedStage = numero ? std::atoi(b.c_str()) : Materias::Carregadas().IndiceDe(b);
+        DefinirModoDeJogo(mSimulacao.jogadores >= 2 ? Sessao::Modo::Dois : Sessao::Modo::Um);
+        if (!mSimulacao.orientador.empty()) {
+            DefinirOrientador(Materias::Carregadas().IndiceDe(mSimulacao.orientador));
+        }
+        // O modo e sempre escrito: a batalha da simulacao nao passa pela tela de dificuldade.
+        DefinirDificuldade(mSimulacao.dificil ? Dificuldade::Nivel::Dificil : Dificuldade::Nivel::Normal);
+        ChangeScene(Scene::SceneType::Battle);
+        return;
+    }
     ChangeScene(Scene::SceneType::MainMenu);
 
 }
@@ -175,7 +202,10 @@ void Game::ProcessInput()
     }
 
     int quantasTeclas = 0;
-    const Uint8* state = SDL_GetKeyboardState(&quantasTeclas);
+    // Em duas linhas: a ordem dos argumentos de uma chamada nao e garantida, e quantasTeclas so vale
+    // depois do SDL_GetKeyboardState.
+    const Uint8* real = SDL_GetKeyboardState(&quantasTeclas);
+    const Uint8* state = TecladoDoQuadro(real, quantasTeclas);
 
     mHouveEntrada = false;
     for (int i = 0; i < quantasTeclas; ++i) {
@@ -196,7 +226,8 @@ void Game::UpdateGame()
     float deltaTime = 0;
     // Calculo de deltaTime pro resto do jogo.
     {
-        while(!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16)) {}
+        // Com passo fixo (--passo), nao ha relogio a esperar: o quadro anda o quanto a maquina der.
+        if (mSimulacao.passo <= 0.0f) while(!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16)) {}
 
         deltaTime = (static_cast<float>(SDL_GetTicks()) - static_cast<float>(mTicksCount)) / 1000.0f;
         if(deltaTime > 0.05f)
@@ -205,6 +236,7 @@ void Game::UpdateGame()
         }
 
         mTicksCount = SDL_GetTicks();
+        if (mSimulacao.passo > 0.0f) deltaTime = mSimulacao.passo;
     }
 
     if (mScene) {
@@ -284,8 +316,51 @@ void Game::GenerateOutput()
         }
     }
 
+    ++mQuadro;
+    FotografarSePedido();
+
     // Swap front buffer and back buffer.
     SDL_RenderPresent(mRenderer);
+}
+
+const Uint8* Game::TecladoDoQuadro(const Uint8* real, const int quantasTeclas) {
+    if (mSimulacao.teclas.empty() || !real || quantasTeclas <= 0) return real;
+    if (mCodigosDoRoteiro.empty()) {
+        for (const Simulacao::Tecla& t : mSimulacao.teclas) {
+            const SDL_Scancode codigo = SDL_GetScancodeFromName(t.nome.c_str());
+            if (codigo == SDL_SCANCODE_UNKNOWN) SDL_Log("SIMULACAO: tecla desconhecida no roteiro: %s", t.nome.c_str());
+            mCodigosDoRoteiro.push_back(codigo);
+        }
+    }
+    mTecladoDoRoteiro.assign(real, real + quantasTeclas);
+    for (size_t i = 0; i < mSimulacao.teclas.size(); ++i) {
+        const SDL_Scancode codigo = mCodigosDoRoteiro[i];
+        if (codigo == SDL_SCANCODE_UNKNOWN || codigo >= quantasTeclas) continue;
+        if (Simulacao::Apertada(mSimulacao.teclas[i], mQuadro)) mTecladoDoRoteiro[static_cast<size_t>(codigo)] = 1;
+    }
+    return mTecladoDoRoteiro.data();
+}
+
+void Game::FotografarSePedido() {
+    const auto& fotos = mSimulacao.fotos;
+    if (fotos.empty() || std::find(fotos.begin(), fotos.end(), mQuadro) == fotos.end()) return;
+
+    // A saida inteira do renderizador, em pixels de verdade: sem a escala logica durante a leitura.
+    int largura = 0, altura = 0;
+    SDL_GetRendererOutputSize(mRenderer, &largura, &altura);
+    if (SDL_Surface* foto = SDL_CreateRGBSurfaceWithFormat(0, largura, altura, 32, SDL_PIXELFORMAT_ARGB8888)) {
+        SDL_RenderSetLogicalSize(mRenderer, 0, 0);
+        SDL_RenderSetScale(mRenderer, 1.0f, 1.0f);
+        SDL_RenderSetViewport(mRenderer, nullptr);
+        SDL_RenderReadPixels(mRenderer, nullptr, SDL_PIXELFORMAT_ARGB8888, foto->pixels, foto->pitch);
+        char arquivo[1024];
+        std::snprintf(arquivo, sizeof(arquivo), "%s/foto_%05d.bmp", mSimulacao.pastaDasFotos.c_str(), mQuadro);
+        if (SDL_SaveBMP(foto, arquivo) != 0) SDL_Log("SIMULACAO: nao consegui gravar %s.", arquivo);
+        SDL_FreeSurface(foto);
+        SDL_RenderSetLogicalSize(mRenderer, mWindowWidth, mWindowHeight);
+    }
+    // Depois da ultima foto, o trabalho acabou.
+    if (mQuadro >= *std::max_element(fotos.begin(), fotos.end())) std::exit(0);
 }
 SDL_Texture* Game::GetPlaceholderTexture() {
 
