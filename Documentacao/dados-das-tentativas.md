@@ -10,7 +10,7 @@ O código está em `Source/Pesquisa/Tentativas.h` (o formato, testado em
 `Source/Scenes/Battle/RegistroDaTentativa.cpp`, que ouve a batalha
 (`OuvinteDaBatalha`) e anota tudo no instante em que acontece.
 
-## Os três arquivos
+## Os quatro arquivos
 
 Ficam em `Saves/`, ao lado das fichas. São CSV em UTF-8, separados por
 **vírgula** e com **ponto** como separador decimal, sempre.
@@ -20,6 +20,7 @@ Ficam em `Saves/`, ao lado das fichas. São CSV em UTF-8, separados por
 | `tentativas.csv` | aluno, por tentativa | só acrescenta: nada já escrito é reescrito |
 | `tentativas_fases.csv` | fase jogada, por tentativa | só acrescenta |
 | `tentativas_resumo.csv` | aluno × matéria × dificuldade × modo | refeito inteiro a cada batalha, a partir de `tentativas.csv` |
+| `tentativas_toques.csv` | toca aqui da dupla aprovada, na tela do resultado | só acrescenta |
 
 Os dois primeiros são os **dados brutos**: guarde-os. O resumo é **derivado**:
 apagá-lo não perde nada, porque ele volta na próxima batalha.
@@ -121,6 +122,21 @@ o bônus do raspão. O que só existe na dupla fica **vazio** no solo.
 | `acertos_de_perto`, `raspoes` | Desde o formato 2: os da dupla inteira, nesta fase. |
 | `coberturas` | Desde o formato 2: as da dupla, nesta fase (vazia no solo). Com `acertos_sofridos`, mostra em que fase a dupla mais se ajuda. |
 
+## `tentativas_toques.csv`
+
+Na dupla aprovada, o resultado deixa os dois apertarem o Botão 3 juntos — o
+**toca aqui** (`requisitos-coop.md`, 2.9). Quando isso acontece, a tentativa já
+está gravada em `tentativas.csv`: por isso cada toque é uma linha neste arquivo,
+ligada a ela pelo `id`. Uma tentativa sem linha aqui é uma dupla que não
+comemorou (ou que não passou).
+
+| Coluna | O que é |
+|---|---|
+| `formato`, `id`, `materia`, `dificuldade` | Como em `tentativas.csv`. |
+| `matricula_1`, `matricula_2` | Os dois alunos. |
+| `toque` | `1` no primeiro toca aqui daquela tela, `2` no segundo... |
+| `segundos_no_resultado` | Quantos segundos depois de o resultado aparecer. |
+
 ## `tentativas_resumo.csv`
 
 Uma linha por aluno, matéria, dificuldade e modo. Os **visitantes ficam de
@@ -171,6 +187,7 @@ variável do estudo —, o gabinete abre com `--condicao` (ver `gabinete.md`):
 | `sem-sincronia` | Os dois Pontos Extras gastos juntos dão só os dois escudos: a onda não sai. As `sincronias` continuam contadas. |
 | `sem-valeu` | Quem foi coberto não solta o coração na cor de quem cobriu. |
 | `sem-sinal` | O Botão 3 não mostra o anel nem toca o som na batalha em dupla. Os `sinais` continuam contados. |
+| `sem-toque` | No resultado da dupla aprovada, o Botão 3 dos dois não faz os avatares pularem, nem estoura, nem toca a palma, e o rodapé não ensina. Os toques continuam contados em `tentativas_toques.csv`. |
 
 Sem `--condicao` (ou com `--condicao normal`), tudo funciona como sempre, e a
 coluna `condicao` diz `normal`. Um nome que o jogo não conhece é ignorado — e
@@ -233,7 +250,7 @@ escolha a origem **65001: Unicode (UTF-8)** e o delimitador **Vírgula**.
 ## Antes de coletar
 
 - **Comece com os arquivos vazios.** As tentativas de teste, de quem montou a
-  máquina, também viram linhas. Antes da coleta, mova os três arquivos para
+  máquina, também viram linhas. Antes da coleta, mova os quatro arquivos para
   outra pasta (não apague: são dados também).
 - **Faça cópia.** `tentativas.csv` só cresce, mas é um arquivo só numa máquina
   só. Copie a pasta `Saves/` ao fim de cada dia de coleta.

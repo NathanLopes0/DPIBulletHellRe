@@ -17,6 +17,7 @@ namespace Experimento {
             case Mecanica::Sincronia:  return "sincronia";
             case Mecanica::Valeu:      return "valeu";
             case Mecanica::Sinal:      return "sinal";
+            case Mecanica::Toque:      return "toque";
         }
         return "";
     }

@@ -453,14 +453,21 @@ void Battle::AtualizarIntercambio(const float deltaTime) {
     }
 }
 
-void Battle::CriarResultado(const int linhas) {
+void Battle::CriarResultado(const int linhas, const bool comToque) {
     std::vector<std::string> opcoes;
     for (const Resultado::Opcao o : Resultado::kOpcoes) opcoes.emplace_back(Resultado::Texto(o));
 
     // Sem o ESC no rodape: a luta acabou, e quem escolhe e o painel.
-    const std::string rodape = Painel::Rodape({Painel::Manche(Painel::Jogador::Um, "escolher"),
-                                               {Painel::Jogador::Um, Painel::Botao::Um, "confirmar"}},
-                                              mGame->JeitoDoRodape());
+    std::vector<Painel::Acao> acoes = {Painel::Manche(Painel::Jogador::Um, "escolher"),
+                                       {Painel::Jogador::Um, Painel::Botao::Um, "confirmar"}};
+    // O toca aqui se ensina no proprio rodape: o Botao 3 dos dois, juntos.
+    if (comToque) {
+        acoes.emplace_back("BOTAO 3 JUNTOS",
+                           std::string(Painel::NomeDaTecla(Painel::Jogador::Um, Painel::Botao::Tres)) + " + " +
+                               Painel::NomeDaTecla(Painel::Jogador::Dois, Painel::Botao::Tres),
+                           "toca aqui");
+    }
+    const std::string rodape = Painel::Rodape(acoes, mGame->JeitoDoRodape());
 
     // Mais alta que a da pausa: cabem as linhas do resumo entre o titulo e as opcoes.
     PainelDeMenu::Medidas medidas;
@@ -568,6 +575,8 @@ void Battle::OnUpdate(float deltaTime) {
 
         // O ClearBossProjectiles() de EncerrarBatalha apenas marca os projeteis.
         if (mProjeteis) mProjeteis->Cleanup();
+
+        AtualizarToque(deltaTime);
 
         if (Resultado::VoltaSozinha(mGame->NoGabinete(), mTempoNoFim)) {
             mGame->RequestSceneChange(SceneType::StageSelect);
@@ -870,16 +879,17 @@ void Battle::MostrarResultado(const Resultado::Resumo& resumo) {
     // O tiro que estava apertado quando a luta acabou nao escolhe nada.
     SegurarMenu();
     const std::vector<std::string> linhas = Resultado::Linhas(resumo);
-    CriarResultado(static_cast<int>(linhas.size()));
+    // A dupla aprovada comemora: os dois avatares no painel, e o toca aqui (Comunicacao.h).
+    const bool duplaAprovada = mJogadores.size() >= 2 && resumo.aprovado;
+    mPodeTocar = duplaAprovada;
+    CriarResultado(static_cast<int>(linhas.size()), duplaAprovada && mCondicao.Ligada(Experimento::Mecanica::Toque));
     // A formatura e dourada, o titulo e a linha de quem ganhou o capelo.
     const bool formou = Resultado::Formou(resumo);
     mPainelDoResultado->SetTitulo(Resultado::Titulo(resumo),
                                   formou ? Color::Gold : resumo.aprovado ? Color::LightGreen : Color::LightPink);
     mPainelDoResultado->SetLinhas(linhas, Resultado::LinhaEmDestaque(resumo));
-    if (formou) {
-        mPainelDoResultado->ColorirLinha(Resultado::LinhaDaFormatura(resumo), Color::Gold);
-        MostrarFormandos();
-    }
+    if (formou) mPainelDoResultado->ColorirLinha(Resultado::LinhaDaFormatura(resumo), Color::Gold);
+    if (formou || duplaAprovada) MostrarAlunosNoResultado();
     // A justica: cada aluno na cor dele.
     for (size_t i = 0; i < resumo.partes.size(); ++i) {
         const Hud::Rgb c = Hud::CorDoAluno(i);
@@ -893,7 +903,7 @@ void Battle::MostrarResultado(const Resultado::Resumo& resumo) {
     if (linhaDasCausas >= 0) MostrarCausas(resumo.causas, mPainelDoResultado->OndeDaLinha(linhaDasCausas));
 }
 
-void Battle::MostrarFormandos() {
+void Battle::MostrarAlunosNoResultado() {
     if (mJogadores.empty() || !mPainelDoResultado) return;
     const Vector2 titulo = mPainelDoResultado->OndeDoTitulo();
     const size_t ultimo = mJogadores.size() - 1;
@@ -910,7 +920,73 @@ void Battle::MostrarFormandos() {
         desenho->AddAnimation("Andando", {0, 1, 2, 3});
         desenho->SetAnimFPS(6.0f);
         desenho->SetAnimation("Andando");
-        AddActor(std::move(formando));
+        const Vector2 base = formando->GetPosition();
+        mAvataresNoResultado.push_back(AvatarNoResultado{AddActor(std::move(formando)), base});
+    }
+}
+
+void Battle::LerToque(const Uint8* keyState) {
+    if (!mPodeTocar || mJogadores.size() < 2) return;
+    for (size_t i = 0; i < 2; ++i) {
+        const auto quem = i == 0 ? Painel::Jogador::Um : Painel::Jogador::Dois;
+        const bool apertado = Painel::Apertado(keyState, quem, Painel::Botao::Tres);
+        // O botao que vinha segurado da luta (o sinal) nao conta: so o aperto depois da trava.
+        if (apertado && !mTresAntes[i] && mTempoNoFim >= Resultado::kTravaDoMenu) mUltimoTres[i] = mTempoNoFim;
+        mTresAntes[i] = apertado;
+    }
+    if (Comunicacao::Juntos(mUltimoTres[0], mUltimoTres[1]) &&
+        mTempoNoFim - mUltimoToque >= Comunicacao::kEsperaDoToque) {
+        TocarAqui();
+    }
+}
+
+void Battle::TocarAqui() {
+    // Cada par de apertos vale um toque so.
+    mUltimoTres = {Comunicacao::kNuncaApertou, Comunicacao::kNuncaApertou};
+    mUltimoToque = mTempoNoFim;
+    // A medida conta sempre; o experimento sem o toque so nao pula, nao estoura e nao toca.
+    Avisar([&](OuvinteDaBatalha& o) { o.AoTocarAqui(*this); });
+    if (!mCondicao.Ligada(Experimento::Mecanica::Toque)) return;
+    for (AvatarNoResultado& a : mAvataresNoResultado) a.pulo = 0.0f;
+    mEstouro = 0.0f;
+    if (!mDesenhoDoToque) {
+        auto ator = std::make_unique<Actor>(this);
+        mDesenhoDoToque = ator->AddComponent<DrawLinhasComponent>(kOrdemDosMenus + 5);
+        AddActor(std::move(ator));
+    }
+    if (mGame && mGame->GetAudio()) mGame->GetAudio()->PlaySound("toque.wav", false);
+}
+
+void Battle::AtualizarToque(const float deltaTime) {
+    // O pulo dos dois, juntos.
+    for (AvatarNoResultado& a : mAvataresNoResultado) {
+        if (!a.ator) continue;
+        a.pulo = std::min(a.pulo + deltaTime, Comunicacao::kDuracaoDoPulo);
+        a.ator->SetPosition(a.base - Vector2(0.0f, Comunicacao::AlturaDoPulo(a.pulo)));
+    }
+    if (!mDesenhoDoToque) return;
+    mDesenhoDoToque->Limpar();
+    mEstouro = std::min(mEstouro + deltaTime, Comunicacao::kDuracaoDoEstouro);
+    const float alfa = Comunicacao::AlfaDoEstouro(mEstouro);
+    if (alfa <= 0.0f || !mPainelDoResultado) return;
+
+    // O estouro dourado entre os dois: raios que abrem do meio do titulo, e um anel.
+    const Vector2 meio = mPainelDoResultado->OndeDoTitulo();
+    const float abre = Comunicacao::AberturaDoEstouro(mEstouro);
+    const SDL_Color ouro{255, 215, 60, static_cast<Uint8>(255.0f * alfa)};
+    constexpr int kRaios = 16;
+    for (int r = 0; r < kRaios; ++r) {
+        const float angulo = Math::TwoPi * static_cast<float>(r) / static_cast<float>(kRaios);
+        const Vector2 direcao(Math::Cos(angulo), Math::Sin(angulo));
+        // So os leques de cima e de baixo: dos lados estao os dois avatares, que pulam.
+        if (std::abs(direcao.y) < 0.6f) continue;
+        // De fora do titulo para fora, sem chegar na linha de baixo: emoldura a palavra sem cobri-la.
+        const Vector2 escala(150.0f, 34.0f);
+        const float perto = 0.95f + 0.25f * abre;
+        const float longe = 1.1f + 0.4f * abre;
+        const Vector2 de(meio.x + direcao.x * escala.x * perto, meio.y + direcao.y * escala.y * perto);
+        const Vector2 ate(meio.x + direcao.x * escala.x * longe, meio.y + direcao.y * escala.y * longe);
+        mDesenhoDoToque->Acrescentar(de, ate, ouro);
     }
 }
 
@@ -952,6 +1028,7 @@ void Battle::AnotarPerda(const Player& jogador, const std::string& causa, const 
 void Battle::ProcessarResultado(const Uint8* keyState) {
     // Lido mesmo na trava (Resultado::kTravaDoMenu).
     const BatidasDoMenu b = LerMenu(keyState);
+    LerToque(keyState);
     if (mTempoNoFim < Resultado::kTravaDoMenu) return;
 
     if (!mPainelDoResultado) return;

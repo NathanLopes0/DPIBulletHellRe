@@ -64,6 +64,11 @@ public:
     /// condicao do experimento nao mostre o sinal.
     virtual void AoSinalizar(Battle&, const Player& aluno) {}
 
+    /// No resultado da dupla aprovada, os dois apertaram o Botao 3 juntos: o toca aqui
+    /// (Comunicacao::Juntos). Vem depois do AoTerminar - a tentativa ja foi gravada. Conta mesmo que a
+    /// condicao do experimento nao mostre o toque.
+    virtual void AoTocarAqui(Battle&) {}
+
     /// O aluno atravessou a parede pela rede do socket() (Battle::AbrirRede).
     virtual void AoAtravessarAParede(Battle&) {}
 

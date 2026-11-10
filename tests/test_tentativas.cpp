@@ -212,6 +212,19 @@ TEST_CASE("Tentativas: o formato novo so acrescenta colunas no fim, e o arquivo 
     CHECK(CabecalhoDasFases().rfind(fases1 + ",", 0) == 0);
 }
 
+TEST_CASE("Tentativas: cada toca aqui e uma linha, ligada a tentativa pelo id") {
+    const Tentativa t = UmaDupla();
+    const std::string cab = CabecalhoDosToques();
+    const std::string linha = LinhaDoToque(t, 2, 3.456f);
+    CHECK(Campos(linha).size() == Campos(cab).size());
+    CHECK(Coluna(cab, linha, "id") == t.id);
+    CHECK(Coluna(cab, linha, "materia") == "INF213");
+    CHECK(Coluna(cab, linha, "matricula_1") == "12345");
+    CHECK(Coluna(cab, linha, "matricula_2") == "67890");
+    CHECK(Coluna(cab, linha, "toque") == "2");
+    CHECK(Coluna(cab, linha, "segundos_no_resultado") == "3.46");
+}
+
 TEST_CASE("Tentativas: os campos respeitam aspas") {
     const auto c = Campos("a,\"b, c\",\"d \"\"e\"\"\",,f\r");
     REQUIRE(c.size() == 5u);

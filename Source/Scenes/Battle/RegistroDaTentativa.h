@@ -26,6 +26,7 @@ public:
     void AoUsarPontoExtra(Battle& b, const Player& aluno) override;
     void AoSincronizar(Battle& b) override;
     void AoSinalizar(Battle& b, const Player& aluno) override;
+    void AoTocarAqui(Battle& b) override;
     void AoTerminar(Battle& b, Tentativas::Resultado resultado, bool ultimaFaseCompleta) override;
 
 private:
@@ -43,4 +44,6 @@ private:
     /// Na dupla, a distancia entre os dois somada a cada quadro de luta, pesada pelo tempo: dividida
     /// por mRelogio, e a distancia media.
     float mDistanciaVezesTempo = 0.0f;
+    /// Os toca aqui do resultado, contados para numerar as linhas de tentativas_toques.csv.
+    int mToques = 0;
 };

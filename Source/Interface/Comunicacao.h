@@ -58,4 +58,29 @@ namespace Comunicacao {
     constexpr int kLarguraDoCoracao = 9;
     constexpr int kAlturaDoCoracao = 8;
     constexpr int kPixelDoCoracao = 2;
+
+    // ---- O toca aqui ----
+
+    /// No resultado da dupla aprovada, os dois apertando o Botao 3 com ate esta diferenca e o toca
+    /// aqui: os avatares pulam e o sucesso estoura em dourado entre eles. Cabe um "um, dois, tres!".
+    constexpr float kJanelaDoToque = 0.5f;
+
+    /// Entre dois toca aqui: comemorar de novo vale, martelar o botao nao.
+    constexpr float kEsperaDoToque = 0.6f;
+
+    /// O instante de um botao que ainda nao foi apertado.
+    constexpr float kNuncaApertou = -1.0e9f;
+
+    /// Os dois apertos, em 'umAluno' e 'oOutro', foram juntos?
+    bool Juntos(float umAluno, float oOutro);
+
+    /// O pulo dos avatares: quanto e o tempo dele, e a altura 't' segundos depois do toque.
+    constexpr float kDuracaoDoPulo = 0.35f;
+    float AlturaDoPulo(float t);
+
+    /// O estouro dourado entre os dois: quanto dura, quanto os raios ja abriram (0 a 1) e quao
+    /// acesos estao (0 a 1) 't' segundos depois.
+    constexpr float kDuracaoDoEstouro = 0.5f;
+    float AberturaDoEstouro(float t);
+    float AlfaDoEstouro(float t);
 }

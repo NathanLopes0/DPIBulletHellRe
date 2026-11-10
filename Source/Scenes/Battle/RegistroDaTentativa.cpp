@@ -174,6 +174,13 @@ void RegistroDaTentativa::AoSinalizar(Battle& b, const Player& aluno) {
     if (auto* r = De(b, &aluno)) ++r->sinais;
 }
 
+void RegistroDaTentativa::AoTocarAqui(Battle& b) {
+    // Vem no resultado, com a tentativa ja gravada: e um arquivo a parte, ligado a ela pelo id.
+    if (!mGravada) return;
+    ++mToques;
+    TentativasArquivo::GravarToque(mTentativa, mToques, b.TempoNoResultado());
+}
+
 void RegistroDaTentativa::AoTerminar(Battle& b, const Tentativas::Resultado resultado, const bool ultimaFaseCompleta) {
     if (!Anotando()) return;
     mGravada = true;

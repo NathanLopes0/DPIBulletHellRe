@@ -51,3 +51,26 @@ TEST_CASE("Comunicacao: o coracao e simetrico e cabe na grade dele") {
     for (const auto& [x, y] : pixels) if (y == kAlturaDoCoracao - 1) ++naUltima;
     CHECK(naUltima == 1);
 }
+
+TEST_CASE("Comunicacao: o toca aqui e dos dois apertos juntos, e o pulo sobe e volta ao chao") {
+    CHECK(Juntos(3.0f, 3.0f));
+    CHECK(Juntos(3.0f, 3.0f + kJanelaDoToque));
+    CHECK(Juntos(3.0f + kJanelaDoToque, 3.0f));
+    CHECK_FALSE(Juntos(3.0f, 3.0f + kJanelaDoToque + 0.05f));
+    // Um aperto so nao e toque.
+    CHECK_FALSE(Juntos(3.0f, kNuncaApertou));
+    CHECK_FALSE(Juntos(kNuncaApertou, kNuncaApertou));
+
+    CHECK(AlturaDoPulo(0.0f) == doctest::Approx(0.0f));
+    CHECK(AlturaDoPulo(kDuracaoDoPulo * 0.5f) == doctest::Approx(16.0f));
+    CHECK(AlturaDoPulo(kDuracaoDoPulo) == doctest::Approx(0.0f));
+    CHECK(AlturaDoPulo(-1.0f) == doctest::Approx(0.0f));
+
+    CHECK(AberturaDoEstouro(0.0f) == doctest::Approx(0.0f));
+    CHECK(AberturaDoEstouro(kDuracaoDoEstouro) == doctest::Approx(1.0f));
+    CHECK(AlfaDoEstouro(0.0f) == doctest::Approx(1.0f));
+    CHECK(AlfaDoEstouro(kDuracaoDoEstouro) == doctest::Approx(0.0f));
+    // Comemorar de novo cabe; martelar o botao, nao.
+    CHECK(kEsperaDoToque > kJanelaDoToque);
+    CHECK(kEsperaDoToque < 2.0f);
+}

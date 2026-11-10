@@ -109,6 +109,12 @@ namespace Tentativas {
     std::string CabecalhoDasFases();
     std::vector<std::string> LinhasDasFases(const Tentativa& t);
 
+    /// O toca aqui de uma dupla aprovada (Battle::TocarAqui): uma linha por toque, gravada no
+    /// resultado - depois da tentativa, que ja esta no tentativas.csv. 'toque' e 1 no primeiro, e
+    /// 'segundos' conta desde que o resultado apareceu.
+    std::string CabecalhoDosToques();
+    std::string LinhaDoToque(const Tentativa& t, int toque, float segundos);
+
     /// O conteudo de um CSV com o cabecalho 'novo' no lugar do que ele tem. So se o antigo for o
     /// comeco do novo - colunas se acrescentam no fim -, e as linhas antigas ficam como estavam: mais
     /// curtas, e com o formato delas na primeira coluna. Sem isso, nada: o arquivo e de outra coisa.

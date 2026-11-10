@@ -90,6 +90,11 @@ namespace Tentativas {
             "sinais",
         };
 
+        const std::vector<std::string> kColunasDosToques = {
+            "formato", "id", "materia", "dificuldade", "matricula_1", "matricula_2", "toque",
+            "segundos_no_resultado",
+        };
+
         const std::vector<std::string> kColunasDasFases = {
             "formato", "id", "materia", "dificuldade", "modo", "matricula_1", "matricula_2",
             "resultado", "ordem", "fase", "anuncio", "inicio_s", "fim_s", "duracao_s",
@@ -183,6 +188,15 @@ namespace Tentativas {
             }));
         }
         return linhas;
+    }
+
+    std::string CabecalhoDosToques() { return Juntar(kColunasDosToques); }
+
+    std::string LinhaDoToque(const Tentativa& t, const int toque, const float segundos) {
+        const std::string m1 = !t.jogadores.empty() ? t.jogadores[0].matricula : "";
+        const std::string m2 = t.jogadores.size() > 1 ? t.jogadores[1].matricula : "";
+        return Juntar({std::to_string(kVersaoDoFormato), t.id, t.materia, t.dificuldade, m1, m2,
+                       std::to_string(toque), Num(segundos)});
     }
 
     std::optional<std::string> TrocarCabecalho(const std::string& csv, const std::string& novo) {

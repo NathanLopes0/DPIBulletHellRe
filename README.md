@@ -28,7 +28,7 @@ escritos na tela.
 | **Manche** | **setas** | **W A S D** | mover o aluno, escolher na tela |
 | **Botão 1** | **Espaço** | **F** | lançar Dúvidas (os balões com **?**); confirmar; digitar |
 | **Botão 2** | **B** | **E** | voltar e apagar; na batalha, gastar um Ponto Extra: sozinho, uma onda dourada sai de você e desfaz os tiros do professor por onde passa, e você fica 1,5 s sem atirar — em troca, ganha a nota que ganharia acertando todos os tiros desse tempo; em dupla, dá ao parceiro um escudo que destrói os projéteis do chefe, e quem gastou segue atirando — e, se os dois gastarem juntos, a onda sai do meio deles, além dos escudos |
-| **Botão 3** | **N** | **H** | na dificuldade, trocar a personagem; na seleção, o boletim (e dele, o ranking da matéria); na batalha em dupla, dar um sinal ao parceiro; na batalha do TCC, soltar o poder do orientador quando o anel dele enche |
+| **Botão 3** | **N** | **H** | na dificuldade, trocar a personagem; na seleção, o boletim (e dele, o ranking da matéria); na batalha em dupla, dar um sinal ao parceiro; na batalha do TCC, soltar o poder do orientador quando o anel dele enche; no resultado da dupla aprovada, os dois juntos: o toca aqui |
 | — | **Esc** | — | na batalha, **só no computador**: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota. A batalha também pausa sozinha quando a janela perde o foco |
 | — | **Enter**, **Esc**, **0–9**, **Backspace** | — | atalhos de teclado para quem desenvolve |
 
@@ -106,7 +106,10 @@ mais caiu, com quanto ela custou, e o desenho do que mais te acertou, com
 quantas vezes. Na dupla, uma linha por aluno, na cor dele, diz a parte de
 cada um — acertos no professor, coberturas e acertos sofridos —: quem cobriu o
 parceiro vê que contou. Quem acaba de passar no TCC vê **FORMADE!**, em dourado,
-com a personagem de capelo dos dois lados do título. O menu só
+com a personagem de capelo dos dois lados do título. Na **dupla aprovada**, os
+dois avatares ficam dos lados do título, e os dois apertando o **Botão 3 juntos**
+fazem o **toca aqui**: os avatares pulam, o título estoura em dourado e se ouve
+uma palma — o rodapé ensina. O menu só
 aceita o botão depois de um instante, para o tiro que estava apertado não
 escolher sozinho. No gabinete, se ninguém escolher em 20 segundos, ela volta
 sozinha para as matérias.
@@ -266,7 +269,8 @@ Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
   os quatro recordes (as colunas do Difícil vêm por último).
   É regravada a cada batalha, então está sempre em dia e ninguém precisa lembrar
   de exportar. Ela é **derivada** das fichas: apagá-la não perde nada.
-- **`tentativas.csv`**, **`tentativas_fases.csv`** e **`tentativas_resumo.csv`** —
+- **`tentativas.csv`**, **`tentativas_fases.csv`**, **`tentativas_resumo.csv`** e
+  **`tentativas_toques.csv`** (os toca aqui da dupla aprovada) —
   os dados para pesquisa: uma linha a cada tentativa de batalha (quem jogou, em
   que dia, qual vez era, como terminou, tiros, acertos, Pontos Extras e, na
   dupla, coberturas, as chances de cobrir, o tempo com a mira presa e a

@@ -93,6 +93,16 @@ namespace {
     }
 }
 
+bool GravarToque(const Tentativas::Tentativa& tentativa, const int toque, const float segundos) {
+    try {
+        return Acrescentar(Caminhos::Save("tentativas_toques.csv"), Tentativas::CabecalhoDosToques(),
+                           {Tentativas::LinhaDoToque(tentativa, toque, segundos)});
+    } catch (const std::exception& e) {
+        SDL_Log("TENTATIVAS: o toca aqui nao foi gravado (%s).", e.what());
+        return false;
+    }
+}
+
 bool Gravar(const Tentativas::Tentativa& tentativa) {
     try {
         const std::string caminho = Caminhos::Save("tentativas.csv");

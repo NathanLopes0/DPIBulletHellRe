@@ -121,6 +121,9 @@ public:
     /// tela nao e limpa, o parceiro fica imune.
     void AoGastarPontoExtra(Player* quemGastou);
 
+    /// Segundos desde que o painel do resultado apareceu (zero antes dele).
+    [[nodiscard]] float TempoNoResultado() const { return mTempoNoFim; }
+
     /// Na dupla, fora do TCC (la o Botao 3 e o poder do orientador), o aluno da um sinal ao
     /// parceiro: um anel na cor dele e um som curto (Comunicacao.h).
     void Sinalizar(const Player& quem);
@@ -465,13 +468,33 @@ private:
     // ---- O fim da luta: a tela de resultado (Resultado.h) ----
 
     /// O painel do resultado, do tamanho do resumo: criado no fim, quando se sabe quantas linhas ele tem.
-    void CriarResultado(int linhas);
+    /// 'comToque': o rodape ensina o toca aqui (a dupla aprovada).
+    void CriarResultado(int linhas, bool comToque);
     void MostrarResultado(const Resultado::Resumo& resumo);
     /// O que mais acertou o aluno, na linha da devolutiva: o desenho de cada projetil e quantas vezes.
     void MostrarCausas(const std::vector<Devolutiva::Causa>& causas, const Vector2& onde);
-    /// A formatura: a personagem de capelo dos dois lados do titulo - no solo, a mesma; na dupla,
-    /// cada aluno do seu lado. Nao depende de onde o aluno estava quando a luta acabou.
-    void MostrarFormandos();
+    /// A personagem dos alunos dos dois lados do titulo - no solo, a mesma; na dupla, cada aluno do
+    /// seu lado: na formatura, de capelo, e na dupla aprovada, para o toca aqui. Nao depende de onde o
+    /// aluno estava quando a luta acabou.
+    void MostrarAlunosNoResultado();
+
+    // ---- O toca aqui (Comunicacao.h): a dupla aprovada aperta o Botao 3 junta ----
+    struct AvatarNoResultado {
+        Actor* ator = nullptr;
+        Vector2 base;
+        float pulo = Comunicacao::kDuracaoDoPulo;   ///< parado: o pulo ja acabou
+    };
+    std::vector<AvatarNoResultado> mAvataresNoResultado;
+    bool mPodeTocar = false;
+    std::array<bool, 2> mTresAntes{};
+    std::array<float, 2> mUltimoTres{Comunicacao::kNuncaApertou, Comunicacao::kNuncaApertou};
+    float mUltimoToque = Comunicacao::kNuncaApertou;
+    float mEstouro = Comunicacao::kDuracaoDoEstouro;   ///< parado: o estouro ja apagou
+    class DrawLinhasComponent* mDesenhoDoToque = nullptr;
+    /// Le os dois Botoes 3 no resultado; os dois juntos sao o toca aqui.
+    void LerToque(const Uint8* keyState);
+    void TocarAqui();
+    void AtualizarToque(float deltaTime);
     /// Um acerto sofrido por 'jogador', que levou 'perda' de nota, por 'causa' (o tipo do projetil, ou
     /// o esbarrao): para a devolutiva e a justica.
     void AnotarPerda(const Player& jogador, const std::string& causa, float perda);

@@ -68,6 +68,7 @@ silêncio. D2 e D4 mudaram de resposta, não de pergunta.
 | D13 | Como o aluno sabe o que cobrir | O projétil destrutível que vai num aluno **brilha na cor dele**, com a mesma conta da cobertura (2.6) |
 | D14 | O que paga agir junto | **A sincronia**: os dois Pontos Extras gastos com até meio segundo de diferença soltam, além dos escudos, a onda do solo, do meio dos dois (2.7) |
 | D15 | Como os dois se falam dentro do jogo | **Um canal mínimo**: o coração de quem foi coberto, na cor de quem cobriu, e o sinal do Botão 3 — um anel e um som, sem texto (2.8) |
+| D16 | Como a dupla comemora | **O toca aqui**: no resultado da dupla aprovada, os dois apertam o Botão 3 juntos, os avatares pulam e o título estoura em dourado (2.9) |
 
 ### 2.1 — Uma regra só para a nota compartilhada (D2, D4)
 
@@ -335,7 +336,7 @@ estar sobre o mesmo aluno.
 
 **O sinal é do aluno.** O **Botão 3**, na batalha em dupla, solta um anel na
 cor de quem apertou e um som curto (`Assets/Sounds/sinal.wav`, gerado por
-`Ferramentas/gerar_sinal.py`): "estou aqui", "vem", "agora". Vale o aperto, e
+`Ferramentas/gerar_sons.py`): "estou aqui", "vem", "agora". Vale o aperto, e
 não o botão segurado, com um segundo de espera entre dois sinais do mesmo
 aluno. **No TCC o Botão 3 continua sendo o poder do orientador**, e não há
 sinal.
@@ -349,6 +350,28 @@ tira o coração, e `--condicao sem-sinal` tira o anel e o som — os sinais
 continuam contados, para comparar quanto a dupla tenta se chamar com e sem
 resposta do jogo. Sem a cobertura (`sem-cobertura`), não há valeu: ele é a
 parte visível dela.
+
+### 2.9 — O toca aqui: a dupla aprovada comemora junta (D16)
+
+A nota é uma só, e o sucesso também — mas nada no jogo deixava a dupla
+**comemorar junta**. Nas observações de El-Nasr et al., as risadas e a
+empolgação **juntas** vinham sobretudo de animações e momentos visuais; na de
+Emmerich e Masuch, "compartilhar o sucesso" é uma categoria própria de
+interação; e movimento coordenado aproxima (Isbister).
+
+**Na dupla aprovada, o resultado mostra os dois avatares** dos lados do título,
+como na formatura. O rodapé ensina: **"BOTÃO 3 JUNTOS — toca aqui"**. Os dois
+apertando com até meio segundo de diferença (`Comunicacao::kJanelaDoToque`), os
+avatares **pulam**, o título **estoura em dourado** — uma coroa de raios em cima
+e embaixo dele, que não cobre a palavra nem os avatares — e se ouve uma
+**palma** (`Assets/Sounds/toque.wav`, de `Ferramentas/gerar_sons.py`). Pode
+comemorar de novo, com uma espera curta entre dois toques. O aperto que vinha
+segurado da batalha não conta: só o que vem depois da trava do menu.
+
+O CSV da tentativa já foi gravado quando o resultado aparece, então cada toque
+vai para um arquivo à parte, `tentativas_toques.csv`, ligado à tentativa pelo
+`id`. `--condicao sem-toque` tira o pulo, o estouro, a palma e a dica do rodapé,
+e continua contando os toques.
 
 ## 3. Requisitos funcionais
 
