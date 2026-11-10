@@ -34,6 +34,9 @@ class Player;
 class ProjectileManager;
 class BattleHUD;
 class FaixaDaNota;
+class MolduraDoCampo;
+class PlacarDaFase;
+class RelogioDaFase;
 class EfeitosDaBatalha;
 class DesenhoSobreOsAlunos;
 class ExtraPointItem;
@@ -154,8 +157,6 @@ public:
     void AoPerderOFoco() override;
 
 protected:
-    void AtualizarBarraDeTempo() const;
-
     void OnUpdate(float deltaTime) override;
     void OnProcessInput(const Uint8 *keyState) override;
 
@@ -179,12 +180,10 @@ private:
     /// EscolhaDoOrientador, e o escolhido chega pelo Game (Game::Orientador).
     void CriarOrientador();
 
-    void CriarRelogioDaFase();
 
-    void CriarBarraDeTempo();
 
     // ---- O placar: o que o chefe anuncia na fase ("anuncio" em fases.json) ----
-    void CriarPlacar();
+    /// O placar diz o anuncio da fase, ou o aviso do intercambio enquanto ele esta aceso.
     void AtualizarPlacar();
 
     // ---- O intercambio: os alunos trocam de lugar ("intercambio" em fases.json) ----
@@ -229,13 +228,14 @@ private:
     /// Quando cada aluno deu o ultimo sinal (mRelogioDaLuta): a espera entre um e outro.
     std::array<float, 2> mUltimoSinal{Comunicacao::kNuncaSinalizou, Comunicacao::kNuncaSinalizou};
 
-    // ---- A moldura do campo (Hud.h) ----
-    class DrawMolduraDoCampoComponent* mMoldura = nullptr;
-    Hud::Caixa mAreaDoAluno;
-    void CriarMoldura();
-    /// O fundo do campo (FundoDoCampo.h): nao e preto liso.
-    void CriarFundo();
-    void AtualizarMoldura();
+    // ---- A HUD do campo ----
+
+    /// O fundo, os trilhos e o "prof" (MolduraDoCampo.h).
+    std::unique_ptr<MolduraDoCampo> mMoldura;
+    /// A capsula do tempo da fase e o reloginho, ao lado do professor (RelogioDaFase.h).
+    std::unique_ptr<RelogioDaFase> mRelogio;
+    /// O quadro com o anuncio da fase (PlacarDaFase.h).
+    std::unique_ptr<PlacarDaFase> mPlacar;
 
 public:
     /// O socket do Vitor (o poder dele, como orientador): por 'segundos', as paredes dos lados
@@ -247,8 +247,6 @@ public:
 
 private:
     float mRede = 0.0f;
-    /// O "prof" escrito embaixo do brilho de cada corpo do professor.
-    std::vector<Actor*> mRotulosDoProfessor;
 
     /// O aluno para as contas da cobertura: onde ele esta, o colisor e se algo o atinge.
     [[nodiscard]] Cobertura::Aluno AlunoDaCobertura(const Player* aluno) const;
@@ -265,10 +263,6 @@ private:
     /// Na dupla, quando cada aluno gastou o Ponto Extra pela ultima vez (mRelogioDaLuta): dois gastos
     /// em PontoExtra::kJanelaDaSincronia sao a sincronia.
     std::array<float, 2> mUltimoPontoExtra{PontoExtra::kNuncaGastou, PontoExtra::kNuncaGastou};
-
-    /// A moldura e fundo, atras de tudo - ate do quadro (60).
-    static constexpr int kOrdemDaMoldura = 40;
-    static constexpr int kOrdemDoFundo = 10;
 
     // ---- Ponteiros observadores do Boss e do Player, que vão estar dentro ----
     Boss* mChefe{};
@@ -301,13 +295,9 @@ private:
     /// A faixa da nota, na base da tela (FaixaDaNota.h).
     std::unique_ptr<FaixaDaNota> mFaixa;
 
-    /// A Carlito tem a notacao inteira, inclusive os sobrescritos e o delta.
+    /// A Carlito tem a notacao inteira, inclusive os sobrescritos e o delta: a do placar, do "prof"
+    /// e da tela de carregamento.
     std::unique_ptr<Font> mFonteDoPlacar;
-    Actor* mPlacarAtor = nullptr;
-
-    /// E o texto, e nao a fase, que se compara: dentro de uma fase com Intercambio o placar troca
-    /// de texto durante o aviso.
-    std::string mTextoDoPlacar;
 
     /// O relogio do Intercambio da fase atual. Sem Intercambio ele fica
     /// invalido, e um relogio invalido nunca avisa nem troca (Intercambio.h).
@@ -327,15 +317,6 @@ private:
     /// Logo acima dos projeteis (88 a 92) e abaixo do aluno (100).
     static constexpr int kOrdemDoMarcador = 95;
 
-    static constexpr int kPlacarLargura = 320;
-    static constexpr int kPlacarAltura  = 46;
-    static constexpr int kPlacarMargem  = 16;
-    static constexpr int kTamanhoDoPlacar = 30;
-
-    /// Atras dos projeteis (88 a 92) e do aluno (100), e.
-    static constexpr int kOrdemDoPlacar = 60;
-    Actor* mBarraDeTempoAtor = nullptr;
-    Actor* mRelogioAtor = nullptr;
 
     std::vector<ExtraPointItem*> mPontosExtras;
 

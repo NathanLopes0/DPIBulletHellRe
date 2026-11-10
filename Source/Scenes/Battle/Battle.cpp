@@ -13,7 +13,10 @@
 #include "DesenhoSobreOsAlunos.h"
 #include "EfeitosDaBatalha.h"
 #include "FaixaDaNota.h"
+#include "MolduraDoCampo.h"
 #include "PausaDaBatalha.h"
+#include "PlacarDaFase.h"
+#include "RelogioDaFase.h"
 #include "ProjectileManager.h"
 #include "TelaDoResultado.h"
 #include "../../Motor/AudioSystem.h"
@@ -30,10 +33,6 @@
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../../Components/DrawComponents/DrawTextComponent.h"
-#include "../../Components/DrawComponents/DrawFundoDoCampoComponent.h"
-#include "../../Components/DrawComponents/DrawMolduraDoCampoComponent.h"
-#include "../../Components/DrawComponents/DrawQuadroComponent.h"
-#include "../../Components/DrawComponents/DrawRelogioDaFaseComponent.h"
 #include "../../Actors/Teachers/ExtraPointItem.h"
 #include "../../Regras/PontoExtra.h"
 #include "../../Regras/Raspao.h"
@@ -170,16 +169,27 @@ void Battle::CriarHUD() {
 
     // Cria a HUD para segurar todas as infos.
     mHUD = std::make_unique<BattleHUD>(this);
-    CriarFundo();
-    CriarMoldura();
-    if (mMoldura) mOuvintes.push_back(std::make_unique<ClaroesDaMoldura>(*mMoldura));
-    CriarBarraDeTempo();
+    mMoldura = std::make_unique<MolduraDoCampo>(*this, GetPlayfieldBounds(), mGame->GetWindowWidth(),
+                                                mGame->GetWindowHeight(), mJogadores);
+    mEfeitos = std::make_unique<EfeitosDaBatalha>(*this);
+    mOuvintes.push_back(std::make_unique<ClaroesDaMoldura>(mMoldura->Desenho()));
+
+    // A capsula do tempo segue o professor, e o BattleHUD a esvazia.
+    if (mChefe) {
+        mRelogio = std::make_unique<RelogioDaFase>(*this, *mChefe);
+        mHUD->SetTimeBar(mRelogio->Capsula(), mRelogio->DesenhoDaCapsula());
+    } else {
+        SDL_Log("ERRO: CriarHUD chamado antes do mChefe ser criado!");
+    }
     // A fonte da faixa e tambem a dos menus e da tela de carregamento.
     mFonteDaNota = std::make_unique<Font>();
     mFonteDaNota->Load(Caminhos::Asset(Fontes::kJogo));
     mFaixa = std::make_unique<FaixaDaNota>(*this, mFonteDaNota.get(), mGame->GetWindowWidth(),
                                            mGame->GetWindowHeight(), mConta.Valor(), mNivel);
-    CriarPlacar();
+    // O quadro da sala, no canto de cima a esquerda.
+    mFonteDoPlacar = std::make_unique<Font>();
+    mFonteDoPlacar->Load(Caminhos::Asset(Fontes::kPlacar));
+    mPlacar = std::make_unique<PlacarDaFase>(*this, mFonteDoPlacar.get(), mMoldura->AreaDoAluno().esquerda);
     CriarIntercambio();
 
 }
@@ -207,101 +217,12 @@ void Battle::CriarJogadores() {
         mJogadores.push_back(dynamic_cast<Player*>(this->AddActor(std::move(player))));
     }
 }
-void Battle::CriarBarraDeTempo() {
-
-    // Cria o Actor que vai segurar a barra que mostra o tempo do estado.
-    auto barActor = std::make_unique<Actor>(this);
-
-    if (!mChefe) {
-        SDL_Log("ERRO: CriarHUD chamado antes do mChefe ser criado!");
-        return;
-    }
-
-    auto bossSprite = mChefe->GetComponent<DrawAnimatedComponent>();
-    auto bossHeight = bossSprite->GetSpriteHeight();
-
-    auto barCompPtr = barActor->AddComponent<DrawRelogioDaFaseComponent>(
-        12, static_cast<int>(static_cast<float>(bossHeight) / 1.4f), 200);
-
-    Actor* barActorPtr = barActor.get();
-
-    // Adiciona ator à cena.
-    this->AddActor(std::move(barActor));
-
-    // Dá poder ao HUD pra modificar a barra.
-    mHUD->SetTimeBar(barActorPtr, barCompPtr);
-
-    // Salva o ponteiro do Actor que tem a barra de progresso na cena Battle, pra poder seguir o Boss.
-    mBarraDeTempoAtor = barActorPtr;
-
-    // Dá load no reloginho que tem embaixo da barra.
-    CriarRelogioDaFase();
-}
-void Battle::CriarRelogioDaFase() {
-
-    // Cria o ator que vai segurar a animação do relógior.
-    auto clockActor = std::make_unique<Actor>(this);
-    auto clockActorPtr = clockActor.get();
-
-    std::string clockSpriteSheet = Caminhos::Asset("Icons/TestTimeIcon.png");
-    std::string clockSpriteData = Caminhos::Asset("Icons/TestTimeIcon.json");
-
-    auto clockComp = clockActor->AddComponent<DrawAnimatedComponent>(clockSpriteSheet, clockSpriteData, 201);
-
-    clockComp->AddAnimation("Idle", {0});
-    clockComp->AddAnimation("Active", {0,1,2,3,4,5});
-    clockComp->SetAnimation("Active");
-
-    this->AddActor(std::move(clockActor));
-    mRelogioAtor = clockActorPtr;
-
-}
-void Battle::CriarPlacar() {
-
-    // O quadro da sala, no canto de cima a esquerda.
-    mFonteDoPlacar = std::make_unique<Font>();
-    mFonteDoPlacar->Load(Caminhos::Asset(Fontes::kPlacar));
-
-    auto placar = std::make_unique<Actor>(this);
-
-    // Verde de quadro-negro e moldura de giz.
-    auto quadro = placar->AddComponent<DrawQuadroComponent>(kPlacarLargura, kPlacarAltura, kOrdemDoPlacar);
-    quadro->SetIsVisible(false);
-
-    // A caixa do texto e menor que o quadro, e o ajuste ao texto so encolhe.
-    auto texto = placar->AddComponent<DrawTextComponent>(
-        " ", mFonteDoPlacar.get(), kPlacarLargura - 24, kPlacarAltura - 6,
-        kTamanhoDoPlacar, kOrdemDoPlacar + 1);
-    texto->SetAjustarAoTexto(true);
-    texto->SetIsVisible(false);
-
-    // Depois do trilho da esquerda, e nao colado na borda da tela.
-    placar->SetPosition(Vector2(mAreaDoAluno.esquerda + static_cast<float>(kPlacarMargem + kPlacarLargura / 2) - 4.0f,
-                                static_cast<float>(kPlacarMargem + kPlacarAltura / 2)));
-
-    mPlacarAtor = placar.get();
-    this->AddActor(std::move(placar));
-}
-
 void Battle::AtualizarPlacar() {
-    if (!mPlacarAtor || !mChefe) return;
+    if (!mPlacar || !mChefe) return;
 
     // FaseAtual, e nao o nome que a maquina de estados acabou de trocar.
-    const std::string anuncio = Intercambio::Avisando(mRelogioDoIntercambio)
-                                    ? mChefe->AvisoDoIntercambio()
-                                    : mChefe->AnuncioDaFase(mChefe->FaseAtual());
-    if (anuncio == mTextoDoPlacar) return;
-    mTextoDoPlacar = anuncio;
-
-    const bool aceso = !anuncio.empty();
-
-    // So escreve quando ha o que escrever.
-    auto* texto = mPlacarAtor->GetComponent<DrawTextComponent>();
-    if (aceso) texto->SetText(anuncio);
-    texto->SetIsVisible(aceso);
-    auto* quadro = mPlacarAtor->GetComponent<DrawQuadroComponent>();
-    quadro->SetIsVisible(aceso);
-    if (aceso) quadro->Apagar();
+    mPlacar->Mostrar(Intercambio::Avisando(mRelogioDoIntercambio) ? mChefe->AvisoDoIntercambio()
+                                                                  : mChefe->AnuncioDaFase(mChefe->FaseAtual()));
 }
 
 void Battle::CriarIntercambio() {
@@ -480,14 +401,14 @@ void Battle::OnUpdate(float deltaTime) {
     mIncomodo.Avancar(deltaTime);
     mDesenhoSobreOsAlunos->Atualizar(deltaTime, mJogadores, FocoDaMira(), mGame && mGame->MostrarHitbox());
     MarcarOCaminhoDosAlunos();
-    AtualizarMoldura();
+    if (mMoldura) mMoldura->Atualizar(mJogadores, mCorpos, mRede, mFonteDoPlacar.get());
     mEfeitos->AvancarOndas(deltaTime, mProjeteis->GetBossProjectiles());
     mEfeitos->Desenhar(deltaTime, mFaixa->Ponta(mConta.Valor()));
 
     if (mHUD) mHUD->OnUpdate(deltaTime, mChefe && mChefe->Congelado());
     if (mRede > 0.0f) mRede = std::max(0.0f, mRede - deltaTime);
 
-    AtualizarBarraDeTempo();
+    if (mRelogio && mChefe && mHUD) mRelogio->Seguir(*mChefe, mHUD->Restante());
     mFaixa->Atualizar(mConta.Valor(), mAvisoDeFaseLimpa > 0.0f);
 
     AtualizarIntercambio(deltaTime);
@@ -507,31 +428,6 @@ void Battle::OnUpdate(float deltaTime) {
         EncerrarBatalha(false);
     }
 
-}
-void Battle::AtualizarBarraDeTempo() const {
-    if (!mChefe || !mBarraDeTempoAtor) return;
-
-    Vector2 bossPos = mChefe->GetPosition();
-
-    auto bossSprite = mChefe->GetComponent<DrawAnimatedComponent>();
-    auto bossWidth = bossSprite->GetSpriteWidth();
-    auto bossHeight = bossSprite->GetSpriteHeight();
-
-    float offSetX = static_cast<float>(bossWidth) / 2.5f;
-    float offSetY = static_cast<float>(bossHeight) / 4.f;
-
-    mBarraDeTempoAtor->SetPosition(Vector2(bossPos.x + offSetX,
-                                    bossPos.y - offSetY));
-
-    mRelogioAtor->SetPosition(mBarraDeTempoAtor->GetPosition() + Vector2(6, static_cast<float>(bossHeight) / 1.4f + 4.0f));
-
-    // O relogio fica vermelho junto com a capsula, nos ultimos segundos.
-    if (auto* relogio = mRelogioAtor->GetComponent<DrawAnimatedComponent>(); relogio && mHUD) {
-        const bool urgente = Hud::Urgente(mHUD->Restante());
-        const bool aceso = urgente && std::fmod(mHUD->Restante(), 0.5f) > 0.25f;
-        if (aceso) relogio->SetColor(255, 110, 100);
-        else relogio->SetColor(255, 255, 255);
-    }
 }
 //endregion UpdateFunctions
 
@@ -919,71 +815,6 @@ void Battle::AoGastarPontoExtra(Player* quemGastou) {
                           (b ? b->GetCenter() : oOutro->GetPosition())) * 0.5f;
     mEfeitos->SoltarOnda(meio);
     mEfeitos->Faiscar(meio, Hud::Faisca::Coleta);
-}
-
-// A moldura do campo.
-
-void Battle::CriarFundo() {
-    // O caderno quadriculado embaixo de tudo, do tamanho do campo.
-    auto fundo = std::make_unique<Actor>(this);
-    fundo->AddComponent<DrawFundoDoCampoComponent>(GetPlayfieldBounds(), kOrdemDoFundo);
-    AddActor(std::move(fundo));
-}
-
-void Battle::CriarMoldura() {
-    // A area do aluno sai do mesmo tamanho que o Player::PrenderNoCampo usa.
-    const SDL_FRect campo = GetPlayfieldBounds();
-    float largura = 32.0f, altura = 48.0f;
-    if (!mJogadores.empty() && mJogadores.front()) {
-        if (const auto* sprite = mJogadores.front()->GetComponent<DrawAnimatedComponent>()) {
-            largura = static_cast<float>(sprite->GetSpriteWidth());
-            altura = static_cast<float>(sprite->GetSpriteHeight());
-        }
-    }
-    mAreaDoAluno = Hud::AreaDoAluno({campo.x, campo.y, campo.x + campo.w, campo.y + campo.h}, largura, altura);
-
-    auto moldura = std::make_unique<Actor>(this);
-    mMoldura = moldura->AddComponent<DrawMolduraDoCampoComponent>(kOrdemDaMoldura);
-    mMoldura->Definir(static_cast<float>(mGame->GetWindowWidth()), static_cast<float>(mGame->GetWindowHeight()),
-                      mAreaDoAluno);
-    AddActor(std::move(moldura));
-
-    mEfeitos = std::make_unique<EfeitosDaBatalha>(*this);
-}
-
-void Battle::AtualizarMoldura() {
-    if (!mMoldura) return;
-    std::vector<std::pair<Vector2, Vector2>> alunos;
-    for (const Player* p : mJogadores) {
-        if (!p) continue;
-        const auto* sprite = p->GetComponent<DrawAnimatedComponent>();
-        if (!sprite) continue;
-        alunos.emplace_back(p->GetPosition(), Vector2(static_cast<float>(sprite->GetSpriteWidth()) / 2.0f,
-                                                      static_cast<float>(sprite->GetSpriteHeight()) / 2.0f));
-    }
-    mMoldura->SetAlunos(std::move(alunos));
-
-    std::vector<float> xs;
-    for (const Boss* corpo : mCorpos) {
-        if (corpo && corpo->GetState() == ActorState::Active) {
-            xs.push_back(std::clamp(corpo->GetPosition().x, mAreaDoAluno.esquerda, mAreaDoAluno.direita));
-        }
-    }
-    while (mRotulosDoProfessor.size() < xs.size() && mFonteDoPlacar) {
-        auto ator = std::make_unique<Actor>(this);
-        auto* texto = ator->AddComponent<DrawTextComponent>("prof", mFonteDoPlacar.get(), 60, 18, 14, kOrdemDaMoldura + 2);
-        texto->SetAjustarAoTexto(true);
-        texto->SetColor(Vector3(1.0f, 0.45f, 0.4f));
-        mRotulosDoProfessor.push_back(AddActor(std::move(ator)));
-    }
-    for (size_t i = 0; i < mRotulosDoProfessor.size(); ++i) {
-        auto* texto = mRotulosDoProfessor[i]->GetComponent<DrawTextComponent>();
-        const bool aceso = i < xs.size();
-        if (texto) texto->SetIsVisible(aceso);
-        if (aceso) mRotulosDoProfessor[i]->SetPosition(Vector2(xs[i], mAreaDoAluno.baixo + 13.0f));
-    }
-    mMoldura->SetProfessores(std::move(xs));
-    mMoldura->SetRede(mRede);
 }
 
 void Battle::Atravessou(const Vector2& de, const Vector2& para) {

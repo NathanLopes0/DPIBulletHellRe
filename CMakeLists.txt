@@ -195,10 +195,16 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Scenes/Battle/EfeitosDaBatalha.h
         Source/Scenes/Battle/FaixaDaNota.cpp
         Source/Scenes/Battle/FaixaDaNota.h
+        Source/Scenes/Battle/MolduraDoCampo.cpp
+        Source/Scenes/Battle/MolduraDoCampo.h
         Source/Scenes/Battle/LeitorDoMenu.cpp
         Source/Scenes/Battle/LeitorDoMenu.h
         Source/Scenes/Battle/PausaDaBatalha.cpp
         Source/Scenes/Battle/PausaDaBatalha.h
+        Source/Scenes/Battle/PlacarDaFase.cpp
+        Source/Scenes/Battle/PlacarDaFase.h
+        Source/Scenes/Battle/RelogioDaFase.cpp
+        Source/Scenes/Battle/RelogioDaFase.h
         Source/Scenes/Battle/TelaDoResultado.cpp
         Source/Scenes/Battle/TelaDoResultado.h
         Source/Scenes/Battle/Battle.h
