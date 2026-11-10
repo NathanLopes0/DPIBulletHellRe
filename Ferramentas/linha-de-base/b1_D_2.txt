@@ -47,17 +47,17 @@ q02760 nota=79.7242 sofridos=7
 q02820 nota=81.0298 sofridos=7
 q02880 nota=77.9845 sofridos=9
 q02940 nota=79.9291 sofridos=9
-q03000 nota=81.5656 sofridos=9
-q03060 nota=80.6976 sofridos=10
-q03120 nota=80.9106 sofridos=10
-q03180 nota=80.2787 sofridos=11
-q03240 nota=81.7528 sofridos=11
-q03300 nota=83.3378 sofridos=11
-q03360 nota=80.1560 sofridos=13
-q03420 nota=79.6278 sofridos=14
-q03480 nota=78.8460 sofridos=15
-q03540 nota=75.3706 sofridos=17
-q03600 nota=74.2934 sofridos=18
-q03660 nota=75.9613 sofridos=18
-q03720 nota=77.7635 sofridos=18
-FIM nota=78.7297 acertos_sofridos=18 acertos_dados=483 aprovado=1
+q03000 nota=81.4974 sofridos=9
+q03060 nota=82.8827 sofridos=9
+q03120 nota=83.0723 sofridos=9
+q03180 nota=82.2624 sofridos=10
+q03240 nota=83.5929 sofridos=10
+q03300 nota=85.0275 sofridos=10
+q03360 nota=81.6841 sofridos=12
+q03420 nota=81.0186 sofridos=13
+q03480 nota=80.1294 sofridos=14
+q03540 nota=76.5752 sofridos=16
+q03600 nota=75.4342 sofridos=17
+q03660 nota=77.0236 sofridos=17
+q03720 nota=78.7431 sofridos=17
+FIM nota=79.6659 acertos_sofridos=17 acertos_dados=483 aprovado=1

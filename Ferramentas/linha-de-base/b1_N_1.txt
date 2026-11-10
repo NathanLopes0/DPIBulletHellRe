@@ -45,19 +45,19 @@ q02640 nota=69.6247 sofridos=6
 q02700 nota=71.6323 sofridos=6
 q02760 nota=73.4935 sofridos=6
 q02820 nota=75.4983 sofridos=6
-q02880 nota=71.5579 sofridos=7
-q02940 nota=74.0164 sofridos=7
-q03000 nota=74.8778 sofridos=7
-q03060 nota=75.7085 sofridos=7
-q03120 nota=77.2838 sofridos=7
-q03180 nota=79.2970 sofridos=7
-q03240 nota=80.9186 sofridos=7
-q03300 nota=82.5452 sofridos=7
-q03360 nota=82.7389 sofridos=7
-q03420 nota=83.3078 sofridos=7
-q03480 nota=84.5677 sofridos=7
-q03540 nota=85.4138 sofridos=7
-q03600 nota=86.1131 sofridos=7
-q03660 nota=87.2305 sofridos=7
-q03720 nota=87.8072 sofridos=7
-FIM nota=88.0874 acertos_sofridos=7 acertos_dados=240 aprovado=1
+q02880 nota=71.5702 sofridos=7
+q02940 nota=74.0276 sofridos=7
+q03000 nota=74.8885 sofridos=7
+q03060 nota=69.7931 sofridos=8
+q03120 nota=71.7882 sofridos=8
+q03180 nota=74.3210 sofridos=8
+q03240 nota=76.3468 sofridos=8
+q03300 nota=78.3661 sofridos=8
+q03360 nota=78.6057 sofridos=8
+q03420 nota=79.3082 sofridos=8
+q03480 nota=80.8582 sofridos=8
+q03540 nota=81.8945 sofridos=8
+q03600 nota=82.7483 sofridos=8
+q03660 nota=84.1070 sofridos=8
+q03720 nota=84.8057 sofridos=8
+FIM nota=85.1445 acertos_sofridos=8 acertos_dados=240 aprovado=1
