@@ -169,6 +169,11 @@ void RegistroDaTentativa::AoSincronizar(Battle&) {
     ++mTentativa.sincronias;
 }
 
+void RegistroDaTentativa::AoSinalizar(Battle& b, const Player& aluno) {
+    if (!Anotando()) return;
+    if (auto* r = De(b, &aluno)) ++r->sinais;
+}
+
 void RegistroDaTentativa::AoTerminar(Battle& b, const Tentativas::Resultado resultado, const bool ultimaFaseCompleta) {
     if (!Anotando()) return;
     mGravada = true;

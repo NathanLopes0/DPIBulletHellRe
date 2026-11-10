@@ -131,6 +131,7 @@ TEST_CASE("Tentativas: o formato 2 mede a dupla, e o que so existe nela fica vaz
     t.jogadores[0].coberturas = 3;
     t.jogadores[0].oportunidadesDeCobertura = 9;
     t.jogadores[0].tempoNaMira = 12.5f;
+    t.jogadores[1].sinais = 5;
     t.fases[1].coberturas = 3;
     t.fases[1].raspoes = 2;
     const std::string cab = CabecalhoDasTentativas();
@@ -148,6 +149,9 @@ TEST_CASE("Tentativas: o formato 2 mede a dupla, e o que so existe nela fica vaz
     // A sincronia e dos dois: a mesma conta nas duas linhas.
     CHECK(Coluna(cab, linhas[0], "sincronias") == "2");
     CHECK(Coluna(cab, linhas[1], "sincronias") == "2");
+    // Os sinais sao de cada um.
+    CHECK(Coluna(cab, linhas[0], "sinais") == "0");
+    CHECK(Coluna(cab, linhas[1], "sinais") == "5");
     const std::string cabDasFases = CabecalhoDasFases();
     const auto fases = LinhasDasFases(t);
     CHECK(Coluna(cabDasFases, fases[1], "coberturas") == "3");
@@ -168,6 +172,7 @@ TEST_CASE("Tentativas: o formato 2 mede a dupla, e o que so existe nela fica vaz
     CHECK(Coluna(cab, linhas[0], "tempo_na_mira_s").empty());
     CHECK(Coluna(cab, linhas[0], "distancia_media_px").empty());
     CHECK(Coluna(cab, linhas[0], "sincronias").empty());
+    CHECK(Coluna(cab, linhas[0], "sinais").empty());
     CHECK(Coluna(cab, linhas[0], "raspoes") == "4");
     CHECK(Coluna(cabDasFases, LinhasDasFases(t)[1], "coberturas").empty());
 }

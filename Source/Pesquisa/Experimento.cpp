@@ -15,6 +15,8 @@ namespace Experimento {
             case Mecanica::Perto:      return "perto";
             case Mecanica::Devolutiva: return "devolutiva";
             case Mecanica::Sincronia:  return "sincronia";
+            case Mecanica::Valeu:      return "valeu";
+            case Mecanica::Sinal:      return "sinal";
         }
         return "";
     }

@@ -117,6 +117,10 @@ private:
     void LerBotaoDeTiro(const Uint8 *state);
         void Atirar();
     void LerBotaoDoPontoExtra(const Uint8 *state);
+    /// O Botao 3: na dupla, fora do TCC, o sinal ao parceiro (Battle::Sinalizar). Vale o aperto, e
+    /// nao o botao segurado.
+    void LerBotaoDoSinal(const Uint8 *state);
+    bool mSinalAntes = false;
 
     // OnUpdate Sub-functions.
     void AtualizarInvencibilidade(float deltaTime);

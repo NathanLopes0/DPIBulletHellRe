@@ -121,6 +121,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Interface/Hud.cpp
         Source/Interface/FundoDoCampo.cpp
         Source/Interface/Hud.h
+        Source/Interface/Comunicacao.cpp
+        Source/Interface/Comunicacao.h
         Source/Regras/Acerto.cpp
         Source/Regras/Acerto.h
         Source/Pesquisa/Tentativas.cpp
@@ -521,6 +523,7 @@ add_executable(dpi_tests
         tests/test_objetivo.cpp
         tests/test_tentativas.cpp
         tests/test_experimento.cpp
+        tests/test_comunicacao.cpp
         tests/test_resultado.cpp
         tests/test_devolutiva.cpp
         tests/test_manual.cpp
@@ -592,6 +595,8 @@ add_executable(dpi_tests
         Source/Interface/Hud.cpp
         Source/Interface/FundoDoCampo.cpp
         Source/Interface/Hud.h
+        Source/Interface/Comunicacao.cpp
+        Source/Interface/Comunicacao.h
         Source/Regras/Acerto.cpp
         Source/Regras/Acerto.h
         Source/Pesquisa/Tentativas.cpp

@@ -14,7 +14,7 @@ namespace Tentativas {
 
     /// A versao do formato, gravada em toda linha: mudar uma coluna e mudar isto. Coluna nova vai
     /// sempre no fim (TrocarCabecalho).
-    constexpr int kVersaoDoFormato = 3;
+    constexpr int kVersaoDoFormato = 4;
 
     enum class Resultado { Aprovado, Reprovado, Abandonou };
     const char* Nome(Resultado r);
@@ -55,6 +55,7 @@ namespace Tentativas {
         int coberturas = 0;          ///< na dupla, projeteis que ele derrubou indo no parceiro (Cobertura.h)
         int oportunidadesDeCobertura = 0;  ///< na dupla, projeteis destrutiveis que foram no parceiro
         float tempoNaMira = 0.0f;    ///< na dupla, segundos com a mira presa nele (Papeis.h)
+        int sinais = 0;              ///< na dupla, os sinais que ele deu ao parceiro (Botao 3; formato 4)
     };
 
     struct Tentativa {

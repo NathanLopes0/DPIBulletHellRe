@@ -67,6 +67,7 @@ silêncio. D2 e D4 mudaram de resposta, não de pergunta.
 | D12 | O que paga cuidar do outro | **A cobertura**: derrubar o projétil que ia no parceiro vale inteiro (2.6) |
 | D13 | Como o aluno sabe o que cobrir | O projétil destrutível que vai num aluno **brilha na cor dele**, com a mesma conta da cobertura (2.6) |
 | D14 | O que paga agir junto | **A sincronia**: os dois Pontos Extras gastos com até meio segundo de diferença soltam, além dos escudos, a onda do solo, do meio dos dois (2.7) |
+| D15 | Como os dois se falam dentro do jogo | **Um canal mínimo**: o coração de quem foi coberto, na cor de quem cobriu, e o sinal do Botão 3 — um anel e um som, sem texto (2.8) |
 
 ### 2.1 — Uma regra só para a nota compartilhada (D2, D4)
 
@@ -317,6 +318,37 @@ sincronia só.
 A sincronia é contada no `tentativas.csv` (`sincronias`), e
 `--condicao sem-sincronia` a tira do jogo sem tirar da medida: o gasto junto
 continua contado, só a onda não sai.
+
+### 2.8 — Comunicação mínima: o valeu e o sinal (D15)
+
+Dois alunos lado a lado no gabinete conversam; dois **desconhecidos**, num
+corredor barulhento, quase não. E quem cobria o parceiro só ficava sabendo que
+contou no resultado. Um canal mínimo resolve os dois — como em Journey, em que
+um único "canto" basta para dois estranhos se acompanharem (Isbister) — e é a
+vocalização que faltava entre os padrões de cooperação (El-Nasr et al.).
+
+**O valeu é automático** (`Interface/Comunicacao.h`). A cobertura paga, e um
+**coração** sobe da cabeça de quem foi coberto, na **cor de quem cobriu**, e
+apaga em menos de um segundo. Os dois veem, no instante, que a ajuda aconteceu
+— gratidão sem precisar dizer. Ele nasce acima do "v" da mira, que costuma
+estar sobre o mesmo aluno.
+
+**O sinal é do aluno.** O **Botão 3**, na batalha em dupla, solta um anel na
+cor de quem apertou e um som curto (`Assets/Sounds/sinal.wav`, gerado por
+`Ferramentas/gerar_sinal.py`): "estou aqui", "vem", "agora". Vale o aperto, e
+não o botão segurado, com um segundo de espera entre dois sinais do mesmo
+aluno. **No TCC o Botão 3 continua sendo o poder do orientador**, e não há
+sinal.
+
+**Sem texto, de propósito.** Um balão de fala no meio da batalha já saiu uma
+vez por poluir o campo; um anel e um ícone se leem de relance. No solo não há
+nem um nem outro: não há com quem falar.
+
+Os sinais são contados no `tentativas.csv` (`sinais`). `--condicao sem-valeu`
+tira o coração, e `--condicao sem-sinal` tira o anel e o som — os sinais
+continuam contados, para comparar quanto a dupla tenta se chamar com e sem
+resposta do jogo. Sem a cobertura (`sem-cobertura`), não há valeu: ele é a
+parte visível dela.
 
 ## 3. Requisitos funcionais
 

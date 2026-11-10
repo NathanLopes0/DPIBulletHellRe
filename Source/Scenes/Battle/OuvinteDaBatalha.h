@@ -60,6 +60,10 @@ public:
     /// condicao do experimento nao solte a onda.
     virtual void AoSincronizar(Battle&) {}
 
+    /// Na dupla, o aluno deu um sinal ao parceiro (Botao 3, Comunicacao.h). Conta mesmo que a
+    /// condicao do experimento nao mostre o sinal.
+    virtual void AoSinalizar(Battle&, const Player& aluno) {}
+
     /// O aluno atravessou a parede pela rede do socket() (Battle::AbrirRede).
     virtual void AoAtravessarAParede(Battle&) {}
 

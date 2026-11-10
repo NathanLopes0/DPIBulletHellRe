@@ -24,6 +24,7 @@
 #include "../../Interface/Devolutiva.h"
 #include "../../Regras/Dificuldade.h"
 #include "../../Interface/Hud.h"
+#include "../../Interface/Comunicacao.h"
 #include "../../Regras/Variacao.h"
 #include "OuvinteDaBatalha.h"
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
@@ -119,6 +120,10 @@ public:
     /// Um aluno gastou um Ponto Extra. Recebe quem gastou porque em dupla o efeito e no outro: a
     /// tela nao e limpa, o parceiro fica imune.
     void AoGastarPontoExtra(Player* quemGastou);
+
+    /// Na dupla, fora do TCC (la o Botao 3 e o poder do orientador), o aluno da um sinal ao
+    /// parceiro: um anel na cor dele e um som curto (Comunicacao.h).
+    void Sinalizar(const Player& quem);
 
     /// O outro aluno em campo, ou nullptr se este estiver sozinho.
     [[nodiscard]] Player* OutroJogador(const Player* quem) const;
@@ -253,6 +258,23 @@ private:
     std::vector<FeixeDoPontoExtra> mFeixes;
     class DrawLinhasComponent* mDesenhoSobreOsAlunos = nullptr;
     float mPulsoDoEscudo = 0.0f;
+
+    // ---- A comunicacao minima (Comunicacao.h): o sinal e o valeu ----
+    struct SinalEmCampo {
+        const Player* quem = nullptr;
+        size_t cor = 0;             ///< a posicao de quem deu o sinal: a cor do anel
+        float t = 0.0f;
+    };
+    std::vector<SinalEmCampo> mSinais;
+    /// Quando cada aluno deu o ultimo sinal (mRelogioDaLuta).
+    std::array<float, 2> mUltimoSinal{Comunicacao::kNuncaSinalizou, Comunicacao::kNuncaSinalizou};
+    struct ValeuEmCampo {
+        const Player* coberto = nullptr;
+        size_t cor = 0;             ///< a posicao de quem cobriu: a cor do coracao
+        float t = 0.0f;
+    };
+    std::vector<ValeuEmCampo> mValeus;
+    void DesenharComunicacao(float deltaTime);
 
     /// Na frente do aluno (100): o escudo e o que se le, e nao o sprite.
     static constexpr int kOrdemSobreOsAlunos = 102;

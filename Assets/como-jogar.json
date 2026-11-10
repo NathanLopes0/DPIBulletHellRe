@@ -19,10 +19,11 @@
         "Botão 1: lançar Dúvidas, e confirmar.",
         "Botão 2: gastar um Ponto Extra, e voltar nas telas.",
         "Botão 3: no TCC, o poder do orientador, quando o anel enche.",
+        "Botão 3, em dupla: um sinal na sua cor para o parceiro.",
         "O rodapé de cada tela diz o que os botões fazem ali."
       ],
       "no_computador": [
-        "Jogador 1: setas, Espaço, B e N.   Jogador 2: W A S D, F, G e H.",
+        "Jogador 1: setas, Espaço, B e N.   Jogador 2: W A S D, F, E e H.",
         "Esc pausa a batalha."
       ]
     },

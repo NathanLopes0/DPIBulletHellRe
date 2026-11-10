@@ -1085,7 +1085,25 @@ bool Battle::Cobrir(const PlayerProjectile& tiro, const BossProjectile& projetil
     SubirNota(Cobertura::kGanho);
     if (static_cast<size_t>(quem) < mPartes.size()) ++mPartes[static_cast<size_t>(quem)].coberturas;
     Faiscar(colisorDoProjetil->GetCenter(), Hud::Faisca::Cobertura, quem);
+    // O valeu: sobe de quem foi coberto, na cor de quem cobriu - os dois veem que contou, na hora.
+    if (mCondicao.Ligada(Experimento::Mecanica::Valeu)) {
+        mValeus.push_back(ValeuEmCampo{parceiro, static_cast<size_t>(quem), 0.0f});
+    }
     return true;
+}
+
+void Battle::Sinalizar(const Player& quem) {
+    // So na dupla, e fora do TCC: la o Botao 3 e o poder do orientador.
+    if (mJogadores.size() < 2 || mOrientador || mAcabando || mCarregando) return;
+    const int i = PosicaoDoAluno(&quem);
+    if (i < 0 || i > 1) return;
+    if (!Comunicacao::PodeSinalizar(mRelogioDaLuta, mUltimoSinal[static_cast<size_t>(i)])) return;
+    mUltimoSinal[static_cast<size_t>(i)] = mRelogioDaLuta;
+    // A medida conta sempre; o experimento sem sinal so nao mostra nem toca.
+    Avisar([&](OuvinteDaBatalha& o) { o.AoSinalizar(*this, quem); });
+    if (!mCondicao.Ligada(Experimento::Mecanica::Sinal)) return;
+    mSinais.push_back(SinalEmCampo{&quem, static_cast<size_t>(i), 0.0f});
+    if (mGame && mGame->GetAudio()) mGame->GetAudio()->PlaySound("sinal.wav", false);
 }
 
 void Battle::MarcarOCaminhoDosAlunos() {
@@ -1120,6 +1138,54 @@ void Battle::MarcarOCaminhoDosAlunos() {
         }
         const Hud::Rgb c = Hud::CorDoAluno(static_cast<size_t>(quem));
         desenho->DefinirBrilho(true, SDL_Color{c.r, c.g, c.b, alfa}, Hud::kAlcanceDoBrilho);
+    }
+}
+
+void Battle::DesenharComunicacao(const float deltaTime) {
+    const auto centroDe = [](const Player* p) {
+        const auto* c = ColisorDe(p);
+        return c ? c->GetCenter() : p->GetPosition();
+    };
+    const auto corDe = [](const size_t quem, const float alfa) {
+        const Hud::Rgb c = Hud::CorDoAluno(quem);
+        return SDL_Color{c.r, c.g, c.b, static_cast<Uint8>(255.0f * alfa)};
+    };
+
+    // O sinal: um anel que abre em volta de quem chamou, e um segundo, mais apagado, logo dentro.
+    for (SinalEmCampo& s : mSinais) s.t += deltaTime;
+    mSinais.erase(std::remove_if(mSinais.begin(), mSinais.end(),
+        [](const SinalEmCampo& s) { return Comunicacao::AlfaDoSinal(s.t) <= 0.0f; }), mSinais.end());
+    for (const SinalEmCampo& s : mSinais) {
+        if (!s.quem) continue;
+        const float raio = Comunicacao::RaioDoSinal(s.t);
+        const float alfa = Comunicacao::AlfaDoSinal(s.t);
+        for (const auto& [a, b] : PontoExtra::Anel(centroDe(s.quem), raio, 28)) {
+            mDesenhoSobreOsAlunos->Acrescentar(a, b, corDe(s.cor, alfa));
+        }
+        for (const auto& [a, b] : PontoExtra::Anel(centroDe(s.quem), raio - 5.0f, 28)) {
+            mDesenhoSobreOsAlunos->Acrescentar(a, b, corDe(s.cor, alfa * 0.5f));
+        }
+    }
+
+    // O valeu: o coracao sobe da cabeca de quem foi coberto, na cor de quem cobriu, e apaga.
+    for (ValeuEmCampo& v : mValeus) v.t += deltaTime;
+    mValeus.erase(std::remove_if(mValeus.begin(), mValeus.end(),
+        [](const ValeuEmCampo& v) { return Comunicacao::AlfaDoValeu(v.t) <= 0.0f; }), mValeus.end());
+    constexpr float p = static_cast<float>(Comunicacao::kPixelDoCoracao);
+    for (const ValeuEmCampo& v : mValeus) {
+        if (!v.coberto) continue;
+        const Vector2 meio = centroDe(v.coberto) -
+                             Vector2(0.0f, Comunicacao::kAlturaDoValeu + Comunicacao::SubidaDoValeu(v.t));
+        const Vector2 canto = meio - Vector2(p * Comunicacao::kLarguraDoCoracao, p * Comunicacao::kAlturaDoCoracao) * 0.5f;
+        const SDL_Color cor = corDe(v.cor, Comunicacao::AlfaDoValeu(v.t));
+        for (const Comunicacao::Faixa& f : Comunicacao::Coracao()) {
+            for (int dy = 0; dy < Comunicacao::kPixelDoCoracao; ++dy) {
+                const float y = canto.y + p * static_cast<float>(f.linha) + static_cast<float>(dy);
+                mDesenhoSobreOsAlunos->Acrescentar(Vector2(canto.x + p * static_cast<float>(f.de), y),
+                                                   Vector2(canto.x + p * static_cast<float>(f.ate + 1) - 1.0f, y),
+                                                   cor);
+            }
+        }
     }
 }
 
@@ -1582,6 +1648,8 @@ void Battle::AtualizarDesenhoSobreOsAlunos(const float deltaTime) {
             mDesenhoSobreOsAlunos->Acrescentar(a, b, SDL_Color{120, 190, 255, static_cast<Uint8>(alfa / 2)});
         }
     }
+
+    DesenharComunicacao(deltaTime);
 
     // A mira presa (Papeis.h): um "v" vermelho em cima de quem o professor esta olhando. So quando ela
     // esta presa - enquanto os dois revezam ele piscaria a cada disparo, e nao diria nada.

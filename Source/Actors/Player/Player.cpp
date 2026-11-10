@@ -87,6 +87,7 @@ void Player::OnProcessInput(const Uint8 *keyState) {
     LerManche(keyState);
     LerBotaoDeTiro(keyState);
     LerBotaoDoPontoExtra(keyState);
+    LerBotaoDoSinal(keyState);
 
 }
 
@@ -184,6 +185,14 @@ void Player::LerBotaoDoPontoExtra(const Uint8 *keyState) {
         if (battle) battle->AoGastarPontoExtra(this);
     }
 
+}
+
+void Player::LerBotaoDoSinal(const Uint8 *keyState) {
+    const bool apertado = Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Tres);
+    if (apertado && !mSinalAntes) {
+        if (auto* battle = dynamic_cast<Battle*>(GetScene())) battle->Sinalizar(*this);
+    }
+    mSinalAntes = apertado;
 }
 
 void Player::AtualizarAnimacao() {
