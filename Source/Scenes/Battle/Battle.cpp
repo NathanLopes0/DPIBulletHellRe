@@ -11,9 +11,13 @@
 
 #include "BattleHUD.h"
 #include "FaixaDaNota.h"
+#include "PausaDaBatalha.h"
 #include "ProjectileManager.h"
+#include "TelaDoResultado.h"
 #include "../../Motor/AudioSystem.h"
 #include "../../Motor/Font.h"
+#include "../../Interface/Pausa.h"
+#include "../../Interface/Resultado.h"
 #include "../../Actors/Player/Player.h"
 #include "../../Actors/Player/PlayerProjectile.h"
 #include "../../Actors/Teachers/Boss.h"
@@ -24,7 +28,6 @@
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../../Components/DrawComponents/DrawTextComponent.h"
-#include "../../Components/DrawComponents/ProgressBarComponent.h"
 #include "../../Components/DrawComponents/DrawFundoDoCampoComponent.h"
 #include "../../Components/DrawComponents/DrawMolduraDoCampoComponent.h"
 #include "../../Components/DrawComponents/DrawQuadroComponent.h"
@@ -34,15 +37,10 @@
 #include "../../Regras/PontoExtra.h"
 #include "../../Regras/Raspao.h"
 #include "../../Regras/Cobertura.h"
-#include "../TextoDeCena.h"
 #include "../../Aluno/Matricula.h"
-#include "../../Actors/Teachers/BossFactory/BossProjectileFactory/FabricaDeProjetil.h"
 #include "../../Regras/Destrutivel.h"
 #include "../../Actors/Orientador/Orientador.h"
 #include "../../Curso/MateriasArquivo.h"
-#include "../../Personagem/ComporPersonagem.h"
-#include "../../Personagem/PersonagensArquivo.h"
-#include "../../Entrada/Painel.h"
 
 #include "../../Motor/CaminhosArquivo.h"
 #include "../../Motor/Fontes.h"
@@ -50,7 +48,6 @@
 #include "RelatorioDaSimulacao.h"
 #include "ClaroesDaMoldura.h"
 #include "TelaDeCarregamento.h"
-#include "../PainelDeMenu.h"
 #include "../../Components/AIComponents/FSMComponent.h"
 
 // Quantas instâncias de cada tipo de projétil são pré-aquecidas no pool antes da batalha começar.
@@ -110,7 +107,7 @@ void Battle::Load() {
     CriarChefe();
     CriarOrientador();
     CriarHUD();
-    CriarPausa();
+    mPausa = std::make_unique<PausaDaBatalha>(*this, mFonteDaNota.get(), mGame->JeitoDoRodape(), GetPlayfieldBounds());
     mPartes.assign(mJogadores.size(), Devolutiva::Parte{});
 
     // Tocando desde o Load, ela comecava por cima de uma tela parada.
@@ -363,31 +360,6 @@ void Battle::AtualizarIntercambio(const float deltaTime) {
     }
 }
 
-void Battle::CriarResultado(const int linhas, const bool comToque) {
-    std::vector<std::string> opcoes;
-    for (const Resultado::Opcao o : Resultado::kOpcoes) opcoes.emplace_back(Resultado::Texto(o));
-
-    // Sem o ESC no rodape: a luta acabou, e quem escolhe e o painel.
-    std::vector<Painel::Acao> acoes = {Painel::Manche(Painel::Jogador::Um, "escolher"),
-                                       {Painel::Jogador::Um, Painel::Botao::Um, "confirmar"}};
-    // O toca aqui se ensina no proprio rodape: o Botao 3 dos dois, juntos.
-    if (comToque) {
-        acoes.emplace_back("BOTAO 3 JUNTOS",
-                           std::string(Painel::NomeDaTecla(Painel::Jogador::Um, Painel::Botao::Tres)) + " + " +
-                               Painel::NomeDaTecla(Painel::Jogador::Dois, Painel::Botao::Tres),
-                           "toca aqui");
-    }
-    const std::string rodape = Painel::Rodape(acoes, mGame->JeitoDoRodape());
-
-    // Mais alta que a da pausa: cabem as linhas do resumo entre o titulo e as opcoes.
-    PainelDeMenu::Medidas medidas;
-    medidas.larguraDaPlaca = kLarguraDoResultado;
-    medidas.alturaDaPlaca = PainelDeMenu::AlturaPara(linhas);
-    medidas.ordem = kOrdemDosMenus;
-    mPainelDoResultado = std::make_unique<PainelDeMenu>(*this, mFonteDaNota.get(), " ", opcoes, rodape,
-                                                        linhas, medidas);
-}
-
 void Battle::ComecarCarregamento() {
 
     mTiposACarregar.clear();
@@ -477,33 +449,17 @@ void Battle::OnUpdate(float deltaTime) {
     }
 
     // ---- A pausa: a cena ja nao atualizou os atores (Scene::mAtoresCongelados), ----
-    if (mPausa.aberto || Retomando()) {
+    if (mPausa->Parada()) {
         Avisar([&](OuvinteDaBatalha& o) { o.AoPassarOTempo(*this, deltaTime, true); });
-        if (Retomando()) {
-            mRetomada -= deltaTime;
-            if (Retomando()) {
-                mNumeroDaRetomada->GetComponent<DrawTextComponent>()->SetText(
-                    std::to_string(Pausa::Contagem(mRetomada)));
-            } else {
-                Retomar();
-            }
-        }
+        if (mPausa->Avancar(deltaTime)) Retomar();
         return;
     }
 
     // ---- O fim da luta: o painel do resultado esta na tela (EncerrarBatalha) ----
     if (mAcabando) {
-        mTempoNoFim += deltaTime;
-
         // O ClearBossProjectiles() de EncerrarBatalha apenas marca os projeteis.
         if (mProjeteis) mProjeteis->Cleanup();
-
-        AtualizarToque(deltaTime);
-
-        if (Resultado::VoltaSozinha(mGame->NoGabinete(), mTempoNoFim)) {
-            mGame->RequestSceneChange(SceneType::StageSelect);
-        }
-
+        if (mResultado) mResultado->Avancar(deltaTime);
         return;
     }
 
@@ -582,11 +538,22 @@ void Battle::OnProcessInput(const Uint8* keyState) {
     const bool escNovo = mBordaEsc.Bateu(esc);
 
     if (mAcabando) {
-        ProcessarResultado(keyState);
+        if (mResultado) mResultado->Processar(keyState);
         return;
     }
-    if (mPausa.aberto) {
-        ProcessarPausa(keyState, escNovo);
+    if (!mPausa) return;
+    if (mPausa->Aberta()) {
+        switch (mPausa->Processar(keyState, escNovo)) {
+            case PausaDaBatalha::Pedido::Recomecar:
+                // A mesma materia, de novo e do zero: a troca de cena refaz a batalha com o que o Game guarda.
+                SairDaBatalha(SceneType::Battle);
+                break;
+            case PausaDaBatalha::Pedido::Sair:
+                SairDaBatalha(SceneType::StageSelect);
+                break;
+            case PausaDaBatalha::Pedido::Nada:
+                break;
+        }
         return;
     }
     // Na contagem, o ESC reabre o menu: quem se arrependeu de voltar nao precisa esperar o 1.
@@ -594,119 +561,25 @@ void Battle::OnProcessInput(const Uint8* keyState) {
 }
 
 void Battle::AoPerderOFoco() {
-    if (Pausa::PausaAoPerderOFoco(mGame->NoGabinete(), EmCombate(), mPausa.aberto)) AbrirPausa();
-}
-
-Battle::BatidasDoMenu Battle::LerMenu(const Uint8* keyState) {
-    // Qualquer um dos dois mexe no menu.
-    bool cima = false, baixo = false, confirmar = false;
-    for (const Painel::Jogador quem : Painel::kJogadores) {
-        cima = cima || Painel::Apertado(keyState, quem, Painel::Direcao::Cima);
-        baixo = baixo || Painel::Apertado(keyState, quem, Painel::Direcao::Baixo);
-        confirmar = confirmar || Painel::Apertado(keyState, quem, Painel::Botao::Um);
-    }
-    confirmar = confirmar || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
-
-    BatidasDoMenu b;
-    b.cima = mBordaCima.Bateu(cima);
-    b.baixo = mBordaBaixo.Bateu(baixo);
-    b.confirmar = mBordaConfirmar.Bateu(confirmar);
-    return b;
+    if (mPausa && Pausa::PausaAoPerderOFoco(mGame->NoGabinete(), EmCombate(), mPausa->Aberta())) AbrirPausa();
 }
 
 //region Pausa
-void Battle::CriarPausa() {
-    std::vector<std::string> opcoes;
-    for (const Pausa::Opcao o : Pausa::kOpcoes) opcoes.emplace_back(Pausa::Texto(o));
-
-    // O rodape sai do painel, como o de toda tela (Painel.h).
-    const std::string rodape = Painel::Rodape({Painel::Manche(Painel::Jogador::Um, "escolher"),
-                                               {Painel::Jogador::Um, Painel::Botao::Um, "confirmar"},
-                                               {std::string("ESC"), std::string(), std::string("continuar")}},
-                                              mGame->JeitoDoRodape());
-    PainelDeMenu::Medidas medidas;
-    medidas.ordem = kOrdemDosMenus;
-    mPainelDaPausa = std::make_unique<PainelDeMenu>(*this, mFonteDaNota.get(), "PAUSA", opcoes, rodape, 0, medidas);
-
-    // O numero da contagem, no meio do campo, sobre uma placa escura pequena.
-    const SDL_FRect campo = GetPlayfieldBounds();
-    auto numero = std::make_unique<Actor>(this);
-    numero->SetPosition(Vector2(campo.x + campo.w / 2.0f, campo.y + campo.h / 2.0f));
-    numero->AddComponent<DrawCaixaComponent>(130, 130, SDL_Color{120, 140, 180, 230}, SDL_Color{12, 13, 17, 200},
-                                             3, kOrdemDosMenus)->SetIsVisible(false);
-    auto* dc = numero->AddComponent<DrawTextComponent>(" ", mFonteDaNota.get(), 110, 110, 72, kOrdemDosMenus + 1);
-    dc->SetAjustarAoTexto(true);
-    dc->SetIsVisible(false);
-    mNumeroDaRetomada = AddActor(std::move(numero));
-}
-
 void Battle::AbrirPausa() {
-    Pausa::Abrir(mPausa);
+    if (!mPausa) return;
+    mPausa->Abrir();
     mAtoresCongelados = true;
-
-    // A contagem, se estava correndo, para: ao fechar de novo ela recomeca do 3.
-    mRetomada = 0.0f;
-    mNumeroDaRetomada->GetComponent<DrawCaixaComponent>()->SetIsVisible(false);
-    mNumeroDaRetomada->GetComponent<DrawTextComponent>()->SetIsVisible(false);
-
-    // Quem estava segurando o manche ou o tiro quando apertou ESC nao anda no menu por isso.
-    SegurarMenu();
 
     // O aluno para onde esta.
     for (Player* jogador : mJogadores) {
         if (jogador) if (auto* rb = jogador->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
     }
     if (mGame->GetAudio()) mGame->GetAudio()->PauseSound(mMusica);
-
-    mPainelDaPausa->Selecionar(mPausa.selecionada);
-    mPainelDaPausa->Mostrar(true);
-}
-
-void Battle::FecharPausa() {
-    Pausa::Fechar(mPausa);
-    mPainelDaPausa->Mostrar(false);
-
-    // A luta nao volta ainda.
-    mRetomada = Pausa::kRetomada;
-    auto* texto = mNumeroDaRetomada->GetComponent<DrawTextComponent>();
-    texto->SetText(std::to_string(Pausa::Contagem(mRetomada)));
-    texto->SetIsVisible(true);
-    mNumeroDaRetomada->GetComponent<DrawCaixaComponent>()->SetIsVisible(true);
 }
 
 void Battle::Retomar() {
-    mRetomada = 0.0f;
-    mNumeroDaRetomada->GetComponent<DrawCaixaComponent>()->SetIsVisible(false);
-    mNumeroDaRetomada->GetComponent<DrawTextComponent>()->SetIsVisible(false);
     mAtoresCongelados = false;
     if (mGame->GetAudio()) mGame->GetAudio()->ResumeSound(mMusica);
-}
-
-void Battle::ProcessarPausa(const Uint8* keyState, const bool escNovo) {
-    const BatidasDoMenu b = LerMenu(keyState);
-    if (escNovo) {
-        FecharPausa();
-        return;
-    }
-    if (b.cima) Pausa::Mover(mPausa, -1);
-    if (b.baixo) Pausa::Mover(mPausa, 1);
-    mPainelDaPausa->Selecionar(mPausa.selecionada);
-    if (b.confirmar) EscolherNaPausa();
-}
-
-void Battle::EscolherNaPausa() {
-    switch (Pausa::Escolhida(mPausa)) {
-        case Pausa::Opcao::Continuar:
-            FecharPausa();
-            break;
-        case Pausa::Opcao::Recomecar:
-            // A mesma materia, de novo e do zero: a troca de cena refaz a batalha com o que o Game guarda.
-            SairDaBatalha(SceneType::Battle);
-            break;
-        case Pausa::Opcao::Sair:
-            SairDaBatalha(SceneType::StageSelect);
-            break;
-    }
 }
 
 void Battle::SairDaBatalha(const SceneType destino) {
@@ -721,183 +594,12 @@ void Battle::SairDaBatalha(const SceneType destino) {
 }
 //endregion Pausa
 
-//region Resultado
-void Battle::MostrarResultado(const Resultado::Resumo& resumo) {
-    mResultadoSelecionado = 0;
-    // O tiro que estava apertado quando a luta acabou nao escolhe nada.
-    SegurarMenu();
-    const std::vector<std::string> linhas = Resultado::Linhas(resumo);
-    // A dupla aprovada comemora: os dois avatares no painel, e o toca aqui (Comunicacao.h).
-    const bool duplaAprovada = mJogadores.size() >= 2 && resumo.aprovado;
-    mPodeTocar = duplaAprovada;
-    CriarResultado(static_cast<int>(linhas.size()), duplaAprovada && mCondicao.Ligada(Experimento::Mecanica::Toque));
-    // A formatura e dourada, o titulo e a linha de quem ganhou o capelo.
-    const bool formou = Resultado::Formou(resumo);
-    mPainelDoResultado->SetTitulo(Resultado::Titulo(resumo),
-                                  formou ? Color::Gold : resumo.aprovado ? Color::LightGreen : Color::LightPink);
-    mPainelDoResultado->SetLinhas(linhas, Resultado::LinhaEmDestaque(resumo));
-    if (formou) mPainelDoResultado->ColorirLinha(Resultado::LinhaDaFormatura(resumo), Color::Gold);
-    if (formou || duplaAprovada) MostrarAlunosNoResultado();
-    // A justica: cada aluno na cor dele.
-    for (size_t i = 0; i < resumo.partes.size(); ++i) {
-        const Hud::Rgb c = Hud::CorDoAluno(i);
-        mPainelDoResultado->ColorirLinha(Resultado::LinhaDaParte(resumo, i),
-                                         Vector3(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f));
-    }
-    mPainelDoResultado->Selecionar(mResultadoSelecionado);
-    mPainelDoResultado->Mostrar(true);
-    // A devolutiva: o desenho do que mais acertou, na linha dela.
-    const int linhaDasCausas = Resultado::LinhaDasCausas(resumo);
-    if (linhaDasCausas >= 0) MostrarCausas(resumo.causas, mPainelDoResultado->OndeDaLinha(linhaDasCausas));
-}
-
-void Battle::MostrarAlunosNoResultado() {
-    if (mJogadores.empty() || !mPainelDoResultado) return;
-    const Vector2 titulo = mPainelDoResultado->OndeDoTitulo();
-    const size_t ultimo = mJogadores.size() - 1;
-    // O primeiro aluno a esquerda, o ultimo a direita: sozinho, ele e os dois.
-    const std::pair<size_t, float> lados[] = {{0, -1.0f}, {ultimo, 1.0f}};
-    for (const auto& [quem, lado] : lados) {
-        const Personagens::Composta c = Personagens::Compor(mGame, Personagens::Carregado(),
-                                                            mGame->AparenciaDe(quem), mGame->Formado(quem));
-        if (!c.ok) continue;
-        auto formando = std::make_unique<Actor>(this);
-        formando->SetPosition(titulo + Vector2(lado * kAfastamentoDoFormando, 0.0f));
-        formando->SetScale(kEscalaDoFormando);
-        auto* desenho = formando->AddComponent<DrawAnimatedComponent>(c.chaveDaTextura, c.atlas, kOrdemDosMenus + 4);
-        desenho->AddAnimation("Andando", {0, 1, 2, 3});
-        desenho->SetAnimFPS(6.0f);
-        desenho->SetAnimation("Andando");
-        const Vector2 base = formando->GetPosition();
-        mAvataresNoResultado.push_back(AvatarNoResultado{AddActor(std::move(formando)), base});
-    }
-}
-
-void Battle::LerToque(const Uint8* keyState) {
-    if (!mPodeTocar || mJogadores.size() < 2) return;
-    for (size_t i = 0; i < 2; ++i) {
-        const auto quem = i == 0 ? Painel::Jogador::Um : Painel::Jogador::Dois;
-        const bool apertado = Painel::Apertado(keyState, quem, Painel::Botao::Tres);
-        // O botao que vinha segurado da luta (o sinal) nao conta: so o aperto depois da trava.
-        if (apertado && !mTresAntes[i] && mTempoNoFim >= Resultado::kTravaDoMenu) mUltimoTres[i] = mTempoNoFim;
-        mTresAntes[i] = apertado;
-    }
-    if (Comunicacao::Juntos(mUltimoTres[0], mUltimoTres[1]) &&
-        mTempoNoFim - mUltimoToque >= Comunicacao::kEsperaDoToque) {
-        TocarAqui();
-    }
-}
-
-void Battle::TocarAqui() {
-    // Cada par de apertos vale um toque so.
-    mUltimoTres = {Comunicacao::kNuncaApertou, Comunicacao::kNuncaApertou};
-    mUltimoToque = mTempoNoFim;
-    // A medida conta sempre; o experimento sem o toque so nao pula, nao estoura e nao toca.
-    Avisar([&](OuvinteDaBatalha& o) { o.AoTocarAqui(*this); });
-    if (!mCondicao.Ligada(Experimento::Mecanica::Toque)) return;
-    for (AvatarNoResultado& a : mAvataresNoResultado) a.pulo = 0.0f;
-    mEstouro = 0.0f;
-    if (!mDesenhoDoToque) {
-        auto ator = std::make_unique<Actor>(this);
-        mDesenhoDoToque = ator->AddComponent<DrawLinhasComponent>(kOrdemDosMenus + 5);
-        AddActor(std::move(ator));
-    }
-    if (mGame && mGame->GetAudio()) mGame->GetAudio()->PlaySound("toque.wav", false);
-}
-
-void Battle::AtualizarToque(const float deltaTime) {
-    // O pulo dos dois, juntos.
-    for (AvatarNoResultado& a : mAvataresNoResultado) {
-        if (!a.ator) continue;
-        a.pulo = std::min(a.pulo + deltaTime, Comunicacao::kDuracaoDoPulo);
-        a.ator->SetPosition(a.base - Vector2(0.0f, Comunicacao::AlturaDoPulo(a.pulo)));
-    }
-    if (!mDesenhoDoToque) return;
-    mDesenhoDoToque->Limpar();
-    mEstouro = std::min(mEstouro + deltaTime, Comunicacao::kDuracaoDoEstouro);
-    const float alfa = Comunicacao::AlfaDoEstouro(mEstouro);
-    if (alfa <= 0.0f || !mPainelDoResultado) return;
-
-    // O estouro dourado entre os dois: raios que abrem do meio do titulo, e um anel.
-    const Vector2 meio = mPainelDoResultado->OndeDoTitulo();
-    const float abre = Comunicacao::AberturaDoEstouro(mEstouro);
-    const SDL_Color ouro{255, 215, 60, static_cast<Uint8>(255.0f * alfa)};
-    constexpr int kRaios = 16;
-    for (int r = 0; r < kRaios; ++r) {
-        const float angulo = Math::TwoPi * static_cast<float>(r) / static_cast<float>(kRaios);
-        const Vector2 direcao(Math::Cos(angulo), Math::Sin(angulo));
-        // So os leques de cima e de baixo: dos lados estao os dois avatares, que pulam.
-        if (std::abs(direcao.y) < 0.6f) continue;
-        // De fora do titulo para fora, sem chegar na linha de baixo: emoldura a palavra sem cobri-la.
-        const Vector2 escala(150.0f, 34.0f);
-        const float perto = 0.95f + 0.25f * abre;
-        const float longe = 1.1f + 0.4f * abre;
-        const Vector2 de(meio.x + direcao.x * escala.x * perto, meio.y + direcao.y * escala.y * perto);
-        const Vector2 ate(meio.x + direcao.x * escala.x * longe, meio.y + direcao.y * escala.y * longe);
-        mDesenhoDoToque->Acrescentar(de, ate, ouro);
-    }
-}
-
-void Battle::MostrarCausas(const std::vector<Devolutiva::Causa>& causas, const Vector2& onde) {
-    // "Mais te acertou:" a esquerda; depois, cada causa: o desenho do projetil e quantas vezes.
-    const int ordem = kOrdemDosMenus + 4;
-    CriarTexto(*this, mFonteDaNota.get(), "Mais te acertou:", onde + Vector2(-150.0f, 0.0f), 26, 230, 34, ordem);
-    float x = onde.x - 10.0f;
-    for (const Devolutiva::Causa& c : causas) {
-        const std::string vezes = "\xc3\x97" + std::to_string(c.acertos);
-        const auto* fabrica = mChefe ? dynamic_cast<FabricaDeProjetil*>(mChefe->GetProjectileFactory(c.causa)) : nullptr;
-        if (c.causa == Devolutiva::kEsbarrao || !fabrica) {
-            // O esbarrao nao tem desenho de projetil: o nome dele.
-            CriarTexto(*this, mFonteDaNota.get(), "encostar " + vezes, Vector2(x + 50.0f, onde.y), 26, 150, 34, ordem);
-            x += 170.0f;
-            continue;
-        }
-        auto icone = std::make_unique<Actor>(this);
-        icone->SetPosition(Vector2(x, onde.y));
-        auto* desenho = icone->AddComponent<DrawAnimatedComponent>(fabrica->CaminhoDoSprite(), fabrica->CaminhoDosDados(), ordem);
-        for (const auto& anim : fabrica->Descricao().animacoes) desenho->AddAnimation(anim.nome, anim.quadros);
-        desenho->SetAnimation(fabrica->Descricao().animacaoInicial);
-        // Do tamanho de uma linha, por maior que seja o projetil.
-        const float lado = static_cast<float>(std::max(desenho->GetSpriteWidth(), desenho->GetSpriteHeight()));
-        // Pixel art cresce bem: o projetil miudo vai ate quatro vezes, o grande encolhe.
-        icone->SetScale(lado > 0.0f ? std::min(4.0f, kLadoDoIcone / lado) : 1.0f);
-        AddActor(std::move(icone));
-        CriarTexto(*this, mFonteDaNota.get(), vezes, Vector2(x + 48.0f, onde.y), 26, 80, 34, ordem);
-        x += 120.0f;
-    }
-}
-
 void Battle::AnotarPerda(const Player& jogador, const std::string& causa, const float perda) {
     mCaderno.Perder(causa, perda);
     const int quem = PosicaoDoAluno(&jogador);
     if (quem >= 0 && static_cast<size_t>(quem) < mPartes.size()) ++mPartes[static_cast<size_t>(quem)].sofridos;
 }
 
-void Battle::ProcessarResultado(const Uint8* keyState) {
-    // Lido mesmo na trava (Resultado::kTravaDoMenu).
-    const BatidasDoMenu b = LerMenu(keyState);
-    LerToque(keyState);
-    if (mTempoNoFim < Resultado::kTravaDoMenu) return;
-
-    if (!mPainelDoResultado) return;
-    if (b.cima) mResultadoSelecionado = Resultado::Mover(mResultadoSelecionado, -1);
-    if (b.baixo) mResultadoSelecionado = Resultado::Mover(mResultadoSelecionado, 1);
-    mPainelDoResultado->Selecionar(mResultadoSelecionado);
-    if (b.confirmar) EscolherNoResultado();
-}
-
-void Battle::EscolherNoResultado() {
-    // A nota ja esta na ficha e a tentativa ja esta nos dados (EncerrarBatalha).
-    switch (Resultado::kOpcoes[mResultadoSelecionado]) {
-        case Resultado::Opcao::TentarDeNovo:
-            mGame->RequestSceneChange(SceneType::Battle);
-            break;
-        case Resultado::Opcao::Voltar:
-            mGame->RequestSceneChange(SceneType::StageSelect);
-            break;
-    }
-}
-//endregion Resultado
 void Battle::VerificarColisoes() {
     Avisar([&](OuvinteDaBatalha& o) { o.AoAntesDasColisoes(*this); });
     if (mJogadores.empty() || !mChefe) return;
@@ -1869,7 +1571,6 @@ void Battle::EncerrarBatalha(bool aprovado) {
     for (auto& actor : mActors) {
         actor->SetState(ActorState::Paused);
     }
-    mTempoNoFim = 0.0f;
 
     // 1.
     if (mProjeteis) {
@@ -1885,5 +1586,12 @@ void Battle::EncerrarBatalha(bool aprovado) {
     }
 
     // 3.
-    MostrarResultado(resumo);
+    mResultado = std::make_unique<TelaDoResultado>(
+        *this, *mGame, mFonteDaNota.get(), mJogadores.size(), mCondicao.Ligada(Experimento::Mecanica::Toque),
+        [this]() { Avisar([&](OuvinteDaBatalha& o) { o.AoTocarAqui(*this); }); });
+    mResultado->Mostrar(resumo, mChefe);
+}
+
+float Battle::TempoNoResultado() const {
+    return mResultado ? mResultado->Tempo() : 0.0f;
 }

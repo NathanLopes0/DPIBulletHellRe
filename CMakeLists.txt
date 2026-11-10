@@ -189,6 +189,12 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Scenes/Battle/ClaroesDaMoldura.h
         Source/Scenes/Battle/FaixaDaNota.cpp
         Source/Scenes/Battle/FaixaDaNota.h
+        Source/Scenes/Battle/LeitorDoMenu.cpp
+        Source/Scenes/Battle/LeitorDoMenu.h
+        Source/Scenes/Battle/PausaDaBatalha.cpp
+        Source/Scenes/Battle/PausaDaBatalha.h
+        Source/Scenes/Battle/TelaDoResultado.cpp
+        Source/Scenes/Battle/TelaDoResultado.h
         Source/Scenes/Battle/Battle.h
         Source/Actors/Teachers/Boss.cpp
         Source/Actors/Teachers/Boss.h
@@ -534,6 +540,7 @@ add_executable(dpi_tests
         tests/test_comunicacao.cpp
         tests/test_simulacao.cpp
         tests/test_conta_da_nota.cpp
+        tests/test_leitor_do_menu.cpp
         tests/test_resultado.cpp
         tests/test_devolutiva.cpp
         tests/test_manual.cpp
@@ -583,6 +590,7 @@ add_executable(dpi_tests
         Source/Motor/Configuracao.cpp
         Source/Motor/Configuracao.h
         Source/Entrada/Painel.cpp
+        Source/Scenes/Battle/LeitorDoMenu.cpp
         Source/Entrada/Painel.h
         Source/Aluno/Sessao.cpp
         Source/Aluno/Sessao.h

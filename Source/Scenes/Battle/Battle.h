@@ -19,9 +19,7 @@
 #include "../../Pesquisa/Experimento.h"
 #include "../../Motor/Game.h"
 #include "../../Motor/AudioSystem.h"
-#include "../../Interface/Pausa.h"
 #include "../../Entrada/Borda.h"
-#include "../../Interface/Resultado.h"
 #include "../../Interface/Devolutiva.h"
 #include "../../Regras/Dificuldade.h"
 #include "../../Interface/Hud.h"
@@ -37,7 +35,8 @@ class BattleHUD;
 class FaixaDaNota;
 class ExtraPointItem;
 class Orientador;
-class PainelDeMenu;
+class PausaDaBatalha;
+class TelaDoResultado;
 class BossProjectile;
 class PlayerProjectile;
 
@@ -124,7 +123,7 @@ public:
     void AoGastarPontoExtra(Player* quemGastou);
 
     /// Segundos desde que o painel do resultado apareceu (zero antes dele).
-    [[nodiscard]] float TempoNoResultado() const { return mTempoNoFim; }
+    [[nodiscard]] float TempoNoResultado() const;
 
     /// Na dupla, fora do TCC (la o Botao 3 e o poder do orientador), o aluno da um sinal ao
     /// parceiro: um anel na cor dele e um som curto (Comunicacao.h).
@@ -399,48 +398,16 @@ private:
 
     std::vector<ExtraPointItem*> mPontosExtras;
 
-    // ---- O fim da luta: a tela de resultado (Resultado.h) ----
+    // ---- O fim da luta ----
 
-    /// O painel do resultado, do tamanho do resumo: criado no fim, quando se sabe quantas linhas ele tem.
-    /// 'comToque': o rodape ensina o toca aqui (a dupla aprovada).
-    void CriarResultado(int linhas, bool comToque);
-    void MostrarResultado(const Resultado::Resumo& resumo);
-    /// O que mais acertou o aluno, na linha da devolutiva: o desenho de cada projetil e quantas vezes.
-    void MostrarCausas(const std::vector<Devolutiva::Causa>& causas, const Vector2& onde);
-    /// A personagem dos alunos dos dois lados do titulo - no solo, a mesma; na dupla, cada aluno do
-    /// seu lado: na formatura, de capelo, e na dupla aprovada, para o toca aqui. Nao depende de onde o
-    /// aluno estava quando a luta acabou.
-    void MostrarAlunosNoResultado();
+    bool mAcabando = false;
+    /// O painel do resultado, com o toca aqui (TelaDoResultado.h): criado no fim, quando se sabe o
+    /// resumo.
+    std::unique_ptr<TelaDoResultado> mResultado;
 
-    // ---- O toca aqui (Comunicacao.h): a dupla aprovada aperta o Botao 3 junta ----
-    struct AvatarNoResultado {
-        Actor* ator = nullptr;
-        Vector2 base;
-        float pulo = Comunicacao::kDuracaoDoPulo;   ///< parado: o pulo ja acabou
-    };
-    std::vector<AvatarNoResultado> mAvataresNoResultado;
-    bool mPodeTocar = false;
-    std::array<bool, 2> mTresAntes{};
-    std::array<float, 2> mUltimoTres{Comunicacao::kNuncaApertou, Comunicacao::kNuncaApertou};
-    float mUltimoToque = Comunicacao::kNuncaApertou;
-    float mEstouro = Comunicacao::kDuracaoDoEstouro;   ///< parado: o estouro ja apagou
-    class DrawLinhasComponent* mDesenhoDoToque = nullptr;
-    /// Le os dois Botoes 3 no resultado; os dois juntos sao o toca aqui.
-    void LerToque(const Uint8* keyState);
-    void TocarAqui();
-    void AtualizarToque(float deltaTime);
     /// Um acerto sofrido por 'jogador', que levou 'perda' de nota, por 'causa' (o tipo do projetil, ou
     /// o esbarrao): para a devolutiva e a justica.
     void AnotarPerda(const Player& jogador, const std::string& causa, float perda);
-    void ProcessarResultado(const Uint8* keyState);
-    void EscolherNoResultado();
-
-    bool mAcabando = false;
-    /// Segundos desde o fim da luta: a trava do menu e a volta sozinha no
-    /// gabinete contam por ele.
-    float mTempoNoFim = 0.0f;
-    int mResultadoSelecionado = 0;
-    std::unique_ptr<PainelDeMenu> mPainelDoResultado;
 
     /// A devolutiva: onde a nota caiu e por que (Devolutiva.h).
     Devolutiva::Caderno mCaderno;
@@ -462,53 +429,19 @@ private:
     void AvancarCarregamento(float deltaTime); // processa 1 tipo de projétil por chamada
     void TerminarCarregamento();
 
-    // ---- A pausa, so no computador (Pausa.h) ----
+    // ---- A pausa, so no computador (PausaDaBatalha.h) ----
 
-    void CriarPausa();
+    std::unique_ptr<PausaDaBatalha> mPausa;
+    /// Abre o menu, congela os atores e para o aluno e a musica.
     void AbrirPausa();
-    /// Fecha o menu e comeca a contagem: a luta segue congelada ate ela acabar.
-    void FecharPausa();
     /// A contagem acabou: os atores e a musica voltam.
     void Retomar();
-    void ProcessarPausa(const Uint8* keyState, bool escNovo);
-    void EscolherNaPausa();
 
     /// Sai da batalha no meio, para 'destino', sem registrar a nota.
     void SairDaBatalha(SceneType destino);
 
-    Pausa::Menu mPausa;
-    std::unique_ptr<PainelDeMenu> mPainelDaPausa;
-
-    /// A contagem da volta (Pausa::kRetomada): segundos que faltam, e 0 fora dela.
-    float mRetomada = 0.0f;
-    Actor* mNumeroDaRetomada = nullptr;
-    [[nodiscard]] bool Retomando() const { return mRetomada > 0.0f; }
-
-    // ---- As batidas dos menus (a pausa e o resultado) ----
-
-    /// So o que acabou de ser apertado neste quadro, de qualquer um dos dois.
-    struct BatidasDoMenu {
-        bool cima = false;
-        bool baixo = false;
-        bool confirmar = false;
-    };
-    BatidasDoMenu LerMenu(const Uint8* keyState);
-    void SegurarMenu() { mBordaCima.Segurar(); mBordaBaixo.Segurar(); mBordaConfirmar.Segurar(); }
-
+    /// O ESC e borda, e nao estado: segurado, ele abriria e fecharia a pausa a cada quadro.
     Borda mBordaEsc{true};
-    Borda mBordaCima{true};
-    Borda mBordaBaixo{true};
-    Borda mBordaConfirmar{true};
-
-    /// Por cima de tudo: a faixa da nota vai ate 304.
-    static constexpr int kOrdemDosMenus = 900;
-    /// O lado do desenho de cada projetil na devolutiva: o de uma linha do resultado.
-    static constexpr float kLadoDoIcone = 34.0f;
-    /// Quem se formou, dos lados do titulo: dentro da placa do resultado e acima das linhas.
-    static constexpr float kAfastamentoDoFormando = 200.0f;
-    static constexpr float kEscalaDoFormando = 1.5f;
-    /// O resultado e mais largo que a pausa: a linha da devolutiva traz o nome da fase.
-    static constexpr int kLarguraDoResultado = 760;
 };
 
 #endif // DPIBULLETHELLRE_BATTLE_H.
