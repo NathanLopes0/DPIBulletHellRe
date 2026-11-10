@@ -475,6 +475,9 @@ invencibilidade da tela de vitória. `SubirNota` e `DescerNota` dividem pelo
 tamanho dela (2.1). `EncerrarBatalha` grava a MESMA nota em duas fichas, marcada
 como co-op.
 
+> Hoje essa conta mora em `Nota::Conta` (`Regras/ContaDaNota.h`): `PorJogador`,
+> `Subir` e `Descer`, que a `Battle` chama. As colisões saíram para `Colisoes`.
+
 **`mGrade`, `mAcertosSofridos` e `mAcertosNaFase` ficam como estão.** Na
 primeira versão deste documento os três viravam plurais; a nota compartilhada
 apagou esse trabalho inteiro.

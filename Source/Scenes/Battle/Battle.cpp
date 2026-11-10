@@ -108,6 +108,9 @@ void Battle::Load() {
     CriarChefe();
     CriarOrientador();
     CriarHUD();
+    // A base e privada: a conversao para as regras so vale aqui dentro, e nao no make_unique.
+    Colisoes::Regras& regras = *this;
+    mColisoes = std::make_unique<Colisoes>(mJogadores, mCorpos, mPontosExtras, *mEfeitos, regras);
     mDesenhoSobreOsAlunos = std::make_unique<DesenhoSobreOsAlunos>(*this);
     mPausa = std::make_unique<PausaDaBatalha>(*this, mFonteDaNota.get(), mGame->JeitoDoRodape(), GetPlayfieldBounds());
     mPartes.assign(mJogadores.size(), Devolutiva::Parte{});
@@ -604,85 +607,58 @@ void Battle::AnotarPerda(const Player& jogador, const std::string& causa, const 
 
 void Battle::VerificarColisoes() {
     Avisar([&](OuvinteDaBatalha& o) { o.AoAntesDasColisoes(*this); });
-    if (mJogadores.empty() || !mChefe) return;
-
-    const auto *bossCollider = mChefe->GetComponent<CircleColliderComponent>();
-    if (!bossCollider) return;
-
-    const auto &bossProjectiles = mProjeteis->GetBossProjectiles();
-    const auto &playerProjectiles = mProjeteis->GetPlayerProjectiles();
-
-    // A ordem das regras importa: cada uma ve o que a anterior ja derrubou.
-    ColisoesDoAbrigo(bossProjectiles);
-    ColisoesDoEscudo(bossProjectiles);
-    ColisoesTiroDoChefeNoAluno(bossProjectiles);
-    ColisoesTiroDoAlunoNosProjeteis(playerProjectiles, bossProjectiles);
-    ColisoesTiroDoAlunoNoChefe(playerProjectiles);
-    ColisoesDeContato();
-    ColisoesComPontoExtra();
-}
-
-void Battle::ColisoesDoAbrigo(const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles) {
-    for (const auto &abrigo : bossProjectiles) {
-        if (abrigo->GetState() != ActorState::Active || !abrigo->Abrigo()) continue;
-        const auto *colisorDoAbrigo = abrigo->GetComponent<CircleColliderComponent>();
-        if (!colisorDoAbrigo) continue;
-        for (const auto &bossProj : bossProjectiles) {
-            if (bossProj->GetState() != ActorState::Active) continue;
-            if (bossProj->Abrigo() || bossProj->Enfeite() || !bossProj->Posto().empty()) continue;
-            const auto *outro = bossProj->GetComponent<CircleColliderComponent>();
-            if (outro && colisorDoAbrigo->Intersect(*outro)) bossProj->Kill();
-        }
+    if (mColisoes && mProjeteis) {
+        mColisoes->Verificar(mChefe, mProjeteis->GetBossProjectiles(), mProjeteis->GetPlayerProjectiles());
     }
 }
 
-void Battle::ColisoesDoEscudo(const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles) {
-    for (Player* jogador : mJogadores) {
-        if (!jogador || jogador->TempoDeImunidade() <= 0.0f) continue;
-        const auto* colisor = ColisorDe(jogador);
-        const Vector2 centro = colisor ? colisor->GetCenter() : jogador->GetPosition();
-        for (const auto &bossProj : bossProjectiles) {
-            if (bossProj->GetState() != ActorState::Active) continue;
-            if (bossProj->Abrigo() || bossProj->Enfeite() || !bossProj->Posto().empty()) continue;
-            const auto *outro = bossProj->GetComponent<CircleColliderComponent>();
-            if (outro && PontoExtra::NoEscudo(centro, outro->GetCenter(), outro->GetRadius())) bossProj->Kill();
-        }
-    }
+void Battle::AlunoAcertado(Player& aluno, const std::string& causa, const float multiplicador, const bool porUmTiro) {
+    AnotarPerda(aluno, causa, mConta.Descer(multiplicador));
+    Avisar([&](OuvinteDaBatalha& o) { o.AoSerAcertado(*this, aluno, porUmTiro); });
 }
 
-void Battle::ColisoesTiroDoChefeNoAluno(const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles) {
-    for (Player* jogador : mJogadores) {
-        const auto *playerCollider = ColisorDe(jogador);
-        if (!playerCollider) continue;
+void Battle::AlunoRaspou(Player& aluno, const Vector2& onde) {
+    // A medida conta sempre; o experimento sem raspao so nao paga nem acende.
+    Avisar([&](OuvinteDaBatalha& o) { o.AoRaspar(*this, aluno); });
+    if (!mCondicao.Ligada(Experimento::Mecanica::Raspao)) return;
+    mConta.Subir(mConta.PorJogador(Raspao::kGanho));
+    mEfeitos->Faiscar(onde, Hud::Faisca::Raspao);
+}
 
-        for (const auto &bossProj: bossProjectiles) {
-            if (bossProj->GetState() != ActorState::Active) continue;
-            if (bossProj->Enfeite()) continue;   // o cursor da sprint e a mao, nao um tiro
-            if (bossProj->Abrigo()) continue;    // a capivara nao machuca ninguem
-            if (const auto *bossProjCollider = bossProj->GetComponent<CircleColliderComponent>()) {
-                // O mesmo tiro nao acerta duas vezes seguidas (Acerto.h).
-                if (playerCollider->Intersect(*bossProjCollider) && !jogador->EstaInvencivel() &&
-                    !jogador->JaFoiAcertadoPor(bossProj.get(), bossProj->TempoDeVida())) {
-                    jogador->DefinirInvencivel(true);
-                    jogador->FoiAcertadoPor(bossProj.get(), bossProj->TempoDeVida());
-                    jogador->OnCollision(bossProj.get());
-                    bossProj->OnCollision(jogador);
+void Battle::ProfessorAcertado(const PlayerProjectile& tiro, const CircleColliderComponent& corpo, const bool ouviu) {
+    // Acerto de um jogador: repartido.
+    Avisar([&](OuvinteDaBatalha& o) { o.AoAcertarOProfessor(*this, tiro.Dono(), ouviu); });
 
-                    // Nem todo acerto e a mesma coisa.
-                    if (bossProj->Acorrenta()) {
-                        jogador->Acorrentar(bossProj->SegundosDeCorrente(),
-                                            bossProj->FatorDaCorrente());
-                    }
-                    AnotarPerda(*jogador, bossProj->Tipo(), mConta.Descer(bossProj->MultiplicadorDaPerda()));
-
-                    mEfeitos->Faiscar(playerCollider->GetCenter(), Hud::Faisca::Dano);
-                    Avisar([&](OuvinteDaBatalha& o) { o.AoSerAcertado(*this, *jogador, true); });
-                } else {
-                    Raspar(*jogador, *playerCollider, *bossProj, *bossProjCollider);
-                }
-            }
+    if (ouviu) {
+        // A duvida perguntada de perto vale mais (Nota::FatorDePerto) - a do aluno; a do orientador, nao.
+        const int quem = PosicaoDoAluno(tiro.Dono());
+        // Quem pergunta incomoda, e chama a mira (Papeis.h).
+        if (quem >= 0) mIncomodo.Acertou(static_cast<size_t>(quem));
+        if (quem >= 0 && static_cast<size_t>(quem) < mPartes.size()) ++mPartes[static_cast<size_t>(quem)].acertos;
+        const float fatorDaDistancia = quem >= 0 ? Nota::FatorDePerto((tiro.Dono()->GetPosition() -
+                                                                       corpo.GetCenter()).Length())
+                                                 : 1.0f;
+        // Perguntou de perto: conta pela distancia; o experimento sem o perto so nao paga.
+        if (quem >= 0 && fatorDaDistancia >= Nota::kFatorDaRespostaDupla) {
+            const Player& aluno = *mJogadores[static_cast<size_t>(quem)];
+            Avisar([&](OuvinteDaBatalha& o) { o.AoAcertarDePerto(*this, aluno); });
         }
+        const float fator = mCondicao.Ligada(Experimento::Mecanica::Perto) ? fatorDaDistancia : 1.0f;
+        mConta.Subir(mConta.PorJogador(Nota::kGanhoPorAcerto * fator));
+        // A duvida respondida: o "?" vira um "!" na cor de quem perguntou - "!!" de perto.
+        mEfeitos->Faiscar(tiro.GetPosition(),
+                          fator >= Nota::kFatorDaRespostaDupla ? Hud::Faisca::RespostaDePerto : Hud::Faisca::Resposta,
+                          quem);
     }
+
+    // Todo acerto carrega o poder do orientador, blindado ou nao.
+    if (mOrientador) mOrientador->Carregar();
+}
+
+void Battle::PontoExtraPego(Player& aluno, const bool primeiroDoQuadro) {
+    Avisar([&](OuvinteDaBatalha& o) { o.AoPegarPontoExtra(*this, aluno); });
+    // O som toca uma vez por quadro, por mais Pontos Extras que se peguem nele.
+    if (primeiroDoQuadro) mGame->GetAudio()->PlaySound("powerup.wav", false);
 }
 
 Cobertura::Aluno Battle::AlunoDaCobertura(const Player* aluno) const {
@@ -692,7 +668,7 @@ Cobertura::Aluno Battle::AlunoDaCobertura(const Player* aluno) const {
     return Cobertura::Aluno{colisor->GetCenter(), colisor->GetRadius(), true};
 }
 
-bool Battle::Cobrir(const PlayerProjectile& tiro, const BossProjectile& projetil) {
+bool Battle::ProjetilDerrubado(const PlayerProjectile& tiro, const BossProjectile& projetil) {
     // So na dupla, e so o tiro de um aluno.
     const int quem = PosicaoDoAluno(tiro.Dono());
     if (quem < 0 || mJogadores.size() < 2) return false;
@@ -767,204 +743,6 @@ void Battle::MarcarOCaminhoDosAlunos() {
         const Hud::Rgb c = Hud::CorDoAluno(static_cast<size_t>(quem));
         desenho->DefinirBrilho(true, SDL_Color{c.r, c.g, c.b, alfa}, Hud::kAlcanceDoBrilho);
     }
-}
-
-void Battle::Raspar(Player& jogador, const CircleColliderComponent& colisor, BossProjectile& projetil,
-                    const CircleColliderComponent& colisorDoProjetil) {
-    // O que esta parado num posto (a pilha, a tabela) e o que nem anda nao e um desvio; e quem esta
-    // invencivel nao arrisca nada.
-    if (jogador.EstaInvencivel() || !projetil.Posto().empty()) return;
-    // A conta da faixa antes de procurar o corpo rigido: quase todo projetil passa longe.
-    if (!Raspao::NaFaixa(colisor.GetCenter(), colisor.GetRadius(), colisorDoProjetil.GetCenter(),
-                         colisorDoProjetil.GetRadius())) return;
-    const auto* rb = projetil.GetComponent<RigidBodyComponent>();
-    if (!rb || rb->GetVelocity().Length() < Raspao::kRapidezMinima) return;
-    if (jogador.JaRaspou(&projetil, projetil.TempoDeVida())) return;
-
-    jogador.Raspou(&projetil, projetil.TempoDeVida());
-    // A medida conta sempre; o experimento sem raspao so nao paga nem acende.
-    Avisar([&](OuvinteDaBatalha& o) { o.AoRaspar(*this, jogador); });
-    if (!mCondicao.Ligada(Experimento::Mecanica::Raspao)) return;
-    mConta.Subir(mConta.PorJogador(Raspao::kGanho));
-    mEfeitos->Faiscar(Raspao::OndeFaisca(colisor.GetCenter(), colisorDoProjetil.GetCenter()), Hud::Faisca::Raspao);
-}
-
-void Battle::ColisoesTiroDoAlunoNosProjeteis(const std::vector<std::unique_ptr<PlayerProjectile>>& playerProjectiles, const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles) {
-    for (const auto &playerProj: playerProjectiles) {
-        if (playerProj->GetState() != ActorState::Active) continue;
-        const auto *tiro = playerProj->GetComponent<CircleColliderComponent>();
-        if (!tiro) continue;
-
-        // A promessa do Lucas (Promise.all, no TCC) desfaz e segue.
-        if (playerProj->Promessa()) {
-            for (const auto &bossProj: bossProjectiles) {
-                if (bossProj->GetState() != ActorState::Active) continue;
-                if (bossProj->Enfeite() || bossProj->Abrigo() || bossProj->Blindado() || !bossProj->Posto().empty()) continue;
-                const auto *alvo = bossProj->GetComponent<CircleColliderComponent>();
-                if (!alvo || !playerProj->Alcanca(*alvo)) continue;
-                if (!playerProj->DesfazPelaPrimeiraVez(bossProj.get())) continue;
-
-                if (bossProj->Derrubavel()) {
-                    if (bossProj->Golpear()) {
-                        if (!Cobrir(*playerProj, *bossProj)) mEfeitos->Faiscar(bossProj->GetPosition(), Hud::Faisca::Derrubada);
-                        bossProj->OnCollision(playerProj.get());
-                        if (mChefe) {
-                            mChefe->OnProjetilDerrubado();
-                            mChefe->OnDerrubou(bossProj.get());
-                        }
-                    }
-                } else {
-                    mEfeitos->Faiscar(bossProj->GetPosition(), Hud::Faisca::Dissolvido);
-                    bossProj->Kill();
-                }
-            }
-            continue;
-        }
-
-        for (const auto &bossProj: bossProjectiles) {
-            if (bossProj->GetState() != ActorState::Active) continue;
-            if (!bossProj->Derrubavel() && !bossProj->Blindado() && !bossProj->Abrigo()) continue;
-            if (bossProj->Enfeite()) continue;   // o tiro passa pelo cursor
-            const auto *alvo = bossProj->GetComponent<CircleColliderComponent>();
-            if (!alvo || !playerProj->Alcanca(*alvo)) continue;
-
-            if (!Destrutivel::Pode(bossProj->Derrubavel(), bossProj->Blindado(), bossProj->Abrigo(), bossProj->Enfeite())) {
-                playerProj->Murchar();
-                break;
-            }
-            playerProj->OnCollision(bossProj.get());
-            {
-                // A resistencia: so o ultimo golpe derruba.
-                if (bossProj->Golpear()) {
-                    if (!Cobrir(*playerProj, *bossProj)) mEfeitos->Faiscar(bossProj->GetPosition(), Hud::Faisca::Derrubada);
-                    bossProj->OnCollision(playerProj.get());
-                    if (mChefe) {
-                        mChefe->OnProjetilDerrubado();
-                        mChefe->OnDerrubou(bossProj.get());
-                    }
-                } else if (mChefe) {
-                    mEfeitos->Faiscar(playerProj->GetPosition(), Hud::Faisca::Acerto);
-                    mChefe->OnProjetilBarrado();
-                }
-            }
-            break;   // um tiro derruba um processo so, ou some numa historia so
-        }
-    }
-}
-
-void Battle::ColisoesTiroDoAlunoNoChefe(const std::vector<std::unique_ptr<PlayerProjectile>>& playerProjectiles) {
-    for (const auto &playerProj: playerProjectiles) {
-        if (playerProj->GetState() != ActorState::Active) continue;
-
-        const auto *playerProjCollider = playerProj->GetComponent<CircleColliderComponent>();
-        if (!playerProjCollider) continue;
-
-        for (Boss* corpo : mCorpos) {
-            const auto* colisorDoCorpo = corpo ? corpo->GetComponent<CircleColliderComponent>()
-                                               : nullptr;
-            if (!colisorDoCorpo) continue;
-
-            if (playerProj->Alcanca(*colisorDoCorpo)) {
-                // A promessa que ja volta passa pelo Hugo: ela ja resolveu.
-                if (playerProj->Promessa() && playerProj->Voltando()) continue;
-
-                corpo->OnCollision(playerProj.get());
-                // O chefe blindado nao ouve a pergunta.
-                const bool ouviu = corpo->AceitaDano();
-                if (playerProj->Promessa()) playerProj->Voltar();
-                else if (ouviu) playerProj->OnCollision(corpo);
-                else playerProj->Murchar();
-
-                // Acerto de um jogador: repartido.
-                Avisar([&](OuvinteDaBatalha& o) { o.AoAcertarOProfessor(*this, playerProj->Dono(), ouviu); });
-
-                if (ouviu) {
-                    // A duvida perguntada de perto vale mais (Nota::FatorDePerto) - a do aluno; a do
-                    // orientador, nao.
-                    const int quem = PosicaoDoAluno(playerProj->Dono());
-                    // Quem pergunta incomoda, e chama a mira (Papeis.h).
-                    if (quem >= 0) mIncomodo.Acertou(static_cast<size_t>(quem));
-                    if (quem >= 0 && static_cast<size_t>(quem) < mPartes.size()) ++mPartes[static_cast<size_t>(quem)].acertos;
-                    const float fatorDaDistancia = quem >= 0 ? Nota::FatorDePerto((playerProj->Dono()->GetPosition() -
-                                                                                   colisorDoCorpo->GetCenter()).Length())
-                                                             : 1.0f;
-                    // Perguntou de perto: conta pela distancia; o experimento sem o perto so nao paga.
-                    if (quem >= 0 && fatorDaDistancia >= Nota::kFatorDaRespostaDupla) {
-                        const Player& aluno = *mJogadores[static_cast<size_t>(quem)];
-                        Avisar([&](OuvinteDaBatalha& o) { o.AoAcertarDePerto(*this, aluno); });
-                    }
-                    const float fator = mCondicao.Ligada(Experimento::Mecanica::Perto) ? fatorDaDistancia : 1.0f;
-                    mConta.Subir(mConta.PorJogador(Nota::kGanhoPorAcerto * fator));
-                    // A duvida respondida: o "?" vira um "!" na cor de quem perguntou - "!!" de perto.
-                    mEfeitos->Faiscar(playerProj->GetPosition(),
-                            fator >= Nota::kFatorDaRespostaDupla ? Hud::Faisca::RespostaDePerto : Hud::Faisca::Resposta,
-                            quem);
-                }
-
-                // Todo acerto carrega o poder do orientador, blindado ou nao.
-                if (mOrientador) mOrientador->Carregar();
-
-                // Um tiro acerta um corpo so.
-                break;
-            }
-        }
-    }
-}
-
-void Battle::ColisoesDeContato() {
-    for (Player* jogador : mJogadores) {
-        const auto *playerCollider = ColisorDe(jogador);
-        if (!playerCollider) continue;
-
-        for (Boss* corpo : mCorpos) {
-            const auto* colisorDoCorpo = corpo ? corpo->GetComponent<CircleColliderComponent>()
-                                               : nullptr;
-            if (!colisorDoCorpo) continue;
-
-            if (playerCollider->Intersect(*colisorDoCorpo) && !jogador->EstaInvencivel() &&
-                !jogador->JaFoiAcertadoPor(corpo, 0.0f)) {
-                jogador->DefinirInvencivel(true);
-                jogador->FoiAcertadoPor(corpo, 0.0f);
-                jogador->OnCollision(corpo);
-                corpo->OnCollision(jogador);
-                AnotarPerda(*jogador, Devolutiva::kEsbarrao, mConta.Descer());
-                Avisar([&](OuvinteDaBatalha& o) { o.AoSerAcertado(*this, *jogador, false); });
-            }
-        }
-    }
-}
-
-void Battle::ColisoesComPontoExtra() {
-    bool playedPowerUpSound = false;
-
-    for (Player* jogador : mJogadores) {
-        const auto *playerCollider = ColisorDe(jogador);
-        if (!playerCollider) continue;
-
-        for (const auto item : mPontosExtras) {
-            if (item->GetState() != ActorState::Active) continue;
-
-            if (const auto itemCollider = item->GetComponent<CircleColliderComponent>(); itemCollider && playerCollider->Intersect(*itemCollider)) {
-
-                // 1.
-                jogador->GanharPontoExtra();
-                mEfeitos->Faiscar(playerCollider->GetCenter(), Hud::Faisca::Coleta);
-                Avisar([&](OuvinteDaBatalha& o) { o.AoPegarPontoExtra(*this, *jogador); });
-
-                // 2.
-                if (!playedPowerUpSound) {
-                    // Toca só se ainda não tocou neste frame.
-                    mGame->GetAudio()->PlaySound("powerup.wav", false);
-                    playedPowerUpSound = true;
-                }
-
-                // 3.
-                item->SetState(ActorState::Destroy);
-            }
-        }
-    }
-
-    // A nota nao e mais escrita aqui.
 }
 
 Player* Battle::JogadorEm(const size_t posicao) const {

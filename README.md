@@ -567,7 +567,27 @@ a metade pura entra nos testes, a metade que toca disco e SDL fica de fora.
 | **Strategy** | `PoderEmCampo` | o poder do orientador do TCC: um objeto por poder, com o seu estado, criado por uma fábrica |
 | **Factory Method + Template Method** | `IBossFactory::CreateBoss`, `FabricaDeChefe<T>` | a montagem de todo professor tem os mesmos passos, escritos uma vez; o que é de cada chefe — a classe, a pasta, o retrato — é uma linha em `Chefes.cpp` |
 | **Object Pool** | `ProjectilePool` | os projéteis são reaproveitados, e não alocados no meio da luta |
-| **Observer** | `OuvinteDaBatalha` | a batalha anuncia o que acontece; o registro da tentativa e os clarões da moldura ouvem |
+| **Observer** | `OuvinteDaBatalha` | a batalha anuncia o que acontece; o registro da tentativa, os clarões da moldura e o relatório da simulação ouvem |
+| **Inversão de dependência** | `Colisoes::Regras` | as colisões acham quem encostou em quem e não conhecem a batalha; o que cada contato vale (a nota, a devolutiva, a dupla) é a batalha que decide, pela interface |
+
+### A batalha
+
+`Battle` é a cena da luta: orquestra o quadro e guarda o estado da prova. O
+resto mora em colaboradores, um por assunto:
+
+| Classe | O que faz |
+|---|---|
+| `Nota::Conta` | a nota, os acertos sofridos e as fases limpas — pura, e testada |
+| `FaixaDaNota` | a barra da nota, o número e os avisos na base da tela |
+| `Colisoes` | quem encosta em quem, na ordem em que vale |
+| `EfeitosDaBatalha` | as faíscas, a onda do Ponto Extra e as moedas |
+| `DesenhoSobreOsAlunos` | o feixe e o escudo da dupla, o sinal, o valeu, a mira presa |
+| `PausaDaBatalha` | o menu da pausa e a contagem 3-2-1 |
+| `TelaDoResultado` | o resumo, a devolutiva e o toca aqui |
+| `TelaDeCarregamento` | o véu enquanto os projéteis são preparados |
+
+Uma refatoração nela tem de passar pela linha de base
+(`Ferramentas/linha-de-base.sh`): as 54 batalhas idênticas, byte a byte.
 
 ## Os dados
 

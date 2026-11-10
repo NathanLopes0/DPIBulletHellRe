@@ -25,6 +25,7 @@
 #include "../../Interface/Hud.h"
 #include "../../Interface/Comunicacao.h"
 #include "../../Regras/Variacao.h"
+#include "Colisoes.h"
 #include "OuvinteDaBatalha.h"
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
 
@@ -42,7 +43,11 @@ class TelaDoResultado;
 class BossProjectile;
 class PlayerProjectile;
 
-class Battle : public Scene {
+/// A cena da luta. Ela orquestra o quadro e guarda o estado da prova; quem conta a nota, mostra a
+/// faixa, os menus e os efeitos, e acha as colisoes, sao os colaboradores dela (FaixaDaNota,
+/// PausaDaBatalha, TelaDoResultado, EfeitosDaBatalha, DesenhoSobreOsAlunos, Colisoes). O que as
+/// colisoes acham, ela paga e cobra (Colisoes::Regras).
+class Battle : public Scene, private Colisoes::Regras {
 
 public:
 
@@ -155,21 +160,15 @@ protected:
     void OnProcessInput(const Uint8 *keyState) override;
 
 private:
-    // ---- As regras de colisao, na ordem em que VerificarColisoes as aplica ----
-    /// O abrigo come os projeteis do chefe.
-    void ColisoesDoAbrigo(const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles);
-    /// O escudo do Ponto Extra come os projeteis do chefe.
-    void ColisoesDoEscudo(const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles);
-    /// Os projeteis do chefe acertam os alunos.
-    void ColisoesTiroDoChefeNoAluno(const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles);
-    /// O tiro do aluno derruba (ou murcha em) projeteis do chefe.
-    void ColisoesTiroDoAlunoNosProjeteis(const std::vector<std::unique_ptr<PlayerProjectile>>& playerProjectiles, const std::vector<std::unique_ptr<BossProjectile>>& bossProjectiles);
-    /// O tiro do aluno acerta o chefe.
-    void ColisoesTiroDoAlunoNoChefe(const std::vector<std::unique_ptr<PlayerProjectile>>& playerProjectiles);
-    /// O aluno encosta no chefe.
-    void ColisoesDeContato();
-    /// O aluno pega um Ponto Extra.
-    void ColisoesComPontoExtra();
+    // ---- As colisoes (Colisoes.h): elas acham, a batalha paga e cobra ----
+    std::unique_ptr<Colisoes> mColisoes;
+    void AlunoAcertado(Player& aluno, const std::string& causa, float multiplicador, bool porUmTiro) override;
+    void AlunoRaspou(Player& aluno, const Vector2& onde) override;
+    /// Se o projetil ia no parceiro de quem o derrubou, e uma cobertura (Cobertura.h): paga inteira, com
+    /// a faisca dela e o valeu. Devolve se foi.
+    bool ProjetilDerrubado(const PlayerProjectile& tiro, const BossProjectile& projetil) override;
+    void ProfessorAcertado(const PlayerProjectile& tiro, const CircleColliderComponent& corpo, bool ouviu) override;
+    void PontoExtraPego(Player& aluno, bool primeiroDoQuadro) override;
 
     // ---- Funções Auxiliares de Lógica Interna ----
     void CriarHUD();
@@ -251,20 +250,13 @@ private:
     /// O "prof" escrito embaixo do brilho de cada corpo do professor.
     std::vector<Actor*> mRotulosDoProfessor;
 
-    /// O tiro de um aluno derrubou um projetil: se ele ia no parceiro, e uma cobertura (Cobertura.h),
-    /// paga inteira, com a faisca dela. Devolve se foi.
-    bool Cobrir(const PlayerProjectile& tiro, const BossProjectile& projetil);
-
     /// O aluno para as contas da cobertura: onde ele esta, o colisor e se algo o atinge.
     [[nodiscard]] Cobertura::Aluno AlunoDaCobertura(const Player* aluno) const;
 
     /// Na dupla, o projetil destrutivel que vai num aluno brilha na cor dele (Cobertura::AlunoNoCaminho):
-    /// quem esta embaixo sabe que derruba-lo e a cobertura. E a mesma conta de Cobrir.
+    /// quem esta embaixo sabe que derruba-lo e a cobertura. E a mesma conta de ProjetilDerrubado.
     void MarcarOCaminhoDosAlunos();
 
-    /// O projetil passou rente ao aluno sem acerta-lo (Raspao.h): paga o raspao, uma vez por projetil.
-    void Raspar(Player& jogador, const class CircleColliderComponent& colisor, class BossProjectile& projetil,
-                const class CircleColliderComponent& colisorDoProjetil);
     /// A posicao (0 ou 1) do aluno 'ator', ou -1 se ele nao e um aluno.
     [[nodiscard]] int PosicaoDoAluno(const Actor* ator) const;
 
