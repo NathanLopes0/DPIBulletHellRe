@@ -11,6 +11,10 @@
 /// (TentativasArquivo).
 class RegistroDaTentativa : public OuvinteDaBatalha {
 public:
+    /// 'grava': a tentativa vai para os CSV. Na simulacao (Simulacao.h) ela e anotada e nao vai: os
+    /// dados da pesquisa sao so de gente jogando.
+    explicit RegistroDaTentativa(bool grava = true) : mGrava(grava) {}
+
     void AoComecar(Battle& b) override;
     void AoPassarOTempo(Battle& b, float deltaTime, bool emPausa) override;
     void AoFimDoQuadro(Battle& b) override;
@@ -36,6 +40,7 @@ private:
     Tentativas::Jogador* De(const Battle& b, const Actor* quem);
 
     Tentativas::Tentativa mTentativa;
+    bool mGrava = true;
     bool mComecou = false;
     bool mGravada = false;
     /// Segundos de luta, sem carregamento e sem pausa; e os de pausa.

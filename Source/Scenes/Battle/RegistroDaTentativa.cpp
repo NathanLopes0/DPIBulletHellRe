@@ -178,7 +178,7 @@ void RegistroDaTentativa::AoTocarAqui(Battle& b) {
     // Vem no resultado, com a tentativa ja gravada: e um arquivo a parte, ligado a ela pelo id.
     if (!mGravada) return;
     ++mToques;
-    TentativasArquivo::GravarToque(mTentativa, mToques, b.TempoNoResultado());
+    if (mGrava) TentativasArquivo::GravarToque(mTentativa, mToques, b.TempoNoResultado());
 }
 
 void RegistroDaTentativa::AoTerminar(Battle& b, const Tentativas::Resultado resultado, const bool ultimaFaseCompleta) {
@@ -204,7 +204,7 @@ void RegistroDaTentativa::AoTerminar(Battle& b, const Tentativas::Resultado resu
         ultima.notaNoFim = nota;
         ultima.completa = ultimaFaseCompleta;
     }
-    TentativasArquivo::Gravar(t);
+    if (mGrava) TentativasArquivo::Gravar(t);
 }
 
 Tentativas::Jogador* RegistroDaTentativa::De(const Battle& b, const Actor* quem) {

@@ -45,6 +45,11 @@ energia ou um travamento também não gera linha: o jogo não teve como gravar.
 **Recomeçar conta como abandono.** A tentativa que o aluno largou é uma, e a
 que começa é outra, com outra linha.
 
+**O jogo rodando sozinho não grava nada.** Com qualquer parâmetro do modo de
+simulação (`--batalha`, `--piloto`, `--fotos`..., em `build-e-testes.md`), a
+tentativa é anotada e não vai para os arquivos: medir ou fotografar no
+gabinete não mistura batalhas de mentira com as dos alunos.
+
 ## `tentativas.csv`
 
 | Coluna | O que é |

@@ -83,8 +83,9 @@ void Battle::Load() {
     // 1.
     mProjeteis = std::make_unique<ProjectileManager>(this);
 
-    // O registro da tentativa ouve a batalha desde o comeco.
-    mOuvintes.push_back(std::make_unique<RegistroDaTentativa>());
+    // O registro da tentativa ouve a batalha desde o comeco. Na simulacao ele nao grava: os dados da
+    // pesquisa sao so de gente jogando.
+    mOuvintes.push_back(std::make_unique<RegistroDaTentativa>(!mGame->ConfiguracaoDaSimulacao().Ativa()));
     // E o relatorio da simulacao, quando pedido (--relatorio).
     if (mGame->ConfiguracaoDaSimulacao().relatorio) {
         mOuvintes.push_back(std::make_unique<RelatorioDaSimulacao>(mGame->ConfiguracaoDaSimulacao().sairNoFim));

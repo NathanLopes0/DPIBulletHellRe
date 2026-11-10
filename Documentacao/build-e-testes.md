@@ -161,7 +161,9 @@ servidor ou em paralelo.
 | `--pausa-em <q>`, `--foco-em <q>` | abre a pausa, ou faz a janela perder o foco, no quadro `q` |
 
 Um parâmetro de simulação que não se lê é dito no log e ignorado. Eles não vão
-no script do gabinete.
+no script do gabinete. Com qualquer um deles, a tentativa não vai para os CSV da
+pesquisa (`dados-das-tentativas.md`): uma foto que termina a luta com `--fim-em`
+não vira dado do TCC.
 
 ### Medir
 
