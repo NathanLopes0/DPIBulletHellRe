@@ -33,6 +33,8 @@ TEST_CASE("Simulacao: a linha da medicao se le inteira") {
     CHECK(c.batalha == "10");
     CHECK(c.jogadores == 2);
     CHECK(c.orientador == "INF213");
+    CHECK(c.candidatos.empty());
+    CHECK(Ler({"--batalha", "10", "--candidatos", "INF110,INF310"}).candidatos == "INF110,INF310");
     CHECK(c.dificil);
     CHECK(c.estado == "StateTwo");
     REQUIRE(c.semente.has_value());

@@ -38,7 +38,9 @@ void BossAttackState::HandleStateTransition(float stateTime)
 
         if (const auto battle = dynamic_cast<Battle*>(scene)) {
 
-            // A nota vem do Battle: e a da batalha em curso, nao a gravada.
+            // A nota vem do Battle: e a da batalha em curso, nao a gravada - e com o que estava
+            // pendente ja resolvido (a transacao aberta fecha antes de a nota decidir).
+            battle->FecharPendencias();
             switch (Nota::AposTerceiraFase(battle->NotaAtual())) {
 
                 case Nota::Desfecho::VaiParaFinal:
@@ -61,6 +63,7 @@ void BossAttackState::HandleStateTransition(float stateTime)
 
         if (const auto battle = dynamic_cast<Battle*>(scene)) {
             // Aqui a batalha acaba de qualquer jeito.
+            battle->FecharPendencias();
             battle->EncerrarBatalha(battle->NotaAtual() >= Nota::kNotaAprovacao);
         }
     }

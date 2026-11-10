@@ -407,12 +407,12 @@ void Battle::OnUpdate(float deltaTime) {
     mMira.Avancar(deltaTime);
     mDesenhoSobreOsAlunos->Atualizar(deltaTime, mJogadores, FocoDaMira(), mGame && mGame->MostrarHitbox());
     MarcarOCaminhoDosAlunos();
-    if (mMoldura) mMoldura->Atualizar(mJogadores, mCorpos, mRede, mFonteDoPlacar.get());
+    if (mMoldura) mMoldura->Atualizar(mJogadores, mCorpos, mFonteDoPlacar.get());
     mEfeitos->AvancarOndas(deltaTime, mProjeteis->GetBossProjectiles());
     mEfeitos->Desenhar(deltaTime, mFaixa->Ponta(mConta.Valor()));
 
     if (mHUD) mHUD->OnUpdate(deltaTime, mChefe && mChefe->Congelado());
-    if (mRede > 0.0f) mRede = std::max(0.0f, mRede - deltaTime);
+    if (mCapturando > 0.0f) mCapturando = std::max(0.0f, mCapturando - deltaTime);
 
     if (mRelogio && mChefe && mHUD) mRelogio->Seguir(*mChefe, mHUD->Restante());
     mFaixa->Atualizar(mConta.Valor(), mAvisoDeFaseLimpa > 0.0f);
@@ -508,7 +508,24 @@ void Battle::VerificarColisoes() {
     }
 }
 
+void Battle::FecharPendencias() {
+    if (!mPendencia) return;
+    const auto fechar = std::move(mPendencia);
+    mPendencia = nullptr;
+    fechar();
+}
+
+void Battle::CapturarAcertos(const float segundos, std::function<void(Player&)> aoCapturar) {
+    mCapturando = std::max(0.0f, segundos);
+    mAoCapturar = std::move(aoCapturar);
+}
+
 void Battle::AlunoAcertado(Player& aluno, const std::string& causa, const float multiplicador, const bool porUmTiro) {
+    // Dentro do try, o acerto e uma excecao capturada: nao tira nota nem entra na devolutiva.
+    if (mCapturando > 0.0f) {
+        if (mAoCapturar) mAoCapturar(aluno);
+        return;
+    }
     const float perda = mConta.Descer(multiplicador);
     Avisar([&](OuvinteDaBatalha& o) { o.AoPerderNota(*this, aluno, causa, perda); });
     Avisar([&](OuvinteDaBatalha& o) { o.AoSerAcertado(*this, aluno, porUmTiro); });
@@ -804,12 +821,6 @@ void Battle::AoGastarPontoExtra(Player* quemGastou) {
                           (b ? b->GetCenter() : oOutro->GetPosition())) * 0.5f;
     mEfeitos->SoltarOnda(meio);
     mEfeitos->Faiscar(meio, Hud::Faisca::Coleta);
-}
-
-void Battle::Atravessou(const Vector2& de, const Vector2& para) {
-    mEfeitos->Faiscar(de, Hud::Faisca::Coleta);
-    mEfeitos->Faiscar(para, Hud::Faisca::Coleta);
-    Avisar([&](OuvinteDaBatalha& o) { o.AoAtravessarAParede(*this); });
 }
 
 int Battle::PosicaoDoAluno(const Actor* ator) const {

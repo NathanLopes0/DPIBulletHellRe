@@ -4,6 +4,8 @@
 
 #include "ContaDaNota.h"
 
+#include <algorithm>
+
 #include "PontoExtra.h"
 
 namespace Nota {
@@ -30,6 +32,15 @@ namespace Nota {
     void Conta::GastarPontoExtra() {
         mNota = PontoExtra::NotaDepois(mNota, mAcertosSofridos, PorJogador(kGanhoPorAcerto),
                                        PontoExtra::TirosNaSobrecarga());
+    }
+
+    bool Conta::Desfazer(const Marca& marca) {
+        if (mNota >= marca.nota) return false;
+        const int desfeitos = std::max(0, mAcertosSofridos - marca.acertosSofridos);
+        mNota = marca.nota;
+        mAcertosSofridos -= desfeitos;
+        mAcertosNaFase = std::max(0, mAcertosNaFase - desfeitos);
+        return true;
     }
 
     bool Conta::FecharFase() {

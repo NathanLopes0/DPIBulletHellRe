@@ -10,6 +10,8 @@
 #include <string>
 #include <vector>
 
+#include <SDL_pixels.h>
+
 #include "../Actor.h"
 #include "../../Regras/Golpe.h"
 #include "../../Regras/Poder.h"
@@ -81,8 +83,17 @@ public:
     /// guarda num posto (um alvo, uma estrutura), nem enfeite, nem abrigo.
     [[nodiscard]] std::vector<BossProjectile*> TirosSoltos(Battle& batalha) const;
 
-    /// A onda do free() e do automato: um anel que se abre do aluno.
+    /// A onda do automato: um anel que se abre do aluno.
     void AbrirAnel() { mAnelDoPoder = 0.0f; }
+
+    /// Um traco do desenho do poder neste quadro (a porta do semaforo, as chaves do try, os blocos
+    /// da pilha): some no quadro seguinte se ninguem o pedir de novo.
+    void Tracar(const Vector2& de, const Vector2& ate, SDL_Color cor) { mTracos.push_back({de, ate, cor}); }
+
+    /// O que o poder esta fazendo agora, numa linha em cima do aluno ("push(tiro)  pilha: 7",
+    /// "ROLLBACK: a nota voltou"). O placar e do Hugo, que o reescreve; o rotulo e do poder, e some
+    /// sozinho um pouco depois da ultima vez que foi escrito.
+    void Rotular(const std::string& texto);
 
 private:
     /// O retrato e o cartao de chefe dele (128 px), em tamanho de ajudante.
@@ -140,6 +151,22 @@ private:
     void DesenharAnel();
     void Anunciar(const std::string& texto);
 
+    /// O rotulo do poder: quanto fica depois de escrito, e onde, a partir do aluno.
+    static constexpr float kRotuloFica = 1.8f;
+    static constexpr float kRotuloAcima = 118.0f;
+    static constexpr int kLarguraDoRotulo = 360;
+    static constexpr int kAlturaDoRotulo = 28;
+    class EtiquetaDeCodigo* mRotulo = nullptr;
+    std::string mRotulado;
+    float mRotuloAte = -1.0f;
+
+    struct TracoDoPoder {
+        Vector2 de;
+        Vector2 ate;
+        SDL_Color cor;
+    };
+    std::vector<TracoDoPoder> mTracos;
+
     Poder::Descricao mPoder;
     std::unique_ptr<PoderEmCampo> mEmCampo;   ///< o efeito do poder (nulo: sem poder)
     int mCarga = 0;
@@ -147,7 +174,7 @@ private:
     bool mAvisouPronto = false;
     bool mBotaoAntes = false;
     float mPoderAte = -1.0f;
-    float mAnelDoPoder = -1.0f;     ///< o raio do anel que se abre no free() e no automato
+    float mAnelDoPoder = -1.0f;     ///< o raio do anel que se abre no automato
 
     DrawLinhasComponent* mLinhas = nullptr;
 };

@@ -167,6 +167,20 @@ void Game::LoadInitialScene()
         }
         // O modo e sempre escrito: a batalha da simulacao nao passa pela tela de dificuldade.
         DefinirDificuldade(mSimulacao.dificil ? Dificuldade::Nivel::Dificil : Dificuldade::Nivel::Normal);
+        // --candidatos: a tela do orientador, com quem passou nessas materias (a primeira, a maior nota).
+        if (!mSimulacao.candidatos.empty() && !mSessoes.empty()) {
+            float nota = 95.0f;
+            std::string resto = mSimulacao.candidatos;
+            while (!resto.empty()) {
+                const size_t virgula = resto.find(',');
+                const int materia = Materias::Carregadas().IndiceDe(resto.substr(0, virgula));
+                if (materia >= 0) mSessoes.front().progresso.RegistrarNota(materia, nota, Dificuldade::Nivel::Normal);
+                nota -= 5.0f;
+                resto = virgula == std::string::npos ? std::string() : resto.substr(virgula + 1);
+            }
+            ChangeScene(Scene::SceneType::EscolhaDoOrientador);
+            return;
+        }
         ChangeScene(Scene::SceneType::Battle);
         return;
     }

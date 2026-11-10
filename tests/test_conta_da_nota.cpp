@@ -86,3 +86,41 @@ TEST_CASE("Conta: o Ponto Extra vale os acertos da sobrecarga, repartidos") {
         CHECK(conta.Valor() > 40.0f);
     }
 }
+
+TEST_CASE("Conta: a transacao - ROLLBACK se a nota caiu (e os acertos deixam de contar), COMMIT se nao") {
+    // Caiu: volta a nota, o teto e a fase limpa.
+    Nota::Conta c(60.0f);
+    c.FecharFase();                      // a entrada na primeira fase
+    const Nota::Conta::Marca marca = c.Marcar();
+    c.Descer();
+    c.Descer();
+    CHECK(c.Valor() < 60.0f);
+    CHECK(c.AcertosSofridos() == 2);
+    CHECK(c.Desfazer(marca));
+    CHECK(c.Valor() == doctest::Approx(60.0f));
+    CHECK(c.AcertosSofridos() == 0);
+    CHECK(c.FecharFase());               // sem acerto que conte: a fase paga o bonus
+    CHECK(c.FasesLimpas() == 1);
+
+    // Os acertos de antes do BEGIN continuam contando.
+    Nota::Conta d(60.0f);
+    d.FecharFase();
+    d.Descer();
+    const Nota::Conta::Marca depoisDeUm = d.Marcar();
+    d.Descer();
+    CHECK(d.Desfazer(depoisDeUm));
+    CHECK(d.Valor() == doctest::Approx(depoisDeUm.nota));
+    CHECK(d.AcertosSofridos() == 1);
+    CHECK_FALSE(d.FecharFase());
+
+    // Nao caiu: COMMIT, e nada muda - nem os acertos que a nota ja recuperou.
+    Nota::Conta e(60.0f);
+    const Nota::Conta::Marca antes = e.Marcar();
+    e.Descer();
+    for (int i = 0; i < 400; ++i) e.Subir(Nota::kGanhoPorAcerto);
+    const float subiu = e.Valor();
+    REQUIRE(subiu > 60.0f);
+    CHECK_FALSE(e.Desfazer(antes));
+    CHECK(e.Valor() == doctest::Approx(subiu));
+    CHECK(e.AcertosSofridos() == 1);
+}

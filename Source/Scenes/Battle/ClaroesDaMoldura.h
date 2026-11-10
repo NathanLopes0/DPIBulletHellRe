@@ -18,7 +18,6 @@ public:
     void AoSerAcertado(Battle& b, const Player& aluno, bool porUmTiro) override;
     void AoPegarPontoExtra(Battle& b, const Player& aluno) override;
     void AoUsarPontoExtra(Battle& b, const Player& aluno) override;
-    void AoAtravessarAParede(Battle& b) override;
 
 private:
     DrawMolduraDoCampoComponent& mMoldura;

@@ -41,7 +41,7 @@ MolduraDoCampo::MolduraDoCampo(Scene& cena, const SDL_FRect& campo, const int la
 }
 
 void MolduraDoCampo::Atualizar(const std::vector<Player*>& jogadores, const std::vector<Boss*>& corpos,
-                               const float rede, Font* fonte) {
+                               Font* fonte) {
     std::vector<std::pair<Vector2, Vector2>> alunos;
     for (const Player* p : jogadores) {
         if (!p) continue;
@@ -72,5 +72,4 @@ void MolduraDoCampo::Atualizar(const std::vector<Player*>& jogadores, const std:
         if (aceso) mRotulos[i]->SetPosition(Vector2(xs[i], mAreaDoAluno.baixo + 13.0f));
     }
     mDesenho->SetProfessores(std::move(xs));
-    mDesenho->SetRede(rede);
 }

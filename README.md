@@ -447,18 +447,38 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   barramento do Ricardo, a transação do Thiago, o ponteiro do Luizinho, a
   gramática do Vladimir, o gradiente do Júlio, o Observer da Maria Lúcia, o
   `fetch` do Lucas, a janela do TCP do Vitor), e cada um traz um **poder**,
-  que carrega a cada acerto no Hugo e sai no **botão 3**: o laço sem fim do
-  André, a capivara do Salles que come os tiros, o `HLT` do Ricardo que
-  congela o Hugo e os tiros dele (a fase e o relógio param junto), o
-  `ROLLBACK` do Thiago que manda os tiros de volta, o `free()` do Luizinho, o
-  autômato do Vladimir que converte os tiros em volta, os agentes do Júlio que
-  fazem os seus tiros e os do orientador caçarem o alvo destrutível do
-  objetivo (ou o Hugo), a bala de prata da Maria Lúcia que quebra o escudo, o
-  `Promise.all()` do Lucas — doze promessas que vão até o Hugo e **voltam**
-  douradas para o orientador, desfazendo os tiros do Hugo que tocam na ida e
-  na volta — e o `socket()` do Vitor, que abre uma rede entre as
-  paredes dos lados: quem sai por uma entra pela outra. Escolher o orientador
-  é escolher o jeito de jogar.
+  que carrega a cada acerto no Hugo e sai no **botão 3**. O poder é um
+  conceito da matéria dele, jogável:
+
+  - **André — `for (i) for (j)`.** Laços aninhados: uma matriz de 5 linhas de
+    8 tiros, centrada em você. Embaixo do Hugo, a matriz inteira acerta.
+  - **Salles — `push()` e `pop()`.** A capivara anda embaixo de você e
+    **empilha** os tiros que come; quando o poder acaba ela **desempilha**
+    tudo no Hugo, o último primeiro. Cheia, é *stack overflow*: começa a
+    devolver na hora.
+  - **Ricardo — `HLT`.** O clock parou: o Hugo e os tiros dele congelam (a
+    fase e o relógio param junto).
+  - **Thiago — `BEGIN`.** Uma transação: a nota de agora fica salva. No fim, se
+    ela caiu, é `ROLLBACK` — a nota volta, e os acertos sofridos deixam de
+    contar; se subiu, `COMMIT`. Seis segundos para arriscar perto do Hugo.
+  - **Luizinho — `try { } catch`.** Dentro do bloco, o acerto que você
+    levaria é uma exceção capturada: não tira nota, e o `finally` responde
+    com um leque no Hugo.
+  - **Vladimir — o autômato rejeita.** Os tiros em volta de você viram seus.
+  - **Júlio — agentes autônomos.** Os seus tiros e os do orientador caçam o
+    alvo destrutível do objetivo (ou o Hugo).
+  - **Maria Lúcia — a bala de prata.** Quebra o escudo do Hugo.
+  - **Lucas — `Promise.all()`.** Doze promessas que vão até o Hugo e
+    **voltam** douradas, desfazendo os tiros que tocam na ida e na volta.
+  - **Vitor — `P(s)`.** O semáforo: uma porta de parede a parede, acima de
+    você. Os tiros do Hugo fazem fila nela e passam um de cada vez; no `V(s)`
+    quem ainda esperava morre de inanição.
+
+  A tela em que se escolhe o orientador mostra o poder de cada um
+  funcionando: um campo em miniatura, animado, com a legenda de cada passo.
+  Na batalha, uma linha em cima do aluno diz o que o poder está fazendo
+  (`push(tiro)  pilha: 7`, `ROLLBACK: a nota voltou a 62.40`). Escolher o
+  orientador é escolher o jeito de jogar.
 
   **O Hugo é blindado** — o TCC ainda não está pronto — e cada etapa tem
   objetivos que abrem uma janela em que ele toma dano. São duas maneiras por

@@ -17,6 +17,7 @@
 #include "../Player/PlayerProjectile.h"
 #include "../Teachers/Boss.h"
 #include "../Teachers/Bosses/BossesProjectiles/BossProjectile.h"
+#include "../Teachers/Bosses/PainelDeCodigo.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../../Components/DrawComponents/DrawSpriteComponent.h"
@@ -55,6 +56,7 @@ Orientador::Orientador(Scene* scene, std::string professor, const std::string& r
     auto anel = std::make_unique<Actor>(scene);
     mLinhas = anel->AddComponent<DrawLinhasComponent>(kOrdemDoAnel);
     scene->AddActor(std::move(anel));
+
 }
 
 // Aqui, e nao no cabecalho: e onde PoderEmCampo esta completo.
@@ -283,6 +285,23 @@ bool Orientador::PoderPronto() const {
     return mPoder.tipo != Poder::Tipo::Nenhum && mCarga >= Poder::kCarga && mTempo >= mPoderAte;
 }
 
+void Orientador::Rotular(const std::string& texto) {
+    // Nasce na primeira vez que o poder fala: a fonte do placar so existe com a batalha montada.
+    if (!mRotulo) {
+        auto rotulo = std::make_unique<EtiquetaDeCodigo>(GetScene(), texto, kLarguraDoRotulo, kAlturaDoRotulo,
+                                                         kOrdemDoAnel);
+        rotulo->Pintar(kPronto, SDL_Color{20, 24, 36, 230}, SDL_Color{255, 240, 190, 255});
+        mRotulo = rotulo.get();
+        GetScene()->AddActor(std::move(rotulo));
+        mRotulado = texto;
+    }
+    if (texto != mRotulado) {
+        mRotulado = texto;
+        mRotulo->Escrever(texto);
+    }
+    mRotuloAte = mTempo + kRotuloFica;
+}
+
 void Orientador::Anunciar(const std::string& texto) {
     if (Battle* batalha = Batalha(); batalha && batalha->Chefe()) {
         Boss* chefe = batalha->Chefe();
@@ -324,6 +343,9 @@ bool Orientador::SoltarPoder() {
     ++mPoderes;
     mPoderAte = mTempo + mPoder.duracao;
     Anunciar(mPoder.nome + "\n" + mPoder.efeito);
+    Rotular(mPoder.nome);
+    SDL_Log("ORIENTADOR: %s soltou o poder (%s) no quadro %d.", mProfessor.c_str(), mPoder.nome.c_str(),
+            GetScene()->GetGame()->Quadro());
 
     if (mEmCampo) mEmCampo->Soltar(*this, *batalha, PosicaoDoAluno(), chefe->GetPosition());
     return true;
@@ -335,6 +357,19 @@ void Orientador::AtualizarPoder(Battle& batalha, const float deltaTime) {
         if (mAnelDoPoder > mPoder.raio) mAnelDoPoder = -1.0f;
     }
     if (mEmCampo) mEmCampo->Atualizar(*this, batalha, deltaTime, mTempo < mPoderAte);
+
+    if (mRotulo) {
+        const bool aceso = mTempo < mRotuloAte;
+        mRotulo->Mostrar(aceso);
+        if (aceso) {
+            // Em cima do aluno, sem sair do campo.
+            const SDL_FRect campo = batalha.GetPlayfieldBounds();
+            const Vector2 aluno = PosicaoDoAluno();
+            const float meia = static_cast<float>(kLarguraDoRotulo) / 2.0f + 6.0f;
+            mRotulo->SetPosition(Vector2(std::clamp(aluno.x, campo.x + meia, campo.x + campo.w - meia),
+                                         std::max(campo.y + 60.0f, aluno.y - kRotuloAcima)));
+        }
+    }
 }
 
 void Orientador::DesenharAnel() {
@@ -354,7 +389,10 @@ void Orientador::DesenharAnel() {
         mLinhas->Acrescentar(c + Vector2(Math::Cos(a0), Math::Sin(a0)) * kRaioDoAnel,
                              c + Vector2(Math::Cos(a1), Math::Sin(a1)) * kRaioDoAnel, cor);
     }
-    // A onda do free() e do automato, abrindo do aluno.
+    // O desenho do poder em curso.
+    for (const TracoDoPoder& t : mTracos) mLinhas->Acrescentar(t.de, t.ate, t.cor);
+    mTracos.clear();
+    // A onda do automato, abrindo do aluno.
     if (mAnelDoPoder > 0.0f) {
         const Vector2 aluno = PosicaoDoAluno();
         for (int k = 0; k < kSegmentos; ++k) {

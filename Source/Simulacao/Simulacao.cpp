@@ -119,6 +119,7 @@ namespace Simulacao {
 
             if (a == "--batalha") { valor(c.batalha); }
             else if (a == "--orientador") { valor(c.orientador); }
+            else if (a == "--candidatos") { valor(c.candidatos); }
             else if (a == "--estado") { valor(c.estado); }
             else if (a == "--fotos-em") { valor(c.pastaDasFotos); }
             else if (a == "--dificil") { c.dificil = true; }

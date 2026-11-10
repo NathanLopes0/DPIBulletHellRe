@@ -37,6 +37,8 @@ namespace Simulacao {
         std::string batalha;          ///< --batalha: o indice em materias.json ou o codigo ("INF213")
         int jogadores = 1;            ///< --jogadores 1|2
         std::string orientador;       ///< --orientador: o codigo da materia do orientador do TCC
+        std::string candidatos;       ///< --candidatos "INF110,INF213": abre a tela que escolhe o orientador,
+                                      ///< como se o aluno tivesse passado nessas materias (para fotografa-la)
         bool dificil = false;         ///< --dificil; sem ele, Normal
         std::string estado;           ///< --estado: a fase em que o chefe comeca ("StateTwo")
 

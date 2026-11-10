@@ -43,6 +43,19 @@ namespace Nota {
         /// devolve true. A primeira chamada e a entrada na primeira fase: nao fecha nada.
         bool FecharFase();
 
+        /// O ponto de volta de uma transacao (o poder do Thiago, Poder.h): a nota e os acertos de
+        /// agora.
+        struct Marca {
+            float nota = 0.0f;
+            int acertosSofridos = 0;
+        };
+        [[nodiscard]] Marca Marcar() const { return {mNota, mAcertosSofridos}; }
+
+        /// O fim da transacao. Se a nota caiu desde a marca, e ROLLBACK: ela volta, e os acertos
+        /// sofridos desde entao deixam de contar - o teto e a fase limpa voltam junto. Se nao caiu, e
+        /// COMMIT: fica tudo como esta. Devolve se desfez.
+        bool Desfazer(const Marca& marca);
+
         /// A nota em 'nota', sem conta nenhuma. So a simulacao faz isto (--fim-nota).
         void Definir(const float nota) { mNota = nota; }
 

@@ -21,6 +21,8 @@
 #include "../Actors/Actor.h"
 #include "../Actors/Teachers/BossFactory/IBossFactory.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
+#include "../Components/DrawComponents/DrawLinhasComponent.h"
+#include "../Regras/Golpe.h"
 #include "../Components/DrawComponents/DrawSpriteComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
 
@@ -93,18 +95,18 @@ void EscolhaDoOrientador::Escrever(Actor* ator, const std::string& texto, const 
 void EscolhaDoOrientador::CriarCabecalho() {
 
     const float meio = static_cast<float>(mGame->GetWindowWidth()) / 2.0f;
-    Texto("ESCOLHA O ORIENTADOR", Vector2(meio, 58.0f), 34, 700, Color::White);
+    Texto("ESCOLHA O ORIENTADOR", Vector2(meio, 34.0f), 30, 700, Color::White);
 
     // Quem cobra e o professor da materia, e nao um nome escrito aqui.
     const Materias::Materia* m = Materias::Carregadas().Por(mGame->GetSelectedStage());
     const std::string banca = (m && !m->professor.empty())
         ? ("O Prof. " + m->professor + " cobra monografias e perguntas de banca.")
         : std::string("A banca cobra monografias e perguntas.");
-    Texto(banca, Vector2(meio, 104.0f), 22, 1000, Color::LightBlue);
+    Texto(banca, Vector2(meio, 68.0f), 20, 1000, Color::LightBlue);
 
-    Texto(EmDupla() ? "Cada um vota. Se discordarem, fica o professor da maior nota."
-                    : "Quem luta ao seu lado? Um professor das suas maiores notas.",
-          Vector2(meio, 136.0f), 20, 1000, Color::LightYellow);
+    Texto(EmDupla() ? "Cada um vota no poder que quer do lado: se discordarem, fica o da maior nota."
+                    : "Quem luta ao seu lado? Cada professor traz um poder da matéria dele: é o botão 3.",
+          Vector2(meio, 93.0f), 18, 1000, Color::LightYellow);
 }
 
 void EscolhaDoOrientador::CriarCartao(const int indice) {
@@ -120,10 +122,13 @@ void EscolhaDoOrientador::CriarCartao(const int indice) {
         kMolduraDoCartao, kFundoDoCartao, 2, kOrdemDoCartao);
     AddActor(std::move(cartao));
 
+    // O que o cartao mostra e medido do topo dele.
+    const Vector2 topo = centro + Vector2(0.0f, -kCartaoAltura / 2.0f);
+
     DrawSpriteComponent* retrato = nullptr;
     if (IBossFactory* fabrica = mGame->GetFactory(static_cast<size_t>(c.materia))) {
         auto rosto = std::make_unique<Actor>(this);
-        rosto->SetPosition(centro + Vector2(0.0f, -96.0f));
+        rosto->SetPosition(topo + Vector2(0.0f, kRetratoEm));
         rosto->SetScale(kEscalaDoRetrato);
         retrato = rosto->AddComponent<DrawSpriteComponent>(
             Caminhos::Asset(fabrica->Retrato() + ".png"), kOrdemDoRetrato);
@@ -132,18 +137,110 @@ void EscolhaDoOrientador::CriarCartao(const int indice) {
     mRetratos.push_back(retrato);
 
     const int largura = static_cast<int>(kCartaoLargura) - 30;
-    Texto("Prof. " + c.professor, centro + Vector2(0.0f, 20.0f), 26, largura, Color::White);
-    Texto(m ? m->nome : std::string(), centro + Vector2(0.0f, 56.0f), 22, largura, Color::LightYellow);
-    Texto(m ? m->nomeCompleto : std::string(), centro + Vector2(0.0f, 98.0f), 18, largura,
+    Texto("Prof. " + c.professor, topo + Vector2(0.0f, kProfessorEm), 24, largura, Color::White);
+    Texto(m ? m->nome : std::string(), topo + Vector2(0.0f, kMateriaEm), 20, largura, Color::LightYellow);
+    Texto(m ? m->nomeCompleto : std::string(), topo + Vector2(0.0f, kNomeDaMateriaEm), 16, largura,
           Color::LightBlue, 2);
 
     std::stringstream nota;
     nota << "Nota " << std::fixed << std::setprecision(2) << c.nota;
+    if (EmDupla()) nota << "  (de J" << c.deQuem + 1 << ")";
     const Vector3 corDaNota = Nota::ECheia(c.nota) ? Color::Gold : Color::LightGreen;
-    Texto(nota.str(), centro + Vector2(0.0f, 146.0f), 22, largura, corDaNota);
-    if (EmDupla()) {
-        Texto("de J" + std::to_string(c.deQuem + 1), centro + Vector2(0.0f, 176.0f), 16, largura,
-              ParaVector3(CorDoAluno(c.deQuem)));
+    Texto(nota.str(), topo + Vector2(0.0f, kNotaEm), 20, largura, corDaNota);
+
+    CriarPrevia(indice, topo);
+}
+
+void EscolhaDoOrientador::CriarPrevia(const int indice, const Vector2& topo) {
+
+    const Orientacao::Candidato& c = mCandidatos[static_cast<size_t>(indice)];
+    const Poder::Descricao poder = Poder::Da(Golpe::DoProfessor(c.professor));
+    const int largura = static_cast<int>(kCartaoLargura) - 30;
+
+    PreviaDoCartao previa;
+    previa.tipo = poder.tipo;
+    if (poder.tipo == Poder::Tipo::Nenhum) {
+        mPrevias.push_back(previa);
+        return;
+    }
+
+    Texto("PODER: " + poder.nome, topo + Vector2(0.0f, kPoderEm), 22, largura, Color::Gold);
+
+    // O campo em miniatura, e o desenho animado dentro dele.
+    const Vector2 meio = topo + Vector2(0.0f, kPreviaEm);
+    auto campo = std::make_unique<Actor>(this);
+    campo->SetPosition(meio);
+    campo->AddComponent<DrawCaixaComponent>(static_cast<int>(kPreviaLargura) + 8, static_cast<int>(kPreviaAltura) + 8,
+                                            kMolduraDaPrevia, kFundoDaPrevia, 1, kOrdemDoRetrato);
+    previa.linhas = campo->AddComponent<DrawLinhasComponent>(kOrdemDoRetrato + 1);
+    previa.canto = meio - Vector2(kPreviaLargura / 2.0f, kPreviaAltura / 2.0f);
+    AddActor(std::move(campo));
+
+    previa.legenda = Texto(" ", topo + Vector2(0.0f, kLegendaEm), 16, largura, Color::White);
+    Texto(poder.efeito, topo + Vector2(0.0f, kEfeitoEm), 15, largura, Color::LightBlue, 2);
+    mPrevias.push_back(previa);
+}
+
+SDL_Color EscolhaDoOrientador::CorDaMarca(const Poder::Marca marca) {
+    switch (marca) {
+        case Poder::Marca::TiroDoHugo: return SDL_Color{240, 96, 96, 255};
+        case Poder::Marca::TiroSeu:    return SDL_Color{110, 230, 200, 255};
+        case Poder::Marca::Aluno:      return SDL_Color{255, 255, 255, 255};
+        case Poder::Marca::Hugo:       return SDL_Color{178, 150, 250, 255};
+        case Poder::Marca::Figura:     return SDL_Color{255, 214, 72, 255};
+        case Poder::Marca::Estrutura:  return SDL_Color{255, 190, 100, 235};
+        case Poder::Marca::Apagado:    return SDL_Color{120, 128, 150, 255};
+    }
+    return SDL_Color{255, 255, 255, 255};
+}
+
+void EscolhaDoOrientador::DesenharPrevias() {
+
+    for (PreviaDoCartao& previa : mPrevias) {
+        if (!previa.linhas) continue;
+        const Poder::Quadro quadro = Poder::Previa(previa.tipo, mTempoDaPrevia);
+        auto noCampo = [&previa](const float x, const float y) {
+            return previa.canto + Vector2(x * kPreviaLargura, y * kPreviaAltura);
+        };
+
+        previa.linhas->Limpar();
+        for (const Poder::Traco& t : quadro.tracos) {
+            previa.linhas->Acrescentar(noCampo(t.x0, t.y0), noCampo(t.x1, t.y1), CorDaMarca(t.cor));
+        }
+        for (const Poder::Ponto& p : quadro.pontos) {
+            const Vector2 c = noCampo(p.x, p.y);
+            const SDL_Color cor = CorDaMarca(p.marca);
+            auto poligono = [&](const std::vector<Vector2>& cantos) {
+                for (size_t i = 0; i < cantos.size(); ++i) {
+                    previa.linhas->Acrescentar(c + cantos[i], c + cantos[(i + 1) % cantos.size()], cor);
+                }
+            };
+            switch (p.marca) {
+                case Poder::Marca::Aluno:      // um triangulo, de ponta para cima
+                    poligono({Vector2(0.0f, -7.0f), Vector2(6.0f, 5.0f), Vector2(-6.0f, 5.0f)});
+                    break;
+                case Poder::Marca::Hugo:       // o cartao do professor
+                    poligono({Vector2(-9.0f, -7.0f), Vector2(9.0f, -7.0f), Vector2(9.0f, 7.0f), Vector2(-9.0f, 7.0f)});
+                    poligono({Vector2(-5.0f, -3.0f), Vector2(5.0f, -3.0f), Vector2(5.0f, 3.0f), Vector2(-5.0f, 3.0f)});
+                    break;
+                case Poder::Marca::Figura:
+                    poligono({Vector2(-4.0f, -4.0f), Vector2(4.0f, -4.0f), Vector2(4.0f, 4.0f), Vector2(-4.0f, 4.0f)});
+                    break;
+                case Poder::Marca::TiroSeu:    // sobe: um traco em pe
+                    poligono({Vector2(0.0f, -4.0f), Vector2(2.0f, 0.0f), Vector2(0.0f, 4.0f), Vector2(-2.0f, 0.0f)});
+                    break;
+                default:                       // o tiro do Hugo, e o que esta pendente
+                    poligono({Vector2(0.0f, -3.0f), Vector2(3.0f, 0.0f), Vector2(0.0f, 3.0f), Vector2(-3.0f, 0.0f)});
+                    poligono({Vector2(0.0f, -1.0f), Vector2(1.0f, 0.0f), Vector2(0.0f, 1.0f), Vector2(-1.0f, 0.0f)});
+                    break;
+            }
+        }
+
+        // A legenda so e reescrita quando o passo muda.
+        if (quadro.legenda != previa.escrita) {
+            previa.escrita = quadro.legenda;
+            Escrever(previa.legenda, quadro.legenda, Color::White);
+        }
     }
 }
 
@@ -163,8 +260,8 @@ void EscolhaDoOrientador::CriarCursores() {
         mSelos[static_cast<size_t>(a)] = Texto(selo, Vector2(0.0f, 0.0f), 20, 160, ParaVector3(CorDoAluno(a)));
     }
 
-    mEstado = Texto(" ", Vector2(static_cast<float>(mGame->GetWindowWidth()) / 2.0f, 688.0f),
-                    26, 1000, Color::White);
+    mEstado = Texto(" ", Vector2(static_cast<float>(mGame->GetWindowWidth()) / 2.0f, 704.0f),
+                    24, 1000, Color::White);
 }
 
 void EscolhaDoOrientador::CriarRodape() {
@@ -233,6 +330,9 @@ void EscolhaDoOrientador::OnProcessInput(const Uint8* keyState) {
 void EscolhaDoOrientador::OnUpdate(const float deltaTime) {
 
     if (mSaindo) return;
+
+    mTempoDaPrevia += deltaTime;
+    DesenharPrevias();
 
     const int escolhido = Orientacao::Resultado(mCandidatos, mVotacao.Votos());
     if (escolhido != mEscolhido) {
@@ -303,7 +403,7 @@ void EscolhaDoOrientador::Atualizar() {
 
         // Em dupla os selos ficam lado a lado, para os dois caberem no mesmo cartao.
         const float lado = EmDupla() ? (a == 0 ? -72.0f : 72.0f) : 0.0f;
-        selo->SetPosition(centro + Vector2(lado, -kCartaoAltura / 2.0f - 44.0f));
+        selo->SetPosition(centro + Vector2(lado, -kCartaoAltura / 2.0f - kSeloAcima));
         if (auto* dc = selo->GetComponent<DrawTextComponent>()) dc->SetIsVisible(temCartao && votou);
     }
 

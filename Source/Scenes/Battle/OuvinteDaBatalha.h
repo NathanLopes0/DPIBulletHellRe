@@ -76,9 +76,6 @@ public:
     /// condicao do experimento nao mostre o toque.
     virtual void AoTocarAqui(Battle&) {}
 
-    /// O aluno atravessou a parede pela rede do socket() (Battle::AbrirRede).
-    virtual void AoAtravessarAParede(Battle&) {}
-
     /// A luta acabou de se decidir, aprovada ou nao - antes da ultima fase pagar o bonus e de qualquer
     /// coisa ser gravada.
     virtual void AoDecidir(Battle&, bool aprovado) {}

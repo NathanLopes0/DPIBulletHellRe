@@ -23,7 +23,3 @@ void ClaroesDaMoldura::AoPegarPontoExtra(Battle&, const Player&) {
 void ClaroesDaMoldura::AoUsarPontoExtra(Battle&, const Player&) {
     mMoldura.Acender(SDL_Color{255, 215, 80, 255}, 0.7f);
 }
-
-void ClaroesDaMoldura::AoAtravessarAParede(Battle&) {
-    mMoldura.Acender(SDL_Color{110, 210, 255, 255}, 0.25f);
-}

@@ -6,7 +6,6 @@
 
 #include "Player.h"
 #include "../../Entrada/Painel.h"
-#include "../../Regras/Poder.h"
 
 #include "PlayerProjectile.h"
 #include "../../Scenes/Battle/Battle.h"
@@ -297,17 +296,7 @@ void Player::PrenderNoCampo() {
 
     const float esquerda = bounds.x + static_cast<float>(pWidth);
     const float direita = bounds.x + bounds.w - static_cast<float>(pWidth);
-    float x = GetPosition().x;
-
-    // A rede do Vitor (o socket(), como orientador).
-    if (auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->RedeAberta() &&
-        (x < esquerda || x > direita)) {
-        const Vector2 de(x < esquerda ? esquerda : direita, GetPosition().y);
-        x = Poder::Atravessar(x, esquerda, direita);
-        batalha->Atravessou(de, Vector2(x, GetPosition().y));
-    }
-
-    SetPosition(Vector2(Math::Clamp(x, esquerda, direita),
+    SetPosition(Vector2(Math::Clamp(GetPosition().x, esquerda, direita),
             Math::Clamp(GetPosition().y, bounds.y + pHeight, bounds.y + bounds.h - pHeight)));
 }
 

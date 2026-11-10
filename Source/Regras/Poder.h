@@ -5,15 +5,19 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "Golpe.h"
 #include "../Motor/Math.h"
 
-/// Escolher o orientador e escolher um poder.
+/// Escolher o orientador e escolher um poder - e cada poder e um conceito da materia dele, jogavel:
+/// os lacos aninhados do Andre, a pilha do Salles, o HLT do Ricardo, a transacao do Thiago, o
+/// try/catch do Luizinho, o automato do Vladimir, os agentes do Julio, a bala de prata da Maria
+/// Lucia, o Promise.all() do Lucas e o semaforo do Vitor.
 namespace Poder {
 
     enum class Tipo {
-        Nenhum, Rajada, Capivara, Congelar, Rollback, Liberar, Converter, Agentes, BalaDePrata, PromiseAll, Rede
+        Nenhum, Matriz, Pilha, Congelar, Transacao, TryCatch, Converter, Agentes, BalaDePrata, PromiseAll, Mutex
     };
 
     struct Descricao {
@@ -42,9 +46,53 @@ namespace Poder {
     /// um anel de 'raio' que gira.
     Vector2 Agente(const Vector2& centro, int k, int n, float t, float raio);
 
-    /// A rede do Vitor: com as paredes abertas, quem passa de 'esquerda' sai em 'direita' (e
-    /// vice-versa), com a sobra do passo.
-    float Atravessar(float x, float esquerda, float direita);
+    // ---- Andre: os lacos aninhados ----
+
+    /// for (i) for (j): uma matriz de tiros, linha por linha, cada linha da esquerda para a direita.
+    constexpr int kLinhasDaMatriz = 5;
+    constexpr int kColunasDaMatriz = 8;
+    constexpr float kEntreLinhas = 0.09f;       ///< segundos entre duas voltas do laco de fora
+    constexpr float kEntreCelulas = 0.006f;     ///< entre duas voltas do de dentro
+    constexpr float kEntreColunas = 24.0f;      ///< px entre dois tiros da mesma linha
+    /// Mais lenta que o tiro de sempre: a matriz sobe em bloco, e da para ve-la.
+    constexpr float kVelocidadeDaMatriz = 430.0f;
+
+    /// O tiro 'k' da matriz (0 e o primeiro): a linha i, a coluna j, quando sai (segundos desde o
+    /// poder) e onde, em px a partir do aluno - a matriz e centrada nele.
+    struct Celula {
+        int i = 0;
+        int j = 0;
+        float quando = 0.0f;
+        float dx = 0.0f;
+    };
+    Celula CelulaDaMatriz(int k);
+
+    // ---- Salles: a pilha ----
+
+    /// A capivara empilha o que come (push) e, no fim, devolve tudo no Hugo (pop) - o ultimo que
+    /// entrou sai primeiro. Cheia, e stack overflow: ela comeca a devolver na hora, e continua
+    /// comendo enquanto o poder dura.
+    constexpr int kMaiorPilha = 14;
+    constexpr float kEntrePops = 0.07f;
+
+    // ---- Luizinho: try / catch ----
+
+    /// O acerto capturado nao tira nota, e o finally responde com um leque no Hugo.
+    constexpr float kAberturaDoFinally = 28.0f;   ///< graus
+
+    /// O desvio, em graus, do tiro 'k' de um leque de 'n' com 'abertura': o do meio vai no alvo.
+    float DesvioNoLeque(int k, int n, float abertura);
+
+    // ---- Vitor: o semaforo ----
+
+    /// P(s): uma porta acima do aluno, de parede a parede. O tiro do Hugo que chega nela descendo
+    /// para e espera; passa um de cada vez. No V(s) quem ainda esperava morre de inanicao.
+    constexpr float kPortaAcimaDoAluno = 170.0f;
+    constexpr float kEntrePassagens = 0.55f;
+    constexpr float kFolgaDaPorta = 16.0f;
+
+    /// O tiro em 'y', andando 'vy' (para baixo e positivo), esta chegando na porta em 'porta'?
+    bool NaPorta(float y, float vy, float porta);
 
     /// Os agentes do Julio: a velocidade 'velocidade' de um tiro em 'de' virada no maximo 'giro'
     /// radianos por segundo, durante 'dt', na direcao de 'alvo'.
@@ -65,4 +113,30 @@ namespace Poder {
 
     /// O quadro da materia 'm' em kFolhaDasMaterias; -1 sem materia (o tiro de sempre).
     int QuadroDaMateria(Golpe::Materia m);
+
+    // ---- A previa ----
+
+    /// O poder em miniatura, para a tela em que se escolhe o orientador: um campo de 1 x 1 (o Hugo
+    /// em cima, o aluno embaixo) desenhado em pontos e tracos, mais a legenda do passo - um
+    /// desenho animado do que o botao 3 vai fazer. Volta ao comeco a cada kCicloDaPrevia.
+    enum class Marca { TiroDoHugo, TiroSeu, Aluno, Hugo, Figura, Estrutura, Apagado };
+    struct Ponto {
+        Marca marca = Marca::TiroDoHugo;
+        float x = 0.0f;
+        float y = 0.0f;
+    };
+    struct Traco {
+        Marca cor = Marca::Estrutura;
+        float x0 = 0.0f;
+        float y0 = 0.0f;
+        float x1 = 0.0f;
+        float y1 = 0.0f;
+    };
+    struct Quadro {
+        std::vector<Ponto> pontos;
+        std::vector<Traco> tracos;
+        std::string legenda;
+    };
+    constexpr float kCicloDaPrevia = 4.5f;
+    Quadro Previa(Tipo t, float tempo);
 }

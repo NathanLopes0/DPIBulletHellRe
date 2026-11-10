@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <array>
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -71,6 +72,21 @@ public:
     /// Paga uma conquista da dupla: um ganho bruto, inteiro (nao passa por Nota::PorJogador - ver
     /// Nota::Conta::Subir).
     void Conquistar(const float bruto) { if (EmCombate()) mConta.Subir(bruto); }
+
+    /// A transacao do Thiago (Poder.h): o ponto de volta da nota, e o fim - ROLLBACK se ela caiu
+    /// (devolve true), COMMIT se nao.
+    [[nodiscard]] Nota::Conta::Marca MarcarNota() const { return mConta.Marcar(); }
+    bool DesfazerNota(const Nota::Conta::Marca& marca) { return mConta.Desfazer(marca); }
+
+    /// O que tem de se resolver antes de a nota decidir a luta (a transacao aberta): 'fechar' e
+    /// chamado uma vez, no fim da fase que decide - ou nunca, se quem deixou a pendencia a tirar
+    /// antes (com nulo).
+    void DeixarPendencia(std::function<void()> fechar) { mPendencia = std::move(fechar); }
+    void FecharPendencias();
+
+    /// O try/catch do Luizinho (Poder.h): por 'segundos', o acerto que um aluno levaria nao tira
+    /// nota - vira uma excecao capturada, e 'aoCapturar' fica sabendo de quem.
+    void CapturarAcertos(float segundos, std::function<void(Player&)> aoCapturar);
 
     /// Se a luta esta valendo: nem carregando os projeteis, nem na tela de fim.
     /// Quem age por conta propria (o orientador) so age enquanto isto vale.
@@ -232,16 +248,11 @@ private:
     /// O quadro com o anuncio da fase (PlacarDaFase.h).
     std::unique_ptr<PlacarDaFase> mPlacar;
 
-public:
-    /// O socket do Vitor (o poder dele, como orientador): por 'segundos', as paredes dos lados
-    /// viram rede.
-    void AbrirRede(float segundos) { mRede = std::max(mRede, segundos); }
-    [[nodiscard]] bool RedeAberta() const { return mRede > 0.0f; }
-    /// O aluno passou pela rede: o clarao dos dois lados.
-    void Atravessou(const Vector2& de, const Vector2& para);
+    std::function<void()> mPendencia;
 
-private:
-    float mRede = 0.0f;
+    /// O try do Luizinho: quanto falta dele, e quem fica sabendo de cada captura.
+    float mCapturando = 0.0f;
+    std::function<void(Player&)> mAoCapturar;
 
     /// O aluno para as contas da cobertura: onde ele esta, o colisor e se algo o atinge.
     [[nodiscard]] Cobertura::Aluno AlunoDaCobertura(const Player* aluno) const;
