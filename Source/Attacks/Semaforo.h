@@ -58,13 +58,22 @@ namespace Semaforo {
         std::vector<int> dentro;
         std::vector<float> entrouEm;
         std::vector<int> passaram;
+        std::vector<float> fica;     ///< quanto cada thread fica na secao critica
+        int saldo = 1;               ///< na corrida: o que as escritas intercaladas deixam
         std::uint32_t sorteio = 0;
         float agora = 0.0f;          ///< o 'u' do ultimo Avancar
     };
 
     /// Comeca a rodada: a ordem de chegada na porta e sorteada, com a thread do aluno (doAluno)
-    /// entre as tres primeiras.
-    Escalonador Comecar(const Rodada& r, int threads, int doAluno, std::uint32_t sorteio);
+    /// entre as tres primeiras. Com 'desvioDaSecao', cada thread fica na secao critica um tempo
+    /// seu, de (1 - desvio) a (1 + desvio) de NaSecao, e a soma e a de sempre: o escalonador nao e
+    /// deterministico, mas o trabalho e o mesmo - e a rodada fecha a tempo.
+    Escalonador Comecar(const Rodada& r, int threads, int doAluno, std::uint32_t sorteio,
+                        float desvioDaSecao = 0.0f);
+    constexpr float kDesvioDaSecao = 0.3f;
+
+    /// Quanto a thread t fica na secao critica nesta rodada.
+    float Fica(const Escalonador& e, int t);
 
     /// O que aconteceu na porta.
     struct Evento {
@@ -102,6 +111,18 @@ namespace Semaforo {
     constexpr float kEntreInstrucoes = 0.3f;
     constexpr float kComecaAMandar = 0.1f;
     constexpr int kInstrucoesPorThread = 8;
+
+    /// O ritmo de uma thread numa rodada: quando ela manda a primeira instrucao, e o passo dela. As
+    /// threads nao andam juntas - quem decide quem roda e o escalonador.
+    struct Ritmo {
+        float comeca = kComecaAMandar;
+        float entre = kEntreInstrucoes;
+    };
+
+    /// Um ritmo para cada thread: a primeira instrucao ate um passo depois de kComecaAMandar, e o
+    /// passo de (1 - kDesvioDoRitmo) a (1 + kDesvioDoRitmo) do 'entre' do degrau.
+    std::vector<Ritmo> SortearRitmos(Variacao::Sorteio& s, int threads, float entre = kEntreInstrucoes);
+    constexpr float kDesvioDoRitmo = 0.25f;
 
     /// A pilha do P(s): ate kMaiorPilha instrucoes paradas, uma em cima da outra, a partir da borda
     /// da faixa. Cheia, a thread para de mandar.
@@ -175,7 +196,9 @@ namespace Semaforo {
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 
-    /// O saldo da corrida: cada thread le o saldo, soma um e escreve.
-    int SaldoDaCorrida(int threads);
+    /// O saldo da corrida: cada thread le o saldo, soma um e escreve, e o escalonador intercala as
+    /// leituras e as escritas como o 'sorteio' mandar. Nunca da o esperado: sem nenhuma escrita
+    /// perdida a corrida nao teria acontecido. Uma luta da 2, outra 3.
+    int SaldoDaCorrida(int threads, std::uint32_t sorteio);
     constexpr float kSaldoAparece = 1.0f;
 }

@@ -136,10 +136,10 @@ TEST_CASE("Mensagens: os dois processos no alto, o cliente a esquerda, e o arco 
 
 namespace {
     /// Confere num roteiro as regras de todas as rodadas.
-    void ConferirRodada(const Rodada r, const Plano& p, const Degrau& d) {
+    void ConferirRoteiro(const Rodada r, const std::vector<Evento>& roteiro, const Plano& p, const Degrau& d) {
         CAPTURE(static_cast<int>(r));
-        const auto roteiro = Roteiro(r, p, d);
         REQUIRE_FALSE(roteiro.empty());
+        for (size_t i = 1; i < roteiro.size(); ++i) CHECK(roteiro[i - 1].quando <= roteiro[i].quando);
         float estoura = -1.0f;
         int maior = 0, resultados = 0;
         for (const Evento& e : roteiro) {
@@ -179,11 +179,44 @@ namespace {
             }
             CHECK(envios == d.sincronos);
             CHECK(encontros == d.sincronos);
+            // O cliente bloqueado so manda de novo depois do rendezvous.
+            float ultimoEncontro = -1.0f;
+            for (const Evento& e : roteiro) {
+                if (e.o == Acontece::Envia) CHECK(e.quando > ultimoEncontro);
+                if (e.o == Acontece::Encontro) ultimoEncontro = e.quando;
+            }
+        }
+        if (r == Rodada::Rpc) {
+            // O servidor responde depois de o pedido chegar, e o resultado e a resposta chegando.
+            float chegouOPedido = -1.0f;
+            float chegaAResposta = -1.0f;
+            float ultimoResultado = -1.0f;
+            for (const Evento& e : roteiro) {
+                if (e.o == Acontece::Envia) {
+                    CHECK(e.quando > ultimoResultado);
+                    chegouOPedido = e.quando + e.voo;
+                }
+                if (e.o == Acontece::Responde) {
+                    CHECK(e.quando >= chegouOPedido - 0.001f);
+                    chegaAResposta = e.quando + e.voo;
+                }
+                if (e.o == Acontece::Resultado) {
+                    CHECK(e.quando == doctest::Approx(chegaAResposta));
+                    ultimoResultado = e.quando;
+                }
+            }
         }
         if (r == Rodada::Impasse) {
             REQUIRE(estoura > 0.0f);
             for (const Evento& e : roteiro) if (e.o == Acontece::Recebe) CHECK(e.quando > estoura);
+            for (const Evento& e : roteiro) {
+                if (e.o == Acontece::Envia && e.paraNaPorta) CHECK(e.quando + e.voo * kNaPorta < estoura);
+            }
         }
+    }
+
+    void ConferirRodada(const Rodada r, const Plano& p, const Degrau& d) {
+        ConferirRoteiro(r, Roteiro(r, p, d), p, d);
     }
 }
 
@@ -252,6 +285,46 @@ TEST_CASE("Mensagens: em toda luta a assincrona abre, as contas sao outras, e as
     p.chamadas = {Chamada{4, 5}, Chamada{1, 6}};
     CHECK(Placar(Rodada::Rpc, 0, 0, true, false, p) == "r = soma(4, 5) \xc2\xb7 rpc no servidor");
     CHECK(Placar(Rodada::Rpc, 0, 1, false, false, p) == "return 7");
+}
+
+TEST_CASE("Mensagens: com a latencia sorteada as regras valem, e os envelopes chegam fora de ordem") {
+    bool foraDeOrdem = false;
+    bool encolheu = false;
+    std::set<int> encontros;
+    std::set<int> respostas;
+    for (std::uint32_t semente = 0; semente < 200; ++semente) {
+        CAPTURE(semente);
+        Variacao::Sorteio sorteioDoPlano(semente);
+        const Plano p = Sortear(sorteioDoPlano);
+        for (const Dificuldade::Nivel n : Dificuldade::kNiveis) {
+            const Degrau d = DegrauDo(n);
+            Variacao::Sorteio s(semente * 7u + 1u);
+            for (const Rodada r : p.rodadas) {
+                const auto roteiro = Roteiro(r, p, d, &s);
+                ConferirRoteiro(r, roteiro, p, d);
+                float ultimaChegada = -1.0f;
+                for (const Evento& e : roteiro) {
+                    if (r == Rodada::Assincrona && e.o == Acontece::Envia) {
+                        foraDeOrdem = foraDeOrdem || e.quando + e.voo < ultimaChegada;
+                        ultimaChegada = std::max(ultimaChegada, e.quando + e.voo);
+                    }
+                    if (e.o == Acontece::Encontro) encontros.insert(static_cast<int>(e.quando * 1000.0f));
+                    if (e.o == Acontece::Responde) respostas.insert(static_cast<int>(e.quando * 1000.0f));
+                }
+                const auto sempre = Roteiro(r, p, d);
+                if (r == Rodada::Assincrona && roteiro.front().quando < sempre.front().quando - 0.001f) encolheu = true;
+            }
+        }
+    }
+    CHECK(foraDeOrdem);              // a assincrona entrega fora de ordem
+    CHECK(encontros.size() > 50u);   // o rendezvous nao tem hora marcada
+    CHECK(respostas.size() > 50u);   // nem o servidor da rpc
+    CHECK_FALSE(encolheu);           // a assincrona cabe sem encolher: os envios saem na hora
+    // Sem sorteio, o roteiro e o de sempre.
+    const auto a = Roteiro(Rodada::Rpc);
+    const auto b = Roteiro(Rodada::Rpc, PlanoDeSempre(), Degrau{}, nullptr);
+    REQUIRE(a.size() == b.size());
+    for (size_t i = 0; i < a.size(); ++i) CHECK(a[i].quando == doctest::Approx(b[i].quando));
 }
 
 TEST_CASE("Mensagens: o degrau - o Dificil enche mais a caixa e atira mais") {

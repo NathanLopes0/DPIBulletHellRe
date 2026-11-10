@@ -76,7 +76,8 @@ namespace Semaforo {
         return "T" + std::to_string(i + 1);
     }
 
-    Escalonador Comecar(const Rodada& r, const int threads, const int doAluno, std::uint32_t sorteio) {
+    Escalonador Comecar(const Rodada& r, const int threads, const int doAluno, std::uint32_t sorteio,
+                        const float desvioDaSecao) {
         Escalonador e;
         e.rodada = r;
         e.sorteio = sorteio;
@@ -91,7 +92,27 @@ namespace Semaforo {
             const int vaga = static_cast<int>(Proximo(e.sorteio) % 3u);
             std::iter_swap(it, e.fila.begin() + vaga);
         }
+
+        // Cada uma fica o seu tempo na secao, e a soma e a de sempre.
+        e.fica.assign(static_cast<size_t>(std::max(0, threads)), NaSecao(r));
+        const float desvio = std::clamp(desvioDaSecao, 0.0f, 0.9f);
+        if (desvio > 0.0f && r.tipo != Tipo::Corrida && threads > 0) {
+            float soma = 0.0f;
+            for (float& f : e.fica) {
+                const float u = static_cast<float>(Proximo(e.sorteio) % 10001u) / 10000.0f;
+                f *= 1.0f - desvio + 2.0f * desvio * u;
+                soma += f;
+            }
+            const float escala = NaSecao(r) * static_cast<float>(threads) / soma;
+            for (float& f : e.fica) f *= escala;
+        }
+        if (r.tipo == Tipo::Corrida) e.saldo = SaldoDaCorrida(threads, Proximo(e.sorteio));
         return e;
+    }
+
+    float Fica(const Escalonador& e, const int t) {
+        if (t >= 0 && t < static_cast<int>(e.fica.size())) return e.fica[static_cast<size_t>(t)];
+        return NaSecao(e.rodada);
     }
 
     std::vector<Evento> Avancar(Escalonador& e, const float u) {
@@ -109,8 +130,6 @@ namespace Semaforo {
             return eventos;
         }
 
-        const float fica = NaSecao(e.rodada);
-
         // A primeira vez: as 'permissoes' primeiras da fila entram em kAbre.
         if (e.dentro.empty() && e.passaram.empty()) {
             while (!e.fila.empty() && static_cast<int>(e.dentro.size()) < e.rodada.permissoes) {
@@ -121,30 +140,34 @@ namespace Semaforo {
             }
         }
 
-        // Quem sai acorda a seguinte, no instante da saida.
-        bool mudou = true;
-        while (mudou) {
-            mudou = false;
-            for (size_t i = 0; i < e.dentro.size(); ++i) {
-                const float sai = e.entrouEm[i] + fica;
-                if (u < sai) continue;
-                const int t = e.dentro[i];
-                e.dentro.erase(e.dentro.begin() + static_cast<long>(i));
-                e.entrouEm.erase(e.entrouEm.begin() + static_cast<long>(i));
-                e.passaram.push_back(t);
-                eventos.push_back({false, t});
-                if (!e.fila.empty()) {
-                    size_t qual = 0;
-                    if (e.rodada.tipo == Tipo::EsperaOcupada) {
-                        qual = Proximo(e.sorteio) % static_cast<std::uint32_t>(e.fila.size());
-                    }
-                    const int seguinte = e.fila[qual];
-                    e.fila.erase(e.fila.begin() + static_cast<long>(qual));
-                    Entrar(e, seguinte, sai);
-                    eventos.push_back({true, seguinte});
+        // Quem sai acorda a seguinte, no instante da saida - a primeira a sair primeiro: cada uma
+        // fica o seu tempo, e duas podem sair no mesmo quadro.
+        while (true) {
+            size_t i = e.dentro.size();
+            float sai = 0.0f;
+            for (size_t j = 0; j < e.dentro.size(); ++j) {
+                const float saiDesta = e.entrouEm[j] + Fica(e, e.dentro[j]);
+                if (u < saiDesta) continue;
+                if (i == e.dentro.size() || saiDesta < sai) {
+                    i = j;
+                    sai = saiDesta;
                 }
-                mudou = true;
-                break;
+            }
+            if (i == e.dentro.size()) break;
+            const int t = e.dentro[i];
+            e.dentro.erase(e.dentro.begin() + static_cast<long>(i));
+            e.entrouEm.erase(e.entrouEm.begin() + static_cast<long>(i));
+            e.passaram.push_back(t);
+            eventos.push_back({false, t});
+            if (!e.fila.empty()) {
+                size_t qual = 0;
+                if (e.rodada.tipo == Tipo::EsperaOcupada) {
+                    qual = Proximo(e.sorteio) % static_cast<std::uint32_t>(e.fila.size());
+                }
+                const int seguinte = e.fila[qual];
+                e.fila.erase(e.fila.begin() + static_cast<long>(qual));
+                Entrar(e, seguinte, sai);
+                eventos.push_back({true, seguinte});
             }
         }
         return eventos;
@@ -230,7 +253,7 @@ namespace Semaforo {
             case Tipo::Corrida: {
                 const int n = static_cast<int>(e.dentro.size() + e.fila.size());
                 if (e.dentro.empty() || e.agora < kAbre + kSaldoAparece) return "saldo++" + std::string(kPonto) + "sem trava";
-                return "saldo = " + std::to_string(SaldoDaCorrida(n)) + kPonto + "esperado " + std::to_string(n);
+                return "saldo = " + std::to_string(e.saldo) + kPonto + "esperado " + std::to_string(n);
             }
         }
         if (alunoBloqueado) texto = "aluno em P(s)" + std::string(kPonto) + texto;
@@ -264,7 +287,43 @@ namespace Semaforo {
         return d;
     }
 
-    int SaldoDaCorrida(const int threads) {
-        return threads > 0 ? 1 : 0;
+    int SaldoDaCorrida(const int threads, std::uint32_t sorteio) {
+        if (threads <= 0) return 0;
+        if (threads == 1) return 1;
+        // As 2n operacoes embaralhadas: a primeira vez que uma thread aparece e a leitura, a segunda,
+        // a escrita do lido mais um.
+        std::vector<int> ops;
+        for (int t = 0; t < threads; ++t) {
+            ops.push_back(t);
+            ops.push_back(t);
+        }
+        for (int i = static_cast<int>(ops.size()) - 1; i > 0; --i) {
+            const int j = static_cast<int>(Proximo(sorteio) % static_cast<std::uint32_t>(i + 1));
+            std::swap(ops[static_cast<size_t>(i)], ops[static_cast<size_t>(j)]);
+        }
+        std::vector<int> lido(static_cast<size_t>(threads), 0);
+        std::vector<bool> leu(static_cast<size_t>(threads), false);
+        int saldo = 0;
+        for (const int t : ops) {
+            const auto i = static_cast<size_t>(t);
+            if (!leu[i]) {
+                leu[i] = true;
+                lido[i] = saldo;
+            } else {
+                saldo = lido[i] + 1;
+            }
+        }
+        return std::min(saldo, threads - 1);
+    }
+
+    std::vector<Ritmo> SortearRitmos(Variacao::Sorteio& s, const int threads, const float entre) {
+        std::vector<Ritmo> ritmos;
+        for (int i = 0; i < threads; ++i) {
+            Ritmo r;
+            r.comeca = kComecaAMandar + s.Real(0.0f, entre);
+            r.entre = entre * s.Real(1.0f - kDesvioDoRitmo, 1.0f + kDesvioDoRitmo);
+            ritmos.push_back(r);
+        }
+        return ritmos;
     }
 }

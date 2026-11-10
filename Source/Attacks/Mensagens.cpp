@@ -14,6 +14,19 @@ namespace Mensagens {
         const char* const kPonto = " \xc2\xb7 ";
 
         int Outro(const int processo) { return processo == kCliente ? kServidor : kCliente; }
+
+        /// O roteiro sorteado que passou do fim encolhe por igual: os instantes e os voos, e cada
+        /// chegada continua antes de quem a espera.
+        void Caber(std::vector<Evento>& e, const float limite) {
+            float fim = 0.0f;
+            for (const Evento& ev : e) fim = std::max({fim, ev.quando, ev.quando + ev.voo});
+            if (fim <= limite || fim <= 0.0f) return;
+            const float k = limite / fim;
+            for (Evento& ev : e) {
+                ev.quando *= k;
+                ev.voo *= k;
+            }
+        }
     }
 
     std::string Nome(const int processo) {
@@ -35,57 +48,99 @@ namespace Mensagens {
 
     int Soma(const Chamada& c) { return c.a + c.b; }
 
-    std::vector<Evento> Roteiro(const Rodada r, const Plano& plano, const Degrau& d) {
+    std::vector<Evento> Roteiro(const Rodada r, const Plano& plano, const Degrau& d, Variacao::Sorteio* s) {
+        // Quanto um envelope leva: sem sorteio, o de sempre.
+        auto latencia = [s](const float voo) {
+            return s ? voo * s->Real(1.0f - kDesvioDaLatencia, 1.0f + kDesvioDaLatencia) : voo;
+        };
         std::vector<Evento> e;
         switch (r) {
-            case Rodada::Assincrona:
-                // O servidor manda sem esperar, mais depressa do que o cliente recebe.
+            case Rodada::Assincrona: {
+                // O servidor manda sem esperar, mais depressa do que o cliente recebe; o cliente tira
+                // da caixa o que ja chegou - na ordem em que chegou.
+                std::vector<float> chegam;
                 for (int i = 0; i < d.assincronos; ++i) {
-                    e.push_back({0.3f + d.entreEnvios * static_cast<float>(i), Acontece::Envia, kServidor, 0, 1.3f, false});
+                    const float t = 0.3f + d.entreEnvios * static_cast<float>(i);
+                    const float voo = latencia(1.3f);
+                    e.push_back({t, Acontece::Envia, kServidor, 0, voo, false});
+                    chegam.push_back(t + voo);
                 }
+                std::sort(chegam.begin(), chegam.end());
                 for (int j = 0; j < d.assincronos; ++j) {
-                    e.push_back({1.7f + d.entreRecebidos * static_cast<float>(j), Acontece::Recebe, kCliente});
+                    const float t = std::max(1.7f + d.entreRecebidos * static_cast<float>(j),
+                                             chegam[static_cast<size_t>(j)] + kDepoisDeChegar);
+                    e.push_back({t, Acontece::Recebe, kCliente});
                 }
                 break;
-            case Rodada::Sincrona:
-                // O cliente manda e espera: quando o envelope chega, o rendezvous.
+            }
+            case Rodada::Sincrona: {
+                // O cliente manda e espera: quando o envelope chega, o rendezvous - e so depois dele o
+                // cliente manda de novo.
+                float livre = 0.0f;
                 for (int i = 0; i < d.sincronos; ++i) {
-                    const float t = 0.3f + d.entreSincronos * static_cast<float>(i);
-                    e.push_back({t, Acontece::Envia, kCliente, 0, d.vooSincrono, false});
-                    e.push_back({t + d.vooSincrono, Acontece::Encontro, kCliente});
+                    float t = 0.3f + d.entreSincronos * static_cast<float>(i);
+                    if (s) t = std::max(t, livre);
+                    const float voo = latencia(d.vooSincrono);
+                    e.push_back({t, Acontece::Envia, kCliente, 0, voo, false});
+                    e.push_back({t + voo, Acontece::Encontro, kCliente});
+                    livre = t + voo + kDepoisDoEncontro;
                 }
                 break;
+            }
             case Rodada::Rpc: {
                 // A chamada remota: o pedido vai, o servidor calcula, a resposta volta.
                 float t = 0.3f;
                 for (int i = 0; i < kChamadas; ++i) {
                     const int valor = Soma(plano.chamadas[static_cast<size_t>(i)]);
-                    e.push_back({t, Acontece::Envia, kCliente, valor, 0.85f, false});
-                    e.push_back({t + 1.15f, Acontece::Responde, kServidor, valor, 0.85f, false});
-                    e.push_back({t + 2.0f, Acontece::Resultado, kCliente, valor});
+                    float ida = 0.85f;
+                    float calcula = 0.3f;
+                    float volta = 0.85f;
+                    if (s) {
+                        ida = latencia(ida);
+                        calcula *= s->Real(1.0f - kDesvioDoCalculo, 1.0f + kDesvioDoCalculo);
+                        volta = latencia(volta);
+                        const float escala = 2.0f / (ida + calcula + volta);
+                        ida *= escala;
+                        calcula *= escala;
+                        volta *= escala;
+                    }
+                    e.push_back({t, Acontece::Envia, kCliente, valor, ida, false});
+                    e.push_back({t + ida + calcula, Acontece::Responde, kServidor, valor, volta, false});
+                    e.push_back({t + ida + calcula + volta, Acontece::Resultado, kCliente, valor});
                     t += 2.1f;
                 }
                 break;
             }
-            case Rodada::Impasse:
+            case Rodada::Impasse: {
                 // Os dois mandam e os dois esperam: ninguem recebe.
-                e.push_back({0.3f, Acontece::Envia, kCliente, 0, 1.1f, true});
-                e.push_back({0.3f, Acontece::Envia, kServidor, 0, 1.1f, true});
+                e.push_back({0.3f, Acontece::Envia, kCliente, 0, latencia(1.1f), true});
+                e.push_back({0.3f, Acontece::Envia, kServidor, 0, latencia(1.1f), true});
                 e.push_back({2.3f, Acontece::Estoura, kCliente});
-                // E depois do timeout, os dois mandam sem esperar.
+                // E depois do timeout, os dois mandam sem esperar, e cada um tira da caixa o que chegou.
+                std::vector<float> noServidor;
+                std::vector<float> noCliente;
                 for (int i = 0; i < d.depoisDoTimeout; ++i) {
                     const float t = 2.6f + d.entreDepoisDoTimeout * static_cast<float>(i);
-                    e.push_back({t, Acontece::Envia, kCliente, 0, 1.0f, false});
-                    e.push_back({t, Acontece::Envia, kServidor, 0, 1.0f, false});
+                    const float doCliente = latencia(1.0f);
+                    const float doServidor = latencia(1.0f);
+                    e.push_back({t, Acontece::Envia, kCliente, 0, doCliente, false});
+                    e.push_back({t, Acontece::Envia, kServidor, 0, doServidor, false});
+                    noServidor.push_back(t + doCliente);
+                    noCliente.push_back(t + doServidor);
                 }
+                std::sort(noServidor.begin(), noServidor.end());
+                std::sort(noCliente.begin(), noCliente.end());
                 for (int j = 0; j < d.depoisDoTimeout; ++j) {
                     const float t = 3.7f + d.entreDepoisDoTimeout * static_cast<float>(j);
-                    e.push_back({t, Acontece::Recebe, kCliente});
-                    e.push_back({t, Acontece::Recebe, kServidor});
+                    const auto i = static_cast<size_t>(j);
+                    e.push_back({std::max(t, noCliente[i] + kDepoisDeChegar), Acontece::Recebe, kCliente});
+                    e.push_back({std::max(t, noServidor[i] + kDepoisDeChegar), Acontece::Recebe, kServidor});
                 }
                 break;
+            }
         }
         std::stable_sort(e.begin(), e.end(), [](const Evento& a, const Evento& b) { return a.quando < b.quando; });
+        if (s) Caber(e, kPorRodada - kFolgaDoFim);
         return e;
     }
 

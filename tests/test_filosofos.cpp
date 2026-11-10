@@ -252,6 +252,43 @@ TEST_CASE("Filosofos: o jantar e a ordem girados continuam o mesmo jantar") {
           Roteiro(Rodada::Jantar, 0).front().filosofo);   // uma volta inteira e o de sempre
 }
 
+TEST_CASE("Filosofos: no ritmo da luta os passos sao os mesmos, na mesma ordem, e acabam onde acabavam") {
+    std::set<int> instantes;
+    for (std::uint32_t semente = 0; semente < 200; ++semente) {
+        CAPTURE(semente);
+        Variacao::Sorteio s(semente);
+        for (int k = 0; k < kRodadas; ++k) {
+            const Rodada r = RodadaDaVez(k);
+            CAPTURE(static_cast<int>(r));
+            const auto sempre = Filosofos::Rodar(Roteiro(r, 2), static_cast<int>(semente % kFilosofos));
+            const auto agora = NoRitmo(sempre, s, kDesvioDoRitmo);
+            REQUIRE(agora.size() == sempre.size());
+            Mesa m = MesaPosta();
+            for (size_t i = 0; i < sempre.size(); ++i) {
+                CHECK(agora[i].filosofo == sempre[i].filosofo);
+                CHECK(agora[i].acao == sempre[i].acao);
+                CHECK(agora[i].garfo == sempre[i].garfo);
+                CHECK(agora[i].quando > 0.0f);
+                CHECK(agora[i].quando < kPorRodada);
+                if (i > 0) {
+                    // A ordem e os empates: o que era junto continua junto.
+                    if (sempre[i].quando == sempre[i - 1].quando) CHECK(agora[i].quando == agora[i - 1].quando);
+                    else CHECK(agora[i].quando > agora[i - 1].quando);
+                }
+                REQUIRE(Aplicar(m, agora[i]));   // a mesa aceita cada passo, como no de sempre
+                instantes.insert(static_cast<int>(agora[i].quando * 1000.0f));
+            }
+            CHECK(agora.back().quando == doctest::Approx(sempre.back().quando));
+        }
+    }
+    CHECK(instantes.size() > 300u);
+    // Desvio zero: o roteiro de sempre.
+    Variacao::Sorteio s(5u);
+    const auto sempre = Roteiro(Rodada::Deadlock, 1);
+    const auto igual = NoRitmo(sempre, s, 0.0f);
+    for (size_t i = 0; i < sempre.size(); ++i) CHECK(igual[i].quando == doctest::Approx(sempre[i].quando));
+}
+
 TEST_CASE("Filosofos: o placar fala os nomes desta luta") {
     Plano p = PlanoDeSempre();
     p.nomes = {"Hume", "Beauvoir", "Hip\xc3\xa1tia", "Espinosa", "Conf\xc3\xba" "cio"};

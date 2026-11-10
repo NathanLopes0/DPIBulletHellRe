@@ -147,6 +147,17 @@ namespace Filosofos {
     /// jantar, comecando de outro lugar.
     std::vector<Passo> Rodar(std::vector<Passo> passos, int giro);
 
+    /// O roteiro no ritmo desta luta: cada intervalo entre dois instantes seguidos (e o do comeco ao
+    /// primeiro) dura de (1 - desvio) a (1 + desvio) do de sempre, e o ultimo passo fica onde
+    /// estava. A ordem nao muda: quem soltava o garfo antes de o vizinho pegar continua soltando
+    /// antes - so que ninguem pensa nem come o mesmo tempo duas vezes.
+    std::vector<Passo> NoRitmo(std::vector<Passo> passos, Variacao::Sorteio& s, float desvio);
+    constexpr float kDesvioDoRitmo = 0.3f;
+
+    /// Quem come nao da as garfadas no compasso: cada uma sai de (1 - kDesvioDaGarfada) a
+    /// (1 + kDesvioDaGarfada) do passo do degrau depois da anterior.
+    constexpr float kDesvioDaGarfada = 0.25f;
+
     /// O placar: o nome da rodada e quem come ("jantar · comendo.
     std::string Placar(Rodada r, const Mesa& m, const Plano& p = PlanoDeSempre());
 

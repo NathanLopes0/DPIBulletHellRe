@@ -116,8 +116,85 @@ TEST_CASE("Semaforo: na corrida todas entram juntas, e o saldo sai errado") {
     CHECK(e.dentro.size() == 5u);
     CHECK(e.fila.empty());
     Avancar(e, kAbre + kSaldoAparece);
-    CHECK(Placar(e, false) == "saldo = 1 \xc2\xb7 esperado 5");
-    CHECK(SaldoDaCorrida(5) == 1);
+    CHECK(e.saldo >= 1);
+    CHECK(e.saldo < 5);
+    CHECK(Placar(e, false) == "saldo = " + std::to_string(e.saldo) + " \xc2\xb7 esperado 5");
+}
+
+TEST_CASE("Semaforo: a corrida da um saldo diferente de uma luta para a outra, e nunca o esperado") {
+    std::set<int> saldos;
+    for (std::uint32_t s = 1; s < 300; ++s) {
+        CAPTURE(s);
+        const int saldo = SaldoDaCorrida(5, s);
+        CHECK(saldo >= 1);
+        CHECK(saldo <= 4);
+        saldos.insert(saldo);
+        CHECK(SaldoDaCorrida(5, s) == saldo);   // a mesma semente, o mesmo saldo
+    }
+    CHECK(saldos.size() >= 3u);
+    CHECK(SaldoDaCorrida(0, 7u) == 0);
+    CHECK(SaldoDaCorrida(1, 7u) == 1);
+    CHECK(SaldoDaCorrida(2, 7u) == 1);
+}
+
+TEST_CASE("Semaforo: com o desvio cada thread fica o seu tempo na secao, a soma e a de sempre, e a rodada fecha") {
+    bool variou = false;
+    for (std::uint32_t semente = 1; semente < 300; ++semente) {
+        CAPTURE(semente);
+        for (const Rodada r : {RodadaDaVez(0), Rodada{Tipo::Contador, 2}, Rodada{Tipo::Contador, 3}, RodadaDaVez(2)}) {
+            CAPTURE(static_cast<int>(r.tipo));
+            Escalonador e = Comecar(r, kMaisThreads, 0, semente, kDesvioDaSecao);
+            float soma = 0.0f;
+            for (int t = 0; t < kMaisThreads; ++t) {
+                const float f = Fica(e, t);
+                CHECK(f > 0.0f);
+                soma += f;
+                variou = variou || std::fabs(f - NaSecao(r)) > 0.05f;
+            }
+            CHECK(soma == doctest::Approx(NaSecao(r) * static_cast<float>(kMaisThreads)).epsilon(0.001));
+            Rodar(e);
+            CHECK(e.passaram.size() == static_cast<size_t>(kMaisThreads));
+        }
+    }
+    CHECK(variou);
+
+    // Quem sai primeiro acorda a primeira da fila, mesmo saindo no mesmo quadro que outra.
+    Escalonador c = Comecar(Rodada{Tipo::Contador, 2}, 4, 0, 1u);
+    c.fila = {0, 1, 2, 3};
+    c.fica = {1.0f, 0.4f, 1.0f, 1.0f};
+    Avancar(c, kAbre);
+    REQUIRE(c.dentro == std::vector<int>{0, 1});
+    Avancar(c, kAbre + 1.2f);
+    REQUIRE(c.dentro == std::vector<int>{2, 3});
+    CHECK(c.entrouEm[0] == doctest::Approx(kAbre + 0.4f));
+    CHECK(c.entrouEm[1] == doctest::Approx(kAbre + 1.0f));
+    CHECK(c.passaram == std::vector<int>{1, 0});
+
+    // Sem o desvio, todas ficam o de sempre.
+    const Escalonador fixo = Comecar(RodadaDaVez(0), 5, 0, 9u);
+    for (int t = 0; t < 5; ++t) CHECK(Fica(fixo, t) == doctest::Approx(NaSecao(RodadaDaVez(0))));
+}
+
+TEST_CASE("Semaforo: cada thread no seu ritmo, e todas acabam de mandar dentro da rodada") {
+    std::set<int> passos;
+    for (const Dificuldade::Nivel n : Dificuldade::kNiveis) {
+        const Degrau d = DegrauDo(n);
+        for (std::uint32_t semente = 0; semente < 200; ++semente) {
+            CAPTURE(semente);
+            Variacao::Sorteio s(semente);
+            const auto ritmos = SortearRitmos(s, kMaisThreads, d.entreInstrucoes);
+            REQUIRE(ritmos.size() == static_cast<size_t>(kMaisThreads));
+            for (const Ritmo& r : ritmos) {
+                CHECK(r.comeca >= kComecaAMandar);
+                CHECK(r.comeca <= kComecaAMandar + d.entreInstrucoes);
+                CHECK(r.entre >= d.entreInstrucoes * (1.0f - kDesvioDoRitmo) - 0.0001f);
+                CHECK(r.entre <= d.entreInstrucoes * (1.0f + kDesvioDoRitmo) + 0.0001f);
+                CHECK(r.comeca + static_cast<float>(d.instrucoesPorThread - 1) * r.entre < kPorRodada);
+                passos.insert(static_cast<int>(r.entre * 1000.0f));
+            }
+        }
+    }
+    CHECK(passos.size() > 20u);   // as threads nao andam juntas
 }
 
 TEST_CASE("Semaforo: o aluno acorrentado faz a thread em cima dele furar a fila") {

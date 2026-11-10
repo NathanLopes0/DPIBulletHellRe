@@ -45,14 +45,19 @@ namespace Tcp {
     };
 
     /// Uma janela: os primeiros sao os retransmitidos, depois os novos; os ultimos 'perdidos' sao
-    /// os que o roteador descarta (descarte de cauda).
+    /// os que o roteador descarta (descarte de cauda), e o 'ruido' e o que o enlace perdeu no
+    /// caminho (-1: nenhum).
     struct Janela {
         int retransmitidos = 0;
         int novos = 0;
         int perdidos = 0;
+        int ruido = -1;
         [[nodiscard]] int Total() const { return retransmitidos + novos; }
         [[nodiscard]] bool Perdido(int i) const { return i >= Total() - perdidos; }
+        [[nodiscard]] bool NoRuido(int i) const { return i == ruido && !Perdido(i); }
         [[nodiscard]] bool Retransmitido(int i) const { return i < retransmitidos; }
+        /// Os da cauda e o do ruido.
+        [[nodiscard]] int Perdas() const { return perdidos + (ruido >= 0 && NoRuido(ruido) ? 1 : 0); }
     };
 
     /// Manda a janela deste RTT: cwnd segmentos, os perdidos da janela anterior primeiro, e
@@ -69,6 +74,17 @@ namespace Tcp {
     /// O timeout: ssthresh = cwnd / 2, e cwnd volta a 1, no slow start.
     void Timeout(Conexao& c);
 
+    /// O ruido do enlace: com chance 'chance', um segmento que o roteador aceitaria se perde no
+    /// caminho - e o TCP nao sabe a diferenca, corta a janela do mesmo jeito. So na evitacao (a
+    /// fase mostra o slow start inteiro: ali quem corta e o roteador cheio), numa janela de
+    /// kMenorJanelaDoRuido ou mais, e nunca nos tres ultimos aceitos: o que se perde precisa de tres
+    /// depois dele para os 3 ACKs duplicados. Devolve se perdeu.
+    bool Ruido(Janela& j, const Conexao& c, Variacao::Sorteio& s, float chance);
+    constexpr int kMenorJanelaDoRuido = 4;
+    /// Onde o do ruido estoura: entre estas fracoes do caminho da nuvem ao roteador.
+    constexpr float kMenorQuebra = 0.35f;
+    constexpr float kMaiorQuebra = 0.75f;
+
     // ---- O relogio ----
 
     /// As nuvens se formam kFormam depois de a fase abrir; o primeiro RTT
@@ -84,6 +100,16 @@ namespace Tcp {
     /// Os segmentos de uma janela saem um a cada kEntreSegmentos, alternando
     /// as duas nuvens.
     constexpr float kEntreSegmentos = 0.05f;
+
+    /// O RTT nao e sempre o mesmo: a nuvem processa o de sempre (e o aviso), mas descansa de
+    /// (1 - kDesvioDoRtt) a (1 + kDesvioDoRtt) de kDescansa - nunca menos do que a 'janela' que
+    /// acabou de sair leva para sair inteira: a nuvem nao chove enquanto processa.
+    float Descanso(Variacao::Sorteio& s, int janela);
+    constexpr float kDesvioDoRtt = 0.4f;
+
+    /// O enlace de saida do roteador tambem nao tem ritmo fixo: cada encaminhado sai de
+    /// (1 - kDesvioDoEnlace) a (1 + kDesvioDoEnlace) do passo do degrau depois do anterior.
+    constexpr float kDesvioDoEnlace = 0.3f;
 
     /// O roteador encaminha um a cada kEntreEncaminhados - o enlace de saida.
     constexpr float kEntreEncaminhados = 0.06f;
@@ -112,7 +138,9 @@ namespace Tcp {
     constexpr float kVelocidadeDoDescarte = 220.0f;
     constexpr int kAnelDoDescarte = 8;
 
-    /// O meio do anel do descarte de numero k.
+    /// O giro do anel do descarte no terco k: no 0 um caco vai no aluno, no 1 e no 2 ele fica a um e
+    /// a dois tercos do espaco entre dois cacos - tres aneis em tercos diferentes fecham o circulo.
+    /// O Vitor sorteia o terco de cada anel.
     float GiroDoDescarte(int k, int anel = kAnelDoDescarte);
 
     // ---- O grafico do cwnd ----
@@ -165,12 +193,15 @@ namespace Tcp {
 
     // ---- O degrau (Dificuldade.h) ----
 
+    constexpr float kChanceDoRuido = 0.2f;
+
     /// O TCP e o mesmo.
     struct Degrau {
         float entreEncaminhados = kEntreEncaminhados;
         float rapidez = 1.0f;            ///< do encaminhado e do caco
         int anelDoDescarte = kAnelDoDescarte;
         int menosCapacidade = 0;         ///< o roteador da conta de menos: mais perdas, mais aneis
+        float chanceDoRuido = kChanceDoRuido;   ///< de uma janela perder um segmento no caminho
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 

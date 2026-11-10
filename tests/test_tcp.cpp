@@ -80,6 +80,86 @@ TEST_CASE("Tcp: os RTTs cabem na fase, e a maior janela sai inteira antes do RTT
     CHECK(static_cast<float>(kCapacidade) * kEntreEncaminhados < kRtt);
 }
 
+TEST_CASE("Tcp: o RTT varia de uma janela para a outra, e a janela ainda sai inteira antes da seguinte") {
+    float menor = 1e9f;
+    float maior = 0.0f;
+    for (std::uint32_t semente = 0; semente < 300; ++semente) {
+        CAPTURE(semente);
+        Variacao::Sorteio s(semente);
+        for (const int janela : {1, 4, 8, 12, 16}) {
+            const float d = Descanso(s, janela);
+            CHECK(d <= kDescansa * (1.0f + kDesvioDoRtt) + 0.0001f);
+            CHECK(d >= static_cast<float>(janela - 1) * kEntreSegmentos - 0.0001f);   // nao chove processando
+            if (janela == 4) {
+                CHECK(d >= kDescansa * (1.0f - kDesvioDoRtt) - 0.0001f);
+                menor = std::min(menor, d);
+                maior = std::max(maior, d);
+            }
+        }
+    }
+    CHECK(maior - menor > kDescansa * kDesvioDoRtt);
+    CHECK(kMenorQuebra > 0.0f);
+    CHECK(kMenorQuebra < kMaiorQuebra);
+    CHECK(kMaiorQuebra < 1.0f);
+    CHECK(kDesvioDoEnlace < 1.0f);
+}
+
+TEST_CASE("Tcp: o ruido do enlace - so na evitacao e em janela grande, nunca nos tres ultimos, e o TCP corta igual") {
+    int perdas = 0;
+    std::set<int> onde;
+    Conexao evitando;
+    evitando.estado = Estado::Evitacao;
+    const Conexao comecando;   // no slow start
+    for (std::uint32_t semente = 0; semente < 400; ++semente) {
+        CAPTURE(semente);
+        Variacao::Sorteio s(semente);
+        for (const int total : {1, 3, 4, 8, 12, 16}) {
+            CAPTURE(total);
+            Janela noComeco;
+            noComeco.novos = total;
+            CHECK_FALSE(Ruido(noComeco, comecando, s, 1.0f));
+            CHECK(noComeco.ruido == -1);
+            Janela j;
+            j.novos = total;
+            j.perdidos = std::max(0, total - kCapacidade);
+            const bool perdeu = Ruido(j, evitando, s, 0.5f);
+            const int aceitos = total - j.perdidos;
+            if (!perdeu) {
+                CHECK(j.ruido == -1);
+                CHECK(j.Perdas() == j.perdidos);
+                continue;
+            }
+            REQUIRE(aceitos >= kMenorJanelaDoRuido);
+            ++perdas;
+            CHECK(j.ruido >= 0);
+            CHECK(j.ruido <= aceitos - 4);       // tres chegam depois dele: os 3 ACKs duplicados
+            CHECK(j.NoRuido(j.ruido));
+            CHECK_FALSE(j.Perdido(j.ruido));
+            CHECK(j.Perdas() == j.perdidos + 1);
+            onde.insert(j.ruido);
+        }
+    }
+    CHECK(perdas > 100);
+    CHECK(onde.size() > 5u);
+
+    // Chance zero nunca perde, e a janela com ruido corta como a com descarte de cauda.
+    Variacao::Sorteio s(3u);
+    Janela j;
+    j.novos = 8;
+    CHECK_FALSE(Ruido(j, evitando, s, 0.0f));
+    Conexao c;
+    c.cwnd = 8;
+    c.ssthresh = 16;
+    j.ruido = 2;
+    CHECK(Reconhecer(c, j) == Desfecho::Cortou);
+    CHECK(c.cwnd == 4);
+    CHECK(c.estado == Estado::Evitacao);
+    CHECK(c.aRetransmitir == 1);
+    const Janela depois = Enviar(c);
+    CHECK(depois.retransmitidos == 1);
+    CHECK(DegrauDo(Dificuldade::Nivel::Normal).chanceDoRuido == doctest::Approx(kChanceDoRuido));
+}
+
 TEST_CASE("Tcp: o roteador fica no meio, longe do placar e do aluno, e o grafico no canto") {
     const Ponto r = Roteador(1200.0f);
     CHECK(r.x == doctest::Approx(600.0f));

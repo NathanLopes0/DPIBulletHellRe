@@ -93,8 +93,21 @@ namespace Mensagens {
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 
-    /// O roteiro da rodada, em ordem de tempo - o de sempre, ou o desta luta.
-    std::vector<Evento> Roteiro(Rodada r, const Plano& p = PlanoDeSempre(), const Degrau& d = Degrau{});
+    /// O roteiro da rodada, em ordem de tempo - o de sempre, ou o desta luta. Com 's', a rede nao
+    /// e deterministica: cada envelope leva de (1 - kDesvioDaLatencia) a (1 + kDesvioDaLatencia) do
+    /// tempo de sempre - na assincrona eles chegam fora de ordem -, o servidor da rpc calcula um
+    /// tempo seu (e a chamada inteira dura o de sempre), e quem recebe espera o envelope chegar. O
+    /// roteiro sorteado que passar do fim da rodada encolhe por igual, e cabe nela.
+    std::vector<Evento> Roteiro(Rodada r, const Plano& p = PlanoDeSempre(), const Degrau& d = Degrau{},
+                                Variacao::Sorteio* s = nullptr);
+    constexpr float kDesvioDaLatencia = 0.25f;
+    constexpr float kDesvioDoCalculo = 0.5f;
+    /// Quem recebe tira o envelope da caixa um pouco depois de ele chegar; o cliente da sincrona
+    /// manda de novo um pouco depois do rendezvous.
+    constexpr float kDepoisDeChegar = 0.05f;
+    constexpr float kDepoisDoEncontro = 0.1f;
+    /// O fim do roteiro sorteado: um pouco antes do fim da rodada.
+    constexpr float kFolgaDoFim = 0.05f;
 
     /// Quanto tempo depois de sair um envelope chega - e, no impasse, quando ele para na porta
     /// (kNaPorta do caminho).

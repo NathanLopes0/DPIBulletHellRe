@@ -73,6 +73,12 @@ private:
     /// Para onde o movimento "Conduzido" leva o professor.
     std::optional<Vector2> mAlvo;
 
+    /// O acaso de cada fase nesta luta - o escalonador, a rede, a latencia, o jantar -, da semente
+    /// da batalha. Criado na primeira vez e nunca recomecado: a volta seguinte pela fase continua a
+    /// sequencia, e nao a repete.
+    Variacao::Sorteio& Acaso(const std::string& fase);
+    std::map<std::string, Variacao::Sorteio> mAcasos;
+
     /// As linhas do campo, limpas a cada quadro e redesenhadas por quem
     /// estiver rodando.
     DrawLinhasComponent* mLinhas = nullptr;
@@ -108,11 +114,12 @@ private:
         bool desviou = false;
     };
 
-    /// Uma thread: quantas instrucoes ja mandou, quando manda a proxima, as que descem (ainda
-    /// livres) e as paradas na pilha - ou girando, na espera ocupada.
+    /// Uma thread: quantas instrucoes ja mandou, quando manda a proxima (no ritmo dela), as que
+    /// descem (ainda livres) e as paradas na pilha - ou girando, na espera ocupada.
     struct Thread {
         int mandadas = 0;
         float proximaEm = 0.0f;
+        Semaforo::Ritmo ritmo;
         std::vector<Instrucao> descendo;
         std::vector<BossProjectile*> paradas;
         EtiquetaDeCodigo* nome = nullptr;
@@ -169,7 +176,6 @@ private:
     size_t mProximaMensagem = 0;
     float mRelogioDasMensagens = 0.0f;
     int mChamadaDaRpc = 0;
-    int mRecebidas = 0;
     bool mEsperandoRpc = false;
     bool mEstourou = false;
 
@@ -254,6 +260,8 @@ private:
     void MandarSegmentos(float agora);
     void ChegarNoRoteador(float agora);
     void Encaminhar(float agora);
+    /// O anel de cacos de um segmento perdido em 'onde': no roteador cheio, ou no caminho (o ruido).
+    void Estilhacar(Vector2 onde);
     void DesenharGrafico();
 
     /// As nuvens em campo: os projeteis no posto das nuvens.
@@ -308,20 +316,23 @@ private:
     float mInicioDaJanela = 0.0f;
     bool mJanelaReconhecida = true;
 
+    /// Um segmento em voo: o descartado no roteador cheio, o retransmitido, e o que o ruido leva -
+    /// esse estoura a 'quebraEm' px de onde saiu.
     struct Segmento {
         BossProjectile* p = nullptr;
         bool perdido = false;
         bool retransmitido = false;
+        bool ruido = false;
+        Vector2 de;
+        float quebraEm = 0.0f;
     };
     std::vector<Segmento> mEmVoo;
 
     /// A fila do roteador: os que ele ainda vai encaminhar (se cada um e retransmitido), e quando
     /// sai o proximo.
     std::vector<bool> mFila;
-    int mEncaminhados = 0;
     int mRecebidosNaJanela = 0;
     float mProximoEncaminhado = 0.0f;
-    int mDescartes = 0;
 
     /// O que o placar diz ate a janela seguinte sair: o estado da conexao, ou
     /// a perda, ou o timeout.

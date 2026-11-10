@@ -12,10 +12,10 @@
       { "gatilho": "instrucao", "estrategia": "WaveAttack", "projetil": "Instrucao",
         "projeteis": 1, "velocidade": 200, "angulo": 0, "anguloCentral": 90, "intervalo": 0 },
 
-      // As correntes: duas a cada 4,4s.
+      // As correntes: duas a cada 4,4s em media - o escalonador nao avisa quando.
       { "estrategia": "WaveAttack", "projetil": "Corrente",
         "projeteis": 2, "velocidade": 260, "angulo": 20, "intervalo": 0.18,
-        "cooldown": 4.4,
+        "cooldown": 4.4, "variar": { "cadencia": 0.3, "giro": 15 },
         "regras": "correntes" }
     ]
   },
@@ -35,7 +35,8 @@
       { "gatilho": "encaminhar", "estrategia": "WaveAttack", "projetil": "Pacote",
         "projeteis": 1, "velocidade": 340, "angulo": 0, "intervalo": 0 },
       { "gatilho": "descarte", "estrategia": "WaveAttack", "projetil": "Pacote",
-        "projeteis": 8, "velocidade": 220, "angulo": 315, "intervalo": 0 }
+        "projeteis": 8, "velocidade": 220, "angulo": 315, "intervalo": 0,
+        "variar": { "velocidade": 0.1 } }
     ]
   },
 
@@ -52,7 +53,8 @@
       { "gatilho": "processar", "estrategia": "WaveAttack", "projetil": "Dado",
         "projeteis": 1, "velocidade": 320, "angulo": 0, "intervalo": 0 },
       { "gatilho": "encontro", "estrategia": "WaveAttack", "projetil": "Dado",
-        "projeteis": 8, "velocidade": 220, "angulo": 315, "intervalo": 0 }
+        "projeteis": 8, "velocidade": 220, "angulo": 315, "intervalo": 0,
+        "variar": { "velocidade": 0.15 } }
     ],
     "clone": { "ataquesDe": "StateFinal" }
   },
@@ -67,7 +69,8 @@
       { "gatilho": "garfo", "estrategia": "WaveAttack", "projetil": "Garfo",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "garfada", "estrategia": "WaveAttack", "projetil": "Garfada",
-        "projeteis": 3, "velocidade": 210, "angulo": 16, "intervalo": 0 },
+        "projeteis": 3, "velocidade": 210, "angulo": 16, "intervalo": 0,
+        "variar": { "velocidade": 0.15 } },
       { "gatilho": "espera", "estrategia": "WaveAttack", "projetil": "Espera",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
     ]

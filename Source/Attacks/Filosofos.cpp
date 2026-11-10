@@ -298,6 +298,39 @@ namespace Filosofos {
         return passos;
     }
 
+    std::vector<Passo> NoRitmo(std::vector<Passo> passos, Variacao::Sorteio& s, const float desvio) {
+        std::vector<float> antes;
+        for (const Passo& p : passos) antes.push_back(p.quando);
+        std::sort(antes.begin(), antes.end());
+        antes.erase(std::unique(antes.begin(), antes.end()), antes.end());
+        if (antes.empty()) return passos;
+
+        // Cada intervalo sorteado, e o conjunto reescalado para acabar onde acabava.
+        const float d = std::clamp(desvio, 0.0f, 0.9f);
+        std::vector<float> depois(antes.size());
+        float anterior = 0.0f;
+        float soma = 0.0f;
+        float somaNova = 0.0f;
+        for (size_t i = 0; i < antes.size(); ++i) {
+            const float intervalo = std::max(0.0f, antes[i] - anterior);
+            anterior = antes[i];
+            depois[i] = intervalo * s.Real(1.0f - d, 1.0f + d);
+            soma += intervalo;
+            somaNova += depois[i];
+        }
+        const float escala = somaNova > 0.0f ? soma / somaNova : 1.0f;
+        float agora = 0.0f;
+        for (float& t : depois) {
+            agora += t * escala;
+            t = agora;
+        }
+        for (Passo& p : passos) {
+            const auto i = std::lower_bound(antes.begin(), antes.end(), p.quando) - antes.begin();
+            p.quando = depois[static_cast<size_t>(i)];
+        }
+        return passos;
+    }
+
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
         d.entreGarfadas = Dificuldade::Escolher(n, kEntreGarfadas, 0.33f);

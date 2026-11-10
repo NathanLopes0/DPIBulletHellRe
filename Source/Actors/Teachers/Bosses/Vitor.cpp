@@ -16,7 +16,6 @@
 #include "../../../Attacks/Coercao.h"
 #include "../../../Attacks/Behaviors.h"
 #include "../../../Components/RigidBodyComponent.h"
-#include "../../../Motor/Random.h"
 
 #include <algorithm>
 #include <cmath>
@@ -25,10 +24,6 @@
 namespace {
 
     bool Vivo(const BossProjectile* p) { return p && p->GetState() == ActorState::Active; }
-
-    std::uint32_t Sorteio() {
-        return static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
-    }
 
     void PorCara(BossProjectile* p, const std::string& cara) {
         if (auto* anim = p->GetComponent<DrawAnimatedComponent>(); anim && anim->GetAnimation() != cara) {
@@ -104,6 +99,12 @@ Vitor::Vitor(Scene* scene) : Boss(scene) {
 
 std::optional<Vector2> Vitor::AlvoDoMovimento() const {
     return mAlvo;
+}
+
+Variacao::Sorteio& Vitor::Acaso(const std::string& fase) {
+    auto it = mAcasos.find(fase);
+    if (it == mAcasos.end()) it = mAcasos.emplace(fase, SorteioDaFase(fase + "#acaso")).first;
+    return it->second;
 }
 
 void Vitor::AoTerminarABatalha() {
@@ -244,13 +245,19 @@ void Vitor::ComecarRodadaDoSemaforo(const int k) {
     mColunas = Semaforo::Colunas(aluno.x - campo.x, campo.w, mPlanoDosSemaforos.entreThreads);
     for (float& x : mColunas) x += campo.x;
     const int n = static_cast<int>(mColunas.size());
+    // O escalonador desta rodada: a ordem na porta, quanto cada uma fica na secao, e o passo de cada
+    // thread - nenhuma rodada e igual a outra.
+    Variacao::Sorteio& acaso = Acaso(Semaforo::kFaseDosSemaforos);
     mEscalonador = Semaforo::Comecar(mPlanoDosSemaforos.rodadas[static_cast<size_t>(k)], n,
-                                     Semaforo::MaisPerto(mColunas, aluno.x), Sorteio());
+                                     Semaforo::MaisPerto(mColunas, aluno.x), acaso.Bruto(),
+                                     Semaforo::kDesvioDaSecao);
+    const auto ritmos = Semaforo::SortearRitmos(acaso, n, mDegrauDosSemaforos.entreInstrucoes);
 
     mThreads.resize(static_cast<size_t>(n));
     for (int i = 0; i < n; ++i) {
         Thread& th = mThreads[static_cast<size_t>(i)];
-        th.proximaEm = Semaforo::kComecaAMandar;
+        th.ritmo = ritmos[static_cast<size_t>(i)];
+        th.proximaEm = th.ritmo.comeca;
         const std::string nome = Semaforo::Nome(i);
         auto etiqueta = std::make_unique<EtiquetaDeCodigo>(mScene, nome, LarguraDoTexto(nome), kAlturaDoNome, kOrdemDosNomes);
         etiqueta->SetPosition(Vector2(mColunas[static_cast<size_t>(i)], campo.y + Semaforo::kAlturaDosNomes));
@@ -338,7 +345,7 @@ void Vitor::MoverInstrucoes(const float t) {
         if (in.desviou || in.p->GetPosition().y < meio) continue;
         in.desviou = true;
         if (corrida) {
-            Lancar(in.p, 90.0f + Semaforo::DesvioNaCorrida(Sorteio()),
+            Lancar(in.p, 90.0f + Semaforo::DesvioNaCorrida(Acaso(Semaforo::kFaseDosSemaforos).Bruto()),
                    Semaforo::kVelocidadeDaInstrucao * mDegrauDosSemaforos.rapidez);
         }
     }
@@ -420,7 +427,7 @@ void Vitor::AtualizarSemaforos() {
         if (!livre && presas >= Semaforo::kMaiorPilha) continue;
         Mandar(i);
         ++th.mandadas;
-        th.proximaEm = u + mDegrauDosSemaforos.entreInstrucoes;
+        th.proximaEm = u + th.ritmo.entre;
     }
 
     MoverInstrucoes(t);
@@ -623,7 +630,14 @@ void Vitor::MandarSegmentos(const float agora) {
         const Vector2 de = nuvens[static_cast<size_t>(mMandados) % nuvens.size()]->GetPosition();
         for (BossProjectile* p : DispararEm(Tcp::kGatilhoDoSegmento, de, 1, Angulo(de, roteador))) {
             PorCara(p, mJanela.Retransmitido(mMandados) ? Tcp::kCaraDoRetransmitido : Tcp::kCaraDoNovo);
-            mEmVoo.push_back({p, mJanela.Perdido(mMandados), mJanela.Retransmitido(mMandados)});
+            Segmento s{p, mJanela.Perdido(mMandados), mJanela.Retransmitido(mMandados)};
+            if (mJanela.NoRuido(mMandados)) {
+                s.ruido = true;
+                s.de = de;
+                s.quebraEm = (roteador - de).Length() *
+                             Acaso(kFaseDasNuvens).Real(Tcp::kMenorQuebra, Tcp::kMaiorQuebra);
+            }
+            mEmVoo.push_back(s);
         }
         ++mMandados;
     }
@@ -634,6 +648,13 @@ void Vitor::ChegarNoRoteador(const float agora) {
     const Vector2 r = PosicaoDoRoteador();
     for (auto it = mEmVoo.begin(); it != mEmVoo.end();) {
         BossProjectile* p = it->p;
+        if (it->ruido && (p->GetPosition() - it->de).Length() >= it->quebraEm) {
+            // O ruido do enlace: o segmento se perde no caminho, e estoura onde estava.
+            Estilhacar(p->GetPosition());
+            p->Kill();
+            it = mEmVoo.erase(it);
+            continue;
+        }
         const Vector2 falta = r - p->GetPosition();
         Vector2 v = Vector2::Zero;
         if (auto* rb = p->GetComponent<RigidBodyComponent>()) v = rb->GetVelocity();
@@ -642,12 +663,7 @@ void Vitor::ChegarNoRoteador(const float agora) {
 
         if (it->perdido) {
             // O roteador estava cheio: o segmento e descartado ali mesmo, e estoura num anel de cacos.
-            const int n = mDegrauDaRede.anelDoDescarte;
-            const float centro = Coercao::CentroDoAnel(n, Angulo(r, PosicaoDoAluno()) + Tcp::GiroDoDescarte(mDescartes++, n));
-            for (BossProjectile* caco : DispararEm(Tcp::kGatilhoDoDescarte, r, n, centro, Coercao::AberturaDoAnel(n),
-                                                   mDegrauDaRede.rapidez)) {
-                PorCara(caco, Tcp::kCaraDoDescartado);
-            }
+            Estilhacar(r);
         } else {
             if (mFila.empty()) mProximoEncaminhado = std::max(mProximoEncaminhado, agora);
             mFila.push_back(it->retransmitido);
@@ -658,23 +674,37 @@ void Vitor::ChegarNoRoteador(const float agora) {
     }
 }
 
+void Vitor::Estilhacar(const Vector2 onde) {
+    // Um anel em tres sai com um caco no aluno, como sempre - so que ninguem sabe qual.
+    const int n = mDegrauDaRede.anelDoDescarte;
+    const int terco = Acaso(kFaseDasNuvens).Inteiro(0, 2);
+    const float centro = Coercao::CentroDoAnel(n, Angulo(onde, PosicaoDoAluno()) + Tcp::GiroDoDescarte(terco, n));
+    for (BossProjectile* caco : DispararEm(Tcp::kGatilhoDoDescarte, onde, n, centro, Coercao::AberturaDoAnel(n),
+                                           mDegrauDaRede.rapidez)) {
+        PorCara(caco, Tcp::kCaraDoDescartado);
+    }
+}
+
 void Vitor::Encaminhar(const float agora) {
     // O enlace de saida: um a cada kEntreEncaminhados, mirado adiante do aluno.
     if (mFila.empty() || agora < mProximoEncaminhado) return;
     const bool retransmitido = mFila.front();
     mFila.erase(mFila.begin());
 
+    // Mira em cima ou adiante, na sorte: quem conta os tiros nao sabe qual vem.
+    Variacao::Sorteio& acaso = Acaso(kFaseDasNuvens);
     const Vector2 r = PosicaoDoRoteador();
     const Vector2 aluno = PosicaoDoAluno();
     const Vector2 andando = mVelocidadeDoAluno;
     const Tcp::Ponto alvo = Tcp::Mira({r.x, r.y}, {aluno.x, aluno.y}, {andando.x, andando.y},
                                       Tcp::kVelocidadeDoEncaminhado * mDegrauDaRede.rapidez,
-                                      Tcp::Antecipacao(mEncaminhados++, retransmitido));
+                                      Tcp::Antecipacao(acaso.Inteiro(0, 1), retransmitido));
     for (BossProjectile* p : DispararEm(Tcp::kGatilhoDoEncaminhado, r, 1, Angulo(r, Vector2(alvo.x, alvo.y)),
                                         std::nullopt, mDegrauDaRede.rapidez)) {
         PorCara(p, retransmitido ? Tcp::kCaraDoRetransmitido : Tcp::kCaraDoNovo);
     }
-    mProximoEncaminhado = agora + mDegrauDaRede.entreEncaminhados;
+    mProximoEncaminhado = agora + mDegrauDaRede.entreEncaminhados *
+                                  acaso.Real(1.0f - Tcp::kDesvioDoEnlace, 1.0f + Tcp::kDesvioDoEnlace);
 }
 
 void Vitor::DesenharGrafico() {
@@ -739,7 +769,6 @@ void Vitor::AtualizarNuvens(const float deltaTime) {
         mAvisoPendente = false;
         mMandando = false;
         mFila.clear();
-        mDescartes = 0;
         mTextoDaConexao = Tcp::Placar(mConexao);
         MontarRede();
     }
@@ -789,7 +818,10 @@ void Vitor::AtualizarNuvens(const float deltaTime) {
                 mAvisoPendente = true;
             }
         }
+        // A janela, o ruido do enlace nela, e quanto a nuvem descansa ate a proxima: o RTT varia.
         mJanela = Tcp::Enviar(mConexao);
+        Tcp::Ruido(mJanela, mConexao, Acaso(kFaseDasNuvens), mDegrauDaRede.chanceDoRuido);
+        mChuva.descansa = Tcp::Descanso(Acaso(kFaseDasNuvens), mJanela.Total());
         mJanelasDoGrafico.push_back(mJanela.Total());
         mRecebidosNaJanela = 0;
         mMandando = true;
@@ -920,6 +952,8 @@ void Vitor::ComecarRodadaDoJantar(const int k) {
     if (rodada == Filosofos::Rodada::Jantar || rodada == Filosofos::Rodada::Ordem) {
         mPassos = Filosofos::Rodar(mPassos, mPlanoDoJantar.giro);
     }
+    // Ninguem pensa nem come o mesmo tempo duas vezes.
+    mPassos = Filosofos::NoRitmo(mPassos, Acaso(Filosofos::kFaseDoJantar), Filosofos::kDesvioDoRitmo);
     mProximoPasso = 0;
 }
 
@@ -1069,7 +1103,9 @@ void Vitor::AtualizarJantar(const float deltaTime) {
         const Vector2 de = NoCampo(Filosofos::Lugar(f, campo.w));
         DispararEm(Filosofos::kGatilhoDaGarfada, de, Filosofos::kGarfadasPorLeque, Angulo(de, aluno), kAbertoDaGarfada,
                    mDegrauDoJantar.rapidez);
-        proxima = u + mDegrauDoJantar.entreGarfadas;
+        proxima = u + mDegrauDoJantar.entreGarfadas *
+                      Acaso(Filosofos::kFaseDoJantar).Real(1.0f - Filosofos::kDesvioDaGarfada,
+                                                           1.0f + Filosofos::kDesvioDaGarfada);
     }
 
     // O professor e o monitor: no deadlock vai ate a vitima; fora dele, vai ate quem come.
@@ -1150,10 +1186,11 @@ void Vitor::ComecarRodadaDasMensagens(const int k) {
     mEnvelopes.clear();
     mRodadaDasMensagens = k;
     mInicioDasMensagens = Mensagens::kComeca + static_cast<float>(k) * Mensagens::kPorRodada;
-    mRoteiroDasMensagens = Mensagens::Roteiro(RodadaDasMensagens(k), mPlanoDasMensagens, mDegrauDasMensagens);
+    // A latencia desta rodada: cada envelope leva o seu tempo.
+    mRoteiroDasMensagens = Mensagens::Roteiro(RodadaDasMensagens(k), mPlanoDasMensagens, mDegrauDasMensagens,
+                                              &Acaso(Mensagens::kFaseDasMensagens));
     mProximaMensagem = 0;
     mChamadaDaRpc = 0;
-    mRecebidas = 0;
     mEsperandoRpc = false;
     mEstourou = false;
 
@@ -1193,7 +1230,8 @@ void Vitor::ExecutarMensagem(const Mensagens::Evento& e) {
             const Vector2 de = PosicaoDe(e.de);
             const int leque = mDegrauDasMensagens.lequeDoRecebido;
             DispararEm(Mensagens::kGatilhoDoProcessado, de, leque,
-                       AnguloAdiante(de, processado, Tcp::Antecipacao(mRecebidas++, false)),
+                       AnguloAdiante(de, processado,
+                                     Tcp::Antecipacao(Acaso(Mensagens::kFaseDasMensagens).Inteiro(0, 1), false)),
                        leque > 1 ? std::optional<float>(mDegrauDasMensagens.aberturaDoRecebido) : std::nullopt, rapidez);
             break;
         }

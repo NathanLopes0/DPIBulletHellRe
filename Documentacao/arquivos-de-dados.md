@@ -283,11 +283,24 @@ a mesma semente repete a luta inteira, que é o que a simulação e a linha de b
 precisam. Ligar um campo não muda o que os outros sorteiam.
 
 O giro vale **depois** do professor mirar (`CustomizeAttackParams`): o leque
-mirado no aluno sai torto até `giro` graus, e não perde o alvo. Os valores fora
+mirado no aluno sai até `giro` graus torto, em volta dele. Os valores fora
 da faixa, de tipo errado ou de nome desconhecido não recusam a fase: saem no log
 (`FASES em ...`) e o ataque continua, só sem aquela variação — e o teste
 "o fases.json de cada chefe não tem problema nenhum" falha, para ninguém
 publicar um `variar` que não vale.
+
+**O que varia no código.** O `variar` é o disparo de um ataque. O que é do
+professor — o ritmo de um roteiro, quem age primeiro, quanto cada coisa demora —
+ele sorteia no próprio código, da mesma semente (`Boss::SorteioDaFase`). O Vitor,
+por exemplo, é a matéria do não determinismo: na fase 1 cada thread manda as
+instruções no seu ritmo, o escalonador decide quanto cada uma fica na seção
+crítica e a corrida dá um saldo errado diferente a cada luta; na 2 o RTT varia e,
+depois do slow start, o enlace às vezes perde um segmento no caminho (o ruído), que
+estoura onde estava e que o TCP trata como congestionamento; na 3 cada envelope tem
+a sua latência, e na assíncrona eles chegam fora de ordem; no jantar ninguém pensa
+nem come o mesmo tempo duas vezes. As regras de cada fase continuam valendo em
+qualquer sorteio — os testes de `Semaforo`, `Tcp`, `Mensagens` e `Filosofos`
+conferem centenas deles.
 
 ### Blocos de estratégia
 

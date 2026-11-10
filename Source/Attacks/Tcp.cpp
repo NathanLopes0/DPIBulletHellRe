@@ -27,11 +27,11 @@ namespace Tcp {
     }
 
     Desfecho Reconhecer(Conexao& c, const Janela& j) {
-        if (j.perdidos > 0) {
+        if (j.Perdas() > 0) {
             c.ssthresh = std::max(kMenorSsthresh, c.cwnd / 2);
             c.cwnd = c.ssthresh;
             c.estado = Estado::Evitacao;
-            c.aRetransmitir = j.perdidos;
+            c.aRetransmitir = j.Perdas();
             return Desfecho::Cortou;
         }
         if (c.estado == Estado::SlowStart) {
@@ -51,6 +51,22 @@ namespace Tcp {
         c.cwnd = kJanelaInicial;
         c.estado = Estado::SlowStart;
         c.aRetransmitir = 0;
+    }
+
+    bool Ruido(Janela& j, const Conexao& c, Variacao::Sorteio& s, const float chance) {
+        // Os dois sorteios sempre saem: a sequencia da luta nao depende da janela.
+        const bool perde = s.Chance(chance);
+        const float onde = s.Real(0.0f, 1.0f);
+        const int aceitos = j.Total() - j.perdidos;
+        if (!perde || c.estado != Estado::Evitacao || aceitos < kMenorJanelaDoRuido) return false;
+        const int ultimo = aceitos - 4;   // os tres depois dele chegam
+        j.ruido = std::min(ultimo, static_cast<int>(onde * static_cast<float>(ultimo + 1)));
+        return true;
+    }
+
+    float Descanso(Variacao::Sorteio& s, const int janela) {
+        const float sorteado = kDescansa * s.Real(1.0f - kDesvioDoRtt, 1.0f + kDesvioDoRtt);
+        return std::max(sorteado, static_cast<float>(std::max(0, janela - 1)) * kEntreSegmentos);
     }
 
     Ponto Mira(const Ponto de, const Ponto aluno, const Ponto velocidade, const float rapidez, const float quanto) {
