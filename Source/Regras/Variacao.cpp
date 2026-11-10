@@ -45,6 +45,30 @@ std::uint32_t SementeNova() {
     return Misturar(s, ++chamadas);
 }
 
+Disparo Sortear(Sorteio& s, const DoDisparo& v) {
+    // Todos com Real, na mesma ordem: um Inteiro de faixa vazia nao gastaria o gerador.
+    const float giro = s.Real(-1.0f, 1.0f);
+    const float abertura = s.Real(-1.0f, 1.0f);
+    const float velocidade = s.Real(-1.0f, 1.0f);
+    const float projeteis = s.Real(0.0f, 1.0f);
+    const float espera = s.Real(-1.0f, 1.0f);
+
+    Disparo d;
+    d.giro = giro * v.giro;
+    d.abertura = 1.0f + abertura * v.abertura;
+    d.velocidade = 1.0f + velocidade * v.velocidade;
+    // Um inteiro de -p a p, todos com a mesma chance.
+    const int p = std::max(0, v.projeteis);
+    d.projeteis = static_cast<int>(projeteis * static_cast<float>(2 * p + 1)) - p;
+    d.espera = 1.0f + espera * v.cadencia;
+    return d;
+}
+
+int Projeteis(const int n, const int mais) {
+    if (n <= 0) return n;
+    return std::max(1, n + mais);
+}
+
 int Sorteio::Inteiro(const int de, const int ate) {
     if (ate <= de) return de;
     const std::uint64_t n = static_cast<std::uint64_t>(static_cast<std::int64_t>(ate) - de) + 1u;

@@ -159,3 +159,94 @@ TEST_CASE("Variacao: duas sementes novas seguidas nao saem iguais") {
     const std::uint32_t b = Variacao::SementeNova();
     CHECK(a != b);
 }
+
+// ---- O disparo de cada vez ("variar" em fases.json) ----
+
+TEST_CASE("Variacao: sem variar, o disparo e o do arquivo") {
+    Variacao::Sorteio s(7);
+    for (int i = 0; i < 50; ++i) {
+        const Variacao::Disparo d = Variacao::Sortear(s, Variacao::DoDisparo{});
+        CHECK(d.giro == 0.0f);
+        CHECK(d.abertura == 1.0f);
+        CHECK(d.velocidade == 1.0f);
+        CHECK(d.projeteis == 0);
+        CHECK(d.espera == 1.0f);
+    }
+}
+
+TEST_CASE("Variacao: o disparo fica na faixa, sai todo valor dela, e a media e a do arquivo") {
+    Variacao::DoDisparo v;
+    v.giro = 10.0f;
+    v.abertura = 0.2f;
+    v.velocidade = 0.1f;
+    v.projeteis = 2;
+    v.cadencia = 0.25f;
+    Variacao::Sorteio s(2026);
+    double giro = 0, abertura = 0, velocidade = 0, projeteis = 0, espera = 0;
+    int contagem[5] = {};
+    const int n = 20000;
+    for (int i = 0; i < n; ++i) {
+        const Variacao::Disparo d = Variacao::Sortear(s, v);
+        REQUIRE(d.giro >= -10.0f);
+        REQUIRE(d.giro <= 10.0f);
+        REQUIRE(d.abertura >= 0.8f);
+        REQUIRE(d.abertura <= 1.2f);
+        REQUIRE(d.velocidade >= 0.9f);
+        REQUIRE(d.velocidade <= 1.1f);
+        REQUIRE(d.projeteis >= -2);
+        REQUIRE(d.projeteis <= 2);
+        REQUIRE(d.espera >= 0.75f);
+        REQUIRE(d.espera <= 1.25f);
+        ++contagem[d.projeteis + 2];
+        giro += d.giro;
+        abertura += d.abertura;
+        velocidade += d.velocidade;
+        projeteis += d.projeteis;
+        espera += d.espera;
+    }
+    // Simetrico em volta do arquivo: a dificuldade media nao muda.
+    CHECK(std::abs(giro / n) < 0.2);
+    CHECK(abertura / n == doctest::Approx(1.0).epsilon(0.005));
+    CHECK(velocidade / n == doctest::Approx(1.0).epsilon(0.005));
+    CHECK(std::abs(projeteis / n) < 0.05);
+    CHECK(espera / n == doctest::Approx(1.0).epsilon(0.005));
+    for (const int c : contagem) CHECK(c > n / 7);
+}
+
+TEST_CASE("Variacao: ligar uma variacao nao muda o que as outras sorteiam") {
+    Variacao::DoDisparo so;
+    so.giro = 10.0f;
+    Variacao::DoDisparo mais = so;
+    mais.velocidade = 0.3f;
+    mais.projeteis = 1;
+    Variacao::Sorteio a(99), b(99);
+    for (int i = 0; i < 100; ++i) {
+        CHECK(Variacao::Sortear(a, so).giro == Variacao::Sortear(b, mais).giro);
+    }
+}
+
+TEST_CASE("Variacao: a mesma semente da os mesmos disparos") {
+    Variacao::DoDisparo v;
+    v.giro = 15.0f;
+    v.cadencia = 0.3f;
+    Variacao::Sorteio a = Variacao::SorteioDa(1234, "StateOne#0");
+    Variacao::Sorteio b = Variacao::SorteioDa(1234, "StateOne#0");
+    Variacao::Sorteio outro = Variacao::SorteioDa(1234, "StateOne#1");
+    bool algumDiferente = false;
+    for (int i = 0; i < 20; ++i) {
+        const Variacao::Disparo da = Variacao::Sortear(a, v);
+        const Variacao::Disparo db = Variacao::Sortear(b, v);
+        CHECK(da.giro == db.giro);
+        CHECK(da.espera == db.espera);
+        if (Variacao::Sortear(outro, v).giro != da.giro) algumDiferente = true;
+    }
+    // Cada ataque da fase tem a sua sequencia.
+    CHECK(algumDiferente);
+}
+
+TEST_CASE("Variacao: a quantidade nunca cai abaixo de um, e zero continua zero") {
+    CHECK(Variacao::Projeteis(1, -3) == 1);
+    CHECK(Variacao::Projeteis(5, -2) == 3);
+    CHECK(Variacao::Projeteis(5, 2) == 7);
+    CHECK(Variacao::Projeteis(0, 2) == 0);
+}

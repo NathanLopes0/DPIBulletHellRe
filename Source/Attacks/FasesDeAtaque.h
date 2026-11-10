@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../Regras/Dificuldade.h"
+#include "../Regras/Variacao.h"
 
 #include <cstdint>
 #include <map>
@@ -148,6 +149,9 @@ struct DescricaoDeAtaque {
 
     /// O degrau do Dificil, se o arquivo escreveu um.
     std::optional<DescricaoDoDificil> dificil;
+
+    /// O quanto cada disparo muda (o bloco "variar"); sem ele, todo disparo e igual ao arquivo.
+    std::optional<Variacao::DoDisparo> variar;
 };
 
 /// O ataque no modo: no Dificil, com o que o bloco "dificil" troca; no Normal (ou sem bloco),

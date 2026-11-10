@@ -237,6 +237,7 @@ fase só declara o `clone`.
 | `intervalo` | atraso entre um projétil e o seguinte — só a `WaveAttack` e a `TokenAttack` leem |
 | `cooldown` | segundos entre dois disparos |
 | `dificil` | opcional. O **degrau do modo Difícil** deste ataque: `{ "cooldown": 1.25, "velocidade": 160, "projeteis": 18 }`, cada campo opcional, e o ausente fica como no Normal. Vale ao **montar** o ataque, e não a cada disparo: o `AttackParams` nasce com os números do modo, e o C++ que os lê vê o número certo. Serve aos ataques de relógio, e à quantidade de projéteis dos de gatilho (o Vladimir lê mais letras no Difícil); a velocidade de um de gatilho o professor muda na hora (`Boss::Disparar(gatilho, alvo, rapidez)`). Uma chave desconhecida é recusada |
+| `variar` | opcional. O quanto **cada disparo muda** do anterior: `{ "giro": 12, "abertura": 0.2, "velocidade": 0.1, "projeteis": 1, "cadencia": 0.25 }`, cada campo opcional. Veja *A variação de cada disparo*, abaixo |
 | `regras` | o nome de um conjunto de `regras.json`, ou a lista escrita ali mesmo |
 
 > **Campo omitido = padrão do motor.** A ponte só escreve no `AttackParams` o que
@@ -256,6 +257,37 @@ partir do ritmo do ataque:
 
 `doRitmo` é `"total"` ou `"ciclo"`. Serve para que mexer no ritmo não exija
 recalcular o cooldown à mão.
+
+**A variação de cada disparo.** Sem `variar`, todo disparo de um ataque é igual
+ao arquivo: o mesmo leque, no mesmo ângulo, no mesmo ritmo — e uma fase que se
+decora. Com ele, cada disparo sorteia um pouco de cada coisa:
+
+```json
+"variar": { "giro": 12, "abertura": 0.2, "velocidade": 0.1,
+            "projeteis": 1, "cadencia": 0.25 }
+```
+
+| Campo | Cada disparo |
+|---|---|
+| `giro` | gira o leque (ou o anel) inteiro até tantos **graus** para cada lado. De 0 a 180 |
+| `abertura` | abre ou fecha o leque nesta **fração** do `angulo`: 0.2 vai de 80% a 120%. De 0 a 0.9 |
+| `velocidade` | a mesma fração, na velocidade. De 0 a 0.9 |
+| `projeteis` | até tantos projéteis **a mais ou a menos**, nunca abaixo de um. Inteiro de 0 a 10 |
+| `cadencia` | a fração do `cooldown` até o disparo seguinte: 0.25 espera de 75% a 125%. Só nos ataques do relógio — no de `gatilho`, quem decide quando sai é o professor. De 0 a 0.9 |
+
+O sorteio é por igual para cada lado, e por isso **a média é o arquivo**: o
+ataque não fica mais fácil nem mais difícil, só deixa de ser decorável. Ele sai
+da **semente da batalha** (`BATALHA: semente N` no log, a coluna `semente` de
+`tentativas.csv`): cada ataque de cada fase tem a sua sequência, e o clone a sua;
+a mesma semente repete a luta inteira, que é o que a simulação e a linha de base
+precisam. Ligar um campo não muda o que os outros sorteiam.
+
+O giro vale **depois** do professor mirar (`CustomizeAttackParams`): o leque
+mirado no aluno sai torto até `giro` graus, e não perde o alvo. Os valores fora
+da faixa, de tipo errado ou de nome desconhecido não recusam a fase: saem no log
+(`FASES em ...`) e o ataque continua, só sem aquela variação — e o teste
+"o fases.json de cada chefe não tem problema nenhum" falha, para ninguém
+publicar um `variar` que não vale.
 
 ### Blocos de estratégia
 

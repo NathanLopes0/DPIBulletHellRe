@@ -274,7 +274,7 @@ bool ConfigurarFasesDeArquivo(Boss* boss, FSMComponent* fsm, const std::string& 
             }
 
             boss->AddAttackPattern(fase.nome, std::move(estrategia), CriarParams(a),
-                                   a.cooldown, configurator, janelaDe, janelaAte, a.gatilho);
+                                   a.cooldown, configurator, janelaDe, janelaAte, a.gatilho, a.variar);
         }
 
         auto estado = std::make_unique<BossAttackState>(fsm, fase.nome, fase.duracao, fase.proximo);

@@ -74,4 +74,34 @@ namespace Variacao {
     inline Sorteio SorteioDa(const std::uint32_t semente, const std::string& fase) {
         return Sorteio(Misturar(semente, Rotulo(fase)));
     }
+
+    // ---- O disparo de cada vez ----
+
+    /// O quanto um ataque muda de um disparo para o outro ("variar" em fases.json). Cada valor e o
+    /// desvio maximo para cada lado, sorteado por igual: a media fica a do arquivo - e a dificuldade
+    /// tambem.
+    struct DoDisparo {
+        float giro = 0.0f;        ///< graus: o leque (ou o anel) inteiro gira ate isto para cada lado
+        float abertura = 0.0f;    ///< fracao do angulo do leque: 0.2 abre de 80% a 120%
+        float velocidade = 0.0f;  ///< fracao da velocidade
+        int projeteis = 0;        ///< ate isto a mais ou a menos, nunca abaixo de um
+        float cadencia = 0.0f;    ///< fracao da espera ate o proximo disparo (so os ataques do relogio)
+    };
+
+    /// O que o sorteio deu para um disparo.
+    struct Disparo {
+        float giro = 0.0f;        ///< graus a somar no centro do leque
+        float abertura = 1.0f;    ///< o que multiplica o angulo do leque
+        float velocidade = 1.0f;  ///< o que multiplica a velocidade
+        int projeteis = 0;        ///< o que somar na quantidade
+        float espera = 1.0f;      ///< o que multiplica o cooldown ate o proximo disparo
+    };
+
+    /// Um disparo. Os cinco valores saem sempre, e na mesma ordem: ligar um nao muda o que os outros
+    /// sorteiam.
+    Disparo Sortear(Sorteio& s, const DoDisparo& v);
+
+    /// Quantos projeteis saem com 'n' no arquivo e 'mais' do sorteio: nunca menos que um (e zero
+    /// continua zero).
+    int Projeteis(int n, int mais);
 }

@@ -58,6 +58,16 @@ public:
         /// O gatilho que o dispara, de fases.json. Vazio = o relogio: o ataque dispara a cada
         /// cooldown.
         std::string gatilho;
+
+        /// O quanto cada disparo muda ("variar" em fases.json); sem ele, todo disparo e igual.
+        std::optional<Variacao::DoDisparo> variar;
+        /// A posicao do ataque na fase: o rotulo da sequencia dele (SortearDisparo).
+        size_t indice = 0;
+        /// A sequencia deste ataque nesta luta, criada no primeiro disparo - quando a semente da
+        /// batalha ja existe.
+        mutable std::optional<Variacao::Sorteio> sorteio;
+        /// O que multiplica o cooldown ate o proximo disparo, do ultimo sorteio.
+        mutable float espera = 1.0f;
     };
 
     // Quando sai o primeiro disparo de cada ataque (kPrimeiroDisparoDaFase e
@@ -70,7 +80,8 @@ public:
                           ProjectileConfigurator config = nullptr,
                           float janelaDe = 0.0f,
                           float janelaAte = 1.0e9f,
-                          std::string gatilho = "");
+                          std::string gatilho = "",
+                          std::optional<Variacao::DoDisparo> variar = std::nullopt);
 
     void SetInitialState(const std::string& stateName);
 
@@ -249,6 +260,10 @@ private:
 
     // Função interna para executar um ataque específico.
     void ExecuteAttack(const AttackDefinition& attackDef, const std::string& stateName, float rapidez = 1.0f);
+
+    /// O disparo da vez de um ataque com "variar", da sequencia dele: a semente da batalha, a fase, a
+    /// posicao do ataque e o corpo (o clone tem a sua).
+    Variacao::Disparo SortearDisparo(const AttackDefinition& def, const std::string& stateName) const;
 
     void CalculateNextDropThreshold();
     int mHitCounter = 0;

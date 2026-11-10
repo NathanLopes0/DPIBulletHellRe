@@ -1141,3 +1141,51 @@ TEST_CASE("Fases: o bloco dificil do movimento avisa o que ninguem le, e fica co
     CHECK(meio.problemas.size() == 1);
     CHECK(NoNivel(meio.fases[0].movimento, Dificuldade::Nivel::Dificil).a == doctest::Approx(700.0f));
 }
+
+// ---- O bloco "variar": o quanto cada disparo muda ----
+
+TEST_CASE("Fases: o bloco variar e lido, e o que esta errado nele fica de fora com aviso") {
+    const auto r = LerFases(R"({
+ "StateOne": { "proximo": "StateFinal", "ataques": [
+        { "estrategia": "WaveAttack", "projetil": "Capivara", "projeteis": 8, "angulo": 315,
+          "cooldown": 2,
+          "variar": { "giro": 12, "abertura": 0.15, "velocidade": 2, "projeteis": 1, "cadencia": 0.2,
+                      "tamanho": 3 } } ] },
+ "StateFinal": { "ataques": [
+        { "estrategia": "AngledAttack", "projetil": "Capivara", "cooldown": 1 } ] }
+    })");
+    const auto& a = r.fases.at(1).ataques.at(0);   // StateOne
+    REQUIRE(a.variar.has_value());
+    CHECK(a.variar->giro == doctest::Approx(12.0f));
+    CHECK(a.variar->abertura == doctest::Approx(0.15f));
+    CHECK(a.variar->velocidade == 0.0f);      // 2 passa do teto: fica de fora
+    CHECK(a.variar->projeteis == 1);
+    CHECK(a.variar->cadencia == doctest::Approx(0.2f));
+    bool velocidade = false, tamanho = false;
+    for (const auto& p : r.problemas) {
+        if (p.find("variar.velocidade") != std::string::npos) velocidade = true;
+        if (p.find("variar.tamanho") != std::string::npos) tamanho = true;
+    }
+    CHECK(velocidade);
+    CHECK(tamanho);
+
+    // Sem o bloco, o ataque nao varia.
+    CHECK_FALSE(r.fases.at(0).ataques.at(0).variar.has_value());
+}
+
+TEST_CASE("Fases: a cadencia so varia no ataque do relogio") {
+    const auto r = LerFases(R"({
+ "StateOne": { "proximo": "StateFinal", "ataques": [
+        { "gatilho": "instrucao", "estrategia": "WaveAttack", "projetil": "Instrucao", "projeteis": 1,
+          "variar": { "cadencia": 0.3, "velocidade": 0.1 } } ] },
+ "StateFinal": { "ataques": [
+        { "estrategia": "AngledAttack", "projetil": "Capivara", "cooldown": 1 } ] }
+    })");
+    const auto& a = r.fases.at(1).ataques.at(0);
+    REQUIRE(a.variar.has_value());
+    CHECK(a.variar->cadencia == 0.0f);
+    CHECK(a.variar->velocidade == doctest::Approx(0.1f));
+    bool avisou = false;
+    for (const auto& p : r.problemas) if (p.find("variar.cadencia") != std::string::npos) avisou = true;
+    CHECK(avisou);
+}

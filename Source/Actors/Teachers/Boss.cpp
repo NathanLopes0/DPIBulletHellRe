@@ -131,15 +131,19 @@ void Boss::OnUpdate(float deltaTime) {
 
             if (attackDefinition.currentTimer <= 0.0f) {
                 ExecuteAttack(attackDefinition, currState);
-                attackDefinition.currentTimer = attackDefinition.cooldownTotal;
+                // A cadencia sorteada no disparo (Variacao::Disparo::espera); sem "variar", 1.
+                attackDefinition.currentTimer = attackDefinition.cooldownTotal * attackDefinition.espera;
             }
         }
     }
 }
 
 void Boss::AddAttackPattern(const std::string &stateName, std::unique_ptr<IAttackStrategy> strategy, std::unique_ptr<AttackParams> params, float cooldown, ProjectileConfigurator config,
-                            const float janelaDe, const float janelaAte, std::string gatilho) {
+                            const float janelaDe, const float janelaAte, std::string gatilho,
+                            std::optional<Variacao::DoDisparo> variar) {
     AttackDefinition def;
+    def.variar = variar;
+    def.indice = mAttacksMap[stateName].size();
     def.janelaDe = janelaDe;
     def.janelaAte = janelaAte;
     def.gatilho = std::move(gatilho);
@@ -189,11 +193,26 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
         }
     }
 
-    // ---- Executa o ataque ---------- // ----
-    const float velocidadeDoArquivo = attackDef.params->projectileSpeed;
-    attackDef.params->projectileSpeed = velocidadeDoArquivo * rapidez;
-    auto projectiles = attackDef.strategy->Execute(*(attackDef.params));
-    attackDef.params->projectileSpeed = velocidadeDoArquivo;
+    // ---- Executa o ataque, com a variacao do disparo ("variar" em fases.json) ---------- // ----
+    AttackParams& p = *attackDef.params;
+    const int projeteisDoArquivo = p.numProjectiles;
+    const float velocidadeDoArquivo = p.projectileSpeed;
+    const float aberturaDoArquivo = p.angle;
+    const float centroDoArquivo = p.centralAngle;
+    p.projectileSpeed = velocidadeDoArquivo * rapidez;
+    if (attackDef.variar) {
+        const Variacao::Disparo d = SortearDisparo(attackDef, stateName);
+        p.centralAngle += d.giro;
+        p.angle *= d.abertura;
+        p.projectileSpeed *= d.velocidade;
+        p.numProjectiles = Variacao::Projeteis(p.numProjectiles, d.projeteis);
+        attackDef.espera = d.espera;
+    }
+    auto projectiles = attackDef.strategy->Execute(p);
+    p.numProjectiles = projeteisDoArquivo;
+    p.projectileSpeed = velocidadeDoArquivo;
+    p.angle = aberturaDoArquivo;
+    p.centralAngle = centroDoArquivo;
     // ---- ------- - ------ ---------- // ----
 
     // Um disparo que nao soltou nada nao e disparo: nao passa a vez e nao faz barulho.
@@ -278,6 +297,13 @@ Vector2 Boss::GetPredictedPlayerDirection(const float leadTime) const {
 Dificuldade::Nivel Boss::NivelDeDificuldade() const {
     if (const auto* batalha = dynamic_cast<const Battle*>(mScene)) return batalha->NivelDeDificuldade();
     return Dificuldade::Nivel::Normal;
+}
+
+Variacao::Disparo Boss::SortearDisparo(const AttackDefinition& def, const std::string& stateName) const {
+    if (!def.sorteio) {
+        def.sorteio = SorteioDaFase(stateName + (mEhClone ? "#clone#" : "#") + std::to_string(def.indice));
+    }
+    return Variacao::Sortear(*def.sorteio, def.variar ? *def.variar : Variacao::DoDisparo{});
 }
 
 Variacao::Sorteio Boss::SorteioDaFase(const std::string& fase) const {

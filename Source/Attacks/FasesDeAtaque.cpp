@@ -7,6 +7,7 @@
 #include <optional>
 
 #include <algorithm>
+#include <cstdio>
 
 #include "../Regras/Tabela.h"
 
@@ -650,6 +651,62 @@ namespace {
         return true;
     }
 
+    /// O maior desvio que "variar" aceita numa fracao (abertura, velocidade, cadencia): 90%.
+    constexpr float kMaiorFracaoDaVariacao = 0.9f;
+    constexpr float kMaiorGiro = 180.0f;
+    constexpr int kMaisProjeteis = 10;
+
+    /// O bloco "variar": o quanto cada disparo muda (Variacao::DoDisparo). O que ele tem de errado fica
+    /// de fora, com aviso: o ataque continua, so sem aquela variacao.
+    bool LerBlocoDeVariacao(const nlohmann::json& j, const std::string& onde,
+                            std::vector<std::string>& problemas, DescricaoDeAtaque& saida) {
+        if (!j.contains("variar")) return true;
+        const auto& v = j["variar"];
+        if (!v.is_object()) {
+            problemas.emplace_back(onde + "\"variar\" deveria ser um objeto, como { \"giro\": 10 }; ignorado");
+            return true;
+        }
+        Variacao::DoDisparo d;
+        const auto numero = [&](const char* nome, const float maior, float& destino) {
+            if (!v.contains(nome)) return;
+            if (!v[nome].is_number() || v[nome].get<float>() < 0.0f || v[nome].get<float>() > maior) {
+                char faixa[48];
+                std::snprintf(faixa, sizeof(faixa), "de 0 a %g", static_cast<double>(maior));
+                problemas.emplace_back(onde + "\"variar." + nome + "\" precisa ser um numero " + faixa + "; ignorado");
+                return;
+            }
+            destino = v[nome].get<float>();
+        };
+        numero("giro", kMaiorGiro, d.giro);
+        numero("abertura", kMaiorFracaoDaVariacao, d.abertura);
+        numero("velocidade", kMaiorFracaoDaVariacao, d.velocidade);
+        numero("cadencia", kMaiorFracaoDaVariacao, d.cadencia);
+        if (v.contains("projeteis")) {
+            if (!v["projeteis"].is_number_integer() || v["projeteis"].get<int>() < 0 ||
+                v["projeteis"].get<int>() > kMaisProjeteis) {
+                problemas.emplace_back(onde + "\"variar.projeteis\" precisa ser um inteiro de 0 a " +
+                                       std::to_string(kMaisProjeteis) + "; ignorado");
+            } else {
+                d.projeteis = v["projeteis"].get<int>();
+            }
+        }
+        for (auto it = v.begin(); it != v.end(); ++it) {
+            const std::string& k = it.key();
+            if (k != "giro" && k != "abertura" && k != "velocidade" && k != "projeteis" && k != "cadencia") {
+                problemas.emplace_back(onde + "\"variar." + k + "\" nao existe (giro, abertura, velocidade, "
+                                              "projeteis, cadencia); ignorado");
+            }
+        }
+        // O ataque de gatilho sai quando o chefe puxa: nao tem espera para variar.
+        if (d.cadencia > 0.0f && !saida.gatilho.empty()) {
+            problemas.emplace_back(onde + "\"variar.cadencia\" so vale nos ataques do relogio, e este tem "
+                                          "\"gatilho\"; ignorado");
+            d.cadencia = 0.0f;
+        }
+        saida.variar = d;
+        return true;
+    }
+
     /// Le um ataque. Devolve false quando a descricao e inaproveitavel.
     bool LerAtaque(const nlohmann::json& j, const std::string& onde,
                    std::vector<std::string>& problemas, DescricaoDeAtaque& saida) {
@@ -666,7 +723,8 @@ namespace {
             && LerBlocoDeSprint(j, onde, problemas, saida)
             && LerBlocoDeTokens(j, onde, problemas, saida)
             && LerBlocoDePalavra(j, onde, problemas, saida)
-            && LerBlocoDePontos(j, onde, problemas, saida);
+            && LerBlocoDePontos(j, onde, problemas, saida)
+            && LerBlocoDeVariacao(j, onde, problemas, saida);
     }
 
 }
