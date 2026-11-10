@@ -22,7 +22,7 @@
         "regras": "cronograma" },
       { "estrategia": "WaveAttack", "projetil": "Pagina",
         "projeteis": 5, "velocidade": 230, "angulo": 40, "intervalo": 0,
-        "cooldown": 1.7,
+        "cooldown": 1.7, "variar": { "cadencia": 0.2 },
         "dificil": { "projeteis": 6, "cooldown": 1.15 } }
     ]
   },
@@ -47,7 +47,7 @@
         "dificil": { "velocidade": 450 } },
       { "estrategia": "WaveAttack", "projetil": "Monografia",
         "projeteis": 1, "velocidade": 150, "angulo": 0, "intervalo": 0,
-        "cooldown": 3.0,
+        "cooldown": 3.0, "variar": { "cadencia": 0.2 },
         "dificil": { "cooldown": 2.6 } }
     ]
   },
@@ -72,7 +72,7 @@
         "dificil": { "velocidade": 450 } },
       { "estrategia": "WaveAttack", "projetil": "Pergunta",
         "projeteis": 3, "velocidade": 200, "angulo": 40, "intervalo": 0.05,
-        "cooldown": 2.0,
+        "cooldown": 2.0, "variar": { "cadencia": 0.2 },
         "dificil": { "cooldown": 1.8 },
         "regras": "perguntas" }
     ]
@@ -98,7 +98,7 @@
         "dificil": { "velocidade": 450 } },
       { "estrategia": "CircleSpreadAttack", "projetil": "Pagina",
         "projeteis": 12, "velocidade": 140,
-        "cooldown": 2.6 }
+        "cooldown": 2.6, "variar": { "giro": 15, "cadencia": 0.2 } }
     ]
   }
 }

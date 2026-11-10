@@ -28,7 +28,7 @@
     "ataques": [
       { "estrategia": "WaveAttack", "projetil": "Agente",
         "projeteis": 3, "velocidade": 260, "angulo": 120, "intervalo": 0,
-        "cooldown": 6.0,
+        "cooldown": 6.0, "variar": { "cadencia": 0.2 },
         "regras": "convocar" },
       { "gatilho": "agir", "estrategia": "PontosAttack", "projetil": "Ferramenta",
         "projeteis": 1, "velocidade": 250, "angulo": 26,
@@ -46,7 +46,7 @@
     "ataques": [
       { "estrategia": "CircleSpreadAttack", "projetil": "Guardrail",
         "projeteis": 8, "velocidade": 160,
-        "cooldown": 6.0,
+        "cooldown": 6.0, "variar": { "giro": 22.5 },
         "regras": "guardrails" },
       { "estrategia": "TokenAttack", "projetil": "Token",
         "projeteis": 1, "velocidade": 300, "cooldown": 0.35, "intervalo": 0.06,
@@ -65,11 +65,11 @@
     "ataques": [
       { "estrategia": "CircleSpreadAttack", "projetil": "Token",
         "projeteis": 10, "velocidade": 150,
-        "cooldown": 1.6,
+        "cooldown": 1.6, "variar": { "giro": 18, "cadencia": 0.2 },
         "dificil": { "cooldown": 1.3 },
         "regras": "final_laco" },
       { "estrategia": "TokenAttack", "projetil": "Token",
-        "projeteis": 5, "velocidade": 280, "intervalo": 0.08, "cooldown": 2.2,
+        "projeteis": 5, "velocidade": 280, "intervalo": 0.08, "cooldown": 2.2, "variar": { "cadencia": 0.2 },
         "dificil": { "cooldown": 1.7, "velocidade": 320 },
         "tokens": { "temperatura": 0.3, "frase": ["e"] } }
     ]

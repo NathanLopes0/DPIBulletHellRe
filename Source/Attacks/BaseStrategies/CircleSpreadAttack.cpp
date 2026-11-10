@@ -53,8 +53,10 @@ std::vector<std::unique_ptr<Projectile>> CircleSpreadAttack::Execute(const Attac
         projectile->SetPosition(params.firePosition);
 
         // Lógica de direção de cada projétil.
-        const float xCoordRad = Math::Cos(static_cast<float>(i) * angleStep * Math::Pi / 180);
-        const float yCoordRad = Math::Sin(static_cast<float>(i) * angleStep * Math::Pi / 180);
+        // O anel comeca em zero grau, girado pelo sorteio do disparo (zero sem "variar").
+        const float graus = params.giroDoDisparo + static_cast<float>(i) * angleStep;
+        const float xCoordRad = Math::Cos(graus * Math::Pi / 180);
+        const float yCoordRad = Math::Sin(graus * Math::Pi / 180);
         auto directionVector = Vector2(xCoordRad, yCoordRad);
         directionVector.Normalize();
 

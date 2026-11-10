@@ -283,7 +283,14 @@ a mesma semente repete a luta inteira, que é o que a simulação e a linha de b
 precisam. Ligar um campo não muda o que os outros sorteiam.
 
 O giro vale **depois** do professor mirar (`CustomizeAttackParams`): o leque
-mirado no aluno sai até `giro` graus torto, em volta dele. Os valores fora
+mirado no aluno sai até `giro` graus torto, em volta dele. O anel da
+`CircleSpreadAttack` não mira ninguém — sem `giro` ele sai sempre no mesmo
+ângulo, e a fresta entre dois projéteis fica no mesmo lugar a luta inteira;
+com `giro` de meio espaço (180 dividido pela quantidade: 15 num anel de 12),
+cada anel sai num ângulo qualquer. Já o anel **mirado** (um caco no aluno,
+`Coercao::CentroDoAnel`) perde a mira com qualquer giro: nele, varie a
+`velocidade`. E o ritmo que é o tema da fase fica fixo — o clock do Ricardo, os
+sprints da Maria Lúcia. Os valores fora
 da faixa, de tipo errado ou de nome desconhecido não recusam a fase: saem no log
 (`FASES em ...`) e o ataque continua, só sem aquela variação — e o teste
 "o fases.json de cada chefe não tem problema nenhum" falha, para ninguém

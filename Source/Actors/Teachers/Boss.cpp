@@ -203,6 +203,7 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
     if (attackDef.variar) {
         const Variacao::Disparo d = SortearDisparo(attackDef, stateName);
         p.centralAngle += d.giro;
+        p.giroDoDisparo = d.giro;
         p.angle *= d.abertura;
         p.projectileSpeed *= d.velocidade;
         p.numProjectiles = Variacao::Projeteis(p.numProjectiles, d.projeteis);
@@ -213,6 +214,7 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
     p.projectileSpeed = velocidadeDoArquivo;
     p.angle = aberturaDoArquivo;
     p.centralAngle = centroDoArquivo;
+    p.giroDoDisparo = 0.0f;
     // ---- ------- - ------ ---------- // ----
 
     // Um disparo que nao soltou nada nao e disparo: nao passa a vez e nao faz barulho.

@@ -37,4 +37,9 @@ struct AttackParams
 
     /// Atraso entre a criação de cada projétil (em segundos). Usado por ataques tipo "Wave".
     float creationSpeed = 0.05f;
+
+    /// O giro sorteado do disparo ("variar" em fases.json), em graus. O leque gira pelo
+    /// centralAngle; o anel da CircleSpreadAttack, que nao tem centro, gira por este. Fora do
+    /// disparo, zero.
+    float giroDoDisparo = 0.0f;
 };

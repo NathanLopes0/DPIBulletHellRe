@@ -24,7 +24,7 @@
         "dificil": { "projeteis": 4 },
         "regras": "letra_b" },
       { "gatilho": "aceita", "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
-        "projeteis": 14, "velocidade": 200,
+        "projeteis": 14, "velocidade": 200, "variar": { "giro": 12.5 },
         "regras": "letra_a" },
       { "gatilho": "rejeita", "estrategia": "WaveAttack", "projetil": "Simbolo",
         "projeteis": 4, "velocidade": 220, "angulo": 60, "intervalo": 0,
@@ -63,7 +63,7 @@
         "projeteis": 1, "velocidade": 220, "angulo": 16, "intervalo": 0,
         "dificil": { "projeteis": 2, "velocidade": 280 } },
       { "gatilho": "store", "estrategia": "CircleSpreadAttack", "projetil": "Instrucao",
-        "projeteis": 10, "velocidade": 190,
+        "projeteis": 10, "velocidade": 190, "variar": { "giro": 18 },
         "dificil": { "projeteis": 16 } }
     ]
   },
@@ -90,7 +90,7 @@
         "projeteis": 2, "velocidade": 230, "angulo": 24, "intervalo": 0,
         "regras": "letra_a" },
       { "gatilho": "pare", "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
-        "projeteis": 14, "velocidade": 200,
+        "projeteis": 14, "velocidade": 200, "variar": { "giro": 12.5 },
         "regras": "letra_a" }
     ]
   },
@@ -112,7 +112,7 @@
         "dificil": { "projeteis": 3 },
         "regras": "letra_b" },
       { "gatilho": "parou", "estrategia": "CircleSpreadAttack", "projetil": "Simbolo",
-        "projeteis": 16, "velocidade": 190,
+        "projeteis": 16, "velocidade": 190, "variar": { "giro": 11.25 },
         "regras": "letra_a" }
     ]
   }

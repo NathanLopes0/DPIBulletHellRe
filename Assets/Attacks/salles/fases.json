@@ -61,7 +61,7 @@
       { "gatilho": "folha_nula", "estrategia": "WaveAttack", "projetil": "Nulo",
         "projeteis": 1, "velocidade": 400, "angulo": 0, "intervalo": 0 },
       { "gatilho": "achado", "estrategia": "CircleSpreadAttack", "projetil": "Percurso",
-        "projeteis": 10, "velocidade": 220 }
+        "projeteis": 10, "velocidade": 220, "variar": { "giro": 18 } }
     ]
   },
 
@@ -80,7 +80,7 @@
       { "gatilho": "trocar", "estrategia": "WaveAttack", "projetil": "Capivara",
         "projeteis": 1, "velocidade": 260, "angulo": 0, "intervalo": 0 },
       { "gatilho": "assentar", "estrategia": "CircleSpreadAttack", "projetil": "Capivara",
-        "projeteis": 8, "velocidade": 200,
+        "projeteis": 8, "velocidade": 200, "variar": { "giro": 22.5 },
         "regras": "lista_circular" }
     ]
   }
