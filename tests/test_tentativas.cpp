@@ -121,6 +121,87 @@ TEST_CASE("Tentativas: uma linha por fase, com a variacao da nota") {
     CHECK(Coluna(cab, linhas[1], "matricula_2") == "67890");
 }
 
+TEST_CASE("Tentativas: o formato 2 mede a dupla, e o que so existe nela fica vazio no solo") {
+    Tentativa t = UmaDupla();
+    t.condicao = "sem-brilho";
+    t.distanciaMedia = 212.34f;
+    t.jogadores[0].acertosDePerto = 7;
+    t.jogadores[0].raspoes = 4;
+    t.jogadores[0].coberturas = 3;
+    t.jogadores[0].oportunidadesDeCobertura = 9;
+    t.jogadores[0].tempoNaMira = 12.5f;
+    t.fases[1].coberturas = 3;
+    t.fases[1].raspoes = 2;
+    const std::string cab = CabecalhoDasTentativas();
+    auto linhas = LinhasDaTentativa(t, {1, 1});
+    CHECK(Coluna(cab, linhas[0], "condicao") == "sem-brilho");
+    CHECK(Coluna(cab, linhas[0], "acertos_de_perto") == "7");
+    CHECK(Coluna(cab, linhas[0], "raspoes") == "4");
+    CHECK(Coluna(cab, linhas[0], "coberturas") == "3");
+    CHECK(Coluna(cab, linhas[0], "oportunidades_de_cobertura") == "9");
+    CHECK(Coluna(cab, linhas[0], "tempo_na_mira_s") == "12.50");
+    CHECK(Coluna(cab, linhas[1], "tempo_na_mira_s") == "0.00");
+    // A distancia e da dupla: a mesma nas duas linhas.
+    CHECK(Coluna(cab, linhas[0], "distancia_media_px") == "212.3");
+    CHECK(Coluna(cab, linhas[1], "distancia_media_px") == "212.3");
+    const std::string cabDasFases = CabecalhoDasFases();
+    const auto fases = LinhasDasFases(t);
+    CHECK(Coluna(cabDasFases, fases[1], "coberturas") == "3");
+    CHECK(Coluna(cabDasFases, fases[1], "raspoes") == "2");
+    CHECK(Coluna(cabDasFases, fases[0], "acertos_de_perto") == "0");
+
+    // Sem os papeis, a mira nunca prende: o tempo nela nao e zero, e "sem dado".
+    t.comPapeis = false;
+    linhas = LinhasDaTentativa(t, {1, 1});
+    CHECK(Coluna(cab, linhas[0], "tempo_na_mira_s").empty());
+
+    // No solo nao ha cobertura, mira presa nem parceiro para medir distancia; perto e raspao, sim.
+    t.jogadores.resize(1);
+    t.comPapeis = true;
+    linhas = LinhasDaTentativa(t, {1});
+    CHECK(Coluna(cab, linhas[0], "coberturas").empty());
+    CHECK(Coluna(cab, linhas[0], "oportunidades_de_cobertura").empty());
+    CHECK(Coluna(cab, linhas[0], "tempo_na_mira_s").empty());
+    CHECK(Coluna(cab, linhas[0], "distancia_media_px").empty());
+    CHECK(Coluna(cab, linhas[0], "raspoes") == "4");
+    CHECK(Coluna(cabDasFases, LinhasDasFases(t)[1], "coberturas").empty());
+}
+
+TEST_CASE("Tentativas: o formato novo so acrescenta colunas no fim, e o arquivo antigo ganha o cabecalho novo") {
+    // O cabecalho do formato 1, como os arquivos que ja existem o tem.
+    const std::string formato1 =
+        "formato,id,versao_do_jogo,matricula,visitante,posicao,parceiro,modo,vez,materia,"
+        "nome_da_materia,professor,dificuldade,resultado,aprovado,inicio,fim,data,hora,"
+        "dia_da_semana,duracao_s,pausa_s,nota_final,nota_maxima,nota_minima,nota_cheia,fez_exame,"
+        "fases_jogadas,fases_limpas,acertos_sofridos_dupla,acertos_sofridos,tiros,"
+        "acertos_no_professor,precisao,pontos_extras_pegos,pontos_extras_usados,orientador,"
+        "acertos_do_orientador,poderes_do_orientador,semente";
+    const std::string atual = CabecalhoDasTentativas();
+    REQUIRE(atual.rfind(formato1 + ",", 0) == 0);
+
+    // As linhas antigas ficam como estavam; so o cabecalho troca.
+    const std::string antigo = formato1 + "\r\n1,a,b,12345\n1,c,d,67890\n";
+    const auto novo = TrocarCabecalho(antigo, atual);
+    REQUIRE(novo.has_value());
+    CHECK(novo->rfind(atual + "\n", 0) == 0);
+    CHECK(novo->substr(atual.size() + 1) == "1,a,b,12345\n1,c,d,67890\n");
+    // E elas continuam se lendo pelo nome da coluna: o que falta no fim fica vazio.
+    CHECK(Coluna(atual, "1,a,b,12345", "matricula") == "12345");
+    CHECK(Coluna(atual, "1,a,b,12345", "condicao") == "<curta>");
+
+    // O mesmo cabecalho: nada muda.
+    CHECK(TrocarCabecalho(*novo, atual) == *novo);
+    // Outro arquivo qualquer, ou um cabecalho que nao e o comeco do atual: nao se mexe.
+    CHECK_FALSE(TrocarCabecalho("nome,idade\nana,20\n", atual).has_value());
+    CHECK_FALSE(TrocarCabecalho(atual + ",coluna_do_futuro\n", atual).has_value());
+
+    // O das fases tambem so cresce no fim.
+    const std::string fases1 =
+        "formato,id,materia,dificuldade,modo,matricula_1,matricula_2,resultado,ordem,fase,anuncio,"
+        "inicio_s,fim_s,duracao_s,nota_no_inicio,nota_no_fim,variacao,acertos_sofridos,limpa,completa";
+    CHECK(CabecalhoDasFases().rfind(fases1 + ",", 0) == 0);
+}
+
 TEST_CASE("Tentativas: os campos respeitam aspas") {
     const auto c = Campos("a,\"b, c\",\"d \"\"e\"\"\",,f\r");
     REQUIRE(c.size() == 5u);

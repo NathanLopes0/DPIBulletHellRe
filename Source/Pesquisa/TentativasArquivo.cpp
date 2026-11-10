@@ -11,6 +11,7 @@
 #include <SDL_log.h>
 
 #include "../Motor/CaminhosArquivo.h"
+#include "../Motor/Relogio.h"
 
 namespace TentativasArquivo {
 
@@ -24,10 +25,37 @@ namespace {
         return conteudo.str();
     }
 
-    /// Acrescenta, e nao reescreve: o que ja esta no arquivo nunca e tocado.
+    bool Regravar(const std::string& caminho, const std::string& conteudo);
+
+    /// O arquivo de um formato anterior passa para o atual antes de receber linhas novas: so o
+    /// cabecalho muda, e as linhas antigas ficam como estavam (Tentativas::TrocarCabecalho). Um
+    /// arquivo que nao e de formato anterior nenhum e guardado de lado, com outro nome, e o novo
+    /// comeca do zero - nada se perde, e nada fica com colunas trocadas.
+    void AtualizarFormato(const std::string& caminho, const std::string& cabecalho) {
+        const std::string conteudo = LerTudo(caminho);
+        if (conteudo.empty()) return;
+        const auto atualizado = Tentativas::TrocarCabecalho(conteudo, cabecalho);
+        if (atualizado) {
+            if (*atualizado != conteudo && !Regravar(caminho, *atualizado)) {
+                SDL_Log("TENTATIVAS: nao consegui atualizar o cabecalho de %s.", caminho.c_str());
+            }
+            return;
+        }
+        std::filesystem::path antigo(caminho);
+        antigo.replace_filename(antigo.stem().string() + "_de_outro_formato_" +
+                                Tentativas::NovoId(Relogio::Agora(), 0).substr(0, 15) + ".csv");
+        std::error_code ec;
+        std::filesystem::rename(caminho, antigo, ec);
+        SDL_Log("TENTATIVAS: %s tinha outras colunas; foi guardado como %s.", caminho.c_str(),
+                antigo.string().c_str());
+    }
+
+    /// Acrescenta, e nao reescreve: o que ja esta no arquivo nunca e tocado - so o cabecalho,
+    /// quando o formato muda (AtualizarFormato).
     bool Acrescentar(const std::string& caminho, const std::string& cabecalho,
                      const std::vector<std::string>& linhas) {
         std::error_code ec;
+        if (std::filesystem::exists(caminho, ec)) AtualizarFormato(caminho, cabecalho);
         const bool novo = !std::filesystem::exists(caminho, ec)
                        || std::filesystem::file_size(caminho, ec) == 0;
         std::ofstream saida(caminho, std::ios::app | std::ios::binary);

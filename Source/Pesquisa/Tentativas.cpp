@@ -81,12 +81,17 @@ namespace Tentativas {
             "acertos_sofridos", "tiros", "acertos_no_professor", "precisao",
             "pontos_extras_pegos", "pontos_extras_usados", "orientador",
             "acertos_do_orientador", "poderes_do_orientador", "semente",
+            // Formato 2.
+            "condicao", "acertos_de_perto", "raspoes", "coberturas", "oportunidades_de_cobertura",
+            "tempo_na_mira_s", "distancia_media_px",
         };
 
         const std::vector<std::string> kColunasDasFases = {
             "formato", "id", "materia", "dificuldade", "modo", "matricula_1", "matricula_2",
             "resultado", "ordem", "fase", "anuncio", "inicio_s", "fim_s", "duracao_s",
             "nota_no_inicio", "nota_no_fim", "variacao", "acertos_sofridos", "limpa", "completa",
+            // Formato 2.
+            "acertos_de_perto", "raspoes", "coberturas",
         };
     }
 
@@ -123,6 +128,9 @@ namespace Tentativas {
 
     std::vector<std::string> LinhasDaTentativa(const Tentativa& t, const std::vector<int>& vezes) {
         std::vector<std::string> linhas;
+        // O que so existe na dupla fica vazio no solo: ali nao ha o que medir, e zero seria um dado falso.
+        const bool dupla = t.jogadores.size() > 1;
+        const auto daDupla = [dupla](const std::string& valor) { return dupla ? valor : std::string(); };
         for (size_t i = 0; i < t.jogadores.size(); ++i) {
             const Jogador& j = t.jogadores[i];
             const int vez = i < vezes.size() ? vezes[i] : 0;
@@ -143,6 +151,9 @@ namespace Tentativas {
                 std::to_string(j.pontosExtrasPegos), std::to_string(j.pontosExtrasUsados),
                 t.orientador, std::to_string(t.acertosDoOrientador),
                 std::to_string(t.poderesUsados), std::to_string(t.semente),
+                t.condicao, std::to_string(j.acertosDePerto), std::to_string(j.raspoes),
+                daDupla(std::to_string(j.coberturas)), daDupla(std::to_string(j.oportunidadesDeCobertura)),
+                t.comPapeis ? daDupla(Num(j.tempoNaMira)) : "", daDupla(Num(t.distanciaMedia, 1)),
             }));
         }
         return linhas;
@@ -153,6 +164,7 @@ namespace Tentativas {
     std::vector<std::string> LinhasDasFases(const Tentativa& t) {
         const std::string m1 = !t.jogadores.empty() ? t.jogadores[0].matricula : "";
         const std::string m2 = t.jogadores.size() > 1 ? t.jogadores[1].matricula : "";
+        const bool dupla = t.jogadores.size() > 1;
         std::vector<std::string> linhas;
         for (const Fase& f : t.fases) {
             linhas.push_back(Juntar({
@@ -161,9 +173,27 @@ namespace Tentativas {
                 Num(f.inicio), Num(f.fim), Num(f.fim - f.inicio),
                 Num(f.notaNoInicio), Num(f.notaNoFim), Num(f.notaNoFim - f.notaNoInicio),
                 std::to_string(f.acertosSofridos), Bit(f.limpa), Bit(f.completa),
+                std::to_string(f.acertosDePerto), std::to_string(f.raspoes),
+                dupla ? std::to_string(f.coberturas) : "",
             }));
         }
         return linhas;
+    }
+
+    std::optional<std::string> TrocarCabecalho(const std::string& csv, const std::string& novo) {
+        const size_t fimDaLinha = csv.find('\n');
+        std::string antigo = csv.substr(0, fimDaLinha);
+        if (!antigo.empty() && antigo.back() == '\r') antigo.pop_back();
+        if (antigo == novo) return csv;
+
+        const auto colunasAntigas = Campos(antigo);
+        const auto colunasNovas = Campos(novo);
+        if (colunasAntigas.size() > colunasNovas.size()) return std::nullopt;
+        for (size_t i = 0; i < colunasAntigas.size(); ++i) {
+            if (colunasAntigas[i] != colunasNovas[i]) return std::nullopt;
+        }
+        const std::string resto = fimDaLinha == std::string::npos ? "" : csv.substr(fimDaLinha + 1);
+        return novo + "\n" + resto;
     }
 
     // ---- A leitura de volta ----

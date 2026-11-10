@@ -48,7 +48,7 @@ que começa é outra, com outra linha.
 
 | Coluna | O que é |
 |---|---|
-| `formato` | A versão deste formato de arquivo (hoje `1`). Muda quando uma coluna muda. |
+| `formato` | A versão do formato em que **esta linha** foi gravada (hoje `2`). Muda quando uma coluna muda; ver **Quando o formato muda**. |
 | `id` | O identificador da tentativa, por exemplo `20261028-140322-0f3a9c21`. O começo é a data e a hora, então ordenar por `id` é ordenar no tempo. |
 | `versao_do_jogo` | O commit de onde o executável foi compilado, ou `dev`. Serve para separar as tentativas de antes e de depois de uma mudança de balanceamento. É lido quando o CMake **configura** o projeto: depois de um `git pull`, rode o `cmake` de novo antes de compilar. |
 | `matricula` | A matrícula do aluno, ou `visitante`. |
@@ -85,6 +85,21 @@ que começa é outra, com outra linha.
 | `poderes_do_orientador` | Quantas vezes o poder do orientador foi usado. |
 | `semente` | A variação sorteada da luta (`Variacao.h`). |
 
+As colunas abaixo existem **desde o formato 2**. Elas contam o que o aluno
+**fez**, mesmo quando a condição do experimento desliga a mecânica que paga por
+isso (ver **Condições de experimento**): um raspão continua sendo um raspão sem
+o bônus do raspão. O que só existe na dupla fica **vazio** no solo.
+
+| Coluna | O que é |
+|---|---|
+| `condicao` | A condição do experimento em que o jogo rodava: `normal`, ou o que estava desligado (`sem-brilho+sem-papeis`). A mesma nas duas linhas da dupla. |
+| `acertos_de_perto` | Acertos deste aluno no professor feitos **de perto** — os que viram "!!" (`Nota::kFatorDaRespostaDupla`). |
+| `raspoes` | Projéteis que passaram rente a este aluno sem acertá-lo (`Raspao.h`), um por projétil. |
+| `coberturas` | Na dupla, projéteis que o tiro deste aluno derrubou **indo no parceiro** (`Cobertura.h`). As coberturas recebidas são as do parceiro: a outra linha do mesmo `id`. |
+| `oportunidades_de_cobertura` | Na dupla, projéteis destrutíveis que foram no **parceiro** — os que este aluno podia cobrir. Um por projétil, brilhe ele ou não. `coberturas / oportunidades_de_cobertura` é o quanto ele cobriu do que podia. |
+| `tempo_na_mira_s` | Na dupla, segundos de luta com a mira do professor **presa** neste aluno (o "v" vermelho, `Papeis.h`). Vazio também quando a condição desliga os papéis: aí a mira nunca prende. |
+| `distancia_media_px` | Na dupla, a distância média entre os dois alunos durante a luta, em pixels do campo (1200 × 800). A mesma nas duas linhas. |
+
 ## `tentativas_fases.csv`
 
 | Coluna | O que é |
@@ -101,6 +116,8 @@ que começa é outra, com outra linha.
 | `acertos_sofridos` | Acertos que a dupla sofreu nesta fase. |
 | `limpa` | `1` se a fase pagou o bônus de fase limpa. |
 | `completa` | `1` se a fase terminou pelo relógio. `0` se a luta acabou no meio dela: nota a zero ou abandono. |
+| `acertos_de_perto`, `raspoes` | Desde o formato 2: os da dupla inteira, nesta fase. |
+| `coberturas` | Desde o formato 2: as da dupla, nesta fase (vazia no solo). Com `acertos_sofridos`, mostra em que fase a dupla mais se ajuda. |
 
 ## `tentativas_resumo.csv`
 
@@ -117,6 +134,51 @@ alunos diferentes.
 | `dias_distintos` | Em quantos dias diferentes jogou. |
 | `melhor_nota`, `nota_media` | Sobre todas as tentativas, inclusive as abandonadas. |
 | `tempo_total_s` | A soma de `duracao_s`. |
+
+## Quando o formato muda
+
+Coluna nova entra **sempre no fim**. Quando o jogo vai gravar num arquivo de um
+formato anterior, ele troca só a **primeira linha** — o cabeçalho — pela do
+formato atual, e as linhas antigas ficam como estavam: mais curtas, e com o
+formato delas na coluna `formato`. Lido pelo nome das colunas (pandas, R,
+Excel), o que falta numa linha antiga aparece **vazio** — não zero.
+
+Se o arquivo tiver um cabeçalho que não é o começo do atual (outra coisa
+qualquer com o mesmo nome), ele é guardado de lado como
+`tentativas_de_outro_formato_<data>.csv`, e um arquivo novo começa. Nada se
+apaga.
+
+## Condições de experimento
+
+Para comparar o jogo **com e sem** uma mecânica — o padrão de jogo como
+variável do estudo —, o gabinete abre com `--condicao` (ver `gabinete.md`):
+
+```bash
+./DPIBulletHellRe --arcade --condicao sem-brilho
+./DPIBulletHellRe --arcade --condicao sem-papeis,sem-cobertura
+```
+
+| Nome | O que deixa de existir |
+|---|---|
+| `sem-brilho` | O projétil que vai num aluno não brilha na cor dele. |
+| `sem-cobertura` | Derrubar o que ia no parceiro não paga mais que uma derrubada comum, nem acende dourado. Apaga o brilho junto: ele prometeria o que não paga. |
+| `sem-papeis` | A mira não prende em quem mais incomoda: os dois revezam, como antes dos papéis, e o "v" vermelho some. |
+| `sem-raspao` | Passar rente não paga nem acende o risco azul. |
+| `sem-perto` | A dúvida de perto vale o mesmo que a de longe, e o "!!" some. |
+| `sem-devolutiva` | Quem reprova não vê onde a nota mais caiu nem o que mais o acertou. |
+
+Sem `--condicao` (ou com `--condicao normal`), tudo funciona como sempre, e a
+coluna `condicao` diz `normal`. Um nome que o jogo não conhece é ignorado — e
+dito no log, junto da condição em uso, ao abrir o jogo.
+
+**Desligar tira a mecânica do jogo, e não da medida.** Com `sem-raspao`, os
+raspões continuam contados em `raspoes`; com `sem-brilho`, as
+`oportunidades_de_cobertura` também. É isso que permite comparar: por exemplo,
+se a proporção `coberturas / oportunidades_de_cobertura` sobe com o brilho.
+
+**Uma condição por sessão.** A condição vale para a máquina enquanto o jogo
+estiver aberto; trocar é fechar e abrir com outra. Combine com o protocolo do
+estudo quem joga em qual, e confira a coluna `condicao` depois.
 
 ## Respondendo às perguntas de sempre
 
@@ -142,6 +204,11 @@ t = t[t.visitante == 0]                      # só quem se identificou
 t.groupby(["materia", "dificuldade"]).aprovado.mean()          # taxa de aprovação
 t.groupby("vez").nota_final.mean()            # a nota melhora com a prática?
 f.groupby(["materia", "fase"])[["variacao", "acertos_sofridos"]].mean()
+
+# Desde o formato 2: a dupla
+d = t[(t.modo == "dupla") & (t.formato >= 2)]
+d.groupby("condicao")[["coberturas", "oportunidades_de_cobertura"]].sum()  # o brilho faz cobrir mais?
+d.groupby("condicao").distancia_media_px.mean()                            # jogam mais juntos?
 ```
 
 ### Com R

@@ -72,6 +72,7 @@ Battle::Battle(Game* game, const int selectedStage)
     , mNota(40.0f)
     , mMateria(selectedStage)
 {
+    if (game) mCondicao = game->Condicao();
 }
 
 Battle::~Battle() {
@@ -1075,11 +1076,14 @@ bool Battle::Cobrir(const PlayerProjectile& tiro, const BossProjectile& projetil
     if (!Cobertura::VaiNele(colisorDoProjetil->GetCenter(), velocidade, colisorDoProjetil->GetRadius(),
                             AlunoDaCobertura(parceiro))) return false;
 
+    // A medida conta sempre; o experimento sem cobertura so nao paga (Experimento.h).
+    Avisar([&](OuvinteDaBatalha& o) { o.AoCobrir(*this, *mJogadores[static_cast<size_t>(quem)], *parceiro); });
+    if (!mCondicao.Ligada(Experimento::Mecanica::Cobertura)) return false;
+
     // E da dupla: pago inteiro, sem a divisao.
     SubirNota(Cobertura::kGanho);
     if (static_cast<size_t>(quem) < mPartes.size()) ++mPartes[static_cast<size_t>(quem)].coberturas;
     Faiscar(colisorDoProjetil->GetCenter(), Hud::Faisca::Cobertura, quem);
-    Avisar([&](OuvinteDaBatalha& o) { o.AoCobrir(*this, *mJogadores[static_cast<size_t>(quem)], *parceiro); });
     return true;
 }
 
@@ -1089,6 +1093,7 @@ void Battle::MarcarOCaminhoDosAlunos() {
     std::vector<Cobertura::Aluno> alunos;
     for (const Player* p : mJogadores) alunos.push_back(AlunoDaCobertura(p));
     const Uint8 alfa = Hud::AlfaDoBrilho(mPulsoDoEscudo);
+    const bool brilha = mCondicao.Ligada(Experimento::Mecanica::Brilho);
 
     for (const auto& projetil : mProjeteis->GetBossProjectiles()) {
         if (projetil->GetState() != ActorState::Active) continue;
@@ -1103,7 +1108,12 @@ void Battle::MarcarOCaminhoDosAlunos() {
             quem = Cobertura::AlunoNoCaminho(colisor->GetCenter(), rb ? rb->GetVelocity() : Vector2::Zero,
                                              colisor->GetRadius(), alunos);
         }
-        if (quem < 0) {
+        // Uma chance de cobertura por projetil e aluno - brilhe ele ou nao (Experimento.h).
+        if (quem >= 0 && projetil->PrimeiraVezNoCaminhoDe(static_cast<size_t>(quem))) {
+            const Player& alvo = *mJogadores[static_cast<size_t>(quem)];
+            Avisar([&](OuvinteDaBatalha& o) { o.AoIrNoAluno(*this, alvo); });
+        }
+        if (quem < 0 || !brilha) {
             desenho->DefinirBrilho(false);
             continue;
         }
@@ -1125,6 +1135,9 @@ void Battle::Raspar(Player& jogador, const CircleColliderComponent& colisor, Bos
     if (jogador.JaRaspou(&projetil, projetil.TempoDeVida())) return;
 
     jogador.Raspou(&projetil, projetil.TempoDeVida());
+    // A medida conta sempre; o experimento sem raspao so nao paga nem acende.
+    Avisar([&](OuvinteDaBatalha& o) { o.AoRaspar(*this, jogador); });
+    if (!mCondicao.Ligada(Experimento::Mecanica::Raspao)) return;
     SubirNota(PorJogador(Raspao::kGanho));
     Faiscar(Raspao::OndeFaisca(colisor.GetCenter(), colisorDoProjetil.GetCenter()), Hud::Faisca::Raspao);
 }
@@ -1225,9 +1238,15 @@ void Battle::ColisoesTiroDoAlunoNoChefe(const std::vector<std::unique_ptr<Player
                     // Quem pergunta incomoda, e chama a mira (Papeis.h).
                     if (quem >= 0) mIncomodo.Acertou(static_cast<size_t>(quem));
                     if (quem >= 0 && static_cast<size_t>(quem) < mPartes.size()) ++mPartes[static_cast<size_t>(quem)].acertos;
-                    const float fator = quem >= 0 ? Nota::FatorDePerto((playerProj->Dono()->GetPosition() -
-                                                                        colisorDoCorpo->GetCenter()).Length())
-                                                  : 1.0f;
+                    const float fatorDaDistancia = quem >= 0 ? Nota::FatorDePerto((playerProj->Dono()->GetPosition() -
+                                                                                   colisorDoCorpo->GetCenter()).Length())
+                                                             : 1.0f;
+                    // Perguntou de perto: conta pela distancia; o experimento sem o perto so nao paga.
+                    if (quem >= 0 && fatorDaDistancia >= Nota::kFatorDaRespostaDupla) {
+                        const Player& aluno = *mJogadores[static_cast<size_t>(quem)];
+                        Avisar([&](OuvinteDaBatalha& o) { o.AoAcertarDePerto(*this, aluno); });
+                    }
+                    const float fator = mCondicao.Ligada(Experimento::Mecanica::Perto) ? fatorDaDistancia : 1.0f;
                     SubirNota(PorJogador(Nota::kGanhoPorAcerto * fator));
                     // A duvida respondida: o "?" vira um "!" na cor de quem perguntou - "!!" de perto.
                     Faiscar(playerProj->GetPosition(),
@@ -1836,7 +1855,7 @@ void Battle::EncerrarBatalha(bool aprovado) {
     resumo.fasesLimpas = mFasesLimpas;
     resumo.acertosSofridos = mAcertosSofridos;
     // A devolutiva, para quem reprovou: onde a nota mais caiu e o que mais acertou.
-    if (!aprovado) {
+    if (!aprovado && mCondicao.Ligada(Experimento::Mecanica::Devolutiva)) {
         resumo.piorFase = mCaderno.PiorFase();
         resumo.causas = mCaderno.Causas();
         if (resumo.causas.size() > static_cast<size_t>(Devolutiva::kCausasNaTela)) {

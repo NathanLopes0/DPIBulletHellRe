@@ -48,6 +48,7 @@ Game::Game(int windowWidth, int windowHeight, const Gabinete::Configuracao& gabi
     mPendingSceneChange(false),
     mNextScene(Scene::SceneType::None),
     mGabinete(gabinete),
+    mCondicao(Experimento::Ler(gabinete.condicao)),
     mOciosidade(gabinete.ociosidade),
     // A saida do operador existe so no gabinete.
     mSaidaDoOperador(gabinete.arcade ? Gabinete::kSegurarParaSair : 0.0f)
@@ -58,6 +59,14 @@ Game::Game(int windowWidth, int windowHeight, const Gabinete::Configuracao& gabi
 Game::~Game() = default;
 
 bool Game::Initialize() {
+
+    // A condicao do experimento vai para o log no comeco: quem aplica o estudo confere ali.
+    {
+        std::vector<std::string> problemas;
+        Experimento::Ler(mGabinete.condicao, &problemas);
+        for (const auto& p : problemas) SDL_Log("EXPERIMENTO: %s; ignorada.", p.c_str());
+        SDL_Log("EXPERIMENTO: condicao %s.", mCondicao.Nome().c_str());
+    }
 
     if(SDL_Init(SDL_INIT_VIDEO) != 0)
     {

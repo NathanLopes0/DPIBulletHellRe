@@ -125,6 +125,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Regras/Acerto.h
         Source/Pesquisa/Tentativas.cpp
         Source/Pesquisa/Tentativas.h
+        Source/Pesquisa/Experimento.cpp
+        Source/Pesquisa/Experimento.h
         Source/Pesquisa/TentativasArquivo.cpp
         Source/Pesquisa/TentativasArquivo.h
         Source/Personagem/Personagens.cpp
@@ -518,6 +520,7 @@ add_executable(dpi_tests
         tests/test_poder.cpp
         tests/test_objetivo.cpp
         tests/test_tentativas.cpp
+        tests/test_experimento.cpp
         tests/test_resultado.cpp
         tests/test_devolutiva.cpp
         tests/test_manual.cpp
@@ -593,6 +596,8 @@ add_executable(dpi_tests
         Source/Regras/Acerto.h
         Source/Pesquisa/Tentativas.cpp
         Source/Pesquisa/Tentativas.h
+        Source/Pesquisa/Experimento.cpp
+        Source/Pesquisa/Experimento.h
         Source/Personagem/Personagens.cpp
         Source/Personagem/Personagens.h
         Source/Motor/Relogio.cpp

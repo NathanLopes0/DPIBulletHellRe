@@ -44,6 +44,15 @@ void BossProjectile::Reset() {
         // O brilho de quem ia num aluno (Battle::MarcarOCaminhoDosAlunos) nao volta do pool.
         anim->DefinirBrilho(false);
     }
+    mCaminhos = 0;
+}
+
+bool BossProjectile::PrimeiraVezNoCaminhoDe(const size_t aluno) {
+    if (aluno >= 8) return false;
+    const unsigned bit = 1u << aluno;
+    if (mCaminhos & bit) return false;
+    mCaminhos |= bit;
+    return true;
 }
 
 void BossProjectile::OnUpdate(float deltaTime)

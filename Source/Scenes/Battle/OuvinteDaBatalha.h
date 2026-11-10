@@ -39,8 +39,21 @@ public:
     /// chefe - pagando a nota ou nao (o escudo).
     virtual void AoAcertarOProfessor(Battle&, const Actor* quemAtirou) {}
 
+    /// O tiro do aluno acertou o professor de perto - o "!!" (Nota::kFatorDaRespostaDupla). Conta
+    /// pela distancia, mesmo que a condicao do experimento nao pague o perto.
+    virtual void AoAcertarDePerto(Battle&, const Player& aluno) {}
+
+    /// Um projetil passou rente ao aluno sem acerta-lo (Raspao.h). Conta mesmo que a condicao nao
+    /// pague o raspao.
+    virtual void AoRaspar(Battle&, const Player& aluno) {}
+
+    /// Na dupla, um projetil destrutivel passou a ir no aluno 'alvo' (Cobertura::AlunoNoCaminho):
+    /// para o parceiro, uma chance de cobri-lo. Uma vez por projetil, brilhe ele ou nao.
+    virtual void AoIrNoAluno(Battle&, const Player& alvo) {}
+
     virtual void AoPegarPontoExtra(Battle&, const Player& aluno) {}
-    /// Na dupla, o tiro de 'quemCobriu' derrubou um projetil que ia em 'parceiro' (Cobertura.h).
+    /// Na dupla, o tiro de 'quemCobriu' derrubou um projetil que ia em 'parceiro' (Cobertura.h). Conta
+    /// mesmo que a condicao do experimento nao pague a cobertura.
     virtual void AoCobrir(Battle&, const Player& quemCobriu, const Player& parceiro) {}
     virtual void AoUsarPontoExtra(Battle&, const Player& aluno) {}
 

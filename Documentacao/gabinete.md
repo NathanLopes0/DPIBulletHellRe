@@ -21,6 +21,7 @@ não precisa de nada daqui: **o padrão é a janela**, do jeito que o CLion abre
 |---|---|
 | `--arcade` | liga o modo gabinete |
 | `--ociosidade <segundos>` | quanto tempo parado volta ao menu. `0` desliga |
+| `--condicao <nomes>` | a condição de um experimento: as mecânicas que esta sessão desliga (`sem-brilho`, `sem-papeis`...). Sem ela, tudo ligado. Ver `dados-das-tentativas.md` |
 
 Sem `--arcade`, o jogo abre em janela, fecha no X e não volta ao menu sozinho.
 

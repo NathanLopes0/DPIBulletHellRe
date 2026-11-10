@@ -81,6 +81,10 @@ public:
     void DefinirEnfeite(const bool enfeite) { mEnfeite = enfeite; }
     [[nodiscard]] bool Enfeite() const { return mEnfeite; }
 
+    /// Na dupla, se e a primeira vez que este disparo vai no aluno 'aluno' (Battle::MarcarOCaminhoDosAlunos):
+    /// cada projetil conta uma chance de cobertura por aluno, por mais quadros que passe indo nele.
+    bool PrimeiraVezNoCaminhoDe(size_t aluno);
+
     /// O posto em que este projetil esta: um lugar de onde o chefe atira (PontosAttack,
     /// Boss::PontosDoPosto). Vazio = nenhum.
     void DefinirPosto(std::string posto) { mPosto = std::move(posto); }
@@ -123,6 +127,8 @@ protected:
 
     /// Do disparo: volta a falso no Reset.
     bool mEnfeite = false;
+    /// Em quais alunos este disparo ja foi (um bit por posicao): PrimeiraVezNoCaminhoDe.
+    unsigned mCaminhos = 0;
 
     /// Do disparo: volta a vazio no Reset.
     std::string mPosto;

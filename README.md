@@ -262,10 +262,14 @@ Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
   de exportar. Ela é **derivada** das fichas: apagá-la não perde nada.
 - **`tentativas.csv`**, **`tentativas_fases.csv`** e **`tentativas_resumo.csv`** —
   os dados para pesquisa: uma linha a cada tentativa de batalha (quem jogou, em
-  que dia, qual vez era, como terminou, tiros, acertos, Pontos Extras), uma a
-  cada fase jogada, e o resumo de quantas vezes cada aluno jogou, passou e
-  reprovou em cada matéria. As colunas, como analisar e o cuidado com a
-  privacidade estão em `Documentacao/dados-das-tentativas.md`.
+  que dia, qual vez era, como terminou, tiros, acertos, Pontos Extras e, na
+  dupla, coberturas, as chances de cobrir, o tempo com a mira presa e a
+  distância entre os dois), uma a cada fase jogada, e o resumo de quantas vezes
+  cada aluno jogou, passou e reprovou em cada matéria. Para comparar o jogo com
+  e sem uma mecânica, o gabinete abre com `--condicao` (por exemplo,
+  `--condicao sem-brilho`), e cada linha grava a condição em que foi jogada. As
+  colunas, as condições, como analisar e o cuidado com a privacidade estão em
+  `Documentacao/dados-das-tentativas.md`.
 
 As chaves dos arquivos são sempre códigos, nunca posições. Reordenar as matérias
 no JSON não reatribui a nota de ninguém.

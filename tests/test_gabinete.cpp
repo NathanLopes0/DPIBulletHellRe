@@ -162,3 +162,12 @@ TEST_CASE("Contagem: passo de quadro de verdade esgota perto do limite") {
     CHECK(decorrido >= Gabinete::kSegurarParaSair);
     CHECK(decorrido <= Gabinete::kSegurarParaSair + passo);
 }
+
+TEST_CASE("Gabinete: --condicao traz o texto do experimento, e sem ela fica vazio") {
+    CHECK(Gabinete::Ler({}).condicao.empty());
+    const Gabinete::Configuracao c = Gabinete::Ler({"--arcade", "--condicao", "sem-brilho,sem-papeis"});
+    CHECK(c.arcade);
+    CHECK(c.condicao == "sem-brilho,sem-papeis");
+    // Sem o valor no fim da linha, nada.
+    CHECK(Gabinete::Ler({"--condicao"}).condicao.empty());
+}

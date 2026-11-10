@@ -18,6 +18,10 @@ public:
     void AoLimparFase(Battle& b) override;
     void AoSerAcertado(Battle& b, const Player& aluno, bool porUmTiro) override;
     void AoAcertarOProfessor(Battle& b, const Actor* quemAtirou) override;
+    void AoAcertarDePerto(Battle& b, const Player& aluno) override;
+    void AoRaspar(Battle& b, const Player& aluno) override;
+    void AoCobrir(Battle& b, const Player& quemCobriu, const Player& parceiro) override;
+    void AoIrNoAluno(Battle& b, const Player& alvo) override;
     void AoPegarPontoExtra(Battle& b, const Player& aluno) override;
     void AoUsarPontoExtra(Battle& b, const Player& aluno) override;
     void AoTerminar(Battle& b, Tentativas::Resultado resultado, bool ultimaFaseCompleta) override;
@@ -34,4 +38,7 @@ private:
     /// Segundos de luta, sem carregamento e sem pausa; e os de pausa.
     float mRelogio = 0.0f;
     float mRelogioDaPausa = 0.0f;
+    /// Na dupla, a distancia entre os dois somada a cada quadro de luta, pesada pelo tempo: dividida
+    /// por mRelogio, e a distancia media.
+    float mDistanciaVezesTempo = 0.0f;
 };

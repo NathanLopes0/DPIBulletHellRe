@@ -13,6 +13,7 @@
 #include "../../Regras/Intercambio.h"
 #include "../../Regras/Papeis.h"
 #include "../../Regras/Cobertura.h"
+#include "../../Pesquisa/Experimento.h"
 #include "../../Motor/Game.h"
 #include "../../Motor/AudioSystem.h"
 #include "../../Interface/Pausa.h"
@@ -86,11 +87,15 @@ public:
     /// Em qual posicao esta a vez: a de quem mais incomodou o professor (Papeis.h) ou, se os dois
     /// incomodam parecido, a do revezamento. A vez dada (DarAVez) vale para o proximo disparo.
     [[nodiscard]] size_t IndiceDoAlvo() const {
-        return mVezDada ? mVezDoAlvo : mIncomodo.Alvo(mVezDoAlvo, mJogadores.size());
+        // Sem os papeis (Experimento.h), o revezamento de antes deles.
+        if (mVezDada || !mCondicao.Ligada(Experimento::Mecanica::Papeis)) return mVezDoAlvo;
+        return mIncomodo.Alvo(mVezDoAlvo, mJogadores.size());
     }
 
     /// Em quem a mira esta presa (o marcador vermelho sobre o aluno); -1 quando os dois revezam.
-    [[nodiscard]] int FocoDaMira() const { return mIncomodo.Foco(mJogadores.size()); }
+    [[nodiscard]] int FocoDaMira() const {
+        return mCondicao.Ligada(Experimento::Mecanica::Papeis) ? mIncomodo.Foco(mJogadores.size()) : -1;
+    }
 
     /// O jogador de uma posicao, ou nullptr fora da lista. E como um projetil
     /// resolve o numero que guardou.
@@ -361,6 +366,8 @@ private:
     static constexpr float kAlturaDaMira = 44.0f;
     /// O quanto cada aluno incomodou o professor: em quem os ataques mirados vao (Papeis.h).
     Papeis::Incomodo mIncomodo;
+    /// As mecanicas que esta execucao desliga (Experimento.h), lidas ao criar a batalha.
+    Experimento::Condicao mCondicao;
 
     // O gerente de projéteis: Um sistema especializado, possuído pela cena.
     std::unique_ptr<ProjectileManager> mProjeteis;

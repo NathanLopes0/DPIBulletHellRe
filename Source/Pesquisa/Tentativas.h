@@ -5,14 +5,16 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
 /// A ficha guarda o recorde; isto guarda a historia.
 namespace Tentativas {
 
-    /// A versao do formato, gravada em toda linha: mudar uma coluna e mudar isto.
-    constexpr int kVersaoDoFormato = 1;
+    /// A versao do formato, gravada em toda linha: mudar uma coluna e mudar isto. Coluna nova vai
+    /// sempre no fim (TrocarCabecalho).
+    constexpr int kVersaoDoFormato = 2;
 
     enum class Resultado { Aprovado, Reprovado, Abandonou };
     const char* Nome(Resultado r);
@@ -29,6 +31,9 @@ namespace Tentativas {
         int acertosSofridos = 0;     ///< da dupla, nesta fase
         bool completa = false;       ///< terminou pelo relogio (e nao pelo fim da batalha)
         bool limpa = false;          ///< pagou o bonus de fase limpa (Nota::kBonusDeFaseLimpa)
+        int acertosDePerto = 0;      ///< da dupla, nesta fase
+        int raspoes = 0;
+        int coberturas = 0;
     };
 
     /// O que cada aluno fez nesta tentativa.
@@ -42,6 +47,14 @@ namespace Tentativas {
         int acertosSofridos = 0;     ///< Vezes que ele foi acertado.
         int pontosExtrasPegos = 0;
         int pontosExtrasUsados = 0;
+
+        // Desde o formato 2. Contam pelo que o aluno fez, mesmo quando a condicao do experimento
+        // nao paga a mecanica (Experimento.h).
+        int acertosDePerto = 0;      ///< acertos no professor de perto: o "!!" (Nota::kFatorDaRespostaDupla)
+        int raspoes = 0;             ///< projeteis que passaram rente a ele (Raspao.h)
+        int coberturas = 0;          ///< na dupla, projeteis que ele derrubou indo no parceiro (Cobertura.h)
+        int oportunidadesDeCobertura = 0;  ///< na dupla, projeteis destrutiveis que foram no parceiro
+        float tempoNaMira = 0.0f;    ///< na dupla, segundos com a mira presa nele (Papeis.h)
     };
 
     struct Tentativa {
@@ -68,6 +81,10 @@ namespace Tentativas {
         int acertosDoOrientador = 0;
         int poderesUsados = 0;
         std::uint32_t semente = 0;   ///< a variacao sorteada da luta
+        std::string condicao = "normal";  ///< a do experimento (Experimento::Condicao::Nome)
+        /// A mira podia prender num aluno: sem os papeis (Experimento.h), tempo_na_mira fica vazio.
+        bool comPapeis = true;
+        float distanciaMedia = 0.0f; ///< na dupla, a distancia media entre os dois alunos, em pixels
         std::vector<Jogador> jogadores;
         std::vector<Fase> fases;
     };
@@ -89,6 +106,11 @@ namespace Tentativas {
 
     std::string CabecalhoDasFases();
     std::vector<std::string> LinhasDasFases(const Tentativa& t);
+
+    /// O conteudo de um CSV com o cabecalho 'novo' no lugar do que ele tem. So se o antigo for o
+    /// comeco do novo - colunas se acrescentam no fim -, e as linhas antigas ficam como estavam: mais
+    /// curtas, e com o formato delas na primeira coluna. Sem isso, nada: o arquivo e de outra coisa.
+    std::optional<std::string> TrocarCabecalho(const std::string& csv, const std::string& novo);
 
     // ---- A leitura de volta, para o resumo ----
 

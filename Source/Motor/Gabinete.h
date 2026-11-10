@@ -25,6 +25,10 @@ struct Configuracao {
     /// Segundos parados ate voltar ao menu. Zero desliga - e o padrao fora do gabinete, senao o
     /// jogo voltaria ao menu sozinho enquanto se le codigo.
     float ociosidade = 0.0f;
+
+    /// O texto de --condicao, como veio: as mecanicas que um experimento desliga
+    /// (Experimento::Ler). Vazio: tudo ligado.
+    std::string condicao;
 };
 
 /// Le a linha de comando.

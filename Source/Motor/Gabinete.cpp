@@ -39,6 +39,12 @@ Configuracao Ler(const std::vector<std::string>& argumentos) {
             continue;
         }
 
+        if (argumento == "--condicao") {
+            // O valor vem no argumento seguinte; quem o le e Experimento::Ler.
+            if (i + 1 < argumentos.size()) configuracao.condicao = argumentos[++i];
+            continue;
+        }
+
         if (argumento == "--ociosidade") {
             // O valor vem no argumento seguinte.
             if (i + 1 < argumentos.size() && LerSegundos(argumentos[i + 1], configuracao.ociosidade)) {

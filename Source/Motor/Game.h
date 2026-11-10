@@ -14,6 +14,7 @@
 #include "../Personagem/Personagens.h"
 #include "../Aluno/Progresso.h"
 #include "Gabinete.h"
+#include "../Pesquisa/Experimento.h"
 #include "../Entrada/Painel.h"
 #include "../Aluno/Sessao.h"
 #include "Configuracao.h"
@@ -115,6 +116,10 @@ public:
     /// Se o jogo abriu no gabinete (--arcade). Quem precisa saber e quem muda de comportamento la -
     /// a pausa da batalha, que no gabinete nao existe (Pausa.h).
     [[nodiscard]] bool NoGabinete() const { return mGabinete.arcade; }
+
+    /// As mecanicas que esta execucao desliga (--condicao): a condicao do experimento, gravada em
+    /// cada tentativa.
+    [[nodiscard]] const Experimento::Condicao& Condicao() const { return mCondicao; }
 
     /// O modo de dificuldade das batalhas (Dificuldade.h).
     [[nodiscard]] Dificuldade::Nivel NivelDeDificuldade() const { return mDificuldade; }
@@ -280,6 +285,7 @@ private:
     // ---- Gabinete ----
 
     Gabinete::Configuracao mGabinete;
+    Experimento::Condicao mCondicao;
 
     /// Tempo sem ninguem mexer. Esgotando, volta ao menu.
     Gabinete::Contagem mOciosidade;

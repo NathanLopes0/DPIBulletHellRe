@@ -35,6 +35,8 @@ void RegistroDaTentativa::AoComecar(Battle& b) {
     t.modo = b.Jogadores().size() > 1 ? "dupla" : "solo";
     t.notaMaxima = t.notaMinima = b.NotaAtual();
     t.semente = b.SementeDaBatalha();
+    t.condicao = b.GetGame()->Condicao().Nome();
+    t.comPapeis = b.GetGame()->Condicao().Ligada(Experimento::Mecanica::Papeis);
     if (const Orientador* o = b.OrientadorEmCampo()) t.orientador = o->Professor();
 
     // O jogador i E a sessao i: e assim que Battle::CriarJogadores os cria.
@@ -54,9 +56,21 @@ void RegistroDaTentativa::AoComecar(Battle& b) {
     mComecou = true;
 }
 
-void RegistroDaTentativa::AoPassarOTempo(Battle&, const float deltaTime, const bool emPausa) {
+void RegistroDaTentativa::AoPassarOTempo(Battle& b, const float deltaTime, const bool emPausa) {
     if (!mComecou) return;
     (emPausa ? mRelogioDaPausa : mRelogio) += deltaTime;
+    if (emPausa || !Anotando()) return;
+
+    // Na dupla: em quem a mira esta presa, e quao longe um do outro eles estao.
+    const auto& jogadores = b.Jogadores();
+    if (jogadores.size() < 2 || mTentativa.jogadores.size() < 2) return;
+    const int foco = b.FocoDaMira();
+    if (foco >= 0 && static_cast<size_t>(foco) < mTentativa.jogadores.size()) {
+        mTentativa.jogadores[static_cast<size_t>(foco)].tempoNaMira += deltaTime;
+    }
+    if (jogadores[0] && jogadores[1]) {
+        mDistanciaVezesTempo += (jogadores[0]->GetPosition() - jogadores[1]->GetPosition()).Length() * deltaTime;
+    }
 }
 
 void RegistroDaTentativa::AoFimDoQuadro(Battle& b) {
@@ -113,6 +127,33 @@ void RegistroDaTentativa::AoAcertarOProfessor(Battle& b, const Actor* quemAtirou
     else if (b.OrientadorEmCampo() && quemAtirou == b.OrientadorEmCampo()) ++mTentativa.acertosDoOrientador;
 }
 
+void RegistroDaTentativa::AoAcertarDePerto(Battle& b, const Player& aluno) {
+    if (!Anotando()) return;
+    if (auto* r = De(b, &aluno)) ++r->acertosDePerto;
+    if (!mTentativa.fases.empty()) ++mTentativa.fases.back().acertosDePerto;
+}
+
+void RegistroDaTentativa::AoRaspar(Battle& b, const Player& aluno) {
+    if (!Anotando()) return;
+    if (auto* r = De(b, &aluno)) ++r->raspoes;
+    if (!mTentativa.fases.empty()) ++mTentativa.fases.back().raspoes;
+}
+
+void RegistroDaTentativa::AoCobrir(Battle& b, const Player& quemCobriu, const Player&) {
+    if (!Anotando()) return;
+    if (auto* r = De(b, &quemCobriu)) ++r->coberturas;
+    if (!mTentativa.fases.empty()) ++mTentativa.fases.back().coberturas;
+}
+
+void RegistroDaTentativa::AoIrNoAluno(Battle& b, const Player& alvo) {
+    if (!Anotando()) return;
+    // A chance e do outro: e ele quem pode cobrir.
+    const auto& jogadores = b.Jogadores();
+    for (size_t i = 0; i < jogadores.size() && i < mTentativa.jogadores.size(); ++i) {
+        if (jogadores[i] && jogadores[i] != &alvo) ++mTentativa.jogadores[i].oportunidadesDeCobertura;
+    }
+}
+
 void RegistroDaTentativa::AoPegarPontoExtra(Battle& b, const Player& aluno) {
     if (!Anotando()) return;
     if (auto* r = De(b, &aluno)) ++r->pontosExtrasPegos;
@@ -139,6 +180,7 @@ void RegistroDaTentativa::AoTerminar(Battle& b, const Tentativas::Resultado resu
     t.notaMinima = std::min(t.notaMinima, nota);
     if (Nota::ECheia(nota)) t.notaCheia = true;
     t.acertosSofridos = b.AcertosSofridos();
+    t.distanciaMedia = mRelogio > 0.0f ? mDistanciaVezesTempo / mRelogio : 0.0f;
     if (!t.fases.empty()) {
         Tentativas::Fase& ultima = t.fases.back();
         ultima.fim = mRelogio;
