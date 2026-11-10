@@ -88,3 +88,40 @@ TEST_CASE("Cobertura: o projetil que ia passar pelo parceiro, e nao o que ia par
     // A cobertura e da dupla: vale um acerto inteiro, o dobro do acerto repartido.
     CHECK(Cobertura::kGanho == doctest::Approx(Nota::kGanhoPorAcerto));
 }
+
+TEST_CASE("Cobertura: vai no aluno quem passaria na faixa do raspao dele, e so se algo o atinge") {
+    using Cobertura::Aluno;
+    const Aluno aluno{Vector2(500.0f, 600.0f), 6.0f, true};
+    const Vector2 descendo(0.0f, 400.0f);
+    // A faixa: o colisor dele, o do projetil e o alcance do raspao.
+    const float faixa = 6.0f + 8.0f + Raspao::kAlcance;
+    CHECK(Cobertura::VaiNele(Vector2(500.0f + faixa - 1.0f, 300.0f), descendo, 8.0f, aluno));
+    CHECK_FALSE(Cobertura::VaiNele(Vector2(500.0f + faixa + 1.0f, 300.0f), descendo, 8.0f, aluno));
+    // O escudo e a piscada: nada o atinge, e ninguem precisa cobri-lo.
+    const Aluno protegido{aluno.centro, aluno.raio, false};
+    CHECK_FALSE(Cobertura::VaiNele(Vector2(500.0f, 300.0f), descendo, 8.0f, protegido));
+}
+
+TEST_CASE("Cobertura: o projetil vai num aluno so - o que ele pega primeiro - e sozinho nao vai em ninguem") {
+    using Cobertura::Aluno;
+    const Vector2 descendo(0.0f, 400.0f);
+    const std::vector<Aluno> dupla = {{Vector2(300.0f, 600.0f), 6.0f, true},
+                                      {Vector2(700.0f, 600.0f), 6.0f, true}};
+    CHECK(Cobertura::AlunoNoCaminho(Vector2(300.0f, 300.0f), descendo, 8.0f, dupla) == 0);
+    CHECK(Cobertura::AlunoNoCaminho(Vector2(700.0f, 300.0f), descendo, 8.0f, dupla) == 1);
+    CHECK(Cobertura::AlunoNoCaminho(Vector2(500.0f, 300.0f), descendo, 8.0f, dupla) == -1);
+    // Na diagonal: sai de cima do primeiro, mas e no segundo que ele vai.
+    CHECK(Cobertura::AlunoNoCaminho(Vector2(300.0f, 300.0f), Vector2(400.0f, 300.0f), 8.0f, dupla) == 1);
+
+    // Um na frente do outro, na mesma coluna: o de cima e o primeiro a ser pego.
+    const std::vector<Aluno> emFila = {{Vector2(500.0f, 650.0f), 6.0f, true},
+                                       {Vector2(500.0f, 560.0f), 6.0f, true}};
+    CHECK(Cobertura::AlunoNoCaminho(Vector2(500.0f, 300.0f), descendo, 8.0f, emFila) == 1);
+    // O de cima protegido: o projetil segue para o de baixo.
+    const std::vector<Aluno> deEscudo = {emFila[0], {emFila[1].centro, emFila[1].raio, false}};
+    CHECK(Cobertura::AlunoNoCaminho(Vector2(500.0f, 300.0f), descendo, 8.0f, deEscudo) == 0);
+
+    // Sozinho, nao ha quem cubra.
+    CHECK(Cobertura::AlunoNoCaminho(Vector2(300.0f, 300.0f), descendo, 8.0f, {dupla[0]}) == -1);
+    CHECK(Cobertura::AlunoNoCaminho(Vector2(300.0f, 300.0f), descendo, 8.0f, {}) == -1);
+}

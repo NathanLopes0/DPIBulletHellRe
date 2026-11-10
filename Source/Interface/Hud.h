@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <vector>
 
 #include "../Motor/Math.h"
@@ -88,4 +89,21 @@ namespace Hud {
 
     /// O tamanho do balao 'idade' segundos depois de murchar: de 1 ate 0,3, devagar no fim.
     float Murcho(float idade);
+
+    // ---- O caminho do parceiro (Cobertura::AlunoNoCaminho) ----
+
+    /// Na dupla, o projetil destrutivel que vai num aluno ganha um brilho na cor dele, por fora do
+    /// contorno vermelho: para o parceiro, derruba-lo e a cobertura. Ate onde o brilho vai, em
+    /// pixels de tela alem do desenho - o contorno vai ate Destrutivel::kEspessura.
+    constexpr int kAlcanceDoBrilho = 6;
+
+    /// O brilho pulsa devagar, todos juntos, entre estes dois alfas: leve, para nao competir com o
+    /// contorno vermelho, que diz o que se derruba.
+    constexpr std::uint8_t kBrilhoMinimo = 90;
+    constexpr std::uint8_t kBrilhoMaximo = 160;
+    /// Pulsos por segundo.
+    constexpr float kPulsoDoBrilho = 1.2f;
+
+    /// O alfa do brilho 'segundos' depois do comeco da luta.
+    std::uint8_t AlfaDoBrilho(float segundos);
 }

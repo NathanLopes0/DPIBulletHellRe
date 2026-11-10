@@ -12,6 +12,7 @@
 #include "../Scene.h"
 #include "../../Regras/Intercambio.h"
 #include "../../Regras/Papeis.h"
+#include "../../Regras/Cobertura.h"
 #include "../../Motor/Game.h"
 #include "../../Motor/AudioSystem.h"
 #include "../../Interface/Pausa.h"
@@ -288,6 +289,13 @@ private:
     /// O tiro de um aluno derrubou um projetil: se ele ia no parceiro, e uma cobertura (Cobertura.h),
     /// paga inteira, com a faisca dela. Devolve se foi.
     bool Cobrir(const PlayerProjectile& tiro, const BossProjectile& projetil);
+
+    /// O aluno para as contas da cobertura: onde ele esta, o colisor e se algo o atinge.
+    [[nodiscard]] Cobertura::Aluno AlunoDaCobertura(const Player* aluno) const;
+
+    /// Na dupla, o projetil destrutivel que vai num aluno brilha na cor dele (Cobertura::AlunoNoCaminho):
+    /// quem esta embaixo sabe que derruba-lo e a cobertura. E a mesma conta de Cobrir.
+    void MarcarOCaminhoDosAlunos();
 
     /// O projetil passou rente ao aluno sem acerta-lo (Raspao.h): paga o raspao, uma vez por projetil.
     void Raspar(Player& jogador, const class CircleColliderComponent& colisor, class BossProjectile& projetil,

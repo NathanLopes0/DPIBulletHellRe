@@ -39,7 +39,11 @@ void BossProjectile::Reset() {
 
     mGolpes = 0;
 
-    if (auto* anim = GetComponent<DrawAnimatedComponent>()) anim->SetColor(255, 255, 255);
+    if (auto* anim = GetComponent<DrawAnimatedComponent>()) {
+        anim->SetColor(255, 255, 255);
+        // O brilho de quem ia num aluno (Battle::MarcarOCaminhoDosAlunos) nao volta do pool.
+        anim->DefinirBrilho(false);
+    }
 }
 
 void BossProjectile::OnUpdate(float deltaTime)

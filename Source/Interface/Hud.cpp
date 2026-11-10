@@ -105,4 +105,10 @@ namespace Hud {
         const float u = std::clamp(idade / kMurcha, 0.0f, 1.0f);
         return 1.0f - 0.7f * (1.0f - (1.0f - u) * (1.0f - u));
     }
+
+    std::uint8_t AlfaDoBrilho(const float segundos) {
+        const float pulso = 0.5f + 0.5f * Math::Sin(segundos * kPulsoDoBrilho * Math::TwoPi);
+        return static_cast<std::uint8_t>(static_cast<float>(kBrilhoMinimo) +
+                                         static_cast<float>(kBrilhoMaximo - kBrilhoMinimo) * pulso);
+    }
 }

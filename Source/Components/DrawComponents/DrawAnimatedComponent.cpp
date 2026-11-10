@@ -91,8 +91,18 @@ void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
 
         SDL_RendererFlip flip = SDL_FLIP_NONE;
 
+        const double angulo = -Math::ToDegrees(mOwner->GetRotation());
+        if (mBrilho && mAlcanceDoBrilho > Destrutivel::kEspessura) {
+            // Dois aneis, o de fora mais apagado: o brilho some com a distancia, e o contorno vem
+            // por cima dele.
+            SDL_Color fora = mCorDoBrilho;
+            fora.a = static_cast<Uint8>(mCorDoBrilho.a / 2);
+            DesenharSilhueta(renderer, clipRect, renderQuad, angulo, flip, mAlcanceDoBrilho, fora);
+            DesenharSilhueta(renderer, clipRect, renderQuad, angulo, flip,
+                             (mAlcanceDoBrilho + Destrutivel::kEspessura) / 2, mCorDoBrilho);
+        }
         if (mContorno) {
-            DesenharContorno(renderer, clipRect, renderQuad, -Math::ToDegrees(mOwner->GetRotation()), flip);
+            DesenharSilhueta(renderer, clipRect, renderQuad, angulo, flip, Destrutivel::kEspessura, mCorDoContorno);
         }
 
         ApplyColorMod();
@@ -108,19 +118,27 @@ void DrawAnimatedComponent::DefinirContorno(const bool ligado, const SDL_Color c
     mCorDoContorno = cor;
 }
 
-void DrawAnimatedComponent::DesenharContorno(SDL_Renderer* renderer, const SDL_Rect& quadro,
+void DrawAnimatedComponent::DefinirBrilho(const bool ligado, const SDL_Color cor, const int alcance) {
+    mBrilho = ligado;
+    mCorDoBrilho = cor;
+    mAlcanceDoBrilho = alcance;
+}
+
+void DrawAnimatedComponent::DesenharSilhueta(SDL_Renderer* renderer, const SDL_Rect& quadro,
                                              const SDL_Rect& destino, const double angulo,
-                                             const SDL_RendererFlip flip) {
-    // A silhueta so e carregada quando o contorno liga pela primeira vez.
+                                             const SDL_RendererFlip flip, const int distancia,
+                                             const SDL_Color cor) {
+    if (distancia <= 0) return;
+    // A silhueta so e carregada quando o contorno (ou o brilho) liga pela primeira vez.
     if (!mSilhuetaTentada) {
         mSilhuetaTentada = true;
         mSilhueta = mOwner->GetScene()->GetGame()->LoadSilhueta(mCaminhoDaFolha);
     }
     if (!mSilhueta) return;
 
-    SDL_SetTextureColorMod(mSilhueta, mCorDoContorno.r, mCorDoContorno.g, mCorDoContorno.b);
-    SDL_SetTextureAlphaMod(mSilhueta, mCorDoContorno.a);
-    const int e = Destrutivel::kEspessura;
+    SDL_SetTextureColorMod(mSilhueta, cor.r, cor.g, cor.b);
+    SDL_SetTextureAlphaMod(mSilhueta, cor.a);
+    const int e = distancia;
     for (int dy = -e; dy <= e; dy += e) {
         for (int dx = -e; dx <= e; dx += e) {
             if (dx == 0 && dy == 0) continue;

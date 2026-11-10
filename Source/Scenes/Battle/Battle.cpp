@@ -585,6 +585,7 @@ void Battle::OnUpdate(float deltaTime) {
     VerificarColisoes();
     mIncomodo.Avancar(deltaTime);
     AtualizarDesenhoSobreOsAlunos(deltaTime);
+    MarcarOCaminhoDosAlunos();
     AtualizarMoldura();
     AtualizarOndas(deltaTime);
     AtualizarEfeitos(deltaTime);
@@ -1054,21 +1055,25 @@ void Battle::ColisoesTiroDoChefeNoAluno(const std::vector<std::unique_ptr<BossPr
     }
 }
 
+Cobertura::Aluno Battle::AlunoDaCobertura(const Player* aluno) const {
+    const auto* colisor = aluno ? ColisorDe(aluno) : nullptr;
+    // O que nada atinge (o escudo, a piscada) nao precisa de cobertura.
+    if (!colisor || aluno->EstaInvencivel()) return Cobertura::Aluno{};
+    return Cobertura::Aluno{colisor->GetCenter(), colisor->GetRadius(), true};
+}
+
 bool Battle::Cobrir(const PlayerProjectile& tiro, const BossProjectile& projetil) {
     // So na dupla, e so o tiro de um aluno.
     const int quem = PosicaoDoAluno(tiro.Dono());
     if (quem < 0 || mJogadores.size() < 2) return false;
     const Player* parceiro = mJogadores[quem == 0 ? 1 : 0];
-    // O parceiro que nada atinge (o escudo, a piscada) nao precisava de cobertura.
-    if (!parceiro || parceiro->EstaInvencivel()) return false;
-    const auto* colisor = ColisorDe(parceiro);
     const auto* colisorDoProjetil = projetil.GetComponent<CircleColliderComponent>();
-    if (!colisor || !colisorDoProjetil) return false;
+    if (!colisorDoProjetil) return false;
     const auto* rb = projetil.GetComponent<RigidBodyComponent>();
     const Vector2 velocidade = rb ? rb->GetVelocity() : Vector2::Zero;
     // "Ia nele": passaria na faixa do raspao dele, ou mais perto.
-    const float raio = colisor->GetRadius() + colisorDoProjetil->GetRadius() + Raspao::kAlcance;
-    if (!Cobertura::IaPassarPerto(colisorDoProjetil->GetCenter(), velocidade, colisor->GetCenter(), raio)) return false;
+    if (!Cobertura::VaiNele(colisorDoProjetil->GetCenter(), velocidade, colisorDoProjetil->GetRadius(),
+                            AlunoDaCobertura(parceiro))) return false;
 
     // E da dupla: pago inteiro, sem a divisao.
     SubirNota(Cobertura::kGanho);
@@ -1076,6 +1081,35 @@ bool Battle::Cobrir(const PlayerProjectile& tiro, const BossProjectile& projetil
     Faiscar(colisorDoProjetil->GetCenter(), Hud::Faisca::Cobertura, quem);
     Avisar([&](OuvinteDaBatalha& o) { o.AoCobrir(*this, *mJogadores[static_cast<size_t>(quem)], *parceiro); });
     return true;
+}
+
+void Battle::MarcarOCaminhoDosAlunos() {
+    // Sozinho, nao ha quem cubra, e nenhum projetil brilha.
+    if (mJogadores.size() < 2 || !mProjeteis) return;
+    std::vector<Cobertura::Aluno> alunos;
+    for (const Player* p : mJogadores) alunos.push_back(AlunoDaCobertura(p));
+    const Uint8 alfa = Hud::AlfaDoBrilho(mPulsoDoEscudo);
+
+    for (const auto& projetil : mProjeteis->GetBossProjectiles()) {
+        if (projetil->GetState() != ActorState::Active) continue;
+        auto* desenho = projetil->GetComponent<DrawAnimatedComponent>();
+        if (!desenho) continue;
+        int quem = -1;
+        // So o que tem o contorno vermelho: o que o tiro derruba.
+        const auto* colisor = projetil->GetComponent<CircleColliderComponent>();
+        if (colisor && Destrutivel::Pode(projetil->Derrubavel(), projetil->Blindado(), projetil->Abrigo(),
+                                         projetil->Enfeite())) {
+            const auto* rb = projetil->GetComponent<RigidBodyComponent>();
+            quem = Cobertura::AlunoNoCaminho(colisor->GetCenter(), rb ? rb->GetVelocity() : Vector2::Zero,
+                                             colisor->GetRadius(), alunos);
+        }
+        if (quem < 0) {
+            desenho->DefinirBrilho(false);
+            continue;
+        }
+        const Hud::Rgb c = Hud::CorDoAluno(static_cast<size_t>(quem));
+        desenho->DefinirBrilho(true, SDL_Color{c.r, c.g, c.b, alfa}, Hud::kAlcanceDoBrilho);
+    }
 }
 
 void Battle::Raspar(Player& jogador, const CircleColliderComponent& colisor, BossProjectile& projetil,

@@ -65,6 +65,7 @@ silêncio. D2 e D4 mudaram de resposta, não de pergunta.
 | D10 | Passar jogando em co-op | **Destranca** a próxima matéria, igual ao solo |
 | D11 | O Ponto Extra em dupla | **Não limpa a tela: dá ao _outro_ imunidade e um escudo** por 3 s, e o doador **segue atirando** (2.5) |
 | D12 | O que paga cuidar do outro | **A cobertura**: derrubar o projétil que ia no parceiro vale inteiro (2.6) |
+| D13 | Como o aluno sabe o que cobrir | O projétil destrutível que vai num aluno **brilha na cor dele**, com a mesma conta da cobertura (2.6) |
 
 ### 2.1 — Uma regra só para a nota compartilhada (D2, D4)
 
@@ -274,6 +275,18 @@ vez, e só o pedaço que ia passar por ele era perigo. Conta o projétil que, em
 linha reta, passaria na faixa do raspão do parceiro no próximo segundo; o
 parceiro que nada atinge (o escudo do Ponto Extra, a piscada de quem apanhou)
 não precisava de cobertura.
+
+**E a cobertura se vê antes de acontecer.** O tiro só sobe: cobre quem está
+embaixo do projétil, entre ele e o parceiro. Sem aviso, isso só acontecia por
+acaso — nas medições, 1,7 cobertura por luta, quase todas sem querer. Por isso
+o projétil destrutível que vai num aluno **brilha na cor dele**, por fora do
+contorno vermelho (`Battle::MarcarOCaminhoDosAlunos`): para o parceiro, o brilho
+quer dizer "derrubar este é cobertura". A conta é a mesma da cobertura
+(`Cobertura::VaiNele`), para o brilho nunca prometer o que não paga; quando o
+projétil vai nos dois, brilha na cor do que ele pega primeiro
+(`Cobertura::AlunoNoCaminho`). O contorno vermelho continua dizendo o que se
+destrói; o brilho é leve, pulsa devagar e todos juntos (`Hud::AlfaDoBrilho`), e
+sozinho não aparece — não há quem cubra.
 
 Juntas, as duas regras fazem os papéis aparecerem sem botão nem escolha de
 classe: quem ataca chama a mira e desvia dela; quem cobre ataca menos, fica livre

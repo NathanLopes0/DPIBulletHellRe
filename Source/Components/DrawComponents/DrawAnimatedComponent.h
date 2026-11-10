@@ -38,14 +38,23 @@ public:
     /// BossProjectile::OnUpdate.
     void DefinirContorno(bool ligado, SDL_Color cor);
 
+    /// Um brilho na cor 'cor', por fora do contorno, ate 'alcance' pixels de tela alem do desenho:
+    /// na dupla, o do projetil que vai num aluno (Battle::MarcarOCaminhoDosAlunos).
+    void DefinirBrilho(bool ligado, SDL_Color cor = SDL_Color{0, 0, 0, 0}, int alcance = 0);
+
 private:
-    void DesenharContorno(SDL_Renderer* renderer, const SDL_Rect& quadro, const SDL_Rect& destino,
-                          double angulo, SDL_RendererFlip flip);
+    /// A silhueta da folha deslocada 'distancia' pixels nas oito direcoes, na cor 'cor': e do que o
+    /// contorno e o brilho sao feitos.
+    void DesenharSilhueta(SDL_Renderer* renderer, const SDL_Rect& quadro, const SDL_Rect& destino,
+                          double angulo, SDL_RendererFlip flip, int distancia, SDL_Color cor);
 
     /// A folha, para a silhueta ser carregada so quando o contorno liga.
     std::string mCaminhoDaFolha;
     bool mContorno = false;
     SDL_Color mCorDoContorno{255, 255, 255, 255};
+    bool mBrilho = false;
+    SDL_Color mCorDoBrilho{0, 0, 0, 0};
+    int mAlcanceDoBrilho = 0;
     SDL_Texture* mSilhueta = nullptr;
     bool mSilhuetaTentada = false;
 

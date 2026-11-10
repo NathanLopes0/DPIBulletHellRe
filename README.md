@@ -47,6 +47,10 @@ professor** — um **v** vermelho em cima do aluno avisa que a mira está nele �
 quando os dois acertam parecido, ele reveza um disparo para cada: quem ataca
 chama a mira, e o outro fica livre para **cobri-lo**. Derrubar um projétil que ia
 no parceiro é uma **cobertura**, e vale inteira, como a fase limpa: é da dupla.
+Como o tiro só sobe, cobre quem está **embaixo** do projétil, entre ele e o
+parceiro — e, para isso se ver, o projétil destrutível que vai num aluno
+**brilha na cor dele**, por fora do contorno vermelho: o brilho laranja, para o
+aluno azul, quer dizer "derrube este".
 O **Ponto Extra em dupla é do outro**: em vez de
 limpar a tela, um feixe sai de quem o gastou e dá ao parceiro um escudo que
 destrói os projéteis do chefe por três segundos. As decisões do modo, e o

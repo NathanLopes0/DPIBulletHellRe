@@ -4,7 +4,12 @@
 
 #include "doctest.h"
 
+#include <algorithm>
+#include <cstdint>
+#include <cstdlib>
+
 #include "../Source/Interface/Hud.h"
+#include "../Source/Regras/Destrutivel.h"
 
 using namespace Hud;
 
@@ -86,4 +91,22 @@ TEST_CASE("Hud: cada aluno tem a sua cor, e o balao barrado murcha ate um terco"
     CHECK(Murcho(kMurcha * 0.5f) < 1.0f);
     CHECK(Murcho(kMurcha * 0.5f) > 0.3f);
     CHECK(Murcho(10.0f) == doctest::Approx(0.3f));
+}
+
+TEST_CASE("Hud: o brilho do projetil que vai num aluno pulsa leve, por fora do contorno") {
+    std::uint8_t menor = 255, maior = 0;
+    for (int i = 0; i <= 300; ++i) {
+        const std::uint8_t a = AlfaDoBrilho(static_cast<float>(i) * 0.01f);
+        menor = std::min(menor, a);
+        maior = std::max(maior, a);
+    }
+    CHECK(menor >= kBrilhoMinimo);
+    CHECK(maior <= kBrilhoMaximo);
+    // Pulsa de verdade, e com o periodo dito.
+    CHECK(maior - menor > 50);
+    CHECK(std::abs(static_cast<int>(AlfaDoBrilho(1.0f)) -
+                   static_cast<int>(AlfaDoBrilho(1.0f + 1.0f / kPulsoDoBrilho))) <= 1);
+    // Leve: mais apagado que o contorno vermelho, e por fora dele.
+    CHECK(kBrilhoMaximo < Destrutivel::kOpacidade);
+    CHECK(kAlcanceDoBrilho > Destrutivel::kEspessura);
 }
