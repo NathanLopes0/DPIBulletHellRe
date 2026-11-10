@@ -8,10 +8,9 @@
 #include "../../Regras/Nota.h"
 
 #include <random>
-#include <sstream>
-#include <iomanip>
 
 #include "BattleHUD.h"
+#include "FaixaDaNota.h"
 #include "ProjectileManager.h"
 #include "../../Motor/AudioSystem.h"
 #include "../../Motor/Font.h"
@@ -26,7 +25,6 @@
 #include "../../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../../Components/DrawComponents/DrawTextComponent.h"
 #include "../../Components/DrawComponents/ProgressBarComponent.h"
-#include "../../Components/DrawComponents/DrawBarraDaNotaComponent.h"
 #include "../../Components/DrawComponents/DrawFundoDoCampoComponent.h"
 #include "../../Components/DrawComponents/DrawMolduraDoCampoComponent.h"
 #include "../../Components/DrawComponents/DrawQuadroComponent.h"
@@ -70,7 +68,7 @@ const CircleColliderComponent* ColisorDe(const Player* jogador) {
 
 Battle::Battle(Game* game, const int selectedStage)
     : Scene(game, SceneType::Battle)
-    , mNota(40.0f)
+    , mConta(Progresso::kNotaInicial)
     , mMateria(selectedStage)
 {
     if (game) mCondicao = game->Condicao();
@@ -93,14 +91,9 @@ void Battle::Load() {
         mOuvintes.push_back(std::make_unique<RelatorioDaSimulacao>(mGame->ConfiguracaoDaSimulacao().sairNoFim));
     }
 
-    // Toda batalha comeca em 40, mesmo que o aluno ja tenha tirado mais nesta materia.
-    mNota = Progresso::kNotaInicial;
-
-    // Quem foi atingido ontem nao perde a nota cheia de hoje.
-    mAcertosSofridos = 0;
-    mAcertosNaFase = 0;
-    mPrimeiraFase = true;
-    mFasesLimpas = 0;
+    // Toda batalha comeca em 40, mesmo que o aluno ja tenha tirado mais nesta materia, e sem os
+    // acertos de ontem: quem foi atingido ontem nao perde a nota cheia de hoje.
+    mConta = Nota::Conta(Progresso::kNotaInicial, mGame->QuantosJogadores());
     mAvisoDeFaseLimpa = 0.0f;
 
     // O modo e a semente antes do chefe: a fabrica e o chefe podem perguntar pelos dois.
@@ -179,7 +172,11 @@ void Battle::CriarHUD() {
     CriarMoldura();
     if (mMoldura) mOuvintes.push_back(std::make_unique<ClaroesDaMoldura>(*mMoldura));
     CriarBarraDeTempo();
-    CriarBarraDaNota();
+    // A fonte da faixa e tambem a dos menus e da tela de carregamento.
+    mFonteDaNota = std::make_unique<Font>();
+    mFonteDaNota->Load(Caminhos::Asset(Fontes::kJogo));
+    mFaixa = std::make_unique<FaixaDaNota>(*this, mFonteDaNota.get(), mGame->GetWindowWidth(),
+                                           mGame->GetWindowHeight(), mConta.Valor(), mNivel);
     CriarPlacar();
     CriarIntercambio();
 
@@ -256,102 +253,6 @@ void Battle::CriarRelogioDaFase() {
     this->AddActor(std::move(clockActor));
     mRelogioAtor = clockActorPtr;
 
-}
-void Battle::CriarBarraDaNota() {
-    auto gradeBarActor = std::make_unique<Actor>(this);
-
-    const int windowWidth = mGame->GetWindowWidth();
-    const int windowHeight = mGame->GetWindowHeight();
-
-    // A barra recuada, e nao de ponta a ponta.
-    const int barraX = kBarraMargemLateral;
-    const int barraY = windowHeight - kBarraDoFundo;
-    const int barraLargura = windowWidth - 2 * kBarraMargemLateral;
-
-    gradeBarActor->SetPosition(Vector2(static_cast<float>(barraX), static_cast<float>(barraY)));
-
-    // A barra desenhada por conta propria (DrawBarraDaNotaComponent).
-    auto gradeBarComp = gradeBarActor->AddComponent<DrawBarraDaNotaComponent>(barraLargura, kBarraAltura, 200);
-    gradeBarComp->Comecar(mNota);
-
-    mBarraDaNotaAtor = gradeBarActor.get();
-    this->AddActor(std::move(gradeBarActor));
-
-    // Configurar Actor e fonte que vai ter a nota no meio da barra.
-    mFonteDaNota = std::make_unique<Font>();
-    mFonteDaNota->Load(Caminhos::Asset(Fontes::kJogo));
-    auto gradeBarTextActor = std::make_unique<Actor>(this);
-
-    // A caixa e 200x32, e nao 36x25.
-    constexpr int tamanhoDaNota = 24;
-    // A placa primeiro, com ordem menor.
-    gradeBarTextActor->AddComponent<DrawCaixaComponent>(
-        kPlacaLargura, kPlacaAltura - 4, kMolduraDaPlacaDaNota, kFundoDaPlacaDaNota, 1, kOrdemDaPlaca);
-
-    // A nota de partida desde o primeiro quadro.
-    std::stringstream inicial;
-    inicial << std::fixed << std::setprecision(2) << mNota;
-    auto gradeText = gradeBarTextActor->AddComponent<DrawTextComponent>(
-        inicial.str(), mFonteDaNota.get(), 200, tamanhoDaNota + 8, tamanhoDaNota, 304);
-    gradeText->SetAjustarAoTexto(true);
-
-    const auto textPosX = static_cast<float>(windowWidth) / 2.f;
-    const auto textPosY = static_cast<float>(barraY + kBarraAltura / 2);
-    gradeBarTextActor->SetPosition(Vector2(textPosX, textPosY));
-
-    mTextoDaNotaAtor = gradeBarTextActor.get();
-    this->AddActor(std::move(gradeBarTextActor));
-
-    // O anuncio do teste final, escondido ate a nota chegar a 100.
-    auto avisoActor = std::make_unique<Actor>(this);
-    auto placaDoTeste = avisoActor->AddComponent<DrawCaixaComponent>(
-        kPlacaDoAvisoLargura, kPlacaAltura, kSemMoldura, kFundoDaPlaca, 0, kOrdemDaPlaca);
-    placaDoTeste->SetIsVisible(false);
-
-    auto aviso = avisoActor->AddComponent<DrawTextComponent>(
-        "TESTE FINAL", mFonteDaNota.get(), 260, tamanhoDaNota + 8, tamanhoDaNota, 304);
-    aviso->SetAjustarAoTexto(true);
-    aviso->SetColor(Color::Gold);
-    aviso->SetIsVisible(false);
-
-    avisoActor->SetPosition(Vector2(static_cast<float>(windowWidth) / 4.f, textPosY));
-
-    mTesteFinalAtor = avisoActor.get();
-    this->AddActor(std::move(avisoActor));
-
-    // O aviso de fase limpa, na direita da faixa.
-    auto limpaActor = std::make_unique<Actor>(this);
-    auto placaDaLimpa = limpaActor->AddComponent<DrawCaixaComponent>(
-        kPlacaDoAvisoLargura, kPlacaAltura, kSemMoldura, kFundoDaPlaca, 0, kOrdemDaPlaca);
-    placaDaLimpa->SetIsVisible(false);
-
-    auto limpa = limpaActor->AddComponent<DrawTextComponent>(
-        "FASE LIMPA", mFonteDaNota.get(), 260, tamanhoDaNota + 8, tamanhoDaNota, 304);
-    limpa->SetAjustarAoTexto(true);
-    limpa->SetColor(Color::LightGreen);
-    limpa->SetIsVisible(false);
-
-    limpaActor->SetPosition(Vector2(static_cast<float>(windowWidth) * 3.f / 4.f, textPosY));
-
-    mFaseLimpaAtor = limpaActor.get();
-    this->AddActor(std::move(limpaActor));
-
-    // O selo do Dificil, na ponta direita da faixa.
-    if (mNivel == Dificuldade::Nivel::Dificil) {
-        auto selo = std::make_unique<Actor>(this);
-        selo->AddComponent<DrawCaixaComponent>(
-            kPlacaLargura, kPlacaAltura, kSemMoldura, kFundoDaPlaca, 0, kOrdemDaPlaca);
-        auto texto = selo->AddComponent<DrawTextComponent>(
-            Dificuldade::Nome(mNivel), mFonteDaNota.get(), kPlacaLargura, tamanhoDaNota + 8,
-            tamanhoDaNota, 304);
-        texto->SetAjustarAoTexto(true);
-        texto->SetColor(Vector3(Dificuldade::kCorDoDificil[0], Dificuldade::kCorDoDificil[1],
-                                Dificuldade::kCorDoDificil[2]));
-        selo->SetPosition(Vector2(static_cast<float>(windowWidth - kBarraMargemLateral - kPlacaLargura / 2 - 8),
-                                  textPosY));
-        mSeloDoNivel = selo.get();
-        this->AddActor(std::move(selo));
-    }
 }
 void Battle::CriarPlacar() {
 
@@ -564,7 +465,7 @@ void Battle::OnUpdate(float deltaTime) {
         if (quadro == sim.pausaNoQuadro) AbrirPausa();
         if (quadro == sim.focoNoQuadro) AoPerderOFoco();
         if (quadro == sim.fimNoQuadro) {
-            if (sim.fimComNota) mNota = *sim.fimComNota;
+            if (sim.fimComNota) mConta.Definir(*sim.fimComNota);
             EncerrarBatalha(sim.fimAprovado);
         }
     }
@@ -626,7 +527,7 @@ void Battle::OnUpdate(float deltaTime) {
     if (mRede > 0.0f) mRede = std::max(0.0f, mRede - deltaTime);
 
     AtualizarBarraDeTempo();
-    AtualizarBarraDaNota();
+    mFaixa->Atualizar(mConta.Valor(), mAvisoDeFaseLimpa > 0.0f);
 
     AtualizarIntercambio(deltaTime);
     AtualizarPlacar();
@@ -641,7 +542,7 @@ void Battle::OnUpdate(float deltaTime) {
     Avisar([&](OuvinteDaBatalha& o) { o.AoFimDoQuadro(*this); });
 
     // Se a nota cair a 0, termina a fase.
-    if (mNota <= 0 && !mGame->ConfiguracaoDaSimulacao().imortal) {
+    if (mConta.Valor() <= 0 && !mGame->ConfiguracaoDaSimulacao().imortal) {
         EncerrarBatalha(false);
     }
 
@@ -670,80 +571,6 @@ void Battle::AtualizarBarraDeTempo() const {
         if (aceso) relogio->SetColor(255, 110, 100);
         else relogio->SetColor(255, 255, 255);
     }
-}
-void Battle::AtualizarBarraDaNota() {
-    auto gradeComp = mBarraDaNotaAtor->GetComponent<DrawBarraDaNotaComponent>();
-    if (!gradeComp) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "GradeBarActor not found");
-        return;
-    }
-
-    // ---- Definição da paleta de cores -- // ----
-
-    // O sulco e a moldura sao da barra (DrawBarraDaNotaComponent).
-
-    // STATE1 - reprovade.
-    static const SDL_Color FAIL_START = {100, 0, 0, 255};
-    static const SDL_Color FAIL_END = {255, 0, 0, 255};
-
-    // STATE2 - final.
-    static const SDL_Color SECRET_START = {180, 150, 0, 255};
-    static const SDL_Color SECRET_END = {255, 140, 0, 255};
-
-    // STATE3 - aprovade.
-    static const SDL_Color PASS_START = {144, 238, 144, 255};
-    static const SDL_Color PASS_END = {0, 255, 128, 255};
-
-    // ---- --------- -- ------ -- ----- -- // ----
-
-    float colorPercent = 0.0f;
-
-    SDL_Color de = PASS_START, ate = PASS_END;
-    if (mNota < 40.f) {
-        colorPercent = mNota / 40.f;
-        de = FAIL_START; ate = FAIL_END;
-    } else if (mNota < 60.f) {
-        colorPercent = (mNota - 40.f) / 20.f;
-        de = SECRET_START; ate = SECRET_END;
-    } else {
-        colorPercent = (mNota - 60.f) / 40.f;
-    }
-    const auto lerp = [colorPercent](const Uint8 a, const Uint8 b) {
-        return static_cast<Uint8>(static_cast<float>(a) + (static_cast<float>(b) - static_cast<float>(a)) * colorPercent);
-    };
-    const SDL_Color cor{lerp(de.r, ate.r), lerp(de.g, ate.g), lerp(de.b, ate.b), 255};
-
-    gradeComp->SetNota(mNota, cor, mNota < 40.f, Nota::ECheia(mNota));
-    AtualizarTextoDaNota();
-
-}
-void Battle::AtualizarTextoDaNota() {
-
-    // Duas casas, e nao uma.
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(2) << mNota;
-
-    const auto texto = mTextoDaNotaAtor->GetComponent<DrawTextComponent>();
-    texto->SetText(ss.str());
-
-    // O dourado segue a nota, em vez de ser ligado uma vez e ficar aceso.
-    const bool cheia = Nota::ECheia(mNota);
-    texto->SetColor(cheia ? Color::Gold : Color::White);
-
-    // O anuncio, ao contrario, nao volta atras.
-    if (cheia && mTesteFinalAtor) {
-        // A placa acende junto.
-        mTesteFinalAtor->GetComponent<DrawCaixaComponent>()->SetIsVisible(true);
-        mTesteFinalAtor->GetComponent<DrawTextComponent>()->SetIsVisible(true);
-    }
-
-    // O aviso de fase limpa some sozinho.
-    if (mFaseLimpaAtor) {
-        const bool acesa = mAvisoDeFaseLimpa > 0.0f;
-        mFaseLimpaAtor->GetComponent<DrawCaixaComponent>()->SetIsVisible(acesa);
-        mFaseLimpaAtor->GetComponent<DrawTextComponent>()->SetIsVisible(acesa);
-    }
-
 }
 //endregion UpdateFunctions
 
@@ -1142,9 +969,7 @@ void Battle::ColisoesTiroDoChefeNoAluno(const std::vector<std::unique_ptr<BossPr
                         jogador->Acorrentar(bossProj->SegundosDeCorrente(),
                                             bossProj->FatorDaCorrente());
                     }
-                    const float antes = mNota;
-                    DescerNota(bossProj->MultiplicadorDaPerda());
-                    AnotarPerda(*jogador, bossProj->Tipo(), antes - mNota);
+                    AnotarPerda(*jogador, bossProj->Tipo(), mConta.Descer(bossProj->MultiplicadorDaPerda()));
 
                     Faiscar(playerCollider->GetCenter(), Hud::Faisca::Dano);
                     Avisar([&](OuvinteDaBatalha& o) { o.AoSerAcertado(*this, *jogador, true); });
@@ -1181,7 +1006,7 @@ bool Battle::Cobrir(const PlayerProjectile& tiro, const BossProjectile& projetil
     if (!mCondicao.Ligada(Experimento::Mecanica::Cobertura)) return false;
 
     // E da dupla: pago inteiro, sem a divisao.
-    SubirNota(Cobertura::kGanho);
+    mConta.Subir(Cobertura::kGanho);
     if (static_cast<size_t>(quem) < mPartes.size()) ++mPartes[static_cast<size_t>(quem)].coberturas;
     Faiscar(colisorDoProjetil->GetCenter(), Hud::Faisca::Cobertura, quem);
     // O valeu: sobe de quem foi coberto, na cor de quem cobriu - os dois veem que contou, na hora.
@@ -1304,7 +1129,7 @@ void Battle::Raspar(Player& jogador, const CircleColliderComponent& colisor, Bos
     // A medida conta sempre; o experimento sem raspao so nao paga nem acende.
     Avisar([&](OuvinteDaBatalha& o) { o.AoRaspar(*this, jogador); });
     if (!mCondicao.Ligada(Experimento::Mecanica::Raspao)) return;
-    SubirNota(PorJogador(Raspao::kGanho));
+    mConta.Subir(mConta.PorJogador(Raspao::kGanho));
     Faiscar(Raspao::OndeFaisca(colisor.GetCenter(), colisorDoProjetil.GetCenter()), Hud::Faisca::Raspao);
 }
 
@@ -1413,7 +1238,7 @@ void Battle::ColisoesTiroDoAlunoNoChefe(const std::vector<std::unique_ptr<Player
                         Avisar([&](OuvinteDaBatalha& o) { o.AoAcertarDePerto(*this, aluno); });
                     }
                     const float fator = mCondicao.Ligada(Experimento::Mecanica::Perto) ? fatorDaDistancia : 1.0f;
-                    SubirNota(PorJogador(Nota::kGanhoPorAcerto * fator));
+                    mConta.Subir(mConta.PorJogador(Nota::kGanhoPorAcerto * fator));
                     // A duvida respondida: o "?" vira um "!" na cor de quem perguntou - "!!" de perto.
                     Faiscar(playerProj->GetPosition(),
                             fator >= Nota::kFatorDaRespostaDupla ? Hud::Faisca::RespostaDePerto : Hud::Faisca::Resposta,
@@ -1446,9 +1271,7 @@ void Battle::ColisoesDeContato() {
                 jogador->FoiAcertadoPor(corpo, 0.0f);
                 jogador->OnCollision(corpo);
                 corpo->OnCollision(jogador);
-                const float antes = mNota;
-                DescerNota();
-                AnotarPerda(*jogador, Devolutiva::kEsbarrao, antes - mNota);
+                AnotarPerda(*jogador, Devolutiva::kEsbarrao, mConta.Descer());
                 Avisar([&](OuvinteDaBatalha& o) { o.AoSerAcertado(*this, *jogador, false); });
             }
         }
@@ -1518,28 +1341,6 @@ void Battle::RevezarAlvo() {
     mVezDoAlvo = (mVezDoAlvo + 1) % mJogadores.size();
 }
 
-float Battle::PorJogador(const float bruto) const {
-    return Nota::PorJogador(bruto, mJogadores.size());
-}
-
-void Battle::SubirNota(const float amount) {
-
-    // A aritmetica inteira vive em Nota.
-    mNota = Nota::Somar(mNota, amount, mAcertosSofridos);
-}
-void Battle::DescerNota(const float multiplicadorDaPerda) {
-
-    // A contagem mora aqui, no instante do acerto, e nao num balanco no fim da batalha.
-    ++mAcertosSofridos;
-    ++mAcertosNaFase;
-    // PerdaPorJogador, e nao PorJogador.
-    mNota = Nota::Subtrair(mNota, PerdaPorJogador(Nota::kPerdaPorAcerto) * multiplicadorDaPerda);
-}
-
-float Battle::PerdaPorJogador(const float bruto) const {
-    return Nota::PerdaPorJogador(bruto, mJogadores.size());
-}
-
 /// Segundos que o aviso de fase limpa fica na tela. Curto: ele informa, nao
 /// comemora - e o jogador esta no meio de uma batalha.
 static constexpr float kDuracaoDoAvisoDeFaseLimpa = 2.5f;
@@ -1566,24 +1367,12 @@ void Battle::EncerrarFase() {
     // Depois que a batalha acabou, nao ha mais fase a fechar.
     if (mAcabando) return;
 
-    // A primeira chamada nao paga nada.
-    if (mPrimeiraFase) {
-        mPrimeiraFase = false;
-        mAcertosNaFase = 0;
-        return;
-    }
+    // A conta paga o bonus da fase limpa (e nao paga nada na entrada da primeira).
+    if (!mConta.FecharFase()) return;
+    Avisar([&](OuvinteDaBatalha& o) { o.AoLimparFase(*this); });
 
-    if (mAcertosNaFase == 0) {
-        // Da fase, e nao de um jogador: pago inteiro.
-        SubirNota(Nota::kBonusDeFaseLimpa);
-        ++mFasesLimpas;
-        Avisar([&](OuvinteDaBatalha& o) { o.AoLimparFase(*this); });
-
-        // O aviso existe para a nota nao subir por motivo invisivel.
-        mAvisoDeFaseLimpa = kDuracaoDoAvisoDeFaseLimpa;
-    }
-
-    mAcertosNaFase = 0;
+    // O aviso existe para a nota nao subir por motivo invisivel.
+    mAvisoDeFaseLimpa = kDuracaoDoAvisoDeFaseLimpa;
 }
 
 SDL_FRect Battle::GetPlayfieldBounds() const
@@ -1593,7 +1382,7 @@ SDL_FRect Battle::GetPlayfieldBounds() const
         0.0f, // x
         0.0f, // y
         static_cast<float>(mGame->GetWindowWidth()), // w
-        static_cast<float>(mGame->GetWindowHeight() - kBarraDoFundo) // h
+        static_cast<float>(mGame->GetWindowHeight() - FaixaDaNota::kDoFundo) // h
     };
 }
 
@@ -1660,8 +1449,7 @@ Player* Battle::OutroJogador(const Player* quem) const {
 void Battle::AoGastarPontoExtra(Player* quemGastou) {
 
     // O mesmo nos dois modos, e repartido: e acao de um jogador.
-    mNota = PontoExtra::NotaDepois(mNota, mAcertosSofridos, PorJogador(Nota::kGanhoPorAcerto),
-                                    PontoExtra::TirosNaSobrecarga());
+    mConta.GastarPontoExtra();
     if (quemGastou) Avisar([&](OuvinteDaBatalha& o) { o.AoUsarPontoExtra(*this, *quemGastou); });
 
     Player* oOutro = OutroJogador(quemGastou);
@@ -1852,12 +1640,6 @@ void Battle::Atravessou(const Vector2& de, const Vector2& para) {
     Avisar([&](OuvinteDaBatalha& o) { o.AoAtravessarAParede(*this); });
 }
 
-Vector2 Battle::PontaDaBarra() const {
-    const float largura = static_cast<float>(mGame->GetWindowWidth() - 2 * kBarraMargemLateral);
-    return Vector2(static_cast<float>(kBarraMargemLateral) + largura * std::clamp(mNota, 0.0f, 100.0f) / 100.0f,
-                   static_cast<float>(mGame->GetWindowHeight() - kBarraDoFundo + kBarraAltura / 2));
-}
-
 void Battle::AtualizarOndas(const float deltaTime) {
     for (Onda& o : mOndas) {
         o.t += deltaTime;
@@ -2003,7 +1785,7 @@ void Battle::AtualizarEfeitos(const float deltaTime) {
     }
 
     // As moedas voam ate a ponta da barra da nota, num arco: o ganho tem de onde vir.
-    const Vector2 ponta = PontaDaBarra();
+    const Vector2 ponta = mFaixa->Ponta(mConta.Valor());
     for (const Moeda& m : mMoedas) {
         const float u = std::clamp(m.t / kVooDaMoeda, 0.0f, 1.0f);
         const float e = u * u;                                  // devagar, depois depressa
@@ -2037,12 +1819,12 @@ void Battle::EncerrarBatalha(bool aprovado) {
 
     // O resumo da tela de resultado.
     Resultado::Resumo resumo;
-    resumo.nota = mNota;
+    resumo.nota = mConta.Valor();
     resumo.aprovado = aprovado;
     resumo.temFicha = mGame->ProgressoEGravado(0);
     resumo.recordeAntes = mGame->RecordeDaPartida(mMateria);
-    resumo.fasesLimpas = mFasesLimpas;
-    resumo.acertosSofridos = mAcertosSofridos;
+    resumo.fasesLimpas = mConta.FasesLimpas();
+    resumo.acertosSofridos = mConta.AcertosSofridos();
     // A devolutiva, para quem reprovou: onde a nota mais caiu e o que mais acertou.
     if (!aprovado && mCondicao.Ligada(Experimento::Mecanica::Devolutiva)) {
         resumo.piorFase = mCaderno.PiorFase();
@@ -2067,7 +1849,7 @@ void Battle::EncerrarBatalha(bool aprovado) {
     for (size_t i = 0; i < mJogadores.size(); ++i) formadoAntes.push_back(mGame->Formado(i));
 
     // O unico ponto em que a nota vai para o armazenamento persistente.
-    mGame->RegistrarNota(mMateria, mNota);
+    mGame->RegistrarNota(mMateria, mConta.Valor());
 
     // Quem se formou agora ganha o capelo ali mesmo, e a tela diz.
     if (aprovado) {
@@ -2083,7 +1865,7 @@ void Battle::EncerrarBatalha(bool aprovado) {
     // E a tentativa, com o resultado.
     Avisar([&](OuvinteDaBatalha& o) { o.AoFimDoQuadro(*this); });
     const auto resultado = aprovado ? Tentativas::Resultado::Aprovado : Tentativas::Resultado::Reprovado;
-    Avisar([&](OuvinteDaBatalha& o) { o.AoTerminar(*this, resultado, mNota > 0.0f); });
+    Avisar([&](OuvinteDaBatalha& o) { o.AoTerminar(*this, resultado, mConta.Valor() > 0.0f); });
     for (auto& actor : mActors) {
         actor->SetState(ActorState::Paused);
     }

@@ -15,6 +15,7 @@
 #include "../../Regras/Papeis.h"
 #include "../../Regras/Cobertura.h"
 #include "../../Regras/PontoExtra.h"
+#include "../../Regras/ContaDaNota.h"
 #include "../../Pesquisa/Experimento.h"
 #include "../../Motor/Game.h"
 #include "../../Motor/AudioSystem.h"
@@ -33,6 +34,7 @@ class Font;
 class Player;
 class ProjectileManager;
 class BattleHUD;
+class FaixaDaNota;
 class ExtraPointItem;
 class Orientador;
 class PainelDeMenu;
@@ -57,8 +59,8 @@ public:
     [[nodiscard]] Orientador* OrientadorEmCampo() const { return mOrientador; }
 
     /// Paga uma conquista da dupla: um ganho bruto, inteiro (nao passa por Nota::PorJogador - ver
-    /// SubirNota).
-    void Conquistar(const float bruto) { if (EmCombate()) SubirNota(bruto); }
+    /// Nota::Conta::Subir).
+    void Conquistar(const float bruto) { if (EmCombate()) mConta.Subir(bruto); }
 
     /// Se a luta esta valendo: nem carregando os projeteis, nem na tela de fim.
     /// Quem age por conta propria (o orientador) so age enquanto isto vale.
@@ -136,9 +138,9 @@ public:
 
     /// A nota da batalha em curso. Quem precisa dela e a maquina de estados do chefe, para decidir
     /// entre a repescagem e o fim.
-    [[nodiscard]] float NotaAtual() const { return mNota; }
+    [[nodiscard]] float NotaAtual() const { return mConta.Valor(); }
     /// Quantas vezes a dupla foi acertada nesta batalha.
-    [[nodiscard]] int AcertosSofridos() const { return mAcertosSofridos; }
+    [[nodiscard]] int AcertosSofridos() const { return mConta.AcertosSofridos(); }
     /// O indice da materia desta batalha (Materias::Lista).
     [[nodiscard]] int MateriaDaBatalha() const { return mMateria; }
 
@@ -147,9 +149,6 @@ public:
 
 protected:
     void AtualizarBarraDeTempo() const;
-
-    void AtualizarTextoDaNota();
-    void AtualizarBarraDaNota();
 
     void OnUpdate(float deltaTime) override;
     void OnProcessInput(const Uint8 *keyState) override;
@@ -183,7 +182,6 @@ private:
     void CriarRelogioDaFase();
 
     void CriarBarraDeTempo();
-    void CriarBarraDaNota();
 
     // ---- O placar: o que o chefe anuncia na fase ("anuncio" em fases.json) ----
     void CriarPlacar();
@@ -194,27 +192,16 @@ private:
     void AtualizarIntercambio(float deltaTime);
 
     // ---- Membros de Estado da Batalha ----
-    float mNota;
+
+    /// A nota, os acertos sofridos e as fases limpas: quem paga e cobra passa por aqui.
+    Nota::Conta mConta;
     int mMateria{};
 
-    /// Acertos sofridos na fase atual.
-    int mAcertosNaFase{};
-
-    /// Fecha a fase em curso: paga o bonus se ela foi limpa e zera o contador.
+    /// Fecha a fase em curso (Nota::Conta::FecharFase) e, se ela foi limpa, avisa.
     void EncerrarFase();
-
-    /// O callback da maquina de estados dispara tambem ao entrar na primeira fase, quando nao ha
-    /// fase anterior.
-    bool mPrimeiraFase = true;
-
-    /// Quantas fases pagaram o bonus de fase limpa. Para o resumo do fim
-    /// (Resultado.h); o registro da tentativa conta as dele pelo AoLimparFase.
-    int mFasesLimpas = 0;
 
     /// Quanto tempo o aviso de fase limpa ainda fica na tela.
     float mAvisoDeFaseLimpa{};
-
-    Actor* mFaseLimpaAtor = nullptr;
 
     Dificuldade::Nivel mNivel = Dificuldade::Nivel::Normal;
 
@@ -230,27 +217,6 @@ private:
     void Avisar(Aviso&& aviso) {
         for (const auto& o : mOuvintes) aviso(*o);
     }
-
-    /// O selo Dificil, na ponta direita da faixa da nota.
-    Actor* mSeloDoNivel = nullptr;
-
-    /// Quantos projeteis do chefe acertaram o jogador nesta batalha. Zera a cada batalha junto com
-    /// a nota: o teto de Nota e por batalha, nao por perfil.
-    int mAcertosSofridos{};
-
-    // ---- A faixa da nota, na base da tela ----
-
-    /// A altura da barra.
-    static constexpr int kBarraAltura = 28;
-
-    /// A sobra dos lados. A barra ia de ponta a ponta da tela e encostava nas
-    /// bordas, o que a fazia parecer um risco no monitor em vez de uma peca.
-    static constexpr int kBarraMargemLateral = 40;
-
-    /// Do fundo da tela ate o topo da barra.
-    static constexpr int kBarraDoFundo = 54;
-
-    /// A placa atras de um texto da faixa.
 
     // ---- O Ponto Extra do co-op, a vista (PontoExtra.h): o feixe de quem gastou ----
     struct FeixeDoPontoExtra {
@@ -354,7 +320,6 @@ private:
     };
     std::vector<Moeda> mMoedas;
     void AtualizarOndas(float deltaTime);
-    [[nodiscard]] Vector2 PontaDaBarra() const;
     static constexpr size_t kMaximoDeMoedas = 40;
     static constexpr float kVooDaMoeda = 0.55f;
     static constexpr int kOrdemDosEfeitos = 104;
@@ -362,22 +327,6 @@ private:
     /// A moldura e fundo, atras de tudo - ate do quadro (60).
     static constexpr int kOrdemDaMoldura = 40;
     static constexpr int kOrdemDoFundo = 10;
-
-    static constexpr int kPlacaLargura = 112;
-
-    /// A dos avisos e mais larga: "TESTE FINAL" tem onze letras contra as seis
-    /// de "100.00".
-    static constexpr int kPlacaDoAvisoLargura = 196;
-
-    /// A mesma altura da barra, e nao um numero proprio: dois pixels de diferenca ja faziam a placa
-    /// aparecer por cima da moldura.
-    static constexpr int kPlacaAltura  = kBarraAltura;
-    static constexpr int kOrdemDaPlaca = 303;   ///< o texto da faixa usa 304
-    static inline const SDL_Color kSemMoldura{0, 0, 0, 0};
-    static inline const SDL_Color kFundoDaPlaca{6, 8, 16, 135};
-    /// A placa do numero da nota, mais fechada que a dos avisos e com um fio de moldura.
-    static inline const SDL_Color kFundoDaPlacaDaNota{6, 8, 16, 200};
-    static inline const SDL_Color kMolduraDaPlacaDaNota{255, 255, 255, 55};
 
     // ---- Ponteiros observadores do Boss e do Player, que vão estar dentro ----
     Boss* mChefe{};
@@ -407,7 +356,10 @@ private:
 
     // O HUD.
     std::unique_ptr<BattleHUD> mHUD;
+    /// A fonte da faixa da nota, que e tambem a dos menus e da tela de carregamento.
     std::unique_ptr<Font> mFonteDaNota;
+    /// A faixa da nota, na base da tela (FaixaDaNota.h).
+    std::unique_ptr<FaixaDaNota> mFaixa;
 
     /// A Carlito tem a notacao inteira, inclusive os sobrescritos e o delta.
     std::unique_ptr<Font> mFonteDoPlacar;
@@ -444,24 +396,6 @@ private:
     static constexpr int kOrdemDoPlacar = 60;
     Actor* mBarraDeTempoAtor = nullptr;
     Actor* mRelogioAtor = nullptr;
-
-    Actor* mBarraDaNotaAtor = nullptr;
-    Actor* mTextoDaNotaAtor = nullptr;
-
-    /// O "TESTE FINAL" na faixa da nota. Escondido ate a nota chegar a 100, e a
-    /// partir dali fica - ver AtualizarTextoDaNota.
-    Actor* mTesteFinalAtor = nullptr;
-
-    /// Soma um ganho bruto na nota da batalha. Sem valor padrao.
-    void SubirNota(float amount);
-
-    /// Quanto vale, nesta batalha, algo que um jogador causou.
-    [[nodiscard]] float PorJogador(float bruto) const;
-
-    /// O que um acerto sofrido custa: dividido E aliviado.
-    [[nodiscard]] float PerdaPorJogador(float bruto) const;
-    /// Cobra um acerto sofrido.
-    void DescerNota(float multiplicadorDaPerda = 1.0f);
 
     std::vector<ExtraPointItem*> mPontosExtras;
 

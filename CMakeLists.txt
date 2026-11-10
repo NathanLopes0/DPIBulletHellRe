@@ -61,6 +61,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Aluno/Boletim.h
         Source/Regras/Nota.cpp
         Source/Regras/Nota.h
+        Source/Regras/ContaDaNota.cpp
+        Source/Regras/ContaDaNota.h
         Source/Regras/PontoExtra.cpp
         Source/Regras/PontoExtra.h
         Source/Regras/Raspao.cpp
@@ -185,6 +187,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Scenes/Battle/RelatorioDaSimulacao.h
         Source/Scenes/Battle/ClaroesDaMoldura.cpp
         Source/Scenes/Battle/ClaroesDaMoldura.h
+        Source/Scenes/Battle/FaixaDaNota.cpp
+        Source/Scenes/Battle/FaixaDaNota.h
         Source/Scenes/Battle/Battle.h
         Source/Actors/Teachers/Boss.cpp
         Source/Actors/Teachers/Boss.h
@@ -529,6 +533,7 @@ add_executable(dpi_tests
         tests/test_experimento.cpp
         tests/test_comunicacao.cpp
         tests/test_simulacao.cpp
+        tests/test_conta_da_nota.cpp
         tests/test_resultado.cpp
         tests/test_devolutiva.cpp
         tests/test_manual.cpp
@@ -543,6 +548,8 @@ add_executable(dpi_tests
         Source/Aluno/Boletim.h
         Source/Regras/Nota.cpp
         Source/Regras/Nota.h
+        Source/Regras/ContaDaNota.cpp
+        Source/Regras/ContaDaNota.h
         Source/Regras/PontoExtra.cpp
         Source/Regras/PontoExtra.h
         Source/Regras/Raspao.cpp
