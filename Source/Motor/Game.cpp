@@ -26,6 +26,7 @@
 #include "../Scenes/Opcoes.h"
 #include "../Scenes/TelaDeRanking.h"
 #include "../Scenes/TelaDoBoletim.h"
+#include "../Scenes/TelaDasHoras.h"
 #include "../Scenes/TelaComoJogar.h"
 #include "../Scenes/Atracao.h"
 #include "../Scenes/CriacaoDePersonagem.h"
@@ -182,6 +183,7 @@ void Game::LoadInitialScene()
             // Com --orientador a batalha comeca direto, ja com as notas: e como se confere o resultado.
             if (mSimulacao.cena == "selecao") ChangeScene(Scene::SceneType::StageSelect);
             else if (mSimulacao.cena == "boletim") ChangeScene(Scene::SceneType::Boletim);
+            else if (mSimulacao.cena == "horas") ChangeScene(Scene::SceneType::Horas);
             else if (mSimulacao.orientador.empty()) ChangeScene(Scene::SceneType::EscolhaDoOrientador);
             else ChangeScene(Scene::SceneType::Battle);
             return;
@@ -595,6 +597,9 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
         case Scene::SceneType::Boletim:
             mScene = std::make_unique<TelaDoBoletim>(this);
             break;
+        case Scene::SceneType::Horas:
+            mScene = std::make_unique<TelaDasHoras>(this);
+            break;
         case Scene::SceneType::ComoJogar:
             mScene = std::make_unique<TelaComoJogar>(this);
             break;
@@ -771,6 +776,15 @@ void Game::TerminarEdicaoDePersonagem() {
 float Game::RecordeDaPartida(const int materia) const {
     const auto modo = QuantosJogadores() > 1 ? Progresso::Modo::Dupla : Progresso::Modo::Solo;
     return ProgressoDoMapa().Recorde(materia, modo, NivelDeDificuldade()).nota;
+}
+
+std::vector<std::string> Game::RegistrarAtividades(const size_t posicao, const std::vector<std::string>& chaves) {
+    std::vector<std::string> novas;
+    if (posicao >= mSessoes.size()) return novas;
+    for (const std::string& chave : chaves) {
+        if (mSessoes[posicao].progresso.RegistrarAtividade(chave)) novas.push_back(chave);
+    }
+    return novas;
 }
 
 void Game::RegistrarNota(const int subject, const float nota) {

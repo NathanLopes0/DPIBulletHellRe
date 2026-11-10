@@ -8,6 +8,8 @@
 #include "FundoDeCena.h"
 
 #include "../Aluno/Matricula.h"
+#include "../Aluno/ProvaDaSemanaArquivo.h"
+#include "../Motor/Relogio.h"
 #include "../Curso/MateriasArquivo.h"
 #include "../Regras/Nota.h"
 #include "../Entrada/Navegacao.h"
@@ -308,7 +310,74 @@ void StageSelect::CreateStaticUI() {
         *this, mStageSelectFont.get(), Vector2(kCartaoX - SelosDeMencao::kLarguraDaFileira / 2.0f, kCartaoY + 78.f));
 
     UpdateStageInfo();
+    CriarProvaDaSemana();
 }
+
+void StageSelect::CriarProvaDaSemana() {
+
+    const Materias::Lista& materias = Materias::Carregadas();
+    const ProvaDaSemana::Semana semana = ProvaDaSemana::Da(Relogio::Agora());
+    const int materia = ProvaDaSemana::MateriaDa(semana, materias);
+    const Materias::Materia* m = materias.Por(materia);
+    if (!m) return;
+
+    auto moldura = std::make_unique<Actor>(this);
+    moldura->SetPosition(Vector2(kProvaX, kCartaoY));
+    moldura->AddComponent<DrawCaixaComponent>(static_cast<int>(kProvaLargura), static_cast<int>(kCartaoAltura),
+                                              SDL_Color{255, 214, 72, 200}, kCorDoFundoDoCartao, 2, kOrdemDoCartao);
+    AddActor(std::move(moldura));
+
+    const int largura = static_cast<int>(kProvaLargura) - 24;
+    const auto linha = [&](const std::string& texto, const float dy, const int tamanho, const Vector3& cor) {
+        CriarTexto(*this, mStageSelectFont.get(), texto.empty() ? " " : texto, Vector2(kProvaX, kCartaoY + dy), tamanho,
+                   largura, tamanho + 8)->SetColor(cor);
+    };
+
+    // \xc3\xba e o u com acento, \xc2\xb7 o ponto do meio, \xc2\xba o "o" de ordinal, \xc3\xad o i com acento.
+    linha("PROVA DA SEMANA", -86.0f, 22, Color::Gold);
+    const std::string prazo = semana.faltam <= 1 ? std::string("\xc3\xbaltimo dia")
+                                                 : "faltam " + std::to_string(semana.faltam) + " dias";
+    linha(m->nome + "  \xc2\xb7  " + prazo, -58.0f, 18, Color::LightYellow);
+
+    // O ranking do modo e da dificuldade desta partida.
+    const bool dupla = mGame->QuantosJogadores() > 1;
+    const bool dificil = mGame->NivelDeDificuldade() == Dificuldade::Nivel::Dificil;
+    const auto ranking = ProvaDaSemana::Ranking(ProvaDaSemana::Carregar(), semana, dupla, dificil);
+    for (int i = 0; i < ProvaDaSemana::kPodio; ++i) {
+        std::string texto = std::to_string(i + 1) + "\xc2\xba   -";
+        if (static_cast<size_t>(i) < ranking.size()) {
+            const ProvaDaSemana::Colocado& c = ranking[static_cast<size_t>(i)];
+            std::stringstream ss;
+            ss << c.posicao << "\xc2\xba   " << c.quem << "   " << std::fixed << std::setprecision(2) << c.nota;
+            texto = ss.str();
+        }
+        linha(texto, -26.0f + 24.0f * static_cast<float>(i), 18, i == 0 ? Color::White : Color::LightBlue);
+    }
+
+    // O lugar de quem esta jogando.
+    ProvaDaSemana::Entrada eu;
+    eu.dupla = dupla;
+    eu.matricula = mGame->MatriculaDe(0);
+    if (dupla) eu.parceiro = Sessao::ParceiroDe(mGame->Sessoes(), 0);
+    const bool visitante = !mGame->ProgressoEGravado(0);
+    const int lugar = visitante ? 0 : ProvaDaSemana::PosicaoDe(ranking, ProvaDaSemana::Quem(eu));
+    std::string meu;
+    if (visitante) meu = "visitante n\xc3\xa3o entra no ranking";
+    else if (lugar > 0) meu = (dupla ? "a dupla: " : "voc\xc3\xaa: ") + std::to_string(lugar) + "\xc2\xba de " + std::to_string(ranking.size());
+    else meu = dupla ? "a dupla ainda n\xc3\xa3o fez" : "voc\xc3\xaa ainda n\xc3\xa3o fez";
+    linha(meu, 58.0f, 18, lugar > 0 ? Color::LightGreen : Color::LightYellow);
+    linha(std::string(dificil ? "Dif\xc3\xad" "cil" : "Normal") + (dupla ? ", em dupla" : ", sozinho") +
+              "  \xc2\xb7  a mesma prova para todos",
+          86.0f, 14, Color::LightBlue);
+
+    // A marca em cima do botao da materia da semana.
+    for (const StageSelectButton* botao : mButtonObservers) {
+        if (!botao || botao->GetSubject() != materia) continue;
+        CriarTexto(*this, mStageSelectFont.get(), "PROVA DA SEMANA", botao->GetPosition() + Vector2(0.0f, -44.0f), 13,
+                   160, 20)->SetColor(Color::Gold);
+    }
+}
+
 void StageSelect::OnProcessInput(const Uint8 *keyState) {
 
     // Voltar e voltar um passo: a escolha da dificuldade, e de la a troca de aluno (a identificacao).

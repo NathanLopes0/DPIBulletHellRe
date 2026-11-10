@@ -75,6 +75,17 @@ std::string Serializar(const Dados& dados, const Materias::Lista& materias) {
         s << "\n  },\n";
     }
 
+    // As atividades complementares cumpridas (versao 10): so quando ha.
+    if (!dados.progresso.Atividades().empty()) {
+        s << "  \"atividades\": [";
+        bool primeiraAtividade = true;
+        for (const std::string& chave : dados.progresso.Atividades()) {
+            s << (primeiraAtividade ? "" : ", ") << "\"" << chave << "\"";
+            primeiraAtividade = false;
+        }
+        s << "],\n";
+    }
+
     s << "  \"materias\": [";
 
     // Entradas() ja devolve em ordem de materia, entao o mesmo estado produz sempre o mesmo texto.
@@ -339,6 +350,20 @@ Lida Desserializar(const std::string& texto, const Materias::Lista& materias) {
 
     saida.dados.matricula = raiz["matricula"].get<std::string>();
     LerAparencia(raiz, saida.dados.aparencia, saida.problemas);
+
+    // As atividades complementares (versao 10), opcionais: o que nao e texto e descartado.
+    if (raiz.contains("atividades")) {
+        std::set<std::string> atividades;
+        if (raiz["atividades"].is_array()) {
+            for (const auto& a : raiz["atividades"]) {
+                if (a.is_string() && !a.get<std::string>().empty()) atividades.insert(a.get<std::string>());
+                else saida.problemas.emplace_back("ha uma atividade que nao e um texto; foi descartada");
+            }
+        } else {
+            saida.problemas.emplace_back("\"atividades\" deveria ser uma lista; foi descartada");
+        }
+        saida.dados.progresso.RestaurarAtividades(std::move(atividades));
+    }
 
     // Sem lista de materias e um aluno que se identificou e ainda nao jogou.
     if (!raiz.contains("materias")) {

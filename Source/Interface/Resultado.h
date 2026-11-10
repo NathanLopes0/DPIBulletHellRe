@@ -53,6 +53,14 @@ namespace Resultado {
         /// O que esta luta deu alem da nota (Mencoes::FraseDasNovas, e o orientador novo no
         /// curriculo): uma linha dourada, so de quem passou. Vazia quando nao deu nada.
         std::string mencoes;
+
+        /// As horas complementares que a luta deu (Horas::FraseDasNovas): outra linha dourada, depois
+        /// da das mencoes. Vazia sem nenhuma.
+        std::string horas;
+
+        /// Na prova da semana, o lugar de quem jogou no ranking dela ("2\xc2\xba de 5"), que vai ao
+        /// lado da nota; vazio fora dela, e para o visitante.
+        std::string provaDaSemana;
     };
 
     /// O titulo: "APROVADE!" ou "REPROVADE".
@@ -76,9 +84,9 @@ namespace Resultado {
     std::vector<std::string> Linhas(const Resumo& r);
 
     /// Quantas Linhas um resumo tem no maximo: as quatro de sempre, as duas da devolutiva e as quatro
-    /// da dupla com titulos. A da formatura e a das mencoes cabem na conta: so quem passou as tem, e
-    /// so quem reprovou tem devolutiva.
-    constexpr int kLinhasNoMaximo = 10;
+    /// da dupla com titulos - ou, para quem passou, a da formatura, a das mencoes e a das horas no lugar
+    /// das duas da devolutiva.
+    constexpr int kLinhasNoMaximo = 11;
 
     /// Quantas linhas a parte de cada aluno ocupa: duas com o titulo, uma sem.
     int LinhasPorParte(const Resumo& r);
@@ -88,6 +96,9 @@ namespace Resultado {
 
     /// A linha das mencoes novas, dourada tambem, logo depois da da formatura; -1 sem nenhuma.
     int LinhaDasMencoes(const Resumo& r);
+
+    /// A linha das horas complementares, dourada, depois da das mencoes; -1 sem nenhuma.
+    int LinhaDasHoras(const Resumo& r);
 
     /// A linha (vazia) em que a batalha desenha o que mais acertou o aluno; -1 quando nao ha.
     int LinhaDasCausas(const Resumo& r);

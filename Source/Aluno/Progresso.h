@@ -6,6 +6,7 @@
 
 #include <array>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -65,6 +66,11 @@ public:
     /// Quantos TCCs aprovados do aluno o professor desta materia orientou.
     [[nodiscard]] int Orientacoes(int materia) const;
 
+    /// As atividades complementares cumpridas (Horas.h), pela chave. Devolve se a chave e nova.
+    bool RegistrarAtividade(const std::string& chave) { return !chave.empty() && mAtividades.insert(chave).second; }
+    [[nodiscard]] const std::set<std::string>& Atividades() const { return mAtividades; }
+    void RestaurarAtividades(std::set<std::string> chaves) { mAtividades = std::move(chaves); }
+
     /// Quantas das materias listadas estao aprovadas.
     [[nodiscard]] int QuantasAprovadas(const std::vector<int>& materias) const;
 
@@ -123,6 +129,9 @@ private:
 
     /// Um registro por materia, e nao mapas paralelos.
     std::map<int, Entrada> mPorMateria;
+
+    /// As chaves das atividades complementares cumpridas: do aluno, e nao de uma materia.
+    std::set<std::string> mAtividades;
 
     /// O registro de uma materia, ou um vazio.
     [[nodiscard]] const Entrada& Ver(int materia) const;

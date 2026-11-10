@@ -17,6 +17,7 @@
 #include "../../Regras/Cobertura.h"
 #include "../../Regras/PontoExtra.h"
 #include "../../Regras/ContaDaNota.h"
+#include "../../Aluno/ProvaDaSemana.h"
 #include "../../Pesquisa/Experimento.h"
 #include "../../Motor/Game.h"
 #include "../../Motor/AudioSystem.h"
@@ -332,6 +333,16 @@ private:
     /// A devolutiva (onde a nota caiu e por que) e a justica da dupla (o que cada aluno fez): um
     /// ouvinte da batalha, que esta guarda em mOuvintes (DevolutivaDaBatalha.h).
     DevolutivaDaBatalha* mDevolutiva = nullptr;
+    /// O que as horas complementares perguntam da prova (Horas.h).
+    class ContagemDaProva* mContagem = nullptr;
+
+    /// Esta luta e a prova da semana (ProvaDaSemana.h): a materia dela, na semana dela - a semente e
+    /// a mesma para todo mundo, e a nota entra no ranking da semana. Nunca na simulacao.
+    bool mProvaDaSemana = false;
+    ProvaDaSemana::Semana mSemanaDaProva;
+    /// Poe a nota no ranking da semana e devolve o lugar de quem jogou ("2o de 5"); vazio para o
+    /// visitante. 'posicao' sai com o lugar, ou zero.
+    std::string EntrarNoRankingDaSemana(int& posicao);
 
     SoundHandle mMusica;
 

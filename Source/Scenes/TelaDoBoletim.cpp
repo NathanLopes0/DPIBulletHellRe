@@ -11,6 +11,7 @@
 #include "TextoDeCena.h"
 #include "../Actors/Actor.h"
 #include "../Aluno/FichaArquivo.h"
+#include "../Aluno/Horas.h"
 #include "../Aluno/Matricula.h"
 #include "../Aluno/Ranking.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
@@ -178,6 +179,8 @@ void TelaDoBoletim::Redesenhar() {
     std::string resumo = std::string("CR: ") + (d.cursadas > 0 ? cr : "-") + "     Aprovadas: " +
                          std::to_string(d.aprovadas) + " de " + std::to_string(d.total);
     resumo += "     Men\xc3\xa7\xc3\xb5" "es: " + std::to_string(mencoes.ganhas) + " de " + std::to_string(mencoes.possiveis);
+    resumo += "     Horas: " + std::to_string(Horas::De(sessoes[mAluno].progresso.Atividades())) + " de " +
+              std::to_string(Horas::kMeta);
     Escrever(mResumoAtor, resumo, Color::White);
 
     // A posicao no curso, pela media do curso no nivel da partida - so de quem tem ficha.
@@ -193,6 +196,7 @@ void TelaDoBoletim::Redesenhar() {
 
     std::vector<Painel::Acao> itens;
     if (dupla) itens.push_back(Painel::Manche(Painel::Jogador::Um, "trocar de aluno"));
+    itens.emplace_back(Painel::Jogador::Um, Painel::Botao::Um, "horas complementares");
     itens.emplace_back(Painel::Jogador::Um, Painel::Botao::Dois, "voltar");
     itens.emplace_back(Painel::Jogador::Um, Painel::Botao::Tres, "ranking");
     Escrever(mRodapeAtor, Painel::Rodape(itens, mGame->JeitoDoRodape()), Color::White);
@@ -204,6 +208,12 @@ void TelaDoBoletim::OnProcessInput(const Uint8* keyState) {
                      || keyState[SDL_SCANCODE_ESCAPE];
     if (mBordaVoltar.Bateu(voltar)) {
         mGame->RequestSceneChange(SceneType::StageSelect);
+        return;
+    }
+
+    // As horas complementares do aluno (TelaDasHoras), que volta para ca.
+    if (mBordaHoras.Bateu(Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Um))) {
+        mGame->RequestSceneChange(SceneType::Horas);
         return;
     }
 

@@ -135,6 +135,27 @@ escolhe o orientador, o canto de cada cartão diz quem **já orientou** você e
 quem ainda é **novo**: defender o TCC com cada professor completa o currículo
 de orientações.
 
+**A prova da semana.** Toda semana, de segunda a domingo, uma matéria do curso
+é a prova da semana (em rodízio; o TCC não entra). Quem a joga nessa semana
+enfrenta **a mesma prova** — a mesma semente: a mesma ordem, os mesmos números,
+os mesmos tempos — e a nota entra num ranking que só vale até domingo, um por
+modo e por dificuldade. A seleção de fases marca a matéria e mostra, no canto,
+quanto falta, o pódio e o seu lugar; o resultado diz o lugar ao lado da nota. A
+matéria continua valendo como sempre (recorde, menções), e continua fechada
+para quem ainda não chegou nela. Visitante joga a mesma prova, mas não entra no
+ranking.
+
+**As horas complementares.** Do boletim, o **Botão 1** abre o quadro das
+atividades complementares: feitos de uma prova aprovada, cada um valendo horas,
+uma vez. Três contam **por matéria** e levam o nome dela no resultado ("Fase
+limpa em INF 213"): uma fase sem levar acerto (2 h), aprovado com até 10
+acertos sofridos (3 h) e três aprovações na matéria (3 h). As outras valem uma
+vez no curso: a virada (aprovado depois de a nota cair abaixo de 25), 15
+raspões numa prova, 2 pontos extras usados, 10 coberturas ao parceiro, 3
+poderes do orientador num TCC, a prova da semana e o pódio dela. A meta é de
+**100 horas**; o boletim mostra quantas você tem, e o resultado, as que a luta
+deu.
+
 O **Ranking** — do menu, a média do curso; do boletim, a matéria em foco — tem
 **quatro listas**: **Normal**, **Difícil**, **Normal em
 dupla** e **Difícil em dupla**, trocadas com o manche para os lados. Cada nível
@@ -283,8 +304,11 @@ Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
   primeira vez (desde a versão 8; é a data do mural dos formados, e quem passou
   antes dela aparece no mural sem data), e quantos TCCs aprovados seus o
   professor de cada matéria orientou (desde a versão 9: o currículo de
-  orientações). A nota vai para o disco **uma vez, no fim da batalha**, e não
-  durante.
+  orientações), e as atividades complementares cumpridas (desde a versão 10).
+  A nota vai para o disco **uma vez, no fim da batalha**, e não durante.
+- **`prova_da_semana.csv`** — as notas da prova da semana: a semana (a data da
+  segunda-feira), a matéria, o modo, a dificuldade, a matrícula, o parceiro, a
+  nota e quando. Só acrescenta; o ranking da semana sai dele.
 - **`opcoes.cfg`** — as opções da máquina (os volumes, a tela
   cheia e a hitbox), em `chave=valor`. A tela de Opções o escreve na hora em
   que algo muda.

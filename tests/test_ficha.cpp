@@ -837,3 +837,33 @@ TEST_CASE("Ficha: o curriculo de orientacoes vai e volta (versao 9), e a ficha d
     CHECK(Menciona(errada.problemas, "orientacoes"));
     CHECK(errada.dados.progresso.Orientacoes(0) == 0);
 }
+
+TEST_CASE("Ficha: as atividades complementares vao e voltam (versao 10), e a ficha de antes delas le vazio") {
+    Ficha::Dados original;
+    original.matricula = "89384";
+    original.progresso.RegistrarNota(0, 75.0f, Dificuldade::Nivel::Normal);
+    original.progresso.RegistrarAtividade("virada");
+    original.progresso.RegistrarAtividade("fase-limpa@AAA");
+    const std::string texto = Ficha::Serializar(original, Curso());
+    CHECK(texto.find("\"atividades\": [\"fase-limpa@AAA\", \"virada\"]") != std::string::npos);
+    const auto lida = Ficha::Desserializar(texto, Curso());
+    REQUIRE(lida.ok);
+    CHECK(lida.problemas.empty());
+    CHECK(lida.dados.progresso.Atividades() == original.progresso.Atividades());
+    CHECK(lida.dados.progresso.Aprovado(0));
+
+    // Sem atividade o campo nao e escrito, e a versao 9 le sem ele.
+    Ficha::Dados sem;
+    sem.matricula = "89384";
+    CHECK(Ficha::Serializar(sem, Curso()).find("atividades") == std::string::npos);
+    const auto antiga = Ficha::Desserializar(R"({ "versao": 9, "matricula": "89384" })", Curso());
+    REQUIRE(antiga.ok);
+    CHECK(antiga.dados.progresso.Atividades().empty());
+
+    // So o aluno identificado, sem materia nenhuma, ja pode ter atividade; o que nao e texto sai.
+    const auto mista = Ficha::Desserializar(
+        R"({ "versao": 10, "matricula": "89384", "atividades": ["virada", 7, ""] })", Curso());
+    REQUIRE(mista.ok);
+    CHECK(Menciona(mista.problemas, "atividade"));
+    CHECK(mista.dados.progresso.Atividades() == std::set<std::string>{"virada"});
+}

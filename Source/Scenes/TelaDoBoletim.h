@@ -62,6 +62,7 @@ private:
 
     Borda mBordaVoltar{true};
     Borda mBordaRanking{true};
+    Borda mBordaHoras{true};
     Borda mBordaEsquerda{true};
     Borda mBordaDireita{true};
 

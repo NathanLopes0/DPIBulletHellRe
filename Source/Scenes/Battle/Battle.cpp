@@ -39,6 +39,11 @@
 #include "../../Regras/Cobertura.h"
 #include "../../Aluno/Matricula.h"
 #include "../../Aluno/Mencoes.h"
+#include "../../Aluno/Horas.h"
+#include "../../Aluno/ProvaDaSemanaArquivo.h"
+#include "ContagemDaProva.h"
+#include "../../Motor/Random.h"
+#include "../../Motor/Relogio.h"
 #include "../../Regras/Destrutivel.h"
 #include "../../Actors/Orientador/Orientador.h"
 #include "../../Curso/MateriasArquivo.h"
@@ -95,6 +100,10 @@ void Battle::Load() {
     auto devolutiva = std::make_unique<DevolutivaDaBatalha>(mGame->QuantosJogadores(), mCondicao);
     mDevolutiva = devolutiva.get();
     mOuvintes.push_back(std::move(devolutiva));
+    // E a contagem das horas complementares.
+    auto contagem = std::make_unique<ContagemDaProva>();
+    mContagem = contagem.get();
+    mOuvintes.push_back(std::move(contagem));
 
     // Toda batalha comeca em 40, mesmo que o aluno ja tenha tirado mais nesta materia, e sem os
     // acertos de ontem: quem foi atingido ontem nao perde a nota cheia de hoje.
@@ -108,7 +117,20 @@ void Battle::Load() {
     mSemente = sim.variacao ? *sim.variacao
              : sim.semente  ? *sim.semente
                             : Variacao::SementeNova();
-    SDL_Log("BATALHA: semente %u, modo %s", mSemente, Dificuldade::Chave(mNivel));
+    // A prova da semana: na materia dela, a semente e a da semana - a mesma luta para todo mundo -, e
+    // o sorteador global comeca dela tambem. A simulacao nao a faz: mede com a semente que pediu.
+    mProvaDaSemana = false;
+    if (!sim.Ativa()) {
+        const ProvaDaSemana::Semana semana = ProvaDaSemana::Da(Relogio::Agora());
+        if (ProvaDaSemana::MateriaDa(semana, Materias::Carregadas()) == mMateria) {
+            mProvaDaSemana = true;
+            mSemanaDaProva = semana;
+            mSemente = ProvaDaSemana::Semente(semana);
+            Random::Seed(mSemente);
+        }
+    }
+    SDL_Log("BATALHA: semente %u, modo %s%s", mSemente, Dificuldade::Chave(mNivel),
+            mProvaDaSemana ? " (prova da semana)" : "");
 
     // 2.
     CriarJogadores();
@@ -509,6 +531,37 @@ void Battle::VerificarColisoes() {
     }
 }
 
+std::string Battle::EntrarNoRankingDaSemana(int& posicao) {
+    posicao = 0;
+    const bool dupla = mJogadores.size() > 1;
+    const bool dificil = mNivel == Dificuldade::Nivel::Dificil;
+    const std::string quando = Relogio::Agora();
+
+    // Uma entrada por aluno com ficha: o visitante nao tem matricula para o ranking.
+    std::string quem;
+    for (size_t i = 0; i < mGame->Sessoes().size(); ++i) {
+        if (!mGame->ProgressoEGravado(i)) continue;
+        ProvaDaSemana::Entrada e;
+        e.semana = mSemanaDaProva.segunda;
+        e.materia = Materias::Carregadas().CodigoDe(mMateria);
+        e.dupla = dupla;
+        e.dificil = dificil;
+        e.matricula = mGame->MatriculaDe(i);
+        if (dupla) e.parceiro = Sessao::ParceiroDe(mGame->Sessoes(), i);
+        e.nota = mConta.Valor();
+        e.quando = quando;
+        ProvaDaSemana::Acrescentar(e);
+        if (quem.empty()) quem = ProvaDaSemana::Quem(e);
+    }
+    if (quem.empty()) return "";
+
+    const auto ranking = ProvaDaSemana::Ranking(ProvaDaSemana::Carregar(), mSemanaDaProva, dupla, dificil);
+    posicao = ProvaDaSemana::PosicaoDe(ranking, quem);
+    if (posicao <= 0) return "";
+    // \xc2\xba e o "o" de ordinal.
+    return std::to_string(posicao) + "\xc2\xba de " + std::to_string(ranking.size());
+}
+
 void Battle::FecharPendencias() {
     if (!mPendencia) return;
     const auto fechar = std::move(mPendencia);
@@ -882,8 +935,40 @@ void Battle::EncerrarBatalha(bool aprovado) {
     std::vector<bool> formadoAntes;
     for (size_t i = 0; i < mJogadores.size(); ++i) formadoAntes.push_back(mGame->Formado(i));
 
-    // As mencoes de antes desta nota (Mencoes.h): as da materia, e as da materia do orientador.
     const Materias::Lista& materias = Materias::Carregadas();
+
+    // A prova da semana: a nota entra no ranking dela, e o lugar vai ao lado da nota.
+    int lugarNaSemana = 0;
+    if (mProvaDaSemana) resumo.provaDaSemana = EntrarNoRankingDaSemana(lugarNaSemana);
+
+    // As horas complementares (Horas.h): o que esta prova cumpriu, para cada aluno. Entram na ficha
+    // junto com a nota, logo abaixo; a tela diz as novas (na dupla, as de qualquer um dos dois).
+    if (aprovado) {
+        Horas::Feito feito;
+        feito.materia = materias.CodigoDe(mMateria);
+        feito.aprovado = true;
+        feito.dupla = mJogadores.size() > 1;
+        feito.acertosSofridos = mConta.AcertosSofridos();
+        feito.fasesLimpas = mConta.FasesLimpas();
+        feito.menorNota = mContagem ? mContagem->MenorNota() : 100.0f;
+        feito.raspoes = mContagem ? mContagem->Raspoes() : 0;
+        feito.pontosExtras = mContagem ? mContagem->PontosExtras() : 0;
+        feito.coberturas = mContagem ? mContagem->Coberturas() : 0;
+        feito.poderes = mOrientador ? mOrientador->Poderes() : 0;
+        feito.provaDaSemana = mProvaDaSemana;
+        feito.posicaoNaSemana = lugarNaSemana;
+        std::vector<std::string> novas;
+        for (size_t i = 0; i < mGame->Sessoes().size(); ++i) {
+            const Progresso& p = mGame->Sessoes()[i].progresso;
+            feito.aprovacoesNaMateria = p.Tentativas(mMateria) - p.Reprovacoes(mMateria) + 1;
+            for (const std::string& chave : mGame->RegistrarAtividades(i, Horas::Cumpridas(feito))) {
+                if (std::find(novas.begin(), novas.end(), chave) == novas.end()) novas.push_back(chave);
+            }
+        }
+        resumo.horas = Horas::FraseDasNovas(novas, materias);
+    }
+
+    // As mencoes de antes desta nota (Mencoes.h): as da materia, e as da materia do orientador.
     const int orientador = mGame->Orientador();
     std::vector<Mencoes::DaMateria> mencoesAntes, orientouAntes;
     for (const auto& sessao : mGame->Sessoes()) {

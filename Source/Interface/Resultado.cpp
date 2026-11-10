@@ -50,7 +50,9 @@ namespace Resultado {
 
     std::vector<std::string> Linhas(const Resumo& r) {
         std::vector<std::string> linhas;
-        linhas.push_back("Nota final: " + Nota(r.nota));
+        // \xc2\xb7 e o ponto do meio.
+        linhas.push_back("Nota final: " + Nota(r.nota) +
+                         (r.provaDaSemana.empty() ? "" : "  \xc2\xb7  prova da semana: " + r.provaDaSemana));
         if (NovoRecorde(r)) {
             linhas.push_back("NOVO RECORDE!");
         } else if (r.temFicha) {
@@ -67,6 +69,7 @@ namespace Resultado {
                              (r.formaturaGravada ? ", para sempre." : "."));
         }
         if (LinhaDasMencoes(r) >= 0) linhas.push_back(r.mencoes);
+        if (LinhaDasHoras(r) >= 0) linhas.push_back(r.horas);
         // A devolutiva: so de quem reprovou.
         if (!r.aprovado && r.piorFase) linhas.push_back(Devolutiva::LinhaDaFase(*r.piorFase));
         if (LinhaDasCausas(r) >= 0) linhas.emplace_back("");
@@ -97,7 +100,7 @@ namespace Resultado {
         if (quem >= r.partes.size()) return -1;
         const int causas = LinhaDasCausas(r);
         const int antes = (r.temFicha ? 4 : 3) + (!r.aprovado && r.piorFase ? 1 : 0) + (causas >= 0 ? 1 : 0) +
-                          (Formou(r) ? 1 : 0) + (LinhaDasMencoes(r) >= 0 ? 1 : 0);
+                          (Formou(r) ? 1 : 0) + (LinhaDasMencoes(r) >= 0 ? 1 : 0) + (LinhaDasHoras(r) >= 0 ? 1 : 0);
         return antes + static_cast<int>(quem) * LinhasPorParte(r);
     }
 
@@ -110,6 +113,11 @@ namespace Resultado {
     int LinhaDasMencoes(const Resumo& r) {
         if (!r.aprovado || r.mencoes.empty()) return -1;
         return (r.temFicha ? 4 : 3) + (Formou(r) ? 1 : 0);
+    }
+
+    int LinhaDasHoras(const Resumo& r) {
+        if (!r.aprovado || r.horas.empty()) return -1;
+        return (r.temFicha ? 4 : 3) + (Formou(r) ? 1 : 0) + (LinhaDasMencoes(r) >= 0 ? 1 : 0);
     }
 
     int LinhaEmDestaque(const Resumo& r) {

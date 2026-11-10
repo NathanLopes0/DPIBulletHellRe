@@ -122,10 +122,11 @@ TEST_CASE("Resultado: na dupla, uma linha por aluno com a parte dele - depois da
     CHECK(LinhaDaParte(r, 0) == 6);
     CHECK(LinhaDaParte(r, 1) == 7);
 
-    // Com os titulos, e o maior resumo que ha.
+    // Com os titulos, e o maior resumo de quem reprovou.
     r.titulos = {"quem mais cobriu", "quem mais desviou"};
     l = Linhas(r);
-    CHECK(l.size() == static_cast<size_t>(kLinhasNoMaximo));
+    CHECK(l.size() == 10u);
+    CHECK(l.size() <= static_cast<size_t>(kLinhasNoMaximo));
 }
 
 TEST_CASE("Resultado: com os titulos, a parte de cada aluno e o titulo e, embaixo, os numeros") {
@@ -248,7 +249,20 @@ TEST_CASE("Resultado: as mencoes novas ganham uma linha, depois da formatura e a
     CHECK(l[5] == r.mencoes);
     CHECK(LinhaDaParte(r, 0) == 6);
     CHECK(LinhaDaParte(r, 1) == 8);
+    // As horas complementares vem depois das mencoes, e o lugar na prova da semana ao lado da nota.
+    r.horas = "Horas complementares: +2 h (Fase limpa em INF 213)";
+    r.provaDaSemana = "2\xc2\xba de 5";
+    l = Linhas(r);
+    CHECK(LinhaDasHoras(r) == 6);
+    CHECK(l[6] == r.horas);
+    CHECK(l[0] == "Nota final: 85.00  \xc2\xb7  prova da semana: 2\xc2\xba de 5");
+    CHECK(LinhaDaParte(r, 0) == 7);
     CHECK(l.size() == static_cast<size_t>(kLinhasNoMaximo));   // o resumo mais cheio que existe ainda cabe
+    r.mencoes.clear();
+    CHECK(LinhaDasHoras(r) == 5);                              // sem as mencoes, sobe uma
+    r.horas.clear();
+    r.provaDaSemana.clear();
+    r.mencoes = "Nova men\xc3\xa7\xc3\xa3o: prata";
 
     // Quem reprovou nao ganha mencao, diga o campo o que disser.
     r.aprovado = false;

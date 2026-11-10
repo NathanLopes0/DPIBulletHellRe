@@ -71,6 +71,7 @@ void TelaDoResultado::Mostrar(const Resultado::Resumo& resumo, Boss* chefe) {
     mPainel->SetLinhas(linhas, Resultado::LinhaEmDestaque(resumo));
     if (formou) mPainel->ColorirLinha(Resultado::LinhaDaFormatura(resumo), Color::Gold);
     if (Resultado::LinhaDasMencoes(resumo) >= 0) mPainel->ColorirLinha(Resultado::LinhaDasMencoes(resumo), Color::Gold);
+    if (Resultado::LinhaDasHoras(resumo) >= 0) mPainel->ColorirLinha(Resultado::LinhaDasHoras(resumo), Color::Gold);
     if (formou || duplaAprovada) MostrarAlunos();
     // A justica: cada aluno na cor dele, com o titulo e os numeros.
     for (size_t i = 0; i < resumo.partes.size(); ++i) {

@@ -34,6 +34,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Scenes/Identificacao.h
         Source/Scenes/Opcoes.cpp
         Source/Scenes/TelaDeRanking.cpp
+        Source/Scenes/TelaDasHoras.cpp
+        Source/Scenes/TelaDasHoras.h
         Source/Scenes/TelaDoBoletim.cpp
         Source/Scenes/TelaDoBoletim.h
         Source/Scenes/TelaComoJogar.cpp
@@ -103,6 +105,10 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Aluno/Sessao.cpp
         Source/Aluno/Sessao.h
         Source/Aluno/Ranking.cpp
+        Source/Aluno/Horas.cpp
+        Source/Aluno/Horas.h
+        Source/Aluno/ProvaDaSemana.cpp
+        Source/Aluno/ProvaDaSemana.h
         Source/Aluno/Mencoes.cpp
         Source/Aluno/Mencoes.h
         Source/Aluno/Mural.cpp
@@ -150,6 +156,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Aluno/Exportacao.cpp
         Source/Aluno/Exportacao.h
         Source/Aluno/ExportacaoArquivo.cpp
+        Source/Aluno/ProvaDaSemanaArquivo.cpp
+        Source/Aluno/ProvaDaSemanaArquivo.h
         Source/Aluno/ExportacaoArquivo.h
         Source/Curso/MateriasArquivo.cpp
         Source/Curso/MateriasArquivo.h
@@ -197,6 +205,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Scenes/Battle/Colisoes.h
         Source/Scenes/Battle/DesenhoSobreOsAlunos.cpp
         Source/Scenes/Battle/DesenhoSobreOsAlunos.h
+        Source/Scenes/Battle/ContagemDaProva.cpp
+        Source/Scenes/Battle/ContagemDaProva.h
         Source/Scenes/Battle/DevolutivaDaBatalha.cpp
         Source/Scenes/Battle/DevolutivaDaBatalha.h
         Source/Scenes/Battle/EfeitosDaBatalha.cpp
@@ -561,6 +571,8 @@ add_executable(dpi_tests
         tests/test_simulacao.cpp
         tests/test_conta_da_nota.cpp
         tests/test_leitor_do_menu.cpp
+        tests/test_horas.cpp
+        tests/test_prova_da_semana.cpp
         tests/test_mencoes.cpp
         tests/test_mural.cpp
         tests/test_resultado.cpp
@@ -617,6 +629,10 @@ add_executable(dpi_tests
         Source/Aluno/Sessao.cpp
         Source/Aluno/Sessao.h
         Source/Aluno/Ranking.cpp
+        Source/Aluno/Horas.cpp
+        Source/Aluno/Horas.h
+        Source/Aluno/ProvaDaSemana.cpp
+        Source/Aluno/ProvaDaSemana.h
         Source/Aluno/Mencoes.cpp
         Source/Aluno/Mencoes.h
         Source/Aluno/Mural.cpp

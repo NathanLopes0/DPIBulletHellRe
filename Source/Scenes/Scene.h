@@ -25,6 +25,7 @@ public:
         Opcoes,
         Ranking,
         Boletim,
+        Horas,
         ComoJogar,
         Atracao,
         EscolhaDaDificuldade,

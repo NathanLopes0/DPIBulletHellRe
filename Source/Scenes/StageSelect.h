@@ -118,6 +118,14 @@ private:
     /// buscar nela.
     std::unique_ptr<SelosDeMencao> mMencoes;
 
+    // ---- A prova da semana ----
+
+    /// O painel da prova da semana (ProvaDaSemana.h), no canto de baixo a direita: a materia, quanto
+    /// falta, o podio e o lugar de quem esta jogando - e a marca em cima do botao da materia.
+    void CriarProvaDaSemana();
+    static constexpr float kProvaX = 1040.0f;
+    static constexpr float kProvaLargura = 284.0f;
+
     /// Quanto uma linha de aluno fica abaixo da anterior, quando ha dois. O
     /// rotulo tem 44 de altura, entao 38 os encosta sem os sobrepor.
     static constexpr float kEntreOsAlunos = 38.0f;

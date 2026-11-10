@@ -212,6 +212,11 @@ public:
     /// Troca a aparencia e grava, se o aluno estiver identificado.
     void DefinirAparencia(const Personagens::Aparencia& aparencia);
 
+    /// As atividades complementares (Horas.h) que o aluno desta posicao acabou de cumprir: entram no
+    /// progresso dele, e vao para o disco com a nota (RegistrarNota, que vem depois). Devolve as que
+    /// ele ainda nao tinha.
+    std::vector<std::string> RegistrarAtividades(size_t posicao, const std::vector<std::string>& chaves);
+
     /// Se o progresso desta posicao vai para o disco. Visitante nao grava.
     [[nodiscard]] bool ProgressoEGravado(size_t posicao) const;
 
