@@ -100,16 +100,10 @@ public:
 
     /// Em qual posicao esta a vez: a de quem mais incomodou o professor (Papeis.h) ou, se os dois
     /// incomodam parecido, a do revezamento. A vez dada (DarAVez) vale para o proximo disparo.
-    [[nodiscard]] size_t IndiceDoAlvo() const {
-        // Sem os papeis (Experimento.h), o revezamento de antes deles.
-        if (mVezDada || !mCondicao.Ligada(Experimento::Mecanica::Papeis)) return mVezDoAlvo;
-        return mIncomodo.Alvo(mVezDoAlvo, mJogadores.size());
-    }
+    [[nodiscard]] size_t IndiceDoAlvo() const { return mMira.Alvo(mJogadores.size()); }
 
     /// Em quem a mira esta presa (o marcador vermelho sobre o aluno); -1 quando os dois revezam.
-    [[nodiscard]] int FocoDaMira() const {
-        return mCondicao.Ligada(Experimento::Mecanica::Papeis) ? mIncomodo.Foco(mJogadores.size()) : -1;
-    }
+    [[nodiscard]] int FocoDaMira() const { return mMira.Foco(mJogadores.size()); }
 
     /// O jogador de uma posicao, ou nullptr fora da lista. E como um projetil
     /// resolve o numero que guardou.
@@ -276,12 +270,8 @@ private:
     /// O orientador do TCC, ou nulo. O ator e da cena, como todos.
     Orientador* mOrientador = nullptr;
 
-    /// De quem e a vez de ser mirado.
-    size_t mVezDoAlvo = 0;
-    /// A vez foi dada (DarAVez) para o proximo disparo, por cima da mira.
-    bool mVezDada = false;
-    /// O quanto cada aluno incomodou o professor: em quem os ataques mirados vao (Papeis.h).
-    Papeis::Incomodo mIncomodo;
+    /// Em quem os ataques mirados vao: o incomodo, o revezamento e a vez dada (Papeis.h).
+    Papeis::Mira mMira;
     /// As mecanicas que esta execucao desliga (Experimento.h), lidas ao criar a batalha.
     Experimento::Condicao mCondicao;
 

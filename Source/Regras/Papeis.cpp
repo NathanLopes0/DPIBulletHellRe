@@ -35,4 +35,26 @@ namespace Papeis {
         const int foco = Foco(quantos);
         return foco >= 0 ? static_cast<std::size_t>(foco) : vez % quantos;
     }
+
+    std::size_t Mira::Alvo(const std::size_t quantos) const {
+        if (mVezDada || !mPapeis) return mVez;
+        return mIncomodo.Alvo(mVez, quantos);
+    }
+
+    int Mira::Foco(const std::size_t quantos) const {
+        return mPapeis ? mIncomodo.Foco(quantos) : -1;
+    }
+
+    void Mira::DarAVez(const std::size_t posicao, const std::size_t quantos) {
+        if (posicao >= quantos) return;
+        mVez = posicao;
+        mVezDada = true;
+    }
+
+    void Mira::Revezar(const std::size_t quantos) {
+        // A vez dada valia para um disparo, e ele ja saiu.
+        mVezDada = false;
+        // O "% quantos" e o que faz isto nao dar nada com um aluno so: 0 + 1 = 1, e 1 % 1 = 0.
+        mVez = quantos == 0 ? 0 : (mVez + 1) % quantos;
+    }
 }

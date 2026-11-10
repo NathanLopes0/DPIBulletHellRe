@@ -125,3 +125,54 @@ TEST_CASE("Cobertura: o projetil vai num aluno so - o que ele pega primeiro - e 
     CHECK(Cobertura::AlunoNoCaminho(Vector2(300.0f, 300.0f), descendo, 8.0f, {dupla[0]}) == -1);
     CHECK(Cobertura::AlunoNoCaminho(Vector2(300.0f, 300.0f), descendo, 8.0f, {}) == -1);
 }
+
+// ---- A mira inteira: o incomodo, o revezamento e a vez dada ----
+
+TEST_CASE("Mira: sozinho o alvo e sempre o mesmo, e na dupla sem incomodo os disparos revezam") {
+    Papeis::Mira m;
+    CHECK(m.Alvo(1) == 0u);
+    m.Revezar(1);
+    CHECK(m.Alvo(1) == 0u);
+    CHECK(m.Foco(1) == -1);
+
+    Papeis::Mira dupla;
+    CHECK(dupla.Alvo(2) == 0u);
+    dupla.Revezar(2);
+    CHECK(dupla.Alvo(2) == 1u);
+    dupla.Revezar(2);
+    CHECK(dupla.Alvo(2) == 0u);
+}
+
+TEST_CASE("Mira: quem incomoda prende a mira, e a vez dada vale um disparo so por cima dela") {
+    Papeis::Mira m;
+    for (int i = 0; i < 10; ++i) m.Acertou(0);
+    CHECK(m.Foco(2) == 0);
+    CHECK(m.Alvo(2) == 0u);
+
+    m.DarAVez(1, 2);
+    CHECK(m.Alvo(2) == 1u);
+    // O disparo saiu: a mira volta para quem incomoda.
+    m.Revezar(2);
+    CHECK(m.Alvo(2) == 0u);
+
+    // Uma vez fora da lista e ignorada.
+    m.DarAVez(5, 2);
+    CHECK(m.Alvo(2) == 0u);
+}
+
+TEST_CASE("Mira: o incomodo esquece, e a mira solta") {
+    Papeis::Mira m;
+    for (int i = 0; i < 10; ++i) m.Acertou(1);
+    CHECK(m.Foco(2) == 1);
+    m.Avancar(30.0f);
+    CHECK(m.Foco(2) == -1);
+}
+
+TEST_CASE("Mira: sem os papeis (Experimento.h), a mira nunca prende e os disparos so revezam") {
+    Papeis::Mira m(false);
+    for (int i = 0; i < 20; ++i) m.Acertou(0);
+    CHECK(m.Foco(2) == -1);
+    CHECK(m.Alvo(2) == 0u);
+    m.Revezar(2);
+    CHECK(m.Alvo(2) == 1u);
+}

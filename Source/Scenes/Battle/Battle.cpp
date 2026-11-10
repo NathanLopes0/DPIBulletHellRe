@@ -69,6 +69,7 @@ Battle::Battle(Game* game, const int selectedStage)
     , mMateria(selectedStage)
 {
     if (game) mCondicao = game->Condicao();
+    mMira = Papeis::Mira(mCondicao.Ligada(Experimento::Mecanica::Papeis));
 }
 
 Battle::~Battle() {
@@ -398,7 +399,7 @@ void Battle::OnUpdate(float deltaTime) {
 
     // Orquestra a checagem de colisões.
     VerificarColisoes();
-    mIncomodo.Avancar(deltaTime);
+    mMira.Avancar(deltaTime);
     mDesenhoSobreOsAlunos->Atualizar(deltaTime, mJogadores, FocoDaMira(), mGame && mGame->MostrarHitbox());
     MarcarOCaminhoDosAlunos();
     if (mMoldura) mMoldura->Atualizar(mJogadores, mCorpos, mRede, mFonteDoPlacar.get());
@@ -529,7 +530,7 @@ void Battle::ProfessorAcertado(const PlayerProjectile& tiro, const CircleCollide
         // A duvida perguntada de perto vale mais (Nota::FatorDePerto) - a do aluno; a do orientador, nao.
         const int quem = PosicaoDoAluno(tiro.Dono());
         // Quem pergunta incomoda, e chama a mira (Papeis.h).
-        if (quem >= 0) mIncomodo.Acertou(static_cast<size_t>(quem));
+        if (quem >= 0) mMira.Acertou(static_cast<size_t>(quem));
         if (quem >= 0 && static_cast<size_t>(quem) < mPartes.size()) ++mPartes[static_cast<size_t>(quem)].acertos;
         const float fatorDaDistancia = quem >= 0 ? Nota::FatorDePerto((tiro.Dono()->GetPosition() -
                                                                        corpo.GetCenter()).Length())
@@ -655,20 +656,11 @@ Player* Battle::Alvo() const {
 }
 
 void Battle::DarAVez(const size_t posicao) {
-    if (posicao < mJogadores.size()) {
-        mVezDoAlvo = posicao;
-        mVezDada = true;
-    }
+    mMira.DarAVez(posicao, mJogadores.size());
 }
 
 void Battle::RevezarAlvo() {
-
-    // A vez dada valia para um disparo, e ele ja saiu.
-    mVezDada = false;
-
-    // O "% tamanho" e o que faz isto nao dar nada com um jogador: 0 + 1 = 1, e 1 % 1 = 0.
-    if (mJogadores.empty()) { mVezDoAlvo = 0; return; }
-    mVezDoAlvo = (mVezDoAlvo + 1) % mJogadores.size();
+    mMira.Revezar(mJogadores.size());
 }
 
 /// Segundos que o aviso de fase limpa fica na tela. Curto: ele informa, nao

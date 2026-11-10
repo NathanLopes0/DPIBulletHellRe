@@ -47,4 +47,35 @@ namespace Papeis {
     private:
         std::array<float, kAlunos> mValor{};
     };
+
+    /// A mira inteira do professor: o incomodo de cada aluno, a vez do revezamento e a vez dada a um
+    /// disparo que e de alguem. Com os papeis desligados (Experimento.h), so o revezamento de antes
+    /// deles. 'quantos' e sempre quantos alunos estao em campo.
+    class Mira {
+    public:
+        explicit Mira(bool papeis = true) : mPapeis(papeis) {}
+
+        /// Em qual posicao esta a vez do proximo disparo: a vez dada, se houver; senao a de quem mais
+        /// incomodou ou, se os dois incomodam parecido, a do revezamento.
+        [[nodiscard]] std::size_t Alvo(std::size_t quantos) const;
+
+        /// Em quem a mira esta presa (o "v" vermelho sobre o aluno); -1 quando os dois revezam.
+        [[nodiscard]] int Foco(std::size_t quantos) const;
+
+        /// O proximo disparo e de 'posicao', mesmo que a mira esteja no outro. Fora da lista, nada.
+        void DarAVez(std::size_t posicao, std::size_t quantos);
+
+        /// Um disparo saiu: a vez dada acabou, e o revezamento anda.
+        void Revezar(std::size_t quantos);
+
+        /// O aluno 'quem' acertou o professor, e o incomoda.
+        void Acertou(const std::size_t quem) { mIncomodo.Acertou(quem); }
+        void Avancar(const float deltaTime) { mIncomodo.Avancar(deltaTime); }
+
+    private:
+        Incomodo mIncomodo;
+        std::size_t mVez = 0;
+        bool mVezDada = false;
+        bool mPapeis = true;
+    };
 }
