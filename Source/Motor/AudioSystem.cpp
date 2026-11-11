@@ -15,7 +15,7 @@ SoundHandle SoundHandle::Invalid;
 // (Defaults to 8 channels)
 AudioSystem::AudioSystem(int numChannels)
 {
-    Mix_Init(MIX_INIT_OGG || MIX_INIT_MP3);
+    Mix_Init(MIX_INIT_OGG | MIX_INIT_MP3);
     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
     Mix_AllocateChannels(numChannels);
     mChannels.resize(numChannels);
