@@ -28,6 +28,48 @@ Se o CMake não acha a SDL: em Linux são os pacotes `libsdl2-dev`,
 [tutorial de instalação](https://github.com/sagedemage/SDL2_windows_setup)
 cobre o caminho.
 
+### Executáveis para distribuir
+
+| Script | Sai | Tem dentro |
+|---|---|---|
+| `Ferramentas/executavel-windows.sh` | `dist/DPIBulletHellRe-windows.zip` | `DPIBulletHellRe.exe`, as DLLs do SDL2 e `Assets/` |
+| `Ferramentas/executavel-linux.sh` | `dist/DPIBulletHellRe-linux.tar.gz` | `DPIBulletHellRe`, `lib/` com o SDL2 e `Assets/` |
+
+Os dois rodam no **Linux** e compilam em `Release`, em `build-pacotes/` (fora
+do `build/` de desenvolvimento). Quem recebe o pacote não instala nada: abre o
+executável, que acha o `Assets/` ao lado dele e cria o `Saves/` ali mesmo.
+
+- **Windows**: compilação cruzada com o MinGW-w64 (`apt install mingw-w64`) e o
+  arquivo de toolchain `Ferramentas/mingw64.cmake`. Na primeira vez o script
+  baixa o SDL2 para MinGW das releases oficiais. O `.exe` sai com
+  `DPI_SEM_CONSOLE=ON` (sem a janela preta do console) e com o runtime do C++
+  dentro dele; ao lado vão as DLLs do SDL2 e a `libwinpthread-1.dll`.
+- **Linux**: o script compila o próprio SDL2 (em `build-pacotes/sdl-linux/`,
+  uns minutos na primeira vez) com o mínimo: imagens pelo stb_image, OGG, MP3,
+  FLAC e WAV pelos decodificadores embutidos do SDL_mixer, e o freetype e o
+  harfbuzz embutidos do SDL_ttf. O SDL2 abre X11, Wayland, ALSA, PulseAudio e
+  PipeWire só na hora, com o que a máquina tiver. O executável procura as
+  bibliotecas em `lib/` (RPATH `$ORIGIN/lib`). Roda em distribuições com a
+  glibc igual ou mais nova que a da máquina que compilou: por isso o workflow
+  compila no Ubuntu 22.04 (glibc 2.35).
+
+O workflow `.github/workflows/executaveis.yml` roda os dois scripts no GitHub:
+numa tag `v*` publica os pacotes numa Release; pela aba Actions (**Run
+workflow**) deixa os pacotes nos *Artifacts* da execução.
+
+O Windows avisa "o Windows protegeu o computador" em todo programa sem
+assinatura digital: "Mais informações" e "Executar assim mesmo". O
+`LEIA-ME.txt` do pacote diz isso a quem joga.
+
+Para conferir o `.exe` sem um Windows, o Wine serve (o modo de simulação roda
+igual; `SDL_AUDIODRIVER=dummy` se o Wine não tiver som):
+
+```bash
+cd dist/DPIBulletHellRe-windows
+SDL_AUDIODRIVER=dummy xvfb-run -a wine64 ./DPIBulletHellRe.exe \
+    --batalha INF213 --semente 3 --passo 0.016 --piloto segue --atira --sair-no-fim --fim-em 8
+```
+
 ### Acrescentar um arquivo
 
 `CMakeLists.txt` lista os fontes **à mão**, e um arquivo da camada pura aparece

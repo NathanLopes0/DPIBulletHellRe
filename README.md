@@ -563,6 +563,22 @@ cmake --build build
 O executável acha a pasta `Assets/` subindo os diretórios a partir de onde ele
 está, então rodar de dentro de `build/` ou da raiz dá na mesma.
 
+### Executáveis para distribuir
+
+Para mandar o jogo para quem não vai compilar nada, dois scripts montam um
+pacote pronto, com o executável, as bibliotecas e a pasta `Assets/`:
+
+```bash
+bash Ferramentas/executavel-windows.sh   # dist/DPIBulletHellRe-windows.zip
+bash Ferramentas/executavel-linux.sh     # dist/DPIBulletHellRe-linux.tar.gz
+```
+
+Os dois rodam numa máquina Linux (o do Windows pela compilação cruzada com o
+MinGW-w64). O GitHub também gera os dois sozinho: crie uma tag que comece com
+`v` (`git tag v1.0 && git push origin v1.0`) e os pacotes aparecem numa Release
+com o nome da tag; ou rode o workflow **Executaveis** pela aba Actions. Os
+detalhes estão em `Documentacao/build-e-testes.md`.
+
 No gabinete do departamento ele abre com `--arcade`: tela cheia, sem cursor, sem
 saída acidental e voltando ao menu sozinho quando fica parado. O que isso muda,
 e **como sair da máquina**, está em `Documentacao/gabinete.md`.

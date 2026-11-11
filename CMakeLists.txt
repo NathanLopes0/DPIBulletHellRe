@@ -466,6 +466,19 @@ endif()
 target_compile_definitions(${PROJECT_NAME} PRIVATE DPI_VERSAO="${DPI_VERSAO}")
 
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} SDL2_image::SDL2_image SDL2_mixer::SDL2_mixer SDL2_ttf::SDL2_ttf)
+
+# OS EXECUTAVEIS PARA DISTRIBUIR (Ferramentas/executavel-windows.sh e -linux.sh).
+# DPI_SEM_CONSOLE: no Windows, o jogo abre sem a janela preta do console (os SDL_Log
+# somem); desligado por padrao, que e o que se quer enquanto se desenvolve.
+option(DPI_SEM_CONSOLE "Windows: abrir o jogo sem a janela do console" OFF)
+if(WIN32 AND DPI_SEM_CONSOLE)
+    set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE ON)
+endif()
+# Com o MinGW e o GCC, o runtime do C++ entra no executavel: um arquivo a menos para
+# levar junto e nenhum conflito com a versao instalada na maquina de quem joga.
+if(NOT MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_options(${PROJECT_NAME} PRIVATE -static-libgcc -static-libstdc++)
+endif()
 # =============================================================================
 # TESTES UNITARIOS (doctest)
 #
