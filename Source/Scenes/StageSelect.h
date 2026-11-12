@@ -12,6 +12,7 @@
 #include "../Entrada/Navegacao.h"
 #include <SDL_pixels.h>
 #include <memory>
+#include "../Aluno/Exportacao.h"
 
 class Font;
 class StageSelectButton;
@@ -94,9 +95,9 @@ private:
     // ---- O cartao da materia em foco ----
 
     static constexpr float kCartaoX = 268.0f;
-    static constexpr float kCartaoY = 610.0f;
+    static constexpr float kCartaoY = 622.0f;
     static constexpr float kCartaoLargura = 400.0f;
-    static constexpr float kCartaoAltura = 218.0f;
+    static constexpr float kCartaoAltura = 242.0f;
     static constexpr int kOrdemDoCartao = 70;
 
     static inline const SDL_Color kCorDaMolduraDoCartao{96, 118, 170, 220};
@@ -114,6 +115,10 @@ private:
     Actor* mNomeAtor = nullptr;
     Actor* mProfessorAtor = nullptr;
     Actor* mEstadoAtor = nullptr;
+    /// O rival da turma (Rival.h): quem esta logo acima no ranking da materia, no modo e nivel da vez.
+    Actor* mRivalAtor = nullptr;
+    /// As fichas da turma, lidas uma vez ao abrir a tela.
+    std::vector<Exportacao::FichaDeAluno> mFichas;
     /// As mencoes da materia em foco (Mencoes.h), na ultima linha do cartao: o que ainda ha para
     /// buscar nela.
     std::unique_ptr<SelosDeMencao> mMencoes;

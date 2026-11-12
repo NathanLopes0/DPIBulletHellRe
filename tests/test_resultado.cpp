@@ -257,7 +257,14 @@ TEST_CASE("Resultado: as mencoes novas ganham uma linha, depois da formatura e a
     CHECK(l[6] == r.horas);
     CHECK(l[0] == "Nota final: 85.00  \xc2\xb7  prova da semana: 2\xc2\xba de 5");
     CHECK(LinhaDaParte(r, 0) == 7);
+    // O rival da turma vem por ultimo, antes da parte de cada um.
+    r.rival = "Voc\xc3\xaa passou 90112: agora \xc3\xa9 o 2\xc2\xba da turma";
+    l = Linhas(r);
+    CHECK(LinhaDoRival(r) == 7);
+    CHECK(l[7] == r.rival);
+    CHECK(LinhaDaParte(r, 0) == 8);
     CHECK(l.size() == static_cast<size_t>(kLinhasNoMaximo));   // o resumo mais cheio que existe ainda cabe
+    r.rival.clear();
     r.mencoes.clear();
     CHECK(LinhaDasHoras(r) == 5);                              // sem as mencoes, sobe uma
     r.horas.clear();
@@ -267,4 +274,21 @@ TEST_CASE("Resultado: as mencoes novas ganham uma linha, depois da formatura e a
     // Quem reprovou nao ganha mencao, diga o campo o que disser.
     r.aprovado = false;
     CHECK(LinhaDasMencoes(r) == -1);
+}
+
+TEST_CASE("Resultado: quem reprovou ve o rival antes da devolutiva") {
+    Resumo r;
+    r.nota = 52.0f;
+    r.temFicha = true;
+    r.piorFase = Devolutiva::Fase{};
+    r.causas = {Devolutiva::Causa{}};
+    r.rival = "Faltaram 2.00 para passar 88001";
+    const auto l = Linhas(r);
+    CHECK(LinhaDoRival(r) == 4);
+    CHECK(l[4] == r.rival);
+    CHECK(LinhaDasCausas(r) == 6);
+    CHECK(l.size() <= static_cast<size_t>(kLinhasNoMaximo));
+    r.rival.clear();
+    CHECK(LinhaDoRival(r) == -1);
+    CHECK(LinhaDasCausas(r) == 5);
 }

@@ -61,6 +61,9 @@ namespace Resultado {
         /// Na prova da semana, o lugar de quem jogou no ranking dela ("2\xc2\xba de 5"), que vai ao
         /// lado da nota; vazio fora dela, e para o visitante.
         std::string provaDaSemana;
+        /// O rival da turma (Rival::FraseDoResultado): quem esta nota passou no ranking da materia, ou
+        /// quanto faltou para o mais perto. Vazia quando nao ha o que dizer.
+        std::string rival;
     };
 
     /// O titulo: "APROVADE!" ou "REPROVADE".
@@ -83,10 +86,10 @@ namespace Resultado {
     /// titulos, duas linhas - "89384, quem mais cobriu" e os numeros embaixo -; sem eles, uma.
     std::vector<std::string> Linhas(const Resumo& r);
 
-    /// Quantas Linhas um resumo tem no maximo: as quatro de sempre, as duas da devolutiva e as quatro
-    /// da dupla com titulos - ou, para quem passou, a da formatura, a das mencoes e a das horas no lugar
-    /// das duas da devolutiva.
-    constexpr int kLinhasNoMaximo = 11;
+    /// Quantas Linhas um resumo tem no maximo: as quatro de sempre, a do rival, as duas da devolutiva e
+    /// as quatro da dupla com titulos - ou, para quem passou, a da formatura, a das mencoes e a das horas
+    /// no lugar das duas da devolutiva.
+    constexpr int kLinhasNoMaximo = 12;
 
     /// Quantas linhas a parte de cada aluno ocupa: duas com o titulo, uma sem.
     int LinhasPorParte(const Resumo& r);
@@ -99,6 +102,8 @@ namespace Resultado {
 
     /// A linha das horas complementares, dourada, depois da das mencoes; -1 sem nenhuma.
     int LinhaDasHoras(const Resumo& r);
+    /// A linha do rival da turma, dourada, depois das horas (e antes da devolutiva); -1 sem ela.
+    int LinhaDoRival(const Resumo& r);
 
     /// A linha (vazia) em que a batalha desenha o que mais acertou o aluno; -1 quando nao ha.
     int LinhaDasCausas(const Resumo& r);

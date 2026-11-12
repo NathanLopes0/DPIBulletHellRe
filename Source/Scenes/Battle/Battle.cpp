@@ -40,6 +40,8 @@
 #include "../../Aluno/Matricula.h"
 #include "../../Aluno/Mencoes.h"
 #include "../../Aluno/Horas.h"
+#include "../../Aluno/Rival.h"
+#include "../../Aluno/FichaArquivo.h"
 #include "../../Aluno/ProvaDaSemanaArquivo.h"
 #include "ContagemDaProva.h"
 #include "../../Motor/Random.h"
@@ -977,6 +979,15 @@ void Battle::EncerrarBatalha(bool aprovado) {
     }
 
     // O unico ponto em que a nota vai para o armazenamento persistente.
+    // O rival da turma (Rival.h), antes de a nota entrar: o recorde de antes contra o de agora.
+    {
+        std::vector<std::string> alunos;
+        for (size_t i = 0; i < mGame->QuantosJogadores(); ++i) alunos.push_back(mGame->MatriculaDe(i));
+        const Rival::Turma turma = Rival::DaTurma(FichaArquivo::TodasAsFichas(materias), mMateria, mNivel, alunos,
+                                                  mGame->Sessoes().front().progresso);
+        resumo.rival = Rival::FraseDoResultado(turma.colegas, turma.nota, std::max(turma.nota, mConta.Valor()),
+                                               resumo.temFicha);
+    }
     mGame->RegistrarNota(mMateria, mConta.Valor());
 
     // O que esta luta deu alem da nota: as mencoes novas de quem jogou (na dupla, as de qualquer um

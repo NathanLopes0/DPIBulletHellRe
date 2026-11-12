@@ -8,6 +8,8 @@
 #include "FundoDeCena.h"
 
 #include "../Aluno/Matricula.h"
+#include "../Aluno/FichaArquivo.h"
+#include "../Aluno/Rival.h"
 #include "../Aluno/ProvaDaSemanaArquivo.h"
 #include "../Motor/Relogio.h"
 #include "../Curso/MateriasArquivo.h"
@@ -37,6 +39,7 @@ StageSelect::StageSelect(Game *game) : Scene(game, SceneType::StageSelect)
 void StageSelect::Load() {
 
     CriarFundoDoCorredor(*this);
+    mFichas = FichaArquivo::TodasAsFichas(Materias::Carregadas());
     CreateStageButtons();
     CriarLigacoes();          // depois dos botoes: as linhas saem das posicoes deles
     CreateStaticUI();
@@ -302,12 +305,13 @@ void StageSelect::CreateStaticUI() {
         kCorDaMolduraDoCartao, kCorDoFundoDoCartao, 2, kOrdemDoCartao);
     AddActor(std::move(moldura));
 
-    mCodigoAtor    = TextoDoCartao(kCartaoY - 74.f, 30, Color::White);
-    mNomeAtor      = TextoDoCartao(kCartaoY - 34.f, 22, Color::LightYellow);
-    mProfessorAtor = TextoDoCartao(kCartaoY + 0.f, 20, Color::LightBlue);
-    mEstadoAtor    = TextoDoCartao(kCartaoY + 36.f, 22, Color::White);
+    mCodigoAtor    = TextoDoCartao(kCartaoY - 86.f, 30, Color::White);
+    mNomeAtor      = TextoDoCartao(kCartaoY - 46.f, 22, Color::LightYellow);
+    mProfessorAtor = TextoDoCartao(kCartaoY - 12.f, 20, Color::LightBlue);
+    mEstadoAtor    = TextoDoCartao(kCartaoY + 24.f, 22, Color::White);
+    mRivalAtor     = TextoDoCartao(kCartaoY + 56.f, 17, Color::LightBlue);
     mMencoes = std::make_unique<SelosDeMencao>(
-        *this, mStageSelectFont.get(), Vector2(kCartaoX - SelosDeMencao::kLarguraDaFileira / 2.0f, kCartaoY + 78.f));
+        *this, mStageSelectFont.get(), Vector2(kCartaoX - SelosDeMencao::kLarguraDaFileira / 2.0f, kCartaoY + 88.f));
 
     UpdateStageInfo();
     CriarProvaDaSemana();
@@ -504,6 +508,21 @@ void StageSelect::UpdateStageInfo() const {
     }
 
     EscreverNoCartao(mEstadoAtor, frase, cor);
+
+    // O rival da turma: so na materia aberta e com batalha, na lista do modo e do nivel da vez.
+    std::string rival;
+    Vector3 corDoRival = Color::LightBlue;
+    if (m && !m->chefe.empty() && mGame->IsStageUnlocked(mSelectedSubject)) {
+        std::vector<std::string> alunos;
+        for (size_t i = 0; i < mGame->QuantosJogadores(); ++i) alunos.push_back(mGame->MatriculaDe(i));
+        const Rival::Turma turma = Rival::DaTurma(mFichas, mSelectedSubject, mGame->NivelDeDificuldade(), alunos,
+                                                  mGame->Sessoes().front().progresso);
+        const Rival::Situacao s = Rival::Da(turma.colegas, turma.nota);
+        rival = Rival::Frase(s);
+        if (s.tipo == Rival::Tipo::Atras) corDoRival = Color::LightYellow;
+        else if (s.tipo == Rival::Tipo::Lider) corDoRival = Color::LightGreen;
+    }
+    EscreverNoCartao(mRivalAtor, rival, corDoRival);
 
     // A fileira so aparece na materia que tem batalha; centrada, com as mencoes que ela tem.
     if (mMencoes) mMencoes->Mostrar(Mencoes::Da(mGame->Sessoes().front().progresso, materias, mSelectedSubject));

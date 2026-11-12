@@ -156,6 +156,15 @@ poderes do orientador num TCC, a prova da semana e o pódio dela. A meta é de
 **100 horas**; o boletim mostra quantas você tem, e o resultado, as que a luta
 deu.
 
+**O rival da turma.** O cartão da matéria, na seleção de fases, mostra quem
+está logo acima de você no ranking dela — na lista do modo e da dificuldade da
+vez — e quanto falta para passá-lo ("Rival: 90112 (2º) · faltam 2.41"). Quem
+lidera vê quem vem atrás; quem nunca jogou vê o último da turma. Na tela do
+resultado, uma linha diz quem a nota passou e o lugar novo ("Você passou 90112:
+agora é o 2º da turma"), ou quanto faltou para o mais perto, se ficou a menos
+de 5 pontos. O visitante, que não entra no ranking, lê no condicional ("você
+passaria").
+
 O **Ranking** — do menu, a média do curso; do boletim, a matéria em foco — tem
 **quatro listas**: **Normal**, **Difícil**, **Normal em
 dupla** e **Difícil em dupla**, trocadas com o manche para os lados. Cada nível
