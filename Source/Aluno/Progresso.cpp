@@ -33,6 +33,7 @@ void Progresso::Registrar(const int materia, const float nota, const Modo modo,
     r.retomada = nota;
     ++r.tentativas;
     if (nota < kNotaDeAprovacao) ++r.reprovacoes;
+    r.seguidas = nota < kNotaDeAprovacao ? r.seguidas + 1 : 0;
 
     if (!quando.empty()) r.quando = quando;
 
@@ -87,6 +88,10 @@ int Progresso::Tentativas(const int materia) const {
 
 int Progresso::Reprovacoes(const int materia) const {
     return Ver(materia).reprovacoes;
+}
+
+int Progresso::ReprovacoesSeguidas(const int materia) const {
+    return Ver(materia).seguidas;
 }
 
 bool Progresso::Aprovado(const int materia) const {

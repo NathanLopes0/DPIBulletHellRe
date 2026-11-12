@@ -4,6 +4,7 @@
 
 #include "Ficha.h"
 
+#include <algorithm>
 #include <cmath>
 #include <optional>
 #include <set>
@@ -123,6 +124,8 @@ std::string Serializar(const Dados& dados, const Materias::Lista& materias) {
         if (e.reprovacoes > 0) s << ", \"reprovacoes\": " << e.reprovacoes;
         // O curriculo de orientacoes (versao 9): so de quem ja orientou um TCC aprovado do aluno.
         if (e.orientacoes > 0) s << ", \"orientacoes\": " << e.orientacoes;
+        // As reprovacoes seguidas (versao 11), o ajuste de dificuldade: so quando ha.
+        if (e.seguidas > 0) s << ", \"seguidas\": " << e.seguidas;
 
         s << " }";
     }
@@ -333,6 +336,8 @@ namespace {
         }
         // O curriculo de orientacoes (versao 9), opcional: so orienta quem deu uma materia aprovada.
         e.orientacoes = contagem("orientacoes");
+        // As reprovacoes seguidas (versao 11): nao passam das reprovacoes.
+        e.seguidas = std::min(contagem("seguidas"), e.reprovacoes);
         if (e.orientacoes > 0 && e.MaiorRecorde() < Progresso::kNotaDeAprovacao) {
             problemas.emplace_back(onde + "\"orientacoes\" numa materia que nao foi aprovada; zerada");
             e.orientacoes = 0;

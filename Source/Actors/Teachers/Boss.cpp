@@ -199,7 +199,8 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
     const float velocidadeDoArquivo = p.projectileSpeed;
     const float aberturaDoArquivo = p.angle;
     const float centroDoArquivo = p.centralAngle;
-    p.projectileSpeed = velocidadeDoArquivo * rapidez;
+    // O ajuste automatico de dificuldade (Ajuste.h): quem vem reprovando ve os tiros um pouco mais lentos.
+    p.projectileSpeed = velocidadeDoArquivo * rapidez * battleScene->AjusteDaProva().velocidade;
     if (attackDef.variar) {
         const Variacao::Disparo d = SortearDisparo(attackDef, stateName);
         p.centralAngle += d.giro;

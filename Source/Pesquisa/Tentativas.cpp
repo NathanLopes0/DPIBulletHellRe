@@ -88,6 +88,8 @@ namespace Tentativas {
             "sincronias",
             // Formato 4.
             "sinais",
+            // Formato 5.
+            "ajuste",
         };
 
         const std::vector<std::string> kColunasDosToques = {
@@ -164,6 +166,7 @@ namespace Tentativas {
                 daDupla(std::to_string(j.coberturas)), daDupla(std::to_string(j.oportunidadesDeCobertura)),
                 t.comPapeis ? daDupla(Num(j.tempoNaMira)) : "", daDupla(Num(t.distanciaMedia, 1)),
                 daDupla(std::to_string(t.sincronias)), daDupla(std::to_string(j.sinais)),
+                std::to_string(t.ajuste),
             }));
         }
         return linhas;

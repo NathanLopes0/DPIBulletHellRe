@@ -59,6 +59,9 @@ public:
     /// Quantas provas desta materia o aluno terminou, e quantas reprovou (Entrada::tentativas).
     [[nodiscard]] int Tentativas(int materia) const;
     [[nodiscard]] int Reprovacoes(int materia) const;
+    /// As reprovacoes seguidas nesta materia, em qualquer modo e nivel: aprovar zera (o ajuste de
+    /// dificuldade, Ajuste.h).
+    [[nodiscard]] int ReprovacoesSeguidas(int materia) const;
 
     /// O professor desta materia orientou um TCC em que o aluno foi aprovado: o curriculo de
     /// orientacoes. So conta em materia aprovada - e dela que sai o candidato a orientador.
@@ -94,6 +97,8 @@ public:
         /// (o boletim). Zero num save de antes da contagem existir.
         int tentativas = 0;
         int reprovacoes = 0;
+        /// As reprovacoes desde a ultima aprovacao (versao 11 da ficha).
+        int seguidas = 0;
 
         /// Quando a materia foi aprovada pela primeira vez: o mural dos formados mostra a do TCC.
         /// Vazio se nunca foi, ou num save de antes deste campo (versao 8 da ficha).

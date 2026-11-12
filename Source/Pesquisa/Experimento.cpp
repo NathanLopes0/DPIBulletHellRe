@@ -19,6 +19,7 @@ namespace Experimento {
             case Mecanica::Sinal:      return "sinal";
             case Mecanica::Toque:      return "toque";
             case Mecanica::Titulos:    return "titulos";
+            case Mecanica::Ajuste:     return "ajuste";
         }
         return "";
     }

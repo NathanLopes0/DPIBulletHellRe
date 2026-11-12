@@ -280,6 +280,18 @@ significar "subiu a curva inteira **e** quase não foi atingido" em vez de ser s
 uma questão de paciência — e é por isso que as notas aparecem com duas casas
 decimais em todo lugar.
 
+**O ajuste automático de dificuldade.** Quem vem reprovando numa matéria que
+ainda não passou ganha, sem aviso, uma prova um pouco mais leve: a cada **duas
+reprovações seguidas** ali, um degrau, até dois. Cada degrau deixa os tiros do
+professor **6% mais lentos** e tira **15% a menos** da nota por acerto sofrido.
+Aprovar zera a conta, e quem já passou na matéria joga a prova de sempre. Só no
+**Normal**: no Difícil o aluno escolheu o desafio. Na dupla vale o menor degrau
+dos dois — só alivia quando os dois vêm reprovando. É o canal de *flow*
+(Csikszentmihalyi): desafio demais para a habilidade vira ansiedade, e a prova
+volta devagar para dentro do canal. O degrau de cada tentativa vai para o
+`tentativas.csv` (coluna `ajuste`), e a condição `sem-ajuste` desliga o ajuste
+para o experimento (`Regras/Ajuste.h`).
+
 ## O curso
 
 As matérias formam uma grade de cinco colunas, e cada uma abre conforme o que já
@@ -322,7 +334,9 @@ Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
   primeira vez (desde a versão 8; é a data do mural dos formados, e quem passou
   antes dela aparece no mural sem data), e quantos TCCs aprovados seus o
   professor de cada matéria orientou (desde a versão 9: o currículo de
-  orientações), e as atividades complementares cumpridas (desde a versão 10).
+  orientações), e as atividades complementares cumpridas (desde a versão 10), e
+  as reprovações seguidas em cada matéria, de onde sai o ajuste de dificuldade
+  (desde a versão 11).
   A nota vai para o disco **uma vez, no fim da batalha**, e não durante.
 - **`prova_da_semana.csv`** — as notas da prova da semana: a semana (a data da
   segunda-feira), a matéria, o modo, a dificuldade, a matrícula, o parceiro, a

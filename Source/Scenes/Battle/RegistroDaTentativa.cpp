@@ -36,6 +36,7 @@ void RegistroDaTentativa::AoComecar(Battle& b) {
     t.notaMaxima = t.notaMinima = b.NotaAtual();
     t.semente = b.SementeDaBatalha();
     t.condicao = b.GetGame()->Condicao().Nome();
+    t.ajuste = b.AjusteDaProva().nivel;
     t.comPapeis = b.GetGame()->Condicao().Ligada(Experimento::Mecanica::Papeis);
     if (const Orientador* o = b.OrientadorEmCampo()) t.orientador = o->Professor();
 

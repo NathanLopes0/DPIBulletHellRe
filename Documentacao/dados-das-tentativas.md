@@ -54,7 +54,7 @@ gabinete não mistura batalhas de mentira com as dos alunos.
 
 | Coluna | O que é |
 |---|---|
-| `formato` | A versão do formato em que **esta linha** foi gravada (hoje `4`). Muda quando uma coluna muda; ver **Quando o formato muda**. |
+| `formato` | A versão do formato em que **esta linha** foi gravada (hoje `5`). Muda quando uma coluna muda; ver **Quando o formato muda**. |
 | `id` | O identificador da tentativa, por exemplo `20261028-140322-0f3a9c21`. O começo é a data e a hora, então ordenar por `id` é ordenar no tempo. |
 | `versao_do_jogo` | O commit de onde o executável foi compilado, ou `dev`. Serve para separar as tentativas de antes e de depois de uma mudança de balanceamento. É lido quando o CMake **configura** o projeto: depois de um `git pull`, rode o `cmake` de novo antes de compilar. |
 | `matricula` | A matrícula do aluno, ou `visitante`. |
@@ -107,6 +107,7 @@ o bônus do raspão. O que só existe na dupla fica **vazio** no solo.
 | `distancia_media_px` | Na dupla, a distância média entre os dois alunos durante a luta, em pixels do campo (1200 × 800). A mesma nas duas linhas. |
 | `sincronias` | Desde o formato 3. Na dupla, quantas vezes os dois gastaram o Ponto Extra **juntos** — com até meio segundo de diferença (`PontoExtra::kJanelaDaSincronia`). A mesma nas duas linhas. |
 | `sinais` | Desde o formato 4. Na dupla, os sinais que **este** aluno deu ao parceiro com o Botão 3 (um por aperto, com um segundo de espera entre dois; fora do TCC). |
+| `ajuste` | Desde o formato 5. O degrau do **ajuste automático de dificuldade** desta tentativa (`Regras/Ajuste.h`): `0` é a prova de sempre; `1` e `2` vêm depois de 2 e 4 reprovações seguidas numa matéria ainda não aprovada, no Normal, com os tiros 6% e 12% mais lentos e a perda por acerto 15% e 30% menor. Na dupla, o menor dos dois, e o mesmo nas duas linhas. `0` também com `sem-ajuste`. Para comparar notas entre alunos, separe por esta coluna. |
 
 ## `tentativas_fases.csv`
 
@@ -193,6 +194,7 @@ variável do estudo —, o gabinete abre com `--condicao` (ver `gabinete.md`):
 | `sem-valeu` | Quem foi coberto não solta o coração na cor de quem cobriu. |
 | `sem-sinal` | O Botão 3 não mostra o anel nem toca o som na batalha em dupla. Os `sinais` continuam contados. |
 | `sem-toque` | No resultado da dupla aprovada, o Botão 3 dos dois não faz os avatares pularem, nem estoura, nem toca a palma, e o rodapé não ensina. Os toques continuam contados em `tentativas_toques.csv`. |
+| `sem-ajuste` | O ajuste automático de dificuldade não entra: quem vem reprovando joga a prova de sempre, e a coluna `ajuste` fica em `0`. As reprovações seguidas continuam contadas na ficha. |
 | `sem-titulos` | No resultado da dupla, a parte de cada aluno volta a ser uma linha só, com os números lado a lado, sem o título do que cada um mais fez ("quem mais cobriu"...). Os títulos não vão para o CSV: saem das colunas de acertos, coberturas e acertos sofridos de cada aluno (`Devolutiva::Titulos`). |
 
 Sem `--condicao` (ou com `--condicao normal`), tudo funciona como sempre, e a

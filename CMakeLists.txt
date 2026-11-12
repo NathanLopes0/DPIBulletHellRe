@@ -96,6 +96,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Regras/Dificuldade.cpp
         Source/Regras/Dificuldade.h
         Source/Regras/Variacao.cpp
+        Source/Regras/Ajuste.cpp
+        Source/Regras/Ajuste.h
         Source/Regras/Variacao.h
         Source/Motor/Configuracao.cpp
         Source/Motor/Configuracao.h
@@ -591,6 +593,7 @@ add_executable(dpi_tests
         tests/test_horas.cpp
         tests/test_rival.cpp
         tests/test_mapa_da_grade.cpp
+        tests/test_ajuste.cpp
         tests/test_prova_da_semana.cpp
         tests/test_mencoes.cpp
         tests/test_mural.cpp
@@ -639,6 +642,7 @@ add_executable(dpi_tests
         Source/Regras/Dificuldade.cpp
         Source/Regras/Dificuldade.h
         Source/Regras/Variacao.cpp
+        Source/Regras/Ajuste.cpp
         Source/Regras/Variacao.h
         Source/Motor/Configuracao.cpp
         Source/Motor/Configuracao.h

@@ -46,7 +46,7 @@ namespace Simulacao {
         return !batalha.empty() || semente || variacao || passo > 0.0f || piloto != Piloto::Nenhum ||
                atira || poder || relatorio || sairNoFim || imortal || !teclas.empty() || !fotos.empty() ||
                larguraDaJanela > 0 || fimNoQuadro >= 0 || pausaNoQuadro >= 0 || focoNoQuadro >= 0 ||
-               !estado.empty();
+               !estado.empty() || ajuste >= 0;
     }
 
     std::vector<int> LerQuadros(const std::string& lista, std::vector<std::string>* problemas) {
@@ -124,6 +124,12 @@ namespace Simulacao {
             else if (a == "--estado") { valor(c.estado); }
             else if (a == "--fotos-em") { valor(c.pastaDasFotos); }
             else if (a == "--dificil") { c.dificil = true; }
+            else if (a == "--ajuste") {
+                unsigned n = 0;
+                if (!valor(v)) continue;
+                if (LerSemSinal(v, n)) c.ajuste = static_cast<int>(n);
+                else problema(a + " precisa de um numero inteiro sem sinal");
+            }
             else if (a == "--atira") { c.atira = true; }
             else if (a == "--poder") { c.poder = true; }
             else if (a == "--relatorio") { c.relatorio = true; }
