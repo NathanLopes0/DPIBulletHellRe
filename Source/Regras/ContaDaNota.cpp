@@ -25,7 +25,7 @@ namespace Nota {
         ++mAcertosSofridos;
         ++mAcertosNaFase;
         const float antes = mNota;
-        mNota = Subtrair(mNota, PerdaPorJogador(kPerdaPorAcerto, mJogadores) * multiplicador);
+        mNota = Subtrair(mNota, PerdaPorJogador(kPerdaPorAcerto, mJogadores) * multiplicador * mFatorDaPerda);
         return antes - mNota;
     }
 

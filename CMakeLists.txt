@@ -96,6 +96,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Regras/Dificuldade.cpp
         Source/Regras/Dificuldade.h
         Source/Regras/Variacao.cpp
+        Source/Regras/Ajuste.cpp
+        Source/Regras/Ajuste.h
         Source/Regras/Variacao.h
         Source/Motor/Configuracao.cpp
         Source/Motor/Configuracao.h
@@ -106,6 +108,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Aluno/Sessao.h
         Source/Aluno/Ranking.cpp
         Source/Aluno/Horas.cpp
+        Source/Aluno/Rival.cpp
+        Source/Aluno/Rival.h
         Source/Aluno/Horas.h
         Source/Aluno/ProvaDaSemana.cpp
         Source/Aluno/ProvaDaSemana.h
@@ -117,6 +121,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Aluno/Matricula.cpp
         Source/Aluno/Matricula.h
         Source/Curso/Materias.cpp
+        Source/Curso/MapaDaGrade.cpp
+        Source/Curso/MapaDaGrade.h
         Source/Curso/Materias.h
         Source/Curso/Orientacao.cpp
         Source/Curso/Orientacao.h
@@ -231,6 +237,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Actors/Teachers/Bosses/Salles.cpp
         Source/Actors/Teachers/Bosses/Salles.h
         Source/Actors/Player/Player.cpp
+        Source/Actors/Player/PilotoDoAluno.cpp
+        Source/Actors/Player/PilotoDoAluno.h
         Source/Actors/Player/Player.h
         Source/Components/AIComponents/FSMState.cpp
         Source/Components/AIComponents/FSMComponent.cpp
@@ -585,6 +593,9 @@ add_executable(dpi_tests
         tests/test_conta_da_nota.cpp
         tests/test_leitor_do_menu.cpp
         tests/test_horas.cpp
+        tests/test_rival.cpp
+        tests/test_mapa_da_grade.cpp
+        tests/test_ajuste.cpp
         tests/test_prova_da_semana.cpp
         tests/test_mencoes.cpp
         tests/test_mural.cpp
@@ -633,6 +644,7 @@ add_executable(dpi_tests
         Source/Regras/Dificuldade.cpp
         Source/Regras/Dificuldade.h
         Source/Regras/Variacao.cpp
+        Source/Regras/Ajuste.cpp
         Source/Regras/Variacao.h
         Source/Motor/Configuracao.cpp
         Source/Motor/Configuracao.h
@@ -643,6 +655,7 @@ add_executable(dpi_tests
         Source/Aluno/Sessao.h
         Source/Aluno/Ranking.cpp
         Source/Aluno/Horas.cpp
+        Source/Aluno/Rival.cpp
         Source/Aluno/Horas.h
         Source/Aluno/ProvaDaSemana.cpp
         Source/Aluno/ProvaDaSemana.h
@@ -654,6 +667,7 @@ add_executable(dpi_tests
         Source/Aluno/Matricula.cpp
         Source/Aluno/Matricula.h
         Source/Curso/Materias.cpp
+        Source/Curso/MapaDaGrade.cpp
         Source/Curso/Materias.h
         Source/Curso/Orientacao.cpp
         Source/Curso/Orientacao.h

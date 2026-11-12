@@ -57,6 +57,18 @@ std::vector<int> Lista::DaColuna(const int coluna) const {
     return saida;
 }
 
+int Lista::QuantasColunasObrigatorias() const {
+    int maior = -1;
+    for (const auto& m : materias) if (!m.optativa) maior = std::max(maior, m.coluna);
+    return maior + 1;
+}
+
+int Lista::QuantasObrigatorias() const {
+    int n = 0;
+    for (const auto& m : materias) if (!m.optativa) ++n;
+    return n;
+}
+
 int Lista::QuantasColunas() const {
     int maior = -1;
     for (const auto& m : materias) maior = std::max(maior, m.coluna);
@@ -136,6 +148,14 @@ bool Lista::ColunaDependeDaAnterior(const int coluna) const {
         }
     }
 
+    return true;
+}
+
+bool Lista::DesbloqueadaParaTodos(const int indice, const std::vector<const Progresso*>& progressos) const {
+    if (progressos.empty()) return false;
+    for (const Progresso* p : progressos) {
+        if (!p || !Desbloqueada(indice, *p)) return false;
+    }
     return true;
 }
 
@@ -283,6 +303,15 @@ Lista LerMaterias(const std::string& textoJson) {
             }
         }
 
+        // "optativa": vai para a ala das optativas, depois das obrigatorias.
+        if (j.contains("optativa")) {
+            if (j["optativa"].is_boolean()) {
+                m.optativa = j["optativa"].get<bool>();
+            } else {
+                lista.problemas.emplace_back(onde + "\"optativa\" e true ou false; ficou obrigatoria");
+            }
+        }
+
         m.coluna = Inteiro(j, "coluna", -1);
         if (m.coluna < 0) {
             lista.problemas.emplace_back(onde + "falta \"coluna\" (0 e a primeira); descartada");
@@ -330,7 +359,17 @@ Lista LerMaterias(const std::string& textoJson) {
         }
     }
 
-    // 3.
+    // 3. As optativas vem depois das obrigatorias: uma no meio delas quebraria a grade.
+    const int primeiraDasOptativas = lista.QuantasColunasObrigatorias();
+    for (const auto& m : lista.materias) {
+        if (m.optativa && m.coluna < primeiraDasOptativas) {
+            lista.problemas.emplace_back("materia " + m.codigo + ": optativa na coluna " + std::to_string(m.coluna) +
+                                         ", mas as optativas vem depois das obrigatorias (coluna " +
+                                         std::to_string(primeiraDasOptativas) + " em diante)");
+        }
+    }
+
+    // 4.
     bool algumaAbre = false;
     for (const auto& m : lista.materias) {
         if (m.desbloqueio.tipo == TipoDeDesbloqueio::Sempre) { algumaAbre = true; break; }

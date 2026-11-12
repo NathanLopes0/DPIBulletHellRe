@@ -59,8 +59,13 @@ namespace Nota {
         /// A nota em 'nota', sem conta nenhuma. So a simulacao faz isto (--fim-nota).
         void Definir(const float nota) { mNota = nota; }
 
+        /// O ajuste automatico de dificuldade (Ajuste.h): cada acerto sofrido tira 'fatorDaPerda' do
+        /// que tiraria. 1 e a prova de sempre.
+        void DefinirAlivio(const float fatorDaPerda) { mFatorDaPerda = fatorDaPerda; }
+
     private:
         float mNota;
+        float mFatorDaPerda = 1.0f;
         std::size_t mJogadores;
         int mAcertosSofridos = 0;
         int mAcertosNaFase = 0;

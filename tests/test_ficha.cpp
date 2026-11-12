@@ -867,3 +867,35 @@ TEST_CASE("Ficha: as atividades complementares vao e voltam (versao 10), e a fic
     CHECK(Menciona(mista.problemas, "atividade"));
     CHECK(mista.dados.progresso.Atividades() == std::set<std::string>{"virada"});
 }
+
+TEST_CASE("Ficha: as reprovacoes seguidas vao e voltam (versao 11), e a ficha de antes delas le zero") {
+    Ficha::Dados original;
+    original.matricula = "89384";
+    original.progresso.RegistrarNota(0, 30.0f, Dificuldade::Nivel::Normal);
+    original.progresso.RegistrarNota(0, 45.0f, Dificuldade::Nivel::Normal);
+    original.progresso.RegistrarNota(0, 50.0f, Dificuldade::Nivel::Normal);
+    const std::string texto = Ficha::Serializar(original, Curso());
+    CHECK(texto.find("\"seguidas\": 3") != std::string::npos);
+    const auto lida = Ficha::Desserializar(texto, Curso());
+    REQUIRE(lida.ok);
+    CHECK(lida.problemas.empty());
+    CHECK(lida.dados.progresso.ReprovacoesSeguidas(0) == 3);
+
+    // Aprovar zera, e o campo some.
+    original.progresso.RegistrarNota(0, 65.0f, Dificuldade::Nivel::Normal);
+    CHECK(Ficha::Serializar(original, Curso()).find("seguidas") == std::string::npos);
+
+    // A versao 10 le sem o campo; e mais seguidas que reprovacoes nao passa.
+    const auto antiga = Ficha::Desserializar(R"({
+        "versao": 10, "matricula": "89384",
+        "materias": [ { "materia": "AAA", "recorde": 40, "retomada": 40, "tentativas": 2, "reprovacoes": 2 } ]
+    })", Curso());
+    REQUIRE(antiga.ok);
+    CHECK(antiga.dados.progresso.ReprovacoesSeguidas(0) == 0);
+    const auto demais = Ficha::Desserializar(R"({
+        "versao": 11, "matricula": "89384",
+        "materias": [ { "materia": "AAA", "recorde": 40, "retomada": 40, "tentativas": 2, "reprovacoes": 2, "seguidas": 9 } ]
+    })", Curso());
+    REQUIRE(demais.ok);
+    CHECK(demais.dados.progresso.ReprovacoesSeguidas(0) == 2);
+}

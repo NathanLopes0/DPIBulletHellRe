@@ -412,7 +412,10 @@ ficha. O aluno identificado guarda a nota (e com ela o desbloqueio de D10), com
 o campo do parceiro vazio; o ranking de duplas ignora registro sem parceiro.
 
 ### RF7 — Progresso
-Passar em co-op destranca a próxima matéria (D10). O recorde de co-op e o de
+Passar em co-op destranca a próxima matéria (D10). Na seleção de fases da dupla,
+uma matéria só abre se estiver aberta para **os dois** — o mapa é o de quem tem
+menos matérias liberadas (`Materias::Lista::DesbloqueadaParaTodos`) —, e o
+cartão diz qual dos dois ainda precisa do pré-requisito. O recorde de co-op e o de
 solo são **dois números distintos** na mesma matéria: ir bem acompanhado não
 apaga o que você fez sozinho, nem o contrário.
 

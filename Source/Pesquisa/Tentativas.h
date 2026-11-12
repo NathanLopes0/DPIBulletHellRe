@@ -14,7 +14,7 @@ namespace Tentativas {
 
     /// A versao do formato, gravada em toda linha: mudar uma coluna e mudar isto. Coluna nova vai
     /// sempre no fim (TrocarCabecalho).
-    constexpr int kVersaoDoFormato = 4;
+    constexpr int kVersaoDoFormato = 5;
 
     enum class Resultado { Aprovado, Reprovado, Abandonou };
     const char* Nome(Resultado r);
@@ -83,6 +83,7 @@ namespace Tentativas {
         int poderesUsados = 0;
         std::uint32_t semente = 0;   ///< a variacao sorteada da luta
         std::string condicao = "normal";  ///< a do experimento (Experimento::Condicao::Nome)
+        int ajuste = 0;              ///< o degrau do ajuste de dificuldade da prova (Ajuste.h; formato 5)
         /// A mira podia prender num aluno: sem os papeis (Experimento.h), tempo_na_mira fica vazio.
         bool comPapeis = true;
         float distanciaMedia = 0.0f; ///< na dupla, a distancia media entre os dois alunos, em pixels

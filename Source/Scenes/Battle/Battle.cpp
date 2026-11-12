@@ -40,6 +40,8 @@
 #include "../../Aluno/Matricula.h"
 #include "../../Aluno/Mencoes.h"
 #include "../../Aluno/Horas.h"
+#include "../../Aluno/Rival.h"
+#include "../../Aluno/FichaArquivo.h"
 #include "../../Aluno/ProvaDaSemanaArquivo.h"
 #include "ContagemDaProva.h"
 #include "../../Motor/Random.h"
@@ -112,6 +114,25 @@ void Battle::Load() {
 
     // O modo e a semente antes do chefe: a fabrica e o chefe podem perguntar pelos dois.
     mNivel = mGame->NivelDeDificuldade();
+
+    // O ajuste automatico de dificuldade (Ajuste.h): quem vem reprovando nesta materia ganha uma prova
+    // um pouco mais leve. Na dupla, o menor dos dois degraus; a simulacao diz o dela (--ajuste).
+    {
+        std::vector<int> degraus;
+        for (const Sessao::Dados& s : mGame->Sessoes()) {
+            degraus.push_back(Ajuste::NivelPara(s.progresso.ReprovacoesSeguidas(mMateria),
+                                                s.progresso.Aprovado(mMateria), mNivel));
+        }
+        int degrau = Ajuste::DaDupla(degraus);
+        if (!mCondicao.Ligada(Experimento::Mecanica::Ajuste)) degrau = 0;
+        if (mGame->ConfiguracaoDaSimulacao().ajuste >= 0) degrau = mGame->ConfiguracaoDaSimulacao().ajuste;
+        mAjuste = Ajuste::Do(degrau);
+        mConta.DefinirAlivio(mAjuste.perda);
+        if (mAjuste.nivel > 0) {
+            SDL_Log("BATALHA: ajuste de dificuldade no degrau %d (velocidade x%.2f, perda x%.2f)", mAjuste.nivel,
+                    static_cast<double>(mAjuste.velocidade), static_cast<double>(mAjuste.perda));
+        }
+    }
     // A simulacao prende a semente da luta (--variacao, ou a --semente); o jogo, nao.
     const auto& sim = mGame->ConfiguracaoDaSimulacao();
     mSemente = sim.variacao ? *sim.variacao
@@ -977,6 +998,15 @@ void Battle::EncerrarBatalha(bool aprovado) {
     }
 
     // O unico ponto em que a nota vai para o armazenamento persistente.
+    // O rival da turma (Rival.h), antes de a nota entrar: o recorde de antes contra o de agora.
+    {
+        std::vector<std::string> alunos;
+        for (size_t i = 0; i < mGame->QuantosJogadores(); ++i) alunos.push_back(mGame->MatriculaDe(i));
+        const Rival::Turma turma = Rival::DaTurma(FichaArquivo::TodasAsFichas(materias), mMateria, mNivel, alunos,
+                                                  mGame->Sessoes().front().progresso);
+        resumo.rival = Rival::FraseDoResultado(turma.colegas, turma.nota, std::max(turma.nota, mConta.Valor()),
+                                               resumo.temFicha);
+    }
     mGame->RegistrarNota(mMateria, mConta.Valor());
 
     // O que esta luta deu alem da nota: as mencoes novas de quem jogou (na dupla, as de qualquer um

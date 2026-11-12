@@ -59,6 +59,7 @@ namespace Simulacao {
         bool relatorio = false;       ///< --relatorio: "q..." a cada 60 quadros de luta, e "FIM ..."
         bool sairNoFim = false;       ///< --sair-no-fim: sai assim que a luta se decide, sem gravar nada
         bool imortal = false;         ///< --imortal: a nota a zero nao encerra a luta
+        int ajuste = -1;              ///< --ajuste N: o degrau do ajuste de dificuldade (Ajuste.h), no lugar do da ficha
 
         // ---- O roteiro e as fotos ----
         std::vector<Tecla> teclas;    ///< --teclas "Space@100,8@200"

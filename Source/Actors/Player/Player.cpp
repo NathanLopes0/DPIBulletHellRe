@@ -1,16 +1,13 @@
 //
-// Created by nslop on 03/10/2024.
+// O aluno.
 //
+
 #include <algorithm>
-#include <vector>
 
 #include "Player.h"
-#include "../../Entrada/Painel.h"
 
 #include "PlayerProjectile.h"
 #include "../../Scenes/Battle/Battle.h"
-#include "../Teachers/Boss.h"
-#include "../Teachers/Bosses/Hugo.h"
 #include "../../Components/RigidBodyComponent.h"
 #include "../../Scenes/Battle/ProjectileManager.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
@@ -21,79 +18,72 @@
 #include "../../Motor/Game.h"
 #include "../../Personagem/PersonagensArquivo.h"
 
-#define NUM_PROJECTILES_VECTOR 500
-#define ATK_TIMER_START_FULL PontoExtra::kEntreTiros   // o Ponto Extra paga por eles
-#define PLAYER_SPEED_START 300.0f
-#define BLINK_INVINCIBLE_FREQUENCY 0.1f
+namespace {
 
-Player::Player(Scene* scene, const size_t quem) :
-    // Na ordem em que os membros sao declarados - mQuem e declarado depois de mAndando, e e nessa
-    // ordem que o compilador inicializa de qualquer jeito.
-    Actor(scene),
-    mVelocidade(PLAYER_SPEED_START),
-    mRecargaDoTiro(ATK_TIMER_START_FULL),
-    mTempoInvencivel(0.0f),
-    mInvencivel(false),
-    mTempoDePiscar(BLINK_INVINCIBLE_FREQUENCY),
-    mAndando(false),
-    mQuem(quem)
-
-{
-
-    // A aparencia vem do perfil, e nao de um caminho fixo.
-    std::string spritePath = Caminhos::Asset("Player/DPIBHPlayer.png");
-    std::string dataPath   = Caminhos::Asset("Player/DPIBHPlayer.json");
-
-    Game* game = GetScene()->GetGame();
-    const Personagens::Composta composta =
-        // A aparencia da sessao deste aluno.
-        Personagens::Compor(game, Personagens::Carregado(), game->AparenciaDe(mQuem), game->Formado(mQuem));
-
-    if (composta.ok) {
-        spritePath = composta.chaveDaTextura;   // ja esta no cache de texturas
-        dataPath   = composta.atlas;
+    /// O pulso da sobrecarga e o da imunidade: acelera ate o fim. As duas se distinguem pela cor, e
+    /// nao pelo ritmo.
+    float FrequenciaDoPulso(const float decorrido) {
+        return 5.0f + decorrido * 15.0f;
     }
-    else {
+
+    /// O seno de um pulso, de 0 a 255.
+    Uint8 Onda(const float pulso) {
+        return static_cast<Uint8>((Math::Sin(pulso) + 1.0f) * 127.5f);
+    }
+
+}
+
+Player::Player(Scene* scene, const size_t quem) : Actor(scene), mQuem(quem) {
+
+    // A aparencia vem do perfil, e nao de um caminho fixo; o sprite antigo e o plano B.
+    std::string folha = Caminhos::Asset("Player/DPIBHPlayer.png");
+    std::string atlas = Caminhos::Asset("Player/DPIBHPlayer.json");
+    const Personagens::Composta composta = MinhaPersonagem();
+    if (composta.ok) {
+        folha = composta.chaveDaTextura;   // ja esta no cache de texturas
+        atlas = composta.atlas;
+    } else {
         // Um catalogo faltando ou uma arte ilegivel nao podem impedir alguem de jogar.
         SDL_Log("PLAYER: a personagem nao pode ser composta; usando o sprite antigo.");
     }
 
-    auto drawComp = AddComponent<DrawAnimatedComponent>(spritePath, dataPath);
-    drawComp->AddAnimation("Moving", {0,1,2,3});
-    drawComp->AddAnimation("Idle", {1});
-    drawComp->SetAnimation("Idle");
+    mDesenho = AddComponent<DrawAnimatedComponent>(folha, atlas);
+    mDesenho->AddAnimation("Moving", {0, 1, 2, 3});
+    mDesenho->AddAnimation("Idle", {1});
+    mDesenho->SetAnimation("Idle");
 
-    AddComponent<RigidBodyComponent>();
-    auto colliderComp = AddComponent<CircleColliderComponent>(static_cast<float>(drawComp->GetSpriteWidth()) / 10.f);
-    colliderComp->SetTag(ColliderTag::Player);
+    mCorpo = AddComponent<RigidBodyComponent>();
+    auto* colisor = AddComponent<CircleColliderComponent>(static_cast<float>(mDesenho->GetSpriteWidth()) / 10.f);
+    colisor->SetTag(ColliderTag::Player);
+}
 
+Personagens::Composta Player::MinhaPersonagem() {
+    Game* game = GetScene()->GetGame();
+    return Personagens::Compor(game, Personagens::Carregado(), game->AparenciaDe(mQuem), game->Formado(mQuem));
 }
 
 void Player::RecomporPersonagem() {
-
-    Game* game = GetScene()->GetGame();
-    const Personagens::Composta composta =
-        Personagens::Compor(game, Personagens::Carregado(), game->AparenciaDe(mQuem), game->Formado(mQuem));
+    const Personagens::Composta composta = MinhaPersonagem();
     if (!composta.ok) return;   // fica a de antes
-
-    if (auto* dc = GetComponent<DrawAnimatedComponent>()) {
-        dc->LoadSpriteSheet(composta.chaveDaTextura, composta.atlas);
-        // Mesmo que a luta tenha acabado no meio de uma piscada.
-        dc->SetIsVisible(true);
-    }
+    mDesenho->LoadSpriteSheet(composta.chaveDaTextura, composta.atlas);
+    // Mesmo que a luta tenha acabado no meio de uma piscada.
+    mDesenho->SetIsVisible(true);
 }
 
-void Player::OnProcessInput(const Uint8 *keyState) {
+void Player::DefinirInvencivel(const bool invencivel) {
+    // Comecar a invencibilidade recomeca o pisca: a primeira troca e ja no quadro seguinte.
+    if (invencivel && !mInvencivel) mTempoDePiscar = kPiscar;
+    mInvencivel = invencivel;
+}
 
+void Player::OnProcessInput(const Uint8* keyState) {
     LerManche(keyState);
     LerBotaoDeTiro(keyState);
     LerBotaoDoPontoExtra(keyState);
     LerBotaoDoSinal(keyState);
-
 }
 
-void Player::OnUpdate(float deltaTime) {
-
+void Player::OnUpdate(const float deltaTime) {
     AtualizarInvencibilidade(deltaTime);
     mAcertos.Avancar(deltaTime);
     mRaspoes.Avancar(deltaTime);
@@ -101,140 +91,79 @@ void Player::OnUpdate(float deltaTime) {
     DescontarRecarga(deltaTime);
     PrenderNoCampo();
     // Cada um so anda o relogio dele; quem pinta e um so.
-    UpdateCorrente(deltaTime);
+    AtualizarCorrente(deltaTime);
     AtualizarSobrecarga(deltaTime);
-    UpdateImunidade(deltaTime);
+    AtualizarImunidade(deltaTime);
     AtualizarCorDoEstado();
-
 }
 
-void Player::AtualizarInvencibilidade(float deltaTime) {
-    if (!mInvencivel) return;
+// ---- A entrada ----
 
-    if (mTempoInvencivel == 0.0f) {
-        mTempoDePiscar = BLINK_INVINCIBLE_FREQUENCY;
-    }
+void Player::LerManche(const Uint8* keyState) {
 
-    mTempoInvencivel += deltaTime;
-    // O tempo depende do modo (Dificuldade::Invencibilidade).
-    const Dificuldade::Nivel nivel = (mScene && mScene->GetGame()) ? mScene->GetGame()->NivelDeDificuldade()
-                                                                   : Dificuldade::Nivel::Normal;
-    if (mTempoInvencivel >= Dificuldade::Invencibilidade(nivel)) {
-        mInvencivel = false;
-        mTempoInvencivel = 0.0f;
-        GetComponent<DrawAnimatedComponent>()->SetIsVisible(true);
-        mTempoDePiscar = BLINK_INVINCIBLE_FREQUENCY;
-        return;
-    }
+    if (mPiloto.Dirigir(*this, *mCorpo, mAndando)) return;
 
-    auto blinking = GetComponent<DrawAnimatedComponent>()->GetIsVisible();
-    mTempoDePiscar += deltaTime;
-    if (mTempoDePiscar >= BLINK_INVINCIBLE_FREQUENCY) {
-        mTempoDePiscar = 0.0f;
-        GetComponent<DrawAnimatedComponent>()->SetIsVisible(!blinking);
-        blinking = !blinking;
-    }
-
-}
-bool Player::Pilotar() {
-    const Simulacao::Piloto piloto = GetScene()->GetGame()->ConfiguracaoDaSimulacao().piloto;
-    if (piloto == Simulacao::Piloto::Nenhum) return false;
-    auto* corpo = GetComponent<RigidBodyComponent>();
-
-    // O vai e vem varre a largura sem mirar: a mira dele e ruim de um jeito parecido com o de gente.
-    if (piloto == Simulacao::Piloto::VaiVem) {
-        mSentidoDoVaiVem = Simulacao::SentidoDoVaiVem(GetPosition().x, mSentidoDoVaiVem);
-        corpo->SetVelocity(Vector2(mSentidoDoVaiVem * VelocidadeDeAndar(), 0));
-        mAndando = true;
-        return true;
-    }
-
-    // O que segue casa o x com o do chefe; no TCC, com o Hugo blindado, vai ao alvo do objetivo e ao
-    // lugar que a etapa pede (em x e em y).
-    if (piloto == Simulacao::Piloto::Segue) {
-        if (mCasaDoPiloto < 0.0f) mCasaDoPiloto = GetPosition().y;
-        float alvo = GetPosition().x, alvoY = mCasaDoPiloto;
-        if (const auto b = dynamic_cast<Battle*>(GetScene())) {
-            if (const auto chefe = b->Chefe()) alvo = chefe->GetPosition().x;
-            if (auto* hugo = dynamic_cast<Hugo*>(b->Chefe())) {
-                if (auto o = hugo->ObjetivoAtual()) alvo = o->x;
-                if (auto o = hugo->LugarDeIr()) { alvo = o->x; alvoY = o->y; }
-            }
-        }
-        const float v = static_cast<float>(Simulacao::Direcao(GetPosition().x, alvo)) * VelocidadeDeAndar();
-        const float vy = static_cast<float>(Simulacao::Direcao(GetPosition().y, alvoY)) * VelocidadeDeAndar();
-        corpo->SetVelocity(Vector2(v, vy));
-        mAndando = v != 0.0f;
-        return true;
-    }
-
-    // Parado.
-    corpo->SetVelocity(Vector2(0, 0));
-    mAndando = false;
-    return true;
-}
-
-void Player::LerManche(const Uint8 *keyState) {
-
-    if (Pilotar()) return;
-
-    float newXSpeed = 0;
-    float newYSpeed = 0;
-
-    // O manche deste aluno.
-    const Painel::Jogador kQuem = MeuPainel();
-
-    // A velocidade e lida com o fator, e mVelocidade fica intacto.
+    // A velocidade e lida com o fator da corrente; kVelocidade fica intacta.
     const float velocidade = VelocidadeDeAndar();
+    const Painel::Jogador eu = MeuPainel();
 
-    // ---- Verificação de movimento cima/baixo ----
-    if(Painel::Apertado(keyState, kQuem, Painel::Direcao::Cima))
-        newYSpeed -= velocidade;
-    else if(Painel::Apertado(keyState, kQuem, Painel::Direcao::Baixo))
-        newYSpeed += velocidade;
+    float vx = 0.0f;
+    float vy = 0.0f;
+    if (Painel::Apertado(keyState, eu, Painel::Direcao::Cima)) vy -= velocidade;
+    else if (Painel::Apertado(keyState, eu, Painel::Direcao::Baixo)) vy += velocidade;
+    if (Painel::Apertado(keyState, eu, Painel::Direcao::Esquerda)) vx -= velocidade;
+    else if (Painel::Apertado(keyState, eu, Painel::Direcao::Direita)) vx += velocidade;
 
-    // ---- Verificação de movimento esquerda/direita ----
-    if(Painel::Apertado(keyState, kQuem, Painel::Direcao::Esquerda))
-        newXSpeed -= velocidade;
-    else if (Painel::Apertado(keyState, kQuem, Painel::Direcao::Direita))
-        newXSpeed += velocidade;
-
-    // Vendo se está movendo ou não para mudar a variável mAndando (pra mudar a animação de acordo)
-    if(newXSpeed == 0 && newYSpeed == 0) mAndando = false;
-    else mAndando = true;
-
-    GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(newXSpeed, newYSpeed));
-}
-void Player::LerBotaoDeTiro(const Uint8 *keyState) {
-
-    // O piloto da simulacao atira sempre que pode (--atira).
-    if (GetScene()->GetGame()->ConfiguracaoDaSimulacao().atira && mTempoDeSobrecarga <= 0.0f) {
-        Atirar();
-        return;
-    }
-
-    // Botao 1 do painel deste aluno.
-    if(Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Um) && mTempoDeSobrecarga <= 0.0f) {
-        Atirar();
-    }
-
-}
-void Player::LerBotaoDoPontoExtra(const Uint8 *keyState) {
-
-    // Botao 2 do painel deste aluno.
-    if(Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Dois) && mPontosExtras > 0 && mEsperaDoPontoExtra <= 0.0f) {
-        mPontosExtras--;
-        const auto battle = dynamic_cast<Battle*>(GetScene());
-        // So o solo sobrecarrega.
-        const bool sozinho = !battle || !battle->OutroJogador(this);
-        mEsperaDoPontoExtra = sozinho ? PontoExtra::kSobrecarga : PontoExtra::kImunidadeDoPresente;
-        if (sozinho) mTempoDeSobrecarga = PontoExtra::kSobrecarga;
-        if (battle) battle->AoGastarPontoExtra(this);
-    }
-
+    mAndando = vx != 0.0f || vy != 0.0f;
+    mCorpo->SetVelocity(Vector2(vx, vy));
 }
 
-void Player::LerBotaoDoSinal(const Uint8 *keyState) {
+void Player::LerBotaoDeTiro(const Uint8* keyState) {
+    // A sobrecarga trava o tiro. O piloto da simulacao atira sempre que pode (--atira).
+    if (mTempoDeSobrecarga > 0.0f) return;
+    const bool atira = GetScene()->GetGame()->ConfiguracaoDaSimulacao().atira ||
+                       Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Um);
+    if (atira) Atirar();
+}
+
+void Player::Atirar() {
+
+    if (mRecargaDoTiro > 0) return;
+
+    auto* battle = dynamic_cast<Battle*>(GetScene());
+    if (!battle) return;
+    auto* projeteis = battle->GerenteDeProjeteis();
+    if (!projeteis) return;
+
+    // TODO: o tiro do aluno ainda nao usa o pool de projeteis (ProjectilePool.h), como os do chefe.
+    auto tiro = std::make_unique<PlayerProjectile>(GetScene(), this, mQuem);
+    tiro->SetPosition(GetPosition());
+    tiro->GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(0.0f, -PlayerProjectile::kVelocidade));
+    tiro->ActivateProjectile();
+    projeteis->AddPlayerProjectile(std::move(tiro));
+    ++mDisparos;
+
+    auto* audio = mScene->GetGame()->GetAudio();
+    audio->SetSoundVolume(audio->PlaySound("plst00.wav", false), kVolumeDoTiro);
+
+    mRecargaDoTiro = kEntreTiros;
+}
+
+void Player::LerBotaoDoPontoExtra(const Uint8* keyState) {
+
+    if (!Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Dois)) return;
+    if (mPontosExtras <= 0 || mEsperaDoPontoExtra > 0.0f) return;
+
+    mPontosExtras--;
+    auto* battle = dynamic_cast<Battle*>(GetScene());
+    // So o solo sobrecarrega; na dupla o Ponto Extra protege o parceiro.
+    const bool sozinho = !battle || !battle->OutroJogador(this);
+    mEsperaDoPontoExtra = sozinho ? PontoExtra::kSobrecarga : PontoExtra::kImunidadeDoPresente;
+    if (sozinho) mTempoDeSobrecarga = PontoExtra::kSobrecarga;
+    if (battle) battle->AoGastarPontoExtra(this);
+}
+
+void Player::LerBotaoDoSinal(const Uint8* keyState) {
     const bool apertado = Painel::Apertado(keyState, MeuPainel(), Painel::Botao::Tres);
     if (apertado && !mSinalAntes) {
         if (auto* battle = dynamic_cast<Battle*>(GetScene())) battle->Sinalizar(*this);
@@ -242,121 +171,60 @@ void Player::LerBotaoDoSinal(const Uint8 *keyState) {
     mSinalAntes = apertado;
 }
 
+// ---- O quadro ----
+
+void Player::AtualizarInvencibilidade(const float deltaTime) {
+    if (!mInvencivel) return;
+
+    // O tempo depende do modo (Dificuldade::Invencibilidade).
+    mTempoInvencivel += deltaTime;
+    const Dificuldade::Nivel nivel = (mScene && mScene->GetGame()) ? mScene->GetGame()->NivelDeDificuldade()
+                                                                   : Dificuldade::Nivel::Normal;
+    if (mTempoInvencivel >= Dificuldade::Invencibilidade(nivel)) {
+        mInvencivel = false;
+        mTempoInvencivel = 0.0f;
+        mTempoDePiscar = kPiscar;
+        mDesenho->SetIsVisible(true);
+        return;
+    }
+
+    mTempoDePiscar += deltaTime;
+    if (mTempoDePiscar >= kPiscar) {
+        mTempoDePiscar = 0.0f;
+        mDesenho->SetIsVisible(!mDesenho->GetIsVisible());
+    }
+}
+
 void Player::AtualizarAnimacao() {
-
-    if(mAndando) GetComponent<DrawAnimatedComponent>()->SetAnimation("Moving");
-    else GetComponent<DrawAnimatedComponent>()->SetAnimation("Idle");
-
+    mDesenho->SetAnimation(mAndando ? "Moving" : "Idle");
 }
 
-// LerBotaoDeTiro Subfunction.
-void Player::Atirar() {
-
-    if (mRecargaDoTiro > 0) return;
-
-    auto battle = dynamic_cast<Battle*>(GetScene());
-    if (!battle) return;
-
-    auto projManager = battle->GerenteDeProjeteis();
-    if (!projManager) return;
-
-    // TODO - MATANDO o Object Pooling - mudar pra chamada de função em ProjectileManager
-    auto projectile = std::make_unique<PlayerProjectile>(GetScene(), this, mQuem);
-
-    // Posiciona o projétil na frente do jogador.
-    projectile->SetPosition(GetPosition());
-
-    // Define velocidade inicial (sobe)
-    projectile->GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(0.0f, -PlayerProjectile::kVelocidade));
-
-    // Ativa e torna visível.
-    projectile->ActivateProjectile();
-
-    // Entrega ownership ao manager.
-    projManager->AddPlayerProjectile(std::move(projectile));
-    ++mDisparos;
-
-    // Toca audio.
-    const auto audioHandler = mScene->GetGame()->GetAudio()->PlaySound("plst00.wav", false);
-    mScene->GetGame()->GetAudio()->SetSoundVolume(audioHandler, 10);
-
-    mRecargaDoTiro = ATK_TIMER_START_FULL;
-}
-
-// OnUpdate Subfunction.
-void Player::DescontarRecarga(float deltaTime) {
-    if(mRecargaDoTiro > 0)
-        mRecargaDoTiro -= deltaTime;
+void Player::DescontarRecarga(const float deltaTime) {
+    if (mRecargaDoTiro > 0) mRecargaDoTiro -= deltaTime;
 }
 
 void Player::PrenderNoCampo() {
-    SDL_FRect bounds = mScene->GetPlayfieldBounds();
-    auto pWidth = GetComponent<DrawAnimatedComponent>()->GetSpriteWidth();
-    auto pHeight = GetComponent<DrawAnimatedComponent>()->GetSpriteHeight();
-
-    const float esquerda = bounds.x + static_cast<float>(pWidth);
-    const float direita = bounds.x + bounds.w - static_cast<float>(pWidth);
-    SetPosition(Vector2(Math::Clamp(GetPosition().x, esquerda, direita),
-            Math::Clamp(GetPosition().y, bounds.y + pHeight, bounds.y + bounds.h - pHeight)));
+    const SDL_FRect campo = mScene->GetPlayfieldBounds();
+    const auto largura = static_cast<float>(mDesenho->GetSpriteWidth());
+    const auto altura = static_cast<float>(mDesenho->GetSpriteHeight());
+    SetPosition(Vector2(Math::Clamp(GetPosition().x, campo.x + largura, campo.x + campo.w - largura),
+                        Math::Clamp(GetPosition().y, campo.y + altura, campo.y + campo.h - altura)));
 }
 
-void Player::AtualizarSobrecarga(float deltaTime) {
+void Player::AtualizarSobrecarga(const float deltaTime) {
 
-    // So o relogio e o pulso.
     mEsperaDoPontoExtra = std::max(0.0f, mEsperaDoPontoExtra - deltaTime);
 
     if (mTempoDeSobrecarga <= 0.0f) {
-        mTempoDoPulso = 0.0f;
+        mPulsoDaSobrecarga = 0.0f;
         return;
     }
-
     mTempoDeSobrecarga -= deltaTime;
-
-    // Quanto menor o timer (mais perto de acabar), maior a frequencia.
-    const float freq = 5.0f + (PontoExtra::kSobrecarga - mTempoDeSobrecarga) * 15.0f;
-    mTempoDoPulso += freq * deltaTime;
+    mPulsoDaSobrecarga += FrequenciaDoPulso(PontoExtra::kSobrecarga - mTempoDeSobrecarga) * deltaTime;
 }
 
-void Player::Proteger(const float segundos) {
+void Player::AtualizarImunidade(const float deltaTime) {
 
-    // O maior dos dois, e nao a soma.
-    if (segundos > mTempoDeImunidade) mTempoDeImunidade = segundos;
-}
-
-void Player::Acorrentar(const float segundos, const float fatorDeVelocidade) {
-
-    // O maior dos dois, como em Proteger.
-    if (segundos > mTempoDeCorrente) {
-        mTempoDeCorrente = segundos;
-
-        // O fator acompanha o timer vencedor.
-        mFatorDaCorrente = fatorDeVelocidade;
-    }
-}
-
-void Player::UpdateCorrente(const float deltaTime) {
-
-    if (mTempoDeCorrente <= 0.0f) return;
-
-    mTempoDeCorrente -= deltaTime;
-
-    if (mTempoDeCorrente <= 0.0f) {
-        mTempoDeCorrente = 0.0f;
-        mFatorDaCorrente = 1.0f;
-        mPulsoDaCorrente = 0.0f;
-        return;
-    }
-
-    // Ela escurecia de 120 a 155 com um azul de leve, "porque peso se le apagado, nao agitado".
-    const float fracaoRestante = mTempoDeCorrente / kDuracaoTipicaDaCorrente;
-    mPulsoDaCorrente += (4.0f + (1.0f - fracaoRestante) * 14.0f) * deltaTime;
-
-    // Quem pinta e AtualizarCorDoEstado; aqui so anda o pulso.
-}
-
-void Player::UpdateImunidade(const float deltaTime) {
-
-    // So o relogio e o pulso.
     if (mTempoDeImunidade <= 0.0f) return;
 
     mTempoDeImunidade -= deltaTime;
@@ -365,43 +233,64 @@ void Player::UpdateImunidade(const float deltaTime) {
         mPulsoDaImunidade = 0.0f;
         return;
     }
+    mPulsoDaImunidade += FrequenciaDoPulso(PontoExtra::kImunidadeDoPresente - mTempoDeImunidade) * deltaTime;
+}
 
-    // O mesmo pulso do overload, e as duas se distinguem pela cor e nao pelo ritmo.
-    const float freq = 5.0f + (PontoExtra::kImunidadeDoPresente - mTempoDeImunidade) * 15.0f;
-    mPulsoDaImunidade += freq * deltaTime;
+void Player::AtualizarCorrente(const float deltaTime) {
+
+    if (mTempoDeCorrente <= 0.0f) return;
+
+    mTempoDeCorrente -= deltaTime;
+    if (mTempoDeCorrente <= 0.0f) {
+        mTempoDeCorrente = 0.0f;
+        mFatorDaCorrente = 1.0f;
+        mPulsoDaCorrente = 0.0f;
+        return;
+    }
+    // Peso se le apagado, e nao agitado: o pulso so acelera perto do fim.
+    const float fracaoRestante = mTempoDeCorrente / kDuracaoTipicaDaCorrente;
+    mPulsoDaCorrente += (4.0f + (1.0f - fracaoRestante) * 14.0f) * deltaTime;
 }
 
 void Player::AtualizarCorDoEstado() {
 
-    const auto dc = GetComponent<DrawAnimatedComponent>();
-    if (!dc) return;
-
-    // A ordem dos ifs e a prioridade, e esta escrita - ver o cabecalho.
-
+    // A ordem e a prioridade: a imunidade, a sobrecarga, a corrente.
     if (mTempoDeImunidade > 0.0f) {
-        const auto rg = static_cast<Uint8>((Math::Sin(mPulsoDaImunidade) + 1.0f) * 127.5f);
-        dc->SetColor(rg, rg, 255);
+        const Uint8 rg = Onda(mPulsoDaImunidade);
+        mDesenho->SetColor(rg, rg, 255);
         return;
     }
-
     if (mTempoDeSobrecarga > 0.0f) {
-        const auto gb = static_cast<Uint8>((Math::Sin(mTempoDoPulso) + 1.0f) * 127.5f);
-        dc->SetColor(255, gb, gb);
+        const Uint8 gb = Onda(mPulsoDaSobrecarga);
+        mDesenho->SetColor(255, gb, gb);
         return;
     }
-
     if (mTempoDeCorrente > 0.0f) {
         // Ferro, escuro e pulsando.
         const float osc = (Math::Sin(mPulsoDaCorrente) + 1.0f) * 0.5f;
         const auto escuro = static_cast<Uint8>(70.0f + osc * 45.0f);
-        const auto azul   = static_cast<Uint8>(150.0f + osc * 60.0f);
-        dc->SetColor(escuro, escuro, azul);
+        const auto azul = static_cast<Uint8>(150.0f + osc * 60.0f);
+        mDesenho->SetColor(escuro, escuro, azul);
         return;
     }
+    mDesenho->SetColor(255, 255, 255);
+}
 
-    dc->SetColor(255, 255, 255);
+// ---- Os efeitos de fora ----
+
+void Player::Proteger(const float segundos) {
+    // O maior dos dois, e nao a soma.
+    mTempoDeImunidade = std::max(mTempoDeImunidade, segundos);
+}
+
+void Player::Acorrentar(const float segundos, const float fatorDeVelocidade) {
+    // O maior dos dois, como em Proteger; o fator acompanha o tempo que venceu.
+    if (segundos > mTempoDeCorrente) {
+        mTempoDeCorrente = segundos;
+        mFatorDaCorrente = fatorDeVelocidade;
+    }
 }
 
 void Player::GanharPontoExtra() {
-    mPontosExtras = Math::Clamp(mPontosExtras + 1, 0, 3);
+    mPontosExtras = Math::Clamp(mPontosExtras + 1, 0, kMaximoDePontosExtras);
 }

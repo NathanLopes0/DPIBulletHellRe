@@ -161,4 +161,15 @@ std::vector<std::string> ListarMatriculas() {
     return matriculas;
 }
 
+std::vector<Exportacao::FichaDeAluno> TodasAsFichas(const Materias::Lista& materias) {
+    std::vector<Exportacao::FichaDeAluno> fichas;
+    for (const auto& matricula : ListarMatriculas()) {
+        Exportacao::FichaDeAluno f;
+        f.matricula = matricula;
+        f.progresso = Carregar(matricula, materias).progresso;
+        fichas.push_back(std::move(f));
+    }
+    return fichas;
+}
+
 }

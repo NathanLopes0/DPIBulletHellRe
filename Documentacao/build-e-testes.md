@@ -198,6 +198,7 @@ servidor ou em paralelo.
 | `--relatorio` | escreve a nota a cada 60 quadros de luta e a linha `FIM` |
 | `--sair-no-fim` | fecha o jogo assim que a luta se decide, antes de gravar ficha ou tentativa |
 | `--imortal` | a nota a zero não encerra a luta (para fotografar o fim de uma fase) |
+| `--ajuste <n>` | o degrau do ajuste automático de dificuldade (`Ajuste.h`, de 0 a 2), no lugar do que sairia das reprovações seguidas. Sem ele, a simulação não tem reprovação nenhuma, e o degrau é 0 |
 | `--teclas "Space@100,B@200"` | aperta teclas por roteiro: nome (do SDL) e quadro; cada uma fica apertada três quadros |
 | `--fotos 380,470` e `--fotos-em <pasta>` | fotografa a tela nesses quadros (`foto_00380.bmp`...) e sai depois da última |
 | `--janela 1920x1080` | a janela de verdade; o jogo continua posicionado em 1200×800 |

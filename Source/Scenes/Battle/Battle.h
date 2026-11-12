@@ -29,6 +29,7 @@
 #include "../../Regras/Variacao.h"
 #include "Colisoes.h"
 #include "OuvinteDaBatalha.h"
+#include "../../Regras/Ajuste.h"
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
 
 class Font;
@@ -102,6 +103,8 @@ public:
     /// A semente desta luta (Variacao.h): de onde cada chefe tira o que muda de uma batalha para a
     /// outra dentro de cada fase.
     [[nodiscard]] std::uint32_t SementeDaBatalha() const { return mSemente; }
+    /// O ajuste automatico de dificuldade desta prova (Ajuste.h): o degrau, e o que ele muda.
+    [[nodiscard]] const Ajuste::Degrau& AjusteDaProva() const { return mAjuste; }
 
     /// Poe um segundo corpo em campo, com os ataques da fase nomeada. Chamada pelo chefe ao entrar
     /// numa fase que declara "clone" em fases.json.
@@ -217,6 +220,7 @@ private:
     Dificuldade::Nivel mNivel = Dificuldade::Nivel::Normal;
 
     std::uint32_t mSemente = 0;
+    Ajuste::Degrau mAjuste;
 
     // ---- Quem ouve a batalha (OuvinteDaBatalha) ----
 

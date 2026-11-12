@@ -139,8 +139,9 @@ de orientações.
 é a prova da semana (em rodízio; o TCC não entra). Quem a joga nessa semana
 enfrenta **a mesma prova** — a mesma semente: a mesma ordem, os mesmos números,
 os mesmos tempos — e a nota entra num ranking que só vale até domingo, um por
-modo e por dificuldade. A seleção de fases marca a matéria e mostra, no canto,
-quanto falta, o pódio e o seu lugar; o resultado diz o lugar ao lado da nota. A
+modo e por dificuldade. A seleção de fases marca a matéria com um selo dourado e,
+com o cursor nela, abre no canto um cartão com quanto falta, o pódio e o seu
+lugar; o resultado diz o lugar ao lado da nota. A
 matéria continua valendo como sempre (recorde, menções), e continua fechada
 para quem ainda não chegou nela. Visitante joga a mesma prova, mas não entra no
 ranking.
@@ -156,6 +157,15 @@ poderes do orientador num TCC, a prova da semana e o pódio dela. A meta é de
 **100 horas**; o boletim mostra quantas você tem, e o resultado, as que a luta
 deu.
 
+**O rival da turma.** O cartão da matéria, na seleção de fases, mostra quem
+está logo acima de você no ranking dela — na lista do modo e da dificuldade da
+vez — e quanto falta para passá-lo ("Rival: 90112 (2º) · faltam 2.41"). Quem
+lidera vê quem vem atrás; quem nunca jogou vê o último da turma. Na tela do
+resultado, uma linha diz quem a nota passou e o lugar novo ("Você passou 90112:
+agora é o 2º da turma"), ou quanto faltou para o mais perto, se ficou a menos
+de 5 pontos. O visitante, que não entra no ranking, lê no condicional ("você
+passaria").
+
 O **Ranking** — do menu, a média do curso; do boletim, a matéria em foco — tem
 **quatro listas**: **Normal**, **Difícil**, **Normal em
 dupla** e **Difícil em dupla**, trocadas com o manche para os lados. Cada nível
@@ -164,6 +174,12 @@ A tela abre na lista da partida, e a tela de resultado diz "NOVO RECORDE!"
 pelo recorde **dessa** lista. Para o mapa do curso, passar é passar: a matéria
 abre com 60 em qualquer uma das quatro. Cada linha traz a personagem do aluno
 (as duas, na dupla), de capelo para quem já se formou.
+
+**Na dupla, o mapa é o de quem está mais atrás.** Uma matéria só abre para a
+dupla se estiver aberta para **os dois**: quem tem menos matérias liberadas não
+joga o que ainda não alcançou. Quando só um dos dois falta, o cartão da matéria
+diz quem ("J2 precisa passar em INF 110"). Passar jogando em dupla destranca a
+próxima matéria para cada um, como no solo.
 
 Parado no menu, o gabinete entra na tela de atração, que reveza três cartazes:
 a chamada, os melhores do curso e o **mural dos formados** — quem passou no
@@ -270,6 +286,18 @@ significar "subiu a curva inteira **e** quase não foi atingido" em vez de ser s
 uma questão de paciência — e é por isso que as notas aparecem com duas casas
 decimais em todo lugar.
 
+**O ajuste automático de dificuldade.** Quem vem reprovando numa matéria que
+ainda não passou ganha, sem aviso, uma prova um pouco mais leve: a cada **duas
+reprovações seguidas** ali, um degrau, até dois. Cada degrau deixa os tiros do
+professor **6% mais lentos** e tira **15% a menos** da nota por acerto sofrido.
+Aprovar zera a conta, e quem já passou na matéria joga a prova de sempre. Só no
+**Normal**: no Difícil o aluno escolheu o desafio. Na dupla vale o menor degrau
+dos dois — só alivia quando os dois vêm reprovando. É o canal de *flow*
+(Csikszentmihalyi): desafio demais para a habilidade vira ansiedade, e a prova
+volta devagar para dentro do canal. O degrau de cada tentativa vai para o
+`tentativas.csv` (coluna `ajuste`), e a condição `sem-ajuste` desliga o ajuste
+para o experimento (`Regras/Ajuste.h`).
+
 ## O curso
 
 As matérias formam uma grade de cinco colunas, e cada uma abre conforme o que já
@@ -292,6 +320,14 @@ Quem decide tudo isso é `Assets/materias.json` — a ordem, as colunas, as regr
 de desbloqueio, o professor e qual chefe atende cada matéria. Não há lista de
 matérias no C++.
 
+**As optativas.** Uma matéria com `"optativa": true` fica numa ala à direita da
+grade: com o cursor passando do TCC, a seleção de fases desliza até ela e o
+título vira "OPTATIVAS" (a borda direita avisa "OPTATIVAS »" enquanto ela
+existir, e a esquerda, "« OBRIGATÓRIAS", para voltar). Cada página da ala tem
+até quatro colunas; com mais, ela continua para a direita ("MAIS »"). As
+optativas não contam no "Aprovadas: N de M". Ainda não há nenhuma em
+`materias.json`: a ala só aparece quando a primeira entrar.
+
 ## O que fica gravado
 
 Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
@@ -304,7 +340,9 @@ Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
   primeira vez (desde a versão 8; é a data do mural dos formados, e quem passou
   antes dela aparece no mural sem data), e quantos TCCs aprovados seus o
   professor de cada matéria orientou (desde a versão 9: o currículo de
-  orientações), e as atividades complementares cumpridas (desde a versão 10).
+  orientações), e as atividades complementares cumpridas (desde a versão 10), e
+  as reprovações seguidas em cada matéria, de onde sai o ajuste de dificuldade
+  (desde a versão 11).
   A nota vai para o disco **uma vez, no fim da batalha**, e não durante.
 - **`prova_da_semana.csv`** — as notas da prova da semana: a semana (a data da
   segunda-feira), a matéria, o modo, a dificuldade, a matrícula, o parceiro, a

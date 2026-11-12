@@ -12,6 +12,8 @@
 #include "../Entrada/Navegacao.h"
 #include <SDL_pixels.h>
 #include <memory>
+#include "../Aluno/Exportacao.h"
+#include "../Curso/MapaDaGrade.h"
 
 class Font;
 class StageSelectButton;
@@ -69,6 +71,8 @@ private:
     /// Onde a grade de materias comeca e termina, em fracao da altura.
     static constexpr float kTopoDaGrade = 0.19f;
     static constexpr float kFundoDaGrade = 0.78f;
+    /// O fundo da grade nas paginas das optativas: acima do cartao da materia.
+    static constexpr float kFundoDasOptativas = 0.56f;
 
     /// Quanto o nome de uma materia fechada fica abaixo do centro do losango.
     /// O losango tem 64 de altura, entao 44 deixa o nome logo embaixo dele.
@@ -94,9 +98,9 @@ private:
     // ---- O cartao da materia em foco ----
 
     static constexpr float kCartaoX = 268.0f;
-    static constexpr float kCartaoY = 610.0f;
+    static constexpr float kCartaoY = 622.0f;
     static constexpr float kCartaoLargura = 400.0f;
-    static constexpr float kCartaoAltura = 218.0f;
+    static constexpr float kCartaoAltura = 242.0f;
     static constexpr int kOrdemDoCartao = 70;
 
     static inline const SDL_Color kCorDaMolduraDoCartao{96, 118, 170, 220};
@@ -114,6 +118,10 @@ private:
     Actor* mNomeAtor = nullptr;
     Actor* mProfessorAtor = nullptr;
     Actor* mEstadoAtor = nullptr;
+    /// O rival da turma (Rival.h): quem esta logo acima no ranking da materia, no modo e nivel da vez.
+    Actor* mRivalAtor = nullptr;
+    /// As fichas da turma, lidas uma vez ao abrir a tela.
+    std::vector<Exportacao::FichaDeAluno> mFichas;
     /// As mencoes da materia em foco (Mencoes.h), na ultima linha do cartao: o que ainda ha para
     /// buscar nela.
     std::unique_ptr<SelosDeMencao> mMencoes;
@@ -123,8 +131,33 @@ private:
     /// O painel da prova da semana (ProvaDaSemana.h), no canto de baixo a direita: a materia, quanto
     /// falta, o podio e o lugar de quem esta jogando - e a marca em cima do botao da materia.
     void CriarProvaDaSemana();
-    static constexpr float kProvaX = 1040.0f;
-    static constexpr float kProvaLargura = 284.0f;
+    /// O cartao da prova da semana, menor que o da materia: so aparece com o cursor nela.
+    static constexpr float kProvaX = 1046.0f;
+    static constexpr float kProvaY = 652.0f;
+    static constexpr float kProvaLargura = 272.0f;
+    static constexpr float kProvaAltura = 176.0f;
+    int mMateriaDaSemana = -1;
+    std::vector<Actor*> mCartaoDaProva;
+    void MostrarCartaoDaProva(bool mostrar);
+
+    // ---- O mapa: as obrigatorias na primeira pagina, as optativas nas seguintes (MapaDaGrade.h) ----
+    /// Um ator da grade e onde ele fica com a camera na primeira pagina.
+    struct NoDoMapa {
+        Actor* ator = nullptr;
+        Vector2 base;
+    };
+    std::vector<NoDoMapa> mNosDoMapa;
+    void NoMapa(Actor* ator);
+    std::vector<MapaDaGrade::Coluna> mColunas;
+    int mPaginas = 1;
+    int mPagina = 0;
+    float mCamera = 0.0f;
+    /// A pagina da coluna do botao em foco, e a camera vai ate ela.
+    void SeguirOFoco(bool deUmaVez);
+    void AtualizarDicas();
+    Actor* mTituloAtor = nullptr;
+    Actor* mDicaDireita = nullptr;
+    Actor* mDicaEsquerda = nullptr;
 
     /// Quanto uma linha de aluno fica abaixo da anterior, quando ha dois. O
     /// rotulo tem 44 de altura, entao 38 os encosta sem os sobrepor.
