@@ -237,6 +237,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Actors/Teachers/Bosses/Salles.cpp
         Source/Actors/Teachers/Bosses/Salles.h
         Source/Actors/Player/Player.cpp
+        Source/Actors/Player/PilotoDoAluno.cpp
+        Source/Actors/Player/PilotoDoAluno.h
         Source/Actors/Player/Player.h
         Source/Components/AIComponents/FSMState.cpp
         Source/Components/AIComponents/FSMComponent.cpp
