@@ -1,21 +1,9 @@
-// Quem esta jogando, de cada lado do painel. Camada pura.
-//
-// O que estes testes protegem sao duas regras que so aparecem quando ha dois
-// jogadores, e que nenhuma tela consegue conferir sozinha:
-//
-//   1. A MESMA MATRICULA NAS DUAS POSICOES. As duas sessoes apontam para o
-//      mesmo arquivo em Saves/, e a ultima a fechar sobrescreve a outra. O
-//      aluno perderia a batalha inteira sem nenhum aviso.
-//
-//   2. QUEM ENTRA DEPOIS DE QUEM. A matricula e a criacao de personagem
-//      terminavam as duas mandando para a selecao de fases, cada uma com a sua
-//      linha. Com dois jogadores as duas precisam da mesma condicao nova, e
-//      bastaria uma esquecer para o jogador 2 nunca ser chamado.
+// Quem esta jogando, de cada lado do painel.
 
 #include "doctest.h"
 
-#include "../Source/Sessao.h"
-#include "../Source/Matricula.h"
+#include "../Source/Aluno/Sessao.h"
+#include "../Source/Aluno/Matricula.h"
 
 #include <string>
 #include <vector>
@@ -49,9 +37,7 @@ TEST_CASE("Sessao: a matricula do parceiro e recusada") {
 
 TEST_CASE("Sessao: a propria matricula NAO conta contra si mesma") {
 
-    // Voltar e redigitar o proprio numero tem de continuar valendo. Sem a
-    // excecao da propria posicao, a segunda tentativa do jogador 1 esbarraria
-    // nele mesmo - e a tela diria que ele ja esta jogando.
+    // Voltar e redigitar o proprio numero tem de continuar valendo.
     const auto sessoes = Dupla("89384", "90112");
 
     CHECK(Sessao::JaEstaEmUso(sessoes, 0, "89384") == false);
@@ -64,10 +50,7 @@ TEST_CASE("Sessao: a propria matricula NAO conta contra si mesma") {
 
 TEST_CASE("Sessao: dois visitantes podem jogar juntos") {
 
-    // Visitante nao grava arquivo nenhum, entao nao ha o que um sobrescreva do
-    // outro (requisitos-coop, D7). Tratar "visitante" como matricula repetida
-    // impediria dois amigos de jogarem sem se identificar - que e justamente o
-    // caso mais comum num gabinete de corredor.
+    // Visitante nao grava arquivo nenhum, entao nao ha o que um sobrescreva do outro.
     const auto sessoes = Dupla(Matricula::kVisitante, Matricula::kVisitante);
 
     CHECK(Sessao::JaEstaEmUso(sessoes, 0, Matricula::kVisitante) == false);
@@ -77,7 +60,6 @@ TEST_CASE("Sessao: dois visitantes podem jogar juntos") {
 TEST_CASE("Sessao: posicao vazia nao bloqueia ninguem") {
 
     // Antes de o jogador 2 digitar, a sessao dele existe com matricula vazia.
-    // Se vazio colidisse com vazio, a tela recusaria a primeira tentativa dele.
     const auto sessoes = Dupla("", "");
 
     CHECK(Sessao::JaEstaEmUso(sessoes, 1, "") == false);
@@ -97,15 +79,13 @@ TEST_CASE("Sessao: com dois, o primeiro chama o segundo e o segundo joga") {
 
 TEST_CASE("Sessao: uma posicao alem do fim nao pede mais ninguem") {
 
-    // Nao deveria acontecer, e se acontecer o caminho seguro e JOGAR - e nao
-    // pedir uma terceira matricula que nao existe, deixando o aluno preso numa
-    // tela que nunca termina.
+    // Nao deveria acontecer, e se acontecer o caminho seguro e jogar.
     CHECK(Sessao::Proximo(Sessao::Modo::Um, 1) == Sessao::Passo::Jogar);
     CHECK(Sessao::Proximo(Sessao::Modo::Dois, 2) == Sessao::Passo::Jogar);
     CHECK(Sessao::Proximo(Sessao::Modo::Dois, 99) == Sessao::Passo::Jogar);
 }
 
-// ------------------------------------------- quem jogou do outro lado
+// ---- Quem jogou do outro lado ----
 
 TEST_CASE("Sessao: o parceiro de uma posicao e a matricula da outra") {
 
@@ -117,8 +97,7 @@ TEST_CASE("Sessao: o parceiro de uma posicao e a matricula da outra") {
 
 TEST_CASE("Sessao: quem jogou sozinho nao tem parceiro") {
 
-    // E o caso normal, e tudo tem de valer nele. Uma matricula aqui viraria uma
-    // dupla no ranking que nunca existiu.
+    // E o caso normal, e tudo tem de valer nele.
     std::vector<Sessao::Dados> so_um(1);
     so_um[0].matricula = "89384";
 
@@ -127,9 +106,7 @@ TEST_CASE("Sessao: quem jogou sozinho nao tem parceiro") {
 
 TEST_CASE("Sessao: visitante nao e parceiro, porque nao tem matricula") {
 
-    // A nota continua valendo para o progresso de quem se identificou (RF6); e
-    // a LINHA do ranking que precisa de dois nomes - "89384 + " nao diz quem
-    // jogou. Esta funcao e o ranking de duplas combinam nesse vazio.
+    // A nota continua valendo para o progresso de quem se identificou.
     const auto comVisitante = Dupla("89384", Matricula::kVisitante);
 
     CHECK(Sessao::ParceiroDe(comVisitante, 0).empty());
@@ -146,9 +123,7 @@ TEST_CASE("Sessao: dois visitantes nao tem parceiro nenhum") {
 
 TEST_CASE("Sessao: o jogo recem-aberto nao tem parceiro") {
 
-    // A matricula vazia nao e um valor especial a mais para lembrar: ela cai do
-    // lado certo porque o teste e por Matricula::Validar, como em
-    // Game::ProgressoEGravado.
+    // A matricula vazia nao e um valor especial a mais para lembrar.
     const std::vector<Sessao::Dados> vazias(2);
 
     CHECK(Sessao::ParceiroDe(vazias, 0).empty());
@@ -166,9 +141,7 @@ TEST_CASE("Sessao: posicao fora da faixa nao le memoria alheia") {
 
 TEST_CASE("Sessao: tres posicoes nao tem O parceiro") {
 
-    // A palavra so faz sentido numa dupla: nomear um dos dois seria dizer que o
-    // outro nao jogou. Hoje Modo nao chega a tres - este caso guarda o dia em
-    // que chegar, para a resposta ser vazia em vez de arbitraria.
+    // A palavra so faz sentido numa dupla: nomear um dos dois seria dizer que o outro nao jogou.
     std::vector<Sessao::Dados> tres(3);
     tres[0].matricula = "1";
     tres[1].matricula = "2";

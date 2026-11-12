@@ -32,8 +32,7 @@ TEST_CASE("Pilha: vazia so empilha, cheia derruba, e no meio ha os dois") {
 }
 
 TEST_CASE("Pilha: o programa sempre chega ao overflow, e nunca da pop na pilha vazia") {
-    // Simulando a pilha com o proprio programa: a altura nunca fica negativa,
-    // e em 20 operacoes - uma fase - o overflow acontece quase sempre.
+    // Simulando a pilha com o proprio programa: a altura nunca fica negativa, e em 20 operacoes.
     int comOverflow = 0;
     for (std::uint32_t semente = 1; semente <= 200; ++semente) {
         int altura = 0;
@@ -54,6 +53,16 @@ TEST_CASE("Pilha: o programa sempre chega ao overflow, e nunca da pop na pilha v
 
 TEST_CASE("Pilha: o lugar de cada bloco, e o placar de cada operacao") {
     CHECK(Pilha::AbaixoDoProfessor(0) == doctest::Approx(Pilha::kPrimeiroBloco));
+    // Pendurada ao lado: a da coluna da esquerda pende para o meio (direita), a da direita para o
+    // meio (esquerda), e a do meio para qualquer um dos dois.
+    CHECK(Pilha::LadoDaPilha(0, 3, 0u) == 1);
+    CHECK(Pilha::LadoDaPilha(0, 3, 1u) == 1);
+    CHECK(Pilha::LadoDaPilha(2, 3, 0u) == -1);
+    CHECK(Pilha::LadoDaPilha(2, 3, 1u) == -1);
+    CHECK(Pilha::LadoDaPilha(1, 3, 0u) != Pilha::LadoDaPilha(1, 3, 1u));
+    // E longe o bastante para o tiro que sobe pelo meio do professor nao bater nela: o bloco tem
+    // raio de 22 (40 px a 1,1) e o tiro, de 12.
+    CHECK(Pilha::kAoLado - 22.0f - 12.0f > 30.0f);
     CHECK(Pilha::AbaixoDoProfessor(2) == doctest::Approx(Pilha::kPrimeiroBloco + 2.0f * Pilha::kEntreBlocos));
     CHECK(Pilha::Placar({Pilha::Tipo::Push, 7}, 0) == "push(7)");
     CHECK(Pilha::Placar({Pilha::Tipo::Pop, 0}, 4) == "pop() \xE2\x86\x92 4");
@@ -76,8 +85,7 @@ TEST_CASE("Pilha: a pilha sorteada - de 4 a 6 blocos, e o overflow chega em quas
         CHECK(Pilha::Proxima(p.capacidade - 1, semente * 2654435761u, p).tipo != Pilha::Tipo::Overflow);
     }
     CHECK(capacidades == std::set<int>{4, 5, 6});
-    // A PIOR COMBINACAO de cada capacidade (a menor chance) ainda transborda em
-    // 20 operacoes - menos que uma fase - quase sempre.
+    // A pior combinacao de cada capacidade (a menor chance) ainda transborda em 20 operacoes.
     for (int capacidade = Pilha::kMenorCapacidade; capacidade <= Pilha::kMaiorCapacidade; ++capacidade) {
         CAPTURE(capacidade);
         const Pilha::Plano p{capacidade, 0.55f + 0.05f * static_cast<float>(capacidade - Pilha::kMenorCapacidade)};
@@ -98,7 +106,7 @@ TEST_CASE("Pilha: a pilha sorteada - de 4 a 6 blocos, e o overflow chega em quas
         }
         CHECK(comOverflow > 130);
     }
-    // A MAIOR PILHA ainda fica acima do aluno.
+    // A maior pilha ainda fica acima do aluno.
     CHECK(Pilha::AbaixoDoProfessor(Pilha::kMaiorCapacidade - 1) < 400.0f);
 }
 

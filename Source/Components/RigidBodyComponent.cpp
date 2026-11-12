@@ -2,14 +2,9 @@
 // Created by nslop on 05/04/2024.
 //
 
-
 #include "../Actors/Actor.h"
 
 #include "RigidBodyComponent.h"
-
-const float MAX_SPEED_X = 1000.0f;
-const float MAX_SPEED_Y = 1000.0f;
-const float GRAVITY = 2000.0f;
 
 RigidBodyComponent::RigidBodyComponent(class Actor* owner, float mass, float friction, int updateOrder)
         :Component(owner, updateOrder)
@@ -21,21 +16,16 @@ RigidBodyComponent::RigidBodyComponent(class Actor* owner, float mass, float fri
 
 }
 
-void RigidBodyComponent::ApplyForce(const Vector2 &force) {
-    mAcceleration += force * (1.f/mMass);
-}
-
 void RigidBodyComponent::Update(float deltaTime)
 {
 
-    //-------MODIfICADO PARA O MOVIMENTO DO JOGO SER COMO DESEJADO-------//
+    // ---- MODIfICADO para o movimento do jogo ser como desejado-------// ----
 
-
-    // Euler Integration
+    // Euler Integration.
     mVelocity += mAcceleration * deltaTime;
 
-    mVelocity.x = Math::Clamp<float>(mVelocity.x, -MAX_SPEED_X, MAX_SPEED_X);
-    mVelocity.y = Math::Clamp<float>(mVelocity.y, -MAX_SPEED_Y, MAX_SPEED_Y);
+    mVelocity.x = Math::Clamp<float>(mVelocity.x, -mVelocidadeMaxima, mVelocidadeMaxima);
+    mVelocity.y = Math::Clamp<float>(mVelocity.y, -mVelocidadeMaxima, mVelocidadeMaxima);
 
     if(Math::NearZero(mVelocity.x, 1.0f)) {
         mVelocity.x = 0.f;
@@ -48,4 +38,4 @@ void RigidBodyComponent::Update(float deltaTime)
 
 }
 
-// timeToHeight = Height/GetVelocity()
+// TimeToHeight = Height/GetVelocity()

@@ -129,7 +129,7 @@ TEST_CASE("Ordenacao: todo vetor termina ordenado, e cada passo e o que diz ser"
                 CHECK(p.a < p.b);
                 CHECK(b.v == antes);
             } else {
-                // QUEM ASSENTA E O MAIOR do que faltava ordenar.
+                // Quem assenta e o maior do que faltava ordenar.
                 CHECK(p.i == fimAntes);
                 CHECK(p.a == *std::max_element(antes.begin(), antes.begin() + fimAntes + 1));
             }
@@ -141,8 +141,6 @@ TEST_CASE("Ordenacao: todo vetor termina ordenado, e cada passo e o que diz ser"
 }
 
 TEST_CASE("Ordenacao: tirar a bolha do meio da passada recomeca a passada, e o vetor ainda termina ordenado") {
-    // O CASO QUE QUEBRAVA: a bolha carrega o 9 ate o meio, o aluno o derruba, e
-    // continuar a passada dali assentaria o 3 com o 5 ainda antes dele.
     auto b = Ordenacao::Comecar({5, 9, 1, 3});
     CHECK(Ordenacao::Avancar(b).tipo == Ordenacao::Tipo::Fica);    // 5 < 9
     CHECK(Ordenacao::Avancar(b).tipo == Ordenacao::Tipo::Troca);   // 9 > 1
@@ -228,8 +226,7 @@ TEST_CASE("Ordenacao: o vetor chega de tres jeitos - em qualquer ordem, quase or
             REQUIRE(static_cast<int>(quase.size()) == n);
             CHECK_FALSE(std::is_sorted(quase.begin(), quase.end()));
             CHECK(std::is_sorted(inv.rbegin(), inv.rend()));
-            // QUASE ORDENADO: duas inversoes, e o bubble sort acaba cedo, na
-            // passada sem troca. INVERTIDO: o pior caso, toda comparacao troca.
+            // Quase ordenado: duas inversoes, e o bubble sort acaba cedo, na passada sem troca.
             int inversoes = 0;
             for (int i = 0; i < n; ++i) for (int j = i + 1; j < n; ++j) inversoes += quase[i] > quase[j] ? 1 : 0;
             CHECK(inversoes == 2);
@@ -271,8 +268,7 @@ TEST_CASE("Ordenacao: a repescagem sorteada passa pelos tres jeitos, e o pior ca
         ordens.insert(e);
     }
     CHECK(ordens.size() == 6u);
-    // O PIOR CASO DE 8, nos dois modos: cada comparacao e uma troca, e cada
-    // passada termina com um elemento assentando. Tem de caber na fase.
+    // O pior caso de 8, nos dois modos.
     for (const Dificuldade::Nivel nivel : Dificuldade::kNiveis) {
         const Ordenacao::Degrau d = Ordenacao::DegrauDo(nivel);
         const int n = Ordenacao::kTamanho;

@@ -3,11 +3,11 @@ project(DPIBulletHellRe)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(DPIBulletHellRe Source/main.cpp
-        Source/Game.cpp
-        Source/Game.h
-        Source/Json.h
-        Source/JsonDeDados.h
+add_executable(DPIBulletHellRe Source/Motor/main.cpp
+        Source/Motor/Game.cpp
+        Source/Motor/Game.h
+        Source/Motor/Json.h
+        Source/Motor/JsonDeDados.h
         Source/Scenes/Scene.cpp
         Source/Scenes/Scene.h
         Source/Scenes/Scene.h
@@ -34,89 +34,155 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Scenes/Identificacao.h
         Source/Scenes/Opcoes.cpp
         Source/Scenes/TelaDeRanking.cpp
+        Source/Scenes/TelaDasHoras.cpp
+        Source/Scenes/TelaDasHoras.h
+        Source/Scenes/TelaDoBoletim.cpp
+        Source/Scenes/TelaDoBoletim.h
+        Source/Scenes/TelaComoJogar.cpp
+        Source/Scenes/TelaComoJogar.h
         Source/Scenes/Atracao.cpp
         Source/Scenes/Atracao.h
         Source/Scenes/FundoDeCena.cpp
         Source/Scenes/FundoDeCena.h
+        Source/Scenes/PainelDeMenu.cpp
+        Source/Scenes/PainelDeMenu.h
+        Source/Scenes/TextoDeCena.cpp
+        Source/Scenes/TextoDeCena.h
         Source/Scenes/Opcoes.h
         Source/Scenes/CriacaoDePersonagem.cpp
         Source/Scenes/CriacaoDePersonagem.h
         Source/Scenes/MainMenu.h
-        Source/Font.cpp
-        Source/Font.h
-        Source/AudioSystem.cpp
-        Source/AudioSystem.h
-        Source/Random.cpp
-        Source/Math.cpp
-        Source/Progresso.cpp
-        Source/Nota.cpp
-        Source/Nota.h
-        Source/PontoExtra.cpp
-        Source/PontoExtra.h
-        Source/Destrutivel.cpp
-        Source/Destrutivel.h
-        Source/Navegacao.cpp
-        Source/Navegacao.h
-        Source/Tabela.cpp
-        Source/Tabela.h
-        Source/Teclado.cpp
-        Source/Teclado.h
-        Source/Gabinete.cpp
-        Source/Gabinete.h
-        Source/Pausa.cpp
-        Source/Pausa.h
-        Source/Dificuldade.cpp
-        Source/Dificuldade.h
-        Source/Variacao.cpp
-        Source/Variacao.h
-        Source/Configuracao.cpp
-        Source/Configuracao.h
-        Source/Painel.cpp
-        Source/Painel.h
-        Source/Sessao.cpp
-        Source/Sessao.h
-        Source/Ranking.cpp
-        Source/Ranking.h
-        Source/Matricula.cpp
-        Source/Matricula.h
-        Source/Materias.cpp
-        Source/Materias.h
-        Source/Orientacao.cpp
-        Source/Orientacao.h
-        Source/Escolta.cpp
-        Source/Escolta.h
-        Source/Golpe.cpp
-        Source/Golpe.h
-        Source/Poder.cpp
-        Source/Poder.h
-        Source/Personagens.cpp
-        Source/Personagens.h
-        Source/PersonagensArquivo.cpp
-        Source/PersonagensArquivo.h
-        Source/ComporPersonagem.cpp
-        Source/ComporPersonagem.h
-        Source/Relogio.cpp
-        Source/Relogio.h
-        Source/Exportacao.cpp
-        Source/Exportacao.h
-        Source/ExportacaoArquivo.cpp
-        Source/ExportacaoArquivo.h
-        Source/MateriasArquivo.cpp
-        Source/MateriasArquivo.h
-        Source/Ficha.cpp
-        Source/Ficha.h
-        Source/FichaArquivo.cpp
-        Source/FichaArquivo.h
-        Source/ConfiguracaoArquivo.cpp
-        Source/ConfiguracaoArquivo.h
-        Source/Progresso.h
-        Source/Caminhos.cpp
-        Source/Caminhos.h
-        Source/CaminhosArquivo.cpp
-        Source/CaminhosArquivo.h
+        Source/Motor/Font.cpp
+        Source/Motor/Font.h
+        Source/Motor/AudioSystem.cpp
+        Source/Motor/AudioSystem.h
+        Source/Motor/Random.cpp
+        Source/Motor/Math.cpp
+        Source/Aluno/Progresso.cpp
+        Source/Aluno/Boletim.cpp
+        Source/Aluno/Boletim.h
+        Source/Regras/Nota.cpp
+        Source/Regras/Nota.h
+        Source/Regras/ContaDaNota.cpp
+        Source/Regras/ContaDaNota.h
+        Source/Regras/PontoExtra.cpp
+        Source/Regras/PontoExtra.h
+        Source/Regras/Raspao.cpp
+        Source/Regras/Raspao.h
+        Source/Regras/Papeis.cpp
+        Source/Regras/Papeis.h
+        Source/Regras/Cobertura.cpp
+        Source/Regras/Cobertura.h
+        Source/Regras/Destrutivel.cpp
+        Source/Regras/Destrutivel.h
+        Source/Entrada/Navegacao.cpp
+        Source/Entrada/Navegacao.h
+        Source/Regras/Tabela.cpp
+        Source/Regras/Tabela.h
+        Source/Entrada/Teclado.cpp
+        Source/Entrada/Teclado.h
+        Source/Motor/Gabinete.cpp
+        Source/Motor/Gabinete.h
+        Source/Interface/Pausa.cpp
+        Source/Interface/Resultado.cpp
+        Source/Interface/Devolutiva.cpp
+        Source/Interface/Devolutiva.h
+        Source/Interface/Resultado.h
+        Source/Interface/Manual.cpp
+        Source/Interface/Manual.h
+        Source/Interface/ManualArquivo.cpp
+        Source/Interface/ManualArquivo.h
+        Source/Interface/Pausa.h
+        Source/Regras/Dificuldade.cpp
+        Source/Regras/Dificuldade.h
+        Source/Regras/Variacao.cpp
+        Source/Regras/Variacao.h
+        Source/Motor/Configuracao.cpp
+        Source/Motor/Configuracao.h
+        Source/Entrada/Painel.cpp
+        Source/Entrada/Painel.h
+        Source/Entrada/Borda.h
+        Source/Aluno/Sessao.cpp
+        Source/Aluno/Sessao.h
+        Source/Aluno/Ranking.cpp
+        Source/Aluno/Horas.cpp
+        Source/Aluno/Horas.h
+        Source/Aluno/ProvaDaSemana.cpp
+        Source/Aluno/ProvaDaSemana.h
+        Source/Aluno/Mencoes.cpp
+        Source/Aluno/Mencoes.h
+        Source/Aluno/Mural.cpp
+        Source/Aluno/Mural.h
+        Source/Aluno/Ranking.h
+        Source/Aluno/Matricula.cpp
+        Source/Aluno/Matricula.h
+        Source/Curso/Materias.cpp
+        Source/Curso/Materias.h
+        Source/Curso/Orientacao.cpp
+        Source/Curso/Orientacao.h
+        Source/Regras/Escolta.cpp
+        Source/Regras/Escolta.h
+        Source/Regras/Golpe.cpp
+        Source/Regras/Golpe.h
+        Source/Regras/Poder.cpp
+        Source/Regras/Poder.h
+        Source/Interface/BarraDaNota.cpp
+        Source/Interface/BarraDaNota.h
+        Source/Interface/Carregamento.cpp
+        Source/Interface/Carregamento.h
+        Source/Interface/Hud.cpp
+        Source/Interface/FundoDoCampo.cpp
+        Source/Interface/Hud.h
+        Source/Interface/Comunicacao.cpp
+        Source/Interface/Comunicacao.h
+        Source/Regras/Acerto.cpp
+        Source/Regras/Acerto.h
+        Source/Pesquisa/Tentativas.cpp
+        Source/Pesquisa/Tentativas.h
+        Source/Pesquisa/Experimento.cpp
+        Source/Pesquisa/Experimento.h
+        Source/Simulacao/Simulacao.cpp
+        Source/Simulacao/Simulacao.h
+        Source/Pesquisa/TentativasArquivo.cpp
+        Source/Pesquisa/TentativasArquivo.h
+        Source/Personagem/Personagens.cpp
+        Source/Personagem/Personagens.h
+        Source/Personagem/PersonagensArquivo.cpp
+        Source/Personagem/PersonagensArquivo.h
+        Source/Personagem/ComporPersonagem.cpp
+        Source/Personagem/ComporPersonagem.h
+        Source/Motor/Relogio.cpp
+        Source/Motor/Relogio.h
+        Source/Aluno/Exportacao.cpp
+        Source/Aluno/Exportacao.h
+        Source/Aluno/ExportacaoArquivo.cpp
+        Source/Aluno/ProvaDaSemanaArquivo.cpp
+        Source/Aluno/ProvaDaSemanaArquivo.h
+        Source/Aluno/ExportacaoArquivo.h
+        Source/Curso/MateriasArquivo.cpp
+        Source/Curso/MateriasArquivo.h
+        Source/Aluno/Ficha.cpp
+        Source/Aluno/Ficha.h
+        Source/Aluno/FichaArquivo.cpp
+        Source/Aluno/FichaArquivo.h
+        Source/Motor/ConfiguracaoArquivo.cpp
+        Source/Motor/ConfiguracaoArquivo.h
+        Source/Aluno/Progresso.h
+        Source/Motor/Caminhos.cpp
+        Source/Motor/Caminhos.h
+        Source/Motor/CaminhosArquivo.cpp
+        Source/Motor/CaminhosArquivo.h
+        Source/Motor/Fontes.h
+        Source/Motor/EscalaDaTela.h
         Source/Scenes/StageSelect.cpp
         Source/Scenes/EscolhaDoOrientador.cpp
+        Source/Scenes/SelosDeMencao.cpp
+        Source/Scenes/SelosDeMencao.h
+        Source/Scenes/EscolhaDaDificuldade.cpp
+        Source/Scenes/EscolhaDaDificuldade.h
         Source/Actors/Orientador/Orientador.cpp
+        Source/Actors/Orientador/PoderEmCampo.cpp
+        Source/Actors/Orientador/PoderEmCampo.h
         Source/Actors/Orientador/Orientador.h
         Source/Scenes/EscolhaDoOrientador.h
         Source/Actors/Buttons/Button.cpp
@@ -126,9 +192,40 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Components/DrawComponents/DrawAnimatedComponent.cpp
         Source/Components/DrawComponents/DrawAnimatedComponent.h
         Source/Scenes/Battle/Battle.cpp
+        Source/Scenes/Battle/OuvinteDaBatalha.h
+        Source/Scenes/Battle/RegistroDaTentativa.cpp
+        Source/Scenes/Battle/TelaDeCarregamento.cpp
+        Source/Scenes/Battle/TelaDeCarregamento.h
+        Source/Scenes/Battle/RegistroDaTentativa.h
+        Source/Scenes/Battle/RelatorioDaSimulacao.cpp
+        Source/Scenes/Battle/RelatorioDaSimulacao.h
+        Source/Scenes/Battle/ClaroesDaMoldura.cpp
+        Source/Scenes/Battle/ClaroesDaMoldura.h
+        Source/Scenes/Battle/Colisoes.cpp
+        Source/Scenes/Battle/Colisoes.h
+        Source/Scenes/Battle/DesenhoSobreOsAlunos.cpp
+        Source/Scenes/Battle/DesenhoSobreOsAlunos.h
+        Source/Scenes/Battle/ContagemDaProva.cpp
+        Source/Scenes/Battle/ContagemDaProva.h
+        Source/Scenes/Battle/DevolutivaDaBatalha.cpp
+        Source/Scenes/Battle/DevolutivaDaBatalha.h
+        Source/Scenes/Battle/EfeitosDaBatalha.cpp
+        Source/Scenes/Battle/EfeitosDaBatalha.h
+        Source/Scenes/Battle/FaixaDaNota.cpp
+        Source/Scenes/Battle/FaixaDaNota.h
+        Source/Scenes/Battle/MolduraDoCampo.cpp
+        Source/Scenes/Battle/MolduraDoCampo.h
+        Source/Scenes/Battle/LeitorDoMenu.cpp
+        Source/Scenes/Battle/LeitorDoMenu.h
+        Source/Scenes/Battle/PausaDaBatalha.cpp
+        Source/Scenes/Battle/PausaDaBatalha.h
+        Source/Scenes/Battle/PlacarDaFase.cpp
+        Source/Scenes/Battle/PlacarDaFase.h
+        Source/Scenes/Battle/RelogioDaFase.cpp
+        Source/Scenes/Battle/RelogioDaFase.h
+        Source/Scenes/Battle/TelaDoResultado.cpp
+        Source/Scenes/Battle/TelaDoResultado.h
         Source/Scenes/Battle/Battle.h
-        Source/Actors/Teachers/BossFactory/SallesFactory.cpp
-        Source/Actors/Teachers/BossFactory/SallesFactory.h
         Source/Actors/Teachers/Boss.cpp
         Source/Actors/Teachers/Boss.h
         Source/Actors/Teachers/Bosses/Salles.cpp
@@ -150,6 +247,9 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Scenes/Battle/ProjectileManager.h
         Source/Actors/Teachers/BossFactory/IBossFactory.h
         Source/Actors/Teachers/BossFactory/IBossFactory.cpp
+        Source/Actors/Teachers/BossFactory/FabricaDeChefe.h
+        Source/Actors/Teachers/BossFactory/Chefes.cpp
+        Source/Actors/Teachers/BossFactory/Chefes.h
         Source/Attacks/IAttackStrategy.h
         Source/Attacks/Behaviors.cpp
         Source/Attacks/PathShapes.cpp
@@ -236,7 +336,9 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Banco.cpp
         Source/Attacks/Banco.h
         Source/Attacks/Transacao.cpp
+        Source/Attacks/Dml.cpp
         Source/Attacks/Transacao.h
+        Source/Attacks/Dml.h
         Source/Attacks/Cascata.cpp
         Source/Attacks/Cascata.h
         Source/Attacks/Condicional.cpp
@@ -247,16 +349,16 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Attacks/Funcao.h
         Source/Attacks/Prova.cpp
         Source/Attacks/Prova.h
-        Source/Attacks/Escopo.cpp
-        Source/Attacks/Escopo.h
+        Source/Attacks/Amarracao.cpp
+        Source/Attacks/Amarracao.h
         Source/Attacks/Coercao.cpp
         Source/Attacks/Coercao.h
-        Source/Attacks/Memoria.cpp
-        Source/Attacks/Memoria.h
+        Source/Attacks/Termina.cpp
+        Source/Attacks/Termina.h
         Source/Attacks/Excecao.cpp
         Source/Attacks/Excecao.h
-        Source/Intercambio.cpp
-        Source/Intercambio.h
+        Source/Regras/Intercambio.cpp
+        Source/Regras/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
         Source/Attacks/FasesDeAtaque.h
         Source/Attacks/Fase.h
@@ -284,52 +386,43 @@ add_executable(DPIBulletHellRe Source/main.cpp
         Source/Scenes/Battle/BattleHUD.h
         Source/Components/DrawComponents/ProgressBarComponent.cpp
         Source/Components/DrawComponents/ProgressBarComponent.h
+        Source/Components/DrawComponents/DrawBarraDaNotaComponent.cpp
+        Source/Components/DrawComponents/DrawBarraDaNotaComponent.h
+        Source/Components/DrawComponents/DrawMolduraDoCampoComponent.cpp
+        Source/Components/DrawComponents/DrawFundoDoCampoComponent.cpp
+        Source/Components/DrawComponents/DrawFundoDoCampoComponent.h
+        Source/Components/DrawComponents/DrawMolduraDoCampoComponent.h
+        Source/Components/DrawComponents/DrawRelogioDaFaseComponent.cpp
+        Source/Components/DrawComponents/DrawRelogioDaFaseComponent.h
+        Source/Components/DrawComponents/DrawQuadroComponent.cpp
+        Source/Components/DrawComponents/DrawQuadroComponent.h
+        Source/Components/DrawComponents/Pincel.h
         Source/Attacks/BaseStrategies/WaveAttack.cpp
         Source/Movements/MovementStrategies.h
         Source/Movements/MovementStrategies.cpp
         Source/Actors/Teachers/ExtraPointItem.cpp
         Source/Actors/Teachers/ExtraPointItem.h
-        Source/Actors/Teachers/BossFactory/AllFactories.h
-        Source/Actors/Teachers/BossFactory/RicardoFactory.cpp
-        Source/Actors/Teachers/BossFactory/RicardoFactory.h
         Source/Actors/Teachers/Bosses/Ricardo.cpp
         Source/Actors/Teachers/Bosses/Ricardo.h
         Source/Actors/Teachers/Bosses/Andre.cpp
         Source/Actors/Teachers/Bosses/Andre.h
-        Source/Actors/Teachers/BossFactory/AndreFactory.cpp
         Source/Actors/Teachers/Bosses/Julio.cpp
         Source/Actors/Teachers/Bosses/Thiago.cpp
         Source/Actors/Teachers/Bosses/Julio.h
-        Source/Actors/Teachers/BossFactory/JulioFactory.cpp
-        Source/Actors/Teachers/BossFactory/ThiagoFactory.cpp
         Source/Actors/Teachers/Bosses/Vladimir.cpp
         Source/Actors/Teachers/Bosses/Vladimir.h
-        Source/Actors/Teachers/BossFactory/VladimirFactory.cpp
-        Source/Actors/Teachers/BossFactory/VladimirFactory.h
         Source/Actors/Teachers/Bosses/Lucas.cpp
         Source/Actors/Teachers/Bosses/Lucas.h
-        Source/Actors/Teachers/BossFactory/LucasFactory.cpp
-        Source/Actors/Teachers/BossFactory/LucasFactory.h
         Source/Actors/Teachers/Bosses/Luizinho.cpp
         Source/Actors/Teachers/Bosses/Luizinho.h
         Source/Actors/Teachers/Bosses/PainelDeCodigo.cpp
         Source/Actors/Teachers/Bosses/PainelDeCodigo.h
-        Source/Actors/Teachers/BossFactory/LuizinhoFactory.cpp
-        Source/Actors/Teachers/BossFactory/LuizinhoFactory.h
         Source/Actors/Teachers/Bosses/Vitor.cpp
         Source/Actors/Teachers/Bosses/Vitor.h
-        Source/Actors/Teachers/BossFactory/VitorFactory.cpp
-        Source/Actors/Teachers/BossFactory/VitorFactory.h
         Source/Actors/Teachers/Bosses/Hugo.cpp
         Source/Actors/Teachers/Bosses/Hugo.h
-        Source/Actors/Teachers/BossFactory/HugoFactory.cpp
-        Source/Actors/Teachers/BossFactory/HugoFactory.h
         Source/Actors/Teachers/Bosses/MariaLucia.cpp
         Source/Actors/Teachers/Bosses/MariaLucia.h
-        Source/Actors/Teachers/BossFactory/MariaLuciaFactory.cpp
-        Source/Actors/Teachers/BossFactory/MariaLuciaFactory.h
-        Source/Actors/Teachers/BossFactory/JulioFactory.h
-        Source/Actors/Teachers/BossFactory/AndreFactory.h
         Source/Attacks/BaseStrategies/BaloonAttack.cpp
         Source/Attacks/BaseStrategies/BaloonAttack.h
         Source/Attacks/AttackParameters/BaloonAttackParams.h
@@ -360,7 +453,32 @@ find_package(SDL2_mixer REQUIRED)
 find_package(SDL2_ttf REQUIRED)
 
 include_directories(${SDL2_INCLUDE_DIRS})
+# A VERSAO DO JOGO em cada linha de tentativas.csv (Tentativas.h): o commit de
+# onde o executavel saiu, para a analise separar as tentativas de antes e de
+# depois de uma mudanca de balanceamento. Sem git (um zip do codigo), "dev".
+execute_process(COMMAND git rev-parse --short HEAD
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        OUTPUT_VARIABLE DPI_VERSAO OUTPUT_STRIP_TRAILING_WHITESPACE
+        RESULT_VARIABLE DPI_VERSAO_ERRO ERROR_QUIET)
+if(NOT DPI_VERSAO_ERRO EQUAL 0 OR DPI_VERSAO STREQUAL "")
+    set(DPI_VERSAO "dev")
+endif()
+target_compile_definitions(${PROJECT_NAME} PRIVATE DPI_VERSAO="${DPI_VERSAO}")
+
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} SDL2_image::SDL2_image SDL2_mixer::SDL2_mixer SDL2_ttf::SDL2_ttf)
+
+# OS EXECUTAVEIS PARA DISTRIBUIR (Ferramentas/executavel-windows.sh e -linux.sh).
+# DPI_SEM_CONSOLE: no Windows, o jogo abre sem a janela preta do console (os SDL_Log
+# somem); desligado por padrao, que e o que se quer enquanto se desenvolve.
+option(DPI_SEM_CONSOLE "Windows: abrir o jogo sem a janela do console" OFF)
+if(WIN32 AND DPI_SEM_CONSOLE)
+    set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE ON)
+endif()
+# Com o MinGW e o GCC, o runtime do C++ entra no executavel: um arquivo a menos para
+# levar junto e nenhum conflito com a versao instalada na maquina de quem joga.
+if(NOT MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_options(${PROJECT_NAME} PRIVATE -static-libgcc -static-libstdc++)
+endif()
 # =============================================================================
 # TESTES UNITARIOS (doctest)
 #
@@ -418,14 +536,15 @@ add_executable(dpi_tests
         tests/test_ordenacao.cpp
         tests/test_banco.cpp
         tests/test_transacao.cpp
+        tests/test_dml.cpp
         tests/test_cascata.cpp
         tests/test_condicional.cpp
         tests/test_laco.cpp
         tests/test_funcao.cpp
         tests/test_prova.cpp
-        tests/test_escopo.cpp
+        tests/test_amarracao.cpp
         tests/test_coercao.cpp
-        tests/test_memoria.cpp
+        tests/test_termina.cpp
         tests/test_excecao.cpp
         tests/test_fases.cpp
         tests/test_projeteis.cpp
@@ -433,8 +552,11 @@ add_executable(dpi_tests
         tests/test_arquivos_de_dados.cpp
         tests/test_caminhos.cpp
         tests/test_progresso.cpp
+        tests/test_boletim.cpp
         tests/test_nota.cpp
         tests/test_ponto_extra.cpp
+        tests/test_raspao.cpp
+        tests/test_papeis.cpp
         tests/test_destrutivel.cpp
         tests/test_navegacao.cpp
         tests/test_tabela.cpp
@@ -456,60 +578,119 @@ add_executable(dpi_tests
         tests/test_cronograma.cpp
         tests/test_poder.cpp
         tests/test_objetivo.cpp
+        tests/test_tentativas.cpp
+        tests/test_experimento.cpp
+        tests/test_comunicacao.cpp
+        tests/test_simulacao.cpp
+        tests/test_conta_da_nota.cpp
+        tests/test_leitor_do_menu.cpp
+        tests/test_horas.cpp
+        tests/test_prova_da_semana.cpp
+        tests/test_mencoes.cpp
+        tests/test_mural.cpp
+        tests/test_resultado.cpp
+        tests/test_devolutiva.cpp
+        tests/test_manual.cpp
+        tests/test_borda.cpp
+        tests/test_barra_da_nota.cpp
+        tests/test_hud.cpp
+        tests/test_fundo_do_campo.cpp
         tests/test_personagens.cpp
         tests/test_exportacao.cpp
-        Source/Progresso.cpp
-        Source/Nota.cpp
-        Source/Nota.h
-        Source/PontoExtra.cpp
-        Source/PontoExtra.h
-        Source/Destrutivel.cpp
-        Source/Destrutivel.h
-        Source/Navegacao.cpp
-        Source/Navegacao.h
-        Source/Tabela.cpp
-        Source/Tabela.h
-        Source/Teclado.cpp
-        Source/Teclado.h
-        Source/Gabinete.cpp
-        Source/Gabinete.h
-        Source/Pausa.cpp
-        Source/Pausa.h
-        Source/Dificuldade.cpp
-        Source/Dificuldade.h
-        Source/Variacao.cpp
-        Source/Variacao.h
-        Source/Configuracao.cpp
-        Source/Configuracao.h
-        Source/Painel.cpp
-        Source/Painel.h
-        Source/Sessao.cpp
-        Source/Sessao.h
-        Source/Ranking.cpp
-        Source/Ranking.h
-        Source/Matricula.cpp
-        Source/Matricula.h
-        Source/Materias.cpp
-        Source/Materias.h
-        Source/Orientacao.cpp
-        Source/Orientacao.h
-        Source/Escolta.cpp
-        Source/Escolta.h
-        Source/Golpe.cpp
-        Source/Golpe.h
-        Source/Poder.cpp
-        Source/Poder.h
-        Source/Personagens.cpp
-        Source/Personagens.h
-        Source/Relogio.cpp
-        Source/Relogio.h
-        Source/Exportacao.cpp
-        Source/Exportacao.h
-        Source/Ficha.cpp
-        Source/Ficha.h
-        Source/Progresso.h
-        Source/Caminhos.cpp
-        Source/Caminhos.h
+        Source/Aluno/Progresso.cpp
+        Source/Aluno/Boletim.cpp
+        Source/Aluno/Boletim.h
+        Source/Regras/Nota.cpp
+        Source/Regras/Nota.h
+        Source/Regras/ContaDaNota.cpp
+        Source/Regras/ContaDaNota.h
+        Source/Regras/PontoExtra.cpp
+        Source/Regras/PontoExtra.h
+        Source/Regras/Raspao.cpp
+        Source/Regras/Raspao.h
+        Source/Regras/Papeis.cpp
+        Source/Regras/Papeis.h
+        Source/Regras/Cobertura.cpp
+        Source/Regras/Cobertura.h
+        Source/Regras/Destrutivel.cpp
+        Source/Regras/Destrutivel.h
+        Source/Entrada/Navegacao.cpp
+        Source/Entrada/Navegacao.h
+        Source/Regras/Tabela.cpp
+        Source/Regras/Tabela.h
+        Source/Entrada/Teclado.cpp
+        Source/Entrada/Teclado.h
+        Source/Motor/Gabinete.cpp
+        Source/Motor/Gabinete.h
+        Source/Interface/Pausa.cpp
+        Source/Interface/Resultado.cpp
+        Source/Interface/Devolutiva.cpp
+        Source/Interface/Devolutiva.h
+        Source/Interface/Resultado.h
+        Source/Interface/Manual.cpp
+        Source/Interface/Manual.h
+        Source/Interface/Pausa.h
+        Source/Regras/Dificuldade.cpp
+        Source/Regras/Dificuldade.h
+        Source/Regras/Variacao.cpp
+        Source/Regras/Variacao.h
+        Source/Motor/Configuracao.cpp
+        Source/Motor/Configuracao.h
+        Source/Entrada/Painel.cpp
+        Source/Scenes/Battle/LeitorDoMenu.cpp
+        Source/Entrada/Painel.h
+        Source/Aluno/Sessao.cpp
+        Source/Aluno/Sessao.h
+        Source/Aluno/Ranking.cpp
+        Source/Aluno/Horas.cpp
+        Source/Aluno/Horas.h
+        Source/Aluno/ProvaDaSemana.cpp
+        Source/Aluno/ProvaDaSemana.h
+        Source/Aluno/Mencoes.cpp
+        Source/Aluno/Mencoes.h
+        Source/Aluno/Mural.cpp
+        Source/Aluno/Mural.h
+        Source/Aluno/Ranking.h
+        Source/Aluno/Matricula.cpp
+        Source/Aluno/Matricula.h
+        Source/Curso/Materias.cpp
+        Source/Curso/Materias.h
+        Source/Curso/Orientacao.cpp
+        Source/Curso/Orientacao.h
+        Source/Regras/Escolta.cpp
+        Source/Regras/Escolta.h
+        Source/Regras/Golpe.cpp
+        Source/Regras/Golpe.h
+        Source/Regras/Poder.cpp
+        Source/Regras/Poder.h
+        Source/Interface/BarraDaNota.cpp
+        Source/Interface/BarraDaNota.h
+        Source/Interface/Carregamento.cpp
+        Source/Interface/Carregamento.h
+        Source/Interface/Hud.cpp
+        Source/Interface/FundoDoCampo.cpp
+        Source/Interface/Hud.h
+        Source/Interface/Comunicacao.cpp
+        Source/Interface/Comunicacao.h
+        Source/Regras/Acerto.cpp
+        Source/Regras/Acerto.h
+        Source/Pesquisa/Tentativas.cpp
+        Source/Pesquisa/Tentativas.h
+        Source/Pesquisa/Experimento.cpp
+        Source/Pesquisa/Experimento.h
+        Source/Simulacao/Simulacao.cpp
+        Source/Simulacao/Simulacao.h
+        Source/Personagem/Personagens.cpp
+        Source/Personagem/Personagens.h
+        Source/Motor/Relogio.cpp
+        Source/Motor/Relogio.h
+        Source/Aluno/Exportacao.cpp
+        Source/Aluno/Exportacao.h
+        Source/Aluno/Ficha.cpp
+        Source/Aluno/Ficha.h
+        Source/Aluno/Progresso.h
+        Source/Motor/Caminhos.cpp
+        Source/Motor/Caminhos.h
         Source/Attacks/PathAim.cpp
         Source/Attacks/PathAim.h
         Source/Attacks/PathShapes.cpp
@@ -594,7 +775,9 @@ add_executable(dpi_tests
         Source/Attacks/Banco.cpp
         Source/Attacks/Banco.h
         Source/Attacks/Transacao.cpp
+        Source/Attacks/Dml.cpp
         Source/Attacks/Transacao.h
+        Source/Attacks/Dml.h
         Source/Attacks/Cascata.cpp
         Source/Attacks/Cascata.h
         Source/Attacks/Condicional.cpp
@@ -605,16 +788,16 @@ add_executable(dpi_tests
         Source/Attacks/Funcao.h
         Source/Attacks/Prova.cpp
         Source/Attacks/Prova.h
-        Source/Attacks/Escopo.cpp
-        Source/Attacks/Escopo.h
+        Source/Attacks/Amarracao.cpp
+        Source/Attacks/Amarracao.h
         Source/Attacks/Coercao.cpp
         Source/Attacks/Coercao.h
-        Source/Attacks/Memoria.cpp
-        Source/Attacks/Memoria.h
+        Source/Attacks/Termina.cpp
+        Source/Attacks/Termina.h
         Source/Attacks/Excecao.cpp
         Source/Attacks/Excecao.h
-        Source/Intercambio.cpp
-        Source/Intercambio.h
+        Source/Regras/Intercambio.cpp
+        Source/Regras/Intercambio.h
         Source/Attacks/FasesDeAtaque.cpp
         Source/Attacks/FasesDeAtaque.h
         Source/Attacks/Fase.h
@@ -622,13 +805,13 @@ add_executable(dpi_tests
         Source/Attacks/PastaDoChefe.cpp
         Source/Attacks/PastaDoChefe.h
         Source/Attacks/ProjeteisDeChefe.h
-        Source/Math.cpp
-        Source/Math.h
+        Source/Motor/Math.cpp
+        Source/Motor/Math.h
 )
 # NAO adicione Source ao include path deste alvo (nem de nenhum outro).
-# O projeto tem Source/Math.h, e no Windows (e no macOS) o sistema de
+# O projeto tem Source/Motor/Math.h, e no Windows (e no macOS) o sistema de
 # arquivos nao diferencia maiusculas: com Source no include path, o
-# #include <math.h> da PROPRIA biblioteca padrao encontra Source/Math.h em
+# #include <math.h> da PROPRIA biblioteca padrao encontra Source/Motor/Math.h em
 # vez do cabecalho C, e sinf/fabs/sqrtf deixam de existir - centenas de
 # erros em cmath e cstdlib. Os arquivos deste alvo ja usam includes
 # relativos, entao nao precisam do caminho.

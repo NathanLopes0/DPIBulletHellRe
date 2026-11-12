@@ -7,7 +7,6 @@
 #include <cstdint>
 #include <set>
 
-
 #include "../Source/Attacks/Cascata.h"
 
 TEST_CASE("Cascata: as etapas vem em ordem, uma a cada 4 s, e cabem na fase") {
@@ -68,7 +67,7 @@ TEST_CASE("Cascata: as classes ficam numa grade, e as setas ligam vizinhas") {
     for (const auto& [de, para] : setas) {
         const Vector2 a = Cascata::LugarDaClasse(de, 1200.0f);
         const Vector2 b = Cascata::LugarDaClasse(para, 1200.0f);
-        // SEMPRE EM ANGULO RETO: na mesma fila ou na mesma coluna.
+        // Sempre em angulo reto: na mesma fila ou na mesma coluna.
         CHECK((a.x == doctest::Approx(b.x) || a.y == doctest::Approx(b.y)));
         CHECK(para < 8);
     }
@@ -89,8 +88,6 @@ TEST_CASE("Cascata: a ordem das classes e sorteada por luta, e cada classe que e
         CHECK(std::set<int>(p.ordem.begin(), p.ordem.end()).size() == static_cast<size_t>(Cascata::kMaxClasses));
         primeiras.insert(Cascata::DaVez(p, 0, Cascata::kMaxClasses));
 
-        // O ALUNO CORTOU ESCOPO: com 1 a 8 classes, uma volta passa por todas,
-        // sem repetir, e a volta seguinte repete a ordem.
         for (int prontas = 1; prontas <= Cascata::kMaxClasses; ++prontas) {
             std::set<int> vistas;
             for (int vez = 0; vez < prontas; ++vez) {
@@ -103,7 +100,7 @@ TEST_CASE("Cascata: a ordem das classes e sorteada por luta, e cada classe que e
             CHECK(vistas.size() == static_cast<size_t>(prontas));
         }
     }
-    // A PRIMEIRA A FALAR NAO E SEMPRE A DA ESQUERDA.
+    // A primeira a falar nao e sempre a da esquerda.
     CHECK(primeiras.size() == static_cast<size_t>(Cascata::kMaxClasses));
 }
 

@@ -9,13 +9,8 @@
 
 #include "AttackParams.h"
 
-/**
- * @brief A geracao de tokens: a temperatura do sorteio, os candidatos de
- * angulo e a frase que os tokens formam.
- *
- * Mesmo padrao da CaixaAttackParams: o bloco "tokens" e OPCIONAL em
- * fases.json, e a ponte constroi esta struct para todo ataque TokenAttack.
- */
+/// A geracao de tokens: a temperatura do sorteio, os candidatos de angulo e a frase que os tokens
+/// formam.
 struct TokenAttackParams : AttackParams {
 
     /// A temperatura do sorteio (Temperatura.h). Zero = sempre o mais provavel.

@@ -2,3 +2,5 @@ cmake-build*/
 .idea/
 /Assets/ideias.txt
 Saves
+/build-pacotes/
+/dist/

@@ -7,12 +7,12 @@
 #include <set>
 #include <string>
 
-#include "../Source/Dificuldade.h"
-#include "../Source/Configuracao.h"
+#include "../Source/Regras/Dificuldade.h"
+#include "../Source/Motor/Configuracao.h"
 
 using Dificuldade::Nivel;
 
-TEST_CASE("Dificuldade: cada nivel tem nome, descricao e uma chave que volta a ele") {
+TEST_CASE("Dificuldade: cada nivel tem nome, descricao e uma chave so dele") {
     std::set<std::string> chaves, nomes;
     for (const Nivel n : Dificuldade::kNiveis) {
         CAPTURE(static_cast<int>(n));
@@ -21,24 +21,12 @@ TEST_CASE("Dificuldade: cada nivel tem nome, descricao e uma chave que volta a e
         chaves.insert(Dificuldade::Chave(n));
         nomes.insert(Dificuldade::Nome(n));
 
-        Nivel lido = (n == Nivel::Normal) ? Nivel::Dificil : Nivel::Normal;
-        REQUIRE(Dificuldade::DeChave(Dificuldade::Chave(n), lido));
-        CHECK(lido == n);
-
-        // A CHAVE E ASCII: o arquivo pode ser editado em qualquer editor.
+        // A chave e ASCII: o CSV abre igual em qualquer editor.
         for (const char c : std::string(Dificuldade::Chave(n))) CHECK(static_cast<unsigned char>(c) < 128);
     }
     CHECK(chaves.size() == static_cast<size_t>(Dificuldade::kQuantos));
     CHECK(nomes.size() == static_cast<size_t>(Dificuldade::kQuantos));
     CHECK(std::string(Dificuldade::Nome(Nivel::Dificil)) == "DIF\xc3\x8d" "CIL");
-}
-
-TEST_CASE("Dificuldade: chave desconhecida nao mexe no nivel") {
-    Nivel n = Nivel::Dificil;
-    CHECK_FALSE(Dificuldade::DeChave("dif\xc3\xad" "cil", n));   // com acento nao e a chave
-    CHECK_FALSE(Dificuldade::DeChave("DIFICIL", n));
-    CHECK_FALSE(Dificuldade::DeChave("", n));
-    CHECK(n == Nivel::Dificil);
 }
 
 TEST_CASE("Dificuldade: andar para qualquer lado troca, e da a volta") {
@@ -57,15 +45,11 @@ TEST_CASE("Dificuldade: Escolher devolve o valor do nivel") {
     CHECK(Dificuldade::Escolher(Nivel::Dificil, 0.4f, 0.3f) == doctest::Approx(0.3f));
 }
 
-TEST_CASE("Configuracao: o padrao e o Normal, e o arquivo vai e volta") {
-    CHECK(Configuracao::Dados{}.dificuldade == Nivel::Normal);
-    for (const Nivel n : Dificuldade::kNiveis) {
-        Configuracao::Dados d;
-        d.dificuldade = n;
-        const auto lida = Configuracao::Ler(Configuracao::Serializar(d));
-        CHECK(lida.problemas.empty());
-        CHECK(lida.dados.dificuldade == n);
-    }
+TEST_CASE("Configuracao: a dificuldade nao e opcao da maquina") {
+    CHECK(Configuracao::Serializar(Configuracao::Dados{}).find("dificuldade") == std::string::npos);
+    const auto antigo = Configuracao::Ler("dificuldade=dificil\nhitbox=sim\n");
+    CHECK(antigo.problemas.size() == 1u);
+    CHECK(antigo.dados.mostrarHitbox);
 }
 
 TEST_CASE("Configuracao: arquivo vazio, comentario e linha em branco dao o padrao, sem problema") {
@@ -73,38 +57,32 @@ TEST_CASE("Configuracao: arquivo vazio, comentario e linha em branco dao o padra
         CAPTURE(texto);
         const auto lida = Configuracao::Ler(texto);
         CHECK(lida.problemas.empty());
-        CHECK(lida.dados.dificuldade == Nivel::Normal);
+        CHECK(lida.dados.volumeMusica == Configuracao::kVolumeMaximo);
     }
 }
 
 TEST_CASE("Configuracao: aceita espaco em volta e fim de linha do Windows") {
-    const auto lida = Configuracao::Ler("# x\r\n  dificuldade =  dificil  \r\n");
+    const auto lida = Configuracao::Ler("# x\r\n  volume_musica =  3  \r\n");
     CHECK(lida.problemas.empty());
-    CHECK(lida.dados.dificuldade == Nivel::Dificil);
+    CHECK(lida.dados.volumeMusica == 3);
 }
 
 TEST_CASE("Configuracao: o que nao se entende vira problema, e o resto vale") {
-    SUBCASE("valor desconhecido fica no padrao") {
-        const auto lida = Configuracao::Ler("dificuldade=impossivel\n");
-        REQUIRE(lida.problemas.size() == 1);
-        CHECK(lida.problemas[0].find("linha 1") != std::string::npos);
-        CHECK(lida.dados.dificuldade == Nivel::Normal);
-    }
     SUBCASE("chave desconhecida nao derruba a conhecida") {
-        const auto lida = Configuracao::Ler("volume=7\ndificuldade=dificil\n");
+        const auto lida = Configuracao::Ler("volume=7\nvolume_efeitos=4\n");
         REQUIRE(lida.problemas.size() == 1);
         CHECK(lida.problemas[0].find("volume") != std::string::npos);
-        CHECK(lida.dados.dificuldade == Nivel::Dificil);
+        CHECK(lida.problemas[0].find("linha 1") != std::string::npos);
+        CHECK(lida.dados.volumeEfeitos == 4);
     }
     SUBCASE("linha sem igual") {
         const auto lida = Configuracao::Ler("dificil\n");
         REQUIRE(lida.problemas.size() == 1);
-        CHECK(lida.dados.dificuldade == Nivel::Normal);
     }
     SUBCASE("a ultima linha de uma chave repetida vale") {
-        const auto lida = Configuracao::Ler("dificuldade=dificil\ndificuldade=normal\n");
+        const auto lida = Configuracao::Ler("volume_musica=2\nvolume_musica=5\n");
         CHECK(lida.problemas.empty());
-        CHECK(lida.dados.dificuldade == Nivel::Normal);
+        CHECK(lida.dados.volumeMusica == 5);
     }
 }
 
@@ -116,25 +94,17 @@ TEST_CASE("Configuracao: o volume, a tela cheia e a hitbox vao e voltam, e o pad
     CHECK_FALSE(padrao.mostrarHitbox);
 
     Configuracao::Dados d;
-    d.dificuldade = Nivel::Dificil;
     d.volumeMusica = 0;
     d.volumeEfeitos = 7;
     d.telaCheia = true;
     d.mostrarHitbox = true;
     const auto lida = Configuracao::Ler(Configuracao::Serializar(d));
     CHECK(lida.problemas.empty());
-    CHECK(lida.dados.dificuldade == Nivel::Dificil);
     CHECK(lida.dados.volumeMusica == 0);
     CHECK(lida.dados.volumeEfeitos == 7);
     CHECK(lida.dados.telaCheia);
     CHECK(lida.dados.mostrarHitbox);
 
-    // O ARQUIVO DE ANTES, so com a dificuldade, continua valendo: o resto
-    // fica no padrao, sem problema.
-    const auto antigo = Configuracao::Ler("dificuldade=dificil\n");
-    CHECK(antigo.problemas.empty());
-    CHECK(antigo.dados.volumeMusica == Configuracao::kVolumeMaximo);
-    CHECK_FALSE(antigo.dados.telaCheia);
 }
 
 TEST_CASE("Configuracao: volume fora da faixa e sim/nao estranho viram problema e ficam no padrao") {
@@ -153,4 +123,61 @@ TEST_CASE("Configuracao: o volume anda preso entre mudo e o maximo, e o fator va
     CHECK(Configuracao::FatorDoVolume(0) == 0.0f);
     CHECK(Configuracao::FatorDoVolume(Configuracao::kVolumeMaximo) == 1.0f);
     CHECK(Configuracao::FatorDoVolume(5) == doctest::Approx(0.5f));
+}
+
+TEST_CASE("Dificuldade: no Dificil a invencibilidade depois de um acerto e bem mais curta") {
+    using Dificuldade::Nivel;
+    CHECK(Dificuldade::Invencibilidade(Nivel::Normal) == doctest::Approx(1.2f));
+    CHECK(Dificuldade::Invencibilidade(Nivel::Dificil) <= Dificuldade::Invencibilidade(Nivel::Normal) / 2.0f);
+    // Ainda pisca: abaixo de um piscar (0,1 s) o aluno nem veria que foi acertado.
+    CHECK(Dificuldade::Invencibilidade(Nivel::Dificil) >= 0.3f);
+}
+
+#include "../Source/Regras/Acerto.h"
+
+TEST_CASE("Acerto: o mesmo causador nao acerta de novo antes de 1,2 s, mas outro acerta") {
+    Acerto::Memoria m;
+    int tiroA = 0, tiroB = 0;
+    m.Lembrar(&tiroA, 0.5f);
+    CHECK(m.Lembra(&tiroA, 0.6f));
+    CHECK_FALSE(m.Lembra(&tiroB, 0.6f));   // outro tiro acerta no ritmo do modo
+    m.Avancar(0.6f);
+    CHECK(m.Lembra(&tiroA, 1.1f));         // a parede que continua em cima dele
+    m.Avancar(Acerto::kMesmoCausador);
+    CHECK_FALSE(m.Lembra(&tiroA, 3.0f));   // passado o tempo, acerta de novo
+    CHECK(m.Quantos() == 0u);
+}
+
+TEST_CASE("Acerto: o tiro rapido acerta o que atravessou entre um quadro e o outro") {
+    // A 1600 px/s, num quadro de 0,05 s (o maior que o jogo deixa passar), o tiro anda 80 px: o
+    // alvo de raio 20 no meio do caminho nao aparece em nenhuma das duas pontas, e e acertado.
+    const Vector2 de(100.0f, 400.0f);
+    const Vector2 ate(100.0f, 320.0f);
+    const Vector2 alvo(104.0f, 360.0f);
+    CHECK(Acerto::NoCaminho(de, ate, alvo, 20.0f));
+    CHECK((alvo - de).Length() > 20.0f);
+    CHECK((alvo - ate).Length() > 20.0f);
+    // De lado, longe do caminho, nao.
+    CHECK_FALSE(Acerto::NoCaminho(de, ate, Vector2(140.0f, 360.0f), 20.0f));
+    // Nem o que ficou atras de onde o tiro saiu, nem o que esta adiante de onde ele parou.
+    CHECK_FALSE(Acerto::NoCaminho(de, ate, Vector2(100.0f, 440.0f), 20.0f));
+    CHECK_FALSE(Acerto::NoCaminho(de, ate, Vector2(100.0f, 280.0f), 20.0f));
+    // Na borda conta; parado, e o teste de sempre, o do ponto.
+    CHECK(Acerto::NoCaminho(de, ate, Vector2(120.0f, 360.0f), 20.0f));
+    CHECK(Acerto::NoCaminho(de, de, Vector2(110.0f, 400.0f), 20.0f));
+    CHECK_FALSE(Acerto::NoCaminho(de, de, Vector2(130.0f, 400.0f), 20.0f));
+}
+
+TEST_CASE("Acerto: o pool recicla o endereco, e o tiro novo nao herda a memoria do velho") {
+    Acerto::Memoria m;
+    int tiro = 0;
+    m.Lembrar(&tiro, 2.0f);
+    m.Avancar(0.2f);
+    // O mesmo endereco, mas com 0,1 s de vida: morreu e voltou como outro tiro.
+    CHECK_FALSE(m.Lembra(&tiro, 0.1f));
+    // O corpo do chefe nao envelhece: idade 0 sempre.
+    int corpo = 0;
+    m.Lembrar(&corpo, 0.0f);
+    CHECK(m.Lembra(&corpo, 0.0f));
+    CHECK_FALSE(m.Lembra(nullptr, 0.0f));
 }

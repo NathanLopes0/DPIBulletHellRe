@@ -1,15 +1,8 @@
 {
-  // ==========================================================================
-  // AS REGRAS DE PROJETIL DO LUIZINHO
-  //
-  // Um conjunto por assunto da ementa. Os campos estao documentados em
-  // Documentacao/arquivos-de-dados.md.
-  // ==========================================================================
+  // As regras de projetil do Luizinho.
 
-  // COMPORTAMENTO INDEFINIDO: o caco que estoura do ponteiro pendente nao anda
-  // reto - ninguem sabe o que uma escrita em memoria liberada vai fazer. O
-  // anel sai na direcao certa e cada caco ziguezagueia em volta dela.
-  "indefinido": [
-    { "motion": { "tipo": "Wobble", "amplitude": 35, "frequencia": 2.5, "duracao": 3.0 } }
+  // Os cacos do Termina que estoura no fim do Paradoxo (Termina.h): cada um aponta para onde voa.
+  "contradicao": [
+    { "rotacionar": true }
   ]
 }

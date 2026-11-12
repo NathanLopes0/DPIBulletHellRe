@@ -6,22 +6,8 @@
 
 #include <cstdint>
 
-/**
- * CAMADA PURA.
- *
- * O SALLES POE CAPIVARA EM TODO EXERCICIO DA DISCIPLINA, e de vez em quando
- * ela aparece no meio da fase: atravessa o campo de uma borda a outra, andando,
- * na altura do meio para baixo. Em toda fase dele, com chance kChance, uma vez,
- * num instante sorteado entre kDe e kAte segundos.
- *
- * ELA E UM ABRIGO (DescricaoDeProjetil::abrigo): todo projetil do professor que
- * encosta nela some - todo bicho se da bem com a capivara -, e ela nao machuca
- * ninguem. Quem anda embaixo dela fica protegido. Mas o tiro do aluno some
- * nela tambem: escondido, ele nao acerta o professor.
- *
- * Quem a solta e o Salles (o gatilho "capivara"); aqui fica o sorteio da
- * visita. Coberto por test_capivara.cpp.
- */
+/// O Salles poe capivara em todo exercicio da disciplina, e de vez em quando ela aparece no meio da
+/// fase.
 namespace Capivara {
 
     /// Os nomes que o codigo e os dados dividem. Um teste confere cada um.
@@ -42,13 +28,13 @@ namespace Capivara {
     constexpr const char* kAnuncio = "uma capivara apareceu!";
     constexpr float kAnuncioNaTela = 2.2f;
 
-    /// @brief A visita de uma fase: se ela vem, quando, e de que lado entra.
+    /// A visita de uma fase: se ela vem, quando, e de que lado entra.
     struct Visita {
         bool vem = false;
         float quando = 0.0f;
         bool daEsquerda = true;
     };
 
-    /// @brief A visita, tirada do 'sorteio'. A mesma semente da a mesma visita.
+    /// A visita, tirada do 'sorteio'. A mesma semente da a mesma visita.
     Visita Sortear(std::uint32_t sorteio);
 }

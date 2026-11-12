@@ -14,6 +14,14 @@
 
 using namespace Coercao;
 
+// A igualdade de valores e so do teste: o jogo nunca compara dois.
+namespace Coercao {
+    bool operator==(const Valor& a, const Valor& b) {
+        if (a.tipo != b.tipo) return false;
+        return a.tipo == Tipo::Numero ? a.numero == b.numero : a.texto == b.texto;
+    }
+}
+
 namespace {
     constexpr Forma kTodas[kFormas] = {Forma::JsSoma, Forma::PhpSoma, Forma::PythonSoma,
                                        Forma::JsProduto, Forma::PythonRepete, Forma::HaskellSoma};
@@ -52,7 +60,7 @@ TEST_CASE("Coercao: a mesma soma em quatro linguagens") {
     const Resultado rhs = Avaliar({Forma::HaskellSoma, 3, 4});
     CHECK(rhs.desfecho == Desfecho::ErroDeCompilacao);
 
-    // As quatro escrevem a MESMA expressao.
+    // As quatro escrevem a mesma expressao.
     CHECK(Escrito(Esquerdo(js)) == "3");
     CHECK(Escrito(Direito(js)) == "\"4\"");
     for (const Forma f : {Forma::PhpSoma, Forma::PythonSoma, Forma::HaskellSoma}) {
@@ -107,7 +115,7 @@ TEST_CASE("Coercao: o sorteio da numeros que o anel e a palavra comportam") {
             const Resultado r = Avaliar(c);
             if (r.desfecho != Desfecho::Valor) continue;
             if (r.valor.tipo == Tipo::Numero) {
-                // UM ANEL DE 7 A 16: menos e pouco, e o chip tem a cara do numero.
+                // Um anel de 7 A 16: menos e pouco, e o chip tem a cara do numero.
                 CHECK(r.valor.numero >= 7);
                 CHECK(r.valor.numero <= 16);
                 CHECK(r.valor.numero <= kMaiorNumero);
@@ -131,7 +139,7 @@ TEST_CASE("Coercao: o anel poe um chip na direcao do aluno, com n par ou impar")
             bool acertou = false;
             for (const float a : angulos) acertou = acertou || std::fabs(a - alvo) < 1e-3f;
             CHECK(acertou);
-            // E O ANEL E CHEIO: o ultimo chip fica a um passo do primeiro.
+            // E o anel e cheio: o ultimo chip fica a um passo do primeiro.
             const float volta = angulos.back() - angulos.front() + 360.0f / static_cast<float>(n);
             CHECK(volta == doctest::Approx(360.0f));
         }
@@ -197,7 +205,7 @@ TEST_CASE("Coercao: a ordem da luta embaralha as seis do meio, com o JavaScript 
         CHECK(ordenada == std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7});
         CHECK(OrdemDaFase(ordem.front()) == Forma::JsSoma);
         CHECK(OrdemDaFase(ordem.back()) == Forma::HaskellSoma);
-        // AS MESMAS OITO CONTAS de sempre, so em outra ordem.
+        // As mesmas oito contas de sempre, so em outra ordem.
         std::multiset<int> formas, deSempre;
         for (int k = 0; k < kComandos; ++k) {
             formas.insert(static_cast<int>(Proximo(Variacao::NaOrdem(ordem, k), semente).forma));
@@ -218,7 +226,23 @@ TEST_CASE("Coercao: o degrau do Normal e o de sempre, e o do Dificil voa mais cu
     CHECK(d.voo < n.voo);
     CHECK(d.voo > 0.0f);
     CHECK(d.rapidez > 1.0f);
-    // A troca de chip ainda acontece NO VOO: kCoercao e uma fracao dele.
+    // A troca de chip ainda acontece no voo: kCoercao e uma fracao dele.
     CHECK(kCoercao < 1.0f);
 }
 
+TEST_CASE("Coercao: as contas comecam em horarios sorteados, sem compasso, e cabem na fase") {
+    std::set<int> segundos;
+    for (std::uint32_t s = 0; s < 200; ++s) {
+        const auto h = Coercao::Horarios(s);
+        REQUIRE(static_cast<int>(h.size()) == Coercao::kComandos);
+        CHECK(h.front() == doctest::Approx(Coercao::kPrimeiro));
+        for (size_t k = 1; k < h.size(); ++k) {
+            CHECK(h[k] - h[k - 1] >= Coercao::kMenorIntervalo - 0.001f);
+            CHECK(std::fabs(h[k] - (Coercao::kPrimeiro + Coercao::kPorComando * static_cast<float>(k))) <= Coercao::kFolgaDoHorario + 0.001f);
+        }
+        CHECK(h.back() + Coercao::kMenorIntervalo <= Fase::kDuracao + 0.01f);
+        segundos.insert(static_cast<int>(h[3] * 10.0f));
+    }
+    // A mesma conta, em lutas diferentes, cai em horarios diferentes.
+    CHECK(segundos.size() > 5);
+}

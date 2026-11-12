@@ -19,15 +19,8 @@ namespace {
     /// direcao ate o waypoint, devolve a nova velocidade.
     using RegraDePasso = std::function<Vector2(const Vector2& vel, const Vector2& dir)>;
 
-    /**
-     * Simula, frame a frame, na ORDEM DO MOTOR:
-     *   1. RigidBody integra (pos += vel * dt)   - componentes rodam primeiro
-     *   2. Motion atualiza a velocidade          - Projectile::OnUpdate
-     *   3. Modifiers ajustam o que a Motion fez  - Projectile::OnUpdate
-     *
-     * Motion: ativa em tAtivar, mirando no jogador (como o homing).
-     * Modifier: SlowDown que multiplica a velocidade por 'fator' em tSlowDown.
-     */
+    /// Simula, frame a frame, na ordem do motor: 1. RigidBody integra (pos += vel * dt) -
+    /// componentes rodam primeiro 2.
     Vector2 SimularCaminho(const RegraDePasso& regra, const float tSlowDown, const float fator) {
         Corpo c{Vector2(400.f, 100.f), Vector2(0.f, 200.f)};
         const Vector2 jogador(200.f, 500.f);
@@ -61,21 +54,20 @@ namespace {
         return c.pos;
     }
 
-    /// Referencia: o HomingBehavior original. Aponta UMA vez e se encerra; nada
-    /// mais escreve a velocidade depois disso.
+    /// Referencia: o HomingBehavior original. Aponta uma vez e se encerra; nada mais escreve a
+    /// velocidade depois disso.
     Vector2 SimularHomingOriginal(const float tSlowDown, const float fator) {
         const RegraDePasso naoFazNada = [](const Vector2& vel, const Vector2&) { return vel; };
         return SimularCaminho(naoFazNada, tSlowDown, fator);
     }
 
-    // A regra ANTIGA do PathBehavior: modulo fixo em pathSpeed.
     const RegraDePasso regraAntiga = [](const Vector2&, const Vector2& dir) {
         Vector2 d = dir;
         d.Normalize();
         return d * 200.f;
     };
 
-    // A regra NOVA: preserva o modulo.
+    // A regra nova: preserva o modulo.
     const RegraDePasso regraNova = [](const Vector2& vel, const Vector2& dir) {
         return DirecionarPreservandoModulo(vel, dir, 200.f);
     };
@@ -83,9 +75,7 @@ namespace {
     float Distancia(const Vector2& a, const Vector2& b) { return (a - b).Length(); }
 }
 
-// ---------------------------------------------------------------------------
-// Testes da regra pura
-// ---------------------------------------------------------------------------
+// Testes da regra pura.
 
 TEST_CASE("DirecionarPreservandoModulo: aponta na direcao pedida") {
     const Vector2 v = DirecionarPreservandoModulo(Vector2(0.f, 100.f), Vector2(1.f, 0.f), 50.f);
@@ -109,22 +99,17 @@ TEST_CASE("DirecionarPreservandoModulo: direcao nula mantem a velocidade atual")
     CHECK(v.y == doctest::Approx(20.f));
 }
 
-// ---------------------------------------------------------------------------
-// O defeito, e a prova de que o teste e sensivel a ele
-// ---------------------------------------------------------------------------
+// O defeito, e a prova de que o teste e sensivel a ele.
 
 TEST_CASE("Sem Modifier: as tres regras chegam ao mesmo lugar") {
-    // Controle. Sem SlowDown, modulo fixo e modulo preservado sao identicos,
-    // entao as tres simulacoes devem coincidir. Se este falhar, o problema esta
-    // no simulador, nao nas regras.
+    // Controle.
     const Vector2 homing = SimularHomingOriginal(99.f, 1.0f);
     CHECK(Distancia(SimularCaminho(regraAntiga, 99.f, 1.0f), homing) < 1.0f);
     CHECK(Distancia(SimularCaminho(regraNova,   99.f, 1.0f), homing) < 1.0f);
 }
 
 TEST_CASE("Regra ANTIGA diverge do homing quando ha SlowDown depois da ativacao") {
-    // Documenta o defeito que motivou o commit. Se um dia este teste passar a
-    // falhar, significa que o simulador ficou insensivel ao problema.
+    // Documenta o defeito que motivou o commit.
     const Vector2 homing = SimularHomingOriginal(1.0f, 0.5f);
     const Vector2 antiga = SimularCaminho(regraAntiga, 1.0f, 0.5f);
     CHECK(Distancia(antiga, homing) > 50.0f);
@@ -136,24 +121,12 @@ TEST_CASE("Regra NOVA coincide com o homing mesmo com SlowDown depois da ativaca
     CHECK(Distancia(nova, homing) < 1.0f);
 }
 
-// ---------------------------------------------------------------------------
-// COMMIT 2: equivalencia com os parametros EXATOS do Ricardo
-//
-// Antes de migrar, provamos que a troca nao muda a trajetoria. Os tres casos
-// abaixo sao copiados literalmente do RicardoFactory.cpp.
-// ---------------------------------------------------------------------------
+// Commit 2: equivalencia com os parametros exatos do Ricardo. Antes de migrar, provamos que a troca
+// nao muda a trajetoria.
 
 namespace {
 
-    /**
-     * Simulador parametrizado. Opcionalmente aplica um SlowDown em tSlow, e
-     * ativa a Motion em tAtivar com modulo explicito 'velocidade' - exatamente
-     * como HomingBehavior(tAtivar, velocidade) e PathBehavior(Reta, velocidade,
-     * tAtivar, MirarNoJogador).
-     *
-     * usarCaminho = false simula o HomingBehavior (aponta uma vez, encerra).
-     * usarCaminho = true  simula o PathBehavior   (reaponta todo frame).
-     */
+    /// Simulador parametrizado.
     Vector2 SimularRicardo(const bool usarCaminho, const float tAtivar, const float velocidade,
                            const float tSlow, const float fatorSlow) {
         Corpo c{Vector2(600.f, 180.f), Vector2(40.f, 160.f)};

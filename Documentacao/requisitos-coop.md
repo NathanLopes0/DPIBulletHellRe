@@ -55,7 +55,7 @@ silêncio. D2 e D4 mudaram de resposta, não de pergunta.
 |---|---|---|
 | D1 | Como os dois entram | Opção **"Dois jogadores"** no menu principal, e dali as duas identificações |
 | D2 | A nota | **Uma só, da dupla.** Zerou, a batalha acaba — para os dois, porque não há outra |
-| D3 | Em quem um ataque mirado mira | **Alterna**: um disparo para cada, em revezamento |
+| D3 | Em quem um ataque mirado mira | **Em quem mais incomoda** o professor; empatados, **alterna** um disparo para cada (2.6) |
 | D4 | A dificuldade do co-op | **Levemente mais fácil** que o solo, com desafios a mais (2.1) |
 | D5 | Teclas do jogador 2 | `W A S D` e os botões `F`, `G`, `H` — **feito**, incremento 1 |
 | D6 | Personagem de cada um | Cada um com a sua, do próprio perfil |
@@ -64,6 +64,11 @@ silêncio. D2 e D4 mudaram de resposta, não de pergunta.
 | D9 | O ranking | **Dois**: o Solo, de alunos, e o Co-op, **de duplas** (2.3) |
 | D10 | Passar jogando em co-op | **Destranca** a próxima matéria, igual ao solo |
 | D11 | O Ponto Extra em dupla | **Não limpa a tela: dá ao _outro_ imunidade e um escudo** por 3 s, e o doador **segue atirando** (2.5) |
+| D12 | O que paga cuidar do outro | **A cobertura**: derrubar o projétil que ia no parceiro vale inteiro (2.6) |
+| D13 | Como o aluno sabe o que cobrir | O projétil destrutível que vai num aluno **brilha na cor dele**, com a mesma conta da cobertura (2.6) |
+| D14 | O que paga agir junto | **A sincronia**: os dois Pontos Extras gastos com até meio segundo de diferença soltam, além dos escudos, a onda do solo, do meio dos dois (2.7) |
+| D15 | Como os dois se falam dentro do jogo | **Um canal mínimo**: o coração de quem foi coberto, na cor de quem cobriu, e o sinal do Botão 3 — um anel e um som, sem texto (2.8) |
+| D16 | Como a dupla comemora | **O toca aqui**: no resultado da dupla aprovada, os dois apertam o Botão 3 juntos, os avatares pulam e o título estoura em dourado (2.9) |
 
 ### 2.1 — Uma regra só para a nota compartilhada (D2, D4)
 
@@ -85,7 +90,7 @@ Dividido (ações de um jogador):
   jogador precisa acertar o mesmo tanto que um solo precisaria**. A dupla soma o
   dobro de acertos no mesmo tempo, e cada um vale metade, então a barra sobe no
   ritmo de antes;
-- a **perda por dano sofrido** (`GRADE_CHANGE_DOWN`, 6,0 brutos) — pelo mesmo
+- a **perda por dano sofrido** (`Nota::kPerdaPorAcerto`, 6,0 brutos) — pelo mesmo
   motivo, e é isto que impede o co-op de virar mais difícil. São dois alvos em
   campo; sem dividir a perda, seis brutos por acerto drenariam a barra no dobro
   da velocidade e a dupla zeraria antes do fim da primeira fase.
@@ -104,11 +109,17 @@ Dividido (ações de um jogador):
   dividir seriam 20 na mesma barra. **O efeito dele muda no co-op**: em vez de
   limpar a tela, ele deixa o *outro* aluno imune pelos mesmos três segundos que
   o doador passa sem atirar — ver 2.5.
+- o **raspão** (`Raspao::kGanho`, um terço de um acerto): o projétil que passa
+  rente a um aluno sem acertá-lo é do risco daquele aluno. E o fator da
+  **dúvida perguntada de perto** (`Nota::FatorDePerto`, até 1,5) multiplica o
+  acerto de quem perguntou antes da divisão: cada um arrisca a sua distância.
 
 Pago inteiro (resultado da dupla):
 
 - o **bônus de fase limpa** (12 brutos) — é da fase, não de um jogador, e já
-  ficou mais difícil: exige que **nenhum dos dois** tenha sido atingido.
+  ficou mais difícil: exige que **nenhum dos dois** tenha sido atingido;
+- a **cobertura** (`Cobertura::kGanho`, um acerto inteiro) — o tiro de um
+  protegeu o outro, e isso é da dupla (2.6).
 
 **Com um jogador só, dividir por um não muda nada.** É o que mantém o solo
 sendo o caso normal (RNF4), sem `if` de modo espalhado pela batalha.
@@ -209,11 +220,11 @@ O menu ficou: **Modo Solo, Modo Dupla, Ranking, Opções**.
 ### 2.5 — O Ponto Extra em dupla é do *outro* (D11)
 
 Sozinho, gastar o Ponto Extra limpa a tela. **Em dupla, ele dá ao parceiro
-imunidade e um escudo** por três segundos (`Player::OVERLOAD_DURATION`) — e não
+imunidade e um escudo** por três segundos (`Player::PontoExtra::kSobrecarga`) — e não
 limpa a tela.
 
 **O escudo destrói os projéteis do chefe que encostam nele** (`PontoExtra.h`, a
-regra 0,5 de `Battle::CheckCollisions`, com o mesmo filtro do abrigo: enfeite e
+regra 0,5 de `Battle::VerificarColisoes`, com o mesmo filtro do abrigo: enfeite e
 o que está num posto ficam). Ele se vê: um anel azul em volta do parceiro, que
 pulsa mais depressa no fim, e um **feixe** que corre de quem gastou até ele no
 instante do Ponto Extra. Antes a única pista era o aluno piscar azul, e no meio
@@ -233,7 +244,7 @@ item deixa de ser um botão de pânico e vira uma decisão sobre o outro, que é
 que um modo cooperativo deveria cobrar.
 
 
-A imunidade entrou dentro de `Player::GetIsInvincible`, junto com os quadros de
+A imunidade entrou dentro de `Player::EstaInvencivel`, junto com os quadros de
 graça de quem apanhou: as duas respondem a mesma pergunta — "um tiro encosta
 neste aluno agora?" — e as regras 1 e 3 da batalha já perguntavam isso, então
 a colisão não ganhou linha nenhuma. **O contador, porém, é separado**: os
@@ -241,6 +252,126 @@ quadros de graça duram 1,2 s e piscam, e misturar os dois faria "fui atingido" 
 "estou protegido" terem a mesma cara justamente quando o aluno precisa saber
 qual dos dois é. A imunidade pulsa em **azul**, no mesmo ritmo do vermelho da
 sobrecarga.
+
+### 2.6 — Papéis: a mira vai em quem incomoda, e cobrir o parceiro paga (D3, D12)
+
+O revezamento cego deixava os dois alunos fazendo a mesma coisa: atirar no
+professor e desviar da metade dos mirados. Nada na dupla pedia um papel.
+
+**A mira vai em quem mais incomoda** (`Regras/Papeis.h`). Cada acerto no
+professor soma um ao incômodo de quem perguntou, e o incômodo cai pela metade a
+cada 2 s (`Papeis::kMeiaVida`). Quando o de um passa 1,5 vez o do outro, mais 2
+(`kRazao`, `kMinimo`), os ataques mirados ficam nele; abaixo disso os dois
+revezam, como sempre — dois alunos que atiram no mesmo ritmo não tiram a mira um
+do outro a cada tiro. Com um aluno só, nada muda. O `IndiceDoAlvo` é o único
+lugar que pergunta, e a vez que um chefe dá de propósito (`DarAVez`, num
+`Disparar` com alvo) continua valendo para aquele disparo. Um **v** vermelho
+pulsa em cima de quem está na mira, e só enquanto ela está presa: revezando, ele
+trocaria de aluno a cada disparo e não diria nada.
+
+**Cobrir o parceiro paga** (`Regras/Cobertura.h`). O tiro de um aluno que
+derruba um projétil a caminho do outro vale um acerto **inteiro**
+(`Cobertura::kGanho`), sem a divisão — o dobro do acerto repartido —, com uma
+derrubada dourada e o anel na cor de quem cobriu. "A caminho" é pelo caminho, e
+não pelo alvo que o projétil guarda (2.1b): um anel inteiro nasce "do" aluno da
+vez, e só o pedaço que ia passar por ele era perigo. Conta o projétil que, em
+linha reta, passaria na faixa do raspão do parceiro no próximo segundo; o
+parceiro que nada atinge (o escudo do Ponto Extra, a piscada de quem apanhou)
+não precisava de cobertura.
+
+**E a cobertura se vê antes de acontecer.** O tiro só sobe: cobre quem está
+embaixo do projétil, entre ele e o parceiro. Sem aviso, isso só acontecia por
+acaso — nas medições, 1,7 cobertura por luta, quase todas sem querer. Por isso
+o projétil destrutível que vai num aluno **brilha na cor dele**, por fora do
+contorno vermelho (`Battle::MarcarOCaminhoDosAlunos`): para o parceiro, o brilho
+quer dizer "derrubar este é cobertura". A conta é a mesma da cobertura
+(`Cobertura::VaiNele`), para o brilho nunca prometer o que não paga; quando o
+projétil vai nos dois, brilha na cor do que ele pega primeiro
+(`Cobertura::AlunoNoCaminho`). O contorno vermelho continua dizendo o que se
+destrói; o brilho é leve, pulsa devagar e todos juntos (`Hud::AlfaDoBrilho`), e
+sozinho não aparece — não há quem cubra.
+
+Juntas, as duas regras fazem os papéis aparecerem sem botão nem escolha de
+classe: quem ataca chama a mira e desvia dela; quem cobre ataca menos, fica livre
+dos mirados e ganha nota protegendo. Trocar de papel é só mudar o que se faz.
+
+**E o resultado mostra a parte de cada um** (`Interface/Devolutiva.h`): uma linha
+por aluno, na cor dele, com os acertos no professor, as coberturas e os acertos
+sofridos. Com a nota sendo uma só, sem isso quem cobriu não teria como saber que
+o trabalho dele contou — nem o parceiro.
+
+### 2.7 — Sincronia: os dois Pontos Extras juntos soltam a onda (D14)
+
+Nada na dupla pedia que os dois fizessem algo **ao mesmo tempo**: a cobertura é
+de um, o escudo é de um para o outro. A sincronia é a sinergia entre habilidades
+(Rocha et al.): **os dois gastam o Ponto Extra com até meio segundo de diferença**
+(`PontoExtra::kJanelaDaSincronia`) e, além dos dois escudos de sempre, a onda
+dourada do solo sai **do meio dos dois** e varre a tela.
+
+**Ela não desmente a 2.5.** Um Ponto Extra sozinho continua sem limpar a tela;
+a onda só vem quando a dupla gasta **o estoque inteiro do momento**, os dois
+juntos. Pelos dois, ela leva os dois escudos e uma onda — mais que a soma, e é
+isso que faz valer a pena combinar ("Agora!") em vez de cada um gastar quando
+quer. Meio segundo cabe um aviso falado em voz alta, e é bem menos que a espera
+de três segundos entre dois gastos do mesmo aluno: cada gasto vale uma
+sincronia só.
+
+A sincronia é contada no `tentativas.csv` (`sincronias`), e
+`--condicao sem-sincronia` a tira do jogo sem tirar da medida: o gasto junto
+continua contado, só a onda não sai.
+
+### 2.8 — Comunicação mínima: o valeu e o sinal (D15)
+
+Dois alunos lado a lado no gabinete conversam; dois **desconhecidos**, num
+corredor barulhento, quase não. E quem cobria o parceiro só ficava sabendo que
+contou no resultado. Um canal mínimo resolve os dois — como em Journey, em que
+um único "canto" basta para dois estranhos se acompanharem (Isbister) — e é a
+vocalização que faltava entre os padrões de cooperação (El-Nasr et al.).
+
+**O valeu é automático** (`Interface/Comunicacao.h`). A cobertura paga, e um
+**coração** sobe da cabeça de quem foi coberto, na **cor de quem cobriu**, e
+apaga em menos de um segundo. Os dois veem, no instante, que a ajuda aconteceu
+— gratidão sem precisar dizer. Ele nasce acima do "v" da mira, que costuma
+estar sobre o mesmo aluno.
+
+**O sinal é do aluno.** O **Botão 3**, na batalha em dupla, solta um anel na
+cor de quem apertou e um som curto (`Assets/Sounds/sinal.wav`, gerado por
+`Ferramentas/gerar_sons.py`): "estou aqui", "vem", "agora". Vale o aperto, e
+não o botão segurado, com um segundo de espera entre dois sinais do mesmo
+aluno. **No TCC o Botão 3 continua sendo o poder do orientador**, e não há
+sinal.
+
+**Sem texto, de propósito.** Um balão de fala no meio da batalha já saiu uma
+vez por poluir o campo; um anel e um ícone se leem de relance. No solo não há
+nem um nem outro: não há com quem falar.
+
+Os sinais são contados no `tentativas.csv` (`sinais`). `--condicao sem-valeu`
+tira o coração, e `--condicao sem-sinal` tira o anel e o som — os sinais
+continuam contados, para comparar quanto a dupla tenta se chamar com e sem
+resposta do jogo. Sem a cobertura (`sem-cobertura`), não há valeu: ele é a
+parte visível dela.
+
+### 2.9 — O toca aqui: a dupla aprovada comemora junta (D16)
+
+A nota é uma só, e o sucesso também — mas nada no jogo deixava a dupla
+**comemorar junta**. Nas observações de El-Nasr et al., as risadas e a
+empolgação **juntas** vinham sobretudo de animações e momentos visuais; na de
+Emmerich e Masuch, "compartilhar o sucesso" é uma categoria própria de
+interação; e movimento coordenado aproxima (Isbister).
+
+**Na dupla aprovada, o resultado mostra os dois avatares** dos lados do título,
+como na formatura. O rodapé ensina: **"BOTÃO 3 JUNTOS — toca aqui"**. Os dois
+apertando com até meio segundo de diferença (`Comunicacao::kJanelaDoToque`), os
+avatares **pulam**, o título **estoura em dourado** — uma coroa de raios em cima
+e embaixo dele, que não cobre a palavra nem os avatares — e se ouve uma
+**palma** (`Assets/Sounds/toque.wav`, de `Ferramentas/gerar_sons.py`). Pode
+comemorar de novo, com uma espera curta entre dois toques. O aperto que vinha
+segurado da batalha não conta: só o que vem depois da trava do menu.
+
+O CSV da tentativa já foi gravado quando o resultado aparece, então cada toque
+vai para um arquivo à parte, `tentativas_toques.csv`, ligado à tentativa pelo
+`id`. `--condicao sem-toque` tira o pulo, o estouro, a palma e a dica do rodapé,
+e continua contando os toques.
 
 ## 3. Requisitos funcionais
 
@@ -270,6 +401,11 @@ nomeando o parceiro.
 ### RF6 — Os dois rankings
 A tela de ranking mostra **Solo** ou **Co-op**, alternados por um botão. O Solo
 é o de hoje, de alunos. O Co-op é de duplas, e sai das mesmas fichas.
+
+> **Depois:** com o modo Difícil, as listas viraram **quatro** — Normal,
+> Difícil, Normal em dupla e Difícil em dupla —, trocadas com o manche. Cada
+> nível tem o próprio recorde na ficha (versão 6) e o próprio topo; o
+> desbloqueio (D10) continua olhando a maior nota de todas.
 
 **Uma dupla com visitante não entra no ranking**, porque visitante não tem
 ficha. O aluno identificado guarda a nota (e com ela o desbloqueio de D10), com
@@ -335,9 +471,12 @@ grep -rn "GetPlayer()" --include=*.cpp Source | grep -v Scenes/Battle/
 
 `mPlayer` vira lista. Os onze usos de `mPlayer->` passam a varrer a lista:
 pausa, retomada, as duas regras de colisão, apanhar Ponto Extra e a
-invencibilidade da tela de vitória. `GradeUp` e `GradeDown` dividem pelo
-tamanho dela (2.1). `FinishBattle` grava a MESMA nota em duas fichas, marcada
+invencibilidade da tela de vitória. `SubirNota` e `DescerNota` dividem pelo
+tamanho dela (2.1). `EncerrarBatalha` grava a MESMA nota em duas fichas, marcada
 como co-op.
+
+> Hoje essa conta mora em `Nota::Conta` (`Regras/ContaDaNota.h`): `PorJogador`,
+> `Subir` e `Descer`, que a `Battle` chama. As colisões saíram para `Colisoes`.
 
 **`mGrade`, `mAcertosSofridos` e `mAcertosNaFase` ficam como estão.** Na
 primeira versão deste documento os três viravam plurais; a nota compartilhada
@@ -411,9 +550,11 @@ igual ao do solo, e que o "levemente" vem de uma coisa só — os ataques mirado
 se dividindo entre os dois. Se isso valesse muito, entraria um fator.
 
 **Como foi medido.** `Ferramentas/medir-dificuldade.sh` — rodá-lo reproduz os
-números abaixo. Ele monta uma cópia da árvore com tudo preso: a mesma batalha
-(fase 0), semente fixa, passo de tempo fixo de 0,016 s, tiro automático e um
-piloto no lugar do jogador. Seis sementes,
+números abaixo. Ele roda o jogo no modo de simulação (`build-e-testes.md`) com
+tudo preso: a mesma batalha (fase 0), semente fixa, passo de tempo fixo de
+0,016 s, tiro automático e um piloto no lugar do jogador. (Quando estes números
+foram tirados, o mesmo era feito remendando uma cópia da árvore; os ganchos
+passaram para dentro do jogo depois, com as mesmas contas.) Seis sementes,
 cada uma rodada com um e com dois jogadores. Seis, e não uma: com dois jogadores
 há mais colisões, e cada colisão consome números do mesmo sorteador global, então
 a sequência de ataques diverge da do solo depois do primeiro acerto. Uma corrida
@@ -435,9 +576,9 @@ q00420   nota=48,96            nota=40,00     <- sete segundos sem ganhar nada
 
 A dupla ficava em 40,00 cravados. Não era dificuldade: **eles não estavam
 acertando o chefe uma vez sequer.** O tiro do jogador sobe reto
-(`Player::Shoot`: velocidade `(0, -800)`), o chefe nasce no meio da tela, e o
+(`Player::Atirar`: velocidade `(0, -800)`), o chefe nasce no meio da tela, e o
 jogador solo nasce no meio também — parado, ele acerta de graça. Os dois da
-dupla nascem a 1/3 e 2/3 da largura (`Battle::LoadPlayer`), e parados atiram no
+dupla nascem a 1/3 e 2/3 da largura (`Battle::CriarJogadores`), e parados atiram no
 vazio. O arnês estava medindo a **posição de nascimento**.
 
 Isso é uma informação sobre o jogo, e não só sobre a medição: **numa dupla, só

@@ -5,7 +5,6 @@
 #ifndef DPIBULLETHELLRE_BUTTON_H
 #define DPIBULLETHELLRE_BUTTON_H
 
-
 #include "../Actor.h"
 
 class Button : public Actor {
@@ -16,10 +15,8 @@ public:
     virtual void OnClick();
 
     void ChangeSelected() { mIsSelected = !mIsSelected; }
-    [[nodiscard]] bool IsSelected() const { return mIsSelected; }
 
 private:
-
 
 protected:
     int mWidth{};
@@ -27,5 +24,4 @@ protected:
     bool mIsSelected = false;
 };
 
-
-#endif //DPIBULLETHELLRE_BUTTON_H
+#endif // DPIBULLETHELLRE_BUTTON_H.

@@ -38,8 +38,7 @@ std::vector<std::unique_ptr<Projectile>> CaixaAttack::Execute(const AttackParams
         auto projectile = Acquire();
         if (!projectile) continue;
 
-        // NASCE NO CONTORNO E JA ANDANDO. Sem DeactivateBehavior: a caixa tem de
-        // aparecer inteira no primeiro quadro, ou a div seria lida aos pedacos.
+        // Nasce no contorno e ja andando.
         projectile->SetPosition(params.firePosition + ponto);
         if (const auto rb = projectile->GetComponent<RigidBodyComponent>()) {
             rb->SetVelocity(Caixa::Velocidade(ponto, meiaAltura, params.projectileSpeed));

@@ -9,32 +9,17 @@
 #include <vector>
 
 #include "Scene.h"
-#include "../Gabinete.h"
-#include "../Math.h"
+#include "../Aluno/Exportacao.h"
+#include "../Aluno/Ficha.h"
+#include "../Entrada/Borda.h"
+#include "../Motor/Gabinete.h"
+#include "../Motor/Math.h"
 
 class DrawComponent;
 class Font;
 
-/**
- * @brief A TELA DE ATRACAO do gabinete.
- *
- * Um arcade parado num corredor tem um trabalho: convidar quem passa. Ate aqui
- * a maquina ociosa mostrava o menu principal parado, que nao diz o que o jogo e
- * nem que da para jogar.
- *
- * QUEM ABRE ESTA TELA E A OCIOSIDADE, e nao uma opcao de menu: passado o tempo
- * de --ociosidade no menu principal, o Game troca para ca (ver
- * Game::AtualizarGabinete). Fora do gabinete a ociosidade nasce desligada,
- * entao esta tela simplesmente nunca aparece - e e assim que se desenvolve sem
- * ela no caminho.
- *
- * QUALQUER TECLA VOLTA AO MENU. Nao ha o que escolher aqui, entao nao ha botao
- * certo: quem encostou no painel quer jogar.
- *
- * Os cartazes se alternam sozinhos. O relogio e o mesmo Gabinete::Contagem das
- * duas esperas do gabinete - terceiro uso da mesma classe, com a condicao
- * sempre verdadeira.
- */
+/// A tela de atracao do gabinete. Um arcade parado num corredor tem um trabalho: convidar quem
+/// passa. Os cartazes se revezam: a chamada, os melhores do curso e o mural dos formados.
 class Atracao : public Scene {
 public:
     explicit Atracao(Game* game);
@@ -52,14 +37,19 @@ private:
     /// Quantas posicoes do curso cabem no cartaz do ranking.
     static constexpr size_t kQuantasLinhas = 6;
 
+    /// Quantos formados cabem no mural: duas fileiras de quatro.
+    static constexpr size_t kQuantosNoMural = 8;
+    static constexpr size_t kPorFileira = 4;
+    /// O avatar no mural, maior que no campo: e ele que se olha.
+    static constexpr float kEscalaNoMural = 2.0f;
+
     /// Um cartaz e so um conjunto de desenhos que aparecem juntos.
-    ///
-    /// Guarda os COMPONENTES, e nao os atores: a troca de cartaz e ligar e
-    /// desligar desenho, e o Actor nao expoe a lista de componentes dele.
     using Cartaz = std::vector<DrawComponent*>;
 
     Cartaz CriarChamada();
-    Cartaz CriarMelhores();
+    Cartaz CriarMelhores(const std::vector<Exportacao::FichaDeAluno>& fichas);
+    /// Quem passou no TCC, de capelo, dos mais recentes (Mural.h). Vazio se ninguem se formou.
+    Cartaz CriarMural(const std::vector<Exportacao::FichaDeAluno>& fichas, const std::vector<Ficha::Dados>& dados);
 
     /// Deixa visivel so o cartaz da vez.
     void MostrarSomente(size_t qual) const;
@@ -75,9 +65,6 @@ private:
     /// Troca de cartaz. Condicao sempre verdadeira: aqui o tempo nunca para.
     Gabinete::Contagem mTrocaDeCartaz{kSegundosPorCartaz};
 
-    /// A borda de "alguma tecla apertada". Comeca em TRUE porque se chega aqui
-    /// por ociosidade - sem ninguem apertando nada -, mas uma tecla PRESA (um
-    /// botao emperrado do painel) nao pode fazer a tela piscar entre menu e
-    /// atracao para sempre. Exigir a batida nova resolve os dois casos.
-    bool mAlgumaAnterior = true;
+    /// A borda de "alguma tecla apertada".
+    Borda mBordaAlguma{true};
 };

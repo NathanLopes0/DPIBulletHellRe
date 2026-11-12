@@ -10,7 +10,7 @@
 #include <set>
 #include <string>
 
-#include "../Source/Golpe.h"
+#include "../Source/Regras/Golpe.h"
 
 using namespace Golpe;
 
@@ -51,11 +51,11 @@ TEST_CASE("Golpe: todos tem o mesmo peso - uns dois tiros por segundo - e cabem 
             const Rodada r = DaVez(m, k, s);
             REQUIRE(r.duracao > 0.0f);
             tempo += r.duracao;
-            // EM ORDEM DE HORA: o orientador solta o proximo quando a hora dele chega.
+            // Em ordem de hora: o orientador solta o proximo quando a hora dele chega.
             for (size_t i = 1; i < r.tiros.size(); ++i) CHECK(r.tiros[i].quando >= r.tiros[i - 1].quando);
             for (const Tiro& t : r.tiros) {
                 tiros += Finais(t);
-                // TUDO PARTE ANTES DA PROXIMA RODADA: nada se acumula.
+                // Tudo parte antes da proxima rodada: nada se acumula.
                 CHECK(t.quando + t.espera < r.duracao);
                 CHECK(t.velocidade > 0.0f);
             }
@@ -64,8 +64,7 @@ TEST_CASE("Golpe: todos tem o mesmo peso - uns dois tiros por segundo - e cabem 
         CHECK(porSegundo > 1.6f);
         CHECK(porSegundo < 2.4f);
     }
-    // O OBSERVER: um a cada kNotificacoes tiros do aluno, que da um a cada
-    // 0,12 s - uns dois por segundo tambem.
+    // O observer: um a cada kNotificacoes tiros do aluno, que da um a cada 0,12 s.
     CHECK(Notificacoes(3, 0) == 0);
     CHECK(Notificacoes(4, 0) == 1);
     CHECK(Notificacoes(9, 1) == 1);
@@ -83,7 +82,7 @@ TEST_CASE("Golpe: a pilha desempilha do ultimo para o primeiro, e o COMMIT manda
     for (const Tiro& t : pilha.tiros) ultimoPush = std::max(ultimoPush, t.quando);
     for (size_t i = 0; i < pilha.tiros.size(); ++i) {
         const Tiro& t = pilha.tiros[i];
-        CHECK(t.quando + t.espera > ultimoPush);   // o POP vem depois do ultimo PUSH
+        CHECK(t.quando + t.espera > ultimoPush);   // O pop vem depois do ultimo push.
         if (i > 0) {
             const Tiro& antes = pilha.tiros[i - 1];
             CHECK(t.dy < antes.dy);                                       // em cima do anterior
@@ -131,7 +130,7 @@ TEST_CASE("Golpe: a janela do TCP cresce, cai pela metade na perda, e recomeca")
         CAPTURE(k);
         CHECK(Janela(k) >= 3);
         CHECK(Janela(k) <= 6);
-        // O DENTE DE SERRA: sobe de um em um, ou cai do 6 para a metade.
+        // O dente de serra: sobe de um em um, ou cai do 6 para a metade.
         const int antes = Janela(k - 1);
         CHECK((Janela(k) == antes + 1 || (antes == 6 && Janela(k) == 3)));
     }
@@ -150,7 +149,7 @@ TEST_CASE("Golpe: o ponteiro curva sem mudar a rapidez, e acha o alvo") {
     }
     CHECK(v.y / v.Length() < -0.999f);   // apontando para o alvo
 
-    // O RUMO: sem desvio, direto no alvo; com o alvo em cima, para cima.
+    // O rumo: sem desvio, direto no alvo; com o alvo em cima, para cima.
     const Vector2 r = Rumo(Vector2(100.0f, 500.0f), Vector2(100.0f, 100.0f), 0.0f);
     CHECK(r.x == doctest::Approx(0.0f));
     CHECK(r.y == doctest::Approx(-1.0f));

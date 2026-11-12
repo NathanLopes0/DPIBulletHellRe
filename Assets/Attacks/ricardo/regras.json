@@ -1,30 +1,8 @@
 {
-  // ==========================================================================
-  // AS REGRAS DE PROJETIL DO RICARDO
-  //
-  // UMA PASTA POR CHEFE: Assets/Attacks/ricardo/. Cada chave e um conjunto de
-  // regras, e e por esse nome que um ataque do fases.json ao lado o pede:
-  //     "regras": "palavra"
-  //
-  // OS NOMES PERDERAM O PREFIXO DO PROFESSOR. Eram "fase2" porque
-  // um arquivo so com todos os conjuntos precisava evitar colisao; com uma pasta
-  // por chefe, o prefixo passou a repetir o nome da pasta.
-  //
-  // UMA REGRA = uma motion (como o projetil se move), modifiers (o que muda nele
-  // com o tempo), uma animacao e uma chance. Tudo opcional: regra so com
-  // "animacao" existe e e legitima.
-  //
-  // OS CAMPOS estao documentados em Documentacao/arquivos-de-dados.md.
-  // ==========================================================================
-  // --------------------------------------------------------------------------
-  // RICARDO - INF 250
-  // --------------------------------------------------------------------------
+  // As regras de projetil do Ricardo. Uma pasta por chefe: Assets/Attacks/ricardo/.
 
-  // FASE 1: a palavra nasce no posto "palavra" - os bits que ainda nao
-  // passaram pela porta - e a fileira de portas no posto "portas". Quem os
-  // procura nos postos e o Ricardo: a cada quadro ele poe a cara da etapa em
-  // cada porta e passa pela porta todo bit que chegou a altura dela, que entao
-  // deixa o posto.
+  // Fase 1: a palavra nasce no posto "palavra" - os bits que ainda nao passaram pela porta - e a
+  // fileira de portas no posto "portas".
   "palavra": [
     { "posto": "palavra" }
   ],
@@ -32,16 +10,14 @@
     { "posto": "portas" }
   ],
 
-  // FASE 2: todo bit do leque nasce no posto "registradores" - e e por ele que
-  // o Ricardo os acha para dar o passo de cada borda do clock.
+  // Fase 2: todo bit do leque nasce no posto "registradores" - e e por ele que o Ricardo os acha
+  // para dar o passo de cada borda do clock.
   "registradores": [
     { "posto": "registradores" }
   ],
 
-  // FASE 3: as molduras dos estagios e os chips das instrucoes nascem nos
-  // postos em que o Ricardo os procura - "estagios" e "pipeline". O que sai
-  // de uma instrucao no estagio dela (a soma, o store) e um bit aceso: o tipo
-  // nasce com a cara do zero.
+  // Fase 3: as molduras dos estagios e os chips das instrucoes nascem nos postos em que o Ricardo
+  // os procura - "estagios" e "pipeline".
   "estagios": [
     { "posto": "estagios" }
   ],
@@ -52,10 +28,8 @@
     { "animacao": "Um" }
   ],
 
-  // FASE FINAL: as quatro placas do Blink, presas ao professor duas de cada
-  // lado e um pouco abaixo dele, no posto "placas" - de onde o Ricardo as poe
-  // e tira do posto "acesas" conforme o LED. Ficam 7,5 s e se soltam: a cada
-  // 8 s ele pluga quatro novas, e as velhas caem.
+  // Fase final: as quatro placas do Blink, presas ao professor duas de cada lado e um pouco abaixo
+  // dele, no posto "placas".
   "placas": [
     { "indices": [0], "posto": "placas",
       "motion": { "tipo": "Ancorar", "dx": -210, "dy": 30,  "duracao": 7.5, "velocidade": 220 } },

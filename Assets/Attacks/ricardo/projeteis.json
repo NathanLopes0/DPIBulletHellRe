@@ -1,35 +1,7 @@
 {
-  // ==========================================================================
-  // OS PROJETEIS DO RICARDO
-  //
-  // UMA PASTA POR CHEFE: Assets/Attacks/ricardo/. A pasta diz de quem e o
-  // arquivo, entao aqui dentro ficam so os nomes que o campo "projetil" de uma
-  // fase usa -> como aquele projetil e montado. Antes era um projeteis.json so,
-  // com um nivel a mais dizendo o nome do chefe; com uma pasta por chefe esse
-  // nivel seria uma segunda fonte da mesma verdade, livre para discordar do
-  // nome da pasta.
-  //
-  // OS CAMPOS estao documentados em Documentacao/arquivos-de-dados.md.
-  //
-  // O que impede um erro de digitacao aqui de chegar ao jogo e
-  // tests/test_arquivos_de_dados.cpp: ele le este arquivo junto com as fases e
-  // com os atlas de verdade, e quebra a suite se um ataque pedir um projetil
-  // que nao existe ou se uma animacao citar um quadro que a folha nao tem.
-  // ==========================================================================
+  // Os projeteis do Ricardo. Uma pasta por chefe: Assets/Attacks/ricardo/.
 
-  // O ARDUINO DE ANTES SAIU NO 132: nenhuma fase o atira mais. A arte dele
-  // (DPIBHRicardoProjectile.png, a original do repositorio) continua em
-  // Assets/Teachers/Projectiles, e e dela que gerar_ricardo.py desenha a Placa
-  // da fase final.
-
-  // O BIT DA FASE 1: um bit de uma palavra de 16, do verde da camiseta dele.
-  // O UM e a celula acesa, que pulsa; o ZERO e so o contorno apagado - e a
-  // PalavraAttack o faz enfeite, que se atravessa. A cara troca na porta
-  // (Ricardo::AtualizarPortas), pelos nomes de Logica.h.
-  //
-  // ESCALA 2,2: 70 px numa coluna de 75. Entre dois uns sobram 5 px, menos que
-  // os 13 do aluno - e a hitbox acompanha a escala. Arte PROVISORIA de
-  // Ferramentas/gerar_ricardo.py.
+  // O bit da fase 1: um bit de uma palavra de 16, do verde da camiseta dele.
   "Bit": {
     "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
     "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",
@@ -42,10 +14,8 @@
     "ordemDeDesenho": 90
   },
 
-  // A PORTA LOGICA DA FASE 1: apontada para baixo - o dado entra por cima e
-  // sai por baixo -, com a entrada B escrita nela. Uma animacao por operacao
-  // e valor de B, com os nomes que Logica::AnimacaoDaPorta monta. Fica atras
-  // dos bits, que passam por cima dela.
+  // A porta logica da fase 1: apontada para baixo - o dado entra por cima e sai por baixo -, com a
+  // entrada B escrita nela.
   "Porta": {
     "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
     "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",
@@ -60,9 +30,7 @@
     "ordemDeDesenho": 88
   },
 
-  // O ESTAGIO DO PIPELINE DA FASE 3: a moldura tracejada, com o nome em cima.
-  // A fileira de cinco e uma PalavraAttack toda de enfeite, e quem poe o nome
-  // de cada uma e o Ricardo, pela ordem - os nomes de Pipeline::NomeDoEstagio.
+  // O estagio do pipeline da fase 3: a moldura tracejada, com o nome em cima.
   "Estagio": {
     "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
     "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",
@@ -74,9 +42,7 @@
     "ordemDeDesenho": 86
   },
 
-  // A INSTRUCAO: o chip com a instrucao de assembly que anda pelo pipeline, e
-  // a BOLHA. Derrubavel com DOIS tiros: a derrubada vira bolha e nao ataca -
-  // e o tiro gasto nela nao chega ao professor, que fica atras do pipeline.
+  // A instrucao: o chip com a instrucao de assembly que anda pelo pipeline, e a bolha.
   "Instrucao": {
     "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
     "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",
@@ -91,9 +57,8 @@
     "resistencia": 2
   },
 
-  // A PLACA DA FASE FINAL: o Arduino da arte original, ampliado, apagada ou
-  // com o LED do pino 13 aceso (as caras de Blink.h). Derrubavel com QUATRO
-  // tiros: desplugada, para de piscar.
+  // A placa da fase final: o Arduino da arte original, ampliado, apagada ou com o led do pino 13
+  // aceso (as caras de Blink.h).
   "Placa": {
     "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
     "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",
@@ -107,7 +72,7 @@
     "resistencia": 4
   },
 
-  // O LED: o tiro da placa que acende.
+  // O led: o tiro da placa que acende.
   "Led": {
     "sprite": "Teachers/Projectiles/DPIBHRicardoLogica.png",
     "dados":  "Teachers/Projectiles/DPIBHRicardoLogica.json",

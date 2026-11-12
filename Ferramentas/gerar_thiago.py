@@ -113,8 +113,8 @@ TINTA_SUJA = (150, 24, 18, 255)
 def dados():
     """Os quadros da folha, na ordem de Banco::Cara: 0 a 99 os numeros, depois
     os oito nomes, os tres cursos e os cinco cabecalhos - e, a partir do 116,
-    os numeros SUJOS de 0 a 99: o valor escrito por uma transacao que ainda nao
-    fez COMMIT (Transacao.h), em vermelho."""
+    os numeros SUJOS de 0 a 99: a nota nova de um UPDATE preparado por uma
+    transacao que ainda nao fez COMMIT (Transacao.h), em vermelho."""
     quadros = [chip(str(v), PAPEL, PAPEL_BORDA, TINTA_DADO, 17) for v in range(100)]
     quadros += [chip(n, PAPEL, PAPEL_BORDA, TINTA_DADO, 16) for n in NOMES]
     quadros += [chip(c, PAPEL, PAPEL_BORDA, TINTA_DADO, 16) for c in CURSOS]
@@ -138,17 +138,95 @@ def aviso():
     return folha, 2
 
 
-def escrita():
-    """A escrita de uma transacao (Transacao.h): o lapis do UPDATE, que voa
-    do professor ate a casa e fica la ate o COMMIT ou o ROLLBACK."""
-    s = 4
-    im = Image.new("RGBA", (24 * s, 24 * s), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    d.ellipse([2 * s, 2 * s, 21 * s, 21 * s], fill=(214, 70, 56, 235), outline=(255, 214, 200, 255), width=2 * s)
-    # o lapis, inclinado
-    d.line([7 * s, 16 * s, 16 * s, 7 * s], fill=(255, 240, 230, 255), width=3 * s)
-    d.polygon([(6 * s, 17 * s), (8 * s, 14 * s), (9 * s, 18 * s)], fill=(255, 240, 230, 255))
-    return im.resize((24, 24), Image.LANCZOS), 1
+# As cores das duas transacoes abertas (Transacao::kGanchos) e a do DELETE da fase 2.
+CIANO = (90, 200, 255)
+MAGENTA = (236, 112, 222)
+VERMELHO = (240, 92, 82)
+SAIRA = os.path.join(RAIZ, "Assets", "Fonts", "SairaSemiCondensed-SemiBold.ttf")
+
+
+def rascunho():
+    """O rascunho de uma operacao preparada (Transacao.h), na cor da transacao, e
+    o risco da linha que o DELETE da fase 2 vai apagar (Dml.h): quadros do tamanho
+    da casa (60x46, na escala 4), hachurados como um rascunho, em dois tons para
+    pulsar. A ordem e a das animacoes: Riscado, Ciano, CianoRiscado, Magenta,
+    MagentaRiscado. O risco atravessa a casa de ponta a ponta: na linha, os cinco
+    viram um traco so."""
+    largo, alto = 60, 46
+    variantes = [(VERMELHO, True), (CIANO, False), (CIANO, True), (MAGENTA, False), (MAGENTA, True)]
+    folha = Image.new("RGBA", (largo * 2 * len(variantes), alto), (0, 0, 0, 0))
+    for v, (cor, riscado) in enumerate(variantes):
+        for f, alfa in enumerate((30, 62)):
+            im = Image.new("RGBA", (largo, alto), (0, 0, 0, 0))
+            d = ImageDraw.Draw(im)
+            d.rectangle([1, 1, largo - 2, alto - 2], fill=cor + (alfa,))
+            # A hachura do rascunho, em diagonal.
+            for k in range(-alto, largo, 7):
+                d.line([(k, alto - 2), (k + alto, -2)], fill=cor + (alfa + 40,), width=1)
+            # A borda tracejada.
+            for x in range(1, largo - 1, 6):
+                d.line([(x, 1), (min(x + 3, largo - 2), 1)], fill=cor + (220,))
+                d.line([(x, alto - 2), (min(x + 3, largo - 2), alto - 2)], fill=cor + (220,))
+            for y in range(1, alto - 1, 6):
+                d.line([(1, y), (1, min(y + 3, alto - 2))], fill=cor + (220,))
+                d.line([(largo - 2, y), (largo - 2, min(y + 3, alto - 2))], fill=cor + (220,))
+            if riscado:
+                d.rectangle([0, alto // 2 - 2, largo - 1, alto // 2 + 1], fill=cor + (235,))
+            folha.alpha_composite(im, ((v * 2 + f) * largo, 0))
+    return folha, len(variantes) * 2
+
+
+def selo():
+    """O selo de uma transacao aberta (Transacao.h): um lacre de borda dentada com
+    o numero dela, de T1 a T9, nas duas cores. Cada um em dois quadros, o normal e
+    o aceso, que piscam juntos quando o COMMIT esta perto. A ordem: para cada cor,
+    para cada numero, o normal e o aceso."""
+    from PIL import ImageFont
+    import math
+    lado, s = 40, 4
+    fonte = ImageFont.truetype(SAIRA, 15 * s)
+    quadros = []
+    for cor in (CIANO, MAGENTA):
+        escura = tuple(int(c * 0.45) for c in cor) + (255,)
+        for numero in range(1, 10):
+            for aceso in (False, True):
+                im = Image.new("RGBA", (lado * s, lado * s), (0, 0, 0, 0))
+                d = ImageDraw.Draw(im)
+                meio = lado * s / 2
+                # A borda dentada do lacre.
+                pontas = []
+                for k in range(32):
+                    raio = (19 if k % 2 == 0 else 16.5) * s
+                    a = math.pi * 2 * k / 32
+                    pontas.append((meio + raio * math.cos(a), meio + raio * math.sin(a)))
+                d.polygon(pontas, fill=escura)
+                claro = tuple(min(255, int(c + (255 - c) * (0.55 if aceso else 0.15))) for c in cor) + (255,)
+                r = 14.5 * s
+                d.ellipse([meio - r, meio - r, meio + r, meio + r], fill=claro,
+                          outline=(255, 255, 255, 255) if aceso else escura, width=2 * s)
+                d.text((meio, meio + 1 * s), f"T{numero}", fill=(18, 24, 38, 255), font=fonte, anchor="mm")
+                quadros.append(im.resize((lado, lado), Image.LANCZOS))
+    colunas = 6
+    linhas = (len(quadros) + colunas - 1) // colunas
+    folha = Image.new("RGBA", (lado * colunas, lado * linhas), (0, 0, 0, 0))
+    for i, q in enumerate(quadros):
+        folha.alpha_composite(q, ((i % colunas) * lado, (i // colunas) * lado))
+    return folha, len(quadros)
+
+
+def caco():
+    """O caco de um valor que caiu e se espatifou no chao (Dml.h): um triangulo de
+    papel da casa com a borda vermelha, em dois giros."""
+    lado, s = 12, 4
+    folha = Image.new("RGBA", (lado * 2, lado), (0, 0, 0, 0))
+    formas = [[(6, 1), (11, 10), (1, 9)], [(1, 2), (11, 4), (5, 11)]]
+    for i, forma in enumerate(formas):
+        im = Image.new("RGBA", (lado * s, lado * s), (0, 0, 0, 0))
+        d = ImageDraw.Draw(im)
+        d.polygon([(x * s, y * s) for x, y in forma], fill=(250, 214, 206, 255), outline=VERMELHO + (255,))
+        d.line([(x * s, y * s) for x, y in forma + [forma[0]]], fill=VERMELHO + (255,), width=1 * s)
+        folha.alpha_composite(im.resize((lado, lado), Image.LANCZOS), (i * lado, 0))
+    return folha, 2
 
 
 def folha_json(nome, w, h, largo, alto, quadros):
@@ -185,5 +263,9 @@ if __name__ == "__main__":
     grava_folha(folha, "DPIBHThiagoDados", "Assets/Teachers/Projectiles", LARGO, ALTO, n)
     folha, n = aviso()
     grava_folha(folha, "DPIBHThiagoAviso", "Assets/Teachers/Projectiles", 60, 46, n)
-    folha, n = escrita()
-    grava_folha(folha, "DPIBHThiagoEscrita", "Assets/Teachers/Projectiles", 24, 24, n)
+    folha, n = rascunho()
+    grava_folha(folha, "DPIBHThiagoRascunho", "Assets/Teachers/Projectiles", 60, 46, n)
+    folha, n = selo()
+    grava_folha(folha, "DPIBHThiagoSelo", "Assets/Teachers/Projectiles", 40, 40, n)
+    folha, n = caco()
+    grava_folha(folha, "DPIBHThiagoCaco", "Assets/Teachers/Projectiles", 12, 12, n)

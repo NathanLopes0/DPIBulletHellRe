@@ -19,7 +19,7 @@ namespace {
         Vector2 vel;
     };
 
-    /// Um quadro NA ORDEM DO MOTOR: o RigidBody integra, e so depois a Motion.
+    /// Um quadro na ordem do motor: o RigidBody integra, e so depois a Motion.
     Amarra::Evento Quadro(Amarra::Corda& corda, Letra& l, const Vector2 no) {
         l.pos += l.vel * DT;
         const auto lance = Amarra::Passo(corda, l.pos, l.vel, no, DT);
@@ -43,9 +43,7 @@ TEST_CASE("Amarra: a corda desenrola ate esticar, e dali a letra nao se afasta")
     const Vector2 no(400.0f, 150.0f);
     Letra l{no, Vector2(0.0f, 200.0f)};   // sai do no, para baixo
 
-    // 142 px a 200 px/s sao 42,6 quadros: 42 quadros frouxa, e no 43o a corda
-    // estica. (Um comprimento que caisse num quadro exato, como 140, deixaria
-    // o teste a merce do arredondamento da soma.)
+    // 142 px a 200 px/s sao 42,6 quadros: 42 quadros frouxa, e no 43o a corda estica.
     int frouxa = 0;
     while (Quadro(corda, l, no) != Amarra::Evento::Amarrou) {
         ++frouxa;
@@ -111,12 +109,7 @@ TEST_CASE("Amarra: a letra gira o angulo da velocidade sobre o comprimento") {
 
 TEST_CASE("Amarra: com o no andando, a roda continua sendo uma roda") {
 
-    // O CASO QUE DERRUBOU A PRIMEIRA VERSAO: o professor varre a 200 px/s e a
-    // roda sai a 200 px/s. Girando no espaco da tela, as letras se amontoavam
-    // num arco atras dele, e a que saia para a frente nunca esticava a corda.
-    // E a corda nasce no no, e nao na distancia do primeiro quadro: com ela, a
-    // de tras saia com dois quadros de vantagem, e a roda ficava torta em
-    // 0,024 rad.
+    // E a corda nasce no no, e nao na distancia do primeiro quadro.
     const int n = 8;
     Vector2 no(200.0f, 150.0f);
     std::vector<Amarra::Corda> cordas(n, UmaCorda(140.0f, 10.0f));
@@ -158,8 +151,7 @@ TEST_CASE("Amarra: passada a duracao, a corda e cortada e a letra segue reta pel
     REQUIRE(amarrou >= 0);
     REQUIRE(cortou >= 0);
     CHECK(corda.cortada);
-    // Cortada no primeiro quadro em que o tempo amarrada chegou a 1 s. Em
-    // quadros sao 60 ou 61, conforme o arredondamento da soma de 1/60.
+    // Cortada no primeiro quadro em que o tempo amarrada chegou a 1 s.
     CHECK(corda.amarrada >= 1.0f);
     CHECK(corda.amarrada < 1.0f + DT);
     CHECK(cortou - amarrou >= 60);
@@ -168,7 +160,6 @@ TEST_CASE("Amarra: passada a duracao, a corda e cortada e a letra segue reta pel
     // A velocidade do corte e a tangente: perpendicular a corda.
     CHECK(std::fabs(l.vel.x * l.pos.x + l.vel.y * l.pos.y) < 0.01f * 180.0f * 100.0f);
 
-    // Cortada, a velocidade nao muda mais, e a letra se afasta do no.
     const Vector2 velocidade = l.vel;
     for (int i = 0; i < 60; ++i) {
         Quadro(corda, l, no);
@@ -179,8 +170,7 @@ TEST_CASE("Amarra: passada a duracao, a corda e cortada e a letra segue reta pel
 }
 
 TEST_CASE("Amarra: uma letra parada nao e amarrada, por mais longe que esteja") {
-    // E a letra adormecida de uma WaveAttack: presa a corda sem velocidade, ela
-    // seria arrastada pelo professor sem nunca girar.
+    // E a letra adormecida de uma WaveAttack.
     auto corda = UmaCorda(50.0f, 1.0f);
     Letra l{Vector2(500.0f, 0.0f), Vector2::Zero};
     const auto e = Quadro(corda, l, Vector2(0.0f, 0.0f));

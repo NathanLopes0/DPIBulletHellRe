@@ -29,8 +29,7 @@ namespace Estilo {
                              Tipo::Fixar, Tipo::Hover}) {
             if (t != anterior) tipos.push_back(t);
         }
-        // A GRADE TORTA OU GRANDE TENDE A VOLTAR: o tipo que a desfaz entra de novo
-        // no sorteio, e sai com o dobro da chance.
+        // A grade torta ou grande tende a voltar.
         if (css.rotacao != 0.0f && anterior != Tipo::Girar) tipos.push_back(Tipo::Girar);
         if (css.escala != 1.0f && anterior != Tipo::Escalar) tipos.push_back(Tipo::Escalar);
 
@@ -98,11 +97,7 @@ namespace Estilo {
         std::array<Ponto, kCartoes> p{};
         const float a = (css.rotacao + giro) * 3.14159265f / 180.0f;
         const float c = std::cos(a), s = std::sin(a);
-        // TRES LINHAS FLEX DE SEIS ITENS, sempre. O justify-content poe os itens
-        // de cada linha no conteiner, no eixo principal, como o CSS poe
-        // (Flex::Posicoes), cada um do tamanho do gap; as linhas se empilham no
-        // eixo cruzado. O flex-direction: column so troca os eixos: o principal
-        // fica vertical, e a grade deita.
+        // Tres linhas flex de seis itens, sempre.
         const auto principal = Flex::Posicoes(css.justificar, kColunas, css.gap, -kConteiner / 2.0f, kConteiner / 2.0f);
         for (int i = 0; i < kCartoes; ++i) {
             const int linha = i / kColunas, item = i % kColunas;

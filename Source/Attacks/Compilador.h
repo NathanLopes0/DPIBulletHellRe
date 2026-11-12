@@ -8,33 +8,11 @@
 #include <string>
 #include <vector>
 
-#include "../Dificuldade.h"
-#include "../Variacao.h"
+#include "../Regras/Dificuldade.h"
+#include "../Regras/Variacao.h"
 #include "Fase.h"
 
-/**
- * CAMADA PURA. Coberto por test_compilador.cpp.
- *
- * O VLADIMIR TAMBEM DA CONSTRUCAO DE COMPILADORES, e a fase 2 e um compilador
- * trabalhando sobre uma linha de codigo gerada a cada rodada - "x = a + b * 2;":
- *
- *   lexico      o scanner varre a linha e a quebra em TOKENS; cada token
- *               reconhecido cai em coluna. O automato da fase 1 e exatamente
- *               isto: um analisador lexico e um automato finito.
- *   sintatico   o parser monta a ARVORE SINTATICA com a precedencia da
- *               gramatica - o * antes do + -, de baixo para cima; cada
- *               reducao de operador solta um leque.
- *   codigo      a arvore e percorrida em pos-ordem, e cada no gera a
- *               instrucao de uma maquina de pilha - LOAD a, PUSH 2, MUL, ADD,
- *               STORE x -, que sai mirada no aluno.
- *
- * OS IDENTIFICADORES SAO a E b, as letras do Vladimir: caem como as letras
- * caem, o "b" persegue, e o Programa de Intercambio os troca como troca toda
- * letra em voo.
- *
- * Quem desenha, move e atira e o Vladimir; aqui moram a linha, os tokens, a
- * arvore, o codigo, as posicoes e o relogio de cada rodada.
- */
+/// Lexico o scanner varre a linha e a quebra em tokens; cada token reconhecido cai em coluna.
 namespace Compilador {
 
     /// Os nomes que o codigo e os dados dividem.
@@ -45,11 +23,10 @@ namespace Compilador {
     constexpr const char* kGatilhoDoNo = "arvore";           ///< o no que sobe para a arvore
     constexpr const char* kGatilhoDaReducao = "reduzir";     ///< o leque de cada reducao
     constexpr const char* kGatilhoDaInstrucao = "emitir";    ///< a instrucao de cada no
-    constexpr const char* kGatilhoDoStore = "store";         ///< o anel do STORE, no fim
+    constexpr const char* kGatilhoDoStore = "store";         ///< O anel do store, no fim.
     constexpr const char* kPostoDaArvore = "arvore";         ///< os nos da arvore em campo
 
-
-    // ---- O LEXICO -------------------------------------------------------------
+    // ---- O lexico ----
 
     enum class Tipo { Id, Num, Op, Igual, Fim };
     struct Token {
@@ -57,12 +34,11 @@ namespace Compilador {
         std::string texto;
     };
 
-    /// @brief O scanner: a linha em tokens - letras sao identificadores, um
-    /// algarismo e um numero, + - * sao operadores, = e ; sao eles mesmos. O
-    /// espaco separa e nao vira token.
+    /// O scanner: a linha em tokens - letras sao identificadores, um algarismo e um numero, + - *
+    /// sao operadores, = e ; sao eles mesmos.
     std::vector<Token> Lexico(const std::string& linha);
 
-    // ---- O SINTATICO ----------------------------------------------------------
+    // ---- O sintatico ----
 
     struct No {
         Tipo tipo = Tipo::Id;
@@ -77,34 +53,27 @@ namespace Compilador {
         int raiz = -1;
     };
 
-    /// @brief O parser de "id = expressao ;", com a precedencia de sempre: * antes
-    /// de + e -, e da esquerda para a direita entre iguais. A raiz e o =, com o
-    /// alvo a esquerda e a expressao a direita.
+    /// O parser de "id = expressao ;", com a precedencia de sempre: * antes de + e -, e da esquerda
+    /// para a direita entre iguais.
     Arvore Sintatico(const std::vector<Token>& tokens);
 
-    /// @brief A ORDEM DO PARSER, de baixo para cima: os indices dos nos em
-    /// pos-ordem - as folhas antes de quem as junta, e o = por ultimo.
+    /// A ordem do parser, de baixo para cima: os indices dos nos em pos-ordem - as folhas antes de
+    /// quem as junta, e o = por ultimo.
     std::vector<int> PosOrdem(const Arvore& a);
 
-    // ---- O CODIGO -------------------------------------------------------------
+    // ---- O codigo ----
 
-    /// @brief A instrucao do no, numa maquina de pilha: "LOAD a", "PUSH 2",
-    /// "ADD", "SUB", "MUL", "STORE x". O alvo do = nao gera nada sozinho.
+    /// A instrucao do no, numa maquina de pilha: "LOAD a", "PUSH 2", "ADD", "SUB", "MUL", "STORE
+    /// x". O alvo do = nao gera nada sozinho.
     std::string Instrucao(const Arvore& a, int no);
 
-    /// @brief O codigo da linha: a instrucao de cada no em pos-ordem.
-    std::vector<std::string> Codigo(const Arvore& a);
+    // ---- A linha de cada rodada ----
 
-    /// @brief O valor da expressao com a e b dados - o que o STORE guarda.
-    int Avaliar(const Arvore& a, int a_, int b_);
-
-    // ---- A LINHA DE CADA RODADA ----------------------------------------------
-
-    /// @brief Uma linha "x = ...;" com 2 ou 3 operadores sorteados entre + - *, e
-    /// folhas a, b ou um algarismo - a e b aparecem as duas, sempre.
+    /// Uma linha "x = ...;" com 2 ou 3 operadores sorteados entre + - *, e folhas a, b ou um
+    /// algarismo - a e b aparecem as duas, sempre.
     std::string Gerar(Variacao::Sorteio& s);
 
-    // ---- AS CARAS --------------------------------------------------------------
+    // ---- As caras ----
 
     /// A animacao do token no tipo "Lexema" de vladimir/projeteis.json: "X",
     /// "Igual", "Mais", "Menos", "Vezes", "Fim", "N1" a "N9".
@@ -113,13 +82,11 @@ namespace Compilador {
     /// A animacao da instrucao: "LOAD", "PUSH", "ADD", "SUB", "MUL", "STORE".
     std::string CaraDaInstrucao(const std::string& instrucao);
 
-    /// A animacao do no da arvore: a do lexema dele, menos as folhas a e b, que
-    /// tem ficha propria na cor da letra - "IdA" e "IdB". O no e enfeite, e nao
-    /// a letra que persegue: o nome nao e "A" nem "B" para o intercambio nao o
-    /// confundir com uma.
+    /// A animacao do no da arvore: a do lexema dele, menos as folhas a e b, que tem ficha propria
+    /// na cor da letra - "IdA" e "IdB".
     std::string CaraDoNo(const Arvore& a, int no);
 
-    // ---- AS POSICOES -----------------------------------------------------------
+    // ---- As posicoes ----
 
     struct Ponto { float x = 0.0f; float y = 0.0f; };
 
@@ -133,12 +100,9 @@ namespace Compilador {
     std::vector<Ponto> PosicoesDaLinha(const std::vector<Token>& tokens, float largura);
     std::vector<Ponto> PosicoesDaArvore(const Arvore& a, float largura);
 
-    // ---- O RELOGIO ---------------------------------------------------------------
+    // ---- O relogio ----
 
-    /// Tres rodadas por fase: a primeira kPrimeira depois de abrir, uma a cada
-    /// kRodada. Dentro dela, um token a cada kPorToken, um no a cada kPorNo,
-    /// uma instrucao a cada kPorInstrucao (no Normal), com uma pausa entre as
-    /// etapas.
+    /// Tres rodadas por fase: a primeira kPrimeira depois de abrir, uma a cada kRodada.
     constexpr int kRodadas = 3;
     constexpr float kPrimeira = 0.6f;
     constexpr float kRodada = (Fase::kDuracao - kPrimeira) / static_cast<float>(kRodadas);
@@ -158,26 +122,24 @@ namespace Compilador {
     Marcos MarcosDa(int tokens, int nos, float porInstrucao = kPorInstrucao);
     Etapa EtapaEm(float t, const Marcos& m);
 
-    // ---- O PLACAR -------------------------------------------------------------------
+    // ---- O placar ----
 
-    /// @brief O placar: a linha, e embaixo a etapa - "l\xc3\xa9xico", "sint\xc3\xa1tico" ou a
-    /// instrucao que acabou de sair.
+    /// O placar: a linha, e embaixo a etapa - "l\xc3\xa9xico", "sint\xc3\xa1tico" ou a instrucao
+    /// que acabou de sair.
     std::string Placar(const std::string& linha, Etapa e, const std::string& instrucao = "");
 
+    // ---- A luta sorteada ----
 
-    // ---- A LUTA SORTEADA -----------------------------------------------------------
-
-    /// @brief As linhas das tres rodadas, sorteadas antes do primeiro quadro
-    /// (Variacao.h): cada luta compila outro programa.
+    /// As linhas das tres rodadas, sorteadas antes do primeiro quadro (Variacao.h): cada luta
+    /// compila outro programa.
     struct Plano {
         std::array<std::string, kRodadas> linhas;
     };
     Plano Sortear(Variacao::Sorteio& s);
 
-    // ---- O DEGRAU ------------------------------------------------------------------
+    // ---- O degrau ----
 
-
-    /// @brief O que o Dificil muda: uma instrucao a cada 0,24 s (e nao 0,3).
+    /// O que o Dificil muda: uma instrucao a cada 0,24 s (e nao 0,3).
     struct Degrau {
         float porInstrucao = kPorInstrucao;
     };

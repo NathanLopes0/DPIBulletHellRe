@@ -8,42 +8,14 @@
 #include <string>
 #include <vector>
 
-#include "../Math.h"
-#include "../Variacao.h"
+#include "../Motor/Math.h"
+#include "../Regras/Variacao.h"
 
-/**
- * CAMADA PURA.
- *
- * Na fase 2 da Maria Lucia (Metodos Ageis) cada etapa e uma SPRINT, com o
- * tempo fixo de um timebox. No comeco dela um CURSOR de mouse pega a pilha de
- * historias do professor e a ARRASTA para o quadro, no meio do campo - e o
- * arrastar-e-soltar da IHC, a outra materia que ela da. Ao soltar, as historias
- * se espalham pelas vagas do quadro, e ficam la ate a REVISAO, no fim da
- * sprint: o que o aluno nao entregou (derrubou a tiro) cai em cima dele.
- *
- * O CURSOR ANDA COMO UMA MAO, e as duas contas sao da IHC:
- *
- *   - QUANTO ele leva e a LEI DE FITTS: T = a + b log2(D/L + 1), com D a
- *     distancia e L a largura do alvo. O alvo e o quadro inteiro, entao a
- *     sprint de oito historias, de quadro largo, e arrastada mais depressa que
- *     a de uma so;
- *   - COMO ele vai e o perfil de MINIMO SOLAVANCO (Flash e Hogan, 1985), o do
- *     braco humano apontando: sai devagar, corre no meio e chega devagar.
- *
- * Quem faz isso no jogo e a SprintAttack, com os dois behaviors da sprint
- * (Behaviors.h); aqui ficam so as contas, cobertas por test_sprint.cpp.
- */
+/// Na fase 2 da Maria Lucia (Metodos Ageis) cada etapa e uma sprint, com o tempo fixo de um
+/// timebox.
 namespace Sprint {
 
-    /// O quadro: uma fileira de vagas abaixo de onde o professor anda e acima
-    /// de onde o aluno vive.
-    ///
-    /// A ALTURA E A DIFICULDADE DA FASE, medida: com o quadro no meio do campo
-    /// (450) o codigo das historias chegava ao aluno tao tarde que o piloto
-    /// que persegue a professora levou 1 acerto na fase inteira, e todos os
-    /// outros vieram da propria professora. A 520, 150 px acima do aluno, sao
-    /// as historias que acertam - e o piloto passa nas quatro cadencias de
-    /// codigo que foram medidas, enquanto a 500 reprovava em tres.
+    /// O quadro: uma fileira de vagas abaixo de onde o professor anda e acima de onde o aluno vive.
     struct Quadro {
         float centroX = 600.0f;
         float altura = 520.0f;
@@ -67,9 +39,7 @@ namespace Sprint {
     /// A vaga 'i' de 'n', centradas no quadro.
     Vector2 Vaga(int i, int n, const Quadro& q = {});
 
-    /// Onde a historia 'i' fica na pilha, em relacao a ponta do cursor. A ponta
-    /// segura a pilha pelo canto de baixo e da direita: assim a seta, que sai
-    /// da ponta para baixo e para a direita, fica fora dos cartoes.
+    /// Onde a historia 'i' fica na pilha, em relacao a ponta do cursor.
     Vector2 NaPilha(int i);
 
     /// Onde fica o centro do desenho do cursor quando a ponta esta em 'ponta'.
@@ -95,14 +65,11 @@ namespace Sprint {
     /// A revisao de um ataque que nao escreveu "revisao" no bloco "sprint".
     constexpr float kRevisaoPadrao = 2.5f;
 
-    /// O POSTO das historias paradas no quadro (BossProjectile::DefinirPosto):
-    /// e dele que a PontosAttack atira, e a historia em andamento solta o
-    /// codigo dela. Tem de ser um dos nomes de PostoExiste (RegrasDeAtaque.h).
+    /// O posto das historias paradas no quadro (BossProjectile::DefinirPosto). Tem de ser um dos
+    /// nomes de PostoExiste (RegrasDeAtaque.h).
     constexpr const char* kPostoDoQuadro = "quadro";
 
-    /// O plano de uma sprint de 'n' historias saindo de 'origem'. A revisao
-    /// nunca vem antes de as historias chegarem as vagas: se 'revisao' for
-    /// menor que o arraste mais o espalhar, ela vira exatamente isso.
+    /// O plano de uma sprint de 'n' historias saindo de 'origem'.
     Plano Planejar(Vector2 origem, int n, float revisao, const Quadro& q = {}, const Fitts& f = {});
 
     /// Onde a ponta do cursor esta 't' segundos depois do disparo.
@@ -116,24 +83,18 @@ namespace Sprint {
     enum class Gesto { Arrastando, Soltando, Esperando, Clicando, Acabou };
     Gesto GestoDoCursor(const Plano& p, float t);
 
-    // ---- O PLANNING POKER DE CADA LUTA --------------------------------------
+    // ---- O planning poker de cada luta ----
 
-    /// @brief Quantas historias cada sprint tem: as cartas do baralho, uma por
-    /// sprint. A de sempre e a sequencia em ordem - 1, 2, 3, 5 e 8 -, a dos
-    /// "projeteis" de marialucia/fases.json.
+    /// Quantas historias cada sprint tem: as cartas do baralho, uma por sprint.
     constexpr int kSprints = 5;
     using Poker = std::array<int, kSprints>;
     constexpr Poker kBaralho = {1, 2, 3, 5, 8};
 
-    /// @brief O poker desta luta: as quatro primeiras cartas em qualquer
-    /// ordem, e o 8 sempre na ultima sprint - o compromisso grande demais, que
-    /// nao cabe no tempo de ninguem, fecha a fase. O total de historias e o de
-    /// sempre.
+    /// O poker desta luta: as quatro primeiras cartas em qualquer ordem, e o 8 sempre na ultima
+    /// sprint. O total de historias e o de sempre.
     Poker Sortear(Variacao::Sorteio& s);
 
-    /// @brief O placar da sprint 'sprint' (1 a 5) de 'pontos' pontos:
-    /// "Sprint 2 · 3 pontos", e "1 ponto" no singular (o ponto do meio em
-    /// UTF-8, como em marialucia/fases.json).
+    /// O placar da sprint 'sprint' (1 a 5) de 'pontos' pontos.
     std::string Anuncio(int sprint, int pontos);
 }
 

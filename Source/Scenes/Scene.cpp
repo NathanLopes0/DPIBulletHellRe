@@ -2,11 +2,10 @@
 // Created by nslop on 04/04/2024.
 //
 
-
 #include <utility>
 #include <algorithm>
 #include "Scene.h"
-#include "../Game.h"
+#include "../Motor/Game.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawComponent.h"
 
@@ -19,10 +18,9 @@ Scene::Scene(Game* game, const SceneType sceneType) :
 
 Actor* Scene::AddActor(std::unique_ptr<Actor> actor) {
     // A lógica de qual vetor usar continua a mesma.
-    // A mudança está em como capturamos o ponteiro de retorno.
 
     if (mIsUpdatingActors) {
-        // 1. Adicionamos o ator e guardamos a referência para o unique_ptr recém-criado DENTRO do vetor.
+        // 1.
         auto& newActorPtr = mPendingActors.emplace_back(std::move(actor));
         return newActorPtr.get();
     } else {
@@ -32,8 +30,7 @@ Actor* Scene::AddActor(std::unique_ptr<Actor> actor) {
 }
 
 void Scene::ProcessInput(const Uint8* keyState) {
-    // Delega o input para todos os atores da cena - menos com ela congelada,
-    // em que o aluno nao atira nem anda (Scene.h).
+    // Delega o input para todos os atores da cena.
     if (!mAtoresCongelados) {
         for (const auto& actor : mActors) {
             if (actor->GetState() == ActorState::Active) {
@@ -56,19 +53,12 @@ void Scene::Update(float deltaTime) {
     }
     mIsUpdatingActors = false;
 
-
     for(auto& pending : mPendingActors) {
         mActors.emplace_back(std::move(pending));
     }
     mPendingActors.clear();
 
-
-    // A logica especifica da cena roda ANTES da remocao, com todos os atores
-    // ainda vivos. Era o contrario: RemoveDeadActors() destruia os atores
-    // marcados como Destroy e so depois OnUpdate() rodava - entao qualquer cena
-    // que guardasse ponteiros observadores (Battle::mExtraPoints) lia memoria
-    // ja liberada. Isso tambem da a cada cena a chance de limpar suas proprias
-    // listas de ponteiros dentro do OnUpdate, antes dos objetos morrerem.
+    // A logica especifica da cena roda antes da remocao, com todos os atores ainda vivos.
     OnUpdate(deltaTime);
 
     // Remove os atores mortos - ultimo passo do frame.
@@ -83,34 +73,11 @@ void Scene::RemoveDeadActors() {
     mActors.erase(it, mActors.end());
 }
 
-void Scene::AddCollider(ColliderComponent* collider) {
-    mColliders.emplace_back(collider);
-}
-
-void Scene::RemoveCollider(ColliderComponent* collider) {
-    auto iter = std::find(mColliders.begin(), mColliders.end(), collider);
-    if (iter != mColliders.end()) {
-        mColliders.erase(iter);
-    }
-}
-
 void Scene::AddDrawable(DrawComponent* drawable)
 {
     mDrawables.emplace_back(drawable);
 
-    // ESTAVEL, E NAO std::sort. Entre componentes de MESMA ordem de desenho, o
-    // sort comum escolhe uma permutacao qualquer - e escolhe outra a cada vez
-    // que a lista muda de tamanho. O estavel mantem a ordem de ENTRADA, que e
-    // uma regra que da para explicar: entre iguais, quem chegou antes fica por
-    // baixo.
-    //
-    // ISTO NAO E ARRUMACAO: era um defeito, e ele aparecia. Dois projeteis do
-    // chefe que se cruzam tem a mesma ordem, e qual fica por cima decidia o
-    // desenho. Acrescentar TRES componentes na faixa da nota - que desenha
-    // depois dos projeteis e nao encosta neles - trocou de lugar dois cartoes
-    // de uma rajada a 600 px dali. Medido: a mesma batalha, quadro a quadro,
-    // com e sem as tres placas, dava 591 pixels diferentes fora da faixa; com
-    // o estavel, da zero.
+    // Estavel, e nao std::sort.
     std::stable_sort(mDrawables.begin(), mDrawables.end(), [](DrawComponent* a, DrawComponent* b) {
         return a->GetDrawOrder() < b->GetDrawOrder();
     });
@@ -125,13 +92,12 @@ void Scene::RemoveDrawable(DrawComponent* drawable)
     }
 }
 
-
 void Scene::OnProcessInput(const Uint8* keyState) {}
 void Scene::OnUpdate(float deltaTime) {}
 
 SDL_FRect Scene::GetPlayfieldBounds() const
 {
-    // Por padrão, a área é a tela inteira
+    // Por padrão, a área é a tela inteira.
     return {
         0.0f,
         0.0f,

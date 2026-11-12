@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <limits>
 
-#include "../../../Random.h"
+#include "../../../Motor/Random.h"
 #include "../../../Attacks/Alfabeto.h"
 #include "../../../Attacks/Ancora.h"
 #include "../../../Attacks/Behaviors.h"
@@ -67,8 +67,6 @@ void Vladimir::AtualizarFita() {
     const auto* fsm = GetComponent<FSMComponent>();
     const bool naFita = fsm && fsm->GetStateName() == Fita::kFaseDaFita && !EhClone();
     if (!naFita) {
-        // A FASE ACABOU: as marcas que sobraram na fileira saem, a cabeca
-        // some, e o placar volta ao que era.
         if (mNaFita) {
             for (BossProjectile* marca : NoPosto(Fita::kPostoDaFita)) marca->Kill();
             mMarcas.fill(nullptr);
@@ -84,7 +82,7 @@ void Vladimir::AtualizarFita() {
     const auto casa = [&](const int k) { return Vector2(Fita::XDaCasa(k, largura), Fita::kYDaFita); };
 
     if (!mNaFita) {
-        // A FITA EM BRANCO, a cabeca na origem, em q0.
+        // A fita em branco, a cabeca na origem, em q0.
         mNaFita = true;
         mFita = Fita::Inicio(mPlanoDaFita.espelho);
         mProximoPassoDaFita = Fita::kPrimeiroPasso;
@@ -94,8 +92,7 @@ void Vladimir::AtualizarFita() {
         CriarLinhas();
     }
 
-    // A MARCA QUE NAO ESTA MAIS NA FILEIRA sai da conta (o pool pode te-la
-    // dado a outro tiro).
+    // A marca que nao esta mais na fileira sai da conta (o pool pode te-la dado a outro tiro).
     for (BossProjectile*& marca : mMarcas) {
         if (marca && (marca->GetState() != ActorState::Active || marca->Posto() != Fita::kPostoDaFita)) marca = nullptr;
     }
@@ -108,31 +105,27 @@ void Vladimir::AtualizarFita() {
         BossProjectile*& marca = mMarcas[static_cast<size_t>(p.casa)];
 
         if (!p.leu && p.escreveu) {
-            // ESCREVE: a marca nova fica na casa.
+            // Escreve: a marca nova fica na casa.
             const auto nascidas = DispararDe(Fita::kGatilhoDaEscrita, onde, 90.0f, "");
             if (!nascidas.empty()) marca = nascidas.front();
         } else if (p.leu && !p.escreveu) {
-            // APAGA: a marca sai da fita no aluno - um "a", reto, ou, no
-            // Dificil, reescrita como um "b" que persegue.
+            // Apaga: a marca sai da fita no aluno.
             if (marca) { marca->Kill(); marca = nullptr; }
             DispararDe(mDegrauDaFita.apagadaPersegue ? Fita::kGatilhoDaReescrita : Fita::kGatilhoDoApagar,
                        onde, std::nullopt, "");
 
-
         } else if (p.leu && p.escreveu && mDegrauDaFita.relerAtira) {
-            // RELE, NO DIFICIL: a marca fica, e atira uma copia de si no aluno.
+            // Rele, no Dificil: a marca fica, e atira uma copia de si no aluno.
             DispararDe(Fita::kGatilhoDoReler, onde, std::nullopt, "");
         }
 
         RegistrarAnuncio(Fita::kFaseDaFita, Fita::Placar(mFita, p));
         if (mFita.parou) {
-            // PAROU: o anel.
+            // Parou: o anel.
             DispararDe(Fita::kGatilhoDaParada, GetPosition(), 90.0f, "");
         }
     }
 
-    // O PROFESSOR RODA A MAQUINA DO MEIO, inclinado para o lado da cabeca e
-    // ligado a ela pela linha (Fita::XDoProfessor).
     const int naCabeca = std::clamp(mFita.cabeca, 0, Fita::kCasas - 1);
     mAlvo = Vector2(Fita::XDoProfessor(casa(naCabeca).x, largura), Fita::kAlturaDaCabeca);
 
@@ -144,8 +137,7 @@ void Vladimir::DesenharCabeca() {
     mLinhas->Limpar();
     const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
 
-    // A FITA: a fileira de casas, apagada; e a CABECA, o quadro aceso em volta
-    // da casa que ela le - parada, ele fica em cima da ultima.
+    // A fita: a fileira de casas, apagada; e a cabeca, o quadro aceso em volta da casa que ela le.
     const float meia = Fita::kEntreCasas / 2.0f - 3.0f;
     const auto quadro = [&](const float x, const SDL_Color cor) {
         const Vector2 a(x - meia, Fita::kYDaFita - meia), b(x + meia, Fita::kYDaFita - meia);
@@ -183,7 +175,7 @@ void Vladimir::AtualizarParada(const float deltaTime) {
         RegistrarAnuncio(Parada::kFaseDaParada, mAnuncioDaParada);
     }
 
-    // DE LADO A LADO, devagar, e na ALTURA DO VALOR DE X: o granizo.
+    // De lado a lado, devagar, e na altura do valor de x: o granizo.
     if (mScene && mScene->GetGame()) {
         const auto largura = static_cast<float>(mScene->GetGame()->GetWindowWidth());
         mXDaParada += mSentidoDaParada * kVarreduraDaParada * deltaTime;
@@ -196,17 +188,16 @@ void Vladimir::AtualizarParada(const float deltaTime) {
     if (agora < mProximoPassoDaParada) return;
 
     if (mX == 0) {
-        // UM PROGRAMA NOVO, da proxima semente da luta.
+        // Um programa novo, da proxima semente da luta.
         mX = Parada::SementeDaVez(mPlanoDaParada, mProgramaDaVez++);
         mProximoPassoDaParada += mDegrauDaParada.passo;
     } else if (!Parada::Parou(mX)) {
-        // UM PASSO: atira conforme a paridade - a metade sao "a" retos, o
-        // 3x + 1 sao "b" que perseguem -, e da o passo.
+        // Um passo: atira conforme a paridade.
         Disparar(mX % 2u == 0u ? Parada::kGatilhoDaMetade : Parada::kGatilhoDoTriplo, -1, mDegrauDaParada.rapidez);
         mX = Parada::Proximo(mX);
         mProximoPassoDaParada += mDegrauDaParada.passo;
     } else {
-        // PAROU: o anel, e depois de um tempo, outro programa.
+        // Parou: o anel, e depois de um tempo, outro programa.
         Disparar(Parada::kGatilhoDeParar);
         mX = 0;
         mProximoPassoDaParada += Parada::kParado;
@@ -235,23 +226,20 @@ Vector2 Vladimir::CentroDoEstado(const int q) {
 
 std::vector<BossProjectile*> Vladimir::NoPosto(const char* posto) const {
     std::vector<BossProjectile*> achados;
-    const auto* batalha = dynamic_cast<Battle*>(mScene);
-    if (!batalha || !batalha->GetProjectileManager()) return achados;
-    for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+    const auto* batalha = Batalha();
+    if (!batalha || !batalha->GerenteDeProjeteis()) return achados;
+    for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
         if (p && p->GetState() == ActorState::Active && p->Posto() == posto) achados.push_back(p.get());
     }
     return achados;
 }
 
 void Vladimir::OnIntercambio() {
-    const auto* batalha = dynamic_cast<Battle*>(mScene);
-    if (!batalha || !batalha->GetProjectileManager()) return;
+    const auto* batalha = Batalha();
+    if (!batalha || !batalha->GerenteDeProjeteis()) return;
 
-    // TODA LETRA EM VOO TROCA DE LETRA E DE COMPORTAMENTO, no quadro em que os
-    // alunos trocam de lugar. O "a" ganha o Tracking do "b", e o "b" perde o
-    // dele e segue reto no rumo em que estava - o modulo nao muda nos dois
-    // casos, entao nenhuma letra acelera de surpresa.
-    for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+    // O "a" ganha o Tracking do "b", e o "b" perde o dele e segue reto no rumo em que estava.
+    for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
         if (!p || p->GetState() != ActorState::Active) continue;
         auto* anim = p->GetComponent<DrawAnimatedComponent>();
         if (!anim || !Alfabeto::Troca(anim->GetAnimation(), p->Posto(), p->Enfeite())) continue;
@@ -265,8 +253,7 @@ void Vladimir::OnIntercambio() {
         }
     }
 
-    // E O QUE O AUTOMATO AINDA VAI LER TAMBEM TROCA: o placar muda, e com ele
-    // o caminho do professor. O que ja foi lido fica como foi.
+    // E o que o automato ainda vai ler tambem troca: o placar muda, e com ele o caminho do professor.
     if (mNoAutomato && mMomento == Momento::Lendo) {
         Automato::Trocar(mLeitura);
         RegistrarAnuncio(Automato::kFaseDoAutomato, Automato::Configuracao(mLeitura));
@@ -286,8 +273,6 @@ void Vladimir::AtualizarAutomato() {
     const bool noAutomato = fsm && fsm->GetStateName() == Automato::kFaseDoAutomato && !EhClone();
 
     if (!noAutomato) {
-        // A FASE ACABOU: o automato se desfaz, o placar volta ao que o arquivo
-        // diz, e o professor deixa de ter para onde ir.
         if (mNoAutomato) {
             for (BossProjectile* p : NoPosto(Automato::kPostoDosEstados)) p->Kill();
             if (!mAnuncioDoAutomato.empty()) RegistrarAnuncio(Automato::kFaseDoAutomato, mAnuncioDoAutomato);
@@ -320,22 +305,20 @@ void Vladimir::AtualizarAutomato() {
         mProximoPasso += (mMomento == Momento::Lendo && Automato::Terminou(mLeitura)) ? kVeredito : kPasso;
 
         if (mMomento != Momento::Lendo) {
-            // UMA PALAVRA NOVA, sempre do estado inicial: o professor volta ao
-            // q0 sem atirar, e o placar mostra o que ele vai ler.
+            // Uma palavra nova, sempre do estado inicial.
             const auto sorteio = static_cast<std::uint32_t>(Random::GetIntRange(0, std::numeric_limits<int>::max()));
             mLeitura = Automato::Leitura{Automato::Sortear(sorteio), 0, Automato::kInicial};
             mMomento = Momento::Lendo;
             mAlvo = CentroDoEstado(Automato::kInicial);
             RegistrarAnuncio(Automato::kFaseDoAutomato, Automato::Configuracao(mLeitura));
         } else if (!Automato::Terminou(mLeitura)) {
-            // UM SIMBOLO: a letra sai do estado em que ele esta, e ele voa.
+            // Um simbolo: a letra sai do estado em que ele esta, e ele voa.
             const Automato::Passo passo = Automato::Ler(mLeitura);
             Disparar(passo.letra == 'a' ? Automato::kGatilhoDoA : Automato::kGatilhoDoB);
             mAlvo = CentroDoEstado(passo.para);
             RegistrarAnuncio(Automato::kFaseDoAutomato, Automato::Configuracao(mLeitura));
         } else {
-            // O VEREDITO: aceita, e o estado de aceitacao estoura num anel; ou
-            // rejeita, e saem perseguidores de onde ele parou.
+            // O veredito: aceita, e o estado de aceitacao estoura num anel.
             Disparar(Automato::Aceita(mLeitura.estado) ? Automato::kGatilhoDeAceitar
                                                        : Automato::kGatilhoDeRejeitar);
             RegistrarAnuncio(Automato::kFaseDoAutomato, Automato::Veredito(mLeitura));
@@ -343,7 +326,7 @@ void Vladimir::AtualizarAutomato() {
         }
     }
 
-    // O ESTADO EM QUE ELE ESTA FICA ACESO - lendo, ou no veredito.
+    // O estado em que ele esta fica aceso - lendo, ou no veredito.
     const bool lendo = mMomento != Momento::Anuncio;
     for (BossProjectile* p : NoPosto(Automato::kPostoDosEstados)) {
         auto* anim = p->GetComponent<DrawAnimatedComponent>();
@@ -354,13 +337,6 @@ void Vladimir::AtualizarAutomato() {
             if (anim->GetAnimation() != cara) anim->SetAnimation(cara);
         }
     }
-}
-
-Vector2 Vladimir::PosicaoDoAluno() const {
-    if (const auto* battle = dynamic_cast<Battle*>(mScene); battle && battle->Alvo()) {
-        return battle->Alvo()->GetPosition();
-    }
-    return GetPosition() + GetDirectionToPlayer() * GetDistanceToPlayer();
 }
 
 std::vector<BossProjectile*> Vladimir::DispararDe(const char* gatilho, const Vector2 onde,
@@ -388,8 +364,7 @@ void Vladimir::CriarLinhas() {
 }
 
 void Vladimir::ComecarRodada(const int rodada, const float inicio) {
-    // O QUE SOBROU DA LINHA ANTERIOR SAI: a rodada so termina quando o STORE
-    // sai, mas um no que o relogio nao alcancou nao fica no campo.
+    // O que sobrou da linha anterior sai.
     for (BossProjectile* no : NoPosto(Compilador::kPostoDaArvore)) no->Kill();
     mRodada = rodada;
     mInicioDaRodada = inicio;
@@ -416,7 +391,6 @@ void Vladimir::AtualizarCompilador(const float deltaTime) {
     const bool noCompilador = fsm && fsm->GetStateName() == kFaseDoCompilador && !EhClone();
 
     if (!noCompilador) {
-        // A FASE ACABOU: a arvore se desfaz, e o placar volta ao que era.
         if (mNoCompilador) {
             for (BossProjectile* no : NoPosto(kPostoDaArvore)) no->Kill();
             mNos.clear();
@@ -440,7 +414,7 @@ void Vladimir::AtualizarCompilador(const float deltaTime) {
         mAlvo = Vector2(largura / 2.0f, kYDaLinha);
     }
 
-    // UMA RODADA NOVA a cada kRodada, e nao mais que kRodadas.
+    // Uma rodada nova a cada kRodada, e nao mais que kRodadas.
     const float agora = fsm->GetStateTime();
     if (agora >= kPrimeira) {
         const int rodada = std::min(kRodadas - 1, static_cast<int>((agora - kPrimeira) / kRodada));
@@ -449,8 +423,7 @@ void Vladimir::AtualizarCompilador(const float deltaTime) {
     if (mRodada < 0) return;
     const float t = agora - mInicioDaRodada;
 
-    // A FICHA OU O NO QUE NAO ESTA MAIS EM CAMPO sai da conta (o pool pode
-    // te-lo dado a outro tiro).
+    // A ficha ou o no que nao esta mais em campo sai da conta (o pool pode te-lo dado a outro tiro).
     for (auto* lista : {&mNos, &mLexemas}) {
         for (BossProjectile*& p : *lista) {
             if (p && (p->GetState() != ActorState::Active || p->Posto() != kPostoDaArvore)) p = nullptr;
@@ -462,9 +435,7 @@ void Vladimir::AtualizarCompilador(const float deltaTime) {
     };
     const auto nos = static_cast<int>(mOrdem.size());
 
-    // O LEXICO: cada token reconhecido cai em coluna, do lugar dele na linha. O
-    // a e o b caem como as letras caem - o "b" persegue, e o intercambio os
-    // troca em voo.
+    // O lexico: cada token reconhecido cai em coluna, do lugar dele na linha.
     while (mLidos < static_cast<int>(mTokens.size()) && t >= static_cast<float>(mLidos) * kPorToken) {
         const Token& tk = mTokens[static_cast<size_t>(mLidos)];
         const Vector2 onde(mNaLinha[static_cast<size_t>(mLidos)].x, mNaLinha[static_cast<size_t>(mLidos)].y);
@@ -477,8 +448,7 @@ void Vladimir::AtualizarCompilador(const float deltaTime) {
         ++mLidos;
     }
 
-    // O PARSER COMECA: a fila de tokens para onde esta, para ele a pegar - e o
-    // ; , que so termina a linha, sai.
+    // O parser comeca: a fila de tokens para onde esta, para ele a pegar - e o.
     if (!mFilaParada && t >= mMarcos.sintatico) {
         mFilaParada = true;
         for (size_t k = 0; k < mLexemas.size(); ++k) {
@@ -489,16 +459,12 @@ void Vladimir::AtualizarCompilador(const float deltaTime) {
         }
     }
 
-    // O SINTATICO: os nos em pos-ordem, cada um voando de onde o token dele
-    // parou ate o lugar dele na arvore; o operador, reduzido, solta um leque de
-    // si mesmo no aluno.
     while (mMontados < nos && t >= mMarcos.sintatico + static_cast<float>(mMontados) * kPorNo) {
         const int n = mOrdem[static_cast<size_t>(mMontados++)];
         const No& no = mArvore.nos[static_cast<size_t>(n)];
         const auto k = static_cast<size_t>(no.token);
         BossProjectile*& ficha = mLexemas[k];
         if (ficha) {
-            // A FICHA DO TOKEN VIRA O NO: e o mapa agora, e nao tiro.
             ficha->DefinirEnfeite(true);
             if (auto* anim = ficha->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(CaraDoNo(mArvore, n));
             mNos[static_cast<size_t>(n)] = ficha;
@@ -512,9 +478,7 @@ void Vladimir::AtualizarCompilador(const float deltaTime) {
         if (no.tipo == Tipo::Op) DispararDe(kGatilhoDaReducao, lugar(n), std::nullopt, CaraDoLexema(no.texto));
     }
 
-    // A GERACAO DE CODIGO: a arvore percorrida de novo, e cada no some virando
-    // a instrucao dele, mirada no aluno. O alvo do = nao gera nada e espera o
-    // =; o = sai no anel do STORE.
+    // O alvo do = nao gera nada e espera o =; o = sai no anel do store.
     while (mEmitidos < nos && t >= mMarcos.codigo + static_cast<float>(mEmitidos) * mDegrauDoCompilador.porInstrucao) {
         const int n = mOrdem[static_cast<size_t>(mEmitidos++)];
         const std::string instrucao = Instrucao(mArvore, n);
@@ -528,28 +492,20 @@ void Vladimir::AtualizarCompilador(const float deltaTime) {
         RegistrarAnuncio(kFaseDoCompilador, Placar(mLinha, Etapa::Codigo, instrucao));
     }
 
-    // A ETAPA MUDOU: o placar diz qual e (na geracao de codigo, e a
-    // instrucao que acabou de sair).
+    // A etapa mudou: o placar diz qual e (na geracao de codigo, e a instrucao que acabou de sair).
     const Etapa etapa = EtapaEm(t, mMarcos);
     if (etapa != mEtapa) {
         mEtapa = etapa;
         if (etapa != Etapa::Codigo) RegistrarAnuncio(kFaseDoCompilador, Placar(mLinha, etapa));
     }
 
-    // O PROFESSOR VARRE A LINHA no lexico, em cima do token que le, e depois
-    // fica em cima do meio da arvore que monta - a arvore e centrada, e a raiz
-    // fica sempre a esquerda, embaixo do placar. Pulando de no em no, como
-    // era, ele andava a 450 px/s a rodada inteira, e o tiro do aluno - que leva
-    // quase 1 s ate ele - nao o achava mais: o piloto que persegue terminava a
-    // fase com a nota menor do que comecou.
     float x = mScene && mScene->GetGame() ? static_cast<float>(mScene->GetGame()->GetWindowWidth()) / 2.0f
                                           : GetPosition().x;
 
     if (mLidos < static_cast<int>(mTokens.size())) x = mNaLinha[static_cast<size_t>(mLidos)].x;
     mAlvo = Vector2(x, kYDaLinha);
 
-
-    // CADA NO ANDA ATE O LUGAR DELE, e as arestas o seguem.
+    // Cada no anda ate o lugar dele, e as arestas o seguem.
     for (int n = 0; n < static_cast<int>(mNos.size()); ++n) {
         BossProjectile* no = mNos[static_cast<size_t>(n)];
         if (!no) continue;
@@ -576,9 +532,7 @@ void Vladimir::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& pr
                                     const std::string& stateName) {
     Boss::OnProjectilesCreated(projectiles, stateName);
 
-    // O QUE O COMPILADOR OU A FITA SOLTOU: a cara de cada um, e quem nasceu. O
-    // no da arvore e o mapa, como os estados da fase 1: ninguem se machuca
-    // nele.
+    // O que o compilador ou a fita soltou: a cara de cada um, e quem nasceu.
     if (mDisparandoDe) {
         for (auto& p : projectiles) {
             auto* nascido = dynamic_cast<BossProjectile*>(p.get());
@@ -596,8 +550,7 @@ void Vladimir::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& pr
     }
     if (!mFormando) return;
 
-    // O DIAGRAMA E OS ESTADOS SAO O MAPA, e nao tiro: ninguem se machuca neles,
-    // e o tiro do aluno os atravessa.
+    // O diagrama e os estados sao o mapa, e nao tiro.
     for (auto& p : projectiles) {
         auto* parte = dynamic_cast<BossProjectile*>(p.get());
         if (!parte) continue;
@@ -611,8 +564,7 @@ void Vladimir::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& pr
 void Vladimir::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
     Boss::CustomizeAttackParams(params, stateName);
 
-    // O QUE SAI DE UM LUGAR (o compilador, a fita) sai de onde ele manda, no
-    // rumo dele - com um tiro no meio do leque, como a letra lida abaixo.
+    // O que sai de um lugar (o compilador, a fita) sai de onde ele manda, no rumo dele.
     if (mDisparandoDe) {
         const bool par = params.numProjectiles > 1 && params.numProjectiles % 2 == 0;
         params.firePosition = mOndeDisparar;
@@ -622,16 +574,13 @@ void Vladimir::CustomizeAttackParams(AttackParams& params, const std::string& st
 
     if (stateName != Automato::kFaseDoAutomato && stateName != Parada::kFaseDaParada) return;
 
-    // O MAPA NASCE ONDE FICA.
+    // O mapa nasce onde fica.
     if (mFormando) {
         params.firePosition = mDisparoDoFormando;
         return;
     }
 
-    // A LETRA LIDA SAI MIRADA NO ALUNO, com um tiro no meio do leque: num leque
-    // par o meio cai entre dois tiros, e quem fica parado ficaria na fresta
-    // (ver Ricardo::CustomizeAttackParams). O anel da aceitacao ignora o angulo.
-    // Vale igual para os passos do programa da repescagem.
+    // A letra lida sai mirada no aluno, com um tiro no meio do leque.
     const Vector2 d = GetDirectionToPlayer();
     const bool par = params.numProjectiles > 1 && params.numProjectiles % 2 == 0;
     const float meioPasso = par ? 0.5f * params.angle / static_cast<float>(params.numProjectiles - 1) : 0.0f;

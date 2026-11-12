@@ -23,7 +23,7 @@ namespace Automato {
             return s;
         }
 
-        /// O epsilon, a palavra vazia: CE B5 em UTF-8.
+        /// O epsilon, a palavra vazia: ce B5 em UTF-8.
         constexpr const char* kVazia = "\xCE\xB5";
     }
 
@@ -45,8 +45,7 @@ namespace Automato {
     }
 
     std::string Sortear(const std::uint32_t sorteio) {
-        // O TAMANHO E AS LETRAS SAEM DE PARTES DIFERENTES DO SORTEIO: os bits
-        // de baixo sao as letras, e o que sobra decide o tamanho.
+        // O tamanho e as letras saem de partes diferentes do sorteio.
         const int faixa = kMaiorPalavra - kMenorPalavra + 1;
         const int tamanho = kMenorPalavra + static_cast<int>((sorteio >> 16) % static_cast<std::uint32_t>(faixa));
         std::string palavra;

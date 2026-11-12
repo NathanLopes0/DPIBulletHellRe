@@ -4,18 +4,8 @@
 
 #pragma once
 
-/**
- * CAMADA PURA. Coberto por test_guardrail.cpp.
- *
- * A CADA 6 s O MODELO E RETREINADO, e o anel de guardrails que volta nao e o
- * mesmo: alterna entre FECHADO, colado no professor, e ABERTO, longe dele;
- * troca o sentido do giro; e gira mais depressa a cada retreino, ate um teto.
- * Antes todo anel era igual - 95 px, horario, 160 px/s -, e o aluno decorava
- * a janela por onde atirar.
- *
- * Quem aplica e Julio::OnProjectilesCreated, trocando a corda de cada
- * guardrail que nasce (AmarrarBehavior).
- */
+/// A cada 6 s o modelo e retreinado, e o anel de guardrails que volta nao e o mesmo: alterna entre
+/// fechado, colado no professor, e aberto, longe dele.
 namespace Guardrail {
 
     constexpr float kFechado = 85.0f;
@@ -29,6 +19,6 @@ namespace Guardrail {
         float rapidez = 1.0f;    ///< fator sobre a velocidade do arquivo
     };
 
-    /// @brief A k-esima onda da fase (0 e a primeira).
+    /// A k-esima onda da fase (0 e a primeira).
     Onda DaVez(int k);
 }

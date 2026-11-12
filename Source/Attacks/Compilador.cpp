@@ -43,8 +43,8 @@ namespace Compilador {
                 return static_cast<int>(a.nos.size()) - 1;
             }
 
-            // PRECEDENCE CLIMBING: junta a esquerda com tudo de precedencia >=
-            // 'minima'; o de precedencia maior desce mais fundo na arvore.
+            // Precedence climbing: junta a esquerda com tudo de precedencia >= 'minima'; o de
+            // precedencia maior desce mais fundo na arvore.
             int Expressao(const int minima) {
                 int esq = Folha();
                 while (i < t.size() && t[i].tipo == Tipo::Op && Precedencia(t[i].texto) >= minima) {
@@ -96,39 +96,12 @@ namespace Compilador {
             case Tipo::Num:   return "PUSH " + n.texto;
             case Tipo::Op:    return n.texto == "+" ? "ADD" : (n.texto == "-" ? "SUB" : "MUL");
             case Tipo::Id:
-                // O ALVO DO = nao e lido: e onde o STORE escreve.
+                // O alvo do = nao e lido: e onde o store escreve.
                 if (a.raiz >= 0 && a.nos[static_cast<size_t>(a.raiz)].esq == no) return "";
                 return "LOAD " + n.texto;
             case Tipo::Fim:   break;
         }
         return "";
-    }
-
-    std::vector<std::string> Codigo(const Arvore& a) {
-        std::vector<std::string> codigo;
-        for (const int n : PosOrdem(a)) {
-            const std::string i = Instrucao(a, n);
-            if (!i.empty()) codigo.push_back(i);
-        }
-        return codigo;
-    }
-
-    int Avaliar(const Arvore& a, const int a_, const int b_) {
-        std::function<int(int)> valor = [&](const int n) -> int {
-            const No& no = a.nos[static_cast<size_t>(n)];
-            switch (no.tipo) {
-                case Tipo::Num: return no.texto[0] - '0';
-                case Tipo::Id:  return no.texto == "a" ? a_ : (no.texto == "b" ? b_ : 0);
-                case Tipo::Op: {
-                    const int e = valor(no.esq), d = valor(no.dir);
-                    return no.texto == "+" ? e + d : (no.texto == "-" ? e - d : e * d);
-                }
-                case Tipo::Igual: return valor(no.dir);
-                case Tipo::Fim: break;
-            }
-            return 0;
-        };
-        return a.raiz < 0 ? 0 : valor(a.raiz);
     }
 
     std::string Gerar(Variacao::Sorteio& s) {
@@ -138,7 +111,7 @@ namespace Compilador {
             const int r = s.Inteiro(0, 9);
             folhas.push_back(r < 3 ? "a" : (r < 6 ? "b" : std::string(1, static_cast<char>('1' + s.Inteiro(0, 8)))));
         }
-        // a E b APARECEM, as duas: sao as letras do Vladimir.
+        // A E b aparecem, as duas: sao as letras do Vladimir.
         auto tem = [&](const char* x) { return std::find(folhas.begin(), folhas.end(), x) != folhas.end(); };
         if (!tem("a")) folhas[static_cast<size_t>(s.Inteiro(0, ops))] = "a";
         if (!tem("b")) {

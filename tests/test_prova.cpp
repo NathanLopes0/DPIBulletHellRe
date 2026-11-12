@@ -1,6 +1,4 @@
-//
-// A repescagem do Andre: a prova no BOCA.
-//
+// A repescagem do Andre: a prova no boca.
 
 #include "doctest.h"
 
@@ -8,7 +6,7 @@
 #include <set>
 #include <string>
 
-#include "../Source/Variacao.h"
+#include "../Source/Regras/Variacao.h"
 
 #include <algorithm>
 #include <cmath>
@@ -62,9 +60,7 @@ TEST_CASE("Prova: cada problema cabe no tempo dele - o que ele roda acaba antes 
                 break;
             }
             case Tema::Funcao: {
-                // O pior caminho de uma chamada com funcao de dentro: o
-                // professor numa ponta e o cartao de dentro do outro lado, ida,
-                // execucao, volta, ida ate o de fora e execucao.
+                // O pior caminho de uma chamada com funcao de dentro.
                 const float largura = 1200.0f;
                 const float dx = Funcao::kXMaximo - largura * Funcao::kXDoLado;
                 const float dy = Funcao::kYDoCartaoDeDentro - Funcao::kYDoProfessor;
@@ -87,7 +83,7 @@ TEST_CASE("Prova: o placar abre cada problema com o veredito do anterior, e cada
     CHECK(Abertura(1).rfind("A: YES!", 0) == 0);
     CHECK(Abertura(1).find("Problema B") != std::string::npos);
     CHECK(Veredito(3) == "Problema D: YES");
-    // O ULTIMO CAPOTA: o laco que passa do fim do vetor, e o juiz nao aceita.
+    // O ultimo capota: o laco que passa do fim do vetor, e o juiz nao aceita.
     CHECK(Veredito(4) == "Problema E: NO - Runtime error");
     CHECK_FALSE(Aceito(4));
     CHECK(CaraDoTrofeu(4).empty());
@@ -124,7 +120,7 @@ TEST_CASE("Prova: a prova da luta - os quatro primeiros em qualquer ordem, o que
             todos.insert(p.nome);
             nomes += p.nome;
             nomes += "|";
-            // CADA PROBLEMA LEVA O PROPRIO TEMPO para onde vai.
+            // Cada problema leva o proprio tempo para onde vai.
             bool achou = false;
             for (const auto& q : kProva) {
                 if (std::string(q.nome) != p.nome) continue;
@@ -138,7 +134,7 @@ TEST_CASE("Prova: a prova da luta - os quatro primeiros em qualquer ordem, o que
         CHECK(todos.size() == static_cast<size_t>(kProblemas));
         std::set<std::string> distintos(todos.begin(), todos.end());
         CHECK(distintos.size() == static_cast<size_t>(kProblemas));
-        CHECK_FALSE(Aceito(kProblemas - 1, prova));                 // o NO fecha a prova
+        CHECK_FALSE(Aceito(kProblemas - 1, prova));                 // O no fecha a prova.
         for (int k = 0; k + 1 < kProblemas; ++k) CHECK(Aceito(k, prova));
         CHECK(prova[kProblemas - 1].fim == doctest::Approx(kProva[kProblemas - 1].fim));
         CHECK(Abertura(1, prova).rfind(std::string("A: YES!  Problema B: ") + prova[1].nome, 0) == 0);

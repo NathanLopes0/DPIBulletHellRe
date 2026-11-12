@@ -42,7 +42,7 @@ TEST_CASE("Tcc: a banca sao dois professores, nenhum deles o orientador") {
             vistos.insert(static_cast<int>(banca[1]));
         }
     }
-    CHECK(vistos.size() == kMaterias.size());   // todo professor ja foi banca de alguem
+    CHECK(vistos.size() == kMaterias.size());
     Variacao::Sorteio s = Variacao::SorteioDa(1u, kFaseDaDefesa);
     const auto semOrientador = Banca(Materia::Generico, s);
     CHECK(semOrientador[0] != semOrientador[1]);
@@ -66,8 +66,6 @@ TEST_CASE("Tcc: todo padrao sai em ordem, cabe na rodada, e o Dificil e mais") {
                     CHECK(t.velocidade >= 200.0f);
                     CHECK(t.velocidade <= 320.0f);   // e um bullet hell, nao um teste de reflexo
                 }
-                // CURTO: um padrao se le de uma vez, e o seguinte pode ate
-                // comecar antes de ele acabar, mas nao muito antes.
                 CHECK(r->duracao <= 1.6f);
             }
             CHECK(Total(dificil) >= Total(normal));
@@ -85,7 +83,7 @@ TEST_CASE("Tcc: cada padrao tem o desenho da materia") {
     Variacao::Sorteio s = Variacao::SorteioDa(9u, kFaseDoTema);
     const auto P = [&](const Materia m) { return Padrao(m, 0, s, Nivel::Normal); };
 
-    // A PILHA: o nivel de baixo (o ultimo empilhado) sai primeiro.
+    // A pilha: o nivel de baixo (o ultimo empilhado) sai primeiro.
     const auto pilha = P(Materia::Salles);
     std::map<float, float> partidaPorNivel;
     for (const auto& t : pilha.tiros) partidaPorNivel[t.dy] = t.quando + t.espera;
@@ -96,8 +94,6 @@ TEST_CASE("Tcc: cada padrao tem o desenho da materia") {
         anterior = partida;
     }
 
-    // A TRANSACAO: todas partem juntas, no COMMIT, a linha andando junta, e
-    // o ROLLBACK desfez tres escritas - as frestas.
     const auto transacao = P(Materia::Thiago);
     CHECK(transacao.tiros.size() == 6u);
     for (const auto& t : transacao.tiros) {
@@ -105,14 +101,14 @@ TEST_CASE("Tcc: cada padrao tem o desenho da materia") {
         CHECK(t.quando + t.espera == doctest::Approx(transacao.tiros[0].quando + transacao.tiros[0].espera));
     }
 
-    // O BARRAMENTO: paredes paralelas de 4 bits em 8, com frestas.
+    // O barramento: paredes paralelas de 4 bits em 8, com frestas.
     const auto bus = P(Materia::Ricardo);
     std::map<float, int> porByte;
     for (const auto& t : bus.tiros) { CHECK(t.paralelo); ++porByte[t.quando]; }
     CHECK(porByte.size() == 3u);
     for (const auto& [quando, uns] : porByte) { (void)quando; CHECK(uns == 4); }
 
-    // OS OBSERVADORES: aparecem juntos e atiram um depois do outro.
+    // Os observadores: aparecem juntos e atiram um depois do outro.
     const auto obs = P(Materia::MariaLucia);
     std::map<float, float> partidaPorOlho;
     for (const auto& t : obs.tiros) { CHECK(t.quando == 0.0f); partidaPorOlho[t.dx] = t.espera; }
@@ -126,7 +122,7 @@ TEST_CASE("Tcc: cada padrao tem o desenho da materia") {
     const auto gradiente = P(Materia::Julio);
     for (size_t i = 1; i < gradiente.tiros.size(); ++i) CHECK(gradiente.tiros[i].onda * gradiente.tiros[i - 1].onda < 0.0f);
 
-    // A JANELA: rajadas de 1, 2, 4 e 8.
+    // A janela: rajadas de 1, 2, 4 e 8.
     std::map<int, int> rajadas;
     for (const auto& t : P(Materia::Vitor).tiros) ++rajadas[static_cast<int>(std::floor(t.quando / 0.3f + 1e-3f))];
     CHECK(rajadas[0] == 1);
@@ -134,7 +130,7 @@ TEST_CASE("Tcc: cada padrao tem o desenho da materia") {
     CHECK(rajadas[2] == 4);
     CHECK(rajadas[3] == 8);
 
-    // O FOR: o arco varre de um lado ao outro, e a volta seguinte, ao contrario.
+    // O for: o arco varre de um lado ao outro, e a volta seguinte, ao contrario.
     const auto laco = P(Materia::Andre);
     CHECK(laco.tiros.front().desvio < laco.tiros.back().desvio);
     const auto volta = Padrao(Materia::Andre, 1, s, Nivel::Normal);
@@ -154,7 +150,7 @@ TEST_CASE("Tcc: cada professor tem a area, o capitulo, a pergunta e o projetil d
     CHECK(perguntas.size() == kMaterias.size());
     CHECK(animacoes.size() == kMaterias.size());
     CHECK(Area(Materia::Salles) == "Estruturas de Dados");
-    // O NOME VOLTA PELO GOLPE: e o mesmo de materias.json.
+    // O nome volta pelo golpe: e o mesmo de materias.json.
     for (const Materia m : kMaterias) CHECK(Golpe::DoProfessor(Professor(m)) == m);
     CHECK(Pergunta(Materia::Vitor) == "E se der deadlock?");
     CHECK(Animacao(Materia::Generico) == "Folha");
@@ -168,19 +164,19 @@ TEST_CASE("Golpe: o voo espera junto de quem atirou, parte mirado, e a arvore ab
     t.velocidade = 200.0f;
     Golpe::Voo v = Golpe::Comecar(t, Vector2(0.0f, 1.0f));
     const float dt = 0.1f;
-    // ESPERANDO, acompanha quem atirou.
+    // Esperando, acompanha quem atirou.
     Golpe::Passo p = Golpe::Avancar(v, Vector2(0.0f, 0.0f), Vector2::Zero, Vector2(100.0f, 100.0f), Vector2(110.0f, 500.0f), dt);
     CHECK(p.posicao.x == doctest::Approx(110.0f));
     CHECK(p.posicao.y == doctest::Approx(130.0f));
     CHECK(p.velocidade.Length() == doctest::Approx(0.0f));
     for (int i = 0; i < 3; ++i) p = Golpe::Avancar(v, p.posicao, p.velocidade, Vector2(100.0f, 100.0f), Vector2(110.0f, 500.0f), dt);
     CHECK(p.velocidade.Length() == doctest::Approx(0.0f));
-    // PARTE mirado no alvo, que esta embaixo.
+    // Parte mirado no alvo, que esta embaixo.
     for (int i = 0; i < 2; ++i) p = Golpe::Avancar(v, p.posicao, p.velocidade, Vector2(100.0f, 100.0f), Vector2(110.0f, 500.0f), dt);
     CHECK(p.velocidade.y == doctest::Approx(200.0f));
     CHECK(p.velocidade.x == doctest::Approx(0.0f).epsilon(0.01));
 
-    // A ARVORE: os filhos abrem do rumo do pai, sem mirar de novo.
+    // A arvore: os filhos abrem do rumo do pai, sem mirar de novo.
     Golpe::Tiro semente;
     semente.velocidade = 200.0f;
     semente.divide = 0.2f;
@@ -203,7 +199,7 @@ TEST_CASE("Golpe: o voo espera junto de quem atirou, parte mirado, e a arvore ab
     CHECK(filhos[0].tiro.geracoes == 0);
     CHECK(filhos[0].tiro.divide > 0.0f);
 
-    // O PARALELO: os fios ficam de lado em relacao ao rumo.
+    // O paralelo: os fios ficam de lado em relacao ao rumo.
     Golpe::Tiro fio;
     fio.dx = 44.0f;
     fio.paralelo = true;
@@ -215,13 +211,13 @@ TEST_CASE("Golpe: o voo espera junto de quem atirou, parte mirado, e a arvore ab
 
 TEST_CASE("Tcc: a mira adianta onde o aluno vai estar, ate um limite") {
     const Vector2 de(600.0f, 100.0f), aluno(600.0f, 700.0f), andando(100.0f, 0.0f);
-    // PARADO, ou sem adiantar: no aluno.
+    // Parado, ou sem adiantar: no aluno.
     CHECK(Mira(de, 300.0f, aluno, Vector2::Zero, 1.0f).x == doctest::Approx(600.0f));
     CHECK(Mira(de, 300.0f, aluno, andando, 0.0f).x == doctest::Approx(600.0f));
-    // ANDANDO: 600 px a 300 px/s sao 2 s de voo, mas a mira so adianta kAdiantaAte.
+    // Andando: 600 px a 300 px/s sao 2 s de voo, mas a mira so adianta kAdiantaAte.
     CHECK(Mira(de, 300.0f, aluno, andando, 1.0f).x == doctest::Approx(600.0f + 100.0f * kAdiantaAte));
     CHECK(Mira(de, 300.0f, aluno, andando, 0.5f).x == doctest::Approx(600.0f + 50.0f * kAdiantaAte));
-    // PERTO: o voo e curto, e adianta pouco.
+    // Perto: o voo e curto, e adianta pouco.
     CHECK(Mira(Vector2(600.0f, 600.0f), 300.0f, aluno, andando, 1.0f).x == doctest::Approx(600.0f + 100.0f / 3.0f));
     CHECK(kAdiantamentoDaBanca < 1.0f);
 }

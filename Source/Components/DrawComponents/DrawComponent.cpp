@@ -5,7 +5,7 @@
 #include "DrawComponent.h"
 #include "../../Actors/Actor.h"
 #include "../../Scenes/Scene.h"
-#include "../../Game.h"
+#include "../../Motor/Game.h"
 
 DrawComponent::DrawComponent(class Actor *owner, int drawOrder)
         : Component(owner),

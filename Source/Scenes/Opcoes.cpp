@@ -3,23 +3,24 @@
 //
 
 #include "Opcoes.h"
-#include "../Painel.h"
+#include "TextoDeCena.h"
+#include "../Entrada/Painel.h"
 #include "FundoDeCena.h"
 
 #include <SDL_scancode.h>
 
-#include "../Game.h"
-#include "../Font.h"
-#include "../Configuracao.h"
-#include "../Dificuldade.h"
-#include "../CaminhosArquivo.h"
+#include "../Motor/Game.h"
+#include "../Motor/Font.h"
+#include "../Motor/Configuracao.h"
+#include "../Motor/CaminhosArquivo.h"
+#include "../Motor/Fontes.h"
 #include "../Actors/Actor.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
 
 namespace {
-    // A LINHA DA OPCAO: uma moldura com o nome a esquerda e o valor a direita,
-    // como as linhas do menu principal.
+    // A linha da opcao: uma moldura com o nome a esquerda e o valor a direita, como as linhas do
+    // menu principal.
     constexpr int kLarguraDaLinha = 640;
     constexpr int kAlturaDaLinha = 56;
     constexpr float kRecuoDoTexto = 150.0f;   ///< do meio da linha ao meio de cada texto
@@ -31,9 +32,8 @@ namespace {
     const SDL_Color kMoldura{235, 235, 235, 110};
     const SDL_Color kFundo{34, 38, 48, 150};
 
-    // \xc3\xba, \xc3\xa3 e \xc3\xad sao u agudo, a til e i agudo: o MSVC nao le acento
-    // em literal.
-    const char* const kNomes[] = {"Dificuldade", "M\xc3\xbasica", "Efeitos", "Tela cheia", "Hitbox"};
+    // \xc3\xba e \xc3\xa3 sao u agudo e a til: o MSVC nao le acento em literal.
+    const char* const kNomes[] = {"M\xc3\xbasica", "Efeitos", "Tela cheia", "Hitbox"};
 
     std::string Volume(const int v) {
         return v == 0 ? std::string("< mudo >") : "< " + std::to_string(v) + " >";
@@ -45,7 +45,7 @@ Opcoes::Opcoes(Game* game)
     : Scene(game, SceneType::Opcoes),
       mFonte(std::make_unique<Font>())
 {
-    mFonte->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
+    mFonte->Load(Caminhos::Asset(Fontes::kJogo));
 }
 
 void Opcoes::Load() {
@@ -73,8 +73,7 @@ void Opcoes::Load() {
     mDescricao = Texto("", meio, altura * 0.76f, 22, 760)->GetComponent<DrawTextComponent>();
     Mostrar();
 
-    // O BOTAO 1 TAMBEM TROCA, sem aparecer escrito - como o ENTER: duas
-    // entradas com o mesmo "trocar" no rodape pareciam duas acoes diferentes.
+    // O botao 1 tambem troca, sem aparecer escrito - como o enter.
     Texto(Painel::Rodape({Painel::Manche(Painel::Jogador::Um, "escolher e trocar"),
                           {Painel::Jogador::Um, Painel::Botao::Dois, "voltar"}},
                          mGame->JeitoDoRodape()),
@@ -83,23 +82,10 @@ void Opcoes::Load() {
 
 Actor* Opcoes::Texto(const std::string& conteudo, const float x, const float y, const int tamanho,
                      const int larguraMaxima) {
-
-    auto ator = std::make_unique<Actor>(this);
-    ator->SetPosition(Vector2(x, y));
-
-    auto dc = ator->AddComponent<DrawTextComponent>(conteudo, mFonte.get(),
-                                                    larguraMaxima, tamanho + 8, tamanho, 255);
-    dc->SetLarguraDeQuebra(static_cast<unsigned>(larguraMaxima));
-    dc->SetAjustarAoTexto(true);
-
-    Actor* bruto = ator.get();
-    AddActor(std::move(ator));
-    return bruto;
+    return CriarTexto(*this, mFonte.get(), conteudo, Vector2(x, y), tamanho, larguraMaxima, tamanho + 8)->GetOwner();
 }
 
 void Opcoes::Mostrar() {
-    const Dificuldade::Nivel n = mGame->NivelDeDificuldade();
-
     for (int k = 0; k < kItens; ++k) {
         if (mLinhas[k].caixa) {
             mLinhas[k].caixa->SetMoldura(k == mEscolhida ? kMolduraEscolhida : kMoldura);
@@ -109,12 +95,6 @@ void Opcoes::Mostrar() {
         if (!valor) continue;
         valor->SetColor(Vector3(1.0f, 1.0f, 1.0f));
         switch (static_cast<Item>(k)) {
-            case Item::Dificuldade: {
-                valor->SetText(std::string("< ") + Dificuldade::Nome(n) + " >");
-                const float* c = Dificuldade::kCorDoDificil;
-                if (n == Dificuldade::Nivel::Dificil) valor->SetColor(Vector3(c[0], c[1], c[2]));
-                break;
-            }
             case Item::Musica:    valor->SetText(Volume(mGame->VolumeDaMusica())); break;
             case Item::Efeitos:   valor->SetText(Volume(mGame->VolumeDosEfeitos())); break;
             case Item::TelaCheia: valor->SetText(SimOuNao(mGame->TelaCheia())); break;
@@ -124,7 +104,6 @@ void Opcoes::Mostrar() {
 
     if (!mDescricao) return;
     switch (static_cast<Item>(mEscolhida)) {
-        case Item::Dificuldade: mDescricao->SetText(Dificuldade::Descricao(n)); break;
         case Item::Musica:
             mDescricao->SetText("O volume da m\xc3\xbasica da batalha, de mudo a 10.");
             break;
@@ -143,9 +122,6 @@ void Opcoes::Mostrar() {
 
 void Opcoes::Trocar(const int passo, const bool peloBotao) {
     switch (static_cast<Item>(mEscolhida)) {
-        case Item::Dificuldade:
-            mGame->DefinirDificuldade(Dificuldade::Mover(mGame->NivelDeDificuldade(), passo));
-            break;
         case Item::Musica:
         case Item::Efeitos: {
             const bool musica = static_cast<Item>(mEscolhida) == Item::Musica;
@@ -166,14 +142,12 @@ void Opcoes::OnProcessInput(const Uint8* keyState) {
 
     const bool voltar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois)
                      || keyState[SDL_SCANCODE_ESCAPE];
-    if (voltar && !mVoltarAnterior) {
+    if (mBordaVoltar.Bateu(voltar)) {
         mGame->RequestSceneChange(SceneType::MainMenu);
         return;
     }
-    mVoltarAnterior = voltar;
 
-    // QUALQUER UM DOS DOIS troca, como na pausa: a opcao e da maquina, e nao
-    // de um jogador.
+    // Qualquer um dos dois troca, como na pausa: a opcao e da maquina, e nao de um jogador.
     bool esquerda = false, direita = false, cima = false, baixo = false, trocar = false;
     for (const Painel::Jogador quem : Painel::kJogadores) {
         esquerda = esquerda || Painel::Apertado(keyState, quem, Painel::Direcao::Esquerda);
@@ -184,30 +158,21 @@ void Opcoes::OnProcessInput(const Uint8* keyState) {
     }
     trocar = trocar || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
 
-    // ESCOLHER: para cima e para baixo, dando a volta, como no menu.
+    // Escolher: para cima e para baixo, dando a volta, como no menu.
     int linha = 0;
-    if (cima && !mCimaAnterior) linha -= 1;
-    if (baixo && !mBaixoAnterior) linha += 1;
-    mCimaAnterior = cima;
-    mBaixoAnterior = baixo;
+    if (mBordaCima.Bateu(cima)) linha -= 1;
+    if (mBordaBaixo.Bateu(baixo)) linha += 1;
     if (linha != 0) {
         mEscolhida = (mEscolhida + linha + kItens) % kItens;
         Mostrar();
     }
 
-    // TROCAR o valor da linha escolhida.
-    const bool peloBotao = trocar && !mTrocarAnterior;
+    // Trocar o valor da linha escolhida.
+    const bool peloBotao = mBordaTrocar.Bateu(trocar);
     int passo = 0;
-    if (esquerda && !mEsquerdaAnterior) passo -= 1;
-    if (direita && !mDireitaAnterior) passo += 1;
+    if (mBordaEsquerda.Bateu(esquerda)) passo -= 1;
+    if (mBordaDireita.Bateu(direita)) passo += 1;
     if (peloBotao) passo += 1;
-    mEsquerdaAnterior = esquerda;
-    mDireitaAnterior = direita;
-    mTrocarAnterior = trocar;
 
     if (passo != 0) Trocar(passo, peloBotao);
-}
-
-void Opcoes::OnUpdate(const float deltaTime) {
-
 }

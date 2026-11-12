@@ -1,61 +1,9 @@
 {
-  // ==========================================================================
-  // AS MATERIAS DO CURSO
-  //
-  // Esta lista era um enum em Game.h e mais cinco lugares em C++ que repetiam
-  // pedacos dela: o mapa de chefes, os nomes em tela, as colunas (duplicadas
-  // entre StageSelect e as regras de desbloqueio, com nomes trocados), a
-  // quantidade e o tamanho de cada coluna. Mudar uma materia exigia acertar os
-  // seis, e esquecer um deles nao dava erro de compilacao.
-  //
-  // O "codigo" E A CHAVE, e esse e o ponto mais importante do arquivo.
-  //
-  // Antes, o que ia para o save do aluno era a POSICAO da materia no enum: INF
-  // 213 valia 0 porque estava em primeiro lugar. Inserir uma materia no comeco
-  // reinterpretava todos os saves ja gravados EM SILENCIO - uma nota 85 de INF
-  // 213 virava nota de outra materia, e o aluno abria o jogo aprovado em coisa
-  // que nunca jogou. Medi isso antes de mexer: tres de tres notas mudavam de
-  // dona sem um unico erro.
-  //
-  // Com um codigo de texto, reordenar esta lista, renomear uma materia em tela
-  // ou inserir outra no meio nao mexe em save nenhum. O que NAO pode mudar e o
-  // codigo em si - trocar "INF213" por outra coisa e, para o jogo, aposentar
-  // aquela materia e criar outra.
-  //
-  // CAMPOS
-  //   codigo        a chave estavel. So letras e numeros, sem espaco.
-  //   nome          o que aparece no losango. Pode mudar a vontade.
-  //   nomeCompleto  o nome da disciplina. Opcional; vazio e so nao mostrar.
-  //   professor     quem da a materia. Opcional, e INDEPENDENTE de "chefe":
-  //                 o TCC e do Hugo e ainda nao tem batalha - ter professor nao
-  //                 e ter luta.
-  //   coluna        0 a 4, a posicao na grade da selecao de fase. A coluna
-  //                 tambem e o que as regras de desbloqueio usam, entao ela e
-  //                 declarada UMA vez e nao duas.
-  //   chefe         qual chefe esta materia usa. Vazio ou ausente = batalha
-  //                 ainda nao feita: o losango aparece e nao da para jogar.
-  //   orientacao    true se a batalha pede um ORIENTADOR antes de comecar - o
-  //                 TCC. Opcional, falso por padrao. Quem pode orientar sao os
-  //                 professores das materias em que o aluno foi melhor (ver
-  //                 Source/Orientacao.h).
-  //   desbloqueio   quando a materia abre. Ver abaixo.
-  //
-  // REGRAS DE DESBLOQUEIO
-  //   { "tipo": "sempre" }
-  //   { "tipo": "aprovadoEm", "materias": ["INF213"] }
-  //       exige aprovacao em TODAS as listadas.
-  //   { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 1 }
-  //       exige N aprovacoes entre as materias daquela coluna. Usa a coluna em
-  //       vez de repetir a lista, para nao haver duas versoes do mesmo conjunto.
-  // ==========================================================================
+  // As materias do curso.
 
   "materias": [
 
-    // ----- Coluna 0: a porta de entrada do curso -----
-    //
-    // O Andre mudou de materia: ele era o chefe da antiga INF 330 (hoje INF 340)
-    // e passou a ser o da INF 110, que e por onde o aluno comeca. Como o save grava o CODIGO da
-    // materia, mover um chefe de uma para outra nao mexe em nota de ninguem.
+    // ---- Coluna 0: a porta de entrada do curso ----
     {
       "codigo": "INF110",
       "nome": "INF 110",
@@ -66,9 +14,7 @@
       "desbloqueio": { "tipo": "sempre" }
     },
 
-    // ----- Coluna 1: abre ao passar em INF 110 -----
-    //
-    // O INF 213 era a porta de entrada e virou o segundo degrau.
+    // ---- Coluna 1: abre ao passar em INF 110 ----
     {
       "codigo": "INF213", "nome": "INF 213",
       "nomeCompleto": "Estruturas de Dados", "professor": "Salles",
@@ -76,7 +22,7 @@
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF110"] }
     },
 
-    // ----- Coluna 2: abre ao passar em INF 213 -----
+    // ---- Coluna 2: abre ao passar em INF 213 ----
     {
       "codigo": "INF250", "nome": "INF 250",
       "nomeCompleto": "Organização de Computadores", "professor": "Ricardo",
@@ -90,18 +36,6 @@
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
     {
-      // ERA A INF 330 - TEORIA E MODELOS DE GRAFOS, DO SALLES, e virou a INF
-      // 340, do Luizinho: o Salles ja e o chefe da INF 213, e um professor so
-      // aparece uma vez na grade.
-      //
-      // TROCAR O CODIGO APOSENTOU A MATERIA ANTIGA, e aqui isso e seguro: desde
-      // que o Andre saiu dela para a INF 110 (06/10) a INF 330 nao tinha
-      // batalha, entao nao havia como ganhar nota nela. Um save de teste da
-      // semana em que o Andre era o chefe dela guarda uma nota com o codigo
-      // velho, e essa nota fica orfa - a ficha so conta codigos que existem.
-      //
-      // A POSICAO NA LISTA NAO MUDOU, como na troca da INF 452 pela INF 310: a
-      // navegacao da grade usa o indice.
       "codigo": "INF340", "nome": "INF 340",
       "nomeCompleto": "Linguagens de Programação", "professor": "Luizinho",
       "coluna": 2, "chefe": "luizinho",
@@ -114,7 +48,7 @@
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     },
 
-    // ----- Coluna 3: abre com duas aprovacoes na coluna 2 -----
+    // ---- Coluna 3: abre com duas aprovacoes na coluna 2 ----
     {
       "codigo": "INF420", "nome": "INF 420",
       "nomeCompleto": "Inteligência Artificial", "professor": "Júlio",
@@ -134,22 +68,15 @@
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
     {
-      // TROCAR O "codigo" APOSENTA A MATERIA ANTIGA E CRIA OUTRA, e aqui isso
-      // foi feito de propósito: a INF 452 (Redes) virou a INF 310. Nenhuma nota
-      // se perdeu porque nenhuma existia - a INF 452 nunca teve chefe, entao
-      // nunca houve como jogá-la. Se ela tivesse batalha, a troca teria de vir
-      // com conversao de save.
-      //
-      // A POSICAO NA LISTA NAO MUDOU (continua a decima entrada). A navegacao da
-      // grade e os testes dela usam o indice, e mover a entrada teria mexido na
-      // grade inteira por uma troca que e so de nome.
+      // Nenhuma nota se perdeu porque nenhuma existia - a INF 452 nunca teve chefe, entao nunca
+      // houve como jogá-la.
       "codigo": "INF310", "nome": "INF 310",
       "nomeCompleto": "Programação Concorrente e Distribuída", "professor": "Vitor",
       "coluna": 3, "chefe": "vitor",
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     },
 
-    // ----- Coluna 4: o fim do curso -----
+    // ---- Coluna 4: o fim do curso ----
     {
       "codigo": "TCC", "nome": "TCC",
       "nomeCompleto": "Trabalho de Conclusão de Curso", "professor": "Hugo",

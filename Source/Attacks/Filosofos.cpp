@@ -65,7 +65,7 @@ namespace Filosofos {
         const int x = GarfoDaEsquerda(escolhido);   // so normaliza o indice
         switch (r) {
             case Rodada::Jantar: {
-                // DOIS DE CADA VEZ, sem vizinhos: ninguem disputa garfo.
+                // Dois de cada vez, sem vizinhos: ninguem disputa garfo.
                 const int pares[3][2] = {{0, 2}, {1, 3}, {4, -1}};
                 const float comeca[3] = {0.3f, 1.85f, 3.4f};
                 const float dura[3] = {1.2f, 1.2f, 1.1f};
@@ -81,10 +81,10 @@ namespace Filosofos {
                 break;
             }
             case Rodada::Deadlock: {
-                // TODOS PEGAM O DA ESQUERDA, e todos esperam o da direita.
+                // Todos pegam o da esquerda, e todos esperam o da direita.
                 for (int f = 0; f < kFilosofos; ++f) p.push_back({0.3f, f, Acao::Pega, GarfoDaEsquerda(f)});
                 for (int f = 0; f < kFilosofos; ++f) p.push_back({0.75f, f, Acao::Espera, GarfoDaDireita(f)});
-                // kill -9: a vitima solta o garfo dela, e quem o esperava come.
+                // Kill -9: a vitima solta o garfo dela, e quem o esperava come.
                 const int a = Antes(x);
                 const int b = Antes(a);
                 p.push_back({2.1f, x, Acao::Morre});
@@ -97,14 +97,13 @@ namespace Filosofos {
                 break;
             }
             case Rodada::Ordem: {
-                // O DE MENOR NUMERO PRIMEIRO: o ultimo quer o garfo 0, que o
-                // primeiro pegou - e espera sem segurar nada.
+                // O de menor numero primeiro: o ultimo quer o garfo 0, que o primeiro pegou.
                 const int ultimo = kFilosofos - 1;
                 for (int f = 0; f < ultimo; ++f) p.push_back({0.3f, f, Acao::Pega, GarfoDaEsquerda(f)});
                 p.push_back({0.3f, ultimo, Acao::Espera, GarfoDaDireita(ultimo)});
                 for (int f = 0; f < ultimo - 1; ++f) p.push_back({0.6f, f, Acao::Espera, GarfoDaDireita(f)});
                 p.push_back({0.6f, ultimo - 1, Acao::Pega, GarfoDaDireita(ultimo - 1)});
-                // e a fila anda de tras para a frente
+                // E a fila anda de tras para a frente.
                 float t = 0.75f;
                 for (int f = ultimo - 1; f >= 1; --f) {
                     if (f < ultimo - 1) {
@@ -117,7 +116,7 @@ namespace Filosofos {
                 break;
             }
             case Rodada::Garcom: {
-                // O GARCOM TIRA UM DA MESA: com quatro, sempre sobra um garfo.
+                // O garcom tira um da mesa: com quatro, sempre sobra um garfo.
                 p.push_back({0.2f, x, Acao::Levanta});
                 for (int f = 0; f < kFilosofos; ++f) {
                     if (f != x) p.push_back({0.4f, f, Acao::Pega, GarfoDaEsquerda(f)});
@@ -257,10 +256,6 @@ namespace Filosofos {
         return pontos;
     }
 
-    std::string Placar(const Rodada r, const Mesa& m) {
-        return Placar(r, m, PlanoDeSempre());
-    }
-
     std::string Pensador(const int i) {
         switch (((i % kPensadores) + kPensadores) % kPensadores) {
             case 0:  return "S\xc3\xb3" "crates";
@@ -299,6 +294,39 @@ namespace Filosofos {
         for (Passo& p : passos) {
             p.filosofo = (p.filosofo + g) % kFilosofos;
             if (p.garfo >= 0) p.garfo = (p.garfo + g) % kFilosofos;
+        }
+        return passos;
+    }
+
+    std::vector<Passo> NoRitmo(std::vector<Passo> passos, Variacao::Sorteio& s, const float desvio) {
+        std::vector<float> antes;
+        for (const Passo& p : passos) antes.push_back(p.quando);
+        std::sort(antes.begin(), antes.end());
+        antes.erase(std::unique(antes.begin(), antes.end()), antes.end());
+        if (antes.empty()) return passos;
+
+        // Cada intervalo sorteado, e o conjunto reescalado para acabar onde acabava.
+        const float d = std::clamp(desvio, 0.0f, 0.9f);
+        std::vector<float> depois(antes.size());
+        float anterior = 0.0f;
+        float soma = 0.0f;
+        float somaNova = 0.0f;
+        for (size_t i = 0; i < antes.size(); ++i) {
+            const float intervalo = std::max(0.0f, antes[i] - anterior);
+            anterior = antes[i];
+            depois[i] = intervalo * s.Real(1.0f - d, 1.0f + d);
+            soma += intervalo;
+            somaNova += depois[i];
+        }
+        const float escala = somaNova > 0.0f ? soma / somaNova : 1.0f;
+        float agora = 0.0f;
+        for (float& t : depois) {
+            agora += t * escala;
+            t = agora;
+        }
+        for (Passo& p : passos) {
+            const auto i = std::lower_bound(antes.begin(), antes.end(), p.quando) - antes.begin();
+            p.quando = depois[static_cast<size_t>(i)];
         }
         return passos;
     }

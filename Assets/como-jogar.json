@@ -1,0 +1,87 @@
+// O manual do jogo: as paginas da tela "Como Jogar", do menu principal. Cada pagina tem um titulo e
+// as linhas, de cima para baixo.
+{
+  "paginas": [
+    {
+      "titulo": "O objetivo",
+      "linhas": [
+        "Cada professor do DPI é uma prova, e você é o aluno.",
+        "No lugar de vidas há uma Nota: toda prova começa em 40.",
+        "Lance Dúvidas no professor: cada uma que acerta sobe a nota.",
+        "Os projéteis dele derrubam a nota quando te acertam.",
+        "Termine o tempo da prova com 60 ou mais para ser aprovado."
+      ]
+    },
+    {
+      "titulo": "Os controles",
+      "linhas": [
+        "Manche: mover o aluno, e escolher nas telas.",
+        "Botão 1: lançar Dúvidas, e confirmar.",
+        "Botão 2: gastar um Ponto Extra, e voltar nas telas.",
+        "Botão 3: no TCC, o poder do orientador, quando o anel enche.",
+        "Botão 3, em dupla: um sinal na sua cor para o parceiro.",
+        "O rodapé de cada tela diz o que os botões fazem ali."
+      ],
+      "no_computador": [
+        "Jogador 1: setas, Espaço, B e N.   Jogador 2: W A S D, F, E e H.",
+        "Esc pausa a batalha."
+      ]
+    },
+    {
+      "titulo": "A nota",
+      "linhas": [
+        "A barra da nota fica embaixo: a marca âmbar é o 40, a verde é o 60.",
+        "Terminar entre 40 e 59 leva ao exame, uma fase a mais.",
+        "Até 60 é rápido. Acima disso, cada ponto custa mais acertos.",
+        "Uma fase inteira sem ser atingido paga um bônus: a fase limpa.",
+        "Quem é atingido três vezes para em 99,99 naquela prova."
+      ]
+    },
+    {
+      "titulo": "Desviar, destruir, Ponto Extra",
+      "linhas": [
+        "Projétil com contorno vermelho: a sua Dúvida o destrói.",
+        "Sem contorno, a Dúvida passa direto: desvie.",
+        "Professor blindado não ouve: a Dúvida murcha cinza e não vale nota.",
+        "De tantos em tantos acertos, ele deixa cair um Ponto Extra.",
+        "Sozinho, gastá-lo solta uma onda que desfaz os tiros por onde passa."
+      ]
+    },
+    {
+      "titulo": "Arriscar compensa",
+      "linhas": [
+        "Lance a Dúvida perto do professor: ela vale até uma vez e meia.",
+        "De perto, a resposta sobe com dois pontos de exclamação: !!",
+        "Mas cuidado: encostar no professor também derruba a nota.",
+        "Passar raspando num projétil, sem ser atingido, rende um pouco.",
+        "O risco azul na sua borda marca o raspão: um por projétil."
+      ]
+    },
+    {
+      "titulo": "Em dupla",
+      "linhas": [
+        "Os dois fazem a mesma prova, e a nota é uma só: a da dupla.",
+        "A mira vai em quem mais acerta o professor: o v vermelho mostra.",
+        "O que cada um faz sozinho vale metade. A fase limpa vale inteira.",
+        "O projétil que vai no seu parceiro brilha na cor dele.",
+        "Derrubá-lo é a cobertura, e vale inteiro: fique embaixo e atire.",
+        "Em dupla, o Ponto Extra é do parceiro: um escudo de três segundos",
+        "que destrói os projéteis do professor.",
+        "Gastos ao mesmo tempo, os dois Pontos Extras soltam a onda dourada."
+      ]
+    },
+    {
+      "titulo": "O curso",
+      "linhas": [
+        "As matérias abrem conforme você passa nas anteriores.",
+        "INF 110 está sempre aberta, e o TCC, do Hugo, é a última.",
+        "Quem passa no TCC ganha o chapéu de formatura, para sempre.",
+        "Antes do mapa, escolha a dificuldade: Normal ou Difícil.",
+        "No mapa, o Botão 3 abre o seu boletim: notas, situação e CR.",
+        "Na tela de dificuldade, o Botão 3 troca a sua personagem.",
+        "Entre com a matrícula para guardar os seus recordes.",
+        "Como visitante, você joga tudo, mas nada fica salvo."
+      ]
+    }
+  ]
+}

@@ -3,6 +3,7 @@
 //
 
 #include "BaloonAttack.h"
+#include "../../Motor/Random.h"
 
 #include <SDL_log.h>
 
@@ -13,7 +14,6 @@
 #include "../../Actors/Player/Player.h"
 #include "../../Scenes/Battle/Battle.h"
 
-
 BaloonAttack::BaloonAttack(ProjectileFactory* projectileFactory, Actor* owner)
     : IAttackStrategy(projectileFactory, owner)
 {
@@ -22,14 +22,14 @@ BaloonAttack::BaloonAttack(ProjectileFactory* projectileFactory, Actor* owner)
 
 std::vector<std::unique_ptr<Projectile>> BaloonAttack::Execute(const AttackParams& params) {
 
-    // 1. Verifica se os parâmetros são do tipo correto
+    // 1.
     const auto baloonParams = dynamic_cast<const BaloonAttackParams*>(&params);
     if (!baloonParams) {
         SDL_Log("BaloonAttack::Execute - Os parametros recebidos não são do tipo BaloonAttackParams");
         return {};
     }
 
-    // 2. Validação semântica dos parâmetros
+    // 2.
     if (!ValidateParams(*baloonParams)) {
         SDL_Log("BaloonAttack::Execute - Invalid BaloonAttackParams");
         return {};
@@ -43,10 +43,10 @@ std::vector<std::unique_ptr<Projectile>> BaloonAttack::Execute(const AttackParam
         return projectiles;
     }
 
-    // 3. Reserva para eficiência
+    // 3.
     projectiles.reserve(numProjectiles);
 
-    // Cena atual
+    // Cena atual.
     auto* scene = mOwner->GetScene();
     auto* battle = dynamic_cast<Battle*>(scene);
 
@@ -55,7 +55,7 @@ std::vector<std::unique_ptr<Projectile>> BaloonAttack::Execute(const AttackParam
         return projectiles;
     }
 
-    // 4. MODO 1: spawn aleatório (com ou sem centro no player)
+    // 4.
     if (baloonParams->randomSpawn) {
 
         for (int i = 0; i < numProjectiles; ++i) {
@@ -73,7 +73,7 @@ std::vector<std::unique_ptr<Projectile>> BaloonAttack::Execute(const AttackParam
         return projectiles;
     }
 
-    // MODO 2: spawn em posições exatas
+    // Modo 2: spawn em posições exatas.
     const auto& spawnPoints = baloonParams->spawnPoints;
     const int maxSpawns = std::min(
         static_cast<int>(spawnPoints.size()),
@@ -136,7 +136,7 @@ Vector2 BaloonAttack::CalculateSpawnPosition( const BaloonAttackParams& params, 
     Vector2 pos;
 
     if (params.randomSpawn) {
-        // eixo variável
+        // Eixo variável.
         float variableCoord;
 
         if (params.centerOnPlayer) {
@@ -158,7 +158,7 @@ Vector2 BaloonAttack::CalculateSpawnPosition( const BaloonAttackParams& params, 
             );
         }
 
-        // eixo fixo
+        // Eixo fixo.
         if (params.side == BaloonAttackParams::Down) {
             pos = Vector2(variableCoord, screenSize.y + 50);
         } else if (params.side == BaloonAttackParams::Up) {

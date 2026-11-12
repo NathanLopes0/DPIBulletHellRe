@@ -7,69 +7,39 @@
 #include <memory>
 #include <string>
 
-#include "../../../Components/AIComponents/FSMComponent.h"
-#include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
-#include "../../../Attacks/Behaviors.h"
-#include "../../Projectile.h"
-#include "../../../Random.h"
-#include "../BossAttackState.h"
-#include "../../../Components/AIComponents/FSMComponent.h"
-#include "../../../Components/ColliderComponents/CircleColliderComponent.h"
-#include "../../../Movements/MovementStrategies.h"
-
-class ProjectileFactory;
-class IAttackStrategy;
 class Boss;
 class Scene;
 class Game;
 
-// A duracao de cada fase agora vem de Assets/Attacks/fases.json.
-
-/**
- * @interface IBossFactory
- * @brief Interface abstrata para todas as fábricas de Bosses.
- * Define um contrato para a criação de um Boss, garantindo o gerenciamento
- * de memória seguro através de std::unique_ptr.
- */
-
+/// A receita de montar um chefe (Template Method): CreateBoss chama os passos na ordem certa, e
+/// quem varia sao os passos.
 class IBossFactory {
 
 public:
     explicit IBossFactory(Game* game);
     virtual ~IBossFactory() = default;
 
-    /**
-     * @brief O método principal da fábrica. Executa a "receita" de criação.
-     * Esta função NÃO é virtual. Ela é o "Template" que chama
-     * os "Passos" (helpers) virtuais na ordem correta.
-     * As classes filhas vão mudar as funções internas
-     * @param scene A cena onde o Boss será criado.
-     * @return Um unique_ptr para o Boss 100% montado e pronto.
-     */
+    /// O metodo principal da fabrica. Executa a "receita" de criacao.
     std::unique_ptr<Boss> CreateBoss(Scene* scene);
 
-    /**
-     * @brief O cartao do professor, sem a extensao: "Teachers/DPIBH<Nome>", com
-     * o .png e o .json do DrawAnimatedComponent ao lado. Quem so quer mostrar o
-     * rosto - a escolha do orientador, no TCC - le daqui sem montar o chefe.
-     */
+    /// O cartao do professor, sem a extensao: "Teachers/DPIBH<Nome>", com o .png e o .json do
+    /// DrawAnimatedComponent ao lado.
     [[nodiscard]] virtual std::string Retrato() const = 0;
 
 protected:
 
-    // Os passos virtuais PUROS, todas as fábricas filhas
-    // DEVEM implementar esses 3 passos.
+    /// A pasta do chefe em Assets/Attacks/ ("salles", "hugo"...): de la vem os projeteis, as regras
+    /// e as fases.
+    [[nodiscard]] virtual const std::string& Pasta() const = 0;
 
-    /** @brief PASSO 1: Criar e retornar o Boss puro */
+    /// Passo 1: Criar e retornar o Boss puro.
     virtual std::unique_ptr<Boss> InstantiateBoss(Scene* scene) = 0;
 
-    /** @brief PASSO 2: Instala todos os componentes necessários
-     * para o boss (Draw, Collider, RigidBody, etc.) */
-    virtual void ConfigureComponents(Boss* boss) = 0;
+    /// Passo 2: o desenho, o colisor e os projeteis.
+    virtual void ConfigureComponents(Boss* boss);
 
-    /** @brief PASSO 3 : Instala a FSM e as AttackStrategies */
-    virtual void ConfigureAttacksAndFSM(Boss* boss) = 0;
+    /// Passo 3: as fases (a FSM) e os ataques de cada uma.
+    virtual void ConfigureAttacksAndFSM(Boss* boss);
 
     Game* mGame;
-
 };

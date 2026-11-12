@@ -9,11 +9,8 @@
 #include <cmath>
 #include <vector>
 
-// A PARTE QUE DA PARA TESTAR DE UMA ESTRATEGIA QUE CRIA PROJETEIS.
-//
-// CaixaAttack pede projeteis ao pool e nao entra na suite. O que entra e a
-// geometria, e e nela que estao os erros que desmanchariam a fase: pontos fora
-// do contorno, um lado com buraco, e uma caixa que vira losango enquanto cresce.
+// A parte que da para testar de uma estrategia que cria projeteis. CaixaAttack pede projeteis ao
+// pool e nao entra na suite.
 
 namespace {
     /// O ponto esta em cima do contorno do retangulo?
@@ -39,9 +36,7 @@ TEST_CASE("Caixa: todos os pontos ficam no contorno, e o primeiro e o canto de c
 
 TEST_CASE("Caixa: os pontos sao igualmente espacados pelo contorno, sem buraco num lado") {
 
-    // PELO COMPRIMENTO, e nao pelo angulo. Contando quantos caem em cada lado:
-    // num retangulo 224 x 140 com 32 pontos o passo e 22,75, e os lados
-    // compridos levam mais pontos que os curtos na proporcao do comprimento.
+    // Pelo comprimento, e nao pelo angulo.
     const auto p = Caixa::PontosDoContorno(32, 112.0f, 70.0f);
     int topo = 0, base = 0, esquerda = 0, direita = 0;
     for (const auto& q : p) {
@@ -58,8 +53,7 @@ TEST_CASE("Caixa: os pontos sao igualmente espacados pelo contorno, sem buraco n
 
 TEST_CASE("Caixa: a velocidade faz a caixa crescer sem deformar") {
 
-    // DEPOIS DE t SEGUNDOS, todo ponto tem de estar no contorno de uma caixa
-    // MAIOR e SEMELHANTE: mesma proporcao, meia-altura h0 + v*t.
+    // Depois de t segundos, todo ponto tem de estar no contorno de uma caixa maior e semelhante.
     const float h0 = 70.0f, w0 = 112.0f, v = 120.0f, t = 2.5f;
     const float h = h0 + v * t;
     const float w = w0 * (h / h0);

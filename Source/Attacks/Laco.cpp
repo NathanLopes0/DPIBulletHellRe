@@ -118,9 +118,7 @@ namespace Laco {
             case Forma::Para: return "for (i = " + N(p.inicio) + "; i < 12; i += " + N(p.passo) + ")";
             case Forma::Decrescente: return "for (i = " + N(p.inicio) + "; i >= 0; i -= " + N(p.passo) + ")";
             case Forma::Multiplica: return "for (i = " + N(p.inicio) + "; i < 12; i *= " + N(p.passo) + ")";
-            // OS DE DUAS LINHAS quebram onde o codigo quebraria: o placar
-            // escreve o \n, e cada linha fica maior do que se coubesse tudo
-            // numa so.
+            // Os de duas linhas quebram onde o codigo quebraria.
             case Forma::Continue: return "for (i = 0; i < 12; i++)\n    if (i % " + N(p.passo) + " == 0) continue;";
             case Forma::Aninhado:
                 return "for (k = 0; k < " + N(p.passo) + "; k++)\n    for (i = k; i < 12; i += " + N(p.passo) + ")";

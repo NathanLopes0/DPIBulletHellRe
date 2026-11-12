@@ -19,9 +19,7 @@ namespace Ordenacao {
     }
 
     std::vector<int> Sortear(std::uint32_t sorteio, const int n) {
-        // UM GERADOR PROPRIO, a partir do sorteio: os valores tem de ser
-        // diferentes, e a escolha de cada um depende das anteriores. Os bits
-        // altos de um congruencial linear sao os bons.
+        // Um gerador proprio, a partir do sorteio.
         std::vector<int> v;
         const int quantos = std::clamp(n, 0, kMaiorValor - kMenorValor + 1);
         auto proximo = [&sorteio]() {
@@ -32,7 +30,7 @@ namespace Ordenacao {
             const int k = kMenorValor + static_cast<int>(proximo() % static_cast<std::uint32_t>(kMaiorValor - kMenorValor + 1));
             if (std::find(v.begin(), v.end(), k) == v.end()) v.push_back(k);
         }
-        // FORA DE ORDEM: um vetor que nasceu ordenado troca os dois primeiros.
+        // Fora de ordem: um vetor que nasceu ordenado troca os dois primeiros.
         if (v.size() >= 2 && std::is_sorted(v.begin(), v.end())) std::swap(v[0], v[1]);
         return v;
     }
@@ -54,7 +52,7 @@ namespace Ordenacao {
             return p;
         }
 
-        // UMA COMPARACAO: o par v[i], v[i + 1].
+        // Uma comparacao: o par v[i], v[i + 1].
         if (b.i < b.fim) {
             p.i = b.i;
             p.a = b.v[static_cast<size_t>(b.i)];
@@ -70,7 +68,7 @@ namespace Ordenacao {
             return p;
         }
 
-        // O FIM DA PASSADA. Sem troca nenhuma, o vetor ja estava em ordem.
+        // O fim da passada.
         if (!b.trocou) {
             b.ordenado = true;
             p.tipo = Tipo::Ordenado;
@@ -78,7 +76,7 @@ namespace Ordenacao {
             return p;
         }
 
-        // COM TROCA, A BOLHA CHEGOU: v[fim] e o maior do que faltava, e assenta.
+        // Com troca, a bolha chegou: v[fim] e o maior do que faltava, e assenta.
         p.tipo = Tipo::NoLugar;
         p.i = b.fim;
         p.a = b.v[static_cast<size_t>(b.fim)];
@@ -96,13 +94,12 @@ namespace Ordenacao {
         if (b.ordenado) return;
 
         if (k <= b.fim) {
-            // NA PARTE QUE FALTA ORDENAR, a passada recomeca: o maior que a
-            // bolha vinha carregando pode ter sido justamente o tirado.
+            // Na parte que falta ordenar, a passada recomeca.
             --b.fim;
             b.i = 0;
             b.trocou = false;
         }
-        // NA PARTE JA ORDENADA, quem sobrou continua em ordem e maior que o resto.
+        // Na parte ja ordenada, quem sobrou continua em ordem e maior que o resto.
         if (b.fim < 0) b.fim = 0;
         if (static_cast<int>(b.v.size()) <= 1) b.ordenado = true;
     }
@@ -133,7 +130,7 @@ namespace Ordenacao {
             std::reverse(v.begin(), v.end());
             return v;
         }
-        // QUASE ORDENADO: dois pares vizinhos trocados, longe um do outro.
+        // Quase ordenado: dois pares vizinhos trocados, longe um do outro.
         const std::size_t m = v.size();
         const std::size_t a = static_cast<std::size_t>((sorteio >> 3) % static_cast<std::uint32_t>(m / 2));
         std::swap(v[a], v[a + 1]);

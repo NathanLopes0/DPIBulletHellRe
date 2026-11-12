@@ -7,15 +7,13 @@
 
 #include "ColliderComponent.h"
 #include "../Component.h"
-#include "../../Math.h"
-
+#include "../../Motor/Math.h"
 
 class CircleColliderComponent : public ColliderComponent {
 
 public:
     CircleColliderComponent(Actor* owner, float radius, int updateOrder = 10);
 
-    void SetRadius(const float radius) { mRadius = radius; }
     [[nodiscard]] float GetRadius() const;
 
     [[nodiscard]] const Vector2& GetCenter() const;
@@ -25,5 +23,4 @@ private:
     float mRadius;
 };
 
-
-#endif //DPIBULLETHELLRE_CIRCLECOLLIDERCOMPONENT_H
+#endif // DPIBULLETHELLRE_CIRCLECOLLIDERCOMPONENT_H.

@@ -17,9 +17,7 @@ DrawLinhasComponent::DrawLinhasComponent(Actor* owner, const int drawOrder)
 void DrawLinhasComponent::Draw(SDL_Renderer* renderer) {
     if (!IsVisible() || mLinhas.empty()) return;
 
-    // UM DONO PARADO NAO DESENHA. O laco de desenho percorre todos os
-    // desenhaveis sem olhar o estado, e no fim da batalha tudo e pausado: sem
-    // isto, o grafo do ultimo quadro ficaria boiando por cima da tela de nota.
+    // Um dono parado nao desenha.
     if (mOwner->GetState() != ActorState::Active) return;
 
     SDL_BlendMode anterior;
@@ -29,8 +27,7 @@ void DrawLinhasComponent::Draw(SDL_Renderer* renderer) {
     for (const Linha& l : mLinhas) {
         SDL_SetRenderDrawColor(renderer, l.cor.r, l.cor.g, l.cor.b, l.cor.a);
 
-        // A SEGUNDA LINHA VAI DE LADO, um pixel para fora no eixo menos
-        // inclinado: deslocar sempre no y deixaria a linha vertical com 1 px.
+        // A segunda linha vai de lado, um pixel para fora no eixo menos inclinado.
         const float dx = l.ate.x - l.de.x, dy = l.ate.y - l.de.y;
         const int ox = (std::fabs(dy) > std::fabs(dx)) ? 1 : 0;
         const int oy = 1 - ox;

@@ -3,3 +3,4 @@
 *.h   text eol=crlf
 *.txt text eol=crlf
 *.png binary
+*.sh  text eol=lf

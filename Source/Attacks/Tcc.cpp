@@ -30,7 +30,7 @@ namespace Tcc {
         auto& tiros = r.tiros;
         switch (m) {
             case Materia::Andre: {
-                // for (i = 0; i < n; i++): um tiro por volta, e o laco varre o arco.
+                // For (i = 0; i < n; i++): um tiro por volta, e o laco varre o arco.
                 const int q = N(10, 14);
                 const float arco = N(45.0f, 65.0f);
                 for (int i = 0; i < q; ++i) {
@@ -41,8 +41,7 @@ namespace Tcc {
                 break;
             }
             case Materia::Salles: {
-                // PUSH, PUSH, PUSH... e o POP comeca pelo ultimo: cada nivel e
-                // um leque de tres, mirado quando sai.
+                // Push, push, push... e o pop comeca pelo ultimo.
                 const int niveis = N(6, 7);
                 const float pop = static_cast<float>(niveis - 1) * 0.08f + 0.25f;
                 for (int i = 0; i < niveis; ++i) {
@@ -57,7 +56,7 @@ namespace Tcc {
                 break;
             }
             case Materia::Ricardo: {
-                // O BARRAMENTO: paredes de oito fios, e so os bits 0 deixam passar.
+                // O barramento: paredes de oito fios, e so os bits 0 deixam passar.
                 const int bytes = 3;
                 for (int b = 0; b < bytes; ++b) {
                     const auto bits = Golpe::Byte(s, 4);
@@ -72,9 +71,7 @@ namespace Tcc {
                 break;
             }
             case Materia::Thiago: {
-                // CADA ESCRITA ESPERA NA LINHA, e o COMMIT manda a linha inteira
-                // em voce, junta - menos as escritas que o ROLLBACK desfez, que
-                // sao as frestas.
+                // Cada escrita espera na linha, e o commit manda a linha inteira em voce, junta.
                 const int escritas = N(9, 10);
                 const float intervalo = N(0.09f, 0.08f);
                 const float commit = static_cast<float>(escritas - 1) * intervalo + 0.35f;
@@ -94,9 +91,7 @@ namespace Tcc {
                 break;
             }
             case Materia::Luizinho: {
-                // OS PONTEIROS saem de lado e apontam para voce: uma pinca.
-                // A CURVA E LARGA (uns 140 px de raio): fechada, os ponteiros
-                // giravam em volta do Hugo e desciam num bolo.
+                // Os ponteiros saem de lado e apontam para voce: uma pinca.
                 std::vector<float> lados = {40.0f, 70.0f, 100.0f};
                 if (n == Dificuldade::Nivel::Dificil) lados.push_back(130.0f);
                 for (const float l : lados) {
@@ -125,7 +120,7 @@ namespace Tcc {
                 break;
             }
             case Materia::Julio: {
-                // O GRADIENTE: cada passo erra para um lado, e erra menos.
+                // O gradiente: cada passo erra para um lado, e erra menos.
                 const int q = N(6, 7);
                 for (int i = 0; i < q; ++i) {
                     Golpe::Tiro t = Tiro(static_cast<float>(i) * 0.1f, N(260.0f, 275.0f));
@@ -136,8 +131,7 @@ namespace Tcc {
                 break;
             }
             case Materia::MariaLucia: {
-                // notifyAll(): os observadores aparecem juntos e cada um, na
-                // vez dele, atira um leque.
+                // NotifyAll(): os observadores aparecem juntos e cada um, na vez dele, atira um leque.
                 const int olhos = N(4, 5);
                 for (int i = 0; i < olhos; ++i) {
                     for (const float d : {-10.0f, 0.0f, 10.0f}) {
@@ -152,8 +146,7 @@ namespace Tcc {
                 break;
             }
             case Materia::Lucas: {
-                // O FETCH vai ao servidor, de lado, e a resposta volta em voce.
-                // Cada resposta chega numa hora: a de mais longe, depois.
+                // O fetch vai ao servidor, de lado, e a resposta volta em voce.
                 std::vector<float> lados = {40.0f, 60.0f, 80.0f};
                 if (n == Dificuldade::Nivel::Dificil) lados.push_back(100.0f);
                 for (size_t i = 0; i < lados.size(); ++i) {
@@ -169,7 +162,7 @@ namespace Tcc {
                 break;
             }
             case Materia::Vitor: {
-                // A JANELA DO TCP: rajadas de 1, 2, 4 e 8, cada uma mirada.
+                // A janela do TCP: rajadas de 1, 2, 4 e 8, cada uma mirada.
                 const std::vector<int> janelas = {1, 2, 4, 8};
                 for (size_t j = 0; j < janelas.size(); ++j) {
                     for (int i = 0; i < janelas[j]; ++i) {
@@ -181,7 +174,7 @@ namespace Tcc {
             }
             case Materia::Generico:
             default: {
-                // O HUGO SEM ORIENTADOR: um leque de paginas.
+                // O Hugo sem orientador: um leque de paginas.
                 const int q = N(7, 9);
                 for (int i = 0; i < q; ++i) {
                     Golpe::Tiro t = Tiro(0.0f, N(240.0f, 270.0f));
@@ -191,91 +184,60 @@ namespace Tcc {
                 break;
             }
         }
-        // A RODADA DURA o que o ultimo tiro leva para partir.
+        // A rodada dura o que o ultimo tiro leva para partir.
         r.duracao = 0.1f;
         for (const Golpe::Tiro& t : tiros) r.duracao = std::max(r.duracao, t.quando + t.espera + 0.1f);
         return r;
     }
 
-    std::string Professor(const Materia m) {
-        switch (m) {
-            case Materia::Andre:      return "André";
-            case Materia::Salles:     return "Salles";
-            case Materia::Ricardo:    return "Ricardo";
-            case Materia::Thiago:     return "Thiago";
-            case Materia::Luizinho:   return "Luizinho";
-            case Materia::Vladimir:   return "Vladimir";
-            case Materia::Julio:      return "Júlio";
-            case Materia::MariaLucia: return "Maria Lúcia";
-            case Materia::Lucas:      return "Lucas";
-            case Materia::Vitor:      return "Vitor";
-            default:                  return "Hugo";
+    namespace {
+        /// Uma linha por materia: o professor, a area do TCC, o capitulo, a pergunta da banca e a
+        /// animacao do projetil.
+        struct Ficha {
+            Materia materia;
+            const char* professor;
+            const char* area;
+            const char* capitulo;
+            const char* pergunta;
+            const char* animacao;
+        };
+        const Ficha kFichas[] = {
+            {Materia::Andre,      "André",       "Programação",
+             "for (i = 0; i < n; i++)",  "Cadê o fluxograma?",                "Andre"},
+            {Materia::Salles,     "Salles",      "Estruturas de Dados",
+             "push, push, pop: a pilha", "E se a pilha estourar?",            "Salles"},
+            {Materia::Ricardo,    "Ricardo",     "Organização de Computadores",
+             "o barramento de 8 bits",   "Quantos ciclos de clock isso leva?", "Ricardo"},
+            {Materia::Thiago,     "Thiago",      "Banco de Dados",
+             "BEGIN ... COMMIT",         "Essa tabela está normalizada?",     "Thiago"},
+            {Materia::Luizinho,   "Luizinho",    "Linguagens de Programação",
+             "int *p = &voce;",          "Onde esse ponteiro é liberado?",    "Luizinho"},
+            {Materia::Vladimir,   "Vladimir",    "Linguagens Formais e Autômatos",
+             "S -> S S",                 "Isso é decidível?",                 "Vladimir"},
+            {Materia::Julio,      "Júlio",       "Inteligência Artificial",
+             "a descida do gradiente",   "Por que não usou um LLM?",          "Julio"},
+            {Materia::MariaLucia, "Maria Lúcia", "Engenharia de Software",
+             "notifyAll()",              "Cadê a documentação?",              "MariaLucia"},
+            {Materia::Lucas,      "Lucas",       "Programação Web",
+             "await fetch(\"/api\")",    "Funciona no Safari?",               "Lucas"},
+            {Materia::Vitor,      "Vitor",       "Programação Concorrente e Distribuída",
+             "a janela do TCP",          "E se der deadlock?",                "Vitor"},
+        };
+
+        /// Sem orientador (o Generico), o proprio Hugo: tema livre.
+        const Ficha kDoHugo{Materia::Generico, "Hugo", "tema livre", "mais uma página", "Pode repetir?", "Folha"};
+
+        const Ficha& FichaDe(const Materia m) {
+            for (const Ficha& f : kFichas) if (f.materia == m) return f;
+            return kDoHugo;
         }
     }
 
-    std::string Area(const Materia m) {
-        switch (m) {
-            case Materia::Andre:      return "Programação";
-            case Materia::Salles:     return "Estruturas de Dados";
-            case Materia::Ricardo:    return "Organização de Computadores";
-            case Materia::Thiago:     return "Banco de Dados";
-            case Materia::Luizinho:   return "Linguagens de Programação";
-            case Materia::Vladimir:   return "Linguagens Formais e Autômatos";
-            case Materia::Julio:      return "Inteligência Artificial";
-            case Materia::MariaLucia: return "Engenharia de Software";
-            case Materia::Lucas:      return "Programação Web";
-            case Materia::Vitor:      return "Programação Concorrente e Distribuída";
-            default:                  return "tema livre";
-        }
-    }
-
-    std::string Capitulo(const Materia m) {
-        switch (m) {
-            case Materia::Andre:      return "for (i = 0; i < n; i++)";
-            case Materia::Salles:     return "push, push, pop: a pilha";
-            case Materia::Ricardo:    return "o barramento de 8 bits";
-            case Materia::Thiago:     return "BEGIN ... COMMIT";
-            case Materia::Luizinho:   return "int *p = &voce;";
-            case Materia::Vladimir:   return "S -> S S";
-            case Materia::Julio:      return "a descida do gradiente";
-            case Materia::MariaLucia: return "notifyAll()";
-            case Materia::Lucas:      return "await fetch(\"/api\")";
-            case Materia::Vitor:      return "a janela do TCP";
-            default:                  return "mais uma página";
-        }
-    }
-
-    std::string Pergunta(const Materia m) {
-        switch (m) {
-            case Materia::Andre:      return "Cadê o fluxograma?";
-            case Materia::Salles:     return "E se a pilha estourar?";
-            case Materia::Ricardo:    return "Quantos ciclos de clock isso leva?";
-            case Materia::Thiago:     return "Essa tabela está normalizada?";
-            case Materia::Luizinho:   return "Onde esse ponteiro é liberado?";
-            case Materia::Vladimir:   return "Isso é decidível?";
-            case Materia::Julio:      return "Por que não usou um LLM?";
-            case Materia::MariaLucia: return "Cadê a documentação?";
-            case Materia::Lucas:      return "Funciona no Safari?";
-            case Materia::Vitor:      return "E se der deadlock?";
-            default:                  return "Pode repetir?";
-        }
-    }
-
-    std::string Animacao(const Materia m) {
-        switch (m) {
-            case Materia::Andre:      return "Andre";
-            case Materia::Salles:     return "Salles";
-            case Materia::Ricardo:    return "Ricardo";
-            case Materia::Thiago:     return "Thiago";
-            case Materia::Luizinho:   return "Luizinho";
-            case Materia::Vladimir:   return "Vladimir";
-            case Materia::Julio:      return "Julio";
-            case Materia::MariaLucia: return "MariaLucia";
-            case Materia::Lucas:      return "Lucas";
-            case Materia::Vitor:      return "Vitor";
-            default:                  return "Folha";
-        }
-    }
+    std::string Professor(const Materia m) { return FichaDe(m).professor; }
+    std::string Area(const Materia m) { return FichaDe(m).area; }
+    std::string Capitulo(const Materia m) { return FichaDe(m).capitulo; }
+    std::string Pergunta(const Materia m) { return FichaDe(m).pergunta; }
+    std::string Animacao(const Materia m) { return FichaDe(m).animacao; }
 
     std::array<Materia, 2> Banca(const Materia orientador, Variacao::Sorteio& s) {
         std::vector<Materia> candidatos;

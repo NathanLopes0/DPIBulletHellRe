@@ -5,37 +5,23 @@
 #pragma once
 
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
-/**
- * @brief Uma animacao registrada no projetil: um nome e os quadros da folha.
- *
- * Os quadros sao INDICES na lista "frames" do atlas do sprite, na ordem em que
- * devem tocar. Repetir um indice e legitimo (ida e volta), e por isso a lista
- * nao e um conjunto.
- */
+#include "../Regras/Dificuldade.h"
+
+/// Uma animacao registrada no projetil: um nome e os quadros da folha.
 struct AnimacaoDeProjetil {
     std::string nome;
     std::vector<int> quadros;
 };
 
-/**
- * @brief Tudo que distingue um tipo de projetil de outro.
- *
- * Esta struct existe porque as seis fabricas de projetil do jogo eram seis
- * copias do MESMO codigo - pool, Acquire, Release, Prewarm, cerca de cem linhas
- * cada - diferindo apenas nos campos abaixo. Cada copia era uma chance de
- * esquecer uma linha, e tres delas esqueceram (uma nao escolhia animacao
- * inicial, uma errou o caminho do atlas, duas sombreavam os membros da base).
- *
- * Com a descricao em dados, acrescentar um tipo de projetil a um chefe passou a
- * ser uma entrada em Assets/Attacks/projeteis.json - nenhum arquivo .cpp novo.
- */
+/// Tudo que distingue um tipo de projetil de outro.
 struct DescricaoDeProjetil {
 
-    /// Caminhos RELATIVOS a pasta Assets. Quem resolve para caminho absoluto e a
-    /// ponte, porque so ela conhece Caminhos::Asset.
+    /// Caminhos relativos a pasta Assets. Quem resolve para caminho absoluto e a ponte, porque so
+    /// ela conhece Caminhos::Asset.
     std::string sprite;
     std::string dados;
 
@@ -43,78 +29,33 @@ struct DescricaoDeProjetil {
     /// GetScale), entao mexer aqui mexe na hitbox - nao e so aparencia.
     float escala = 1.0f;
 
-    /// Ordem de desenho do DrawAnimatedComponent. O padrao 100 e o da propria
-    /// classe; cinco das seis fabricas passavam 90 e uma omitia, e essa
-    /// diferenca de camada entre os projeteis do Andre e os outros e de verdade,
-    /// entao e descrita em vez de uniformizada por conta.
+    /// Ordem de desenho do DrawAnimatedComponent.
     int ordemDeDesenho = 100;
 
     std::vector<AnimacaoDeProjetil> animacoes;
 
-    /// Qual animacao o projetil mostra ao nascer. NUNCA pode ficar vazia: um
-    /// projetil criado pelo Prewarm vai direto para o pool e pode ser desenhado
-    /// antes de qualquer ataque escolher a animacao dele. Quando o arquivo nao
-    /// diz, o leitor resolve para a PRIMEIRA animacao da lista.
+    /// Qual animacao o projetil mostra ao nascer.
     std::string animacaoInicial;
 
     /// Qual medida do sprite vira o raio do colisor: "largura" ou "altura".
-    /// Parece detalhe, mas o projetil de lista duplamente encadeada e mais largo
-    /// que alto, e usar a largura dele daria uma hitbox bem maior que o desenho.
     std::string colisorDimensao = "largura";
 
-    /// O raio e dimensao/divisor. Os baloes do Andre usam 4 (hitbox menor que o
-    /// desenho, de proposito: o balao e grande e seria injusto).
+    /// O raio e dimensao/divisor. Os baloes do Andre usam 4 (hitbox menor que o desenho: o balao e
+    /// grande e seria injusto).
     float colisorDivisor = 2.0f;
 
-    /// Se o projetil nasce na posicao do dono. Quatro fabricas faziam isso e
-    /// duas nao, e a diferenca nao e visivel em jogo porque toda strategy chama
-    /// SetPosition logo depois - mas e comportamento existente, e migracao nao e
-    /// hora de mudar comportamento.
+    /// Se o projetil nasce na posicao do dono.
     bool posicionarNoDono = true;
 
-    /// Quanta folga o projetil tem alem da borda antes de morrer, em multiplos do
-    /// tamanho do sprite e em fracao da tela (margem = sprite*emSprites +
-    /// tela/divisorDeTela; divisor 0 remove a parcela de tela).
-    ///
-    /// Os padroes sao a regra geral do jogo. Os baloes do Andre usam 2 e 0, e
-    /// eram o unico motivo pelo qual existia uma subclasse de projetil so para
-    /// eles - a diferenca era de numero, nao de comportamento.
+    /// Os padroes sao a regra geral do jogo.
     float margemEmSprites = 1.0f;
     float margemDivisorDeTela = 12.0f;
 
-    /**
-     * Se o sprite gira para acompanhar a direcao em que o projetil viaja.
-     *
-     * Existe para as listas do Salles: a arte delas e uma caixa com uma SETA
-     * APONTANDO PARA A DIREITA, e o encadeamento so le como encadeamento se a
-     * seta de cada no apontar para onde o no vai. Sem isto todas apontam para a
-     * direita, qualquer que seja o caminho, e a lista parece um amontoado.
-     *
-     * Vale a pena so para arte que tem frente - uma capivara girando ficaria
-     * estranha -, e por isso o padrao e nao girar.
-     *
-     * O sprite precisa ser desenhado apontando para +X, que e a convencao de
-     * angulo do jogo (ver Actor::GetForward).
-     */
+    /// Se o sprite gira para acompanhar a direcao em que o projetil viaja. Existe para as listas do
+    /// Salles: a arte delas e uma caixa com uma seta.
     bool rotacionarComAVelocidade = false;
 
-    /**
-     * O QUE ACONTECE COM O ALUNO QUANDO ESTE PROJETIL ACERTA.
-     *
-     * Nasceu para as CORRENTES do Vitor - a piada de "concorrentes" - e e um
-     * tipo de ataque que o jogo nao tinha: um que quase nao cobra nota e em
-     * troca ATRAPALHA. Acertado por uma corrente, o aluno fica preso: anda a
-     * uma fracao da velocidade por alguns segundos.
-     *
-     * POR QUE A PERDA TAMBEM MORA AQUI. Se a corrente custasse os mesmos 6
-     * pontos de um tiro normal, ela seria um tiro normal que por acaso tambem
-     * prende - e o jogador leria "tomei dano", nao "fiquei preso". O que
-     * distingue um efeito de estado de um dano e justamente a troca: quase
-     * nenhuma nota por bastante estorvo.
-     *
-     * Zero em "segundosDeCorrente" quer dizer que este projetil nao prende
-     * ninguem, que e o caso de todos os outros projeteis do jogo.
-     */
+    /// O que acontece com o aluno quando este projetil acerta.
     struct Acorrentamento {
         float segundos = 0.0f;              ///< 0 = nao acorrenta
         float fatorDeVelocidade = 1.0f;     ///< multiplica a velocidade do aluno
@@ -123,73 +64,34 @@ struct DescricaoDeProjetil {
 
     Acorrentamento acorrenta;
 
-    /**
-     * @brief O tiro do aluno pode derrubar este projetil?
-     *
-     * O cursor e os workers do Lucas, e os bugs, as historias e as janelas
-     * da Maria Lucia. Um projetil derrubavel some quando um tiro do aluno o
-     * acerta - e o tiro some junto, sem chegar ao chefe. Quem decide o que
-     * acontece depois e o chefe dono dele (Boss::OnProjetilDerrubado, ou o
-     * proprio chefe olhando o que sumiu): no Lucas, o supervisor reinicia o
-     * worker. Um projetil BLINDADO naquele disparo nao cai: a historia que o
-     * cursor ainda arrasta so come o tiro.
-     *
-     * Falso por padrao: um padrao errado aqui faria os tiros do aluno pararem
-     * em todo projetil de todo chefe.
-     */
+    /// O tiro do aluno pode derrubar este projetil? O cursor e os workers do Lucas, e os bugs, as
+    /// historias e as janelas da Maria Lucia.
     bool derrubavel = false;
 
-    /**
-     * @brief Quantos tiros derrubam este projetil, se ele for derrubavel.
-     *
-     * Os tiros antes do ultimo SOMEM nele, sem chegar ao chefe e sem derruba-lo:
-     * e a janela modal da Maria Lucia, que pede mais de um clique para fechar
-     * ("Tem certeza?"). 1 por padrao - o derrubavel de sempre, que cai no
-     * primeiro tiro. Sem "derrubavel", nao vale nada, e a leitura avisa.
-     */
+    /// Quantos tiros derrubam este projetil, se ele for derrubavel.
     int resistencia = 1;
 
-    /**
-     * @brief Este projetil e um ABRIGO: os projeteis do chefe que encostam
-     * nele somem, ele nao machuca o aluno, e o tiro do aluno some nele.
-     *
-     * E a capivara que atravessa o campo do Salles: todo bicho se da bem com
-     * a capivara, e o aluno que anda embaixo dela fica protegido - mas os tiros
-     * dele ficam nela tambem. So come o que esta solto: um projetil num posto
-     * (a pilha do professor, uma chave na tabela) e parte de uma estrutura, e
-     * fica.
-     *
-     * Falso por padrao, e propriedade do TIPO, como o derrubavel.
-     */
+    /// O bloco "dificil": a resistencia do modo Dificil, quando ele a troca.
+    std::optional<int> resistenciaNoDificil;
+
+    /// Este projetil e um abrigo: os projeteis do chefe que encostam nele somem, ele nao machuca o
+    /// aluno, e o tiro do aluno some nele.
     bool abrigo = false;
 };
 
-/**
- * @brief O resultado da leitura: OS PROJETEIS DE UM CHEFE e a lista de problemas.
- *
- * Indexados pelo nome que o campo "projetil" de um ataque usa. Como o arquivo e
- * de um chefe so (Assets/Attacks/<chefe>/projeteis.json), dois chefes podem ter
- * um projetil "Normal" sem colidir - e nenhum deles precisa ler o do outro.
- *
- * Era um mapa de conjuntos, com o nome do chefe por fora. Esse nome saiu junto
- * com o arquivo unico: ele passou a estar na PASTA, e mante-lo aqui dentro
- * criaria duas versoes da mesma verdade, livres para discordar.
- */
+/// O resultado da leitura: os projeteis de um chefe e a lista de problemas. Indexados pelo nome que
+/// o campo "projetil" de um ataque usa.
 struct ProjeteisLidos {
     std::map<std::string, DescricaoDeProjetil> projeteis;
     std::vector<std::string> problemas;
 };
 
-/**
- * @brief Interpreta o texto do projeteis.json DE UM CHEFE.
- *
- * Nunca lanca e nunca abre arquivo: recebe o texto e devolve o que conseguiu ler
- * mais a lista do que estava errado. Uma entrada com problema GRAVE (sem sprite,
- * sem animacao) e descartada, porque um projetil sem desenho nao tem como
- * aparecer; um problema LEVE (divisor invalido, dimensao desconhecida) vira
- * problema relatado e o campo volta ao padrao.
- */
+/// Interpreta o texto do projeteis.json de um chefe.
 ProjeteisLidos LerProjeteis(const std::string& textoJson);
+
+/// O projetil no modo: no Dificil, com o que o bloco "dificil" troca; no Normal (ou sem bloco),
+/// igual.
+DescricaoDeProjetil NoNivel(const DescricaoDeProjetil& p, Dificuldade::Nivel n);
 
 /// Se o nome serve para DescricaoDeProjetil::colisorDimensao.
 bool DimensaoDeColisorExiste(const std::string& nome);

@@ -1,67 +1,26 @@
 {
-  // ==========================================================================
-  // AS REGRAS DE PROJETIL DO THIAGO
-  //
-  // UMA PASTA POR CHEFE: Assets/Attacks/thiago/. Cada chave e um conjunto de
-  // regras, e e por esse nome que um ataque do fases.json ao lado o pede:
-  //     "regras": "varredura"
-  //
-  // OS NOMES PERDERAM O PREFIXO DO PROFESSOR. Eram "varredura" porque
-  // um arquivo so com todos os conjuntos precisava evitar colisao; com uma pasta
-  // por chefe, o prefixo passou a repetir o nome da pasta.
-  //
-  // UMA REGRA = uma motion (como o projetil se move), modifiers (o que muda nele
-  // com o tempo), uma animacao e uma chance. Tudo opcional: regra so com
-  // "animacao" existe e e legitima.
-  //
-  // OS CAMPOS estao documentados em Documentacao/arquivos-de-dados.md.
-  // ==========================================================================
-  // --------------------------------------------------------------------------
-  // THIAGO - INF 220
-  // --------------------------------------------------------------------------
-  //
-  // NENHUMA DESTAS REGRAS TEM "motion", E NAO E ESQUECIMENTO.
-  //
-  // A ConsultaAttack faz o projetil nascer PARADO, visivel, na borda da faixa, e
-  // so lhe da velocidade depois do aviso - e esse intervalo e o telegrafo. Toda
-  // Motion captura a direcao do projetil no instante em que ativa; se uma delas
-  // ativasse durante a espera, encontraria velocidade zero, nao teria direcao
-  // para capturar e cairia na rotacao identidade - o projetil sairia para a
-  // direita em vez de varrer a faixa.
-  //
-  // E o mesmo problema do "atraso" do lista_dupla do Salles, so que aqui a
-  // espera nao e de alguns decimos: e o ataque inteiro. Por isso estas regras
-  // mexem so em aparencia.
+  // As regras de projetil do Thiago. Uma pasta por chefe: Assets/Attacks/thiago/.
 
-  // A varredura de uma linha ou de uma coluna: a selecao e a projecao do
-  // SELECT, e o DELETE e o INSERT da fase 2.
+  // A varredura de uma linha ou de uma coluna: a selecao e a projecao do SELECT, na fase 1 e no
+  // COMMIT da fase 3.
   "varredura": [
     { "animacao": "Linha", "escala": 2 }
   ],
 
-  // A TABELA ESCRITA NO CAMPO: o valor de cada casa e o cabecalho de cada
-  // coluna ficam no posto "tabela" (Banco.h), e o Thiago os mantem no lugar.
+  // A tabela escrita no campo: o valor de cada casa e o cabecalho de cada coluna ficam no posto
+  // "tabela" (Banco.h), e o Thiago os mantem no lugar.
   "tabela": [
     { "posto": "tabela" }
   ],
 
-  // O MARCADOR DA CASA QUE VAI SER LIDA, no posto "aviso": e o telegrafo de
-  // toda consulta, e o que diz ao aluno de onde sair.
+  // O marcador da casa que vai ser lida, no posto "aviso": e o telegrafo de toda consulta, e o que
+  // diz ao aluno de onde sair.
   "aviso": [
     { "posto": "aviso" }
   ],
 
-  // A CASA QUE ACENDE (as duas operacoes juntas, e o produto cartesiano): doze
-  // pedacos de celula, parados, que cobrem a casa INTEIRA por um instante
-  // (Banco::kDuracaoDaCasa).
-  //
-  // A ESCALA E A DA COBERTURA, e nao a do desenho. O colisor do aluno tem um
-  // decimo da largura dele (3px), entao o que conta e o raio do pedaco: numa
-  // grade de 4 x 3 numa casa de 240 x 187, o ponto mais longe de todo centro
-  // fica a 43px de algum. Na escala 3 (raio 24) sobravam furos - medido, o
-  // piloto parado no meio de baixo atravessou a repescagem sem acerto nenhum,
-  // com a casa dele acendendo a cada volta. Na 5,25 o raio e 42, e com o do
-  // aluno passa dos 43; os pedacos se sobrepoem, e a casa acende cheia.
+  // A casa que acende (as duas operacoes juntas, e o produto cartesiano). A escala e a da
+  // cobertura, e nao a do desenho.
   "clarao": [
     { "animacao": "Linha", "escala": 5.25 }
   ]

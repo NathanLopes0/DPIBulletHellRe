@@ -4,14 +4,17 @@
 
 #include "Hugo.h"
 
+#include <algorithm>
 #include <cmath>
 
-#include "../../../CaminhosArquivo.h"
-#include "../../../Game.h"
-#include "../../../MateriasArquivo.h"
+#include "../../../Motor/CaminhosArquivo.h"
+#include "../../../Motor/Fontes.h"
+#include "../../../Motor/Game.h"
+#include "../../../Curso/MateriasArquivo.h"
 #include "../../../Attacks/Flex.h"
 #include "../../../Components/AIComponents/FSMComponent.h"
-#include "../../../Font.h"
+#include "../../../Components/ColliderComponents/CircleColliderComponent.h"
+#include "../../../Motor/Font.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../../../Components/DrawComponents/DrawTextComponent.h"
@@ -22,6 +25,7 @@
 #include "../../../Scenes/Battle/ProjectileManager.h"
 #include "../../Orientador/Orientador.h"
 #include "../../Player/Player.h"
+#include "../../Player/PlayerProjectile.h"
 #include "../BossFactory/IBossFactory.h"
 #include "BossesProjectiles/BossProjectile.h"
 
@@ -31,6 +35,7 @@ namespace {
     constexpr float kFolgaDaIdade = 0.1f;
 
     constexpr int kOrdemDasLinhas = 84;
+    constexpr int kOrdemDoCadeado = 101;
     constexpr SDL_Color kGuia{150, 140, 190, 60};
     constexpr SDL_Color kBarra{196, 170, 230, 150};
     constexpr SDL_Color kSemana{150, 140, 190, 120};
@@ -55,19 +60,18 @@ namespace {
 Hugo::Hugo(Scene* scene) : Boss(scene) {
 }
 
-// A FONTE E DELE, e os rotulos a usam: o destrutor nao mexe nos atores (a cena
-// os apaga junto), so precisa existir onde Font e um tipo completo.
+// A fonte e dele, e os rotulos a usam: o destrutor nao mexe nos atores (a cena os apaga junto), so
+// precisa existir onde Font e um tipo completo.
 Hugo::~Hugo() = default;
 
 // ---------------------------------------------------------------------------
 
 void Hugo::SortearALuta() {
     mLutaSorteada = true;
-    // O TEMA E A MATERIA DO ORIENTADOR; sem orientador (uma batalha medida sem
-    // ele), o Hugo atira as paginas dele.
-    if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->GetOrientador()) {
-        mTema = batalha->GetOrientador()->Materia();
-        mOrientador = batalha->GetOrientador()->Professor();
+    // O tema e a materia do orientador.
+    if (const auto* batalha = Batalha(); batalha && batalha->OrientadorEmCampo()) {
+        mTema = batalha->OrientadorEmCampo()->Materia();
+        mOrientador = batalha->OrientadorEmCampo()->Professor();
     }
     Variacao::Sorteio banca = SorteioDaFase(Tcc::kFaseDaDefesa);
     mBanca = Tcc::Banca(mTema, banca);
@@ -77,11 +81,13 @@ void Hugo::SortearALuta() {
     mDegrau = Tcc::DegrauDo(NivelDeDificuldade());
     mSorteioDoObjetivo = SorteioDaFase("objetivo");
     mFonte = std::make_unique<Font>();
-    mFonte->Load(Caminhos::Asset("Fonts/Carlito-Regular.ttf"));
+    mFonte->Load(Caminhos::Asset(Fontes::kPlacar));
 
-    // O DESENHO DO ESCUDO, por um ator a parte, em coordenadas de tela.
+    // O desenho do escudo, por um ator a parte, em coordenadas de tela.
     auto ator = std::make_unique<Actor>(mScene);
     mEscudoLinhas = ator->AddComponent<DrawLinhasComponent>(kOrdemDasLinhas + 2);
+    // O cadeado vai por cima do cartao dele (que e desenhado a 100).
+    mCadeado = ator->AddComponent<DrawLinhasComponent>(kOrdemDoCadeado);
     mScene->AddActor(std::move(ator));
 }
 
@@ -91,7 +97,7 @@ void Hugo::OnUpdate(const float deltaTime) {
     if (EhClone() || !mScene || !mScene->GetGame()) return;
 
     mRelogio += deltaTime;
-    // COMO O ALUNO ANDA, suavizado em uns 0,2 s: e o que a mira adianta.
+    // Como o aluno anda, suavizado em uns 0,2 s: e o que a mira adianta.
     const Vector2 aluno = PosicaoDoAluno();
     if (mViuOAluno && deltaTime > 0.0f) {
         const float peso = std::min(1.0f, deltaTime / 0.2f);
@@ -106,6 +112,13 @@ void Hugo::OnUpdate(const float deltaTime) {
     if (fase != mFase) TrocarDeFase(fase);
     const float agora = fsm->GetStateTime();
 
+    // No hlt, o que tem hora espera, e so o objetivo continua.
+    if (Congelado()) {
+        Adiar(deltaTime);
+        AtualizarObjetivo(deltaTime);
+        return;
+    }
+
     if (fase == Cronograma::kFaseDaProposta) AtualizarCronograma();
     else if (fase == Tcc::kFaseDoTema) {
         if (agora - mUltimoTema >= kEscrevendo) mTempoVarrendo += deltaTime;
@@ -119,7 +132,6 @@ void Hugo::OnUpdate(const float deltaTime) {
 }
 
 void Hugo::TrocarDeFase(const std::string& nova) {
-    // SAINDO: o que era da fase some, e o placar volta ao nome dela.
     if (mFase == Cronograma::kFaseDaProposta) {
         MatarPosto(Cronograma::kPostoDoCronograma);
         mBarras.clear();
@@ -138,13 +150,17 @@ void Hugo::TrocarDeFase(const std::string& nova) {
     mPrincipal.clear();
     mPlacarFeito.clear();
 
-    // CADA ETAPA COMECA BLINDADA, e o primeiro objetivo vem logo.
+    // Cada etapa comeca blindada, e o primeiro objetivo vem logo.
     mEtapa = Objetivo::DaFase(nova);
     mEscudo = mEtapa != Objetivo::Etapa::Nenhuma;
     mProximoObjetivo = mRelogio + Tcc::kPrimeiro;
+    mFechouEm = mRelogio;
+    // As duas maneiras se alternam, e qual vem primeiro e da luta.
+    mVezDoObjetivo = 0;
+    mPrimeiraManeira = mSorteioDoObjetivo.Inteiro(0, 1);
     if (!mAnunciosDoArquivo.count(nova)) mAnunciosDoArquivo[nova] = AnuncioDaFase(nova);
 
-    // ENTRANDO.
+    // Entrando.
     if (nova == Cronograma::kFaseDaProposta) {
         CriarLinhas();
         NovoCronograma();
@@ -155,14 +171,14 @@ void Hugo::TrocarDeFase(const std::string& nova) {
         mUltimoTema = -10.0f;
         mRascunhos = 1000;   // nenhum capitulo ainda
         mXDoComeco = GetPosition().x;
-        Anunciar(nova, mTema == Golpe::Materia::Generico
+        EscreverNoPlacar(nova, mTema == Golpe::Materia::Generico
                        ? std::string("TCC: tema livre\nsem orientador")
                        : "TCC em " + Tcc::Area(mTema) + "\norientador: " + mOrientador);
     } else if (nova == Tcc::kFaseDaDefesa) {
         ChamarABanca();
         mProximaPergunta = Tcc::kPrimeiro;
         mPerguntas = 0;
-        Anunciar(nova, "Defesa\nbanca: " + Tcc::Professor(mBanca[0]) + " e " + Tcc::Professor(mBanca[1]));
+        EscreverNoPlacar(nova, "Defesa\nbanca: " + Tcc::Professor(mBanca[0]) + " e " + Tcc::Professor(mBanca[1]));
     } else if (nova == Tcc::kFaseDasCorrecoes) {
         mProximaCorrecao = Tcc::kPrimeiro;
         mCorrecoes = 0;
@@ -170,13 +186,6 @@ void Hugo::TrocarDeFase(const std::string& nova) {
 }
 
 // ---------------------------------------------------------------------------
-
-Vector2 Hugo::PosicaoDoAluno() const {
-    if (const auto* battle = dynamic_cast<Battle*>(mScene); battle && battle->Alvo()) {
-        return battle->Alvo()->GetPosition();
-    }
-    return GetPosition() + GetDirectionToPlayer() * GetDistanceToPlayer();
-}
 
 Vector2 Hugo::MiraDe(const Vector2& de, const float velocidade, const float adiantamento) const {
     return Tcc::Mira(de, velocidade, PosicaoDoAluno(), mAndando, adiantamento);
@@ -191,14 +200,14 @@ bool Hugo::Vivo(const BossProjectile* p, const float idade) {
 }
 
 void Hugo::MatarPosto(const std::string& posto) {
-    if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->GetProjectileManager()) {
-        for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+    if (const auto* batalha = Batalha(); batalha && batalha->GerenteDeProjeteis()) {
+        for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
             if (p && p->GetState() == ActorState::Active && p->Posto() == posto) p->Kill();
         }
     }
 }
 
-void Hugo::Anunciar(const std::string& fase, const std::string& texto) {
+void Hugo::EscreverNoPlacar(const std::string& fase, const std::string& texto) {
     (void)fase;
     mPrincipal = texto;
     RefazerPlacar();
@@ -237,15 +246,12 @@ void Hugo::CustomizeAttackParams(AttackParams& params, const std::string& stateN
         params.centralAngle = mRumoDoDisparo;
         return;
     }
-    // O QUE VAI PELO RELOGIO (as paginas, a monografia, as perguntas) SAI
-    // MIRADO NO ALUNO: a banca nao pergunta para o teto.
+    // O que vai pelo relogio (as paginas, a monografia, as perguntas) sai.
     const Vector2 d = PosicaoDoAluno() - GetPosition();
     params.centralAngle = Math::ToDegrees(Math::Atan2(d.y, d.x));
 }
 
-// ---------------------------------------------------------------------------
-// OS PADROES DAS MATERIAS
-// ---------------------------------------------------------------------------
+// Os padroes das materias.
 
 Vector2 Hugo::PosicaoDa(const Fonte f) const {
     switch (f) {
@@ -256,8 +262,7 @@ Vector2 Hugo::PosicaoDa(const Fonte f) const {
 }
 
 float Hugo::Adiantamento(const Fonte f) const {
-    // A BANCA, DE LONGE E DE LADO, ADIANTA MENOS: mirando onde o aluno vai estar
-    // do canto da tela, ela pegava justamente quem desvia andando.
+    // A banca, de longe e de lado, adianta menos.
     return f == Fonte::Hugo ? mDegrau.adiantamento : mDegrau.adiantamento * Tcc::kAdiantamentoDaBanca;
 }
 
@@ -284,7 +289,6 @@ void Hugo::Soltar(const Golpe::Materia m, const Fonte f, const Golpe::Tiro& tiro
 
 void Hugo::AtualizarPadroes(const float deltaTime) {
 
-    // CADA TIRO SAI NA HORA DELE, de onde a fonte esta agora.
     for (auto it = mExecucoes.begin(); it != mExecucoes.end();) {
         const auto& tiros = it->rodada.tiros;
         while (it->proximo < tiros.size() && mRelogio - it->inicio >= tiros[it->proximo].quando) {
@@ -296,7 +300,7 @@ void Hugo::AtualizarPadroes(const float deltaTime) {
         it = (it->proximo >= tiros.size()) ? mExecucoes.erase(it) : it + 1;
     }
 
-    // OS GUIADOS: a espera, a curva, a volta, a onda, a divisao.
+    // Os guiados: a espera, a curva, a volta, a onda, a divisao.
     struct Filho {
         Golpe::Materia materia;
         Fonte fonte;
@@ -312,8 +316,7 @@ void Hugo::AtualizarPadroes(const float deltaTime) {
             it = mGuiados.erase(it);
             continue;
         }
-        // O QUE CURVA PROCURA O ALUNO ONDE ELE ESTA: adiantar uma curva a faz
-        // passar do ponto quando ele para.
+        // O que curva procura o aluno onde ele esta.
         const float adianta = it->voo.tiro.curva > 0.0f ? 0.0f : Adiantamento(it->fonte);
         const Golpe::Passo passo = Golpe::Avancar(it->voo, p->GetPosition(), rb->GetVelocity(), PosicaoDa(it->fonte),
                                                   MiraDe(p->GetPosition(), it->voo.tiro.velocidade, adianta), deltaTime);
@@ -331,13 +334,10 @@ void Hugo::AtualizarPadroes(const float deltaTime) {
         }
         ++it;
     }
-    // DEPOIS DO LACO: soltar agora mexeria na lista que ele percorre.
     for (const Filho& f : filhos) Soltar(f.materia, f.fonte, f.tiro, f.de, f.direcao);
 }
 
-// ---------------------------------------------------------------------------
-// FASE 1 - A PROPOSTA: O CRONOGRAMA
-// ---------------------------------------------------------------------------
+// Fase 1 - a proposta: o cronograma.
 
 void Hugo::NovoCronograma() {
     MatarPosto(Cronograma::kPostoDoCronograma);
@@ -361,7 +361,7 @@ void Hugo::AtualizarCronograma() {
     const float t = mRelogio - mInicioDoCronograma - Cronograma::kPlanejando;
     const float hoje = Cronograma::XDoHoje(t, largura, mDegrauDoCronograma);
 
-    // O PRAZO VENCEU: a barra inteira cai.
+    // O prazo venceu: a barra inteira cai.
     for (Barra& b : mBarras) {
         if (b.caiu || t < 0.0f || hoje < b.tarefa.ate) continue;
         b.caiu = true;
@@ -370,16 +370,16 @@ void Hugo::AtualizarCronograma() {
             p->DefinirPosto("");
             if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2(0.0f, mDegrauDoCronograma.queda));
         }
-        Anunciar(Cronograma::kFaseDaProposta, Cronograma::Placar(b.tarefa, largura));
+        EscreverNoPlacar(Cronograma::kFaseDaProposta, Cronograma::Placar(b.tarefa, largura));
     }
 
-    // O GRAFICO ACABOU: outro.
+    // O grafico acabou: outro.
     if (t >= mDegrauDoCronograma.varredura + Cronograma::kEntreCronogramas) {
         NovoCronograma();
         return;
     }
 
-    // ELE FICA EM CIMA DA BARRA QUE VAI CAIR.
+    // Ele fica em cima da barra que vai cair.
     mAlvo = Vector2(largura / 2.0f, kYNaProposta);
     for (const Barra& b : mBarras) {
         if (b.caiu) continue;
@@ -397,7 +397,7 @@ void Hugo::DesenharCronograma(const float hoje) {
     const float topo = Cronograma::YDaLinha(0) - 30.0f;
     const float base = Cronograma::YDaLinha(Cronograma::kLinhas - 1) + 30.0f;
 
-    // O GRAFICO: as linhas das tarefas e as semanas.
+    // O grafico: as linhas das tarefas e as semanas.
     for (int l = 0; l < Cronograma::kLinhas; ++l) {
         const float y = Cronograma::YDaLinha(l) + Cronograma::kEntreLinhas / 2.0f;
         mLinhas->Acrescentar(Vector2(esquerda, y), Vector2(direita, y), kGuia);
@@ -406,7 +406,7 @@ void Hugo::DesenharCronograma(const float hoje) {
         const float x = esquerda + (direita - esquerda) * static_cast<float>(s) / Cronograma::kSemanas;
         mLinhas->Acrescentar(Vector2(x, topo), Vector2(x, topo + 8.0f), kSemana);
     }
-    // AS BARRAS QUE AINDA NAO CAIRAM, com o contorno.
+    // As barras que ainda nao cairam, com o contorno.
     for (const Barra& b : mBarras) {
         if (b.caiu) continue;
         const float y = Cronograma::YDaLinha(b.tarefa.linha);
@@ -416,20 +416,18 @@ void Hugo::DesenharCronograma(const float hoje) {
         mLinhas->Acrescentar(c, Vector2(a.x, c.y), kBarra);
         mLinhas->Acrescentar(Vector2(a.x, c.y), a, kBarra);
     }
-    // O HOJE.
+    // O hoje.
     mLinhas->Acrescentar(Vector2(hoje, topo), Vector2(hoje, base), kHoje);
 }
 
-// ---------------------------------------------------------------------------
-// FASE 2 - O DESENVOLVIMENTO
-// ---------------------------------------------------------------------------
+// Fase 2 - o desenvolvimento.
 
 void Hugo::AtualizarTema(const float agora) {
-    // ELE VARRE O ALTO, e para para escrever cada capitulo.
+    // Ele varre o alto, e para para escrever cada capitulo.
     mAlvo = Vector2(Flex::XDaVarredura(mTempoVarrendo, mXDoComeco, NoNivel(kVarreduraDoTema, kVarreduraDoTemaNoDificil),
                                        Largura()),
                     Flex::kYDaVarredura);
-    // O RASCUNHO escorre embaixo dele enquanto escreve.
+    // O rascunho escorre embaixo dele enquanto escreve.
     while (mRascunhos < mDegrau.rascunhos && agora - mUltimoTema >= static_cast<float>(mRascunhos) * Tcc::kEntreRascunhos) {
         DispararDe(Tcc::kGatilhoDoRascunho, GetPosition() + Vector2(0.0f, 50.0f), 90.0f);
         ++mRascunhos;
@@ -440,18 +438,16 @@ void Hugo::AtualizarTema(const float agora) {
     mRascunhos = 0;
     ++mCapitulo;
     Lancar(mTema, Fonte::Hugo);
-    Anunciar(Tcc::kFaseDoTema, "Cap. " + std::to_string(mCapitulo) + ": " + Tcc::Capitulo(mTema));
+    EscreverNoPlacar(Tcc::kFaseDoTema, "Cap. " + std::to_string(mCapitulo) + ": " + Tcc::Capitulo(mTema));
 }
 
-// ---------------------------------------------------------------------------
-// FASE 3 - A DEFESA
-// ---------------------------------------------------------------------------
+// Fase 3 - a defesa.
 
 void Hugo::ChamarABanca() {
     DispensarABanca();
     const Materias::Lista& materias = Materias::Carregadas();
     for (int k = 0; k < 2; ++k) {
-        // O RETRATO DE CADA UM E O CARTAO DE CHEFE DELE, como o do orientador.
+        // O retrato de cada um e o cartao de chefe dele, como o do orientador.
         std::string retrato;
         for (int i = 0; i < materias.Quantas(); ++i) {
             const Materias::Materia* m = materias.Por(i);
@@ -477,8 +473,7 @@ void Hugo::DispensarABanca() {
 void Hugo::AtualizarDefesa(const float agora) {
     if (agora < mProximaPergunta) return;
     mProximaPergunta += mDegrau.entrePerguntas;
-    // A BANCA SE ALTERNA: cada pergunta e a materia de quem pergunta.
-    // A PERGUNTA EM SI e o objetivo (NovoObjetivo): o placar e dela.
+    // A banca se alterna: cada pergunta e a materia de quem pergunta.
     const int k = mPerguntas++ % 2;
     const Golpe::Materia quem = mBanca[static_cast<size_t>(k)];
     Lancar(quem, k == 0 ? Fonte::Banca0 : Fonte::Banca1);
@@ -491,29 +486,80 @@ void Hugo::Anotar(const float agora) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// FINAL - AS CORRECOES
-// ---------------------------------------------------------------------------
+// Final - as correcoes.
 
 void Hugo::AtualizarCorrecoes(const float agora) {
     if (agora < mProximaCorrecao) return;
     mProximaCorrecao += mDegrau.entreCorrecoes;
-    // O TEMA E AS DUAS PERGUNTAS DA BANCA, em volta.
+    // O tema e as duas perguntas da banca, em volta.
     const Golpe::Materia vez[] = {mTema, mBanca[0], mBanca[1]};
     const Golpe::Materia m = vez[mCorrecoes++ % 3];
     Lancar(m, Fonte::Hugo);
-    Anunciar(Tcc::kFaseDasCorrecoes,
+    EscreverNoPlacar(Tcc::kFaseDasCorrecoes,
              "Correção:\n" + (m == mTema ? Tcc::Capitulo(m) : Tcc::Pergunta(m)));
 }
 
-// ---------------------------------------------------------------------------
-// O ESCUDO E O OBJETIVO DA ETAPA
-// ---------------------------------------------------------------------------
+// O escudo e o objetivo da etapa.
 
 void Hugo::NovoObjetivo() {
     MatarAlvos();
+    mTipo = Objetivo::DaVez(mEtapa, mVezDoObjetivo++, mPrimeiraManeira);
+    mProgresso = 0.0f;
+    mObjetivoEmCurso = true;
+    const Dificuldade::Nivel nivel = NivelDeDificuldade();
+
+    // Uma coisa que o aluno pega: enfeite, sem contorno, que o tiro atravessa.
+    const auto pegavel = [this](const char* animacao, const Vector2& onde, const int k, const bool certo) {
+        for (BossProjectile* p : DispararDe(Objetivo::kGatilhoDoAlvo, onde, 90.0f)) {
+            if (auto* anim = p->GetComponent<DrawAnimatedComponent>()) anim->SetAnimation(animacao);
+            p->DefinirEnfeite(true);
+            if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+            AlvoEmCampo e;
+            e.p = p;
+            e.nasceu = mRelogio;
+            e.alvo = {animacao, onde, certo};
+            e.k = k;
+            mAlvos.push_back(e);
+        }
+    };
+    switch (mTipo) {
+        case Objetivo::Tipo::Reuniao:
+            mReuniao = Objetivo::LugarDaReuniao(mSorteioDoObjetivo, Largura(), PosicaoDoAluno().x);
+            mNaReuniao = 0.0f;
+            if (auto* batalha = Batalha(); batalha && batalha->OrientadorEmCampo()) {
+                batalha->OrientadorEmCampo()->MarcarReuniao(mReuniao);
+            }
+            break;
+        case Objetivo::Tipo::Referencias: {
+            int k = 0;
+            for (const Vector2& livro : Objetivo::Referencias(mSorteioDoObjetivo, Largura(), nivel)) {
+                pegavel("Referencia", livro, k++, true);
+            }
+            break;
+        }
+        case Objetivo::Tipo::Arguicao:
+            mRaspou = 0;
+            mRaspados.clear();
+            break;
+        case Objetivo::Tipo::Entrega: {
+            const Objetivo::Entrega e = Objetivo::Entregar(mSorteioDoObjetivo, Largura());
+            mSecretaria = e.secretaria;
+            mCarregando = nullptr;
+            pegavel("Versao", e.versao, 0, true);
+            pegavel("Caixa", e.secretaria, 1, false);
+            break;
+        }
+        default:
+            break;
+    }
+    if (mTipo != Objetivo::Tipo::Derrubar) {
+        mPlacas = Objetivo::Placas(mTipo, nivel, 0);
+        RefazerPlacar();
+        return;
+    }
+
     if (mEtapa == Objetivo::Etapa::Defesa) {
-        // A BANCA SE ALTERNA nas perguntas, como nos ataques.
+        // A banca se alterna nas perguntas, como nos ataques.
         mQuemPergunta = mBanca[static_cast<size_t>(mQuestoes++ % 2)];
         mQuestao = Objetivo::Perguntar(mQuemPergunta, mSorteioDoObjetivo);
     }
@@ -534,6 +580,9 @@ void Hugo::NovoObjetivo() {
         }
     }
     if (mEtapa == Objetivo::Etapa::Defesa) Rotular();
+    int certos = 0;
+    for (const Objetivo::Alvo& a : alvos) certos += a.certo ? 1 : 0;
+    mPlacas = Objetivo::Placas(mTipo, nivel, certos);
     RefazerPlacar();
 }
 
@@ -567,20 +616,30 @@ void Hugo::MatarAlvos() {
     }
     mAlvos.clear();
     ApagarRotulos();
+    EncerrarAndar();
+    mObjetivoEmCurso = false;
 }
 
 void Hugo::AbrirJanela() {
     MatarAlvos();
-    if (auto* batalha = dynamic_cast<Battle*>(mScene)) batalha->Conquistar(Objetivo::PorJanela(NivelDeDificuldade()));
+    if (auto* batalha = Batalha()) batalha->Conquistar(Objetivo::PorJanela(NivelDeDificuldade()));
     mEscudo = false;
+    mAbriuEm = mRelogio;
     mJanelaAte = mRelogio + Objetivo::Janela(mEtapa, NivelDeDificuldade());
     mProximaPaginaSolta = mRelogio + 0.4f;
-    switch (mEtapa) {
-        case Objetivo::Etapa::Proposta:        mPrincipal = "Proposta aprovada!"; break;
-        case Objetivo::Etapa::Desenvolvimento: mPrincipal = "Os testes passaram!"; break;
-        case Objetivo::Etapa::Defesa:          mPrincipal = "Resposta aceita!"; break;
-        case Objetivo::Etapa::Correcoes:       mPrincipal = "Correções feitas!"; break;
-        default: break;
+    switch (mTipo) {
+        case Objetivo::Tipo::Reuniao:     mPrincipal = "Reunião feita!"; break;
+        case Objetivo::Tipo::Referencias: mPrincipal = "Referências em dia!"; break;
+        case Objetivo::Tipo::Arguicao:    mPrincipal = "A banca gostou!"; break;
+        case Objetivo::Tipo::Entrega:     mPrincipal = "Versão final entregue!"; break;
+        default:
+            switch (mEtapa) {
+                case Objetivo::Etapa::Proposta:        mPrincipal = "Proposta aprovada!"; break;
+                case Objetivo::Etapa::Desenvolvimento: mPrincipal = "Os testes passaram!"; break;
+                case Objetivo::Etapa::Defesa:          mPrincipal = "Resposta aceita!"; break;
+                case Objetivo::Etapa::Correcoes:       mPrincipal = "Correções feitas!"; break;
+                default: break;
+            }
     }
     RefazerPlacar();
 }
@@ -594,14 +653,15 @@ bool Hugo::QuebrarEscudo() {
 }
 
 void Hugo::OnDerrubou(BossProjectile* qual) {
+    if (mTipo != Objetivo::Tipo::Derrubar) return;
     for (AlvoEmCampo& a : mAlvos) {
         if (a.p != qual || a.caiu) continue;
         a.caiu = true;
         if (a.alvo.certo) {
-            if (auto* batalha = dynamic_cast<Battle*>(mScene)) batalha->Conquistar(Objetivo::PorAlvo(NivelDeDificuldade()));
+            if (auto* batalha = Batalha()) batalha->Conquistar(Objetivo::PorAlvo(NivelDeDificuldade()));
         }
         if (!a.alvo.certo) {
-            // A RESPOSTA ERRADA: quem perguntou insiste, e a pergunta continua.
+            // A resposta errada: quem perguntou insiste, e a pergunta continua.
             if (a.k < 3 && mRotulos[static_cast<size_t>(a.k)]) {
                 mRotulos[static_cast<size_t>(a.k)]->SetState(ActorState::Destroy);
                 mRotulos[static_cast<size_t>(a.k)] = nullptr;
@@ -614,35 +674,43 @@ void Hugo::OnDerrubou(BossProjectile* qual) {
         }
         break;
     }
-    // TODO ALVO CERTO NO CHAO: o objetivo esta cumprido.
+    // Todo alvo certo no chao: o objetivo esta cumprido.
     bool falta = false;
-    for (const AlvoEmCampo& a : mAlvos) falta = falta || (a.alvo.certo && !a.caiu);
+    int caidos = 0;
+    for (const AlvoEmCampo& a : mAlvos) {
+        falta = falta || (a.alvo.certo && !a.caiu);
+        caidos += (a.alvo.certo && a.caiu) ? 1 : 0;
+    }
+    mProgresso = static_cast<float>(caidos) / static_cast<float>(std::max(1, mPlacas));
     if (!falta && !mAlvos.empty()) AbrirJanela();
     else RefazerPlacar();
 }
 
 void Hugo::AtualizarObjetivo(const float deltaTime) {
-    (void)deltaTime;
     if (mEtapa == Objetivo::Etapa::Nenhuma) {
         if (mEscudoLinhas) mEscudoLinhas->Limpar();
         return;
     }
-    // A JANELA FECHA: o escudo volta, e logo vem outro objetivo.
+    // A janela fecha: o escudo volta, e logo vem outro objetivo.
     if (!mEscudo && mRelogio >= mJanelaAte) {
         mEscudo = true;
+        mFechouEm = mRelogio;
         mProximoObjetivo = mRelogio + Objetivo::kRecomeco;
         mPrincipal = "O Hugo fechou de novo";
     }
-    if (mEscudo && mAlvos.empty() && mRelogio >= mProximoObjetivo) NovoObjetivo();
+    if (mEscudo && !mObjetivoEmCurso && mRelogio >= mProximoObjetivo) NovoObjetivo();
 
-    // ABERTO, A MONOGRAFIA SE DESFAZ embaixo dele.
+    // Aberto, a monografia se desfaz embaixo dele.
     while (!mEscudo && mRelogio >= mProximaPaginaSolta) {
         mProximaPaginaSolta += Objetivo::EntrePaginasSoltas(NivelDeDificuldade());
         DispararDe(Tcc::kGatilhoDoRascunho, GetPosition() + Vector2(0.0f, 50.0f), 90.0f);
     }
 
-    // OS ALVOS ANDAM: os bugs vao de parada em parada, o resto balanca.
+    if (mEscudo && mObjetivoEmCurso && mTipo != Objetivo::Tipo::Derrubar) AtualizarAndar(deltaTime);
+
+    // Os alvos andam: os bugs vao de parada em parada, o resto balanca.
     for (AlvoEmCampo& a : mAlvos) {
+        if (mTipo != Objetivo::Tipo::Derrubar) break;
         if (a.caiu || !Vivo(a.p, mRelogio - a.nasceu)) continue;
         Vector2 onde;
         if (mEtapa == Objetivo::Etapa::Desenvolvimento) {
@@ -659,7 +727,6 @@ void Hugo::AtualizarObjetivo(const float deltaTime) {
             mRotulos[static_cast<size_t>(a.k)]->SetPosition(onde + Vector2(0.0f, 40.0f));
         }
     }
-    // UM ALVO QUE SUMIU SEM SER DERRUBADO (o pool o reciclou): sai da conta.
     bool sumiu = false;
     for (const AlvoEmCampo& a : mAlvos) sumiu = sumiu || (!a.caiu && !Vivo(a.p, mRelogio - a.nasceu));
     if (sumiu && mEscudo) {
@@ -670,8 +737,25 @@ void Hugo::AtualizarObjetivo(const float deltaTime) {
     DesenharEscudo();
 }
 
+void Hugo::Adiar(const float deltaTime) {
+    mJanelaAte += deltaTime;
+    mProximaPaginaSolta += deltaTime;
+    mProximoObjetivo += deltaTime;
+    mInicioDoCronograma += deltaTime;
+    for (Execucao& e : mExecucoes) e.inicio += deltaTime;
+}
+
+std::vector<Vector2> Hugo::AlvosDestrutiveis() const {
+    std::vector<Vector2> alvos;
+    if (!mEscudo || mTipo != Objetivo::Tipo::Derrubar) return alvos;
+    for (const AlvoEmCampo& a : mAlvos) {
+        if (!a.caiu && a.alvo.certo && Vivo(a.p, mRelogio - a.nasceu)) alvos.push_back(a.p->GetPosition());
+    }
+    return alvos;
+}
+
 std::optional<Vector2> Hugo::ObjetivoAtual() const {
-    if (!mEscudo) return std::nullopt;
+    if (!mEscudo || mTipo != Objetivo::Tipo::Derrubar) return std::nullopt;
     for (const AlvoEmCampo& a : mAlvos) {
         if (!a.caiu && a.alvo.certo && Vivo(a.p, mRelogio - a.nasceu)) return a.p->GetPosition();
     }
@@ -687,6 +771,17 @@ void Hugo::RefazerPlacar() {
         const int falta = static_cast<int>(std::ceil(std::max(0.0f, mJanelaAte - mRelogio)));
         texto = (mPrincipal.empty() ? std::string() : mPrincipal + "\n") + "o Hugo está aberto: " +
                 std::to_string(falta) + " s";
+    } else if (mTipo != Objetivo::Tipo::Derrubar && mObjetivoEmCurso) {
+        int faltam = 0;
+        switch (mTipo) {
+            case Objetivo::Tipo::Referencias:
+                for (const AlvoEmCampo& a : mAlvos) faltam += (a.alvo.certo && !a.caiu) ? 1 : 0;
+                break;
+            case Objetivo::Tipo::Arguicao: faltam = Objetivo::Raspadas(NivelDeDificuldade()) - mRaspou; break;
+            case Objetivo::Tipo::Entrega:  faltam = mCarregando ? 0 : 1; break;
+            default: break;
+        }
+        texto = (mPrincipal.empty() ? std::string() : mPrincipal + "\n") + Objetivo::Pede(mTipo, faltam);
     } else if (mEtapa == Objetivo::Etapa::Defesa && !mAlvos.empty()) {
         texto = Tcc::Professor(mQuemPergunta) + ": " + mQuestao.pergunta + "\n" +
                 (mPrincipal == "Resposta errada!" ? "errada! acerte a certa" : "acerte a resposta certa");
@@ -705,35 +800,439 @@ void Hugo::RefazerPlacar() {
     RegistrarAnuncio(mFase, texto);
 }
 
-void Hugo::DesenharEscudo() {
-    if (!mEscudoLinhas) return;
-    mEscudoLinhas->Limpar();
-    constexpr int kSegmentos = 40;
-    const Vector2 c = GetPosition();
-    if (mEscudo) {
-        // BLINDADO: dois aneis lilas, pulsando.
-        SDL_Color cor{196, 170, 230, 0};
-        cor.a = static_cast<Uint8>(120.0f + 90.0f * std::fabs(std::sin(mRelogio * 3.0f)));
-        for (const float r : {78.0f, 86.0f}) {
-            for (int k = 0; k < kSegmentos; ++k) {
-                const float a0 = 2.0f * Math::Pi * static_cast<float>(k) / kSegmentos;
-                const float a1 = 2.0f * Math::Pi * static_cast<float>(k + 1) / kSegmentos;
-                mEscudoLinhas->Acrescentar(c + Vector2(Math::Cos(a0), Math::Sin(a0)) * r,
-                                           c + Vector2(Math::Cos(a1), Math::Sin(a1)) * r, cor);
+// As outras maneiras de abrir: andar, e nao atirar.
+
+std::vector<Player*> Hugo::Alunos() const {
+    std::vector<Player*> alunos;
+    if (const auto* batalha = Batalha()) {
+        for (Player* p : batalha->Jogadores()) {
+            if (p && p->GetState() == ActorState::Active) alunos.push_back(p);
+        }
+    }
+    return alunos;
+}
+
+namespace {
+    /// O centro do corpo do aluno: o colisor, e nao o desenho.
+    Vector2 CentroDe(const Actor* a) {
+        if (const auto* c = a->GetComponent<CircleColliderComponent>()) return c->GetCenter();
+        return a->GetPosition();
+    }
+    float RaioDe(const Actor* a) {
+        if (const auto* c = a->GetComponent<CircleColliderComponent>()) return c->GetRadius();
+        return 10.0f;
+    }
+
+    /// A versao final, na mao, vai acima da cabeca de quem a leva.
+    constexpr float kAcimaDaCabeca = 56.0f;
+}
+
+void Hugo::Pagar(const float bruto) {
+    if (auto* batalha = Batalha()) batalha->Conquistar(bruto);
+}
+
+void Hugo::EncerrarAndar() {
+    if (auto* batalha = Batalha(); batalha && batalha->OrientadorEmCampo()) {
+        batalha->OrientadorEmCampo()->MarcarReuniao(std::nullopt);
+    }
+    mCarregando = nullptr;
+    mRaspados.clear();
+    mAlguemNaReuniao = false;
+}
+
+void Hugo::AtualizarAndar(const float deltaTime) {
+    const Dificuldade::Nivel nivel = NivelDeDificuldade();
+    const std::vector<Player*> alunos = Alunos();
+    const auto perto = [&alunos](const Vector2& de, const float raio) -> Player* {
+        for (Player* a : alunos) {
+            if ((CentroDe(a) - de).Length() <= raio) return a;
+        }
+        return nullptr;
+    };
+
+    switch (mTipo) {
+        case Objetivo::Tipo::Reuniao: {
+            // O anel enche com alguem dentro, e nao esvazia quando ele sai.
+            mAlguemNaReuniao = perto(mReuniao, Objetivo::kRaioDaReuniao) != nullptr;
+            if (mAlguemNaReuniao) mNaReuniao += deltaTime;
+            mProgresso = mNaReuniao / Objetivo::TempoDeReuniao(nivel);
+            if (mProgresso >= 1.0f) {
+                Pagar(Objetivo::PorPasso(mTipo, nivel));
+                AbrirJanela();
             }
+            return;
+        }
+        case Objetivo::Tipo::Referencias: {
+            int pegos = 0;
+            for (AlvoEmCampo& a : mAlvos) {
+                if (!a.caiu && Vivo(a.p, mRelogio - a.nasceu)) {
+                    // Os livros boiam no lugar, cada um no seu ritmo.
+                    const Vector2 onde = Objetivo::Balanco(Objetivo::Etapa::Correcoes, a.alvo.lugar, a.k, mRelogio - a.nasceu);
+                    a.p->SetPosition(onde);
+                    if (perto(onde, Objetivo::kRaioDaColeta)) {
+                        a.caiu = true;
+                        a.p->Kill();
+                        Pagar(Objetivo::PorPasso(mTipo, nivel));
+                        mFaiscas.push_back({onde, mRelogio, true});
+                    }
+                }
+                pegos += a.caiu ? 1 : 0;
+            }
+            mProgresso = static_cast<float>(pegos) / static_cast<float>(std::max(1, mPlacas));
+            if (pegos >= static_cast<int>(mAlvos.size()) && !mAlvos.empty()) AbrirJanela();
+            return;
+        }
+        case Objetivo::Tipo::Arguicao: {
+            const auto* batalha = Batalha();
+            if (!batalha || !batalha->GerenteDeProjeteis()) return;
+            mRaspados.erase(std::remove_if(mRaspados.begin(), mRaspados.end(),
+                                           [this](const Raspado& r) { return !Vivo(r.p, mRelogio - r.nasceu); }),
+                            mRaspados.end());
+            for (const auto& bp : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
+                if (!bp || bp->GetState() != ActorState::Active || bp->Enfeite() || bp->Abrigo()) continue;
+                if (!bp->Posto().empty()) continue;
+                const auto* colisor = bp->GetComponent<CircleColliderComponent>();
+                if (!colisor) continue;
+                const bool contou = std::any_of(mRaspados.begin(), mRaspados.end(),
+                                                [&bp](const Raspado& r) { return r.p == bp.get(); });
+                if (contou) continue;
+                for (Player* a : alunos) {
+                    // Acertado nao raspa: o piscar depois do acerto nao vale.
+                    if (a->EstaInvencivel()) continue;
+                    const float d = (colisor->GetCenter() - CentroDe(a)).Length();
+                    if (!Objetivo::Raspou(d, colisor->GetRadius() + RaioDe(a))) continue;
+                    mRaspados.push_back({bp.get(), mRelogio - bp->TempoDeVida()});
+                    ++mRaspou;
+                    Pagar(Objetivo::PorPasso(mTipo, nivel));
+                    mFaiscas.push_back({CentroDe(a), mRelogio, true});
+                    break;
+                }
+            }
+            mProgresso = static_cast<float>(mRaspou) / static_cast<float>(Objetivo::Raspadas(nivel));
+            if (mRaspou >= Objetivo::Raspadas(nivel)) AbrirJanela();
+            return;
+        }
+        case Objetivo::Tipo::Entrega: {
+            if (mAlvos.empty()) return;
+            AlvoEmCampo& versao = mAlvos.front();
+            if (!Vivo(versao.p, mRelogio - versao.nasceu)) return;
+            if (mCarregando && mCarregando->EstaInvencivel()) {
+                // Acertado no caminho: a versao cai ali, e tem de ser pega de novo.
+                versao.alvo.lugar = versao.p->GetPosition();
+                mCarregando = nullptr;
+                mFaiscas.push_back({versao.alvo.lugar, mRelogio, false});
+            }
+            if (!mCarregando) {
+                const Vector2 onde = Objetivo::Balanco(Objetivo::Etapa::Correcoes, versao.alvo.lugar, 0, mRelogio - versao.nasceu);
+                versao.p->SetPosition(onde);
+                for (Player* a : alunos) {
+                    if (a->EstaInvencivel() || (CentroDe(a) - onde).Length() > Objetivo::kRaioDaColeta) continue;
+                    mCarregando = a;
+                    // Paga so a primeira vez: derrubar e pegar de novo nao rende.
+                    if (mProgresso < 0.5f) Pagar(Objetivo::PorPasso(mTipo, nivel));
+                    mFaiscas.push_back({onde, mRelogio, true});
+                    break;
+                }
+            }
+            if (mCarregando) {
+                versao.p->SetPosition(CentroDe(mCarregando) + Vector2(0.0f, -kAcimaDaCabeca));
+                mProgresso = 0.5f;
+                if ((CentroDe(mCarregando) - mSecretaria).Length() <= Objetivo::kRaioDaSecretaria) {
+                    Pagar(Objetivo::PorPasso(mTipo, nivel));
+                    AbrirJanela();
+                }
+            }
+            return;
+        }
+        default:
+            return;
+    }
+}
+
+std::optional<Vector2> Hugo::LugarDeIr() const {
+    if (!mEscudo || !mObjetivoEmCurso) return std::nullopt;
+    switch (mTipo) {
+        case Objetivo::Tipo::Reuniao:
+            return mReuniao;
+        case Objetivo::Tipo::Referencias: {
+            std::optional<Vector2> melhor;
+            const Vector2 aluno = PosicaoDoAluno();
+            for (const AlvoEmCampo& a : mAlvos) {
+                if (a.caiu || !Vivo(a.p, mRelogio - a.nasceu)) continue;
+                if (!melhor || (a.p->GetPosition() - aluno).Length() < (*melhor - aluno).Length()) melhor = a.p->GetPosition();
+            }
+            return melhor;
+        }
+        case Objetivo::Tipo::Entrega:
+            if (mCarregando) return mSecretaria;
+            if (!mAlvos.empty() && Vivo(mAlvos.front().p, mRelogio - mAlvos.front().nasceu)) return mAlvos.front().p->GetPosition();
+            return std::nullopt;
+        default:
+            return std::nullopt;
+    }
+}
+
+// O escudo, desenhado: blindado ou aberto se le sem o placar.
+
+namespace {
+    constexpr float kRaioDoEscudo = 84.0f;
+    constexpr SDL_Color kLilas{196, 170, 230, 255};
+    constexpr SDL_Color kOuro{250, 210, 80, 255};
+    constexpr SDL_Color kVerde{110, 220, 140, 255};
+    constexpr SDL_Color kFaisca{215, 225, 255, 255};
+
+    SDL_Color ComAlfa(SDL_Color c, const float a) {
+        c.a = static_cast<Uint8>(std::clamp(a, 0.0f, 255.0f));
+        return c;
+    }
+
+    void Arco(DrawLinhasComponent& l, const Vector2& c, const float r, const float a0, const float a1,
+              const SDL_Color cor, const int passos = 10) {
+        for (int k = 0; k < passos; ++k) {
+            const float x0 = a0 + (a1 - a0) * static_cast<float>(k) / static_cast<float>(passos);
+            const float x1 = a0 + (a1 - a0) * static_cast<float>(k + 1) / static_cast<float>(passos);
+            l.Acrescentar(c + Vector2(Math::Cos(x0), Math::Sin(x0)) * r, c + Vector2(Math::Cos(x1), Math::Sin(x1)) * r, cor);
+        }
+    }
+
+    /// Um fio tracejado, com os tracos correndo de 'de' para 'ate' ('fase' em px).
+    void Tracejado(DrawLinhasComponent& l, const Vector2& de, const Vector2& ate, const SDL_Color cor,
+                   const float fase, const float traco = 10.0f, const float vao = 8.0f) {
+        const Vector2 d = ate - de;
+        const float total = d.Length();
+        if (total < 1.0f) return;
+        const Vector2 u = d * (1.0f / total);
+        const float periodo = traco + vao;
+        for (float t = std::fmod(fase, periodo) - periodo; t < total; t += periodo) {
+            const float a = std::max(0.0f, t), b = std::min(total, t + traco);
+            if (b > a) l.Acrescentar(de + u * a, de + u * b, cor);
+        }
+    }
+}
+
+void Hugo::OnCollision(Actor* other) {
+    Boss::OnCollision(other);
+    if (mEtapa == Objetivo::Etapa::Nenhuma || !dynamic_cast<PlayerProjectile*>(other)) return;
+    if (!mEscudo) {
+        mApanhouEm = mRelogio;
+        return;
+    }
+    // A faisca na borda do escudo, do lado de onde o tiro veio.
+    Vector2 d = other->GetPosition() - GetPosition();
+    if (d.Length() < 1.0f) d = Vector2(0.0f, 1.0f);
+    mFaiscas.push_back({GetPosition() + d * (kRaioDoEscudo / d.Length()), mRelogio, false});
+}
+
+void Hugo::Tingir() {
+    auto* sprite = GetComponent<DrawSpriteComponent>();
+    if (!sprite) return;
+    // Blindado, ele fica frio e apagado; aberto, com as cores dele.
+    if (mEtapa == Objetivo::Etapa::Nenhuma) sprite->SetColor(255, 255, 255);
+    else if (mEscudo) sprite->SetColor(85, 92, 135);
+    else if (mRelogio - mApanhouEm < 0.08f) sprite->SetColor(255, 200, 110);
+    else sprite->SetColor(255, 255, 255);
+}
+
+void Hugo::DesenharFios() {
+    // Um fio do escudo ate cada coisa que o segura: o que falta derrubar, pegar ou onde ir.
+    std::vector<Vector2> pontas;
+    switch (mTipo) {
+        case Objetivo::Tipo::Derrubar:
+            for (const AlvoEmCampo& a : mAlvos) {
+                // Na defesa, as tres respostas: o fio nao entrega a certa.
+                const bool conta = mEtapa == Objetivo::Etapa::Defesa || a.alvo.certo;
+                if (conta && !a.caiu && Vivo(a.p, mRelogio - a.nasceu)) pontas.push_back(a.p->GetPosition());
+            }
+            break;
+        case Objetivo::Tipo::Referencias:
+            for (const AlvoEmCampo& a : mAlvos) {
+                if (!a.caiu && Vivo(a.p, mRelogio - a.nasceu)) pontas.push_back(a.p->GetPosition());
+            }
+            break;
+        case Objetivo::Tipo::Reuniao:
+            pontas.push_back(mReuniao);
+            break;
+        case Objetivo::Tipo::Entrega:
+            if (mCarregando) pontas.push_back(mSecretaria);
+            else if (!mAlvos.empty() && Vivo(mAlvos.front().p, mRelogio - mAlvos.front().nasceu)) {
+                pontas.push_back(mAlvos.front().p->GetPosition());
+            }
+            break;
+        case Objetivo::Tipo::Arguicao:
+            for (const Player* a : Alunos()) pontas.push_back(CentroDe(a));
+            break;
+    }
+    const Vector2 c = GetPosition();
+    for (const Vector2& ponta : pontas) {
+        Vector2 d = ponta - c;
+        const float n = d.Length();
+        if (n < kRaioDoEscudo + 40.0f) continue;
+        d = d * (1.0f / n);
+        // Da ponta para o Hugo: o tracejado comeca la e anda para ca.
+        Tracejado(*mEscudoLinhas, ponta - d * 26.0f, c + d * (kRaioDoEscudo + 8.0f), ComAlfa(kLilas, 120), mRelogio * 60.0f);
+    }
+}
+
+void Hugo::DesenharAndar() {
+    const float pulso = 0.5f + 0.5f * std::sin(mRelogio * 6.0f);
+    switch (mTipo) {
+        case Objetivo::Tipo::Reuniao: {
+            // O lugar da reuniao: o anel tracejado, e o progresso por cima, grosso.
+            const float r = Objetivo::kRaioDaReuniao;
+            for (int k = 0; k < 24; k += 2) {
+                const float a0 = 2.0f * Math::Pi * static_cast<float>(k) / 24.0f + mRelogio * 0.4f;
+                Arco(*mEscudoLinhas, mReuniao, r, a0, a0 + 2.0f * Math::Pi / 24.0f,
+                     ComAlfa(kVerde, mAlguemNaReuniao ? 230.0f : 110.0f + 90.0f * pulso), 3);
+            }
+            const float fim = -Math::Pi / 2.0f + 2.0f * Math::Pi * std::clamp(mProgresso, 0.0f, 1.0f);
+            for (const float dr : {-9.0f, -6.0f, -3.0f}) {
+                Arco(*mEscudoLinhas, mReuniao, r + dr, -Math::Pi / 2.0f, fim, ComAlfa(kVerde, 240), 36);
+            }
+            break;
+        }
+        case Objetivo::Tipo::Referencias:
+            for (const AlvoEmCampo& a : mAlvos) {
+                if (a.caiu || !Vivo(a.p, mRelogio - a.nasceu)) continue;
+                Arco(*mEscudoLinhas, a.p->GetPosition(), 30.0f + 4.0f * pulso, 0.0f, 2.0f * Math::Pi,
+                     ComAlfa(kVerde, 140.0f + 100.0f * pulso), 16);
+            }
+            break;
+        case Objetivo::Tipo::Entrega: {
+            const float r = Objetivo::kRaioDaSecretaria;
+            const float forca = mCarregando ? 230.0f : 90.0f + 60.0f * pulso;
+            Arco(*mEscudoLinhas, mSecretaria, r, 0.0f, 2.0f * Math::Pi, ComAlfa(kVerde, forca), 28);
+            Arco(*mEscudoLinhas, mSecretaria, r - 4.0f, 0.0f, 2.0f * Math::Pi, ComAlfa(kVerde, forca * 0.6f), 28);
+            if (mAlvos.empty() || !Vivo(mAlvos.front().p, mRelogio - mAlvos.front().nasceu)) break;
+            const Vector2 versao = mAlvos.front().p->GetPosition();
+            if (mCarregando) {
+                // O caminho ate a secretaria, correndo para la.
+                Tracejado(*mEscudoLinhas, versao, mSecretaria, ComAlfa(kVerde, 200), -mRelogio * 80.0f, 12.0f, 10.0f);
+            } else {
+                Arco(*mEscudoLinhas, versao, 30.0f + 4.0f * pulso, 0.0f, 2.0f * Math::Pi,
+                     ComAlfa(kVerde, 140.0f + 100.0f * pulso), 16);
+            }
+            break;
+        }
+        case Objetivo::Tipo::Arguicao: {
+            // Um anel em volta do aluno, uma conta por raspada: as feitas em ouro.
+            const int n = Objetivo::Raspadas(NivelDeDificuldade());
+            const float passo = 2.0f * Math::Pi / static_cast<float>(n);
+            for (const Player* a : Alunos()) {
+                const Vector2 c = CentroDe(a);
+                for (int k = 0; k < n; ++k) {
+                    const float a0 = -Math::Pi / 2.0f + passo * static_cast<float>(k) + 0.12f;
+                    const bool feita = k < mRaspou;
+                    for (const float r : {44.0f, 47.0f, 50.0f}) {
+                        Arco(*mEscudoLinhas, c, r, a0, a0 + passo - 0.24f, feita ? ComAlfa(kOuro, 240) : ComAlfa(kLilas, 150), 5);
+                    }
+                }
+            }
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+void Hugo::DesenharEscudo() {
+    if (!mEscudoLinhas || !mCadeado) return;
+    mEscudoLinhas->Limpar();
+    mCadeado->Limpar();
+    Tingir();
+    if (mEtapa == Objetivo::Etapa::Nenhuma) return;
+    const Vector2 c = GetPosition();
+
+    // As faiscas: o tiro que bateu no escudo (azul) e o que o aluno conseguiu (ouro).
+    mFaiscas.erase(std::remove_if(mFaiscas.begin(), mFaiscas.end(),
+                                  [this](const Faisca& f) { return mRelogio - f.quando > 0.3f; }),
+                   mFaiscas.end());
+    for (const Faisca& f : mFaiscas) {
+        const float t = (mRelogio - f.quando) / 0.3f;
+        const SDL_Color cor = ComAlfa(f.dourada ? kOuro : kFaisca, 255.0f * (1.0f - t));
+        for (int k = 0; k < 6; ++k) {
+            const float a = Math::Pi / 3.0f * static_cast<float>(k) + f.quando * 7.0f;
+            const Vector2 u(Math::Cos(a), Math::Sin(a));
+            mEscudoLinhas->Acrescentar(f.onde + u * (4.0f + 10.0f * t), f.onde + u * (10.0f + 18.0f * t), cor);
+        }
+    }
+
+    if (mEscudo) {
+        // Blindado: o escudo e feito de placas, uma por coisa a fazer.
+        const float forma = std::clamp((mRelogio - mFechouEm) / 0.3f, 0.0f, 1.0f);
+        const float r = kRaioDoEscudo + (1.0f - forma) * 80.0f;
+        const int total = std::max(1, mPlacas);
+        const int dePe = mObjetivoEmCurso ? Objetivo::PlacasDePe(total, mProgresso) : total;
+        const float giro = mRelogio * 0.35f;
+        const float passo = 2.0f * Math::Pi / static_cast<float>(total);
+        const float vao = total > 1 ? 0.14f : 0.0f;
+        const float brilho = (150.0f + 80.0f * std::fabs(std::sin(mRelogio * 2.5f))) * forma;
+        for (int i = 0; i < total; ++i) {
+            const float a0 = giro + passo * static_cast<float>(i) + vao / 2.0f;
+            const float a1 = a0 + passo - vao;
+            const int passos = std::max(3, static_cast<int>(40.0f / static_cast<float>(total)));
+            if (i < dePe) {
+                for (const float dr : {-5.0f, -2.0f, 1.0f, 4.0f}) Arco(*mEscudoLinhas, c, r + dr, a0, a1, ComAlfa(kLilas, brilho), passos);
+                for (const float a : {a0, a1}) {
+                    const Vector2 u(Math::Cos(a), Math::Sin(a));
+                    mEscudoLinhas->Acrescentar(c + u * (r - 5.0f), c + u * (r + 4.0f), ComAlfa(kLilas, brilho));
+                }
+            } else {
+                Arco(*mEscudoLinhas, c, r, a0, a1, ComAlfa(kLilas, 45.0f * forma), passos);
+            }
+        }
+        // E o cadeado, no peito dele: o sinal que todo mundo le.
+        const Vector2 cad = c + Vector2(0.0f, 6.0f);
+        const SDL_Color corpo = ComAlfa(kLilas, 235.0f * forma);
+        Arco(*mCadeado, cad + Vector2(0.0f, -10.0f), 10.0f, Math::Pi, 2.0f * Math::Pi, corpo, 8);
+        Arco(*mCadeado, cad + Vector2(0.0f, -10.0f), 8.0f, Math::Pi, 2.0f * Math::Pi, corpo, 8);
+        for (const float x : {-10.0f, -8.0f, 8.0f, 10.0f}) {
+            mCadeado->Acrescentar(cad + Vector2(x, -10.0f), cad + Vector2(x, -2.0f), corpo);
+        }
+        for (float y = -2.0f; y <= 18.0f; y += 2.0f) {
+            mCadeado->Acrescentar(cad + Vector2(-15.0f, y), cad + Vector2(15.0f, y), corpo);
+        }
+        const SDL_Color furo = ComAlfa(SDL_Color{40, 30, 60, 255}, 255.0f * forma);
+        mCadeado->Acrescentar(cad + Vector2(-1.0f, 4.0f), cad + Vector2(-1.0f, 12.0f), furo);
+        mCadeado->Acrescentar(cad + Vector2(1.0f, 4.0f), cad + Vector2(1.0f, 12.0f), furo);
+        if (mObjetivoEmCurso) {
+            DesenharFios();
+            DesenharAndar();
         }
         return;
     }
-    // ABERTO: um arco dourado com o tempo que falta.
+
+    // Abriu: as placas voam para fora e somem.
+    const float t = mRelogio - mAbriuEm;
+    if (t < 0.45f) {
+        const int total = std::max(1, mPlacas);
+        const float passo = 2.0f * Math::Pi / static_cast<float>(total);
+        for (int i = 0; i < total; ++i) {
+            const float meio = passo * (static_cast<float>(i) + 0.5f) + mAbriuEm * 0.35f;
+            const Vector2 u(Math::Cos(meio), Math::Sin(meio));
+            const Vector2 centro = c + u * (t * 380.0f);
+            Arco(*mEscudoLinhas, centro, kRaioDoEscudo, meio - passo * 0.35f, meio + passo * 0.35f,
+                 ComAlfa(kOuro, 255.0f * (1.0f - t / 0.45f)), 6);
+        }
+    }
+
+    // Aberto: a mira dourada em volta dele - quatro cantos que respiram.
+    const float falta = mJanelaAte - mRelogio;
+    const float d = 72.0f + 6.0f * std::sin(mRelogio * 8.0f);
+    const float braco = 22.0f;
+    for (const float sx : {-1.0f, 1.0f}) {
+        for (const float sy : {-1.0f, 1.0f}) {
+            const Vector2 canto = c + Vector2(sx * d, sy * d);
+            for (const float o : {0.0f, 2.0f}) {
+                mEscudoLinhas->Acrescentar(canto + Vector2(-sx * o, -sy * o), canto + Vector2(-sx * braco, -sy * o), ComAlfa(kOuro, 230));
+                mEscudoLinhas->Acrescentar(canto + Vector2(-sx * o, -sy * o), canto + Vector2(-sx * o, -sy * braco), ComAlfa(kOuro, 230));
+            }
+        }
+    }
+    if (falta < 2.0f && std::fmod(mRelogio, 0.3f) < 0.15f) return;
     const float total = Objetivo::Janela(mEtapa, NivelDeDificuldade());
-    const float fracao = std::clamp((mJanelaAte - mRelogio) / total, 0.0f, 1.0f);
-    constexpr SDL_Color kAberto{250, 210, 80, 220};
-    const int n = static_cast<int>(std::ceil(fracao * kSegmentos));
-    for (int k = 0; k < n; ++k) {
-        const float a0 = -Math::Pi / 2.0f + 2.0f * Math::Pi * static_cast<float>(k) / kSegmentos;
-        const float a1 = -Math::Pi / 2.0f + 2.0f * Math::Pi * static_cast<float>(k + 1) / kSegmentos;
-        mEscudoLinhas->Acrescentar(c + Vector2(Math::Cos(a0), Math::Sin(a0)) * 82.0f,
-                                   c + Vector2(Math::Cos(a1), Math::Sin(a1)) * 82.0f, kAberto);
+    const float fracao = std::clamp(falta / total, 0.0f, 1.0f);
+    for (const float r : {88.0f, 91.0f}) {
+        Arco(*mEscudoLinhas, c, r, -Math::Pi / 2.0f, -Math::Pi / 2.0f + 2.0f * Math::Pi * fracao, ComAlfa(kOuro, 220), 40);
     }
 }
 
@@ -742,6 +1241,8 @@ void Hugo::AoTerminarABatalha() {
     MatarAlvos();
     mEtapa = Objetivo::Etapa::Nenhuma;
     mEscudo = false;
+    Tingir();
     if (mEscudoLinhas) mEscudoLinhas->Limpar();
+    if (mCadeado) mCadeado->Limpar();
     if (mLinhas) mLinhas->Limpar();
 }

@@ -1,124 +1,7 @@
 {
-  // ==========================================================================
-  // AS FASES DO THIAGO
-  //
-  // UMA PASTA POR CHEFE: Assets/Attacks/thiago/. A fabrica dele pede as fases
-  // pelo nome da pasta:
-  //     ConfigurarFasesDeArquivo(boss, fsm, "thiago")
-  //
-  // OS NOMES DE FASE NAO SAO LIVRES. A maquina de estados procura os estados
-  // por TEXTO, e so estes quatro existem:
-  //     StateOne, StateTwo, StateThree, StateFinal
-  // Um nome inventado e recusado na leitura, porque a fase existiria no arquivo
-  // sem nunca ser alcancada.
-  //
-  // StateFinal E OBRIGATORIO, mesmo num chefe de tres fases. Se a nota ficar
-  // entre 40 e 59 ao fim da terceira fase, a FSM vai para StateFinal; sem o
-  // estado, ela apenas registra um erro no log e O CHEFE CONGELA - sem travar o
-  // jogo e sem avisar em tela. Isso ja custou depuracao uma vez.
-  //
-  // "proximo" vazio ou ausente significa "a batalha e decidida ao fim desta
-  // fase" (ver BossAttackState), e nao "fim do arquivo".
-  //
-  // OS CAMPOS de um ataque e do movimento estao documentados em
-  // Documentacao/arquivos-de-dados.md. Dois merecem lembrete aqui:
-  //
-  //   CAMPO OMITIDO = PADRAO DO MOTOR. A ponte so escreve no AttackParams o que
-  //   este arquivo disser; nao ha valor "zero por omissao" nenhum.
-  //
-  //   anguloCentral pode ser SOBRESCRITO pelo chefe em tempo de execucao, no
-  //   CustomizeAttackParams dele - e o unico pedaco do balanceamento que ainda
-  //   vive em C++. Onde isso acontece esta anotado na fase.
-  // ==========================================================================
-// ==========================================================================
-// THIAGO - INF 220 (Banco de Dados)
-// ==========================================================================
-//
-// A BATALHA EM UMA FRASE: o campo de jogo e uma tabela, ESCRITA nele, e cada
-// ataque e uma operacao do banco sobre ela.
-//
-//   StateOne    o SELECT          a selecao, a projecao e as duas juntas
-//   StateTwo    INSERT/UPDATE/DELETE   a tabela muda na frente do aluno
-//   StateThree  as TRANSACOES     o lock, o COMMIT, o ROLLBACK e o deadlock
-//   StateFinal  o PRODUTO CARTESIANO   o JOIN sem WHERE, casa por casa
-//
-// O jogador nao desvia de projetil aqui - ele SAI DAS CASAS que a operacao vai
-// ler. Toda operacao ACENDE antes as casas que le (o marcador, no posto
-// "aviso"), e o placar e o SQL dela. Com 4 linhas num campo de 746px, uma linha
-// tem 187px; o jogador anda 300px/s, logo atravessar uma linha inteira custa
-// 0,62s. TODO AVISO ABAIXO DISSO TORNA ALGUMA POSICAO INESCAPAVEL - e nao e
-// isso que a batalha quer cobrar. Colunas sao mais largas (240px, 0,8s), entao
-// a coluna avisa antes. Os avisos e as velocidades moram em Banco.h, e um teste
-// segura os daqui iguais aos de la.
-//
-// QUEM ESCOLHE A LINHA, A COLUNA OU A CASA e o Thiago (Thiago.cpp), lendo a
-// tabela: a ConsultaAttack so varre a faixa que ele manda.
-//
-// CADA LUTA E OUTRA (Variacao.h). A tabela e o WHERE de cada consulta ja eram
-// sorteados; agora a ORDEM tambem e da luta (Thiago::SortearALuta): o ciclo de
-// seis consultas da fase 1 - a selecao sempre abre, e as seis sao as mesmas -
-// e os quatro planos do JOIN da repescagem - o por linha sempre abre. Na fase
-// 3, cada luta tem as proprias chances (Transacao::Plano): o segundo UPDATE
-// disputa uma linha com chance de 0,35 a 0,65, e a transacao termina em
-// ROLLBACK com chance de 0,25 a 0,55.
-//
-// NO DIFICIL (Banco::Degrau e Transacao::Degrau; os numeros daqui sao os do
-// Normal): uma consulta a cada 1,5 s; os avisos da linha, da coluna e da casa
-// em 0,85, 1,0 e 0,75 s - ainda acima da travessia de cima; as varreduras a
-// 800 e 730 px/s; o WHERE da selecao pegando duas ou tres linhas, nunca uma
-// so; um comando da fase 2 a cada 1,45 s, com a linha apagada caindo a 310
-// px/s; uma transacao nova a cada 1,2 s, ate quatro de uma vez, com as
-// escritas a 600 px/s e doze delas travando a linha (e nao dez); e o produto
-// marcando 0,6 s antes e andando 13% mais depressa.
-//
-// Medido em cinco sementes (o que persegue no Dificil, em dez), a batalha
-// inteira: no Normal o que persegue termina com 62,0 a 86,8 (5 a 12 acertos)
-// e o que desvia com 77,7 a 90,5 (1 a 4); no Dificil, o que desvia com 77,0 a
-// 83,8 (2 a 4, 2,6 em media contra 2,2), e o que persegue com 62,8 a 76,5 em
-// nove de dez sementes - na outra reprova com 31,4, porque nunca sai da linha
-// em que esta, e com o WHERE mais largo a linha dele e lida mais vezes. O parado e o que vai e vem reprovam
-// nos dois. QUEM LE A TABELA SENTE POUCO O DEGRAU nas fases 1 e 2: o piloto
-// que sai da casa acesa no quadro em que ela acende tomou no maximo um acerto
-// por fase ate com aviso de 0,65 s e varredura a 1100 px/s. O que ele sente e
-// a fase 3; para o aluno de verdade, o degrau e ler a consulta mais depressa.
+  // As fases do Thiago. Uma pasta por chefe: Assets/Attacks/thiago/.
 
-  // FASE 1 - O SELECT   |   gesto: O PROFESSOR EM CIMA DA COLUNA QUE LE
-  //
-  // A TABELA ESTA ESCRITA NO CAMPO (Banco.h): o cabecalho de cada coluna no
-  // alto - mat, nome, curso, nota, ano - e os quatro registros, um por linha,
-  // cada valor na sua casa. Ela nasce aqui e fica ate o fim da batalha, por isso
-  // TODA fase tem os gatilhos "cabecalho" e "registro": a fase em que a batalha
-  // comeca e a que monta a tabela.
-  //
-  // A cada 1,8s uma consulta, e o placar e o SQL dela. As casas que ela le
-  // ACENDEM antes - o marcador, no posto "aviso" -, e o professor vai para cima
-  // da coluna que ela le:
-  //
-  //   "SELECT * WHERE nota < 50"    a SELECAO: as linhas que satisfazem o
-  //                                 WHERE sao varridas de ponta a ponta (nunca
-  //                                 todas - sempre sobra uma linha)
-  //   "SELECT nota"                 a PROJECAO: a coluna e varrida de cima a
-  //                                 baixo
-  //   "SELECT nome WHERE ano = 2"   AS DUAS: so as casas do cruzamento acendem,
-  //                                 cheias, por um instante
-  //   "ORDER BY nota"               os registros trocam de linha, devagar - e a
-  //                                 casa que era segura pode deixar de ser
-  //
-  // O ALUNO PODE LER A TABELA: o WHERE fala do que esta escrito nas casas, e
-  // quem le "nota < 50" ja sabe que linhas vao ser varridas antes de elas
-  // acenderem.
-  //
-  // MEDIDO COM A FASE SOZINHA: um piloto de fora do repositorio que le os
-  // marcadores e sai da casa acesa para a livre mais perto termina com 0
-  // acertos e 77,9; os tres que so andam no chao, que nao mudam de linha, tomam
-  // 3 (o que persegue, 55,0), 2 (o parado, 33,0) e 2 (o que vai e vem, 49,3).
-  // E a fase que ensina a ler a tabela, e quem le passa por ela inteiro.
-  //
-  // O AVISO E O DA TABELA ANTIGA: uma linha (187px) se atravessa em 0,62s a
-  // 300px/s, e o aviso dela e de 1,0s; uma coluna (240px) em 0,8s, e o dela e
-  // de 1,2s. Quem manda nos dois e Banco.h (o Thiago escreve o aviso na
-  // consulta ao disparar), e um teste confere que os numeros daqui sao os de
-  // la.
+  // Fase 1 - o select | gesto: o professor em cima da coluna que le.
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
@@ -144,30 +27,9 @@
     ]
   },
 
-  // FASE 2 - INSERT, UPDATE, DELETE   |   gesto: A TABELA QUE MUDA
-  //
-  // A TABELA DEIXA DE SER SO LIDA E PASSA A SER ESCRITA (Banco.h). A cada 1,7s
-  // um comando, com o SQL no placar, e o que ele mexe e o ataque:
-  //
-  //   "DELETE WHERE nota < 30"           a linha acende e e varrida, e quando
-  //                                      a varredura a atravessa ela e APAGADA:
-  //                                      os valores dela caem pelo campo (agora
-  //                                      machucam), e as linhas de baixo sobem
-  //   "UPDATE SET nota = 95 WHERE ..."   a casa da nota de cada linha do WHERE
-  //                                      acende cheia, e o valor muda
-  //   "INSERT INTO alunos: Eva"          o registro novo sai do professor para
-  //                                      a primeira linha vazia, e a linha e
-  //                                      gravada - acende e e varrida
-  //
-  // A TABELA NUNCA ESVAZIA NEM ESTOURA: com duas linhas ou menos so ha INSERT,
-  // cheia nao ha INSERT, e o DELETE nunca apaga todas. A linha vazia e um lugar
-  // seguro - ate o proximo INSERT a gravar.
-  //
-  // MEDIDO COM A FASE SOZINHA: o piloto de fora do repositorio que sai da casa
-  // acesa termina sem acerto (77,0, como no SELECT); os que so andam no chao
-  // tomam 3 (o que persegue), 4 (o parado) e 4 (o que vai e vem) - um a dois
-  // a mais que no SELECT, das linhas apagadas que caem e das que sobem para o
-  // lugar delas.
+  // Fase 2 - insert, update, delete | gesto: os registros voam. Nenhum comando varre linha - isso e o
+  // SELECT: o INSERT arremessa o registro em arco ate a linha vazia, o DELETE risca a linha e a
+  // derruba, e o UPDATE chuta o valor velho no aluno enquanto o novo voa ate a casa (Dml.h).
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
@@ -180,51 +42,20 @@
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
       { "gatilho": "marcar", "estrategia": "WaveAttack", "projetil": "Aviso",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "aviso" },
-      { "gatilho": "selecionar", "estrategia": "ConsultaAttack", "projetil": "Celula",
-        "projeteis": 7, "velocidade": 700,
-        "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 1.0 },
-        "regras": "varredura" },
-      { "gatilho": "celula", "estrategia": "WaveAttack", "projetil": "Celula",
-        "projeteis": 12, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "clarao" }
+      { "gatilho": "rascunho", "estrategia": "WaveAttack", "projetil": "Rascunho",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "aviso" },
+      { "gatilho": "caco", "estrategia": "WaveAttack", "projetil": "Caco",
+        "projeteis": 3, "velocidade": 330, "angulo": 80, "anguloCentral": 270, "intervalo": 0,
+        "dificil": { "projeteis": 5, "velocidade": 380 } }
     ]
   },
 
-  // FASE 3 - AS TRANSACOES   |   gesto: O LOG, QUE VAI E VOLTA
-  //
-  // VARIAS TRANSACOES AO MESMO TEMPO (Transacao.h), uma nova a cada 1,8s, ate
-  // tres. Cada uma faz dois UPDATE, em duas linhas, e o placar escreve cada
-  // passo:
-  //
-  //   "T3: UPDATE SET nota=12 WHERE mat=42"   a linha acende e e varrida -
-  //                                           gravada -, e as escritas saem do
-  //                                           professor e FICAM nela, dez em
-  //                                           fila no meio: a linha esta
-  //                                           travada, e a nota nova esta em
-  //                                           vermelho
-  //   "T3: COMMIT"                            as escritas somem, a nota fica
-  //   "T3: ROLLBACK"                          a linha acende e e varrida DO
-  //                                           OUTRO LADO - o log lido de tras
-  //                                           para a frente -, as escritas
-  //                                           VOLTAM pelo caminho por onde
-  //                                           vieram, e a nota antiga volta
-  //   "T3 espera T2"                          o segundo UPDATE pediu uma linha
-  //                                           travada por outra, e espera
-  //   "deadlock! T4: ROLLBACK"                duas se esperam: a mais nova e
-  //                                           abortada e desfaz tudo
-  //
-  // A TABELA COMECA CHEIA: o que o DELETE apagou na fase 2 e reinserido, vindo
-  // do professor, quando esta fase comeca.
-  //
-  // ESTA E A FASE QUE DECIDE A BATALHA. StateThree tem "proximo" vazio.
-  //
-  // MEDIDO NA BATALHA INTEIRA, em cinco sementes: o que persegue passa com 71,5
-  // a 75,7 (6 a 9 acertos), o piloto de fora do repositorio que sai da casa
-  // acesa com 72,0 a 87,3 (1 a 4), e o parado reprova em todas (de 0,6 a
-  // 36,7). Com uma transacao nova a cada 2,2s, quem sai da casa acesa
-  // terminava a batalha com 88,6 a 95,9 e no maximo um acerto: a fase que
-  // decide era a mais facil das tres.
+  // Fase 3 - as transacoes | gesto: tudo ou nada. Cada transacao prepara comandos das fases 1 e 2,
+  // que ficam na tabela como rascunho na cor dela, e no COMMIT tudo acontece junto. Derrubar o selo
+  // da transacao antes disso e o ROLLBACK: nada do que ela preparou acontece (Transacao.h).
   "StateThree": {
     "duracao": 20,
+    // Vazio: e aqui que a batalha e decidida.
     "proximo": "",
     "anuncio": "BEGIN TRANSACTION",
     "movimento": { "tipo": "Conduzido", "a": 600 },
@@ -233,43 +64,25 @@
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
       { "gatilho": "registro", "estrategia": "WaveAttack", "projetil": "Dado",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "tabela" },
-      { "gatilho": "marcar", "estrategia": "WaveAttack", "projetil": "Aviso",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "aviso" },
       { "gatilho": "selecionar", "estrategia": "ConsultaAttack", "projetil": "Celula",
         "projeteis": 7, "velocidade": 700,
         "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 1.0 },
         "regras": "varredura" },
-      { "gatilho": "desfazer", "estrategia": "ConsultaAttack", "projetil": "Celula",
-        "projeteis": 7, "velocidade": 700,
-        "consulta": { "eixo": "Linha", "linhas": 4, "aviso": 1.0, "invertido": true },
+      { "gatilho": "projetar", "estrategia": "ConsultaAttack", "projetil": "Celula",
+        "projeteis": 8, "velocidade": 640,
+        "consulta": { "eixo": "Coluna", "colunas": 5, "aviso": 1.2 },
         "regras": "varredura" },
-      { "gatilho": "gravar", "estrategia": "WaveAttack", "projetil": "Escrita",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
+      { "gatilho": "rascunho", "estrategia": "WaveAttack", "projetil": "Rascunho",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "aviso" },
+      { "gatilho": "selo", "estrategia": "WaveAttack", "projetil": "Selo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "caco", "estrategia": "WaveAttack", "projetil": "Caco",
+        "projeteis": 3, "velocidade": 330, "angulo": 80, "anguloCentral": 270, "intervalo": 0,
+        "dificil": { "projeteis": 5, "velocidade": 380 } }
     ]
   },
 
-  // FASE FINAL - O PRODUTO CARTESIANO   |   gesto: O LACO QUE ANDA
-  //
-  // "SELECT * FROM alunos, cursos": o JOIN que esqueceu o WHERE e por isso junta
-  // TUDO com TUDO - o acidente classico que trava o servidor. O banco o executa
-  // num laco aninhado, e e o laco que se ve (Banco.h): uma casa por vez e
-  // marcada e, 0,7s depois, se enche, ate a tabela inteira ter passado. Cada
-  // volta tem um PLANO, e o placar o diz - por linha, por coluna, de tras pra
-  // frente, em zigue-zague -, e cada volta anda mais depressa (0,15s por casa
-  // na primeira, ate 0,10s).
-  //
-  // NAO HA CASA QUE ESCAPE. A versao anterior desta fase era uma trelica de
-  // indices fixos - as linhas 0 e 2 e as colunas 1 e 3 -, e as casas das linhas
-  // 1 e 3 nas colunas 0, 2 e 4 nunca eram varridas: o aluno parado no meio de
-  // baixo terminava a repescagem sem acerto nenhum e com 88,4, so atirando no
-  // professor parado no centro. Agora toda casa acende a cada volta, e o lugar
-  // seguro e o que o laco ja leu: e ler o plano e andar atras dele.
-  //
-  // MEDIDO COM A FASE SOZINHA (comecando com 40), em seis sementes: o parado
-  // reprova em todas, de 22,0 a 27,6 e com 3 acertos; o que persegue e o piloto
-  // de fora do repositorio que sai da casa marcada passam em cinco (de 63,3 a
-  // 76,2, e de 62,1 a 75,7 com 2 acertos), e caem para 52 na mesma semente. Com
-  // o aviso de 0,55s eram so tres de cinco de cada.
+  // Fase final - o produto cartesiano | gesto: o laco que anda.
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",

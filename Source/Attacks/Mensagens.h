@@ -9,38 +9,10 @@
 #include <vector>
 
 #include "Fase.h"
-#include "../Dificuldade.h"
-#include "../Variacao.h"
+#include "../Regras/Dificuldade.h"
+#include "../Regras/Variacao.h"
 
-/**
- * CAMADA PURA.
- *
- * A FASE 3 DO VITOR E A PROGRAMACAO DISTRIBUIDA. Ele se divide pela nuvem
- * (Nuvem.h) e saem DOIS PROCESSOS - o pai e o filho do fork() -, um de cada
- * lado do alto do campo. Processos nao dividem memoria: conversam TROCANDO
- * MENSAGENS. Entre os dois fica o CANAL, um arco que desce pelo campo, e cada
- * mensagem e um envelope que corre por ele.
- *
- * Quatro rodadas, o resto da ementa da INF 310:
- *
- *   assincrona   o filho manda e NAO ESPERA: os envelopes enchem a caixa
- *                postal do pai, e o pai faz receive() um a um - cada
- *                mensagem recebida e processada vira um tiro no aluno
- *   sincrona     o pai manda e BLOQUEIA ate o filho receber: o rendezvous.
- *                Quando o envelope chega, os dois andam juntos - e os dois
- *                atiram juntos, um anel cada
- *   rpc          a chamada de procedimento remoto: o pai chama soma(2, 3) no
- *                filho, o pedido vai, o filho calcula, a resposta volta - e
- *                o resultado e um leque de 5 no aluno. Depois soma(3, 4)
- *   impasse      os dois fazem send() sincrono AO MESMO TEMPO, e ninguem
- *                recebe: os envelopes param na porta, os dois esperam - o
- *                deadlock de mensagens. No timeout eles estouram, e os dois
- *                passam a mandar sem esperar
- *
- * Aqui ficam as rodadas (um roteiro de eventos), os lugares dos dois
- * processos, o arco do canal, a caixa postal e os textos; quem move os
- * corpos e os envelopes e atira e o Vitor. Coberto por test_mensagens.cpp.
- */
+/// A fase 3 do Vitor e a programacao distribuida.
 namespace Mensagens {
 
     /// Os nomes que o codigo e os dados dividem. Um teste confere cada um.
@@ -54,11 +26,11 @@ namespace Mensagens {
     constexpr const char* kCaraDoEnvelope = "Voando";
     constexpr const char* kCaraDoEsperando = "Esperando";
 
-    constexpr int kPai = 0;
-    constexpr int kFilho = 1;
+    constexpr int kCliente = 0;
+    constexpr int kServidor = 1;
     std::string Nome(int processo);
 
-    // ---- AS RODADAS ---------------------------------------------------------
+    // ---- As rodadas ----
 
     enum class Rodada { Assincrona, Sincrona, Rpc, Impasse };
     constexpr int kRodadas = 4;
@@ -68,21 +40,21 @@ namespace Mensagens {
         Envia,      ///< um envelope sai de 'de' para o outro
         Recebe,     ///< 'de' tira um envelope da caixa postal e o processa: um tiro
         Encontro,   ///< o rendezvous: os dois atiram um anel
-        Responde,   ///< o retorno da rpc sai de 'de' (o filho)
-        Resultado,  ///< o pai recebe o retorno: um leque de 'valor' no aluno
+        Responde,   ///< o retorno da rpc sai de 'de' (o servidor)
+        Resultado,  ///< o cliente recebe o retorno: um leque de 'valor' no aluno
         Estoura     ///< o timeout do impasse: os envelopes parados estouram
     };
 
     struct Evento {
         float quando = 0.0f;         ///< segundos desde o comeco da rodada
         Acontece o = Acontece::Envia;
-        int de = kPai;
+        int de = kCliente;
         int valor = 0;               ///< o resultado da rpc
         float voo = 0.0f;            ///< Envia e Responde: quanto o envelope leva
         bool paraNaPorta = false;    ///< Envia do impasse: ninguem recebe
     };
 
-    /// A RPC: as duas chamadas e o que elas devolvem.
+    /// A rpc: as duas chamadas e o que elas devolvem.
     struct Chamada { int a = 0; int b = 0; };
     constexpr int kChamadas = 2;
     /// As chamadas de sempre: soma(2, 3) e soma(3, 4).
@@ -91,18 +63,9 @@ namespace Mensagens {
 
     struct Ponto { float x = 0.0f; float y = 0.0f; };
 
-    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA (Variacao.h) ---------------------
+    // ---- O que muda de uma luta para a outra (Variacao.h) ----
 
-    /**
-     * @brief A fase desta batalha.
-     *
-     * A ASSINCRONA ABRE SEMPRE: e a troca de mensagens mais simples, e as
-     * outras tres sao o que se pede a mais dela - esperar, devolver um valor,
-     * esperar os dois ao mesmo tempo. Essas vem em qualquer ordem. As duas
-     * chamadas da rpc sao outras contas, com somas IMPARES (o leque do retorno
-     * tem um tiro no meio, mirado no aluno), e os dois processos ficam em
-     * outros lugares a cada rodada (Lugar), sempre no alto, o pai a esquerda.
-     */
+    /// A fase desta batalha.
     struct Plano {
         std::array<Rodada, kRodadas> rodadas{};
         std::array<Chamada, kChamadas> chamadas{};
@@ -112,13 +75,8 @@ namespace Mensagens {
     Plano Sortear(Variacao::Sorteio& s);
     constexpr int kSomas[] = {5, 7, 9};
 
-    // ---- O DEGRAU (Dificuldade.h) -----------------------------------------------
+    // ---- O degrau (Dificuldade.h) ----
 
-    /// O que o Dificil muda: a caixa postal da assincrona enche com mais
-    /// envelopes (o filho manda mais depressa, e o pai recebe mais depressa) e
-    /// cada receive() atira um leque de tres; a sincrona tem um rendezvous a
-    /// mais (o envelope corre mais depressa); os aneis tem mais tiros, depois
-    /// do timeout os dois mandam mais, e o que eles atiram anda mais depressa.
     struct Degrau {
         int sincronos = 3;
         float vooSincrono = 1.1f;
@@ -135,58 +93,61 @@ namespace Mensagens {
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 
-    /// O roteiro da rodada, em ordem de tempo - o de sempre, ou o desta luta.
-    std::vector<Evento> Roteiro(Rodada r);
-    std::vector<Evento> Roteiro(Rodada r, const Plano& p, const Degrau& d);
+    /// O roteiro da rodada, em ordem de tempo - o de sempre, ou o desta luta. Com 's', a rede nao
+    /// e deterministica: cada envelope leva de (1 - kDesvioDaLatencia) a (1 + kDesvioDaLatencia) do
+    /// tempo de sempre - na assincrona eles chegam fora de ordem -, o servidor da rpc calcula um
+    /// tempo seu (e a chamada inteira dura o de sempre), e quem recebe espera o envelope chegar. O
+    /// roteiro sorteado que passar do fim da rodada encolhe por igual, e cabe nela.
+    std::vector<Evento> Roteiro(Rodada r, const Plano& p = PlanoDeSempre(), const Degrau& d = Degrau{},
+                                Variacao::Sorteio* s = nullptr);
+    constexpr float kDesvioDaLatencia = 0.25f;
+    constexpr float kDesvioDoCalculo = 0.5f;
+    /// Quem recebe tira o envelope da caixa um pouco depois de ele chegar; o cliente da sincrona
+    /// manda de novo um pouco depois do rendezvous.
+    constexpr float kDepoisDeChegar = 0.05f;
+    constexpr float kDepoisDoEncontro = 0.1f;
+    /// O fim do roteiro sorteado: um pouco antes do fim da rodada.
+    constexpr float kFolgaDoFim = 0.05f;
 
-    /// @brief Quanto tempo depois de sair um envelope chega - e, no impasse,
-    /// quando ele para na porta (kNaPorta do caminho).
+    /// Quanto tempo depois de sair um envelope chega - e, no impasse, quando ele para na porta
+    /// (kNaPorta do caminho).
     constexpr float kNaPorta = 0.88f;
 
-    // ---- O RELOGIO ----------------------------------------------------------
+    // ---- O relogio ----
 
     /// As rodadas comecam kComeca depois de a fase abrir: antes disso e o fork
     /// pela nuvem (Nuvem::Fork, que acaba em 1,6 s).
     constexpr float kComeca = 1.8f;
     constexpr float kPorRodada = (Fase::kDuracao - kComeca) / static_cast<float>(kRodadas);
 
-    // ---- O CAMPO ------------------------------------------------------------
+    // ---- O campo ----
 
-    /// Onde fica cada processo na rodada k: o pai a esquerda, o filho a
-    /// direita, no alto, cada rodada num par de alturas - os de sempre, ou os
-    /// desta luta.
-    Ponto Lugar(int processo, int k, float largura);
-    Ponto Lugar(int processo, int k, float largura, const Plano& p);
+    /// Onde fica cada processo na rodada k: o cliente a esquerda, o servidor a direita, no alto,
+    /// cada rodada num par de alturas.
+    Ponto Lugar(int processo, int k, float largura, const Plano& p = PlanoDeSempre());
 
-    /// @brief O ARCO DO CANAL: de 'de' a 'para', descendo ate 'fundo' no meio.
-    /// s vai de 0 (em 'de') a 1 (em 'para').
+    /// O arco do canal: de 'de' a 'para', descendo ate 'fundo' no meio. s vai de 0 (em 'de') a 1
+    /// (em 'para').
     Ponto NoArco(Ponto de, Ponto para, float s, float fundo);
 
-    /// @brief O fundo do arco em cada rodada: quanto ele desce pelo campo.
-    ///
-    /// NAS DUAS RODADAS DE MUITOS ENVELOPES ELE VAI ATE O CHAO (700; o aluno
-    /// anda ate 698): o canal corta o campo em dois, e quem estava no meio de
-    /// baixo escolhe um lado - o de um dos processos - ou passa entre dois
-    /// envelopes. Nas outras ele passa por cima de quem fica embaixo. Raso em
-    /// todas, o piloto que vai e vem cruzava o meio sem encostar em nada e
-    /// passava com 69,6.
+    /// O fundo do arco em cada rodada: quanto ele desce pelo campo.
     float Fundo(Rodada r);
 
-    // ---- A CAIXA POSTAL -----------------------------------------------------
+    // ---- A caixa postal ----
 
-    /// @brief Quantos envelopes ha na caixa de 'processo' em 'u': os que ja
-    /// chegaram menos os que ele ja recebeu. Pelo roteiro, para o placar.
+    /// Quantos envelopes ha na caixa de 'processo' em 'u': os que ja chegaram menos os que ele ja
+    /// recebeu. Pelo roteiro, para o placar.
     int NaCaixa(const std::vector<Evento>& roteiro, int processo, float u);
 
-    // ---- AS VELOCIDADES -----------------------------------------------------
+    // ---- As velocidades ----
 
     /// As dos ataques em fases.json (um teste confere).
     constexpr float kVelocidadeDoProcessado = 320.0f;
     constexpr float kVelocidadeDoEncontro = 220.0f;
     constexpr int kAnelDoEncontro = 8;
 
-    // ---- OS TEXTOS ----------------------------------------------------------
+    // ---- Os textos ----
 
-    std::string Placar(Rodada r, int naCaixa, int chamada, bool bloqueado, bool estourou);
-    std::string Placar(Rodada r, int naCaixa, int chamada, bool bloqueado, bool estourou, const Plano& p);
+    std::string Placar(Rodada r, int naCaixa, int chamada, bool bloqueado, bool estourou,
+                       const Plano& p = PlanoDeSempre());
 }

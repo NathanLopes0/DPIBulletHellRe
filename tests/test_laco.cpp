@@ -8,7 +8,7 @@
 #include <set>
 #include <string>
 
-#include "../Source/Variacao.h"
+#include "../Source/Regras/Variacao.h"
 
 #include <algorithm>
 #include <set>
@@ -50,12 +50,11 @@ TEST_CASE("Laco: o aninhado faz uma passada por k, e juntas cobrem o vetor uma v
         const auto v = Execucao({Forma::Aninhado, 0, passo, true}, 0u);
         auto casas = Casas(v);
         CHECK(casas.size() == static_cast<size_t>(kCasas));
-        // A PASSADA k E A DAS CASAS COM RESTO k: o aluno muda de casa uma vez
-        // por passada.
+        // A passada k E a das casas com resto k: o aluno muda de casa uma vez por passada.
         for (size_t j = 0; j < casas.size(); ++j) CHECK(casas[j] % passo == static_cast<int>(j) / (kCasas / passo));
         std::sort(casas.begin(), casas.end());
         for (int i = 0; i < kCasas; ++i) CHECK(casas[static_cast<size_t>(i)] == i);
-        // E HA UMA PAUSA entre as passadas.
+        // E ha uma pausa entre as passadas.
         CHECK(v[static_cast<size_t>(kCasas / passo)].quando - v[static_cast<size_t>(kCasas / passo) - 1].quando ==
               doctest::Approx(kPasso + kEntrePassadas));
     }
@@ -108,8 +107,6 @@ TEST_CASE("Laco: todo laco sorteado fica dentro do vetor - menos o que e para sa
                 CHECK(x.i < kCasas);
                 if (x.tipo == Tipo::Balao) comBalao.insert(x.i);
             }
-            // SEMPRE HA ONDE FICAR - menos no aninhado, cujas passadas cobrem
-            // o vetor uma vez cada, e no while (1), que nao tem padrao.
             if (p.forma != Forma::Aninhado && p.forma != Forma::Infinito) {
                 CHECK(static_cast<int>(comBalao.size()) < kCasas);
             }
@@ -162,7 +159,7 @@ TEST_CASE("Laco: o degrau - o Normal e o de sempre, o Dificil avisa menos e sobe
     CHECK(n.baloesPorCacho == kBaloesPorCacho);
     CHECK(d.baloesPorCacho > n.baloesPorCacho);
     CHECK(d.baloesPorCacho % 2 == 1);   // um no meio da casa
-    // O CACHO MAIS LARGO cabe na casa (100 px numa tela de 1200).
+    // O cacho mais largo cabe na casa (100 px numa tela de 1200).
     for (const Degrau& g : {n, d}) {
         CHECK(static_cast<float>(g.baloesPorCacho - 1) * g.ladoDoCacho <= 1200.0f / static_cast<float>(kCasas) + 0.01f);
     }

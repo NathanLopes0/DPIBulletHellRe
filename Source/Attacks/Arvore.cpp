@@ -19,8 +19,7 @@ namespace Arvore {
     }
 
     float X(const int indice) {
-        // NO NIVEL d HA 2^d LUGARES, cada um com a largura dividida por 2^d; o
-        // de indice i e o (i - 2^d)-esimo da esquerda.
+        // No nivel d ha 2^d lugares, cada um com a largura dividida por 2^d; o de indice i e o (i.
         const int d = Profundidade(indice);
         const int lugares = 1 << d;
         const int p = indice - lugares;

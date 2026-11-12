@@ -5,50 +5,31 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
+#include <optional>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
+#include <SDL_pixels.h>
+
 #include "../Actor.h"
-#include "../../Golpe.h"
-#include "../../Poder.h"
-#include "../../Variacao.h"
+#include "../../Regras/Golpe.h"
+#include "../../Regras/Poder.h"
+#include "../../Regras/Variacao.h"
 
 class Battle;
 class Boss;
 class BossProjectile;
 class DrawLinhasComponent;
+class PlayerProjectile;
+class PoderEmCampo;
 
-/**
- * @class Orientador
- * @brief O professor escolhido antes do TCC (EscolhaDoOrientador), voando junto
- * do aluno e atirando no chefe.
- *
- * INVULNERAVEL, E NAO POR UMA REGRA: ele nao tem colisor, entao nenhum tiro do
- * chefe tem em que bater. Quem apanha continua sendo so o aluno.
- *
- * O TIRO DELE E DO ALUNO. Sai do mesmo pool dos tiros do aluno (PlayerProjectile),
- * entao acertar o chefe paga a mesma nota e derruba os mesmos projeteis - a
- * batalha nao precisa de uma regra nova para ele, e o que ele conquista e da
- * dupla como tudo o mais (requisitos-coop, D2). Mas tem a CARA DA MATERIA dele
- * - o projetil do professor, com um contorno azul de aliado.
- *
- * ONDE ELE FICA e conta pura, em Escolta.
- *
- * O GOLPE E O DA MATERIA DELE (Golpe.h): o laco do Andre, a pilha do Salles, o
- * barramento do Ricardo, a transacao do Thiago, o ponteiro do Luizinho, a
- * gramatica do Vladimir, o gradiente do Julio, o Observer da Maria Lucia, o
- * fetch do Lucas e a janela do TCP do Vitor. Todos com o mesmo peso.
- *
- * E O PODER TAMBEM (Poder.h): cada acerto no chefe carrega o especial dele
- * (Carregar, chamado pela batalha), o anel em volta dele mostra a carga, e o
- * aluno solta no BOTAO 3 - a capivara do Salles, o ROLLBACK do Thiago, a bala
- * de prata da Maria Lucia... Aqui mora o que a conta pura nao faz: soltar cada
- * tiro na hora, acompanhar os guiados e fazer o efeito de cada poder.
- */
+/// O professor escolhido antes do TCC (EscolhaDoOrientador), voando junto do aluno e atirando no
+/// chefe.
 class Orientador : public Actor {
 public:
     Orientador(Scene* scene, std::string professor, const std::string& retrato);
+    ~Orientador() override;
 
     void OnUpdate(float deltaTime) override;
     void OnProcessInput(const Uint8* keyState) override;
@@ -62,19 +43,57 @@ public:
     /// Poe o orientador direto no posto, sem o voo de chegada: e onde ele nasce.
     void Pousar();
 
-    // ---- O PODER -------------------------------------------------------------
+    /// A reuniao de orientacao do TCC (Objetivo::Tipo::Reuniao): o Hugo marca o lugar, e ele larga
+    /// o aluno e voa ate la, esperando; vazio, volta a escoltar.
+    void MarcarReuniao(const std::optional<Vector2>& onde) { mReuniao = onde; }
+
+    // ---- O poder ----
 
     /// Um tiro acertou o chefe: o poder carrega um acerto (Battle, regra 2).
     void Carregar();
 
     [[nodiscard]] bool PoderPronto() const;
-    [[nodiscard]] int Carga() const { return mCarga; }
 
-    /// Solta o poder, se estiver pronto. O BOTAO 3 de qualquer aluno chama.
+    /// Na simulacao (--poder, Simulacao.h), o orientador solta o poder sozinho quando ele serve.
+    void SoltarPoderSozinho(class Battle& batalha);
+
+    /// Solta o poder, se estiver pronto. O botao 3 de qualquer aluno chama.
     bool SoltarPoder();
 
-    /// Quantas vezes o poder ja foi solto. Para quem mede a batalha.
+    /// Para quem mede a batalha.
     [[nodiscard]] int Poderes() const { return mPoderes; }
+
+    // ---- O que os poderes usam (PoderEmCampo) ----
+
+    [[nodiscard]] const Poder::Descricao& Descricao() const { return mPoder; }
+    /// Segundos desde que ele entrou em campo: o relogio dos poderes.
+    [[nodiscard]] float Tempo() const { return mTempo; }
+    [[nodiscard]] Vector2 PosicaoDoAluno();
+
+    /// Solta um tiro com a cara da materia; com 'quadro' >= 0, a de outra folha (o poder) - 'folha'
+    /// e 'escala' valem entao.
+    PlayerProjectile* Disparar(Battle& batalha, const Golpe::Tiro& tiro, const Vector2& de, const Vector2& direcao,
+                               const std::string& folha = "", int quadro = -1, float escala = 0.0f);
+
+    /// Uma figura do poder em campo (a capivara, um agente), onde ele esta. Quem
+    /// a pediu e quem a tira (SetState(Destroy)) quando o poder acaba.
+    Actor* Figura(const std::string& folha, const std::vector<int>& quadros, float escala);
+
+    /// Os tiros do chefe que um poder alcanca: os soltos - nada que o chefe
+    /// guarda num posto (um alvo, uma estrutura), nem enfeite, nem abrigo.
+    [[nodiscard]] std::vector<BossProjectile*> TirosSoltos(Battle& batalha) const;
+
+    /// A onda do automato: um anel que se abre do aluno.
+    void AbrirAnel() { mAnelDoPoder = 0.0f; }
+
+    /// Um traco do desenho do poder neste quadro (a porta do semaforo, as chaves do try, os blocos
+    /// da pilha): some no quadro seguinte se ninguem o pedir de novo.
+    void Tracar(const Vector2& de, const Vector2& ate, SDL_Color cor) { mTracos.push_back({de, ate, cor}); }
+
+    /// O que o poder esta fazendo agora, numa linha em cima do aluno ("push(tiro)  pilha: 7",
+    /// "ROLLBACK: a nota voltou"). O placar e do Hugo, que o reescreve; o rotulo e do poder, e some
+    /// sozinho um pouco depois da ultima vez que foi escrito.
+    void Rotular(const std::string& texto);
 
 private:
     /// O retrato e o cartao de chefe dele (128 px), em tamanho de ajudante.
@@ -92,14 +111,9 @@ private:
 
     [[nodiscard]] Battle* Batalha();
     [[nodiscard]] Vector2 PostoAgora();
-    [[nodiscard]] Vector2 PosicaoDoAluno();
 
     /// A rodada do golpe: solta os tiros cuja hora chegou.
     void Golpear(Battle& batalha, float deltaTime);
-    /// Solta um tiro com a cara da materia; com 'quadro' >= 0, a de outra
-    /// folha (o poder) - 'folha' e 'escala' valem entao.
-    void Disparar(Battle& batalha, const Golpe::Tiro& tiro, const Vector2& de, const Vector2& direcao,
-                  const std::string& folha = "", int quadro = -1, float escala = 0.0f);
     /// Os tiros que ainda dependem dele: a espera, a curva, a volta, a onda, a
     /// divisao.
     void Guiar(Battle& batalha, float deltaTime);
@@ -116,6 +130,7 @@ private:
     std::string mRetrato;
     Golpe::Materia mMateria = Golpe::Materia::Generico;
     int mLado = -1;
+    std::optional<Vector2> mReuniao;
     Vector2 mPouso;            ///< onde ele esta, sem o balanco
     float mTempo = 0.0f;
     int mDisparos = 0;
@@ -130,41 +145,36 @@ private:
     int mNotificacoes = 0;
     std::vector<Guiado> mGuiados;
 
-    // ---- O PODER EM CURSO -------------------------------------------------------
+    // ---- O poder em curso ----
 
     void AtualizarPoder(Battle& batalha, float deltaTime);
     void DesenharAnel();
-    /// Os tiros do chefe que um poder alcanca: os soltos - nada que o chefe
-    /// guarda num posto (um alvo, uma estrutura), nem enfeite, nem abrigo.
-    [[nodiscard]] std::vector<BossProjectile*> TirosSoltos(Battle& batalha) const;
     void Anunciar(const std::string& texto);
-    Actor* Figura(const std::string& folha, const std::vector<int>& quadros, float escala);
+
+    /// O rotulo do poder: quanto fica depois de escrito, e onde, a partir do aluno.
+    static constexpr float kRotuloFica = 1.8f;
+    static constexpr float kRotuloAcima = 118.0f;
+    static constexpr int kLarguraDoRotulo = 360;
+    static constexpr int kAlturaDoRotulo = 28;
+    class EtiquetaDeCodigo* mRotulo = nullptr;
+    std::string mRotulado;
+    float mRotuloAte = -1.0f;
+
+    struct TracoDoPoder {
+        Vector2 de;
+        Vector2 ate;
+        SDL_Color cor;
+    };
+    std::vector<TracoDoPoder> mTracos;
 
     Poder::Descricao mPoder;
+    std::unique_ptr<PoderEmCampo> mEmCampo;   ///< o efeito do poder (nulo: sem poder)
     int mCarga = 0;
     int mPoderes = 0;
     bool mAvisouPronto = false;
     bool mBotaoAntes = false;
-    float mPoderAte = -1.0f;        ///< o efeito dura ate aqui (mTempo)
-    float mInicioDoPoder = 0.0f;
-    int mRajadaFalta = 0;
-    float mProximoDaRajada = 0.0f;
-
-    /// HLT: o que congelou, e como estava.
-    struct Congelado {
-        BossProjectile* p = nullptr;
-        Vector2 posicao;
-        Vector2 velocidade;
-        float idade = 0.0f;
-        float desde = 0.0f;
-    };
-    std::vector<Congelado> mCongelados;
-    std::unordered_set<const BossProjectile*> mJaCongelados;
-
-    /// O que o poder poe em campo e tira no fim: a capivara, os agentes, o filho.
-    std::vector<Actor*> mFiguras;
-    std::uint64_t mBala = 0;        ///< a bala de prata, ate quebrar o escudo
-    float mAnelDoPoder = -1.0f;     ///< o raio do anel que se abre no free() e no automato
+    float mPoderAte = -1.0f;
+    float mAnelDoPoder = -1.0f;     ///< o raio do anel que se abre no automato
 
     DrawLinhasComponent* mLinhas = nullptr;
 };

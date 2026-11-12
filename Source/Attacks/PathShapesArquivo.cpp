@@ -1,20 +1,13 @@
-//
 // A ponte entre as formas lidas de arquivo e o motor.
-//
-// Separado de PathShapes.cpp pelo mesmo motivo dos outros pares: aquele e puro e
-// entra no alvo de testes; este abre arquivo e escreve log, entao fica de fora.
-//
 
 #include "PathShapes.h"
 
-#include <fstream>
-#include <iterator>
 #include <map>
 #include <string>
 #include <vector>
 #include <SDL_log.h>
 
-#include "../CaminhosArquivo.h"
+#include "../Motor/CaminhosArquivo.h"
 
 namespace {
     /// Formas lidas de arquivo, por nome. Separado do cache por parametros
@@ -32,24 +25,20 @@ namespace {
         return c;
     }
 
-    /// Le o arquivo UMA vez. Extraido de dentro de DoArquivo porque agora ha dois
-    /// pontos de entrada (forma simples e familia) e os dois precisam do arquivo
-    /// carregado - duplicar a carga daria dois caches e dois conjuntos de avisos.
+    /// Le o arquivo uma vez.
     void GarantirLido() {
 
         if (gArquivoLido) return;
         gArquivoLido = true;   // uma tentativa so, mesmo que falhe
 
-        std::ifstream arquivo(Caminho());
-        if (!arquivo.is_open()) {
+        const std::optional<std::string> texto = Caminhos::LerTexto(Caminho());
+        if (!texto) {
             SDL_Log("FORMAS: nao foi possivel abrir %s. As formas de arquivo virarao retas.",
                     Caminho().c_str());
             return;
         }
 
-        const std::string texto((std::istreambuf_iterator<char>(arquivo)),
-                                 std::istreambuf_iterator<char>());
-        PathShapes::FormasLidas lidas = PathShapes::LerFormas(texto);
+        PathShapes::FormasLidas lidas = PathShapes::LerFormas(*texto);
 
         for (const auto& p : lidas.problemas) {
             SDL_Log("FORMAS em %s: %s", Caminho().c_str(), p.c_str());
@@ -73,7 +62,7 @@ namespace {
                 gFormasDeArquivo.size(), gFamiliasDeArquivo.size(), Caminho().c_str());
     }
 
-    /// Avisa UMA vez por chave, para nao encher o log a cada projetil disparado.
+    /// Avisa uma vez por chave, para nao encher o log a cada projetil disparado.
     bool PrimeiroAviso(const std::string& chave) {
         static std::map<std::string, bool> jaAvisados;
         return jaAvisados.emplace(chave, true).second;
@@ -91,9 +80,6 @@ Path DoArquivo(const std::string& nome) {
     }
 
     if (PrimeiroAviso("forma:" + nome)) {
-        // Mensagem separada quando o nome existe, mas como FAMILIA: e o erro mais
-        // provavel depois que familias passaram a existir, e dizer "nao existe"
-        // mandaria a pessoa procurar um erro de digitacao que nao ha.
         if (gFamiliasDeArquivo.count(nome) == 1) {
             SDL_Log("FORMAS: \"%s\" e uma FAMILIA de formas, nao uma forma so. "
                     "Na regra, use \"formaPorIndice\" em vez de \"forma\". Usando uma reta.",
@@ -130,10 +116,7 @@ Path DaFamilia(const std::string& nome, const int indice) {
     if (familia.empty()) return Reta();
 
     if (indice < 0 || indice >= static_cast<int>(familia.size())) {
-        // Acontece quando o ataque dispara mais projeteis do que a familia tem
-        // formas - numa arvore, mais tiros do que folhas. O resto da volta ao
-        // inicio em vez de virar reta: um ramo repetido estraga menos a leitura do
-        // que um tiro atravessando a arvore em linha reta.
+        // Acontece quando o ataque dispara mais projeteis do que a familia tem formas.
         if (PrimeiroAviso("indice:" + nome)) {
             SDL_Log("FORMAS: a familia \"%s\" tem %zu forma(s) e um projetil pediu a de indice "
                     "%d. O ataque dispara mais projeteis do que a familia cobre - confira "

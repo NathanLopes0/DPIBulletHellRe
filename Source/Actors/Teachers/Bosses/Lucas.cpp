@@ -63,14 +63,6 @@ void Lucas::OnUpdate(const float deltaTime) {
     AtualizarEventLoop(deltaTime);
 }
 
-Vector2 Lucas::PosicaoDoAluno() const {
-
-    if (const auto* battle = dynamic_cast<Battle*>(mScene); battle && battle->Alvo()) {
-        return battle->Alvo()->GetPosition();
-    }
-    return GetPosition() + GetDirectionToPlayer() * GetDistanceToPlayer();
-}
-
 bool Lucas::Vivo(const BossProjectile* p, const float idade) {
     return p && p->GetState() == ActorState::Active && std::fabs(p->TempoDeVida() - idade) <= kFolgaDaIdade;
 }
@@ -100,15 +92,12 @@ std::vector<BossProjectile*> Lucas::DispararDe(const char* gatilho, const Vector
     return mDisparados;
 }
 
-// ---------------------------------------------------------------------------
-// FASE 1 - A PAGINA
-// ---------------------------------------------------------------------------
+// Fase 1 - a pagina.
 
 void Lucas::RecarregarPagina() {
-    // O F5: os elementos da pagina velha somem - o cursor e o spinner que
-    // sobraram com eles -, o layout fica, e vem outra pagina.
-    if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->GetProjectileManager()) {
-        for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+    // O F5: os elementos da pagina velha somem.
+    if (const auto* batalha = Batalha(); batalha && batalha->GerenteDeProjeteis()) {
+        for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
             if (p && p->GetState() == ActorState::Active && p->Posto() == Pagina::kPostoDaPagina) p->Kill();
         }
     }
@@ -125,9 +114,9 @@ void Lucas::AtualizarPagina(const float deltaTime) {
 
     if (!naPagina) {
         if (mNaPagina) {
-            // A FASE ACABOU: a pagina fecha, e o placar volta ao nome dela.
-            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->GetProjectileManager()) {
-                for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+            // A fase acabou: a pagina fecha, e o placar volta ao nome dela.
+            if (const auto* batalha = Batalha(); batalha && batalha->GerenteDeProjeteis()) {
+                for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
                     if (p && p->GetState() == ActorState::Active && p->Posto() == Pagina::kPostoDaPagina) p->Kill();
                 }
             }
@@ -156,13 +145,13 @@ void Lucas::AtualizarPagina(const float deltaTime) {
     while (agora >= mProximoRender) {
         if (mRecarregando) RecarregarPagina();
         if (mProximoElemento >= mPagina.size()) {
-            // A PAGINA ACABOU: o F5 vem depois de uma pausa.
+            // A pagina acabou: o F5 vem depois de uma pausa.
             mRecarregando = true;
             mProximoRender += Pagina::kRecarga;
             RegistrarAnuncio(Pagina::kFaseDaPagina, "F5\nrecarregando a p\xc3\xa1gina");
             continue;
         }
-        // UM ELEMENTO NOVO: o placar o escreve, e ele comeca o ataque dele.
+        // Um elemento novo: o placar o escreve, e ele comeca o ataque dele.
         Renderizado r;
         r.e = mPagina[mProximoElemento++];
         const Pagina::Retangulo& c = r.e.caixa;
@@ -179,7 +168,7 @@ void Lucas::AtualizarPagina(const float deltaTime) {
                 }
                 break;
             case Pagina::Tipo::Marquee: {
-                // A LINHA ATRAVESSA A TELA de um lado sorteado, descendo.
+                // A linha atravessa a tela de um lado sorteado, descendo.
                 const bool paraDireita = mSorteioDaPagina.Chance(0.5f);
                 const float rumo = Math::ToDegrees(Math::Atan2(Pagina::kDescidaDoMarquee, paraDireita ? 220.0f : -220.0f));
                 for (int k = 0; k < Pagina::kTagsDoMarquee; ++k) {
@@ -200,10 +189,7 @@ void Lucas::AtualizarPagina(const float deltaTime) {
 
     RenderizarPagina(deltaTime);
 
-    // O PROFESSOR FICA NO HEADER, em cima da regiao que esta renderizando - ou
-    // da ancora para onde o link navegou. Em cima de cada elemento, como era,
-    // ele trocava de lugar a cada 1,2 s, e o tiro do aluno nao o achava: quem
-    // desviava terminava a fase com 58.
+    // O professor fica no header, em cima da regiao que esta renderizando.
     if (!mRenderizados.empty()) {
         const Pagina::Elemento& e = mRenderizados.back().e;
         const auto layout = Pagina::Layout(largura);
@@ -222,8 +208,7 @@ void Lucas::RenderizarPagina(const float deltaTime) {
         const Vector2 centro(c.Cx(), c.Cy());
         switch (r.e.tipo) {
             case Pagina::Tipo::Botao:
-                // O CURSOR VOA ATE O BOTAO E CLICA - a nao ser que o aluno o
-                // derrube no caminho: event.preventDefault().
+                // O cursor voa ate o botao e clica - a nao ser que o aluno o derrube no caminho.
                 if (!Vivo(r.cursor, r.idade)) {
                     r.feito = r.cancelado = true;
                     RegistrarAnuncio(Pagina::kFaseDaPagina, "event.preventDefault()\nclique cancelado");
@@ -240,7 +225,7 @@ void Lucas::RenderizarPagina(const float deltaTime) {
                 }
                 break;
             case Pagina::Tipo::Imagem: {
-                // O SPINNER GIRA ENQUANTO CARREGA; carregada, a imagem estoura.
+                // O spinner gira enquanto carrega; carregada, a imagem estoura.
                 const float giro = r.idade * Pagina::kVoltasDoSpinner * 2.0f * Math::Pi;
                 for (size_t k = 0; k < r.spinner.size(); ++k) {
                     BossProjectile* ponto = r.spinner[k];
@@ -258,7 +243,7 @@ void Lucas::RenderizarPagina(const float deltaTime) {
                 break;
             }
             case Pagina::Tipo::Tabela: {
-                // AS LINHAS ACENDEM UMA A UMA, e cada uma cai.
+                // As linhas acendem uma a uma, e cada uma cai.
                 const auto celulas = Pagina::Celulas(c);
                 while (r.passos < Pagina::kLinhasDaTabela &&
                        r.idade >= 0.25f + static_cast<float>(r.passos) * Pagina::kEntreLinhas) {
@@ -271,14 +256,14 @@ void Lucas::RenderizarPagina(const float deltaTime) {
                 break;
             }
             case Pagina::Tipo::Link:
-                // O PROFESSOR NAVEGA ATE A ANCORA e chega num anel.
+                // O professor navega ate a ancora e chega num anel.
                 if (r.idade >= 0.45f) {
                     DispararDe(Pagina::kGatilhoDaNavegacao, GetPosition(), 90.0f);
                     r.feito = true;
                 }
                 break;
             case Pagina::Tipo::Input:
-                // O TEXTO E DIGITADO letra por letra, e cada letra sai no aluno.
+                // O texto e digitado letra por letra, e cada letra sai no aluno.
                 while (r.passos < Pagina::kLetras &&
                        r.idade >= 0.2f + static_cast<float>(r.passos) * Pagina::kEntreLetras) {
                     DispararDe(Pagina::kGatilhoDaDigitacao,
@@ -305,11 +290,10 @@ void Lucas::DesenharPagina() {
         mLinhas->Acrescentar(c, d, cor);
         mLinhas->Acrescentar(d, a, cor);
     };
-    // O LAYOUT, a fase inteira.
+    // O layout, a fase inteira.
     for (const Pagina::Retangulo& r : Pagina::Layout(largura)) retangulo(r, kLayout);
 
-    // OS ELEMENTOS RENDERIZADOS, cada um com o desenho do tipo dele; o ultimo,
-    // aceso.
+    // Os elementos renderizados, cada um com o desenho do tipo dele; o ultimo, aceso.
     for (size_t k = 0; k < mRenderizados.size(); ++k) {
         const Renderizado& r = mRenderizados[k];
         const Pagina::Retangulo& c = r.e.caixa;
@@ -353,13 +337,10 @@ void Lucas::DesenharPagina() {
     }
 }
 
-// ---------------------------------------------------------------------------
-// FASE 2 - O DEVTOOLS
-// ---------------------------------------------------------------------------
+// Fase 2 - o devtools.
 
 void Lucas::RepovoarGrade(const float agora) {
-    // O CARTAO QUE FALTA NASCE DO PROFESSOR e voa ate o lugar dele - menos o da
-    // linha com display: none, que nao e renderizada.
+    // O cartao que falta nasce do professor e voa ate o lugar dele - menos o da linha com display.
     for (int i = 0; i < Estilo::kCartoes; ++i) {
         auto& cartao = mCartoes[static_cast<size_t>(i)];
         if (cartao || Estilo::Oculto(mCss, i)) continue;
@@ -375,9 +356,9 @@ void Lucas::AtualizarEstilo(const float deltaTime) {
     const bool noEstilo = fsm && fsm->GetStateName() == Estilo::kFaseDoEstilo && !EhClone();
     if (!noEstilo) {
         if (mNoEstilo) {
-            // A FASE ACABOU: a grade some, e o placar volta ao nome dela.
-            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->GetProjectileManager()) {
-                for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+            // A fase acabou: a grade some, e o placar volta ao nome dela.
+            if (const auto* batalha = Batalha(); batalha && batalha->GerenteDeProjeteis()) {
+                for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
                     if (p && p->GetState() == ActorState::Active && p->Posto() == Estilo::kPostoDaGrade) p->Kill();
                 }
             }
@@ -408,14 +389,12 @@ void Lucas::AtualizarEstilo(const float deltaTime) {
         RepovoarGrade(agora);
     }
 
-    // O PROFESSOR VARRE O ALTO, devagar no Normal e mais depressa no Dificil -
-    // e para enquanto digita a regra (Estilo::kDigitando).
+    // O professor varre o alto, devagar no Normal e mais depressa no Dificil.
     if (agora - mInicioDaRegra >= Estilo::kDigitando || agora < Estilo::kPrimeira) mTempoVarrendo += deltaTime;
     const float velocidade = NoNivel(Flex::kVarredura, Flex::kVarreduraNoDificil);
     mAlvo = Vector2(Flex::XDaVarredura(mTempoVarrendo, mXDoComecoDaVarredura, velocidade, largura), Flex::kYDaVarredura);
 
-    // O CARTAO QUE NAO ESTA MAIS LA sai da conta - derrubado pelo escudo do
-    // Ponto Extra, ou devolvido ao pool.
+    // O cartao que nao esta mais la sai da conta.
     for (int i = 0; i < Estilo::kCartoes; ++i) {
         auto& cartao = mCartoes[static_cast<size_t>(i)];
         if (cartao && (!Vivo(cartao, agora - mNascimentoDosCartoes[static_cast<size_t>(i)]) ||
@@ -424,7 +403,7 @@ void Lucas::AtualizarEstilo(const float deltaTime) {
         }
     }
 
-    // UMA REGRA NOVA: o placar a escreve, e a grade obedece.
+    // Uma regra nova: o placar a escreve, e a grade obedece.
     if (agora >= mProximaRegra) {
         const Estilo::Tipo anterior = mRegra.tipo;
         const int ocultaAntes = mCss.linhaOculta;
@@ -433,7 +412,7 @@ void Lucas::AtualizarEstilo(const float deltaTime) {
         mProximaRegra += mDegrauDoEstilo.porRegra;
         RegistrarAnuncio(Estilo::kFaseDoEstilo, Estilo::Placar(mRegra));
         if (mRegra.tipo == Estilo::Tipo::Esconder && ocultaAntes < 0) {
-            // display: none: a linha nao e mais renderizada.
+            // Display: none: a linha nao e mais renderizada.
             for (int i = 0; i < Estilo::kCartoes; ++i) {
                 auto& cartao = mCartoes[static_cast<size_t>(i)];
                 if (cartao && Estilo::Oculto(mCss, i)) { cartao->Kill(); cartao = nullptr; }
@@ -447,15 +426,13 @@ void Lucas::AtualizarEstilo(const float deltaTime) {
 
     const float t = agora - mInicioDaRegra;
 
-    // A CASCATA: enquanto digita, cada letra escorre reta embaixo dele.
+    // A cascata: enquanto digita, cada letra escorre reta embaixo dele.
     while (agora >= Estilo::kPrimeira && mLetrasEscorridas < mDegrauDoEstilo.letras &&
            t >= static_cast<float>(mLetrasEscorridas) * Estilo::kEntreLetrasDaCascata) {
         DispararDe(Estilo::kGatilhoDaCascata, GetPosition() + Vector2(0.0f, 40.0f), 90.0f);
         ++mLetrasEscorridas;
     }
 
-    // O REPAINT: a transicao acabou, e cada cartao solta um tiro reto para
-    // baixo, do lugar em que esta.
     if (!mRepintou && t >= Estilo::kRepaint) {
         mRepintou = true;
         for (BossProjectile* cartao : mCartoes) {
@@ -463,8 +440,7 @@ void Lucas::AtualizarEstilo(const float deltaTime) {
         }
     }
 
-    // POSITION: FIXED; BOTTOM: 0 - a grade se espalha de borda a borda e cai
-    // ate o chao; o que caiu sai da grade, e outra nasce do professor.
+    // Position: fixed; bottom: 0 - a grade se espalha de borda a borda e cai ate o chao.
     if (mCaindo && t >= Estilo::kEspalhar) {
         for (auto& cartao : mCartoes) {
             if (!cartao) continue;
@@ -476,7 +452,6 @@ void Lucas::AtualizarEstilo(const float deltaTime) {
         RepovoarGrade(agora);
     }
 
-    // CADA CARTAO VAI ATE O LUGAR QUE O CSS DE AGORA LHE DA.
     const float giro = (mRegra.tipo == Estilo::Tipo::Animar && t < Estilo::kDuracaoDoGiro) ? t * Estilo::kGiroPorSegundo : 0.0f;
     const auto lugares = Estilo::Posicoes(mCss, {Estilo::XDaGrade(GetPosition().x, largura), Estilo::kYDaGrade}, giro);
     const float xDoAluno = PosicaoDoAluno().x;
@@ -488,7 +463,7 @@ void Lucas::AtualizarEstilo(const float deltaTime) {
             const Estilo::Ponto e = Estilo::Espalhado(i, largura, alvo.y);
             alvo = Vector2(e.x, e.y);
         }
-        // :HOVER - o cartao em cima do aluno, onde o mouse esta, desce ate ele.
+        // :hover - o cartao em cima do aluno, onde o mouse esta, desce ate ele.
         if (mRegra.tipo == Estilo::Tipo::Hover && std::fabs(alvo.x - xDoAluno) < Estilo::kAlcanceDoHover) {
             alvo.y += Estilo::Hover(std::fmod(t, Estilo::kDuracaoDoHover));
         }
@@ -497,9 +472,7 @@ void Lucas::AtualizarEstilo(const float deltaTime) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// FASE 3 - A ARVORE DE SUPERVISAO
-// ---------------------------------------------------------------------------
+// Fase 3 - a arvore de supervisao.
 
 void Lucas::IniciarWorker(const int k, const float agora) {
     Worker& w = mWorkers[static_cast<size_t>(k)];
@@ -515,9 +488,9 @@ void Lucas::AtualizarSupervisao(const float deltaTime) {
     const bool noElixir = fsm && fsm->GetStateName() == Elixir::kFaseDoElixir && !EhClone();
     if (!noElixir) {
         if (mNoElixir) {
-            // A FASE ACABOU: a arvore cai inteira, e o placar volta ao nome dela.
-            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->GetProjectileManager()) {
-                for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+            // A fase acabou: a arvore cai inteira, e o placar volta ao nome dela.
+            if (const auto* batalha = Batalha(); batalha && batalha->GerenteDeProjeteis()) {
+                for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
                     if (p && p->GetState() == ActorState::Active && p->Posto() == Elixir::kPostoDosWorkers) p->Kill();
                 }
             }
@@ -549,18 +522,18 @@ void Lucas::AtualizarSupervisao(const float deltaTime) {
         for (int k = 0; k < Elixir::kWorkers; ++k) IniciarWorker(k, agora);
     }
 
-    // A RODADA: uma estrategia de supervisao por rodada.
+    // A rodada: uma estrategia de supervisao por rodada.
     const int rodada = std::min(2, static_cast<int>(agora / Elixir::kRodada));
     const Elixir::Estrategia estrategia = mEstrategias[static_cast<size_t>(rodada)];
     mRodadaDoElixir = rodada;
 
-    // O SUPERVISOR VARRE O ALTO devagar, um segundo andando e um parado.
+    // O supervisor varre o alto devagar, um segundo andando e um parado.
     if (std::fmod(agora, 2.0f) < 1.0f) mTempoVarrendoNoElixir += deltaTime;
     mAlvo = Vector2(Flex::XDaVarredura(mTempoVarrendoNoElixir, mXDoComecoDaVarredura,
                                        NoNivel(Flex::kVarredura, Flex::kVarreduraNoDificil), largura),
                     Flex::kYDaVarredura);
 
-    // PARADO, ELE MANDA AS DUVIDAS PELO PIPE: cada etapa escorre reta embaixo.
+    // Parado, ele manda as duvidas pelo pipe: cada etapa escorre reta embaixo.
     if (const float parado = std::fmod(agora, 2.0f) - 1.0f; parado >= 0.0f) {
         const int parada = static_cast<int>(agora / 2.0f);
         if (parada != mParadaDoSupervisor) {
@@ -575,8 +548,7 @@ void Lucas::AtualizarSupervisao(const float deltaTime) {
         }
     }
 
-    // O WORKER QUE CAIU: um crash. Termina quem a estrategia manda - cada
-    // outro estoura num anel -, e todos voltam juntos depois de kReinicio.
+    // O worker que caiu: um crash.
     for (int k = 0; k < Elixir::kWorkers; ++k) {
         Worker& w = mWorkers[static_cast<size_t>(k)];
         if (w.reinicio >= 0.0f || !w.p) continue;
@@ -600,7 +572,7 @@ void Lucas::AtualizarSupervisao(const float deltaTime) {
         }
     }
 
-    // CADA WORKER VAI ATE O LUGAR DELE na arvore, embaixo do supervisor.
+    // Cada worker vai ate o lugar dele na arvore, embaixo do supervisor.
     const auto lugar = [&](const int k) {
         const auto p = Elixir::Lugar(k, GetPosition().x, GetPosition().y, largura);
         return Vector2(p[0], p[1]);
@@ -612,7 +584,7 @@ void Lucas::AtualizarSupervisao(const float deltaTime) {
         if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
     }
 
-    // UM CAST NOVO, para um worker vivo, correndo pela linha.
+    // Um cast novo, para um worker vivo, correndo pela linha.
     if (agora >= mProximoCast) {
         mProximoCast += mDegrauDoElixir.entreMensagens;
         std::vector<int> vivos;
@@ -626,8 +598,7 @@ void Lucas::AtualizarSupervisao(const float deltaTime) {
         }
     }
 
-    // A MENSAGEM CORRE PELA LINHA; chegando, entra na caixa - e a caixa cheia
-    // vira o handle_cast.
+    // A mensagem corre pela linha; chegando, entra na caixa - e a caixa cheia vira o handle_cast.
     for (auto it = mCasts.begin(); it != mCasts.end();) {
         Worker& w = mWorkers[static_cast<size_t>(it->para)];
         const float u = (agora - it->nasceu) / Elixir::kVooDaMensagem;
@@ -656,8 +627,7 @@ void Lucas::AtualizarSupervisao(const float deltaTime) {
 void Lucas::DesenharSupervisao() {
     if (!mLinhas) return;
     mLinhas->Limpar();
-    // AS LINHAS DA ARVORE, do supervisor a cada worker vivo; e a caixa de
-    // correio de cada um, uma marca por mensagem.
+    // As linhas da arvore, do supervisor a cada worker vivo.
     constexpr SDL_Color kLigacao{206, 176, 246, 150};
     constexpr SDL_Color kCaixa{206, 176, 246, 230};
     for (const Worker& w : mWorkers) {
@@ -672,9 +642,7 @@ void Lucas::DesenharSupervisao() {
     }
 }
 
-// ---------------------------------------------------------------------------
-// FINAL - O EVENT LOOP
-// ---------------------------------------------------------------------------
+// Final - o event loop.
 
 void Lucas::NovoScript(const float agora) {
     for (Ficha& f : mFichas) {
@@ -692,9 +660,9 @@ void Lucas::AtualizarEventLoop(const float deltaTime) {
     const bool noLoop = fsm && fsm->GetStateName() == EventLoop::kFaseDoLoop && !EhClone();
     if (!noLoop) {
         if (mNoLoop) {
-            // A FASE ACABOU: as filas esvaziam, e o placar volta ao nome dela.
-            if (const auto* batalha = dynamic_cast<Battle*>(mScene); batalha && batalha->GetProjectileManager()) {
-                for (const auto& p : batalha->GetProjectileManager()->GetBossProjectiles()) {
+            // A fase acabou: as filas esvaziam, e o placar volta ao nome dela.
+            if (const auto* batalha = Batalha(); batalha && batalha->GerenteDeProjeteis()) {
+                for (const auto& p : batalha->GerenteDeProjeteis()->GetBossProjectiles()) {
                     if (p && p->GetState() == ActorState::Active && p->Posto() == EventLoop::kPostoDoLoop) p->Kill();
                 }
             }
@@ -718,7 +686,7 @@ void Lucas::AtualizarEventLoop(const float deltaTime) {
         NovoScript(agora + EventLoop::kPrimeiro);
     }
 
-    // O SCRIPT ACABOU, a pilha e as filas vazias: outro.
+    // O script acabou, a pilha e as filas vazias: outro.
     if (mProximaExecucao >= mAgenda.execucoes.size() &&
         agora >= mInicioDoScript + mAgenda.fim + EventLoop::kEntreScripts) {
         NovoScript(agora);
@@ -730,9 +698,7 @@ void Lucas::AtualizarEventLoop(const float deltaTime) {
     };
     const Vector2 pilha = ponto(EventLoop::Lugar::Pilha, 0);
 
-    // O QUE ENTRA NA PILHA: a linha do script, que nasce la - o console.log
-    // atira na hora -, ou o callback que o loop trouxe de uma fila, que ataca
-    // quando a ficha chega.
+    // O que entra na pilha: a linha do script, que nasce la.
     while (mProximaExecucao < mAgenda.execucoes.size()) {
         const EventLoop::Execucao& ex = mAgenda.execucoes[mProximaExecucao];
         if (t < ex.inicio + (ex.callback ? kChegadaNaPilha : 0.0f)) break;
@@ -761,7 +727,6 @@ void Lucas::AtualizarEventLoop(const float deltaTime) {
         }
     }
 
-    // CADA FICHA VAI PARA ONDE O LOOP A POE AGORA; a que saiu da pilha some.
     for (size_t i = 0; i < mFichas.size(); ++i) {
         Ficha& f = mFichas[i];
         if (!f.p) continue;
@@ -790,7 +755,7 @@ void Lucas::DesenharEventLoop(const float t) {
     constexpr SDL_Color kTarefa{96, 160, 238, 170};
     constexpr SDL_Color kTimer{238, 206, 86, 230};
 
-    // O LOOP: o anel por onde o professor orbita.
+    // O loop: o anel por onde o professor orbita.
     constexpr int kSegmentos = 48;
     const Vector2 centro(largura / 2.0f, EventLoop::kYDoLoop);
     for (int k = 0; k < kSegmentos; ++k) {
@@ -800,7 +765,7 @@ void Lucas::DesenharEventLoop(const float t) {
                              centro + Vector2(Math::Cos(a1), Math::Sin(a1)) * EventLoop::kRaioDoLoop, kLoop);
     }
 
-    // AS CAIXAS: a pilha, as Web APIs e as duas filas.
+    // As caixas: a pilha, as Web APIs e as duas filas.
     const auto caixas = EventLoop::Caixas(largura);
     const SDL_Color cores[] = {kPilha, kApis, kMicro, kTarefa};
     for (size_t k = 0; k < caixas.size(); ++k) {
@@ -812,7 +777,7 @@ void Lucas::DesenharEventLoop(const float t) {
         mLinhas->Acrescentar(d, a, cores[k]);
     }
 
-    // O TIMER DE CADA FICHA NAS WEB APIS, encolhendo ate zero.
+    // O timer de cada ficha nas web apis, encolhendo ate zero.
     for (size_t i = 0; i < mFichas.size(); ++i) {
         if (!mFichas[i].p) continue;
         const EventLoop::Estado e = EventLoop::Onde(mScript, mAgenda, static_cast<int>(i), t,
@@ -841,8 +806,6 @@ void Lucas::OnProjectilesCreated(std::vector<std::unique_ptr<Projectile>>& proje
 void Lucas::CustomizeAttackParams(AttackParams& params, const std::string& stateName) {
     Boss::CustomizeAttackParams(params, stateName);
 
-    // O QUE SAI DE UM LUGAR (um elemento da pagina, a mensagem de um
-    // processo) sai de onde o Lucas manda, no rumo dele.
     if (mDisparandoDe) {
         params.firePosition = mOndeDisparar;
         params.centralAngle = mRumoDoDisparo;

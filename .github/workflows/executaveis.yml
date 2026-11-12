@@ -1,0 +1,63 @@
+# OS EXECUTAVEIS DO JOGO, para Windows e Linux, gerados pelo GitHub.
+#
+# Roda sozinho quando se cria uma tag que comeca com "v" (git tag v1.0 && git push
+# origin v1.0) e publica os dois pacotes numa Release com o nome da tag. Tambem roda
+# pela aba Actions > Executaveis > Run workflow, e entao os pacotes ficam nos
+# "Artifacts" da execucao.
+#
+# Os dois saem de uma maquina Linux: o do Windows pela compilacao cruzada com o
+# MinGW-w64 (Ferramentas/executavel-windows.sh), o do Linux com o SDL2 compilado
+# junto (Ferramentas/executavel-linux.sh). O Ubuntu 22.04 de proposito: o executavel
+# do Linux roda em toda distribuicao com a glibc 2.35 ou mais nova.
+name: Executaveis
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  pacotes:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ferramentas
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build mingw-w64 zip \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxss-dev \
+            libxfixes-dev libxkbcommon-dev libwayland-dev wayland-protocols \
+            libdecor-0-dev libasound2-dev libpulse-dev libpipewire-0.3-dev \
+            libdbus-1-dev libudev-dev libgl-dev libegl-dev libgles-dev libdrm-dev libgbm-dev
+          cmake --version
+
+      - name: Windows
+        run: bash Ferramentas/executavel-windows.sh
+
+      - name: Linux
+        run: bash Ferramentas/executavel-linux.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DPIBulletHellRe-windows
+          path: dist/DPIBulletHellRe-windows.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DPIBulletHellRe-linux
+          path: dist/DPIBulletHellRe-linux.tar.gz
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            dist/DPIBulletHellRe-windows.zip dist/DPIBulletHellRe-linux.tar.gz \
+            --title "DPI Bullet Hell ${GITHUB_REF_NAME}" --generate-notes

@@ -6,7 +6,7 @@
 
 #include <set>
 
-#include "../JsonDeDados.h"
+#include "../Motor/JsonDeDados.h"
 
 namespace {
 
@@ -29,9 +29,7 @@ namespace {
         return (j.contains(nome) && j[nome].is_boolean()) ? j[nome].get<bool>() : padrao;
     }
 
-    /// Le a lista de animacoes. Devolve false quando nao sobrou nenhuma util -
-    /// um projetil sem animacao nao tem como ser desenhado, entao a entrada
-    /// inteira cai.
+    /// Le a lista de animacoes.
     bool LerAnimacoes(const nlohmann::json& j, const std::string& onde,
                       std::vector<std::string>& problemas,
                       std::vector<AnimacaoDeProjetil>& saida) {
@@ -56,11 +54,7 @@ namespace {
                 problemas.emplace_back(onde + "ha uma animacao com nome vazio");
                 continue;
             }
-            // nlohmann guarda um objeto num mapa ordenado, entao chave repetida no
-            // texto nem chega aqui - a ultima vence silenciosamente. Este teste
-            // pega o caso que SOBRA: duas animacoes cujo nome difere so por algo
-            // que o jogo trata como igual nao existe hoje, mas a checagem custa
-            // nada e documenta a intencao.
+            // Nlohmann guarda um objeto num mapa ordenado, entao chave repetida no texto nem chega aqui.
             if (!vistos.insert(nome).second) {
                 problemas.emplace_back(ondeAnim + "nome repetido");
                 continue;
@@ -163,24 +157,18 @@ namespace {
         saida.posicionarNoDono = Booleano(j, "posicionarNoDono", true);
         saida.rotacionarComAVelocidade = Booleano(j, "rotacionarComAVelocidade", false);
 
-        // "derrubavel" so aceita true ou false. Um texto ou um numero ali seria
-        // lido como falso e o processo ficaria imortal, calado - e o aluno
-        // passaria a fase atirando num projetil que nao cai.
+        // "derrubavel" so aceita true ou false.
         if (j.contains("derrubavel") && !j["derrubavel"].is_boolean()) {
             problemas.emplace_back(onde + "\"derrubavel\" precisa ser true ou false; usando false");
         }
         saida.derrubavel = Booleano(j, "derrubavel", false);
 
-        // O ABRIGO, pela mesma razao: um texto ali seria lido como falso, e a
-        // capivara passaria pelo campo sem proteger ninguem.
         if (j.contains("abrigo") && !j["abrigo"].is_boolean()) {
             problemas.emplace_back(onde + "\"abrigo\" precisa ser true ou false; usando false");
         }
         saida.abrigo = Booleano(j, "abrigo", false);
 
-        // A RESISTENCIA E UM INTEIRO DE 1 PARA CIMA, e so num derrubavel: num
-        // projetil que o tiro nao derruba ela nao teria o que contar, e quem a
-        // escreveu provavelmente esqueceu o "derrubavel".
+        // A resistencia e um inteiro de 1 para cima, e so num derrubavel.
         if (j.contains("resistencia")) {
             if (!j["resistencia"].is_number_integer() || j["resistencia"].get<int>() < 1) {
                 problemas.emplace_back(onde + "\"resistencia\" precisa ser um inteiro de 1 para cima; usando 1");
@@ -191,12 +179,21 @@ namespace {
             }
         }
 
-        // ----- O efeito de acorrentar -----
-        //
-        // RECUSA CHAPADO em vez de corrigir calado: um "segundos" negativo ou
-        // um fator fora de (0, 1] quase sempre e engano de digitacao, e aceitar
-        // produziria um aluno que anda para tras ou que fica MAIS rapido ao ser
-        // acertado - coisas que ninguem ia procurar no arquivo.
+        // O bloco "dificil": so a resistencia, com as regras dela.
+        if (j.contains("dificil")) {
+            const auto& d = j["dificil"];
+            if (!d.is_object() || d.size() != 1 || !d.contains("resistencia")) {
+                problemas.emplace_back(onde + "\"dificil\" so aceita { \"resistencia\": n }; ignorado");
+            } else if (!d["resistencia"].is_number_integer() || d["resistencia"].get<int>() < 1) {
+                problemas.emplace_back(onde + "\"dificil.resistencia\" precisa ser um inteiro de 1 para cima; ignorada");
+            } else if (!saida.derrubavel) {
+                problemas.emplace_back(onde + "\"dificil.resistencia\" so vale num projetil \"derrubavel\"; ignorada");
+            } else {
+                saida.resistenciaNoDificil = d["resistencia"].get<int>();
+            }
+        }
+
+        // ---- O efeito de acorrentar ----
         if (j.contains("acorrenta")) {
             const auto& a = j["acorrenta"];
             if (!a.is_object()) {
@@ -235,9 +232,7 @@ namespace {
             saida.margemEmSprites = 1.0f;
         }
 
-        // Zero e VALIDO aqui, e quer dizer "sem parcela proporcional a tela" - e o
-        // que os baloes do Andre usam. Negativo nao: encolheria a area viva para
-        // dentro da tela e o projetil morreria a vista do jogador.
+        // Zero e valido aqui, e quer dizer "sem parcela proporcional a tela".
         saida.margemDivisorDeTela = Numero(j, "margemDivisorDeTela", 12.0f);
         if (saida.margemDivisorDeTela < 0.0f) {
             problemas.emplace_back(onde + "\"margemDivisorDeTela\" nao pode ser negativa"
@@ -245,9 +240,7 @@ namespace {
             saida.margemDivisorDeTela = 12.0f;
         }
 
-        // A animacao inicial e resolvida AQUI, e nao na ponte: assim quem le a
-        // descricao - teste incluido - ve o valor que o jogo vai usar, em vez de
-        // uma string vazia que alguem mais adiante interpreta.
+        // A animacao inicial e resolvida aqui, e nao na ponte: assim quem le a descricao.
         saida.animacaoInicial = Texto(j, "animacaoInicial");
         if (saida.animacaoInicial.empty()) {
             saida.animacaoInicial = saida.animacoes.front().nome;
@@ -270,6 +263,12 @@ namespace {
 
 bool DimensaoDeColisorExiste(const std::string& nome) {
     return Contem(kDimensoes, nome);
+}
+
+DescricaoDeProjetil NoNivel(const DescricaoDeProjetil& p, const Dificuldade::Nivel n) {
+    DescricaoDeProjetil saida = p;
+    if (n == Dificuldade::Nivel::Dificil && p.resistenciaNoDificil) saida.resistencia = *p.resistenciaNoDificil;
+    return saida;
 }
 
 ProjeteisLidos LerProjeteis(const std::string& textoJson) {
@@ -305,9 +304,5 @@ ProjeteisLidos LerProjeteis(const std::string& textoJson) {
         }
     }
 
-    // ARQUIVO SEM NENHUM PROJETIL UTILIZAVEL nao e problema de leitura, e por
-    // isso nao entra na lista daqui. Quem pede os projeteis de um chefe e que
-    // sabe se o chefe pode ficar sem eles - e a ponte ja recusa o chefe nesse
-    // caso, com uma mensagem que diz de quem era o arquivo.
     return lidos;
 }

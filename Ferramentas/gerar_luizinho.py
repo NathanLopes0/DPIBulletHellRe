@@ -12,10 +12,9 @@ pergaminho dizem "latim" sem escrever uma palavra.
 
 OS PROJETEIS, um par de animacoes por assunto:
 
-    Gota      X, Y      a variavel do escopo da fase 1: o nome dela num chip de
-                        editor, x em ambar e y em ciano (DPIBHLuizinhoGotas).
-              AvisoX,   o mesmo chip apagado: onde a chuva vai cair.
-              AvisoY
+    Resposta  X1..X9    o valor de x que o bloco dono atira na fase 1, as
+                        amarracoes: o algarismo num hexagono ambar
+                        (DPIBHLuizinhoRespostas).
     Valor     Numero0   o numero num chip azul (o operando, e o anel do
               ...20     resultado com o n escrito), o texto num verde com as
               Texto0    aspas (o operando), e as letras da palavra do
@@ -26,15 +25,10 @@ OS PROJETEIS, um par de animacoes por assunto:
               Vezes     quando ela da erro (DPIBHLuizinhoOperadores).
     Erro      TypeError o estilhaco do erro de execucao, e o "erro de tipo"
               Compilacao da compilacao (DPIBHLuizinhoErros).
-    Celula    Aviso     um int de um bloco do heap da fase 3: o contorno de
-              Viva      onde ele vai nascer, o 0 do Java, o "?" do C++ (que
-              Crua      nao inicia), o campo prox de um no, o lixo, o lixo
-              Prox      marcado pelo coletor e o que vazou
-              Lixo      (DPIBHLuizinhoMemoria).
-              Marcada
-              Vazou
-    Estilhaco Corrompido o caco do ponteiro pendente e do bad_alloc
-                        (DPIBHLuizinhoEstilhacos).
+    Volta     uma volta do laco da fase 3, o programa Termina: um anel com
+              a ponta de seta (DPIBHLuizinhoVoltas).
+    Contradicao  o caco do Termina que se contradiz e estoura: o simbolo da
+              contradicao num chip vermelho (DPIBHLuizinhoContradicao).
     Excecao   o nome do tipo num chip vermelho: a excecao da final, que sobe
               pela pilha (DPIBHLuizinhoExcecoes).
     Destroco  Destroco  o pedaco da faixa desempilhada, e o anel do finally
@@ -104,44 +98,6 @@ def luizinho():
 
     d.text((40, 98), "LUIZINHO", fill=TINTA)
     return im
-
-
-# ---- A FASE 1: O ESCOPO ----------------------------------------------------
-
-# As cores das duas variaveis do programa (Escopo.h): x ambar, y ciano.
-CORES_DAS_VARIAVEIS = {"X": (255, 196, 72), "Y": (96, 204, 240)}
-GW = 28   # o quadro da gota: o colisor e metade disto (Escopo::kRaioDaGota)
-
-
-def gota(nome, acesa):
-    """UMA GOTA DA VARIAVEL: o nome dela num chip de editor. Apagada (o aviso
-    de onde vai chover), so o contorno e a letra fraca; acesa, cheia."""
-    s = 4
-    r, g, b = CORES_DAS_VARIAVEIS[nome]
-    im = Image.new("RGBA", (GW * s, GW * s), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    if acesa:
-        d.rounded_rectangle([2 * s, 2 * s, (GW - 3) * s, (GW - 3) * s], radius=6 * s,
-                            fill=(34, 30, 24, 235), outline=(r, g, b, 255), width=2 * s)
-        tinta = (r, g, b, 255)
-    else:
-        d.rounded_rectangle([3 * s, 3 * s, (GW - 4) * s, (GW - 4) * s], radius=6 * s,
-                            fill=(r, g, b, 34), outline=(r, g, b, 120), width=1 * s)
-        tinta = (r, g, b, 120)
-    d.text((GW * s // 2, GW * s // 2 - 2 * s), nome.lower(), fill=tinta,
-           font=ImageFont.truetype(CARLITO, 22 * s), anchor="mm")
-    return im.resize((GW, GW), Image.LANCZOS)
-
-
-# A ordem dos quadros, a das animacoes de projeteis.json.
-GOTAS = [("AvisoX", "X", False), ("X", "X", True), ("AvisoY", "Y", False), ("Y", "Y", True)]
-
-
-def gotas():
-    f = Image.new("RGBA", (GW * len(GOTAS), GW), (0, 0, 0, 0))
-    for i, (_, nome, acesa) in enumerate(GOTAS):
-        f.alpha_composite(gota(nome, acesa), (i * GW, 0))
-    return f
 
 
 # ---- A FASE 2: OS SISTEMAS DE TIPOS -----------------------------------------
@@ -225,50 +181,73 @@ ERROS = [("TypeError", "TypeError", ((150, 24, 30, 240), (255, 110, 90, 255), (2
          ("Compilacao", "erro de tipo", ((70, 20, 60, 235), (220, 120, 230, 255), (250, 226, 255, 255)))]
 
 
-# ---- A FASE 3: A GERENCIA DE MEMORIA ----------------------------------------
+# ---- AS FASES 1 E 3: AS AMARRACOES E O PROGRAMA TERMINA ----------------------
 
-CW = 30   # a celula do heap: o colisor e metade disto (Memoria::kLadoDaCelula)
+# A fase 1: o ambar do canto do bloco dono (Luizinho.cpp, kCantoDoDono).
+AW = 24   # o valor atirado: o colisor e metade disto
+AMARRA = ((96, 64, 12, 240), (255, 206, 92, 255), (255, 244, 214, 255))   # fundo, borda, tinta
+VALORES_DE_X = range(1, 10)
 
 
-def celula(texto, fundo, borda, tinta, x_vermelho=False, apagada=False):
-    """Uma celula do heap: um int (ou o campo prox de um no) num chip."""
+def resposta(valor):
+    """O valor de x que o bloco dono atira: o algarismo num hexagono ambar."""
+    import math
+    s = 4
+    im = Image.new("RGBA", (AW * s, AW * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    fundo, borda, tinta = AMARRA
+    c = AW * s / 2
+
+    def hexagono(r):
+        return [(c + r * math.cos(math.radians(30 + 60 * k)), c + r * math.sin(math.radians(30 + 60 * k))) for k in range(6)]
+
+    d.polygon(hexagono((AW / 2 - 1) * s), fill=borda)
+    d.polygon(hexagono((AW / 2 - 3) * s), fill=fundo)
+    d.text((c, c), str(valor), fill=tinta, font=ImageFont.truetype(CARLITO, 16 * s), anchor="mm")
+    return im.resize((AW, AW), Image.LANCZOS)
+
+
+# A fase 3: a volta do laco, e o caco da contradicao.
+LW = 16   # a volta: o colisor e metade disto
+CW = 24   # o caco da contradicao
+
+
+def volta():
+    """Uma volta do laco: um anel quase fechado, com a ponta de seta - o laco que gira."""
+    import math
+    s = 4
+    im = Image.new("RGBA", (LW * s, LW * s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    c = LW * s / 2
+    r = 5.2 * s
+    cor = (96, 210, 255, 255)
+    d.ellipse([c - r - 1.5 * s, c - r - 1.5 * s, c + r + 1.5 * s, c + r + 1.5 * s], fill=(20, 50, 80, 200))
+    d.arc([c - r, c - r, c + r, c + r], start=60, end=350, fill=cor, width=int(2.4 * s))
+    fim = math.radians(350)
+    px, py = c + r * math.cos(fim), c + r * math.sin(fim)
+    # A ponta de seta, na tangente do fim do arco (sentido horario na tela).
+    tx, ty = -math.sin(fim), math.cos(fim)
+    nx, ny = math.cos(fim), math.sin(fim)
+    d.polygon([(px + tx * 3.2 * s, py + ty * 3.2 * s),
+               (px + nx * 2.8 * s - tx * 1.2 * s, py + ny * 2.8 * s - ty * 1.2 * s),
+               (px - nx * 2.8 * s - tx * 1.2 * s, py - ny * 2.8 * s - ty * 1.2 * s)], fill=cor)
+    d.ellipse([c - 1.6 * s, c - 1.6 * s, c + 1.6 * s, c + 1.6 * s], fill=(220, 240, 255, 255))
+    return im.resize((LW, LW), Image.LANCZOS)
+
+
+def contradicao():
+    """O caco do Termina que se contradiz: o simbolo da contradicao, o falso da logica, num chip
+    vermelho."""
     s = 4
     im = Image.new("RGBA", (CW * s, CW * s), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    d.rectangle([2 * s, 2 * s, (CW - 3) * s, (CW - 3) * s], fill=fundo, outline=borda,
-                width=(1 if apagada else 2) * s)
-    if texto:
-        d.text((CW * s // 2, CW * s // 2), texto, fill=tinta,
-               font=ImageFont.truetype(CARLITO, 18 * s), anchor="mm")
-    if x_vermelho:
-        d.line([(6 * s, 6 * s), ((CW - 7) * s, (CW - 7) * s)], fill=(220, 40, 40, 255), width=3 * s)
-        d.line([((CW - 7) * s, 6 * s), (6 * s, (CW - 7) * s)], fill=(220, 40, 40, 255), width=3 * s)
+    d.rounded_rectangle([1 * s, 1 * s, (CW - 2) * s, (CW - 2) * s], radius=6 * s,
+                        fill=(150, 24, 30, 240), outline=(255, 120, 100, 255), width=2 * s)
+    c = CW * s / 2
+    branco = (255, 236, 228, 255)
+    d.line([(c, c - 6.5 * s), (c, c + 5 * s)], fill=branco, width=int(2.4 * s))
+    d.line([(c - 6.5 * s, c + 5.5 * s), (c + 6.5 * s, c + 5.5 * s)], fill=branco, width=int(2.4 * s))
     return im.resize((CW, CW), Image.LANCZOS)
-
-
-# A ordem dos quadros, a das animacoes de projeteis.json.
-CELULAS = [
-    ("Aviso",   lambda: celula("", (200, 210, 230, 60), (225, 232, 255, 210), None, apagada=True)),
-    ("Viva",    lambda: celula("0", (40, 70, 110, 240), (120, 170, 230, 255), (220, 232, 255, 255))),
-    ("Crua",    lambda: celula("?", (40, 70, 110, 240), (120, 170, 230, 255), (255, 214, 150, 255))),
-    ("Prox",    lambda: celula("\u2192", (40, 70, 110, 240), (120, 170, 230, 255), (150, 230, 255, 255))),
-    ("Lixo",    lambda: celula("", (90, 90, 96, 220), (150, 150, 158, 230), None)),
-    ("Marcada", lambda: celula("", (90, 90, 96, 220), (150, 150, 158, 230), None, x_vermelho=True)),
-    ("Vazou",   lambda: celula("?", (110, 62, 26, 240), (236, 150, 64, 255), (255, 214, 160, 255))),
-]
-
-
-def estilhaco_de_memoria():
-    """O que estoura do ponteiro pendente e do bad_alloc: um caco de memoria
-    corrompida."""
-    s = 4
-    im = Image.new("RGBA", (16 * s, 16 * s), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    d.polygon([(8 * s, 1 * s), (15 * s, 8 * s), (8 * s, 15 * s), (1 * s, 8 * s)],
-              fill=(170, 30, 90, 240), outline=(255, 120, 180, 255))
-    d.text((8 * s, 8 * s), "?", fill=(255, 230, 240, 255),
-           font=ImageFont.truetype(CARLITO, 11 * s), anchor="mm")
-    return im.resize((16, 16), Image.LANCZOS)
 
 
 # ---- A FINAL: AS EXCECOES ---------------------------------------------------
@@ -357,13 +336,15 @@ def grava_tira(quadros, nome, w, h, colunas):
 
 
 def animacoes():
-    """As animacoes de projeteis.json das folhas da fase 2, para copiar de la
-    para ca quando a folha mudar."""
+    """As animacoes de projeteis.json das folhas, para copiar de la para ca
+    quando a folha mudar."""
     return {
         "Valor": {nome: [i] for i, (nome, _) in enumerate(valores_quadros())},
         "Operador": {nome: [i] for i, (nome, _, _) in enumerate(OPERADORES)},
         "Erro": {nome: [i] for i, (nome, _, _) in enumerate(ERROS)},
-        "Celula": {nome: [i] for i, (nome, _) in enumerate(CELULAS)},
+        "Resposta": {f"X{v}": [i] for i, v in enumerate(VALORES_DE_X)},
+        "Volta": {"Volta": [0]},
+        "Contradicao": {"Contradicao": [0]},
         "Excecao": {nome: [i] for i, nome in enumerate(EXCECOES)},
         "Destroco": {nome: [i] for i, (nome, _) in enumerate(PILHA)},
     }
@@ -384,11 +365,11 @@ if __name__ == "__main__":
         print(json.dumps(animacoes(), ensure_ascii=False))
         sys.exit(0)
     grava(luizinho(), "DPIBHLuizinho", "Assets/Teachers")
-    grava(gotas(), "DPIBHLuizinhoGotas", "Assets/Teachers/Projectiles", quadros=len(GOTAS), lado=GW)
+    grava_tira([resposta(v) for v in VALORES_DE_X], "DPIBHLuizinhoRespostas", AW, AW, len(VALORES_DE_X))
     grava_tira([im for _, im in valores_quadros()], "DPIBHLuizinhoValores", VW, VW, 10)
     grava_tira([operador(sim, erro) for _, sim, erro in OPERADORES], "DPIBHLuizinhoOperadores", OW, OW, 4)
     grava_tira([estilhaco(t, c) for _, t, c in ERROS], "DPIBHLuizinhoErros", EW, EH, 2)
-    grava_tira([f() for _, f in CELULAS], "DPIBHLuizinhoMemoria", CW, CW, len(CELULAS))
-    grava_tira([estilhaco_de_memoria()], "DPIBHLuizinhoEstilhacos", 16, 16, 1)
+    grava_tira([volta()], "DPIBHLuizinhoVoltas", LW, LW, 1)
+    grava_tira([contradicao()], "DPIBHLuizinhoContradicao", CW, CW, 1)
     grava_tira([excecao(n) for n in EXCECOES], "DPIBHLuizinhoExcecoes", XW, XH, 1)
     grava_tira([f() for _, f in PILHA], "DPIBHLuizinhoPilha", PW, PW, len(PILHA))

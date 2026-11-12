@@ -125,24 +125,13 @@ namespace Funcao {
 
     std::string PlacarComValores(const Comando& c, const int casaDoAluno) {
         const auto args = ArgumentosDaExterna(c, casaDoAluno);
-        // A COPIA diz de onde veio: a casa do aluno no instante da chamada.
+        // A copia diz de onde veio: a casa do aluno no instante da chamada.
         const std::string copia = c.forma == Forma::PorValor ? "aluno = " + N(casaDoAluno) + ": " : "";
         switch (Externa(c)) {
             case Nome::Baloes: return copia + "baloes(" + N(args[0]) + ", " + N(args[1]) + ");";
             case Nome::Leque: return "leque(" + N(args[0]) + ");";
             default: return Placar(c);
         }
-    }
-
-    std::string Assinatura(const Nome f) {
-        switch (f) {
-            case Nome::Baloes: return "void baloes(int de, int ate)";
-            case Nome::Leque: return "void leque(int n)";
-            case Nome::Dobro: return "int dobro(int x)";
-            case Nome::Meio: return "int meio(int a, int b)";
-            case Nome::Segue: return "void segue(int *p)";
-        }
-        return {};
     }
 
     std::string CaraDoCartao(const Nome f) {

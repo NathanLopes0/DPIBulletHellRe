@@ -1,6 +1,4 @@
-//
-// O ciclo do agente: pensa, age, observa - e o AGE uma vez por volta.
-//
+// O ciclo do agente: pensa, age, observa - e o age uma vez por volta.
 
 #include "doctest.h"
 #include <algorithm>
@@ -69,8 +67,7 @@ TEST_CASE("ReAct: o Pensa de cada volta e sorteado em volta do do degrau, e o Ag
         CHECK(menor < 0.72f * d.pensa);
         CHECK(maior > 1.28f * d.pensa);
 
-        // COMO O JULIO RODA: um Pensa novo a cada volta. O Age sai uma vez por
-        // volta, sem pular nenhuma, quadro a quadro.
+        // Como o Julio roda: um Pensa novo a cada volta.
         ReAct::Ciclo c;
         c.observa = d.observa;
         c.pensa = ReAct::PensaDaVolta(s, d.pensa);
@@ -84,7 +81,7 @@ TEST_CASE("ReAct: o Pensa de cada volta e sorteado em volta do do degrau, e o Ag
             }
         }
         CHECK(std::abs(ages - voltas) <= 1);
-        // UMA FERRAMENTA A CADA VOLTA DE (pensa + age + observa) EM MEDIA.
+        // Uma ferramenta a cada volta de (pensa + age + observa) em media.
         const float volta = d.pensa + ReAct::kAge + d.observa;
         CHECK(static_cast<float>(voltas) == doctest::Approx(60.0f / volta).epsilon(0.08));
     }
@@ -97,13 +94,11 @@ TEST_CASE("ReAct: o degrau do Normal e o de sempre, e o do Dificil age mais veze
     const ReAct::Degrau d = ReAct::DegrauDo(Dificuldade::Nivel::Dificil);
     CHECK(d.pensa < n.pensa);
     CHECK(d.observa < n.observa);
-    // O PLACAR AINDA SE LE: o Pensa mais curto do Dificil passa de meio segundo.
+    // O placar ainda se le: o Pensa mais curto do Dificil passa de meio segundo.
     CHECK(0.7f * d.pensa >= 0.5f);
 }
 
 TEST_CASE("ReAct: os lugares dos agentes ficam no campo, perto do aluno e afastados entre si") {
-    // O ALUNO EM QUALQUER LUGAR, inclusive colado nas bordas: era com o
-    // professor perto de uma borda que o agente saia da tela.
     int aperto = 0;
     for (std::uint32_t semente = 0; semente < 300; ++semente) {
         Variacao::Sorteio s = Variacao::SorteioDa(semente, "StateTwo");
@@ -122,7 +117,6 @@ TEST_CASE("ReAct: os lugares dos agentes ficam no campo, perto do aluno e afasta
             }
         }
     }
-    // A SEPARACAO e quase sempre respeitada: so o sorteio muito azarado fica
-    // com o mais afastado que achou.
+    // A separacao e quase sempre respeitada.
     CHECK(aperto <= 3);
 }

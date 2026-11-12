@@ -33,10 +33,6 @@ namespace Hash {
         return kYDosBaldes + kPrimeiraChave + static_cast<float>(p < 0 ? 0 : p) * kEntreChaves;
     }
 
-    Operacao Proxima(const std::vector<int>& naTabela, const std::uint32_t sorteio) {
-        return Proxima(naTabela, sorteio, Plano{});
-    }
-
     Operacao Proxima(const std::vector<int>& naTabela, const std::uint32_t sorteio, const Plano& p) {
         Operacao op;
         const float tipo = static_cast<float>(sorteio & 1023u) / 1024.0f;
@@ -49,7 +45,7 @@ namespace Hash {
             op.chave = naTabela[escolha % naTabela.size()];
             return op;
         }
-        // UMA CHAVE QUE NAO ESTA: a sorteada, ou a primeira livre depois dela.
+        // Uma chave que nao esta: a sorteada, ou a primeira livre depois dela.
         int k = static_cast<int>(escolha % static_cast<std::uint32_t>(kMaiorChave + 1));
         for (int i = 0; i <= kMaiorChave && esta(k); ++i) k = (k + 1) % (kMaiorChave + 1);
         op.chave = k;

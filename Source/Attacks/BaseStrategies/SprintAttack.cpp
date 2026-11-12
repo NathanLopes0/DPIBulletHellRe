@@ -38,8 +38,6 @@ std::vector<std::unique_ptr<Projectile>> SprintAttack::Execute(const AttackParam
     }
     if (params.numProjectiles <= 0) return projectiles;
 
-    // O PLANO E DESTA SPRINT: o cursor e as historias dela leem o mesmo, e
-    // duas sprints em campo nao se confundem.
     const auto plano = std::make_shared<const Sprint::Plano>(
         Sprint::Planejar(params.firePosition, params.numProjectiles, sprint->revisao));
 
@@ -50,14 +48,13 @@ std::vector<std::unique_ptr<Projectile>> SprintAttack::Execute(const AttackParam
         historia->SetPosition(Sprint::PosicaoDaHistoria(*plano, i, 0.0f));
         if (const auto rb = historia->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
         Vestir(historia.get(), sprint->historia);
-        // NA MAO DO CURSOR, BLINDADA: o tiro some na pilha. O behavior a
-        // solta ao soltar a pilha.
+        // Na mao do cursor, blindada: o tiro some na pilha.
         if (auto* bp = dynamic_cast<BossProjectile*>(historia.get())) bp->DefinirBlindado(true);
         historia->insertMotion<HistoriaDaSprintBehavior>(plano, i, params.projectileSpeed);
         projectiles.push_back(std::move(historia));
     }
 
-    // O CURSOR VEM POR ULTIMO, e so se houver historia para arrastar.
+    // O cursor vem por ultimo, e so se houver historia para arrastar.
     if (projectiles.empty()) return projectiles;
     if (auto cursor = Acquire()) {
         if (auto* mao = dynamic_cast<BossProjectile*>(cursor.get())) mao->DefinirEnfeite(true);

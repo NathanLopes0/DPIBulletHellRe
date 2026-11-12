@@ -1,43 +1,18 @@
-// =============================================================================
-// O CATALOGO DE PECAS DA PERSONAGEM
-//
-// A personagem de cada aluno nao e uma sprite pronta: e um corpo template com
-// camadas escolhidas por cima. Este arquivo diz quais camadas existem, quais
-// pecas cada uma oferece e em que cores.
-//
-// ACRESCENTAR UM TIPO DE CABELO e: por o PNG e o JSON em Assets/Player/Camadas
-// e acrescentar uma entrada em "pecas". Nenhum codigo muda.
-//
-// O QUE VAI PARA O SAVE sao os IDS daqui - "curto", "castanho" - e nunca a
-// posicao na lista. Reordenar este arquivo nao pode mudar a aparencia de quem
-// ja jogou. Ver Documentacao/requisitos-perfil-e-personagem.md, RNF2.
-//
-// "arte" e o caminho a partir de Assets/, SEM extensao: o jogo acrescenta .png
-// para a imagem e .json para o atlas.
-//
-// "ordem" e a ordem de desenho, do fundo para a frente. Nao pode repetir, senao
-// qual camada fica por cima vira sorteio.
-// =============================================================================
+// O catalogo de pecas da personagem. A personagem de cada aluno nao e uma sprite pronta: e um corpo
+// template com camadas escolhidas por cima.
 {
-  // ----- Camadas que todo mundo tem e ninguem escolhe -----
-  //
-  // Sai em cor final, e nao tingida, justamente por NAO acompanhar o tom de
-  // pele: sapato nao clareia quando a pele clareia.
-  //
-  // NAO HA CAMADA DE ROSTO. O personagem e visto de costas - ele olha para cima,
-  // para o professor -, entao o que aparece e a nuca. A camada de olhos existiu
-  // enquanto o template estava de frente e foi apagada junto com o rosto.
-  "fixas": [
-    { "arte": "Player/Camadas/sapato", "ordem": 30 }
-  ],
+  // ---- Camadas que todo mundo tem e ninguem escolhe ----
+  // (O sapato era uma; virou categoria, com o tenis grafite de antes como padrao.)
+  "fixas": [],
+
+  // ---- A formatura: quem passou nesta materia ganha esta camada, para sempre ----
+  // O capelo nao e escolhido nem tingido; vai por cima de tudo (ordem 70). A materia e o codigo
+  // dela em materias.json.
+  "formatura": { "materia": "TCC", "arte": "Player/Camadas/capelo", "ordem": 70 },
 
   "categorias": [
 
-    // ----- Pele -----
-    //
-    // Uma peca so (o proprio corpo) e varias cores. E uma categoria como as
-    // outras de proposito: assim o tom de pele entra no save, na tela de
-    // criacao e na composicao pelo mesmo caminho que o resto.
+    // ---- Pele ----
     {
       "id": "pele", "nome": "Tom de pele", "ordem": 10,
       "pecas": [
@@ -49,80 +24,160 @@
         { "id": "tom3", "nome": "Tom 3", "rgb": "cd9465" },
         { "id": "tom4", "nome": "Tom 4", "rgb": "a8714a" },
         { "id": "tom5", "nome": "Tom 5", "rgb": "7c5034" },
-        { "id": "tom6", "nome": "Tom 6", "rgb": "563826" }
+        { "id": "tom6", "nome": "Tom 6", "rgb": "563826" },
+        { "id": "tom7", "nome": "Tom 7", "rgb": "fbe3cf" },
+        { "id": "tom8", "nome": "Tom 8", "rgb": "c9a27a" },
+        { "id": "tom9", "nome": "Tom 9", "rgb": "3f2a1e" }
       ]
     },
 
-
-    // ----- Cabelo -----
-    //
-    // Fica por ultimo na ordem de desenho porque cobre a testa, e as mechas do
-    // cabelo longo caem por cima do ombro da camisa.
+    // ---- Cabelo ----
     {
       "id": "cabelo", "nome": "Cabelo", "ordem": 60,
       "pecas": [
-        { "id": "curto",    "nome": "Curto",    "arte": "Player/Camadas/cabelo_curto" },
-        { "id": "longo",    "nome": "Longo",    "arte": "Player/Camadas/cabelo_longo" },
-        { "id": "coque",    "nome": "Coque",    "arte": "Player/Camadas/cabelo_coque" },
-        { "id": "espetado", "nome": "Espetado", "arte": "Player/Camadas/cabelo_espetado" },
-        { "id": "raspado",  "nome": "Raspado",  "arte": "Player/Camadas/cabelo_raspado" }
+        { "id": "curto",    "nome": "Curto",          "arte": "Player/Camadas/cabelo_curto" },
+        { "id": "longo",    "nome": "Longo",          "arte": "Player/Camadas/cabelo_longo" },
+        { "id": "coque",    "nome": "Coque",          "arte": "Player/Camadas/cabelo_coque" },
+        { "id": "espetado", "nome": "Espetado",       "arte": "Player/Camadas/cabelo_espetado" },
+        { "id": "raspado",  "nome": "Raspado",        "arte": "Player/Camadas/cabelo_raspado" },
+        { "id": "medio",    "nome": "Médio",          "arte": "Player/Camadas/cabelo_medio" },
+        { "id": "chanel",   "nome": "Chanel",         "arte": "Player/Camadas/cabelo_chanel" },
+        { "id": "rabo",     "nome": "Rabo de cavalo", "arte": "Player/Camadas/cabelo_rabo" },
+        { "id": "marias",   "nome": "Maria-chiquinha", "arte": "Player/Camadas/cabelo_marias" },
+        { "id": "tranca",   "nome": "Trança",         "arte": "Player/Camadas/cabelo_tranca" },
+        { "id": "cacheado", "nome": "Cacheado",       "arte": "Player/Camadas/cabelo_cacheado" },
+        { "id": "black",    "nome": "Black power",    "arte": "Player/Camadas/cabelo_black" },
+        { "id": "dreads",   "nome": "Dreads",         "arte": "Player/Camadas/cabelo_dreads" },
+        { "id": "moicano",  "nome": "Moicano",        "arte": "Player/Camadas/cabelo_moicano" },
+        { "id": "careca",   "nome": "Careca",         "arte": "Player/Camadas/cabelo_careca" }
       ],
       "cores": [
-        { "id": "castanho", "nome": "Castanho", "rgb": "784e34" },
-        { "id": "preto",    "nome": "Preto",    "rgb": "3a3440" },
-        { "id": "loiro",    "nome": "Loiro",    "rgb": "deba6e" },
-        { "id": "ruivo",    "nome": "Ruivo",    "rgb": "ba5634" },
-        { "id": "grisalho", "nome": "Grisalho", "rgb": "b4b2b8" },
-        { "id": "colorido", "nome": "Colorido", "rgb": "4fa8c8" }
+        { "id": "castanho",        "nome": "Castanho",        "rgb": "784e34" },
+        { "id": "preto",           "nome": "Preto",           "rgb": "3a3440" },
+        { "id": "loiro",           "nome": "Loiro",           "rgb": "deba6e" },
+        { "id": "ruivo",           "nome": "Ruivo",           "rgb": "ba5634" },
+        { "id": "grisalho",        "nome": "Grisalho",        "rgb": "b4b2b8" },
+        { "id": "colorido",        "nome": "Colorido",        "rgb": "4fa8c8" },
+        { "id": "castanho_claro",  "nome": "Castanho claro",  "rgb": "a47a52" },
+        { "id": "castanho_escuro", "nome": "Castanho escuro", "rgb": "4e3424" },
+        { "id": "platinado",       "nome": "Platinado",       "rgb": "efe4c2" },
+        { "id": "acaju",           "nome": "Acaju",           "rgb": "7c3036" },
+        { "id": "rosa",            "nome": "Rosa",            "rgb": "e889b4" },
+        { "id": "roxo",            "nome": "Roxo",            "rgb": "8c62c8" },
+        { "id": "verde",           "nome": "Verde",           "rgb": "5eb06a" },
+        { "id": "azul",            "nome": "Azul",            "rgb": "466ed6" },
+        { "id": "laranja",         "nome": "Laranja",         "rgb": "e48a3c" },
+        { "id": "branco",          "nome": "Branco",          "rgb": "ecebee" }
       ]
     },
-    // ----- Camisa -----
+
+    // ---- Camisa ----
     {
       "id": "camisa", "nome": "Camisa", "ordem": 50,
       "pecas": [
-        { "id": "camiseta", "nome": "Camiseta", "arte": "Player/Camadas/camisa_camiseta" },
-        { "id": "regata",   "nome": "Regata",   "arte": "Player/Camadas/camisa_regata" },
-        { "id": "moletom",  "nome": "Moletom",  "arte": "Player/Camadas/camisa_moletom" }
+        { "id": "camiseta",    "nome": "Camiseta",    "arte": "Player/Camadas/camisa_camiseta" },
+        { "id": "regata",      "nome": "Regata",      "arte": "Player/Camadas/camisa_regata" },
+        { "id": "moletom",     "nome": "Moletom",     "arte": "Player/Camadas/camisa_moletom" },
+        { "id": "manga_longa", "nome": "Manga longa", "arte": "Player/Camadas/camisa_manga_longa" },
+        { "id": "listrada",    "nome": "Listrada",    "arte": "Player/Camadas/camisa_listrada" },
+        { "id": "social",      "nome": "Social",      "arte": "Player/Camadas/camisa_social" },
+        { "id": "jaqueta",     "nome": "Jaqueta",     "arte": "Player/Camadas/camisa_jaqueta" },
+        { "id": "time",        "nome": "Camisa 10",   "arte": "Player/Camadas/camisa_time" }
       ],
       "cores": [
-        { "id": "azul",     "nome": "Azul",     "rgb": "4e76ce" },
-        { "id": "verde",    "nome": "Verde",    "rgb": "56a060" },
-        { "id": "vermelho", "nome": "Vermelho", "rgb": "c64c4c" },
-        { "id": "roxo",     "nome": "Roxo",     "rgb": "885cba" },
-        { "id": "cinza",    "nome": "Cinza",    "rgb": "6c6e78" },
-        { "id": "bege",     "nome": "Bege",     "rgb": "c4b08a" },
-        { "id": "preto",    "nome": "Preto",    "rgb": "3a3640" },
-        { "id": "branco",   "nome": "Branco",   "rgb": "e8e6e2" }
+        { "id": "azul",         "nome": "Azul",         "rgb": "4e76ce" },
+        { "id": "verde",        "nome": "Verde",        "rgb": "56a060" },
+        { "id": "vermelho",     "nome": "Vermelho",     "rgb": "c64c4c" },
+        { "id": "roxo",         "nome": "Roxo",         "rgb": "885cba" },
+        { "id": "cinza",        "nome": "Cinza",        "rgb": "6c6e78" },
+        { "id": "bege",         "nome": "Bege",         "rgb": "c4b08a" },
+        { "id": "preto",        "nome": "Preto",        "rgb": "3a3640" },
+        { "id": "branco",       "nome": "Branco",       "rgb": "e8e6e2" },
+        { "id": "amarelo",      "nome": "Amarelo",      "rgb": "e6c34a" },
+        { "id": "laranja",      "nome": "Laranja",      "rgb": "e08a3a" },
+        { "id": "rosa",         "nome": "Rosa",         "rgb": "e07aa8" },
+        { "id": "azul_claro",   "nome": "Azul claro",   "rgb": "7cb6e8" },
+        { "id": "verde_escuro", "nome": "Verde escuro", "rgb": "2f6e48" },
+        { "id": "marrom",       "nome": "Marrom",       "rgb": "7a5236" },
+        { "id": "vinho",        "nome": "Vinho",        "rgb": "843642" }
       ]
     },
 
-
-    // ----- Calca -----
+    // ---- Calca ----
     {
-      "id": "calca", "nome": "Calca", "ordem": 40,
+      "id": "calca", "nome": "Calça", "ordem": 40,
       "pecas": [
-        { "id": "longa",   "nome": "Comprida", "arte": "Player/Camadas/calca_longa" },
-        { "id": "bermuda", "nome": "Bermuda", "arte": "Player/Camadas/calca_bermuda" },
-        { "id": "saia",    "nome": "Saia",    "arte": "Player/Camadas/calca_saia" }
+        { "id": "longa",      "nome": "Comprida",   "arte": "Player/Camadas/calca_longa" },
+        { "id": "bermuda",    "nome": "Bermuda",    "arte": "Player/Camadas/calca_bermuda" },
+        { "id": "saia",       "nome": "Saia",       "arte": "Player/Camadas/calca_saia" },
+        { "id": "short",      "nome": "Short",      "arte": "Player/Camadas/calca_short" },
+        { "id": "pantalona",  "nome": "Pantalona",  "arte": "Player/Camadas/calca_pantalona" },
+        { "id": "rasgada",    "nome": "Rasgada",    "arte": "Player/Camadas/calca_rasgada" },
+        { "id": "saia_longa", "nome": "Saia longa", "arte": "Player/Camadas/calca_saia_longa" }
       ],
       "cores": [
-        { "id": "jeans",    "nome": "Jeans",    "rgb": "485c8e" },
-        { "id": "preto",    "nome": "Preto",    "rgb": "3a3640" },
-        { "id": "cinza",    "nome": "Cinza",    "rgb": "6c6e78" },
-        { "id": "bege",     "nome": "Bege",     "rgb": "c4b08a" },
-        { "id": "vinho",    "nome": "Vinho",    "rgb": "843642" },
-        { "id": "verde",    "nome": "Verde",    "rgb": "56a060" },
+        { "id": "jeans",       "nome": "Jeans",       "rgb": "485c8e" },
+        { "id": "preto",       "nome": "Preto",       "rgb": "3a3640" },
+        { "id": "cinza",       "nome": "Cinza",       "rgb": "6c6e78" },
+        { "id": "bege",        "nome": "Bege",        "rgb": "c4b08a" },
+        { "id": "vinho",       "nome": "Vinho",       "rgb": "843642" },
+        { "id": "verde",       "nome": "Verde",       "rgb": "56a060" },
+        { "id": "azul",        "nome": "Azul",        "rgb": "4e76ce" },
+        { "id": "vermelho",    "nome": "Vermelho",    "rgb": "c64c4c" },
+        { "id": "jeans_claro", "nome": "Jeans claro", "rgb": "7c94c4" },
+        { "id": "marrom",      "nome": "Marrom",      "rgb": "7a5236" },
+        { "id": "caqui",       "nome": "Caqui",       "rgb": "a8925c" },
+        { "id": "rosa",        "nome": "Rosa",        "rgb": "e07aa8" },
+        { "id": "roxo",        "nome": "Roxo",        "rgb": "885cba" },
+        { "id": "branco",      "nome": "Branco",      "rgb": "e8e6e2" }
+      ]
+    },
+
+    // ---- Sapato ----
+    {
+      "id": "sapato", "nome": "Sapato", "ordem": 30,
+      "pecas": [
+        { "id": "tenis",     "nome": "Tênis",        "arte": "Player/Camadas/sapato_tenis" },
+        { "id": "cano_alto", "nome": "Cano alto",    "arte": "Player/Camadas/sapato_cano_alto" },
+        { "id": "bota",      "nome": "Bota",         "arte": "Player/Camadas/sapato_bota" },
+        { "id": "chinelo",   "nome": "Chinelo",      "arte": "Player/Camadas/sapato_chinelo" }
+      ],
+      "cores": [
+        { "id": "grafite",  "nome": "Grafite",  "rgb": "4a465c" },
+        { "id": "preto",    "nome": "Preto",    "rgb": "2e2a34" },
+        { "id": "branco",   "nome": "Branco",   "rgb": "ecebe6" },
+        { "id": "marrom",   "nome": "Marrom",   "rgb": "7a5236" },
+        { "id": "vermelho", "nome": "Vermelho", "rgb": "c64c4c" },
         { "id": "azul",     "nome": "Azul",     "rgb": "4e76ce" },
-        { "id": "vermelho", "nome": "Vermelho", "rgb": "c64c4c" }
+        { "id": "verde",    "nome": "Verde",    "rgb": "56a060" },
+        { "id": "rosa",     "nome": "Rosa",     "rgb": "e07aa8" },
+        { "id": "amarelo",  "nome": "Amarelo",  "rgb": "e6c34a" }
+      ]
+    },
+
+    // ---- Mochila ----
+    {
+      "id": "mochila", "nome": "Mochila", "ordem": 55,
+      "pecas": [
+        { "id": "nenhuma", "nome": "Nenhuma", "arte": "Player/Camadas/mochila_nenhuma" },
+        { "id": "mochila", "nome": "Mochila", "arte": "Player/Camadas/mochila_mochila" },
+        { "id": "bolsa",   "nome": "Bolsa",   "arte": "Player/Camadas/mochila_bolsa" }
+      ],
+      "cores": [
+        { "id": "preto",    "nome": "Preto",    "rgb": "3a3640" },
+        { "id": "azul",     "nome": "Azul",     "rgb": "4e76ce" },
+        { "id": "vermelho", "nome": "Vermelho", "rgb": "c64c4c" },
+        { "id": "verde",    "nome": "Verde",    "rgb": "56a060" },
+        { "id": "cinza",    "nome": "Cinza",    "rgb": "6c6e78" },
+        { "id": "roxo",     "nome": "Roxo",     "rgb": "885cba" },
+        { "id": "amarelo",  "nome": "Amarelo",  "rgb": "e6c34a" },
+        { "id": "rosa",     "nome": "Rosa",     "rgb": "e07aa8" },
+        { "id": "bege",     "nome": "Bege",     "rgb": "c4b08a" }
       ]
     }
   ],
 
-  // ----- Combinacoes prontas -----
-  //
-  // A primeira versao da tela de criacao deixa escolher entre estas, em vez de
-  // camada por camada. Elas sao combinacoes das MESMAS escolhas, entao quando a
-  // tela passar a oferecer cada camada o formato do save nao muda.
+  // ---- Combinacoes prontas ----
   "predefinidas": [
     {
       "id": "a", "nome": "Aluno 1",
@@ -176,6 +231,39 @@
         "cabelo": { "peca": "longo", "cor": "loiro" },
         "camisa": { "peca": "camiseta", "cor": "bege" },
         "calca":  { "peca": "bermuda", "cor": "verde" }
+      }
+    },
+    {
+      "id": "g", "nome": "Aluno 7",
+      "escolhas": {
+        "pele":    { "peca": "corpo", "cor": "tom9" },
+        "cabelo":  { "peca": "black", "cor": "preto" },
+        "camisa":  { "peca": "time", "cor": "amarelo" },
+        "calca":   { "peca": "short", "cor": "azul" },
+        "sapato":  { "peca": "tenis", "cor": "branco" },
+        "mochila": { "peca": "mochila", "cor": "vermelho" }
+      }
+    },
+    {
+      "id": "h", "nome": "Aluno 8",
+      "escolhas": {
+        "pele":    { "peca": "corpo", "cor": "tom7" },
+        "cabelo":  { "peca": "rabo", "cor": "rosa" },
+        "camisa":  { "peca": "listrada", "cor": "azul_claro" },
+        "calca":   { "peca": "pantalona", "cor": "branco" },
+        "sapato":  { "peca": "cano_alto", "cor": "preto" },
+        "mochila": { "peca": "bolsa", "cor": "bege" }
+      }
+    },
+    {
+      "id": "i", "nome": "Aluno 9",
+      "escolhas": {
+        "pele":    { "peca": "corpo", "cor": "tom8" },
+        "cabelo":  { "peca": "moicano", "cor": "verde" },
+        "camisa":  { "peca": "jaqueta", "cor": "preto" },
+        "calca":   { "peca": "rasgada", "cor": "jeans_claro" },
+        "sapato":  { "peca": "bota", "cor": "marrom" },
+        "mochila": { "peca": "nenhuma", "cor": "preto" }
       }
     }
   ]

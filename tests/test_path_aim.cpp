@@ -62,10 +62,7 @@ TEST_CASE("RF1: MirarPrevendo antecipa pela velocidade do jogador") {
 
 TEST_CASE("RF1: AnguloFixo nao depende do mundo") {
     auto c = ContextoBase();
-    // Comparamos cos/sin em vez do angulo: em +-180 graus o atan2 alterna de
-    // sinal por erro de ponto flutuante (sin(pi) e ~-8.7e-8, nao zero exato), e
-    // -180 e o MESMO angulo que +180. Assercao sobre a direcao nao tem esse
-    // problema de descontinuidade.
+    // Comparamos cos/sin em vez do angulo.
     const auto r = ResolverReferencial(c, Mira(Mira::AnguloFixo, Math::Pi));
     CHECK(r.cos == doctest::Approx(-1.f));
     CHECK(r.sin == doctest::Approx(0.f).epsilon(0.001));
@@ -122,14 +119,7 @@ TEST_CASE("O referencial e sempre unitario, em todos os modos") {
     }
 }
 
-// ---------------------------------------------------------------------------
-// RF4: homing exprimivel como caminho
-//
-// O HomingBehavior aponta o projetil para o jogador UMA vez, no instante do
-// atraso, e mantem o modulo da velocidade. Um PathBehavior com forma Reta e
-// Mira(MirarNoJogador) resolve o referencial exatamente nessa direcao. O teste
-// abaixo compara as duas contas no nivel geometrico.
-// ---------------------------------------------------------------------------
+// RF4: homing exprimivel como caminho.
 
 TEST_CASE("RF4: Mira(MirarNoJogador) reproduz a direcao do HomingBehavior") {
     auto c = ContextoBase();
@@ -151,13 +141,11 @@ TEST_CASE("RF2: o referencial e resolvido UMA vez, nao acompanha o alvo") {
     auto c = ContextoBase();
     const auto antes = ResolverReferencial(c, Mira(Mira::MirarNoJogador));
 
-    // O jogador se move DEPOIS da resolucao.
+    // O jogador se move depois da resolucao.
     c.posicaoJogador = Vector2(100.f, 900.f);
     const auto depois = ResolverReferencial(c, Mira(Mira::MirarNoJogador));
 
-    // Duas resolucoes distintas dao resultados distintos - o que confirma que
-    // a funcao e pura e que "resolver uma vez so" e responsabilidade de quem
-    // chama (PathBehavior, via flag 'started'), nao da geometria.
+    // Duas resolucoes distintas dao resultados distintos.
     CHECK(antes.cos != doctest::Approx(depois.cos));
 }
 
@@ -169,8 +157,7 @@ TEST_CASE("RumoPrevendo: parado, mira onde o alvo esta; andando, mira na frente 
     CHECK(parado.x == doctest::Approx(0.0f));
     CHECK(parado.y == doctest::Approx(1.0f));
 
-    // A 300 px/s o tiro leva 1 s ate onde o alvo esta: andando 100 px/s para a
-    // direita, ele estara 100 px a direita, e e para la que o tiro vai.
+    // A 300 px/s o tiro leva 1 s ate onde o alvo esta.
     const Vector2 andando = RumoPrevendo(de, alvo, Vector2(100.0f, 0.0f), 300.0f);
     CHECK(andando.x == doctest::Approx(100.0f / std::sqrt(100.0f * 100.0f + 300.0f * 300.0f)));
     CHECK(andando.y == doctest::Approx(300.0f / std::sqrt(100.0f * 100.0f + 300.0f * 300.0f)));

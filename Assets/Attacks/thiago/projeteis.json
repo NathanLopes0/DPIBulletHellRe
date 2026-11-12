@@ -1,33 +1,5 @@
 {
-  // ==========================================================================
-  // OS PROJETEIS DO THIAGO
-  //
-  // UMA PASTA POR CHEFE: Assets/Attacks/thiago/. A pasta diz de quem e o
-  // arquivo, entao aqui dentro ficam so os nomes que o campo "projetil" de uma
-  // fase usa -> como aquele projetil e montado. Antes era um projeteis.json so,
-  // com um nivel a mais dizendo o nome do chefe; com uma pasta por chefe esse
-  // nivel seria uma segunda fonte da mesma verdade, livre para discordar do
-  // nome da pasta.
-  //
-  // OS CAMPOS estao documentados em Documentacao/arquivos-de-dados.md.
-  //
-  // O que impede um erro de digitacao aqui de chegar ao jogo e
-  // tests/test_arquivos_de_dados.cpp: ele le este arquivo junto com as fases e
-  // com os atlas de verdade, e quebra a suite se um ataque pedir um projetil
-  // que nao existe ou se uma animacao citar um quadro que a folha nao tem.
-  // ==========================================================================
-// --------------------------------------------------------------------------
-// THIAGO - INF 220 (Banco de Dados)
-// --------------------------------------------------------------------------
-//
-// UM TIPO SO, e e o suficiente: toda a batalha do Thiago e feita de celulas de
-// tabela. O que muda entre uma fase e outra nao e o projetil, e sim QUAL faixa
-// da tabela ele varre - e isso vive em fases.json, nao aqui.
-//
-// "posicionarNoDono" e FALSO: uma consulta nasce na borda da tabela, nao no
-// professor. Deixar verdadeiro faria todos os projeteis nascerem em cima do
-// chefe e so depois saltarem para a faixa, o que estragaria o telegrafo - o
-// jogador veria um amontoado no meio da tela em vez de uma linha carregada.
+  // Os projeteis do Thiago. Uma pasta por chefe: Assets/Attacks/thiago/.
 
   "Celula": {
     "sprite": "Teachers/Projectiles/DPIBHThiagoCelula.png",
@@ -39,13 +11,7 @@
     "posicionarNoDono": false
   },
 
-  // A TABELA ESCRITA NO CAMPO (Banco.h). O VALOR de cada casa - um numero, um
-  // nome ou um curso, e em vermelho ("S42") o que uma transacao escreveu e
-  // ainda nao confirmou - e o CABECALHO de cada coluna, do mesmo jeito que uma
-  // planilha. Sao enfeite (Thiago::CriarTabela): o que machuca e a consulta, e
-  // nao o que ela le. Quem escolhe a cara e o Thiago (Banco::Cara).
-  //
-  // Arte PROVISORIA de Ferramentas/gerar_thiago.py.
+  // A tabela escrita no campo (Banco.h).
   "Dado": {
     "sprite": "Teachers/Projectiles/DPIBHThiagoDados.png",
     "dados":  "Teachers/Projectiles/DPIBHThiagoDados.json",
@@ -76,7 +42,8 @@
     "animacaoInicial": "V0",
     "escala": 1.25,
     "ordemDeDesenho": 84,
-    "posicionarNoDono": false
+    "posicionarNoDono": false,
+    "colisorDimensao": "altura"
   },
   "Cabecalho": {
     "sprite": "Teachers/Projectiles/DPIBHThiagoDados.png",
@@ -88,24 +55,52 @@
     "posicionarNoDono": false
   },
 
-  // A ESCRITA DE UMA TRANSACAO (Transacao.h): o lapis do UPDATE, que sai do
-  // professor, para na casa e fica la - a linha travada - ate o COMMIT (some)
-  // ou o ROLLBACK (volta pelo mesmo caminho). Machuca nos tres momentos.
-  //
-  // Arte PROVISORIA de Ferramentas/gerar_thiago.py.
-  "Escrita": {
-    "sprite": "Teachers/Projectiles/DPIBHThiagoEscrita.png",
-    "dados":  "Teachers/Projectiles/DPIBHThiagoEscrita.json",
-    "animacoes": { "Lapis": [0] },
-    "animacaoInicial": "Lapis",
-    "escala": 1.6,
-    "ordemDeDesenho": 91,
+  // O rascunho de uma operacao preparada por uma transacao (Transacao.h), na cor dela, e o risco da
+  // linha que o DELETE da fase 2 vai apagar (Dml.h): um quadro do tamanho da casa, como o Aviso.
+  "Rascunho": {
+    "sprite": "Teachers/Projectiles/DPIBHThiagoRascunho.png",
+    "dados":  "Teachers/Projectiles/DPIBHThiagoRascunho.json",
+    "animacoes": { "Riscado": [0, 1], "Ciano": [2, 3], "CianoRiscado": [4, 5], "Magenta": [6, 7], "MagentaRiscado": [8, 9] },
+    "animacaoInicial": "Ciano",
+    "escala": 4,
+    "ordemDeDesenho": 82,
     "posicionarNoDono": false
   },
 
-  // A CASA QUE VAI SER LIDA: o marcador do tamanho dela (60x46 na escala 4 e
-  // 240x184, a casa de uma tabela de 5x4 num campo de 1200x746), pulsando. E o
-  // aviso do ataque, e por isso fica no posto "aviso". Enfeite.
+  // O selo de uma transacao aberta (Transacao.h): quem o derruba antes do COMMIT provoca o ROLLBACK.
+  "Selo": {
+    "sprite": "Teachers/Projectiles/DPIBHThiagoSelo.png",
+    "dados":  "Teachers/Projectiles/DPIBHThiagoSelo.json",
+    "animacoes": {
+      "Ciano1": [0], "CianoPressa1": [0, 1], "Ciano2": [2], "CianoPressa2": [2, 3], "Ciano3": [4], "CianoPressa3": [4, 5],
+      "Ciano4": [6], "CianoPressa4": [6, 7], "Ciano5": [8], "CianoPressa5": [8, 9], "Ciano6": [10], "CianoPressa6": [10, 11],
+      "Ciano7": [12], "CianoPressa7": [12, 13], "Ciano8": [14], "CianoPressa8": [14, 15], "Ciano9": [16], "CianoPressa9": [16, 17],
+      "Magenta1": [18], "MagentaPressa1": [18, 19], "Magenta2": [20], "MagentaPressa2": [20, 21], "Magenta3": [22], "MagentaPressa3": [22, 23],
+      "Magenta4": [24], "MagentaPressa4": [24, 25], "Magenta5": [26], "MagentaPressa5": [26, 27], "Magenta6": [28], "MagentaPressa6": [28, 29],
+      "Magenta7": [30], "MagentaPressa7": [30, 31], "Magenta8": [32], "MagentaPressa8": [32, 33], "Magenta9": [34], "MagentaPressa9": [34, 35]
+    },
+    "animacaoInicial": "Ciano1",
+    "escala": 1.5,
+    "ordemDeDesenho": 92,
+    "posicionarNoDono": false,
+    "derrubavel": true,
+    "resistencia": 6,
+    "dificil": { "resistencia": 9 }
+  },
+
+  // O caco de um valor que caiu e se espatifou no chao (Dml.h).
+  "Caco": {
+    "sprite": "Teachers/Projectiles/DPIBHThiagoCaco.png",
+    "dados":  "Teachers/Projectiles/DPIBHThiagoCaco.json",
+    "animacoes": { "Caco": [0, 1] },
+    "animacaoInicial": "Caco",
+    "escala": 1.6,
+    "ordemDeDesenho": 90,
+    "posicionarNoDono": false
+  },
+
+  // A casa que vai ser lida: o marcador do tamanho dela (60x46 na escala 4 e 240x184, a casa de uma
+  // tabela de 5x4 num campo de 1200x746), pulsando.
   "Aviso": {
     "sprite": "Teachers/Projectiles/DPIBHThiagoAviso.png",
     "dados":  "Teachers/Projectiles/DPIBHThiagoAviso.json",

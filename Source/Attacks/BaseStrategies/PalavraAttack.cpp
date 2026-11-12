@@ -8,7 +8,7 @@
 
 #include "../Logica.h"
 #include "../AttackParameters/PalavraAttackParams.h"
-#include "../../Game.h"
+#include "../../Motor/Game.h"
 #include "../../Actors/Projectile.h"
 #include "../../Actors/ProjectileFactory.h"
 #include "../../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"
@@ -31,8 +31,7 @@ std::vector<std::unique_ptr<Projectile>> PalavraAttack::Execute(const AttackPara
         return projectiles;
     }
 
-    // ATE 31 BITS: a palavra mora num uint32_t, e o bit 31 seria o sinal de
-    // quem a ler com int.
+    // Ate 31 bits: a palavra mora num uint32_t, e o bit 31 seria o sinal de quem a ler com int.
     const int bits = params.numProjectiles;
     if (bits <= 0 || bits > 31) return projectiles;
 

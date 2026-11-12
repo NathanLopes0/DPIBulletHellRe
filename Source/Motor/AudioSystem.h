@@ -1,0 +1,140 @@
+//
+// Created by User on 24/11/2023.
+//
+
+#pragma once
+#include <unordered_map>
+#include <memory>
+#include <map>
+#include <SDL_mixer.h>
+#include <string>
+#include <vector>
+#include "SDL_stdinc.h"
+
+struct Mix_Chunk;
+
+// SoundHandles are used to operate on active sounds.
+class SoundHandle
+{
+public:
+    // Returns true if this is an active sound handle.
+    bool IsValid() const { return mID != 0; }
+
+    // Resets to inactive sound handle.
+    void Reset() { mID = 0; }
+
+    // Increments for convenience.
+    SoundHandle& operator++()
+    {
+        mID++;
+        return *this;
+    }
+
+    SoundHandle operator++(int)
+    {
+        SoundHandle temp(*this);
+        mID++;
+        return temp;
+    }
+
+    const char* GetDebugStr() const
+    {
+        static std::string tempStr;
+        tempStr = std::to_string(mID);
+        return tempStr.c_str();
+    }
+
+    // Boolean checks.
+    bool operator==(const SoundHandle& rhs) const { return mID == rhs.mID; }
+    bool operator!=(const SoundHandle& rhs) const { return mID != rhs.mID; }
+    bool operator<(const SoundHandle& rhs) const { return mID < rhs.mID; }
+    bool operator<=(const SoundHandle& rhs) const { return mID <= rhs.mID; }
+    bool operator>(const SoundHandle& rhs) const { return mID > rhs.mID; }
+    bool operator>=(const SoundHandle& rhs) const { return mID >= rhs.mID; }
+
+    static SoundHandle Invalid;
+
+private:
+    unsigned int mID = 0;
+};
+
+struct Mix_Chunk_Deleter {
+    void operator() (Mix_Chunk* chunk) const {
+        Mix_FreeChunk(chunk);
+    }
+};
+
+// Manages playing audio through SDL_mixer.
+class AudioSystem
+{
+public:
+    // Create the AudioSystem with specified number of channels
+    // (Defaults to 8 channels)
+    AudioSystem(int numChannels = 8);
+    // Destroy the AudioSystem.
+    ~AudioSystem();
+
+    // Updates the status of all the active sounds every frame.
+    void Update();
+
+    SoundHandle PlaySound(const std::string& soundName, bool looping = false);
+
+    // Pauses the sound if it is currently playing.
+    void PauseSound(SoundHandle sound);
+
+    // Resumes the sound if it is currently paused.
+    void ResumeSound(SoundHandle sound);
+
+    // Stops all sounds on all channels.
+    void StopAllSounds();
+
+    // Cache all sounds under Assets/Sounds.
+    void CacheAllSounds();
+
+    // Used to preload the sound data of a sound note.
+    void CacheSound(const std::string& soundName);
+
+    void SetSoundVolume(SoundHandle soundHandler, int volume);
+
+    /// O volume da tela de Opcoes, de 0 a 1: um para a musica (o som em laco) e outro para os
+    /// efeitos (o resto).
+    void DefinirVolumes(float musica, float efeitos);
+
+private:
+    /// O volume que o canal toca: o pedido, escalado pelo fator da categoria.
+    [[nodiscard]] int VolumeAplicado(int pedido, bool musica) const;
+
+    float mFatorDaMusica = 1.0f;
+    float mFatorDosEfeitos = 1.0f;
+
+    // If the sound is already loaded, returns Mix_Chunk from the map. Otherwise, will attempt to
+    // load the file and save it in the map.
+    struct Mix_Chunk* GetSound(const std::string& soundName);
+
+    // Internal struct used to track the properties of active sound handles.
+    struct HandleInfo
+    {
+        std::string mSoundName;
+        int mChannel = -1;
+        bool mIsLooping = false;
+        bool mIsPaused = false;
+        int mVolume = 128;   ///< o que quem tocou pediu, antes da opcao
+
+    };
+
+    // Tracks the active SoundHandle for each channel
+    // An Invalid SoundHandle means the channel is free, otherwise
+    // it's an active handle.
+    std::vector<SoundHandle> mChannels;
+
+    // Maps all the active SoundHandles to their HandleInfo.
+    std::map<SoundHandle, HandleInfo> mHandleMap;
+
+    using SoundPtr = std::unique_ptr<Mix_Chunk, Mix_Chunk_Deleter>;
+
+    // Map to store the Mix_Chunk data for all the files.
+    std::unordered_map<std::string, SoundPtr> mSounds;
+
+    // Used to track the last audio handle value used Will increment prior to playing a new sound.
+    SoundHandle mLastHandle;
+};

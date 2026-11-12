@@ -10,59 +10,17 @@
 #include <vector>
 
 #include "Fase.h"
-#include "../Dificuldade.h"
-#include "../Variacao.h"
+#include "../Regras/Dificuldade.h"
+#include "../Regras/Variacao.h"
 
-/**
- * CAMADA PURA.
- *
- * A FASE 1 DO VITOR E A SINCRONIZACAO: espera ocupada e semaforos, o comeco
- * da ementa da INF 310.
- *
- * Cada THREAD e uma coluna: o nome dela no alto (T1, T2...) e as instrucoes
- * descendo, uma atras da outra. No meio do campo, de borda a borda, fica a
- * SECAO CRITICA - a faixa do saldo++. Antes de entrar nela toda thread faz
- * P(s):
- *
- *   - se o semaforo tem permissao, ela entra, e a coluna atravessa a faixa e
- *     desce sobre o aluno;
- *   - se nao tem, ela BLOQUEIA: as instrucoes param na borda da faixa e se
- *     empilham, a fila do P(s). A thread bloqueada nao anda - quando a pilha
- *     enche, ela para de mandar instrucao;
- *   - quem sai faz V(s), e o semaforo acorda a primeira da fila: a pilha
- *     inteira desce de uma vez, numa rajada em leque.
- *
- * O PLACAR MOSTRA O VALOR DE s E A FILA, na ordem: quem le a fila sabe de que
- * coluna vem a proxima rajada. O professor fica ao lado da coluna que ele vai
- * acordar.
- *
- * Quatro rodadas, uma por jeito de sincronizar:
- *
- *   mutex            s = 1: uma de cada vez, na ordem de chegada
- *   semaforo         s = 2: duas de cada vez
- *   espera ocupada   while (test_and_set(&trava)); - as bloqueadas GIRAM na
- *                    porta, gastando processador, e quem entra nao e a
- *                    primeira da fila, e quem ganhar a corrida; ao entrar, o
- *                    giro estoura num anel
- *   corrida          sem trava nenhuma: todas entram juntas, as instrucoes se
- *                    intercalam (cada uma sai torta da faixa), e o placar
- *                    mostra o saldo errado
- *
- * AS CORRENTES CONTINUAM: o professor as atira, e o aluno acorrentado fica
- * lento. E e pior: ele esta bloqueado em P(s), e a thread em cima dele FURA A
- * FILA - e a proxima a entrar (Furar).
- *
- * Aqui ficam as rodadas, as colunas, o escalonador, a pilha, o giro, a
- * corrida, os relogios e os textos; quem cria, empilha e solta as instrucoes
- * e o Vitor. Coberto por test_semaforo.cpp.
- */
+/// A fase 1 do Vitor e a sincronizacao: espera ocupada e semaforos, o comeco da ementa da INF 310.
 namespace Semaforo {
 
     /// Os nomes que o codigo e os dados dividem. Um teste confere cada um.
     constexpr const char* kFaseDosSemaforos = "StateOne";
     constexpr const char* kGatilhoDaInstrucao = "instrucao";
 
-    // ---- AS RODADAS ---------------------------------------------------------
+    // ---- As rodadas ----
 
     enum class Tipo { Mutex, Contador, EsperaOcupada, Corrida };
 
@@ -73,26 +31,24 @@ namespace Semaforo {
 
     constexpr int kRodadas = 4;
 
-    /// A ORDEM DE SEMPRE: mutex, s = 2, espera ocupada, corrida.
+    /// A ordem de sempre: mutex, s = 2, espera ocupada, corrida.
     Rodada RodadaDaVez(int k);
 
-    // ---- AS THREADS ---------------------------------------------------------
+    // ---- As threads ----
 
-    /// As colunas: uma EM CIMA DO ALUNO - parado, ele nao fica entre duas -,
-    /// as outras a cada kEntreThreads, dentro do campo, ate kMaisThreads, as
-    /// mais perto dele. Da esquerda para a direita: T1, T2...
+    /// As colunas: uma em cima do aluno. Da esquerda para a direita: T1, T2...
     constexpr float kEntreThreads = 220.0f;
     std::vector<float> Colunas(float xDoAluno, float largura, float entreThreads = kEntreThreads);
     constexpr float kMargem = 70.0f;
     constexpr int kMaisThreads = 5;
 
-    /// @brief A coluna mais perto de x (-1 se nao ha coluna).
+    /// A coluna mais perto de x (-1 se nao ha coluna).
     int MaisPerto(const std::vector<float>& colunas, float x);
 
     /// "T1", "T2"...: o nome da thread de indice i.
     std::string Nome(int i);
 
-    // ---- O ESCALONADOR: o semaforo -------------------------------------------
+    // ---- O escalonador: o semaforo ----
 
     /// O estado do semaforo numa rodada: quem espera, na ordem, quem esta na
     /// secao critica (e desde quando) e quem ja passou.
@@ -102,16 +58,22 @@ namespace Semaforo {
         std::vector<int> dentro;
         std::vector<float> entrouEm;
         std::vector<int> passaram;
+        std::vector<float> fica;     ///< quanto cada thread fica na secao critica
+        int saldo = 1;               ///< na corrida: o que as escritas intercaladas deixam
         std::uint32_t sorteio = 0;
         float agora = 0.0f;          ///< o 'u' do ultimo Avancar
     };
 
-    /**
-     * @brief Comeca a rodada: a ORDEM DE CHEGADA na porta e sorteada, com a
-     * thread do aluno (doAluno) entre as tres primeiras - quem fica parado em
-     * cima de uma coluna nao espera a rodada inteira por ela.
-     */
-    Escalonador Comecar(const Rodada& r, int threads, int doAluno, std::uint32_t sorteio);
+    /// Comeca a rodada: a ordem de chegada na porta e sorteada, com a thread do aluno (doAluno)
+    /// entre as tres primeiras. Com 'desvioDaSecao', cada thread fica na secao critica um tempo
+    /// seu, de (1 - desvio) a (1 + desvio) de NaSecao, e a soma e a de sempre: o escalonador nao e
+    /// deterministico, mas o trabalho e o mesmo - e a rodada fecha a tempo.
+    Escalonador Comecar(const Rodada& r, int threads, int doAluno, std::uint32_t sorteio,
+                        float desvioDaSecao = 0.0f);
+    constexpr float kDesvioDaSecao = 0.3f;
+
+    /// Quanto a thread t fica na secao critica nesta rodada.
+    float Fica(const Escalonador& e, int t);
 
     /// O que aconteceu na porta.
     struct Evento {
@@ -119,29 +81,15 @@ namespace Semaforo {
         int thread = 0;
     };
 
-    /**
-     * @brief Leva o semaforo ate 'u' segundos desde o comeco da rodada.
-     *
-     * Ninguem entra antes de kAbre (as primeiras instrucoes ainda estao
-     * chegando). Dali, as primeiras 'permissoes' da fila entram; cada uma fica
-     * NaSecao(rodada) e sai, e cada saida acorda a seguinte - a primeira da
-     * fila, ou, na espera ocupada, uma sorteada entre as que giram. Na corrida
-     * todas entram juntas em kAbre, e ninguem sai.
-     */
+    /// Leva o semaforo ate 'u' segundos desde o comeco da rodada. Ninguem entra antes de kAbre (as
+    /// primeiras instrucoes ainda estao chegando).
     std::vector<Evento> Avancar(Escalonador& e, float u);
 
-    /**
-     * @brief A thread t FURA A FILA: vai para a frente das que esperam. E o
-     * que acontece com a coluna em cima do aluno acorrentado - ele esta
-     * bloqueado em P(s), e e a vez dele. Devolve false se t nao esta
-     * esperando (ja entrou, ja passou, ou ja e a primeira).
-     */
+    /// A thread t fura a fila: vai para a frente das que esperam.
     bool Furar(Escalonador& e, int t);
 
-    /// @brief Quanto vale s agora: as permissoes menos quem esta dentro.
     int Valor(const Escalonador& e);
 
-    bool Esperando(const Escalonador& e, int t);
     bool Dentro(const Escalonador& e, int t);
     bool Passou(const Escalonador& e, int t);
 
@@ -149,7 +97,7 @@ namespace Semaforo {
     /// espera ocupada nao se sabe - e o professor nao vai ate nenhuma.
     int Proxima(const Escalonador& e);
 
-    // ---- AS INSTRUCOES ------------------------------------------------------
+    // ---- As instrucoes ----
 
     /// O alto das colunas, de onde as instrucoes nascem, e a faixa da secao
     /// critica. Abaixo do placar (Battle: 12 + 46) e bem acima do aluno.
@@ -164,20 +112,32 @@ namespace Semaforo {
     constexpr float kComecaAMandar = 0.1f;
     constexpr int kInstrucoesPorThread = 8;
 
-    /// A PILHA do P(s): ate kMaiorPilha instrucoes paradas, uma em cima da
-    /// outra, a partir da borda da faixa. Cheia, a thread para de mandar.
+    /// O ritmo de uma thread numa rodada: quando ela manda a primeira instrucao, e o passo dela. As
+    /// threads nao andam juntas - quem decide quem roda e o escalonador.
+    struct Ritmo {
+        float comeca = kComecaAMandar;
+        float entre = kEntreInstrucoes;
+    };
+
+    /// Um ritmo para cada thread: a primeira instrucao ate um passo depois de kComecaAMandar, e o
+    /// passo de (1 - kDesvioDoRitmo) a (1 + kDesvioDoRitmo) do 'entre' do degrau.
+    std::vector<Ritmo> SortearRitmos(Variacao::Sorteio& s, int threads, float entre = kEntreInstrucoes);
+    constexpr float kDesvioDoRitmo = 0.25f;
+
+    /// A pilha do P(s): ate kMaiorPilha instrucoes paradas, uma em cima da outra, a partir da borda
+    /// da faixa. Cheia, a thread para de mandar.
     constexpr int kMaiorPilha = 6;
     constexpr float kEntreEmpilhadas = 28.0f;
     float AlturaNaPilha(int i);
 
-    /// A RAJADA de quem entra: a pilha desce em leque, cada instrucao num
-    /// angulo (graus; 90 e reto para baixo), alternando os lados.
+    /// A rajada de quem entra: a pilha desce em leque, cada instrucao num angulo (graus; 90 e reto
+    /// para baixo), alternando os lados.
     constexpr float kVelocidadeDaRajada = 320.0f;
     constexpr float kAberturaDaRajada = 7.0f;
     float AnguloNaRajada(int i, float abertura = kAberturaDaRajada);
 
-    /// A ESPERA OCUPADA: as bloqueadas giram num circulo acima da faixa, e ao
-    /// entrar saem pelo raio, num anel.
+    /// A espera ocupada: as bloqueadas giram num circulo acima da faixa, e ao entrar saem pelo
+    /// raio, num anel.
     struct Ponto { float x = 0.0f; float y = 0.0f; };
     Ponto NoGiro(int i, int n, float t);   ///< o deslocamento a partir do centro do giro
     constexpr float kCentroDoGiro = kTopoDaSecao - 46.0f;
@@ -185,12 +145,12 @@ namespace Semaforo {
     constexpr float kVoltasPorSegundo = 1.2f;
     constexpr float kVelocidadeDoAnel = 260.0f;
 
-    /// A CORRIDA: cada instrucao sai da faixa torta, para um lado sorteado - as
-    /// threads se intercalando sem trava.
+    /// A corrida: cada instrucao sai da faixa torta, para um lado sorteado - as threads se
+    /// intercalando sem trava.
     float DesvioNaCorrida(std::uint32_t sorteio);
     constexpr float kMaiorDesvio = 14.0f;
 
-    // ---- O RELOGIO ----------------------------------------------------------
+    // ---- O relogio ----
 
     /// Uma rodada a cada kPorRodada, a primeira kPrimeiro depois de a fase
     /// abrir. A porta abre kAbre depois de a rodada comecar.
@@ -201,27 +161,18 @@ namespace Semaforo {
     /// Quanto cada thread fica na secao critica.
     float NaSecao(const Rodada& r);
 
-    // ---- OS TEXTOS ----------------------------------------------------------
+    // ---- Os textos ----
 
     /// O canto da faixa: o codigo da secao critica.
     std::string CodigoDaSecao(Tipo t);
 
-    /// O placar: o valor de s e a fila ("s = 0 · fila: T4 T1 T5"); na espera
-    /// ocupada, quem gira; na corrida, o saldo. Com o aluno acorrentado, ele
-    /// diz que o aluno esta em P(s).
+    /// O placar: o valor de s e a fila ("s = 0 · fila: T4 T1 T5"); na espera ocupada, quem gira; na
+    /// corrida, o saldo.
     std::string Placar(const Escalonador& e, bool alunoBloqueado);
 
-    // ---- O QUE MUDA DE UMA LUTA PARA A OUTRA (Variacao.h) ---------------------
+    // ---- O que muda de uma luta para a outra (Variacao.h) ----
 
-    /**
-     * @brief A fase desta batalha: a ordem das rodadas e os numeros delas.
-     *
-     * O MUTEX ABRE SEMPRE: e a definicao, e as outras tres sao variacoes dele -
-     * mais permissoes, girar em vez de dormir, nenhuma trava. Essas tres vem
-     * em qualquer ordem. O semaforo contador tem s = 2 ou s = 3, e as colunas
-     * ficam entre 200 e 250 px umas das outras (as cinco cabem no campo com
-     * qualquer uma).
-     */
+    /// A fase desta batalha: a ordem das rodadas e os numeros delas.
     struct Plano {
         std::array<Rodada, kRodadas> rodadas{};
         float entreThreads = kEntreThreads;
@@ -233,12 +184,10 @@ namespace Semaforo {
     constexpr float kMenorEntreThreads = 200.0f;
     constexpr float kMaiorEntreThreads = 250.0f;
 
-    // ---- O DEGRAU (Dificuldade.h) -----------------------------------------------
+    // ---- O degrau (Dificuldade.h) ----
 
-    /// O que o Dificil muda: as threads mandam mais instrucoes, mais depressa,
-    /// e a rajada de quem entra sai mais rapida e mais aberta. A regra (a
-    /// pilha, a fila, o giro) e a mesma - e a pilha tambem, porque com sete a
-    /// de cima nasceria acima do alto da coluna.
+    /// O que o Dificil muda: as threads mandam mais instrucoes, mais depressa, e a rajada de quem
+    /// entra sai mais rapida e mais aberta.
     struct Degrau {
         float entreInstrucoes = kEntreInstrucoes;
         int instrucoesPorThread = kInstrucoesPorThread;
@@ -247,10 +196,9 @@ namespace Semaforo {
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 
-    /// O SALDO DA CORRIDA: cada thread le o saldo, soma um e escreve. Todas
-    /// leram o mesmo valor, e o saldo termina em 1 em vez de 'threads' - a
-    /// atualizacao perdida. O placar o mostra kSaldoAparece depois de elas
-    /// entrarem, quando as instrucoes ja escreveram.
-    int SaldoDaCorrida(int threads);
+    /// O saldo da corrida: cada thread le o saldo, soma um e escreve, e o escalonador intercala as
+    /// leituras e as escritas como o 'sorteio' mandar. Nunca da o esperado: sem nenhuma escrita
+    /// perdida a corrida nao teria acontecido. Uma luta da 2, outra 3.
+    int SaldoDaCorrida(int threads, std::uint32_t sorteio);
     constexpr float kSaldoAparece = 1.0f;
 }

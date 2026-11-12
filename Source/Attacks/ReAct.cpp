@@ -23,8 +23,6 @@ namespace ReAct {
         const float volta = Volta(c);
         if (volta <= 0.0f || deltaTime <= 0.0f) return false;
 
-        // O AGE COMECA EM c.pensa: agiu quem cruzou esse ponto neste quadro,
-        // contando a volta inteira que o quadro possa ter dado.
         const float antes = c.t;
         const float depois = antes + deltaTime;
         const bool cruzou = (antes < c.pensa && depois >= c.pensa)

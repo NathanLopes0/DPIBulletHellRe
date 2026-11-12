@@ -15,8 +15,7 @@ namespace Relogio {
         const std::size_t hz = placar.find("Hz");
         if (hz == std::string::npos) return std::nullopt;
 
-        // O NUMERO LOGO ANTES: pula os espacos e volta enquanto for digito,
-        // ponto ou virgula.
+        // O numero logo antes: pula os espacos e volta enquanto for digito, ponto ou virgula.
         std::size_t fim = hz;
         while (fim > 0 && placar[fim - 1] == ' ') --fim;
         std::size_t inicio = fim;
@@ -57,17 +56,16 @@ namespace Relogio {
         const int volta = 2 * bits;
         const int m = ((k % volta) + volta) % volta;
         if (m <= bits) {
-            // ENCHENDO: m uns, entrando pela esquerda.
+            // Enchendo: m uns, entrando pela esquerda.
             return ((1u << m) - 1u) << (bits - m);
         }
-        // ESVAZIANDO: sobram 2*bits - m uns, encostados na direita.
+        // Esvaziando: sobram 2*bits - m uns, encostados na direita.
         return (1u << (volta - m)) - 1u;
     }
 
     Plano Sortear(Variacao::Sorteio& s) {
         Plano p;
-        // QUATRO INTEIROS DE 4 A 6 QUE SOMAM 20: comeca em 5 cada, e troca um
-        // segundo de uma etapa para outra uma ou duas vezes.
+        // Quatro inteiros de 4 A 6 que somam 20.
         const int trocas = s.Inteiro(0, 2);
         for (int k = 0; k < trocas; ++k) {
             const int de = s.Inteiro(0, 3);

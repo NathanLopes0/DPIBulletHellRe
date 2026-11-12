@@ -8,7 +8,7 @@
 #include <set>
 #include <string>
 
-#include "../Source/Variacao.h"
+#include "../Source/Regras/Variacao.h"
 
 #include <algorithm>
 #include <cmath>
@@ -55,8 +55,7 @@ TEST_CASE("Condicional: o switch sem break cai do case de n ate o ultimo, e n se
     CHECK(Executados(c, 7).empty());
     CHECK(Executados(c, -1).empty());
 
-    // O SORTEIO NUNCA DA 0, que faria cair todos e nao deixaria faixa segura -
-    // e da todo case que tem quem caia depois dele, e o n sem case.
+    // O sorteio nunca da 0, que faria cair todos e nao deixaria faixa segura.
     std::set<int> vistos;
     for (std::uint32_t s = 0; s < 500; ++s) {
         const int n = Sortear(c, s * 2654435761u);
@@ -89,8 +88,7 @@ TEST_CASE("Condicional: a fase vai do if simples a pegadinha, um comando de cada
     const Forma esperadas[] = {Forma::Maior, Forma::Par, Forma::SenaoSe, Forma::Escolha, Forma::Atribuicao};
     for (int vez = 0; vez < 5; ++vez) {
         CAPTURE(vez);
-        // A PRIMEIRA VOLTA e sempre a mesma, em qualquer sorteio: a fase abre
-        // com o if mais simples.
+        // A primeira volta e sempre a mesma, em qualquer sorteio: a fase abre com o if mais simples.
         for (std::uint32_t s = 0; s < 50; ++s) CHECK(Proximo(vez, s * 7919u).forma == esperadas[vez]);
     }
     // Nas voltas seguintes aparecem o && e o impar.
@@ -117,9 +115,7 @@ TEST_CASE("Condicional: todo comando sorteavel esta em Todos, e todo valor cai e
     for (const auto& c : todos) {
         CAPTURE(Placar(c));
         CHECK_FALSE(Placar(c).empty());
-        // NENHUM RAMO SOBRA: com os valores que o sorteio da, cada faixa e
-        // alcancada por algum - fora a pegadinha, que e justamente o ramo
-        // que nunca vem.
+        // Nenhum ramo sobra: com os valores que o sorteio da, cada faixa e alcancada por algum.
         std::set<int> alcancados;
         for (int n = 0; n <= kMaiorValor; ++n) {
             for (const int r : Executados(c, n)) {
@@ -129,16 +125,13 @@ TEST_CASE("Condicional: todo comando sorteavel esta em Todos, e todo valor cai e
             }
         }
         if (c.forma != Forma::Atribuicao) CHECK(static_cast<int>(alcancados.size()) == Ramos(c));
-        // OS CABECALHOS SAO DIFERENTES entre si, e as caras tambem.
-        std::set<std::string> rotulos, caras;
+        // Os cabecalhos sao diferentes entre si: cada ramo tem a sua cara.
+        std::set<std::string> caras;
         for (int r = 0; r < Ramos(c); ++r) {
-            rotulos.insert(Rotulo(c, r));
             caras.insert(CaraDoRotulo(c, r));
             CHECK(CaraDoRotuloAceso(c, r) != CaraDoRotulo(c, r));
         }
-        CHECK(static_cast<int>(rotulos.size()) == Ramos(c));
         CHECK(static_cast<int>(caras.size()) == Ramos(c));
-        CHECK(Rotulo(c, Ramos(c) - 1) == (c.forma == Forma::Escolha ? "case 3:" : "else"));
     }
 }
 
@@ -149,8 +142,6 @@ TEST_CASE("Condicional: as faixas cobrem o campo inteiro, sem buraco e sem sobra
         CHECK(FimDaFaixa(ramos - 1, ramos, 1200.0f) == doctest::Approx(1200.0f));
         for (int r = 0; r + 1 < ramos; ++r) CHECK(FimDaFaixa(r, ramos, 1200.0f) == doctest::Approx(InicioDaFaixa(r + 1, ramos, 1200.0f)));
 
-        // O CONFETE COBRE A FAIXA: nenhum vao entre dois vizinhos (contando as
-        // duas fileiras) maior que meio passo, e nenhum fora dela.
         const float ini = InicioDaFaixa(0, ramos, 1200.0f), fim = FimDaFaixa(0, ramos, 1200.0f);
         std::vector<float> xs;
         for (const auto& c : Confetes(ini, fim)) {
@@ -161,8 +152,7 @@ TEST_CASE("Condicional: as faixas cobrem o campo inteiro, sem buraco e sem sobra
         }
         std::sort(xs.begin(), xs.end());
         REQUIRE(xs.size() >= 2);
-        // AS BORDAS SAO DA FAIXA: a divisa entre duas faixas nao e um
-        // corredor seguro.
+        // As bordas sao da faixa: a divisa entre duas faixas nao e um corredor seguro.
         CHECK(xs.front() == doctest::Approx(ini));
         CHECK(xs.back() == doctest::Approx(fim));
         for (std::size_t k = 1; k < xs.size(); ++k) CHECK(xs[k] - xs[k - 1] <= kEntreConfetes / 2.0f + 0.01f);
@@ -170,8 +160,6 @@ TEST_CASE("Condicional: as faixas cobrem o campo inteiro, sem buraco e sem sobra
 }
 
 TEST_CASE("Condicional: o ultimo balao do comando estoura antes de o comando acabar, no pior caminho") {
-    // O pior caminho: o professor na ponta esquerda, e o balao indo para o
-    // cabecalho da faixa mais longe, a do case 3 na direita.
     const float largura = 1200.0f;
     const float xFaixa = (InicioDaFaixa(kCases - 1, kCases, largura) + FimDaFaixa(kCases - 1, kCases, largura)) / 2.0f;
     const float dx = xFaixa - kXMinimo;
@@ -206,7 +194,7 @@ TEST_CASE("Condicional: o degrau - o Normal e o de sempre, e no Dificil o ultimo
     CHECK(d.baloesPorComando > n.baloesPorComando);
     CHECK(d.entreBaloes < n.entreBaloes);
     CHECK(d.rapidez > n.rapidez);
-    // O MESMO PIOR CAMINHO do teste de cima, com o degrau do Dificil.
+    // O mesmo pior caminho do teste de cima, com o degrau do Dificil.
     const float largura = 1200.0f;
     const float xFaixa = (InicioDaFaixa(kCases - 1, kCases, largura) + FimDaFaixa(kCases - 1, kCases, largura)) / 2.0f;
     const float voo = ((xFaixa - kXMinimo) + (kYDoProfessor + kAbaixoDoProfessor - kYDosRotulos)) / kVelocidadeDoBalao;

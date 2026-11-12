@@ -4,7 +4,7 @@
 # Roda os dez chefes com um piloto que NAO SE MEXE e atira sem parar, e
 # reprova o chefe que o deixar passar.
 #
-#   bash Ferramentas/parado-reprova.sh
+#   bash Ferramentas/parado-reprova.sh            (JOGO=... para outro executavel)
 #
 # POR QUE ISTO E UM PORTAO E NAO UMA CURIOSIDADE. Um jogador parado no centro
 # de baixo nao esta jogando: nao desvia, nao procura abertura, nao decide nada.
@@ -44,33 +44,31 @@
 # desde o 156 reprova o parado nas cinco sementes medidas.
 
 set -uo pipefail
-S="$(cd "$(dirname "$0")/.." && pwd)"
-arvore="${1:-$S}"
+RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
+JOGO="${JOGO:-}"
+if [ -z "$JOGO" ]; then
+    for c in "$RAIZ/build/DPIBulletHellRe" "$RAIZ/cmake-build-debug/DPIBulletHellRe" "$RAIZ/../build/DPIBulletHellRe"; do
+        [ -x "$c" ] && { JOGO="$c"; break; }
+    done
+fi
+[ -x "${JOGO:-}" ] || { echo "!!! nao achei o executavel; diga qual com JOGO=..."; exit 2; }
+JOGO="$(cd "$(dirname "$JOGO")" && pwd)/$(basename "$JOGO")"
 
-echo "montando o arnes..."
-bash "$S/Ferramentas/medir-dificuldade.sh" "$arvore" >/dev/null 2>&1 || {
-    echo "!!! o arnes de medicao nao compilou - rode medir-dificuldade.sh sozinho para ver o erro"
-    exit 1; }
-
-alvo="${TMPDIR:-/tmp}/dpi-medir"
-bin="${TMPDIR:-/tmp}/bdpi-medir/DPIBulletHellRe"
-[ -x "$bin" ] || { echo "!!! binario nao encontrado em $bin"; exit 1; }
-
-saidas="${TMPDIR:-/tmp}/dpi-parado"
-rm -rf "$saidas" && mkdir -p "$saidas"
+saidas="$(mktemp -d)"
+PARALELO="${PARALELO:-3}"   # cada batalha usa uns 2,5 GB
 
 # indice:nome - os indices sao a ordem das materias em Assets/materias.json, e
 # e assim que Game::mSelectedStage as enxerga. Materia sem chefe fica de fora.
 CHEFES="0:Andre 1:Salles 2:Ricardo 3:Thiago 4:Luizinho 5:Vladimir 6:Julio 7:MariaLucia 8:Lucas 9:Vitor"
 
-for par in $CHEFES; do
-  b="${par%%:*}"; nome="${par##*:}"
-  ( cd "$alvo" && env DPI_SEMENTE=20261014 DPI_BATALHA=$b DPI_JOGADORES=1 \
-        DPI_PASSO=0.016 DPI_PARADO=1 DPI_ATIRA=1 \
-        SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy \
-        timeout 900 "$bin" 2>/dev/null | grep -E '^FIM' > "$saidas/${nome}.txt" ) &
-done
-wait
+rodar() {  # indice nome
+    ( cd "$RAIZ" && SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy timeout 900 "$JOGO" \
+          --batalha "$1" --jogadores 1 --semente 20261014 --passo 0.016 --piloto parado --atira \
+          --relatorio --sair-no-fim > "$saidas/$2.log" 2>/dev/null )
+    grep -E '^FIM' "$saidas/$2.log" > "$saidas/$2.txt"
+}
+export -f rodar; export JOGO RAIZ saidas
+for par in $CHEFES; do echo "${par%%:*} ${par##*:}"; done | xargs -P "$PARALELO" -L 1 bash -c 'rodar "$@"' _
 
 falhas=0
 echo
@@ -82,6 +80,7 @@ for par in $CHEFES; do
   case "$linha" in *"aprovado=1"*) marca='!! '; falhas=$((falhas+1));; esac
   printf '%s %-11s %s\n' "$marca" "$nome" "${linha:-(nao terminou)}"
 done
+rm -rf "$saidas"
 
 echo
 if [ "$falhas" -eq 0 ]; then

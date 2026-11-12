@@ -26,25 +26,50 @@ escritos na tela.
 | Painel | Jogador 1 | Jogador 2 | O que faz |
 |---|---|---|---|
 | **Manche** | **setas** | **W A S D** | mover o aluno, escolher na tela |
-| **Botão 1** | **Espaço** | **F** | lançar Dúvidas; confirmar; digitar |
-| **Botão 2** | **B** | **G** | voltar e apagar; na batalha, gastar um Ponto Extra: soma nota e, sozinho, limpa a tela, mas sobrecarrega e impede de atirar por alguns segundos; em dupla, dá ao parceiro um escudo que destrói os projéteis do chefe, e quem gastou segue atirando |
-| **Botão 3** | **N** | **H** | o ranking da matéria, na seleção; na batalha do TCC, soltar o poder do orientador quando o anel dele enche |
-| — | **Esc** | — | na batalha, **só no computador**: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota |
+| **Botão 1** | **Espaço** | **F** | lançar Dúvidas (os balões com **?**); confirmar; digitar |
+| **Botão 2** | **B** | **E** | voltar e apagar; na batalha, gastar um Ponto Extra: sozinho, uma onda dourada sai de você e desfaz os tiros do professor por onde passa, e você fica 1,5 s sem atirar — em troca, ganha a nota que ganharia acertando todos os tiros desse tempo; em dupla, dá ao parceiro um escudo que destrói os projéteis do chefe, e quem gastou segue atirando — e, se os dois gastarem juntos, a onda sai do meio deles, além dos escudos |
+| **Botão 3** | **N** | **H** | na dificuldade, trocar a personagem; na seleção, o boletim (e dele, o ranking da matéria); na batalha em dupla, dar um sinal ao parceiro; na batalha do TCC, soltar o poder do orientador quando o anel dele enche; no resultado da dupla aprovada, os dois juntos: o toca aqui |
+| — | **Esc** | — | na batalha, **só no computador**: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota. A batalha também pausa sozinha quando a janela perde o foco |
 | — | **Enter**, **Esc**, **0–9**, **Backspace** | — | atalhos de teclado para quem desenvolve |
 
 > As setas **não são atalho do W A S D**: elas são o manche do jogador 1, e o
 > W A S D é o do jogador 2.
 
-O menu principal tem **Modo Solo** e **Modo Dupla**. Em dupla, cada aluno se
+O menu principal tem **Modo Solo**, **Modo Dupla** e **Como Jogar** — o manual,
+uma página por vez (o manche vira a página), com o objetivo, os controles, a
+nota, o que se destrói, a dupla e o curso. O texto mora em
+`Assets/como-jogar.json`: dá para revisar uma frase sem recompilar. Em dupla, cada aluno se
 identifica, os dois jogam a mesma batalha e a **nota é uma só, da dupla**: o
 que um jogador causa sozinho — o acerto no professor, o acerto sofrido, o Ponto
 Extra — é dividido entre os dois, e o que a dupla conquista junta, como o bônus
-de fase limpa, vale inteiro. O **Ponto Extra em dupla é do outro**: em vez de
+de fase limpa, vale inteiro. Os ataques mirados vão em **quem mais acerta o
+professor** — um **v** vermelho em cima do aluno avisa que a mira está nele —, e,
+quando os dois acertam parecido, ele reveza um disparo para cada: quem ataca
+chama a mira, e o outro fica livre para **cobri-lo**. Derrubar um projétil que ia
+no parceiro é uma **cobertura**, e vale inteira, como a fase limpa: é da dupla.
+Como o tiro só sobe, cobre quem está **embaixo** do projétil, entre ele e o
+parceiro — e, para isso se ver, o projétil destrutível que vai num aluno
+**brilha na cor dele**, por fora do contorno vermelho: o brilho laranja, para o
+aluno azul, quer dizer "derrube este".
+O **Ponto Extra em dupla é do outro**: em vez de
 limpar a tela, um feixe sai de quem o gastou e dá ao parceiro um escudo que
-destrói os projéteis do chefe por três segundos. As decisões do modo, e o
+destrói os projéteis do chefe por três segundos. **Gastos juntos** — com até
+meio segundo de diferença —, os dois Pontos Extras ainda soltam a onda dourada
+do solo, do meio dos dois: é a **sincronia**. Quem cobre o parceiro vê, na
+hora, um **coração** na sua cor subir de quem foi coberto — o valeu —, e o
+**Botão 3**, na batalha em dupla, dá um **sinal**: um anel na sua cor e um som
+curto, para chamar o parceiro sem tirar o olho do campo (no TCC, o Botão 3
+continua sendo o poder do orientador). As decisões do modo, e o
 porquê de cada uma, estão em `Documentacao/requisitos-coop.md`.
 
 O que cada botão faz **na tela em que você está** fica escrito no rodapé dela.
+
+O tiro do aluno é uma **Dúvida**: um balão de fala com um **?**, azul no
+jogador 1 e laranja no jogador 2 — em dupla, dá para ver de quem é cada
+pergunta. Quando ela acerta o professor, o **?** vira um **!** na mesma cor, que
+sobe e some: a dúvida foi respondida. Quando o professor está **blindado** (o
+escudo do Hugo, a história que o cursor da Maria Lúcia arrasta), o balão
+**murcha e fica cinza**: a pergunta não foi ouvida, e não vale nota.
 
 Alguns projéteis o seu tiro **destrói** — os workers do Elixir, os agentes do
 Júlio, os blocos da pilha do Salles, a bala de prata da Maria Lúcia, os alvos
@@ -52,12 +77,104 @@ do objetivo do TCC... Todos têm
 o mesmo sinal: um **contorno vermelho** em volta do desenho. Sem contorno, o tiro
 passa direto ou some nele.
 
+Depois da identificação, **quem vai jogar escolhe a dificuldade**, numa tela
+com dois cartões — o manche troca, o botão 1 confirma e leva à seleção de
+fases, e o botão 2 volta para trocar de aluno (da seleção de fases, o botão 2
+volta para esta tela):
+
+- **Normal**: as fases como foram medidas;
+- **Difícil**: um degrau acima para quem já tira 100 — mais coisa para desviar,
+  e **quase sem respiro depois de um acerto**: no Normal o aluno pisca 1,2 s sem
+  levar outro tiro; no Difícil, 0,4 s, e o tiro que vinha atrás do primeiro
+  também acerta (o mesmo tiro, ou o corpo do professor, ainda espera 1,2 s para
+  acertar de novo — ficar preso não é o que se cobra).
+
+A nota vale o mesmo nos dois, e a batalha no Difícil mostra o selo **DIFÍCIL**
+na ponta da faixa da nota. A escolha é **da partida**: não fica gravada, e toda
+partida nova começa com o cursor no Normal — quem chega ao gabinete não herda o
+Difícil de quem jogou antes.
+
+**Ao continuar da pausa**, a luta não volta na hora: uma contagem **3, 2, 1**
+aparece no meio do campo, com tudo ainda parado, para dar tempo de achar o
+aluno no meio dos tiros. `Esc` durante a contagem reabre o menu.
+
+**Quando a luta acaba**, a tela de resultado mostra a nota, se ela bateu o
+recorde da matéria, as fases limpas e os acertos sofridos, e oferece **Tentar
+de novo** (a mesma matéria, do zero) ou **Voltar às matérias**. Quem reprovou
+vê também a **devolutiva**, como numa prova corrigida: a fase em que a nota
+mais caiu, com quanto ela custou, e o desenho do que mais te acertou, com
+quantas vezes. Na dupla, cada aluno, na cor dele, ganha um **título** pelo que
+mais fez — **quem mais cobriu**, **quem mais perguntou** ou **quem mais
+desviou** — e, embaixo, a parte dele: acertos no professor, coberturas e acertos
+sofridos. Quem cobriu o parceiro vê que contou. Os títulos nunca se repetem e
+nunca são uma posição: quem não está à frente em nada (por pelo menos 10%)
+ganha o que fez, como "fez 12 perguntas". Quem acaba de passar no TCC vê **FORMADE!**, em dourado,
+com a personagem de capelo dos dois lados do título. Na **dupla aprovada**, os
+dois avatares ficam dos lados do título, e os dois apertando o **Botão 3 juntos**
+fazem o **toca aqui**: os avatares pulam, o título estoura em dourado e se ouve
+uma palma — o rodapé ensina. O menu só
+aceita o botão depois de um instante, para o tiro que estava apertado não
+escolher sozinho. No gabinete, se ninguém escolher em 20 segundos, ela volta
+sozinha para as matérias.
+
+Na seleção de fases, o **Botão 3** abre o **boletim do semestre**: as matérias
+período a período, com a melhor nota, a situação (aprovade, reprovade, a cursar
+ou fechada), quantas provas você terminou em cada uma, o **CR** — a média das
+melhores notas das matérias cursadas —, quantas foram aprovadas, as **menções**
+e a sua posição no curso. Em dupla, o manche troca de aluno. Do boletim, o
+Botão 3 de novo leva ao ranking da matéria em foco.
+
+Passar abre a matéria seguinte; as **menções** são o que ainda há para buscar
+em cada uma depois disso. São sete selos por matéria: **B** bronze (aprovação),
+**P** prata (nota 80), **O** ouro (nota 90), **100** nota cheia, **D** aprovado
+no Difícil, **2** aprovado em dupla e **T** — o professor daquela matéria
+orientou um TCC seu aprovado (o TCC não tem este). Aparecem no boletim, no
+cartão da matéria em foco na seleção de fases (com o total do curso no alto) e,
+quando uma luta dá uma nova, numa linha dourada do resultado. Na tela que
+escolhe o orientador, o canto de cada cartão diz quem **já orientou** você e
+quem ainda é **novo**: defender o TCC com cada professor completa o currículo
+de orientações.
+
+**A prova da semana.** Toda semana, de segunda a domingo, uma matéria do curso
+é a prova da semana (em rodízio; o TCC não entra). Quem a joga nessa semana
+enfrenta **a mesma prova** — a mesma semente: a mesma ordem, os mesmos números,
+os mesmos tempos — e a nota entra num ranking que só vale até domingo, um por
+modo e por dificuldade. A seleção de fases marca a matéria e mostra, no canto,
+quanto falta, o pódio e o seu lugar; o resultado diz o lugar ao lado da nota. A
+matéria continua valendo como sempre (recorde, menções), e continua fechada
+para quem ainda não chegou nela. Visitante joga a mesma prova, mas não entra no
+ranking.
+
+**As horas complementares.** Do boletim, o **Botão 1** abre o quadro das
+atividades complementares: feitos de uma prova aprovada, cada um valendo horas,
+uma vez. Três contam **por matéria** e levam o nome dela no resultado ("Fase
+limpa em INF 213"): uma fase sem levar acerto (2 h), aprovado com até 10
+acertos sofridos (3 h) e três aprovações na matéria (3 h). As outras valem uma
+vez no curso: a virada (aprovado depois de a nota cair abaixo de 25), 15
+raspões numa prova, 2 pontos extras usados, 10 coberturas ao parceiro, 3
+poderes do orientador num TCC, a prova da semana e o pódio dela. A meta é de
+**100 horas**; o boletim mostra quantas você tem, e o resultado, as que a luta
+deu.
+
+O **Ranking** — do menu, a média do curso; do boletim, a matéria em foco — tem
+**quatro listas**: **Normal**, **Difícil**, **Normal em
+dupla** e **Difícil em dupla**, trocadas com o manche para os lados. Cada nível
+tem o seu topo: quem joga no Normal não disputa com quem escolheu o Difícil.
+A tela abre na lista da partida, e a tela de resultado diz "NOVO RECORDE!"
+pelo recorde **dessa** lista. Para o mapa do curso, passar é passar: a matéria
+abre com 60 em qualquer uma das quatro. Cada linha traz a personagem do aluno
+(as duas, na dupla), de capelo para quem já se formou.
+
+Parado no menu, o gabinete entra na tela de atração, que reveza três cartazes:
+a chamada, os melhores do curso e o **mural dos formados** — quem passou no
+TCC, de capelo, dos mais recentes, com a data em que passou.
+
+Ao sair de uma batalha (ou do ranking), a seleção de fases volta com o cursor
+na **última matéria escolhida**, e não no INF 110. Uma partida nova começa do
+começo da grade.
+
 Na tela de **Opções**, do menu principal, ficam:
 
-- a **dificuldade**: **Normal**, as fases como foram medidas, ou **Difícil**, um
-  degrau acima para quem já tira 100 — mais coisa para desviar. A nota vale o
-  mesmo nos dois, e a batalha no Difícil mostra o selo **DIFÍCIL** na ponta da
-  faixa da nota;
 - o volume da **música** e o dos **efeitos**, de mudo a 10;
 - a **tela cheia** (no gabinete o jogo é sempre em tela cheia);
 - a **hitbox**: mostra na batalha o círculo onde um tiro acerta o aluno de
@@ -68,16 +185,65 @@ troca. As opções são da máquina, e não do aluno: ficam em `Saves/opcoes.cfg
 valem para todos que jogarem ali até alguém trocar.
 
 
-Uma partida começa pela matrícula. **Novo Jogo** registra uma matrícula que
-ainda não existe e leva à criação de personagem; **Carregar Perfil** abre uma que
-já existe e traz de volta a aparência escolhida. Dá para jogar sem se
-identificar, e nesse caso nada é gravado.
+Uma partida começa pela matrícula. Depois de escolher **Modo Solo** ou **Modo
+Dupla**, cada aluno digita a sua no teclado da tela — o manche escolhe a tecla, o
+botão 1 digita e o botão 2 apaga — e confirma em **ENTRAR**. Não é preciso dizer
+se a conta é nova: se já existe um perfil com aquela matrícula, ele abre e traz
+de volta a aparência escolhida; se não existe, o aluno passa pela criação de
+personagem, e o perfil só é gravado quando ela é confirmada. A tecla
+**VISITANTE** entra sem se identificar, e nesse caso nada é gravado.
+
+A personagem é vista de costas, olhando para o professor, e é montada peça por
+peça: **15 cabelos** em 16 cores, 9 tons de pele, 8 camisas, 7 calças, 4
+sapatos e mochila ou bolsa, cada peça na cor que você quiser — o manche para os
+lados percorre as opções, e a linha diz em qual delas você está ("3 de 15").
+Quem já tem perfil troca a personagem na tela de dificuldade, com o **Botão 3**
+do próprio painel.
+
+Quem passa no **TCC** se forma, e a personagem ganha o **chapéu de formatura**
+para sempre — já na tela do resultado, e depois em toda prova e na criação de
+personagem. Ele não é uma peça: não se escolhe nem se tira, e vai por cima de
+qualquer cabelo. Nem fica gravado à parte: quem se formou é quem tem o TCC
+aprovado, e o recorde só sobe. O visitante também se forma, mas só até o fim da
+sessão.
+
+Antes de cada batalha, uma **tela de carregamento** escura cobre o campo: o
+código e o nome da matéria, o professor e uma barra enchendo. A batalha só
+aparece pronta — o véu some, e só então o professor ataca e a música começa.
+
+**A HUD da batalha conta o que acontece sem texto:**
+
+- **as bordas do campo** são onde você para: dois trilhos dos lados e o painel
+  da faixa da nota embaixo, exatamente onde o desenho do aluno encosta (em
+  cima, uma linha tracejada discreta, porque ali é o lugar do professor). A
+  parede **acende** quando você chega perto dela;
+- **onde está o professor**, na horizontal: um brilho vermelho leve na borda de
+  baixo, com um "prof" pequeno no painel, embaixo de cada corpo dele — dá para
+  saber em que coluna ele está sem tirar o olho do próprio pé;
+- **o campo pisca pelas bordas** a cada acontecimento: vermelho no acerto
+  sofrido, ouro no Ponto Extra, lilás na troca de fase;
+- **o tempo da fase** é a cápsula pequena colada no professor: anda do verde ao
+  âmbar e ao vermelho, tem um dente a cada 5 segundos, pulsa nos últimos 3 (com
+  o relógio piscando em vermelho) e se enche de volta na fase seguinte;
+- **o quadro** no canto é de giz: o professor escreve nele o que está fazendo, e
+  o apagador passa quando o texto troca;
+- **cada tiro responde**: uma faísca miúda no acerto no professor, uma explosão
+  laranja no projétil derrubado, um anel vermelho em volta de quem é acertado,
+  um dourado em quem pega um Ponto Extra e três riscos azuis na sua borda
+  quando um projétil passa raspando.
 
 ## A nota
 
 Toda prova começa em **40**, inclusive para quem já foi bem naquela matéria — a
 nota anterior continua guardada na ficha como informação, mas não é o ponto
 de partida.
+
+A **barra da nota**, na base da tela, tem duas marcas: a âmbar no **40**
+(terminar entre ela e a verde leva ao exame) e a verde no **60** (a
+aprovação). Ela corre atrás da nota em vez de saltar: um acerto sofrido deixa um
+**rastro vermelho** do que foi perdido, que encolhe em seguida, e a barra
+sacode; a nota que sobe dá um clarão. Abaixo do 40 a moldura pulsa em vermelho,
+e no 100 ela brilha em ouro.
 
 Subir até **60** é fácil e custa poucos acertos. Acima disso cada
 ponto custa mais que o anterior: a nota cheia sai por **301 acertos**, e uma
@@ -87,6 +253,16 @@ acompanha a duração das fases: a nota sobe por segundo o mesmo que subia quand
 as fases tinham 17 segundos. Apesar de ser possível, ainda estou achando
 difícil, porque é necessário seguir o Boss que em alguns movimentos são mais rápidos. Talvez eu diminua
 esse número depois de receber feedback externo.
+
+**Arriscar compensa.** A Dúvida lançada perto do professor vale mais: o ganho
+do acerto cresce de 1 vez, a 470 px dele ou mais, até **1,5 vez**, a 170 px ou
+menos — e, a partir de 1,35, a resposta sobe com dois pontos de exclamação
+(**!!**) em vez de um. Do fundo do campo, onde você nasce, vale o de sempre; e
+encostar no professor continua derrubando a nota. O projétil que passa
+**raspando** em você sem acertar — entre o seu colisor e a borda do desenho —
+paga um terço de um acerto, com três riscos azuis na sua borda. Cada projétil
+vale um raspão só; o que está parado não conta, nem o de quem ainda pisca
+depois de ser atingido. Em dupla, os dois se repartem como os acertos.
 
 Há um segundo freio, independente da curva: **quem é atingido três vezes para em
 99,99** naquela tentativa, por mais tempo que fique em tela. É isso que faz o 100
@@ -120,15 +296,37 @@ matérias no C++.
 
 Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
 
-- **`<matrícula>.json`** — uma ficha por aluno: aparência do personagem, recorde
-  e última nota de cada matéria, com data. A nota vai para o disco **uma vez, no
-  fim da batalha**, e não durante.
-- **`opcoes.cfg`** — as opções da máquina (a dificuldade, os volumes, a tela
+- **`<matrícula>.json`** — uma ficha por aluno: aparência do personagem, os
+  recordes de cada matéria (sozinho e em dupla, no Normal e no Difícil), a
+  última nota, com data, e quantas provas de cada matéria você terminou e
+  quantas reprovou (o boletim; desde a versão 7 da ficha — uma ficha anterior
+  abre com a contagem em zero), e quando cada matéria foi aprovada pela
+  primeira vez (desde a versão 8; é a data do mural dos formados, e quem passou
+  antes dela aparece no mural sem data), e quantos TCCs aprovados seus o
+  professor de cada matéria orientou (desde a versão 9: o currículo de
+  orientações), e as atividades complementares cumpridas (desde a versão 10).
+  A nota vai para o disco **uma vez, no fim da batalha**, e não durante.
+- **`prova_da_semana.csv`** — as notas da prova da semana: a semana (a data da
+  segunda-feira), a matéria, o modo, a dificuldade, a matrícula, o parceiro, a
+  nota e quando. Só acrescenta; o ranking da semana sai dele.
+- **`opcoes.cfg`** — as opções da máquina (os volumes, a tela
   cheia e a hitbox), em `chave=valor`. A tela de Opções o escreve na hora em
   que algo muda.
-- **`notas.csv`** — a planilha do professor, com uma linha por aluno-matéria.
+- **`notas.csv`** — a planilha do professor, com uma linha por aluno-matéria e
+  os quatro recordes (as colunas do Difícil vêm por último).
   É regravada a cada batalha, então está sempre em dia e ninguém precisa lembrar
   de exportar. Ela é **derivada** das fichas: apagá-la não perde nada.
+- **`tentativas.csv`**, **`tentativas_fases.csv`**, **`tentativas_resumo.csv`** e
+  **`tentativas_toques.csv`** (os toca aqui da dupla aprovada) —
+  os dados para pesquisa: uma linha a cada tentativa de batalha (quem jogou, em
+  que dia, qual vez era, como terminou, tiros, acertos, Pontos Extras e, na
+  dupla, coberturas, as chances de cobrir, o tempo com a mira presa e a
+  distância entre os dois), uma a cada fase jogada, e o resumo de quantas vezes
+  cada aluno jogou, passou e reprovou em cada matéria. Para comparar o jogo com
+  e sem uma mecânica, o gabinete abre com `--condicao` (por exemplo,
+  `--condicao sem-brilho`), e cada linha grava a condição em que foi jogada. As
+  colunas, as condições, como analisar e o cuidado com a privacidade estão em
+  `Documentacao/dados-das-tentativas.md`.
 
 As chaves dos arquivos são sempre códigos, nunca posições. Reordenar as matérias
 no JSON não reatribui a nota de ninguém.
@@ -166,7 +364,7 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   atrás de você. O exame é a prova no BOCA: um problema de cada fase, o balão
   do problema sobe no YES — e o último capota em *Runtime error*.
 - **Salles — INF 213.** Estruturas de dados, uma por fase, com o placar
-  escrevendo cada operação: uma pilha pendurada nele (push, pop e stack
+  escrevendo cada operação: uma pilha pendurada ao lado dele (push, pop e stack
   overflow), uma tabela hash que encadeia, busca e faz rehash na sua frente, e
   uma árvore binária de busca em que a chave desce comparando — e o seu tiro
   também é uma operação: tira o topo, derruba o nó e a subárvore junto. O
@@ -192,10 +390,15 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   campo e cada ataque é uma consulta sobre ela, com o SQL no placar: o `WHERE`
   varre as linhas que satisfazem a condição, a projeção varre a coluna e o
   `ORDER BY` troca as linhas de lugar. Em vez de desviar de projétil, você lê
-  a consulta e sai da faixa que ela vai buscar. Depois a tabela muda na sua
-  frente (`INSERT`, `UPDATE`, `DELETE`), e na terceira fase várias transações
-  disputam as linhas, com lock, `COMMIT`, `ROLLBACK` e deadlock. O exame é o
-  produto cartesiano, casa por casa.
+  a consulta e sai da faixa que ela vai buscar. Na segunda fase a tabela muda
+  na sua frente, e cada comando tem o seu gesto: o `INSERT` arremessa o
+  registro novo em arco até a linha vazia, o `DELETE` risca a linha, que
+  despenca e se espatifa no chão, e o `UPDATE` chuta o valor velho em você
+  enquanto o novo voa até a casa. Na terceira, as transações: cada uma abre
+  com um selo (T1, T2…) e prepara comandos das duas fases anteriores, que
+  ficam na tabela como rascunho na cor dela — e no `COMMIT` tudo acontece de
+  uma vez. Derrube o selo antes disso e é `ROLLBACK`: nada do que ela
+  preparou acontece. O exame é o produto cartesiano, casa por casa.
 - **Maria Lúcia — INF 221.** Engenharia de Software, um processo ou padrão por
   fase. A cascata é uma linha de produção: os pedidos do cliente viram
   post-its no backlog, os post-its viram classes ligadas por setas, as classes
@@ -216,23 +419,32 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   relê a fita por 107 passos até parar com 13 marcas — e, no exame, o problema da
   parada com o 3x + 1. O "a" vai reto e o "b" persegue, até o Programa de
   Intercâmbio trocar os dois — e ele vale a luta inteira.
-- **Luizinho — INF 340.** Linguagens de Programação, um assunto da ementa por
-  fase: cada uma abre com a palavra latina por trás dele, e depois o placar
-  mostra o código que ele está rodando. O programa da primeira fase e as
-  exceções do exame são gerados a cada luta.
+- **Luizinho — INF 340.** Linguagens de Programação — e Teoria da Computação,
+  que ele também dá —, um assunto da ementa por fase: cada uma abre com a
+  palavra latina por trás dele, e depois o placar mostra o código que ele está
+  rodando. Pouco se repete de uma luta para a outra: o programa da primeira
+  fase, os laços da terceira, os horários das contas e as exceções são
+  sorteados.
 
-  Na primeira o campo é o texto do programa, um painel por
-  bloco com as declarações no canto, e a variável que a busca acha chove onde
-  ela é visível — menos nos blocos que têm outra com o mesmo nome; no fim, a
-  mesma chamada em escopo estático e em escopo dinâmico. Na segunda, a mesma
-  conta em JavaScript, PHP, Python e Haskell: os operandos voam até em cima de
-  você, o convertido troca de cor no meio do voo, e o resultado ataca do jeito
-  do tipo dele — o número é um anel, o texto é a palavra, o `TypeError` estoura
-  onde a conta roda e o erro de compilação, no professor. Na terceira o campo é
-  o heap e o alocador te escolhe: no Java o coletor para o mundo e derruba o
-  lixo, no C++ o ponteiro pendente estoura e o laço que só aloca vaza até o
-  `bad_alloc`. O exame é uma exceção subindo pela pilha de chamadas: cada
-  faixa que não a trata cai em cima de você — e a repescagem é um `catch`.
+  Na primeira, as amarrações: o campo é um programa — o global, a função `f` com
+  um bloco dentro e a função `g`, cada bloco com a sua declaração de `x` no
+  canto. O professor roda `atira(x)` num bloco, e a busca do nome anda de canto
+  em canto, do bloco de dentro para fora, até achar quem declara o `x` — e esse
+  bloco responde com um leque de tantos tiros quanto o valor. No fim, `g()`
+  chama `f()`: no escopo estático o `x` é o do global, onde `f` foi escrita; no
+  dinâmico, o do LISP antigo, é o de `g`, quem chamou. Na segunda, a mesma conta
+  em JavaScript, PHP, Python e Haskell: os operandos voam até em cima de você, o
+  convertido troca de cor no meio do voo, e o resultado ataca do jeito do tipo
+  dele — o número é um anel, o texto é a palavra, o `TypeError` estoura onde a
+  conta roda e o erro de compilação, no professor. Na terceira, o programa
+  Termina: o professor mostra um laço e a entrada dele, o Termina responde se
+  ele para, e o laço roda — cada volta é um anel de tiros, e o laço que gira
+  desenha uma espiral; o que não para só acaba no Ctrl+C. No fim vem o Paradoxo,
+  que pergunta ao Termina sobre ele mesmo e faz o contrário da resposta: o
+  Termina muda de ideia cada vez mais depressa, até se contradizer e estourar —
+  não tem como fazer um programa que sabe se outro programa termina. O exame é
+  uma exceção subindo pela pilha de chamadas: cada faixa que não a trata cai em
+  cima de você — e a repescagem é um `catch`.
 - **Vitor — INF 310.** Programação Concorrente e Distribuída — e Redes, que
   ele também dá. Na primeira, semáforos: cada thread é uma coluna de
   instruções descendo até a seção crítica, quem não tem o semáforo se empilha
@@ -243,7 +455,7 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   janelas TCP ao roteador do meio do campo, que só dá conta de 10 por RTT e
   descarta o resto em cacos; a janela segue o dente de serra do controle de
   congestionamento, desenhado num gráfico, e o Ponto Extra vira um timeout. Na
-  terceira ele se divide pela nuvem em pai e filho, que trocam mensagens por
+  terceira ele se divide pela nuvem em cliente e servidor, que trocam mensagens por
   um canal em arco: a caixa postal que enche, o rendezvous, a RPC que devolve
   um leque e o impasse dos dois mandando ao mesmo tempo. O exame é o jantar
   dos filósofos — os garfos andam de mão em mão, e o deadlock vira um cerco
@@ -272,22 +484,62 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   barramento do Ricardo, a transação do Thiago, o ponteiro do Luizinho, a
   gramática do Vladimir, o gradiente do Júlio, o Observer da Maria Lúcia, o
   `fetch` do Lucas, a janela do TCP do Vitor), e cada um traz um **poder**,
-  que carrega a cada acerto no Hugo e sai no **botão 3**: o laço sem fim do
-  André, a capivara do Salles que come os tiros, o `HLT` do Ricardo que
-  congela tudo, o `ROLLBACK` do Thiago que manda os tiros de volta, o `free()`
-  do Luizinho, o autômato do Vladimir que converte os tiros em volta, os
-  agentes do Júlio, a bala de prata da Maria Lúcia que quebra o escudo, o
-  `Promise.all()` do Lucas e o `fork()` do Vitor. Escolher o orientador é
-  escolher o jeito de jogar.
+  que carrega a cada acerto no Hugo e sai no **botão 3**. O poder é um
+  conceito da matéria dele, jogável:
 
-  **O Hugo é blindado** — o TCC ainda não está pronto — e cada etapa tem um
-  objetivo que abre uma janela em que ele toma dano: na proposta, acerte as
-  assinaturas enquanto as barras do cronograma de Gantt caem no prazo; no
-  desenvolvimento (o tema é a área do orientador, com os ataques da matéria
-  dele), derrube os bugs; na defesa, a banca são dois outros professores, e
-  você acerta a resposta certa (A, B ou C) da pergunta deles — "E se der
-  deadlock?" —; nas correções, as marcas em vermelho. Aberto, o Hugo perde as
-  páginas da monografia embaixo dele.
+  - **André — `for (i) for (j)`.** Laços aninhados: uma matriz de 5 linhas de
+    8 tiros, centrada em você. Embaixo do Hugo, a matriz inteira acerta.
+  - **Salles — `push()` e `pop()`.** A capivara anda embaixo de você e
+    **empilha** os tiros que come; quando o poder acaba ela **desempilha**
+    tudo no Hugo, o último primeiro. Cheia, é *stack overflow*: começa a
+    devolver na hora.
+  - **Ricardo — `HLT`.** O clock parou: o Hugo e os tiros dele congelam (a
+    fase e o relógio param junto).
+  - **Thiago — `BEGIN`.** Uma transação: a nota de agora fica salva. No fim, se
+    ela caiu, é `ROLLBACK` — a nota volta, e os acertos sofridos deixam de
+    contar; se subiu, `COMMIT`. Seis segundos para arriscar perto do Hugo.
+  - **Luizinho — `try { } catch`.** Dentro do bloco, o acerto que você
+    levaria é uma exceção capturada: não tira nota, e o `finally` responde
+    com um leque no Hugo.
+  - **Vladimir — o autômato rejeita.** Os tiros em volta de você viram seus.
+  - **Júlio — agentes autônomos.** Os seus tiros e os do orientador caçam o
+    alvo destrutível do objetivo (ou o Hugo).
+  - **Maria Lúcia — a bala de prata.** Quebra o escudo do Hugo.
+  - **Lucas — `Promise.all()`.** Doze promessas que vão até o Hugo e
+    **voltam** douradas, desfazendo os tiros que tocam na ida e na volta.
+  - **Vitor — `P(s)`.** O semáforo: uma porta de parede a parede, acima de
+    você. Os tiros do Hugo fazem fila nela e passam um de cada vez; no `V(s)`
+    quem ainda esperava morre de inanição.
+
+  A tela em que se escolhe o orientador mostra o poder de cada um
+  funcionando: um campo em miniatura, animado, com a legenda de cada passo.
+  Na batalha, uma linha em cima do aluno diz o que o poder está fazendo
+  (`push(tiro)  pilha: 7`, `ROLLBACK: a nota voltou a 62.40`). Escolher o
+  orientador é escolher o jeito de jogar.
+
+  **O Hugo é blindado** — o TCC ainda não está pronto — e cada etapa tem
+  objetivos que abrem uma janela em que ele toma dano. São duas maneiras por
+  etapa, alternando, e a primeira é sorteada a cada luta. Uma é derrubar a
+  tiro: na proposta, as assinaturas, enquanto as barras do cronograma de Gantt
+  caem no prazo; no desenvolvimento (o tema é a área do orientador, com os
+  ataques da matéria dele), os bugs; na defesa, a banca são dois outros
+  professores, e você acerta a resposta certa (A, B ou C) da pergunta deles —
+  "E se der deadlock?" —; nas correções, as marcas em vermelho. A outra é
+  **andar**, no meio dos tiros: na proposta, a **reunião de orientação** — o
+  orientador voa até um lugar marcado no chão, e o anel enche enquanto você
+  fica com ele; no desenvolvimento, as **referências**, livros espalhados para
+  pegar; na defesa, a **arguição**, em que cada pergunta que você **raspa** sem
+  ser acertado conta uma; nas correções, a **entrega** da versão final, que
+  você pega e leva até a secretaria — e deixa cair onde for acertado.
+
+  **Dá para ler o escudo sem o placar.** Blindado, o Hugo fica escuro, com um
+  cadeado no peito e um escudo de **placas**, uma por coisa a fazer, que caem
+  à medida que você avança; um fio tracejado sai do escudo até cada coisa que
+  ainda o segura, e o tiro que bate nele solta uma faísca. O que se pega fica
+  num anel verde. Aberto, as placas estouram, ele volta às cores dele, e uma
+  mira dourada o cerca com o arco do tempo que falta, que pisca no fim; cada
+  acerto dá um clarão. Aberto, ele também perde as páginas da monografia
+  embaixo dele.
 
 ## Como compilar
 
@@ -311,6 +563,22 @@ cmake --build build
 O executável acha a pasta `Assets/` subindo os diretórios a partir de onde ele
 está, então rodar de dentro de `build/` ou da raiz dá na mesma.
 
+### Executáveis para distribuir
+
+Para mandar o jogo para quem não vai compilar nada, dois scripts montam um
+pacote pronto, com o executável, as bibliotecas e a pasta `Assets/`:
+
+```bash
+bash Ferramentas/executavel-windows.sh   # dist/DPIBulletHellRe-windows.zip
+bash Ferramentas/executavel-linux.sh     # dist/DPIBulletHellRe-linux.tar.gz
+```
+
+Os dois rodam numa máquina Linux (o do Windows pela compilação cruzada com o
+MinGW-w64). O GitHub também gera os dois sozinho: crie uma tag que comece com
+`v` (`git tag v1.0 && git push origin v1.0`) e os pacotes aparecem numa Release
+com o nome da tag; ou rode o workflow **Executaveis** pela aba Actions. Os
+detalhes estão em `Documentacao/build-e-testes.md`.
+
 No gabinete do departamento ele abre com `--arcade`: tela cheia, sem cursor, sem
 saída acidental e voltando ao menu sozinho quando fica parado. O que isso muda,
 e **como sair da máquina**, está em `Documentacao/gabinete.md`.
@@ -321,7 +589,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 1053 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 1070 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha, o objetivo e o poder do orientador no
 TCC — e também **leem os arquivos de
@@ -336,28 +604,73 @@ Os testes foram na sua grande maioria gerados pelo Claude por enquanto, mas to c
 
 ```
 Source/          o jogo
-  *.h / *.cpp      camada pura: nota, matrícula, progresso, matérias,
-                   personagens, navegação, tabela, orientação, golpe e
-                   poder do orientador. Nada de SDL nem de disco.
-  *Arquivo.cpp     as pontes: é só aqui que se lê arquivo e se fala com SDL.
+  Motor/           o laço do jogo (Game), a matemática, o sorteio, a fonte,
+                   o som, o JSON, os caminhos, as opções e o modo gabinete
+  Entrada/         o painel do gabinete, o teclado da matrícula, a navegação
+  Aluno/           matrícula, sessão, progresso, ficha, ranking e a planilha
+  Pesquisa/        o registro das tentativas (os dados do TCC)
+  Curso/           as matérias e quem pode orientar o TCC
+  Personagem/      o catálogo de peças e a montagem da personagem
+  Regras/          as regras puras da batalha: nota, Ponto Extra, acertos,
+                   dificuldade, variação, intercâmbio, golpe e poder
+  Interface/       as contas da HUD, da barra da nota, do carregamento, da
+                   pausa e do resultado, e o manual da tela Como Jogar
   Actors/          jogador, professores, orientador, projéteis
   Attacks/         as estratégias de ataque e os comportamentos de projétil
   Scenes/          menu, identificação, criação de personagem, seleção, batalha
   Components/      desenho, colisão, física, máquina de estados
+  Movements/       o movimento dos professores
 Assets/          sprites, fontes, sons e os JSON que descrevem o jogo
   Attacks/         regras.json e uma pasta por professor com as fases e
                    os projeteis dele
   materias.json    o curso inteiro
+  como-jogar.json  o texto da tela Como Jogar, uma página por vez
   personagens.json o catálogo de peças do personagem
 Documentacao/    receitas para quem for mexer no código
-Ferramentas/     geradores de arte provisória e os arneses de medição
-                 (medir-dificuldade.sh, parado-reprova.sh)
+Ferramentas/     geradores de arte e de som provisórios, e as medições: o jogo
+                 rodando sozinho (medir-dificuldade.sh), o portão do aluno
+                 parado (parado-reprova.sh) e as 54 batalhas que uma
+                 refatoração não pode mudar (linha-de-base.sh)
 
 tests/           a suíte
 ```
 
-A separação entre o par `X.cpp` / `XArquivo.cpp` é o que torna a suíte possível:
+Dentro de cada pasta, o par `X.cpp` / `XArquivo.cpp` separa a camada pura (sem
+SDL nem disco) da ponte que lê arquivo e fala com SDL. Essa separação é o que
+torna a suíte possível:
 a metade pura entra nos testes, a metade que toca disco e SDL fica de fora.
+
+### Padrões de projeto
+
+| Padrão | Onde | O que resolve |
+|---|---|---|
+| **Component** | `Actor` + `Components/` | um ator é a soma do que ele tem (desenho, colisor, corpo, máquina de estados), e não uma hierarquia de tipos |
+| **State** | `FSMComponent` / `FSMState` | as fases de cada professor: cada uma é um estado com a sua duração e os seus ataques |
+| **Strategy** | `IAttackStrategy`, `IMovementStrategy` | o ataque e o movimento do professor são trocáveis por fase, e vêm do JSON |
+| **Strategy** | `PoderEmCampo` | o poder do orientador do TCC: um objeto por poder, com o seu estado, criado por uma fábrica |
+| **Factory Method + Template Method** | `IBossFactory::CreateBoss`, `FabricaDeChefe<T>` | a montagem de todo professor tem os mesmos passos, escritos uma vez; o que é de cada chefe — a classe, a pasta, o retrato — é uma linha em `Chefes.cpp` |
+| **Object Pool** | `ProjectilePool` | os projéteis são reaproveitados, e não alocados no meio da luta |
+| **Observer** | `OuvinteDaBatalha` | a batalha anuncia o que acontece; o registro da tentativa, os clarões da moldura e o relatório da simulação ouvem |
+| **Inversão de dependência** | `Colisoes::Regras` | as colisões acham quem encostou em quem e não conhecem a batalha; o que cada contato vale (a nota, a devolutiva, a dupla) é a batalha que decide, pela interface |
+
+### A batalha
+
+`Battle` é a cena da luta: orquestra o quadro e guarda o estado da prova. O
+resto mora em colaboradores, um por assunto:
+
+| Classe | O que faz |
+|---|---|
+| `Nota::Conta` | a nota, os acertos sofridos e as fases limpas — pura, e testada |
+| `FaixaDaNota` | a barra da nota, o número e os avisos na base da tela |
+| `Colisoes` | quem encosta em quem, na ordem em que vale |
+| `EfeitosDaBatalha` | as faíscas, a onda do Ponto Extra e as moedas |
+| `DesenhoSobreOsAlunos` | o feixe e o escudo da dupla, o sinal, o valeu, a mira presa |
+| `PausaDaBatalha` | o menu da pausa e a contagem 3-2-1 |
+| `TelaDoResultado` | o resumo, a devolutiva e o toca aqui |
+| `TelaDeCarregamento` | o véu enquanto os projéteis são preparados |
+
+Uma refatoração nela tem de passar pela linha de base
+(`Ferramentas/linha-de-base.sh`): as 54 batalhas idênticas, byte a byte.
 
 ## Os dados
 

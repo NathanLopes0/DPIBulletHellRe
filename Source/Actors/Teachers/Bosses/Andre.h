@@ -20,35 +20,8 @@
 class BossProjectile;
 class DrawLinhasComponent;
 
-/**
- * @class Andre
- * @brief O chefe da primeira materia do curso: o placar e o codigo que ele esta
- *        rodando, e o campo e a execucao dele.
- *
- * Os BALOES DO BOCA ficam: no BOCA, o sistema em que a turma entrega os
- * exercicios, cada problema resolvido vale um balao da cor dele.
- *
- * A FASE 1 E O DESVIO CONDICIONAL (Condicional.h): o fluxograma desenhado no
- * campo - o losango embaixo do professor e um ramo por faixa, com o
- * cabecalho no alto -, e os baloes numerados que seguem pelo ramo que a
- * condicao escolhe e estouram em confete na faixa dele.
- *
- * A FASE 2 E A REPETICAO (Laco.h): o chao e um vetor de doze casas, cada laco
- * anda por ele com o i - a casa da vez acende -, e de cada casa visitada
- * sobe um cacho de baloes. O <= que passa do fim capota o programa, e o
- * while (1) e morto pelo juiz do BOCA.
- *
- * A FASE 3 SAO AS FUNCOES (Funcao.h): o professor e o main, cada funcao e um
- * cartao no meio do campo, os argumentos voam ate ela e o retorno volta; a
- * passagem por valor copia a casa do aluno, a por referencia o segue.
- *
- * A REPESCAGEM E A PROVA NO BOCA (Prova.h): quatro problemas, cada um rodado
- * pelo mesmo codigo da fase de onde vem, e o balao de cada um sobe no YES.
- *
- * UMA MECANICA POR VEZ. Cada fase - e cada problema da prova - abre uma
- * SESSAO de uma das tres mecanicas, com o relogio dela; a sessao que fecha
- * desmonta o que pos em campo.
- */
+/// O chefe da primeira materia do curso: o placar e o codigo que ele esta rodando, e o campo e a
+/// execucao dele.
 class Andre : public Boss {
 
 public:
@@ -64,12 +37,11 @@ protected:
                               const std::string& stateName) override;
 
 private:
-    // ---- O QUE AS TRES FASES DIVIDEM ----------------------------------------
+    // ---- O que as tres fases dividem ----
 
     enum class Mecanica { Nenhuma, Condicional, Laco, Funcao };
 
-    /// Qual mecanica roda agora, em que fase (para o placar), ha quanto tempo,
-    /// e de onde ela comeca. 'numero' muda a cada sessao nova.
+    /// 'numero' muda a cada sessao nova.
     struct Sessao {
         Mecanica qual = Mecanica::Nenhuma;
         std::string fase;
@@ -78,23 +50,16 @@ private:
         int primeiraVez = 0;
         int quantos = 0;      ///< quantos comandos ela roda; 0 = ate a fase acabar
         bool vetor = false;   ///< se o vetor do chao fica em campo
-        /// As formas vem na ordem DESTA LUTA (Variacao::Ordem). Nas fases sim;
-        /// na prova nao: cada problema e uma forma escolhida, pela vez dela na
-        /// ordem de sempre.
+        /// As formas vem na ordem desta luta (Variacao::Ordem).
         bool sorteada = false;
     };
     Sessao SessaoAtual();
     std::string mChaveDaSessao;
     int mNumeroDaSessao = 0;
 
-    [[nodiscard]] SDL_FRect Campo() const;
     [[nodiscard]] int CasaDoAluno() const;
-    [[nodiscard]] Vector2 PosicaoDoAluno() const;
 
     /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram.
-    /// 'quantos' > 0 troca o numero de projeteis do ataque, 'angulo' o meio
-    /// do leque dele, e 'rapidez' multiplica a velocidade do arquivo so neste
-    /// disparo (o degrau do Dificil).
     std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
                                             std::optional<float> angulo = std::nullopt,
                                             float rapidez = 1.0f);
@@ -110,11 +75,6 @@ private:
     /// O professor vai para um x sorteado entre 'de' e 'ate', na altura 'y'.
     void MudarDeLugar(float de, float ate, float y);
 
-    /// O placar: o que a fase diz no arquivo e guardado na primeira vez, e
-    /// volta quando a sessao fecha.
-    void Anunciar(const std::string& fase, const std::string& texto);
-    void Restaurar(const std::string& fase);
-    std::map<std::string, std::string> mAnunciosDoArquivo;
 
     /// O relogio da batalha inteira - nao volta a zero na troca de fase. E nele
     /// que o vetor do chao conta os avisos e os cachos.
@@ -125,7 +85,7 @@ private:
     DrawLinhasComponent* mLinhas = nullptr;
     static constexpr int kOrdemDasLinhas = 80;
 
-    // ---- O VETOR DO CHAO (fases 2 e 3) --------------------------------------
+    // ---- O vetor do chao (fases 2 e 3) ----
 
     void AtualizarVetor(bool preciso);
     void CriarVetor();
@@ -147,7 +107,7 @@ private:
     std::vector<Subindo> mSubindo;              ///< os do while (1), que o juiz mata
     int mDonoQueOJuizMata = -1;
 
-    // ---- A FASE 1: O DESVIO CONDICIONAL -------------------------------------
+    // ---- A fase 1: o desvio condicional ----
 
     void AtualizarCondicional(float deltaTime, const Sessao& s);
     void NovoComando(float agora);
@@ -194,7 +154,7 @@ private:
     float mDecisaoAte = 0.0f;
     int mDecisaoRamo = -1;
 
-    // ---- A FASE 2: A REPETICAO ----------------------------------------------
+    // ---- A fase 2: a repeticao ----
 
     void AtualizarLaco(const Sessao& s);
     void NovoLaco(float agora);
@@ -218,7 +178,7 @@ private:
     std::vector<Laco::Visita> mVisitas;
     size_t mProximaVisita = 0;
 
-    // ---- A FASE 3: AS FUNCOES -----------------------------------------------
+    // ---- A fase 3: as funcoes ----
 
     void AtualizarFuncao(float deltaTime, const Sessao& s);
     void NovaChamada(float agora);
@@ -260,7 +220,7 @@ private:
     struct Valor { BossProjectile* p = nullptr; Vector2 desvio; std::optional<Vector2> para; };
     std::vector<Valor> mValores;
 
-    // ---- A REPESCAGEM: A PROVA NO BOCA --------------------------------------
+    // ---- A repescagem: a prova no boca ----
 
     void AtualizarProva();
     int mProblema = -2;   ///< o problema da prova em curso; -2 fora dela

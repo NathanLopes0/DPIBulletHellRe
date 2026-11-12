@@ -11,10 +11,10 @@ namespace Fita {
         // A (q0), B (q1), C (q2), D (q3): {escreve, sentido, proximo} lendo
         // branco e lendo a marca.
         static const Tabela tabela = {{
-            {{ {1, +1, 1}, {1, -1, 1} }},          // A: 1RB  1LB
-            {{ {1, -1, 0}, {0, -1, 2} }},          // B: 1LA  0LC
-            {{ {1, +1, kParada}, {1, -1, 3} }},    // C: 1RH  1LD
-            {{ {1, +1, 3}, {0, +1, 0} }},          // D: 1RD  0RA
+            {{ {1, +1, 1}, {1, -1, 1} }},          // A: 1RB 1LB.
+            {{ {1, -1, 0}, {0, -1, 2} }},          // B: 1LA 0LC.
+            {{ {1, +1, kParada}, {1, -1, 3} }},    // C: 1RH 1LD.
+            {{ {1, +1, 3}, {0, +1, 0} }},          // D: 1RD 0RA.
         }};
         return tabela;
     }
@@ -88,7 +88,6 @@ namespace Fita {
         return Transicao(p) + "\npasso " + std::to_string(e.passos) + " \xC2\xB7 " + std::to_string(Marcas(e)) +
                " marcas";
     }
-
 
     Plano Sortear(Variacao::Sorteio& s) {
         Plano p;

@@ -2,7 +2,6 @@
 // Created by gensh on 17/10/2025.
 //
 
-
 #include "Behaviors.h"
 #include "../Components/RigidBodyComponent.h"
 #include "../Actors/Teachers/Bosses/BossesProjectiles/BossProjectile.h"
@@ -11,7 +10,7 @@
 #include "../Actors/Teachers/Boss.h"
 #include "Promessa.h"
 #include "Amarra.h"
-#include "../Random.h"
+#include "../Motor/Random.h"
 
 void AccelerateBehavior::update(Projectile* p, float deltaTime) {
     if (auto bossProj = dynamic_cast<BossProjectile*>(p)) {
@@ -81,9 +80,7 @@ void DeactivateBehavior::update(Projectile *p, const float deltaTime) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// TrackingBehavior
-// ---------------------------------------------------------------------------
+// TrackingBehavior.
 void TrackingBehavior::update(Projectile* p, float deltaTime) {
 
     // Precisa saber onde o jogador esta, e so BossProjectile sabe.
@@ -102,9 +99,7 @@ void TrackingBehavior::update(Projectile* p, float deltaTime) {
         return;
     }
 
-    // Decaimento linear: a forca cai de trackingStrength ate 0 ao longo de
-    // trackingTime. Quando zera, o projetil segue reto e o behavior sai da
-    // lista (isFinished).
+    // Decaimento linear: a forca cai de trackingStrength ate 0 ao longo de trackingTime.
     const float t = elapsedTime - startDelay;
     if (trackingTime <= 0.0f || t >= trackingTime) {
         finished = true;
@@ -115,30 +110,23 @@ void TrackingBehavior::update(Projectile* p, float deltaTime) {
     const Vector2 velocity = rb->GetVelocity();
     const float speed = velocity.Length();
 
-    // Sem velocidade nao ha direcao a corrigir. Sair daqui tambem evita
-    // normalizar um vetor nulo.
+    // Sem velocidade nao ha direcao a corrigir.
     if (Math::NearZero(speed)) return;
 
-    // Passo de correcao neste frame, limitado a 1.0 para nunca ultrapassar a
-    // direcao desejada (o que faria o projetil oscilar em vez de convergir).
     float step = forca * deltaTime;
     if (step > 1.0f) step = 1.0f;
 
     const Vector2 desired = bossProj->GetPlayerDirection() * speed;
     Vector2 corrected = velocity + (desired - velocity) * step;
 
-    // Se a correcao anulou o vetor (caso raro: velocidade exatamente oposta a
-    // desejada com step 0.5), manter a velocidade anterior. Sem esta guarda o
-    // projetil pararia, nunca sairia da tela e nunca voltaria para o pool.
+    // Se a correcao anulou o vetor (caso raro.
     if (Math::NearZero(corrected.Length())) return;
 
     corrected.Normalize();
     rb->SetVelocity(corrected * speed);
 }
 
-// ---------------------------------------------------------------------------
-// WobbleBehavior
-// ---------------------------------------------------------------------------
+// WobbleBehavior.
 void WobbleBehavior::update(Projectile* p, float deltaTime) {
 
     auto rb = p->GetComponent<RigidBodyComponent>();
@@ -150,8 +138,7 @@ void WobbleBehavior::update(Projectile* p, float deltaTime) {
     elapsedTime += deltaTime;
     if (elapsedTime < startDelay) return;
 
-    // Captura a direcao base UMA unica vez. Reler a velocidade todo frame faria
-    // a oscilacao realimentar a si mesma e o projetil sairia em espiral.
+    // Captura a direcao base uma unica vez.
     if (!started) {
         const Vector2 velocity = rb->GetVelocity();
         baseSpeed = velocity.Length();
@@ -186,14 +173,11 @@ void WobbleBehavior::update(Projectile* p, float deltaTime) {
     const Vector2 rotated(baseDirection.x * c - baseDirection.y * s,
                           baseDirection.x * s + baseDirection.y * c);
 
-    // Mesmo contrato do PathBehavior: a oscilacao decide a DIRECAO e o modulo
-    // vem da velocidade atual. Usar baseSpeed aqui anulava qualquer Modifier.
+    // Usar baseSpeed aqui anulava qualquer Modifier.
     rb->SetVelocity(DirecionarPreservandoModulo(rb->GetVelocity(), rotated, baseSpeed));
 }
 
-// ---------------------------------------------------------------------------
-// PathBehavior
-// ---------------------------------------------------------------------------
+// PathBehavior.
 void PathBehavior::update(Projectile* p, float deltaTime) {
 
     auto rb = p->GetComponent<RigidBodyComponent>();
@@ -205,14 +189,10 @@ void PathBehavior::update(Projectile* p, float deltaTime) {
     elapsedTime += deltaTime;
     if (elapsedTime < startDelay) return;
 
-    // Captura posicao e orientacao UMA vez, na ativacao. Tudo depois disso e
-    // calculado relativo a este instante.
+    // Captura posicao e orientacao uma vez, na ativacao.
     if (!started) {
 
-        // --- PONTE COM O MOTOR (Humble Object) ---
-        // Esta e a unica parte que conhece Projectile e componentes. Ela apenas
-        // le o mundo e monta o retrato; toda a decisao mora em
-        // ResolverReferencial, que e puro e coberto por testes unitarios.
+        // ---- Ponte com o motor (Humble Object) ----
         ContextoDeResolucao contexto;
         contexto.posicaoProjetil    = p->GetPosition();
         contexto.velocidadeProjetil = rb->GetVelocity();
@@ -229,24 +209,18 @@ void PathBehavior::update(Projectile* p, float deltaTime) {
         sinR   = referencial.sin;
 
         // Velocidade do percurso: 0 significa "mantenha a que o projetil tem".
-        // O piso de 100 evita projetil parado, que nunca sairia da tela e nunca
-        // voltaria ao pool.
         if (pathSpeed <= 0.0f) {
             const float velocidadeAtual = contexto.velocidadeProjetil.Length();
             pathSpeed = Math::NearZero(velocidadeAtual) ? 100.0f : velocidadeAtual;
         }
 
-        // Aplica o modulo inicial UMA vez, ja na direcao do referencial. Depois
-        // disto o modulo so muda por Modifier - ver o passo abaixo.
+        // Aplica o modulo inicial uma vez, ja na direcao do referencial.
         rb->SetVelocity(Vector2(cosR, sinR) * pathSpeed);
 
         started = true;
     }
 
-    // PARADA EM CURSO: o projetil fica onde esta, visivel e com colisor ligado.
-    // Nao avanca waypoint e nao redireciona - sair daqui e so deixar o contador
-    // chegar a zero, e no quadro seguinte o teste de chegada roda de novo, agora
-    // com paradaFeita marcada.
+    // Parada em curso: o projetil fica onde esta, visivel e com colisor ligado.
     if (paradaRestante > 0.0f) {
         paradaRestante -= deltaTime;
         rb->SetVelocity(Vector2::Zero);
@@ -261,19 +235,13 @@ void PathBehavior::update(Projectile* p, float deltaTime) {
     Vector2 toTarget = target - p->GetPosition();
     const float distance = toTarget.Length();
 
-    // Tolerancia proporcional ao passo do frame. Com um valor fixo pequeno, um
-    // projetil rapido passa por cima do waypoint sem nunca entrar no raio de
-    // chegada e fica orbitando em torno dele indefinidamente.
-    // Tolerancia pelo modulo ATUAL, nao pelo pathSpeed: se um Modifier
-    // desacelerou o projetil, o passo por frame encolheu junto.
+    // Tolerancia proporcional ao passo do frame.
     float tolerance = rb->GetVelocity().Length() * deltaTime * 1.5f;
     if (tolerance < 2.0f) tolerance = 2.0f;
 
     if (distance <= tolerance) {
 
-        // Chegou no ponto de parada: segura AQUI, sem avancar o waypoint. O
-        // avanco acontece quando este mesmo teste rodar de novo com paradaFeita
-        // marcada, depois que o contador zerar.
+        // Chegou no ponto de parada: segura aqui, sem avancar o waypoint.
         if (!paradaFeita && pararPor > 0.0f && static_cast<int>(current) == pararNoPonto) {
             paradaFeita    = true;
             paradaRestante = pararPor;
@@ -284,27 +252,19 @@ void PathBehavior::update(Projectile* p, float deltaTime) {
         ++current;
 
         if (current >= waypoints->size()) {
-            // Fim do caminho: encerra e deixa a velocidade atual valendo, entao
-            // o projetil segue reto. Zerar a velocidade aqui criaria um
-            // projetil imortal, parado na tela e nunca devolvido ao pool.
+            // Fim do caminho: encerra e deixa a velocidade atual valendo, entao o projetil segue reto.
             finished = true;
         }
         return;
     }
 
-    // CONTRATO DE ProjectileMotion: decide a DIRECAO e preserva o MODULO.
-    // O modulo inicial ja foi aplicado na ativacao (pathSpeed); daqui em
-    // diante quem manda nele sao os Modifiers. Escrever toTarget * pathSpeed
-    // aqui anulava um SlowDown aplicado depois da ativacao no frame seguinte.
+    // Contrato de ProjectileMotion: decide a direcao e preserva o modulo.
     rb->SetVelocity(DirecionarPreservandoModulo(rb->GetVelocity(), toTarget, pathSpeed));
 }
 
-// ---------------------------------------------------------------------------
-// PathBehavior
+// PathBehavior.
 
-// ---------------------------------------------------------------------------
-// MiraPeriodicaBehavior
-// ---------------------------------------------------------------------------
+// MiraPeriodicaBehavior.
 void MiraPeriodicaBehavior::update(Projectile* p, float deltaTime) {
 
     // Precisa saber onde o jogador esta, e so BossProjectile sabe.
@@ -315,8 +275,7 @@ void MiraPeriodicaBehavior::update(Projectile* p, float deltaTime) {
     }
 
     elapsedTime += deltaTime;
-    // O instante da proxima mirada vem do ritmo, nao de um contador proprio:
-    // e o que garante que ela caia sempre no inicio de uma investida.
+    // O instante da proxima mirada vem do ritmo, nao de um contador proprio.
     if (feitas >= ritmo.repeticoes || elapsedTime < ritmo.InicioDaInvestida(feitas)) return;
 
     auto rb = bossProj->GetComponent<RigidBodyComponent>();
@@ -328,17 +287,14 @@ void MiraPeriodicaBehavior::update(Projectile* p, float deltaTime) {
     if (bossProj->HasPlayer()) {
         const Vector2 paraJogador = bossProj->GetPlayerPosition() - p->GetPosition();
         const Vector2 velocidade = rb->GetVelocity();
-        // O modulo minimo e o proprio modulo atual: esta Motion nunca acelera
-        // nem freia o projetil, so o gira.
+        // O modulo minimo e o proprio modulo atual.
         rb->SetVelocity(DirecionarPreservandoModulo(velocidade, paraJogador, velocidade.Length()));
     }
 
     ++feitas;
 }
 
-// ---------------------------------------------------------------------------
-// PulsoDeVelocidadeBehavior
-// ---------------------------------------------------------------------------
+// PulsoDeVelocidadeBehavior.
 void PulsoDeVelocidadeBehavior::update(Projectile* p, float deltaTime) {
 
     auto rb = p->GetComponent<RigidBodyComponent>();
@@ -352,8 +308,7 @@ void PulsoDeVelocidadeBehavior::update(Projectile* p, float deltaTime) {
     const FaseDoPulso fase = CalcularFaseDoPulso(elapsedTime, ritmo,
                                                  moduloInvestida, moduloPausa);
     if (!fase.ativo) {
-        // Inativo tem duas causas: ainda no atraso, ou todos os ciclos ja
-        // aconteceram. So a segunda encerra o Modifier.
+        // Inativo tem duas causas: ainda no atraso, ou todos os ciclos ja aconteceram.
         if (fase.ciclo >= ritmo.repeticoes) terminou = true;
         return;
     }
@@ -372,8 +327,7 @@ void PromessaBehavior::update(Projectile* p, const float deltaTime) {
         return;
     }
 
-    // RESOLVIDA: sai apontada para o alvo, com o modulo do arquivo. Parada, ela
-    // nao tem direcao nenhuma, entao a direcao vem do alvo, e nao da velocidade.
+    // Resolvida: sai apontada para o alvo, com o modulo do arquivo.
     auto* promessa = dynamic_cast<BossProjectile*>(p);
     auto* rb = p->GetComponent<RigidBodyComponent>();
     if (promessa && rb) rb->SetVelocity(promessa->GetPlayerDirection() * velocidade);
@@ -419,13 +373,12 @@ void HistoriaDaSprintBehavior::update(Projectile* p, const float deltaTime) {
         p->SetPosition(Sprint::PosicaoDaHistoria(*plano, indice, t));
         rb->SetVelocity(Vector2::Zero);
 
-        // SOLTA, ela deixa de ser blindada: na mao do cursor o tiro so some.
+        // Solta, ela deixa de ser blindada: na mao do cursor o tiro so some.
         if (!solta && t >= plano->arraste) {
             solta = true;
             if (historia) historia->DefinirBlindado(false);
         }
-        // PARADA NA VAGA, ela entra no posto do quadro: esta em andamento, e
-        // a PontosAttack atira dela.
+        // Parada na vaga, ela entra no posto do quadro: esta em andamento, e a PontosAttack atira dela.
         if (!noQuadro && t >= plano->arraste + plano->espalha) {
             noQuadro = true;
             if (historia) historia->DefinirPosto(Sprint::kPostoDoQuadro);
@@ -433,9 +386,7 @@ void HistoriaDaSprintBehavior::update(Projectile* p, const float deltaTime) {
         return;
     }
 
-    // A REVISAO: o que nao foi entregue sai do quadro e cai em cima do aluno.
-    // Mira UMA vez, onde ele vai estar (RumoPrevendo, PathAim.h); sem aluno,
-    // cai reto.
+    // A revisao: o que nao foi entregue sai do quadro e cai em cima do aluno.
     Vector2 rumo(0.0f, 1.0f);
     if (historia) {
         historia->DefinirBlindado(false);
@@ -489,7 +440,7 @@ void AncorarBehavior::update(Projectile* p, const float deltaTime) {
         }
     }
 
-    // O TEMPO ACABOU, ou nao ha professor: a janela solta e cai.
+    // O tempo acabou, ou nao ha professor: a janela solta e cai.
     if (!mae) {
         rb->SetVelocity(Vector2(0.0f, queda));
         soltou = true;

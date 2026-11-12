@@ -10,20 +10,16 @@
 #include <string>
 #include <memory>
 #include <type_traits>
-#include "../Math.h"
+#include "../Motor/Math.h"
 
-// Incluido, e nao apenas declarado: os static_assert de insertMotion e
-// insertModifier usam std::is_base_of, que exige TIPO COMPLETO. Nao ha ciclo
-// porque Behaviors.h so faz forward declaration de Projectile.
+// Incluido, e nao apenas declarado: os static_assert de insertMotion e insertModifier usam
+// std::is_base_of, que exige tipo completo.
 #include "../Attacks/Behaviors.h"
 
 class ProjectileFactory;
 
-/**
- * @class Projectile
- * @brief Classe base abstrata para todos os projéteis do jogo.
- * Define o contrato, o gerenciamento de behaviors e a lógica de colisão.
- */
+/// Classe base abstrata para todos os projéteis do jogo. Define o contrato, o gerenciamento de
+/// behaviors e a lógica de colisão.
 class Projectile : public Actor {
 
 public:
@@ -37,90 +33,36 @@ public:
 
     // 5. Getter para o dono (essencial para o sistema de colisão e behaviors).
     [[nodiscard]] class Actor* GetOwner() const { return mOwner; }
-    // Reatribui o dono. Necessário para Object Pooling: um projétil reciclado
-    // pode ser reutilizado por um ataque disparado por outro owner (ex: mesmo Boss,
-    // mas o parâmetro owner pode variar entre chamadas de Acquire()).
+    // Reatribui o dono.
     void SetOwner(Actor* owner) { mOwner = owner; }
 
-    // 6. Getters/Setters para propriedades de gameplay.
-    void SetForwardSpeed(float newSpeed);
-    [[nodiscard]] float GetForwardSpeed() const;
-
-    // --- Object Pooling ---
-    // A ProjectileFactory que originalmente construiu este objeto (via createProjectile).
-    // Setado uma única vez, no Acquire(), e usado pelo ProjectileManager para saber
-    // para qual Factory devolver o objeto quando ele for marcado como Inactive.
-    // Fica nullptr para projéteis que não passam por pooling (ex: PlayerProjectile).
+    // ---- Object Pooling ----
     [[nodiscard]] ProjectileFactory* GetOriginFactory() const { return mOriginFactory; }
     void SetOriginFactory(ProjectileFactory* factory) { mOriginFactory = factory; }
 
-    // Ponto de entrada PUBLICO para matar um projetil de fora da classe
-    // (ProjectileManager, Battle). Delega para MarkDead(), entao quem esta de
-    // fora nao precisa saber se o projetil vai para o pool ou e destruido - e
-    // nao consegue mais pular essa decisao mexendo direto no ActorState.
+    // Ponto de entrada publico para matar um projetil de fora da classe (ProjectileManager,
+    // Battle).
     void Kill() override;
 
-    // Coloca o objeto no "estado de repouso" exigido de tudo que esta guardado
-    // no pool: invisivel, sem colisor, sem velocidade, sem behaviors, Inactive.
-    // Chamado pelo ProjectilePool dentro do Release(), ou seja, vale para TODOS
-    // os caminhos de entrada no pool - morte normal, Prewarm e limpeza de tela -
-    // e nao so para o caminho que passa por MarkDead().
+    // Coloca o objeto no "estado de repouso" exigido de tudo que esta guardado no pool: invisivel,
+    // sem colisor, sem velocidade, sem behaviors, Inactive.
     virtual void OnEnterPool();
 
-    // Restaura o projétil para um estado "recém-nascido" antes de ser reutilizado
-    // pelo pool. Limpa o que é comum a todo Projectile (behaviors, velocidade,
-    // estado). Classes filhas devem chamar Projectile::Reset() e então
-    // complementar com o que for específico delas (ex: reiniciar animação).
+    // Restaura o projétil para um estado "recém-nascido" antes de ser reutilizado pelo pool.
     virtual void Reset();
 
-    /// @brief Joga fora a Motion e os Modifiers, sem mexer em mais nada.
-    ///
-    /// Para quem muda o destino de um projetil por fora, no meio da vida dele:
-    /// o S da gramatica do Vladimir que vira a palavra vazia e para, e um
-    /// behavior que ainda nao tivesse disparado o poria para andar de novo.
-    /// NAO chame de dentro de um behavior - o laco dos Modifiers esta rodando.
-    void DescartarComportamentos() { mMotion.reset(); mModifiers.clear(); }
-
-    /// @brief Joga fora so a Motion: o projetil segue reto, no rumo e no modulo
-    /// em que estava, e os Modifiers continuam. E o "b" que o intercambio do
-    /// Vladimir troca por "a" - ele para de perseguir. Mesma regra de
-    /// DescartarComportamentos: nao chame de dentro de um behavior.
+    /// Joga fora so a Motion: o projetil segue reto, no rumo e no modulo em que estava, e os
+    /// Modifiers continuam.
     void DescartarMotion() { mMotion.reset(); }
 
-    /**
-     * @brief Registra a aparencia com que a fabrica construiu este projetil,
-     * para que Reset() possa devolve-la.
-     *
-     * Chamado por ProjectilePool::Acquire imediatamente depois da construcao -
-     * o unico instante em que o projetil esta exatamente como a fabrica o quis,
-     * porque nenhum configurator de ataque rodou ainda.
-     *
-     * O padrao NAO e "escala 1, sem animacao": cada fabrica de projetil tem o
-     * seu (a do Julio constroi com escala 2 e animacao "Coleta", a do Ricardo
-     * com "Normal"). Por isso o padrao e capturado em vez de ser uma constante.
-     */
+    /// Registra a aparencia com que a fabrica construiu este projetil, para que Reset() possa
+    /// devolve-la.
     virtual void MarcarPadraoDeFabrica();
 
-    /**
-     * @brief Define a Motion do projetil: quem ESCREVE a velocidade.
-     *
-     * Exclusivo por construcao - chamar duas vezes SUBSTITUI a anterior, em vez
-     * de empilhar dois escritores brigando frame a frame.
-     */
-    /**
-     * @brief Zera o relogio do tempo maximo de vida (kTempoDeVidaMaximo).
-     *
-     * Para a estrutura que o chefe mantem em campo de uma fase para a outra,
-     * e nao para ataque nenhum: as nuvens do Vitor nascem no comeco da fase 2,
-     * de 20 s, e viram a nuvem do fork no comeco da 3 - com 19,4 s de vida, a
-     * rede de seguranca as matava no meio do fork, e os dois corpos saiam do
-     * nada.
-     */
+    /// Define a Motion do projetil: quem escreve a velocidade.
     void RenovarTempoDeVida() { mTempoDeVida = 0.0f; }
 
-    /// @brief Ha quanto tempo o projetil saiu do pool. Serve para quem guarda um
-    /// ponteiro conferir que ele ainda e o mesmo tiro: reciclado, ele volta com
-    /// o relogio zerado (Lucas::AtualizarDom).
+    /// Ha quanto tempo o projetil saiu do pool.
     [[nodiscard]] float TempoDeVida() const { return mTempoDeVida; }
 
     template <typename M, typename... Args>
@@ -131,10 +73,8 @@ public:
         mMotion = std::make_unique<M>(std::forward<Args>(args)...);
     }
 
-    /**
-     * @brief Acrescenta um Modifier: quem MODIFICA a velocidade existente ou
-     * agenda quando ela passa a valer. Podem coexistir varios.
-     */
+    /// Acrescenta um Modifier: quem modifica a velocidade existente ou agenda quando ela passa a
+    /// valer. Podem coexistir varios.
     template <typename M, typename... Args>
     void insertModifier(Args&&... args) {
         static_assert(std::is_base_of_v<ProjectileModifier, M>,
@@ -146,32 +86,13 @@ public:
 protected:
 
     Actor* mOwner;
-    float mForwardSpeed;
 
-    //Behavior structures and methods
-    // A Motion e unica; os Modifiers se acumulam. Separar os dois torna a
-    // exclusividade uma propriedade do tipo, e nao um aviso em comentario.
-    /**
-     * @brief Tempo maximo que um projetil pode viver, em segundos.
-     *
-     * Rede de seguranca do motor. Ate agora um projetil so morria saindo da
-     * tela (IsOffScreen) ou por Kill(), e isso deixa buracos: um projetil lento
-     * demais para atravessar a tela dentro da batalha, ou com posicao NaN - na
-     * qual toda comparacao e falsa e IsOffScreen nunca dispara - viveria para
-     * sempre, ocupando uma vaga do pool.
-     *
-     * O valor e folgado de proposito: nenhum ataque legitimo chega perto dele,
-     * entao isto nao e mecanica de jogo, e sim a ultima linha de defesa contra
-     * um ataque mal configurado.
-     */
+    // Behavior structures and methods A Motion e unica; os Modifiers se acumulam.
     static constexpr float kTempoDeVidaMaximo = 20.0f;
 
     float mTempoDeVida = 0.0f;
 
-    /// Aparencia de fabrica, capturada por MarcarPadraoDeFabrica e devolvida por
-    /// Reset(). A escala tambem vale para o colisor: CircleColliderComponent
-    /// multiplica o raio por GetScale(), entao um projetil que volta do pool com
-    /// escala errada tem a hitbox errada, nao so o sprite.
+    /// Aparencia de fabrica, capturada por MarcarPadraoDeFabrica e devolvida por Reset().
     float mEscalaPadrao = 1.0f;
     std::string mAnimacaoPadrao;
     bool mPadraoMarcado = false;
@@ -179,16 +100,10 @@ protected:
     std::unique_ptr<ProjectileBehavior> mMotion;
     std::vector<std::unique_ptr<ProjectileBehavior>> mModifiers;
 
-    //Sub-funções de OnUpdate
+    // Sub-funções de OnUpdate.
     [[nodiscard]] virtual bool IsOffScreen() const = 0;
 
     // Ponto único de decisão de "este projétil morreu" (saiu de tela, colidiu).
-    // Se este objeto tem uma factory de origem (foi obtido via
-    // ProjectileFactory::Acquire, isto é, participa de Object Pooling),
-    // marca Inactive e ESCONDE o sprite (SetIsVisible(false)) para que o
-    // ProjectileManager o devolva ao pool sem deixar um "fantasma" visível
-    // na última posição onde ele morreu. Caso contrário (ex: PlayerProjectile,
-    // que nunca passa por uma ProjectileFactory), marca Destroy como sempre foi feito.
     void MarkDead();
 
 private:
@@ -197,5 +112,4 @@ private:
 
 };
 
-
-#endif //DPIBULLETHELLRE_PROJECTILE_H
+#endif // DPIBULLETHELLRE_PROJECTILE_H.

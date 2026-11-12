@@ -50,8 +50,8 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 | `nomeCompleto` | o nome da disciplina. Pode faltar — é só não mostrar. |
 | `professor` | quem dá a matéria. **Não** escolhe chefe nenhum; ver abaixo. |
 | `coluna` | em que coluna da grade o botão fica (0 é a da esquerda) |
-| `chefe` | o nome da fábrica, como registrado em `Game::InitializeBossFactory`. Pode faltar: a matéria aparece e espera uma batalha. |
-| `orientacao` | `true` se a batalha pede um **orientador** antes de começar — o TCC. Entrar nela pela seleção de fases abre antes a tela de escolha: os três professores das maiores notas aprovadas (em dupla, a maior nota dos dois em cada matéria), e em dupla os dois votam. O escolhido entra na batalha voando ao lado do aluno, invulnerável, e os tiros dele pagam a nota como os do aluno. Cada um ataca com a matéria dele (`Golpe.h`), todos com o mesmo peso: o `for` do André, a pilha do Salles (LIFO), o barramento do Ricardo, a transação do Thiago (tudo sai no COMMIT), o ponteiro do Luizinho, a gramática `S → S S` do Vladimir, a descida do gradiente do Júlio, o Observer da Maria Lúcia (atira a cada quatro tiros do aluno), o `fetch` do Lucas e a janela do TCP do Vitor — e o tiro dele tem a cara da matéria. E cada um traz um **poder** (`Poder.h`), que carrega a cada acerto no chefe e sai no botão 3: o laço sem fim do André, a capivara do Salles, o `HLT` do Ricardo, o `ROLLBACK` do Thiago, o `free()` do Luizinho, o autômato do Vladimir, os agentes do Júlio, a bala de prata da Maria Lúcia (que quebra o escudo do Hugo), o `Promise.all()` do Lucas e o `fork()` do Vitor. Opcional, falso por padrão; um valor que não é booleano vira aviso. |
+| `chefe` | o nome do chefe, como registrado em `Source/Actors/Teachers/BossFactory/Chefes.cpp` (é também a pasta dele em `Assets/Attacks/`). Pode faltar: a matéria aparece e espera uma batalha. |
+| `orientacao` | `true` se a batalha pede um **orientador** antes de começar — o TCC. Entrar nela pela seleção de fases abre antes a tela de escolha: os três professores das maiores notas aprovadas (em dupla, a maior nota dos dois em cada matéria), e em dupla os dois votam. O escolhido entra na batalha voando ao lado do aluno, invulnerável, e os tiros dele pagam a nota como os do aluno. Cada um ataca com a matéria dele (`Golpe.h`), todos com o mesmo peso: o `for` do André, a pilha do Salles (LIFO), o barramento do Ricardo, a transação do Thiago (tudo sai no COMMIT), o ponteiro do Luizinho, a gramática `S → S S` do Vladimir, a descida do gradiente do Júlio, o Observer da Maria Lúcia (atira a cada quatro tiros do aluno), o `fetch` do Lucas e a janela do TCP do Vitor — e o tiro dele tem a cara da matéria. E cada um traz um **poder** (`Poder.h`), que carrega a cada acerto no chefe e sai no botão 3: o laço sem fim do André, a capivara do Salles, o `HLT` do Ricardo (que congela o chefe e os tiros dele), o `ROLLBACK` do Thiago, o `free()` do Luizinho, o autômato do Vladimir, os agentes do Júlio (os tiros caçam o alvo), a bala de prata da Maria Lúcia (que quebra o escudo do Hugo), o `Promise.all()` do Lucas (doze promessas que vão até o Hugo e voltam, desfazendo os tiros dele pelo caminho) e o `socket()` do Vitor (as paredes dos lados viram rede). Opcional, falso por padrão; um valor que não é booleano vira aviso. |
 | `desbloqueio` | quando ela abre |
 
 **Tipos de desbloqueio:**
@@ -73,7 +73,7 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 > **A coluna 0 não precisa ter uma matéria só.** A grade se monta a partir desta
 > lista; se uma coluna ficar vazia, as setas a pulam em vez de parar nela.
 
-> **Quem pode orientar** (`Source/Orientacao.h`): o professor de uma matéria em
+> **Quem pode orientar** (`Source/Curso/Orientacao.h`): o professor de uma matéria em
 > que o aluno foi **aprovado** e que tem `chefe`, menos as que pedem orientação.
 > Entram os três de nota mais alta, a maior primeiro; no empate, a que vem antes
 > nesta lista; um professor aparece uma vez só. Em dupla, a nota de cada matéria
@@ -118,10 +118,10 @@ arquivo já é o mapa de fases, com quatro nomes fixos: `StateOne`, `StateTwo`,
 | `anuncio` | opcional. O texto do **placar**, o quadro no canto de cima, enquanto a fase dura. Sem ele o placar fica apagado |
 | `intercambio` | opcional. `{ "aCada": 8, "aviso": 1.5 }`: os alunos **trocam de lugar** a cada `aCada` segundos da fase, com aviso `aviso` segundos antes |
 | `etapas` | opcional. A fase em **trechos com nome**, em ordem: `[ { "nome": "Requisitos", "duracao": 4.0, "anuncio": "1 · Requisitos" }, ... ]`. Cada ataque que diz `"etapa"` só dispara na sua, e o placar mostra o `anuncio` da etapa corrente (sem ele, o `nome`). A leitura recusa etapas que passam da fase, e um teste cobra que elas a **cubram inteira** |
-| `movimento` | como o professor anda |
+| `movimento` | como o professor anda. Um bloco `"dificil": { "a": 280 }` dentro dele troca o `a` e/ou o `b` no modo Difícil (o Salles vai aos baldes a 220 no Normal e a 280 no Difícil); chave que não é `a` nem `b` é avisada e ignorada |
 | `ataques` | lista; todos disparam na mesma fase, cada um no seu cooldown |
 
-> **O placar escreve na Carlito, e não na Zelda.** A Zelda não tem `*` nem `^`,
+> **O placar escreve na Carlito, e não na fonte do jogo.** A Saira não tem `ⁿ` nem `δ`,
 > e o placar existe para o Vladimir escrever `(ab)*` e `aⁿbⁿ`. O texto é UTF-8:
 > sobrescrito, `δ` e `→` saem como são. Um `anuncio` que não é texto é recusado
 > na leitura em vez de virar um quadro apagado — e cuidado com a chave: escrita
@@ -213,7 +213,7 @@ recusados na leitura, com a frase dizendo qual fase errou.
 > estados do original — é a mesma fábrica que o monta, e é isso que o deixa
 > barato —, mas `BossAttackState` não o transiciona. Sem isso ele avançaria
 > sozinho e, ao chegar na fase que se divide, criaria um clone do clone; pior,
-> ao fim da terceira chamaria `FinishBattle` por conta própria e encerraria a
+> ao fim da terceira chamaria `EncerrarBatalha` por conta própria e encerraria a
 > luta no tempo dele.
 
 O segundo corpo nasce no **espelho** do original (`Battle::DividirChefe`). O
@@ -227,7 +227,7 @@ fase só declara o `clone`.
 | Campo | Vai para |
 |---|---|
 | `etapa` | opcional. Em qual etapa da fase o ataque dispara. Sem ela, a fase inteira |
-| `gatilho` | opcional. O ataque **não dispara pelo relógio**: dispara quando o professor puxa o gatilho (`Boss::Disparar`), e o `cooldown` é ignorado. Só existem os gatilhos que algum professor puxa — `notificacao` e `consulta` (o padrão Observer da Maria Lúcia), `agir` (os agentes do Júlio), `token` (cada token da fase 1 dele, que nasce na ponta da frase gerada), `nuvens` (as nuvens do Vitor), `portas` (a fileira de portas lógicas do Ricardo), `contador` (o leque do clock dele, a cada segundo), `estagios`, `buscar`, `lw`, `sw`, `add` e `addi` (o pipeline dele: as molduras, a busca e o ataque de cada instrução no seu estágio), `acender` (o LED das placas do Blink dele), `estados`, `diagrama`, `ler_a`, `ler_b`, `aceita` e `rejeita` (o autômato da fase 1 do Vladimir: o mapa, a letra lida e o veredito), `lexema`, `arvore`, `reduzir`, `emitir` e `store` (o compilador da fase 2 dele: o token que cai no léxico — o `a` e o `b` caem por `ler_a` e `ler_b` —, o nó que voa até a árvore sintática, o leque de cada operador reduzido, a instrução que cada nó vira na geração de código e o anel do STORE), `escrever`, `apagar`, `reescrever`, `reler` e `pare` (o castor mais ocupado da fase 3 dele, uma máquina de Turing de verdade: a marca escrita na casa, a marca apagada que cai reta, a apagada que no Difícil vira um "b" que persegue, a cópia da marca relida e o anel de quando a máquina para), `metade`, `triplo` e `parou` (o 3x + 1 da repescagem dele), `capivara` (a que atravessa o campo do Salles em qualquer fase), `push` e `estourar` (a pilha da fase 1 dele: o bloco empilhado, e o desempilhado que estoura em lascas), `baldes`, `chave`, `percorrer` e `nulo` (a tabela hash da fase 2: os baldes, a chave inserida, cada nó lido na busca e o NULL do fim da lista), `no`, `visitar`, `aresta`, `folha_nula` e `achado` (a árvore de busca da fase 3: a chave que desce e vira nó, cada nó por onde ela passa, os pontos da aresta, a busca que não acha e a que acha), `elemento`, `trocar` e `assentar` (o bubble sort da repescagem dele: o elemento do vetor, a capivara de cada troca e o anel de quem chega ao lugar), `cabecalho` e `registro` (a tabela escrita no campo do Thiago: o cabeçalho de cada coluna e o valor de cada casa), `marcar` (o marcador da casa que a consulta vai ler), `selecionar`, `projetar` e `celula` (as três formas do SELECT dele: a linha do WHERE, a coluna projetada e a casa do cruzamento), `gravar` (a escrita de uma transação dele, que vai até a linha, fica e volta no ROLLBACK), `desfazer` (a varredura do ROLLBACK, do outro lado da linha), `placa`, `pedido`, `classe`, `mensagem`, `compilar`, `bug` e `debito` (a Cascata da Maria Lúcia: a caixa de cada etapa, o post-it do cliente, a classe que ele vira no Projeto, as mensagens dela pelas setas, o código, o bug de cada classe e a dívida de cada bug que sobrou), `bala` e `estilhaco` (a repescagem dela, "não há bala de prata": a bala com o nome de uma promessa, e o leque de bugs em que ela se desfaz), `rotulo`, `balao` e `confete` (o fluxograma da fase 1 do André: o cabeçalho de cada ramo, o balão numerado que a condição manda para um ramo e o confete dele estourado), `indice`, `subir` e `core` (o vetor no chão da fase 2 dele: o índice de cada casa, o cacho de balões que sobe da casa por onde o `i` passa e a memória despejada pelo segfault), `cartao`, `valor` e `leque` (as funções da fase 3 dele: o cartão com a assinatura de cada função, o valor que vai como argumento e volta como retorno, e o leque de ponto-e-vírgulas), `trofeu` (o balão de cada problema da prova no BOCA, que sobe no YES) `gota` (a chuva da variável na fase 1 do Luizinho, o escopo: nasce apagada na região em que o nome é visível, acende e cai), `operador`, `operando`, `anel`, `texto`, `erro` e `compilacao` (a coerção da fase 2 dele: o operador em cima do aluno, os dois operandos que voam até ele, o anel do resultado número, a palavra do resultado texto, os estilhaços do TypeError onde a conta roda e os do erro de compilação no professor), `celula`, `pendente` e `estouro` (o heap da fase 3 dele: cada int de um bloco alocado, os cacos do ponteiro pendente e os de cada célula vazada no `std::bad_alloc`), `excecao`, `destroco` e `finally` (a pilha de chamadas da final dele: a exceção que sobe, a cortina de cada faixa desempilhada e o anel do `finally`), `instrucao` (a instrução de uma thread na fase 1 do Vitor, os semáforos: desce até a seção crítica, e sem o semáforo para na borda e se empilha), `segmento`, `encaminhar` e `descarte` (a fase 2 dele, o TCP: o segmento que voa da nuvem ao roteador, o que o roteador encaminha mirado no aluno e o anel de cacos do que ele descarta), `envelope`, `processar` e `encontro` (a troca de mensagens da fase 3 dele: o envelope que corre pelo canal entre o pai e o filho, a mensagem processada que vai para o aluno e o anel do rendezvous), `garfo`, `garfada` e `espera` (o jantar dos filósofos da final dele: o garfo que anda de mão em mão, o leque de quem come e o cerco do deadlock), `cursor`, `clique`, `spinner`, `carregar`, `marquee`, `celula`, `navegar` e `digitar` (a página que o Lucas renderiza na fase 1: o cursor que voa até o `<button>` e o leque do clique, o spinner e o anel da `<img>` que carrega, a linha do `<marquee>`, cada célula da `<table>` que cai, o anel de quando o `<a href>` navega e cada letra digitada no `<input>`), `cartao`, `repintar` e `escorrer` (o DevTools da fase 2 dele: um cartão da grade, nascendo do professor, o tiro de cada cartão quando o navegador repinta e cada letra da regra que escorre embaixo dele enquanto ele a digita — a cascata do CSS), `worker`, `cast`, `handle_cast`, `crash` e `pipe` (a árvore de supervisão do Elixir da fase 3 dele: o worker que o supervisor inicia, a mensagem que corre pela linha até a caixa dele, o leque do worker que processa a caixa cheia, o anel de cada worker que a estratégia termina e cada etapa do `|>` que escorre embaixo do supervisor parado), `ficha`, `log`, `then`, `fetch` e `timeout` (o event loop da final dele: a ficha de cada linha do script, que anda entre a pilha, as Web APIs e as filas, e o ataque de cada coisa que roda na pilha — o `console.log`, o callback do `.then`, a resposta do `fetch` e o callback do `setTimeout`), `tarefa` (uma página de uma barra do cronograma da proposta do Hugo, que cai quando o prazo vence) e `questao` (cada tiro de um padrão de matéria do TCC: o tema do orientador, as perguntas da banca e as correções) `rascunho` (cada página que escorre embaixo do Hugo enquanto ele escreve um capítulo) e `alvo` (o alvo do objetivo de cada etapa do TCC — a assinatura, a resposta A, B ou C, a correção —, que abre o escudo do Hugo; o bug dos experimentos sai pelo `bug`, o mesmo nome do da Maria Lúcia); um nome desconhecido é recusado |
+| `gatilho` | opcional. O ataque **não dispara pelo relógio**: dispara quando o professor puxa o gatilho (`Boss::Disparar`), e o `cooldown` é ignorado. Só existem os gatilhos que algum professor puxa — `notificacao` e `consulta` (o padrão Observer da Maria Lúcia), `agir` (os agentes do Júlio), `token` (cada token da fase 1 dele, que nasce na ponta da frase gerada), `nuvens` (as nuvens do Vitor), `portas` (a fileira de portas lógicas do Ricardo), `contador` (o leque do clock dele, a cada segundo), `estagios`, `buscar`, `lw`, `sw`, `add` e `addi` (o pipeline dele: as molduras, a busca e o ataque de cada instrução no seu estágio), `acender` (o LED das placas do Blink dele), `estados`, `diagrama`, `ler_a`, `ler_b`, `aceita` e `rejeita` (o autômato da fase 1 do Vladimir: o mapa, a letra lida e o veredito), `lexema`, `arvore`, `reduzir`, `emitir` e `store` (o compilador da fase 2 dele: o token que cai no léxico — o `a` e o `b` caem por `ler_a` e `ler_b` —, o nó que voa até a árvore sintática, o leque de cada operador reduzido, a instrução que cada nó vira na geração de código e o anel do STORE), `escrever`, `apagar`, `reescrever`, `reler` e `pare` (o castor mais ocupado da fase 3 dele, uma máquina de Turing de verdade: a marca escrita na casa, a marca apagada que cai reta, a apagada que no Difícil vira um "b" que persegue, a cópia da marca relida e o anel de quando a máquina para), `metade`, `triplo` e `parou` (o 3x + 1 da repescagem dele), `capivara` (a que atravessa o campo do Salles em qualquer fase), `push` e `estourar` (a pilha da fase 1 dele: o bloco empilhado, e o desempilhado que estoura em lascas), `baldes`, `chave`, `percorrer` e `nulo` (a tabela hash da fase 2: os baldes, a chave inserida, cada nó lido na busca e o NULL do fim da lista), `no`, `visitar`, `aresta`, `folha_nula` e `achado` (a árvore de busca da fase 3: a chave que desce e vira nó, cada nó por onde ela passa, os pontos da aresta, a busca que não acha e a que acha), `elemento`, `trocar` e `assentar` (o bubble sort da repescagem dele: o elemento do vetor, a capivara de cada troca e o anel de quem chega ao lugar), `cabecalho` e `registro` (a tabela escrita no campo do Thiago: o cabeçalho de cada coluna e o valor de cada casa), `marcar` (o marcador da casa que a consulta vai ler), `selecionar`, `projetar` e `celula` (as três formas do SELECT dele: a linha do WHERE, a coluna projetada e a casa do cruzamento), `caco` (os cacos de um valor que o DELETE dele derrubou e se espatifou no chão), `selo` (o selo de uma transação aberta na fase 3 dele, que o aluno derruba para provocar o ROLLBACK), `placa`, `pedido`, `classe`, `mensagem`, `compilar`, `bug` e `debito` (a Cascata da Maria Lúcia: a caixa de cada etapa, o post-it do cliente, a classe que ele vira no Projeto, as mensagens dela pelas setas, o código, o bug de cada classe e a dívida de cada bug que sobrou), `bala` e `estilhaco` (a repescagem dela, "não há bala de prata": a bala com o nome de uma promessa, e o leque de bugs em que ela se desfaz), `rotulo`, `balao` e `confete` (o fluxograma da fase 1 do André: o cabeçalho de cada ramo, o balão numerado que a condição manda para um ramo e o confete dele estourado), `indice`, `subir` e `core` (o vetor no chão da fase 2 dele: o índice de cada casa, o cacho de balões que sobe da casa por onde o `i` passa e a memória despejada pelo segfault), `cartao`, `valor` e `leque` (as funções da fase 3 dele: o cartão com a assinatura de cada função, o valor que vai como argumento e volta como retorno, e o leque de ponto-e-vírgulas), `trofeu` (o balão de cada problema da prova no BOCA, que sobe no YES), `resposta` (o valor de x que o bloco dono atira na fase 1 do Luizinho, as amarrações: o x é procurado de bloco em bloco, e quem o declara responde com um leque de tantos tiros quanto o valor, mirado em você), `operador`, `operando`, `anel`, `texto`, `erro` e `compilacao` (a coerção da fase 2 dele: o operador em cima do aluno, os dois operandos que voam até ele, o anel do resultado número, a palavra do resultado texto, os estilhaços do TypeError onde a conta roda e os do erro de compilação no professor), `volta` e `contradicao` (o programa Termina da fase 3 dele: cada volta do laço é um anel saindo do professor, e o laço que roda desenha uma espiral; a `contradicao` é o anel de cacos do Termina, que estoura quando o Paradoxo o contradiz), `excecao`, `destroco` e `finally` (a pilha de chamadas da final dele: a exceção que sobe, a cortina de cada faixa desempilhada e o anel do `finally`), `instrucao` (a instrução de uma thread na fase 1 do Vitor, os semáforos: desce até a seção crítica, e sem o semáforo para na borda e se empilha), `segmento`, `encaminhar` e `descarte` (a fase 2 dele, o TCP: o segmento que voa da nuvem ao roteador, o que o roteador encaminha mirado no aluno e o anel de cacos do que ele descarta), `envelope`, `processar` e `encontro` (a troca de mensagens da fase 3 dele: o envelope que corre pelo canal entre o cliente e o servidor, a mensagem processada que vai para o aluno e o anel do rendezvous), `garfo`, `garfada` e `espera` (o jantar dos filósofos da final dele: o garfo que anda de mão em mão, o leque de quem come e o cerco do deadlock), `cursor`, `clique`, `spinner`, `carregar`, `marquee`, `celula`, `navegar` e `digitar` (a página que o Lucas renderiza na fase 1: o cursor que voa até o `<button>` e o leque do clique, o spinner e o anel da `<img>` que carrega, a linha do `<marquee>`, cada célula da `<table>` que cai, o anel de quando o `<a href>` navega e cada letra digitada no `<input>`), `cartao`, `repintar` e `escorrer` (o DevTools da fase 2 dele: um cartão da grade, nascendo do professor, o tiro de cada cartão quando o navegador repinta e cada letra da regra que escorre embaixo dele enquanto ele a digita — a cascata do CSS), `worker`, `cast`, `handle_cast`, `crash` e `pipe` (a árvore de supervisão do Elixir da fase 3 dele: o worker que o supervisor inicia, a mensagem que corre pela linha até a caixa dele, o leque do worker que processa a caixa cheia, o anel de cada worker que a estratégia termina e cada etapa do `|>` que escorre embaixo do supervisor parado), `ficha`, `log`, `then`, `fetch` e `timeout` (o event loop da final dele: a ficha de cada linha do script, que anda entre a pilha, as Web APIs e as filas, e o ataque de cada coisa que roda na pilha — o `console.log`, o callback do `.then`, a resposta do `fetch` e o callback do `setTimeout`), `tarefa` (uma página de uma barra do cronograma da proposta do Hugo, que cai quando o prazo vence) e `questao` (cada tiro de um padrão de matéria do TCC: o tema do orientador, as perguntas da banca e as correções) `rascunho` (cada página que escorre embaixo do Hugo enquanto ele escreve um capítulo, e o rascunho de uma operação preparada por uma transação do Thiago, na cor dela, ou o risco da linha que o DELETE dele vai apagar) e `alvo` (o alvo do objetivo de cada etapa do TCC — a assinatura, a resposta A, B ou C, a correção —, que abre o escudo do Hugo, e também o que o aluno pega nos objetivos de andar: a referência, a versão final e a caixa da secretaria, que o Hugo marca como enfeite; o bug dos experimentos sai pelo `bug`, o mesmo nome do da Maria Lúcia); um nome desconhecido é recusado |
 | `estrategia` | qual padrão: `AngledAttack`, `CircleSpreadAttack`, `WaveAttack`, `BaloonAttack`, `LaserAttack`, `ConsultaAttack`, `CaixaAttack`, `SprintAttack`, `PontosAttack`, `TokenAttack`, `PalavraAttack` |
 | `projetil` | o nome dentro do conjunto deste professor em `projeteis.json` |
 | `projeteis` | quantos por disparo |
@@ -237,6 +237,7 @@ fase só declara o `clone`.
 | `intervalo` | atraso entre um projétil e o seguinte — só a `WaveAttack` e a `TokenAttack` leem |
 | `cooldown` | segundos entre dois disparos |
 | `dificil` | opcional. O **degrau do modo Difícil** deste ataque: `{ "cooldown": 1.25, "velocidade": 160, "projeteis": 18 }`, cada campo opcional, e o ausente fica como no Normal. Vale ao **montar** o ataque, e não a cada disparo: o `AttackParams` nasce com os números do modo, e o C++ que os lê vê o número certo. Serve aos ataques de relógio, e à quantidade de projéteis dos de gatilho (o Vladimir lê mais letras no Difícil); a velocidade de um de gatilho o professor muda na hora (`Boss::Disparar(gatilho, alvo, rapidez)`). Uma chave desconhecida é recusada |
+| `variar` | opcional. O quanto **cada disparo muda** do anterior: `{ "giro": 12, "abertura": 0.2, "velocidade": 0.1, "projeteis": 1, "cadencia": 0.25 }`, cada campo opcional. Veja *A variação de cada disparo*, abaixo |
 | `regras` | o nome de um conjunto de `regras.json`, ou a lista escrita ali mesmo |
 
 > **Campo omitido = padrão do motor.** A ponte só escreve no `AttackParams` o que
@@ -256,6 +257,57 @@ partir do ritmo do ataque:
 
 `doRitmo` é `"total"` ou `"ciclo"`. Serve para que mexer no ritmo não exija
 recalcular o cooldown à mão.
+
+**A variação de cada disparo.** Sem `variar`, todo disparo de um ataque é igual
+ao arquivo: o mesmo leque, no mesmo ângulo, no mesmo ritmo — e uma fase que se
+decora. Com ele, cada disparo sorteia um pouco de cada coisa:
+
+```json
+"variar": { "giro": 12, "abertura": 0.2, "velocidade": 0.1,
+            "projeteis": 1, "cadencia": 0.25 }
+```
+
+| Campo | Cada disparo |
+|---|---|
+| `giro` | gira o leque (ou o anel) inteiro até tantos **graus** para cada lado. De 0 a 180 |
+| `abertura` | abre ou fecha o leque nesta **fração** do `angulo`: 0.2 vai de 80% a 120%. De 0 a 0.9 |
+| `velocidade` | a mesma fração, na velocidade. De 0 a 0.9 |
+| `projeteis` | até tantos projéteis **a mais ou a menos**, nunca abaixo de um. Inteiro de 0 a 10 |
+| `cadencia` | a fração do `cooldown` até o disparo seguinte: 0.25 espera de 75% a 125%. Só nos ataques do relógio — no de `gatilho`, quem decide quando sai é o professor. De 0 a 0.9 |
+
+O sorteio é por igual para cada lado, e por isso **a média é o arquivo**: o
+ataque não fica mais fácil nem mais difícil, só deixa de ser decorável. Ele sai
+da **semente da batalha** (`BATALHA: semente N` no log, a coluna `semente` de
+`tentativas.csv`): cada ataque de cada fase tem a sua sequência, e o clone a sua;
+a mesma semente repete a luta inteira, que é o que a simulação e a linha de base
+precisam. Ligar um campo não muda o que os outros sorteiam.
+
+O giro vale **depois** do professor mirar (`CustomizeAttackParams`): o leque
+mirado no aluno sai até `giro` graus torto, em volta dele. O anel da
+`CircleSpreadAttack` não mira ninguém — sem `giro` ele sai sempre no mesmo
+ângulo, e a fresta entre dois projéteis fica no mesmo lugar a luta inteira;
+com `giro` de meio espaço (180 dividido pela quantidade: 15 num anel de 12),
+cada anel sai num ângulo qualquer. Já o anel **mirado** (um caco no aluno,
+`Coercao::CentroDoAnel`) perde a mira com qualquer giro: nele, varie a
+`velocidade`. E o ritmo que é o tema da fase fica fixo — o clock do Ricardo, os
+sprints da Maria Lúcia. Os valores fora
+da faixa, de tipo errado ou de nome desconhecido não recusam a fase: saem no log
+(`FASES em ...`) e o ataque continua, só sem aquela variação — e o teste
+"o fases.json de cada chefe não tem problema nenhum" falha, para ninguém
+publicar um `variar` que não vale.
+
+**O que varia no código.** O `variar` é o disparo de um ataque. O que é do
+professor — o ritmo de um roteiro, quem age primeiro, quanto cada coisa demora —
+ele sorteia no próprio código, da mesma semente (`Boss::SorteioDaFase`). O Vitor,
+por exemplo, é a matéria do não determinismo: na fase 1 cada thread manda as
+instruções no seu ritmo, o escalonador decide quanto cada uma fica na seção
+crítica e a corrida dá um saldo errado diferente a cada luta; na 2 o RTT varia e,
+depois do slow start, o enlace às vezes perde um segmento no caminho (o ruído), que
+estoura onde estava e que o TCP trata como congestionamento; na 3 cada envelope tem
+a sua latência, e na assíncrona eles chegam fora de ordem; no jantar ninguém pensa
+nem come o mesmo tempo duas vezes. As regras de cada fase continuam valendo em
+qualquer sorteio — os testes de `Semaforo`, `Tcp`, `Mensagens` e `Filosofos`
+conferem centenas deles.
 
 ### Blocos de estratégia
 
@@ -402,7 +454,7 @@ bit, é recusado.
 
 | Campo | |
 |---|---|
-| `posto` | de onde atirar: `quadro` (as histórias paradas no quadro da sprint), `observadores` (os olhos do Observer da Maria Lúcia), `agentes` (os robôs do Júlio), `nuvens` (as nuvens do Vitor), `palavra` ou `portas` (os bits do Ricardo que ainda não passaram pela porta, e as portas), `registradores` (os bits que andam no clock dele), `estagios` ou `pipeline` (as molduras e as instruções do pipeline dele), `placas` ou `acesas` (os Arduinos do Blink dele, apagados e acesos), `fita` (as casas da fita de Turing do Vladimir, que o intercâmbio não troca), `estados` (o diagrama do autômato dele), `pilha` (os blocos da pilha do Salles), `baldes` e `chaves` (a tabela hash dele), `arvore` (os nós da árvore de busca dele, e os da árvore sintática do compilador do Vladimir), `vetor` (os elementos do bubble sort da repescagem dele), `pagina` (o cursor e o spinner da página da fase 1 do Lucas), `grade` (os cartões do DevTools da fase 2 dele), `supervisao` (os workers e as mensagens da árvore de supervisão da fase 3 dele), `eventloop` (as fichas do event loop da final dele), `cronograma` (as páginas das barras do cronograma da proposta do Hugo), `objetivo` (os alvos que abrem o escudo dele), `tabela` (os cabeçalhos e os valores da tabela do Thiago), `aviso` (o marcador da casa que a consulta dele vai ler) — todos menos o primeiro, a regra `posto` põe lá ao nascer. Um posto desconhecido é recusado — ninguém o ocuparia, e o ataque nunca dispararia |
+| `posto` | de onde atirar: `quadro` (as histórias paradas no quadro da sprint), `observadores` (os olhos do Observer da Maria Lúcia), `agentes` (os robôs do Júlio), `nuvens` (as nuvens do Vitor), `palavra` ou `portas` (os bits do Ricardo que ainda não passaram pela porta, e as portas), `registradores` (os bits que andam no clock dele), `estagios` ou `pipeline` (as molduras e as instruções do pipeline dele), `placas` ou `acesas` (os Arduinos do Blink dele, apagados e acesos), `fita` (as casas da fita de Turing do Vladimir, que o intercâmbio não troca), `estados` (o diagrama do autômato dele), `pilha` (os blocos da pilha do Salles), `baldes` e `chaves` (a tabela hash dele), `arvore` (os nós da árvore de busca dele, e os da árvore sintática do compilador do Vladimir), `vetor` (os elementos do bubble sort da repescagem dele), `pagina` (o cursor e o spinner da página da fase 1 do Lucas), `grade` (os cartões do DevTools da fase 2 dele), `supervisao` (os workers e as mensagens da árvore de supervisão da fase 3 dele), `eventloop` (as fichas do event loop da final dele), `cronograma` (as páginas das barras do cronograma da proposta do Hugo), `objetivo` (os alvos que abrem o escudo dele, e o que se pega nos objetivos de andar), `tabela` (os cabeçalhos e os valores da tabela do Thiago), `aviso` (o marcador da casa que a consulta dele vai ler) — todos menos o primeiro, a regra `posto` põe lá ao nascer. Um posto desconhecido é recusado — ninguém o ocuparia, e o ataque nunca dispararia |
 | `mirar` | cada ponto mira o aluno. Sem ele, todos saem em `anguloCentral` |
 | `prever` | mirando, mira onde o aluno **vai estar** se continuar andando |
 
@@ -529,7 +581,7 @@ compilador; aqui é a leitura, porque arquivo de texto não passa por compilador
 
 `mira` é `AlinharComVelocidade` (o padrão), `MirarNoJogador` ou `MirarPrevendo`.
 
-**`Amarrar` é a corda dos guardrails do Júlio** — nasceu na primeira fase 1 do Luizinho (*ligāre*, "atar"), que hoje é o escopo. A letra
+**`Amarrar` é a corda dos guardrails do Júlio** — nasceu na primeira fase 1 do Luizinho (*ligāre*, "atar"), que continua sendo a das amarrações. A letra
 nasce presa ao professor por uma corda que não se vê: a corda desenrola enquanto
 ela se afasta dele, estica em `comprimento` pixels, e dali a letra **gira em
 volta do professor e vai junto** para onde ele for — o nó é procurado a cada
@@ -655,6 +707,7 @@ entrada é como `fases.json` vai pedi-lo.
 | `rotacionarComAVelocidade` | se o sprite gira para acompanhar o voo (uma regra pode desligar por rajada — ver `rotacionar`) |
 | `derrubavel` | `true` se o tiro do aluno derruba este projétil. Os dois somem, o tiro não chega ao professor, e o professor é avisado (`Boss::OnProjetilDerrubado`). Todo projétil que o tiro derruba ganha um **contorno vermelho** na forma do sprite, o mesmo para todo professor (`Destrutivel.h`) — menos quando está blindado, é abrigo ou é enfeite, os casos em que o tiro não o destrói. Padrão `false`; usam o cursor e os workers do Lucas e os bugs, as histórias e as janelas da Maria Lúcia |
 | `resistencia` | quantos tiros derrubam um projétil `derrubavel`; os anteriores **somem nele**, sem derrubá-lo e sem chegar ao professor. Padrão 1. Num projétil que não é `derrubavel`, a leitura avisa e ignora |
+| `dificil` | opcional. `{ "resistencia": 3 }`: a resistência no modo Difícil, e só ela. Os blocos da pilha do Salles caem com 2 tiros no Normal e 3 no Difícil. As mesmas regras da `resistencia` |
 | `acorrenta` | o que acontece com o aluno ao ser acertado: `segundos`, `fatorDeVelocidade`, `multiplicadorDaPerda` |
 | `abrigo` | `true` se este projétil **abriga** o aluno: todo projétil solto do professor que encosta nele some (um que está num `posto` é parte de uma estrutura e fica), ele não machuca ninguém, e o tiro do aluno some nele também. Padrão `false`. É a capivara que atravessa o campo do Salles (`Capivara.h`) |
 
@@ -697,9 +750,8 @@ camada de arte, e a aparência final é a pilha dessas camadas tingidas.
 
 ```json
 {
-  "fixas": [
-    { "arte": "Player/Camadas/sapato", "ordem": 30 }
-  ],
+  "fixas": [],
+  "formatura": { "materia": "TCC", "arte": "Player/Camadas/capelo", "ordem": 70 },
   "categorias": [
     { "id": "pele", "nome": "Tom de pele", "ordem": 10,
       "cores": [ { "id": "tom1", "nome": "Tom 1", "rgb": "f6cfa6" } ],
@@ -715,18 +767,34 @@ camada de arte, e a aparência final é a pilha dessas camadas tingidas.
 | | |
 |---|---|
 | `fixas` | camadas que todo personagem tem, sem escolha. Só `arte` e `ordem`. |
+| `formatura` | opcional. A camada de quem passou na `materia` (o código dela em `materias.json`): `arte` e `ordem`, em cor final, como as fixas. Sem `materia` ou sem `arte`, é ignorada com aviso |
 | `categorias` | o que o jogador escolhe: uma peça e uma cor por categoria |
 | `ordem` | a ordem de empilhamento; maior fica por cima |
 | `cores` | a paleta daquela categoria, com `rgb` em hexadecimal sem `#` |
 | `pecas` | as formas daquela categoria, cada uma com a sua `arte` |
 | `predefinidas` | combinações prontas, usadas como ponto de partida |
 
-As ordens hoje são pele 10, sapato 30, calça 40, camisa 50 e cabelo 60 — e os
-buracos entre elas são de propósito, para caber camada nova no meio sem
-renumerar as outras.
+As ordens hoje são pele 10, sapato 30, calça 40, camisa 50, mochila 55, cabelo
+60 e o capelo da formatura, 70, por cima de tudo — e os buracos entre elas são
+de propósito, para caber camada nova no meio
+sem renumerar as outras (a mochila entrou assim, entre a camisa e o cabelo: o
+cabelo comprido cai por cima dela). A **ordem da lista** de categorias é outra
+coisa: é a ordem das linhas na tela de criação.
+
+O sapato já foi uma camada fixa, em cor final; virou categoria, e o primeiro
+item de cada categoria é o padrão de quem não escolheu — o tênis grafite é o
+sapato de antes, e a primeira mochila é "nenhuma". Quem tem uma ficha de antes de
+uma categoria existir cai nesse padrão, e por isso a personagem não muda sozinha.
+A arte das peças sai de `Ferramentas/gerar_camadas.py`.
 
 > **A ficha guarda o `id` da peça, nunca a posição dela na lista.** Acrescentar
 > uma peça no meio de uma categoria não troca o cabelo de ninguém.
+
+> **A formatura não fica na ficha.** Quem se formou é quem tem a matéria da
+> `formatura` aprovada — o recorde dela, em qualquer modo e nível, chegou a 60 —,
+> e o recorde só sobe: por isso o capelo é para sempre sem campo novo na ficha.
+> A mesma aparência com e sem capelo são duas texturas no cache
+> (`ChaveDaAparencia`).
 
 ---
 

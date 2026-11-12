@@ -12,34 +12,21 @@
 #include <SDL_pixels.h>
 
 #include "Scene.h"
-#include "../Math.h"
-#include "../Orientacao.h"
-#include "../Painel.h"
+#include "../Motor/Math.h"
+#include "../Curso/Orientacao.h"
+#include "../Entrada/Painel.h"
+#include "../Regras/Poder.h"
 
 class Actor;
 class Font;
 class DrawSpriteComponent;
 class DrawCaixaComponent;
+class DrawLinhasComponent;
 
-/**
- * @class EscolhaDoOrientador
- * @brief A tela entre a selecao de fases e o TCC: o aluno escolhe, entre os
- * professores das suas maiores notas, quem vai lutar do lado dele na banca.
- *
- * QUEM APARECE E QUEM VENCE E DE Orientacao, que e pura e testada: esta cena so
- * desenha os cartoes e passa o manche e os botoes para uma Orientacao::Votacao.
- * Em dupla cada aluno tem o seu cursor, da cor dele, e os dois votam; o
- * escolhido so existe quando os dois votaram.
- *
- * O ESCOLHIDO FICA ANUNCIADO por kAnuncio segundos antes de a batalha comecar,
- * e nesse tempo ainda da para desfazer o voto - o botao que confirma e o mesmo
- * que atira, e quem aperta duas vezes sem querer nao pode perder a escolha. So
- * depois o orientador vai para o Game (Game::DefinirOrientador), de onde a
- * batalha o le.
- *
- * O botao 2 desfaz o voto; sem voto para desfazer, o do jogador 1 volta para a
- * selecao de fases.
- */
+/// A tela entre a selecao de fases e o TCC: o aluno escolhe, entre os professores das suas maiores
+/// notas, quem vai lutar do lado dele na banca. Escolher o orientador e escolher um poder, e o
+/// cartao de cada um mostra o dele funcionando: um campo em miniatura, animado (Poder::Previa), com
+/// a legenda de cada passo.
 class EscolhaDoOrientador : public Scene {
 public:
     explicit EscolhaDoOrientador(Game* game);
@@ -55,17 +42,44 @@ private:
     /// Quantos alunos o painel tem.
     static constexpr int kMaxAlunos = 2;
 
-    /// Quanto o escolhido fica na tela antes de a batalha comecar.
     static constexpr float kAnuncio = 1.8f;
 
-    // ---- O cartao de cada professor ---------------------------------------
+    // ---- O cartao de cada professor ----
     static constexpr float kCartaoLargura = 290.0f;
-    static constexpr float kCartaoAltura = 400.0f;
+    static constexpr float kCartaoAltura = 500.0f;
     static constexpr float kEntreCartoes = 370.0f;
-    static constexpr float kCartaoY = 420.0f;
+    static constexpr float kCartaoY = 408.0f;
 
-    /// O retrato do professor e o cartao de chefe dele (128 px), um pouco maior.
-    static constexpr float kEscalaDoRetrato = 1.25f;
+    /// O retrato do professor e o cartao de chefe dele (128 px).
+    static constexpr float kEscalaDoRetrato = 1.0f;
+
+    /// O que o cartao mostra, de cima para baixo, em px a partir do topo dele.
+    static constexpr float kRetratoEm = 70.0f;
+    static constexpr float kProfessorEm = 152.0f;
+    static constexpr float kMateriaEm = 180.0f;
+    static constexpr float kNomeDaMateriaEm = 218.0f;
+    static constexpr float kNotaEm = 256.0f;
+    static constexpr float kPoderEm = 290.0f;
+    static constexpr float kPreviaEm = 368.0f;      ///< o meio do campo em miniatura
+    static constexpr float kLegendaEm = 440.0f;
+    static constexpr float kEfeitoEm = 474.0f;
+
+    /// O campo em miniatura da previa: duas vezes mais largo que alto, como Poder::Previa desenha.
+    static constexpr float kPreviaLargura = 248.0f;
+    static constexpr float kPreviaAltura = 112.0f;
+    static inline const SDL_Color kMolduraDaPrevia{70, 86, 130, 230};
+    static inline const SDL_Color kFundoDaPrevia{6, 8, 18, 235};
+
+    /// O selo do voto fica entre o cabecalho e o cartao.
+    static constexpr float kSeloAcima = 38.0f;
+
+    /// O curriculo de orientacoes (Progresso::Orientacoes), no canto do cartao: quem ja orientou um
+    /// TCC aprovado de quem esta jogando, e quem ainda e novo - o que falta para a mencao dele.
+    static constexpr float kCurriculoLargura = 104.0f;
+    static constexpr float kCurriculoAltura = 22.0f;
+    static inline const SDL_Color kCorDeQuemOrientou{186, 158, 250, 255};
+    static inline const SDL_Color kCorDoNovo{255, 214, 72, 255};
+    void CriarCurriculo(int indice, const Vector2& topo);
 
     /// O cursor de cada aluno e uma moldura em volta do cartao. A do J2 e mais
     /// larga que a do J1, para as duas aparecerem quando estao no mesmo cartao.
@@ -82,12 +96,9 @@ private:
     static inline const SDL_Color kFundoDoCartao{10, 14, 30, 215};
     static inline const SDL_Color kSemFundo{0, 0, 0, 0};
 
-    /// A cor de cada aluno. Sozinho, o cursor e dourado: nao ha de quem ser.
+    /// A cor de cada aluno e Hud::CorDoAluno - a mesma do "?" da Duvida dele.
+    /// Sozinho, o cursor e dourado: nao ha de quem ser.
     static inline const SDL_Color kCorSozinho{255, 214, 0, 255};
-    static inline const std::array<SDL_Color, kMaxAlunos> kCorDoAluno{{
-        {110, 190, 255, 255},
-        {255, 160, 80, 255},
-    }};
 
     /// O retrato de quem nao foi escolhido escurece enquanto o anuncio dura.
     static constexpr Uint8 kRetratoApagado = 90;
@@ -104,6 +115,11 @@ private:
 
     void CriarCabecalho();
     void CriarCartao(int indice);
+    /// O poder do cartao 'indice': o nome, o campo em miniatura, a legenda e o que ele faz.
+    void CriarPrevia(int indice, const Vector2& topo);
+    /// Um quadro da previa de cada cartao.
+    void DesenharPrevias();
+    [[nodiscard]] static SDL_Color CorDaMarca(Poder::Marca marca);
     void CriarCursores();
     void CriarRodape();
 
@@ -119,6 +135,17 @@ private:
     std::vector<Vector2> mCentros;                 ///< o centro de cada cartao
     std::vector<DrawSpriteComponent*> mRetratos;   ///< observadores, um por cartao
 
+    /// A previa do poder de cada cartao: o que e, onde se desenha, e a legenda que ja esta escrita.
+    struct PreviaDoCartao {
+        Poder::Tipo tipo = Poder::Tipo::Nenhum;
+        Vector2 canto;                              ///< o canto de cima, a esquerda, do campo em miniatura
+        DrawLinhasComponent* linhas = nullptr;
+        Actor* legenda = nullptr;
+        std::string escrita;
+    };
+    std::vector<PreviaDoCartao> mPrevias;
+    float mTempoDaPrevia = 0.0f;
+
     std::array<Actor*, kMaxAlunos> mCursores{};    ///< a moldura de cada aluno
     std::array<Actor*, kMaxAlunos> mSelos{};       ///< "J1 VOTOU", sobre o cartao
     Actor* mEstado = nullptr;
@@ -129,9 +156,7 @@ private:
     bool mMudou = true;
     bool mSaindo = false;
 
-    /// A borda de cada entrada, por aluno. Comecam em TRUE pelo motivo de
-    /// StageSelect::mEntrarAnterior: chega-se aqui com o botao 1 apertado, e
-    /// ele nao pode virar um voto que ninguem deu.
+    /// A borda de cada entrada, por aluno.
     struct Bordas {
         bool esquerda = true;
         bool direita = true;

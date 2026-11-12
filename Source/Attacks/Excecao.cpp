@@ -52,16 +52,16 @@ namespace Excecao {
             // O catch de f trata a IOException: so h e g caem, e o finally de g roda.
             case 0: return {{Catch("main", Tipo::Exception), Catch("f", Tipo::IOException), Finally("g"), Chamada("h")},
                             Tipo::IOException};
-            // A MESMA PILHA, outra excecao: f nao a trata, e ela vai ate o main.
+            // A mesma pilha, outra excecao: f nao a trata, e ela vai ate o main.
             case 1: return {{Catch("main", Tipo::Exception), Catch("f", Tipo::IOException), Finally("g"), Chamada("h")},
                             Tipo::NullPointerException};
-            // A HIERARQUIA: o catch de RuntimeException trata a NullPointerException.
+            // A hierarquia: o catch de RuntimeException trata a NullPointerException.
             case 2: return {{Chamada("main"), Catch("f", Tipo::RuntimeException), Chamada("h")},
                             Tipo::NullPointerException};
-            // NINGUEM TRATA: a pilha inteira cai, e o programa capota.
+            // Ninguem trata: a pilha inteira cai, e o programa capota.
             case 3: return {{Chamada("main"), Finally("f"), Catch("g", Tipo::IOException), Chamada("h")},
                             Tipo::NullPointerException};
-            // A REPESCAGEM E UM CATCH.
+            // A repescagem e um catch.
             default: return {{Catch("main", Tipo::Reprovado), Chamada("f"), Chamada("h")}, Tipo::Reprovado};
         }
     }
@@ -127,10 +127,6 @@ namespace Excecao {
                 largura - 2.0f * kMargem, kAlturaDaFaixa};
     }
 
-    std::vector<float> Cortina(const float xDoAluno, const float largura) {
-        return Cortina(xDoAluno, largura, kEntreDestrocos);
-    }
-
     std::vector<float> Cortina(const float xDoAluno, const float largura, const float entre) {
         const float passo = std::max(1.0f, entre);
         const float de = kMargem;
@@ -141,7 +137,6 @@ namespace Excecao {
         for (; x <= ate + 0.01f; x += passo) xs.push_back(x);
         return xs;
     }
-
 
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;

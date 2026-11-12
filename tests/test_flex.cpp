@@ -12,10 +12,7 @@
 #include <set>
 #include <vector>
 
-
-// A CONTA DE ONDE CADA ITEM FICA tem de bater com o CSS de verdade: o placar do
-// DevTools (Estilo.h) escreve o nome do valor, e quem estudou a materia vai
-// conferir.
+// A conta de onde cada item fica tem de bater com o CSS de verdade.
 
 TEST_CASE("Flex: os cinco valores de justify-content, numa linha de 0 a 600 com 4 itens de 50") {
     using Flex::Justificar;
@@ -29,21 +26,21 @@ TEST_CASE("Flex: os cinco valores de justify-content, numa linha de 0 a 600 com 
     x = Flex::Posicoes(Justificar::Centro, 4, 50.0f, 0.0f, 600.0f);
     CHECK(x == std::vector<float>{225.0f, 275.0f, 325.0f, 375.0f});
 
-    // space-between: sobram 400, divididos em 3 vaos de 133,33.
+    // Space-between: sobram 400, divididos em 3 vaos de 133,33.
     x = Flex::Posicoes(Justificar::EspacoEntre, 4, 50.0f, 0.0f, 600.0f);
     REQUIRE(x.size() == 4);
     CHECK(x[0] == doctest::Approx(25.0f));
     CHECK(x[1] == doctest::Approx(208.333f));
     CHECK(x[3] == doctest::Approx(575.0f));
 
-    // space-around: 4 vaos de 100, meio vao (50) nas pontas.
+    // Space-around: 4 vaos de 100, meio vao (50) nas pontas.
     x = Flex::Posicoes(Justificar::EspacoEmVolta, 4, 50.0f, 0.0f, 600.0f);
     CHECK(x == std::vector<float>{75.0f, 225.0f, 375.0f, 525.0f});
 }
 
 TEST_CASE("Flex: um item so, ou nenhum, como o CSS faz") {
     using Flex::Justificar;
-    // space-between com um item se comporta como flex-start.
+    // Space-between com um item se comporta como flex-start.
     CHECK(Flex::Posicoes(Justificar::EspacoEntre, 1, 50.0f, 0.0f, 600.0f) == std::vector<float>{25.0f});
     CHECK(Flex::Posicoes(Justificar::Centro, 0, 50.0f, 0.0f, 600.0f).empty());
 }
@@ -74,17 +71,16 @@ TEST_CASE("Flex: a regra de cada fileira e sorteada, sempre de junta para espalh
         J de = J::Centro;
         for (int fileira = 0; fileira < 20; ++fileira) {
             const J para = Flex::Proxima(s, de);
-            // O LUGAR SEGURO TROCA: as laterais livres viram o vao, e o vao
-            // vira as laterais.
+            // O lugar seguro troca: as laterais livres viram o vao, e o vao vira as laterais.
             CHECK(Flex::Junto(para) != Flex::Junto(de));
             vistas.insert(static_cast<int>(para));
             de = para;
         }
     }
-    // AS CINCO REGRAS SAEM.
+    // As cinco regras saem.
     CHECK(vistas.size() == 5u);
 
-    // A MESMA SEMENTE, A MESMA FASE.
+    // A mesma semente, a mesma fase.
     Variacao::Sorteio a = Variacao::SorteioDa(42u, "StateTwo");
     Variacao::Sorteio b = Variacao::SorteioDa(42u, "StateTwo");
     J da = J::Centro, db = J::Centro;

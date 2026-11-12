@@ -3,11 +3,12 @@
 //
 
 #include "BossAttackState.h"
+#include "Boss.h"
 
 #include "../Actor.h"
 #include "../../Components/AIComponents/FSMComponent.h"
 #include "../../Scenes/Battle/Battle.h"
-#include "../../Nota.h"
+#include "../../Regras/Nota.h"
 
 BossAttackState::BossAttackState(FSMComponent* fsm,
                                  const std::string& name,
@@ -21,53 +22,37 @@ BossAttackState::BossAttackState(FSMComponent* fsm,
 
 void BossAttackState::HandleStateTransition(float stateTime)
 {
-    // 1. Ainda não deu o tempo? Então não faz nada.
+    // 1.
     if (stateTime < mDuration) {
         return;
     }
 
-    // O SEGUNDO CORPO NAO TRANSICIONA, E NAO DECIDE A BATALHA.
-    //
-    // Ele roda a mesma maquina de estados do original, montada pela mesma
-    // fabrica, e e isso que o deixa barato de criar - mas tem de ficar PRESO na
-    // fase que lhe coube. Sem esta guarda ele avancaria sozinho e, ao chegar na
-    // fase que se divide, criaria um clone do clone; e pior, ao fim da terceira
-    // chamaria FinishBattle por conta propria e encerraria a luta no tempo dele.
+    // O segundo corpo nao transiciona, e nao decide a batalha.
     if (const auto corpo = dynamic_cast<Boss*>(mFSM->GetOwner()); corpo && corpo->EhClone()) {
         return;
     }
 
-    // Adicionar aqui lógicas personalizadas de mudança de estado
+    // Adicionar aqui lógicas personalizadas de mudança de estado.
     if (mName == "StateThree") {
         const auto scene = mFSM->GetOwner()->GetScene();
 
         if (const auto battle = dynamic_cast<Battle*>(scene)) {
 
-            // A nota vem do Battle: e a da batalha em curso, nao a gravada.
-            //
-            // A REGRA MORA EM Nota::AposTerceiraFase, e nao nos numeros soltos
-            // que estavam aqui. Ela ja mudou uma vez - a nota cheia passou a
-            // levar ao teste final - e uma condicao escrita a mao no meio de um
-            // dynamic_cast e o pior lugar possivel para uma regra que muda.
-            //
-            // SOBRE O JOGADOR DE 100: ele entra na fase final SEM a nota
-            // guardada. Cada acerto custa os 6 pontos de sempre e, a partir do
-            // terceiro, o teto de 99,99 fecha a volta. Isto e deliberado - a
-            // fase final e um desafio, nao uma volta de honra - mas tem um preco
-            // que vale saber: quem chega a 100 cedo fica exposto mais tempo que
-            // quem chega no ultimo segundo.
-            switch (Nota::AposTerceiraFase(battle->GetNotaAtual())) {
+            // A nota vem do Battle: e a da batalha em curso, nao a gravada - e com o que estava
+            // pendente ja resolvido (a transacao aberta fecha antes de a nota decidir).
+            battle->FecharPendencias();
+            switch (Nota::AposTerceiraFase(battle->NotaAtual())) {
 
                 case Nota::Desfecho::VaiParaFinal:
                     mNextStateName = "StateFinal";
                     break;
 
                 case Nota::Desfecho::Aprovado:
-                    battle->FinishBattle(true);
+                    battle->EncerrarBatalha(true);
                     break;
 
                 case Nota::Desfecho::Reprovado:
-                    battle->FinishBattle(false);
+                    battle->EncerrarBatalha(false);
                     break;
             }
         }
@@ -77,12 +62,11 @@ void BossAttackState::HandleStateTransition(float stateTime)
         const auto scene = mFSM->GetOwner()->GetScene();
 
         if (const auto battle = dynamic_cast<Battle*>(scene)) {
-            // Aqui a batalha acaba de qualquer jeito - tanto quem veio do exame
-            // quanto quem veio do teste final. So o resultado muda.
-            battle->FinishBattle(battle->GetNotaAtual() >= Nota::kNotaAprovacao);
+            // Aqui a batalha acaba de qualquer jeito.
+            battle->FecharPendencias();
+            battle->EncerrarBatalha(battle->NotaAtual() >= Nota::kNotaAprovacao);
         }
     }
-
 
     // Se mNextStateName estiver vazio, ele "trava" neste estado.
     if (!mNextStateName.empty()) {

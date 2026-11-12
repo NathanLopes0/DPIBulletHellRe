@@ -3,21 +3,27 @@
 //
 
 #include "EscolhaDoOrientador.h"
+#include "TextoDeCena.h"
 
+#include <algorithm>
 #include <iomanip>
 #include <sstream>
 
 #include <SDL_scancode.h>
 
 #include "FundoDeCena.h"
-#include "../Game.h"
-#include "../Font.h"
-#include "../Nota.h"
-#include "../MateriasArquivo.h"
-#include "../CaminhosArquivo.h"
+#include "../Motor/Game.h"
+#include "../Motor/Font.h"
+#include "../Regras/Nota.h"
+#include "../Interface/Hud.h"
+#include "../Curso/MateriasArquivo.h"
+#include "../Motor/CaminhosArquivo.h"
+#include "../Motor/Fontes.h"
 #include "../Actors/Actor.h"
 #include "../Actors/Teachers/BossFactory/IBossFactory.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
+#include "../Components/DrawComponents/DrawLinhasComponent.h"
+#include "../Regras/Golpe.h"
 #include "../Components/DrawComponents/DrawSpriteComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
 
@@ -25,7 +31,7 @@ EscolhaDoOrientador::EscolhaDoOrientador(Game* game)
     : Scene(game, SceneType::EscolhaDoOrientador),
       mFonte(std::make_unique<Font>())
 {
-    mFonte->Load(Caminhos::Asset("Fonts/Zelda.ttf"));
+    mFonte->Load(Caminhos::Asset(Fontes::kJogo));
 }
 
 Painel::Jogador EscolhaDoOrientador::DoAluno(const int aluno) {
@@ -39,16 +45,15 @@ Vector3 EscolhaDoOrientador::ParaVector3(const SDL_Color& cor) {
 
 SDL_Color EscolhaDoOrientador::CorDoAluno(const int aluno) const {
     if (!EmDupla()) return kCorSozinho;
-    return kCorDoAluno[static_cast<size_t>(aluno == 1 ? 1 : 0)];
+    const Hud::Rgb c = Hud::CorDoAluno(aluno == 1 ? 1 : 0);
+    return SDL_Color{c.r, c.g, c.b, 255};
 }
 
 void EscolhaDoOrientador::Load() {
 
     CriarFundoDoCorredor(*this);
 
-    // UM PROGRESSO POR ALUNO: em dupla a nota de cada materia e a maior dos
-    // dois (Orientacao::Candidatos). O mapa do curso e do jogador 1 (RF3), mas
-    // aqui o que se mede e quem a dupla conhece melhor.
+    // O mapa do curso e do jogador 1, mas aqui o que se mede e quem a dupla conhece melhor.
     std::vector<const Progresso*> alunos;
     for (const auto& sessao : mGame->Sessoes()) alunos.push_back(&sessao.progresso);
 
@@ -56,9 +61,7 @@ void EscolhaDoOrientador::Load() {
     const int quantos = std::min(static_cast<int>(alunos.size()), kMaxAlunos);
     mVotacao = Orientacao::Votacao(static_cast<int>(mCandidatos.size()), std::max(1, quantos));
 
-    // OS CARTOES CENTRADOS, quantos forem. Quem abre o TCC tem sempre tres (o
-    // teste de dados garante), mas a tela nao pode depender disso para nao
-    // desenhar um buraco.
+    // Os cartoes centrados, quantos forem.
     const float meio = static_cast<float>(mGame->GetWindowWidth()) / 2.0f;
     const float primeiro = mCandidatos.empty() ? 0.0f : -0.5f * static_cast<float>(mCandidatos.size() - 1);
     for (size_t i = 0; i < mCandidatos.size(); ++i) {
@@ -75,18 +78,10 @@ void EscolhaDoOrientador::Load() {
 
 Actor* EscolhaDoOrientador::Texto(const std::string& conteudo, const Vector2& onde, const int tamanho,
                                   const int largura, const Vector3& cor, const int linhas) {
-    auto ator = std::make_unique<Actor>(this);
-    ator->SetPosition(onde);
-    const auto dc = ator->AddComponent<DrawTextComponent>(
-        conteudo.empty() ? std::string(" ") : conteudo, mFonte.get(), largura,
-        (tamanho + 8) * linhas, tamanho, kOrdemDoCursor - 10);
-    dc->SetLarguraDeQuebra(static_cast<unsigned>(largura));
-    dc->SetAjustarAoTexto(true);
+    auto* dc = CriarTexto(*this, mFonte.get(), conteudo, onde, tamanho, largura,
+                          (tamanho + 8) * linhas, kOrdemDoCursor - 10);
     dc->SetColor(cor);
-
-    Actor* observador = ator.get();
-    AddActor(std::move(ator));
-    return observador;
+    return dc->GetOwner();
 }
 
 void EscolhaDoOrientador::Escrever(Actor* ator, const std::string& texto, const Vector3& cor) {
@@ -101,19 +96,18 @@ void EscolhaDoOrientador::Escrever(Actor* ator, const std::string& texto, const 
 void EscolhaDoOrientador::CriarCabecalho() {
 
     const float meio = static_cast<float>(mGame->GetWindowWidth()) / 2.0f;
-    Texto("ESCOLHA O ORIENTADOR", Vector2(meio, 58.0f), 34, 700, Color::White);
+    Texto("ESCOLHA O ORIENTADOR", Vector2(meio, 34.0f), 30, 700, Color::White);
 
-    // QUEM COBRA E O PROFESSOR DA MATERIA, e nao um nome escrito aqui: a
-    // materia que pede orientacao e a que foi selecionada.
+    // Quem cobra e o professor da materia, e nao um nome escrito aqui.
     const Materias::Materia* m = Materias::Carregadas().Por(mGame->GetSelectedStage());
     const std::string banca = (m && !m->professor.empty())
         ? ("O Prof. " + m->professor + " cobra monografias e perguntas de banca.")
         : std::string("A banca cobra monografias e perguntas.");
-    Texto(banca, Vector2(meio, 104.0f), 22, 1000, Color::LightBlue);
+    Texto(banca, Vector2(meio, 68.0f), 20, 1000, Color::LightBlue);
 
-    Texto(EmDupla() ? "Cada um vota. Se discordarem, fica o professor da maior nota."
-                    : "Quem luta ao seu lado? Um professor das suas maiores notas.",
-          Vector2(meio, 136.0f), 20, 1000, Color::LightYellow);
+    Texto(EmDupla() ? "Cada um vota no poder que quer do lado: se discordarem, fica o da maior nota."
+                    : "Quem luta ao seu lado? Cada professor traz um poder da matéria dele: é o botão 3.",
+          Vector2(meio, 93.0f), 18, 1000, Color::LightYellow);
 }
 
 void EscolhaDoOrientador::CriarCartao(const int indice) {
@@ -129,12 +123,13 @@ void EscolhaDoOrientador::CriarCartao(const int indice) {
         kMolduraDoCartao, kFundoDoCartao, 2, kOrdemDoCartao);
     AddActor(std::move(cartao));
 
-    // O RETRATO E O CARTAO DE CHEFE DELE, lido da fabrica (IBossFactory::Retrato):
-    // o rosto que o aluno enfrentou na materia e o que agora luta do lado dele.
+    // O que o cartao mostra e medido do topo dele.
+    const Vector2 topo = centro + Vector2(0.0f, -kCartaoAltura / 2.0f);
+
     DrawSpriteComponent* retrato = nullptr;
     if (IBossFactory* fabrica = mGame->GetFactory(static_cast<size_t>(c.materia))) {
         auto rosto = std::make_unique<Actor>(this);
-        rosto->SetPosition(centro + Vector2(0.0f, -96.0f));
+        rosto->SetPosition(topo + Vector2(0.0f, kRetratoEm));
         rosto->SetScale(kEscalaDoRetrato);
         retrato = rosto->AddComponent<DrawSpriteComponent>(
             Caminhos::Asset(fabrica->Retrato() + ".png"), kOrdemDoRetrato);
@@ -143,19 +138,133 @@ void EscolhaDoOrientador::CriarCartao(const int indice) {
     mRetratos.push_back(retrato);
 
     const int largura = static_cast<int>(kCartaoLargura) - 30;
-    Texto("Prof. " + c.professor, centro + Vector2(0.0f, 20.0f), 26, largura, Color::White);
-    Texto(m ? m->nome : std::string(), centro + Vector2(0.0f, 56.0f), 22, largura, Color::LightYellow);
-    Texto(m ? m->nomeCompleto : std::string(), centro + Vector2(0.0f, 98.0f), 18, largura,
+    Texto("Prof. " + c.professor, topo + Vector2(0.0f, kProfessorEm), 24, largura, Color::White);
+    Texto(m ? m->nome : std::string(), topo + Vector2(0.0f, kMateriaEm), 20, largura, Color::LightYellow);
+    Texto(m ? m->nomeCompleto : std::string(), topo + Vector2(0.0f, kNomeDaMateriaEm), 16, largura,
           Color::LightBlue, 2);
 
-    // A NOTA QUE TROUXE O PROFESSOR ATE AQUI - e, na dupla, de quem ela e.
     std::stringstream nota;
     nota << "Nota " << std::fixed << std::setprecision(2) << c.nota;
+    if (EmDupla()) nota << "  (de J" << c.deQuem + 1 << ")";
     const Vector3 corDaNota = Nota::ECheia(c.nota) ? Color::Gold : Color::LightGreen;
-    Texto(nota.str(), centro + Vector2(0.0f, 146.0f), 22, largura, corDaNota);
-    if (EmDupla()) {
-        Texto("de J" + std::to_string(c.deQuem + 1), centro + Vector2(0.0f, 176.0f), 16, largura,
-              ParaVector3(CorDoAluno(c.deQuem)));
+    Texto(nota.str(), topo + Vector2(0.0f, kNotaEm), 20, largura, corDaNota);
+
+    CriarCurriculo(indice, topo);
+    CriarPrevia(indice, topo);
+}
+
+void EscolhaDoOrientador::CriarCurriculo(const int indice, const Vector2& topo) {
+
+    // Quantas vezes ele ja orientou quem esta jogando: na dupla, a de quem mais foi orientado.
+    const Orientacao::Candidato& c = mCandidatos[static_cast<size_t>(indice)];
+    int vezes = 0;
+    for (const auto& sessao : mGame->Sessoes()) vezes = std::max(vezes, sessao.progresso.Orientacoes(c.materia));
+
+    const SDL_Color cor = vezes > 0 ? kCorDeQuemOrientou : kCorDoNovo;
+    const Vector2 canto = topo + Vector2(kCartaoLargura / 2.0f - kCurriculoLargura / 2.0f - 8.0f,
+                                         kCurriculoAltura / 2.0f + 8.0f);
+    auto selo = std::make_unique<Actor>(this);
+    selo->SetPosition(canto);
+    selo->AddComponent<DrawCaixaComponent>(static_cast<int>(kCurriculoLargura), static_cast<int>(kCurriculoAltura),
+                                           cor, kFundoDaPrevia, 1, kOrdemDoRetrato + 2);
+    AddActor(std::move(selo));
+    // \xc3\xa1 e o a com acento.
+    const std::string texto = vezes > 0 ? "j\xc3\xa1 orientou " + std::to_string(vezes) + "x" : std::string("novo");
+    auto* dc = CriarTexto(*this, mFonte.get(), texto, canto, 14, static_cast<int>(kCurriculoLargura) - 6,
+                          static_cast<int>(kCurriculoAltura), kOrdemDoRetrato + 3);
+    dc->SetColor(ParaVector3(cor));
+}
+
+void EscolhaDoOrientador::CriarPrevia(const int indice, const Vector2& topo) {
+
+    const Orientacao::Candidato& c = mCandidatos[static_cast<size_t>(indice)];
+    const Poder::Descricao poder = Poder::Da(Golpe::DoProfessor(c.professor));
+    const int largura = static_cast<int>(kCartaoLargura) - 30;
+
+    PreviaDoCartao previa;
+    previa.tipo = poder.tipo;
+    if (poder.tipo == Poder::Tipo::Nenhum) {
+        mPrevias.push_back(previa);
+        return;
+    }
+
+    Texto("PODER: " + poder.nome, topo + Vector2(0.0f, kPoderEm), 22, largura, Color::Gold);
+
+    // O campo em miniatura, e o desenho animado dentro dele.
+    const Vector2 meio = topo + Vector2(0.0f, kPreviaEm);
+    auto campo = std::make_unique<Actor>(this);
+    campo->SetPosition(meio);
+    campo->AddComponent<DrawCaixaComponent>(static_cast<int>(kPreviaLargura) + 8, static_cast<int>(kPreviaAltura) + 8,
+                                            kMolduraDaPrevia, kFundoDaPrevia, 1, kOrdemDoRetrato);
+    previa.linhas = campo->AddComponent<DrawLinhasComponent>(kOrdemDoRetrato + 1);
+    previa.canto = meio - Vector2(kPreviaLargura / 2.0f, kPreviaAltura / 2.0f);
+    AddActor(std::move(campo));
+
+    previa.legenda = Texto(" ", topo + Vector2(0.0f, kLegendaEm), 16, largura, Color::White);
+    Texto(poder.efeito, topo + Vector2(0.0f, kEfeitoEm), 15, largura, Color::LightBlue, 2);
+    mPrevias.push_back(previa);
+}
+
+SDL_Color EscolhaDoOrientador::CorDaMarca(const Poder::Marca marca) {
+    switch (marca) {
+        case Poder::Marca::TiroDoHugo: return SDL_Color{240, 96, 96, 255};
+        case Poder::Marca::TiroSeu:    return SDL_Color{110, 230, 200, 255};
+        case Poder::Marca::Aluno:      return SDL_Color{255, 255, 255, 255};
+        case Poder::Marca::Hugo:       return SDL_Color{178, 150, 250, 255};
+        case Poder::Marca::Figura:     return SDL_Color{255, 214, 72, 255};
+        case Poder::Marca::Estrutura:  return SDL_Color{255, 190, 100, 235};
+        case Poder::Marca::Apagado:    return SDL_Color{120, 128, 150, 255};
+    }
+    return SDL_Color{255, 255, 255, 255};
+}
+
+void EscolhaDoOrientador::DesenharPrevias() {
+
+    for (PreviaDoCartao& previa : mPrevias) {
+        if (!previa.linhas) continue;
+        const Poder::Quadro quadro = Poder::Previa(previa.tipo, mTempoDaPrevia);
+        auto noCampo = [&previa](const float x, const float y) {
+            return previa.canto + Vector2(x * kPreviaLargura, y * kPreviaAltura);
+        };
+
+        previa.linhas->Limpar();
+        for (const Poder::Traco& t : quadro.tracos) {
+            previa.linhas->Acrescentar(noCampo(t.x0, t.y0), noCampo(t.x1, t.y1), CorDaMarca(t.cor));
+        }
+        for (const Poder::Ponto& p : quadro.pontos) {
+            const Vector2 c = noCampo(p.x, p.y);
+            const SDL_Color cor = CorDaMarca(p.marca);
+            auto poligono = [&](const std::vector<Vector2>& cantos) {
+                for (size_t i = 0; i < cantos.size(); ++i) {
+                    previa.linhas->Acrescentar(c + cantos[i], c + cantos[(i + 1) % cantos.size()], cor);
+                }
+            };
+            switch (p.marca) {
+                case Poder::Marca::Aluno:      // um triangulo, de ponta para cima
+                    poligono({Vector2(0.0f, -7.0f), Vector2(6.0f, 5.0f), Vector2(-6.0f, 5.0f)});
+                    break;
+                case Poder::Marca::Hugo:       // o cartao do professor
+                    poligono({Vector2(-9.0f, -7.0f), Vector2(9.0f, -7.0f), Vector2(9.0f, 7.0f), Vector2(-9.0f, 7.0f)});
+                    poligono({Vector2(-5.0f, -3.0f), Vector2(5.0f, -3.0f), Vector2(5.0f, 3.0f), Vector2(-5.0f, 3.0f)});
+                    break;
+                case Poder::Marca::Figura:
+                    poligono({Vector2(-4.0f, -4.0f), Vector2(4.0f, -4.0f), Vector2(4.0f, 4.0f), Vector2(-4.0f, 4.0f)});
+                    break;
+                case Poder::Marca::TiroSeu:    // sobe: um traco em pe
+                    poligono({Vector2(0.0f, -4.0f), Vector2(2.0f, 0.0f), Vector2(0.0f, 4.0f), Vector2(-2.0f, 0.0f)});
+                    break;
+                default:                       // o tiro do Hugo, e o que esta pendente
+                    poligono({Vector2(0.0f, -3.0f), Vector2(3.0f, 0.0f), Vector2(0.0f, 3.0f), Vector2(-3.0f, 0.0f)});
+                    poligono({Vector2(0.0f, -1.0f), Vector2(1.0f, 0.0f), Vector2(0.0f, 1.0f), Vector2(-1.0f, 0.0f)});
+                    break;
+            }
+        }
+
+        // A legenda so e reescrita quando o passo muda.
+        if (quadro.legenda != previa.escrita) {
+            previa.escrita = quadro.legenda;
+            Escrever(previa.legenda, quadro.legenda, Color::White);
+        }
     }
 }
 
@@ -175,8 +284,8 @@ void EscolhaDoOrientador::CriarCursores() {
         mSelos[static_cast<size_t>(a)] = Texto(selo, Vector2(0.0f, 0.0f), 20, 160, ParaVector3(CorDoAluno(a)));
     }
 
-    mEstado = Texto(" ", Vector2(static_cast<float>(mGame->GetWindowWidth()) / 2.0f, 688.0f),
-                    26, 1000, Color::White);
+    mEstado = Texto(" ", Vector2(static_cast<float>(mGame->GetWindowWidth()) / 2.0f, 704.0f),
+                    24, 1000, Color::White);
 }
 
 void EscolhaDoOrientador::CriarRodape() {
@@ -193,8 +302,7 @@ void EscolhaDoOrientador::CriarRodape() {
         return;
     }
 
-    // UMA LINHA POR ALUNO, da cor dele: as teclas de cada um sao outras, e no
-    // gabinete e o lado do painel que diz de quem e o manche.
+    // Uma linha por aluno, da cor dele.
     for (int a = 0; a < mVotacao.Alunos(); ++a) {
         const Painel::Jogador quem = DoAluno(a);
         const std::string linha = "J" + std::to_string(a + 1) + "   " + Painel::Rodape(
@@ -220,7 +328,7 @@ void EscolhaDoOrientador::OnProcessInput(const Uint8* keyState) {
         bool votar    = Painel::Apertado(keyState, quem, Painel::Botao::Um);
         bool desfazer = Painel::Apertado(keyState, quem, Painel::Botao::Dois);
         if (a == 0) {
-            // O ENTER e o ESC de quem desenvolve, como na selecao de fases.
+            // O enter e o ESC de quem desenvolve, como na selecao de fases.
             votar = votar || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
             desfazer = desfazer || keyState[SDL_SCANCODE_ESCAPE];
         }
@@ -232,8 +340,7 @@ void EscolhaDoOrientador::OnProcessInput(const Uint8* keyState) {
             if (mVotacao.Desfazer(a)) {
                 mMudou = true;
             } else if (a == 0) {
-                // SEM VOTO PARA DESFAZER, O J1 DESISTE DO TCC: volta para a
-                // selecao, sem orientador nenhum guardado.
+                // Sem voto para desfazer, o J1 desiste do TCC.
                 mSaindo = true;
                 mGame->DefinirOrientador(-1);
                 mGame->RequestSceneChange(SceneType::StageSelect);
@@ -248,6 +355,9 @@ void EscolhaDoOrientador::OnUpdate(const float deltaTime) {
 
     if (mSaindo) return;
 
+    mTempoDaPrevia += deltaTime;
+    DesenharPrevias();
+
     const int escolhido = Orientacao::Resultado(mCandidatos, mVotacao.Votos());
     if (escolhido != mEscolhido) {
         mEscolhido = escolhido;
@@ -259,8 +369,7 @@ void EscolhaDoOrientador::OnUpdate(const float deltaTime) {
         mMudou = false;
     }
 
-    // SEM CANDIDATO A BATALHA SEGUE SOZINHA, depois do mesmo anuncio: e melhor
-    // que prender o aluno numa tela sem nada para escolher.
+    // Sem candidato a batalha segue sozinha, depois do mesmo anuncio.
     const bool decidido = mCandidatos.empty() || escolhido >= 0;
     if (!decidido) return;
 
@@ -308,8 +417,6 @@ void EscolhaDoOrientador::Atualizar() {
         const Vector2 centro = temCartao ? mCentros[static_cast<size_t>(mVotacao.Cursor(a))] : Vector2::Zero;
         const bool votou = mVotacao.Votou(a);
 
-        // O CURSOR ACENDE QUANDO TRAVA: andando ele e meio apagado, votado e
-        // a cor cheia, com o selo em cima do cartao.
         cursor->SetPosition(centro);
         if (auto* caixa = cursor->GetComponent<DrawCaixaComponent>()) {
             SDL_Color cor = CorDoAluno(a);
@@ -320,11 +427,11 @@ void EscolhaDoOrientador::Atualizar() {
 
         // Em dupla os selos ficam lado a lado, para os dois caberem no mesmo cartao.
         const float lado = EmDupla() ? (a == 0 ? -72.0f : 72.0f) : 0.0f;
-        selo->SetPosition(centro + Vector2(lado, -kCartaoAltura / 2.0f - 44.0f));
+        selo->SetPosition(centro + Vector2(lado, -kCartaoAltura / 2.0f - kSeloAcima));
         if (auto* dc = selo->GetComponent<DrawTextComponent>()) dc->SetIsVisible(temCartao && votou);
     }
 
-    // ENQUANTO O ESCOLHIDO E ANUNCIADO, OS OUTROS ESCURECEM.
+    // Enquanto o escolhido e anunciado, os outros escurecem.
     for (size_t i = 0; i < mRetratos.size(); ++i) {
         if (!mRetratos[i]) continue;
         const Uint8 luz = (mEscolhido < 0 || static_cast<int>(i) == mEscolhido) ? 255 : kRetratoApagado;

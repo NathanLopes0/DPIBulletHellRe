@@ -5,390 +5,302 @@
 #ifndef DPIBULLETHELLRE_BATTLE_H
 #define DPIBULLETHELLRE_BATTLE_H
 
+#include <algorithm>
+#include <array>
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
 #include "../Scene.h"
-#include "../../Intercambio.h"
-#include "../../Game.h"
-#include "../../AudioSystem.h"
-#include "../../Pausa.h"
-#include "../../Dificuldade.h"
-#include "../../Variacao.h"
+#include "../../Regras/Intercambio.h"
+#include "../../Regras/Papeis.h"
+#include "../../Regras/Cobertura.h"
+#include "../../Regras/PontoExtra.h"
+#include "../../Regras/ContaDaNota.h"
+#include "../../Aluno/ProvaDaSemana.h"
+#include "../../Pesquisa/Experimento.h"
+#include "../../Motor/Game.h"
+#include "../../Motor/AudioSystem.h"
+#include "../../Entrada/Borda.h"
+#include "../../Interface/Devolutiva.h"
+#include "../../Regras/Dificuldade.h"
+#include "../../Interface/Hud.h"
+#include "../../Interface/Comunicacao.h"
+#include "../../Regras/Variacao.h"
+#include "Colisoes.h"
+#include "OuvinteDaBatalha.h"
 #include "../../Actors/Teachers/BossFactory/IBossFactory.h"
-
-#define GRADE_CHANGE_DOWN 6.f
-
 
 class Font;
 class Player;
 class ProjectileManager;
 class BattleHUD;
+class FaixaDaNota;
+class MolduraDoCampo;
+class PlacarDaFase;
+class RelogioDaFase;
+class EfeitosDaBatalha;
+class DesenhoSobreOsAlunos;
 class ExtraPointItem;
 class Orientador;
+class PausaDaBatalha;
+class TelaDoResultado;
+class DevolutivaDaBatalha;
+class BossProjectile;
+class PlayerProjectile;
 
-class Battle : public Scene {
+/// A cena da luta. Ela orquestra o quadro e guarda o estado da prova; quem conta a nota, mostra a
+/// faixa, os menus e os efeitos, e acha as colisoes, sao os colaboradores dela (FaixaDaNota,
+/// PausaDaBatalha, TelaDoResultado, EfeitosDaBatalha, DesenhoSobreOsAlunos, Colisoes). O que as
+/// colisoes acham, ela paga e cobra (Colisoes::Regras).
+class Battle : public Scene, private Colisoes::Regras {
 
 public:
 
     explicit Battle(Game* game, int selectedStage);
     ~Battle() override;
     void Load() override;
-    void CheckCollisions();
-    /**
-     * @brief Uma fase do chefe acabou e outra comecou.
-     *
-     * Chamado pelo callback que o Boss registra na maquina de estados. Faz duas
-     * coisas: reinicia a barra de tempo e FECHA a fase que terminou, pagando o
-     * bonus de fase limpa quando for o caso.
-     *
-     * Chamava-se ResetHUDTimer e so fazia a primeira. O nome mudou junto com o
-     * trabalho: um nome que descreve metade do que a funcao faz e pior que um
-     * nome generico.
-     */
-    void OnFaseTrocada(float novaDuracao);
+    void VerificarColisoes();
+    /// Uma fase do chefe acabou e outra comecou. Chamado pelo callback que o Boss registra na
+    /// maquina de estados.
+    void AoMudarDeFase(float novaDuracao);
 
-    [[nodiscard]] Boss* GetBoss() const { return mBoss; }
+    [[nodiscard]] Boss* Chefe() const { return mChefe; }
 
-    /// O orientador do TCC, quando ha um em campo. Ver LoadOrientador.
-    [[nodiscard]] Orientador* GetOrientador() const { return mOrientador; }
+    /// O orientador do TCC, quando ha um em campo.
+    [[nodiscard]] Orientador* OrientadorEmCampo() const { return mOrientador; }
 
-    /**
-     * @brief Paga uma CONQUISTA DA DUPLA: um ganho bruto, inteiro (nao passa por
-     * Nota::PorJogador - ver GradeUp). E o que o chefe usa para pagar o que o
-     * aluno faz alem de acertar o corpo dele: o objetivo cumprido do TCC.
-     */
-    void Conquistar(const float bruto) { if (EmCombate()) GradeUp(bruto); }
+    /// Paga uma conquista da dupla: um ganho bruto, inteiro (nao passa por Nota::PorJogador - ver
+    /// Nota::Conta::Subir).
+    void Conquistar(const float bruto) { if (EmCombate()) mConta.Subir(bruto); }
+
+    /// A transacao do Thiago (Poder.h): o ponto de volta da nota, e o fim - ROLLBACK se ela caiu
+    /// (devolve true), COMMIT se nao.
+    [[nodiscard]] Nota::Conta::Marca MarcarNota() const { return mConta.Marcar(); }
+    bool DesfazerNota(const Nota::Conta::Marca& marca) { return mConta.Desfazer(marca); }
+
+    /// O que tem de se resolver antes de a nota decidir a luta (a transacao aberta): 'fechar' e
+    /// chamado uma vez, no fim da fase que decide - ou nunca, se quem deixou a pendencia a tirar
+    /// antes (com nulo).
+    void DeixarPendencia(std::function<void()> fechar) { mPendencia = std::move(fechar); }
+    void FecharPendencias();
+
+    /// O try/catch do Luizinho (Poder.h): por 'segundos', o acerto que um aluno levaria nao tira
+    /// nota - vira uma excecao capturada, e 'aoCapturar' fica sabendo de quem.
+    void CapturarAcertos(float segundos, std::function<void(Player&)> aoCapturar);
 
     /// Se a luta esta valendo: nem carregando os projeteis, nem na tela de fim.
     /// Quem age por conta propria (o orientador) so age enquanto isto vale.
-    [[nodiscard]] bool EmCombate() const { return !mIsLoading && !mIsEnding; }
+    [[nodiscard]] bool EmCombate() const { return !mCarregando && !mAcabando; }
 
-    /**
-     * @brief TODOS os corpos do chefe em campo, e nao so o original.
-     *
-     * Normalmente e um so. Na fase que se divide sao dois, e QUALQUER UM DOS
-     * DOIS TOMA DANO - e por isso que as regras de colisao percorrem esta
-     * lista em vez de perguntar a mBoss. Mesma forma que mJogadores: a batalha
-     * nao pergunta "e co-op?" nem "esta dividido?", ela percorre o que existe.
-     *
-     * mBoss continua sendo o ORIGINAL, e e dele que saem a barra de tempo, o
-     * retrato do HUD e o prewarm dos projeteis - coisas que existem uma vez por
-     * luta e nao uma por corpo.
-     */
+    /// Todos os corpos do chefe em campo, e nao so o original. Normalmente e um so.
     [[nodiscard]] const std::vector<Boss*>& Corpos() const { return mCorpos; }
 
-    /**
-     * @brief O modo desta batalha (Dificuldade.h).
-     *
-     * Lido do Game no comeco do Load, antes de o chefe nascer, e o mesmo do
-     * comeco ao fim: a tela de Opcoes nao abre no meio de uma luta. E daqui que
-     * cada chefe le o proprio degrau (Boss::NoNivel).
-     */
+    /// O modo desta batalha (Dificuldade.h).
     [[nodiscard]] Dificuldade::Nivel NivelDeDificuldade() const { return mNivel; }
 
-    /**
-     * @brief A semente desta luta (Variacao.h): de onde cada chefe tira o que
-     * muda de uma batalha para a outra dentro de cada fase.
-     *
-     * Sorteada no comeco do Load e escrita no log, para que uma luta estranha
-     * possa ser repetida (no arnes, DPI_VARIACAO). Recomecar a fase pela pausa
-     * recarrega a cena, e a luta nova tem outra semente.
-     */
+    /// A semente desta luta (Variacao.h): de onde cada chefe tira o que muda de uma batalha para a
+    /// outra dentro de cada fase.
     [[nodiscard]] std::uint32_t SementeDaBatalha() const { return mSemente; }
 
-    /**
-     * @brief Poe um segundo corpo em campo, com os ataques da fase nomeada.
-     *
-     * Chamada pelo chefe ao entrar numa fase que declara "clone" em fases.json.
-     * Nao faz nada se ja houver um segundo corpo.
-     */
+    /// Poe um segundo corpo em campo, com os ataques da fase nomeada. Chamada pelo chefe ao entrar
+    /// numa fase que declara "clone" em fases.json.
     void DividirChefe(const std::string& faseDoClone);
 
-    /// @brief Tira de campo os corpos extras, deixando so o original.
+    /// Tira de campo os corpos extras, deixando so o original.
     void JuntarCorpos();
 
-    /**
-     * @brief OS JOGADORES EM CAMPO, na ordem das posicoes do painel.
-     *
-     * Um por sessao: quantos jogam foi decidido no menu, e a batalha nao
-     * pergunta se e co-op - ela percorre o que existe.
-     *
-     * Quem quer MIRAR nao usa esta lista: usa Alvo().
-     */
+    /// Os jogadores em campo, na ordem das posicoes do painel.
     [[nodiscard]] const std::vector<Player*>& Jogadores() const { return mJogadores; }
 
-    /**
-     * @brief EM QUEM UM ATAQUE MIRADO MIRA.
-     *
-     * Chamava-se GetPlayer(), e DOZE lugares a chamavam para esta mesma coisa:
-     * onde esta o alvo. O nome mentia por omissao - "o jogador" deixa de
-     * existir quando ha dois, e cada ataque teria de escolher por conta
-     * propria, doze vezes, cada um do seu jeito.
-     *
-     * ESTAVEL DENTRO DE UM DISPARO. O laser pergunta duas vezes (o nulo e a
-     * posicao) e as duas tem de dar o mesmo jogador; um laser que trocasse de
-     * alvo no meio do tracado seria ruido, nao dificuldade.
-     *
-     * ELA NAO PASSA A VEZ. Quem passa e RevezarAlvo, uma vez por disparo: se
-     * Alvo() revezasse sozinha, o laser trocaria de alvo entre a verificacao de
-     * nulo e a leitura da posicao, duas linhas depois.
-     *
-     * Devolve nullptr quando nao ha ninguem em campo, que acontece de verdade
-     * entre o Load e a criacao do jogador - os doze chamadores ja tratavam isso.
-     */
+    /// Em quem um ataque mirado mira.
     [[nodiscard]] Player* Alvo() const;
 
-    /**
-     * @brief Em qual POSICAO esta a vez.
-     *
-     * Quem precisa guardar o alvo guarda este numero, e NAO o ponteiro: os
-     * projeteis vem de um pool que vive no Game, entao um deles pode
-     * sobreviver a batalha que o criou - e um ponteiro para um jogador da
-     * batalha passada seria lixo apontando para memoria liberada.
-     */
-    [[nodiscard]] size_t IndiceDoAlvo() const { return mVezDoAlvo; }
+    /// Em qual posicao esta a vez: a de quem mais incomodou o professor (Papeis.h) ou, se os dois
+    /// incomodam parecido, a do revezamento. A vez dada (DarAVez) vale para o proximo disparo.
+    [[nodiscard]] size_t IndiceDoAlvo() const { return mMira.Alvo(mJogadores.size()); }
+
+    /// Em quem a mira esta presa (o marcador vermelho sobre o aluno); -1 quando os dois revezam.
+    [[nodiscard]] int FocoDaMira() const { return mMira.Foco(mJogadores.size()); }
 
     /// O jogador de uma posicao, ou nullptr fora da lista. E como um projetil
     /// resolve o numero que guardou.
     [[nodiscard]] Player* JogadorEm(size_t posicao) const;
 
-    /**
-     * @brief PASSA A VEZ para o proximo jogador.
-     *
-     * Chamado UMA vez por disparo, em Boss::ExecuteAttack - o unico lugar por
-     * onde todo ataque de todo chefe passa. Por disparo, e nao por quadro
-     * (requisitos-coop, D3).
-     *
-     * Com um jogador em campo nao faz nada observavel.
-     */
+    /// Passa a vez para o proximo jogador. Chamado uma vez por disparo, em Boss::ExecuteAttack - o
+    /// unico lugar por onde todo ataque de todo chefe passa.
     void RevezarAlvo();
 
-    /**
-     * @brief DA A VEZ a um jogador, antes de um disparo que e DELE.
-     *
-     * So o padrao Observer da Maria Lucia usa: quem mudou de estado e quem
-     * recebe os avisos, e nao o jogador da vez. O disparo passa a vez depois,
-     * como todos (RevezarAlvo). Posicao fora da lista nao faz nada.
-     */
+    /// Da a vez a um jogador, antes de um disparo que e dele - mesmo que a mira esteja no outro.
     void DarAVez(size_t posicao);
-    [[nodiscard]] ProjectileManager* GetProjectileManager() const { return mProjectileManager.get(); }
+    [[nodiscard]] ProjectileManager* GerenteDeProjeteis() const { return mProjeteis.get(); }
 
-    /// @brief A fonte do placar (Carlito), para quem escreve codigo no campo
-    /// (EtiquetaDeCodigo). E da batalha, que vive mais que os atores dela.
+    /// A fonte do placar (Carlito), para quem escreve codigo no campo (EtiquetaDeCodigo). E da
+    /// batalha, que vive mais que os atores dela.
     [[nodiscard]] Font* FonteDoPlacar() const { return mFonteDoPlacar.get(); }
 
     SDL_FRect GetPlayfieldBounds() const override;
-    /**
-     * @brief Um aluno gastou um Ponto Extra.
-     *
-     * RECEBE QUEM GASTOU porque em dupla o efeito e no OUTRO: a tela nao e
-     * limpa, o parceiro fica imune. Ver o corpo.
-     */
-    void OnPlayerUsedExtraPoint(Player* quemGastou);
+    /// Um aluno gastou um Ponto Extra. Recebe quem gastou porque em dupla o efeito e no outro: a
+    /// tela nao e limpa, o parceiro fica imune.
+    void AoGastarPontoExtra(Player* quemGastou);
 
-    /// @brief O outro aluno em campo, ou nullptr se este estiver sozinho.
+    /// Segundos desde que o painel do resultado apareceu (zero antes dele).
+    [[nodiscard]] float TempoNoResultado() const;
+
+    /// Na dupla, fora do TCC (la o Botao 3 e o poder do orientador), o aluno da um sinal ao
+    /// parceiro: um anel na cor dele e um som curto (Comunicacao.h).
+    void Sinalizar(const Player& quem);
+
+    /// O outro aluno em campo, ou nullptr se este estiver sozinho.
     [[nodiscard]] Player* OutroJogador(const Player* quem) const;
-    void SpawnExtraPoint(Vector2 position);
+    void SoltarPontoExtra(Vector2 position);
 
-    void FinishBattle(bool approved);
+    void EncerrarBatalha(bool aprovado);
 
-    /**
-     * @brief A nota da batalha EM CURSO.
-     *
-     * Quem precisa dela e a maquina de estados do chefe, para decidir entre a
-     * repescagem e o fim. Antes ela era lida de Game::GetGrade, que e o
-     * armazenamento persistente - o que tinha dois problemas: a nota so chegava
-     * la quando algo marcava 'changedGrade' (entao podia estar atrasada), e
-     * escrever nela durante a batalha fazia as regras de desbloqueio oscilarem.
-     */
-    [[nodiscard]] float GetNotaAtual() const { return mGrade; }
+    /// A nota da batalha em curso. Quem precisa dela e a maquina de estados do chefe, para decidir
+    /// entre a repescagem e o fim.
+    [[nodiscard]] float NotaAtual() const { return mConta.Valor(); }
+    /// Quantas vezes a dupla foi acertada nesta batalha.
+    [[nodiscard]] int AcertosSofridos() const { return mConta.AcertosSofridos(); }
+    /// O indice da materia desta batalha (Materias::Lista).
+    [[nodiscard]] int MateriaDaBatalha() const { return mMateria; }
 
-    /// @brief Se esta batalha ja perdeu o direito a nota cheia por dano sofrido.
-    [[nodiscard]] bool PerdeuACheia() const;
-
+    /// A janela perdeu o foco: a luta pausa sozinha (Pausa::PausaAoPerderOFoco).
+    void AoPerderOFoco() override;
 
 protected:
-    void TimeBarUpdate() const;
-
-    void GradeTextUpdate();
-    void GradeBarUpdate();
-
     void OnUpdate(float deltaTime) override;
     void OnProcessInput(const Uint8 *keyState) override;
 
 private:
-    // --- Funções Auxiliares de Lógica Interna ---
-    void LoadHUD();
-    void LoadPlayer();
-    void LoadBoss();
+    // ---- As colisoes (Colisoes.h): elas acham, a batalha paga e cobra ----
+    std::unique_ptr<Colisoes> mColisoes;
+    void AlunoAcertado(Player& aluno, const std::string& causa, float multiplicador, bool porUmTiro) override;
+    void AlunoRaspou(Player& aluno, const Vector2& onde) override;
+    /// Se o projetil ia no parceiro de quem o derrubou, e uma cobertura (Cobertura.h): paga inteira, com
+    /// a faisca dela e o valeu. Devolve se foi.
+    bool ProjetilDerrubado(const PlayerProjectile& tiro, const BossProjectile& projetil) override;
+    void ProfessorAcertado(const PlayerProjectile& tiro, const CircleColliderComponent& corpo, bool ouviu) override;
+    void PontoExtraPego(Player& aluno, bool primeiroDoQuadro) override;
 
-    /**
-     * O ORIENTADOR, SE A MATERIA PEDE UM E ALGUEM FOI ESCOLHIDO. Quem escolhe e
-     * a EscolhaDoOrientador, e o escolhido chega pelo Game (Game::Orientador).
-     * Depois dos jogadores, porque nasce ao lado deles.
-     */
-    void LoadOrientador();
+    // ---- Funções Auxiliares de Lógica Interna ----
+    void CriarHUD();
+    void CriarJogadores();
+    void CriarChefe();
 
-    void LoadTimeClock();
+    /// O orientador, se a materia pede um e alguem foi escolhido. Quem escolhe e a
+    /// EscolhaDoOrientador, e o escolhido chega pelo Game (Game::Orientador).
+    void CriarOrientador();
 
-    void LoadTimeBar();
-    void LoadGradeBar();
 
-    // ---- O PLACAR: o que o chefe anuncia na fase ("anuncio" em fases.json) ----
-    void LoadPlacar();
+
+    // ---- O placar: o que o chefe anuncia na fase ("anuncio" em fases.json) ----
+    /// O placar diz o anuncio da fase, ou o aviso do intercambio enquanto ele esta aceso.
     void AtualizarPlacar();
 
-    // ---- O INTERCAMBIO: os alunos trocam de lugar ("intercambio" em fases.json) ----
-    void LoadIntercambio();
+    // ---- O intercambio: os alunos trocam de lugar ("intercambio" em fases.json) ----
+    void CriarIntercambio();
     void AtualizarIntercambio(float deltaTime);
 
+    // ---- Membros de Estado da Batalha ----
 
-    // --- Membros de Estado da Batalha ---
-    float mGrade;
-    int mStage{};
+    /// A nota, os acertos sofridos e as fases limpas: quem paga e cobra passa por aqui.
+    Nota::Conta mConta;
+    int mMateria{};
 
-    /// Acertos sofridos NA FASE atual. Separado do contador da batalha porque
-    /// responde outra pergunta: o da batalha decide o teto de 99,99, este decide
-    /// o bonus de fase limpa. Zera a cada troca de fase.
-    int mAcertosNaFase{};
-
-    /// Fecha a fase em curso: paga o bonus se ela foi limpa e zera o contador.
-    /// Chamada na troca de fase E no fim da batalha - a ultima fase nao troca
-    /// para lugar nenhum, e sem isso ela nunca pagaria.
+    /// Fecha a fase em curso (Nota::Conta::FecharFase) e, se ela foi limpa, avisa.
     void EncerrarFase();
-
-    /// O callback da maquina de estados dispara tambem ao ENTRAR na primeira
-    /// fase, quando nao ha fase anterior. Sem isto, a batalha comecaria pagando
-    /// um bonus por uma fase que ninguem jogou.
-    bool mPrimeiraFase = true;
 
     /// Quanto tempo o aviso de fase limpa ainda fica na tela.
     float mAvisoDeFaseLimpa{};
 
-    Actor* mFaseLimpaActor = nullptr;
-
-    /// Ver NivelDeDificuldade.
     Dificuldade::Nivel mNivel = Dificuldade::Nivel::Normal;
 
-    /// Ver SementeDaBatalha.
     std::uint32_t mSemente = 0;
 
-    /// O selo DIFICIL, na ponta direita da faixa da nota. So existe no Dificil:
-    /// quem ve uma luta no corredor sabe que ela nao e a de sempre, e quem joga
-    /// sabe que a opcao ficou ligada por quem jogou antes.
-    Actor* mSeloDoNivel = nullptr;
+    // ---- Quem ouve a batalha (OuvinteDaBatalha) ----
 
-    /// Quantos projeteis do chefe acertaram o jogador NESTA batalha. Zera a cada
-    /// batalha junto com a nota: o teto de Nota e por batalha, nao por perfil.
-    /// Passado dos 2, a nota desta batalha para em 99,99 (ver Nota.h).
-    int mAcertosSofridos{};
+    std::vector<std::unique_ptr<OuvinteDaBatalha>> mOuvintes;
 
-    // ---- A FAIXA DA NOTA, na base da tela ----------------------------------
-    //
-    // Os numeros estavam soltos dentro de LoadGradeBar, e a altura estava
-    // escrita DE NOVO em GetPlayfieldBounds, com um comentario pedindo para
-    // manter as duas iguais. Pedido em comentario nao segura nada - e a conta
-    // dos textos ja dependia da altura por um caminho que ninguem via.
+    /// Anuncia a todos os ouvintes, na ordem em que entraram:
+    /// Avisar([&](OuvinteDaBatalha& o) { o.AoLimparFase(*this); }).
+    template <typename Aviso>
+    void Avisar(Aviso&& aviso) {
+        for (const auto& o : mOuvintes) aviso(*o);
+    }
 
-    /// A altura da barra. Era 25, e subiu junto com a moldura: um retangulo de
-    /// 25 px com 2 px de borda de cada lado sobra 21 de preenchimento.
-    static constexpr int kBarraAltura = 28;
+    // ---- O que se desenha na luta ----
 
-    /// A sobra dos lados. A barra ia de ponta a ponta da tela e encostava nas
-    /// bordas, o que a fazia parecer um risco no monitor em vez de uma peca.
-    static constexpr int kBarraMargemLateral = 40;
+    /// As faiscas, as ondas do Ponto Extra e as moedas (EfeitosDaBatalha.h).
+    std::unique_ptr<EfeitosDaBatalha> mEfeitos;
+    /// Por cima dos alunos: o feixe e o escudo do Ponto Extra, o sinal, o valeu, a mira presa e a
+    /// hitbox (DesenhoSobreOsAlunos.h).
+    std::unique_ptr<DesenhoSobreOsAlunos> mDesenhoSobreOsAlunos;
 
-    /// Do fundo da tela ate o TOPO da barra.
-    static constexpr int kBarraDoFundo = 54;
+    /// Quando cada aluno deu o ultimo sinal (mRelogioDaLuta): a espera entre um e outro.
+    std::array<float, 2> mUltimoSinal{Comunicacao::kNuncaSinalizou, Comunicacao::kNuncaSinalizou};
 
-    /// A placa atras de um texto da faixa.
-    ///
-    /// EXISTE POR LEITURA, nao por enfeite: o numero e branco e o
-    /// preenchimento passa por laranja - "52.64" sumia em cima dele. O mesmo
-    /// vale para o FASE LIMPA, que e verde claro sobre uma barra verde.
-    ///
-    /// ELA TINGE, NAO TAPA. A primeira versao era opaca e da altura da barra
-    /// mais dois: em vez de uma placa, lia-se um BURACO recortado no meio do
-    /// preenchimento, cortando a barra em duas. Translucida e da altura exata
-    /// da barra, ela escurece a faixa onde o numero esta e a barra continua
-    /// sendo uma coisa so.
-    /// O ganho bruto de gastar um Ponto Extra. Era um 10.f solto dentro de
-    /// OnPlayerUsedExtraPoint, ao lado de Nota::kGanhoPorAcerto e GRADE_CHANGE_DOWN
+    // ---- A HUD do campo ----
 
-    /// que ja moravam em constantes - e agora ele e repartido como os outros,
-    /// entao vale ter nome.
-    static constexpr float kGanhoDoPontoExtra = 10.0f;
+    /// O fundo, os trilhos e o "prof" (MolduraDoCampo.h).
+    std::unique_ptr<MolduraDoCampo> mMoldura;
+    /// A capsula do tempo da fase e o reloginho, ao lado do professor (RelogioDaFase.h).
+    std::unique_ptr<RelogioDaFase> mRelogio;
+    /// O quadro com o anuncio da fase (PlacarDaFase.h).
+    std::unique_ptr<PlacarDaFase> mPlacar;
 
-    // --- O PONTO EXTRA DO CO-OP, A VISTA (PontoExtra.h): o feixe de quem gastou
-    // ate o parceiro, e o anel do escudo em volta de quem esta protegido.
-    struct FeixeDoPontoExtra {
-        const Player* de = nullptr;
-        const Player* ate = nullptr;
-        float t = 0.0f;
-    };
-    std::vector<FeixeDoPontoExtra> mFeixes;
-    class DrawLinhasComponent* mDesenhoSobreOsAlunos = nullptr;
-    float mPulsoDoEscudo = 0.0f;
+    std::function<void()> mPendencia;
 
-    /// Na frente do aluno (100): o escudo e o que se le, e nao o sprite.
-    static constexpr int kOrdemSobreOsAlunos = 102;
+    /// O try do Luizinho: quanto falta dele, e quem fica sabendo de cada captura.
+    float mCapturando = 0.0f;
+    std::function<void(Player&)> mAoCapturar;
 
-    /// Anda os feixes e redesenha o que fica por cima dos alunos: os feixes,
-    /// os escudos e, se a opcao estiver ligada, a hitbox de cada um.
-    void AtualizarDesenhoSobreOsAlunos(float deltaTime);
+    /// O aluno para as contas da cobertura: onde ele esta, o colisor e se algo o atinge.
+    [[nodiscard]] Cobertura::Aluno AlunoDaCobertura(const Player* aluno) const;
 
+    /// Na dupla, o projetil destrutivel que vai num aluno brilha na cor dele (Cobertura::AlunoNoCaminho):
+    /// quem esta embaixo sabe que derruba-lo e a cobertura. E a mesma conta de ProjetilDerrubado.
+    void MarcarOCaminhoDosAlunos();
 
+    /// A posicao (0 ou 1) do aluno 'ator', ou -1 se ele nao e um aluno.
+    [[nodiscard]] int PosicaoDoAluno(const Actor* ator) const;
 
-    static constexpr int kPlacaLargura = 112;
+    /// Segundos de luta: sem carregamento, sem pausa e sem o resultado.
+    float mRelogioDaLuta = 0.0f;
+    /// Na dupla, quando cada aluno gastou o Ponto Extra pela ultima vez (mRelogioDaLuta): dois gastos
+    /// em PontoExtra::kJanelaDaSincronia sao a sincronia.
+    std::array<float, 2> mUltimoPontoExtra{PontoExtra::kNuncaGastou, PontoExtra::kNuncaGastou};
 
-    /// A dos avisos e mais larga: "TESTE FINAL" tem onze letras contra as seis
-    /// de "100.00".
-    static constexpr int kPlacaDoAvisoLargura = 196;
+    // ---- Ponteiros observadores do Boss e do Player, que vão estar dentro ----
+    Boss* mChefe{};
 
-    /// A MESMA altura da barra, e nao um numero proprio: dois pixels de
-    /// diferenca ja faziam a placa aparecer por cima da moldura.
-    static constexpr int kPlacaAltura  = kBarraAltura;
-    static constexpr int kOrdemDaPlaca = 303;   ///< o texto da faixa usa 304
-    static inline const SDL_Color kSemMoldura{0, 0, 0, 0};
-    static inline const SDL_Color kFundoDaPlaca{6, 8, 16, 135};
-
-    // --- Ponteiros observadores do Boss e do Player, que vão estar dentro
-    // do vetor mActors da própria cena Battle. Ideal para, mesmo num vetor de Actors,
-    // chamar funções específicas de Player e de Boss, e também para acesso rápido sem percorrer o vetor.
-    Boss* mBoss{};
-
-    /// O original mais os clones vivos. Ver Corpos().
+    /// O original mais os clones vivos.
     std::vector<Boss*> mCorpos;
 
-    /// OS JOGADORES, em vez de um. Ver Jogadores() e Alvo().
+    /// Os jogadores, em vez de um.
     std::vector<Player*> mJogadores;
 
     /// O orientador do TCC, ou nulo. O ator e da cena, como todos.
     Orientador* mOrientador = nullptr;
 
-    /// De quem e a vez de ser mirado. Ver RevezarAlvo.
-    size_t mVezDoAlvo = 0;
+    /// Em quem os ataques mirados vao: o incomodo, o revezamento e a vez dada (Papeis.h).
+    Papeis::Mira mMira;
+    /// As mecanicas que esta execucao desliga (Experimento.h), lidas ao criar a batalha.
+    Experimento::Condicao mCondicao;
 
-    // O GERENTE DE PROJÉTEIS: Um sistema especializado, possuído pela cena
-    std::unique_ptr<ProjectileManager> mProjectileManager;
+    // O gerente de projéteis: Um sistema especializado, possuído pela cena.
+    std::unique_ptr<ProjectileManager> mProjeteis;
 
-    // O HUD
+    // O HUD.
     std::unique_ptr<BattleHUD> mHUD;
-    std::unique_ptr<Font> mGradeBarFont;
+    /// A fonte da faixa da nota, que e tambem a dos menus e da tela de carregamento.
+    std::unique_ptr<Font> mFonteDaNota;
+    /// A faixa da nota, na base da tela (FaixaDaNota.h).
+    std::unique_ptr<FaixaDaNota> mFaixa;
 
-    /// A FONTE DO PLACAR NAO E A ZELDA, e nao por gosto: a Zelda nao tem "*" nem
-    /// "^" (nem "+" e "_", que ja viraram quadrado na tela), e "(ab)*" e "aⁿbⁿ" sao
-    /// justamente o que o placar do Vladimir escreve. A Carlito tem a notacao
-    /// inteira, inclusive os sobrescritos e o delta.
+    /// A Carlito tem a notacao inteira, inclusive os sobrescritos e o delta: a do placar, do "prof"
+    /// e da tela de carregamento.
     std::unique_ptr<Font> mFonteDoPlacar;
-    Actor* mPlacarActor = nullptr;
-
-    /// O texto que o placar mostra agora. So e refeito quando muda: SetText
-    /// renderiza uma textura nova, e fazer isso todo quadro seria pagar por um
-    /// texto que nao mudou. E o TEXTO, e nao a fase, que se compara: dentro de
-    /// uma fase com Intercambio o placar troca de texto durante o aviso.
-    std::string mTextoDoPlacar;
 
     /// O relogio do Intercambio da fase atual. Sem Intercambio ele fica
     /// invalido, e um relogio invalido nunca avisa nem troca (Intercambio.h).
@@ -405,143 +317,61 @@ private:
     // O que o placar diz enquanto o aviso esta aceso e do chefe: ver
     // Boss::AvisoDoIntercambio.
 
-    /// Logo acima dos projeteis (88 a 92) e abaixo do aluno (100): o marcador e
-    /// so uma moldura vazia, entao por cima dos tiros ele nao esconde nada, e
-    /// por baixo deles sumiria justo onde o campo esta cheio.
+    /// Logo acima dos projeteis (88 a 92) e abaixo do aluno (100).
     static constexpr int kOrdemDoMarcador = 95;
 
-    static constexpr int kPlacarLargura = 320;
-    static constexpr int kPlacarAltura  = 46;
-    static constexpr int kPlacarMargem  = 16;
-    static constexpr int kTamanhoDoPlacar = 30;
 
+    std::vector<ExtraPointItem*> mPontosExtras;
 
+    // ---- O fim da luta ----
 
-    /// ATRAS DOS PROJETEIS (88 a 92) e do aluno (100), e de proposito. O aluno
-    /// alcanca o campo inteiro, cantos de cima inclusive, e um placar por cima
-    /// esconderia um tiro justo de quem esta embaixo dele. Atras, ele e
-    /// CENARIO: o quadro da sala, e nao uma janela por cima do jogo.
-    static constexpr int kOrdemDoPlacar = 60;
-    Actor* mHUDTimeBarActor = nullptr;
-    Actor* mHUDClockActor = nullptr;
+    bool mAcabando = false;
+    /// O painel do resultado, com o toca aqui (TelaDoResultado.h): criado no fim, quando se sabe o
+    /// resumo.
+    std::unique_ptr<TelaDoResultado> mResultado;
 
-    Actor* mGradeBarActor = nullptr;
-    Actor* mGradeTextActor = nullptr;
+    /// A devolutiva (onde a nota caiu e por que) e a justica da dupla (o que cada aluno fez): um
+    /// ouvinte da batalha, que esta guarda em mOuvintes (DevolutivaDaBatalha.h).
+    DevolutivaDaBatalha* mDevolutiva = nullptr;
+    /// O que as horas complementares perguntam da prova (Horas.h).
+    class ContagemDaProva* mContagem = nullptr;
 
-    /// O "TESTE FINAL" na faixa da nota. Escondido ate a nota chegar a 100, e a
-    /// partir dali fica - ver GradeTextUpdate.
-    Actor* mTesteFinalActor = nullptr;
+    /// Esta luta e a prova da semana (ProvaDaSemana.h): a materia dela, na semana dela - a semente e
+    /// a mesma para todo mundo, e a nota entra no ranking da semana. Nunca na simulacao.
+    bool mProvaDaSemana = false;
+    ProvaDaSemana::Semana mSemanaDaProva;
+    /// Poe a nota no ranking da semana e devolve o lugar de quem jogou ("2o de 5"); vazio para o
+    /// visitante. 'posicao' sai com o lugar, ou zero.
+    std::string EntrarNoRankingDaSemana(int& posicao);
 
-    /**
-     * @brief Soma um ganho BRUTO na nota da batalha.
-     *
-     * SEM VALOR PADRAO, de proposito. Ha dois tipos de ganho e eles se
-     * repartem de formas diferentes (requisitos-coop, 2.1): o que um jogador
-     * causa passa por Nota::PorJogador, o que a dupla conquista e pago
-     * inteiro. Com um padrao, a chamada mais comum - o acerto no chefe - nao
-     * dizia qual dos dois era, e quem acrescentasse um ganho novo herdaria a
-     * escolha sem notar que havia uma.
-     */
-    void GradeUp(float amount);
+    SoundHandle mMusica;
 
-    /// Quanto vale, nesta batalha, algo que UM jogador causou. Ver
-    /// Nota::PorJogador: com um jogador em campo, devolve o proprio bruto.
-    [[nodiscard]] float PorJogador(float bruto) const;
+    // ---- Tela de Carregamento (pré-aquecimento dos pools de projétil) ----
+    bool mCarregando = false;
+    std::vector<std::string> mTiposACarregar; // nomes ainda não pré-aquecidos
+    int mTiposNoTotal = 0;   // quantos tipos existem no total (para a barra de progresso)
 
-    /// @brief O que um acerto sofrido custa: dividido E aliviado. Ver Nota.h.
-    [[nodiscard]] float PerdaPorJogador(float bruto) const;
-    /**
-     * @brief Cobra um acerto sofrido.
-     *
-     * @param multiplicadorDaPerda quanto da perda normal este acerto custa. O
-     *        padrao e 1 - a perda de sempre. As CORRENTES do Vitor usam um
-     *        valor baixo: elas quase nao cobram nota e em troca prendem o
-     *        aluno (ver o laco de colisao).
-     *
-     * A CONTAGEM DE ACERTOS NAO E MULTIPLICADA. Uma corrente conta como acerto
-     * para tudo que conta acertos - o direito a nota cheia, a fase limpa -,
-     * porque o aluno foi acertado de verdade.
-     */
-    void GradeDown(float multiplicadorDaPerda = 1.0f);
+    // A tela de carregamento cobre a batalha inteira - um veu escuro com o nome da materia e uma
+    // barra enchendo.
+    std::unique_ptr<class TelaDeCarregamento> mTelaDeCarregamento;
 
-    std::vector<ExtraPointItem*> mExtraPoints;
+    void ComecarCarregamento();
+    void AvancarCarregamento(float deltaTime); // processa 1 tipo de projétil por chamada
+    void TerminarCarregamento();
 
-    void LoadEndScreen(); // Cria o texto escondido
+    // ---- A pausa, so no computador (PausaDaBatalha.h) ----
 
-    // --- Variáveis de Final de Jogo ---
-    bool mIsEnding = false;
-    float mEndTimer = 0.0f;
-    bool mIsApproved = false; // Para saber pra onde ir ou que cor usar
-
-    Actor* mEndTextActor = nullptr; // O texto gigante
-
-    SoundHandle mMusicHandle;
-
-    // --- Tela de Carregamento (pré-aquecimento dos pools de projétil) ---
-    // Battle::Load() NÃO pode pré-aquecer tudo de uma vez de forma síncrona
-    // sem travar o jogo por alguns segundos (carregar textura do disco para
-    // 300 instâncias x N tipos de projétil é um trabalho real). Em vez
-    // disso, processamos UM TIPO de projétil inteiro por frame, desenhando
-    // uma barra/texto de progresso nesse meio tempo. Enquanto mIsLoading for
-    // true, OnUpdate() não roda a lógica normal de gameplay.
-    bool mIsLoading = false;
-    std::vector<std::string> mLoadingPendingFactoryNames; // nomes ainda não pré-aquecidos
-    int mLoadingTotalTypes = 0;   // quantos tipos existem no total (para a barra de progresso)
-    Actor* mLoadingTextActor = nullptr;
-
-    void StartLoadingProjectilePools();
-    void UpdateLoadingStep(); // processa 1 tipo de projétil por chamada
-    void FinishLoadingProjectilePools();
-
-    // ---- A PAUSA, so no computador (Pausa.h) --------------------------------
-    //
-    // O ESC congela a cena (Scene::mAtoresCongelados) e o OnUpdate para antes
-    // dos projeteis, das colisoes e dos relogios: a batalha inteira espera, e
-    // volta do quadro em que parou. O menu e um veu por cima de tudo, com as
-    // opcoes no meio.
-
-    void LoadPausa();
+    std::unique_ptr<PausaDaBatalha> mPausa;
+    /// Abre o menu, congela os atores e para o aluno e a musica.
     void AbrirPausa();
-    void FecharPausa();
-    void MostrarPausa(bool visivel);
-    void PosicionarSelecaoDaPausa();
-    void ProcessarPausa(const Uint8* keyState, bool escNovo);
-    void EscolherNaPausa();
+    /// A contagem acabou: os atores e a musica voltam.
+    void Retomar();
 
-    /**
-     * @brief Sai da batalha no meio, para 'destino', SEM REGISTRAR A NOTA.
-     *
-     * Quem sai pelo menu desistiu da tentativa, e uma tentativa abandonada nao
-     * e uma nota: gravar o 40 do comeco como "ultima nota" mentiria na ficha.
-     * A limpeza e a mesma do fim da batalha - os projeteis voltam aos pools e
-     * o que o chefe desenhou no campo some -, so que sem a tela de nota.
-     */
+    /// Sai da batalha no meio, para 'destino', sem registrar a nota.
     void SairDaBatalha(SceneType destino);
 
-    Pausa::Menu mPausa;
-
-    /// Comecam apertadas: um ESC ou um botao que ja vinha segurado de antes nao
-    /// conta como batida nova.
-    bool mEscAnterior = true;
-    bool mCimaNaPausa = true;
-    bool mBaixoNaPausa = true;
-    bool mConfirmarNaPausa = true;
-
-    Actor* mVeuDaPausa = nullptr;
-    Actor* mPlacaDaPausa = nullptr;
-    Actor* mTituloDaPausa = nullptr;
-    Actor* mSelecaoDaPausa = nullptr;
-    Actor* mRodapeDaPausa = nullptr;
-    std::vector<Actor*> mOpcoesDaPausa;
-
-    /// POR CIMA DE TUDO: a faixa da nota vai ate 304 e o texto do fim usa 300.
-    static constexpr int kOrdemDaPausa = 900;
-    static constexpr int kLarguraDaPlacaDaPausa = 620;
-    static constexpr int kAlturaDaPlacaDaPausa = 380;
-    static constexpr int kLarguraDaSelecaoDaPausa = 440;
-    static constexpr int kAlturaDaSelecaoDaPausa = 54;
-    static constexpr float kPassoDaPausa = 66.0f;
+    /// O ESC e borda, e nao estado: segurado, ele abriria e fecharia a pausa a cada quadro.
+    Borda mBordaEsc{true};
 };
 
-
-#endif //DPIBULLETHELLRE_BATTLE_H
+#endif // DPIBULLETHELLRE_BATTLE_H.

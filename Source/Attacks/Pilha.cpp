@@ -6,10 +6,6 @@
 
 namespace Pilha {
 
-    Operacao Proxima(const int altura, const std::uint32_t sorteio) {
-        return Proxima(altura, sorteio, Plano{});
-    }
-
     Operacao Proxima(const int altura, const std::uint32_t sorteio, const Plano& p) {
         Operacao op;
         op.valor = static_cast<int>((sorteio >> 12) % 10u);
@@ -30,6 +26,12 @@ namespace Pilha {
         return kPrimeiroBloco + static_cast<float>(k < 0 ? 0 : k) * kEntreBlocos;
     }
 
+    int LadoDaPilha(const int coluna, const int colunas, const std::uint32_t sorteio) {
+        if (coluna <= 0) return 1;
+        if (coluna >= colunas - 1) return -1;
+        return (sorteio & 1u) == 0u ? 1 : -1;
+    }
+
     std::string Placar(const Operacao& op, const int topo) {
         switch (op.tipo) {
             case Tipo::Push:     return "push(" + std::to_string(op.valor) + ")";
@@ -46,8 +48,6 @@ namespace Pilha {
     Plano Sortear(Variacao::Sorteio& s) {
         Plano p;
         p.capacidade = s.Inteiro(kMenorCapacidade, kMaiorCapacidade);
-        // A CHANCE ANDA COM A CAPACIDADE: numa pilha maior o push e mais
-        // provavel, e o overflow continua chegando em quase toda fase.
         p.chanceDePush = s.Real(0.55f, 0.65f) + 0.05f * static_cast<float>(p.capacidade - kMenorCapacidade);
         return p;
     }

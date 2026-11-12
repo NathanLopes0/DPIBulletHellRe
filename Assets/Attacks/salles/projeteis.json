@@ -1,21 +1,5 @@
 {
-  // ==========================================================================
-  // OS PROJETEIS DO SALLES
-  //
-  // UMA PASTA POR CHEFE: Assets/Attacks/salles/. A pasta diz de quem e o
-  // arquivo, entao aqui dentro ficam so os nomes que o campo "projetil" de uma
-  // fase usa -> como aquele projetil e montado. Antes era um projeteis.json so,
-  // com um nivel a mais dizendo o nome do chefe; com uma pasta por chefe esse
-  // nivel seria uma segunda fonte da mesma verdade, livre para discordar do
-  // nome da pasta.
-  //
-  // OS CAMPOS estao documentados em Documentacao/arquivos-de-dados.md.
-  //
-  // O que impede um erro de digitacao aqui de chegar ao jogo e
-  // tests/test_arquivos_de_dados.cpp: ele le este arquivo junto com as fases e
-  // com os atlas de verdade, e quebra a suite se um ataque pedir um projetil
-  // que nao existe ou se uma animacao citar um quadro que a folha nao tem.
-  // ==========================================================================
+  // Os projeteis do Salles. Uma pasta por chefe: Assets/Attacks/salles/.
 
   // Dois quadros: capivara marrom e capivara vermelha. A troca para "Homing"
   // e feita pelo configurator do ataque, logo depois do Acquire.
@@ -30,17 +14,7 @@
     "ordemDeDesenho": 90
   },
 
-  // A CAPIVARA QUE ATRAVESSA O CAMPO (Capivara.h). Nao e tiro: e um ABRIGO.
-  // Todo projetil do professor que encosta nela some, ela nao machuca o aluno,
-  // e o tiro do aluno some nela tambem (DescricaoDeProjetil::abrigo). Quem anda
-  // embaixo dela fica protegido - e nao acerta o professor.
-  //
-  // Vista de lado, com quatro passos para cada lado; quem escolhe o lado e o
-  // Salles, conforme a borda por onde ela entra. Por cima dos outros projeteis,
-  // para o aluno VER os tiros sumirem nela. O colisor vem da largura: o abrigo
-  // e o corpo inteiro, de ponta a ponta.
-  //
-  // Arte PROVISORIA de Ferramentas/gerar_salles.py.
+  // A capivara que atravessa o campo (Capivara.h). Nao e tiro: e um abrigo.
   "Capivarona": {
     "sprite": "Teachers/Projectiles/DPIBHSallesCapivarona.png",
     "dados":  "Teachers/Projectiles/DPIBHSallesCapivarona.json",
@@ -55,12 +29,8 @@
     "abrigo": true
   },
 
-  // OS BLOCOS DA PILHA DA FASE 1 (Pilha.h), numerados de 0 a 9. Derrubaveis,
-  // com tres tiros: o tiro do aluno acerta primeiro o bloco de baixo - o topo
-  // -, e so da para tirar o topo. Enquanto a pilha esta pendurada, ela e a
-  // armadura do professor.
-  //
-  // Arte PROVISORIA de Ferramentas/gerar_salles.py.
+  // Os blocos da pilha da fase 1 (Pilha.h), numerados de 0 a 9. Dois tiros derrubam um no Normal,
+  // tres no Dificil.
   "Bloco": {
     "sprite": "Teachers/Projectiles/DPIBHSallesPilha.png",
     "dados":  "Teachers/Projectiles/DPIBHSallesPilha.json",
@@ -72,11 +42,12 @@
     "escala": 1.1,
     "ordemDeDesenho": 89,
     "derrubavel": true,
-    "resistencia": 3
+    "resistencia": 2,
+    "dificil": { "resistencia": 3 }
   },
 
-  // AS LASCAS DE UM BLOCO QUE ESTOUROU: o pop e o valor do topo, e o bloco
-  // tirado estoura em tantas lascas quanto o numero dele.
+  // As lascas de um bloco que estourou: o pop e o valor do topo, e o bloco tirado estoura em tantas
+  // lascas quanto o numero dele.
   "Lasca": {
     "sprite": "Teachers/Projectiles/DPIBHSallesPilha.png",
     "dados":  "Teachers/Projectiles/DPIBHSallesPilha.json",
@@ -88,12 +59,7 @@
     "ordemDeDesenho": 90
   },
 
-  // A TABELA HASH DA FASE 2 (Hash.h). A CHAVE, de 0 a 99, pendurada na lista do
-  // balde dela: derrubavel com dois tiros - o aluno remove a chave a tiro, e o
-  // tiro que sobe acerta primeiro o fim da lista. Quem escolhe a cara e o
-  // Salles (Hash::CaraDaChave).
-  //
-  // Arte PROVISORIA de Ferramentas/gerar_salles.py.
+  // A tabela hash da fase 2 (Hash.h).
   "Chave": {
     "sprite": "Teachers/Projectiles/DPIBHSallesHash.png",
     "dados":  "Teachers/Projectiles/DPIBHSallesHash.json",
@@ -115,8 +81,8 @@
     "resistencia": 2
   },
 
-  // OS BALDES, a fileira da tabela: enfeite (Salles::FormarBaldes). Ate 17, o
-  // maior tamanho de Hash::kTamanhos.
+  // Os baldes, a fileira da tabela: enfeite (Salles::FormarBaldes). Ate 17, o maior tamanho de
+  // Hash::kTamanhos.
   "Balde": {
     "sprite": "Teachers/Projectiles/DPIBHSallesHash.png",
     "dados":  "Teachers/Projectiles/DPIBHSallesHash.json",
@@ -128,8 +94,7 @@
     "ordemDeDesenho": 86
   },
 
-  // O TIRO DE CADA NO LIDO numa busca, e o NULL que cai do fim da lista quando
-  // ela nao acha.
+  // O tiro de cada no lido numa busca, e o NULL que cai do fim da lista quando ela nao acha.
   "Percurso": {
     "sprite": "Teachers/Projectiles/DPIBHSallesHash.png",
     "dados":  "Teachers/Projectiles/DPIBHSallesHash.json",
@@ -147,8 +112,8 @@
     "ordemDeDesenho": 90
   },
 
-  // AS ARESTAS DA ARVORE DA FASE 3: pontos apagados entre cada no e o pai
-  // dele. Enfeite (Salles::AtualizarArvore) - sao o desenho da arvore.
+  // As arestas da arvore da fase 3: pontos apagados entre cada no e o pai dele. Enfeite
+  // (Salles::AtualizarArvore) - sao o desenho da arvore.
   "Elo": {
     "sprite": "Teachers/Projectiles/DPIBHSallesHash.png",
     "dados":  "Teachers/Projectiles/DPIBHSallesHash.json",
@@ -157,10 +122,8 @@
     "ordemDeDesenho": 85
   },
 
-  // O NO DA ARVORE DA FASE 3: a mesma chave da tabela hash, mas com quatro
-  // tiros de resistencia, e nao dois. Com dois, a raiz - que fica em cima de
-  // quem esta no meio - caia o tempo todo, e com ela a arvore inteira: na foto
-  // a arvore nunca passava de dois nos.
+  // O no da arvore da fase 3: a mesma chave da tabela hash, mas com quatro tiros de resistencia, e
+  // nao dois.
   "No": {
     "sprite": "Teachers/Projectiles/DPIBHSallesHash.png",
     "dados":  "Teachers/Projectiles/DPIBHSallesHash.json",
@@ -183,10 +146,8 @@
     "resistencia": 4
   },
 
-  // O ELEMENTO DO VETOR DA REPESCAGEM (Ordenacao.h): a mesma chave da tabela
-  // hash, com tres tiros de resistencia - o aluno remove o elemento a tiro, e o
-  // vetor fecha o buraco. Quem escolhe a cara e o Salles
-  // (Ordenacao::CaraDoElemento).
+  // O elemento do vetor da repescagem (Ordenacao.h): a mesma chave da tabela hash, com tres tiros
+  // de resistencia.
   "Elemento": {
     "sprite": "Teachers/Projectiles/DPIBHSallesHash.png",
     "dados":  "Teachers/Projectiles/DPIBHSallesHash.json",

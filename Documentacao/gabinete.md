@@ -21,6 +21,7 @@ não precisa de nada daqui: **o padrão é a janela**, do jeito que o CLion abre
 |---|---|
 | `--arcade` | liga o modo gabinete |
 | `--ociosidade <segundos>` | quanto tempo parado volta ao menu. `0` desliga |
+| `--condicao <nomes>` | a condição de um experimento: as mecânicas que esta sessão desliga (`sem-brilho`, `sem-papeis`...). Sem ela, tudo ligado. Ver `dados-das-tentativas.md` |
 
 Sem `--arcade`, o jogo abre em janela, fecha no X e não volta ao menu sozinho.
 
@@ -30,6 +31,11 @@ menu numa janela, sem esperar um minuto e sem perder a tela de quem desenvolve.
 Argumento que o jogo não conhece é ignorado, e os seguintes continuam valendo.
 Um erro de digitação no script não pode impedir o jogo de abrir numa máquina
 onde ninguém vê o terminal.
+
+Os parâmetros do **modo de simulação** (`--batalha`, `--piloto`, `--passo`...)
+**não vão neste script**: com eles o jogo pula o menu, joga sozinho e pode até
+fechar no fim da luta. Servem para medir o jogo sem tela, e estão em
+`build-e-testes.md`.
 
 ---
 
@@ -55,9 +61,11 @@ A **batalha não volta sozinha**: ficar parado é uma forma legítima de desviar
 ela já termina por tempo.
 
 **Do menu a ociosidade leva para a frente**, não de volta: passado o mesmo tempo
-parado no menu principal, entra a **tela de atração** — o título com a chamada e
-os melhores do curso, alternando a cada seis segundos. Qualquer tecla volta ao
-menu; não há o que escolher ali, então não há botão certo.
+parado no menu principal, entra a **tela de atração** — o título com a chamada,
+os melhores do curso e o mural dos formados (quem passou no TCC, de capelo, dos
+mais recentes), alternando a cada seis segundos. Um cartaz sem ninguém para
+mostrar não entra. Qualquer tecla volta ao menu; não há o que escolher ali,
+então não há botão certo.
 
 A tela de atração também não volta sozinha: ela já é a tela de quem não está
 jogando.
@@ -84,7 +92,7 @@ sete**, e nenhuma repetida entre as duas posições. Uma tecla repetida faria os
 dois manches moverem o mesmo aluno, que era o estado do código antes de a
 segunda posição existir: o `W A S D` era atalho das setas.
 
-As teclas moram numa tabela só, em `Source/Painel.cpp`. É ela que muda no dia
+As teclas moram numa tabela só, em `Source/Entrada/Painel.cpp`. É ela que muda no dia
 em que o encoder chegar e mandar outra coisa; nenhuma cena e nenhum jogador
 guarda tecla própria.
 
@@ -102,8 +110,15 @@ mas **não aparecem escritos em lugar nenhum**.
 (continuar, recomeçar a fase, sair dela) que **só existe no computador**, e o
 rodapé desse menu escreve "ESC continuar". No gabinete a pausa não abre
 (`Pausa::PodePausar`) — o painel não tem `ESC`, e uma batalha congelada no
-corredor seria uma tela morta para quem chega depois. O `Ctrl + Esc` de quem
+corredor seria uma tela morta para quem chega depois. Pela mesma razão, perder
+o foco da janela também não pausa no gabinete. O `Ctrl + Esc` de quem
 mantém a máquina continua sendo o de sempre.
+
+**A tela de resultado volta sozinha.** A ociosidade do gabinete não vale dentro
+da batalha — uma luta em andamento não pode ser interrompida —, e a tela de
+resultado é parte da batalha. Para a máquina não ficar parada no resumo de quem
+foi embora sem escolher, ela volta para as matérias depois de 20 segundos
+(`Resultado::kEsperaNoGabinete`), e dali a ociosidade de sempre assume.
 
 Cada tela dá o significado dos botões no rodapé. O Botão 2 é quase sempre
 "voltar" — na seleção de fases, voltar é trocar de aluno, e o rodapé diz isso
@@ -141,7 +156,7 @@ código — um laço que reabre.
 
 ## Onde isso está no código
 
-`Source/Gabinete.h` tem a camada pura: a leitura da linha de comando e a
+`Source/Motor/Gabinete.h` tem a camada pura: a leitura da linha de comando e a
 contagem de tempo. As duas esperas do gabinete — "ninguém mexeu" e "o operador
 está segurando" — são a **mesma** classe com a condição trocada, e um limite
 zero desliga a contagem. É por isso que não há `if (arcade)` espalhado:
@@ -155,7 +170,7 @@ leva em cada tela está numa tabela só, em `ParaOndeAOciosidadeLeva`.
 **mesmo** `Gabinete::Contagem` das duas esperas — terceiro uso da classe, com a
 condição sempre verdadeira.
 
-`Source/Painel.h` tem os botões: a tecla de cada um, o nome com que cada um
+`Source/Entrada/Painel.h` tem os botões: a tecla de cada um, o nome com que cada um
 aparece escrito, e o montador de rodapé. Nenhuma cena escreve `SDL_SCANCODE_`
 para os botões do painel.
 

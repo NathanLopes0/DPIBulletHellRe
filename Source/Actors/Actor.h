@@ -10,7 +10,7 @@
 #include <memory>
 #include <SDL_stdinc.h>
 
-#include "../Math.h"
+#include "../Motor/Math.h"
 #include "../Components/Component.h"
 
 enum class ActorState
@@ -20,7 +20,6 @@ enum class ActorState
     Inactive,
     Destroy
 };
-
 
 class Actor {
 
@@ -33,35 +32,28 @@ public:
     // ProcessInput function called from Game (not overridable)
     void ProcessInput(const Uint8* keyState);
 
-    // Position getter/setter
+    // Position getter/setter.
     const Vector2& GetPosition() const { return mPosition; }
     void SetPosition(const Vector2& pos) { mPosition = pos; }
 
     Vector2 GetForward() const { return Vector2(Math::Cos(mRotation), -Math::Sin(mRotation)); }
 
-    // Scale getter/setter
+    // Scale getter/setter.
     float GetScale() const { return mScale; }
     void SetScale(float scale) { mScale = scale; }
 
-    // Rotation getter/setter
-    // UNIDADE: RADIANOS. GetForward() usa Math::Cos/Sin (que sao cosf/sinf) e
-    // DrawSpriteComponent compara com Math::Pi, entao o motor so e coerente
-    // com radianos. A conversao para graus acontece unicamente na hora de
-    // desenhar (DrawAnimatedComponent::Draw), porque SDL_RenderCopyEx espera
-    // graus. Antes as duas convencoes coexistiam e o LaserAttack gravava graus
-    // aqui, o que fazia GetForward() devolver uma direcao sem nenhuma relacao
-    // com o angulo pretendido.
+    // Rotation getter/setter unidade: radianos.
     float GetRotation() const { return mRotation; }
     void SetRotation(float rotation) { mRotation = rotation; }
 
-    // State getter/setter
+    // State getter/setter.
     ActorState GetState() const { return mState; }
     void SetState(ActorState state) { mState = state; }
 
-    // Game getter
+    // Game getter.
     class Scene* GetScene() { return mScene; }
 
-    // Returns component of type T, or null if it doesn't exist
+    // Returns component of type T, or null if it doesn't exist.
     template <typename T>
     T* GetComponent() const
     {
@@ -104,15 +96,15 @@ protected:
     // Any actor-specific update code (overridable)
     virtual void OnProcessInput(const Uint8* keyState);
 
-    // Actor's state
+    // Actor's state.
     ActorState mState;
 
-    // Transform
+    // Transform.
     Vector2 mPosition;
     float mScale;
     float mRotation;
 
-    // Components
+    // Components.
     std::vector<std::unique_ptr<Component>> mComponents;
 
 private:
@@ -120,5 +112,4 @@ private:
 
 };
 
-
-#endif //DPIBULLETHELLRE_ACTOR_H
+#endif // DPIBULLETHELLRE_ACTOR_H.

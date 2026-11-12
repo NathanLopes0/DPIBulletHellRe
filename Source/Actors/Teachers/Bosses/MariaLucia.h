@@ -16,36 +16,7 @@
 
 class DrawLinhasComponent;
 
-/**
- * @class MariaLucia
- * @brief A professora de Engenharia de Software (INF 221), que tambem da IHC.
- *
- * O BALANCEAMENTO DELA VIVE EM DADOS: as fases em
- * Assets/Attacks/marialucia/fases.json e as regras de projetil no regras.json
- * ao lado.
- *
- * A IDEIA DA CHEFE: as outras disciplinas do jogo sao OBJETOS - uma estrutura
- * de dados, uma linguagem, uma primitiva de concorrencia. Engenharia de
- * Software e um PROCESSO, e cada fase dela e um processo ou um padrao de
- * verdade:
- *
- *   fase 1  o MODELO CASCATA: cinco etapas em ordem, ela descendo a escada
- *           do diagrama (EscadaStrategy), e o que cada etapa entrega passando
- *           para a seguinte (Cascata.h): os pedidos viram classes, as classes
- *           viram codigo e bugs, os bugs que sobram viram divida;
- *   fase 2  os METODOS AGEIS: cinco sprints, e o cursor que arrasta as
- *           historias (SprintAttack);
- *   fase 3  o padrao OBSERVER: o aluno e o sujeito, e os olhos dela o assinam;
- *   final   NAO HA BALA DE PRATA (BalaDePrata.h): as promessas da industria
- *           que se desfazem em bugs, e o tiro do aluno como teste com usuario.
-
- *
- * O que mora aqui e a cascata da fase 1 em campo, e o SUJEITO da fase 3
- * (Observer.h): a cada quadro ela le para onde cada aluno esta indo e,
- * quando o estado muda - ou quando ninguem avisa por um tempo, o polling -,
- * puxa o gatilho dos avisos (Boss::Disparar). Desenha tambem as assinaturas,
- * uma linha de cada olho ate o aluno, e faz cada olho olhar para ele.
- */
+/// A professora de Engenharia de Software (INF 221), que tambem da ihc.
 class MariaLucia : public Boss {
 public:
     explicit MariaLucia(Scene* scene);
@@ -65,16 +36,10 @@ protected:
                               const std::string& stateName) override;
 
 private:
-    // ---- A LUTA SORTEADA ----------------------------------------------------
-    //
-    // Antes do primeiro quadro (Variacao.h): a ordem em que as classes da
-    // cascata falam, o planning poker das sprints - escrito no placar de cada
-    // uma -, e o relogio do sujeito do Observer, com o degrau do modo.
+    // ---- A luta sorteada ----
 
     void SortearALuta();
 
-    /// A sprint em que a fase 2 esta agora (0 a 4), pelo relogio da fase e
-    /// pelos fins registrados das etapas.
     [[nodiscard]] int SprintDaVez() const;
 
     bool mLutaSorteada = false;
@@ -84,7 +49,7 @@ private:
 
     static constexpr const char* kFaseDosMetodos = "StateTwo";
 
-    // ---- NAO HA BALA DE PRATA (a repescagem, BalaDePrata.h) ----------------
+    // ---- Nao ha bala de prata (a repescagem, BalaDePrata.h) ----
 
     void AtualizarBalas(float deltaTime);
 
@@ -104,9 +69,7 @@ private:
     std::string mTextoDaBala;
     float mTextoDaBalaPor = 0.0f;
 
-
-    // ---- A CASCATA (fase 1) -------------------------------------------------
-
+    // ---- A cascata (fase 1) ----
 
     void AtualizarCascata(float deltaTime);
 

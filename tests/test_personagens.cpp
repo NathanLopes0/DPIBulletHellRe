@@ -1,13 +1,12 @@
-// O catalogo de pecas da personagem, e o que ele faz com uma aparencia.
-//
-// Testes PUROS: montam um catalogo pequeno em memoria. Que o personagens.json
-// de verdade esteja certo e pergunta de test_arquivos_de_dados.cpp.
+// O catalogo de pecas da personagem, e o que ele faz com uma aparencia. Testes puros: montam um
+// catalogo pequeno em memoria.
 
 #include "doctest.h"
 
 #include <string>
 
-#include "../Source/Personagens.h"
+#include "../Source/Personagem/Personagens.h"
+#include "Ajudantes.h"
 
 using namespace Personagens;
 
@@ -43,7 +42,7 @@ namespace {
     }
 }
 
-// ---------------------------------------------------------------- basico
+// ---- Basico ----
 
 TEST_CASE("Personagens: um catalogo valido entra inteiro") {
 
@@ -61,7 +60,7 @@ TEST_CASE("Personagens: um catalogo valido entra inteiro") {
 TEST_CASE("Personagens: a aparencia padrao e a primeira peca e a primeira cor") {
 
     const Catalogo c = LerCatalogo(CatalogoBasico());
-    const Aparencia a = c.Padrao();
+    const Aparencia a = Ajudantes::Padrao(c);
 
     REQUIRE(a.Por("pele") != nullptr);
     CHECK(a.Por("pele")->peca == "corpo");
@@ -72,7 +71,7 @@ TEST_CASE("Personagens: a aparencia padrao e a primeira peca e a primeira cor") 
     CHECK(a.Por("cabelo")->cor == "preto");
 }
 
-// ---------------------------------------------------------------- cores
+// ---- Cores ----
 
 TEST_CASE("Personagens: cor hexadecimal com e sem cerquilha") {
 
@@ -109,7 +108,7 @@ TEST_CASE("Personagens: cor com rgb invalido e descartada, e as outras ficam") {
     CHECK(Menciona(c.problemas, "rgb"));
 }
 
-// ---------------------------------------------------------------- descartes
+// ---- Descartes ----
 
 TEST_CASE("Personagens: categoria sem peca ou sem cor e descartada inteira") {
 
@@ -165,8 +164,7 @@ TEST_CASE("Personagens: id repetido fica com o primeiro") {
 
 TEST_CASE("Personagens: ordem de desenho repetida e relatada") {
 
-    // Nao descarta - so avisa. Mas sem o aviso, qual camada fica por cima vira
-    // detalhe de implementacao em vez de decisao de quem escreveu o arquivo.
+    // Nao descarta - so avisa.
     const Catalogo c = LerCatalogo(R"({
       "fixas": [ { "arte": "f", "ordem": 10 } ],
       "categorias": [
@@ -181,7 +179,79 @@ TEST_CASE("Personagens: ordem de desenho repetida e relatada") {
     CHECK(Menciona(c.problemas, "mesma ordem"));
 }
 
-// ---------------------------------------------------------------- Resolver
+// ---- A formatura ----
+
+namespace {
+    /// O catalogo basico com o capelo de quem passou em "TCC", por cima de tudo.
+    std::string CatalogoComFormatura(const std::string& formatura) {
+        std::string texto = CatalogoBasico();
+        texto.insert(texto.find('{') + 1, "\"formatura\": " + formatura + ",");
+        return texto;
+    }
+}
+
+TEST_CASE("Personagens: a formatura entra com a materia, a arte e a ordem") {
+
+    const Catalogo c = LerCatalogo(CatalogoComFormatura(
+        R"({ "materia": "TCC", "arte": "arte/capelo", "ordem": 70 })"));
+
+    CHECK(c.problemas.empty());
+    REQUIRE(c.formatura.Existe());
+    CHECK(c.formatura.materia == "TCC");
+    CHECK(c.formatura.arte == "arte/capelo");
+    CHECK(c.formatura.ordem == 70);
+}
+
+TEST_CASE("Personagens: formatura sem materia ou sem arte e ignorada, com aviso") {
+
+    for (const char* formatura : {R"({ "arte": "arte/capelo", "ordem": 70 })",
+                                  R"({ "materia": "TCC", "ordem": 70 })",
+                                  R"("TCC")"}) {
+        CAPTURE(formatura);
+        const Catalogo c = LerCatalogo(CatalogoComFormatura(formatura));
+        CHECK_FALSE(c.formatura.Existe());
+        CHECK(Menciona(c.problemas, "formatura"));
+        // O resto do catalogo entra.
+        CHECK(c.categorias.size() == 2);
+    }
+}
+
+TEST_CASE("Personagens: sem formatura no arquivo, ninguem ganha camada a mais") {
+
+    const Catalogo c = LerCatalogo(CatalogoBasico());
+    CHECK_FALSE(c.formatura.Existe());
+    CHECK(c.Camadas(Ajudantes::Padrao(c), true).size() == c.Camadas(Ajudantes::Padrao(c)).size());
+}
+
+TEST_CASE("Personagens: quem se formou ganha o capelo por cima de tudo, sem tinta") {
+
+    const Catalogo c = LerCatalogo(CatalogoComFormatura(
+        R"({ "materia": "TCC", "arte": "arte/capelo", "ordem": 70 })"));
+
+    const Aparencia a = Ajudantes::Padrao(c);
+    const std::vector<Camada> sem = c.Camadas(a);
+    const std::vector<Camada> com = c.Camadas(a, true);
+
+    REQUIRE(sem.size() == 3);
+    REQUIRE(com.size() == 4);
+    // As de antes, iguais e na mesma ordem; o capelo por ultimo.
+    for (size_t i = 0; i < sem.size(); ++i) CHECK(com[i].arte == sem[i].arte);
+    CHECK(com[3].arte == "arte/capelo");
+    CHECK(com[3].ordem == 70);
+    CHECK_FALSE(com[3].tingida);
+}
+
+TEST_CASE("Personagens: o capelo na ordem de outra camada e relatado") {
+
+    // O cabelo do catalogo basico e o 30.
+    const Catalogo c = LerCatalogo(CatalogoComFormatura(
+        R"({ "materia": "TCC", "arte": "arte/capelo", "ordem": 30 })"));
+
+    CHECK(c.formatura.Existe());
+    CHECK(Menciona(c.problemas, "mesma ordem"));
+}
+
+// ---- Resolver ----
 
 TEST_CASE("Personagens: uma aparencia valida passa intacta por Resolver") {
 
@@ -202,9 +272,7 @@ TEST_CASE("Personagens: uma aparencia valida passa intacta por Resolver") {
 
 TEST_CASE("Personagens: peca que sumiu cai no padrao SEM levar a cor junto") {
 
-    // E a regra que importa (RNF3): a aparencia conserta camada por camada, e
-    // dentro da camada, metade por metade. Se o tipo de cabelo sai do catalogo,
-    // a cor que o aluno escolheu continua valendo.
+    // Se o tipo de cabelo sai do catalogo, a cor que o aluno escolheu continua valendo.
     const Catalogo c = LerCatalogo(CatalogoBasico());
 
     Aparencia pedida;
@@ -237,8 +305,7 @@ TEST_CASE("Personagens: cor que sumiu cai no padrao SEM levar a peca junto") {
 
 TEST_CASE("Personagens: categoria ausente na aparencia cai no padrao, calada") {
 
-    // E o caso de um save gravado antes de a categoria existir. Nao ha nada de
-    // errado nisso, entao nao vira problema relatado.
+    // Nao ha nada de errado nisso, entao nao vira problema relatado.
     const Catalogo c = LerCatalogo(CatalogoBasico());
 
     Aparencia pedida;
@@ -257,8 +324,8 @@ TEST_CASE("Personagens: escolha de categoria que nao existe mais e descartada") 
 
     const Catalogo c = LerCatalogo(CatalogoBasico());
 
-    Aparencia pedida = c.Padrao();
-    pedida.Definir("chapeu", Escolha{"cartola", "preto"});   // categoria aposentada
+    Aparencia pedida = Ajudantes::Padrao(c);
+    pedida.Definir("chapeu", Escolha{"cartola", "preto"});
 
     std::vector<std::string> trocas;
     const Aparencia r = c.Resolver(pedida, &trocas);
@@ -273,7 +340,7 @@ TEST_CASE("Personagens: Resolver de uma aparencia vazia da a padrao") {
     const Catalogo c = LerCatalogo(CatalogoBasico());
 
     const Aparencia r = c.Resolver(Aparencia{});
-    const Aparencia padrao = c.Padrao();
+    const Aparencia padrao = Ajudantes::Padrao(c);
 
     REQUIRE(r.escolhas.size() == padrao.escolhas.size());
     for (const auto& par : padrao.escolhas) {
@@ -283,7 +350,7 @@ TEST_CASE("Personagens: Resolver de uma aparencia vazia da a padrao") {
     }
 }
 
-// ---------------------------------------------------------------- Camadas
+// ---- Camadas ----
 
 TEST_CASE("Personagens: as camadas saem em ordem de desenho, com as fixas no meio") {
 
@@ -297,7 +364,7 @@ TEST_CASE("Personagens: as camadas saem em ordem de desenho, com as fixas no mei
 
     REQUIRE(camadas.size() == 3);
 
-    // pele (10), olho fixo (20), cabelo (30)
+    // Pele (10), olho fixo (20), cabelo (30)
     CHECK(camadas[0].arte == "arte/corpo");
     CHECK(camadas[1].arte == "fixa/olho");
     CHECK(camadas[2].arte == "arte/longo");
@@ -310,7 +377,7 @@ TEST_CASE("Personagens: as camadas saem em ordem de desenho, com as fixas no mei
 TEST_CASE("Personagens: a camada fixa nao e tingida, e as outras sao") {
 
     const Catalogo c = LerCatalogo(CatalogoBasico());
-    const std::vector<Camada> camadas = c.Camadas(c.Padrao());
+    const std::vector<Camada> camadas = c.Camadas(Ajudantes::Padrao(c));
 
     REQUIRE(camadas.size() == 3);
     CHECK(camadas[0].tingida);
@@ -334,8 +401,7 @@ TEST_CASE("Personagens: a cor da camada e a cor escolhida") {
 
 TEST_CASE("Personagens: Camadas conserta sozinha uma aparencia estragada") {
 
-    // Quem desenha nao precisa lembrar de chamar Resolver antes: uma aparencia
-    // lida do disco serve direto.
+    // Quem desenha nao precisa lembrar de chamar Resolver antes.
     const Catalogo c = LerCatalogo(CatalogoBasico());
 
     Aparencia a;
@@ -347,7 +413,7 @@ TEST_CASE("Personagens: Camadas conserta sozinha uma aparencia estragada") {
     CHECK(camadas[2].arte == "arte/curto");
 }
 
-// ---------------------------------------------------------------- prontas
+// ---- Prontas ----
 
 TEST_CASE("Personagens: combinacoes prontas entram ja resolvidas") {
 
@@ -366,19 +432,18 @@ TEST_CASE("Personagens: combinacoes prontas entram ja resolvidas") {
     REQUIRE(c.predefinidas.size() == 2);
     CHECK(c.predefinidas[0].aparencia.Por("cabelo")->peca == "longo");
 
-    // A que citava peca inexistente nao e perdida: vira valida, e o problema
-    // aparece na leitura em vez de so quando alguem a escolher.
+    // A que citava peca inexistente nao e perdida.
     CHECK(c.predefinidas[1].aparencia.Por("cabelo")->peca == "curto");
     CHECK(Menciona(c.problemas, "moicano"));
 }
 
-// ---------------------------------------------------------------- entrada ruim
+// ---- Entrada ruim ----
 
 TEST_CASE("Personagens: texto que nao e JSON nao derruba nada") {
 
     const Catalogo c = LerCatalogo("isto nao e json {{{");
 
-    CHECK(c.Vazio());
+    CHECK(c.categorias.empty());
     CHECK_FALSE(c.problemas.empty());
 }
 
@@ -386,7 +451,7 @@ TEST_CASE("Personagens: catalogo sem categorias e relatado") {
 
     const Catalogo c = LerCatalogo(R"({ "fixas": [] })");
 
-    CHECK(c.Vazio());
+    CHECK(c.categorias.empty());
     CHECK(Menciona(c.problemas, "categorias"));
 }
 
@@ -405,17 +470,16 @@ TEST_CASE("Personagens: identificador so aceita letra, numero, hifen e sublinhad
 TEST_CASE("Personagens: Padrao de um catalogo vazio nao quebra") {
 
     const Catalogo c;
-    const Aparencia a = c.Padrao();
+    const Aparencia a = Ajudantes::Padrao(c);
     CHECK(a.Vazia());
     CHECK(c.Camadas(a).empty());
 }
 
-// ---------------------------------------------------------------- tingimento
+// ---- Tingimento ----
 
 TEST_CASE("Personagens: multiplicar por branco nao muda nada") {
 
-    // E a propriedade que faz a peca sair exatamente na cor escolhida: ela e
-    // desenhada com 255 onde a cor deve aparecer cheia.
+    // E a propriedade que faz a peca sair exatamente na cor escolhida.
     for (int v = 0; v <= 255; ++v) {
         CHECK(Multiplicar(static_cast<unsigned char>(v), 255) == static_cast<unsigned char>(v));
     }
@@ -437,13 +501,12 @@ TEST_CASE("Personagens: multiplicar por preto zera") {
 
 TEST_CASE("Personagens: o tom medio vira a sombra da cor") {
 
-    // 185 e o tom de sombra usado nas pecas. Sobre um vermelho 200, tem que dar
-    // um vermelho mais escuro, e nao um cinza.
+    // 185 e o tom de sombra usado nas pecas.
     CHECK(Multiplicar(185, 200) == 145);
     CHECK(Multiplicar(185, 0) == 0);
 }
 
-// ---------------------------------------------------------------- chave
+// ---- Chave ----
 
 TEST_CASE("Personagens: a mesma aparencia da sempre a mesma chave") {
 
@@ -453,9 +516,7 @@ TEST_CASE("Personagens: a mesma aparencia da sempre a mesma chave") {
     a.Definir("cabelo", Escolha{"longo", "loiro"});
     a.Definir("pele", Escolha{"corpo", "escuro"});
 
-    // A MESMA aparencia montada na ordem inversa. Se a chave dependesse da
-    // ordem de insercao, o cache erraria e cada troca de tela montaria outra
-    // textura igual.
+    // A mesma aparencia montada na ordem inversa.
     Aparencia b;
     b.Definir("pele", Escolha{"corpo", "escuro"});
     b.Definir("cabelo", Escolha{"longo", "loiro"});
@@ -467,20 +528,29 @@ TEST_CASE("Personagens: aparencias diferentes dao chaves diferentes") {
 
     const Catalogo c = LerCatalogo(CatalogoBasico());
 
-    Aparencia a = c.Padrao();
-    Aparencia b = c.Padrao();
+    Aparencia a = Ajudantes::Padrao(c);
+    Aparencia b = Ajudantes::Padrao(c);
     b.Definir("cabelo", Escolha{"longo", "loiro"});
 
     CHECK(ChaveDaAparencia(a) != ChaveDaAparencia(b));
 }
 
+TEST_CASE("Personagens: a mesma aparencia com e sem capelo da chaves diferentes") {
+
+    // Sao duas texturas no cache: a de antes da formatura nao pode ser reaproveitada depois.
+    const Catalogo c = LerCatalogo(CatalogoBasico());
+    const Aparencia a = Ajudantes::Padrao(c);
+
+    CHECK(ChaveDaAparencia(a, true) != ChaveDaAparencia(a));
+    CHECK(ChaveDaAparencia(a, false) == ChaveDaAparencia(a));
+}
+
 TEST_CASE("Personagens: a chave nao se confunde com um caminho de arquivo") {
 
     const Catalogo c = LerCatalogo(CatalogoBasico());
-    const std::string chave = ChaveDaAparencia(c.Padrao());
+    const std::string chave = ChaveDaAparencia(Ajudantes::Padrao(c));
 
-    // Ela entra no mesmo cache das texturas de arquivo, entao nao pode parecer
-    // um caminho - senao uma aparencia poderia roubar a textura de um PNG.
+    // Ela entra no mesmo cache das texturas de arquivo, entao nao pode parecer um caminho.
     CHECK(chave.find('<') == 0);
     CHECK(chave.find(".png") == std::string::npos);
 }

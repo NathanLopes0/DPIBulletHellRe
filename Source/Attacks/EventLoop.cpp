@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <deque>
 #include <limits>
 
 namespace EventLoop {
@@ -17,11 +16,11 @@ namespace EventLoop {
         int cbs = 0, ps = 0, rs = 0;
         const auto timeout = [&](const float atraso) { return Linha{Tipo::Timeout, atraso, "cb" + std::to_string(++cbs)}; };
         const auto then = [&]() { return Linha{Tipo::Then, 0.0f, "p" + std::to_string(++ps)}; };
-        // A PEGADINHA, sempre: um log, o setTimeout(cb, 0) e, depois dele, o .then.
+        // A pegadinha, sempre: um log, o setTimeout(cb, 0) e, depois dele, o .then.
         script.push_back({Tipo::Log, 0.0f, s.Um(kLogs)});
         script.push_back(timeout(0.0f));
         script.push_back(then());
-        // E MAIS DUAS OU TRES LINHAS, de qualquer tipo.
+        // E mais duas ou tres linhas, de qualquer tipo.
         const int mais = s.Inteiro(2, 3);
         for (int k = 0; k < mais; ++k) {
             switch (s.Inteiro(0, 3)) {
@@ -31,7 +30,7 @@ namespace EventLoop {
                 default: script.push_back({Tipo::Fetch, s.Real(0.6f, 1.4f), "r" + std::to_string(++rs)}); break;
             }
         }
-        // A ORDEM DO MEIO PARA A FRENTE E SORTEADA: o log e a pegadinha abrem.
+        // A ordem do meio para a frente e sorteada: o log e a pegadinha abrem.
         std::vector<Linha> resto(script.begin() + 3, script.end());
         s.Embaralhar(resto);
         std::copy(resto.begin(), resto.end(), script.begin() + 3);
@@ -65,8 +64,7 @@ namespace EventLoop {
 
     Agenda Simular(const std::vector<Linha>& script, const float porLinha, const float porCallback) {
         Agenda a;
-        // O SCRIPT: uma linha por vez na pilha. Quem deixa algo para depois
-        // registra agora.
+        // O script: uma linha por vez na pilha.
         std::vector<int> deItem(script.size(), -1);
         for (size_t i = 0; i < script.size(); ++i) {
             const float t = static_cast<float>(i) * porLinha;
@@ -85,7 +83,7 @@ namespace EventLoop {
             a.itens.push_back(it);
         }
 
-        // O LOOP: pilha vazia, todas as microtarefas prontas; depois uma tarefa.
+        // O loop: pilha vazia, todas as microtarefas prontas; depois uma tarefa.
         float t = static_cast<float>(script.size()) * porLinha;
         const auto proxima = [&](const Fila f, const float agora) {
             int melhor = -1;
@@ -106,7 +104,7 @@ namespace EventLoop {
                 t += porCallback;
                 continue;
             }
-            // NADA PRONTO: o loop espera o proximo timer ou resposta.
+            // Nada pronto: o loop espera o proximo timer ou resposta.
             float espera = std::numeric_limits<float>::max();
             for (const Item& it : a.itens) if (it.rodou < 0.0f) espera = std::min(espera, it.naFila);
             if (espera == std::numeric_limits<float>::max()) break;
@@ -120,7 +118,7 @@ namespace EventLoop {
         const float meio = largura / 2.0f;
         return {{
             {meio - 45.0f, kYDoLoop - 45.0f, 90.0f, 100.0f},   // a pilha, no meio do loop
-            {40.0f, 70.0f, 320.0f, 110.0f},                    // as Web APIs
+            {40.0f, 70.0f, 320.0f, 110.0f},                    // As Web APIs.
             {40.0f, 360.0f, 380.0f, 60.0f},                    // a fila de microtarefas
             {largura - 420.0f, 360.0f, 380.0f, 60.0f},         // a fila de tarefas
         }};
@@ -164,7 +162,7 @@ namespace EventLoop {
         if (t >= item->rodou + porCallback) return e;
         if (t >= item->rodou) { e.lugar = Lugar::Pilha; return e; }
         if (t < item->naFila) {
-            // O TIMER CORRE NAS WEB APIS; a vaga e a ordem de registro.
+            // O timer corre nas web apis; a vaga e a ordem de registro.
             e.lugar = Lugar::Apis;
             for (const Item& it : a.itens) {
                 if (it.linha < linha && script[static_cast<size_t>(it.linha)].tipo != Tipo::Then) ++e.posicao;
@@ -173,9 +171,7 @@ namespace EventLoop {
             e.falta = std::clamp((item->naFila - t) / atraso, 0.0f, 1.0f);
             return e;
         }
-        // NA FILA: na frente, quem o loop vai buscar antes e ja esta la. O
-        // .then entra na fila quando a linha dele roda, mas a ficha so chega
-        // quando a linha sai da pilha - e e a ficha que conta a vaga.
+        // Na fila: na frente, quem o loop vai buscar antes e ja esta la.
         e.lugar = (item->fila == Fila::Micro) ? Lugar::Micro : Lugar::Tarefa;
         for (const Item& it : a.itens) {
             if (it.fila != item->fila || it.linha == linha) continue;

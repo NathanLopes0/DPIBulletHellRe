@@ -1,30 +1,10 @@
 {
-  // ==========================================================================
-  // OS PROJETEIS DO JULIO
-  //
-  // UMA PASTA POR CHEFE: Assets/Attacks/julio/. A pasta diz de quem e o
-  // arquivo, entao aqui dentro ficam so os nomes que o campo "projetil" de uma
-  // fase usa -> como aquele projetil e montado. Antes era um projeteis.json so,
-  // com um nivel a mais dizendo o nome do chefe; com uma pasta por chefe esse
-  // nivel seria uma segunda fonte da mesma verdade, livre para discordar do
-  // nome da pasta.
-  //
-  // OS CAMPOS estao documentados em Documentacao/arquivos-de-dados.md.
-  //
-  // O que impede um erro de digitacao aqui de chegar ao jogo e
-  // tests/test_arquivos_de_dados.cpp: ele le este arquivo junto com as fases e
-  // com os atlas de verdade, e quebra a suite se um ataque pedir um projetil
-  // que nao existe ou se uma animacao citar um quadro que a folha nao tem.
-  // ==========================================================================
+  // Os projeteis do Julio. Uma pasta por chefe: Assets/Attacks/julio/.
 
-  // OS DADOS DE ANTES SAIRAM NO 126: nenhuma fase do Julio os usa mais. A arte
-  // deles (DPIBHJulioDado.png, a original do repositorio) fica guardada em
+  // A arte deles (DPIBHJulioDado.png, a original do repositorio) fica guardada em
   // Assets/Teachers/Projectiles.
 
-  // OS TOKENS DA FASE 1: pedacos de palavra num chip, como um modelo de
-  // linguagem quebra o texto. Uma animacao por token, com o nome do proprio
-  // token - e por esse nome que a "frase" da TokenAttack os pede, em ordem.
-  // Arte PROVISORIA de Ferramentas/gerar_julio.py.
+  // Os tokens da fase 1: pedacos de palavra num chip, como um modelo de linguagem quebra o texto.
   "Token": {
     "sprite": "Teachers/Projectiles/DPIBHJulioToken.png",
     "dados":  "Teachers/Projectiles/DPIBHJulioToken.json",
@@ -37,9 +17,7 @@
     "ordemDeDesenho": 90
   },
 
-  // O AGENTE DA FASE 2: o robo que o professor convoca, e que age por ele no
-  // ciclo do placar. E derrubavel e aguenta QUATRO tiros: tem de ser vencido,
-  // e quem gasta os tiros nele nao os gasta no professor.
+  // O agente da fase 2: o robo que o professor convoca, e que age por ele no ciclo do placar.
   "Agente": {
     "sprite": "Teachers/Projectiles/DPIBHJulioToken.png",
     "dados":  "Teachers/Projectiles/DPIBHJulioToken.json",
@@ -53,8 +31,8 @@
     "resistencia": 4
   },
 
-  // A FERRAMENTA: a engrenagem que cada agente manda no Age - a chamada de
-  // ferramenta de um agente de IA.
+  // A ferramenta: a engrenagem que cada agente manda no Age - a chamada de ferramenta de um agente
+  // de IA.
   "Ferramenta": {
     "sprite": "Teachers/Projectiles/DPIBHJulioToken.png",
     "dados":  "Teachers/Projectiles/DPIBHJulioToken.json",
@@ -67,9 +45,7 @@
     "colisorDivisor": 2.6
   },
 
-  // O GUARDRAIL DA FASE 3: o robo-escudo que gira em volta do professor e
-  // barra o tiro do aluno. Derrubavel, com TRES tiros: tem de ser vencido para
-  // o tiro chegar ao professor.
+  // O guardrail da fase 3: o robo-escudo que gira em volta do professor e barra o tiro do aluno.
   "Guardrail": {
     "sprite": "Teachers/Projectiles/DPIBHJulioToken.png",
     "dados":  "Teachers/Projectiles/DPIBHJulioToken.json",

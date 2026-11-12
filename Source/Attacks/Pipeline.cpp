@@ -34,19 +34,17 @@ namespace Pipeline {
         const int n = static_cast<int>(programa.size());
         Ciclo c;
 
-        // TODO MUNDO ANDA UM ESTAGIO, e o do WB sai.
+        // Todo mundo anda um estagio, e o do wb sai.
         c.saiu = e.estagio[WB];
         for (int s = WB; s > IF; --s) e.estagio[s] = e.estagio[s - 1];
 
-        // A BUSCA, com a previsao: o bne e o j mandam o pc para o alvo deles.
+        // A busca, com a previsao: o bne e o j mandam o pc para o alvo deles.
         const int buscada = ((e.pc % n) + n) % n;
         e.estagio[IF] = buscada;
         const Instrucao& b = programa[static_cast<size_t>(buscada)];
         e.pc = (b.tipo == Tipo::Bne || b.tipo == Tipo::J) ? b.alvo : buscada + 1;
 
-        // O BNE QUE CHEGOU AO EX SE RESOLVE. Desvia em todas as voltas menos a
-        // ultima; ai a previsao errou, e o que foi buscado pelo caminho errado
-        // - o ID e o IF - vira bolha.
+        // O bne que chegou ao ex se resolve.
         const int noEX = e.estagio[EX];
         if (noEX != kBolha && programa[static_cast<size_t>(noEX)].tipo == Tipo::Bne) {
             ++e.desvios;

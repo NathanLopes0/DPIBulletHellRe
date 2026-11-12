@@ -15,7 +15,7 @@
 using Logica::Operacao;
 
 TEST_CASE("Logica: as tabelas-verdade das quatro portas") {
-    // a, b -> AND, OR, XOR
+    // A, b -> and, or, xor.
     const bool tabela[4][5] = {
         {false, false, false, false, false},
         {false, true,  false, true,  true },
@@ -28,7 +28,7 @@ TEST_CASE("Logica: as tabelas-verdade das quatro portas") {
         CHECK(Logica::Saida(Operacao::E, linha[0], linha[1]) == linha[2]);
         CHECK(Logica::Saida(Operacao::Ou, linha[0], linha[1]) == linha[3]);
         CHECK(Logica::Saida(Operacao::OuExclusivo, linha[0], linha[1]) == linha[4]);
-        CHECK(Logica::Saida(Operacao::Nao, linha[0], linha[1]) == !linha[0]);   // o NOT ignora b
+        CHECK(Logica::Saida(Operacao::Nao, linha[0], linha[1]) == !linha[0]);   // O not ignora b.
     }
 }
 
@@ -55,7 +55,7 @@ TEST_CASE("Logica: o placar e a porta - le o nome e a entrada B, e recusa o rest
     CHECK_FALSE(Logica::LerPorta("AND 0000 1111", 16));              // B curto
     CHECK_FALSE(Logica::LerPorta("AND 0000 1111 1111 0000 1", 16));  // B longo
     CHECK_FALSE(Logica::LerPorta("AND 0000 1111 1121 0000", 16));    // um 2 no B
-    CHECK_FALSE(Logica::LerPorta("NOT 1111 0000 1111 0000", 16));    // o NOT nao tem B
+    CHECK_FALSE(Logica::LerPorta("NOT 1111 0000 1111 0000", 16));    // O not nao tem B.
     CHECK_FALSE(Logica::LerPorta("NAND 0000 1111 1111 0000", 16));   // porta que nao ha
     CHECK_FALSE(Logica::LerPorta("and 0000 1111 1111 0000", 16));    // o placar escreve em maiusculas
     CHECK_FALSE(Logica::LerPorta("", 16));
@@ -107,8 +107,8 @@ TEST_CASE("Logica: as colunas dividem a tela em partes iguais") {
 TEST_CASE("Logica: uma palavra justa e uma parede com porta antes e depois, e a porta muda algo") {
     const Logica::Porta nao{Operacao::Nao, 0u};
     CHECK(Logica::Justa(nao, 0xF0F0u, 16));
-    CHECK_FALSE(Logica::Justa(nao, 0xFFF0u, 16));   // depois do NOT, so 4 acesos
-    CHECK_FALSE(Logica::Justa(nao, 0xFFFEu, 16));   // antes, um buraco so
+    CHECK_FALSE(Logica::Justa(nao, 0xFFF0u, 16));   // Depois do not, so 4 acesos.
+    CHECK_FALSE(Logica::Justa(nao, 0xFFFEu, 16));
 
     const Logica::Porta identidade{Operacao::Ou, 0u};
     CHECK_FALSE(Logica::Justa(identidade, 0xF0F0u, 16));   // a porta nao muda nada
@@ -126,8 +126,7 @@ TEST_CASE("Logica: o sorteio sempre da uma palavra justa quando a porta admite a
         }
     }
 
-    // UMA PORTA SEM PALAVRA JUSTA - o AND com B quase todo zero nunca deixa
-    // cinco bits acesos - devolve o sorteio, e nao fica rodando para sempre.
+    // Uma porta sem palavra justa - o and com B quase todo zero nunca deixa cinco bits acesos.
     const Logica::Porta impossivel{Operacao::E, 0x000Fu};
     CHECK(Logica::Sortear(impossivel, 16, 0x1234u) == 0x1234u);
 }
@@ -145,7 +144,7 @@ TEST_CASE("Logica: o sorteio nao e sempre a mesma palavra") {
 }
 
 TEST_CASE("Logica: o deslocamento anda uma coluna por passo, vai ate a ponta e volta") {
-    // de 2 a 5, comecando no 3: 3 4 5 4 3 2 3 4 ...
+    // De 2 a 5, comecando no 3: 3 4 5 4 3 2 3 4 ...
     const int esperado[] = {3, 4, 5, 4, 3, 2, 3, 4, 5};
     for (int k = 0; k < 9; ++k) {
         CAPTURE(k);
@@ -165,7 +164,7 @@ TEST_CASE("Logica: as portas da luta - as quatro operacoes, um B que admite pare
         std::vector<int> ops;
         for (const Logica::Porta& p : plano.portas) {
             ops.push_back(static_cast<int>(p.operacao));
-            // O PLACAR E A PORTA: o texto dela le de volta a mesma porta.
+            // O placar e a porta: o texto dela le de volta a mesma porta.
             const auto lida = Logica::LerPorta(Logica::Anuncio(p), Logica::kBits);
             REQUIRE(lida.has_value());
             CHECK(lida->operacao == p.operacao);
@@ -173,7 +172,7 @@ TEST_CASE("Logica: as portas da luta - as quatro operacoes, um B que admite pare
             CHECK(lida->b == p.b);
             CHECK(Logica::Uns(p.b, Logica::kBits) >= 4);
             CHECK(Logica::Uns(p.b, Logica::kBits) <= 12);
-            // E ELA ADMITE PALAVRA JUSTA, de qualquer sorteio.
+            // E ela admite palavra justa, de qualquer sorteio.
             for (std::uint32_t k = 0; k < 8; ++k) {
                 CHECK(Logica::Justa(p, Logica::Sortear(p, Logica::kBits, semente * 7919u + k * 104729u), Logica::kBits));
             }

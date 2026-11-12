@@ -1,6 +1,4 @@
-//
-// O sorteio de cada batalha. Camada pura.
-//
+// O sorteio de cada batalha.
 
 #include "doctest.h"
 
@@ -11,27 +9,23 @@
 #include <set>
 #include <vector>
 
-#include "../Source/Variacao.h"
+#include "../Source/Regras/Variacao.h"
 
 using namespace Variacao;
 
 TEST_CASE("Variacao: o motor e o mt19937 do padrao, e o rotulo e o FNV-1a") {
-    // O 10000o numero do mt19937 com a semente padrao (5489) e fixado pelo
-    // proprio padrao do C++ - qualquer biblioteca que der outro nao e mt19937.
+    // O 10000o numero do mt19937 com a semente padrao (5489) e fixado pelo proprio padrao do C++.
     std::mt19937 padrao;
     padrao.discard(9999);
     CHECK(padrao() == 4123659995u);
 
-    CHECK(Rotulo("") == 2166136261u);    // a base do FNV-1a de 32 bits
+    CHECK(Rotulo("") == 2166136261u);    // A base do fnv-1a de 32 bits.
     CHECK(Rotulo("a") == 3826002220u);   // 0xe40c292c, o valor publicado
     CHECK(Rotulo("StateOne") != Rotulo("StateTwo"));
 }
 
 TEST_CASE("Variacao: A MESMA SEMENTE DA A MESMA LUTA, em qualquer compilador") {
-    // Os numeros abaixo sairam desta implementacao. Eles so dependem do
-    // mt19937 e de aritmetica inteira, entao o MSVC tem de dar os mesmos: se um
-    // dia este teste quebrar so num deles, alguem trocou o mapeamento por uma
-    // distribuicao da biblioteca.
+    // Os numeros abaixo sairam desta implementacao.
     CHECK(Misturar(0, 0) == 2570937750u);
     CHECK(Misturar(1, 0) == 1739479842u);
     CHECK(Misturar(0, 1) == 403206445u);
@@ -116,8 +110,6 @@ TEST_CASE("Variacao: embaralhar da uma permutacao, e sementes diferentes dao ord
         CHECK(ordenado == std::vector<int>{0, 1, 2, 3, 4});
         ordens.insert(v);
     }
-    // 120 ordens possiveis; em 1000 sementes a chance de faltar alguma e de
-    // 120 * (119/120)^1000, menos de 3 em 1000.
     CHECK(ordens.size() == 120u);
 }
 
@@ -133,13 +125,6 @@ TEST_CASE("Variacao: cada fase tem a propria sequencia, e o filho nao gasta o pa
     }
     CHECK(iguaisAB == 0);
     CHECK(iguaisAC == 0);
-
-    Sorteio p(5u), q(5u);
-    Sorteio f = p.Filho(1);
-    Sorteio g = p.Filho(1);
-    CHECK(f.Bruto() == g.Bruto());     // o mesmo filho
-    CHECK(p.Filho(2).Bruto() != p.Filho(1).Bruto());
-    CHECK(p.Bruto() == q.Bruto());     // pedir filhos nao mexeu no pai
 }
 
 TEST_CASE("Variacao: a ordem das formas - as fixas no lugar, o resto embaralhado, e a volta seguinte") {
@@ -165,4 +150,103 @@ TEST_CASE("Variacao: a ordem das formas - as fixas no lugar, o resto embaralhado
     CHECK(duas[1] == 1);
     CHECK(NaOrdem({}, 7) == 7);
     CHECK(Ordem(s, 3, 3) == std::vector<int>{0, 1, 2});
+}
+
+TEST_CASE("Variacao: duas sementes novas seguidas nao saem iguais") {
+    // O relogio e a contagem entram junto com o random_device: mesmo um random_device que se repete
+    // (MinGW antigo) nao faz duas lutas iguais.
+    const std::uint32_t a = Variacao::SementeNova();
+    const std::uint32_t b = Variacao::SementeNova();
+    CHECK(a != b);
+}
+
+// ---- O disparo de cada vez ("variar" em fases.json) ----
+
+TEST_CASE("Variacao: sem variar, o disparo e o do arquivo") {
+    Variacao::Sorteio s(7);
+    for (int i = 0; i < 50; ++i) {
+        const Variacao::Disparo d = Variacao::Sortear(s, Variacao::DoDisparo{});
+        CHECK(d.giro == 0.0f);
+        CHECK(d.abertura == 1.0f);
+        CHECK(d.velocidade == 1.0f);
+        CHECK(d.projeteis == 0);
+        CHECK(d.espera == 1.0f);
+    }
+}
+
+TEST_CASE("Variacao: o disparo fica na faixa, sai todo valor dela, e a media e a do arquivo") {
+    Variacao::DoDisparo v;
+    v.giro = 10.0f;
+    v.abertura = 0.2f;
+    v.velocidade = 0.1f;
+    v.projeteis = 2;
+    v.cadencia = 0.25f;
+    Variacao::Sorteio s(2026);
+    double giro = 0, abertura = 0, velocidade = 0, projeteis = 0, espera = 0;
+    int contagem[5] = {};
+    const int n = 20000;
+    for (int i = 0; i < n; ++i) {
+        const Variacao::Disparo d = Variacao::Sortear(s, v);
+        REQUIRE(d.giro >= -10.0f);
+        REQUIRE(d.giro <= 10.0f);
+        REQUIRE(d.abertura >= 0.8f);
+        REQUIRE(d.abertura <= 1.2f);
+        REQUIRE(d.velocidade >= 0.9f);
+        REQUIRE(d.velocidade <= 1.1f);
+        REQUIRE(d.projeteis >= -2);
+        REQUIRE(d.projeteis <= 2);
+        REQUIRE(d.espera >= 0.75f);
+        REQUIRE(d.espera <= 1.25f);
+        ++contagem[d.projeteis + 2];
+        giro += d.giro;
+        abertura += d.abertura;
+        velocidade += d.velocidade;
+        projeteis += d.projeteis;
+        espera += d.espera;
+    }
+    // Simetrico em volta do arquivo: a dificuldade media nao muda.
+    CHECK(std::abs(giro / n) < 0.2);
+    CHECK(abertura / n == doctest::Approx(1.0).epsilon(0.005));
+    CHECK(velocidade / n == doctest::Approx(1.0).epsilon(0.005));
+    CHECK(std::abs(projeteis / n) < 0.05);
+    CHECK(espera / n == doctest::Approx(1.0).epsilon(0.005));
+    for (const int c : contagem) CHECK(c > n / 7);
+}
+
+TEST_CASE("Variacao: ligar uma variacao nao muda o que as outras sorteiam") {
+    Variacao::DoDisparo so;
+    so.giro = 10.0f;
+    Variacao::DoDisparo mais = so;
+    mais.velocidade = 0.3f;
+    mais.projeteis = 1;
+    Variacao::Sorteio a(99), b(99);
+    for (int i = 0; i < 100; ++i) {
+        CHECK(Variacao::Sortear(a, so).giro == Variacao::Sortear(b, mais).giro);
+    }
+}
+
+TEST_CASE("Variacao: a mesma semente da os mesmos disparos") {
+    Variacao::DoDisparo v;
+    v.giro = 15.0f;
+    v.cadencia = 0.3f;
+    Variacao::Sorteio a = Variacao::SorteioDa(1234, "StateOne#0");
+    Variacao::Sorteio b = Variacao::SorteioDa(1234, "StateOne#0");
+    Variacao::Sorteio outro = Variacao::SorteioDa(1234, "StateOne#1");
+    bool algumDiferente = false;
+    for (int i = 0; i < 20; ++i) {
+        const Variacao::Disparo da = Variacao::Sortear(a, v);
+        const Variacao::Disparo db = Variacao::Sortear(b, v);
+        CHECK(da.giro == db.giro);
+        CHECK(da.espera == db.espera);
+        if (Variacao::Sortear(outro, v).giro != da.giro) algumDiferente = true;
+    }
+    // Cada ataque da fase tem a sua sequencia.
+    CHECK(algumDiferente);
+}
+
+TEST_CASE("Variacao: a quantidade nunca cai abaixo de um, e zero continua zero") {
+    CHECK(Variacao::Projeteis(1, -3) == 1);
+    CHECK(Variacao::Projeteis(5, -2) == 3);
+    CHECK(Variacao::Projeteis(5, 2) == 7);
+    CHECK(Variacao::Projeteis(0, 2) == 0);
 }

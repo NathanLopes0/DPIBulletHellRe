@@ -4,34 +4,24 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
 #include "Scene.h"
-#include "../Exportacao.h"
-#include "../Game.h"
+#include "../Entrada/Borda.h"
+#include "../Aluno/Exportacao.h"
+#include "../Aluno/Ranking.h"
+#include "../Motor/Game.h"
+#include "../Personagem/Personagens.h"
 
 class Font;
 class Actor;
 
-/**
- * @class TelaDeRanking
- * @brief As maiores notas, uma materia por vez.
- *
- * POR QUE ELA EXISTE. A curva da nota foi feita inteira para que a nota
- * ordenasse um ranking de verdade - era o argumento contra todo mundo tirar 100.
- * Ate aqui esse ranking so existia na planilha do professor, e quem joga no
- * gabinete nunca via onde estava.
- *
- * ESTA CENA NAO ORDENA NADA. A ordem, os empates e o corte do topo vivem em
- * Source/Ranking.h, que e puro e testado. Aqui so ha leitura de manche e
- * desenho - a mesma divisao da tela de matricula.
- *
- * AS FICHAS SAO LIDAS UMA VEZ, no Load. Reler a cada quadro custaria um passeio
- * pelo disco inteiro por quadro, e o ranking nao muda enquanto ele esta aberto:
- * quem jogou acabou de sair da batalha.
- */
+/// As maiores notas, uma materia por vez, em quatro listas: Normal, Dificil, Normal em dupla e
+/// Dificil em dupla (Ranking::kListas).
 class TelaDeRanking : public Scene {
 public:
     explicit TelaDeRanking(Game* game);
@@ -39,37 +29,43 @@ public:
 
     void Load() override;
     void OnProcessInput(const Uint8* keyState) override;
-    void OnUpdate(float deltaTime) override;
 
 private:
 
     Actor* Texto(const std::string& conteudo, float x, float y, int tamanho,
                  int larguraMaxima, bool aEsquerda = false);
 
-    /// Reescreve as linhas a partir da materia selecionada e do modo.
+    /// Reescreve as linhas a partir da materia selecionada e da lista.
     void Redesenhar();
+
+    /// A personagem do aluno 'matricula' em 'onde' - de capelo, se ele se formou. Quem nao tem ficha
+    /// (o visitante) nao tem avatar.
+    void Avatar(const std::string& matricula, const Vector2& onde);
+
+    /// A lista em exibicao (Ranking::kListas).
+    [[nodiscard]] const Ranking::Lista& ListaAtual() const { return Ranking::kListas[mLista]; }
+    [[nodiscard]] bool EmDupla() const { return ListaAtual().modo == Progresso::Modo::Dupla; }
 
     std::unique_ptr<Font> mFonte;
 
-    /// A turma inteira, lida uma vez. Ver o comentario de classe.
+    /// A turma inteira, lida uma vez.
     std::vector<Exportacao::FichaDeAluno> mFichas;
+    /// A aparencia de cada um, e quem ja se formou (Personagens::Formatura).
+    std::map<std::string, Personagens::Aparencia> mAparencias;
+    std::set<std::string> mFormados;
+
+    /// Os avatares das linhas: refeitos a cada troca de lista, porque cada um e de um aluno.
+    std::vector<Actor*> mAvatares;
 
     /// O que mostrar e para onde voltar, posto por quem pediu a tela.
-    /// Ver Game::PedidoDeRanking.
     Game::PedidoDeRanking mPedido{};
 
-    /**
-     * Mostrando o ranking de DUPLAS, e nao o de solo.
-     *
-     * E ESTADO DA TELA, e nao do pedido: o modo nao e algo que a selecao de
-     * fases ou o menu pedem, e quem alterna e o jogador olhando a lista. Pondo
-     * em PedidoDeRanking, os dois lugares que montam o pedido teriam de saber
-     * de um campo que nao lhes diz respeito.
-     *
-     * COMECA NO MODO EM QUE SE ESTA JOGANDO: quem acabou de jogar em dupla quer
-     * ver a lista de duplas. Nao e um campo novo - sai de QuantosJogadores().
-     */
-    bool mDuplas = false;
+    /// Qual das quatro listas esta aberta: o indice em Ranking::kListas.
+    int mLista = 0;
+
+    /// As quatro abas, na ordem de kListas: a moldura e o nome de cada uma.
+    std::vector<class DrawCaixaComponent*> mAbas;
+    std::vector<class DrawTextComponent*> mNomesDasAbas;
 
     Actor* mTituloAtor{};
     Actor* mSubtituloAtor{};
@@ -81,18 +77,14 @@ private:
     std::vector<Actor*> mPosicaoAtores;
     std::vector<Actor*> mMatriculaAtores;
 
-    /// A dupla inteira ("89384 + 90112") numa caixa so, no lugar da coluna de
-    /// matricula. Uma caixa propria porque duas matriculas e um "+" nao cabem
-    /// na largura de uma, e porque assim as colunas de nota e de materias
-    /// jogadas nao se movem quando o jogador alterna de lista.
     std::vector<Actor*> mDuplaAtores;
     std::vector<Actor*> mJogadasAtores;
     std::vector<Actor*> mNotaAtores;
 
-    /// O rodape e reescrito na troca de lista: ele anuncia PARA ONDE o BOTAO 3
-    /// leva, e nao onde se esta.
     Actor* mRodapeAtor{};
 
-    bool mVoltarAnterior = true;
-    bool mAlternarAnterior = true;
+    Borda mBordaVoltar{true};
+    Borda mBordaAlternar{true};
+    Borda mBordaEsquerda{true};
+    Borda mBordaDireita{true};
 };

@@ -1,5 +1,4 @@
 // Leitura de formas de trajetoria a partir de texto JSON.
-// Camada pura: nao abre arquivo, nao escreve log, nao sobe SDL.
 
 #include "doctest.h"
 #include "../Source/Attacks/PathShapes.h"
@@ -32,7 +31,7 @@ TEST_CASE("Formas: varias no mesmo arquivo") {
     CHECK(r.formas.size() == 2);
 }
 
-// --- o arquivo nunca e descartado inteiro por causa de uma entrada errada ---
+// ---- O arquivo nunca e descartado inteiro por causa de uma entrada errada ----
 
 TEST_CASE("Formas: entrada invalida e ignorada, as boas continuam valendo") {
     const auto r = LerFormas(R"({
@@ -42,7 +41,7 @@ TEST_CASE("Formas: entrada invalida e ignorada, as boas continuam valendo") {
     CHECK(r.formas.count("Boa") == 1);
     CHECK(r.formas.count("Ruim") == 0);
     REQUIRE(r.problemas.size() == 1);
-    // O problema diz QUAL forma e O QUE fazer - nao some em silencio.
+    // O problema diz qual forma e o que fazer - nao some em silencio.
     CHECK(r.problemas[0].find("Ruim") != std::string::npos);
     CHECK(r.problemas[0].find("Espiral") != std::string::npos);
 }
@@ -80,13 +79,9 @@ TEST_CASE("Formas: arquivo vazio nao e erro, so nao traz formas") {
     CHECK(r.problemas.empty());
 }
 
-// ---------------------------------------------------------------------------
-// Comentarios
-// ---------------------------------------------------------------------------
+// Comentarios.
 
 TEST_CASE("Formas: o arquivo aceita comentario") {
-    // O JSON padrao nao tem comentario, e sem ele migrar codigo comentado para
-    // dados jogaria a explicacao fora. Ver Source/JsonDeDados.h.
     const auto r = LerFormas(R"({
         // Doze pontos: mais que isso e o projetil gasta quadro "chegando" em
         // cada waypoint e a curva fica truncada.
@@ -97,15 +92,7 @@ TEST_CASE("Formas: o arquivo aceita comentario") {
     CHECK(r.formas.count("Laco") == 1);
 }
 
-// ---------------------------------------------------------------------------
-// Arvore binaria
-//
-// Os testes abaixo conferem PROPRIEDADES, e nao numeros decorados: que as irmas
-// compartilham prefixo, que cada no interno fica no meio dos filhos, que a copa
-// e simetrica. Sao essas propriedades que fazem a coisa parecer uma arvore em
-// jogo - um teste que so repetisse as coordenadas passaria igual com a arvore
-// torta.
-// ---------------------------------------------------------------------------
+// Arvore binaria.
 
 TEST_CASE("Arvore: o numero de folhas dobra a cada divisao") {
     CHECK(PathShapes::FolhasDeArvore(0) == 1);
@@ -116,8 +103,6 @@ TEST_CASE("Arvore: o numero de folhas dobra a cada divisao") {
 }
 
 TEST_CASE("Arvore: numero de divisoes sem sentido devolve zero folhas") {
-    // Zero e o sinal de "nao da": quem chama trata, em vez de receber uma arvore
-    // de mil projeteis por um erro de digitacao.
     CHECK(PathShapes::FolhasDeArvore(-1) == 0);
     CHECK(PathShapes::FolhasDeArvore(11) == 0);
 }
@@ -150,9 +135,7 @@ TEST_CASE("Arvore: todas as folhas saem do MESMO tronco") {
 }
 
 TEST_CASE("Arvore: irmas compartilham o prefixo ate o pai, e divergem depois") {
-    // A PROPRIEDADE CENTRAL. Duas folhas que so se separam na ultima divisao tem
-    // de ter todos os pontos iguais ate ali; se divergissem antes, o jogador veria
-    // dois tiros paralelos em vez de um no que abre.
+    // A propriedade central.
     const int div = 3;
     for (int par = 0; par < 4; ++par) {
         const int a = par * 2, b = par * 2 + 1;
@@ -172,13 +155,11 @@ TEST_CASE("Arvore: irmas compartilham o prefixo ate o pai, e divergem depois") {
 }
 
 TEST_CASE("Arvore: folhas de avos diferentes divergem MAIS CEDO") {
-    // Complemento do teste acima: a profundidade em que duas folhas se separam
-    // tem de ser a profundidade do ancestral comum delas. E o que da a forma de
-    // arvore em vez de um leque.
+    // E o que da a forma de arvore em vez de um leque.
     const int div = 3;
     const auto f0 = PathShapes::ArvoreBinaria(div, 0);
     const auto f7 = PathShapes::ArvoreBinaria(div, 7);
-    // 0 e 7 so compartilham a raiz: ja divergem na PRIMEIRA divisao.
+    // 0 e 7 so compartilham a raiz: ja divergem na primeira divisao.
     CHECK(f0[0].y == doctest::Approx(f7[0].y));
     CHECK(f0[1].y != doctest::Approx(f7[1].y));
 
@@ -190,14 +171,13 @@ TEST_CASE("Arvore: folhas de avos diferentes divergem MAIS CEDO") {
 }
 
 TEST_CASE("Arvore: cada no interno fica no PONTO MEDIO dos dois filhos") {
-    // E isto que alinha os ramos. Sem isso, os ramos sairiam tortos e a copa
-    // nao pareceria uma arvore, mesmo com as folhas nos lugares certos.
+    // E isto que alinha os ramos.
     const int div = 3;
     for (int f = 0; f < 8; f += 2) {
         CAPTURE(f);
         const auto a = PathShapes::ArvoreBinaria(div, f);
         const auto b = PathShapes::ArvoreBinaria(div, f + 1);
-        // o pai das duas e o ponto de indice div-1
+        // O pai das duas e o ponto de indice div-1.
         const float meio = (a[div].y + b[div].y) / 2.0f;
         CHECK(a[div - 1].y == doctest::Approx(meio));
     }
@@ -243,30 +223,25 @@ TEST_CASE("Arvore: o avanco em x e tronco, passo por divisao, e a saida no fim")
 }
 
 TEST_CASE("Arvore: zero divisoes e uma reta, nao um erro") {
-    // O caso degenerado tem de ser util: uma arvore que nao se divide e um tiro
-    // reto, e nao uma lista vazia que faria o projetil voar sem caminho.
+    // O caso degenerado tem de ser util.
     const auto p = PathShapes::ArvoreBinaria(0, 0, 120.f, 90.f, 60.f, 560.f);
     REQUIRE(p.size() == 2);
     CHECK(p[0].y == doctest::Approx(0.0f));
     CHECK(p[1].y == doctest::Approx(0.0f));
 }
 
-// ------------------------------------ familia escrita a mao ("caminhos")
+// ---- Familia escrita a mao ("caminhos") ----
 
 TEST_CASE("Formas: \"caminhos\" declara uma familia, um caminho por projetil") {
 
-    // POR QUE ESTA PRIMITIVA EXISTE. "arvore" ja fazia familias, mas so arvores
-    // binarias. Qualquer outro conjunto de caminhos que so faca sentido JUNTO
-    // tinha de virar N formas simples mais N regras por indice - o par de
-    // listas que tem de bater, que e o que a familia foi inventada para evitar.
+    // Por que esta primitiva existe.
     const auto lidas = PathShapes::LerFormas(R"({
       "Escada": { "caminhos": [ [[10, 0]], [[20, 0]], [[30, 0]] ] }
     })");
 
     CHECK(lidas.problemas.empty());
 
-    // Familia NAO entra no mapa de formas simples: sao coisas diferentes, e
-    // pedir uma pela outra tem de falhar em vez de devolver meia resposta.
+    // Familia nao entra no mapa de formas simples.
     CHECK(lidas.formas.count("Escada") == 0);
 
     REQUIRE(lidas.familias.count("Escada") == 1);
@@ -279,9 +254,7 @@ TEST_CASE("Formas: \"caminhos\" declara uma familia, um caminho por projetil") {
 
 TEST_CASE("Formas: a ordem dos caminhos E o contrato") {
 
-    // O indice do projetil na rajada e o indice na familia (PathShapes.h). Se a
-    // leitura reordenasse, a arvore do Salles cresceria torta e a pilha do
-    // Vladimir desempilharia fora de ordem - sem erro nenhum, so errado.
+    // O indice do projetil na rajada e o indice na familia (PathShapes.h).
     const auto lidas = PathShapes::LerFormas(R"({
       "Fundo": { "caminhos": [ [[0, 1]], [[0, 2]], [[0, 3]], [[0, 4]] ] }
     })");
@@ -311,9 +284,7 @@ TEST_CASE("Formas: um caminho de varios pontos continua sendo um caminho") {
 
 TEST_CASE("Formas: \"caminhos\" vazio ou mal formado e recusado, com a frase certa") {
 
-    // O ARQUIVO INTEIRO NUNCA E DESCARTADO por causa de uma entrada errada -
-    // mesma filosofia das formas simples. A entrada ruim fica de fora e vira
-    // uma frase; as outras continuam valendo.
+    // O arquivo inteiro nunca e descartado por causa de uma entrada errada.
     const auto lidas = PathShapes::LerFormas(R"({
       "Vazia":  { "caminhos": [] },
       "Torta":  { "caminhos": [ [[1, 2]], "nao sou uma lista" ] },
@@ -327,8 +298,7 @@ TEST_CASE("Formas: \"caminhos\" vazio ou mal formado e recusado, com a frase cer
     CHECK(lidas.familias.count("Boa") == 1);
     CHECK(lidas.problemas.size() == 3);
 
-    // A frase diz QUAL caminho da familia estava torto, e nao so o nome da
-    // forma: numa familia de doze, "a forma Pilha esta errada" nao ajuda.
+    // A frase diz qual caminho da familia estava torto, e nao so o nome da forma.
     bool citaOIndice = false;
     for (const auto& p : lidas.problemas) {
         if (p.find("caminho 1") != std::string::npos) citaOIndice = true;

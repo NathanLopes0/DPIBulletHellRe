@@ -7,22 +7,11 @@
 #include <string>
 #include <vector>
 
-#include "../Dificuldade.h"
-#include "../Variacao.h"
+#include "../Regras/Dificuldade.h"
+#include "../Regras/Variacao.h"
 
-/**
- * CAMADA PURA. Coberto por test_cronograma.cpp.
- *
- * TODA PROPOSTA DE TCC TEM UM CRONOGRAMA, e o Hugo o desenha no alto do campo:
- * um grafico de Gantt, kLinhas linhas, e cada TAREFA - "Revisao
- * bibliografica", "Experimentos"... - e uma barra feita de paginas. Uma linha
- * vermelha, o HOJE, atravessa o grafico da esquerda para a direita; quando ela
- * passa do fim de uma barra, o PRAZO VENCEU e a barra inteira cai em voce.
- *
- * Quem le o grafico sabe a ordem: cai primeiro a barra que termina mais a
- * esquerda, e o hoje mostra quanto falta. E nunca duas barras com prazos
- * colados (kSeparacao) - cada queda tem o seu tempo.
- */
+/// Toda proposta de TCC tem um cronograma, e o Hugo o desenha no alto do campo: um grafico de
+/// Gantt, kLinhas linhas, e cada tarefa.
 namespace Cronograma {
 
     constexpr const char* kFaseDaProposta = "StateOne";
@@ -56,21 +45,18 @@ namespace Cronograma {
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 
-    /// @brief Um cronograma novo numa janela de 'largura', em ordem de prazo.
+    /// Um cronograma novo numa janela de 'largura', em ordem de prazo.
     std::vector<Tarefa> Gerar(Variacao::Sorteio& s, float largura, const Degrau& d);
 
     [[nodiscard]] float YDaLinha(int linha);
 
-    /// @brief Onde o hoje esta 't' segundos depois de comecar a varrer.
+    /// Onde o hoje esta 't' segundos depois de comecar a varrer.
     float XDoHoje(float t, float largura, const Degrau& d);
 
-    /// @brief Quando o hoje passa por 'x' - quando vence o prazo que acaba la.
-    float Quando(float x, float largura, const Degrau& d);
-
-    /// @brief O x de cada pagina da barra.
+    /// O x de cada pagina da barra.
     std::vector<float> Paginas(const Tarefa& t, const Degrau& d);
 
-    /// @brief A semana em que 'x' cai no grafico, de 1 a kSemanas.
+    /// A semana em que 'x' cai no grafico, de 1 a kSemanas.
     int Semana(float x, float largura);
 
     /// "Revisao bibliografica\nvenceu na semana 7": o placar de uma queda.

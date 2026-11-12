@@ -14,9 +14,7 @@ namespace {
     }
 }
 
-// ---------------------------------------------------------------------------
-// AjustarModulo — o espelho de DirecionarPreservandoModulo
-// ---------------------------------------------------------------------------
+// AjustarModulo — o espelho de DirecionarPreservandoModulo.
 
 TEST_CASE("AjustarModulo: define o modulo pedido") {
     const Vector2 v = AjustarModulo(Vector2(30.f, 40.f), 200.f);
@@ -41,18 +39,14 @@ TEST_CASE("AjustarModulo: modulo negativo vira zero") {
 }
 
 TEST_CASE("AjustarModulo e DirecionarPreservandoModulo sao complementares") {
-    // Um troca o modulo e mantem a direcao; o outro troca a direcao e mantem o
-    // modulo. Aplicados em sequencia, o resultado tem o modulo de um e a
-    // direcao do outro.
+    // Um troca o modulo e mantem a direcao; o outro troca a direcao e mantem o modulo.
     const Vector2 v = DirecionarPreservandoModulo(AjustarModulo(Vector2(3.f, 4.f), 100.f),
                                                   Vector2(0.f, 1.f), 1.f);
     CHECK(v.Length() == doctest::Approx(100.f));
     CHECK(anguloEntre(v, Vector2(0.f, 1.f)) == doctest::Approx(0.f).epsilon(0.001));
 }
 
-// ---------------------------------------------------------------------------
-// CalcularFaseDoPulso — toda a aritmetica de tempo do Modifier
-// ---------------------------------------------------------------------------
+// CalcularFaseDoPulso — toda a aritmetica de tempo do Modifier.
 
 namespace {
     constexpr RitmoDeCiclos kRitmo{0.5f, 0.2f, 1.0f, 3};
@@ -80,9 +74,7 @@ TEST_CASE("Pulso: conta os ciclos") {
 }
 
 TEST_CASE("Pulso: a sequencia termina numa INVESTIDA, nunca numa pausa") {
-    // Sao N investidas com N-1 pausas entre elas. Terminar na pausa deixaria o
-    // projetil lento demais para sair da tela, e ele viraria um obstaculo
-    // permanente ocupando uma vaga do pool.
+    // Sao N investidas com N-1 pausas entre elas.
     const auto ultimaInvestida = fase(2.95f);          // 0.5 + 2*1.2 + 0.05
     CHECK(ultimaInvestida.ativo);
     CHECK(ultimaInvestida.investindo);
@@ -93,8 +85,7 @@ TEST_CASE("Pulso: a sequencia termina numa INVESTIDA, nunca numa pausa") {
     CHECK_FALSE(logoDepois.ativo);
     CHECK(logoDepois.ciclo == 3);                      // encerrou
 
-    // Como a ultima fase ativa foi uma investida, a velocidade que fica valendo
-    // e a alta - e o projetil sai da tela sozinho.
+    // Como a ultima fase ativa foi uma investida, a velocidade que fica valendo e a alta.
     CHECK(ultimaInvestida.modulo > 100.f);
 }
 
@@ -110,9 +101,7 @@ TEST_CASE("Pulso: zero repeticoes encerra de imediato") {
     CHECK(f.ciclo <= 0);
 }
 
-// ---------------------------------------------------------------------------
-// A investida inteira, simulada na ordem do motor
-// ---------------------------------------------------------------------------
+// A investida inteira, simulada na ordem do motor.
 
 TEST_CASE("Investida repetida: re-aponta e pulsa, sem uma peca saber da outra") {
     const Vector2 jogador(600.f, 600.f);
@@ -153,15 +142,13 @@ TEST_CASE("Investida repetida: re-aponta e pulsa, sem uma peca saber da outra") 
     CHECK(maiorModuloNaPausa == doctest::Approx(vPausa));
     CHECK(menorDistancia < 200.f);                             // rondou o jogador durante a cacada
 
-    // E o mais importante para o pool: termina em velocidade de investida, nao
-    // de pausa. Terminar devagar deixaria o projetil preso na tela.
+    // E o mais importante para o pool: termina em velocidade de investida, nao de pausa.
     CHECK(vel.Length() == doctest::Approx(vInvestida));
     CHECK((pos - jogador).Length() > 300.f);                   // ja esta indo embora
 }
 
 TEST_CASE("Investida repetida: a pausa nao pode ser parada de verdade") {
-    // A direcao mora dentro do vetor velocidade. Com modulo zero ela se perde, e
-    // a mirada seguinte nao tem o que girar.
+    // A direcao mora dentro do vetor velocidade.
     Vector2 parado = AjustarModulo(Vector2(0.f, 200.f), 0.f);
     const Vector2 reapontado = DirecionarPreservandoModulo(parado, Vector2(100.f, 0.f), parado.Length());
     CHECK(reapontado.Length() == doctest::Approx(0.f));
@@ -173,9 +160,7 @@ TEST_CASE("Investida repetida: a pausa nao pode ser parada de verdade") {
     CHECK(ok.x == doctest::Approx(15.f));
 }
 
-// ---------------------------------------------------------------------------
-// O ritmo compartilhado: nenhum tempo precisa ser calculado a mao
-// ---------------------------------------------------------------------------
+// O ritmo compartilhado: nenhum tempo precisa ser calculado a mao.
 
 TEST_CASE("Ritmo: o ciclo e a soma das duas fases") {
     constexpr RitmoDeCiclos r{0.f, 0.25f, 1.5f, 4};
@@ -197,9 +182,6 @@ TEST_CASE("Ritmo: a duracao total nao conta a ultima pausa") {
 }
 
 TEST_CASE("Ritmo: mudar a pausa move as miradas E o pulso juntos") {
-    // Este e o teste que existe por causa do acoplamento antigo: o intervalo
-    // entre miradas era um numero digitado a mao, que precisava ser igual a
-    // investida + pausa. Agora os dois saem do mesmo objeto.
     constexpr RitmoDeCiclos curto{0.f, 0.2f, 1.0f, 3};
     constexpr RitmoDeCiclos longo{0.f, 0.2f, 2.0f, 3};   // so a pausa mudou
 
@@ -211,7 +193,5 @@ TEST_CASE("Ritmo: mudar a pausa move as miradas E o pulso juntos") {
     CHECK(CalcularFaseDoPulso(curto.InicioDaInvestida(1) + 0.01f, curto, 800.f, 15.f).investindo);
     CHECK(CalcularFaseDoPulso(longo.InicioDaInvestida(1) + 0.01f, longo, 800.f, 15.f).investindo);
 
-    // E no instante em que a investida comecaria com a pausa curta, o ritmo
-    // longo ainda esta pausado - que era exatamente o bug de configuracao.
     CHECK_FALSE(CalcularFaseDoPulso(1.21f, longo, 800.f, 15.f).investindo);
 }

@@ -2,26 +2,16 @@
 // Created by nslop on 27/08/2024.
 //
 
-
-#include <fstream>
-#include "../../Game.h"
-#include "../../Json.h"
+#include "../../Motor/Game.h"
 #include "../../Actors/Actor.h"
-#include "../../Destrutivel.h"
+#include "../../Regras/Destrutivel.h"
 #include "DrawAnimatedComponent.h"
-#include <stdexcept>
-#include <set>
 
 DrawAnimatedComponent::DrawAnimatedComponent(class Actor* owner, const std::string &spriteSheetPath, const std::string &spriteSheetData, int drawOrder)
         :DrawSpriteComponent(owner, spriteSheetPath, 0, 0, drawOrder)
 {
     LoadSpriteSheet(spriteSheetPath, spriteSheetData);
 
-    // O JSON era aberto e parseado uma SEGUNDA vez aqui so para ler
-    // largura/altura do primeiro frame. LoadSpriteSheet ja leu isso para dentro
-    // de mSpriteSheetData, entao basta consultar (mesma premissa de antes: todos
-    // os frames tem o mesmo tamanho). Isso corta metade do custo de JSON de cada
-    // projetil criado, o que importa muito durante o Prewarm.
     if (!mSpriteSheetData.empty()) {
         mWidth = mSpriteSheetData[0].w;
         mHeight = mSpriteSheetData[0].h;
@@ -35,68 +25,21 @@ DrawAnimatedComponent::~DrawAnimatedComponent()
 
 void DrawAnimatedComponent::LoadSpriteSheet(const std::string& texturePath, const std::string& dataPath)
 {
-    // Load sprite sheet texture
+    // Load sprite sheet texture.
     mSpriteSheetSurface = mOwner->GetScene()->GetGame()->LoadTexture(texturePath);
     mCaminhoDaFolha = texturePath;
     mSilhueta = nullptr;
     mSilhuetaTentada = false;
 
-    // ESVAZIA ANTES DE LER. Sem isto, chamar LoadSpriteSheet uma segunda vez
-    // ACRESCENTA os quadros novos aos antigos em vez de substitui-los.
-    //
-    // Hoje isso nao muda o que aparece na tela - conferido: a imagem sai
-    // identica com e sem esta linha -, porque todas as folhas do jogo tem o
-    // mesmo recorte, e os indices que AddAnimation registrou continuam caindo
-    // nos quadros certos. O que acontece e o vetor crescer quatro posicoes a
-    // cada recarga, sem limite: a tela de criacao de personagem recarrega a
-    // cada seta apertada.
-    //
-    // E no dia em que uma peca tiver outro recorte, os indices passariam a
-    // apontar para os quadros da folha ANTERIOR - um defeito silencioso e
-    // dificil de rastrear. Uma linha compra as duas coisas.
+    // Esvazia antes de ler.
     mSpriteSheetData.clear();
     mUsingFallbackSheet = false;
 
-    // Load sprite sheet data
-    // O parse fica dentro de try/catch porque nlohmann::json LANCA excecao
-    // quando o arquivo nao existe ou esta malformado. Sem isso, um .json com
-    // nome errado derrubava o jogo inteiro com std::terminate, em vez de
-    // mostrar um sprite obviamente quebrado.
-    try {
-        std::ifstream spriteSheetFile(dataPath);
-        if (!spriteSheetFile.is_open()) {
-            throw std::runtime_error("arquivo nao encontrado");
-        }
-
-        nlohmann::json spriteSheetData = nlohmann::json::parse(spriteSheetFile);
-
-        for(const auto& frame : spriteSheetData["frames"]) {
-
-            int x = frame["frame"]["x"].get<int>();
-            int y = frame["frame"]["y"].get<int>();
-            int w = frame["frame"]["w"].get<int>();
-            int h = frame["frame"]["h"].get<int>();
-
-            mSpriteSheetData.push_back({x, y, w, h});
-        }
-    }
-    catch (const std::exception& e) {
-        // Avisa UMA vez por caminho. Sem isto, um sprite sheet quebrado em um
-        // projetil gera uma linha por instancia - 300 linhas so no
-        // pre-aquecimento, o que afogaria qualquer outro erro no log.
-        static std::set<std::string> jaAvisados;
-        if (jaAvisados.insert(dataPath).second) {
-            SDL_Log("SPRITE SHEET INVALIDA: %s (%s) -- usando frame unico de fallback",
-                    dataPath.c_str(), e.what());
-        }
-        mSpriteSheetData.clear();
-    }
+    // Os quadros vem do cache do game (Game::QuadrosDaFolha).
+    mSpriteSheetData = mOwner->GetScene()->GetGame()->QuadrosDaFolha(dataPath);
 
     if (mSpriteSheetData.empty()) {
-        // Fallback: um unico frame cobrindo a textura inteira, seja ela a
-        // imagem real (JSON ausente mas PNG ok) ou o xadrez do placeholder
-        // (ambos ausentes). As dimensoes vem da propria textura, entao isso
-        // funciona nos dois casos sem numero magico.
+        // As dimensoes vem da propria textura, entao isso funciona nos dois casos sem numero magico.
         int w = 0, h = 0;
         if (mSpriteSheetSurface) {
             SDL_QueryTexture(mSpriteSheetSurface, nullptr, nullptr, &w, &h);
@@ -105,8 +48,7 @@ void DrawAnimatedComponent::LoadSpriteSheet(const std::string& texturePath, cons
 
         mSpriteSheetData.push_back({0, 0, w, h});
 
-        // Sinaliza ao Draw que os indices das animacoes registradas nao valem
-        // mais nada: existe um frame so, e e ele que deve ser desenhado.
+        // Sinaliza ao Draw que os indices das animacoes registradas nao valem mais nada.
         mUsingFallbackSheet = true;
     }
 }
@@ -115,10 +57,7 @@ void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
 
     if (!mIsVisible || !mSpriteSheetSurface) return;
 
-    // Busca SEM operator[]. Em um unordered_map, mAnimations[mAnimName] INSERE
-    // um vetor vazio quando a chave nao existe. Com mAnimName == "" (nenhum
-    // SetAnimation chamado), o codigo antigo indexava [0] de um vetor vazio,
-    // cujo data() e nullptr: dereferencia de ponteiro nulo a cada frame.
+    // Busca sem operator[].
     const auto animIt = mAnimations.find(mAnimName);
     if (animIt == mAnimations.end() || animIt->second.empty()) {
         return;
@@ -126,22 +65,15 @@ void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
 
     const auto& frames = animIt->second;
 
-    // mAnimTimer e float e pode passar do tamanho da animacao num deltaTime
-    // grande, entao o indice do frame e limitado ao intervalo valido.
     auto frameIdx = static_cast<size_t>(mAnimTimer);
     if (frameIdx >= frames.size()) frameIdx = frames.size() - 1;
 
-    // Em modo fallback ha um unico frame; os indices registrados por
-    // AddAnimation apontariam para fora do vetor e nada seria desenhado.
+    // Em modo fallback ha um unico frame.
     const int spriteIdx = mUsingFallbackSheet ? 0 : frames[frameIdx];
 
-    // Comparacao com cast explicito: antes era 'int < size_t', e um indice
-    // negativo virava um numero gigante ao ser convertido para unsigned,
-    // passando pela checagem.
     if (spriteIdx >= 0 && static_cast<size_t>(spriteIdx) < mSpriteSheetData.size())
     {
         Vector2 pos = mOwner->GetPosition();
-        Vector2 cameraPos = mOwner->GetScene()->GetGame()->GetCameraPos();
 
         float scale = mOwner->GetScale();
 
@@ -151,54 +83,62 @@ void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
         int scaledHeight = static_cast<int>(clipRect.h * scale);
 
         SDL_Rect renderQuad = {
-            static_cast<int>(pos.x - scaledWidth/2.0f - cameraPos.x),
-            static_cast<int>(pos.y - scaledHeight/2.0f - cameraPos.y),
+            static_cast<int>(pos.x - scaledWidth/2.0f),
+            static_cast<int>(pos.y - scaledHeight/2.0f),
             scaledWidth,  // Largura Final
             scaledHeight  // Altura Final
         };
 
         SDL_RendererFlip flip = SDL_FLIP_NONE;
 
+        const double angulo = -Math::ToDegrees(mOwner->GetRotation());
+        if (mBrilho && mAlcanceDoBrilho > Destrutivel::kEspessura) {
+            // Dois aneis, o de fora mais apagado: o brilho some com a distancia, e o contorno vem
+            // por cima dele.
+            SDL_Color fora = mCorDoBrilho;
+            fora.a = static_cast<Uint8>(mCorDoBrilho.a / 2);
+            DesenharSilhueta(renderer, clipRect, renderQuad, angulo, flip, mAlcanceDoBrilho, fora);
+            DesenharSilhueta(renderer, clipRect, renderQuad, angulo, flip,
+                             (mAlcanceDoBrilho + Destrutivel::kEspessura) / 2, mCorDoBrilho);
+        }
         if (mContorno) {
-            DesenharContorno(renderer, clipRect, renderQuad, -Math::ToDegrees(mOwner->GetRotation()), flip);
+            DesenharSilhueta(renderer, clipRect, renderQuad, angulo, flip, Destrutivel::kEspessura, mCorDoContorno);
         }
 
         ApplyColorMod();
 
-        // mRotation e guardado em radianos (ver Actor.h); SDL_RenderCopyEx
-        // espera graus. Esta e a unica fronteira onde a conversao acontece.
-        //
-        // O SINAL TROCADO NAO E ENFEITE. O Actor guarda o angulo na convencao
-        // matematica - anti-horario, com Y para cima, que e o que
-        // Actor::GetForward e os Atan2(-v.y, v.x) de quem define rotacao
-        // assumem. O SDL gira no sentido HORARIO. Passar um pelo outro sem
-        // negar espelha a rotacao na vertical: a corrente do Salles descia para
-        // a direita e as setas dela apontavam para CIMA e para a direita.
+        // MRotation e guardado em radianos; SDL_RenderCopyEx espera graus.
         SDL_RenderCopyEx(renderer, mSpriteSheetSurface, &clipRect, &renderQuad,
                          -Math::ToDegrees(mOwner->GetRotation()), nullptr, flip);
     }
 }
-
 
 void DrawAnimatedComponent::DefinirContorno(const bool ligado, const SDL_Color cor) {
     mContorno = ligado;
     mCorDoContorno = cor;
 }
 
-void DrawAnimatedComponent::DesenharContorno(SDL_Renderer* renderer, const SDL_Rect& quadro,
+void DrawAnimatedComponent::DefinirBrilho(const bool ligado, const SDL_Color cor, const int alcance) {
+    mBrilho = ligado;
+    mCorDoBrilho = cor;
+    mAlcanceDoBrilho = alcance;
+}
+
+void DrawAnimatedComponent::DesenharSilhueta(SDL_Renderer* renderer, const SDL_Rect& quadro,
                                              const SDL_Rect& destino, const double angulo,
-                                             const SDL_RendererFlip flip) {
-    // A SILHUETA SO E CARREGADA quando o contorno liga pela primeira vez: a
-    // maioria das folhas nunca precisa dela.
+                                             const SDL_RendererFlip flip, const int distancia,
+                                             const SDL_Color cor) {
+    if (distancia <= 0) return;
+    // A silhueta so e carregada quando o contorno (ou o brilho) liga pela primeira vez.
     if (!mSilhuetaTentada) {
         mSilhuetaTentada = true;
         mSilhueta = mOwner->GetScene()->GetGame()->LoadSilhueta(mCaminhoDaFolha);
     }
     if (!mSilhueta) return;
 
-    SDL_SetTextureColorMod(mSilhueta, mCorDoContorno.r, mCorDoContorno.g, mCorDoContorno.b);
-    SDL_SetTextureAlphaMod(mSilhueta, mCorDoContorno.a);
-    const int e = Destrutivel::kEspessura;
+    SDL_SetTextureColorMod(mSilhueta, cor.r, cor.g, cor.b);
+    SDL_SetTextureAlphaMod(mSilhueta, cor.a);
+    const int e = distancia;
     for (int dy = -e; dy <= e; dy += e) {
         for (int dx = -e; dx <= e; dx += e) {
             if (dx == 0 && dy == 0) continue;
@@ -214,9 +154,7 @@ void DrawAnimatedComponent::Update(float deltaTime)
 {
     if(mIsPaused) return;
 
-    // Mesma protecao do Draw. Sem ela, uma animacao inexistente ou vazia fazia
-    // o while comparar (int)mAnimTimer >= 0 (sempre verdadeiro) e subtrair 0
-    // indefinidamente: o jogo inteiro travava em loop infinito.
+    // Mesma protecao do Draw.
     const auto animIt = mAnimations.find(mAnimName);
     if (animIt == mAnimations.end() || animIt->second.empty()) {
         return;
@@ -226,7 +164,7 @@ void DrawAnimatedComponent::Update(float deltaTime)
 
     mAnimTimer += mAnimFPS * deltaTime;
 
-    // frameCount e sempre >= 1 aqui, entao o loop termina.
+    // FrameCount e sempre >= 1 aqui, entao o loop termina.
     while (mAnimTimer >= frameCount) {
         mAnimTimer -= frameCount;
     }
@@ -243,8 +181,7 @@ void DrawAnimatedComponent::SetAnimation(const std::string& name)
         return;
     }
 
-    // Player::HandleAnimation chama isto TODO frame com o mesmo nome. Sem esta
-    // guarda, o reset do timer abaixo congelaria a animacao no primeiro frame.
+    // Player::AtualizarAnimacao chama isto todo frame com o mesmo nome.
     if (mAnimName == name) return;
 
     mAnimName = name;

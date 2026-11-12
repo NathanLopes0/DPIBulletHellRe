@@ -1,88 +1,27 @@
 {
-  // ==========================================================================
-  // FORMAS DE TRAJETORIA
-  //
-  // ESPACO DE CAMINHO: +X e a direcao em que o projetil viaja quando o
-  // PathBehavior ativa, +Y e a perpendicular A DIREITA desse movimento. Ou
-  // seja, a forma e desenhada como se o tiro sempre saisse para a direita, e o
-  // PathBehavior gira tudo para a direcao real. A MESMA forma serve em qualquer
-  // angulo, e um anel de CircleSpreadAttack produz a forma girada para cada
-  // direcao do anel.
-  //
-  // "gerador" reaproveita as formas que existem em C++ (Reta, Arc, Loop,
-  // Zigzag) com os parametros NA ORDEM em que a funcao os recebe:
-  //     Arc(forward, lateral, segments)  ->  a, b, n
-  //     Loop(radius, exitDistance, segments)
-  //     Zigzag(step, amplitude, legs)
-  //     Reta(distance)                   ->  a
-  // "pontos" e a lista literal, para uma forma que nenhum gerador desenha.
-  //
-  // NUMERO DE SEGMENTOS: cada ponto e um alvo que o projetil precisa alcancar
-  // dentro de uma tolerancia. Muitos pontos muito proximos fazem o projetil
-  // gastar quadros "chegando" em cada um e a trajetoria fica truncada. Entre 8
-  // e 16 costuma ser o ponto certo.
-  //
-  // As formas sao COMPARTILHADAS (Flyweight): duas regras que pedem a mesma
-  // forma recebem o mesmo ponteiro. Por isso os nomes descrevem a GEOMETRIA e
-  // nao o chefe - a forma que o Salles usa hoje serve para outro amanha.
-  // ==========================================================================
+  // Formas de trajetoria.
 
-  // ----- Exemplo da forma por PONTOS LITERAIS -----
-  // Nenhum chefe usa, e fica de proposito: e a unica demonstracao da segunda
-  // maneira de descrever uma forma, para quando um gerador nao der a curva que
-  // voce quer. Os outros dois exemplos que moravam aqui (LacoLargo e ArcoLongo)
-  // sairam por serem variacoes de parametro das formas em uso logo abaixo.
+  // ---- Exemplo da forma por pontos literais ----
   "Gancho": {
     "pontos": [[80, 0], [150, 30], [190, 90], [170, 160], [110, 200], [900, 200]]
   },
 
-  // ==========================================================================
-  // SALLES - INF 213 (Estruturas de Dados)
-  //
-  // So o anel da fase final dele usa forma. A pilha, a tabela hash, a arvore de
-  // busca e o vetor do bubble sort sao estruturas de verdade, que o C++ monta e
-  // desfaz no campo (Pilha.h, Hash.h, Arvore.h, Ordenacao.h) - nao
-  // trajetorias.
-  // ==========================================================================
+  // Salles - INF 213 (Estruturas de Dados) So o anel da fase final dele usa forma.
 
-  // ----- Fase final: a lista circular -----
-  // O anel que o elemento solta quando assenta no bubble sort da repescagem.
-  // Raio pequeno e muitos segmentos: a volta precisa ser LENTA para ser lida. Um
-  // laco rapido vira um borrao, e a piada - a lista que volta ao inicio -
-  // depende de o jogador VER a capivara fechar o circulo.
+  // ---- Fase final: a lista circular ----
   "LacoLento": {
     "gerador": { "tipo": "Loop", "a": 80, "b": 500, "n": 12 }
   },
 
-  // ----- Formas sem uso hoje, mantidas como vocabulario -----
-  // Eram de desenhos anteriores do Salles. Ficam porque sao geometrias distintas
-  // e testadas, e os nomes descrevem a GEOMETRIA e nao o chefe: servem a
-  // qualquer professor amanha. As variacoes so de parametro das que ficaram
-  // (arco largo, arco medio, zigue curto, laco rapido) sairam - essas sim eram
-  // repeticao.
+  // ---- Formas sem uso hoje, mantidas como vocabulario ----
 
-  // A IDA E A VOLTA PELO MESMO RASTRO: vai 300px, e volta 900px em -X, 180 graus
-  // exatos. Uma volta deslocada parece um desvio; uma pelo mesmo caminho parece
-  // o ponteiro prev sendo seguido - era a lista duplamente encadeada da fase 2
-  // antiga. A parada no meio nao esta aqui: e da regra ("pararNoPonto": 0,
-  // "pararPor": 0.8), porque e tempo e nao geometria.
+  // A ida e a volta pelo mesmo rastro: vai 300px, e volta 900px em -X, 180 graus exatos.
   "IdaEVolta": {
     "pontos": [[300, 0], [-900, 0]]
   },
 
-  // A UNICA FAMILIA "arvore" DOS DADOS: "divisoes": 4 quer dizer 1 -> 2 -> 4 ->
-  // 8 -> 16, e o leitor gera as dezesseis folhas. O que faz parecer uma arvore e
-  // o PREFIXO COMPARTILHADO: folhas irmas tem os mesmos pontos ate o pai, entao
-  // os projeteis saem sobrepostos, descem juntos e so entao se separam - um no
-  // que abre em dois, e nao dezesseis tiros que sairam juntos. Era a arvore da
-  // fase 3 antiga. Quem a usar dispara exatamente as dezesseis (um teste
-  // confere o tamanho da familia contra "projeteis").
-  //
-  //   divisoes     quantas vezes se divide (4 = dezesseis folhas)
-  //   tronco       quanto desce antes da primeira divisao
-  //   passo        avanco entre uma divisao e a seguinte
-  //   espacamento  distancia lateral entre folhas vizinhas
-  //   saida        perna reta final, que tira o projetil da tela
+  // A unica familia "arvore" dos dados: "divisoes": 4 quer dizer 1 -> 2 -> 4 -> 8 -> 16, e o leitor
+  // gera as dezesseis folhas.
   "ArvoreDeBusca": {
     "arvore": { "divisoes": 4, "tronco": 120, "passo": 90, "espacamento": 60, "saida": 560 }
   },
@@ -90,8 +29,8 @@
   "ZigueQuinado": {
     "gerador": { "tipo": "Zigzag", "a": 85, "b": 50, "n": 6 }
   },
-  // O par existe para ALTERNAR o lado entre projeteis vizinhos (pares recebem um,
-  // impares o outro): as barrigas se cruzam no meio do voo.
+  // O par existe para alternar o lado entre projeteis vizinhos (pares recebem um, impares o outro):
+  // as barrigas se cruzam no meio do voo.
   "ArcoDireita": {
     "gerador": { "tipo": "Arc", "a": 500, "b": 110, "n": 10 }
   },
@@ -99,43 +38,14 @@
     "gerador": { "tipo": "Arc", "a": 500, "b": -110, "n": 10 }
   },
 
-  // ----- Julio, fase final -----
-  // Raio pequeno e velocidade baixa: a volta precisa ser LENTA para ser lida. Um
-  // laco rapido vira um borrao e perde a graca, e a piada da fase (o modelo
-  // entrou em loop) depende de o jogador VER a bala girar.
+  // ---- Julio, fase final ----
   "LacoApertado": {
     "gerador": { "tipo": "Loop", "a": 70, "b": 500, "n": 12 }
   },
 
-  // ==========================================================================
-  // MARIA LUCIA - INF 221 (Engenharia de Software)
-  // ==========================================================================
+  // Maria Lucia - INF 221 (Engenharia de Software)
 
-  // ----- Fase 2: as setas de um diagrama -----
-  // UMA FAMILIA ESCRITA A MAO ("caminhos"): o projetil numero i recebe o
-  // caminho numero i. Esta e a PRIMEIRA USUARIA da familia por caminhos, que
-  // existia no leitor, era testada e nao era usada por chefe nenhum - o
-  // comentario em PathShapes.cpp prometia a pilha do Vladimir, que no fim saiu
-  // por SlowDown e nao por caminho.
-  //
-  // O QUE FAZ ISTO PARECER UM DIAGRAMA E O ANGULO RETO. Toda outra forma do
-  // jogo e curva (arco, laco, zigue) ou reta pura; estas andam, VIRAM 90 graus,
-  // andam de novo. E o roteamento ortogonal que todo editor de UML faz, e o
-  // olho reconhece de longe mesmo sem saber o nome disso.
-  //
-  // Como os pontos sao offsets em espaco de caminho (+X = a direcao de voo,
-  // +Y = a perpendicular a direita), a mesma lista serve em qualquer angulo que
-  // a rajada sorteie: o diagrama nasce alinhado com o tiro.
-  //
-  // A PERNA FINAL E LONGA (820) de proposito. Quando o caminho acaba, o
-  // projetil segue reto na ultima direcao para sempre, entao a perna so precisa
-  // ser grande o bastante para a saida acontecer DEPOIS da virada - se ela
-  // fosse curta, a virada e a saida se confundiriam e o angulo reto, que e a
-  // coisa toda, nao seria visto.
-  //
-  // OS LADOS ALTERNAM e as PROFUNDIDADES SOBEM: o caminho 0 vira cedo para a
-  // esquerda, o 1 vira um pouco depois para a direita, e assim por diante. E
-  // isso que abre um leque de corredores em vez de oito setas empilhadas.
+  // ---- Fase 2: as setas de um diagrama ----
   "RotasDeDiagrama": {
     "caminhos": [
       [[ 40, 0], [ 40, -110], [820, -110]],
@@ -149,36 +59,13 @@
     ]
   },
 
-  // ----- Fase 3 e final: onde a divida PARA -----
-  // Uma reta curta e uma reta longa, e a regra manda parar no primeiro ponto
-  // ("pararNoPonto": 0). O projetil voa 460px, CONGELA - visivel e com colisor
-  // ligado - e so depois segue para fora.
-  //
-  // NAO E UM SlowDown, e a diferenca e o chefe inteiro. Freado, o debito
-  // continuaria escorregando e sairia da tela sozinho: a divida se pagaria com
-  // o tempo, que e exatamente o que divida nao faz. Parado, ele fica onde
-  // nasceu ate alguem (o relogio) resolver.
-  //
-  // 460 PX E A DISTANCIA MEDIDA entre a faixa em que a chefe varre (y 144) e a
-  // faixa em que o jogador vive (y 680). A divida tem de aterrissar ONDE SE
-  // ANDA: com 350px ela parava 250px acima do jogador, e a fase ficava mais
-  // FACIL quanto mais tempo a divida ficava em tela - porque parada longe ela
-  // nao atrapalhava, e voando ao menos cruzava a faixa dele uma vez.
-  //
-  // Quem usa esta forma precisa de um leque ESTREITO. Num leque largo so o
-  // tiro vertical percorre os 460px para baixo; um de 45 graus desce 325 e
-  // para bem mais alto. Por isso a Manutencao da cascata, em
-  // marialucia/fases.json, sai num leque de 36 graus.
+  // ---- Fase 3 e final: onde a divida para ----
   "ParaEFica": {
     "pontos": [[460, 0], [1200, 0]]
   },
 
-  // O OLHO QUE ASSINA (Maria Lucia, fase 3 - o padrao Observer): sai da
-  // professora, para a 230px dela e fica olhando o aluno ate "pararPor"
-  // acabar - e ai segue em frente, para fora da tela, como quem cancela a
-  // assinatura. 230px num leque largo poe os olhos num arco em volta dela, no
-  // meio do campo: longe o bastante do aluno para o aviso ter de atravessar o
-  // campo, e perto o bastante para os olhos se lerem como dela.
+  // O olho que assina (Maria Lucia, fase 3 - o padrao Observer): sai da professora, para a 230px
+  // dela e fica olhando o aluno ate "pararPor" acabar.
   "Inscrito": {
     "pontos": [[230, 0], [1400, 0]]
   }

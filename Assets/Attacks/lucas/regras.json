@@ -1,10 +1,5 @@
 {
-  // ==========================================================================
-  // AS REGRAS DE PROJETIL DO LUCAS
-  //
-  // Um conjunto por camada da web. Os campos estao documentados em
-  // Documentacao/arquivos-de-dados.md.
-  // ==========================================================================
+  // As regras de projetil do Lucas. Um conjunto por camada da web.
 
   // HTML: a tag vai reta. A estrutura nao corre atras de ninguem - ela ocupa
   // espaco.
@@ -12,19 +7,14 @@
     { "animacao": "Tag" }
   ],
 
-  // CSS: a regra tambem vai reta. O que o CSS faz e REARRANJAR o que ja esta
-  // na tela, e isso e da estrategia, nao do projetil.
+  // CSS: a regra tambem vai reta. O que o CSS faz e rearranjar o que ja esta na tela, e isso e da
+  // estrategia, nao do projetil.
   "css": [
     { "animacao": "Regra" }
   ],
 
-  // JAVASCRIPT: A PROMESSA - o leque do .then e o anel da resposta do fetch,
-  // no event loop da final. Sai, para pendente aos 0,7s (SlowDown com fator
-  // zero) e assenta aos 1,5s: a parte que resolve e 0,6, e as resolvidas saem
-  // contra o aluno a 280 px/s, ja como TAG - o fetch voltou com HTML -; as
-  // outras sao rejeitadas e somem (Promessa, ver Promessa.h). Parada, uma
-  // promessa nunca sairia da tela; e o assentar, resolvendo ou rejeitando, que
-  // a tira de la.
+  // JavaScript: a promessa - o leque do .then e o anel da resposta do fetch, no event loop da
+  // final.
   "promessas": [
     { "animacao": "Promessa",
       "modifiers": [
@@ -32,8 +22,7 @@
         { "tipo": "Promessa", "atraso": 1.5, "resolve": 0.6, "velocidade": 280, "escreve": "Tag" } ] }
   ],
 
-  // A PAGINA DA FASE 1: o cursor e o spinner ficam no posto "pagina" - e por
-  // la que o F5 os acha para apagar -, e o Lucas os move (Lucas::RenderizarPagina).
+  // A pagina da fase 1: o cursor e o spinner ficam no posto "pagina".
   "pagina": [
     { "posto": "pagina" }
   ],
@@ -41,27 +30,21 @@
     { "posto": "pagina", "animacao": "Promessa" }
   ],
 
-  // O DEVTOOLS DA FASE 2: os cartoes da grade ficam no posto "grade", e o
-  // Lucas os move para onde o CSS de agora manda (Lucas::AtualizarEstilo).
   "grade": [
     { "posto": "grade", "animacao": "Regra" }
   ],
 
-  // O HANDLE_CAST DA FASE 3: o leque de envelopes do worker que processou a
-  // caixa cheia.
+  // O HANDLE_CAST da fase 3: o leque de envelopes do worker que processou a caixa cheia.
   "mensagem": [
     { "animacao": "Mensagem" }
   ],
 
-  // O PIPE DA FASE 3: cada etapa do |> que escorre embaixo do supervisor
-  // parado. Ladrilho cheio, e nao envelope: o envelope que corre pela linha
-  // da arvore e o cast, que nao machuca.
+  // O pipe da fase 3: cada etapa do |> que escorre embaixo do supervisor parado.
   "pipe": [
     { "animacao": "Pipe" }
   ],
 
-  // A ARVORE DE SUPERVISAO DA FASE 3: os workers e as mensagens que correm ate
-  // eles ficam no posto "supervisao", e o Lucas os move (Lucas::AtualizarSupervisao).
+  // A arvore de supervisao da fase 3.
   "worker": [
     { "posto": "supervisao" }
   ],
@@ -69,9 +52,7 @@
     { "posto": "supervisao", "animacao": "Mensagem" }
   ],
 
-  // O EVENT LOOP DA FINAL: a ficha de cada linha do script fica no posto
-  // "eventloop", e o Lucas a leva da pilha as Web APIs e as filas
-  // (Lucas::AtualizarEventLoop). A animacao e a do tipo da linha, posta por ele.
+  // A animacao e a do tipo da linha, posta por ele.
   "ficha": [
     { "posto": "eventloop" }
   ]

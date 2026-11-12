@@ -1,22 +1,8 @@
-// O painel de controle do gabinete. Camada pura.
-//
-// O que estes testes protegem nao e a aparencia do rodape: e o ACORDO entre o
-// que a tela anuncia e o que o jogo escuta. A selecao de fases escrevia "T
-// trocar usuario" e escutava o T - num gabinete que nao tem tecla T. A acao era
-// impossivel, e o rodape ensinava a fazer o impossivel.
-//
-// Por isso os testes insistem em tres coisas: o rodape sai do BOTAO, dois
-// controles nunca compartilham tecla, e o nome da tecla que aparece escrito no
-// computador e o nome da tecla que o jogo le.
-//
-// COM AS DUAS POSICOES, a conferencia de teclas repetidas passou a valer para o
-// painel INTEIRO, e nao para os tres botoes de um lado. E ela que impede o
-// manche de um jogador de ser o botao do outro - era exatamente esse o estado
-// anterior, com o W A S D servindo de atalho para as setas do jogador 1.
+// O painel de controle do gabinete.
 
 #include "doctest.h"
 
-#include "../Source/Painel.h"
+#include "../Source/Entrada/Painel.h"
 
 #include <string>
 #include <vector>
@@ -30,10 +16,7 @@ std::vector<Uint8> TecladoCom(const SDL_Scancode tecla) {
     return teclado;
 }
 
-/// TODAS AS TECLAS DO PAINEL, as duas posicoes juntas: quatro do manche e tres
-/// botoes de cada lado. As listas vem de Painel.h de proposito - um kTodos
-/// local aqui seria uma segunda copia dos enumeradores, e foi assim que a lista
-/// de chefes do teste de dados ficou sem o Thiago.
+/// Todas as teclas do painel, as duas posicoes juntas: quatro do manche e tres botoes de cada lado.
 std::vector<SDL_Scancode> TodasAsTeclas() {
     std::vector<SDL_Scancode> teclas;
     for (const Painel::Jogador quem : Painel::kJogadores) {
@@ -47,8 +30,7 @@ std::vector<SDL_Scancode> TodasAsTeclas() {
 
 TEST_CASE("Painel: o gabinete tem duas posicoes, e nenhuma tecla serve as duas") {
 
-    // ESTE E O TESTE DO CO-OP. Uma tecla repetida entre posicoes faria os dois
-    // jogadores andarem juntos, ou o tiro de um disparar o do outro.
+    // Este e o teste do co-op.
     const std::vector<SDL_Scancode> teclas = TodasAsTeclas();
 
     CHECK(teclas.size() == 14);   // (4 do manche + 3 botoes) x 2 posicoes
@@ -63,8 +45,7 @@ TEST_CASE("Painel: o gabinete tem duas posicoes, e nenhuma tecla serve as duas")
 
 TEST_CASE("Painel: as setas sao do jogador 1 e o W A S D e do jogador 2") {
 
-    // Eram a mesma coisa, e por isso a segunda posicao do gabinete nao tinha
-    // manche. O rodape ja dizia "SETAS" enquanto o jogo tambem aceitava W A S D.
+    // O rodape ja dizia "SETAS" enquanto o jogo tambem aceitava W A S D.
     CHECK(Painel::Tecla(Painel::Jogador::Um, Painel::Direcao::Cima)     == SDL_SCANCODE_UP);
     CHECK(Painel::Tecla(Painel::Jogador::Um, Painel::Direcao::Baixo)    == SDL_SCANCODE_DOWN);
     CHECK(Painel::Tecla(Painel::Jogador::Um, Painel::Direcao::Esquerda) == SDL_SCANCODE_LEFT);
@@ -78,8 +59,7 @@ TEST_CASE("Painel: as setas sao do jogador 1 e o W A S D e do jogador 2") {
 
 TEST_CASE("Painel: cada botao tem um nome so dele, e o nome NAO depende da posicao") {
 
-    // O gabinete tem os botoes 1, 2 e 3 dos dois lados. Quem precisa dizer de
-    // quem e o botao diz pela posicao, nao por um nome diferente.
+    // O gabinete tem os botoes 1, 2 e 3 dos dois lados.
     CHECK(std::string(Painel::Nome(Painel::Botao::Um))   == "BOTAO 1");
     CHECK(std::string(Painel::Nome(Painel::Botao::Dois)) == "BOTAO 2");
     CHECK(std::string(Painel::Nome(Painel::Botao::Tres)) == "BOTAO 3");
@@ -87,8 +67,7 @@ TEST_CASE("Painel: cada botao tem um nome so dele, e o nome NAO depende da posic
 
 TEST_CASE("Painel: o nome da tecla nao e vazio nem repetido, em nenhuma posicao") {
 
-    // Ele aparece escrito na tela no computador. Dois controles com o mesmo
-    // nome de tecla mandariam quem esta testando apertar a tecla errada.
+    // Ele aparece escrito na tela no computador.
     std::vector<std::string> nomes;
     for (const Painel::Jogador quem : Painel::kJogadores) {
         nomes.emplace_back(Painel::NomeDoManche(quem));
@@ -105,9 +84,7 @@ TEST_CASE("Painel: o nome da tecla nao e vazio nem repetido, em nenhuma posicao"
 
 TEST_CASE("Painel: Apertado responde pela tecla daquele controle, e so por ela") {
 
-    // Varre o painel inteiro: para cada tecla, um teclado com ela apertada tem
-    // de acender UM controle. Com a tabela anterior, apertar o W acendia o
-    // CIMA do jogador 1 - que e justamente o que nao pode mais acontecer.
+    // Com a tabela anterior, apertar o W acendia o cima do jogador 1.
     for (const Painel::Jogador dono : Painel::kJogadores) {
         for (const Painel::Direcao mandada : Painel::kDirecoes) {
             const std::vector<Uint8> teclado = TecladoCom(Painel::Tecla(dono, mandada));
@@ -141,8 +118,7 @@ TEST_CASE("Painel: Apertado responde pela tecla daquele controle, e so por ela")
 
 TEST_CASE("Painel: teclado ausente nao e botao nem manche apertado") {
 
-    // A cena recebe o ponteiro da SDL e o repassa. Se ele chegar nulo, o jogo
-    // nao pode cair - e muito menos agir como se tudo estivesse apertado.
+    // A cena recebe o ponteiro da SDL e o repassa.
     for (const Painel::Jogador quem : Painel::kJogadores) {
         for (const Painel::Botao b : Painel::kBotoes)     CHECK(Painel::Apertado(nullptr, quem, b) == false);
         for (const Painel::Direcao d : Painel::kDirecoes) CHECK(Painel::Apertado(nullptr, quem, d) == false);
@@ -151,8 +127,7 @@ TEST_CASE("Painel: teclado ausente nao e botao nem manche apertado") {
 
 TEST_CASE("Painel: o rodape anuncia o NOME do botao que a cena escuta") {
 
-    // ESTE E O TESTE QUE IMPORTA. O item do rodape e construido a partir do
-    // botao, entao nao existe caminho para escrever um nome e escutar outro.
+    // Este e o teste que importa.
     for (const Painel::Botao b : Painel::kBotoes) {
         const std::string linha = Painel::Rodape({{Painel::Jogador::Um, b, "fazer alguma coisa"}},
                                                  Painel::Jeito::SoOPainel);
@@ -170,12 +145,7 @@ TEST_CASE("Painel: o rodape anuncia o NOME do botao que a cena escuta") {
 
 TEST_CASE("Painel: no computador o rodape diz TAMBEM a tecla, e e a tecla DAQUELA posicao") {
 
-    // Quem esta testando no teclado nao tem como saber qual e o botao 2. E a
-    // tecla escrita tem de ser a MESMA que Apertado le - se fossem duas fontes,
-    // o rodape mandaria apertar uma tecla que nao faz nada.
-    //
-    // Com duas posicoes ha um segundo jeito de errar: anunciar a tecla do
-    // jogador 1 num rodape que o jogador 2 esta lendo.
+    // Quem esta testando no teclado nao tem como saber qual e o botao 2.
     for (const Painel::Jogador quem : Painel::kJogadores) {
         for (const Painel::Botao b : Painel::kBotoes) {
             const std::string linha = Painel::Rodape({{quem, b, "jogar"}}, Painel::Jeito::ComATecla);
@@ -186,7 +156,7 @@ TEST_CASE("Painel: no computador o rodape diz TAMBEM a tecla, e e a tecla DAQUEL
             const std::vector<Uint8> teclado = TecladoCom(Painel::Tecla(quem, b));
             CHECK(Painel::Apertado(teclado.data(), quem, b));
 
-            // E a tecla do OUTRO lado nao aparece nesta linha.
+            // E a tecla do outro lado nao aparece nesta linha.
             const auto outro = quem == Painel::Jogador::Um ? Painel::Jogador::Dois : Painel::Jogador::Um;
             CHECK(linha.find(std::string("(") + Painel::NomeDaTecla(outro, b) + ")") == std::string::npos);
         }
@@ -195,7 +165,7 @@ TEST_CASE("Painel: no computador o rodape diz TAMBEM a tecla, e e a tecla DAQUEL
 
 TEST_CASE("Painel: no gabinete a tecla NAO aparece") {
 
-    // La nao ha teclado. Dizer "ESPACO" para quem tem um botao na mao e ruido.
+    // La nao ha teclado.
     const std::string linha = Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um, "jogar"}},
                                              Painel::Jeito::SoOPainel);
 
@@ -228,7 +198,7 @@ TEST_CASE("Painel: o manche entra no rodape sem ser botao, e tem tecla propria")
                                                 Painel::Jeito::ComATecla);
     CHECK(comTecla.find("(SETAS)") != std::string::npos);
 
-    // E o manche do jogador 2 anuncia o manche DELE.
+    // E o manche do jogador 2 anuncia o manche dele.
     const std::string doDois = Painel::Rodape({Painel::Manche(Painel::Jogador::Dois, "escolher")},
                                               Painel::Jeito::ComATecla);
     CHECK(doDois.find("(WASD)") != std::string::npos);
@@ -248,10 +218,7 @@ TEST_CASE("Painel: rodape vazio e linha vazia, e um item so nao leva separador")
 
 TEST_CASE("Painel: tecla de letra se chama pela propria letra") {
 
-    // AMARRA AS DUAS COLUNAS DA TABELA. O nome da tecla e escrito na tela e o
-    // scancode e o que o jogo le; sem esta conferencia, trocar o botao 2 de B
-    // para C e esquecer o nome faria a tela mandar apertar a tecla errada - e
-    // nada reclamaria, porque os dois campos continuariam preenchidos.
+    // Amarra as duas colunas da tabela.
     for (const Painel::Jogador quem : Painel::kJogadores) {
         for (const Painel::Botao b : Painel::kBotoes) {
             const SDL_Scancode tecla = Painel::Tecla(quem, b);
@@ -265,8 +232,7 @@ TEST_CASE("Painel: tecla de letra se chama pela propria letra") {
 
 TEST_CASE("Painel: o nome do manche diz as teclas dele") {
 
-    // "SETAS" e "WASD" sao nomes de CONJUNTO, e nao de uma tecla; o que o teste
-    // pode conferir e que o nome do jogador 2 lista as quatro letras que ele le.
+    // "SETAS" e "WASD" sao nomes de conjunto, e nao de uma tecla.
     CHECK(std::string(Painel::NomeDoManche(Painel::Jogador::Um)) == "SETAS");
 
     const std::string dois = Painel::NomeDoManche(Painel::Jogador::Dois);

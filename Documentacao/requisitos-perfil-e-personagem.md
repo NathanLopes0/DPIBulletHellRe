@@ -40,8 +40,10 @@ e cor de cabelo, tipo e cor de camisa, tipo e cor de calça. A personagem de cad
 matrícula é montada a partir dessas escolhas.
 
 O **tom de pele** é uma escolha como as outras, e não uma cor fixa do template.
-Isso obriga os **sapatos** a saírem numa peça separada, em cor fixa: tingidos
-junto com a pele, eles clareariam com ela e deixariam de ser sapatos.
+Isso obriga os **sapatos** a saírem numa peça separada: tingidos junto com a
+pele, eles clareariam com ela e deixariam de ser sapatos. Na primeira versão a
+peça era fixa, em cor final; depois virou categoria, com peça (tênis, cano alto,
+bota, chinelo) e cor, e o padrão é o tênis grafite de antes.
 
 ### 2.1.1 — O personagem é visto de costas (D10)
 
@@ -84,9 +86,10 @@ Compondo as camadas numa textura única ao carregar, tudo depois disso continua
 vendo **uma** sprite animada, com o mesmo atlas de quatro quadros, e nenhum
 desses pontos muda. O custo acontece uma vez por perfil carregado.
 
-A ordem é **corpo, sapato, calça, camisa, cabelo**: a camisa cobre a cintura da
-calça e o cabelo cai por cima do ombro da camisa. Dessas, só o sapato não é
-tingido.
+A ordem é **corpo, sapato, calça, camisa, mochila, cabelo**: a camisa cobre a
+cintura da calça, a mochila vai nas costas por cima da camisa e o cabelo cai por
+cima do ombro da camisa e da mochila. Todas são tingidas. Quem se formou ganha
+mais uma, por cima de tudo e em cor final: o capelo (RF8).
 
 A **regra** de composição — quais camadas, em que ordem, com que cores — é
 pura e testável. Só o desenho dos pixels fica na ponte.
@@ -149,6 +152,21 @@ tela (D8).
 
 Acrescentar um tipo de cabelo é acrescentar o PNG e uma entrada — sem
 recompilar.
+
+### RF8 — O capelo de quem se formou
+Quem passa no TCC ganha o **chapéu de formatura** (o capelo), para sempre. Não é
+uma escolha: o catálogo diz qual matéria forma e qual é a arte (`formatura`), e
+a personagem de quem tem essa matéria aprovada é composta com o capelo por cima
+de tudo, em cor final — na batalha e na criação de personagem.
+
+- **Para sempre sem gravar nada novo:** "formado" é "tem o TCC aprovado", e o
+  recorde só sobe. A ficha continua na mesma versão.
+- **O momento:** a luta que forma alguém troca o título do resultado por
+  **FORMADE!**, em dourado, diz quem ganhou o chapéu ("Você", "A dupla" ou a
+  matrícula) e mostra a personagem de capelo dos dois lados do título; o aluno
+  no campo ganha o capelo ali mesmo. "Para sempre" só aparece quando ficou na
+  ficha de todos os que se formaram.
+- **O visitante** também se forma, mas só até o fim da sessão.
 
 ## 4. Requisitos não-funcionais e restrições
 

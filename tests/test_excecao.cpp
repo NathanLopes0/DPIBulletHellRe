@@ -45,22 +45,22 @@ TEST_CASE("Excecao: a excecao sobe ate quem a trata, e cada faixa sem tratamento
     CHECK(p[3].quadro == 1);
     CHECK(QuemCaptura(RodadaDaVez(0)) == 1);
 
-    // A MESMA PILHA COM OUTRA EXCECAO vai ate o main.
+    // A mesma pilha com outra excecao vai ate o main.
     CHECK(QuemCaptura(RodadaDaVez(1)) == 0);
     CHECK(Contar(Propagar(RodadaDaVez(1)), Acontece::Desempilha) == 3);
 
-    // A HIERARQUIA: o catch (RuntimeException) de f trata a NullPointerException.
+    // A hierarquia: o catch (RuntimeException) de f trata a NullPointerException.
     CHECK(QuemCaptura(RodadaDaVez(2)) == 1);
     CHECK(Contar(Propagar(RodadaDaVez(2)), Acontece::Desempilha) == 1);
 
-    // NINGUEM TRATA: a pilha inteira cai, e a excecao escapa do main.
+    // Ninguem trata: a pilha inteira cai, e a excecao escapa do main.
     const auto tudo = Propagar(RodadaDaVez(3));
     CHECK(QuemCaptura(RodadaDaVez(3)) == -1);
     CHECK(Contar(tudo, Acontece::Desempilha) == 4);
     CHECK(Contar(tudo, Acontece::Finally) == 1);
     CHECK(tudo.back().o == Acontece::Escapa);
 
-    // A REPESCAGEM E UM CATCH.
+    // A repescagem e um catch.
     CHECK(RodadaDaVez(4).lancada == Tipo::Reprovado);
     CHECK(QuemCaptura(RodadaDaVez(4)) == 0);
     CHECK(PlacarDoDesfecho(RodadaDaVez(4)).find("repescagem();") != std::string::npos);
@@ -100,7 +100,7 @@ TEST_CASE("Excecao: as faixas da pilha ficam no alto, uma embaixo da outra, long
             CHECK(f.y >= cima.y + cima.h);
         }
     }
-    // A MAIS FUNDA PARA BEM ACIMA DO ALUNO (Player: y ate 698).
+    // A mais funda para bem acima do aluno (Player: y ate 698).
     const Retangulo funda = Faixa(kMaiorPilha - 1, 1200.0f);
     CHECK(funda.y + funda.h < 400.0f);
 }
@@ -123,9 +123,7 @@ TEST_CASE("Excecao: a cortina poe um destroco em cima do aluno, de borda a borda
 }
 
 TEST_CASE("Excecao: a excecao sobe sem cobrir o canto de nenhuma faixa") {
-    // O canto fica na esquerda da faixa (Luizinho: 10 px da borda, a largura de
-    // Escopo::LarguraDoCanto, 9,5 px por letra mais 18); a excecao, de 168 px,
-    // sobe kAEsquerda a esquerda do professor, que fica de kXMinimo a kXMaximo.
+    // O canto fica na esquerda da faixa (Luizinho.
     float maiorCanto = 0.0f;
     for (int k = 0; k < kRodadas; ++k) {
         for (const Quadro& q : RodadaDaVez(k).pilha) {
@@ -195,7 +193,7 @@ TEST_CASE("Excecao: as rodadas sao geradas, e todo desfecho acontece") {
     CHECK(escapa);
     CHECK(finally);
     CHECK(alturas.size() == 2u);
-    // A EXCECAO LANCADA TAMBEM E SORTEADA: as tres concretas aparecem.
+    // A excecao lancada tambem e sorteada: as tres concretas aparecem.
     CHECK(lancadas.size() == 3u);
 
 }

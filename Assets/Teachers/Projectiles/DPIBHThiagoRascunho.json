@@ -1,0 +1,235 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHThiagoRascunho 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 46
+   },
+   "duration": 220
+  },
+  {
+   "filename": "DPIBHThiagoRascunho 1.placeholder",
+   "frame": {
+    "x": 60,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 46
+   },
+   "duration": 220
+  },
+  {
+   "filename": "DPIBHThiagoRascunho 2.placeholder",
+   "frame": {
+    "x": 120,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 46
+   },
+   "duration": 220
+  },
+  {
+   "filename": "DPIBHThiagoRascunho 3.placeholder",
+   "frame": {
+    "x": 180,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 46
+   },
+   "duration": 220
+  },
+  {
+   "filename": "DPIBHThiagoRascunho 4.placeholder",
+   "frame": {
+    "x": 240,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 46
+   },
+   "duration": 220
+  },
+  {
+   "filename": "DPIBHThiagoRascunho 5.placeholder",
+   "frame": {
+    "x": 300,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 46
+   },
+   "duration": 220
+  },
+  {
+   "filename": "DPIBHThiagoRascunho 6.placeholder",
+   "frame": {
+    "x": 360,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 46
+   },
+   "duration": 220
+  },
+  {
+   "filename": "DPIBHThiagoRascunho 7.placeholder",
+   "frame": {
+    "x": 420,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 46
+   },
+   "duration": 220
+  },
+  {
+   "filename": "DPIBHThiagoRascunho 8.placeholder",
+   "frame": {
+    "x": 480,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 46
+   },
+   "duration": 220
+  },
+  {
+   "filename": "DPIBHThiagoRascunho 9.placeholder",
+   "frame": {
+    "x": 540,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 60,
+    "h": 46
+   },
+   "sourceSize": {
+    "w": 60,
+    "h": 46
+   },
+   "duration": 220
+  }
+ ],
+ "meta": {
+  "app": "gerar_thiago.py",
+  "version": "1.0",
+  "image": "DPIBHThiagoRascunho.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 600,
+   "h": 46
+  },
+  "scale": "1"
+ }
+}

@@ -1,32 +1,8 @@
 {
-  // ==========================================================================
-  // OS PROJETEIS DO ANDRE
-  //
-  // UMA PASTA POR CHEFE: Assets/Attacks/andre/. A pasta diz de quem e o
-  // arquivo, entao aqui dentro ficam so os nomes que o campo "projetil" de uma
-  // fase usa -> como aquele projetil e montado. Antes era um projeteis.json so,
-  // com um nivel a mais dizendo o nome do chefe; com uma pasta por chefe esse
-  // nivel seria uma segunda fonte da mesma verdade, livre para discordar do
-  // nome da pasta.
-  //
-  // OS CAMPOS estao documentados em Documentacao/arquivos-de-dados.md.
-  //
-  // O que impede um erro de digitacao aqui de chegar ao jogo e
-  // tests/test_arquivos_de_dados.cpp: ele le este arquivo junto com as fases e
-  // com os atlas de verdade, e quebra a suite se um ataque pedir um projetil
-  // que nao existe ou se uma animacao citar um quadro que a folha nao tem.
-  // ==========================================================================
+  // Os projeteis do Andre. Uma pasta por chefe: Assets/Attacks/andre/.
 
-  // O BALAO ORIGINAL, que sobe em cacho de cada casa do vetor do chao (as
-  // fases 2 e 3 e a prova): "subir" em fases.json. A cor de cada cacho e o
-  // Andre quem sorteia.
-  //
-  // A folha tem 24 quadros e as animacoes comecam no 6: os seis primeiros sao
-  // de uma versao antiga do balao e nenhuma animacao os usa. Ficam na folha
-  // porque remove-los renumeraria todos os outros.
-  //
-  // O divisor 4 e de proposito: a hitbox fica MENOR que o desenho, porque o
-  // balao e grande e uma hitbox do tamanho dele seria injusta.
+  // O balao original, que sobe em cacho de cada casa do vetor do chao (as fases 2 e 3 e a prova):
+  // "subir" em fases.json.
   "Baloes": {
     "sprite": "Teachers/Projectiles/DPIBHAndreBaloon.png",
     "dados":  "Teachers/Projectiles/DPIBHAndreBaloon.json",
@@ -41,23 +17,14 @@
     "ordemDeDesenho": 90,
     "posicionarNoDono": false,
 
-    // Estes dois numeros eram, sozinhos, o motivo de existir uma subclasse de
-    // projetil so para os baloes: eles morrem com a folga de DOIS sprites e
-    // nenhuma parcela de tela, enquanto a regra geral e um sprite mais um doze
-    // avos da tela. Para um sprite de 32 numa tela de 1200, o balao morre em
-    // -64 e os outros em -132, ou seja, o balao some mais cedo.
+    // Para um sprite de 32 numa tela de 1200, o balao morre em -64 e os outros em -132, ou seja, o
+    // balao some mais cedo.
     "margemEmSprites": 2,
     "margemDivisorDeTela": 0
   },
 
-  // A FASE 1 - O DESVIO CONDICIONAL (Condicional.h). Arte de
-  // Ferramentas/gerar_andre.py, no estilo de pixel do balao acima.
-  //
-  // O BALAO NUMERADO e o dado: o numero n pintado nele e o que a condicao le
-  // no losango. Uma cara por numero e por cor, "Vermelho7" - quem escolhe e o
-  // Andre (Condicional::CaraDoBalao). Ele mesmo o move, entao nasce parado.
-  // E o balao de cada problema da prova no BOCA, com a letra dele
-  // (Prova::CaraDoTrofeu), que sobe no YES.
+  // A fase 1 - o desvio condicional (Condicional.h). Arte de Ferramentas/gerar_andre.py, no estilo
+  // de pixel do balao acima.
   "Balao": {
     "sprite": "Teachers/Projectiles/DPIBHAndreBaloes.png",
     "dados":  "Teachers/Projectiles/DPIBHAndreBaloes.json",
@@ -79,8 +46,8 @@
     "posicionarNoDono": false
   },
 
-  // O CONFETE do balao que estoura: cai pela faixa do ramo, girando, na cor
-  // do balao (Condicional::CaraDoConfete).
+  // O confete do balao que estoura: cai pela faixa do ramo, girando, na cor do balao
+  // (Condicional::CaraDoConfete).
   "Confete": {
     "sprite": "Teachers/Projectiles/DPIBHAndreConfete.png",
     "dados":  "Teachers/Projectiles/DPIBHAndreConfete.json",
@@ -92,9 +59,8 @@
     "posicionarNoDono": false
   },
 
-  // O CABECALHO DE CADA RAMO do fluxograma, no alto da faixa dele: a linha de
-  // codigo do ramo ("if (n > 5)", "else", "case 2:"), apagada e acesa. E
-  // enfeite (Andre::NovoComando): nao machuca.
+  // O cabecalho de cada ramo do fluxograma, no alto da faixa dele: a linha de codigo do ramo ("if
+  // (n > 5)", "else", "case 2:"), apagada e acesa.
   "Rotulo": {
     "sprite": "Teachers/Projectiles/DPIBHAndreRotulos.png",
     "dados":  "Teachers/Projectiles/DPIBHAndreRotulos.json",
@@ -114,12 +80,8 @@
     "posicionarNoDono": false
   },
 
-  // A FASE 2 - A REPETICAO (Laco.h). Os cachos que sobem de cada casa sao os
-  // "Baloes" de cima, o balao original.
-  //
-  // O INDICE DE CADA CASA do vetor do chao, "v[5]": apagado, aceso (o i esta
-  // nela e o cacho vai subir), pulado (o continue) e vermelho (o segfault). E
-  // enfeite (Andre::AtualizarLaco): nao machuca.
+  // A fase 2 - a repeticao (Laco.h). Os cachos que sobem de cada casa sao os "Baloes" de cima, o
+  // balao original.
   "Indice": {
     "sprite": "Teachers/Projectiles/DPIBHAndreIndices.png",
     "dados":  "Teachers/Projectiles/DPIBHAndreIndices.json",
@@ -138,8 +100,8 @@
     "posicionarNoDono": false
   },
 
-  // A MEMORIA DESPEJADA do segfault ("core dumped"): bytes em hexa que voam
-  // da borda por onde o i saiu do vetor (Laco::CaraDoByte).
+  // A memoria despejada do segfault ("core dumped"): bytes em hexa que voam da borda por onde o i
+  // saiu do vetor (Laco::CaraDoByte).
   "Byte": {
     "sprite": "Teachers/Projectiles/DPIBHAndreBytes.png",
     "dados":  "Teachers/Projectiles/DPIBHAndreBytes.json",
@@ -151,10 +113,8 @@
     "posicionarNoDono": false
   },
 
-  // A FASE 3 - AS FUNCOES (Funcao.h).
-  //
-  // O CARTAO DE CADA FUNCAO, com a assinatura dela ("void leque(int n)"),
-  // apagado e aceso enquanto ela executa. E enfeite (Andre::PorCartao).
+  // A fase 3 - as funcoes (Funcao.h). O cartao de cada funcao, com a assinatura dela ("void
+  // leque(int n)"), apagado e aceso enquanto ela executa.
   "Cartao": {
     "sprite": "Teachers/Projectiles/DPIBHAndreCartoes.png",
     "dados":  "Teachers/Projectiles/DPIBHAndreCartoes.json",
@@ -167,8 +127,8 @@
     "posicionarNoDono": false
   },
 
-  // O VALOR que voa de quem chama ate a funcao - o argumento -, e o retorno
-  // que volta. Enfeite: o que machuca e o que a funcao faz com ele.
+  // O valor que voa de quem chama ate a funcao - o argumento -, e o retorno que volta. Enfeite: o
+  // que machuca e o que a funcao faz com ele.
   "Valor": {
     "sprite": "Teachers/Projectiles/DPIBHAndreValores.png",
     "dados":  "Teachers/Projectiles/DPIBHAndreValores.json",
@@ -183,7 +143,7 @@
     "posicionarNoDono": false
   },
 
-  // O PONTO-E-VIRGULA que o leque(n) atira - o que sempre falta.
+  // O ponto-e-virgula que o leque(n) atira - o que sempre falta.
   "Ponto": {
     "sprite": "Teachers/Projectiles/DPIBHAndrePonto.png",
     "dados":  "Teachers/Projectiles/DPIBHAndrePonto.json",
@@ -194,10 +154,5 @@
     "posicionarNoDono": false
   }
 
-  // NAO ESTA AQUI, e de proposito: o projetil de GRAFOS
-  // (Teachers/Projectiles/DPIBHAndreGraph.png, 3 quadros - Graph1, Graph2,
-  // Graph3, escala 2, largura/2, ordem de desenho 100). A fabrica dele existia
-  // em C++ mas nunca foi registrada em chefe nenhum, entao nenhum ataque podia
-  // pedi-la. A arte continua na pasta; para usa-la, basta copiar o bloco dos
-  // baloes, trocar os caminhos e as animacoes, e citar o nome em fases.json.
+  // Nao esta aqui, e: o projetil de grafos (Teachers/Projectiles/DPIBHAndreGraph.png, 3 quadros.
 }

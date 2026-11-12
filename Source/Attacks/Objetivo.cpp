@@ -47,7 +47,7 @@ namespace Objetivo {
                 }
                 break;
             case Etapa::Defesa: {
-                // AS TRES RESPOSTAS lado a lado, na ordem do placar.
+                // As tres respostas lado a lado, na ordem do placar.
                 const auto xs = Espalhar(s, 3, largura);
                 const char* letras[] = {"A", "B", "C"};
                 for (int i = 0; i < 3; ++i) {
@@ -70,7 +70,7 @@ namespace Objetivo {
         const float fase = static_cast<float>(k) * 1.7f;
         switch (etapa) {
             case Etapa::Defesa:
-                // AS RESPOSTAS vao e voltam de lado, cada uma no seu ritmo.
+                // As respostas vao e voltam de lado, cada uma no seu ritmo.
                 return lugar + Vector2(70.0f * std::sin(t * 1.3f + fase), 12.0f * std::sin(t * 2.1f + fase));
             case Etapa::Correcoes:
                 return lugar + Vector2(25.0f * std::sin(t * 0.8f + fase), 20.0f * std::sin(t * 1.1f + fase));
@@ -84,7 +84,7 @@ namespace Objetivo {
     }
 
     Questao Perguntar(const Golpe::Materia m, Variacao::Sorteio& s) {
-        // A PRIMEIRA E A CERTA; o placar as embaralha.
+        // A primeira e a certa; o placar as embaralha.
         Questao q;
         std::array<std::string, 3> r;
         switch (m) {
@@ -136,13 +136,14 @@ namespace Objetivo {
         return Dificuldade::Escolher(n, 0.24f, 0.24f);
     }
 
-    float PorAlvo(const Dificuldade::Nivel n) { return Dificuldade::Escolher(n, 1.5f, 1.25f); }
-    float PorJanela(const Dificuldade::Nivel n) { return Dificuldade::Escolher(n, 3.0f, 2.5f); }
+    // No Dificil paga o mesmo que no Normal.
+    float PorAlvo(const Dificuldade::Nivel n) { (void)n; return 1.5f; }
+    float PorJanela(const Dificuldade::Nivel n) { (void)n; return 3.0f; }
 
     float Janela(const Etapa etapa, const Dificuldade::Nivel n) {
-        // AS CORRECOES SAO A REPESCAGEM: a janela e mais longa.
+        // As correcoes sao a repescagem: a janela e mais longa.
         const float base = etapa == Etapa::Correcoes ? 9.0f : 8.0f;
-        return Dificuldade::Escolher(n, base, base - 2.0f);
+        return Dificuldade::Escolher(n, base, base - 1.5f);
     }
 
     std::string Falta(const Etapa etapa, const int faltam) {
@@ -156,6 +157,96 @@ namespace Objetivo {
                 return faltam == 1 ? "falta 1 correção" : "faltam " + n + " correções";
             case Etapa::Defesa:
                 return "acerte a resposta certa";
+            default:
+                return "";
+        }
+    }
+
+    // ---- As outras maneiras de abrir ----
+
+    Tipo DeAndar(const Etapa etapa) {
+        switch (etapa) {
+            case Etapa::Proposta:        return Tipo::Reuniao;
+            case Etapa::Desenvolvimento: return Tipo::Referencias;
+            case Etapa::Defesa:          return Tipo::Arguicao;
+            case Etapa::Correcoes:       return Tipo::Entrega;
+            default:                     return Tipo::Derrubar;
+        }
+    }
+
+    Tipo DaVez(const Etapa etapa, const int vez, const int primeira) {
+        return (vez + primeira) % 2 == 0 ? Tipo::Derrubar : DeAndar(etapa);
+    }
+
+    float TempoDeReuniao(const Dificuldade::Nivel n) { return Dificuldade::Escolher(n, 2.5f, 3.0f); }
+
+    Vector2 LugarDaReuniao(Variacao::Sorteio& s, const float largura, const float xDoAluno) {
+        // A metade oposta a do aluno: a reuniao e sempre uma travessia.
+        const float meio = largura / 2.0f;
+        const float borda = kMargem + kRaioDaReuniao;
+        const float x = xDoAluno < meio ? s.Real(meio + 60.0f, largura - borda) : s.Real(borda, meio - 60.0f);
+        return Vector2(x, s.Real(kChaoDeCima + 20.0f, kChaoDeBaixo - 20.0f));
+    }
+
+    std::vector<Vector2> Referencias(Variacao::Sorteio& s, const float largura, const Dificuldade::Nivel n) {
+        std::vector<Vector2> livros;
+        for (const float x : Espalhar(s, Dificuldade::Escolher(n, 3, 4), largura)) {
+            livros.emplace_back(x, s.Real(kChaoDeCima, kChaoDeBaixo));
+        }
+        return livros;
+    }
+
+    int Raspadas(const Dificuldade::Nivel n) { return Dificuldade::Escolher(n, 6, 8); }
+
+    bool Raspou(const float distancia, const float raios) {
+        return distancia > raios && distancia <= raios + kFolgaDaRaspada;
+    }
+
+    Entrega Entregar(Variacao::Sorteio& s, const float largura) {
+        const bool daEsquerda = s.Chance(0.5f);
+        const float canto = kMargem * 0.75f;
+        Entrega e;
+        e.secretaria = Vector2(daEsquerda ? largura - canto : canto, kChaoDeBaixo - 10.0f);
+        const float x = daEsquerda ? s.Real(kMargem, largura * 0.35f) : s.Real(largura * 0.65f, largura - kMargem);
+        e.versao = Vector2(x, s.Real(kChaoDeCima - 60.0f, kChaoDeCima + 40.0f));
+        return e;
+    }
+
+    int Placas(const Tipo tipo, const Dificuldade::Nivel n, const int alvosCertos) {
+        switch (tipo) {
+            case Tipo::Reuniao:     return 5;
+            case Tipo::Referencias: return Dificuldade::Escolher(n, 3, 4);
+            case Tipo::Arguicao:    return Raspadas(n);
+            case Tipo::Entrega:     return 2;
+            default:                return std::max(1, alvosCertos);
+        }
+    }
+
+    int PlacasDePe(const int placas, const float progresso) {
+        const float falta = 1.0f - std::clamp(progresso, 0.0f, 1.0f);
+        // O epsilon: 1/3 de 3 placas nao pode deixar 2,0000001 de pe.
+        return std::clamp(static_cast<int>(std::ceil(static_cast<float>(placas) * falta - 1e-4f)), 0, placas);
+    }
+
+    float PorPasso(const Tipo tipo, const Dificuldade::Nivel n) {
+        switch (tipo) {
+            case Tipo::Arguicao: return PorAlvo(n) * 0.5f;
+            case Tipo::Reuniao:  return PorAlvo(n) * 2.0f;
+            default:             return PorAlvo(n);
+        }
+    }
+
+    std::string Pede(const Tipo tipo, const int faltam) {
+        const std::string n = std::to_string(faltam);
+        switch (tipo) {
+            case Tipo::Reuniao:
+                return "reunião: fique com o orientador";
+            case Tipo::Referencias:
+                return faltam == 1 ? "falta 1 referência" : "faltam " + n + " referências";
+            case Tipo::Arguicao:
+                return faltam == 1 ? "raspe em mais 1 pergunta" : "raspe em mais " + n + " perguntas";
+            case Tipo::Entrega:
+                return faltam > 0 ? "pegue a versão final" : "leve-a à secretaria";
             default:
                 return "";
         }

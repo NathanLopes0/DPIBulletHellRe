@@ -25,53 +25,7 @@ class EtiquetaDeCodigo;
 class PainelDeCodigo;
 class Player;
 
-/**
- * @class Vitor
- * @brief O professor de Programacao Concorrente e Distribuida (INF 310).
- *
- * O BALANCEAMENTO DELE VIVE EM DADOS, como o dos outros: as fases em
- * Assets/Attacks/vitor/fases.json e as regras de projetil no regras.json ao
- * lado. O que mora aqui e o que dados nao sabem fazer: a fila do semaforo, a
- * janela do TCP, o fork pela nuvem.
- *
- * A IDEIA DO CHEFE: concorrencia e "varias coisas ao mesmo tempo", e e por isso
- * que a fase 3 dele se divide em dois corpos.
- *
- *   fase 1  SEMAFOROS           - as threads, a secao critica e a fila do P(s)
- *   fase 2  TCP                 - as nuvens, o roteador e o dente de serra
- *   fase 3  FORK                - dois processos trocando mensagens
- *   final   DEADLOCK            - o jantar dos filosofos
- *
- * A FASE 1 E A SINCRONIZACAO (Semaforo.h): cada thread e uma coluna de
- * instrucoes descendo ate a secao critica, no meio do campo. Quem nao tem o
- * semaforo para na borda e se empilha - a fila do P(s) -, e o V(s) de quem sai
- * acorda a primeira da fila: a pilha desce de uma vez, em leque. O professor
- * fica ao lado da coluna que ele vai acordar, e as correntes continuam: o
- * aluno acorrentado fica lento, e a coluna em cima dele fura a fila.
- *
- * E ELE TAMBEM DA REDES: na fase 2 as duas NUVENS em cima dele sao o
- * servidor, e cada chuva e uma janela TCP (Tcp.h). Os segmentos voam ate o
- * ROTEADOR no meio do campo, que encaminha ao aluno o que cabe e descarta o
- * resto num anel de cacos; a janela dobra no slow start, cresce de um na
- * evitacao, e cai a metade na perda - o dente de serra, desenhado num grafico
- * no canto. O Ponto Extra derruba as nuvens, e elas voltam num timeout, com
- * cwnd = 1. E e pela nuvem que ele se divide na fase 3: as duas se juntam em
- * cima dele, ele entra, e saem dois (ComecarOFork).
- *
- * A FASE 3 E A TROCA DE MENSAGENS (Mensagens.h): saem dois da nuvem, o pai e
- * o filho, e entre eles corre um canal em arco pelo campo. O original conduz
- * os dois corpos - o clone empresta uma fase so de gatilho, e nao anda nem
- * atira sozinho - e cada envelope corre pelo arco: a caixa postal do pai que
- * enche, o rendezvous do envio sincrono, a rpc que devolve um leque, e o
- * impasse dos dois enviando ao mesmo tempo.
- *
- * A FINAL E O DEADLOCK, no jantar dos filosofos (Filosofos.h): cinco em volta
- * da mesa, um garfo entre cada dois, e o professor no meio, de monitor. Os
- * garfos andam ate a mao de quem os pega, quem come ataca em leque, e quem
- * espera tem uma linha ate quem tem o garfo dele. Na rodada do deadlock as
- * esperas fecham um pentagono, que vira um cerco de projeteis ate o professor
- * matar um filosofo e o cerco estourar para fora.
- */
+/// O professor de Programacao Concorrente e Distribuida (INF 310).
 class Vitor : public Boss {
 public:
     explicit Vitor(Scene* scene);
@@ -91,14 +45,10 @@ protected:
                               const std::string& stateName) override;
 
 private:
-    // ---- O QUE AS FASES DIVIDEM ---------------------------------------------
+    // ---- O que as fases dividem ----
 
-    [[nodiscard]] SDL_FRect Campo() const;
 
-    /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram (o
-    /// mesmo do Luizinho). 'quantos' > 0 troca o numero de projeteis, 'centro'
-    /// o meio do leque, 'abertura' a abertura dele e 'rapidez' multiplica a
-    /// velocidade do arquivo so neste disparo (o degrau do Dificil).
+    /// Dispara 'gatilho' em 'onde' e devolve os projeteis que nasceram (o mesmo do Luizinho).
     std::vector<BossProjectile*> DispararEm(const char* gatilho, Vector2 onde, int quantos = 0,
                                             std::optional<float> centro = std::nullopt,
                                             std::optional<float> abertura = std::nullopt,
@@ -111,36 +61,30 @@ private:
     std::optional<float> mAberturaEm;
     std::vector<BossProjectile*> mCriados;
 
-    [[nodiscard]] Player* Aluno() const;
-    [[nodiscard]] Vector2 PosicaoDoAluno() const;
 
-    /**
-     * @brief COMO O ALUNO ANDA: a velocidade media dos ultimos instantes, e
-     * nao a do quadro. Quem segue alguem anda aos trancos - corre um quadro,
-     * para dois -, e a velocidade do quadro diria 300 ou 0, nunca os 90 em
-     * que ele anda de fato. Quem mira adiante (o roteador da fase 2) le esta.
-     */
+    /// Como o aluno anda: a velocidade media dos ultimos instantes, e nao a do quadro.
     void AcompanharOAluno(float deltaTime);
     Vector2 mVelocidadeDoAluno = Vector2::Zero;
     Vector2 mUltimaDoAluno = Vector2::Zero;
     bool mViuOAluno = false;
     static constexpr float kMemoriaDoAndar = 0.25f;
 
-    /// O placar: o que a fase diz no arquivo e guardado na primeira vez, e
-    /// volta quando a fase acaba.
-    void Anunciar(const std::string& fase, const std::string& texto);
-    void Restaurar(const std::string& fase);
-    std::map<std::string, std::string> mAnunciosDoArquivo;
 
     /// Para onde o movimento "Conduzido" leva o professor.
     std::optional<Vector2> mAlvo;
+
+    /// O acaso de cada fase nesta luta - o escalonador, a rede, a latencia, o jantar -, da semente
+    /// da batalha. Criado na primeira vez e nunca recomecado: a volta seguinte pela fase continua a
+    /// sequencia, e nao a repete.
+    Variacao::Sorteio& Acaso(const std::string& fase);
+    std::map<std::string, Variacao::Sorteio> mAcasos;
 
     /// As linhas do campo, limpas a cada quadro e redesenhadas por quem
     /// estiver rodando.
     DrawLinhasComponent* mLinhas = nullptr;
     static constexpr int kOrdemDasLinhas = 80;
 
-    // ---- A FASE 1: OS SEMAFOROS ---------------------------------------------
+    // ---- A fase 1: os semaforos ----
 
     void AtualizarSemaforos();
     void MontarSemaforos();
@@ -170,12 +114,12 @@ private:
         bool desviou = false;
     };
 
-    /// Uma thread: quantas instrucoes ja mandou, quando manda a proxima, as
-    /// que descem (ainda livres) e as paradas na pilha - ou girando, na espera
-    /// ocupada. As que ja passaram pela porta nao sao mais dela.
+    /// Uma thread: quantas instrucoes ja mandou, quando manda a proxima (no ritmo dela), as que
+    /// descem (ainda livres) e as paradas na pilha - ou girando, na espera ocupada.
     struct Thread {
         int mandadas = 0;
         float proximaEm = 0.0f;
+        Semaforo::Ritmo ritmo;
         std::vector<Instrucao> descendo;
         std::vector<BossProjectile*> paradas;
         EtiquetaDeCodigo* nome = nullptr;
@@ -193,23 +137,18 @@ private:
     /// fila na hora em que ele e pego, uma vez por corrente.
     bool mAlunoPreso = false;
 
-    /// Onde o professor fica: ao lado da coluna que ele vai acordar, NO MEIO
-    /// entre ela e a vizinha - fora das duas colunas, e fora da pilha. O passo
-    /// das colunas muda de luta para luta (Semaforo::Plano), entao a distancia
-    /// e meio passo; esta e a do comeco da fase, antes da primeira rodada.
+    /// Onde o professor fica: ao lado da coluna que ele vai acordar, no meio entre ela e a vizinha
+    /// - fora das duas colunas, e fora da pilha.
     static constexpr float kAoLadoDaColuna = Semaforo::kEntreThreads / 2.0f;
     static constexpr float kAlturaDoProfessor = 200.0f;
 
-    /// A perseguicao da rajada de quem acorda com o aluno acorrentado: preso,
-    /// ele deixa de estar seguro ao lado da coluna (a regra "paralelo" das
-    /// tarefas de antes, que fazia o mesmo).
     static constexpr float kAtrasoDaPerseguicao = 0.2f;
     static constexpr float kForcaDaPerseguicao = 2.4f;
     static constexpr float kDuracaoDaPerseguicao = 2.2f;
 
     static constexpr int kOrdemDaSecao = 52;
     static constexpr int kOrdemDosNomes = 57;
-    // ---- A FASE 3: A TROCA DE MENSAGENS ---------------------------------------
+    // ---- A fase 3: a troca de mensagens ----
 
     void AtualizarMensagens();
     void MontarMensagens();
@@ -219,10 +158,9 @@ private:
     void MoverEnvelopes(float u);
     void DesenharCanal();
 
-    /// O outro corpo do fork, o filho - o clone em campo, ou nulo.
-    [[nodiscard]] Vitor* Filho() const;
+    /// O outro corpo do fork, o servidor - o clone em campo, ou nulo.
+    [[nodiscard]] Vitor* Servidor() const;
 
-    /// Onde esta o processo agora: o pai e este corpo; o filho, o clone.
     [[nodiscard]] Vector2 PosicaoDe(int processo) const;
 
     bool mNasMensagens = false;
@@ -238,7 +176,6 @@ private:
     size_t mProximaMensagem = 0;
     float mRelogioDasMensagens = 0.0f;
     int mChamadaDaRpc = 0;
-    int mRecebidas = 0;
     bool mEsperandoRpc = false;
     bool mEstourou = false;
 
@@ -246,19 +183,19 @@ private:
     /// porta (o impasse).
     struct Envelope {
         BossProjectile* p = nullptr;
-        int de = Mensagens::kPai;
+        int de = Mensagens::kCliente;
         float saiu = 0.0f;
         float voo = 1.0f;
         bool paraNaPorta = false;
     };
     std::vector<Envelope> mEnvelopes;
 
-    /// "pai" e "filho", embaixo de cada corpo.
+    /// "cliente" e "servidor", embaixo de cada corpo.
     std::array<EtiquetaDeCodigo*, 2> mNomesDosProcessos{};
     static constexpr float kAbaixoDoProcesso = 78.0f;
     static constexpr float kAberturaPorDado = 9.0f;
 
-    // ---- A FINAL: O JANTAR DOS FILOSOFOS --------------------------------------
+    // ---- A final: o jantar dos filosofos ----
 
     void AtualizarJantar(float deltaTime);
     void MontarJantar();
@@ -301,33 +238,21 @@ private:
     float mInicioDoCerco = 0.0f;
     bool mCercoAberto = false;
 
-    /// OS NOMES DOS FILOSOFOS FICAM POR CIMA DO PROFESSOR (100), e so eles:
-    /// ele vai ate quem vigia, e por baixo dele o nome de quem come sumia -
-    /// justo o que o placar manda ler.
+    /// Os nomes dos filosofos ficam por cima do professor (100), e so eles: ele vai ate quem vigia,
+    /// e por baixo dele o nome de quem come sumia.
     static constexpr int kOrdemDosFilosofos = 102;
 
     /// Os garfos andam a kVelocidadeDoGarfo ate onde devem estar.
     static constexpr float kVelocidadeDoGarfo = 520.0f;
 
-    /// O professor vai ate perto de quem ele vigia (kPertoDoEscolhido do
-    /// caminho do meio da mesa ate o filosofo), e sem ninguem para vigiar
-    /// balanca no meio.
-    ///
-    /// ELE NAO PODE MORAR NO MEIO: o aluno parado embaixo do meio da mesa
-    /// atirava nele a fase inteira - 153 acertos na final sozinha - e passava
-    /// mesmo tomando dez garfadas.
+    /// O professor vai ate perto de quem ele vigia (kPertoDoEscolhido do caminho do meio da mesa
+    /// ate o filosofo), e sem ninguem para vigiar balanca no meio.
     static constexpr float kBalancoNaMesa = 60.0f;
     static constexpr float kRitmoDoBalanco = 1.0f;
     static constexpr float kPertoDoEscolhido = 0.45f;
     static constexpr float kAbertoDaGarfada = 16.0f;
 
-    // ---- A FASE 2: AS NUVENS E O TCP ----------------------------------------
-    //
-    // Pouco depois de a fase comecar o Vitor forma as duas nuvens (o gatilho
-    // "nuvens"), e dali elas trabalham num RTT (Tcp.h): processam, e no fim do
-    // processamento mandam a janela - os segmentos voam ate o roteador, que
-    // encaminha ao aluno o que cabe e descarta o resto. SO O CORPO ORIGINAL:
-    // a nuvem e do Vitor, e nao de cada copia dele.
+    // ---- A fase 2: as nuvens e o TCP ----
 
     void AtualizarNuvens(float deltaTime);
     void MontarRede();
@@ -335,6 +260,8 @@ private:
     void MandarSegmentos(float agora);
     void ChegarNoRoteador(float agora);
     void Encaminhar(float agora);
+    /// O anel de cacos de um segmento perdido em 'onde': no roteador cheio, ou no caminho (o ruido).
+    void Estilhacar(Vector2 onde);
     void DesenharGrafico();
 
     /// As nuvens em campo: os projeteis no posto das nuvens.
@@ -346,9 +273,6 @@ private:
     /// O angulo, em graus, de 'de' ate 'para'.
     static float Angulo(Vector2 de, Vector2 para);
 
-    /// @brief O angulo de 'de' ate onde o aluno estara quando um projetil a
-    /// 'rapidez' px/s chegar la, antecipando 'quanto' do caminho que ele anda
-    /// (Tcp::Mira, com mVelocidadeDoAluno). 0 e onde ele esta.
     [[nodiscard]] float AnguloAdiante(Vector2 de, float rapidez, float quanto) const;
 
     [[nodiscard]] Vector2 PosicaoDoRoteador() const;
@@ -359,12 +283,8 @@ private:
     void AtualizarANuvemDoFork();
     void SairDaNuvem();
 
-    /**
-     * @brief Um corpo entra no fork pela nuvem (Nuvem::Fork): fica em 'onde',
-     * some ou nasce dentro dela, e quando ela abre anda ate 'destino'. Ate la
-     * nao anda sozinho nem ataca - mas o colisor fica: o tiro que entra na
-     * nuvem acerta quem esta dentro dela. O original chama isto nos dois.
-     */
+    /// Um corpo entra no fork pela nuvem (Nuvem::Fork): fica em 'onde', some ou nasce dentro dela,
+    /// e quando ela abre anda ate 'destino'.
     void EntrarNaNuvem(Vector2 onde, Vector2 destino, bool nasceuDentro);
 
     /// Ha quanto tempo o corpo esta no fork (negativo: nao esta), de onde ele
@@ -380,12 +300,10 @@ private:
     bool mNasNuvens = false;
     bool mNuvensFormadas = false;
     float mTempoNasNuvens = 0.0f;
-    float mSemNuvensHa = 0.0f;     ///< ha quanto tempo as nuvens formadas sumiram
+    float mSemNuvensHa = 0.0f;
     std::string mNomeDaFaseDasNuvens;
 
-    /// A CONEXAO e a janela em voo. A janela sai segmento a segmento
-    /// (Tcp::kEntreSegmentos), alternando as nuvens; quando o ultimo chegou ao
-    /// roteador - ou foi descartado -, os ACKs voltam e a conexao reage.
+    /// A conexao e a janela em voo.
     Tcp::Conexao mConexao;
 
     /// A rede desta batalha (a capacidade, o ssthresh, onde fica o roteador) e
@@ -398,20 +316,23 @@ private:
     float mInicioDaJanela = 0.0f;
     bool mJanelaReconhecida = true;
 
+    /// Um segmento em voo: o descartado no roteador cheio, o retransmitido, e o que o ruido leva -
+    /// esse estoura a 'quebraEm' px de onde saiu.
     struct Segmento {
         BossProjectile* p = nullptr;
         bool perdido = false;
         bool retransmitido = false;
+        bool ruido = false;
+        Vector2 de;
+        float quebraEm = 0.0f;
     };
     std::vector<Segmento> mEmVoo;
 
-    /// A FILA DO ROTEADOR: os que ele ainda vai encaminhar (se cada um e
-    /// retransmitido), e quando sai o proximo.
+    /// A fila do roteador: os que ele ainda vai encaminhar (se cada um e retransmitido), e quando
+    /// sai o proximo.
     std::vector<bool> mFila;
-    int mEncaminhados = 0;
     int mRecebidosNaJanela = 0;
     float mProximoEncaminhado = 0.0f;
-    int mDescartes = 0;
 
     /// O que o placar diz ate a janela seguinte sair: o estado da conexao, ou
     /// a perda, ou o timeout.
@@ -429,9 +350,8 @@ private:
 
     static constexpr const char* kForaDoAr = "nuvem: fora do ar";
 
-    /// O FORK: os tempos dele, e o tamanho da nuvem juntada - as duas viram
-    /// uma maior que o professor: o quadro da nuvem tem 32 px e o dele 128, e
-    /// a 5x ela fica mais larga que ele.
+    /// O fork: os tempos dele, e o tamanho da nuvem juntada - as duas viram uma maior que o
+    /// professor.
     static constexpr Nuvem::Fork kFork{};
     static constexpr float kEscalaDaNuvemJunta = 5.0f;
     static constexpr const char* kNoFork = "nuvem: fork()";

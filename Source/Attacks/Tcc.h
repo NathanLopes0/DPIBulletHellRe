@@ -7,31 +7,11 @@
 #include <array>
 #include <string>
 
-#include "../Dificuldade.h"
-#include "../Golpe.h"
-#include "../Variacao.h"
+#include "../Regras/Dificuldade.h"
+#include "../Regras/Golpe.h"
+#include "../Regras/Variacao.h"
 
-/**
- * CAMADA PURA. Coberto por test_tcc.cpp.
- *
- * O TCC E O DO ALUNO, NA AREA DO ORIENTADOR. Quem ele escolheu antes da batalha
- * (EscolhaDoOrientador) luta do lado dele com o golpe da materia (Golpe.h) - e
- * o Hugo usa a MESMA materia contra ele: no desenvolvimento, cada capitulo do
- * TCC e um padrao dela (Padrao), com os projeteis dela. Na defesa, a BANCA sao
- * dois outros professores (Banca), e cada pergunta de cada um e o padrao da
- * materia dele, saindo de onde ele esta sentado.
- *
- * OS PADROES SAO OS GOLPES DO ORIENTADOR DO OUTRO LADO, mais densos: o for do
- * Andre varre um arco, a pilha do Salles desempilha leques, o barramento do
- * Ricardo vira paredes com os bits 0 de fresta, a transacao do Thiago
- * converge no COMMIT, os ponteiros do Luizinho fecham uma pinca, a gramatica
- * do Vladimir abre uma arvore, o gradiente do Julio oscila ate convergir em
- * voce, os observadores da Maria Lucia sao notificados um depois do outro, o
- * fetch do Lucas volta de lado e a janela do Vitor cresce 1, 2, 4, 8.
- *
- * O ALVO E O ALUNO e o lugar e relativo a quem atira (o Hugo, ou o professor
- * da banca); o resto do voo e o de Golpe::Avancar.
- */
+/// O TCC E o do aluno, na area do orientador.
 namespace Tcc {
 
     using Golpe::Materia;
@@ -42,16 +22,13 @@ namespace Tcc {
     constexpr const char* kGatilhoDaQuestao = "questao";   ///< um tiro de um padrao
     constexpr const char* kGatilhoDoRascunho = "rascunho"; ///< o rascunho que escorre embaixo dele
 
-    /// O RASCUNHO: enquanto o Hugo para para escrever um capitulo, as paginas
-    /// do rascunho escorrem retas embaixo dele - parado, ele e facil de
-    /// acertar, e ficar embaixo dele custa.
+    /// O rascunho: enquanto o Hugo para para escrever um capitulo, as paginas do rascunho escorrem
+    /// retas embaixo dele.
     constexpr float kEntreRascunhos = 0.1f;
-    /// NA DEFESA E NAS CORRECOES ele nao para: as anotacoes escorrem dele o
-    /// tempo todo, uma pagina a cada tanto (Degrau::entreAnotacoes), e caem
-    /// onde ele ESTAVA - em quem vem atras dele, embaixo.
+    /// Na defesa e nas correcoes ele nao para.
 
-    /// @brief O padrao 'k' (0 e o primeiro) da materia 'm' contra o aluno.
-    /// Generico e o do proprio Hugo: um leque de paginas.
+    /// O padrao 'k' (0 e o primeiro) da materia 'm' contra o aluno. Generico e o do proprio Hugo:
+    /// um leque de paginas.
     Golpe::Rodada Padrao(Materia m, int k, Variacao::Sorteio& s, Dificuldade::Nivel n);
 
     /// "Salles": o nome do professor como o placar o escreve.
@@ -69,8 +46,8 @@ namespace Tcc {
     /// O nome da animacao do projetil "Materia" do Hugo: "Salles", ...
     std::string Animacao(Materia m);
 
-    /// @brief A banca: dois professores diferentes um do outro e do orientador
-    /// (Generico: sem orientador, qualquer um), sorteados.
+    /// A banca: dois professores diferentes um do outro e do orientador (Generico: sem orientador,
+    /// qualquer um), sorteados.
     std::array<Materia, 2> Banca(Materia orientador, Variacao::Sorteio& s);
 
     /// As dez materias com professor, na ordem do enum.
@@ -78,16 +55,14 @@ namespace Tcc {
         Materia::Andre, Materia::Salles, Materia::Ricardo, Materia::Thiago, Materia::Luizinho,
         Materia::Vladimir, Materia::Julio, Materia::MariaLucia, Materia::Lucas, Materia::Vitor};
 
-    /// @brief Onde mirar o tiro que sai de 'de' a 'velocidade', no aluno em
-    /// 'aluno' andando a 'andando' px/s: ONDE ELE VAI ESTAR, se continuar
-    /// andando - uma fracao 'adiantamento' do caminho, e no maximo kAdiantaAte
-    /// segundos a frente. Quem anda sempre do mesmo jeito e achado.
+    /// Onde mirar o tiro que sai de 'de' a 'velocidade', no aluno em 'aluno' andando a 'andando'
+    /// px/s: onde ele vai estar, se continuar andando.
     Vector2 Mira(const Vector2& de, float velocidade, const Vector2& aluno, const Vector2& andando,
                  float adiantamento);
     constexpr float kAdiantaAte = 1.6f;
     constexpr float kAdiantamentoDaBanca = 0.5f;
 
-    // ---- O RELOGIO ---------------------------------------------------------------
+    // ---- O relogio ----
 
     constexpr float kPrimeiro = 0.8f;
 

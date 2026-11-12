@@ -19,32 +19,7 @@
 class BossProjectile;
 class DrawLinhasComponent;
 
-/**
- * @class Lucas
- * @brief O professor de Programacao Web (INF 321).
- *
- * A IDEIA DO CHEFE: ele da a materia na ordem classica - HTML, CSS, JavaScript
- * - e no fim ensina o que ele gosta de verdade, que e Elixir no back-end. A
- * batalha conta a mesma historia. As duas primeiras fases sao o front; a
- * terceira, a que decide, e o Elixir; a final volta ao front, agora assincrono.
- *
- *   fase 1  HTML        uma pagina renderizada no navegador: o layout fica
- *                       desenhado, e cada elemento - button, img, marquee,
- *                       table, a, input - ataca do seu jeito (Pagina.h)
- *   fase 2  CSS         o DevTools: uma grade de cartoes que cada regra CSS do
- *                       placar transforma inteira - gap, rotate, scale,
- *                       display: none, animation, position: fixed (Estilo.h)
- *   fase 3  Elixir      a arvore de supervisao: workers que recebem casts,
- *                       processam e atiram, e que o supervisor reinicia pela
- *                       estrategia da rodada (Elixir.h)
- *   final   JavaScript  o event loop: scripts que passam pela pilha, timers
- *                       nas Web APIs, as filas de microtarefas e de tarefas -
- *                       e cada callback que sai de uma fila ataca (EventLoop.h)
- *
- * O BALANCEAMENTO VIVE EM DADOS, como o dos outros: Assets/Attacks/lucas/. O
- * que mora aqui e o que dados nao sabem fazer: a pagina que renderiza, a
- * grade do DevTools, a arvore de supervisao e o event loop.
- */
+/// O professor de Programacao Web (INF 321).
 class Lucas : public Boss {
 public:
     explicit Lucas(Scene* scene);
@@ -60,10 +35,7 @@ protected:
                               const std::string& stateName) override;
 
 private:
-    // ---- A LUTA SORTEADA ----------------------------------------------------
-    //
-    // Antes do primeiro quadro (Variacao.h): de onde saem as paginas da fase 1
-    // e as regras CSS da fase 2 (Estilo::Proxima), e o degrau do modo.
+    // ---- A luta sorteada ----
 
     void SortearALuta();
 
@@ -80,7 +52,6 @@ private:
     /// rumo. Devolve o que nasceu; com 'enfeite', o que nasce nao machuca.
     std::vector<BossProjectile*> DispararDe(const char* gatilho, Vector2 onde, std::optional<float> rumo,
                                             bool enfeite = false);
-    [[nodiscard]] Vector2 PosicaoDoAluno() const;
 
     bool mDisparandoDe = false;
     Vector2 mOndeDisparar;
@@ -96,13 +67,7 @@ private:
     DrawLinhasComponent* mLinhas = nullptr;
     void CriarLinhas();
 
-    // ---- A PAGINA DA FASE 1 -----------------------------------------------------
-    //
-    // Um elemento a cada Pagina::Degrau::porElemento, na ordem da pagina; cada
-    // um vive o tempo do ataque dele (Renderizado) - o cursor que voa ate o
-    // botao, o spinner que gira, as linhas da tabela, as letras do input. O
-    // professor fica no header, em cima do elemento que renderiza. Acabada a
-    // pagina, o F5 apaga os elementos e vem outra.
+    // ---- A pagina da fase 1 ----
 
     void AtualizarPagina(float deltaTime);
     void RenderizarPagina(float deltaTime);
@@ -128,14 +93,7 @@ private:
     bool mRecarregando = false;
     float mXDoProfessor = 0.0f;
 
-    // ---- O DEVTOOLS DA FASE 2 ----------------------------------------------------
-    //
-    // A grade de cartoes fica no posto "grade", e o Lucas os move: a cada
-    // quadro cada cartao vai ate o lugar que o CSS de agora lhe da
-    // (Estilo::Posicoes), centrado embaixo do professor, que varre o alto. A
-    // cada Estilo::Degrau::porRegra, uma regra nova. O cartao que falta - o da
-    // linha que voltou do display: none, ou a grade que caiu no position:
-    // fixed - nasce do professor e voa ate o lugar.
+    // ---- O devtools da fase 2 ----
 
     void AtualizarEstilo(float deltaTime);
     void RepovoarGrade(float agora);
@@ -154,13 +112,7 @@ private:
     float mXDoComecoDaVarredura = 0.0f;
     float mTempoVarrendo = 0.0f;           ///< o relogio da varredura, que para enquanto ele digita
 
-    // ---- A ARVORE DE SUPERVISAO DA FASE 3 -----------------------------------------
-    //
-    // Os workers ficam no posto "supervisao", embaixo do professor, e o Lucas
-    // os move. A cada Elixir::Degrau::entreMensagens um cast corre pela linha
-    // ate um worker; a caixa cheia vira um handle_cast, o leque. O worker que
-    // cai e um crash: termina quem a estrategia da rodada manda (Elixir::
-    // Reiniciam), cada outro num anel, e todos voltam depois de kReinicio.
+    // ---- A arvore de supervisao da fase 3 ----
 
     void AtualizarSupervisao(float deltaTime);
     void IniciarWorker(int k, float agora);
@@ -191,12 +143,7 @@ private:
     int mParadaDoSupervisor = -1;          ///< a parada em curso, a cada 2 s
     int mEtapasNoPipe = 0;
 
-    // ---- O EVENT LOOP DA FINAL ---------------------------------------------------------
-    //
-    // Cada linha do script vira uma ficha no posto "eventloop", e o Lucas a
-    // leva para onde o loop a poe naquele instante (EventLoop::Onde): a pilha,
-    // as Web APIs, uma das filas, a pilha de novo. O que roda na pilha ataca
-    // de la (EventLoop::Agenda); o professor e o loop, orbitando em volta.
+    // ---- O event loop da final ----
 
     void AtualizarEventLoop(float deltaTime);
     void NovoScript(float agora);
