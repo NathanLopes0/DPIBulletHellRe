@@ -770,8 +770,9 @@ bool Game::Formado(const size_t posicao) const {
     return materia >= 0 && mSessoes[posicao].progresso.Aprovado(materia);
 }
 
-void Game::EditarPersonagem(const size_t posicao) {
+void Game::EditarPersonagem(const size_t posicao, const Scene::SceneType voltarPara) {
     if (posicao >= mSessoes.size()) return;
+    mVoltarDaEdicao = voltarPara;
     mPosicaoAntesDaEdicao = mPosicaoEntrando;
     mPosicaoEntrando = posicao;
     mEditandoPersonagem = true;
@@ -781,7 +782,7 @@ void Game::EditarPersonagem(const size_t posicao) {
 void Game::TerminarEdicaoDePersonagem() {
     mPosicaoEntrando = mPosicaoAntesDaEdicao;
     mEditandoPersonagem = false;
-    RequestSceneChange(Scene::SceneType::EscolhaDaDificuldade);
+    RequestSceneChange(mVoltarDaEdicao);
 }
 
 float Game::RecordeDaPartida(const int materia) const {

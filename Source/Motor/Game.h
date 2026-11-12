@@ -182,12 +182,12 @@ public:
     /// usa o capelo. Vale para o visitante tambem, enquanto a sessao dura.
     [[nodiscard]] bool Formado(size_t posicao) const;
 
-    /// Abre a criacao de personagem para quem ja entrou (da dificuldade, Botao 3): e assim que um
-    /// perfil que ja existia troca de personagem. A volta e para a dificuldade.
-    void EditarPersonagem(size_t posicao);
+    /// Abre a criacao de personagem para quem ja entrou: e assim que um perfil que ja existia troca de
+    /// personagem, da dificuldade (Botao 3) ou do boletim (manche para cima). A volta e para 'voltarPara'.
+    void EditarPersonagem(size_t posicao, Scene::SceneType voltarPara = Scene::SceneType::EscolhaDaDificuldade);
     /// A criacao foi aberta por EditarPersonagem, e nao pela entrada de um aluno novo.
     [[nodiscard]] bool EditandoPersonagem() const { return mEditandoPersonagem; }
-    /// Fecha a edicao: a entrada volta a posicao em que estava, e a tela volta para a dificuldade.
+    /// Fecha a edicao: a entrada volta a posicao em que estava, e a tela volta para quem abriu.
     void TerminarEdicaoDePersonagem();
 
     /// Desiste da entrada em curso e volta a ser uma partida de um.
@@ -284,6 +284,14 @@ private:
     size_t mPosicaoEntrando = 0;
     bool mEditandoPersonagem = false;
     size_t mPosicaoAntesDaEdicao = 0;
+    /// Para onde a criacao de personagem volta: a dificuldade (na entrada) ou o boletim.
+    Scene::SceneType mVoltarDaEdicao = Scene::SceneType::EscolhaDaDificuldade;
+public:
+    /// O aluno que o boletim mostra (na dupla, o manche troca): a volta da troca de personagem cai nele.
+    [[nodiscard]] size_t AlunoDoBoletim() const { return mAlunoDoBoletim; }
+    void LembrarAlunoDoBoletim(const size_t aluno) { mAlunoDoBoletim = aluno; }
+private:
+    size_t mAlunoDoBoletim = 0;
 
     PedidoDeRanking mPedidoDeRanking{};
 

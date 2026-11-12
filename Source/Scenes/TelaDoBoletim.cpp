@@ -27,11 +27,11 @@
 namespace {
     /// As colunas, em fracao da largura: a materia a esquerda, o resto em colunas estreitas.
     constexpr float kColunaMateria    = 0.04f;
-    constexpr float kColunaProfessor  = 0.40f;
-    constexpr float kColunaNota       = 0.515f;
-    constexpr float kColunaSituacao   = 0.615f;
-    constexpr float kColunaTentativas = 0.735f;
-    constexpr float kColunaMencoes    = 0.79f;
+    constexpr float kColunaProfessor  = 0.39f;
+    constexpr float kColunaNota       = 0.485f;
+    constexpr float kColunaSituacao   = 0.57f;
+    constexpr float kColunaTentativas = 0.675f;
+    constexpr float kColunaMencoes    = 0.725f;
 
     constexpr float kTopoDaTabela = 0.215f;
     constexpr float kPassoDaTabela = 0.036f;
@@ -59,6 +59,9 @@ TelaDoBoletim::TelaDoBoletim(Game* game)
 }
 
 void TelaDoBoletim::Load() {
+
+    // Quem voltou da troca de personagem cai no mesmo aluno.
+    mAluno = mGame->AlunoDoBoletim();
 
     CriarFundoDoCorredor(*this);
 
@@ -97,7 +100,7 @@ void TelaDoBoletim::Load() {
         l.nota       = Texto(" ", largura * kColunaNota, y, kLetraDaTabela, 110, true);
         l.situacao   = Texto(" ", largura * kColunaSituacao, y, kLetraDaTabela, 130, true);
         l.tentativas = Texto(" ", largura * kColunaTentativas, y, kLetraDaTabela, 50, true);
-        l.mencoes    = std::make_unique<SelosDeMencao>(*this, mFonte.get(), Vector2(largura * kColunaMencoes, y));
+        l.mencoes    = std::make_unique<SelosDeMencao>(*this, mFonte.get(), Vector2(largura * kColunaMencoes, y), 200, true);
         mLinhas.push_back(std::move(l));
     }
 
@@ -134,6 +137,7 @@ void TelaDoBoletim::Redesenhar() {
     const Materias::Lista& materias = Materias::Carregadas();
     const auto& sessoes = mGame->Sessoes();
     if (mAluno >= sessoes.size()) mAluno = 0;
+    mGame->LembrarAlunoDoBoletim(mAluno);
     const bool dupla = sessoes.size() > 1;
     const std::string& matricula = mGame->MatriculaDe(mAluno);
     const bool visitante = matricula.empty() || matricula == Matricula::kVisitante;
@@ -196,7 +200,8 @@ void TelaDoBoletim::Redesenhar() {
 
     std::vector<Painel::Acao> itens;
     if (dupla) itens.push_back(Painel::Manche(Painel::Jogador::Um, "trocar de aluno"));
-    itens.emplace_back(Painel::Jogador::Um, Painel::Botao::Um, "horas complementares");
+    itens.emplace_back("MANCHE ACIMA", "CIMA", "personagem");
+    itens.emplace_back(Painel::Jogador::Um, Painel::Botao::Um, "horas");
     itens.emplace_back(Painel::Jogador::Um, Painel::Botao::Dois, "voltar");
     itens.emplace_back(Painel::Jogador::Um, Painel::Botao::Tres, "ranking");
     Escrever(mRodapeAtor, Painel::Rodape(itens, mGame->JeitoDoRodape()), Color::White);
@@ -208,6 +213,12 @@ void TelaDoBoletim::OnProcessInput(const Uint8* keyState) {
                      || keyState[SDL_SCANCODE_ESCAPE];
     if (mBordaVoltar.Bateu(voltar)) {
         mGame->RequestSceneChange(SceneType::StageSelect);
+        return;
+    }
+
+    // A personagem do aluno em tela, quando ele quiser: a criacao de personagem volta para ca.
+    if (mBordaPersonagem.Bateu(Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Direcao::Cima))) {
+        mGame->EditarPersonagem(mAluno, SceneType::Boletim);
         return;
     }
 

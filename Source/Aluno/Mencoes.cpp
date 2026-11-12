@@ -41,7 +41,35 @@ namespace Mencoes {
         por(Mencao::Dupla, aprovadoEm(Progresso::Modo::Dupla, Dificuldade::Nivel::Normal) ||
                            aprovadoEm(Progresso::Modo::Dupla, Dificuldade::Nivel::Dificil));
         por(Mencao::Orientou, progresso.Orientacoes(materia) > 0);
+        for (const Mencao desafio : kDesafios) {
+            por(desafio, progresso.Atividades().count(Chave(desafio, m->codigo)) > 0);
+        }
         return d;
+    }
+
+    std::string Chave(const Mencao desafio, const std::string& materia) {
+        const char* nome = "";
+        switch (desafio) {
+            case Mencao::Pacifista: nome = "pacifista"; break;
+            case Mencao::Intocavel: nome = "intocavel"; break;
+            case Mencao::Mira:      nome = "mira"; break;
+            case Mencao::DePerto:   nome = "de-perto"; break;
+            default:                return "";
+        }
+        return std::string("desafio-") + nome + "@" + materia;
+    }
+
+    std::vector<std::string> Desafios(const Prova& p, const std::string& materia) {
+        std::vector<std::string> chaves;
+        if (!p.aprovado) return chaves;
+        const auto se = [&](const Mencao m, const bool cumpriu) { if (cumpriu) chaves.push_back(Chave(m, materia)); };
+        se(Mencao::Pacifista, p.tiros == 0);
+        se(Mencao::Intocavel, p.acertosSofridos == 0);
+        se(Mencao::Mira, p.tiros >= kTirosDaMira &&
+                         static_cast<float>(p.acertosNoProfessor) >= kPrecisaoDaMira * static_cast<float>(p.tiros));
+        se(Mencao::DePerto, p.acertosNoProfessor >= kAcertosDePerto &&
+                            static_cast<float>(p.acertosDePerto) >= kFracaoDePerto * static_cast<float>(p.acertosNoProfessor));
+        return chaves;
     }
 
     Total DoCurso(const Progresso& progresso, const Materias::Lista& materias) {
@@ -71,6 +99,10 @@ namespace Mencoes {
             case Mencao::Dificil:   return "D";
             case Mencao::Dupla:     return "2";
             case Mencao::Orientou:  return "T";
+            case Mencao::Pacifista: return "\xc3\x98";   // O cortado: nenhum tiro
+            case Mencao::Intocavel: return "I";
+            case Mencao::Mira:      return "M";
+            case Mencao::DePerto:   return "!!";
         }
         return "";
     }
@@ -85,6 +117,10 @@ namespace Mencoes {
             case Mencao::Dificil:   return "no Dif\xc3\xad" "cil";
             case Mencao::Dupla:     return "em dupla";
             case Mencao::Orientou:  return "orientou o TCC";
+            case Mencao::Pacifista: return "sem dar um tiro";
+            case Mencao::Intocavel: return "intoc\xc3\xa1vel";
+            case Mencao::Mira:      return "mira certeira";
+            case Mencao::DePerto:   return "na cara do professor";
         }
         return "";
     }
@@ -94,7 +130,8 @@ namespace Mencoes {
         const std::string ponto = "  \xc2\xb7  ";
         return std::string("B aprova\xc3\xa7\xc3\xa3o") + ponto + "P nota 80" + ponto + "O nota 90" + ponto +
                "100 nota cheia" + ponto + "D no Dif\xc3\xad" "cil" + ponto + "2 em dupla" + ponto +
-               "T orientou o seu TCC";
+               "T orientou o seu TCC" + ponto + "\xc3\x98 sem atirar" + ponto + "I sem ser acertado" + ponto +
+               "M 70% dos tiros" + ponto + "!! metade de perto";
     }
 
     Cor CorDa(const Mencao m) {
@@ -106,6 +143,10 @@ namespace Mencoes {
             case Mencao::Dificil:   return {240, 104, 104};
             case Mencao::Dupla:     return {110, 200, 255};
             case Mencao::Orientou:  return {186, 158, 250};
+            case Mencao::Pacifista: return {140, 225, 160};
+            case Mencao::Intocavel: return {255, 150, 205};
+            case Mencao::Mira:      return {100, 225, 215};
+            case Mencao::DePerto:   return {255, 160, 60};
         }
         return {};
     }

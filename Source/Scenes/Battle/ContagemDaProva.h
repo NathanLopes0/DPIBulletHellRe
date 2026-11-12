@@ -15,15 +15,23 @@ public:
     void AoRaspar(Battle&, const Player&) override { ++mRaspoes; }
     void AoUsarPontoExtra(Battle&, const Player&) override { ++mPontosExtras; }
     void AoCobrir(Battle&, const Player&, const Player&) override { ++mCoberturas; }
+    /// Os desafios (Mencoes.h): os tiros dos alunos que acertaram o professor, e os feitos de perto. O
+    /// tiro do orientador nao conta - a mira e a do aluno.
+    void AoAcertarOProfessor(Battle&, const Actor* quemAtirou, bool ouviu) override;
+    void AoAcertarDePerto(Battle&, const Player&) override { ++mAcertosDePerto; }
 
     [[nodiscard]] int Raspoes() const { return mRaspoes; }
     [[nodiscard]] int PontosExtras() const { return mPontosExtras; }
     [[nodiscard]] int Coberturas() const { return mCoberturas; }
     [[nodiscard]] float MenorNota() const { return mMenorNota; }
+    [[nodiscard]] int AcertosNoProfessor() const { return mAcertosNoProfessor; }
+    [[nodiscard]] int AcertosDePerto() const { return mAcertosDePerto; }
 
 private:
     int mRaspoes = 0;
     int mPontosExtras = 0;
     int mCoberturas = 0;
     float mMenorNota = 100.0f;
+    int mAcertosNoProfessor = 0;
+    int mAcertosDePerto = 0;
 };

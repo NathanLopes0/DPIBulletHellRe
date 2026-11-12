@@ -22,16 +22,22 @@ namespace {
     const Vector3 kTintaAcesa(0.07f, 0.08f, 0.13f);
 }
 
-SelosDeMencao::SelosDeMencao(Scene& cena, Font* fonte, const Vector2& esquerda, const int ordem) {
+SelosDeMencao::SelosDeMencao(Scene& cena, Font* fonte, const Vector2& esquerda, const int ordem, const bool compacta) {
+    const float largura = compacta ? kLarguraCompacta : kLargura;
+    const float entre = compacta ? kEntreCompacta : kEntre;
     for (int i = 0; i < Mencoes::kQuantas; ++i) {
-        const Vector2 onde(esquerda.x + kLargura / 2.0f + static_cast<float>(i) * (kLargura + kEntre), esquerda.y);
+        // Os desafios vem depois de uma folga: sao outro jeito de jogar, e nao mais nota.
+        const bool desafio = Mencoes::kTodas[static_cast<size_t>(i)] >= Mencoes::kDesafios.front();
+        const Vector2 onde(esquerda.x + largura / 2.0f + static_cast<float>(i) * (largura + entre) +
+                               (desafio ? kEntreOsGrupos : 0.0f),
+                           esquerda.y);
         auto caixa = std::make_unique<Actor>(&cena);
         caixa->SetPosition(onde);
         mSelos[static_cast<size_t>(i)].caixa = caixa->AddComponent<DrawCaixaComponent>(
-            static_cast<int>(kLargura), static_cast<int>(kAltura), kMolduraApagada, kFundoApagado, 1, ordem);
+            static_cast<int>(largura), static_cast<int>(kAltura), kMolduraApagada, kFundoApagado, 1, ordem);
         cena.AddActor(std::move(caixa));
         mSelos[static_cast<size_t>(i)].texto = CriarTexto(cena, fonte, Mencoes::Selo(Mencoes::kTodas[static_cast<size_t>(i)]),
-                                                          onde, kLetra, static_cast<int>(kLargura) - 2,
+                                                          onde, kLetra, static_cast<int>(largura) - 2,
                                                           static_cast<int>(kAltura), ordem + 1);
     }
     Esconder();

@@ -962,6 +962,14 @@ void Battle::EncerrarBatalha(bool aprovado) {
     int lugarNaSemana = 0;
     if (mProvaDaSemana) resumo.provaDaSemana = EntrarNoRankingDaSemana(lugarNaSemana);
 
+    // As mencoes de antes desta nota (Mencoes.h): as da materia, e as da materia do orientador.
+    const int orientador = mGame->Orientador();
+    std::vector<Mencoes::DaMateria> mencoesAntes, orientouAntes;
+    for (const auto& sessao : mGame->Sessoes()) {
+        mencoesAntes.push_back(Mencoes::Da(sessao.progresso, materias, mMateria));
+        orientouAntes.push_back(Mencoes::Da(sessao.progresso, materias, orientador));
+    }
+
     // As horas complementares (Horas.h): o que esta prova cumpriu, para cada aluno. Entram na ficha
     // junto com a nota, logo abaixo; a tela diz as novas (na dupla, as de qualquer um dos dois).
     if (aprovado) {
@@ -987,14 +995,17 @@ void Battle::EncerrarBatalha(bool aprovado) {
             }
         }
         resumo.horas = Horas::FraseDasNovas(novas, materias);
-    }
 
-    // As mencoes de antes desta nota (Mencoes.h): as da materia, e as da materia do orientador.
-    const int orientador = mGame->Orientador();
-    std::vector<Mencoes::DaMateria> mencoesAntes, orientouAntes;
-    for (const auto& sessao : mGame->Sessoes()) {
-        mencoesAntes.push_back(Mencoes::Da(sessao.progresso, materias, mMateria));
-        orientouAntes.push_back(Mencoes::Da(sessao.progresso, materias, orientador));
+        // Os desafios (Mencoes.h): como a prova foi jogada, da dupla inteira. Entram na ficha como as
+        // horas; a linha das mencoes novas, mais abaixo, os anuncia.
+        Mencoes::Prova prova;
+        prova.aprovado = true;
+        for (const Player* aluno : mJogadores) if (aluno) prova.tiros += aluno->Disparos();
+        prova.acertosNoProfessor = mContagem ? mContagem->AcertosNoProfessor() : 0;
+        prova.acertosDePerto = mContagem ? mContagem->AcertosDePerto() : 0;
+        prova.acertosSofridos = mConta.AcertosSofridos();
+        const std::vector<std::string> desafios = Mencoes::Desafios(prova, feito.materia);
+        for (size_t i = 0; i < mGame->Sessoes().size(); ++i) mGame->RegistrarAtividades(i, desafios);
     }
 
     // O unico ponto em que a nota vai para o armazenamento persistente.
