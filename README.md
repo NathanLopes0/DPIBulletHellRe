@@ -36,8 +36,9 @@ escritos na tela.
 > W A S D é o do jogador 2.
 
 O menu principal tem **Modo Solo**, **Modo Dupla** e **Como Jogar** — o manual,
-uma página por vez (o manche vira a página), com o objetivo, os controles, a
-nota, o que se destrói, a dupla e o curso. O texto mora em
+três páginas (o manche vira a página): como a matéria funciona, os botões, e a
+personagem com o convite para a dupla. É curto de propósito — a nota, o que se
+destrói, o Ponto Extra e o que a dupla faz junta ficam para o aluno descobrir. O texto mora em
 `Assets/como-jogar.json`: dá para revisar uma frase sem recompilar. Em dupla, cada aluno se
 identifica, os dois jogam a mesma batalha e a **nota é uma só, da dupla**: o
 que um jogador causa sozinho — o acerto no professor, o acerto sofrido, o Ponto
