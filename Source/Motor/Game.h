@@ -220,8 +220,12 @@ public:
     /// Se o progresso desta posicao vai para o disco. Visitante nao grava.
     [[nodiscard]] bool ProgressoEGravado(size_t posicao) const;
 
-    // Verifica se uma matéria específica está desbloqueada para jogar.
+    /// A materia esta liberada para jogar? Na dupla, so se estiver para os dois: o mapa e o de quem
+    /// tem menos materias liberadas.
     bool IsStageUnlocked(int subject);
+
+    /// Na dupla, as posicoes para quem a materia ainda esta fechada (vazio se esta aberta para todos).
+    [[nodiscard]] std::vector<size_t> FechadaPara(int subject) const;
 
 private:
     /// Passam as opcoes de som e de janela para o AudioSystem e o SDL.

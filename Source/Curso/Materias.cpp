@@ -151,6 +151,14 @@ bool Lista::ColunaDependeDaAnterior(const int coluna) const {
     return true;
 }
 
+bool Lista::DesbloqueadaParaTodos(const int indice, const std::vector<const Progresso*>& progressos) const {
+    if (progressos.empty()) return false;
+    for (const Progresso* p : progressos) {
+        if (!p || !Desbloqueada(indice, *p)) return false;
+    }
+    return true;
+}
+
 bool Lista::Desbloqueada(const int indice, const Progresso& progresso) const {
 
     const Materia* m = Por(indice);

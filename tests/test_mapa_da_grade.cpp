@@ -65,3 +65,26 @@ TEST_CASE("materias: optativa no meio das obrigatorias e avisada") {
     for (const auto& p : l.problemas) if (p.find("OPT1") != std::string::npos) avisou = true;
     CHECK(avisou);
 }
+
+TEST_CASE("materias: na dupla, a materia so abre se estiver aberta para os dois") {
+    const auto l = Materias::LerMaterias(R"({ "materias": [
+        { "codigo": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B", "coluna": 1, "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A"] } },
+        { "codigo": "C", "coluna": 2, "desbloqueio": { "tipo": "aprovadoEm", "materias": ["B"] } }
+    ] })");
+    Progresso adiantado;
+    adiantado.RegistrarNota(0, 80.0f, Dificuldade::Nivel::Normal);
+    adiantado.RegistrarNota(1, 75.0f, Dificuldade::Nivel::Normal);
+    Progresso atrasado;
+    atrasado.RegistrarNota(0, 70.0f, Dificuldade::Nivel::Normal);
+
+    // Sozinho, cada um ve o seu mapa.
+    CHECK(l.DesbloqueadaParaTodos(2, {&adiantado}));
+    CHECK_FALSE(l.DesbloqueadaParaTodos(2, {&atrasado}));
+    // Juntos, vale o de quem esta mais atras, na ordem que for.
+    CHECK(l.DesbloqueadaParaTodos(0, {&adiantado, &atrasado}));
+    CHECK(l.DesbloqueadaParaTodos(1, {&adiantado, &atrasado}));
+    CHECK_FALSE(l.DesbloqueadaParaTodos(2, {&adiantado, &atrasado}));
+    CHECK_FALSE(l.DesbloqueadaParaTodos(2, {&atrasado, &adiantado}));
+    CHECK_FALSE(l.DesbloqueadaParaTodos(0, {}));
+}

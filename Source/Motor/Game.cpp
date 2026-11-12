@@ -664,8 +664,19 @@ void Game::RequestSceneChange(const Scene::SceneType nextScene) {
 
 bool Game::IsStageUnlocked(const int subject) {
 
-    // As regras vivem em materias.json, nao mais aqui.
-    return Materias::Carregadas().Desbloqueada(static_cast<int>(subject), ProgressoDoMapa());
+    // As regras vivem em materias.json, nao mais aqui. Na dupla, a materia abre so se estiver aberta para
+    // os dois: quem esta mais atras no curso nao joga o que ainda nao liberou.
+    std::vector<const Progresso*> progressos;
+    for (const Sessao::Dados& s : mSessoes) progressos.push_back(&s.progresso);
+    return Materias::Carregadas().DesbloqueadaParaTodos(subject, progressos);
+}
+
+std::vector<size_t> Game::FechadaPara(const int subject) const {
+    std::vector<size_t> quem;
+    for (size_t i = 0; i < mSessoes.size(); ++i) {
+        if (!Materias::Carregadas().Desbloqueada(subject, mSessoes[i].progresso)) quem.push_back(i);
+    }
+    return quem;
 }
 
 // Quem esta jogando.

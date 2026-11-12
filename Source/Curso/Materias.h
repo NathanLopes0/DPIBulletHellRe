@@ -87,6 +87,9 @@ namespace Materias {
         /// Esta materia esta liberada para este progresso? Nao recorre: "aprovado em X" olha a nota
         /// de X, e nao se X esta desbloqueada.
         [[nodiscard]] bool Desbloqueada(int indice, const Progresso& progresso) const;
+        /// Liberada para todos estes alunos - a dupla: a materia so abre se estiver aberta para os
+        /// dois, e o mapa e o de quem esta mais atras. Sem ninguem, fechada.
+        [[nodiscard]] bool DesbloqueadaParaTodos(int indice, const std::vector<const Progresso*>& progressos) const;
 
         /// O que falta para esta materia abrir, numa frase para o aluno. Vazio quando a materia
         /// abre sempre - nao ha o que explicar.

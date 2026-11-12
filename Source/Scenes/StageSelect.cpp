@@ -548,6 +548,13 @@ void StageSelect::UpdateStageInfo() const {
     if (!mGame->IsStageUnlocked(mSelectedSubject)) {
         frase = materias.ExigenciaDe(mSelectedSubject);
         if (frase.empty()) frase = "Ainda fechada";
+        // Na dupla, quando so um dos dois ainda nao chegou nela, o cartao diz quem.
+        const std::vector<size_t> fechadaPara = mGame->FechadaPara(mSelectedSubject);
+        if (mGame->QuantosJogadores() > 1 && fechadaPara.size() == 1) {
+            // "Precisa passar em INF 213" vira "J2 precisa passar em INF 213".
+            const std::string quem = "J" + std::to_string(fechadaPara.front() + 1);
+            frase = frase.rfind("Precisa", 0) == 0 ? quem + " precisa" + frase.substr(7) : quem + ": " + frase;
+        }
         cor = Color::LightPink;
 
     } else if (m && m->chefe.empty()) {

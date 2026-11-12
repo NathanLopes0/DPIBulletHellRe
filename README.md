@@ -175,6 +175,12 @@ pelo recorde **dessa** lista. Para o mapa do curso, passar é passar: a matéria
 abre com 60 em qualquer uma das quatro. Cada linha traz a personagem do aluno
 (as duas, na dupla), de capelo para quem já se formou.
 
+**Na dupla, o mapa é o de quem está mais atrás.** Uma matéria só abre para a
+dupla se estiver aberta para **os dois**: quem tem menos matérias liberadas não
+joga o que ainda não alcançou. Quando só um dos dois falta, o cartão da matéria
+diz quem ("J2 precisa passar em INF 110"). Passar jogando em dupla destranca a
+próxima matéria para cada um, como no solo.
+
 Parado no menu, o gabinete entra na tela de atração, que reveza três cartazes:
 a chamada, os melhores do curso e o **mural dos formados** — quem passou no
 TCC, de capelo, dos mais recentes, com a data em que passou.
