@@ -50,6 +50,9 @@ namespace Materias {
         /// Se a batalha desta materia pede um orientador antes de comecar - o TCC. Quem pode
         /// orientar e quem decide entre eles e Orientacao.h.
         bool orientacao = false;
+        /// Disciplina optativa: fica na ala das optativas da selecao de fases (MapaDaGrade.h), nas
+        /// colunas depois das obrigatorias, e nao conta no "Aprovadas: N de M".
+        bool optativa = false;
 
         Desbloqueio desbloqueio;
     };
@@ -75,6 +78,11 @@ namespace Materias {
 
         /// Quantas colunas a grade tem (a maior coluna usada, mais um).
         [[nodiscard]] int QuantasColunas() const;
+        /// Quantas colunas as obrigatorias ocupam (a maior coluna de uma obrigatoria, mais um). As
+        /// optativas vem depois delas.
+        [[nodiscard]] int QuantasColunasObrigatorias() const;
+        /// Quantas materias obrigatorias o curso tem.
+        [[nodiscard]] int QuantasObrigatorias() const;
 
         /// Esta materia esta liberada para este progresso? Nao recorre: "aprovado em X" olha a nota
         /// de X, e nao se X esta desbloqueada.

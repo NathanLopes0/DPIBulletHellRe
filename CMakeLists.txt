@@ -119,6 +119,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Aluno/Matricula.cpp
         Source/Aluno/Matricula.h
         Source/Curso/Materias.cpp
+        Source/Curso/MapaDaGrade.cpp
+        Source/Curso/MapaDaGrade.h
         Source/Curso/Materias.h
         Source/Curso/Orientacao.cpp
         Source/Curso/Orientacao.h
@@ -588,6 +590,7 @@ add_executable(dpi_tests
         tests/test_leitor_do_menu.cpp
         tests/test_horas.cpp
         tests/test_rival.cpp
+        tests/test_mapa_da_grade.cpp
         tests/test_prova_da_semana.cpp
         tests/test_mencoes.cpp
         tests/test_mural.cpp
@@ -658,6 +661,7 @@ add_executable(dpi_tests
         Source/Aluno/Matricula.cpp
         Source/Aluno/Matricula.h
         Source/Curso/Materias.cpp
+        Source/Curso/MapaDaGrade.cpp
         Source/Curso/Materias.h
         Source/Curso/Orientacao.cpp
         Source/Curso/Orientacao.h

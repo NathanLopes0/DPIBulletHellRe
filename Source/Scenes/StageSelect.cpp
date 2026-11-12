@@ -10,6 +10,7 @@
 #include "../Aluno/Matricula.h"
 #include "../Aluno/FichaArquivo.h"
 #include "../Aluno/Rival.h"
+#include "../Curso/MapaDaGrade.h"
 #include "../Aluno/ProvaDaSemanaArquivo.h"
 #include "../Motor/Relogio.h"
 #include "../Curso/MateriasArquivo.h"
@@ -44,6 +45,7 @@ void StageSelect::Load() {
     CriarLigacoes();          // depois dos botoes: as linhas saem das posicoes deles
     CreateStaticUI();
     CriarIdentificacaoNaTela();
+    SeguirOFoco(true);
 
 }
 
@@ -98,7 +100,7 @@ void StageSelect::Linha(const float x, const float y,
     ator->AddComponent<DrawCaixaComponent>(
         static_cast<int>(largura), static_cast<int>(altura),
         SDL_Color{0, 0, 0, 0}, kCorDaLigacao, 0, kOrdemDasLigacoes);
-    AddActor(std::move(ator));
+    NoMapa(AddActor(std::move(ator)));
 }
 
 void StageSelect::CriarLigacoes() {
@@ -110,6 +112,8 @@ void StageSelect::CriarLigacoes() {
 
         if (mGrade[c].empty() || mGrade[c + 1].empty()) continue;
         if (!materias.ColunaDependeDaAnterior(static_cast<int>(c) + 1)) continue;
+        // De uma pagina para a outra nao ha linha: o corredor muda de ala.
+        if (mColunas[c].pagina != mColunas[c + 1].pagina) continue;
 
         const float xEsquerda = mButtonObservers[mGrade[c].front()]->GetPosition().x
                               + kMetadeDoLosango;
@@ -143,43 +147,23 @@ void StageSelect::CriarLigacoes() {
 }
 
 void StageSelect::CreateStageButtons() {
-    // 1.
-    constexpr float buttonWidth = 128.0f;
-
-    // Obtendo dimensões da tela uma única vez para clareza.
     const auto screenW = static_cast<float>(mGame->GetWindowWidth());
     const auto screenH = static_cast<float>(mGame->GetWindowHeight());
-
-    // Margens (1/12 da tela)
-    const float marginX = screenW / 12.0f;
-
-    // 2.
-    const float startX = marginX + buttonWidth / 2.0f;
-    const float endX = screenW - (marginX + buttonWidth / 2.0f);
-
-    // 3.
     const float startY = screenH * kTopoDaGrade;
     const float endY = screenH * kFundoDaGrade;
 
-    // A grade vem de materias.json, e nao de listas escritas aqui.
+    // A grade vem de materias.json, e nao de listas escritas aqui; o x de cada coluna, e a pagina dela,
+    // do mapa: as obrigatorias na primeira pagina, as optativas nas seguintes.
     const Materias::Lista& materias = Materias::Carregadas();
     const int quantasColunas = materias.QuantasColunas();
+    mColunas = MapaDaGrade::Colunas(materias.QuantasColunasObrigatorias(), quantasColunas, screenW);
+    mPaginas = MapaDaGrade::Paginas(mColunas);
 
-    // O passo horizontal supoe intervalos entre colunas, e nao colunas.
-    const float stepX = (quantasColunas > 1)
-                            ? (endX - startX) / static_cast<float>(quantasColunas - 1)
-                            : 0.0f;
-
-    // 4.
-    size_t maxRows = 0;
+    // O passo vertical de cada pagina: a coluna mais cheia dela divide a altura.
+    std::vector<size_t> maxRows(static_cast<size_t>(mPaginas), 0);
     for (int c = 0; c < quantasColunas; ++c) {
-        maxRows = std::max(maxRows, materias.DaColuna(c).size());
-    }
-
-    // Evita divisão por zero se as listas estiverem vazias ou tiverem apenas 1 item.
-    float stepY = 0.0f;
-    if (maxRows > 1) {
-        stepY = (endY - startY) / static_cast<float>(maxRows - 1);
+        size_t& m = maxRows[static_cast<size_t>(mColunas[static_cast<size_t>(c)].pagina)];
+        m = std::max(m, materias.DaColuna(c).size());
     }
 
     // Criação dos botões.
@@ -191,13 +175,18 @@ void StageSelect::CreateStageButtons() {
         const std::vector<int> daColuna = materias.DaColuna(coluna);
         if (daColuna.empty()) continue;
 
-        const float xPos = startX + stepX * static_cast<float>(coluna);
+        const MapaDaGrade::Coluna& lugar = mColunas[static_cast<size_t>(coluna)];
+        const float xPos = lugar.x;
+        const size_t linhasDaPagina = maxRows[static_cast<size_t>(lugar.pagina)];
+        // Nas paginas das optativas a grade fica acima dos cartoes, que ocupam os dois cantos de baixo.
+        const float fundo = lugar.pagina == 0 ? endY : screenH * kFundoDasOptativas;
+        const float stepY = linhasDaPagina > 1 ? (fundo - startY) / static_cast<float>(linhasDaPagina - 1) : 0.0f;
 
         for (size_t i = 0; i < daColuna.size(); ++i) {
 
             // Coluna de uma materia so fica centrada na vertical.
             const float yPos = (daColuna.size() == 1)
-                                   ? (startY + endY) / 2.0f
+                                   ? (startY + fundo) / 2.0f
                                    : startY + stepY * static_cast<float>(i);
 
             const Materias::Materia* m = materias.Por(daColuna[i]);
@@ -246,11 +235,11 @@ void StageSelect::CreateButton(const std::string& text, int subject, const Vecto
 
         // Quem acende o rotulo ao ganhar o foco e o proprio botao, que e quem sabe da selecao.
         button->SetRotuloFechado(rotulo.get());
-        AddActor(std::move(rotulo));
+        NoMapa(AddActor(std::move(rotulo)));
     }
 
     mButtonObservers.push_back(button.get());
-    this->AddActor(std::move(button));
+    NoMapa(this->AddActor(std::move(button)));
 }
 
 Actor* StageSelect::TextoDoCartao(const float y, const int tamanho, const Vector3& cor) {
@@ -271,18 +260,19 @@ void StageSelect::CreateStaticUI() {
         "ESCOLHA A MATERIA", mStageSelectFont.get(), 360, 44, 30, 255);
     titulo->SetLarguraDeQuebra(360);
     titulo->SetAjustarAoTexto(true);
-    AddActor(std::move(tituloAtor));
+    mTituloAtor = AddActor(std::move(tituloAtor));
 
     const Materias::Lista& materias = Materias::Carregadas();
     int aprovadas = 0;
     for (int i = 0; i < materias.Quantas(); ++i) {
-        if (mGame->Aprovado(i)) ++aprovadas;
+        const Materias::Materia* m = materias.Por(i);
+        if (m && !m->optativa && mGame->Aprovado(i)) ++aprovadas;
     }
 
     auto avanco = std::make_unique<Actor>(this);
     avanco->SetPosition(Vector2(w - 190.f, 52.f));
     const auto avancoDc = avanco->AddComponent<DrawTextComponent>(
-        "Aprovadas: " + std::to_string(aprovadas) + " de " + std::to_string(materias.Quantas()),
+        "Aprovadas: " + std::to_string(aprovadas) + " de " + std::to_string(materias.QuantasObrigatorias()),
         mStageSelectFont.get(), 320, 38, 26, 255);
     avancoDc->SetLarguraDeQuebra(320);
     avancoDc->SetAjustarAoTexto(true);
@@ -324,41 +314,58 @@ void StageSelect::CriarProvaDaSemana() {
     const int materia = ProvaDaSemana::MateriaDa(semana, materias);
     const Materias::Materia* m = materias.Por(materia);
     if (!m) return;
+    mMateriaDaSemana = materia;
 
-    auto moldura = std::make_unique<Actor>(this);
-    moldura->SetPosition(Vector2(kProvaX, kCartaoY));
-    moldura->AddComponent<DrawCaixaComponent>(static_cast<int>(kProvaLargura), static_cast<int>(kCartaoAltura),
-                                              SDL_Color{255, 214, 72, 200}, kCorDoFundoDoCartao, 2, kOrdemDoCartao);
-    AddActor(std::move(moldura));
-
-    const int largura = static_cast<int>(kProvaLargura) - 24;
-    const auto linha = [&](const std::string& texto, const float dy, const int tamanho, const Vector3& cor) {
-        CriarTexto(*this, mStageSelectFont.get(), texto.empty() ? " " : texto, Vector2(kProvaX, kCartaoY + dy), tamanho,
-                   largura, tamanho + 8)->SetColor(cor);
+    // Um cartao pequeno, no canto: uma aba dourada com o titulo, a materia e o prazo, o podio com as
+    // medalhas e o lugar de quem joga. So aparece com o cursor na materia da semana.
+    const float topo = kProvaY - kProvaAltura / 2.0f;
+    const auto caixa = [&](const Vector2& onde, const float w, const float h, const SDL_Color& moldura,
+                           const SDL_Color& fundo, const int espessura, const int ordem) {
+        auto ator = std::make_unique<Actor>(this);
+        ator->SetPosition(onde);
+        ator->AddComponent<DrawCaixaComponent>(static_cast<int>(w), static_cast<int>(h), moldura, fundo, espessura, ordem);
+        mCartaoDaProva.push_back(AddActor(std::move(ator)));
+    };
+    const auto texto = [&](const std::string& t, const Vector2& onde, const int tamanho, const int largura,
+                           const Vector3& cor, const bool aEsquerda = false) {
+        auto* dc = CriarTexto(*this, mStageSelectFont.get(), t.empty() ? " " : t, onde, tamanho, largura, tamanho + 8,
+                              kOrdemDoCartao + 2);
+        dc->SetColor(cor);
+        dc->SetAEsquerda(aEsquerda);
+        mCartaoDaProva.push_back(dc->GetOwner());
     };
 
+    const SDL_Color ouro{255, 214, 72, 235};
+    caixa(Vector2(kProvaX, kProvaY), kProvaLargura, kProvaAltura, ouro, SDL_Color{24, 20, 10, 235}, 2, kOrdemDoCartao);
+    caixa(Vector2(kProvaX, topo + 13.0f), kProvaLargura, 26.0f, ouro, ouro, 0, kOrdemDoCartao + 1);
     // \xc3\xba e o u com acento, \xc2\xb7 o ponto do meio, \xc2\xba o "o" de ordinal, \xc3\xad o i com acento.
-    linha("PROVA DA SEMANA", -86.0f, 22, Color::Gold);
+    texto("PROVA DA SEMANA", Vector2(kProvaX, topo + 13.0f), 15, static_cast<int>(kProvaLargura) - 20,
+          Vector3(0.12f, 0.09f, 0.02f));
     const std::string prazo = semana.faltam <= 1 ? std::string("\xc3\xbaltimo dia")
                                                  : "faltam " + std::to_string(semana.faltam) + " dias";
-    linha(m->nome + "  \xc2\xb7  " + prazo, -58.0f, 18, Color::LightYellow);
+    texto(m->nome + "  \xc2\xb7  " + prazo, Vector2(kProvaX, topo + 42.0f), 15, static_cast<int>(kProvaLargura) - 20,
+          Color::LightYellow);
 
-    // O ranking do modo e da dificuldade desta partida.
+    // O podio do modo e da dificuldade desta partida: medalha, quem e a nota.
     const bool dupla = mGame->QuantosJogadores() > 1;
     const bool dificil = mGame->NivelDeDificuldade() == Dificuldade::Nivel::Dificil;
     const auto ranking = ProvaDaSemana::Ranking(ProvaDaSemana::Carregar(), semana, dupla, dificil);
+    const SDL_Color medalhas[] = {{255, 206, 60, 255}, {200, 208, 222, 255}, {205, 127, 70, 255}};
     for (int i = 0; i < ProvaDaSemana::kPodio; ++i) {
-        std::string texto = std::to_string(i + 1) + "\xc2\xba   -";
+        const float y = topo + 68.0f + 22.0f * static_cast<float>(i);
+        caixa(Vector2(kProvaX - 112.0f, y), 12.0f, 12.0f, medalhas[i], medalhas[i], 0, kOrdemDoCartao + 1);
         if (static_cast<size_t>(i) < ranking.size()) {
             const ProvaDaSemana::Colocado& c = ranking[static_cast<size_t>(i)];
-            std::stringstream ss;
-            ss << c.posicao << "\xc2\xba   " << c.quem << "   " << std::fixed << std::setprecision(2) << c.nota;
-            texto = ss.str();
+            std::stringstream nota;
+            nota << std::fixed << std::setprecision(2) << c.nota;
+            texto(c.quem, Vector2(kProvaX - 6.0f, y), 15, 172, i == 0 ? Color::White : Color::LightBlue, true);
+            texto(nota.str(), Vector2(kProvaX + 100.0f, y), 15, 60, i == 0 ? Color::White : Color::LightBlue);
+        } else {
+            texto("ningu\xc3\xa9m ainda", Vector2(kProvaX - 6.0f, y), 14, 172, Vector3(0.5f, 0.52f, 0.62f), true);
         }
-        linha(texto, -26.0f + 24.0f * static_cast<float>(i), 18, i == 0 ? Color::White : Color::LightBlue);
     }
 
-    // O lugar de quem esta jogando.
+    // O lugar de quem esta jogando, e as regras numa linha.
     ProvaDaSemana::Entrada eu;
     eu.dupla = dupla;
     eu.matricula = mGame->MatriculaDe(0);
@@ -369,16 +376,67 @@ void StageSelect::CriarProvaDaSemana() {
     if (visitante) meu = "visitante n\xc3\xa3o entra no ranking";
     else if (lugar > 0) meu = (dupla ? "a dupla: " : "voc\xc3\xaa: ") + std::to_string(lugar) + "\xc2\xba de " + std::to_string(ranking.size());
     else meu = dupla ? "a dupla ainda n\xc3\xa3o fez" : "voc\xc3\xaa ainda n\xc3\xa3o fez";
-    linha(meu, 58.0f, 18, lugar > 0 ? Color::LightGreen : Color::LightYellow);
-    linha(std::string(dificil ? "Dif\xc3\xad" "cil" : "Normal") + (dupla ? ", em dupla" : ", sozinho") +
-              "  \xc2\xb7  a mesma prova para todos",
-          86.0f, 14, Color::LightBlue);
+    texto(meu, Vector2(kProvaX, topo + 138.0f), 14, static_cast<int>(kProvaLargura) - 20,
+          lugar > 0 ? Color::LightGreen : Color::LightYellow);
+    texto(std::string(dificil ? "Dif\xc3\xad" "cil" : "Normal") + (dupla ? " \xc2\xb7 dupla" : " \xc2\xb7 sozinho") +
+              " \xc2\xb7 a mesma prova para todos",
+          Vector2(kProvaX, topo + 159.0f), 12, static_cast<int>(kProvaLargura) - 16, Color::LightBlue);
 
-    // A marca em cima do botao da materia da semana.
+    // A marca em cima do botao da materia da semana: e ela que chama o cursor.
     for (const StageSelectButton* botao : mButtonObservers) {
         if (!botao || botao->GetSubject() != materia) continue;
-        CriarTexto(*this, mStageSelectFont.get(), "PROVA DA SEMANA", botao->GetPosition() + Vector2(0.0f, -44.0f), 13,
-                   160, 20)->SetColor(Color::Gold);
+        NoMapa(CriarTexto(*this, mStageSelectFont.get(), "PROVA DA SEMANA", botao->GetPosition() + Vector2(0.0f, -44.0f),
+                          13, 160, 20)->GetOwner());
+        mNosDoMapa.back().ator->GetComponent<DrawTextComponent>()->SetColor(Color::Gold);
+    }
+
+    MostrarCartaoDaProva(mSelectedSubject == mMateriaDaSemana);
+}
+
+void StageSelect::MostrarCartaoDaProva(const bool mostrar) {
+    for (Actor* a : mCartaoDaProva) {
+        if (auto* dc = a ? a->GetComponent<DrawComponent>() : nullptr) dc->SetIsVisible(mostrar);
+    }
+}
+
+void StageSelect::NoMapa(Actor* ator) {
+    if (ator) mNosDoMapa.push_back({ator, ator->GetPosition()});
+}
+
+void StageSelect::SeguirOFoco(const bool deUmaVez) {
+    if (mButtonObservers.empty()) return;
+    size_t coluna = 0, linha = 0;
+    if (Navegacao::Onde(mGrade, mSelectedIndex, coluna, linha) && coluna < mColunas.size()) {
+        mPagina = mColunas[coluna].pagina;
+    }
+    if (deUmaVez) {
+        mCamera = MapaDaGrade::DeslocamentoDa(mPagina, static_cast<float>(mGame->GetWindowWidth()));
+        for (const NoDoMapa& n : mNosDoMapa) n.ator->SetPosition(n.base + Vector2(mCamera, 0.0f));
+    }
+    AtualizarDicas();
+}
+
+void StageSelect::AtualizarDicas() {
+    const auto w = static_cast<float>(mGame->GetWindowWidth());
+    const auto h = static_cast<float>(mGame->GetWindowHeight());
+    if (mPaginas > 1 && !mDicaDireita) {
+        // \xc2\xbb e \xc2\xab sao as aspas angulares, as setas que a fonte tem; \xc3\x93 e o O agudo.
+        auto* d = CriarTexto(*this, mStageSelectFont.get(), " ", Vector2(w - 70.0f, h * 0.6f), 16, 140, 26);
+        d->SetColor(Color::Gold);
+        mDicaDireita = d->GetOwner();
+        auto* e = CriarTexto(*this, mStageSelectFont.get(), "\xc2\xab OBRIGAT\xc3\x93RIAS", Vector2(96.0f, h * 0.48f), 16,
+                             170, 26);
+        e->SetColor(Color::Gold);
+        mDicaEsquerda = e->GetOwner();
+    }
+    if (mDicaDireita) {
+        auto* d = mDicaDireita->GetComponent<DrawTextComponent>();
+        d->SetText(mPagina == 0 ? "OPTATIVAS \xc2\xbb" : "MAIS \xc2\xbb");
+        d->SetIsVisible(mPagina + 1 < mPaginas);
+    }
+    if (mDicaEsquerda) mDicaEsquerda->GetComponent<DrawTextComponent>()->SetIsVisible(mPagina > 0);
+    if (mTituloAtor) {
+        if (auto* t = mTituloAtor->GetComponent<DrawTextComponent>()) t->SetText(mPagina == 0 ? "ESCOLHA A MATERIA" : "OPTATIVAS");
     }
 }
 
@@ -411,6 +469,8 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
         mGame->FocarMateria(mSelectedSubject);
         mInputTimer = 0.0f;
         UpdateStageInfo();
+        SeguirOFoco(false);
+        MostrarCartaoDaProva(mSelectedSubject == mMateriaDaSemana);
     }
 
     // O boletim; dele, o Botao 3 de novo leva ao ranking da materia em foco.
@@ -452,6 +512,13 @@ size_t StageSelect::HandleSelectedChange(const Uint8 *keyState, const size_t cur
 void StageSelect::OnUpdate(float deltaTime) {
 
     if(mInputTimer < INPUT_DELAY) mInputTimer += deltaTime;
+
+    // A camera desliza ate a pagina do foco: as obrigatorias, ou a ala das optativas.
+    const float alvo = MapaDaGrade::DeslocamentoDa(mPagina, static_cast<float>(mGame->GetWindowWidth()));
+    if (mCamera != alvo) {
+        mCamera = MapaDaGrade::Aproximar(mCamera, alvo, deltaTime);
+        for (const NoDoMapa& n : mNosDoMapa) n.ator->SetPosition(n.base + Vector2(mCamera, 0.0f));
+    }
 
 }
 

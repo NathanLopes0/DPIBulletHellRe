@@ -139,8 +139,9 @@ de orientações.
 é a prova da semana (em rodízio; o TCC não entra). Quem a joga nessa semana
 enfrenta **a mesma prova** — a mesma semente: a mesma ordem, os mesmos números,
 os mesmos tempos — e a nota entra num ranking que só vale até domingo, um por
-modo e por dificuldade. A seleção de fases marca a matéria e mostra, no canto,
-quanto falta, o pódio e o seu lugar; o resultado diz o lugar ao lado da nota. A
+modo e por dificuldade. A seleção de fases marca a matéria com um selo dourado e,
+com o cursor nela, abre no canto um cartão com quanto falta, o pódio e o seu
+lugar; o resultado diz o lugar ao lado da nota. A
 matéria continua valendo como sempre (recorde, menções), e continua fechada
 para quem ainda não chegou nela. Visitante joga a mesma prova, mas não entra no
 ranking.
@@ -300,6 +301,14 @@ professor aparece uma vez só na grade.
 Quem decide tudo isso é `Assets/materias.json` — a ordem, as colunas, as regras
 de desbloqueio, o professor e qual chefe atende cada matéria. Não há lista de
 matérias no C++.
+
+**As optativas.** Uma matéria com `"optativa": true` fica numa ala à direita da
+grade: com o cursor passando do TCC, a seleção de fases desliza até ela e o
+título vira "OPTATIVAS" (a borda direita avisa "OPTATIVAS »" enquanto ela
+existir, e a esquerda, "« OBRIGATÓRIAS", para voltar). Cada página da ala tem
+até quatro colunas; com mais, ela continua para a direita ("MAIS »"). As
+optativas não contam no "Aprovadas: N de M". Ainda não há nenhuma em
+`materias.json`: a ala só aparece quando a primeira entrar.
 
 ## O que fica gravado
 
