@@ -19,22 +19,8 @@
 /// Nao abre arquivo, nao escreve log, nao conhece Boss, FSMComponent, AttackParams nem SDL.
 /// Transforma texto em descricoes e aponta os problemas.
 
-/// Os campos que so a BaloonAttack usa.
-struct DescricaoDeBalao {
-    /// De onde os baloes sobem ou descem: Down, Left, Right ou Up. Obrigatorio: a propria
-    /// BaloonAttack recusa side == None.
-    std::string lado;
-
-    std::optional<bool>  spawnAleatorio;      ///< randomSpawn
-    std::optional<bool>  centradoNoJogador;   ///< centerOnPlayer
-    std::optional<float> deslocamento;        ///< centerOnPlayerOffset
-
-    /// Posicoes exatas, para o modo nao aleatorio. Em coordenadas de tela.
-    std::vector<Vector2> pontosDeSpawn;
-};
-
-/// Os campos que so a ConsultaAttack usa. Mesmo contrato do bloco de balao: a ConsultaAttack faz um
-/// dynamic_cast e, sem estes campos, nao dispara nada.
+/// Os campos que so a ConsultaAttack usa. Ela faz um dynamic_cast e, sem estes campos, nao dispara
+/// nada.
 struct DescricaoDeConsulta {
 
     /// "Linha" ou "Coluna". Obrigatorio - nao ha padrao razoavel: varrer o eixo errado e um ataque
@@ -120,9 +106,6 @@ struct DescricaoDeAtaque {
     std::vector<Regra> regras;
     bool temRegrasEmLinha = false;
 
-    /// Presente somente nos ataques BaloonAttack.
-    std::optional<DescricaoDeBalao> balao;
-
     /// Presente somente nos ataques ConsultaAttack.
     std::optional<DescricaoDeConsulta> consulta;
 
@@ -157,9 +140,6 @@ struct DescricaoDeAtaque {
 /// O ataque no modo: no Dificil, com o que o bloco "dificil" troca; no Normal (ou sem bloco),
 /// igual.
 DescricaoDeAtaque NoNivel(const DescricaoDeAtaque& a, Dificuldade::Nivel n);
-
-/// O lado nomeado existe? (Down, Left, Right, Up - nunca None)
-bool LadoDeBalaoExiste(const std::string& nome);
 
 /// O eixo nomeado existe? (Linha ou Coluna)
 bool EixoDeConsultaExiste(const std::string& nome);

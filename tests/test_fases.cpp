@@ -71,11 +71,11 @@ TEST_CASE("Fases: o campo ausente fica AUSENTE, nao zero") {
 TEST_CASE("Fases: le os valores opcionais quando eles estao lá") {
     const auto r = LerFases(R"({
  "StateOne": { "proximo": "StateFinal", "ataques": [
-        { "estrategia": "AngledAttack", "projetil": "Capivara",
+        { "estrategia": "CircleSpreadAttack", "projetil": "Capivara",
           "projeteis": 3, "velocidade": 340, "angulo": 40,
           "anguloCentral": 90, "intervalo": 0.02, "cooldown": 0.8 } ] },
                 "StateFinal": { "ataques": [
-        { "estrategia": "AngledAttack", "projetil": "Capivara", "cooldown": 1 } ] }
+        { "estrategia": "CircleSpreadAttack", "projetil": "Capivara", "cooldown": 1 } ] }
 
     })");
     CHECK(r.problemas.empty());
@@ -91,10 +91,10 @@ TEST_CASE("Fases: le os valores opcionais quando eles estao lá") {
 TEST_CASE("Fases: regras por nome e regras em linha") {
     const auto r = LerFases(R"({
       "StateOne": { "proximo": "StateFinal", "ataques": [
-        { "estrategia": "AngledAttack", "projetil": "P", "cooldown": 1,
+        { "estrategia": "CircleSpreadAttack", "projetil": "P", "cooldown": 1,
           "regras": "julio_fase2" } ] },
       "StateFinal": { "ataques": [
-        { "estrategia": "AngledAttack", "projetil": "P", "cooldown": 1,
+        { "estrategia": "CircleSpreadAttack", "projetil": "P", "cooldown": 1,
           "regras": [ { "quando": "pares",
                         "motion": {"tipo":"Tracking","atraso":0.3,"forca":3.2,"duracao":2.4} } ] } ] }
 
@@ -147,7 +147,7 @@ TEST_CASE("Fases: estrategia inexistente e recusada") {
 
 TEST_CASE("Fases: ataque sem projetil e recusado") {
     const auto r = LerFases(R"({ "StateOne": { "ataques": [
-      { "estrategia": "AngledAttack", "cooldown": 1 } ] }
+      { "estrategia": "CircleSpreadAttack", "cooldown": 1 } ] }
 })");
     CHECK_FALSE(r.problemas.empty());
     CHECK(r.fases.empty());
@@ -157,7 +157,7 @@ TEST_CASE("Fases: cooldown zero e recusado") {
     // Cooldown zero dispara uma rajada por quadro e enche o pool em menos de um
     // segundo.
     const auto r = LerFases(R"({ "StateOne": { "ataques": [
-      { "estrategia": "AngledAttack", "projetil": "P", "cooldown": 0 } ] }
+      { "estrategia": "CircleSpreadAttack", "projetil": "P", "cooldown": 0 } ] }
 })");
     CHECK_FALSE(r.problemas.empty());
     CHECK(r.fases.empty());
@@ -165,7 +165,7 @@ TEST_CASE("Fases: cooldown zero e recusado") {
 
 TEST_CASE("Fases: projeteis abaixo de 1 e recusado") {
     const auto r = LerFases(R"({ "StateOne": { "ataques": [
-      { "estrategia": "AngledAttack", "projetil": "P", "projeteis": 0, "cooldown": 1 } ] }
+      { "estrategia": "CircleSpreadAttack", "projetil": "P", "projeteis": 0, "cooldown": 1 } ] }
 })");
     CHECK_FALSE(r.problemas.empty());
     CHECK(r.fases.empty());
@@ -174,7 +174,7 @@ TEST_CASE("Fases: projeteis abaixo de 1 e recusado") {
 TEST_CASE("Fases: nome de fase inventado e recusado") {
     // A FSM procura os estados por texto.
     const auto r = LerFases(R"({ "FaseDoMeio": { "ataques": [
-      { "estrategia": "AngledAttack", "projetil": "P", "cooldown": 1 } ] }
+      { "estrategia": "CircleSpreadAttack", "projetil": "P", "cooldown": 1 } ] }
 })");
     CHECK_FALSE(r.problemas.empty());
     CHECK(r.fases.empty());
@@ -183,7 +183,7 @@ TEST_CASE("Fases: nome de fase inventado e recusado") {
 TEST_CASE("Fases: movimento inexistente cai para GoToCenter e avisa") {
     const auto r = LerFases(R"({ "StateOne": {
       "movimento": { "tipo": "VoarEmCirculos" },
-      "ataques": [ { "estrategia": "AngledAttack", "projetil": "P", "cooldown": 1 } ] }
+      "ataques": [ { "estrategia": "CircleSpreadAttack", "projetil": "P", "cooldown": 1 } ] }
 })");
     CHECK_FALSE(r.problemas.empty());
     REQUIRE(r.fases.size() == 1);
@@ -192,7 +192,7 @@ TEST_CASE("Fases: movimento inexistente cai para GoToCenter e avisa") {
 
 TEST_CASE("Fases: um ataque ruim nao leva os bons embora") {
     const auto r = LerFases(R"({ "StateOne": { "ataques": [
-      { "estrategia": "AngledAttack", "projetil": "P", "cooldown": 1 },
+      { "estrategia": "CircleSpreadAttack", "projetil": "P", "cooldown": 1 },
       { "estrategia": "NaoExiste",    "projetil": "P", "cooldown": 1 },
       { "estrategia": "WaveAttack",   "projetil": "P", "cooldown": 2 } ] }
 })");
@@ -210,12 +210,14 @@ TEST_CASE("Fases: texto que nao e JSON vira problema, nao excecao") {
 // Os nomes que existem.
 
 TEST_CASE("Fases: as listas de nomes validos") {
-    CHECK(EstrategiaExiste("AngledAttack"));
     CHECK(EstrategiaExiste("CircleSpreadAttack"));
     CHECK(EstrategiaExiste("WaveAttack"));
-    CHECK(EstrategiaExiste("BaloonAttack"));
-    CHECK(EstrategiaExiste("LaserAttack"));
-    CHECK_FALSE(EstrategiaExiste("angledattack"));   // sensivel a caixa
+    CHECK(EstrategiaExiste("ConsultaAttack"));
+    CHECK_FALSE(EstrategiaExiste("circlespreadattack"));   // sensivel a caixa
+    // Tiradas por nunca terem sido usadas por fase nenhuma.
+    CHECK_FALSE(EstrategiaExiste("AngledAttack"));
+    CHECK_FALSE(EstrategiaExiste("BaloonAttack"));
+    CHECK_FALSE(EstrategiaExiste("LaserAttack"));
 
     CHECK(MovimentoExiste("RandomWander"));
     CHECK(MovimentoExiste("HoverAbovePlayer"));
@@ -279,13 +281,13 @@ TEST_CASE("Cooldown: derivado do total do ritmo da investida") {
     // O que o C++ fazia com kRitmoInvestida.DuracaoTotal()/repeticoes.
     const auto r = LerFases(R"({
   "StateOne": { "proximo": "StateFinal", "ataques": [
-      { "estrategia": "AngledAttack", "projetil": "Dados",
+      { "estrategia": "CircleSpreadAttack", "projetil": "Dados",
         "cooldown": { "doRitmo": "total", "dividirPor": 7 },
         "regras": [ { "investidaRepetida": {
             "ritmo": { "investida": 0.6, "pausa": 1.0, "repeticoes": 7 },
             "velocidadeNaInvestida": 900, "velocidadeNaPausa": 15 } } ] } ] },
     "StateFinal": { "ataques": [
-      { "estrategia": "AngledAttack", "projetil": "Dados", "cooldown": 1 } ] }
+      { "estrategia": "CircleSpreadAttack", "projetil": "Dados", "cooldown": 1 } ] }
 })");
     CHECK(r.problemas.empty());
     const auto& fases = r.fases;
@@ -299,13 +301,13 @@ TEST_CASE("Cooldown: ciclo, e o campo mais") {
     // Ciclo() = investida + pausa = 1.6; 1.6 + 0.5 = 2.1.
     const auto r = LerFases(R"({
   "StateOne": { "proximo": "StateFinal", "ataques": [
-      { "estrategia": "AngledAttack", "projetil": "P",
+      { "estrategia": "CircleSpreadAttack", "projetil": "P",
         "cooldown": { "doRitmo": "ciclo", "mais": 0.5 },
         "regras": [ { "investidaRepetida": {
             "ritmo": { "investida": 0.6, "pausa": 1.0, "repeticoes": 5 },
             "velocidadeNaInvestida": 800, "velocidadeNaPausa": 15 } } ] } ] },
     "StateFinal": { "ataques": [
-      { "estrategia": "AngledAttack", "projetil": "P", "cooldown": 1 } ] }
+      { "estrategia": "CircleSpreadAttack", "projetil": "P", "cooldown": 1 } ] }
 })");
     CHECK(r.problemas.empty());
     for (const auto& f : r.fases)
@@ -315,7 +317,7 @@ TEST_CASE("Cooldown: ciclo, e o campo mais") {
 TEST_CASE("Cooldown: pedir o ritmo sem ter investida em linha e recusado") {
     // Regras apontadas por nome vivem em regras.json.
     const auto r = LerFases(R"({ "StateOne": { "ataques": [
-      { "estrategia": "AngledAttack", "projetil": "P",
+      { "estrategia": "CircleSpreadAttack", "projetil": "P",
         "cooldown": { "doRitmo": "total" },
         "regras": "julio_fase2" } ] }
 })");
@@ -325,7 +327,7 @@ TEST_CASE("Cooldown: pedir o ritmo sem ter investida em linha e recusado") {
 
 TEST_CASE("Cooldown: doRitmo com nome errado e recusado") {
     const auto r = LerFases(R"({ "StateOne": { "ataques": [
-      { "estrategia": "AngledAttack", "projetil": "P",
+      { "estrategia": "CircleSpreadAttack", "projetil": "P",
         "cooldown": { "doRitmo": "duracao" },
         "regras": [ { "investidaRepetida": {
             "ritmo": { "investida": 0.6, "pausa": 1.0, "repeticoes": 5 },
@@ -333,89 +335,6 @@ TEST_CASE("Cooldown: doRitmo com nome errado e recusado") {
 })");
     CHECK_FALSE(r.problemas.empty());
     CHECK(r.fases.empty());
-}
-
-// BaloonAttack: o bloco "balao"
-
-static std::string ComBalao(const char* balao) {
-    return std::string(R"({
-  "StateOne": { "proximo": "StateFinal", "ataques": [
-      { "estrategia": "BaloonAttack", "projetil": "Baloes",
-        "projeteis": 10, "velocidade": 500, "cooldown": 3,
-        "balao": )") + balao + R"( } ] },
-    "StateFinal": { "ataques": [
-      { "estrategia": "CircleSpreadAttack", "projetil": "Baloes", "cooldown": 1 } ] }
-})";
-}
-
-TEST_CASE("Balao: le o bloco completo") {
-    const auto r = LerFases(ComBalao(R"({ "lado": "Right", "spawnAleatorio": true,
-                                          "centradoNoJogador": true, "deslocamento": 600 })"));
-    CHECK(r.problemas.empty());
-    const DescricaoDeAtaque* a = nullptr;
-    for (const auto& f : r.fases) if (f.nome == "StateOne") a = &f.ataques[0];
-    REQUIRE(a != nullptr);
-    REQUIRE(a->balao.has_value());
-    CHECK(a->balao->lado == "Right");
-    CHECK(a->balao->spawnAleatorio.value_or(false));
-    CHECK(a->balao->centradoNoJogador.value_or(false));
-    CHECK(*a->balao->deslocamento == doctest::Approx(600.f));
-    CHECK(a->balao->pontosDeSpawn.empty());
-}
-
-TEST_CASE("Balao: BaloonAttack SEM o bloco e recusada") {
-    // Recusar na leitura troca um ataque invisivel por uma frase no arquivo.
-    const auto r = LerFases(R"({ "StateOne": { "ataques": [
-      { "estrategia": "BaloonAttack", "projetil": "P", "cooldown": 1 } ] }
-})");
-    CHECK_FALSE(r.problemas.empty());
-    CHECK(r.fases.empty());
-}
-
-TEST_CASE("Balao: lado ausente ou invalido e recusado") {
-    CHECK_FALSE(LerFases(ComBalao(R"({ "spawnAleatorio": true })")).problemas.empty());
-    CHECK_FALSE(LerFases(ComBalao(R"({ "lado": "None",  "spawnAleatorio": true })")).problemas.empty());
-    CHECK_FALSE(LerFases(ComBalao(R"({ "lado": "right", "spawnAleatorio": true })")).problemas.empty());
-    CHECK(LadoDeBalaoExiste("Up"));
-    CHECK_FALSE(LadoDeBalaoExiste("None"));
-}
-
-TEST_CASE("Balao: modo de posicoes exatas exige os pontos") {
-    const auto semPontos = LerFases(ComBalao(R"({ "lado": "Down", "spawnAleatorio": false,
-                                                  "centradoNoJogador": false })"));
-    CHECK_FALSE(semPontos.problemas.empty());
-
-    const auto ok = LerFases(ComBalao(R"({ "lado": "Down", "spawnAleatorio": false,
-                                           "centradoNoJogador": false,
-                                           "pontosDeSpawn": [[10,20],[30,40]] })"));
-    CHECK(ok.problemas.empty());
-    for (const auto& f : ok.fases)
-        if (f.nome == "StateOne") {
-            REQUIRE(f.ataques[0].balao->pontosDeSpawn.size() == 2);
-            CHECK(f.ataques[0].balao->pontosDeSpawn[1].x == doctest::Approx(30.f));
-        }
-}
-
-TEST_CASE("Balao: posicoes exatas exigem centradoNoJogador falso EXPLICITO") {
-    // Omitir o campo aceitaria um ataque que nunca dispara.
-    const auto r = LerFases(ComBalao(R"({ "lado": "Down", "spawnAleatorio": false,
-                                          "pontosDeSpawn": [[10,20]] })"));
-    CHECK_FALSE(r.problemas.empty());
-}
-
-TEST_CASE("Balao: o bloco numa estrategia que nao usa e avisado, nao fatal") {
-    const auto r = LerFases(R"({
-  "StateOne":   { "proximo": "StateFinal", "ataques": [
-      { "estrategia": "AngledAttack", "projetil": "P", "cooldown": 1,
-        "balao": { "lado": "Up" } } ] },
-    "StateFinal": { "ataques": [
-      { "estrategia": "AngledAttack", "projetil": "P", "cooldown": 1 } ] }
-})");
-    CHECK(r.problemas.size() == 1);
-    // A fase sobrevive: o bloco foi so ignorado.
-    REQUIRE(r.fases.size() == 2);
-    for (const auto& f : r.fases)
-        if (f.nome == "StateOne") CHECK_FALSE(f.ataques[0].balao.has_value());
 }
 
 // ---- Consulta ----
@@ -1152,7 +1071,7 @@ TEST_CASE("Fases: o bloco variar e lido, e o que esta errado nele fica de fora c
           "variar": { "giro": 12, "abertura": 0.15, "velocidade": 2, "projeteis": 1, "cadencia": 0.2,
                       "tamanho": 3 } } ] },
  "StateFinal": { "ataques": [
-        { "estrategia": "AngledAttack", "projetil": "Capivara", "cooldown": 1 } ] }
+        { "estrategia": "CircleSpreadAttack", "projetil": "Capivara", "cooldown": 1 } ] }
     })");
     const auto& a = r.fases.at(1).ataques.at(0);   // StateOne
     REQUIRE(a.variar.has_value());
@@ -1179,7 +1098,7 @@ TEST_CASE("Fases: a cadencia so varia no ataque do relogio") {
         { "gatilho": "instrucao", "estrategia": "WaveAttack", "projetil": "Instrucao", "projeteis": 1,
           "variar": { "cadencia": 0.3, "velocidade": 0.1 } } ] },
  "StateFinal": { "ataques": [
-        { "estrategia": "AngledAttack", "projetil": "Capivara", "cooldown": 1 } ] }
+        { "estrategia": "CircleSpreadAttack", "projetil": "Capivara", "cooldown": 1 } ] }
     })");
     const auto& a = r.fases.at(1).ataques.at(0);
     REQUIRE(a.variar.has_value());

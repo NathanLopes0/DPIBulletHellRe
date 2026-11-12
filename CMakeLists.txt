@@ -384,8 +384,6 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/Behaviors.h
         Source/Attacks/BaseStrategies/CircleSpreadAttack.cpp
         Source/Attacks/BaseStrategies/CircleSpreadAttack.h
-        Source/Attacks/BaseStrategies/AngledAttack.cpp
-        Source/Attacks/BaseStrategies/AngledAttack.h
         Source/Actors/Teachers/BossAttackState.cpp
         Source/Actors/Teachers/BossAttackState.h
         Source/Components/ColliderComponents/ColliderComponent.cpp
@@ -431,10 +429,6 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Actors/Teachers/Bosses/Hugo.h
         Source/Actors/Teachers/Bosses/MariaLucia.cpp
         Source/Actors/Teachers/Bosses/MariaLucia.h
-        Source/Attacks/BaseStrategies/BaloonAttack.cpp
-        Source/Attacks/BaseStrategies/BaloonAttack.h
-        Source/Attacks/AttackParameters/BaloonAttackParams.h
-        Source/Attacks/BaseStrategies/LaserAttack.cpp
         Source/Attacks/BaseStrategies/ConsultaAttack.cpp
         Source/Attacks/BaseStrategies/CaixaAttack.cpp
         Source/Attacks/BaseStrategies/CaixaAttack.h
@@ -451,7 +445,6 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/BaseStrategies/PalavraAttack.cpp
         Source/Attacks/BaseStrategies/PalavraAttack.h
         Source/Attacks/AttackParameters/PalavraAttackParams.h
-        Source/Attacks/BaseStrategies/LaserAttack.h
         Source/Actors/ProjectilePool.h
 )
 

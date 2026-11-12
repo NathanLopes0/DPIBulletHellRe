@@ -10,10 +10,7 @@
 #include "PastaDoChefe.h"
 #include "RegrasDeAtaqueArquivo.h"
 #include "AttackParameters/AttackParams.h"
-#include "AttackParameters/BaloonAttackParams.h"
 #include "AttackParameters/ConsultaAttackParams.h"
-#include "BaseStrategies/AngledAttack.h"
-#include "BaseStrategies/BaloonAttack.h"
 #include "BaseStrategies/ConsultaAttack.h"
 #include "BaseStrategies/CaixaAttack.h"
 #include "AttackParameters/CaixaAttackParams.h"
@@ -26,7 +23,6 @@
 #include "BaseStrategies/PalavraAttack.h"
 #include "AttackParameters/PalavraAttackParams.h"
 #include "BaseStrategies/CircleSpreadAttack.h"
-#include "BaseStrategies/LaserAttack.h"
 #include "BaseStrategies/WaveAttack.h"
 #include "../Actors/Teachers/Boss.h"
 #include "../Actors/Teachers/BossAttackState.h"
@@ -76,11 +72,8 @@ namespace {
     /// linha por estrategia nova.
     std::unique_ptr<IAttackStrategy> CriarEstrategia(const std::string& tipo,
                                                      ProjectileFactory* spawner, Boss* boss) {
-        if (tipo == "AngledAttack")       return std::make_unique<AngledAttack>(spawner, boss);
         if (tipo == "CircleSpreadAttack") return std::make_unique<CircleSpreadAttack>(spawner, boss);
         if (tipo == "WaveAttack")         return std::make_unique<WaveAttack>(spawner, boss);
-        if (tipo == "BaloonAttack")       return std::make_unique<BaloonAttack>(spawner, boss);
-        if (tipo == "LaserAttack")        return std::make_unique<LaserAttack>(spawner, boss);
         if (tipo == "ConsultaAttack")     return std::make_unique<ConsultaAttack>(spawner, boss);
         if (tipo == "CaixaAttack")        return std::make_unique<CaixaAttack>(spawner, boss);
         if (tipo == "SprintAttack")       return std::make_unique<SprintAttack>(spawner, boss);
@@ -105,28 +98,12 @@ namespace {
     }
 
     /// Monta o AttackParams. So escreve o que o arquivo disse.
-    enum BaloonAttackParams::side LadoPeloNome(const std::string& nome) {
-        if (nome == "Down")  return BaloonAttackParams::Down;
-        if (nome == "Left")  return BaloonAttackParams::Left;
-        if (nome == "Right") return BaloonAttackParams::Right;
-        if (nome == "Up")    return BaloonAttackParams::Up;
-        return BaloonAttackParams::None;   // LerFases ja recusou; rede de seguranca
-    }
-
     std::unique_ptr<AttackParams> CriarParams(const DescricaoDeAtaque& a) {
 
-        // A BaloonAttack faz dynamic_cast para o struct derivado e nao dispara nada se ele nao vier.
+        // As estrategias com bloco proprio fazem dynamic_cast para o struct derivado e nao disparam
+        // nada se ele nao vier.
         std::unique_ptr<AttackParams> params;
-        if (a.balao) {
-            auto balao = std::make_unique<BaloonAttackParams>();
-            balao->side = LadoPeloNome(a.balao->lado);
-            if (a.balao->spawnAleatorio)    balao->randomSpawn          = *a.balao->spawnAleatorio;
-            if (a.balao->centradoNoJogador) balao->centerOnPlayer       = *a.balao->centradoNoJogador;
-            if (a.balao->deslocamento)      balao->centerOnPlayerOffset = *a.balao->deslocamento;
-            balao->spawnPoints = a.balao->pontosDeSpawn;
-            params = std::move(balao);
-        }
-        else if (a.consulta) {
+        if (a.consulta) {
             auto consulta = std::make_unique<ConsultaAttackParams>();
             consulta->eixo = (a.consulta->eixo == "Coluna")
                                  ? ConsultaAttackParams::Eixo::Coluna

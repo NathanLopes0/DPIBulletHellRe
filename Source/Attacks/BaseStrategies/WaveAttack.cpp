@@ -37,7 +37,8 @@ std::vector<std::unique_ptr<Projectile>> WaveAttack::Execute(const AttackParams&
     }
     projectiles.reserve(numProjectiles);
 
-    // Mesma matemática de "leque" do AngledAttack.
+    // O leque: do meio menos metade da abertura ao meio mais metade. O passo e abertura / (n - 1),
+    // nao (abertura / n) - 1.
     const float angleStart = centralAngle - totalAngle / 2.0f;
 
     float angleStep = 0.0f;
