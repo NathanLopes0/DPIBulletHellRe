@@ -1,49 +1,22 @@
 {
   // As regras de projetil da Maria Lucia. Cada conjunto veste um momento do projeto.
 
-  // Cascata, etapa 1 - os requisitos. Sem motion nenhum: requisito e pedido que chega, e pedido que
-  // chega vem reto.
-  "escopo": [
-    { "animacao": "Novo" }
-  ],
-
-  // Cascata, etapa 3 - a implementacao. O cartao de terminal, reto e rapido: e a etapa em que mais
-  // coisa sai, e sai sem desvio.
+  // O trabalho da historia na FAZENDO: o cartao de terminal, reto e rapido.
   "codigo": [
     { "animacao": "Codigo" }
   ],
 
-  // Cascata, etapa 4 - os testes. Os bugs andam tortos (Wobble), e o tiro do aluno os derruba -
-  // testar e achar bug.
-  "bugs": [
-    { "motion": { "tipo": "Wobble", "atraso": 0.15, "amplitude": 40,
-                  "frequencia": 2.2, "duracao": 4.0 } }
-  ],
-
-  // Cascata, etapa 2 - o projeto: as mensagens que saem de uma classe do diagrama.
+  // A daily: cada um diz o que fez, e a mensagem anda pelas rotas do diagrama de sequencia, em
+  // angulo reto (a familia RotasDeDiagrama de formas.json: oito rotas, oito setas).
   "diagrama": [
     { "motion": { "tipo": "Path", "formaPorIndice": "RotasDeDiagrama",
                   "atraso": 0.50, "velocidade": 250 } }
   ],
 
-  // A divida que fica - a Manutencao da cascata, e a fase final.
+  // A divida que fica - a repescagem: para no lugar e fica.
   "divida": [
     { "animacao": "Acumulado",
       "motion": { "tipo": "Path", "forma": "ParaEFica", "atraso": 0.08,
                   "velocidade": 320, "pararNoPonto": 0, "pararPor": 8.5 } }
-  ],
-
-  // Fase 3 - o padrao observer: o olho que assina.
-  "inscrever": [
-    { "posto": "observadores",
-      "motion": { "tipo": "Path", "forma": "Inscrito", "atraso": 0.08,
-                  "velocidade": 260, "pararNoPonto": 0, "pararPor": 7.0 } }
-  ],
-
-  // Fase final - as janelas modais.
-  "modal": [
-    { "indices": [0], "motion": { "tipo": "Ancorar", "dx": -100, "dy": 100, "duracao": 5.5, "velocidade": 220 } },
-    { "indices": [1], "motion": { "tipo": "Ancorar", "dx": 0,    "dy": 125, "duracao": 5.5, "velocidade": 220 } },
-    { "indices": [2], "motion": { "tipo": "Ancorar", "dx": 100,  "dy": 100, "duracao": 5.5, "velocidade": 220 } }
   ]
 }

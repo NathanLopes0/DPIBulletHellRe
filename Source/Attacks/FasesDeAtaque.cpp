@@ -17,7 +17,7 @@ namespace {
 
     const std::vector<std::string> kEstrategias = {
         "CircleSpreadAttack", "WaveAttack", "ConsultaAttack",
-        "CaixaAttack", "SprintAttack",
+        "CaixaAttack",
         "PontosAttack", "TokenAttack", "PalavraAttack"
     };
     const std::vector<std::string> kMovimentos = {
@@ -52,8 +52,7 @@ namespace {
                                                 "achado", "aresta", "elemento", "trocar", "assentar",
                                                 "cabecalho", "registro", "marcar", "selecionar",
                                                 "projetar", "celula", "selo", "caco",
-                                                "placa", "pedido", "classe", "mensagem", "compilar",
-                                                "bug", "debito", "rotulo", "balao", "confete",
+                                                "placa", "pedido", "bug", "rotulo", "balao", "confete",
                                                 "indice", "subir", "core", "cartao", "valor", "leque",
                                                 "trofeu", "resposta", "operador", "operando",
                                                 "anel", "texto", "erro", "compilacao",
@@ -66,7 +65,12 @@ namespace {
                                                 // caixeiro e a tempera.
                                                 "trabalho", "folha", "moeda", "chuva", "casou", "rainha",
                                                 "ataque", "solucao", "cidade", "caixeiro", "visita", "rota",
-                                                "vale", "congelou"};
+                                                "vale", "congelou",
+                                                // A Maria Lucia refeita: a cascata, o Scrum, o Observer, o
+                                                // Decorator e o lobisomem.
+                                                "queda", "custo", "estouro", "historia", "titulo", "entrega",
+                                                "daily", "inscrever", "componente", "dividida", "lobisomem",
+                                                "uivo"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"
@@ -413,34 +417,6 @@ namespace {
         return true;
     }
 
-    /// O bloco "sprint" da SprintAttack.
-    bool LerBlocoDeSprint(const nlohmann::json& j, const std::string& onde,
-                          std::vector<std::string>& problemas, DescricaoDeAtaque& saida) {
-        if (j.contains("sprint")) {
-            if (saida.estrategia != "SprintAttack") {
-                problemas.emplace_back(onde + "so a SprintAttack usa \"sprint\"; o bloco foi ignorado");
-            }
-            else if (!j["sprint"].is_object()) {
-                problemas.emplace_back(onde + "\"sprint\" deveria ser um objeto");
-                return false;
-            }
-            else {
-                DescricaoDeSprint sp;
-                sp.revisao  = Opcional(j["sprint"], "revisao");
-                sp.historia = Texto(j["sprint"], "historia");
-                sp.cursor   = Texto(j["sprint"], "cursor");
-                sp.clique   = Texto(j["sprint"], "clique");
-
-                if (sp.revisao && *sp.revisao <= 0.0f) {
-                    problemas.emplace_back(onde + "\"sprint\": \"revisao\" precisa ser maior que zero");
-                    return false;
-                }
-                saida.sprint = sp;
-            }
-        }
-        return true;
-    }
-
     /// O bloco "tokens" da TokenAttack.
     bool LerBlocoDeTokens(const nlohmann::json& j, const std::string& onde,
                           std::vector<std::string>& problemas, DescricaoDeAtaque& saida) {
@@ -644,7 +620,6 @@ namespace {
             && LerDificilDoAtaque(j, onde, problemas, saida)
             && LerBlocoDeConsulta(j, onde, problemas, saida)
             && LerBlocoDeCaixa(j, onde, problemas, saida)
-            && LerBlocoDeSprint(j, onde, problemas, saida)
             && LerBlocoDeTokens(j, onde, problemas, saida)
             && LerBlocoDePalavra(j, onde, problemas, saida)
             && LerBlocoDePontos(j, onde, problemas, saida)

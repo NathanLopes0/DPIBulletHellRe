@@ -278,8 +278,6 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/Amarra.h
         Source/Movements/Escada.cpp
         Source/Movements/Escada.h
-        Source/Attacks/Sprint.cpp
-        Source/Attacks/Sprint.h
         Source/Attacks/Observer.cpp
         Source/Attacks/Observer.h
         Source/Attacks/Ancora.cpp
@@ -348,6 +346,10 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/Transacao.h
         Source/Attacks/Dml.h
         Source/Attacks/Cascata.cpp
+        Source/Attacks/Scrum.cpp
+        Source/Attacks/Scrum.h
+        Source/Attacks/Decorator.cpp
+        Source/Attacks/Decorator.h
         Source/Attacks/Cascata.h
         Source/Attacks/Condicional.cpp
         Source/Attacks/Condicional.h
@@ -443,9 +445,6 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/BaseStrategies/CaixaAttack.cpp
         Source/Attacks/BaseStrategies/CaixaAttack.h
         Source/Attacks/AttackParameters/CaixaAttackParams.h
-        Source/Attacks/BaseStrategies/SprintAttack.cpp
-        Source/Attacks/BaseStrategies/SprintAttack.h
-        Source/Attacks/AttackParameters/SprintAttackParams.h
         Source/Attacks/BaseStrategies/PontosAttack.cpp
         Source/Attacks/BaseStrategies/PontosAttack.h
         Source/Attacks/AttackParameters/PontosAttackParams.h
@@ -516,7 +515,6 @@ add_executable(dpi_tests
         tests/test_promessa.cpp
         tests/test_amarra.cpp
         tests/test_escada.cpp
-        tests/test_sprint.cpp
         tests/test_observer.cpp
         tests/test_ancora.cpp
         tests/test_temperatura.cpp
@@ -727,8 +725,6 @@ add_executable(dpi_tests
         Source/Attacks/Amarra.h
         Source/Movements/Escada.cpp
         Source/Movements/Escada.h
-        Source/Attacks/Sprint.cpp
-        Source/Attacks/Sprint.h
         Source/Attacks/Observer.cpp
         Source/Attacks/Observer.h
         Source/Attacks/Ancora.cpp
@@ -797,6 +793,10 @@ add_executable(dpi_tests
         Source/Attacks/Transacao.h
         Source/Attacks/Dml.h
         Source/Attacks/Cascata.cpp
+        Source/Attacks/Scrum.cpp
+        Source/Attacks/Scrum.h
+        Source/Attacks/Decorator.cpp
+        Source/Attacks/Decorator.h
         Source/Attacks/Cascata.h
         Source/Attacks/Condicional.cpp
         Source/Attacks/Condicional.h

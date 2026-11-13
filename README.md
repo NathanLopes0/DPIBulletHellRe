@@ -475,16 +475,33 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   uma vez. Derrube o selo antes disso e é `ROLLBACK`: nada do que ela
   preparou acontece. O exame é o produto cartesiano, casa por casa.
 - **Maria Lúcia — INF 221.** Engenharia de Software, um processo ou padrão por
-  fase. A cascata é uma linha de produção: os pedidos do cliente viram
-  post-its no backlog, os post-its viram classes ligadas por setas, as classes
-  compilam código, cada uma solta o seu bug, e o bug que sobra vira dívida
-  parada no campo — e o post-it que você derruba é escopo cortado. Depois vêm
-  cinco sprints de métodos ágeis, com o cursor arrastando as histórias, o
-  padrão Observer (olhos que te assinam e avisam quando você vira) e, no exame,
-  a frase dela: **não há bala de prata**. Cada bala de prata tem o nome de uma
-  promessa (IA, UML, low-code...) e se desfaz em bugs quando chega perto — a
-  menos que você a teste antes, com um tiro: é o teste com usuário, da IHC e
-  da experiência do usuário que ela pesquisa.
+  fase. Na **cascata**, cinco caixas descem em escada, e da caixa da etapa da
+  vez cai, o tempo todo, o que ela produz — post-its, classes, código, bugs,
+  dívida —, cada vez mais rápido. De tempos em tempos o cliente pede outra
+  coisa, e na cascata não se volta atrás: o pedido vai para a primeira caixa e
+  desce a escada inteira, virando o artefato de cada caixa e pagando em cada
+  uma o custo de mudar ali — 1, 2, 3, 5 e 8 tiros, a curva de Boehm nos números
+  do planning poker —, até estourar na etapa da vez ("Mudança nos Testes: custo
+  ×5"). Derrubar o pedido no caminho sai mais barato quanto mais cedo. No
+  **Scrum**, o quadro A FAZER · FAZENDO · FEITO: cada sprint planeja mais
+  histórias (cada uma com os pontos que o poker deu), e a cada **daily** o
+  cursor dela arrasta o quadro uma coluna — na FAZENDO a história trabalha e
+  atira, a mais pesada mais; o que estava FEITO cai como incremento no seu
+  campo e estoura. O tiro tira a história da sprint, e o burndown no canto mostra
+  os pontos que faltam. Nos **padrões de projeto**, o Observer — os olhos se
+  inscrevem um a um e orbitam você, cada vez mais perto, e quando você muda de
+  estado (para, anda, vira) é `notifyAll()`: todos atiram — e depois o
+  Decorator: a bala nasce ao lado dela, sai para fora e ganha camadas no
+  caminho (Rápida, Dividida, Teleguiada — que vira para você por um segundo e
+  meio, e depois segue reta), com a composição no placar (`new Teleguiada(new
+  Dividida(new Rápida(bala)))`); cada tiro seu tira o decorador de fora. No
+  exame, a frase dela: **não há bala de prata**. O lobisomem de Brooks — o
+  projeto de software — persegue você e uiva, blindado; ela atira nele as
+  promessas (IA, UML, low-code...), e nenhuma o mata: cada bala se desfaz em
+  bugs contra ele, e ele cresce. A bala que você derruba antes é o teste com
+  usuário, da IHC que ela pesquisa. Nada disso depende do que está em campo: o
+  Ponto Extra limpa a tela e o lobisomem volta — a complexidade essencial não
+  some.
 
 - **Vladimir — INF 331.** Teoria da computação: um autômato que lê a palavra
   e atira cada letra lida, um compilador (ele também dá Construção de

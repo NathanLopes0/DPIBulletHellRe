@@ -65,6 +65,27 @@ namespace Observer {
     // ---- O que muda de uma luta para a outra, e o degrau ----
 
     /// O que o Dificil muda: o sujeito notifica com 0,35 s entre dois avisos (e nao 0,5).
+    // ---- Os observadores em volta do aluno (a fase 3 refeita) ----
+
+    /// A fase dos padroes de projeto: o Observer na primeira metade, o Decorator na segunda.
+    constexpr const char* kFaseDosPadroes = "StateThree";
+    constexpr float kFimDoObserver = 10.0f;
+    constexpr const char* kGatilhoDoObservador = "inscrever";
+
+    /// Quantos observadores cabem na orbita, e de quanto em quanto tempo um se inscreve.
+    constexpr int kMaisObservadores = 6;
+    constexpr float kEntreInscricoes = 1.1f;
+
+    /// Onde fica o observador 'k' de 'n' 't' segundos depois de se inscrever o primeiro: numa orbita
+    /// de 'raio' em volta do aluno, girando (kVoltasPorSegundo) - eles o acompanham.
+    constexpr float kVoltasPorSegundo = 0.16f;
+    Vector2 NaOrbita(const Vector2& aluno, int k, int n, float t, float raio);
+
+    /// O raio da orbita 't' segundos depois do comeco: fecha devagar, de kRaioInicial a kRaioFinal.
+    constexpr float kRaioInicial = 250.0f;
+    constexpr float kRaioFinal = 165.0f;
+    float Raio(float t);
+
     struct Degrau {
         float intervaloMinimo = Sujeito{}.intervaloMinimo;
         float consulta = Sujeito{}.consulta;

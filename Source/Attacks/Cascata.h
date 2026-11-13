@@ -6,94 +6,90 @@
 
 #include <array>
 #include <cstdint>
-#include <utility>
-#include <vector>
+#include <string>
 
 #include "../Motor/Math.h"
-#include "../Regras/Variacao.h"
+#include "../Regras/Dificuldade.h"
 #include "Fase.h"
 
-/// A fase 1 da Maria Lucia e o modelo cascata, e numa cascata o que uma etapa entrega e o que a
-/// seguinte recebe.
+/// A fase 1 da Maria Lucia e o modelo cascata: cinco caixas em escada, uma por etapa, e o que uma
+/// etapa entrega desce para a seguinte como agua.
+///   - A cachoeira: da caixa da etapa da vez cai, o tempo todo, o que ela produz - post-its nos
+///     requisitos, classes no projeto, codigo na implementacao, bugs nos testes, divida na
+///     manutencao -, cada vez mais rapido.
+///   - A mudanca de escopo: de tempos em tempos o cliente pede outra coisa. Na cascata nao se volta
+///     atras, entao o pedido vai para a primeira caixa e desce a escada inteira, caixa por caixa,
+///     virando classe, codigo, bug e divida, e em cada caixa que passa paga o custo de muda-la ali -
+///     1, 2, 3, 5 e 8 tiros, a curva de Boehm: o erro achado tarde custa mais. Na caixa da etapa da
+///     vez ele estoura. O aluno pode derrubar o pedido no caminho: quanto mais cedo, mais barato.
+///
+/// Nada disso depende do que esta em campo: o Ponto Extra limpa a tela, e a cachoeira e os pedidos
+/// continuam vindo no tempo deles.
 namespace Cascata {
 
     /// Os nomes que o codigo e os dados dividem. Um teste confere cada um.
     constexpr const char* kFaseDaCascata = "StateOne";
     constexpr std::array<const char*, 5> kEtapas = {"Requisitos", "Projeto", "Implementacao", "Testes", "Manutencao"};
     constexpr const char* kGatilhoDaPlaca = "placa";
+    constexpr const char* kGatilhoDaQueda = "queda";
     constexpr const char* kGatilhoDoPedido = "pedido";
-    constexpr const char* kGatilhoDaClasse = "classe";
-    constexpr const char* kGatilhoDaMensagem = "mensagem";
-    constexpr const char* kGatilhoDoCodigo = "compilar";
-    constexpr const char* kGatilhoDoBug = "bug";
-    constexpr const char* kGatilhoDaDivida = "debito";
+    constexpr const char* kGatilhoDoCusto = "custo";
+    constexpr const char* kGatilhoDoEstouro = "estouro";
 
-    /// A duracao de cada etapa: a mesma das "etapas" de fases.json e dos
-    /// degraus da escada (um teste confere).
+    /// A duracao de cada etapa: a mesma das "etapas" de fases.json e dos degraus da escada (um teste
+    /// confere).
     constexpr float kDuracaoDaEtapa = Fase::kDuracao / static_cast<float>(kEtapas.size());
 
     /// Em que etapa se esta no instante 't' da fase: 0 a 4, e 5 depois da ultima.
     int EtapaNoTempo(float t);
 
-    // ---- Requisitos ----
+    /// O que a etapa produz - a animacao do artefato em projeteis.json: "Pedido", "Classe",
+    /// "Codigo", "Bug" ou "Debito".
+    const char* CaraDaEtapa(int etapa);
 
-    /// Um pedido a cada kEntrePedidos, ate o backlog encher (kMaxPedidos).
-    constexpr float kEntrePedidos = 0.3f;
-    constexpr float kVelocidadeDoPedido = 300.0f;
-    constexpr int kMaxPedidos = 10;
+    // ---- A cachoeira ----
 
-    /// O lugar do pedido k no quadro do backlog: duas filas de cinco, debaixo da caixa da primeira
-    /// etapa.
-    Vector2 LugarNoBacklog(int k);
+    /// Segundos entre duas quedas da caixa da etapa: a cascata acelera ladeira abaixo.
+    float EntreQuedas(int etapa, Dificuldade::Nivel n);
+
+    /// A velocidade de queda do artefato da etapa, em px/s.
+    float VelocidadeDaQueda(int etapa);
+
+    /// A agua escorre pelas bordas da caixa: duas cortinas, a kBordaDaQueda do meio dela (mais ate
+    /// kEspalhoDaQueda), e um vao no meio - embaixo da professora, para quem quer atirar nela.
+    constexpr float kBordaDaQueda = 62.0f;
+    constexpr float kEspalhoDaQueda = 22.0f;
+
+    /// Quantos tiros o anel do custo solta na caixa 'etapa': o custo, ate kMaisNoAnel.
+    constexpr int kMaisNoAnel = 6;
+    int TirosDoCusto(int etapa);
+
+    // ---- A mudanca de escopo ----
+
+    constexpr float kPrimeiraMudanca = 1.0f;
+    constexpr float kVelocidadeDoPedido = 340.0f;
+    /// Quanto a mudanca leva de uma caixa a seguinte, descendo a escada.
+    constexpr float kPorCaixa = 0.55f;
+
+    /// O custo de mudar na etapa 'etapa' o que nasceu nos requisitos: 1, 2, 3, 5, 8 - a curva de
+    /// Boehm, nos numeros do planning poker.
+    int Custo(int etapa);
+
+    /// O placar quando a mudanca estoura: "Mudança nos Testes: custo ×5".
+    std::string PlacarDaMudanca(int etapa);
 
     /// De onde vem um pedido: de um dos lados do campo, numa altura sorteada da metade de baixo - o
     /// cliente esta do lado de fora.
     Vector2 OrigemDoPedido(std::uint32_t sorteio, float largura, float altura);
 
-    // ---- Projeto ----
-
-    /// As classes cabem numa grade de 4 x 2 no meio do campo, um pouco para a esquerda.
-    constexpr int kMaxClasses = 8;
-    constexpr int kClassesPorLinha = 4;
-    constexpr float kYDasClasses = 430.0f;
-    constexpr float kEntreLinhasDeClasses = 95.0f;
-
-    /// O lugar da classe k, numa tela de 'largura'.
-    Vector2 LugarDaClasse(int k, float largura);
-
-    /// As setas do diagrama de 'classes' classes: cada uma liga a vizinha da mesma fila e a de
-    /// baixo dela. Pares (de, para).
-    std::vector<std::pair<int, int>> Associacoes(int classes);
-
-    /// As mensagens: uma classe por vez solta as suas, a cada kEntreMensagens,
-    /// depois de o diagrama ficar pronto (kDiagramaPronto depois de a etapa
-    /// abrir).
-    constexpr float kDiagramaPronto = 0.7f;
-    constexpr float kEntreMensagens = 0.75f;
-
-    // ---- Implementacao e testes ----
-
-    /// Uma classe por vez compila, a cada kEntreCompilacoes.
-    constexpr float kEntreCompilacoes = 0.28f;
-
-    // ---- O que muda de uma luta para a outra ----
-
-    /// A cascata desta luta: em que ordem as classes do diagrama soltam as mensagens e compilam.
-    struct Plano {
-        std::vector<int> ordem;
-    };
-    Plano Sortear(Variacao::Sorteio& s);
-
-    /// Qual das 'prontas' classes tem a vez 'vez': a vez-esima da ordem do plano entre as que
-    /// existem, e a volta seguinte repete a ordem.
-    int DaVez(const Plano& p, int vez, int prontas);
-
-    // ---- Manutencao ----
-
-    /// Quanto a divida fica parada no campo - atravessa a troca de fase.
-    constexpr float kDivida = 8.5f;
-
-    /// A caixa de cada etapa fica kAbaixoDoDegrau abaixo do degrau dela: longe
-    /// o bastante para a professora, de pe no degrau, nao a cobrir.
+    /// A caixa de cada etapa fica kAbaixoDoDegrau abaixo do degrau dela: longe o bastante para a
+    /// professora, de pe no degrau, nao a cobrir.
     constexpr float kAbaixoDoDegrau = 70.0f;
+
+    /// O que o Dificil muda.
+    struct Degrau {
+        float entreMudancas = 2.4f;
+        float quedaMaisRapida = 1.0f;   ///< o que multiplica a velocidade da cachoeira
+    };
+    Degrau DegrauDo(Dificuldade::Nivel n);
 }

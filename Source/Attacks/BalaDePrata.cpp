@@ -4,6 +4,8 @@
 
 #include "BalaDePrata.h"
 
+#include <algorithm>
+
 namespace BalaDePrata {
 
     const std::vector<std::string>& Promessas() {
@@ -35,5 +37,31 @@ namespace BalaDePrata {
         Degrau d;
         d.entreBalas = Dificuldade::Escolher(n, d.entreBalas, 1.4f);
         return d;
+    }
+
+    float RapidezDoLobisomem(const float t) {
+        return 70.0f + 45.0f * std::clamp(t / 20.0f, 0.0f, 1.0f);
+    }
+
+    Vector2 PassoDoLobisomem(const Vector2& lobo, const Vector2& alvo, const float rapidez, const float dt) {
+        const Vector2 falta = alvo - lobo;
+        const float d = falta.Length();
+        const float passo = rapidez * dt;
+        if (d <= passo || d <= 0.0f) return alvo;
+        return lobo + falta * (passo / d);
+    }
+
+    bool Atingiu(const Vector2& bala, const Vector2& lobo, const float escala) {
+        const float r = kRaioDoLobisomem * escala;
+        return (bala - lobo).LengthSq() <= r * r;
+    }
+
+    float EscalaDoLobisomem(const int balas) {
+        return std::min(kMaiorEscala, kEscalaInicial + 0.08f * static_cast<float>(std::max(0, balas)));
+    }
+
+    std::string NaoMatou(const std::string& promessa) {
+        // \xc3\xa3 e o a com til.
+        return promessa + "? N\xc3\xa3o matou o lobisomem.";
     }
 }

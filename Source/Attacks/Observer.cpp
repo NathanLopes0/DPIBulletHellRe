@@ -4,6 +4,8 @@
 
 #include "Observer.h"
 
+#include <algorithm>
+
 namespace Observer {
 
     Degrau DegrauDo(const Dificuldade::Nivel n) {
@@ -63,5 +65,16 @@ namespace Observer {
         if (dx > zonaMorta) return 1;
         if (dx < -zonaMorta) return -1;
         return 0;
+    }
+
+    Vector2 NaOrbita(const Vector2& aluno, const int k, const int n, const float t, const float raio) {
+        const float volta = static_cast<float>(k) / static_cast<float>(std::max(1, n)) + kVoltasPorSegundo * t;
+        const float a = 2.0f * Math::Pi * volta;
+        return Vector2(aluno.x + Math::Cos(a) * raio, aluno.y + Math::Sin(a) * raio * 0.55f);
+    }
+
+    float Raio(const float t) {
+        const float u = std::clamp(t / kFimDoObserver, 0.0f, 1.0f);
+        return kRaioInicial + (kRaioFinal - kRaioInicial) * u;
     }
 }

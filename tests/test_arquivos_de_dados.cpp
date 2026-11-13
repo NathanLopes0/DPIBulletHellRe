@@ -18,7 +18,6 @@
 #include "../Source/Attacks/PathShapes.h"
 #include "../Source/Attacks/RegrasDeAtaque.h"
 #include "../Source/Attacks/ProjeteisDeChefe.h"
-#include "../Source/Attacks/Sprint.h"
 #include "../Source/Attacks/Observer.h"
 #include "../Source/Attacks/ReAct.h"
 #include "../Source/Attacks/Nuvem.h"
@@ -44,6 +43,9 @@
 #include "../Source/Attacks/Transacao.h"
 #include "../Source/Attacks/Dml.h"
 #include "../Source/Attacks/Cascata.h"
+#include "../Source/Attacks/BalaDePrata.h"
+#include "../Source/Attacks/Decorator.h"
+#include "../Source/Attacks/Scrum.h"
 #include "../Source/Attacks/Condicional.h"
 #include "../Source/Attacks/Laco.h"
 #include "../Source/Attacks/Funcao.h"
@@ -1749,27 +1751,6 @@ TEST_CASE("Dados: o diagrama do automato do Vladimir foi desenhado para os estad
     CHECK(y0 + std::stof(m[2]) / 2.0f == doctest::Approx(Automato::kYDoDiagrama));
 }
 
-TEST_CASE("Dados: nenhuma regra de uma SprintAttack tem motion") {
-
-    // A sprint e as suas duas motions.
-    for (const auto& chefe : Chefes()) {
-        const auto regras = RegrasDoChefe(chefe);
-        for (const auto& f : FasesDoChefe(chefe).fases) {
-            for (const auto& a : f.ataques) {
-                if (a.estrategia != "SprintAttack") continue;
-                std::vector<Regra> aplicaveis = a.regras;
-                if (!a.regrasNome.empty() && regras.conjuntos.count(a.regrasNome)) {
-                    const auto& r = regras.conjuntos.at(a.regrasNome);
-                    aplicaveis.insert(aplicaveis.end(), r.begin(), r.end());
-                }
-                CAPTURE(chefe);
-                CAPTURE(f.nome);
-                for (const auto& r : aplicaveis) CHECK_FALSE(r.temMotion);
-            }
-        }
-    }
-}
-
 TEST_CASE("Dados: toda fase de todo chefe dura Fase::kDuracao (o TCC, kDuracaoDoTcc), e as etapas cobrem a fase inteira") {
 
     // Uma fase de outro tamanho faria um deles acabar antes - ou depois - dela.
@@ -1805,53 +1786,80 @@ TEST_CASE("Dados: a escada tem um degrau por etapa, do tamanho da etapa") {
     }
 }
 
-TEST_CASE("Dados: a cascata da Maria Lucia - etapas, gatilhos e caras sao nomes que os dados tem") {
+TEST_CASE("Dados: a Maria Lucia - cada gatilho que ela puxa esta na fase dela, e cada cara que ela poe existe") {
 
-    // Sao dois relogios dizendo a mesma coisa.
-    const char* gatilhos[] = {Cascata::kGatilhoDaPlaca, Cascata::kGatilhoDoPedido, Cascata::kGatilhoDaClasse,
-                              Cascata::kGatilhoDaMensagem, Cascata::kGatilhoDoCodigo, Cascata::kGatilhoDoBug,
-                              Cascata::kGatilhoDaDivida};
-    // A etapa de cada gatilho, na ordem acima ("" = a fase toda).
-    const char* etapaDe[] = {"", Cascata::kEtapas[0], Cascata::kEtapas[1], Cascata::kEtapas[1],
-                             Cascata::kEtapas[2], Cascata::kEtapas[3], Cascata::kEtapas[4]};
-    for (const char* g : gatilhos) {
+    // A fase de cada gatilho, como o C++ os puxa (MariaLucia.cpp).
+    const std::vector<std::pair<std::string, const char*>> gatilhos = {
+        {Cascata::kFaseDaCascata, Cascata::kGatilhoDaPlaca}, {Cascata::kFaseDaCascata, Cascata::kGatilhoDaQueda},
+        {Cascata::kFaseDaCascata, Cascata::kGatilhoDoPedido}, {Cascata::kFaseDaCascata, Cascata::kGatilhoDoCusto},
+        {Cascata::kFaseDaCascata, Cascata::kGatilhoDoEstouro},
+        {Scrum::kFase, Scrum::kGatilhoDaHistoria}, {Scrum::kFase, Scrum::kGatilhoDoCursor},
+        {Scrum::kFase, Scrum::kGatilhoDoTitulo}, {Scrum::kFase, Scrum::kGatilhoDoTrabalho},
+        {Scrum::kFase, Scrum::kGatilhoDaEntrega}, {Scrum::kFase, Scrum::kGatilhoDaDaily},
+        {Observer::kFaseDosPadroes, Observer::kGatilhoDoObservador}, {Observer::kFaseDosPadroes, Observer::kGatilhoDaNotificacao},
+        {Observer::kFaseDosPadroes, Observer::kGatilhoDaConsulta}, {Observer::kFaseDosPadroes, Decorator::kGatilhoDaBala},
+        {Observer::kFaseDosPadroes, Decorator::kGatilhoDaDivisao},
+        {"StateFinal", BalaDePrata::kGatilhoDoLobisomem}, {"StateFinal", BalaDePrata::kGatilhoDoUivo},
+        {"StateFinal", BalaDePrata::kGatilhoDaBala}, {"StateFinal", BalaDePrata::kGatilhoDoEstilhaco},
+    };
+    const auto lidas = FasesDoChefe("marialucia");
+    const auto& tipos = ProjeteisDoChefe("marialucia").projeteis;
+    auto caras = [&](const std::string& tipo) {
+        std::set<std::string> c;
+        if (tipos.count(tipo)) for (const auto& a : tipos.at(tipo).animacoes) c.insert(a.nome);
+        return c;
+    };
+    std::map<std::string, std::string> projetilDoGatilho;
+    for (const auto& [fase, g] : gatilhos) {
+        CAPTURE(fase);
         CAPTURE(g);
         CHECK(GatilhoExiste(g));
-    }
-
-    const auto lidas = FasesDoChefe("marialucia");
-    const DescricaoDeFase* cascata = nullptr;
-    for (const auto& f : lidas.fases) if (f.nome == Cascata::kFaseDaCascata) cascata = &f;
-    REQUIRE(cascata != nullptr);
-
-    REQUIRE(cascata->etapas.size() == Cascata::kEtapas.size());
-    for (size_t k = 0; k < Cascata::kEtapas.size(); ++k) {
-        CAPTURE(k);
-        CHECK(cascata->etapas[k].nome == Cascata::kEtapas[k]);
-        CHECK(cascata->etapas[k].duracao == doctest::Approx(Cascata::kDuracaoDaEtapa));
-    }
-
-    for (size_t i = 0; i < std::size(gatilhos); ++i) {
-        CAPTURE(gatilhos[i]);
         int quantos = 0;
-        for (const auto& a : cascata->ataques) {
-            if (a.gatilho != gatilhos[i]) continue;
-            ++quantos;
-            CHECK(a.etapa == std::string(etapaDe[i]));
+        for (const auto& f : lidas.fases) {
+            if (f.nome != fase) continue;
+            for (const auto& a : f.ataques) if (a.gatilho == g) { ++quantos; projetilDoGatilho[g] = a.projetil; }
         }
         CHECK(quantos == 1);
     }
 
-    const auto& tipos = ProjeteisDoChefe("marialucia").projeteis;
-    std::string placa;
-    for (const auto& a : cascata->ataques) if (a.gatilho == Cascata::kGatilhoDaPlaca) placa = a.projetil;
-    REQUIRE(tipos.count(placa) == 1);
-    std::set<std::string> caras;
-    for (const auto& anim : tipos.at(placa).animacoes) caras.insert(anim.nome);
+    // As etapas da cascata sao as de Cascata.h, e cada artefato tem a cara da etapa dele.
+    const DescricaoDeFase* cascata = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Cascata::kFaseDaCascata) cascata = &f;
+    REQUIRE(cascata != nullptr);
+    REQUIRE(cascata->etapas.size() == Cascata::kEtapas.size());
     for (size_t k = 0; k < Cascata::kEtapas.size(); ++k) {
-        CHECK(caras.count("P" + std::to_string(k)) == 1);
-        CHECK(caras.count("A" + std::to_string(k)) == 1);
+        CHECK(cascata->etapas[k].nome == Cascata::kEtapas[k]);
+        CHECK(cascata->etapas[k].duracao == doctest::Approx(Cascata::kDuracaoDaEtapa));
+        for (const char* g : {Cascata::kGatilhoDaQueda, Cascata::kGatilhoDoPedido}) {
+            CHECK(caras(projetilDoGatilho[g]).count(Cascata::CaraDaEtapa(static_cast<int>(k))) == 1);
+        }
+        const auto placa = caras(projetilDoGatilho[Cascata::kGatilhoDaPlaca]);
+        CHECK(placa.count("P" + std::to_string(k)) == 1);
+        CHECK(placa.count("A" + std::to_string(k)) == 1);
     }
+
+    // O Scrum: as sprints sao as etapas, e as caras dos pontos, do cursor e dos titulos existem.
+    const DescricaoDeFase* scrum = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Scrum::kFase) scrum = &f;
+    REQUIRE(scrum != nullptr);
+    REQUIRE(scrum->etapas.size() == static_cast<size_t>(Scrum::kSprints) + 2);
+    CHECK(scrum->etapas.front().duracao == doctest::Approx(Scrum::kBacklog));
+    for (int k = 1; k <= Scrum::kSprints; ++k) CHECK(scrum->etapas[static_cast<size_t>(k)].duracao == doctest::Approx(Scrum::kSprint));
+    for (const int p : Scrum::kBaralho) CHECK(caras(projetilDoGatilho[Scrum::kGatilhoDaHistoria]).count(Scrum::Cara(p)) == 1);
+    for (const char* t : Scrum::kTitulos) CHECK(caras(projetilDoGatilho[Scrum::kGatilhoDoTitulo]).count(t) == 1);
+    for (const char* c : {"Cursor", "Clique"}) CHECK(caras(projetilDoGatilho[Scrum::kGatilhoDoCursor]).count(c) == 1);
+
+    // Os padroes: o Observer e o Decorator sao as duas etapas, e o componente tem uma cara por camada.
+    const DescricaoDeFase* padroes = nullptr;
+    for (const auto& f : lidas.fases) if (f.nome == Observer::kFaseDosPadroes) padroes = &f;
+    REQUIRE(padroes != nullptr);
+    REQUIRE(padroes->etapas.size() == 2u);
+    CHECK(padroes->etapas[0].duracao == doctest::Approx(Observer::kFimDoObserver));
+    for (int c = 0; c <= Decorator::kCamadas; ++c) {
+        CHECK(caras(projetilDoGatilho[Decorator::kGatilhoDaBala]).count(Decorator::Cara(c)) == 1);
+        CHECK(caras(projetilDoGatilho[Decorator::kGatilhoDaDivisao]).count(Decorator::Cara(c)) == 1);
+    }
+    for (const char* c : {"Lobo", "Uivo"}) CHECK(caras(projetilDoGatilho[BalaDePrata::kGatilhoDoLobisomem]).count(c) == 1);
 }
 
 TEST_CASE("Dados: o fluxograma do Andre - gatilhos, velocidade do confete e caras sao nomes que os dados tem") {
@@ -2081,64 +2089,6 @@ TEST_CASE("Dados: a prova do Andre roda cada problema com os mesmos ataques da f
     for (const auto& a : tipos.at(projetil).animacoes) caras.insert(a.nome);
     for (int k = 0; k < Prova::kProblemas; ++k) if (Prova::Aceito(k)) CHECK(caras.count(Prova::CaraDoTrofeu(k)) == 1);
     CHECK(prova->duracao >= Prova::kProva[Prova::kProblemas - 1].fim);
-}
-
-TEST_CASE("Dados: toda sprint dispara uma vez na etapa dela, e a revisao cai antes de a etapa acabar") {
-
-    // O timebox e a etapa.
-    bool achou = false;
-    for (const auto& chefe : Chefes()) {
-        for (const auto& f : FasesDoChefe(chefe).fases) {
-            for (const auto& a : f.ataques) {
-                if (a.estrategia != "SprintAttack") continue;
-                CAPTURE(chefe);
-                CAPTURE(f.nome);
-                CAPTURE(a.etapa);
-                REQUIRE_FALSE(a.etapa.empty());
-                float de = 0.0f, ate = 0.0f;
-                REQUIRE(JanelaDaEtapa(f.etapas, a.etapa, de, ate));
-
-                const float disparo = PrimeiroDisparoNaJanela(de);
-                const float revisao = (a.sprint && a.sprint->revisao) ? *a.sprint->revisao : Sprint::kRevisaoPadrao;
-                CHECK(disparo + revisao <= ate + 1.0e-4f);
-                CHECK(disparo + a.cooldown >= ate);
-                CHECK(disparo + revisao + 1.0f <= f.duracao + 1.0e-4f);
-                achou = true;
-            }
-        }
-    }
-    CHECK(achou);
-}
-
-TEST_CASE("Dados: o placar de cada sprint diz quantas historias ela tem") {
-
-    // O planning poker esta escrito duas vezes.
-    bool achou = false;
-    for (const auto& chefe : Chefes()) {
-        for (const auto& f : FasesDoChefe(chefe).fases) {
-            for (const auto& a : f.ataques) {
-                if (a.estrategia != "SprintAttack" || a.etapa.empty()) continue;
-                for (const auto& e : f.etapas) {
-                    if (e.nome != a.etapa) continue;
-                    const auto ponto = e.anuncio.find("\xC2\xB7");   // O ponto do meio, em UTF-8.
-                    if (ponto == std::string::npos) continue;
-                    CAPTURE(chefe);
-                    CAPTURE(e.anuncio);
-                    const int prometidas = std::atoi(e.anuncio.c_str() + ponto + 2);
-                    REQUIRE(a.projeteis.has_value());
-                    CHECK(prometidas == *a.projeteis);
-                    achou = true;
-                }
-            }
-        }
-    }
-    CHECK(achou);
-}
-
-TEST_CASE("Dados: o posto do quadro da sprint e um posto que a leitura aceita") {
-
-    // Trocar um sem o outro faria a leitura recusar a PontosAttack da Maria Lucia.
-    CHECK(PostoExiste(Sprint::kPostoDoQuadro));
 }
 
 TEST_CASE("Dados: os gatilhos e o posto do Observer sao nomes que a leitura aceita") {

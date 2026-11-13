@@ -14,8 +14,6 @@
 #include "BaseStrategies/ConsultaAttack.h"
 #include "BaseStrategies/CaixaAttack.h"
 #include "AttackParameters/CaixaAttackParams.h"
-#include "BaseStrategies/SprintAttack.h"
-#include "AttackParameters/SprintAttackParams.h"
 #include "BaseStrategies/PontosAttack.h"
 #include "AttackParameters/PontosAttackParams.h"
 #include "BaseStrategies/TokenAttack.h"
@@ -76,7 +74,6 @@ namespace {
         if (tipo == "WaveAttack")         return std::make_unique<WaveAttack>(spawner, boss);
         if (tipo == "ConsultaAttack")     return std::make_unique<ConsultaAttack>(spawner, boss);
         if (tipo == "CaixaAttack")        return std::make_unique<CaixaAttack>(spawner, boss);
-        if (tipo == "SprintAttack")       return std::make_unique<SprintAttack>(spawner, boss);
         if (tipo == "PontosAttack")       return std::make_unique<PontosAttack>(spawner, boss);
         if (tipo == "TokenAttack")        return std::make_unique<TokenAttack>(spawner, boss);
         if (tipo == "PalavraAttack")      return std::make_unique<PalavraAttack>(spawner, boss);
@@ -121,16 +118,6 @@ namespace {
             if (a.caixa && a.caixa->proporcao)         caixa->proporcao         = *a.caixa->proporcao;
             if (a.caixa && a.caixa->meiaAlturaInicial) caixa->meiaAlturaInicial = *a.caixa->meiaAlturaInicial;
             params = std::move(caixa);
-        }
-        else if (a.estrategia == "SprintAttack") {
-            auto sprint = std::make_unique<SprintAttackParams>();
-            if (a.sprint && a.sprint->revisao) sprint->revisao = *a.sprint->revisao;
-            if (a.sprint) {
-                sprint->historia = a.sprint->historia;
-                sprint->cursor   = a.sprint->cursor;
-                sprint->clique   = a.sprint->clique;
-            }
-            params = std::move(sprint);
         }
         else if (a.estrategia == "TokenAttack") {
             auto tokens = std::make_unique<TokenAttackParams>();
