@@ -138,7 +138,7 @@
     "animacoes": { "D0": [5], "D1": [6], "D2": [7], "D3": [8] },
     "animacaoInicial": "D0",
     "ordemDeDesenho": 92,
-    "escala": 1.2,
+    "escala": 1.5,
     "posicionarNoDono": false,
     "derrubavel": true
   },

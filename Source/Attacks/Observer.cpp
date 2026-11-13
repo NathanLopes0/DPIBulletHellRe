@@ -5,12 +5,13 @@
 #include "Observer.h"
 
 #include <algorithm>
+#include <cmath>
 
 namespace Observer {
 
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
-        d.intervaloMinimo = Dificuldade::Escolher(n, d.intervaloMinimo, 0.35f);
+        d.intervaloMinimo = Dificuldade::Escolher(n, d.intervaloMinimo, 0.42f);
         d.consulta = Dificuldade::Escolher(n, d.consulta, 1.7f);
         return d;
     }
@@ -70,7 +71,29 @@ namespace Observer {
     Vector2 NaOrbita(const Vector2& aluno, const int k, const int n, const float t, const float raio) {
         const float volta = static_cast<float>(k) / static_cast<float>(std::max(1, n)) + kVoltasPorSegundo * t;
         const float a = 2.0f * Math::Pi * volta;
-        return Vector2(aluno.x + Math::Cos(a) * raio, aluno.y + Math::Sin(a) * raio * 0.55f);
+        return Vector2(aluno.x + Math::Cos(a) * raio, aluno.y - kAcimaDoAluno - std::fabs(Math::Sin(a)) * raio * kAchatamento);
+    }
+
+    std::string PlacarDoObserver(const int inscritos) {
+        // \xc3\xaa e o e com circunflexo; \xc2\xb7 o ponto do meio.
+        return "Observer: " + std::to_string(inscritos) + (inscritos == 1 ? " olho assina" : " olhos assinam") +
+               " voc\xc3\xaa  \xc2\xb7  virou, \xc3\xa9 notifyAll()";
+    }
+
+    std::string PlacarDaNotificacao(const Estado& antes, const Estado& agora, const int inscritos) {
+        std::string para = "de dire\xc3\xa7\xc3\xa3o";
+        if (agora.x != antes.x) para = agora.x < 0 ? "para a esquerda" : "para a direita";
+        else if (agora.y != antes.y) para = agora.y < 0 ? "para cima" : "para baixo";
+        return "notifyAll(): voc\xc3\xaa virou " + para + "  \xc2\xb7  " + std::to_string(inscritos) +
+               (inscritos == 1 ? " aviso" : " avisos");
+    }
+
+    std::string PlacarDaConsulta(const float segundos, const int inscritos) {
+        const int decimos = static_cast<int>(std::lround(segundos * 10.0f));
+        const std::string s = decimos % 10 == 0 ? std::to_string(decimos / 10)
+                                                : std::to_string(decimos / 10) + "," + std::to_string(decimos % 10);
+        return "polling: " + s + " s sem aviso  \xc2\xb7  " + std::to_string(inscritos) +
+               (inscritos == 1 ? " olho pergunta" : " olhos perguntam") + " getEstado()";
     }
 
     float Raio(const float t) {

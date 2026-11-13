@@ -489,13 +489,18 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   cursor dela arrasta o quadro uma coluna — na FAZENDO a história trabalha e
   atira, a mais pesada mais; o que estava FEITO cai como incremento no seu
   campo e estoura. O tiro tira a história da sprint, e o burndown no canto mostra
-  os pontos que faltam. Nos **padrões de projeto**, o Observer — os olhos se
-  inscrevem um a um e orbitam você, cada vez mais perto, e quando você muda de
-  estado (para, anda, vira) é `notifyAll()`: todos atiram — e depois o
-  Decorator: a bala nasce ao lado dela, sai para fora e ganha camadas no
-  caminho (Rápida, Dividida, Teleguiada — que vira para você por um segundo e
-  meio, e depois segue reta), com a composição no placar (`new Teleguiada(new
-  Dividida(new Rápida(bala)))`); cada tiro seu tira o decorador de fora. No
+  os pontos que faltam. Nos **padrões de projeto**, o Observer — você é o
+  sujeito: os olhos se inscrevem um a um e orbitam acima de você, ligados por
+  uma linha, e quando você vira (muda de direção) é `notifyAll()`: uma onda
+  sai de você e todos atiram. Se você passa um tempo sem virar, eles fazem
+  polling — a linha fica âmbar, cada um pergunta `getEstado()` e atira assim
+  mesmo; o placar conta a regra e o que acabou de acontecer, e o olho
+  derrubado cancela a inscrição. Depois, o Decorator: a bala nasce ao lado
+  dela, sai para fora e ganha camadas no caminho — Rápida (anel amarelo),
+  Dividida (azul) e Teleguiada (vermelho), que persegue você por 2,2 s com a
+  linha de mira à vista —, com a composição no placar (`new Teleguiada(new
+  Dividida(new Rápida(bala)))`) e, da primeira vez, o que cada decorador faz.
+  Cada tiro seu tira o decorador de fora, e o placar diz o que saiu. No
   exame, a frase dela: **não há bala de prata**. O lobisomem de Brooks — o
   projeto de software — persegue você e uiva, blindado; ela atira as
   promessas (IA, UML, low-code...), e elas perseguem você, fazendo a curva. A

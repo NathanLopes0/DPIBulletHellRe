@@ -123,6 +123,16 @@ void MariaLucia::Linha(const Vector2 de, const Vector2 ate, const SDL_Color cor)
     if (mLinhas) mLinhas->Acrescentar(de, ate, cor);
 }
 
+void MariaLucia::Circulo(const Vector2 centro, const float raio, const SDL_Color cor, const int segmentos) {
+    Vector2 antes(centro.x + raio, centro.y);
+    for (int k = 1; k <= segmentos; ++k) {
+        const float a = Math::TwoPi * static_cast<float>(k) / static_cast<float>(segmentos);
+        const Vector2 agora(centro.x + raio * Math::Cos(a), centro.y + raio * Math::Sin(a));
+        Linha(antes, agora, cor);
+        antes = agora;
+    }
+}
+
 void MariaLucia::PlacarDaEtapa(const std::string& fase, const size_t etapa, const std::string& texto) {
     auto etapas = EtapasDa(fase);
     if (etapa >= etapas.size() || etapas[etapa].second == texto) return;
@@ -154,6 +164,8 @@ void MariaLucia::Desmontar() {
     mOlhos.clear();
     for (Decorada& d : mDecoradas) Matar(d.p);
     mDecoradas.clear();
+    mExplicado = {};
+    mOndas.clear();
     Matar(mLobo);
     for (Bala& b : mBalas) Matar(b.p);
     mBalas.clear();
@@ -199,6 +211,9 @@ void MariaLucia::OnDerrubou(BossProjectile* qual) {
         const Decorada antes = *it;
         mDecoradas.erase(it);
         if (antes.camadas <= 0) return;
+        // O placar diz o que saiu com o decorador de fora.
+        mAvisoNoPlacar = Decorator::OQueSai(Decorator::kOrdem[static_cast<size_t>(antes.camadas - 1)]);
+        mAvisoAte = mRelogio + 0.9f;
         Vector2 v = antes.velocidade;
         if (antes.camadas == 1) v = v * (1.0f / Decorator::kFatorDaRapida);   // sai a Rapida
         if (BossProjectile* p = Um(Decorator::kGatilhoDaBala, qual->GetPosition(), Decorator::Cara(antes.camadas - 1), 1.0f, v)) {
@@ -487,13 +502,17 @@ void MariaLucia::AtualizarPadroes(const float t, const float deltaTime) {
             olho->SetPosition(aqui + (lugar - aqui) * std::min(1.0f, 6.0f * deltaTime));
             if (auto* rb = olho->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
         }
-        // O sujeito: cada aluno avisa quando o estado dele muda, e todos os olhos respondem.
+        // O sujeito: cada aluno avisa quando o estado dele muda (quando vira), e todos os olhos
+        // respondem; sem aviso por um tempo, os olhos perguntam (o polling).
         if (mSujeitos.size() != alunos.size()) mSujeitos.assign(alunos.size(), mSujeitoDaLuta);
         mPiscando = std::max(0.0f, mPiscando - deltaTime);
+        mPerguntando = std::max(0.0f, mPerguntando - deltaTime);
+        const int inscritos = static_cast<int>(mOlhos.size());
         for (size_t i = 0; i < alunos.size(); ++i) {
             const Player* quem = alunos[i];
             if (!quem) continue;
             const auto* rb = quem->GetComponent<RigidBodyComponent>();
+            const Observer::Estado antes = mSujeitos[i].notificado;
             const auto aviso = Observer::Avancar(mSujeitos[i], rb ? rb->GetVelocity() : Vector2::Zero, deltaTime);
             if (aviso == Observer::Aviso::Nenhum) continue;
             const bool consulta = aviso == Observer::Aviso::Consulta;
@@ -501,20 +520,36 @@ void MariaLucia::AtualizarPadroes(const float t, const float deltaTime) {
                 DispararEm(consulta ? Observer::kGatilhoDaConsulta : Observer::kGatilhoDaNotificacao, o.p->GetPosition(), 0,
                            AnguloAte(o.p->GetPosition(), quem->GetPosition()), std::nullopt, std::nullopt, static_cast<int>(i));
             }
-            mPiscando = 0.2f;
-            mAvisoNoPlacar = consulta ? "polling: aluno.getEstado()" : "notifyAll()";
-            mAvisoAte = mRelogio + 0.8f;
+            if (consulta) {
+                mPerguntando = 0.3f;
+                mAvisoNoPlacar = Observer::PlacarDaConsulta(mSujeitos[i].consulta, inscritos);
+            } else {
+                mPiscando = 0.2f;
+                mOndas.push_back(Onda{quem->GetPosition(), t});
+                mAvisoNoPlacar = Observer::PlacarDaNotificacao(antes, mSujeitos[i].agora, inscritos);
+            }
+            mAvisoAte = mRelogio + 1.2f;
+        }
+        // A onda do notifyAll: um anel que sai de quem virou.
+        mOndas.erase(std::remove_if(mOndas.begin(), mOndas.end(), [t](const Onda& o) { return t - o.desde > Observer::kOnda; }),
+                     mOndas.end());
+        for (const Onda& o : mOndas) {
+            const float u = (t - o.desde) / Observer::kOnda;
+            SDL_Color cor = kNotificando;
+            cor.a = static_cast<Uint8>(210.0f * (1.0f - u));
+            Circulo(o.centro, 24.0f + 260.0f * u, cor);
         }
         for (const Olho& o : mOlhos) {
             for (const Player* quem : alunos) {
-                if (quem) Linha(o.p->GetPosition(), quem->GetPosition(), mPiscando > 0.0f ? kNotificando : kAssinatura);
+                if (!quem) continue;
+                Linha(o.p->GetPosition(), quem->GetPosition(),
+                      mPiscando > 0.0f ? kNotificando : mPerguntando > 0.0f ? kPerguntando : kAssinatura);
             }
             const int lado = Observer::Olhar(o.p->GetPosition(), aluno);
             Cara(o.p, mPiscando > 0.0f ? Observer::kPisca
                                        : (lado < 0 ? Observer::kOlhaEsquerda : lado > 0 ? Observer::kOlhaDireita : Observer::kOlhaFrente));
         }
-        PlacarDaEtapa(kFaseDosPadroes, 0, mRelogio < mAvisoAte ? mAvisoNoPlacar
-                                                                : "Observer: " + std::to_string(mOlhos.size()) + " inscritos");
+        PlacarDaEtapa(kFaseDosPadroes, 0, mRelogio < mAvisoAte ? mAvisoNoPlacar : Observer::PlacarDoObserver(inscritos));
         mAlvo = Vector2(Campo().x + Campo().w / 2.0f, Campo().y + 70.0f);
         return;
     }
@@ -543,6 +578,12 @@ void MariaLucia::AtualizarPadroes(const float t, const float deltaTime) {
         if (!d.descascada && d.camadas < Decorator::kCamadas && t >= d.proxima) {
             d.proxima = t + Decorator::kEntreCamadas;
             const Decorator::Camada c = Decorator::kOrdem[static_cast<size_t>(d.camadas)];
+            // Da primeira vez, o placar diz o que o decorador faz.
+            if (!mExplicado[static_cast<size_t>(d.camadas)]) {
+                mExplicado[static_cast<size_t>(d.camadas)] = true;
+                mAvisoNoPlacar = Decorator::OQueFaz(c);
+                mAvisoAte = mRelogio + 1.6f;
+            }
             ++d.camadas;
             if (c == Decorator::Camada::Rapida) d.velocidade = d.velocidade * Decorator::kFatorDaRapida;
             if (c == Decorator::Camada::Teleguiada) d.guiaAte = t + Decorator::kGuia;
@@ -567,6 +608,7 @@ void MariaLucia::AtualizarPadroes(const float t, const float deltaTime) {
             const float rumo = Decorator::Guiar(agora, aluno - d.p->GetPosition(), deltaTime);
             const float r = d.velocidade.Length();
             d.velocidade = Vector2(Math::Cos(rumo) * r, Math::Sin(rumo) * r);
+            Linha(d.p->GetPosition(), aluno, kMiraDaTeleguiada);   // a mira: ela vem em voce
         }
         if (auto* rb = d.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(d.velocidade);
     }
@@ -574,7 +616,8 @@ void MariaLucia::AtualizarPadroes(const float t, const float deltaTime) {
     // O placar: a composicao da bala mais decorada em campo.
     int camadas = -1;
     for (const Decorada& d : mDecoradas) camadas = std::max(camadas, d.camadas);
-    PlacarDaEtapa(kFaseDosPadroes, kEtapaDoDecorator, camadas < 0 ? std::string("Decorator") : Decorator::Placar(camadas));
+    PlacarDaEtapa(kFaseDosPadroes, kEtapaDoDecorator,
+                  mRelogio < mAvisoAte ? mAvisoNoPlacar : camadas < 0 ? std::string("Decorator") : Decorator::Placar(camadas));
     mAlvo = Vector2(Campo().x + Campo().w / 2.0f + 220.0f * std::sin(t * 0.6f), Campo().y + 70.0f);
 }
 

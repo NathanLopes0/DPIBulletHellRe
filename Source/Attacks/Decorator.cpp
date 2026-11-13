@@ -37,9 +37,28 @@ namespace Decorator {
         return Math::VirarPara(agora, falta, Math::ToRadians(kGiroDaTeleguiada) * std::max(0.0f, deltaTime));
     }
 
+    std::string OQueFaz(const Camada c) {
+        // \xc3\x97 e o sinal de vezes; \xc3\xaa o e com circunflexo.
+        switch (c) {
+            case Camada::Rapida:     return "+R\xc3\xa1pida: a bala anda 1,6\xc3\x97 mais";
+            case Camada::Dividida:   return "+Dividida: a bala vira duas";
+            case Camada::Teleguiada: return "+Teleguiada: a bala persegue voc\xc3\xaa";
+        }
+        return "";
+    }
+
+    std::string OQueSai(const Camada c) {
+        switch (c) {
+            case Camada::Rapida:     return "Voc\xc3\xaa tirou a R\xc3\xa1pida: mais devagar";
+            case Camada::Dividida:   return "Voc\xc3\xaa tirou a Dividida";
+            case Camada::Teleguiada: return "Voc\xc3\xaa tirou a Teleguiada: segue reta";
+        }
+        return "";
+    }
+
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
-        if (n == Dificuldade::Nivel::Dificil) d.entreComponentes = 1.25f;
+        if (n == Dificuldade::Nivel::Dificil) d.entreComponentes = 0.95f;
         return d;
     }
 }

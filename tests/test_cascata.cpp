@@ -122,6 +122,26 @@ TEST_CASE("Observer: os olhos orbitam o aluno, repartidos, e a orbita fecha") {
     CHECK(Raio(0.0f) == doctest::Approx(kRaioInicial));
     CHECK(Raio(kFimDoObserver) == doctest::Approx(kRaioFinal));
     CHECK(Raio(5.0f) < Raio(1.0f));
+    // A orbita fica acima do aluno: os olhos estao sempre a vista, e passam por cima dele.
+    for (int k = 0; k < 8; ++k) {
+        for (const float t : {0.0f, 1.3f, 4.7f}) CHECK(NaOrbita(aluno, k, 8, t, kRaioInicial).y < aluno.y);
+    }
+}
+
+TEST_CASE("Observer: o placar conta a regra - virou, notifyAll; sem aviso, polling") {
+    using namespace Observer;
+    CHECK(PlacarDoObserver(4) == "Observer: 4 olhos assinam voc\xc3\xaa  \xc2\xb7  virou, \xc3\xa9 notifyAll()");
+    CHECK(PlacarDoObserver(1).find("1 olho assina") != std::string::npos);
+    Estado direita, esquerda, baixo;
+    direita.x = 1;
+    esquerda.x = -1;
+    baixo.x = 1;
+    baixo.y = 1;
+    CHECK(PlacarDaNotificacao(direita, esquerda, 4) == "notifyAll(): voc\xc3\xaa virou para a esquerda  \xc2\xb7  4 avisos");
+    CHECK(PlacarDaNotificacao(direita, baixo, 1).find("para baixo") != std::string::npos);
+    CHECK(PlacarDaConsulta(2.0f, 4) == "polling: 2 s sem aviso  \xc2\xb7  4 olhos perguntam getEstado()");
+    CHECK(PlacarDaConsulta(1.7f, 2).rfind("polling: 1,7 s", 0) == 0);
+    CHECK(kOnda < kEntreInscricoes);
 }
 
 TEST_CASE("Decorator: a composicao no placar, de dentro para fora") {
@@ -152,8 +172,15 @@ TEST_CASE("Decorator: o componente sai para fora, e a Teleguiada vira aos poucos
     CHECK(Guiar(quase, Vector2(100.0f, 100.0f), 0.1f) == doctest::Approx(Math::Atan2(100.0f, 100.0f)));
     // Pelo lado curto, atravessando o +-180.
     CHECK(Guiar(Math::Pi - 0.05f, Vector2(-100.0f, -1.0f), 0.1f) > Math::Pi - 0.05f);
-    // A guia acaba antes de a bala dar a volta no aluno.
-    CHECK(kGiroDaTeleguiada * kGuia < 180.0f);
+    // A guia acaba antes de a bala dar uma volta inteira em quem foge dela.
+    CHECK(kGiroDaTeleguiada * kGuia < 360.0f);
+    // O placar explica cada decorador e o que sai quando o tiro o tira.
+    CHECK(OQueFaz(Camada::Teleguiada) == "+Teleguiada: a bala persegue voc\xc3\xaa");
+    CHECK(OQueSai(Camada::Teleguiada) == "Voc\xc3\xaa tirou a Teleguiada: segue reta");
+    for (const Camada c : kOrdem) {
+        CHECK_FALSE(OQueFaz(c).empty());
+        CHECK_FALSE(OQueSai(c).empty());
+    }
 }
 
 // ---- A repescagem: o lobisomem ----

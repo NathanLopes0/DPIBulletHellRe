@@ -151,6 +151,14 @@ private:
     float mProximaInscricao = 0.0f;
     std::vector<Observer::Sujeito> mSujeitos;
     float mPiscando = 0.0f;
+    float mPerguntando = 0.0f;
+    /// A onda de cada notifyAll: o anel que sai do aluno.
+    struct Onda {
+        Vector2 centro;
+        float desde = 0.0f;
+    };
+    std::vector<Onda> mOndas;
+    void Circulo(Vector2 centro, float raio, SDL_Color cor, int segmentos = 40);
 
     struct Decorada {
         BossProjectile* p = nullptr;
@@ -163,6 +171,8 @@ private:
     std::vector<Decorada> mDecoradas;
     float mProximoComponente = 0.0f;
     float mLadoDoComponente = 1.0f;
+    /// Cada decorador e explicado no placar da primeira vez que aparece.
+    std::array<bool, Decorator::kCamadas> mExplicado{};
 
     // ---- A repescagem: o lobisomem ----
 
@@ -189,4 +199,6 @@ private:
     static constexpr SDL_Color kEixo = {150, 180, 220, 120};
     static constexpr SDL_Color kAssinatura = {130, 200, 250, 70};
     static constexpr SDL_Color kNotificando = {210, 240, 255, 210};
+    static constexpr SDL_Color kPerguntando = {255, 200, 90, 190};
+    static constexpr SDL_Color kMiraDaTeleguiada = {255, 90, 90, 80};
 };

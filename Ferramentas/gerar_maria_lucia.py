@@ -377,13 +377,13 @@ def cartao_de_pontos(pontos):
 
 def decorado(camadas):
     """O COMPONENTE DO DECORATOR: um objeto pequeno no meio, e um anel por decorador em volta - Rapida
-    (amarelo), Dividida (verde), Teleguiada (vermelho), de dentro para fora."""
+    (amarelo), Dividida (azul), Teleguiada (vermelho), de dentro para fora."""
     im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    cores = [(250, 214, 90, 255), (110, 220, 130, 255), (240, 90, 90, 255)]
+    cores = [(255, 220, 80, 255), (90, 210, 255, 255), (255, 80, 80, 255)]
     for k in range(camadas):
-        r = 6 + 3 * (k + 1)
-        d.ellipse([16 - r, 16 - r, 15 + r, 15 + r], outline=cores[k], width=2)
+        r = 7 + 3 * k
+        d.ellipse([16 - r, 16 - r, 15 + r, 15 + r], outline=cores[k], width=3)
     d.rectangle([12, 12, 19, 19], fill=(200, 210, 230, 255), outline=TRACO, width=2)
     d.line([14, 15, 17, 15], fill=TRACO)
     return im

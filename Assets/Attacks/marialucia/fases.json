@@ -84,7 +84,7 @@
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "etapa": "Observer", "gatilho": "notificacao", "estrategia": "WaveAttack", "projetil": "Aviso",
         "projeteis": 1, "velocidade": 255, "angulo": 14, "intervalo": 0,
-        "dificil": { "projeteis": 2 } },
+        "dificil": { "velocidade": 280 } },
       { "etapa": "Observer", "gatilho": "consulta", "estrategia": "WaveAttack", "projetil": "Aviso",
         "projeteis": 1, "velocidade": 265, "angulo": 0, "intervalo": 0 },
       { "etapa": "Decorator", "gatilho": "componente", "estrategia": "WaveAttack", "projetil": "Decorado",

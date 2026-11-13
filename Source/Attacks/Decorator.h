@@ -41,8 +41,8 @@ namespace Decorator {
     constexpr float kEntreCamadas = 0.75f;   ///< segundos entre um decorador e o seguinte
     constexpr float kFatorDaRapida = 1.6f;   ///< o que a Rapida multiplica na velocidade
     constexpr float kAberturaDaDividida = 26.0f;   ///< graus entre as duas metades
-    constexpr float kGiroDaTeleguiada = 80.0f;     ///< graus por segundo, virando para o aluno
-    constexpr float kGuia = 1.5f;                  ///< segundos em que a Teleguiada vira; depois, reta
+    constexpr float kGiroDaTeleguiada = 105.0f;    ///< graus por segundo, virando para o aluno
+    constexpr float kGuia = 2.2f;                  ///< segundos em que a Teleguiada vira; depois, reta
     constexpr float kVelocidadeDoComponente = 125.0f;
 
     /// Onde o componente nasce: kAoLado da professora, de um lado e do outro, alternando.
@@ -58,9 +58,14 @@ namespace Decorator {
     /// no maximo kGiroDaTeleguiada graus por segundo, pelo lado mais curto.
     float Guiar(float agora, Vector2 falta, float deltaTime);
 
-    /// O que o Dificil muda: um componente a cada 1,25 s (e nao 1,5).
+    /// O que cada decorador faz, para o placar: "Rápida: anda 1,6× mais", "Dividida: vira duas",
+    /// "Teleguiada: persegue você". E o que sai quando o aluno o tira.
+    std::string OQueFaz(Camada c);
+    std::string OQueSai(Camada c);
+
+    /// O que o Dificil muda: um componente a cada 0,95 s (e nao 1,15).
     struct Degrau {
-        float entreComponentes = 1.5f;
+        float entreComponentes = 1.15f;
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 }

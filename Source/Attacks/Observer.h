@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "../Regras/Dificuldade.h"
 #include "../Motor/Math.h"
 #include "../Regras/Variacao.h"
@@ -74,17 +76,31 @@ namespace Observer {
 
     /// Quantos observadores cabem na orbita, e de quanto em quanto tempo um se inscreve.
     constexpr int kMaisObservadores = 6;
-    constexpr float kEntreInscricoes = 1.1f;
+    constexpr float kEntreInscricoes = 0.85f;
 
-    /// Onde fica o observador 'k' de 'n' 't' segundos depois de se inscrever o primeiro: numa orbita
-    /// de 'raio' em volta do aluno, girando (kVoltasPorSegundo) - eles o acompanham.
+    /// Onde fica o observador 'k' de 'n' 't' segundos depois de se inscrever o primeiro: num arco de
+    /// 'raio' por cima do aluno, girando (kVoltasPorSegundo) - eles o acompanham dos lados, um pouco
+    /// acima dele (kAcimaDoAluno), e so passam por cima dele no alto do arco (kAchatamento do raio
+    /// mais alto). Sempre a vista, e quase sempre fora da linha dos tiros dele.
     constexpr float kVoltasPorSegundo = 0.16f;
+    constexpr float kAcimaDoAluno = 40.0f;
+    constexpr float kAchatamento = 0.5f;
     Vector2 NaOrbita(const Vector2& aluno, int k, int n, float t, float raio);
 
     /// O raio da orbita 't' segundos depois do comeco: fecha devagar, de kRaioInicial a kRaioFinal.
     constexpr float kRaioInicial = 250.0f;
-    constexpr float kRaioFinal = 165.0f;
+    constexpr float kRaioFinal = 190.0f;
     float Raio(float t);
+
+    /// Os placares do Observer, que contam a regra: "Observer: 4 olhos assinam você · virou, é
+    /// notifyAll()", "notifyAll(): você virou para a esquerda · 4 avisos", "polling: 2 s sem aviso ·
+    /// 4 olhos perguntam getEstado()".
+    std::string PlacarDoObserver(int inscritos);
+    std::string PlacarDaNotificacao(const Estado& antes, const Estado& agora, int inscritos);
+    std::string PlacarDaConsulta(float segundos, int inscritos);
+
+    /// A onda do aviso: o sujeito avisa a todos, e um anel sai do aluno por kOnda segundos.
+    constexpr float kOnda = 0.4f;
 
     struct Degrau {
         float intervaloMinimo = Sujeito{}.intervaloMinimo;
