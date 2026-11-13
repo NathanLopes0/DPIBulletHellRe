@@ -64,23 +64,24 @@ private:
     struct Ligacao {
         DrawCaixaComponent* linha = nullptr;
         DrawCaixaComponent* brilho = nullptr;
-        float luz = 0.0f;
-        bool acesa = false;
-        float atraso = 0.0f;
+        DrawCaixaComponent* halo = nullptr;
+        /// Os segundos desde que acendeu (MapaDaGrade::Luz); negativo enquanto espera a vez.
+        float relogio = kApagada;
     };
+    static constexpr float kApagada = 1000.0f;
     std::vector<Ligacao> mLigacoes;
     std::vector<MapaDaGrade::Trecho> mTrechos;
-    float mTempoDaLuz = 0.0f;
     void AcenderOCaminho(int anterior, int novo);
     void AtualizarAsLigacoes(float deltaTime);
 
-    /// A linha acesa: um ciano de energia, que pulsa de leve. O brilho e a mesma cor, larga e fraca.
-    static inline const SDL_Color kCorAcesa{120, 220, 255, 255};
-    static constexpr float kGrossuraDoBrilho = 8.0f;
-    static constexpr Uint8 kAlfaDoBrilho = 70;
-    /// Os segundos para acender de todo, e para apagar.
-    static constexpr float kSubidaDaLuz = 0.12f;
-    static constexpr float kDescidaDaLuz = 0.35f;
+    /// A luz: no pico, a linha fica quase branca, e o brilho em volta e um ciano eletrico saturado,
+    /// em duas camadas (o brilho e o halo, mais largo e mais fraco).
+    static inline const SDL_Color kCorAcesa{0, 236, 255, 255};
+    static inline const SDL_Color kNucleoAceso{235, 255, 255, 255};
+    static constexpr float kGrossuraDoBrilho = 6.0f;
+    static constexpr float kGrossuraDoHalo = 14.0f;
+    static constexpr Uint8 kAlfaDoBrilho = 210;
+    static constexpr Uint8 kAlfaDoHalo = 90;
 
     void HandleSelectionInput(const Uint8* keyState);
     size_t mSelectedIndex{};

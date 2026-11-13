@@ -89,12 +89,13 @@ TEST_CASE("materias: na dupla, a materia so abre se estiver aberta para os dois"
     CHECK_FALSE(l.DesbloqueadaParaTodos(0, {}));
 }
 
-// As ligacoes que acendem. Duas colunas, a 0 com os botoes 0 e 1, a 1 com o 2; e a 2 com o 3:
-// o tronco 0 liga as colunas 0 e 1, o tronco 1 as colunas 1 e 2.
+// As ligacoes que acendem. A coluna 0 tem os botoes 0 (y 100) e 1 (y 300), a 1 tem o 2 (y 200),
+// e a 2 tem o 3 (y 200): o tronco 0 liga as colunas 0 e 1, em dois pedacos (100-200 e 200-300);
+// o tronco 1 liga as colunas 1 e 2, e nao tem pedaco nenhum - os dois botoes estao na mesma altura.
 namespace {
     const std::vector<Trecho> kTrechos = {
-        {0, -1}, {0, 0}, {0, 1}, {0, 2},   // tronco 0 e os ramos dele
-        {1, -1}, {1, 2}, {1, 3},           // tronco 1
+        {0, -1, 100, 200}, {0, 0, 100}, {0, 1, 300}, {0, 2, 200}, {0, -1, 200, 300},   // tronco 0
+        {1, 2, 200}, {1, 3, 200},                                                     // tronco 1
     };
     std::vector<size_t> Quais(const std::vector<Aceso>& a) {
         std::vector<size_t> q;
@@ -103,27 +104,43 @@ namespace {
     }
 }
 
-TEST_CASE("mapa: a luz corre do botao que saiu ao que chegou, pelo tronco comum") {
+TEST_CASE("mapa: a luz corre do botao que saiu ao que chegou, so pelo pedaco do tronco entre eles") {
     const auto a = Caminho(kTrechos, 0, 2, 0.1f);
+    // o ramo do 0, o pedaco 100-200 e o ramo do 2; o pedaco 200-300 fica apagado
     CHECK(Quais(a) == std::vector<size_t>{0, 1, 3});
-    // o ramo de quem saiu, o tronco, o ramo de quem chegou
-    CHECK(a[1].atraso == doctest::Approx(0.0f));   // trecho 1: o ramo do botao 0
-    CHECK(a[0].atraso == doctest::Approx(0.1f));   // trecho 0: o tronco
-    CHECK(a[2].atraso == doctest::Approx(0.2f));   // trecho 3: o ramo do botao 2
+    CHECK(a[1].atraso == doctest::Approx(0.0f));    // o ramo de quem saiu, primeiro
+    CHECK(a[0].atraso == doctest::Approx(0.1f));    // o pedaco: meio caminho, 0.5 + 0.5 passo
+    CHECK(a[2].atraso == doctest::Approx(0.2f));    // o ramo de quem chegou, por ultimo
 }
 
-TEST_CASE("mapa: na mesma coluna a luz passa pelo tronco que os dois tocam") {
-    CHECK(Quais(Caminho(kTrechos, 0, 1, 0.1f)) == std::vector<size_t>{0, 1, 2});
+TEST_CASE("mapa: na mesma coluna a luz passa pelos pedacos entre os dois, em ordem") {
+    const auto a = Caminho(kTrechos, 0, 1, 0.1f);
+    CHECK(Quais(a) == std::vector<size_t>{0, 1, 2, 4});
+    CHECK(a[0].atraso < a[3].atraso);   // 100-200 antes de 200-300: a luz desce
 }
 
-TEST_CASE("mapa: sem tronco comum, acendem as ligacoes do novo") {
-    // 0 e 3 nao se tocam: acendem o ramo do 3 e o tronco 1.
-    CHECK(Quais(Caminho(kTrechos, 0, 3, 0.1f)) == std::vector<size_t>{4, 6});
-    // O primeiro foco: o 2 toca os dois troncos.
-    CHECK(Quais(Caminho(kTrechos, -1, 2, 0.1f)) == std::vector<size_t>{0, 3, 4, 5});
+TEST_CASE("mapa: na mesma altura, so os dois ramos") {
+    CHECK(Quais(Caminho(kTrechos, 2, 3, 0.1f)) == std::vector<size_t>{5, 6});
+}
+
+TEST_CASE("mapa: sem tronco comum, e ao abrir a tela, nada acende") {
+    CHECK(Caminho(kTrechos, 0, 3, 0.1f).empty());    // 0 e 3 nao se tocam
+    CHECK(Caminho(kTrechos, -1, 2, 0.1f).empty());   // o primeiro foco
+    CHECK(Caminho(kTrechos, 2, 2, 0.1f).empty());
+}
+
+TEST_CASE("mapa: a luz e efemera - sobe, fica cheia um instante e some") {
+    CHECK(Luz(-0.01f) == 0.0f);
+    CHECK(Luz(kSubidaDaLuz / 2.0f) == doctest::Approx(0.5f));
+    CHECK(Luz(kSubidaDaLuz + kLuzCheia / 2.0f) == 1.0f);
+    const float fim = kSubidaDaLuz + kLuzCheia + kDescidaDaLuz;
+    CHECK(Luz(fim - kDescidaDaLuz / 2.0f) == doctest::Approx(0.25f));
+    CHECK(Luz(fim) == 0.0f);
+    CHECK(Luz(fim + 5.0f) == 0.0f);
 }
 
 TEST_CASE("mapa: a luz tambem corre para tras, da coluna da direita para a da esquerda") {
-    // 1 e 2 so dividem o tronco 0; 2 e 3, o tronco 1.
-    CHECK(Quais(Caminho(kTrechos, 3, 2, 0.1f)) == std::vector<size_t>{4, 5, 6});
+    const auto a = Caminho(kTrechos, 2, 1, 0.1f);
+    CHECK(Quais(a) == std::vector<size_t>{2, 3, 4});
+    CHECK(a[1].atraso == doctest::Approx(0.0f));    // agora quem saiu e o 2
 }

@@ -3,6 +3,9 @@
 //
 
 #include "StageSelect.h"
+
+#include <algorithm>
+
 #include "TextoDeCena.h"
 #include "../Entrada/Painel.h"
 #include "FundoDeCena.h"
@@ -43,7 +46,6 @@ void StageSelect::Load() {
     mFichas = FichaArquivo::TodasAsFichas(Materias::Carregadas());
     CreateStageButtons();
     CriarLigacoes();          // depois dos botoes: as linhas saem das posicoes deles
-    AcenderOCaminho(-1, static_cast<int>(mSelectedIndex));
     CreateStaticUI();
     CriarIdentificacaoNaTela();
     SeguirOFoco(true);
@@ -99,10 +101,16 @@ void StageSelect::Linha(const float x, const float y,
     auto ator = std::make_unique<Actor>(this);
     ator->SetPosition(Vector2(x, y));
     const bool deitada = largura > altura;
+    auto camada = [&](const float grossura, const int ordem) {
+        // A camada passa um pouco das pontas, para a luz cobrir a quina onde o ramo encontra o tronco.
+        const float w = deitada ? largura + grossura / 2.0f : grossura;
+        const float h = deitada ? grossura : altura + grossura / 2.0f;
+        return ator->AddComponent<DrawCaixaComponent>(static_cast<int>(w), static_cast<int>(h),
+                                                      SDL_Color{0, 0, 0, 0}, SDL_Color{0, 0, 0, 0}, 0, ordem);
+    };
     Ligacao l;
-    l.brilho = ator->AddComponent<DrawCaixaComponent>(
-        static_cast<int>(deitada ? largura : kGrossuraDoBrilho), static_cast<int>(deitada ? kGrossuraDoBrilho : altura),
-        SDL_Color{0, 0, 0, 0}, SDL_Color{0, 0, 0, 0}, 0, kOrdemDasLigacoes - 1);
+    l.halo = camada(kGrossuraDoHalo, kOrdemDasLigacoes - 2);
+    l.brilho = camada(kGrossuraDoBrilho, kOrdemDasLigacoes - 1);
     l.linha = ator->AddComponent<DrawCaixaComponent>(
         static_cast<int>(largura), static_cast<int>(altura),
         SDL_Color{0, 0, 0, 0}, kCorDaLigacao, 0, kOrdemDasLigacoes);
@@ -112,33 +120,27 @@ void StageSelect::Linha(const float x, const float y,
 }
 
 void StageSelect::AcenderOCaminho(const int anterior, const int novo) {
-    for (Ligacao& l : mLigacoes) l.acesa = false;
+    // So o caminho novo; o que ainda brilhava da troca anterior termina de sumir sozinho.
     for (const MapaDaGrade::Aceso& a : MapaDaGrade::Caminho(mTrechos, anterior, novo, MapaDaGrade::kPassoDaLuz)) {
-        Ligacao& l = mLigacoes[a.trecho];
-        l.acesa = true;
-        l.atraso = a.atraso;
+        mLigacoes[a.trecho].relogio = -a.atraso;
     }
 }
 
 void StageSelect::AtualizarAsLigacoes(const float deltaTime) {
-    mTempoDaLuz += deltaTime;
-    // O pulso de quem esta aceso: entre 80% e 100% da cor.
-    const float pulso = 0.9f + 0.1f * Math::Sin(mTempoDaLuz * 3.0f);
     for (Ligacao& l : mLigacoes) {
-        if (l.acesa) {
-            if (l.atraso > 0.0f) l.atraso -= deltaTime;
-            else l.luz = Math::Min(1.0f, l.luz + deltaTime / kSubidaDaLuz);
-        } else {
-            l.luz = Math::Max(0.0f, l.luz - deltaTime / kDescidaDaLuz);
-        }
-        const float t = l.luz * pulso;
-        auto mistura = [t](const Uint8 a, const Uint8 b) {
-            return static_cast<Uint8>(static_cast<float>(a) + (static_cast<float>(b) - static_cast<float>(a)) * t);
+        if (l.relogio >= kApagada) continue;
+        l.relogio += deltaTime;
+        const float luz = MapaDaGrade::Luz(l.relogio);
+        if (luz <= 0.0f && l.relogio > 0.0f) l.relogio = kApagada;   // acabou: volta a ser cenario
+        auto mistura = [luz](const Uint8 a, const Uint8 b) {
+            return static_cast<Uint8>(static_cast<float>(a) + (static_cast<float>(b) - static_cast<float>(a)) * luz);
         };
-        l.linha->SetFundo(SDL_Color{mistura(kCorDaLigacao.r, kCorAcesa.r), mistura(kCorDaLigacao.g, kCorAcesa.g),
-                                    mistura(kCorDaLigacao.b, kCorAcesa.b), mistura(kCorDaLigacao.a, kCorAcesa.a)});
+        l.linha->SetFundo(SDL_Color{mistura(kCorDaLigacao.r, kNucleoAceso.r), mistura(kCorDaLigacao.g, kNucleoAceso.g),
+                                    mistura(kCorDaLigacao.b, kNucleoAceso.b), mistura(kCorDaLigacao.a, kNucleoAceso.a)});
         l.brilho->SetFundo(SDL_Color{kCorAcesa.r, kCorAcesa.g, kCorAcesa.b,
-                                     static_cast<Uint8>(static_cast<float>(kAlfaDoBrilho) * t)});
+                                     static_cast<Uint8>(static_cast<float>(kAlfaDoBrilho) * luz)});
+        l.halo->SetFundo(SDL_Color{kCorAcesa.r, kCorAcesa.g, kCorAcesa.b,
+                                   static_cast<Uint8>(static_cast<float>(kAlfaDoHalo) * luz)});
     }
 }
 
@@ -160,30 +162,27 @@ void StageSelect::CriarLigacoes() {
                              - kMetadeDoLosango;
         const float xTronco = (xEsquerda + xDireita) / 2.0f;
 
-        float yMenor = mButtonObservers[mGrade[c].front()]->GetPosition().y;
-        float yMaior = yMenor;
+        // O tronco, em pedacos de uma altura de botao a outra: a luz acende so os do caminho.
+        std::vector<float> alturas;
         for (const size_t lado : {c, c + 1}) {
-            for (const size_t i : mGrade[lado]) {
-                const float y = mButtonObservers[i]->GetPosition().y;
-                yMenor = Math::Min(yMenor, y);
-                yMaior = Math::Max(yMaior, y);
-            }
+            for (const size_t i : mGrade[lado]) alturas.push_back(mButtonObservers[i]->GetPosition().y);
         }
-
-        if (yMaior > yMenor) {
-            Linha(xTronco, (yMenor + yMaior) / 2.0f, kGrossuraDaLigacao, yMaior - yMenor,
-                  {static_cast<int>(c), -1});
+        std::sort(alturas.begin(), alturas.end());
+        alturas.erase(std::unique(alturas.begin(), alturas.end()), alturas.end());
+        for (size_t k = 0; k + 1 < alturas.size(); ++k) {
+            Linha(xTronco, (alturas[k] + alturas[k + 1]) / 2.0f, kGrossuraDaLigacao, alturas[k + 1] - alturas[k],
+                  {static_cast<int>(c), -1, alturas[k], alturas[k + 1]});
         }
 
         for (const size_t i : mGrade[c]) {
             const float y = mButtonObservers[i]->GetPosition().y;
             Linha((xEsquerda + xTronco) / 2.0f, y, xTronco - xEsquerda, kGrossuraDaLigacao,
-                  {static_cast<int>(c), static_cast<int>(i)});
+                  {static_cast<int>(c), static_cast<int>(i), y, y});
         }
         for (const size_t i : mGrade[c + 1]) {
             const float y = mButtonObservers[i]->GetPosition().y;
             Linha((xTronco + xDireita) / 2.0f, y, xDireita - xTronco, kGrossuraDaLigacao,
-                  {static_cast<int>(c), static_cast<int>(i)});
+                  {static_cast<int>(c), static_cast<int>(i), y, y});
         }
     }
 }

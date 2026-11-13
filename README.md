@@ -207,9 +207,10 @@ TCC, de capelo, dos mais recentes, com a data em que passou.
 
 Ao sair de uma batalha (ou do ranking), a seleção de fases volta com o cursor
 na **última matéria escolhida**, e não no INF 110. Uma partida nova começa do
-começo da grade. Trocar de matéria acende a ligação de uma à outra — a luz corre
-do ramo de quem saiu, pelo tronco, até o de quem chegou — e o losango em foco dá
-um pulo e respira. Os losangos são feitos no dobro do tamanho em que aparecem,
+começo da grade. Trocar de matéria acende, num lampejo ciano, só a ligação de uma
+à outra — a luz corre do ramo de quem saiu, pelo pedaço do tronco entre as duas,
+até o de quem chegou, e some em meio segundo — e o losango em foco dá um pulo e
+respira. Os losangos são feitos no dobro do tamanho em que aparecem,
 para a tela cheia não os serrilhar.
 
 Na tela de **Opções**, do menu principal, ficam:
