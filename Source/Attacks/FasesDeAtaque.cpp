@@ -16,7 +16,7 @@
 namespace {
 
     const std::vector<std::string> kEstrategias = {
-        "AngledAttack", "CircleSpreadAttack", "WaveAttack", "BaloonAttack", "LaserAttack", "ConsultaAttack",
+        "CircleSpreadAttack", "WaveAttack", "ConsultaAttack",
         "CaixaAttack", "SprintAttack",
         "PontosAttack", "TokenAttack", "PalavraAttack"
     };
@@ -33,17 +33,15 @@ namespace {
         "Conduzido"
     };
 
-    /// Os nomes aceitos, para a mensagem de erro.
-    std::string MovimentosAceitos() {
+    /// Os nomes aceitos, para a mensagem de erro: "A, B ou C".
+    std::string Aceitos(const std::vector<std::string>& nomes) {
         std::string s;
-        for (size_t i = 0; i < kMovimentos.size(); ++i) {
-            if (i > 0) s += (i + 1 == kMovimentos.size()) ? " ou " : ", ";
-            s += kMovimentos[i];
+        for (size_t i = 0; i < nomes.size(); ++i) {
+            if (i > 0) s += (i + 1 == nomes.size()) ? " ou " : ", ";
+            s += nomes[i];
         }
         return s;
     }
-    /// "None" nao entra: a propria BaloonAttack recusa side == None.
-    const std::vector<std::string> kLadosDeBalao = {"Down", "Left", "Right", "Up"};
     const std::vector<std::string> kEixosDeConsulta = {"Linha", "Coluna"};
     const std::vector<std::string> kGatilhos = {"notificacao", "consulta", "agir", "nuvens", "portas",
                                                 "contador", "estagios", "buscar", "lw", "sw", "add", "addi",
@@ -99,7 +97,7 @@ namespace {
         m.tipo = Texto(j, "tipo", "GoToCenter");
         if (!MovimentoExiste(m.tipo)) {
             problemas.emplace_back(onde + "movimento \"" + m.tipo +
-                                   "\" nao existe (use " + MovimentosAceitos() + ")");
+                                   "\" nao existe (use " + Aceitos(kMovimentos) + ")");
             m.tipo = "GoToCenter";
         }
         m.a = Campo(j, "a", 0.0f);
@@ -198,60 +196,6 @@ namespace {
         return true;
     }
 
-    /// Le o bloco de balao. Devolve false quando ele e inaproveitavel.
-    bool LerBalao(const nlohmann::json& j, const std::string& onde,
-                  std::vector<std::string>& problemas, DescricaoDeBalao& saida) {
-
-        if (!j.is_object()) {
-            problemas.emplace_back(onde + "\"balao\" deveria ser um objeto");
-            return false;
-        }
-
-        saida.lado = Texto(j, "lado");
-        if (!LadoDeBalaoExiste(saida.lado)) {
-            problemas.emplace_back(onde + "\"balao\" precisa de \"lado\": Down, Left, Right ou Up"
-                                          " (a propria BaloonAttack recusa None e nao dispara nada)");
-            return false;
-        }
-
-        saida.spawnAleatorio    = OpcionalBool(j, "spawnAleatorio");
-        saida.centradoNoJogador = OpcionalBool(j, "centradoNoJogador");
-        saida.deslocamento      = Opcional(j, "deslocamento");
-
-        if (j.contains("pontosDeSpawn")) {
-            if (!j["pontosDeSpawn"].is_array()) {
-                problemas.emplace_back(onde + "\"pontosDeSpawn\" deveria ser uma lista de pares");
-                return false;
-            }
-            for (const auto& p : j["pontosDeSpawn"]) {
-                if (!p.is_array() || p.size() != 2 || !p[0].is_number() || !p[1].is_number()) {
-                    problemas.emplace_back(onde + "cada ponto de \"pontosDeSpawn\" deveria ser [x, y]");
-                    return false;
-                }
-                saida.pontosDeSpawn.emplace_back(p[0].get<float>(), p[1].get<float>());
-            }
-        }
-
-        // Conferir aqui troca um ataque invisivel por uma frase no arquivo.
-        const bool aleatorio = saida.spawnAleatorio.value_or(false);   // igual ao padrao do struct
-        if (!aleatorio) {
-            if (saida.pontosDeSpawn.empty()) {
-                problemas.emplace_back(onde + "com \"spawnAleatorio\" falso e preciso dar "
-                                              "\"pontosDeSpawn\", senao o ataque nao dispara nada");
-                return false;
-            }
-            if (saida.centradoNoJogador.value_or(true) != false) {
-                // CenterOnPlayer nasce true no BaloonAttackParams, e a estrategia recusa a combinacao.
-                problemas.emplace_back(onde + "com \"spawnAleatorio\" falso e preciso dizer "
-                                              "\"centradoNoJogador\": false - a BaloonAttack recusa "
-                                              "as duas coisas juntas");
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     /// Procura, entre as regras em linha de um ataque, o ritmo da investida. Devolve nullopt quando
     /// nenhuma regra tem MiraPeriodica.
     std::optional<RitmoDeCiclos> RitmoDaInvestida(const std::vector<Regra>& regras) {
@@ -315,8 +259,7 @@ namespace {
         }
         if (!EstrategiaExiste(saida.estrategia)) {
             problemas.emplace_back(onde + "estrategia \"" + saida.estrategia +
-                                   "\" nao existe (use AngledAttack, CircleSpreadAttack, "
-                                   "WaveAttack, BaloonAttack, LaserAttack ou ConsultaAttack)");
+                                   "\" nao existe (use " + Aceitos(kEstrategias) + ")");
             return false;
         }
 
@@ -409,29 +352,6 @@ namespace {
                 }
             }
             saida.dificil = dif;
-        }
-        return true;
-    }
-
-    /// O bloco "balao", obrigatorio na BaloonAttack.
-    bool LerBlocoDeBalao(const nlohmann::json& j, const std::string& onde,
-                         std::vector<std::string>& problemas, DescricaoDeAtaque& saida) {
-        const bool ehBalao = (saida.estrategia == "BaloonAttack");
-        if (j.contains("balao")) {
-            if (!ehBalao) {
-                // Nao e fatal: o bloco simplesmente nao seria lido por ninguem.
-                problemas.emplace_back(onde + "so a BaloonAttack usa \"balao\"; o bloco foi ignorado");
-            }
-            else {
-                DescricaoDeBalao b;
-                if (!LerBalao(j["balao"], onde, problemas, b)) return false;
-                saida.balao = b;
-            }
-        }
-        else if (ehBalao) {
-            problemas.emplace_back(onde + "um ataque BaloonAttack precisa do bloco \"balao\": sem "
-                                          "ele a estrategia recusa os parametros e nao dispara nada");
-            return false;
         }
         return true;
     }
@@ -717,7 +637,6 @@ namespace {
         return LerIdentidadeDoAtaque(j, onde, problemas, saida)
             && LerCooldown(j, onde, saida, problemas)
             && LerDificilDoAtaque(j, onde, problemas, saida)
-            && LerBlocoDeBalao(j, onde, problemas, saida)
             && LerBlocoDeConsulta(j, onde, problemas, saida)
             && LerBlocoDeCaixa(j, onde, problemas, saida)
             && LerBlocoDeSprint(j, onde, problemas, saida)
@@ -732,7 +651,6 @@ namespace {
 bool EstrategiaExiste(const std::string& nome)   { return Contem(kEstrategias, nome); }
 bool MovimentoExiste(const std::string& nome)    { return Contem(kMovimentos, nome); }
 bool NomeDeFaseExiste(const std::string& nome)   { return Contem(kNomesDeFase, nome); }
-bool LadoDeBalaoExiste(const std::string& nome)  { return Contem(kLadosDeBalao, nome); }
 bool EixoDeConsultaExiste(const std::string& nome) { return Contem(kEixosDeConsulta, nome); }
 bool GatilhoExiste(const std::string& nome)        { return Contem(kGatilhos, nome); }
 const std::vector<std::string>& NomesDosGatilhos() { return kGatilhos; }

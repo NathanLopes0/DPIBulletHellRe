@@ -44,7 +44,7 @@ public:
     void OnCollision(Actor *other) override;
 
     struct AttackDefinition {
-        std::unique_ptr<IAttackStrategy> strategy; // A lógica (Angled, Circle, etc)
+        std::unique_ptr<IAttackStrategy> strategy; // A lógica (Circle, Wave, etc)
         std::unique_ptr<AttackParams> params;                       // Parâmetros (Speed, Angle, NumProj)
         ProjectileConfigurator configurator;       // Lambda para customização (behaviors, animação)
         float cooldownTotal;                       // Tempo entre disparos desse ataque
