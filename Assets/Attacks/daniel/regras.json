@@ -1,0 +1,8 @@
+{
+  // As regras de projetil do Daniel (INF 425 - Ciencia de Dados, optativa).
+
+  // A garoa do sorteio: enquanto a turma espera quem vai explicar, os dados caem balancando.
+  "garoa": [
+    { "motion": { "tipo": "Wobble", "amplitude": 26, "frequencia": 1.4, "duracao": 6.0 } }
+  ]
+}

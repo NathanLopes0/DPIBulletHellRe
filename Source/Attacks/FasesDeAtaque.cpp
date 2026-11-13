@@ -75,7 +75,12 @@ namespace {
                                                 // Decorator e o lobisomem.
                                                 "queda", "custo", "estouro", "historia", "titulo", "entrega",
                                                 "daily", "inscrever", "componente", "dividida", "lobisomem",
-                                                "uivo"};
+                                                "uivo",
+                                                // O Daniel: os dados, os grupos, a fronteira, a explicacao e
+                                                // o sorteio.
+                                                "fonte", "dado", "amostra", "centroide", "convergiu",
+                                                "rotulada", "palpite", "barra", "previsao", "caixa",
+                                                "engano", "garoa"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"

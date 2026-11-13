@@ -17,7 +17,8 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
     const Golpe::Materia todas[] = {Golpe::Materia::Andre, Golpe::Materia::Salles, Golpe::Materia::Ricardo,
                                     Golpe::Materia::Thiago, Golpe::Materia::Luizinho, Golpe::Materia::Vladimir,
                                     Golpe::Materia::Julio, Golpe::Materia::MariaLucia, Golpe::Materia::Lucas,
-                                    Golpe::Materia::Vitor, Golpe::Materia::Arroyo, Golpe::Materia::Goulart};
+                                    Golpe::Materia::Vitor, Golpe::Materia::Arroyo, Golpe::Materia::Goulart,
+                                    Golpe::Materia::Daniel};
     std::set<int> tipos;
     std::set<std::string> nomes;
     std::set<int> quadros;
@@ -34,9 +35,9 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
         quadros.insert(QuadroDaMateria(m));
         if (Ataca(d.tipo)) ++atacam;
     }
-    CHECK(tipos.size() == 12u);    // doze orientadores, doze poderes diferentes
-    CHECK(nomes.size() == 12u);
-    CHECK(quadros.size() == 12u);
+    CHECK(tipos.size() == 13u);    // treze orientadores, treze poderes diferentes
+    CHECK(nomes.size() == 13u);
+    CHECK(quadros.size() == 13u);
     // Ha dos dois jeitos: os que atacam e os que defendem.
     CHECK(atacam >= 3);
     CHECK(atacam <= 7);
@@ -46,6 +47,31 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
     CHECK(QuadroDaMateria(Golpe::Materia::Vitor) == 12);
     CHECK(QuadroDaMateria(Golpe::Materia::Arroyo) == kQuadroDoArroyo);   // no fim da folha
     CHECK(QuadroDaMateria(Golpe::Materia::Goulart) == kQuadroDoGoulart);
+    CHECK(QuadroDaMateria(Golpe::Materia::Daniel) == kQuadroDoDaniel);
+}
+
+TEST_CASE("Poder: as k-medias do Daniel juntam os tiros em quatro grupos, um tiro por centroide") {
+    // Quatro nuvens de tiros: cada uma vira um grupo, e o centroide fica no meio dela.
+    std::vector<Vector2> tiros;
+    for (const Vector2 c : {Vector2(100.0f, 100.0f), Vector2(500.0f, 100.0f), Vector2(100.0f, 400.0f), Vector2(500.0f, 400.0f)}) {
+        for (const Vector2 d : {Vector2(-8.0f, 0.0f), Vector2(8.0f, 0.0f), Vector2(0.0f, -8.0f), Vector2(0.0f, 8.0f)}) {
+            tiros.push_back(c + d);
+        }
+    }
+    std::vector<int> grupos;
+    const std::vector<Vector2> centros = KMedias(tiros, kGruposDasKMedias, grupos);
+    REQUIRE(centros.size() == 4u);
+    REQUIRE(grupos.size() == tiros.size());
+    for (size_t k = 0; k < tiros.size(); ++k) {
+        // Os quatro de cada nuvem caem no mesmo grupo, e o centroide dele e o meio da nuvem.
+        CHECK(grupos[k] == grupos[k - k % 4]);
+        CHECK((centros[static_cast<size_t>(grupos[k])] - tiros[k]).Length() <= 8.0f + 1e-3f);
+    }
+    // Menos tiros que grupos: um grupo por tiro; nenhum tiro, nenhum grupo.
+    CHECK(KMedias({Vector2(1.0f, 1.0f), Vector2(9.0f, 9.0f)}, 4, grupos).size() == 2u);
+    CHECK(KMedias({}, 4, grupos).empty());
+    CHECK(Da(Golpe::Materia::Daniel).tipo == Tipo::KMedias);
+    CHECK_FALSE(Ataca(Tipo::KMedias));
 }
 
 TEST_CASE("Poder: o Round Robin do Goulart da a vez a um grupo de cada vez") {

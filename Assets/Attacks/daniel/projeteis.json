@@ -1,0 +1,94 @@
+{
+  // Os projeteis do Daniel (INF 425 - Ciencia de Dados, optativa). As folhas saem de
+  // Ferramentas/gerar_daniel.py; as animacoes, de gerar_daniel.py --animacoes.
+
+  // Os dados do catalogo dos monstrinhos: um bichinho por especie (e por grupo, na fase 2), o
+  // outlier, o nulo e o imputado. Na fase 1, o tiro do aluno os apaga - uma linha a menos na
+  // tabela (resistencia no Daniel.cpp).
+  "Dado": {
+    "sprite": "Teachers/Projectiles/DPIBHDanielDados.png",
+    "dados":  "Teachers/Projectiles/DPIBHDanielDados.json",
+    "animacoes": { "Fogo": [0], "Agua": [1], "Planta": [2], "Eletrico": [3], "Pedra": [4],
+                   "Outlier": [5], "Nulo": [6], "Cinza": [7] },
+    "animacaoInicial": "Fogo",
+    "ordemDeDesenho": 90,
+    "derrubavel": true
+  },
+
+  // Os mesmos bichinhos, nas fases 2 e 3: a nuvem da PCA, os grupos das k-medias e as amostras
+  // rotuladas. Esses nao se apagam.
+  "Amostra": {
+    "sprite": "Teachers/Projectiles/DPIBHDanielDados.png",
+    "dados":  "Teachers/Projectiles/DPIBHDanielDados.json",
+    "animacoes": { "Fogo": [0], "Agua": [1], "Planta": [2], "Eletrico": [3], "Pedra": [4],
+                   "Outlier": [5], "Nulo": [6], "Cinza": [7] },
+    "animacaoInicial": "Cinza",
+    "ordemDeDesenho": 90
+  },
+
+  // De onde os dados vem: o sensor, a planilha e a API (enfeite).
+  "Fonte": {
+    "sprite": "Teachers/Projectiles/DPIBHDanielFontes.png",
+    "dados":  "Teachers/Projectiles/DPIBHDanielFontes.json",
+    "animacoes": { "Sensor": [0], "Planilha": [1], "Api": [2] },
+    "animacaoInicial": "Sensor",
+    "ordemDeDesenho": 86
+  },
+
+  // O centroide de cada grupo das k-medias.
+  "Centroide": {
+    "sprite": "Teachers/Projectiles/DPIBHDanielCentroides.png",
+    "dados":  "Teachers/Projectiles/DPIBHDanielCentroides.json",
+    "animacoes": { "C0": [0], "C1": [1], "C2": [2], "C3": [3], "C4": [4] },
+    "animacaoInicial": "C0",
+    "ordemDeDesenho": 91,
+    "colisorDivisor": 3.0
+  },
+
+  // As tres arvores do comite, no alto (enfeite).
+  "Arvore": {
+    "sprite": "Teachers/Projectiles/DPIBHDanielArvores.png",
+    "dados":  "Teachers/Projectiles/DPIBHDanielArvores.json",
+    "animacoes": { "A0": [0], "A1": [1], "A2": [2] },
+    "animacaoInicial": "A0",
+    "ordemDeDesenho": 86
+  },
+
+  // Os tiros: o caco do outlier que estoura, o da resposta errada, o palpite da caixa-preta, as
+  // barras do SHAP e o anel da previsao.
+  "Tiro": {
+    "sprite": "Teachers/Projectiles/DPIBHDanielTiros.png",
+    "dados":  "Teachers/Projectiles/DPIBHDanielTiros.json",
+    "animacoes": { "Estouro": [0], "Engano": [1], "Palpite": [2], "BarraMais": [3], "BarraMenos": [4],
+                   "Previsao": [5] },
+    "animacaoInicial": "Estouro",
+    "ordemDeDesenho": 90
+  },
+
+  // As cartas do sorteio: uma por opcao de cada pergunta de revisao (Chamada.cpp). O aluno
+  // sorteado responde derrubando a certa.
+  "Resposta": {
+    "sprite": "Teachers/Projectiles/DPIBHDanielRespostas.png",
+    "dados":  "Teachers/Projectiles/DPIBHDanielRespostas.json",
+    "animacoes": { "R0Q0O0": [0], "R0Q0O1": [1], "R0Q0O2": [2], "R0Q1O0": [3], "R0Q1O1": [4], "R0Q1O2": [5],
+                   "R0Q2O0": [6], "R0Q2O1": [7], "R0Q2O2": [8], "R1Q0O0": [9], "R1Q0O1": [10], "R1Q0O2": [11],
+                   "R1Q1O0": [12], "R1Q1O1": [13], "R1Q1O2": [14], "R1Q2O0": [15], "R1Q2O1": [16], "R1Q2O2": [17],
+                   "R2Q0O0": [18], "R2Q0O1": [19], "R2Q0O2": [20], "R2Q1O0": [21], "R2Q1O1": [22], "R2Q1O2": [23],
+                   "R2Q2O0": [24], "R2Q2O1": [25], "R2Q2O2": [26] },
+    "animacaoInicial": "R0Q0O0",
+    "ordemDeDesenho": 92,
+    "colisorDimensao": "altura",
+    "colisorDivisor": 1.5,
+    "derrubavel": true,
+    "resistencia": 3
+  },
+
+  // A caixa-preta, por cima do professor (enfeite).
+  "Caixa": {
+    "sprite": "Teachers/Projectiles/DPIBHDanielCaixa.png",
+    "dados":  "Teachers/Projectiles/DPIBHDanielCaixa.json",
+    "animacoes": { "Caixa": [0] },
+    "animacaoInicial": "Caixa",
+    "ordemDeDesenho": 140
+  }
+}

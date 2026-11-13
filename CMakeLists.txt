@@ -381,6 +381,16 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/Paginacao.h
         Source/Attacks/Disco.cpp
         Source/Attacks/Disco.h
+        Source/Attacks/Preparacao.cpp
+        Source/Attacks/Preparacao.h
+        Source/Attacks/Agrupamento.cpp
+        Source/Attacks/Agrupamento.h
+        Source/Attacks/Classificacao.cpp
+        Source/Attacks/Classificacao.h
+        Source/Attacks/Explicacao.cpp
+        Source/Attacks/Explicacao.h
+        Source/Attacks/Chamada.cpp
+        Source/Attacks/Chamada.h
         Source/Attacks/Virtualizacao.cpp
         Source/Attacks/Virtualizacao.h
         Source/Attacks/Excecao.cpp
@@ -434,6 +444,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Actors/Teachers/Bosses/Arroyo.cpp
         Source/Actors/Teachers/Bosses/Arroyo.h
         Source/Actors/Teachers/Bosses/Goulart.cpp
+        Source/Actors/Teachers/Bosses/Daniel.cpp
+        Source/Actors/Teachers/Bosses/Daniel.h
         Source/Actors/Teachers/Bosses/Goulart.h
         Source/Actors/Teachers/Bosses/Andre.h
         Source/Actors/Teachers/Bosses/Julio.cpp
@@ -516,6 +528,7 @@ add_executable(dpi_tests
         tests/test_main.cpp
         tests/test_arroyo.cpp
         tests/test_goulart.cpp
+        tests/test_daniel.cpp
         tests/test_limite_de_som.cpp
         tests/test_path_aim.cpp
         tests/test_motion_contract.cpp
@@ -842,6 +855,16 @@ add_executable(dpi_tests
         Source/Attacks/Paginacao.h
         Source/Attacks/Disco.cpp
         Source/Attacks/Disco.h
+        Source/Attacks/Preparacao.cpp
+        Source/Attacks/Preparacao.h
+        Source/Attacks/Agrupamento.cpp
+        Source/Attacks/Agrupamento.h
+        Source/Attacks/Classificacao.cpp
+        Source/Attacks/Classificacao.h
+        Source/Attacks/Explicacao.cpp
+        Source/Attacks/Explicacao.h
+        Source/Attacks/Chamada.cpp
+        Source/Attacks/Chamada.h
         Source/Attacks/Virtualizacao.cpp
         Source/Attacks/Virtualizacao.h
         Source/Attacks/Excecao.cpp

@@ -349,9 +349,10 @@ foi aprovado:
 | 2 | INF 250 — Organização de Computadores *(Ricardo)*, INF 220 — Banco de Dados *(Thiago)*, INF 340 — Linguagens de Programação *(Luizinho)*, INF 331 — Linguagens Formais e Autômatos *(Vladimir)*, INF 332 — Projeto e Análise de Algoritmos *(Arroyo)* | INF 213 aprovada |
 | 3 | INF 420 — Inteligência Artificial *(Júlio)*, INF 221 — Engenharia de Software *(Maria Lúcia)*, INF 321 — Programação Web *(Lucas)*, INF 310 — Programação Concorrente e Distribuída *(Vitor)*, INF 451 — Sistemas Operacionais *(Goulart)* | 2 aprovações na coluna 2 |
 | 4 | TCC — Trabalho de Conclusão de Curso *(Hugo)* | 2 aprovações na coluna 3 |
+| 5 *(optativas)* | INF 425 — Ciência de Dados *(Daniel)* | INF 220 e INF 420 aprovadas, pelo menos 1 menção de ouro, e 20 h de horas complementares |
 
-Toda matéria tem professor e batalha — as doze do curso e o TCC, do Hugo, que é
-a última e a mais difícil. A INF 332 e a INF 451 entraram depois: no
+Toda matéria tem professor e batalha — as doze do curso, o TCC, do Hugo, que é
+a última e a mais difícil, e a optativa INF 425, do Daniel. A INF 332 e a INF 451 entraram depois: no
 `materias.json` elas ficam no fim da lista (o índice de cada matéria é o da
 batalha na simulação e na linha de base, e nenhum podia mudar), e na grade, a
 INF 332 embaixo da INF 331 e a INF 451 embaixo da INF 310, à direita dela. Ter professor e
@@ -367,8 +368,11 @@ grade: com o cursor passando do TCC, a seleção de fases desliza até ela e o
 título vira "OPTATIVAS" (a borda direita avisa "OPTATIVAS »" enquanto ela
 existir, e a esquerda, "« OBRIGATÓRIAS", para voltar). Cada página da ala tem
 até quatro colunas; com mais, ela continua para a direita ("MAIS »"). As
-optativas não contam no "Aprovadas: N de M". Ainda não há nenhuma em
-`materias.json`: a ala só aparece quando a primeira entrar.
+optativas não contam no "Aprovadas: N de M". São **mais difíceis** que as
+obrigatórias, pedem **requisitos** além das aprovações (uma menção de ouro,
+horas ganhas...) e se **compram** com horas complementares; o prêmio é um
+**orientador novo** no TCC — o professor da optativa aprovada sempre aparece
+entre os três candidatos. A primeira é a INF 425, Ciência de Dados, do Daniel.
 
 ## O que fica gravado
 
@@ -638,6 +642,37 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   some com os tiros dela, e ela repõe. Tudo anda pelo relógio do sistema: o
   Ponto Extra limpa a tela, e o escalonador, a memória, o disco e a nuvem
   continuam.
+- **Daniel — INF 425, optativa.** Ciência de Dados, a primeira optativa — e mais
+  difícil que as obrigatórias. O catálogo é o dos **monstrinhos** (o x do
+  gráfico é o ataque, o y a defesa), e as espécies são fogo, água e planta. Na
+  **preparação**, o campo é um gráfico de dispersão: os dados voam das fontes (o
+  sensor, a planilha e a API) até o lugar deles e ficam; o z-score acha o
+  outlier, que estoura, e o nulo é imputado — voa até a média. Depois o gráfico
+  inteiro se **transforma** de uma vez: o min-max espreme tudo na caixa do canto
+  em que **você** está, e a padronização abre tudo em volta do meio — antes de
+  cada uma, uma seta sai de cada dado até onde ele vai parar, e quem joga olha
+  para onde os pontos **vão**. Nos **atributos e grupos**, a PCA projeta a nuvem
+  na componente principal, e a fileira que sobra **gira** em volta da média,
+  varrendo o campo; nas **k-médias**, o campo vira o Voronoi dos centróides, e
+  você também é um ponto — pesado: o centróide da sua célula vem para cima de
+  você, e atravessar a fronteira troca quem persegue. No **supervisionado**, a
+  fronteira de decisão divide o campo em fogo e água, e o lado em que você está
+  é a sua classe: **a amostra da sua cor passa por você**, e só a da outra
+  acerta. As rajadas vêm uma classe por vez (o anel do professor já mostra a
+  próxima), os dados de treino chovem das duas, e a fronteira muda: no
+  perceptron, uma reta que aprende com os erros (a nova aparece tracejada antes
+  de valer); no **comitê**, três árvores de decisão votam, e o campo vira uma
+  colcha que muda quando uma árvore é replantada. O exame é a
+  **explicabilidade**: na caixa-preta, cada dúvida que acerta o professor é uma
+  pergunta, e quanto mais perguntas, mais cedo a linha de cada palpite aparece;
+  no **SHAP**, a explicação de uma previsão desce em cascata — uma barra de tiros
+  por atributo, cada uma começando onde a anterior acabou, e a previsão estoura
+  onde a cascata termina. E o professor **sorteia** quem explica a aula
+  passada: no começo das fases 2, 3 e da final, uma roleta passa pelos nomes da
+  turma; se para num colega, ele explica; se para em você — *"eu escolho
+  você!"* —, a pergunta de revisão aparece no placar e as três respostas descem
+  em cartas: derrubar a certa vale nota, a errada estoura em cacos, e enquanto a
+  pergunta está aberta o professor só espera a resposta.
 - **Lucas — INF 321.** Programação Web, na ordem da matéria. No HTML ele
   renderiza uma página gerada a cada luta, com o layout desenhado no campo, e
   cada elemento ataca do seu jeito: o cursor voa até o `<button>` e clica, a
@@ -663,7 +698,8 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   gramática do Vladimir, o gradiente do Júlio, o Observer da Maria Lúcia, o
   `fetch` do Lucas, a janela do TCP do Vitor, a busca binária do Arroyo, que
   fecha os dois tiros no Hugo pela metade a cada rodada, e o Round Robin do
-  Goulart, uma rajada curta de cada lado por vez), e cada um traz um
+  Goulart, uma rajada curta de cada lado por vez, e o comitê do Daniel, três
+  tiros que saem abertos e miram de novo no Hugo), e cada um traz um
   **poder**, que carrega a cada acerto no Hugo e sai no **botão 3**. O poder é um
   conceito da matéria dele, jogável:
 
@@ -697,6 +733,10 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
     vez anda, um quantum de cada vez — os outros esperam parados: o campo
     inteiro anda a um quarto da rapidez, aos trancos. A banca dele pergunta
     "Quanto custa uma troca de contexto?".
+  - **Daniel — k-médias.** Os tiros do Hugo em campo viram quatro grupos, e
+    cada grupo vira um tiro só, no centróide: dezenas de tiros, de uma vez,
+    viram quatro. Ele orienta quem passou na optativa dele, mas não senta na
+    banca; o objetivo dele pergunta "Cadê o conjunto de teste?".
 
   A tela em que se escolhe o orientador mostra o poder de cada um
   funcionando: um campo em miniatura, animado, com a legenda de cada passo.
@@ -816,7 +856,7 @@ Assets/          sprites, fontes, sons e os JSON que descrevem o jogo
 Documentacao/    receitas para quem for mexer no código
 Ferramentas/     geradores de arte e de som provisórios, e as medições: o jogo
                  rodando sozinho (medir-dificuldade.sh), o portão do aluno
-                 parado (parado-reprova.sh) e as 64 batalhas que uma
+                 parado (parado-reprova.sh) e as 69 batalhas que uma
                  refatoração não pode mudar (linha-de-base.sh)
 
 tests/           a suíte
@@ -857,7 +897,7 @@ resto mora em colaboradores, um por assunto:
 | `TelaDeCarregamento` | o véu enquanto os projéteis são preparados |
 
 Uma refatoração nela tem de passar pela linha de base
-(`Ferramentas/linha-de-base.sh`): as 64 batalhas idênticas, byte a byte.
+(`Ferramentas/linha-de-base.sh`): as 69 batalhas idênticas, byte a byte.
 
 ## Os dados
 

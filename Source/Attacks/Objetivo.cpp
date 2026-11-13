@@ -121,6 +121,9 @@ namespace Objetivo {
             case Golpe::Materia::Goulart:
                 q.pergunta = "Quanto custa uma troca de contexto?";
                 r = {"bem menos que o quantum", "um café", "nada, a CPU é rápida"}; break;
+            case Golpe::Materia::Daniel:
+                q.pergunta = "Cadê o conjunto de teste?";
+                r = {"separei 20% antes de treinar", "testei no de treino", "o modelo acertou tudo"}; break;
             case Golpe::Materia::Arroyo:
                 q.pergunta = "Qual é a complexidade disso?";
                 r = {"Θ(n log n), pelo Teorema Mestre", "roda rápido no meu PC", "é polinomial, acho"}; break;

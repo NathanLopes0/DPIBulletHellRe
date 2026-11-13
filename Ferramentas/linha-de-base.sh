@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# A LINHA DE BASE: 64 batalhas que nao podem mudar sem querer.
+# A LINHA DE BASE: 69 batalhas que nao podem mudar sem querer.
 #
-# Roda o jogo sozinho (o modo de simulacao, Source/Simulacao/Simulacao.h) nas treze
-# materias, nos dois modos e nas duas dificuldades, e no TCC com cada um dos doze
+# Roda o jogo sozinho (o modo de simulacao, Source/Simulacao/Simulacao.h) nas catorze
+# materias, nos dois modos e nas duas dificuldades, e no TCC com cada um dos treze
 # orientadores - sempre com a mesma semente, o mesmo passo de tempo e o mesmo piloto -
 # e compara a nota quadro a quadro com a gravada em Ferramentas/linha-de-base/.
 #
@@ -43,11 +43,11 @@ PARALELO="${PARALELO:-3}"
 # ESPACO: para o xargs -L, o espaco no fim emenda a linha com a seguinte, e as duas
 # batalhas viram uma so (com os parametros da ultima).
 lista() {
-    for B in 0 1 2 3 4 5 6 7 8 9 10 11 12; do for M in N D; do for J in 1 2; do
+    for B in 0 1 2 3 4 5 6 7 8 9 10 11 12 13; do for M in N D; do for J in 1 2; do
         dificil=""; [ $M = D ] && dificil=" --dificil"
         echo "b${B}_${M}_${J} --batalha $B --jogadores $J --semente $((B*7+3)) --orientador INF213${dificil}"
     done; done; done
-    for O in INF110 INF221 INF220 INF250 INF331 INF420 INF340 INF321 INF310 INF213 INF332 INF451; do
+    for O in INF110 INF221 INF220 INF250 INF331 INF420 INF340 INF321 INF310 INF213 INF332 INF451 INF425; do
         echo "tcc_${O} --batalha 10 --jogadores 1 --semente 11 --orientador $O"
     done
 }
@@ -61,7 +61,7 @@ rodar() {  # nome parametros...
 }
 export -f rodar; export JOGO SAIDA RAIZ
 
-echo "rodando 64 batalhas com $JOGO ($PARALELO por vez) em $SAIDA..."
+echo "rodando 69 batalhas com $JOGO ($PARALELO por vez) em $SAIDA..."
 lista | xargs -P "$PARALELO" -L 1 bash -c 'rodar "$@"' _
 
 sem_fim=0

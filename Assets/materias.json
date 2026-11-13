@@ -103,6 +103,17 @@
       "nomeCompleto": "Sistemas Operacionais", "professor": "Goulart",
       "coluna": 3, "chefe": "goulart",
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
+    },
+
+    // ---- As optativas: a direita do TCC, compradas com horas ----
+    // Mais dificeis que as obrigatorias, e o professor de cada uma vira orientador do TCC de quem
+    // passa nela. Tambem no fim da lista (--batalha 13 e a INF 425).
+    {
+      "codigo": "INF425", "nome": "INF 425",
+      "nomeCompleto": "Ciência de Dados", "professor": "Daniel",
+      "coluna": 5, "chefe": "daniel", "optativa": true,
+      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF220", "INF420"], "preco": 20,
+                       "requisitos": [ { "tipo": "mencao", "mencao": "ouro", "quantas": 1 } ] }
     }
   ]
 }

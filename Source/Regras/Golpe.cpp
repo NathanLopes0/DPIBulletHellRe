@@ -23,6 +23,7 @@ namespace Golpe {
         if (professor == "Vitor") return Materia::Vitor;
         if (professor == "Arroyo") return Materia::Arroyo;
         if (professor == "Goulart") return Materia::Goulart;
+        if (professor == "Daniel") return Materia::Daniel;
         return Materia::Generico;
     }
 
@@ -164,6 +165,21 @@ namespace Golpe {
                     Tiro t;
                     t.quando = 0.08f * static_cast<float>(i);
                     t.desvio = lado;
+                    r.tiros.push_back(t);
+                }
+                break;
+            }
+
+            case Materia::Daniel: {
+                // O comite: tres arvores, de tres lugares, votam no mesmo alvo - cada tiro sai
+                // aberto para um lado e mira de novo no chefe.
+                r.duracao = 1.5f;
+                for (int i = 0; i < 3; ++i) {
+                    Tiro t;
+                    t.quando = 0.05f * static_cast<float>(i);
+                    t.dx = 26.0f * static_cast<float>(i - 1);
+                    t.desvio = 30.0f * static_cast<float>(i - 1);
+                    t.reMira = 0.22f;
                     r.tiros.push_back(t);
                 }
                 break;

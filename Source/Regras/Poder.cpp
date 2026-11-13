@@ -6,6 +6,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
+
+#include "../Attacks/Agrupamento.h"
 
 namespace Poder {
 
@@ -55,6 +58,11 @@ namespace Poder {
             case Golpe::Materia::Goulart:
                 d = {Tipo::Rodizio, "Round Robin", "os tiros do Hugo andam um quarto por vez", 5.0f, 0.0f,
                      kGruposDoRodizio, kQuantumDoRodizio};
+                break;
+            case Golpe::Materia::Daniel:
+                // \xc3\xa9 e o e agudo, \xc3\xb3 o o agudo.
+                d = {Tipo::KMedias, "k-m\xc3\xa9" "dias", "os tiros do Hugo viram 4 centr\xc3\xb3" "ides", 0.0f, 0.0f,
+                     kGruposDasKMedias, 0.0f};
                 break;
             default:
                 break;
@@ -114,7 +122,28 @@ namespace Poder {
         if (m == Golpe::Materia::Generico) return -1;
         if (m == Golpe::Materia::Arroyo) return kQuadroDoArroyo;
         if (m == Golpe::Materia::Goulart) return kQuadroDoGoulart;
+        if (m == Golpe::Materia::Daniel) return kQuadroDoDaniel;
         return 2 + static_cast<int>(m);
+    }
+
+    std::vector<Vector2> KMedias(const std::vector<Vector2>& pontos, const int k, std::vector<int>& grupos) {
+        grupos.assign(pontos.size(), -1);
+        if (pontos.empty() || k <= 0) return {};
+        // As sementes: de ponta a ponta, pelo x - espalhadas, e sem sorteio.
+        std::vector<size_t> ordem(pontos.size());
+        for (size_t i = 0; i < ordem.size(); ++i) ordem[i] = i;
+        std::sort(ordem.begin(), ordem.end(), [&](const size_t a, const size_t b) { return pontos[a].x < pontos[b].x; });
+        const int n = std::min(k, static_cast<int>(pontos.size()));
+        std::vector<Vector2> centros;
+        for (int j = 0; j < n; ++j) {
+            centros.push_back(pontos[ordem[static_cast<size_t>((2 * j + 1) * static_cast<int>(pontos.size()) / (2 * n))]]);
+        }
+        for (int it = 0; it < kIteracoesDasKMedias; ++it) {
+            grupos = Agrupamento::Atribuir(pontos, centros);
+            centros = Agrupamento::Atualizar(pontos, grupos, centros, {}, 0.0f);
+        }
+        grupos = Agrupamento::Atribuir(pontos, centros);
+        return centros;
     }
 
     int LevaNoPasso(const int n) {
@@ -347,6 +376,45 @@ namespace Poder {
                 }
                 q.legenda = t < kComeca ? "Round Robin: 12 tiros, 4 grupos"
                                         : "quantum: o grupo " + std::to_string(daVez + 1) + " de 4 anda";
+                break;
+            }
+            case Tipo::KMedias: {
+                // Dezesseis tiros do Hugo caindo; as k-medias os juntam em quatro grupos - uma linha de
+                // cada tiro ate o centroide dele -, e cada grupo vira um tiro so, que segue caindo.
+                constexpr float kAgrupa = 1.2f, kJunta = 1.9f;
+                constexpr int kTiros = 16;
+                const std::vector<Ponto> agora = Chuva(t, kTiros);
+                std::vector<Vector2> naHora;
+                for (const Ponto& p : Chuva(std::min(t, kAgrupa), kTiros)) naHora.emplace_back(p.x, p.y);
+                std::vector<int> grupos;
+                const std::vector<Vector2> centros = KMedias(naHora, kGruposDasKMedias, grupos);
+                if (t < kJunta) {
+                    for (const Ponto& p : agora) q.pontos.push_back(p);
+                    if (t >= kAgrupa) {
+                        for (size_t k = 0; k < agora.size(); ++k) {
+                            const Vector2 c = centros[static_cast<size_t>(grupos[k])];
+                            const float desce = agora[k].y - naHora[k].y;
+                            q.tracos.push_back({Marca::Estrutura, agora[k].x, agora[k].y, c.x, c.y + desce});
+                        }
+                    }
+                } else {
+                    for (size_t g = 0; g < centros.size(); ++g) {
+                        // O centroide desce com o grupo dele.
+                        float desce = 0.0f;
+                        int n = 0;
+                        for (size_t k = 0; k < agora.size(); ++k) {
+                            if (grupos[k] != static_cast<int>(g)) continue;
+                            desce += agora[k].y - naHora[k].y;
+                            ++n;
+                        }
+                        q.pontos.push_back({Marca::TiroDoHugo, centros[g].x, centros[g].y + (n > 0 ? desce / static_cast<float>(n) : 0.0f)});
+                        Anel(q, Marca::Estrutura, centros[g].x, centros[g].y + (n > 0 ? desce / static_cast<float>(n) : 0.0f), 0.035f);
+                    }
+                }
+                // \xc3\xa9 e o e agudo, \xc3\xa7\xc3\xa3 o "cao", \xc3\xb3 o o agudo.
+                q.legenda = t < kAgrupa ? "k-m\xc3\xa9" "dias: 16 tiros"
+                                        : (t < kJunta ? "atribui\xc3\xa7\xc3\xa3o: cada tiro ao centr\xc3\xb3" "ide"
+                                                      : "16 tiros viram 4");
                 break;
             }
             case Tipo::Converter: {

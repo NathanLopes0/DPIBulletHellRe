@@ -383,6 +383,41 @@ namespace {
         int mPasso = 0;
     };
 
+    // ---- Daniel: as k-medias ----
+
+    class KMedias final : public PoderEmCampo {
+    public:
+        void Soltar(Orientador& o, Battle& batalha, const Vector2&, const Vector2&) override {
+            // Os tiros do Hugo em campo viram grupos, e cada grupo vira um tiro so, no centroide: o
+            // mais perto dele fica, la, e os outros somem.
+            std::vector<BossProjectile*> tiros = o.TirosSoltos(batalha);
+            std::vector<Vector2> pontos;
+            for (const BossProjectile* p : tiros) pontos.push_back(p->GetPosition());
+            std::vector<int> grupos;
+            const std::vector<Vector2> centros = Poder::KMedias(pontos, o.Descricao().tiros, grupos);
+            std::vector<int> fica(centros.size(), -1);
+            std::vector<float> perto(centros.size(), std::numeric_limits<float>::max());
+            for (size_t k = 0; k < tiros.size(); ++k) {
+                const int g = grupos[k];
+                if (g < 0) continue;
+                const float d = (pontos[k] - centros[static_cast<size_t>(g)]).LengthSq();
+                if (d < perto[static_cast<size_t>(g)]) {
+                    perto[static_cast<size_t>(g)] = d;
+                    fica[static_cast<size_t>(g)] = static_cast<int>(k);
+                }
+            }
+            for (size_t k = 0; k < tiros.size(); ++k) {
+                const int g = grupos[k];
+                if (g >= 0 && fica[static_cast<size_t>(g)] == static_cast<int>(k)) tiros[k]->SetPosition(centros[static_cast<size_t>(g)]);
+                else tiros[k]->Kill();
+            }
+            // \xc3\xa9 e o e agudo, \xe2\x86\x92 a seta.
+            o.Rotular("k-m\xc3\xa9" "dias: " + std::to_string(tiros.size()) + " tiros \xe2\x86\x92 " +
+                      std::to_string(centros.size()));
+            o.AbrirAnel();
+        }
+    };
+
     // ---- Goulart: o Round Robin ----
 
     class Rodizio final : public PoderEmCampo {
@@ -680,6 +715,7 @@ std::unique_ptr<PoderEmCampo> PoderEmCampo::Do(const Poder::Tipo t) {
         case Poder::Tipo::Mutex:       return std::make_unique<Mutex>();
         case Poder::Tipo::BuscaBinaria: return std::make_unique<BuscaBinaria>();
         case Poder::Tipo::Rodizio:     return std::make_unique<Rodizio>();
+        case Poder::Tipo::KMedias:     return std::make_unique<KMedias>();
         case Poder::Tipo::Nenhum:      break;
     }
     return nullptr;

@@ -81,6 +81,11 @@ public:
     void DefinirEnfeite(const bool enfeite) { mEnfeite = enfeite; }
     [[nodiscard]] bool Enfeite() const { return mEnfeite; }
 
+    /// A classe deste tiro (-1: nenhuma). O tiro da classe do aluno (Player::Classe) passa por ele:
+    /// a fronteira de decisao do Daniel diz de que classe cada aluno e, e so a outra o acerta.
+    void DefinirClasse(const int classe) { mClasse = classe; }
+    [[nodiscard]] int Classe() const { return mClasse; }
+
     /// Na dupla, se e a primeira vez que este disparo vai no aluno 'aluno' (Battle::MarcarOCaminhoDosAlunos):
     /// cada projetil conta uma chance de cobertura por aluno, por mais quadros que passe indo nele.
     bool PrimeiraVezNoCaminhoDe(size_t aluno);
@@ -127,6 +132,8 @@ protected:
 
     /// Do disparo: volta a falso no Reset.
     bool mEnfeite = false;
+    /// Do disparo: volta a -1 no Reset.
+    int mClasse = -1;
     /// Em quais alunos este disparo ja foi (um bit por posicao): PrimeiraVezNoCaminhoDe.
     unsigned mCaminhos = 0;
 

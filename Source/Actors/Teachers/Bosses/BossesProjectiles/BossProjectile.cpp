@@ -33,6 +33,7 @@ void BossProjectile::Reset() {
     mBlindado = false;
 
     mEnfeite = false;
+    mClasse = -1;
 
     // E o posto: uma historia entregue no quadro voltaria do pool atirando.
     mPosto.clear();

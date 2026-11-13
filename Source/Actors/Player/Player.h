@@ -39,6 +39,11 @@ public:
     /// pelo parceiro.
     [[nodiscard]] bool EstaInvencivel() const { return mInvencivel || mTempoDeImunidade > 0.0f; }
 
+    /// A classe do aluno (-1: nenhuma): o tiro do chefe da mesma classe (BossProjectile::Classe)
+    /// passa por ele. Quem a muda e o chefe - a fronteira de decisao do Daniel.
+    void DefinirClasse(const int classe) { mClasse = classe; }
+    [[nodiscard]] int Classe() const { return mClasse; }
+
     /// O mesmo causador nao acerta duas vezes seguidas (Acerto.h): 'quem' e o projetil ou o corpo
     /// do chefe, e 'idade' a vida dele (0 para o corpo).
     [[nodiscard]] bool JaFoiAcertadoPor(const void* quem, const float idade) const { return mAcertos.Lembra(quem, idade); }
@@ -130,6 +135,7 @@ private:
     float mTempoDePiscar = kPiscar;
     /// A imunidade dada pelo parceiro: o que resta, e o pulso do azul.
     float mTempoDeImunidade = 0.0f;
+    int mClasse = -1;
     float mPulsoDaImunidade = 0.0f;
     /// A corrente: o que resta, quanto ela corta da velocidade, e o pulso do ferro.
     float mTempoDeCorrente = 0.0f;

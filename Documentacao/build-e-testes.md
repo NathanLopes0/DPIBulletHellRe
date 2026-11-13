@@ -232,8 +232,9 @@ dois jogadores há mais colisões, e cada uma consome números do mesmo sorteado
 
 ### A linha de base
 
-`Ferramentas/linha-de-base.sh` roda **64 batalhas** — as treze matérias, solo e
-dupla, Normal e Difícil, e o TCC com cada um dos doze orientadores — e compara
+`Ferramentas/linha-de-base.sh` roda **69 batalhas** — as catorze matérias (a
+optativa INF 425 inclusive), solo e
+dupla, Normal e Difícil, e o TCC com cada um dos treze orientadores — e compara
 a nota, quadro a quadro, com a gravada em `Ferramentas/linha-de-base/`:
 
 ```bash

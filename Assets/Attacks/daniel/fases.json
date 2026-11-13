@@ -1,0 +1,121 @@
+{
+  // As fases do Daniel (INF 425 - Ciencia de Dados, optativa). O que cada uma faz mora no C++
+  // (Daniel.cpp) e na camada pura (Preparacao.h, Agrupamento.h, Classificacao.h, Explicacao.h e
+  // Chamada.h, o sorteio); aqui ficam os tiros que ele puxa pelo gatilho, e os nomes que o placar
+  // mostra.
+
+  // ==========================================================================
+
+  // Fase 1 - os dados: a coleta e a preparacao | gesto: o professor anda devagar no alto. O campo e
+  // o grafico de dispersao do catalogo (o x e o ataque, o y a defesa): os dados voam das fontes ate o
+  // lugar deles e ficam; a limpeza estoura os outliers e imputa os nulos; a normalizacao move o
+  // grafico inteiro - e uma seta avisa para onde cada dado vai.
+  "StateOne": {
+    "duracao": 20,
+    "proximo": "StateTwo",
+    "anuncio": "Dados: a coleta e a preparação",
+    "etapas": [
+      { "nome": "Coleta",       "duracao": 7.0, "anuncio": "Coleta: o sensor, a planilha e a API" },
+      { "nome": "Limpeza",      "duracao": 6.0, "anuncio": "Limpeza: o outlier e o nulo" },
+      { "nome": "Normalizacao", "duracao": 7.0, "anuncio": "Normalização: o gráfico inteiro se move" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 200 },
+    "ataques": [
+      { "som": false, "gatilho": "fonte", "estrategia": "WaveAttack", "projetil": "Fonte",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "dado", "estrategia": "WaveAttack", "projetil": "Dado",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "estouro", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 12, "velocidade": 190, "angulo": 330, "intervalo": 0 }
+    ]
+  },
+
+  // Fase 2 - os atributos e os grupos | gesto: o professor anda devagar no alto. Comeca com o
+  // sorteio de quem explica a aula passada; na PCA, a nuvem desce ate a componente principal e a
+  // fileira gira; nas k-medias, o centroide da celula do aluno vem para cima dele.
+  "StateTwo": {
+    "duracao": 20,
+    "proximo": "StateThree",
+    "anuncio": "Atributos e grupos",
+    "etapas": [
+      { "nome": "Sorteio", "duracao": 6.0, "anuncio": "Sorteio: quem explica a aula passada?" },
+      { "nome": "PCA",     "duracao": 6.0, "anuncio": "PCA: a direção de maior variância" },
+      { "nome": "KMedias", "duracao": 8.0, "anuncio": "k-médias: você também é um ponto" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 220 },
+    "ataques": [
+      { "som": false, "gatilho": "amostra", "estrategia": "WaveAttack", "projetil": "Amostra",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "centroide", "estrategia": "WaveAttack", "projetil": "Centroide",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "convergiu", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 8, "velocidade": 205, "angulo": 315, "intervalo": 0 },
+      { "gatilho": "resposta", "estrategia": "WaveAttack", "projetil": "Resposta",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "engano", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 10, "velocidade": 190, "angulo": 324, "intervalo": 0 },
+      { "som": false, "gatilho": "garoa", "estrategia": "WaveAttack", "projetil": "Amostra",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "garoa" }
+    ]
+  },
+
+  // Fase 3 - o supervisionado e os comites | gesto: o professor anda no alto, de um lado ao outro.
+  // Comeca com o sorteio; depois a fronteira de decisao divide o campo em fogo e agua, e o lado do
+  // aluno e a classe dele: a rajada da classe dele passa, a da outra acerta. No perceptron a
+  // fronteira e uma reta que aprende com os erros; no comite, tres arvores votam.
+  "StateThree": {
+    "duracao": 20,
+    "proximo": "",
+    "anuncio": "Supervisionado: a fronteira de decisão",
+    "etapas": [
+      { "nome": "Sorteio",    "duracao": 6.0, "anuncio": "Sorteio: quem explica a aula passada?" },
+      { "nome": "Perceptron", "duracao": 7.0, "anuncio": "Perceptron: a sua cor não te acerta" },
+      { "nome": "Comite",     "duracao": 7.0, "anuncio": "Comitê: três árvores votam" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 260 },
+    "ataques": [
+      { "gatilho": "rotulada", "estrategia": "WaveAttack", "projetil": "Amostra",
+        "projeteis": 11, "velocidade": 250, "angulo": 40, "intervalo": 0 },
+      { "som": false, "gatilho": "arvore", "estrategia": "WaveAttack", "projetil": "Arvore",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "resposta", "estrategia": "WaveAttack", "projetil": "Resposta",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "engano", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 10, "velocidade": 190, "angulo": 324, "intervalo": 0 },
+      { "som": false, "gatilho": "garoa", "estrategia": "WaveAttack", "projetil": "Amostra",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "garoa" }
+    ]
+  },
+
+  // Fase final - a explicabilidade | gesto: o professor anda devagar no alto. So e vista por quem
+  // termina a terceira entre 40 e 59, ou com 100. Comeca com o sorteio; na caixa-preta, cada
+  // pergunta (a duvida que acerta o professor) adianta o aviso dos palpites; no SHAP, a cascata das
+  // contribuicoes desce em barras.
+  "StateFinal": {
+    "duracao": 20,
+    "proximo": "StateOne",
+    "anuncio": "Explicabilidade: abrindo o modelo",
+    "etapas": [
+      { "nome": "Sorteio",    "duracao": 6.0, "anuncio": "Sorteio: quem explica a aula passada?" },
+      { "nome": "CaixaPreta", "duracao": 6.0, "anuncio": "Caixa-preta: pergunte, e ele avisa" },
+      { "nome": "Shap",       "duracao": 8.0, "anuncio": "SHAP: quanto cada atributo empurra" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 200 },
+    "ataques": [
+      { "som": false, "gatilho": "palpite", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "barra", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "previsao", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 12, "velocidade": 180, "angulo": 330, "intervalo": 0 },
+      { "som": false, "gatilho": "caixa", "estrategia": "WaveAttack", "projetil": "Caixa",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "resposta", "estrategia": "WaveAttack", "projetil": "Resposta",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "engano", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 10, "velocidade": 190, "angulo": 324, "intervalo": 0 },
+      { "som": false, "gatilho": "garoa", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "garoa" }
+    ]
+  }
+}

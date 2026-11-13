@@ -82,6 +82,8 @@ void Colisoes::TiroDoChefeNoAluno(const std::vector<std::unique_ptr<BossProjecti
             if (projetil->GetState() != ActorState::Active) continue;
             if (projetil->Enfeite()) continue;   // o cursor da sprint e a mao, nao um tiro
             if (projetil->Abrigo()) continue;    // a capivara nao machuca ninguem
+            // A classe do aluno: o tiro da mesma classe passa por ele (BossProjectile::Classe).
+            if (projetil->Classe() >= 0 && projetil->Classe() == jogador->Classe()) continue;
             const auto* colisorDoProjetil = projetil->GetComponent<CircleColliderComponent>();
             if (!colisorDoProjetil) continue;
 

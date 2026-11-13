@@ -7,6 +7,7 @@
 #include "FabricaDeChefe.h"
 #include "../Bosses/Andre.h"
 #include "../Bosses/Arroyo.h"
+#include "../Bosses/Daniel.h"
 #include "../Bosses/Goulart.h"
 #include "../Bosses/Hugo.h"
 #include "../Bosses/Julio.h"
@@ -46,6 +47,7 @@ std::map<std::string, std::unique_ptr<IBossFactory>> Fabricas(Game* game) {
     Registrar<Hugo>      (f, game, "hugo",       "Hugo");
     Registrar<Arroyo>    (f, game, "arroyo",     "Arroyo");
     Registrar<Goulart>   (f, game, "goulart",    "Goulart");
+    Registrar<Daniel>    (f, game, "daniel",     "Daniel");
     return f;
 }
 

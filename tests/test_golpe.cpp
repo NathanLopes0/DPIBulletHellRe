@@ -18,7 +18,7 @@ namespace {
     const Materia kTodas[] = {Materia::Generico, Materia::Andre, Materia::Salles, Materia::Ricardo,
                               Materia::Thiago, Materia::Luizinho, Materia::Vladimir, Materia::Julio,
                               Materia::MariaLucia, Materia::Lucas, Materia::Vitor, Materia::Arroyo,
-                              Materia::Goulart};
+                              Materia::Goulart, Materia::Daniel};
 
     /// Quantos tiros chegam a voar de um: a gramatica divide.
     int Finais(const Tiro& t) {
@@ -37,6 +37,7 @@ TEST_CASE("Golpe: cada professor de materias.json tem o golpe dele") {
     CHECK(DoProfessor("Maria L\xc3\xba" "cia") == Materia::MariaLucia);
     CHECK(DoProfessor("Lucas") == Materia::Lucas);
     CHECK(DoProfessor("Vitor") == Materia::Vitor);
+    CHECK(DoProfessor("Daniel") == Materia::Daniel);
     CHECK(DoProfessor("Hugo") == Materia::Generico);
     CHECK(DoProfessor("") == Materia::Generico);
 }

@@ -198,6 +198,19 @@ namespace Tcc {
                 }
                 break;
             }
+            case Materia::Daniel: {
+                // As k-medias: tres grupos de tiros, cada um num rumo - o centroide -, com o
+                // espalhamento do grupo em volta dele.
+                for (int g = 0; g < 3; ++g) {
+                    const float centro = static_cast<float>(g - 1) * N(22.0f, 28.0f);
+                    for (int i = 0; i < 5; ++i) {
+                        Golpe::Tiro t = Tiro(0.12f * static_cast<float>(g) + 0.03f * static_cast<float>(i), N(250.0f, 270.0f));
+                        t.desvio = centro + Passo(i, 5, -6.0f, 6.0f);
+                        tiros.push_back(t);
+                    }
+                }
+                break;
+            }
             case Materia::Generico:
             default: {
                 // O Hugo sem orientador: um leque de paginas.
@@ -252,6 +265,8 @@ namespace Tcc {
              "T(n) = 2T(n/2) + n",       "Qual é a complexidade disso?",      "Arroyo"},
             {Materia::Goulart,    "Goulart",     "Sistemas Operacionais",
              "Round Robin, q = 1,2 s",   "Quanto custa uma troca de contexto?", "Goulart"},
+            {Materia::Daniel,     "Daniel",      "Ciência de Dados",
+             "k-means, k = 3",           "Cadê o conjunto de teste?",           "Daniel"},
         };
 
         /// Sem orientador (o Generico), o proprio Hugo: tema livre.

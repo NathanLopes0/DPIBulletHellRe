@@ -618,6 +618,7 @@ void Battle::ProfessorAcertado(const PlayerProjectile& tiro, const CircleCollide
     // Acerto de um jogador: repartido.
     Avisar([&](OuvinteDaBatalha& o) { o.AoAcertarOProfessor(*this, tiro.Dono(), ouviu); });
 
+    if (ouviu && mChefe) mChefe->AoSerPerguntado();
     if (ouviu) {
         // A duvida perguntada de perto vale mais (Nota::FatorDePerto) - a do aluno; a do orientador, nao.
         const int quem = PosicaoDoAluno(tiro.Dono());

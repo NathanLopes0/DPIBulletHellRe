@@ -129,6 +129,9 @@ public:
     /// O mesmo aviso de OnProjetilDerrubado, dizendo qual projetil caiu. Chamado logo depois de
     /// OnProjetilDerrubado; o padrao nao faz nada.
     virtual void OnDerrubou(BossProjectile* /*qual*/) {}
+    /// A duvida de um aluno acertou o professor e ele ouviu (Battle::ProfessorAcertado): a
+    /// caixa-preta do Daniel conta as perguntas.
+    virtual void AoSerPerguntado() {}
 
     // ---- O escudo ----
 

@@ -18,7 +18,7 @@ namespace Poder {
 
     enum class Tipo {
         Nenhum, Matriz, Pilha, Congelar, Transacao, TryCatch, Converter, Agentes, BalaDePrata, PromiseAll, Mutex,
-        BuscaBinaria, Rodizio
+        BuscaBinaria, Rodizio, KMedias
     };
 
     struct Descricao {
@@ -127,14 +127,25 @@ namespace Poder {
     /// O grupo que tem a CPU 't' segundos depois de o poder sair.
     int GrupoDaVez(float t);
 
+    // ---- Daniel: as k-medias ----
+
+    /// Os tiros do Hugo em campo viram kGruposDasKMedias grupos (as k-medias, Agrupamento.h), e cada
+    /// grupo vira um tiro so, no centroide: dezenas de tiros, de uma vez, viram quatro.
+    constexpr int kGruposDasKMedias = 4;
+    constexpr int kIteracoesDasKMedias = 6;
+    /// Os centroides das k-medias dos 'pontos': as sementes espalhadas (de ponta a ponta, pelo x), e
+    /// kIteracoesDasKMedias rodadas. Devolve tambem o grupo de cada ponto.
+    std::vector<Vector2> KMedias(const std::vector<Vector2>& pontos, int k, std::vector<int>& grupos);
+
     // ---- A cara ----
 
     /// A folha com o projetil de cada professor (Ferramentas/gerar_hugo.py): o
     /// tiro do orientador tem a cara da materia dele.
     constexpr const char* kFolhaDasMaterias = "Teachers/Projectiles/DPIBHHugoTcc";
-    /// O ladrilho do Arroyo na folha: o quadro 22, depois da Caixa; o do Goulart, o 23.
+    /// O ladrilho do Arroyo na folha: o quadro 22, depois da Caixa; o do Goulart, o 23; o do Daniel, o 24.
     constexpr int kQuadroDoArroyo = 22;
     constexpr int kQuadroDoGoulart = 23;
+    constexpr int kQuadroDoDaniel = 24;
 
     /// O quadro da materia 'm' em kFolhaDasMaterias; -1 sem materia (o tiro de sempre).
     int QuadroDaMateria(Golpe::Materia m);

@@ -1,0 +1,125 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHDanielCentroides 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielCentroides 1.placeholder",
+   "frame": {
+    "x": 28,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielCentroides 2.placeholder",
+   "frame": {
+    "x": 56,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielCentroides 3.placeholder",
+   "frame": {
+    "x": 84,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielCentroides 4.placeholder",
+   "frame": {
+    "x": 112,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_daniel.py",
+  "version": "1.0",
+  "image": "DPIBHDanielCentroides.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 140,
+   "h": 28
+  },
+  "scale": "1"
+ }
+}

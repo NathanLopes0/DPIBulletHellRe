@@ -1,0 +1,609 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHDanielRespostas 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 1.placeholder",
+   "frame": {
+    "x": 176,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 2.placeholder",
+   "frame": {
+    "x": 352,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 3.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 38,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 4.placeholder",
+   "frame": {
+    "x": 176,
+    "y": 38,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 5.placeholder",
+   "frame": {
+    "x": 352,
+    "y": 38,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 6.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 76,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 7.placeholder",
+   "frame": {
+    "x": 176,
+    "y": 76,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 8.placeholder",
+   "frame": {
+    "x": 352,
+    "y": 76,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 9.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 114,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 10.placeholder",
+   "frame": {
+    "x": 176,
+    "y": 114,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 11.placeholder",
+   "frame": {
+    "x": 352,
+    "y": 114,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 12.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 152,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 13.placeholder",
+   "frame": {
+    "x": 176,
+    "y": 152,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 14.placeholder",
+   "frame": {
+    "x": 352,
+    "y": 152,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 15.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 190,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 16.placeholder",
+   "frame": {
+    "x": 176,
+    "y": 190,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 17.placeholder",
+   "frame": {
+    "x": 352,
+    "y": 190,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 18.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 228,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 19.placeholder",
+   "frame": {
+    "x": 176,
+    "y": 228,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 20.placeholder",
+   "frame": {
+    "x": 352,
+    "y": 228,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 21.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 266,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 22.placeholder",
+   "frame": {
+    "x": 176,
+    "y": 266,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 23.placeholder",
+   "frame": {
+    "x": 352,
+    "y": 266,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 24.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 304,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 25.placeholder",
+   "frame": {
+    "x": 176,
+    "y": 304,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHDanielRespostas 26.placeholder",
+   "frame": {
+    "x": 352,
+    "y": 304,
+    "w": 176,
+    "h": 38
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 176,
+    "h": 38
+   },
+   "sourceSize": {
+    "w": 176,
+    "h": 38
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_daniel.py",
+  "version": "1.0",
+  "image": "DPIBHDanielRespostas.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 528,
+   "h": 342
+  },
+  "scale": "1"
+ }
+}
