@@ -36,7 +36,12 @@ namespace BalaDePrata {
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
         d.entreBalas = Dificuldade::Escolher(n, d.entreBalas, 1.4f);
+        d.giro = Dificuldade::Escolher(n, d.giro, 125.0f);
         return d;
+    }
+
+    float Guiar(const float agora, const Vector2 falta, const float giro, const float deltaTime) {
+        return Math::VirarPara(agora, falta, Math::ToRadians(giro) * std::max(0.0f, deltaTime));
     }
 
     float RapidezDoLobisomem(const float t) {

@@ -245,11 +245,17 @@ def solucao(calor):
     return im
 
 
+VALE_W, VALE_H = 96, 80
+
+
 def vale():
-    im = Image.new("RGBA", (48, 48), (0, 0, 0, 0))
+    # O otimo local: os aneis no centro do quadro (o centro do projetil) e o nome embaixo.
+    im = Image.new("RGBA", (VALE_W, VALE_H), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
+    cx, cy = VALE_W // 2, VALE_H // 2
     for r, a in ((22, 120), (15, 160), (8, 200)):
-        d.ellipse([24 - r, 24 - r, 24 + r, 24 + r], outline=(160, 120, 255, a), width=2)
+        d.ellipse([cx - r, cy - r, cx + r, cy + r], outline=(160, 120, 255, a), width=2)
+    centrado(d, "ótimo local", cx, cy + 32, fonte(13, True), (200, 175, 255, 235))
     return im
 
 
@@ -328,4 +334,4 @@ if __name__ == "__main__":
     grava_tira([cidade(False), cidade(True)], "DPIBHArroyoCidades", CI, CI, 2)
     grava_tira([caixeiro()], "DPIBHArroyoCaixeiro", 24, 24, 1)
     grava_tira([solucao(c) for c in (4, 3, 2, 1)], "DPIBHArroyoSolucoes", SW, SW, 4)
-    grava_tira([vale()], "DPIBHArroyoVale", 48, 48, 1)
+    grava_tira([vale()], "DPIBHArroyoVale", VALE_W, VALE_H, 1)

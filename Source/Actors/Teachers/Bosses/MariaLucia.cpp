@@ -618,19 +618,30 @@ void MariaLucia::AtualizarLobisomem(const float t, const float deltaTime) {
         Cara(mLobo, t < mUivandoAte ? "Uivo" : "Lobo");
     }
 
-    // As balas de prata: a professora atira as promessas no lobisomem.
+    // As balas de prata: a professora atira as promessas, e elas perseguem o aluno - cada uma sai
+    // para um lado da mira e faz a curva.
+    const Vector2 aluno = PosicaoDoAluno();
     if (t >= mProximaBala && Vivo(mLobo)) {
         mProximaBala = t + mDegrauDaBala.entreBalas;
         const Vector2 de = GetPosition() + Vector2(0.0f, 30.0f);
-        const float a = Math::ToRadians(AnguloAte(de, mLobo->GetPosition()));
-        if (BossProjectile* b = Um(kGatilhoDaBala, de, "", 1.0f, Vector2(Math::Cos(a), Math::Sin(a)) * 270.0f)) {
-            mBalas.push_back(Bala{b, mProximaPromessa});
+        const float lado = (mProximaPromessa % 2 == 0) ? 1.0f : -1.0f;
+        const float a = Math::ToRadians(AnguloAte(de, aluno) + lado * kDesvioDaSaida);
+        if (BossProjectile* b = Um(kGatilhoDaBala, de, "", 1.0f, Vector2(Math::Cos(a), Math::Sin(a)) * kVelocidadeDaBala)) {
+            mBalas.push_back(Bala{b, mProximaPromessa, t + kGuiaDaBala});
             mAvisoNoPlacar = Promessa(mProximaPromessa) + "?";
             mAvisoAte = mRelogio + kAviso;
         }
         ++mProximaPromessa;
     }
     mBalas.erase(std::remove_if(mBalas.begin(), mBalas.end(), [](const Bala& b) { return !Vivo(b.p); }), mBalas.end());
+    for (Bala& b : mBalas) {
+        if (t >= b.guiaAte) continue;
+        auto* rb = b.p->GetComponent<RigidBodyComponent>();
+        if (!rb) continue;
+        const Vector2 v = rb->GetVelocity();
+        const float rumo = Guiar(Math::Atan2(v.y, v.x), aluno - b.p->GetPosition(), mDegrauDaBala.giro, deltaTime);
+        rb->SetVelocity(Vector2(Math::Cos(rumo), Math::Sin(rumo)) * kVelocidadeDaBala);
+    }
     for (auto it = mBalas.begin(); it != mBalas.end();) {
         if (!Vivo(mLobo) || !Atingiu(it->p->GetPosition(), mLobo->GetPosition(), mLobo->GetScale())) { ++it; continue; }
         // A bala chega e nao mata: se desfaz em bugs, e o lobisomem cresce.

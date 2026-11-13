@@ -496,12 +496,12 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   meio, e depois segue reta), com a composição no placar (`new Teleguiada(new
   Dividida(new Rápida(bala)))`); cada tiro seu tira o decorador de fora. No
   exame, a frase dela: **não há bala de prata**. O lobisomem de Brooks — o
-  projeto de software — persegue você e uiva, blindado; ela atira nele as
-  promessas (IA, UML, low-code...), e nenhuma o mata: cada bala se desfaz em
-  bugs contra ele, e ele cresce. A bala que você derruba antes é o teste com
-  usuário, da IHC que ela pesquisa. Nada disso depende do que está em campo: o
-  Ponto Extra limpa a tela e o lobisomem volta — a complexidade essencial não
-  some.
+  projeto de software — persegue você e uiva, blindado; ela atira as
+  promessas (IA, UML, low-code...), e elas perseguem você, fazendo a curva. A
+  que bate no lobisomem não o mata: se desfaz em bugs contra ele, e ele cresce.
+  A que você derruba antes é o teste com usuário, da IHC que ela pesquisa.
+  Nada disso depende do que está em campo: o Ponto Extra limpa a tela e o
+  lobisomem volta — a complexidade essencial não some.
 
 - **Vladimir — INF 331.** Teoria da computação: um autômato que lê a palavra
   e atira cada letra lida, um compilador (ele também dá Construção de
@@ -566,7 +566,12 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   dois rasos, os ótimos locais. Quente, cada solução aceita até passo para
   pior (o critério de Metropolis, de verdade: `exp(-Δ/T)`), e o enxame se
   espalha; esfriando, desce para os vales, e quem cai num ótimo local fica
-  preso lá e estoura. No meio da fase a temperatura volta a subir. Toda prova
+  preso lá e estoura. No meio da fase a temperatura volta a subir. A paisagem
+  fica na tela: os anéis dos ótimos locais, rasos, e os seus, mais fundos; um
+  termômetro na borda; e um risco vermelho a cada passo para pior que o
+  Metropolis aceita. O placar diz o estágio ("Quente, T = 820: aceita passo
+  pior (72%)", "Fria: só aceita o que melhora") e avisa quando o frio prende
+  soluções num vale raso. Toda prova
   se refaz sozinha: o que o Ponto Extra limpa volta na rodada seguinte, porque
   o que anda é o algoritmo, e não os projéteis (`Recorrencia.h`,
   `Paradigmas.h`, `Intratavel.h`, `Tempera.h`).

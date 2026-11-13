@@ -45,9 +45,21 @@ namespace BalaDePrata {
     // ---- O lobisomem (a repescagem refeita) ----
     //
     // Brooks: o projeto de software e um lobisomem, e todo mundo procura a bala de prata que o mate.
-    // A professora atira as balas de prata - as promessas - no lobisomem, e nenhuma o mata: cada uma
-    // se desfaz em bugs contra ele, e ele cresce (a complexidade essencial fica). Enquanto isso ele
-    // persegue o aluno e uiva. Some com o Ponto Extra e volta: a complexidade essencial nao some.
+    // A professora atira as balas de prata - as promessas -, e elas perseguem o aluno; a que bate no
+    // lobisomem nao o mata: se desfaz em bugs contra ele, e ele cresce (a complexidade essencial
+    // fica). A que o aluno derruba antes e a promessa testada. Enquanto isso o lobisomem persegue o
+    // aluno e uiva. Some com o Ponto Extra e volta: a complexidade essencial nao some.
+
+    /// A bala de prata sai a kVelocidadeDaBala, kDesvioDaSaida graus para um lado da mira (cada uma
+    /// para um lado), e vira para o aluno durante kGuiaDaBala segundos - depois segue reta. Como da
+    /// para derruba-la, ela pode perseguir.
+    constexpr float kVelocidadeDaBala = 240.0f;
+    constexpr float kDesvioDaSaida = 35.0f;
+    constexpr float kGuiaDaBala = 2.2f;
+
+    /// O rumo da bala em 'agora' (radianos), virado para o aluno em 'falta' a 'giro' graus por
+    /// segundo, num quadro de 'deltaTime'.
+    float Guiar(float agora, Vector2 falta, float giro, float deltaTime);
 
     constexpr const char* kGatilhoDoLobisomem = "lobisomem";
     constexpr const char* kGatilhoDoUivo = "uivo";
@@ -73,9 +85,10 @@ namespace BalaDePrata {
     /// O placar da bala que chegou nele: "IA? Não matou o lobisomem."
     std::string NaoMatou(const std::string& promessa);
 
-    /// O que o Dificil muda: uma bala a cada 1,4 s (e nao 1,7).
+    /// O que o Dificil muda: uma bala a cada 1,4 s (e nao 1,7), e que vira mais depressa.
     struct Degrau {
         float entreBalas = 1.7f;
+        float giro = 100.0f;   ///< graus por segundo, virando para o aluno
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 }

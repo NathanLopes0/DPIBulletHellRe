@@ -46,6 +46,7 @@
 #include "../Source/Attacks/BalaDePrata.h"
 #include "../Source/Attacks/Decorator.h"
 #include "../Source/Attacks/Scrum.h"
+#include "../Source/Attacks/Tempera.h"
 #include "../Source/Attacks/Condicional.h"
 #include "../Source/Attacks/Laco.h"
 #include "../Source/Attacks/Funcao.h"
@@ -1766,6 +1767,21 @@ TEST_CASE("Dados: toda fase de todo chefe dura Fase::kDuracao (o TCC, kDuracaoDo
             CHECK(soma == doctest::Approx(f.duracao));
         }
     }
+}
+
+TEST_CASE("Dados: a tempera do Arroyo tem uma etapa por esfriamento, com anuncio") {
+
+    // O placar da tempera escreve na etapa da metade em que a fase esta.
+    const DescricaoDeFase* final = nullptr;
+    const auto lidas = FasesDoChefe("arroyo");
+    for (const auto& f : lidas.fases) if (f.nome == Tempera::kFase) final = &f;
+    REQUIRE(final != nullptr);
+    REQUIRE(final->etapas.size() == static_cast<size_t>(Tempera::kEtapas));
+    for (const auto& e : final->etapas) {
+        CHECK(e.duracao == doctest::Approx(Tempera::kReaquecimento));
+        CHECK_FALSE(e.anuncio.empty());
+    }
+    CHECK(Tempera::kTempoDoAnuncio + Tempera::kAntesDoReaquecimento < Tempera::kReaquecimento);
 }
 
 TEST_CASE("Dados: a escada tem um degrau por etapa, do tamanho da etapa") {

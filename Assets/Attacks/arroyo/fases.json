@@ -93,7 +93,11 @@
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
-    "anuncio": "Aproximação e heurísticas",
+    "anuncio": "Heurística: a têmpera simulada",
+    "etapas": [
+      { "nome": "Esfriar",   "duracao": 10.0, "anuncio": "Esfriando: o vale mais fundo é você" },
+      { "nome": "Reaquecer", "duracao": 10.0, "anuncio": "Reaquecimento: sair do ótimo local" }
+    ],
     "movimento": { "tipo": "Orbitar", "a": 150, "b": 0.10 },
     "ataques": [
       { "gatilho": "solucao", "estrategia": "WaveAttack", "projetil": "Solucao",

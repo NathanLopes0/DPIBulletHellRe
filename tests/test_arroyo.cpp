@@ -6,6 +6,7 @@
 #include "doctest.h"
 
 #include <algorithm>
+#include <cmath>
 #include <numeric>
 #include <set>
 #include <string>
@@ -230,7 +231,21 @@ TEST_CASE("Tempera: esfria, reaquece, e o Metropolis aceita pior so quando quent
     CHECK_FALSE(Aceita(40.0f, kFrio, 0.01f));          // frio, nao
     CHECK(ChanceDePior(40.0f, kQuente) > 0.6f);
     CHECK(ChanceDePior(40.0f, kFrio) < 0.01f);
-    CHECK(Placar(kQuente).rfind("T = 1000", 0) == 0);
+    // O placar conta o estagio: quente aceita pior, fria so o que melhora.
+    CHECK(Placar(kQuente) == "Quente, T = 1000: aceita passo pior (72%)");
+    CHECK(Placar(100.0f) == "Esfriando, T = 100: aceita pior 4% das vezes");
+    CHECK(Placar(60.0f).rfind("Fria", 0) == 0);   // abaixo de 1%, fria: nunca "aceita pior 0%"
+    CHECK(Placar(10.0f) == "Fria, T = 10: s\xc3\xb3 aceita o que melhora");
+    CHECK(EstagioDe(kQuente) == Estagio::Quente);
+    CHECK(EstagioDe(kFrio) == Estagio::Frio);
+    CHECK(PlacarDoOtimoLocal(1) == "\xc3\x93timo local: 1 solu\xc3\xa7\xc3\xa3o presa num vale raso");
+    CHECK(PlacarDoOtimoLocal(4).find("4 solu") != std::string::npos);
+    // O termometro: cheio no quente, vazio no frio, e no meio na media geometrica.
+    CHECK(Nivel(kQuente) == doctest::Approx(1.0f));
+    CHECK(Nivel(kFrio) == doctest::Approx(0.0f));
+    CHECK(Nivel(std::sqrt(kQuente * kFrio)) == doctest::Approx(0.5f));
+    // O vale do aluno tem mais aneis: e o mais fundo.
+    CHECK(kNiveisFundos > kNiveisRasos);
 }
 
 TEST_CASE("Tempera: o vale do aluno e o mais fundo, e o passo encolhe no frio") {

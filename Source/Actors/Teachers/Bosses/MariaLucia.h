@@ -176,6 +176,7 @@ private:
     struct Bala {
         BossProjectile* p = nullptr;
         int promessa = 0;
+        float guiaAte = 0.0f;    ///< ate quando ela vira para o aluno
     };
     std::vector<Bala> mBalas;
     float mProximaBala = 0.0f;

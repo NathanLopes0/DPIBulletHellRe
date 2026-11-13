@@ -56,11 +56,43 @@ namespace Tempera {
     constexpr float kPassoFrio = 18.0f;
     Vector2 Proposta(const Vector2& x, float temperatura, Variacao::Sorteio& s);
 
-    /// O placar: "T = 820  ·  aceita pior: 61%".
+    /// Em que pe esta a tempera, pela chance de aceitar o passo de kPiorDeReferencia para pior:
+    /// quente (kChanceQuente ou mais), esfriando, ou fria (menos de kChanceFria - so o que melhora).
+    enum class Estagio { Quente, Esfriando, Frio };
+    constexpr float kChanceQuente = 0.25f;
+    constexpr float kChanceFria = 0.01f;
+    Estagio EstagioDe(float temperatura);
+
+    /// A altura do termometro, de 0 (kFrio) a 1 (kQuente), em escala logaritmica - como a
+    /// temperatura cai.
+    float Nivel(float temperatura);
+
+    /// O placar: "Quente, T = 820: aceita passo pior (61%)", "Esfriando, T = 180: ...", "Fria, T =
+    /// 25: só aceita o que melhora".
     std::string Placar(float temperatura);
+
+    /// O aviso de quando o frio prende solucoes num vale raso: "Ótimo local: 4 soluções presas num
+    /// vale raso".
+    std::string PlacarDoOtimoLocal(int presas);
+
+    /// As etapas da fase em fases.json: uma por esfriamento. Nos primeiros kTempoDoAnuncio segundos
+    /// de cada uma, o placar mostra o anuncio dela; depois, o estagio.
+    constexpr int kEtapas = 2;
+    constexpr float kTempoDoAnuncio = 2.0f;
+    /// Quanto antes do reaquecimento o frio prende quem esta num vale raso (e o placar avisa).
+    constexpr float kAntesDoReaquecimento = 1.8f;
 
     /// O passo de referencia do placar: quanto pior e "pior".
     constexpr float kPiorDeReferencia = 40.0f;
+
+    /// Os aneis da paisagem de energia: em volta de cada otimo local e, mais fundos, em volta do
+    /// aluno - o minimo global.
+    constexpr float kRaioDoNivelRaso = 46.0f;
+    constexpr int kNiveisRasos = 2;
+    constexpr float kRaioDoNivelFundo = 55.0f;
+    constexpr int kNiveisFundos = 3;
+    /// A distancia em que uma solucao conta como presa num vale.
+    constexpr float kPresa = 60.0f;
 
     /// O que o Dificil muda: mais solucoes, decidindo mais depressa.
     struct Degrau {

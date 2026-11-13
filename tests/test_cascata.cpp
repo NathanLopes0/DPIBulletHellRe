@@ -172,3 +172,15 @@ TEST_CASE("Bala de prata: o lobisomem persegue, cresce e nao passa do alvo") {
     CHECK(EscalaDoLobisomem(100) == doctest::Approx(kMaiorEscala));
     CHECK(NaoMatou("IA") == "IA? N\xc3\xa3o matou o lobisomem.");
 }
+
+TEST_CASE("Bala de prata: a promessa persegue o aluno, e no Dificil vira mais depressa") {
+    using namespace BalaDePrata;
+    // Indo para a direita, com o aluno embaixo: vira para baixo, no maximo o giro do quadro.
+    const float giro = Math::ToRadians(100.0f) * 0.1f;
+    CHECK(Guiar(0.0f, Vector2(0.0f, 100.0f), 100.0f, 0.1f) == doctest::Approx(giro));
+    // Ja mirada, nao vira.
+    CHECK(Guiar(Math::Pi / 2.0f, Vector2(0.0f, 100.0f), 100.0f, 0.1f) == doctest::Approx(Math::Pi / 2.0f));
+    CHECK(DegrauDo(Dificuldade::Nivel::Dificil).giro > DegrauDo(Dificuldade::Nivel::Normal).giro);
+    // A guia acaba antes de a bala dar uma volta inteira em quem foge dela.
+    CHECK(DegrauDo(Dificuldade::Nivel::Dificil).giro * kGuiaDaBala < 360.0f);
+}

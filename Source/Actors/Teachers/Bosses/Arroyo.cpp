@@ -581,8 +581,39 @@ void Arroyo::DesmontarTempera() {
     for (BossProjectile*& p : mVales) Matar(p);
     mVales.clear();
     mOndeVales.clear();
-    mUltimoPlacar = -1.0f;
     mMetadeCongelada = -1;
+    mSaltos.clear();
+    mAvisoDaTemperaAte = -1.0f;
+}
+
+void Arroyo::Circulo(const Vector2 centro, const float raio, const SDL_Color cor, const int segmentos) {
+    Vector2 antes(centro.x + raio, centro.y);
+    for (int k = 1; k <= segmentos; ++k) {
+        const float a = Math::TwoPi * static_cast<float>(k) / static_cast<float>(segmentos);
+        const Vector2 agora(centro.x + raio * Math::Cos(a), centro.y + raio * Math::Sin(a));
+        Linha(antes, agora, cor);
+        antes = agora;
+    }
+}
+
+void Arroyo::Termometro(const float temperatura) {
+    // Na borda direita do campo: o tubo, o bulbo e o liquido, do azul do frio ao vermelho do quente.
+    const SDL_FRect campo = Campo();
+    const float x = campo.x + campo.w - 24.0f, topo = campo.y + 110.0f, fundo = campo.y + 300.0f;
+    Linha(Vector2(x - 6.0f, topo), Vector2(x - 6.0f, fundo), kBordaDoTermometro);
+    Linha(Vector2(x + 6.0f, topo), Vector2(x + 6.0f, fundo), kBordaDoTermometro);
+    Linha(Vector2(x - 6.0f, topo), Vector2(x + 6.0f, topo), kBordaDoTermometro);
+    Circulo(Vector2(x, fundo + 9.0f), 10.0f, kBordaDoTermometro, 20);
+    const float nivel = Tempera::Nivel(temperatura);
+    const auto cor = [](const float u) {
+        return SDL_Color{static_cast<Uint8>(90.0f + 165.0f * u), static_cast<Uint8>(130.0f - 40.0f * u),
+                         static_cast<Uint8>(255.0f - 205.0f * u), 220};
+    };
+    for (float y = fundo + 9.0f; y >= fundo - nivel * (fundo - topo); y -= 2.0f) {
+        const float u = std::clamp((fundo - y) / (fundo - topo), 0.0f, 1.0f);
+        const float meia = y > fundo ? 7.0f : 4.0f;
+        Linha(Vector2(x - meia, y), Vector2(x + meia, y), cor(u));
+    }
 }
 
 void Arroyo::AtualizarTempera(const float t, const float deltaTime) {
@@ -615,6 +646,14 @@ void Arroyo::AtualizarTempera(const float t, const float deltaTime) {
     const float temperatura = Temperatura(t);
     const Vector2 aluno = PosicaoDoAluno();
     const char* cara = temperatura > 600.0f ? "Q4" : temperatura > 250.0f ? "Q3" : temperatura > 60.0f ? "Q2" : "Q1";
+
+    // A paisagem de energia: os aneis dos dois otimos locais, rasos, e os do aluno, mais fundos.
+    for (const Vector2& v : mOndeVales) {
+        for (int k = 1; k <= kNiveisRasos; ++k) Circulo(v, kRaioDoNivelRaso * static_cast<float>(k), kNivelRaso);
+    }
+    for (int k = 1; k <= kNiveisFundos; ++k) Circulo(aluno, kRaioDoNivelFundo * static_cast<float>(k), kNivelFundo, 44);
+    Termometro(temperatura);
+
     for (Solucao& s : mSolucoes) {
         const Vector2 aqui = s.p->GetPosition();
         if (t >= s.proxima) {
@@ -623,7 +662,11 @@ void Arroyo::AtualizarTempera(const float t, const float deltaTime) {
             proposta.x = std::clamp(proposta.x, campo.x + 16.0f, campo.x + campo.w - 16.0f);
             proposta.y = std::clamp(proposta.y, campo.y + 16.0f, campo.y + campo.h - 16.0f);
             const float delta = Energia(proposta, aluno, mOndeVales) - Energia(s.alvo, aluno, mOndeVales);
-            if (Aceita(delta, temperatura, mSorteio.Real(0.0f, 1.0f))) s.alvo = proposta;
+            if (Aceita(delta, temperatura, mSorteio.Real(0.0f, 1.0f))) {
+                // O passo para pior aceito e o coracao da tempera: fica riscado.
+                if (delta > 0.0f) mSaltos.push_back(Salto{s.alvo, proposta, t + kDuracaoDoSalto});
+                s.alvo = proposta;
+            }
         }
         // Vai ao ponto aceito sem passar da rapidez maxima.
         Vector2 falta = s.alvo - aqui;
@@ -634,19 +677,31 @@ void Arroyo::AtualizarTempera(const float t, const float deltaTime) {
         if (auto* anim = s.p->GetComponent<DrawAnimatedComponent>(); anim && anim->GetAnimation() != cara) anim->SetAnimation(cara);
     }
 
+    mSaltos.erase(std::remove_if(mSaltos.begin(), mSaltos.end(), [t](const Salto& s) { return t >= s.ate; }), mSaltos.end());
+    for (const Salto& s : mSaltos) Linha(s.de, s.para, kSaltoPior);
+
     // No fim de cada esfriamento, quem ficou preso num otimo local estoura.
-    const int metade = t < kReaquecimento ? 0 : 1;
-    const float fimDaMetade = static_cast<float>(metade + 1) * kReaquecimento - 0.35f;
+    const int metade = std::min(kEtapas - 1, static_cast<int>(t / kReaquecimento));
+    const float inicioDaMetade = static_cast<float>(metade) * kReaquecimento;
+    const float fimDaMetade = inicioDaMetade + kReaquecimento - kAntesDoReaquecimento;
     if (t >= fimDaMetade && mMetadeCongelada < metade) {
         mMetadeCongelada = metade;
+        int presas = 0;
         for (const Solucao& s : mSolucoes) {
             for (const Vector2& v : mOndeVales) {
-                if ((s.p->GetPosition() - v).Length() < 60.0f) { DispararEm(kGatilhoDoCongelado, s.p->GetPosition()); break; }
+                if ((s.p->GetPosition() - v).Length() < kPresa) {
+                    DispararEm(kGatilhoDoCongelado, s.p->GetPosition());
+                    ++presas;
+                    break;
+                }
             }
         }
+        if (presas > 0) {
+            mAvisoDaTempera = PlacarDoOtimoLocal(presas);
+            mAvisoDaTemperaAte = inicioDaMetade + kReaquecimento;
+        }
     }
-    if (std::fabs(temperatura - mUltimoPlacar) > 4.0f) {
-        mUltimoPlacar = temperatura;
-        PlacarDaFase(kFase, "T\xc3\xaampera simulada  \xc2\xb7  " + Placar(temperatura));
-    }
+    // O placar: o anuncio da etapa no comeco dela, o aviso do otimo local no fim, e no resto o estagio.
+    if (t < mAvisoDaTemperaAte) PlacarDaEtapa(kFase, static_cast<size_t>(metade), mAvisoDaTempera);
+    else if (t - inicioDaMetade >= kTempoDoAnuncio) PlacarDaEtapa(kFase, static_cast<size_t>(metade), Placar(temperatura));
 }

@@ -184,8 +184,19 @@ private:
     std::vector<Vector2> mOndeVales;
     std::vector<BossProjectile*> mVales;
     float mProximaSolucao = 0.0f;
-    float mUltimoPlacar = -1.0f;
     int mMetadeCongelada = -1;
+    /// Cada passo para pior que o Metropolis aceitou, riscado em vermelho por um instante.
+    struct Salto {
+        Vector2 de;
+        Vector2 para;
+        float ate = 0.0f;
+    };
+    std::vector<Salto> mSaltos;
+    static constexpr float kDuracaoDoSalto = 0.45f;
+    std::string mAvisoDaTempera;
+    float mAvisoDaTemperaAte = -1.0f;
+    void Circulo(Vector2 centro, float raio, SDL_Color cor, int segmentos = 36);
+    void Termometro(float temperatura);
 
     static constexpr SDL_Color kAresta = {150, 220, 200, 120};
     static constexpr SDL_Color kAtaqueDaRainha = {255, 120, 150, 70};
@@ -195,5 +206,9 @@ private:
     /// Os segundos de uma ida e volta do professor por cima do mapa do caixeiro.
     static constexpr float kVaiVemDoCaixeiro = 8.0f;
     static constexpr SDL_Color kMelhorRota = {250, 214, 110, 170};
+    static constexpr SDL_Color kNivelRaso = {170, 130, 255, 55};
+    static constexpr SDL_Color kNivelFundo = {255, 200, 90, 70};
+    static constexpr SDL_Color kSaltoPior = {255, 95, 70, 170};
+    static constexpr SDL_Color kBordaDoTermometro = {220, 225, 240, 150};
     static constexpr SDL_Color kRotaDaVez = {230, 240, 255, 60};
 };

@@ -34,11 +34,7 @@ namespace Decorator {
     }
 
     float Guiar(const float agora, const Vector2 falta, const float deltaTime) {
-        float quer = Math::Atan2(falta.y, falta.x) - agora;
-        while (quer > Math::Pi) quer -= Math::TwoPi;
-        while (quer < -Math::Pi) quer += Math::TwoPi;
-        const float giro = Math::ToRadians(kGiroDaTeleguiada) * std::max(0.0f, deltaTime);
-        return agora + std::clamp(quer, -giro, giro);
+        return Math::VirarPara(agora, falta, Math::ToRadians(kGiroDaTeleguiada) * std::max(0.0f, deltaTime));
     }
 
     Degrau DegrauDo(const Dificuldade::Nivel n) {

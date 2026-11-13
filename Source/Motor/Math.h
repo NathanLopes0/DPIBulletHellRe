@@ -199,6 +199,21 @@ public:
 	static const Vector2 Zero;
 };
 
+namespace Math
+{
+	/// O rumo 'agora' (em radianos) virado na direcao de 'falta', no maximo 'giro' radianos, pelo
+	/// lado mais curto: o passo de um projetil teleguiado em um quadro.
+	inline float VirarPara(const float agora, const Vector2& falta, const float giro)
+	{
+		float quer = Atan2(falta.y, falta.x) - agora;
+		while (quer > Pi) quer -= TwoPi;
+		while (quer < -Pi) quer += TwoPi;
+		if (quer > giro) quer = giro;
+		if (quer < -giro) quer = -giro;
+		return agora + quer;
+	}
+}
+
 // Uma cor, de 0 a 1 em cada canal: e so para isso que o jogo usa um vetor de tres componentes
 // (DrawTextComponent::SetColor, Font::RenderText, Color::).
 class Vector3
