@@ -183,7 +183,11 @@ deu. As horas também são **moeda**: as optativas se compram com elas. Uma
 optativa com preço (`"preco"` no desbloqueio, em `materias.json`) abre com a
 regra dela cumprida e comprada — o Botão 1 duas vezes, na seleção de fases. A
 carga de 100 h conta tudo o que foi ganho e nunca desce; o que se gasta sai do
-**saldo**, que o quadro das horas mostra ao lado ("para optativas: 14 h").
+**saldo**, que o quadro das horas mostra ao lado ("para optativas: 14 h"). Além
+das horas, a optativa pode pedir **requisitos** — pelo menos uma menção de ouro,
+uma aprovação no Difícil, um tanto de horas ganhas, um tanto de aprovações — e o
+cartão diz o que falta. Aprovado nela, o professor dela vira **orientador** do
+TCC: ele sempre aparece entre os três candidatos.
 
 **O rival da turma.** O cartão da matéria, na seleção de fases, mostra quem
 está logo acima de você no ranking dela — na lista do modo e da dificuldade da

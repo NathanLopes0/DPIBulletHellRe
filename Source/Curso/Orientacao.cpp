@@ -37,14 +37,22 @@ namespace Orientacao {
         std::stable_sort(todos.begin(), todos.end(),
                          [](const Candidato& a, const Candidato& b) { return a.nota > b.nota; });
 
-        // Um professor uma vez so, pela melhor nota.
+        // Um professor uma vez so, pela melhor nota. O da optativa aprovada vem primeiro: abrir um
+        // orientador novo e o que a optativa da - ele nao pode sumir atras das notas altas.
         std::vector<Candidato> escolhidos;
         std::set<std::string> vistos;
-        for (const auto& c : todos) {
-            if (static_cast<int>(escolhidos.size()) >= kCandidatos) break;
-            if (!vistos.insert(c.professor).second) continue;
-            escolhidos.push_back(c);
+        for (const bool daOptativa : {true, false}) {
+            for (const auto& c : todos) {
+                if (static_cast<int>(escolhidos.size()) >= kCandidatos) break;
+                const Materias::Materia* m = lista.Por(c.materia);
+                if ((m && m->optativa) != daOptativa) continue;
+                if (!vistos.insert(c.professor).second) continue;
+                escolhidos.push_back(c);
+            }
         }
+        // Na tela, a maior primeiro de novo.
+        std::stable_sort(escolhidos.begin(), escolhidos.end(),
+                         [](const Candidato& a, const Candidato& b) { return a.nota > b.nota; });
         return escolhidos;
     }
 

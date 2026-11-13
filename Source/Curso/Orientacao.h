@@ -26,7 +26,8 @@ namespace Orientacao {
     };
 
     /// Os candidatos a orientador de quem esta jogando: um Progresso por aluno (um sozinho, dois em
-    /// dupla). Nulo conta como quem nunca jogou.
+    /// dupla). Nulo conta como quem nunca jogou. Sao os kCandidatos das maiores notas aprovadas - mas
+    /// o professor de uma optativa aprovada sempre entra: o orientador novo e o premio dela.
     std::vector<Candidato> Candidatos(const Materias::Lista& lista,
                                       const std::vector<const Progresso*>& alunos);
 

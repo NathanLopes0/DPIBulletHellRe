@@ -77,6 +77,30 @@ falta de horas.
   "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"], "preco": 20 } }
 ```
 
+**Os requisitos, além da regra.** O desbloqueio aceita também `"requisitos"`, uma
+lista do que o aluno já conquistou no curso — todos valem junto com a regra, e
+só então a optativa pode ser comprada:
+
+| `tipo` | o que pede |
+|---|---|
+| `"mencao"` | `"quantas"` matérias (1, se faltar) com a menção `"mencao"`: `bronze`, `prata`, `ouro`, `notaCheia`, `dificil`, `dupla`, `orientou`, `pacifista`, `intocavel`, `mira` ou `dePerto` (`Mencoes::PelaChave`) |
+| `"horas"` | `"quantas"` horas complementares **ganhas** — a carga, e não o saldo: gastar horas numa optativa não fecha outra |
+| `"aprovadas"` | `"quantas"` obrigatórias aprovadas no curso inteiro (as optativas não contam) |
+
+A frase do cartão junta tudo o que falta ("Precisa passar em INF 220 e INF 420,
+pelo menos 1 menção de ouro e 20 h"). O requisito que não existe, ou com uma
+menção que não existe, vira aviso e fica de fora — a matéria não.
+
+```json
+"desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF220"], "preco": 20,
+                 "requisitos": [ { "tipo": "mencao", "mencao": "ouro", "quantas": 1 } ] }
+```
+
+**A optativa dá orientador.** O professor de uma optativa aprovada é sempre um dos
+três candidatos a orientador do TCC (`Orientacao::Candidatos`), mesmo com nota
+menor que as outras: o orientador novo é o prêmio dela. Os outros lugares saem
+das maiores notas, como sempre.
+
 > **A ordem da lista é a ordem dos botões**, e o índice dela é o que a navegação
 > das setas usa. Reordenar muda para onde as setas levam — e há testes que dizem
 > o que acontece. O que a reordenação **não** faz é mexer na nota de ninguém: as

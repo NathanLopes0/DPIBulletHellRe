@@ -19,6 +19,19 @@ namespace Materias {
         AprovadasNaColuna    ///< N aprovacoes entre as materias de uma coluna
     };
 
+    /// O que uma optativa pede alem da regra: o que o aluno ja conquistou no curso.
+    enum class TipoDeRequisito {
+        Mencao,      ///< 'quantas' materias com a mencao 'mencao' ("ouro", "dificil", ...: Mencoes::PelaChave)
+        Horas,       ///< 'quantas' horas complementares ganhas: a carga, e nao o saldo
+        Aprovadas    ///< 'quantas' obrigatorias aprovadas no curso
+    };
+
+    struct Requisito {
+        TipoDeRequisito tipo = TipoDeRequisito::Mencao;
+        std::string mencao;   ///< so na Mencao: a chave dela
+        int quantas = 1;
+    };
+
     struct Desbloqueio {
         TipoDeDesbloqueio tipo = TipoDeDesbloqueio::Sempre;
 
@@ -29,6 +42,8 @@ namespace Materias {
         /// So nas optativas: as horas complementares que o aluno gasta para abri-la, depois de
         /// cumprida a regra. 0: abre so com a regra, como as obrigatorias.
         int preco = 0;
+        /// O que mais a regra pede ("requisitos"), todos juntos: "pelo menos 1 mencao de ouro".
+        std::vector<Requisito> requisitos;
     };
 
     /// A chave da compra de uma optativa na ficha, entre as atividades: "compra@INF480". As horas
@@ -96,8 +111,11 @@ namespace Materias {
         /// de X, e nao se X esta desbloqueada. A optativa com preco abre com a regra cumprida e
         /// comprada.
         [[nodiscard]] bool Desbloqueada(int indice, const Progresso& progresso) const;
-        /// So a regra (aprovacoes), sem olhar a compra: a optativa com preco ja pode ser comprada.
+        /// So a regra (aprovacoes e requisitos), sem olhar a compra: a optativa com preco ja pode
+        /// ser comprada.
         [[nodiscard]] bool RegraCumprida(int indice, const Progresso& progresso) const;
+        /// Se o aluno cumpre este requisito.
+        [[nodiscard]] bool Cumpre(const Requisito& r, const Progresso& progresso) const;
         /// O aluno ja comprou esta optativa?
         [[nodiscard]] bool Comprada(int indice, const Progresso& progresso) const;
         /// O preco em horas (0: nao se compra).
@@ -106,9 +124,11 @@ namespace Materias {
         /// dois, e o mapa e o de quem esta mais atras. Sem ninguem, fechada.
         [[nodiscard]] bool DesbloqueadaParaTodos(int indice, const std::vector<const Progresso*>& progressos) const;
 
-        /// O que falta para esta materia abrir, numa frase para o aluno. Vazio quando a materia
-        /// abre sempre - nao ha o que explicar.
+        /// O que falta para esta materia abrir, numa frase para o aluno: a regra e os requisitos.
+        /// Vazio quando a materia abre sempre - nao ha o que explicar.
         [[nodiscard]] std::string ExigenciaDe(int indice) const;
+        /// So a frase da regra (as aprovacoes), sem os requisitos.
+        [[nodiscard]] std::string FraseDaRegra(int indice) const;
 
         /// Se toda materia desta coluna depende apenas da coluna de tras.
         [[nodiscard]] bool ColunaDependeDaAnterior(int coluna) const;

@@ -186,3 +186,25 @@ TEST_CASE("Orientacao: sem candidato nao ha em quem votar, e aluno fora da conta
     CHECK(v.Votos().size() == 1);
     CHECK(v.Alunos() == 1);
 }
+
+TEST_CASE("Orientacao: o professor da optativa aprovada sempre entra, mesmo com nota menor") {
+    const Materias::Lista l = Materias::LerMaterias(R"({ "materias": [
+        { "codigo": "P1", "nome": "P1", "professor": "Andre",   "chefe": "andre",   "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "ED", "nome": "ED", "professor": "Salles",  "chefe": "salles",  "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "OC", "nome": "OC", "professor": "Ricardo", "chefe": "ricardo", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "BD", "nome": "BD", "professor": "Thiago",  "chefe": "thiago",  "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "TCC", "nome": "TCC", "professor": "Hugo",  "chefe": "hugo",    "coluna": 1, "orientacao": true,
+          "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "DS", "nome": "DS", "professor": "Daniel",  "chefe": "daniel",  "coluna": 2, "optativa": true,
+          "desbloqueio": { "tipo": "sempre" } }
+    ] })");
+    // Sem a optativa, os tres das maiores notas.
+    const Progresso sem = Notas(l, {{"P1", 90.0f}, {"ED", 85.0f}, {"OC", 80.0f}, {"BD", 75.0f}});
+    CHECK(Professores(Orientacao::Candidatos(l, {&sem})) == std::vector<std::string>{"Andre", "Salles", "Ricardo"});
+    // Com ela aprovada, ela entra - e sai a menor das outras -, e a tela continua da maior para a menor.
+    const Progresso com = Notas(l, {{"P1", 90.0f}, {"ED", 85.0f}, {"OC", 80.0f}, {"BD", 75.0f}, {"DS", 62.0f}});
+    CHECK(Professores(Orientacao::Candidatos(l, {&com})) == std::vector<std::string>{"Andre", "Salles", "Daniel"});
+    // Reprovado nela, nao.
+    const Progresso reprovado = Notas(l, {{"P1", 90.0f}, {"ED", 85.0f}, {"OC", 80.0f}, {"DS", 40.0f}});
+    CHECK(Professores(Orientacao::Candidatos(l, {&reprovado})) == std::vector<std::string>{"Andre", "Salles", "Ricardo"});
+}

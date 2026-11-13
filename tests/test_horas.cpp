@@ -215,3 +215,50 @@ TEST_CASE("Horas: o saldo nunca fica negativo, nem se o preco subir depois da co
     p.RegistrarAtividade(Materias::ChaveDaCompra("O1"));   // comprada sem horas (um save editado)
     CHECK(Saldo(p.Atividades(), c) == 0);
 }
+
+TEST_CASE("Horas: o requisito da optativa vale junto com a regra - a mencao de ouro, as horas, as aprovacoes") {
+    const Materias::Lista c = Materias::LerMaterias(R"({ "materias": [
+        { "codigo": "A1", "nome": "INF 1", "professor": "Ana", "chefe": "ana", "coluna": 0,
+          "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B1", "nome": "INF 2", "professor": "Bia", "chefe": "bia", "coluna": 0,
+          "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "O1", "nome": "INF 9", "professor": "Oto", "chefe": "oto", "coluna": 1, "optativa": true,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A1"], "preco": 5,
+                           "requisitos": [ { "tipo": "mencao", "mencao": "ouro" }, { "tipo": "horas", "quantas": 6 } ] } },
+        { "codigo": "O2", "nome": "INF 8", "professor": "Rui", "chefe": "rui", "coluna": 1, "optativa": true,
+          "desbloqueio": { "tipo": "sempre",
+                           "requisitos": [ { "tipo": "aprovadas", "quantas": 2 }, { "tipo": "mencao", "mencao": "dificil" },
+                                           { "tipo": "mencao", "mencao": "platina" }, { "tipo": "sorte" } ] } }
+    ] })");
+    // A mencao que nao existe e o tipo que nao existe ficam de fora, avisados.
+    CHECK(c.problemas.size() == 2u);
+    const int a1 = c.IndiceDe("A1"), b1 = c.IndiceDe("B1"), o1 = c.IndiceDe("O1"), o2 = c.IndiceDe("O2");
+    CHECK(c.Por(o2)->desbloqueio.requisitos.size() == 2u);
+
+    // A frase diz tudo o que falta: a regra e os requisitos.
+    const std::string frase = c.ExigenciaDe(o1);
+    CHECK(frase.find("INF 1") != std::string::npos);
+    CHECK(frase.find("pelo menos 1 men\xc3\xa7\xc3\xa3o de ouro") != std::string::npos);
+    CHECK(frase.find("6 h") != std::string::npos);
+    CHECK(c.ExigenciaDe(o2).rfind("Precisa de 2 aprova", 0) == 0);
+
+    Progresso p;
+    p.RegistrarNota(a1, 80.0f, Dificuldade::Nivel::Normal);
+    CHECK_FALSE(c.RegraCumprida(o1, p));                  // passou, mas sem ouro e sem horas
+    CHECK(PodeComprar(c, o1, p) == Compra::FaltaARegra);
+    p.RegistrarNota(a1, 92.0f, Dificuldade::Nivel::Normal);
+    CHECK_FALSE(c.RegraCumprida(o1, p));                  // o ouro veio; as horas, nao
+    p.RegistrarAtividade("virada");                        // 6 h
+    CHECK(c.RegraCumprida(o1, p));
+    CHECK(PodeComprar(c, o1, p) == Compra::Pode);
+    // Gastar as horas nao fecha o requisito: ele conta a carga, e nao o saldo.
+    p.RegistrarAtividade(Materias::ChaveDaCompra("O1"));
+    CHECK(Saldo(p.Atividades(), c) == 1);
+    CHECK(c.Desbloqueada(o1, p));
+
+    // A outra pede duas aprovacoes (a optativa nao conta) e uma no Dificil.
+    CHECK_FALSE(c.RegraCumprida(o2, p));
+    p.RegistrarNota(b1, 70.0f, Dificuldade::Nivel::Dificil);
+    CHECK(c.RegraCumprida(o2, p));
+    CHECK(c.Desbloqueada(o2, p));                          // sem preco: abre so com a regra
+}

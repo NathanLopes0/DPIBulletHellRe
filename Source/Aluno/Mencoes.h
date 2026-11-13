@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -98,6 +99,12 @@ namespace Mencoes {
     /// O nome, para a frase do resultado e o manual: "bronze", "prata", ..., "quietinho da turma",
     /// "intocavel", "prestando atencao", "sentar na frente".
     const char* Nome(Mencao m);
+
+    /// A chave nos dados (o requisito de uma optativa, em materias.json): "bronze", "prata", "ouro",
+    /// "notaCheia", "dificil", "dupla", "orientou", "pacifista", "intocavel", "mira", "dePerto".
+    const char* ChaveDe(Mencao m);
+    /// A mencao dessa chave; vazio se nenhuma tem esse nome.
+    std::optional<Mencao> PelaChave(const std::string& chave);
 
     /// Como se ganha, numa frase curta, para a pagina das mencoes do manual.
     const char* ComoGanhar(Mencao m);

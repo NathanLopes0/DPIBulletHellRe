@@ -107,6 +107,30 @@ namespace Mencoes {
         return "";
     }
 
+    const char* ChaveDe(const Mencao m) {
+        switch (m) {
+            case Mencao::Bronze:    return "bronze";
+            case Mencao::Prata:     return "prata";
+            case Mencao::Ouro:      return "ouro";
+            case Mencao::NotaCheia: return "notaCheia";
+            case Mencao::Dificil:   return "dificil";
+            case Mencao::Dupla:     return "dupla";
+            case Mencao::Orientou:  return "orientou";
+            case Mencao::Pacifista: return "pacifista";
+            case Mencao::Intocavel: return "intocavel";
+            case Mencao::Mira:      return "mira";
+            case Mencao::DePerto:   return "dePerto";
+        }
+        return "";
+    }
+
+    std::optional<Mencao> PelaChave(const std::string& chave) {
+        for (const Mencao m : kTodas) {
+            if (chave == ChaveDe(m)) return m;
+        }
+        return std::nullopt;
+    }
+
     const char* Nome(const Mencao m) {
         // \xc3\xad e o i com acento: o MSVC nao le acento em literal.
         switch (m) {
