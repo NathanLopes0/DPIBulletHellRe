@@ -53,8 +53,12 @@ namespace Manual {
             if (item.contains("titulo") && item.at("titulo").is_string()) p.titulo = item.at("titulo").get<std::string>();
             p.linhas = Textos(item, "linhas", onde, lido.problemas);
             p.noComputador = Textos(item, "no_computador", onde, lido.problemas);
+            if (item.contains("mostrar")) {
+                if (item.at("mostrar") == "mencoes") p.mencoes = true;
+                else lido.problemas.push_back(onde + ": \"mostrar\" so conhece \"mencoes\", e foi ignorado.");
+            }
 
-            if (p.titulo.empty() || p.linhas.empty()) {
+            if (p.titulo.empty() || (p.linhas.empty() && !p.mencoes)) {
                 lido.problemas.push_back(onde + " nao tem titulo ou nao tem linhas, e ficou de fora.");
                 continue;
             }

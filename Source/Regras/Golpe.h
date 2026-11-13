@@ -16,7 +16,8 @@
 namespace Golpe {
 
     enum class Materia {
-        Generico, Andre, Salles, Ricardo, Thiago, Luizinho, Vladimir, Julio, MariaLucia, Lucas, Vitor
+        Generico, Andre, Salles, Ricardo, Thiago, Luizinho, Vladimir, Julio, MariaLucia, Lucas, Vitor,
+        Arroyo   ///< entrou depois: no fim, para nenhum indice mudar
     };
 
     /// A materia pelo nome do professor em materias.json ("Andre", "Maria Lucia", com ou sem

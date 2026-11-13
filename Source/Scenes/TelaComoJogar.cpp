@@ -5,6 +5,8 @@
 #include "TelaComoJogar.h"
 #include "TextoDeCena.h"
 
+#include <cctype>
+
 #include <SDL_scancode.h>
 
 #include "FundoDeCena.h"
@@ -15,6 +17,8 @@
 #include "../Motor/CaminhosArquivo.h"
 #include "../Motor/Fontes.h"
 #include "../Actors/Actor.h"
+#include "../Aluno/Mencoes.h"
+#include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
 
@@ -39,6 +43,17 @@ namespace {
     /// (SetAjustarAoTexto) em vez de virar duas.
     constexpr unsigned kSemQuebra = 4000;
 
+    /// A grade das mencoes, a partir do topo da placa: a primeira linha, o passo, o selo em 3x
+    /// (39 x 30) e o texto depois dele.
+    constexpr float kPrimeiraMencao = 122.0f;
+    constexpr float kEntreMencoes = 54.0f;
+    constexpr float kEscalaDoSelo = 3.0f;
+    constexpr float kTextoDepoisDoSelo = 34.0f;
+    constexpr float kColuna = 470.0f;
+    constexpr int kLetraDoNome = 21;
+    constexpr int kLetraDoComo = 16;
+    const Vector3 kCorDoComo(0.78f, 0.82f, 0.90f);
+
     const SDL_Color kMolduraDaPlaca{120, 140, 180, 230};
     const SDL_Color kFundoDaPlaca{12, 13, 17, 215};
 }
@@ -56,6 +71,68 @@ DrawTextComponent* TelaComoJogar::Texto(const std::string& conteudo, const float
     // Sem quebra: a linha que nao cabe encolhe, em vez de virar duas.
     dc->SetLarguraDeQuebra(kSemQuebra);
     return dc;
+}
+
+DrawTextComponent* TelaComoJogar::TextoAEsquerda(const std::string& conteudo, const float x, const float y,
+                                                 const int tamanho, const int largura) {
+    auto* dc = CriarTexto(*this, mFonte.get(), conteudo, Vector2(x + static_cast<float>(largura) / 2.0f, y),
+                          tamanho, largura, tamanho + 8);
+    dc->SetLarguraDeQuebra(kSemQuebra);
+    dc->SetAEsquerda(true);
+    return dc;
+}
+
+void TelaComoJogar::CriarAsMencoes(const float topo, const float meio) {
+    // As notas e os modos (os sete primeiros) a esquerda; os desafios a direita, com um titulo.
+    const float esquerda = meio - static_cast<float>(kLarguraDaPlaca) / 2.0f + 30.0f;
+    const float direita = meio + 20.0f;
+    auto* desafios = TextoAEsquerda("Os desafios: passe jogando de outro jeito", direita, topo + kPrimeiraMencao,
+                                    kLetraDoNome, static_cast<int>(kColuna));
+    desafios->SetColor(Color::Gold);
+    mTextosDasMencoes.push_back(desafios);
+
+    int naEsquerda = 0, naDireita = 0;
+    for (int i = 0; i < Mencoes::kQuantas; ++i) {
+        const Mencoes::Mencao m = Mencoes::kTodas[static_cast<size_t>(i)];
+        const bool desafio = m >= Mencoes::kDesafios.front();
+        const float x = desafio ? direita : esquerda;
+        const int linha = desafio ? 1 + naDireita++ : naEsquerda++;
+        const float y = topo + kPrimeiraMencao + kEntreMencoes * static_cast<float>(linha);
+
+        auto ator = std::make_unique<Actor>(this);
+        ator->SetPosition(Vector2(x + 20.0f, y));
+        auto* selo = ator->AddComponent<DrawAnimatedComponent>(Caminhos::Asset("Icons/DPIBHSelos.png"),
+                                                               Caminhos::Asset("Icons/DPIBHSelos.json"), 200);
+        selo->AddAnimation("aceso", {2 * i});   // o aceso da mencao i (Ferramentas/gerar_interface.py)
+        selo->SetAnimation("aceso");
+        selo->SetEscalaPropria(kEscalaDoSelo);
+        mSelos.push_back(selo);
+        AddActor(std::move(ator));
+
+        const Mencoes::Cor c = Mencoes::CorDa(m);
+        std::string nome = Mencoes::Nome(m);
+        nome[0] = static_cast<char>(std::toupper(static_cast<unsigned char>(nome[0])));
+        const float xTexto = x + 20.0f + kTextoDepoisDoSelo;
+        const int largura = static_cast<int>(kColuna - 20.0f - kTextoDepoisDoSelo);
+        auto* dcNome = TextoAEsquerda(nome, xTexto, y - 11.0f, kLetraDoNome, largura);
+        dcNome->SetColor(Vector3(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f));
+        auto* dcComo = TextoAEsquerda(Mencoes::ComoGanhar(m), xTexto, y + 12.0f, kLetraDoComo, largura);
+        dcComo->SetColor(kCorDoComo);
+        mTextosDasMencoes.push_back(dcNome);
+        mTextosDasMencoes.push_back(dcComo);
+    }
+
+    // No pe da coluna dos desafios, onde sobra lugar: onde ver as que ja tem.
+    auto* nota = TextoAEsquerda("Cada mat\xc3\xa9ria tem as suas: o boletim mostra quais voc\xc3\xaa j\xc3\xa1 tem.",
+                                direita, topo + kPrimeiraMencao + kEntreMencoes * 6.0f, kLetraDoComo,
+                                static_cast<int>(kColuna));
+    nota->SetColor(kCorDoComo);
+    mTextosDasMencoes.push_back(nota);
+}
+
+void TelaComoJogar::MostrarAsMencoes(const bool mostrar) {
+    for (DrawAnimatedComponent* s : mSelos) s->SetIsVisible(mostrar);
+    for (DrawTextComponent* t : mTextosDasMencoes) t->SetIsVisible(mostrar);
 }
 
 void TelaComoJogar::Load() {
@@ -88,6 +165,8 @@ void TelaComoJogar::Load() {
 
     mRodape = Texto("", meio, altura * kRodape, 24, 1000);
 
+    CriarAsMencoes(topo, meio);
+
     Mostrar();
 }
 
@@ -97,6 +176,7 @@ void TelaComoJogar::Mostrar() {
     const bool arcade = mGame->NoGabinete();
 
     std::vector<std::string> linhas;
+    bool mencoes = false;
     if (quantas == 0) {
         // Sem o arquivo, a tela diz o que houve em vez de ficar em branco.
         mTitulo->SetText("Manual indispon\xc3\xadvel");
@@ -105,7 +185,8 @@ void TelaComoJogar::Mostrar() {
     } else {
         const Manual::Pagina& p = paginas[static_cast<size_t>(mPagina)];
         mTitulo->SetText(p.titulo);
-        linhas = Manual::Linhas(p, arcade);
+        mencoes = p.mencoes;
+        if (!mencoes) linhas = Manual::Linhas(p, arcade);
         mIndicador->SetText(Manual::Indicador(mPagina, quantas));
         mIndicador->SetIsVisible(true);
     }
@@ -114,6 +195,8 @@ void TelaComoJogar::Mostrar() {
         mLinhas[i]->SetIsVisible(usada);
         if (usada) mLinhas[i]->SetText(linhas[i].empty() ? " " : linhas[i]);
     }
+
+    MostrarAsMencoes(mencoes);
 
     const bool temAnterior = mPagina > 0;
     const bool temProxima = mPagina + 1 < quantas;

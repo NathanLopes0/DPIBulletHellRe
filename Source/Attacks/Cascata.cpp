@@ -15,9 +15,38 @@ namespace Cascata {
         return std::min(k, static_cast<int>(kEtapas.size()));
     }
 
-    Vector2 LugarNoBacklog(const int k) {
-        const int i = std::clamp(k, 0, kMaxPedidos - 1);
-        return Vector2(70.0f + 46.0f * static_cast<float>(i % 5), 222.0f + 44.0f * static_cast<float>(i / 5));
+    const char* CaraDaEtapa(const int etapa) {
+        static constexpr std::array<const char*, 5> kCaras = {"Pedido", "Classe", "Codigo", "Bug", "Debito"};
+        return kCaras[static_cast<size_t>(std::clamp(etapa, 0, 4))];
+    }
+
+    float EntreQuedas(const int etapa, const Dificuldade::Nivel n) {
+        static constexpr std::array<float, 5> kNormal = {0.40f, 0.34f, 0.28f, 0.24f, 0.21f};
+        const float normal = kNormal[static_cast<size_t>(std::clamp(etapa, 0, 4))];
+        return Dificuldade::Escolher(n, normal, normal * 0.85f);
+    }
+
+    float VelocidadeDaQueda(const int etapa) {
+        return 140.0f + 25.0f * static_cast<float>(std::clamp(etapa, 0, 4));
+    }
+
+    int Custo(const int etapa) {
+        static constexpr std::array<int, 5> kCustos = {1, 2, 3, 5, 8};
+        return kCustos[static_cast<size_t>(std::clamp(etapa, 0, 4))];
+    }
+
+    int TirosDoCusto(const int etapa) {
+        return std::min(Custo(etapa), kMaisNoAnel);
+    }
+
+    std::string PlacarDaMudanca(const int etapa) {
+        // Os nomes com acento: \xc3\xa7 e o c cedilha, \xc3\xa3 o a til, \xc3\xa7\xc3\xa3 "ca".
+        static constexpr std::array<const char*, 5> kNomes = {
+            "nos Requisitos", "no Projeto", "na Implementa\xc3\xa7\xc3\xa3o", "nos Testes", "na Manuten\xc3\xa7\xc3\xa3o"};
+        const int k = std::clamp(etapa, 0, 4);
+        // \xc3\xa7 e o c cedilha; \xc3\x97 o sinal de vezes.
+        return std::string("Mudan\xc3\xa7" "a ") + kNomes[static_cast<size_t>(k)] + ": custo \xc3\x97" +
+               std::to_string(Custo(k));
     }
 
     Vector2 OrigemDoPedido(const std::uint32_t sorteio, const float largura, const float altura) {
@@ -29,36 +58,11 @@ namespace Cascata {
         return Vector2(esquerda ? -20.0f : largura + 20.0f, y);
     }
 
-    Vector2 LugarDaClasse(const int k, const float largura) {
-        const int i = std::clamp(k, 0, kMaxClasses - 1);
-        const float coluna = static_cast<float>(i % kClassesPorLinha);
-        const float linha = static_cast<float>(i / kClassesPorLinha);
-        return Vector2(largura * (0.15f + 0.2f * coluna), kYDasClasses + kEntreLinhasDeClasses * linha);
+    Degrau DegrauDo(const Dificuldade::Nivel n) {
+        Degrau d;
+        if (n != Dificuldade::Nivel::Dificil) return d;
+        d.entreMudancas = 1.9f;
+        d.quedaMaisRapida = 1.15f;
+        return d;
     }
-
-    std::vector<std::pair<int, int>> Associacoes(const int classes) {
-        std::vector<std::pair<int, int>> setas;
-        const int n = std::clamp(classes, 0, kMaxClasses);
-        for (int k = 0; k < n; ++k) {
-            if (k % kClassesPorLinha != kClassesPorLinha - 1 && k + 1 < n) setas.emplace_back(k, k + 1);
-            if (k + kClassesPorLinha < n) setas.emplace_back(k, k + kClassesPorLinha);
-        }
-        return setas;
-    }
-
-    Plano Sortear(Variacao::Sorteio& s) {
-        return Plano{Variacao::Ordem(s, kMaxClasses, 0)};
-    }
-
-    int DaVez(const Plano& p, const int vez, const int prontas) {
-        if (prontas <= 0) return 0;
-        const int v = std::max(vez, 0) % prontas;
-        int achadas = 0;
-        for (const int k : p.ordem) {
-            if (k >= prontas) continue;
-            if (achadas++ == v) return k;
-        }
-        return v;
-    }
-
 }

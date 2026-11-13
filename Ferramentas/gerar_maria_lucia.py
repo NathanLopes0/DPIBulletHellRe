@@ -352,6 +352,112 @@ def placas_json(nome, w, h):
                      "format": "RGBA8888", "size": {"w": w, "h": h}, "scale": "1"}}
 
 
+# ---- A MARIA LUCIA REFEITA: o Scrum, o Decorator e o lobisomem ----------------
+
+PONTOS = [1, 2, 3, 5, 8]
+COR_FAZER = (130, 190, 240, 255)
+
+
+def cartao_de_pontos(pontos):
+    """A HISTORIA DO SCRUM: o cartao azul com os pontos do planning poker no canto - a mais pesada
+    e a mais quente, para se ler de longe."""
+    from PIL import ImageFont
+    fonte = ImageFont.truetype(os.path.join(RAIZ, "Assets", "Fonts", "Carlito-Regular.ttf"), 13)
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    calor = {1: (130, 190, 240), 2: (140, 210, 200), 3: (190, 220, 140), 5: (240, 190, 110), 8: (240, 120, 110)}
+    d.rectangle([3, 5, 28, 27], fill=calor[pontos] + (255,), outline=TRACO, width=2)
+    d.line([7, 11, 17, 11], fill=TRACO, width=2)
+    d.line([7, 16, 15, 16], fill=TRACO, width=1)
+    d.line([7, 20, 13, 20], fill=TRACO, width=1)
+    d.ellipse([17, 14, 28, 25], fill=(255, 255, 255, 255), outline=TRACO)
+    d.text((22.5, 19.5), str(pontos), fill=TRACO, font=fonte, anchor="mm")
+    return im
+
+
+def decorado(camadas):
+    """O COMPONENTE DO DECORATOR: um objeto pequeno no meio, e um anel por decorador em volta - Rapida
+    (amarelo), Dividida (verde), Teleguiada (vermelho), de dentro para fora."""
+    im = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    cores = [(250, 214, 90, 255), (110, 220, 130, 255), (240, 90, 90, 255)]
+    for k in range(camadas):
+        r = 6 + 3 * (k + 1)
+        d.ellipse([16 - r, 16 - r, 15 + r, 15 + r], outline=cores[k], width=2)
+    d.rectangle([12, 12, 19, 19], fill=(200, 210, 230, 255), outline=TRACO, width=2)
+    d.line([14, 15, 17, 15], fill=TRACO)
+    return im
+
+
+def padroes():
+    """A folha nova: os cartoes de pontos (0 a 4) e o componente decorado (5 a 8)."""
+    quadros = [cartao_de_pontos(p) for p in PONTOS] + [decorado(c) for c in range(4)]
+    f = Image.new("RGBA", (128, 32 * ((len(quadros) + 3) // 4)), (0, 0, 0, 0))
+    for i, q in enumerate(quadros):
+        f.alpha_composite(q, ((i % 4) * 32, (i // 4) * 32))
+    return f, len(quadros)
+
+
+TITULOS = ["A FAZER", "FAZENDO", "FEITO"]
+TW, TH = 110, 24
+
+
+def titulos():
+    """O TITULO DE CADA COLUNA do quadro do Scrum, numa etiqueta."""
+    from PIL import ImageFont
+    fonte = ImageFont.truetype(os.path.join(RAIZ, "Assets", "Fonts", "Carlito-Regular.ttf"), 16 * 4)
+    folha = Image.new("RGBA", (TW, TH * len(TITULOS)), (0, 0, 0, 0))
+    for k, nome in enumerate(TITULOS):
+        im = Image.new("RGBA", (TW * 4, TH * 4), (0, 0, 0, 0))
+        d = ImageDraw.Draw(im)
+        d.rounded_rectangle([4, 4, TW * 4 - 5, TH * 4 - 5], radius=16, fill=(40, 52, 70, 220),
+                            outline=(150, 180, 220, 255), width=6)
+        d.text((TW * 2, TH * 2), nome, fill=(228, 238, 250, 255), font=fonte, anchor="mm")
+        folha.alpha_composite(im.resize((TW, TH), Image.LANCZOS), (0, k * TH))
+    return folha
+
+
+def titulos_json(nome, w, h):
+    frames = []
+    for i in range(len(TITULOS)):
+        frames.append({
+            "filename": f"{nome} {i}.placeholder",
+            "frame": {"x": 0, "y": i * TH, "w": TW, "h": TH},
+            "rotated": False, "trimmed": False,
+            "spriteSourceSize": {"x": 0, "y": 0, "w": TW, "h": TH},
+            "sourceSize": {"w": TW, "h": TH},
+            "duration": 120,
+        })
+    return {"frames": frames,
+            "meta": {"app": "gerar_maria_lucia.py", "version": "1.0", "image": f"{nome}.png",
+                     "format": "RGBA8888", "size": {"w": w, "h": h}, "scale": "1"}}
+
+
+def lobisomem(fase):
+    """O LOBISOMEM de Brooks: o projeto de software que todo mundo quer matar com uma bala de prata.
+    A cabeca de lobo de frente, as orelhas em ponta e os olhos acesos; no segundo quadro a boca abre
+    (o uivo)."""
+    im = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    pelo, sombra, olho = (96, 84, 110, 255), (54, 46, 66, 255), (250, 214, 90, 255)
+    d.polygon([(10, 6), (22, 22), (14, 26)], fill=pelo, outline=TRACO)             # orelha
+    d.polygon([(54, 6), (42, 22), (50, 26)], fill=pelo, outline=TRACO)
+    d.ellipse([10, 14, 54, 58], fill=pelo, outline=TRACO, width=2)                 # a cabeca
+    d.polygon([(22, 38), (42, 38), (36, 58), (28, 58)], fill=sombra, outline=TRACO)  # o focinho
+    d.ellipse([18, 26, 27, 33], fill=olho, outline=TRACO)
+    d.ellipse([37, 26, 46, 33], fill=olho, outline=TRACO)
+    d.point([(22, 29), (41, 29)], fill=TRACO)
+    if fase:   # o uivo: a boca aberta e os dentes
+        d.polygon([(26, 50), (38, 50), (32, 60)], fill=(150, 40, 50, 255), outline=TRACO)
+        d.point([(28, 51), (36, 51)], fill=(255, 255, 255, 255))
+    else:
+        d.line([28, 54, 36, 54], fill=TRACO, width=2)
+    # Codigo no pelo: o projeto e feito de linhas.
+    for y in (18, 22):
+        d.line([26, y, 38, y], fill=(130, 220, 140, 200), width=1)
+    return im
+
+
 if __name__ == "__main__":
     grava(maria_lucia(), "DPIBHMariaLucia", "Assets/Teachers")
     grava(folha(), "DPIBHMariaLuciaRequisito", "Assets/Teachers/Projectiles", quadros=48, lado=32)
@@ -362,3 +468,15 @@ if __name__ == "__main__":
     with open(os.path.join(destino, "DPIBHMariaLuciaCascata.json"), "w", encoding="utf-8") as f:
         json.dump(placas_json("DPIBHMariaLuciaCascata", im.width, im.height), f, indent=1)
     print(f"  Assets/Teachers/Projectiles/DPIBHMariaLuciaCascata.png  {im.width}x{im.height}  (10 quadro(s))")
+
+    f, n = padroes()
+    grava(f, "DPIBHMariaLuciaPadroes", "Assets/Teachers/Projectiles", quadros=n, lado=32)
+    im = titulos()
+    im.save(os.path.join(destino, "DPIBHMariaLuciaTitulos.png"))
+    with open(os.path.join(destino, "DPIBHMariaLuciaTitulos.json"), "w", encoding="utf-8") as f:
+        json.dump(titulos_json("DPIBHMariaLuciaTitulos", im.width, im.height), f, indent=1)
+    print(f"  Assets/Teachers/Projectiles/DPIBHMariaLuciaTitulos.png  {im.width}x{im.height}  (3 quadro(s))")
+    lobo = Image.new("RGBA", (128, 64), (0, 0, 0, 0))
+    lobo.alpha_composite(lobisomem(0), (0, 0))
+    lobo.alpha_composite(lobisomem(1), (64, 0))
+    grava(lobo, "DPIBHMariaLuciaLobisomem", "Assets/Teachers/Projectiles", quadros=2, lado=64)

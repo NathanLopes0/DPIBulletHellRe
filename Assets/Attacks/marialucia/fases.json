@@ -1,9 +1,12 @@
 {
-  // As fases da Maria Lucia (INF 221 - Engenharia de Software)
+  // As fases da Maria Lucia (INF 221 - Engenharia de Software). O que cada uma faz mora no C++
+  // (MariaLucia.cpp) e na camada pura (Cascata.h, Scrum.h, Observer.h, Decorator.h, BalaDePrata.h);
+  // aqui ficam os tiros que ela puxa pelo gatilho, e os nomes que o placar mostra.
 
   // ==========================================================================
 
-  // Fase 1 - o modelo cascata | gesto: a escada.
+  // Fase 1 - o modelo cascata | gesto: a escada. A cachoeira de cada etapa, e a mudanca de escopo
+  // que desce a escada inteira.
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
@@ -19,83 +22,75 @@
     "ataques": [
       { "gatilho": "placa", "estrategia": "WaveAttack", "projetil": "Placa",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "etapa": "Requisitos", "gatilho": "pedido", "estrategia": "WaveAttack", "projetil": "Pedido",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0,
-        "regras": "escopo" },
-      { "etapa": "Projeto", "gatilho": "classe", "estrategia": "WaveAttack", "projetil": "Classe",
+      { "gatilho": "queda", "estrategia": "WaveAttack", "projetil": "Queda",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "etapa": "Projeto", "gatilho": "mensagem", "estrategia": "WaveAttack", "projetil": "Seta",
-        "projeteis": 8, "velocidade": 250, "angulo": 0, "anguloCentral": 90, "intervalo": 0.05,
-        "regras": "diagrama" },
-      { "etapa": "Implementacao", "gatilho": "compilar", "estrategia": "WaveAttack", "projetil": "Requisito",
-        "projeteis": 2, "velocidade": 330, "angulo": 18, "intervalo": 0,
-        "dificil": { "projeteis": 3 },
-        "regras": "codigo" },
-      { "etapa": "Testes", "gatilho": "bug", "estrategia": "WaveAttack", "projetil": "Bug",
-        "projeteis": 1, "velocidade": 70, "angulo": 0, "anguloCentral": 90, "intervalo": 0,
-        "regras": "bugs" },
-      { "etapa": "Manutencao", "gatilho": "debito", "estrategia": "WaveAttack", "projetil": "Debito",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
+      { "gatilho": "pedido", "estrategia": "WaveAttack", "projetil": "Mudanca",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "custo", "estrategia": "CircleSpreadAttack", "projetil": "Aviso",
+        "projeteis": 2, "velocidade": 150 },
+      { "gatilho": "estouro", "estrategia": "WaveAttack", "projetil": "Aviso",
+        "projeteis": 3, "velocidade": 235, "angulo": 30, "intervalo": 0 }
     ]
   },
 
-  // Fase 2 - os metodos ageis | gesto: a orbita, o ciclo iterativo. A mesma fase da cascata,
-  // cortada em ciclos curtos.
+  // Fase 2 - o Scrum | gesto: conduzido, em cima do quadro. Cinco sprints de tempo fixo, cada uma
+  // com o planning, tres dailies e as entregas.
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
-    "anuncio": "Métodos Ágeis",
+    "anuncio": "Scrum",
     "etapas": [
       { "nome": "Backlog", "duracao": 0.75, "anuncio": "Product Backlog" },
-      { "nome": "Sprint1", "duracao": 3.6, "anuncio": "Sprint 1 · 1 ponto" },
-      { "nome": "Sprint2", "duracao": 3.6, "anuncio": "Sprint 2 · 2 pontos" },
-      { "nome": "Sprint3", "duracao": 3.6, "anuncio": "Sprint 3 · 3 pontos" },
-      { "nome": "Sprint4", "duracao": 3.6, "anuncio": "Sprint 4 · 5 pontos" },
-      { "nome": "Sprint5", "duracao": 3.6, "anuncio": "Sprint 5 · 8 pontos" },
+      { "nome": "Sprint1", "duracao": 3.6, "anuncio": "Sprint 1" },
+      { "nome": "Sprint2", "duracao": 3.6, "anuncio": "Sprint 2" },
+      { "nome": "Sprint3", "duracao": 3.6, "anuncio": "Sprint 3" },
+      { "nome": "Sprint4", "duracao": 3.6, "anuncio": "Sprint 4" },
+      { "nome": "Sprint5", "duracao": 3.6, "anuncio": "Sprint 5" },
       { "nome": "Retrospectiva", "duracao": 1.25, "anuncio": "Retrospectiva" }
     ],
-    "movimento": { "tipo": "Orbitar", "a": 120, "b": 0.10 },
+    "movimento": { "tipo": "Conduzido", "a": 260 },
     "ataques": [
-      { "etapa": "Sprint1", "estrategia": "SprintAttack", "projetil": "Historia",
-        "projeteis": 1, "velocidade": 300, "cooldown": 3.6,
-        "sprint": { "revisao": 3.1, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
-      { "etapa": "Sprint2", "estrategia": "SprintAttack", "projetil": "Historia",
-        "projeteis": 2, "velocidade": 300, "cooldown": 3.6,
-        "sprint": { "revisao": 3.1, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
-      { "etapa": "Sprint3", "estrategia": "SprintAttack", "projetil": "Historia",
-        "projeteis": 3, "velocidade": 300, "cooldown": 3.6,
-        "sprint": { "revisao": 3.1, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
-      { "etapa": "Sprint4", "estrategia": "SprintAttack", "projetil": "Historia",
-        "projeteis": 5, "velocidade": 300, "cooldown": 3.6,
-        "sprint": { "revisao": 3.1, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
-      { "etapa": "Sprint5", "estrategia": "SprintAttack", "projetil": "Historia",
-        "projeteis": 8, "velocidade": 300, "cooldown": 3.6,
-        "sprint": { "revisao": 3.1, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } },
-      { "estrategia": "PontosAttack", "projetil": "Requisito",
-        "projeteis": 1, "velocidade": 260, "cooldown": 1.0, "variar": { "cadencia": 0.2 },
-        "pontos": { "posto": "quadro", "mirar": true, "prever": true },
-        "regras": "codigo" }
+      { "gatilho": "historia", "estrategia": "WaveAttack", "projetil": "Historia",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "cursor", "estrategia": "WaveAttack", "projetil": "Cursor",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "titulo", "estrategia": "WaveAttack", "projetil": "Titulo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "trabalho", "estrategia": "WaveAttack", "projetil": "Requisito",
+        "projeteis": 1, "velocidade": 245, "angulo": 0, "intervalo": 0,
+        "dificil": { "velocidade": 275 },
+        "regras": "codigo" },
+      { "gatilho": "entrega", "estrategia": "CircleSpreadAttack", "projetil": "Requisito",
+        "projeteis": 5, "velocidade": 150, "dificil": { "projeteis": 6 } },
+      { "gatilho": "daily", "estrategia": "WaveAttack", "projetil": "Seta",
+        "projeteis": 8, "velocidade": 250, "angulo": 0, "anguloCentral": 90, "intervalo": 0.05,
+        "regras": "diagrama" }
     ]
   },
 
-  // Fase 3 - o padrao observer | gesto: a varredura.
+  // Fase 3 - os padroes de projeto | gesto: conduzido. O Observer (os olhos em orbita) e o
+  // Decorator (a bala que ganha camadas).
   "StateThree": {
     "duracao": 20,
     "proximo": "",
-    "anuncio": "Observer",
-    "movimento": { "tipo": "Varredura", "a": 160, "b": 150 },
+    "anuncio": "Padrões de Projeto",
+    "etapas": [
+      { "nome": "Observer",  "duracao": 10.0, "anuncio": "Observer" },
+      { "nome": "Decorator", "duracao": 10.0, "anuncio": "Decorator" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 300 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Observador",
-        "projeteis": 3, "velocidade": 260, "angulo": 120, "intervalo": 0,
-        "cooldown": 2.4, "variar": { "cadencia": 0.2 },
-        "regras": "inscrever" },
-      { "gatilho": "notificacao", "estrategia": "PontosAttack", "projetil": "Aviso",
-        "projeteis": 1, "velocidade": 260, "angulo": 16,
-        "dificil": { "projeteis": 2 },
-        "pontos": { "posto": "observadores", "mirar": true, "prever": true } },
-      { "gatilho": "consulta", "estrategia": "PontosAttack", "projetil": "Aviso",
-        "projeteis": 1, "velocidade": 260,
-        "pontos": { "posto": "observadores", "mirar": true } }
+      { "etapa": "Observer", "gatilho": "inscrever", "estrategia": "WaveAttack", "projetil": "Observador",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "etapa": "Observer", "gatilho": "notificacao", "estrategia": "WaveAttack", "projetil": "Aviso",
+        "projeteis": 1, "velocidade": 255, "angulo": 14, "intervalo": 0,
+        "dificil": { "projeteis": 2 } },
+      { "etapa": "Observer", "gatilho": "consulta", "estrategia": "WaveAttack", "projetil": "Aviso",
+        "projeteis": 1, "velocidade": 265, "angulo": 0, "intervalo": 0 },
+      { "etapa": "Decorator", "gatilho": "componente", "estrategia": "WaveAttack", "projetil": "Decorado",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "etapa": "Decorator", "gatilho": "dividida", "estrategia": "WaveAttack", "projetil": "Decorado",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
     ]
   },
 
@@ -107,13 +102,12 @@
     "anuncio": "Não há bala de prata",
     "movimento": { "tipo": "Orbitar", "a": 180, "b": 0.12 },
     "ataques": [
-      { "estrategia": "WaveAttack", "projetil": "Dialogo",
-        "projeteis": 3, "velocidade": 200, "angulo": 60, "intervalo": 0,
-        "cooldown": 6.0, "variar": { "cadencia": 0.2 },
-        "regras": "modal" },
+      { "gatilho": "lobisomem", "estrategia": "WaveAttack", "projetil": "Lobisomem",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "uivo", "estrategia": "CircleSpreadAttack", "projetil": "Bug",
+        "projeteis": 12, "velocidade": 150, "dificil": { "projeteis": 14 } },
       { "gatilho": "bala", "estrategia": "WaveAttack", "projetil": "BalaDePrata",
-        "projeteis": 1, "velocidade": 230, "angulo": 0, "intervalo": 0,
-        "dificil": { "velocidade": 260 } },
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "estilhaco", "estrategia": "WaveAttack", "projetil": "Bug",
         "projeteis": 5, "velocidade": 210, "angulo": 70, "intervalo": 0,
         "dificil": { "projeteis": 7 } },

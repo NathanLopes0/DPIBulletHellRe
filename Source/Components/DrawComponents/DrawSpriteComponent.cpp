@@ -32,7 +32,7 @@ void DrawSpriteComponent::Draw(SDL_Renderer *renderer)
 {
     if (!mIsVisible || !mSpriteSheetSurface) return;
 
-    float scale = mOwner->GetScale();
+    const float scale = mOwner->GetScale() * mEscalaPropria;
 
     int scaledWidth = static_cast<int>(mWidth * scale);
     int scaledHeight = static_cast<int>(mHeight * scale);

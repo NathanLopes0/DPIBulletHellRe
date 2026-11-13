@@ -21,6 +21,7 @@ namespace Golpe {
         if (professor == "Maria L\xc3\xba" "cia" || professor == "Maria Lucia") return Materia::MariaLucia;
         if (professor == "Lucas") return Materia::Lucas;
         if (professor == "Vitor") return Materia::Vitor;
+        if (professor == "Arroyo") return Materia::Arroyo;
         return Materia::Generico;
     }
 
@@ -134,6 +135,20 @@ namespace Golpe {
                 for (int i = 0; i < n; ++i) {
                     Tiro t;
                     t.quando = 0.08f * static_cast<float>(i);
+                    r.tiros.push_back(t);
+                }
+                break;
+            }
+
+            case Materia::Arroyo: {
+                // A busca binaria: cada rodada corta o intervalo pela metade - os dois tiros saem
+                // abertos, viram para o chefe no meio do voo e se fecham nele, cada vez mais perto.
+                r.duracao = 1.2f;
+                const float metade = 48.0f / static_cast<float>(1 << (k % 4));
+                for (const float lado : {-metade, metade}) {
+                    Tiro t;
+                    t.desvio = lado;
+                    t.reMira = 0.22f;
                     r.tiros.push_back(t);
                 }
                 break;

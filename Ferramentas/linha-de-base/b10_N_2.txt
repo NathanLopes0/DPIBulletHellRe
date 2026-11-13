@@ -91,4 +91,4 @@ q05400 nota=99.9900 sofridos=17
 q05460 nota=99.9900 sofridos=17
 q05520 nota=99.9900 sofridos=17
 q05580 nota=99.9900 sofridos=17
-FIM nota=99.9900 acertos_sofridos=17 acertos_dados=685 aprovado=1
+FIM nota=99.9900 acertos_sofridos=17 acertos_dados=690 aprovado=1

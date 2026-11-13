@@ -172,6 +172,19 @@ namespace Tcc {
                 }
                 break;
             }
+            case Materia::Arroyo: {
+                // T(n) = T(n/2) + n: leques de 8, 4, 2 e 1 tiros, cada um com a metade do anterior.
+                for (int nivel = 0; nivel < 4; ++nivel) {
+                    const int q = 8 >> nivel;
+                    const float abertura = N(36.0f, 42.0f) / static_cast<float>(1 << nivel);
+                    for (int i = 0; i < q; ++i) {
+                        Golpe::Tiro t = Tiro(0.28f * static_cast<float>(nivel), N(255.0f, 275.0f));
+                        t.desvio = q > 1 ? Passo(i, q, -abertura, abertura) : 0.0f;
+                        tiros.push_back(t);
+                    }
+                }
+                break;
+            }
             case Materia::Generico:
             default: {
                 // O Hugo sem orientador: um leque de paginas.
@@ -222,6 +235,8 @@ namespace Tcc {
              "await fetch(\"/api\")",    "Funciona no Safari?",               "Lucas"},
             {Materia::Vitor,      "Vitor",       "Programação Concorrente e Distribuída",
              "a janela do TCP",          "E se der deadlock?",                "Vitor"},
+            {Materia::Arroyo,     "Arroyo",      "Projeto e Análise de Algoritmos",
+             "T(n) = 2T(n/2) + n",       "Qual é a complexidade disso?",      "Arroyo"},
         };
 
         /// Sem orientador (o Generico), o proprio Hugo: tema livre.

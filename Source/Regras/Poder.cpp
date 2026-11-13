@@ -47,6 +47,11 @@ namespace Poder {
                 d = {Tipo::Mutex, "P(s)", "os tiros fazem fila: passa um por vez", 5.0f, 0.0f, 0,
                      kEntrePassagens};
                 break;
+            case Golpe::Materia::Arroyo:
+                d = {Tipo::BuscaBinaria, "busca bin\xc3\xa1ria", "metade dos tiros some, de novo e de novo",
+                     static_cast<float>(kPassosDaBusca) * kEntrePassosDaBusca + 0.3f, 0.0f, kPassosDaBusca,
+                     kEntrePassosDaBusca};
+                break;
             default:
                 break;
         }
@@ -100,9 +105,15 @@ namespace Poder {
     }
 
     int QuadroDaMateria(const Golpe::Materia m) {
-        // Os quadros 3 a 12 da folha, na ordem do enum (Generico e o 0).
+        // Os quadros 3 a 12 da folha, na ordem do enum (Generico e o 0); o Arroyo, que entrou depois,
+        // no fim dela (gerar_hugo.py poe as linhas novas sempre no fim).
         if (m == Golpe::Materia::Generico) return -1;
+        if (m == Golpe::Materia::Arroyo) return kQuadroDoArroyo;
         return 2 + static_cast<int>(m);
+    }
+
+    int LevaNoPasso(const int n) {
+        return n <= 0 ? 0 : (n + 1) / 2;
     }
 
     bool NoAlcance(const Vector2& centro, const Vector2& tiro, const float raio) {
@@ -283,6 +294,29 @@ namespace Poder {
                         q.tracos.push_back({Marca::Estrutura, x, kAlunoY + 0.08f, x - lado * 0.02f, kAlunoY + 0.08f});
                     }
                 }
+                break;
+            }
+            case Tipo::BuscaBinaria: {
+                // Dezesseis tiros do Hugo; a cada passo some a metade mais perto do aluno.
+                constexpr float kComeca = 1.1f, kPorPasso = 0.55f;
+                std::vector<Ponto> chuva = Chuva(std::min(t, kComeca), 16);
+                std::sort(chuva.begin(), chuva.end(), [](const Ponto& a, const Ponto& b) {
+                    const auto d = [](const Ponto& p) {
+                        const float dx = p.x - kAlunoX, dy = (p.y - kAlunoY) / kAspecto;
+                        return dx * dx + dy * dy;
+                    };
+                    return d(a) < d(b);
+                });
+                const int passos = t < kComeca ? 0 : std::min(4, 1 + static_cast<int>((t - kComeca) / kPorPasso));
+                size_t ficam = chuva.size();
+                for (int k = 0; k < passos; ++k) ficam -= static_cast<size_t>(LevaNoPasso(static_cast<int>(ficam)));
+                for (size_t k = chuva.size() - ficam; k < chuva.size(); ++k) q.pontos.push_back(chuva[k]);
+                if (passos > 0 && t - kComeca - static_cast<float>(passos - 1) * kPorPasso < 0.3f) {
+                    Anel(q, Marca::Estrutura, kAlunoX, kAlunoY, 0.12f + 0.05f * static_cast<float>(passos));
+                }
+                q.legenda = passos == 0 ? "busca bin\xc3\xa1ria: 16 tiros"
+                                        : "passo " + std::to_string(passos) + ": sobram " + std::to_string(ficam) +
+                                              (passos == 4 ? "  (log\xe2\x82\x82 16 = 4)" : "");
                 break;
             }
             case Tipo::Converter: {

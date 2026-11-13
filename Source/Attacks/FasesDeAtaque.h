@@ -45,14 +45,6 @@ struct DescricaoDeCaixa {
     std::optional<float> meiaAlturaInicial;   ///< em pixels
 };
 
-/// Os campos que so a SprintAttack usa. Opcional: todo campo tem padrao em SprintAttackParams.
-struct DescricaoDeSprint {
-    std::optional<float> revisao;   ///< segundos do disparo ate o que sobrou cair
-    std::string historia;           ///< a animacao das historias
-    std::string cursor;             ///< a do cursor apontando
-    std::string clique;             ///< a do cursor clicando
-};
-
 /// Os campos que so a TokenAttack usa. Opcional: todo campo tem padrao em TokenAttackParams.
 struct DescricaoDeTokens {
     std::optional<float> temperatura;   ///< a do sorteio; zero = sempre o mais provavel
@@ -111,9 +103,6 @@ struct DescricaoDeAtaque {
 
     /// Presente so nos ataques CaixaAttack que escreveram o bloco.
     std::optional<DescricaoDeCaixa> caixa;
-
-    /// Presente so nos ataques SprintAttack que escreveram o bloco.
-    std::optional<DescricaoDeSprint> sprint;
 
     /// Presente em todo ataque PontosAttack, e so neles.
     std::optional<DescricaoDePontos> pontos;

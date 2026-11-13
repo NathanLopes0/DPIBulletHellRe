@@ -278,8 +278,6 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/Amarra.h
         Source/Movements/Escada.cpp
         Source/Movements/Escada.h
-        Source/Attacks/Sprint.cpp
-        Source/Attacks/Sprint.h
         Source/Attacks/Observer.cpp
         Source/Attacks/Observer.h
         Source/Attacks/Ancora.cpp
@@ -348,6 +346,10 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/Transacao.h
         Source/Attacks/Dml.h
         Source/Attacks/Cascata.cpp
+        Source/Attacks/Scrum.cpp
+        Source/Attacks/Scrum.h
+        Source/Attacks/Decorator.cpp
+        Source/Attacks/Decorator.h
         Source/Attacks/Cascata.h
         Source/Attacks/Condicional.cpp
         Source/Attacks/Condicional.h
@@ -363,6 +365,14 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/Coercao.h
         Source/Attacks/Termina.cpp
         Source/Attacks/Termina.h
+        Source/Attacks/Recorrencia.cpp
+        Source/Attacks/Recorrencia.h
+        Source/Attacks/Paradigmas.cpp
+        Source/Attacks/Paradigmas.h
+        Source/Attacks/Intratavel.cpp
+        Source/Attacks/Intratavel.h
+        Source/Attacks/Tempera.cpp
+        Source/Attacks/Tempera.h
         Source/Attacks/Excecao.cpp
         Source/Attacks/Excecao.h
         Source/Regras/Intercambio.cpp
@@ -411,6 +421,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Actors/Teachers/Bosses/Ricardo.cpp
         Source/Actors/Teachers/Bosses/Ricardo.h
         Source/Actors/Teachers/Bosses/Andre.cpp
+        Source/Actors/Teachers/Bosses/Arroyo.cpp
+        Source/Actors/Teachers/Bosses/Arroyo.h
         Source/Actors/Teachers/Bosses/Andre.h
         Source/Actors/Teachers/Bosses/Julio.cpp
         Source/Actors/Teachers/Bosses/Thiago.cpp
@@ -433,9 +445,6 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/BaseStrategies/CaixaAttack.cpp
         Source/Attacks/BaseStrategies/CaixaAttack.h
         Source/Attacks/AttackParameters/CaixaAttackParams.h
-        Source/Attacks/BaseStrategies/SprintAttack.cpp
-        Source/Attacks/BaseStrategies/SprintAttack.h
-        Source/Attacks/AttackParameters/SprintAttackParams.h
         Source/Attacks/BaseStrategies/PontosAttack.cpp
         Source/Attacks/BaseStrategies/PontosAttack.h
         Source/Attacks/AttackParameters/PontosAttackParams.h
@@ -493,6 +502,7 @@ enable_testing()
 
 add_executable(dpi_tests
         tests/test_main.cpp
+        tests/test_arroyo.cpp
         tests/test_path_aim.cpp
         tests/test_motion_contract.cpp
         tests/test_investida.cpp
@@ -505,7 +515,6 @@ add_executable(dpi_tests
         tests/test_promessa.cpp
         tests/test_amarra.cpp
         tests/test_escada.cpp
-        tests/test_sprint.cpp
         tests/test_observer.cpp
         tests/test_ancora.cpp
         tests/test_temperatura.cpp
@@ -716,8 +725,6 @@ add_executable(dpi_tests
         Source/Attacks/Amarra.h
         Source/Movements/Escada.cpp
         Source/Movements/Escada.h
-        Source/Attacks/Sprint.cpp
-        Source/Attacks/Sprint.h
         Source/Attacks/Observer.cpp
         Source/Attacks/Observer.h
         Source/Attacks/Ancora.cpp
@@ -786,6 +793,10 @@ add_executable(dpi_tests
         Source/Attacks/Transacao.h
         Source/Attacks/Dml.h
         Source/Attacks/Cascata.cpp
+        Source/Attacks/Scrum.cpp
+        Source/Attacks/Scrum.h
+        Source/Attacks/Decorator.cpp
+        Source/Attacks/Decorator.h
         Source/Attacks/Cascata.h
         Source/Attacks/Condicional.cpp
         Source/Attacks/Condicional.h
@@ -801,6 +812,14 @@ add_executable(dpi_tests
         Source/Attacks/Coercao.h
         Source/Attacks/Termina.cpp
         Source/Attacks/Termina.h
+        Source/Attacks/Recorrencia.cpp
+        Source/Attacks/Recorrencia.h
+        Source/Attacks/Paradigmas.cpp
+        Source/Attacks/Paradigmas.h
+        Source/Attacks/Intratavel.cpp
+        Source/Attacks/Intratavel.h
+        Source/Attacks/Tempera.cpp
+        Source/Attacks/Tempera.h
         Source/Attacks/Excecao.cpp
         Source/Attacks/Excecao.h
         Source/Regras/Intercambio.cpp

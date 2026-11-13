@@ -82,6 +82,17 @@
       "nomeCompleto": "Trabalho de Conclusão de Curso", "professor": "Hugo",
       "coluna": 4, "chefe": "hugo", "orientacao": true,
       "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 3 }
+    },
+
+    // ---- Coluna 2, de novo: a INF 332 entrou depois ----
+    // Vai no fim da lista, e nao junto das outras da coluna 2: o indice de cada materia e o da
+    // batalha na simulacao e na linha de base (--batalha 10 e o TCC), e nenhum pode mudar. Na grade,
+    // ela fica embaixo da INF 331, a ultima da coluna.
+    {
+      "codigo": "INF332", "nome": "INF 332",
+      "nomeCompleto": "Projeto e Análise de Algoritmos", "professor": "Arroyo",
+      "coluna": 2, "chefe": "arroyo",
+      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
     }
   ]
 }

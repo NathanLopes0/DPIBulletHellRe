@@ -79,6 +79,26 @@ namespace Horas {
     /// As horas que o curso inteiro oferece.
     int Possiveis(const Materias::Lista& materias);
 
+    // ---- As horas como moeda: as optativas se compram com elas ----
+    //
+    // A carga (kMeta) conta todas as horas ganhas, e nunca desce. O saldo e o que sobra para gastar:
+    // as ganhas menos o preco das optativas compradas (Materias::ChaveDaCompra).
+
+    /// As horas gastas: a soma dos precos das optativas que estas chaves compraram.
+    int Gastas(const std::set<std::string>& chaves, const Materias::Lista& materias);
+    /// As horas que o aluno ainda pode gastar (nunca menos que zero).
+    int Saldo(const std::set<std::string>& chaves, const Materias::Lista& materias);
+
+    /// Se este aluno pode comprar esta materia agora, e se nao, por que.
+    enum class Compra {
+        NaoSeVende,    ///< sem preco: abre so com a regra
+        JaComprou,
+        FaltaARegra,   ///< as aprovacoes que ela pede ainda nao vieram
+        FaltaHora,     ///< a regra esta cumprida, mas o saldo nao chega no preco
+        Pode
+    };
+    Compra PodeComprar(const Materias::Lista& materias, int indice, const Progresso& progresso);
+
     /// "Fase limpa em INF 213", "Virada": o nome de uma chave para a tela, com o nome da materia.
     /// Vazio para a chave que nao existe.
     std::string Nome(const std::string& chave, const Materias::Lista& materias);

@@ -1,0 +1,9 @@
+{
+  // As regras de projetil do Arroyo (INF 332 - Projeto e Analise de Algoritmos).
+
+  // Fase 2, o guloso: a moeda escolhe o melhor agora - vira para o aluno a cada instante, com
+  // forca de sobra para errar a curva (o otimo local).
+  "gulosa": [
+    { "motion": { "tipo": "Tracking", "atraso": 0.15, "forca": 1.6, "duracao": 1.6 } }
+  ]
+}

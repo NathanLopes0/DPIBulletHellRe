@@ -1,0 +1,147 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHArroyoValores 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoValores 1.placeholder",
+   "frame": {
+    "x": 28,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoValores 2.placeholder",
+   "frame": {
+    "x": 56,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoValores 3.placeholder",
+   "frame": {
+    "x": 84,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoValores 4.placeholder",
+   "frame": {
+    "x": 112,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoValores 5.placeholder",
+   "frame": {
+    "x": 140,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_arroyo.py",
+  "version": "1.0",
+  "image": "DPIBHArroyoValores.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 168,
+   "h": 28
+  },
+  "scale": "1"
+ }
+}

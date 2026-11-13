@@ -483,6 +483,28 @@
     "h": 32
    },
    "duration": 140
+  },
+  {
+   "filename": "DPIBHHugoTcc 22.placeholder",
+   "frame": {
+    "x": 64,
+    "y": 160,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 140
   }
  ],
  "meta": {

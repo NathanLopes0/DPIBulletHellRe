@@ -75,7 +75,7 @@ void DrawAnimatedComponent::Draw(SDL_Renderer *renderer) {
     {
         Vector2 pos = mOwner->GetPosition();
 
-        float scale = mOwner->GetScale();
+        const float scale = mOwner->GetScale() * mEscalaPropria;
 
         const SDL_Rect& clipRect = mSpriteSheetData[spriteIdx];
 

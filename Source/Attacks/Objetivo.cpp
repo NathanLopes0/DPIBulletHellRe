@@ -118,6 +118,9 @@ namespace Objetivo {
             case Golpe::Materia::Vitor:
                 q.pergunta = "E se der deadlock?";
                 r = {"ordeno as travas", "reinicio o servidor", "torço para não dar"}; break;
+            case Golpe::Materia::Arroyo:
+                q.pergunta = "Qual é a complexidade disso?";
+                r = {"Θ(n log n), pelo Teorema Mestre", "roda rápido no meu PC", "é polinomial, acho"}; break;
             default:
                 q.pergunta = "Pode repetir?";
                 r = {"posso", "não", "o quê?"}; break;

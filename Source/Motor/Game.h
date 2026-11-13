@@ -227,6 +227,11 @@ public:
     /// Na dupla, as posicoes para quem a materia ainda esta fechada (vazio se esta aberta para todos).
     [[nodiscard]] std::vector<size_t> FechadaPara(int subject) const;
 
+    /// Compra a optativa com horas para quem ainda nao a tem (Horas::PodeComprar): cada aluno paga
+    /// o preco com o proprio saldo, e a ficha vai para o disco. Compra para todos ou para ninguem:
+    /// se um da dupla nao pode, nada muda. Devolve se comprou.
+    bool ComprarMateria(int subject);
+
 private:
     /// Passam as opcoes de som e de janela para o AudioSystem e o SDL.
     void AplicarVolumes();

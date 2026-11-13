@@ -3,6 +3,10 @@
 //
 
 #include "StageSelect.h"
+#include "../Aluno/Horas.h"
+
+#include <algorithm>
+
 #include "TextoDeCena.h"
 #include "../Entrada/Painel.h"
 #include "FundoDeCena.h"
@@ -92,15 +96,53 @@ void StageSelect::CriarIdentificacaoNaTela() {
 }
 
 void StageSelect::Linha(const float x, const float y,
-                        const float largura, const float altura) {
+                        const float largura, const float altura, const MapaDaGrade::Trecho trecho) {
 
-    // Uma caixa preenchida sem moldura.
+    // Uma caixa preenchida sem moldura, e por baixo dela o brilho, mais grosso e apagado ate acender.
     auto ator = std::make_unique<Actor>(this);
     ator->SetPosition(Vector2(x, y));
-    ator->AddComponent<DrawCaixaComponent>(
+    const bool deitada = largura > altura;
+    auto camada = [&](const float grossura, const int ordem) {
+        // A camada passa um pouco das pontas, para a luz cobrir a quina onde o ramo encontra o tronco.
+        const float w = deitada ? largura + grossura / 2.0f : grossura;
+        const float h = deitada ? grossura : altura + grossura / 2.0f;
+        return ator->AddComponent<DrawCaixaComponent>(static_cast<int>(w), static_cast<int>(h),
+                                                      SDL_Color{0, 0, 0, 0}, SDL_Color{0, 0, 0, 0}, 0, ordem);
+    };
+    Ligacao l;
+    l.halo = camada(kGrossuraDoHalo, kOrdemDasLigacoes - 2);
+    l.brilho = camada(kGrossuraDoBrilho, kOrdemDasLigacoes - 1);
+    l.linha = ator->AddComponent<DrawCaixaComponent>(
         static_cast<int>(largura), static_cast<int>(altura),
         SDL_Color{0, 0, 0, 0}, kCorDaLigacao, 0, kOrdemDasLigacoes);
+    mLigacoes.push_back(l);
+    mTrechos.push_back(trecho);
     NoMapa(AddActor(std::move(ator)));
+}
+
+void StageSelect::AcenderOCaminho(const int anterior, const int novo) {
+    // So o caminho novo; o que ainda brilhava da troca anterior termina de sumir sozinho.
+    for (const MapaDaGrade::Aceso& a : MapaDaGrade::Caminho(mTrechos, anterior, novo, MapaDaGrade::kPassoDaLuz)) {
+        mLigacoes[a.trecho].relogio = -a.atraso;
+    }
+}
+
+void StageSelect::AtualizarAsLigacoes(const float deltaTime) {
+    for (Ligacao& l : mLigacoes) {
+        if (l.relogio >= kApagada) continue;
+        l.relogio += deltaTime;
+        const float luz = MapaDaGrade::Luz(l.relogio);
+        if (luz <= 0.0f && l.relogio > 0.0f) l.relogio = kApagada;   // acabou: volta a ser cenario
+        auto mistura = [luz](const Uint8 a, const Uint8 b) {
+            return static_cast<Uint8>(static_cast<float>(a) + (static_cast<float>(b) - static_cast<float>(a)) * luz);
+        };
+        l.linha->SetFundo(SDL_Color{mistura(kCorDaLigacao.r, kNucleoAceso.r), mistura(kCorDaLigacao.g, kNucleoAceso.g),
+                                    mistura(kCorDaLigacao.b, kNucleoAceso.b), mistura(kCorDaLigacao.a, kNucleoAceso.a)});
+        l.brilho->SetFundo(SDL_Color{kCorAcesa.r, kCorAcesa.g, kCorAcesa.b,
+                                     static_cast<Uint8>(static_cast<float>(kAlfaDoBrilho) * luz)});
+        l.halo->SetFundo(SDL_Color{kCorAcesa.r, kCorAcesa.g, kCorAcesa.b,
+                                   static_cast<Uint8>(static_cast<float>(kAlfaDoHalo) * luz)});
+    }
 }
 
 void StageSelect::CriarLigacoes() {
@@ -121,27 +163,27 @@ void StageSelect::CriarLigacoes() {
                              - kMetadeDoLosango;
         const float xTronco = (xEsquerda + xDireita) / 2.0f;
 
-        float yMenor = mButtonObservers[mGrade[c].front()]->GetPosition().y;
-        float yMaior = yMenor;
+        // O tronco, em pedacos de uma altura de botao a outra: a luz acende so os do caminho.
+        std::vector<float> alturas;
         for (const size_t lado : {c, c + 1}) {
-            for (const size_t i : mGrade[lado]) {
-                const float y = mButtonObservers[i]->GetPosition().y;
-                yMenor = Math::Min(yMenor, y);
-                yMaior = Math::Max(yMaior, y);
-            }
+            for (const size_t i : mGrade[lado]) alturas.push_back(mButtonObservers[i]->GetPosition().y);
         }
-
-        if (yMaior > yMenor) {
-            Linha(xTronco, (yMenor + yMaior) / 2.0f, kGrossuraDaLigacao, yMaior - yMenor);
+        std::sort(alturas.begin(), alturas.end());
+        alturas.erase(std::unique(alturas.begin(), alturas.end()), alturas.end());
+        for (size_t k = 0; k + 1 < alturas.size(); ++k) {
+            Linha(xTronco, (alturas[k] + alturas[k + 1]) / 2.0f, kGrossuraDaLigacao, alturas[k + 1] - alturas[k],
+                  {static_cast<int>(c), -1, alturas[k], alturas[k + 1]});
         }
 
         for (const size_t i : mGrade[c]) {
             const float y = mButtonObservers[i]->GetPosition().y;
-            Linha((xEsquerda + xTronco) / 2.0f, y, xTronco - xEsquerda, kGrossuraDaLigacao);
+            Linha((xEsquerda + xTronco) / 2.0f, y, xTronco - xEsquerda, kGrossuraDaLigacao,
+                  {static_cast<int>(c), static_cast<int>(i), y, y});
         }
         for (const size_t i : mGrade[c + 1]) {
             const float y = mButtonObservers[i]->GetPosition().y;
-            Linha((xTronco + xDireita) / 2.0f, y, xDireita - xTronco, kGrossuraDaLigacao);
+            Linha((xTronco + xDireita) / 2.0f, y, xDireita - xTronco, kGrossuraDaLigacao,
+                  {static_cast<int>(c), static_cast<int>(i), y, y});
         }
     }
 }
@@ -225,11 +267,13 @@ void StageSelect::CreateButton(const std::string& text, int subject, const Vecto
     button->SetAprovado(mGame->Aprovado(subject));
 
     if (!unlocked) {
-        // O nome da materia fechada, embaixo do losango.
+        // O nome da materia fechada, embaixo do losango; a optativa com preco diz quanto custa.
+        const int preco = Materias::Carregadas().PrecoDe(subject);
+        const std::string rotuloTexto = preco > 0 ? text + "  \xc2\xb7  " + std::to_string(preco) + " h" : text;
         auto rotulo = std::make_unique<Actor>(this);
         rotulo->SetPosition(position + Vector2(0.0f, kNomeAbaixoDoCadeado));
         const auto dc = rotulo->AddComponent<DrawTextComponent>(
-            text, mStageSelectFont.get(), 150, 26, 18, 255);
+            rotuloTexto, mStageSelectFont.get(), 150, 26, 18, 255);
         dc->SetLarguraDeQuebra(150);
         dc->SetAjustarAoTexto(true);
 
@@ -301,7 +345,7 @@ void StageSelect::CreateStaticUI() {
     mEstadoAtor    = TextoDoCartao(kCartaoY + 24.f, 22, Color::White);
     mRivalAtor     = TextoDoCartao(kCartaoY + 56.f, 17, Color::LightBlue);
     mMencoes = std::make_unique<SelosDeMencao>(
-        *this, mStageSelectFont.get(), Vector2(kCartaoX - SelosDeMencao::kLarguraDaFileira / 2.0f, kCartaoY + 88.f));
+        *this, Vector2(kCartaoX - SelosDeMencao::kLarguraDaFileira / 2.0f, kCartaoY + 88.f));
 
     UpdateStageInfo();
     CriarProvaDaSemana();
@@ -461,11 +505,13 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
 
     if (currSelected != mSelectedIndex) {
         // Se houve mudança, atualiza a UI e o estado.
+        AcenderOCaminho(static_cast<int>(mSelectedIndex), static_cast<int>(currSelected));
         mButtonObservers[mSelectedIndex]->ChangeSelected();
         mButtonObservers[currSelected]->ChangeSelected(); // Seleciona o novo
 
         mSelectedIndex = currSelected; // Atualiza o estado real.
         mSelectedSubject = mButtonObservers[mSelectedIndex]->GetSubject();
+        mConfirmandoCompra = -1;
         mGame->FocarMateria(mSelectedSubject);
         mInputTimer = 0.0f;
         UpdateStageInfo();
@@ -483,7 +529,18 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
     // Precisa ser uma batida nova, e nao o estado.
     const bool entrar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Um)
                      || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
-    if (mBordaEntrar.Bateu(entrar) && mGame->IsStageUnlocked(mSelectedSubject)) {
+    const bool apertouEntrar = mBordaEntrar.Bateu(entrar);
+    if (apertouEntrar && !mGame->IsStageUnlocked(mSelectedSubject) && DaParaComprar()) {
+        if (mConfirmandoCompra != mSelectedSubject) {
+            mConfirmandoCompra = mSelectedSubject;
+            UpdateStageInfo();
+        } else if (mGame->ComprarMateria(mSelectedSubject)) {
+            // A tela volta aberta: o losango, a ligacao e o cartao da optativa ja comprada.
+            mGame->RequestSceneChange(SceneType::StageSelect);
+        }
+        return;
+    }
+    if (apertouEntrar && mGame->IsStageUnlocked(mSelectedSubject)) {
         mGame->SetSelectedStage(mSelectedSubject);
 
         // A materia que pede orientacao passa pela escolha antes da batalha.
@@ -492,6 +549,45 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
         mGame->RequestSceneChange((m && m->orientacao) ? SceneType::EscolhaDoOrientador : SceneType::Battle);
         return;
     }
+}
+
+bool StageSelect::DaParaComprar() const {
+    const std::vector<size_t> quem = mGame->FechadaPara(mSelectedSubject);
+    if (quem.empty()) return false;
+    for (const size_t i : quem) {
+        if (Horas::PodeComprar(Materias::Carregadas(), mSelectedSubject, mGame->Sessoes()[i].progresso)
+            != Horas::Compra::Pode) return false;
+    }
+    return true;
+}
+
+std::string StageSelect::FraseDaCompra() const {
+    const Materias::Lista& materias = Materias::Carregadas();
+    const int preco = materias.PrecoDe(mSelectedSubject);
+    const std::string custa = std::to_string(preco) + " h";
+    if (DaParaComprar()) {
+        // \xc3\xa3 e o a com til, \xc3\xaa o e circunflexo.
+        if (mConfirmandoCompra == mSelectedSubject) return "Bot\xc3\xa3o 1 de novo: comprar por " + custa;
+        const auto& p = mGame->Sessoes().front().progresso;
+        return "Optativa: " + custa + " de horas (voc\xc3\xaa tem " +
+               std::to_string(Horas::Saldo(p.Atividades(), materias)) + " h)";
+    }
+    // O que falta, de quem falta: na dupla, o cartao diz quem.
+    const bool dupla = mGame->QuantosJogadores() > 1;
+    for (const size_t i : mGame->FechadaPara(mSelectedSubject)) {
+        const Progresso& p = mGame->Sessoes()[i].progresso;
+        const std::string quem = dupla ? "J" + std::to_string(i + 1) + ": " : std::string();
+        switch (Horas::PodeComprar(materias, mSelectedSubject, p)) {
+            case Horas::Compra::FaltaARegra:
+                return quem + materias.ExigenciaDe(mSelectedSubject) + " e " + custa;
+            case Horas::Compra::FaltaHora:
+                return quem + (dupla ? "custa " : "Custa ") + custa + ", faltam " +
+                       std::to_string(preco - Horas::Saldo(p.Atividades(), materias)) + " h";
+            default:
+                break;
+        }
+    }
+    return "Optativa: " + custa;
 }
 
 // Navegacao. A regra mora em Navegacao, E a forma da grade vem de quem desenhou os botoes.
@@ -512,6 +608,7 @@ size_t StageSelect::HandleSelectedChange(const Uint8 *keyState, const size_t cur
 void StageSelect::OnUpdate(float deltaTime) {
 
     if(mInputTimer < INPUT_DELAY) mInputTimer += deltaTime;
+    AtualizarAsLigacoes(deltaTime);
 
     // A camera desliza ate a pagina do foco: as obrigatorias, ou a ala das optativas.
     const float alvo = MapaDaGrade::DeslocamentoDa(mPagina, static_cast<float>(mGame->GetWindowWidth()));
@@ -545,7 +642,11 @@ void StageSelect::UpdateStageInfo() const {
     std::string frase;
     Vector3 cor = Color::White;
 
-    if (!mGame->IsStageUnlocked(mSelectedSubject)) {
+    if (!mGame->IsStageUnlocked(mSelectedSubject) && materias.PrecoDe(mSelectedSubject) > 0) {
+        frase = FraseDaCompra();
+        cor = DaParaComprar() ? Color::Gold : Color::LightPink;
+
+    } else if (!mGame->IsStageUnlocked(mSelectedSubject)) {
         frase = materias.ExigenciaDe(mSelectedSubject);
         if (frase.empty()) frase = "Ainda fechada";
         // Na dupla, quando so um dos dois ainda nao chegou nela, o cartao diz quem.

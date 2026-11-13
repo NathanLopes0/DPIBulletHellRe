@@ -1,0 +1,125 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHArroyoNos 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 34,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 34,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 34,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoNos 1.placeholder",
+   "frame": {
+    "x": 34,
+    "y": 0,
+    "w": 34,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 34,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 34,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoNos 2.placeholder",
+   "frame": {
+    "x": 68,
+    "y": 0,
+    "w": 34,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 34,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 34,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoNos 3.placeholder",
+   "frame": {
+    "x": 102,
+    "y": 0,
+    "w": 34,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 34,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 34,
+    "h": 34
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoNos 4.placeholder",
+   "frame": {
+    "x": 136,
+    "y": 0,
+    "w": 34,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 34,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 34,
+    "h": 34
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_arroyo.py",
+  "version": "1.0",
+  "image": "DPIBHArroyoNos.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 170,
+   "h": 34
+  },
+  "scale": "1"
+ }
+}

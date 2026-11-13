@@ -7,7 +7,6 @@
 #include "../Motor/Math.h"
 #include "PathAim.h"
 #include "Amarra.h"
-#include "Sprint.h"
 #include "Ancora.h"
 #include <vector>
 #include <memory>
@@ -230,35 +229,6 @@ struct AmarrarBehavior : public ProjectileMotion {
     bool isFinished() const override { return corda.cortada; }
     Amarra::Corda corda;
     std::string escreve;
-};
-
-/// Uma historia da sprint: vai na pilha que o cursor arrasta, se espalha para a vaga dela no quadro
-/// e espera a revisao.
-struct HistoriaDaSprintBehavior : public ProjectileMotion {
-    HistoriaDaSprintBehavior(std::shared_ptr<const Sprint::Plano> plano, int indice, float queda)
-        : plano(std::move(plano)), indice(indice), queda(queda) {}
-    void update(Projectile* p, float deltaTime) override;
-    bool isFinished() const override { return caiu; }
-    std::shared_ptr<const Sprint::Plano> plano;
-    int indice;
-    float queda;
-    float t = 0.0f;
-    bool solta = false;
-    bool noQuadro = false;
-    bool caiu = false;
-};
-
-/// O cursor da sprint: a mao do professor.
-struct CursorDaSprintBehavior : public ProjectileMotion {
-    CursorDaSprintBehavior(std::shared_ptr<const Sprint::Plano> plano, std::string seta, std::string clique)
-        : plano(std::move(plano)), seta(std::move(seta)), clique(std::move(clique)) {}
-    void update(Projectile* p, float deltaTime) override;
-    bool isFinished() const override { return acabou; }
-    std::shared_ptr<const Sprint::Plano> plano;
-    std::string seta, clique;
-    float t = 0.0f;
-    bool clicando = false;
-    bool acabou = false;
 };
 
 /// Depois solta e cai reto, a 'queda' px/s - a janela que ninguem fechou.

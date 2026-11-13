@@ -664,49 +664,6 @@ TEST_CASE("Fases: a FlexAttack saiu, e um arquivo que ainda a pede e avisado") {
     CHECK_FALSE(lidas.problemas.empty());
 }
 
-// A sprint dos metodos ageis.
-
-TEST_CASE("Fases: a SprintAttack existe e o bloco dela e opcional") {
-    const auto sem = LerFases(ComAtaque(R"({ "estrategia": "SprintAttack", "projetil": "P" })"));
-    CHECK(sem.problemas.empty());
-
-    const auto com = LerFases(ComAtaque(R"({ "estrategia": "SprintAttack", "projetil": "P",
-        "sprint": { "revisao": 2.6, "historia": "Historia", "cursor": "Cursor", "clique": "Clique" } })"));
-    CHECK(com.problemas.empty());
-    bool viu = false;
-    for (const auto& f : com.fases) {
-        if (f.nome != "StateOne") continue;
-        REQUIRE(f.ataques.size() == 1);
-        REQUIRE(f.ataques[0].sprint.has_value());
-        const auto& s = *f.ataques[0].sprint;
-        CHECK(*s.revisao == doctest::Approx(2.6f));
-        CHECK(s.historia == "Historia");
-        CHECK(s.cursor == "Cursor");
-        CHECK(s.clique == "Clique");
-        viu = true;
-    }
-    CHECK(viu);
-}
-
-TEST_CASE("Fases: uma sprint com revisao em zero ou antes e recusada, e o bloco so vale na SprintAttack") {
-    for (const char* bloco : { R"("sprint": { "revisao": 0 })", R"("sprint": { "revisao": -1 })",
-                               R"("sprint": 3)" }) {
-        CAPTURE(bloco);
-        const auto r = LerFases(ComAtaque(std::string(R"({ "estrategia": "SprintAttack", "projetil": "P", )")
-                                          + bloco + " }"));
-        bool reclamou = false;
-        for (const auto& p : r.problemas) if (p.find("sprint") != std::string::npos) reclamou = true;
-        CHECK(reclamou);
-        for (const auto& f : r.fases) if (f.nome == "StateOne") CHECK(f.ataques.empty());
-    }
-
-    const auto fora = LerFases(ComAtaque(R"({ "estrategia": "WaveAttack", "projetil": "P",
-                                              "sprint": { "revisao": 2 } })"));
-    bool avisou = false;
-    for (const auto& p : fora.problemas) if (p.find("so a SprintAttack") != std::string::npos) avisou = true;
-    CHECK(avisou);
-}
-
 TEST_CASE("Fases: o primeiro disparo de uma janela - 1 s na que abre a fase, 0,25 s depois nas outras") {
     // E a conta que o boss faz quadro a quadro.
     CHECK(PrimeiroDisparoNaJanela(0.0f) == doctest::Approx(kPrimeiroDisparoDaFase));

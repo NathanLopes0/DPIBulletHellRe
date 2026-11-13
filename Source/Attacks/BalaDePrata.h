@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "../Motor/Math.h"
 #include "../Regras/Dificuldade.h"
 #include "../Regras/Variacao.h"
 
@@ -40,6 +41,37 @@ namespace BalaDePrata {
 
     /// O placar da bala que o aluno acertou: o teste com usuario a reprovou antes de ela chegar.
     std::string Testada(const std::string& promessa);
+
+    // ---- O lobisomem (a repescagem refeita) ----
+    //
+    // Brooks: o projeto de software e um lobisomem, e todo mundo procura a bala de prata que o mate.
+    // A professora atira as balas de prata - as promessas - no lobisomem, e nenhuma o mata: cada uma
+    // se desfaz em bugs contra ele, e ele cresce (a complexidade essencial fica). Enquanto isso ele
+    // persegue o aluno e uiva. Some com o Ponto Extra e volta: a complexidade essencial nao some.
+
+    constexpr const char* kGatilhoDoLobisomem = "lobisomem";
+    constexpr const char* kGatilhoDoUivo = "uivo";
+
+    /// Quanto ele anda, 't' segundos depois de aparecer: devagar no comeco, mais depressa no fim.
+    float RapidezDoLobisomem(float t);
+
+    /// O lobisomem em 'lobo' dando um passo de 'dt' na direcao de 'alvo', sem passar dele.
+    Vector2 PassoDoLobisomem(const Vector2& lobo, const Vector2& alvo, float rapidez, float dt);
+
+    /// A bala em 'bala' chegou no lobisomem de 'escala'?
+    bool Atingiu(const Vector2& bala, const Vector2& lobo, float escala);
+    constexpr float kRaioDoLobisomem = 34.0f;
+
+    /// A escala do lobisomem depois de 'balas' balas: cresce, ate kMaiorEscala.
+    constexpr float kEscalaInicial = 1.3f;
+    constexpr float kMaiorEscala = 2.1f;
+    float EscalaDoLobisomem(int balas);
+
+    constexpr float kEntreUivos = 3.0f;
+    constexpr float kVolta = 1.5f;   ///< o lobisomem que sumiu volta depois disto
+
+    /// O placar da bala que chegou nele: "IA? Não matou o lobisomem."
+    std::string NaoMatou(const std::string& promessa);
 
     /// O que o Dificil muda: uma bala a cada 1,4 s (e nao 1,7).
     struct Degrau {

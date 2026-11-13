@@ -15,6 +15,8 @@
 #include "../Aluno/Exportacao.h"
 #include "../Curso/MapaDaGrade.h"
 
+class DrawCaixaComponent;
+
 class Font;
 class StageSelectButton;
 class Actor;
@@ -53,8 +55,33 @@ private:
     /// CreateStageButtons: le a posicao dos botoes.
     void CriarLigacoes();
 
-    /// Um segmento de linha, como caixa preenchida sem moldura.
-    void Linha(float x, float y, float largura, float altura);
+    /// Um segmento de linha, como caixa preenchida sem moldura, com o brilho por baixo. 'trecho'
+    /// diz a que tronco e a que botao ele pertence (MapaDaGrade::Trecho).
+    void Linha(float x, float y, float largura, float altura, MapaDaGrade::Trecho trecho);
+
+    /// Cada segmento das ligacoes e quanto ele esta aceso (0 a 1). Acende o caminho do foco
+    /// (MapaDaGrade::Caminho) e apaga o resto, devagar.
+    struct Ligacao {
+        DrawCaixaComponent* linha = nullptr;
+        DrawCaixaComponent* brilho = nullptr;
+        DrawCaixaComponent* halo = nullptr;
+        /// Os segundos desde que acendeu (MapaDaGrade::Luz); negativo enquanto espera a vez.
+        float relogio = kApagada;
+    };
+    static constexpr float kApagada = 1000.0f;
+    std::vector<Ligacao> mLigacoes;
+    std::vector<MapaDaGrade::Trecho> mTrechos;
+    void AcenderOCaminho(int anterior, int novo);
+    void AtualizarAsLigacoes(float deltaTime);
+
+    /// A luz: no pico, a linha fica quase branca, e o brilho em volta e um ciano eletrico saturado,
+    /// em duas camadas (o brilho e o halo, mais largo e mais fraco).
+    static inline const SDL_Color kCorAcesa{0, 236, 255, 255};
+    static inline const SDL_Color kNucleoAceso{235, 255, 255, 255};
+    static constexpr float kGrossuraDoBrilho = 6.0f;
+    static constexpr float kGrossuraDoHalo = 14.0f;
+    static constexpr Uint8 kAlfaDoBrilho = 210;
+    static constexpr Uint8 kAlfaDoHalo = 90;
 
     void HandleSelectionInput(const Uint8* keyState);
     size_t mSelectedIndex{};
@@ -107,6 +134,16 @@ private:
     static inline const SDL_Color kCorDoFundoDoCartao{10, 14, 30, 215};
 
     void UpdateStageInfo() const;
+
+    // ---- A compra das optativas com horas (Horas::PodeComprar) ----
+    /// Todos os que ainda nao tem a optativa em foco podem compra-la agora?
+    [[nodiscard]] bool DaParaComprar() const;
+    /// A frase do cartao de uma optativa fechada com preco: quanto custa, quanto falta, ou o pedido
+    /// de confirmacao.
+    [[nodiscard]] std::string FraseDaCompra() const;
+    /// A materia em que o botao 1 ja foi apertado uma vez: o segundo toque compra. Mudar o cursor
+    /// desfaz, e ninguem gasta horas sem querer.
+    int mConfirmandoCompra = -1;
 
     /// Cria uma das linhas do cartao e devolve o observador dela.
     Actor* TextoDoCartao(float y, int tamanho, const Vector3& cor);

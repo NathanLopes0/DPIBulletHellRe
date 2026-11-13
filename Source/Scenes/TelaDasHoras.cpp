@@ -104,9 +104,14 @@ void TelaDasHoras::Redesenhar() {
     const auto& chaves = sessoes[mAluno].progresso.Atividades();
     const int horas = Horas::De(chaves);
     const bool cumpriu = horas >= Horas::kMeta;
+    // O saldo e o que ainda se gasta com optativas; a carga conta tudo o que foi ganho.
+    const int gastas = Horas::Gastas(chaves, materias);
+    const std::string saldo = "  \xc2\xb7  para optativas: " + std::to_string(Horas::Saldo(chaves, materias)) + " h" +
+                              (gastas > 0 ? " (" + std::to_string(gastas) + " gastas)" : "");
     Escrever(mTotalAtor,
              std::to_string(horas) + " h de " + std::to_string(Horas::kMeta) +
-                 (cumpriu ? "  \xc2\xb7  carga cumprida!" : "  \xc2\xb7  faltam " + std::to_string(Horas::kMeta - horas) + " h"),
+                 (cumpriu ? "  \xc2\xb7  carga cumprida!" : "  \xc2\xb7  faltam " + std::to_string(Horas::kMeta - horas) + " h") +
+                 saldo,
              cumpriu ? Color::Gold : Color::White);
 
     const auto quadro = Horas::Quadro(chaves, materias);

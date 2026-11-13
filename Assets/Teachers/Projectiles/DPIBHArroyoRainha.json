@@ -1,0 +1,37 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHArroyoRainha 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 34,
+    "h": 34
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 34,
+    "h": 34
+   },
+   "sourceSize": {
+    "w": 34,
+    "h": 34
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_arroyo.py",
+  "version": "1.0",
+  "image": "DPIBHArroyoRainha.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 34,
+   "h": 34
+  },
+  "scale": "1"
+ }
+}

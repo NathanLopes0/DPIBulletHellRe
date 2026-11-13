@@ -232,16 +232,16 @@ dois jogadores há mais colisões, e cada uma consome números do mesmo sorteado
 
 ### A linha de base
 
-`Ferramentas/linha-de-base.sh` roda **54 batalhas** — as onze matérias, solo e
-dupla, Normal e Difícil, e o TCC com cada orientador — e compara a nota, quadro
-a quadro, com a gravada em `Ferramentas/linha-de-base/`:
+`Ferramentas/linha-de-base.sh` roda **59 batalhas** — as doze matérias, solo e
+dupla, Normal e Difícil, e o TCC com cada um dos onze orientadores — e compara
+a nota, quadro a quadro, com a gravada em `Ferramentas/linha-de-base/`:
 
 ```bash
-bash Ferramentas/linha-de-base.sh               # identicas=54 diferentes=0
+bash Ferramentas/linha-de-base.sh               # identicas=59 diferentes=0
 bash Ferramentas/linha-de-base.sh --atualizar   # grava a de agora
 ```
 
-**Uma refatoração tem de dar 54 idênticas, byte a byte.** Uma mudança de
+**Uma refatoração tem de dar 59 idênticas, byte a byte.** Uma mudança de
 balanceamento muda algumas de propósito: confira quais mudaram, e quanto — o
 script mostra a linha `FIM` de antes e de agora —, e só então grave a nova com
 `--atualizar`, no mesmo commit. Cada batalha ocupa uns 2,5 GB; `PARALELO=3` é o

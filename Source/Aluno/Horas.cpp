@@ -91,6 +91,28 @@ namespace Horas {
         return horas;
     }
 
+    int Gastas(const std::set<std::string>& chaves, const Materias::Lista& materias) {
+        int gastas = 0;
+        for (int i = 0; i < materias.Quantas(); ++i) {
+            const Materias::Materia* m = materias.Por(i);
+            if (m && chaves.count(Materias::ChaveDaCompra(m->codigo))) gastas += materias.PrecoDe(i);
+        }
+        return gastas;
+    }
+
+    int Saldo(const std::set<std::string>& chaves, const Materias::Lista& materias) {
+        return std::max(0, De(chaves) - Gastas(chaves, materias));
+    }
+
+    Compra PodeComprar(const Materias::Lista& materias, const int indice, const Progresso& progresso) {
+        const int preco = materias.PrecoDe(indice);
+        if (preco <= 0) return Compra::NaoSeVende;
+        if (materias.Comprada(indice, progresso)) return Compra::JaComprou;
+        if (!materias.RegraCumprida(indice, progresso)) return Compra::FaltaARegra;
+        if (Saldo(progresso.Atividades(), materias) < preco) return Compra::FaltaHora;
+        return Compra::Pode;
+    }
+
     std::string Nome(const std::string& chave, const Materias::Lista& materias) {
         std::string codigo;
         const Dados* d = DaChave(chave, &codigo);

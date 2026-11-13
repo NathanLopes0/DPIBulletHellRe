@@ -1,128 +1,109 @@
 {
-  // Os projeteis da Maria Lucia (INF 221 - Engenharia de Software)
-  "Requisito": {
-    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
-    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
+  // Os projeteis da Maria Lucia (INF 221 - Engenharia de Software). As folhas saem de
+  // Ferramentas/gerar_maria_lucia.py.
+
+  // ---- Fase 1, a cascata ----
+
+  // As caixas da cascata, debaixo dos degraus: "P0" a "P4" apagadas, "A0" a "A4" acesas - a da etapa
+  // em curso. Enfeite.
+  "Placa": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaCascata.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaCascata.json",
     "animacoes": {
-      "Novo":   [0, 1, 2, 3],
-      "Codigo": [8, 9, 10, 11]
+      "P0": [0], "P1": [1], "P2": [2], "P3": [3], "P4": [4],
+      "A0": [5], "A1": [6], "A2": [7], "A3": [8], "A4": [9]
     },
-    "animacaoInicial": "Novo",
-    "ordemDeDesenho": 90
+    "animacaoInicial": "P0",
+    "ordemDeDesenho": 86,
+    "posicionarNoDono": false
   },
 
-  "Debito": {
+  // A cachoeira: o que cada etapa produz, caindo da caixa dela - o post-it, a classe, o codigo, o
+  // bug e a divida.
+  "Queda": {
     "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
     "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
     "animacoes": {
-      "Acumulado": [4, 5, 6, 7]
+      "Pedido": [0, 1, 2, 3], "Classe": [36, 37, 38, 39], "Codigo": [8, 9, 10, 11],
+      "Bug": [12, 13, 14, 15], "Debito": [4, 5, 6, 7]
     },
-    "animacaoInicial": "Acumulado",
-    "ordemDeDesenho": 88,
-
-    // Maior que o requisito, e: ele passa a vida parado, e um obstaculo parado que o jogador mal
-    // enxerga nao e obstaculo, e armadilha.
-    "escala": 1.2
+    "animacaoInicial": "Pedido",
+    "ordemDeDesenho": 90,
+    "posicionarNoDono": false
   },
 
-  // Testar e achar bug - mas o tiro que acha um bug se gasta nele e nao chega na professora.
-  "Bug": {
+  // A mudanca de escopo: o pedido que desce a escada inteira, virando o artefato de cada caixa. O
+  // tiro do aluno a derruba - quanto mais cedo, mais barato.
+  "Mudanca": {
     "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
     "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
     "animacoes": {
-      "Andando": [12, 13, 14, 15]
+      "Pedido": [0, 1, 2, 3], "Classe": [36, 37, 38, 39], "Codigo": [8, 9, 10, 11],
+      "Bug": [12, 13, 14, 15], "Debito": [4, 5, 6, 7]
     },
-    "animacaoInicial": "Andando",
+    "animacaoInicial": "Pedido",
     "ordemDeDesenho": 91,
-    "escala": 1.4,
-    "derrubavel": true
+    "posicionarNoDono": false,
+    "derrubavel": true,
+    "resistencia": 2
   },
 
-  // A historia das sprints e o cursor que a arrasta vem do mesmo tipo.
-  "Historia": {
-    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
-    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
-    "animacoes": {
-      "Historia": [24, 25, 26, 27],
-      "Cursor":   [16, 17],
-      "Clique":   [18, 19]
-    },
-    "animacaoInicial": "Historia",
-    "ordemDeDesenho": 91,
-    "escala": 1.3,
-    "derrubavel": true
-  },
-
-  // O observador do padrao observer (fase 3): o post-it com um olho.
-  "Observador": {
-    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
-    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
-    "animacoes": {
-      "OlhaEsquerda": [20],
-      "OlhaFrente":   [21],
-      "OlhaDireita":  [22],
-      "Pisca":        [23]
-    },
-    "animacaoInicial": "OlhaFrente",
-    "ordemDeDesenho": 89,
-    "escala": 1.3
-  },
-
-  // O aviso do observer: o que cada olho manda quando o aluno notifica - o selo vermelho de
-  // notificacao, o "algo mudou" de toda interface.
+  // O selo vermelho com o "1" - o "algo mudou" de toda interface: o custo da mudanca em cada caixa,
+  // o aviso do Observer e a daily.
   "Aviso": {
     "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
     "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
-    "animacoes": {
-      "Notificacao": [32, 33, 34, 35]
-    },
+    "animacoes": { "Notificacao": [32, 33, 34, 35] },
     "animacaoInicial": "Notificacao",
     "ordemDeDesenho": 92,
     "escala": 1.3,
     "colisorDivisor": 4
   },
 
-  // A janela modal da fase final: a janelinha com a barra de titulo, o X e o OK pulsando.
-  "Dialogo": {
-    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
-    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
-    "animacoes": {
-      "Modal": [28, 29, 30, 31]
-    },
-    "animacaoInicial": "Modal",
-    "ordemDeDesenho": 92,
-    "escala": 1.6,
-    "derrubavel": true,
-    "resistencia": 3
-  },
+  // ---- Fase 2, o Scrum ----
 
-  // A cascata da fase 1 (Cascata.h).
-  "Pedido": {
-    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
-    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
-    "animacoes": { "Novo": [0, 1, 2, 3] },
-    "animacaoInicial": "Novo",
-    "ordemDeDesenho": 90,
+  // A historia de usuario com os pontos do planning poker: a mais pesada e a mais quente. O tiro do
+  // aluno a tira da sprint.
+  "Historia": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaPadroes.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaPadroes.json",
+    "animacoes": { "P1": [0], "P2": [1], "P3": [2], "P5": [3], "P8": [4] },
+    "animacaoInicial": "P1",
+    "ordemDeDesenho": 91,
     "posicionarNoDono": false,
     "derrubavel": true
   },
 
-  // A classe que o post-it vira no Projeto: a caixa de UML, parada no meio do campo ate a
-  // Manutencao.
-  "Classe": {
+  // O cursor da professora, que arrasta o quadro nas dailies, e o clique (enfeite: e a mao).
+  "Cursor": {
     "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
     "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
-    "animacoes": { "Classe": [36, 37, 38, 39] },
-    "animacaoInicial": "Classe",
-    "escala": 1.7,
-    "ordemDeDesenho": 89,
-    "posicionarNoDono": false,
-    "derrubavel": true,
-    "resistencia": 4
+    "animacoes": { "Cursor": [16, 17], "Clique": [18, 19] },
+    "animacaoInicial": "Cursor",
+    "ordemDeDesenho": 93,
+    "posicionarNoDono": false
   },
 
-  // A mensagem que sai de uma classe pelas setas do diagrama: a ponta de seta, virando em angulo
-  // reto (regra "diagrama").
+  // O titulo de cada coluna do quadro (enfeite).
+  "Titulo": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaTitulos.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaTitulos.json",
+    "animacoes": { "AFazer": [0], "Fazendo": [1], "Feito": [2] },
+    "animacaoInicial": "AFazer",
+    "ordemDeDesenho": 86,
+    "posicionarNoDono": false
+  },
+
+  // O trabalho da historia na FAZENDO (o cartao de terminal) e o incremento entregue (o post-it).
+  "Requisito": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
+    "animacoes": { "Novo": [0, 1, 2, 3], "Codigo": [8, 9, 10, 11] },
+    "animacaoInicial": "Novo",
+    "ordemDeDesenho": 90
+  },
+
+  // A mensagem da daily, que anda pelas rotas do diagrama: a ponta de seta, virando em angulo reto.
   "Seta": {
     "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
     "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
@@ -133,7 +114,49 @@
     "rotacionarComAVelocidade": true
   },
 
-  // A bala de prata da repescagem: "nao ha bala de prata" (BalaDePrata.h).
+  // ---- Fase 3, os padroes de projeto ----
+
+  // O observador do padrao Observer: o post-it com um olho, que orbita o aluno. O tiro do aluno
+  // cancela a inscricao dele.
+  "Observador": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
+    "animacoes": { "OlhaEsquerda": [20], "OlhaFrente": [21], "OlhaDireita": [22], "Pisca": [23] },
+    "animacaoInicial": "OlhaFrente",
+    "ordemDeDesenho": 89,
+    "escala": 1.3,
+    "posicionarNoDono": false,
+    "derrubavel": true,
+    "resistencia": 2
+  },
+
+  // O componente do Decorator: um anel por decorador (Rapida, Dividida, Teleguiada). O tiro do aluno
+  // tira o de fora.
+  "Decorado": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaPadroes.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaPadroes.json",
+    "animacoes": { "D0": [5], "D1": [6], "D2": [7], "D3": [8] },
+    "animacaoInicial": "D0",
+    "ordemDeDesenho": 92,
+    "escala": 1.2,
+    "posicionarNoDono": false,
+    "derrubavel": true
+  },
+
+  // ---- A repescagem: nao ha bala de prata ----
+
+  // O lobisomem de Brooks: blindado - o tiro do aluno murcha nele -, e cresce a cada bala de prata.
+  "Lobisomem": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaLobisomem.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaLobisomem.json",
+    "animacoes": { "Lobo": [0], "Uivo": [1] },
+    "animacaoInicial": "Lobo",
+    "ordemDeDesenho": 89,
+    "posicionarNoDono": false,
+    "colisorDivisor": 2.6
+  },
+
+  // A bala de prata: uma promessa atirada no lobisomem. O aluno a derruba - o teste com usuario.
   "BalaDePrata": {
     "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
     "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
@@ -146,17 +169,24 @@
     "derrubavel": true
   },
 
-  // As caixas do diagrama da cascata, debaixo dos degraus: "P0" a "P4" apagadas, "A0" a "A4" acesas
-  // - a da etapa em curso. Enfeite.
-  "Placa": {
-    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaCascata.png",
-    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaCascata.json",
-    "animacoes": {
-      "P0": [0], "P1": [1], "P2": [2], "P3": [3], "P4": [4],
-      "A0": [5], "A1": [6], "A2": [7], "A3": [8], "A4": [9]
-    },
-    "animacaoInicial": "P0",
-    "ordemDeDesenho": 86,
-    "posicionarNoDono": false
+  // Os bugs em que a bala se desfaz, e o uivo do lobisomem.
+  "Bug": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
+    "animacoes": { "Andando": [12, 13, 14, 15] },
+    "animacaoInicial": "Andando",
+    "ordemDeDesenho": 91,
+    "escala": 1.4,
+    "derrubavel": true
+  },
+
+  // A divida que fica, na repescagem.
+  "Debito": {
+    "sprite": "Teachers/Projectiles/DPIBHMariaLuciaRequisito.png",
+    "dados":  "Teachers/Projectiles/DPIBHMariaLuciaRequisito.json",
+    "animacoes": { "Acumulado": [4, 5, 6, 7] },
+    "animacaoInicial": "Acumulado",
+    "ordemDeDesenho": 88,
+    "escala": 1.2
   }
 }

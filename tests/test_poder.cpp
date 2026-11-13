@@ -17,7 +17,7 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
     const Golpe::Materia todas[] = {Golpe::Materia::Andre, Golpe::Materia::Salles, Golpe::Materia::Ricardo,
                                     Golpe::Materia::Thiago, Golpe::Materia::Luizinho, Golpe::Materia::Vladimir,
                                     Golpe::Materia::Julio, Golpe::Materia::MariaLucia, Golpe::Materia::Lucas,
-                                    Golpe::Materia::Vitor};
+                                    Golpe::Materia::Vitor, Golpe::Materia::Arroyo};
     std::set<int> tipos;
     std::set<std::string> nomes;
     std::set<int> quadros;
@@ -34,9 +34,9 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
         quadros.insert(QuadroDaMateria(m));
         if (Ataca(d.tipo)) ++atacam;
     }
-    CHECK(tipos.size() == 10u);    // dez orientadores, dez poderes diferentes
-    CHECK(nomes.size() == 10u);
-    CHECK(quadros.size() == 10u);
+    CHECK(tipos.size() == 11u);    // onze orientadores, onze poderes diferentes
+    CHECK(nomes.size() == 11u);
+    CHECK(quadros.size() == 11u);
     // Ha dos dois jeitos: os que atacam e os que defendem.
     CHECK(atacam >= 3);
     CHECK(atacam <= 7);
@@ -44,6 +44,28 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
     CHECK(QuadroDaMateria(Golpe::Materia::Generico) == -1);
     CHECK(QuadroDaMateria(Golpe::Materia::Andre) == 3);
     CHECK(QuadroDaMateria(Golpe::Materia::Vitor) == 12);
+    CHECK(QuadroDaMateria(Golpe::Materia::Arroyo) == kQuadroDoArroyo);   // no fim da folha
+}
+
+TEST_CASE("Poder: a busca binaria do Arroyo leva a metade de cima, passo a passo") {
+    CHECK(LevaNoPasso(16) == 8);
+    CHECK(LevaNoPasso(5) == 3);
+    CHECK(LevaNoPasso(1) == 1);
+    CHECK(LevaNoPasso(0) == 0);
+    int n = 32, passos = 0;
+    while (n > 0) { n -= LevaNoPasso(n); ++passos; }
+    CHECK(passos == 6);   // log2(32) + 1: o ultimo leva o que sobrou
+    const Descricao d = Da(Golpe::Materia::Arroyo);
+    CHECK(d.tipo == Tipo::BuscaBinaria);
+    CHECK(d.tiros == kPassosDaBusca);
+    CHECK_FALSE(Ataca(d.tipo));
+    // A previa: comeca com 16 tiros do Hugo, e no fim sobra um.
+    auto doHugo = [](const Quadro& q) {
+        return std::count_if(q.pontos.begin(), q.pontos.end(), [](const Ponto& p) { return p.marca == Marca::TiroDoHugo; });
+    };
+    CHECK(doHugo(Previa(Tipo::BuscaBinaria, 0.2f)) == 16);
+    CHECK(doHugo(Previa(Tipo::BuscaBinaria, 3.5f)) == 1);
+    CHECK(Previa(Tipo::BuscaBinaria, 3.5f).legenda.find("log") != std::string::npos);
 }
 
 TEST_CASE("Poder: a carga enche acertando, e as contas dos efeitos") {
