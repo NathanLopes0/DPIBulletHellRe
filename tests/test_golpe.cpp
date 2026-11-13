@@ -17,7 +17,7 @@ using namespace Golpe;
 namespace {
     const Materia kTodas[] = {Materia::Generico, Materia::Andre, Materia::Salles, Materia::Ricardo,
                               Materia::Thiago, Materia::Luizinho, Materia::Vladimir, Materia::Julio,
-                              Materia::MariaLucia, Materia::Lucas, Materia::Vitor};
+                              Materia::MariaLucia, Materia::Lucas, Materia::Vitor, Materia::Arroyo};
 
     /// Quantos tiros chegam a voar de um: a gramatica divide.
     int Finais(const Tiro& t) {

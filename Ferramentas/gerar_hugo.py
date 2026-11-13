@@ -129,11 +129,24 @@ MATERIAS = [
     ("Vitor",      "DPIBHVitorTarefa",         20),  # o pacote
 ]
 
+# Os professores que entraram depois: os ladrilhos vao no FIM da folha (o 22 em diante), para nenhum
+# quadro de antes mudar de numero (Poder::kQuadroDoArroyo).
+MATERIAS_NOVAS = [
+    ("Arroyo",     "DPIBHArroyoNos",           0),   # o no da arvore de recursao
+]
 
-def ladrilho(folha, quadro):
-    """O quadro 'quadro' da folha de outro professor, cabendo em 32 px."""
+
+def ladrilho(folha, quadro, aqui=None):
+    """O quadro 'quadro' da folha de outro professor, cabendo em 32 px. Se a folha de origem nao
+    existe mais (a do professor foi refeita), fica o ladrilho que ja esta na DPIBHHugoTcc, no quadro
+    'aqui': a folha se regera sem mudar o que o aluno ja conhece."""
     pasta = os.path.join(RAIZ, "Assets", "Teachers", "Projectiles")
-    im = Image.open(os.path.join(pasta, folha + ".png")).convert("RGBA")
+    origem = os.path.join(pasta, folha + ".png")
+    if not os.path.exists(origem) and aqui is not None:
+        atual = Image.open(os.path.join(pasta, "DPIBHHugoTcc.png")).convert("RGBA")
+        x, y = (aqui % 4) * 32, (aqui // 4) * 32
+        return atual.crop((x, y, x + 32, y + 32))
+    im = Image.open(origem).convert("RGBA")
     with open(os.path.join(pasta, folha + ".json"), encoding="utf-8") as f:
         r = json.load(f)["frames"][quadro]["frame"]
     recorte = im.crop((r["x"], r["y"], r["x"] + r["w"], r["y"] + r["h"]))
@@ -249,11 +262,11 @@ def folha():
 
         0 Pagina   1 Monografia   2 Pergunta   3 a 12 as materias (MATERIAS)
         13 Assinatura   14 A   15 B   16 C   17 Correcao   18 Bug
-        19 Referencia   20 Versao   21 Caixa
+        19 Referencia   20 Versao   21 Caixa   22 Arroyo (MATERIAS_NOVAS)
     """
-    desenhos = ([pagina(), monografia(), pergunta()] + [ladrilho(f, q) for _, f, q in MATERIAS] +
+    desenhos = ([pagina(), monografia(), pergunta()] + [ladrilho(f, q, 3 + i) for i, (_, f, q) in enumerate(MATERIAS)] +
                 [assinatura(), resposta("A"), resposta("B"), resposta("C"), correcao(), bug()] +
-                [referencia(), versao(), caixa()])
+                [referencia(), versao(), caixa()] + [ladrilho(f, q) for _, f, q in MATERIAS_NOVAS])
     f = Image.new("RGBA", (128, 32 * ((len(desenhos) + 3) // 4)), (0, 0, 0, 0))
     for i, im in enumerate(desenhos):
         f.alpha_composite(im, ((i % 4) * 32, (i // 4) * 32))

@@ -790,7 +790,7 @@ TEST_CASE("Dados: as materias do curso estao la, com os codigos esperados") {
     // Esta lista nao e a ordem, e sim o conjunto.
     const std::set<std::string> esperadas = {
         "INF110", "INF213", "INF250", "INF220", "INF340", "INF331",
-        "INF420", "INF221", "INF321", "INF310", "TCC"
+        "INF420", "INF221", "INF321", "INF310", "TCC", "INF332"
     };
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
@@ -813,7 +813,7 @@ TEST_CASE("Dados: toda materia com chefe aponta para uma pasta de chefe que exis
         CHECK_FALSE(FasesDoChefe(m.chefe).fases.empty());
         ++comChefe;
     }
-    CHECK(comChefe == 11);  // Hoje sao todas as onze: o Hugo, no TCC, foi o ultimo.
+    CHECK(comChefe == 12);  // Hoje sao todas as doze: o Arroyo, na INF 332, foi o ultimo.
 }
 
 TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
@@ -821,7 +821,8 @@ TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
     // Game::GetFactory procura a fabrica pelo nome que esta no arquivo.
     const std::set<std::string> kFabricasRegistradas = {"salles", "ricardo", "andre", "julio",
                                                         "thiago", "vladimir", "vitor",
-                                                        "marialucia", "lucas", "luizinho", "hugo"};
+                                                        "marialucia", "lucas", "luizinho", "hugo",
+                                                        "arroyo"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
 
@@ -836,11 +837,11 @@ TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
 TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
 
     // Este teste nasceu comparando materias.json com a regra que vivia em Game::IsStageUnlocked.
-    const std::vector<std::string> col2 = {"INF250", "INF220", "INF340", "INF331"};
+    const std::vector<std::string> col2 = {"INF250", "INF220", "INF340", "INF331", "INF332"};
     const std::vector<std::string> col3 = {"INF420", "INF221", "INF321", "INF310"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
-    REQUIRE(l.Quantas() == 11);
+    REQUIRE(l.Quantas() == 12);
 
     auto pretendida = [&](const std::string& codigo, const Progresso& p) {
         auto aprovado = [&](const std::string& c) { return p.Aprovado(l.IndiceDe(c)); };
@@ -857,12 +858,12 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
         return false;
     };
 
-    // Varre todas as combinacoes de aprovacao das onze materias: 2048 estados.
+    // Varre todas as combinacoes de aprovacao das doze materias: 4096 estados.
     int comparacoes = 0;
-    for (int mascara = 0; mascara < (1 << 11); ++mascara) {
+    for (int mascara = 0; mascara < (1 << 12); ++mascara) {
 
         Progresso p;
-        for (int bit = 0; bit < 11; ++bit) {
+        for (int bit = 0; bit < 12; ++bit) {
             if (mascara & (1 << bit)) p.RegistrarNota(bit, 80.0f, Dificuldade::Nivel::Normal);
         }
 
@@ -882,7 +883,7 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
         }
     }
 
-    CHECK(comparacoes == (1 << 11) * 11);
+    CHECK(comparacoes == (1 << 12) * 12);
 }
 
 TEST_CASE("Dados: personagens.json e lido sem nenhum problema") {

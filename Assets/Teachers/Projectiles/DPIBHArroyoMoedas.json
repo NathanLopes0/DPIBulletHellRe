@@ -1,0 +1,191 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHArroyoMoedas 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoMoedas 1.placeholder",
+   "frame": {
+    "x": 30,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoMoedas 2.placeholder",
+   "frame": {
+    "x": 60,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoMoedas 3.placeholder",
+   "frame": {
+    "x": 90,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoMoedas 4.placeholder",
+   "frame": {
+    "x": 120,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoMoedas 5.placeholder",
+   "frame": {
+    "x": 150,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoMoedas 6.placeholder",
+   "frame": {
+    "x": 180,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoMoedas 7.placeholder",
+   "frame": {
+    "x": 210,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_arroyo.py",
+  "version": "1.0",
+  "image": "DPIBHArroyoMoedas.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 240,
+   "h": 30
+  },
+  "scale": "1"
+ }
+}

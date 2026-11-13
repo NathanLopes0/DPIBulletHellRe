@@ -1,0 +1,433 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHArroyoCelulas 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 1.placeholder",
+   "frame": {
+    "x": 32,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 2.placeholder",
+   "frame": {
+    "x": 64,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 3.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 4.placeholder",
+   "frame": {
+    "x": 128,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 5.placeholder",
+   "frame": {
+    "x": 160,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 6.placeholder",
+   "frame": {
+    "x": 192,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 7.placeholder",
+   "frame": {
+    "x": 224,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 8.placeholder",
+   "frame": {
+    "x": 256,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 9.placeholder",
+   "frame": {
+    "x": 288,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 10.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 24,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 11.placeholder",
+   "frame": {
+    "x": 32,
+    "y": 24,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 12.placeholder",
+   "frame": {
+    "x": 64,
+    "y": 24,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 13.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 24,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 14.placeholder",
+   "frame": {
+    "x": 128,
+    "y": 24,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 15.placeholder",
+   "frame": {
+    "x": 160,
+    "y": 24,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 16.placeholder",
+   "frame": {
+    "x": 192,
+    "y": 24,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 17.placeholder",
+   "frame": {
+    "x": 224,
+    "y": 24,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoCelulas 18.placeholder",
+   "frame": {
+    "x": 256,
+    "y": 24,
+    "w": 32,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 24
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_arroyo.py",
+  "version": "1.0",
+  "image": "DPIBHArroyoCelulas.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 320,
+   "h": 48
+  },
+  "scale": "1"
+ }
+}

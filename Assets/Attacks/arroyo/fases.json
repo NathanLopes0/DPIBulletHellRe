@@ -1,0 +1,110 @@
+{
+  // As fases do Arroyo (INF 332 - Projeto e Analise de Algoritmos). O que cada uma faz mora no C++
+  // (Arroyo.cpp) e na camada pura (Recorrencia.h, Paradigmas.h, Intratavel.h, Tempera.h); aqui ficam
+  // os tiros que ele puxa pelo gatilho, e os nomes que o placar mostra.
+
+  // ==========================================================================
+
+  // Fase 1 - a analise: a arvore de recursao | gesto: a varredura. Cinco recorrencias, uma a cada
+  // 4 s; o placar de cada rodada e reescrito pelo C++ com a formula sorteada.
+  "StateOne": {
+    "duracao": 20,
+    "proximo": "StateTwo",
+    "anuncio": "Análise de algoritmos",
+    "etapas": [
+      { "nome": "Rodada1", "duracao": 4.0, "anuncio": "T(n)" },
+      { "nome": "Rodada2", "duracao": 4.0, "anuncio": "T(n)" },
+      { "nome": "Rodada3", "duracao": 4.0, "anuncio": "T(n)" },
+      { "nome": "Rodada4", "duracao": 4.0, "anuncio": "T(n)" },
+      { "nome": "Rodada5", "duracao": 4.0, "anuncio": "T(n)" }
+    ],
+    "movimento": { "tipo": "Varredura", "a": 160, "b": 120 },
+    "ataques": [
+      { "gatilho": "no", "estrategia": "WaveAttack", "projetil": "No",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "trabalho", "estrategia": "WaveAttack", "projetil": "Trabalho",
+        "projeteis": 1, "velocidade": 170, "angulo": 30, "intervalo": 0 },
+      { "gatilho": "folha", "estrategia": "WaveAttack", "projetil": "Trabalho",
+        "projeteis": 1, "velocidade": 185, "angulo": 0, "intervalo": 0 }
+    ]
+  },
+
+  // Fase 2 - os paradigmas de projeto | gesto: o professor vai aonde o algoritmo esta. O guloso, a
+  // programacao dinamica e o backtracking, cada um com o seu problema.
+  "StateTwo": {
+    "duracao": 20,
+    "proximo": "StateThree",
+    "anuncio": "Paradigmas de projeto",
+    "etapas": [
+      { "nome": "Guloso",       "duracao": 6.5, "anuncio": "Guloso: o troco" },
+      { "nome": "Dinamica",     "duracao": 7.0, "anuncio": "Programação dinâmica" },
+      { "nome": "Backtracking", "duracao": 6.5, "anuncio": "Backtracking: 6 rainhas" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 260 },
+    "ataques": [
+      { "etapa": "Guloso", "gatilho": "moeda", "estrategia": "WaveAttack", "projetil": "Moeda",
+        "projeteis": 1, "velocidade": 230, "angulo": 0, "intervalo": 0,
+        "regras": "gulosa" },
+      { "etapa": "Guloso", "estrategia": "CircleSpreadAttack", "projetil": "Trabalho",
+        "projeteis": 10, "velocidade": 145, "cooldown": 1.5, "variar": { "giro": 18, "cadencia": 0.15 },
+        "dificil": { "projeteis": 12 } },
+      { "etapa": "Dinamica", "gatilho": "celula", "estrategia": "WaveAttack", "projetil": "Celula",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "etapa": "Dinamica", "gatilho": "chuva", "estrategia": "WaveAttack", "projetil": "Gota",
+        "projeteis": 1, "velocidade": 150, "angulo": 0, "anguloCentral": 90, "intervalo": 0 },
+      { "etapa": "Dinamica", "gatilho": "casou", "estrategia": "WaveAttack", "projetil": "Gota",
+        "projeteis": 3, "velocidade": 165, "angulo": 44, "anguloCentral": 90, "intervalo": 0 },
+      { "etapa": "Backtracking", "gatilho": "rainha", "estrategia": "WaveAttack", "projetil": "Rainha",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "etapa": "Backtracking", "gatilho": "ataque", "estrategia": "WaveAttack", "projetil": "Ataque",
+        "projeteis": 1, "velocidade": 175, "angulo": 0, "anguloCentral": 90, "intervalo": 0 },
+      { "etapa": "Backtracking", "gatilho": "solucao", "estrategia": "CircleSpreadAttack", "projetil": "Ataque",
+        "projeteis": 8, "velocidade": 150 }
+    ]
+  },
+
+  // Fase 3 - os limites e a NP-completude | gesto: conduzido. A rede de ordenacao (o limite
+  // inferior) e o caixeiro viajante (o que talvez nao tenha algoritmo rapido).
+  "StateThree": {
+    "duracao": 20,
+    "proximo": "",
+    "anuncio": "Limites e NP-completude",
+    "etapas": [
+      { "nome": "LimiteInferior", "duracao": 8.0, "anuncio": "Limite inferior: ordenar" },
+      { "nome": "Caixeiro",       "duracao": 12.0, "anuncio": "NP-completo: o caixeiro viajante" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 220 },
+    "ataques": [
+      { "etapa": "LimiteInferior", "gatilho": "valor", "estrategia": "WaveAttack", "projetil": "Valor",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "etapa": "Caixeiro", "gatilho": "cidade", "estrategia": "WaveAttack", "projetil": "Cidade",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "etapa": "Caixeiro", "gatilho": "caixeiro", "estrategia": "WaveAttack", "projetil": "Caixeiro",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "etapa": "Caixeiro", "gatilho": "visita", "estrategia": "WaveAttack", "projetil": "Trabalho",
+        "projeteis": 2, "velocidade": 160, "angulo": 18, "intervalo": 0, "dificil": { "velocidade": 190 } },
+      { "etapa": "Caixeiro", "gatilho": "rota", "estrategia": "CircleSpreadAttack", "projetil": "Trabalho",
+        "projeteis": 4, "velocidade": 150 }
+    ]
+  },
+
+  // Fase final - aproximacao e heuristicas: a tempera simulada | gesto: a orbita lenta. So e vista
+  // por quem termina a terceira entre 40 e 59, ou com 100.
+  "StateFinal": {
+    "duracao": 20,
+    "proximo": "StateOne",
+    "anuncio": "Aproximação e heurísticas",
+    "movimento": { "tipo": "Orbitar", "a": 150, "b": 0.10 },
+    "ataques": [
+      { "gatilho": "solucao", "estrategia": "WaveAttack", "projetil": "Solucao",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "vale", "estrategia": "WaveAttack", "projetil": "Vale",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "congelou", "estrategia": "CircleSpreadAttack", "projetil": "Trabalho",
+        "projeteis": 6, "velocidade": 135 },
+      { "estrategia": "CircleSpreadAttack", "projetil": "Trabalho",
+        "projeteis": 10, "velocidade": 150, "cooldown": 2.8, "variar": { "giro": 18, "cadencia": 0.2 },
+        "dificil": { "projeteis": 12 } }
+    ]
+  }
+}

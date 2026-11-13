@@ -1,0 +1,111 @@
+{
+  // Os projeteis do Arroyo (INF 332 - Projeto e Analise de Algoritmos). As folhas saem de
+  // Ferramentas/gerar_arroyo.py; as animacoes, de gerar_arroyo.py --animacoes.
+
+  // Fase 1 - o no da arvore de recursao, com o tamanho do subproblema escrito. O tiro do aluno o
+  // derruba, e o no que cai leva a subarvore junto: podar a arvore.
+  "No": {
+    "sprite": "Teachers/Projectiles/DPIBHArroyoNos.png",
+    "dados":  "Teachers/Projectiles/DPIBHArroyoNos.json",
+    "animacoes": { "N": [0], "N2": [1], "N4": [2], "N3": [3], "Um": [4] },
+    "animacaoInicial": "N",
+    "ordemDeDesenho": 91,
+    "derrubavel": true
+  },
+
+  // O trabalho f(n) que cada no paga ao se dividir, e o de cada folha.
+  "Trabalho": {
+    "sprite": "Teachers/Projectiles/DPIBHArroyoTrabalho.png",
+    "dados":  "Teachers/Projectiles/DPIBHArroyoTrabalho.json",
+    "animacoes": { "C": [0] },
+    "animacaoInicial": "C",
+    "ordemDeDesenho": 90
+  },
+
+  // Fase 2 - a moeda do troco guloso: persegue o aluno, e a maior e a maior.
+  "Moeda": {
+    "sprite": "Teachers/Projectiles/DPIBHArroyoMoedas.png",
+    "dados":  "Teachers/Projectiles/DPIBHArroyoMoedas.json",
+    "animacoes": { "M100": [0], "M50": [1], "M25": [2], "M10": [3], "M5": [4], "M4": [5], "M3": [6], "M1": [7] },
+    "animacaoInicial": "M100",
+    "ordemDeDesenho": 91,
+    "derrubavel": true
+  },
+
+  // A casa da tabela da programacao dinamica (enfeite): o valor calculado, ou o que casou.
+  "Celula": {
+    "sprite": "Teachers/Projectiles/DPIBHArroyoCelulas.png",
+    "dados":  "Teachers/Projectiles/DPIBHArroyoCelulas.json",
+    "animacoes": { "V0": [0], "V1": [1], "V2": [2], "V3": [3], "V4": [4], "V5": [5], "V6": [6], "V7": [7],
+                   "V8": [8], "V9": [9], "C1": [10], "C2": [11], "C3": [12], "C4": [13], "C5": [14], "C6": [15],
+                   "C7": [16], "C8": [17], "C9": [18] },
+    "animacaoInicial": "V0",
+    "ordemDeDesenho": 86
+  },
+
+  // A chuva da tabela.
+  "Gota": {
+    "sprite": "Teachers/Projectiles/DPIBHArroyoGota.png",
+    "dados":  "Teachers/Projectiles/DPIBHArroyoGota.json",
+    "animacoes": { "Gota": [0] },
+    "animacaoInicial": "Gota",
+    "ordemDeDesenho": 90
+  },
+
+  // A rainha do backtracking (enfeite) e o tiro dela.
+  "Rainha": {
+    "sprite": "Teachers/Projectiles/DPIBHArroyoRainha.png",
+    "dados":  "Teachers/Projectiles/DPIBHArroyoRainha.json",
+    "animacoes": { "Rainha": [0] },
+    "animacaoInicial": "Rainha",
+    "ordemDeDesenho": 87
+  },
+  "Ataque": {
+    "sprite": "Teachers/Projectiles/DPIBHArroyoAtaque.png",
+    "dados":  "Teachers/Projectiles/DPIBHArroyoAtaque.json",
+    "animacoes": { "Ataque": [0] },
+    "animacaoInicial": "Ataque",
+    "ordemDeDesenho": 91
+  },
+
+  // Fase 3 - o valor que desce a rede de ordenacao, do frio (1) ao quente (6).
+  "Valor": {
+    "sprite": "Teachers/Projectiles/DPIBHArroyoValores.png",
+    "dados":  "Teachers/Projectiles/DPIBHArroyoValores.json",
+    "animacoes": { "V1": [0], "V2": [1], "V3": [2], "V4": [3], "V5": [4], "V6": [5] },
+    "animacaoInicial": "V1",
+    "ordemDeDesenho": 91
+  },
+
+  // A cidade do caixeiro (enfeite) e o caixeiro que corre a rota.
+  "Cidade": {
+    "sprite": "Teachers/Projectiles/DPIBHArroyoCidades.png",
+    "dados":  "Teachers/Projectiles/DPIBHArroyoCidades.json",
+    "animacoes": { "Cidade": [0], "Acesa": [1] },
+    "animacaoInicial": "Cidade",
+    "ordemDeDesenho": 87
+  },
+  "Caixeiro": {
+    "sprite": "Teachers/Projectiles/DPIBHArroyoCaixeiro.png",
+    "dados":  "Teachers/Projectiles/DPIBHArroyoCaixeiro.json",
+    "animacoes": { "Caixeiro": [0] },
+    "animacaoInicial": "Caixeiro",
+    "ordemDeDesenho": 92
+  },
+
+  // A repescagem - a solucao da tempera, da quente (Q4) a fria (Q1), e o otimo local (enfeite).
+  "Solucao": {
+    "sprite": "Teachers/Projectiles/DPIBHArroyoSolucoes.png",
+    "dados":  "Teachers/Projectiles/DPIBHArroyoSolucoes.json",
+    "animacoes": { "Q4": [0], "Q3": [1], "Q2": [2], "Q1": [3] },
+    "animacaoInicial": "Q4",
+    "ordemDeDesenho": 91
+  },
+  "Vale": {
+    "sprite": "Teachers/Projectiles/DPIBHArroyoVale.png",
+    "dados":  "Teachers/Projectiles/DPIBHArroyoVale.json",
+    "animacoes": { "Vale": [0] },
+    "animacaoInicial": "Vale",
+    "ordemDeDesenho": 84
+  }
+}

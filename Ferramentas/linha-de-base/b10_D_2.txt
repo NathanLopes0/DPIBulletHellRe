@@ -76,19 +76,19 @@ q04500 nota=89.4456 sofridos=33
 q04560 nota=89.4456 sofridos=33
 q04620 nota=89.4456 sofridos=33
 q04680 nota=89.4456 sofridos=33
-q04740 nota=89.4456 sofridos=33
-q04800 nota=89.4456 sofridos=33
-q04860 nota=89.4456 sofridos=33
-q04920 nota=89.4456 sofridos=33
-q04980 nota=89.4456 sofridos=33
-q05040 nota=89.4456 sofridos=33
-q05100 nota=89.4456 sofridos=33
-q05160 nota=89.4456 sofridos=33
-q05220 nota=89.4456 sofridos=33
-q05280 nota=89.4456 sofridos=33
-q05340 nota=89.4456 sofridos=33
-q05400 nota=89.4456 sofridos=33
-q05460 nota=89.4456 sofridos=33
-q05520 nota=89.4456 sofridos=33
-q05580 nota=89.4456 sofridos=33
-FIM nota=89.4456 acertos_sofridos=33 acertos_dados=469 aprovado=1
+q04740 nota=89.6844 sofridos=33
+q04800 nota=89.6844 sofridos=33
+q04860 nota=89.6844 sofridos=33
+q04920 nota=89.6844 sofridos=33
+q04980 nota=89.6844 sofridos=33
+q05040 nota=89.6844 sofridos=33
+q05100 nota=89.6844 sofridos=33
+q05160 nota=89.6844 sofridos=33
+q05220 nota=89.6844 sofridos=33
+q05280 nota=89.6844 sofridos=33
+q05340 nota=89.6844 sofridos=33
+q05400 nota=89.6844 sofridos=33
+q05460 nota=89.6844 sofridos=33
+q05520 nota=89.6844 sofridos=33
+q05580 nota=89.6844 sofridos=33
+FIM nota=89.6844 acertos_sofridos=33 acertos_dados=469 aprovado=1

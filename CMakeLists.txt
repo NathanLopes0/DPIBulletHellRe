@@ -363,6 +363,14 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/Coercao.h
         Source/Attacks/Termina.cpp
         Source/Attacks/Termina.h
+        Source/Attacks/Recorrencia.cpp
+        Source/Attacks/Recorrencia.h
+        Source/Attacks/Paradigmas.cpp
+        Source/Attacks/Paradigmas.h
+        Source/Attacks/Intratavel.cpp
+        Source/Attacks/Intratavel.h
+        Source/Attacks/Tempera.cpp
+        Source/Attacks/Tempera.h
         Source/Attacks/Excecao.cpp
         Source/Attacks/Excecao.h
         Source/Regras/Intercambio.cpp
@@ -411,6 +419,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Actors/Teachers/Bosses/Ricardo.cpp
         Source/Actors/Teachers/Bosses/Ricardo.h
         Source/Actors/Teachers/Bosses/Andre.cpp
+        Source/Actors/Teachers/Bosses/Arroyo.cpp
+        Source/Actors/Teachers/Bosses/Arroyo.h
         Source/Actors/Teachers/Bosses/Andre.h
         Source/Actors/Teachers/Bosses/Julio.cpp
         Source/Actors/Teachers/Bosses/Thiago.cpp
@@ -493,6 +503,7 @@ enable_testing()
 
 add_executable(dpi_tests
         tests/test_main.cpp
+        tests/test_arroyo.cpp
         tests/test_path_aim.cpp
         tests/test_motion_contract.cpp
         tests/test_investida.cpp
@@ -801,6 +812,14 @@ add_executable(dpi_tests
         Source/Attacks/Coercao.h
         Source/Attacks/Termina.cpp
         Source/Attacks/Termina.h
+        Source/Attacks/Recorrencia.cpp
+        Source/Attacks/Recorrencia.h
+        Source/Attacks/Paradigmas.cpp
+        Source/Attacks/Paradigmas.h
+        Source/Attacks/Intratavel.cpp
+        Source/Attacks/Intratavel.h
+        Source/Attacks/Tempera.cpp
+        Source/Attacks/Tempera.h
         Source/Attacks/Excecao.cpp
         Source/Attacks/Excecao.h
         Source/Regras/Intercambio.cpp

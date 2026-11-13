@@ -1,0 +1,103 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHArroyoSolucoes 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 22
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 22
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 22
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoSolucoes 1.placeholder",
+   "frame": {
+    "x": 22,
+    "y": 0,
+    "w": 22,
+    "h": 22
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 22
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 22
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoSolucoes 2.placeholder",
+   "frame": {
+    "x": 44,
+    "y": 0,
+    "w": 22,
+    "h": 22
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 22
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 22
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHArroyoSolucoes 3.placeholder",
+   "frame": {
+    "x": 66,
+    "y": 0,
+    "w": 22,
+    "h": 22
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 22
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 22
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_arroyo.py",
+  "version": "1.0",
+  "image": "DPIBHArroyoSolucoes.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 88,
+   "h": 22
+  },
+  "scale": "1"
+ }
+}

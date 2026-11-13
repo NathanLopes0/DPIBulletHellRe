@@ -61,7 +61,12 @@ namespace {
                                                 "instrucao", "segmento", "encaminhar", "descarte",
                                                 "garfo", "garfada", "espera", "envelope", "processar", "encontro",
                                                 "token", "bala", "estilhaco",
-                                                "lexema", "arvore", "reduzir", "emitir", "store"};
+                                                "lexema", "arvore", "reduzir", "emitir", "store",
+                                                // O Arroyo: a arvore de recursao, os paradigmas, a rede, o
+                                                // caixeiro e a tempera.
+                                                "trabalho", "folha", "moeda", "chuva", "casou", "rainha",
+                                                "ataque", "solucao", "cidade", "caixeiro", "visita", "rota",
+                                                "vale", "congelou"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"

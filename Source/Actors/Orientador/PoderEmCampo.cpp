@@ -354,6 +354,35 @@ namespace {
         }
     };
 
+    // ---- Arroyo: a busca binaria ----
+
+    class BuscaBinaria final : public PoderEmCampo {
+    public:
+        void Soltar(Orientador& o, Battle&, const Vector2&, const Vector2&) override {
+            mInicio = o.Tempo();
+            mPasso = 0;
+        }
+        void Atualizar(Orientador& o, Battle& batalha, float, const bool ativo) override {
+            // A cada passo some a metade dos tiros do Hugo, a mais perto do aluno: n, n/2, n/4...
+            if (!ativo || mPasso >= o.Descricao().tiros) return;
+            if (o.Tempo() - mInicio < static_cast<float>(mPasso) * o.Descricao().intervalo) return;
+            ++mPasso;
+            std::vector<BossProjectile*> tiros = o.TirosSoltos(batalha);
+            const Vector2 aluno = o.PosicaoDoAluno();
+            std::sort(tiros.begin(), tiros.end(), [&](const BossProjectile* a, const BossProjectile* b) {
+                return (a->GetPosition() - aluno).LengthSq() < (b->GetPosition() - aluno).LengthSq();
+            });
+            const int leva = Poder::LevaNoPasso(static_cast<int>(tiros.size()));
+            for (int k = 0; k < leva; ++k) tiros[static_cast<size_t>(k)]->Kill();
+            o.Rotular("passo " + std::to_string(mPasso) + ": " + std::to_string(tiros.size()) + " \xe2\x86\x92 " +
+                      std::to_string(tiros.size() - static_cast<size_t>(leva)));
+            o.AbrirAnel();
+        }
+    private:
+        float mInicio = 0.0f;
+        int mPasso = 0;
+    };
+
     // ---- Julio: agentes autonomos ----
 
     class Agentes final : public PoderEmCampo {
@@ -575,6 +604,7 @@ std::unique_ptr<PoderEmCampo> PoderEmCampo::Do(const Poder::Tipo t) {
         case Poder::Tipo::BalaDePrata: return std::make_unique<BalaDePrata>();
         case Poder::Tipo::PromiseAll:  return std::make_unique<PromiseAll>();
         case Poder::Tipo::Mutex:       return std::make_unique<Mutex>();
+        case Poder::Tipo::BuscaBinaria: return std::make_unique<BuscaBinaria>();
         case Poder::Tipo::Nenhum:      break;
     }
     return nullptr;

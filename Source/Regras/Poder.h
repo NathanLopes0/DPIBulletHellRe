@@ -17,7 +17,8 @@
 namespace Poder {
 
     enum class Tipo {
-        Nenhum, Matriz, Pilha, Congelar, Transacao, TryCatch, Converter, Agentes, BalaDePrata, PromiseAll, Mutex
+        Nenhum, Matriz, Pilha, Congelar, Transacao, TryCatch, Converter, Agentes, BalaDePrata, PromiseAll, Mutex,
+        BuscaBinaria
     };
 
     struct Descricao {
@@ -105,11 +106,23 @@ namespace Poder {
     /// A capivara anda no chao, embaixo do aluno, a esta rapidez (px/s).
     constexpr float kRapidezDaCapivara = 420.0f;
 
+    // ---- Arroyo: a busca binaria ----
+
+    /// A cada passo some a metade dos tiros do Hugo - a mais perto do aluno -, ate sobrar quase nada:
+    /// n, n/2, n/4... em log2(n) passos.
+    constexpr int kPassosDaBusca = 5;
+    constexpr float kEntrePassosDaBusca = 0.32f;
+
+    /// Quantos dos 'n' tiros um passo da busca leva (a metade de cima).
+    int LevaNoPasso(int n);
+
     // ---- A cara ----
 
     /// A folha com o projetil de cada professor (Ferramentas/gerar_hugo.py): o
     /// tiro do orientador tem a cara da materia dele.
     constexpr const char* kFolhaDasMaterias = "Teachers/Projectiles/DPIBHHugoTcc";
+    /// O ladrilho do Arroyo na folha: o quadro 22, depois da Caixa.
+    constexpr int kQuadroDoArroyo = 22;
 
     /// O quadro da materia 'm' em kFolhaDasMaterias; -1 sem materia (o tiro de sempre).
     int QuadroDaMateria(Golpe::Materia m);

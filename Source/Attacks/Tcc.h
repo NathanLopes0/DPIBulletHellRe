@@ -50,10 +50,11 @@ namespace Tcc {
     /// qualquer um), sorteados.
     std::array<Materia, 2> Banca(Materia orientador, Variacao::Sorteio& s);
 
-    /// As dez materias com professor, na ordem do enum.
-    constexpr std::array<Materia, 10> kMaterias = {
+    /// As onze materias com professor, na ordem do enum.
+    constexpr std::array<Materia, 11> kMaterias = {
         Materia::Andre, Materia::Salles, Materia::Ricardo, Materia::Thiago, Materia::Luizinho,
-        Materia::Vladimir, Materia::Julio, Materia::MariaLucia, Materia::Lucas, Materia::Vitor};
+        Materia::Vladimir, Materia::Julio, Materia::MariaLucia, Materia::Lucas, Materia::Vitor,
+        Materia::Arroyo};
 
     /// Onde mirar o tiro que sai de 'de' a 'velocidade', no aluno em 'aluno' andando a 'andando'
     /// px/s: onde ele vai estar, se continuar andando.

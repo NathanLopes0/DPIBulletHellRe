@@ -145,7 +145,7 @@ pergunta (a nota sobe só com as fases limpas, os raspões e o Ponto Extra — e
 TCC, com os tiros do orientador); **I** intocável, sem ser acertado nenhuma vez;
 **A** prestando atenção, com 70% das dúvidas chegando ao professor (de pelo menos
 50); **F** sentar na frente, com metade dos acertos feitos de perto (de pelo menos 50). Na dupla, valem os
-números da dupla inteira, e os dois ganham. São onze selos por matéria e **120**
+números da dupla inteira, e os dois ganham. São onze selos por matéria e **131**
 no curso. Os desafios não saem dos recordes, como os outros: a batalha conta
 como a prova foi jogada (`ContagemDaProva`), e a ficha guarda o cumprido na
 lista de atividades (`desafio-intocavel@INF213`), sem mudar de versão — as
@@ -342,14 +342,16 @@ foi aprovado:
 |---|---|---|
 | 0 | INF 110 — Programação 1 *(André)* | sempre |
 | 1 | INF 213 — Estruturas de Dados *(Salles)* | INF 110 aprovada |
-| 2 | INF 250 — Organização de Computadores *(Ricardo)*, INF 220 — Banco de Dados *(Thiago)*, INF 340 — Linguagens de Programação *(Luizinho)*, INF 331 — Linguagens Formais e Autômatos *(Vladimir)* | INF 213 aprovada |
+| 2 | INF 250 — Organização de Computadores *(Ricardo)*, INF 220 — Banco de Dados *(Thiago)*, INF 340 — Linguagens de Programação *(Luizinho)*, INF 331 — Linguagens Formais e Autômatos *(Vladimir)*, INF 332 — Projeto e Análise de Algoritmos *(Arroyo)* | INF 213 aprovada |
 | 3 | INF 420 — Inteligência Artificial *(Júlio)*, INF 221 — Engenharia de Software *(Maria Lúcia)*, INF 321 — Programação Web *(Lucas)*, INF 310 — Programação Concorrente e Distribuída *(Vitor)* | 2 aprovações na coluna 2 |
 | 4 | TCC — Trabalho de Conclusão de Curso *(Hugo)* | 2 aprovações na coluna 3 |
 
-Toda matéria tem professor e batalha — as dez do curso e o TCC, do Hugo, que é
-a última e a mais difícil. Ter professor e ter batalha são coisas separadas de
-propósito (uma matéria pode existir na grade antes de ter luta), e cada
-professor aparece uma vez só na grade.
+Toda matéria tem professor e batalha — as onze do curso e o TCC, do Hugo, que é
+a última e a mais difícil. A INF 332 entrou depois: no `materias.json` ela fica
+no fim da lista (o índice de cada matéria é o da batalha na simulação e na linha
+de base, e nenhum podia mudar), e na grade, embaixo da INF 331. Ter professor e
+ter batalha são coisas separadas de propósito (uma matéria pode existir na grade
+antes de ter luta), e cada professor aparece uma vez só na grade.
 
 Quem decide tudo isso é `Assets/materias.json` — a ordem, as colunas, as regras
 de desbloqueio, o professor e qual chefe atende cada matéria. Não há lista de
@@ -518,6 +520,39 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   não tem como fazer um programa que sabe se outro programa termina. O exame é
   uma exceção subindo pela pilha de chamadas: cada faixa que não a trata cai em
   cima de você — e a repescagem é um `catch`.
+- **Arroyo — INF 332.** Projeto e Análise de Algoritmos, a ementa em quatro
+  provas. Na **análise**, a árvore de recursão: o professor solta T(n), que se
+  divide em `a` subproblemas de tamanho n/b, que se dividem de novo até as
+  folhas, e cada nó, ao se dividir, paga o trabalho f(n) em tiros — o custo de
+  cada nível fica na tela: no merge sort todo nível custa o mesmo, no Karatsuba
+  as folhas dominam, na busca binária é um tiro por nível. O placar mostra a
+  recorrência e, quando a árvore acaba, o Teorema Mestre (`T(n) = 2T(n/2) + n =
+  Θ(n log n)`); são cinco recorrências sorteadas por luta, o merge sort sempre
+  primeiro. O nó é derrubável, e o que cai leva a subárvore junto: dá para
+  **podar a árvore**. Nos **paradigmas**, três problemas de sala: o troco
+  **guloso** (as moedas saem da maior para a menor e perseguem você; nos
+  sistemas ruins o guloso erra, e erra com moeda a mais — "Troco de 31:
+  25+1+1+1+1+1+1 (ótimo: 4 moedas)"), a tabela da **programação dinâmica**
+  (a maior subsequência comum de ALGORITMO e LOGARITMO, preenchida em ondas
+  diagonais — cada casa calculada chove, a que casa letra com letra chove em
+  leque) e o **backtracking** das seis rainhas (colocadas linha a linha e tiradas
+  quando não há saída, cada uma atirando pela coluna e pelas diagonais de baixo,
+  com o que ela ataca desenhado no tabuleiro; achada a solução, as seis atacam
+  nas oito direções). Nos **limites**, a rede de ordenação — seis fios descem o
+  campo, e em cada comparador os dois valores fora de ordem trocam de fio na
+  diagonal; embaixo saem ordenados, e o placar lembra que ordenar por comparação
+  pede ⌈log₂ 6!⌉ = 10 comparações —, e depois o **caixeiro viajante**, com
+  5, 6 e 7 cidades: o número de rotas explode (12, 60, 360), o caixeiro tenta
+  rota atrás de rota, cada cidade em que ele passa atira, e a melhor rota fica
+  desenhada em ouro. A final é a **aproximação**: a têmpera simulada. Um enxame
+  de soluções procura o mínimo de uma energia cujo vale mais fundo é você — e
+  dois rasos, os ótimos locais. Quente, cada solução aceita até passo para
+  pior (o critério de Metropolis, de verdade: `exp(-Δ/T)`), e o enxame se
+  espalha; esfriando, desce para os vales, e quem cai num ótimo local fica
+  preso lá e estoura. No meio da fase a temperatura volta a subir. Toda prova
+  se refaz sozinha: o que o Ponto Extra limpa volta na rodada seguinte, porque
+  o que anda é o algoritmo, e não os projéteis (`Recorrencia.h`,
+  `Paradigmas.h`, `Intratavel.h`, `Tempera.h`).
 - **Vitor — INF 310.** Programação Concorrente e Distribuída — e Redes, que
   ele também dá. Na primeira, semáforos: cada thread é uma coluna de
   instruções descendo até a seção crítica, quem não tem o semáforo se empilha
@@ -556,8 +591,9 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   o tiro dele tem a cara da matéria (o `for` do André, a pilha do Salles, o
   barramento do Ricardo, a transação do Thiago, o ponteiro do Luizinho, a
   gramática do Vladimir, o gradiente do Júlio, o Observer da Maria Lúcia, o
-  `fetch` do Lucas, a janela do TCP do Vitor), e cada um traz um **poder**,
-  que carrega a cada acerto no Hugo e sai no **botão 3**. O poder é um
+  `fetch` do Lucas, a janela do TCP do Vitor, a busca binária do Arroyo, que
+  fecha os dois tiros no Hugo pela metade a cada rodada), e cada um traz um
+  **poder**, que carrega a cada acerto no Hugo e sai no **botão 3**. O poder é um
   conceito da matéria dele, jogável:
 
   - **André — `for (i) for (j)`.** Laços aninhados: uma matriz de 5 linhas de
@@ -583,6 +619,9 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   - **Vitor — `P(s)`.** O semáforo: uma porta de parede a parede, acima de
     você. Os tiros do Hugo fazem fila nela e passam um de cada vez; no `V(s)`
     quem ainda esperava morre de inanição.
+  - **Arroyo — busca binária.** A cada passo some a metade dos tiros do Hugo —
+    a mais perto de você —, de novo e de novo: n, n/2, n/4... A banca dele
+    pergunta "Qual é a complexidade disso?".
 
   A tela em que se escolhe o orientador mostra o poder de cada um
   funcionando: um campo em miniatura, animado, com a legenda de cada passo.
@@ -702,7 +741,7 @@ Assets/          sprites, fontes, sons e os JSON que descrevem o jogo
 Documentacao/    receitas para quem for mexer no código
 Ferramentas/     geradores de arte e de som provisórios, e as medições: o jogo
                  rodando sozinho (medir-dificuldade.sh), o portão do aluno
-                 parado (parado-reprova.sh) e as 54 batalhas que uma
+                 parado (parado-reprova.sh) e as 59 batalhas que uma
                  refatoração não pode mudar (linha-de-base.sh)
 
 tests/           a suíte
@@ -743,7 +782,7 @@ resto mora em colaboradores, um por assunto:
 | `TelaDeCarregamento` | o véu enquanto os projéteis são preparados |
 
 Uma refatoração nela tem de passar pela linha de base
-(`Ferramentas/linha-de-base.sh`): as 54 batalhas idênticas, byte a byte.
+(`Ferramentas/linha-de-base.sh`): as 59 batalhas idênticas, byte a byte.
 
 ## Os dados
 
