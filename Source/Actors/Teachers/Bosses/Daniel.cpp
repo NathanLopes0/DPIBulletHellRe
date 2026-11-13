@@ -424,7 +424,9 @@ void Daniel::AtualizarPreparacao(const float t, const float deltaTime) {
     if (etapa < 2 && t >= mProximaColeta && static_cast<int>(mDados.size()) < g.maisDados) {
         mProximaColeta = t + cadencia;
         DadoNoGrafico d;
-        d.dado = Coletar(mSorteio, mEspecies, g.fracaoOutlier, g.fracaoNula);
+        // Depois da limpeza o que chega ja vem limpo: sem outlier depois do z-score, sem nulo depois
+        // da imputacao.
+        d.dado = Coletar(mSorteio, mEspecies, mOutliersMarcados ? 0.0f : g.fracaoOutlier, mImputou ? 0.0f : g.fracaoNula);
         const Vector2 de = LugarDaFonte(d.dado.fonte), para = NoCampo(d.dado.onde);
         const float distancia = (para - de).Length();
         const std::string cara = d.dado.tipo == Tipo::Outlier ? kCaraDoOutlier
@@ -461,8 +463,9 @@ void Daniel::AtualizarPreparacao(const float t, const float deltaTime) {
         mOutliersMarcados = true;
         std::vector<Vector2> onde;
         std::vector<DadoNoGrafico*> quem;
+        // Tambem os que ainda voam: o lugar de cada um no grafico e o de chegada.
         for (DadoNoGrafico& d : mDados) {
-            if (!d.chegou || d.dado.tipo == Tipo::Nulo) continue;
+            if (d.dado.tipo == Tipo::Nulo) continue;
             onde.push_back(d.dado.onde);
             quem.push_back(&d);
         }
