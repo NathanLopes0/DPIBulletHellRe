@@ -36,8 +36,9 @@ escritos na tela.
 > W A S D é o do jogador 2.
 
 O menu principal tem **Modo Solo**, **Modo Dupla** e **Como Jogar** — o manual,
-três páginas (o manche vira a página): como a matéria funciona, os botões, e a
-personagem com o convite para a dupla. É curto de propósito — a nota, o que se
+quatro páginas (o manche vira a página): como a matéria funciona, os botões, a
+personagem com o convite para a dupla, e as menções — cada selo, o nome e como se
+ganha. É curto de propósito — a nota, o que se
 destrói, o Ponto Extra e o que a dupla faz junta ficam para o aluno descobrir. O texto mora em
 `Assets/como-jogar.json`: dá para revisar uma frase sem recompilar. Em dupla, cada aluno se
 identifica, os dois jogam a mesma batalha e a **nota é uma só, da dupla**: o
@@ -139,15 +140,18 @@ quem ainda é **novo**: defender o TCC com cada professor completa o currículo
 de orientações.
 
 Depois dos sete, separados por uma folga, vêm os quatro **desafios**: passar
-na matéria jogando de outro jeito. **Ø** sem dar um tiro (a nota sobe só com
-as fases limpas, os raspões e o Ponto Extra — e, no TCC, com os tiros do
-orientador); **I** intocável, sem ser acertado nenhuma vez; **M** mira certeira,
-com 70% dos tiros no professor (de pelo menos 50); **!!** na cara do professor,
-com metade dos acertos feitos de perto (de pelo menos 50). Na dupla, valem os
+na matéria jogando de outro jeito. **Q** quietinho da turma, sem fazer nenhuma
+pergunta (a nota sobe só com as fases limpas, os raspões e o Ponto Extra — e, no
+TCC, com os tiros do orientador); **I** intocável, sem ser acertado nenhuma vez;
+**A** prestando atenção, com 70% das dúvidas chegando ao professor (de pelo menos
+50); **F** sentar na frente, com metade dos acertos feitos de perto (de pelo menos 50). Na dupla, valem os
 números da dupla inteira, e os dois ganham. São onze selos por matéria e **120**
 no curso. Os desafios não saem dos recordes, como os outros: a batalha conta
 como a prova foi jogada (`ContagemDaProva`), e a ficha guarda o cumprido na
-lista de atividades (`desafio-intocavel@INF213`), sem mudar de versão.
+lista de atividades (`desafio-intocavel@INF213`), sem mudar de versão — as
+chaves guardam os nomes da primeira versão (`desafio-pacifista`, `desafio-mira`,
+`desafio-de-perto`), para nenhum save perder o que já ganhou. A última página do
+**Como Jogar** mostra cada selo, o nome e como se ganha.
 
 Os selos são pixel art de 13 × 10, desenhada em 2x e pintada por código
 (`Ferramentas/gerar_interface.py`): moeda para as notas, placa para o Difícil,

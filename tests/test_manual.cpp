@@ -67,3 +67,15 @@ TEST_CASE("Manual: virar a pagina para nas pontas") {
     CHECK(Virar(0, 1, 0) == 0);    // manual vazio
     CHECK(Indicador(2, 6) == "3 de 6");
 }
+
+TEST_CASE("Manual: a pagina das mencoes nao precisa de linhas") {
+    const auto lido = LerManual(R"({"paginas":[
+        {"titulo":"As mencoes","mostrar":"mencoes"},
+        {"titulo":"Outra","mostrar":"tabela","linhas":["a"]},
+        {"titulo":"Sem nada"} ]})");
+    REQUIRE(lido.paginas.size() == 2u);
+    CHECK(lido.paginas[0].mencoes);
+    CHECK(lido.paginas[0].linhas.empty());
+    CHECK_FALSE(lido.paginas[1].mencoes);   // "tabela" nao existe: avisado, e a pagina fica com as linhas
+    CHECK(lido.problemas.size() == 2u);     // o "mostrar" desconhecido e a pagina sem nada
+}

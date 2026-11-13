@@ -1,5 +1,6 @@
 // O manual do jogo: as paginas da tela "Como Jogar", do menu principal. Cada pagina tem um titulo e
-// as linhas, de cima para baixo. Curto de proposito: o resto o aluno descobre jogando.
+// as linhas, de cima para baixo; a de "mostrar": "mencoes" e a grade dos selos, escrita pelo jogo
+// (Mencoes::ComoGanhar). Curto de proposito: o resto o aluno descobre jogando.
 {
   "paginas": [
     {
@@ -35,6 +36,10 @@
         "O gabinete tem duas posições, e as provas também.",
         "Chame alguém para o Modo Dupla: tem coisa que só se descobre a dois."
       ]
+    },
+    {
+      "titulo": "As menções",
+      "mostrar": "mencoes"
     }
   ]
 }

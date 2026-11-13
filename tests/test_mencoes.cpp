@@ -189,6 +189,9 @@ TEST_CASE("Mencoes: os desafios cumpridos acendem o selo, e contam no curso") {
     CHECK_FALSE(a.Tem(Mencao::Pacifista));
     CHECK(a.Ganhas() == 2);   // bronze e intocavel
     CHECK(DoCurso(p, curso).ganhas == 3);
-    CHECK(std::string(Selo(Mencao::DePerto)) == "!!");
+    CHECK(std::string(Selo(Mencao::DePerto)) == "F");
+    CHECK(std::string(Nome(Mencao::Pacifista)) == "quietinho da turma");
+    CHECK(std::string(Nome(Mencao::DePerto)) == "sentar na frente");
+    for (const Mencao m : kTodas) CHECK(std::string(ComoGanhar(m)).size() > 10u);
     CHECK(FraseDasNovas({Mencao::Intocavel}) == "Nova men\xc3\xa7\xc3\xa3o: intoc\xc3\xa1vel");
 }

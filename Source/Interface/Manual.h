@@ -15,6 +15,9 @@ namespace Manual {
         std::vector<std::string> linhas;
         /// Linhas que so aparecem fora do gabinete: as que falam de teclas.
         std::vector<std::string> noComputador;
+        /// "mostrar": "mencoes" - a pagina e a grade dos selos, com o nome e como ganhar cada um
+        /// (Mencoes::ComoGanhar), e as linhas, se houver, ficam de fora.
+        bool mencoes = false;
     };
 
     struct Lido {

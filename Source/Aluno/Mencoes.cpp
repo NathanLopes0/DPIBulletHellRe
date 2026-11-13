@@ -99,10 +99,10 @@ namespace Mencoes {
             case Mencao::Dificil:   return "D";
             case Mencao::Dupla:     return "2";
             case Mencao::Orientou:  return "T";
-            case Mencao::Pacifista: return "\xc3\x98";   // O cortado: nenhum tiro
+            case Mencao::Pacifista: return "Q";
             case Mencao::Intocavel: return "I";
-            case Mencao::Mira:      return "M";
-            case Mencao::DePerto:   return "!!";
+            case Mencao::Mira:      return "A";
+            case Mencao::DePerto:   return "F";
         }
         return "";
     }
@@ -117,10 +117,29 @@ namespace Mencoes {
             case Mencao::Dificil:   return "no Dif\xc3\xad" "cil";
             case Mencao::Dupla:     return "em dupla";
             case Mencao::Orientou:  return "orientou o TCC";
-            case Mencao::Pacifista: return "sem dar um tiro";
+            case Mencao::Pacifista: return "quietinho da turma";
             case Mencao::Intocavel: return "intoc\xc3\xa1vel";
-            case Mencao::Mira:      return "mira certeira";
-            case Mencao::DePerto:   return "na cara do professor";
+            case Mencao::Mira:      return "prestando aten\xc3\xa7\xc3\xa3o";
+            case Mencao::DePerto:   return "sentar na frente";
+        }
+        return "";
+    }
+
+    const char* ComoGanhar(const Mencao m) {
+        // As duvidas sao os tiros do aluno. \xc3\xa1 a, \xc3\xa9 e, \xc3\xad i, \xc3\xb3 o, \xc3\xba u agudos;
+        // \xc3\xa7 c cedilha; \xc3\xa3 a til; \xc3\xaa e circunflexo.
+        switch (m) {
+            case Mencao::Bronze:    return "Passe na mat\xc3\xa9ria.";
+            case Mencao::Prata:     return "Passe com nota 80 ou mais.";
+            case Mencao::Ouro:      return "Passe com nota 90 ou mais.";
+            case Mencao::NotaCheia: return "Termine a prova com a nota cheia: 100.";
+            case Mencao::Dificil:   return "Passe no modo Dif\xc3\xad" "cil.";
+            case Mencao::Dupla:     return "Passe jogando em dupla.";
+            case Mencao::Orientou:  return "Passe no TCC com o professor da mat\xc3\xa9ria de orientador.";
+            case Mencao::Pacifista: return "Passe sem fazer nenhuma pergunta.";
+            case Mencao::Intocavel: return "Passe sem ser acertado nenhuma vez.";
+            case Mencao::Mira:      return "70% das suas d\xc3\xba" "vidas chegam ao professor (de 50 ou mais).";
+            case Mencao::DePerto:   return "Metade dos acertos feitos de perto (de 50 ou mais).";
         }
         return "";
     }
@@ -130,8 +149,8 @@ namespace Mencoes {
         const std::string ponto = "  \xc2\xb7  ";
         return std::string("B aprova\xc3\xa7\xc3\xa3o") + ponto + "P nota 80" + ponto + "O nota 90" + ponto +
                "100 nota cheia" + ponto + "D no Dif\xc3\xad" "cil" + ponto + "2 em dupla" + ponto +
-               "T orientou o seu TCC" + ponto + "\xc3\x98 sem atirar" + ponto + "I sem ser acertado" + ponto +
-               "M 70% dos tiros" + ponto + "!! metade de perto";
+               "T orientou o seu TCC" + ponto + "Q quietinho" + ponto + "I intoc\xc3\xa1vel" + ponto +
+               "A prestando aten\xc3\xa7\xc3\xa3o" + ponto + "F sentar na frente";
     }
 
     Cor CorDa(const Mencao m) {

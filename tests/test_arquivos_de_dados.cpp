@@ -125,10 +125,11 @@ TEST_CASE("Dados: Assets/como-jogar.json nao tem problema nenhum") {
     CHECK_MESSAGE(r.problemas.empty(), "problemas em como-jogar.json:" << Juntar(r.problemas));
     CHECK(r.paginas.size() > 0);
 
-    // O gabinete tambem tem o que ler: uma pagina so de teclas ficaria vazia la (Manual::Linhas).
+    // O gabinete tambem tem o que ler: uma pagina so de teclas ficaria vazia la (Manual::Linhas). A
+    // das mencoes e escrita pelo jogo, e nao tem linhas.
     for (const auto& p : r.paginas) {
         CAPTURE(p.titulo);
-        CHECK_FALSE(Manual::Linhas(p, true).empty());
+        CHECK((p.mencoes || !Manual::Linhas(p, true).empty()));
         for (const auto& linha : p.linhas) {
             CAPTURE(linha);
             for (const char* tecla : {"Esc ", "Espa\xc3\xa7o", "W A S D", "setas"}) {

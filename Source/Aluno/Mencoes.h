@@ -25,10 +25,12 @@ namespace Mencoes {
         Dupla,       ///< aprovado em dupla, em qualquer dificuldade
         Orientou,    ///< o professor da materia orientou um TCC aprovado do aluno
         // ---- Os desafios: aprovado jogando de um jeito diferente (Desafios) ----
-        Pacifista,   ///< aprovado sem dar nenhum tiro
+        // Os nomes dos tres de baixo ficaram da primeira versao, e continuam nas chaves da ficha
+        // (desafio-pacifista, -mira, -de-perto): o aluno ve os de Nome.
+        Pacifista,   ///< "quietinho da turma": aprovado sem fazer nenhuma pergunta
         Intocavel,   ///< aprovado sem ser acertado nenhuma vez
-        Mira,        ///< aprovado com kPrecisaoDaMira dos tiros no professor
-        DePerto      ///< aprovado com kFracaoDePerto dos acertos feitos de perto (o "!!")
+        Mira,        ///< "prestando atencao": kPrecisaoDaMira das duvidas acertando o professor
+        DePerto      ///< "sentar na frente": kFracaoDePerto dos acertos feitos de perto (o "!!")
     };
     constexpr int kQuantas = 11;
     constexpr std::array<Mencao, kQuantas> kTodas{Mencao::Bronze,   Mencao::Prata,     Mencao::Ouro,
@@ -90,12 +92,15 @@ namespace Mencoes {
     /// As chaves dos desafios que esta prova cumpriu, na materia de codigo 'materia'.
     std::vector<std::string> Desafios(const Prova& p, const std::string& materia);
 
-    /// O que vai escrito no selo: "B", "P", "O", "100", "D", "2", "T", "\xc3\x98", "I", "M", "!!".
+    /// O que vai escrito no selo: "B", "P", "O", "100", "D", "2", "T", "Q", "I", "A", "F".
     const char* Selo(Mencao m);
 
-    /// O nome, para a frase do resultado: "bronze", "prata", "ouro", "nota cheia", "no Dificil",
-    /// "em dupla", "orientou o TCC".
+    /// O nome, para a frase do resultado e o manual: "bronze", "prata", ..., "quietinho da turma",
+    /// "intocavel", "prestando atencao", "sentar na frente".
     const char* Nome(Mencao m);
+
+    /// Como se ganha, numa frase curta, para a pagina das mencoes do manual.
+    const char* ComoGanhar(Mencao m);
 
     /// A legenda do boletim, numa linha.
     std::string Legenda();
