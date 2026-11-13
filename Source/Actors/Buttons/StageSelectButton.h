@@ -43,18 +43,16 @@ private:
 
     bool mAprovado = false;
 
-    /// A arte (DPIBHLosango) tem o dobro do tamanho do botao.
-    static constexpr float kEscalaDoLosango = 0.5f;
+    /// A arte (DPIBHLosango) e pixel art com a metade do tamanho do botao.
+    static constexpr float kEscalaDoLosango = 2.0f;
     static constexpr int kTamanhoDoNome = 17;
+    /// O reflexo do foco: 16 quadros, pouco mais de um segundo por volta.
+    static constexpr float kQuadrosPorSegundo = 14.0f;
 
-    /// Ao ganhar o foco o losango cresce kPulo e volta em kDuracaoDoPulo segundos; enquanto tem o
-    /// foco, respira kRespiro, kRitmoDoRespiro radianos por segundo.
-    static constexpr float kPulo = 0.14f;
-    static constexpr float kDuracaoDoPulo = 0.22f;
-    static constexpr float kRespiro = 0.03f;
-    static constexpr float kRitmoDoRespiro = 4.0f;
+    /// Ao ganhar o foco o losango cresce kPulo e volta em kDuracaoDoPulo segundos.
+    static constexpr float kPulo = 0.12f;
+    static constexpr float kDuracaoDoPulo = 0.2f;
     float mPulo = 0.0f;
-    float mRespiro = 0.0f;
     bool mEstavaSelecionado = false;
 
     /// Observador: quem e dono e a cena.

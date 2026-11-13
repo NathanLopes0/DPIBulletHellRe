@@ -7,10 +7,10 @@
                   desafios. Cada selo tem o quadro aceso, na cor da mencao, e o
                   apagado. Os quadros vao na ordem de Mencoes::kTodas: o aceso
                   da mencao i e o quadro 2i, o apagado o 2i + 1.
-  DPIBHLosango    o losango de cada materia da selecao de fases, em 256 x 128,
-                  o dobro do tamanho em que e desenhado: a tela cheia o mostra
-                  sem serrilhado. Cinco quadros: aberta, em foco, aprovada,
-                  fechada e fechada em foco.
+  DPIBHLosango    o losango de cada materia da selecao de fases, em pixel art de
+                  64 x 32 desenhada em 2x. Os quadros: aberta (0), em foco (1 a
+                  8, o reflexo que passa pela pedra), aprovada (9), fechada (10)
+                  e fechada em foco (11).
 
 O sombreamento e o de pixel art: a luz vem de cima e da esquerda, cada cor tem
 tres ou quatro tons (sem degrade), o contorno e o tom mais escuro dela, e um
@@ -201,136 +201,205 @@ def gerar_selos():
 
 
 # -------------------------------------------------------------- o losango ----
+#
+# Pixel art de 64 x 32, desenhada em 2x (128 x 64) pelo pixel mais proximo. As tecnicas:
+#   - aresta 2:1, a escada limpa de dois pixels por degrau, sem pixel solto;
+#   - rampa de sete tons com mudanca de matiz: a sombra puxa para o azul-violeta, a luz para o
+#     amarelo, e nao so escurece e clareia;
+#   - contorno seletivo: escuro do lado da sombra, um tom da propria cor do lado da luz;
+#   - luz de borda no lado de cima e da esquerda, e luz refletida embaixo, um tom acima da sombra;
+#   - lapidacao: a mesa (o losango do meio) e quatro facetas, cada uma num tom;
+#   - pontilhado de xadrez so na passagem entre a mesa e as facetas;
+#   - o brilho especular em tres pixels, e no foco um reflexo que atravessa a pedra.
 
-LL, LA = 256, 128          # o quadro (o jogo desenha em 128 x 64)
-CX, CY = LL / 2, LA / 2
+import colorsys
+
+LL, LA = 64, 32            # o quadro, em pixels de arte (o jogo desenha em 2x: 128 x 64)
+MX, MY = LL // 2, LA // 2
+
+QUADROS_DO_REFLEXO = 8     # o foco e uma animacao: o reflexo passa e a pedra descansa
 
 ESTADOS = [
     # nome,             cor de base,      fechada
-    ("aberta",          (64, 86, 214),    False),
-    ("foco",            (226, 62, 62),    False),
-    ("aprovada",        (56, 158, 112),   False),
-    ("fechada",         (70, 74, 100),    True),
-    ("fechada-foco",    (112, 118, 160),  True),
+    ("aberta",          (60, 92, 220),    False),
+    ("foco",            (232, 58, 64),    False),
+    ("aprovada",        (46, 170, 108),   False),
+    ("fechada",         (84, 88, 116),    True),
+    ("fechada-foco",    (128, 134, 178),  True),
 ]
 
 
+def rampa(base):
+    """Sete tons, do contorno ao especular, com a matiz andando: a sombra fria, a luz quente."""
+    r, g, b = (c / 255 for c in base)
+    h, s, v = colorsys.rgb_to_hsv(r, g, b)
+    tons = []
+    #          valor  saturacao  matiz (para onde anda, e quanto)
+    passos = [(0.30, 1.10, 0.70, 0.30),    # 0 contorno da sombra
+              (0.52, 1.05, 0.70, 0.20),    # 1 sombra
+              (0.74, 1.00, 0.70, 0.10),    # 2 meia-sombra
+              (1.00, 1.00, None, 0.00),    # 3 a cor
+              (1.18, 0.82, 0.14, 0.08),    # 4 luz
+              (1.32, 0.55, 0.14, 0.14),    # 5 luz de borda
+              (1.45, 0.18, 0.14, 0.20)]    # 6 especular
+    for fv, fs, alvo, quanto in passos:
+        hh = h
+        if alvo is not None and s > 0.08:
+            # Anda pelo caminho mais curto do circulo das matizes.
+            d = ((alvo - h + 0.5) % 1.0) - 0.5
+            hh = (h + d * quanto) % 1.0
+        rr, gg, bb = colorsys.hsv_to_rgb(hh, min(1.0, s * fs), min(1.0, v * fv))
+        tons.append((round(rr * 255), round(gg * 255), round(bb * 255)))
+    return tons
+
+
+def meia_largura(y):
+    """A aresta 2:1: em cada linha o losango cresce (ou encolhe) dois pixels de cada lado."""
+    return 2 * (y + 1) if y < MY else 2 * (LA - y)
+
+
+def dentro(x, y):
+    if not (0 <= x < LL and 0 <= y < LA):
+        return False
+    w = meia_largura(y)
+    return MX - w <= x <= MX + w - 1
+
+
+def na_borda(x, y):
+    return dentro(x, y) and any(not dentro(x + dx, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+
+
 def distancia(x, y):
-    """0 no centro, 1 na borda do losango."""
-    return abs(x + 0.5 - CX) / (LL / 2 - 2) + abs(y + 0.5 - CY) / (LA / 2 - 2)
+    """0 no centro, 1 na aresta."""
+    return abs(x + 0.5 - MX) / MX + abs(y + 0.5 - MY) / MY
 
 
-def losango(cor, fechada):
+def losango(cor, fechada, reflexo=None):
+    t = rampa(cor)
     im = Image.new("RGBA", (LL, LA), (0, 0, 0, 0))
     px = im.load()
-    contorno = (10, 10, 22)
-    aro = clarear(cor, 0.55)
-    tons = {  # as quatro faces: a de cima-esquerda recebe a luz
-        "ce": clarear(cor, 0.22), "cd": cor, "be": escurecer(cor, 0.18), "bd": escurecer(cor, 0.36),
-    }
-    friso = clarear(cor, 0.35)
     for y in range(LA):
         for x in range(LL):
-            d = distancia(x, y)
-            if d > 1.0:
+            if not dentro(x, y):
                 continue
-            if d > 0.955:
-                px[x, y] = contorno + (255,)
-                continue
-            if d > 0.915:
-                # O aro claro, mais escuro embaixo: a luz de cima.
-                c = aro if y < CY else escurecer(aro, 0.25)
+            cima, esquerda = y < MY, x < MX
+            if na_borda(x, y):
+                # Contorno seletivo: o lado da luz leva um tom da cor, o da sombra o mais escuro.
+                c = t[1] if (cima and esquerda) else t[0]
+                if cima and not esquerda:
+                    c = t[1] if (x + y) % 2 else t[0]   # a quina de cima-direita meio a meio
                 px[x, y] = c + (255,)
                 continue
-            if d > 0.89:
-                px[x, y] = escurecer(cor, 0.55) + (255,)
-                continue
-            face = ("c" if y + 0.5 < CY else "b") + ("e" if x + 0.5 < CX else "d")
-            c = tons[face]
-            # Um friso interno, um losango menor: a pedra lapidada.
-            if 0.60 < d < 0.635:
-                c = friso if face == "ce" else (clarear(c, 0.18) if face != "bd" else escurecer(c, 0.1))
-            # A passagem entre as faces de cima, em pontilhado.
-            if abs(x + 0.5 - CX) < 2.0 and y < CY and (x + y) % 2 == 0:
-                c = tons["ce"]
+            # A segunda volta: luz de borda em cima-esquerda, refletida embaixo-direita.
+            colado = any(na_borda(x + dx, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+            d = distancia(x, y)
+            mesa = d < 0.50
+            if mesa:
+                faces = {(True, True): t[4], (True, False): t[3], (False, True): t[3], (False, False): t[2]}
+            else:
+                faces = {(True, True): t[4], (True, False): t[3], (False, True): t[2], (False, False): t[1]}
+            c = faces[(cima, esquerda)]
+            # A passagem da mesa para as facetas, em xadrez de um pixel.
+            if 0.47 <= d < 0.56 and (x + y) % 2 == 0:
+                c = faces[(cima, esquerda)] if mesa else {(True, True): t[5], (True, False): t[4],
+                                                          (False, True): t[3], (False, False): t[2]}[(cima, esquerda)]
+            if colado:
+                if cima and esquerda:
+                    c = t[5]
+                elif cima:
+                    c = t[4]
+                elif not esquerda:
+                    c = t[2]   # a luz refletida: um tom acima da sombra, colada na aresta
             px[x, y] = c + (255,)
 
     if not fechada:
-        # O brilho: um risco de luz paralelo a aresta de cima-esquerda.
-        for y in range(LA):
-            for x in range(LL):
-                d = distancia(x, y)
-                if 0.70 < d < 0.80 and x + 0.5 < CX - 22 and y + 0.5 < CY - 8:
-                    if (x + y) % 2 == 0 or 0.73 < d < 0.77:
-                        px[x, y] = clarear(cor, 0.62) + (255,)
-        for (bx, by) in ((CX - 52, CY - 30), (CX - 50, CY - 31)):
-            for dy in range(3):
-                for dx in range(3):
-                    px[int(bx) + dx, int(by) + dy] = (255, 255, 255, 255)
+        # O especular: tres pixels no canto de cima-esquerda da mesa.
+        for (x, y) in ((MX - 10, MY - 5), (MX - 9, MY - 5), (MX - 11, MY - 4)):
+            px[x, y] = t[6] + (255,)
+        # E um risco curto de luz rente a aresta de cima-esquerda.
+        for k in range(4):
+            x, y = MX - 18 + 2 * k, MY - 8 - k
+            if dentro(x, y) and not na_borda(x, y):
+                px[x, y] = t[6] + (255,)
+        if reflexo is not None:
+            # O reflexo do foco: uma faixa inclinada, de dois tons, que atravessa a pedra.
+            for y in range(LA):
+                for x in range(LL):
+                    if not dentro(x, y) or na_borda(x, y):
+                        continue
+                    k = x + 2 * y - reflexo
+                    if 0 <= k < 3:
+                        px[x, y] = t[6] + (255,)
+                    elif 3 <= k < 6 or -3 <= k < 0:
+                        px[x, y] = t[5] + (255,)
     else:
-        corrente(px, cor)
-        cadeado(px, cor)
+        corrente(px, t)
+        cadeado(px)
     return im
 
 
-def corrente(px, cor):
-    escuro, meio, claro = escurecer(cor, 0.62), clarear(cor, 0.12), clarear(cor, 0.45)
-    # Duas correntes em X, de um meio de aresta ao oposto, com elos alternando de pe e deitados.
-    for sinal in (1, -1):
-        x0, y0 = CX - LL * 0.22, CY - sinal * LA * 0.22
-        x1, y1 = CX + LL * 0.22, CY + sinal * LA * 0.22
-        comprimento = math.hypot(x1 - x0, y1 - y0)
-        passos = int(comprimento // 13)
-        for i in range(passos + 1):
-            t = i / passos
-            x, y = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
-            if abs(x - CX) < 20 and abs(y - CY) < 20:
-                continue   # o cadeado fica no meio
-            deitado = i % 2 == 0
-            rx, ry = (8, 4.5) if deitado else (4, 6.5)
-            for yy in range(int(y - ry - 2), int(y + ry + 3)):
-                for xx in range(int(x - rx - 2), int(x + rx + 3)):
-                    if not (0 <= xx < LL and 0 <= yy < LA) or distancia(xx, yy) > 0.88:
-                        continue
-                    e = ((xx + 0.5 - x) / rx) ** 2 + ((yy + 0.5 - y) / ry) ** 2
-                    if 0.40 < e < 1.0:
-                        luz = (yy + 0.5 - y) < 0
-                        px[xx, yy] = (claro if luz else meio) + (255,)
-                    elif 1.0 <= e < 1.6:
-                        px[xx, yy] = escuro + (255,)
+def corrente(px, t):
+    # Duas correntes em X, do meio de uma aresta ao meio da oposta: elos de frente (um anel de
+    # 3 x 3) a cada 5 pixels, ligados pelo elo visto de lado (um traco de 2), sem buraco entre eles.
+    escuro, meio, claro = t[0], t[4], t[6]
+
+    def ponto(x, y, c):
+        if dentro(x, y) and not na_borda(x, y) and not (abs(x - MX) <= 5 and abs(y - MY) <= 5):
+            px[x, y] = c + (255,)
+
+    for sobe in (False, True):
+        for i in range(-6, 7):
+            if i == 0:
+                continue
+            cx = MX + 5 * i
+            cy = MY + (-1 if sobe else 1) * round(2.5 * i) - (1 if sobe else 0)
+            for dx, dy in ((-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)):
+                luz = dy < 0 or (dy == 0 and dx < 0)
+                ponto(cx + dx, cy + dy, claro if luz else meio)
+            ponto(cx + 1, cy + 2, escuro)
+            ponto(cx + 2, cy + 1, escuro)
+            # O elo de lado, ate o proximo anel.
+            ny = cy + (-1 if sobe else 1) * (round(2.5 * (i + 1)) - round(2.5 * i))
+            mx, my = cx + 2, (cy + ny) // 2 + (0 if sobe else 1)
+            ponto(mx, my, meio)
+            ponto(mx + 1, my, meio)
+            ponto(mx, my + 1, escuro)
+            ponto(mx + 1, my + 1, escuro)
 
 
-def cadeado(px, cor):
-    metal, luz, sombra, escuro = (196, 170, 92), (246, 226, 150), (142, 112, 52), (40, 30, 24)
-    # O arco.
-    for yy in range(int(CY - 22), int(CY - 4)):
-        for xx in range(int(CX - 14), int(CX + 14)):
-            e = math.hypot(xx + 0.5 - CX, yy + 0.5 - (CY - 6))
-            if 8 <= e <= 13 and yy < CY - 4:
-                px[xx, yy] = (escuro if e > 11.5 or e < 9 else (luz if xx < CX else metal)) + (255,)
-    # O corpo.
-    for yy in range(int(CY - 6), int(CY + 16)):
-        for xx in range(int(CX - 16), int(CX + 16)):
-            bx, by = xx - (CX - 16), yy - (CY - 6)
-            if bx < 2 or bx >= 30 or by < 2 or by >= 20:
-                c = escuro
-            elif by < 6:
-                c = luz
-            elif by > 15:
-                c = sombra
-            else:
-                c = metal if (bx > 4 or (bx + by) % 2) else luz
-            px[xx, yy] = c + (255,)
-    # O buraco da chave.
-    for yy in range(int(CY), int(CY + 11)):
-        for xx in range(int(CX - 3), int(CX + 3)):
-            r = math.hypot(xx + 0.5 - CX, yy + 0.5 - (CY + 3))
-            if r <= 3 or (yy > CY + 3 and abs(xx + 0.5 - CX) <= 1.5):
-                px[xx, yy] = escuro + (255,)
+def cadeado(px):
+    ouro = rampa((214, 168, 60))
+    # O arco (a alca), 5 de largura, e o corpo, 9 x 6, com a fechadura.
+    arco = ["..xxxxx..",
+            ".x.....x.",
+            ".x.....x."]
+    corpo = ["XXXXXXXXX",
+             "XhhhhhhmX",
+             "XhmmkmmmX",
+             "XmmmkmmsX",
+             "XmssssssX",
+             "XXXXXXXXX"]
+    x0, y0 = MX - 5, MY - 6
+    for j, linha in enumerate(arco):
+        for i, ch in enumerate(linha):
+            if ch == "x":
+                px[x0 + i, y0 + j] = (ouro[2] if i > 4 else ouro[4]) + (255,)
+    cores = {"X": ouro[0], "h": ouro[5], "m": ouro[3], "s": ouro[1], "k": (30, 20, 26)}
+    for j, linha in enumerate(corpo):
+        for i, ch in enumerate(linha):
+            px[x0 + i, y0 + 3 + j] = cores[ch] + (255,)
 
 
 def gerar_losango():
-    quadros = [losango(cor, fechada) for _, cor, fechada in ESTADOS]
+    quadros = []
+    for nome, cor, fechada in ESTADOS:
+        if nome == "foco":
+            # O reflexo entra pela esquerda e sai pela direita; os ultimos quadros descansam.
+            for k in range(QUADROS_DO_REFLEXO):
+                faixa = 24 + k * 14 if k < 6 else None
+                quadros.append(losango(cor, fechada, faixa))
+        else:
+            quadros.append(losango(cor, fechada))
     folha = Image.new("RGBA", (LL * len(quadros), LA), (0, 0, 0, 0))
     for i, q in enumerate(quadros):
         folha.paste(q, (i * LL, 0))

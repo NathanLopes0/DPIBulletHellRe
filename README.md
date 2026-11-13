@@ -214,8 +214,11 @@ na **última matéria escolhida**, e não no INF 110. Uma partida nova começa d
 começo da grade. Trocar de matéria acende, num lampejo ciano, só a ligação de uma
 à outra — a luz corre do ramo de quem saiu, pelo pedaço do tronco entre as duas,
 até o de quem chegou, e some em meio segundo — e o losango em foco dá um pulo e
-respira. Os losangos são feitos no dobro do tamanho em que aparecem,
-para a tela cheia não os serrilhar.
+o reflexo de luz passa por ele. Os losangos são pixel art de 64 × 32,
+desenhada em 2x (`Ferramentas/gerar_interface.py`): aresta em escada 2:1,
+rampa de sete tons com a matiz andando (a sombra puxa para o violeta, a luz para
+o amarelo), contorno seletivo, luz de borda e luz refletida, as facetas
+lapidadas e o pontilhado só na passagem da mesa para elas.
 
 Na tela de **Opções**, do menu principal, ficam:
 

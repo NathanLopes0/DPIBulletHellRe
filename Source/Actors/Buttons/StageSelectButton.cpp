@@ -27,19 +27,20 @@ StageSelectButton::StageSelectButton(Scene* scene, const std::string& buttonText
     mFont->Load(fontPath);
 
     // ---- Adição de Componentes ----
-    // O losango de Ferramentas/gerar_interface.py: feito no dobro do tamanho, desenhado na metade
-    // e com filtro linear, para a tela cheia nao o serrilhar. Cada estado e um quadro ja pintado.
+    // O losango de Ferramentas/gerar_interface.py: pixel art de 64 x 32, desenhada em 2x pelo
+    // pixel mais proximo. Cada estado e um quadro ja pintado; o foco e o reflexo que atravessa a
+    // pedra (quadros 1 a 6) e uma pausa (o 7 repetido), em kQuadrosPorSegundo.
     auto* animComp = AddComponent<DrawAnimatedComponent>(Caminhos::Asset("Icons/DPIBHLosango.png"),
                                                          Caminhos::Asset("Icons/DPIBHLosango.json"));
     if (animComp) {
         animComp->AddAnimation("Aberta", {0});
-        animComp->AddAnimation("Foco", {1});
-        animComp->AddAnimation("Aprovada", {2});
-        animComp->AddAnimation("Fechada", {3});
-        animComp->AddAnimation("FechadaEmFoco", {4});
+        animComp->AddAnimation("Foco", {1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7});
+        animComp->AddAnimation("Aprovada", {9});
+        animComp->AddAnimation("Fechada", {10});
+        animComp->AddAnimation("FechadaEmFoco", {11});
         animComp->SetAnimation("Aberta");
+        animComp->SetAnimFPS(kQuadrosPorSegundo);
         animComp->SetEscalaPropria(kEscalaDoLosango);
-        animComp->SuavizarAoEscalar();
     }
 
     // No tamanho natural, e nao esticado numa caixa: o nome fica nitido.
@@ -68,10 +69,8 @@ void StageSelectButton::OnUpdate(const float deltaTime) {
         } else {
             anim->SetAnimation(mAprovado ? "Aprovada" : "Aberta");
         }
-        // Em foco, o losango respira de leve; o pulo vem por cima.
-        mRespiro += deltaTime;
-        const float respiro = mIsSelected ? kRespiro * (0.5f + 0.5f * Math::Sin(mRespiro * kRitmoDoRespiro)) : 0.0f;
-        anim->SetEscalaPropria(kEscalaDoLosango * (1.0f + respiro + kPulo * mPulo * mPulo));
+        // O pulo de quando ganha o foco; parado, a escala volta a ser inteira, e o pixel fica certo.
+        anim->SetEscalaPropria(kEscalaDoLosango * (1.0f + kPulo * mPulo * mPulo));
     }
 
     // O nome embaixo do cadeado acende com o foco.

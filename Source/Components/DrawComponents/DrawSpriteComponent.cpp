@@ -60,12 +60,6 @@ void DrawSpriteComponent::SetColor(Uint8 red, Uint8 green, Uint8 blue) {
     mColorB = blue;
 }
 
-void DrawSpriteComponent::SuavizarAoEscalar() {
-    if (mSpriteSheetSurface) {
-        SDL_SetTextureScaleMode(mSpriteSheetSurface, SDL_ScaleModeLinear);
-    }
-}
-
 void DrawSpriteComponent::ApplyColorMod() const {
     if (mSpriteSheetSurface) {
         SDL_SetTextureColorMod(mSpriteSheetSurface, mColorR, mColorG, mColorB);
