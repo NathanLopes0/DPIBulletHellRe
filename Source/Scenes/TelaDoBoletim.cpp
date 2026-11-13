@@ -100,7 +100,7 @@ void TelaDoBoletim::Load() {
         l.nota       = Texto(" ", largura * kColunaNota, y, kLetraDaTabela, 110, true);
         l.situacao   = Texto(" ", largura * kColunaSituacao, y, kLetraDaTabela, 130, true);
         l.tentativas = Texto(" ", largura * kColunaTentativas, y, kLetraDaTabela, 50, true);
-        l.mencoes    = std::make_unique<SelosDeMencao>(*this, mFonte.get(), Vector2(largura * kColunaMencoes, y), 200, true);
+        l.mencoes    = std::make_unique<SelosDeMencao>(*this, Vector2(largura * kColunaMencoes, y), 200, true);
         mLinhas.push_back(std::move(l));
     }
 

@@ -19,6 +19,14 @@ public:
 
     void SetColor(Uint8 red, Uint8 green, Uint8 blue);
 
+    /// Uma escala so deste desenho, multiplicada pela do ator: uma arte feita no dobro do tamanho
+    /// desenha em 0.5, e o resto do ator (o texto) nao muda.
+    void SetEscalaPropria(const float escala) { mEscalaPropria = escala; }
+
+    /// Escala a textura com filtro linear, e nao pelo pixel mais proximo: para a arte feita maior
+    /// que o tamanho em que e desenhada, que assim fica lisa na janela e nitida na tela cheia.
+    void SuavizarAoEscalar();
+
 protected:
     // Aplica o color mod deste componente na textura, imediatamente antes de desenhar.
     void ApplyColorMod() const;
@@ -31,4 +39,6 @@ protected:
     Uint8 mColorR = 255;
     Uint8 mColorG = 255;
     Uint8 mColorB = 255;
+
+    float mEscalaPropria = 1.0f;
 };

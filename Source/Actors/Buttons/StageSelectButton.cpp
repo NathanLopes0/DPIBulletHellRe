@@ -27,19 +27,25 @@ StageSelectButton::StageSelectButton(Scene* scene, const std::string& buttonText
     mFont->Load(fontPath);
 
     // ---- Adição de Componentes ----
-    auto* animComp = AddComponent<DrawAnimatedComponent>(Caminhos::Asset("Icons/DPIBHStageSelectButton.png"),
-                                                         Caminhos::Asset("Icons/DPIBHStageSelectButton.json"));
+    // O losango de Ferramentas/gerar_interface.py: feito no dobro do tamanho, desenhado na metade
+    // e com filtro linear, para a tela cheia nao o serrilhar. Cada estado e um quadro ja pintado.
+    auto* animComp = AddComponent<DrawAnimatedComponent>(Caminhos::Asset("Icons/DPIBHLosango.png"),
+                                                         Caminhos::Asset("Icons/DPIBHLosango.json"));
     if (animComp) {
-        animComp->AddAnimation("Button", {0});
-        animComp->AddAnimation("Selected", {1});
-        animComp->AddAnimation("Locked", {2});
-        animComp->SetAnimation("Button");
-        animComp->SetAnimFPS(10.0f);
+        animComp->AddAnimation("Aberta", {0});
+        animComp->AddAnimation("Foco", {1});
+        animComp->AddAnimation("Aprovada", {2});
+        animComp->AddAnimation("Fechada", {3});
+        animComp->AddAnimation("FechadaEmFoco", {4});
+        animComp->SetAnimation("Aberta");
+        animComp->SetEscalaPropria(kEscalaDoLosango);
+        animComp->SuavizarAoEscalar();
     }
 
-    // Passando a fonte para o DrawTextComponent usando mFont.get() porque to usando unique_ptr agr.
+    // No tamanho natural, e nao esticado numa caixa: o nome fica nitido.
     const auto textComp = AddComponent<DrawTextComponent>(buttonText, mFont.get(),
-                                                          mWidth / 2, mHeight / 4, 24, 120);
+                                                          mWidth, mHeight / 3, kTamanhoDoNome, 120);
+    if (textComp) textComp->SetAjustarAoTexto(true);
 
     if (mIsLocked && textComp) {
         // Dentro do losango fechado nao cabe nome.
@@ -48,30 +54,24 @@ StageSelectButton::StageSelectButton(Scene* scene, const std::string& buttonText
 
 }
 
-void StageSelectButton::OnUpdate(float deltaTime) {
-    // Pede o componente de animação.
+void StageSelectButton::OnUpdate(const float deltaTime) {
+    // O pulo de quando ganha o foco: cresce de uma vez e volta em kDuracaoDoPulo.
+    if (mIsSelected && !mEstavaSelecionado) mPulo = 1.0f;
+    mEstavaSelecionado = mIsSelected;
+    mPulo = Math::Max(0.0f, mPulo - deltaTime / kDuracaoDoPulo);
+
     if (auto* anim = GetComponent<DrawAnimatedComponent>()) {
-        // Checa o estado do botão (mIsSelected é herdado da classe Button)
-
         if (mIsLocked) {
-            // A selecao clareia o cadeado.
-            anim->SetAnimation("Locked");
-            anim->SetColor(mIsSelected ? 195 : 92, mIsSelected ? 198 : 95,
-                           mIsSelected ? 235 : 138);
-
+            anim->SetAnimation(mIsSelected ? "FechadaEmFoco" : "Fechada");
         } else if (mIsSelected) {
-            anim->SetAnimation("Selected");
-            anim->SetColor(255,255,255);
-
-        } else if (mAprovado) {
-            // Verde para o que ja passou.
-            anim->SetAnimation("Button");
-            anim->SetColor(110,190,130);
-
+            anim->SetAnimation("Foco");
         } else {
-            anim->SetAnimation("Button");
-            anim->SetColor(100,100,200);
+            anim->SetAnimation(mAprovado ? "Aprovada" : "Aberta");
         }
+        // Em foco, o losango respira de leve; o pulo vem por cima.
+        mRespiro += deltaTime;
+        const float respiro = mIsSelected ? kRespiro * (0.5f + 0.5f * Math::Sin(mRespiro * kRitmoDoRespiro)) : 0.0f;
+        anim->SetEscalaPropria(kEscalaDoLosango * (1.0f + respiro + kPulo * mPulo * mPulo));
     }
 
     // O nome embaixo do cadeado acende com o foco.

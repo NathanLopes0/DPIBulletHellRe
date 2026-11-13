@@ -43,6 +43,7 @@ void StageSelect::Load() {
     mFichas = FichaArquivo::TodasAsFichas(Materias::Carregadas());
     CreateStageButtons();
     CriarLigacoes();          // depois dos botoes: as linhas saem das posicoes deles
+    AcenderOCaminho(-1, static_cast<int>(mSelectedIndex));
     CreateStaticUI();
     CriarIdentificacaoNaTela();
     SeguirOFoco(true);
@@ -92,15 +93,53 @@ void StageSelect::CriarIdentificacaoNaTela() {
 }
 
 void StageSelect::Linha(const float x, const float y,
-                        const float largura, const float altura) {
+                        const float largura, const float altura, const MapaDaGrade::Trecho trecho) {
 
-    // Uma caixa preenchida sem moldura.
+    // Uma caixa preenchida sem moldura, e por baixo dela o brilho, mais grosso e apagado ate acender.
     auto ator = std::make_unique<Actor>(this);
     ator->SetPosition(Vector2(x, y));
-    ator->AddComponent<DrawCaixaComponent>(
+    const bool deitada = largura > altura;
+    Ligacao l;
+    l.brilho = ator->AddComponent<DrawCaixaComponent>(
+        static_cast<int>(deitada ? largura : kGrossuraDoBrilho), static_cast<int>(deitada ? kGrossuraDoBrilho : altura),
+        SDL_Color{0, 0, 0, 0}, SDL_Color{0, 0, 0, 0}, 0, kOrdemDasLigacoes - 1);
+    l.linha = ator->AddComponent<DrawCaixaComponent>(
         static_cast<int>(largura), static_cast<int>(altura),
         SDL_Color{0, 0, 0, 0}, kCorDaLigacao, 0, kOrdemDasLigacoes);
+    mLigacoes.push_back(l);
+    mTrechos.push_back(trecho);
     NoMapa(AddActor(std::move(ator)));
+}
+
+void StageSelect::AcenderOCaminho(const int anterior, const int novo) {
+    for (Ligacao& l : mLigacoes) l.acesa = false;
+    for (const MapaDaGrade::Aceso& a : MapaDaGrade::Caminho(mTrechos, anterior, novo, MapaDaGrade::kPassoDaLuz)) {
+        Ligacao& l = mLigacoes[a.trecho];
+        l.acesa = true;
+        l.atraso = a.atraso;
+    }
+}
+
+void StageSelect::AtualizarAsLigacoes(const float deltaTime) {
+    mTempoDaLuz += deltaTime;
+    // O pulso de quem esta aceso: entre 80% e 100% da cor.
+    const float pulso = 0.9f + 0.1f * Math::Sin(mTempoDaLuz * 3.0f);
+    for (Ligacao& l : mLigacoes) {
+        if (l.acesa) {
+            if (l.atraso > 0.0f) l.atraso -= deltaTime;
+            else l.luz = Math::Min(1.0f, l.luz + deltaTime / kSubidaDaLuz);
+        } else {
+            l.luz = Math::Max(0.0f, l.luz - deltaTime / kDescidaDaLuz);
+        }
+        const float t = l.luz * pulso;
+        auto mistura = [t](const Uint8 a, const Uint8 b) {
+            return static_cast<Uint8>(static_cast<float>(a) + (static_cast<float>(b) - static_cast<float>(a)) * t);
+        };
+        l.linha->SetFundo(SDL_Color{mistura(kCorDaLigacao.r, kCorAcesa.r), mistura(kCorDaLigacao.g, kCorAcesa.g),
+                                    mistura(kCorDaLigacao.b, kCorAcesa.b), mistura(kCorDaLigacao.a, kCorAcesa.a)});
+        l.brilho->SetFundo(SDL_Color{kCorAcesa.r, kCorAcesa.g, kCorAcesa.b,
+                                     static_cast<Uint8>(static_cast<float>(kAlfaDoBrilho) * t)});
+    }
 }
 
 void StageSelect::CriarLigacoes() {
@@ -132,16 +171,19 @@ void StageSelect::CriarLigacoes() {
         }
 
         if (yMaior > yMenor) {
-            Linha(xTronco, (yMenor + yMaior) / 2.0f, kGrossuraDaLigacao, yMaior - yMenor);
+            Linha(xTronco, (yMenor + yMaior) / 2.0f, kGrossuraDaLigacao, yMaior - yMenor,
+                  {static_cast<int>(c), -1});
         }
 
         for (const size_t i : mGrade[c]) {
             const float y = mButtonObservers[i]->GetPosition().y;
-            Linha((xEsquerda + xTronco) / 2.0f, y, xTronco - xEsquerda, kGrossuraDaLigacao);
+            Linha((xEsquerda + xTronco) / 2.0f, y, xTronco - xEsquerda, kGrossuraDaLigacao,
+                  {static_cast<int>(c), static_cast<int>(i)});
         }
         for (const size_t i : mGrade[c + 1]) {
             const float y = mButtonObservers[i]->GetPosition().y;
-            Linha((xTronco + xDireita) / 2.0f, y, xDireita - xTronco, kGrossuraDaLigacao);
+            Linha((xTronco + xDireita) / 2.0f, y, xDireita - xTronco, kGrossuraDaLigacao,
+                  {static_cast<int>(c), static_cast<int>(i)});
         }
     }
 }
@@ -301,7 +343,7 @@ void StageSelect::CreateStaticUI() {
     mEstadoAtor    = TextoDoCartao(kCartaoY + 24.f, 22, Color::White);
     mRivalAtor     = TextoDoCartao(kCartaoY + 56.f, 17, Color::LightBlue);
     mMencoes = std::make_unique<SelosDeMencao>(
-        *this, mStageSelectFont.get(), Vector2(kCartaoX - SelosDeMencao::kLarguraDaFileira / 2.0f, kCartaoY + 88.f));
+        *this, Vector2(kCartaoX - SelosDeMencao::kLarguraDaFileira / 2.0f, kCartaoY + 88.f));
 
     UpdateStageInfo();
     CriarProvaDaSemana();
@@ -461,6 +503,7 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
 
     if (currSelected != mSelectedIndex) {
         // Se houve mudança, atualiza a UI e o estado.
+        AcenderOCaminho(static_cast<int>(mSelectedIndex), static_cast<int>(currSelected));
         mButtonObservers[mSelectedIndex]->ChangeSelected();
         mButtonObservers[currSelected]->ChangeSelected(); // Seleciona o novo
 
@@ -512,6 +555,7 @@ size_t StageSelect::HandleSelectedChange(const Uint8 *keyState, const size_t cur
 void StageSelect::OnUpdate(float deltaTime) {
 
     if(mInputTimer < INPUT_DELAY) mInputTimer += deltaTime;
+    AtualizarAsLigacoes(deltaTime);
 
     // A camera desliza ate a pagina do foco: as obrigatorias, ou a ala das optativas.
     const float alvo = MapaDaGrade::DeslocamentoDa(mPagina, static_cast<float>(mGame->GetWindowWidth()));

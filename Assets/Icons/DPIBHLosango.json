@@ -1,0 +1,124 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHLosango 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 256,
+    "h": 128
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 256,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 256,
+    "h": 128
+   },
+   "duration": 100
+  },
+  {
+   "filename": "DPIBHLosango 1.png",
+   "frame": {
+    "x": 256,
+    "y": 0,
+    "w": 256,
+    "h": 128
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 256,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 256,
+    "h": 128
+   },
+   "duration": 100
+  },
+  {
+   "filename": "DPIBHLosango 2.png",
+   "frame": {
+    "x": 512,
+    "y": 0,
+    "w": 256,
+    "h": 128
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 256,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 256,
+    "h": 128
+   },
+   "duration": 100
+  },
+  {
+   "filename": "DPIBHLosango 3.png",
+   "frame": {
+    "x": 768,
+    "y": 0,
+    "w": 256,
+    "h": 128
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 256,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 256,
+    "h": 128
+   },
+   "duration": 100
+  },
+  {
+   "filename": "DPIBHLosango 4.png",
+   "frame": {
+    "x": 1024,
+    "y": 0,
+    "w": 256,
+    "h": 128
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 256,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 256,
+    "h": 128
+   },
+   "duration": 100
+  }
+ ],
+ "meta": {
+  "app": "Ferramentas/gerar_interface.py",
+  "image": "DPIBHLosango.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 1280,
+   "h": 128
+  },
+  "scale": "1"
+ }
+}

@@ -149,6 +149,12 @@ no curso. Os desafios não saem dos recordes, como os outros: a batalha conta
 como a prova foi jogada (`ContagemDaProva`), e a ficha guarda o cumprido na
 lista de atividades (`desafio-intocavel@INF213`), sem mudar de versão.
 
+Os selos são pixel art de 13 × 10, desenhada em 2x e pintada por código
+(`Ferramentas/gerar_interface.py`): moeda para as notas, placa para o Difícil,
+a dupla e o TCC, e escudo para os desafios. A luz vem de cima e da esquerda,
+cada cor tem poucos tons, sem degradê, e um pontilhado faz a passagem de um tom
+para outro. Apagado, o selo mostra o contorno e a letra em cinza.
+
 **A prova da semana.** Toda semana, de segunda a domingo, uma matéria do curso
 é a prova da semana (em rodízio; o TCC não entra). Quem a joga nessa semana
 enfrenta **a mesma prova** — a mesma semente: a mesma ordem, os mesmos números,
@@ -201,7 +207,10 @@ TCC, de capelo, dos mais recentes, com a data em que passou.
 
 Ao sair de uma batalha (ou do ranking), a seleção de fases volta com o cursor
 na **última matéria escolhida**, e não no INF 110. Uma partida nova começa do
-começo da grade.
+começo da grade. Trocar de matéria acende a ligação de uma à outra — a luz corre
+do ramo de quem saiu, pelo tronco, até o de quem chegou — e o losango em foco dá
+um pulo e respira. Os losangos são feitos no dobro do tamanho em que aparecem,
+para a tela cheia não os serrilhar.
 
 Na tela de **Opções**, do menu principal, ficam:
 

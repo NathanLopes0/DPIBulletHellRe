@@ -39,4 +39,29 @@ namespace MapaDaGrade {
 
     /// Quanto da distancia a camera anda por segundo (a taxa da exponencial).
     constexpr float kRapidez = 9.0f;
+
+    // ---- As ligacoes que acendem ----
+
+    /// Um pedaco das ligacoes entre duas colunas: o tronco (botao -1), ou o ramo de um botao ate ele.
+    /// 'tronco' e o numero do par de colunas, igual no tronco e nos ramos dele.
+    struct Trecho {
+        int tronco = 0;
+        int botao = -1;
+    };
+
+    /// Um trecho que acende, e quantos segundos depois da troca de foco.
+    struct Aceso {
+        size_t trecho = 0;
+        float atraso = 0.0f;
+    };
+
+    /// O caminho que acende quando o foco vai de 'anterior' para 'novo' (anterior -1: o primeiro
+    /// foco, ao abrir a tela). Se os dois tocam o mesmo tronco, a luz corre de um ao outro: o ramo
+    /// de quem saiu, o tronco, e o ramo de quem chegou, um 'passo' depois do outro. Se nao, acendem
+    /// as ligacoes do novo, do ramo para o tronco. Um tronco que os dois tocam dos dois lados (a
+    /// mesma coluna) e o da direita, rumo ao que vem depois.
+    std::vector<Aceso> Caminho(const std::vector<Trecho>& trechos, int anterior, int novo, float passo);
+
+    /// Os segundos entre um trecho acender e o seguinte.
+    constexpr float kPassoDaLuz = 0.07f;
 }

@@ -64,3 +64,32 @@ float Aproximar(const float atual, const float alvo, const float deltaTime) {
 }
 
 }
+
+std::vector<MapaDaGrade::Aceso> MapaDaGrade::Caminho(const std::vector<Trecho>& trechos, const int anterior,
+                                                     const int novo, const float passo) {
+    auto toca = [&](const int botao, const int tronco) {
+        for (const Trecho& t : trechos) if (t.botao == botao && t.tronco == tronco) return true;
+        return false;
+    };
+    // O tronco comum de maior numero: na mesma coluna, o da direita.
+    int comum = -1;
+    if (anterior >= 0 && anterior != novo) {
+        for (const Trecho& t : trechos) {
+            if (t.botao == novo && toca(anterior, t.tronco) && t.tronco > comum) comum = t.tronco;
+        }
+    }
+    std::vector<Aceso> acesos;
+    for (size_t i = 0; i < trechos.size(); ++i) {
+        const Trecho& t = trechos[i];
+        if (comum >= 0) {
+            if (t.tronco != comum) continue;
+            if (t.botao == anterior) acesos.push_back({i, 0.0f});
+            else if (t.botao == -1) acesos.push_back({i, passo});
+            else if (t.botao == novo) acesos.push_back({i, 2.0f * passo});
+        } else {
+            if (t.botao == novo) acesos.push_back({i, 0.0f});
+            else if (t.botao == -1 && toca(novo, t.tronco)) acesos.push_back({i, passo});
+        }
+    }
+    return acesos;
+}

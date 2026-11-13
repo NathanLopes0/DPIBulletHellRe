@@ -15,6 +15,8 @@
 #include "../Aluno/Exportacao.h"
 #include "../Curso/MapaDaGrade.h"
 
+class DrawCaixaComponent;
+
 class Font;
 class StageSelectButton;
 class Actor;
@@ -53,8 +55,32 @@ private:
     /// CreateStageButtons: le a posicao dos botoes.
     void CriarLigacoes();
 
-    /// Um segmento de linha, como caixa preenchida sem moldura.
-    void Linha(float x, float y, float largura, float altura);
+    /// Um segmento de linha, como caixa preenchida sem moldura, com o brilho por baixo. 'trecho'
+    /// diz a que tronco e a que botao ele pertence (MapaDaGrade::Trecho).
+    void Linha(float x, float y, float largura, float altura, MapaDaGrade::Trecho trecho);
+
+    /// Cada segmento das ligacoes e quanto ele esta aceso (0 a 1). Acende o caminho do foco
+    /// (MapaDaGrade::Caminho) e apaga o resto, devagar.
+    struct Ligacao {
+        DrawCaixaComponent* linha = nullptr;
+        DrawCaixaComponent* brilho = nullptr;
+        float luz = 0.0f;
+        bool acesa = false;
+        float atraso = 0.0f;
+    };
+    std::vector<Ligacao> mLigacoes;
+    std::vector<MapaDaGrade::Trecho> mTrechos;
+    float mTempoDaLuz = 0.0f;
+    void AcenderOCaminho(int anterior, int novo);
+    void AtualizarAsLigacoes(float deltaTime);
+
+    /// A linha acesa: um ciano de energia, que pulsa de leve. O brilho e a mesma cor, larga e fraca.
+    static inline const SDL_Color kCorAcesa{120, 220, 255, 255};
+    static constexpr float kGrossuraDoBrilho = 8.0f;
+    static constexpr Uint8 kAlfaDoBrilho = 70;
+    /// Os segundos para acender de todo, e para apagar.
+    static constexpr float kSubidaDaLuz = 0.12f;
+    static constexpr float kDescidaDaLuz = 0.35f;
 
     void HandleSelectionInput(const Uint8* keyState);
     size_t mSelectedIndex{};
