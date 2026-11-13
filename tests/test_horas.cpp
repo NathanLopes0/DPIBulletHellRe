@@ -148,3 +148,70 @@ TEST_CASE("Horas: a ficha guarda cada chave uma vez, e as horas e o quadro saem 
     CHECK(FraseDasNovas({}, curso).empty());
     CHECK(FraseDasNovas({"nao-existe"}, curso).empty());
 }
+
+// ---- As horas como moeda: as optativas se compram com elas ----
+
+namespace {
+    /// A1 abre sempre; O1 e uma optativa de 10 h que pede A1; O2, uma de 8 h sem regra; e P1 uma
+    /// obrigatoria que tentou ter preco.
+    Materias::Lista ComOptativas() {
+        return Materias::LerMaterias(R"({ "materias": [
+            { "codigo": "A1", "nome": "INF 1", "chefe": "ana", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+            { "codigo": "O1", "nome": "INF 9", "chefe": "oto", "coluna": 1, "optativa": true,
+              "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A1"], "preco": 10 } },
+            { "codigo": "O2", "nome": "INF 8", "chefe": "ivo", "coluna": 1, "optativa": true,
+              "desbloqueio": { "tipo": "sempre", "preco": 8 } },
+            { "codigo": "P1", "nome": "INF 2", "chefe": "pia", "coluna": 0,
+              "desbloqueio": { "tipo": "sempre", "preco": 5 } }
+        ] })");
+    }
+}
+
+TEST_CASE("Horas: so optativa tem preco, e ele e lido do desbloqueio") {
+    const Materias::Lista c = ComOptativas();
+    CHECK(c.problemas.size() == 1u);   // a obrigatoria com preco: avisada, e abre so com a regra
+    CHECK(c.PrecoDe(c.IndiceDe("O1")) == 10);
+    CHECK(c.PrecoDe(c.IndiceDe("O2")) == 8);
+    CHECK(c.PrecoDe(c.IndiceDe("P1")) == 0);
+    CHECK(c.PrecoDe(c.IndiceDe("A1")) == 0);
+    CHECK(Materias::LerMaterias(R"({ "materias": [ { "codigo": "X", "coluna": 0, "optativa": true,
+        "desbloqueio": { "tipo": "sempre", "preco": -3 } } ] })").problemas.size() == 1u);
+}
+
+TEST_CASE("Horas: a optativa abre com a regra e a compra; o saldo desconta o preco, a carga nao") {
+    const Materias::Lista c = ComOptativas();
+    const int o1 = c.IndiceDe("O1"), o2 = c.IndiceDe("O2");
+    Progresso p;
+    CHECK(PodeComprar(c, o1, p) == Compra::FaltaARegra);   // falta passar em A1
+    CHECK(PodeComprar(c, o2, p) == Compra::FaltaHora);     // sem regra, mas sem horas
+    CHECK(PodeComprar(c, c.IndiceDe("A1"), p) == Compra::NaoSeVende);
+
+    p.RegistrarNota(c.IndiceDe("A1"), 80.0f, Dificuldade::Nivel::Normal);
+    CHECK(c.RegraCumprida(o1, p));
+    CHECK_FALSE(c.Desbloqueada(o1, p));                    // a regra sozinha nao abre
+    CHECK(PodeComprar(c, o1, p) == Compra::FaltaHora);
+
+    p.RegistrarAtividade("virada");                         // 6 h
+    p.RegistrarAtividade("podio");                          // + 8 h
+    CHECK(Saldo(p.Atividades(), c) == 14);
+    CHECK(PodeComprar(c, o1, p) == Compra::Pode);
+
+    p.RegistrarAtividade(Materias::ChaveDaCompra("O1"));
+    CHECK(c.Desbloqueada(o1, p));
+    CHECK(PodeComprar(c, o1, p) == Compra::JaComprou);
+    CHECK(Gastas(p.Atividades(), c) == 10);
+    CHECK(Saldo(p.Atividades(), c) == 4);
+    CHECK(De(p.Atividades()) == 14);                        // a carga conta o que foi ganho
+    CHECK(PodeComprar(c, o2, p) == Compra::FaltaHora);      // 4 h nao pagam 8
+
+    // A compra nao e uma atividade: nao vale hora, nem aparece no quadro.
+    for (const Linha& l : Quadro(p.Atividades(), c)) CHECK(l.cumpridas <= l.possiveis);
+    CHECK(Nome(Materias::ChaveDaCompra("O1"), c).empty());
+}
+
+TEST_CASE("Horas: o saldo nunca fica negativo, nem se o preco subir depois da compra") {
+    const Materias::Lista c = ComOptativas();
+    Progresso p;
+    p.RegistrarAtividade(Materias::ChaveDaCompra("O1"));   // comprada sem horas (um save editado)
+    CHECK(Saldo(p.Atividades(), c) == 0);
+}

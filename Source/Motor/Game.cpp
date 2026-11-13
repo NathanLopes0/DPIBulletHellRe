@@ -17,6 +17,7 @@
 #include "../Components/DrawComponents/DrawComponent.h"
 #include "../Scenes/MainMenu.h"
 #include "../Aluno/FichaArquivo.h"
+#include "../Aluno/Horas.h"
 #include "../Curso/MateriasArquivo.h"
 #include "../Personagem/PersonagensArquivo.h"
 #include "../Aluno/ExportacaoArquivo.h"
@@ -677,6 +678,25 @@ std::vector<size_t> Game::FechadaPara(const int subject) const {
         if (!Materias::Carregadas().Desbloqueada(subject, mSessoes[i].progresso)) quem.push_back(i);
     }
     return quem;
+}
+
+bool Game::ComprarMateria(const int subject) {
+    const Materias::Lista& materias = Materias::Carregadas();
+    const std::vector<size_t> quem = FechadaPara(subject);
+    if (quem.empty()) return false;
+    for (const size_t i : quem) {
+        if (Horas::PodeComprar(materias, subject, mSessoes[i].progresso) != Horas::Compra::Pode) return false;
+    }
+    const std::string chave = Materias::ChaveDaCompra(materias.CodigoDe(subject));
+    for (const size_t i : quem) {
+        mSessoes[i].progresso.RegistrarAtividade(chave);
+        if (ProgressoEGravado(i) && !GravarFicha(i)) {
+            SDL_Log("GAME: nao consegui gravar a compra de %s na ficha de %s; ela vale para esta sessao.",
+                    chave.c_str(), mSessoes[i].matricula.c_str());
+        }
+    }
+    SDL_Log("GAME: %s comprada com %d h por %zu aluno(s).", chave.c_str(), materias.PrecoDe(subject), quem.size());
+    return true;
 }
 
 // Quem esta jogando.

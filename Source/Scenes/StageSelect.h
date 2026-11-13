@@ -135,6 +135,16 @@ private:
 
     void UpdateStageInfo() const;
 
+    // ---- A compra das optativas com horas (Horas::PodeComprar) ----
+    /// Todos os que ainda nao tem a optativa em foco podem compra-la agora?
+    [[nodiscard]] bool DaParaComprar() const;
+    /// A frase do cartao de uma optativa fechada com preco: quanto custa, quanto falta, ou o pedido
+    /// de confirmacao.
+    [[nodiscard]] std::string FraseDaCompra() const;
+    /// A materia em que o botao 1 ja foi apertado uma vez: o segundo toque compra. Mudar o cursor
+    /// desfaz, e ninguem gasta horas sem querer.
+    int mConfirmandoCompra = -1;
+
     /// Cria uma das linhas do cartao e devolve o observador dela.
     Actor* TextoDoCartao(float y, int tamanho, const Vector3& cor);
 

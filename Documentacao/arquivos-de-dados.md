@@ -61,6 +61,22 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 - `"aprovadoEm"` com `"materias": [...]` — abre quando todas elas estiverem aprovadas
 - `"aprovadasNaColuna"` com `"coluna"` e `"quantas"` — abre com N aprovações naquela coluna
 
+**O preço, só nas optativas.** Qualquer tipo aceita `"preco"`, em horas
+complementares: cumprida a regra, a optativa ainda precisa ser **comprada**.
+Na seleção de fases, o losango fechado diz quanto custa ("INF 480 · 20 h") e o
+cartão diz quanto falta ou pede a confirmação — o Botão 1 duas vezes compra, e
+mudar o cursor desfaz a primeira. A compra vai para a ficha entre as atividades
+(`compra@INF480`); as horas gastas são a soma dos preços das compradas, e o
+saldo, as ganhas menos as gastas (`Horas::Saldo`). Na dupla, cada aluno que
+ainda não a tem paga com o próprio saldo, e a compra é de todos ou de ninguém.
+Numa obrigatória, o preço vira aviso e é ignorado: ninguém tranca o curso por
+falta de horas.
+
+```json
+{ "codigo": "INF480", "nome": "INF 480", "coluna": 5, "optativa": true,
+  "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"], "preco": 20 } }
+```
+
 > **A ordem da lista é a ordem dos botões**, e o índice dela é o que a navegação
 > das setas usa. Reordenar muda para onde as setas levam — e há testes que dizem
 > o que acontece. O que a reordenação **não** faz é mexer na nota de ninguém: as

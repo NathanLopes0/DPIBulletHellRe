@@ -3,6 +3,7 @@
 //
 
 #include "StageSelect.h"
+#include "../Aluno/Horas.h"
 
 #include <algorithm>
 
@@ -266,11 +267,13 @@ void StageSelect::CreateButton(const std::string& text, int subject, const Vecto
     button->SetAprovado(mGame->Aprovado(subject));
 
     if (!unlocked) {
-        // O nome da materia fechada, embaixo do losango.
+        // O nome da materia fechada, embaixo do losango; a optativa com preco diz quanto custa.
+        const int preco = Materias::Carregadas().PrecoDe(subject);
+        const std::string rotuloTexto = preco > 0 ? text + "  \xc2\xb7  " + std::to_string(preco) + " h" : text;
         auto rotulo = std::make_unique<Actor>(this);
         rotulo->SetPosition(position + Vector2(0.0f, kNomeAbaixoDoCadeado));
         const auto dc = rotulo->AddComponent<DrawTextComponent>(
-            text, mStageSelectFont.get(), 150, 26, 18, 255);
+            rotuloTexto, mStageSelectFont.get(), 150, 26, 18, 255);
         dc->SetLarguraDeQuebra(150);
         dc->SetAjustarAoTexto(true);
 
@@ -508,6 +511,7 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
 
         mSelectedIndex = currSelected; // Atualiza o estado real.
         mSelectedSubject = mButtonObservers[mSelectedIndex]->GetSubject();
+        mConfirmandoCompra = -1;
         mGame->FocarMateria(mSelectedSubject);
         mInputTimer = 0.0f;
         UpdateStageInfo();
@@ -525,7 +529,18 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
     // Precisa ser uma batida nova, e nao o estado.
     const bool entrar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Um)
                      || keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
-    if (mBordaEntrar.Bateu(entrar) && mGame->IsStageUnlocked(mSelectedSubject)) {
+    const bool apertouEntrar = mBordaEntrar.Bateu(entrar);
+    if (apertouEntrar && !mGame->IsStageUnlocked(mSelectedSubject) && DaParaComprar()) {
+        if (mConfirmandoCompra != mSelectedSubject) {
+            mConfirmandoCompra = mSelectedSubject;
+            UpdateStageInfo();
+        } else if (mGame->ComprarMateria(mSelectedSubject)) {
+            // A tela volta aberta: o losango, a ligacao e o cartao da optativa ja comprada.
+            mGame->RequestSceneChange(SceneType::StageSelect);
+        }
+        return;
+    }
+    if (apertouEntrar && mGame->IsStageUnlocked(mSelectedSubject)) {
         mGame->SetSelectedStage(mSelectedSubject);
 
         // A materia que pede orientacao passa pela escolha antes da batalha.
@@ -534,6 +549,45 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
         mGame->RequestSceneChange((m && m->orientacao) ? SceneType::EscolhaDoOrientador : SceneType::Battle);
         return;
     }
+}
+
+bool StageSelect::DaParaComprar() const {
+    const std::vector<size_t> quem = mGame->FechadaPara(mSelectedSubject);
+    if (quem.empty()) return false;
+    for (const size_t i : quem) {
+        if (Horas::PodeComprar(Materias::Carregadas(), mSelectedSubject, mGame->Sessoes()[i].progresso)
+            != Horas::Compra::Pode) return false;
+    }
+    return true;
+}
+
+std::string StageSelect::FraseDaCompra() const {
+    const Materias::Lista& materias = Materias::Carregadas();
+    const int preco = materias.PrecoDe(mSelectedSubject);
+    const std::string custa = std::to_string(preco) + " h";
+    if (DaParaComprar()) {
+        // \xc3\xa3 e o a com til, \xc3\xaa o e circunflexo.
+        if (mConfirmandoCompra == mSelectedSubject) return "Bot\xc3\xa3o 1 de novo: comprar por " + custa;
+        const auto& p = mGame->Sessoes().front().progresso;
+        return "Optativa: " + custa + " de horas (voc\xc3\xaa tem " +
+               std::to_string(Horas::Saldo(p.Atividades(), materias)) + " h)";
+    }
+    // O que falta, de quem falta: na dupla, o cartao diz quem.
+    const bool dupla = mGame->QuantosJogadores() > 1;
+    for (const size_t i : mGame->FechadaPara(mSelectedSubject)) {
+        const Progresso& p = mGame->Sessoes()[i].progresso;
+        const std::string quem = dupla ? "J" + std::to_string(i + 1) + ": " : std::string();
+        switch (Horas::PodeComprar(materias, mSelectedSubject, p)) {
+            case Horas::Compra::FaltaARegra:
+                return quem + materias.ExigenciaDe(mSelectedSubject) + " e " + custa;
+            case Horas::Compra::FaltaHora:
+                return quem + (dupla ? "custa " : "Custa ") + custa + ", faltam " +
+                       std::to_string(preco - Horas::Saldo(p.Atividades(), materias)) + " h";
+            default:
+                break;
+        }
+    }
+    return "Optativa: " + custa;
 }
 
 // Navegacao. A regra mora em Navegacao, E a forma da grade vem de quem desenhou os botoes.
@@ -588,7 +642,11 @@ void StageSelect::UpdateStageInfo() const {
     std::string frase;
     Vector3 cor = Color::White;
 
-    if (!mGame->IsStageUnlocked(mSelectedSubject)) {
+    if (!mGame->IsStageUnlocked(mSelectedSubject) && materias.PrecoDe(mSelectedSubject) > 0) {
+        frase = FraseDaCompra();
+        cor = DaParaComprar() ? Color::Gold : Color::LightPink;
+
+    } else if (!mGame->IsStageUnlocked(mSelectedSubject)) {
         frase = materias.ExigenciaDe(mSelectedSubject);
         if (frase.empty()) frase = "Ainda fechada";
         // Na dupla, quando so um dos dois ainda nao chegou nela, o cartao diz quem.

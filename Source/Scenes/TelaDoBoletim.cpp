@@ -183,8 +183,10 @@ void TelaDoBoletim::Redesenhar() {
     std::string resumo = std::string("CR: ") + (d.cursadas > 0 ? cr : "-") + "     Aprovadas: " +
                          std::to_string(d.aprovadas) + " de " + std::to_string(d.total);
     resumo += "     Men\xc3\xa7\xc3\xb5" "es: " + std::to_string(mencoes.ganhas) + " de " + std::to_string(mencoes.possiveis);
-    resumo += "     Horas: " + std::to_string(Horas::De(sessoes[mAluno].progresso.Atividades())) + " de " +
-              std::to_string(Horas::kMeta);
+    const auto& chaves = sessoes[mAluno].progresso.Atividades();
+    resumo += "     Horas: " + std::to_string(Horas::De(chaves)) + " de " + std::to_string(Horas::kMeta);
+    // Quem ja gastou horas com optativas ve o saldo; quem nao gastou, o saldo e o total.
+    if (Horas::Gastas(chaves, materias) > 0) resumo += " (saldo " + std::to_string(Horas::Saldo(chaves, materias)) + ")";
     Escrever(mResumoAtor, resumo, Color::White);
 
     // A posicao no curso, pela media do curso no nivel da partida - so de quem tem ficha.

@@ -179,7 +179,11 @@ vez no curso: a virada (aprovado depois de a nota cair abaixo de 25), 15
 raspões numa prova, 2 pontos extras usados, 10 coberturas ao parceiro, 3
 poderes do orientador num TCC, a prova da semana e o pódio dela. A meta é de
 **100 horas**; o boletim mostra quantas você tem, e o resultado, as que a luta
-deu.
+deu. As horas também são **moeda**: as optativas se compram com elas. Uma
+optativa com preço (`"preco"` no desbloqueio, em `materias.json`) abre com a
+regra dela cumprida e comprada — o Botão 1 duas vezes, na seleção de fases. A
+carga de 100 h conta tudo o que foi ganho e nunca desce; o que se gasta sai do
+**saldo**, que o quadro das horas mostra ao lado ("para optativas: 14 h").
 
 **O rival da turma.** O cartão da matéria, na seleção de fases, mostra quem
 está logo acima de você no ranking dela — na lista do modo e da dificuldade da

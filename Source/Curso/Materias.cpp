@@ -159,7 +159,26 @@ bool Lista::DesbloqueadaParaTodos(const int indice, const std::vector<const Prog
     return true;
 }
 
+std::string ChaveDaCompra(const std::string& codigo) {
+    return "compra@" + codigo;
+}
+
+int Lista::PrecoDe(const int indice) const {
+    const Materia* m = Por(indice);
+    return m ? m->desbloqueio.preco : 0;
+}
+
+bool Lista::Comprada(const int indice, const Progresso& progresso) const {
+    const Materia* m = Por(indice);
+    return m && progresso.Atividades().count(ChaveDaCompra(m->codigo)) > 0;
+}
+
 bool Lista::Desbloqueada(const int indice, const Progresso& progresso) const {
+    if (!RegraCumprida(indice, progresso)) return false;
+    return PrecoDe(indice) <= 0 || Comprada(indice, progresso);
+}
+
+bool Lista::RegraCumprida(const int indice, const Progresso& progresso) const {
 
     const Materia* m = Por(indice);
     if (!m) return false;
@@ -198,6 +217,13 @@ namespace {
         }
 
         const std::string tipo = Texto(j, "tipo");
+
+        // O preco vale para qualquer tipo: e o que se paga depois de cumprida a regra.
+        saida.preco = Inteiro(j, "preco", 0);
+        if (saida.preco < 0) {
+            problemas.emplace_back(onde + "\"preco\" e em horas, 0 ou mais; ficou sem preco");
+            saida.preco = 0;
+        }
 
         if (tipo == "sempre") {
             saida.tipo = TipoDeDesbloqueio::Sempre;
@@ -324,6 +350,11 @@ Lista LerMaterias(const std::string& textoJson) {
         }
         if (!LerDesbloqueio(j["desbloqueio"], onde, lista.problemas, m.desbloqueio)) {
             continue;
+        }
+        // So optativa se compra: uma obrigatoria que custasse horas trancaria o curso de quem nao as tem.
+        if (m.desbloqueio.preco > 0 && !m.optativa) {
+            lista.problemas.emplace_back(onde + "so optativa tem \"preco\"; esta abre so com a regra");
+            m.desbloqueio.preco = 0;
         }
 
         lista.materias.push_back(std::move(m));

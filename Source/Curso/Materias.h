@@ -25,7 +25,15 @@ namespace Materias {
         std::vector<std::string> materias;   ///< AprovadoEm: os codigos exigidos
         int quantas = 0;                     ///< AprovadasNaColuna
         int coluna = 0;                      ///< AprovadasNaColuna
+
+        /// So nas optativas: as horas complementares que o aluno gasta para abri-la, depois de
+        /// cumprida a regra. 0: abre so com a regra, como as obrigatorias.
+        int preco = 0;
     };
+
+    /// A chave da compra de uma optativa na ficha, entre as atividades: "compra@INF480". As horas
+    /// gastas sao a soma dos precos das compradas (Horas::Gastas).
+    std::string ChaveDaCompra(const std::string& codigo);
 
     struct Materia {
         /// A chave estavel. Vai para o save do aluno e para a exportacao do professor.
@@ -85,8 +93,15 @@ namespace Materias {
         [[nodiscard]] int QuantasObrigatorias() const;
 
         /// Esta materia esta liberada para este progresso? Nao recorre: "aprovado em X" olha a nota
-        /// de X, e nao se X esta desbloqueada.
+        /// de X, e nao se X esta desbloqueada. A optativa com preco abre com a regra cumprida e
+        /// comprada.
         [[nodiscard]] bool Desbloqueada(int indice, const Progresso& progresso) const;
+        /// So a regra (aprovacoes), sem olhar a compra: a optativa com preco ja pode ser comprada.
+        [[nodiscard]] bool RegraCumprida(int indice, const Progresso& progresso) const;
+        /// O aluno ja comprou esta optativa?
+        [[nodiscard]] bool Comprada(int indice, const Progresso& progresso) const;
+        /// O preco em horas (0: nao se compra).
+        [[nodiscard]] int PrecoDe(int indice) const;
         /// Liberada para todos estes alunos - a dupla: a materia so abre se estiver aberta para os
         /// dois, e o mapa e o de quem esta mais atras. Sem ninguem, fechada.
         [[nodiscard]] bool DesbloqueadaParaTodos(int indice, const std::vector<const Progresso*>& progressos) const;
