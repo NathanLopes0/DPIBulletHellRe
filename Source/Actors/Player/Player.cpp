@@ -144,7 +144,7 @@ void Player::Atirar() {
     ++mDisparos;
 
     auto* audio = mScene->GetGame()->GetAudio();
-    audio->SetSoundVolume(audio->PlaySound("plst00.wav", false), kVolumeDoTiro);
+    audio->SetSoundVolume(audio->PlaySound("plst00.wav", false, "tiro", LimiteDeSom::kTiro), kVolumeDoTiro);
 
     mRecargaDoTiro = kEntreTiros;
 }

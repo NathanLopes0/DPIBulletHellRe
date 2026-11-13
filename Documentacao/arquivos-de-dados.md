@@ -256,6 +256,7 @@ fase só declara o `clone`.
 | `dificil` | opcional. O **degrau do modo Difícil** deste ataque: `{ "cooldown": 1.25, "velocidade": 160, "projeteis": 18 }`, cada campo opcional, e o ausente fica como no Normal. Vale ao **montar** o ataque, e não a cada disparo: o `AttackParams` nasce com os números do modo, e o C++ que os lê vê o número certo. Serve aos ataques de relógio, e à quantidade de projéteis dos de gatilho (o Vladimir lê mais letras no Difícil); a velocidade de um de gatilho o professor muda na hora (`Boss::Disparar(gatilho, alvo, rapidez)`). Uma chave desconhecida é recusada |
 | `variar` | opcional. O quanto **cada disparo muda** do anterior: `{ "giro": 12, "abertura": 0.2, "velocidade": 0.1, "projeteis": 1, "cadencia": 0.25 }`, cada campo opcional. Veja *A variação de cada disparo*, abaixo |
 | `regras` | o nome de um conjunto de `regras.json`, ou a lista escrita ali mesmo |
+| `som` | opcional, `true` por padrão. `false` cala o disparo: o fluxo contínuo (a chuva, os pedaços que caem um atrás do outro) e o enfeite não tocam o som do disparo a cada projétil — o professor marca o começo do fluxo com um som só (`Boss::SomDoDisparo`). Mesmo com som, o disparo passa pelo limite do grupo (`LimiteDeSom.h`): dois tocando juntos, no máximo, para a música ainda se ouvir |
 
 > **Campo omitido = padrão do motor.** A ponte só escreve no `AttackParams` o que
 > o arquivo disser; o resto fica com o padrão que a struct já tem. Não existe

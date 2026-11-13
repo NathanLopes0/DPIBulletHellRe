@@ -312,6 +312,15 @@ namespace {
             saida.gatilho = j["gatilho"].get<std::string>();
         }
 
+        // O barulho do disparo: true (o padrao) ou false.
+        if (j.contains("som")) {
+            if (!j["som"].is_boolean()) {
+                problemas.emplace_back(onde + "\"som\" precisa ser true ou false");
+                return false;
+            }
+            saida.som = j["som"].get<bool>();
+        }
+
         saida.velocidade    = Opcional(j, "velocidade");
         saida.angulo        = Opcional(j, "angulo");
         saida.anguloCentral = Opcional(j, "anguloCentral");

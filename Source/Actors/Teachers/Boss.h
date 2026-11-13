@@ -68,6 +68,9 @@ public:
         mutable std::optional<Variacao::Sorteio> sorteio;
         /// O que multiplica o cooldown ate o proximo disparo, do ultimo sorteio.
         mutable float espera = 1.0f;
+        /// Se o disparo faz barulho ("som" em fases.json): o fluxo continuo (a chuva, os pedacos que
+        /// caem) e o enfeite ficam calados, para nao cobrir a musica.
+        bool som = true;
     };
 
     // Quando sai o primeiro disparo de cada ataque (kPrimeiroDisparoDaFase e
@@ -81,7 +84,8 @@ public:
                           float janelaDe = 0.0f,
                           float janelaAte = 1.0e9f,
                           std::string gatilho = "",
-                          std::optional<Variacao::DoDisparo> variar = std::nullopt);
+                          std::optional<Variacao::DoDisparo> variar = std::nullopt,
+                          bool som = true);
 
     void SetInitialState(const std::string& stateName);
 
@@ -214,6 +218,13 @@ public:
 
 protected:
     // ---- O que todo chefe usa da batalha (Subclass Sandbox) ----
+
+    /// O som do disparo, fora de um disparo: o chefe que cala um fluxo ("som": false) marca com ele
+    /// o comeco do fluxo - a faixa que comeca a chover, a coluna que comeca a cair. Passa pelo mesmo
+    /// limite do disparo (LimiteDeSom::kDisparo).
+    void SomDoDisparo();
+    bool mSomDaVez = false;
+    static constexpr int kVolumeDoDisparo = 10;
 
     /// A batalha em que este chefe luta.
     [[nodiscard]] Battle* Batalha() const { return mBatalha; }

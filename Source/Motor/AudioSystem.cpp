@@ -43,13 +43,29 @@ void AudioSystem::Update()
     }
 }
 
-SoundHandle AudioSystem::PlaySound(const std::string& soundName, bool looping)
+int AudioSystem::TocandoNoGrupo(const std::string& grupo) const
+{
+    int n = 0;
+    for (const auto& [handle, hi] : mHandleMap) {
+        if (!hi.mIsLooping && hi.mGrupo == grupo && Mix_Playing(hi.mChannel)) ++n;
+    }
+    return n;
+}
+
+SoundHandle AudioSystem::PlaySound(const std::string& soundName, bool looping, const std::string& grupo,
+                                   const LimiteDeSom::Regra& regra)
 {
     // Get the sound with the given name.
     Mix_Chunk *sound = GetSound(soundName);
 
     if (sound == nullptr) {
         SDL_Log("[AudioSystem] PlaySound couldn't find sound for %s", soundName.c_str());
+        return SoundHandle::Invalid;
+    }
+
+    // O limite do grupo: o som que passa dele nao toca, para nao cobrir a musica.
+    const std::string doGrupo = grupo.empty() ? soundName : grupo;
+    if (!looping && !mLimite.PodeTocar(doGrupo, SDL_GetTicks(), TocandoNoGrupo(doGrupo), regra)) {
         return SoundHandle::Invalid;
     }
 
@@ -104,6 +120,7 @@ SoundHandle AudioSystem::PlaySound(const std::string& soundName, bool looping)
 
     // Create handle info.
     HandleInfo hi = {soundName, availableChannel, looping};
+    hi.mGrupo = doGrupo;
     mHandleMap.emplace(mLastHandle, hi);
     mChannels[availableChannel] = mLastHandle;
 

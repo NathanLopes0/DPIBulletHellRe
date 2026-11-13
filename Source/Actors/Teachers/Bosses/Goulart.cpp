@@ -307,6 +307,8 @@ void Goulart::AtualizarEscalonador(const float t, const float deltaTime) {
         switch (a.evento) {
             case Evento::Despachou:
                 mGantt.push_back(Fatia{a.pid, t, -1.0f});
+                // A chuva e calada ("som": false): o som e o da faixa que comeca a chover.
+                SomDoDisparo();
                 break;
             case Evento::Preemptou:
                 FecharFatia(a.pid, t);
@@ -520,6 +522,8 @@ void Goulart::AtualizarPaginacao(const float t, const float deltaTime) {
             }
             continue;
         }
+        // Os pedacos sao calados: o som e o da coluna que comeca a cair.
+        if (c.proximo == c.inicio) SomDoDisparo();
         while (t >= c.proximo && c.proximo < c.fim) {
             c.proximo += kEntrePedacos;
             Um(kGatilhoDaVitima, Vector2(mSorteio.Real(x0 + 10.0f, x0 + largura - 10.0f), campo.y + 112.0f),
@@ -679,6 +683,7 @@ void Goulart::AtualizarDisco(const float t, const float deltaTime) {
         }
         const bool faminto = t - it->chegou >= kFome;
         mLeituras.push_back(Leitura{x, faminto ? 30.0f : 18.0f, t + (faminto ? 1.0f : 0.55f), t});
+        SomDoDisparo();   // os blocos sao calados: o som e o da coluna lida
         mAndou += std::abs(it->cilindro - mUltimoCilindro);
         mUltimoCilindro = it->cilindro;
         mAtendidos.emplace_back(it->chegou, it->cilindro);

@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include "SDL_stdinc.h"
+#include "LimiteDeSom.h"
 
 struct Mix_Chunk;
 
@@ -77,7 +78,10 @@ public:
     // Updates the status of all the active sounds every frame.
     void Update();
 
-    SoundHandle PlaySound(const std::string& soundName, bool looping = false);
+    /// Toca 'soundName'. O som que nao esta em laco passa pelo limite do 'grupo' (vazio: o grupo e o
+    /// proprio som), pela 'regra' (LimiteDeSom.h): o que passa dele nao toca, e volta o Invalid.
+    SoundHandle PlaySound(const std::string& soundName, bool looping = false, const std::string& grupo = "",
+                          const LimiteDeSom::Regra& regra = LimiteDeSom::kPadrao);
 
     // Pauses the sound if it is currently playing.
     void PauseSound(SoundHandle sound);
@@ -119,6 +123,7 @@ private:
         bool mIsLooping = false;
         bool mIsPaused = false;
         int mVolume = 128;   ///< o que quem tocou pediu, antes da opcao
+        std::string mGrupo;  ///< o grupo do limite (LimiteDeSom.h)
 
     };
 
@@ -137,4 +142,8 @@ private:
 
     // Used to track the last audio handle value used Will increment prior to playing a new sound.
     SoundHandle mLastHandle;
+
+    /// Quantas copias do 'grupo' ainda tocam (a musica nao conta).
+    [[nodiscard]] int TocandoNoGrupo(const std::string& grupo) const;
+    LimiteDeSom::Controle mLimite;
 };

@@ -56,6 +56,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Motor/Font.h
         Source/Motor/AudioSystem.cpp
         Source/Motor/AudioSystem.h
+        Source/Motor/LimiteDeSom.cpp
+        Source/Motor/LimiteDeSom.h
         Source/Motor/Random.cpp
         Source/Motor/Math.cpp
         Source/Aluno/Progresso.cpp
@@ -514,6 +516,7 @@ add_executable(dpi_tests
         tests/test_main.cpp
         tests/test_arroyo.cpp
         tests/test_goulart.cpp
+        tests/test_limite_de_som.cpp
         tests/test_path_aim.cpp
         tests/test_motion_contract.cpp
         tests/test_investida.cpp
@@ -711,6 +714,8 @@ add_executable(dpi_tests
         Source/Personagem/Personagens.h
         Source/Motor/Relogio.cpp
         Source/Motor/Relogio.h
+        Source/Motor/LimiteDeSom.cpp
+        Source/Motor/LimiteDeSom.h
         Source/Aluno/Exportacao.cpp
         Source/Aluno/Exportacao.h
         Source/Aluno/Ficha.cpp

@@ -140,9 +140,10 @@ void Boss::OnUpdate(float deltaTime) {
 
 void Boss::AddAttackPattern(const std::string &stateName, std::unique_ptr<IAttackStrategy> strategy, std::unique_ptr<AttackParams> params, float cooldown, ProjectileConfigurator config,
                             const float janelaDe, const float janelaAte, std::string gatilho,
-                            std::optional<Variacao::DoDisparo> variar) {
+                            std::optional<Variacao::DoDisparo> variar, const bool som) {
     AttackDefinition def;
     def.variar = variar;
+    def.som = som;
     def.indice = mAttacksMap[stateName].size();
     def.janelaDe = janelaDe;
     def.janelaAte = janelaAte;
@@ -256,15 +257,30 @@ void Boss::ExecuteAttack(const AttackDefinition& attackDef, const std::string& s
     }
 
     // ---- Lidando com o audio do ataque -- // ----
+    // O sorteio vem antes de tudo, mesmo no disparo calado: o Random e o mesmo da luta, e tirar
+    // uma chamada dele mudaria todas as batalhas da linha de base.
     std::string attackAudio;
     {
         if (auto choose = Random::GetIntRange(0,1)) attackAudio = "tan00.wav";
         else attackAudio = "tan01.wav";
     }
-    auto handler = mScene->GetGame()->GetAudio()->PlaySound(attackAudio, false);
-    mScene->GetGame()->GetAudio()->SetSoundVolume(handler, 10);
+    if (!attackDef.som) return;
+    // O grupo do disparo: duas copias no maximo (LimiteDeSom.h), para a musica ainda se ouvir.
+    if (auto* audio = mScene->GetGame()->GetAudio()) {
+        audio->SetSoundVolume(audio->PlaySound(attackAudio, false, "disparo", LimiteDeSom::kDisparo), kVolumeDoDisparo);
+    }
     // ---- // ----
 
+}
+
+void Boss::SomDoDisparo() {
+    // Sem o Random: o som de um fluxo nao pode mudar a luta. Os dois disparos se revezam.
+    mSomDaVez = !mSomDaVez;
+    if (auto* audio = mScene->GetGame()->GetAudio()) {
+        audio->SetSoundVolume(audio->PlaySound(mSomDaVez ? "tan00.wav" : "tan01.wav", false, "disparo",
+                                               LimiteDeSom::kDisparo),
+                              kVolumeDoDisparo);
+    }
 }
 
 float Boss::GetDistanceToPlayer() const {

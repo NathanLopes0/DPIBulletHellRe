@@ -349,6 +349,8 @@ private:
     std::string EntrarNoRankingDaSemana(int& posicao);
 
     SoundHandle mMusica;
+    /// O volume da musica (de 128): acima do disparo do chefe, que e limitado (LimiteDeSom.h).
+    static constexpr int kVolumeDaMusica = 40;
 
     // ---- Tela de Carregamento (pré-aquecimento dos pools de projétil) ----
     bool mCarregando = false;

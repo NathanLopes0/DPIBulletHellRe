@@ -387,7 +387,7 @@ void Battle::TerminarCarregamento() {
 
     if (mGame->GetAudio() && !mMusica.IsValid()) {
         mMusica = mGame->GetAudio()->PlaySound("backgroundmusic.ogg", true);
-        mGame->GetAudio()->SetSoundVolume(mMusica, 32);
+        mGame->GetAudio()->SetSoundVolume(mMusica, kVolumeDaMusica);
     }
 
     // Reativa o Player, pausado em ComecarCarregamento().

@@ -16,9 +16,9 @@
     "ataques": [
       { "gatilho": "processo", "estrategia": "WaveAttack", "projetil": "Processo",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "titulo", "estrategia": "WaveAttack", "projetil": "Titulo",
+      { "som": false, "gatilho": "titulo", "estrategia": "WaveAttack", "projetil": "Titulo",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "instrucao", "estrategia": "WaveAttack", "projetil": "Instrucao",
+      { "som": false, "gatilho": "instrucao", "estrategia": "WaveAttack", "projetil": "Instrucao",
         "projeteis": 1, "velocidade": 270, "angulo": 0, "intervalo": 0 }
     ]
   },
@@ -37,14 +37,14 @@
     ],
     "movimento": { "tipo": "Conduzido", "a": 200 },
     "ataques": [
-      { "gatilho": "moldura", "estrategia": "WaveAttack", "projetil": "Moldura",
+      { "som": false, "gatilho": "moldura", "estrategia": "WaveAttack", "projetil": "Moldura",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "entrada", "estrategia": "WaveAttack", "projetil": "Entrada",
+      { "som": false, "gatilho": "entrada", "estrategia": "WaveAttack", "projetil": "Entrada",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "acesso", "estrategia": "WaveAttack", "projetil": "Instrucao",
         "projeteis": 3, "velocidade": 230, "angulo": 18, "intervalo": 0, "dificil": { "projeteis": 5, "velocidade": 255 },
         "regras": "acesso" },
-      { "gatilho": "vitima", "estrategia": "WaveAttack", "projetil": "Vitima",
+      { "som": false, "gatilho": "vitima", "estrategia": "WaveAttack", "projetil": "Vitima",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "pagina", "estrategia": "WaveAttack", "projetil": "Pagina",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
@@ -67,7 +67,7 @@
     "ataques": [
       { "gatilho": "requisicao", "estrategia": "WaveAttack", "projetil": "Pedido",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "leitura", "estrategia": "WaveAttack", "projetil": "Bloco",
+      { "som": false, "gatilho": "leitura", "estrategia": "WaveAttack", "projetil": "Bloco",
         "projeteis": 1, "velocidade": 330, "angulo": 0, "intervalo": 0 }
     ]
   },
@@ -88,7 +88,7 @@
     "ataques": [
       { "gatilho": "vm", "estrategia": "WaveAttack", "projetil": "Vm",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "kernel", "estrategia": "WaveAttack", "projetil": "Pacote",
+      { "som": false, "gatilho": "kernel", "estrategia": "WaveAttack", "projetil": "Pacote",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "trap", "estrategia": "WaveAttack", "projetil": "Trap",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },

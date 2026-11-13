@@ -124,6 +124,9 @@ struct DescricaoDeAtaque {
 
     /// O quanto cada disparo muda (o bloco "variar"); sem ele, todo disparo e igual ao arquivo.
     std::optional<Variacao::DoDisparo> variar;
+
+    /// Se o disparo faz barulho. false: o fluxo continuo e o enfeite, que nao devem cobrir a musica.
+    bool som = true;
 };
 
 /// O ataque no modo: no Dificil, com o que o bloco "dificil" troca; no Normal (ou sem bloco),
