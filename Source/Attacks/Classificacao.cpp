@@ -120,13 +120,13 @@ namespace Classificacao {
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
         if (n != Dificuldade::Nivel::Dificil) return d;
-        d.entreRajadas = 0.48f;
+        d.entreRajadas = 0.52f;
         d.tirosDaRajada = 17;
         d.velocidade = 280.0f;
         d.entreEpocas = 1.6f;
         d.entreReplantios = 1.9f;
         d.aviso = 0.45f;
-        d.entreChuvas = 0.05f;
+        d.entreChuvas = 0.065f;
         return d;
     }
 }

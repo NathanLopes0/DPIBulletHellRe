@@ -137,7 +137,7 @@ namespace Agrupamento {
         d.entreIteracoes = 0.95f;
         d.pesoDoAluno = 13.0f;
         d.giroDoEixo = 270.0f;
-        d.tirosDoAnel = 18;
+        d.tirosDoAnel = 16;
         return d;
     }
 }
