@@ -141,16 +141,31 @@ namespace Escalonador {
         d.quantum = 1.0f;
         d.processos = 6;
         d.entreForks = 2.2f;
-        d.cadencia = 0.85f;
+        d.cadencia = 0.75f;
+        d.chuva = 1.18f;
         return d;
     }
 
-    float EntreInstrucoes(const Tipo tipo) {
-        switch (tipo) {
-            case Tipo::Cpu:          return 0.34f;
-            case Tipo::EntradaSaida: return 0.2f;
-            case Tipo::Threads:      return 0.32f;
+    int FaixaDo(const int pid) {
+        return ((std::max(pid, 1) - 1) % kFaixas + kFaixas) % kFaixas;
+    }
+
+    std::vector<int> FaixasQueRodam(const Processo& p) {
+        const int f = FaixaDo(p.pid);
+        if (p.tipo != Tipo::Threads) return {f};
+        std::vector<int> faixas;
+        for (const int d : {-1, 0, 1}) {
+            const int g = f + d;
+            if (g >= 0 && g < kFaixas) faixas.push_back(g);
         }
-        return 0.3f;
+        return faixas;
+    }
+
+    float InicioDaFaixa(const int f, const float x, const float largura) {
+        return x + LarguraDaFaixa(largura) * static_cast<float>(std::clamp(f, 0, kFaixas - 1));
+    }
+
+    float LarguraDaFaixa(const float largura) {
+        return largura / static_cast<float>(kFaixas);
     }
 }

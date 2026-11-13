@@ -93,6 +93,17 @@ namespace Paginacao {
         return r;
     }
 
+    std::vector<int> Relogio::Encolher(const int molduras) {
+        std::vector<int> despejadas;
+        const auto n = static_cast<size_t>(std::max(1, molduras));
+        while (mMolduras.size() > n) {
+            if (mMolduras.back().pagina >= 0) despejadas.push_back(mMolduras.back().pagina);
+            mMolduras.pop_back();
+        }
+        mPonteiro %= static_cast<int>(mMolduras.size());
+        return despejadas;
+    }
+
     int Relogio::MolduraDa(const int pagina) const {
         for (size_t m = 0; m < mMolduras.size(); ++m) {
             if (mMolduras[m].pagina == pagina) return static_cast<int>(m);
@@ -100,37 +111,42 @@ namespace Paginacao {
         return -1;
     }
 
-    std::vector<int> ConjuntoDeTrabalho(const int etapa, const int molduras, const int base) {
-        // A mudanca e a outra metade do espaco de enderecos; o thrashing comeca entre as duas.
-        static constexpr std::array<int, 3> kDeslocamento = {0, kPaginas / 2, kPaginas / 4};
-        const int k = std::clamp(etapa, 0, 2);
-        const int tamanho = k == 2 ? molduras + 2 : molduras - 1;
-        std::vector<int> conjunto;
-        for (int i = 0; i < std::min(tamanho, kPaginas); ++i) {
-            conjunto.push_back(((base + kDeslocamento[static_cast<size_t>(k)] + i) % kPaginas + kPaginas) % kPaginas);
-        }
-        return conjunto;
-    }
-
-    int ProximaReferencia(Variacao::Sorteio& s, const std::vector<int>& conjunto, const float fora, int& cursor,
-                          const bool emOrdem) {
-        if (conjunto.empty() || s.Chance(fora)) return s.Inteiro(0, kPaginas - 1);
-        if (!emOrdem) return s.Um(conjunto);
-        cursor = (cursor + 1) % static_cast<int>(conjunto.size());
-        return conjunto[static_cast<size_t>(cursor)];
-    }
-
-    float EntreReferencias(const int etapa, const Dificuldade::Nivel n) {
-        static constexpr std::array<float, 3> kNormal = {0.55f, 0.5f, 0.42f};
-        const float normal = kNormal[static_cast<size_t>(std::clamp(etapa, 0, 2))];
-        return Dificuldade::Escolher(n, normal, normal * 0.85f);
-    }
-
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
-        if (n != Dificuldade::Nivel::Dificil) return d;
-        d.molduras = 4;
-        d.fora = 0.14f;
+        if (n == Dificuldade::Nivel::Dificil) {
+            d.entreAcessos = 0.85f;
+            d.leituraDoProfessor = 1.5f;
+        }
         return d;
+    }
+
+    float EntreLeiturasDoProfessor(const Degrau& d, const int etapa) {
+        static constexpr std::array<float, 3> kRitmo = {1.0f, 0.85f, 0.7f};
+        return d.leituraDoProfessor * kRitmo[static_cast<size_t>(std::clamp(etapa, 0, 2))];
+    }
+
+    int PaginaDoProfessor(const int sorteio, const int doAluno) {
+        const int p = std::clamp(sorteio, 0, kPaginas - 2);
+        return p >= doAluno ? p + 1 : p;
+    }
+
+    int PaginaDoX(const float px, const float x, const float largura) {
+        if (largura <= 0.0f) return 0;
+        return std::clamp(static_cast<int>((px - x) / LarguraDaPagina(largura)), 0, kPaginas - 1);
+    }
+
+    float InicioDaPagina(const int p, const float x, const float largura) {
+        return x + LarguraDaPagina(largura) * static_cast<float>(std::clamp(p, 0, kPaginas - 1));
+    }
+
+    float LarguraDaPagina(const float largura) {
+        return largura / static_cast<float>(kPaginas);
+    }
+
+    int MoldurasNaEtapa(const int etapa, const Dificuldade::Nivel n) {
+        static constexpr std::array<int, 3> kNormal = {5, 4, 3};
+        static constexpr std::array<int, 3> kDificil = {4, 3, 3};
+        const auto k = static_cast<size_t>(std::clamp(etapa, 0, 2));
+        return Dificuldade::Escolher(n, kNormal[k], kDificil[k]);
     }
 }

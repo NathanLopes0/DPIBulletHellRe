@@ -68,10 +68,9 @@ namespace {
                                                 "vale", "congelou",
                                                 // O Goulart: o escalonador, a paginacao, o disco e a
                                                 // nuvem.
-                                                "processo", "instrucao", "troca", "interrupcao", "termino",
-                                                "moldura", "entrada", "acesso", "vitima", "pagina", "falta",
-                                                "requisicao", "leitura", "fome", "vm", "kernel", "trap",
-                                                "emulacao",
+                                                "processo", "instrucao", "moldura", "entrada", "acesso",
+                                                "vitima", "pagina", "requisicao", "leitura", "vm", "kernel",
+                                                "trap", "emulacao",
                                                 // A Maria Lucia refeita: a cascata, o Scrum, o Observer, o
                                                 // Decorator e o lobisomem.
                                                 "queda", "custo", "estouro", "historia", "titulo", "entrega",

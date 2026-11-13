@@ -5,12 +5,13 @@
 
   // ==========================================================================
 
-  // Fase 1 - os processos: o escalonador Round Robin | gesto: a CPU anda de um lado ao outro no
-  // alto. O placar e reescrito pelo C++ com o estado das filas.
+  // Fase 1 - os processos: o escalonador Round Robin | gesto: a CPU anda devagar no alto. O campo
+  // e dividido em faixas, uma por processo: chove na faixa de quem esta na CPU, e a do proximo da fila
+  // fica marcada. O placar e reescrito pelo C++ com o estado das filas.
   "StateOne": {
     "duracao": 20,
     "proximo": "StateTwo",
-    "anuncio": "Processos: o escalonador",
+    "anuncio": "Processos: as faixas da CPU",
     "movimento": { "tipo": "Conduzido", "a": 240 },
     "ataques": [
       { "gatilho": "processo", "estrategia": "WaveAttack", "projetil": "Processo",
@@ -18,26 +19,21 @@
       { "gatilho": "titulo", "estrategia": "WaveAttack", "projetil": "Titulo",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "instrucao", "estrategia": "WaveAttack", "projetil": "Instrucao",
-        "projeteis": 1, "velocidade": 200, "angulo": 0, "intervalo": 0, "dificil": { "velocidade": 225 } },
-      { "gatilho": "troca", "estrategia": "CircleSpreadAttack", "projetil": "Sinal",
-        "projeteis": 6, "velocidade": 120, "dificil": { "projeteis": 8 } },
-      { "gatilho": "interrupcao", "estrategia": "CircleSpreadAttack", "projetil": "Sinal",
-        "projeteis": 5, "velocidade": 135 },
-      { "gatilho": "termino", "estrategia": "CircleSpreadAttack", "projetil": "Sinal",
-        "projeteis": 8, "velocidade": 150, "dificil": { "projeteis": 10 } }
+        "projeteis": 1, "velocidade": 270, "angulo": 0, "intervalo": 0 }
     ]
   },
 
-  // Fase 2 - a memoria: a paginacao | gesto: o professor anda devagar no alto, buscando paginas no
-  // disco. A memoria fisica e um relogio de molduras; o placar mostra a conta da MMU.
+  // Fase 2 - a memoria: a paginacao | gesto: o professor anda devagar no alto. O chao sao as oito
+  // paginas, e a coluna em que o aluno esta e a pagina lida; a falta despeja uma vitima, e a coluna
+  // dela desaba. A memoria fisica e um relogio de molduras, e encolhe a cada etapa.
   "StateTwo": {
     "duracao": 20,
     "proximo": "StateThree",
     "anuncio": "Memória: a paginação",
     "etapas": [
-      { "nome": "Localidade", "duracao": 8.0, "anuncio": "Localidade: o conjunto de trabalho cabe" },
-      { "nome": "Mudanca",    "duracao": 5.0, "anuncio": "Mudança de fase: outro conjunto" },
-      { "nome": "Thrashing",  "duracao": 7.0, "anuncio": "Thrashing: o laço não cabe na memória" }
+      { "nome": "Localidade", "duracao": 8.0, "anuncio": "Você é a referência: fique em poucas páginas" },
+      { "nome": "Mudanca",    "duracao": 5.0, "anuncio": "A memória encolheu: uma moldura a menos" },
+      { "nome": "Thrashing",  "duracao": 7.0, "anuncio": "Thrashing: três molduras, oito páginas" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 200 },
     "ataques": [
@@ -46,18 +42,18 @@
       { "gatilho": "entrada", "estrategia": "WaveAttack", "projetil": "Entrada",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "acesso", "estrategia": "WaveAttack", "projetil": "Instrucao",
-        "projeteis": 3, "velocidade": 190, "angulo": 24, "intervalo": 0, "dificil": { "velocidade": 200 } },
+        "projeteis": 3, "velocidade": 230, "angulo": 18, "intervalo": 0, "dificil": { "projeteis": 5, "velocidade": 255 },
+        "regras": "acesso" },
       { "gatilho": "vitima", "estrategia": "WaveAttack", "projetil": "Vitima",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "despejo" },
-      { "gatilho": "pagina", "estrategia": "WaveAttack", "projetil": "Pagina",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "falta", "estrategia": "CircleSpreadAttack", "projetil": "Sinal",
-        "projeteis": 8, "velocidade": 140 }
+      { "gatilho": "pagina", "estrategia": "WaveAttack", "projetil": "Pagina",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
     ]
   },
 
   // Fase 3 - a entrada e saida: o braco do disco | gesto: o professor e o braco, e vai aonde o
-  // algoritmo da etapa manda.
+  // algoritmo da etapa manda. O bloco lido cai na coluna do pedido; a linha do braco mostra qual e o
+  // proximo.
   "StateThree": {
     "duracao": 20,
     "proximo": "",
@@ -72,15 +68,13 @@
       { "gatilho": "requisicao", "estrategia": "WaveAttack", "projetil": "Pedido",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "leitura", "estrategia": "WaveAttack", "projetil": "Bloco",
-        "projeteis": 4, "velocidade": 190, "angulo": 44, "anguloCentral": 90, "intervalo": 0,
-        "dificil": { "velocidade": 205 } },
-      { "gatilho": "fome", "estrategia": "CircleSpreadAttack", "projetil": "Sinal",
-        "projeteis": 7, "velocidade": 150 }
+        "projeteis": 1, "velocidade": 330, "angulo": 0, "intervalo": 0 }
     ]
   },
 
-  // Fase final - a virtualizacao e a nuvem | gesto: a orbita lenta do hipervisor. So e vista por
-  // quem termina a terceira entre 40 e 59, ou com 100.
+  // Fase final - a virtualizacao e a nuvem | gesto: a orbita lenta do hipervisor. A VM isola: os
+  // tiros do kernel quicam dentro da caixa dela, e so o trap sai. So e vista por quem termina a
+  // terceira entre 40 e 59, ou com 100.
   "StateFinal": {
     "duracao": 20,
     "proximo": "StateOne",
@@ -94,8 +88,8 @@
     "ataques": [
       { "gatilho": "vm", "estrategia": "WaveAttack", "projetil": "Vm",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "gatilho": "kernel", "estrategia": "CircleSpreadAttack", "projetil": "Pacote",
-        "projeteis": 8, "velocidade": 140, "dificil": { "projeteis": 10 } },
+      { "gatilho": "kernel", "estrategia": "WaveAttack", "projetil": "Pacote",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "trap", "estrategia": "WaveAttack", "projetil": "Trap",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "emulacao", "estrategia": "WaveAttack", "projetil": "Instrucao",

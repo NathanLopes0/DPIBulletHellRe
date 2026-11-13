@@ -14,9 +14,10 @@ OS PROJETEIS (Assets/Teachers/Projectiles/DPIBHGoulart*), uma folha por assunto:
     Processo   P1 .. P9          o cartao do processo, na cor dele (a mesma
                                  do grafico de Gantt no Goulart.h)
     Titulo     Prontos ES        os titulos das filas (enfeite)
-    Tiro       Instrucao Sinal   os tiros: a instrucao, o anel do sinal (troca
-               Bloco Pacote      de contexto, interrupcao, exit), o bloco lido
-                                 do disco e o pacote da VM
+    Tiro       Instrucao Sinal   os tiros: a instrucao, o sinal (o quadro 1, que
+               Bloco Pacote      nenhum tiro usa mais - fica para nao mudar os
+                                 indices), o bloco lido do disco e o tiro do
+                                 kernel, preso na caixa da VM
     Moldura    Livre P0..P7      a moldura da memoria fisica: livre, com a
                R0..R7            pagina e o bit R apagado, ou aceso
     Entrada    V0..V7 I0..I7     a entrada da tabela de paginas: valida ou

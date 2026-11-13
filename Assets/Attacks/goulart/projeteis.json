@@ -22,7 +22,8 @@
     "ordemDeDesenho": 84
   },
 
-  // A instrucao do processo que roda, o acerto da memoria e a emulacao do hipervisor.
+  // A instrucao: a chuva da faixa de quem roda, a leitura do professor na memoria e a emulacao do
+  // hipervisor.
   "Instrucao": {
     "sprite": "Teachers/Projectiles/DPIBHGoulartTiros.png",
     "dados":  "Teachers/Projectiles/DPIBHGoulartTiros.json",
@@ -31,17 +32,7 @@
     "ordemDeDesenho": 90
   },
 
-  // O anel dos sinais do sistema: a troca de contexto, a interrupcao, o exit, a falta de pagina e a
-  // fome do disco.
-  "Sinal": {
-    "sprite": "Teachers/Projectiles/DPIBHGoulartTiros.png",
-    "dados":  "Teachers/Projectiles/DPIBHGoulartTiros.json",
-    "animacoes": { "Sinal": [1] },
-    "animacaoInicial": "Sinal",
-    "ordemDeDesenho": 90
-  },
-
-  // Fase 3 - o bloco que o braco leu do disco.
+  // Fase 3 - o bloco que o braco leu do disco, descendo na coluna do pedido.
   "Bloco": {
     "sprite": "Teachers/Projectiles/DPIBHGoulartTiros.png",
     "dados":  "Teachers/Projectiles/DPIBHGoulartTiros.json",
@@ -50,7 +41,7 @@
     "ordemDeDesenho": 90
   },
 
-  // A repescagem - o pacote do kernel de cada VM.
+  // A repescagem - o tiro do kernel de cada VM, preso na caixa dela.
   "Pacote": {
     "sprite": "Teachers/Projectiles/DPIBHGoulartTiros.png",
     "dados":  "Teachers/Projectiles/DPIBHGoulartTiros.json",

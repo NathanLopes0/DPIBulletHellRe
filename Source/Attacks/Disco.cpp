@@ -89,8 +89,9 @@ namespace Disco {
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
         if (n != Dificuldade::Nivel::Dificil) return d;
-        d.entrePedidos = 0.45f;
+        d.entrePedidos = 0.42f;
         d.maisPedidos = 8;
+        d.queda = 390.0f;
         return d;
     }
 }

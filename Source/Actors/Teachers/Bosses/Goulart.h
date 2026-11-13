@@ -115,13 +115,14 @@ private:
     [[nodiscard]] Vector2 LugarNaFila(int i) const;
     [[nodiscard]] Vector2 LugarNaES(int i) const;
     [[nodiscard]] Vector2 LugarDoTitulo(int k) const;
+    /// A faixa 'f' do campo: as duas bordas, de cima a baixo, na cor 'cor'; tracejada, a do proximo.
+    void Faixa(int f, SDL_Color cor, bool tracejada);
     std::optional<Escalonador::RoundRobin> mRR;
     std::map<int, BossProjectile*> mCartoes;
     int mUltimoPid = 0;
     int mForks = 0;
     float mProximoFork = 0.0f;
-    float mProximaInstrucao = 0.0f;
-    int mInstrucoes = 0;
+    float mProximaGota = 0.0f;
     std::array<BossProjectile*, Escalonador::kTitulos.size()> mTitulos{};
     /// O grafico de Gantt da fase: cada fatia de CPU, de quem foi e de quando a quando.
     struct Fatia {
@@ -138,30 +139,40 @@ private:
     [[nodiscard]] Vector2 CentroDoRelogio() const;
     [[nodiscard]] Vector2 LugarDaMoldura(int m) const;
     [[nodiscard]] Vector2 LugarDaEntrada(int p) const;
+    /// A coluna da pagina 'p' desaba: a cortina comeca em 'inicio' (antes, a coluna fica marcada).
+    void Despejar(int p, float agora, float inicio);
     std::optional<Paginacao::Relogio> mMemoria;
     std::vector<BossProjectile*> mMolduras;
     std::array<BossProjectile*, Paginacao::kPaginas> mEntradas{};
-    int mBaseDoConjunto = 0;
     int mEtapaDaPaginacao = -1;
-    std::vector<int> mConjunto;
-    int mCursor = -1;
-    float mProximaReferencia = 0.0f;
+    int mPaginaDoAluno = -1;
+    float mProximaLeitura = 0.0f;
+    float mProximoAcesso = 0.0f;
+    /// A leitura do professor: de quanto em quanto, qual pagina e quando - a linha ate a entrada dela.
+    float mProximaDoProfessor = 0.0f;
+    int mPaginaDoProfessor = -1;
+    float mProfessorLeuEm = -1.0f;
+    /// A pagina 'p' vem do disco para a moldura 'm': o cartao voa do professor ate ela.
+    void TrazerPagina(int p, int m);
     std::deque<bool> mUltimasFaltas;   ///< a janela do thrashing: true e falta
     std::string mUltimaReferencia;
+    float mFaltouEm = -1.0f;
     /// A varredura do ponteiro na falta de pagina, que a tela mostra passo a passo.
     struct Varredura {
         std::vector<int> passos;
         int moldura = -1;
-        int vitima = -1;
         float desde = 0.0f;
-        bool despejou = false;
     };
     std::optional<Varredura> mVarredura;
-    struct Chegando {
-        BossProjectile* p = nullptr;
-        float ate = 0.0f;
+    /// A cortina de cada pagina despejada.
+    struct Cortina {
+        int pagina = 0;
+        float marcada = 0.0f;   ///< desde quando a coluna esta marcada
+        float inicio = 0.0f;    ///< quando comeca a cair
+        float fim = 0.0f;
+        float proximo = 0.0f;
     };
-    std::vector<Chegando> mChegando;
+    std::vector<Cortina> mCortinas;
 
     // ---- Fase 3: o braco do disco ----
 
@@ -174,7 +185,6 @@ private:
         BossProjectile* p = nullptr;
         int cilindro = 0;
         float chegou = 0.0f;
-        float proximoGrito = 0.0f;
     };
     std::vector<Pedido> mPedidos;
     float mProximoPedido = 0.0f;
@@ -189,12 +199,24 @@ private:
     int mCabecaNoInicio = 0;
     /// Os atendidos da etapa, com a hora de chegada: o placar compara com o FCFS deles.
     std::vector<std::pair<float, int>> mAtendidos;
+    /// O bloco lido cai na coluna do pedido: uma cortina estreita, mais larga e longa no faminto.
+    struct Leitura {
+        float x = 0.0f;
+        float meia = 0.0f;      ///< meia largura da coluna
+        float fim = 0.0f;
+        float proximo = 0.0f;
+    };
+    std::vector<Leitura> mLeituras;
 
     // ---- A repescagem: a nuvem ----
 
     void AtualizarNuvem(float t, float deltaTime);
     void DesmontarNuvem();
     [[nodiscard]] Vector2 LugarDoHost(int k) const;
+    struct Preso {
+        BossProjectile* p = nullptr;
+        Vector2 velocidade;
+    };
     struct Vm {
         BossProjectile* p = nullptr;
         int id = 0;
@@ -203,6 +225,8 @@ private:
         float migraDesde = 0.0f;
         float proximoKernel = 0.0f;
         float proximoTrap = 0.0f;
+        Vector2 onde;              ///< o centro da caixa no quadro anterior
+        std::vector<Preso> presos; ///< os tiros do kernel, quicando dentro da caixa
     };
     std::vector<Vm> mVms;
     int mProximoIdDeVm = 1;
@@ -221,8 +245,12 @@ private:
         {255, 120, 100, 230}, {110, 200, 255, 230}, {140, 230, 140, 230}, {255, 200, 90, 230}, {200, 150, 255, 230},
         {255, 140, 200, 230}, {120, 230, 210, 230}, {230, 230, 120, 230}, {180, 180, 210, 230}}};
     static constexpr SDL_Color kEixo = {150, 170, 210, 90};
+    static constexpr SDL_Color kDivisoria = {150, 170, 210, 40};
+    static constexpr SDL_Color kProxima = {255, 214, 90, 150};
+    static constexpr SDL_Color kPerigo = {255, 90, 80, 190};
+    static constexpr SDL_Color kVoce = {130, 255, 160, 120};
     static constexpr SDL_Color kPonteiro = {250, 214, 110, 210};
-    static constexpr SDL_Color kMapeamento = {130, 200, 250, 55};
+    static constexpr SDL_Color kMapeamento = {130, 200, 250, 45};
     static constexpr SDL_Color kTrilha = {150, 170, 210, 120};
     static constexpr SDL_Color kBraco = {250, 214, 110, 150};
     static constexpr SDL_Color kRastro = {200, 210, 240, 70};

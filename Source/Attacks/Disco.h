@@ -13,9 +13,12 @@
 
 /// A fase 3 do Goulart e a entrada e saida: o braco do disco. Os cilindros sao uma trilha no alto
 /// do campo, os pedidos de leitura caem nela, e o professor e o braco - ele anda pela trilha e,
-/// onde para, le o bloco, que cai no aluno. A ordem em que ele atende e o algoritmo da etapa:
+/// onde para, le o bloco, que desce na coluna do pedido ate o chao. Uma linha liga o braco ao
+/// pedido que ele vai ler, e a coluna dele fica tracejada: quem entende o algoritmo da etapa sabe
+/// onde nao ficar.
 ///   - FCFS: na ordem de chegada, e o braco vai e volta pela trilha inteira;
-///   - SSTF: o mais perto primeiro - anda pouco, mas o pedido longe passa fome, e o faminto atira;
+///   - SSTF: o mais perto primeiro - anda pouco, mas o pedido longe passa fome (fica vermelho), e o
+///     bloco dele, quando enfim e lido, desce largo;
 ///   - SCAN, o elevador: vai num sentido ate a ponta atendendo o que encontra, e volta.
 /// O placar compara o quanto o braco andou com o que o FCFS andaria nos mesmos pedidos.
 namespace Disco {
@@ -28,7 +31,6 @@ namespace Disco {
     constexpr std::array<float, 3> kDuracoes = {6.0f, 7.0f, 7.0f};
     constexpr const char* kGatilhoDoPedido = "requisicao";
     constexpr const char* kGatilhoDaLeitura = "leitura";
-    constexpr const char* kGatilhoDaFome = "fome";
 
     const char* Nome(Algoritmo a);
 
@@ -54,10 +56,8 @@ namespace Disco {
     /// comparacao).
     std::string Placar(Algoritmo a, int andou, int atendidos, int fcfsSeria);
 
-    /// O pedido que espera mais que isto passa fome: fica vermelho e atira de kEntreGritos em
-    /// kEntreGritos.
+    /// O pedido que espera mais que isto passa fome: fica vermelho, e o bloco dele desce largo.
     constexpr float kFome = 2.6f;
-    constexpr float kEntreGritos = 1.0f;
 
     /// O braco le o pedido a menos disto (px) dele.
     constexpr float kAlcance = 8.0f;
@@ -71,6 +71,7 @@ namespace Disco {
     struct Degrau {
         float entrePedidos = 0.55f;
         int maisPedidos = 7;
+        float queda = 330.0f;   ///< a velocidade do bloco lido, descendo na coluna do pedido
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 }

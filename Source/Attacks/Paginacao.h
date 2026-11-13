@@ -10,20 +10,18 @@
 #include <vector>
 
 #include "../Regras/Dificuldade.h"
-#include "../Regras/Variacao.h"
 #include "Fase.h"
 
-/// A fase 2 do Goulart e a paginacao. O processo que roda referencia enderecos virtuais, e a MMU os
-/// traduz: os bits de cima sao a pagina, os de baixo o deslocamento - o placar mostra a conta. A
-/// tabela de paginas fica a esquerda (a entrada valida aponta a moldura), e a memoria fisica e um
-/// relogio de molduras no meio do campo:
-///   - a pagina que esta numa moldura e um acerto: a moldura acende (o bit R) e atira;
+/// A fase 2 do Goulart e a paginacao - e o aluno e a referencia. O chao do campo sao as kPaginas
+/// paginas virtuais, uma coluna cada, com a entrada da tabela de paginas embaixo: a coluna em que o
+/// aluno esta e a pagina que o processo le. A memoria fisica e um relogio de molduras no alto:
+///   - a pagina que esta numa moldura e um acerto: a moldura acende (o bit R), e nada cai;
 ///   - a que nao esta e uma falta de pagina: o ponteiro do relogio varre as molduras - quem tem R
 ///     ligado ganha a segunda chance (o R apaga), e a primeira com R apagado e a vitima. A pagina
-///     vitima e despejada no aluno, e a nova vem do disco para o lugar dela.
-/// As etapas sao a localidade (o conjunto de trabalho cabe na memoria: quase so acerto), a mudanca
-/// de fase do programa (o conjunto troca: uma rajada de faltas) e o thrashing (o conjunto nao cabe:
-/// quase toda referencia e falta, e as vitimas enchem o campo).
+///     vitima e despejada: a coluna dela desaba, uma cortina de cima a baixo.
+/// Quem fica em poucas colunas (a localidade) quase nao tem falta; quem anda por todas faz o
+/// thrashing - e as cortinas caem em volta. A memoria encolhe a cada etapa (5, 4 e 3 molduras), e o
+/// placar mostra a conta da MMU de cada referencia.
 namespace Paginacao {
 
     /// Os nomes que o codigo e os dados dividem. Um teste confere cada um.
@@ -35,7 +33,6 @@ namespace Paginacao {
     constexpr const char* kGatilhoDoAcesso = "acesso";
     constexpr const char* kGatilhoDaVitima = "vitima";
     constexpr const char* kGatilhoDaPagina = "pagina";
-    constexpr const char* kGatilhoDaFalta = "falta";
 
     /// Em que etapa se esta no instante 't' da fase: 0, 1 ou 2.
     int EtapaNoTempo(float t);
@@ -88,38 +85,54 @@ namespace Paginacao {
         [[nodiscard]] int Ponteiro() const { return mPonteiro; }
         /// Em que moldura esta a 'pagina' (-1: em nenhuma - a entrada da tabela e invalida).
         [[nodiscard]] int MolduraDa(int pagina) const;
+        /// A memoria encolhe para 'molduras': as de sobra saem, e as paginas delas sao despejadas.
+        std::vector<int> Encolher(int molduras);
 
     private:
         std::vector<Moldura> mMolduras;
         int mPonteiro = 0;
     };
 
-    // ---- As referencias ----
+    /// Quanto o ponteiro leva de uma moldura a seguinte, na varredura que a tela mostra - e a coluna
+    /// da vitima fica marcada esse tempo antes de desabar.
+    constexpr float kPassoDoPonteiro = 0.1f;
 
-    /// O conjunto de trabalho de cada etapa, paginas vizinhas a partir de 'base' (sorteada por
-    /// luta): na localidade e na mudanca ele cabe nas molduras (com uma sobrando), e a mudanca e
-    /// outro pedaco do programa; no thrashing ele tem duas paginas a mais do que molduras.
-    std::vector<int> ConjuntoDeTrabalho(int etapa, int molduras, int base);
+    // ---- O chao ----
 
-    /// A pagina da proxima referencia: do conjunto de trabalho, menos uma vez em 'fora' - a
-    /// localidade de referencia. 'emOrdem' percorre o conjunto em laco (o 'cursor' guarda onde
-    /// parou): e o laco que nao cabe na memoria, o pior caso do relogio.
-    int ProximaReferencia(Variacao::Sorteio& s, const std::vector<int>& conjunto, float fora, int& cursor,
-                          bool emOrdem);
+    /// A pagina da coluna em que esta o x, num chao que comeca em 'x' e tem 'largura'; e onde a
+    /// coluna da pagina comeca e quanto mede.
+    int PaginaDoX(float px, float x, float largura);
+    float InicioDaPagina(int p, float x, float largura);
+    float LarguraDaPagina(float largura);
 
-    /// Segundos entre duas referencias, por etapa: o programa acelera.
-    float EntreReferencias(int etapa, Dificuldade::Nivel n);
+    /// O aluno le a pagina dele a cada kEntreLeituras (e na hora em que muda de coluna).
+    constexpr float kEntreLeituras = 0.45f;
 
-    /// Quanto o ponteiro leva de uma moldura a seguinte, na varredura que a tela mostra.
-    constexpr float kPassoDoPonteiro = 0.07f;
+    /// A cortina da pagina despejada: quanto dura, e de quanto em quanto cai um pedaco.
+    constexpr float kDespejo = 0.9f;
+    constexpr float kEntrePedacos = 0.05f;
+    constexpr float kVelocidadeDoDespejo = 330.0f;
+
+    /// As molduras da memoria em cada etapa: ela encolhe.
+    int MoldurasNaEtapa(int etapa, Dificuldade::Nivel n);
 
     /// Quantas referencias o placar do thrashing conta.
     constexpr int kJanelaDoThrashing = 10;
 
-    /// O que o Dificil muda: uma moldura a menos e mais referencias fora do conjunto.
+    /// O professor tambem usa a memoria:
+    ///   - le a pagina do aluno com um leque de tres, mirado, de tanto em tanto - que o tira do lugar (o
+    ///     leque e o fases.json);
+    ///   - e le as paginas dele, pelo mesmo relogio: a falta dele despeja uma vitima, que desaba onde
+    ///     estiver. A pagina que o aluno usa tem o R aceso, e o relogio a poupa.
     struct Degrau {
-        int molduras = 5;
-        float fora = 0.10f;
+        float entreAcessos = 1.1f;
+        float leituraDoProfessor = 2.2f;
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
+
+    /// De quanto em quanto o professor le uma pagina na 'etapa': mais depressa a cada uma.
+    float EntreLeiturasDoProfessor(const Degrau& d, int etapa);
+
+    /// A pagina que o professor le: qualquer uma, menos a do aluno ('sorteio' de 0 a kPaginas - 2).
+    int PaginaDoProfessor(int sorteio, int doAluno);
 }

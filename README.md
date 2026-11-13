@@ -597,36 +597,43 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   dos filósofos — os garfos andam de mão em mão, e o deadlock vira um cerco
   até o `kill -9`.
 - **Goulart — INF 451.** Sistemas Operacionais, com o sistema inteiro em
-  campo. Nos **processos**, ele é a CPU, e os processos são cartões que andam
-  entre a fila de PRONTOS, à esquerda, a CPU, embaixo dele, e a E/S, à direita:
-  o escalonador é Round Robin de verdade (`Escalonador.h`) — a cada quantum o
-  primeiro da fila sobe e roda, e rodar é atirar, cada tipo do seu jeito (o
-  limitado por CPU solta leques; o limitado por E/S, uma rajada curta, e vai
-  esperar o disco; o de três threads atira de três lugares ao mesmo tempo). A
-  troca de contexto, a interrupção de quem volta da E/S e o `exit` de quem
-  termina são anéis; ele dá `fork()` de tempos em tempos, o placar mostra as
-  filas, e um gráfico de Gantt cresce no alto com cada fatia de CPU na cor do
-  processo. O processo que espera na fila morre com tiros: `kill -9`. Na
-  **memória**, a paginação (`Paginacao.h`): o placar faz a conta da MMU
-  (`0x3A7F = página 3 + 0xA7F`), a tabela de páginas fica à esquerda, com o
-  bit de válida e uma linha até a moldura, e a memória física é um relógio de
-  molduras — o acerto acende o bit R e atira; a falta de página faz o
-  ponteiro varrer, dando a segunda chance a quem tem R, e a página vítima é
-  despejada em você. Primeiro a localidade (o conjunto de trabalho cabe),
-  depois a mudança de fase do programa e, no fim, o **thrashing**: um laço
-  que não cabe na memória, quase toda referência uma falta. Na **entrada e
-  saída**, ele é o braço do disco (`Disco.h`): os pedidos caem numa trilha de
-  200 cilindros, e ele os atende em FCFS, SSTF e SCAN, o elevador — o bloco
-  lido cai em você, o pedido esquecido pelo SSTF passa fome e atira, e o
-  placar compara o quanto o braço andou com o que o FCFS andaria
-  (`SSTF: 150 cilindros em 7 pedidos · em FCFS seriam 314`). O exame é a
-  **nuvem** (`Virtualizacao.h`): ele é o hipervisor, as VMs são caixas no campo
-  com o sistema convidado dentro; o kernel de cada uma atira em anel, a
-  instrução privilegiada vira um trap que voa até ele, e ele a emula atirando
-  em você; na migração ao vivo uma VM escorrega de um host a outro, e na
-  elasticidade a carga sobe e a nuvem sobe mais VMs — a que você derruba, ela
-  repõe. Tudo anda pelo relógio do sistema: o Ponto Extra limpa a tela, e o
-  escalonador, a memória, o disco e a nuvem continuam.
+  campo — e cada prova muda o lugar para onde você olha. Nos **processos**,
+  ele é a CPU, e os processos são cartões que andam entre a fila de PRONTOS, à
+  esquerda, a CPU, embaixo dele, e a E/S, à direita: o escalonador é Round
+  Robin de verdade (`Escalonador.h`). O campo é dividido em seis **faixas**,
+  uma por processo, e chove instrução na faixa de quem está na CPU (o de três
+  threads chove em três faixas); a faixa do primeiro da fila fica tracejada,
+  então é a fila que diz para onde fugir no próximo quantum. O `fork()` avisa
+  em que faixa o filho chove, um gráfico de Gantt cresce no alto com cada
+  fatia de CPU na cor do processo, e o processo que espera na fila morre com
+  tiros: `kill -9`. Na **memória**, a paginação (`Paginacao.h`), e **você é a
+  referência**: o chão são as oito páginas, uma coluna cada, com a entrada da
+  tabela de páginas no pé (válida ou não, com uma linha até a moldura), e a
+  coluna em que você está é a página lida. O placar faz a conta da MMU
+  (`0x3A7F = página 3 + 0xA7F`); a memória física é um relógio de molduras no
+  alto do campo, e a falta de página faz o ponteiro varrer, dando a segunda
+  chance a quem tem o bit R — a vítima pisca e a coluna dela desaba. O
+  professor também usa a memória: lê as páginas dele pelo mesmo relógio, e a
+  falta dele derruba colunas pelo campo (a sua, que tem o R aceso, quase
+  sempre escapa), e um leque mirado tira você do lugar. A memória encolhe a
+  cada etapa — localidade, a mudança de fase e o **thrashing**, três molduras
+  para oito páginas —, e quem anda por páginas demais faz o chão inteiro cair.
+  Na **entrada e saída**, ele é o braço do disco (`Disco.h`): os pedidos caem
+  numa trilha de 200 cilindros no alto, e ele os atende em FCFS, SSTF e SCAN,
+  o elevador. O bloco lido desce na **coluna do pedido**, e a linha do braço
+  até o próximo pedido mostra onde vai cair; o pedido esquecido pelo SSTF
+  passa fome, fica vermelho e, quando enfim é lido, cai largo — e um pedido
+  derrubado a tiros é E/S cancelada. O placar compara o quanto o braço andou
+  com o que o FCFS andaria (`SSTF: 150 cilindros em 7 pedidos · em FCFS seriam
+  314`). O exame é a **nuvem** (`Virtualizacao.h`): ele é o hipervisor, e as
+  VMs são caixas que andam pelo campo com os tiros do kernel **presos dentro**,
+  quicando nas paredes — a VM isola, e o que você evita são as caixas. Só a
+  instrução privilegiada sai: vira um trap que voa até ele, e ele a emula
+  atirando em você; na migração ao vivo uma VM escorrega de um host a outro, e
+  na elasticidade a carga sobe e a nuvem sobe mais VMs — a que você derruba
+  some com os tiros dela, e ela repõe. Tudo anda pelo relógio do sistema: o
+  Ponto Extra limpa a tela, e o escalonador, a memória, o disco e a nuvem
+  continuam.
 - **Lucas — INF 321.** Programação Web, na ordem da matéria. No HTML ele
   renderiza uma página gerada a cada luta, com o layout desenhado no campo, e
   cada elemento ataca do seu jeito: o cursor voa até o `<button>` e clica, a

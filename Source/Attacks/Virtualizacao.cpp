@@ -5,6 +5,7 @@
 #include "Virtualizacao.h"
 
 #include <algorithm>
+#include <cmath>
 
 namespace Virtualizacao {
 
@@ -21,7 +22,7 @@ namespace Virtualizacao {
         const int i = ((k % kHosts) + kHosts) % kHosts;
         const float coluna = static_cast<float>(i % 3);
         const float fileira = static_cast<float>(i / 3);
-        return Vector2(x + largura * (0.2f + 0.3f * coluna), y + altura * (0.36f + 0.24f * fileira));
+        return Vector2(x + largura * (0.2f + 0.3f * coluna), y + altura * (0.42f + 0.38f * fileira));
     }
 
     char NomeDoHost(const int k) {
@@ -43,6 +44,15 @@ namespace Virtualizacao {
             if (!ocupado[static_cast<size_t>(k)]) return k;
         }
         return -1;
+    }
+
+    void Quicar(Vector2& posicao, Vector2& velocidade, const Vector2& centro, const float largura, const float altura,
+                const float folga) {
+        const float meiaL = std::max(0.0f, largura / 2.0f - folga), meiaA = std::max(0.0f, altura / 2.0f - folga);
+        if (posicao.x < centro.x - meiaL) { posicao.x = centro.x - meiaL; velocidade.x = std::fabs(velocidade.x); }
+        if (posicao.x > centro.x + meiaL) { posicao.x = centro.x + meiaL; velocidade.x = -std::fabs(velocidade.x); }
+        if (posicao.y < centro.y - meiaA) { posicao.y = centro.y - meiaA; velocidade.y = std::fabs(velocidade.y); }
+        if (posicao.y > centro.y + meiaA) { posicao.y = centro.y + meiaA; velocidade.y = -std::fabs(velocidade.y); }
     }
 
     Vector2 NaMigracao(const Vector2& de, const Vector2& para, const float u) {

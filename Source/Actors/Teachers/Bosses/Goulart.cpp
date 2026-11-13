@@ -209,7 +209,8 @@ void Goulart::OnDerrubou(BossProjectile* qual) {
     // A VM desligada: a nuvem repoe outra daqui a pouco.
     for (auto it = mVms.begin(); it != mVms.end(); ++it) {
         if (it->p != qual) continue;
-        Avisar("VM " + std::to_string(it->id) + " desligada: a nuvem sobe outra");
+        Avisar("VM " + std::to_string(it->id) + " desligada: os tiros dela somem, e a nuvem sobe outra");
+        for (Preso& pr : it->presos) Matar(pr.p);
         mVms.erase(it);
         mReporDepois = (GetComponent<FSMComponent>() ? GetComponent<FSMComponent>()->GetStateTime() : 0.0f) +
                        Virtualizacao::kReposicao;
@@ -238,6 +239,19 @@ Vector2 Goulart::LugarDoTitulo(const int k) const {
     return Vector2(k == 0 ? c.x + 62.0f : c.x + c.w - 62.0f, c.y + 146.0f);
 }
 
+void Goulart::Faixa(const int f, const SDL_Color cor, const bool tracejada) {
+    const SDL_FRect c = Campo();
+    const float x0 = Escalonador::InicioDaFaixa(f, c.x, c.w), x1 = x0 + Escalonador::LarguraDaFaixa(c.w);
+    const float topo = c.y + 112.0f, fundo = c.y + c.h;
+    for (const float x : {x0 + 2.0f, x1 - 2.0f}) {
+        if (!tracejada) {
+            Linha(Vector2(x, topo), Vector2(x, fundo), cor);
+            continue;
+        }
+        for (float y = topo; y < fundo; y += 22.0f) Linha(Vector2(x, y), Vector2(x, std::min(fundo, y + 11.0f)), cor);
+    }
+}
+
 void Goulart::DesmontarEscalonador() {
     for (auto& [pid, p] : mCartoes) Matar(p);
     mCartoes.clear();
@@ -246,7 +260,6 @@ void Goulart::DesmontarEscalonador() {
     mGantt.clear();
     mUltimoPid = 0;
     mForks = 0;
-    mInstrucoes = 0;
 }
 
 void Goulart::Forkar(const float t) {
@@ -259,7 +272,7 @@ void Goulart::Forkar(const float t) {
         p->DefinirResistencia(3);
         mCartoes[pid] = p;
     }
-    if (t > 0.5f) Avisar("fork(): nasce " + Escalonador::Cara(pid));
+    if (t > 0.5f) Avisar("fork(): nasce " + Escalonador::Cara(pid) + ", que chove na faixa " + std::to_string(FaixaDo(pid) + 1));
 }
 
 void Goulart::FecharFatia(const int pid, const float t) {
@@ -291,32 +304,26 @@ void Goulart::AtualizarEscalonador(const float t, const float deltaTime) {
 
     // O relogio do escalonador, e o que ele fez.
     for (const Aviso& a : mRR->Avancar(t)) {
-        BossProjectile* cartao = mCartoes.count(a.pid) ? mCartoes[a.pid] : nullptr;
         switch (a.evento) {
             case Evento::Despachou:
-                mProximaInstrucao = t + 0.15f;
                 mGantt.push_back(Fatia{a.pid, t, -1.0f});
                 break;
             case Evento::Preemptou:
-                DispararEm(kGatilhoDaTroca, LugarNaCpu());
                 FecharFatia(a.pid, t);
                 break;
             case Evento::PediuES:
-                DispararEm(kGatilhoDaTroca, LugarNaCpu());
                 FecharFatia(a.pid, t);
-                Avisar(Escalonador::Cara(a.pid) + " pediu E/S: vai esperar o disco");
+                Avisar(Escalonador::Cara(a.pid) + " pediu E/S: a faixa dele para de chover");
                 break;
             case Evento::Acordou:
-                if (Vivo(cartao)) DispararEm(kGatilhoDaInterrupcao, cartao->GetPosition());
                 // \xc3\xa7\xc3\xa3 e "ca" com cedilha e til.
                 Avisar("interrup\xc3\xa7\xc3\xa3o: " + Escalonador::Cara(a.pid) + " volta para a fila");
                 break;
             case Evento::Terminou:
-                DispararEm(kGatilhoDoTermino, LugarNaCpu());
                 FecharFatia(a.pid, t);
-                if (cartao) Matar(mCartoes[a.pid]);
+                if (mCartoes.count(a.pid)) Matar(mCartoes[a.pid]);
                 mCartoes.erase(a.pid);
-                Avisar("exit(0): " + Escalonador::Cara(a.pid) + " terminou");
+                Avisar("exit(0): " + Escalonador::Cara(a.pid) + " terminou, e a faixa dele seca");
                 break;
         }
     }
@@ -333,33 +340,40 @@ void Goulart::AtualizarEscalonador(const float t, const float deltaTime) {
             p = Um(kGatilhoDoProcesso, lugar, Escalonador::Cara(pid));
             if (p) p->DefinirResistencia(3);
         }
-        // O que esta na CPU roda embaixo do professor: o tiro passa por ele (quem mira no professor
-        // nao o mata sem querer). O kill -9 e nos que esperam, nas filas.
+        // O que esta na CPU roda embaixo do professor: o tiro passa por ele. O kill -9 e nos que
+        // esperam, nas filas.
         if (p) p->DefinirEnfeite(mRR->Rodando() && *mRR->Rodando() == pid);
         Levar(p, lugar, deltaTime);
     }
 
-    // O que roda atira, cada tipo do seu jeito.
-    if (mRR->Rodando() && t >= mProximaInstrucao) {
-        const Processo* p = mRR->Achar(*mRR->Rodando());
-        const Vector2 cpu = LugarNaCpu();
-        if (p) {
-            mProximaInstrucao = t + EntreInstrucoes(p->tipo) * mDegrauDoEscalonador.cadencia;
-            ++mInstrucoes;
-            if (p->tipo == Tipo::Cpu) {
-                // O limitado por CPU: um leque de quatro, com a fresta no meio.
-                DispararEm(kGatilhoDaInstrucao, cpu, 4, AnguloAteOAluno(cpu), 42.0f);
-            } else if (p->tipo == Tipo::EntradaSaida) {
-                // O limitado por E/S: uma rajada de pares, curta - logo ele vai esperar o disco.
-                DispararEm(kGatilhoDaInstrucao, cpu, 2, AnguloAteOAluno(cpu), 12.0f);
-            } else {
-                // As tres threads: tres regadores ao mesmo tempo, cada um no seu compasso.
-                for (int k = 0; k < 3; ++k) {
-                    const Vector2 de = cpu + Vector2(-64.0f + 64.0f * static_cast<float>(k), 6.0f);
-                    const float fase = static_cast<float>(mInstrucoes) * 0.55f + static_cast<float>(k) * 2.1f;
-                    DispararEm(kGatilhoDaInstrucao, de, 1, 90.0f + 32.0f * std::sin(fase), 0.0f);
-                }
+    // As faixas: a de quem roda chove, a do proximo da fila fica marcada, as outras sao so divisorias.
+    for (int f = 0; f <= kFaixas; ++f) {
+        const float x = InicioDaFaixa(0, campo.x, campo.w) + LarguraDaFaixa(campo.w) * static_cast<float>(f);
+        Linha(Vector2(x, campo.y + 112.0f), Vector2(x, campo.y + campo.h), kDivisoria);
+    }
+    std::vector<int> chovendo;
+    SDL_Color corDaVez = kPerigo;
+    if (mRR->Rodando()) {
+        if (const Processo* p = mRR->Achar(*mRR->Rodando())) {
+            chovendo = FaixasQueRodam(*p);
+            corDaVez = kCores[static_cast<size_t>((p->pid - 1) % 9)];
+        }
+    }
+    if (!mRR->Prontos().empty()) {
+        if (const Processo* p = mRR->Achar(mRR->Prontos().front())) {
+            for (const int f : FaixasQueRodam(*p)) {
+                if (std::find(chovendo.begin(), chovendo.end(), f) == chovendo.end()) Faixa(f, kProxima, true);
             }
+        }
+    }
+    for (const int f : chovendo) Faixa(f, corDaVez, false);
+    if (!chovendo.empty() && t >= mProximaGota) {
+        mProximaGota = t + kEntreGotas * mDegrauDoEscalonador.cadencia;
+        for (const int f : chovendo) {
+            const float x0 = InicioDaFaixa(f, campo.x, campo.w) + 12.0f;
+            const float x1 = x0 + LarguraDaFaixa(campo.w) - 24.0f;
+            Um(kGatilhoDaInstrucao, Vector2(mSorteio.Real(x0, x1), campo.y + 114.0f), "", 1.0f,
+               Vector2(0.0f, kVelocidadeDaChuva * mDegrauDoEscalonador.chuva));
         }
     }
 
@@ -371,64 +385,170 @@ void Goulart::AtualizarEscalonador(const float t, const float deltaTime) {
         const float ate = gx + gw * std::clamp((f.ate < 0.0f ? t : f.ate) / Fase::kDuracao, 0.0f, 1.0f);
         Faixa(de, std::max(de + 1.0f, ate), gy, 4, kCores[static_cast<size_t>((f.pid - 1) % 9)]);
     }
-    Linha(Vector2(gx + gw * std::clamp(t / Fase::kDuracao, 0.0f, 1.0f), gy - 4.0f),
-          Vector2(gx + gw * std::clamp(t / Fase::kDuracao, 0.0f, 1.0f), gy + 12.0f), kPonteiro);
+    const float agora = gx + gw * std::clamp(t / Fase::kDuracao, 0.0f, 1.0f);
+    Linha(Vector2(agora, gy - 4.0f), Vector2(agora, gy + 12.0f), kPonteiro);
 
     PlacarDaFase(kFase, mRelogio < mAvisoAte ? mAviso : Placar(*mRR));
-    // A CPU anda de um lado ao outro no alto.
-    mAlvo = Vector2(campo.x + campo.w * (0.5f + 0.18f * Math::Sin(Math::TwoPi * t / 7.0f)), campo.y + 62.0f);
+    // A CPU anda devagar de um lado ao outro no alto: quem quer acerta-la escolhe a faixa.
+    mAlvo = Vector2(campo.x + campo.w * (0.5f + 0.2f * Math::Sin(Math::TwoPi * t / 9.0f)), campo.y + 62.0f);
 }
 
 // ---- Fase 2: a paginacao ----
 
 Vector2 Goulart::CentroDoRelogio() const {
     const SDL_FRect c = Campo();
-    return Vector2(c.x + c.w * 0.5f, c.y + 300.0f);
+    return Vector2(c.x + c.w * 0.5f, c.y + 250.0f);
 }
 
 Vector2 Goulart::LugarDaMoldura(const int m) const {
     const int n = mMemoria ? static_cast<int>(mMemoria->Molduras().size()) : 1;
     const float a = -Math::Pi / 2.0f + Math::TwoPi * static_cast<float>(m) / static_cast<float>(std::max(n, 1));
-    return CentroDoRelogio() + Vector2(Math::Cos(a), Math::Sin(a)) * 122.0f;
+    return CentroDoRelogio() + Vector2(Math::Cos(a), Math::Sin(a)) * 96.0f;
 }
 
 Vector2 Goulart::LugarDaEntrada(const int p) const {
+    // A entrada da tabela fica no chao, no pe da coluna da pagina.
     const SDL_FRect c = Campo();
-    return Vector2(c.x + 66.0f, c.y + 150.0f + 40.0f * static_cast<float>(p));
+    return Vector2(Paginacao::InicioDaPagina(p, c.x, c.w) + Paginacao::LarguraDaPagina(c.w) / 2.0f, c.y + c.h - 18.0f);
+}
+
+void Goulart::Despejar(const int p, const float agora, const float inicio) {
+    mCortinas.push_back(Cortina{p, agora, inicio, inicio + Paginacao::kDespejo, inicio});
 }
 
 void Goulart::DesmontarPaginacao() {
     for (BossProjectile*& p : mMolduras) Matar(p);
     mMolduras.clear();
     for (BossProjectile*& p : mEntradas) Matar(p);
-    for (Chegando& c : mChegando) Matar(c.p);
-    mChegando.clear();
     mMemoria.reset();
     mEtapaDaPaginacao = -1;
+    mPaginaDoAluno = -1;
+    mPaginaDoProfessor = -1;
     mUltimasFaltas.clear();
     mVarredura.reset();
+    mCortinas.clear();
     mUltimaReferencia.clear();
+}
+
+void Goulart::TrazerPagina(const int p, const int m) {
+    const Vector2 de = GetPosition() + Vector2(0.0f, 50.0f);
+    const float voo = 0.35f;
+    if (BossProjectile* chega = Um(Paginacao::kGatilhoDaPagina, de, "Pg" + std::to_string(p), 1.0f,
+                                   (LugarDaMoldura(m) - de) * (1.0f / voo))) {
+        chega->DefinirEnfeite(true);
+    }
 }
 
 void Goulart::AtualizarPaginacao(const float t, const float deltaTime) {
     using namespace Paginacao;
     (void)deltaTime;
     const SDL_FRect campo = Campo();
-    if (!mMemoria) {
-        mMemoria.emplace(mDegrauDaPaginacao.molduras);
-        mBaseDoConjunto = mSorteio.Inteiro(0, kPaginas - 1);
-        mProximaReferencia = t + 0.8f;
-    }
+    const Dificuldade::Nivel nivel = NivelDeDificuldade();
     const int etapa = EtapaNoTempo(t);
+    if (!mMemoria) {
+        mMemoria.emplace(MoldurasNaEtapa(0, nivel));
+        mProximoAcesso = t + 1.0f;
+        mProximaDoProfessor = t + 2.0f;
+    }
     if (etapa != mEtapaDaPaginacao) {
+        // A memoria encolhe: as molduras de sobra saem, e as paginas delas desabam.
+        if (mEtapaDaPaginacao >= 0) {
+            for (const int p : mMemoria->Encolher(MoldurasNaEtapa(etapa, nivel))) Despejar(p, t, t + 0.5f);
+            // \xc3\xb3 e o o com acento.
+            Avisar("Outro processo pegou mem\xc3\xb3ria: " + std::to_string(mMemoria->Molduras().size()) + " molduras", 1.6f);
+        }
         mEtapaDaPaginacao = etapa;
-        mConjunto = ConjuntoDeTrabalho(etapa, static_cast<int>(mMemoria->Molduras().size()), mBaseDoConjunto);
-        mCursor = -1;
     }
     const auto& molduras = mMemoria->Molduras();
     const int n = static_cast<int>(molduras.size());
 
-    // A memoria fisica e a tabela de paginas, como o relogio as deixou.
+    // O aluno e a referencia: a coluna em que ele esta e a pagina lida - ao entrar nela, e de tempos
+    // em tempos enquanto fica.
+    const Vector2 aluno = PosicaoDoAluno();
+    const int pagina = PaginaDoX(aluno.x, campo.x, campo.w);
+    if (pagina != mPaginaDoAluno || t >= mProximaLeitura) {
+        mPaginaDoAluno = pagina;
+        mProximaLeitura = t + kEntreLeituras;
+        const std::uint32_t endereco = Montar(pagina, mSorteio.Inteiro(0, (1 << kBitsDoDeslocamento) - 1));
+        const Referencia r = mMemoria->Referenciar(pagina);
+        mUltimasFaltas.push_back(!r.acerto);
+        while (static_cast<int>(mUltimasFaltas.size()) > kJanelaDoThrashing) mUltimasFaltas.pop_front();
+        if (r.acerto) {
+            mUltimaReferencia = PlacarDoAcerto(endereco, r.moldura);
+        } else {
+            mUltimaReferencia = PlacarDaFalta(endereco, r.vitima, r.moldura);
+            mFaltouEm = t;
+            mVarredura = Varredura{r.segundaChance, r.moldura, t};
+            // A vitima desaba quando o ponteiro chega nela: ate la, a coluna dela fica marcada.
+            if (r.vitima >= 0) {
+                Despejar(r.vitima, t, t + kPassoDoPonteiro * static_cast<float>(r.segundaChance.size() + 1) + 0.25f);
+            }
+            TrazerPagina(pagina, r.moldura);
+        }
+    }
+
+    // O professor tambem le as paginas dele, pelo mesmo relogio: a falta dele despeja uma vitima onde
+    // ela estiver. A do aluno tem o R aceso e quase sempre escapa - se nao escapar, desaba mais devagar.
+    if (t >= mProximaDoProfessor) {
+        mProximaDoProfessor = t + EntreLeiturasDoProfessor(mDegrauDaPaginacao, etapa);
+        mPaginaDoProfessor = PaginaDoProfessor(mSorteio.Inteiro(0, kPaginas - 2), pagina);
+        mProfessorLeuEm = t;
+        const Referencia r = mMemoria->Referenciar(mPaginaDoProfessor);
+        if (!r.acerto) {
+            mVarredura = Varredura{r.segundaChance, r.moldura, t};
+            if (r.vitima >= 0) {
+                float inicio = t + kPassoDoPonteiro * static_cast<float>(r.segundaChance.size() + 1) + 0.25f;
+                if (r.vitima == pagina) inicio = std::max(inicio, t + 0.8f);
+                Despejar(r.vitima, t, inicio);
+            }
+            TrazerPagina(mPaginaDoProfessor, r.moldura);
+        }
+    }
+    if (mPaginaDoProfessor >= 0 && t - mProfessorLeuEm < 0.45f) {
+        Linha(GetPosition() + Vector2(0.0f, 40.0f), LugarDaEntrada(mPaginaDoProfessor) + Vector2(0.0f, -14.0f), kProxima);
+    }
+
+    // As cortinas: a coluna marcada, e depois os pedacos da pagina caindo de cima a baixo.
+    for (Cortina& c : mCortinas) {
+        const float x0 = InicioDaPagina(c.pagina, campo.x, campo.w), largura = LarguraDaPagina(campo.w);
+        if (t < c.inicio) {
+            const bool aceso = static_cast<int>((t - c.marcada) / 0.08f) % 2 == 0;
+            if (aceso) {
+                for (const float x : {x0 + 2.0f, x0 + largura - 2.0f}) {
+                    Linha(Vector2(x, campo.y + 110.0f), Vector2(x, campo.y + campo.h), kPerigo);
+                }
+            }
+            continue;
+        }
+        while (t >= c.proximo && c.proximo < c.fim) {
+            c.proximo += kEntrePedacos;
+            Um(kGatilhoDaVitima, Vector2(mSorteio.Real(x0 + 10.0f, x0 + largura - 10.0f), campo.y + 112.0f),
+               "Pg" + std::to_string(c.pagina), 1.0f, Vector2(0.0f, kVelocidadeDoDespejo));
+        }
+    }
+    mCortinas.erase(std::remove_if(mCortinas.begin(), mCortinas.end(), [t](const Cortina& c) { return t >= c.fim; }),
+                    mCortinas.end());
+
+    // O professor tambem le: um leque mirado de tanto em tanto, que tira o aluno do lugar.
+    if (t >= mProximoAcesso) {
+        mProximoAcesso = t + mDegrauDaPaginacao.entreAcessos;
+        const Vector2 de = GetPosition() + Vector2(0.0f, 50.0f);
+        DispararEm(kGatilhoDoAcesso, de, 0, AnguloAteOAluno(de));
+    }
+
+    // As colunas do chao, a do aluno acesa (verde no acerto, vermelha logo depois de uma falta).
+    for (int p = 0; p <= kPaginas; ++p) {
+        const float x = InicioDaPagina(0, campo.x, campo.w) + LarguraDaPagina(campo.w) * static_cast<float>(p);
+        Linha(Vector2(x, campo.y + 110.0f), Vector2(x, campo.y + campo.h), kDivisoria);
+    }
+    {
+        const float x0 = InicioDaPagina(pagina, campo.x, campo.w), largura = LarguraDaPagina(campo.w);
+        const SDL_Color cor = t - mFaltouEm < 0.35f ? kPerigo : kVoce;
+        Linha(Vector2(x0 + 3.0f, campo.y + campo.h - 40.0f), Vector2(x0 + largura - 3.0f, campo.y + campo.h - 40.0f), cor);
+    }
+
+    // A memoria fisica (o relogio) e a tabela de paginas no chao, como o relogio as deixou.
+    for (size_t m = static_cast<size_t>(n); m < mMolduras.size(); ++m) Matar(mMolduras[m]);
     mMolduras.resize(static_cast<size_t>(n), nullptr);
     for (int m = 0; m < n; ++m) {
         const Moldura& mo = molduras[static_cast<size_t>(m)];
@@ -439,6 +559,7 @@ void Goulart::AtualizarPaginacao(const float t, const float deltaTime) {
             p = Um(kGatilhoDaMoldura, LugarDaMoldura(m), cara);
             if (p) p->DefinirEnfeite(true);
         }
+        if (p) p->SetPosition(LugarDaMoldura(m));
         Cara(p, cara);
     }
     for (int pg = 0; pg < kPaginas; ++pg) {
@@ -451,66 +572,25 @@ void Goulart::AtualizarPaginacao(const float t, const float deltaTime) {
         }
         Cara(p, cara);
         // A entrada valida aponta a moldura: o mapeamento da MMU.
-        if (m >= 0) Linha(LugarDaEntrada(pg) + Vector2(26.0f, 0.0f), LugarDaMoldura(m), kMapeamento);
+        if (m >= 0) Linha(LugarDaEntrada(pg) + Vector2(0.0f, -14.0f), LugarDaMoldura(m), kMapeamento);
     }
-
-    // A referencia da vez: acerto, ou falta de pagina.
-    if (t >= mProximaReferencia) {
-        mProximaReferencia = t + EntreReferencias(etapa, NivelDeDificuldade());
-        const int pagina = ProximaReferencia(mSorteio, mConjunto, mDegrauDaPaginacao.fora, mCursor, etapa == 2);
-        const std::uint32_t endereco = Montar(pagina, mSorteio.Inteiro(0, (1 << kBitsDoDeslocamento) - 1));
-        const Referencia r = mMemoria->Referenciar(pagina);
-        mUltimasFaltas.push_back(!r.acerto);
-        while (static_cast<int>(mUltimasFaltas.size()) > kJanelaDoThrashing) mUltimasFaltas.pop_front();
-        const Vector2 lugar = LugarDaMoldura(r.moldura);
-        if (r.acerto) {
-            DispararEm(kGatilhoDoAcesso, lugar, 0, AnguloAteOAluno(lugar));
-            mUltimaReferencia = PlacarDoAcerto(endereco, r.moldura);
-        } else {
-            // A falta e um trap para o sistema: o professor busca a pagina no disco.
-            DispararEm(kGatilhoDaFalta, GetPosition() + Vector2(0.0f, 50.0f));
-            mVarredura = Varredura{r.segundaChance, r.moldura, r.vitima, t, false};
-            mUltimaReferencia = PlacarDaFalta(endereco, r.vitima, r.moldura);
-            const Vector2 de = GetPosition() + Vector2(0.0f, 50.0f);
-            const float voo = 0.35f;
-            if (BossProjectile* chega = Um(kGatilhoDaPagina, de, "Pg" + std::to_string(pagina), 1.0f, (lugar - de) * (1.0f / voo))) {
-                chega->DefinirEnfeite(true);
-                mChegando.push_back(Chegando{chega, t + voo});
-            }
-        }
-    }
-    for (Chegando& c : mChegando) if (t >= c.ate) Matar(c.p);
-    mChegando.erase(std::remove_if(mChegando.begin(), mChegando.end(), [](const Chegando& c) { return !c.p; }), mChegando.end());
 
     // O ponteiro do relogio: parado na moldura da vez, ou varrendo - a segunda chance, passo a passo.
     int apontada = mMemoria->Ponteiro();
     if (mVarredura) {
         const int passo = static_cast<int>((t - mVarredura->desde) / kPassoDoPonteiro);
-        if (passo < static_cast<int>(mVarredura->passos.size())) {
-            apontada = mVarredura->passos[static_cast<size_t>(passo)];
-        } else {
-            apontada = mVarredura->moldura;
-            if (!mVarredura->despejou) {
-                mVarredura->despejou = true;
-                // A pagina vitima e despejada no aluno.
-                if (mVarredura->vitima >= 0) {
-                    const Vector2 de = LugarDaMoldura(mVarredura->moldura);
-                    const float a = Math::ToRadians(AnguloAteOAluno(de));
-                    Um(kGatilhoDaVitima, de, "Pg" + std::to_string(mVarredura->vitima), 1.0f,
-                       Vector2(Math::Cos(a), Math::Sin(a)) * 190.0f);
-                }
-            }
-            if (passo > static_cast<int>(mVarredura->passos.size()) + 3) mVarredura.reset();
-        }
+        if (passo < static_cast<int>(mVarredura->passos.size())) apontada = mVarredura->passos[static_cast<size_t>(passo)];
+        else if (passo <= static_cast<int>(mVarredura->passos.size()) + 2) apontada = mVarredura->moldura;
+        else mVarredura.reset();
     }
-    Linha(CentroDoRelogio(), LugarDaMoldura(apontada), kPonteiro);
-    for (int m = 0; m < n; ++m) Linha(CentroDoRelogio(), CentroDoRelogio() + (LugarDaMoldura(m) - CentroDoRelogio()) * 0.18f, kEixo);
+    if (apontada >= 0 && apontada < n) Linha(CentroDoRelogio(), LugarDaMoldura(apontada), kPonteiro);
 
     std::string placar = mUltimaReferencia;
     if (etapa == 2 && !mUltimasFaltas.empty()) {
         const int faltas = static_cast<int>(std::count(mUltimasFaltas.begin(), mUltimasFaltas.end(), true));
         placar = PlacarDoThrashing(faltas, static_cast<int>(mUltimasFaltas.size()));
     }
+    if (mRelogio < mAvisoAte) placar = mAviso;
     if (!placar.empty()) PlacarDaEtapa(kFase, static_cast<size_t>(etapa), placar);
     mAlvo = Vector2(campo.x + campo.w * (0.5f + 0.24f * Math::Sin(Math::TwoPi * t / 8.0f)), campo.y + 62.0f);
 }
@@ -538,6 +618,7 @@ void Goulart::DesmontarDisco() {
     mEtapaDoDisco = -1;
     mUltimoCilindro = -1;
     mAtendidos.clear();
+    mLeituras.clear();
     mSentido = -1;
 }
 
@@ -563,12 +644,12 @@ void Goulart::AtualizarDisco(const float t, const float deltaTime) {
         const int c = mSorteio.Inteiro(0, kCilindros - 1);
         if (BossProjectile* p = Um(kGatilhoDoPedido, Vector2(XDoCilindro(c, XDaTrilha(), LarguraDaTrilha()), YDaTrilha()), "Novo")) {
             p->DefinirResistencia(2);
-            mPedidos.push_back(Pedido{p, c, t, t + kFome});
+            mPedidos.push_back(Pedido{p, c, t});
         }
     }
 
     // O braco vai ao alvo do algoritmo e fica com ele ate atende-lo - sem isso, dois pedidos quase a
-    // mesma distancia o fariam tremer no meio. E le o que estiver embaixo dele (no FCFS, so o da vez).
+    // mesma distancia o fariam tremer no meio.
     bool aindaVale = false;
     if (mPedidoDoBraco) {
         for (const Pedido& p : mPedidos) if (p.p == mPedidoDoBraco) aindaVale = true;
@@ -587,6 +668,8 @@ void Goulart::AtualizarDisco(const float t, const float deltaTime) {
         mEtapaDoBraco = etapa;
     }
     const int alvo = mAlvoDoBraco;
+
+    // O que estiver embaixo do braco e lido (no FCFS, so o da vez), e o bloco cai na coluna dele.
     for (auto it = mPedidos.begin(); it != mPedidos.end();) {
         const float x = XDoCilindro(it->cilindro, XDaTrilha(), LarguraDaTrilha());
         const bool embaixo = std::fabs(x - GetPosition().x) < kAlcance;
@@ -594,33 +677,46 @@ void Goulart::AtualizarDisco(const float t, const float deltaTime) {
             ++it;
             continue;
         }
-        DispararEm(kGatilhoDaLeitura, it->p->GetPosition(), 0, 90.0f);
-        // O quanto o braco andou e o caminho entre os pedidos que ele atendeu, na ordem em que os
-        // atendeu - o mesmo caminho que o FCFS faria na ordem de chegada.
+        const bool faminto = t - it->chegou >= kFome;
+        mLeituras.push_back(Leitura{x, faminto ? 30.0f : 18.0f, t + (faminto ? 1.0f : 0.55f), t});
         mAndou += std::abs(it->cilindro - mUltimoCilindro);
         mUltimoCilindro = it->cilindro;
         mAtendidos.emplace_back(it->chegou, it->cilindro);
+        if (faminto) Avisar("o pedido faminto enfim foi lido: o bloco dele vem largo", 1.0f);
         Matar(it->p);
         it = mPedidos.erase(it);
     }
+    for (Leitura& l : mLeituras) {
+        while (t >= l.proximo && l.proximo < l.fim) {
+            l.proximo += 0.045f;
+            Um(kGatilhoDaLeitura, Vector2(mSorteio.Real(l.x - l.meia, l.x + l.meia), YDaTrilha() + 14.0f), "", 1.0f,
+               Vector2(0.0f, mDegrauDoDisco.queda));
+        }
+    }
+    mLeituras.erase(std::remove_if(mLeituras.begin(), mLeituras.end(), [t](const Leitura& l) { return t >= l.fim; }),
+                    mLeituras.end());
 
-    // Quem espera demais passa fome - e grita.
+    // Quem espera demais passa fome: fica vermelho - e o bloco dele vira o mais largo.
     for (Pedido& p : mPedidos) {
         const float espera = t - p.chegou;
         Cara(p.p, espera >= kFome ? "Faminto" : espera >= kFome / 2.0f ? "Velho" : "Novo");
-        if (espera >= kFome && t >= p.proximoGrito) {
-            p.proximoGrito = t + kEntreGritos;
-            DispararEm(kGatilhoDaFome, p.p->GetPosition());
-        }
     }
 
-    // A trilha, as marcas dos cilindros e o braco descendo do professor ate ela.
+    // A trilha, as marcas dos cilindros, o braco descendo do professor ate ela - e o pedido que ele
+    // vai ler: a linha ate ele, e a coluna dele tracejada ate o chao.
     Linha(Vector2(XDaTrilha(), YDaTrilha()), Vector2(XDaTrilha() + LarguraDaTrilha(), YDaTrilha()), kTrilha);
     for (int c = 0; c < kCilindros; c += 25) {
         const float x = XDoCilindro(c, XDaTrilha(), LarguraDaTrilha());
         Linha(Vector2(x, YDaTrilha() - 5.0f), Vector2(x, YDaTrilha() + 5.0f), kTrilha);
     }
     Linha(GetPosition() + Vector2(0.0f, 40.0f), Vector2(GetPosition().x, YDaTrilha()), kBraco);
+    if (mPedidoDoBraco && Vivo(mPedidoDoBraco)) {
+        const Vector2 lugar = mPedidoDoBraco->GetPosition();
+        Linha(Vector2(GetPosition().x, YDaTrilha()), lugar, kProxima);
+        for (float y = YDaTrilha() + 16.0f; y < campo.y + campo.h; y += 22.0f) {
+            Linha(Vector2(lugar.x, y), Vector2(lugar.x, std::min(campo.y + campo.h, y + 11.0f)), kProxima);
+        }
+    }
 
     // O placar: o quanto o braco andou, e o quanto o FCFS andaria com os mesmos pedidos.
     std::vector<std::pair<float, int>> ordem = mAtendidos;
@@ -643,7 +739,10 @@ Vector2 Goulart::LugarDoHost(const int k) const {
 }
 
 void Goulart::DesmontarNuvem() {
-    for (Vm& v : mVms) Matar(v.p);
+    for (Vm& v : mVms) {
+        Matar(v.p);
+        for (Preso& pr : v.presos) Matar(pr.p);
+    }
     mVms.clear();
     for (Trap& tr : mTraps) Matar(tr.p);
     mTraps.clear();
@@ -655,12 +754,15 @@ void Goulart::DesmontarNuvem() {
 
 void Goulart::AtualizarNuvem(const float t, const float deltaTime) {
     using namespace Virtualizacao;
-    (void)deltaTime;
     const int etapa = EtapaNoTempo(t);
     const float cadencia = mDegrauDaNuvem.cadencia;
 
-    // As VMs que sumiram (o Ponto Extra as leva) saem da conta, e a nuvem repoe.
+    // As VMs que sumiram (o Ponto Extra as leva) saem da conta com os tiros delas, e a nuvem repoe.
     const size_t antes = mVms.size();
+    for (Vm& v : mVms) {
+        if (Vivo(v.p)) continue;
+        for (Preso& pr : v.presos) Matar(pr.p);
+    }
     mVms.erase(std::remove_if(mVms.begin(), mVms.end(), [](const Vm& v) { return !Vivo(v.p); }), mVms.end());
     if (mVms.size() < antes) mReporDepois = std::max(mReporDepois, t + kReposicao);
 
@@ -677,14 +779,14 @@ void Goulart::AtualizarNuvem(const float t, const float deltaTime) {
             if (BossProjectile* p = Um(kGatilhoDaVm, LugarDoHost(host), "Vm" + std::to_string((id - 1) % 4 + 1))) {
                 p->DefinirResistencia(4);
                 const float defasagem = 0.37f * static_cast<float>(id % 4);
-                mVms.push_back(Vm{p, id, host, -1, 0.0f, t + 0.6f + defasagem, t + 1.0f + defasagem});
+                mVms.push_back(Vm{p, id, host, -1, 0.0f, t + 0.3f, t + 1.0f + defasagem, LugarDoHost(host), {}});
                 if (etapa == 2 && queridas > mVmsAntes) Avisar(PlacarDaEscala(static_cast<int>(mVms.size()) - 1, static_cast<int>(mVms.size())));
             }
         }
     }
     mVmsAntes = std::max(mVmsAntes, queridas);
 
-    // A migracao ao vivo: uma VM por vez escorrega para um host livre, sem parar de rodar.
+    // A migracao ao vivo: uma VM por vez escorrega para um host livre, com tudo o que tem dentro.
     if (etapa >= 1 && t >= mProximaMigracao && !mVms.empty()) {
         mProximaMigracao = t + kEntreMigracoes;
         std::vector<bool> ocupado(kHosts, false);
@@ -716,16 +818,31 @@ void Goulart::AtualizarNuvem(const float t, const float deltaTime) {
                 onde = LugarDoHost(v.host);
             }
         }
+        const Vector2 andou = onde - v.onde;
+        v.onde = onde;
         v.p->SetPosition(onde);
         if (auto* rb = v.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
-        Retangulo(onde, kLarguraDaVm, kAlturaDaVm, kCores[static_cast<size_t>((v.id - 1) % 4)]);
+        const SDL_Color cor = kCores[static_cast<size_t>((v.id - 1) % 4)];
+        Retangulo(onde, kLarguraDaVm, kAlturaDaVm, cor);
+        Retangulo(onde, kLarguraDaVm - 6.0f, kAlturaDaVm - 6.0f, cor);
 
-        // O kernel do convidado roda: um anel.
-        if (t >= v.proximoKernel) {
+        // O kernel do convidado: os tiros dele nascem dentro da caixa e quicam nas paredes - a VM isola.
+        v.presos.erase(std::remove_if(v.presos.begin(), v.presos.end(), [](const Preso& pr) { return !Vivo(pr.p); }),
+                       v.presos.end());
+        if (t >= v.proximoKernel && static_cast<int>(v.presos.size()) < kTirosPorVm) {
             v.proximoKernel = t + kEntreKernels * cadencia;
-            DispararEm(kGatilhoDoKernel, onde);
+            const float a = mSorteio.Real(0.0f, Math::TwoPi);
+            const Vector2 vel(Math::Cos(a) * kVelocidadeDoKernel, Math::Sin(a) * kVelocidadeDoKernel);
+            if (BossProjectile* p = Um(kGatilhoDoKernel, onde, "", 1.0f, vel)) v.presos.push_back(Preso{p, vel});
         }
-        // A instrucao privilegiada: um trap ate o hipervisor (parada, a VM; migrando, espera).
+        for (Preso& pr : v.presos) {
+            Vector2 aqui = pr.p->GetPosition() + andou;   // a caixa migrou: o que esta dentro vai junto
+            Quicar(aqui, pr.velocidade, onde, kLarguraDaVm, kAlturaDaVm, 8.0f);
+            pr.p->SetPosition(aqui);
+            if (auto* rb = pr.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(pr.velocidade);
+        }
+
+        // A instrucao privilegiada: o trap, o unico que sai da caixa, voa ate o hipervisor.
         if (t >= v.proximoTrap && v.destino < 0) {
             v.proximoTrap = t + kEntreTraps * cadencia;
             if (BossProjectile* trap = Um(kGatilhoDoTrap, onde, "", 1.0f, (hipervisor - onde) * (1.0f / kVooDoTrap))) {
@@ -735,6 +852,7 @@ void Goulart::AtualizarNuvem(const float t, const float deltaTime) {
             }
         }
     }
+    (void)deltaTime;
 
     // O trap que chegou: o hipervisor emula a instrucao - e atira no aluno.
     for (Trap& tr : mTraps) {
