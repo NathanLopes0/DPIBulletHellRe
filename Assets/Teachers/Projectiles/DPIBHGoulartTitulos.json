@@ -1,0 +1,59 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHGoulartTitulos 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 22
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 22
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 22
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartTitulos 1.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 0,
+    "w": 96,
+    "h": 22
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 96,
+    "h": 22
+   },
+   "sourceSize": {
+    "w": 96,
+    "h": 22
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_goulart.py",
+  "version": "1.0",
+  "image": "DPIBHGoulartTitulos.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 192,
+   "h": 22
+  },
+  "scale": "1"
+ }
+}

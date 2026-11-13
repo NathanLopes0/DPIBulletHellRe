@@ -93,6 +93,16 @@
       "nomeCompleto": "Projeto e Análise de Algoritmos", "professor": "Arroyo",
       "coluna": 2, "chefe": "arroyo",
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"] }
+    },
+
+    // ---- Coluna 3, de novo: a INF 451 entrou depois ----
+    // Tambem no fim da lista, pelo mesmo motivo da INF 332 (--batalha 12 e ela). Na grade, ela fica
+    // embaixo da INF 310, a ultima da coluna - a direita da INF 332.
+    {
+      "codigo": "INF451", "nome": "INF 451",
+      "nomeCompleto": "Sistemas Operacionais", "professor": "Goulart",
+      "coluna": 3, "chefe": "goulart",
+      "desbloqueio": { "tipo": "aprovadasNaColuna", "quantas": 2, "coluna": 2 }
     }
   ]
 }

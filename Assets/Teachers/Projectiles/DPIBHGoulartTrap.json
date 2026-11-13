@@ -1,0 +1,37 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHGoulartTrap 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 18,
+    "h": 18
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 18,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 18,
+    "h": 18
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_goulart.py",
+  "version": "1.0",
+  "image": "DPIBHGoulartTrap.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 18,
+   "h": 18
+  },
+  "scale": "1"
+ }
+}

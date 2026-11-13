@@ -1,0 +1,191 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHGoulartPaginas 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 26
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 26
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 26
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartPaginas 1.placeholder",
+   "frame": {
+    "x": 22,
+    "y": 0,
+    "w": 22,
+    "h": 26
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 26
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 26
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartPaginas 2.placeholder",
+   "frame": {
+    "x": 44,
+    "y": 0,
+    "w": 22,
+    "h": 26
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 26
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 26
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartPaginas 3.placeholder",
+   "frame": {
+    "x": 66,
+    "y": 0,
+    "w": 22,
+    "h": 26
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 26
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 26
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartPaginas 4.placeholder",
+   "frame": {
+    "x": 88,
+    "y": 0,
+    "w": 22,
+    "h": 26
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 26
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 26
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartPaginas 5.placeholder",
+   "frame": {
+    "x": 110,
+    "y": 0,
+    "w": 22,
+    "h": 26
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 26
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 26
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartPaginas 6.placeholder",
+   "frame": {
+    "x": 132,
+    "y": 0,
+    "w": 22,
+    "h": 26
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 26
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 26
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartPaginas 7.placeholder",
+   "frame": {
+    "x": 154,
+    "y": 0,
+    "w": 22,
+    "h": 26
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 26
+   },
+   "sourceSize": {
+    "w": 22,
+    "h": 26
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_goulart.py",
+  "version": "1.0",
+  "image": "DPIBHGoulartPaginas.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 176,
+   "h": 26
+  },
+  "scale": "1"
+ }
+}

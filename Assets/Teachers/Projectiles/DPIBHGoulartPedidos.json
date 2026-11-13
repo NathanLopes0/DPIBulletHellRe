@@ -1,0 +1,81 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHGoulartPedidos 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 26,
+    "h": 26
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 26,
+    "h": 26
+   },
+   "sourceSize": {
+    "w": 26,
+    "h": 26
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartPedidos 1.placeholder",
+   "frame": {
+    "x": 26,
+    "y": 0,
+    "w": 26,
+    "h": 26
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 26,
+    "h": 26
+   },
+   "sourceSize": {
+    "w": 26,
+    "h": 26
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartPedidos 2.placeholder",
+   "frame": {
+    "x": 52,
+    "y": 0,
+    "w": 26,
+    "h": 26
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 26,
+    "h": 26
+   },
+   "sourceSize": {
+    "w": 26,
+    "h": 26
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_goulart.py",
+  "version": "1.0",
+  "image": "DPIBHGoulartPedidos.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 78,
+   "h": 26
+  },
+  "scale": "1"
+ }
+}

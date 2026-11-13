@@ -1,0 +1,213 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHGoulartProcessos 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartProcessos 1.placeholder",
+   "frame": {
+    "x": 44,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartProcessos 2.placeholder",
+   "frame": {
+    "x": 88,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartProcessos 3.placeholder",
+   "frame": {
+    "x": 132,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartProcessos 4.placeholder",
+   "frame": {
+    "x": 176,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartProcessos 5.placeholder",
+   "frame": {
+    "x": 220,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartProcessos 6.placeholder",
+   "frame": {
+    "x": 264,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartProcessos 7.placeholder",
+   "frame": {
+    "x": 308,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 28
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartProcessos 8.placeholder",
+   "frame": {
+    "x": 352,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 28
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_goulart.py",
+  "version": "1.0",
+  "image": "DPIBHGoulartProcessos.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 396,
+   "h": 28
+  },
+  "scale": "1"
+ }
+}

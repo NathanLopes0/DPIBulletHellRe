@@ -1,0 +1,9 @@
+{
+  // As regras de projetil do Goulart (INF 451 - Sistemas Operacionais).
+
+  // Fase 2, a pagina despejada: sai mirada e, por um instante, ainda procura o aluno - o que a
+  // memoria tirou volta a incomodar.
+  "despejo": [
+    { "motion": { "tipo": "Tracking", "atraso": 0.2, "forca": 0.9, "duracao": 0.9 } }
+  ]
+}

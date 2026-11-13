@@ -22,6 +22,7 @@ namespace Golpe {
         if (professor == "Lucas") return Materia::Lucas;
         if (professor == "Vitor") return Materia::Vitor;
         if (professor == "Arroyo") return Materia::Arroyo;
+        if (professor == "Goulart") return Materia::Goulart;
         return Materia::Generico;
     }
 
@@ -149,6 +150,20 @@ namespace Golpe {
                     Tiro t;
                     t.desvio = lado;
                     t.reMira = 0.22f;
+                    r.tiros.push_back(t);
+                }
+                break;
+            }
+
+            case Materia::Goulart: {
+                // O Round Robin: cada rodada e o quantum de um processo - uma rajada curta -, e o
+                // seguinte vem de outro lado.
+                r.duracao = 1.4f;
+                const float lado = 12.0f * static_cast<float>(k % 3 - 1);
+                for (int i = 0; i < 3; ++i) {
+                    Tiro t;
+                    t.quando = 0.08f * static_cast<float>(i);
+                    t.desvio = lado;
                     r.tiros.push_back(t);
                 }
                 break;

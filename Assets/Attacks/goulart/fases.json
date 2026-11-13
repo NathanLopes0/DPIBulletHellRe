@@ -1,0 +1,105 @@
+{
+  // As fases do Goulart (INF 451 - Sistemas Operacionais). O que cada uma faz mora no C++
+  // (Goulart.cpp) e na camada pura (Escalonador.h, Paginacao.h, Disco.h, Virtualizacao.h); aqui
+  // ficam os tiros que ele puxa pelo gatilho, e os nomes que o placar mostra.
+
+  // ==========================================================================
+
+  // Fase 1 - os processos: o escalonador Round Robin | gesto: a CPU anda de um lado ao outro no
+  // alto. O placar e reescrito pelo C++ com o estado das filas.
+  "StateOne": {
+    "duracao": 20,
+    "proximo": "StateTwo",
+    "anuncio": "Processos: o escalonador",
+    "movimento": { "tipo": "Conduzido", "a": 240 },
+    "ataques": [
+      { "gatilho": "processo", "estrategia": "WaveAttack", "projetil": "Processo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "titulo", "estrategia": "WaveAttack", "projetil": "Titulo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "instrucao", "estrategia": "WaveAttack", "projetil": "Instrucao",
+        "projeteis": 1, "velocidade": 200, "angulo": 0, "intervalo": 0, "dificil": { "velocidade": 225 } },
+      { "gatilho": "troca", "estrategia": "CircleSpreadAttack", "projetil": "Sinal",
+        "projeteis": 6, "velocidade": 120, "dificil": { "projeteis": 8 } },
+      { "gatilho": "interrupcao", "estrategia": "CircleSpreadAttack", "projetil": "Sinal",
+        "projeteis": 5, "velocidade": 135 },
+      { "gatilho": "termino", "estrategia": "CircleSpreadAttack", "projetil": "Sinal",
+        "projeteis": 8, "velocidade": 150, "dificil": { "projeteis": 10 } }
+    ]
+  },
+
+  // Fase 2 - a memoria: a paginacao | gesto: o professor anda devagar no alto, buscando paginas no
+  // disco. A memoria fisica e um relogio de molduras; o placar mostra a conta da MMU.
+  "StateTwo": {
+    "duracao": 20,
+    "proximo": "StateThree",
+    "anuncio": "Memória: a paginação",
+    "etapas": [
+      { "nome": "Localidade", "duracao": 8.0, "anuncio": "Localidade: o conjunto de trabalho cabe" },
+      { "nome": "Mudanca",    "duracao": 5.0, "anuncio": "Mudança de fase: outro conjunto" },
+      { "nome": "Thrashing",  "duracao": 7.0, "anuncio": "Thrashing: o laço não cabe na memória" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 200 },
+    "ataques": [
+      { "gatilho": "moldura", "estrategia": "WaveAttack", "projetil": "Moldura",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "entrada", "estrategia": "WaveAttack", "projetil": "Entrada",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "acesso", "estrategia": "WaveAttack", "projetil": "Instrucao",
+        "projeteis": 3, "velocidade": 190, "angulo": 24, "intervalo": 0, "dificil": { "velocidade": 200 } },
+      { "gatilho": "vitima", "estrategia": "WaveAttack", "projetil": "Vitima",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "despejo" },
+      { "gatilho": "pagina", "estrategia": "WaveAttack", "projetil": "Pagina",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "falta", "estrategia": "CircleSpreadAttack", "projetil": "Sinal",
+        "projeteis": 8, "velocidade": 140 }
+    ]
+  },
+
+  // Fase 3 - a entrada e saida: o braco do disco | gesto: o professor e o braco, e vai aonde o
+  // algoritmo da etapa manda.
+  "StateThree": {
+    "duracao": 20,
+    "proximo": "",
+    "anuncio": "Entrada e saída: o disco",
+    "etapas": [
+      { "nome": "FCFS", "duracao": 6.0, "anuncio": "FCFS: na ordem de chegada" },
+      { "nome": "SSTF", "duracao": 7.0, "anuncio": "SSTF: o mais perto primeiro" },
+      { "nome": "SCAN", "duracao": 7.0, "anuncio": "SCAN: o elevador" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 380 },
+    "ataques": [
+      { "gatilho": "requisicao", "estrategia": "WaveAttack", "projetil": "Pedido",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "leitura", "estrategia": "WaveAttack", "projetil": "Bloco",
+        "projeteis": 4, "velocidade": 190, "angulo": 44, "anguloCentral": 90, "intervalo": 0,
+        "dificil": { "velocidade": 205 } },
+      { "gatilho": "fome", "estrategia": "CircleSpreadAttack", "projetil": "Sinal",
+        "projeteis": 7, "velocidade": 150 }
+    ]
+  },
+
+  // Fase final - a virtualizacao e a nuvem | gesto: a orbita lenta do hipervisor. So e vista por
+  // quem termina a terceira entre 40 e 59, ou com 100.
+  "StateFinal": {
+    "duracao": 20,
+    "proximo": "StateOne",
+    "anuncio": "Virtualização e nuvem",
+    "etapas": [
+      { "nome": "Hipervisor",   "duracao": 7.0, "anuncio": "Hipervisor: as VMs e o trap" },
+      { "nome": "Migracao",     "duracao": 6.0, "anuncio": "Migração ao vivo" },
+      { "nome": "Elasticidade", "duracao": 7.0, "anuncio": "Elasticidade: a carga sobe" }
+    ],
+    "movimento": { "tipo": "Orbitar", "a": 150, "b": 0.10 },
+    "ataques": [
+      { "gatilho": "vm", "estrategia": "WaveAttack", "projetil": "Vm",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "kernel", "estrategia": "CircleSpreadAttack", "projetil": "Pacote",
+        "projeteis": 8, "velocidade": 140, "dificil": { "projeteis": 10 } },
+      { "gatilho": "trap", "estrategia": "WaveAttack", "projetil": "Trap",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "emulacao", "estrategia": "WaveAttack", "projetil": "Instrucao",
+        "projeteis": 3, "velocidade": 215, "angulo": 22, "intervalo": 0 }
+    ]
+  }
+}

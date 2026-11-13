@@ -130,9 +130,10 @@ MATERIAS = [
 ]
 
 # Os professores que entraram depois: os ladrilhos vao no FIM da folha (o 22 em diante), para nenhum
-# quadro de antes mudar de numero (Poder::kQuadroDoArroyo).
+# quadro de antes mudar de numero (Poder::kQuadroDoArroyo, Poder::kQuadroDoGoulart).
 MATERIAS_NOVAS = [
     ("Arroyo",     "DPIBHArroyoNos",           0),   # o no da arvore de recursao
+    ("Goulart",    "DPIBHGoulartProcessos",    0),   # o cartao do processo P1
 ]
 
 
@@ -262,7 +263,7 @@ def folha():
 
         0 Pagina   1 Monografia   2 Pergunta   3 a 12 as materias (MATERIAS)
         13 Assinatura   14 A   15 B   16 C   17 Correcao   18 Bug
-        19 Referencia   20 Versao   21 Caixa   22 Arroyo (MATERIAS_NOVAS)
+        19 Referencia   20 Versao   21 Caixa   22 Arroyo   23 Goulart (MATERIAS_NOVAS)
     """
     desenhos = ([pagina(), monografia(), pergunta()] + [ladrilho(f, q, 3 + i) for i, (_, f, q) in enumerate(MATERIAS)] +
                 [assinatura(), resposta("A"), resposta("B"), resposta("C"), correcao(), bug()] +

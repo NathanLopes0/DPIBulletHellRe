@@ -383,6 +383,80 @@ namespace {
         int mPasso = 0;
     };
 
+    // ---- Goulart: o Round Robin ----
+
+    class Rodizio final : public PoderEmCampo {
+    public:
+        void Soltar(Orientador& o, Battle&, const Vector2&, const Vector2&) override {
+            mInicio = o.Tempo();
+            mTiros.clear();
+            mVistos.clear();
+            mProximoGrupo = 0;
+            mAnunciado = -1;
+        }
+        void Atualizar(Orientador& o, Battle& batalha, float, const bool ativo) override {
+            mTiros.erase(std::remove_if(mTiros.begin(), mTiros.end(), [&o](const Tiro& c) { return !Mesmo(o, c); }),
+                         mTiros.end());
+            if (!ativo) {
+                // Acabou o rodizio: quem esperava a vez volta a andar.
+                for (Tiro& c : mTiros) {
+                    if (c.parado) if (auto* rb = c.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(c.velocidade);
+                }
+                mTiros.clear();
+                return;
+            }
+            // Cada tiro novo do Hugo entra num grupo, em rodizio.
+            for (BossProjectile* p : o.TirosSoltos(batalha)) {
+                if (!mVistos.insert(p).second) continue;
+                auto* rb = p->GetComponent<RigidBodyComponent>();
+                mTiros.push_back({p, mProximoGrupo++ % Poder::kGruposDoRodizio, p->GetPosition(),
+                                  rb ? rb->GetVelocity() : Vector2::Zero, false, p->TempoDeVida(), o.Tempo()});
+            }
+            // So o grupo da vez anda; os outros esperam onde estao.
+            const int daVez = Poder::GrupoDaVez(o.Tempo() - mInicio);
+            for (Tiro& c : mTiros) {
+                auto* rb = c.p->GetComponent<RigidBodyComponent>();
+                if (c.grupo == daVez) {
+                    if (c.parado && rb) rb->SetVelocity(c.velocidade);
+                    c.parado = false;
+                    continue;
+                }
+                if (!c.parado) {
+                    c.parado = true;
+                    c.posicao = c.p->GetPosition();
+                    if (rb) c.velocidade = rb->GetVelocity();
+                }
+                c.p->SetPosition(c.posicao);
+                if (rb) rb->SetVelocity(Vector2::Zero);
+            }
+            if (daVez != mAnunciado) {
+                mAnunciado = daVez;
+                o.Rotular("quantum: o grupo " + std::to_string(daVez + 1) + " de " +
+                          std::to_string(Poder::kGruposDoRodizio) + " anda");
+            }
+        }
+    private:
+        struct Tiro {
+            BossProjectile* p = nullptr;
+            int grupo = 0;
+            Vector2 posicao;
+            Vector2 velocidade;
+            bool parado = false;
+            float idade = 0.0f;
+            float desde = 0.0f;
+        };
+        /// O pool recicla o projetil: o guardado so e o mesmo tiro se esta ativo e a idade bate.
+        static bool Mesmo(const Orientador& o, const Tiro& c) {
+            if (!c.p || c.p->GetState() != ActorState::Active) return false;
+            return std::fabs(c.p->TempoDeVida() - (c.idade + (o.Tempo() - c.desde))) <= kFolgaDaIdade;
+        }
+        float mInicio = 0.0f;
+        int mProximoGrupo = 0;
+        int mAnunciado = -1;
+        std::vector<Tiro> mTiros;
+        std::unordered_set<const BossProjectile*> mVistos;
+    };
+
     // ---- Julio: agentes autonomos ----
 
     class Agentes final : public PoderEmCampo {
@@ -605,6 +679,7 @@ std::unique_ptr<PoderEmCampo> PoderEmCampo::Do(const Poder::Tipo t) {
         case Poder::Tipo::PromiseAll:  return std::make_unique<PromiseAll>();
         case Poder::Tipo::Mutex:       return std::make_unique<Mutex>();
         case Poder::Tipo::BuscaBinaria: return std::make_unique<BuscaBinaria>();
+        case Poder::Tipo::Rodizio:     return std::make_unique<Rodizio>();
         case Poder::Tipo::Nenhum:      break;
     }
     return nullptr;

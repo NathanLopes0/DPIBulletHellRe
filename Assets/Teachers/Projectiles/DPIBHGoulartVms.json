@@ -1,0 +1,103 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHGoulartVms 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 36
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 36
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 36
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartVms 1.placeholder",
+   "frame": {
+    "x": 44,
+    "y": 0,
+    "w": 44,
+    "h": 36
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 36
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 36
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartVms 2.placeholder",
+   "frame": {
+    "x": 88,
+    "y": 0,
+    "w": 44,
+    "h": 36
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 36
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 36
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHGoulartVms 3.placeholder",
+   "frame": {
+    "x": 132,
+    "y": 0,
+    "w": 44,
+    "h": 36
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 44,
+    "h": 36
+   },
+   "sourceSize": {
+    "w": 44,
+    "h": 36
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_goulart.py",
+  "version": "1.0",
+  "image": "DPIBHGoulartVms.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 176,
+   "h": 36
+  },
+  "scale": "1"
+ }
+}

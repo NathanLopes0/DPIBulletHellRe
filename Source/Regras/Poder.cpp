@@ -52,6 +52,10 @@ namespace Poder {
                      static_cast<float>(kPassosDaBusca) * kEntrePassosDaBusca + 0.3f, 0.0f, kPassosDaBusca,
                      kEntrePassosDaBusca};
                 break;
+            case Golpe::Materia::Goulart:
+                d = {Tipo::Rodizio, "Round Robin", "os tiros do Hugo andam um quarto por vez", 5.0f, 0.0f,
+                     kGruposDoRodizio, kQuantumDoRodizio};
+                break;
             default:
                 break;
         }
@@ -109,11 +113,17 @@ namespace Poder {
         // no fim dela (gerar_hugo.py poe as linhas novas sempre no fim).
         if (m == Golpe::Materia::Generico) return -1;
         if (m == Golpe::Materia::Arroyo) return kQuadroDoArroyo;
+        if (m == Golpe::Materia::Goulart) return kQuadroDoGoulart;
         return 2 + static_cast<int>(m);
     }
 
     int LevaNoPasso(const int n) {
         return n <= 0 ? 0 : (n + 1) / 2;
+    }
+
+    int GrupoDaVez(const float t) {
+        if (t <= 0.0f) return 0;
+        return static_cast<int>(t / kQuantumDoRodizio) % kGruposDoRodizio;
     }
 
     bool NoAlcance(const Vector2& centro, const Vector2& tiro, const float raio) {
@@ -317,6 +327,26 @@ namespace Poder {
                 q.legenda = passos == 0 ? "busca bin\xc3\xa1ria: 16 tiros"
                                         : "passo " + std::to_string(passos) + ": sobram " + std::to_string(ficam) +
                                               (passos == 4 ? "  (log\xe2\x82\x82 16 = 4)" : "");
+                break;
+            }
+            case Tipo::Rodizio: {
+                // Doze tiros do Hugo caindo; o Round Robin os divide em quatro grupos, e so o da vez
+                // anda - os outros esperam, parados.
+                constexpr float kComeca = 0.8f;
+                constexpr int kTiros = 12;
+                const float desde = std::max(0.0f, t - kComeca);
+                const int quanta = static_cast<int>(desde / kQuantumDoRodizio);
+                const int daVez = GrupoDaVez(desde);
+                for (int k = 0; k < kTiros; ++k) {
+                    const int grupo = k % kGruposDoRodizio;
+                    // O quanto este tiro ja andou: tudo antes do rodizio, e depois so os quanta dele.
+                    int dele = quanta / kGruposDoRodizio + (grupo < quanta % kGruposDoRodizio ? 1 : 0);
+                    float andou = std::min(t, kComeca) + kQuantumDoRodizio * static_cast<float>(dele);
+                    if (t > kComeca && grupo == daVez) andou += desde - kQuantumDoRodizio * static_cast<float>(quanta);
+                    q.pontos.push_back(Chuva(andou, kTiros)[static_cast<size_t>(k)]);
+                }
+                q.legenda = t < kComeca ? "Round Robin: 12 tiros, 4 grupos"
+                                        : "quantum: o grupo " + std::to_string(daVez + 1) + " de 4 anda";
                 break;
             }
             case Tipo::Converter: {

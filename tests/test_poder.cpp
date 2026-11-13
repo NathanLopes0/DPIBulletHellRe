@@ -17,7 +17,7 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
     const Golpe::Materia todas[] = {Golpe::Materia::Andre, Golpe::Materia::Salles, Golpe::Materia::Ricardo,
                                     Golpe::Materia::Thiago, Golpe::Materia::Luizinho, Golpe::Materia::Vladimir,
                                     Golpe::Materia::Julio, Golpe::Materia::MariaLucia, Golpe::Materia::Lucas,
-                                    Golpe::Materia::Vitor, Golpe::Materia::Arroyo};
+                                    Golpe::Materia::Vitor, Golpe::Materia::Arroyo, Golpe::Materia::Goulart};
     std::set<int> tipos;
     std::set<std::string> nomes;
     std::set<int> quadros;
@@ -34,9 +34,9 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
         quadros.insert(QuadroDaMateria(m));
         if (Ataca(d.tipo)) ++atacam;
     }
-    CHECK(tipos.size() == 11u);    // onze orientadores, onze poderes diferentes
-    CHECK(nomes.size() == 11u);
-    CHECK(quadros.size() == 11u);
+    CHECK(tipos.size() == 12u);    // doze orientadores, doze poderes diferentes
+    CHECK(nomes.size() == 12u);
+    CHECK(quadros.size() == 12u);
     // Ha dos dois jeitos: os que atacam e os que defendem.
     CHECK(atacam >= 3);
     CHECK(atacam <= 7);
@@ -45,6 +45,31 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
     CHECK(QuadroDaMateria(Golpe::Materia::Andre) == 3);
     CHECK(QuadroDaMateria(Golpe::Materia::Vitor) == 12);
     CHECK(QuadroDaMateria(Golpe::Materia::Arroyo) == kQuadroDoArroyo);   // no fim da folha
+    CHECK(QuadroDaMateria(Golpe::Materia::Goulart) == kQuadroDoGoulart);
+}
+
+TEST_CASE("Poder: o Round Robin do Goulart da a vez a um grupo de cada vez") {
+    CHECK(GrupoDaVez(0.0f) == 0);
+    CHECK(GrupoDaVez(kQuantumDoRodizio * 1.5f) == 1);
+    CHECK(GrupoDaVez(kQuantumDoRodizio * (kGruposDoRodizio + 0.5f)) == 0);   // deu a volta
+    const Descricao d = Da(Golpe::Materia::Goulart);
+    CHECK(d.tipo == Tipo::Rodizio);
+    CHECK(d.duracao > kQuantumDoRodizio * kGruposDoRodizio);   // cada grupo anda mais de uma vez
+    CHECK_FALSE(Ataca(d.tipo));
+    // A previa: antes do rodizio todos caem juntos; depois, so um quarto anda.
+    const auto doHugo = [](const Quadro& q) {
+        std::vector<float> y;
+        for (const Ponto& p : q.pontos) if (p.marca == Marca::TiroDoHugo) y.push_back(p.y);
+        return y;
+    };
+    const auto a = doHugo(Previa(Tipo::Rodizio, 1.0f));
+    const auto b = doHugo(Previa(Tipo::Rodizio, 1.1f));
+    REQUIRE(a.size() == 12u);
+    REQUIRE(b.size() == 12u);
+    int andaram = 0;
+    for (size_t k = 0; k < a.size(); ++k) if (std::fabs(b[k] - a[k]) > 1e-4f) ++andaram;
+    CHECK(andaram == 12 / kGruposDoRodizio);
+    CHECK(Previa(Tipo::Rodizio, 1.2f).legenda.find("quantum") != std::string::npos);
 }
 
 TEST_CASE("Poder: a busca binaria do Arroyo leva a metade de cima, passo a passo") {

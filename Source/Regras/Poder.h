@@ -18,7 +18,7 @@ namespace Poder {
 
     enum class Tipo {
         Nenhum, Matriz, Pilha, Congelar, Transacao, TryCatch, Converter, Agentes, BalaDePrata, PromiseAll, Mutex,
-        BuscaBinaria
+        BuscaBinaria, Rodizio
     };
 
     struct Descricao {
@@ -116,13 +116,25 @@ namespace Poder {
     /// Quantos dos 'n' tiros um passo da busca leva (a metade de cima).
     int LevaNoPasso(int n);
 
+    // ---- Goulart: o Round Robin ----
+
+    /// Os tiros do Hugo em kGruposDoRodizio grupos, e so um anda por vez, por kQuantumDoRodizio
+    /// segundos - os outros esperam a vez, parados: o campo inteiro anda a um quarto da rapidez, aos
+    /// trancos.
+    constexpr int kGruposDoRodizio = 4;
+    constexpr float kQuantumDoRodizio = 0.35f;
+
+    /// O grupo que tem a CPU 't' segundos depois de o poder sair.
+    int GrupoDaVez(float t);
+
     // ---- A cara ----
 
     /// A folha com o projetil de cada professor (Ferramentas/gerar_hugo.py): o
     /// tiro do orientador tem a cara da materia dele.
     constexpr const char* kFolhaDasMaterias = "Teachers/Projectiles/DPIBHHugoTcc";
-    /// O ladrilho do Arroyo na folha: o quadro 22, depois da Caixa.
+    /// O ladrilho do Arroyo na folha: o quadro 22, depois da Caixa; o do Goulart, o 23.
     constexpr int kQuadroDoArroyo = 22;
+    constexpr int kQuadroDoGoulart = 23;
 
     /// O quadro da materia 'm' em kFolhaDasMaterias; -1 sem materia (o tiro de sempre).
     int QuadroDaMateria(Golpe::Materia m);

@@ -185,6 +185,19 @@ namespace Tcc {
                 }
                 break;
             }
+            case Materia::Goulart: {
+                // O Round Robin: tres processos revezando a CPU - uma rajada curta de cada um, e o
+                // seguinte vem de outro lado.
+                for (int q = 0; q < 6; ++q) {
+                    const float lado = static_cast<float>(q % 3 - 1) * N(18.0f, 24.0f);
+                    for (int i = 0; i < 3; ++i) {
+                        Golpe::Tiro t = Tiro(0.22f * static_cast<float>(q) + 0.05f * static_cast<float>(i), N(260.0f, 280.0f));
+                        t.desvio = lado;
+                        tiros.push_back(t);
+                    }
+                }
+                break;
+            }
             case Materia::Generico:
             default: {
                 // O Hugo sem orientador: um leque de paginas.
@@ -237,6 +250,8 @@ namespace Tcc {
              "a janela do TCP",          "E se der deadlock?",                "Vitor"},
             {Materia::Arroyo,     "Arroyo",      "Projeto e Análise de Algoritmos",
              "T(n) = 2T(n/2) + n",       "Qual é a complexidade disso?",      "Arroyo"},
+            {Materia::Goulart,    "Goulart",     "Sistemas Operacionais",
+             "Round Robin, q = 1,2 s",   "Quanto custa uma troca de contexto?", "Goulart"},
         };
 
         /// Sem orientador (o Generico), o proprio Hugo: tema livre.

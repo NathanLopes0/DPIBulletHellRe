@@ -145,7 +145,7 @@ pergunta (a nota sobe só com as fases limpas, os raspões e o Ponto Extra — e
 TCC, com os tiros do orientador); **I** intocável, sem ser acertado nenhuma vez;
 **A** prestando atenção, com 70% das dúvidas chegando ao professor (de pelo menos
 50); **F** sentar na frente, com metade dos acertos feitos de perto (de pelo menos 50). Na dupla, valem os
-números da dupla inteira, e os dois ganham. São onze selos por matéria e **131**
+números da dupla inteira, e os dois ganham. São onze selos por matéria e **142**
 no curso. Os desafios não saem dos recordes, como os outros: a batalha conta
 como a prova foi jogada (`ContagemDaProva`), e a ficha guarda o cumprido na
 lista de atividades (`desafio-intocavel@INF213`), sem mudar de versão — as
@@ -343,13 +343,14 @@ foi aprovado:
 | 0 | INF 110 — Programação 1 *(André)* | sempre |
 | 1 | INF 213 — Estruturas de Dados *(Salles)* | INF 110 aprovada |
 | 2 | INF 250 — Organização de Computadores *(Ricardo)*, INF 220 — Banco de Dados *(Thiago)*, INF 340 — Linguagens de Programação *(Luizinho)*, INF 331 — Linguagens Formais e Autômatos *(Vladimir)*, INF 332 — Projeto e Análise de Algoritmos *(Arroyo)* | INF 213 aprovada |
-| 3 | INF 420 — Inteligência Artificial *(Júlio)*, INF 221 — Engenharia de Software *(Maria Lúcia)*, INF 321 — Programação Web *(Lucas)*, INF 310 — Programação Concorrente e Distribuída *(Vitor)* | 2 aprovações na coluna 2 |
+| 3 | INF 420 — Inteligência Artificial *(Júlio)*, INF 221 — Engenharia de Software *(Maria Lúcia)*, INF 321 — Programação Web *(Lucas)*, INF 310 — Programação Concorrente e Distribuída *(Vitor)*, INF 451 — Sistemas Operacionais *(Goulart)* | 2 aprovações na coluna 2 |
 | 4 | TCC — Trabalho de Conclusão de Curso *(Hugo)* | 2 aprovações na coluna 3 |
 
-Toda matéria tem professor e batalha — as onze do curso e o TCC, do Hugo, que é
-a última e a mais difícil. A INF 332 entrou depois: no `materias.json` ela fica
-no fim da lista (o índice de cada matéria é o da batalha na simulação e na linha
-de base, e nenhum podia mudar), e na grade, embaixo da INF 331. Ter professor e
+Toda matéria tem professor e batalha — as doze do curso e o TCC, do Hugo, que é
+a última e a mais difícil. A INF 332 e a INF 451 entraram depois: no
+`materias.json` elas ficam no fim da lista (o índice de cada matéria é o da
+batalha na simulação e na linha de base, e nenhum podia mudar), e na grade, a
+INF 332 embaixo da INF 331 e a INF 451 embaixo da INF 310, à direita dela. Ter professor e
 ter batalha são coisas separadas de propósito (uma matéria pode existir na grade
 antes de ter luta), e cada professor aparece uma vez só na grade.
 
@@ -590,6 +591,37 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   um leque e o impasse dos dois mandando ao mesmo tempo. O exame é o jantar
   dos filósofos — os garfos andam de mão em mão, e o deadlock vira um cerco
   até o `kill -9`.
+- **Goulart — INF 451.** Sistemas Operacionais, com o sistema inteiro em
+  campo. Nos **processos**, ele é a CPU, e os processos são cartões que andam
+  entre a fila de PRONTOS, à esquerda, a CPU, embaixo dele, e a E/S, à direita:
+  o escalonador é Round Robin de verdade (`Escalonador.h`) — a cada quantum o
+  primeiro da fila sobe e roda, e rodar é atirar, cada tipo do seu jeito (o
+  limitado por CPU solta leques; o limitado por E/S, uma rajada curta, e vai
+  esperar o disco; o de três threads atira de três lugares ao mesmo tempo). A
+  troca de contexto, a interrupção de quem volta da E/S e o `exit` de quem
+  termina são anéis; ele dá `fork()` de tempos em tempos, o placar mostra as
+  filas, e um gráfico de Gantt cresce no alto com cada fatia de CPU na cor do
+  processo. O processo que espera na fila morre com tiros: `kill -9`. Na
+  **memória**, a paginação (`Paginacao.h`): o placar faz a conta da MMU
+  (`0x3A7F = página 3 + 0xA7F`), a tabela de páginas fica à esquerda, com o
+  bit de válida e uma linha até a moldura, e a memória física é um relógio de
+  molduras — o acerto acende o bit R e atira; a falta de página faz o
+  ponteiro varrer, dando a segunda chance a quem tem R, e a página vítima é
+  despejada em você. Primeiro a localidade (o conjunto de trabalho cabe),
+  depois a mudança de fase do programa e, no fim, o **thrashing**: um laço
+  que não cabe na memória, quase toda referência uma falta. Na **entrada e
+  saída**, ele é o braço do disco (`Disco.h`): os pedidos caem numa trilha de
+  200 cilindros, e ele os atende em FCFS, SSTF e SCAN, o elevador — o bloco
+  lido cai em você, o pedido esquecido pelo SSTF passa fome e atira, e o
+  placar compara o quanto o braço andou com o que o FCFS andaria
+  (`SSTF: 150 cilindros em 7 pedidos · em FCFS seriam 314`). O exame é a
+  **nuvem** (`Virtualizacao.h`): ele é o hipervisor, as VMs são caixas no campo
+  com o sistema convidado dentro; o kernel de cada uma atira em anel, a
+  instrução privilegiada vira um trap que voa até ele, e ele a emula atirando
+  em você; na migração ao vivo uma VM escorrega de um host a outro, e na
+  elasticidade a carga sobe e a nuvem sobe mais VMs — a que você derruba, ela
+  repõe. Tudo anda pelo relógio do sistema: o Ponto Extra limpa a tela, e o
+  escalonador, a memória, o disco e a nuvem continuam.
 - **Lucas — INF 321.** Programação Web, na ordem da matéria. No HTML ele
   renderiza uma página gerada a cada luta, com o layout desenhado no campo, e
   cada elemento ataca do seu jeito: o cursor voa até o `<button>` e clica, a
@@ -614,7 +646,8 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   barramento do Ricardo, a transação do Thiago, o ponteiro do Luizinho, a
   gramática do Vladimir, o gradiente do Júlio, o Observer da Maria Lúcia, o
   `fetch` do Lucas, a janela do TCP do Vitor, a busca binária do Arroyo, que
-  fecha os dois tiros no Hugo pela metade a cada rodada), e cada um traz um
+  fecha os dois tiros no Hugo pela metade a cada rodada, e o Round Robin do
+  Goulart, uma rajada curta de cada lado por vez), e cada um traz um
   **poder**, que carrega a cada acerto no Hugo e sai no **botão 3**. O poder é um
   conceito da matéria dele, jogável:
 
@@ -644,6 +677,10 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   - **Arroyo — busca binária.** A cada passo some a metade dos tiros do Hugo —
     a mais perto de você —, de novo e de novo: n, n/2, n/4... A banca dele
     pergunta "Qual é a complexidade disso?".
+  - **Goulart — Round Robin.** Os tiros do Hugo em quatro grupos, e só o da
+    vez anda, um quantum de cada vez — os outros esperam parados: o campo
+    inteiro anda a um quarto da rapidez, aos trancos. A banca dele pergunta
+    "Quanto custa uma troca de contexto?".
 
   A tela em que se escolhe o orientador mostra o poder de cada um
   funcionando: um campo em miniatura, animado, com a legenda de cada passo.
@@ -763,7 +800,7 @@ Assets/          sprites, fontes, sons e os JSON que descrevem o jogo
 Documentacao/    receitas para quem for mexer no código
 Ferramentas/     geradores de arte e de som provisórios, e as medições: o jogo
                  rodando sozinho (medir-dificuldade.sh), o portão do aluno
-                 parado (parado-reprova.sh) e as 59 batalhas que uma
+                 parado (parado-reprova.sh) e as 64 batalhas que uma
                  refatoração não pode mudar (linha-de-base.sh)
 
 tests/           a suíte
@@ -804,7 +841,7 @@ resto mora em colaboradores, um por assunto:
 | `TelaDeCarregamento` | o véu enquanto os projéteis são preparados |
 
 Uma refatoração nela tem de passar pela linha de base
-(`Ferramentas/linha-de-base.sh`): as 59 batalhas idênticas, byte a byte.
+(`Ferramentas/linha-de-base.sh`): as 64 batalhas idênticas, byte a byte.
 
 ## Os dados
 

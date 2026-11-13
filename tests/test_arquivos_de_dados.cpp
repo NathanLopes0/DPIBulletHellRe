@@ -793,7 +793,7 @@ TEST_CASE("Dados: as materias do curso estao la, com os codigos esperados") {
     // Esta lista nao e a ordem, e sim o conjunto.
     const std::set<std::string> esperadas = {
         "INF110", "INF213", "INF250", "INF220", "INF340", "INF331",
-        "INF420", "INF221", "INF321", "INF310", "TCC", "INF332"
+        "INF420", "INF221", "INF321", "INF310", "TCC", "INF332", "INF451"
     };
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
@@ -816,7 +816,7 @@ TEST_CASE("Dados: toda materia com chefe aponta para uma pasta de chefe que exis
         CHECK_FALSE(FasesDoChefe(m.chefe).fases.empty());
         ++comChefe;
     }
-    CHECK(comChefe == 12);  // Hoje sao todas as doze: o Arroyo, na INF 332, foi o ultimo.
+    CHECK(comChefe == 13);  // Hoje sao todas as treze: o Goulart, na INF 451, foi o ultimo.
 }
 
 TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
@@ -825,7 +825,7 @@ TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
     const std::set<std::string> kFabricasRegistradas = {"salles", "ricardo", "andre", "julio",
                                                         "thiago", "vladimir", "vitor",
                                                         "marialucia", "lucas", "luizinho", "hugo",
-                                                        "arroyo"};
+                                                        "arroyo", "goulart"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
 
@@ -841,10 +841,10 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
 
     // Este teste nasceu comparando materias.json com a regra que vivia em Game::IsStageUnlocked.
     const std::vector<std::string> col2 = {"INF250", "INF220", "INF340", "INF331", "INF332"};
-    const std::vector<std::string> col3 = {"INF420", "INF221", "INF321", "INF310"};
+    const std::vector<std::string> col3 = {"INF420", "INF221", "INF321", "INF310", "INF451"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
-    REQUIRE(l.Quantas() == 12);
+    REQUIRE(l.Quantas() == 13);
 
     auto pretendida = [&](const std::string& codigo, const Progresso& p) {
         auto aprovado = [&](const std::string& c) { return p.Aprovado(l.IndiceDe(c)); };
@@ -861,12 +861,12 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
         return false;
     };
 
-    // Varre todas as combinacoes de aprovacao das doze materias: 4096 estados.
+    // Varre todas as combinacoes de aprovacao das treze materias: 8192 estados.
     int comparacoes = 0;
-    for (int mascara = 0; mascara < (1 << 12); ++mascara) {
+    for (int mascara = 0; mascara < (1 << 13); ++mascara) {
 
         Progresso p;
-        for (int bit = 0; bit < 12; ++bit) {
+        for (int bit = 0; bit < 13; ++bit) {
             if (mascara & (1 << bit)) p.RegistrarNota(bit, 80.0f, Dificuldade::Nivel::Normal);
         }
 
@@ -886,7 +886,7 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
         }
     }
 
-    CHECK(comparacoes == (1 << 12) * 12);
+    CHECK(comparacoes == (1 << 13) * 13);
 }
 
 TEST_CASE("Dados: personagens.json e lido sem nenhum problema") {

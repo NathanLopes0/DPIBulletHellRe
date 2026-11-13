@@ -1,0 +1,128 @@
+{
+  // Os projeteis do Goulart (INF 451 - Sistemas Operacionais). As folhas saem de
+  // Ferramentas/gerar_goulart.py; as animacoes, de gerar_goulart.py --animacoes.
+
+  // Fase 1 - o processo: o cartao que anda entre a fila de prontos, a CPU e a E/S. O tiro do aluno o
+  // derruba (resistencia no Goulart.cpp): kill -9.
+  "Processo": {
+    "sprite": "Teachers/Projectiles/DPIBHGoulartProcessos.png",
+    "dados":  "Teachers/Projectiles/DPIBHGoulartProcessos.json",
+    "animacoes": { "P1": [0], "P2": [1], "P3": [2], "P4": [3], "P5": [4], "P6": [5], "P7": [6], "P8": [7], "P9": [8] },
+    "animacaoInicial": "P1",
+    "ordemDeDesenho": 91,
+    "derrubavel": true
+  },
+
+  // Os titulos das duas filas (enfeite).
+  "Titulo": {
+    "sprite": "Teachers/Projectiles/DPIBHGoulartTitulos.png",
+    "dados":  "Teachers/Projectiles/DPIBHGoulartTitulos.json",
+    "animacoes": { "Prontos": [0], "ES": [1] },
+    "animacaoInicial": "Prontos",
+    "ordemDeDesenho": 84
+  },
+
+  // A instrucao do processo que roda, o acerto da memoria e a emulacao do hipervisor.
+  "Instrucao": {
+    "sprite": "Teachers/Projectiles/DPIBHGoulartTiros.png",
+    "dados":  "Teachers/Projectiles/DPIBHGoulartTiros.json",
+    "animacoes": { "Instrucao": [0] },
+    "animacaoInicial": "Instrucao",
+    "ordemDeDesenho": 90
+  },
+
+  // O anel dos sinais do sistema: a troca de contexto, a interrupcao, o exit, a falta de pagina e a
+  // fome do disco.
+  "Sinal": {
+    "sprite": "Teachers/Projectiles/DPIBHGoulartTiros.png",
+    "dados":  "Teachers/Projectiles/DPIBHGoulartTiros.json",
+    "animacoes": { "Sinal": [1] },
+    "animacaoInicial": "Sinal",
+    "ordemDeDesenho": 90
+  },
+
+  // Fase 3 - o bloco que o braco leu do disco.
+  "Bloco": {
+    "sprite": "Teachers/Projectiles/DPIBHGoulartTiros.png",
+    "dados":  "Teachers/Projectiles/DPIBHGoulartTiros.json",
+    "animacoes": { "Bloco": [2] },
+    "animacaoInicial": "Bloco",
+    "ordemDeDesenho": 90
+  },
+
+  // A repescagem - o pacote do kernel de cada VM.
+  "Pacote": {
+    "sprite": "Teachers/Projectiles/DPIBHGoulartTiros.png",
+    "dados":  "Teachers/Projectiles/DPIBHGoulartTiros.json",
+    "animacoes": { "Pacote": [3] },
+    "animacaoInicial": "Pacote",
+    "ordemDeDesenho": 90
+  },
+
+  // Fase 2 - a moldura da memoria fisica (enfeite): livre, com a pagina e o bit R apagado ou aceso.
+  "Moldura": {
+    "sprite": "Teachers/Projectiles/DPIBHGoulartMolduras.png",
+    "dados":  "Teachers/Projectiles/DPIBHGoulartMolduras.json",
+    "animacoes": { "Livre": [0], "P0": [1], "P1": [2], "P2": [3], "P3": [4], "P4": [5], "P5": [6], "P6": [7], "P7": [8], "R0": [9], "R1": [10], "R2": [11], "R3": [12], "R4": [13], "R5": [14], "R6": [15], "R7": [16] },
+    "animacaoInicial": "Livre",
+    "ordemDeDesenho": 86
+  },
+
+  // A entrada da tabela de paginas (enfeite): valida (1) ou invalida (0).
+  "Entrada": {
+    "sprite": "Teachers/Projectiles/DPIBHGoulartEntradas.png",
+    "dados":  "Teachers/Projectiles/DPIBHGoulartEntradas.json",
+    "animacoes": { "V0": [0], "V1": [1], "V2": [2], "V3": [3], "V4": [4], "V5": [5], "V6": [6], "V7": [7], "I0": [8], "I1": [9], "I2": [10], "I3": [11], "I4": [12], "I5": [13], "I6": [14], "I7": [15] },
+    "animacaoInicial": "I0",
+    "ordemDeDesenho": 86
+  },
+
+  // A pagina que vem do disco para a moldura (enfeite)...
+  "Pagina": {
+    "sprite": "Teachers/Projectiles/DPIBHGoulartPaginas.png",
+    "dados":  "Teachers/Projectiles/DPIBHGoulartPaginas.json",
+    "animacoes": { "Pg0": [0], "Pg1": [1], "Pg2": [2], "Pg3": [3], "Pg4": [4], "Pg5": [5], "Pg6": [6], "Pg7": [7] },
+    "animacaoInicial": "Pg0",
+    "ordemDeDesenho": 92
+  },
+
+  // ... e a vitima, despejada no aluno - que pode derruba-la.
+  "Vitima": {
+    "sprite": "Teachers/Projectiles/DPIBHGoulartPaginas.png",
+    "dados":  "Teachers/Projectiles/DPIBHGoulartPaginas.json",
+    "animacoes": { "Pg0": [0], "Pg1": [1], "Pg2": [2], "Pg3": [3], "Pg4": [4], "Pg5": [5], "Pg6": [6], "Pg7": [7] },
+    "animacaoInicial": "Pg0",
+    "ordemDeDesenho": 92,
+    "derrubavel": true
+  },
+
+  // Fase 3 - o pedido de leitura na trilha: novo, velho, e o que passou fome. O aluno pode
+  // cancela-lo (resistencia no Goulart.cpp).
+  "Pedido": {
+    "sprite": "Teachers/Projectiles/DPIBHGoulartPedidos.png",
+    "dados":  "Teachers/Projectiles/DPIBHGoulartPedidos.json",
+    "animacoes": { "Novo": [0], "Velho": [1], "Faminto": [2] },
+    "animacaoInicial": "Novo",
+    "ordemDeDesenho": 89,
+    "derrubavel": true
+  },
+
+  // A repescagem - o sistema convidado de cada VM: o aluno a desliga com tiros.
+  "Vm": {
+    "sprite": "Teachers/Projectiles/DPIBHGoulartVms.png",
+    "dados":  "Teachers/Projectiles/DPIBHGoulartVms.json",
+    "animacoes": { "Vm1": [0], "Vm2": [1], "Vm3": [2], "Vm4": [3] },
+    "animacaoInicial": "Vm1",
+    "ordemDeDesenho": 89,
+    "derrubavel": true
+  },
+
+  // O trap da instrucao privilegiada, voando ate o hipervisor (enfeite).
+  "Trap": {
+    "sprite": "Teachers/Projectiles/DPIBHGoulartTrap.png",
+    "dados":  "Teachers/Projectiles/DPIBHGoulartTrap.json",
+    "animacoes": { "Trap": [0] },
+    "animacaoInicial": "Trap",
+    "ordemDeDesenho": 93
+  }
+}
