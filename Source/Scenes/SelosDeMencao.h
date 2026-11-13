@@ -19,8 +19,9 @@ class Scene;
 /// tela do orientador desenham as mesmas.
 class SelosDeMencao {
 public:
-    /// 'esquerda': o meio da borda esquerda da fileira.
-    SelosDeMencao(Scene& cena, Font* fonte, const Vector2& esquerda, int ordem = 200);
+    /// 'esquerda': o meio da borda esquerda da fileira. 'compacta': selos menores, para a coluna do
+    /// boletim.
+    SelosDeMencao(Scene& cena, Font* fonte, const Vector2& esquerda, int ordem = 200, bool compacta = false);
 
     /// Acende, apaga e esconde os selos conforme as mencoes da materia.
     void Mostrar(const Mencoes::DaMateria& mencoes);
@@ -29,8 +30,14 @@ public:
     static constexpr float kLargura = 28.0f;
     static constexpr float kAltura = 20.0f;
     static constexpr float kEntre = 4.0f;
-    /// A fileira inteira, com todas as mencoes.
-    static constexpr float kLarguraDaFileira = Mencoes::kQuantas * (kLargura + kEntre) - kEntre;
+    /// O selo da fileira compacta, e a folga a mais entre as mencoes e os desafios.
+    static constexpr float kLarguraCompacta = 24.0f;
+    static constexpr float kEntreCompacta = 3.0f;
+    static constexpr float kEntreOsGrupos = 8.0f;
+    /// A fileira inteira, com todas as mencoes e a folga dos desafios.
+    static constexpr float kLarguraDaFileira = Mencoes::kQuantas * (kLargura + kEntre) - kEntre + kEntreOsGrupos;
+    static constexpr float kLarguraDaFileiraCompacta =
+        Mencoes::kQuantas * (kLarguraCompacta + kEntreCompacta) - kEntreCompacta + kEntreOsGrupos;
 
 private:
     struct Selo {

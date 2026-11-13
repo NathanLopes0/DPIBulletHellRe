@@ -274,7 +274,7 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
     if (mBordaConfirmar.Bateu(confirmar)) {
         mGame->DefinirAparencia(mAparencia);
 
-        // Quem veio da dificuldade - um perfil que ja existia - volta para ela.
+        // Quem veio da dificuldade ou do boletim - um perfil que ja existia - volta para la.
         if (mGame->EditandoPersonagem()) {
             mGame->TerminarEdicaoDePersonagem();
             return;
@@ -288,7 +288,7 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
     const bool voltar = Painel::Apertado(keyState, kQuem, Painel::Botao::Dois)
                      || keyState[SDL_SCANCODE_ESCAPE];
     if (mBordaVoltar.Bateu(voltar)) {
-        // Na edicao, volta para a dificuldade sem gravar nada; na entrada, para a matricula.
+        // Na edicao, volta para quem abriu sem gravar nada; na entrada, para a matricula.
         if (mGame->EditandoPersonagem()) {
             mGame->TerminarEdicaoDePersonagem();
             return;

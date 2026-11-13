@@ -23,11 +23,27 @@ namespace Mencoes {
         NotaCheia,   ///< ...a 100 (Nota::ECheia)
         Dificil,     ///< aprovado no Dificil, sozinho ou em dupla
         Dupla,       ///< aprovado em dupla, em qualquer dificuldade
-        Orientou     ///< o professor da materia orientou um TCC aprovado do aluno
+        Orientou,    ///< o professor da materia orientou um TCC aprovado do aluno
+        // ---- Os desafios: aprovado jogando de um jeito diferente (Desafios) ----
+        Pacifista,   ///< aprovado sem dar nenhum tiro
+        Intocavel,   ///< aprovado sem ser acertado nenhuma vez
+        Mira,        ///< aprovado com kPrecisaoDaMira dos tiros no professor
+        DePerto      ///< aprovado com kFracaoDePerto dos acertos feitos de perto (o "!!")
     };
-    constexpr int kQuantas = 7;
-    constexpr std::array<Mencao, kQuantas> kTodas{Mencao::Bronze, Mencao::Prata, Mencao::Ouro, Mencao::NotaCheia,
-                                                  Mencao::Dificil, Mencao::Dupla, Mencao::Orientou};
+    constexpr int kQuantas = 11;
+    constexpr std::array<Mencao, kQuantas> kTodas{Mencao::Bronze,   Mencao::Prata,     Mencao::Ouro,
+                                                  Mencao::NotaCheia, Mencao::Dificil,  Mencao::Dupla,
+                                                  Mencao::Orientou,  Mencao::Pacifista, Mencao::Intocavel,
+                                                  Mencao::Mira,      Mencao::DePerto};
+
+    /// Os desafios, na ordem dos selos.
+    constexpr std::array<Mencao, 4> kDesafios{Mencao::Pacifista, Mencao::Intocavel, Mencao::Mira, Mencao::DePerto};
+    /// Mira certeira: a fracao dos tiros que acertou o professor, com pelo menos kTirosDaMira tiros.
+    constexpr float kPrecisaoDaMira = 0.70f;
+    constexpr int kTirosDaMira = 50;
+    /// Na cara do professor: a fracao dos acertos feitos de perto, com pelo menos kAcertosDePerto acertos.
+    constexpr float kFracaoDePerto = 0.5f;
+    constexpr int kAcertosDePerto = 50;
 
     constexpr float kNotaDaPrata = 80.0f;
     constexpr float kNotaDoOuro = 90.0f;
@@ -57,7 +73,24 @@ namespace Mencoes {
     /// As que 'depois' tem e 'antes' nao tinha: o que uma batalha acabou de dar.
     std::vector<Mencao> Novas(const DaMateria& antes, const DaMateria& depois);
 
-    /// O que vai escrito no selo: "B", "P", "O", "100", "D", "2", "T".
+    // ---- Os desafios ----
+    // As outras mencoes saem dos recordes; os desafios, de como a prova foi jogada - por isso a batalha
+    // conta e a ficha guarda, como uma atividade (Progresso::RegistrarAtividade): "desafio-pacifista@INF213".
+
+    /// O que a prova contou, da dupla inteira: o que os desafios perguntam.
+    struct Prova {
+        bool aprovado = false;
+        int tiros = 0;               ///< os tiros dos alunos (os do orientador nao contam)
+        int acertosNoProfessor = 0;  ///< os tiros dos alunos que acertaram o professor
+        int acertosDePerto = 0;      ///< deles, os feitos de perto (o "!!")
+        int acertosSofridos = 0;
+    };
+    /// A chave do desafio na ficha.
+    std::string Chave(Mencao desafio, const std::string& materia);
+    /// As chaves dos desafios que esta prova cumpriu, na materia de codigo 'materia'.
+    std::vector<std::string> Desafios(const Prova& p, const std::string& materia);
+
+    /// O que vai escrito no selo: "B", "P", "O", "100", "D", "2", "T", "\xc3\x98", "I", "M", "!!".
     const char* Selo(Mencao m);
 
     /// O nome, para a frase do resultado: "bronze", "prata", "ouro", "nota cheia", "no Dificil",

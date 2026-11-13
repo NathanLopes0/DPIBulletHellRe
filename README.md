@@ -28,7 +28,7 @@ escritos na tela.
 | **Manche** | **setas** | **W A S D** | mover o aluno, escolher na tela |
 | **Botão 1** | **Espaço** | **F** | lançar Dúvidas (os balões com **?**); confirmar; digitar |
 | **Botão 2** | **B** | **E** | voltar e apagar; na batalha, gastar um Ponto Extra: sozinho, uma onda dourada sai de você e desfaz os tiros do professor por onde passa, e você fica 1,5 s sem atirar — em troca, ganha a nota que ganharia acertando todos os tiros desse tempo; em dupla, dá ao parceiro um escudo que destrói os projéteis do chefe, e quem gastou segue atirando — e, se os dois gastarem juntos, a onda sai do meio deles, além dos escudos |
-| **Botão 3** | **N** | **H** | na dificuldade, trocar a personagem; na seleção, o boletim (e dele, o ranking da matéria); na batalha em dupla, dar um sinal ao parceiro; na batalha do TCC, soltar o poder do orientador quando o anel dele enche; no resultado da dupla aprovada, os dois juntos: o toca aqui |
+| **Botão 3** | **N** | **H** | na dificuldade, trocar a personagem (no boletim, é o manche para cima); na seleção, o boletim (e dele, o ranking da matéria); na batalha em dupla, dar um sinal ao parceiro; na batalha do TCC, soltar o poder do orientador quando o anel dele enche; no resultado da dupla aprovada, os dois juntos: o toca aqui |
 | — | **Esc** | — | na batalha, **só no computador**: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota. A batalha também pausa sozinha quando a janela perde o foco |
 | — | **Enter**, **Esc**, **0–9**, **Backspace** | — | atalhos de teclado para quem desenvolve |
 
@@ -36,8 +36,9 @@ escritos na tela.
 > W A S D é o do jogador 2.
 
 O menu principal tem **Modo Solo**, **Modo Dupla** e **Como Jogar** — o manual,
-uma página por vez (o manche vira a página), com o objetivo, os controles, a
-nota, o que se destrói, a dupla e o curso. O texto mora em
+três páginas (o manche vira a página): como a matéria funciona, os botões, e a
+personagem com o convite para a dupla. É curto de propósito — a nota, o que se
+destrói, o Ponto Extra e o que a dupla faz junta ficam para o aluno descobrir. O texto mora em
 `Assets/como-jogar.json`: dá para revisar uma frase sem recompilar. Em dupla, cada aluno se
 identifica, os dois jogam a mesma batalha e a **nota é uma só, da dupla**: o
 que um jogador causa sozinho — o acerto no professor, o acerto sofrido, o Ponto
@@ -121,8 +122,10 @@ Na seleção de fases, o **Botão 3** abre o **boletim do semestre**: as matéri
 período a período, com a melhor nota, a situação (aprovade, reprovade, a cursar
 ou fechada), quantas provas você terminou em cada uma, o **CR** — a média das
 melhores notas das matérias cursadas —, quantas foram aprovadas, as **menções**
-e a sua posição no curso. Em dupla, o manche troca de aluno. Do boletim, o
-Botão 3 de novo leva ao ranking da matéria em foco.
+e a sua posição no curso. Em dupla, o manche para os lados troca de aluno, e o
+**manche para cima** troca a personagem de quem está em tela — a qualquer hora,
+voltando para o boletim. Do boletim, o Botão 3 de novo leva ao ranking da
+matéria em foco.
 
 Passar abre a matéria seguinte; as **menções** são o que ainda há para buscar
 em cada uma depois disso. São sete selos por matéria: **B** bronze (aprovação),
@@ -134,6 +137,17 @@ quando uma luta dá uma nova, numa linha dourada do resultado. Na tela que
 escolhe o orientador, o canto de cada cartão diz quem **já orientou** você e
 quem ainda é **novo**: defender o TCC com cada professor completa o currículo
 de orientações.
+
+Depois dos sete, separados por uma folga, vêm os quatro **desafios**: passar
+na matéria jogando de outro jeito. **Ø** sem dar um tiro (a nota sobe só com
+as fases limpas, os raspões e o Ponto Extra — e, no TCC, com os tiros do
+orientador); **I** intocável, sem ser acertado nenhuma vez; **M** mira certeira,
+com 70% dos tiros no professor (de pelo menos 50); **!!** na cara do professor,
+com metade dos acertos feitos de perto (de pelo menos 50). Na dupla, valem os
+números da dupla inteira, e os dois ganham. São onze selos por matéria e **120**
+no curso. Os desafios não saem dos recordes, como os outros: a batalha conta
+como a prova foi jogada (`ContagemDaProva`), e a ficha guarda o cumprido na
+lista de atividades (`desafio-intocavel@INF213`), sem mudar de versão.
 
 **A prova da semana.** Toda semana, de segunda a domingo, uma matéria do curso
 é a prova da semana (em rodízio; o TCC não entra). Quem a joga nessa semana
@@ -213,8 +227,8 @@ A personagem é vista de costas, olhando para o professor, e é montada peça po
 peça: **15 cabelos** em 16 cores, 9 tons de pele, 8 camisas, 7 calças, 4
 sapatos e mochila ou bolsa, cada peça na cor que você quiser — o manche para os
 lados percorre as opções, e a linha diz em qual delas você está ("3 de 15").
-Quem já tem perfil troca a personagem na tela de dificuldade, com o **Botão 3**
-do próprio painel.
+Quem já tem perfil troca a personagem quando quiser: na tela de dificuldade,
+com o **Botão 3** do próprio painel, ou no boletim, com o **manche para cima**.
 
 Quem passa no **TCC** se forma, e a personagem ganha o **chapéu de formatura**
 para sempre — já na tela do resultado, e depois em toda prova e na criação de

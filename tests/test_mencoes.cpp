@@ -149,3 +149,46 @@ TEST_CASE("Mencoes: as novas de uma batalha, a frase delas, e os selos") {
     CHECK(kNotaDaPrata > Progresso::kNotaDeAprovacao);
     CHECK(kNotaDoOuro > kNotaDaPrata);
 }
+
+TEST_CASE("Mencoes: os desafios saem de como a prova foi jogada") {
+    Prova p;
+    p.aprovado = true;
+    p.tiros = 0;
+    p.acertosSofridos = 3;
+    // Sem um tiro: so o pacifista.
+    auto d = Desafios(p, "A1");
+    REQUIRE(d.size() == 1);
+    CHECK(d[0] == "desafio-pacifista@A1");
+
+    // Sem ser acertado, com 80% dos tiros no professor e metade dos acertos de perto: tres.
+    p.tiros = 100;
+    p.acertosNoProfessor = 80;
+    p.acertosDePerto = 40;
+    p.acertosSofridos = 0;
+    d = Desafios(p, "A1");
+    CHECK(d == std::vector<std::string>{"desafio-intocavel@A1", "desafio-mira@A1", "desafio-de-perto@A1"});
+
+    // Pouco tiro nao vale a mira, nem pouco acerto o de perto; e quem reprovou nao cumpre nenhum.
+    p.tiros = 20;
+    p.acertosNoProfessor = 20;
+    p.acertosDePerto = 20;
+    d = Desafios(p, "A1");
+    CHECK(d == std::vector<std::string>{"desafio-intocavel@A1"});
+    p.aprovado = false;
+    CHECK(Desafios(p, "A1").empty());
+}
+
+TEST_CASE("Mencoes: os desafios cumpridos acendem o selo, e contam no curso") {
+    const Materias::Lista curso = Curso();
+    Progresso p;
+    p.RegistrarNota(kA, 70.0f, Dificuldade::Nivel::Normal);
+    p.RegistrarAtividade(Chave(Mencao::Intocavel, "A1"));
+    p.RegistrarAtividade(Chave(Mencao::Pacifista, "T1"));   // a de outra materia nao acende aqui
+    const DaMateria a = Da(p, curso, kA);
+    CHECK(a.Tem(Mencao::Intocavel));
+    CHECK_FALSE(a.Tem(Mencao::Pacifista));
+    CHECK(a.Ganhas() == 2);   // bronze e intocavel
+    CHECK(DoCurso(p, curso).ganhas == 3);
+    CHECK(std::string(Selo(Mencao::DePerto)) == "!!");
+    CHECK(FraseDasNovas({Mencao::Intocavel}) == "Nova men\xc3\xa7\xc3\xa3o: intoc\xc3\xa1vel");
+}
