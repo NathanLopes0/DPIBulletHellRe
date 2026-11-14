@@ -302,11 +302,11 @@ void StageSelect::CreateButton(const std::string& text, int subject, const Vecto
         button->SetRotuloFechado(rotulo.get());
         NoMapa(AddActor(std::move(rotulo)));
 
-        // A optativa que ja da para comprar avisa no proprio losango: "A VENDA", piscando.
+        // A optativa que ja da para comprar avisa no proprio losango: "MATRICULAS ABERTAS", piscando.
         if (preco > 0 && DaParaComprar(subject)) {
             // \xc3\x80 e o A com crase.
-            auto* selo = CriarTexto(*this, mStageSelectFont.get(), "\xc3\x80 VENDA", position + Vector2(0.0f, -46.0f),
-                                    16, 140, 24);
+            auto* selo = CriarTexto(*this, mStageSelectFont.get(), "MATR\xc3\x8d" "CULAS ABERTAS", position + Vector2(0.0f, -46.0f),
+                                    16, 240, 24);
             selo->SetColor(Color::Gold);
             NoMapa(selo->GetOwner());
             mAVenda.push_back(selo->GetOwner());
@@ -604,7 +604,7 @@ std::string StageSelect::FraseDaCompra() const {
     const std::string custa = std::to_string(preco) + " h";
     if (DaParaComprar()) {
         // \xc3\xa3 e o a com til, \xc3\xaa o e circunflexo.
-        if (mConfirmandoCompra == mSelectedSubject) return "Bot\xc3\xa3o 1 de novo: comprar por " + custa;
+        if (mConfirmandoCompra == mSelectedSubject) return "Bot\xc3\xa3o 1 de novo: matricular-se por " + custa;
         const auto& p = mGame->Sessoes().front().progresso;
         return "Optativa: " + custa + " de horas (voc\xc3\xaa tem " +
                std::to_string(Horas::Saldo(p.Atividades(), materias)) + " h)";
@@ -647,7 +647,7 @@ void StageSelect::OnUpdate(float deltaTime) {
     if(mInputTimer < INPUT_DELAY) mInputTimer += deltaTime;
     AtualizarAsLigacoes(deltaTime);
 
-    // O que pede atencao pisca: o selo "A VENDA" e o botao de comprar aceso.
+    // O que pede atencao pisca: o selo "MATRICULAS ABERTAS" e o botao de comprar aceso.
     mPulso += deltaTime;
     const bool aceso = std::fmod(mPulso, 0.9f) < 0.6f;
     for (Actor* a : mAVenda) {
@@ -699,14 +699,14 @@ void StageSelect::UpdateStageInfo() const {
     if (!mGame->IsStageUnlocked(mSelectedSubject) && materias.PrecoDe(mSelectedSubject) > 0) {
         // O detalhe esta na matricula, ao lado: aqui so o estado, numa linha.
         // \xc2\xbb e a seta, \xc3\xa1 o a agudo.
-        if (mConfirmandoCompra == mSelectedSubject) frase = "Confirme a compra ao lado \xc2\xbb";
-        else if (DaParaComprar()) frase = "Optativa pronta: falta s\xc3\xb3 comprar \xc2\xbb";
+        if (mConfirmandoCompra == mSelectedSubject) frase = "Confirme a matr\xc3\xad" "cula ao lado \xc2\xbb";
+        else if (DaParaComprar()) frase = "Optativa pronta: falta s\xc3\xb3 a matr\xc3\xad" "cula \xc2\xbb";
         else {
             bool regra = true;
             for (const size_t i : mGame->FechadaPara(mSelectedSubject)) {
                 regra = regra && materias.RegraCumprida(mSelectedSubject, mGame->Sessoes()[i].progresso);
             }
-            frase = regra ? "Faltam horas para comprar \xc2\xbb" : "Optativa trancada: veja o que falta \xc2\xbb";
+            frase = regra ? "Faltam horas para se matricular \xc2\xbb" : "Optativa trancada: veja o que falta \xc2\xbb";
         }
         cor = DaParaComprar() ? Color::Gold : Color::LightPink;
 
@@ -902,18 +902,18 @@ void StageSelect::AtualizarMatricula() const {
         mBotaoDaMatricula->SetFundo(SDL_Color{230, 100, 50, 245});
         mBotaoDaMatricula->SetMoldura(SDL_Color{255, 230, 200, 255});
         rotulo = "CONFIRMAR: BOT\xc3\x83O 1 DE NOVO";
-        AtualizarRodape("confirmar a compra");
+        AtualizarRodape("confirmar a matr\xc3\xad" "cula");
     } else if (pode) {
         mBotaoDaMatricula->SetFundo(SDL_Color{255, 214, 72, 240});
         mBotaoDaMatricula->SetMoldura(SDL_Color{120, 80, 10, 255});
-        rotulo = "COMPRAR POR " + std::to_string(preco) + " h";
+        rotulo = "MATRICULAR-SE  \xc2\xb7  " + std::to_string(preco) + " h";
         corDoRotulo = Vector3(0.12f, 0.09f, 0.02f);
-        AtualizarRodape("comprar");
+        AtualizarRodape("matricular-se");
     } else {
         mBotaoDaMatricula->SetFundo(SDL_Color{52, 56, 72, 235});
         mBotaoDaMatricula->SetMoldura(SDL_Color{90, 98, 130, 220});
         rotulo = !regra ? std::string("TRANCADA: CUMPRA O QUE EST\xc3\x81 EM ROSA")
-                        : "FALTAM " + std::to_string(preco - saldo) + " h PARA COMPRAR";
+                        : "FALTAM " + std::to_string(preco - saldo) + " h PARA SE MATRICULAR";
         corDoRotulo = Color::LightPink;
         AtualizarRodape("jogar");
     }

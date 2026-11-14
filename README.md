@@ -183,7 +183,7 @@ deu. As horas também são **moeda**: as optativas se compram com elas. Uma
 optativa com preço (`"preco"` no desbloqueio, em `materias.json`) abre com a
 regra dela cumprida e comprada — o Botão 1 duas vezes, na seleção de fases, onde o
 painel de matrícula mostra o que ela pede, item por item, as suas horas contra o
-preço e o botão de comprar. A
+preço e o botão de matricular-se. A
 carga de 100 h conta tudo o que foi ganho e nunca desce; o que se gasta sai do
 **saldo**, que o quadro das horas mostra ao lado ("para optativas: 14 h"). Além
 das horas, a optativa pode pedir **requisitos** — pelo menos uma menção de ouro,
