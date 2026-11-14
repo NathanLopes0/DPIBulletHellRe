@@ -1,0 +1,125 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHSabrinaCapsulas 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSabrinaCapsulas 1.placeholder",
+   "frame": {
+    "x": 30,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSabrinaCapsulas 2.placeholder",
+   "frame": {
+    "x": 60,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSabrinaCapsulas 3.placeholder",
+   "frame": {
+    "x": 90,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSabrinaCapsulas 4.placeholder",
+   "frame": {
+    "x": 120,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 30
+   },
+   "sourceSize": {
+    "w": 30,
+    "h": 30
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_sabrina.py",
+  "version": "1.0",
+  "image": "DPIBHSabrinaCapsulas.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 150,
+   "h": 30
+  },
+  "scale": "1"
+ }
+}

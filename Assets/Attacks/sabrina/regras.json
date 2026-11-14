@@ -1,0 +1,10 @@
+{
+  // As regras de projetil da Sabrina (INF 491 - Topicos Especiais: Bioinformatica, optativa). Quase
+  // tudo o que se mexe e conduzido pelo C++ (Sabrina.cpp); este conjunto existe porque todo chefe tem
+  // o seu.
+
+  // O pedaco da cadeia cortada: balanca enquanto se desfaz.
+  "desfazer": [
+    { "motion": { "tipo": "Wobble", "amplitude": 12, "frequencia": 2.4, "duracao": 2.0 } }
+  ]
+}

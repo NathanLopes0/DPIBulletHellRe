@@ -130,6 +130,19 @@
                                        { "tipo": "mencao", "mencao": "dificil", "quantas": 4 },
                                        { "tipo": "mencao", "mencao": "mira", "quantas": 3 },
                                        { "tipo": "mencao", "mencao": "dePerto", "quantas": 2 } ] }
+    },
+
+    // A bioinformatica e a mais pesada das tres: pede ainda mais menções - e as de quem arrisca de
+    // perto. --batalha 15 e ela.
+    {
+      "codigo": "INF491", "nome": "INF 491",
+      "nomeCompleto": "Tópicos Especiais, Bioinformática", "professor": "Sabrina",
+      "coluna": 7, "chefe": "sabrina", "optativa": true,
+      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"], "preco": 35,
+                       "requisitos": [ { "tipo": "mencao", "mencao": "ouro", "quantas": 9 },
+                                       { "tipo": "mencao", "mencao": "dificil", "quantas": 5 },
+                                       { "tipo": "mencao", "mencao": "dePerto", "quantas": 3 },
+                                       { "tipo": "mencao", "mencao": "mira", "quantas": 3 } ] }
     }
   ]
 }

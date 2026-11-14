@@ -75,6 +75,10 @@ public:
     /// Nota::Conta::Subir).
     void Conquistar(const float bruto) { if (EmCombate()) mConta.Subir(bruto); }
 
+    /// Uma faisca que o chefe pede: o que a fase dele faz brilhar (a base que encaixa no aluno, na
+    /// Sabrina).
+    void Faiscar(const Vector2& onde, Hud::Faisca tipo);
+
     /// A transacao do Thiago (Poder.h): o ponto de volta da nota, e o fim - ROLLBACK se ela caiu
     /// (devolve true), COMMIT se nao.
     [[nodiscard]] Nota::Conta::Marca MarcarNota() const { return mConta.Marcar(); }

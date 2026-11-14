@@ -906,6 +906,10 @@ int Battle::PosicaoDoAluno(const Actor* ator) const {
     return -1;
 }
 
+void Battle::Faiscar(const Vector2& onde, const Hud::Faisca tipo) {
+    if (mEfeitos) mEfeitos->Faiscar(onde, tipo);
+}
+
 void Battle::SoltarPontoExtra(Vector2 position) {
     auto item = std::make_unique<ExtraPointItem>(this);
     item->SetPosition(position);

@@ -1,0 +1,235 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHSabrinaBases 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 20
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSabrinaBases 1.placeholder",
+   "frame": {
+    "x": 20,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 20
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSabrinaBases 2.placeholder",
+   "frame": {
+    "x": 40,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 20
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSabrinaBases 3.placeholder",
+   "frame": {
+    "x": 60,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 20
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSabrinaBases 4.placeholder",
+   "frame": {
+    "x": 80,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 20
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSabrinaBases 5.placeholder",
+   "frame": {
+    "x": 100,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 20
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSabrinaBases 6.placeholder",
+   "frame": {
+    "x": 120,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 20
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSabrinaBases 7.placeholder",
+   "frame": {
+    "x": 140,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 20
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSabrinaBases 8.placeholder",
+   "frame": {
+    "x": 160,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 20
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSabrinaBases 9.placeholder",
+   "frame": {
+    "x": 180,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 20
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_sabrina.py",
+  "version": "1.0",
+  "image": "DPIBHSabrinaBases.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 200,
+   "h": 20
+  },
+  "scale": "1"
+ }
+}

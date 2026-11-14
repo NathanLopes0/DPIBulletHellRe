@@ -1,0 +1,130 @@
+{
+  // As fases da Sabrina (INF 491 - Topicos Especiais: Bioinformatica, optativa). O que cada uma faz
+  // mora no C++ (Sabrina.cpp) e na camada pura (Helice.h, Pareamento.h, Dobramento.h e
+  // Sequenciamento.h); aqui ficam os tiros que ela puxa pelo gatilho, e os nomes que o placar mostra.
+
+  // ==========================================================================
+
+  // Fase 1 - a dupla helice | gesto: a professora anda no alto. A molecula e um modelo 3D que gira,
+  // e so a frente machuca: a de tras e o contorno, por onde se passa. Na helice ela anda de um lado
+  // ao outro e solta as bases pela borda; na torcao, deitada, desce como uma rosca; na
+  // desnaturacao, o calor solta A-T antes de G-C, e o par que solta arremessa as bases.
+  "StateOne": {
+    "duracao": 20,
+    "proximo": "StateTwo",
+    "anuncio": "Bioinformática estrutural: a dupla hélice",
+    "etapas": [
+      { "nome": "Helice",       "duracao": 7.0, "anuncio": "Dupla hélice: só a frente machuca" },
+      { "nome": "Torcao",       "duracao": 6.0, "anuncio": "Torção: atravesse pela fita de trás" },
+      { "nome": "Desnaturacao", "duracao": 7.0, "anuncio": "Desnaturação: A–T solta antes de G–C" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 230 },
+    "ataques": [
+      { "som": false, "gatilho": "fita", "estrategia": "WaveAttack", "projetil": "Fita",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "base", "estrategia": "WaveAttack", "projetil": "Base",
+        "projeteis": 1, "velocidade": 180, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "leque", "estrategia": "WaveAttack", "projetil": "Base",
+        "projeteis": 3, "velocidade": 200, "angulo": 24, "intervalo": 0 }
+    ]
+  },
+
+  // Fase 2 - o codigo | gesto: a professora anda no alto. O aluno carrega uma base (o selo ao lado
+  // dele), e a base que pareia com ela nao machuca: encaixa e vale nota. As capsulas que giram
+  // embaixo trocam a base. No pareamento as ondas sao de uma base so; na transcricao a polimerase
+  // le o molde e solta o RNA (U no lugar de T); na traducao o ribossomo le os codons, e a familia
+  // do aminoacido decide como as bases voam.
+  "StateTwo": {
+    "duracao": 20,
+    "proximo": "StateThree",
+    "anuncio": "O código: carregue a base que pareia",
+    "etapas": [
+      { "nome": "Pareamento",  "duracao": 6.0, "anuncio": "Pareamento: A com T, C com G" },
+      { "nome": "Transcricao", "duracao": 7.0, "anuncio": "Transcrição: no RNA, T vira U" },
+      { "nome": "Traducao",    "duracao": 7.0, "anuncio": "Tradução: três bases, um aminoácido" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 230 },
+    "ataques": [
+      { "som": false, "gatilho": "onda", "estrategia": "WaveAttack", "projetil": "Base",
+        "projeteis": 1, "velocidade": 150, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "rna", "estrategia": "WaveAttack", "projetil": "Base",
+        "projeteis": 3, "velocidade": 210, "angulo": 26, "intervalo": 0 },
+      { "som": false, "gatilho": "codon", "estrategia": "WaveAttack", "projetil": "Base",
+        "projeteis": 2, "velocidade": 200, "angulo": 10, "intervalo": 0 },
+      { "som": false, "gatilho": "cadeia", "estrategia": "WaveAttack", "projetil": "Atomo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "capsula", "estrategia": "WaveAttack", "projetil": "Capsula",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "selo", "estrategia": "WaveAttack", "projetil": "Selo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "letra", "estrategia": "WaveAttack", "projetil": "Letra",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "maquina", "estrategia": "WaveAttack", "projetil": "Maquina",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
+    ]
+  },
+
+  // Fase 3 - a proteina | gesto: a professora anda no alto. Na cadeia, o polipeptideo persegue o
+  // aluno e cresce, e o tiro e a protease: corta a cadeia no residuo atingido. No dobramento, a
+  // cadeia colapsa num globulo 3D que rola pelo campo (so a frente machuca) e borrifa agua. No
+  // encaixe, o sitio ativo abriga quem entra pela boca - e prende o tiro dele.
+  "StateThree": {
+    "duracao": 20,
+    "proximo": "",
+    "anuncio": "A proteína: do fio ao formato",
+    "etapas": [
+      { "nome": "Cadeia",     "duracao": 6.0, "anuncio": "Cadeia: o seu tiro é a protease" },
+      { "nome": "Dobramento", "duracao": 7.0, "anuncio": "Dobramento: o núcleo hidrofóbico se esconde" },
+      { "nome": "Encaixe",    "duracao": 7.0, "anuncio": "Encaixe: entre no sítio ativo" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 230 },
+    "ataques": [
+      { "som": false, "gatilho": "residuo", "estrategia": "WaveAttack", "projetil": "Residuo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "solto", "estrategia": "WaveAttack", "projetil": "Solto",
+        "projeteis": 1, "velocidade": 50, "angulo": 0, "intervalo": 0, "regras": "desfazer" },
+      { "som": false, "gatilho": "atomo", "estrategia": "WaveAttack", "projetil": "Atomo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "agua", "estrategia": "WaveAttack", "projetil": "Agua",
+        "projeteis": 1, "velocidade": 180, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "sitio", "estrategia": "WaveAttack", "projetil": "Sitio",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "inibidor", "estrategia": "WaveAttack", "projetil": "Inibidor",
+        "projeteis": 3, "velocidade": 225, "angulo": 14, "intervalo": 0 },
+      { "gatilho": "aminoacido", "estrategia": "WaveAttack", "projetil": "Atomo",
+        "projeteis": 3, "velocidade": 200, "angulo": 30, "intervalo": 0 }
+    ]
+  },
+
+  // Fase final - o sequenciamento | gesto: a professora anda no alto. So e vista por quem termina a
+  // terceira entre 40 e 59, ou com 100. Na PCR cada ciclo dobra as copias, e o tiro derruba o
+  // primer; no shotgun os reads montam o contig que gira, e so as pontas se aparam; no CRISPR a fita
+  // do genoma desce como parede, e so o alvo do guia (seguido do PAM, N G G) se corta.
+  "StateFinal": {
+    "duracao": 20,
+    "proximo": "StateOne",
+    "anuncio": "Sequenciamento: o laboratório de genômica",
+    "etapas": [
+      { "nome": "Pcr",     "duracao": 6.0, "anuncio": "PCR: cada ciclo dobra as cópias" },
+      { "nome": "Shotgun", "duracao": 7.0, "anuncio": "Shotgun: os reads montam o contig" },
+      { "nome": "Crispr",  "duracao": 7.0, "anuncio": "CRISPR: corte só onde o guia casa" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 230 },
+    "ataques": [
+      { "som": false, "gatilho": "copia", "estrategia": "WaveAttack", "projetil": "Copia",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "primer", "estrategia": "WaveAttack", "projetil": "Primer",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "read", "estrategia": "WaveAttack", "projetil": "Read",
+        "projeteis": 7, "velocidade": 200, "angulo": 56, "intervalo": 0 },
+      { "som": false, "gatilho": "contig", "estrategia": "WaveAttack", "projetil": "Contig",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "genoma", "estrategia": "WaveAttack", "projetil": "Genoma",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "estilhaco", "estrategia": "WaveAttack", "projetil": "Estilhaco",
+        "projeteis": 5, "velocidade": 185, "angulo": 40, "intervalo": 0 },
+      { "som": false, "gatilho": "tesoura", "estrategia": "WaveAttack", "projetil": "Maquina",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
+    ]
+  }
+}

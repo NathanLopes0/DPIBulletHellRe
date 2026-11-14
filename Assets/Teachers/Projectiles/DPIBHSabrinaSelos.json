@@ -1,0 +1,125 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHSabrinaSelos 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 18,
+    "h": 18
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 18,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 18,
+    "h": 18
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSabrinaSelos 1.placeholder",
+   "frame": {
+    "x": 18,
+    "y": 0,
+    "w": 18,
+    "h": 18
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 18,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 18,
+    "h": 18
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSabrinaSelos 2.placeholder",
+   "frame": {
+    "x": 36,
+    "y": 0,
+    "w": 18,
+    "h": 18
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 18,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 18,
+    "h": 18
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSabrinaSelos 3.placeholder",
+   "frame": {
+    "x": 54,
+    "y": 0,
+    "w": 18,
+    "h": 18
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 18,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 18,
+    "h": 18
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHSabrinaSelos 4.placeholder",
+   "frame": {
+    "x": 72,
+    "y": 0,
+    "w": 18,
+    "h": 18
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 18,
+    "h": 18
+   },
+   "sourceSize": {
+    "w": 18,
+    "h": 18
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_sabrina.py",
+  "version": "1.0",
+  "image": "DPIBHSabrinaSelos.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 90,
+   "h": 18
+  },
+  "scale": "1"
+ }
+}

@@ -1,0 +1,189 @@
+{
+  // Os projeteis da Sabrina (INF 491 - Topicos Especiais: Bioinformatica, optativa). As folhas
+  // saem de Ferramentas/gerar_sabrina.py; as animacoes, de gerar_sabrina.py --animacoes.
+
+  // As bases que ela atira: a letra no nucleotideo, na cor dos cromatogramas (A verde, C azul, G
+  // ambar, T e U vermelho). Na fase 2, a que pareia com a base do aluno encaixa nele.
+  "Base": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaBases.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaBases.json",
+    "animacoes": { "A": [0], "C": [1], "G": [2], "T": [3], "U": [4] },
+    "animacaoInicial": "A",
+    "ordemDeDesenho": 91,
+    "colisorDivisor": 2.6
+  },
+
+  // As letras das fitas no alto: o molde, o RNA que sai dele e o mensageiro (enfeite).
+  "Letra": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaBases.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaBases.json",
+    "animacoes": { "LA": [5], "LC": [6], "LG": [7], "LT": [8], "LU": [9] },
+    "animacaoInicial": "LA",
+    "ordemDeDesenho": 84
+  },
+
+  // O nucleotideo livre: encostar nele troca a base do aluno (enfeite).
+  "Capsula": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaCapsulas.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaCapsulas.json",
+    "animacoes": { "CA": [0], "CC": [1], "CG": [2], "CT": [3], "CU": [4] },
+    "animacaoInicial": "CA",
+    "ordemDeDesenho": 86
+  },
+
+  // O selo da base que o aluno carrega, ao lado dele (enfeite).
+  "Selo": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaSelos.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaSelos.json",
+    "animacoes": { "SA": [0], "SC": [1], "SG": [2], "ST": [3], "SU": [4] },
+    "animacaoInicial": "SA",
+    "ordemDeDesenho": 97
+  },
+
+  // As maquinas da celula: a polimerase, o ribossomo e a Cas9 (enfeite).
+  "Maquina": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaMaquinas.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaMaquinas.json",
+    "animacoes": { "Polimerase": [0], "Ribossomo": [1], "Tesoura": [2] },
+    "animacaoInicial": "Polimerase",
+    "ordemDeDesenho": 85
+  },
+
+  // As contas das duas fitas da dupla helice: so existem na frente (atras, sao contorno).
+  "Fita": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaMoleculas.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaMoleculas.json",
+    "animacoes": { "Fita0": [0], "Fita1": [1] },
+    "animacaoInicial": "Fita0",
+    "ordemDeDesenho": 90,
+    "colisorDivisor": 2.6
+  },
+
+  // Os residuos da cadeia que persegue o aluno: o tiro corta a cadeia (a protease, no Sabrina.cpp).
+  "Residuo": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaMoleculas.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaMoleculas.json",
+    "animacoes": { "Hidrofobico": [2], "Polar": [3], "Positivo": [4], "Negativo": [5] },
+    "animacaoInicial": "Polar",
+    "ordemDeDesenho": 90,
+    "colisorDivisor": 2.4,
+    "derrubavel": true,
+    "resistencia": 1
+  },
+
+  // Os aminoacidos: os atomos do globulo, a cadeia nascente do ribossomo e o leque da professora.
+  "Atomo": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaMoleculas.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaMoleculas.json",
+    "animacoes": { "Hidrofobico": [2], "Polar": [3], "Positivo": [4], "Negativo": [5] },
+    "animacaoInicial": "Polar",
+    "ordemDeDesenho": 90,
+    "colisorDivisor": 2.6
+  },
+
+  // O pedaco da cadeia cortada, que se desfaz.
+  "Solto": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaMoleculas.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaMoleculas.json",
+    "animacoes": { "Solto": [6] },
+    "animacaoInicial": "Solto",
+    "ordemDeDesenho": 88,
+    "colisorDivisor": 2.8
+  },
+
+  // A agua: o borrifo dos polares e as gotas em movimento browniano do encaixe.
+  "Agua": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaMoleculas.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaMoleculas.json",
+    "animacoes": { "Agua": [7] },
+    "animacaoInicial": "Agua",
+    "ordemDeDesenho": 89,
+    "colisorDivisor": 2.8
+  },
+
+  // O inibidor que compete pelo sitio ativo.
+  "Inibidor": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaMoleculas.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaMoleculas.json",
+    "animacoes": { "Inibidor": [8] },
+    "animacaoInicial": "Inibidor",
+    "ordemDeDesenho": 91,
+    "colisorDivisor": 2.6
+  },
+
+  // A parede do sitio ativo: nao e tiro, e um abrigo - e o tiro do aluno morre nela.
+  "Sitio": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaMoleculas.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaMoleculas.json",
+    "animacoes": { "Sitio": [9] },
+    "animacaoInicial": "Sitio",
+    "ordemDeDesenho": 92,
+    "colisorDivisor": 2.0,
+    "abrigo": true
+  },
+
+  // As copias da PCR: a dupla fita e a simples, que viram pela velocidade.
+  "Copia": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaGenomica.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaGenomica.json",
+    "animacoes": { "Dupla": [0], "Simples": [1] },
+    "animacaoInicial": "Dupla",
+    "ordemDeDesenho": 90,
+    "colisorDivisor": 3.0
+  },
+
+  // O primer, que o tiro derruba: a fita sem primer nao se copia.
+  "Primer": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaGenomica.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaGenomica.json",
+    "animacoes": { "Primer": [2] },
+    "animacaoInicial": "Primer",
+    "ordemDeDesenho": 92,
+    "colisorDivisor": 2.6,
+    "derrubavel": true,
+    "resistencia": 1
+  },
+
+  // O read do shotgun.
+  "Read": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaGenomica.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaGenomica.json",
+    "animacoes": { "Read": [3] },
+    "animacaoInicial": "Read",
+    "ordemDeDesenho": 90,
+    "colisorDivisor": 3.0
+  },
+
+  // O contig: o meio e o consenso (blindado); a ponta se apara (Sabrina::MontarOContig).
+  "Contig": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaGenomica.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaGenomica.json",
+    "animacoes": { "Contig": [4], "Ponta": [5] },
+    "animacaoInicial": "Contig",
+    "ordemDeDesenho": 91,
+    "colisorDivisor": 2.6
+  },
+
+  // A fita do genoma do CRISPR: toda letra se derruba, mas so o alvo do guia se corta; o elo do
+  // esqueleto, entre duas letras, e blindado (Sabrina.cpp).
+  "Genoma": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaGenomica.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaGenomica.json",
+    "animacoes": { "GA": [6], "GC": [7], "GG": [8], "GT": [9], "Elo": [11] },
+    "animacaoInicial": "GA",
+    "ordemDeDesenho": 91,
+    "colisorDivisor": 2.4,
+    "derrubavel": true,
+    "resistencia": 1
+  },
+
+  // O estilhaco do corte fora do alvo.
+  "Estilhaco": {
+    "sprite": "Teachers/Projectiles/DPIBHSabrinaGenomica.png",
+    "dados":  "Teachers/Projectiles/DPIBHSabrinaGenomica.json",
+    "animacoes": { "Estilhaco": [10] },
+    "animacaoInicial": "Estilhaco",
+    "ordemDeDesenho": 92,
+    "colisorDivisor": 3.0
+  }
+}

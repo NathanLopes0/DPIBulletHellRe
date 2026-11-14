@@ -85,7 +85,13 @@ namespace {
                                                 // MaVIlab.
                                                 "objeto", "imagem", "enfeite", "fluxo", "ativacao", "vetor",
                                                 "neuronio", "sinal", "saida", "pixel", "colega", "cerco",
-                                                "ruido"};
+                                                "ruido",
+                                                // A Sabrina: a dupla helice, o codigo, a proteina e o
+                                                // sequenciamento.
+                                                "fita", "base", "onda", "rna", "codon", "cadeia", "capsula",
+                                                "letra", "maquina", "residuo", "solto", "atomo", "agua", "sitio",
+                                                "inibidor", "aminoacido", "copia", "primer", "read", "contig",
+                                                "genoma", "tesoura"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"

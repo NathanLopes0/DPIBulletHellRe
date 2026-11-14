@@ -55,6 +55,10 @@
 #include "../Source/Attacks/Termina.h"
 #include "../Source/Attacks/Coercao.h"
 #include "../Source/Attacks/Excecao.h"
+#include "../Source/Attacks/Helice.h"
+#include "../Source/Attacks/Pareamento.h"
+#include "../Source/Attacks/Dobramento.h"
+#include "../Source/Attacks/Sequenciamento.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Curso/Materias.h"
@@ -795,7 +799,7 @@ TEST_CASE("Dados: as materias do curso estao la, com os codigos esperados") {
     // Esta lista nao e a ordem, e sim o conjunto.
     const std::set<std::string> esperadas = {
         "INF110", "INF213", "INF250", "INF220", "INF340", "INF331",
-        "INF420", "INF221", "INF321", "INF310", "TCC", "INF332", "INF451", "INF425", "INF429"
+        "INF420", "INF221", "INF321", "INF310", "TCC", "INF332", "INF451", "INF425", "INF429", "INF491"
     };
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
@@ -818,7 +822,7 @@ TEST_CASE("Dados: toda materia com chefe aponta para uma pasta de chefe que exis
         CHECK_FALSE(FasesDoChefe(m.chefe).fases.empty());
         ++comChefe;
     }
-    CHECK(comChefe == 15);  // Hoje sao todas as quinze: o Michel, na optativa INF 429, foi o ultimo.
+    CHECK(comChefe == 16);  // Hoje sao todas as dezesseis: a Sabrina, na optativa INF 491, foi a ultima.
 }
 
 TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
@@ -827,7 +831,7 @@ TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
     const std::set<std::string> kFabricasRegistradas = {"salles", "ricardo", "andre", "julio",
                                                         "thiago", "vladimir", "vitor",
                                                         "marialucia", "lucas", "luizinho", "hugo",
-                                                        "arroyo", "goulart", "daniel", "michel"};
+                                                        "arroyo", "goulart", "daniel", "michel", "sabrina"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
 
@@ -846,7 +850,7 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
     const std::vector<std::string> col3 = {"INF420", "INF221", "INF321", "INF310", "INF451"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
-    REQUIRE(l.Quantas() == 15);
+    REQUIRE(l.Quantas() == 16);
 
     auto pretendida = [&](const std::string& codigo, const Progresso& p) {
         auto aprovado = [&](const std::string& c) { return p.Aprovado(l.IndiceDe(c)); };
@@ -889,7 +893,7 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
         }
     }
 
-    CHECK(comparacoes == (1 << 13) * 15);
+    CHECK(comparacoes == (1 << 13) * 16);
 
     // As optativas nao pedem materia alem da INF 213, nem uma a outra: pedem muitas mencoes - nenhuma
     // a nota cheia - e a compra.
@@ -1281,7 +1285,7 @@ TEST_CASE("Dados: toda coluna do curso depende da anterior, entao a grade pode s
     // E o que autoriza a tela de selecao a desenhar o tronco entre as colunas.
     // As optativas ficam de fora: estao em outra pagina, e nao se ligam ao TCC.
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
-    REQUIRE(l.QuantasColunas() == 7);
+    REQUIRE(l.QuantasColunas() == 8);
     REQUIRE(l.QuantasColunasObrigatorias() == 5);
 
     CHECK_FALSE(l.ColunaDependeDaAnterior(0));
@@ -2943,4 +2947,98 @@ TEST_CASE("Dados: a troca de mensagens do Vitor - gatilhos, velocidades e caras 
 
     // O resultado da rpc e um leque com o do meio no aluno: as somas sao impares.
     for (int i = 0; i < Mensagens::kChamadas; ++i) CHECK(Mensagens::Soma(Mensagens::ChamadaDaVez(i)) % 2 == 1);
+}
+
+TEST_CASE("Dados: a Sabrina - cada gatilho que ela puxa esta na fase dela, e cada cara que ela poe existe") {
+
+    // A fase de cada gatilho, como o C++ os puxa (Sabrina.cpp).
+    const std::vector<std::pair<std::string, const char*>> gatilhos = {
+        {Helice::kFase, Helice::kGatilhoDaFita}, {Helice::kFase, Helice::kGatilhoDaBase},
+        {Helice::kFase, Helice::kGatilhoDoLeque},
+        {Pareamento::kFase, Pareamento::kGatilhoDaOnda}, {Pareamento::kFase, Pareamento::kGatilhoDoRna},
+        {Pareamento::kFase, Pareamento::kGatilhoDoCodon}, {Pareamento::kFase, Pareamento::kGatilhoDaCadeia},
+        {Pareamento::kFase, Pareamento::kGatilhoDaCapsula}, {Pareamento::kFase, Pareamento::kGatilhoDoSelo},
+        {Pareamento::kFase, Pareamento::kGatilhoDaLetra}, {Pareamento::kFase, Pareamento::kGatilhoDaMaquina},
+        {Dobramento::kFase, Dobramento::kGatilhoDoResiduo}, {Dobramento::kFase, Dobramento::kGatilhoDoSolto},
+        {Dobramento::kFase, Dobramento::kGatilhoDoAtomo}, {Dobramento::kFase, Dobramento::kGatilhoDaAgua},
+        {Dobramento::kFase, Dobramento::kGatilhoDoSitio}, {Dobramento::kFase, Dobramento::kGatilhoDoInibidor},
+        {Dobramento::kFase, Dobramento::kGatilhoDoLeque},
+        {Sequenciamento::kFase, Sequenciamento::kGatilhoDaCopia}, {Sequenciamento::kFase, Sequenciamento::kGatilhoDoPrimer},
+        {Sequenciamento::kFase, Sequenciamento::kGatilhoDoRead}, {Sequenciamento::kFase, Sequenciamento::kGatilhoDoContig},
+        {Sequenciamento::kFase, Sequenciamento::kGatilhoDoGenoma}, {Sequenciamento::kFase, Sequenciamento::kGatilhoDoEstilhaco},
+        {Sequenciamento::kFase, Sequenciamento::kGatilhoDaTesoura},
+    };
+    const auto lidas = FasesDoChefe("sabrina");
+    const auto& tipos = ProjeteisDoChefe("sabrina").projeteis;
+    auto caras = [&](const std::string& tipo) {
+        std::set<std::string> c;
+        if (tipos.count(tipo)) for (const auto& a : tipos.at(tipo).animacoes) c.insert(a.nome);
+        return c;
+    };
+    std::map<std::string, std::string> projetil;
+    for (const auto& [fase, g] : gatilhos) {
+        CAPTURE(fase);
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+        int quantos = 0;
+        for (const auto& f : lidas.fases) {
+            if (f.nome != fase) continue;
+            for (const auto& a : f.ataques) if (a.gatilho == g) { ++quantos; projetil[g] = a.projetil; }
+        }
+        CHECK(quantos == 1);
+    }
+
+    // As etapas de cada fase sao as da camada pura, com as mesmas duracoes.
+    const auto etapas = [&](const std::string& fase, const std::array<const char*, 3>& nomes, const std::array<float, 3>& duracoes) {
+        const DescricaoDeFase* d = nullptr;
+        for (const auto& f : lidas.fases) if (f.nome == fase) d = &f;
+        REQUIRE(d != nullptr);
+        REQUIRE(d->etapas.size() == nomes.size());
+        for (size_t k = 0; k < nomes.size(); ++k) {
+            CHECK(d->etapas[k].nome == nomes[k]);
+            CHECK(d->etapas[k].duracao == doctest::Approx(duracoes[k]));
+        }
+    };
+    etapas(Helice::kFase, Helice::kEtapas, Helice::kDuracoes);
+    etapas(Pareamento::kFase, Pareamento::kEtapas, Pareamento::kDuracoes);
+    etapas(Dobramento::kFase, Dobramento::kEtapas, Dobramento::kDuracoes);
+    etapas(Sequenciamento::kFase, Sequenciamento::kEtapas, Sequenciamento::kDuracoes);
+
+    // As bases, as letras, as capsulas e os selos: uma cara por base (T e U inclusive).
+    for (const auto b : {Pareamento::Base::A, Pareamento::Base::C, Pareamento::Base::G, Pareamento::Base::T, Pareamento::Base::U}) {
+        const std::string l = Pareamento::Cara(b);
+        CAPTURE(l);
+        for (const char* g : {Helice::kGatilhoDaBase, Pareamento::kGatilhoDaOnda, Pareamento::kGatilhoDoRna, Pareamento::kGatilhoDoCodon}) {
+            CHECK(caras(projetil[g]).count(l) == 1);
+        }
+        CHECK(caras(projetil[Pareamento::kGatilhoDaLetra]).count("L" + l) == 1);
+        CHECK(caras(projetil[Pareamento::kGatilhoDaCapsula]).count("C" + l) == 1);
+        CHECK(caras(projetil[Pareamento::kGatilhoDoSelo]).count("S" + l) == 1);
+        if (b != Pareamento::Base::U) CHECK(caras(projetil[Sequenciamento::kGatilhoDoGenoma]).count("G" + l) == 1);
+    }
+    for (const char* f : {"Hidrofobico", "Polar", "Positivo", "Negativo"}) {
+        for (const char* g : {Dobramento::kGatilhoDoResiduo, Dobramento::kGatilhoDoAtomo, Pareamento::kGatilhoDaCadeia, Dobramento::kGatilhoDoLeque}) {
+            CHECK(caras(projetil[g]).count(f) == 1);
+        }
+    }
+    for (const char* c : {"Fita0", "Fita1"}) CHECK(caras(projetil[Helice::kGatilhoDaFita]).count(c) == 1);
+    for (const char* c : {"Polimerase", "Ribossomo"}) CHECK(caras(projetil[Pareamento::kGatilhoDaMaquina]).count(c) == 1);
+    CHECK(caras(projetil[Sequenciamento::kGatilhoDaTesoura]).count("Tesoura") == 1);
+    for (const char* c : {"Dupla", "Simples"}) CHECK(caras(projetil[Sequenciamento::kGatilhoDaCopia]).count(c) == 1);
+    for (const char* c : {"Contig", "Ponta"}) CHECK(caras(projetil[Sequenciamento::kGatilhoDoContig]).count(c) == 1);
+    CHECK(caras(projetil[Dobramento::kGatilhoDoSolto]).count("Solto") == 1);
+    CHECK(caras(projetil[Dobramento::kGatilhoDaAgua]).count("Agua") == 1);
+    CHECK(caras(projetil[Dobramento::kGatilhoDoInibidor]).count("Inibidor") == 1);
+    CHECK(caras(projetil[Dobramento::kGatilhoDoSitio]).count("Sitio") == 1);
+    CHECK(caras(projetil[Sequenciamento::kGatilhoDoPrimer]).count("Primer") == 1);
+    CHECK(caras(projetil[Sequenciamento::kGatilhoDoRead]).count("Read") == 1);
+    CHECK(caras(projetil[Sequenciamento::kGatilhoDoEstilhaco]).count("Estilhaco") == 1);
+    CHECK(caras(projetil[Sequenciamento::kGatilhoDoGenoma]).count("Elo") == 1);
+
+    // O que o tiro corta, o que abriga.
+    CHECK(tipos.at(projetil[Dobramento::kGatilhoDoResiduo]).derrubavel);
+    CHECK(tipos.at(projetil[Sequenciamento::kGatilhoDoPrimer]).derrubavel);
+    CHECK(tipos.at(projetil[Sequenciamento::kGatilhoDoGenoma]).derrubavel);
+    CHECK(tipos.at(projetil[Dobramento::kGatilhoDoSitio]).abrigo);
+    CHECK_FALSE(tipos.at(projetil[Dobramento::kGatilhoDoAtomo]).derrubavel);
 }
