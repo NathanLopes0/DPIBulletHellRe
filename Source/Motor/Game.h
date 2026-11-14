@@ -231,6 +231,10 @@ public:
     /// o preco com o proprio saldo, e a ficha vai para o disco. Compra para todos ou para ninguem:
     /// se um da dupla nao pode, nada muda. Devolve se comprou.
     bool ComprarMateria(int subject);
+    /// Para quem desenvolve (F9 na selecao de fases): desfaz a matricula em todas as optativas de
+    /// todos os alunos em jogo - as horas voltam, e a optativa fecha de novo. Grava a ficha.
+    /// Devolve quantas matriculas desfez.
+    int DesfazerMatriculas();
 
 private:
     /// Passam as opcoes de som e de janela para o AudioSystem e o SDL.

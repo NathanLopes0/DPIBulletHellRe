@@ -71,6 +71,8 @@ public:
 
     /// As atividades complementares cumpridas (Horas.h), pela chave. Devolve se a chave e nova.
     bool RegistrarAtividade(const std::string& chave) { return !chave.empty() && mAtividades.insert(chave).second; }
+    /// Tira uma atividade (a tecla de desenvolvedor que desfaz as matriculas). Devolve se havia.
+    bool EsquecerAtividade(const std::string& chave) { return mAtividades.erase(chave) > 0; }
     [[nodiscard]] const std::set<std::string>& Atividades() const { return mAtividades; }
     void RestaurarAtividades(std::set<std::string> chaves) { mAtividades = std::move(chaves); }
 

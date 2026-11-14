@@ -381,7 +381,9 @@ difícil das duas. Uma optativa não pede outra, nem matéria além da INF 213: 
 que ela pede são menções, e as horas da compra. A matrícula é uma festinha: as horas
 pagam em fichas douradas, que saltam do painel até o losango girando como
 moedas, e ele dá dois pulinhos, com um anel dourado e faíscas
-(`FestaDaMatricula.h`).
+(`FestaDaMatricula.h`). Para ver a compra e a festa de novo, quem
+desenvolve aperta **F9** na seleção de fases: as matrículas nas optativas são
+desfeitas, as horas voltam e a ficha é gravada (as notas ficam).
 
 ## O que fica gravado
 

@@ -709,6 +709,24 @@ bool Game::ComprarMateria(const int subject) {
     return true;
 }
 
+int Game::DesfazerMatriculas() {
+    const Materias::Lista& materias = Materias::Carregadas();
+    int desfeitas = 0;
+    for (size_t i = 0; i < mSessoes.size(); ++i) {
+        bool mudou = false;
+        for (const Materias::Materia& m : materias.materias) {
+            if (!m.optativa) continue;
+            if (mSessoes[i].progresso.EsquecerAtividade(Materias::ChaveDaCompra(m.codigo))) {
+                mudou = true;
+                ++desfeitas;
+            }
+        }
+        if (mudou && ProgressoEGravado(i)) GravarFicha(i);
+    }
+    SDL_Log("GAME: (dev) %d matricula(s) em optativa desfeita(s).", desfeitas);
+    return desfeitas;
+}
+
 // Quem esta jogando.
 
 Sessao::Dados& Game::SessaoEntrando() {

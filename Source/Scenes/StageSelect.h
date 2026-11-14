@@ -256,6 +256,10 @@ private:
     /// para a tela de matricula.
     Borda mBordaTrocar{true};
 
+    /// F9, para quem desenvolve: desfaz as matriculas nas optativas (Game::DesfazerMatriculas), para
+    /// ver a compra e a festa de novo.
+    Borda mBordaDesfazer{true};
+
     /// Borda do enter, e comeca em true. A cena anterior (identificacao) termina com o enter
     /// apertado - e ele que manda para ca.
     Borda mBordaEntrar{true};
