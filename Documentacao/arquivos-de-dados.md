@@ -90,12 +90,13 @@ só então a optativa pode ser comprada:
 | `"horas"` | `"quantas"` horas complementares **ganhas** — a carga, e não o saldo: gastar horas numa optativa não fecha outra |
 | `"aprovadas"` | `"quantas"` obrigatórias aprovadas no curso inteiro (as optativas não contam) |
 
-A frase do cartão junta tudo o que falta ("Precisa passar em INF 220 e INF 420,
-pelo menos 1 menção de ouro e 20 h"). O requisito que não existe, ou com uma
+A frase do cartão junta tudo o que falta ("Precisa passar em INF 213, pelo menos
+1 menção de ouro e 20 h"). As optativas do curso não pedem umas às outras, nem
+matéria além da INF 213: o que as separa são as menções e o preço. O requisito que não existe, ou com uma
 menção que não existe, vira aviso e fica de fora — a matéria não.
 
 ```json
-"desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF220"], "preco": 20,
+"desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"], "preco": 20,
                  "requisitos": [ { "tipo": "mencao", "mencao": "ouro", "quantas": 1 } ] }
 ```
 

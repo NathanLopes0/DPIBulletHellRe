@@ -107,22 +107,23 @@
 
     // ---- As optativas: a direita do TCC, compradas com horas ----
     // Mais dificeis que as obrigatorias, e o professor de cada uma vira orientador do TCC de quem
-    // passa nela. Tambem no fim da lista (--batalha 13 e a INF 425).
+    // passa nela. Tambem no fim da lista (--batalha 13 e a INF 425). Uma optativa nao pede outra, nem
+    // materia alem da INF 213: pede menções, e as horas da compra.
     {
       "codigo": "INF425", "nome": "INF 425",
       "nomeCompleto": "Ciência de Dados", "professor": "Daniel",
       "coluna": 5, "chefe": "daniel", "optativa": true,
-      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF220", "INF420"], "preco": 20,
+      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"], "preco": 20,
                        "requisitos": [ { "tipo": "mencao", "mencao": "ouro", "quantas": 1 } ] }
     },
 
-    // O MaVIlab e seleto: a INF 429 pede a INF 425 aprovada, duas menções de ouro e uma no
-    // Difícil, e custa mais horas. --batalha 14 e ela.
+    // O MaVIlab e seleto: a INF 429 pede duas menções de ouro e uma no Difícil, e custa mais
+    // horas. --batalha 14 e ela.
     {
       "codigo": "INF429", "nome": "INF 429",
       "nomeCompleto": "Aprendizado de Máquina com Dados Visuais", "professor": "Michel",
       "coluna": 6, "chefe": "michel", "optativa": true,
-      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF425"], "preco": 30,
+      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"], "preco": 30,
                        "requisitos": [ { "tipo": "mencao", "mencao": "ouro", "quantas": 2 },
                                        { "tipo": "mencao", "mencao": "dificil", "quantas": 1 } ] }
     }

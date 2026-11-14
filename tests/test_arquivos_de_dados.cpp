@@ -889,34 +889,33 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
 
     CHECK(comparacoes == (1 << 13) * 15);
 
-    // A INF 425: Banco de Dados e IA aprovadas, uma mencao de ouro, e a compra.
+    // As optativas nao pedem materia alem da INF 213, nem uma a outra: pedem mencoes e a compra.
+    // A INF 425: uma mencao de ouro.
     const int ds = l.IndiceDe("INF425");
     REQUIRE(ds >= 0);
     CHECK(l.Por(ds)->optativa);
     Progresso p;
-    p.RegistrarNota(l.IndiceDe("INF220"), 80.0f, Dificuldade::Nivel::Normal);
-    p.RegistrarNota(l.IndiceDe("INF420"), 80.0f, Dificuldade::Nivel::Normal);
-    CHECK_FALSE(l.RegraCumprida(ds, p));          // sem ouro
     p.RegistrarNota(l.IndiceDe("INF110"), 93.0f, Dificuldade::Nivel::Normal);
+    CHECK_FALSE(l.RegraCumprida(ds, p));          // ouro, mas sem a INF 213
+    p.RegistrarNota(l.IndiceDe("INF213"), 80.0f, Dificuldade::Nivel::Normal);
     CHECK(l.RegraCumprida(ds, p));
     CHECK_FALSE(l.Desbloqueada(ds, p));           // falta comprar
     CHECK(l.PrecoDe(ds) > 0);
     p.RegistrarAtividade(Materias::ChaveDaCompra("INF425"));
     CHECK(l.Desbloqueada(ds, p));
 
-    // A INF 429, o MaVIlab: a INF 425 aprovada, duas mencoes de ouro, uma no Dificil, e a compra -
-    // mais cara.
+    // A INF 429, o MaVIlab: duas mencoes de ouro, uma no Dificil, e a compra - mais cara. Sem a INF
+    // 425: ela nao entra na conta.
     const int mv = l.IndiceDe("INF429");
     REQUIRE(mv >= 0);
     CHECK(l.Por(mv)->optativa);
     CHECK(l.PrecoDe(mv) > l.PrecoDe(ds));
-    CHECK_FALSE(l.RegraCumprida(mv, p));          // sem a INF 425
-    p.RegistrarNota(ds, 80.0f, Dificuldade::Nivel::Normal);
     CHECK_FALSE(l.RegraCumprida(mv, p));          // um ouro so, e nada no Dificil
-    p.RegistrarNota(l.IndiceDe("INF213"), 95.0f, Dificuldade::Nivel::Normal);
+    p.RegistrarNota(l.IndiceDe("INF250"), 95.0f, Dificuldade::Nivel::Normal);
     CHECK_FALSE(l.RegraCumprida(mv, p));          // dois ouros, e ainda nada no Dificil
-    p.RegistrarNota(l.IndiceDe("INF250"), 70.0f, Dificuldade::Nivel::Dificil);
+    p.RegistrarNota(l.IndiceDe("INF340"), 70.0f, Dificuldade::Nivel::Dificil);
     CHECK(l.RegraCumprida(mv, p));
+    CHECK_FALSE(p.Aprovado(ds));                  // e a INF 425 nem foi feita
     CHECK_FALSE(l.Desbloqueada(mv, p));           // falta comprar
     p.RegistrarAtividade(Materias::ChaveDaCompra("INF429"));
     CHECK(l.Desbloqueada(mv, p));
