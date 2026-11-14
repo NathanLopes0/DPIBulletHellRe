@@ -129,6 +129,7 @@ private:
         BossProjectile* p = nullptr;
         Vector2 onde;
         bool frente = false;
+        bool posta = false;   ///< ja teve um lugar: a velocidade sai da diferenca para o quadro de antes
     };
     /// Poe a conta em 'tela' com a escala; nasce ou morre ao trocar de lado.
     void Posicionar(Conta& c, const Helice::NaTela& tela, bool frente, const char* gatilho, const std::string& cara,

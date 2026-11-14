@@ -18,7 +18,7 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
                                     Golpe::Materia::Thiago, Golpe::Materia::Luizinho, Golpe::Materia::Vladimir,
                                     Golpe::Materia::Julio, Golpe::Materia::MariaLucia, Golpe::Materia::Lucas,
                                     Golpe::Materia::Vitor, Golpe::Materia::Arroyo, Golpe::Materia::Goulart,
-                                    Golpe::Materia::Daniel, Golpe::Materia::Michel};
+                                    Golpe::Materia::Daniel, Golpe::Materia::Michel, Golpe::Materia::Sabrina};
     std::set<int> tipos;
     std::set<std::string> nomes;
     std::set<int> quadros;
@@ -35,9 +35,9 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
         quadros.insert(QuadroDaMateria(m));
         if (Ataca(d.tipo)) ++atacam;
     }
-    CHECK(tipos.size() == 14u);    // catorze orientadores, catorze poderes diferentes
-    CHECK(nomes.size() == 14u);
-    CHECK(quadros.size() == 14u);
+    CHECK(tipos.size() == 15u);    // quinze orientadores, quinze poderes diferentes
+    CHECK(nomes.size() == 15u);
+    CHECK(quadros.size() == 15u);
     // Ha dos dois jeitos: os que atacam e os que defendem.
     CHECK(atacam >= 3);
     CHECK(atacam <= 7);
@@ -49,6 +49,33 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
     CHECK(QuadroDaMateria(Golpe::Materia::Goulart) == kQuadroDoGoulart);
     CHECK(QuadroDaMateria(Golpe::Materia::Daniel) == kQuadroDoDaniel);
     CHECK(QuadroDaMateria(Golpe::Materia::Michel) == kQuadroDoMichel);
+    CHECK(QuadroDaMateria(Golpe::Materia::Sabrina) == kQuadroDaSabrina);
+}
+
+TEST_CASE("Poder: a PCR da Sabrina copia cada tiro em voo, ciclo a ciclo, ate o teto") {
+    const Descricao d = Da(Golpe::Materia::Sabrina);
+    CHECK(d.tipo == Tipo::Pcr);
+    CHECK(Ataca(Tipo::Pcr));
+    CHECK(d.tiros == kTetoDaPcr);
+    CHECK(d.duracao > static_cast<float>(kCiclosDaPcr - 1) * kEntreCiclosDaPcr);
+    // Um tiro so: 1, 2, 4, 8 - cada ciclo copia o que ha, copias inclusive.
+    int emVoo = 1, feitas = 0;
+    for (int c = 0; c < kCiclosDaPcr; ++c) {
+        const int novas = CopiasDoCiclo(emVoo, feitas);
+        CHECK(novas == emVoo);
+        feitas += novas;
+        emVoo += novas;
+    }
+    CHECK(emVoo == 1 << kCiclosDaPcr);
+    // O teto: o que falta para ele, e nada depois.
+    CHECK(CopiasDoCiclo(30, kTetoDaPcr - 5) == 5);
+    CHECK(CopiasDoCiclo(30, kTetoDaPcr) == 0);
+    CHECK(CopiasDoCiclo(0, 0) == 0);
+    // A previa mostra as copias se multiplicando.
+    size_t antes = 0, depois = 0;
+    for (const Ponto& p : Previa(Tipo::Pcr, 0.9f).pontos) antes += p.marca == Marca::TiroSeu ? 1 : 0;
+    for (const Ponto& p : Previa(Tipo::Pcr, 3.0f).pontos) depois += p.marca == Marca::TiroSeu ? 1 : 0;
+    CHECK(depois > antes);
 }
 
 TEST_CASE("Poder: a camera escura do Michel devolve, de cabeca para baixo, o tiro que cruza a parede") {

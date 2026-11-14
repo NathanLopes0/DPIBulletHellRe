@@ -312,8 +312,9 @@ SDL_Color Sabrina::CorDa(const Base b, const Uint8 alfa) {
 
 void Sabrina::Posicionar(Conta& c, const Helice::NaTela& tela, const bool frente, const char* gatilho,
                          const std::string& cara, const float deltaTime, const SDL_Color contorno) {
-    const Vector2 antes = c.onde;
+    const Vector2 antes = c.posta ? c.onde : tela.onde;
     c.onde = tela.onde;
+    c.posta = true;
     if (!frente || !NoCampo(tela.onde, -4.0f)) {
         // Atras: o contorno apagado, por onde se passa.
         Matar(c.p);

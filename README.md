@@ -355,9 +355,10 @@ foi aprovado:
 | 4 | TCC — Trabalho de Conclusão de Curso *(Hugo)* | 2 aprovações na coluna 3 |
 | 5 *(optativas)* | INF 425 — Ciência de Dados *(Daniel)* | INF 213 aprovada, pelo menos 5 menções de ouro, 2 no Difícil e 2 "prestando atenção", e 20 h de horas complementares |
 | 6 *(optativas)* | INF 429 — Aprendizado de Máquina com Dados Visuais *(Michel)* | INF 213 aprovada, pelo menos 8 menções de ouro, 4 no Difícil, 3 "prestando atenção" e 2 "sentar na frente", e 30 h de horas complementares — o MaVIlab é seleto |
+| 7 *(optativas)* | INF 491 — Tópicos Especiais, Bioinformática *(Sabrina)* | INF 213 aprovada, pelo menos 9 menções de ouro, 5 no Difícil, 3 "sentar na frente" e 3 "prestando atenção", e 35 h de horas complementares — a mais pesada das três |
 
 Toda matéria tem professor e batalha — as doze do curso, o TCC, do Hugo, que é
-a última e a mais difícil, e as optativas INF 425, do Daniel, e INF 429, do Michel. A INF 332 e a INF 451 entraram depois: no
+a última e a mais difícil, e as optativas INF 425, do Daniel, INF 429, do Michel, e INF 491, da Sabrina. A INF 332 e a INF 451 entraram depois: no
 `materias.json` elas ficam no fim da lista (o índice de cada matéria é o da
 batalha na simulação e na linha de base, e nenhum podia mudar), e na grade, a
 INF 332 embaixo da INF 331 e a INF 451 embaixo da INF 310, à direita dela. Ter professor e
@@ -378,8 +379,9 @@ obrigatórias, pedem **requisitos** além das aprovações (uma menção de ouro
 horas ganhas...) e se **compram** com horas complementares; o prêmio é um
 **orientador novo** no TCC — o professor da optativa aprovada aparece a mais,
 além dos três candidatos das obrigatórias. A primeira é a INF 425, Ciência de Dados, do Daniel; a
-segunda, a INF 429, Aprendizado de Máquina com Dados Visuais, do Michel — a mais
-difícil das duas. Uma optativa não pede outra, nem matéria além da INF 213: o
+segunda, a INF 429, Aprendizado de Máquina com Dados Visuais, do Michel; a
+terceira, a INF 491, Tópicos Especiais, Bioinformática, da Sabrina — a mais
+difícil das três. Uma optativa não pede outra, nem matéria além da INF 213: o
 que ela pede são menções, e as horas da compra. A matrícula é uma festinha: as horas
 pagam em fichas douradas, que saltam do painel até o losango girando como
 moedas, e ele dá dois pulinhos, com um anel dourado e faíscas
@@ -724,6 +726,45 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   movimento e com os tiros, e quando o NMS escolhe, a caixa é cercada — e, se
   era você, o rastreador o segue atirando dos cantos. Quem fica quieto como um
   colega na hora certa passa despercebido.
+- **Sabrina — INF 491, optativa.** Tópicos Especiais, Bioinformática, da
+  professora que lê sequências e gira moléculas em 3D — a mais pesada das
+  optativas, e a única em que **você carrega um estado**. Na **dupla hélice**,
+  a molécula é um modelo 3D que gira no campo, e **só a frente machuca**: a
+  parte de trás é um contorno apagado, por onde se passa. De pé, a hélice anda
+  de um lado ao outro e solta as bases dos pares que passam pela borda; na
+  **torção**, ela deita e desce sobre você como uma rosca — as brechas da fita
+  de trás andam de lado, e quem atravessa anda junto, cada vez mais torcida; na
+  **desnaturação**, o calor sobe (o termômetro na beirada) e os pares se soltam
+  na ordem das pontes de hidrogênio: A–T, com duas, antes de G–C, com três, e
+  o vizinho ajuda a segurar. O par que solta arremessa as duas bases em você, e
+  a hélice incha onde já abriu. No **código**, você **carrega uma base** (o
+  selo ao seu lado, e o anel na cor dela): a base que pareia com a sua (A com
+  T, C com G; no RNA, A com U) não machuca — encaixa em você pelas pontes de
+  hidrogênio, tracejadas até os tiros que pareiam, e vale nota —, e as outras
+  machucam. As **cápsulas** de nucleotídeo livre giram na metade de baixo, e
+  encostar numa troca a sua base. No **pareamento**, a professora anuncia a
+  base da próxima onda, e a onda é quase toda dela; na **transcrição**, a
+  polimerase lê a fita molde no alto e solta o RNA — com U no lugar de T, e o
+  seu selo de T vira U —, e quem lê o molde à frente dela sabe que base pegar
+  (a do próprio molde); na **tradução**, o ribossomo lê o mensageiro de três
+  em três, e a **família do aminoácido** decide como as três bases do códon
+  voam: o hidrofóbico vem reto e rápido, o polar abre devagar, o positivo
+  persegue e o negativo espalha em anel — e o códon de parada solta a cadeia
+  que pendia do ribossomo. Na **proteína**, a **cadeia** persegue você e
+  cresce, e **o seu tiro é a protease**: o resíduo atingido corta a cadeia, e o
+  pedaço menor se desfaz. No **dobramento**, ela colapsa num glóbulo de bolas e
+  varetas — os hidrofóbicos se escondem no núcleo — que rola atrás de você, e
+  de novo só a frente machuca, enquanto os polares borrifam água. No
+  **encaixe**, o **sítio ativo** abre: um anel com uma boca que gira. Dentro
+  dele você é o ligante — a água em movimento browniano e os inibidores morrem
+  na parede, e o ΔG cai —, mas o seu tiro também morre nela: só sai pela boca.
+  O exame é o **sequenciamento**: na **PCR**, cada ciclo de temperatura (95,
+  55 e 72 °C) dobra as cópias, e derrubar o primer impede a fita de se copiar;
+  no **shotgun**, os reads em leque se montam no contig, que gira no meio do
+  campo como um ponteiro e cresce — só as pontas se deixam aparar; no
+  **CRISPR**, a fita do genoma desce como uma parede, o guia está no placar, e
+  a Cas9 só corta onde o guia casa e logo depois vem o PAM (N G G, sublinhado):
+  ache o alvo, atire nele, e a fita abre ali.
 - **Lucas — INF 321.** Programação Web, na ordem da matéria. No HTML ele
   renderiza uma página gerada a cada luta, com o layout desenhado no campo, e
   cada elemento ataca do seu jeito: o cursor voa até o `<button>` e clica, a
@@ -751,7 +792,8 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   fecha os dois tiros no Hugo pela metade a cada rodada, e o Round Robin do
   Goulart, uma rajada curta de cada lado por vez, o comitê do Daniel, três
   tiros que saem abertos e miram de novo no Hugo, e o bloco 2×2 do pooling do
-  Michel, quatro tiros em quadrado que voam juntos), e cada um traz um
+  Michel, quatro tiros em quadrado que voam juntos, e a dupla hélice da
+  Sabrina, dois tiros que saem juntos e se enroscam), e cada um traz um
   **poder**, que carrega a cada acerto no Hugo e sai no **botão 3**. O poder é um
   conceito da matéria dele, jogável:
 
@@ -794,6 +836,10 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
     acima: o tiro do Hugo que a cruza sai do outro lado do furo, de cabeça para
     baixo, e volta subindo. Também orienta sem sentar na banca; o objetivo dele
     pergunta "Por que não uma rede pré-treinada?".
+  - **Sabrina — PCR.** Por três ciclos, cada tiro seu em voo ganha uma cópia,
+    um pouco de lado — e as cópias também se copiam no ciclo seguinte: 1, 2, 4,
+    8, até 40. Também orienta sem sentar na banca; o objetivo dela pergunta
+    "Cadê o controle negativo?".
 
   A tela em que se escolhe o orientador mostra o poder de cada um
   funcionando: um campo em miniatura, animado, com a legenda de cada passo.
@@ -873,7 +919,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 1290 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 1305 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha, o objetivo e o poder do orientador no
 TCC — e também **leem os arquivos de
@@ -913,7 +959,7 @@ Assets/          sprites, fontes, sons e os JSON que descrevem o jogo
 Documentacao/    receitas para quem for mexer no código
 Ferramentas/     geradores de arte e de som provisórios, e as medições: o jogo
                  rodando sozinho (medir-dificuldade.sh), o portão do aluno
-                 parado (parado-reprova.sh) e as 74 batalhas que uma
+                 parado (parado-reprova.sh) e as 79 batalhas que uma
                  refatoração não pode mudar (linha-de-base.sh)
 
 tests/           a suíte
@@ -954,7 +1000,7 @@ resto mora em colaboradores, um por assunto:
 | `TelaDeCarregamento` | o véu enquanto os projéteis são preparados |
 
 Uma refatoração nela tem de passar pela linha de base
-(`Ferramentas/linha-de-base.sh`): as 74 batalhas idênticas, byte a byte.
+(`Ferramentas/linha-de-base.sh`): as 79 batalhas idênticas, byte a byte.
 
 ## Os dados
 

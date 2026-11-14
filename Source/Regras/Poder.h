@@ -18,7 +18,7 @@ namespace Poder {
 
     enum class Tipo {
         Nenhum, Matriz, Pilha, Congelar, Transacao, TryCatch, Converter, Agentes, BalaDePrata, PromiseAll, Mutex,
-        BuscaBinaria, Rodizio, KMedias, CameraEscura
+        BuscaBinaria, Rodizio, KMedias, CameraEscura, Pcr
     };
 
     struct Descricao {
@@ -153,17 +153,30 @@ namespace Poder {
     /// O lugar de 'p' do outro lado do furo.
     Vector2 PeloFuro(const Vector2& p, const Vector2& furo);
 
+    // ---- Sabrina: a PCR ----
+
+    /// Os seus tiros em voo se copiam, ciclo a ciclo, como na PCR: cada ciclo da uma copia a cada
+    /// tiro que ha - e a copia tambem se copia no ciclo seguinte. 1, 2, 4, 8... ate kTetoDaPcr.
+    constexpr int kCiclosDaPcr = 3;
+    constexpr float kEntreCiclosDaPcr = 0.4f;
+    constexpr int kTetoDaPcr = 40;
+    /// A copia sai um pouco de lado do molde, para as duas se verem.
+    constexpr float kAberturaDaPcr = 7.0f;
+    /// Quantas copias o ciclo faz com 'emVoo' tiros, ja tendo feito 'feitas': uma por tiro, ate o teto.
+    int CopiasDoCiclo(int emVoo, int feitas);
+
     // ---- A cara ----
 
     /// A folha com o projetil de cada professor (Ferramentas/gerar_hugo.py): o
     /// tiro do orientador tem a cara da materia dele.
     constexpr const char* kFolhaDasMaterias = "Teachers/Projectiles/DPIBHHugoTcc";
     /// O ladrilho do Arroyo na folha: o quadro 22, depois da Caixa; o do Goulart, o 23; o do Daniel, o 24;
-    /// o do Michel, o 25.
+    /// o do Michel, o 25; o da Sabrina, o 26.
     constexpr int kQuadroDoArroyo = 22;
     constexpr int kQuadroDoGoulart = 23;
     constexpr int kQuadroDoDaniel = 24;
     constexpr int kQuadroDoMichel = 25;
+    constexpr int kQuadroDaSabrina = 26;
 
     /// O quadro da materia 'm' em kFolhaDasMaterias; -1 sem materia (o tiro de sempre).
     int QuadroDaMateria(Golpe::Materia m);

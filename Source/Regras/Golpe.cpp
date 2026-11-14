@@ -25,6 +25,7 @@ namespace Golpe {
         if (professor == "Goulart") return Materia::Goulart;
         if (professor == "Daniel") return Materia::Daniel;
         if (professor == "Michel") return Materia::Michel;
+        if (professor == "Sabrina") return Materia::Sabrina;
         return Materia::Generico;
     }
 
@@ -194,6 +195,19 @@ namespace Golpe {
                     t.dx = 9.0f * static_cast<float>(2 * (i % 2) - 1);
                     t.dy = 9.0f * static_cast<float>(2 * (i / 2) - 1);
                     t.paralelo = true;
+                    r.tiros.push_back(t);
+                }
+                break;
+            }
+
+            case Materia::Sabrina: {
+                // A dupla helice: duas fitas saem juntas e se enroscam no caminho, cada uma para um
+                // lado - e o par seguinte vem logo atras.
+                r.duracao = 1.8f;
+                for (int i = 0; i < 4; ++i) {
+                    Tiro t;
+                    t.quando = 0.18f * static_cast<float>(i / 2);
+                    t.onda = (i % 2 == 0) ? 46.0f : -46.0f;
                     r.tiros.push_back(t);
                 }
                 break;

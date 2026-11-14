@@ -127,6 +127,9 @@ namespace Objetivo {
             case Golpe::Materia::Michel:
                 q.pergunta = "Por que não uma rede pré-treinada?";
                 r = {"fiz fine-tuning de uma", "treinei do zero no notebook", "o que é pré-treinada?"}; break;
+            case Golpe::Materia::Sabrina:
+                q.pergunta = "Cadê o controle negativo?";
+                r = {"embaralhei as sequências", "não precisava", "o positivo já deu certo"}; break;
             case Golpe::Materia::Arroyo:
                 q.pergunta = "Qual é a complexidade disso?";
                 r = {"Θ(n log n), pelo Teorema Mestre", "roda rápido no meu PC", "é polinomial, acho"}; break;

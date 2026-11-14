@@ -20,7 +20,8 @@ namespace Golpe {
         Arroyo,  ///< entrou depois: no fim, para nenhum indice mudar
         Goulart, ///< tambem
         Daniel,  ///< a primeira optativa: o professor dela orienta quem passa nela
-        Michel   ///< a segunda optativa
+        Michel,  ///< a segunda optativa
+        Sabrina  ///< a terceira optativa
     };
 
     /// A materia pelo nome do professor em materias.json ("Andre", "Maria Lucia", com ou sem

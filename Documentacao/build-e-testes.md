@@ -233,17 +233,17 @@ dois jogadores há mais colisões, e cada uma consome números do mesmo sorteado
 
 ### A linha de base
 
-`Ferramentas/linha-de-base.sh` roda **74 batalhas** — as quinze matérias (as
-optativas INF 425 e INF 429 inclusive), solo e
-dupla, Normal e Difícil, e o TCC com cada um dos catorze orientadores — e compara
+`Ferramentas/linha-de-base.sh` roda **79 batalhas** — as dezesseis matérias (as
+optativas INF 425, INF 429 e INF 491 inclusive), solo e
+dupla, Normal e Difícil, e o TCC com cada um dos quinze orientadores — e compara
 a nota, quadro a quadro, com a gravada em `Ferramentas/linha-de-base/`:
 
 ```bash
-bash Ferramentas/linha-de-base.sh               # identicas=74 diferentes=0
+bash Ferramentas/linha-de-base.sh               # identicas=79 diferentes=0
 bash Ferramentas/linha-de-base.sh --atualizar   # grava a de agora
 ```
 
-**Uma refatoração tem de dar 74 idênticas, byte a byte.** Uma mudança de
+**Uma refatoração tem de dar 79 idênticas, byte a byte.** Uma mudança de
 balanceamento muda algumas de propósito: confira quais mudaram, e quanto — o
 script mostra a linha `FIM` de antes e de agora —, e só então grave a nova com
 `--atualizar`, no mesmo commit. Cada batalha ocupa uns 2,5 GB; `PARALELO=3` é o
@@ -271,6 +271,19 @@ optativa. Na INF 429, sozinho, com as sementes 101 a 103:
 
 Quem joga de verdade fica entre os dois: desvia pior que o `esquiva`, mas pode
 entender a fase — e é isso que a INF 429 cobra.
+
+A INF 491, da Sabrina, é mais dura que a INF 429 nos dois modos. Sozinho, com
+as sementes 101 a 106 no `esquiva` e 101 a 103 no `segue`:
+
+| Piloto | Normal | Difícil |
+|---|---|---|
+| `segue` | 9 a 21 (reprova; as fases 1 e 2 o derrubam) | 0 |
+| `esquiva` | 60 a 81 (aprova nas seis) | 26 a 64 (aprova em uma; quatro vão à repescagem e reprovam nela) |
+
+O `esquiva` não carrega a base que pareia (não pega as cápsulas), não se
+encaixa no sítio ativo e não lê o guia do CRISPR: a parede do genoma o acerta a
+cada fita. São três coisas que quem entende a fase faz, e o número dele é o de
+quem só desvia.
 
 ### Fotografar
 

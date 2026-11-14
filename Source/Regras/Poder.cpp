@@ -64,6 +64,11 @@ namespace Poder {
                 d = {Tipo::CameraEscura, "c\xc3\xa2mera escura", "o tiro que passa pelo furo volta de cabe\xc3\xa7" "a para baixo",
                      4.5f, kDistanciaDaParede, 0, 0.0f};
                 break;
+            case Golpe::Materia::Sabrina:
+                // \xc3\xb3 e o o agudo.
+                d = {Tipo::Pcr, "PCR", "seus tiros se copiam: 1, 2, 4, 8",
+                     static_cast<float>(kCiclosDaPcr) * kEntreCiclosDaPcr + 0.2f, 0.0f, kTetoDaPcr, kEntreCiclosDaPcr};
+                break;
             case Golpe::Materia::Daniel:
                 // \xc3\xa9 e o e agudo, \xc3\xb3 o o agudo.
                 d = {Tipo::KMedias, "k-m\xc3\xa9" "dias", "os tiros do Hugo viram 4 centr\xc3\xb3" "ides", 0.0f, 0.0f,
@@ -81,7 +86,8 @@ namespace Poder {
 
     bool Ataca(const Tipo t) {
         // Os agentes nao: com o Hugo blindado, os tiros cacam os alvos do objetivo.
-        return t == Tipo::Matriz || t == Tipo::Converter || t == Tipo::PromiseAll || t == Tipo::BalaDePrata;
+        return t == Tipo::Matriz || t == Tipo::Converter || t == Tipo::PromiseAll || t == Tipo::BalaDePrata ||
+               t == Tipo::Pcr;
     }
 
     Vector2 Agente(const Vector2& centro, const int k, const int n, const float t, const float raio) {
@@ -129,7 +135,12 @@ namespace Poder {
         if (m == Golpe::Materia::Goulart) return kQuadroDoGoulart;
         if (m == Golpe::Materia::Daniel) return kQuadroDoDaniel;
         if (m == Golpe::Materia::Michel) return kQuadroDoMichel;
+        if (m == Golpe::Materia::Sabrina) return kQuadroDaSabrina;
         return 2 + static_cast<int>(m);
+    }
+
+    int CopiasDoCiclo(const int emVoo, const int feitas) {
+        return std::clamp(std::min(emVoo, kTetoDaPcr - feitas), 0, kTetoDaPcr);
     }
 
     bool CruzouAParede(const float y, const float vy, const float parede) {
@@ -537,6 +548,33 @@ namespace Poder {
                 if (t < kFecha) q.legenda = "sem trava: todos de uma vez";
                 else if (fechada) q.legenda = "P(s): fila na porta, passa um por vez";
                 else q.legenda = "V(s): quem esperava morreu";
+                break;
+            }
+            case Tipo::Pcr: {
+                // O tiro sobe e, a cada ciclo, cada tiro vira dois: 1, 2, 4, 8 - todos no Hugo.
+                constexpr float kSai = 0.6f, kCiclo = 0.75f;
+                for (const Ponto& p : Chuva(t, 8)) q.pontos.push_back(p);
+                if (t < kSai) {
+                    Atirar(q, t, hugoX, kHugoY);
+                    // \xc3\xa9 e o e agudo.
+                    q.legenda = "PCR: o seu tiro \xc3\xa9 o molde";
+                    break;
+                }
+                const float voo = t - kSai;
+                const int ciclos = std::min(kCiclosDaPcr, static_cast<int>(voo / kCiclo));
+                const int n = 1 << ciclos;
+                const float y = kAlunoY - 0.06f - voo * 0.2f;
+                // \xc3\xb3 e o o agudo.
+                if (y > kHugoY + 0.04f) {
+                    for (int k = 0; k < n; ++k) {
+                        const float x = kAlunoX + (static_cast<float>(k) - 0.5f * static_cast<float>(n - 1)) * 0.04f;
+                        q.pontos.push_back({Marca::TiroSeu, x, y});
+                    }
+                    q.legenda = ciclos == 0 ? std::string("o molde sobe")
+                                            : "ciclo " + std::to_string(ciclos) + ": " + std::to_string(n) + " c\xc3\xb3pias";
+                } else {
+                    q.legenda = std::to_string(n) + " c\xc3\xb3pias no Hugo";
+                }
                 break;
             }
             case Tipo::Nenhum:

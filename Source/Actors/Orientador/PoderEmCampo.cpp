@@ -570,6 +570,54 @@ namespace {
         std::unordered_set<const BossProjectile*> mVistos;
     };
 
+    // ---- Sabrina: a PCR ----
+
+    class Pcr final : public PoderEmCampo {
+    public:
+        void Soltar(Orientador& o, Battle&, const Vector2&, const Vector2&) override {
+            mCiclo = 0;
+            mFeitas = 0;
+            mProximo = o.Tempo();
+        }
+        void Atualizar(Orientador& o, Battle& batalha, float, bool) override {
+            // Cada ciclo da uma copia a cada tiro em voo - o do aluno, o do orientador e as copias do
+            // ciclo de antes: 1, 2, 4, 8.
+            if (mCiclo >= Poder::kCiclosDaPcr || o.Tempo() < mProximo) return;
+            ProjectileManager* tiros = batalha.GerenteDeProjeteis();
+            if (!tiros) return;
+            mProximo = o.Tempo() + Poder::kEntreCiclosDaPcr;
+            ++mCiclo;
+            struct Molde {
+                Vector2 onde;
+                Vector2 velocidade;
+            };
+            std::vector<Molde> moldes;
+            for (const auto& p : tiros->GetPlayerProjectiles()) {
+                if (!p || p->GetState() != ActorState::Active || p->Murchando() || p->Promessa()) continue;
+                const auto* rb = p->GetComponent<RigidBodyComponent>();
+                if (!rb || rb->GetVelocity().LengthSq() < 1.0f) continue;
+                moldes.push_back({p->GetPosition(), rb->GetVelocity()});
+            }
+            const int copias = Poder::CopiasDoCiclo(static_cast<int>(moldes.size()), mFeitas);
+            const int quadro = Poder::QuadroDaMateria(Golpe::Materia::Sabrina);
+            for (int k = 0; k < copias; ++k) {
+                const Molde& m = moldes[static_cast<size_t>(k)];
+                Golpe::Tiro t;
+                t.velocidade = m.velocidade.Length();
+                // A copia sai um pouco de lado do molde, para um lado ou para o outro.
+                const float lado = (k % 2 == 0) ? Poder::kAberturaDaPcr : -Poder::kAberturaDaPcr;
+                o.Disparar(batalha, t, m.onde, Golpe::Rumo(m.onde, m.onde + m.velocidade, lado),
+                           Poder::kFolhaDasMaterias, quadro, 1.0f);
+            }
+            mFeitas += copias;
+            o.Rotular("PCR, ciclo " + std::to_string(mCiclo) + ": +" + std::to_string(copias) + " cópias");
+        }
+    private:
+        int mCiclo = Poder::kCiclosDaPcr;   ///< parado ate o botao 3
+        int mFeitas = 0;
+        float mProximo = 0.0f;
+    };
+
     // ---- Michel: a camera escura ----
 
     class CameraEscura final : public PoderEmCampo {
@@ -842,6 +890,7 @@ std::unique_ptr<PoderEmCampo> PoderEmCampo::Do(const Poder::Tipo t) {
         case Poder::Tipo::Rodizio:     return std::make_unique<Rodizio>();
         case Poder::Tipo::KMedias:     return std::make_unique<KMedias>();
         case Poder::Tipo::CameraEscura: return std::make_unique<CameraEscura>();
+        case Poder::Tipo::Pcr:         return std::make_unique<Pcr>();
         case Poder::Tipo::Nenhum:      break;
     }
     return nullptr;

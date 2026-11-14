@@ -5,6 +5,7 @@
 #include "Tcc.h"
 
 #include <algorithm>
+#include <cmath>
 #include <vector>
 
 namespace Tcc {
@@ -222,6 +223,20 @@ namespace Tcc {
                 }
                 break;
             }
+            case Materia::Sabrina: {
+                // A dupla helice: duas fitas de tiros, cada uma para um lado da outra, que se cruzam
+                // a cada meia volta - e os degraus, de tanto em tanto.
+                const int q = N(5, 6);
+                for (int i = 0; i < q; ++i) {
+                    const float lado = N(16.0f, 20.0f) * std::sin(0.9f * static_cast<float>(i));
+                    for (const float fita : {1.0f, -1.0f}) {
+                        Golpe::Tiro t = Tiro(0.07f * static_cast<float>(i), N(250.0f, 270.0f));
+                        t.desvio = fita * lado;
+                        tiros.push_back(t);
+                    }
+                }
+                break;
+            }
             case Materia::Generico:
             default: {
                 // O Hugo sem orientador: um leque de paginas.
@@ -280,6 +295,8 @@ namespace Tcc {
              "k-means, k = 3",           "Cadê o conjunto de teste?",           "Daniel"},
             {Materia::Michel,     "Michel",      "Aprendizado de Máquina com Dados Visuais",
              "conv 3×3, stride 1",       "Por que não uma rede pré-treinada?",  "Michel"},
+            {Materia::Sabrina,    "Sabrina",     "Tópicos Especiais, Bioinformática",
+             "5'-AUG GCU UAA-3'",        "Cadê o controle negativo?",           "Sabrina"},
         };
 
         /// Sem orientador (o Generico), o proprio Hugo: tema livre.
