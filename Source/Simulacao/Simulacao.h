@@ -21,6 +21,7 @@ namespace Simulacao {
         Segue,    ///< persegue o x do chefe (no TCC, o objetivo e o lugar da etapa)
         Parado,   ///< nao sai do lugar
         VaiVem,   ///< varre a largura de um lado ao outro, sem mirar
+        Esquiva,  ///< segue o chefe como o Segue, mas olha adiante e desvia (o perfil das optativas)
     };
 
     /// Uma tecla do roteiro: o nome dela no SDL ("Space", "B", "Return") e o quadro em que e apertada.
@@ -100,4 +101,35 @@ namespace Simulacao {
     float SentidoDoVaiVem(float x, float sentido);
     constexpr float kVaiVemEsquerda = 140.0f;
     constexpr float kVaiVemDireita = 1060.0f;
+
+    // ---- O piloto que desvia ----
+
+    /// Um tiro que o piloto que desvia ve: onde esta, para onde anda (por segundo) e o raio.
+    struct Ameaca {
+        float x = 0.0f;
+        float y = 0.0f;
+        float vx = 0.0f;
+        float vy = 0.0f;
+        float raio = 8.0f;
+    };
+    /// Um dos nove rumos: parado (0, 0) ou uma das oito direcoes.
+    struct Rumo {
+        int dx = 0;
+        int dy = 0;
+    };
+    /// A faixa em que o piloto anda.
+    struct Faixa {
+        float esquerda = 0.0f;
+        float topo = 0.0f;
+        float direita = 0.0f;
+        float chao = 0.0f;
+    };
+    /// O piloto que desvia: dos nove rumos, o de menor custo - o perigo de cada tiro nos proximos
+    /// kOlharAdiante segundos (cada tiro anda em linha reta), mais a distancia ate o alvo e a parede.
+    /// O rumo de antes ganha um empate apertado, para ele nao tremer.
+    Rumo Desviar(float x, float y, float raio, float rapidez, const std::vector<Ameaca>& ameacas, float alvoX,
+                 float alvoY, const Faixa& faixa, Rumo anterior);
+    constexpr float kOlharAdiante = 0.45f;
+    /// Os tiros mais longe que isto nem entram na conta.
+    constexpr float kAlcanceDoOlhar = 260.0f;
 }

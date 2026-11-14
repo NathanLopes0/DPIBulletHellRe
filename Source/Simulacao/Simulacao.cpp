@@ -4,9 +4,13 @@
 
 #include "Simulacao.h"
 
+#include <algorithm>
 #include <cerrno>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <iterator>
+#include <limits>
 
 namespace Simulacao {
 
@@ -103,6 +107,48 @@ namespace Simulacao {
         return sentido;
     }
 
+    Rumo Desviar(const float x, const float y, const float raio, const float rapidez, const std::vector<Ameaca>& ameacas,
+                 const float alvoX, const float alvoY, const Faixa& faixa, const Rumo anterior) {
+        // Olha quatro instantes adiante; o mais perto pesa mais. A folga e a distancia em que um tiro
+        // ja comeca a preocupar.
+        constexpr float kOlhar[] = {0.08f, 0.18f, 0.3f, kOlharAdiante};
+        constexpr float kPeso[] = {1.6f, 1.2f, 0.8f, 0.5f};
+        constexpr float kFolga = 22.0f;
+        Rumo melhor = anterior;
+        float menor = std::numeric_limits<float>::max(), doAnterior = menor;
+        for (int dy = -1; dy <= 1; ++dy) {
+            for (int dx = -1; dx <= 1; ++dx) {
+                const float n = (dx != 0 && dy != 0) ? 0.70710678f : 1.0f;
+                const auto onde = [&](const float t) {
+                    return std::make_pair(std::clamp(x + static_cast<float>(dx) * n * rapidez * t, faixa.esquerda, faixa.direita),
+                                          std::clamp(y + static_cast<float>(dy) * n * rapidez * t, faixa.topo, faixa.chao));
+                };
+                float custo = 0.0f;
+                for (size_t k = 0; k < std::size(kOlhar); ++k) {
+                    const float t = kOlhar[k];
+                    const auto [px, py] = onde(t);
+                    for (const Ameaca& a : ameacas) {
+                        const float d = std::hypot(px - (a.x + a.vx * t), py - (a.y + a.vy * t)) - (raio + a.raio);
+                        if (d >= kFolga) continue;
+                        const float u = (kFolga - d) / kFolga;
+                        custo += kPeso[k] * u * u * (d < 0.0f ? 4.0f : 1.0f);
+                    }
+                }
+                // O alvo puxa de leve, e a parede empurra: encostado nela nao ha para onde fugir.
+                const auto [fx, fy] = onde(0.3f);
+                custo += 0.004f * std::fabs(fx - alvoX) + 0.002f * std::fabs(fy - alvoY);
+                const float margem = std::min({fx - faixa.esquerda, faixa.direita - fx, fy - faixa.topo, faixa.chao - fy});
+                if (margem < 30.0f) custo += 0.01f * (30.0f - margem);
+                if (dx == anterior.dx && dy == anterior.dy) doAnterior = custo;
+                if (custo < menor) {
+                    menor = custo;
+                    melhor = Rumo{dx, dy};
+                }
+            }
+        }
+        return doAnterior <= menor + 0.02f ? anterior : melhor;
+    }
+
     Configuracao Ler(const std::vector<std::string>& argumentos, std::vector<std::string>* problemas) {
         Configuracao c;
         const auto problema = [&](const std::string& p) { if (problemas) problemas->push_back(p); };
@@ -174,6 +220,7 @@ namespace Simulacao {
                 if (v == "segue") c.piloto = Piloto::Segue;
                 else if (v == "parado") c.piloto = Piloto::Parado;
                 else if (v == "vaivem") c.piloto = Piloto::VaiVem;
+                else if (v == "esquiva") c.piloto = Piloto::Esquiva;
                 else problema("piloto desconhecido: \"" + v + "\"");
             }
             else if (a == "--teclas") {

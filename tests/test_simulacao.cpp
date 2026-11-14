@@ -109,3 +109,32 @@ TEST_CASE("Simulacao: o piloto anda para o alvo e para perto dele; o vai e vem v
     CHECK(SentidoDoVaiVem(kVaiVemDireita + 1.0f, 1.0f) == -1.0f);
     CHECK(SentidoDoVaiVem(kVaiVemEsquerda - 1.0f, -1.0f) == 1.0f);
 }
+
+TEST_CASE("Simulacao: o piloto que desvia sai da frente do tiro, e sem tiro vai ao alvo") {
+    CHECK(Ler({"--piloto", "esquiva"}).piloto == Piloto::Esquiva);
+    const Faixa faixa{0.0f, 0.0f, 1000.0f, 800.0f};
+    // Sem tiro nenhum, anda para o alvo (a direita) - e, em cima dele, fica.
+    const Rumo livre = Desviar(500.0f, 600.0f, 6.0f, 300.0f, {}, 800.0f, 600.0f, faixa, Rumo{});
+    CHECK(livre.dx == 1);
+    CHECK(livre.dy == 0);
+    const Rumo chegou = Desviar(800.0f, 600.0f, 6.0f, 300.0f, {}, 800.0f, 600.0f, faixa, Rumo{});
+    CHECK(chegou.dx == 0);
+    CHECK(chegou.dy == 0);
+    // Um tiro caindo bem em cima dele: nao fica, e nao vai ao encontro dele - sai de lado, ou corre
+    // na frente (ele e mais rapido que o tiro).
+    const std::vector<Ameaca> chuva = {Ameaca{500.0f, 540.0f, 0.0f, 260.0f, 8.0f}};
+    const Rumo fuga = Desviar(500.0f, 600.0f, 6.0f, 300.0f, chuva, 500.0f, 600.0f, faixa, Rumo{});
+    CHECK((fuga.dx != 0 || fuga.dy > 0));
+    // Com o chao logo abaixo, nao da para correr na frente: sai de lado.
+    const Rumo noChao = Desviar(500.0f, 795.0f, 6.0f, 300.0f, {Ameaca{500.0f, 735.0f, 0.0f, 260.0f, 8.0f}}, 500.0f,
+                                795.0f, faixa, Rumo{});
+    CHECK(noChao.dx != 0);
+    // O tiro longe, andando para longe, nao assusta.
+    const std::vector<Ameaca> longe = {Ameaca{500.0f, 300.0f, 0.0f, -260.0f, 8.0f}};
+    const Rumo calmo = Desviar(500.0f, 600.0f, 6.0f, 300.0f, longe, 500.0f, 600.0f, faixa, Rumo{});
+    CHECK(calmo.dx == 0);
+    CHECK(calmo.dy == 0);
+    // Encostado na parede da direita, nao foge para ela.
+    const std::vector<Ameaca> deLado = {Ameaca{960.0f, 540.0f, 0.0f, 260.0f, 8.0f}};
+    CHECK(Desviar(990.0f, 600.0f, 6.0f, 300.0f, deLado, 990.0f, 600.0f, faixa, Rumo{}).dx <= 0);
+}

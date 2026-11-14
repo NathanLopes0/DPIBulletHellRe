@@ -30,7 +30,7 @@
 #               fase sozinha. Toda batalha comeca com a nota inicial (40), e a
 #               StateThree a decide - a StateFinal sozinha mede quem chega a ela com
 #               40, o pior caso de quem a ve
-# --piloto      segue, parado ou vaivem (abaixo)
+# --piloto      segue, parado, vaivem ou esquiva (abaixo)
 #
 # USE VARIAS SEMENTES. Com dois jogadores ha mais colisoes, e cada colisao consome
 # numeros do mesmo sorteador global: a sequencia de ataques diverge da do solo depois
@@ -54,6 +54,13 @@
 # vaivem  varre a largura jogavel ignorando o chefe. A mira dele e ruim de um jeito mais
 #         parecido com o de gente, e ele nunca fica parado. Leia dele os ACERTOS
 #         SOFRIDOS, e nao a nota: sem mira, a nota termina em zero em qualquer chefe.
+# esquiva o perfil das optativas: quer o mesmo lugar do segue, mas a cada quadro olha os
+#         tiros que machucam (meio segundo adiante, cada um em linha reta) e escolhe o rumo
+#         mais seguro entre nove. E o teto de quem so desvia: ve tudo e reage na hora, e
+#         ganha o bonus de fase limpa quase sempre - e por isso pontua acima de gente. Nao
+#         entende as mecanicas (nao para de atirar na convolucao do Michel, nao se esconde
+#         do detector): o que ele perde para o segue, perde por desviar; o que uma pessoa
+#         perde para ele, perde por nao ver tudo ou por nao entender a fase.
 
 set -uo pipefail
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
