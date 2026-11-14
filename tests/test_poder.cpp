@@ -52,30 +52,44 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
     CHECK(QuadroDaMateria(Golpe::Materia::Sabrina) == kQuadroDaSabrina);
 }
 
-TEST_CASE("Poder: a PCR da Sabrina copia cada tiro em voo, ciclo a ciclo, ate o teto") {
+TEST_CASE("Poder: a dupla helice da Sabrina sobe girando, as fitas em lados opostos, A-T e C-G") {
     const Descricao d = Da(Golpe::Materia::Sabrina);
-    CHECK(d.tipo == Tipo::Pcr);
-    CHECK(Ataca(Tipo::Pcr));
-    CHECK(d.tiros == kTetoDaPcr);
-    CHECK(d.duracao > static_cast<float>(kCiclosDaPcr - 1) * kEntreCiclosDaPcr);
-    // Um tiro so: 1, 2, 4, 8 - cada ciclo copia o que ha, copias inclusive.
-    int emVoo = 1, feitas = 0;
-    for (int c = 0; c < kCiclosDaPcr; ++c) {
-        const int novas = CopiasDoCiclo(emVoo, feitas);
-        CHECK(novas == emVoo);
-        feitas += novas;
-        emVoo += novas;
+    CHECK(d.tipo == Tipo::Helice);
+    CHECK(Ataca(Tipo::Helice));
+    CHECK(d.duracao == doctest::Approx(kDuracaoDaHelice));
+    CHECK(d.intervalo == doctest::Approx(kEntrePares));
+    CHECK(d.tiros >= 2 * static_cast<int>(kDuracaoDaHelice / kEntrePares));
+    for (float idade = 0.0f; idade < 2.0f; idade += 0.07f) {
+        const NaHelice a = Base(0, idade), b = Base(1, idade);
+        // As duas fitas sempre em lados opostos: uma na frente, a outra atras.
+        CHECK(a.dx + b.dx == doctest::Approx(0.0f).epsilon(1e-3));
+        CHECK(a.frente + b.frente == doctest::Approx(0.0f).epsilon(1e-3));
+        CHECK(std::fabs(a.dx) <= kRaioDaHelice + 1e-3f);
+        CHECK(std::fabs(a.frente) <= 1.0f + 1e-4f);
+        // Uma volta inteira depois, no mesmo lugar.
+        CHECK(Base(0, idade + kVoltaDaHelice).dx == doctest::Approx(a.dx).epsilon(1e-3));
     }
-    CHECK(emVoo == 1 << kCiclosDaPcr);
-    // O teto: o que falta para ele, e nada depois.
-    CHECK(CopiasDoCiclo(30, kTetoDaPcr - 5) == 5);
-    CHECK(CopiasDoCiclo(30, kTetoDaPcr) == 0);
-    CHECK(CopiasDoCiclo(0, 0) == 0);
-    // A previa mostra as copias se multiplicando.
-    size_t antes = 0, depois = 0;
-    for (const Ponto& p : Previa(Tipo::Pcr, 0.9f).pontos) antes += p.marca == Marca::TiroSeu ? 1 : 0;
-    for (const Ponto& p : Previa(Tipo::Pcr, 3.0f).pontos) depois += p.marca == Marca::TiroSeu ? 1 : 0;
-    CHECK(depois > antes);
+    CHECK(Base(0, 0.0f).frente == doctest::Approx(1.0f));   // a fita 0 sai na frente
+    CHECK(Base(0, kVoltaDaHelice / 4.0f).dx == doctest::Approx(kRaioDaHelice));
+    // Os pares: A-T e C-G, e o par do par e a base.
+    CHECK(LetraDaBase(Par(0)) == 'T');
+    CHECK(LetraDaBase(Par(2)) == 'G');
+    for (int b = 0; b < 4; ++b) CHECK(Par(Par(b)) == b);
+    CHECK(Par(7) == -1);
+    std::string gene;
+    for (int k = 0; k < 10; ++k) gene += LetraDaBase(BaseDoGene(k));
+    CHECK(gene == "ATGGATTACA");
+    CHECK(BaseDoGene(-1) >= 0);
+    // A previa: a helice cresce, com a ligacao de cada par, e varre a chuva do Hugo.
+    const Quadro cedo = Previa(Tipo::Helice, 0.5f), tarde = Previa(Tipo::Helice, 2.2f);
+    auto seus = [](const Quadro& q) {
+        size_t n = 0;
+        for (const Ponto& p : q.pontos) n += p.marca == Marca::TiroSeu ? 1 : 0;
+        return n;
+    };
+    CHECK(seus(tarde) > seus(cedo));
+    CHECK(seus(tarde) % 2 == 0);
+    CHECK(tarde.tracos.size() * 2 == seus(tarde));
 }
 
 TEST_CASE("Poder: a camera escura do Michel devolve, de cabeca para baixo, o tiro que cruza a parede") {
@@ -117,6 +131,11 @@ TEST_CASE("Poder: as k-medias do Daniel juntam os tiros em quatro grupos, um tir
     CHECK(KMedias({}, 4, grupos).empty());
     CHECK(Da(Golpe::Materia::Daniel).tipo == Tipo::KMedias);
     CHECK_FALSE(Ataca(Tipo::KMedias));
+    // Na hora e a cada 2 s, quatro vezes: o poder dura ate a ultima juntar.
+    CHECK(kRodadasDasKMedias == 4);
+    CHECK(Da(Golpe::Materia::Daniel).intervalo == doctest::Approx(kEntreRodadasDasKMedias));
+    CHECK(Da(Golpe::Materia::Daniel).duracao ==
+          doctest::Approx(static_cast<float>(kRodadasDasKMedias - 1) * kEntreRodadasDasKMedias + kJuntaDasKMedias));
 }
 
 TEST_CASE("Poder: o Round Robin do Goulart da a vez a um grupo de cada vez") {

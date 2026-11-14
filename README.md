@@ -847,16 +847,23 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   - **Daniel — k-médias.** Os tiros do Hugo em campo viram quatro grupos: eles
     param por um instante, uma linha na cor do grupo liga cada um ao centróide
     dele, e eles são puxados até lá — e cada grupo vira um tiro só, no
-    centróide: dezenas de tiros viram quatro. Ele orienta quem passou na optativa dele, mas não senta na
+    centróide: dezenas de tiros viram quatro. E de novo: na hora e a cada 2
+    segundos, quatro vezes — o campo vai se limpando aos poucos, e o placar conta
+    a rodada ("k-médias 2/4: 17 tiros → 4"). Ele orienta quem passou na optativa dele, mas não senta na
     banca; o objetivo dele pergunta "Cadê o conjunto de teste?".
   - **Michel — câmera escura.** Uma parede com um furo vai com você, um pouco
     acima: o tiro do Hugo que a cruza sai do outro lado do furo, de cabeça para
     baixo, e volta subindo. Também orienta sem sentar na banca; o objetivo dele
     pergunta "Por que não uma rede pré-treinada?".
-  - **Sabrina — PCR.** Por três ciclos, cada tiro seu em voo ganha uma cópia,
-    um pouco de lado — e as cópias também se copiam no ciclo seguinte: 1, 2, 4,
-    8, até 40. Também orienta sem sentar na banca; o objetivo dela pergunta
-    "Cadê o controle negativo?".
+  - **Sabrina — dupla hélice.** Por quatro segundos, uma dupla hélice de tiros
+    sobe de você: um par de bases a cada instante, um tiro em cada fita, as duas
+    girando em volta do eixo — a ligação de cada par em duas cores (A-T, C-G) e o
+    esqueleto de cada fita desenhados entre eles. A base da frente cresce e
+    varre o tiro do Hugo que encosta nela; a de trás, menor, passa por trás. O
+    eixo fica onde você estava quando o par saiu, então andar entorta a hélice:
+    ela é o seu rastro, e serve de parede e de ataque ao mesmo tempo. Em cima de
+    você, o gene que ela escreve: "5' ATGGATTACA... 3'". Também orienta sem
+    sentar na banca; o objetivo dela pergunta "Cadê o controle negativo?".
 
   A tela em que se escolhe o orientador mostra o poder de cada um
   funcionando: um campo em miniatura, animado, com a legenda de cada passo.

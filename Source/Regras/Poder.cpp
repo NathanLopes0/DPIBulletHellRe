@@ -65,14 +65,16 @@ namespace Poder {
                      4.5f, kDistanciaDaParede, 0, 0.0f};
                 break;
             case Golpe::Materia::Sabrina:
-                // \xc3\xb3 e o o agudo.
-                d = {Tipo::Pcr, "PCR", "seus tiros se copiam: 1, 2, 4, 8",
-                     static_cast<float>(kCiclosDaPcr) * kEntreCiclosDaPcr + 0.2f, 0.0f, kTetoDaPcr, kEntreCiclosDaPcr};
+                // \xc3\xa9 e o e agudo.
+                d = {Tipo::Helice, "dupla h\xc3\xa9lice", "uma fita de tiros sobe girando e varre o que encosta",
+                     kDuracaoDaHelice, kRaioDaHelice,
+                     2 * static_cast<int>(std::ceil(kDuracaoDaHelice / kEntrePares)), kEntrePares};
                 break;
             case Golpe::Materia::Daniel:
                 // \xc3\xa9 e o e agudo, \xc3\xb3 o o agudo.
-                d = {Tipo::KMedias, "k-m\xc3\xa9" "dias", "os tiros do Hugo viram 4 centr\xc3\xb3" "ides", 0.0f, 0.0f,
-                     kGruposDasKMedias, 0.0f};
+                d = {Tipo::KMedias, "k-m\xc3\xa9" "dias", "os tiros do Hugo viram 4 centr\xc3\xb3" "ides, 4 vezes",
+                     static_cast<float>(kRodadasDasKMedias - 1) * kEntreRodadasDasKMedias + kJuntaDasKMedias, 0.0f,
+                     kGruposDasKMedias, kEntreRodadasDasKMedias};
                 break;
             default:
                 break;
@@ -87,7 +89,7 @@ namespace Poder {
     bool Ataca(const Tipo t) {
         // Os agentes nao: com o Hugo blindado, os tiros cacam os alvos do objetivo.
         return t == Tipo::Matriz || t == Tipo::Converter || t == Tipo::PromiseAll || t == Tipo::BalaDePrata ||
-               t == Tipo::Pcr;
+               t == Tipo::Helice;
     }
 
     Vector2 Agente(const Vector2& centro, const int k, const int n, const float t, const float raio) {
@@ -139,8 +141,26 @@ namespace Poder {
         return 2 + static_cast<int>(m);
     }
 
-    int CopiasDoCiclo(const int emVoo, const int feitas) {
-        return std::clamp(std::min(emVoo, kTetoDaPcr - feitas), 0, kTetoDaPcr);
+    NaHelice Base(const int fita, const float idade) {
+        const float a = 2.0f * Math::Pi * idade / kVoltaDaHelice + (fita == 0 ? 0.0f : Math::Pi);
+        return {kRaioDaHelice * std::sin(a), std::cos(a)};
+    }
+
+    int Par(const int base) {
+        return base < 0 || base > 3 ? -1 : (base ^ 1);
+    }
+
+    char LetraDaBase(const int base) {
+        static constexpr char kLetras[4] = {'A', 'T', 'C', 'G'};
+        return base < 0 || base > 3 ? '?' : kLetras[base];
+    }
+
+    int BaseDoGene(const int k) {
+        // O gene comeca no codon de inicio, ATG - e tem um GATTACA no meio.
+        static constexpr char kGene[] = "ATGGATTACAGCGTCCATGAAGTC";
+        constexpr int n = static_cast<int>(sizeof(kGene)) - 1;
+        const char c = kGene[((k % n) + n) % n];
+        return c == 'A' ? 0 : c == 'T' ? 1 : c == 'C' ? 2 : 3;
     }
 
     bool CruzouAParede(const float y, const float vy, const float parede) {
@@ -461,7 +481,7 @@ namespace Poder {
                 // \xc3\xa9 e o e agudo, \xc3\xa7\xc3\xa3 o "cao", \xc3\xb3 o o agudo.
                 q.legenda = t < kAgrupa ? "k-m\xc3\xa9" "dias: 16 tiros"
                                         : (t < kJunta ? "atribui\xc3\xa7\xc3\xa3o: cada tiro ao centr\xc3\xb3" "ide"
-                                                      : "16 tiros viram 4");
+                                                      : "16 tiros viram 4, e de novo a cada 2 s");
                 break;
             }
             case Tipo::Converter: {
@@ -550,31 +570,32 @@ namespace Poder {
                 else q.legenda = "V(s): quem esperava morreu";
                 break;
             }
-            case Tipo::Pcr: {
-                // O tiro sobe e, a cada ciclo, cada tiro vira dois: 1, 2, 4, 8 - todos no Hugo.
-                constexpr float kSai = 0.6f, kCiclo = 0.75f;
-                for (const Ponto& p : Chuva(t, 8)) q.pontos.push_back(p);
-                if (t < kSai) {
-                    Atirar(q, t, hugoX, kHugoY);
-                    // \xc3\xa9 e o e agudo.
-                    q.legenda = "PCR: o seu tiro \xc3\xa9 o molde";
-                    break;
+            case Tipo::Helice: {
+                // A helice sobe do aluno, par a par, as duas fitas girando; o tiro do Hugo que encosta
+                // numa base da frente some.
+                constexpr float kSai = 0.3f, kDura = 2.6f, kPar = 0.15f, kSobe = 0.3f, kLargura = 0.06f;
+                std::vector<Ponto> frente;
+                for (int k = 0;; ++k) {
+                    const float nasce = kSai + static_cast<float>(k) * kPar;
+                    if (nasce > t || nasce > kSai + kDura) break;
+                    const float idade = t - nasce;
+                    const float y = kAlunoY - 0.05f - idade * kSobe;
+                    if (y < kHugoY + 0.03f) continue;
+                    const NaHelice a = Base(0, idade), b = Base(1, idade);
+                    const float xa = kAlunoX + a.dx / kRaioDaHelice * kLargura, xb = kAlunoX + b.dx / kRaioDaHelice * kLargura;
+                    q.pontos.push_back({Marca::TiroSeu, xa, y});
+                    q.pontos.push_back({Marca::TiroSeu, xb, y});
+                    q.tracos.push_back({Marca::Estrutura, xa, y, xb, y});
+                    frente.push_back({Marca::TiroSeu, a.frente > 0.0f ? xa : xb, y});
                 }
-                const float voo = t - kSai;
-                const int ciclos = std::min(kCiclosDaPcr, static_cast<int>(voo / kCiclo));
-                const int n = 1 << ciclos;
-                const float y = kAlunoY - 0.06f - voo * 0.2f;
-                // \xc3\xb3 e o o agudo.
-                if (y > kHugoY + 0.04f) {
-                    for (int k = 0; k < n; ++k) {
-                        const float x = kAlunoX + (static_cast<float>(k) - 0.5f * static_cast<float>(n - 1)) * 0.04f;
-                        q.pontos.push_back({Marca::TiroSeu, x, y});
-                    }
-                    q.legenda = ciclos == 0 ? std::string("o molde sobe")
-                                            : "ciclo " + std::to_string(ciclos) + ": " + std::to_string(n) + " c\xc3\xb3pias";
-                } else {
-                    q.legenda = std::to_string(n) + " c\xc3\xb3pias no Hugo";
+                for (const Ponto& p : Chuva(t, 10)) {
+                    bool varrido = false;
+                    for (const Ponto& f : frente) varrido = varrido || std::hypot(p.x - f.x, p.y - f.y) < 0.045f;
+                    if (!varrido) q.pontos.push_back(p);
                 }
+                // \xc3\xa9 e o e agudo.
+                q.legenda = t < kSai + 0.9f ? "dupla h\xc3\xa9lice: A-T, C-G"
+                                            : (t < kSai + 2.0f ? "5' ATGGATTACA 3'" : "a fita da frente varre os tiros do Hugo");
                 break;
             }
             case Tipo::Nenhum:

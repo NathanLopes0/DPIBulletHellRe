@@ -388,10 +388,17 @@ namespace {
     class KMedias final : public PoderEmCampo {
     public:
         void Soltar(Orientador& o, Battle& batalha, const Vector2&, const Vector2&) override {
+            // Na hora e a cada kEntreRodadasDasKMedias segundos, kRodadasDasKMedias vezes.
+            mRodadas = 0;
+            Agrupar(o, batalha);
+        }
+        void Agrupar(Orientador& o, Battle& batalha) {
             // Os tiros do Hugo em campo viram grupos, e cada grupo vira um tiro so, no centroide: o
             // mais perto dele fica, la, e os outros somem. Antes, por um instante, eles param, cada
             // um ligado por uma linha ao centroide do grupo dele, e sao puxados ate la (Atualizar).
             Terminar();
+            ++mRodadas;
+            mProximaRodada = o.Tempo() + Poder::kEntreRodadasDasKMedias;
             std::vector<BossProjectile*> tiros = o.TirosSoltos(batalha);
             std::vector<Vector2> pontos;
             for (const BossProjectile* p : tiros) pontos.push_back(p->GetPosition());
@@ -424,11 +431,14 @@ namespace {
                 mMembros.push_back(m);
             }
             // \xc3\xa9 e o e agudo, \xe2\x86\x92 a seta.
-            o.Rotular("k-m\xc3\xa9" "dias: " + std::to_string(tiros.size()) + " tiros \xe2\x86\x92 " +
-                      std::to_string(centros.size()));
-            mAtivo = true;
+            o.Rotular("k-m\xc3\xa9" "dias " + std::to_string(mRodadas) + "/" + std::to_string(Poder::kRodadasDasKMedias) + ": " +
+                      std::to_string(tiros.size()) + " tiros \xe2\x86\x92 " + std::to_string(centros.size()));
+            mAtivo = !tiros.empty();
         }
-        void Atualizar(Orientador& o, Battle&, float, bool) override {
+        void Atualizar(Orientador& o, Battle& batalha, float, bool) override {
+            if (!mAtivo && mRodadas > 0 && mRodadas < Poder::kRodadasDasKMedias && o.Tempo() >= mProximaRodada) {
+                Agrupar(o, batalha);
+            }
             if (!mAtivo) return;
             const float t = o.Tempo() - mInicio;
             const float u = std::clamp(t / Poder::kJuntaDasKMedias, 0.0f, 1.0f);
@@ -494,6 +504,8 @@ namespace {
         std::vector<Vector2> mCentros;
         float mInicio = 0.0f;
         bool mAtivo = false;
+        int mRodadas = 0;
+        float mProximaRodada = 0.0f;
     };
 
     // ---- Goulart: o Round Robin ----
@@ -570,51 +582,132 @@ namespace {
         std::unordered_set<const BossProjectile*> mVistos;
     };
 
-    // ---- Sabrina: a PCR ----
+    // ---- Sabrina: a dupla helice ----
 
-    class Pcr final : public PoderEmCampo {
+    class Helice final : public PoderEmCampo {
     public:
         void Soltar(Orientador& o, Battle&, const Vector2&, const Vector2&) override {
-            mCiclo = 0;
-            mFeitas = 0;
+            mPares.clear();
+            mEscritos = 0;
+            mGene.clear();
             mProximo = o.Tempo();
         }
-        void Atualizar(Orientador& o, Battle& batalha, float, bool) override {
-            // Cada ciclo da uma copia a cada tiro em voo - o do aluno, o do orientador e as copias do
-            // ciclo de antes: 1, 2, 4, 8.
-            if (mCiclo >= Poder::kCiclosDaPcr || o.Tempo() < mProximo) return;
-            ProjectileManager* tiros = batalha.GerenteDeProjeteis();
-            if (!tiros) return;
-            mProximo = o.Tempo() + Poder::kEntreCiclosDaPcr;
-            ++mCiclo;
-            struct Molde {
-                Vector2 onde;
-                Vector2 velocidade;
-            };
-            std::vector<Molde> moldes;
-            for (const auto& p : tiros->GetPlayerProjectiles()) {
-                if (!p || p->GetState() != ActorState::Active || p->Murchando() || p->Promessa()) continue;
-                const auto* rb = p->GetComponent<RigidBodyComponent>();
-                if (!rb || rb->GetVelocity().LengthSq() < 1.0f) continue;
-                moldes.push_back({p->GetPosition(), rb->GetVelocity()});
-            }
-            const int copias = Poder::CopiasDoCiclo(static_cast<int>(moldes.size()), mFeitas);
+        void Atualizar(Orientador& o, Battle& batalha, float, const bool ativo) override {
+            // Enquanto o poder dura, sai um par de bases por vez, do lado do aluno: um tiro em cada
+            // fita. O eixo do par fica onde o aluno estava - quem anda entorta a helice.
+            const Vector2 aluno = o.PosicaoDoAluno();
             const int quadro = Poder::QuadroDaMateria(Golpe::Materia::Sabrina);
-            for (int k = 0; k < copias; ++k) {
-                const Molde& m = moldes[static_cast<size_t>(k)];
-                Golpe::Tiro t;
-                t.velocidade = m.velocidade.Length();
-                // A copia sai um pouco de lado do molde, para um lado ou para o outro.
-                const float lado = (k % 2 == 0) ? Poder::kAberturaDaPcr : -Poder::kAberturaDaPcr;
-                o.Disparar(batalha, t, m.onde, Golpe::Rumo(m.onde, m.onde + m.velocidade, lado),
-                           Poder::kFolhaDasMaterias, quadro, 1.0f);
+            while (ativo && o.Tempo() >= mProximo) {
+                mProximo += Poder::kEntrePares;
+                Par par;
+                par.base = Poder::BaseDoGene(mEscritos++);
+                par.nasceu = o.Tempo();
+                par.eixo = aluno.x;
+                for (int fita = 0; fita < 2; ++fita) {
+                    Golpe::Tiro t;
+                    t.velocidade = Poder::kSubidaDaHelice;
+                    const Vector2 de(aluno.x + Poder::Base(fita, 0.0f).dx, aluno.y - kAcimaDoAluno);
+                    PlayerProjectile* p = o.Disparar(batalha, t, de, Vector2(0.0f, -1.0f), Poder::kFolhaDasMaterias, quadro, 1.0f);
+                    if (p) par.fitas[fita] = {p, p->Id(), de, 0.0f};
+                }
+                mPares.push_back(par);
+                // O gene que a helice escreve, de 5' a 3', em cima do aluno.
+                mGene.push_back(Poder::LetraDaBase(par.base));
+                if (mGene.size() > kLetrasNoRotulo) mGene.erase(mGene.begin());
+                o.Rotular("5' " + mGene + " 3'");
             }
-            mFeitas += copias;
-            o.Rotular("PCR, ciclo " + std::to_string(mCiclo) + ": +" + std::to_string(copias) + " cópias");
+            if (mPares.empty()) return;
+
+            // O tiro guardado pode ter sido apagado (nao so reciclado): cada base e achada de novo, a
+            // cada quadro, pelo id, entre os tiros vivos - o ponteiro velho nunca e lido.
+            std::unordered_map<std::uint64_t, PlayerProjectile*> vivos;
+            if (ProjectileManager* tiros = batalha.GerenteDeProjeteis()) {
+                for (const auto& p : tiros->GetPlayerProjectiles()) {
+                    if (p && p->GetState() == ActorState::Active && !p->Murchando()) vivos[p->Id()] = p.get();
+                }
+            }
+            // Cada base gira em volta do eixo do par dela: a da frente cresce e varre o tiro do Hugo
+            // que encosta; a de tras, menor, passa por tras.
+            std::vector<BossProjectile*> doHugo = o.TirosSoltos(batalha);
+            for (Par& par : mPares) {
+                for (int fita = 0; fita < 2; ++fita) {
+                    Fita& f = par.fitas[fita];
+                    const auto achado = f.id == 0 ? vivos.end() : vivos.find(f.id);
+                    if (achado == vivos.end()) {
+                        f.p = nullptr;
+                        f.id = 0;
+                        continue;
+                    }
+                    f.p = achado->second;
+                    const Poder::NaHelice h = Poder::Base(fita, o.Tempo() - par.nasceu);
+                    f.onde = Vector2(par.eixo + h.dx, f.p->GetPosition().y);
+                    f.frente = h.frente;
+                    f.p->SetPosition(f.onde);
+                    f.p->SetScale(1.0f + 0.35f * h.frente);
+                    if (h.frente < Poder::kFrenteQueVarre) continue;
+                    for (BossProjectile*& q : doHugo) {
+                        if (!q || q->GetState() != ActorState::Active) continue;
+                        if ((q->GetPosition() - f.onde).LengthSq() > Poder::kVarreduraDaHelice * Poder::kVarreduraDaHelice) continue;
+                        batalha.Faiscar(q->GetPosition(), Hud::Faisca::Dissolvido);
+                        q->Kill();
+                        q = nullptr;
+                    }
+                }
+            }
+            // O desenho: a ligacao de cada par (metade na cor de cada base) e o esqueleto de cada
+            // fita, claro na frente e apagado atras.
+            for (size_t k = 0; k < mPares.size(); ++k) {
+                const Par& par = mPares[k];
+                const Fita& a = par.fitas[0];
+                const Fita& b = par.fitas[1];
+                if (a.p && b.p) {
+                    // A ligacao, grossa (tres tracos), para se ler a cor de cada base.
+                    const Vector2 meio = (a.onde + b.onde) * 0.5f;
+                    for (const float dy : {-1.0f, 0.0f, 1.0f}) {
+                        const Vector2 d(0.0f, dy);
+                        o.Tracar(a.onde + d, meio + d, CorDaBase(par.base));
+                        o.Tracar(meio + d, b.onde + d, CorDaBase(Poder::Par(par.base)));
+                    }
+                }
+                if (k + 1 >= mPares.size()) continue;
+                for (int fita = 0; fita < 2; ++fita) {
+                    const Fita& de = par.fitas[fita];
+                    const Fita& ate = mPares[k + 1].fitas[fita];
+                    if (!de.p || !ate.p) continue;
+                    const float frente = 0.5f * (de.frente + ate.frente);
+                    const Uint8 luz = static_cast<Uint8>(frente > 0.0f ? 235 : 110);
+                    const SDL_Color cor{luz, luz, static_cast<Uint8>(std::min(255, luz + 15)), luz};
+                    o.Tracar(de.onde, ate.onde, cor);
+                    if (frente > 0.0f) o.Tracar(de.onde + Vector2(1.0f, 0.0f), ate.onde + Vector2(1.0f, 0.0f), cor);
+                }
+            }
+            // Os pares que ja se foram saem da lista.
+            while (!mPares.empty() && !mPares.front().fitas[0].p && !mPares.front().fitas[1].p) mPares.erase(mPares.begin());
         }
     private:
-        int mCiclo = Poder::kCiclosDaPcr;   ///< parado ate o botao 3
-        int mFeitas = 0;
+        struct Fita {
+            PlayerProjectile* p = nullptr;
+            std::uint64_t id = 0;
+            Vector2 onde;
+            float frente = 0.0f;
+        };
+        struct Par {
+            Fita fitas[2];
+            int base = 0;
+            float nasceu = 0.0f;
+            float eixo = 0.0f;
+        };
+        static constexpr float kAcimaDoAluno = 30.0f;
+        static constexpr size_t kLetrasNoRotulo = 12;
+        /// As cores das bases: A verde, T vermelho, C azul e G amarelo.
+        static SDL_Color CorDaBase(const int base) {
+            static constexpr SDL_Color kCores[4] = {{110, 220, 110, 255}, {255, 95, 95, 255}, {90, 170, 255, 255},
+                                                    {250, 220, 70, 255}};
+            return kCores[((base % 4) + 4) % 4];
+        }
+        std::vector<Par> mPares;
+        int mEscritos = 0;
+        std::string mGene;
         float mProximo = 0.0f;
     };
 
@@ -890,7 +983,7 @@ std::unique_ptr<PoderEmCampo> PoderEmCampo::Do(const Poder::Tipo t) {
         case Poder::Tipo::Rodizio:     return std::make_unique<Rodizio>();
         case Poder::Tipo::KMedias:     return std::make_unique<KMedias>();
         case Poder::Tipo::CameraEscura: return std::make_unique<CameraEscura>();
-        case Poder::Tipo::Pcr:         return std::make_unique<Pcr>();
+        case Poder::Tipo::Helice:      return std::make_unique<Helice>();
         case Poder::Tipo::Nenhum:      break;
     }
     return nullptr;

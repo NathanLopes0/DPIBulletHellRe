@@ -18,7 +18,7 @@ namespace Poder {
 
     enum class Tipo {
         Nenhum, Matriz, Pilha, Congelar, Transacao, TryCatch, Converter, Agentes, BalaDePrata, PromiseAll, Mutex,
-        BuscaBinaria, Rodizio, KMedias, CameraEscura, Pcr
+        BuscaBinaria, Rodizio, KMedias, CameraEscura, Helice
     };
 
     struct Descricao {
@@ -130,8 +130,11 @@ namespace Poder {
     // ---- Daniel: as k-medias ----
 
     /// Os tiros do Hugo em campo viram kGruposDasKMedias grupos (as k-medias, Agrupamento.h), e cada
-    /// grupo vira um tiro so, no centroide: dezenas de tiros, de uma vez, viram quatro.
+    /// grupo vira um tiro so, no centroide: dezenas de tiros, de uma vez, viram quatro. E de novo: na
+    /// hora e a cada kEntreRodadasDasKMedias segundos, kRodadasDasKMedias vezes.
     constexpr int kGruposDasKMedias = 4;
+    constexpr int kRodadasDasKMedias = 4;
+    constexpr float kEntreRodadasDasKMedias = 2.0f;
     /// Quanto dura a atribuicao em campo: os tiros param, uma linha liga cada um ao centroide dele, e
     /// eles sao puxados ate la - so entao cada grupo vira um tiro so.
     constexpr float kJuntaDasKMedias = 0.4f;
@@ -153,17 +156,33 @@ namespace Poder {
     /// O lugar de 'p' do outro lado do furo.
     Vector2 PeloFuro(const Vector2& p, const Vector2& furo);
 
-    // ---- Sabrina: a PCR ----
+    // ---- Sabrina: a dupla helice ----
 
-    /// Os seus tiros em voo se copiam, ciclo a ciclo, como na PCR: cada ciclo da uma copia a cada
-    /// tiro que ha - e a copia tambem se copia no ciclo seguinte. 1, 2, 4, 8... ate kTetoDaPcr.
-    constexpr int kCiclosDaPcr = 3;
-    constexpr float kEntreCiclosDaPcr = 0.4f;
-    constexpr int kTetoDaPcr = 40;
-    /// A copia sai um pouco de lado do molde, para as duas se verem.
-    constexpr float kAberturaDaPcr = 7.0f;
-    /// Quantas copias o ciclo faz com 'emVoo' tiros, ja tendo feito 'feitas': uma por tiro, ate o teto.
-    int CopiasDoCiclo(int emVoo, int feitas);
+    /// Uma dupla helice de tiros sobe do aluno: a cada kEntrePares segundos sai um par de bases - um
+    /// tiro em cada fita, dos dois lados da helice -, e os dois sobem girando em volta do eixo, que
+    /// fica onde o aluno estava. A base da frente cresce e varre o tiro do Hugo que encosta nela; a de
+    /// tras, menor, passa por tras. Cada par tem a ligacao das duas bases (A-T ou C-G), cada fita o
+    /// esqueleto dela, e quem anda enquanto a helice sai a entorta: ela e o rastro do aluno.
+    constexpr float kDuracaoDaHelice = 4.0f;
+    constexpr float kEntrePares = 0.12f;
+    constexpr float kRaioDaHelice = 40.0f;
+    constexpr float kVoltaDaHelice = 0.9f;        ///< segundos por volta
+    constexpr float kSubidaDaHelice = 360.0f;     ///< px por segundo
+    constexpr float kVarreduraDaHelice = 18.0f;   ///< o alcance da base da frente nos tiros do Hugo
+    /// Quanto da frente (de -1 a 1) a base precisa estar para varrer.
+    constexpr float kFrenteQueVarre = 0.2f;
+    struct NaHelice {
+        float dx = 0.0f;       ///< o desvio do eixo, de -kRaioDaHelice a kRaioDaHelice
+        float frente = 0.0f;   ///< de -1 (atras) a 1 (na frente)
+    };
+    /// Onde a base da fita 'fita' (0 ou 1) esta 'idade' segundos depois de sair: as duas fitas sempre
+    /// em lados opostos.
+    NaHelice Base(int fita, float idade);
+    /// As bases: 0 e A, 1 e T, 2 e C, 3 e G. O par de cada uma: A-T, C-G.
+    int Par(int base);
+    char LetraDaBase(int base);
+    /// A base do par 'k' do gene que a helice escreve (5' ATGGATTACA... 3').
+    int BaseDoGene(int k);
 
     // ---- A cara ----
 
