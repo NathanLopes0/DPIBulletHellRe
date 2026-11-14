@@ -187,6 +187,7 @@ servidor ou em paralelo.
 | `--orientador <código>` | o orientador do TCC, como se escolhido na tela |
 | `--candidatos <códigos>` | abre a **tela que escolhe o orientador**, como se o aluno tivesse passado nessas matérias (`INF110,INF213,INF310`; a primeira com a maior nota). Com `--fotos`, é como se confere a prévia animada dos poderes |
 | `--cena selecao\|boletim\|horas` | com `--candidatos`, abre a seleção de fases, o boletim ou as horas complementares no lugar da tela do orientador — a primeira matéria da lista com 100, e cada uma 8 a menos |
+| `--atividades "virada,podio"` | com `--candidatos`, as horas complementares que o aluno já cumpriu — para fotografar a compra de uma optativa |
 | `--dificil` | o modo Difícil; sem ele, Normal |
 | `--estado <fase>` | o chefe começa nesta fase (`StateTwo`, `StateFinal`...) |
 | `--semente <n>` | o sorteador global. Sem `--variacao`, é também a semente da batalha. A simulação nunca é a **prova da semana**: ela mede com a semente pedida, e não grava no ranking |

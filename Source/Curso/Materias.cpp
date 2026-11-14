@@ -5,6 +5,7 @@
 #include "Materias.h"
 
 #include <algorithm>
+#include <cctype>
 #include <set>
 
 #include "../Aluno/Horas.h"
@@ -233,30 +234,69 @@ bool Lista::Desbloqueada(const int indice, const Progresso& progresso) const {
     return PrecoDe(indice) <= 0 || Comprada(indice, progresso);
 }
 
-bool Lista::Cumpre(const Requisito& r, const Progresso& progresso) const {
+int Lista::Contagem(const Requisito& r, const Progresso& progresso) const {
     switch (r.tipo) {
         case TipoDeRequisito::Mencao: {
             const std::optional<Mencoes::Mencao> qual = Mencoes::PelaChave(r.mencao);
-            if (!qual) return false;
+            if (!qual) return 0;
             int com = 0;
             for (int i = 0; i < Quantas(); ++i) {
                 if (Mencoes::Da(progresso, *this, i).Tem(*qual)) ++com;
             }
-            return com >= r.quantas;
+            return com;
         }
         case TipoDeRequisito::Horas:
             // A carga, e nao o saldo: gastar horas numa optativa nao fecha outra.
-            return Horas::De(progresso.Atividades()) >= r.quantas;
+            return Horas::De(progresso.Atividades());
         case TipoDeRequisito::Aprovadas: {
             int aprovadas = 0;
             for (int i = 0; i < Quantas(); ++i) {
                 const Materia* m = Por(i);
                 if (m && !m->optativa && progresso.Aprovado(i)) ++aprovadas;
             }
-            return aprovadas >= r.quantas;
+            return aprovadas;
         }
     }
-    return false;
+    return 0;
+}
+
+bool Lista::Cumpre(const Requisito& r, const Progresso& progresso) const {
+    if (r.tipo == TipoDeRequisito::Mencao && !Mencoes::PelaChave(r.mencao)) return false;
+    return Contagem(r, progresso) >= r.quantas;
+}
+
+std::vector<ItemDaExigencia> Lista::Itens(const int indice, const Progresso& progresso) const {
+    std::vector<ItemDaExigencia> itens;
+    const Materia* m = Por(indice);
+    if (!m) return itens;
+    const Desbloqueio& d = m->desbloqueio;
+    switch (d.tipo) {
+        case TipoDeDesbloqueio::Sempre:
+            break;
+        case TipoDeDesbloqueio::AprovadoEm:
+            for (const std::string& codigo : d.materias) {
+                const int i = IndiceDe(codigo);
+                const Materia* exigida = Por(i);
+                itens.push_back({"Passar em " + (exigida ? exigida->nome : codigo), i >= 0 && progresso.Aprovado(i)});
+            }
+            break;
+        case TipoDeDesbloqueio::AprovadasNaColuna: {
+            const int tem = progresso.QuantasAprovadas(DaColuna(d.coluna));
+            // \xc3\xa7\xc3\xb5 e o "coes", \xc3\xaa o e circunflexo.
+            itens.push_back({std::to_string(d.quantas) + (d.quantas == 1 ? " aprova\xc3\xa7\xc3\xa3o" : " aprova\xc3\xa7\xc3\xb5" "es") +
+                                 " na coluna " + std::to_string(d.coluna + 1) + "  (voc\xc3\xaa tem " + std::to_string(tem) + ")",
+                             tem >= d.quantas});
+            break;
+        }
+    }
+    for (const Requisito& r : d.requisitos) {
+        std::string texto = FraseDoRequisito(r);
+        if (texto.empty()) continue;
+        // "pelo menos 1 mencao de ouro" vira "Pelo menos 1 mencao de ouro  (voce tem 2)".
+        texto[0] = static_cast<char>(std::toupper(static_cast<unsigned char>(texto[0])));
+        itens.push_back({texto + "  (voc\xc3\xaa tem " + std::to_string(Contagem(r, progresso)) + ")", Cumpre(r, progresso)});
+    }
+    return itens;
 }
 
 bool Lista::RegraCumprida(const int indice, const Progresso& progresso) const {

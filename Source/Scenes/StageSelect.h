@@ -138,6 +138,40 @@ private:
     // ---- A compra das optativas com horas (Horas::PodeComprar) ----
     /// Todos os que ainda nao tem a optativa em foco podem compra-la agora?
     [[nodiscard]] bool DaParaComprar() const;
+    [[nodiscard]] bool DaParaComprar(int materia) const;
+
+    // ---- A matricula na optativa: o painel ao lado do cartao ----
+    /// Com o cursor numa optativa fechada com preco: o que ela pede, item por item, cumprido (verde)
+    /// ou nao (rosa); as horas do aluno em blocos, um por hora do preco; o botao de comprar, que acende
+    /// quando da e pede a confirmacao; e o premio, o orientador novo.
+    void CriarMatricula();
+    void AtualizarMatricula() const;
+    void MostrarMatricula(bool mostrar) const;
+    /// O rodape com a acao do botao 1 da vez: "jogar", "comprar", "confirmar a compra".
+    void AtualizarRodape(const std::string& acao) const;
+    static constexpr float kMatriculaX = 700.0f;
+    static constexpr float kMatriculaY = 616.0f;
+    static constexpr float kMatriculaLargura = 400.0f;
+    static constexpr float kMatriculaAltura = 266.0f;
+    static constexpr int kItensDaMatricula = 4;
+    static constexpr int kBlocosDaMatricula = 20;
+    std::vector<Actor*> mMatricula;
+    DrawCaixaComponent* mMolduraDaMatricula = nullptr;
+    DrawCaixaComponent* mAbaDaMatricula = nullptr;
+    Actor* mTituloDaMatricula = nullptr;
+    std::vector<DrawCaixaComponent*> mMarcas;
+    std::vector<Actor*> mItens;
+    std::vector<DrawCaixaComponent*> mBlocos;
+    Actor* mHorasDaMatricula = nullptr;
+    DrawCaixaComponent* mBotaoDaMatricula = nullptr;
+    Actor* mTextoDoBotao = nullptr;
+    Actor* mPremioDaMatricula = nullptr;
+    /// O selo "A VENDA" em cima do losango da optativa que ja pode ser comprada, piscando.
+    std::vector<Actor*> mAVenda;
+    float mPulso = 0.0f;
+    /// A faixa de "matriculado" depois da compra, e ate quando ela fica.
+    Actor* mFaixaDaCompra = nullptr;
+    float mFaixaAte = -1.0f;
     /// A frase do cartao de uma optativa fechada com preco: quanto custa, quanto falta, ou o pedido
     /// de confirmacao.
     [[nodiscard]] std::string FraseDaCompra() const;

@@ -32,6 +32,13 @@ namespace Materias {
         int quantas = 1;
     };
 
+    /// Uma linha da lista do que uma materia pede, para a tela: "Passar em INF 220", com o ja
+    /// cumprido e o que falta separados.
+    struct ItemDaExigencia {
+        std::string texto;
+        bool cumprido = false;
+    };
+
     struct Desbloqueio {
         TipoDeDesbloqueio tipo = TipoDeDesbloqueio::Sempre;
 
@@ -116,6 +123,11 @@ namespace Materias {
         [[nodiscard]] bool RegraCumprida(int indice, const Progresso& progresso) const;
         /// Se o aluno cumpre este requisito.
         [[nodiscard]] bool Cumpre(const Requisito& r, const Progresso& progresso) const;
+        /// Quanto o aluno ja tem do que o requisito conta (as mencoes, as horas, as aprovacoes).
+        [[nodiscard]] int Contagem(const Requisito& r, const Progresso& progresso) const;
+        /// A lista do que a materia pede, item por item, cada um cumprido ou nao: a regra (uma linha
+        /// por materia exigida, ou a das aprovacoes na coluna) e os requisitos. Sem o preco.
+        [[nodiscard]] std::vector<ItemDaExigencia> Itens(int indice, const Progresso& progresso) const;
         /// O aluno ja comprou esta optativa?
         [[nodiscard]] bool Comprada(int indice, const Progresso& progresso) const;
         /// O preco em horas (0: nao se compra).

@@ -121,6 +121,7 @@ namespace Simulacao {
             else if (a == "--orientador") { valor(c.orientador); }
             else if (a == "--candidatos") { valor(c.candidatos); }
             else if (a == "--cena") { valor(c.cena); }
+            else if (a == "--atividades") { valor(c.atividades); }
             else if (a == "--estado") { valor(c.estado); }
             else if (a == "--fotos-em") { valor(c.pastaDasFotos); }
             else if (a == "--dificil") { c.dificil = true; }

@@ -64,7 +64,10 @@ lê os `Assets/` de verdade e quebra a suíte ao primeiro.
 **O preço, só nas optativas.** Qualquer tipo aceita `"preco"`, em horas
 complementares: cumprida a regra, a optativa ainda precisa ser **comprada**.
 Na seleção de fases, o losango fechado diz quanto custa ("INF 480 · 20 h") e o
-cartão diz quanto falta ou pede a confirmação — o Botão 1 duas vezes compra, e
+**painel de matrícula**, ao lado do cartão, mostra item por item o que ela pede (verde o
+cumprido, rosa o que falta), as horas do aluno em blocos contra o preço, o prêmio
+(o orientador novo) e o botão de comprar, que acende quando dá; o losango que já
+pode ser comprado pisca "À VENDA" — o Botão 1 duas vezes compra, e
 mudar o cursor desfaz a primeira. A compra vai para a ficha entre as atividades
 (`compra@INF480`); as horas gastas são a soma dos preços das compradas, e o
 saldo, as ganhas menos as gastas (`Horas::Saldo`). Na dupla, cada aluno que

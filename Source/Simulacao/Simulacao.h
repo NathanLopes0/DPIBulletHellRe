@@ -40,6 +40,7 @@ namespace Simulacao {
         std::string candidatos;       ///< --candidatos "INF110,INF213": abre a tela que escolhe o orientador,
                                       ///< como se o aluno tivesse passado nessas materias (para fotografa-la)
         std::string cena;             ///< --cena selecao|boletim: com --candidatos, abre essa tela no lugar
+        std::string atividades;       ///< --atividades "virada,podio": com --candidatos, as horas que o aluno ja tem
         bool dificil = false;         ///< --dificil; sem ele, Normal
         std::string estado;           ///< --estado: a fase em que o chefe comeca ("StateTwo")
 

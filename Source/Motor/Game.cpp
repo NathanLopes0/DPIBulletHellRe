@@ -181,6 +181,12 @@ void Game::LoadInitialScene()
                 nota -= 8.0f;
                 resto = virgula == std::string::npos ? std::string() : resto.substr(virgula + 1);
             }
+            // --atividades: as horas complementares que ele ja cumpriu (para fotografar a compra).
+            for (std::string resto2 = mSimulacao.atividades; !resto2.empty();) {
+                const size_t virgula = resto2.find(',');
+                mSessoes.front().progresso.RegistrarAtividade(resto2.substr(0, virgula));
+                resto2 = virgula == std::string::npos ? std::string() : resto2.substr(virgula + 1);
+            }
             // Com --orientador a batalha comeca direto, ja com as notas: e como se confere o resultado.
             if (mSimulacao.cena == "selecao") ChangeScene(Scene::SceneType::StageSelect);
             else if (mSimulacao.cena == "boletim") ChangeScene(Scene::SceneType::Boletim);

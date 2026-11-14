@@ -262,3 +262,32 @@ TEST_CASE("Horas: o requisito da optativa vale junto com a regra - a mencao de o
     CHECK(c.RegraCumprida(o2, p));
     CHECK(c.Desbloqueada(o2, p));                          // sem preco: abre so com a regra
 }
+
+TEST_CASE("Horas: a lista da optativa diz item por item o que ja foi cumprido e o que falta") {
+    const Materias::Lista c = Materias::LerMaterias(R"({ "materias": [
+        { "codigo": "A1", "nome": "INF 1", "professor": "Ana", "chefe": "ana", "coluna": 0,
+          "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B1", "nome": "INF 2", "professor": "Bia", "chefe": "bia", "coluna": 0,
+          "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "O1", "nome": "INF 9", "professor": "Oto", "chefe": "oto", "coluna": 1, "optativa": true,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A1", "B1"], "preco": 5,
+                           "requisitos": [ { "tipo": "mencao", "mencao": "ouro" } ] } }
+    ] })");
+    const int o1 = c.IndiceDe("O1");
+    Progresso p;
+    p.RegistrarNota(c.IndiceDe("A1"), 80.0f, Dificuldade::Nivel::Normal);
+    auto itens = c.Itens(o1, p);
+    REQUIRE(itens.size() == 3u);
+    CHECK(itens[0].texto == "Passar em INF 1");
+    CHECK(itens[0].cumprido);
+    CHECK(itens[1].texto == "Passar em INF 2");
+    CHECK_FALSE(itens[1].cumprido);
+    CHECK(itens[2].texto.rfind("Pelo menos 1 men", 0) == 0);
+    CHECK(itens[2].texto.find("tem 0") != std::string::npos);
+    CHECK_FALSE(itens[2].cumprido);
+    p.RegistrarNota(c.IndiceDe("B1"), 95.0f, Dificuldade::Nivel::Normal);
+    itens = c.Itens(o1, p);
+    for (const auto& i : itens) CHECK(i.cumprido);
+    CHECK(itens[2].texto.find("tem 1") != std::string::npos);
+    CHECK(c.Itens(c.IndiceDe("A1"), p).empty());   // a que abre sempre nao pede nada
+}
