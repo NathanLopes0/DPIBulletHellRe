@@ -46,8 +46,9 @@ private:
     size_t mAluno = 0;
 
     Actor* mAlunoAtor = nullptr;
-    /// Uma linha da tabela por linha de tela: o periodo, ou uma materia nas cinco colunas.
+    /// Uma linha da tabela por linha de tela: uma materia nas colunas, e o periodo na primeira dele.
     struct LinhaDeTela {
+        Actor* periodo = nullptr;   ///< so na primeira materia do periodo
         Actor* materia = nullptr;
         Actor* professor = nullptr;
         Actor* nota = nullptr;
@@ -67,7 +68,9 @@ private:
     Borda mBordaEsquerda{true};
     Borda mBordaDireita{true};
 
-    /// Quantas linhas a tabela reserva: as materias e um titulo por periodo, do curso de hoje com
-    /// folga.
-    static constexpr size_t kLinhasDaTabela = 20;
+    /// Quantas linhas a tabela reserva: uma por materia (o periodo vai na propria linha), do curso
+    /// de hoje com folga - e ainda acima da legenda.
+    static constexpr size_t kLinhasDaTabela = 17;
+    /// Os fios entre um periodo e outro.
+    class DrawLinhasComponent* mFios = nullptr;
 };

@@ -71,3 +71,10 @@ SDL_Texture* Font::RenderText(SDL_Renderer* renderer, const std::string& text, c
 	SDL_SetTextureScaleMode(texture, SDL_ScaleModeLinear);
 	return texture;
 }
+
+int Font::LarguraDe(const std::string& text, const int pointSize) {
+	TTF_Font* fonte = NoTamanho(pointSize);
+	int w = 0, h = 0;
+	if (!fonte || text.empty() || TTF_SizeUTF8(fonte, text.c_str(), &w, &h) != 0) return 0;
+	return w;
+}

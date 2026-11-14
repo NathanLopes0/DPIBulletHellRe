@@ -30,6 +30,7 @@ namespace Boletim {
         std::string nome;           ///< "Estruturas de Dados"; pode faltar
         std::string professor;
         int periodo = 1;            ///< a coluna da grade, contada de 1
+        bool optativa = false;      ///< as optativas vem por ultimo, numa secao so delas
         float melhor = 0.0f;        ///< a maior nota, em qualquer modo e nivel; 0 se nunca jogou
         int tentativas = 0;         ///< provas terminadas; 0 tambem num save de antes da contagem
         int reprovacoes = 0;
@@ -41,8 +42,8 @@ namespace Boletim {
         std::vector<Linha> linhas;  ///< na ordem da grade: periodo a periodo
         float cr = 0.0f;            ///< a media das melhores notas das materias cursadas
         int cursadas = 0;
-        int aprovadas = 0;
-        int total = 0;
+        int aprovadas = 0;          ///< as obrigatorias aprovadas (as optativas nao contam)
+        int total = 0;              ///< as obrigatorias do curso, como na selecao de fases
     };
 
     /// O boletim de quem tem este progresso, nesta grade.
@@ -59,4 +60,8 @@ namespace Boletim {
 
     /// "1o periodo", com o "o" sobrescrito.
     std::string Periodo(int n);
+    /// O nome da secao da linha: o periodo, ou "Optativas".
+    std::string Secao(const Linha& l);
+    /// O texto com no maximo 'maximo' letras (contadas em UTF-8): o que passa vira reticencias.
+    std::string Encurtar(const std::string& texto, size_t maximo);
 }

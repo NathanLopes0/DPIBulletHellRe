@@ -120,9 +120,10 @@ escolher sozinho. No gabinete, se ninguém escolher em 20 segundos, ela volta
 sozinha para as matérias.
 
 Na seleção de fases, o **Botão 3** abre o **boletim do semestre**: as matérias
-período a período, com a melhor nota, a situação (aprovade, reprovade, a cursar
+período a período (o período na primeira linha dele, e as optativas numa seção
+própria no fim), com a melhor nota, a situação (aprovade, reprovade, a cursar
 ou fechada), quantas provas você terminou em cada uma, o **CR** — a média das
-melhores notas das matérias cursadas —, quantas foram aprovadas, as **menções**
+melhores notas das matérias cursadas —, quantas obrigatórias foram aprovadas, as **menções**
 e a sua posição no curso. Em dupla, o manche para os lados troca de aluno, e o
 **manche para cima** troca a personagem de quem está em tela — a qualquer hora,
 voltando para o boletim. Do boletim, o Botão 3 de novo leva ao ranking da
@@ -870,7 +871,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 1288 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 1290 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha, o objetivo e o poder do orientador no
 TCC — e também **leem os arquivos de

@@ -14,6 +14,7 @@
 #include "../Aluno/Horas.h"
 #include "../Aluno/Matricula.h"
 #include "../Aluno/Ranking.h"
+#include "../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
 #include "../Curso/MateriasArquivo.h"
 #include "../Entrada/Painel.h"
@@ -25,17 +26,22 @@
 #include "../Regras/Nota.h"
 
 namespace {
-    /// As colunas, em fracao da largura: a materia a esquerda, o resto em colunas estreitas.
-    constexpr float kColunaMateria    = 0.04f;
-    constexpr float kColunaProfessor  = 0.39f;
-    constexpr float kColunaNota       = 0.485f;
-    constexpr float kColunaSituacao   = 0.57f;
-    constexpr float kColunaTentativas = 0.675f;
-    constexpr float kColunaMencoes    = 0.725f;
+    /// As colunas, em fracao da largura: o periodo numa coluna estreita (so na primeira materia
+    /// dele), a materia, e o resto em colunas estreitas.
+    constexpr float kColunaPeriodo    = 0.03f;
+    constexpr float kColunaMateria    = 0.12f;
+    constexpr float kColunaProfessor  = 0.42f;
+    constexpr float kColunaNota       = 0.515f;
+    constexpr float kColunaSituacao   = 0.59f;
+    constexpr float kColunaTentativas = 0.685f;
+    constexpr float kColunaMencoes    = 0.73f;
 
     constexpr float kTopoDaTabela = 0.215f;
-    constexpr float kPassoDaTabela = 0.036f;
-    constexpr int kLetraDaTabela = 20;
+    constexpr float kPassoDaTabela = 0.034f;
+    constexpr int kLetraDaTabela = 18;
+    /// A largura da coluna da materia: o nome que passa dela e encurtado ate caber.
+    constexpr int kLarguraDoNome = 362;
+    const SDL_Color kCorDoFio{96, 118, 170, 110};
 
     const Vector3 kApagado(0.55f, 0.57f, 0.62f);
     const Vector3 kTituloDaColuna(0.62f, 0.78f, 0.95f);
@@ -85,30 +91,50 @@ void TelaDoBoletim::Load() {
     const auto titulo = [&](const char* t, const float x, const int w) {
         Escrever(Texto(t, largura * x, yTitulos, 18, w, true), t, kTituloDaColuna);
     };
-    titulo("Mat\xc3\xa9ria", kColunaMateria, 400);
-    titulo("Professor", kColunaProfessor, 130);
-    titulo("Melhor nota", kColunaNota, 110);
-    titulo("Situa\xc3\xa7\xc3\xa3o", kColunaSituacao, 130);
+    titulo("Per\xc3\xadodo", kColunaPeriodo, 100);
+    titulo("Mat\xc3\xa9ria", kColunaMateria, 340);
+    titulo("Professor", kColunaProfessor, 110);
+    titulo("Nota", kColunaNota, 90);
+    titulo("Situa\xc3\xa7\xc3\xa3o", kColunaSituacao, 110);
     titulo("Tent.", kColunaTentativas - 0.01f, 60);
     titulo("Men\xc3\xa7\xc3\xb5" "es", kColunaMencoes, 200);
 
     for (size_t i = 0; i < kLinhasDaTabela; ++i) {
         const float y = altura * (kTopoDaTabela + kPassoDaTabela * static_cast<float>(i));
         LinhaDeTela l;
-        l.materia    = Texto(" ", largura * kColunaMateria, y, kLetraDaTabela, static_cast<int>(largura * 0.35f), true);
-        l.professor  = Texto(" ", largura * kColunaProfessor, y, kLetraDaTabela, 130, true);
-        l.nota       = Texto(" ", largura * kColunaNota, y, kLetraDaTabela, 110, true);
-        l.situacao   = Texto(" ", largura * kColunaSituacao, y, kLetraDaTabela, 130, true);
+        l.periodo    = Texto(" ", largura * kColunaPeriodo, y, 16, 100, true);
+        l.materia    = Texto(" ", largura * kColunaMateria, y, kLetraDaTabela, kLarguraDoNome, true);
+        l.professor  = Texto(" ", largura * kColunaProfessor, y, kLetraDaTabela, 110, true);
+        l.nota       = Texto(" ", largura * kColunaNota, y, kLetraDaTabela, 90, true);
+        l.situacao   = Texto(" ", largura * kColunaSituacao, y, kLetraDaTabela, 110, true);
         l.tentativas = Texto(" ", largura * kColunaTentativas, y, kLetraDaTabela, 50, true);
         l.mencoes    = std::make_unique<SelosDeMencao>(*this, Vector2(largura * kColunaMencoes, y), 200, true);
         mLinhas.push_back(std::move(l));
     }
 
-    // A legenda dos selos, embaixo da tabela.
-    Escrever(Texto(" ", largura / 2.0f, altura * 0.835f, 16, 1150), Mencoes::Legenda(), kTituloDaColuna);
+    // Os fios entre os periodos (redesenhados com a tabela).
+    auto fios = std::make_unique<Actor>(this);
+    mFios = fios->AddComponent<DrawLinhasComponent>(60);
+    AddActor(std::move(fios));
 
-    mResumoAtor  = Texto(" ", largura / 2.0f, altura * 0.875f, 26, 1100);
-    mPosicaoAtor = Texto(" ", largura / 2.0f, altura * 0.915f, 20, 1100);
+    // A legenda dos selos, embaixo da tabela, em duas linhas: numa so, ela encostava no resumo. O
+    // corte e no separador mais perto do meio.
+    const std::string legenda = Mencoes::Legenda();
+    const std::string ponto = "  \xc2\xb7  ";
+    size_t corte = std::string::npos;
+    for (size_t p = legenda.find(ponto); p != std::string::npos; p = legenda.find(ponto, p + 1)) {
+        if (corte == std::string::npos || (p > legenda.size() / 2 ? p - legenda.size() / 2 : legenda.size() / 2 - p) <
+                                              (corte > legenda.size() / 2 ? corte - legenda.size() / 2 : legenda.size() / 2 - corte)) {
+            corte = p;
+        }
+    }
+    const std::string primeira = corte == std::string::npos ? legenda : legenda.substr(0, corte);
+    const std::string segunda = corte == std::string::npos ? std::string(" ") : legenda.substr(corte + ponto.size());
+    Escrever(Texto(" ", largura / 2.0f, altura * 0.785f, 16, 1100), primeira, kTituloDaColuna);
+    Escrever(Texto(" ", largura / 2.0f, altura * 0.815f, 16, 1100), segunda, kTituloDaColuna);
+
+    mResumoAtor  = Texto(" ", largura / 2.0f, altura * 0.865f, 24, 1100);
+    mPosicaoAtor = Texto(" ", largura / 2.0f, altura * 0.91f, 18, 1100);
     mRodapeAtor  = Texto(" ", largura / 2.0f, altura * 0.96f, 20, 1100);
 
     Redesenhar();
@@ -148,25 +174,39 @@ void TelaDoBoletim::Redesenhar() {
     const Hud::Rgb c = Hud::CorDoAluno(mAluno);
     Escrever(mAlunoAtor, quem, dupla ? Vector3(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f) : Color::LightBlue);
 
-    // A tabela: o titulo de cada periodo, e as materias dele.
+    // A tabela: uma linha por materia; o periodo so na primeira dele, com um fio em cima.
     const Boletim::Dados d = Boletim::Montar(sessoes[mAluno].progresso, materias);
+    const auto altura = static_cast<float>(mGame->GetWindowHeight());
+    const auto largura = static_cast<float>(mGame->GetWindowWidth());
+    if (mFios) mFios->Limpar();
     size_t i = 0;
-    int periodo = 0;
+    std::string secao;
     const auto vazia = [&](const LinhaDeTela& l) {
-        for (Actor* a : {l.materia, l.professor, l.nota, l.situacao, l.tentativas}) Escrever(a, " ", Color::White);
+        for (Actor* a : {l.periodo, l.materia, l.professor, l.nota, l.situacao, l.tentativas}) Escrever(a, " ", Color::White);
         l.mencoes->Esconder();
     };
     for (const Boletim::Linha& l : d.linhas) {
-        if (l.periodo != periodo && i < mLinhas.size()) {
-            periodo = l.periodo;
-            vazia(mLinhas[i]);
-            Escrever(mLinhas[i].materia, Boletim::Periodo(periodo), Color::Gold);
-            ++i;
-        }
         if (i >= mLinhas.size()) break;
+        const std::string essa = Boletim::Secao(l);
+        if (essa != secao) {
+            secao = essa;
+            Escrever(mLinhas[i].periodo, secao, l.optativa ? Color::LightBlue : Color::Gold);
+            if (i > 0 && mFios) {
+                const float y = altura * (kTopoDaTabela + kPassoDaTabela * (static_cast<float>(i) - 0.5f));
+                mFios->Acrescentar(Vector2(largura * kColunaPeriodo, y), Vector2(largura * 0.97f, y), kCorDoFio);
+            }
+        } else {
+            Escrever(mLinhas[i].periodo, " ", Color::White);
+        }
         const Vector3 cor = CorDa(l);
         const std::string nome = l.nome.empty() ? l.codigo : l.codigo + " - " + l.nome;
-        Escrever(mLinhas[i].materia, "   " + nome, l.situacao == Boletim::Situacao::Fechada ? kApagado : Color::White);
+        // Encurta letra a letra ate caber numa linha so (a medida e a da fonte de verdade).
+        std::string cabe = nome;
+        for (size_t letras = nome.size(); letras > 4 && mFonte->LarguraDe(cabe, kLetraDaTabela) > kLarguraDoNome - 6; --letras) {
+            cabe = Boletim::Encurtar(nome, letras);
+        }
+        Escrever(mLinhas[i].materia, cabe,
+                 l.situacao == Boletim::Situacao::Fechada ? kApagado : Color::White);
         Escrever(mLinhas[i].professor, l.professor, l.situacao == Boletim::Situacao::Fechada ? kApagado : Color::White);
         Escrever(mLinhas[i].nota, Boletim::Nota(l.melhor), cor);
         Escrever(mLinhas[i].situacao, Boletim::NomeDa(l.situacao), cor);

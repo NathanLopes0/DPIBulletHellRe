@@ -89,3 +89,38 @@ TEST_CASE("Boletim: os textos da tabela") {
     CHECK(Boletim::Nota(0.0f) == "-");
     CHECK(Boletim::Periodo(2) == "2\xc2\xba per\xc3\xadodo");
 }
+
+TEST_CASE("Boletim: as optativas numa secao so, no fim, e fora da conta das aprovadas") {
+    // A optativa fica numa coluna antes do TCC de proposito: mesmo assim ela vem por ultimo.
+    const Materias::Lista l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A1", "nome": "INF 1", "professor": "Ana", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "OP", "nome": "INF 9", "professor": "Eva", "coluna": 2, "optativa": true,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A1"], "preco": 5 } },
+        { "codigo": "B1", "nome": "INF 2", "professor": "Bia", "coluna": 1,
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["A1"] } }
+      ]
+    })");
+    Progresso p;
+    p.RegistrarNota(0, 80.0f, Dificuldade::Nivel::Normal);
+    p.RegistrarNota(1, 90.0f, Dificuldade::Nivel::Normal);   // a optativa, aprovada
+    const Boletim::Dados d = Boletim::Montar(p, l);
+    REQUIRE(d.linhas.size() == 3u);
+    CHECK(d.linhas.back().codigo == "INF 9");
+    CHECK(d.linhas.back().optativa);
+    CHECK(Boletim::Secao(d.linhas.back()) == "Optativas");
+    CHECK(Boletim::Secao(d.linhas.front()) == Boletim::Periodo(1));
+    CHECK(d.total == 2);       // as obrigatorias, como na selecao de fases
+    CHECK(d.aprovadas == 1);   // a optativa aprovada nao conta
+    CHECK(d.cursadas == 2);    // mas entra no CR
+}
+
+TEST_CASE("Boletim: o nome longo e encurtado com reticencias, contando letras e nao bytes") {
+    CHECK(Boletim::Encurtar("curto", 10) == "curto");
+    CHECK(Boletim::Encurtar("exatamente", 10) == "exatamente");
+    CHECK(Boletim::Encurtar("passou do limite", 10) == "passou do\xe2\x80\xa6");
+    // O acento conta como uma letra so, e nunca e partido ao meio.
+    const std::string longo = "Programa\xc3\xa7\xc3\xa3o Concorrente";
+    const std::string curto = Boletim::Encurtar(longo, 11);
+    CHECK(curto == "Programa\xc3\xa7\xc3\xa3\xe2\x80\xa6");
+}

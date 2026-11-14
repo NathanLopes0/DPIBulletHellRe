@@ -22,6 +22,9 @@ public:
 	class SDL_Texture* RenderText(SDL_Renderer* renderer, const std::string& text, const Vector3& color = Color::White,
 	                              int pointSize = 30, unsigned wrapLength = 900, float escala = 1.0f);
 
+	/// A largura do texto, em pixels do jogo, numa linha so. 0 se a fonte nao abre.
+	int LarguraDe(const std::string& text, int pointSize);
+
 private:
 	/// A fonte no tamanho pedido, aberta agora se ainda nao estava.
 	TTF_Font* NoTamanho(int pointSize);
