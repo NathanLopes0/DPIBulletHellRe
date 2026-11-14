@@ -187,7 +187,7 @@ TEST_CASE("Orientacao: sem candidato nao ha em quem votar, e aluno fora da conta
     CHECK(v.Alunos() == 1);
 }
 
-TEST_CASE("Orientacao: o professor da optativa aprovada sempre entra, mesmo com nota menor") {
+TEST_CASE("Orientacao: o professor da optativa aprovada entra a mais, depois dos tres das obrigatorias") {
     const Materias::Lista l = Materias::LerMaterias(R"({ "materias": [
         { "codigo": "P1", "nome": "P1", "professor": "Andre",   "chefe": "andre",   "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
         { "codigo": "ED", "nome": "ED", "professor": "Salles",  "chefe": "salles",  "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
@@ -201,9 +201,17 @@ TEST_CASE("Orientacao: o professor da optativa aprovada sempre entra, mesmo com 
     // Sem a optativa, os tres das maiores notas.
     const Progresso sem = Notas(l, {{"P1", 90.0f}, {"ED", 85.0f}, {"OC", 80.0f}, {"BD", 75.0f}});
     CHECK(Professores(Orientacao::Candidatos(l, {&sem})) == std::vector<std::string>{"Andre", "Salles", "Ricardo"});
-    // Com ela aprovada, ela entra - e sai a menor das outras -, e a tela continua da maior para a menor.
+    // Com ela aprovada, ela entra a mais: os tres continuam, e o Daniel vem depois deles - mesmo com a
+    // nota maior.
     const Progresso com = Notas(l, {{"P1", 90.0f}, {"ED", 85.0f}, {"OC", 80.0f}, {"BD", 75.0f}, {"DS", 62.0f}});
-    CHECK(Professores(Orientacao::Candidatos(l, {&com})) == std::vector<std::string>{"Andre", "Salles", "Daniel"});
+    CHECK(Professores(Orientacao::Candidatos(l, {&com})) ==
+          std::vector<std::string>{"Andre", "Salles", "Ricardo", "Daniel"});
+    const Progresso alta = Notas(l, {{"P1", 90.0f}, {"ED", 85.0f}, {"OC", 80.0f}, {"DS", 99.0f}});
+    const auto candidatos = Orientacao::Candidatos(l, {&alta});
+    CHECK(Professores(candidatos) == std::vector<std::string>{"Andre", "Salles", "Ricardo", "Daniel"});
+    // Na dupla que discorda, vence a maior nota, e nao o mais acima: o Daniel (99) ganha do Andre (90).
+    CHECK(Orientacao::Resultado(candidatos, {0, 3}) == 3);
+    CHECK(Orientacao::Resultado(candidatos, {1, 2}) == 1);
     // Reprovado nela, nao.
     const Progresso reprovado = Notas(l, {{"P1", 90.0f}, {"ED", 85.0f}, {"OC", 80.0f}, {"DS", 40.0f}});
     CHECK(Professores(Orientacao::Candidatos(l, {&reprovado})) == std::vector<std::string>{"Andre", "Salles", "Ricardo"});

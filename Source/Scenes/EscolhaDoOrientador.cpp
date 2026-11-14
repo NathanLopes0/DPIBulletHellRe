@@ -6,6 +6,7 @@
 #include "TextoDeCena.h"
 
 #include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <sstream>
 
@@ -61,17 +62,29 @@ void EscolhaDoOrientador::Load() {
     const int quantos = std::min(static_cast<int>(alunos.size()), kMaxAlunos);
     mVotacao = Orientacao::Votacao(static_cast<int>(mCandidatos.size()), std::max(1, quantos));
 
-    // Os cartoes centrados, quantos forem.
+    // Os cartoes centrados, quantos forem ate tres; com mais (os das optativas vem a mais), os tres
+    // primeiros no lugar de sempre e os outros a direita, fora da tela - o carrossel os traz.
     const float meio = static_cast<float>(mGame->GetWindowWidth()) / 2.0f;
-    const float primeiro = mCandidatos.empty() ? 0.0f : -0.5f * static_cast<float>(mCandidatos.size() - 1);
+    const int naTela = std::min(static_cast<int>(mCandidatos.size()), kVisiveis);
+    const float primeiro = naTela == 0 ? 0.0f : -0.5f * static_cast<float>(naTela - 1);
     for (size_t i = 0; i < mCandidatos.size(); ++i) {
         mCentros.emplace_back(meio + (primeiro + static_cast<float>(i)) * kEntreCartoes, kCartaoY);
     }
+    mBases = mCentros;
 
     CriarCabecalho();
     for (int i = 0; i < static_cast<int>(mCandidatos.size()); ++i) CriarCartao(i);
     CriarCursores();
     CriarRodape();
+
+    // As setas dizem que ha cartoes escondidos de um lado ou do outro.
+    if (static_cast<int>(mCandidatos.size()) > kVisiveis) {
+        const float largura = static_cast<float>(mGame->GetWindowWidth());
+        mSetaEsquerda = Texto("\xc2\xab", Vector2(22.0f, kCartaoY), 44, 40, Color::Gold);
+        mSetaDireita = Texto("\xc2\xbb", Vector2(largura - 22.0f, kCartaoY), 44, 40, Color::Gold);
+        // No comeco nada esta escondido a esquerda.
+        if (auto* t = mSetaEsquerda->GetComponent<DrawTextComponent>()) t->SetIsVisible(false);
+    }
 
     Atualizar();
 }
@@ -110,8 +123,42 @@ void EscolhaDoOrientador::CriarCabecalho() {
           Vector2(meio, 93.0f), 18, 1000, Color::LightYellow);
 }
 
+Actor* EscolhaDoOrientador::Guardar(Actor* ator) {
+    if (ator && !mNosDosCartoes.empty()) mNosDosCartoes.back().push_back({ator, ator->GetPosition()});
+    return ator;
+}
+
+void EscolhaDoOrientador::Deslizar(const float deltaTime) {
+    const int n = static_cast<int>(mCandidatos.size());
+    if (n <= kVisiveis) return;
+    // O primeiro a vista acompanha os cursores: o do ultimo aluno que saiu da janela manda.
+    for (int a = 0; a < mVotacao.Alunos(); ++a) {
+        const int c = mVotacao.Cursor(a);
+        if (c < mPrimeiroVisivel) mPrimeiroVisivel = c;
+        if (c >= mPrimeiroVisivel + kVisiveis) mPrimeiroVisivel = c - kVisiveis + 1;
+    }
+    mPrimeiroVisivel = std::clamp(mPrimeiroVisivel, 0, n - kVisiveis);
+    const float alvo = -static_cast<float>(mPrimeiroVisivel) * kEntreCartoes;
+    if (std::fabs(alvo - mDeslocamento) < 0.5f) {
+        if (mDeslocamento == alvo) return;
+        mDeslocamento = alvo;
+    } else {
+        mDeslocamento += (alvo - mDeslocamento) * std::min(1.0f, 12.0f * deltaTime);
+    }
+    const Vector2 d(mDeslocamento, 0.0f);
+    for (auto& cartao : mNosDosCartoes) {
+        for (NoDoCartao& no : cartao) no.ator->SetPosition(no.base + d);
+    }
+    for (size_t i = 0; i < mCentros.size(); ++i) mCentros[i] = mBases[i] + d;
+    for (PreviaDoCartao& p : mPrevias) p.canto = p.cantoBase + d;
+    if (auto* t = mSetaEsquerda ? mSetaEsquerda->GetComponent<DrawTextComponent>() : nullptr) t->SetIsVisible(mPrimeiroVisivel > 0);
+    if (auto* t = mSetaDireita ? mSetaDireita->GetComponent<DrawTextComponent>() : nullptr) t->SetIsVisible(mPrimeiroVisivel + kVisiveis < n);
+    Atualizar();
+}
+
 void EscolhaDoOrientador::CriarCartao(const int indice) {
 
+    mNosDosCartoes.emplace_back();
     const Orientacao::Candidato& c = mCandidatos[static_cast<size_t>(indice)];
     const Vector2 centro = mCentros[static_cast<size_t>(indice)];
     const Materias::Materia* m = Materias::Carregadas().Por(c.materia);
@@ -120,8 +167,8 @@ void EscolhaDoOrientador::CriarCartao(const int indice) {
     cartao->SetPosition(centro);
     cartao->AddComponent<DrawCaixaComponent>(
         static_cast<int>(kCartaoLargura), static_cast<int>(kCartaoAltura),
-        kMolduraDoCartao, kFundoDoCartao, 2, kOrdemDoCartao);
-    AddActor(std::move(cartao));
+        m && m->optativa ? kMolduraDaOptativa : kMolduraDoCartao, kFundoDoCartao, 2, kOrdemDoCartao);
+    Guardar(AddActor(std::move(cartao)));
 
     // O que o cartao mostra e medido do topo dele.
     const Vector2 topo = centro + Vector2(0.0f, -kCartaoAltura / 2.0f);
@@ -133,21 +180,26 @@ void EscolhaDoOrientador::CriarCartao(const int indice) {
         rosto->SetScale(kEscalaDoRetrato);
         retrato = rosto->AddComponent<DrawSpriteComponent>(
             Caminhos::Asset(fabrica->Retrato() + ".png"), kOrdemDoRetrato);
-        AddActor(std::move(rosto));
+        Guardar(AddActor(std::move(rosto)));
     }
     mRetratos.push_back(retrato);
 
+    // O orientador que a optativa deu vem a mais, e o cartao diz isso.
+    if (m && m->optativa) {
+        Guardar(Texto("OPTATIVA", topo + Vector2(-kCartaoLargura / 2.0f + 52.0f, 19.0f), 14, 90, Color::LightBlue));
+    }
+
     const int largura = static_cast<int>(kCartaoLargura) - 30;
-    Texto("Prof. " + c.professor, topo + Vector2(0.0f, kProfessorEm), 24, largura, Color::White);
-    Texto(m ? m->nome : std::string(), topo + Vector2(0.0f, kMateriaEm), 20, largura, Color::LightYellow);
-    Texto(m ? m->nomeCompleto : std::string(), topo + Vector2(0.0f, kNomeDaMateriaEm), 16, largura,
-          Color::LightBlue, 2);
+    Guardar(Texto("Prof. " + c.professor, topo + Vector2(0.0f, kProfessorEm), 24, largura, Color::White));
+    Guardar(Texto(m ? m->nome : std::string(), topo + Vector2(0.0f, kMateriaEm), 20, largura, Color::LightYellow));
+    Guardar(Texto(m ? m->nomeCompleto : std::string(), topo + Vector2(0.0f, kNomeDaMateriaEm), 16, largura,
+                  Color::LightBlue, 2));
 
     std::stringstream nota;
     nota << "Nota " << std::fixed << std::setprecision(2) << c.nota;
     if (EmDupla()) nota << "  (de J" << c.deQuem + 1 << ")";
     const Vector3 corDaNota = Nota::ECheia(c.nota) ? Color::Gold : Color::LightGreen;
-    Texto(nota.str(), topo + Vector2(0.0f, kNotaEm), 20, largura, corDaNota);
+    Guardar(Texto(nota.str(), topo + Vector2(0.0f, kNotaEm), 20, largura, corDaNota));
 
     CriarCurriculo(indice, topo);
     CriarPrevia(indice, topo);
@@ -167,12 +219,13 @@ void EscolhaDoOrientador::CriarCurriculo(const int indice, const Vector2& topo) 
     selo->SetPosition(canto);
     selo->AddComponent<DrawCaixaComponent>(static_cast<int>(kCurriculoLargura), static_cast<int>(kCurriculoAltura),
                                            cor, kFundoDaPrevia, 1, kOrdemDoRetrato + 2);
-    AddActor(std::move(selo));
+    Guardar(AddActor(std::move(selo)));
     // \xc3\xa1 e o a com acento.
     const std::string texto = vezes > 0 ? "j\xc3\xa1 orientou " + std::to_string(vezes) + "x" : std::string("novo");
     auto* dc = CriarTexto(*this, mFonte.get(), texto, canto, 14, static_cast<int>(kCurriculoLargura) - 6,
                           static_cast<int>(kCurriculoAltura), kOrdemDoRetrato + 3);
     dc->SetColor(ParaVector3(cor));
+    Guardar(dc->GetOwner());
 }
 
 void EscolhaDoOrientador::CriarPrevia(const int indice, const Vector2& topo) {
@@ -188,7 +241,7 @@ void EscolhaDoOrientador::CriarPrevia(const int indice, const Vector2& topo) {
         return;
     }
 
-    Texto("PODER: " + poder.nome, topo + Vector2(0.0f, kPoderEm), 22, largura, Color::Gold);
+    Guardar(Texto("PODER: " + poder.nome, topo + Vector2(0.0f, kPoderEm), 22, largura, Color::Gold));
 
     // O campo em miniatura, e o desenho animado dentro dele.
     const Vector2 meio = topo + Vector2(0.0f, kPreviaEm);
@@ -198,10 +251,11 @@ void EscolhaDoOrientador::CriarPrevia(const int indice, const Vector2& topo) {
                                             kMolduraDaPrevia, kFundoDaPrevia, 1, kOrdemDoRetrato);
     previa.linhas = campo->AddComponent<DrawLinhasComponent>(kOrdemDoRetrato + 1);
     previa.canto = meio - Vector2(kPreviaLargura / 2.0f, kPreviaAltura / 2.0f);
-    AddActor(std::move(campo));
+    previa.cantoBase = previa.canto;
+    Guardar(AddActor(std::move(campo)));
 
-    previa.legenda = Texto(" ", topo + Vector2(0.0f, kLegendaEm), 16, largura, Color::White);
-    Texto(poder.efeito, topo + Vector2(0.0f, kEfeitoEm), 15, largura, Color::LightBlue, 2);
+    previa.legenda = Guardar(Texto(" ", topo + Vector2(0.0f, kLegendaEm), 16, largura, Color::White));
+    Guardar(Texto(poder.efeito, topo + Vector2(0.0f, kEfeitoEm), 15, largura, Color::LightBlue, 2));
     mPrevias.push_back(previa);
 }
 
@@ -356,6 +410,7 @@ void EscolhaDoOrientador::OnUpdate(const float deltaTime) {
     if (mSaindo) return;
 
     mTempoDaPrevia += deltaTime;
+    Deslizar(deltaTime);
     DesenharPrevias();
 
     const int escolhido = Orientacao::Resultado(mCandidatos, mVotacao.Votos());

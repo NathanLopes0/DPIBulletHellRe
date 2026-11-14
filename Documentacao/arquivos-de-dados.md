@@ -100,10 +100,11 @@ menção que não existe, vira aviso e fica de fora — a matéria não.
                  "requisitos": [ { "tipo": "mencao", "mencao": "ouro", "quantas": 1 } ] }
 ```
 
-**A optativa dá orientador.** O professor de uma optativa aprovada é sempre um dos
-três candidatos a orientador do TCC (`Orientacao::Candidatos`), mesmo com nota
-menor que as outras: o orientador novo é o prêmio dela. Os outros lugares saem
-das maiores notas, como sempre.
+**A optativa dá orientador.** O professor de uma optativa aprovada é um candidato
+a orientador do TCC **a mais** (`Orientacao::Candidatos`): os três das maiores
+notas nas obrigatórias continuam, e ele vem depois deles — o orientador novo é o
+prêmio dela, e não toma o lugar de ninguém. Com mais de três candidatos, a tela
+do orientador desliza como um carrossel.
 
 > **A ordem da lista é a ordem dos botões**, e o índice dela é o que a navegação
 > das setas usa. Reordenar muda para onde as setas levam — e há testes que dizem

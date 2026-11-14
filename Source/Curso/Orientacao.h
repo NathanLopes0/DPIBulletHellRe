@@ -14,7 +14,7 @@
 /// escolha.
 namespace Orientacao {
 
-    /// Quantos professores o aluno pode escolher.
+    /// Quantos professores das obrigatorias o aluno pode escolher. Os das optativas vem alem deles.
     constexpr int kCandidatos = 3;
 
     struct Candidato {
@@ -26,12 +26,14 @@ namespace Orientacao {
     };
 
     /// Os candidatos a orientador de quem esta jogando: um Progresso por aluno (um sozinho, dois em
-    /// dupla). Nulo conta como quem nunca jogou. Sao os kCandidatos das maiores notas aprovadas - mas
-    /// o professor de uma optativa aprovada sempre entra: o orientador novo e o premio dela.
+    /// dupla). Nulo conta como quem nunca jogou. Sao os kCandidatos das maiores notas aprovadas nas
+    /// obrigatorias, e depois deles, a mais, o professor de cada optativa aprovada: o orientador novo e
+    /// o premio dela, e ele nao toma o lugar de ninguem.
     std::vector<Candidato> Candidatos(const Materias::Lista& lista,
                                       const std::vector<const Progresso*>& alunos);
 
-    /// A votacao: um voto por aluno, o indice do candidato em quem ele votou.
+    /// A votacao: um voto por aluno, o indice do candidato em quem ele votou. Discordando, vence o
+    /// de maior nota (no empate, o mais acima na lista).
     int Resultado(const std::vector<Candidato>& candidatos, const std::vector<int>& votos);
 
     /// A votacao em curso, na tela: onde esta o cursor de cada aluno e em quem cada um ja votou.

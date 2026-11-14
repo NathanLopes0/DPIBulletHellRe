@@ -37,22 +37,22 @@ namespace Orientacao {
         std::stable_sort(todos.begin(), todos.end(),
                          [](const Candidato& a, const Candidato& b) { return a.nota > b.nota; });
 
-        // Um professor uma vez so, pela melhor nota. O da optativa aprovada vem primeiro: abrir um
-        // orientador novo e o que a optativa da - ele nao pode sumir atras das notas altas.
+        // Um professor uma vez so, pela melhor nota. Primeiro os kCandidatos das obrigatorias; depois,
+        // a mais, o de cada optativa aprovada - o orientador novo que ela da nao toma o lugar de
+        // ninguem. Cada grupo da maior nota para a menor.
         std::vector<Candidato> escolhidos;
         std::set<std::string> vistos;
-        for (const bool daOptativa : {true, false}) {
+        int dasObrigatorias = 0;
+        for (const bool daOptativa : {false, true}) {
             for (const auto& c : todos) {
-                if (static_cast<int>(escolhidos.size()) >= kCandidatos) break;
                 const Materias::Materia* m = lista.Por(c.materia);
                 if ((m && m->optativa) != daOptativa) continue;
+                if (!daOptativa && dasObrigatorias >= kCandidatos) break;
                 if (!vistos.insert(c.professor).second) continue;
                 escolhidos.push_back(c);
+                if (!daOptativa) ++dasObrigatorias;
             }
         }
-        // Na tela, a maior primeiro de novo.
-        std::stable_sort(escolhidos.begin(), escolhidos.end(),
-                         [](const Candidato& a, const Candidato& b) { return a.nota > b.nota; });
         return escolhidos;
     }
 
@@ -60,11 +60,17 @@ namespace Orientacao {
         if (votos.empty() || candidatos.empty()) return -1;
         const int n = static_cast<int>(candidatos.size());
 
-        // Concordando ou nao, vence o mais acima na lista - que e o de nota mais alta.
-        int vencedor = n;
+        // Concordando ou nao, vence o de nota mais alta; no empate, o mais acima na lista. (Os das
+        // optativas vem no fim da lista, e podem ter a nota maior.)
+        int vencedor = -1;
         for (const int voto : votos) {
             if (voto < 0 || voto >= n) return -1;   // alguem ainda nao votou
-            vencedor = std::min(vencedor, voto);
+            if (vencedor < 0) {
+                vencedor = voto;
+                continue;
+            }
+            const float a = candidatos[static_cast<size_t>(voto)].nota, b = candidatos[static_cast<size_t>(vencedor)].nota;
+            if (a > b || (a == b && voto < vencedor)) vencedor = voto;
         }
         return vencedor;
     }

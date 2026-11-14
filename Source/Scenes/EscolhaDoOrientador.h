@@ -93,6 +93,8 @@ private:
     static constexpr int kOrdemDoCursor = 120;
 
     static inline const SDL_Color kMolduraDoCartao{96, 118, 170, 220};
+    /// O cartao do orientador que uma optativa deu: a mais, com a moldura azul clara.
+    static inline const SDL_Color kMolduraDaOptativa{130, 200, 255, 240};
     static inline const SDL_Color kFundoDoCartao{10, 14, 30, 215};
     static inline const SDL_Color kSemFundo{0, 0, 0, 0};
 
@@ -139,6 +141,7 @@ private:
     struct PreviaDoCartao {
         Poder::Tipo tipo = Poder::Tipo::Nenhum;
         Vector2 canto;                              ///< o canto de cima, a esquerda, do campo em miniatura
+        Vector2 cantoBase;                          ///< o mesmo, com o carrossel parado no comeco
         DrawLinhasComponent* linhas = nullptr;
         Actor* legenda = nullptr;
         std::string escrita;
@@ -155,6 +158,24 @@ private:
     float mAnunciando = 0.0f;
     bool mMudou = true;
     bool mSaindo = false;
+
+    // ---- O carrossel: os das optativas vem alem dos tres, e cabem tres na tela ----
+    static constexpr int kVisiveis = 3;
+    /// Cada ator de um cartao e onde ele fica com o carrossel no comeco.
+    struct NoDoCartao {
+        Actor* ator = nullptr;
+        Vector2 base;
+    };
+    std::vector<std::vector<NoDoCartao>> mNosDosCartoes;
+    std::vector<Vector2> mBases;                   ///< o centro de cada cartao, com o carrossel no comeco
+    /// Guarda o ator no cartao que esta sendo criado, para deslizar com ele.
+    Actor* Guardar(Actor* ator);
+    /// O primeiro cartao a vista segue os cursores, e o carrossel desliza ate ele.
+    void Deslizar(float deltaTime);
+    int mPrimeiroVisivel = 0;
+    float mDeslocamento = 0.0f;
+    Actor* mSetaEsquerda = nullptr;
+    Actor* mSetaDireita = nullptr;
 
     /// A borda de cada entrada, por aluno.
     struct Bordas {
