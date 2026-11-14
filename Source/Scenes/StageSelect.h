@@ -154,7 +154,7 @@ private:
     static constexpr float kMatriculaY = 616.0f;
     static constexpr float kMatriculaLargura = 400.0f;
     static constexpr float kMatriculaAltura = 266.0f;
-    static constexpr int kItensDaMatricula = 4;
+    static constexpr int kItensDaMatricula = 5;
     static constexpr int kBlocosDaMatricula = 20;
     std::vector<Actor*> mMatricula;
     DrawCaixaComponent* mMolduraDaMatricula = nullptr;

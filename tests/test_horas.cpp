@@ -282,7 +282,7 @@ TEST_CASE("Horas: a lista da optativa diz item por item o que ja foi cumprido e 
     CHECK(itens[0].cumprido);
     CHECK(itens[1].texto == "Passar em INF 2");
     CHECK_FALSE(itens[1].cumprido);
-    CHECK(itens[2].texto.rfind("Pelo menos 1 men", 0) == 0);
+    CHECK(itens[2].texto.rfind("1 men", 0) == 0);
     CHECK(itens[2].texto.find("tem 0") != std::string::npos);
     CHECK_FALSE(itens[2].cumprido);
     p.RegistrarNota(c.IndiceDe("B1"), 95.0f, Dificuldade::Nivel::Normal);

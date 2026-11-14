@@ -114,18 +114,22 @@
       "nomeCompleto": "Ciência de Dados", "professor": "Daniel",
       "coluna": 5, "chefe": "daniel", "optativa": true,
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"], "preco": 20,
-                       "requisitos": [ { "tipo": "mencao", "mencao": "ouro", "quantas": 1 } ] }
+                       "requisitos": [ { "tipo": "mencao", "mencao": "ouro", "quantas": 5 },
+                                       { "tipo": "mencao", "mencao": "dificil", "quantas": 2 },
+                                       { "tipo": "mencao", "mencao": "mira", "quantas": 2 } ] }
     },
 
-    // O MaVIlab e seleto: a INF 429 pede duas menções de ouro e uma no Difícil, e custa mais
-    // horas. --batalha 14 e ela.
+    // O MaVIlab e seleto: a INF 429 pede mais menções que a INF 425, e custa mais horas. Nenhuma
+    // optativa pede a nota cheia. --batalha 14 e ela.
     {
       "codigo": "INF429", "nome": "INF 429",
       "nomeCompleto": "Aprendizado de Máquina com Dados Visuais", "professor": "Michel",
       "coluna": 6, "chefe": "michel", "optativa": true,
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"], "preco": 30,
-                       "requisitos": [ { "tipo": "mencao", "mencao": "ouro", "quantas": 2 },
-                                       { "tipo": "mencao", "mencao": "dificil", "quantas": 1 } ] }
+                       "requisitos": [ { "tipo": "mencao", "mencao": "ouro", "quantas": 8 },
+                                       { "tipo": "mencao", "mencao": "dificil", "quantas": 4 },
+                                       { "tipo": "mencao", "mencao": "mira", "quantas": 3 },
+                                       { "tipo": "mencao", "mencao": "dePerto", "quantas": 2 } ] }
     }
   ]
 }

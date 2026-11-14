@@ -916,7 +916,7 @@ void StageSelect::CriarMatricula() {
     // O que a optativa pede: uma marca e uma linha por item.
     const int larguraDoItem = static_cast<int>(kMatriculaLargura) - 60;
     for (int k = 0; k < kItensDaMatricula; ++k) {
-        const float y = topo + 47.0f + 24.0f * static_cast<float>(k);
+        const float y = topo + 47.0f + 20.0f * static_cast<float>(k);
         mMarcas.push_back(caixa(Vector2(esquerda + 24.0f, y), 14.0f, 14.0f, SDL_Color{0, 0, 0, 0}, SDL_Color{0, 0, 0, 0}, 2,
                                 kOrdemDoCartao + 2));
         mItens.push_back(texto(Vector2(esquerda + 40.0f + static_cast<float>(larguraDoItem) / 2.0f, y), 15, larguraDoItem,
@@ -1018,7 +1018,7 @@ void StageSelect::AtualizarMatricula() const {
     } else {
         mBotaoDaMatricula->SetFundo(SDL_Color{52, 56, 72, 235});
         mBotaoDaMatricula->SetMoldura(SDL_Color{90, 98, 130, 220});
-        rotulo = !regra ? std::string("TRANCADA: CUMPRA O QUE EST\xc3\x81 EM ROSA")
+        rotulo = !regra ? std::string("FALTA O QUE EST\xc3\x81 EM ROSA")
                         : "FALTAM " + std::to_string(preco - saldo) + " h PARA SE MATRICULAR";
         corDoRotulo = Color::LightPink;
         AtualizarRodape("jogar");

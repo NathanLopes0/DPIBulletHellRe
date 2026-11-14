@@ -353,8 +353,8 @@ foi aprovado:
 | 2 | INF 250 — Organização de Computadores *(Ricardo)*, INF 220 — Banco de Dados *(Thiago)*, INF 340 — Linguagens de Programação *(Luizinho)*, INF 331 — Linguagens Formais e Autômatos *(Vladimir)*, INF 332 — Projeto e Análise de Algoritmos *(Arroyo)* | INF 213 aprovada |
 | 3 | INF 420 — Inteligência Artificial *(Júlio)*, INF 221 — Engenharia de Software *(Maria Lúcia)*, INF 321 — Programação Web *(Lucas)*, INF 310 — Programação Concorrente e Distribuída *(Vitor)*, INF 451 — Sistemas Operacionais *(Goulart)* | 2 aprovações na coluna 2 |
 | 4 | TCC — Trabalho de Conclusão de Curso *(Hugo)* | 2 aprovações na coluna 3 |
-| 5 *(optativas)* | INF 425 — Ciência de Dados *(Daniel)* | INF 213 aprovada, pelo menos 1 menção de ouro, e 20 h de horas complementares |
-| 6 *(optativas)* | INF 429 — Aprendizado de Máquina com Dados Visuais *(Michel)* | INF 213 aprovada, pelo menos 2 menções de ouro e 1 no Difícil, e 30 h de horas complementares — o MaVIlab é seleto |
+| 5 *(optativas)* | INF 425 — Ciência de Dados *(Daniel)* | INF 213 aprovada, pelo menos 5 menções de ouro, 2 no Difícil e 2 "prestando atenção", e 20 h de horas complementares |
+| 6 *(optativas)* | INF 429 — Aprendizado de Máquina com Dados Visuais *(Michel)* | INF 213 aprovada, pelo menos 8 menções de ouro, 4 no Difícil, 3 "prestando atenção" e 2 "sentar na frente", e 30 h de horas complementares — o MaVIlab é seleto |
 
 Toda matéria tem professor e batalha — as doze do curso, o TCC, do Hugo, que é
 a última e a mais difícil, e as optativas INF 425, do Daniel, e INF 429, do Michel. A INF 332 e a INF 451 entraram depois: no

@@ -62,6 +62,7 @@
 #include "../Source/Entrada/Navegacao.h"
 #include "../Source/Personagem/Personagens.h"
 #include "../Source/Aluno/Progresso.h"
+#include "../Source/Aluno/Mencoes.h"
 #include "../Source/Aluno/ProvaDaSemana.h"
 #include "../Source/Motor/JsonDeDados.h"
 #include "../Source/Interface/Manual.h"
@@ -890,34 +891,57 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
 
     CHECK(comparacoes == (1 << 13) * 15);
 
-    // As optativas nao pedem materia alem da INF 213, nem uma a outra: pedem mencoes e a compra.
-    // A INF 425: uma mencao de ouro.
+    // As optativas nao pedem materia alem da INF 213, nem uma a outra: pedem muitas mencoes - nenhuma
+    // a nota cheia - e a compra.
     const int ds = l.IndiceDe("INF425");
+    const int mv = l.IndiceDe("INF429");
     REQUIRE(ds >= 0);
+    REQUIRE(mv >= 0);
     CHECK(l.Por(ds)->optativa);
+    CHECK(l.Por(mv)->optativa);
+    CHECK(l.PrecoDe(mv) > l.PrecoDe(ds));
+    for (const int o : {ds, mv}) {
+        for (const auto& r : l.Por(o)->desbloqueio.requisitos) CHECK(r.mencao != "notaCheia");
+    }
+    const auto ouros = [&](Progresso& p, const std::vector<std::string>& codigos) {
+        for (const auto& c : codigos) p.RegistrarNota(l.IndiceDe(c), 93.0f, Dificuldade::Nivel::Normal);
+    };
+    const auto dificeis = [&](Progresso& p, const std::vector<std::string>& codigos) {
+        for (const auto& c : codigos) p.RegistrarNota(l.IndiceDe(c), 70.0f, Dificuldade::Nivel::Dificil);
+    };
+    const auto desafio = [&](Progresso& p, const Mencoes::Mencao m, const std::vector<std::string>& codigos) {
+        for (const auto& c : codigos) p.RegistrarAtividade(Mencoes::Chave(m, c));
+    };
+
+    // A INF 425: 5 ouros, 2 no Dificil e 2 "prestando atencao".
     Progresso p;
-    p.RegistrarNota(l.IndiceDe("INF110"), 93.0f, Dificuldade::Nivel::Normal);
-    CHECK_FALSE(l.RegraCumprida(ds, p));          // ouro, mas sem a INF 213
+    ouros(p, {"INF110", "INF250", "INF220", "INF340", "INF331"});
+    dificeis(p, {"INF110", "INF250"});
+    desafio(p, Mencoes::Mencao::Mira, {"INF110", "INF250"});
+    CHECK_FALSE(l.RegraCumprida(ds, p));          // tudo, menos a INF 213
     p.RegistrarNota(l.IndiceDe("INF213"), 80.0f, Dificuldade::Nivel::Normal);
     CHECK(l.RegraCumprida(ds, p));
+    Progresso quatro;                              // um ouro a menos, e nao abre
+    quatro.RegistrarNota(l.IndiceDe("INF213"), 80.0f, Dificuldade::Nivel::Normal);
+    ouros(quatro, {"INF110", "INF250", "INF220", "INF340"});
+    dificeis(quatro, {"INF110", "INF250"});
+    desafio(quatro, Mencoes::Mencao::Mira, {"INF110", "INF250"});
+    CHECK_FALSE(l.RegraCumprida(ds, quatro));
     CHECK_FALSE(l.Desbloqueada(ds, p));           // falta comprar
-    CHECK(l.PrecoDe(ds) > 0);
     p.RegistrarAtividade(Materias::ChaveDaCompra("INF425"));
     CHECK(l.Desbloqueada(ds, p));
 
-    // A INF 429, o MaVIlab: duas mencoes de ouro, uma no Dificil, e a compra - mais cara. Sem a INF
-    // 425: ela nao entra na conta.
-    const int mv = l.IndiceDe("INF429");
-    REQUIRE(mv >= 0);
-    CHECK(l.Por(mv)->optativa);
-    CHECK(l.PrecoDe(mv) > l.PrecoDe(ds));
-    CHECK_FALSE(l.RegraCumprida(mv, p));          // um ouro so, e nada no Dificil
-    p.RegistrarNota(l.IndiceDe("INF250"), 95.0f, Dificuldade::Nivel::Normal);
-    CHECK_FALSE(l.RegraCumprida(mv, p));          // dois ouros, e ainda nada no Dificil
-    p.RegistrarNota(l.IndiceDe("INF340"), 70.0f, Dificuldade::Nivel::Dificil);
+    // A INF 429, o MaVIlab: 8 ouros, 4 no Dificil, 3 "prestando atencao" e 2 "sentar na frente" -
+    // sem a INF 425, que nao entra na conta.
+    CHECK_FALSE(l.RegraCumprida(mv, p));
+    ouros(p, {"INF332", "INF420", "INF221"});
+    dificeis(p, {"INF220", "INF340"});
+    desafio(p, Mencoes::Mencao::Mira, {"INF220"});
+    CHECK_FALSE(l.RegraCumprida(mv, p));          // falta o "sentar na frente"
+    desafio(p, Mencoes::Mencao::DePerto, {"INF110", "INF250"});
     CHECK(l.RegraCumprida(mv, p));
     CHECK_FALSE(p.Aprovado(ds));                  // e a INF 425 nem foi feita
-    CHECK_FALSE(l.Desbloqueada(mv, p));           // falta comprar
+    CHECK_FALSE(l.Desbloqueada(mv, p));
     p.RegistrarAtividade(Materias::ChaveDaCompra("INF429"));
     CHECK(l.Desbloqueada(mv, p));
 }

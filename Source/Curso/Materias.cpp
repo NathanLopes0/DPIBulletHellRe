@@ -292,9 +292,12 @@ std::vector<ItemDaExigencia> Lista::Itens(const int indice, const Progresso& pro
     for (const Requisito& r : d.requisitos) {
         std::string texto = FraseDoRequisito(r);
         if (texto.empty()) continue;
-        // "pelo menos 1 mencao de ouro" vira "Pelo menos 1 mencao de ouro  (voce tem 2)".
+        // "pelo menos 5 mencoes de ouro" vira "5 mencoes de ouro  (tem 2)": o painel e estreito, e a
+        // marca ao lado ja diz que e o minimo.
+        const std::string prefixo = "pelo menos ";
+        if (texto.rfind(prefixo, 0) == 0) texto.erase(0, prefixo.size());
         texto[0] = static_cast<char>(std::toupper(static_cast<unsigned char>(texto[0])));
-        itens.push_back({texto + "  (voc\xc3\xaa tem " + std::to_string(Contagem(r, progresso)) + ")", Cumpre(r, progresso)});
+        itens.push_back({texto + "  (tem " + std::to_string(Contagem(r, progresso)) + ")", Cumpre(r, progresso)});
     }
     return itens;
 }
