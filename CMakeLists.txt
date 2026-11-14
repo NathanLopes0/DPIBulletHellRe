@@ -125,6 +125,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Curso/Materias.cpp
         Source/Curso/MapaDaGrade.cpp
         Source/Curso/MapaDaGrade.h
+        Source/Curso/FestaDaMatricula.cpp
+        Source/Curso/FestaDaMatricula.h
         Source/Curso/Materias.h
         Source/Curso/Orientacao.cpp
         Source/Curso/Orientacao.h
@@ -540,6 +542,7 @@ add_executable(dpi_tests
         tests/test_goulart.cpp
         tests/test_daniel.cpp
         tests/test_michel.cpp
+        tests/test_festa_da_matricula.cpp
         tests/test_limite_de_som.cpp
         tests/test_path_aim.cpp
         tests/test_motion_contract.cpp
@@ -708,6 +711,7 @@ add_executable(dpi_tests
         Source/Aluno/Matricula.h
         Source/Curso/Materias.cpp
         Source/Curso/MapaDaGrade.cpp
+        Source/Curso/FestaDaMatricula.cpp
         Source/Curso/Materias.h
         Source/Curso/Orientacao.cpp
         Source/Curso/Orientacao.h

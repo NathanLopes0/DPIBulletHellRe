@@ -28,6 +28,9 @@
 #include "../Motor/Font.h"
 #include "../Components/DrawComponents/DrawTextComponent.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
+#include "../Components/DrawComponents/DrawLinhasComponent.h"
+#include "../Curso/FestaDaMatricula.h"
+#include "../Motor/AudioSystem.h"
 
 #include "../Motor/CaminhosArquivo.h"
 #include "../Motor/Fontes.h"
@@ -69,6 +72,7 @@ void StageSelect::Load() {
         faixa->SetColor(Color::Gold);
         mFaixaDaCompra = faixa->GetOwner();
         mFaixaAte = kDuracaoDaFaixa;
+        ComecarAFesta(sRecemComprada);
         sRecemComprada = -1;
     }
 
@@ -474,6 +478,100 @@ void StageSelect::MostrarCartaoDaProva(const bool mostrar) {
     }
 }
 
+void StageSelect::ComecarAFesta(const int materia) {
+    for (StageSelectButton* b : mButtonObservers) {
+        if (b && b->GetSubject() == materia) mBotaoDaFesta = b;
+    }
+    if (!mBotaoDaFesta) return;
+    for (size_t i = 0; i < mNosDoMapa.size(); ++i) {
+        if (mNosDoMapa[i].ator == mBotaoDaFesta) mNoDaFesta = i;
+    }
+    auto ator = std::make_unique<Actor>(this);
+    mFesta = ator->AddComponent<DrawLinhasComponent>(kOrdemDaFesta);
+    AddActor(std::move(ator));
+    mFichasDaFesta = FestaDaMatricula::Fichas(Materias::Carregadas().PrecoDe(materia));
+    mTempoDaFesta = 0.0f;
+    mCarimbou = false;
+}
+
+void StageSelect::AtualizarAFesta(const float deltaTime) {
+    using namespace FestaDaMatricula;
+    if (!mFesta || !mBotaoDaFesta || mTempoDaFesta < 0.0f) return;
+    mTempoDaFesta += deltaTime;
+    mFesta->Limpar();
+    const Vector2 base = mNoDaFesta < mNosDoMapa.size() ? mNosDoMapa[mNoDaFesta].base + Vector2(mCamera, 0.0f)
+                                                         : mBotaoDaFesta->GetPosition();
+    if (mTempoDaFesta >= Duracao(mFichasDaFesta)) {
+        mBotaoDaFesta->SetPosition(base);
+        mTempoDaFesta = -1.0f;
+        return;
+    }
+    const float t = mTempoDaFesta;
+    const SDL_Color ouro{255, 205, 90, 255}, claro{255, 246, 196, 255}, escuro{150, 96, 20, 255};
+
+    // As horas pagam: as fichas saem da fileira de blocos do painel de matricula, onde o aluno as viu.
+    const Vector2 de(kMatriculaX, kMatriculaY - kMatriculaAltura / 2.0f + 170.0f);
+    for (int k = 0; k < mFichasDaFesta; ++k) {
+        const FestaDaMatricula::Ficha f = FichaEm(k, mFichasDaFesta, t, de, base);
+        const float chega = static_cast<float>(k) * kEntreFichas + kVooDaFicha;
+        if (t >= chega) {
+            // O brilho de quando ela entra no losango.
+            if (t < chega + 0.15f) {
+                const float r = 6.0f + 60.0f * (t - chega);
+                mFesta->Acrescentar(base + Vector2(-r, 0.0f), base + Vector2(r, 0.0f), claro);
+                mFesta->Acrescentar(base + Vector2(0.0f, -r * 0.5f), base + Vector2(0.0f, r * 0.5f), claro);
+            }
+            continue;
+        }
+        // O rastro: tres brilhos pelo caminho que ela acabou de fazer, cada um menor e mais apagado.
+        if (f.voando) {
+            for (int r = 1; r <= 3; ++r) {
+                const FestaDaMatricula::Ficha antes = FichaEm(k, mFichasDaFesta, t - 0.035f * static_cast<float>(r), de, base);
+                if (!antes.voando) continue;
+                const float lado = 5.0f - static_cast<float>(r);
+                mFesta->Preencher(antes.onde - Vector2(lado, lado), antes.onde + Vector2(lado, lado),
+                                  SDL_Color{claro.r, claro.g, claro.b, static_cast<Uint8>(200 - 55 * r)});
+            }
+        }
+        // A moeda girando: a largura vai e volta, e o brilho fica do lado de cima.
+        const float meiaLargura = 10.0f * std::max(0.18f, f.largura), meiaAltura = 10.0f;
+        mFesta->Preencher(f.onde - Vector2(meiaLargura, meiaAltura), f.onde + Vector2(meiaLargura, meiaAltura), ouro);
+        mFesta->Preencher(f.onde - Vector2(meiaLargura * 0.5f, meiaAltura * 0.6f),
+                          f.onde + Vector2(meiaLargura * 0.2f, -meiaAltura * 0.1f), claro);
+        mFesta->Acrescentar(f.onde + Vector2(-meiaLargura, meiaAltura), f.onde + Vector2(meiaLargura, meiaAltura), escuro);
+    }
+
+    // O carimbo: o losango pula, o anel abre e as faiscas espirram.
+    const float d = t - Carimbo(mFichasDaFesta);
+    if (d < 0.0f) {
+        mBotaoDaFesta->SetPosition(base);
+        return;
+    }
+    if (!mCarimbou) {
+        mCarimbou = true;
+        if (auto* audio = mGame->GetAudio()) audio->PlaySound("powerup.wav", false);
+    }
+    mBotaoDaFesta->SetPosition(base - Vector2(0.0f, Pulo(d)));
+    const FestaDaMatricula::Anel a = AnelEm(d, kMetadeDoLosango);
+    if (a.opacidade > 0.0f) {
+        const SDL_Color cor{ouro.r, ouro.g, ouro.b, static_cast<Uint8>(255.0f * a.opacidade)};
+        // O anel tem a forma do losango: duas vezes mais largo que alto.
+        const Vector2 pontas[4] = {base + Vector2(a.raio, 0.0f), base + Vector2(0.0f, a.raio * 0.5f),
+                                   base + Vector2(-a.raio, 0.0f), base + Vector2(0.0f, -a.raio * 0.5f)};
+        for (int k = 0; k < 4; ++k) {
+            mFesta->Acrescentar(pontas[k], pontas[(k + 1) % 4], cor);
+            mFesta->Acrescentar(pontas[k] + Vector2(0.0f, 2.0f), pontas[(k + 1) % 4] + Vector2(0.0f, 2.0f), cor);
+        }
+    }
+    int k = 0;
+    for (const FestaDaMatricula::Faisca& f : Faiscas(base, d, kFaiscas)) {
+        const SDL_Color c = (k++ % 3 == 0) ? claro : ouro;
+        const float lado = k % 2 == 0 ? 3.0f : 2.0f;
+        mFesta->Preencher(f.onde - Vector2(lado, lado), f.onde + Vector2(lado, lado),
+                          SDL_Color{c.r, c.g, c.b, static_cast<Uint8>(255.0f * f.opacidade)});
+    }
+}
+
 void StageSelect::NoMapa(Actor* ator) {
     if (ator) mNosDoMapa.push_back({ator, ator->GetPosition()});
 }
@@ -670,6 +768,8 @@ void StageSelect::OnUpdate(float deltaTime) {
         mCamera = MapaDaGrade::Aproximar(mCamera, alvo, deltaTime);
         for (const NoDoMapa& n : mNosDoMapa) n.ator->SetPosition(n.base + Vector2(mCamera, 0.0f));
     }
+
+    AtualizarAFesta(deltaTime);
 
 }
 

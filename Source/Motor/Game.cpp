@@ -188,7 +188,11 @@ void Game::LoadInitialScene()
                 resto2 = virgula == std::string::npos ? std::string() : resto2.substr(virgula + 1);
             }
             // Com --orientador a batalha comeca direto, ja com as notas: e como se confere o resultado.
-            if (mSimulacao.cena == "selecao") ChangeScene(Scene::SceneType::StageSelect);
+            // Na selecao, o cursor ja comeca na materia de --batalha (para fotografar uma optativa).
+            if (mSimulacao.cena == "selecao") {
+                FocarMateria(mSelectedStage);
+                ChangeScene(Scene::SceneType::StageSelect);
+            }
             else if (mSimulacao.cena == "boletim") ChangeScene(Scene::SceneType::Boletim);
             else if (mSimulacao.cena == "horas") ChangeScene(Scene::SceneType::Horas);
             else if (mSimulacao.orientador.empty()) ChangeScene(Scene::SceneType::EscolhaDoOrientador);

@@ -378,7 +378,10 @@ horas ganhas...) e se **compram** com horas complementares; o prêmio é um
 entre os três candidatos. A primeira é a INF 425, Ciência de Dados, do Daniel; a
 segunda, a INF 429, Aprendizado de Máquina com Dados Visuais, do Michel — a mais
 difícil das duas. Uma optativa não pede outra, nem matéria além da INF 213: o
-que ela pede são menções, e as horas da compra.
+que ela pede são menções, e as horas da compra. A matrícula é uma festinha: as horas
+pagam em fichas douradas, que saltam do painel até o losango girando como
+moedas, e ele dá dois pulinhos, com um anel dourado e faíscas
+(`FestaDaMatricula.h`).
 
 ## O que fica gravado
 

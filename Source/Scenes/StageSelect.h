@@ -16,6 +16,7 @@
 #include "../Curso/MapaDaGrade.h"
 
 class DrawCaixaComponent;
+class DrawLinhasComponent;
 
 class Font;
 class StageSelectButton;
@@ -172,6 +173,17 @@ private:
     /// A faixa de "matriculado" depois da compra, e ate quando ela fica.
     Actor* mFaixaDaCompra = nullptr;
     float mFaixaAte = -1.0f;
+    /// A festa da matricula (FestaDaMatricula.h): as fichas douradas saltam dos blocos de horas ate o
+    /// losango da optativa comprada, e ele da dois pulinhos com o anel e as faiscas.
+    void ComecarAFesta(int materia);
+    void AtualizarAFesta(float deltaTime);
+    DrawLinhasComponent* mFesta = nullptr;
+    StageSelectButton* mBotaoDaFesta = nullptr;
+    size_t mNoDaFesta = 0;
+    float mTempoDaFesta = -1.0f;
+    int mFichasDaFesta = 0;
+    bool mCarimbou = false;
+    static constexpr int kOrdemDaFesta = 260;
     /// A frase do cartao de uma optativa fechada com preco: quanto custa, quanto falta, ou o pedido
     /// de confirmacao.
     [[nodiscard]] std::string FraseDaCompra() const;
