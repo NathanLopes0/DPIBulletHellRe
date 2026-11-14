@@ -34,7 +34,8 @@ namespace ProvaDaSemana {
     /// A semente da luta dessa semana.
     std::uint32_t Semente(const Semana& s);
 
-    /// A materia da semana: as que tem batalha e nao pedem orientador, em rodizio na ordem do curso.
+    /// A materia da semana: as obrigatorias que tem batalha e nao pedem orientador (o TCC e as
+    /// optativas ficam de fora), em rodizio na ordem do curso.
     /// -1 se nao ha nenhuma, ou se a semana nao vale.
     int MateriaDa(const Semana& s, const Materias::Lista& materias);
 

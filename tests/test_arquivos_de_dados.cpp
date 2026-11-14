@@ -62,6 +62,7 @@
 #include "../Source/Entrada/Navegacao.h"
 #include "../Source/Personagem/Personagens.h"
 #include "../Source/Aluno/Progresso.h"
+#include "../Source/Aluno/ProvaDaSemana.h"
 #include "../Source/Motor/JsonDeDados.h"
 #include "../Source/Interface/Manual.h"
 
@@ -919,6 +920,24 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
     CHECK_FALSE(l.Desbloqueada(mv, p));           // falta comprar
     p.RegistrarAtividade(Materias::ChaveDaCompra("INF429"));
     CHECK(l.Desbloqueada(mv, p));
+}
+
+TEST_CASE("Dados: a prova da semana nunca e o TCC nem uma optativa, e passa por todas as outras") {
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    std::set<std::string> vistas;
+    ProvaDaSemana::Semana s;
+    for (int k = 0; k < 104; ++k) {
+        s.indice = k;
+        const int i = ProvaDaSemana::MateriaDa(s, l);
+        REQUIRE(i >= 0);
+        const Materias::Materia* m = l.Por(i);
+        REQUIRE(m != nullptr);
+        CAPTURE(m->codigo);
+        CHECK_FALSE(m->optativa);
+        CHECK_FALSE(m->orientacao);
+        vistas.insert(m->codigo);
+    }
+    CHECK(vistas.size() == 12u);   // as doze obrigatorias com batalha (o TCC e as optativas, nao)
 }
 
 TEST_CASE("Dados: personagens.json e lido sem nenhum problema") {

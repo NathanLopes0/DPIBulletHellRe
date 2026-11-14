@@ -160,7 +160,7 @@ cada cor tem poucos tons, sem degradê, e um pontilhado faz a passagem de um tom
 para outro. Apagado, o selo mostra o contorno e a letra em cinza.
 
 **A prova da semana.** Toda semana, de segunda a domingo, uma matéria do curso
-é a prova da semana (em rodízio; o TCC não entra). Quem a joga nessa semana
+é a prova da semana (em rodízio entre as obrigatórias; o TCC e as optativas não entram). Quem a joga nessa semana
 enfrenta **a mesma prova** — a mesma semente: a mesma ordem, os mesmos números,
 os mesmos tempos — e a nota entra num ranking que só vale até domingo, um por
 modo e por dificuldade. A seleção de fases marca a matéria com um selo dourado e,
@@ -870,7 +870,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 1284 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 1288 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha, o objetivo e o poder do orientador no
 TCC — e também **leem os arquivos de

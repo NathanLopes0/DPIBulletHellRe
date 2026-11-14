@@ -76,7 +76,8 @@ namespace ProvaDaSemana {
         std::vector<int> servem;
         for (int i = 0; i < materias.Quantas(); ++i) {
             const Materias::Materia* m = materias.Por(i);
-            if (m && !m->chefe.empty() && !m->orientacao) servem.push_back(i);
+            // Nem o TCC (pede orientador) nem as optativas: so as obrigatorias com batalha.
+            if (m && !m->chefe.empty() && !m->orientacao && !m->optativa) servem.push_back(i);
         }
         if (servem.empty()) return -1;
         return servem[static_cast<size_t>(s.indice) % servem.size()];
