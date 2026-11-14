@@ -190,7 +190,8 @@ carga de 100 h conta tudo o que foi ganho e nunca desce; o que se gasta sai do
 das horas, a optativa pode pedir **requisitos** — pelo menos uma menção de ouro,
 uma aprovação no Difícil, um tanto de horas ganhas, um tanto de aprovações — e o
 cartão diz o que falta. Aprovado nela, o professor dela vira **orientador** do
-TCC: ele sempre aparece entre os três candidatos.
+TCC: ele aparece **a mais**, além dos três candidatos das maiores notas — e,
+com mais de três cartões, a tela do orientador desliza para mostrar os outros.
 
 **O rival da turma.** O cartão da matéria, na seleção de fases, mostra quem
 está logo acima de você no ranking dela — na lista do modo e da dificuldade da
@@ -375,8 +376,8 @@ até quatro colunas; com mais, ela continua para a direita ("MAIS »"). As
 optativas não contam no "Aprovadas: N de M". São **mais difíceis** que as
 obrigatórias, pedem **requisitos** além das aprovações (uma menção de ouro,
 horas ganhas...) e se **compram** com horas complementares; o prêmio é um
-**orientador novo** no TCC — o professor da optativa aprovada sempre aparece
-entre os três candidatos. A primeira é a INF 425, Ciência de Dados, do Daniel; a
+**orientador novo** no TCC — o professor da optativa aprovada aparece a mais,
+além dos três candidatos das obrigatórias. A primeira é a INF 425, Ciência de Dados, do Daniel; a
 segunda, a INF 429, Aprendizado de Máquina com Dados Visuais, do Michel — a mais
 difícil das duas. Uma optativa não pede outra, nem matéria além da INF 213: o
 que ela pede são menções, e as horas da compra. A matrícula é uma festinha: as horas
@@ -784,9 +785,10 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
     vez anda, um quantum de cada vez — os outros esperam parados: o campo
     inteiro anda a um quarto da rapidez, aos trancos. A banca dele pergunta
     "Quanto custa uma troca de contexto?".
-  - **Daniel — k-médias.** Os tiros do Hugo em campo viram quatro grupos, e
-    cada grupo vira um tiro só, no centróide: dezenas de tiros, de uma vez,
-    viram quatro. Ele orienta quem passou na optativa dele, mas não senta na
+  - **Daniel — k-médias.** Os tiros do Hugo em campo viram quatro grupos: eles
+    param por um instante, uma linha na cor do grupo liga cada um ao centróide
+    dele, e eles são puxados até lá — e cada grupo vira um tiro só, no
+    centróide: dezenas de tiros viram quatro. Ele orienta quem passou na optativa dele, mas não senta na
     banca; o objetivo dele pergunta "Cadê o conjunto de teste?".
   - **Michel — câmera escura.** Uma parede com um furo vai com você, um pouco
     acima: o tiro do Hugo que a cruza sai do outro lado do furo, de cabeça para

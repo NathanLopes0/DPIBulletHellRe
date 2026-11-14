@@ -132,6 +132,9 @@ namespace Poder {
     /// Os tiros do Hugo em campo viram kGruposDasKMedias grupos (as k-medias, Agrupamento.h), e cada
     /// grupo vira um tiro so, no centroide: dezenas de tiros, de uma vez, viram quatro.
     constexpr int kGruposDasKMedias = 4;
+    /// Quanto dura a atribuicao em campo: os tiros param, uma linha liga cada um ao centroide dele, e
+    /// eles sao puxados ate la - so entao cada grupo vira um tiro so.
+    constexpr float kJuntaDasKMedias = 0.4f;
     constexpr int kIteracoesDasKMedias = 6;
     /// Os centroides das k-medias dos 'pontos': as sementes espalhadas (de ponta a ponta, pelo x), e
     /// kIteracoesDasKMedias rodadas. Devolve tambem o grupo de cada ponto.

@@ -389,7 +389,9 @@ namespace {
     public:
         void Soltar(Orientador& o, Battle& batalha, const Vector2&, const Vector2&) override {
             // Os tiros do Hugo em campo viram grupos, e cada grupo vira um tiro so, no centroide: o
-            // mais perto dele fica, la, e os outros somem.
+            // mais perto dele fica, la, e os outros somem. Antes, por um instante, eles param, cada
+            // um ligado por uma linha ao centroide do grupo dele, e sao puxados ate la (Atualizar).
+            Terminar();
             std::vector<BossProjectile*> tiros = o.TirosSoltos(batalha);
             std::vector<Vector2> pontos;
             for (const BossProjectile* p : tiros) pontos.push_back(p->GetPosition());
@@ -406,16 +408,92 @@ namespace {
                     fica[static_cast<size_t>(g)] = static_cast<int>(k);
                 }
             }
+            mCentros = centros;
+            mInicio = o.Tempo();
             for (size_t k = 0; k < tiros.size(); ++k) {
-                const int g = grupos[k];
-                if (g >= 0 && fica[static_cast<size_t>(g)] == static_cast<int>(k)) tiros[k]->SetPosition(centros[static_cast<size_t>(g)]);
-                else tiros[k]->Kill();
+                Membro m;
+                m.p = tiros[k];
+                m.grupo = grupos[k];
+                m.de = tiros[k]->GetPosition();
+                m.idade = tiros[k]->TempoDeVida();
+                m.fica = m.grupo >= 0 && fica[static_cast<size_t>(m.grupo)] == static_cast<int>(k);
+                if (auto* rb = tiros[k]->GetComponent<RigidBodyComponent>()) {
+                    m.velocidade = rb->GetVelocity();
+                    rb->SetVelocity(Vector2::Zero);
+                }
+                mMembros.push_back(m);
             }
             // \xc3\xa9 e o e agudo, \xe2\x86\x92 a seta.
             o.Rotular("k-m\xc3\xa9" "dias: " + std::to_string(tiros.size()) + " tiros \xe2\x86\x92 " +
                       std::to_string(centros.size()));
-            o.AbrirAnel();
+            mAtivo = true;
         }
+        void Atualizar(Orientador& o, Battle&, float, bool) override {
+            if (!mAtivo) return;
+            const float t = o.Tempo() - mInicio;
+            const float u = std::clamp(t / Poder::kJuntaDasKMedias, 0.0f, 1.0f);
+            const float suave = u * u * (3.0f - 2.0f * u);
+            for (const Membro& m : mMembros) {
+                if (!Vivo(o, m) || m.grupo < 0) continue;
+                const Vector2 c = mCentros[static_cast<size_t>(m.grupo)];
+                const Vector2 agora = m.de + (c - m.de) * suave;
+                m.p->SetPosition(agora);
+                if (auto* rb = m.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
+                // A atribuicao: cada tiro ligado ao centroide do grupo dele, na cor do grupo.
+                if (!m.fica) o.Tracar(agora, c, Cor(m.grupo, 1.0f - 0.5f * u));
+            }
+            // O centroide: um losango na cor do grupo, que fecha enquanto o grupo chega.
+            for (size_t g = 0; g < mCentros.size(); ++g) {
+                const float r = 14.0f - 6.0f * u;
+                const Vector2 c = mCentros[g];
+                const Vector2 pontas[4] = {c + Vector2(r, 0.0f), c + Vector2(0.0f, r), c + Vector2(-r, 0.0f), c + Vector2(0.0f, -r)};
+                for (int k = 0; k < 4; ++k) o.Tracar(pontas[k], pontas[(k + 1) % 4], Cor(static_cast<int>(g), 1.0f));
+            }
+            if (t < Poder::kJuntaDasKMedias) return;
+            // O grupo vira um tiro so: o que fica segue do centroide, com a velocidade dele.
+            for (const Membro& m : mMembros) {
+                if (!Vivo(o, m)) continue;
+                if (!m.fica) {
+                    m.p->Kill();
+                    continue;
+                }
+                m.p->SetPosition(mCentros[static_cast<size_t>(m.grupo)]);
+                if (auto* rb = m.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(m.velocidade);
+            }
+            o.AbrirAnel();
+            Terminar();
+        }
+    private:
+        struct Membro {
+            BossProjectile* p = nullptr;
+            int grupo = -1;
+            Vector2 de;
+            Vector2 velocidade;
+            float idade = 0.0f;
+            bool fica = false;
+        };
+        /// O pool recicla o projetil: o guardado so e o mesmo tiro se esta ativo e a idade bate.
+        [[nodiscard]] bool Vivo(const Orientador& o, const Membro& m) const {
+            if (!m.p || m.p->GetState() != ActorState::Active) return false;
+            return std::fabs(m.p->TempoDeVida() - (m.idade + (o.Tempo() - mInicio))) <= kFolgaDaIdade;
+        }
+        /// As cores dos grupos, as das especies do Daniel: fogo, agua, planta e eletrico.
+        static SDL_Color Cor(const int g, const float opacidade) {
+            static constexpr SDL_Color kCores[4] = {{255, 130, 70, 255}, {90, 170, 255, 255}, {110, 210, 110, 255},
+                                                    {250, 220, 70, 255}};
+            SDL_Color c = kCores[((g % 4) + 4) % 4];
+            c.a = static_cast<Uint8>(255.0f * std::clamp(opacidade, 0.0f, 1.0f));
+            return c;
+        }
+        void Terminar() {
+            mMembros.clear();
+            mCentros.clear();
+            mAtivo = false;
+        }
+        std::vector<Membro> mMembros;
+        std::vector<Vector2> mCentros;
+        float mInicio = 0.0f;
+        bool mAtivo = false;
     };
 
     // ---- Goulart: o Round Robin ----
