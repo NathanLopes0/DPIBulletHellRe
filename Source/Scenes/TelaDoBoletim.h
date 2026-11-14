@@ -68,9 +68,9 @@ private:
     Borda mBordaEsquerda{true};
     Borda mBordaDireita{true};
 
-    /// Quantas linhas a tabela reserva: uma por materia (o periodo vai na propria linha), do curso
-    /// de hoje com folga - e ainda acima da legenda.
-    static constexpr size_t kLinhasDaTabela = 17;
+    /// Quantas linhas a tabela reserva: uma por materia (o periodo vai na propria linha). As 15 de
+    /// hoje, e folga para mais optativas, acima do resumo.
+    static constexpr size_t kLinhasDaTabela = 19;
     /// Os fios entre um periodo e outro.
     class DrawLinhasComponent* mFios = nullptr;
 };

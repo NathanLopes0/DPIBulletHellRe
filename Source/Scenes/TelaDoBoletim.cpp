@@ -117,22 +117,7 @@ void TelaDoBoletim::Load() {
     mFios = fios->AddComponent<DrawLinhasComponent>(60);
     AddActor(std::move(fios));
 
-    // A legenda dos selos, embaixo da tabela, em duas linhas: numa so, ela encostava no resumo. O
-    // corte e no separador mais perto do meio.
-    const std::string legenda = Mencoes::Legenda();
-    const std::string ponto = "  \xc2\xb7  ";
-    size_t corte = std::string::npos;
-    for (size_t p = legenda.find(ponto); p != std::string::npos; p = legenda.find(ponto, p + 1)) {
-        if (corte == std::string::npos || (p > legenda.size() / 2 ? p - legenda.size() / 2 : legenda.size() / 2 - p) <
-                                              (corte > legenda.size() / 2 ? corte - legenda.size() / 2 : legenda.size() / 2 - corte)) {
-            corte = p;
-        }
-    }
-    const std::string primeira = corte == std::string::npos ? legenda : legenda.substr(0, corte);
-    const std::string segunda = corte == std::string::npos ? std::string(" ") : legenda.substr(corte + ponto.size());
-    Escrever(Texto(" ", largura / 2.0f, altura * 0.785f, 16, 1100), primeira, kTituloDaColuna);
-    Escrever(Texto(" ", largura / 2.0f, altura * 0.815f, 16, 1100), segunda, kTituloDaColuna);
-
+    // O que cada selo quer dizer esta no Como Jogar: aqui o espaco e das materias.
     mResumoAtor  = Texto(" ", largura / 2.0f, altura * 0.865f, 24, 1100);
     mPosicaoAtor = Texto(" ", largura / 2.0f, altura * 0.91f, 18, 1100);
     mRodapeAtor  = Texto(" ", largura / 2.0f, altura * 0.96f, 20, 1100);
