@@ -150,8 +150,11 @@ TEST_CASE("Convolucao: os tiros acendem a grade, o filtro responde, o pooling fi
 TEST_CASE("RedeNeural: as camadas, as ligacoes fortes e os atalhos de duas camadas") {
     using namespace RedeNeural;
     CHECK(kDuracoes[0] + kDuracoes[1] + kDuracoes[2] == doctest::Approx(Fase::kDuracao));
-    CHECK(CamadasDa(0).size() == 3);
-    CHECK(CamadasDa(2).size() == 5);
+    CHECK(CamadasDa(0).size() == 4);
+    CHECK(CamadasDa(2).size() == 6);
+    // Da entrada, no alto, a saida, no chao: a rede cobre o campo.
+    CHECK(kAlturaDaEntrada < 0.25f);
+    CHECK(kAlturaDaSaida > 0.85f);
 
     Variacao::Sorteio s(7u);
     Rede r = Montar({4, 5, 3}, s, 0.15f, 1.0f);

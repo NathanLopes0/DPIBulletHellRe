@@ -659,35 +659,50 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   continuam.
 - **Daniel — INF 425, optativa.** Ciência de Dados, a primeira optativa — e mais
   difícil que as obrigatórias. O catálogo é o dos **monstrinhos** (o x do
-  gráfico é o ataque, o y a defesa), e as espécies são fogo, água e planta. Na
-  **preparação**, o campo é um gráfico de dispersão: os dados voam das fontes (o
-  sensor, a planilha e a API) até o lugar deles e ficam; o z-score acha o
-  outlier, que estoura, e o nulo é imputado — voa até a média. Depois o gráfico
-  inteiro se **transforma** de uma vez: o min-max espreme tudo na caixa do canto
-  em que **você** está, e a padronização abre tudo em volta do meio — antes de
-  cada uma, uma seta sai de cada dado até onde ele vai parar, e quem joga olha
-  para onde os pontos **vão**. Nos **atributos e grupos**, a PCA projeta a nuvem
-  na componente principal, e a fileira que sobra **gira** em volta da média,
-  varrendo o campo; nas **k-médias**, o campo vira o Voronoi dos centróides, e
-  você também é um ponto — pesado: o centróide da sua célula vem para cima de
-  você, e atravessar a fronteira troca quem persegue. No **supervisionado**, a
-  fronteira de decisão divide o campo em fogo e água, e o lado em que você está
-  é a sua classe: **a amostra da sua cor passa por você**, e só a da outra
-  acerta. As rajadas vêm uma classe por vez (o anel do professor já mostra a
-  próxima), os dados de treino chovem das duas, e a fronteira muda: no
+  gráfico é o ataque, o y a defesa), e as espécies são fogo, água e planta. No
+  começo da batalha, três monstrinhos esperam no chão: **encoste num e ele é o
+  seu tipo até o fim** — *"eu escolho você!"* —, com o selo ao seu lado. O tipo
+  vale contra todo tiro com tipo: o do seu passa por você, o do tipo que você
+  vence você **absorve** (super efetivo: vale um pouco de nota), e o do tipo
+  que vence o seu machuca. Na **preparação**, o campo é um gráfico de
+  dispersão: os dados voam das fontes (o sensor, a planilha e a API) até o
+  lugar deles e ficam; o z-score acha o outlier, que estoura, e o nulo é
+  imputado — voa até a média. **E você também é um dado** da sua espécie: a
+  elipse dela fica no campo, e o z-score procura você na limpeza e depois de
+  cada transformação; quem está fora dela é o outlier, e estoura. Depois o
+  gráfico inteiro se **transforma** de uma vez: o min-max espreme tudo na caixa
+  do canto em que **você** está, e a padronização abre tudo em volta do meio —
+  antes de cada uma, uma seta sai de cada dado até onde ele vai parar, e quem
+  joga olha para onde os pontos **vão** (e anda junto com a sua espécie). Nos
+  **atributos e grupos**, a PCA projeta a nuvem na componente principal, e a
+  fileira que sobra **gira** em volta da média, varrendo o campo; nas
+  **k-médias**, o campo vira o Voronoi dos centróides, e você também é um ponto
+  — pesado: o centróide da sua célula vem para cima de você, e atravessar a
+  fronteira troca quem persegue. No **supervisionado**, a fronteira de decisão
+  divide o campo em classes, e a amostra cai com a classe do lugar de onde
+  sai: o placar diz se a próxima rajada passa, se é para absorver ou se é
+  para desviar. As rajadas vêm uma classe por vez (o anel do professor já
+  mostra a próxima), os dados de treino chovem, e a fronteira muda: no
   perceptron, uma reta que aprende com os erros (a nova aparece tracejada antes
   de valer); no **comitê**, três árvores de decisão votam, e o campo vira uma
   colcha que muda quando uma árvore é replantada. O exame é a
   **explicabilidade**: na caixa-preta, cada dúvida que acerta o professor é uma
-  pergunta, e quanto mais perguntas, mais cedo a linha de cada palpite aparece;
-  no **SHAP**, a explicação de uma previsão desce em cascata — uma barra de tiros
-  por atributo, cada uma começando onde a anterior acabou, e a previsão estoura
-  onde a cascata termina. E o professor **sorteia** quem explica a aula
-  passada: no começo das fases 2, 3 e da final, uma roleta passa pelos nomes da
-  turma; se para num colega, ele explica; se para em você — *"eu escolho
-  você!"* —, a pergunta de revisão aparece no placar e as três respostas descem
-  em cartas: derrubar a certa vale nota, a errada estoura em cacos, e enquanto a
-  pergunta está aberta o professor só espera a resposta.
+  pergunta, e quanto mais perguntas, mais cedo a linha de cada palpite aparece.
+  No **SHAP**, a previsão desce em cascata — uma faixa de tiros por atributo,
+  cada uma começando onde a anterior acabou —, mas o modelo **errou**: o valor
+  real está marcado em dourado no chão, e um ou dois atributos empurram f(x)
+  para longe dele. O seu tiro atravessa as faixas; só a **ponta** de cada barra
+  cai, e derrubá-la tira o atributo: a cascata se refaz sem ele. Levar f(x) até
+  o dourado explica a previsão (vale nota, e as faixas somem); se o tempo
+  acabar, a previsão estoura num anel e as faixas caem como cortina. E o
+  professor **sorteia** quem explica a aula passada: no começo das fases 2, 3 e
+  da final, uma roleta passa pelos nomes da turma; se para num colega, ele
+  explica; se para em você, a pergunta aparece no placar e o **desenho** dela
+  no campo — o dado que não combina, a cor trocada, quantos grupos há, o
+  centróide, a reta que separa as cores, o grupo do ponto cinza. Não é de
+  decorar, é de olhar: as três cartas ficam no desenho, presas aos candidatos;
+  derrubar a certa vale nota, a errada estoura em cacos, e enquanto a pergunta
+  está aberta o professor só espera a resposta.
 - **Michel — INF 429, optativa.** Aprendizado de Máquina com Dados Visuais, do
   professor que lidera o MaVIlab — a mais difícil das optativas, que pede
   menos reflexo e mais pensar em como a máquina vê. Na **imagem**, o meio do
@@ -709,10 +724,12 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   passa do limiar (a ReLU), a célula pisca e dispara em você. Atirar é preciso,
   mas o que você acende é o que a rede lê. No **pooling**, o maior de cada bloco
   2×2 dispara mais forte, e no fim tudo vira um vetor — o anel do tamanho de
-  tudo o que você acendeu. Na **rede**, as camadas de neurônios ficam entre ele
-  e você, e os sinais andam pelas ligações fortes; a última camada dispara em
-  você. **Derrubar um neurônio é o dropout**: ele sai da rede por um tempo, e o
-  que chegaria nele se perde — você escolhe que caminho cortar. Na
+  tudo o que você acendeu. Na **rede**, as camadas de neurônios cobrem o campo
+  inteiro — a entrada perto dele, a saída perto do chão —, e os sinais andam
+  pelas ligações fortes; a última camada dispara em você. **Derrubar um neurônio
+  é o dropout**, com um tiro ou encostando nele: ele sai da rede por um tempo,
+  vale um pouco de nota, e o que chegaria nele se perde — você escolhe que
+  caminho cortar, e atravessa a rede para chegar lá. Na
   **retropropagação**, a rede aprende qual saída está em cima de você, e as
   ligações até ela engrossam; na **residual**, a rede fica funda e os atalhos
   pulam duas camadas levando o sinal inteiro — o dropout no meio não os corta. O

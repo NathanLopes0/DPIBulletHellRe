@@ -9,6 +9,14 @@
 
 namespace Preparacao {
 
+    float ZScore(const std::vector<Vector2>& ps, const Vector2 p, const float desvioMinimo) {
+        if (ps.empty()) return 0.0f;
+        const Vector2 m = Media(ps), d = Desvio(ps);
+        const float zx = std::fabs(p.x - m.x) / std::max(d.x, desvioMinimo);
+        const float zy = std::fabs(p.y - m.y) / std::max(d.y, desvioMinimo);
+        return std::max(zx, zy);
+    }
+
     int EtapaNoTempo(const float t) {
         float fim = 0.0f;
         for (size_t k = 0; k < kDuracoes.size(); ++k) {

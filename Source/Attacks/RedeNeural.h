@@ -10,11 +10,13 @@
 #include "../Regras/Dificuldade.h"
 #include "../Regras/Variacao.h"
 
-/// A fase 3 do Michel e a rede por dentro. Entre o professor e o aluno ficam as camadas de neuronios,
-/// e os sinais (tiros) andam pelas ligacoes de uma camada para a seguinte. Cada neuronio soma o que
-/// chega e, passando do limiar, dispara pelas ligacoes fortes; a ultima camada dispara no aluno:
-///   - nos neuronios, a rede so propaga. Um neuronio derrubado sai da rede por um tempo (o dropout):
-///     o que chegaria nele se perde. Quem joga escolhe que caminho cortar;
+/// A fase 3 do Michel e a rede por dentro, e ela ocupa o campo inteiro: as camadas de neuronios vao
+/// do alto ate o chao, e os sinais (tiros) andam pelas ligacoes de uma camada para a seguinte,
+/// cruzando o campo. Cada neuronio soma o que chega e, passando do limiar, dispara pelas ligacoes
+/// fortes; a ultima camada, no chao, dispara no aluno de perto. O neuronio nao machuca: encostar
+/// nele, ou acerta-lo, o tira da rede por um tempo (o dropout) - e o que chegaria nele se perde:
+///   - nos neuronios, a rede so propaga. Quem joga escolhe que caminho cortar, e anda pela rede
+///     para corta-lo;
 ///   - na retropropagacao, o erro volta: a rede aprende qual saida esta em cima do aluno, e as
 ///     ligacoes ate ela engrossam. Ficar parado e ensinar a rede;
 ///   - na residual, a rede fica funda, e os atalhos pulam duas camadas de uma vez, levando o sinal
@@ -96,7 +98,11 @@ namespace RedeNeural {
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 
-    /// Onde as camadas ficam no campo, em fracao da altura: a primeira e a ultima.
-    constexpr float kAlturaDaEntrada = 0.2f;
-    constexpr float kAlturaDaSaida = 0.6f;
+    /// Onde as camadas ficam no campo, em fracao da altura: a primeira, no alto, e a ultima, no chao.
+    constexpr float kAlturaDaEntrada = 0.17f;
+    constexpr float kAlturaDaSaida = 0.92f;
+    /// O neuronio tem a classe do aluno (Player::DefinirClasse): encostar nele nao machuca - derruba.
+    constexpr int kClasseDaRede = 7;
+    /// O que tirar um neuronio da rede vale na nota.
+    constexpr float kPremioDoDropout = 0.4f;
 }

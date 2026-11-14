@@ -5,6 +5,7 @@
 #include "doctest.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <set>
 #include <string>
@@ -16,6 +17,7 @@
 #include "../Source/Attacks/Explicacao.h"
 #include "../Source/Attacks/Fase.h"
 #include "../Source/Attacks/Preparacao.h"
+#include "../Source/Attacks/Tipos.h"
 
 namespace {
     Vector2 V(const float x, const float y) { return Vector2(x, y); }
@@ -239,23 +241,233 @@ TEST_CASE("Explicacao: a pergunta adianta o aviso, e a cascata do SHAP fica no c
     CHECK(Legenda({12.0f, -8.0f}, 1.0f) == "ataque +12  \xc2\xb7  defesa -8");
 }
 
+TEST_CASE("Explicacao: a cascata acerta o aluno, e cada barra derrubada faz a previsao errar") {
+    using namespace Explicacao;
+    Variacao::Sorteio s(17u);
+    for (int rodada = 0; rodada < 80; ++rodada) {
+        const float alvo = s.Real(-420.0f, 420.0f);
+        const auto c = ContribuicoesPara(s, 5, alvo, 55.0f, 150.0f);
+        REQUIRE(c.size() == 5u);
+        float soma = 0.0f;
+        for (size_t k = 0; k + 1 < c.size(); ++k) {
+            CHECK(std::fabs(c[k]) >= 55.0f - 1e-3f);
+            CHECK(std::fabs(c[k]) <= 150.0f + 1e-3f);
+        }
+        for (const float v : c) soma += v;
+        CHECK(soma == doctest::Approx(alvo).epsilon(1e-4));
+        CHECK(Previsao(400.0f, c, {}) == doctest::Approx(400.0f + alvo).epsilon(1e-4));
+        // Tirar o atributo k erra a previsao exatamente pelo que ele empurrava.
+        std::vector<bool> tiradas(c.size(), false);
+        tiradas[2] = true;
+        CHECK(Previsao(400.0f, c, tiradas) == doctest::Approx(400.0f + alvo - c[2]).epsilon(1e-4));
+    }
+    CHECK(ContribuicoesPara(s, 0, 10.0f, 1.0f, 2.0f).empty());
+}
+
+TEST_CASE("Explicacao: a previsao errada - sem as barras erradas, a cascata acaba no valor real") {
+    using namespace Explicacao;
+    Variacao::Sorteio s(23u);
+    const float base = 600.0f, esquerda = 90.0f, direita = 1110.0f;
+    int cabem = 0;
+    for (int rodada = 0; rodada < 300; ++rodada) {
+        const float real = s.Real(esquerda + 60.0f, direita - 60.0f);
+        const int erradas = 1 + rodada % 2;
+        const Explicada e = Explicar(s, 5, erradas, base, real, 55.0f, 150.0f, esquerda, direita);
+        REQUIRE(e.contribuicoes.size() == 5u);
+        REQUIRE(e.erradas.size() == 5u);
+        CHECK(std::count(e.erradas.begin(), e.erradas.end(), true) == erradas);
+        // Tirar as erradas leva ao valor real; com todas, a previsao fica longe dele.
+        CHECK(Previsao(base, e.contribuicoes, e.erradas) == doctest::Approx(real).epsilon(1e-4));
+        CHECK(std::fabs(Previsao(base, e.contribuicoes, {}) - real) >= 55.0f * static_cast<float>(erradas) - 1e-2f);
+        CHECK(std::fabs(Previsao(base, e.contribuicoes, {}) - real) > kTolerancia);
+        // As erradas empurram todas para o mesmo lado.
+        float sinal = 0.0f;
+        for (size_t k = 0; k < 5; ++k) {
+            if (!e.erradas[k]) continue;
+            if (sinal == 0.0f) sinal = e.contribuicoes[k] > 0.0f ? 1.0f : -1.0f;
+            CHECK(e.contribuicoes[k] * sinal > 0.0f);
+        }
+        // A cascata cabe no campo (quase sempre: o sorteio tenta 80 vezes).
+        float x = base;
+        bool cabe = true;
+        for (const float c : e.contribuicoes) {
+            x += c;
+            cabe = cabe && x >= esquerda && x <= direita && std::fabs(c) >= 55.0f - 1e-3f && std::fabs(c) <= 150.0f + 1e-3f;
+        }
+        cabem += cabe ? 1 : 0;
+    }
+    CHECK(cabem >= 290);
+    CHECK(Explicar(s, 1, 1, base, 700.0f, 55.0f, 150.0f, esquerda, direita).contribuicoes.empty());
+    CHECK(DegrauDo(Dificuldade::Nivel::Dificil).paraExplicar < DegrauDo(Dificuldade::Nivel::Normal).paraExplicar);
+}
+
+// ---- O tipo do aluno e o aluno como dado ----
+
+TEST_CASE("Tipos: fogo, agua e planta - o triangulo, o que passa, o que se absorve e o que machuca") {
+    using namespace Tipos;
+    CHECK(Vence(kFogo, kPlanta));
+    CHECK(Vence(kPlanta, kAgua));
+    CHECK(Vence(kAgua, kFogo));
+    CHECK_FALSE(Vence(kPlanta, kFogo));
+    CHECK_FALSE(Vence(kFogo, kFogo));
+    CHECK_FALSE(Vence(-1, kFogo));
+    for (int t = 0; t < kTipos; ++t) {
+        CHECK(Vence(QueVence(t), t));
+        CHECK(Vence(t, Vencido(t)));
+        CHECK(QueVence(t) != Vencido(t));
+        CHECK(Contra(t, t) == Efeito::Passa);
+        CHECK(Contra(t, Vencido(t)) == Efeito::Absorve);
+        CHECK(Contra(t, QueVence(t)) == Efeito::Machuca);
+        CHECK(Contra(t, -1) == Efeito::Machuca);
+        CHECK(std::string(Nome(t)).size() >= 4u);
+    }
+    CHECK(Contra(-1, kAgua) == Efeito::Machuca);
+    CHECK(QueVence(-1) == -1);
+    const std::vector<Vector2> lugares = {V(100, 500), V(300, 500), V(500, 500)};
+    CHECK(MaisPerto(lugares, V(320, 100)) == 1);
+    CHECK(MaisPerto(lugares, V(0, 0)) == 0);
+    CHECK(MaisPerto({}, V(0, 0)) == -1);
+}
+
+TEST_CASE("Preparacao: o aluno e um dado - longe da especie, o z-score acha ele") {
+    using namespace Preparacao;
+    std::vector<Vector2> especie;
+    for (int k = 0; k < 20; ++k) especie.push_back(V(0.5f + 0.02f * static_cast<float>(k % 5 - 2), 0.5f + 0.02f * static_cast<float>(k / 5 - 2)));
+    CHECK(ZScore(especie, V(0.5f, 0.5f), kDesvioMinimoDoAluno) < 0.2f);
+    CHECK(ZScore(especie, V(0.5f, 0.5f + 0.1f), kDesvioMinimoDoAluno) < kLimiteDoAluno);
+    CHECK(ZScore(especie, V(0.9f, 0.5f), kDesvioMinimoDoAluno) > kLimiteDoAluno);
+    // O desvio minimo: a especie espremida nao vira um alfinete.
+    const std::vector<Vector2> espremida(10, V(0.3f, 0.3f));
+    CHECK(ZScore(espremida, V(0.3f + 0.5f * kDesvioMinimoDoAluno, 0.3f), kDesvioMinimoDoAluno) == doctest::Approx(0.5f));
+    CHECK(ZScore({}, V(0.0f, 0.0f), kDesvioMinimoDoAluno) == doctest::Approx(0.0f));
+    // As varreduras caem dentro da fase, em ordem.
+    for (size_t k = 0; k < kVarreduras.size(); ++k) {
+        CHECK(kVarreduras[k] > kAvisoDaVarredura);
+        CHECK(kVarreduras[k] < kDuracoes[0] + kDuracoes[1] + kDuracoes[2]);
+        if (k > 0) CHECK(kVarreduras[k] > kVarreduras[k - 1]);
+    }
+}
+
 // ---- O sorteio ----
 
-TEST_CASE("Chamada: tres perguntas por aula, a certa e a primeira, e a roleta para em alguem") {
+TEST_CASE("Chamada: a questao e de olhar o desenho, e a carta certa esta no lugar certo") {
     using namespace Chamada;
-    std::set<std::string> caras;
-    for (int a = 0; a < kAulas; ++a) {
-        for (int q = 0; q < kPerguntasPorAula; ++q) {
-            const Pergunta& p = Revisao(a)[static_cast<size_t>(q)];
-            CHECK(std::string(p.enunciado).size() > 5u);
-            for (int o = 0; o < kOpcoes; ++o) {
-                CHECK(std::string(p.opcoes[static_cast<size_t>(o)]).size() > 1u);
-                caras.insert(Cara(a, q, o));
+    Variacao::Sorteio s(5u);
+    std::set<int> tipos;
+    for (int rodada = 0; rodada < 120; ++rodada) {
+        const int aula = rodada % kAulas;
+        const Questao q = Gerar(aula, s);
+        tipos.insert(static_cast<int>(q.tipo));
+        CHECK(q.enunciado.size() > 5u);
+        CHECK(q.resposta.size() > 5u);
+        REQUIRE(q.certa >= 0);
+        REQUIRE(q.certa < kOpcoes);
+        std::set<std::string> caras;
+        for (int k = 0; k < kOpcoes; ++k) {
+            const std::string& cara = q.caras[static_cast<size_t>(k)];
+            CHECK(std::find(kCartas.begin(), kCartas.end(), cara) != kCartas.end());
+            caras.insert(cara);
+            const Vector2 c = q.cartas[static_cast<size_t>(k)];
+            CHECK(c.x >= 0.0f);
+            CHECK(c.x <= 1.0f);
+            CHECK(c.y >= 0.0f);
+            CHECK(c.y <= 1.2f);
+        }
+        CHECK(caras.size() == static_cast<size_t>(kOpcoes));
+        for (const Marca& m : q.pontos) {
+            CHECK(m.onde.x >= 0.0f);
+            CHECK(m.onde.x <= 1.0f);
+            CHECK(m.cor >= -1);
+            CHECK(m.cor < 3);
+        }
+        const Vector2 certa = q.cartas[static_cast<size_t>(q.certa)];
+        // Com alfinete, as cartas ficam acima dos pontos: duas nunca se encostam.
+        CHECK(Alfinete(q.tipo) == (q.tipo == Desafio::Outlier || q.tipo == Desafio::CorErrada || q.tipo == Desafio::Centroide));
+        if (Alfinete(q.tipo)) {
+            for (int a = 0; a < kOpcoes; ++a) {
+                for (int b = a + 1; b < kOpcoes; ++b) {
+                    const Vector2 d = q.cartas[static_cast<size_t>(a)] - q.cartas[static_cast<size_t>(b)];
+                    CHECK((std::fabs(d.x) >= kSeparacao - 1e-4f || d.Length() >= 0.2f));
+                }
+            }
+        }
+        switch (q.tipo) {
+            case Desafio::Outlier:
+            case Desafio::CorErrada: {
+                CHECK(aula == 0);
+                // A carta certa marca um ponto do desenho.
+                bool marca = false;
+                for (const Marca& m : q.pontos) marca = marca || Perto(m.onde, certa);
+                CHECK(marca);
+                if (q.tipo == Desafio::Outlier) {
+                    // O outlier e o mais longe da media dos outros.
+                    for (int k = 0; k < kOpcoes; ++k) {
+                        if (k == q.certa) continue;
+                        Vector2 m;
+                        for (const Marca& p : q.pontos) m += p.onde;
+                        m = m * (1.0f / static_cast<float>(q.pontos.size()));
+                        CHECK((certa - m).Length() > (q.cartas[static_cast<size_t>(k)] - m).Length());
+                    }
+                }
+                break;
+            }
+            case Desafio::Grupos: {
+                CHECK(aula == 1);
+                // Sete pontos por grupo: a carta certa e a contagem.
+                const int grupos = static_cast<int>(q.pontos.size()) / 7;
+                CHECK(q.caras[static_cast<size_t>(q.certa)] == kCartas[static_cast<size_t>(3 + grupos - 2)]);
+                break;
+            }
+            case Desafio::Centroide: {
+                CHECK(aula == 1);
+                REQUIRE(q.losangos.size() == static_cast<size_t>(kOpcoes));
+                Vector2 m;
+                for (const Marca& p : q.pontos) m += p.onde;
+                m = m * (1.0f / static_cast<float>(q.pontos.size()));
+                CHECK(Perto(certa, m, 1e-3f));
+                break;
+            }
+            case Desafio::Reta: {
+                CHECK(aula == 2);
+                CHECK(q.retas.size() == static_cast<size_t>(kOpcoes));
+                break;
+            }
+            case Desafio::Vizinho: {
+                CHECK(aula == 2);
+                // O ponto cinza e o ultimo; o grupo de media mais perto dele e o da carta certa, e a
+                // carta fica logo acima do grupo dela.
+                const Vector2 cinza = q.pontos.back().onde;
+                CHECK(q.pontos.back().cor == -1);
+                std::array<Vector2, 3> centros{};
+                std::array<int, 3> n{};
+                for (const Marca& m : q.pontos) {
+                    if (m.cor < 0) continue;
+                    centros[static_cast<size_t>(m.cor)] += m.onde;
+                    ++n[static_cast<size_t>(m.cor)];
+                }
+                int grupo = 0;
+                for (size_t g = 0; g < 3; ++g) {
+                    REQUIRE(n[g] > 0);
+                    centros[g] = centros[g] * (1.0f / static_cast<float>(n[g]));
+                    if ((centros[g] - cinza).Length() < (centros[static_cast<size_t>(grupo)] - cinza).Length()) grupo = static_cast<int>(g);
+                }
+                int maisPerto = 0;
+                for (int k = 1; k < kOpcoes; ++k) {
+                    if ((q.cartas[static_cast<size_t>(k)] - centros[static_cast<size_t>(grupo)]).Length() <
+                        (q.cartas[static_cast<size_t>(maisPerto)] - centros[static_cast<size_t>(grupo)]).Length()) {
+                        maisPerto = k;
+                    }
+                }
+                CHECK(maisPerto == q.certa);
+                break;
             }
         }
     }
-    CHECK(caras.size() == static_cast<size_t>(kAulas * kPerguntasPorAula * kOpcoes));
-    CHECK(Cara(0, 1, 2) == "R0Q1O2");
+    CHECK(tipos.size() == 6u);
+}
+
+TEST_CASE("Chamada: a roleta para em alguem, cada vez mais devagar") {
+    using namespace Chamada;
     // Sozinho: voce ou um colega; em dupla, os dois e um colega.
     Variacao::Sorteio s(3u);
     std::set<int> sozinho, dupla;

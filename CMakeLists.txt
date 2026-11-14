@@ -393,6 +393,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/Explicacao.h
         Source/Attacks/Chamada.cpp
         Source/Attacks/Chamada.h
+        Source/Attacks/Tipos.cpp
+        Source/Attacks/Tipos.h
         Source/Attacks/CameraEscura.cpp
         Source/Attacks/CameraEscura.h
         Source/Attacks/Convolucao.cpp
@@ -891,6 +893,8 @@ add_executable(dpi_tests
         Source/Attacks/Explicacao.h
         Source/Attacks/Chamada.cpp
         Source/Attacks/Chamada.h
+        Source/Attacks/Tipos.cpp
+        Source/Attacks/Tipos.h
         Source/Attacks/CameraEscura.cpp
         Source/Attacks/CameraEscura.h
         Source/Attacks/Convolucao.cpp

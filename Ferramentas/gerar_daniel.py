@@ -21,8 +21,9 @@ OS PROJETEIS (Assets/Teachers/Projectiles/DPIBHDaniel*), uma folha por assunto:
     Tiros      Estouro Engano Palpite os tiros: o caco do outlier e o da
                BarraMais BarraMenos   resposta errada, o palpite da caixa-preta,
                Previsao               as barras do SHAP e o anel da previsao
-    Respostas  R0Q0O0 .. R2Q2O2       as cartas do sorteio: uma por opcao de
-                                      cada pergunta (Chamada.cpp tem as mesmas)
+    Respostas  CartaA CartaB CartaC   as cartas do sorteio: as letras dos
+               Carta2 Carta3 Carta4   candidatos e os numeros da contagem
+                                      (Chamada::kCartas)
     Caixa      Caixa                  a caixa-preta sobre o professor (enfeite)
 
 Os monstrinhos sao bichinhos genericos de RPG - uma bolinha com olhos e um
@@ -288,41 +289,25 @@ def tiro(tipo):
 
 
 # ---- As cartas do sorteio ------------------------------------------------------------
-# As opcoes sao as de Source/Attacks/Chamada.cpp, na mesma ordem: a 0 e a certa.
+# As caras sao as de Chamada::kCartas: as letras dos candidatos e os numeros da contagem. A pergunta
+# e o desenho no campo; a carta so marca a opcao.
 
-AULAS = [
-    [["média 0 e desvio 1", "tudo entre 0 e 1", "apaga os nulos"],
-     ["imputa: vira a média", "vira um outlier", "fica como está"],
-     ["o z-score passa de 2", "é o dado mais novo", "é o que veio da API"]],
-    [["para a média do grupo", "para o ponto mais longe", "para o canto do campo"],
-     ["de maior variância", "de menor variância", "do professor"],
-     ["pelo cotovelo da inércia", "é sempre 3", "pelo número de alunos"]],
-    [["a maioria dos votos", "a árvore mais funda", "a última plantada"],
-     ["supervisionado", "não supervisionado", "por sorteio"],
-     ["os erros", "os acertos", "a média dos rótulos"]],
-]
+CARTAS = ["CartaA", "CartaB", "CartaC", "Carta2", "Carta3", "Carta4"]
 
-RW, RH = 176, 38
+RW, RH = 50, 40
 
 
-def resposta(texto):
+def resposta(nome):
     im = Image.new("RGBA", (RW, RH), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     d.rounded_rectangle([1, 1, RW - 2, RH - 2], radius=8, fill=(244, 238, 218, 255), outline=(150, 110, 50, 255), width=2)
     d.rounded_rectangle([4, 4, RW - 5, RH - 5], radius=6, outline=(220, 200, 160, 255), width=1)
-    f = fonte(15, True)
-    centrado(d, texto, RW / 2, RH / 2, f, (40, 30, 20, 255))
+    centrado(d, nome[len("Carta"):], RW / 2, RH / 2, fonte(24, True), (40, 30, 20, 255))
     return im
 
 
 def respostas():
-    quadros, nomes = [], []
-    for a, aula in enumerate(AULAS):
-        for q, opcoes in enumerate(aula):
-            for o, texto in enumerate(opcoes):
-                quadros.append(resposta(texto))
-                nomes.append(f"R{a}Q{q}O{o}")
-    return quadros, nomes
+    return [resposta(n) for n in CARTAS], list(CARTAS)
 
 
 XW, XH = 56, 44
@@ -408,5 +393,5 @@ if __name__ == "__main__":
     grava_tira([arvore(k) for k in range(3)], "DPIBHDanielArvores", AW, AH, 3)
     grava_tira([tiro(t) for t in TIROS], "DPIBHDanielTiros", TW, TW, len(TIROS))
     quadros, _ = respostas()
-    grava_tira(quadros, "DPIBHDanielRespostas", RW, RH, 3)
+    grava_tira(quadros, "DPIBHDanielRespostas", RW, RH, len(CARTAS))
     grava_tira([caixa()], "DPIBHDanielCaixa", XW, XH, 1)

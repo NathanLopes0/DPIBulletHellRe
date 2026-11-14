@@ -16,11 +16,13 @@
     "anuncio": "Dados: a coleta e a preparação",
     "etapas": [
       { "nome": "Coleta",       "duracao": 7.0, "anuncio": "Coleta: o sensor, a planilha e a API" },
-      { "nome": "Limpeza",      "duracao": 6.0, "anuncio": "Limpeza: o outlier e o nulo" },
+      { "nome": "Limpeza",      "duracao": 6.0, "anuncio": "Limpeza: o outlier, o nulo... e você" },
       { "nome": "Normalizacao", "duracao": 7.0, "anuncio": "Normalização: o gráfico inteiro se move" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 200 },
     "ataques": [
+      { "som": false, "gatilho": "selo", "estrategia": "WaveAttack", "projetil": "Selo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "som": false, "gatilho": "fonte", "estrategia": "WaveAttack", "projetil": "Fonte",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "som": false, "gatilho": "dado", "estrategia": "WaveAttack", "projetil": "Dado",
@@ -44,6 +46,8 @@
     ],
     "movimento": { "tipo": "Conduzido", "a": 220 },
     "ataques": [
+      { "som": false, "gatilho": "selo", "estrategia": "WaveAttack", "projetil": "Selo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "som": false, "gatilho": "amostra", "estrategia": "WaveAttack", "projetil": "Amostra",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "centroide", "estrategia": "WaveAttack", "projetil": "Centroide",
@@ -69,11 +73,13 @@
     "anuncio": "Supervisionado: a fronteira de decisão",
     "etapas": [
       { "nome": "Sorteio",    "duracao": 6.0, "anuncio": "Sorteio: quem explica a aula passada?" },
-      { "nome": "Perceptron", "duracao": 7.0, "anuncio": "Perceptron: a sua cor não te acerta" },
+      { "nome": "Perceptron", "duracao": 7.0, "anuncio": "Perceptron: o seu tipo passa por você" },
       { "nome": "Comite",     "duracao": 7.0, "anuncio": "Comitê: três árvores votam" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 260 },
     "ataques": [
+      { "som": false, "gatilho": "selo", "estrategia": "WaveAttack", "projetil": "Selo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "rotulada", "estrategia": "WaveAttack", "projetil": "Amostra",
         "projeteis": 11, "velocidade": 250, "angulo": 40, "intervalo": 0 },
       { "som": false, "gatilho": "arvore", "estrategia": "WaveAttack", "projetil": "Arvore",
@@ -97,14 +103,16 @@
     "anuncio": "Explicabilidade: abrindo o modelo",
     "etapas": [
       { "nome": "Sorteio",    "duracao": 6.0, "anuncio": "Sorteio: quem explica a aula passada?" },
-      { "nome": "CaixaPreta", "duracao": 6.0, "anuncio": "Caixa-preta: pergunte, e ele avisa" },
-      { "nome": "Shap",       "duracao": 8.0, "anuncio": "SHAP: quanto cada atributo empurra" }
+      { "nome": "CaixaPreta", "duracao": 4.5, "anuncio": "Caixa-preta: pergunte, e ele avisa" },
+      { "nome": "Shap",       "duracao": 9.5, "anuncio": "SHAP: leve a previsão ao valor real" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 200 },
     "ataques": [
+      { "som": false, "gatilho": "selo", "estrategia": "WaveAttack", "projetil": "Selo",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "som": false, "gatilho": "palpite", "estrategia": "WaveAttack", "projetil": "Tiro",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "som": false, "gatilho": "barra", "estrategia": "WaveAttack", "projetil": "Tiro",
+      { "som": false, "gatilho": "barra", "estrategia": "WaveAttack", "projetil": "Barra",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "previsao", "estrategia": "WaveAttack", "projetil": "Tiro",
         "projeteis": 12, "velocidade": 180, "angulo": 330, "intervalo": 0 },

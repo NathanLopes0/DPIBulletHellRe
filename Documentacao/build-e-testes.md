@@ -266,11 +266,14 @@ optativa. Na INF 429, sozinho, com as sementes 101 a 103:
 
 | Piloto | Normal | Difícil |
 |---|---|---|
-| `segue` | 27 a 39 (reprova; a fase 2 o derruba) | 0 a 2 |
-| `esquiva` | 79 a 86 | 63 a 73 |
+| `segue` | 58 (reprova por pouco) | 0 a 18 |
+| `esquiva` | 82 a 88 | 70 a 72 |
 
 Quem joga de verdade fica entre os dois: desvia pior que o `esquiva`, mas pode
-entender a fase — e é isso que a INF 429 cobra.
+entender a fase — e é isso que a INF 429 cobra. Desde que a rede da fase 3
+cobre o campo e encostar num neurônio também é dropout, o `segue` — que anda
+atrás do professor, atravessando a rede — derruba neurônios sem querer, e
+passou dos 27 a 39 para 58.
 
 A INF 491, da Sabrina, é mais dura que a INF 429 nos dois modos. Sozinho, com
 as sementes 101 a 106 no `esquiva` e 101 a 103 no `segue`:
@@ -284,6 +287,20 @@ O `esquiva` não carrega a base que pareia (não pega as cápsulas), não se
 encaixa no sítio ativo e não lê o guia do CRISPR: a parede do genoma o acerta a
 cada fita. São três coisas que quem entende a fase faz, e o número dele é o de
 quem só desvia.
+
+Na INF 425, do Daniel, a ordem se inverte: o `segue` vai melhor que o
+`esquiva`. Sozinho, com as sementes 101 a 103:
+
+| Piloto | Normal | Difícil |
+|---|---|---|
+| `segue` | 69 a 76 (aprova nas três) | 0 a 38 |
+| `esquiva` | 27 a 61 (aprova em duas) | 17 a 70 (aprova em uma) |
+
+O `esquiva` fica longe do professor e atira menos, e desvia até da amostra que
+poderia absorver (ele só sabe que a do próprio tipo passa). Nenhum dos dois faz
+o que a fase pede: ficar na elipse da espécie quando o z-score varre (cada
+varredura fora dela é um acerto certo), ficar do lado da fronteira que o seu
+tipo vence, responder o sorteio e levar f(x) ao valor real no SHAP.
 
 ### Fotografar
 

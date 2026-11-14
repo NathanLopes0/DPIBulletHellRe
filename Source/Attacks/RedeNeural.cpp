@@ -20,8 +20,9 @@ namespace RedeNeural {
     }
 
     std::vector<int> CamadasDa(const int etapa) {
-        if (etapa >= 2) return {4, 4, 4, 4, 3};
-        return {4, 5, 3};
+        // A rede cobre o campo inteiro, do alto ao chao: a saida fica na altura do aluno.
+        if (etapa >= 2) return {5, 5, 5, 5, 5, 4};
+        return {5, 6, 6, 4};
     }
 
     float Rede::Peso(const int k, const int i, const int j) const {

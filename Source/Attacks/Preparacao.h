@@ -127,4 +127,20 @@ namespace Preparacao {
     /// Na limpeza: quando os outliers estouram e quando os nulos sao imputados.
     constexpr float kEstouro = 7.6f;
     constexpr float kImputacao = 9.8f;
+
+    // ---- O aluno tambem e um dado ----
+
+    /// O z-score de 'p' contra os pontos 'ps': o maior dos dois eixos, com o desvio de cada eixo
+    /// nunca abaixo de 'desvioMinimo' (a especie espremida pelo min-max nao vira um alfinete). Sem
+    /// pontos, zero.
+    float ZScore(const std::vector<Vector2>& ps, Vector2 p, float desvioMinimo);
+    /// Longe da especie dele, o z-score acha o aluno: ele pisca e estoura - a nao ser que volte a
+    /// tempo para dentro do circulo da especie.
+    constexpr float kLimiteDoAluno = 2.2f;
+    constexpr float kDesvioMinimoDoAluno = 0.08f;
+    /// Quando o z-score procura o aluno (segundos desde o comeco da fase): na limpeza, e depois de
+    /// cada transformacao da normalizacao - a especie andou, e ele tem de andar junto.
+    constexpr std::array<float, 4> kVarreduras = {7.6f, 12.6f, 15.3f, 18.7f};
+    /// O aviso antes de cada varredura: o circulo da especie acende.
+    constexpr float kAvisoDaVarredura = 0.9f;
 }

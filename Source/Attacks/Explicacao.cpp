@@ -77,6 +77,73 @@ namespace Explicacao {
         return c;
     }
 
+    std::vector<float> ContribuicoesPara(Variacao::Sorteio& s, const int quantas, const float alvo, const float minimo,
+                                         const float maximo) {
+        std::vector<float> v;
+        if (quantas <= 0) return v;
+        // Sorteia as primeiras; a ultima fecha a conta. Tenta ate a ultima tambem caber na faixa.
+        for (int tentativa = 0; tentativa < 30; ++tentativa) {
+            v.clear();
+            float soma = 0.0f;
+            for (int k = 0; k + 1 < quantas; ++k) {
+                const float c = s.Real(minimo, maximo) * (s.Chance(0.5f) ? 1.0f : -1.0f);
+                v.push_back(c);
+                soma += c;
+            }
+            const float ultima = alvo - soma;
+            v.push_back(ultima);
+            if (std::fabs(ultima) >= minimo && std::fabs(ultima) <= maximo) break;
+        }
+        return v;
+    }
+
+    float Previsao(const float base, const std::vector<float>& contribuicoes, const std::vector<bool>& tiradas) {
+        float f = base;
+        for (size_t k = 0; k < contribuicoes.size(); ++k) {
+            if (k < tiradas.size() && tiradas[k]) continue;
+            f += contribuicoes[k];
+        }
+        return f;
+    }
+
+    namespace {
+        bool Cabe(const Explicada& e, const float base, const float minimo, const float maximo, const float esquerda,
+                  const float direita) {
+            float x = base;
+            for (const float c : e.contribuicoes) {
+                if (std::fabs(c) < minimo - 1e-3f || std::fabs(c) > maximo + 1e-3f) return false;
+                x += c;
+                if (x < esquerda || x > direita) return false;
+            }
+            return true;
+        }
+    }
+
+    Explicada Explicar(Variacao::Sorteio& s, const int quantas, const int erradas, const float base, const float real,
+                       const float minimo, const float maximo, const float esquerda, const float direita) {
+        Explicada e;
+        if (quantas <= 1) return e;
+        const int n = std::clamp(erradas, 1, quantas - 1);
+        // As erradas empurram para o lado que tem mais campo depois do valor real.
+        const float lado = direita - real >= real - esquerda ? 1.0f : -1.0f;
+        for (int tentativa = 0; tentativa < 80; ++tentativa) {
+            std::vector<int> ordem(static_cast<size_t>(quantas));
+            for (int k = 0; k < quantas; ++k) ordem[static_cast<size_t>(k)] = k;
+            s.Embaralhar(ordem);
+            e.erradas.assign(static_cast<size_t>(quantas), false);
+            for (int k = 0; k < n; ++k) e.erradas[static_cast<size_t>(ordem[static_cast<size_t>(k)])] = true;
+            const std::vector<float> certas = ContribuicoesPara(s, quantas - n, real - base, minimo, maximo);
+            e.contribuicoes.clear();
+            size_t c = 0;
+            for (int k = 0; k < quantas; ++k) {
+                if (e.erradas[static_cast<size_t>(k)]) e.contribuicoes.push_back(lado * s.Real(minimo, maximo));
+                else e.contribuicoes.push_back(certas[c++]);
+            }
+            if (Cabe(e, base, minimo, maximo, esquerda, direita)) break;
+        }
+        return e;
+    }
+
     std::string Legenda(const std::vector<float>& contribuicoes, const float escala) {
         std::string s;
         for (size_t k = 0; k < contribuicoes.size(); ++k) {
@@ -99,6 +166,8 @@ namespace Explicacao {
         d.entreBarras = 0.3f;
         d.avisoDaBarra = 0.4f;
         d.tirosDaPrevisao = 16;
+        d.paraExplicar = 3.1f;
+        d.chanceDeDuasErradas = 0.6f;
         return d;
     }
 }

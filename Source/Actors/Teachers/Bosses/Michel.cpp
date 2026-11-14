@@ -9,6 +9,7 @@
 #include <cstdio>
 
 #include "../../../Components/AIComponents/FSMComponent.h"
+#include "../../../Components/ColliderComponents/CircleColliderComponent.h"
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../../../Components/RigidBodyComponent.h"
@@ -272,6 +273,10 @@ void Michel::OnDerrubou(BossProjectile* qual) {
             n.soma = 0.0f;
             n.foraAte = mRelogio + mDegrauDaRede.dropout;
             ++mDerrubados;
+            if (Battle* b = Batalha()) {
+                b->Conquistar(RedeNeural::kPremioDoDropout);
+                b->Faiscar(qual->GetPosition(), Hud::Faisca::Derrubada);
+            }
             Avisar("Dropout: um neur\xc3\xb4nio fora da rede por " + Decimal(mDegrauDaRede.dropout, 1) + " s", 1.0f);
             return;
         }
@@ -706,7 +711,11 @@ Vector2 Michel::LugarDoNeuronio(const int camada, const int i) const {
     const int camadas = static_cast<int>(mRede.camadas.size());
     const int n = mRede.camadas[static_cast<size_t>(camada)];
     const float u = camadas > 1 ? static_cast<float>(camada) / static_cast<float>(camadas - 1) : 0.0f;
-    return Vector2(c.x + c.w * (static_cast<float>(i) + 1.0f) / (static_cast<float>(n) + 1.0f),
+    // De parede a parede, e cada camada meio passo para um lado: as ligacoes cruzam o campo em
+    // diagonal, e nao ha coluna livre de cima a baixo.
+    const float lado = (camada % 2 == 0) ? -0.18f : 0.18f;
+    const float x = c.x + c.w * (static_cast<float>(i) + 0.5f + lado) / static_cast<float>(n);
+    return Vector2(std::clamp(x, c.x + 36.0f, c.x + c.w - 36.0f),
                    c.y + c.h * (kAlturaDaEntrada + (kAlturaDaSaida - kAlturaDaEntrada) * u));
 }
 
@@ -717,6 +726,9 @@ void Michel::DesmontarRede() {
     mNeuronios.clear();
     for (Sinal& s : mSinais) Matar(s.p);
     mSinais.clear();
+    if (const Battle* b = Batalha()) {
+        for (Player* p : b->Jogadores()) if (p) p->DefinirClasse(-1);
+    }
     mRede = RedeNeural::Rede{};
     mEtapaDaRede = -1;
     mProximaEntrada = 0.0f;
@@ -852,11 +864,32 @@ void Michel::AtualizarRede(const float t, const float deltaTime) {
             }
             if (!Vivo(n.p)) {
                 n.p = Um(kGatilhoDoNeuronio, onde, "Neuronio");
-                if (n.p) n.p->DefinirResistencia(g.resistencia);
+                if (n.p) {
+                    n.p->DefinirResistencia(g.resistencia);
+                    n.p->DefinirClasse(kClasseDaRede);
+                }
             }
             if (n.p) {
                 n.p->SetPosition(onde);
                 Cara(n.p, mRelogio < n.acesoAte ? "Aceso" : "Neuronio");
+            }
+        }
+    }
+
+    // O aluno anda pela rede: o neuronio tem a classe dele (nao machuca), e encostar o derruba.
+    if (const Battle* b = Batalha()) {
+        for (Player* aluno : b->Jogadores()) {
+            if (!aluno) continue;
+            aluno->DefinirClasse(kClasseDaRede);
+            const auto* colisor = aluno->GetComponent<CircleColliderComponent>();
+            const float alcance = (colisor ? colisor->GetRadius() : 6.0f) + 18.0f;
+            for (auto& camada : mNeuronios) {
+                for (Neuronio& n : camada) {
+                    if (!Vivo(n.p) || (n.p->GetPosition() - aluno->GetPosition()).Length() > alcance) continue;
+                    BossProjectile* qual = n.p;
+                    qual->Kill();
+                    OnDerrubou(qual);
+                }
             }
         }
     }
@@ -907,7 +940,7 @@ void Michel::AtualizarRede(const float t, const float deltaTime) {
 
     const std::string dropout = fora > 0 ? " \xc2\xb7 " + std::to_string(fora) + (fora == 1 ? " neur\xc3\xb4nio fora" : " neur\xc3\xb4nios fora")
                                          : std::string();
-    if (etapa == 0) Placar(kFase, 0, "Neur\xc3\xb4nios: derrube um e ele sai da rede (dropout)" + dropout);
+    if (etapa == 0) Placar(kFase, 0, "Neur\xc3\xb4nios: encoste ou atire, e ele sai da rede (dropout)" + dropout);
     else if (etapa == 1) Placar(kFase, 1, "Retropropaga\xc3\xa7\xc3\xa3o, \xc3\xa9poca " + std::to_string(mTreinos) + ": a rede aprende onde voc\xc3\xaa est\xc3\xa1" + dropout);
     else Placar(kFase, 2, "Residual: o atalho pula duas camadas, e o dropout n\xc3\xa3o o corta" + dropout);
 }

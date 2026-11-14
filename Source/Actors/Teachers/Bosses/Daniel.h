@@ -18,22 +18,27 @@
 #include "../../../Attacks/Classificacao.h"
 #include "../../../Attacks/Explicacao.h"
 #include "../../../Attacks/Preparacao.h"
+#include "../../../Attacks/Tipos.h"
 
 class BossProjectile;
 class DrawLinhasComponent;
 
-/// O professor de Ciencia de Dados (INF 425, optativa). Cada prova e uma etapa de um projeto de
-/// dados, e cada uma muda o lugar para onde quem joga olha:
-///   1. os dados - a coleta e a preparacao: o campo e um grafico de dispersao, e antes de cada
-///      transformacao uma seta diz para onde cada dado vai;
+/// O professor de Ciencia de Dados (INF 425, optativa). No comeco, quem joga escolhe um monstrinho
+/// - fogo, agua ou planta - e o tipo dele e o seu ate o fim (Tipos.h): o tiro do seu tipo passa, o
+/// do tipo que voce vence voce absorve, e o do que vence voce machuca. E voce e um dado. Cada prova
+/// e uma etapa de um projeto de dados:
+///   1. os dados - a coleta e a preparacao: o campo e um grafico de dispersao, e o z-score procura
+///      quem esta longe da propria especie - os outliers e voce. A especie anda a cada
+///      transformacao, e voce anda junto;
 ///   2. os atributos e os grupos - a fileira da PCA que gira, e o centroide da celula do aluno que
 ///      vem para cima dele;
-///   3. o supervisionado - a fronteira de decisao diz de que classe o aluno e, e a rajada da classe
-///      dele passa por ele;
+///   3. o supervisionado - a fronteira de decisao divide o campo, e a chuva de cada lado tem a
+///      classe dele;
 ///   e a repescagem, a explicabilidade: a caixa-preta que avisa mais cedo quem pergunta, e a cascata
-///   do SHAP.
-/// E, no comeco de cada aula depois da primeira, o sorteio de quem explica a aula passada
-/// (Chamada.h).
+///   do SHAP que errou o valor real - derrubar a ponta de uma barra tira o atributo, e levar a
+///   previsao ate o valor real a explica.
+/// E, no comeco de cada aula depois da primeira, o sorteio de quem explica a aula passada, com uma
+/// pergunta de olhar o desenho (Chamada.h).
 class Daniel : public Boss {
 public:
     explicit Daniel(Scene* scene);
@@ -126,6 +131,23 @@ private:
     static Vector2 OndeNaIda(const Ida& ida, float t);
     static bool Chegou(const Ida& ida, float t) { return ida.desde < 0.0f || t >= ida.desde + ida.dura; }
 
+    // ---- O tipo do aluno (Tipos.h): escolhido no comeco da fase 1, para a luta inteira ----
+
+    /// Os monstrinhos no chao, e o toque que escolhe; no fim do tempo, quem nao escolheu fica com o
+    /// mais perto.
+    void Escolher(float t);
+    /// Todo quadro, depois da escolha: a classe de cada aluno, o selo, o anel na cor do tipo, e a
+    /// absorcao do tiro do tipo que ele vence.
+    void AtualizarTipos();
+    [[nodiscard]] std::vector<Vector2> LugaresDaEscolha() const;
+    static constexpr const char* kGatilhoDoSelo = "selo";
+    std::vector<int> mTipos;                                  ///< o de cada aluno (-1: ainda nao)
+    std::array<BossProjectile*, Tipos::kTipos> mEscolhas{};
+    std::vector<BossProjectile*> mSelos;
+    bool mEscolheu = false;
+    float mPremioDoTipo = 0.0f;
+    void Elipse(Vector2 centro, Vector2 raios, SDL_Color cor);
+
     // ---- O sorteio (Chamada.h): o comeco das fases 2, 3 e da repescagem ----
 
     /// A roleta, a pergunta e a garoa (o gatilho "garoa" da fase, com a cara 'caraDaGaroa').
@@ -138,9 +160,8 @@ private:
         bool feito = false;
         int quem = -2;          ///< -1: um colega; 0 ou 1: o aluno
         int aula = 0;
-        int pergunta = 0;
+        Chamada::Questao questao;
         int colega = 0;
-        std::array<int, Chamada::kOpcoes> opcaoDaCarta{0, 1, 2};
         std::array<BossProjectile*, Chamada::kOpcoes> cartas{};
         bool perguntou = false;
         bool respondido = false;
@@ -148,6 +169,13 @@ private:
     };
     Sorteado mSorteado;
     float mProximaGaroa = 0.0f;
+    /// O quadro do desenho da pergunta, no alto do campo; 'q' vai de 0 a 1 nele.
+    [[nodiscard]] SDL_FRect QuadroDaQuestao() const;
+    [[nodiscard]] Vector2 NoQuadro(Vector2 q) const;
+    /// Onde a carta 'k' do sorteado fica: em cima do lugar dela, ou acima, presa pelo alfinete.
+    [[nodiscard]] Vector2 OndeDaCarta(int k) const;
+    static constexpr float kAlturaDoAlfinete = 44.0f;
+    void DesenharQuestao();
 
     // ---- Fase 1: a preparacao ----
 
@@ -183,6 +211,10 @@ private:
     bool mEstourou = false;
     bool mImputou = false;
     Vector2 mMediaDaImputacao;
+    /// O aluno e um dado: a proxima varredura do z-score (Preparacao::kVarreduras).
+    size_t mProximaVarredura = 0;
+    int mVarreduraAvisada = -1;
+    void VarrerOsAlunos(float t);
 
     // ---- Fase 2: os atributos e os grupos ----
 
@@ -216,6 +248,8 @@ private:
     void DesmontarClassificacao();
     [[nodiscard]] Vector2 Normalizado(Vector2 noCampo) const;
     [[nodiscard]] Vector2 DoNormalizado(Vector2 n) const;
+    /// O tipo (fogo, agua ou planta) de cada classe da fronteira: o que vence o do aluno e o que ele vence.
+    [[nodiscard]] int TipoDaClasse(int classe) const;
     [[nodiscard]] int ClasseEm(Vector2 noCampo, int etapa) const;
     bool mPerceptronComecou = false;
     Classificacao::Reta mModelo;
@@ -257,17 +291,15 @@ private:
         Explicacao::Barra barra;
         float y = 0.0f;
         float aparece = 0.0f;
-        int cheios = 0;           ///< quantos tiros ja nasceram nela
+        std::vector<BossProjectile*> tiros;   ///< a faixa: duas fileiras de tiros (o do aluno atravessa)
+        BossProjectile* cabeca = nullptr;     ///< a ponta: a unica que o tiro do aluno derruba
+        bool tirada = false;                  ///< o aluno a derrubou: o atributo saiu da previsao
     };
     std::vector<BarraEmCampo> mBarras;
     std::vector<float> mContribuicoes;
+    float mReal = 0.0f;   ///< o valor real (x no campo): onde a cascata acaba sem os atributos errados
     float mProximaCascata = 0.0f;
     float mPrevisaoEm = -1.0f;
-    struct Solto {
-        BossProjectile* p = nullptr;
-        float cai = 0.0f;
-    };
-    std::vector<Solto> mParados;
 
     /// As cores das especies (e dos grupos e das classes) - as mesmas de gerar_daniel.py.
     static constexpr std::array<SDL_Color, 5> kCores = {{{255, 130, 70, 230}, {90, 170, 255, 230},

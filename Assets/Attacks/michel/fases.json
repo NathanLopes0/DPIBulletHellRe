@@ -64,7 +64,7 @@
     "proximo": "",
     "anuncio": "Redes neurais: das camadas aos atalhos",
     "etapas": [
-      { "nome": "Neuronios",       "duracao": 6.0, "anuncio": "Neurônios: derrube um e ele sai da rede" },
+      { "nome": "Neuronios",       "duracao": 6.0, "anuncio": "Neurônios: encoste ou atire, e ele sai da rede" },
       { "nome": "Retropropagacao", "duracao": 7.0, "anuncio": "Retropropagação: a rede aprende onde você está" },
       { "nome": "Residual",        "duracao": 7.0, "anuncio": "Residual: o atalho pula duas camadas" }
     ],
