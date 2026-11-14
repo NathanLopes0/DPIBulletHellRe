@@ -1,0 +1,81 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHMichelEnfeites 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMichelEnfeites 1.placeholder",
+   "frame": {
+    "x": 48,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHMichelEnfeites 2.placeholder",
+   "frame": {
+    "x": 96,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_michel.py",
+  "version": "1.0",
+  "image": "DPIBHMichelEnfeites.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 144,
+   "h": 48
+  },
+  "scale": "1"
+ }
+}

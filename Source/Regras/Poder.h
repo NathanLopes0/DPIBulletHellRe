@@ -18,7 +18,7 @@ namespace Poder {
 
     enum class Tipo {
         Nenhum, Matriz, Pilha, Congelar, Transacao, TryCatch, Converter, Agentes, BalaDePrata, PromiseAll, Mutex,
-        BuscaBinaria, Rodizio, KMedias
+        BuscaBinaria, Rodizio, KMedias, CameraEscura
     };
 
     struct Descricao {
@@ -137,15 +137,30 @@ namespace Poder {
     /// kIteracoesDasKMedias rodadas. Devolve tambem o grupo de cada ponto.
     std::vector<Vector2> KMedias(const std::vector<Vector2>& pontos, int k, std::vector<int>& grupos);
 
+    // ---- Michel: a camera escura ----
+
+    /// Uma parede com um furo vai com o aluno, kDistanciaDaParede acima dele: o tiro do Hugo que a
+    /// cruza descendo sai do outro lado do furo, de cabeca para baixo - o lugar espelhado no furo, e
+    /// a velocidade ao contrario. Ele volta para cima.
+    constexpr float kDistanciaDaParede = 110.0f;
+    /// A faixa logo abaixo da parede em que o tiro e pego (um quadro de voo do tiro mais rapido).
+    constexpr float kFaixaDaParede = 26.0f;
+    /// Se o tiro em 'y', descendo a 'vy', acabou de cruzar a parede em 'parede'.
+    bool CruzouAParede(float y, float vy, float parede);
+    /// O lugar de 'p' do outro lado do furo.
+    Vector2 PeloFuro(const Vector2& p, const Vector2& furo);
+
     // ---- A cara ----
 
     /// A folha com o projetil de cada professor (Ferramentas/gerar_hugo.py): o
     /// tiro do orientador tem a cara da materia dele.
     constexpr const char* kFolhaDasMaterias = "Teachers/Projectiles/DPIBHHugoTcc";
-    /// O ladrilho do Arroyo na folha: o quadro 22, depois da Caixa; o do Goulart, o 23; o do Daniel, o 24.
+    /// O ladrilho do Arroyo na folha: o quadro 22, depois da Caixa; o do Goulart, o 23; o do Daniel, o 24;
+    /// o do Michel, o 25.
     constexpr int kQuadroDoArroyo = 22;
     constexpr int kQuadroDoGoulart = 23;
     constexpr int kQuadroDoDaniel = 24;
+    constexpr int kQuadroDoMichel = 25;
 
     /// O quadro da materia 'm' em kFolhaDasMaterias; -1 sem materia (o tiro de sempre).
     int QuadroDaMateria(Golpe::Materia m);

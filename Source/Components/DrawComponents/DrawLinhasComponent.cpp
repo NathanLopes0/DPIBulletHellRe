@@ -4,6 +4,7 @@
 
 #include "DrawLinhasComponent.h"
 
+#include <algorithm>
 #include <cmath>
 #include <SDL_render.h>
 
@@ -15,7 +16,7 @@ DrawLinhasComponent::DrawLinhasComponent(Actor* owner, const int drawOrder)
 }
 
 void DrawLinhasComponent::Draw(SDL_Renderer* renderer) {
-    if (!IsVisible() || mLinhas.empty()) return;
+    if (!IsVisible() || (mLinhas.empty() && mRetangulos.empty())) return;
 
     // Um dono parado nao desenha.
     if (mOwner->GetState() != ActorState::Active) return;
@@ -23,6 +24,13 @@ void DrawLinhasComponent::Draw(SDL_Renderer* renderer) {
     SDL_BlendMode anterior;
     SDL_GetRenderDrawBlendMode(renderer, &anterior);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+    for (const Linha& r : mRetangulos) {
+        SDL_SetRenderDrawColor(renderer, r.cor.r, r.cor.g, r.cor.b, r.cor.a);
+        const SDL_FRect caixa{std::min(r.de.x, r.ate.x), std::min(r.de.y, r.ate.y), std::fabs(r.ate.x - r.de.x),
+                              std::fabs(r.ate.y - r.de.y)};
+        SDL_RenderFillRectF(renderer, &caixa);
+    }
 
     for (const Linha& l : mLinhas) {
         SDL_SetRenderDrawColor(renderer, l.cor.r, l.cor.g, l.cor.b, l.cor.a);

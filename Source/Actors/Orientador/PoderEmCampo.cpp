@@ -492,6 +492,53 @@ namespace {
         std::unordered_set<const BossProjectile*> mVistos;
     };
 
+    // ---- Michel: a camera escura ----
+
+    class CameraEscura final : public PoderEmCampo {
+    public:
+        void Soltar(Orientador& o, Battle&, const Vector2&, const Vector2&) override {
+            mInvertidos.clear();
+            mQuantos = 0;
+            o.AbrirAnel();
+        }
+        void Atualizar(Orientador& o, Battle& batalha, float, const bool ativo) override {
+            if (!ativo) {
+                mInvertidos.clear();
+                return;
+            }
+            // A parede vai com o aluno, um pouco acima dele, e o furo fica em cima dele.
+            const SDL_FRect c = batalha.GetPlayfieldBounds();
+            const Vector2 aluno = o.PosicaoDoAluno();
+            const float parede = aluno.y - Poder::kDistanciaDaParede;
+            const Vector2 furo(aluno.x, parede);
+            o.Tracar(Vector2(c.x, parede), Vector2(furo.x - 14.0f, parede), kCorDaParede);
+            o.Tracar(Vector2(furo.x + 14.0f, parede), Vector2(c.x + c.w, parede), kCorDaParede);
+            for (BossProjectile* p : o.TirosSoltos(batalha)) {
+                auto* rb = p->GetComponent<RigidBodyComponent>();
+                if (!rb) continue;
+                // Cada tiro passa pelo furo uma vez so (o pool recicla: a idade diz se e o mesmo).
+                const auto visto = mInvertidos.find(p);
+                if (visto != mInvertidos.end() && p->TempoDeVida() >= visto->second) continue;
+                const Vector2 v = rb->GetVelocity();
+                if (!Poder::CruzouAParede(p->GetPosition().y, v.y, parede)) continue;
+                p->SetPosition(Poder::PeloFuro(p->GetPosition(), furo));
+                rb->SetVelocity(v * -1.0f);
+                mInvertidos[p] = p->TempoDeVida();
+                o.Tracar(furo, p->GetPosition(), kCorDaParede);
+                ++mQuantos;
+            }
+            // \xc3\xa2 e o a circunflexo, \xc3\xa7 o c cedilha.
+            if (mQuantos > 0) {
+                o.Rotular("c\xc3\xa2mera escura: " + std::to_string(mQuantos) +
+                          (mQuantos == 1 ? " tiro voltou" : " tiros voltaram") + " de cabe\xc3\xa7" "a para baixo");
+            }
+        }
+    private:
+        static constexpr SDL_Color kCorDaParede = {255, 236, 160, 200};
+        std::unordered_map<const BossProjectile*, float> mInvertidos;
+        int mQuantos = 0;
+    };
+
     // ---- Julio: agentes autonomos ----
 
     class Agentes final : public PoderEmCampo {
@@ -716,6 +763,7 @@ std::unique_ptr<PoderEmCampo> PoderEmCampo::Do(const Poder::Tipo t) {
         case Poder::Tipo::BuscaBinaria: return std::make_unique<BuscaBinaria>();
         case Poder::Tipo::Rodizio:     return std::make_unique<Rodizio>();
         case Poder::Tipo::KMedias:     return std::make_unique<KMedias>();
+        case Poder::Tipo::CameraEscura: return std::make_unique<CameraEscura>();
         case Poder::Tipo::Nenhum:      break;
     }
     return nullptr;

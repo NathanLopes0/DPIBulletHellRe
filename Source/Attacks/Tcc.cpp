@@ -211,6 +211,17 @@ namespace Tcc {
                 }
                 break;
             }
+            case Materia::Michel: {
+                // O filtro 3x3: tres linhas de tres tiros, uma depois da outra - a janela que desce.
+                for (int linha = 0; linha < 3; ++linha) {
+                    for (int coluna = 0; coluna < 3; ++coluna) {
+                        Golpe::Tiro t = Tiro(0.14f * static_cast<float>(linha), N(245.0f, 265.0f));
+                        t.desvio = static_cast<float>(coluna - 1) * N(10.0f, 14.0f);
+                        tiros.push_back(t);
+                    }
+                }
+                break;
+            }
             case Materia::Generico:
             default: {
                 // O Hugo sem orientador: um leque de paginas.
@@ -267,6 +278,8 @@ namespace Tcc {
              "Round Robin, q = 1,2 s",   "Quanto custa uma troca de contexto?", "Goulart"},
             {Materia::Daniel,     "Daniel",      "Ciência de Dados",
              "k-means, k = 3",           "Cadê o conjunto de teste?",           "Daniel"},
+            {Materia::Michel,     "Michel",      "Aprendizado de Máquina com Dados Visuais",
+             "conv 3×3, stride 1",       "Por que não uma rede pré-treinada?",  "Michel"},
         };
 
         /// Sem orientador (o Generico), o proprio Hugo: tema livre.

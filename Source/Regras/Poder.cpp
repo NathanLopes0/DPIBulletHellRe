@@ -59,6 +59,11 @@ namespace Poder {
                 d = {Tipo::Rodizio, "Round Robin", "os tiros do Hugo andam um quarto por vez", 5.0f, 0.0f,
                      kGruposDoRodizio, kQuantumDoRodizio};
                 break;
+            case Golpe::Materia::Michel:
+                // \xc3\xa2 e o a circunflexo, \xc3\xa7 o c cedilha.
+                d = {Tipo::CameraEscura, "c\xc3\xa2mera escura", "o tiro que passa pelo furo volta de cabe\xc3\xa7" "a para baixo",
+                     4.5f, kDistanciaDaParede, 0, 0.0f};
+                break;
             case Golpe::Materia::Daniel:
                 // \xc3\xa9 e o e agudo, \xc3\xb3 o o agudo.
                 d = {Tipo::KMedias, "k-m\xc3\xa9" "dias", "os tiros do Hugo viram 4 centr\xc3\xb3" "ides", 0.0f, 0.0f,
@@ -123,7 +128,16 @@ namespace Poder {
         if (m == Golpe::Materia::Arroyo) return kQuadroDoArroyo;
         if (m == Golpe::Materia::Goulart) return kQuadroDoGoulart;
         if (m == Golpe::Materia::Daniel) return kQuadroDoDaniel;
+        if (m == Golpe::Materia::Michel) return kQuadroDoMichel;
         return 2 + static_cast<int>(m);
+    }
+
+    bool CruzouAParede(const float y, const float vy, const float parede) {
+        return vy > 0.0f && y >= parede && y <= parede + kFaixaDaParede;
+    }
+
+    Vector2 PeloFuro(const Vector2& p, const Vector2& furo) {
+        return furo * 2.0f - p;
     }
 
     std::vector<Vector2> KMedias(const std::vector<Vector2>& pontos, const int k, std::vector<int>& grupos) {
@@ -376,6 +390,28 @@ namespace Poder {
                 }
                 q.legenda = t < kComeca ? "Round Robin: 12 tiros, 4 grupos"
                                         : "quantum: o grupo " + std::to_string(daVez + 1) + " de 4 anda";
+                break;
+            }
+            case Tipo::CameraEscura: {
+                // A parede com o furo, em cima do aluno: o tiro do Hugo que a cruza sai do outro lado
+                // do furo, de cabeca para baixo, e volta subindo.
+                constexpr float kParede = 0.64f, kFuro = 0.03f;
+                q.tracos.push_back({Marca::Estrutura, 0.04f, kParede, kAlunoX - kFuro, kParede});
+                q.tracos.push_back({Marca::Estrutura, kAlunoX + kFuro, kParede, 0.96f, kParede});
+                for (const Ponto& p : Chuva(t, 10)) {
+                    if (p.y < kParede) {
+                        q.pontos.push_back(p);
+                        continue;
+                    }
+                    const Vector2 pelo = PeloFuro(Vector2(p.x, p.y), Vector2(kAlunoX, kParede));
+                    if (pelo.y > kHugoY + 0.04f) q.pontos.push_back({Marca::TiroDoHugo, pelo.x, pelo.y});
+                    // O raio de luz do lugar de cada um ao furo.
+                    q.tracos.push_back({Marca::Apagado, pelo.x, pelo.y, kAlunoX, kParede});
+                }
+                Atirar(q, t, hugoX, kHugoY);
+                // \xc3\xa2 e o a circunflexo, \xc3\xa7 o c cedilha.
+                q.legenda = Fracao01(t / 3.0f) < 0.5f ? "c\xc3\xa2mera escura: o furo em cima de voc\xc3\xaa"
+                                                      : "o tiro passa e volta de cabe\xc3\xa7" "a para baixo";
                 break;
             }
             case Tipo::KMedias: {

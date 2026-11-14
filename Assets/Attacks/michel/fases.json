@@ -1,0 +1,109 @@
+{
+  // As fases do Michel (INF 429 - Aprendizado de Maquina com Dados Visuais, optativa). O que cada
+  // uma faz mora no C++ (Michel.cpp) e na camada pura (CameraEscura.h, Convolucao.h, RedeNeural.h e
+  // Laboratorio.h); aqui ficam os tiros que ele puxa pelo gatilho, e os nomes que o placar mostra.
+
+  // ==========================================================================
+
+  // Fase 1 - a imagem: a camera escura | gesto: o professor anda no alto. No meio do campo fica o
+  // furo: o que ele arremessa na cena (em cima) tem a imagem do outro lado, de cabeca para baixo, e
+  // a imagem nasce embaixo e sobe. No foco o aumento oscila e o furo anda; no desfoque, o que esta
+  // fora do plano de foco vira anel.
+  "StateOne": {
+    "duracao": 20,
+    "proximo": "StateTwo",
+    "anuncio": "Visão computacional: como a imagem se forma",
+    "etapas": [
+      { "nome": "Camera",   "duracao": 7.0, "anuncio": "Câmera escura: a imagem sai de cabeça para baixo" },
+      { "nome": "Foco",     "duracao": 6.0, "anuncio": "Foco: a imagem cresce e encolhe" },
+      { "nome": "Desfoque", "duracao": 7.0, "anuncio": "Desfoque: o plano de foco segue você" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 230 },
+    "ataques": [
+      { "som": false, "gatilho": "objeto", "estrategia": "WaveAttack", "projetil": "Objeto",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "imagem", "estrategia": "WaveAttack", "projetil": "Imagem",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "enfeite", "estrategia": "WaveAttack", "projetil": "Enfeite",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
+    ]
+  },
+
+  // Fase 2 - os descritores | gesto: o professor anda no alto. O campo e uma grade: no gradiente, os
+  // tiros andam pela seta da celula em que estao (e a imagem gira no meio); na convolucao, os tiros
+  // do aluno acendem as celulas, e a janela 3x3 dispara onde a resposta passa do limiar; no pooling,
+  // o maximo de cada bloco 2x2, e no fim o vetor de features.
+  "StateTwo": {
+    "duracao": 20,
+    "proximo": "StateThree",
+    "anuncio": "Descritores: do feito à mão às deep features",
+    "etapas": [
+      { "nome": "Gradiente",  "duracao": 6.0, "anuncio": "Gradiente: as setas levam os tiros" },
+      { "nome": "Convolucao", "duracao": 7.0, "anuncio": "Convolução: seus tiros são a imagem" },
+      { "nome": "Pooling",    "duracao": 7.0, "anuncio": "Pooling: o maior de cada bloco" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 230 },
+    "ataques": [
+      { "som": false, "gatilho": "fluxo", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "ativacao", "estrategia": "WaveAttack", "projetil": "Ativacao",
+        "projeteis": 5, "velocidade": 175, "angulo": 40, "intervalo": 0 },
+      { "gatilho": "vetor", "estrategia": "WaveAttack", "projetil": "Vetor",
+        "projeteis": 36, "velocidade": 165, "angulo": 350, "intervalo": 0 },
+      { "gatilho": "leque", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 5, "velocidade": 210, "angulo": 40, "intervalo": 0 }
+    ]
+  },
+
+  // Fase 3 - a rede | gesto: o professor anda no alto, de um lado ao outro. Entre ele e o aluno ficam
+  // as camadas de neuronios: os sinais andam pelas ligacoes fortes, e a ultima camada dispara no
+  // aluno. Derrubar um neuronio e o dropout; na retropropagacao a rede aprende onde o aluno esta; na
+  // residual os atalhos pulam duas camadas.
+  "StateThree": {
+    "duracao": 20,
+    "proximo": "",
+    "anuncio": "Redes neurais: das camadas aos atalhos",
+    "etapas": [
+      { "nome": "Neuronios",       "duracao": 6.0, "anuncio": "Neurônios: derrube um e ele sai da rede" },
+      { "nome": "Retropropagacao", "duracao": 7.0, "anuncio": "Retropropagação: a rede aprende onde você está" },
+      { "nome": "Residual",        "duracao": 7.0, "anuncio": "Residual: o atalho pula duas camadas" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 250 },
+    "ataques": [
+      { "som": false, "gatilho": "neuronio", "estrategia": "WaveAttack", "projetil": "Neuronio",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "sinal", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "saida", "estrategia": "WaveAttack", "projetil": "Saida",
+        "projeteis": 3, "velocidade": 200, "angulo": 24, "intervalo": 0 }
+    ]
+  },
+
+  // Fase final - o MaVIlab | gesto: o professor anda no alto. So e vista por quem termina a terceira
+  // entre 40 e 59, ou com 100. Na segmentacao, a mascara do encoder-decoder vira pixels de tiro, da
+  // grade grossa a fina; na recorrente, a rede preve o caminho do aluno e atira la; na deteccao, o
+  // detector procura o aluno entre os colegas do laboratorio, e cerca a caixa mais confiante.
+  "StateFinal": {
+    "duracao": 20,
+    "proximo": "StateOne",
+    "anuncio": "MaVIlab: as aplicações",
+    "etapas": [
+      { "nome": "Segmentacao", "duracao": 7.0, "anuncio": "Segmentação: a máscara de onde você está" },
+      { "nome": "Recorrente",  "duracao": 6.0, "anuncio": "Recorrente: a rede prevê seu caminho" },
+      { "nome": "Deteccao",    "duracao": 7.0, "anuncio": "Detecção: esconda-se entre os colegas" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 230 },
+    "ataques": [
+      { "som": false, "gatilho": "pixel", "estrategia": "WaveAttack", "projetil": "Pixel",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "previsao", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 3, "velocidade": 240, "angulo": 14, "intervalo": 0 },
+      { "som": false, "gatilho": "colega", "estrategia": "WaveAttack", "projetil": "Colega",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "cerco", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "ruido", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "ruido" }
+    ]
+  }
+}

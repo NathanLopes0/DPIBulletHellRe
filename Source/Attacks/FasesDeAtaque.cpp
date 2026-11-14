@@ -80,7 +80,12 @@ namespace {
                                                 // o sorteio.
                                                 "fonte", "dado", "amostra", "centroide", "convergiu",
                                                 "rotulada", "palpite", "barra", "previsao", "caixa",
-                                                "engano", "garoa"};
+                                                "engano", "garoa",
+                                                // O Michel: a camera escura, a convolucao, a rede e o
+                                                // MaVIlab.
+                                                "objeto", "imagem", "enfeite", "fluxo", "ativacao", "vetor",
+                                                "neuronio", "sinal", "saida", "pixel", "colega", "cerco",
+                                                "ruido"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"

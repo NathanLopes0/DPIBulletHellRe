@@ -1,0 +1,8 @@
+{
+  // As regras de projetil do Michel (INF 429 - Aprendizado de Maquina com Dados Visuais, optativa).
+
+  // O ruido do laboratorio: a garoa que cai balancando e pede que se ande um pouco.
+  "ruido": [
+    { "motion": { "tipo": "Wobble", "amplitude": 22, "frequencia": 1.6, "duracao": 8.0 } }
+  ]
+}

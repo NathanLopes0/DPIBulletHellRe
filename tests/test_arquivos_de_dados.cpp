@@ -793,7 +793,7 @@ TEST_CASE("Dados: as materias do curso estao la, com os codigos esperados") {
     // Esta lista nao e a ordem, e sim o conjunto.
     const std::set<std::string> esperadas = {
         "INF110", "INF213", "INF250", "INF220", "INF340", "INF331",
-        "INF420", "INF221", "INF321", "INF310", "TCC", "INF332", "INF451", "INF425"
+        "INF420", "INF221", "INF321", "INF310", "TCC", "INF332", "INF451", "INF425", "INF429"
     };
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
@@ -816,7 +816,7 @@ TEST_CASE("Dados: toda materia com chefe aponta para uma pasta de chefe que exis
         CHECK_FALSE(FasesDoChefe(m.chefe).fases.empty());
         ++comChefe;
     }
-    CHECK(comChefe == 14);  // Hoje sao todas as catorze: o Daniel, na optativa INF 425, foi o ultimo.
+    CHECK(comChefe == 15);  // Hoje sao todas as quinze: o Michel, na optativa INF 429, foi o ultimo.
 }
 
 TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
@@ -825,7 +825,7 @@ TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
     const std::set<std::string> kFabricasRegistradas = {"salles", "ricardo", "andre", "julio",
                                                         "thiago", "vladimir", "vitor",
                                                         "marialucia", "lucas", "luizinho", "hugo",
-                                                        "arroyo", "goulart", "daniel"};
+                                                        "arroyo", "goulart", "daniel", "michel"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
 
@@ -844,7 +844,7 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
     const std::vector<std::string> col3 = {"INF420", "INF221", "INF321", "INF310", "INF451"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
-    REQUIRE(l.Quantas() == 14);
+    REQUIRE(l.Quantas() == 15);
 
     auto pretendida = [&](const std::string& codigo, const Progresso& p) {
         auto aprovado = [&](const std::string& c) { return p.Aprovado(l.IndiceDe(c)); };
@@ -858,7 +858,7 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
         for (const auto& c : col2) if (c == codigo) return aprovado("INF213");
         for (const auto& c : col3) if (c == codigo) return quantas(col2) >= 2;
         if (codigo == "TCC") return quantas(col3) >= 2;
-        // A optativa pede ouro e a compra: com 80 em tudo, nunca abre (o teste dela vem abaixo).
+        // As optativas pedem ouro e a compra: com 80 em tudo, nunca abrem (o teste delas vem abaixo).
         return false;
     };
 
@@ -887,7 +887,7 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
         }
     }
 
-    CHECK(comparacoes == (1 << 13) * 14);
+    CHECK(comparacoes == (1 << 13) * 15);
 
     // A INF 425: Banco de Dados e IA aprovadas, uma mencao de ouro, e a compra.
     const int ds = l.IndiceDe("INF425");
@@ -903,6 +903,23 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
     CHECK(l.PrecoDe(ds) > 0);
     p.RegistrarAtividade(Materias::ChaveDaCompra("INF425"));
     CHECK(l.Desbloqueada(ds, p));
+
+    // A INF 429, o MaVIlab: a INF 425 aprovada, duas mencoes de ouro, uma no Dificil, e a compra -
+    // mais cara.
+    const int mv = l.IndiceDe("INF429");
+    REQUIRE(mv >= 0);
+    CHECK(l.Por(mv)->optativa);
+    CHECK(l.PrecoDe(mv) > l.PrecoDe(ds));
+    CHECK_FALSE(l.RegraCumprida(mv, p));          // sem a INF 425
+    p.RegistrarNota(ds, 80.0f, Dificuldade::Nivel::Normal);
+    CHECK_FALSE(l.RegraCumprida(mv, p));          // um ouro so, e nada no Dificil
+    p.RegistrarNota(l.IndiceDe("INF213"), 95.0f, Dificuldade::Nivel::Normal);
+    CHECK_FALSE(l.RegraCumprida(mv, p));          // dois ouros, e ainda nada no Dificil
+    p.RegistrarNota(l.IndiceDe("INF250"), 70.0f, Dificuldade::Nivel::Dificil);
+    CHECK(l.RegraCumprida(mv, p));
+    CHECK_FALSE(l.Desbloqueada(mv, p));           // falta comprar
+    p.RegistrarAtividade(Materias::ChaveDaCompra("INF429"));
+    CHECK(l.Desbloqueada(mv, p));
 }
 
 TEST_CASE("Dados: personagens.json e lido sem nenhum problema") {
@@ -1222,7 +1239,7 @@ TEST_CASE("Dados: toda coluna do curso depende da anterior, entao a grade pode s
     // E o que autoriza a tela de selecao a desenhar o tronco entre as colunas.
     // As optativas ficam de fora: estao em outra pagina, e nao se ligam ao TCC.
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
-    REQUIRE(l.QuantasColunas() == 6);
+    REQUIRE(l.QuantasColunas() == 7);
     REQUIRE(l.QuantasColunasObrigatorias() == 5);
 
     CHECK_FALSE(l.ColunaDependeDaAnterior(0));

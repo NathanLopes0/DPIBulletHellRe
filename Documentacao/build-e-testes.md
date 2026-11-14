@@ -193,7 +193,7 @@ servidor ou em paralelo.
 | `--semente <n>` | o sorteador global. Sem `--variacao`, é também a semente da batalha. A simulação nunca é a **prova da semana**: ela mede com a semente pedida, e não grava no ranking |
 | `--variacao <n>` | a semente da batalha (`Battle::SementeDaBatalha`), separada da do sorteio |
 | `--passo <s>` | segundos por quadro, sem esperar o relógio: `0.016` é igual a 62,5 quadros por segundo, só que na velocidade que a máquina der |
-| `--piloto segue\|parado\|vaivem` | quem joga no lugar do aluno (os vieses de cada um estão em `Ferramentas/medir-dificuldade.sh`) |
+| `--piloto segue\|parado\|vaivem\|esquiva` | quem joga no lugar do aluno (os vieses de cada um estão em `Ferramentas/medir-dificuldade.sh`; o `esquiva` é o perfil das optativas, abaixo) |
 | `--atira` | o piloto atira sempre que pode |
 | `--poder` | no TCC, o orientador solta o poder sozinho quando ele serve |
 | `--relatorio` | escreve a nota a cada 60 quadros de luta e a linha `FIM` |
@@ -233,17 +233,17 @@ dois jogadores há mais colisões, e cada uma consome números do mesmo sorteado
 
 ### A linha de base
 
-`Ferramentas/linha-de-base.sh` roda **69 batalhas** — as catorze matérias (a
-optativa INF 425 inclusive), solo e
-dupla, Normal e Difícil, e o TCC com cada um dos treze orientadores — e compara
+`Ferramentas/linha-de-base.sh` roda **74 batalhas** — as quinze matérias (as
+optativas INF 425 e INF 429 inclusive), solo e
+dupla, Normal e Difícil, e o TCC com cada um dos catorze orientadores — e compara
 a nota, quadro a quadro, com a gravada em `Ferramentas/linha-de-base/`:
 
 ```bash
-bash Ferramentas/linha-de-base.sh               # identicas=64 diferentes=0
+bash Ferramentas/linha-de-base.sh               # identicas=74 diferentes=0
 bash Ferramentas/linha-de-base.sh --atualizar   # grava a de agora
 ```
 
-**Uma refatoração tem de dar 64 idênticas, byte a byte.** Uma mudança de
+**Uma refatoração tem de dar 74 idênticas, byte a byte.** Uma mudança de
 balanceamento muda algumas de propósito: confira quais mudaram, e quanto — o
 script mostra a linha `FIM` de antes e de agora —, e só então grave a nova com
 `--atualizar`, no mesmo commit. Cada batalha ocupa uns 2,5 GB; `PARALELO=3` é o
@@ -251,6 +251,26 @@ padrão.
 
 `Ferramentas/parado-reprova.sh` é o outro portão: o piloto parado não pode
 aprovar em professor nenhum.
+
+### O perfil das optativas
+
+O piloto que segue o chefe é um mau termômetro para as optativas: elas pedem
+que se pense na mecânica (a imagem que vem de baixo, os próprios tiros que
+acendem a convolução, o neurônio que se derruba, a hora de ficar quieto), e ele
+só anda atrás do professor, atirando. Para elas há um segundo perfil,
+`--piloto esquiva`: o mesmo alvo do `segue`, mas a cada quadro ele olha os tiros
+que machucam — meio segundo adiante — e escolhe o rumo mais seguro
+(`Simulacao::Desviar`). É o teto de quem **só desvia**: vê tudo e reage na hora.
+A linha de base continua com o `segue`; o `esquiva` é a segunda leitura de uma
+optativa. Na INF 429, sozinho, com as sementes 101 a 103:
+
+| Piloto | Normal | Difícil |
+|---|---|---|
+| `segue` | 27 a 39 (reprova; a fase 2 o derruba) | 0 a 2 |
+| `esquiva` | 79 a 86 | 63 a 73 |
+
+Quem joga de verdade fica entre os dois: desvia pior que o `esquiva`, mas pode
+entender a fase — e é isso que a INF 429 cobra.
 
 ### Fotografar
 

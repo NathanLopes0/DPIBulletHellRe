@@ -1,0 +1,103 @@
+{
+  // Os projeteis do Michel (INF 429 - Aprendizado de Maquina com Dados Visuais, optativa). As folhas
+  // saem de Ferramentas/gerar_michel.py; as animacoes, de gerar_michel.py --animacoes.
+
+  // Os objetos que ele arremessa na cena da camera escura: claros, de pe.
+  "Objeto": {
+    "sprite": "Teachers/Projectiles/DPIBHMichelCena.png",
+    "dados":  "Teachers/Projectiles/DPIBHMichelCena.json",
+    "animacoes": { "Casa": [0], "Arvore": [1], "Pessoa": [2], "Carro": [3] },
+    "animacaoInicial": "Casa",
+    "ordemDeDesenho": 89,
+    "colisorDivisor": 2.6
+  },
+
+  // A imagem de cada objeto, do outro lado do furo: a mesma figura, de cabeca para baixo e quente. E
+  // a ponta do anel do desfoque.
+  "Imagem": {
+    "sprite": "Teachers/Projectiles/DPIBHMichelCena.png",
+    "dados":  "Teachers/Projectiles/DPIBHMichelCena.json",
+    "animacoes": { "CasaInvertida": [4], "ArvoreInvertida": [5], "PessoaInvertida": [6], "CarroInvertido": [7],
+                   "Borrao": [8] },
+    "animacaoInicial": "CasaInvertida",
+    "ordemDeDesenho": 91,
+    "colisorDivisor": 2.6
+  },
+
+  // A camera escura no furo e o reflexo do professor, de cabeca para baixo (enfeite).
+  "Enfeite": {
+    "sprite": "Teachers/Projectiles/DPIBHMichelEnfeites.png",
+    "dados":  "Teachers/Projectiles/DPIBHMichelEnfeites.json",
+    "animacoes": { "Camera": [0], "Reflexo": [1], "ReflexoFora": [2] },
+    "animacaoInicial": "Camera",
+    "ordemDeDesenho": 84
+  },
+
+  // Os tiros das quatro provas: a seta do gradiente, o vetor de features, o leque, o sinal da rede e o
+  // do atalho, a previsao da recorrente, o cerco do detector e o ruido.
+  "Tiro": {
+    "sprite": "Teachers/Projectiles/DPIBHMichelTiros.png",
+    "dados":  "Teachers/Projectiles/DPIBHMichelTiros.json",
+    "animacoes": { "Seta": [0], "Vetor": [2], "Leque": [3], "Sinal": [4], "Atalho": [5], "Previsao": [7],
+                   "Cerco": [8], "Ruido": [9] },
+    "animacaoInicial": "Leque",
+    "ordemDeDesenho": 90
+  },
+
+  // A ativacao da convolucao e do pooling: a celula que passou do limiar.
+  "Ativacao": {
+    "sprite": "Teachers/Projectiles/DPIBHMichelTiros.png",
+    "dados":  "Teachers/Projectiles/DPIBHMichelTiros.json",
+    "animacoes": { "Ativacao": [1] },
+    "animacaoInicial": "Ativacao",
+    "ordemDeDesenho": 90
+  },
+
+  // O anel do vetor de features.
+  "Vetor": {
+    "sprite": "Teachers/Projectiles/DPIBHMichelTiros.png",
+    "dados":  "Teachers/Projectiles/DPIBHMichelTiros.json",
+    "animacoes": { "Vetor": [2] },
+    "animacaoInicial": "Vetor",
+    "ordemDeDesenho": 90
+  },
+
+  // O leque da saida da rede, no aluno.
+  "Saida": {
+    "sprite": "Teachers/Projectiles/DPIBHMichelTiros.png",
+    "dados":  "Teachers/Projectiles/DPIBHMichelTiros.json",
+    "animacoes": { "Saida": [6] },
+    "animacaoInicial": "Saida",
+    "ordemDeDesenho": 90
+  },
+
+  // Os pixels da mascara da segmentacao.
+  "Pixel": {
+    "sprite": "Teachers/Projectiles/DPIBHMichelTiros.png",
+    "dados":  "Teachers/Projectiles/DPIBHMichelTiros.json",
+    "animacoes": { "Pixel": [10] },
+    "animacaoInicial": "Pixel",
+    "ordemDeDesenho": 88
+  },
+
+  // O neuronio da rede: derrubado, sai dela por um tempo (o dropout, no Michel.cpp).
+  "Neuronio": {
+    "sprite": "Teachers/Projectiles/DPIBHMichelNeuronios.png",
+    "dados":  "Teachers/Projectiles/DPIBHMichelNeuronios.json",
+    "animacoes": { "Neuronio": [0], "Aceso": [1] },
+    "animacaoInicial": "Neuronio",
+    "ordemDeDesenho": 92,
+    "colisorDivisor": 2.4,
+    "derrubavel": true,
+    "resistencia": 3
+  },
+
+  // Os colegas do MaVIlab, de costas como o aluno (enfeite).
+  "Colega": {
+    "sprite": "Teachers/Projectiles/DPIBHMichelColegas.png",
+    "dados":  "Teachers/Projectiles/DPIBHMichelColegas.json",
+    "animacoes": { "Colega0": [0], "Colega1": [1], "Colega2": [2], "Colega3": [3], "Colega4": [4] },
+    "animacaoInicial": "Colega0",
+    "ordemDeDesenho": 87
+  }
+}

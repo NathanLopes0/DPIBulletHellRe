@@ -24,6 +24,7 @@ namespace Golpe {
         if (professor == "Arroyo") return Materia::Arroyo;
         if (professor == "Goulart") return Materia::Goulart;
         if (professor == "Daniel") return Materia::Daniel;
+        if (professor == "Michel") return Materia::Michel;
         return Materia::Generico;
     }
 
@@ -180,6 +181,19 @@ namespace Golpe {
                     t.dx = 26.0f * static_cast<float>(i - 1);
                     t.desvio = 30.0f * static_cast<float>(i - 1);
                     t.reMira = 0.22f;
+                    r.tiros.push_back(t);
+                }
+                break;
+            }
+
+            case Materia::Michel: {
+                // O bloco 2x2 do max pooling: quatro tiros num quadrado, que voam juntos, em paralelo.
+                r.duracao = 2.0f;
+                for (int i = 0; i < 4; ++i) {
+                    Tiro t;
+                    t.dx = 9.0f * static_cast<float>(2 * (i % 2) - 1);
+                    t.dy = 9.0f * static_cast<float>(2 * (i / 2) - 1);
+                    t.paralelo = true;
                     r.tiros.push_back(t);
                 }
                 break;

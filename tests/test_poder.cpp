@@ -18,7 +18,7 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
                                     Golpe::Materia::Thiago, Golpe::Materia::Luizinho, Golpe::Materia::Vladimir,
                                     Golpe::Materia::Julio, Golpe::Materia::MariaLucia, Golpe::Materia::Lucas,
                                     Golpe::Materia::Vitor, Golpe::Materia::Arroyo, Golpe::Materia::Goulart,
-                                    Golpe::Materia::Daniel};
+                                    Golpe::Materia::Daniel, Golpe::Materia::Michel};
     std::set<int> tipos;
     std::set<std::string> nomes;
     std::set<int> quadros;
@@ -35,9 +35,9 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
         quadros.insert(QuadroDaMateria(m));
         if (Ataca(d.tipo)) ++atacam;
     }
-    CHECK(tipos.size() == 13u);    // treze orientadores, treze poderes diferentes
-    CHECK(nomes.size() == 13u);
-    CHECK(quadros.size() == 13u);
+    CHECK(tipos.size() == 14u);    // catorze orientadores, catorze poderes diferentes
+    CHECK(nomes.size() == 14u);
+    CHECK(quadros.size() == 14u);
     // Ha dos dois jeitos: os que atacam e os que defendem.
     CHECK(atacam >= 3);
     CHECK(atacam <= 7);
@@ -48,6 +48,24 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
     CHECK(QuadroDaMateria(Golpe::Materia::Arroyo) == kQuadroDoArroyo);   // no fim da folha
     CHECK(QuadroDaMateria(Golpe::Materia::Goulart) == kQuadroDoGoulart);
     CHECK(QuadroDaMateria(Golpe::Materia::Daniel) == kQuadroDoDaniel);
+    CHECK(QuadroDaMateria(Golpe::Materia::Michel) == kQuadroDoMichel);
+}
+
+TEST_CASE("Poder: a camera escura do Michel devolve, de cabeca para baixo, o tiro que cruza a parede") {
+    CHECK(Da(Golpe::Materia::Michel).tipo == Tipo::CameraEscura);
+    CHECK_FALSE(Ataca(Tipo::CameraEscura));
+    CHECK(Da(Golpe::Materia::Michel).raio == doctest::Approx(kDistanciaDaParede));
+    // So o que desce e acabou de passar da parede.
+    CHECK(CruzouAParede(505.0f, 200.0f, 500.0f));
+    CHECK_FALSE(CruzouAParede(495.0f, 200.0f, 500.0f));                     // ainda acima
+    CHECK_FALSE(CruzouAParede(505.0f, -200.0f, 500.0f));                    // subindo
+    CHECK_FALSE(CruzouAParede(500.0f + kFaixaDaParede + 1.0f, 200.0f, 500.0f));  // ja passou faz tempo
+    // O espelho no furo: o da esquerda sai a direita, e o de baixo sai em cima.
+    const Vector2 furo(300.0f, 500.0f);
+    const Vector2 p = PeloFuro(Vector2(280.0f, 510.0f), furo);
+    CHECK(p.x == doctest::Approx(320.0f));
+    CHECK(p.y == doctest::Approx(490.0f));
+    CHECK((PeloFuro(PeloFuro(Vector2(17.0f, 42.0f), furo), furo) - Vector2(17.0f, 42.0f)).Length() < 1e-3f);
 }
 
 TEST_CASE("Poder: as k-medias do Daniel juntam os tiros em quatro grupos, um tiro por centroide") {

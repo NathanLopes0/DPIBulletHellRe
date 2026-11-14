@@ -11,7 +11,7 @@
 #include "../../Motor/Math.h"
 
 /// Desenha uma lista de segmentos, cada um com a sua cor, em coordenadas de tela - e nao relativas
-/// ao dono, como os outros desenhos.
+/// ao dono, como os outros desenhos. Tambem retangulos cheios (translucidos, por baixo das linhas).
 class DrawLinhasComponent : public DrawComponent {
 public:
     struct Linha {
@@ -23,12 +23,20 @@ public:
     DrawLinhasComponent(class Actor* owner, int drawOrder);
     void Draw(SDL_Renderer* renderer) override;
 
-    void Limpar() { mLinhas.clear(); }
+    void Limpar() {
+        mLinhas.clear();
+        mRetangulos.clear();
+    }
     void Acrescentar(const Vector2& de, const Vector2& ate, const SDL_Color cor) {
         mLinhas.push_back({de, ate, cor});
+    }
+    /// Um retangulo cheio de 'de' a 'ate' (os cantos opostos).
+    void Preencher(const Vector2& de, const Vector2& ate, const SDL_Color cor) {
+        mRetangulos.push_back({de, ate, cor});
     }
     [[nodiscard]] size_t Quantas() const { return mLinhas.size(); }
 
 private:
     std::vector<Linha> mLinhas;
+    std::vector<Linha> mRetangulos;
 };

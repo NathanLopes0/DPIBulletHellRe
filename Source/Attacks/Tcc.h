@@ -50,8 +50,8 @@ namespace Tcc {
     /// qualquer um), sorteados.
     std::array<Materia, 2> Banca(Materia orientador, Variacao::Sorteio& s);
 
-    /// As doze materias obrigatorias com professor, na ordem do enum: a banca sai delas. A optativa
-    /// (o Daniel) orienta quem passou nela, mas nao senta na banca.
+    /// As doze materias obrigatorias com professor, na ordem do enum: a banca sai delas. As optativas
+    /// (o Daniel e o Michel) orientam quem passou nelas, mas nao sentam na banca.
     constexpr std::array<Materia, 12> kMaterias = {
         Materia::Andre, Materia::Salles, Materia::Ricardo, Materia::Thiago, Materia::Luizinho,
         Materia::Vladimir, Materia::Julio, Materia::MariaLucia, Materia::Lucas, Materia::Vitor,

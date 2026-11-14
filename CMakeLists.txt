@@ -391,6 +391,14 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/Explicacao.h
         Source/Attacks/Chamada.cpp
         Source/Attacks/Chamada.h
+        Source/Attacks/CameraEscura.cpp
+        Source/Attacks/CameraEscura.h
+        Source/Attacks/Convolucao.cpp
+        Source/Attacks/Convolucao.h
+        Source/Attacks/RedeNeural.cpp
+        Source/Attacks/RedeNeural.h
+        Source/Attacks/Laboratorio.cpp
+        Source/Attacks/Laboratorio.h
         Source/Attacks/Virtualizacao.cpp
         Source/Attacks/Virtualizacao.h
         Source/Attacks/Excecao.cpp
@@ -446,6 +454,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Actors/Teachers/Bosses/Goulart.cpp
         Source/Actors/Teachers/Bosses/Daniel.cpp
         Source/Actors/Teachers/Bosses/Daniel.h
+        Source/Actors/Teachers/Bosses/Michel.cpp
+        Source/Actors/Teachers/Bosses/Michel.h
         Source/Actors/Teachers/Bosses/Goulart.h
         Source/Actors/Teachers/Bosses/Andre.h
         Source/Actors/Teachers/Bosses/Julio.cpp
@@ -529,6 +539,7 @@ add_executable(dpi_tests
         tests/test_arroyo.cpp
         tests/test_goulart.cpp
         tests/test_daniel.cpp
+        tests/test_michel.cpp
         tests/test_limite_de_som.cpp
         tests/test_path_aim.cpp
         tests/test_motion_contract.cpp
@@ -865,6 +876,14 @@ add_executable(dpi_tests
         Source/Attacks/Explicacao.h
         Source/Attacks/Chamada.cpp
         Source/Attacks/Chamada.h
+        Source/Attacks/CameraEscura.cpp
+        Source/Attacks/CameraEscura.h
+        Source/Attacks/Convolucao.cpp
+        Source/Attacks/Convolucao.h
+        Source/Attacks/RedeNeural.cpp
+        Source/Attacks/RedeNeural.h
+        Source/Attacks/Laboratorio.cpp
+        Source/Attacks/Laboratorio.h
         Source/Attacks/Virtualizacao.cpp
         Source/Attacks/Virtualizacao.h
         Source/Attacks/Excecao.cpp

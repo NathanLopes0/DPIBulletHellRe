@@ -352,9 +352,10 @@ foi aprovado:
 | 3 | INF 420 — Inteligência Artificial *(Júlio)*, INF 221 — Engenharia de Software *(Maria Lúcia)*, INF 321 — Programação Web *(Lucas)*, INF 310 — Programação Concorrente e Distribuída *(Vitor)*, INF 451 — Sistemas Operacionais *(Goulart)* | 2 aprovações na coluna 2 |
 | 4 | TCC — Trabalho de Conclusão de Curso *(Hugo)* | 2 aprovações na coluna 3 |
 | 5 *(optativas)* | INF 425 — Ciência de Dados *(Daniel)* | INF 220 e INF 420 aprovadas, pelo menos 1 menção de ouro, e 20 h de horas complementares |
+| 6 *(optativas)* | INF 429 — Aprendizado de Máquina com Dados Visuais *(Michel)* | INF 425 aprovada, pelo menos 2 menções de ouro e 1 no Difícil, e 30 h de horas complementares — o MaVIlab é seleto |
 
 Toda matéria tem professor e batalha — as doze do curso, o TCC, do Hugo, que é
-a última e a mais difícil, e a optativa INF 425, do Daniel. A INF 332 e a INF 451 entraram depois: no
+a última e a mais difícil, e as optativas INF 425, do Daniel, e INF 429, do Michel. A INF 332 e a INF 451 entraram depois: no
 `materias.json` elas ficam no fim da lista (o índice de cada matéria é o da
 batalha na simulação e na linha de base, e nenhum podia mudar), e na grade, a
 INF 332 embaixo da INF 331 e a INF 451 embaixo da INF 310, à direita dela. Ter professor e
@@ -374,7 +375,9 @@ optativas não contam no "Aprovadas: N de M". São **mais difíceis** que as
 obrigatórias, pedem **requisitos** além das aprovações (uma menção de ouro,
 horas ganhas...) e se **compram** com horas complementares; o prêmio é um
 **orientador novo** no TCC — o professor da optativa aprovada sempre aparece
-entre os três candidatos. A primeira é a INF 425, Ciência de Dados, do Daniel.
+entre os três candidatos. A primeira é a INF 425, Ciência de Dados, do Daniel; a
+segunda, a INF 429, Aprendizado de Máquina com Dados Visuais, do Michel — que
+pede a primeira, e é a mais difícil das duas.
 
 ## O que fica gravado
 
@@ -675,6 +678,44 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   você!"* —, a pergunta de revisão aparece no placar e as três respostas descem
   em cartas: derrubar a certa vale nota, a errada estoura em cacos, e enquanto a
   pergunta está aberta o professor só espera a resposta.
+- **Michel — INF 429, optativa.** Aprendizado de Máquina com Dados Visuais, do
+  professor que lidera o MaVIlab — a mais difícil das optativas, que pede
+  menos reflexo e mais pensar em como a máquina vê. Na **imagem**, o meio do
+  campo é uma **câmera escura**: o que ele arremessa na cena (em cima) também
+  machuca, mas o perigo maior é a **imagem** de cada objeto do outro lado do
+  furo, de cabeça para baixo — o que cai na cena **sobe** na imagem, o que vai
+  para a direita vai para a esquerda, e a imagem do próprio professor está
+  embaixo, invertida: é de lá que os tiros nascem. Um raio de luz liga cada
+  objeto à imagem dele. No **foco**, o aumento oscila e o furo anda — com o
+  aumento pequeno, o chão fica a salvo —, e no **desfoque** o que está fora do
+  plano de foco vira um anel (o círculo de confusão), e o foco automático
+  persegue a sua altura: perto de você, a imagem é um ponto. Nos
+  **descritores**, o campo é uma grade: no **gradiente**, cada célula tem uma
+  seta (o histograma de gradientes, em oito direções) e os tiros andam pela
+  seta da célula em que estão — todas apontam para você, até a imagem girar e
+  o descritor feito à mão não girar junto: o fluxo vira redemoinho. Na
+  **convolução**, **os seus tiros são a imagem**: cada célula que um tiro seu
+  cruza acende, e um filtro 3×3 varre a grade linha por linha; onde a resposta
+  passa do limiar (a ReLU), a célula pisca e dispara em você. Atirar é preciso,
+  mas o que você acende é o que a rede lê. No **pooling**, o maior de cada bloco
+  2×2 dispara mais forte, e no fim tudo vira um vetor — o anel do tamanho de
+  tudo o que você acendeu. Na **rede**, as camadas de neurônios ficam entre ele
+  e você, e os sinais andam pelas ligações fortes; a última camada dispara em
+  você. **Derrubar um neurônio é o dropout**: ele sai da rede por um tempo, e o
+  que chegaria nele se perde — você escolhe que caminho cortar. Na
+  **retropropagação**, a rede aprende qual saída está em cima de você, e as
+  ligações até ela engrossam; na **residual**, a rede fica funda e os atalhos
+  pulam duas camadas levando o sinal inteiro — o dropout no meio não os corta. O
+  exame é no **MaVIlab**: na **segmentação**, o encoder-decoder pinta a máscara
+  de onde você está, da grade 2×2 à 16×16, e a célula marcada vira pixels de
+  tiro — com a do passo anterior, pelo atalho; na **recorrente**, a rede
+  lembra do seu caminho e atira onde você **vai** estar (o fantasma pontilhado
+  é a previsão), e a LSTM lembra também da curva: quem quebra o padrão escapa.
+  Na **detecção**, os colegas do laboratório, de jaleco, andam pelo campo, e o
+  detector procura você entre eles: a confiança de cada caixa sobe com o
+  movimento e com os tiros, e quando o NMS escolhe, a caixa é cercada — e, se
+  era você, o rastreador o segue atirando dos cantos. Quem fica quieto como um
+  colega na hora certa passa despercebido.
 - **Lucas — INF 321.** Programação Web, na ordem da matéria. No HTML ele
   renderiza uma página gerada a cada luta, com o layout desenhado no campo, e
   cada elemento ataca do seu jeito: o cursor voa até o `<button>` e clica, a
@@ -700,8 +741,9 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   gramática do Vladimir, o gradiente do Júlio, o Observer da Maria Lúcia, o
   `fetch` do Lucas, a janela do TCP do Vitor, a busca binária do Arroyo, que
   fecha os dois tiros no Hugo pela metade a cada rodada, e o Round Robin do
-  Goulart, uma rajada curta de cada lado por vez, e o comitê do Daniel, três
-  tiros que saem abertos e miram de novo no Hugo), e cada um traz um
+  Goulart, uma rajada curta de cada lado por vez, o comitê do Daniel, três
+  tiros que saem abertos e miram de novo no Hugo, e o bloco 2×2 do pooling do
+  Michel, quatro tiros em quadrado que voam juntos), e cada um traz um
   **poder**, que carrega a cada acerto no Hugo e sai no **botão 3**. O poder é um
   conceito da matéria dele, jogável:
 
@@ -739,6 +781,10 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
     cada grupo vira um tiro só, no centróide: dezenas de tiros, de uma vez,
     viram quatro. Ele orienta quem passou na optativa dele, mas não senta na
     banca; o objetivo dele pergunta "Cadê o conjunto de teste?".
+  - **Michel — câmera escura.** Uma parede com um furo vai com você, um pouco
+    acima: o tiro do Hugo que a cruza sai do outro lado do furo, de cabeça para
+    baixo, e volta subindo. Também orienta sem sentar na banca; o objetivo dele
+    pergunta "Por que não uma rede pré-treinada?".
 
   A tela em que se escolhe o orientador mostra o poder de cada um
   funcionando: um campo em miniatura, animado, com a legenda de cada passo.
@@ -818,7 +864,7 @@ e **como sair da máquina**, está em `Documentacao/gabinete.md`.
 ./build/dpi_tests
 ```
 
-São 1070 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
+São 1283 casos. Eles cobrem a parte do jogo que não depende de SDL nem de disco —
 a aritmética da nota, as regras de desbloqueio, a navegação da seleção de fases,
 a montagem dos personagens, a planilha, o objetivo e o poder do orientador no
 TCC — e também **leem os arquivos de
@@ -858,7 +904,7 @@ Assets/          sprites, fontes, sons e os JSON que descrevem o jogo
 Documentacao/    receitas para quem for mexer no código
 Ferramentas/     geradores de arte e de som provisórios, e as medições: o jogo
                  rodando sozinho (medir-dificuldade.sh), o portão do aluno
-                 parado (parado-reprova.sh) e as 69 batalhas que uma
+                 parado (parado-reprova.sh) e as 74 batalhas que uma
                  refatoração não pode mudar (linha-de-base.sh)
 
 tests/           a suíte
@@ -899,7 +945,7 @@ resto mora em colaboradores, um por assunto:
 | `TelaDeCarregamento` | o véu enquanto os projéteis são preparados |
 
 Uma refatoração nela tem de passar pela linha de base
-(`Ferramentas/linha-de-base.sh`): as 69 batalhas idênticas, byte a byte.
+(`Ferramentas/linha-de-base.sh`): as 74 batalhas idênticas, byte a byte.
 
 ## Os dados
 
