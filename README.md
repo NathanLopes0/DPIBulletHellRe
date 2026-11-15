@@ -811,7 +811,13 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   tiros que saem abertos e miram de novo no Hugo, e o bloco 2×2 do pooling do
   Michel, quatro tiros em quadrado que voam juntos, e a dupla hélice da
   Sabrina, dois tiros que saem juntos e se enroscam), e cada um traz um
-  **poder**, que carrega a cada acerto no Hugo e sai no **botão 3**. O poder é um
+  **poder**, que sai no **botão 3**. Ele carrega com o tempo de luta (sozinho,
+  em 24 segundos) e mais depressa a cada acerto **seu** no Hugo — o tiro do
+  orientador, o do golpe e o do próprio poder, não conta —, então dá para
+  soltá-lo em toda fase, a primeira inclusive. Carregando, o anel em volta dele
+  enche em azul; pronto, ele fica dourado e pulsa, ondas saem dele, um laço
+  dourado corre até você e você ganha um halo: é o seu botão 3. O poder não
+  escreve nada na tela — o que ele faz se vê no campo. O poder é um
   conceito da matéria dele, jogável:
 
   - **André — `for (i) for (j)`.** Laços aninhados: uma matriz de 5 linhas de
@@ -848,8 +854,7 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
     param por um instante, uma linha na cor do grupo liga cada um ao centróide
     dele, e eles são puxados até lá — e cada grupo vira um tiro só, no
     centróide: dezenas de tiros viram quatro. E de novo: na hora e a cada 2
-    segundos, quatro vezes — o campo vai se limpando aos poucos, e o placar conta
-    a rodada ("k-médias 2/4: 17 tiros → 4"). Ele orienta quem passou na optativa dele, mas não senta na
+    segundos, quatro vezes — o campo vai se limpando aos poucos. Ele orienta quem passou na optativa dele, mas não senta na
     banca; o objetivo dele pergunta "Cadê o conjunto de teste?".
   - **Michel — câmera escura.** Uma parede com um furo vai com você, um pouco
     acima: o tiro do Hugo que a cruza sai do outro lado do furo, de cabeça para
@@ -861,9 +866,9 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
     esqueleto de cada fita desenhados entre eles. A base da frente cresce e
     varre o tiro do Hugo que encosta nela; a de trás, menor, passa por trás. O
     eixo fica onde você estava quando o par saiu, então andar entorta a hélice:
-    ela é o seu rastro, e serve de parede e de ataque ao mesmo tempo. Em cima de
-    você, o gene que ela escreve: "5' ATGGATTACA... 3'". Também orienta sem
-    sentar na banca; o objetivo dela pergunta "Cadê o controle negativo?".
+    ela é o seu rastro, e serve de parede e de ataque ao mesmo tempo. Também
+    orienta sem sentar na banca; o objetivo dela pergunta "Cadê o controle
+    negativo?".
 
   A tela em que se escolhe o orientador mostra o poder de cada um
   funcionando: um campo em miniatura, animado, com a legenda de cada passo.

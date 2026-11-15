@@ -34,11 +34,17 @@ namespace Poder {
     /// O poder do orientador da materia 'm'.
     Descricao Da(Golpe::Materia m);
 
-    /// Acertos no Hugo para encher.
-    constexpr int kCarga = 70;
+    /// Acertos de aluno no Hugo para encher. So o tiro do aluno carrega: o do orientador - o do golpe
+    /// e o do proprio poder - nao, senao o poder que ataca se recarregaria sozinho.
+    constexpr float kCarga = 70.0f;
+    /// O poder tambem enche com o tempo de luta: sem acertar nada, em kEncheSozinhoEm segundos.
+    /// Acertar adianta - e assim da para solta-lo em toda fase do TCC, a primeira inclusive.
+    constexpr float kEncheSozinhoEm = 24.0f;
+    /// A carga (em acertos) que 'segundos' de luta dao.
+    float CargaDoTempo(float segundos);
 
     /// Quanto do poder esta carregado, de 0 a 1.
-    float Fracao(int carga);
+    float Fracao(float carga);
 
     /// Se ele ataca (e entao so paga nota com o escudo do Hugo aberto).
     bool Ataca(Tipo t);

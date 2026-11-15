@@ -188,6 +188,11 @@ TEST_CASE("Poder: a carga enche acertando, e as contas dos efeitos") {
     CHECK(Fracao(kCarga / 2) == doctest::Approx(0.5f).epsilon(0.02));
     CHECK(Fracao(kCarga) == doctest::Approx(1.0f));
     CHECK(Fracao(kCarga * 3) == doctest::Approx(1.0f));
+    // Sozinho, o tempo enche em kEncheSozinhoEm segundos - menos que uma fase do TCC (30 s).
+    CHECK(CargaDoTempo(kEncheSozinhoEm) == doctest::Approx(kCarga));
+    CHECK(CargaDoTempo(0.0f) == doctest::Approx(0.0f));
+    CHECK(CargaDoTempo(-3.0f) == doctest::Approx(0.0f));
+    CHECK(kEncheSozinhoEm < 30.0f);
 
     const Vector2 v(0.0f, -900.0f);
     const Vector2 virado = Guiar(v, Vector2(0.0f, 0.0f), Vector2(500.0f, 0.0f), kGiroDosAgentes, 0.016f);

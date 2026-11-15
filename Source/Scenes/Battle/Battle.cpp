@@ -640,8 +640,9 @@ void Battle::ProfessorAcertado(const PlayerProjectile& tiro, const CircleCollide
                           quem);
     }
 
-    // Todo acerto carrega o poder do orientador, blindado ou nao.
-    if (mOrientador) mOrientador->Carregar();
+    // O acerto de um aluno carrega o poder do orientador, blindado ou nao; o do orientador (o golpe
+    // e o proprio poder) nao.
+    if (mOrientador && PosicaoDoAluno(tiro.Dono()) >= 0) mOrientador->Carregar();
 }
 
 void Battle::PontoExtraPego(Player& aluno, const bool primeiroDoQuadro) {

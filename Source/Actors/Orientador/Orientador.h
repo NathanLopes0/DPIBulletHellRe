@@ -90,10 +90,6 @@ public:
     /// da pilha): some no quadro seguinte se ninguem o pedir de novo.
     void Tracar(const Vector2& de, const Vector2& ate, SDL_Color cor) { mTracos.push_back({de, ate, cor}); }
 
-    /// O que o poder esta fazendo agora, numa linha em cima do aluno ("push(tiro)  pilha: 7",
-    /// "ROLLBACK: a nota voltou"). O placar e do Hugo, que o reescreve; o rotulo e do poder, e some
-    /// sozinho um pouco depois da ultima vez que foi escrito.
-    void Rotular(const std::string& texto);
 
 private:
     /// O retrato e o cartao de chefe dele (128 px), em tamanho de ajudante.
@@ -148,17 +144,21 @@ private:
     // ---- O poder em curso ----
 
     void AtualizarPoder(Battle& batalha, float deltaTime);
+    /// A carga que o tempo de luta da (Poder::CargaDoTempo), fora do poder em curso.
+    void EncherComOTempo(float deltaTime);
+    /// Na primeira vez que fica pronto: o placar e o som.
+    void AvisarSePronto();
     void DesenharAnel();
+    /// O poder pronto, sem texto: as ondas, o laco ate cada aluno e o halo dele.
+    void DesenharPronto(const Vector2& centro);
+    void Circulo(const Vector2& centro, float raio, SDL_Color cor);
     void Anunciar(const std::string& texto);
 
-    /// O rotulo do poder: quanto fica depois de escrito, e onde, a partir do aluno.
-    static constexpr float kRotuloFica = 1.8f;
-    static constexpr float kRotuloAcima = 118.0f;
-    static constexpr int kLarguraDoRotulo = 360;
-    static constexpr int kAlturaDoRotulo = 28;
-    class EtiquetaDeCodigo* mRotulo = nullptr;
-    std::string mRotulado;
-    float mRotuloAte = -1.0f;
+    static constexpr float kOndasPorSegundo = 1.1f;
+    static constexpr float kAlcanceDasOndas = 46.0f;
+    static constexpr float kTracoDoLaco = 10.0f;
+    static constexpr float kVaoDoLaco = 9.0f;
+    static constexpr float kCorridaDoLaco = 70.0f;   ///< px por segundo, do orientador ao aluno
 
     struct TracoDoPoder {
         Vector2 de;
@@ -169,7 +169,7 @@ private:
 
     Poder::Descricao mPoder;
     std::unique_ptr<PoderEmCampo> mEmCampo;   ///< o efeito do poder (nulo: sem poder)
-    int mCarga = 0;
+    float mCarga = 0.0f;
     int mPoderes = 0;
     bool mAvisouPronto = false;
     bool mBotaoAntes = false;

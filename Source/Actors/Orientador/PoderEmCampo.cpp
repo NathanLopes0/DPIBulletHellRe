@@ -59,10 +59,6 @@ namespace {
                 const Poder::Celula c = Poder::CelulaDaMatriz(mProxima);
                 if (o.Tempo() - mInicio < c.quando) break;
                 ++mProxima;
-                if (c.j == 0) {
-                    o.Rotular("i = " + std::to_string(c.i) + ":  for (j)  " +
-                              std::to_string(Poder::kColunasDaMatriz) + " tiros");
-                }
                 Golpe::Tiro tiro;
                 tiro.velocidade = Poder::kVelocidadeDaMatriz;
                 o.Disparar(batalha, tiro, Vector2(aluno.x + c.dx, aluno.y - kAcimaDoAluno), Vector2(0.0f, -1.0f));
@@ -106,7 +102,6 @@ namespace {
                 if (anim->GetAnimation() != rumo) anim->SetAnimation(rumo);
             }
 
-            const int antes = mPilha;
             if (ativo) {
                 // Push: o que encosta nela entra na pilha. Cheia, e stack overflow - ela devolve ja.
                 for (BossProjectile* p : o.TirosSoltos(batalha)) {
@@ -115,12 +110,7 @@ namespace {
                     p->Kill();
                     ++mPilha;
                 }
-                if (mPilha >= Poder::kMaiorPilha && !mTransbordou) {
-                    mTransbordou = true;
-                    o.Rotular("stack overflow: pop()");
-                } else if (mPilha != antes && !mTransbordou) {
-                    o.Rotular("push(tiro)   pilha: " + std::to_string(mPilha));
-                }
+                if (mPilha >= Poder::kMaiorPilha) mTransbordou = true;
             }
             if (mPilha == 0) mTransbordou = false;
             if (mPilha > 0 && (!ativo || mTransbordou)) {
@@ -130,7 +120,6 @@ namespace {
                     const Vector2 topo = Topo(*c, mPilha - 1);
                     --mPilha;
                     o.Disparar(batalha, Golpe::Tiro{}, topo, Golpe::Rumo(topo, chefe->GetPosition(), 0.0f));
-                    if (!ativo) o.Rotular("pop() no Hugo   pilha: " + std::to_string(mPilha));
                 }
             } else if (!ativo) {
                 Desfazer(mFiguras);
@@ -230,7 +219,6 @@ namespace {
             // transacao fecha la (Battle::FecharPendencias): a nota que decide ja e a certa.
             mMarca = batalha.MarcarNota();
             mAberta = true;
-            o.Rotular("BEGIN   nota salva: " + Nota2(mMarca.nota));
             batalha.DeixarPendencia([this, &o, &batalha] { Fechar(o, batalha); });
         }
         void Atualizar(Orientador& o, Battle& batalha, float, const bool ativo) override {
@@ -260,24 +248,14 @@ namespace {
         static constexpr float kTraco = 8.0f;
         static constexpr SDL_Color kCorDaTransacao{120, 220, 255, 230};
 
-        static std::string Nota2(const float nota) {
-            char texto[16];
-            std::snprintf(texto, sizeof(texto), "%.2f", static_cast<double>(nota));
-            return texto;
-        }
-
         /// O fim: ROLLBACK se a nota caiu (e os tiros do Hugo voltam por onde vieram), COMMIT se nao.
         void Fechar(Orientador& o, Battle& batalha) {
             if (!mAberta) return;
             mAberta = false;
-            const float antes = batalha.NotaAtual();
             if (batalha.DesfazerNota(mMarca)) {
-                o.Rotular("ROLLBACK: a nota voltou a " + Nota2(mMarca.nota));
                 for (BossProjectile* p : o.TirosSoltos(batalha)) {
                     if (auto* rb = p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(rb->GetVelocity() * -1.0f);
                 }
-            } else {
-                o.Rotular("COMMIT: a nota fica " + Nota2(antes));
             }
         }
 
@@ -308,7 +286,6 @@ namespace {
                     o.Disparar(batalha, Golpe::Tiro{}, de, Golpe::Rumo(de, chefe->GetPosition(), desvio),
                                Poder::kFolhaDasMaterias, Poder::QuadroDaMateria(Golpe::Materia::Luizinho), 1.0f);
                 }
-                o.Rotular("catch (acerto " + std::to_string(mCapturas) + ")   finally: leque");
             }
             mPendentes.clear();
             if (!ativo) return;
@@ -374,8 +351,6 @@ namespace {
             });
             const int leva = Poder::LevaNoPasso(static_cast<int>(tiros.size()));
             for (int k = 0; k < leva; ++k) tiros[static_cast<size_t>(k)]->Kill();
-            o.Rotular("passo " + std::to_string(mPasso) + ": " + std::to_string(tiros.size()) + " \xe2\x86\x92 " +
-                      std::to_string(tiros.size() - static_cast<size_t>(leva)));
             o.AbrirAnel();
         }
     private:
@@ -430,9 +405,6 @@ namespace {
                 }
                 mMembros.push_back(m);
             }
-            // \xc3\xa9 e o e agudo, \xe2\x86\x92 a seta.
-            o.Rotular("k-m\xc3\xa9" "dias " + std::to_string(mRodadas) + "/" + std::to_string(Poder::kRodadasDasKMedias) + ": " +
-                      std::to_string(tiros.size()) + " tiros \xe2\x86\x92 " + std::to_string(centros.size()));
             mAtivo = !tiros.empty();
         }
         void Atualizar(Orientador& o, Battle& batalha, float, bool) override {
@@ -517,7 +489,6 @@ namespace {
             mTiros.clear();
             mVistos.clear();
             mProximoGrupo = 0;
-            mAnunciado = -1;
         }
         void Atualizar(Orientador& o, Battle& batalha, float, const bool ativo) override {
             mTiros.erase(std::remove_if(mTiros.begin(), mTiros.end(), [&o](const Tiro& c) { return !Mesmo(o, c); }),
@@ -554,11 +525,6 @@ namespace {
                 c.p->SetPosition(c.posicao);
                 if (rb) rb->SetVelocity(Vector2::Zero);
             }
-            if (daVez != mAnunciado) {
-                mAnunciado = daVez;
-                o.Rotular("quantum: o grupo " + std::to_string(daVez + 1) + " de " +
-                          std::to_string(Poder::kGruposDoRodizio) + " anda");
-            }
         }
     private:
         struct Tiro {
@@ -577,7 +543,6 @@ namespace {
         }
         float mInicio = 0.0f;
         int mProximoGrupo = 0;
-        int mAnunciado = -1;
         std::vector<Tiro> mTiros;
         std::unordered_set<const BossProjectile*> mVistos;
     };
@@ -589,7 +554,6 @@ namespace {
         void Soltar(Orientador& o, Battle&, const Vector2&, const Vector2&) override {
             mPares.clear();
             mEscritos = 0;
-            mGene.clear();
             mProximo = o.Tempo();
         }
         void Atualizar(Orientador& o, Battle& batalha, float, const bool ativo) override {
@@ -611,10 +575,6 @@ namespace {
                     if (p) par.fitas[fita] = {p, p->Id(), de, 0.0f};
                 }
                 mPares.push_back(par);
-                // O gene que a helice escreve, de 5' a 3', em cima do aluno.
-                mGene.push_back(Poder::LetraDaBase(par.base));
-                if (mGene.size() > kLetrasNoRotulo) mGene.erase(mGene.begin());
-                o.Rotular("5' " + mGene + " 3'");
             }
             if (mPares.empty()) return;
 
@@ -698,7 +658,6 @@ namespace {
             float eixo = 0.0f;
         };
         static constexpr float kAcimaDoAluno = 30.0f;
-        static constexpr size_t kLetrasNoRotulo = 12;
         /// As cores das bases: A verde, T vermelho, C azul e G amarelo.
         static SDL_Color CorDaBase(const int base) {
             static constexpr SDL_Color kCores[4] = {{110, 220, 110, 255}, {255, 95, 95, 255}, {90, 170, 255, 255},
@@ -707,7 +666,6 @@ namespace {
         }
         std::vector<Par> mPares;
         int mEscritos = 0;
-        std::string mGene;
         float mProximo = 0.0f;
     };
 
@@ -717,7 +675,6 @@ namespace {
     public:
         void Soltar(Orientador& o, Battle&, const Vector2&, const Vector2&) override {
             mInvertidos.clear();
-            mQuantos = 0;
             o.AbrirAnel();
         }
         void Atualizar(Orientador& o, Battle& batalha, float, const bool ativo) override {
@@ -744,18 +701,11 @@ namespace {
                 rb->SetVelocity(v * -1.0f);
                 mInvertidos[p] = p->TempoDeVida();
                 o.Tracar(furo, p->GetPosition(), kCorDaParede);
-                ++mQuantos;
-            }
-            // \xc3\xa2 e o a circunflexo, \xc3\xa7 o c cedilha.
-            if (mQuantos > 0) {
-                o.Rotular("c\xc3\xa2mera escura: " + std::to_string(mQuantos) +
-                          (mQuantos == 1 ? " tiro voltou" : " tiros voltaram") + " de cabe\xc3\xa7" "a para baixo");
             }
         }
     private:
         static constexpr SDL_Color kCorDaParede = {255, 236, 160, 200};
         std::unordered_map<const BossProjectile*, float> mInvertidos;
-        int mQuantos = 0;
     };
 
     // ---- Julio: agentes autonomos ----
@@ -888,7 +838,6 @@ namespace {
             mUltimoY.clear();
             mProximaPassagem = o.Tempo() + o.Descricao().intervalo;
             mFechada = true;
-            mAnunciados = -1;
         }
         void Atualizar(Orientador& o, Battle& batalha, const float deltaTime, const bool ativo) override {
             if (!mFechada) return;
@@ -897,7 +846,6 @@ namespace {
             if (!ativo) {
                 // V(s): a trava abre, e quem ainda esperava morre de inanicao.
                 for (const Parado& c : mParados) c.p->Kill();
-                o.Rotular("V(s): " + std::to_string(mParados.size()) + " morreram de inanição");
                 mParados.clear();
                 mFechada = false;
                 return;
@@ -928,11 +876,6 @@ namespace {
                 if (auto* rb = c.p->GetComponent<RigidBodyComponent>()) rb->SetVelocity(Vector2::Zero);
             }
 
-            if (static_cast<int>(mParados.size()) != mAnunciados) {
-                mAnunciados = static_cast<int>(mParados.size());
-                o.Rotular("P(s)   s = 0   fila: " + std::to_string(mAnunciados));
-            }
-
             // A porta: a faixa da secao critica, como na fase dele.
             const SDL_FRect campo = batalha.GetPlayfieldBounds();
             for (const float dy : {0.0f, 5.0f}) {
@@ -960,7 +903,6 @@ namespace {
         float mPorta = 0.0f;
         bool mFechada = false;
         float mProximaPassagem = 0.0f;
-        int mAnunciados = -1;
         std::vector<Parado> mParados;
         std::unordered_set<const BossProjectile*> mVistos;
         std::unordered_map<const BossProjectile*, float> mUltimoY;

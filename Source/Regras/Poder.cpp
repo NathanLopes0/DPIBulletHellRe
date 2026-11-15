@@ -82,8 +82,12 @@ namespace Poder {
         return d;
     }
 
-    float Fracao(const int carga) {
-        return std::clamp(static_cast<float>(carga) / static_cast<float>(kCarga), 0.0f, 1.0f);
+    float CargaDoTempo(const float segundos) {
+        return std::max(0.0f, segundos) * kCarga / kEncheSozinhoEm;
+    }
+
+    float Fracao(const float carga) {
+        return std::clamp(carga / kCarga, 0.0f, 1.0f);
     }
 
     bool Ataca(const Tipo t) {

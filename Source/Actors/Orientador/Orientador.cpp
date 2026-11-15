@@ -17,7 +17,6 @@
 #include "../Player/PlayerProjectile.h"
 #include "../Teachers/Boss.h"
 #include "../Teachers/Bosses/BossesProjectiles/BossProjectile.h"
-#include "../Teachers/Bosses/PainelDeCodigo.h"
 #include "../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../../Components/DrawComponents/DrawSpriteComponent.h"
@@ -109,6 +108,7 @@ void Orientador::OnUpdate(const float deltaTime) {
     AtualizarPoder(*batalha, deltaTime);
     DesenharAnel();
     if (!batalha->EmCombate()) return;
+    EncherComOTempo(deltaTime);
     Golpear(*batalha, deltaTime);
 }
 
@@ -274,32 +274,26 @@ void Orientador::Guiar(Battle& batalha, const float deltaTime) {
 
 void Orientador::Carregar() {
     if (mPoder.tipo == Poder::Tipo::Nenhum) return;
-    mCarga = std::min(Poder::kCarga, mCarga + 1);
-    if (PoderPronto() && !mAvisouPronto) {
-        mAvisouPronto = true;
-        Anunciar("BOTÃO 3: " + mPoder.nome + "\n" + mProfessor + " está pronto");
-    }
+    mCarga = std::min(Poder::kCarga, mCarga + 1.0f);
+    AvisarSePronto();
+}
+
+void Orientador::EncherComOTempo(const float deltaTime) {
+    // Com o poder em curso, nao: a carga volta a encher quando ele acaba.
+    if (mPoder.tipo == Poder::Tipo::Nenhum || mTempo < mPoderAte) return;
+    mCarga = std::min(Poder::kCarga, mCarga + Poder::CargaDoTempo(deltaTime));
+    AvisarSePronto();
+}
+
+void Orientador::AvisarSePronto() {
+    if (!PoderPronto() || mAvisouPronto) return;
+    mAvisouPronto = true;
+    Anunciar("BOT\xc3\x83O 3: " + mPoder.nome + "\n" + mProfessor + " est\xc3\xa1 pronto");
+    GetScene()->GetGame()->GetAudio()->PlaySound("powerup.wav", false);
 }
 
 bool Orientador::PoderPronto() const {
     return mPoder.tipo != Poder::Tipo::Nenhum && mCarga >= Poder::kCarga && mTempo >= mPoderAte;
-}
-
-void Orientador::Rotular(const std::string& texto) {
-    // Nasce na primeira vez que o poder fala: a fonte do placar so existe com a batalha montada.
-    if (!mRotulo) {
-        auto rotulo = std::make_unique<EtiquetaDeCodigo>(GetScene(), texto, kLarguraDoRotulo, kAlturaDoRotulo,
-                                                         kOrdemDoAnel);
-        rotulo->Pintar(kPronto, SDL_Color{20, 24, 36, 230}, SDL_Color{255, 240, 190, 255});
-        mRotulo = rotulo.get();
-        GetScene()->AddActor(std::move(rotulo));
-        mRotulado = texto;
-    }
-    if (texto != mRotulado) {
-        mRotulado = texto;
-        mRotulo->Escrever(texto);
-    }
-    mRotuloAte = mTempo + kRotuloFica;
 }
 
 void Orientador::Anunciar(const std::string& texto) {
@@ -338,12 +332,11 @@ bool Orientador::SoltarPoder() {
     Boss* chefe = batalha->Chefe();
     if (!chefe) return false;
 
-    mCarga = 0;
+    mCarga = 0.0f;
     mAvisouPronto = false;
     ++mPoderes;
     mPoderAte = mTempo + mPoder.duracao;
-    Anunciar(mPoder.nome + "\n" + mPoder.efeito);
-    Rotular(mPoder.nome);
+    SetScale(kEscala);
     SDL_Log("ORIENTADOR: %s soltou o poder (%s) no quadro %d.", mProfessor.c_str(), mPoder.nome.c_str(),
             GetScene()->GetGame()->Quadro());
 
@@ -357,18 +350,44 @@ void Orientador::AtualizarPoder(Battle& batalha, const float deltaTime) {
         if (mAnelDoPoder > mPoder.raio) mAnelDoPoder = -1.0f;
     }
     if (mEmCampo) mEmCampo->Atualizar(*this, batalha, deltaTime, mTempo < mPoderAte);
+}
 
-    if (mRotulo) {
-        const bool aceso = mTempo < mRotuloAte;
-        mRotulo->Mostrar(aceso);
-        if (aceso) {
-            // Em cima do aluno, sem sair do campo.
-            const SDL_FRect campo = batalha.GetPlayfieldBounds();
-            const Vector2 aluno = PosicaoDoAluno();
-            const float meia = static_cast<float>(kLarguraDoRotulo) / 2.0f + 6.0f;
-            mRotulo->SetPosition(Vector2(std::clamp(aluno.x, campo.x + meia, campo.x + campo.w - meia),
-                                         std::max(campo.y + 60.0f, aluno.y - kRotuloAcima)));
+void Orientador::Circulo(const Vector2& centro, const float raio, const SDL_Color cor) {
+    for (int k = 0; k < kSegmentos; ++k) {
+        const float a0 = 2.0f * Math::Pi * static_cast<float>(k) / kSegmentos;
+        const float a1 = 2.0f * Math::Pi * static_cast<float>(k + 1) / kSegmentos;
+        mLinhas->Acrescentar(centro + Vector2(Math::Cos(a0), Math::Sin(a0)) * raio,
+                             centro + Vector2(Math::Cos(a1), Math::Sin(a1)) * raio, cor);
+    }
+}
+
+void Orientador::DesenharPronto(const Vector2& centro) {
+    // As ondas: duas por vez, abrindo do anel e se apagando.
+    for (int k = 0; k < 2; ++k) {
+        const float u = std::fmod(mTempo * kOndasPorSegundo + 0.5f * static_cast<float>(k), 1.0f);
+        SDL_Color cor = kPronto;
+        cor.a = static_cast<Uint8>(220.0f * (1.0f - u));
+        Circulo(centro, kRaioDoAnel + u * kAlcanceDasOndas, cor);
+    }
+    const Battle* batalha = Batalha();
+    if (!batalha) return;
+    for (const Player* aluno : batalha->Jogadores()) {
+        if (!aluno) continue;
+        const Vector2 p = aluno->GetPosition();
+        // O laco: tracos dourados que andam do orientador ate o aluno.
+        const Vector2 falta = p - centro;
+        const float distancia = falta.Length();
+        if (distancia > kRaioDoAnel + 30.0f) {
+            const Vector2 rumo = falta * (1.0f / distancia);
+            const float passo = kTracoDoLaco + kVaoDoLaco;
+            for (float d = kRaioDoAnel + std::fmod(mTempo * kCorridaDoLaco, passo); d + kTracoDoLaco < distancia - 26.0f; d += passo) {
+                mLinhas->Acrescentar(centro + rumo * d, centro + rumo * (d + kTracoDoLaco), kPronto);
+            }
         }
+        // O halo do aluno, que respira.
+        SDL_Color halo = kPronto;
+        halo.a = 200;
+        Circulo(p, 24.0f + 3.0f * std::sin(mTempo * 6.0f), halo);
     }
 }
 
@@ -389,6 +408,10 @@ void Orientador::DesenharAnel() {
         mLinhas->Acrescentar(c + Vector2(Math::Cos(a0), Math::Sin(a0)) * kRaioDoAnel,
                              c + Vector2(Math::Cos(a1), Math::Sin(a1)) * kRaioDoAnel, cor);
     }
+    // Pronto, sem texto: o retrato pulsa, ondas saem dele, e um laco dourado corre ate cada aluno,
+    // que ganha um halo - e o aluno quem solta (o botao 3).
+    SetScale(pronto ? kEscala * (1.0f + 0.08f * std::fabs(std::sin(mTempo * 5.0f))) : kEscala);
+    if (pronto) DesenharPronto(c);
     // O desenho do poder em curso.
     for (const TracoDoPoder& t : mTracos) mLinhas->Acrescentar(t.de, t.ate, t.cor);
     mTracos.clear();
