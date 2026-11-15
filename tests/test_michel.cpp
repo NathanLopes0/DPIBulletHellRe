@@ -1,5 +1,5 @@
 //
-// O Michel (INF 429 - Aprendizado de Maquina com Dados Visuais): a camada pura das quatro provas.
+// O Michel (INF 429 - Visao Computacional): a camada pura das quatro provas.
 //
 
 #include "doctest.h"

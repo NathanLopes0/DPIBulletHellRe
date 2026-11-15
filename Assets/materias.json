@@ -123,7 +123,7 @@
     // optativa pede a nota cheia. --batalha 14 e ela.
     {
       "codigo": "INF429", "nome": "INF 429",
-      "nomeCompleto": "Aprendizado de Máquina com Dados Visuais", "professor": "Michel",
+      "nomeCompleto": "Visão Computacional", "professor": "Michel",
       "coluna": 6, "chefe": "michel", "optativa": true,
       "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"], "preco": 30,
                        "requisitos": [ { "tipo": "mencao", "mencao": "ouro", "quantas": 8 },

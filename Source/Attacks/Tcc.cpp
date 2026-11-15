@@ -293,7 +293,7 @@ namespace Tcc {
              "Round Robin, q = 1,2 s",   "Quanto custa uma troca de contexto?", "Goulart"},
             {Materia::Daniel,     "Daniel",      "Ciência de Dados",
              "k-means, k = 3",           "Cadê o conjunto de teste?",           "Daniel"},
-            {Materia::Michel,     "Michel",      "Aprendizado de Máquina com Dados Visuais",
+            {Materia::Michel,     "Michel",      "Visão Computacional",
              "conv 3×3, stride 1",       "Por que não uma rede pré-treinada?",  "Michel"},
             {Materia::Sabrina,    "Sabrina",     "Tópicos Especiais, Bioinformática",
              "5'-AUG GCU UAA-3'",        "Cadê o controle negativo?",           "Sabrina"},

@@ -1,5 +1,5 @@
 //
-// O chefe da INF 429 - Aprendizado de Maquina com Dados Visuais, a segunda optativa.
+// O chefe da INF 429 - Visao Computacional, a segunda optativa.
 //
 
 #pragma once

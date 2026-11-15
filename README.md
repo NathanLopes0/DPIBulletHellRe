@@ -354,7 +354,7 @@ foi aprovado:
 | 3 | INF 420 — Inteligência Artificial *(Júlio)*, INF 221 — Engenharia de Software *(Maria Lúcia)*, INF 321 — Programação Web *(Lucas)*, INF 310 — Programação Concorrente e Distribuída *(Vitor)*, INF 451 — Sistemas Operacionais *(Goulart)* | 2 aprovações na coluna 2 |
 | 4 | TCC — Trabalho de Conclusão de Curso *(Hugo)* | 2 aprovações na coluna 3 |
 | 5 *(optativas)* | INF 425 — Ciência de Dados *(Daniel)* | INF 213 aprovada, pelo menos 5 menções de ouro, 2 no Difícil e 2 "prestando atenção", e 20 h de horas complementares |
-| 6 *(optativas)* | INF 429 — Aprendizado de Máquina com Dados Visuais *(Michel)* | INF 213 aprovada, pelo menos 8 menções de ouro, 4 no Difícil, 3 "prestando atenção" e 2 "sentar na frente", e 30 h de horas complementares — o MaVIlab é seleto |
+| 6 *(optativas)* | INF 429 — Visão Computacional *(Michel)* | INF 213 aprovada, pelo menos 8 menções de ouro, 4 no Difícil, 3 "prestando atenção" e 2 "sentar na frente", e 30 h de horas complementares — o MaVIlab é seleto |
 | 7 *(optativas)* | INF 491 — Tópicos Especiais, Bioinformática *(Sabrina)* | INF 213 aprovada, pelo menos 9 menções de ouro, 5 no Difícil, 3 "sentar na frente" e 3 "prestando atenção", e 35 h de horas complementares — a mais pesada das três |
 
 Toda matéria tem professor e batalha — as doze do curso, o TCC, do Hugo, que é
@@ -379,7 +379,7 @@ obrigatórias, pedem **requisitos** além das aprovações (uma menção de ouro
 horas ganhas...) e se **compram** com horas complementares; o prêmio é um
 **orientador novo** no TCC — o professor da optativa aprovada aparece a mais,
 além dos três candidatos das obrigatórias. A primeira é a INF 425, Ciência de Dados, do Daniel; a
-segunda, a INF 429, Aprendizado de Máquina com Dados Visuais, do Michel; a
+segunda, a INF 429, Visão Computacional, do Michel; a
 terceira, a INF 491, Tópicos Especiais, Bioinformática, da Sabrina — a mais
 difícil das três. Uma optativa não pede outra, nem matéria além da INF 213: o
 que ela pede são menções, e as horas da compra. A matrícula é uma festinha: as horas
@@ -703,7 +703,7 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   decorar, é de olhar: as três cartas ficam no desenho, presas aos candidatos;
   derrubar a certa vale nota, a errada estoura em cacos, e enquanto a pergunta
   está aberta o professor só espera a resposta.
-- **Michel — INF 429, optativa.** Aprendizado de Máquina com Dados Visuais, do
+- **Michel — INF 429, optativa.** Visão Computacional, do
   professor que lidera o MaVIlab — a mais difícil das optativas, que pede
   menos reflexo e mais pensar em como a máquina vê. Na **imagem**, o meio do
   campo é uma **câmera escura**: o que ele arremessa na cena (em cima) também

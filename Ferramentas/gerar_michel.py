@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Arte PROVISORIA do Michel (INF 429 - Aprendizado de Maquina com Dados Visuais,
+"""Arte PROVISORIA do Michel (INF 429 - Visao Computacional,
 optativa) e dos projeteis dele.
 
 Mesmo estilo de cartao dos outros professores: e deliberadamente um
