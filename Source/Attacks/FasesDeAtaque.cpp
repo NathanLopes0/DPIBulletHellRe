@@ -92,10 +92,11 @@ namespace {
                                                 "letra", "maquina", "residuo", "solto", "atomo", "agua", "sitio",
                                                 "inibidor", "aminoacido", "copia", "primer", "read", "contig",
                                                 "genoma", "tesoura",
-                                                // O Lucas Ferreira: a interface, as regras, o motor e
+                                                // O Lucas Ferreira: a interface, a fisica, as regras e
                                                 // o lancamento.
-                                                "janela", "fechar", "tiro", "espinho", "arremesso", "retorno",
-                                                "sprite", "colisor", "disquete", "botao", "credito"};
+                                                "abertura", "janela", "fechar", "tiro", "espinho", "lanca",
+                                                "bloco", "fagulha", "retorno", "sprite", "colisor", "disquete",
+                                                "botao", "credito"};
     /// Os nomes que a maquina de estados procura por texto. Nao sao livres.
     const std::vector<std::string> kNomesDeFase = {
         "StateOne", "StateTwo", "StateThree", "StateFinal"

@@ -138,3 +138,29 @@ TEST_CASE("Simulacao: o piloto que desvia sai da frente do tiro, e sem tiro vai 
     const std::vector<Ameaca> deLado = {Ameaca{960.0f, 540.0f, 0.0f, 260.0f, 8.0f}};
     CHECK(Desviar(990.0f, 600.0f, 6.0f, 300.0f, deLado, 990.0f, 600.0f, faixa, Rumo{}).dx <= 0);
 }
+
+TEST_CASE("Simulacao: no jogo de plataforma, o piloto que desvia pula o que vem rente ao chao, e fica para o que vem alto") {
+    using Plataforma::Lado;
+    // O chao de sempre: o centro do aluno para em y = 682, e anda de x = 64 a 1136.
+    const Simulacao::Chao chao{682.0f, 64.0f, 1136.0f};
+    const Vector2 p(600.0f, 682.0f);
+    // Nada vindo: anda para o alvo, sem pular.
+    const Salto livre = Saltar(p, 0.0f, true, Lado::Baixo, chao, 6.4f, 300.0f, {}, 900.0f, Salto{});
+    CHECK(livre.anda == 1);
+    CHECK_FALSE(livre.pula);
+    // Em cima do alvo, fica.
+    const Salto chegou = Saltar(p, 0.0f, true, Lado::Baixo, chao, 6.4f, 300.0f, {}, 600.0f, Salto{});
+    CHECK(chegou.anda == 0);
+    CHECK_FALSE(chegou.pula);
+    // Uma pilha de duas caixas vindo da direita, rente ao chao: pula.
+    const std::vector<Ameaca> pilha = {Ameaca{700.0f, 700.0f, -340.0f, 0.0f, 14.0f}, Ameaca{700.0f, 672.0f, -340.0f, 0.0f, 14.0f}};
+    CHECK(Saltar(p, 0.0f, true, Lado::Baixo, chao, 6.4f, 300.0f, pilha, 600.0f, Salto{}).pula);
+    // Uma lanca alta, na altura de quem pula: nao pula.
+    const std::vector<Ameaca> alta = {Ameaca{760.0f, 630.0f, -540.0f, 0.0f, 14.0f}};
+    CHECK_FALSE(Saltar(p, 0.0f, true, Lado::Baixo, chao, 6.4f, 300.0f, alta, 600.0f, Salto{}).pula);
+    // Na parede esquerda: a lanca de baixo desce rente a parede, e ele pula - para a direita.
+    const Simulacao::Chao parede{-64.0f, 64.0f, 682.0f};
+    const Vector2 naParede(64.0f, 400.0f);
+    const std::vector<Ameaca> rente = {Ameaca{60.0f, 300.0f, 0.0f, 540.0f, 14.0f}};
+    CHECK(Saltar(naParede, 0.0f, true, Lado::Esquerda, parede, 6.4f, 300.0f, rente, 400.0f, Salto{}).pula);
+}

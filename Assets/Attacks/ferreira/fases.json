@@ -6,21 +6,26 @@
 
   // ==========================================================================
 
-  // Fase 1 - a interface | gesto: o professor anda no alto. A barra da nota sai do rodape e varre o
-  // campo, cheia ate a nota do aluno: so se passa pelo pedaco vazio (e com 100 nao ha vazio).
-  // Primeiro ela sobe e desce; depois, de pe, vai de um lado ao outro. Por fim as janelas de dica
-  // abrem em volta do aluno, e so fecham com um tiro no X.
+  // Fase 1 - a interface | gesto: o professor anda no alto. Antes de qualquer aviso, o golpe do
+  // primeiro quadro: tres aneis rapidos fecham sobre o aluno, cada um com um vao. Depois o professor
+  // arranca a barra da nota da HUD - a de verdade - e varre o campo com ela, cheia ate a nota do
+  // aluno: so se passa pelo pedaco vazio (e com 100 nao ha vazio). Primeiro deitada, sobe e desce;
+  // depois, de pe, vai de um lado ao outro, e volta para o rodape. Por fim as janelas de dica abrem
+  // em volta do aluno, e so fecham com um tiro no X.
   "StateOne": {
     "duracao": 40,
     "proximo": "StateTwo",
-    "anuncio": "A interface ataca: a HUD saiu do lugar",
+    "anuncio": "A interface ataca: nada na tela esta a salvo",
     "etapas": [
-      { "nome": "BarraSobe", "duracao": 13.0, "anuncio": "hud.nota.soltar(): passe pelo pedaço VAZIO" },
-      { "nome": "BarraJoga", "duracao": 13.0, "anuncio": "hud.nota.girar(): agora ela vem de lado" },
+      { "nome": "Abertura",  "duracao": 3.0,  "anuncio": "quadro 1: bem-vindo à INF 216" },
+      { "nome": "BarraSobe", "duracao": 11.5, "anuncio": "hud.nota.soltar(): passe pelo pedaço VAZIO" },
+      { "nome": "BarraJoga", "duracao": 11.5, "anuncio": "hud.nota.girar(): agora ela vem de lado" },
       { "nome": "Janelas",   "duracao": 14.0, "anuncio": "tutorial.abrir(): atire no X para fechar" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 230 },
     "ataques": [
+      { "som": false, "gatilho": "abertura", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "som": false, "gatilho": "barra", "estrategia": "WaveAttack", "projetil": "Barra",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "leque", "estrategia": "WaveAttack", "projetil": "Tiro",
@@ -32,18 +37,56 @@
     ]
   },
 
-  // Fase 2 - as regras | gesto: o professor anda no alto. Na inversao, acertar o professor tira
-  // nota e os tiros dele viram moedas, que passam pelo aluno e dao nota - ate as regras voltarem.
-  // Na gravidade o aluno cai, o chao ganha espinhos e os tiros vem em arco. No fogo amigo o campo
-  // da a volta: o tiro do aluno que erra o professor volta por baixo.
+  // Fase 2 - a fisica | gesto: o professor fica no lado oposto ao chao. A prova inteira e jogo de
+  // plataforma: o aluno cai, anda pelo chao e pula para longe dele, e o professor escolhe para que
+  // lado a gravidade puxa - a seta avisa, e a virada arremessa o aluno no chao novo. Cada lado tem o
+  // seu desafio: no chao de sempre, pular as pilhas de caixas; na parede esquerda, as lancas em duas
+  // alturas; no teto, a chuva de blocos e moedas; na parede direita, a esteira que leva ao moedor.
+  // O primeiro lado e sempre o chao; os outros tres, sorteados (o placar de cada etapa e escrito na
+  // hora).
   "StateTwo": {
     "duracao": 40,
     "proximo": "StateThree",
+    "anuncio": "A fisica muda: o jogo virou plataforma",
+    "etapas": [
+      { "nome": "Lado1", "duracao": 10.0, "anuncio": "fisica.gravidade = (0, 1): PULE as caixas" },
+      { "nome": "Lado2", "duracao": 10.0, "anuncio": "fisica.gravidade virou" },
+      { "nome": "Lado3", "duracao": 10.0, "anuncio": "fisica.gravidade virou de novo" },
+      { "nome": "Lado4", "duracao": 10.0, "anuncio": "fisica.gravidade: o último lado" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 260 },
+    "ataques": [
+      { "som": false, "gatilho": "caixa", "estrategia": "WaveAttack", "projetil": "Peca",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "espinho", "estrategia": "WaveAttack", "projetil": "Peca",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "lanca", "estrategia": "WaveAttack", "projetil": "Peca",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "bloco", "estrategia": "WaveAttack", "projetil": "Peca",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "fagulha", "estrategia": "WaveAttack", "projetil": "Peca",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "moeda", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "tiro", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 3, "velocidade": 200, "angulo": 30, "intervalo": 0 }
+    ]
+  },
+
+  // Fase 3 - as regras | gesto: o professor anda no alto. A da nota: na inversao, acertar o
+  // professor tira nota e os tiros dele viram moedas, que passam pelo aluno e dao nota - ate as
+  // regras voltarem. A do campo: no fogo amigo, o tiro do aluno que erra o professor volta por baixo.
+  // A do tempo: no lag os tiros andam aos saltos, e um circulo mostra o proximo quadro. A do estado:
+  // no save/load ele salva o jogo e depois carrega - o aluno, os tiros e a nota voltam ao que eram.
+  "StateThree": {
+    "duracao": 40,
+    "proximo": "",
     "anuncio": "As regras mudam: nada vale como antes",
     "etapas": [
-      { "nome": "Inversao",  "duracao": 13.0, "anuncio": "regras.inverter(): acertar TIRA, tiro DÁ nota" },
-      { "nome": "Gravidade", "duracao": 13.0, "anuncio": "gravidade = 9.8: segure para cima!" },
-      { "nome": "FogoAmigo", "duracao": 14.0, "anuncio": "fogoAmigo = true: tiro que erra volta" }
+      { "nome": "Inversao",  "duracao": 10.0, "anuncio": "regras.inverter(): acertar TIRA, tiro DÁ nota" },
+      { "nome": "FogoAmigo", "duracao": 10.0, "anuncio": "fogoAmigo = true: tiro que erra volta" },
+      { "nome": "Lag",       "duracao": 10.0, "anuncio": "fps = 2.5: o círculo é o próximo quadro" },
+      { "nome": "SaveLoad",  "duracao": 10.0, "anuncio": "quicksave(): tudo volta para o disquete" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 230 },
     "ataques": [
@@ -51,55 +94,27 @@
         "projeteis": 14, "velocidade": 190, "angulo": 334, "intervalo": 0 },
       { "gatilho": "tiro", "estrategia": "WaveAttack", "projetil": "Tiro",
         "projeteis": 5, "velocidade": 210, "angulo": 40, "intervalo": 0 },
-      { "som": false, "gatilho": "espinho", "estrategia": "WaveAttack", "projetil": "Tiro",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "som": false, "gatilho": "arremesso", "estrategia": "WaveAttack", "projetil": "Tiro",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "som": false, "gatilho": "retorno", "estrategia": "WaveAttack", "projetil": "Tiro",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
-    ]
-  },
-
-  // Fase 3 - o motor | gesto: o professor anda no alto. No lag os tiros andam aos saltos, e um
-  // circulo mostra o proximo quadro. Na hitbox, o desenho de cada tiro vira enfeite e a colisao
-  // descola dele: machuca o circulo do modo debug. No save/load ele salva o jogo e depois carrega:
-  // o aluno, os tiros e a nota voltam ao que eram.
-  "StateThree": {
-    "duracao": 40,
-    "proximo": "",
-    "anuncio": "O motor quebra: bugs de verdade",
-    "etapas": [
-      { "nome": "Lag",      "duracao": 13.0, "anuncio": "fps = 2.5: o círculo é o próximo quadro" },
-      { "nome": "Hitbox",   "duracao": 13.0, "anuncio": "debug: desvie do CÍRCULO, não do desenho" },
-      { "nome": "SaveLoad", "duracao": 14.0, "anuncio": "quicksave(): tudo volta para o disquete" }
-    ],
-    "movimento": { "tipo": "Conduzido", "a": 230 },
-    "ataques": [
-      { "gatilho": "anel", "estrategia": "WaveAttack", "projetil": "Tiro",
-        "projeteis": 12, "velocidade": 175, "angulo": 330, "intervalo": 0 },
-      { "gatilho": "tiro", "estrategia": "WaveAttack", "projetil": "Tiro",
-        "projeteis": 3, "velocidade": 240, "angulo": 28, "intervalo": 0 },
-      { "gatilho": "sprite", "estrategia": "WaveAttack", "projetil": "Tiro",
-        "projeteis": 12, "velocidade": 170, "angulo": 330, "intervalo": 0 },
-      { "som": false, "gatilho": "colisor", "estrategia": "WaveAttack", "projetil": "Tiro",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "som": false, "gatilho": "disquete", "estrategia": "WaveAttack", "projetil": "Tiro",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
     ]
   },
 
-  // Repescagem - o lancamento | gesto: o professor anda no alto. O jogo "para de responder": os
-  // tiros congelam e um dialogo abre, com os botoes ESPERAR e FECHAR, que se derrubam a tiro.
-  // Depois o genero troca: uma frota de bugs marcha e desce, e cada bug cai com um tiro. No fim os
-  // creditos sobem do rodape, linha por linha, cada uma uma parede com um vao.
+  // Repescagem - o lancamento | gesto: o professor anda no alto. O jogo sai com bugs: primeiro a
+  // hitbox descola do desenho - machuca o circulo do modo debug. Depois ele "para de responder": os
+  // tiros congelam e um dialogo abre, com os botoes ESPERAR e FECHAR, que se derrubam a tiro. Depois
+  // o genero troca: uma frota de bugs marcha e desce, e cada bug cai com um tiro. No fim os creditos
+  // sobem do rodape, linha por linha, cada uma uma parede com um vao.
   "StateFinal": {
     "duracao": 40,
     "proximo": "StateOne",
     "anuncio": "Dia de lançamento: o jogo vai ao ar",
     "etapas": [
-      { "nome": "Crash",    "duracao": 12.0, "anuncio": "O jogo travou: atire em ESPERAR" },
-      { "nome": "Frota",    "duracao": 14.0, "anuncio": "genero = nave: derrube os bugs" },
-      { "nome": "Creditos", "duracao": 14.0, "anuncio": "créditos: passe pelos vãos" }
+      { "nome": "Hitbox",   "duracao": 10.0, "anuncio": "debug: desvie do CÍRCULO, não do desenho" },
+      { "nome": "Crash",    "duracao": 10.0, "anuncio": "O jogo travou: atire em ESPERAR" },
+      { "nome": "Frota",    "duracao": 10.0, "anuncio": "genero = nave: derrube os bugs" },
+      { "nome": "Creditos", "duracao": 10.0, "anuncio": "créditos: passe pelos vãos" }
     ],
     "movimento": { "tipo": "Conduzido", "a": 230 },
     "ataques": [
@@ -107,6 +122,10 @@
         "projeteis": 16, "velocidade": 185, "angulo": 337, "intervalo": 0 },
       { "gatilho": "tiro", "estrategia": "WaveAttack", "projetil": "Tiro",
         "projeteis": 3, "velocidade": 230, "angulo": 26, "intervalo": 0 },
+      { "gatilho": "sprite", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 12, "velocidade": 170, "angulo": 330, "intervalo": 0 },
+      { "som": false, "gatilho": "colisor", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "som": false, "gatilho": "botao", "estrategia": "WaveAttack", "projetil": "Botao",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "som": false, "gatilho": "estilhaco", "estrategia": "WaveAttack", "projetil": "Tiro",

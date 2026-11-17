@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include "../Regras/Plataforma.h"
+
 /// Semente presa, passo de tempo fixo, um piloto no lugar do aluno, a batalha direto e o relatorio da
 /// nota - tudo pela linha de comando, e desligado por padrao: sem nenhum destes parametros, o jogo e o
 /// de sempre. Antes isto era remendado numa copia do codigo a cada medicao (build-e-testes.md); morando
@@ -132,4 +134,27 @@ namespace Simulacao {
     constexpr float kOlharAdiante = 0.45f;
     /// Os tiros mais longe que isto nem entram na conta.
     constexpr float kAlcanceDoOlhar = 260.0f;
+
+    // ---- O piloto que desvia, no jogo de plataforma ----
+
+    /// Um dos seis jeitos de jogar plataforma: andar para um lado ou para o outro ao longo do chao, ou
+    /// ficar - pulando (segurando o pulo) ou nao.
+    struct Salto {
+        int anda = 0;
+        bool pula = false;
+    };
+    /// Onde o aluno pode estar no jogo de plataforma: 'limite' e ate onde ele vai na direcao da
+    /// gravidade (o produto escalar com Plataforma::Direcao), e 'de' e 'ate', ao longo do chao (com
+    /// Plataforma::AoLongo).
+    struct Chao {
+        float limite = 0.0f;
+        float de = 0.0f;
+        float ate = 0.0f;
+    };
+    /// O piloto que desvia quando o jogo e de plataforma: dos seis jeitos, o de menor custo nos
+    /// proximos kOlharAdiante segundos, com a fisica do pulo (Plataforma::Passo) e cada tiro em linha
+    /// reta - o mesmo custo de Desviar. 'queda' e a velocidade dele ao longo da gravidade, e 'alvo',
+    /// para onde ele quer ir ao longo do chao. O jeito de antes ganha um empate apertado.
+    Salto Saltar(Vector2 p, float queda, bool noChao, Plataforma::Lado l, const Chao& chao, float raio, float rapidez,
+                 const std::vector<Ameaca>& ameacas, float alvo, Salto anterior);
 }

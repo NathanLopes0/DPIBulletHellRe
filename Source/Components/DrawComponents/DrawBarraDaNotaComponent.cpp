@@ -30,7 +30,25 @@ namespace {
 using namespace Pincel;
 
 DrawBarraDaNotaComponent::DrawBarraDaNotaComponent(Actor* owner, const int largura, const int altura, const int drawOrder)
-    : DrawComponent(owner, drawOrder), mLargura(largura), mAltura(altura) {
+    : DrawComponent(owner, drawOrder), mLargura(largura), mAltura(altura), mLarguraDoRodape(largura) {
+}
+
+DrawBarraDaNotaComponent::~DrawBarraDaNotaComponent() {
+    if (mTextura) SDL_DestroyTexture(mTextura);
+}
+
+void DrawBarraDaNotaComponent::DefinirPose(const int largura, const float angulo, const bool espelhada) {
+    mPosada = true;
+    mLargura = std::max(2 * kRaio + 2, largura);
+    mAngulo = angulo;
+    mEspelhada = espelhada;
+}
+
+void DrawBarraDaNotaComponent::TirarPose() {
+    mPosada = false;
+    mLargura = mLarguraDoRodape;
+    mAngulo = 0.0f;
+    mEspelhada = false;
 }
 
 void DrawBarraDaNotaComponent::Comecar(const float nota) {
@@ -53,13 +71,44 @@ void DrawBarraDaNotaComponent::Update(const float deltaTime) {
 void DrawBarraDaNotaComponent::Draw(SDL_Renderer* renderer) {
     if (!mIsVisible) return;
 
-    const Misturando misturando(renderer);
-
     // O sacolejo do acerto: dois pixels, e so na vertical - a barra nao pode fugir do lugar.
     const int tremor = static_cast<int>(std::lround(std::sin(mTempo * 55.0f) * 2.0f * mEstado.tremor));
     const Vector2 dono = mOwner->GetPosition();
-    const int x = static_cast<int>(dono.x);
-    const int y = static_cast<int>(dono.y) + tremor;
+    const bool girada = mPosada && (std::fabs(mAngulo) > 0.01f || mEspelhada);
+    if (!girada || !SDL_RenderTargetSupported(renderer)) {
+        Desenhar(renderer, static_cast<int>(dono.x), static_cast<int>(dono.y) + tremor);
+        return;
+    }
+
+    // Girada: desenha deitada numa textura, com folga para o halo e as marcas, e gira a textura em
+    // volta do centro da barra.
+    constexpr int kFolga = 18;
+    const int tw = mLargura + 2 * kFolga, th = mAltura + 2 * kFolga;
+    if (!mTextura || tw != mLarguraDaTextura || th != mAlturaDaTextura) {
+        if (mTextura) SDL_DestroyTexture(mTextura);
+        mTextura = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, tw, th);
+        mLarguraDaTextura = tw;
+        mAlturaDaTextura = th;
+        if (!mTextura) {
+            Desenhar(renderer, static_cast<int>(dono.x), static_cast<int>(dono.y) + tremor);
+            return;
+        }
+        SDL_SetTextureBlendMode(mTextura, SDL_BLENDMODE_BLEND);
+    }
+    SDL_Texture* antes = SDL_GetRenderTarget(renderer);
+    SDL_SetRenderTarget(renderer, mTextura);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_RenderClear(renderer);
+    Desenhar(renderer, kFolga, kFolga + tremor);
+    SDL_SetRenderTarget(renderer, antes);
+    const SDL_FRect destino{dono.x - static_cast<float>(kFolga), dono.y - static_cast<float>(kFolga),
+                            static_cast<float>(tw), static_cast<float>(th)};
+    SDL_RenderCopyExF(renderer, mTextura, nullptr, &destino, mAngulo, nullptr,
+                      mEspelhada ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
+}
+
+void DrawBarraDaNotaComponent::Desenhar(SDL_Renderer* renderer, const int x, const int y) {
+    const Misturando misturando(renderer);
     const int w = mLargura, h = mAltura;
 
     // 1.

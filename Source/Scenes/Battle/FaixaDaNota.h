@@ -28,8 +28,29 @@ public:
     /// Um quadro com a nota em 'nota'. 'faseLimpa': o aviso de fase limpa esta aceso.
     void Atualizar(float nota, bool faseLimpa);
 
-    /// Onde a barra acaba com a nota em 'nota': para onde voam as moedas do Ponto Extra.
+    /// Onde a barra acaba com a nota em 'nota': para onde voam as moedas do Ponto Extra (solta, a
+    /// barra leva a ponta junto).
     [[nodiscard]] Vector2 Ponta(float nota) const;
+
+    // ---- A barra solta ----
+    //
+    // O Lucas Ferreira arranca a barra da HUD e a usa de golpe. Solta, ela vai aonde Pousar mandar,
+    // com o numero no meio dela, e o lugar dela no rodape fica vazio: so o contorno do encaixe. Ela
+    // continua sendo a nota - enche e esvazia como no rodape.
+
+    void Soltar();
+    void Devolver();
+    [[nodiscard]] bool Solta() const { return mSolta; }
+    /// O centro da barra no rodape, e o comprimento dela la.
+    [[nodiscard]] Vector2 CentroDoEncaixe() const;
+    [[nodiscard]] float ComprimentoNoEncaixe() const;
+    /// A barra solta em 'centro', com 'comprimento', girada 'angulo' graus (horario, como o SDL), e
+    /// espelhada - enchendo do outro fim.
+    void Pousar(Vector2 centro, float comprimento, float angulo, bool espelhada);
+    /// A nota que a barra mostra agora (a que persegue a de verdade).
+    [[nodiscard]] float Mostrada() const;
+    /// A espessura da barra.
+    static constexpr int kEspessura = 28;
 
 private:
     void AtualizarTexto(float nota, bool faseLimpa);
@@ -41,9 +62,16 @@ private:
     /// O "TESTE FINAL": escondido ate a nota chegar a 100, e dali em diante fica.
     Actor* mTesteFinal = nullptr;
     Actor* mFaseLimpa = nullptr;
+    /// O contorno do lugar vazio, aceso enquanto a barra esta solta.
+    Actor* mEncaixe = nullptr;
+    bool mSolta = false;
+    Vector2 mCentroSolto;
+    float mComprimentoSolto = 0.0f;
+    float mAnguloSolto = 0.0f;
+    bool mEspelhadaSolta = false;
 
     /// A altura da barra.
-    static constexpr int kAltura = 28;
+    static constexpr int kAltura = kEspessura;
     /// A sobra dos lados. A barra ia de ponta a ponta da tela e encostava nas bordas, o que a fazia
     /// parecer um risco no monitor em vez de uma peca.
     static constexpr int kMargemLateral = 40;
@@ -60,4 +88,7 @@ private:
     /// A placa do numero da nota, mais fechada que a dos avisos e com um fio de moldura.
     static inline const SDL_Color kFundoDaPlacaDaNota{6, 8, 16, 200};
     static inline const SDL_Color kMolduraDaPlacaDaNota{255, 255, 255, 55};
+    /// O lugar vazio da barra: o contorno e um fundo quase nada.
+    static inline const SDL_Color kMolduraDoEncaixe{235, 240, 255, 90};
+    static inline const SDL_Color kFundoDoEncaixe{6, 8, 16, 120};
 };

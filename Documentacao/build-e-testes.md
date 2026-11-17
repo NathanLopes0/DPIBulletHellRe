@@ -307,18 +307,31 @@ longe. Sozinho, com as sementes 101 a 103:
 
 | Piloto | Normal | Difícil |
 |---|---|---|
-| `segue` | 0 (zera na fase 2) | 0 (sai da fase 1 com 0,3) |
-| `esquiva` | 0 a 63 (aprova em duas, as duas no exame) | 0 a 32 (reprova nas três) |
+| `segue` | 0 (zera na fase 2) | 0 (zera na fase 1) |
+| `esquiva` | 0 a 70 (aprova em uma, no exame) | 0 a 36 (reprova nas três) |
 
-Os dois pilotos atiram sem parar, e a fase 2 começa com as regras invertidas:
-cada dúvida que chega ao professor custa 1,3, e quem chega ali com uns 20 zera
-em poucos segundos de tiro. Quem lê o placar ("INVERTIDO: pegue as moedas e
-NÃO atire") para de atirar e cata as moedas. O `esquiva` também não mira o X
-das janelas nem o botão ESPERAR do crash: são os pontos que a fase dá a quem
+Na fase 2 o jogo vira de plataforma, e os dois pilotos andam nela. O `segue`
+vai pelo chão atrás do professor, sem pular, e as pilhas de caixas e as lanças
+o pegam até zerar. O `esquiva` simula, a cada quadro, seis escolhas — ficar ou
+andar para um lado ou para o outro, com e sem pulo — com a física do próprio
+aluno (`Plataforma::Passo`), e fica com a mais segura (`Simulacao::Saltar`).
+É a fase em que ele vai melhor: no Normal, sobe de 10 a 21 pontos e apanha de
+0 a 2 vezes.
+
+A fase 1 é a que mais cobra, com 7 a 9 acertos no Normal: a barra varre o
+campo mais rápido do que o `esquiva` enxerga, e ele não mira o X das janelas.
+O golpe de abertura pega quase todo mundo, mas uma vez só: quem é pego fica
+protegido até o fim dele (o aluno pisca em azul). Sem esse limite, no Difícil,
+a abertura chegou a custar três acertos sozinha, e o `esquiva` zerava na fase 1
+em duas das três sementes.
+
+Na fase 3, a inversão: cada dúvida que chega ao professor custa 1,3, e os dois
+pilotos atiram sem parar. Quem lê o placar ("INVERTIDO: pegue as moedas e NÃO
+atire") para de atirar e cata as moedas. O `esquiva` também não pega as moedas
+da chuva nem mira o botão ESPERAR do crash: são os pontos que a prova dá a quem
 entende o jogo. As fases duram 40 s, o dobro das outras, e cada acerto no
 professor vale 0,55 do de uma matéria comum (`JogosDigitais::kFatorDoGanho`):
-sem isso, o tempo dobrado dobraria a nota de quem só atira — antes do fator, o
-`esquiva` fazia 64 a 81 no Normal e 36 a 70 no Difícil, mais que na INF 491.
+sem isso, o tempo dobrado dobraria a nota de quem só atira.
 
 ### Fotografar
 

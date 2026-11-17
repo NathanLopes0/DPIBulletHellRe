@@ -3,6 +3,7 @@
 //
 
 #include <algorithm>
+#include <cmath>
 
 #include "Player.h"
 
@@ -90,6 +91,7 @@ void Player::OnUpdate(const float deltaTime) {
     AtualizarAnimacao();
     DescontarRecarga(deltaTime);
     PrenderNoCampo();
+    AndarNaPlataforma(deltaTime);
     // Cada um so anda o relogio dele; quem pinta e um so.
     AtualizarCorrente(deltaTime);
     AtualizarSobrecarga(deltaTime);
@@ -101,7 +103,16 @@ void Player::OnUpdate(const float deltaTime) {
 
 void Player::LerManche(const Uint8* keyState) {
 
-    if (mPiloto.Dirigir(*this, *mCorpo, mAndando)) return;
+    // No modo de plataforma o manche e so uma intencao: quem decide a velocidade e AndarNaPlataforma,
+    // e o piloto da simulacao, que a escreve direto, a devolve.
+    const Vector2 daPlataforma = mCorpo->GetVelocity();
+    if (mPiloto.Dirigir(*this, *mCorpo, mAndando)) {
+        if (mChao) {
+            mIntencao = mCorpo->GetVelocity();
+            mCorpo->SetVelocity(daPlataforma);
+        }
+        return;
+    }
 
     // A velocidade e lida com o fator da corrente; kVelocidade fica intacta.
     const float velocidade = VelocidadeDeAndar();
@@ -115,7 +126,41 @@ void Player::LerManche(const Uint8* keyState) {
     else if (Painel::Apertado(keyState, eu, Painel::Direcao::Direita)) vx += velocidade;
 
     mAndando = vx != 0.0f || vy != 0.0f;
+    if (mChao) {
+        mIntencao = Vector2(vx, vy);
+        return;
+    }
     mCorpo->SetVelocity(Vector2(vx, vy));
+}
+
+void Player::DefinirChao(const std::optional<Plataforma::Lado> lado) {
+    if (lado == mChao) return;
+    mChao = lado;
+    mIntencao = Vector2::Zero;
+    if (!lado) {
+        mPlataforma = Plataforma::Estado{};
+        SetRotation(0.0f);
+        if (mCorpo) mCorpo->SetVelocity(Vector2::Zero);
+        return;
+    }
+    Plataforma::Virar(mPlataforma);
+    // Giro e horario (como o SDL); a rotacao do ator e anti-horaria (DrawAnimatedComponent).
+    SetRotation(-Math::ToRadians(Plataforma::Giro(*lado)));
+}
+
+void Player::AndarNaPlataforma(const float deltaTime) {
+    if (!mChao || !mScene) return;
+    // O chao e ate onde PrenderNoCampo deixa o centro ir, do lado da gravidade.
+    const SDL_FRect campo = mScene->GetPlayfieldBounds();
+    const auto largura = static_cast<float>(mDesenho->GetSpriteWidth());
+    const auto altura = static_cast<float>(mDesenho->GetSpriteHeight());
+    const Vector2 g = Plataforma::Direcao(*mChao);
+    const Vector2 borda(g.x < 0.0f ? campo.x + largura : campo.x + campo.w - largura,
+                        g.y < 0.0f ? campo.y + altura : campo.y + campo.h - altura);
+    const bool encostou = Vector2::Dot(GetPosition(), g) >= Vector2::Dot(borda, g) - 0.5f;
+    const Vector2 v = Plataforma::Passo(mPlataforma, *mChao, mIntencao, encostou, deltaTime, VelocidadeDeAndar());
+    mCorpo->SetVelocity(v);
+    mAndando = std::fabs(Vector2::Dot(v, Plataforma::AoLongo(*mChao))) > 1.0f;
 }
 
 void Player::LerBotaoDeTiro(const Uint8* keyState) {
@@ -138,7 +183,9 @@ void Player::Atirar() {
     // TODO: o tiro do aluno ainda nao usa o pool de projeteis (ProjectilePool.h), como os do chefe.
     auto tiro = std::make_unique<PlayerProjectile>(GetScene(), this, mQuem);
     tiro->SetPosition(GetPosition());
-    tiro->GetComponent<RigidBodyComponent>()->SetVelocity(Vector2(0.0f, -PlayerProjectile::kVelocidade));
+    // Para cima - ou, no modo de plataforma, para longe do chao, onde o professor esta.
+    const Vector2 rumo = mChao ? Plataforma::Direcao(*mChao) * -1.0f : Vector2(0.0f, -1.0f);
+    tiro->GetComponent<RigidBodyComponent>()->SetVelocity(rumo * PlayerProjectile::kVelocidade);
     tiro->ActivateProjectile();
     projeteis->AddPlayerProjectile(std::move(tiro));
     ++mDisparos;

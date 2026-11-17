@@ -6,11 +6,13 @@
 #define DPIBULLETHELLRE_PLAYER_H
 
 #include <cstddef>
+#include <optional>
 
 #include "../Actor.h"
 #include "PilotoDoAluno.h"
 #include "../../Entrada/Painel.h"
 #include "../../Regras/Acerto.h"
+#include "../../Regras/Plataforma.h"
 #include "../../Regras/PontoExtra.h"
 #include "../../Regras/Raspao.h"
 #include "../../Personagem/ComporPersonagem.h"
@@ -38,6 +40,9 @@ public:
     /// Invencivel por qualquer motivo: os quadros de graca depois de apanhar ou a imunidade dada
     /// pelo parceiro.
     [[nodiscard]] bool EstaInvencivel() const { return mInvencivel || mTempoDeImunidade > 0.0f; }
+
+    /// So os quadros de graca: o aluno acabou de apanhar (a imunidade dada nao conta).
+    [[nodiscard]] bool AcabouDeApanhar() const { return mInvencivel; }
 
     /// A classe do aluno (-1: nenhuma): o tiro do chefe da mesma classe (BossProjectile::Classe)
     /// passa por ele. Quem a muda e o chefe - a fronteira de decisao do Daniel.
@@ -79,6 +84,15 @@ public:
     /// orientadora do TCC, atira a cada tantos (Golpe::Notificacoes).
     [[nodiscard]] int Disparos() const { return mDisparos; }
 
+    /// O modo de plataforma (Plataforma.h): o Lucas Ferreira vira a gravidade para 'lado', e o aluno
+    /// cai para ele, anda ao longo dele e pula para longe - o tiro sai para o lado oposto, o do
+    /// professor, e o desenho gira com os pes no chao. Trocar de lado arremessa o aluno no chao novo.
+    /// Sem lado, o voo de sempre.
+    void DefinirChao(std::optional<Plataforma::Lado> lado);
+    [[nodiscard]] std::optional<Plataforma::Lado> Chao() const { return mChao; }
+    /// Se ele esta encostado no chao, no modo de plataforma.
+    [[nodiscard]] bool NoChao() const { return mChao.has_value() && mPlataforma.noChao; }
+
 private:
     // ---- As constantes do aluno ----
     static constexpr float kVelocidade = 300.0f;
@@ -117,6 +131,13 @@ private:
     PilotoDoAluno mPiloto;
     /// Se o aluno esta andando: decide a animacao.
     bool mAndando = false;
+
+    // ---- O modo de plataforma ----
+    std::optional<Plataforma::Lado> mChao;
+    Plataforma::Estado mPlataforma;
+    /// O que o manche pediu neste quadro: no modo de plataforma ele e uma intencao, e nao a velocidade.
+    Vector2 mIntencao = Vector2::Zero;
+    void AndarNaPlataforma(float deltaTime);
 
     // ---- O tiro e o Ponto Extra ----
     float mRecargaDoTiro = kEntreTiros;

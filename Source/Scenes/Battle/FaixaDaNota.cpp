@@ -5,6 +5,7 @@
 #include "FaixaDaNota.h"
 
 #include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <memory>
 #include <sstream>
@@ -43,6 +44,14 @@ FaixaDaNota::FaixaDaNota(Scene& cena, Font* fonte, const int larguraDaTela, cons
     barra->AddComponent<DrawBarraDaNotaComponent>(barraLargura, kAltura, 200)->Comecar(nota);
     mBarra = barra.get();
     cena.AddActor(std::move(barra));
+
+    // O lugar da barra no rodape: so aparece quando ela sai dele.
+    auto encaixe = std::make_unique<Actor>(&cena);
+    encaixe->SetPosition(Vector2(static_cast<float>(barraX + barraLargura / 2), static_cast<float>(barraY + kAltura / 2)));
+    encaixe->AddComponent<DrawCaixaComponent>(barraLargura + 6, kAltura + 6, kMolduraDoEncaixe, kFundoDoEncaixe, 2, 199)
+        ->SetIsVisible(false);
+    mEncaixe = encaixe.get();
+    cena.AddActor(std::move(encaixe));
 
     // O numero no meio da barra. A caixa e 200x32, e nao 36x25.
     constexpr int tamanhoDaNota = 24;
@@ -161,7 +170,58 @@ void FaixaDaNota::AtualizarTexto(const float nota, const bool faseLimpa) {
     }
 }
 
+Vector2 FaixaDaNota::CentroDoEncaixe() const {
+    return Vector2(static_cast<float>(mLarguraDaTela) / 2.0f, static_cast<float>(mAlturaDaTela - kDoFundo + kAltura / 2));
+}
+
+float FaixaDaNota::ComprimentoNoEncaixe() const {
+    return static_cast<float>(mLarguraDaTela - 2 * kMargemLateral);
+}
+
+void FaixaDaNota::Soltar() {
+    if (mSolta) return;
+    mSolta = true;
+    mCentroSolto = CentroDoEncaixe();
+    mComprimentoSolto = ComprimentoNoEncaixe();
+    mAnguloSolto = 0.0f;
+    mEspelhadaSolta = false;
+    if (mEncaixe) mEncaixe->GetComponent<DrawCaixaComponent>()->SetIsVisible(true);
+}
+
+void FaixaDaNota::Pousar(const Vector2 centro, const float comprimento, const float angulo, const bool espelhada) {
+    if (!mSolta) Soltar();
+    mCentroSolto = centro;
+    mComprimentoSolto = comprimento;
+    mAnguloSolto = angulo;
+    mEspelhadaSolta = espelhada;
+    if (auto* barra = mBarra ? mBarra->GetComponent<DrawBarraDaNotaComponent>() : nullptr) {
+        barra->DefinirPose(static_cast<int>(std::lround(comprimento)), angulo, espelhada);
+    }
+    // O dono e o canto de cima da barra deitada; o giro e em volta do centro.
+    if (mBarra) mBarra->SetPosition(centro - Vector2(comprimento / 2.0f, static_cast<float>(kAltura) / 2.0f));
+    if (mTexto) mTexto->SetPosition(centro);
+}
+
+void FaixaDaNota::Devolver() {
+    if (!mSolta) return;
+    mSolta = false;
+    if (auto* barra = mBarra ? mBarra->GetComponent<DrawBarraDaNotaComponent>() : nullptr) barra->TirarPose();
+    if (mBarra) mBarra->SetPosition(Vector2(static_cast<float>(kMargemLateral), static_cast<float>(mAlturaDaTela - kDoFundo)));
+    if (mTexto) mTexto->SetPosition(CentroDoEncaixe());
+    if (mEncaixe) mEncaixe->GetComponent<DrawCaixaComponent>()->SetIsVisible(false);
+}
+
+float FaixaDaNota::Mostrada() const {
+    const auto* barra = mBarra ? mBarra->GetComponent<DrawBarraDaNotaComponent>() : nullptr;
+    return barra ? barra->Mostrada() : 0.0f;
+}
+
 Vector2 FaixaDaNota::Ponta(const float nota) const {
+    if (mSolta) {
+        const float a = Math::ToRadians(mAnguloSolto);
+        const float fracao = std::clamp(nota, 0.0f, 100.0f) / 100.0f - 0.5f;
+        return mCentroSolto + Vector2(std::cos(a), std::sin(a)) * (fracao * mComprimentoSolto * (mEspelhadaSolta ? -1.0f : 1.0f));
+    }
     const float largura = static_cast<float>(mLarguraDaTela - 2 * kMargemLateral);
     return Vector2(static_cast<float>(kMargemLateral) + largura * std::clamp(nota, 0.0f, 100.0f) / 100.0f,
                    static_cast<float>(mAlturaDaTela - kDoFundo + kAltura / 2));

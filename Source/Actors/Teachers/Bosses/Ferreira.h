@@ -19,19 +19,23 @@
 class BossProjectile;
 class DrawLinhasComponent;
 class EtiquetaDeCodigo;
+class FaixaDaNota;
 class Player;
 
 /// O professor de jogos digitais (INF 216, a optativa secreta), o mais dificil de todos. Ele nao
-/// ensina materia: pega o jogo que o aluno ja conhece e mexe nos sistemas dele, um por etapa.
-///   1. a interface - a barra da nota sai do rodape e varre o campo, cheia ate a nota do aluno
-///      (sobe e desce; depois, de pe, vai de um lado ao outro); e as janelas de dica, que abrem em
-///      volta do aluno e so fecham com um tiro no X;
-///   2. as regras - a inversao (acertar tira nota, os tiros dao), a gravidade (o aluno cai, o chao
-///      tem espinhos, os tiros vem em arco) e o fogo amigo (o tiro do aluno que erra volta por baixo);
-///   3. o motor - o lag (os tiros andam aos saltos), a hitbox que descola do desenho, e o quick
-///      save / quick load, que traz de volta o aluno, os tiros e a nota;
-///   e a repescagem, o lancamento: o jogo trava e pede uma escolha, uma frota de bugs marcha, e os
-///   creditos sobem.
+/// ensina materia: pega o jogo que o aluno ja conhece e mexe nos sistemas dele.
+///   1. a interface - o golpe do primeiro quadro, para assustar; a barra da nota, a da HUD de
+///      verdade, arrancada do rodape para varrer o campo (cheia ate a nota do aluno: deitada sobe e
+///      desce, de pe vai de um lado ao outro, e volta para o lugar); e as janelas de dica, que abrem
+///      em volta do aluno e so fecham com um tiro no X;
+///   2. a fisica - a prova inteira e jogo de plataforma, e ele escolhe para que lado a gravidade
+///      puxa: o chao de sempre (pular as pilhas de caixas), a parede esquerda (as lancas em duas
+///      alturas), o teto (a chuva de blocos e moedas) e a parede direita (a esteira ate o moedor);
+///   3. as regras - a inversao (acertar tira nota, os tiros dao), o fogo amigo (o tiro do aluno que
+///      erra volta por baixo), o lag (os tiros andam aos saltos) e o quick save / quick load, que traz
+///      de volta o aluno, os tiros e a nota;
+///   e a repescagem, o lancamento: a hitbox descola do desenho, o jogo trava e pede uma escolha, uma
+///   frota de bugs marcha, e os creditos sobem.
 /// As contas estao em JogosDigitais.h; aqui, os tiros no campo.
 class Ferreira : public Boss {
 public:
@@ -56,9 +60,12 @@ private:
     void SortearALuta();
     bool mLutaSorteada = false;
     Variacao::Sorteio mSorteio{0u};
+    /// O da fisica e outro: a ordem dos lados e os desafios de cada um nao mudam quando as outras
+    /// provas mudam.
+    Variacao::Sorteio mSorteioDaFisica{0u};
     HudHostil::Degrau mDegrauDoHud;
+    Gravidade::Degrau mDegrauDaGravidade;
     RegrasTrocadas::Degrau mDegrauDasRegras;
-    MotorQuebrado::Degrau mDegrauDoMotor;
     Lancamento::Degrau mDegrauDoLancamento;
 
     // ---- O que as fases dividem ----
@@ -81,6 +88,9 @@ private:
                        std::optional<Vector2> velocidade = std::nullopt);
     /// Uma peca parada que o professor conduz (um segmento, uma borda, um bloco): nao sai do campo sozinha.
     BossProjectile* Peca(const char* gatilho, Vector2 onde, const std::string& cara);
+    /// Uma peca que anda sozinha, em linha reta: o motor a move, e quem olha o campo (o piloto da
+    /// simulacao) ve para onde ela vai.
+    BossProjectile* PecaAndando(const char* gatilho, Vector2 onde, const std::string& cara, Vector2 velocidade);
     /// Os 'ps' de um disparo de 'centro' e 'abertura' (graus) ja andando, como o WaveAttack os poria.
     static void DarVelocidade(const std::vector<BossProjectile*>& ps, float centro, float abertura, float velocidade);
     /// Um anel inteiro e um leque mirado no aluno, saindo do professor.
@@ -99,6 +109,10 @@ private:
     [[nodiscard]] static float RaioDe(const Player* aluno);
     [[nodiscard]] bool NoCampo(Vector2 p, float folga = 0.0f) const;
     [[nodiscard]] float Nota() const;
+    /// O campo, para a camada pura.
+    [[nodiscard]] JogosDigitais::Campo CampoPuro() const;
+    /// A faixa da nota da batalha: a barra que a fase 1 arranca.
+    [[nodiscard]] FaixaDaNota* Faixa() const;
 
     /// O pool recicla o projetil que morre. No comeco de cada quadro, antes de qualquer disparo, todo
     /// ponteiro guardado de um tiro morto e esquecido: o que sobra e meu e esta vivo.
@@ -114,12 +128,17 @@ private:
 
     DrawLinhasComponent* mLinhas = nullptr;
     static constexpr int kOrdemDasLinhas = 82;
+    /// O chao do jogo de plataforma vai embaixo de tudo o que a HUD do campo mostra (o placar e 60).
+    DrawLinhasComponent* mLinhasDoChao = nullptr;
+    static constexpr int kOrdemDoChao = 55;
     void Linha(Vector2 de, Vector2 ate, SDL_Color cor);
     void Tracejada(Vector2 de, Vector2 ate, SDL_Color cor, float traco = 8.0f);
     void Circulo(Vector2 centro, float raio, SDL_Color cor, int lados = 16);
     void Retangulo(Vector2 de, Vector2 ate, SDL_Color cor);
     void Preencher(Vector2 de, Vector2 ate, SDL_Color cor);
     void Seta(Vector2 de, Vector2 ate, SDL_Color cor);
+    /// A seta grossa da virada da gravidade, no meio do campo.
+    void SetaGrande(Vector2 centro, Vector2 direcao, float tamanho, SDL_Color cor);
 
     /// O texto no campo (a dica de uma janela, o dialogo da travada, uma linha dos creditos): as
     /// etiquetas nascem na primeira vez e depois so se escondem.
@@ -152,7 +171,19 @@ private:
     // ---- Fase 1: a interface ----
 
     void AtualizarHud(float t, float deltaTime);
-    void AtualizarBarra(float te, bool emPe);
+    void AtualizarAbertura(float te);
+    struct AnelVivo {
+        std::vector<BossProjectile*> tiros;
+        float some = 0.0f;
+    };
+    std::vector<AnelVivo> mAneis;
+    int mAneisFeitos = 0;
+    float mVaoAnterior = -999.0f;
+    /// O susto e um so: o aluno que a abertura pegou fica protegido ate o fim dela.
+    std::array<bool, 2> mPoupado{};
+    void AtualizarBarra(int etapa, float te);
+    /// A barra volta para o rodape, e os segmentos embaixo dela somem.
+    void DevolverABarra();
     std::vector<BossProjectile*> mBarra;
     struct Janela {
         Vector2 centro;
@@ -169,21 +200,76 @@ private:
     float mProximaJanela = 0.0f;
     int mJanelasFeitas = 0;
 
-    // ---- Fase 2: as regras ----
+    // ---- Fase 2: a fisica ----
+
+    void AtualizarFisica(float t, float deltaTime);
+    /// Sorteia o que o lado da etapa vai por no campo.
+    void PrepararLado(int etapa);
+    /// Todos os alunos voltam a voar.
+    void SoltarAGravidade();
+    /// O tamanho do desenho do aluno: o centro dele para a isto da borda (Player::PrenderNoCampo).
+    [[nodiscard]] float ChaoDoAluno() const;
+    void DesenharOChao(Plataforma::Lado l, float chao, float pes, SDL_Color cor, bool aviso);
+    void AtualizarPulos(float te, float dt, Plataforma::Lado l, float chao, float pes);
+    void AtualizarLancas(float te, float dt, Plataforma::Lado l, float chao, float pes);
+    void AtualizarChuva(float te, float dt, Plataforma::Lado l, float chao, float pes);
+    void AtualizarEsteira(float te, float dt, Plataforma::Lado l, float chao, float pes);
+    std::array<Plataforma::Lado, 4> mOrdem{};
+    /// A etapa cuja gravidade ja vale - a virada em que o professor ja pulou para o ceu dela.
+    int mVirada = -1;
+    struct PilhaViva {
+        std::vector<BossProjectile*> caixas;
+        float u = 0.0f;
+        float sentido = 1.0f;
+        float velocidade = 0.0f;
+        int altura = 0;
+        int largura = 0;
+    };
+    std::vector<Gravidade::Pilha> mPilhasPorVir;
+    size_t mProximaPilha = 0;
+    std::vector<PilhaViva> mPilhas;
+    struct LancaViva {
+        BossProjectile* p = nullptr;
+        float u = 0.0f;
+        float sentido = 1.0f;
+        float velocidade = 0.0f;
+        float h = 0.0f;
+    };
+    std::vector<Gravidade::Lanca> mLancasPorVir;
+    size_t mProximaLanca = 0;
+    std::vector<LancaViva> mLancas;
+    struct QuedaViva {
+        BossProjectile* p = nullptr;
+        float u = 0.0f;
+        float h = 0.0f;
+        bool moeda = false;
+    };
+    std::vector<Gravidade::Queda> mQuedasPorVir;
+    size_t mProximaDaChuva = 0;
+    std::vector<QuedaViva> mQuedas;
+    struct FagulhaViva {
+        BossProjectile* p = nullptr;
+        float u = 0.0f;
+        float sentido = 1.0f;
+    };
+    std::vector<FagulhaViva> mFagulhas;
+    struct BuracoVivo {
+        std::vector<BossProjectile*> espinhos;
+        float u = 0.0f;
+    };
+    std::vector<Gravidade::Buraco> mBuracosPorVir;
+    size_t mProximoBuraco = 0;
+    std::vector<BuracoVivo> mBuracos;
+    std::vector<BossProjectile*> mMoedor;
+    float mSentidoDaEsteira = 1.0f;
+
+    // ---- Fase 3: as regras ----
 
     void AtualizarRegras(float t, float deltaTime);
     void AtualizarInversao(float te);
     /// Se o acerto no professor esta tirando nota (AoSerPerguntado).
     bool mCobrando = false;
     float mPremioDasMoedas = 0.0f;
-    void AtualizarGravidade(float te, float deltaTime);
-    std::vector<BossProjectile*> mEspinhos;
-    struct Arco {
-        BossProjectile* p = nullptr;
-        Vector2 v;
-    };
-    std::vector<Arco> mArcos;
-    float mProximoArremesso = 0.0f;
     void AtualizarFogoAmigo(float te);
     std::unordered_set<std::uint64_t> mVoltaram;
     struct QueDaAVolta {
@@ -192,10 +278,6 @@ private:
     };
     std::vector<QueDaAVolta> mQueDaoAVolta;
     void LimparClasses();
-
-    // ---- Fase 3: o motor ----
-
-    void AtualizarMotor(float t, float deltaTime);
     void AtualizarLag(float te);
     struct AosSaltos {
         BossProjectile* p = nullptr;
@@ -204,12 +286,6 @@ private:
     };
     std::vector<AosSaltos> mAosSaltos;
     int mQuadroDoLag = -1;
-    void AtualizarHitbox(float te);
-    struct Descolado {
-        BossProjectile* desenho = nullptr;
-        BossProjectile* colisor = nullptr;
-    };
-    std::vector<Descolado> mDescolados;
     void AtualizarSaveLoad(float te);
     struct Salvo {
         bool tem = false;
@@ -228,6 +304,12 @@ private:
     // ---- A repescagem: o lancamento ----
 
     void AtualizarLancamento(float t, float deltaTime);
+    void AtualizarHitbox(float te);
+    struct Descolado {
+        BossProjectile* desenho = nullptr;
+        BossProjectile* colisor = nullptr;
+    };
+    std::vector<Descolado> mDescolados;
     void AtualizarCrash(float te);
     void Travar(int k);
     void Destravar(Lancamento::Escolha escolha);
@@ -275,4 +357,8 @@ private:
     static constexpr SDL_Color kFantasmaFraco = {200, 170, 255, 60};
     static constexpr SDL_Color kJanelaPorDentro = {14, 16, 30, 150};
     static constexpr SDL_Color kSave = {110, 170, 255, 220};
+    /// O chao do jogo de plataforma: a faixa, a linha de cima e as juntas dos ladrilhos.
+    static constexpr SDL_Color kChaoFundo = {26, 30, 54, 215};
+    static constexpr SDL_Color kChaoLinha = {175, 185, 235, 235};
+    static constexpr SDL_Color kChaoJunta = {95, 105, 160, 170};
 };

@@ -5,12 +5,14 @@ optativa secreta): o cartao do professor e as folhas dos projeteis das quatro pr
     python3 Ferramentas/gerar_ferreira.py              # grava os PNG e os JSON em Assets/
     python3 Ferramentas/gerar_ferreira.py --animacoes  # so imprime o mapa nome -> quadros
 
-As provas dele mexem nos sistemas do proprio jogo, e a arte e a da interface: os segmentos da
-barra da nota, as pecas de uma janela, os botoes de um dialogo, a moeda, o disquete do save.
+As provas dele mexem nos sistemas do proprio jogo, e a arte e a da interface e a do motor: as
+pecas de uma janela, os botoes de um dialogo, a moeda, o disquete do save, as caixas de colisao do
+jogo de plataforma. A barra da nota nao tem folha: no campo, ela e a da HUD, de verdade.
 
   DPIBHFerreira          128x128   o cartao: o controle, o coracao de pixel e a barra de nota
-  DPIBHFerreiraTiros      20x20    Tiro Moeda Espinho Seu Vazio Fragmento Disquete
-  DPIBHFerreiraBarra      28x28    Vermelha Amarela Verde (um segmento da barra da nota)
+  DPIBHFerreiraTiros      20x20    Tiro Moeda Seu Vazio Fragmento Disquete
+  DPIBHFerreiraFisica     28x28    Caixa Espinho Lanca Bloco Fagulha Vazia (a plataforma; a Vazia
+                                   e o segmento sem cara embaixo da barra da nota)
   DPIBHFerreiraJanela     20x20    Borda Titulo X
   DPIBHFerreiraBotoes     64x40    Esperar Fechar
   DPIBHFerreiraBugs       32x32    Bug (um besouro visto de cima; dois quadros: as patas mexem)
@@ -108,7 +110,7 @@ def ferreira():
 # ---- Os tiros (20 x 20) -------------------------------------------------------------
 
 TW = 20
-TIROS = ["Tiro", "Moeda", "Espinho", "Seu", "Vazio", "Fragmento", "Disquete"]
+TIROS = ["Tiro", "Moeda", "Seu", "Vazio", "Fragmento", "Disquete"]
 
 
 def tiro(nome):
@@ -123,9 +125,6 @@ def tiro(nome):
         d.ellipse([5, 5, 14, 14], outline=claro(AMARELO, 0.6))
         d.rectangle([9, 6, 10, 13], fill=escuro(AMARELO, 0.45))
         d.rectangle([6, 9, 13, 10], fill=escuro(AMARELO, 0.45))
-    elif nome == "Espinho":
-        d.polygon([(10, 1), (18, 18), (2, 18)], fill=(190, 195, 210, 255), outline=TRACO)
-        d.polygon([(10, 1), (13, 8), (7, 8)], fill=cheia(VERMELHO))
     elif nome == "Seu":
         # A duvida do aluno, de volta e contra ele: o balao vermelho.
         d.rounded_rectangle([2, 2, 17, 14], radius=4, fill=cheia(VERMELHO), outline=TRACO)
@@ -141,20 +140,52 @@ def tiro(nome):
     return im
 
 
-# ---- A barra da nota (28 x 28) -------------------------------------------------------
+# ---- As pecas da plataforma (28 x 28) -------------------------------------------------
 
-BW = 28
-BARRA = {"Vermelha": VERMELHO, "Amarela": AMARELO, "Verde": VERDE}
+FW = 28
+FISICA = ["Caixa", "Espinho", "Lanca", "Bloco", "Fagulha", "Vazia"]
 
 
-def segmento(cor):
-    im = Image.new("RGBA", (BW, BW), (0, 0, 0, 0))
+def fisica(nome):
+    """As pecas do jogo de plataforma, de pe: o chao e o lado de baixo do quadro (o C++ gira cada
+    uma para o chao da vez), e a lanca aponta para a direita."""
+    im = Image.new("RGBA", (FW, FW), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    d.rectangle([0, 2, BW - 1, BW - 3], fill=escuro(cor, 0.55))
-    d.rectangle([0, 4, BW - 1, BW - 5], fill=cheia(cor))
-    d.rectangle([0, 6, BW - 1, 10], fill=claro(cor, 0.45))
-    d.line([(0, 2), (BW - 1, 2)], fill=TRACO)
-    d.line([(0, BW - 3), (BW - 1, BW - 3)], fill=TRACO)
+    if nome == "Caixa":
+        # A caixa de colisao do modo debug: o fundo translucido, a borda e o X de canto a canto.
+        d.rectangle([1, 1, FW - 2, FW - 2], fill=(235, 70, 90, 95), outline=(255, 90, 110, 255), width=2)
+        d.line([(4, 4), (FW - 5, FW - 5)], fill=(255, 150, 160, 220), width=1)
+        d.line([(4, FW - 5), (FW - 5, 4)], fill=(255, 150, 160, 220), width=1)
+        for (x, y) in [(1, 1), (FW - 2, 1), (1, FW - 2), (FW - 2, FW - 2)]:
+            d.rectangle([x - 1, y - 1, x + 1, y + 1], fill=TINTA)
+    elif nome == "Espinho":
+        # O espinho do buraco: a base rente ao chao, a ponta vermelha.
+        d.polygon([(14, 2), (25, FW - 2), (3, FW - 2)], fill=(196, 200, 214, 255), outline=TRACO)
+        d.polygon([(14, 2), (18, 11), (10, 11)], fill=cheia(VERMELHO))
+        d.line([(14, 6), (8, FW - 3)], fill=(240, 242, 250, 255))
+    elif nome == "Lanca":
+        # A lanca: a haste de codigo e a ponta, deitadas, apontando para a direita.
+        d.rectangle([1, 12, 18, 15], fill=cheia(AMBAR), outline=escuro(AMBAR, 0.5))
+        d.polygon([(17, 6), (27, 14), (17, 21)], fill=claro(AMBAR, 0.4), outline=escuro(AMBAR, 0.5))
+        d.rectangle([1, 10, 3, 17], fill=escuro(AMBAR, 0.35))
+    elif nome == "Bloco":
+        # Um ladrilho do cenario que caiu: a borda em degrau e os rebites.
+        d.rectangle([1, 1, FW - 2, FW - 2], fill=(92, 78, 150, 255), outline=TRACO)
+        d.rectangle([3, 3, FW - 4, 7], fill=(150, 132, 220, 255))
+        d.rectangle([3, FW - 7, FW - 4, FW - 4], fill=(58, 48, 100, 255))
+        for (x, y) in [(6, 12), (FW - 7, 12), (6, FW - 11), (FW - 7, FW - 11)]:
+            d.rectangle([x - 1, y - 1, x + 1, y + 1], fill=(200, 190, 245, 255))
+    elif nome == "Fagulha":
+        # O estilhaco do bloco no chao: uma faisca de oito pontas.
+        c = FW // 2
+        pontas = []
+        import math
+        for k in range(16):
+            r = 12 if k % 2 == 0 else 5
+            a = math.pi * k / 8
+            pontas.append((c + r * math.cos(a), c + r * math.sin(a)))
+        d.polygon(pontas, fill=(255, 196, 70, 255), outline=(150, 70, 20, 255))
+        d.ellipse([c - 4, c - 4, c + 4, c + 4], fill=(255, 246, 200, 255))
     return im
 
 
@@ -300,7 +331,7 @@ def grava(im, nome, pasta):
 def animacoes():
     return {
         "Tiros": {nome: [i] for i, nome in enumerate(TIROS)},
-        "Barra": {nome: [i] for i, nome in enumerate(BARRA)},
+        "Fisica": {nome: [i] for i, nome in enumerate(FISICA)},
         "Janela": {nome: [i] for i, nome in enumerate(JANELA)},
         "Botoes": {nome: [i] for i, nome in enumerate(BOTOES)},
         "Bugs": {"Bug": [0, 1]},
@@ -314,7 +345,7 @@ if __name__ == "__main__":
         sys.exit(0)
     grava(ferreira(), "DPIBHFerreira", "Assets/Teachers")
     grava_tira([tiro(n) for n in TIROS], "DPIBHFerreiraTiros", TW, TW, len(TIROS))
-    grava_tira([segmento(c) for c in BARRA.values()], "DPIBHFerreiraBarra", BW, BW, len(BARRA))
+    grava_tira([fisica(n) for n in FISICA], "DPIBHFerreiraFisica", FW, FW, len(FISICA))
     grava_tira([janela(n) for n in JANELA], "DPIBHFerreiraJanela", JW, JW, len(JANELA))
     grava_tira([botao(n) for n in BOTOES], "DPIBHFerreiraBotoes", QW, QH, len(BOTOES))
     grava_tira([bug(0), bug(1)], "DPIBHFerreiraBugs", GW, GW, 2)

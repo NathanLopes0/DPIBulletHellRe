@@ -2594,15 +2594,17 @@ TEST_CASE("Dados: o Lucas Ferreira - cada gatilho que ele puxa esta na fase dele
 
     // A fase de cada gatilho, como o C++ os puxa (Ferreira.cpp).
     const std::vector<std::pair<std::string, const char*>> gatilhos = {
-        {HudHostil::kFase, HudHostil::kGatilhoDaBarra}, {HudHostil::kFase, HudHostil::kGatilhoDoLeque},
-        {HudHostil::kFase, HudHostil::kGatilhoDaJanela}, {HudHostil::kFase, HudHostil::kGatilhoDeFechar},
+        {HudHostil::kFase, HudHostil::kGatilhoDaAbertura}, {HudHostil::kFase, HudHostil::kGatilhoDaBarra},
+        {HudHostil::kFase, HudHostil::kGatilhoDoLeque}, {HudHostil::kFase, HudHostil::kGatilhoDaJanela},
+        {HudHostil::kFase, HudHostil::kGatilhoDeFechar},
+        {Gravidade::kFase, Gravidade::kGatilhoDaCaixa}, {Gravidade::kFase, Gravidade::kGatilhoDoEspinho},
+        {Gravidade::kFase, Gravidade::kGatilhoDaLanca}, {Gravidade::kFase, Gravidade::kGatilhoDoBloco},
+        {Gravidade::kFase, Gravidade::kGatilhoDaFagulha}, {Gravidade::kFase, Gravidade::kGatilhoDaMoeda},
+        {Gravidade::kFase, Gravidade::kGatilhoDoTiro},
         {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoAnel}, {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoTiro},
-        {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoEspinho}, {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoArremesso},
-        {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoRetorno},
-        {MotorQuebrado::kFase, MotorQuebrado::kGatilhoDoAnel}, {MotorQuebrado::kFase, MotorQuebrado::kGatilhoDoTiro},
-        {MotorQuebrado::kFase, MotorQuebrado::kGatilhoDoSprite}, {MotorQuebrado::kFase, MotorQuebrado::kGatilhoDoColisor},
-        {MotorQuebrado::kFase, MotorQuebrado::kGatilhoDoDisquete},
+        {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoRetorno}, {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoDisquete},
         {Lancamento::kFase, Lancamento::kGatilhoDoAnel}, {Lancamento::kFase, Lancamento::kGatilhoDoTiro},
+        {Lancamento::kFase, Lancamento::kGatilhoDoSprite}, {Lancamento::kFase, Lancamento::kGatilhoDoColisor},
         {Lancamento::kFase, Lancamento::kGatilhoDoBotao}, {Lancamento::kFase, Lancamento::kGatilhoDoEstilhaco},
         {Lancamento::kFase, Lancamento::kGatilhoDoBug}, {Lancamento::kFase, Lancamento::kGatilhoDaQueda},
         {Lancamento::kFase, Lancamento::kGatilhoDoCredito},
@@ -2631,7 +2633,7 @@ TEST_CASE("Dados: o Lucas Ferreira - cada gatilho que ele puxa esta na fase dele
     const auto de = [&](const std::string& fase, const char* g) { return projetil[fase + "/" + g]; };
 
     // As etapas de cada fase sao as da camada pura, com as mesmas duracoes.
-    const auto etapas = [&](const std::string& fase, const std::array<const char*, 3>& nomes, const std::array<float, 3>& duracoes) {
+    const auto etapas = [&](const std::string& fase, const auto& nomes, const auto& duracoes) {
         const DescricaoDeFase* d = nullptr;
         for (const auto& f : lidas.fases) if (f.nome == fase) d = &f;
         REQUIRE(d != nullptr);
@@ -2643,17 +2645,24 @@ TEST_CASE("Dados: o Lucas Ferreira - cada gatilho que ele puxa esta na fase dele
         }
     };
     etapas(HudHostil::kFase, HudHostil::kEtapas, HudHostil::kDuracoes);
+    etapas(Gravidade::kFase, Gravidade::kEtapas, Gravidade::kDuracoes);
     etapas(RegrasTrocadas::kFase, RegrasTrocadas::kEtapas, RegrasTrocadas::kDuracoes);
-    etapas(MotorQuebrado::kFase, MotorQuebrado::kEtapas, MotorQuebrado::kDuracoes);
     etapas(Lancamento::kFase, Lancamento::kEtapas, Lancamento::kDuracoes);
 
-    // A barra tem as cores do rodape, nas tres faixas da nota.
-    for (const float nota : {10.0f, 50.0f, 90.0f}) CHECK(caras(de(HudHostil::kFase, HudHostil::kGatilhoDaBarra)).count(HudHostil::CaraDaBarra(nota)) == 1);
+    // A barra em campo e a da HUD: o segmento embaixo dela nao tem cara.
+    CHECK(caras(de(HudHostil::kFase, HudHostil::kGatilhoDaBarra)).count("Vazia") == 1);
     for (const char* c : {"Borda", "Titulo"}) CHECK(caras(de(HudHostil::kFase, HudHostil::kGatilhoDaJanela)).count(c) == 1);
     CHECK(caras(de(HudHostil::kFase, HudHostil::kGatilhoDeFechar)).count("X") == 1);
     // O tiro de sempre e as caras que ele ganha quando o jogo muda.
-    for (const char* c : {"Tiro", "Moeda", "Espinho", "Seu", "Vazio", "Fragmento", "Disquete"}) {
+    for (const char* c : {"Tiro", "Moeda", "Seu", "Vazio", "Fragmento", "Disquete"}) {
         CHECK(caras(de(RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoAnel)).count(c) == 1);
+    }
+    CHECK(caras(de(Gravidade::kFase, Gravidade::kGatilhoDaMoeda)).count("Moeda") == 1);
+    // As pecas da plataforma.
+    for (const char* g : {Gravidade::kGatilhoDaCaixa, Gravidade::kGatilhoDoEspinho, Gravidade::kGatilhoDaLanca,
+                          Gravidade::kGatilhoDoBloco, Gravidade::kGatilhoDaFagulha}) {
+        for (const char* c : {"Caixa", "Espinho", "Lanca", "Bloco", "Fagulha"}) CHECK(caras(de(Gravidade::kFase, g)).count(c) == 1);
+        CHECK_FALSE(tipos.at(de(Gravidade::kFase, g)).derrubavel);
     }
     for (const char* c : {"Esperar", "Fechar"}) CHECK(caras(de(Lancamento::kFase, Lancamento::kGatilhoDoBotao)).count(c) == 1);
     CHECK(caras(de(Lancamento::kFase, Lancamento::kGatilhoDoBug)).count("Bug") == 1);

@@ -3,25 +3,36 @@
   // secreta). As folhas saem de Ferramentas/gerar_ferreira.py; as animacoes, de
   // gerar_ferreira.py --animacoes.
 
-  // O tiro de sempre e as caras que ele ganha quando o jogo muda: a moeda das regras invertidas, o
-  // espinho do chao, a duvida do aluno que volta contra ele, o fragmento da travada, o disquete do
-  // save - e a cara vazia, a da hitbox que descolou do desenho.
+  // O tiro de sempre e as caras que ele ganha quando o jogo muda: a moeda das regras invertidas (e
+  // a da chuva), a duvida do aluno que volta contra ele, o fragmento da travada, o disquete do save -
+  // e a cara vazia, a da hitbox que descolou do desenho.
   "Tiro": {
     "sprite": "Teachers/Projectiles/DPIBHFerreiraTiros.png",
     "dados":  "Teachers/Projectiles/DPIBHFerreiraTiros.json",
-    "animacoes": { "Tiro": [0], "Moeda": [1], "Espinho": [2], "Seu": [3], "Vazio": [4], "Fragmento": [5],
-                   "Disquete": [6] },
+    "animacoes": { "Tiro": [0], "Moeda": [1], "Seu": [2], "Vazio": [3], "Fragmento": [4], "Disquete": [5] },
     "animacaoInicial": "Tiro",
     "ordemDeDesenho": 91,
     "colisorDivisor": 2.6
   },
 
-  // Um segmento da barra da nota em campo, na cor que ela tem no rodape. Os segmentos se encostam.
+  // Um segmento da barra da nota em campo: sem cara, porque o desenho e o da barra de verdade, a da
+  // HUD (FaixaDaNota). Os segmentos se encostam embaixo do pedaco cheio.
   "Barra": {
-    "sprite": "Teachers/Projectiles/DPIBHFerreiraBarra.png",
-    "dados":  "Teachers/Projectiles/DPIBHFerreiraBarra.json",
-    "animacoes": { "Vermelha": [0], "Amarela": [1], "Verde": [2] },
-    "animacaoInicial": "Amarela",
+    "sprite": "Teachers/Projectiles/DPIBHFerreiraFisica.png",
+    "dados":  "Teachers/Projectiles/DPIBHFerreiraFisica.json",
+    "animacoes": { "Vazia": [5] },
+    "animacaoInicial": "Vazia",
+    "ordemDeDesenho": 92,
+    "colisorDivisor": 2.0
+  },
+
+  // As pecas do jogo de plataforma: a caixa de colisao das pilhas (e do moedor), o espinho dos
+  // buracos da esteira, a lanca, o bloco da chuva e a fagulha em que ele estilhaca.
+  "Peca": {
+    "sprite": "Teachers/Projectiles/DPIBHFerreiraFisica.png",
+    "dados":  "Teachers/Projectiles/DPIBHFerreiraFisica.json",
+    "animacoes": { "Caixa": [0], "Espinho": [1], "Lanca": [2], "Bloco": [3], "Fagulha": [4] },
+    "animacaoInicial": "Caixa",
     "ordemDeDesenho": 92,
     "colisorDivisor": 2.0
   },

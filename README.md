@@ -801,40 +801,61 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   Jogos Digitais — a batalha mais difícil do jogo, e a mais longa:
   cada fase dura 40 s, o dobro das outras (e cada acerto nele vale um pouco
   mais que a metade, para a nota andar no ritmo de sempre enquanto o perigo
-  dura o dobro). Ele não ensina matéria: **mexe nos sistemas do próprio jogo**.
-  Na **interface**, a barra da nota sai do rodapé e varre o campo — cheia até a
-  **sua** nota, e só o pedaço vazio deixa passar: com 100, não há por onde.
-  Primeiro ela sobe e desce; depois, de pé, vem de um lado e do outro, e a
-  cada passada espelha — quem passou pela direita tem de passar pela esquerda
-  na volta. O pedaço vazio fica marcado em verde, e uma linha mostra onde o
-  cheio acaba. Depois as **janelas de dica** ("Aceita os cookies?", "Avalie: 5
-  estrelas?") abrem em volta de você: a moldura machuca, o seu tiro atravessa a
-  barra de título, e só um tiro no **X** fecha a janela (e vale nota); com
-  quatro abertas, a mais velha fecha sozinha — e estoura. Nas **regras**, a
-  **inversão**: acertar o professor passa a **tirar** nota, e os tiros dele
-  viram **moedas**, que passam por você e dão nota — o professor fica vermelho
-  com um "−", você ganha um anel dourado com um "+" —, até as regras voltarem
-  e as moedas que sobraram piscarem de volta em tiros. Na **gravidade**, o
-  jogo vira de plataforma: você cai (segure para cima), o chão ganha espinhos
-  e os tiros vêm arremessados em arco. No **fogo amigo**, o campo dá a volta:
-  o seu tiro que **erra** o professor sai por cima e volta por baixo, no mesmo
-  lugar — quem atira parado acerta a si mesmo —, e o tiro dele que sai por
-  baixo reaparece em cima. No **motor**, o **lag**: os tiros andam aos saltos,
-  a 2,5 quadros por segundo, e um círculo mostra onde cada um vai estar no
-  próximo quadro. Na **hitbox**, o desenho de cada tiro vira enfeite e a
-  colisão **descola** dele — o modo debug mostra o círculo verde que machuca
-  de verdade, que se afasta e gira em volta do desenho. No **save/load**, ele
-  salva o jogo (o disquete, o ponto de volta) e segundos depois **carrega**:
-  você volta para onde estava, os tiros voltam para onde estavam, e a **nota**
-  volta à do save — para o bem e para o mal. O exame é o **lançamento**: o
-  jogo **trava** ("não está respondendo") e os tiros congelam; atire em
-  ESPERAR (vale nota) e ele volta de onde parou, em FECHAR e cada tiro
-  congelado estilhaça — e sem escolha, ele volta acelerado; da segunda vez, os
-  botões trocam de lado. Depois o gênero muda: uma **frota de bugs** marcha de
-  um lado ao outro, desce a cada batida na borda e solta tiros — cada bug cai
-  com um tiro, e zerar a frota vale um bônus. No fim, os **créditos** sobem do
-  rodapé, linha por linha, cada uma uma parede de blocos com um vão fora do
-  texto ("QA · você, agora", "BUGS · todos de propósito").
+  dura o dobro). Ele não ensina matéria: **mexe nos sistemas do próprio jogo**,
+  nas peças que até ali eram só a interface e as regras de sempre.
+  A prova começa com um **susto**: no primeiro quadro, sem aviso, três anéis
+  rápidos fecham sobre você, cada um com um vão só — do lado em que há campo —,
+  e quem não corre para o vão na hora é pego (uma vez só: quem é pego fica
+  protegido até o fim do susto). Depois, na **interface**, ele
+  **arranca a barra da nota da HUD**: a barra de verdade treme no rodapé, voa
+  campo acima (o lugar dela fica vazio, só o contorno) e varre o campo cheia
+  até a **sua** nota, com o número junto. Ela continua sendo a nota — acertar o
+  professor a enche, apanhar a esvazia —, e só o pedaço vazio deixa passar:
+  com 100, não há por onde. Primeiro ela sobe e desce, deitada; depois gira,
+  fica de pé e é jogada de um lado ao outro; a cada passada espelha — quem
+  passou por um lado tem de passar pelo outro na volta —, e no fim ela volta
+  para o rodapé. O pedaço vazio fica marcado em verde, e uma linha mostra onde
+  o cheio acaba. Por fim as **janelas de dica** ("Aceita os cookies?", "Avalie:
+  5 estrelas?") abrem em volta de você: a moldura machuca, o seu tiro atravessa
+  a barra de título, e só um tiro no **X** fecha a janela (e vale nota); com
+  quatro abertas, a mais velha fecha sozinha — e estoura.
+  A **física** é a prova inteira: o jogo vira **de plataforma**, e é ele quem
+  escolhe para que lado a gravidade puxa. Uma seta avisa, e a virada arremessa
+  você no chão novo — o desenho gira com os pés nele, o seu tiro sai para o
+  lado oposto e o professor some e reaparece lá, no "céu". No chão você anda,
+  e empurrar para longe dele **pula** (segurar pula mais alto, soltar corta o
+  pulo). O primeiro lado é sempre o chão de sempre; os outros três, sorteados,
+  e cada um tem o seu desafio: no **chão**, pilhas de caixas de colisão
+  deslizam de um lado e do outro, de alturas diferentes — pule; na **parede
+  esquerda**, lanças correm rente a ela em duas alturas, avisadas na ponta de
+  onde vêm — pule a de baixo, fique para a de cima; no **teto**, chovem blocos
+  (a sombra avisa onde) que estilhaçam no chão em fagulhas, uma para cada
+  lado, e moedas, que pagam a quem as pega; na **parede direita**, o chão é uma
+  **esteira** que leva você até o moedor, na ponta, e os buracos de espinhos
+  vêm com ela — ande contra ela e pule.
+  Nas **regras**, a da nota: a **inversão** — acertar o professor passa a
+  **tirar** nota, e os tiros dele viram **moedas**, que passam por você e dão
+  nota (o professor fica vermelho com um "−", você ganha um anel dourado com um
+  "+"), até as regras voltarem e as moedas que sobraram piscarem de volta em
+  tiros. A do campo: no **fogo amigo**, o seu tiro que **erra** o professor sai
+  por cima e volta por baixo, no mesmo lugar — quem atira parado acerta a si
+  mesmo —, e o tiro dele que sai por baixo reaparece em cima. A do tempo: no
+  **lag**, os tiros andam aos saltos, a 2,5 quadros por segundo, e um círculo
+  mostra onde cada um vai estar no próximo quadro. A do estado: no
+  **save/load**, ele salva o jogo (o disquete, o ponto de volta) e segundos
+  depois **carrega** — você volta para onde estava, os tiros voltam para onde
+  estavam, e a **nota** volta à do save, para o bem e para o mal.
+  O exame é o **lançamento**, e o jogo sai com bugs: primeiro a **hitbox**
+  descola — o desenho de cada tiro vira enfeite, e o modo debug mostra o
+  círculo verde que machuca de verdade, que se afasta e gira em volta do
+  desenho. Depois o jogo **trava** ("não está respondendo") e os tiros
+  congelam; atire em ESPERAR (vale nota) e ele volta de onde parou, em FECHAR e
+  cada tiro congelado estilhaça — e sem escolha, ele volta acelerado; da
+  segunda vez, os botões trocam de lado. Depois o gênero muda: uma **frota de
+  bugs** marcha de um lado ao outro, desce a cada batida na borda e solta
+  tiros — cada bug cai com um tiro, e zerar a frota vale um bônus. No fim, os
+  **créditos** sobem do rodapé, linha por linha, cada uma uma parede de blocos
+  com um vão fora do texto ("QA · você, agora", "BUGS · todos de propósito").
 - **Lucas — INF 321.** Programação Web, na ordem da matéria. No HTML ele
   renderiza uma página gerada a cada luta, com o layout desenhado no campo, e
   cada elemento ataca do seu jeito: o cursor voa até o `<button>` e clica, a

@@ -12,7 +12,9 @@
 #include "../../../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../../../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../../../Components/RigidBodyComponent.h"
+#include "../../../Regras/Nota.h"
 #include "../../../Scenes/Battle/Battle.h"
+#include "../../../Scenes/Battle/FaixaDaNota.h"
 #include "../../../Scenes/Battle/ProjectileManager.h"
 #include "../../Player/Player.h"
 #include "../../Player/PlayerProjectile.h"
@@ -20,6 +22,8 @@
 #include "PainelDeCodigo.h"
 
 namespace {
+
+    using Plataforma::Lado;
 
     float Mistura(const float a, const float b, const float u) {
         return a + (b - a) * u;
@@ -33,6 +37,27 @@ namespace {
     bool Aceso(const float t, const float periodo) {
         return static_cast<int>(std::floor(t / periodo)) % 2 == 0;
     }
+
+    std::string NomeDoLado(const Lado l) {
+        switch (l) {
+            case Lado::Baixo:    return "CH\xc3\x83O";
+            case Lado::Esquerda: return "ESQUERDA";
+            case Lado::Cima:     return "TETO";
+            case Lado::Direita:  return "DIREITA";
+        }
+        return "";
+    }
+
+    /// O que o placar diz num lado: para onde a gravidade puxa, e o que fazer nele.
+    std::string AnuncioDoLado(const Lado l) {
+        switch (Gravidade::DesafioDo(l)) {
+            case Gravidade::Desafio::Pulos:   return "gravidade = CH\xc3\x83O: PULE as caixas (segure para ir alto)";
+            case Gravidade::Desafio::Lancas:  return "gravidade = ESQUERDA: lan\xc3\xa7" "a de baixo, PULE; de cima, FIQUE";
+            case Gravidade::Desafio::Chuva:   return "gravidade = TETO: fuja dos blocos e PULE as fagulhas";
+            case Gravidade::Desafio::Esteira: return "gravidade = DIREITA: ande CONTRA a esteira e pule os espinhos";
+        }
+        return "";
+    }
 }
 
 Ferreira::Ferreira(Scene* scene) : Boss(scene) {
@@ -43,9 +68,16 @@ void Ferreira::SortearALuta() {
     mSorteio = SorteioDaFase(HudHostil::kFase);
     const Dificuldade::Nivel n = NivelDeDificuldade();
     mDegrauDoHud = HudHostil::DegrauDo(n);
+    mDegrauDaGravidade = Gravidade::DegrauDo(n);
     mDegrauDasRegras = RegrasTrocadas::DegrauDo(n);
-    mDegrauDoMotor = MotorQuebrado::DegrauDo(n);
     mDegrauDoLancamento = Lancamento::DegrauDo(n);
+
+    // A ordem dos lados: o placar de cada etapa da fisica diz o lado que ela vai ter.
+    mSorteioDaFisica = SorteioDaFase(Gravidade::kFase);
+    mOrdem = Gravidade::Ordem(mSorteioDaFisica);
+    auto etapas = EtapasDa(Gravidade::kFase);
+    for (size_t k = 0; k < etapas.size() && k < mOrdem.size(); ++k) etapas[k].second = AnuncioDoLado(mOrdem[k]);
+    if (!etapas.empty()) RegistrarEtapas(Gravidade::kFase, etapas);
 }
 
 // ---- O que as fases dividem ----
@@ -102,6 +134,12 @@ void Ferreira::DarVelocidade(const std::vector<BossProjectile*>& ps, const float
 
 BossProjectile* Ferreira::Peca(const char* gatilho, const Vector2 onde, const std::string& cara) {
     BossProjectile* p = Um(gatilho, onde, cara);
+    if (p) p->DefinirMargemDeSaida(2.0f, 1.0f);
+    return p;
+}
+
+BossProjectile* Ferreira::PecaAndando(const char* gatilho, const Vector2 onde, const std::string& cara, const Vector2 velocidade) {
+    BossProjectile* p = Um(gatilho, onde, cara, velocidade);
     if (p) p->DefinirMargemDeSaida(2.0f, 1.0f);
     return p;
 }
@@ -209,6 +247,16 @@ float Ferreira::Nota() const {
     return Batalha() ? Batalha()->NotaAtual() : 50.0f;
 }
 
+JogosDigitais::Campo Ferreira::CampoPuro() const {
+    const SDL_FRect c = Campo();
+    return JogosDigitais::Campo{c.x, c.y, c.w, c.h};
+}
+
+FaixaDaNota* Ferreira::Faixa() const {
+    const Battle* b = Batalha();
+    return b ? b->Faixa() : nullptr;
+}
+
 void Ferreira::Sanear(std::vector<BossProjectile*>& ps, const bool encolher) {
     for (BossProjectile*& p : ps) {
         if (!Vivo(p)) p = nullptr;
@@ -217,15 +265,27 @@ void Ferreira::Sanear(std::vector<BossProjectile*>& ps, const bool encolher) {
 }
 
 void Ferreira::Sanear() {
-    // As listas soltas encolhem; as que tem lugar marcado (a barra, a frota, os botoes) so esquecem.
+    // As listas soltas encolhem; as que tem lugar marcado (a barra, as pilhas, a frota, os botoes) so
+    // esquecem.
     Sanear(mTiros, true);
+    for (AnelVivo& a : mAneis) Sanear(a.tiros, true);
     Sanear(mBarra, false);
     for (Janela& j : mJanelas) {
         Sanear(j.pecas, true);
         if (!Vivo(j.fechar)) j.fechar = nullptr;
     }
-    Sanear(mEspinhos, true);
-    mArcos.erase(std::remove_if(mArcos.begin(), mArcos.end(), [](const Arco& a) { return !Vivo(a.p); }), mArcos.end());
+    for (PilhaViva& p : mPilhas) Sanear(p.caixas, false);
+    for (LancaViva& l : mLancas) {
+        if (!Vivo(l.p)) l.p = nullptr;
+    }
+    for (QuedaViva& q : mQuedas) {
+        if (!Vivo(q.p)) q.p = nullptr;
+    }
+    for (FagulhaViva& f : mFagulhas) {
+        if (!Vivo(f.p)) f.p = nullptr;
+    }
+    for (BuracoVivo& b : mBuracos) Sanear(b.espinhos, false);
+    Sanear(mMoedor, false);
     mQueDaoAVolta.erase(std::remove_if(mQueDaoAVolta.begin(), mQueDaoAVolta.end(),
                                        [](const QueDaAVolta& q) { return !Vivo(q.p); }), mQueDaoAVolta.end());
     mAosSaltos.erase(std::remove_if(mAosSaltos.begin(), mAosSaltos.end(), [](const AosSaltos& s) { return !Vivo(s.p); }),
@@ -258,16 +318,35 @@ void Ferreira::LimparClasses() {
 void Ferreira::DesmontarEtapa() {
     // Os tiros soltos seguem o caminho deles; o que a etapa montou sai com ela.
     mTiros.clear();
-    MatarTodos(mBarra);
+    for (AnelVivo& a : mAneis) MatarTodos(a.tiros);
+    mAneis.clear();
+    mPoupado = {};
+    DevolverABarra();
     while (!mJanelas.empty()) FecharJanela(mJanelas.size() - 1, false);
     mProximaJanela = 0.0f;
     mJanelasFeitas = 0;
+    for (PilhaViva& p : mPilhas) MatarTodos(p.caixas);
+    mPilhas.clear();
+    mPilhasPorVir.clear();
+    mProximaPilha = 0;
+    for (LancaViva& l : mLancas) Matar(l.p);
+    mLancas.clear();
+    mLancasPorVir.clear();
+    mProximaLanca = 0;
+    for (QuedaViva& q : mQuedas) Matar(q.p);
+    mQuedas.clear();
+    mQuedasPorVir.clear();
+    mProximaDaChuva = 0;
+    for (FagulhaViva& f : mFagulhas) Matar(f.p);
+    mFagulhas.clear();
+    for (BuracoVivo& b : mBuracos) MatarTodos(b.espinhos);
+    mBuracos.clear();
+    mBuracosPorVir.clear();
+    mProximoBuraco = 0;
+    MatarTodos(mMoedor);
     mCobrando = false;
     mPremioDasMoedas = 0.0f;
     LimparClasses();
-    MatarTodos(mEspinhos);
-    mArcos.clear();
-    mProximoArremesso = 0.0f;
     mVoltaram.clear();
     mQueDaoAVolta.clear();
     for (AosSaltos& s : mAosSaltos) {
@@ -310,7 +389,11 @@ void Ferreira::DesmontarEtapa() {
 
 void Ferreira::Desmontar() {
     DesmontarEtapa();
+    // A gravidade e da fase inteira: so a troca de fase (ou o fim da luta) a desliga.
+    SoltarAGravidade();
+    mVirada = -1;
     if (mLinhas) mLinhas->Limpar();
+    if (mLinhasDoChao) mLinhasDoChao->Limpar();
     mAlvo.reset();
     mAvisoAte = -1.0f;
     mEtapaAnterior = -1;
@@ -351,7 +434,8 @@ void Ferreira::Retangulo(const Vector2 de, const Vector2 ate, const SDL_Color co
 }
 
 void Ferreira::Preencher(const Vector2 de, const Vector2 ate, const SDL_Color cor) {
-    if (mLinhas) mLinhas->Preencher(de, ate, cor);
+    if (mLinhas) mLinhas->Preencher(Vector2(std::min(de.x, ate.x), std::min(de.y, ate.y)),
+                                    Vector2(std::max(de.x, ate.x), std::max(de.y, ate.y)), cor);
 }
 
 void Ferreira::Seta(const Vector2 de, const Vector2 ate, const SDL_Color cor) {
@@ -362,6 +446,18 @@ void Ferreira::Seta(const Vector2 de, const Vector2 ate, const SDL_Color cor) {
     Linha(de, ate, cor);
     Linha(ate, ate - u * 8.0f + lado * 5.0f, cor);
     Linha(ate, ate - u * 8.0f - lado * 5.0f, cor);
+}
+
+void Ferreira::SetaGrande(const Vector2 centro, const Vector2 d, const float tamanho, const SDL_Color cor) {
+    const Vector2 lado(-d.y, d.x);
+    const Vector2 de = centro - d * (tamanho / 2.0f), ate = centro + d * (tamanho / 2.0f);
+    // A haste, grossa, e a ponta, cheia: linhas paralelas que se estreitam.
+    for (int k = -4; k <= 4; ++k) Linha(de + lado * (1.5f * static_cast<float>(k)), ate - d * 30.0f + lado * (1.5f * static_cast<float>(k)), cor);
+    for (int k = 0; k < 18; ++k) {
+        const float largura = 36.0f * (1.0f - static_cast<float>(k) / 18.0f);
+        const Vector2 base = ate - d * (40.0f - 2.2f * static_cast<float>(k));
+        Linha(base - lado * largura, base + lado * largura, cor);
+    }
 }
 
 EtiquetaDeCodigo* Ferreira::Etiqueta(std::vector<EtiquetaDeCodigo*>& grupo, const size_t k, const int largura, const int altura) {
@@ -433,13 +529,15 @@ void Ferreira::OnUpdate(const float deltaTime) {
     if (!mLinhas && mScene) {
         auto ator = std::make_unique<Actor>(mScene);
         mLinhas = ator->AddComponent<DrawLinhasComponent>(kOrdemDasLinhas);
+        mLinhasDoChao = ator->AddComponent<DrawLinhasComponent>(kOrdemDoChao);
         mScene->AddActor(std::move(ator));
     }
     if (mLinhas) mLinhas->Limpar();
+    if (mLinhasDoChao) mLinhasDoChao->Limpar();
 
     if (fase == HudHostil::kFase) AtualizarHud(t, deltaTime);
+    else if (fase == Gravidade::kFase) AtualizarFisica(t, deltaTime);
     else if (fase == RegrasTrocadas::kFase) AtualizarRegras(t, deltaTime);
-    else if (fase == MotorQuebrado::kFase) AtualizarMotor(t, deltaTime);
     else if (fase == Lancamento::kFase) AtualizarLancamento(t, deltaTime);
 
     // O clarao de um instante, por cima do campo.
@@ -463,87 +561,141 @@ void Ferreira::AtualizarHud(const float t, const float deltaTime) {
     TrocouDeEtapa(etapa);
     Varrer(t, 0.3f, 9.0f);
 
-    if (etapa >= 2) {
+    if (etapa == kEtapaDaAbertura) {
+        AtualizarAbertura(te);
+        return;
+    }
+    if (etapa == kEtapaDasJanelas) {
         AtualizarJanelas(te);
         return;
     }
-    AtualizarBarra(te, etapa == 1);
-    if (te >= kAvisoDaBarra && te >= mProximoLeque) {
+    AtualizarBarra(etapa, te);
+    // Os leques so comecam com a barra no campo: o susto do rodape e so dela.
+    const bool arrancada = etapa == kEtapaDaBarraDeitada && te < kTremorDaBarra + kArrancadaDaBarra;
+    if (!arrancada && te >= mProximoLeque) {
         mProximoLeque = te + g.entreLeques;
         Leque(kGatilhoDoLeque, g.tirosDoLeque, 26.0f, g.velocidade, "Tiro");
     }
-    const std::string cheia = Inteiro(std::clamp(Nota(), 0.0f, 100.0f)) + "% cheia: passe pelo VAZIO";
-    Placar(kFase, static_cast<size_t>(etapa), (etapa == 0 ? "A barra \xc3\xa9 a sua nota, " : "Agora ela vem de lado, ") + cheia);
+    const FaixaDaNota* faixa = Faixa();
+    const float nota = std::clamp(faixa ? faixa->Mostrada() : Nota(), 0.0f, 100.0f);
+    const std::string cheia = ::Nota::ECheia(nota) ? "100% cheia: N\xc3\x83O h\xc3\xa1 vazio!" : Inteiro(nota) + "% cheia: passe pelo VAZIO";
+    if (arrancada) {
+        Placar(kFase, static_cast<size_t>(etapa), "hud.nota.soltar(): a barra da sua nota saiu da HUD!");
+    } else {
+        Placar(kFase, static_cast<size_t>(etapa), (etapa == kEtapaDaBarraDeitada ? "A barra \xc3\xa9 a sua nota, " : "Agora ela vem de lado, ") + cheia);
+    }
 }
 
-void Ferreira::AtualizarBarra(const float te, const bool emPe) {
+void Ferreira::AtualizarAbertura(const float te) {
     using namespace HudHostil;
+    const auto aneis = AneisDaAbertura(NivelDeDificuldade());
     const SDL_FRect c = Campo();
-    const float nota = Nota();
-    const Varredura v = NaVarredura(te, mDegrauDoHud.idaDaBarra);
-    const float meio = kSegmento / 2.0f;
+    const Vector2 meioDoCampo(c.x + c.w / 2.0f, c.y + c.h / 2.0f);
 
-    // Deitada, ela tem a largura do campo e sobe do rodape (de cima da barra de verdade) ate sumir
-    // no alto; de pe, tem a altura dele e vai de fora da esquerda ate fora da direita. Nas pontas
-    // ela descansa fora do campo: ninguem e pego pela virada.
-    const float comprimento = emPe ? c.h : c.w;
-    const int n = std::max(1, static_cast<int>(comprimento / kSegmento));
-    const float sobra = (comprimento - static_cast<float>(n) * kSegmento) / 2.0f;
+    // Cada anel nasce em volta de onde o aluno esta agora - sem aviso: e o susto.
+    while (mAneisFeitos < kAneisDaAbertura && te >= aneis[static_cast<size_t>(mAneisFeitos)].quando) {
+        const AnelDaAbertura& a = aneis[static_cast<size_t>(mAneisFeitos)];
+        const Vector2 centro = PosicaoDoAluno();
+        // O vao fica do lado em que ha campo: do aluno para o meio dele (no comeco, para cima).
+        const Vector2 livre = meioDoCampo - centro;
+        const float rumo = livre.Length() > 40.0f ? Math::ToDegrees(Math::Atan2(livre.y, livre.x)) : -90.0f;
+        const float vao = VaoDaAbertura(mSorteio, mVaoAnterior, rumo);
+        mVaoAnterior = vao;
+        AnelVivo vivo;
+        vivo.some = a.quando + Fechamento(a) - 0.02f;
+        for (int i = 0; i < a.tiros; ++i) {
+            if (NoVao(i, a.tiros, vao, a.vao)) continue;
+            const float angulo = Math::ToRadians(AnguloNoAnel(i, a.tiros));
+            const Vector2 dir(Math::Cos(angulo), Math::Sin(angulo));
+            if (BossProjectile* p = Um(kGatilhoDaAbertura, centro + dir * a.raio, "Tiro", dir * -a.velocidade)) {
+                // O anel inteiro, ate a parte que nasce fora do campo: perto da parede nao se foge por ela.
+                p->DefinirMargemDeSaida(2.0f, 1.0f);
+                vivo.tiros.push_back(p);
+            }
+        }
+        mAneis.push_back(std::move(vivo));
+        ++mAneisFeitos;
+        mClarao = 0.12f;
+        mCorDoClarao = SDL_Color{255, 60, 70, 255};
+        SomDoDisparo();
+    }
+    // O anel que fechou some no meio.
+    for (AnelVivo& a : mAneis) {
+        if (te >= a.some) MatarTodos(a.tiros);
+    }
+    // O golpe e para assustar, e nao para acabar a prova: quem foi pego uma vez fica protegido ate o
+    // fim dele.
+    const std::vector<Player*> alunos = Jogadores();
+    for (size_t i = 0; i < alunos.size() && i < mPoupado.size(); ++i) {
+        if (mPoupado[i] || !alunos[i]->AcabouDeApanhar()) continue;
+        mPoupado[i] = true;
+        alunos[i]->Proteger(kDuracoes[kEtapaDaAbertura] - te + 0.3f);
+    }
+    Placar(kFase, kEtapaDaAbertura, mAneisFeitos < kAneisDaAbertura || !mAneis.empty() ? "quadro 1: CORRA para o v\xc3\xa3o!"
+                                                                                      : "Bem-vindo \xc3\xa0 INF 216. Isso era o tutorial.");
+}
+
+void Ferreira::DevolverABarra() {
+    MatarTodos(mBarra);
+    if (FaixaDaNota* faixa = Faixa(); faixa && faixa->Solta()) faixa->Devolver();
+}
+
+void Ferreira::AtualizarBarra(const int etapa, const float te) {
+    using namespace HudHostil;
+    FaixaDaNota* faixa = Faixa();
+    if (!faixa) return;
+    const PoseDaBarra pose = Pose(etapa, te, CampoPuro(), faixa->CentroDoEncaixe(), faixa->ComprimentoNoEncaixe(), mDegrauDoHud);
+    if (pose.noEncaixe && etapa == kEtapaDaBarraDePe) {
+        // De volta ao rodape: a HUD tem a barra de novo.
+        DevolverABarra();
+        return;
+    }
+    faixa->Pousar(pose.centro, pose.comprimento, pose.angulo, pose.espelhada);
+
+    // O que machuca: um segmento sem cara embaixo de cada pedaco cheio do que a barra MOSTRA - a
+    // nota que se ve, e nao a que ela ainda vai alcancar.
+    const float mostrada = faixa->Mostrada();
+    const int n = std::max(1, static_cast<int>(pose.comprimento / kSegmento));
     if (static_cast<int>(mBarra.size()) != n) {
         MatarTodos(mBarra);
         mBarra.assign(static_cast<size_t>(n), nullptr);
     }
-    const float deitadaEm = Mistura(c.y + c.h + 27.0f, c.y - meio, v.onde);
-    const float emPeEm = Mistura(c.x - meio, c.x + c.w + meio, v.onde);
-    const bool aviso = te < kAvisoDaBarra;
-    const std::string cara = CaraDaBarra(nota);
-    SDL_Color cor = cara == "Vermelha" ? SDL_Color{235, 70, 70, 150} : (cara == "Amarela" ? SDL_Color{240, 200, 60, 150} : SDL_Color{110, 220, 130, 150});
-
-    const int cheios = Cheios(nota, n);
     for (int k = 0; k < n; ++k) {
-        // Deitada, o segmento 0 e o da esquerda (como no rodape); de pe, o de baixo.
-        const float ao = sobra + (static_cast<float>(k) + 0.5f) * kSegmento;
-        const Vector2 onde = emPe ? Vector2(emPeEm, c.y + c.h - ao) : Vector2(c.x + ao, deitadaEm);
         BossProjectile*& p = mBarra[static_cast<size_t>(k)];
-        const bool cheio = Cheio(k, n, nota, v.espelhada);
-        if (cheio && !aviso) {
-            if (!p) p = Peca(kGatilhoDaBarra, onde, cara);
-            if (p) {
-                p->SetPosition(onde);
-                Parar(p);
-                Cara(p, cara);
-            }
+        if (!pose.perigo || !Cheio(k, n, mostrada, pose.espelhada)) {
+            Matar(p);
             continue;
         }
-        Matar(p);
-        // No aviso, o pedaco cheio pisca onde a barra esta (deitada, em cima da do rodape).
-        if (cheio && !emPe && Aceso(te, 0.14f)) Preencher(onde - Vector2(meio, meio - 3.0f), onde + Vector2(meio, meio - 3.0f), cor);
+        const Vector2 onde = CentroDoSegmento(pose, k, n);
+        if (!p) p = Peca(kGatilhoDaBarra, onde, "Vazia");
+        if (p) {
+            p->SetPosition(onde);
+            Parar(p);
+        }
     }
 
+    // O puxao: o professor a arranca do rodape.
+    if (etapa == kEtapaDaBarraDeitada && te >= kTremorDaBarra * 0.4f && te < kTremorDaBarra + kArrancadaDaBarra) {
+        Tracejada(GetPosition() + Vector2(0.0f, 40.0f), pose.centro, kOuro, 9.0f);
+        Circulo(pose.centro, 20.0f, kOuro, 14);
+    }
+    if (!pose.perigo) return;
+
     // O guia: a faixa por onde se passa, do tamanho do pedaco vazio, e a linha onde o cheio acaba.
-    const float vazio = static_cast<float>(n - cheios) * kSegmento;
-    const float cheioAte = static_cast<float>(cheios) * kSegmento;
-    if (emPe) {
-        // De pe, cheia de baixo para cima: o vazio e em cima (espelhada, embaixo).
-        const float y0 = v.espelhada ? c.y + c.h - sobra - vazio : c.y + sobra;
-        const float y1 = y0 + vazio;
-        if (cheios < n) Preencher(Vector2(c.x, y0), Vector2(c.x + c.w, y1), kSeguro);
-        const float corte = v.espelhada ? y0 : y1;
-        Tracejada(Vector2(c.x, corte), Vector2(c.x + c.w, corte), kGuia, 10.0f);
-        if (cheios < n) {
-            // A seta do lado de onde a barra vem.
-            const bool daEsquerda = v.passada % 2 == 0;
-            const float x = daEsquerda ? c.x + 16.0f : c.x + c.w - 16.0f;
-            Seta(Vector2(x, (y0 + y1) / 2.0f), Vector2(x + (daEsquerda ? 34.0f : -34.0f), (y0 + y1) / 2.0f), kGuia);
-        }
-        if (!v.parada || aviso) Retangulo(Vector2(emPeEm - meio + 3.0f, c.y + sobra), Vector2(emPeEm + meio - 3.0f, c.y + c.h - sobra), kVazio);
+    const int cheios = Cheios(mostrada, n);
+    if (cheios >= n) return;
+    const int primeiro = pose.espelhada ? 0 : cheios;
+    const int ultimo = pose.espelhada ? n - cheios - 1 : n - 1;
+    const Vector2 a = CentroDoSegmento(pose, primeiro, n) - pose.eixo * (kSegmento / 2.0f);
+    const Vector2 b = CentroDoSegmento(pose, ultimo, n) + pose.eixo * (kSegmento / 2.0f);
+    const Vector2 corte = pose.espelhada ? b : a;
+    const SDL_FRect c = Campo();
+    if (std::fabs(pose.eixo.x) > 0.5f) {
+        Preencher(Vector2(a.x, c.y), Vector2(b.x, c.y + c.h), kSeguro);
+        Tracejada(Vector2(corte.x, c.y), Vector2(corte.x, c.y + c.h), kGuia, 10.0f);
     } else {
-        const float x0 = v.espelhada ? c.x + sobra : c.x + sobra + cheioAte;
-        const float x1 = x0 + vazio;
-        if (cheios < n) Preencher(Vector2(x0, c.y), Vector2(x1, c.y + c.h), kSeguro);
-        const float corte = v.espelhada ? x1 : x0;
-        Tracejada(Vector2(corte, c.y), Vector2(corte, c.y + c.h), kGuia, 10.0f);
-        if (!v.parada || aviso) Retangulo(Vector2(c.x + sobra, deitadaEm - meio + 3.0f), Vector2(c.x + c.w - sobra, deitadaEm + meio - 3.0f), kVazio);
+        Preencher(Vector2(c.x, a.y), Vector2(c.x + c.w, b.y), kSeguro);
+        Tracejada(Vector2(c.x, corte.y), Vector2(c.x + c.w, corte.y), kGuia, 10.0f);
     }
 }
 
@@ -623,7 +775,7 @@ void Ferreira::AtualizarJanelas(const float te) {
         mProximoLeque = te + g.entreLeques * 1.15f;
         Leque(kGatilhoDoLeque, g.tirosDoLeque, 26.0f, g.velocidade, "Tiro");
     }
-    Placar(kFase, 2, "Janelas abertas: " + std::to_string(mJanelas.size()) + ". Atire no X para fechar");
+    Placar(kFase, kEtapaDasJanelas, "Janelas abertas: " + std::to_string(mJanelas.size()) + ". Atire no X para fechar");
 }
 
 void Ferreira::FecharJanela(const size_t k, const bool comEstouro) {
@@ -642,17 +794,361 @@ void Ferreira::FecharJanela(const size_t k, const bool comEstouro) {
     }
 }
 
-// ---- Fase 2: as regras ----
+// ---- Fase 2: a fisica ----
+
+void Ferreira::SoltarAGravidade() {
+    for (Player* a : Jogadores()) a->DefinirChao(std::nullopt);
+}
+
+float Ferreira::ChaoDoAluno() const {
+    for (const Player* a : Jogadores()) {
+        if (const auto* d = a->GetComponent<DrawAnimatedComponent>()) return static_cast<float>(d->GetSpriteHeight());
+    }
+    return 64.0f;
+}
+
+void Ferreira::PrepararLado(const int etapa) {
+    using namespace Gravidade;
+    const Lado lado = mOrdem[static_cast<size_t>(etapa)];
+    const Degrau& g = mDegrauDaGravidade;
+    switch (DesafioDo(lado)) {
+        case Desafio::Pulos:
+            mPilhasPorVir = Pulos(mSorteioDaFisica, g);
+            break;
+        case Desafio::Lancas:
+            mLancasPorVir = Lancas(mSorteioDaFisica, g);
+            break;
+        case Desafio::Chuva:
+            mQuedasPorVir = Chuva(mSorteioDaFisica, g, Comprimento(lado, CampoPuro()));
+            break;
+        case Desafio::Esteira:
+            mBuracosPorVir = Buracos(mSorteioDaFisica, g);
+            mSentidoDaEsteira = mSorteioDaFisica.Chance(0.5f) ? 1.0f : -1.0f;
+            break;
+    }
+}
+
+void Ferreira::DesenharOChao(const Lado l, const float chao, const float pes, const SDL_Color cor, const bool aviso) {
+    using namespace Gravidade;
+    const JogosDigitais::Campo c = CampoPuro();
+    const float comprimento = Comprimento(l, c);
+    const Vector2 a = Ponto(l, c, chao, 0.0f, -pes), b = Ponto(l, c, chao, comprimento, -pes);
+    if (aviso) {
+        Tracejada(a, b, cor, 12.0f);
+        return;
+    }
+    // A faixa entre os pes do aluno e a borda do campo, a linha de cima, clara, e as juntas - na
+    // camada de baixo, sob o placar e os tiros.
+    if (!mLinhasDoChao) return;
+    const Vector2 borda = Ponto(l, c, chao, comprimento, -chao);
+    mLinhasDoChao->Preencher(Vector2(std::min(a.x, borda.x), std::min(a.y, borda.y)),
+                             Vector2(std::max(a.x, borda.x), std::max(a.y, borda.y)), kChaoFundo);
+    mLinhasDoChao->Acrescentar(a, b, cor);
+    for (float u = 0.0f; u <= comprimento; u += 56.0f) {
+        mLinhasDoChao->Acrescentar(Ponto(l, c, chao, u, -pes), Ponto(l, c, chao, u, -chao), kChaoJunta);
+    }
+}
+
+void Ferreira::AtualizarFisica(const float t, const float deltaTime) {
+    using namespace Gravidade;
+    const Degrau& g = mDegrauDaGravidade;
+    const int etapa = JogosDigitais::Etapa(kDuracoes, t);
+    const float te = JogosDigitais::NaEtapa(kDuracoes, t);
+    if (TrocouDeEtapa(etapa)) PrepararLado(etapa);
+    const Lado lado = mOrdem[static_cast<size_t>(etapa)];
+    const bool virou = te >= kVirada;
+    const JogosDigitais::Campo c = CampoPuro();
+    const float chao = ChaoDoAluno(), pes = chao / 2.0f;
+
+    // A gravidade: antes da virada, a do lado anterior - no primeiro, ainda se voa.
+    std::optional<Lado> vale;
+    if (virou) vale = lado;
+    else if (etapa > 0) vale = mOrdem[static_cast<size_t>(etapa - 1)];
+    for (Player* a : Jogadores()) a->DefinirChao(vale);
+
+    // O professor fica no ceu do chao que vale; na virada, some e aparece no ceu novo.
+    if (virou && mVirada != etapa) {
+        mVirada = etapa;
+        SetPosition(Ponto(lado, c, chao, Comprimento(lado, c) / 2.0f, Profundidade(lado, c, chao) - 60.0f));
+        mClarao = 0.15f;
+        mCorDoClarao = SDL_Color{200, 170, 255, 255};
+        SomDoDisparo();
+    }
+    if (vale) {
+        const float comprimento = Comprimento(*vale, c);
+        const float u = comprimento / 2.0f + (comprimento / 2.0f - 150.0f) * Math::Sin(Math::TwoPi * t / 8.0f);
+        mAlvo = Ponto(*vale, c, chao, u, Profundidade(*vale, c, chao) - 60.0f);
+        DesenharOChao(*vale, chao, pes, kChaoLinha, false);
+    } else {
+        Varrer(t, 0.3f, 8.0f);
+    }
+
+    // Antes da virada: a seta no meio do campo e o chao novo, piscando.
+    if (!virou) {
+        if (Aceso(te, 0.12f)) {
+            DesenharOChao(lado, chao, pes, kPerigo, true);
+            SetaGrande(Vector2(c.x + c.w / 2.0f, c.y + c.h / 2.0f), Plataforma::Direcao(lado), 150.0f, kPerigo);
+        }
+        Placar(kFase, static_cast<size_t>(etapa), "fisica.gravidade = " + NomeDoLado(lado) + " em 3, 2, 1...");
+        return;
+    }
+
+    switch (DesafioDo(lado)) {
+        case Desafio::Pulos:   AtualizarPulos(te, deltaTime, lado, chao, pes); break;
+        case Desafio::Lancas:  AtualizarLancas(te, deltaTime, lado, chao, pes); break;
+        case Desafio::Chuva:   AtualizarChuva(te, deltaTime, lado, chao, pes); break;
+        case Desafio::Esteira: AtualizarEsteira(te, deltaTime, lado, chao, pes); break;
+    }
+
+    // Do ceu, o professor atira de tanto em tanto: o desafio e o chao.
+    if (te >= kComecaODesafio + 0.5f && te >= mProximoLeque) {
+        mProximoLeque = te + g.entreLeques;
+        Leque(kGatilhoDoTiro, g.tirosDoLeque, 30.0f, g.velocidade, "Tiro");
+    }
+    Placar(kFase, static_cast<size_t>(etapa), AnuncioDoLado(lado));
+}
+
+void Ferreira::AtualizarPulos(const float te, const float dt, const Lado l, const float chao, const float pes) {
+    using namespace Gravidade;
+    const JogosDigitais::Campo c = CampoPuro();
+    const float comprimento = Comprimento(l, c);
+    // As pilhas que chegam: comecam logo fora da ponta de onde vem.
+    while (mProximaPilha < mPilhasPorVir.size() && te >= mPilhasPorVir[mProximaPilha].quando) {
+        const Pilha& p = mPilhasPorVir[mProximaPilha++];
+        PilhaViva v;
+        v.sentido = p.sentido;
+        v.velocidade = p.velocidade;
+        v.altura = p.altura;
+        v.largura = p.largura;
+        v.u = p.sentido > 0.0f ? -kPeca * static_cast<float>(p.largura) - 10.0f : comprimento + 10.0f;
+        const Vector2 andando = Plataforma::AoLongo(l) * (p.sentido * p.velocidade);
+        for (int i = 0; i < p.largura; ++i) {
+            for (int j = 0; j < p.altura; ++j) {
+                const Vector2 onde = Ponto(l, c, chao, v.u + (static_cast<float>(i) + 0.5f) * kPeca, AlturaDaPeca(j, pes));
+                v.caixas.push_back(PecaAndando(kGatilhoDaCaixa, onde, "Caixa", andando));
+            }
+        }
+        mPilhas.push_back(std::move(v));
+    }
+    // Elas andam sozinhas; aqui so se acompanha onde esta a primeira.
+    for (PilhaViva& v : mPilhas) {
+        v.u += v.sentido * v.velocidade * dt;
+        for (const BossProjectile* caixa : v.caixas) {
+            if (!caixa) continue;
+            v.u = NoChao(l, c, chao, caixa->GetPosition()).x - 0.5f * kPeca;
+            break;
+        }
+    }
+    // A que saiu pela outra ponta, sai.
+    mPilhas.erase(std::remove_if(mPilhas.begin(), mPilhas.end(), [&](PilhaViva& v) {
+        const bool saiu = v.sentido > 0.0f ? v.u > comprimento + 40.0f
+                                           : v.u + kPeca * static_cast<float>(v.largura) < -40.0f;
+        if (saiu) MatarTodos(v.caixas);
+        return saiu;
+    }), mPilhas.end());
+}
+
+void Ferreira::AtualizarLancas(const float te, const float dt, const Lado l, const float chao, const float pes) {
+    using namespace Gravidade;
+    (void)pes;
+    const JogosDigitais::Campo c = CampoPuro();
+    const float comprimento = Comprimento(l, c);
+    const Vector2 ao = Plataforma::AoLongo(l);
+
+    // O aviso, na ponta de onde ela vem e na altura dela: vermelha a de baixo, dourada a de cima.
+    for (size_t k = mProximaLanca; k < mLancasPorVir.size(); ++k) {
+        const Lanca& x = mLancasPorVir[k];
+        if (te < x.quando - kAvisoDaLanca) break;
+        if (!Aceso(te, 0.08f)) continue;
+        const SDL_Color cor = x.h == kLancaBaixa ? kPerigo : kOuro;
+        const Vector2 p = Ponto(l, c, chao, x.sentido > 0.0f ? 16.0f : comprimento - 16.0f, x.h);
+        Seta(p - ao * (x.sentido * 20.0f), p + ao * (x.sentido * 20.0f), cor);
+        Circulo(p, 11.0f, cor, 10);
+    }
+    while (mProximaLanca < mLancasPorVir.size() && te >= mLancasPorVir[mProximaLanca].quando) {
+        const Lanca& x = mLancasPorVir[mProximaLanca++];
+        LancaViva v;
+        v.sentido = x.sentido;
+        v.velocidade = x.velocidade;
+        v.h = x.h;
+        v.u = x.sentido > 0.0f ? -20.0f : comprimento + 20.0f;
+        v.p = PecaAndando(kGatilhoDaLanca, Ponto(l, c, chao, v.u, v.h), "Lanca", ao * (x.sentido * x.velocidade));
+        if (!v.p) continue;
+        // O desenho aponta para a direita; o ator gira ao contrario do SDL (DrawAnimatedComponent).
+        const Vector2 d = ao * x.sentido;
+        v.p->SetRotation(-Math::Atan2(d.y, d.x));
+        mLancas.push_back(v);
+        SomDoDisparo();
+    }
+    for (LancaViva& v : mLancas) {
+        v.u += v.sentido * v.velocidade * dt;
+        if (v.p) v.u = NoChao(l, c, chao, v.p->GetPosition()).x;
+    }
+    mLancas.erase(std::remove_if(mLancas.begin(), mLancas.end(), [&](LancaViva& v) {
+        const bool fora = !v.p || v.u < -60.0f || v.u > comprimento + 60.0f;
+        if (fora) Matar(v.p);
+        return fora;
+    }), mLancas.end());
+}
+
+void Ferreira::AtualizarChuva(const float te, const float dt, const Lado l, const float chao, const float pes) {
+    using namespace Gravidade;
+    const Degrau& g = mDegrauDaGravidade;
+    const JogosDigitais::Campo c = CampoPuro();
+    const float comprimento = Comprimento(l, c);
+    const float ceu = Profundidade(l, c, chao) + 30.0f;
+    const float noChao = AlturaDaPeca(0, pes);
+    const float giro = -Math::ToRadians(Plataforma::Giro(l));
+    Battle* b = Batalha();
+    const std::vector<Player*> alunos = Jogadores();
+
+    // A moeda tem a classe do aluno: passa por ele e paga a quem encosta.
+    for (Player* a : alunos) a->DefinirClasse(kClasseDaMoedaDaChuva);
+    while (mProximaDaChuva < mQuedasPorVir.size() && te >= mQuedasPorVir[mProximaDaChuva].quando) {
+        const Queda& q = mQuedasPorVir[mProximaDaChuva++];
+        QuedaViva v;
+        v.u = q.u;
+        v.h = ceu;
+        v.moeda = q.moeda;
+        const Vector2 caindo = Plataforma::Direcao(l) * g.queda;
+        v.p = q.moeda ? PecaAndando(kGatilhoDaMoeda, Ponto(l, c, chao, v.u, v.h), "Moeda", caindo)
+                      : PecaAndando(kGatilhoDoBloco, Ponto(l, c, chao, v.u, v.h), "Bloco", caindo);
+        if (!v.p) continue;
+        if (q.moeda) v.p->DefinirClasse(kClasseDaMoedaDaChuva);
+        else v.p->SetRotation(giro);
+        mQuedas.push_back(v);
+    }
+    for (QuedaViva& v : mQuedas) {
+        if (!v.p) continue;
+        v.h = NoChao(l, c, chao, v.p->GetPosition()).y;
+        // A sombra no chao, embaixo de cada um.
+        const SDL_Color cor = v.moeda ? kOuro : kPerigo;
+        Linha(Ponto(l, c, chao, v.u - 14.0f, -pes + 3.0f), Ponto(l, c, chao, v.u + 14.0f, -pes + 3.0f), cor);
+        Linha(Ponto(l, c, chao, v.u - 8.0f, -pes + 6.0f), Ponto(l, c, chao, v.u + 8.0f, -pes + 6.0f), cor);
+        if (v.h <= noChao) {
+            // No chao, o bloco estilhaca em duas fagulhas, uma para cada lado; a moeda que ninguem pegou some.
+            if (!v.moeda) {
+                for (const float s : {-1.0f, 1.0f}) {
+                    FagulhaViva f;
+                    f.u = v.u;
+                    f.sentido = s;
+                    f.p = PecaAndando(kGatilhoDaFagulha, Ponto(l, c, chao, f.u, noChao), "Fagulha",
+                                      Plataforma::AoLongo(l) * (s * g.fagulha));
+                    if (f.p) mFagulhas.push_back(f);
+                }
+                SomDoDisparo();
+            }
+            Matar(v.p);
+            continue;
+        }
+        if (!v.moeda) continue;
+        for (const Player* a : alunos) {
+            if ((v.p->GetPosition() - a->GetPosition()).Length() > RaioDe(a) + 26.0f) continue;
+            if (b) {
+                b->Faiscar(v.p->GetPosition(), Hud::Faisca::Coleta);
+                b->Conquistar(kPremioDaMoedaDaChuva);
+            }
+            Matar(v.p);
+            break;
+        }
+    }
+    mQuedas.erase(std::remove_if(mQuedas.begin(), mQuedas.end(), [](const QuedaViva& v) { return !v.p; }), mQuedas.end());
+    for (FagulhaViva& f : mFagulhas) {
+        f.u += f.sentido * g.fagulha * dt;
+        if (f.p) f.u = NoChao(l, c, chao, f.p->GetPosition()).x;
+    }
+    mFagulhas.erase(std::remove_if(mFagulhas.begin(), mFagulhas.end(), [&](FagulhaViva& f) {
+        const bool fora = !f.p || f.u < -40.0f || f.u > comprimento + 40.0f;
+        if (fora) Matar(f.p);
+        return fora;
+    }), mFagulhas.end());
+}
+
+void Ferreira::AtualizarEsteira(const float te, const float dt, const Lado l, const float chao, const float pes) {
+    using namespace Gravidade;
+    const Degrau& g = mDegrauDaGravidade;
+    const JogosDigitais::Campo c = CampoPuro();
+    const float comprimento = Comprimento(l, c);
+    const Vector2 ao = Plataforma::AoLongo(l);
+    const float s = mSentidoDaEsteira;
+    const float giro = -Math::ToRadians(Plataforma::Giro(l));
+    const float noChao = AlturaDaPeca(0, pes);
+    const float moedor = s > 0.0f ? comprimento - kRecuoDoMoedor : kRecuoDoMoedor;
+
+    // O moedor, na ponta de chegada: uma coluna de caixas mais alta que o pulo, tremendo.
+    if (mMoedor.empty()) {
+        for (int j = 0; j < kPecasDoMoedor; ++j) mMoedor.push_back(Peca(kGatilhoDaCaixa, Ponto(l, c, chao, moedor, AlturaDaPeca(j, pes)), "Caixa"));
+    }
+    for (size_t j = 0; j < mMoedor.size(); ++j) {
+        if (!mMoedor[j]) continue;
+        const float tremor = 3.0f * Math::Sin(mRelogio * 40.0f + static_cast<float>(j));
+        mMoedor[j]->SetPosition(Ponto(l, c, chao, moedor + tremor, AlturaDaPeca(static_cast<int>(j), pes)));
+        Parar(mMoedor[j]);
+    }
+
+    // A esteira leva quem esta no chao; no ar, nao.
+    for (Player* a : Jogadores()) {
+        if (a->NoChao()) a->SetPosition(a->GetPosition() + ao * (s * g.esteira * dt));
+    }
+
+    // Os buracos: fileiras de espinhos que vem com o chao, da ponta de saida.
+    while (mProximoBuraco < mBuracosPorVir.size() && te >= mBuracosPorVir[mProximoBuraco].quando) {
+        const Buraco& x = mBuracosPorVir[mProximoBuraco++];
+        BuracoVivo v;
+        v.u = s > 0.0f ? -kPeca * static_cast<float>(x.espinhos) : comprimento;
+        for (int k = 0; k < x.espinhos; ++k) {
+            BossProjectile* p = PecaAndando(kGatilhoDoEspinho, Ponto(l, c, chao, v.u + (static_cast<float>(k) + 0.5f) * kPeca, noChao),
+                                            "Espinho", ao * (s * g.esteira));
+            if (p) p->SetRotation(giro);
+            v.espinhos.push_back(p);
+        }
+        mBuracos.push_back(std::move(v));
+    }
+    // Os espinhos andam com a esteira; aqui so se acompanha onde esta o primeiro.
+    for (BuracoVivo& v : mBuracos) {
+        v.u += s * g.esteira * dt;
+        for (size_t k = 0; k < v.espinhos.size(); ++k) {
+            if (!v.espinhos[k]) continue;
+            v.u = NoChao(l, c, chao, v.espinhos[k]->GetPosition()).x - (static_cast<float>(k) + 0.5f) * kPeca;
+            break;
+        }
+    }
+    // O buraco que chegou ao moedor e moido.
+    mBuracos.erase(std::remove_if(mBuracos.begin(), mBuracos.end(), [&](BuracoVivo& v) {
+        const float fim = v.u + kPeca * static_cast<float>(v.espinhos.size());
+        const bool moido = s > 0.0f ? fim > moedor - kPeca / 2.0f : v.u < moedor + kPeca / 2.0f;
+        if (moido) MatarTodos(v.espinhos);
+        return moido;
+    }), mBuracos.end());
+
+    // As setas da esteira, andando com ela, dentro do chao.
+    constexpr float kPasso = 64.0f;
+    const float fase = std::fmod(mRelogio * g.esteira, kPasso);
+    for (float u = -kPasso; u <= comprimento + kPasso; u += kPasso) {
+        const float aqui = u + s * fase;
+        if (aqui < 8.0f || aqui > comprimento - 8.0f) continue;
+        const Vector2 p = Ponto(l, c, chao, aqui, -pes - (chao - pes) / 2.0f);
+        if (!mLinhasDoChao) continue;
+        const Vector2 ponta = p + ao * (s * 10.0f), lado(-ao.y, ao.x);
+        mLinhasDoChao->Acrescentar(p - ao * (s * 10.0f), ponta, kChaoLinha);
+        mLinhasDoChao->Acrescentar(ponta, ponta - ao * (s * 7.0f) + lado * 5.0f, kChaoLinha);
+        mLinhasDoChao->Acrescentar(ponta, ponta - ao * (s * 7.0f) - lado * 5.0f, kChaoLinha);
+    }
+}
+
+// ---- Fase 3: as regras ----
 
 void Ferreira::AtualizarRegras(const float t, const float deltaTime) {
     using namespace RegrasTrocadas;
+    (void)deltaTime;
     const int etapa = JogosDigitais::Etapa(kDuracoes, t);
     const float te = JogosDigitais::NaEtapa(kDuracoes, t);
     TrocouDeEtapa(etapa);
     Varrer(t, 0.32f, 8.0f);
     if (etapa == 0) AtualizarInversao(te);
-    else if (etapa == 1) AtualizarGravidade(te, deltaTime);
-    else AtualizarFogoAmigo(te);
+    else if (etapa == 1) AtualizarFogoAmigo(te);
+    else if (etapa == 2) AtualizarLag(te);
+    else AtualizarSaveLoad(te);
 }
 
 void Ferreira::AtualizarInversao(const float te) {
@@ -722,57 +1218,6 @@ void Ferreira::AtualizarInversao(const float te) {
     }
 }
 
-void Ferreira::AtualizarGravidade(const float te, const float deltaTime) {
-    using namespace RegrasTrocadas;
-    const Degrau& g = mDegrauDasRegras;
-    const SDL_FRect c = Campo();
-    const bool ligada = te >= kAvisoDaGravidade;
-
-    // O aluno cai; o chao dele e ate onde ele consegue descer (Player::PrenderNoCampo).
-    float chao = c.y + c.h - 48.0f;
-    for (Player* a : Jogadores()) {
-        if (const auto* desenho = a->GetComponent<DrawAnimatedComponent>()) chao = c.y + c.h - static_cast<float>(desenho->GetSpriteHeight());
-        if (ligada) a->SetPosition(a->GetPosition() + Vector2(0.0f, kQueda * deltaTime));
-    }
-
-    // Os espinhos no chao: o colisor do aluno e um ponto no meio do desenho, entao eles ficam a
-    // poucos pixels de onde esse ponto para quando o aluno encosta embaixo - quem pousa, espeta.
-    const float espinhosEm = chao + 5.0f;
-    if (ligada && mEspinhos.empty()) {
-        for (float x = c.x + 10.0f; x <= c.x + c.w - 10.0f; x += 20.0f) {
-            if (BossProjectile* p = Peca(kGatilhoDoEspinho, Vector2(x, espinhosEm), "Espinho")) mEspinhos.push_back(p);
-        }
-        SomDoDisparo();
-    }
-    if (!ligada && Aceso(te, 0.15f)) Tracejada(Vector2(c.x, espinhosEm), Vector2(c.x + c.w, espinhosEm), kPerigo, 10.0f);
-
-    // Os arremessos: em arco, para cair em volta de onde o aluno esta.
-    if (ligada && te >= mProximoArremesso) {
-        mProximoArremesso = te + g.entreArremessos;
-        const Vector2 de = GetPosition() + Vector2(0.0f, 30.0f);
-        const Vector2 aluno = PosicaoDoAluno();
-        for (int k = 0; k < g.arremessos; ++k) {
-            const float lado = (static_cast<float>(k) - static_cast<float>(g.arremessos - 1) / 2.0f) * 120.0f;
-            const Vector2 alvo(std::clamp(aluno.x + lado + mSorteio.Real(-30.0f, 30.0f), c.x + 20.0f, c.x + c.w - 20.0f), aluno.y);
-            const Vector2 v = Lancar(de, alvo, kVooDoArremesso, kGravidade);
-            if (BossProjectile* p = Um(kGatilhoDoArremesso, de, "Tiro", v)) mArcos.push_back({p, v});
-        }
-        SomDoDisparo();
-    }
-    for (Arco& a : mArcos) {
-        a.v.y += kGravidade * deltaTime;
-        Andar(a.p, a.v);
-    }
-
-    // As setas que descem: a gravidade, a vista.
-    for (int k = 0; k < 6; ++k) {
-        const float x = c.x + c.w * (static_cast<float>(k) + 0.5f) / 6.0f;
-        const float y = c.y + 140.0f + std::fmod(mRelogio * 170.0f + static_cast<float>(k) * 97.0f, c.h - 230.0f);
-        Seta(Vector2(x, y), Vector2(x, y + 26.0f), ligada ? kGuia : kVazio);
-    }
-    Placar(kFase, 1, ligada ? "gravidade = 9.8: segure para CIMA, o ch\xc3\xa3o espeta" : "fisica.gravidade = 9.8 em 3, 2, 1...");
-}
-
 void Ferreira::AtualizarFogoAmigo(const float te) {
     using namespace RegrasTrocadas;
     const Degrau& g = mDegrauDasRegras;
@@ -820,26 +1265,12 @@ void Ferreira::AtualizarFogoAmigo(const float te) {
         Seta(Vector2(x, c.y + 28.0f), Vector2(x, c.y + 8.0f), cor);
         Seta(Vector2(x, c.y + c.h - 6.0f), Vector2(x, c.y + c.h - 26.0f), cor);
     }
-    Placar(kFase, 2, ligado ? "fogoAmigo = true: tiro que ERRA volta por baixo" : "fogoAmigo = true em 3, 2, 1...");
-}
-
-// ---- Fase 3: o motor ----
-
-void Ferreira::AtualizarMotor(const float t, const float deltaTime) {
-    using namespace MotorQuebrado;
-    (void)deltaTime;
-    const int etapa = JogosDigitais::Etapa(kDuracoes, t);
-    const float te = JogosDigitais::NaEtapa(kDuracoes, t);
-    TrocouDeEtapa(etapa);
-    Varrer(t, 0.3f, 8.5f);
-    if (etapa == 0) AtualizarLag(te);
-    else if (etapa == 1) AtualizarHitbox(te);
-    else AtualizarSaveLoad(te);
+    Placar(kFase, 1, ligado ? "fogoAmigo = true: tiro que ERRA volta por baixo" : "fogoAmigo = true em 3, 2, 1...");
 }
 
 void Ferreira::AtualizarLag(const float te) {
-    using namespace MotorQuebrado;
-    const Degrau& g = mDegrauDoMotor;
+    using namespace RegrasTrocadas;
+    const Degrau& g = mDegrauDasRegras;
     const SDL_FRect c = Campo();
 
     // O tiro novo entra na lista e para: quem o move, de quadro em quadro, e o lag.
@@ -851,12 +1282,12 @@ void Ferreira::AtualizarLag(const float te) {
         }
     };
     if (te >= 0.8f && te >= mProximoAnel) {
-        mProximoAnel = te + g.entreAneis;
-        entrar(Anel(kGatilhoDoAnel, g.tirosDoAnel, g.velocidade, "Tiro"));
+        mProximoAnel = te + g.entreAneisDoMotor;
+        entrar(Anel(kGatilhoDoAnel, g.tirosDoAnelDoMotor, g.velocidadeDoMotor, "Tiro"));
     }
     if (te >= 1.4f && te >= mProximoLeque) {
-        mProximoLeque = te + g.entreLeques;
-        entrar(Leque(kGatilhoDoTiro, g.tirosDoLeque, 28.0f, g.velocidade + 110.0f, "Tiro"));
+        mProximoLeque = te + g.entreLequesDoMotor;
+        entrar(Leque(kGatilhoDoTiro, g.tirosDoLequeDoMotor, 28.0f, g.velocidadeDoMotor + 110.0f, "Tiro"));
     }
 
     const int quadro = QuadroEm(te);
@@ -883,66 +1314,22 @@ void Ferreira::AtualizarLag(const float te) {
     const Vector2 a(c.x + c.w * 0.4f, c.y + 134.0f), z(c.x + c.w * 0.6f, c.y + 142.0f);
     Retangulo(a, z, kFantasma);
     Preencher(a, Vector2(Mistura(a.x, z.x, u), z.y), kFantasma);
-    Placar(kFase, 0, "fps = 2.5: o c\xc3\xadrculo \xc3\xa9 o PR\xc3\x93XIMO quadro");
-}
-
-void Ferreira::AtualizarHitbox(const float te) {
-    using namespace MotorQuebrado;
-    const Degrau& g = mDegrauDoMotor;
-
-    // O desenho vira enfeite, e a colisao vai para um tiro sem cara, que o professor conduz.
-    const auto entrar = [this](const std::vector<BossProjectile*>& novos) {
-        for (BossProjectile* desenho : novos) {
-            desenho->DefinirEnfeite(true);
-            BossProjectile* colisor = Peca(kGatilhoDoColisor, desenho->GetPosition(), "Vazio");
-            mDescolados.push_back({desenho, colisor});
-        }
-    };
-    if (te >= 0.8f && te >= mProximoAnel) {
-        mProximoAnel = te + g.entreAneis;
-        entrar(Anel(kGatilhoDoSprite, g.tirosDoAnel, g.velocidade, "Tiro"));
-    }
-    if (te >= 1.4f && te >= mProximoLeque) {
-        mProximoLeque = te + g.entreLeques;
-        entrar(Leque(kGatilhoDoSprite, g.tirosDoLeque, 28.0f, g.velocidade + 60.0f, "Tiro"));
-    }
-
-    const Vector2 fora = Descolamento(te);
-    for (Descolado& d : mDescolados) {
-        if (!d.desenho) {
-            Matar(d.colisor);
-            continue;
-        }
-        if (!d.colisor) continue;
-        const Vector2 desenho = d.desenho->GetPosition();
-        const Vector2 onde = desenho + fora;
-        d.colisor->SetPosition(onde);
-        Parar(d.colisor);
-        Circulo(onde, 9.0f, kDebug, 10);
-        Linha(desenho, onde, kDebugFraco);
-    }
-    mDescolados.erase(std::remove_if(mDescolados.begin(), mDescolados.end(),
-                                     [](const Descolado& d) { return !d.desenho && !d.colisor; }), mDescolados.end());
-
-    // O modo debug mostra todo colisor: o do aluno e o do professor tambem.
-    for (const Player* a : Jogadores()) Circulo(a->GetPosition(), RaioDe(a) + 1.0f, kDebug, 10);
-    Circulo(GetPosition(), 56.0f, kDebugFraco, 20);
-    Placar(kFase, 1, "debug: a hitbox DESCOLOU. Desvie do c\xc3\xadrculo verde");
+    Placar(kFase, 2, "fps = 2.5: o c\xc3\xadrculo \xc3\xa9 o PR\xc3\x93XIMO quadro");
 }
 
 void Ferreira::AtualizarSaveLoad(const float te) {
-    using namespace MotorQuebrado;
-    const Degrau& g = mDegrauDoMotor;
+    using namespace RegrasTrocadas;
+    const Degrau& g = mDegrauDasRegras;
     const SDL_FRect c = Campo();
     Battle* b = Batalha();
 
     if (te >= 0.5f && te >= mProximoAnel) {
-        mProximoAnel = te + g.entreAneis;
-        for (BossProjectile* p : Anel(kGatilhoDoAnel, g.tirosDoAnel, g.velocidade, "Tiro")) mTiros.push_back(p);
+        mProximoAnel = te + g.entreAneisDoMotor;
+        for (BossProjectile* p : Anel(kGatilhoDoAnel, g.tirosDoAnelDoMotor, g.velocidadeDoMotor, "Tiro")) mTiros.push_back(p);
     }
     if (te >= 0.9f && te >= mProximoLeque) {
-        mProximoLeque = te + g.entreLeques;
-        for (BossProjectile* p : Leque(kGatilhoDoTiro, g.tirosDoLeque, 28.0f, g.velocidade + 70.0f, "Tiro")) mTiros.push_back(p);
+        mProximoLeque = te + g.entreLequesDoMotor;
+        for (BossProjectile* p : Leque(kGatilhoDoTiro, g.tirosDoLequeDoMotor, 28.0f, g.velocidadeDoMotor + 70.0f, "Tiro")) mTiros.push_back(p);
     }
 
     const Evento evento = EventoEntre(mTeAnterior, te);
@@ -1002,9 +1389,9 @@ void Ferreira::AtualizarSaveLoad(const float te) {
             Retangulo(a, z, kSave);
             Preencher(a, Vector2(Mistura(a.x, z.x, u), z.y), kSave);
         }
-        Placar(kFase, 2, "Salvo com nota " + Inteiro(mSalvo.nota) + ": o load desfaz TUDO desde o save");
+        Placar(kFase, 3, "Salvo com nota " + Inteiro(mSalvo.nota) + ": o load desfaz TUDO desde o save");
     } else {
-        Placar(kFase, 2, "quicksave() a caminho: o jogo vai voltar no tempo");
+        Placar(kFase, 3, "quicksave() a caminho: o jogo vai voltar no tempo");
     }
 }
 
@@ -1016,9 +1403,54 @@ void Ferreira::AtualizarLancamento(const float t, const float deltaTime) {
     const float te = JogosDigitais::NaEtapa(kDuracoes, t);
     TrocouDeEtapa(etapa);
     Varrer(t, 0.3f, 8.0f);
-    if (etapa == 0) AtualizarCrash(te);
-    else if (etapa == 1) AtualizarFrota(te);
+    if (etapa == 0) AtualizarHitbox(te);
+    else if (etapa == 1) AtualizarCrash(te);
+    else if (etapa == 2) AtualizarFrota(te);
     else AtualizarCreditos(te, deltaTime);
+}
+
+void Ferreira::AtualizarHitbox(const float te) {
+    using namespace Lancamento;
+    const Degrau& g = mDegrauDoLancamento;
+
+    // O desenho vira enfeite, e a colisao vai para um tiro sem cara, que o professor conduz.
+    const auto entrar = [this](const std::vector<BossProjectile*>& novos) {
+        for (BossProjectile* desenho : novos) {
+            desenho->DefinirEnfeite(true);
+            BossProjectile* colisor = Peca(kGatilhoDoColisor, desenho->GetPosition(), "Vazio");
+            mDescolados.push_back({desenho, colisor});
+        }
+    };
+    if (te >= 0.8f && te >= mProximoAnel) {
+        mProximoAnel = te + g.entreAneisDaHitbox;
+        entrar(Anel(kGatilhoDoSprite, g.tirosDoAnelDaHitbox, g.velocidadeDaHitbox, "Tiro"));
+    }
+    if (te >= 1.4f && te >= mProximoLeque) {
+        mProximoLeque = te + g.entreLequesDaHitbox;
+        entrar(Leque(kGatilhoDoSprite, g.tirosDoLequeDaHitbox, 28.0f, g.velocidadeDaHitbox + 60.0f, "Tiro"));
+    }
+
+    const Vector2 fora = Descolamento(te);
+    for (Descolado& d : mDescolados) {
+        if (!d.desenho) {
+            Matar(d.colisor);
+            continue;
+        }
+        if (!d.colisor) continue;
+        const Vector2 desenho = d.desenho->GetPosition();
+        const Vector2 onde = desenho + fora;
+        d.colisor->SetPosition(onde);
+        Parar(d.colisor);
+        Circulo(onde, 9.0f, kDebug, 10);
+        Linha(desenho, onde, kDebugFraco);
+    }
+    mDescolados.erase(std::remove_if(mDescolados.begin(), mDescolados.end(),
+                                     [](const Descolado& d) { return !d.desenho && !d.colisor; }), mDescolados.end());
+
+    // O modo debug mostra todo colisor: o do aluno e o do professor tambem.
+    for (const Player* a : Jogadores()) Circulo(a->GetPosition(), RaioDe(a) + 1.0f, kDebug, 10);
+    Circulo(GetPosition(), 56.0f, kDebugFraco, 20);
+    Placar(kFase, 0, "debug: a hitbox DESCOLOU. Desvie do c\xc3\xadrculo verde");
 }
 
 void Ferreira::Travar(const int k) {
@@ -1103,7 +1535,7 @@ void Ferreira::AtualizarCrash(const float te) {
         // O tempo que resta para escolher.
         const float resta = std::clamp(1.0f - (te - kTravadas[static_cast<size_t>(mTravadaAberta)]) / kEspera, 0.0f, 1.0f);
         Preencher(Vector2(meio.x - 200.0f, meio.y - 2.0f), Vector2(meio.x - 200.0f + 400.0f * resta, meio.y + 4.0f), kPerigo);
-        Placar(kFase, 0, "O jogo travou: atire em ESPERAR (ou em FECHAR...)");
+        Placar(kFase, 1, "O jogo travou: atire em ESPERAR (ou em FECHAR...)");
         return;
     }
 
@@ -1116,7 +1548,7 @@ void Ferreira::AtualizarCrash(const float te) {
         mProximoLeque = te + g.entreAneis * 1.7f;
         for (BossProjectile* p : Leque(kGatilhoDoTiro, 3, 26.0f, g.velocidade + 45.0f, "Tiro")) mTiros.push_back(p);
     }
-    Placar(kFase, 0, "Build de lan\xc3\xa7" "amento: nada pode dar errado");
+    Placar(kFase, 1, "Build de lan\xc3\xa7" "amento: nada pode dar errado");
 }
 
 void Ferreira::AtualizarFrota(const float te) {
@@ -1145,7 +1577,7 @@ void Ferreira::AtualizarFrota(const float te) {
             }
             SomDoDisparo();
         }
-        Placar(kFase, 1, "genero = nave: os bugs do lan\xc3\xa7" "amento chegaram");
+        Placar(kFase, 2, "genero = nave: os bugs do lan\xc3\xa7" "amento chegaram");
         return;
     }
 
@@ -1181,7 +1613,7 @@ void Ferreira::AtualizarFrota(const float te) {
         mProximoLeque = te + 1.1f;
         Leque(kGatilhoDoTiro, 3, 26.0f, g.velocidade + 30.0f, "Tiro");
     }
-    Placar(kFase, 1, "genero = nave: faltam " + std::to_string(vivos) + " bugs. Derrube todos!");
+    Placar(kFase, 2, "genero = nave: faltam " + std::to_string(vivos) + " bugs. Derrube todos!");
 }
 
 void Ferreira::AtualizarCreditos(const float te, const float deltaTime) {
@@ -1239,7 +1671,7 @@ void Ferreira::AtualizarCreditos(const float te, const float deltaTime) {
         mProximoLeque = te + 1.5f;
         Leque(kGatilhoDoTiro, 1, 0.0f, g.velocidade, "Tiro");
     }
-    Placar(kFase, 2, "Cr\xc3\xa9" "ditos: passe pelos v\xc3\xa3os. Obrigado por jogar!");
+    Placar(kFase, 3, "Cr\xc3\xa9" "ditos: passe pelos v\xc3\xa3os. Obrigado por jogar!");
 }
 
 // ---- O que o tiro do aluno faz ----

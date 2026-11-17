@@ -149,6 +149,58 @@ namespace Simulacao {
         return doAnterior <= menor + 0.02f ? anterior : melhor;
     }
 
+    Salto Saltar(const Vector2 p, const float queda, const bool noChao, const Plataforma::Lado l, const Chao& chao,
+                 const float raio, const float rapidez, const std::vector<Ameaca>& ameacas, const float alvo,
+                 const Salto anterior) {
+        // Os mesmos instantes e pesos de Desviar; a fisica anda em passos curtos ate o ultimo.
+        constexpr float kOlhar[] = {0.08f, 0.18f, 0.3f, kOlharAdiante};
+        constexpr float kPeso[] = {1.6f, 1.2f, 0.8f, 0.5f};
+        constexpr float kFolga = 22.0f;
+        constexpr float kPasso = 0.02f;
+        const Vector2 g = Plataforma::Direcao(l), t = Plataforma::AoLongo(l);
+        Salto melhor = anterior;
+        float menor = std::numeric_limits<float>::max(), doAnterior = menor;
+        for (int anda = -1; anda <= 1; ++anda) {
+            for (int pula = 0; pula <= 1; ++pula) {
+                Plataforma::Estado e;
+                e.queda = queda;
+                e.noChao = noChao;
+                const Vector2 intencao = t * (static_cast<float>(anda) * rapidez) + g * (pula != 0 ? -rapidez : 0.0f);
+                Vector2 q = p;
+                float custo = 0.0f, relogio = 0.0f;
+                size_t k = 0;
+                while (k < std::size(kOlhar)) {
+                    const bool encostou = Vector2::Dot(q, g) >= chao.limite - 0.5f;
+                    q = q + Plataforma::Passo(e, l, intencao, encostou, kPasso, rapidez) * kPasso;
+                    // O chao segura, e as pontas dele tambem.
+                    const float fundo = Vector2::Dot(q, g) - chao.limite;
+                    if (fundo > 0.0f) q = q - g * fundo;
+                    const float ao = Vector2::Dot(q, t);
+                    if (ao < chao.de) q = q + t * (chao.de - ao);
+                    if (ao > chao.ate) q = q - t * (ao - chao.ate);
+                    relogio += kPasso;
+                    if (relogio + 1e-4f < kOlhar[k]) continue;
+                    for (const Ameaca& a : ameacas) {
+                        const float d = std::hypot(q.x - (a.x + a.vx * relogio), q.y - (a.y + a.vy * relogio)) - (raio + a.raio);
+                        if (d >= kFolga) continue;
+                        const float u = (kFolga - d) / kFolga;
+                        custo += kPeso[k] * u * u * (d < 0.0f ? 4.0f : 1.0f);
+                    }
+                    ++k;
+                }
+                // O alvo puxa de leve; e pular a toa custa um pouco: no ar nao se foge para o lado.
+                custo += 0.004f * std::fabs(Vector2::Dot(q, t) - alvo) + (pula != 0 ? 0.01f : 0.0f);
+                const bool igual = anda == anterior.anda && (pula != 0) == anterior.pula;
+                if (igual) doAnterior = custo;
+                if (custo < menor) {
+                    menor = custo;
+                    melhor = Salto{anda, pula != 0};
+                }
+            }
+        }
+        return doAnterior <= menor + 0.02f ? anterior : melhor;
+    }
+
     Configuracao Ler(const std::vector<std::string>& argumentos, std::vector<std::string>* problemas) {
         Configuracao c;
         const auto problema = [&](const std::string& p) { if (problemas) problemas->push_back(p); };

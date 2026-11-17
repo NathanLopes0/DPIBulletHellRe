@@ -136,6 +136,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Regras/Golpe.h
         Source/Regras/Poder.cpp
         Source/Regras/Poder.h
+        Source/Regras/Plataforma.cpp
+        Source/Regras/Plataforma.h
         Source/Interface/BarraDaNota.cpp
         Source/Interface/BarraDaNota.h
         Source/Interface/Carregamento.cpp
@@ -646,6 +648,7 @@ add_executable(dpi_tests
         tests/test_tcc.cpp
         tests/test_cronograma.cpp
         tests/test_poder.cpp
+        tests/test_plataforma.cpp
         tests/test_objetivo.cpp
         tests/test_tentativas.cpp
         tests/test_experimento.cpp
@@ -739,6 +742,8 @@ add_executable(dpi_tests
         Source/Regras/Golpe.h
         Source/Regras/Poder.cpp
         Source/Regras/Poder.h
+        Source/Regras/Plataforma.cpp
+        Source/Regras/Plataforma.h
         Source/Interface/BarraDaNota.cpp
         Source/Interface/BarraDaNota.h
         Source/Interface/Carregamento.cpp
