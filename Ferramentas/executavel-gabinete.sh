@@ -117,7 +117,11 @@ cat > "$PACOTE/jogar.sh" <<'SH'
 cd "$(dirname "$(readlink -f "$0")")" || exit 1
 mkdir -p Saves
 while true; do
-    ./DPIBulletHellRe "$@"
+    # O log do jogo (o que o SDL_Log diz, e o diagnostico do joystick do painel). Passado de 5 MB,
+    # comeca de novo.
+    [ -f Saves/jogo.log ] && [ "$(wc -c < Saves/jogo.log)" -gt 5000000 ] && mv Saves/jogo.log Saves/jogo.log.1
+    echo "=== $(date '+%Y-%m-%d %H:%M:%S') abrindo o jogo" >> Saves/jogo.log
+    ./DPIBulletHellRe "$@" >> Saves/jogo.log 2>&1
     codigo=$?
     # Saida pedida pelo operador (ou sem tela para abrir): nao reabre.
     [ "$codigo" -eq 0 ] && exit 0
@@ -173,6 +177,11 @@ Abrir ao ligar: ./instalar.sh --abrir-ao-ligar
                 (a sessao do usuario precisa entrar sozinha: Configuracoes > Usuarios >
                 Login automatico)
 Para sair:      Ctrl + Esc, segurado por 2 segundos, num teclado ligado a maquina.
+
+Se o manche ou os botoes nao responderem: o encoder pode ser joystick. Abra pelo
+jogar.sh, mexa em cada manche e aperte cada botao, saia (Ctrl + Esc) e leia
+Saves/jogo.log - as linhas "MANCHE:" dizem o que cada joystick mandou. Acerte os
+numeros em Assets/painel.json (o proprio arquivo explica) e abra de novo.
 
 Mantenha as pastas Assets e lib ao lado do executavel. O progresso, o ranking e os
 registros de tentativas ficam na pasta Saves, criada aqui na primeira vez: para

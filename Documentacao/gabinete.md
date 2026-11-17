@@ -119,21 +119,50 @@ lá, e é por isso que nenhuma tela pode exigir outra tecla.
 |---|---|---|---|
 | **Manche** | setas | `W A S D` | andar, escolher |
 | **Botão 1** | `Espaço` | `F` | confirmar, atirar, digitar |
-| **Botão 2** | `B` | `G` | voltar, apagar, sobrecarga |
+| **Botão 2** | `B` | `E` | voltar, apagar, sobrecarga |
 | **Botão 3** | `N` | `H` | o extra de cada tela (hoje, o ranking da matéria) |
 
-São essas as teclas que o encoder do painel precisa mandar — **catorze, não
-sete**, e nenhuma repetida entre as duas posições. Uma tecla repetida faria os
+São essas as teclas que o encoder do painel manda quando ele se apresenta como
+**teclado** — **catorze, não sete**, e nenhuma repetida entre as duas posições. Uma tecla repetida faria os
 dois manches moverem o mesmo aluno, que era o estado do código antes de a
 segunda posição existir: o `W A S D` era atalho das setas.
 
 As teclas moram numa tabela só, em `Source/Entrada/Painel.cpp`. É ela que muda no dia
-em que o encoder chegar e mandar outra coisa; nenhuma cena e nenhum jogador
-guarda tecla própria.
+em que o encoder mandar outras teclas; nenhuma cena e nenhum jogador guarda tecla
+própria.
 
-**O JOGO AINDA USA UMA POSIÇÃO.** A segunda já tem teclas e já é lida pelo
-módulo do painel, mas nenhuma tela coloca um segundo jogador em campo. O
-caminho até lá está em `requisitos-coop.md`.
+### O encoder que é joystick
+
+Muitos encoders de arcade (os USB "zero delay", por exemplo) não se apresentam
+como teclado, e sim como **joystick**: o manche vira eixos ou um direcional, e
+os botões viram botões de joystick. O jogo lê os dois. Cada joystick que o
+sistema mostra é aberto, inclusive o que é ligado com o jogo aberto
+(`Source/Entrada/Manches.h`), e a cada quadro o que ele aperta vira **as mesmas
+teclas da tabela acima** (`Source/Entrada/MapaDoManche.h`). Por isso nenhuma tela
+precisou mudar: elas continuam lendo só o teclado.
+
+Qual joystick é de qual posição, e quais eixos e botões são o manche e os Botões
+1, 2 e 3, está em **`Assets/painel.json`**. Ele pode ser editado no gabinete, sem
+compilar. O padrão: o primeiro joystick é o jogador 1, o segundo é o jogador 2,
+o manche é o eixo 0/1 ou o direcional 0, e os Botões 1, 2 e 3 são os botões 0, 1
+e 2. O arquivo também cobre o encoder único para as duas posições (o mesmo
+`dispositivo` nas duas, com eixos e botões diferentes) e o que manda o manche
+como botões (`direcoes`).
+
+Para acertar um encoder novo:
+1. Abra o jogo pelo `jogar.sh`.
+2. Mexa cada manche para os quatro lados e aperte cada botão.
+3. Saia com Ctrl + Esc.
+4. Leia `Saves/jogo.log`. As linhas `MANCHE:` dizem cada joystick ligado (nome,
+   eixos, direcionais, botões) e cada coisa que se mexeu, por exemplo
+   `MANCHE: joystick 0, botao 3`, `MANCHE: joystick 0, eixo 1 -` ou
+   `MANCHE: joystick 0, direcional 0 = cima`. Esses números são os do
+   `painel.json`.
+
+Um erro no arquivo não impede o jogo de abrir: o que não se lê fica no padrão, e
+o log diz o que foi.
+
+**As duas posições são usadas** no Modo Dupla; no Modo Solo, só a do jogador 1.
 
 **Toda tela é inteiramente operável com os três.** Nenhuma ação fica só no
 teclado, e nenhum rodapé anuncia tecla que o painel não tem — `Painel::Rodape`
@@ -201,4 +230,5 @@ condição sempre verdadeira.
 aparece escrito, e o montador de rodapé. Nenhuma cena escreve `SDL_SCANCODE_`
 para os botões do painel.
 
-Os testes estão em `tests/test_gabinete.cpp` e `tests/test_painel.cpp`.
+Os testes estão em `tests/test_gabinete.cpp`, `tests/test_painel.cpp` e
+`tests/test_mapa_do_manche.cpp`.

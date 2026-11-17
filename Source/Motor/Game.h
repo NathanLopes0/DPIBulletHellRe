@@ -17,6 +17,7 @@
 #include "../Pesquisa/Experimento.h"
 #include "../Simulacao/Simulacao.h"
 #include "../Entrada/Painel.h"
+#include "../Entrada/Manches.h"
 #include "../Aluno/Sessao.h"
 #include "Configuracao.h"
 #include "../Regras/Dificuldade.h"
@@ -327,6 +328,9 @@ private:
 
     Gabinete::Configuracao mGabinete;
     Experimento::Condicao mCondicao;
+    /// O encoder do painel quando ele e joystick (Manches.h), e o teclado com o que ele aperta.
+    Manches mManches;
+    std::vector<Uint8> mTecladoComManche;
 
     // ---- A simulacao (Simulacao.h) ----
     Simulacao::Configuracao mSimulacao;

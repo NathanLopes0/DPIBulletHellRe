@@ -105,6 +105,10 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Motor/Configuracao.h
         Source/Entrada/Painel.cpp
         Source/Entrada/Painel.h
+        Source/Entrada/MapaDoManche.cpp
+        Source/Entrada/MapaDoManche.h
+        Source/Entrada/Manches.cpp
+        Source/Entrada/Manches.h
         Source/Entrada/Borda.h
         Source/Aluno/Sessao.cpp
         Source/Aluno/Sessao.h
@@ -642,6 +646,7 @@ add_executable(dpi_tests
         tests/test_teclado.cpp
         tests/test_gabinete.cpp
         tests/test_painel.cpp
+        tests/test_mapa_do_manche.cpp
         tests/test_pausa.cpp
         tests/test_dificuldade.cpp
         tests/test_variacao.cpp
@@ -723,6 +728,8 @@ add_executable(dpi_tests
         Source/Entrada/Painel.cpp
         Source/Scenes/Battle/LeitorDoMenu.cpp
         Source/Entrada/Painel.h
+        Source/Entrada/MapaDoManche.cpp
+        Source/Entrada/MapaDoManche.h
         Source/Aluno/Sessao.cpp
         Source/Aluno/Sessao.h
         Source/Aluno/Ranking.cpp

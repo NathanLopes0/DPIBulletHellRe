@@ -76,7 +76,10 @@ bool Game::Initialize() {
     }
     if (mSimulacao.Ativa()) SDL_Log("SIMULACAO: o jogo esta rodando com parametros de simulacao.");
 
-    if(SDL_Init(SDL_INIT_VIDEO) != 0)
+    // O joystick e o encoder do painel, quando ele nao se apresenta como teclado (Manches.h). Sem
+    // foco ele continua valendo: no gabinete, nao ha quem clique de volta na janela.
+    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");
+    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) != 0)
     {
         SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
         return false;
@@ -146,6 +149,9 @@ void Game::LoadInitialScene()
         SDL_Log("ERRO: a pasta Assets nao foi encontrada. O jogo vai abrir sem "
                 "sprite, sem fonte e sem som, e nao vai salvar progresso.");
     }
+
+    // O mapa do joystick do painel (MapaDoManche.h); os joysticks em si chegam como eventos.
+    mManches.Carregar(Caminhos::Asset("painel.json"));
 
     // As opcoes depois da base: o arquivo mora em Saves, que e relativa a ela.
     mConfiguracao = ConfiguracaoArquivo::Carregar();
@@ -219,6 +225,7 @@ void Game::ProcessInput()
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
+        mManches.AoEvento(event);
         switch (event.type)
         {
             case SDL_QUIT:
@@ -238,6 +245,12 @@ void Game::ProcessInput()
     // depois do SDL_GetKeyboardState.
     const Uint8* real = SDL_GetKeyboardState(&quantasTeclas);
     const Uint8* state = TecladoDoQuadro(real, quantasTeclas);
+    // O joystick aperta as mesmas teclas do painel: as cenas so leem o teclado.
+    if (mManches.AlgumLigado() && state && quantasTeclas > 0) {
+        mTecladoComManche.assign(state, state + quantasTeclas);
+        mManches.Apertar(mTecladoComManche.data(), quantasTeclas);
+        state = mTecladoComManche.data();
+    }
 
     mHouveEntrada = false;
     for (int i = 0; i < quantasTeclas; ++i) {
@@ -561,6 +574,7 @@ void Game::Shutdown()
     // ---- 1. limpeza dos recursos do jogo ----
 
     mScene.reset();
+    mManches.Fechar();
 
     // Precisa ser antes de SDL_DestroyRenderer.
     for (auto& [path, texture] : mTextureCache) {

@@ -1,0 +1,44 @@
+// O PAINEL QUANDO O ENCODER E JOYSTICK (Source/Entrada/MapaDoManche.h).
+//
+// O encoder que se apresenta como teclado nao precisa de nada daqui: as teclas estao em
+// Source/Entrada/Painel.cpp. O que se apresenta como joystick e lido aqui: cada posicao do
+// painel le um joystick, e o que ele aperta vira as teclas dela.
+//
+// Para acertar um encoder novo: abra o jogo pelo jogar.sh, mexa em cada manche e aperte cada
+// botao, e leia o Saves/jogo.log. Ele diz cada joystick ligado ("MANCHE: joystick 0 ligado:
+// ...") e cada coisa que se mexe ("MANCHE: joystick 0, botao 3", "eixo 1 -", "direcional 0 =
+// cima"). Os numeros dali sao os daqui. Um erro neste arquivo nao impede o jogo de abrir: o que
+// nao se le fica no padrao, e o log diz o que foi.
+{
+    // A fracao do curso do eixo a partir da qual o manche conta como empurrado.
+    "zonaMorta": 0.5,
+
+    "jogadores": [
+        {
+            // Jogador 1. "dispositivo": qual joystick, na ordem do log (0 e o primeiro). Um encoder
+            // so para as duas posicoes e o mesmo dispositivo nas duas.
+            "dispositivo": 0,
+            // O manche como eixos (-1: sem eixo) e como direcional digital (-1: sem).
+            "eixoX": 0,
+            "eixoY": 1,
+            "inverterX": false,
+            "inverterY": false,
+            "hat": 0,
+            // Os botoes do joystick que sao o Botao 1, o Botao 2 e o Botao 3 do painel.
+            "botoes": [0, 1, 2],
+            // Para o encoder que manda o manche como botoes: cima, baixo, esquerda, direita.
+            "direcoes": [-1, -1, -1, -1]
+        },
+        {
+            // Jogador 2.
+            "dispositivo": 1,
+            "eixoX": 0,
+            "eixoY": 1,
+            "inverterX": false,
+            "inverterY": false,
+            "hat": 0,
+            "botoes": [0, 1, 2],
+            "direcoes": [-1, -1, -1, -1]
+        }
+    ]
+}
