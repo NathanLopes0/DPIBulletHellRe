@@ -1,0 +1,59 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHFerreiraBotoes 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 40
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHFerreiraBotoes 1.placeholder",
+   "frame": {
+    "x": 64,
+    "y": 0,
+    "w": 64,
+    "h": 40
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 40
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 40
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_ferreira.py",
+  "version": "1.0",
+  "image": "DPIBHFerreiraBotoes.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 128,
+   "h": 40
+  },
+  "scale": "1"
+ }
+}

@@ -1,0 +1,122 @@
+{
+  // As fases do Lucas Ferreira (INF 216 - Projeto e Implementacao de Jogos Digitais, a optativa
+  // secreta). Elas nao ensinam materia: mexem nos sistemas do proprio jogo. O que cada uma faz mora
+  // no C++ (Ferreira.cpp) e na camada pura (JogosDigitais.h); aqui ficam os tiros que ele puxa pelo
+  // gatilho e os nomes que o placar mostra. Cada fase dura 40 s, o dobro das dos outros professores.
+
+  // ==========================================================================
+
+  // Fase 1 - a interface | gesto: o professor anda no alto. A barra da nota sai do rodape e varre o
+  // campo, cheia ate a nota do aluno: so se passa pelo pedaco vazio (e com 100 nao ha vazio).
+  // Primeiro ela sobe e desce; depois, de pe, vai de um lado ao outro. Por fim as janelas de dica
+  // abrem em volta do aluno, e so fecham com um tiro no X.
+  "StateOne": {
+    "duracao": 40,
+    "proximo": "StateTwo",
+    "anuncio": "A interface ataca: a HUD saiu do lugar",
+    "etapas": [
+      { "nome": "BarraSobe", "duracao": 13.0, "anuncio": "hud.nota.soltar(): passe pelo pedaço VAZIO" },
+      { "nome": "BarraJoga", "duracao": 13.0, "anuncio": "hud.nota.girar(): agora ela vem de lado" },
+      { "nome": "Janelas",   "duracao": 14.0, "anuncio": "tutorial.abrir(): atire no X para fechar" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 230 },
+    "ataques": [
+      { "som": false, "gatilho": "barra", "estrategia": "WaveAttack", "projetil": "Barra",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "gatilho": "leque", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 3, "velocidade": 230, "angulo": 26, "intervalo": 0 },
+      { "som": false, "gatilho": "janela", "estrategia": "WaveAttack", "projetil": "Janela",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "fechar", "estrategia": "WaveAttack", "projetil": "Fechar",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
+    ]
+  },
+
+  // Fase 2 - as regras | gesto: o professor anda no alto. Na inversao, acertar o professor tira
+  // nota e os tiros dele viram moedas, que passam pelo aluno e dao nota - ate as regras voltarem.
+  // Na gravidade o aluno cai, o chao ganha espinhos e os tiros vem em arco. No fogo amigo o campo
+  // da a volta: o tiro do aluno que erra o professor volta por baixo.
+  "StateTwo": {
+    "duracao": 40,
+    "proximo": "StateThree",
+    "anuncio": "As regras mudam: nada vale como antes",
+    "etapas": [
+      { "nome": "Inversao",  "duracao": 13.0, "anuncio": "regras.inverter(): acertar TIRA, tiro DÁ nota" },
+      { "nome": "Gravidade", "duracao": 13.0, "anuncio": "gravidade = 9.8: segure para cima!" },
+      { "nome": "FogoAmigo", "duracao": 14.0, "anuncio": "fogoAmigo = true: tiro que erra volta" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 230 },
+    "ataques": [
+      { "gatilho": "anel", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 14, "velocidade": 190, "angulo": 334, "intervalo": 0 },
+      { "gatilho": "tiro", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 5, "velocidade": 210, "angulo": 40, "intervalo": 0 },
+      { "som": false, "gatilho": "espinho", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "arremesso", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "retorno", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
+    ]
+  },
+
+  // Fase 3 - o motor | gesto: o professor anda no alto. No lag os tiros andam aos saltos, e um
+  // circulo mostra o proximo quadro. Na hitbox, o desenho de cada tiro vira enfeite e a colisao
+  // descola dele: machuca o circulo do modo debug. No save/load ele salva o jogo e depois carrega:
+  // o aluno, os tiros e a nota voltam ao que eram.
+  "StateThree": {
+    "duracao": 40,
+    "proximo": "",
+    "anuncio": "O motor quebra: bugs de verdade",
+    "etapas": [
+      { "nome": "Lag",      "duracao": 13.0, "anuncio": "fps = 2.5: o círculo é o próximo quadro" },
+      { "nome": "Hitbox",   "duracao": 13.0, "anuncio": "debug: desvie do CÍRCULO, não do desenho" },
+      { "nome": "SaveLoad", "duracao": 14.0, "anuncio": "quicksave(): tudo volta para o disquete" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 230 },
+    "ataques": [
+      { "gatilho": "anel", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 12, "velocidade": 175, "angulo": 330, "intervalo": 0 },
+      { "gatilho": "tiro", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 3, "velocidade": 240, "angulo": 28, "intervalo": 0 },
+      { "gatilho": "sprite", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 12, "velocidade": 170, "angulo": 330, "intervalo": 0 },
+      { "som": false, "gatilho": "colisor", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "disquete", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
+    ]
+  },
+
+  // Repescagem - o lancamento | gesto: o professor anda no alto. O jogo "para de responder": os
+  // tiros congelam e um dialogo abre, com os botoes ESPERAR e FECHAR, que se derrubam a tiro.
+  // Depois o genero troca: uma frota de bugs marcha e desce, e cada bug cai com um tiro. No fim os
+  // creditos sobem do rodape, linha por linha, cada uma uma parede com um vao.
+  "StateFinal": {
+    "duracao": 40,
+    "proximo": "StateOne",
+    "anuncio": "Dia de lançamento: o jogo vai ao ar",
+    "etapas": [
+      { "nome": "Crash",    "duracao": 12.0, "anuncio": "O jogo travou: atire em ESPERAR" },
+      { "nome": "Frota",    "duracao": 14.0, "anuncio": "genero = nave: derrube os bugs" },
+      { "nome": "Creditos", "duracao": 14.0, "anuncio": "créditos: passe pelos vãos" }
+    ],
+    "movimento": { "tipo": "Conduzido", "a": 230 },
+    "ataques": [
+      { "gatilho": "anel", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 16, "velocidade": 185, "angulo": 337, "intervalo": 0 },
+      { "gatilho": "tiro", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 3, "velocidade": 230, "angulo": 26, "intervalo": 0 },
+      { "som": false, "gatilho": "botao", "estrategia": "WaveAttack", "projetil": "Botao",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "estilhaco", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 2, "velocidade": 210, "angulo": 180, "intervalo": 0 },
+      { "som": false, "gatilho": "bug", "estrategia": "WaveAttack", "projetil": "Bug",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
+      { "som": false, "gatilho": "queda", "estrategia": "WaveAttack", "projetil": "Tiro",
+        "projeteis": 1, "velocidade": 230, "angulo": 0, "intervalo": 0, "regras": "balancar" },
+      { "som": false, "gatilho": "credito", "estrategia": "WaveAttack", "projetil": "Bloco",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 }
+    ]
+  }
+}

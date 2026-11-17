@@ -137,6 +137,9 @@ public:
 
     /// O padrao e sim.
     [[nodiscard]] virtual bool AceitaDano() const { return true; }
+    /// Quanto do ganho de sempre (Nota::kGanhoPorAcerto) cada acerto nele paga. As fases do Lucas
+    /// Ferreira duram o dobro: o acerto vale pouco mais que a metade, e a nota anda no ritmo das outras.
+    [[nodiscard]] virtual float FatorDoGanho() const { return 1.0f; }
 
     /// Alguem de fora quebrou o escudo - a bala de prata da Maria Lucia, como orientadora. Devolve
     /// se havia escudo para quebrar.

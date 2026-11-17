@@ -60,22 +60,22 @@ namespace {
     }
 
     std::vector<Linha> CompletaGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                                     const int quantasMaterias, const Dificuldade::Nivel nivel) {
+                                     const std::vector<int>& contadas, const Dificuldade::Nivel nivel) {
 
-        if (quantasMaterias <= 0) return {};
+        if (contadas.empty()) return {};
 
         // So as notas de solo, pelo mesmo motivo de Completa.
-        auto media = [quantasMaterias, nivel](const Exportacao::FichaDeAluno& f) {
+        auto media = [&contadas, nivel](const Exportacao::FichaDeAluno& f) {
             float soma = 0.0f;
-            for (int m = 0; m < quantasMaterias; ++m) {
+            for (const int m : contadas) {
                 soma += NotaDeSolo(f, m, nivel);    // materia nao jogada vale zero
             }
-            return soma / static_cast<float>(quantasMaterias);
+            return soma / static_cast<float>(contadas.size());
         };
 
-        auto jogadas = [quantasMaterias, nivel](const Exportacao::FichaDeAluno& f) {
+        auto jogadas = [&contadas, nivel](const Exportacao::FichaDeAluno& f) {
             int n = 0;
-            for (int m = 0; m < quantasMaterias; ++m) if (NotaDeSolo(f, m, nivel) > 0.0f) ++n;
+            for (const int m : contadas) if (NotaDeSolo(f, m, nivel) > 0.0f) ++n;
             return n;
         };
 
@@ -148,8 +148,8 @@ std::vector<Linha> DaMateria(const std::vector<Exportacao::FichaDeAluno>& fichas
 }
 
 std::vector<Linha> Geral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                         const int quantasMaterias, const Dificuldade::Nivel nivel, const size_t quantas) {
-    return Cortar(CompletaGeral(fichas, quantasMaterias, nivel), quantas);
+                         const std::vector<int>& contadas, const Dificuldade::Nivel nivel, const size_t quantas) {
+    return Cortar(CompletaGeral(fichas, contadas, nivel), quantas);
 }
 
 int PosicaoDe(const std::vector<Exportacao::FichaDeAluno>& fichas,
@@ -162,9 +162,9 @@ int PosicaoDe(const std::vector<Exportacao::FichaDeAluno>& fichas,
 }
 
 int PosicaoNoGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                   const int quantasMaterias, const Dificuldade::Nivel nivel, const std::string& matricula) {
+                   const std::vector<int>& contadas, const Dificuldade::Nivel nivel, const std::string& matricula) {
 
-    for (const auto& l : CompletaGeral(fichas, quantasMaterias, nivel)) {
+    for (const auto& l : CompletaGeral(fichas, contadas, nivel)) {
         if (l.matricula == matricula) return l.posicao;
     }
     return 0;
@@ -208,22 +208,22 @@ int PosicaoDaDupla(const std::vector<Exportacao::FichaDeAluno>& fichas, const in
 }
 
 int PosicaoDaDuplaNoGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                          const int quantasMaterias, const Dificuldade::Nivel nivel,
+                          const std::vector<int>& contadas, const Dificuldade::Nivel nivel,
                           const std::string& um, const std::string& dois) {
-    return Onde(DuplasGeral(fichas, quantasMaterias, nivel), um, dois);
+    return Onde(DuplasGeral(fichas, contadas, nivel), um, dois);
 }
 
 std::vector<LinhaDeDupla> DuplasGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                                      const int quantasMaterias, const Dificuldade::Nivel nivel,
+                                      const std::vector<int>& contadas, const Dificuldade::Nivel nivel,
                                       const size_t quantas) {
 
-    if (quantasMaterias <= 0) return {};
+    if (contadas.empty()) return {};
 
     // Soma e conta materia por materia.
     struct Acumulado { float soma = 0.0f; int jogadas = 0; };
     std::map<Chave, Acumulado> porDupla;
 
-    for (int m = 0; m < quantasMaterias; ++m) {
+    for (const int m : contadas) {
         for (const auto& [chave, nota] : DuplasDe(fichas, m, nivel)) {
             Acumulado& a = porDupla[chave];
             a.soma += nota;
@@ -236,7 +236,7 @@ std::vector<LinhaDeDupla> DuplasGeral(const std::vector<Exportacao::FichaDeAluno
 
     for (const auto& [chave, a] : porDupla) {
         linhas.push_back(LinhaDeDupla{1, chave.first, chave.second,
-                                      a.soma / static_cast<float>(quantasMaterias),
+                                      a.soma / static_cast<float>(contadas.size()),
                                       a.jogadas});
     }
 

@@ -114,7 +114,7 @@ void TelaDasHoras::Redesenhar() {
                  saldo,
              cumpriu ? Color::Gold : Color::White);
 
-    const auto quadro = Horas::Quadro(chaves, materias);
+    const auto quadro = Horas::Quadro(sessoes[mAluno].progresso, materias);
     for (size_t i = 0; i < mLinhas.size() && i < quadro.size(); ++i) {
         const Horas::Linha& l = quadro[i];
         const bool toda = l.cumpridas >= l.possiveis;

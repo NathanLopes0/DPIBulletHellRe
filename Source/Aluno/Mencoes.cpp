@@ -75,6 +75,8 @@ namespace Mencoes {
     Total DoCurso(const Progresso& progresso, const Materias::Lista& materias) {
         Total t;
         for (int i = 0; i < materias.Quantas(); ++i) {
+            // A materia secreta ainda fechada nao entra na conta: o total nao a denuncia.
+            if (materias.Escondida(i, progresso)) continue;
             const DaMateria d = Da(progresso, materias, i);
             t.ganhas += d.Ganhas();
             t.possiveis += d.Possiveis();

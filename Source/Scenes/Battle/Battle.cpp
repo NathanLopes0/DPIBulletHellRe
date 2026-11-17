@@ -633,7 +633,7 @@ void Battle::ProfessorAcertado(const PlayerProjectile& tiro, const CircleCollide
             Avisar([&](OuvinteDaBatalha& o) { o.AoAcertarDePerto(*this, aluno); });
         }
         const float fator = mCondicao.Ligada(Experimento::Mecanica::Perto) ? fatorDaDistancia : 1.0f;
-        mConta.Subir(mConta.PorJogador(Nota::kGanhoPorAcerto * fator));
+        mConta.Subir(mConta.PorJogador(Nota::kGanhoPorAcerto * fator * (mChefe ? mChefe->FatorDoGanho() : 1.0f)));
         // A duvida respondida: o "?" vira um "!" na cor de quem perguntou - "!!" de perto.
         mEfeitos->Faiscar(tiro.GetPosition(),
                           fator >= Nota::kFatorDaRespostaDupla ? Hud::Faisca::RespostaDePerto : Hud::Faisca::Resposta,

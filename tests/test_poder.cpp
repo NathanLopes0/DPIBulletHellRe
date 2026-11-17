@@ -18,7 +18,8 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
                                     Golpe::Materia::Thiago, Golpe::Materia::Luizinho, Golpe::Materia::Vladimir,
                                     Golpe::Materia::Julio, Golpe::Materia::MariaLucia, Golpe::Materia::Lucas,
                                     Golpe::Materia::Vitor, Golpe::Materia::Arroyo, Golpe::Materia::Goulart,
-                                    Golpe::Materia::Daniel, Golpe::Materia::Michel, Golpe::Materia::Sabrina};
+                                    Golpe::Materia::Daniel, Golpe::Materia::Michel, Golpe::Materia::Sabrina,
+                                    Golpe::Materia::Ferreira};
     std::set<int> tipos;
     std::set<std::string> nomes;
     std::set<int> quadros;
@@ -35,9 +36,9 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
         quadros.insert(QuadroDaMateria(m));
         if (Ataca(d.tipo)) ++atacam;
     }
-    CHECK(tipos.size() == 15u);    // quinze orientadores, quinze poderes diferentes
-    CHECK(nomes.size() == 15u);
-    CHECK(quadros.size() == 15u);
+    CHECK(tipos.size() == 16u);    // dezesseis orientadores, dezesseis poderes diferentes
+    CHECK(nomes.size() == 16u);
+    CHECK(quadros.size() == 16u);
     // Ha dos dois jeitos: os que atacam e os que defendem.
     CHECK(atacam >= 3);
     CHECK(atacam <= 7);
@@ -50,6 +51,44 @@ TEST_CASE("Poder: cada orientador tem um poder dele, e quem nao e professor nao 
     CHECK(QuadroDaMateria(Golpe::Materia::Daniel) == kQuadroDoDaniel);
     CHECK(QuadroDaMateria(Golpe::Materia::Michel) == kQuadroDoMichel);
     CHECK(QuadroDaMateria(Golpe::Materia::Sabrina) == kQuadroDaSabrina);
+    CHECK(QuadroDaMateria(Golpe::Materia::Ferreira) == kQuadroDoFerreira);
+}
+
+TEST_CASE("Poder: o modo deus do Lucas Ferreira - nota 100, invencivel, e os tiros fogem") {
+    const Descricao d = Da(Golpe::Materia::Ferreira);
+    CHECK(d.tipo == Tipo::ModoDeus);
+    CHECK_FALSE(Ataca(Tipo::ModoDeus));   // sai assim que fica pronto: nao espera o escudo do Hugo
+    CHECK(d.duracao == doctest::Approx(kDuracaoDoModoDeus));
+    CHECK(d.raio == doctest::Approx(kRaioDoModoDeus));
+    // Ele trivializa o TCC: dura mais que qualquer outro poder.
+    for (const Golpe::Materia m : {Golpe::Materia::Andre, Golpe::Materia::Salles, Golpe::Materia::Thiago,
+                                   Golpe::Materia::Julio, Golpe::Materia::Vitor, Golpe::Materia::Goulart,
+                                   Golpe::Materia::Michel, Golpe::Materia::Sabrina}) {
+        CHECK(Da(m).duracao < d.duracao);
+    }
+    // A nota sobe em linha ate 100, de onde estiver, e la fica.
+    CHECK(NotaNoModoDeus(30.0f, 0.0f) == doctest::Approx(30.0f));
+    CHECK(NotaNoModoDeus(30.0f, kSubidaDoModoDeus / 2.0f) == doctest::Approx(65.0f));
+    CHECK(NotaNoModoDeus(30.0f, kSubidaDoModoDeus) == doctest::Approx(100.0f));
+    CHECK(NotaNoModoDeus(30.0f, 99.0f) == doctest::Approx(100.0f));
+    CHECK(NotaNoModoDeus(100.0f, 0.5f) == doctest::Approx(100.0f));
+    // O empurrao: para longe do aluno, nunca devagar, e mantendo a rapidez de quem ja vinha rapido.
+    const Vector2 aluno(600.0f, 700.0f);
+    const Vector2 v = Empurrado(Vector2(600.0f, 600.0f), aluno, Vector2(0.0f, 200.0f));
+    CHECK(v.y < 0.0f);
+    CHECK(std::fabs(v.x) < 1e-3f);
+    CHECK(v.Length() == doctest::Approx(kEmpurraoDoModoDeus));
+    const Vector2 lado = Empurrado(Vector2(700.0f, 700.0f), aluno, Vector2(-900.0f, 0.0f));
+    CHECK(lado.x > 0.0f);
+    CHECK(lado.Length() == doctest::Approx(900.0f));
+    CHECK(Empurrado(aluno, aluno, Vector2(0.0f, 0.0f)).y < 0.0f);   // em cima dele: para cima
+    // A previa: a bolha aparece, e nenhum tiro do Hugo fica dentro dela.
+    const Quadro q = Previa(Tipo::ModoDeus, 2.0f);
+    CHECK_FALSE(q.tracos.empty());
+    for (const Ponto& p : q.pontos) {
+        if (p.marca != Marca::TiroDoHugo) continue;
+        CHECK(std::hypot(p.x - 0.5f, (p.y - 0.88f)) > 0.05f);
+    }
 }
 
 TEST_CASE("Poder: a dupla helice da Sabrina sobe girando, as fitas em lados opostos, A-T e C-G") {

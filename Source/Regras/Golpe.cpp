@@ -26,6 +26,7 @@ namespace Golpe {
         if (professor == "Daniel") return Materia::Daniel;
         if (professor == "Michel") return Materia::Michel;
         if (professor == "Sabrina") return Materia::Sabrina;
+        if (professor == "Lucas Ferreira") return Materia::Ferreira;
         return Materia::Generico;
     }
 
@@ -208,6 +209,27 @@ namespace Golpe {
                     Tiro t;
                     t.quando = 0.18f * static_cast<float>(i / 2);
                     t.onda = (i % 2 == 0) ? 46.0f : -46.0f;
+                    r.tiros.push_back(t);
+                }
+                break;
+            }
+
+            case Materia::Ferreira: {
+                // O codigo Konami: cima, cima, baixo, baixo, esquerda, direita, esquerda, direita - cada
+                // tiro sai um pouco para o lado da seta dele -, e B e A, os dois que se dividem em dois.
+                r.duracao = 5.8f;
+                constexpr float kSetas[8][2] = {{0, -1}, {0, -1}, {0, 1}, {0, 1}, {-1, 0}, {1, 0}, {-1, 0}, {1, 0}};
+                for (int i = 0; i < 8; ++i) {
+                    Tiro t;
+                    t.quando = 0.3f * static_cast<float>(i);
+                    t.dx = 12.0f * kSetas[i][0];
+                    t.dy = 12.0f * kSetas[i][1];
+                    r.tiros.push_back(t);
+                }
+                for (int i = 0; i < 2; ++i) {
+                    Tiro t;
+                    t.quando = 2.9f + 0.35f * static_cast<float>(i);
+                    t.divide = 0.25f;
                     r.tiros.push_back(t);
                 }
                 break;

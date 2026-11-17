@@ -356,9 +356,10 @@ foi aprovado:
 | 5 *(optativas)* | INF 425 — Ciência de Dados *(Daniel)* | INF 213 aprovada, pelo menos 5 menções de ouro, 2 no Difícil e 2 "prestando atenção", e 20 h de horas complementares |
 | 6 *(optativas)* | INF 429 — Visão Computacional *(Michel)* | INF 213 aprovada, pelo menos 8 menções de ouro, 4 no Difícil, 3 "prestando atenção" e 2 "sentar na frente", e 30 h de horas complementares — o MaVIlab é seleto |
 | 7 *(optativas)* | INF 491 — Tópicos Especiais, Bioinformática *(Sabrina)* | INF 213 aprovada, pelo menos 9 menções de ouro, 5 no Difícil, 3 "sentar na frente" e 3 "prestando atenção", e 35 h de horas complementares — a mais pesada das três |
+| 8 *(optativa secreta)* | INF 216 — Projeto e Implementação de Jogos Digitais *(Lucas Ferreira)* | **não aparece** até o aluno ter a nota cheia (o 100) em metade das matérias e a menção do Difícil em todas as obrigatórias; não custa horas |
 
 Toda matéria tem professor e batalha — as doze do curso, o TCC, do Hugo, que é
-a última e a mais difícil, e as optativas INF 425, do Daniel, INF 429, do Michel, e INF 491, da Sabrina. A INF 332 e a INF 451 entraram depois: no
+a última e a mais difícil do curso, e as optativas INF 425, do Daniel, INF 429, do Michel, INF 491, da Sabrina, e a secreta INF 216, do Lucas Ferreira. A INF 332 e a INF 451 entraram depois: no
 `materias.json` elas ficam no fim da lista (o índice de cada matéria é o da
 batalha na simulação e na linha de base, e nenhum podia mudar), e na grade, a
 INF 332 embaixo da INF 331 e a INF 451 embaixo da INF 310, à direita dela. Ter professor e
@@ -388,6 +389,20 @@ moedas, e ele dá dois pulinhos, com um anel dourado e faíscas
 (`FestaDaMatricula.h`). Para ver a compra e a festa de novo, quem
 desenvolve aperta **F9** na seleção de fases: as matrículas nas optativas são
 desfeitas, as horas voltam e a ficha é gravada (as notas ficam).
+
+**A optativa secreta.** Uma matéria com `"secreta": true` nem aparece — nem o
+losango na grade, nem a linha no boletim, nem as menções dela no total do curso
+— até a regra dela estar cumprida; então ela surge na ala das optativas, aberta.
+Ela nunca entra na média do curso do ranking: é um extra, e não baixa a média
+de quem nunca a viu (nem a conta "dividida pelas N matérias" a denuncia).
+É a INF 216, Projeto e Implementação de Jogos Digitais, do Lucas Ferreira: pede
+a nota cheia em metade das matérias (8 das 16 com batalha) e a menção do Difícil
+em **todas** as 13 obrigatórias, e não custa horas — quem chegou até ali já
+pagou. Em `materias.json`, o requisito diz `"fracao": 0.5` em vez de
+`"quantas"` (o leitor conta as matérias, então a regra acompanha o curso) e
+`"de": "obrigatorias"` para deixar as optativas de fora. Para testá-la, quem
+desenvolve aperta **F10** na seleção de fases: as secretas abrem para quem está
+jogando, e o F9 as fecha de novo.
 
 ## O que fica gravado
 
@@ -704,7 +719,7 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   derrubar a certa vale nota, a errada estoura em cacos, e enquanto a pergunta
   está aberta o professor só espera a resposta.
 - **Michel — INF 429, optativa.** Visão Computacional, do
-  professor que lidera o MaVIlab — a mais difícil das optativas, que pede
+  professor que lidera o MaVIlab — uma optativa que pede
   menos reflexo e mais pensar em como a máquina vê. Na **imagem**, o meio do
   campo é uma **câmera escura**: o que ele arremessa na cena (em cima) também
   machuca, mas o perigo maior é a **imagem** de cada objeto do outro lado do
@@ -782,6 +797,44 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   **CRISPR**, a fita do genoma desce como uma parede, o guia está no placar, e
   a Cas9 só corta onde o guia casa e logo depois vem o PAM (N G G, sublinhado):
   ache o alvo, atire nele, e a fita abre ali.
+- **Lucas Ferreira — INF 216, a optativa secreta.** Projeto e Implementação de
+  Jogos Digitais — a batalha mais difícil do jogo, e a mais longa:
+  cada fase dura 40 s, o dobro das outras (e cada acerto nele vale um pouco
+  mais que a metade, para a nota andar no ritmo de sempre enquanto o perigo
+  dura o dobro). Ele não ensina matéria: **mexe nos sistemas do próprio jogo**.
+  Na **interface**, a barra da nota sai do rodapé e varre o campo — cheia até a
+  **sua** nota, e só o pedaço vazio deixa passar: com 100, não há por onde.
+  Primeiro ela sobe e desce; depois, de pé, vem de um lado e do outro, e a
+  cada passada espelha — quem passou pela direita tem de passar pela esquerda
+  na volta. O pedaço vazio fica marcado em verde, e uma linha mostra onde o
+  cheio acaba. Depois as **janelas de dica** ("Aceita os cookies?", "Avalie: 5
+  estrelas?") abrem em volta de você: a moldura machuca, o seu tiro atravessa a
+  barra de título, e só um tiro no **X** fecha a janela (e vale nota); com
+  quatro abertas, a mais velha fecha sozinha — e estoura. Nas **regras**, a
+  **inversão**: acertar o professor passa a **tirar** nota, e os tiros dele
+  viram **moedas**, que passam por você e dão nota — o professor fica vermelho
+  com um "−", você ganha um anel dourado com um "+" —, até as regras voltarem
+  e as moedas que sobraram piscarem de volta em tiros. Na **gravidade**, o
+  jogo vira de plataforma: você cai (segure para cima), o chão ganha espinhos
+  e os tiros vêm arremessados em arco. No **fogo amigo**, o campo dá a volta:
+  o seu tiro que **erra** o professor sai por cima e volta por baixo, no mesmo
+  lugar — quem atira parado acerta a si mesmo —, e o tiro dele que sai por
+  baixo reaparece em cima. No **motor**, o **lag**: os tiros andam aos saltos,
+  a 2,5 quadros por segundo, e um círculo mostra onde cada um vai estar no
+  próximo quadro. Na **hitbox**, o desenho de cada tiro vira enfeite e a
+  colisão **descola** dele — o modo debug mostra o círculo verde que machuca
+  de verdade, que se afasta e gira em volta do desenho. No **save/load**, ele
+  salva o jogo (o disquete, o ponto de volta) e segundos depois **carrega**:
+  você volta para onde estava, os tiros voltam para onde estavam, e a **nota**
+  volta à do save — para o bem e para o mal. O exame é o **lançamento**: o
+  jogo **trava** ("não está respondendo") e os tiros congelam; atire em
+  ESPERAR (vale nota) e ele volta de onde parou, em FECHAR e cada tiro
+  congelado estilhaça — e sem escolha, ele volta acelerado; da segunda vez, os
+  botões trocam de lado. Depois o gênero muda: uma **frota de bugs** marcha de
+  um lado ao outro, desce a cada batida na borda e solta tiros — cada bug cai
+  com um tiro, e zerar a frota vale um bônus. No fim, os **créditos** sobem do
+  rodapé, linha por linha, cada uma uma parede de blocos com um vão fora do
+  texto ("QA · você, agora", "BUGS · todos de propósito").
 - **Lucas — INF 321.** Programação Web, na ordem da matéria. No HTML ele
   renderiza uma página gerada a cada luta, com o layout desenhado no campo, e
   cada elemento ataca do seu jeito: o cursor voa até o `<button>` e clica, a
@@ -799,8 +852,8 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   as promessas da fila de microtarefas rodam antes do `setTimeout(cb, 0)` —
   cada callback que sai de uma fila ataca.
 
-- **Hugo — TCC.** A última matéria e a batalha mais difícil do jogo — e a
-  maior: quatro etapas de 30 s. Antes dela você escolhe um **orientador**
+- **Hugo — TCC.** A última matéria e a batalha mais difícil do curso (só a
+  secreta INF 216 é mais dura): quatro etapas de 30 s. Antes dela você escolhe um **orientador**
   entre os professores em que tirou as maiores notas, e ele luta do seu lado:
   o tiro dele tem a cara da matéria (o `for` do André, a pilha do Salles, o
   barramento do Ricardo, a transação do Thiago, o ponteiro do Luizinho, a
@@ -809,8 +862,9 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   fecha os dois tiros no Hugo pela metade a cada rodada, e o Round Robin do
   Goulart, uma rajada curta de cada lado por vez, o comitê do Daniel, três
   tiros que saem abertos e miram de novo no Hugo, e o bloco 2×2 do pooling do
-  Michel, quatro tiros em quadrado que voam juntos, e a dupla hélice da
-  Sabrina, dois tiros que saem juntos e se enroscam), e cada um traz um
+  Michel, quatro tiros em quadrado que voam juntos, a dupla hélice da
+  Sabrina, dois tiros que saem juntos e se enroscam, e o código Konami do
+  Lucas Ferreira, ↑↑↓↓←→←→ e o B e o A, que se dividem), e cada um traz um
   **poder**, que sai no **botão 3**. Ele carrega com o tempo de luta (sozinho,
   em 24 segundos) e mais depressa a cada acerto **seu** no Hugo — o tiro do
   orientador, o do golpe e o do próprio poder, não conta —, então dá para
@@ -869,12 +923,18 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
     ela é o seu rastro, e serve de parede e de ataque ao mesmo tempo. Também
     orienta sem sentar na banca; o objetivo dela pergunta "Cadê o controle
     negativo?".
+  - **Lucas Ferreira — modo deus.** Quem faz jogos conhece os códigos deles, e
+    o TCC vira trapaça: a nota **sobe até 100** em 1,6 s, você fica
+    **invencível por 18 segundos**, e uma bolha dourada em volta de você empurra
+    para longe todo tiro do Hugo que chega nela — ele atira, e os tiros fogem.
+    É o poder que trivializa o TCC: o prêmio de quem passou na optativa secreta.
+    Também orienta sem sentar na banca; o objetivo dele pergunta "Cadê o
+    playtest?".
 
   A tela em que se escolhe o orientador mostra o poder de cada um
   funcionando: um campo em miniatura, animado, com a legenda de cada passo.
-  Na batalha, uma linha em cima do aluno diz o que o poder está fazendo
-  (`push(tiro)  pilha: 7`, `ROLLBACK: a nota voltou a 62.40`). Escolher o
-  orientador é escolher o jeito de jogar.
+  Na batalha, o poder não escreve nada: o que ele faz se vê no campo. Escolher
+  o orientador é escolher o jeito de jogar.
 
   **O Hugo é blindado** — o TCC ainda não está pronto — e cada etapa tem
   objetivos que abrem uma janela em que ele toma dano. São duas maneiras por

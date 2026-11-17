@@ -23,6 +23,13 @@ namespace {
         }
         return fichas;
     }
+
+    /// As materias de 0 a n - 1, todas contadas: o geral de um curso sem secreta.
+    std::vector<int> Primeiras(const int n) {
+        std::vector<int> v;
+        for (int m = 0; m < n; ++m) v.push_back(m);
+        return v;
+    }
 }
 
 TEST_CASE("Ranking: a maior nota vem primeiro") {
@@ -167,7 +174,7 @@ TEST_CASE("Ranking geral: a media divide pelo CURSO, nao pelas materias jogadas"
         Aluno("aplicado",   {{0, 95.0f}, {1, 95.0f}, {2, 95.0f}, {3, 95.0f}}),
     };
 
-    const auto r = Ranking::Geral(turma, 11, Dificuldade::Nivel::Normal);
+    const auto r = Ranking::Geral(turma, Primeiras(11), Dificuldade::Nivel::Normal);
 
     REQUIRE(r.size() == 2);
     CHECK(r[0].matricula == "aplicado");
@@ -182,9 +189,9 @@ TEST_CASE("Ranking geral: materia nao jogada vale zero, e nao e ignorada") {
 
     const std::vector<Exportacao::FichaDeAluno> turma = { Aluno("1", {{0, 100.0f}, {1, 100.0f}}) };
 
-    CHECK(Ranking::Geral(turma, 2, Dificuldade::Nivel::Normal)[0].nota  == doctest::Approx(100.0f));
-    CHECK(Ranking::Geral(turma, 4, Dificuldade::Nivel::Normal)[0].nota  == doctest::Approx(50.0f));
-    CHECK(Ranking::Geral(turma, 10, Dificuldade::Nivel::Normal)[0].nota == doctest::Approx(20.0f));
+    CHECK(Ranking::Geral(turma, Primeiras(2), Dificuldade::Nivel::Normal)[0].nota  == doctest::Approx(100.0f));
+    CHECK(Ranking::Geral(turma, Primeiras(4), Dificuldade::Nivel::Normal)[0].nota  == doctest::Approx(50.0f));
+    CHECK(Ranking::Geral(turma, Primeiras(10), Dificuldade::Nivel::Normal)[0].nota == doctest::Approx(20.0f));
 }
 
 TEST_CASE("Ranking geral: avancar no curso sempre sobe a media") {
@@ -194,8 +201,8 @@ TEST_CASE("Ranking geral: avancar no curso sempre sobe a media") {
     auto com4 = so3;
     com4.progresso.RegistrarNota(3, 10.0f, Dificuldade::Nivel::Normal);   // Uma materia ruim a mais.
 
-    const float antes  = Ranking::Geral({so3}, 11, Dificuldade::Nivel::Normal)[0].nota;
-    const float depois = Ranking::Geral({com4}, 11, Dificuldade::Nivel::Normal)[0].nota;
+    const float antes  = Ranking::Geral({so3}, Primeiras(11), Dificuldade::Nivel::Normal)[0].nota;
+    const float depois = Ranking::Geral({com4}, Primeiras(11), Dificuldade::Nivel::Normal)[0].nota;
 
     CAPTURE(antes);
     CAPTURE(depois);
@@ -209,10 +216,10 @@ TEST_CASE("Ranking geral: quem nao jogou nada nao entra") {
         Aluno("nao", {}),
     };
 
-    const auto r = Ranking::Geral(turma, 11, Dificuldade::Nivel::Normal);
+    const auto r = Ranking::Geral(turma, Primeiras(11), Dificuldade::Nivel::Normal);
     REQUIRE(r.size() == 1);
     CHECK(r[0].matricula == "jogou");
-    CHECK(Ranking::PosicaoNoGeral(turma, 11, Dificuldade::Nivel::Normal, "nao") == 0);
+    CHECK(Ranking::PosicaoNoGeral(turma, Primeiras(11), Dificuldade::Nivel::Normal, "nao") == 0);
 }
 
 TEST_CASE("Ranking geral: empate divide a posicao, como na materia") {
@@ -222,7 +229,7 @@ TEST_CASE("Ranking geral: empate divide a posicao, como na materia") {
         Aluno("10", {{0, 80.0f}}), Aluno("20", {{1, 80.0f}}), Aluno("30", {{0, 40.0f}}),
     };
 
-    const auto r = Ranking::Geral(turma, 11, Dificuldade::Nivel::Normal);
+    const auto r = Ranking::Geral(turma, Primeiras(11), Dificuldade::Nivel::Normal);
     REQUIRE(r.size() == 3);
     CHECK(r[0].posicao == 1);
     CHECK(r[1].posicao == 1);
@@ -236,15 +243,34 @@ TEST_CASE("Ranking geral: a posicao vem da lista completa, nao do topo exibido")
         turma.push_back(Aluno(std::to_string(100 + i), {{0, 100.0f - static_cast<float>(i)}}));
     }
 
-    CHECK(Ranking::Geral(turma, 11, Dificuldade::Nivel::Normal, 5).size() == 5);
-    CHECK(Ranking::PosicaoNoGeral(turma, 11, Dificuldade::Nivel::Normal, "111") == 12);
+    CHECK(Ranking::Geral(turma, Primeiras(11), Dificuldade::Nivel::Normal, 5).size() == 5);
+    CHECK(Ranking::PosicaoNoGeral(turma, Primeiras(11), Dificuldade::Nivel::Normal, "111") == 12);
 }
 
 TEST_CASE("Ranking geral: curso de zero materias nao divide por zero") {
 
     // Nao deveria acontecer - materias.json sempre tem materia.
-    CHECK(Ranking::Geral({Aluno("1", {{0, 50.0f}})}, 0, Dificuldade::Nivel::Normal).empty());
-    CHECK(Ranking::PosicaoNoGeral({Aluno("1", {{0, 50.0f}})}, 0, Dificuldade::Nivel::Normal, "1") == 0);
+    CHECK(Ranking::Geral({Aluno("1", {{0, 50.0f}})}, Primeiras(0), Dificuldade::Nivel::Normal).empty());
+    CHECK(Ranking::PosicaoNoGeral({Aluno("1", {{0, 50.0f}})}, Primeiras(0), Dificuldade::Nivel::Normal, "1") == 0);
+}
+
+TEST_CASE("Ranking geral: so as materias contadas entram, e a media divide por elas") {
+
+    // Um curso com uma secreta, a 2: DoGeral a deixa de fora, e ela nao pesa na media de ninguem.
+    const std::vector<Exportacao::FichaDeAluno> turma = {
+        Aluno("comum",  {{0, 90.0f}, {1, 90.0f}}),
+        Aluno("abriu",  {{0, 90.0f}, {1, 90.0f}, {2, 100.0f}}),
+        Aluno("so-ela", {{2, 100.0f}}),
+    };
+    const std::vector<int> semASecreta = {0, 1};
+
+    const auto r = Ranking::Geral(turma, semASecreta, Dificuldade::Nivel::Normal);
+    REQUIRE(r.size() == 2);                       // quem so jogou a secreta nao jogou nada que conte
+    CHECK(r[0].nota == doctest::Approx(90.0f));   // 180 / 2, e nao 180 / 3
+    CHECK(r[1].nota == doctest::Approx(90.0f));
+    CHECK(r[0].materiasJogadas == 2);
+    CHECK(r[1].materiasJogadas == 2);
+    CHECK(Ranking::PosicaoNoGeral(turma, semASecreta, Dificuldade::Nivel::Normal, "so-ela") == 0);
 }
 
 TEST_CASE("Ranking geral: a contagem de materias jogadas acompanha a media") {
@@ -255,7 +281,7 @@ TEST_CASE("Ranking geral: a contagem de materias jogadas acompanha a media") {
         Aluno("2", {{0, 90.0f}}),
     };
 
-    const auto r = Ranking::Geral(turma, 11, Dificuldade::Nivel::Normal);
+    const auto r = Ranking::Geral(turma, Primeiras(11), Dificuldade::Nivel::Normal);
     REQUIRE(r.size() == 2);
     CHECK(r[0].materiasJogadas == 2);
     CHECK(r[1].materiasJogadas == 1);
@@ -463,7 +489,7 @@ TEST_CASE("Duplas: cada materia tem a sua ordem") {
 TEST_CASE("Duplas: turma vazia devolve lista vazia") {
 
     CHECK(Ranking::DuplasDaMateria({}, 0, Dificuldade::Nivel::Normal).empty());
-    CHECK(Ranking::DuplasGeral({}, 11, Dificuldade::Nivel::Normal).empty());
+    CHECK(Ranking::DuplasGeral({}, Primeiras(11), Dificuldade::Nivel::Normal).empty());
 }
 
 TEST_CASE("Duplas, geral: a media divide pelo CURSO, nao pelas materias jogadas juntas") {
@@ -477,7 +503,7 @@ TEST_CASE("Duplas, geral: a media divide pelo CURSO, nao pelas materias jogadas 
     Dupla(fichas, "f1", "f2", 2, 95.0f);
     Dupla(fichas, "f1", "f2", 3, 95.0f);
 
-    const auto r = Ranking::DuplasGeral(fichas, 11, Dificuldade::Nivel::Normal);
+    const auto r = Ranking::DuplasGeral(fichas, Primeiras(11), Dificuldade::Nivel::Normal);
 
     REQUIRE(r.size() == 2);
     CHECK(r[0].um == "f1");
@@ -494,7 +520,7 @@ TEST_CASE("Duplas, geral: a contagem e das materias jogadas JUNTAS") {
     Dupla(fichas, "A", "B", 1, 80.0f);
     Dupla(fichas, "A", "C", 2, 70.0f);
 
-    const auto r = Ranking::DuplasGeral(fichas, 11, Dificuldade::Nivel::Normal);
+    const auto r = Ranking::DuplasGeral(fichas, Primeiras(11), Dificuldade::Nivel::Normal);
 
     // Tres fichas, duas duplas: (A,B) com duas materias e (A,C) com uma.
     REQUIRE(r.size() == 2);
@@ -512,10 +538,10 @@ TEST_CASE("Duplas, geral: a media de dupla nao entra no geral de solo") {
     std::vector<Exportacao::FichaDeAluno> fichas;
     Dupla(fichas, "A", "B", 0, 100.0f);
 
-    CHECK(Ranking::Geral(fichas, 11, Dificuldade::Nivel::Normal).empty());
-    CHECK(Ranking::PosicaoNoGeral(fichas, 11, Dificuldade::Nivel::Normal, "A") == 0);
+    CHECK(Ranking::Geral(fichas, Primeiras(11), Dificuldade::Nivel::Normal).empty());
+    CHECK(Ranking::PosicaoNoGeral(fichas, Primeiras(11), Dificuldade::Nivel::Normal, "A") == 0);
 
-    const auto r = Ranking::DuplasGeral(fichas, 11, Dificuldade::Nivel::Normal);
+    const auto r = Ranking::DuplasGeral(fichas, Primeiras(11), Dificuldade::Nivel::Normal);
     REQUIRE(r.size() == 1);
     CHECK(r[0].nota == doctest::Approx(100.0f / 11.0f));
 }
@@ -526,7 +552,7 @@ TEST_CASE("Duplas, geral: curso de zero materias nao divide por zero") {
     std::vector<Exportacao::FichaDeAluno> fichas;
     Dupla(fichas, "A", "B", 0, 50.0f);
 
-    CHECK(Ranking::DuplasGeral(fichas, 0, Dificuldade::Nivel::Normal).empty());
+    CHECK(Ranking::DuplasGeral(fichas, Primeiras(0), Dificuldade::Nivel::Normal).empty());
 }
 
 TEST_CASE("Duplas, geral: o limite corta o fim") {
@@ -536,7 +562,7 @@ TEST_CASE("Duplas, geral: o limite corta o fim") {
     Dupla(fichas, "20", "21", 0, 100.0f);
     Dupla(fichas, "30", "31", 0, 50.0f);
 
-    const auto r = Ranking::DuplasGeral(fichas, 11, Dificuldade::Nivel::Normal, 2);
+    const auto r = Ranking::DuplasGeral(fichas, Primeiras(11), Dificuldade::Nivel::Normal, 2);
     REQUIRE(r.size() == 2);
     CHECK(r[0].um == "20");
     CHECK(r[1].um == "30");
@@ -576,7 +602,7 @@ TEST_CASE("Duplas: a posicao vem da lista COMPLETA, e nao do topo exibido") {
 
     CHECK(Ranking::DuplasDaMateria(fichas, 0, Dificuldade::Nivel::Normal, 5).size() == 5);
     CHECK(Ranking::PosicaoDaDupla(fichas, 0, Dificuldade::Nivel::Normal, "a111", "b111") == 12);
-    CHECK(Ranking::PosicaoDaDuplaNoGeral(fichas, 11, Dificuldade::Nivel::Normal, "a111", "b111") == 12);
+    CHECK(Ranking::PosicaoDaDuplaNoGeral(fichas, Primeiras(11), Dificuldade::Nivel::Normal, "a111", "b111") == 12);
 }
 
 TEST_CASE("Duplas: quem nunca jogou junto com aquela pessoa fica em zero") {
@@ -589,7 +615,7 @@ TEST_CASE("Duplas: quem nunca jogou junto com aquela pessoa fica em zero") {
     CHECK(Ranking::PosicaoDaDupla(fichas, 0, Dificuldade::Nivel::Normal, "A", "Z") == 0);      // Z nem existe
     CHECK(Ranking::PosicaoDaDupla(fichas, 1, Dificuldade::Nivel::Normal, "A", "B") == 0);      // outra materia
     CHECK(Ranking::PosicaoDaDupla({}, 0, Dificuldade::Nivel::Normal, "A", "B") == 0);          // turma vazia
-    CHECK(Ranking::PosicaoDaDuplaNoGeral(fichas, 0, Dificuldade::Nivel::Normal, "A", "B") == 0);   // curso de zero materias
+    CHECK(Ranking::PosicaoDaDuplaNoGeral(fichas, Primeiras(0), Dificuldade::Nivel::Normal, "A", "B") == 0);   // curso de zero materias
 }
 
 TEST_CASE("Duplas: a posicao de quem jogou sozinho nao vaza para a lista de duplas") {
@@ -656,7 +682,7 @@ TEST_CASE("Ranking: a nota do Dificil fica na lista do Dificil, e so nela") {
     // E a posicao e a da lista: o 2 e o primeiro do Dificil, e nem aparece no Normal.
     CHECK(Ranking::PosicaoDe(fichas, 0, Nivel::Dificil, "2") == 1);
     CHECK(Ranking::PosicaoDe(fichas, 0, Nivel::Normal, "2") == 0);
-    CHECK(Ranking::Geral(fichas, 1, Nivel::Dificil).size() == 1u);
+    CHECK(Ranking::Geral(fichas, Primeiras(1), Nivel::Dificil).size() == 1u);
 }
 
 TEST_CASE("Ranking: a dupla do Dificil fica na lista de duplas do Dificil") {
@@ -674,5 +700,5 @@ TEST_CASE("Ranking: a dupla do Dificil fica na lista de duplas do Dificil") {
     CHECK(d[0].um == "1");
     CHECK(d[0].dois == "2");
     CHECK(Ranking::PosicaoDaDupla(fichas, 0, Nivel::Dificil, "2", "1") == 1);
-    CHECK(Ranking::DuplasGeral(fichas, 1, Nivel::Dificil).size() == 1u);
+    CHECK(Ranking::DuplasGeral(fichas, Primeiras(1), Nivel::Dificil).size() == 1u);
 }

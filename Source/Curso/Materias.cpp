@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <set>
 
 #include "../Aluno/Horas.h"
@@ -72,6 +73,14 @@ int Lista::QuantasObrigatorias() const {
     return n;
 }
 
+std::vector<int> Lista::DoGeral() const {
+    std::vector<int> contadas;
+    for (int i = 0; i < Quantas(); ++i) {
+        if (!materias[static_cast<size_t>(i)].secreta) contadas.push_back(i);
+    }
+    return contadas;
+}
+
 int Lista::QuantasColunas() const {
     int maior = -1;
     for (const auto& m : materias) maior = std::max(maior, m.coluna);
@@ -104,8 +113,12 @@ namespace {
                 const std::optional<Mencoes::Mencao> m = Mencoes::PelaChave(r.mencao);
                 if (!m) return {};
                 // \xc3\xa7 e o c cedilha; \xc3\xa3 o a com til; \xc3\xb5 o o com til.
+                // \xc3\xb3 e o o agudo. Todas as obrigatorias: "mencao no Dificil em todas as 13 obrigatorias".
+                if (r.soObrigatorias && r.fracao >= 0.999f) {
+                    return "men\xc3\xa7\xc3\xa3o " + MencaoNaFrase(*m) + " em todas as " + n + " obrigat\xc3\xb3rias";
+                }
                 return "pelo menos " + n + (r.quantas == 1 ? " men\xc3\xa7\xc3\xa3o " : " men\xc3\xa7\xc3\xb5" "es ") +
-                       MencaoNaFrase(*m);
+                       MencaoNaFrase(*m) + (r.soObrigatorias ? " nas obrigat\xc3\xb3rias" : "");
             }
             case TipoDeRequisito::Horas:
                 return n + " h de atividades complementares";
@@ -219,6 +232,10 @@ std::string ChaveDaCompra(const std::string& codigo) {
     return "compra@" + codigo;
 }
 
+std::string ChaveDaLiberacao(const std::string& codigo) {
+    return "liberada@" + codigo;
+}
+
 int Lista::PrecoDe(const int indice) const {
     const Materia* m = Por(indice);
     return m ? m->desbloqueio.preco : 0;
@@ -229,7 +246,16 @@ bool Lista::Comprada(const int indice, const Progresso& progresso) const {
     return m && progresso.Atividades().count(ChaveDaCompra(m->codigo)) > 0;
 }
 
+bool Lista::Escondida(const int indice, const Progresso& progresso) const {
+    const Materia* m = Por(indice);
+    return m && m->secreta && !Desbloqueada(indice, progresso);
+}
+
 bool Lista::Desbloqueada(const int indice, const Progresso& progresso) const {
+    // A secreta aberta a mao (F10) dispensa a regra.
+    if (const Materia* m = Por(indice); m && m->secreta && progresso.Atividades().count(ChaveDaLiberacao(m->codigo)) > 0) {
+        return true;
+    }
     if (!RegraCumprida(indice, progresso)) return false;
     return PrecoDe(indice) <= 0 || Comprada(indice, progresso);
 }
@@ -241,6 +267,7 @@ int Lista::Contagem(const Requisito& r, const Progresso& progresso) const {
             if (!qual) return 0;
             int com = 0;
             for (int i = 0; i < Quantas(); ++i) {
+                if (r.soObrigatorias && Por(i)->optativa) continue;
                 if (Mencoes::Da(progresso, *this, i).Tem(*qual)) ++com;
             }
             return com;
@@ -370,6 +397,23 @@ namespace {
                             problemas.emplace_back(onde + "a mencao \"" + req.mencao + "\" nao existe; requisito ignorado");
                             continue;
                         }
+                        // "fracao": uma parte das materias com batalha, em vez de "quantas"; "de":
+                        // "obrigatorias" deixa as optativas de fora da conta.
+                        if (r.contains("fracao")) {
+                            req.fracao = r["fracao"].is_number() ? r["fracao"].get<float>() : 0.0f;
+                            if (req.fracao <= 0.0f || req.fracao > 1.0f) {
+                                problemas.emplace_back(onde + "\"fracao\" de um requisito vai de 0 (sem ele) a 1; ignorado");
+                                continue;
+                            }
+                        }
+                        if (r.contains("de")) {
+                            if (Texto(r, "de") == "obrigatorias") {
+                                req.soObrigatorias = true;
+                            } else {
+                                problemas.emplace_back(onde + "\"de\" de um requisito so aceita \"obrigatorias\"; ignorado");
+                                continue;
+                            }
+                        }
                     } else if (tipoDoRequisito == "horas") {
                         req.tipo = TipoDeRequisito::Horas;
                     } else if (tipoDoRequisito == "aprovadas") {
@@ -492,6 +536,15 @@ Lista LerMaterias(const std::string& textoJson) {
             }
         }
 
+        // "secreta": nao aparece ate a regra dela estar cumprida.
+        if (j.contains("secreta")) {
+            if (j["secreta"].is_boolean()) {
+                m.secreta = j["secreta"].get<bool>();
+            } else {
+                lista.problemas.emplace_back(onde + "\"secreta\" e true ou false; ficou a vista");
+            }
+        }
+
         // "optativa": vai para a ala das optativas, depois das obrigatorias.
         if (j.contains("optativa")) {
             if (j["optativa"].is_boolean()) {
@@ -529,6 +582,21 @@ Lista LerMaterias(const std::string& textoJson) {
     }
 
     // ---- Conferencias que so dao para fazer com a lista inteira em maos ----
+
+    // 0. A fracao de um requisito vira "quantas": a parte das materias com batalha (as secretas nao
+    // entram na conta, e com "de": "obrigatorias" as optativas tambem nao).
+    for (auto& m : lista.materias) {
+        for (Requisito& r : m.desbloqueio.requisitos) {
+            if (r.fracao <= 0.0f) continue;
+            int universo = 0;
+            for (const auto& outra : lista.materias) {
+                if (outra.chefe.empty() || outra.secreta) continue;
+                if (r.soObrigatorias && outra.optativa) continue;
+                ++universo;
+            }
+            r.quantas = std::max(1, static_cast<int>(std::ceil(r.fracao * static_cast<float>(universo) - 1e-4f)));
+        }
+    }
 
     // 1.
     for (const auto& m : lista.materias) {

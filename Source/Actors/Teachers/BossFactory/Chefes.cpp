@@ -12,6 +12,7 @@
 #include "../Bosses/Hugo.h"
 #include "../Bosses/Michel.h"
 #include "../Bosses/Sabrina.h"
+#include "../Bosses/Ferreira.h"
 #include "../Bosses/Julio.h"
 #include "../Bosses/Lucas.h"
 #include "../Bosses/Luizinho.h"
@@ -52,6 +53,7 @@ std::map<std::string, std::unique_ptr<IBossFactory>> Fabricas(Game* game) {
     Registrar<Daniel>    (f, game, "daniel",     "Daniel");
     Registrar<Michel>    (f, game, "michel",     "Michel");
     Registrar<Sabrina>   (f, game, "sabrina",    "Sabrina");
+    Registrar<Ferreira>  (f, game, "ferreira",   "Ferreira");
     return f;
 }
 

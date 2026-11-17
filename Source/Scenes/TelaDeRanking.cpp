@@ -164,6 +164,8 @@ Actor* TelaDeRanking::Texto(const std::string& conteudo, const float x, const fl
 void TelaDeRanking::Redesenhar() {
 
     const Materias::Lista& materias = Materias::Carregadas();
+    // A media do curso conta as materias de DoGeral: a secreta fica de fora.
+    const std::vector<int> contadas = materias.DoGeral();
 
     auto escrever = [](Actor* ator, const std::string& texto) {
         if (!ator) return;
@@ -192,7 +194,7 @@ void TelaDeRanking::Redesenhar() {
         escrever(mTituloAtor, "MEDIA DO CURSO");
         escrever(mSubtituloAtor,
                  "Soma das melhores notas dividida pelas "
-                 + std::to_string(materias.Quantas()) + " materias. Nao e uma nota.");
+                 + std::to_string(contadas.size()) + " materias. Nao e uma nota.");
     }
     else {
         const Materias::Materia* m = materias.Por(mPedido.materia);
@@ -203,12 +205,12 @@ void TelaDeRanking::Redesenhar() {
     // As duas formas de lista sao lidas, e a que nao esta em uso sai vazia.
     const auto linhas = duplas
         ? std::vector<Ranking::Linha>{}
-        : (mPedido.geral ? Ranking::Geral(mFichas, materias.Quantas(), lista.nivel, kQuantasLinhas)
+        : (mPedido.geral ? Ranking::Geral(mFichas, contadas, lista.nivel, kQuantasLinhas)
                          : Ranking::DaMateria(mFichas, mPedido.materia, lista.nivel, kQuantasLinhas));
 
     const auto deDupla = !duplas
         ? std::vector<Ranking::LinhaDeDupla>{}
-        : (mPedido.geral ? Ranking::DuplasGeral(mFichas, materias.Quantas(), lista.nivel, kQuantasLinhas)
+        : (mPedido.geral ? Ranking::DuplasGeral(mFichas, contadas, lista.nivel, kQuantasLinhas)
                          : Ranking::DuplasDaMateria(mFichas, mPedido.materia, lista.nivel, kQuantasLinhas));
 
     const size_t quantasTem = duplas ? deDupla.size() : linhas.size();
@@ -248,7 +250,7 @@ void TelaDeRanking::Redesenhar() {
         // 11" e nao diria nada.
         escrever(mJogadasAtores[i],
                  (temLinha && mPedido.geral)
-                     ? std::to_string(jogadas) + " de " + std::to_string(materias.Quantas())
+                     ? std::to_string(jogadas) + " de " + std::to_string(contadas.size())
                      : "");
 
         // O dourado so vale no ranking de materia.
@@ -281,7 +283,7 @@ void TelaDeRanking::Redesenhar() {
             const std::string& dois = mGame->MatriculaDe(1);
 
             posicao = mPedido.geral
-                ? Ranking::PosicaoDaDuplaNoGeral(mFichas, materias.Quantas(), lista.nivel, um, dois)
+                ? Ranking::PosicaoDaDuplaNoGeral(mFichas, contadas, lista.nivel, um, dois)
                 : Ranking::PosicaoDaDupla(mFichas, mPedido.materia, lista.nivel, um, dois);
 
             quemEsta = "Voces estao";
@@ -292,7 +294,7 @@ void TelaDeRanking::Redesenhar() {
         const std::string& eu = mGame->MatriculaDe(0);
         if (!eu.empty()) {
             posicao = mPedido.geral
-                ? Ranking::PosicaoNoGeral(mFichas, materias.Quantas(), lista.nivel, eu)
+                ? Ranking::PosicaoNoGeral(mFichas, contadas, lista.nivel, eu)
                 : Ranking::PosicaoDe(mFichas, mPedido.materia, lista.nivel, eu);
         }
     }

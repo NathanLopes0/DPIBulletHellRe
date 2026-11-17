@@ -18,7 +18,7 @@ namespace Poder {
 
     enum class Tipo {
         Nenhum, Matriz, Pilha, Congelar, Transacao, TryCatch, Converter, Agentes, BalaDePrata, PromiseAll, Mutex,
-        BuscaBinaria, Rodizio, KMedias, CameraEscura, Helice
+        BuscaBinaria, Rodizio, KMedias, CameraEscura, Helice, ModoDeus
     };
 
     struct Descricao {
@@ -190,18 +190,36 @@ namespace Poder {
     /// A base do par 'k' do gene que a helice escreve (5' ATGGATTACA... 3').
     int BaseDoGene(int k);
 
+    // ---- Lucas Ferreira: o modo deus ----
+
+    /// O professor de jogos digitais conhece os codigos do jogo, e o TCC vira trapaca: a nota sobe ate
+    /// 100 em kSubidaDoModoDeus segundos, os alunos ficam invenciveis por kDuracaoDoModoDeus, e todo
+    /// tiro do Hugo que chega a kRaioDoModoDeus de um deles e empurrado para longe - o Hugo atira, e os
+    /// tiros fogem.
+    constexpr float kDuracaoDoModoDeus = 18.0f;
+    constexpr float kSubidaDoModoDeus = 1.6f;
+    constexpr float kRaioDoModoDeus = 150.0f;
+    /// A rapidez minima do tiro empurrado, para fora da bolha.
+    constexpr float kEmpurraoDoModoDeus = 320.0f;
+    /// A nota 't' segundos depois de o poder sair, quando ela era 'antes': sobe em linha ate 100.
+    float NotaNoModoDeus(float antes, float t);
+    /// A velocidade do tiro em 'tiro', empurrado pelo aluno em 'aluno' quando vinha a 'v': para longe
+    /// dele, a pelo menos kEmpurraoDoModoDeus.
+    Vector2 Empurrado(const Vector2& tiro, const Vector2& aluno, const Vector2& v);
+
     // ---- A cara ----
 
     /// A folha com o projetil de cada professor (Ferramentas/gerar_hugo.py): o
     /// tiro do orientador tem a cara da materia dele.
     constexpr const char* kFolhaDasMaterias = "Teachers/Projectiles/DPIBHHugoTcc";
     /// O ladrilho do Arroyo na folha: o quadro 22, depois da Caixa; o do Goulart, o 23; o do Daniel, o 24;
-    /// o do Michel, o 25; o da Sabrina, o 26.
+    /// o do Michel, o 25; o da Sabrina, o 26; o do Lucas Ferreira, o 27.
     constexpr int kQuadroDoArroyo = 22;
     constexpr int kQuadroDoGoulart = 23;
     constexpr int kQuadroDoDaniel = 24;
     constexpr int kQuadroDoMichel = 25;
     constexpr int kQuadroDaSabrina = 26;
+    constexpr int kQuadroDoFerreira = 27;
 
     /// O quadro da materia 'm' em kFolhaDasMaterias; -1 sem materia (o tiro de sempre).
     int QuadroDaMateria(Golpe::Materia m);

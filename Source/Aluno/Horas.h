@@ -112,5 +112,7 @@ namespace Horas {
         int cumpridas = 0;
         int possiveis = 1;
     };
-    std::vector<Linha> Quadro(const std::set<std::string>& chaves, const Materias::Lista& materias);
+    /// O quadro de quem tem este progresso. A materia secreta que ele ainda nao abriu nao entra no
+    /// "de quantas" das atividades por materia: o quadro nao a denuncia.
+    std::vector<Linha> Quadro(const Progresso& progresso, const Materias::Lista& materias);
 }

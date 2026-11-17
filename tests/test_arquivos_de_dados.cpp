@@ -59,6 +59,7 @@
 #include "../Source/Attacks/Pareamento.h"
 #include "../Source/Attacks/Dobramento.h"
 #include "../Source/Attacks/Sequenciamento.h"
+#include "../Source/Attacks/JogosDigitais.h"
 #include <regex>
 #include "../Source/Attacks/PastaDoChefe.h"
 #include "../Source/Curso/Materias.h"
@@ -799,7 +800,8 @@ TEST_CASE("Dados: as materias do curso estao la, com os codigos esperados") {
     // Esta lista nao e a ordem, e sim o conjunto.
     const std::set<std::string> esperadas = {
         "INF110", "INF213", "INF250", "INF220", "INF340", "INF331",
-        "INF420", "INF221", "INF321", "INF310", "TCC", "INF332", "INF451", "INF425", "INF429", "INF491"
+        "INF420", "INF221", "INF321", "INF310", "TCC", "INF332", "INF451", "INF425", "INF429", "INF491",
+        "INF216"
     };
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
@@ -822,7 +824,7 @@ TEST_CASE("Dados: toda materia com chefe aponta para uma pasta de chefe que exis
         CHECK_FALSE(FasesDoChefe(m.chefe).fases.empty());
         ++comChefe;
     }
-    CHECK(comChefe == 16);  // Hoje sao todas as dezesseis: a Sabrina, na optativa INF 491, foi a ultima.
+    CHECK(comChefe == 17);  // Hoje sao todas as dezessete: o Lucas Ferreira, na optativa secreta INF 216, foi o ultimo.
 }
 
 TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
@@ -831,7 +833,8 @@ TEST_CASE("Dados: todo chefe citado em materias.json tem fabrica registrada") {
     const std::set<std::string> kFabricasRegistradas = {"salles", "ricardo", "andre", "julio",
                                                         "thiago", "vladimir", "vitor",
                                                         "marialucia", "lucas", "luizinho", "hugo",
-                                                        "arroyo", "goulart", "daniel", "michel", "sabrina"};
+                                                        "arroyo", "goulart", "daniel", "michel", "sabrina",
+                                                        "ferreira"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
 
@@ -850,7 +853,7 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
     const std::vector<std::string> col3 = {"INF420", "INF221", "INF321", "INF310", "INF451"};
 
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
-    REQUIRE(l.Quantas() == 16);
+    REQUIRE(l.Quantas() == 17);
 
     auto pretendida = [&](const std::string& codigo, const Progresso& p) {
         auto aprovado = [&](const std::string& c) { return p.Aprovado(l.IndiceDe(c)); };
@@ -864,7 +867,8 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
         for (const auto& c : col2) if (c == codigo) return aprovado("INF213");
         for (const auto& c : col3) if (c == codigo) return quantas(col2) >= 2;
         if (codigo == "TCC") return quantas(col3) >= 2;
-        // As optativas pedem ouro e a compra: com 80 em tudo, nunca abrem (o teste delas vem abaixo).
+        // As optativas pedem ouro e a compra, e a secreta o 100 e o Dificil: com 80 em tudo, nunca abrem
+        // (o teste delas vem abaixo).
         return false;
     };
 
@@ -893,7 +897,7 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
         }
     }
 
-    CHECK(comparacoes == (1 << 13) * 16);
+    CHECK(comparacoes == (1 << 13) * 17);
 
     // As optativas nao pedem materia alem da INF 213, nem uma a outra: pedem muitas mencoes - nenhuma
     // a nota cheia - e a compra.
@@ -1285,7 +1289,7 @@ TEST_CASE("Dados: toda coluna do curso depende da anterior, entao a grade pode s
     // E o que autoriza a tela de selecao a desenhar o tronco entre as colunas.
     // As optativas ficam de fora: estao em outra pagina, e nao se ligam ao TCC.
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
-    REQUIRE(l.QuantasColunas() == 8);
+    REQUIRE(l.QuantasColunas() == 9);
     REQUIRE(l.QuantasColunasObrigatorias() == 5);
 
     CHECK_FALSE(l.ColunaDependeDaAnterior(0));
@@ -1840,8 +1844,11 @@ TEST_CASE("Dados: toda fase de todo chefe dura Fase::kDuracao (o TCC, kDuracaoDo
         for (const auto& f : FasesDoChefe(chefe).fases) {
             CAPTURE(chefe);
             CAPTURE(f.nome);
-            // O TCC E a excecao declarada (Fase::kDuracaoDoTcc): a batalha maior.
-            CHECK(f.duracao == doctest::Approx(chefe == "hugo" ? Fase::kDuracaoDoTcc : Fase::kDuracao));
+            // As excecoes declaradas: o TCC (Fase::kDuracaoDoTcc) e o Lucas Ferreira, cujas fases
+            // duram o dobro (JogosDigitais::kDuracaoDaFase).
+            const float duracao = chefe == "hugo" ? Fase::kDuracaoDoTcc
+                                                  : (chefe == "ferreira" ? JogosDigitais::kDuracaoDaFase : Fase::kDuracao);
+            CHECK(f.duracao == doctest::Approx(duracao));
             if (f.etapas.empty()) continue;
             float soma = 0.0f;
             for (const auto& e : f.etapas) soma += e.duracao;
@@ -2581,6 +2588,162 @@ TEST_CASE("Dados: so o TCC pede orientacao, e quem abre o TCC sempre tem tres or
         CHECK(static_cast<int>(Orientacao::Candidatos(l, {&p}).size()) == Orientacao::kCandidatos);
     }
     CHECK(abriram > 0);
+}
+
+TEST_CASE("Dados: o Lucas Ferreira - cada gatilho que ele puxa esta na fase dele, e cada cara que ele poe existe") {
+
+    // A fase de cada gatilho, como o C++ os puxa (Ferreira.cpp).
+    const std::vector<std::pair<std::string, const char*>> gatilhos = {
+        {HudHostil::kFase, HudHostil::kGatilhoDaBarra}, {HudHostil::kFase, HudHostil::kGatilhoDoLeque},
+        {HudHostil::kFase, HudHostil::kGatilhoDaJanela}, {HudHostil::kFase, HudHostil::kGatilhoDeFechar},
+        {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoAnel}, {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoTiro},
+        {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoEspinho}, {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoArremesso},
+        {RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoRetorno},
+        {MotorQuebrado::kFase, MotorQuebrado::kGatilhoDoAnel}, {MotorQuebrado::kFase, MotorQuebrado::kGatilhoDoTiro},
+        {MotorQuebrado::kFase, MotorQuebrado::kGatilhoDoSprite}, {MotorQuebrado::kFase, MotorQuebrado::kGatilhoDoColisor},
+        {MotorQuebrado::kFase, MotorQuebrado::kGatilhoDoDisquete},
+        {Lancamento::kFase, Lancamento::kGatilhoDoAnel}, {Lancamento::kFase, Lancamento::kGatilhoDoTiro},
+        {Lancamento::kFase, Lancamento::kGatilhoDoBotao}, {Lancamento::kFase, Lancamento::kGatilhoDoEstilhaco},
+        {Lancamento::kFase, Lancamento::kGatilhoDoBug}, {Lancamento::kFase, Lancamento::kGatilhoDaQueda},
+        {Lancamento::kFase, Lancamento::kGatilhoDoCredito},
+    };
+    const auto lidas = FasesDoChefe("ferreira");
+    REQUIRE(lidas.problemas.empty());
+    const auto& tipos = ProjeteisDoChefe("ferreira").projeteis;
+    auto caras = [&](const std::string& tipo) {
+        std::set<std::string> c;
+        if (tipos.count(tipo)) for (const auto& a : tipos.at(tipo).animacoes) c.insert(a.nome);
+        return c;
+    };
+    // O gatilho de cada fase e o projetil dele: o mesmo nome em duas fases e dois projeteis.
+    std::map<std::string, std::string> projetil;
+    for (const auto& [fase, g] : gatilhos) {
+        CAPTURE(fase);
+        CAPTURE(g);
+        CHECK(GatilhoExiste(g));
+        int quantos = 0;
+        for (const auto& f : lidas.fases) {
+            if (f.nome != fase) continue;
+            for (const auto& a : f.ataques) if (a.gatilho == g) { ++quantos; projetil[fase + "/" + g] = a.projetil; }
+        }
+        CHECK(quantos == 1);
+    }
+    const auto de = [&](const std::string& fase, const char* g) { return projetil[fase + "/" + g]; };
+
+    // As etapas de cada fase sao as da camada pura, com as mesmas duracoes.
+    const auto etapas = [&](const std::string& fase, const std::array<const char*, 3>& nomes, const std::array<float, 3>& duracoes) {
+        const DescricaoDeFase* d = nullptr;
+        for (const auto& f : lidas.fases) if (f.nome == fase) d = &f;
+        REQUIRE(d != nullptr);
+        CHECK(d->duracao == doctest::Approx(JogosDigitais::kDuracaoDaFase));
+        REQUIRE(d->etapas.size() == nomes.size());
+        for (size_t k = 0; k < nomes.size(); ++k) {
+            CHECK(d->etapas[k].nome == nomes[k]);
+            CHECK(d->etapas[k].duracao == doctest::Approx(duracoes[k]));
+        }
+    };
+    etapas(HudHostil::kFase, HudHostil::kEtapas, HudHostil::kDuracoes);
+    etapas(RegrasTrocadas::kFase, RegrasTrocadas::kEtapas, RegrasTrocadas::kDuracoes);
+    etapas(MotorQuebrado::kFase, MotorQuebrado::kEtapas, MotorQuebrado::kDuracoes);
+    etapas(Lancamento::kFase, Lancamento::kEtapas, Lancamento::kDuracoes);
+
+    // A barra tem as cores do rodape, nas tres faixas da nota.
+    for (const float nota : {10.0f, 50.0f, 90.0f}) CHECK(caras(de(HudHostil::kFase, HudHostil::kGatilhoDaBarra)).count(HudHostil::CaraDaBarra(nota)) == 1);
+    for (const char* c : {"Borda", "Titulo"}) CHECK(caras(de(HudHostil::kFase, HudHostil::kGatilhoDaJanela)).count(c) == 1);
+    CHECK(caras(de(HudHostil::kFase, HudHostil::kGatilhoDeFechar)).count("X") == 1);
+    // O tiro de sempre e as caras que ele ganha quando o jogo muda.
+    for (const char* c : {"Tiro", "Moeda", "Espinho", "Seu", "Vazio", "Fragmento", "Disquete"}) {
+        CHECK(caras(de(RegrasTrocadas::kFase, RegrasTrocadas::kGatilhoDoAnel)).count(c) == 1);
+    }
+    for (const char* c : {"Esperar", "Fechar"}) CHECK(caras(de(Lancamento::kFase, Lancamento::kGatilhoDoBotao)).count(c) == 1);
+    CHECK(caras(de(Lancamento::kFase, Lancamento::kGatilhoDoBug)).count("Bug") == 1);
+    CHECK(caras(de(Lancamento::kFase, Lancamento::kGatilhoDoCredito)).count("Bloco") == 1);
+
+    // O que o tiro do aluno derruba: o X da janela, os botoes do dialogo, os bugs. A barra, a moldura
+    // e os blocos dos creditos, nao - o tiro passa.
+    CHECK(tipos.at(de(HudHostil::kFase, HudHostil::kGatilhoDeFechar)).derrubavel);
+    CHECK(tipos.at(de(Lancamento::kFase, Lancamento::kGatilhoDoBotao)).derrubavel);
+    CHECK(tipos.at(de(Lancamento::kFase, Lancamento::kGatilhoDoBug)).derrubavel);
+    CHECK_FALSE(tipos.at(de(HudHostil::kFase, HudHostil::kGatilhoDaBarra)).derrubavel);
+    CHECK_FALSE(tipos.at(de(HudHostil::kFase, HudHostil::kGatilhoDaJanela)).derrubavel);
+    CHECK_FALSE(tipos.at(de(Lancamento::kFase, Lancamento::kGatilhoDoCredito)).derrubavel);
+}
+
+TEST_CASE("Dados: a INF 216 e secreta - abre com o 100 em metade das materias e o Dificil em todas as obrigatorias") {
+    const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
+    REQUIRE(l.problemas.empty());
+    const int jd = l.IndiceDe("INF216");
+    REQUIRE(jd >= 0);
+    const Materias::Materia* m = l.Por(jd);
+    CHECK(m->secreta);
+    CHECK(m->optativa);
+    CHECK(m->chefe == "ferreira");
+    CHECK(m->professor == "Lucas Ferreira");
+    CHECK(l.PrecoDe(jd) == 0);   // quem chegou ate aqui ja pagou
+    // As contas do leitor: metade das 16 materias com batalha (ela mesma fora) e as 13 obrigatorias.
+    REQUIRE(m->desbloqueio.requisitos.size() == 2);
+    CHECK(m->desbloqueio.requisitos[0].quantas == 8);
+    CHECK_FALSE(m->desbloqueio.requisitos[0].soObrigatorias);
+    CHECK(m->desbloqueio.requisitos[1].quantas == 13);
+    CHECK(m->desbloqueio.requisitos[1].soObrigatorias);
+    // Ela e a unica secreta: as outras aparecem sempre.
+    for (int i = 0; i < l.Quantas(); ++i) CHECK(l.Por(i)->secreta == (i == jd));
+
+    std::vector<int> obrigatorias, optativas;
+    for (int i = 0; i < l.Quantas(); ++i) {
+        if (i == jd) continue;
+        (l.Por(i)->optativa ? optativas : obrigatorias).push_back(i);
+    }
+    REQUIRE(obrigatorias.size() == 13);
+    REQUIRE(optativas.size() == 3);
+
+    // Ninguem: escondida e fechada.
+    Progresso p;
+    CHECK(l.Escondida(jd, p));
+    CHECK_FALSE(l.Desbloqueada(jd, p));
+    // O Dificil em todas as obrigatorias, mas o 100 em so sete: ainda escondida.
+    for (size_t k = 0; k < obrigatorias.size(); ++k) {
+        p.RegistrarNota(obrigatorias[k], k < 7 ? 100.0f : 70.0f, Dificuldade::Nivel::Dificil);
+    }
+    CHECK(l.Escondida(jd, p));
+    // O oitavo 100 - numa optativa, que tambem conta para os 100 - abre.
+    p.RegistrarNota(optativas[0], 100.0f, Dificuldade::Nivel::Normal);
+    CHECK_FALSE(l.Escondida(jd, p));
+    CHECK(l.Desbloqueada(jd, p));
+
+    // Os 100 em tudo, mas uma obrigatoria sem o Dificil: fechada. O Dificil numa optativa nao a substitui.
+    Progresso q;
+    for (size_t k = 0; k < obrigatorias.size(); ++k) {
+        q.RegistrarNota(obrigatorias[k], 100.0f, k == 0 ? Dificuldade::Nivel::Normal : Dificuldade::Nivel::Dificil);
+    }
+    for (const int o : optativas) q.RegistrarNota(o, 100.0f, Dificuldade::Nivel::Dificil);
+    CHECK(l.Escondida(jd, q));
+    q.RegistrarNota(obrigatorias[0], 65.0f, Dificuldade::Nivel::Dificil);
+    CHECK(l.Desbloqueada(jd, q));
+
+    // A tecla de quem desenvolve (F10) dispensa a regra.
+    Progresso dev;
+    dev.RegistrarAtividade(Materias::ChaveDaLiberacao("INF216"));
+    CHECK(l.Desbloqueada(jd, dev));
+    CHECK_FALSE(l.Escondida(jd, dev));
+    // A liberacao so vale para a secreta: a INF 425 continua pedindo a regra e a compra.
+    Progresso outra;
+    outra.RegistrarAtividade(Materias::ChaveDaLiberacao("INF425"));
+    CHECK_FALSE(l.Desbloqueada(l.IndiceDe("INF425"), outra));
+
+    // A secreta fechada nao entra no total de mencoes do curso: as 16 outras, com o TCC sem a de
+    // orientar. Aberta, ela soma as dela.
+    CHECK(Mencoes::DoCurso(Progresso{}, l).possiveis == 16 * Mencoes::kQuantas - 1);
+    CHECK(Mencoes::DoCurso(dev, l).possiveis == 17 * Mencoes::kQuantas - 1);
+    // Nem na media do curso: o ranking geral conta as 16 outras, aberta ou nao, e divide por 16.
+    const std::vector<int> doGeral = l.DoGeral();
+    CHECK(doGeral.size() == 16u);
+    CHECK(std::find(doGeral.begin(), doGeral.end(), jd) == doGeral.end());
+    // A frase do que ela pede.
+    const std::string exige = l.ExigenciaDe(jd);
+    CAPTURE(exige);
+    CHECK(exige.find("8 men") != std::string::npos);
+    CHECK(exige.find("todas as 13 obrigat") != std::string::npos);
 }
 
 // A documentacao nao esquece nome nenhum. Os gatilhos e os postos sao listas fechadas: o leitor

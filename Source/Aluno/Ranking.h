@@ -28,14 +28,15 @@ namespace Ranking {
     std::vector<Linha> DaMateria(const std::vector<Exportacao::FichaDeAluno>& fichas,
                                  int materia, Dificuldade::Nivel nivel, size_t quantas = 0);
 
-    /// A media do aluno sobre o curso inteiro, da maior para a menor. A media divide pelo numero
-    /// total de materias do curso, e nao pelas que o aluno jogou.
+    /// A media do aluno sobre as materias contadas (os indices, como Materias::Lista::DoGeral os
+    /// da), da maior para a menor. A media divide por todas as contadas, e nao pelas que o aluno
+    /// jogou.
     std::vector<Linha> Geral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                             int quantasMaterias, Dificuldade::Nivel nivel, size_t quantas = 0);
+                             const std::vector<int>& contadas, Dificuldade::Nivel nivel, size_t quantas = 0);
 
     /// A posicao de uma matricula no ranking geral. Zero se ela nao jogou nada.
     int PosicaoNoGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                       int quantasMaterias, Dificuldade::Nivel nivel, const std::string& matricula);
+                       const std::vector<int>& contadas, Dificuldade::Nivel nivel, const std::string& matricula);
 
     /// Em que posicao esta uma matricula, na lista completa da materia. Devolve 0 quando ela nao
     /// jogou.
@@ -60,9 +61,10 @@ namespace Ranking {
     std::vector<LinhaDeDupla> DuplasDaMateria(const std::vector<Exportacao::FichaDeAluno>& fichas,
                                               int materia, Dificuldade::Nivel nivel, size_t quantas = 0);
 
-    /// A media das duplas sobre o curso inteiro.
+    /// A media das duplas sobre as materias contadas, como em Geral.
     std::vector<LinhaDeDupla> DuplasGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                                          int quantasMaterias, Dificuldade::Nivel nivel, size_t quantas = 0);
+                                          const std::vector<int>& contadas, Dificuldade::Nivel nivel,
+                                          size_t quantas = 0);
 
     /// Em que posicao esta uma dupla, na lista completa da materia. Devolve 0 quando os dois nunca
     /// jogaram esta materia juntos.
@@ -71,7 +73,7 @@ namespace Ranking {
 
     /// A posicao de uma dupla no geral. Zero se eles nunca jogaram juntos.
     int PosicaoDaDuplaNoGeral(const std::vector<Exportacao::FichaDeAluno>& fichas,
-                              int quantasMaterias, Dificuldade::Nivel nivel,
+                              const std::vector<int>& contadas, Dificuldade::Nivel nivel,
                               const std::string& um, const std::string& dois);
 
     // ---- As quatro listas ----

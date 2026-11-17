@@ -75,6 +75,14 @@ public:
     /// Nota::Conta::Subir).
     void Conquistar(const float bruto) { if (EmCombate()) mConta.Subir(bruto); }
 
+    /// A nota desce 'perda' sem ser um acerto sofrido: o teto e a fase limpa nao mudam (as regras
+    /// invertidas do Lucas Ferreira, em que o acerto no professor cobra).
+    void Cobrar(const float perda) { if (EmCombate()) mConta.Definir(Nota::Subtrair(mConta.Valor(), perda)); }
+
+    /// A nota passa a ser 'nota', sem conta nenhuma: o quick load do Lucas Ferreira, e o modo deus
+    /// dele no TCC.
+    void DefinirNota(const float nota) { if (EmCombate()) mConta.Definir(nota); }
+
     /// Uma faisca que o chefe pede: o que a fase dele faz brilhar (a base que encaixa no aluno, na
     /// Sabrina).
     void Faiscar(const Vector2& onde, Hud::Faisca tipo);

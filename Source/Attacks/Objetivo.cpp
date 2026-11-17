@@ -130,6 +130,9 @@ namespace Objetivo {
             case Golpe::Materia::Sabrina:
                 q.pergunta = "Cadê o controle negativo?";
                 r = {"embaralhei as sequências", "não precisava", "o positivo já deu certo"}; break;
+            case Golpe::Materia::Ferreira:
+                q.pergunta = "Cadê o playtest?";
+                r = {"cinco pessoas jogaram, anotei tudo", "eu joguei, tá ótimo", "o jogo é intuitivo"}; break;
             case Golpe::Materia::Arroyo:
                 q.pergunta = "Qual é a complexidade disso?";
                 r = {"Θ(n log n), pelo Teorema Mestre", "roda rápido no meu PC", "é polinomial, acho"}; break;

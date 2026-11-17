@@ -70,6 +70,10 @@ namespace Poder {
                      kDuracaoDaHelice, kRaioDaHelice,
                      2 * static_cast<int>(std::ceil(kDuracaoDaHelice / kEntrePares)), kEntrePares};
                 break;
+            case Golpe::Materia::Ferreira:
+                d = {Tipo::ModoDeus, "modo deus", "nota 100, invenc\xc3\xadvel - e os tiros fogem de voc\xc3\xaa",
+                     kDuracaoDoModoDeus, kRaioDoModoDeus, 0, 0.0f};
+                break;
             case Golpe::Materia::Daniel:
                 // \xc3\xa9 e o e agudo, \xc3\xb3 o o agudo.
                 d = {Tipo::KMedias, "k-m\xc3\xa9" "dias", "os tiros do Hugo viram 4 centr\xc3\xb3" "ides, 4 vezes",
@@ -142,7 +146,20 @@ namespace Poder {
         if (m == Golpe::Materia::Daniel) return kQuadroDoDaniel;
         if (m == Golpe::Materia::Michel) return kQuadroDoMichel;
         if (m == Golpe::Materia::Sabrina) return kQuadroDaSabrina;
+        if (m == Golpe::Materia::Ferreira) return kQuadroDoFerreira;
         return 2 + static_cast<int>(m);
+    }
+
+    float NotaNoModoDeus(const float antes, const float t) {
+        const float u = std::clamp(t / kSubidaDoModoDeus, 0.0f, 1.0f);
+        return antes + (100.0f - antes) * u;
+    }
+
+    Vector2 Empurrado(const Vector2& tiro, const Vector2& aluno, const Vector2& v) {
+        Vector2 fora = tiro - aluno;
+        const float d = fora.Length();
+        fora = d > 1e-3f ? fora * (1.0f / d) : Vector2(0.0f, -1.0f);
+        return fora * std::max(kEmpurraoDoModoDeus, v.Length());
     }
 
     NaHelice Base(const int fita, const float idade) {
@@ -572,6 +589,29 @@ namespace Poder {
                 if (t < kFecha) q.legenda = "sem trava: todos de uma vez";
                 else if (fechada) q.legenda = "P(s): fila na porta, passa um por vez";
                 else q.legenda = "V(s): quem esperava morreu";
+                break;
+            }
+            case Tipo::ModoDeus: {
+                // A chuva do Hugo; o aluno ganha a bolha dourada, e o tiro que chega nela e jogado
+                // para fora, pela borda.
+                constexpr float kSai = 0.5f, kRaio = 0.17f;
+                const bool ligado = t >= kSai;
+                for (Ponto p : Chuva(t, 12)) {
+                    const float dx = p.x - kAlunoX, dy = (p.y - kAlunoY) / kAspecto;
+                    const float d = std::hypot(dx, dy);
+                    if (ligado && d < kRaio && d > 1e-4f) {
+                        p.x = kAlunoX + dx / d * kRaio;
+                        p.y = kAlunoY + dy / d * kRaio * kAspecto;
+                    }
+                    q.pontos.push_back(p);
+                }
+                if (ligado) {
+                    Anel(q, Marca::Figura, kAlunoX, kAlunoY, kRaio + 0.01f * std::sin(t * 9.0f));
+                    Anel(q, Marca::Estrutura, kAlunoX, kAlunoY, 0.05f);
+                }
+                // \xc3\xad e o i agudo.
+                q.legenda = !ligado ? "modo deus: os c\xc3\xb3" "digos do jogo"
+                                    : (t < kSai + 1.4f ? "nota = 100" : "invenc\xc3\xadvel: os tiros fogem de voc\xc3\xaa");
                 break;
             }
             case Tipo::Helice: {

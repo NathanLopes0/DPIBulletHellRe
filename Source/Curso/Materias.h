@@ -30,6 +30,11 @@ namespace Materias {
         TipoDeRequisito tipo = TipoDeRequisito::Mencao;
         std::string mencao;   ///< so na Mencao: a chave dela
         int quantas = 1;
+        /// So na Mencao: em vez de 'quantas', uma fracao das materias com batalha (0,5: a metade; 1:
+        /// todas). O leitor a troca por 'quantas' quando a lista inteira esta lida. 0: nao usa.
+        float fracao = 0.0f;
+        /// So na Mencao: conta (e exige) so as obrigatorias, sem as optativas.
+        bool soObrigatorias = false;
     };
 
     /// Uma linha da lista do que uma materia pede, para a tela: "Passar em INF 220", com o ja
@@ -56,6 +61,9 @@ namespace Materias {
     /// A chave da compra de uma optativa na ficha, entre as atividades: "compra@INF480". As horas
     /// gastas sao a soma dos precos das compradas (Horas::Gastas).
     std::string ChaveDaCompra(const std::string& codigo);
+    /// A chave de uma materia secreta aberta a mao por quem desenvolve (F10 na selecao de fases):
+    /// "liberada@INF216". Com ela na ficha, a materia abre sem a regra.
+    std::string ChaveDaLiberacao(const std::string& codigo);
 
     struct Materia {
         /// A chave estavel. Vai para o save do aluno e para a exportacao do professor.
@@ -83,6 +91,10 @@ namespace Materias {
         /// Disciplina optativa: fica na ala das optativas da selecao de fases (MapaDaGrade.h), nas
         /// colunas depois das obrigatorias, e nao conta no "Aprovadas: N de M".
         bool optativa = false;
+
+        /// Materia secreta: nem aparece na selecao de fases (nem no boletim) enquanto a regra dela
+        /// nao estiver cumprida - e entao abre, sem aviso antes.
+        bool secreta = false;
 
         Desbloqueio desbloqueio;
     };
@@ -113,6 +125,10 @@ namespace Materias {
         [[nodiscard]] int QuantasColunasObrigatorias() const;
         /// Quantas materias obrigatorias o curso tem.
         [[nodiscard]] int QuantasObrigatorias() const;
+        /// As materias que a media do curso (o ranking geral) conta, na ordem do curso: todas menos
+        /// as secretas. A secreta e um extra: nao baixa a media de quem nunca a viu, nem denuncia,
+        /// pela conta, que existe.
+        [[nodiscard]] std::vector<int> DoGeral() const;
 
         /// Esta materia esta liberada para este progresso? Nao recorre: "aprovado em X" olha a nota
         /// de X, e nao se X esta desbloqueada. A optativa com preco abre com a regra cumprida e
@@ -128,6 +144,9 @@ namespace Materias {
         /// A lista do que a materia pede, item por item, cada um cumprido ou nao: a regra (uma linha
         /// por materia exigida, ou a das aprovacoes na coluna) e os requisitos. Sem o preco.
         [[nodiscard]] std::vector<ItemDaExigencia> Itens(int indice, const Progresso& progresso) const;
+        /// A materia secreta que este aluno ainda nao abriu: nao se mostra.
+        [[nodiscard]] bool Escondida(int indice, const Progresso& progresso) const;
+
         /// O aluno ja comprou esta optativa?
         [[nodiscard]] bool Comprada(int indice, const Progresso& progresso) const;
         /// O preco em horas (0: nao se compra).

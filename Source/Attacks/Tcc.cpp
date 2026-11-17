@@ -237,6 +237,21 @@ namespace Tcc {
                 }
                 break;
             }
+            case Materia::Ferreira: {
+                // O coracao de pixel: uma vida do jogo, tiro por tiro, linha por linha - a figura
+                // inteira desce junta.
+                constexpr const char* kCoracao[] = {".##.##.", "#######", "#######", ".#####.", "..###..", "...#..."};
+                const float passo = N(6.0f, 7.0f);
+                for (int linha = 0; linha < 6; ++linha) {
+                    for (int coluna = 0; coluna < 7; ++coluna) {
+                        if (kCoracao[linha][coluna] != '#') continue;
+                        Golpe::Tiro t = Tiro(0.05f * static_cast<float>(linha), N(240.0f, 262.0f));
+                        t.desvio = static_cast<float>(coluna - 3) * passo;
+                        tiros.push_back(t);
+                    }
+                }
+                break;
+            }
             case Materia::Generico:
             default: {
                 // O Hugo sem orientador: um leque de paginas.
@@ -297,6 +312,8 @@ namespace Tcc {
              "conv 3×3, stride 1",       "Por que não uma rede pré-treinada?",  "Michel"},
             {Materia::Sabrina,    "Sabrina",     "Tópicos Especiais, Bioinformática",
              "5'-AUG GCU UAA-3'",        "Cadê o controle negativo?",           "Sabrina"},
+            {Materia::Ferreira,   "Lucas Ferreira", "Projeto e Implementação de Jogos Digitais",
+             "while (jogando) { quadro(); }", "Cadê o playtest?",              "Ferreira"},
         };
 
         /// Sem orientador (o Generico), o proprio Hugo: tema livre.

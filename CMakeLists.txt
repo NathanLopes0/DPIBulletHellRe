@@ -411,6 +411,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Attacks/Dobramento.h
         Source/Attacks/Sequenciamento.cpp
         Source/Attacks/Sequenciamento.h
+        Source/Attacks/JogosDigitais.cpp
+        Source/Attacks/JogosDigitais.h
         Source/Attacks/Virtualizacao.cpp
         Source/Attacks/Virtualizacao.h
         Source/Attacks/Excecao.cpp
@@ -470,6 +472,8 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Actors/Teachers/Bosses/Michel.h
         Source/Actors/Teachers/Bosses/Sabrina.cpp
         Source/Actors/Teachers/Bosses/Sabrina.h
+        Source/Actors/Teachers/Bosses/Ferreira.cpp
+        Source/Actors/Teachers/Bosses/Ferreira.h
         Source/Actors/Teachers/Bosses/Goulart.h
         Source/Actors/Teachers/Bosses/Andre.h
         Source/Actors/Teachers/Bosses/Julio.cpp
@@ -555,6 +559,7 @@ add_executable(dpi_tests
         tests/test_daniel.cpp
         tests/test_michel.cpp
         tests/test_sabrina.cpp
+        tests/test_ferreira.cpp
         tests/test_festa_da_matricula.cpp
         tests/test_limite_de_som.cpp
         tests/test_path_aim.cpp
@@ -911,6 +916,8 @@ add_executable(dpi_tests
         Source/Attacks/Dobramento.h
         Source/Attacks/Sequenciamento.cpp
         Source/Attacks/Sequenciamento.h
+        Source/Attacks/JogosDigitais.cpp
+        Source/Attacks/JogosDigitais.h
         Source/Attacks/Virtualizacao.cpp
         Source/Attacks/Virtualizacao.h
         Source/Attacks/Excecao.cpp

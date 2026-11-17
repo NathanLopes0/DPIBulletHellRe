@@ -1,0 +1,81 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHFerreiraJanela 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 20
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHFerreiraJanela 1.placeholder",
+   "frame": {
+    "x": 20,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 20
+   },
+   "duration": 120
+  },
+  {
+   "filename": "DPIBHFerreiraJanela 2.placeholder",
+   "frame": {
+    "x": 40,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 20
+   },
+   "sourceSize": {
+    "w": 20,
+    "h": 20
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_ferreira.py",
+  "version": "1.0",
+  "image": "DPIBHFerreiraJanela.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 60,
+   "h": 20
+  },
+  "scale": "1"
+ }
+}

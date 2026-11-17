@@ -21,7 +21,8 @@ namespace Golpe {
         Goulart, ///< tambem
         Daniel,  ///< a primeira optativa: o professor dela orienta quem passa nela
         Michel,  ///< a segunda optativa
-        Sabrina  ///< a terceira optativa
+        Sabrina, ///< a terceira optativa
+        Ferreira ///< a optativa secreta (INF 216)
     };
 
     /// A materia pelo nome do professor em materias.json ("Andre", "Maria Lucia", com ou sem

@@ -132,7 +132,7 @@ TEST_CASE("Horas: a ficha guarda cada chave uma vez, e as horas e o quadro saem 
     p.RegistrarAtividade("atividade-que-saiu-do-jogo");
     CHECK(De(p.Atividades()) == 2 + 2 + 6);
 
-    const auto quadro = Quadro(p.Atividades(), curso);
+    const auto quadro = Quadro(p, curso);
     REQUIRE(quadro.size() == Todas().size());
     CHECK(quadro[0].dados.atividade == Atividade::FaseLimpa);
     CHECK(quadro[0].cumpridas == 2);
@@ -165,6 +165,29 @@ namespace {
               "desbloqueio": { "tipo": "sempre", "preco": 5 } }
         ] })");
     }
+}
+
+TEST_CASE("Horas: a secreta fechada nao entra no 'de quantas' do quadro; aberta, entra") {
+    const Materias::Lista curso = Materias::LerMaterias(R"({ "materias": [
+        { "codigo": "A1", "nome": "INF 1", "professor": "Ana", "chefe": "ana", "coluna": 0,
+          "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B1", "nome": "INF 2", "professor": "Bia", "chefe": "bia", "coluna": 1,
+          "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "S1", "nome": "INF 9", "professor": "Sil", "chefe": "sil", "coluna": 2,
+          "optativa": true, "secreta": true,
+          "desbloqueio": { "tipo": "sempre", "requisitos": [ { "tipo": "aprovadas", "quantas": 2 } ] } }
+    ] })");
+    REQUIRE(curso.problemas.empty());
+    const auto porMateria = [](const std::vector<Linha>& q) {
+        for (const Linha& l : q) if (l.dados.porMateria) return l.possiveis;
+        return -1;
+    };
+
+    Progresso p;
+    CHECK(porMateria(Quadro(p, curso)) == 2);    // so as duas que se veem
+    p.RegistrarNota(0, 70.0f, Dificuldade::Nivel::Normal);
+    p.RegistrarNota(1, 70.0f, Dificuldade::Nivel::Normal);
+    CHECK(porMateria(Quadro(p, curso)) == 3);    // a regra cumprida abre a secreta, e ela conta
 }
 
 TEST_CASE("Horas: so optativa tem preco, e ele e lido do desbloqueio") {
@@ -205,7 +228,7 @@ TEST_CASE("Horas: a optativa abre com a regra e a compra; o saldo desconta o pre
     CHECK(PodeComprar(c, o2, p) == Compra::FaltaHora);      // 4 h nao pagam 8
 
     // A compra nao e uma atividade: nao vale hora, nem aparece no quadro.
-    for (const Linha& l : Quadro(p.Atividades(), c)) CHECK(l.cumpridas <= l.possiveis);
+    for (const Linha& l : Quadro(p, c)) CHECK(l.cumpridas <= l.possiveis);
     CHECK(Nome(Materias::ChaveDaCompra("O1"), c).empty());
 }
 

@@ -143,6 +143,19 @@
                                        { "tipo": "mencao", "mencao": "dificil", "quantas": 5 },
                                        { "tipo": "mencao", "mencao": "dePerto", "quantas": 3 },
                                        { "tipo": "mencao", "mencao": "mira", "quantas": 3 } ] }
+    },
+
+    // A optativa secreta: nem aparece na grade ate o aluno ter a nota cheia (o 100) em metade das
+    // materias e a mencao do Dificil em todas as obrigatorias. Nao custa horas: quem chegou ate
+    // aqui ja pagou. E a mais dificil do jogo, e mexe nos sistemas do proprio jogo. --batalha 16 e ela;
+    // o F10 da selecao de fases a abre para quem desenvolve (e o F9 a fecha de novo).
+    {
+      "codigo": "INF216", "nome": "INF 216",
+      "nomeCompleto": "Projeto e Implementação de Jogos Digitais", "professor": "Lucas Ferreira",
+      "coluna": 8, "chefe": "ferreira", "optativa": true, "secreta": true,
+      "desbloqueio": { "tipo": "sempre",
+                       "requisitos": [ { "tipo": "mencao", "mencao": "notaCheia", "fracao": 0.5 },
+                                       { "tipo": "mencao", "mencao": "dificil", "fracao": 1.0, "de": "obrigatorias" } ] }
     }
   ]
 }

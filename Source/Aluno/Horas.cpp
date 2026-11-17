@@ -135,14 +135,17 @@ namespace Horas {
         return "Horas complementares: +" + std::to_string(horas) + " h (" + nomes + ")";
     }
 
-    std::vector<Linha> Quadro(const std::set<std::string>& chaves, const Materias::Lista& materias) {
+    std::vector<Linha> Quadro(const Progresso& progresso, const Materias::Lista& materias) {
         std::vector<Linha> quadro;
-        const int comBatalha = static_cast<int>(ComBatalha(materias).size());
+        int comBatalha = 0;
+        for (const int i : ComBatalha(materias)) {
+            if (!materias.Escondida(i, progresso)) ++comBatalha;
+        }
         for (const Dados& d : Todas()) {
             Linha l;
             l.dados = d;
             l.possiveis = d.porMateria ? comBatalha : 1;
-            for (const std::string& c : chaves) {
+            for (const std::string& c : progresso.Atividades()) {
                 if (DaChave(c) == &d) ++l.cumpridas;
             }
             l.cumpridas = std::min(l.cumpridas, l.possiveis);

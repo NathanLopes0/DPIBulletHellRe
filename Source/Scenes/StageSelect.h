@@ -260,6 +260,9 @@ private:
     /// ver a compra e a festa de novo.
     Borda mBordaDesfazer{true};
 
+    /// F10, para quem desenvolve: abre as materias secretas sem a regra (Game::LiberarSecretas).
+    Borda mBordaLiberar{true};
+
     /// Borda do enter, e comeca em true. A cena anterior (identificacao) termina com o enter
     /// apertado - e ele que manda para ca.
     Borda mBordaEntrar{true};

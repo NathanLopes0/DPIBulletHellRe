@@ -22,6 +22,8 @@ namespace Boletim {
             for (const int i : materias.DaColuna(coluna)) {
                 const Materias::Materia* m = materias.Por(i);
                 if (!m || m->optativa != optativas) continue;
+                // A secreta ainda fechada nao tem linha no boletim.
+                if (materias.Escondida(i, progresso)) continue;
                 Linha l;
                 l.materia = i;
                 l.codigo = m->nome;

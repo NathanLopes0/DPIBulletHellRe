@@ -233,17 +233,17 @@ dois jogadores há mais colisões, e cada uma consome números do mesmo sorteado
 
 ### A linha de base
 
-`Ferramentas/linha-de-base.sh` roda **79 batalhas** — as dezesseis matérias (as
-optativas INF 425, INF 429 e INF 491 inclusive), solo e
-dupla, Normal e Difícil, e o TCC com cada um dos quinze orientadores — e compara
+`Ferramentas/linha-de-base.sh` roda **84 batalhas** — as dezessete matérias (as
+optativas INF 425, INF 429 e INF 491 e a secreta INF 216 inclusive), solo e
+dupla, Normal e Difícil, e o TCC com cada um dos dezesseis orientadores — e compara
 a nota, quadro a quadro, com a gravada em `Ferramentas/linha-de-base/`:
 
 ```bash
-bash Ferramentas/linha-de-base.sh               # identicas=79 diferentes=0
+bash Ferramentas/linha-de-base.sh               # identicas=84 diferentes=0
 bash Ferramentas/linha-de-base.sh --atualizar   # grava a de agora
 ```
 
-**Uma refatoração tem de dar 79 idênticas, byte a byte.** Uma mudança de
+**Uma refatoração tem de dar 84 idênticas, byte a byte.** Uma mudança de
 balanceamento muda algumas de propósito: confira quais mudaram, e quanto — o
 script mostra a linha `FIM` de antes e de agora —, e só então grave a nova com
 `--atualizar`, no mesmo commit. Cada batalha ocupa uns 2,5 GB; `PARALELO=3` é o
@@ -301,6 +301,24 @@ poderia absorver (ele só sabe que a do próprio tipo passa). Nenhum dos dois fa
 o que a fase pede: ficar na elipse da espécie quando o z-score varre (cada
 varredura fora dela é um acerto certo), ficar do lado da fronteira que o seu
 tipo vence, responder o sorteio e levar f(x) ao valor real no SHAP.
+
+A INF 216, do Lucas Ferreira — a secreta —, é a mais dura de todas, e de
+longe. Sozinho, com as sementes 101 a 103:
+
+| Piloto | Normal | Difícil |
+|---|---|---|
+| `segue` | 0 (zera na fase 2) | 0 (sai da fase 1 com 0,3) |
+| `esquiva` | 0 a 63 (aprova em duas, as duas no exame) | 0 a 32 (reprova nas três) |
+
+Os dois pilotos atiram sem parar, e a fase 2 começa com as regras invertidas:
+cada dúvida que chega ao professor custa 1,3, e quem chega ali com uns 20 zera
+em poucos segundos de tiro. Quem lê o placar ("INVERTIDO: pegue as moedas e
+NÃO atire") para de atirar e cata as moedas. O `esquiva` também não mira o X
+das janelas nem o botão ESPERAR do crash: são os pontos que a fase dá a quem
+entende o jogo. As fases duram 40 s, o dobro das outras, e cada acerto no
+professor vale 0,55 do de uma matéria comum (`JogosDigitais::kFatorDoGanho`):
+sem isso, o tempo dobrado dobraria a nota de quem só atira — antes do fator, o
+`esquiva` fazia 64 a 81 no Normal e 36 a 70 no Difícil, mais que na INF 491.
 
 ### Fotografar
 

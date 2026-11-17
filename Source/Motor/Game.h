@@ -235,6 +235,12 @@ public:
     /// todos os alunos em jogo - as horas voltam, e a optativa fecha de novo. Grava a ficha.
     /// Devolve quantas matriculas desfez.
     int DesfazerMatriculas();
+    /// Para quem desenvolve (F10 na selecao de fases): abre as materias secretas para todos os
+    /// alunos em jogo, sem a regra (Materias::ChaveDaLiberacao). Grava a ficha; o F9 fecha de novo.
+    /// Devolve quantas abriu.
+    int LiberarSecretas();
+    /// Se a materia e secreta e ainda esta fechada para alguem em jogo: a selecao de fases nao a mostra.
+    [[nodiscard]] bool MateriaEscondida(int subject) const;
 
 private:
     /// Passam as opcoes de som e de janela para o AudioSystem e o SDL.

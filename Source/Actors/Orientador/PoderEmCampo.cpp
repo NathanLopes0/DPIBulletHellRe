@@ -669,6 +669,61 @@ namespace {
         float mProximo = 0.0f;
     };
 
+    // ---- Lucas Ferreira: o modo deus ----
+
+    class ModoDeus final : public PoderEmCampo {
+    public:
+        void Soltar(Orientador& o, Battle& batalha, const Vector2&, const Vector2&) override {
+            mInicio = o.Tempo();
+            mNotaAntes = batalha.NotaAtual();
+            mAtivo = true;
+            for (Player* a : batalha.Jogadores()) {
+                if (a) a->Proteger(Poder::kDuracaoDoModoDeus);
+            }
+            o.AbrirAnel();
+        }
+        void Atualizar(Orientador& o, Battle& batalha, float, const bool ativo) override {
+            if (!mAtivo) return;
+            if (!ativo) {
+                mAtivo = false;
+                return;
+            }
+            // A nota sobe ate 100; depois a conta segue sozinha (invencivel, o aluno nao a perde).
+            const float t = o.Tempo() - mInicio;
+            if (t <= Poder::kSubidaDoModoDeus + 0.05f) batalha.DefinirNota(Poder::NotaNoModoDeus(mNotaAntes, t));
+            // Os tiros do Hugo fogem de cada aluno: o que entra na bolha sai empurrado.
+            const std::vector<Player*>& alunos = batalha.Jogadores();
+            for (BossProjectile* p : o.TirosSoltos(batalha)) {
+                auto* rb = p->GetComponent<RigidBodyComponent>();
+                if (!rb) continue;
+                for (const Player* a : alunos) {
+                    if (!a || (p->GetPosition() - a->GetPosition()).Length() > Poder::kRaioDoModoDeus) continue;
+                    rb->SetVelocity(Poder::Empurrado(p->GetPosition(), a->GetPosition(), rb->GetVelocity()));
+                }
+            }
+            // A bolha dourada, que pulsa, e o anel de dentro, que gira.
+            for (const Player* a : alunos) {
+                if (!a) continue;
+                const Vector2 c = a->GetPosition();
+                const float r = Poder::kRaioDoModoDeus * (0.96f + 0.04f * std::sin(o.Tempo() * 7.0f));
+                constexpr int kLados = 36;
+                for (int k = 0; k < kLados; ++k) {
+                    const float a0 = Math::TwoPi * static_cast<float>(k) / kLados, a1 = Math::TwoPi * static_cast<float>(k + 1) / kLados;
+                    o.Tracar(c + Vector2(std::cos(a0), std::sin(a0)) * r, c + Vector2(std::cos(a1), std::sin(a1)) * r, kOuro);
+                    if (k % 3 == 0) {
+                        const float g = a0 + o.Tempo() * 2.0f;
+                        o.Tracar(c + Vector2(std::cos(g), std::sin(g)) * 30.0f, c + Vector2(std::cos(g + 0.15f), std::sin(g + 0.15f)) * 30.0f, kOuro);
+                    }
+                }
+            }
+        }
+    private:
+        static constexpr SDL_Color kOuro{255, 214, 90, 200};
+        float mInicio = 0.0f;
+        float mNotaAntes = 0.0f;
+        bool mAtivo = false;
+    };
+
     // ---- Michel: a camera escura ----
 
     class CameraEscura final : public PoderEmCampo {
@@ -926,6 +981,7 @@ std::unique_ptr<PoderEmCampo> PoderEmCampo::Do(const Poder::Tipo t) {
         case Poder::Tipo::KMedias:     return std::make_unique<KMedias>();
         case Poder::Tipo::CameraEscura: return std::make_unique<CameraEscura>();
         case Poder::Tipo::Helice:      return std::make_unique<Helice>();
+        case Poder::Tipo::ModoDeus:    return std::make_unique<ModoDeus>();
         case Poder::Tipo::Nenhum:      break;
     }
     return nullptr;

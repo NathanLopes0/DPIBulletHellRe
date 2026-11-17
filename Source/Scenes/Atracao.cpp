@@ -104,8 +104,9 @@ Atracao::Cartaz Atracao::CriarMelhores(const std::vector<Exportacao::FichaDeAlun
     const Materias::Lista& materias = Materias::Carregadas();
 
     // A mesma conta do ranking do menu, e pelo mesmo caminho.
+    const std::vector<int> contadas = materias.DoGeral();
     const std::vector<Ranking::Linha> linhas =
-        Ranking::Geral(fichas, materias.Quantas(), Dificuldade::Nivel::Normal, kQuantasLinhas);
+        Ranking::Geral(fichas, contadas, Dificuldade::Nivel::Normal, kQuantasLinhas);
 
     if (linhas.empty()) return {};
 
@@ -114,7 +115,7 @@ Atracao::Cartaz Atracao::CriarMelhores(const std::vector<Exportacao::FichaDeAlun
     cartaz.push_back(Texto("MELHORES DO CURSO", largura / 2.0f, altura * 0.14f,
                            44, 900, Color::White));
     cartaz.push_back(Texto("media das melhores notas no Normal, sobre as "
-                           + std::to_string(materias.Quantas()) + " materias",
+                           + std::to_string(contadas.size()) + " materias",
                            largura / 2.0f, altura * 0.21f, 22, 1100, Color::LightBlue));
 
     constexpr float kPrimeira = 0.32f;

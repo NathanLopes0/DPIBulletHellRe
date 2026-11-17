@@ -715,6 +715,11 @@ int Game::DesfazerMatriculas() {
     for (size_t i = 0; i < mSessoes.size(); ++i) {
         bool mudou = false;
         for (const Materias::Materia& m : materias.materias) {
+            // A secreta aberta a mao (F10) fecha junto.
+            if (m.secreta && mSessoes[i].progresso.EsquecerAtividade(Materias::ChaveDaLiberacao(m.codigo))) {
+                mudou = true;
+                ++desfeitas;
+            }
             if (!m.optativa) continue;
             if (mSessoes[i].progresso.EsquecerAtividade(Materias::ChaveDaCompra(m.codigo))) {
                 mudou = true;
@@ -725,6 +730,31 @@ int Game::DesfazerMatriculas() {
     }
     SDL_Log("GAME: (dev) %d matricula(s) em optativa desfeita(s).", desfeitas);
     return desfeitas;
+}
+
+int Game::LiberarSecretas() {
+    const Materias::Lista& materias = Materias::Carregadas();
+    int abertas = 0;
+    for (size_t i = 0; i < mSessoes.size(); ++i) {
+        bool mudou = false;
+        for (const Materias::Materia& m : materias.materias) {
+            if (!m.secreta) continue;
+            if (mSessoes[i].progresso.RegistrarAtividade(Materias::ChaveDaLiberacao(m.codigo))) {
+                mudou = true;
+                ++abertas;
+            }
+        }
+        if (mudou && ProgressoEGravado(i)) GravarFicha(i);
+    }
+    SDL_Log("GAME: (dev) %d materia(s) secreta(s) aberta(s).", abertas);
+    return abertas;
+}
+
+bool Game::MateriaEscondida(const int subject) const {
+    for (const Sessao::Dados& s : mSessoes) {
+        if (Materias::Carregadas().Escondida(subject, s.progresso)) return true;
+    }
+    return false;
 }
 
 // Quem esta jogando.

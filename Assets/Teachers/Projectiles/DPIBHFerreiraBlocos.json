@@ -1,0 +1,37 @@
+{
+ "frames": [
+  {
+   "filename": "DPIBHFerreiraBlocos 0.placeholder",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 28
+   },
+   "sourceSize": {
+    "w": 28,
+    "h": 28
+   },
+   "duration": 120
+  }
+ ],
+ "meta": {
+  "app": "gerar_ferreira.py",
+  "version": "1.0",
+  "image": "DPIBHFerreiraBlocos.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 28,
+   "h": 28
+  },
+  "scale": "1"
+ }
+}

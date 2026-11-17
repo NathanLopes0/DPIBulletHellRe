@@ -1,0 +1,84 @@
+{
+  // Os projeteis do Lucas Ferreira (INF 216 - Projeto e Implementacao de Jogos Digitais, a optativa
+  // secreta). As folhas saem de Ferramentas/gerar_ferreira.py; as animacoes, de
+  // gerar_ferreira.py --animacoes.
+
+  // O tiro de sempre e as caras que ele ganha quando o jogo muda: a moeda das regras invertidas, o
+  // espinho do chao, a duvida do aluno que volta contra ele, o fragmento da travada, o disquete do
+  // save - e a cara vazia, a da hitbox que descolou do desenho.
+  "Tiro": {
+    "sprite": "Teachers/Projectiles/DPIBHFerreiraTiros.png",
+    "dados":  "Teachers/Projectiles/DPIBHFerreiraTiros.json",
+    "animacoes": { "Tiro": [0], "Moeda": [1], "Espinho": [2], "Seu": [3], "Vazio": [4], "Fragmento": [5],
+                   "Disquete": [6] },
+    "animacaoInicial": "Tiro",
+    "ordemDeDesenho": 91,
+    "colisorDivisor": 2.6
+  },
+
+  // Um segmento da barra da nota em campo, na cor que ela tem no rodape. Os segmentos se encostam.
+  "Barra": {
+    "sprite": "Teachers/Projectiles/DPIBHFerreiraBarra.png",
+    "dados":  "Teachers/Projectiles/DPIBHFerreiraBarra.json",
+    "animacoes": { "Vermelha": [0], "Amarela": [1], "Verde": [2] },
+    "animacaoInicial": "Amarela",
+    "ordemDeDesenho": 92,
+    "colisorDivisor": 2.0
+  },
+
+  // A moldura de uma janela de dica: a borda e a barra de titulo.
+  "Janela": {
+    "sprite": "Teachers/Projectiles/DPIBHFerreiraJanela.png",
+    "dados":  "Teachers/Projectiles/DPIBHFerreiraJanela.json",
+    "animacoes": { "Borda": [0], "Titulo": [1] },
+    "animacaoInicial": "Borda",
+    "ordemDeDesenho": 93,
+    "colisorDivisor": 2.2
+  },
+
+  // O X da janela: um tiro do aluno fecha a janela inteira.
+  "Fechar": {
+    "sprite": "Teachers/Projectiles/DPIBHFerreiraJanela.png",
+    "dados":  "Teachers/Projectiles/DPIBHFerreiraJanela.json",
+    "animacoes": { "X": [2] },
+    "animacaoInicial": "X",
+    "ordemDeDesenho": 94,
+    "colisorDivisor": 1.7,
+    "derrubavel": true,
+    "resistencia": 1
+  },
+
+  // Os botoes do dialogo "o jogo nao esta respondendo": o aluno escolhe a tiro.
+  "Botao": {
+    "sprite": "Teachers/Projectiles/DPIBHFerreiraBotoes.png",
+    "dados":  "Teachers/Projectiles/DPIBHFerreiraBotoes.json",
+    "animacoes": { "Esperar": [0], "Fechar": [1] },
+    "animacaoInicial": "Esperar",
+    "ordemDeDesenho": 94,
+    "colisorDivisor": 2.6,
+    "derrubavel": true,
+    "resistencia": 1
+  },
+
+  // Um bug da frota do lancamento: um besouro, que cai com um tiro.
+  "Bug": {
+    "sprite": "Teachers/Projectiles/DPIBHFerreiraBugs.png",
+    "dados":  "Teachers/Projectiles/DPIBHFerreiraBugs.json",
+    "animacoes": { "Bug": [0, 1] },
+    "animacaoInicial": "Bug",
+    "ordemDeDesenho": 92,
+    "colisorDivisor": 2.5,
+    "derrubavel": true,
+    "resistencia": 1
+  },
+
+  // Um bloco de uma linha dos creditos.
+  "Bloco": {
+    "sprite": "Teachers/Projectiles/DPIBHFerreiraBlocos.png",
+    "dados":  "Teachers/Projectiles/DPIBHFerreiraBlocos.json",
+    "animacoes": { "Bloco": [0] },
+    "animacaoInicial": "Bloco",
+    "ordemDeDesenho": 92,
+    "colisorDivisor": 2.0
+  }
+}

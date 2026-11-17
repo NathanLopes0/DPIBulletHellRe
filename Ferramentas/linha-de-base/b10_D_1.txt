@@ -17,6 +17,10 @@ q00960 nota=18.8043 sofridos=7
 q01020 nota=12.9630 sofridos=8
 q01080 nota=13.4390 sofridos=8
 q01140 nota=8.0737 sofridos=9
-q01200 nota=2.5497 sofridos=10
-q01260 nota=3.9777 sofridos=10
+q01200 nota=8.0737 sofridos=9
+q01260 nota=9.5017 sofridos=9
+q01320 nota=9.5017 sofridos=9
+q01380 nota=9.5017 sofridos=9
+q01440 nota=9.5017 sofridos=9
+q01500 nota=3.6603 sofridos=10
 FIM nota=0.0000 acertos_sofridos=11 acertos_dados=17 aprovado=0

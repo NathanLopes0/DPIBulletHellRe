@@ -217,7 +217,7 @@ void TelaDoBoletim::Redesenhar() {
     // A posicao no curso, pela media do curso no nivel da partida - so de quem tem ficha.
     std::string posicao = "O CR \xc3\xa9 a m\xc3\xa9" "dia das melhores notas das mat\xc3\xa9rias cursadas.";
     if (!visitante) {
-        const int p = Ranking::PosicaoNoGeral(mFichas, materias.Quantas(), mGame->NivelDeDificuldade(), matricula);
+        const int p = Ranking::PosicaoNoGeral(mFichas, materias.DoGeral(), mGame->NivelDeDificuldade(), matricula);
         if (p > 0) {
             posicao = "Posi\xc3\xa7\xc3\xa3o no curso: " + std::to_string(p) + "\xc2\xba (" +
                       (mGame->NivelDeDificuldade() == Dificuldade::Nivel::Dificil ? "Dif\xc3\xad" "cil" : "Normal") + ")";

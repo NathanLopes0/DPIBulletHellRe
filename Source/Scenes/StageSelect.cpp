@@ -258,6 +258,8 @@ void StageSelect::CreateStageButtons() {
 
             const Materias::Materia* m = materias.Por(daColuna[i]);
             if (m == nullptr) continue;
+            // A materia secreta ainda fechada nao aparece: nem o losango, nem o nome.
+            if (mGame->MateriaEscondida(daColuna[i])) continue;
 
             mGrade[static_cast<size_t>(coluna)].push_back(mButtonObservers.size());
 
@@ -652,6 +654,11 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
     // F9 (desenvolvimento): as optativas fecham de novo, com as horas de volta.
     if (mBordaDesfazer.Bateu(keyState[SDL_SCANCODE_F9] != 0)) {
         if (mGame->DesfazerMatriculas() > 0) mGame->RequestSceneChange(SceneType::StageSelect);
+        return;
+    }
+    // F10 (desenvolvimento): as materias secretas abrem sem a regra; o F9 as fecha de novo.
+    if (mBordaLiberar.Bateu(keyState[SDL_SCANCODE_F10] != 0)) {
+        if (mGame->LiberarSecretas() > 0) mGame->RequestSceneChange(SceneType::StageSelect);
         return;
     }
 
