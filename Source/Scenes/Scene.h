@@ -57,6 +57,13 @@ public:
     /// batalha pausa (Battle::AoPerderOFoco).
     virtual void AoPerderOFoco() {}
 
+    /// Se a cena esta parada num menu de pausa. No gabinete, uma batalha pausada pode voltar ao
+    /// menu sozinha, como as outras telas (Game::AtualizarGabinete).
+    [[nodiscard]] virtual bool Pausada() const { return false; }
+
+    /// A ociosidade do gabinete vai tirar o jogo desta cena: o que ela precisa fechar antes.
+    virtual void AoSairPorOciosidade() {}
+
 protected:
     // As classes filhas vão dar override nestas para adicionar
     // sua lógica específica. Elas têm um corpo vazio por padrão.

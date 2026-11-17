@@ -120,6 +120,27 @@ Acao Manche(const Jogador quem, std::string oQueFaz) {
     return Acao{std::string("MANCHE"), std::string(NomeDoManche(quem)), std::move(oQueFaz)};
 }
 
+SDL_Scancode TeclaDaPausa() {
+    return SDL_SCANCODE_P;
+}
+
+const char* NomeDaPausa() {
+    return "PAUSA";
+}
+
+const char* NomeDaTeclaDaPausa() {
+    return "P";
+}
+
+bool PausaApertada(const Uint8* teclado) {
+    if (!teclado) return false;
+    return teclado[TeclaDaPausa()] != 0;
+}
+
+Acao BotaoDePausa(std::string oQueFaz) {
+    return Acao{std::string(NomeDaPausa()), std::string(NomeDaTeclaDaPausa()), std::move(oQueFaz)};
+}
+
 std::string Rodape(const std::vector<Acao>& acoes, const Jeito jeito) {
     std::string linha;
     for (const Acao& acao : acoes) {

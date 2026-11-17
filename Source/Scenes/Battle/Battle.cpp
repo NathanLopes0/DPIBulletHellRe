@@ -484,8 +484,9 @@ void Battle::OnUpdate(float deltaTime) {
 void Battle::OnProcessInput(const Uint8* keyState) {
     // Nao chame ProcessInput dos jogadores aqui.
 
-    // O ESC e borda, e nao estado: segurado, ele abriria e fecharia a pausa a cada quadro.
-    const bool esc = keyState[SDL_SCANCODE_ESCAPE] != 0;
+    // O botao PAUSA do painel, ou o ESC de quem desenvolve. E borda, e nao estado: segurado, ele
+    // abriria e fecharia a pausa a cada quadro.
+    const bool esc = keyState[SDL_SCANCODE_ESCAPE] != 0 || Painel::PausaApertada(keyState);
     const bool escNovo = mBordaEsc.Bateu(esc);
 
     if (mAcabando) {
@@ -507,7 +508,7 @@ void Battle::OnProcessInput(const Uint8* keyState) {
         }
         return;
     }
-    // Na contagem, o ESC reabre o menu: quem se arrependeu de voltar nao precisa esperar o 1.
+    // Na contagem, a pausa reabre o menu: quem se arrependeu de voltar nao precisa esperar o 1.
     if (escNovo && Pausa::PodePausar(mGame->NoGabinete(), EmCombate())) AbrirPausa();
 }
 
@@ -534,14 +535,26 @@ void Battle::Retomar() {
 }
 
 void Battle::SairDaBatalha(const SceneType destino) {
-    // Quem sai pela pausa desistiu - inclusive no Recomecar.
+    Abandonar();
+    mGame->RequestSceneChange(destino);
+}
+
+void Battle::Abandonar() {
+    // Quem sai pela pausa desistiu - inclusive no Recomecar, e quem a deixou aberta no gabinete.
     Avisar([&](OuvinteDaBatalha& o) { o.AoTerminar(*this, Tentativas::Resultado::Abandonou, false); });
     if (mProjeteis) {
         mProjeteis->ClearBossProjectiles();
         mProjeteis->Cleanup();
     }
     for (Boss* corpo : Corpos()) if (corpo) corpo->AoTerminarABatalha();
-    mGame->RequestSceneChange(destino);
+}
+
+bool Battle::Pausada() const {
+    return !mAcabando && mPausa && mPausa->Aberta();
+}
+
+void Battle::AoSairPorOciosidade() {
+    Abandonar();
 }
 //endregion Pausa
 

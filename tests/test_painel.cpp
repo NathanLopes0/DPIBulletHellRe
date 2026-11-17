@@ -245,3 +245,21 @@ TEST_CASE("Painel: o nome do manche diz as teclas dele") {
         CHECK(dois.find(letra) != std::string::npos);
     }
 }
+
+TEST_CASE("Painel: o botao PAUSA e um so, e nao e tecla de nenhuma posicao") {
+    const SDL_Scancode pausa = Painel::TeclaDaPausa();
+    CHECK(pausa != SDL_SCANCODE_UNKNOWN);
+    CHECK(pausa != SDL_SCANCODE_ESCAPE);   // o ESC e de quem desenvolve, e o Ctrl + Esc e a saida
+    for (const SDL_Scancode t : TodasAsTeclas()) CHECK(t != pausa);
+
+    CHECK(Painel::PausaApertada(TecladoCom(pausa).data()));
+    CHECK_FALSE(Painel::PausaApertada(TecladoCom(SDL_SCANCODE_SPACE).data()));
+    CHECK_FALSE(Painel::PausaApertada(nullptr));
+}
+
+TEST_CASE("Painel: a pausa no rodape, com a tecla so no computador") {
+    CHECK(Painel::Rodape({Painel::BotaoDePausa("continuar")}, Painel::Jeito::SoOPainel) ==
+          std::string("PAUSA") + Painel::kEntreNomeEAcao + "continuar");
+    CHECK(Painel::Rodape({Painel::BotaoDePausa("continuar")}, Painel::Jeito::ComATecla) ==
+          std::string("PAUSA (P)") + Painel::kEntreNomeEAcao + "continuar");
+}

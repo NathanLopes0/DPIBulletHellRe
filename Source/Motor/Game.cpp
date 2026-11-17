@@ -307,9 +307,10 @@ namespace {
 
     /// Para onde a ociosidade leva, conforme a tela em que ela acontece. None quer dizer "fica onde
     /// esta".
-    Scene::SceneType ParaOndeAOciosidadeLeva(const Scene::SceneType atual) {
+    Scene::SceneType ParaOndeAOciosidadeLeva(const Scene::SceneType atual, const bool pausada) {
         switch (atual) {
-            case Scene::SceneType::Battle:
+            // A luta em andamento nao e interrompida; a pausada que ninguem retomou, sim.
+            case Scene::SceneType::Battle:   return pausada ? Scene::SceneType::MainMenu : Scene::SceneType::None;
             case Scene::SceneType::Atracao:  return Scene::SceneType::None;
             case Scene::SceneType::MainMenu: return Scene::SceneType::Atracao;
             default:                         return Scene::SceneType::MainMenu;
@@ -329,7 +330,7 @@ void Game::AtualizarGabinete(const float deltaTime)
 
     if (!mOciosidade.Ligada() || !mScene) return;
 
-    const Scene::SceneType destino = ParaOndeAOciosidadeLeva(GetCurrSceneType());
+    const Scene::SceneType destino = ParaOndeAOciosidadeLeva(GetCurrSceneType(), mScene->Pausada());
 
     // Um pedido de troca ja feito pela cena nao pode ser atropelado por este.
     if (destino == Scene::SceneType::None || mPendingSceneChange) {
@@ -341,6 +342,7 @@ void Game::AtualizarGabinete(const float deltaTime)
         // O perfil de quem jogou nao pode ficar pendurado.
         SDL_Log("GABINETE: %.0fs parado, indo para a cena %d.",
                 static_cast<double>(mGabinete.ociosidade), static_cast<int>(destino));
+        mScene->AoSairPorOciosidade();
         JogarComoVisitante();
         RequestSceneChange(destino);
     }

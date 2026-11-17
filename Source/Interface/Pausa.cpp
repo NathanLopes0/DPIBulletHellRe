@@ -18,8 +18,8 @@ namespace Pausa {
         return "";
     }
 
-    bool PodePausar(const bool arcade, const bool emCombate) {
-        return !arcade && emCombate;
+    bool PodePausar(const bool /*arcade*/, const bool emCombate) {
+        return emCombate;
     }
 
     void Abrir(Menu& m) {
@@ -49,6 +49,6 @@ namespace Pausa {
     }
 
     bool PausaAoPerderOFoco(const bool arcade, const bool emCombate, const bool jaPausada) {
-        return !jaPausada && PodePausar(arcade, emCombate);
+        return !jaPausada && !arcade && PodePausar(arcade, emCombate);
     }
 }

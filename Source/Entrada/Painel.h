@@ -53,6 +53,20 @@ constexpr Direcao kDirecoes[] = {Direcao::Cima, Direcao::Baixo,
 /// Se o manche esta empurrado para este lado neste quadro.
 [[nodiscard]] bool Apertado(const Uint8* teclado, Jogador quem, Direcao direcao);
 
+// ---- O botao de pausa ----
+// Um so no gabinete, fora das duas posicoes: pausa a batalha (Pausa.h). No computador o ESC faz o
+// mesmo, sem aparecer escrito.
+
+/// A tecla que o botao de pausa manda.
+[[nodiscard]] SDL_Scancode TeclaDaPausa();
+
+/// "PAUSA", e a tecla dele: "P".
+[[nodiscard]] const char* NomeDaPausa();
+[[nodiscard]] const char* NomeDaTeclaDaPausa();
+
+/// Se o botao de pausa esta apertado neste quadro.
+[[nodiscard]] bool PausaApertada(const Uint8* teclado);
+
 /// Como o rodape nomeia o que apertar. No gabinete nao ha teclado, entao dizer a tecla seria ruido.
 enum class Jeito {
     SoOPainel,   ///< "BOTAO 1  jogar"
@@ -74,6 +88,9 @@ struct Acao {
 /// O manche como item de rodape: Manche(Jogador::Um, "escolher") ->
 /// "MANCHE  escolher", e com a tecla "MANCHE (SETAS)  escolher".
 [[nodiscard]] Acao Manche(Jogador quem, std::string oQueFaz);
+
+/// O botao de pausa como item de rodape: "PAUSA  continuar", e com a tecla "PAUSA (P)  continuar".
+[[nodiscard]] Acao BotaoDePausa(std::string oQueFaz);
 
 /// O espaco entre o nome e o que ele faz.
 constexpr const char* kEntreNomeEAcao = "  ";

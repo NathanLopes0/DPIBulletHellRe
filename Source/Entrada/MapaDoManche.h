@@ -38,6 +38,9 @@ struct Posicao {
     std::array<int, 3> botoes{0, 1, 2};
     /// Para o encoder que manda o manche como botoes: na ordem de Painel::Direcao.
     std::array<int, 4> direcoes{kNenhum, kNenhum, kNenhum, kNenhum};
+    /// O botao do joystick que e o botao PAUSA do gabinete (Painel::TeclaDaPausa): o primeiro
+    /// livre depois dos tres, no padrao.
+    int pausa = 3;
 };
 
 struct Configuracao {
@@ -67,6 +70,9 @@ struct Leitura {
 
 /// Se o joystick aperta este botao desta posicao.
 [[nodiscard]] bool Apertado(const Leitura& leitura, const Posicao& posicao, Painel::Botao botao);
+
+/// Se o joystick aperta o botao de pausa.
+[[nodiscard]] bool PausaApertada(const Leitura& leitura, const Posicao& posicao);
 
 /// Liga em 'teclado' as teclas de 'quem' que o joystick aperta. Nunca desliga nada: o teclado de
 /// verdade continua valendo junto.

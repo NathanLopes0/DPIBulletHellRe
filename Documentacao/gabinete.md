@@ -93,7 +93,8 @@ a tela volta ao menu principal **e o perfil do aluno é solto**. Sem isso, quem
 chegasse depois encontraria a sessão de outra pessoa e jogaria no nome dela.
 
 A **batalha não volta sozinha**: ficar parado é uma forma legítima de desviar, e
-ela já termina por tempo.
+ela já termina por tempo. A exceção é a batalha **pausada**, que ninguém retomou
+(ver a pausa, abaixo).
 
 **Do menu a ociosidade leva para a frente**, não de volta: passado o mesmo tempo
 parado no menu principal, entra a **tela de atração** — o título com a chamada,
@@ -121,9 +122,11 @@ lá, e é por isso que nenhuma tela pode exigir outra tecla.
 | **Botão 1** | `Espaço` | `F` | confirmar, atirar, digitar |
 | **Botão 2** | `B` | `E` | voltar, apagar, sobrecarga |
 | **Botão 3** | `N` | `H` | o extra de cada tela (hoje, o ranking da matéria) |
+| **Pausa** | `P` | `P` | um só no gabinete: pausa a batalha (abaixo) |
 
 São essas as teclas que o encoder do painel manda quando ele se apresenta como
-**teclado** — **catorze, não sete**, e nenhuma repetida entre as duas posições. Uma tecla repetida faria os
+**teclado** — **catorze, não sete**, e nenhuma repetida entre as duas posições,
+mais a do botão de pausa, que é da máquina e não de uma posição. Uma tecla repetida faria os
 dois manches moverem o mesmo aluno, que era o estado do código antes de a
 segunda posição existir: o `W A S D` era atalho das setas.
 
@@ -170,13 +173,22 @@ monta o texto a partir do próprio botão que a cena escuta, então as duas cois
 não têm como divergir. `ENTER` e `ESC` continuam valendo para quem desenvolve,
 mas **não aparecem escritos em lugar nenhum**.
 
-**A exceção é a pausa da batalha**, e ela confirma a regra: o `ESC` abre um menu
-(continuar, recomeçar a fase, sair dela) que **só existe no computador**, e o
-rodapé desse menu escreve "ESC continuar". No gabinete a pausa não abre
-(`Pausa::PodePausar`) — o painel não tem `ESC`, e uma batalha congelada no
-corredor seria uma tela morta para quem chega depois. Pela mesma razão, perder
-o foco da janela também não pausa no gabinete. O `Ctrl + Esc` de quem
-mantém a máquina continua sendo o de sempre.
+**A pausa da batalha tem um botão próprio**, o **PAUSA**: um só na máquina, fora
+das duas posições (`Painel::TeclaDaPausa`). Pelo encoder de teclado é a tecla
+`P`; pelo de joystick, o botão `"pausa"` do `Assets/painel.json` (no padrão, o
+botão 3 de cada joystick, o primeiro livre depois dos três). Ele abre o mesmo
+menu do computador — continuar, recomeçar a fase, sair dela —, o rodapé diz
+"PAUSA continuar", e apertá-lo de novo também continua, com a contagem 3, 2, 1.
+No computador o `ESC` faz o mesmo, sem aparecer escrito.
+
+Uma batalha congelada no corredor seria uma tela morta para quem chega depois,
+então **a pausa esquecida conta como ociosidade**: passado o tempo de
+`--ociosidade` com o menu da pausa aberto e ninguém mexendo, o jogo volta ao
+menu principal, solta o perfil e registra a tentativa como abandonada
+(`Scene::Pausada`, `ParaOndeAOciosidadeLeva`). A luta em andamento continua
+sem ser interrompida. Perder o foco da janela não pausa no gabinete: lá ninguém
+troca de janela. O `Ctrl + Esc` de quem mantém a máquina continua sendo o de
+sempre.
 
 **A tela de resultado volta sozinha.** A ociosidade do gabinete não vale dentro
 da batalha — uma luta em andamento não pode ser interrompida —, e a tela de

@@ -135,6 +135,7 @@ Configuracao Ler(const std::string& texto, std::vector<std::string>* problemas) 
         Inteiro(p, "hat", posicao.hat, onde, problemas);
         Lista(p, "botoes", posicao.botoes, onde, problemas);
         Lista(p, "direcoes", posicao.direcoes, onde, problemas);
+        Inteiro(p, "pausa", posicao.pausa, onde, problemas);
     }
     return c;
 }
@@ -157,6 +158,10 @@ bool Apertado(const Leitura& leitura, const Posicao& posicao, const Painel::Bota
     return BotaoApertado(leitura, posicao.botoes[Coluna(botao)]);
 }
 
+bool PausaApertada(const Leitura& leitura, const Posicao& posicao) {
+    return BotaoApertado(leitura, posicao.pausa);
+}
+
 void Apertar(const Leitura& leitura, const Posicao& posicao, const float zonaMorta, const Painel::Jogador quem,
              Uint8* teclado, const int quantasTeclas) {
     if (!teclado) return;
@@ -169,6 +174,7 @@ void Apertar(const Leitura& leitura, const Posicao& posicao, const float zonaMor
     for (const Painel::Botao b : Painel::kBotoes) {
         if (Apertado(leitura, posicao, b)) ligar(Painel::Tecla(quem, b));
     }
+    if (PausaApertada(leitura, posicao)) ligar(Painel::TeclaDaPausa());
 }
 
 } // namespace MapaDoManche

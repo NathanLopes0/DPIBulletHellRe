@@ -4,7 +4,8 @@
 
 #pragma once
 
-/// No computador, o ESC pausa a batalha e abre um menu: continuar, recomecar a fase ou sair dela.
+/// O botao PAUSA do gabinete (Painel::TeclaDaPausa) - ou, no computador, o ESC - pausa a batalha e
+/// abre um menu: continuar, recomecar a fase ou sair dela.
 namespace Pausa {
 
     /// As opcoes do menu, na ordem da tela. A primeira e a que abre em foco:
@@ -16,8 +17,9 @@ namespace Pausa {
     /// Como a opcao se chama na tela.
     const char* Texto(Opcao o);
 
-    /// Nunca no gabinete, e so com a luta valendo: carregando os projeteis nao ha o que pausar, e a
-    /// tela de fim ja tem o menu dela (Resultado.h).
+    /// So com a luta valendo: carregando os projeteis nao ha o que pausar, e a tela de fim ja tem o
+    /// menu dela (Resultado.h). No gabinete tambem: ele tem o botao PAUSA, e a pausa esquecida conta
+    /// como ociosidade (Game::AtualizarGabinete) - a maquina nao fica numa luta congelada.
     bool PodePausar(bool arcade, bool emCombate);
 
     /// O menu: se esta aberto, e qual opcao esta em foco.
@@ -46,6 +48,7 @@ namespace Pausa {
     int Contagem(float restante);
 
     /// Se a janela perder o foco (alguem foi para outra janela), a batalha pausa sozinha - nas
-    /// mesmas condicoes do ESC (PodePausar).
+    /// mesmas condicoes do botao (PodePausar), menos no gabinete: la ninguem troca de janela, e uma
+    /// pausa que ninguem pediu so congelaria a luta de quem esta jogando.
     bool PausaAoPerderOFoco(bool arcade, bool emCombate, bool jaPausada);
 }

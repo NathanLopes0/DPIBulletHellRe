@@ -174,5 +174,25 @@ TEST_CASE("MapaDoManche: o Assets/painel.json do jogo se le sem problema e e o p
         CHECK(c.posicoes[i].eixoY == padrao.posicoes[i].eixoY);
         CHECK(c.posicoes[i].hat == padrao.posicoes[i].hat);
         CHECK(c.posicoes[i].direcoes == padrao.posicoes[i].direcoes);
+        CHECK(c.posicoes[i].pausa == padrao.posicoes[i].pausa);
     }
+}
+
+TEST_CASE("MapaDoManche: o botao de pausa do joystick aperta a tecla da pausa") {
+    MapaDoManche::Posicao p;
+    CHECK(p.pausa == 3);   // o primeiro livre depois dos tres
+    MapaDoManche::Leitura l = Solto();
+    l.botoes[3] = 1;
+    const std::vector<Uint8> t = Teclado(l, p, Painel::Jogador::Dois);
+    CHECK(t[Painel::TeclaDaPausa()] == 1);
+    CHECK(Apertadas(t) == 1);
+
+    p.pausa = MapaDoManche::kNenhum;
+    CHECK(Apertadas(Teclado(l, p, Painel::Jogador::Dois)) == 0);
+
+    std::vector<std::string> problemas;
+    const MapaDoManche::Configuracao c = MapaDoManche::Ler(R"({"jogadores": [{"pausa": 9}, {"pausa": -1}]})", &problemas);
+    CHECK(problemas.empty());
+    CHECK(c.posicoes[0].pausa == 9);
+    CHECK(c.posicoes[1].pausa == MapaDoManche::kNenhum);
 }

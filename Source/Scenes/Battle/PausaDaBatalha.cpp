@@ -20,7 +20,7 @@ PausaDaBatalha::PausaDaBatalha(Scene& cena, Font* fonte, const Painel::Jeito jei
     // O rodape sai do painel, como o de toda tela (Painel.h).
     const std::string rodape = Painel::Rodape({Painel::Manche(Painel::Jogador::Um, "escolher"),
                                                {Painel::Jogador::Um, Painel::Botao::Um, "confirmar"},
-                                               {std::string("ESC"), std::string(), std::string("continuar")}},
+                                               Painel::BotaoDePausa("continuar")},
                                               jeito);
     PainelDeMenu::Medidas medidas;
     medidas.ordem = kOrdem;
@@ -44,7 +44,7 @@ void PausaDaBatalha::Abrir() {
     mRetomada = 0.0f;
     MostrarNumero(false);
 
-    // Quem estava segurando o manche ou o tiro quando apertou ESC nao anda no menu por isso.
+    // Quem estava segurando o manche ou o tiro quando pausou nao anda no menu por isso.
     mLeitor.Segurar();
 
     mPainel->Selecionar(mMenu.selecionada);

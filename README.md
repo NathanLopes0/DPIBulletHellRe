@@ -29,7 +29,7 @@ escritos na tela.
 | **Botão 1** | **Espaço** | **F** | lançar Dúvidas (os balões com **?**); confirmar; digitar |
 | **Botão 2** | **B** | **E** | voltar e apagar; na batalha, gastar um Ponto Extra: sozinho, uma onda dourada sai de você e desfaz os tiros do professor por onde passa, e você fica 1,5 s sem atirar — em troca, ganha a nota que ganharia acertando todos os tiros desse tempo; em dupla, dá ao parceiro um escudo que destrói os projéteis do chefe, e quem gastou segue atirando — e, se os dois gastarem juntos, a onda sai do meio deles, além dos escudos |
 | **Botão 3** | **N** | **H** | na dificuldade, trocar a personagem (no boletim, é o manche para cima); na seleção, o boletim (e dele, o ranking da matéria); na batalha em dupla, dar um sinal ao parceiro; na batalha do TCC, soltar o poder do orientador quando o anel dele enche; no resultado da dupla aprovada, os dois juntos: o toca aqui |
-| — | **Esc** | — | na batalha, **só no computador**: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota. A batalha também pausa sozinha quando a janela perde o foco |
+| **Pausa** (um só no gabinete) | **P** | **P** | na batalha: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota. No computador o **Esc** faz o mesmo, e a batalha também pausa sozinha quando a janela perde o foco; no gabinete, a pausa esquecida volta ao menu sozinha |
 | — | **Enter**, **Esc**, **0–9**, **Backspace** | — | atalhos de teclado para quem desenvolve |
 
 > As setas **não são atalho do W A S D**: elas são o manche do jogador 1, e o

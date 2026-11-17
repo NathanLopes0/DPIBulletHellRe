@@ -186,6 +186,11 @@ public:
     /// A janela perdeu o foco: a luta pausa sozinha (Pausa::PausaAoPerderOFoco).
     void AoPerderOFoco() override;
 
+    /// O menu da pausa esta aberto: no gabinete, a ociosidade vale (Game::AtualizarGabinete).
+    [[nodiscard]] bool Pausada() const override;
+    /// A pausa ficou aberta sem ninguem: a tentativa conta como abandonada.
+    void AoSairPorOciosidade() override;
+
 protected:
     void OnUpdate(float deltaTime) override;
     void OnProcessInput(const Uint8 *keyState) override;
@@ -390,6 +395,8 @@ private:
 
     /// Sai da batalha no meio, para 'destino', sem registrar a nota.
     void SairDaBatalha(SceneType destino);
+    /// O que sair da luta antes do fim faz, menos a troca de cena.
+    void Abandonar();
 
     /// O ESC e borda, e nao estado: segurado, ele abriria e fecharia a pausa a cada quadro.
     Borda mBordaEsc{true};
