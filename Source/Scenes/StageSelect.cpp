@@ -651,7 +651,9 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
     }
 
     // O boletim; dele, o Botao 3 de novo leva ao ranking da materia em foco.
-    // F9 (desenvolvimento): as optativas fecham de novo, com as horas de volta.
+#ifndef DPI_GABINETE
+    // F9 (desenvolvimento): as optativas fecham de novo, com as horas de volta. O executavel do
+    // gabinete nao tem as duas teclas.
     if (mBordaDesfazer.Bateu(keyState[SDL_SCANCODE_F9] != 0)) {
         if (mGame->DesfazerMatriculas() > 0) mGame->RequestSceneChange(SceneType::StageSelect);
         return;
@@ -661,6 +663,7 @@ void StageSelect::HandleSelectionInput(const Uint8 *keyState) {
         if (mGame->LiberarSecretas() > 0) mGame->RequestSceneChange(SceneType::StageSelect);
         return;
     }
+#endif
 
     const bool verBoletim = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Tres);
     if (mBordaRanking.Bateu(verBoletim)) {

@@ -9,13 +9,48 @@ não precisa de nada daqui: **o padrão é a janela**, do jeito que o CLion abre
 
 ---
 
+## O pacote do gabinete
+
+O gabinete é um Ubuntu 20.04 **sem internet**. O pacote dele sai pronto de
+
+```bash
+bash Ferramentas/executavel-gabinete.sh   # dist/DPIBulletHellRe-gabinete.tar.gz
+```
+
+e é compilado com `DPI_GABINETE` (no `CMakeLists.txt`). Esse executável **já abre no
+modo gabinete**, sem precisar do `--arcade`, e não tem nada do que é para quem
+desenvolve: o modo de simulação (a batalha direta, os pilotos, as fotos) é
+ignorado, e as teclas F9 e F10 da seleção de fases não existem. Ele leva o SDL2
+junto (em `lib/`) e não pede nada além do que o Ubuntu já tem.
+
+**Rode o script num Ubuntu 20.04** — uma máquina, um container ou um chroot
+(`debootstrap focal`): o executável funciona na glibc de quem compilou ou numa
+mais nova, e o feito num Ubuntu mais novo não abre no gabinete. O cabeçalho do
+script lista o que instalar antes.
+
+No gabinete:
+
+```bash
+tar -xzf DPIBulletHellRe-gabinete.tar.gz
+cd DPIBulletHellRe-gabinete
+./jogar.sh                        # abre o jogo
+./instalar.sh --abrir-ao-ligar    # o ícone, e o jogo abre sozinho no login
+```
+
+O `jogar.sh` **reabre o jogo se ele cair** (e anota a queda em
+`Saves/quedas.log`); só a saída do operador (abaixo) o fecha de vez. Para o jogo
+abrir quando a máquina liga, a sessão também precisa entrar sozinha:
+Configurações › Usuários › Login automático. O progresso, o ranking e os
+registros das tentativas ficam em `Saves/`, ao lado do jogo.
+
 ## Como abrir
 
 ```bash
 ./DPIBulletHellRe --arcade
 ```
 
-É essa linha que vai no script de inicialização da máquina.
+É essa linha que vai no script de inicialização de uma máquina com o executável
+comum — o do pacote do gabinete já abre assim.
 
 | | |
 |---|---|
@@ -143,14 +178,6 @@ de propósito. E são dois segundos inteiros, não um toque — um encostão nã
 derruba o jogo no meio do corredor.
 
 **Se esta combinação mudar, mude aqui também.** É a única saída da máquina.
-
----
-
-## O que ainda falta
-
-A recuperação se o jogo cair. Nada desta página adianta se um `crash` deixa a
-área de trabalho à vista até alguém passar no corredor. É script de sistema, não
-código — um laço que reabre.
 
 ---
 

@@ -538,6 +538,13 @@ option(DPI_SEM_CONSOLE "Windows: abrir o jogo sem a janela do console" OFF)
 if(WIN32 AND DPI_SEM_CONSOLE)
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE ON)
 endif()
+# DPI_GABINETE: o executavel do gabinete (Ferramentas/executavel-gabinete.sh). Sempre abre no
+# modo gabinete (--arcade), ignora os parametros do modo de simulacao e nao tem as teclas de
+# desenvolvedor (F9 e F10 na selecao de fases); sem os testes.
+option(DPI_GABINETE "O executavel do gabinete: sempre --arcade, sem simulacao nem teclas de desenvolvedor" OFF)
+if(DPI_GABINETE)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE DPI_GABINETE)
+endif()
 # Com o MinGW e o GCC, o runtime do C++ entra no executavel: um arquivo a menos para
 # levar junto e nenhum conflito com a versao instalada na maquina de quem joga.
 if(NOT MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -552,6 +559,7 @@ endif()
 #
 # O jogo continua compilando normalmente mesmo que este alvo seja removido.
 # =============================================================================
+if(NOT DPI_GABINETE)
 enable_testing()
 
 add_executable(dpi_tests
@@ -962,3 +970,4 @@ target_compile_definitions(dpi_tests PRIVATE DOCTEST_CONFIG_USE_STD_HEADERS)
 target_compile_definitions(dpi_tests PRIVATE DPI_ASSETS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/Assets")
 
 add_test(NAME unidade COMMAND dpi_tests)
+endif()

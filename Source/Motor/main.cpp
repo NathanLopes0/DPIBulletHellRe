@@ -17,10 +17,17 @@ int main(int argc, char** argv)
         if (argv[i]) argumentos.emplace_back(argv[i]);
     }
 
+#ifdef DPI_GABINETE
+    // O executavel do gabinete (Ferramentas/executavel-gabinete.sh): sempre no modo gabinete, e
+    // nada do modo de simulacao - nem a batalha direta, nem o piloto, nem as fotos.
+    argumentos.insert(argumentos.begin(), "--arcade");
+    const Simulacao::Configuracao simulacao{};
+#else
     // Um parametro de simulacao que nao se le e dito e ignorado: a medida roda com o resto.
     std::vector<std::string> problemas;
     const Simulacao::Configuracao simulacao = Simulacao::Ler(argumentos, &problemas);
     for (const auto& p : problemas) SDL_Log("SIMULACAO: %s; ignorado.", p.c_str());
+#endif
 
     Game game = Game(SCREEN_WIDTH, SCREEN_HEIGHT, Gabinete::Ler(argumentos), simulacao);
     bool success = game.Initialize();

@@ -1021,7 +1021,10 @@ detalhes estão em `Documentacao/build-e-testes.md`.
 
 No gabinete do departamento ele abre com `--arcade`: tela cheia, sem cursor, sem
 saída acidental e voltando ao menu sozinho quando fica parado. O que isso muda,
-e **como sair da máquina**, está em `Documentacao/gabinete.md`.
+e **como sair da máquina**, está em `Documentacao/gabinete.md` — junto com o
+pacote pronto para o Ubuntu 20.04 do gabinete, sem internet
+(`Ferramentas/executavel-gabinete.sh`), que já abre assim e reabre o jogo se ele
+cair.
 
 ## Os testes
 
