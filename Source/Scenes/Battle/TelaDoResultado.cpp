@@ -164,6 +164,11 @@ void TelaDoResultado::Processar(const Uint8* keyState) {
 
 void TelaDoResultado::Escolher() {
     // A nota ja esta na ficha e a tentativa ja esta nos dados (Battle::EncerrarBatalha).
+    // A luta que abriu a materia secreta leva a selecao de qualquer jeito: a revelacao e la.
+    if (mJogo.SecretaParaRevelar() >= 0) {
+        mJogo.RequestSceneChange(Scene::SceneType::StageSelect);
+        return;
+    }
     switch (Resultado::kOpcoes[mSelecionada]) {
         case Resultado::Opcao::TentarDeNovo:
             mJogo.RequestSceneChange(Scene::SceneType::Battle);

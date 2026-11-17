@@ -248,6 +248,11 @@ public:
     int LiberarSecretas();
     /// Se a materia e secreta e ainda esta fechada para alguem em jogo: a selecao de fases nao a mostra.
     [[nodiscard]] bool MateriaEscondida(int subject) const;
+    /// A materia secreta que acabou de aparecer e ainda nao foi revelada para alguem em jogo
+    /// (Materias::ChaveDaRevelacao): a selecao de fases faz a revelacao dela. -1 quando nao ha.
+    [[nodiscard]] int SecretaParaRevelar() const;
+    /// A revelacao terminou: grava na ficha de todos em jogo, e ela nao se repete.
+    void MarcarRevelada(int subject);
 
 private:
     /// Passam as opcoes de som e de janela para o AudioSystem e o SDL.

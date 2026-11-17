@@ -365,7 +365,7 @@ foi aprovado:
 | 5 *(optativas)* | INF 425 — Ciência de Dados *(Daniel)* | INF 213 aprovada, pelo menos 5 menções de ouro, 3 "prestando atenção" e 1 no Difícil, e 25 h de horas complementares — a da precisão |
 | 6 *(optativas)* | INF 429 — Visão Computacional *(Michel)* | INF 213 aprovada, pelo menos 4 menções de ouro, 3 "sentar na frente" e 2 no Difícil, e 20 h de horas complementares — a de quem vê de perto |
 | 7 *(optativas)* | INF 491 — Tópicos Especiais, Bioinformática *(Sabrina)* | INF 213 aprovada, pelo menos 3 menções de ouro, 3 no Difícil, 2 "prestando atenção" e 2 "sentar na frente", e 22 h de horas complementares — a do Difícil |
-| 8 *(optativa secreta)* | INF 216 — Projeto e Implementação de Jogos Digitais *(Lucas Ferreira)* | **não aparece** até o aluno ter a nota cheia (o 100) em metade das matérias e a menção do Difícil em todas as obrigatórias; não custa horas |
+| 8 *(optativa secreta)* | INF 216 — Projeto e Implementação de Jogos Digitais *(Lucas Ferreira)* | **não aparece** até o aluno passar em 10 matérias no Difícil e ter a nota cheia (o 100) em 6 — quaisquer, as optativas inclusive; não custa horas |
 
 Toda matéria tem professor e batalha — as doze do curso, o TCC, do Hugo, que é
 a última e a mais difícil do curso, e as optativas INF 425, do Daniel, INF 429, do Michel, INF 491, da Sabrina, e a secreta INF 216, do Lucas Ferreira. A INF 332 e a INF 451 entraram depois: no
@@ -410,13 +410,24 @@ quantas" das horas e a média do ranking ("sobre as 17 matérias"). Quem conta o
 losangos da grade acha 16 — uma a menos —, e a conta não fecha de propósito: é a
 pulga atrás da orelha de que há mais uma.
 É a INF 216, Projeto e Implementação de Jogos Digitais, do Lucas Ferreira: pede
-a nota cheia em metade das matérias (8 das 16 com batalha) e a menção do Difícil
-em **todas** as 13 obrigatórias, e não custa horas — quem chegou até ali já
-pagou. Em `materias.json`, o requisito diz `"fracao": 0.5` em vez de
-`"quantas"` (o leitor conta as matérias, então a regra acompanha o curso) e
-`"de": "obrigatorias"` para deixar as optativas de fora. Para testá-la, quem
-desenvolve aperta **F10** na seleção de fases: as secretas abrem para quem está
-jogando, e o F9 as fecha de novo.
+**10 matérias aprovadas no Difícil** e **6 com a nota cheia** (o 100) — quaisquer,
+as optativas inclusive —, e não custa horas: quem chegou até ali já pagou.
+
+**O dia em que ela aparece é uma surpresa.** A luta que cumpre a regra leva à
+seleção de fases (as duas opções do resultado), e a seleção para tudo para a
+**revelação** (`Curso/Revelacao.h`): a tela escurece e a câmera desliza até a ala
+das optativas; quadradinhos dourados e ciano giram em espiral até o meio da
+tela, cada vez mais rápido, a tela treme e um losango de contorno pisca; tudo
+**estoura** — um clarão branco, três ondas em losango, uma chuva de faíscas — e
+o losango da INF 216 nasce grande no meio da tela, com o reflexo girando e um
+halo dourado pulsando. Desce o título **"MATÉRIA SECRETA DESBLOQUEADA!"**, com o
+nome da matéria, o professor e os parabéns ("Você achou a 17ª matéria" — a que
+faltava na conta). O Botão 1 manda o losango voar até o lugar dele na grade,
+com o carimbo da festa da matrícula, e a faixa diz que ela está aberta. Tudo em
+pixels, como o resto da seleção, e uma vez só: a ficha guarda
+`revelada@INF216`. Para testá-la, quem desenvolve aperta **F10** na seleção de
+fases: as secretas abrem para quem está jogando, com a revelação; o F9 as fecha
+de novo, e a revelação volta a acontecer no próximo F10.
 
 ## O que fica gravado
 

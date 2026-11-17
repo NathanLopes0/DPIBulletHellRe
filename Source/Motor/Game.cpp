@@ -769,11 +769,12 @@ int Game::DesfazerMatriculas() {
     for (size_t i = 0; i < mSessoes.size(); ++i) {
         bool mudou = false;
         for (const Materias::Materia& m : materias.materias) {
-            // A secreta aberta a mao (F10) fecha junto.
+            // A secreta aberta a mao (F10) fecha junto - e a revelacao volta a acontecer.
             if (m.secreta && mSessoes[i].progresso.EsquecerAtividade(Materias::ChaveDaLiberacao(m.codigo))) {
                 mudou = true;
                 ++desfeitas;
             }
+            if (m.secreta && mSessoes[i].progresso.EsquecerAtividade(Materias::ChaveDaRevelacao(m.codigo))) mudou = true;
             if (!m.optativa) continue;
             if (mSessoes[i].progresso.EsquecerAtividade(Materias::ChaveDaCompra(m.codigo))) {
                 mudou = true;
@@ -802,6 +803,29 @@ int Game::LiberarSecretas() {
     }
     SDL_Log("GAME: (dev) %d materia(s) secreta(s) aberta(s).", abertas);
     return abertas;
+}
+
+int Game::SecretaParaRevelar() const {
+    const Materias::Lista& materias = Materias::Carregadas();
+    for (int i = 0; i < materias.Quantas(); ++i) {
+        const Materias::Materia* m = materias.Por(i);
+        if (!m || !m->secreta || MateriaEscondida(i)) continue;
+        const std::string chave = Materias::ChaveDaRevelacao(m->codigo);
+        for (const Sessao::Dados& s : mSessoes) {
+            if (s.progresso.Atividades().count(chave) == 0) return i;
+        }
+    }
+    return -1;
+}
+
+void Game::MarcarRevelada(const int subject) {
+    const std::string codigo = Materias::Carregadas().CodigoDe(subject);
+    if (codigo.empty()) return;
+    for (size_t i = 0; i < mSessoes.size(); ++i) {
+        if (mSessoes[i].progresso.RegistrarAtividade(Materias::ChaveDaRevelacao(codigo)) && ProgressoEGravado(i)) {
+            GravarFicha(i);
+        }
+    }
 }
 
 bool Game::MateriaEscondida(const int subject) const {

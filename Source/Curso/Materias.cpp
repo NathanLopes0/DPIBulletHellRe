@@ -234,6 +234,10 @@ std::string ChaveDaLiberacao(const std::string& codigo) {
     return "liberada@" + codigo;
 }
 
+std::string ChaveDaRevelacao(const std::string& codigo) {
+    return "revelada@" + codigo;
+}
+
 int Lista::PrecoDe(const int indice) const {
     const Materia* m = Por(indice);
     return m ? m->desbloqueio.preco : 0;

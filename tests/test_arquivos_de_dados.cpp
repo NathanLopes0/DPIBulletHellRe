@@ -2699,7 +2699,7 @@ TEST_CASE("Dados: o Lucas Ferreira - cada gatilho que ele puxa esta na fase dele
     CHECK_FALSE(tipos.at(de(Lancamento::kFase, Lancamento::kGatilhoDoCredito)).derrubavel);
 }
 
-TEST_CASE("Dados: a INF 216 e secreta - abre com o 100 em metade das materias e o Dificil em todas as obrigatorias") {
+TEST_CASE("Dados: a INF 216 e secreta - abre com 10 materias no Dificil e 6 com a nota cheia") {
     const auto l = Materias::LerMaterias(LerArquivo("materias.json"));
     REQUIRE(l.problemas.empty());
     const int jd = l.IndiceDe("INF216");
@@ -2710,12 +2710,13 @@ TEST_CASE("Dados: a INF 216 e secreta - abre com o 100 em metade das materias e 
     CHECK(m->chefe == "ferreira");
     CHECK(m->professor == "Lucas Ferreira");
     CHECK(l.PrecoDe(jd) == 0);   // quem chegou ate aqui ja pagou
-    // As contas do leitor: metade das 16 materias com batalha (ela mesma fora) e as 13 obrigatorias.
     REQUIRE(m->desbloqueio.requisitos.size() == 2);
-    CHECK(m->desbloqueio.requisitos[0].quantas == 8);
+    CHECK(m->desbloqueio.requisitos[0].mencao == "dificil");
+    CHECK(m->desbloqueio.requisitos[0].quantas == 10);
     CHECK_FALSE(m->desbloqueio.requisitos[0].soObrigatorias);
-    CHECK(m->desbloqueio.requisitos[1].quantas == 13);
-    CHECK(m->desbloqueio.requisitos[1].soObrigatorias);
+    CHECK(m->desbloqueio.requisitos[1].mencao == "notaCheia");
+    CHECK(m->desbloqueio.requisitos[1].quantas == 6);
+    CHECK_FALSE(m->desbloqueio.requisitos[1].soObrigatorias);
     // Ela e a unica secreta: as outras aparecem sempre.
     for (int i = 0; i < l.Quantas(); ++i) CHECK(l.Por(i)->secreta == (i == jd));
 
@@ -2731,24 +2732,23 @@ TEST_CASE("Dados: a INF 216 e secreta - abre com o 100 em metade das materias e 
     Progresso p;
     CHECK(l.Escondida(jd, p));
     CHECK_FALSE(l.Desbloqueada(jd, p));
-    // O Dificil em todas as obrigatorias, mas o 100 em so sete: ainda escondida.
-    for (size_t k = 0; k < obrigatorias.size(); ++k) {
-        p.RegistrarNota(obrigatorias[k], k < 7 ? 100.0f : 70.0f, Dificuldade::Nivel::Dificil);
+    // Nove no Dificil, seis delas com 100: ainda escondida.
+    for (size_t k = 0; k < 9; ++k) {
+        p.RegistrarNota(obrigatorias[k], k < 6 ? 100.0f : 70.0f, Dificuldade::Nivel::Dificil);
     }
     CHECK(l.Escondida(jd, p));
-    // O oitavo 100 - numa optativa, que tambem conta para os 100 - abre.
-    p.RegistrarNota(optativas[0], 100.0f, Dificuldade::Nivel::Normal);
+    // A decima no Dificil - numa optativa, que tambem conta - abre.
+    p.RegistrarNota(optativas[0], 65.0f, Dificuldade::Nivel::Dificil);
     CHECK_FALSE(l.Escondida(jd, p));
     CHECK(l.Desbloqueada(jd, p));
 
-    // Os 100 em tudo, mas uma obrigatoria sem o Dificil: fechada. O Dificil numa optativa nao a substitui.
+    // Dez no Dificil, mas so cinco com 100: escondida. O sexto 100, no Normal, abre.
     Progresso q;
-    for (size_t k = 0; k < obrigatorias.size(); ++k) {
-        q.RegistrarNota(obrigatorias[k], 100.0f, k == 0 ? Dificuldade::Nivel::Normal : Dificuldade::Nivel::Dificil);
+    for (size_t k = 0; k < 10; ++k) {
+        q.RegistrarNota(obrigatorias[k], k < 5 ? 100.0f : 70.0f, Dificuldade::Nivel::Dificil);
     }
-    for (const int o : optativas) q.RegistrarNota(o, 100.0f, Dificuldade::Nivel::Dificil);
     CHECK(l.Escondida(jd, q));
-    q.RegistrarNota(obrigatorias[0], 65.0f, Dificuldade::Nivel::Dificil);
+    q.RegistrarNota(obrigatorias[11], 100.0f, Dificuldade::Nivel::Normal);
     CHECK(l.Desbloqueada(jd, q));
 
     // A tecla de quem desenvolve (F10) dispensa a regra.
@@ -2777,8 +2777,8 @@ TEST_CASE("Dados: a INF 216 e secreta - abre com o 100 em metade das materias e 
     // A frase do que ela pede.
     const std::string exige = l.ExigenciaDe(jd);
     CAPTURE(exige);
-    CHECK(exige.find("8 men") != std::string::npos);
-    CHECK(exige.find("todas as 13 obrigat") != std::string::npos);
+    CHECK(exige.find("10 men") != std::string::npos);
+    CHECK(exige.find("6 men") != std::string::npos);
 }
 
 // A documentacao nao esquece nome nenhum. Os gatilhos e os postos sao listas fechadas: o leitor

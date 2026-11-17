@@ -30,6 +30,8 @@
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
 #include "../Components/DrawComponents/DrawLinhasComponent.h"
 #include "../Curso/FestaDaMatricula.h"
+#include "../Curso/Revelacao.h"
+#include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Motor/AudioSystem.h"
 
 #include "../Motor/CaminhosArquivo.h"
@@ -75,6 +77,9 @@ void StageSelect::Load() {
         ComecarAFesta(sRecemComprada);
         sRecemComprada = -1;
     }
+
+    // A materia secreta que acabou de aparecer: a revelacao, uma vez so (Curso/Revelacao.h).
+    if (const int secreta = mGame->SecretaParaRevelar(); secreta >= 0) ComecarARevelacao(secreta);
 
 }
 
@@ -482,7 +487,7 @@ void StageSelect::MostrarCartaoDaProva(const bool mostrar) {
     }
 }
 
-void StageSelect::ComecarAFesta(const int materia) {
+void StageSelect::ComecarAFesta(const int materia, const bool soOCarimbo) {
     for (StageSelectButton* b : mButtonObservers) {
         if (b && b->GetSubject() == materia) mBotaoDaFesta = b;
     }
@@ -493,7 +498,7 @@ void StageSelect::ComecarAFesta(const int materia) {
     auto ator = std::make_unique<Actor>(this);
     mFesta = ator->AddComponent<DrawLinhasComponent>(kOrdemDaFesta);
     AddActor(std::move(ator));
-    mFichasDaFesta = FestaDaMatricula::Fichas(Materias::Carregadas().PrecoDe(materia));
+    mFichasDaFesta = soOCarimbo ? 0 : FestaDaMatricula::Fichas(Materias::Carregadas().PrecoDe(materia));
     mTempoDaFesta = 0.0f;
     mCarimbou = false;
 }
@@ -618,6 +623,12 @@ void StageSelect::AtualizarDicas() {
 }
 
 void StageSelect::OnProcessInput(const Uint8 *keyState) {
+
+    // Na revelacao, a tela inteira espera o botao.
+    if (Revelando()) {
+        LerARevelacao(keyState);
+        return;
+    }
 
     // Voltar e voltar um passo: a escolha da dificuldade, e de la a troca de aluno (a identificacao).
     const bool trocar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois)
@@ -788,7 +799,242 @@ void StageSelect::OnUpdate(float deltaTime) {
     }
 
     AtualizarAFesta(deltaTime);
+    AtualizarARevelacao(deltaTime);
 
+}
+
+// ---- A revelacao da materia secreta ----
+
+namespace {
+    const SDL_Color kOuroDaRevelacao{255, 214, 90, 255};
+    const SDL_Color kCianoDaRevelacao{120, 230, 255, 255};
+    const SDL_Color kBrancoDaRevelacao{255, 255, 255, 255};
+
+    SDL_Color ComAlfa(const SDL_Color c, const float opacidade) {
+        return SDL_Color{c.r, c.g, c.b, static_cast<Uint8>(std::clamp(opacidade, 0.0f, 1.0f) * static_cast<float>(c.a))};
+    }
+
+    SDL_Color CorDe(const int k) {
+        return k == 0 ? kOuroDaRevelacao : (k == 1 ? kCianoDaRevelacao : kBrancoDaRevelacao);
+    }
+
+    /// Um losango de contorno, no formato da arte (o dobro da largura na altura), com 'grossura'
+    /// linhas de um pixel.
+    void Losango(DrawLinhasComponent* l, const Vector2 c, const float raio, const SDL_Color cor, const int grossura) {
+        for (int g = 0; g < grossura; ++g) {
+            const float r = raio - static_cast<float>(g);
+            const Vector2 pontas[4] = {c + Vector2(r, 0.0f), c + Vector2(0.0f, r * 0.5f), c + Vector2(-r, 0.0f),
+                                       c + Vector2(0.0f, -r * 0.5f)};
+            for (int k = 0; k < 4; ++k) l->Acrescentar(pontas[k], pontas[(k + 1) % 4], cor);
+        }
+    }
+
+    /// Um quadradinho de 'lado' em volta de 'onde': o pixel das particulas.
+    void Quadrado(DrawLinhasComponent* l, const Vector2 onde, const float lado, const SDL_Color cor) {
+        const float m = std::max(1.0f, std::round(lado)) / 2.0f;
+        const Vector2 o(std::round(onde.x), std::round(onde.y));
+        l->Preencher(o - Vector2(m, m), o + Vector2(m, m), cor);
+    }
+}
+
+void StageSelect::ComecarARevelacao(const int materia) {
+    StageSelectButton* botao = nullptr;
+    size_t indice = 0;
+    for (size_t i = 0; i < mButtonObservers.size(); ++i) {
+        if (mButtonObservers[i] && mButtonObservers[i]->GetSubject() == materia) {
+            botao = mButtonObservers[i];
+            indice = i;
+        }
+    }
+    if (!botao) return;
+    mMateriaRevelada = materia;
+    mBotaoRevelado = botao;
+    mTempoDaRevelacao = 0.0f;
+    mDesdeOBotao = -1.0f;
+    mSoouACarga = false;
+    mSoouOEstouro = false;
+
+    // O cursor vai para ela: a camera desliza ate a ala das optativas enquanto a tela escurece.
+    if (indice != mSelectedIndex) {
+        mButtonObservers[mSelectedIndex]->ChangeSelected();
+        mButtonObservers[indice]->ChangeSelected();
+        mSelectedIndex = indice;
+    }
+    mSelectedSubject = materia;
+    mConfirmandoCompra = -1;
+    mGame->FocarMateria(materia);
+    UpdateStageInfo();
+    SeguirOFoco(false);
+    MostrarCartaoDaProva(false);
+
+    // O losango de verdade so aparece no fim: ate la, quem esta em cena e o grande.
+    if (auto* a = botao->GetComponent<DrawAnimatedComponent>()) a->SetIsVisible(false);
+    if (auto* t = botao->GetComponent<DrawTextComponent>()) t->SetIsVisible(false);
+
+    auto fundo = std::make_unique<Actor>(this);
+    mFundoDaRevelacao = fundo->AddComponent<DrawLinhasComponent>(kOrdemDaRevelacao);
+    AddActor(std::move(fundo));
+
+    auto grande = std::make_unique<Actor>(this);
+    grande->SetScale(0.0f);
+    auto* desenho = grande->AddComponent<DrawAnimatedComponent>(Caminhos::Asset("Icons/DPIBHLosango.png"),
+                                                                Caminhos::Asset("Icons/DPIBHLosango.json"),
+                                                                kOrdemDaRevelacao + 20);
+    // O mesmo reflexo do foco, e na escala da arte: os pixels crescem inteiros.
+    desenho->AddAnimation("Foco", {1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7});
+    desenho->SetAnimation("Foco");
+    desenho->SetAnimFPS(14.0f);
+    desenho->SetEscalaPropria(2.0f);
+    mLosangoGrande = AddActor(std::move(grande));
+
+    auto frente = std::make_unique<Actor>(this);
+    mFrenteDaRevelacao = frente->AddComponent<DrawLinhasComponent>(kOrdemDaRevelacao + 30);
+    AddActor(std::move(frente));
+
+    const auto largura = static_cast<float>(mGame->GetWindowWidth());
+    const auto altura = static_cast<float>(mGame->GetWindowHeight());
+    const Materias::Lista& materias = Materias::Carregadas();
+    const Materias::Materia* m = materias.Por(materia);
+    const int ordem = kOrdemDaRevelacao + 40;
+    auto texto = [&](const std::string& conteudo, const float y, const int tamanho, const Vector3& cor) {
+        auto* dc = CriarTexto(*this, mStageSelectFont.get(), conteudo, Vector2(largura / 2.0f, y), tamanho, 1100,
+                              tamanho + 10, ordem);
+        dc->SetColor(cor);
+        dc->SetIsVisible(false);
+        return dc->GetOwner();
+    };
+    // \xc3\x89 e o E agudo.
+    mTituloDaRevelacao = texto("MAT\xc3\x89RIA SECRETA DESBLOQUEADA!", -60.0f, 50, Color::Gold);
+    mNomeDaRevelacao.clear();
+    if (m) {
+        mNomeDaRevelacao.push_back(texto(m->nome + "  \xc2\xb7  " + m->nomeCompleto, altura * 0.70f, 30, Color::White));
+        mNomeDaRevelacao.push_back(texto("Prof. " + m->professor, altura * 0.755f, 24, Color::LightBlue));
+    }
+    mNomeDaRevelacao.push_back(texto(Revelacao::Parabens(materias.Quantas()), altura * 0.815f, 26, Color::Gold));
+    mAvisoDaRevelacao = texto(Painel::Rodape({{Painel::Jogador::Um, Painel::Botao::Um, "continuar"}}, mGame->JeitoDoRodape()),
+                              altura * 0.92f, 26, Color::LightYellow);
+    SDL_Log("SELECAO: a revelacao de %s.", m ? m->codigo.c_str() : "?");
+}
+
+void StageSelect::LerARevelacao(const Uint8* keyState) {
+    bool apertou = keyState[SDL_SCANCODE_RETURN] || keyState[SDL_SCANCODE_KP_ENTER];
+    for (const Painel::Jogador quem : Painel::kJogadores) apertou = apertou || Painel::Apertado(keyState, quem, Painel::Botao::Um);
+    // A borda anda sempre: o botao ja apertado quando a tela abriu nao conta.
+    const bool bateu = mBordaDaRevelacao.Bateu(apertou);
+    if (mDesdeOBotao >= 0.0f || mTempoDaRevelacao < Revelacao::kPodeSeguir || !bateu) return;
+    mDesdeOBotao = 0.0f;
+    if (auto* audio = mGame->GetAudio()) audio->PlaySound("toque.wav", false);
+    for (Actor* a : mNomeDaRevelacao) a->GetComponent<DrawTextComponent>()->SetIsVisible(false);
+    mTituloDaRevelacao->GetComponent<DrawTextComponent>()->SetIsVisible(false);
+    mAvisoDaRevelacao->GetComponent<DrawTextComponent>()->SetIsVisible(false);
+}
+
+void StageSelect::AtualizarARevelacao(const float deltaTime) {
+    using namespace Revelacao;
+    if (!Revelando() || !mFundoDaRevelacao || !mFrenteDaRevelacao || !mLosangoGrande) return;
+    mTempoDaRevelacao += deltaTime;
+    if (mDesdeOBotao >= 0.0f) mDesdeOBotao += deltaTime;
+    const float t = mTempoDaRevelacao;
+
+    const auto largura = static_cast<float>(mGame->GetWindowWidth());
+    const auto altura = static_cast<float>(mGame->GetWindowHeight());
+    const Vector2 meio(largura / 2.0f, altura * 0.45f);
+    const Vector2 sacudida = Sacudida(t);
+    mFundoDaRevelacao->Limpar();
+    mFrenteDaRevelacao->Limpar();
+
+    // Os sons: a carga comeca, e o estouro.
+    if (!mSoouACarga && t >= kComecaACarga) {
+        mSoouACarga = true;
+        if (auto* audio = mGame->GetAudio()) audio->PlaySound("sinal.wav", false);
+    }
+    if (!mSoouOEstouro && t >= kEstouro) {
+        mSoouOEstouro = true;
+        if (auto* audio = mGame->GetAudio()) audio->PlaySound("powerup.wav", false);
+    }
+
+    // O veu, e o que gira por baixo do losango.
+    mFundoDaRevelacao->Preencher(Vector2(0.0f, 0.0f), Vector2(largura, altura),
+                                 ComAlfa(SDL_Color{6, 8, 18, 255}, Veu(t, mDesdeOBotao)));
+    if (mDesdeOBotao < 0.0f) {
+        for (const Pixel& p : Carga(meio, t, kPixelsDaCarga)) {
+            Quadrado(mFundoDaRevelacao, p.onde + sacudida, p.lado,
+                     ComAlfa(p.dourado ? kOuroDaRevelacao : kCianoDaRevelacao, p.opacidade));
+        }
+        const Contorno c = ContornoDaCarga(t);
+        if (c.opacidade > 0.0f) Losango(mFundoDaRevelacao, meio + sacudida, c.raio, ComAlfa(kOuroDaRevelacao, c.opacidade), 2);
+        for (const Onda& o : Ondas(t)) Losango(mFundoDaRevelacao, meio, o.raio, ComAlfa(CorDe(o.cor), o.opacidade), 3);
+    }
+
+    // O losango grande: nasce no meio e, depois do botao, voa ate o lugar dele.
+    Vector2 onde = meio + sacudida;
+    float escala = Escala(t);
+    if (mDesdeOBotao >= 0.0f && mBotaoRevelado) {
+        const Ida ida = IdaEm(meio, mBotaoRevelado->GetPosition(), mDesdeOBotao);
+        onde = ida.onde;
+        escala = ida.escala;
+        if (ida.chegou) {
+            TerminarARevelacao();
+            return;
+        }
+    }
+    mLosangoGrande->SetPosition(onde);
+    mLosangoGrande->SetScale(escala);
+
+    // Atras dele, o halo que pulsa; na frente, as faiscas e o clarao.
+    if (mDesdeOBotao < 0.0f) {
+        const Contorno h = Halo(t);
+        if (h.opacidade > 0.0f) Losango(mFundoDaRevelacao, onde, h.raio, ComAlfa(kOuroDaRevelacao, h.opacidade), 2);
+    }
+    for (const Faisca& f : Faiscas(meio, t, kFaiscas)) Quadrado(mFrenteDaRevelacao, f.onde, f.lado, ComAlfa(CorDe(f.cor), f.opacidade));
+    if (const float clarao = Clarao(t); clarao > 0.0f) {
+        mFrenteDaRevelacao->Preencher(Vector2(0.0f, 0.0f), Vector2(largura, altura), ComAlfa(kBrancoDaRevelacao, 0.9f * clarao));
+    }
+
+    // Os parabens.
+    if (mDesdeOBotao < 0.0f) {
+        if (auto* dc = mTituloDaRevelacao->GetComponent<DrawTextComponent>()) {
+            const float u = DescidaDoTitulo(t);
+            dc->SetIsVisible(t >= kTitulo);
+            mTituloDaRevelacao->SetPosition(Vector2(largura / 2.0f, -60.0f + (altura * 0.14f + 60.0f) * u) + sacudida);
+        }
+        for (Actor* a : mNomeDaRevelacao) a->GetComponent<DrawTextComponent>()->SetIsVisible(Nome(t) > 0.5f);
+        mAvisoDaRevelacao->GetComponent<DrawTextComponent>()->SetIsVisible(Aviso(t));
+    }
+}
+
+void StageSelect::TerminarARevelacao() {
+    const int materia = mMateriaRevelada;
+    mMateriaRevelada = -1;
+    for (Actor* a : {mLosangoGrande, mFundoDaRevelacao ? mFundoDaRevelacao->GetOwner() : nullptr,
+                     mFrenteDaRevelacao ? mFrenteDaRevelacao->GetOwner() : nullptr, mTituloDaRevelacao, mAvisoDaRevelacao}) {
+        if (a) a->SetState(ActorState::Destroy);
+    }
+    for (Actor* a : mNomeDaRevelacao) a->SetState(ActorState::Destroy);
+    mNomeDaRevelacao.clear();
+    mLosangoGrande = nullptr;
+    mFundoDaRevelacao = nullptr;
+    mFrenteDaRevelacao = nullptr;
+    mTituloDaRevelacao = nullptr;
+    mAvisoDaRevelacao = nullptr;
+
+    // O de verdade aparece no lugar dele, com o carimbo da festa, e a faixa diz que ela esta aberta.
+    if (mBotaoRevelado) {
+        if (auto* a = mBotaoRevelado->GetComponent<DrawAnimatedComponent>()) a->SetIsVisible(true);
+        if (auto* t = mBotaoRevelado->GetComponent<DrawTextComponent>()) t->SetIsVisible(true);
+    }
+    ComecarAFesta(materia, true);
+    const Materias::Materia* m = Materias::Carregadas().Por(materia);
+    auto* faixa = CriarTexto(*this, mStageSelectFont.get(),
+                             (m ? m->nome : std::string("A SECRETA")) + " EST\xc3\x81 ABERTA!  Boa sorte.",
+                             Vector2(static_cast<float>(mGame->GetWindowWidth()) / 2.0f, 104.0f), 26, 760, 40, 250);
+    faixa->SetColor(Color::Gold);
+    if (mFaixaDaCompra) mFaixaDaCompra->SetState(ActorState::Destroy);
+    mFaixaDaCompra = faixa->GetOwner();
+    mFaixaAte = kDuracaoDaFaixa;
+
+    // Gravada: nao se repete.
+    mGame->MarcarRevelada(materia);
 }
 
 void StageSelect::EscreverNoCartao(Actor* ator, const std::string& texto, const Vector3& cor) {

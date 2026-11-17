@@ -175,7 +175,8 @@ private:
     float mFaixaAte = -1.0f;
     /// A festa da matricula (FestaDaMatricula.h): as fichas douradas saltam dos blocos de horas ate o
     /// losango da optativa comprada, e ele da dois pulinhos com o anel e as faiscas.
-    void ComecarAFesta(int materia);
+    /// 'soOCarimbo': sem as fichas - so o pulinho, o anel e as faiscas (o fim da revelacao).
+    void ComecarAFesta(int materia, bool soOCarimbo = false);
     void AtualizarAFesta(float deltaTime);
     DrawLinhasComponent* mFesta = nullptr;
     StageSelectButton* mBotaoDaFesta = nullptr;
@@ -184,6 +185,30 @@ private:
     int mFichasDaFesta = 0;
     bool mCarimbou = false;
     static constexpr int kOrdemDaFesta = 260;
+
+    // ---- A revelacao da materia secreta (Curso/Revelacao.h) ----
+    // No dia em que ela aparece, a tela para tudo: escurece, a carga gira ate o meio, estoura, e o
+    // losango dela nasce grande, com os parabens; o botao 1 o manda para o lugar dele na grade.
+    void ComecarARevelacao(int materia);
+    void AtualizarARevelacao(float deltaTime);
+    void TerminarARevelacao();
+    /// Le o botao durante a revelacao; o resto da tela nao anda.
+    void LerARevelacao(const Uint8* keyState);
+    [[nodiscard]] bool Revelando() const { return mMateriaRevelada >= 0; }
+    int mMateriaRevelada = -1;
+    float mTempoDaRevelacao = 0.0f;
+    float mDesdeOBotao = -1.0f;
+    StageSelectButton* mBotaoRevelado = nullptr;
+    Actor* mLosangoGrande = nullptr;
+    DrawLinhasComponent* mFundoDaRevelacao = nullptr;   ///< o veu, a carga e as ondas
+    DrawLinhasComponent* mFrenteDaRevelacao = nullptr;  ///< o halo, as faiscas e o clarao
+    Actor* mTituloDaRevelacao = nullptr;
+    Actor* mAvisoDaRevelacao = nullptr;
+    std::vector<Actor*> mNomeDaRevelacao;               ///< o nome, o professor e os parabens
+    bool mSoouACarga = false;
+    bool mSoouOEstouro = false;
+    Borda mBordaDaRevelacao{true};
+    static constexpr int kOrdemDaRevelacao = 400;
     /// A frase do cartao de uma optativa fechada com preco: quanto custa, quanto falta, ou o pedido
     /// de confirmacao.
     [[nodiscard]] std::string FraseDaCompra() const;

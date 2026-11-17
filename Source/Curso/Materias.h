@@ -64,6 +64,9 @@ namespace Materias {
     /// A chave de uma materia secreta aberta a mao por quem desenvolve (F10 na selecao de fases):
     /// "liberada@INF216". Com ela na ficha, a materia abre sem a regra.
     std::string ChaveDaLiberacao(const std::string& codigo);
+    /// A chave da revelacao de uma materia secreta, depois que o aluno a viu aparecer (a selecao de
+    /// fases a revela uma vez so, Curso/Revelacao.h): "revelada@INF216".
+    std::string ChaveDaRevelacao(const std::string& codigo);
 
     struct Materia {
         /// A chave estavel. Vai para o save do aluno e para a exportacao do professor.

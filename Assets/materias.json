@@ -147,8 +147,9 @@
                                        { "tipo": "mencao", "mencao": "dePerto", "quantas": 2 } ] }
     },
 
-    // A optativa secreta: nem aparece na grade ate o aluno ter a nota cheia (o 100) em metade das
-    // materias e a mencao do Dificil em todas as obrigatorias. Nao custa horas: quem chegou ate
+    // A optativa secreta: nem aparece na grade ate o aluno passar em 10 materias no Dificil e ter a
+    // nota cheia (o 100) em 6 - quaisquer, as optativas inclusive. No dia em que aparece, a selecao
+    // de fases faz a revelacao (Curso/Revelacao.h). Nao custa horas: quem chegou ate
     // aqui ja pagou. E a mais dificil do jogo, e mexe nos sistemas do proprio jogo. --batalha 16 e ela;
     // o F10 da selecao de fases a abre para quem desenvolve (e o F9 a fecha de novo).
     {
@@ -156,8 +157,8 @@
       "nomeCompleto": "Projeto e Implementação de Jogos Digitais", "professor": "Lucas Ferreira",
       "coluna": 8, "chefe": "ferreira", "optativa": true, "secreta": true,
       "desbloqueio": { "tipo": "sempre",
-                       "requisitos": [ { "tipo": "mencao", "mencao": "notaCheia", "fracao": 0.5 },
-                                       { "tipo": "mencao", "mencao": "dificil", "fracao": 1.0, "de": "obrigatorias" } ] }
+                       "requisitos": [ { "tipo": "mencao", "mencao": "dificil", "quantas": 10 },
+                                       { "tipo": "mencao", "mencao": "notaCheia", "quantas": 6 } ] }
     }
   ]
 }
