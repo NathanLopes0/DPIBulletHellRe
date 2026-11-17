@@ -18,6 +18,7 @@
 #include "../Simulacao/Simulacao.h"
 #include "../Entrada/Painel.h"
 #include "../Entrada/Manches.h"
+#include "../Entrada/Borda.h"
 #include "../Aluno/Sessao.h"
 #include "Configuracao.h"
 #include "../Regras/Dificuldade.h"
@@ -81,6 +82,11 @@ public:
     // Scenes.
     [[nodiscard]] Scene* GetScene() const { return mScene.get(); }
     void RequestSceneChange(Scene::SceneType nextScene);
+
+    /// Abre as opcoes lembrando de onde veio: e para la que VoltarDasOpcoes leva. O SELECT do painel
+    /// abre por aqui, e o menu principal tambem.
+    void AbrirOpcoes();
+    void VoltarDasOpcoes();
 
     [[nodiscard]] Scene::SceneType GetCurrSceneType() const;
 
@@ -331,6 +337,9 @@ private:
     /// O encoder do painel quando ele e joystick (Manches.h), e o teclado com o que ele aperta.
     Manches mManches;
     std::vector<Uint8> mTecladoComManche;
+    /// O SELECT do painel (Painel::Sistema::Select), e a tela para onde as opcoes voltam.
+    Borda mBordaDoSelect;
+    Scene::SceneType mVoltarDasOpcoes = Scene::SceneType::MainMenu;
 
     // ---- A simulacao (Simulacao.h) ----
     Simulacao::Configuracao mSimulacao;

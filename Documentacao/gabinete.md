@@ -122,11 +122,13 @@ lá, e é por isso que nenhuma tela pode exigir outra tecla.
 | **Botão 1** | `Espaço` | `F` | confirmar, atirar, digitar |
 | **Botão 2** | `B` | `E` | voltar, apagar, sobrecarga |
 | **Botão 3** | `N` | `H` | o extra de cada tela (hoje, o ranking da matéria) |
-| **Pausa** | `P` | `P` | um só no gabinete: pausa a batalha (abaixo) |
+| **Start** | `P` | `T` | pausa a batalha (abaixo) |
+| **Select** | `O` | `R` | abre as opções, das telas de menu (abaixo) |
 
 São essas as teclas que o encoder do painel manda quando ele se apresenta como
-**teclado** — **catorze, não sete**, e nenhuma repetida entre as duas posições,
-mais a do botão de pausa, que é da máquina e não de uma posição. Uma tecla repetida faria os
+**teclado** — **dezoito, e não nove**, e nenhuma repetida entre as duas posições.
+O painel tem sete botões ao lado de cada manche; o jogo usa três, e os outros
+quatro ficam livres. Uma tecla repetida faria os
 dois manches moverem o mesmo aluno, que era o estado do código antes de a
 segunda posição existir: o `W A S D` era atalho das setas.
 
@@ -173,13 +175,24 @@ monta o texto a partir do próprio botão que a cena escuta, então as duas cois
 não têm como divergir. `ENTER` e `ESC` continuam valendo para quem desenvolve,
 mas **não aparecem escritos em lugar nenhum**.
 
-**A pausa da batalha tem um botão próprio**, o **PAUSA**: um só na máquina, fora
-das duas posições (`Painel::TeclaDaPausa`). Pelo encoder de teclado é a tecla
-`P`; pelo de joystick, o botão `"pausa"` do `Assets/painel.json` (no padrão, o
-botão 3 de cada joystick, o primeiro livre depois dos três). Ele abre o mesmo
-menu do computador — continuar, recomeçar a fase, sair dela —, o rodapé diz
-"PAUSA continuar", e apertá-lo de novo também continua, com a contagem 3, 2, 1.
+**Cada posição tem um Start e um Select** (`Painel::Sistema`), fora dos botões
+de jogo. Pelo encoder de teclado são as teclas da tabela; pelo de joystick, os
+botões `"start"` e `"select"` do `Assets/painel.json` (no padrão, o 9 e o 8, a
+numeração comum dos encoders "zero delay"; o nome antigo `"pausa"` ainda vale
+como o Start).
+
+**O Start pausa a batalha**, de qualquer jogador: abre o mesmo menu do
+computador — continuar, recomeçar a fase, sair dela —, o rodapé diz
+"START continuar", e apertá-lo de novo também continua, com a contagem 3, 2, 1.
 No computador o `ESC` faz o mesmo, sem aparecer escrito.
+
+**O Select abre as opções**, de qualquer jogador, nas telas de menu — o menu
+principal, a seleção de fases, a dificuldade, o boletim, as horas e o Como
+Jogar —, e voltar delas (o Botão 2, ou o Select de novo) leva à mesma tela de
+onde se veio (`Game::AbrirOpcoes`). Na batalha ele não faz nada, e também não
+no meio de uma escolha — a matrícula sendo digitada, a personagem sendo
+montada, o orientador sendo votado —, que se perderia. No gabinete as opções
+não têm a linha da tela cheia: o jogo está sempre em tela cheia.
 
 Uma batalha congelada no corredor seria uma tela morta para quem chega depois,
 então **a pausa esquecida conta como ociosidade**: passado o tempo de

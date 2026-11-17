@@ -135,7 +135,10 @@ Configuracao Ler(const std::string& texto, std::vector<std::string>* problemas) 
         Inteiro(p, "hat", posicao.hat, onde, problemas);
         Lista(p, "botoes", posicao.botoes, onde, problemas);
         Lista(p, "direcoes", posicao.direcoes, onde, problemas);
-        Inteiro(p, "pausa", posicao.pausa, onde, problemas);
+        // "pausa" e o nome que o START tinha antes de o painel ganhar o SELECT.
+        Inteiro(p, "pausa", posicao.start, onde, problemas);
+        Inteiro(p, "start", posicao.start, onde, problemas);
+        Inteiro(p, "select", posicao.select, onde, problemas);
     }
     return c;
 }
@@ -158,8 +161,8 @@ bool Apertado(const Leitura& leitura, const Posicao& posicao, const Painel::Bota
     return BotaoApertado(leitura, posicao.botoes[Coluna(botao)]);
 }
 
-bool PausaApertada(const Leitura& leitura, const Posicao& posicao) {
-    return BotaoApertado(leitura, posicao.pausa);
+bool Apertado(const Leitura& leitura, const Posicao& posicao, const Painel::Sistema botao) {
+    return BotaoApertado(leitura, botao == Painel::Sistema::Start ? posicao.start : posicao.select);
 }
 
 void Apertar(const Leitura& leitura, const Posicao& posicao, const float zonaMorta, const Painel::Jogador quem,
@@ -174,7 +177,9 @@ void Apertar(const Leitura& leitura, const Posicao& posicao, const float zonaMor
     for (const Painel::Botao b : Painel::kBotoes) {
         if (Apertado(leitura, posicao, b)) ligar(Painel::Tecla(quem, b));
     }
-    if (PausaApertada(leitura, posicao)) ligar(Painel::TeclaDaPausa());
+    for (const Painel::Sistema s : Painel::kSistemas) {
+        if (Apertado(leitura, posicao, s)) ligar(Painel::Tecla(quem, s));
+    }
 }
 
 } // namespace MapaDoManche

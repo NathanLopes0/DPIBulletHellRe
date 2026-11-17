@@ -10,8 +10,9 @@
 #include <string>
 #include <vector>
 
-/// O painel de controle do gabinete: duas posicoes, cada uma com um manche e tres botoes. Nao ha
-/// mais nada la - nem teclado, nem mouse.
+/// O painel de controle do gabinete: duas posicoes, cada uma com um manche, os botoes de jogo e os
+/// dois de sistema (START e SELECT). O jogo usa tres dos botoes de jogo. Nao ha mais nada la - nem
+/// teclado, nem mouse.
 namespace Painel {
 
 /// A posicao no painel. O gabinete tem duas, uma ao lado da outra.
@@ -24,8 +25,13 @@ enum class Botao { Um, Dois, Tres };
 /// soma as duas, como o jogador faz.
 enum class Direcao { Cima, Baixo, Esquerda, Direita };
 
+/// Os dois botoes de sistema de cada posicao, fora dos de jogo: o START pausa a batalha, e o SELECT
+/// abre as opcoes.
+enum class Sistema { Start, Select };
+
 /// Tudo o que existe, para quem precisa percorrer.
 constexpr Jogador kJogadores[] = {Jogador::Um, Jogador::Dois};
+constexpr Sistema kSistemas[] = {Sistema::Start, Sistema::Select};
 constexpr Botao kBotoes[] = {Botao::Um, Botao::Dois, Botao::Tres};
 constexpr Direcao kDirecoes[] = {Direcao::Cima, Direcao::Baixo,
                                  Direcao::Esquerda, Direcao::Direita};
@@ -53,19 +59,24 @@ constexpr Direcao kDirecoes[] = {Direcao::Cima, Direcao::Baixo,
 /// Se o manche esta empurrado para este lado neste quadro.
 [[nodiscard]] bool Apertado(const Uint8* teclado, Jogador quem, Direcao direcao);
 
-// ---- O botao de pausa ----
-// Um so no gabinete, fora das duas posicoes: pausa a batalha (Pausa.h). No computador o ESC faz o
-// mesmo, sem aparecer escrito.
+// ---- Os botoes de sistema ----
+// O START pausa a batalha (Pausa.h) - no computador o ESC faz o mesmo, sem aparecer escrito -, e o
+// SELECT abre as opcoes (Game::AbrirOpcoes). Valem de qualquer das duas posicoes.
 
-/// A tecla que o botao de pausa manda.
-[[nodiscard]] SDL_Scancode TeclaDaPausa();
+/// A tecla que esta posicao manda por este botao de sistema.
+[[nodiscard]] SDL_Scancode Tecla(Jogador quem, Sistema botao);
 
-/// "PAUSA", e a tecla dele: "P".
-[[nodiscard]] const char* NomeDaPausa();
-[[nodiscard]] const char* NomeDaTeclaDaPausa();
+/// "START", "SELECT": o mesmo nas duas posicoes.
+[[nodiscard]] const char* Nome(Sistema botao);
 
-/// Se o botao de pausa esta apertado neste quadro.
-[[nodiscard]] bool PausaApertada(const Uint8* teclado);
+/// Como a tecla dele se chama na tela: "P".
+[[nodiscard]] const char* NomeDaTecla(Jogador quem, Sistema botao);
+
+/// Se esta posicao aperta este botao de sistema neste quadro.
+[[nodiscard]] bool Apertado(const Uint8* teclado, Jogador quem, Sistema botao);
+
+/// Se qualquer das duas posicoes o aperta.
+[[nodiscard]] bool AlgumApertado(const Uint8* teclado, Sistema botao);
 
 /// Como o rodape nomeia o que apertar. No gabinete nao ha teclado, entao dizer a tecla seria ruido.
 enum class Jeito {
@@ -89,8 +100,8 @@ struct Acao {
 /// "MANCHE  escolher", e com a tecla "MANCHE (SETAS)  escolher".
 [[nodiscard]] Acao Manche(Jogador quem, std::string oQueFaz);
 
-/// O botao de pausa como item de rodape: "PAUSA  continuar", e com a tecla "PAUSA (P)  continuar".
-[[nodiscard]] Acao BotaoDePausa(std::string oQueFaz);
+/// Um botao de sistema como item de rodape: "START  continuar", e com a tecla "START (P)  continuar".
+[[nodiscard]] Acao BotaoDeSistema(Jogador quem, Sistema botao, std::string oQueFaz);
 
 /// O espaco entre o nome e o que ele faz.
 constexpr const char* kEntreNomeEAcao = "  ";

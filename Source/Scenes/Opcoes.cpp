@@ -59,7 +59,13 @@ void Opcoes::Load() {
     // \xc3\x87 e \xc3\x95 sao o C cedilha e o O til.
     Texto("OP\xc3\x87\xc3\x95" "ES", meio, altura * 0.15f, 52, 760);
 
-    for (int k = 0; k < kItens; ++k) {
+    mItens.clear();
+    for (const Item item : {Item::Musica, Item::Efeitos, Item::TelaCheia, Item::Hitbox}) {
+        if (item == Item::TelaCheia && mGame->NoGabinete()) continue;
+        mItens.push_back(item);
+    }
+
+    for (int k = 0; k < Quantos(); ++k) {
         const float y = altura * (kPrimeiraLinha + kEntreLinhas * static_cast<float>(k));
         auto linha = std::make_unique<Actor>(this);
         linha->SetPosition(Vector2(meio, y));
@@ -67,7 +73,7 @@ void Opcoes::Load() {
                                                                     kMoldura, kFundo, 3, 100);
         AddActor(std::move(linha));
 
-        Texto(kNomes[k], meio - kRecuoDoTexto, y, 30, 300);
+        Texto(kNomes[static_cast<int>(mItens[static_cast<size_t>(k)])], meio - kRecuoDoTexto, y, 30, 300);
         mLinhas[k].valor = Texto("", meio + kRecuoDoTexto, y, 30, 300)->GetComponent<DrawTextComponent>();
     }
     mDescricao = Texto("", meio, altura * 0.76f, 22, 760)->GetComponent<DrawTextComponent>();
@@ -75,7 +81,8 @@ void Opcoes::Load() {
 
     // O botao 1 tambem troca, sem aparecer escrito - como o enter.
     Texto(Painel::Rodape({Painel::Manche(Painel::Jogador::Um, "escolher e trocar"),
-                          {Painel::Jogador::Um, Painel::Botao::Dois, "voltar"}},
+                          {Painel::Jogador::Um, Painel::Botao::Dois, "voltar"},
+                          Painel::BotaoDeSistema(Painel::Jogador::Um, Painel::Sistema::Select, "voltar")},
                          mGame->JeitoDoRodape()),
           meio, altura * 0.89f, 24, 760);
 }
@@ -86,7 +93,7 @@ Actor* Opcoes::Texto(const std::string& conteudo, const float x, const float y, 
 }
 
 void Opcoes::Mostrar() {
-    for (int k = 0; k < kItens; ++k) {
+    for (int k = 0; k < Quantos(); ++k) {
         if (mLinhas[k].caixa) {
             mLinhas[k].caixa->SetMoldura(k == mEscolhida ? kMolduraEscolhida : kMoldura);
             mLinhas[k].caixa->SetFundo(k == mEscolhida ? kFundoEscolhido : kFundo);
@@ -94,7 +101,7 @@ void Opcoes::Mostrar() {
         DrawTextComponent* valor = mLinhas[k].valor;
         if (!valor) continue;
         valor->SetColor(Vector3(1.0f, 1.0f, 1.0f));
-        switch (static_cast<Item>(k)) {
+        switch (mItens[static_cast<size_t>(k)]) {
             case Item::Musica:    valor->SetText(Volume(mGame->VolumeDaMusica())); break;
             case Item::Efeitos:   valor->SetText(Volume(mGame->VolumeDosEfeitos())); break;
             case Item::TelaCheia: valor->SetText(SimOuNao(mGame->TelaCheia())); break;
@@ -102,8 +109,8 @@ void Opcoes::Mostrar() {
         }
     }
 
-    if (!mDescricao) return;
-    switch (static_cast<Item>(mEscolhida)) {
+    if (!mDescricao || mItens.empty()) return;
+    switch (mItens[static_cast<size_t>(mEscolhida)]) {
         case Item::Musica:
             mDescricao->SetText("O volume da m\xc3\xbasica da batalha, de mudo a 10.");
             break;
@@ -121,10 +128,12 @@ void Opcoes::Mostrar() {
 }
 
 void Opcoes::Trocar(const int passo, const bool peloBotao) {
-    switch (static_cast<Item>(mEscolhida)) {
+    if (mItens.empty()) return;
+    const Item item = mItens[static_cast<size_t>(mEscolhida)];
+    switch (item) {
         case Item::Musica:
         case Item::Efeitos: {
-            const bool musica = static_cast<Item>(mEscolhida) == Item::Musica;
+            const bool musica = item == Item::Musica;
             const int antes = musica ? mGame->VolumeDaMusica() : mGame->VolumeDosEfeitos();
             int depois = Configuracao::MoverVolume(antes, passo);
             if (peloBotao && antes == Configuracao::kVolumeMaximo) depois = 0;
@@ -140,10 +149,12 @@ void Opcoes::Trocar(const int passo, const bool peloBotao) {
 
 void Opcoes::OnProcessInput(const Uint8* keyState) {
 
+    // O SELECT que abriu as opcoes tambem fecha; a volta e para a tela de onde se veio.
     const bool voltar = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Botao::Dois)
+                     || Painel::AlgumApertado(keyState, Painel::Sistema::Select)
                      || keyState[SDL_SCANCODE_ESCAPE];
     if (mBordaVoltar.Bateu(voltar)) {
-        mGame->RequestSceneChange(SceneType::MainMenu);
+        mGame->VoltarDasOpcoes();
         return;
     }
 
@@ -163,7 +174,7 @@ void Opcoes::OnProcessInput(const Uint8* keyState) {
     if (mBordaCima.Bateu(cima)) linha -= 1;
     if (mBordaBaixo.Bateu(baixo)) linha += 1;
     if (linha != 0) {
-        mEscolhida = (mEscolhida + linha + kItens) % kItens;
+        mEscolhida = (mEscolhida + linha + Quantos()) % Quantos();
         Mostrar();
     }
 

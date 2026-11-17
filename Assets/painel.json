@@ -4,8 +4,8 @@
 // Source/Entrada/Painel.cpp. O que se apresenta como joystick e lido aqui: cada posicao do
 // painel le um joystick, e o que ele aperta vira as teclas dela.
 //
-// O botao PAUSA (um so no gabinete): pelo encoder de teclado, a tecla P; pelo de joystick, o
-// "pausa" abaixo.
+// O START (pausa a batalha) e o SELECT (abre as opcoes) de cada posicao: pelo encoder de teclado,
+// P e O no jogador 1 e T e R no jogador 2; pelo de joystick, o "start" e o "select" abaixo.
 //
 // Para acertar um encoder novo: abra o jogo pelo jogar.sh, mexa em cada manche e aperte cada
 // botao, e leia o Saves/jogo.log. Ele diz cada joystick ligado ("MANCHE: joystick 0 ligado:
@@ -31,9 +31,10 @@
             "botoes": [0, 1, 2],
             // Para o encoder que manda o manche como botoes: cima, baixo, esquerda, direita.
             "direcoes": [-1, -1, -1, -1],
-            // O botao PAUSA do gabinete, se ele esta ligado neste joystick (-1: nao esta). Vale de
-            // qualquer posicao: pausa a batalha dos dois.
-            "pausa": 3
+            // Os botoes de sistema desta posicao (-1: nao tem). O START pausa a batalha dos dois, e o
+            // SELECT abre as opcoes.
+            "start": 9,
+            "select": 8
         },
         {
             // Jogador 2.
@@ -45,7 +46,8 @@
             "hat": 0,
             "botoes": [0, 1, 2],
             "direcoes": [-1, -1, -1, -1],
-            "pausa": 3
+            "start": 9,
+            "select": 8
         }
     ]
 }

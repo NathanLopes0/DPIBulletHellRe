@@ -21,6 +21,7 @@ struct Posto {
     const char* nomeDoManche;
     SDL_Scancode manche[4];     ///< na ordem de Painel::Direcao
     TeclaDoBotao botoes[3];     ///< na ordem de Painel::Botao
+    TeclaDoBotao sistema[2];    ///< na ordem de Painel::Sistema: START e SELECT
 };
 
 /// As duas posicoes, e o unico lugar do projeto onde teclas aparecem. As teclas sao as de um
@@ -29,12 +30,14 @@ const Posto& Posicao(const Painel::Jogador quem) {
     static const Posto kUm{
         "SETAS",
         {SDL_SCANCODE_UP, SDL_SCANCODE_DOWN, SDL_SCANCODE_LEFT, SDL_SCANCODE_RIGHT},
-        {{SDL_SCANCODE_SPACE, "ESPACO"}, {SDL_SCANCODE_B, "B"}, {SDL_SCANCODE_N, "N"}}};
+        {{SDL_SCANCODE_SPACE, "ESPACO"}, {SDL_SCANCODE_B, "B"}, {SDL_SCANCODE_N, "N"}},
+        {{SDL_SCANCODE_P, "P"}, {SDL_SCANCODE_O, "O"}}};
 
     static const Posto kDois{
         "WASD",
         {SDL_SCANCODE_W, SDL_SCANCODE_S, SDL_SCANCODE_A, SDL_SCANCODE_D},
-        {{SDL_SCANCODE_F, "F"}, {SDL_SCANCODE_E, "E"}, {SDL_SCANCODE_H, "H"}}};
+        {{SDL_SCANCODE_F, "F"}, {SDL_SCANCODE_E, "E"}, {SDL_SCANCODE_H, "H"}},
+        {{SDL_SCANCODE_T, "T"}, {SDL_SCANCODE_R, "R"}}};
 
     switch (quem) {
         case Painel::Jogador::Um:   return kUm;
@@ -120,25 +123,32 @@ Acao Manche(const Jogador quem, std::string oQueFaz) {
     return Acao{std::string("MANCHE"), std::string(NomeDoManche(quem)), std::move(oQueFaz)};
 }
 
-SDL_Scancode TeclaDaPausa() {
-    return SDL_SCANCODE_P;
+SDL_Scancode Tecla(const Jogador quem, const Sistema botao) {
+    return Posicao(quem).sistema[botao == Sistema::Start ? 0 : 1].codigo;
 }
 
-const char* NomeDaPausa() {
-    return "PAUSA";
+const char* Nome(const Sistema botao) {
+    return botao == Sistema::Start ? "START" : "SELECT";
 }
 
-const char* NomeDaTeclaDaPausa() {
-    return "P";
+const char* NomeDaTecla(const Jogador quem, const Sistema botao) {
+    return Posicao(quem).sistema[botao == Sistema::Start ? 0 : 1].nome;
 }
 
-bool PausaApertada(const Uint8* teclado) {
+bool Apertado(const Uint8* teclado, const Jogador quem, const Sistema botao) {
     if (!teclado) return false;
-    return teclado[TeclaDaPausa()] != 0;
+    return teclado[Tecla(quem, botao)] != 0;
 }
 
-Acao BotaoDePausa(std::string oQueFaz) {
-    return Acao{std::string(NomeDaPausa()), std::string(NomeDaTeclaDaPausa()), std::move(oQueFaz)};
+bool AlgumApertado(const Uint8* teclado, const Sistema botao) {
+    for (const Jogador quem : kJogadores) {
+        if (Apertado(teclado, quem, botao)) return true;
+    }
+    return false;
+}
+
+Acao BotaoDeSistema(const Jogador quem, const Sistema botao, std::string oQueFaz) {
+    return Acao{std::string(Nome(botao)), std::string(NomeDaTecla(quem, botao)), std::move(oQueFaz)};
 }
 
 std::string Rodape(const std::vector<Acao>& acoes, const Jeito jeito) {

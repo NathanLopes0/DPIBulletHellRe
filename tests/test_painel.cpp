@@ -246,20 +246,35 @@ TEST_CASE("Painel: o nome do manche diz as teclas dele") {
     }
 }
 
-TEST_CASE("Painel: o botao PAUSA e um so, e nao e tecla de nenhuma posicao") {
-    const SDL_Scancode pausa = Painel::TeclaDaPausa();
-    CHECK(pausa != SDL_SCANCODE_UNKNOWN);
-    CHECK(pausa != SDL_SCANCODE_ESCAPE);   // o ESC e de quem desenvolve, e o Ctrl + Esc e a saida
-    for (const SDL_Scancode t : TodasAsTeclas()) CHECK(t != pausa);
+TEST_CASE("Painel: cada posicao tem START e SELECT, e nenhuma tecla deles e de outro botao") {
+    std::vector<SDL_Scancode> teclas = TodasAsTeclas();
+    for (const Painel::Jogador quem : Painel::kJogadores) {
+        for (const Painel::Sistema s : Painel::kSistemas) {
+            const SDL_Scancode t = Painel::Tecla(quem, s);
+            CHECK(t != SDL_SCANCODE_UNKNOWN);
+            CHECK(t != SDL_SCANCODE_ESCAPE);   // o ESC e de quem desenvolve, e o Ctrl + Esc e a saida
+            // Os digitos sao a matricula digitada no teclado de quem desenvolve.
+            CHECK((t < SDL_SCANCODE_1 || t > SDL_SCANCODE_0));
+            teclas.push_back(t);
+        }
+    }
+    for (size_t i = 0; i < teclas.size(); ++i) {
+        for (size_t j = i + 1; j < teclas.size(); ++j) CHECK(teclas[i] != teclas[j]);
+    }
 
-    CHECK(Painel::PausaApertada(TecladoCom(pausa).data()));
-    CHECK_FALSE(Painel::PausaApertada(TecladoCom(SDL_SCANCODE_SPACE).data()));
-    CHECK_FALSE(Painel::PausaApertada(nullptr));
+    // O START do jogador 1 e o P, a tecla da pausa de antes.
+    CHECK(Painel::Tecla(Painel::Jogador::Um, Painel::Sistema::Start) == SDL_SCANCODE_P);
+    const SDL_Scancode select2 = Painel::Tecla(Painel::Jogador::Dois, Painel::Sistema::Select);
+    CHECK(Painel::Apertado(TecladoCom(select2).data(), Painel::Jogador::Dois, Painel::Sistema::Select));
+    CHECK_FALSE(Painel::Apertado(TecladoCom(select2).data(), Painel::Jogador::Um, Painel::Sistema::Select));
+    CHECK(Painel::AlgumApertado(TecladoCom(select2).data(), Painel::Sistema::Select));
+    CHECK_FALSE(Painel::AlgumApertado(TecladoCom(select2).data(), Painel::Sistema::Start));
+    CHECK_FALSE(Painel::AlgumApertado(nullptr, Painel::Sistema::Start));
 }
 
-TEST_CASE("Painel: a pausa no rodape, com a tecla so no computador") {
-    CHECK(Painel::Rodape({Painel::BotaoDePausa("continuar")}, Painel::Jeito::SoOPainel) ==
-          std::string("PAUSA") + Painel::kEntreNomeEAcao + "continuar");
-    CHECK(Painel::Rodape({Painel::BotaoDePausa("continuar")}, Painel::Jeito::ComATecla) ==
-          std::string("PAUSA (P)") + Painel::kEntreNomeEAcao + "continuar");
+TEST_CASE("Painel: START e SELECT no rodape, com a tecla so no computador") {
+    const Painel::Acao start = Painel::BotaoDeSistema(Painel::Jogador::Um, Painel::Sistema::Start, "continuar");
+    CHECK(Painel::Rodape({start}, Painel::Jeito::SoOPainel) == std::string("START") + Painel::kEntreNomeEAcao + "continuar");
+    CHECK(Painel::Rodape({start}, Painel::Jeito::ComATecla) == std::string("START (P)") + Painel::kEntreNomeEAcao + "continuar");
+    CHECK(std::string(Painel::Nome(Painel::Sistema::Select)) == "SELECT");
 }

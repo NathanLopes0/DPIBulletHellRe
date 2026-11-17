@@ -29,7 +29,8 @@ escritos na tela.
 | **Botão 1** | **Espaço** | **F** | lançar Dúvidas (os balões com **?**); confirmar; digitar |
 | **Botão 2** | **B** | **E** | voltar e apagar; na batalha, gastar um Ponto Extra: sozinho, uma onda dourada sai de você e desfaz os tiros do professor por onde passa, e você fica 1,5 s sem atirar — em troca, ganha a nota que ganharia acertando todos os tiros desse tempo; em dupla, dá ao parceiro um escudo que destrói os projéteis do chefe, e quem gastou segue atirando — e, se os dois gastarem juntos, a onda sai do meio deles, além dos escudos |
 | **Botão 3** | **N** | **H** | na criação da personagem, passar do objeto para a cor; na dificuldade, trocar a personagem (no boletim, é o manche para cima); na seleção, o boletim (e dele, o ranking da matéria); na batalha em dupla, dar um sinal ao parceiro; na batalha do TCC, soltar o poder do orientador quando o anel dele enche; no resultado da dupla aprovada, os dois juntos: o toca aqui |
-| **Pausa** (um só no gabinete) | **P** | **P** | na batalha: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota. No computador o **Esc** faz o mesmo, e a batalha também pausa sozinha quando a janela perde o foco; no gabinete, a pausa esquecida volta ao menu sozinha |
+| **Start** | **P** | **T** | na batalha: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota. No computador o **Esc** faz o mesmo, e a batalha também pausa sozinha quando a janela perde o foco; no gabinete, a pausa esquecida volta ao menu sozinha |
+| **Select** | **O** | **R** | nas telas de menu (o menu principal, a seleção, a dificuldade, o boletim, as horas, o Como Jogar): abre as **Opções**, e de lá volta para a mesma tela |
 | — | **Enter**, **Esc**, **0–9**, **Backspace** | — | atalhos de teclado para quem desenvolve |
 
 > As setas **não são atalho do W A S D**: elas são o manche do jogador 1, e o
@@ -234,10 +235,12 @@ rampa de sete tons com a matiz andando (a sombra puxa para o violeta, a luz para
 o amarelo), contorno seletivo, luz de borda e luz refletida, as facetas
 lapidadas e o pontilhado só na passagem da mesa para elas.
 
-Na tela de **Opções**, do menu principal, ficam:
+Na tela de **Opções** — do menu principal, ou do **Select** de qualquer jogador
+numa tela de menu —, ficam:
 
 - o volume da **música** e o dos **efeitos**, de mudo a 10;
-- a **tela cheia** (no gabinete o jogo é sempre em tela cheia);
+- a **tela cheia** (só no computador: no gabinete o jogo é sempre em tela cheia,
+  e a linha nem aparece);
 - a **hitbox**: mostra na batalha o círculo onde um tiro acerta o aluno de
   verdade, bem menor que o desenho dele.
 

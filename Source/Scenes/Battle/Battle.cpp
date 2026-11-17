@@ -484,9 +484,9 @@ void Battle::OnUpdate(float deltaTime) {
 void Battle::OnProcessInput(const Uint8* keyState) {
     // Nao chame ProcessInput dos jogadores aqui.
 
-    // O botao PAUSA do painel, ou o ESC de quem desenvolve. E borda, e nao estado: segurado, ele
+    // O START de qualquer jogador, ou o ESC de quem desenvolve. E borda, e nao estado: segurado, ele
     // abriria e fecharia a pausa a cada quadro.
-    const bool esc = keyState[SDL_SCANCODE_ESCAPE] != 0 || Painel::PausaApertada(keyState);
+    const bool esc = keyState[SDL_SCANCODE_ESCAPE] != 0 || Painel::AlgumApertado(keyState, Painel::Sistema::Start);
     const bool escNovo = mBordaEsc.Bateu(esc);
 
     if (mAcabando) {

@@ -220,6 +220,10 @@ void Game::RunLoop() {
         GenerateOutput();
     }
 }
+namespace {
+    bool SelectAbreAsOpcoes(Scene::SceneType atual);   // com a tabela da ociosidade, mais abaixo
+}
+
 void Game::ProcessInput()
 {
     SDL_Event event;
@@ -260,6 +264,13 @@ void Game::ProcessInput()
         }
     }
     mSaidaSegurada = state[SDL_SCANCODE_LCTRL] && state[SDL_SCANCODE_ESCAPE];
+
+    // O SELECT de qualquer jogador abre as opcoes - nas opcoes, quem volta e a propria tela.
+    if (mBordaDoSelect.Bateu(Painel::AlgumApertado(state, Painel::Sistema::Select)) && mScene &&
+        !mPendingSceneChange && SelectAbreAsOpcoes(GetCurrSceneType())) {
+        AbrirOpcoes();
+        return;
+    }
 
     if (mScene) {
         mScene->ProcessInput(state);
@@ -307,6 +318,23 @@ namespace {
 
     /// Para onde a ociosidade leva, conforme a tela em que ela acontece. None quer dizer "fica onde
     /// esta".
+    /// De onde o SELECT abre as opcoes: das telas de menu, que se refazem iguais na volta. Nao da
+    /// batalha (o START e que pausa), nem do meio de uma escolha - a matricula sendo digitada, a
+    /// personagem sendo montada, o orientador sendo votado -, que se perderia.
+    bool SelectAbreAsOpcoes(const Scene::SceneType atual) {
+        switch (atual) {
+            case Scene::SceneType::MainMenu:
+            case Scene::SceneType::StageSelect:
+            case Scene::SceneType::EscolhaDaDificuldade:
+            case Scene::SceneType::Boletim:
+            case Scene::SceneType::Horas:
+            case Scene::SceneType::ComoJogar:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     Scene::SceneType ParaOndeAOciosidadeLeva(const Scene::SceneType atual, const bool pausada) {
         switch (atual) {
             // A luta em andamento nao e interrompida; a pausada que ninguem retomou, sim.
@@ -687,6 +715,16 @@ Scene::SceneType Game::GetCurrSceneType() const {
 void Game::RequestSceneChange(const Scene::SceneType nextScene) {
     mPendingSceneChange = true;
     mNextScene = nextScene;
+}
+
+void Game::AbrirOpcoes() {
+    mVoltarDasOpcoes = mScene ? GetCurrSceneType() : Scene::SceneType::MainMenu;
+    if (mVoltarDasOpcoes == Scene::SceneType::Opcoes) mVoltarDasOpcoes = Scene::SceneType::MainMenu;
+    RequestSceneChange(Scene::SceneType::Opcoes);
+}
+
+void Game::VoltarDasOpcoes() {
+    RequestSceneChange(mVoltarDasOpcoes);
 }
 
 bool Game::IsStageUnlocked(const int subject) {

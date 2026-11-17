@@ -152,6 +152,11 @@ void MainMenu::OnProcessInput(const Uint8 *keyState) {
             mGame->PedirRanking(Game::PedidoDeRanking{true, 0, Scene::SceneType::MainMenu});
         }
 
+        if (kOpcoes[mSelecionada].destino == Scene::SceneType::Opcoes) {
+            mGame->AbrirOpcoes();
+            return;
+        }
+
         mGame->RequestSceneChange(kOpcoes[mSelecionada].destino);
         return;
     }

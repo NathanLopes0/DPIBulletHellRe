@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "Scene.h"
 #include "../Entrada/Borda.h"
@@ -28,6 +29,11 @@ private:
 
     enum class Item { Musica, Efeitos, TelaCheia, Hitbox };
     static constexpr int kItens = 4;
+
+    /// As linhas desta vez, na ordem da tela. No gabinete a tela cheia nao entra: la o jogo esta
+    /// sempre em tela cheia, e a linha nao mudaria nada.
+    std::vector<Item> mItens;
+    [[nodiscard]] int Quantos() const { return static_cast<int>(mItens.size()); }
 
     /// Cria um ator de texto no x pedido, no tamanho natural dele.
     Actor* Texto(const std::string& conteudo, float x, float y, int tamanho, int larguraMaxima);

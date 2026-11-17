@@ -174,25 +174,36 @@ TEST_CASE("MapaDoManche: o Assets/painel.json do jogo se le sem problema e e o p
         CHECK(c.posicoes[i].eixoY == padrao.posicoes[i].eixoY);
         CHECK(c.posicoes[i].hat == padrao.posicoes[i].hat);
         CHECK(c.posicoes[i].direcoes == padrao.posicoes[i].direcoes);
-        CHECK(c.posicoes[i].pausa == padrao.posicoes[i].pausa);
+        CHECK(c.posicoes[i].start == padrao.posicoes[i].start);
+        CHECK(c.posicoes[i].select == padrao.posicoes[i].select);
     }
 }
 
-TEST_CASE("MapaDoManche: o botao de pausa do joystick aperta a tecla da pausa") {
+TEST_CASE("MapaDoManche: o START e o SELECT do joystick apertam as teclas da posicao") {
     MapaDoManche::Posicao p;
-    CHECK(p.pausa == 3);   // o primeiro livre depois dos tres
+    CHECK(p.start == 9);   // a numeracao comum dos encoders "zero delay"
+    CHECK(p.select == 8);
     MapaDoManche::Leitura l = Solto();
-    l.botoes[3] = 1;
-    const std::vector<Uint8> t = Teclado(l, p, Painel::Jogador::Dois);
-    CHECK(t[Painel::TeclaDaPausa()] == 1);
+    l.botoes[9] = 1;
+    std::vector<Uint8> t = Teclado(l, p, Painel::Jogador::Dois);
+    CHECK(t[Painel::Tecla(Painel::Jogador::Dois, Painel::Sistema::Start)] == 1);
+    CHECK(Apertadas(t) == 1);
+    l.botoes[9] = 0;
+    l.botoes[8] = 1;
+    t = Teclado(l, p, Painel::Jogador::Um);
+    CHECK(t[Painel::Tecla(Painel::Jogador::Um, Painel::Sistema::Select)] == 1);
     CHECK(Apertadas(t) == 1);
 
-    p.pausa = MapaDoManche::kNenhum;
-    CHECK(Apertadas(Teclado(l, p, Painel::Jogador::Dois)) == 0);
+    p.select = MapaDoManche::kNenhum;
+    CHECK(Apertadas(Teclado(l, p, Painel::Jogador::Um)) == 0);
 
+    // "pausa" e o nome antigo do START, e ainda vale.
     std::vector<std::string> problemas;
-    const MapaDoManche::Configuracao c = MapaDoManche::Ler(R"({"jogadores": [{"pausa": 9}, {"pausa": -1}]})", &problemas);
+    const MapaDoManche::Configuracao c = MapaDoManche::Ler(
+        R"({"jogadores": [{"pausa": 7, "select": 6}, {"start": -1, "select": 11}]})", &problemas);
     CHECK(problemas.empty());
-    CHECK(c.posicoes[0].pausa == 9);
-    CHECK(c.posicoes[1].pausa == MapaDoManche::kNenhum);
+    CHECK(c.posicoes[0].start == 7);
+    CHECK(c.posicoes[0].select == 6);
+    CHECK(c.posicoes[1].start == MapaDoManche::kNenhum);
+    CHECK(c.posicoes[1].select == 11);
 }

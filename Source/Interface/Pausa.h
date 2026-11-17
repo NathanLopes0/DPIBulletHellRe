@@ -4,8 +4,8 @@
 
 #pragma once
 
-/// O botao PAUSA do gabinete (Painel::TeclaDaPausa) - ou, no computador, o ESC - pausa a batalha e
-/// abre um menu: continuar, recomecar a fase ou sair dela.
+/// O START de qualquer jogador (Painel::Sistema::Start) - ou, no computador, o ESC - pausa a batalha
+/// e abre um menu: continuar, recomecar a fase ou sair dela.
 namespace Pausa {
 
     /// As opcoes do menu, na ordem da tela. A primeira e a que abre em foco:
@@ -18,7 +18,7 @@ namespace Pausa {
     const char* Texto(Opcao o);
 
     /// So com a luta valendo: carregando os projeteis nao ha o que pausar, e a tela de fim ja tem o
-    /// menu dela (Resultado.h). No gabinete tambem: ele tem o botao PAUSA, e a pausa esquecida conta
+    /// menu dela (Resultado.h). No gabinete tambem: ele tem o START, e a pausa esquecida conta
     /// como ociosidade (Game::AtualizarGabinete) - a maquina nao fica numa luta congelada.
     bool PodePausar(bool arcade, bool emCombate);
 

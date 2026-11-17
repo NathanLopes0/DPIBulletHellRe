@@ -20,7 +20,7 @@ PausaDaBatalha::PausaDaBatalha(Scene& cena, Font* fonte, const Painel::Jeito jei
     // O rodape sai do painel, como o de toda tela (Painel.h).
     const std::string rodape = Painel::Rodape({Painel::Manche(Painel::Jogador::Um, "escolher"),
                                                {Painel::Jogador::Um, Painel::Botao::Um, "confirmar"},
-                                               Painel::BotaoDePausa("continuar")},
+                                               Painel::BotaoDeSistema(Painel::Jogador::Um, Painel::Sistema::Start, "continuar")},
                                               jeito);
     PainelDeMenu::Medidas medidas;
     medidas.ordem = kOrdem;
