@@ -5,6 +5,7 @@
 #include "MainMenu.h"
 #include "../Entrada/Painel.h"
 #include "../Motor/Game.h"
+#include "../Motor/AudioSystem.h"
 #include "../Actors/Actor.h"
 #include "../Motor/Font.h"
 #include "../Components/DrawComponents/DrawCaixaComponent.h"
@@ -64,6 +65,12 @@ namespace {
 
     /// A placa atras das opcoes existe por legibilidade, nao por enfeite. Sem moldura, para nao
     /// competir com a moldura da opcao em foco.
+    /// O aviso de que o codigo secreto entrou, e por quanto tempo ele fica.
+    constexpr const char* kAvisoDoSegredo = "Um segredo te espera depois da INF 213...";
+    constexpr float kTempoDoAviso = 3.5f;
+    constexpr int kLarguraDoAviso = 900;
+    constexpr SDL_Color kBordaDoAviso = {255, 209, 77, 255};
+
     constexpr SDL_Color kSemBorda   = {0, 0, 0, 0};
     constexpr SDL_Color kFundoPlaca = {12, 13, 17, 185};
 
@@ -124,6 +131,9 @@ void MainMenu::OnProcessInput(const Uint8 *keyState) {
     const bool cima  = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Direcao::Cima);
     const bool baixo = Painel::Apertado(keyState, Painel::Jogador::Um, Painel::Direcao::Baixo);
 
+    // O codigo le as mesmas setas antes do menu andar (as bordas sao dele).
+    const bool fechouOCodigo = TocarNoCodigo(keyState, cima, baixo);
+
     if (mBordaCima.Bateu(cima)) {
         // Soma kQuantasOpcoes antes do resto.
         mSelecionada = (mSelecionada - 1 + kQuantasOpcoes) % kQuantasOpcoes;
@@ -140,7 +150,8 @@ void MainMenu::OnProcessInput(const Uint8 *keyState) {
                         || keyState[SDL_SCANCODE_RETURN]
                         || keyState[SDL_SCANCODE_KP_ENTER];
 
-    if (mBordaConfirmar.Bateu(confirmar)) {
+    // O botao que fecha o codigo secreto nao escolhe a opcao em foco.
+    if (mBordaConfirmar.Bateu(confirmar) && !fechouOCodigo) {
 
         // So quem comeca uma partida mexe nas sessoes.
         if (kOpcoes[mSelecionada].destino == Scene::SceneType::Identificacao) {
@@ -159,6 +170,45 @@ void MainMenu::OnProcessInput(const Uint8 *keyState) {
 
         mGame->RequestSceneChange(kOpcoes[mSelecionada].destino);
         return;
+    }
+}
+
+bool MainMenu::TocarNoCodigo(const Uint8* keyState, const bool cima, const bool baixo) {
+    using CodigoSecreto::Toque;
+    const Painel::Jogador um = Painel::Jogador::Um;
+    bool fechou = false;
+    const auto tocar = [&](const Toque t) { if (mCodigo.Tocar(t)) fechou = true; };
+    if (mBordaCimaDoCodigo.Bateu(cima)) tocar(Toque::Cima);
+    if (mBordaBaixoDoCodigo.Bateu(baixo)) tocar(Toque::Baixo);
+    if (mBordaEsquerda.Bateu(Painel::Apertado(keyState, um, Painel::Direcao::Esquerda))) tocar(Toque::Esquerda);
+    if (mBordaDireita.Bateu(Painel::Apertado(keyState, um, Painel::Direcao::Direita))) tocar(Toque::Direita);
+    // O B e o botao 2 (no teclado, a tecla B); o A, o botao 1 - e a tecla A, de quem digita.
+    if (mBordaB.Bateu(Painel::Apertado(keyState, um, Painel::Botao::Dois))) tocar(Toque::B);
+    if (mBordaA.Bateu(Painel::Apertado(keyState, um, Painel::Botao::Um) || keyState[SDL_SCANCODE_A] != 0)) {
+        tocar(Toque::A);
+    }
+    if (fechou) MostrarOSegredo();
+    return fechou;
+}
+
+void MainMenu::MostrarOSegredo() {
+    mGame->AceitarCodigoSecreto();
+    if (auto* audio = mGame->GetAudio()) audio->PlaySound("powerup.wav", false);
+    mTempoDoAviso = kTempoDoAviso;
+    if (mAvisoDoSegredo) mAvisoDoSegredo->SetIsVisible(true);
+    if (mFaixaDoSegredo) mFaixaDoSegredo->SetIsVisible(true);
+    SDL_Log("MENU: o codigo secreto entrou.");
+}
+
+void MainMenu::OnUpdate(const float deltaTime) {
+    if (mTempoDoAviso <= 0.0f || !mAvisoDoSegredo) return;
+    mTempoDoAviso -= deltaTime;
+    // Pisca entre o dourado e o ciano da revelacao, e some no fim.
+    const bool dourado = static_cast<int>(mTempoDoAviso * 6.0f) % 2 == 0;
+    mAvisoDoSegredo->SetColor(dourado ? Vector3(1.0f, 0.82f, 0.3f) : Vector3(0.45f, 0.9f, 1.0f));
+    if (mTempoDoAviso <= 0.0f) {
+        mAvisoDoSegredo->SetIsVisible(false);
+        if (mFaixaDoSegredo) mFaixaDoSegredo->SetIsVisible(false);
     }
 }
 
@@ -223,6 +273,20 @@ void MainMenu::CriarOpcoes() {
         mOpcaoAtores.push_back(ator.get());
         AddActor(std::move(ator));
     }
+
+    // O aviso do codigo secreto, numa faixa escura no alto da tela: so aparece quando o codigo entra.
+    auto aviso = std::make_unique<Actor>(this);
+    aviso->SetPosition(Vector2(largura / 2.0f, altura * 0.06f));
+    mFaixaDoSegredo = aviso->AddComponent<DrawCaixaComponent>(kLarguraDoAviso + 60, 64, kBordaDoAviso, kFundoPlaca, 2, 105);
+    mFaixaDoSegredo->SetIsVisible(mGame->CodigoSecretoAceito());
+    mAvisoDoSegredo = aviso->AddComponent<DrawTextComponent>(kAvisoDoSegredo, mMainMenuFont.get(),
+                                                             kLarguraDoAviso, 48, 38, 110);
+    mAvisoDoSegredo->SetLarguraDeQuebra(kLarguraDoAviso);
+    mAvisoDoSegredo->SetAjustarAoTexto(true);
+    mAvisoDoSegredo->SetColor(Vector3(1.0f, 0.82f, 0.3f));
+    mAvisoDoSegredo->SetIsVisible(mGame->CodigoSecretoAceito());
+    if (mGame->CodigoSecretoAceito()) mTempoDoAviso = kTempoDoAviso;
+    AddActor(std::move(aviso));
 }
 
 void MainMenu::PosicionarSelecao() const {

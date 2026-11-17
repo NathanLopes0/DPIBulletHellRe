@@ -6,6 +6,7 @@
 
 #include "Scene.h"
 #include "../Entrada/Borda.h"
+#include "../Entrada/CodigoSecreto.h"
 #include <memory> // Necessário para std::unique_ptr
 #include <string>
 #include <vector>
@@ -14,6 +15,7 @@
 class Font;
 class Actor;
 class DrawCaixaComponent;
+class DrawTextComponent;
 
 /// O menu de entrada: por onde o aluno escolhe como comeca.
 class MainMenu : public Scene {
@@ -28,6 +30,7 @@ public:
 
     void Load() override;
     void OnProcessInput(const Uint8* keyState) override;
+    void OnUpdate(float deltaTime) override;
 
 private:
 
@@ -62,4 +65,23 @@ private:
     /// Comeca em true: quem volta ao menu pode chegar com enter ainda apertado da tela anterior, e
     /// sem isto a opcao em foco seria escolhida sozinha.
     Borda mBordaConfirmar{true};
+
+    // ---- O codigo secreto (Entrada/CodigoSecreto.h) ----
+
+    /// Cada toque do jogador 1 entra na sequencia; o que fecha o codigo nao escolhe a opcao.
+    /// Devolve se o codigo acabou de fechar.
+    bool TocarNoCodigo(const Uint8* keyState, bool cima, bool baixo);
+    void MostrarOSegredo();
+    CodigoSecreto::Sequencia mCodigo;
+    /// Bordas proprias das setas: o codigo nao depende de o menu ter andado.
+    Borda mBordaCimaDoCodigo;
+    Borda mBordaBaixoDoCodigo;
+    Borda mBordaEsquerda;
+    Borda mBordaDireita;
+    Borda mBordaB{true};
+    Borda mBordaA{true};
+    /// O aviso dourado de que o codigo entrou, e quanto tempo ele ainda fica (0: sumiu).
+    DrawTextComponent* mAvisoDoSegredo{};
+    DrawCaixaComponent* mFaixaDoSegredo{};
+    float mTempoDoAviso = 0.0f;
 };

@@ -238,6 +238,10 @@ std::string ChaveDaRevelacao(const std::string& codigo) {
     return "revelada@" + codigo;
 }
 
+std::string ChaveDoAtalho(const std::string& codigo) {
+    return "atalho@" + codigo;
+}
+
 int Lista::PrecoDe(const int indice) const {
     const Materia* m = Por(indice);
     return m ? m->desbloqueio.preco : 0;
@@ -257,6 +261,12 @@ bool Lista::Desbloqueada(const int indice, const Progresso& progresso) const {
     // A secreta aberta a mao (F10) dispensa a regra.
     if (const Materia* m = Por(indice); m && m->secreta && progresso.Atividades().count(ChaveDaLiberacao(m->codigo)) > 0) {
         return true;
+    }
+    // Quem digitou o codigo secreto: a secreta abre com a materia do atalho aprovada.
+    if (const Materia* m = Por(indice); m && m->secreta && !m->atalho.empty()
+        && progresso.Atividades().count(ChaveDoAtalho(m->codigo)) > 0) {
+        const int atalho = IndiceDe(m->atalho);
+        if (atalho >= 0 && progresso.Aprovado(atalho)) return true;
     }
     if (!RegraCumprida(indice, progresso)) return false;
     return PrecoDe(indice) <= 0 || Comprada(indice, progresso);
@@ -547,6 +557,15 @@ Lista LerMaterias(const std::string& textoJson) {
             }
         }
 
+        // "atalho": a materia que abre a secreta para quem digitou o codigo secreto.
+        if (j.contains("atalho")) {
+            if (j["atalho"].is_string() && m.secreta) {
+                m.atalho = j["atalho"].get<std::string>();
+            } else {
+                lista.problemas.emplace_back(onde + "\"atalho\" e o codigo de uma materia, e so na secreta; ficou sem atalho");
+            }
+        }
+
         // "optativa": vai para a ala das optativas, depois das obrigatorias.
         if (j.contains("optativa")) {
             if (j["optativa"].is_boolean()) {
@@ -607,6 +626,10 @@ Lista LerMaterias(const std::string& textoJson) {
                 lista.problemas.emplace_back("materia " + m.codigo + ": o desbloqueio exige \"" +
                                              exigida + "\", que nao existe - ela nunca vai abrir");
             }
+        }
+        if (!m.atalho.empty() && lista.IndiceDe(m.atalho) < 0) {
+            lista.problemas.emplace_back("materia " + m.codigo + ": o atalho e \"" + m.atalho +
+                                         "\", que nao existe - o codigo secreto nao a abre");
         }
     }
 

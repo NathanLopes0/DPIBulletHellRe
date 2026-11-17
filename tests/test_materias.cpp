@@ -154,6 +154,28 @@ TEST_CASE("Materias: regra que cita codigo inexistente e relatada") {
     CHECK(Menciona(l.problemas, "nunca vai abrir"));
 }
 
+TEST_CASE("Materias: o atalho do codigo secreto - so na secreta, e de uma materia que existe") {
+    const auto l = Materias::LerMaterias(R"({
+      "materias": [
+        { "codigo": "A", "coluna": 0, "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "B", "coluna": 1, "atalho": "A", "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "C", "coluna": 2, "secreta": true, "atalho": "SUMIU", "desbloqueio": { "tipo": "sempre" } },
+        { "codigo": "D", "coluna": 2, "secreta": true, "atalho": "A",
+          "desbloqueio": { "tipo": "aprovadoEm", "materias": ["C"] } }
+      ]
+    })");
+    CHECK(Menciona(l.problemas, "so na secreta"));
+    CHECK(Menciona(l.problemas, "SUMIU"));
+    CHECK(l.Por(l.IndiceDe("B"))->atalho.empty());
+    // A D abre pela regra, ou pelo atalho: com ele na ficha, basta passar na A.
+    const int d = l.IndiceDe("D");
+    Progresso p;
+    p.RegistrarNota(l.IndiceDe("A"), 100.0f, Dificuldade::Nivel::Normal);
+    CHECK_FALSE(l.Desbloqueada(d, p));
+    p.RegistrarAtividade(Materias::ChaveDoAtalho("D"));
+    CHECK(l.Desbloqueada(d, p));
+}
+
 TEST_CASE("Materias: regra IMPOSSIVEL e relatada") {
     // Duas aprovacoes numa coluna de uma materia so: aquela materia nunca abre.
     const auto l = Materias::LerMaterias(R"({

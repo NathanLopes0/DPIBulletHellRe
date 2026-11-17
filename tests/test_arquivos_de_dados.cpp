@@ -2761,6 +2761,26 @@ TEST_CASE("Dados: a INF 216 e secreta - abre com 10 materias no Dificil e 6 com 
     outra.RegistrarAtividade(Materias::ChaveDaLiberacao("INF425"));
     CHECK_FALSE(l.Desbloqueada(l.IndiceDe("INF425"), outra));
 
+    // O codigo secreto do menu: com o atalho na ficha, ela abre assim que a INF 213 passa - antes,
+    // nao; e sem o atalho, passar na INF 213 nao a abre.
+    CHECK(m->atalho == "INF213");
+    Progresso konami;
+    konami.RegistrarAtividade(Materias::ChaveDoAtalho("INF216"));
+    CHECK(l.Escondida(jd, konami));
+    konami.RegistrarNota(l.IndiceDe("INF213"), 50.0f, Dificuldade::Nivel::Normal);   // reprovou
+    CHECK(l.Escondida(jd, konami));
+    konami.RegistrarNota(l.IndiceDe("INF213"), 70.0f, Dificuldade::Nivel::Normal);
+    CHECK_FALSE(l.Escondida(jd, konami));
+    CHECK(l.Desbloqueada(jd, konami));
+    Progresso semCodigo;
+    semCodigo.RegistrarNota(l.IndiceDe("INF213"), 100.0f, Dificuldade::Nivel::Dificil);
+    CHECK(l.Escondida(jd, semCodigo));
+    // O atalho so vale na secreta.
+    Progresso atalhoNaOptativa;
+    atalhoNaOptativa.RegistrarAtividade(Materias::ChaveDoAtalho("INF425"));
+    atalhoNaOptativa.RegistrarNota(l.IndiceDe("INF213"), 70.0f, Dificuldade::Nivel::Normal);
+    CHECK_FALSE(l.Desbloqueada(l.IndiceDe("INF425"), atalhoNaOptativa));
+
     // A secreta conta nos numeros do curso desde o comeco, escondida ou nao - quem conta as materias
     // da grade acha uma a menos: as 17, com o TCC sem a de orientar.
     CHECK(Mencoes::DoCurso(Progresso{}, l).possiveis == 17 * Mencoes::kQuantas - 1);

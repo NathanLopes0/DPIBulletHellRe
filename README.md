@@ -413,6 +413,17 @@ pulga atrás da orelha de que há mais uma.
 **10 matérias aprovadas no Difícil** e **6 com a nota cheia** (o 100) — quaisquer,
 as optativas inclusive —, e não custa horas: quem chegou até ali já pagou.
 
+**O código secreto.** No menu inicial, o clássico dos fliperamas — **cima, cima,
+baixo, baixo, esquerda, direita, esquerda, direita, B, A** (no gabinete, o B é o
+Botão 2 e o A o Botão 1; no teclado, as setas e as teclas B e A) — abre um atalho:
+um aviso dourado pisca ("Um segredo te espera depois da INF 213...") e, na
+partida que começa em seguida, cada aluno que entra leva `atalho@INF216` para a
+ficha. Com ele, a INF 216 aparece **assim que o aluno passa na INF 213**, sem a
+regra — com a mesma revelação. O A que fecha o código não escolhe a opção do
+menu. O código vale para uma partida só: a atração do gabinete o esquece, e o
+grupo seguinte não o herda. A matéria do atalho vem do `materias.json`
+(`"atalho": "INF213"`), e a sequência mora em `Entrada/CodigoSecreto.h`.
+
 **O dia em que ela aparece é uma surpresa.** A luta que cumpre a regra leva à
 seleção de fases (as duas opções do resultado), e a seleção para tudo para a
 **revelação** (`Curso/Revelacao.h`): a tela escurece e a câmera desliza até a ala

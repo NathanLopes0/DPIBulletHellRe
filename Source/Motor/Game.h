@@ -254,6 +254,13 @@ public:
     /// A revelacao terminou: grava na ficha de todos em jogo, e ela nao se repete.
     void MarcarRevelada(int subject);
 
+    /// O codigo secreto entrou no menu inicial (Entrada/CodigoSecreto.h): quem entrar na proxima
+    /// partida leva o atalho de cada materia secreta para a ficha (Materias::ChaveDoAtalho), e ela
+    /// abre assim que o aluno passa na materia do atalho. Vale para uma partida so: a atracao do
+    /// gabinete o esquece, e o proximo grupo nao o herda.
+    void AceitarCodigoSecreto() { mCodigoSecreto = true; }
+    [[nodiscard]] bool CodigoSecretoAceito() const { return mCodigoSecreto; }
+
 private:
     /// Passam as opcoes de som e de janela para o AudioSystem e o SDL.
     void AplicarVolumes();
@@ -310,6 +317,9 @@ private:
 
     size_t mPosicaoEntrando = 0;
     bool mEditandoPersonagem = false;
+    bool mCodigoSecreto = false;
+    /// Grava o atalho das secretas na ficha de todos em jogo, se o codigo secreto entrou.
+    void LevarOCodigoSecreto();
     size_t mPosicaoAntesDaEdicao = 0;
     /// Para onde a criacao de personagem volta: a dificuldade (na entrada) ou o boletim.
     Scene::SceneType mVoltarDaEdicao = Scene::SceneType::EscolhaDaDificuldade;

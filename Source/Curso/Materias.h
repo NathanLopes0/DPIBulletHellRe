@@ -67,6 +67,9 @@ namespace Materias {
     /// A chave da revelacao de uma materia secreta, depois que o aluno a viu aparecer (a selecao de
     /// fases a revela uma vez so, Curso/Revelacao.h): "revelada@INF216".
     std::string ChaveDaRevelacao(const std::string& codigo);
+    /// A chave do codigo secreto (Entrada/CodigoSecreto.h) na ficha: "atalho@INF216". Com ela, a
+    /// materia secreta abre sem a regra assim que o aluno passa na materia do "atalho" dela.
+    std::string ChaveDoAtalho(const std::string& codigo);
 
     struct Materia {
         /// A chave estavel. Vai para o save do aluno e para a exportacao do professor.
@@ -98,6 +101,9 @@ namespace Materias {
         /// Materia secreta: nem aparece na selecao de fases (nem no boletim) enquanto a regra dela
         /// nao estiver cumprida - e entao abre, sem aviso antes.
         bool secreta = false;
+        /// So na secreta: o codigo da materia que, aprovada, a abre para quem digitou o codigo
+        /// secreto no menu inicial (ChaveDoAtalho). Vazio: o codigo nao a abre.
+        std::string atalho;
 
         Desbloqueio desbloqueio;
     };

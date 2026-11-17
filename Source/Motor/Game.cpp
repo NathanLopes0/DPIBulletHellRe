@@ -659,6 +659,8 @@ void Game::ChangeScene(const Scene::SceneType sceneType)
             mScene = std::make_unique<TelaComoJogar>(this);
             break;
         case Scene::SceneType::Atracao:
+            // O codigo secreto e de quem o digitou: quem chegar depois da atracao nao o herda.
+            mCodigoSecreto = false;
             mScene = std::make_unique<Atracao>(this);
             break;
         case Scene::SceneType::StageSelect:
@@ -775,6 +777,7 @@ int Game::DesfazerMatriculas() {
                 ++desfeitas;
             }
             if (m.secreta && mSessoes[i].progresso.EsquecerAtividade(Materias::ChaveDaRevelacao(m.codigo))) mudou = true;
+            if (m.secreta && mSessoes[i].progresso.EsquecerAtividade(Materias::ChaveDoAtalho(m.codigo))) mudou = true;
             if (!m.optativa) continue;
             if (mSessoes[i].progresso.EsquecerAtividade(Materias::ChaveDaCompra(m.codigo))) {
                 mudou = true;
@@ -910,7 +913,23 @@ void Game::AvancarEntrada() {
     }
 
     // Depois de todos entrarem, a dificuldade - e so entao as fases.
+    LevarOCodigoSecreto();
     RequestSceneChange(Scene::SceneType::EscolhaDaDificuldade);
+}
+
+void Game::LevarOCodigoSecreto() {
+    if (!mCodigoSecreto) return;
+    mCodigoSecreto = false;
+    for (size_t i = 0; i < mSessoes.size(); ++i) {
+        bool mudou = false;
+        for (const Materias::Materia& m : Materias::Carregadas().materias) {
+            if (m.secreta && !m.atalho.empty() && mSessoes[i].progresso.RegistrarAtividade(Materias::ChaveDoAtalho(m.codigo))) {
+                mudou = true;
+            }
+        }
+        if (mudou && ProgressoEGravado(i)) GravarFicha(i);
+    }
+    SDL_Log("GAME: o codigo secreto foi para a ficha de %zu aluno(s).", mSessoes.size());
 }
 
 void Game::CancelarEntrada() {

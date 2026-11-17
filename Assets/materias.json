@@ -152,10 +152,12 @@
     // de fases faz a revelacao (Curso/Revelacao.h). Nao custa horas: quem chegou ate
     // aqui ja pagou. E a mais dificil do jogo, e mexe nos sistemas do proprio jogo. --batalha 16 e ela;
     // o F10 da selecao de fases a abre para quem desenvolve (e o F9 a fecha de novo).
+    // O "atalho": quem digita o codigo secreto no menu inicial (cima, cima, baixo, baixo, esquerda,
+    // direita, esquerda, direita, B, A) a ve aparecer assim que passa na INF 213, sem a regra.
     {
       "codigo": "INF216", "nome": "INF 216",
       "nomeCompleto": "Projeto e Implementação de Jogos Digitais", "professor": "Lucas Ferreira",
-      "coluna": 8, "chefe": "ferreira", "optativa": true, "secreta": true,
+      "coluna": 8, "chefe": "ferreira", "optativa": true, "secreta": true, "atalho": "INF213",
       "desbloqueio": { "tipo": "sempre",
                        "requisitos": [ { "tipo": "mencao", "mencao": "dificil", "quantas": 10 },
                                        { "tipo": "mencao", "mencao": "notaCheia", "quantas": 6 } ] }
