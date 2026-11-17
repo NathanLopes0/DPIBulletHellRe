@@ -28,7 +28,7 @@ escritos na tela.
 | **Manche** | **setas** | **W A S D** | mover o aluno, escolher na tela |
 | **Botão 1** | **Espaço** | **F** | lançar Dúvidas (os balões com **?**); confirmar; digitar |
 | **Botão 2** | **B** | **E** | voltar e apagar; na batalha, gastar um Ponto Extra: sozinho, uma onda dourada sai de você e desfaz os tiros do professor por onde passa, e você fica 1,5 s sem atirar — em troca, ganha a nota que ganharia acertando todos os tiros desse tempo; em dupla, dá ao parceiro um escudo que destrói os projéteis do chefe, e quem gastou segue atirando — e, se os dois gastarem juntos, a onda sai do meio deles, além dos escudos |
-| **Botão 3** | **N** | **H** | na dificuldade, trocar a personagem (no boletim, é o manche para cima); na seleção, o boletim (e dele, o ranking da matéria); na batalha em dupla, dar um sinal ao parceiro; na batalha do TCC, soltar o poder do orientador quando o anel dele enche; no resultado da dupla aprovada, os dois juntos: o toca aqui |
+| **Botão 3** | **N** | **H** | na criação da personagem, passar do objeto para a cor; na dificuldade, trocar a personagem (no boletim, é o manche para cima); na seleção, o boletim (e dele, o ranking da matéria); na batalha em dupla, dar um sinal ao parceiro; na batalha do TCC, soltar o poder do orientador quando o anel dele enche; no resultado da dupla aprovada, os dois juntos: o toca aqui |
 | **Pausa** (um só no gabinete) | **P** | **P** | na batalha: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota. No computador o **Esc** faz o mesmo, e a batalha também pausa sozinha quando a janela perde o foco; no gabinete, a pausa esquecida volta ao menu sozinha |
 | — | **Enter**, **Esc**, **0–9**, **Backspace** | — | atalhos de teclado para quem desenvolve |
 
@@ -101,8 +101,9 @@ aparece no meio do campo, com tudo ainda parado, para dar tempo de achar o
 aluno no meio dos tiros. `Esc` durante a contagem reabre o menu.
 
 **Quando a luta acaba**, a tela de resultado mostra a nota, se ela bateu o
-recorde da matéria, as fases limpas e os acertos sofridos, e oferece **Tentar
-de novo** (a mesma matéria, do zero) ou **Voltar às matérias**. Quem reprovou
+recorde da matéria, as fases limpas e os acertos sofridos, e oferece **Voltar
+às matérias** — a que abre em foco, para quem já aperta o botão ir para outra
+fase — ou, na outra ponta, **Tentar de novo** (a mesma matéria, do zero). Quem reprovou
 vê também a **devolutiva**, como numa prova corrigida: a fase em que a nota
 mais caiu, com quanto ela custou, e o desenho do que mais te acertou, com
 quantas vezes. Na dupla, cada aluno, na cor dele, ganha um **título** pelo que
@@ -254,8 +255,11 @@ personagem, e o perfil só é gravado quando ela é confirmada. A tecla
 
 A personagem é vista de costas, olhando para o professor, e é montada peça por
 peça: **15 cabelos** em 16 cores, 9 tons de pele, 8 camisas, 7 calças, 4
-sapatos e mochila ou bolsa, cada peça na cor que você quiser — o manche para os
-lados percorre as opções, e a linha diz em qual delas você está ("3 de 15").
+sapatos e mochila ou bolsa, cada peça na cor que você quiser. A tela é uma
+tabela: uma linha por parte, com o **objeto** numa coluna e a **cor** na do lado
+(com a amostra dela). O manche para cima e para baixo escolhe a linha, para os
+lados percorre as opções da coluna em foco — a célula diz em qual delas você
+está ("3 de 15") —, e o **Botão 3** passa do objeto para a cor e de volta.
 Quem já tem perfil troca a personagem quando quiser: na tela de dificuldade,
 com o **Botão 3** do próprio painel, ou no boletim, com o **manche para cima**.
 
@@ -353,9 +357,9 @@ foi aprovado:
 | 2 | INF 250 — Organização de Computadores *(Ricardo)*, INF 220 — Banco de Dados *(Thiago)*, INF 340 — Linguagens de Programação *(Luizinho)*, INF 331 — Linguagens Formais e Autômatos *(Vladimir)*, INF 332 — Projeto e Análise de Algoritmos *(Arroyo)* | INF 213 aprovada |
 | 3 | INF 420 — Inteligência Artificial *(Júlio)*, INF 221 — Engenharia de Software *(Maria Lúcia)*, INF 321 — Programação Web *(Lucas)*, INF 310 — Programação Concorrente e Distribuída *(Vitor)*, INF 451 — Sistemas Operacionais *(Goulart)* | 2 aprovações na coluna 2 |
 | 4 | TCC — Trabalho de Conclusão de Curso *(Hugo)* | 2 aprovações na coluna 3 |
-| 5 *(optativas)* | INF 425 — Ciência de Dados *(Daniel)* | INF 213 aprovada, pelo menos 5 menções de ouro, 2 no Difícil e 2 "prestando atenção", e 20 h de horas complementares |
-| 6 *(optativas)* | INF 429 — Visão Computacional *(Michel)* | INF 213 aprovada, pelo menos 8 menções de ouro, 4 no Difícil, 3 "prestando atenção" e 2 "sentar na frente", e 30 h de horas complementares — o MaVIlab é seleto |
-| 7 *(optativas)* | INF 491 — Tópicos Especiais, Bioinformática *(Sabrina)* | INF 213 aprovada, pelo menos 9 menções de ouro, 5 no Difícil, 3 "sentar na frente" e 3 "prestando atenção", e 35 h de horas complementares — a mais pesada das três |
+| 5 *(optativas)* | INF 425 — Ciência de Dados *(Daniel)* | INF 213 aprovada, pelo menos 5 menções de ouro, 3 "prestando atenção" e 1 no Difícil, e 25 h de horas complementares — a da precisão |
+| 6 *(optativas)* | INF 429 — Visão Computacional *(Michel)* | INF 213 aprovada, pelo menos 4 menções de ouro, 3 "sentar na frente" e 2 no Difícil, e 20 h de horas complementares — a de quem vê de perto |
+| 7 *(optativas)* | INF 491 — Tópicos Especiais, Bioinformática *(Sabrina)* | INF 213 aprovada, pelo menos 3 menções de ouro, 3 no Difícil, 2 "prestando atenção" e 2 "sentar na frente", e 22 h de horas complementares — a do Difícil |
 | 8 *(optativa secreta)* | INF 216 — Projeto e Implementação de Jogos Digitais *(Lucas Ferreira)* | **não aparece** até o aluno ter a nota cheia (o 100) em metade das matérias e a menção do Difícil em todas as obrigatórias; não custa horas |
 
 Toda matéria tem professor e batalha — as doze do curso, o TCC, do Hugo, que é
@@ -381,9 +385,12 @@ horas ganhas...) e se **compram** com horas complementares; o prêmio é um
 **orientador novo** no TCC — o professor da optativa aprovada aparece a mais,
 além dos três candidatos das obrigatórias. A primeira é a INF 425, Ciência de Dados, do Daniel; a
 segunda, a INF 429, Visão Computacional, do Michel; a
-terceira, a INF 491, Tópicos Especiais, Bioinformática, da Sabrina — a mais
-difícil das três. Uma optativa não pede outra, nem matéria além da INF 213: o
-que ela pede são menções, e as horas da compra. A matrícula é uma festinha: as horas
+terceira, a INF 491, Tópicos Especiais, Bioinformática, da Sabrina. Uma optativa
+não pede outra, nem matéria além da INF 213: o que ela pede são menções, e as
+horas da compra. As três pedem **mais ou menos o mesmo esforço** — nove ou dez
+menções e de 20 a 25 h —, e nenhuma é "a próxima" da outra: cada uma puxa para um
+jeito de jogar (a precisão, o de perto, o Difícil). Todas pedem aprovações no
+**Difícil**, e a tela de dificuldade diz isso no cartão dele. A matrícula é uma festinha: as horas
 pagam em fichas douradas, que saltam do painel até o losango girando como
 moedas, e ele dá dois pulinhos, com um anel dourado e faíscas
 (`FestaDaMatricula.h`). Para ver a compra e a festa de novo, quem

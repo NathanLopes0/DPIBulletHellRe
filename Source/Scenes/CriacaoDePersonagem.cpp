@@ -26,20 +26,25 @@ namespace {
     /// tamanho que tem em jogo - pequena demais para escolher olhando.
     constexpr float kAmpliacao = 4.0f;
 
-    // A personagem fica a esquerda e a lista a direita: as duas juntas no centro
+    // A personagem fica a esquerda e a tabela a direita: as duas juntas no centro
     // nao caberiam sem encolher uma delas.
-    constexpr float kPersonagemX = 0.28f;
+    constexpr float kPersonagemX = 0.24f;
     constexpr float kPersonagemY = 0.48f;
 
-    // Onze linhas - um tom de pele, e peca e cor de cabelo, camisa, calca, sapato e mochila - entre
-    // o titulo e o rodape.
-    constexpr float kListaX = 0.66f;
-    constexpr float kPrimeiraLinha = 0.20f;
-    constexpr float kEspacoEntreLinhas = 0.054f;
+    // A tabela: uma linha por categoria (tom de pele, cabelo, camisa, calca, sapato, mochila), o
+    // objeto numa coluna e a cor na do lado.
+    constexpr float kObjetoX = 0.555f;
+    constexpr float kCorX = 0.82f;
+    constexpr float kCabecalho = 0.20f;
+    constexpr float kPrimeiraLinha = 0.28f;
+    constexpr float kEspacoEntreLinhas = 0.088f;
 
-    constexpr int kTamanhoDaLinha = 26;
-    constexpr int kSelecaoLargura = 500;
-    constexpr int kSelecaoAltura = 42;
+    constexpr int kTamanhoDaLinha = 24;
+    constexpr int kSelecaoLargura = 304;
+    constexpr int kSelecaoAltura = 50;
+    constexpr int kLadoDaAmostra = 28;
+    /// Do meio da celula da cor ao meio da amostra, a esquerda do nome.
+    constexpr float kAmostraX = -120.0f;
 
     constexpr SDL_Color kBordaDaSelecao = {235, 235, 235, 255};
     constexpr SDL_Color kFundoDaSelecao = { 34,  38,  48, 170};
@@ -80,17 +85,21 @@ Actor* CriacaoDePersonagem::Texto(const std::string& conteudo, const float x, co
 void CriacaoDePersonagem::MontarLinhas() {
 
     for (const auto& c : Personagens::Carregado().categorias) {
-
-        // Categoria de uma peca so nao rende linha de tipo.
-        if (c.pecas.size() > 1) {
-            mLinhas.push_back(Linha{c.id, false, c.nome});
-        }
-        if (c.cores.size() > 1) {
-            // Quando a categoria tem linha de tipo, a de cor vem logo abaixo e se chama so "Cor".
-            const bool temLinhaDeTipo = c.pecas.size() > 1;
-            mLinhas.push_back(Linha{c.id, true, temLinhaDeTipo ? "Cor" : c.nome});
-        }
+        // Categoria sem nada para trocar nao rende linha.
+        if (c.pecas.size() <= 1 && c.cores.size() <= 1) continue;
+        mLinhas.push_back(Linha{c.id, c.nome, c.pecas.size() > 1, c.cores.size() > 1});
     }
+}
+
+bool CriacaoDePersonagem::Editavel(const int linha, const int coluna) const {
+    if (linha < 0 || linha >= static_cast<int>(mLinhas.size())) return false;
+    const Linha& l = mLinhas[static_cast<size_t>(linha)];
+    return coluna == kObjeto ? l.temPeca : l.temCor;
+}
+
+void CriacaoDePersonagem::AjustarColuna() {
+    mColunaEmFoco = mColunaPreferida;
+    if (!Editavel(mLinhaEmFoco, mColunaEmFoco)) mColunaEmFoco = mColunaEmFoco == kObjeto ? kCor : kObjeto;
 }
 
 void CriacaoDePersonagem::Load() {
@@ -121,17 +130,28 @@ void CriacaoDePersonagem::Load() {
 
     // A moldura entra antes dos rotulos e com ordem menor, para ficar atras.
     auto selecao = std::make_unique<Actor>(this);
-    selecao->SetPosition(Vector2(largura * kListaX, altura * kPrimeiraLinha));
+    selecao->SetPosition(Vector2(largura * kObjetoX, altura * kPrimeiraLinha));
     selecao->AddComponent<DrawCaixaComponent>(kSelecaoLargura, kSelecaoAltura,
                                               kBordaDaSelecao, kFundoDaSelecao, 3, 90);
     mSelecaoAtor = selecao.get();
     AddActor(std::move(selecao));
 
+    Texto("OBJETO", largura * kObjetoX, altura * kCabecalho, 24, kSelecaoLargura);
+    Texto("COR", largura * kCorX, altura * kCabecalho, 24, kSelecaoLargura);
+
     for (size_t i = 0; i < mLinhas.size(); ++i) {
         const float y = altura * (kPrimeiraLinha + static_cast<float>(i) * kEspacoEntreLinhas);
-        mLinhaAtores.push_back(Texto(" ", largura * kListaX, y, kTamanhoDaLinha,
-                                     kSelecaoLargura - 30));
+        mObjetoAtores.push_back(Texto(" ", largura * kObjetoX, y, kTamanhoDaLinha, kSelecaoLargura - 24));
+        // O nome da cor fica a direita da amostra.
+        mCorAtores.push_back(Texto(" ", largura * kCorX + 18.0f, y, kTamanhoDaLinha, kSelecaoLargura - 80));
+        auto amostra = std::make_unique<Actor>(this);
+        amostra->SetPosition(Vector2(largura * kCorX + kAmostraX, y));
+        amostra->AddComponent<DrawCaixaComponent>(kLadoDaAmostra, kLadoDaAmostra, SDL_Color{235, 235, 235, 255},
+                                                  SDL_Color{0, 0, 0, 0}, 2, 95);
+        mAmostras.push_back(amostra.get());
+        AddActor(std::move(amostra));
     }
+    AjustarColuna();
 
     if (mLinhas.empty()) {
         Texto("Nada para escolher: confira Assets/personagens.json.",
@@ -139,12 +159,13 @@ void CriacaoDePersonagem::Load() {
     }
 
     // Uma linha so para o manche, e o rodape saindo dos botoes.
-    Texto("MANCHE  cima e baixo escolhem o que mudar - os lados trocam",
+    Texto("MANCHE  cima e baixo escolhem a linha - os lados trocam",
           largura / 2.0f, altura * 0.86f, 22, 900);
-    Texto(Painel::Rodape({{PainelDaVez(), Painel::Botao::Um,   "confirmar"},
+    Texto(Painel::Rodape({{PainelDaVez(), Painel::Botao::Tres, "objeto / cor"},
+                          {PainelDaVez(), Painel::Botao::Um,   "confirmar"},
                           {PainelDaVez(), Painel::Botao::Dois, "voltar"}},
                          mGame->JeitoDoRodape()),
-          largura / 2.0f, altura * 0.92f, 22, 700);
+          largura / 2.0f, altura * 0.92f, 22, 1000);
 
     Recompor();
     Redesenhar();
@@ -185,19 +206,30 @@ void CriacaoDePersonagem::Redesenhar() const {
 
     const Personagens::Catalogo& catalogo = Personagens::Carregado();
 
-    for (size_t i = 0; i < mLinhaAtores.size() && i < mLinhas.size(); ++i) {
+    for (size_t i = 0; i < mObjetoAtores.size() && i < mLinhas.size(); ++i) {
 
         const Linha& linha = mLinhas[i];
         const Personagens::Categoria* c = catalogo.Por(linha.categoria);
         const Personagens::Escolha* e = mAparencia.Por(linha.categoria);
         if (c == nullptr || e == nullptr) continue;
 
-        const std::string valor = linha.ehCor ? NomeDaCor(*c, e->cor)
-                                              : NomeDaPeca(*c, e->peca);
-        const std::string onde = linha.ehCor ? Posicao(c->cores, e->cor) : Posicao(c->pecas, e->peca);
+        // O objeto: "Cabelo: Moicano (3 de 15)"; a categoria de uma peca so (o tom de pele) e so o
+        // nome dela.
+        const std::string peca = NomeDaPeca(*c, e->peca);
+        const std::string objeto = linha.temPeca
+            ? linha.rotulo + ": " + (peca.empty() ? "?" : peca) + "  " + Posicao(c->pecas, e->peca)
+            : linha.rotulo;
+        if (auto dc = mObjetoAtores[i]->GetComponent<DrawTextComponent>()) dc->SetText(objeto);
 
-        if (auto dc = mLinhaAtores[i]->GetComponent<DrawTextComponent>()) {
-            dc->SetText(linha.rotulo + ":  " + (valor.empty() ? "?" : valor) + "   " + onde);
+        // A cor: a amostra e o nome, "Castanho (2 de 16)".
+        const Personagens::Cor* cor = c->CorPor(e->cor);
+        const std::string nome = NomeDaCor(*c, e->cor);
+        if (auto dc = mCorAtores[i]->GetComponent<DrawTextComponent>()) {
+            dc->SetText(linha.temCor ? (nome.empty() ? "?" : nome) + "  " + Posicao(c->cores, e->cor) : std::string("-"));
+        }
+        if (auto* caixa = mAmostras[i]->GetComponent<DrawCaixaComponent>()) {
+            caixa->SetIsVisible(linha.temCor && cor != nullptr);
+            if (cor) caixa->SetFundo(SDL_Color{cor->r, cor->g, cor->b, 255});
         }
     }
 
@@ -205,7 +237,7 @@ void CriacaoDePersonagem::Redesenhar() const {
         const auto largura = static_cast<float>(mGame->GetWindowWidth());
         const auto altura  = static_cast<float>(mGame->GetWindowHeight());
         mSelecaoAtor->SetPosition(Vector2(
-            largura * kListaX,
+            largura * (mColunaEmFoco == kCor ? kCorX : kObjetoX),
             altura * (kPrimeiraLinha + static_cast<float>(mLinhaEmFoco) * kEspacoEntreLinhas)));
     }
 }
@@ -214,6 +246,7 @@ void CriacaoDePersonagem::Trocar(const int passo) {
 
     if (mLinhas.empty()) return;
 
+    if (!Editavel(mLinhaEmFoco, mColunaEmFoco)) return;
     const Linha& linha = mLinhas[static_cast<size_t>(mLinhaEmFoco)];
     const Personagens::Categoria* c = Personagens::Carregado().Por(linha.categoria);
     if (c == nullptr) return;
@@ -221,7 +254,7 @@ void CriacaoDePersonagem::Trocar(const int passo) {
     Personagens::Escolha e = *mAparencia.Por(linha.categoria);
 
     // Anda na lista de ids da categoria, dando a volta nas pontas.
-    if (linha.ehCor) {
+    if (mColunaEmFoco == kCor) {
         const int n = static_cast<int>(c->cores.size());
         int atual = 0;
         for (int i = 0; i < n; ++i) if (c->cores[static_cast<size_t>(i)].id == e.cor) atual = i;
@@ -256,14 +289,26 @@ void CriacaoDePersonagem::OnProcessInput(const Uint8* keyState) {
     const bool desceu = mBordaBaixo.Bateu(baixo);
     const bool paraEsquerda = mBordaEsquerda.Bateu(esquerda);
     const bool paraDireita = mBordaDireita.Bateu(direita);
+    const bool trocouDeColuna = mBordaColuna.Bateu(Painel::Apertado(keyState, kQuem, Painel::Botao::Tres));
     if (quantas > 0) {
         if (subiu) {
             mLinhaEmFoco = (mLinhaEmFoco - 1 + quantas) % quantas;
+            AjustarColuna();
             Redesenhar();
         }
         if (desceu) {
             mLinhaEmFoco = (mLinhaEmFoco + 1) % quantas;
+            AjustarColuna();
             Redesenhar();
+        }
+        // O Botao 3 passa para a outra coluna, se ela troca alguma coisa nesta linha.
+        if (trocouDeColuna) {
+            const int outra = mColunaEmFoco == kObjeto ? kCor : kObjeto;
+            if (Editavel(mLinhaEmFoco, outra)) {
+                mColunaPreferida = outra;
+                mColunaEmFoco = outra;
+                Redesenhar();
+            }
         }
         if (paraEsquerda) Trocar(-1);
         if (paraDireita) Trocar(+1);

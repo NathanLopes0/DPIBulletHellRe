@@ -18,6 +18,9 @@ TEST_CASE("Dificuldade: cada nivel tem nome, descricao e uma chave so dele") {
         CAPTURE(static_cast<int>(n));
         CHECK(std::string(Dificuldade::Nome(n)).size() > 0);
         CHECK(std::string(Dificuldade::Descricao(n)).size() > 0);
+        // So o Dificil da algo a mais, e o cartao dele diz que e o caminho das optativas.
+        CHECK((n == Nivel::Dificil) == !std::string(Dificuldade::Vantagem(n)).empty());
+        if (n == Nivel::Dificil) CHECK(std::string(Dificuldade::Vantagem(n)).find("optativas") != std::string::npos);
         chaves.insert(Dificuldade::Chave(n));
         nomes.insert(Dificuldade::Nome(n));
 

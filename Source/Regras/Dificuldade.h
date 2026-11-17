@@ -27,6 +27,10 @@ namespace Dificuldade {
     /// Uma linha que diz o que o nivel muda, para a tela de dificuldade.
     const char* Descricao(Nivel n);
 
+    /// O que so este nivel da, alem da nota, em destaque no cartao dele: no Dificil, a mencao que as
+    /// optativas pedem (materias.json). Vazio quando nao da nada a mais.
+    const char* Vantagem(Nivel n);
+
     /// Como o nivel e escrito nos dados (tentativas.csv) e no log: "normal", "dificil". Sem acento
     /// - um CSV com acento depende da codificacao de quem abre.
     const char* Chave(Nivel n);

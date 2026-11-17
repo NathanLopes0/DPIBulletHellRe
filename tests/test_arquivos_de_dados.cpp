@@ -905,12 +905,33 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
     const int mv = l.IndiceDe("INF429");
     REQUIRE(ds >= 0);
     REQUIRE(mv >= 0);
+    const int bio = l.IndiceDe("INF491");
+    REQUIRE(bio >= 0);
     CHECK(l.Por(ds)->optativa);
     CHECK(l.Por(mv)->optativa);
-    CHECK(l.PrecoDe(mv) > l.PrecoDe(ds));
-    for (const int o : {ds, mv}) {
-        for (const auto& r : l.Por(o)->desbloqueio.requisitos) CHECK(r.mencao != "notaCheia");
+    CHECK(l.Por(bio)->optativa);
+    // As tres pedem mais ou menos o mesmo - nove ou dez mencoes e de 20 a 25 h -, sem crescer de uma
+    // para a outra, e todas pedem o Dificil.
+    std::vector<int> precos, mencoes;
+    for (const int o : {ds, mv, bio}) {
+        CAPTURE(l.CodigoDe(o));
+        int total = 0;
+        bool dificil = false;
+        for (const auto& r : l.Por(o)->desbloqueio.requisitos) {
+            CHECK(r.mencao != "notaCheia");
+            total += r.quantas;
+            dificil = dificil || r.mencao == "dificil";
+        }
+        CHECK(dificil);
+        CHECK(total >= 8);
+        CHECK(total <= 11);
+        CHECK(l.PrecoDe(o) >= 20);
+        CHECK(l.PrecoDe(o) <= 25);
+        precos.push_back(l.PrecoDe(o));
+        mencoes.push_back(total);
     }
+    CHECK_FALSE((precos[0] < precos[1] && precos[1] < precos[2]));
+    CHECK_FALSE((mencoes[0] < mencoes[1] && mencoes[1] < mencoes[2]));
     const auto ouros = [&](Progresso& p, const std::vector<std::string>& codigos) {
         for (const auto& c : codigos) p.RegistrarNota(l.IndiceDe(c), 93.0f, Dificuldade::Nivel::Normal);
     };
@@ -921,32 +942,31 @@ TEST_CASE("Dados: a progressao do curso e a que o arquivo diz que e") {
         for (const auto& c : codigos) p.RegistrarAtividade(Mencoes::Chave(m, c));
     };
 
-    // A INF 425: 5 ouros, 2 no Dificil e 2 "prestando atencao".
+    // A INF 425: 5 ouros, 3 "prestando atencao" e 1 no Dificil.
     Progresso p;
     ouros(p, {"INF110", "INF250", "INF220", "INF340", "INF331"});
-    dificeis(p, {"INF110", "INF250"});
-    desafio(p, Mencoes::Mencao::Mira, {"INF110", "INF250"});
+    dificeis(p, {"INF110"});
+    desafio(p, Mencoes::Mencao::Mira, {"INF110", "INF250", "INF220"});
     CHECK_FALSE(l.RegraCumprida(ds, p));          // tudo, menos a INF 213
     p.RegistrarNota(l.IndiceDe("INF213"), 80.0f, Dificuldade::Nivel::Normal);
     CHECK(l.RegraCumprida(ds, p));
     Progresso quatro;                              // um ouro a menos, e nao abre
     quatro.RegistrarNota(l.IndiceDe("INF213"), 80.0f, Dificuldade::Nivel::Normal);
     ouros(quatro, {"INF110", "INF250", "INF220", "INF340"});
-    dificeis(quatro, {"INF110", "INF250"});
-    desafio(quatro, Mencoes::Mencao::Mira, {"INF110", "INF250"});
+    dificeis(quatro, {"INF110"});
+    desafio(quatro, Mencoes::Mencao::Mira, {"INF110", "INF250", "INF220"});
     CHECK_FALSE(l.RegraCumprida(ds, quatro));
     CHECK_FALSE(l.Desbloqueada(ds, p));           // falta comprar
     p.RegistrarAtividade(Materias::ChaveDaCompra("INF425"));
     CHECK(l.Desbloqueada(ds, p));
 
-    // A INF 429, o MaVIlab: 8 ouros, 4 no Dificil, 3 "prestando atencao" e 2 "sentar na frente" -
-    // sem a INF 425, que nao entra na conta.
+    // A INF 429, o MaVIlab: 4 ouros (ja tem cinco), 2 no Dificil e 3 "sentar na frente" - sem a
+    // INF 425, que nao entra na conta.
     CHECK_FALSE(l.RegraCumprida(mv, p));
-    ouros(p, {"INF332", "INF420", "INF221"});
-    dificeis(p, {"INF220", "INF340"});
-    desafio(p, Mencoes::Mencao::Mira, {"INF220"});
-    CHECK_FALSE(l.RegraCumprida(mv, p));          // falta o "sentar na frente"
+    dificeis(p, {"INF250"});
     desafio(p, Mencoes::Mencao::DePerto, {"INF110", "INF250"});
+    CHECK_FALSE(l.RegraCumprida(mv, p));          // falta um "sentar na frente"
+    desafio(p, Mencoes::Mencao::DePerto, {"INF220"});
     CHECK(l.RegraCumprida(mv, p));
     CHECK_FALSE(p.Aprovado(ds));                  // e a INF 425 nem foi feita
     CHECK_FALSE(l.Desbloqueada(mv, p));

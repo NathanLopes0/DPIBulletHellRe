@@ -109,40 +109,42 @@
     // Mais dificeis que as obrigatorias, e o professor de cada uma vira orientador do TCC de quem
     // passa nela. Tambem no fim da lista (--batalha 13 e a INF 425). Uma optativa nao pede outra, nem
     // materia alem da INF 213: pede menções, e as horas da compra.
+    // As tres pedem mais ou menos o mesmo esforco - nove ou dez menções e de 20 a 25 h -, cada uma
+    // puxando para um jeito de jogar: nenhuma e "a proxima" da outra. Todas pedem o Dificil.
     {
       "codigo": "INF425", "nome": "INF 425",
       "nomeCompleto": "Ciência de Dados", "professor": "Daniel",
       "coluna": 5, "chefe": "daniel", "optativa": true,
-      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"], "preco": 20,
+      // Os dados pedem precisao: o ouro e o "prestando atencao".
+      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"], "preco": 25,
                        "requisitos": [ { "tipo": "mencao", "mencao": "ouro", "quantas": 5 },
-                                       { "tipo": "mencao", "mencao": "dificil", "quantas": 2 },
-                                       { "tipo": "mencao", "mencao": "mira", "quantas": 2 } ] }
+                                       { "tipo": "mencao", "mencao": "mira", "quantas": 3 },
+                                       { "tipo": "mencao", "mencao": "dificil", "quantas": 1 } ] }
     },
 
-    // O MaVIlab e seleto: a INF 429 pede mais menções que a INF 425, e custa mais horas. Nenhuma
-    // optativa pede a nota cheia. --batalha 14 e ela.
+    // A visao pede ver de perto: o "sentar na frente", e as horas mais baratas. Nenhuma optativa
+    // pede a nota cheia. --batalha 14 e ela.
     {
       "codigo": "INF429", "nome": "INF 429",
       "nomeCompleto": "Visão Computacional", "professor": "Michel",
       "coluna": 6, "chefe": "michel", "optativa": true,
-      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"], "preco": 30,
-                       "requisitos": [ { "tipo": "mencao", "mencao": "ouro", "quantas": 8 },
-                                       { "tipo": "mencao", "mencao": "dificil", "quantas": 4 },
-                                       { "tipo": "mencao", "mencao": "mira", "quantas": 3 },
-                                       { "tipo": "mencao", "mencao": "dePerto", "quantas": 2 } ] }
+      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"], "preco": 20,
+                       "requisitos": [ { "tipo": "mencao", "mencao": "ouro", "quantas": 4 },
+                                       { "tipo": "mencao", "mencao": "dePerto", "quantas": 3 },
+                                       { "tipo": "mencao", "mencao": "dificil", "quantas": 2 } ] }
     },
 
-    // A bioinformatica e a mais pesada das tres: pede ainda mais menções - e as de quem arrisca de
-    // perto. --batalha 15 e ela.
+    // A bioinformatica pede o Dificil, mais que as outras, e um pouco de tudo: menos ouro,
+    // e os dois desafios. --batalha 15 e ela.
     {
       "codigo": "INF491", "nome": "INF 491",
       "nomeCompleto": "Tópicos Especiais, Bioinformática", "professor": "Sabrina",
       "coluna": 7, "chefe": "sabrina", "optativa": true,
-      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"], "preco": 35,
-                       "requisitos": [ { "tipo": "mencao", "mencao": "ouro", "quantas": 9 },
-                                       { "tipo": "mencao", "mencao": "dificil", "quantas": 5 },
-                                       { "tipo": "mencao", "mencao": "dePerto", "quantas": 3 },
-                                       { "tipo": "mencao", "mencao": "mira", "quantas": 3 } ] }
+      "desbloqueio": { "tipo": "aprovadoEm", "materias": ["INF213"], "preco": 22,
+                       "requisitos": [ { "tipo": "mencao", "mencao": "ouro", "quantas": 3 },
+                                       { "tipo": "mencao", "mencao": "dificil", "quantas": 3 },
+                                       { "tipo": "mencao", "mencao": "mira", "quantas": 2 },
+                                       { "tipo": "mencao", "mencao": "dePerto", "quantas": 2 } ] }
     },
 
     // A optativa secreta: nem aparece na grade ate o aluno ter a nota cheia (o 100) em metade das

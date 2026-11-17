@@ -13,9 +13,11 @@
 /// a batalha mostra o resumo dela.
 namespace Resultado {
 
-    /// As opcoes, na ordem da tela. A primeira e a que abre em foco.
+    /// As opcoes, na ordem da tela. A primeira e a que abre em foco: voltar as materias. Quem acaba a
+    /// fase e ja aperta o botao quase sempre quer outra fase, e nao a mesma de novo - tentar de novo
+    /// pede ir ate ela.
     enum class Opcao { TentarDeNovo, Voltar };
-    constexpr Opcao kOpcoes[] = {Opcao::TentarDeNovo, Opcao::Voltar};
+    constexpr Opcao kOpcoes[] = {Opcao::Voltar, Opcao::TentarDeNovo};
     constexpr int kQuantas = static_cast<int>(sizeof(kOpcoes) / sizeof(kOpcoes[0]));
 
     const char* Texto(Opcao o);

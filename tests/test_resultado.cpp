@@ -8,8 +8,10 @@
 
 using namespace Resultado;
 
-TEST_CASE("Resultado: o menu abre no Tentar de novo e da a volta") {
-    CHECK(kOpcoes[0] == Opcao::TentarDeNovo);
+TEST_CASE("Resultado: o menu abre no Voltar, com o Tentar de novo na outra ponta, e da a volta") {
+    // Quem aperta o botao logo que a fase acaba volta para as materias, e nao entra na mesma fase.
+    CHECK(kOpcoes[0] == Opcao::Voltar);
+    CHECK(kOpcoes[kQuantas - 1] == Opcao::TentarDeNovo);
     CHECK(Mover(0, 1) == 1);
     CHECK(Mover(1, 1) == 0);
     CHECK(Mover(0, -1) == kQuantas - 1);

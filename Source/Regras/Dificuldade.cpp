@@ -24,6 +24,14 @@ namespace Dificuldade {
         return "";
     }
 
+    const char* Vantagem(const Nivel n) {
+        switch (n) {
+            case Nivel::Normal:  return "";
+            case Nivel::Dificil: return "Passar no Dif\xc3\xad" "cil conta para liberar as optativas.";
+        }
+        return "";
+    }
+
     const char* Chave(const Nivel n) {
         switch (n) {
             case Nivel::Normal:  return "normal";

@@ -78,7 +78,11 @@ void EscolhaDaDificuldade::Load() {
             const float* c = Dificuldade::kCorDoDificil;
             nome->SetColor(Vector3(c[0], c[1], c[2]));
         }
-        Texto(Dificuldade::Descricao(n), x, yDosCartoes - 5.0f, 22, 360, 3);
+        Texto(Dificuldade::Descricao(n), x, yDosCartoes - 28.0f, 22, 360, 3);
+        // O que o nivel da a mais, dourado: no Dificil, o caminho para as optativas.
+        if (const std::string vantagem = Dificuldade::Vantagem(n); !vantagem.empty()) {
+            Texto(vantagem, x, yDosCartoes + 46.0f, 20, 360, 2)->GetComponent<DrawTextComponent>()->SetColor(Color::Gold);
+        }
         Texto("Depois de um acerto, " + Segundos(Dificuldade::Invencibilidade(n)) + " piscando.",
               x, yDosCartoes + 95.0f, 20, 360);
     }
