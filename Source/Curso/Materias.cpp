@@ -75,9 +75,7 @@ int Lista::QuantasObrigatorias() const {
 
 std::vector<int> Lista::DoGeral() const {
     std::vector<int> contadas;
-    for (int i = 0; i < Quantas(); ++i) {
-        if (!materias[static_cast<size_t>(i)].secreta) contadas.push_back(i);
-    }
+    for (int i = 0; i < Quantas(); ++i) contadas.push_back(i);
     return contadas;
 }
 

@@ -106,6 +106,8 @@ void Player::LerManche(const Uint8* keyState) {
     // No modo de plataforma o manche e so uma intencao: quem decide a velocidade e AndarNaPlataforma,
     // e o piloto da simulacao, que a escreve direto, a devolve.
     const Vector2 daPlataforma = mCorpo->GetVelocity();
+    // O piloto da simulacao nao segura o foco: a medida e a de sempre.
+    mFocado = false;
     if (mPiloto.Dirigir(*this, *mCorpo, mAndando)) {
         if (mChao) {
             mIntencao = mCorpo->GetVelocity();
@@ -114,9 +116,10 @@ void Player::LerManche(const Uint8* keyState) {
         return;
     }
 
-    // A velocidade e lida com o fator da corrente; kVelocidade fica intacta.
-    const float velocidade = VelocidadeDeAndar();
+    // A velocidade e lida com o fator da corrente e o do foco; kVelocidade fica intacta.
     const Painel::Jogador eu = MeuPainel();
+    mFocado = Painel::FocoApertado(keyState, eu);
+    const float velocidade = VelocidadeDeAndar();
 
     float vx = 0.0f;
     float vy = 0.0f;

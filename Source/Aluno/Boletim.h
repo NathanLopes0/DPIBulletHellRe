@@ -42,8 +42,8 @@ namespace Boletim {
         std::vector<Linha> linhas;  ///< na ordem da grade: periodo a periodo
         float cr = 0.0f;            ///< a media das melhores notas das materias cursadas
         int cursadas = 0;
-        int aprovadas = 0;          ///< as obrigatorias aprovadas (as optativas nao contam)
-        int total = 0;              ///< as obrigatorias do curso, como na selecao de fases
+        int aprovadas = 0;          ///< as materias aprovadas, optativas inclusive
+        int total = 0;              ///< todas as materias do curso, a secreta inclusive (Materias::DoGeral)
     };
 
     /// O boletim de quem tem este progresso, nesta grade.

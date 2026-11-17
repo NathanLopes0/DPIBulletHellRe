@@ -256,7 +256,8 @@ TEST_CASE("Ranking geral: curso de zero materias nao divide por zero") {
 
 TEST_CASE("Ranking geral: so as materias contadas entram, e a media divide por elas") {
 
-    // Um curso com uma secreta, a 2: DoGeral a deixa de fora, e ela nao pesa na media de ninguem.
+    // A conta divide pelas materias que recebe - quais sao, quem diz e Materias::Lista::DoGeral, que
+    // hoje conta todas. Aqui, uma lista sem a 2.
     const std::vector<Exportacao::FichaDeAluno> turma = {
         Aluno("comum",  {{0, 90.0f}, {1, 90.0f}}),
         Aluno("abriu",  {{0, 90.0f}, {1, 90.0f}, {2, 100.0f}}),

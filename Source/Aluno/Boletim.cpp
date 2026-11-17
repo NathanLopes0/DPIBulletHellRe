@@ -14,6 +14,9 @@ namespace Boletim {
 
     Dados Montar(const Progresso& progresso, const Materias::Lista& materias) {
         Dados d;
+        // O total e o curso inteiro, a secreta inclusive, mesmo sem a linha dela: e o mesmo numero
+        // da selecao de fases.
+        d.total = materias.Quantas();
         float soma = 0.0f;
 
         // Periodo a periodo, e dentro dele na ordem da grade; as optativas, numa secao so, no fim.
@@ -31,7 +34,6 @@ namespace Boletim {
                 l.professor = m->professor;
                 l.periodo = coluna + 1;
                 l.optativa = m->optativa;
-                if (!l.optativa) ++d.total;
                 l.melhor = progresso.MelhorNota(i);
                 l.tentativas = progresso.Tentativas(i);
                 l.reprovacoes = progresso.Reprovacoes(i);
@@ -51,7 +53,7 @@ namespace Boletim {
                     ++d.cursadas;
                     soma += l.melhor;
                 }
-                if (l.situacao == Situacao::Aprovade && !l.optativa) ++d.aprovadas;
+                if (l.situacao == Situacao::Aprovade) ++d.aprovadas;
                 d.linhas.push_back(l);
             }
         }

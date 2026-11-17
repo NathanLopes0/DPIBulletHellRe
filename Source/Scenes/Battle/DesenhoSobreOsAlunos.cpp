@@ -5,6 +5,7 @@
 #include "DesenhoSobreOsAlunos.h"
 
 #include <algorithm>
+#include <cmath>
 #include <memory>
 
 #include "../Scene.h"
@@ -42,8 +43,11 @@ void DesenhoSobreOsAlunos::Valeu(const Player* coberto, const std::size_t cor) {
 
 void DesenhoSobreOsAlunos::Atualizar(const float deltaTime, const std::vector<Player*>& jogadores, const int foco,
                                      const bool hitbox) {
+    // Quem segura o foco ve a propria hitbox, mesmo com a opcao desligada: o classico dos bullet hell.
+    const bool algumFocado = std::any_of(jogadores.begin(), jogadores.end(),
+                                         [](const Player* p) { return p && p->Focado(); });
     if (!mLinhas) {
-        if (jogadores.size() < 2 && !hitbox) return;   // so a dupla tem feixe e escudo
+        if (jogadores.size() < 2 && !hitbox && !algumFocado) return;   // so a dupla tem feixe e escudo
         auto ator = std::make_unique<Actor>(&mCena);
         mLinhas = ator->AddComponent<DrawLinhasComponent>(kOrdem);
         mCena.AddActor(std::move(ator));
@@ -100,12 +104,22 @@ void DesenhoSobreOsAlunos::Atualizar(const float deltaTime, const std::vector<Pl
         for (float dy = 0.0f; dy <= 2.0f; dy += 1.0f) v(dy, 7.0f, SDL_Color{255, 80, 70, alfa});
     }
 
-    // A hitbox (opcao da tela de Opcoes): o circulo de colisao de verdade, e um ponto no meio.
-    if (!hitbox) return;
+    // A hitbox (opcao da tela de Opcoes, ou o foco segurado): o circulo de colisao de verdade, cheio,
+    // com a borda e um ponto no meio.
     for (const Player* p : jogadores) {
-        const auto* c = p ? p->GetComponent<CircleColliderComponent>() : nullptr;
+        if (!p || (!hitbox && !p->Focado())) continue;
+        const auto* c = p->GetComponent<CircleColliderComponent>();
         if (!c) continue;
         const SDL_Color vermelho{255, 70, 70, 230};
+        // O miolo: uma faixa de um pixel por linha, da largura do circulo naquela altura.
+        const Vector2 centro = c->GetCenter();
+        const float r = c->GetRadius();
+        for (float dy = -r; dy < r; dy += 1.0f) {
+            const float meio = dy + 0.5f;
+            const float meiaLargura = std::sqrt(std::max(0.0f, r * r - meio * meio));
+            mLinhas->Preencher(centro + Vector2(-meiaLargura, dy), centro + Vector2(meiaLargura, dy + 1.0f),
+                               SDL_Color{255, 70, 70, 150});
+        }
         for (const auto& [a, b] : PontoExtra::Anel(c->GetCenter(), c->GetRadius(), 16)) {
             mLinhas->Acrescentar(a, b, vermelho);
         }

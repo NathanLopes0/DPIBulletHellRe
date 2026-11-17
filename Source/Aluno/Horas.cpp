@@ -137,10 +137,8 @@ namespace Horas {
 
     std::vector<Linha> Quadro(const Progresso& progresso, const Materias::Lista& materias) {
         std::vector<Linha> quadro;
-        int comBatalha = 0;
-        for (const int i : ComBatalha(materias)) {
-            if (!materias.Escondida(i, progresso)) ++comBatalha;
-        }
+        // A secreta conta mesmo escondida, como nos outros numeros do curso.
+        const int comBatalha = static_cast<int>(ComBatalha(materias).size());
         for (const Dados& d : Todas()) {
             Linha l;
             l.dados = d;

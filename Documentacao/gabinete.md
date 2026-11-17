@@ -124,11 +124,15 @@ lá, e é por isso que nenhuma tela pode exigir outra tecla.
 | **Botão 3** | `N` | `H` | o extra de cada tela (hoje, o ranking da matéria) |
 | **Start** | `P` | `T` | pausa a batalha (abaixo) |
 | **Select** | `O` | `R` | abre as opções, das telas de menu (abaixo) |
+| **Foco** | `Shift` esquerdo | `Q` | segurado, o aluno anda devagar e vê a hitbox |
 
 São essas as teclas que o encoder do painel manda quando ele se apresenta como
-**teclado** — **dezoito, e não nove**, e nenhuma repetida entre as duas posições.
-O painel tem sete botões ao lado de cada manche; o jogo usa três, e os outros
-quatro ficam livres. Uma tecla repetida faria os
+**teclado** — **vinte, e não dez**, e nenhuma repetida entre as duas posições.
+O painel tem sete botões ao lado de cada manche; o jogo usa quatro — os três de
+jogo e o **foco** —, e os outros três ficam livres. O foco é, de preferência, o
+mais perto do manche: segurado, o aluno anda na metade da velocidade
+(`Player::kFatorDoFoco`) e vê a própria hitbox. No encoder de joystick, ele é o
+`"foco"` do `Assets/painel.json` (no padrão, o botão 3). Uma tecla repetida faria os
 dois manches moverem o mesmo aluno, que era o estado do código antes de a
 segunda posição existir: o `W A S D` era atalho das setas.
 

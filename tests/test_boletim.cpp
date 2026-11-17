@@ -110,8 +110,8 @@ TEST_CASE("Boletim: as optativas numa secao so, no fim, e fora da conta das apro
     CHECK(d.linhas.back().optativa);
     CHECK(Boletim::Secao(d.linhas.back()) == "Optativas");
     CHECK(Boletim::Secao(d.linhas.front()) == Boletim::Periodo(1));
-    CHECK(d.total == 2);       // as obrigatorias, como na selecao de fases
-    CHECK(d.aprovadas == 1);   // a optativa aprovada nao conta
+    CHECK(d.total == 3);       // o curso inteiro, como na selecao de fases
+    CHECK(d.aprovadas == 2);   // a optativa aprovada conta
     CHECK(d.cursadas == 2);    // mas entra no CR
 }
 

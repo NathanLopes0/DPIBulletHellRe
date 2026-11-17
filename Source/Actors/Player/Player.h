@@ -69,9 +69,12 @@ public:
     /// Battle e as regras de projetil leem isto.
     [[nodiscard]] bool EstaAcorrentado() const { return mTempoDeCorrente > 0.0f; }
 
-    /// Quao rapido o aluno anda neste instante, ja com a corrente. Fonte unica.
+    /// Se o aluno segura o foco neste quadro (Painel::TeclaDoFoco): anda devagar e mostra a hitbox.
+    [[nodiscard]] bool Focado() const { return mFocado; }
+
+    /// Quao rapido o aluno anda neste instante, ja com a corrente e o foco. Fonte unica.
     [[nodiscard]] float VelocidadeDeAndar() const {
-        return kVelocidade * (mTempoDeCorrente > 0.0f ? mFatorDaCorrente : 1.0f);
+        return kVelocidade * (mTempoDeCorrente > 0.0f ? mFatorDaCorrente : 1.0f) * (mFocado ? kFatorDoFoco : 1.0f);
     }
 
     /// Quanto ainda falta da imunidade do parceiro. Zero quer dizer desprotegido.
@@ -96,6 +99,8 @@ public:
 private:
     // ---- As constantes do aluno ----
     static constexpr float kVelocidade = 300.0f;
+    /// Segurando o foco (Painel::TeclaDoFoco), o aluno anda a esta fracao da velocidade.
+    static constexpr float kFatorDoFoco = 0.5f;
     /// O tempo entre dois tiros: o mesmo que o Ponto Extra paga por tiro.
     static constexpr float kEntreTiros = PontoExtra::kEntreTiros;
     /// De quanto em quanto tempo o aluno pisca enquanto esta invencivel.
@@ -161,6 +166,8 @@ private:
     /// A corrente: o que resta, quanto ela corta da velocidade, e o pulso do ferro.
     float mTempoDeCorrente = 0.0f;
     float mFatorDaCorrente = 1.0f;
+    /// O foco segurado neste quadro: anda devagar e mostra a hitbox.
+    bool mFocado = false;
     float mPulsoDaCorrente = 0.0f;
     Acerto::Memoria mAcertos;
     Acerto::Memoria mRaspoes{Raspao::kMemoria};

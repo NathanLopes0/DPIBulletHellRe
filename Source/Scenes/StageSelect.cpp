@@ -347,13 +347,15 @@ void StageSelect::CreateStaticUI() {
     int aprovadas = 0;
     for (int i = 0; i < materias.Quantas(); ++i) {
         const Materias::Materia* m = materias.Por(i);
-        if (m && !m->optativa && mGame->Aprovado(i)) ++aprovadas;
+        if (m && mGame->Aprovado(i)) ++aprovadas;
     }
+    // O curso inteiro, a secreta inclusive: quem conta os losangos acha um a menos.
+    const int doCurso = materias.Quantas();
 
     auto avanco = std::make_unique<Actor>(this);
     avanco->SetPosition(Vector2(w - 190.f, 52.f));
     const auto avancoDc = avanco->AddComponent<DrawTextComponent>(
-        "Aprovadas: " + std::to_string(aprovadas) + " de " + std::to_string(materias.QuantasObrigatorias()),
+        "Aprovadas: " + std::to_string(aprovadas) + " de " + std::to_string(doCurso),
         mStageSelectFont.get(), 320, 38, 26, 255);
     avancoDc->SetLarguraDeQuebra(320);
     avancoDc->SetAjustarAoTexto(true);

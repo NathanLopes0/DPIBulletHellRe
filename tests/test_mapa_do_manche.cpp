@@ -176,6 +176,7 @@ TEST_CASE("MapaDoManche: o Assets/painel.json do jogo se le sem problema e e o p
         CHECK(c.posicoes[i].direcoes == padrao.posicoes[i].direcoes);
         CHECK(c.posicoes[i].start == padrao.posicoes[i].start);
         CHECK(c.posicoes[i].select == padrao.posicoes[i].select);
+        CHECK(c.posicoes[i].foco == padrao.posicoes[i].foco);
     }
 }
 
@@ -206,4 +207,20 @@ TEST_CASE("MapaDoManche: o START e o SELECT do joystick apertam as teclas da pos
     CHECK(c.posicoes[0].select == 6);
     CHECK(c.posicoes[1].start == MapaDoManche::kNenhum);
     CHECK(c.posicoes[1].select == 11);
+}
+
+TEST_CASE("MapaDoManche: o foco do joystick segura a tecla do foco da posicao") {
+    MapaDoManche::Posicao p;
+    CHECK(p.foco == 3);   // o primeiro livre depois dos tres
+    MapaDoManche::Leitura l = Solto();
+    l.botoes[3] = 1;
+    const std::vector<Uint8> t = Teclado(l, p, Painel::Jogador::Um);
+    CHECK(t[Painel::TeclaDoFoco(Painel::Jogador::Um)] == 1);
+    CHECK(Apertadas(t) == 1);
+
+    std::vector<std::string> problemas;
+    const MapaDoManche::Configuracao c = MapaDoManche::Ler(R"({"jogadores": [{"foco": 6}, {"foco": -1}]})", &problemas);
+    CHECK(problemas.empty());
+    CHECK(c.posicoes[0].foco == 6);
+    CHECK(c.posicoes[1].foco == MapaDoManche::kNenhum);
 }

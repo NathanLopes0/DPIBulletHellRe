@@ -22,6 +22,7 @@ struct Posto {
     SDL_Scancode manche[4];     ///< na ordem de Painel::Direcao
     TeclaDoBotao botoes[3];     ///< na ordem de Painel::Botao
     TeclaDoBotao sistema[2];    ///< na ordem de Painel::Sistema: START e SELECT
+    TeclaDoBotao foco;          ///< segurado, anda devagar
 };
 
 /// As duas posicoes, e o unico lugar do projeto onde teclas aparecem. As teclas sao as de um
@@ -31,13 +32,15 @@ const Posto& Posicao(const Painel::Jogador quem) {
         "SETAS",
         {SDL_SCANCODE_UP, SDL_SCANCODE_DOWN, SDL_SCANCODE_LEFT, SDL_SCANCODE_RIGHT},
         {{SDL_SCANCODE_SPACE, "ESPACO"}, {SDL_SCANCODE_B, "B"}, {SDL_SCANCODE_N, "N"}},
-        {{SDL_SCANCODE_P, "P"}, {SDL_SCANCODE_O, "O"}}};
+        {{SDL_SCANCODE_P, "P"}, {SDL_SCANCODE_O, "O"}},
+        {SDL_SCANCODE_LSHIFT, "SHIFT"}};
 
     static const Posto kDois{
         "WASD",
         {SDL_SCANCODE_W, SDL_SCANCODE_S, SDL_SCANCODE_A, SDL_SCANCODE_D},
         {{SDL_SCANCODE_F, "F"}, {SDL_SCANCODE_E, "E"}, {SDL_SCANCODE_H, "H"}},
-        {{SDL_SCANCODE_T, "T"}, {SDL_SCANCODE_R, "R"}}};
+        {{SDL_SCANCODE_T, "T"}, {SDL_SCANCODE_R, "R"}},
+        {SDL_SCANCODE_Q, "Q"}};
 
     switch (quem) {
         case Painel::Jogador::Um:   return kUm;
@@ -145,6 +148,23 @@ bool AlgumApertado(const Uint8* teclado, const Sistema botao) {
         if (Apertado(teclado, quem, botao)) return true;
     }
     return false;
+}
+
+SDL_Scancode TeclaDoFoco(const Jogador quem) {
+    return Posicao(quem).foco.codigo;
+}
+
+const char* NomeDoFoco() {
+    return "FOCO";
+}
+
+const char* NomeDaTeclaDoFoco(const Jogador quem) {
+    return Posicao(quem).foco.nome;
+}
+
+bool FocoApertado(const Uint8* teclado, const Jogador quem) {
+    if (!teclado) return false;
+    return teclado[TeclaDoFoco(quem)] != 0;
 }
 
 Acao BotaoDeSistema(const Jogador quem, const Sistema botao, std::string oQueFaz) {

@@ -125,9 +125,9 @@ namespace Materias {
         [[nodiscard]] int QuantasColunasObrigatorias() const;
         /// Quantas materias obrigatorias o curso tem.
         [[nodiscard]] int QuantasObrigatorias() const;
-        /// As materias que a media do curso (o ranking geral) conta, na ordem do curso: todas menos
-        /// as secretas. A secreta e um extra: nao baixa a media de quem nunca a viu, nem denuncia,
-        /// pela conta, que existe.
+        /// As materias que a media do curso (o ranking geral) conta, na ordem do curso: todas, a
+        /// secreta inclusive. De proposito: os numeros do jogo contam a secreta, e quem conta as
+        /// materias da grade acha uma a menos - a pulga atras da orelha.
         [[nodiscard]] std::vector<int> DoGeral() const;
 
         /// Esta materia esta liberada para este progresso? Nao recorre: "aprovado em X" olha a nota

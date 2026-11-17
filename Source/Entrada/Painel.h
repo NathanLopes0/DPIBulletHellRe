@@ -78,6 +78,20 @@ constexpr Direcao kDirecoes[] = {Direcao::Cima, Direcao::Baixo,
 /// Se qualquer das duas posicoes o aperta.
 [[nodiscard]] bool AlgumApertado(const Uint8* teclado, Sistema botao);
 
+// ---- O botao de foco ----
+// Segurado, o aluno anda mais devagar (Player::kFatorDoFoco) e ve a propria hitbox - o classico dos
+// bullet hell, para passar por um vao apertado. No gabinete, o botao de jogo mais perto do manche.
+
+/// A tecla que esta posicao manda pelo botao de foco.
+[[nodiscard]] SDL_Scancode TeclaDoFoco(Jogador quem);
+
+/// "FOCO", e a tecla dele: "SHIFT", "Q".
+[[nodiscard]] const char* NomeDoFoco();
+[[nodiscard]] const char* NomeDaTeclaDoFoco(Jogador quem);
+
+/// Se esta posicao segura o foco neste quadro.
+[[nodiscard]] bool FocoApertado(const Uint8* teclado, Jogador quem);
+
 /// Como o rodape nomeia o que apertar. No gabinete nao ha teclado, entao dizer a tecla seria ruido.
 enum class Jeito {
     SoOPainel,   ///< "BOTAO 1  jogar"

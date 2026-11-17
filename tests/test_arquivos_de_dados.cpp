@@ -66,6 +66,7 @@
 #include "../Source/Curso/Orientacao.h"
 #include "../Source/Entrada/Navegacao.h"
 #include "../Source/Personagem/Personagens.h"
+#include "../Source/Aluno/Boletim.h"
 #include "../Source/Aluno/Progresso.h"
 #include "../Source/Aluno/Mencoes.h"
 #include "../Source/Aluno/ProvaDaSemana.h"
@@ -2760,14 +2761,19 @@ TEST_CASE("Dados: a INF 216 e secreta - abre com o 100 em metade das materias e 
     outra.RegistrarAtividade(Materias::ChaveDaLiberacao("INF425"));
     CHECK_FALSE(l.Desbloqueada(l.IndiceDe("INF425"), outra));
 
-    // A secreta fechada nao entra no total de mencoes do curso: as 16 outras, com o TCC sem a de
-    // orientar. Aberta, ela soma as dela.
-    CHECK(Mencoes::DoCurso(Progresso{}, l).possiveis == 16 * Mencoes::kQuantas - 1);
+    // A secreta conta nos numeros do curso desde o comeco, escondida ou nao - quem conta as materias
+    // da grade acha uma a menos: as 17, com o TCC sem a de orientar.
+    CHECK(Mencoes::DoCurso(Progresso{}, l).possiveis == 17 * Mencoes::kQuantas - 1);
     CHECK(Mencoes::DoCurso(dev, l).possiveis == 17 * Mencoes::kQuantas - 1);
-    // Nem na media do curso: o ranking geral conta as 16 outras, aberta ou nao, e divide por 16.
+    // E na media do curso: o ranking geral divide pelas 17.
     const std::vector<int> doGeral = l.DoGeral();
-    CHECK(doGeral.size() == 16u);
-    CHECK(std::find(doGeral.begin(), doGeral.end(), jd) == doGeral.end());
+    CHECK(doGeral.size() == 17u);
+    CHECK(static_cast<int>(doGeral.size()) == l.Quantas());
+    CHECK(std::find(doGeral.begin(), doGeral.end(), jd) != doGeral.end());
+    // O boletim de quem nem a viu diz "de 17", e mostra 16 linhas.
+    const Boletim::Dados boletim = Boletim::Montar(Progresso{}, l);
+    CHECK(boletim.total == 17);
+    CHECK(boletim.linhas.size() == 16u);
     // A frase do que ela pede.
     const std::string exige = l.ExigenciaDe(jd);
     CAPTURE(exige);

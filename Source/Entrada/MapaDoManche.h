@@ -42,6 +42,9 @@ struct Posicao {
     /// o 9 e o 8: a numeracao comum dos encoders "zero delay", que contam os de jogo antes.
     int start = 9;
     int select = 8;
+    /// O botao do joystick que e o foco (Painel::TeclaDoFoco): o primeiro livre depois dos tres, no
+    /// padrao. No gabinete, o que fica mais perto do manche.
+    int foco = 3;
 };
 
 struct Configuracao {

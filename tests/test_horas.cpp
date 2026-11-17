@@ -167,7 +167,7 @@ namespace {
     }
 }
 
-TEST_CASE("Horas: a secreta fechada nao entra no 'de quantas' do quadro; aberta, entra") {
+TEST_CASE("Horas: a secreta entra no 'de quantas' do quadro desde o comeco, como no resto do curso") {
     const Materias::Lista curso = Materias::LerMaterias(R"({ "materias": [
         { "codigo": "A1", "nome": "INF 1", "professor": "Ana", "chefe": "ana", "coluna": 0,
           "desbloqueio": { "tipo": "sempre" } },
@@ -184,10 +184,10 @@ TEST_CASE("Horas: a secreta fechada nao entra no 'de quantas' do quadro; aberta,
     };
 
     Progresso p;
-    CHECK(porMateria(Quadro(p, curso)) == 2);    // so as duas que se veem
+    CHECK(porMateria(Quadro(p, curso)) == 3);    // as duas que se veem, e a que nao se ve
     p.RegistrarNota(0, 70.0f, Dificuldade::Nivel::Normal);
     p.RegistrarNota(1, 70.0f, Dificuldade::Nivel::Normal);
-    CHECK(porMateria(Quadro(p, curso)) == 3);    // a regra cumprida abre a secreta, e ela conta
+    CHECK(porMateria(Quadro(p, curso)) == 3);    // aberta, o mesmo numero
 }
 
 TEST_CASE("Horas: so optativa tem preco, e ele e lido do desbloqueio") {

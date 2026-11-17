@@ -257,6 +257,8 @@ TEST_CASE("Painel: cada posicao tem START e SELECT, e nenhuma tecla deles e de o
             CHECK((t < SDL_SCANCODE_1 || t > SDL_SCANCODE_0));
             teclas.push_back(t);
         }
+        // E o foco, um de cada.
+        teclas.push_back(Painel::TeclaDoFoco(quem));
     }
     for (size_t i = 0; i < teclas.size(); ++i) {
         for (size_t j = i + 1; j < teclas.size(); ++j) CHECK(teclas[i] != teclas[j]);
@@ -277,4 +279,16 @@ TEST_CASE("Painel: START e SELECT no rodape, com a tecla so no computador") {
     CHECK(Painel::Rodape({start}, Painel::Jeito::SoOPainel) == std::string("START") + Painel::kEntreNomeEAcao + "continuar");
     CHECK(Painel::Rodape({start}, Painel::Jeito::ComATecla) == std::string("START (P)") + Painel::kEntreNomeEAcao + "continuar");
     CHECK(std::string(Painel::Nome(Painel::Sistema::Select)) == "SELECT");
+}
+
+TEST_CASE("Painel: o foco e de cada posicao, e so dela") {
+    const SDL_Scancode um = Painel::TeclaDoFoco(Painel::Jogador::Um);
+    const SDL_Scancode dois = Painel::TeclaDoFoco(Painel::Jogador::Dois);
+    CHECK(um != dois);
+    CHECK(um != SDL_SCANCODE_LCTRL);    // o Ctrl + Esc e a saida do operador
+    CHECK(Painel::FocoApertado(TecladoCom(um).data(), Painel::Jogador::Um));
+    CHECK_FALSE(Painel::FocoApertado(TecladoCom(um).data(), Painel::Jogador::Dois));
+    CHECK_FALSE(Painel::FocoApertado(nullptr, Painel::Jogador::Um));
+    CHECK(std::string(Painel::NomeDoFoco()) == "FOCO");
+    CHECK(std::string(Painel::NomeDaTeclaDoFoco(Painel::Jogador::Dois)) == "Q");
 }

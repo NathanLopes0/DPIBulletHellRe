@@ -31,6 +31,7 @@ escritos na tela.
 | **Botão 3** | **N** | **H** | na criação da personagem, passar do objeto para a cor; na dificuldade, trocar a personagem (no boletim, é o manche para cima); na seleção, o boletim (e dele, o ranking da matéria); na batalha em dupla, dar um sinal ao parceiro; na batalha do TCC, soltar o poder do orientador quando o anel dele enche; no resultado da dupla aprovada, os dois juntos: o toca aqui |
 | **Start** | **P** | **T** | na batalha: pausa — continuar, recomeçar a fase ou sair dela sem registrar a nota. No computador o **Esc** faz o mesmo, e a batalha também pausa sozinha quando a janela perde o foco; no gabinete, a pausa esquecida volta ao menu sozinha |
 | **Select** | **O** | **R** | nas telas de menu (o menu principal, a seleção, a dificuldade, o boletim, as horas, o Como Jogar): abre as **Opções**, e de lá volta para a mesma tela |
+| **Foco** | **Shift** | **Q** | segurado na batalha: o aluno anda na **metade da velocidade** — o clássico dos bullet hell, para passar num vão apertado — e a hitbox dele aparece. No gabinete, o botão mais perto do manche |
 | — | **Enter**, **Esc**, **0–9**, **Backspace** | — | atalhos de teclado para quem desenvolve |
 
 > As setas **não são atalho do W A S D**: elas são o manche do jogador 1, e o
@@ -125,7 +126,7 @@ Na seleção de fases, o **Botão 3** abre o **boletim do semestre**: as matéri
 período a período (o período na primeira linha dele, e as optativas numa seção
 própria no fim), com a melhor nota, a situação (aprovade, reprovade, a cursar
 ou fechada), quantas provas você terminou em cada uma, o **CR** — a média das
-melhores notas das matérias cursadas —, quantas obrigatórias foram aprovadas, as **menções**
+melhores notas das matérias cursadas —, quantas matérias foram aprovadas, as **menções**
 e a sua posição no curso. Em dupla, o manche para os lados troca de aluno, e o
 **manche para cima** troca a personagem de quem está em tela — a qualquer hora,
 voltando para o boletim. Do boletim, o Botão 3 de novo leva ao ranking da
@@ -241,7 +242,7 @@ numa tela de menu —, ficam:
 - o volume da **música** e o dos **efeitos**, de mudo a 10;
 - a **tela cheia** (só no computador: no gabinete o jogo é sempre em tela cheia,
   e a linha nem aparece);
-- a **hitbox**: mostra na batalha o círculo onde um tiro acerta o aluno de
+- a **hitbox**: mostra na batalha o círculo cheio onde um tiro acerta o aluno de
   verdade, bem menor que o desenho dele.
 
 O manche para cima e para baixo escolhe a opção, e para os lados (ou o botão 1)
@@ -383,7 +384,7 @@ grade: com o cursor passando do TCC, a seleção de fases desliza até ela e o
 título vira "OPTATIVAS" (a borda direita avisa "OPTATIVAS »" enquanto ela
 existir, e a esquerda, "« OBRIGATÓRIAS", para voltar). Cada página da ala tem
 até quatro colunas; com mais, ela continua para a direita ("MAIS »"). As
-optativas não contam no "Aprovadas: N de M". São **mais difíceis** que as
+optativas contam no "Aprovadas: N de M", como as obrigatórias. São **mais difíceis** que as
 obrigatórias, pedem **requisitos** além das aprovações (uma menção de ouro,
 horas ganhas...) e se **compram** com horas complementares; o prêmio é um
 **orientador novo** no TCC — o professor da optativa aprovada aparece a mais,
@@ -402,10 +403,12 @@ desenvolve aperta **F9** na seleção de fases: as matrículas nas optativas sã
 desfeitas, as horas voltam e a ficha é gravada (as notas ficam).
 
 **A optativa secreta.** Uma matéria com `"secreta": true` nem aparece — nem o
-losango na grade, nem a linha no boletim, nem as menções dela no total do curso
-— até a regra dela estar cumprida; então ela surge na ala das optativas, aberta.
-Ela nunca entra na média do curso do ranking: é um extra, e não baixa a média
-de quem nunca a viu (nem a conta "dividida pelas N matérias" a denuncia).
+losango na grade, nem a linha no boletim — até a regra dela estar cumprida;
+então ela surge na ala das optativas, aberta. Mas **os números do jogo a
+contam desde o começo**: o "Aprovadas: N de 17", as menções possíveis, o "de
+quantas" das horas e a média do ranking ("sobre as 17 matérias"). Quem conta os
+losangos da grade acha 16 — uma a menos —, e a conta não fecha de propósito: é a
+pulga atrás da orelha de que há mais uma.
 É a INF 216, Projeto e Implementação de Jogos Digitais, do Lucas Ferreira: pede
 a nota cheia em metade das matérias (8 das 16 com batalha) e a menção do Difícil
 em **todas** as 13 obrigatórias, e não custa horas — quem chegou até ali já

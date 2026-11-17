@@ -20,11 +20,12 @@
         "Botão 1: lançar Dúvidas, e confirmar.",
         "Botão 2: gastar um Ponto Extra, e voltar nas telas.",
         "Botão 3: em algumas provas, ele faz algo a mais.",
-        "O rodapé de cada tela diz o que os botões fazem ali."
+        "Foco: segurado, você anda devagar e vê onde pode ser acertado.",
+        "Start pausa a prova, e Select abre as opções. O rodapé de cada tela diz o resto."
       ],
       "no_computador": [
         "Jogador 1: setas, Espaço, B e N.   Jogador 2: W A S D, F, E e H.",
-        "Esc pausa a prova."
+        "Foco: Shift e Q.   Start: P e T.   Select: O e R.   Esc também pausa."
       ]
     },
     {

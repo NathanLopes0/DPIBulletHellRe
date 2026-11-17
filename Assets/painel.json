@@ -6,6 +6,7 @@
 //
 // O START (pausa a batalha) e o SELECT (abre as opcoes) de cada posicao: pelo encoder de teclado,
 // P e O no jogador 1 e T e R no jogador 2; pelo de joystick, o "start" e o "select" abaixo.
+// O FOCO (segurado, o aluno anda devagar): Shift esquerdo e Q pelo teclado; "foco" no joystick.
 //
 // Para acertar um encoder novo: abra o jogo pelo jogar.sh, mexa em cada manche e aperte cada
 // botao, e leia o Saves/jogo.log. Ele diz cada joystick ligado ("MANCHE: joystick 0 ligado:
@@ -34,7 +35,9 @@
             // Os botoes de sistema desta posicao (-1: nao tem). O START pausa a batalha dos dois, e o
             // SELECT abre as opcoes.
             "start": 9,
-            "select": 8
+            "select": 8,
+            // O foco: segurado, o aluno anda devagar. De preferencia, o botao mais perto do manche.
+            "foco": 3
         },
         {
             // Jogador 2.
@@ -47,7 +50,8 @@
             "botoes": [0, 1, 2],
             "direcoes": [-1, -1, -1, -1],
             "start": 9,
-            "select": 8
+            "select": 8,
+            "foco": 3
         }
     ]
 }
