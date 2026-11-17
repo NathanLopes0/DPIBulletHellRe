@@ -38,6 +38,15 @@ namespace Tipos {
         }
     }
 
+    std::vector<Vector2> LugaresDaEscolha(const float x, const float y, const float largura, const float altura) {
+        return {Vector2(x + largura * 0.16f, y + altura * 0.40f), Vector2(x + largura * 0.50f, y + altura * 0.30f),
+                Vector2(x + largura * 0.84f, y + altura * 0.40f)};
+    }
+
+    float AnguloDoBraco(const int k, const float t, const float sentido) {
+        return sentido * kGiroDaRoleta * t + 120.0f * static_cast<float>(k);
+    }
+
     int MaisPerto(const std::vector<Vector2>& lugares, const Vector2 p) {
         int melhor = -1;
         float perto = 0.0f;

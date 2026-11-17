@@ -80,7 +80,7 @@ namespace {
                                                 // o sorteio.
                                                 "fonte", "dado", "amostra", "centroide", "convergiu",
                                                 "rotulada", "palpite", "barra", "previsao", "caixa",
-                                                "engano", "garoa",
+                                                "engano", "roleta", "empurrada",
                                                 // O Michel: a camera escura, a convolucao, a rede e o
                                                 // MaVIlab.
                                                 "objeto", "imagem", "enfeite", "fluxo", "ativacao", "vetor",

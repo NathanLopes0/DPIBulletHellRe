@@ -288,16 +288,18 @@ encaixa no sítio ativo e não lê o guia do CRISPR: a parede do genoma o acerta
 cada fita. São três coisas que quem entende a fase faz, e o número dele é o de
 quem só desvia.
 
-Na INF 425, do Daniel, a ordem se inverte: o `segue` vai melhor que o
-`esquiva`. Sozinho, com as sementes 101 a 103:
+Na INF 425, do Daniel, a ordem se inverte no Normal: o `segue` vai melhor que
+o `esquiva`. Sozinho, com as sementes 101 a 103:
 
 | Piloto | Normal | Difícil |
 |---|---|---|
-| `segue` | 69 a 76 (aprova nas três) | 0 a 38 |
-| `esquiva` | 27 a 61 (aprova em duas) | 17 a 70 (aprova em uma) |
+| `segue` | 62 a 74 (aprova nas três) | 0 a 76 (aprova em uma) |
+| `esquiva` | 40 a 65 (aprova em duas) | 22 a 67 (aprova em duas) |
 
 O `esquiva` fica longe do professor e atira menos, e desvia até da amostra que
-poderia absorver (ele só sabe que a do próprio tipo passa). Nenhum dos dois faz
+poderia absorver (ele só sabe que a do próprio tipo passa). A fase 3 é a que
+mais o acerta (de 2 a 9 vezes): os dados de treino saem da fronteira
+balançando, e uma parte vem com o rótulo trocado. Nenhum dos dois faz
 o que a fase pede: ficar na elipse da espécie quando o z-score varre (cada
 varredura fora dela é um acerto certo), ficar do lado da fronteira que o seu
 tipo vence, responder o sorteio e levar f(x) ao valor real no SHAP.

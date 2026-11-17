@@ -700,8 +700,10 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
 - **Daniel — INF 425, optativa.** Ciência de Dados, a primeira optativa — e mais
   difícil que as obrigatórias. O catálogo é o dos **monstrinhos** (o x do
   gráfico é o ataque, o y a defesa), e as espécies são fogo, água e planta. No
-  começo da batalha, três monstrinhos esperam no chão: **encoste num e ele é o
-  seu tipo até o fim** — *"eu escolho você!"* —, com o selo ao seu lado. O tipo
+  começo da batalha, três monstrinhos esperam longe de onde você nasce — um em
+  cada lado e um no alto, numa ordem que muda a cada aula: **fique em cima de
+  um até o arco dele fechar e ele é o seu tipo até o fim** — *"eu escolho
+  você!"* —, com o selo ao seu lado. O tipo
   vale contra todo tiro com tipo: o do seu passa por você, o do tipo que você
   vence você **absorve** (super efetivo: vale um pouco de nota), e o do tipo
   que vence o seu machuca. Na **preparação**, o campo é um gráfico de
@@ -722,12 +724,18 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   divide o campo em classes, e a amostra cai com a classe do lugar de onde
   sai: o placar diz se a próxima rajada passa, se é para absorver ou se é
   para desviar. As rajadas vêm uma classe por vez (o anel do professor já
-  mostra a próxima), os dados de treino chovem, e a fronteira muda: no
+  mostra a próxima), e os dados de treino **nascem na fronteira** e são
+  empurrados, balançando, para o lado da classe deles — o lado em que você fica
+  decide se o que vem machuca ou vale nota. Mas os rótulos têm **ruído**: uma
+  parte sai com a classe do outro lado (no perceptron, tantas quantas ele errou
+  na época), e do lado bom é essa que machuca. E a fronteira muda: no
   perceptron, uma reta que aprende com os erros (a nova aparece tracejada antes
   de valer); no **comitê**, três árvores de decisão votam, e o campo vira uma
   colcha que muda quando uma árvore é replantada. O exame é a
   **explicabilidade**: na caixa-preta, cada dúvida que acerta o professor é uma
-  pergunta, e quanto mais perguntas, mais cedo a linha de cada palpite aparece.
+  pergunta, e quanto mais perguntas, mais cedo a linha de cada palpite aparece
+  — na cor do tipo dele: o placar diz se o palpite passa, se é para absorver ou
+  se é para desviar.
   No **SHAP**, a previsão desce em cascata — uma faixa de tiros por atributo,
   cada uma começando onde a anterior acabou —, mas o modelo **errou**: o valor
   real está marcado em dourado no chão, e um ou dois atributos empurram f(x)
@@ -742,7 +750,10 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   centróide, a reta que separa as cores, o grupo do ponto cinza. Não é de
   decorar, é de olhar: as três cartas ficam no desenho, presas aos candidatos;
   derrubar a certa vale nota, a errada estoura em cacos, e enquanto a pergunta
-  está aberta o professor só espera a resposta.
+  está aberta o professor só espera a resposta. Enquanto a turma espera, a
+  **roda dos tipos** gira: três braços, um de cada tipo, saem do professor
+  girando — cada aula para um lado — e soltam espirais de monstrinhos; o do seu
+  tipo passa, o que você vence você absorve, e o que vence o seu machuca.
 - **Michel — INF 429, optativa.** Visão Computacional, do
   professor que lidera o MaVIlab — uma optativa que pede
   menos reflexo e mais pensar em como a máquina vê. Na **imagem**, o meio do

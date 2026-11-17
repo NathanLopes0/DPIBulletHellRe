@@ -117,6 +117,15 @@ namespace Classificacao {
         return s.Real(0.0f, 1.0f) < 0.78f ? 1 - anterior : anterior;
     }
 
+    int Rotulo(Variacao::Sorteio& s, const int doLado, const float ruido) {
+        return s.Real(0.0f, 1.0f) < ruido ? 1 - doLado : doLado;
+    }
+
+    float Ruido(const int errosDaEpoca, const float piso) {
+        const float errou = static_cast<float>(std::max(errosDaEpoca, 0)) / static_cast<float>(kAmostrasPorEpoca);
+        return std::min(0.5f, std::max(piso, errou));
+    }
+
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
         if (n != Dificuldade::Nivel::Dificil) return d;
@@ -126,7 +135,9 @@ namespace Classificacao {
         d.entreEpocas = 1.6f;
         d.entreReplantios = 1.9f;
         d.aviso = 0.45f;
-        d.entreChuvas = 0.065f;
+        d.entreEmpurroes = 0.024f;
+        d.empurrao = 210.0f;
+        d.ruido = 0.28f;
         return d;
     }
 }

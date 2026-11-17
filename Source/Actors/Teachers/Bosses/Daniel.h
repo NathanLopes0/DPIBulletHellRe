@@ -32,13 +32,13 @@ class DrawLinhasComponent;
 ///      transformacao, e voce anda junto;
 ///   2. os atributos e os grupos - a fileira da PCA que gira, e o centroide da celula do aluno que
 ///      vem para cima dele;
-///   3. o supervisionado - a fronteira de decisao divide o campo, e a chuva de cada lado tem a
-///      classe dele;
+///   3. o supervisionado - a fronteira de decisao divide o campo, e os dados de treino nascem nela
+///      e sao empurrados para o lado da classe deles: o lado em que voce fica decide o que vem;
 ///   e a repescagem, a explicabilidade: a caixa-preta que avisa mais cedo quem pergunta, e a cascata
 ///   do SHAP que errou o valor real - derrubar a ponta de uma barra tira o atributo, e levar a
 ///   previsao ate o valor real a explica.
 /// E, no comeco de cada aula depois da primeira, o sorteio de quem explica a aula passada, com uma
-/// pergunta de olhar o desenho (Chamada.h).
+/// pergunta de olhar o desenho (Chamada.h), enquanto a roleta dos tipos gira em volta do professor.
 class Daniel : public Boss {
 public:
     explicit Daniel(Scene* scene);
@@ -133,9 +133,9 @@ private:
 
     // ---- O tipo do aluno (Tipos.h): escolhido no comeco da fase 1, para a luta inteira ----
 
-    /// Os monstrinhos no chao, e o toque que escolhe; no fim do tempo, quem nao escolheu fica com o
-    /// mais perto.
-    void Escolher(float t);
+    /// Os monstrinhos longe de onde o aluno nasce (Tipos::LugaresDaEscolha), e ficar em cima de um por
+    /// Tipos::kParaEscolher escolhe; no fim do tempo, quem nao escolheu fica com o mais perto.
+    void Escolher(float t, float deltaTime);
     /// Todo quadro, depois da escolha: a classe de cada aluno, o selo, o anel na cor do tipo, e a
     /// absorcao do tiro do tipo que ele vence.
     void AtualizarTipos();
@@ -143,6 +143,11 @@ private:
     static constexpr const char* kGatilhoDoSelo = "selo";
     std::vector<int> mTipos;                                  ///< o de cada aluno (-1: ainda nao)
     std::array<BossProjectile*, Tipos::kTipos> mEscolhas{};
+    /// O lugar de cada tipo na escolha: sorteado a cada luta, e o do meio nao e sempre o mesmo.
+    std::array<int, Tipos::kTipos> mLugarDoTipo{0, 1, 2};
+    /// Ha quanto tempo cada aluno esta em cima de qual monstrinho (-1: de nenhum).
+    std::vector<float> mEmCima;
+    std::vector<int> mEmCimaDe;
     std::vector<BossProjectile*> mSelos;
     bool mEscolheu = false;
     float mPremioDoTipo = 0.0f;
@@ -150,9 +155,10 @@ private:
 
     // ---- O sorteio (Chamada.h): o comeco das fases 2, 3 e da repescagem ----
 
-    /// A roleta, a pergunta e a garoa (o gatilho "garoa" da fase, com a cara 'caraDaGaroa').
-    void AtualizarSorteio(float t, int aula, const std::string& fase, const char* caraDaGaroa);
-    static constexpr const char* kGatilhoDaGaroa = "garoa";
+    /// A roleta dos nomes, a pergunta e a roleta dos tipos: tres bracos girando em volta do
+    /// professor, um de cada tipo (o gatilho "roleta" da fase), para o lado que a 'aula' decide.
+    void AtualizarSorteio(float t, int aula, const std::string& fase);
+    static constexpr const char* kGatilhoDaRoleta = "roleta";
     void DesmontarSorteio();
     void Responder(int carta);
     [[nodiscard]] std::string NomeDe(int quem) const;
@@ -168,7 +174,7 @@ private:
         std::string placar;
     };
     Sorteado mSorteado;
-    float mProximaGaroa = 0.0f;
+    float mProximoBraco = 0.0f;
     /// O quadro do desenho da pergunta, no alto do campo; 'q' vai de 0 a 1 nele.
     [[nodiscard]] SDL_FRect QuadroDaQuestao() const;
     [[nodiscard]] Vector2 NoQuadro(Vector2 q) const;
@@ -268,7 +274,7 @@ private:
     float mProximoReplantio = 0.0f;
     int mClasseDaRajada = -1;
     float mProximaRajada = 0.0f;
-    float mProximaChuva = 0.0f;
+    float mProximoEmpurrao = 0.0f;
     void LimparClasses();
 
     // ---- A repescagem: a explicacao ----
@@ -280,6 +286,8 @@ private:
     [[nodiscard]] int PerguntasRecentes() const;
     struct PalpiteDaVez {
         Explicacao::Palpite tipo = Explicacao::Palpite::Anel;
+        /// O elemento do palpite: o aviso o mostra na cor dele, e quem pergunta sabe antes.
+        int elemento = 0;
         float sai = 0.0f;
         bool avisado = false;
         std::vector<float> rumos;

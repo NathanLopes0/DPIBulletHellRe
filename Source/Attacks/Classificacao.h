@@ -27,6 +27,7 @@ namespace Classificacao {
     constexpr std::array<const char*, 3> kEtapas = {"Sorteio", "Perceptron", "Comite"};
     constexpr std::array<float, 3> kDuracoes = {6.0f, 7.0f, 7.0f};
     constexpr const char* kGatilhoDaAmostra = "rotulada";
+    constexpr const char* kGatilhoDoEmpurrao = "empurrada";   ///< os dados de treino, da fronteira
     constexpr const char* kGatilhoDaArvore = "arvore";
 
     /// Em que etapa se esta no instante 't' da fase: 0, 1 ou 2.
@@ -81,6 +82,14 @@ namespace Classificacao {
     /// A classe da proxima rajada: a outra, quase sempre.
     int ClasseDaRajada(Variacao::Sorteio& s, int anterior);
 
+    /// O rotulo de uma amostra de treino que vai para o lado da classe 'doLado': o mesmo, ou, com
+    /// chance 'ruido', o da outra - o ruido nos rotulos. Do lado bom do aluno, a amostra errada e a
+    /// que machuca.
+    int Rotulo(Variacao::Sorteio& s, int doLado, float ruido);
+    /// O ruido da etapa: no perceptron, a fracao de amostras que o modelo errou na ultima epoca (cai
+    /// conforme ele aprende), nunca abaixo do 'piso'; no comite, o piso.
+    float Ruido(int errosDaEpoca, float piso);
+
     // ---- O ritmo ----
 
     struct Degrau {
@@ -90,7 +99,11 @@ namespace Classificacao {
         float entreEpocas = 2.0f;
         float entreReplantios = 2.3f;
         float aviso = 0.6f;          ///< a reta (ou a arvore) nova, tracejada, antes de valer
-        float entreChuvas = 0.07f;   ///< os dados de treino, rotulados, chovendo do alto
+        /// Os dados de treino, rotulados, que nascem na fronteira e sao empurrados para um dos
+        /// lados: de quanto em quanto tempo, e a que velocidade.
+        float entreEmpurroes = 0.03f;
+        float empurrao = 185.0f;
+        float ruido = 0.2f;          ///< o piso do ruido nos rotulos (Ruido)
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 

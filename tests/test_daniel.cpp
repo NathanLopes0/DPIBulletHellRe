@@ -210,6 +210,26 @@ TEST_CASE("Classificacao: o perceptron aprende a reta com os erros, e o comite v
     CHECK(trocas < 95);
 }
 
+TEST_CASE("Classificacao: o ruido nos rotulos - uma parte das amostras sai com a classe do outro lado") {
+    using namespace Classificacao;
+    Variacao::Sorteio s(425u);
+    for (int k = 0; k < 50; ++k) {
+        CHECK(Rotulo(s, 1, 0.0f) == 1);
+        CHECK(Rotulo(s, 0, 1.0f) == 1);
+    }
+    int trocadas = 0;
+    for (int k = 0; k < 2000; ++k) trocadas += Rotulo(s, 0, 0.3f);
+    CHECK(trocadas > 500);
+    CHECK(trocadas < 700);
+    // No perceptron, o ruido e a fracao que ele errou na epoca, com um piso e um teto.
+    CHECK(Ruido(0, 0.2f) == doctest::Approx(0.2f));
+    CHECK(Ruido(kAmostrasPorEpoca / 2, 0.2f) == doctest::Approx(0.5f));
+    CHECK(Ruido(kAmostrasPorEpoca, 0.2f) == doctest::Approx(0.5f));
+    CHECK(Ruido(kAmostrasPorEpoca / 3, 0.2f) == doctest::Approx(1.0f / 3.0f));
+    // O Dificil erra mais os rotulos.
+    CHECK(DegrauDo(Dificuldade::Nivel::Dificil).ruido > DegrauDo(Dificuldade::Nivel::Normal).ruido);
+}
+
 // ---- A explicacao ----
 
 TEST_CASE("Explicacao: a pergunta adianta o aviso, e a cascata do SHAP fica no campo") {
@@ -487,4 +507,29 @@ TEST_CASE("Chamada: a roleta para em alguem, cada vez mais devagar") {
         else if (t > 2.0f * kRoleta / 3.0f) noFim += trocou ? 1 : 0;
     }
     CHECK(noComeco > noFim);
+}
+
+TEST_CASE("Tipos: a escolha fica longe de onde o aluno nasce, e nenhum monstrinho logo acima dele") {
+    using namespace Tipos;
+    const float x = 0.0f, y = 54.0f, largura = 1200.0f, altura = 746.0f;
+    const std::vector<Vector2> lugares = LugaresDaEscolha(x, y, largura, altura);
+    REQUIRE(lugares.size() == static_cast<size_t>(kTipos));
+    // O aluno nasce no chao, no meio (Battle: um sprite acima do fundo do campo).
+    const Vector2 nasce(x + largura / 2.0f, y + altura - 64.0f);
+    for (const Vector2& l : lugares) {
+        CHECK((l - nasce).Length() > 380.0f);
+        CHECK(l.y < y + altura * 0.5f);   // na metade de cima
+    }
+    // Andar 120 px para cima, como antes, nao chega em nenhum.
+    CHECK((lugares[1] - (nasce + Vector2(0.0f, -120.0f))).Length() > kToqueDaEscolha);
+    // E escolher pede ficar em cima, nao so passar: o anel enche em kParaEscolher.
+    CHECK(kParaEscolher > 2.0f * kToqueDaEscolha / 300.0f);   // mais que atravessar o circulo a toda
+}
+
+TEST_CASE("Tipos: a roleta - tres bracos, a 120 graus, girando para o lado pedido") {
+    using namespace Tipos;
+    CHECK(AnguloDoBraco(1, 0.0f, 1.0f) - AnguloDoBraco(0, 0.0f, 1.0f) == doctest::Approx(120.0f));
+    CHECK(AnguloDoBraco(2, 0.0f, 1.0f) - AnguloDoBraco(1, 0.0f, 1.0f) == doctest::Approx(120.0f));
+    CHECK(AnguloDoBraco(0, 1.0f, 1.0f) == doctest::Approx(kGiroDaRoleta));
+    CHECK(AnguloDoBraco(0, 1.0f, -1.0f) == doctest::Approx(-kGiroDaRoleta));
 }

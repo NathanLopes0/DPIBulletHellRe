@@ -58,8 +58,8 @@
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "engano", "estrategia": "WaveAttack", "projetil": "Tiro",
         "projeteis": 10, "velocidade": 190, "angulo": 324, "intervalo": 0 },
-      { "som": false, "gatilho": "garoa", "estrategia": "WaveAttack", "projetil": "Amostra",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "garoa" }
+      { "som": false, "gatilho": "roleta", "estrategia": "WaveAttack", "projetil": "Amostra",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "roleta" }
     ]
   },
 
@@ -82,14 +82,16 @@
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "rotulada", "estrategia": "WaveAttack", "projetil": "Amostra",
         "projeteis": 11, "velocidade": 250, "angulo": 40, "intervalo": 0 },
+      { "som": false, "gatilho": "empurrada", "estrategia": "WaveAttack", "projetil": "Amostra",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "empurrada" },
       { "som": false, "gatilho": "arvore", "estrategia": "WaveAttack", "projetil": "Arvore",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "resposta", "estrategia": "WaveAttack", "projetil": "Resposta",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "engano", "estrategia": "WaveAttack", "projetil": "Tiro",
         "projeteis": 10, "velocidade": 190, "angulo": 324, "intervalo": 0 },
-      { "som": false, "gatilho": "garoa", "estrategia": "WaveAttack", "projetil": "Amostra",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "garoa" }
+      { "som": false, "gatilho": "roleta", "estrategia": "WaveAttack", "projetil": "Amostra",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "roleta" }
     ]
   },
 
@@ -110,7 +112,7 @@
     "ataques": [
       { "som": false, "gatilho": "selo", "estrategia": "WaveAttack", "projetil": "Selo",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
-      { "som": false, "gatilho": "palpite", "estrategia": "WaveAttack", "projetil": "Tiro",
+      { "som": false, "gatilho": "palpite", "estrategia": "WaveAttack", "projetil": "Amostra",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "som": false, "gatilho": "barra", "estrategia": "WaveAttack", "projetil": "Barra",
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
@@ -122,8 +124,8 @@
         "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0 },
       { "gatilho": "engano", "estrategia": "WaveAttack", "projetil": "Tiro",
         "projeteis": 10, "velocidade": 190, "angulo": 324, "intervalo": 0 },
-      { "som": false, "gatilho": "garoa", "estrategia": "WaveAttack", "projetil": "Tiro",
-        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "garoa" }
+      { "som": false, "gatilho": "roleta", "estrategia": "WaveAttack", "projetil": "Amostra",
+        "projeteis": 1, "velocidade": 0, "angulo": 0, "intervalo": 0, "regras": "roleta" }
     ]
   }
 }
