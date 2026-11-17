@@ -42,12 +42,16 @@ private:
     static constexpr size_t kPorFileira = 4;
     /// O avatar no mural, maior que no campo: e ele que se olha.
     static constexpr float kEscalaNoMural = 2.0f;
+    /// A personagem de cada um no cartaz dos melhores: do tamanho de uma linha.
+    static constexpr float kEscalaNosMelhores = 1.0f;
 
     /// Um cartaz e so um conjunto de desenhos que aparecem juntos.
     using Cartaz = std::vector<DrawComponent*>;
 
     Cartaz CriarChamada();
-    Cartaz CriarMelhores(const std::vector<Exportacao::FichaDeAluno>& fichas);
+    /// 'dados': as fichas inteiras, de onde sai a personagem de cada um.
+    Cartaz CriarMelhores(const std::vector<Exportacao::FichaDeAluno>& fichas,
+                         const std::vector<Ficha::Dados>& dados);
     /// Quem passou no TCC, de capelo, dos mais recentes (Mural.h). Vazio se ninguem se formou.
     Cartaz CriarMural(const std::vector<Exportacao::FichaDeAluno>& fichas, const std::vector<Ficha::Dados>& dados);
 

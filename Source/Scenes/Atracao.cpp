@@ -63,7 +63,7 @@ void Atracao::Load() {
     mCartazes.push_back(CriarChamada());
 
     // O painel dos melhores e o mural so existem se houver quem mostrar.
-    Cartaz melhores = CriarMelhores(fichas);
+    Cartaz melhores = CriarMelhores(fichas, dados);
     if (!melhores.empty()) mCartazes.push_back(std::move(melhores));
     Cartaz mural = CriarMural(fichas, dados);
     if (!mural.empty()) mCartazes.push_back(std::move(mural));
@@ -96,7 +96,8 @@ Atracao::Cartaz Atracao::CriarChamada() {
     return cartaz;
 }
 
-Atracao::Cartaz Atracao::CriarMelhores(const std::vector<Exportacao::FichaDeAluno>& fichas) {
+Atracao::Cartaz Atracao::CriarMelhores(const std::vector<Exportacao::FichaDeAluno>& fichas,
+                                       const std::vector<Ficha::Dados>& dados) {
 
     const auto largura = static_cast<float>(mGame->GetWindowWidth());
     const auto altura = static_cast<float>(mGame->GetWindowHeight());
@@ -121,14 +122,36 @@ Atracao::Cartaz Atracao::CriarMelhores(const std::vector<Exportacao::FichaDeAlun
     constexpr float kPrimeira = 0.32f;
     constexpr float kEspaco = 0.082f;
 
+    // Quem ja se formou aparece de capelo, como no ranking e no mural.
+    const Personagens::Catalogo& catalogo = Personagens::Carregado();
+    const int formatura = catalogo.formatura.Existe() ? materias.IndiceDe(catalogo.formatura.materia) : -1;
+
     for (size_t i = 0; i < linhas.size(); ++i) {
 
         const float y = altura * (kPrimeira + kEspaco * static_cast<float>(i));
         const Ranking::Linha& l = linhas[i];
 
-        cartaz.push_back(Texto(std::to_string(l.posicao) + ".", largura * 0.34f, y,
+        cartaz.push_back(Texto(std::to_string(l.posicao) + ".", largura * 0.31f, y,
                                32, 90, Color::White));
-        cartaz.push_back(Texto(Matricula::ParaExibir(l.matricula), largura * 0.47f, y,
+
+        // A personagem de quem esta ali, parada: numa lista, seis andando distrairiam do que ela diz.
+        for (const Ficha::Dados& d : dados) {
+            if (d.matricula != l.matricula || d.aparencia.Vazia()) continue;
+            const bool formado = formatura >= 0 && d.progresso.Aprovado(formatura);
+            const Personagens::Composta c = Personagens::Compor(mGame, catalogo, d.aparencia, formado);
+            if (!c.ok) break;
+            auto ator = std::make_unique<Actor>(this);
+            ator->SetPosition(Vector2(largura * 0.375f, y));
+            ator->SetScale(kEscalaNosMelhores);
+            auto* desenho = ator->AddComponent<DrawAnimatedComponent>(c.chaveDaTextura, c.atlas, 100);
+            desenho->AddAnimation("Parado", {0});
+            desenho->SetAnimation("Parado");
+            cartaz.push_back(desenho);
+            AddActor(std::move(ator));
+            break;
+        }
+
+        cartaz.push_back(Texto(Matricula::ParaExibir(l.matricula), largura * 0.50f, y,
                                32, 240, Color::White));
         // Sem dourado por nota cheia aqui, e sem verde de aprovacao.
         cartaz.push_back(Texto(ComDuasCasas(l.nota), largura * 0.64f, y, 32, 200,
