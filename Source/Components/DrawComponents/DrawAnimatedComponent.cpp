@@ -6,6 +6,7 @@
 
 #include "../../Motor/Game.h"
 #include "../../Interface/Hud.h"
+#include "../../Motor/Daltonizar.h"
 #include "../../Actors/Actor.h"
 #include "../../Regras/Destrutivel.h"
 #include "DrawAnimatedComponent.h"
@@ -150,7 +151,7 @@ void DrawAnimatedComponent::DesenharEcos(SDL_Renderer* renderer) {
     for (const Eco& e : mEcos) {
         const Hud::Rgb c = Hud::ArcoIris(e.matiz);
         const float u = 1.0f - e.idade / kVidaDoEco;
-        SDL_SetTextureColorMod(mSpriteSheetSurface, c.r, c.g, c.b);
+        Daltonizar::Tinto(mSpriteSheetSurface, c.r, c.g, c.b);
         SDL_SetTextureAlphaMod(mSpriteSheetSurface, static_cast<Uint8>(std::clamp(u * 230.0f, 0.0f, 255.0f)));
         SDL_RenderCopyEx(renderer, mSpriteSheetSurface, &e.quadro, &e.destino, e.angulo, nullptr, SDL_FLIP_NONE);
         // Duas vezes no comeco da vida: o eco novo e quase branco de tanta luz.
@@ -185,7 +186,7 @@ void DrawAnimatedComponent::DesenharSilhueta(SDL_Renderer* renderer, const SDL_R
     }
     if (!mSilhueta) return;
 
-    SDL_SetTextureColorMod(mSilhueta, cor.r, cor.g, cor.b);
+    Daltonizar::Tinto(mSilhueta, cor.r, cor.g, cor.b);
     SDL_SetTextureAlphaMod(mSilhueta, cor.a);
     const int e = distancia;
     for (int dy = -e; dy <= e; dy += e) {

@@ -7,6 +7,7 @@
 #include <SDL_image.h>
 
 #include "../Motor/CaminhosArquivo.h"
+#include "../Motor/Daltonizar.h"
 #include "../Motor/Game.h"
 
 namespace {
@@ -118,6 +119,7 @@ Composta Compor(Game* game, const Catalogo& catalogo, const Aparencia& aparencia
         return saida;
     }
 
+    Daltonizar::Superficie(destino);
     SDL_Texture* textura = SDL_CreateTextureFromSurface(game->GetRenderer(), destino);
     SDL_FreeSurface(destino);
 

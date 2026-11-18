@@ -152,6 +152,10 @@ public:
     void DefinirVolumeDosEfeitos(int volume);
     void DefinirTelaCheia(bool cheia);
     void DefinirHitbox(bool mostrar);
+    /// O modo daltonismo. As linhas, as caixas e o texto mudam na hora; as imagens ja carregadas sao
+    /// refeitas na proxima troca de tela (LimparTexturas).
+    void DefinirDaltonismo(Daltonismo::Modo modo);
+    [[nodiscard]] Daltonismo::Modo ModoDeDaltonismo() const { return mConfiguracao.daltonismo; }
 
     /// A mesma regra que o desbloqueio le, e nao uma comparacao com 60 repetida em quem desenha. Do
     /// jogador 1.
@@ -355,6 +359,10 @@ private:
     Configuracao::Dados mConfiguracao{};
 
     bool mPendingSceneChange;
+    /// O modo daltonismo mudou: na proxima troca de tela, depois de a de agora sair, o cache de texturas
+    /// e esvaziado e cada imagem e lida de novo, ja corrigida.
+    bool mRecarregarTexturas = false;
+    void LimparTexturas();
     Scene::SceneType mNextScene;
 
     // ---- Gabinete ----

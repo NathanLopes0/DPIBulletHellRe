@@ -3,6 +3,7 @@
 //
 
 #include "DrawSpriteComponent.h"
+#include "../../Motor/Daltonizar.h"
 #include "../../Scenes/Scene.h"
 #include "../../Actors/Actor.h"
 #include "../../Motor/Game.h"
@@ -62,7 +63,7 @@ void DrawSpriteComponent::SetColor(Uint8 red, Uint8 green, Uint8 blue) {
 
 void DrawSpriteComponent::ApplyColorMod() const {
     if (mSpriteSheetSurface) {
-        SDL_SetTextureColorMod(mSpriteSheetSurface, mColorR, mColorG, mColorB);
+        Daltonizar::Tinto(mSpriteSheetSurface, mColorR, mColorG, mColorB);
     }
 }
 

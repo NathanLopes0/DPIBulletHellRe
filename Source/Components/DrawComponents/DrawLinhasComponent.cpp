@@ -3,6 +3,7 @@
 //
 
 #include "DrawLinhasComponent.h"
+#include "../../Motor/Daltonizar.h"
 
 #include <algorithm>
 #include <cmath>
@@ -26,14 +27,14 @@ void DrawLinhasComponent::Draw(SDL_Renderer* renderer) {
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
     for (const Linha& r : mRetangulos) {
-        SDL_SetRenderDrawColor(renderer, r.cor.r, r.cor.g, r.cor.b, r.cor.a);
+        Daltonizar::CorDeDesenho(renderer, r.cor.r, r.cor.g, r.cor.b, r.cor.a);
         const SDL_FRect caixa{std::min(r.de.x, r.ate.x), std::min(r.de.y, r.ate.y), std::fabs(r.ate.x - r.de.x),
                               std::fabs(r.ate.y - r.de.y)};
         SDL_RenderFillRectF(renderer, &caixa);
     }
 
     for (const Linha& l : mLinhas) {
-        SDL_SetRenderDrawColor(renderer, l.cor.r, l.cor.g, l.cor.b, l.cor.a);
+        Daltonizar::CorDeDesenho(renderer, l.cor.r, l.cor.g, l.cor.b, l.cor.a);
 
         // A segunda linha vai de lado, um pixel para fora no eixo menos inclinado.
         const float dx = l.ate.x - l.de.x, dy = l.ate.y - l.de.y;

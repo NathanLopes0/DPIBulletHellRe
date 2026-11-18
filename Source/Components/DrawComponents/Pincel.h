@@ -9,6 +9,8 @@
 #include <cmath>
 #include <SDL.h>
 
+#include "../../Motor/Daltonizar.h"
+
 /// Um lugar so para as primitivas da HUD.
 namespace Pincel {
 
@@ -24,7 +26,7 @@ namespace Pincel {
 
     /// A cor de desenho, com a opacidade da cor multiplicada por 'alfa'.
     inline void Cor(SDL_Renderer* r, const SDL_Color c, const float alfa = 1.0f) {
-        SDL_SetRenderDrawColor(r, c.r, c.g, c.b,
+        Daltonizar::CorDeDesenho(r, c.r, c.g, c.b,
                                static_cast<Uint8>(std::clamp(static_cast<float>(c.a) * alfa, 0.0f, 255.0f)));
     }
 

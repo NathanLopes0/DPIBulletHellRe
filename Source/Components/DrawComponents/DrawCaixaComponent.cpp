@@ -3,6 +3,7 @@
 //
 
 #include "DrawCaixaComponent.h"
+#include "../../Motor/Daltonizar.h"
 
 #include <SDL_render.h>
 
@@ -32,11 +33,11 @@ void DrawCaixaComponent::Draw(SDL_Renderer* renderer) {
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 
     if (mFundo.a > 0) {
-        SDL_SetRenderDrawColor(renderer, mFundo.r, mFundo.g, mFundo.b, mFundo.a);
+        Daltonizar::CorDeDesenho(renderer, mFundo.r, mFundo.g, mFundo.b, mFundo.a);
         SDL_RenderFillRect(renderer, &fora);
     }
 
-    SDL_SetRenderDrawColor(renderer, mMoldura.r, mMoldura.g, mMoldura.b, mMoldura.a);
+    Daltonizar::CorDeDesenho(renderer, mMoldura.r, mMoldura.g, mMoldura.b, mMoldura.a);
     const SDL_Rect lados[4] = {
         {fora.x, fora.y, fora.w, mEspessura},                          // topo
         {fora.x, fora.y + fora.h - mEspessura, fora.w, mEspessura},     // base

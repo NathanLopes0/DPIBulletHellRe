@@ -1,4 +1,5 @@
 #include "Font.h"
+#include "Daltonizar.h"
 
 #include <algorithm>
 #include <cmath>
@@ -45,6 +46,7 @@ SDL_Texture* Font::RenderText(SDL_Renderer* renderer, const std::string& text, c
 	sdlColor.g = static_cast<Uint8>(color.y * 255);
 	sdlColor.b = static_cast<Uint8>(color.z * 255);
 	sdlColor.a = 255;
+	sdlColor = Daltonizar::NaTela(sdlColor);
 
 	// O tamanho na tela de verdade: o texto nasce nitido, em vez de ser ampliado depois.
 	const int tamanho = std::max(1, static_cast<int>(std::lround(static_cast<float>(pointSize) * escala)));

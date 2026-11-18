@@ -33,7 +33,7 @@ namespace {
     const SDL_Color kFundo{34, 38, 48, 150};
 
     // \xc3\xba e \xc3\xa3 sao u agudo e a til: o MSVC nao le acento em literal.
-    const char* const kNomes[] = {"M\xc3\xbasica", "Efeitos", "Tela cheia", "Hitbox"};
+    const char* const kNomes[] = {"M\xc3\xbasica", "Efeitos", "Tela cheia", "Hitbox", "Daltonismo"};
 
     std::string Volume(const int v) {
         return v == 0 ? std::string("< mudo >") : "< " + std::to_string(v) + " >";
@@ -60,7 +60,7 @@ void Opcoes::Load() {
     Texto("OP\xc3\x87\xc3\x95" "ES", meio, altura * 0.15f, 52, 760);
 
     mItens.clear();
-    for (const Item item : {Item::Musica, Item::Efeitos, Item::TelaCheia, Item::Hitbox}) {
+    for (const Item item : {Item::Musica, Item::Efeitos, Item::TelaCheia, Item::Hitbox, Item::Daltonismo}) {
         if (item == Item::TelaCheia && mGame->NoGabinete()) continue;
         mItens.push_back(item);
     }
@@ -106,6 +106,9 @@ void Opcoes::Mostrar() {
             case Item::Efeitos:   valor->SetText(Volume(mGame->VolumeDosEfeitos())); break;
             case Item::TelaCheia: valor->SetText(SimOuNao(mGame->TelaCheia())); break;
             case Item::Hitbox:    valor->SetText(SimOuNao(mGame->MostrarHitbox())); break;
+            case Item::Daltonismo:
+                valor->SetText(std::string("< ") + Daltonismo::Nome(mGame->ModoDeDaltonismo()) + " >");
+                break;
         }
     }
 
@@ -122,7 +125,13 @@ void Opcoes::Mostrar() {
             break;
         case Item::Hitbox:
             mDescricao->SetText("Mostra na batalha onde um tiro acerta o aluno.");
-
+            break;
+        case Item::Daltonismo:
+            // \xc3\xa1 e \xc3\xa3 sao a agudo e a til.
+            mDescricao->SetText(mGame->ModoDeDaltonismo() == Daltonismo::Modo::Desligado
+                ? "Corrige as cores para quem confunde vermelho e verde, ou azul e amarelo."
+                : std::string("Cores corrigidas para ") + Daltonismo::Nome(mGame->ModoDeDaltonismo()) +
+                  ". As imagens mudam ao sair desta tela.");
             break;
     }
 }
@@ -143,6 +152,7 @@ void Opcoes::Trocar(const int passo, const bool peloBotao) {
         }
         case Item::TelaCheia: mGame->DefinirTelaCheia(!mGame->TelaCheia()); break;
         case Item::Hitbox:    mGame->DefinirHitbox(!mGame->MostrarHitbox()); break;
+        case Item::Daltonismo: mGame->DefinirDaltonismo(Daltonismo::Mover(mGame->ModoDeDaltonismo(), passo)); break;
     }
     Mostrar();
 }

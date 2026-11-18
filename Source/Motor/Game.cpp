@@ -14,6 +14,7 @@
 #include "../Regras/Destrutivel.h"
 #include "AudioSystem.h"
 #include "Font.h"
+#include "Daltonizar.h"
 #include "../Components/DrawComponents/DrawComponent.h"
 #include "../Scenes/MainMenu.h"
 #include "../Aluno/FichaArquivo.h"
@@ -155,6 +156,8 @@ void Game::LoadInitialScene()
 
     // As opcoes depois da base: o arquivo mora em Saves, que e relativa a ela.
     mConfiguracao = ConfiguracaoArquivo::Carregar();
+    // Antes de qualquer textura: a primeira imagem ja nasce corrigida.
+    Daltonismo::Definir(mConfiguracao.daltonismo);
     AplicarVolumes();
     AplicarTelaCheia();
 
@@ -558,6 +561,8 @@ SDL_Texture* Game::LoadTexture(const std::string& texturePath) {
         return placeholder;
     }
 
+    // O modo daltonismo corrige a imagem antes de ela virar textura (Daltonizar::Superficie).
+    Daltonizar::Superficie(loadedIMG);
     auto textureFromSur = SDL_CreateTextureFromSurface(mRenderer, loadedIMG);
     SDL_FreeSurface(loadedIMG);
     if (!textureFromSur)
@@ -614,12 +619,7 @@ void Game::Shutdown()
     mManches.Fechar();
 
     // Precisa ser antes de SDL_DestroyRenderer.
-    for (auto& [path, texture] : mTextureCache) {
-        if (texture && texture != mPlaceholderTexture) {
-            SDL_DestroyTexture(texture);
-        }
-    }
-    mTextureCache.clear();
+    LimparTexturas();
 
     if (mPlaceholderTexture) {
         SDL_DestroyTexture(mPlaceholderTexture);
@@ -639,6 +639,14 @@ void Game::Shutdown()
 void Game::ChangeScene(const Scene::SceneType sceneType)
 {
     mAudio->StopAllSounds();
+
+    // O daltonismo mudou: a tela de agora sai primeiro (ninguem mais usa as texturas dela), e a
+    // proxima le as imagens de novo, corrigidas.
+    if (mRecarregarTexturas) {
+        mRecarregarTexturas = false;
+        mScene.reset();
+        LimparTexturas();
+    }
 
     switch (sceneType) {
         case Scene::SceneType::MainMenu:
@@ -892,6 +900,22 @@ void Game::DefinirTelaCheia(const bool cheia) {
     mConfiguracao.telaCheia = cheia;
     AplicarTelaCheia();
     ConfiguracaoArquivo::Gravar(mConfiguracao);
+}
+
+void Game::DefinirDaltonismo(const Daltonismo::Modo modo) {
+    if (mConfiguracao.daltonismo == modo) return;
+    mConfiguracao.daltonismo = modo;
+    Daltonismo::Definir(modo);
+    mRecarregarTexturas = true;
+    ConfiguracaoArquivo::Gravar(mConfiguracao);
+}
+
+void Game::LimparTexturas() {
+    // O placeholder e compartilhado por todo caminho que falhou e tem dono proprio.
+    for (auto& [path, texture] : mTextureCache) {
+        if (texture && texture != mPlaceholderTexture) SDL_DestroyTexture(texture);
+    }
+    mTextureCache.clear();
 }
 
 void Game::DefinirHitbox(const bool mostrar) {

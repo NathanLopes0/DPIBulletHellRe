@@ -243,7 +243,14 @@ numa tela de menu —, ficam:
 - a **tela cheia** (só no computador: no gabinete o jogo é sempre em tela cheia,
   e a linha nem aparece);
 - a **hitbox**: mostra na batalha o círculo cheio onde um tiro acerta o aluno de
-  verdade, bem menor que o desenho dele.
+  verdade, bem menor que o desenho dele;
+- o **daltonismo**: desligado, **deuteranopia**, **protanopia** ou
+  **tritanopia**. Ligado, o jogo corrige todas as cores — as imagens, as linhas,
+  as caixas e o texto — para quem confunde vermelho e verde (as duas primeiras,
+  as mais comuns) ou azul e amarelo: o que esse olho perde da cor é devolvido
+  nos canais que ele vê (a simulação de Machado, Oliveira e Fernandes, e a
+  correção de Fidaner). As linhas e o texto mudam na hora; as imagens, ao sair
+  da tela de Opções.
 
 O manche para cima e para baixo escolhe a opção, e para os lados (ou o botão 1)
 troca. As opções são da máquina, e não do aluno: ficam em `Saves/opcoes.cfg` e
@@ -479,7 +486,7 @@ Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:
   segunda-feira), a matéria, o modo, a dificuldade, a matrícula, o parceiro, a
   nota e quando. Só acrescenta; o ranking da semana sai dele.
 - **`opcoes.cfg`** — as opções da máquina (os volumes, a tela
-  cheia e a hitbox), em `chave=valor`. A tela de Opções o escreve na hora em
+  cheia, a hitbox e o daltonismo), em `chave=valor`. A tela de Opções o escreve na hora em
   que algo muda.
 - **`notas.csv`** — a planilha do professor, com uma linha por aluno-matéria e
   os quatro recordes (as colunas do Difícil vêm por último).

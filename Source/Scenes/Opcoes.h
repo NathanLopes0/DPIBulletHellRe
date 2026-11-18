@@ -27,8 +27,8 @@ public:
 
 private:
 
-    enum class Item { Musica, Efeitos, TelaCheia, Hitbox };
-    static constexpr int kItens = 4;
+    enum class Item { Musica, Efeitos, TelaCheia, Hitbox, Daltonismo };
+    static constexpr int kItens = 5;
 
     /// As linhas desta vez, na ordem da tela. No gabinete a tela cheia nao entra: la o jogo esta
     /// sempre em tela cheia, e a linha nao mudaria nada.

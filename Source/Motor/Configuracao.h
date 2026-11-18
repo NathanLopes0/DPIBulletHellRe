@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "../Interface/Daltonismo.h"
+
 /// Quem abre o arquivo e ConfiguracaoArquivo.cpp.
 namespace Configuracao {
 
@@ -25,6 +27,9 @@ namespace Configuracao {
         /// O circulo de colisao do aluno desenhado na batalha: onde um tiro
         /// acerta de verdade, que e menor que o sprite.
         bool mostrarHitbox = false;
+
+        /// O modo daltonismo (Daltonismo.h): as cores do jogo corrigidas para um tipo de daltonismo.
+        Daltonismo::Modo daltonismo = Daltonismo::Modo::Desligado;
     };
 
     /// O volume 'v' andado 'passo' casas, preso entre 0 e o maximo - nao da a volta: do mudo para a

@@ -151,6 +151,10 @@ add_executable(DPIBulletHellRe Source/Motor/main.cpp
         Source/Interface/Carregamento.cpp
         Source/Interface/Carregamento.h
         Source/Interface/Hud.cpp
+        Source/Interface/Daltonismo.cpp
+        Source/Interface/Daltonismo.h
+        Source/Motor/Daltonizar.cpp
+        Source/Motor/Daltonizar.h
         Source/Interface/FundoDoCampo.cpp
         Source/Interface/Hud.h
         Source/Interface/Comunicacao.cpp
@@ -667,6 +671,7 @@ add_executable(dpi_tests
         tests/test_tcc.cpp
         tests/test_cronograma.cpp
         tests/test_poder.cpp
+        tests/test_daltonismo.cpp
         tests/test_plataforma.cpp
         tests/test_objetivo.cpp
         tests/test_tentativas.cpp
@@ -773,6 +778,8 @@ add_executable(dpi_tests
         Source/Interface/Carregamento.cpp
         Source/Interface/Carregamento.h
         Source/Interface/Hud.cpp
+        Source/Interface/Daltonismo.cpp
+        Source/Interface/Daltonismo.h
         Source/Interface/FundoDoCampo.cpp
         Source/Interface/Hud.h
         Source/Interface/Comunicacao.cpp

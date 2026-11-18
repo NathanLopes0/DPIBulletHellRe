@@ -3,6 +3,7 @@
 //
 
 #include "ProgressBarComponent.h"
+#include "../../Motor/Daltonizar.h"
 #include "../../Actors/Actor.h"
 
 ProgressBarComponent::ProgressBarComponent(Actor* owner, const int drawOrder)
@@ -22,7 +23,7 @@ void ProgressBarComponent::Draw(SDL_Renderer* renderer) {
 
     // 1.
     const SDL_Rect bgRect{posX, posY, mWidth, mHeight};
-    SDL_SetRenderDrawColor(renderer, mBackgroundColor.r, mBackgroundColor.g, mBackgroundColor.b, mBackgroundColor.a);
+    Daltonizar::CorDeDesenho(renderer, mBackgroundColor.r, mBackgroundColor.g, mBackgroundColor.b, mBackgroundColor.a);
     SDL_RenderFillRect(renderer, &bgRect);
     DesenharSulco(renderer, bgRect);
 
@@ -31,7 +32,7 @@ void ProgressBarComponent::Draw(SDL_Renderer* renderer) {
     const int cheio = static_cast<int>(static_cast<float>(mWidth) * mFillPercent);
     if (cheio <= 0) return;
 
-    SDL_SetRenderDrawColor(renderer, cor.r, cor.g, cor.b, cor.a);
+    Daltonizar::CorDeDesenho(renderer, cor.r, cor.g, cor.b, cor.a);
     const SDL_Rect fgRect{posX, posY, cheio, mHeight};
     SDL_RenderFillRect(renderer, &fgRect);
 
@@ -85,7 +86,7 @@ void ProgressBarComponent::DesenharSulco(SDL_Renderer* renderer, const SDL_Rect&
 
     // A moldura fecha a barra.
     const SDL_Color moldura = Clarear(mBackgroundColor, kClaroDaMoldura);
-    SDL_SetRenderDrawColor(renderer, moldura.r, moldura.g, moldura.b, 255);
+    Daltonizar::CorDeDesenho(renderer, moldura.r, moldura.g, moldura.b, 255);
     for (int i = 0; i < kEspessuraDaMoldura; ++i) {
         SDL_Rect anel{caixa.x - i - 1, caixa.y - i - 1, caixa.w + 2 * (i + 1), caixa.h + 2 * (i + 1)};
         SDL_RenderDrawRect(renderer, &anel);
@@ -93,7 +94,7 @@ void ProgressBarComponent::DesenharSulco(SDL_Renderer* renderer, const SDL_Rect&
 
     // A sombra no topo de dentro: da ao vazio a leitura de buraco, e nao de outra cor chapada.
     const SDL_Color sombra = Escurecer(mBackgroundColor, kEscuroDaSombra);
-    SDL_SetRenderDrawColor(renderer, sombra.r, sombra.g, sombra.b, 255);
+    Daltonizar::CorDeDesenho(renderer, sombra.r, sombra.g, sombra.b, 255);
     SDL_Rect risco{caixa.x, caixa.y, caixa.w, kAlturaDaSombra};
     SDL_RenderFillRect(renderer, &risco);
 }
@@ -105,7 +106,7 @@ void ProgressBarComponent::DesenharBrilho(SDL_Renderer* renderer, const SDL_Rect
 
     // O brilho no topo do cheio, do mesmo tom em claro.
     const SDL_Color claro = Clarear(cor, kClaroDoBrilho);
-    SDL_SetRenderDrawColor(renderer, claro.r, claro.g, claro.b, cor.a);
+    Daltonizar::CorDeDesenho(renderer, claro.r, claro.g, claro.b, cor.a);
     SDL_Rect topo{preenchido.x, preenchido.y, preenchido.w, kAlturaDoBrilho};
     SDL_RenderFillRect(renderer, &topo);
 
@@ -113,7 +114,7 @@ void ProgressBarComponent::DesenharBrilho(SDL_Renderer* renderer, const SDL_Rect
     if (preenchido.w <= kLarguraDaPonta) return;
 
     const SDL_Color ponta = Clarear(cor, kClaroDaPonta);
-    SDL_SetRenderDrawColor(renderer, ponta.r, ponta.g, ponta.b, cor.a);
+    Daltonizar::CorDeDesenho(renderer, ponta.r, ponta.g, ponta.b, cor.a);
     SDL_Rect fim{preenchido.x + preenchido.w - kLarguraDaPonta, preenchido.y,
                  kLarguraDaPonta, preenchido.h};
     SDL_RenderFillRect(renderer, &fim);

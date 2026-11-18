@@ -56,7 +56,9 @@ std::string Serializar(const Dados& dados) {
           << "volume_efeitos=" << dados.volumeEfeitos << "\n"
           << "# tela_cheia e hitbox: sim ou nao\n"
           << "tela_cheia=" << SimOuNao(dados.telaCheia) << "\n"
-          << "hitbox=" << SimOuNao(dados.mostrarHitbox) << "\n";
+          << "hitbox=" << SimOuNao(dados.mostrarHitbox) << "\n"
+          << "# daltonismo: nao, deuteranopia, protanopia ou tritanopia\n"
+          << "daltonismo=" << Daltonismo::NomeNoArquivo(dados.daltonismo) << "\n";
     return saida.str();
 }
 
@@ -95,6 +97,14 @@ Lida Ler(const std::string& texto) {
             if (!DeSimOuNao(valor, destino)) {
                 lida.problemas.push_back("linha " + std::to_string(numero) + ": " + chave + " \"" + valor +
                                          "\" nao e sim nem nao; ficou nao");
+            }
+            continue;
+        }
+
+        if (chave == "daltonismo") {
+            if (!Daltonismo::DoArquivo(valor.c_str(), lida.dados.daltonismo)) {
+                lida.problemas.push_back("linha " + std::to_string(numero) + ": daltonismo \"" + valor +
+                                         "\" nao e nao, deuteranopia, protanopia nem tritanopia; ficou nao");
             }
             continue;
         }
