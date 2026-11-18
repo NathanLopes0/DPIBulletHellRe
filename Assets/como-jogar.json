@@ -8,8 +8,8 @@
       "linhas": [
         "Cada matéria é um professor do DPI, e você é o aluno.",
         "Ele passa três provas seguidas, e uma prova final se você precisar.",
-        "Você tem uma nota. Ela começa em 40, e com 60 você passa.",
-        "Acerte o professor com as suas Dúvidas e não deixe que ele te acerte.",
+        "Você tem uma nota. Ela começa em 40, e se terminar as 3 provas com mais de 60, você passa.",
+        "Acerte o professor com as suas Dúvidas e masterize a matéria para não perder nota.",
         "Passar numa matéria abre as seguintes, até o TCC."
       ]
     },
@@ -20,7 +20,7 @@
         "Botão 1: lançar Dúvidas, e confirmar.",
         "Botão 2: gastar um Ponto Extra, e voltar nas telas.",
         "Botão 3: em algumas provas, ele faz algo a mais.",
-        "Foco: segurado, você anda devagar e vê onde pode ser acertado.",
+        "Botão 4: o foco. Segurado, você anda devagar e vê onde pode ser acertado.",
         "Start pausa a prova, e Select abre as opções. O rodapé de cada tela diz o resto."
       ],
       "no_computador": [
@@ -32,9 +32,8 @@
       "titulo": "Você, e quem vier junto",
       "linhas": [
         "Entre com a sua matrícula e monte a sua personagem.",
-        "Troque de visual quando quiser: no boletim, manche para cima.",
+        "Troque de visual quando quiser.",
         "Como visitante você joga tudo, mas nada fica guardado.",
-        "O gabinete tem duas posições, e as provas também.",
         "Chame alguém para o Modo Dupla: tem coisas que só se descobre com um amigo."
       ]
     },

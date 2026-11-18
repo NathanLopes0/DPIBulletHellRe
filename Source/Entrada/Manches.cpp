@@ -61,18 +61,21 @@ void Manches::AoEvento(const SDL_Event& evento) {
         case SDL_JOYBUTTONDOWN: {
             const int dispositivo = Indice(evento.jbutton.which);
             const int botao = evento.jbutton.button;
-            SDL_Log("MANCHE: joystick %d, botao %d", dispositivo, botao);
+            const bool diagnostico = Diagnosticar();
+            if (diagnostico) SDL_Log("MANCHE: joystick %d, botao %d", dispositivo, botao);
             for (const Painel::Sistema s : Painel::kSistemas) {
                 const int dono = MapaDoManche::DonoDoSistema(mConfiguracao, dispositivo, botao, s);
                 if (dono < 0) continue;
                 mPulsos.push_back(Pulso{Painel::Tecla(Painel::kJogadores[dono], s), kQuadrosDoPulso});
-                SDL_Log("MANCHE: o botao %d do joystick %d e o %s do jogador %d", botao, dispositivo,
-                        Painel::Nome(s), dono + 1);
+                if (diagnostico) {
+                    SDL_Log("MANCHE: o botao %d do joystick %d e o %s do jogador %d", botao, dispositivo,
+                            Painel::Nome(s), dono + 1);
+                }
             }
             return;
         }
         case SDL_JOYHATMOTION: {
-            if (evento.jhat.value != SDL_HAT_CENTERED) {
+            if (evento.jhat.value != SDL_HAT_CENTERED && Diagnosticar()) {
                 SDL_Log("MANCHE: joystick %d, direcional %d = %s%s%s%s", Indice(evento.jhat.which), evento.jhat.hat,
                         (evento.jhat.value & SDL_HAT_UP) ? "cima " : "", (evento.jhat.value & SDL_HAT_DOWN) ? "baixo " : "",
                         (evento.jhat.value & SDL_HAT_LEFT) ? "esquerda " : "", (evento.jhat.value & SDL_HAT_RIGHT) ? "direita " : "");
@@ -89,12 +92,21 @@ void Manches::AoEvento(const SDL_Event& evento) {
             const int lado = v >= mConfiguracao.zonaMorta ? 1 : (v <= -mConfiguracao.zonaMorta ? -1 : 0);
             if (lado == lados[evento.jaxis.axis]) return;
             lados[evento.jaxis.axis] = lado;
-            if (lado != 0) SDL_Log("MANCHE: joystick %d, eixo %d %s", i, evento.jaxis.axis, lado > 0 ? "+" : "-");
+            if (lado != 0 && Diagnosticar()) SDL_Log("MANCHE: joystick %d, eixo %d %s", i, evento.jaxis.axis, lado > 0 ? "+" : "-");
             return;
         }
         default:
             return;
     }
+}
+
+bool Manches::Diagnosticar() {
+    if (mDiagnosticos >= kDiagnosticosNoMaximo) return false;
+    ++mDiagnosticos;
+    if (mDiagnosticos == kDiagnosticosNoMaximo) {
+        SDL_Log("MANCHE: %d toques no log; o diagnostico para aqui ate o jogo abrir de novo.", kDiagnosticosNoMaximo);
+    }
+    return true;
 }
 
 MapaDoManche::Leitura Manches::Ler(const Aberto& aberto) const {

@@ -59,4 +59,13 @@ private:
     MapaDoManche::Configuracao mConfiguracao = MapaDoManche::Padrao();
     /// Na ordem em que chegaram: o "dispositivo" do painel.json e a posicao aqui.
     std::vector<Aberto> mAbertos;
+
+    /// O diagnostico de cada botao, direcional e eixo serve para acertar o painel.json, e isso se faz
+    /// nos primeiros toques: depois de kDiagnosticosNoMaximo linhas por sessao do jogo ele se cala, e
+    /// o jogo.log nao cresce com cada partida de um gabinete que fica ligado o dia todo. A chegada e a
+    /// saida de um joystick continuam no log.
+    static constexpr int kDiagnosticosNoMaximo = 300;
+    int mDiagnosticos = 0;
+    /// Se este toque ainda vai para o log; no ultimo, avisa que o resto nao vai.
+    bool Diagnosticar();
 };
