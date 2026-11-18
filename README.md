@@ -443,6 +443,16 @@ pixels, como o resto da seleção, e uma vez só: a ficha guarda
 fases: as secretas abrem para quem está jogando, com a revelação; o F9 as fecha
 de novo, e a revelação volta a acontecer no próximo F10.
 
+**Depois da revelação, o cartão dela é outro.** Com a INF 216 selecionada, o
+painel de estatísticas da seleção vira um cartão de fliperama: a moldura em
+néon troca de cor — magenta, ciano, amarelo — com três contornos de brilho, os
+cantos viram colchetes brancos, linhas de varredura descem pelo fundo roxo, e
+de tempos em tempos o cartão dá um *glitch*: fatias deslocadas e o título em
+duas sombras, vermelha e ciano, que se separam. Um selo **FASE SECRETA** pisca
+no canto, faíscas correm pela beirada, o professor vira **CHEFE SECRETO** e o
+estado diz **NOVO DESAFIANTE!** — ou **HI-SCORE** e a nota, para quem já jogou.
+As outras matérias mantêm o cartão de sempre (`StageSelect::AtualizarCartaoGamer`).
+
 ## O que fica gravado
 
 Ao lado de `Assets/` o jogo cria uma pasta `Saves/`:

@@ -378,13 +378,35 @@ void StageSelect::CreateStaticUI() {
     // O cartao da materia em foco, no canto que a grade deixa vazio.
     auto moldura = std::make_unique<Actor>(this);
     moldura->SetPosition(Vector2(kCartaoX, kCartaoY));
-    moldura->AddComponent<DrawCaixaComponent>(
+    mMolduraDoCartao = moldura->AddComponent<DrawCaixaComponent>(
         static_cast<int>(kCartaoLargura), static_cast<int>(kCartaoAltura),
         kCorDaMolduraDoCartao, kCorDoFundoDoCartao, 2, kOrdemDoCartao);
     AddActor(std::move(moldura));
 
+    // A cara de fliperama do cartao da secreta: o neon, a varredura e as faiscas (por cima do fundo e
+    // por baixo das letras), as sombras do titulo e o selo. Tudo escondido ate o cursor chegar nela.
+    auto neon = std::make_unique<Actor>(this);
+    mNeonDoCartao = neon->AddComponent<DrawLinhasComponent>(kOrdemDoNeon);
+    AddActor(std::move(neon));
+    const auto sombra = [&](const float dx, const Vector3& cor) {
+        auto* dc = CriarTexto(*this, mStageSelectFont.get(), " ", Vector2(kCartaoX + dx, kCartaoY - 86.f), 30,
+                              static_cast<int>(kCartaoLargura) - 40, 38, 250);
+        dc->SetColor(cor);
+        dc->SetIsVisible(false);
+        return dc->GetOwner();
+    };
+    mSombraVermelha = sombra(-3.0f, Vector3(1.0f, 0.15f, 0.35f));
+    mSombraCiano = sombra(3.0f, Vector3(0.2f, 0.95f, 1.0f));
+    auto* selo = CriarTexto(*this, mStageSelectFont.get(), "FASE SECRETA", Vector2(kCartaoX + 128.f, kCartaoY - 104.f), 15, 140, 22);
+    selo->SetColor(Vector3(1.0f, 0.3f, 0.9f));
+    selo->SetIsVisible(false);
+    mSeloSecreto = selo->GetOwner();
+
     mCodigoAtor    = TextoDoCartao(kCartaoY - 86.f, 30, Color::White);
     mNomeAtor      = TextoDoCartao(kCartaoY - 46.f, 22, Color::LightYellow);
+    // O nome comprido (o da INF 216, o da INF 310) nao quebra em duas linhas, que a caixa espremeria:
+    // fica numa linha so, um pouco menor.
+    if (auto* dc = mNomeAtor->GetComponent<DrawTextComponent>()) dc->SetLarguraDeQuebra(4000);
     mProfessorAtor = TextoDoCartao(kCartaoY - 12.f, 20, Color::LightBlue);
     mEstadoAtor    = TextoDoCartao(kCartaoY + 24.f, 22, Color::White);
     mRivalAtor     = TextoDoCartao(kCartaoY + 56.f, 17, Color::LightBlue);
@@ -800,6 +822,7 @@ void StageSelect::OnUpdate(float deltaTime) {
 
     AtualizarAFesta(deltaTime);
     AtualizarARevelacao(deltaTime);
+    AtualizarCartaoGamer(deltaTime);
 
 }
 
@@ -1053,9 +1076,12 @@ void StageSelect::UpdateStageInfo() const {
 
     EscreverNoCartao(mCodigoAtor, m ? m->nome : std::string(), Color::White);
     EscreverNoCartao(mNomeAtor, m ? m->nomeCompleto : std::string(), Color::LightYellow);
-    EscreverNoCartao(mProfessorAtor, (m && !m->professor.empty()) ? ("Prof. " + m->professor)
+    EscreverNoCartao(mProfessorAtor, (m && !m->professor.empty()) ? ((CartaoGamer() ? "CHEFE SECRETO: " : "Prof. ") + m->professor)
                                                                  : std::string(),
                      Color::LightBlue);
+    for (Actor* sombra : {mSombraVermelha, mSombraCiano}) {
+        if (auto* dc = sombra ? sombra->GetComponent<DrawTextComponent>() : nullptr) dc->SetText(m ? m->nome : std::string(" "));
+    }
 
     std::string frase;
     Vector3 cor = Color::White;
@@ -1095,11 +1121,12 @@ void StageSelect::UpdateStageInfo() const {
         const float nota = mGame->GetMelhorNota(mSelectedSubject);
 
         if (nota <= 0.0f) {
-            frase = "Ainda nao jogou";
+            // Na secreta, quem chega pela primeira vez e o desafiante novo.
+            frase = CartaoGamer() ? "NOVO DESAFIANTE!" : "Ainda nao jogou";
         } else {
             // Duas casas pelo mesmo motivo da barra de nota da batalha.
             std::stringstream ss;
-            ss << "Maior nota: " << std::fixed << std::setprecision(2) << nota;
+            ss << (CartaoGamer() ? "HI-SCORE  " : "Maior nota: ") << std::fixed << std::setprecision(2) << nota;
             frase = ss.str();
         }
 
@@ -1131,6 +1158,148 @@ void StageSelect::UpdateStageInfo() const {
     if (mMencoes) mMencoes->Mostrar(Mencoes::Da(mGame->Sessoes().front().progresso, materias, mSelectedSubject));
 
     AtualizarMatricula();
+}
+
+bool StageSelect::CartaoGamer() const {
+    const Materias::Materia* m = Materias::Carregadas().Por(mSelectedSubject);
+    return m && m->secreta && !mGame->MateriaEscondida(mSelectedSubject);
+}
+
+namespace {
+    /// O neon que corre pelo magenta, o ciano e o amarelo.
+    SDL_Color Neon(const float t, const Uint8 alfa) {
+        static const SDL_Color cores[3] = {{255, 60, 230, 255}, {60, 230, 255, 255}, {255, 220, 80, 255}};
+        const float u = std::fmod(std::max(0.0f, t), 3.0f);
+        const int k = static_cast<int>(u);
+        const float f = u - static_cast<float>(k);
+        const SDL_Color& a = cores[k % 3];
+        const SDL_Color& b = cores[(k + 1) % 3];
+        const auto mistura = [&](const Uint8 x, const Uint8 y) {
+            return static_cast<Uint8>(static_cast<float>(x) + (static_cast<float>(y) - static_cast<float>(x)) * f);
+        };
+        return SDL_Color{mistura(a.r, b.r), mistura(a.g, b.g), mistura(a.b, b.b), alfa};
+    }
+
+    /// Um numero de 0 a 1 que so depende de 'k': cada faisca, cada fatia do glitch.
+    float Sorte(const float k) {
+        const float x = std::sin(k * 12.9898f) * 43758.5453f;
+        return x - std::floor(x);
+    }
+}
+
+void StageSelect::AtualizarCartaoGamer(const float deltaTime) {
+    if (!mNeonDoCartao) return;
+    mNeonDoCartao->Limpar();
+    const bool gamer = CartaoGamer() && !Revelando();
+    const auto mostrar = [&](Actor* a, const bool sim) {
+        if (auto* dc = a ? a->GetComponent<DrawTextComponent>() : nullptr) dc->SetIsVisible(sim);
+    };
+    if (!gamer) {
+        if (mEraGamer) {
+            // De volta ao cartao de sempre.
+            if (mMolduraDoCartao) {
+                mMolduraDoCartao->SetMoldura(kCorDaMolduraDoCartao);
+                mMolduraDoCartao->SetFundo(kCorDoFundoDoCartao);
+            }
+            mostrar(mSombraVermelha, false);
+            mostrar(mSombraCiano, false);
+            mostrar(mSeloSecreto, false);
+            UpdateStageInfo();
+        }
+        mEraGamer = false;
+        return;
+    }
+    if (!mEraGamer) {
+        mEraGamer = true;
+        mTempoGamer = 0.0f;
+        UpdateStageInfo();   // as linhas que falam como jogo
+    }
+    mTempoGamer += deltaTime;
+    const float t = mTempoGamer;
+    const float meiaL = kCartaoLargura / 2.0f, meiaA = kCartaoAltura / 2.0f;
+    const Vector2 de(kCartaoX - meiaL, kCartaoY - meiaA), ate(kCartaoX + meiaL, kCartaoY + meiaA);
+
+    // A moldura em neon, e o brilho em volta: tres contornos que se apagam para fora.
+    const SDL_Color neon = Neon(t * 0.6f, 255);
+    if (mMolduraDoCartao) {
+        mMolduraDoCartao->SetMoldura(neon);
+        mMolduraDoCartao->SetFundo(SDL_Color{18, 6, 32, 232});
+    }
+    const auto contorno = [&](const Vector2& a, const Vector2& b, const SDL_Color c) {
+        mNeonDoCartao->Acrescentar(a, Vector2(b.x, a.y), c);
+        mNeonDoCartao->Acrescentar(Vector2(b.x, a.y), b, c);
+        mNeonDoCartao->Acrescentar(b, Vector2(a.x, b.y), c);
+        mNeonDoCartao->Acrescentar(Vector2(a.x, b.y), a, c);
+    };
+    for (int k = 1; k <= 3; ++k) {
+        const Vector2 folga(3.0f * static_cast<float>(k), 3.0f * static_cast<float>(k));
+        contorno(de - folga, ate + folga, Neon(t * 0.6f, static_cast<Uint8>(150 / k)));
+    }
+    // Os cantos de mira, grossos.
+    const float braco = 28.0f;
+    for (const Vector2& canto : {de, Vector2(ate.x, de.y), ate, Vector2(de.x, ate.y)}) {
+        const float sx = canto.x < kCartaoX ? 1.0f : -1.0f, sy = canto.y < kCartaoY ? 1.0f : -1.0f;
+        const Vector2 c = canto + Vector2(-sx * 8.0f, -sy * 8.0f);
+        mNeonDoCartao->Preencher(c, c + Vector2(sx * braco, sy * 4.0f), SDL_Color{255, 255, 255, 230});
+        mNeonDoCartao->Preencher(c, c + Vector2(sx * 4.0f, sy * braco), SDL_Color{255, 255, 255, 230});
+    }
+
+    // A tela de tubo: as linhas de varredura, e a barra clara que desce.
+    for (float y = de.y + 2.0f; y < ate.y; y += 4.0f) {
+        mNeonDoCartao->Acrescentar(Vector2(de.x + 2.0f, y), Vector2(ate.x - 2.0f, y), SDL_Color{0, 0, 0, 70});
+    }
+    const float barra = de.y + std::fmod(t, 2.4f) / 2.4f * kCartaoAltura;
+    mNeonDoCartao->Preencher(Vector2(de.x + 2.0f, barra), Vector2(ate.x - 2.0f, std::min(ate.y, barra + 3.0f)),
+                             SDL_Color{neon.r, neon.g, neon.b, 46});
+
+    // O glitch: de vez em quando, umas fatias do cartao escorregam para o lado, em magenta e ciano.
+    const bool glitch = std::fmod(t, 2.2f) < 0.14f;
+    if (glitch) {
+        const float vez = std::floor(t / 2.2f);
+        for (int k = 0; k < 3; ++k) {
+            const float y = de.y + 10.0f + Sorte(vez * 7.0f + static_cast<float>(k)) * (kCartaoAltura - 30.0f);
+            const float h = 4.0f + 8.0f * Sorte(vez * 11.0f + static_cast<float>(k));
+            const float dx = (Sorte(vez * 13.0f + static_cast<float>(k)) - 0.5f) * 28.0f;
+            const SDL_Color c = k % 2 == 0 ? SDL_Color{255, 40, 200, 90} : SDL_Color{40, 230, 255, 90};
+            mNeonDoCartao->Preencher(Vector2(de.x + 4.0f + dx, y), Vector2(ate.x - 4.0f + dx, y + h), c);
+        }
+    }
+    // O titulo com aberracao cromatica: as sombras se afastam no glitch.
+    if (mSombraVermelha) mSombraVermelha->SetPosition(Vector2(kCartaoX - (glitch ? 7.0f : 3.0f), kCartaoY - 86.f));
+    if (mSombraCiano) mSombraCiano->SetPosition(Vector2(kCartaoX + (glitch ? 7.0f : 3.0f), kCartaoY - 86.f));
+    mostrar(mSombraVermelha, true);
+    mostrar(mSombraCiano, true);
+    mostrar(mSeloSecreto, std::fmod(t, 0.9f) < 0.6f);
+
+    // As faiscas de pixel, correndo pela beira do cartao.
+    const float perimetro = 2.0f * (kCartaoLargura + kCartaoAltura);
+    for (int k = 0; k < 12; ++k) {
+        float s = std::fmod(Sorte(static_cast<float>(k) + 1.0f) * perimetro + t * 60.0f, perimetro);
+        Vector2 p;
+        const float fora = 16.0f;
+        if (s < kCartaoLargura) p = Vector2(de.x + s, de.y - fora);
+        else if ((s -= kCartaoLargura) < kCartaoAltura) p = Vector2(ate.x + fora, de.y + s);
+        else if ((s -= kCartaoAltura) < kCartaoLargura) p = Vector2(ate.x - s, ate.y + fora);
+        else p = Vector2(de.x - fora, ate.y - (s - kCartaoLargura));
+        const float brilho = 0.5f + 0.5f * std::sin(t * 6.0f + static_cast<float>(k) * 1.7f);
+        const float lado = 2.0f + 3.0f * brilho;
+        mNeonDoCartao->Preencher(p - Vector2(lado, lado) * 0.5f, p + Vector2(lado, lado) * 0.5f,
+                                 Neon(t * 0.6f + static_cast<float>(k) * 0.25f, static_cast<Uint8>(120 + 135 * brilho)));
+    }
+
+    // As letras em neon, trocando de cor dez vezes por segundo (cada troca refaz a letra).
+    static constexpr float kTrocas = 0.1f;
+    if (std::fmod(t, kTrocas) < deltaTime || t < deltaTime * 1.5f) {
+        const auto vetor = [](const SDL_Color c) {
+            return Vector3(static_cast<float>(c.r) / 255.0f, static_cast<float>(c.g) / 255.0f, static_cast<float>(c.b) / 255.0f);
+        };
+        if (auto* dc = mNomeAtor ? mNomeAtor->GetComponent<DrawTextComponent>() : nullptr) dc->SetColor(vetor(Neon(t * 0.6f + 1.0f, 255)));
+        if (auto* dc = mEstadoAtor ? mEstadoAtor->GetComponent<DrawTextComponent>() : nullptr) {
+            const float nota = mGame->GetMelhorNota(mSelectedSubject);
+            if (nota <= 0.0f) dc->SetColor(std::fmod(t, 0.5f) < 0.25f ? Vector3(1.0f, 0.85f, 0.3f) : Vector3(1.0f, 0.3f, 0.9f));
+            else dc->SetColor(Vector3(1.0f, 0.85f, 0.3f));
+        }
+    }
 }
 
 void StageSelect::AtualizarRodape(const std::string& acao) const {

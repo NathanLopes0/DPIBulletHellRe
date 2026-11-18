@@ -136,6 +136,22 @@ private:
 
     void UpdateStageInfo() const;
 
+    // ---- O cartao da materia secreta: a cara de fliperama ----
+    /// Com o cursor na secreta (aberta), o cartao vira outro: a moldura em neon que troca de cor, as
+    /// linhas de varredura de uma tela de tubo, um glitch de vez em quando, os cantos de mira, as
+    /// faiscas de pixel e o titulo com aberracao cromatica - e as linhas falam como jogo: CHEFE
+    /// SECRETO, HI-SCORE, NOVO DESAFIANTE. Algo diferente vai acontecer.
+    [[nodiscard]] bool CartaoGamer() const;
+    void AtualizarCartaoGamer(float deltaTime);
+    DrawCaixaComponent* mMolduraDoCartao = nullptr;
+    DrawLinhasComponent* mNeonDoCartao = nullptr;
+    Actor* mSombraVermelha = nullptr;
+    Actor* mSombraCiano = nullptr;
+    Actor* mSeloSecreto = nullptr;
+    float mTempoGamer = 0.0f;
+    bool mEraGamer = false;
+    static constexpr int kOrdemDoNeon = 72;
+
     // ---- A compra das optativas com horas (Horas::PodeComprar) ----
     /// Todos os que ainda nao tem a optativa em foco podem compra-la agora?
     [[nodiscard]] bool DaParaComprar() const;
