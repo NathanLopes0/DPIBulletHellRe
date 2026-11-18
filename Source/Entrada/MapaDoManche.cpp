@@ -166,6 +166,19 @@ bool Apertado(const Leitura& leitura, const Posicao& posicao, const Painel::Sist
     return BotaoApertado(leitura, botao == Painel::Sistema::Start ? posicao.start : posicao.select);
 }
 
+int DonoDoSistema(const Configuracao& configuracao, const int dispositivo, const int botao, const Painel::Sistema sistema) {
+    if (botao < 0) return -1;
+    const auto numero = [&](const Posicao& p) { return sistema == Painel::Sistema::Start ? p.start : p.select; };
+    for (size_t i = 0; i < configuracao.posicoes.size(); ++i) {
+        const Posicao& p = configuracao.posicoes[i];
+        if (p.dispositivo == dispositivo && numero(p) == botao) return static_cast<int>(i);
+    }
+    for (size_t i = 0; i < configuracao.posicoes.size(); ++i) {
+        if (numero(configuracao.posicoes[i]) == botao) return static_cast<int>(i);
+    }
+    return -1;
+}
+
 void Apertar(const Leitura& leitura, const Posicao& posicao, const float zonaMorta, const Painel::Jogador quem,
              Uint8* teclado, const int quantasTeclas) {
     if (!teclado) return;

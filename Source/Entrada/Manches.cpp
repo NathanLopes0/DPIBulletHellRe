@@ -59,7 +59,16 @@ void Manches::AoEvento(const SDL_Event& evento) {
             return;
         }
         case SDL_JOYBUTTONDOWN: {
-            SDL_Log("MANCHE: joystick %d, botao %d", Indice(evento.jbutton.which), evento.jbutton.button);
+            const int dispositivo = Indice(evento.jbutton.which);
+            const int botao = evento.jbutton.button;
+            SDL_Log("MANCHE: joystick %d, botao %d", dispositivo, botao);
+            for (const Painel::Sistema s : Painel::kSistemas) {
+                const int dono = MapaDoManche::DonoDoSistema(mConfiguracao, dispositivo, botao, s);
+                if (dono < 0) continue;
+                mPulsos.push_back(Pulso{Painel::Tecla(Painel::kJogadores[dono], s), kQuadrosDoPulso});
+                SDL_Log("MANCHE: o botao %d do joystick %d e o %s do jogador %d", botao, dispositivo,
+                        Painel::Nome(s), dono + 1);
+            }
             return;
         }
         case SDL_JOYHATMOTION: {
@@ -97,7 +106,13 @@ MapaDoManche::Leitura Manches::Ler(const Aberto& aberto) const {
     return l;
 }
 
-void Manches::Apertar(Uint8* teclado, const int quantasTeclas) const {
+void Manches::Apertar(Uint8* teclado, const int quantasTeclas) {
+    for (Pulso& p : mPulsos) {
+        if (teclado && p.tecla > SDL_SCANCODE_UNKNOWN && p.tecla < quantasTeclas) teclado[p.tecla] = 1;
+        --p.quadros;
+    }
+    mPulsos.erase(std::remove_if(mPulsos.begin(), mPulsos.end(), [](const Pulso& p) { return p.quadros <= 0; }),
+                  mPulsos.end());
     if (mAbertos.empty()) return;
     for (size_t p = 0; p < mConfiguracao.posicoes.size(); ++p) {
         const MapaDoManche::Posicao& posicao = mConfiguracao.posicoes[p];

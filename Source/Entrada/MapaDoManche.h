@@ -78,6 +78,12 @@ struct Leitura {
 /// Se o joystick aperta este botao de sistema desta posicao.
 [[nodiscard]] bool Apertado(const Leitura& leitura, const Posicao& posicao, Painel::Sistema botao);
 
+/// De quem e o botao de sistema 'sistema' que o botao 'botao' do joystick 'dispositivo' acabou de
+/// apertar: de quem tem esse dispositivo e esse numero; senao, do primeiro que usa esse numero em
+/// qualquer dispositivo - o gabinete que numera os joysticks de outro jeito, ou um encoder so para
+/// os dois lados, nao perde o START e o SELECT. -1: de ninguem.
+[[nodiscard]] int DonoDoSistema(const Configuracao& configuracao, int dispositivo, int botao, Painel::Sistema sistema);
+
 /// Liga em 'teclado' as teclas de 'quem' que o joystick aperta. Nunca desliga nada: o teclado de
 /// verdade continua valendo junto.
 void Apertar(const Leitura& leitura, const Posicao& posicao, float zonaMorta, Painel::Jogador quem,

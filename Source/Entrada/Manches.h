@@ -26,8 +26,9 @@ public:
     /// Os eventos de joystick: chegada, saida e o diagnostico.
     void AoEvento(const SDL_Event& evento);
 
-    /// Liga em 'teclado' as teclas que os joysticks apertam neste quadro.
-    void Apertar(Uint8* teclado, int quantasTeclas) const;
+    /// Liga em 'teclado' as teclas que os joysticks apertam neste quadro - e as do START e do
+    /// SELECT que chegaram por evento (MapaDoManche::DonoDoSistema), por uns quadros.
+    void Apertar(Uint8* teclado, int quantasTeclas);
 
     [[nodiscard]] bool AlgumLigado() const { return !mAbertos.empty(); }
 
@@ -44,6 +45,16 @@ private:
 
     [[nodiscard]] int Indice(SDL_JoystickID id) const;
     [[nodiscard]] MapaDoManche::Leitura Ler(const Aberto& aberto) const;
+
+    /// O START e o SELECT chegam tambem pelo evento do botao, de qualquer joystick: a tecla do dono
+    /// fica apertada por kQuadrosDoPulso quadros, e quem nasceu com o dispositivo trocado nao perde
+    /// o botao. As cenas leem a borda, entao o pulso junto com a leitura normal conta uma vez so.
+    struct Pulso {
+        SDL_Scancode tecla = SDL_SCANCODE_UNKNOWN;
+        int quadros = 0;
+    };
+    static constexpr int kQuadrosDoPulso = 3;
+    std::vector<Pulso> mPulsos;
 
     MapaDoManche::Configuracao mConfiguracao = MapaDoManche::Padrao();
     /// Na ordem em que chegaram: o "dispositivo" do painel.json e a posicao aqui.

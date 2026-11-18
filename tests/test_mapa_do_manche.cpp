@@ -224,3 +224,28 @@ TEST_CASE("MapaDoManche: o foco do joystick segura a tecla do foco da posicao") 
     CHECK(c.posicoes[0].foco == 6);
     CHECK(c.posicoes[1].foco == MapaDoManche::kNenhum);
 }
+
+TEST_CASE("MapaDoManche: o SELECT e o START acham o dono mesmo com o joystick numerado de outro jeito") {
+    using MapaDoManche::DonoDoSistema;
+    MapaDoManche::Configuracao c = MapaDoManche::Padrao();   // jogador 1 no 0, jogador 2 no 1; SELECT 8, START 9
+    // O caso certo: cada um no seu dispositivo.
+    CHECK(DonoDoSistema(c, 0, 8, Painel::Sistema::Select) == 0);
+    CHECK(DonoDoSistema(c, 1, 8, Painel::Sistema::Select) == 1);
+    CHECK(DonoDoSistema(c, 1, 9, Painel::Sistema::Start) == 1);
+    // O gabinete que da outro numero ao joystick: o botao 8 ainda e um SELECT - o do primeiro.
+    CHECK(DonoDoSistema(c, 3, 8, Painel::Sistema::Select) == 0);
+    CHECK(DonoDoSistema(c, -1, 9, Painel::Sistema::Start) == 0);
+    // Outro botao nao e SELECT de ninguem.
+    CHECK(DonoDoSistema(c, 0, 7, Painel::Sistema::Select) == -1);
+    CHECK(DonoDoSistema(c, 0, 8, Painel::Sistema::Start) == -1);
+    // Um encoder so para os dois lados, com numeros diferentes: cada botao acha o seu dono.
+    c.posicoes[1].dispositivo = 0;
+    c.posicoes[1].select = 18;
+    CHECK(DonoDoSistema(c, 0, 18, Painel::Sistema::Select) == 1);
+    CHECK(DonoDoSistema(c, 0, 8, Painel::Sistema::Select) == 0);
+    // Sem SELECT configurado (-1), nenhum botao o aperta.
+    c.posicoes[0].select = MapaDoManche::kNenhum;
+    c.posicoes[1].select = MapaDoManche::kNenhum;
+    CHECK(DonoDoSistema(c, 0, -1, Painel::Sistema::Select) == -1);
+    CHECK(DonoDoSistema(c, 0, 8, Painel::Sistema::Select) == -1);
+}
