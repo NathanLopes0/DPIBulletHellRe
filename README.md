@@ -787,27 +787,42 @@ quem desvia ainda passa. O Normal continua sendo as fases como foram pensadas.
   **convolução**, **os seus tiros são a imagem**: cada célula que um tiro seu
   cruza acende, e um filtro 3×3 varre a grade linha por linha; onde a resposta
   passa do limiar (a ReLU), a célula pisca e dispara em você. Atirar é preciso,
-  mas o que você acende é o que a rede lê. No **pooling**, o maior de cada bloco
-  2×2 dispara mais forte, e no fim tudo vira um vetor — o anel do tamanho de
-  tudo o que você acendeu. Na **rede**, as camadas de neurônios cobrem o campo
-  inteiro — a entrada perto dele, a saída perto do chão —, e os sinais andam
-  pelas ligações fortes; a última camada dispara em você. **Derrubar um neurônio
-  é o dropout**, com um tiro ou encostando nele: ele sai da rede por um tempo,
-  vale um pouco de nota, e o que chegaria nele se perde — você escolhe que
-  caminho cortar, e atravessa a rede para chegar lá. Na
-  **retropropagação**, a rede aprende qual saída está em cima de você, e as
-  ligações até ela engrossam; na **residual**, a rede fica funda e os atalhos
-  pulam duas camadas levando o sinal inteiro — o dropout no meio não os corta. O
-  exame é no **MaVIlab**: na **segmentação**, o encoder-decoder pinta a máscara
-  de onde você está, da grade 2×2 à 16×16, e a célula marcada vira pixels de
-  tiro — com a do passo anterior, pelo atalho; na **recorrente**, a rede
-  lembra do seu caminho e atira onde você **vai** estar (o fantasma pontilhado
-  é a previsão), e a LSTM lembra também da curva: quem quebra o padrão escapa.
-  Na **detecção**, os colegas do laboratório, de jaleco, andam pelo campo, e o
-  detector procura você entre eles: a confiança de cada caixa sobe com o
-  movimento e com os tiros, e quando o NMS escolhe, a caixa é cercada — e, se
-  era você, o rastreador o segue atirando dos cantos. Quem fica quieto como um
-  colega na hora certa passa despercebido.
+  mas o que você acende é o que a rede lê. No Difícil são **dois filtros**: o
+  gaussiano (a janela amarela) responde onde você atirou, e o **de borda** — o
+  Sobel, a janela rosa e tracejada — varre de trás para a frente e responde
+  **ao lado**, na fronteira entre o aceso e o apagado: quem não para de atirar
+  acende as duas coisas. No **pooling**, o maior de cada bloco 2×2 dispara mais
+  forte, e no fim tudo vira um vetor — o anel do tamanho de tudo o que você
+  acendeu; no Difícil, dois anéis, um por mapa, o segundo no vão do primeiro.
+  Na **rede**, as camadas de neurônios cobrem o campo inteiro — a entrada perto
+  dele, a saída perto do chão. O neurônio que passa do limiar **dispara**: as
+  ligações fortes dele acendem em três linhas que piscam cada vez mais rápido
+  (o aviso), e um **pulso** — um trem de tiros — corre por cada uma, cruzando o
+  campo; a última camada dispara em você. **Derrubar um neurônio é o
+  dropout**, com um tiro ou encostando nele — ao contrário do resto do jogo,
+  aqui encostar no inimigo é o que salva: ele sai da rede por um tempo, as
+  ligações dele ficam apagadas e tracejadas, e os pulsos delas, no caminho ou
+  por sair, **se perdem na hora**. Você escolhe que caminho cortar, e atravessa
+  a rede para chegar lá. Na **retropropagação**, a rede aprende qual saída está
+  em cima de você, e as ligações até ela engrossam e ficam vermelhas; derrubar
+  essa saída faz a época falhar (o anel dela se parte). Na **residual**, a rede
+  fica funda e os atalhos dourados pulam duas camadas levando o pulso inteiro —
+  o dropout no meio não os corta: é preciso derrubar onde eles chegam. O exame
+  é no **MaVIlab**, e cada etapa se lê sem texto: na **segmentação**, o
+  encoder-decoder pinta a máscara de onde você está, da grade 2×2 à 16×16 — a
+  célula marcada **enche** até disparar, e a borda pisca no fim: é a hora de
+  sair dela —, e ela vira pixels de tiro, com a do passo anterior pelo atalho (a
+  linha tracejada liga onde você estava a onde está); na **recorrente**, a rede
+  lembra do seu caminho — os pontos do seu rastro são a memória — e atira onde
+  você **vai** estar: o fantasma com a mira é a previsão, e as linhas de mira
+  mostram de onde sai a rajada. A LSTM lembra também da curva: quem quebra o
+  padrão escapa. Na **detecção**, os colegas do laboratório, de jaleco, andam
+  pelo campo, e o detector procura você entre eles: cada um tem uma caixa com a
+  barra de confiança (a sua é branca), que sobe com o movimento e com os tiros;
+  a linha de varredura passa enquanto ele procura, e quando o NMS escolhe, a
+  caixa é cercada — e, se era você, o rastreador o segue atirando dos cantos.
+  Quem fica quieto como um colega na hora certa passa despercebido; no Difícil,
+  o detector é mais sensível.
 - **Sabrina — INF 491, optativa.** Tópicos Especiais, Bioinformática, da
   professora que lê sequências e gira moléculas em 3D — a mais pesada das
   optativas, e a única em que **você carrega um estado**. Na **dupla hélice**,

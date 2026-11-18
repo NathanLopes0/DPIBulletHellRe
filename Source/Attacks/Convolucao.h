@@ -22,6 +22,9 @@
 ///     le;
 ///   - no pooling, o maximo de cada bloco 2x2 vira uma celula grande, que dispara mais forte, e no
 ///     fim tudo vira um vetor so - o anel do tamanho de tudo o que se acendeu.
+/// No Dificil, a convolucao tem dois filtros: o gaussiano responde ONDE se atirou, e o de borda
+/// (Sobel) varre de tras para a frente e responde AO LADO - na fronteira entre o aceso e o apagado.
+/// Atirar sem parar acende as duas coisas; o vetor do pooling sai em dois aneis, um por mapa.
 namespace Convolucao {
 
     /// Os nomes que o codigo e os dados dividem. Um teste confere cada um.
@@ -78,11 +81,21 @@ namespace Convolucao {
                                    2.0f / 16, 1.0f / 16, 2.0f / 16, 1.0f / 16};
     /// A resposta do filtro centrado na celula (c, l), com padding de zeros.
     float Resposta(const Grade& g, int c, int l, const Filtro& f);
+    /// Os filtros de Sobel: a derivada da imagem em x e em y. Os pesos de cada um somam zero - a
+    /// imagem lisa nao responde, so a borda.
+    constexpr Filtro kSobelX = {-1.0f, 0.0f, 1.0f, -2.0f, 0.0f, 2.0f, -1.0f, 0.0f, 1.0f};
+    constexpr Filtro kSobelY = {-1.0f, -2.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 2.0f, 1.0f};
+    /// A forca da borda na celula (c, l): o tamanho do gradiente de Sobel, dividido por 4 - a borda
+    /// reta entre uma coluna acesa (1) e uma apagada vale 1. No meio de uma faixa acesa, zero.
+    float Borda(const Grade& g, int c, int l);
     /// A ReLU com limiar: o que passa dele, e zero abaixo.
     float Relu(float x, float limiar);
     /// Onde a janela esta no passo 'passo' da varredura: linha por linha, da esquerda para a direita,
     /// e de volta ao comeco. Passo 1 (stride 1).
     std::pair<int, int> Janela(int passo, int colunas, int linhas);
+    /// A janela do filtro de borda: a mesma varredura de tras para a frente - da ultima celula ate a
+    /// primeira, e de volta ao fim.
+    std::pair<int, int> JanelaDeVolta(int passo, int colunas, int linhas);
 
     // ---- O pooling ----
 
@@ -98,8 +111,8 @@ namespace Convolucao {
     // ---- O ritmo ----
 
     struct Degrau {
-        float entreFluxos = 0.12f;       ///< um tiro do gradiente a cada
-        float velocidadeDoFluxo = 135.0f;
+        float entreFluxos = 0.10f;       ///< um tiro do gradiente a cada
+        float velocidadeDoFluxo = 150.0f;
         float vidaDoFluxo = 4.6f;
         float atualizacaoDoDescritor = 0.8f;
         float brilhoPorSegundo = 1.3f;   ///< o quanto um tiro do aluno acende a celula em que esta
@@ -112,8 +125,11 @@ namespace Convolucao {
         int tirosMinimos = 4;
         int tirosMaximos = 9;
         float entreLeques = 1.15f;
-        int tirosDoLeque = 5;
+        int tirosDoLeque = 6;
         int tirosDoVetor = 36;           ///< o anel do vetor, com a imagem toda acesa
+        /// Quantos filtros varrem a imagem: com 2, o de borda tambem, e o vetor sai em dois aneis.
+        int filtros = 1;
+        float limiarDaBorda = 0.3f;      ///< o da ReLU do filtro de borda
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 

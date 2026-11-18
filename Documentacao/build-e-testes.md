@@ -262,18 +262,27 @@ só anda atrás do professor, atirando. Para elas há um segundo perfil,
 que machucam — meio segundo adiante — e escolhe o rumo mais seguro
 (`Simulacao::Desviar`). É o teto de quem **só desvia**: vê tudo e reage na hora.
 A linha de base continua com o `segue`; o `esquiva` é a segunda leitura de uma
-optativa. Na INF 429, sozinho, com as sementes 101 a 103:
+optativa. Na INF 429, sozinho, com as sementes 101 a 106 no `esquiva` e 101 a
+103 no `segue`:
 
 | Piloto | Normal | Difícil |
 |---|---|---|
-| `segue` | 58 (reprova por pouco) | 0 a 18 |
-| `esquiva` | 82 a 88 | 70 a 72 |
+| `segue` | 30 a 35 (reprova) | 0 (zera na fase 2) |
+| `esquiva` | 67 a 82 (aprova nas seis) | 31 a 66 (aprova em três, raspando; uma vai à repescagem e reprova nela) |
 
 Quem joga de verdade fica entre os dois: desvia pior que o `esquiva`, mas pode
-entender a fase — e é isso que a INF 429 cobra. Desde que a rede da fase 3
-cobre o campo e encostar num neurônio também é dropout, o `segue` — que anda
-atrás do professor, atravessando a rede — derruba neurônios sem querer, e
-passou dos 27 a 39 para 58.
+entender a fase — e é isso que a INF 429 cobra. Antes, o `esquiva` passava sem
+ser acertado nas fases 2 e 3 (82 a 88 no Normal, 70 a 72 no Difícil): a rede só
+propagava tiros soltos e lentos. Agora o neurônio que dispara manda **pulsos**
+— trens de tiros rápidos, depois do aviso da ligação acesa —, e o dropout os
+corta; no Difícil, a convolução tem o **filtro de borda**, que dispara ao lado
+de onde se atirou, e o vetor do pooling sai em dois anéis. O `esquiva` não para
+de atirar na convolução (acende os dois mapas), só derruba os neurônios que
+estão em cima dele e não se esconde do detector: o que ele perde, perde por não
+entender a fase. Em dupla, o `esquiva` tira 75 a 83 no Normal e aprova em duas
+de três no Difícil (62 e 63); na terceira, os dois sobem até o professor na rede
+e a segmentação do MaVIlab os prende contra a parede de cima — quem joga sai da
+célula que enche, e o `esquiva` não a vê encher.
 
 A INF 491, da Sabrina, é mais dura que a INF 429 nos dois modos. Sozinho, com
 as sementes 101 a 106 no `esquiva` e 101 a 103 no `segue`:

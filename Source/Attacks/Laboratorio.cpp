@@ -182,6 +182,8 @@ namespace Laboratorio {
         d.rastreio = 1.4f;
         d.entreRastreios = 0.24f;
         d.entreRuidos = 0.4f;
+        d.sensibilidade = 1.35f;
+        d.fatorDoAviso = 0.8f;
         return d;
     }
 }

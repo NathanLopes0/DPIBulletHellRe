@@ -122,18 +122,26 @@ namespace RedeNeural {
         return melhor;
     }
 
+    bool Corta(const int k, const int i, const int kDe, const int de, const int kAte, const int ate) {
+        return (k == kDe && i == de) || (k == kAte && i == ate);
+    }
+
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
         if (n != Dificuldade::Nivel::Dificil) return d;
-        d.entreEntradas = 0.34f;
-        d.velocidadeDoSinal = 170.0f;
+        d.entreEntradas = 0.19f;
+        d.velocidadeDoPulso = 430.0f;
+        d.avisoDoPulso = 0.32f;
+        d.vagoes = 5;
+        d.entreVagoes = 0.05f;
         d.ligacaoForte = 0.5f;
-        d.resistencia = 4;
-        d.dropout = 2.6f;
+        d.resistencia = 7;
+        d.dropout = 2.4f;
         d.entreTreinos = 0.7f;
         d.taxa = 0.22f;
-        d.tirosDaSaida = 4;
-        d.velocidadeDaSaida = 220.0f;
+        d.tirosDaSaida = 6;
+        d.aberturaDaSaida = 40.0f;
+        d.velocidadeDaSaida = 250.0f;
         return d;
     }
 }

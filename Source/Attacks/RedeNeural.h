@@ -11,15 +11,18 @@
 #include "../Regras/Variacao.h"
 
 /// A fase 3 do Michel e a rede por dentro, e ela ocupa o campo inteiro: as camadas de neuronios vao
-/// do alto ate o chao, e os sinais (tiros) andam pelas ligacoes de uma camada para a seguinte,
-/// cruzando o campo. Cada neuronio soma o que chega e, passando do limiar, dispara pelas ligacoes
-/// fortes; a ultima camada, no chao, dispara no aluno de perto. O neuronio nao machuca: encostar
-/// nele, ou acerta-lo, o tira da rede por um tempo (o dropout) - e o que chegaria nele se perde:
+/// do alto ate o chao. Cada neuronio soma o que chega e, passando do limiar, dispara: as ligacoes
+/// fortes dele acendem (o aviso) e um PULSO - um trem de tiros - corre por cada uma, cruzando o
+/// campo. A ultima camada, no chao, dispara no aluno de perto. O neuronio nao machuca: encostar
+/// nele, ou acerta-lo, o tira da rede por um tempo (o dropout) - e corta na hora os pulsos das
+/// ligacoes dele, que ficam apagadas. Ao contrario de todo o resto do jogo, aqui encostar no
+/// inimigo e o que salva: e assim que se abre caminho pela rede.
 ///   - nos neuronios, a rede so propaga. Quem joga escolhe que caminho cortar, e anda pela rede
 ///     para corta-lo;
 ///   - na retropropagacao, o erro volta: a rede aprende qual saida esta em cima do aluno, e as
-///     ligacoes ate ela engrossam. Ficar parado e ensinar a rede;
-///   - na residual, a rede fica funda, e os atalhos pulam duas camadas de uma vez, levando o sinal
+///     ligacoes ate ela engrossam (e ficam vermelhas). Ficar parado e ensinar a rede; derrubar a
+///     saida que aprende faz a epoca falhar;
+///   - na residual, a rede fica funda, e os atalhos pulam duas camadas de uma vez, levando o pulso
 ///     inteiro. O dropout no meio nao corta o atalho: e preciso derrubar onde ele chega.
 namespace RedeNeural {
 
@@ -78,11 +81,18 @@ namespace RedeNeural {
     /// A saida mais perto do aluno, pelo x de cada uma.
     int SaidaDoAluno(const std::vector<float>& xDasSaidas, float xDoAluno);
 
+    /// Se o dropout do neuronio 'i' da camada 'k' corta o pulso que vai do 'de' da camada 'kDe' ao
+    /// 'ate' da camada 'kAte': so se ele e uma das pontas. O do meio de um atalho nao o corta.
+    bool Corta(int k, int i, int kDe, int de, int kAte, int ate);
+
     // ---- O ritmo ----
 
     struct Degrau {
-        float entreEntradas = 0.42f;     ///< o professor manda um sinal a um neuronio da entrada
-        float velocidadeDoSinal = 150.0f;
+        float entreEntradas = 0.26f;     ///< o professor manda um sinal a um neuronio da entrada
+        float velocidadeDoPulso = 380.0f;
+        float avisoDoPulso = 0.45f;      ///< a ligacao acesa antes de o pulso sair
+        int vagoes = 3;                  ///< os tiros de um pulso, um atras do outro
+        float entreVagoes = 0.055f;      ///< segundos entre um vagao e o seguinte
         float limiar = 1.0f;             ///< o das camadas do meio
         float limiarDaSaida = 1.5f;
         float ligacaoForte = 0.55f;      ///< o peso a partir do qual a ligacao leva sinal
@@ -92,9 +102,9 @@ namespace RedeNeural {
         float dropout = 3.2f;            ///< o tempo que ele fica fora
         float entreTreinos = 0.9f;
         float taxa = 0.18f;
-        int tirosDaSaida = 3;
-        float aberturaDaSaida = 24.0f;
-        float velocidadeDaSaida = 200.0f;
+        int tirosDaSaida = 4;
+        float aberturaDaSaida = 30.0f;
+        float velocidadeDaSaida = 220.0f;
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 
@@ -103,6 +113,6 @@ namespace RedeNeural {
     constexpr float kAlturaDaSaida = 0.92f;
     /// O neuronio tem a classe do aluno (Player::DefinirClasse): encostar nele nao machuca - derruba.
     constexpr int kClasseDaRede = 7;
-    /// O que tirar um neuronio da rede vale na nota.
-    constexpr float kPremioDoDropout = 0.4f;
+    /// O que tirar um neuronio da rede vale na nota: pouco - o dropout e para abrir caminho.
+    constexpr float kPremioDoDropout = 0.15f;
 }

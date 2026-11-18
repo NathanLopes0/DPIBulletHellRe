@@ -26,7 +26,8 @@ class DrawLinhasComponent;
 ///      baixo; o foco muda o aumento, e o desfoque faz anel de tudo o que nao esta na sua altura;
 ///   2. os descritores - as setas do gradiente levam os tiros (e a imagem gira, e elas nao); na
 ///      convolucao, os tiros do aluno acendem a imagem que o filtro le; no pooling, tudo vira vetor;
-///   3. a rede - os sinais andam de camada em camada; derrubar um neuronio e o dropout; a
+///   3. a rede - cada neuronio que dispara manda pulsos (trens de tiros) pelas ligacoes fortes,
+///      cruzando o campo; derrubar um neuronio e o dropout, e corta os pulsos das ligacoes dele; a
 ///      retropropagacao aprende onde o aluno esta; os atalhos da residual pulam o dropout;
 ///   e a repescagem, no MaVIlab: a mascara do encoder-decoder, a recorrente que preve o caminho, e o
 ///   detector que procura o aluno entre os colegas do laboratorio.
@@ -159,6 +160,14 @@ private:
     float mProximoLeque = 0.0f;
     bool mVetorDisparado = false;
     float mUltimaResposta = 0.0f;
+    // O filtro de borda (o Dificil): a janela que vem de tras para a frente.
+    int mPassoDaBorda = -1;
+    float mProximaBorda = 0.0f;
+    float mUltimaBorda = 0.0f;
+    /// O anel do segundo mapa, logo depois do primeiro (o Dificil); -1: nao ha, ou ja saiu.
+    float mSegundoVetor = -1.0f;
+    int mTirosDoVetor = 0;
+    static constexpr float kEntreOsVetores = 0.28f;
     /// Uma ativacao que ja passou do limiar e pisca antes de disparar: de onde, quantos tiros, a
     /// abertura, quando, e as celulas que ela acende.
     struct Ativacao {
@@ -171,6 +180,7 @@ private:
         int linha = 0;
         int lado = 1;            ///< 1: a celula; 2: o bloco 2x2 do pooling
         float valor = 0.0f;
+        bool borda = false;      ///< do filtro de borda: pisca na cor dele
     };
     std::vector<Ativacao> mPendentes;
 
@@ -181,7 +191,15 @@ private:
     void MontarARede(int etapa);
     [[nodiscard]] Vector2 LugarDoNeuronio(int camada, int i) const;
     void Disparou(int camada, int i);
-    void MandarSinal(Vector2 de, int camada, int ate, float peso, bool atalho);
+    /// Um vagao de um pulso: de 'de' (o neuronio 'iDe' da camada 'camadaDe'; -1, o professor) ao
+    /// 'ate' da 'camada'. So o primeiro vagao ('leva') soma o peso no neuronio de chegada.
+    void MandarSinal(Vector2 de, int camada, int ate, float peso, bool atalho, int camadaDe = -1, int iDe = -1,
+                     bool leva = true);
+    /// O dropout do neuronio 'i' da camada 'k': os pulsos das ligacoes dele, no caminho ou por sair,
+    /// se perdem.
+    void Cortar(int k, int i);
+    /// Se o neuronio esta fora da rede agora.
+    [[nodiscard]] bool Fora(int k, int i) const;
     RedeNeural::Rede mRede;
     int mEtapaDaRede = -1;
     struct Neuronio {
@@ -201,8 +219,23 @@ private:
         float sai = 0.0f;
         float chega = 0.0f;
         bool atalho = false;
+        int camadaDe = -1;       ///< o neuronio de onde ele saiu (-1: o professor)
+        int de_ = -1;
+        bool leva = true;        ///< o primeiro vagao: e ele que soma no neuronio de chegada
     };
     std::vector<Sinal> mSinais;
+    /// Os vagoes que ainda vao sair: a ligacao fica acesa enquanto isso - o aviso.
+    struct PorVir {
+        int camadaDe = 0;
+        int de = 0;
+        int camada = 0;
+        int ate = 0;
+        float peso = 0.0f;
+        bool atalho = false;
+        bool leva = true;
+        float sai = 0.0f;
+    };
+    std::vector<PorVir> mPorVir;
     [[nodiscard]] static Vector2 NoCaminho(const Sinal& s, float u);
     float mProximaEntrada = 0.0f;
     float mProximoTreino = 0.0f;
@@ -218,6 +251,7 @@ private:
     // A segmentacao
     struct MascaraEmCampo {
         Laboratorio::Mascara m;
+        float inicio = 0.0f;     ///< quando o decoder a pintou: a celula enche ate 'dispara'
         float dispara = 0.0f;
         float some = 0.0f;
         float espacamento = 40.0f;
@@ -227,11 +261,24 @@ private:
     std::vector<MascaraEmCampo> mMascaras;
     size_t mPassoDoDecoder = 0;
     std::vector<Vector2> mAtalhos;
+    /// O atalho que se ve: de onde o aluno estava (o passo anterior) ate onde ele esta, no campo.
+    std::vector<std::pair<Vector2, Vector2>> mElos;
+    float mElosAte = -1.0f;
     float mProximoRuido = 0.0f;
     // A recorrente
     std::vector<Laboratorio::Memoria> mMemorias;
     float mProximaPrevisao = 0.0f;
     bool mLstm = false;
+    /// O rastro de cada aluno, a memoria que se ve: as ultimas posicoes, da mais velha a mais nova.
+    std::vector<std::vector<Vector2>> mRastros;
+    float mProximoRastro = 0.0f;
+    /// A mira de cada rajada da previsao: de onde saiu ate o fantasma, por um instante.
+    struct Mira {
+        Vector2 de;
+        Vector2 para;
+        float ate = 0.0f;
+    };
+    std::vector<Mira> mMiras;
     // A deteccao
     struct Colega {
         BossProjectile* p = nullptr;
@@ -268,6 +315,7 @@ private:
     static constexpr SDL_Color kBrilho = {110, 220, 255, 255};
     static constexpr SDL_Color kJanela = {255, 214, 90, 230};
     static constexpr SDL_Color kAtivo = {255, 160, 60, 255};
+    static constexpr SDL_Color kBorda = {255, 96, 210, 235};
     static constexpr SDL_Color kLigacao = {170, 190, 255, 255};
     static constexpr SDL_Color kAtalho = {255, 205, 90, 200};
     static constexpr SDL_Color kPerigo = {255, 80, 90, 255};

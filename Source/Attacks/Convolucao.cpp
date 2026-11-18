@@ -76,6 +76,11 @@ namespace Convolucao {
         return soma;
     }
 
+    float Borda(const Grade& g, const int c, const int l) {
+        const float gx = Resposta(g, c, l, kSobelX), gy = Resposta(g, c, l, kSobelY);
+        return std::sqrt(gx * gx + gy * gy) / 4.0f;
+    }
+
     float Relu(const float x, const float limiar) {
         return std::max(0.0f, x - limiar);
     }
@@ -85,6 +90,12 @@ namespace Convolucao {
         if (total <= 0) return {0, 0};
         const int p = ((passo % total) + total) % total;
         return {p % colunas, p / colunas};
+    }
+
+    std::pair<int, int> JanelaDeVolta(const int passo, const int colunas, const int linhas) {
+        const int total = colunas * linhas;
+        if (total <= 0) return {0, 0};
+        return Janela(total - 1 - (((passo % total) + total) % total), colunas, linhas);
     }
 
     Grade MaxPool(const Grade& g) {
@@ -114,20 +125,22 @@ namespace Convolucao {
     Degrau DegrauDo(const Dificuldade::Nivel n) {
         Degrau d;
         if (n != Dificuldade::Nivel::Dificil) return d;
-        d.entreFluxos = 0.13f;
-        d.velocidadeDoFluxo = 140.0f;
+        d.entreFluxos = 0.075f;
+        d.velocidadeDoFluxo = 175.0f;
         d.atualizacaoDoDescritor = 0.65f;
         d.brilhoPorSegundo = 1.5f;
         d.meiaVida = 1.3f;
         d.limiar = 0.15f;
         d.passosPorSegundo = 9.5f;
         d.passosDoPooling = 3.2f;
-        d.velocidadeDaAtivacao = 185.0f;
-        d.avisoDaAtivacao = 0.28f;
-        d.tirosMaximos = 10;
-        d.entreLeques = 1.05f;
-        d.tirosDoLeque = 6;
-        d.tirosDoVetor = 44;
+        d.velocidadeDaAtivacao = 215.0f;
+        d.avisoDaAtivacao = 0.22f;
+        d.tirosMinimos = 6;
+        d.tirosMaximos = 12;
+        d.entreLeques = 0.85f;
+        d.tirosDoLeque = 8;
+        d.tirosDoVetor = 48;
+        d.filtros = 2;
         return d;
     }
 }

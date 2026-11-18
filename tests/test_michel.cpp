@@ -145,6 +145,43 @@ TEST_CASE("Convolucao: os tiros acendem a grade, o filtro responde, o pooling fi
     CHECK(TirosDaAtivacao(1.0f, 3, 11, 0.4f) == 11);
 }
 
+TEST_CASE("Convolucao: o filtro de borda responde ao lado do que se acendeu, e varre de tras para a frente") {
+    using namespace Convolucao;
+    Grade g = Vazia(kColunas, kLinhas);
+    for (int l = 0; l < kLinhas; ++l) Pintar(g, 3, l, 1.0f, 1.0f);   // o aluno atirando parado na coluna 3
+    // No meio da faixa acesa, liso: nada. Ao lado, a borda inteira. Longe, nada.
+    CHECK(Borda(g, 3, 2) == doctest::Approx(0.0f));
+    CHECK(Borda(g, 2, 2) == doctest::Approx(1.0f));
+    CHECK(Borda(g, 4, 2) == doctest::Approx(1.0f));
+    CHECK(Borda(g, 0, 2) == doctest::Approx(0.0f));
+    // O gaussiano e o contrario: responde em cima da coluna, mais que ao lado.
+    CHECK(Resposta(g, 3, 2, kGaussiano) > Resposta(g, 2, 2, kGaussiano));
+    // A imagem lisa nao tem borda: os pesos de Sobel somam zero.
+    Grade lisa = Vazia(kColunas, kLinhas);
+    for (int l = 0; l < kLinhas; ++l) {
+        for (int c = 0; c < kColunas; ++c) Pintar(lisa, c, l, 0.7f, 1.0f);
+    }
+    CHECK(Borda(lisa, 3, 2) == doctest::Approx(0.0f));
+    float pesos = 0.0f;
+    for (size_t k = 0; k < kSobelX.size(); ++k) pesos += kSobelX[k] + kSobelY[k];
+    CHECK(pesos == doctest::Approx(0.0f));
+
+    // De tras para a frente: da ultima celula ate a primeira, e de volta ao fim.
+    CHECK(JanelaDeVolta(0, kColunas, kLinhas) == std::make_pair(kColunas - 1, kLinhas - 1));
+    CHECK(JanelaDeVolta(1, kColunas, kLinhas) == std::make_pair(kColunas - 2, kLinhas - 1));
+    CHECK(JanelaDeVolta(kColunas * kLinhas - 1, kColunas, kLinhas) == std::make_pair(0, 0));
+    CHECK(JanelaDeVolta(kColunas * kLinhas, kColunas, kLinhas) == JanelaDeVolta(0, kColunas, kLinhas));
+
+    // So o Dificil tem o segundo filtro, e a convolucao dele e mais densa e mais rapida.
+    const Degrau n = DegrauDo(Dificuldade::Nivel::Normal), d = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(n.filtros == 1);
+    CHECK(d.filtros == 2);
+    CHECK(d.entreFluxos < n.entreFluxos);
+    CHECK(d.velocidadeDaAtivacao > n.velocidadeDaAtivacao);
+    CHECK(d.avisoDaAtivacao < n.avisoDaAtivacao);
+    CHECK(d.tirosMaximos > n.tirosMaximos);
+}
+
 // ---- A rede ----
 
 TEST_CASE("RedeNeural: as camadas, as ligacoes fortes e os atalhos de duas camadas") {
@@ -215,6 +252,28 @@ TEST_CASE("RedeNeural: o neuronio dispara no limiar, e a retropropagacao engross
     CHECK(SaidaDoAluno({100.0f, 300.0f, 500.0f}, 330.0f) == 1);
     CHECK(SaidaDoAluno({100.0f, 300.0f, 500.0f}, 0.0f) == 0);
     CHECK(SaidaDoAluno({}, 0.0f) == -1);
+}
+
+TEST_CASE("RedeNeural: o dropout corta o pulso pelas pontas, e o Dificil manda pulsos mais rapidos e mais longos") {
+    using namespace RedeNeural;
+    // O pulso do neuronio 2 da camada 1 ao 0 da camada 2: cortam as duas pontas, e so elas.
+    CHECK(Corta(1, 2, 1, 2, 2, 0));
+    CHECK(Corta(2, 0, 1, 2, 2, 0));
+    CHECK_FALSE(Corta(1, 0, 1, 2, 2, 0));
+    CHECK_FALSE(Corta(2, 2, 1, 2, 2, 0));
+    // O atalho da camada 0 a 2 pula a 1: o dropout do meio nao o corta, o de onde ele chega, sim.
+    CHECK(Corta(0, 1, 0, 1, 2, 1));
+    CHECK(Corta(2, 1, 0, 1, 2, 1));
+    CHECK_FALSE(Corta(1, 1, 0, 1, 2, 1));
+
+    const Degrau n = DegrauDo(Dificuldade::Nivel::Normal), d = DegrauDo(Dificuldade::Nivel::Dificil);
+    CHECK(d.entreEntradas < n.entreEntradas);
+    CHECK(d.velocidadeDoPulso > n.velocidadeDoPulso);
+    CHECK(d.avisoDoPulso < n.avisoDoPulso);
+    CHECK(d.vagoes > n.vagoes);
+    CHECK(d.dropout < n.dropout);
+    CHECK(d.resistencia > n.resistencia);
+    CHECK(d.tirosDaSaida > n.tirosDaSaida);
 }
 
 // ---- O laboratorio ----
@@ -316,4 +375,9 @@ TEST_CASE("Laboratorio: o detector - a confianca, o IoU e o NMS") {
     CHECK(d.rodadaDoDetector < n.rodadaDoDetector);
     CHECK(d.procura < d.rodadaDoDetector);
     CHECK(n.procura + n.avisoDoCerco < n.rodadaDoDetector);
+    // No Dificil o detector e mais sensivel ao aluno, e o decoder avisa menos.
+    CHECK(n.sensibilidade == doctest::Approx(1.0f));
+    CHECK(d.sensibilidade > n.sensibilidade);
+    CHECK(n.fatorDoAviso == doctest::Approx(1.0f));
+    CHECK(d.fatorDoAviso < n.fatorDoAviso);
 }

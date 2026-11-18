@@ -131,6 +131,10 @@ namespace Laboratorio {
         float entreRastreios = 0.3f;
         float ladoDoRastreio = 140.0f;   ///< a caixa que segue o aluno; os tiros saem dos cantos
         float entreRuidos = 0.5f;
+        /// O quanto o detector e sensivel ao aluno: o movimento e os tiros dele contam vezes isto.
+        float sensibilidade = 1.0f;
+        /// O aviso de cada passo do decoder (kDecoder) vezes isto.
+        float fatorDoAviso = 1.0f;
     };
     Degrau DegrauDo(Dificuldade::Nivel n);
 }
